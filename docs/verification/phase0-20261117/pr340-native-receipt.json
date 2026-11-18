@@ -1,0 +1,20 @@
+{
+  "source_head": "90816de39460b76e35cd626721d4dac9bde905e2",
+  "source_sha256": "202307cccdd2d36fb5ab5bee0377de1a1eca460f8862bcac5ce352ea4e496819",
+  "command": "PATH=/snap/rustup/current/bin:$PATH CARGO_BUILD_JOBS=2 python3 -B tools/test_volume.py",
+  "exit_code": 0,
+  "duration_seconds": 151.164,
+  "raw_log": "/tmp/baryonos-phase0-20261117/pr340/build/tokenguard/run-j2nmuqcn.log",
+  "raw_log_sha256": "b11e49562231ecbb135d7cd9ddcb9a683b5db8a35eaf825d4c652b29b8918407",
+  "report_sha256": "87f6d7585e56704552cba104fd4876f387933b1f90a66ce5f53a91246ccd604c",
+  "stage_count": 15,
+  "passed": true,
+  "qemu": "10.2.1",
+  "shared_native_lock": "/run/user/1000/baryonos-heavy-native.lock",
+  "limits": [
+    "Only bounded authorized lint/wording repair",
+    "No D1\u2013D5/product/physical/human acceptance",
+    "Current-head hosted checks and main reconciliation remain separate",
+    "No merge or auto-merge authorization"
+  ]
+}

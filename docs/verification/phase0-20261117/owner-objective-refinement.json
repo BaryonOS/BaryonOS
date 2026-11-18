@@ -1,0 +1,28 @@
+{
+  "authority": "Latest explicit project-owner refinement of approved Phase0 execution",
+  "supersedes": "The earlier strict zero-count prerequisite in owner-zero-backlog-authority.json; retain that record as historical authority, not the current gate",
+  "active_goal": "Safely resolve/integrate existing work and blockers; establish reproducible verified baselineB; execute approved governance1\u20136; then continue reducing remainingissue/qualitybacklog towardzero using unifiedworkflow",
+  "baseline_required": [
+    "No unresolvedintegrationblockers",
+    "No unresolvedblockingsecurityfindings or regressions",
+    "AllapplicablemandatorychecksPASS",
+    "Source-boundmain/evidence/reviewsverified",
+    "Everyremainingitemindividuallytriagedwithevidence/ownership/priority/exactnextstep"
+  ],
+  "not_baseline_blockers_by_count_alone": [
+    "Long-termproductissues",
+    "Nonblockingqualityfindings",
+    "NewunrelatedPRs"
+  ],
+  "unchanged": [
+    "Autonomoussafelygatedmanualsquashauthorization",
+    "Noauto-merge orprotections/gateweakening",
+    "No falseclosures/dismissals/progressinflation",
+    "SecurityFloor/acceptedarchitecture/product/release/licensingcriteria",
+    "Existingworkstreamownership/WIP/historicalevidence"
+  ],
+  "current_primary_milestone": "0B",
+  "baselineB": "NOTYETESTABLISHED",
+  "governance1_6": "NOTSTARTED",
+  "native_goal_description_note": "Existingactivegoaldescriptioncontainspriorstrictwording;latestownerinstructionandthisrefinementdefinecurrentexecutionpriority. Availablegoaltoolhasstatus-onlyupdate; nofalsecompletionornewduplicategoalcreated."
+}
