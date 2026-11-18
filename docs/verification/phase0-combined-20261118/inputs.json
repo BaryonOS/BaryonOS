@@ -6,8 +6,8 @@
     "340": "8609a4d1cd91223202b1043f5486ff8746eef583",
     "350": "04e464963cd0d969f8687208404f480f289d54a4",
     "354": "f0b4b6ed1f93012ff4bcfbeec7787de6eaa736da",
-    "358": "ed4c2992ed60c1e92c4c70aae41b4d5749bfeeba",
-    "359": "6e72098e58db19d1c72667a4deb06d1d9b3115d8"
+    "358": "4fae439d8492aff4769c1c208332e3dafdf38f4b",
+    "359": "b5f756a233bbfef0ecc143f41834899b399e3805"
   },
   "excluded": [
     "355 unfinished full isolation",
@@ -16,16 +16,22 @@
   ],
   "source_pr_closure": "Only after final-main inclusion proof",
   "score": 41,
-  "tested_source_checkpoint": "2a08f4a33eff63b354821f6892e1be28f7602c9b",
+  "tested_source_checkpoint": "d16fa0862a42d83f7de7fda8dd2de54357d3e533",
   "rust_reconciliation": "f2a6ad4970433b0da8fd648c6eaba45ff919f517",
   "source_fingerprint_version": 3,
-  "source_sha256": "25dd6d69621f1d9d4c8ed353633b3db62818562fa6ce50efa4445207505adb44",
+  "source_sha256": "42163e2d99138eecda0977feab534c5eebb9f77bc25a2e04abd5f2d28752be92",
   "inclusion_limits": {
     "340": "Approved D6(a) ustar subset only; later Rust transformations independently reviewed. Full S09 D1-D5 is not accepted.",
     "350": "Configuration byte-identical to reviewed04e46496 source. No billing/account features changed.",
     "354": "Published f0b4b6ed plus reviewed current-main conflict resolutions f2a6ad49, active guidance pins and narrow CPUID cleanup2a08f4a3.",
-    "358": "Wiki exact4a01 publication;34 dated-source English routes; inventory helper repairs under independent review. Final combined snapshot pending.",
-    "359": "Disabled issue-controller boundary preserved; not full355 resource isolation or finding resolution."
+    "358": "Exact Wiki4a01 publication,34 dated-source English routes, verified helper boundary repairs and combined2073 snapshot; public UI locality gaps remain actionable.",
+    "359": "Disabled issue-controller boundary and consistent unittest.mock imports; no full355 isolation or finding-resolution claim."
   },
-  "h02_receipt": "docs/verification/issue42-combined-20261118/README.md"
+  "h02_receipt": "docs/verification/issue42-combined-20261118/README.md",
+  "final_native_receipts": [
+    "checks-d16fa086.json",
+    "../issue42-combined-20261118-d16fa086/capture-index.json"
+  ],
+  "ui_runtime_audit": "../issue274-ui-runtime-audit-20261118-d16fa086/audit.json",
+  "markdown_inventory_freeze": "2073e4affd8a46a4bd0a1b95bcb06f7c2b0062c2"
 }
