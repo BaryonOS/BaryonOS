@@ -112,6 +112,8 @@ master (32 B, uit DRBG)          ──HKDF-SHA-256(info = "nieuw-os key v1" ‖
 recovery_secret (32 B, uit DRBG) ──XChaCha20-Poly1305(aad = "nieuw-os recovery v1")──> blob = nonce ‖ enc(master ‖ revoked-bitmap) ‖ tag
 ```
 
+In this diagram, `uit DRBG` means "from the DRBG", and `domein` means "domain".
+
 | Scope | Op | Request | Response | Errors |
 |---|---|---|---|---|
 | App domain | STATUS | – | state (0 starting, 1 ready, 2 blocked, 3 degraded), reason, number of keys | – |

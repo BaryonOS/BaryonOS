@@ -1,0 +1,127 @@
+{
+  "schema": 1,
+  "date": "2026-11-18",
+  "source_commit": "a2792a2c1ee8e8eeb604549ac8a04272ed70168a",
+  "parent_commit": "5e222780c916205bb9aa4e54ba9ccaa983ce61e7",
+  "scope": "Successor structural checker only; historical research and source records remain unchanged",
+  "source_sha256": {
+    "tools/check_a11y_matrix.py": "51f91a12efc9a9bd1d395f4606210b7dab653425aafe41efa22c64b49e8c867b",
+    "tools/tests/test_a11y_matrix.py": "85b456dd1796e7339d03a6011a523cfd9d138fa4683beb00118eda84346f63be",
+    "docs/verification/a11y-checker-20261118/baseline-contract.json": "c14d155d0cb4573bbd816cff13b60e557eab73e1af192d98fb482b45b2b42a5f",
+    "docs/verification/a11y-research-20261115/check.py": "cf1b65d170a385a0e4fde9724d326bbbe4f5d1cdbd7186073800f7b1bd251bab",
+    "docs/design/accessibility/ACCESSIBILITY-MATRIX.md": "e12d566f069a56e1066689e598f5bfbad7ac646c6347e14da2dc94b0a5a6e6b5",
+    "docs/design/accessibility/ACCESSIBILITY-RESEARCH.md": "89ecc4ab70742dbc45e22bd9ee58885240b937366e783c1b8b2d4b6c706e8009"
+  },
+  "baseline_contract": {
+    "rows": 51,
+    "identity_fields": [
+      "Need",
+      "Adaptation"
+    ],
+    "required_tier": "baseline",
+    "required_axis_prefix": "none (baseline)",
+    "sha256": "c14d155d0cb4573bbd816cff13b60e557eab73e1af192d98fb482b45b2b42a5f"
+  },
+  "tests": {
+    "targeted": 15,
+    "baseline_demotion_subtests": 51,
+    "baseline_removal_subtests": 51,
+    "complete_tools": 399,
+    "skipped": 0,
+    "failed": 0,
+    "outside_path_punctuation_subtests": 16
+  },
+  "checks": [
+    {
+      "id": "targeted",
+      "command": "python3 -B -m unittest tools.tests.test_a11y_matrix",
+      "raw_exit_code": 0,
+      "local_log": "build/tokenguard/run-7fg0cx7g.log",
+      "log_sha256": "5b89ee8966f881940c937117f6a6a312ed031d0b8f00fd109cee90d2d305e65e"
+    },
+    {
+      "id": "complete-tools",
+      "command": "python3 -B -m unittest discover -s tools/tests -p test_*.py",
+      "raw_exit_code": 0,
+      "local_log": "build/tokenguard/run-_50dcxwo.log",
+      "log_sha256": "93a89cda03818c363b8173493c617fdb29a5e851c6f0ed38a5090b36c0e13632"
+    },
+    {
+      "id": "checker-on-current-matrix",
+      "command": "python3 -B tools/check_a11y_matrix.py <repository-root>",
+      "raw_exit_code": 0,
+      "local_log": "build/tokenguard/run-aiwodks7.log",
+      "log_sha256": "d356cf64ce07e13fa69ebf28d2e67857bf118b90866116a60ca77d949e0528aa"
+    },
+    {
+      "id": "strict-preflight-build-smoke",
+      "command": "python3 -B tools/preflight.py --strict && python3 -B tools/build.py && python3 -B tools/run.py --smoke",
+      "raw_exit_code": 0,
+      "local_log": "build/tokenguard/run-fbvhoiub.log",
+      "log_sha256": "b7766c2ae8c689c8245fdbed36657441501a56cf216259355c36dc505b118e17"
+    },
+    {
+      "id": "compileall",
+      "command": "python3 -B -m compileall -q tools/check_a11y_matrix.py tools/tests/test_a11y_matrix.py",
+      "raw_exit_code": 0,
+      "local_log": "build/tokenguard/run-iv88qjxy.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "id": "protected-originals-unchanged",
+      "command": "git diff --exit-code 5e222780c916205bb9aa4e54ba9ccaa983ce61e7 HEAD -- docs/verification/a11y-research-20261115 docs/design/accessibility/ACCESSIBILITY-MATRIX.md docs/design/accessibility/ACCESSIBILITY-RESEARCH.md docs/verification/ds-1.0-c1-20261115",
+      "raw_exit_code": 0,
+      "local_log": "build/tokenguard/run-n_l7olp1.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "id": "diff-check",
+      "command": "git diff --check",
+      "raw_exit_code": 0,
+      "local_log": "build/tokenguard/run-vx6z1xda.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "environment": {
+    "activation": "/workspace/.nieuw-os-env/activate.sh",
+    "native_build_and_target_directories": "isolated per worktree; local-only"
+  },
+  "qemu": {
+    "base_commit": "a2792a2c1ee8e8eeb604549ac8a04272ed70168a",
+    "source_fingerprint_version": 3,
+    "source_sha256": "3e923013b70e61ce042ca6c3d8e2d6b87d00ed5bd070f45752aaff7a451c5adb",
+    "raw_qemu_exit": 33,
+    "timed_out": false,
+    "passed": true,
+    "required_markers": [
+      "BOOT:EBS_OK",
+      "KERNEL:ENTRY",
+      "BOOTINFO:OK",
+      "M1:PASS"
+    ],
+    "profile": "development-package; pc-q35-10.0/qemu64/TCG/1CPU/256MiB",
+    "qemu_version": "QEMU emulator version 10.0.13 (Debian 1:10.0.13+ds-0+deb13u1)\nCopyright (c) 2003-2025 Fabrice Bellard and the QEMU Project developers",
+    "artifact_sha256": {
+      "esp/kernel.elf": "60356c867b3ce554013fcbb7c143c6169d14c58a92ffe6dbe3286f0faa23944d",
+      "esp/EFI/BOOT/BOOTX64.EFI": "2c901a92c5a24abd706621c3710d8001359b6adbb67254a13f1bd3af0f1b0c0d",
+      "OVMF_CODE.fd": "624e06de18b4fa535e90db7160d00d3d07d206422b89999bf1e27d920264e4e0",
+      "OVMF_VARS.template.fd": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e"
+    }
+  },
+  "not_verified": [
+    "independent final-candidate review",
+    "current final-head hosted checks",
+    "systematic literature-review completion",
+    "scientific citation validity",
+    "rendering or native accessibility conformance",
+    "human or hardware acceptance"
+  ],
+  "superseded_candidate": {
+    "source_commit": "64bd09212bfbfb6c878d328d7f4d61886c908869",
+    "reason": "independent review reproduced outside path truncation into an existing inside basename",
+    "added_regression_red_exit": 1,
+    "failing_subtests": 16,
+    "local_red_log": "build/tokenguard/run-zioevlvn.log",
+    "red_log_sha256": "916bd1a5dbc71fb0748c444bd6892e22df895a1f4ffb9ce6b322c0ed88252c11"
+  }
+}

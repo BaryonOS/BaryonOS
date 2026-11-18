@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-18",
-    "source_commit": "d7c561afec44906ce3beaf16e7ef1d8e3650e6fd",
+    "source_commit": "41b894cd96556701af8fa4c1056be6d75f5afac1",
     "assessment_basis": "parent_commit",
     "branch": "feat/s09-ustar-name-check",
-    "task": "Phase 0 PR340: fresh 15-stage native acceptance and actual-main reconciliation",
+    "task": "Phase 0 PR340: bind final native gate to complete English/checker source set",
     "previous_score": 41,
-    "summary": "41/100 unchanged. All15 native ustar/volume stages and relevant host/Clippy/standard gates pass on preserved S09 runtime. Main345 documentation and H02 evidence retained. D1\u2013D5/full S09, current-head hosted checks and independent final integration review remain separate requirements."
+    "summary": "41/100 unchanged. Source_hash v3 includes added tool and module-documentation inputs, so old native evidence is retained without reclassifying it as current. New combined-source gate and actual339integration/current-head CI are required; D1\u2013D5/full S09 remain open."
   },
   "tracks": [
     {

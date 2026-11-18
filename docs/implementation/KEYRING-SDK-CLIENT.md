@@ -79,7 +79,7 @@ let key = match keys.exchange(Operation::Generate)? {
     Reply::Generated(key) => key,
     _ => unreachable!("typed operation/reply contract"),
 };
-// Gebruik key uitsluitend via deze geautoriseerde dienstverbinding.
+// Use key only through this authorised service connection.
 keys.close()?;
 ```
 
