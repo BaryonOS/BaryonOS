@@ -112,6 +112,19 @@ class NamedFiles(unittest.TestCase):
                     self.assertEqual(reference.missing_files(rows, self.root), [])
                     self.assertTrue(checker.missing_files(rows, self.root))
 
+    def test_unsupported_path_characters_cannot_fall_back_to_an_inside_basename(self):
+        (self.root / "ui/safe.md").write_text("inside basename", encoding="utf-8")
+        for name in ("outside@safe.md", "outside%safe.md", "outside safe.md", "outside(safe.md"):
+            outside = self.outside / name
+            outside.write_text("outside evidence", encoding="utf-8")
+            for token in (str(outside), "../outside/" + name):
+                for quoted in (True, False):
+                    with self.subTest(token=token, quoted=quoted):
+                        rows = self.rows(token)
+                        if not quoted:
+                            rows[0][8] = f"partial: {token} line 1"
+                        self.assertTrue(checker.missing_files(rows, self.root))
+
     def test_file_and_directory_symlink_escapes_are_rejected(self):
         (self.root / "docs/alias.md").symlink_to(self.external_file)
         (self.root / "docs/escape").symlink_to(self.outside, target_is_directory=True)

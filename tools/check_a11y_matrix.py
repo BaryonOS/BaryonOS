@@ -20,9 +20,11 @@ ARCHIVE_SHA256 = "cf1b65d170a385a0e4fde9724d326bbbe4f5d1cdbd7186073800f7b1bd251b
 BASELINES = ROOT / "docs/verification/a11y-checker-20261118/baseline-contract.json"
 BASELINES_SHA256 = "c14d155d0cb4573bbd816cff13b60e557eab73e1af192d98fb482b45b2b42a5f"
 MATRIX = Path("docs/design/accessibility/ACCESSIBILITY-MATRIX.md")
-# Recognize Windows-looking references too, so their basename cannot accidentally
-# satisfy a location that is not a repository-relative POSIX path.
-FILE_TOKEN = re.compile(r"(?:[A-Za-z]:)?[\w./\\-]*\w\.(?:css|html|js|rs|md|py|json|toml)\b")
+FILE_SUFFIX = re.compile(r"\.(?:css|html|js|rs|md|py|json|toml)\b")
+QUOTED = re.compile(r"(`[^`]*`)")
+# Reject unsafe prefixes in the complete cell too: whitespace or punctuation in
+# an unquoted path must not hide its absolute/traversing prefix from a basename.
+UNSAFE_LOCATION = re.compile(r"(?<![\w./\\%-])(?:[/\\]|[A-Za-z]:)|(?<![\w.])\.\.[/\\]")
 MATRIX_COLUMNS = 12
 
 
@@ -67,6 +69,19 @@ def contained_file(root: Path, path: Path) -> bool:
         return False
 
 
+def file_references(value: str) -> list[str]:
+    references = []
+    for part in QUOTED.split(value):
+        if part.startswith("`") and part.endswith("`"):
+            # A quoted location stays whole, including unsupported punctuation
+            # or spaces; it can never degrade into a matching suffix/basename.
+            candidates = [part[1:-1].strip()]
+        else:
+            candidates = [token.lstrip("([{\"'").rstrip(".,;:!?)]}\"'") for token in part.split()]
+        references.extend(token for token in candidates if FILE_SUFFIX.search(token))
+    return references
+
+
 def missing_files(rows, root: Path) -> list[str]:
     root = root.resolve(strict=True)
     names = set()
@@ -80,12 +95,17 @@ def missing_files(rows, root: Path) -> list[str]:
     for number, row in enumerate(rows, 1):
         if row is None or len(row) != MATRIX_COLUMNS:
             continue
-        for token in FILE_TOKEN.findall(row[8] + " " + row[9]):
-            parts = PurePosixPath(token)
-            safe = not (parts.is_absolute() or ".." in parts.parts or "\\" in token or ":" in token)
-            found = contained_file(root, root / token) if safe and "/" in token else safe and token in names
-            if not found:
-                errors.append(f"matrix row {number}: named file {token!r} is absent or outside the repository")
+        for cell in row[8:10]:
+            references = file_references(cell)
+            if references and UNSAFE_LOCATION.search(cell):
+                errors.append(f"matrix row {number}: named-file location has an unsafe path prefix")
+                continue
+            for token in references:
+                parts = PurePosixPath(token)
+                safe = not (parts.is_absolute() or ".." in parts.parts or "\\" in token or ":" in token)
+                found = contained_file(root, root / token) if safe and "/" in token else safe and token in names
+                if not found:
+                    errors.append(f"matrix row {number}: named file {token!r} is absent or outside the repository")
     return errors
 
 
