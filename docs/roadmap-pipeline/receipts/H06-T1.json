@@ -1,0 +1,52 @@
+{
+  "task": "H06-T1",
+  "source_commit": "ace4f5a15ff6b771e7d14d9c416076a1ab65816d",
+  "level": "host/build",
+  "checks": [
+    {
+      "argv": [
+        "python3",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tools/tests",
+        "-p",
+        "test_hw_matrix.py",
+        "-v"
+      ],
+      "exit_code": 0,
+      "raw_log": "build/tokenguard/run-9pbw8bz7.log",
+      "sha256": "ced9d5c4fab74e91359ea906babe5c7bf9101db1479fb6b96f167c157d96078b"
+    },
+    {
+      "argv": [
+        "python3",
+        "-B",
+        "tools/hw_matrix.py",
+        "--check"
+      ],
+      "exit_code": 0,
+      "raw_log": "build/tokenguard/run-tpy2xwe8.log",
+      "sha256": "b72fbfe1b77d620d19a2dca5654cf1e0775bbe8cd371ca42d81286d59b7d593a"
+    },
+    {
+      "argv": [
+        "python3",
+        "-B",
+        "-m",
+        "compileall",
+        "-q",
+        "tools/hw_matrix.py",
+        "tools/tests/test_hw_matrix.py"
+      ],
+      "exit_code": 0,
+      "raw_log": "build/tokenguard/run-r1nchp1n.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "limits": "Inventory/reference validation only, not evidence authenticity/device acceptance. Physical target unselected; no row supported or VT-d contained. No hardware/native rerun for unchanged OS code; existing partial driver evidence preserved. Score41/100 unchanged.",
+  "review": "Lead source/diff review; no native/human acceptance.",
+  "score": "41 -> 41/100"
+}

@@ -1299,7 +1299,7 @@
       "criterion": "H06",
       "milestone": "M9",
       "executor": "worker",
-      "status": "active",
+      "status": "verified",
       "title": "Machine-checked hardware support matrix with DMA posture per device",
       "goal": "Add docs/drivers/hardware-matrix.json and tools/hw_matrix.py --check: each profile and device has a driver path, DMA posture (trusted kernel transport, VT-d contained, unsupported), evidence references that must exist, and status; no HW row may be 'supported' without H evidence.",
       "why_now": "H06 requires an explicit, honest matrix; host-only.",
@@ -1336,8 +1336,16 @@
           "event": "active",
           "at": "2026-11-18T22:16:38.459421+00:00",
           "reason": "Codex source writer, exact paths unclaimed. Strict profile/device/DMA/evidence inventory; no physical selection or support claim."
+        },
+        {
+          "at": "2026-11-18T22:18:41.391007+00:00",
+          "event": "verified",
+          "source_commit": "ace4f5a15ff6b771e7d14d9c416076a1ab65816d",
+          "reason": "Hardware matrix checker covers3 profiles/33 device rows, explicit driver absence and DMA posture, canonical existing references, target/device/source-bound H or native evidence for support, separate evidence for VT-d containment; xHCI stays pending. Four adversarial test groups, actual --check and compileall pass. Inventory/reference validation only, not evidence authenticity/device acceptance. Physical target unselected; no row supported or VT-d contained. No hardware/native rerun for unchanged OS code; existing partial driver evidence preserved. Score41/100 unchanged."
         }
-      ]
+      ],
+      "source_commit": "ace4f5a15ff6b771e7d14d9c416076a1ab65816d",
+      "receipt": "docs/roadmap-pipeline/receipts/H06-T1.json"
     },
     {
       "id": "P01-T1",
