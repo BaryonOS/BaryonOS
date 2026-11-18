@@ -5,6 +5,51 @@ This document distinguishes the decisions and authority of the project owner
 from those of the executing roles. Source quotations retain their original
 wording and speaker.
 
+## ADR-AGENT-GOVERNANCE-20261118 — Shared contracts and risk-based execution
+
+Status: accepted project-owner direction, 18 November 2026, fresh-session execution
+request. This supersedes earlier prerequisites requiring completed Phase 0/baseline B
+or zero open issues, PRs and findings before governance. Historical evidence remains
+unchanged. It does not declare baseline B complete or resolve security findings.
+
+**Decision:** root `AGENTS.md` is canonical policy; directory instructions refine
+subsystems. `.agents/skills/development-loop/SKILL.md` holds the common procedure;
+`.agents/roles/` holds the four common role contracts. Claude Code, Codex and Copilot
+adapters reference those contracts and retain surface-specific tool restrictions.
+Use `os_verifier` or `os_security_reviewer` where appropriate; no optional
+`agents/independent.md` is required. No active reference to that missing file was
+found during reconciliation, so no replacement role is invented.
+
+Default to one primary agent, with at most one additional reviewer when risk warrants
+it. Claim bounded write paths in existing task state and isolate writers by worktree.
+`docs/STATUS.md` is the compact current overview; `docs/PROJECT-STATE.md` keeps the
+single lead continuation checkpoint while independent workstreams retain their own
+handoffs. Do not create a second backlog. New sessions read current state, then only
+missing contracts, relevant decisions and changed source.
+
+Verification follows changed functionality and risk. Preserve meaningful negative
+security tests, mandatory hosted checks and merge protections. Reuse valid
+source-bound evidence with its applicability stated. Do not repeatedly run full native
+matrices for unchanged code, assemble large trivial-fix evidence packages, poll CI
+continuously or repeat optional reviews after quota failures. Manual squash is
+explicitly authorized for this assignment only when mandatory checks pass; auto-merge
+and protection bypass remain prohibited.
+
+**Rationale and alternatives:** a shared contract prevents duplicated client policy
+from drifting while allowing tool capabilities to differ. Separate client policies
+and a new orchestration framework add maintenance without requested functionality.
+Exhaustive repeated verification consumed excessive resources; targeted regression
+checks retain the security invariant without conflating development feedback with
+full product acceptance. Existing role definitions and checkpoints are reused.
+
+**Consequences and limits:** governance acceptance is distinct from client runtime
+parity, Daybreak acceptance, physical hardware and human audit. The #359 unconditional
+execution hold and #355 disabled manifest remain in force. Offline gate/model-client
+work and unfinished local WIP remain separately owned; this ADR grants no activation.
+The new canonical policy paths are protected from unattended pipeline edits. Validate
+adapter targets, retained tool restrictions and protected-path denial through host
+regressions. No OS criterion or acceptance weight changes.
+
 ## ADR-VERSION-POLICY-20261117 — Latest stable components with verified exceptions
 
 Status: accepted by the project owner on 17 November 2026. Authority and execution

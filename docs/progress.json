@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-18",
-    "source_commit": "34a2a30d386aa56b48414bd1dfb1ad11d23f687d",
+    "source_commit": "b87436dfd8ef8c277dea1dbde780f2e2229283a9",
     "assessment_basis": "parent_commit",
-    "branch": "codex/h04-link-tracker",
-    "task": "H04-T2: bounded generation-aware link tracker",
+    "branch": "codex/unified-governance",
+    "task": "GOV-1-6 reconciliation with main 5a3295b6",
     "previous_score": 41,
-    "summary": "41/100 unchanged. The virtio-net driver gains a bounded generation-aware link tracker that rejects stale observations, preserves stable samples without consuming the transition budget, and latches exhaustion or reset as unusable. H04 remains open because live device wiring and native reconnect evidence are absent. Current-main reconciliation changes only checkpoint state; hosted checks remain authoritative."
+    "summary": "41/100 unchanged. Shared role and workflow contracts, client adapters and compact continuation are reconciled with actual main after #350. Targeted quarantine (5) and execution-hold (3) regressions remain source-bound; disabled manifest and source hold remain intact. Governance has no zero-open-items/baseline-B prerequisite. Host adapter/protection checks do not establish client runtime parity, Daybreak acceptance, hardware or human audit. No product criterion or weight changes."
   },
   "tracks": [
     {
