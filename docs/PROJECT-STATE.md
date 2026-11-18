@@ -15,7 +15,21 @@ probe disk oracle; negative wrong-principal/stale/evicted/poisoned/bounds cases 
 uncertain publication discovery. No source changes to S09, UI or runner.
 **Evidence limit:** host/library integration only; no NASP opcode, native resume,
 transport authentication, physical durability or P02 acceptance. Score 41/100.
-**Next:** implement using existing session checks and reconciliation state machine.
+**Delivered/source:** `c5c56f93d14a737c5c62dbec7ae237e34fe505fe` adds `Service::head` and `Client::reconcile_latest`,
+reusing existing authority and read-only reconciliation. Wrong/retired tokens,
+foreign namespaces, revocation, eviction, bounds and poisoned storage reject.
+Staging is invisible; recovery discovers whether an uncertain write actually
+committed, without automatically replaying it. Explicit revision hints still work.
+
+**Executed:** core 23, client 17, volume 10 and probe 7 Rust host tests (57 total),
+8 Python disk-oracle tests, four crates' Clippy (`-D warnings`) and formatting all
+exit 0. [Receipt](roadmap-pipeline/receipts/P02-T1.json) preserves exact commands,
+raw-log hashes and two corrected test-setup failures. One focused AI review found
+no blocker. Snapshot source/wire unchanged. Progress **41 → 41/100**; P02 open.
+
+**Not run:** native resume, real NAS transport, hardware durability and human audit.
+**Next:** publish independent draft, then P02-T2 canonical checkpoint encoding in
+a separately owned slice. No unattended execution or acceptance inferred.
 
 ## Retained checkpoint — A03-T1 bounded task grants — 18 November 2026
 
