@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-18",
-    "source_commit": "6f29b6720b51aecad5714faa48b445afd6e2f5a9",
+    "source_commit": "d03ae904048a91defc74b9e4ba854d3526595580",
     "assessment_basis": "source_commit",
     "branch": "codex/roadmap-codex",
-    "task": "CODEX-DISPATCH: reuse roadmap controller for fresh manual Codex tasks",
+    "task": "A02-T1: verified package installer composition and fresh Codex fallback",
     "previous_score": 41,
-    "summary": "41/100 unchanged. Existing roadmap controller prepares immutable Codex plans with lock/active-task ownership and preserves the source hold at automatic ingresses. 21 targeted tests pass; real automatic run refuses exit2; ledger validates. One actual fresh Codex session reaches exact-baseline Graphify. Two-session automatic continuation and secure unattended readiness remain unproven. S09/UI ownership preserved; no product criterion accepted."
+    "summary": "41/100 unchanged. A02-T1 now connects source verification, exact immutable image streaming, current-source publication and catalogue journal recovery. 48 host tests, Clippy, format and freestanding release build with existing CI crypto backends pass. The existing roadmap controller prepares locked, durable fresh Codex claims; actual distinct CLI sessions ran under supervision. Automatic continuation is not established and source execution hold remains active. Native installer, authenticated recovery, hardware and human audit remain open; A02 is not accepted."
   },
   "tracks": [
     {

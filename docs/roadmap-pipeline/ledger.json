@@ -23,7 +23,7 @@
       "criterion": "A02",
       "milestone": "M7",
       "executor": "worker",
-      "status": "ready",
+      "status": "verified",
       "title": "Host installer orchestrator binding source verification, artifact commit and catalogue journal",
       "goal": "Add sdk/app-management/src/installer.rs: a bounded no_std orchestrator for install, update and remove that (1) verifies the package only through the existing app_package_core::SourceRegistry::verify_executable (no second verifier, no public self-constructible verified token), (2) derives PackageIdentity crate-internally from the SourceVerifiedExecutable, (3) streams the exact image through store::InstallTransaction and commits it, (4) re-checks the current source generation and revocation state immediately before catalogue prepare/apply so a rotate or revoke between verification and commit fails closed (APP-SOURCE-RECOVERY section 7), (5) applies catalog::InstallCatalog and persists through journal::Journal, and (6) maps store/journal Unknown to a fail-closed state without replay or automatic recommit. The SourceRegistry stays caller-supplied and in memory: no new trust root, anchor, durable source backend or launch capability.",
       "why_now": "A02 is open and every lower layer (package verification, source policy, streaming store, catalogue, journal) is host-tested but unconnected. A single orchestrator is the smallest step that proves the layers compose without authority gaps, and it is the prerequisite for the native installer service (A02-T3) and for A03/A04 app lifecycle work. Covered by an existing CI job.",
@@ -131,6 +131,20 @@
           "event": "lead-resolved-test-fixture-blocker",
           "session_id": "01a1f026-8a57-79b1-9d54-cc83e2237341",
           "reason": "Worker made no changes; lead supplied verified public dual-signed ELF package fixtures using existing app-package-core test helpers and existing pinned dependencies. Continue original write scope; no runtime dependency, test verifier bypass or trust contract change."
+        },
+        {
+          "at": "2026-11-18T19:37:08+00:00",
+          "event": "manual-codex-claim",
+          "base": "d292cea88902a9e0ba79b9d4a91747df0971f023",
+          "dispatch": "/home/simon/projects/BaryonOS-worktrees/roadmap-codex/build/roadmap-pipeline/manual/A02-T1-b3db287a0560474a964320e56ef99921/dispatch.json",
+          "brief_sha256": "955324ba5569f3d183192ede75247327059897c023d06433d42ce67b0b918731"
+        },
+        {
+          "at": "2026-11-18T19:46:42+00:00",
+          "event": "verified",
+          "source_commit": "d03ae904048a91defc74b9e4ba854d3526595580",
+          "receipt": "docs/roadmap-pipeline/receipts/A02-T1.json",
+          "summary": "Host installer composition: 48 tests, Clippy, fmt and freestanding CI-profile build pass. No A02 product acceptance."
         }
       ]
     },

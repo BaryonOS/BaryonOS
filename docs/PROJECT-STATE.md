@@ -22,30 +22,44 @@ functionality tests. No repeated native matrices for unchanged code.
 **Evidence limit:** manual fresh-session dispatch does not establish safe unattended
 execution, automatic continuation or runtime parity. Issue execution stays held.
 
-**Current:** installed `codex exec` supports `--ephemeral`, `--strict-config`,
-`--sandbox`, `--json`, `--output-last-message` and stdin `-`; no Claude flags are
-translated blindly. First bounded read-only Codex session is being checked under
-`build/roadmap-pipeline/manual-init/`. Existing runner is Claude-only and its shared
-gate is held, so it must not be started as unattended execution.
-**Result:** existing controller now prepares frozen Codex dispatch plans through
-`brief`, with exclusive lock and durable active-task state. Automatic run/session/
-checks/task ingresses stop before commands or writes. Targeted runner tests: 21,
-exit 0 (`build/tokenguard/run-ml1f4j4n.log`); real automatic `run` refuses with exit 2
-(`run-ij_23cew.log`); ledger validates, exit 0 (`run-81fwvryd.log`). One legacy gate
-unit test explicitly mocks the hold to test its internal failure path; separate
-negative tests require the real hold at every execution ingress.
+**Delivered:** existing controller `brief` freezes a Codex argv/brief, claims one
+READY task under the existing lock and preserves active work across sessions. All
+automatic worker/check/task ingresses stay source-held. No hooks, MCP connections or
+permissions were disabled. B02-T2/R03-T1 remain blocked for S09 ownership.
 
-First actual Codex CLI session exits 0 with ID
-`01a1f020-429b-7f80-bc3e-eee3dbfc123c`; Graphify reports the exact baseline commit.
-The worker reported an optional missing role path; no such instruction was found in
-current project/config or rendered startup input. No role is invented. The next
-brief names the actual repository builder. Two automatically launched task sessions
-and safe unattended readiness are NOT ESTABLISHED; the existing hold is not bypassed.
+A02-T1 implementation source `d03ae904048a91defc74b9e4ba854d3526595580` composes verified package streaming,
+current source-state checks, private catalogue publication and fail-closed journal
+recovery. Public test fixtures reuse existing signing helpers and pinned dependencies;
+no product dependency/manifest/lock change. [Receipt](roadmap-pipeline/receipts/A02-T1.json).
 
-**Next:** commit this bounded controller step, run `brief`, then manually launch the
-first eligible A02-T1 installer task with the verified Codex argv. B02-T2/R03-T1 remain
-blocked for S09 ownership. A new session gets only its frozen task brief, no inherited
-chat. Progress **41 → 41/100**, no product criterion accepted.
+**Executed:** 48 app-management host tests, Clippy, fmt and `x86_64-unknown-none`
+release build with existing CI serial/soft crypto backends all exit 0. Controller
+suite: 21 tests, exit 0; full tools suite: 520 tests, 15 explicit skips, exit 0. Actual
+automatic `run` and conflicting manual claim refuse with exit 2. Raw logs/hashes are
+in the receipt. Initial Snap exit 46 and a cross-build without the documented backend
+flags (SIGILL, exit 101) are retained as failures; the corrected commands pass.
+One focused read-only AI source review found no blocker; no human audit claimed.
+
+**Fresh sessions:** read-only init `01a1f020-429b-7f80-bc3e-eee3dbfc123c` reached
+Graphify at the exact baseline; real implementation session
+`01a1f029-f1fe-7a00-9cbb-c18f7c8a735f` used the frozen task brief, changed only its
+write set and exited 0. Two intermediate sessions exposed a Cortex routing false
+positive and absent test fixtures; both causes were resolved. The routing hook stays
+enabled. Source `call\s+...` matched the suffix of `recall`; quoted tool identifiers
+in the brief avoid false role requests. No optional role file is required.
+
+**Boundary/stop reason:** automatic launch/continuation of two functioning task
+sessions and `AUTONOMOUS_RUNNER_READY` are NOT ESTABLISHED. Authenticated model-client
+isolation and offline gate compatibility remain unaccepted; no hold was bypassed to
+claim success. The functioning fallback is lead-supervised fresh Codex CLI execution.
+No worker remains after process-group cleanup. Native installer execution, hardware,
+authenticated recovery and human audit are NOT RUN. Existing foreign WIP is unchanged.
+
+**Next:** publish the coherent controller/A02-T1 draft, let mandatory CI run without
+polling, and resume the existing ledger at **B01-T1 — Native positive management recovery through a manifest-named admin principal (keyring)**
+after checking its current source/ownership. Use `python3 -B tools/roadmap_runner.py
+brief` for the next supervised fresh task; automatic `run` remains disabled. Progress
+**41 → 41/100**, with no criterion, weight or release-scope change.
 
 ## Retained checkpoint — PR #355 native test quality — 18 November 2026
 
