@@ -1,5 +1,15 @@
 # Current project status
 
+## NEXT AGENT HANDOFF — Daybreak block-syscall ordering repair — 18 November 2026
+
+**Source and ownership:** isolated branch `codex/security-block-syscall-order` now contains implementation/evidence commit `616737b8a85877cde79d9bdc43d808c628ee8325`, based on verified main `1c10cdb5b30df2f3d30bea74430383f59c398931`. The original dirty checkout, Claude UI/UX, S09, PR355 and the preserved broad `sec-m6-observer-local` WIP were not modified. This is the bounded repair for Daybreak finding `acf_4d7b2e454297c2c851a4b7cadcff2587`; the finding remains open pending an accepted exact-head scan and resulting-main verification.
+
+**Security result:** M6b/M6c reject post-recovery READ and invalid WRITE/FLUSH ordering after complete ABI/capability validation but before policy or device publication. A second valid or malformed submit cannot change any already-live request; only a correctly bound mutating POLL may make its own request terminal. M6c terminal accounting is idempotent. Negative controls reproduced the pre-active timeout and both live-I/O failure classes before repair. Independent review found and drove closure of repeated-terminal, live-Busy, malformed-live and active-READ panic paths, then returned PASS on exact source fingerprint `5a6a5cca407e288973e302ae46840c7f851a57db70a848917f552c23821d4fbf`.
+
+**Verification:** targeted M6b/M6c builds and `errors` QEMU runs pass (wrapper exit0, guest33); host harnesses pass38/38 and49/49; object-core passes22/22 and catalog-core45/45. Full native M6b passes32 groups and M6c35 groups, including cold recovery and final M1 guest33. Strict preflight, Rust formatting, evidence JSON and diff whitespace pass. Raw logs remain under ignored `build/tokenguard/`; the source-bound receipt is [daybreak-block-order-20261118](verification/daybreak-block-order-20261118/README.md). Physical hardware, formal proof, hosted CI and a fresh Daybreak scan are not claimed.
+
+**Progress and next:** score remains41/100 because no fixed product criterion is newly accepted. Publish the branch as a draft PR, require fresh current-head `host-quality`, `qemu-smoke`, CodeQL and merge-hold, obtain exact-head Daybreak acceptance, and manually squash only when all actionable findings and reviews are resolved. Then verify resulting main and resume the unchanged PR355 isolation blockers and remaining security queue. Governance phases1–6 remain blocked by the strict stabilization gate.
+
 ## NEXT AGENT HANDOFF — Local PR359 containment reconciliation — 18 November 2026
 
 **Authority and ownership:** the project owner approved autonomous local execution and verified manual squash merges. Cloud handoff `88b801ab8cd47f4765ef7d925b161542dbbf684e` releases Codex work only. Local Codex exclusively owns this PR359 reconciliation in an isolated worktree; the original unfinished merge, Claude UI/UX and broader S09 remain untouched.
