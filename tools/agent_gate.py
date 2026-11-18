@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Agent-pipeline gate: run the exact `run:` steps of chosen CI jobs, then progress.py --check.
+"""Agent-pipeline gate: refuse unsupported CI steps, then run the modelled commands.
 
 Pass/fail is only the raw exit code of each step (bash -eo pipefail). `rtk`, when
 installed, only condenses the failure log that goes back to an agent. This is a local
@@ -46,18 +46,25 @@ def _env(mapping: object, where: str) -> dict[str, str]:
 
 
 def job_steps(workflow: Path, job: str) -> list[tuple[str, str, dict[str, str]]]:
-    """Return (name, script, env) for every check step of one workflow job."""
+    """Return (name, script, env), refusing workflow semantics the gate cannot preserve."""
     import yaml  # PyYAML: on the ubuntu runners and the dev host; only the gate needs it
 
     spec = yaml.safe_load(workflow.read_text(encoding="utf-8"))["jobs"][job]
     job_env = _env(spec.get("env"), f"{workflow.name}#{job}")
     steps = []
     for step in spec.get("steps", []):
+        name = str(step.get("name") or step.get("run") or step.get("uses") or "<unnamed>")
+        where = f"{workflow.name}#{job}/{name}"
+        if "uses" in step:
+            raise ValueError(f"{where}: uses step needs an explicit local adapter")
+        if "if" in step:
+            raise ValueError(f"{where}: conditional step needs an explicit local adapter")
         run = step.get("run")
-        if not run or "uses" in step or "if" in step or any(m in run for m in SETUP_MARKERS):
-            continue
-        name = str(step.get("name") or run.splitlines()[0])
-        steps.append((name, _expand(run, f"{workflow.name}#{job}/{name}"),
+        if not isinstance(run, str) or not run.strip():
+            raise ValueError(f"{where}: step has no runnable script")
+        if any(marker in run for marker in SETUP_MARKERS):
+            raise ValueError(f"{where}: setup step needs an explicit local adapter")
+        steps.append((name, _expand(run, where),
                       {**job_env, **_env(step.get("env"), name)}))
     if not steps:
         raise ValueError(f"{workflow.name}#{job}: no runnable check steps")

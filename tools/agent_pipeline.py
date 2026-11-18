@@ -479,7 +479,10 @@ class Pipeline:
     def execute(self, task: Task, feedback: str = "", allow_unchanged: bool = False) -> None:
         """Step 1B plus the self-healing gate loop (max MAX_ATTEMPTS executor runs)."""
         require_pipeline_release()
-        gate = resolve(task.gates, ROOT / ".github" / "workflows")
+        try:
+            gate = resolve(task.gates, ROOT / ".github" / "workflows")
+        except (KeyError, ValueError) as error:
+            raise TaskError(f"gate blocked: {error}") from error
         for attempt in range(1, MAX_ATTEMPTS + 1):
             run_agent(exec_prompt(task, feedback), task.worktree, task.dir / "agent.log", self.order(),
                       sandbox=self.sandbox, writes=task.targets)

@@ -30,9 +30,29 @@ jobs:
         run: sudo apt-get install -y qemu
       - name: Test
         run: echo "$MACHINE $OUT" > out.txt
+  supported:
+    env:
+      MACHINE: q35
+      OUT: ${{ github.workspace }}/build/x
+    steps:
+      - name: Test
+        run: echo "$MACHINE $OUT" > out.txt
+  uses:
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+  setup:
+    steps:
+      - name: Toolchain
+        run: rustup toolchain install 1.90.0
+  conditional:
+    steps:
       - name: Diagnostics
         if: ${{ always() }}
         run: echo diag
+  empty:
+    steps:
+      - name: Missing command
   bad:
     steps:
       - run: echo ${{ matrix.x }}
@@ -54,14 +74,25 @@ class Gate(unittest.TestCase):
         return agent_gate.run_gate(commands, self.tmp, self.tmp / "g.log", env or self.env,
                                    sandbox=self.sandbox, source_paths=[])
 
-    def test_keeps_only_check_steps_and_expands_workspace(self):
-        commands = agent_gate.resolve(["w.yml#check"], self.workflows)
+    def test_supported_run_step_expands_workspace(self):
+        commands = agent_gate.resolve(["w.yml#supported"], self.workflows)
         self.assertEqual([c[0] for c in commands], ["Test", "progress.py --check"])
         self.assertEqual(self.gate(commands[:1]), 0)
         child_env = self.sandbox.run.call_args.kwargs["env"]
         self.assertEqual(child_env["MACHINE"], "q35")
         self.assertEqual(child_env["OUT"], "/workspace/build/x")
         self.assertFalse((self.tmp / "out.txt").exists())
+
+    def test_refuses_unmodelled_steps_instead_of_skipping_them(self):
+        expected = {
+            "uses": "uses step needs an explicit local adapter",
+            "setup": "setup step needs an explicit local adapter",
+            "conditional": "conditional step needs an explicit local adapter",
+            "empty": "step has no runnable script",
+        }
+        for job, message in expected.items():
+            with self.subTest(job=job), self.assertRaisesRegex(ValueError, message):
+                agent_gate.resolve([f"w.yml#{job}"], self.workflows)
 
     def test_refuses_unknown_context_and_bad_references(self):
         for ref in ("w.yml#bad", "w.yml#missing", "../w.yml#check", "w.yml", "nope.yml#check"):
@@ -113,11 +144,18 @@ class Gate(unittest.TestCase):
         text = agent_gate.condensed(log, lines=5)
         self.assertEqual(text.splitlines(), [f"line {i}" for i in range(295, 300)])
 
-    def test_real_ci_job_matches_the_workflow(self):
-        names = [c[0] for c in agent_gate.resolve(["ci.yml#host-quality"], ROOT / ".github" / "workflows")]
-        self.assertIn("Root Rust host tests", names)
-        self.assertNotIn("Rust 1.90.0 and targets", names)
-        self.assertEqual(names[-1], "progress.py --check")
+    def test_real_ci_jobs_refuse_unmodelled_setup(self):
+        for job in ("host-quality", "qemu-smoke"):
+            with self.subTest(job=job), self.assertRaisesRegex(ValueError, "explicit local adapter"):
+                agent_gate.resolve([f"ci.yml#{job}"], ROOT / ".github" / "workflows")
+
+    def test_pipeline_translates_gate_resolution_failure_to_task_error(self):
+        pipeline = ap.Pipeline.__new__(ap.Pipeline)
+        task = ap.Task(7, "t", "parallel", "K06", ["ci.yml#host-quality"], [], "")
+        with mock.patch.object(ap, "require_pipeline_release"), \
+                mock.patch.object(ap, "resolve", side_effect=ValueError("unsupported gate")), \
+                self.assertRaisesRegex(ap.TaskError, "gate blocked: unsupported gate"):
+            pipeline.execute(task)
 
 
 def issue(body, labels=("pipeline:parallel",), number=7):
