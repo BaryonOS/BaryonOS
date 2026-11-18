@@ -1,0 +1,49 @@
+{
+  "task": "P0-274-CI",
+  "source_commit": "b718f6bafdfc4927d3b7acfe786e67dcb8f88eec",
+  "source_file_sha256": "902d9d29059108b13088bbdbbea54f8d1d2d9827fba35964b52a0d9fe26631d5",
+  "translated_file_sha256": "5a1018e07494bf9dfbc45d455f3af7b9227b70d59008fadda8d517f34ce8a87a",
+  "independent_review": {
+    "type": "AI source comparison, not human audit",
+    "final_result": "No remaining semantic blocker; sole integration-date label corrected",
+    "final_hash_bound": true
+  },
+  "checks": [
+    {
+      "command": "source-preservation assertions and independent semantic comparison",
+      "exit_code": 0,
+      "scope": "47 inline code tokens; 1 code fence; 5 Markdown links; 9 URLs; 9 old heading anchors; 82 original numeric tokens; five local link targets"
+    },
+    {
+      "command": "python3 -B tools/tokenguard.py run -- python3 -B -m unittest discover -s tests -p test_ci_workflows.py",
+      "exit_code": 0,
+      "tests": 26,
+      "log": "build/tokenguard/run-7gwopruy.log",
+      "log_sha256": "11a0f46a5b88871bf14cbfbfcd7a28dbd2dbe88906a214e5d2b4dba8ec91f66e",
+      "sidecar_sha256": "70d6a46bf697966a4f5cff948ef262cdd063e49ba2e932434c3c662138ac7a82"
+    },
+    {
+      "command": "python3 -B tools/progress.py --write",
+      "exit_code": 0
+    },
+    {
+      "command": "python3 -B tools/progress.py --check",
+      "exit_code": 0
+    },
+    {
+      "command": "git diff --check",
+      "exit_code": 0
+    }
+  ],
+  "not_run": [
+    "Native tests: documentation-only change",
+    "Current-head required hosted CI: pending publication",
+    "Full translation coverage audit: outside bounded task"
+  ],
+  "progress": {
+    "previous": 41,
+    "current": 41
+  },
+  "issue_274": "OPEN; this guide alone does not satisfy repository-wide completion",
+  "baseline_B": "NOT ESTABLISHED"
+}

@@ -1,6 +1,74 @@
 # Current project status
 
-## NEXT AGENT HANDOFF — Phase 0 PR333 actual-main reconciliation — 17 November 2026
+## NEXT AGENT HANDOFF — Phase 0 PR339 safe checker and integration — 18 November 2026
+
+**Actual main:** `67d5859d735836331b6fb971eae89162b7fa8465` after verified manual squash merges #345 and #346. Actual trees equal their independently reviewed candidates. Translation source PRs #347–#349/#351–#353 were closed only after actual-main inclusion proof; original refs remain preserved. Five issues and seven PRs remain open at this cutoff. Project5 synchronization uses the existing workflow.
+
+**Candidate:** canonical Claude source `5e222780c916205bb9aa4e54ba9ccaa983ce61e7` is preserved. New successor structural checker source `a2792a2c1ee8e8eeb604549ac8a04272ed70168a`, receipt head3966b43f, binds the archived parser and all51 existing baseline identities, rejects external/absolute/traversal/symlink and truncated-path aliases, and leaves original research/matrix/archive bytes unchanged. Independent review reproduced and corrected an intermediate path-alias bypass, then rejected32 alternate unsafe paths;15 focused and399 complete tools tests passed at that source. [Successor evidence](verification/a11y-checker-20261118/README.md). Current combined-source checks, hosted CI and independent integration review remain required.
+
+**Scope:** research remains a targeted intermediate checkpoint; systematic review, native accessibility conformance and human/user validation remain open. No baseline policy or product score changes. Score41/100; baseline B/governance1–6 are unestablished. Existing Claude WIP/runners are untouched.
+
+**Other work:** S09 candidate41b894cd has verified15-stage native evidence and46 committed hashes; its fingerprint must be verified again after broad source changes. Rust354 latest-stable compiler migration retains source-bound intermediate proofs and needs final combined-source acceptance. Security355 remains blocked on resource/process/scratch and client/gate compatibility;357 is preserved, unaccepted and not merged. Three Daybreak findings remain open; scanner REST categories are NOT VERIFIED403. The issue pipeline remains disabled. Continue independent eligible work without bypassing gates.
+
+## Retained handoff — Phase 0 integration after PR345 — 18 November 2026
+
+**Integrated:** PR #345 was manually squash-merged as `55bc7b06d20a3bfdffdc2eb7d8fe42a39f6e59c5`; its actual main tree exactly equals independently reviewed candidate `f14f7c946e10120ad10a34885551f2656f84b059`. All candidate mandatory CI, CodeQL and merge-hold checks passed; main post-merge checks are tracked separately. [Merge receipt](verification/phase0-cloud-20261118/merges/345.json).
+
+**Active:** existing PR #346 is reconciled against that main without changing its reviewed translation content or any runtime source. Original source PRs #347–#349 and #351–#353 remain open until integrated inclusion is proved. PR #350 is independently reviewed and needs current-main reconciliation. PR #340 has a fresh isolated native gate in progress; PR #354 compiler/runtime fixes have separate targeted/native verification.
+
+**Security:** limited PR #355 corrections are independently reviewed at `5b946202c9f7323044913a26d76c96e490f5e0e6`, including fresh pre-L0 grant revocation and failed-candidate isolation. Full resource/scratch/process-lifecycle and selected client/gate compatibility remain blocking. Recovery #357 stays preserved and unaccepted; the issue pipeline remains disabled. Cloud lacks writable cgroup-v2/private systemd-user runtime requirements. No finding is closed. Scanner API categories remain NOT VERIFIED (HTTP403).
+
+**Remaining:** all five issues remain open against their full definitions of done. Score41/100 is unchanged; baseline B and governance1–6 are not established. Root owns integration/state; the successor accessibility checker uses new files and preserves Claude's historical matrix/research. Continue only verified manual squash merges and exact-source evidence, without auto-merge or gate bypass.
+
+## Retained handoff — Phase 0 PR346 cloud reconciliation — 18 November 2026
+
+**Source:** existing PR #346 parent `04e29181ef7e755eea2db0054c463b9216184671`, reconciled with main `366b82b353485207a9b0d6b1ae63dafbbe265bae`. Scope: English documentation. The project owner explicitly resumed autonomous execution on 18 November 2026; current review, protection and gate requirements remain binding.
+
+**Preservation:** current-main source, accepted decisions, historical evidence and independent workstream ownership are retained. Only overlapping checkpoint/assessment text requires conflict resolution. The prior branch checkpoint and assessment are retained as explicitly historical records in [the cloud receipt](verification/phase0-pr346-cloud-20261118/README.md). The two actionable translation review comments receive additive English explanations; the original ABI and installer sequence remain unchanged. No product acceptance criterion or security boundary changes. Score remains 41/100.
+
+**Validation:** source-preservation assertions, progress regeneration/check and whitespace verification are required on the reconciled tree; their actual results are recorded in the receipt. Current-head hosted checks and independent final review remain required before a manual squash merge. Full issue #274, production security acceptance, baseline B and governance phases 1–6 remain open.
+
+## Retained source-bound main checkpoints
+
+## Retained handoff — Autonomous Cloud resumption — 18 November 2026
+
+**Authority and source:** the project owner explicitly resumed the paused execution goal in the current Cloud task, including verified manual squash merges throughout the authorized backlog. The historical pause in [the original handoff](verification/phase0-20261117/CLOUD-HANDOFF.md) is superseded by this resumption; its source and evidence remain unchanged. Main was re-queried at `366b82b353485207a9b0d6b1ae63dafbbe265bae`; PR #345 resumes from `e7752fe03ccde548762dca1c1dc0cc096470730d`.
+
+**Active:** PR #355 has one exclusive security writer. Its manifest remains disabled. Recovery-only PR #357 remains unaccepted; resource accounting, selected model-client/gate compatibility and independent exact-candidate verification block integration. Independent English-documentation and Rust 1.100 migration writers use separate worktrees. Existing Claude UI/UX and S09 sources are preserved.
+
+**Verified inventory:** five open issues (#41, #42, #43, #274, #283), fifteen open PRs (#339, #340, #345–#357). Main's mandatory `host-quality` and `qemu-smoke` checks pass. Code scanning, Dependabot and secret-scanning API requests returned HTTP 403: these categories are **NOT VERIFIED**. No finding or issue has been closed. Score remains **41/100**; baseline B and governance phases 1–6 remain unestablished.
+
+**Concrete runtime blocker:** Cloud lacks a writable cgroup-v2 delegation and private systemd-user bus required by the resource-isolation recovery design. No unisolated execution is authorized as a substitute. Existing toolchains and QEMU are available through `/workspace/.nieuw-os-env/activate.sh`; that host path is operational context, not portable acceptance evidence.
+
+**Next:** complete feasible corrections and exact-source tests, independently review eligible candidates, reconcile and manually squash only with passing required current-head gates and resolved reviews. Continue independent work when the security runtime is blocked. The authoritative integration ledger and next continuation are recorded in [the Cloud receipt](verification/phase0-cloud-20261118/README.md). No auto-merge, branch-protection bypass, paid service change or production signing is authorized.
+
+## Historical handoff — Phase 0 security and cloud transfer — 18 November 2026
+
+**Source:** verified integration main `38d4cc17687156379677993be9945447591bd4c1`; existing PR355 source `aec1fb5f75e6165da82ba81f3f43d7a0d912ab1d`. The owner authorizes completing, verifying, safely squash-merging and resolving the security fix; no additional routine permission is required. Mandatory checks, independent review and security conditions remain binding.
+**Primary milestone:** 0D security remediation. 0A is complete, 0B waits on security, earlier 0C triage is historical, and B/governance1–6 remain unstarted. Score41/100 is unchanged. The latest finite baseline gate supersedes the old strict-zero prerequisite.
+**Verified checkpoint:** 406 complete local tools tests at the initial source;78 final targeted regressions at the current security source. Fresh sandboxed QEMU replay passes the unchanged26-case TEST oracle, rawexit33, with unchanged inputs/store. This is not a guest rebuild, real model-client parity, hardware acceptance or security resolution. The first hosted metadata-fixture failure is preserved and repaired; current-head CI must be re-queried.
+**Open blockers:** resource limits and complete selected client/gate compatibility remain independently blocking; production stays disabled. The Daybreak finding is open and the latest manual scan tested old main38. Advisory quota metadata was not a proven scan-start rejection. No merge/closure is inferred from partial success.
+**Transfer:** [Cloud handoff](verification/phase0-20261117/CLOUD-HANDOFF.md) is released to the next Codex Cloud task after verification of prepared commit `c64d81d6bde1a0e649350325db15d87cde11e1cd` and the listed source refs. Local Codex writers have stopped. Rust WIP is safely published at PR354 `aa5015378e78783fe6486480be45fdfd44656cfc`; PR339 Codex preview is `bba804996b93d93e82b6fb323cdeea9779f6fe99`, with latest Claude files preserved. Existing PR346/350 canonical branches contain their completed preview integrations; no duplicate PRs.
+**Preservation:** original shared checkout has an independent local main38 merge; original UI/UX/agent-test WIP and Claude S09/design ownership are untouched and not transferred. Private security evidence and local runtime/caches remain outside public Git. A clean worker completion is not project completion.
+**Next:** the cloud task verifies this release and current refs, claims one workstream and continues PR355 blockers first, with no vulnerable pipeline execution, bypass, false closure or premature governance.
+
+## Historical retained handoff — Phase 0 before the security/cloud checkpoint
+
+**Verified main:** `38d4cc17687156379677993be9945447591bd4c1`, after manual squashes #343, #344 and #336. Main's tree exactly matches reviewed #336 head `fd7d9226`. All65 premerge checks completed:56 successful,8 intentional skips and1 neutral; applicable required/native/SMP/window/merge-hold checks passed. No bypass or auto-merge. Issue #41 remains open. The latest post-merge snapshot has16 of18 push workflows successful, with SMP and window-session still running. [Merge receipt](verification/phase0-20261117/pr336-merge-receipt.json).
+
+**Primary milestone:** **0B, integration queue**. 0A is complete; 0C issue acceptance, 0D final integrated assessment, baseline B and governance1–6 are pending. [Latest owner refinement](verification/phase0-20261117/owner-objective-refinement.json) supersedes the historical strict-zero prerequisite: zero remains the continuing target, while B requires no unresolved integration/security blockers, passing applicable mandatory checks and individually evidenced residuals with owner, priority and next step. Long-term product issues, nonblocking quality and unrelated arrivals do not block governance solely by count. Current inventory:5 open issues (#41/#42/#43/#274/#283),12 open PRs (#333/#339/#340/#345–353).
+
+**Current integration:** #333 head `db4581c1` is pushed against actual main after #336. Runtime inputs and source-v3 `3c15e812…` equal independently verified repair `de793ed7`; current main's corrected B03 proposals and single canonical ADR are preserved. The opt-in TEST ELF fits the unchanged2MiB cap and preserves every loaded byte. Native policy/affected/union gates passed on that identical source; current-head hosted checks are running. Earlier overflow and superseded byte-identity failure remain recorded. Issue #42/H02 remains open. [Reconciliation](verification/phase0-20261117/pr333-actual-main-reconciliation.json).
+
+**Independently running/prepared subtasks:** #340 preview `f5a976f1` has11 fresh local host/native gate commands passing, but actual PR head remains `90816de3`; actual-main reconciliation and fresh hosted gates are still required. #346 consolidated English head `3fda27ac` independently preserves39 source/evidence files across23 documents; the four initially wrong manifest bindings were corrected without changing reviewed prose. The six source PRs remain open until merged inclusion is proved. #350 local preparation `7b4b618e`, #346 main38 reconciliation `04e29181` and #339 preservation review `dd6630ec` pass and are stored on separate preview branches, with actual PR heads unchanged. Current-head hosted acceptance still follows final main reconciliation. Broader UI/S09 ownership, original WIP/runners/claims and independent workstream handoffs below remain intact.
+
+**Tracking and residuals:** Project5's existing workflow44158500273 succeeded on main:84 scanned,0 updates,0 missing. No manual project fields or permissions changed. Initial CodeQL/standard Code Quality/Dependabot/secret API counts were0; AI-quality analysis is disabled and delegated bypass count is NOT VERIFIED. These are not final-source scan acceptance. The five-issue/nine-residual/21historical-path consistency review passes on e5149801, without completing0C/B or granting publication clearance. A legitimate CodeRabbit Minor ADR-rationale follow-up remains OPEN/P3 with the Codex integrator for governance phase1, with source, disposition and concrete next step recorded. Graphify notes are pending candidates, not published decisions.
+
+**Latest maintenance authority:** the project owner establishes latest-stable-by-default across all project components and clients. [Binding policy and execution scope](verification/phase0-20261117/owner-latest-stable-policy.json). A separate targeted upstream/source inventory is running; no bulk upgrade, changed toolchain pin or completed vulnerability fix is inferred. Urgent confirmed findings precedeB; larger noncritical upgrades receive owned follow-ups. The accepted decision/maintenance documentation and later inherited rootAGENTS rule must be made durable without disrupting this integration queue.
+
+**Next executable action:** finish #333 exact-head CI and independent reconciliation review; manually squash only when all conditions pass, verify resulting main, then reconcile #340 to that actual source and continue #339/#350/#346/#345. Complete issue-by-issue dispositions and fresh integrated security/quality gates before freezing B. No false closures, suppressed findings, security weakening or progress inflation;41/100 remains unchanged. Raw logs and source-bound resume are in the established handoff archive.
+
+## Retained handoff — Phase 0 PR333 actual-main reconciliation — 17 November 2026
 
 **Source:** reviewed333 parent `de793ed7ec83e2c121bf3f02fd0873271f86fe58`, integrating actual main `38d4cc17687156379677993be9945447591bd4c1` after verified336 squash. The new main tree is exactly the tested336 tree; issue41 remains open.
 **Preserved:** all333 runtime/security/TEST-linker-fix blobs and existing native source fingerprint; latest336 proposal clarifications and the single canonical unchanged ADR-B03K3 block at main's top. The squash topology would duplicate the same ADR at top and bottom; its exact main copy is retained once. Historical lead blocks and all independent handoffs remain below. [Reconciliation record](verification/phase0-pr333-main-20261117/integration.json).
@@ -62,6 +130,35 @@ The following statements preserve their original observation. The current handof
 **Changed:** bounded artifact-action contract and meaningful negative host oracle; existing native/evidence guards preserved. [Receipt](verification/phase0-pr343-20261117/README.md).
 **Checks:** 7 SMP CI tests, 26 workflow tests, 8 evidence-verifier tests and pinned actionlint pass (exit 0). Initial tools-suite failure from snap launchers retained; installed-rustup rerun running. Hosted action/current-head CI pending. Progress 41/100 unchanged; no merge.
 **Next:** verify hosted roundtrip and required jobs, record exact head/merge SHA and request specific owner merge approval. Independent #344 dependency record work can proceed. Orbitaal/S09 ownership remains unchanged. Baseline B not established; governance phases 1–6 not started.
+
+### Historical source checkpoint — Phase 0 English publication integration — 17 November 2026
+
+**Source:** existing346 parent `bc2db3975a773af95acd113e2f59af4cc95300e1`, preserving the reviewed source heads of347–349/351–353. This branch still needs reconciliation with the main resulting from the existing code integration queue.
+**Changed:** the independently reviewed English translations/evidence are consolidated into one issue274 draft, plus four small independently reviewed explanatory comments/glosses. [Source/hash manifest](verification/phase0-english-integration-20261117/manifest.json). Source/evidence hashes and independent workstream handoffs remain preserved. No runtime, policy, security boundary or licensing change.
+**Checks:** independent integration review found four gloss rows bound to their pre-edit parent instead of the first Git commit. Only that metadata is corrected; all39 source/evidence hashes now resolve to the recorded Git blobs. Scoped semantic checks pass; independent recheck and actual current-head hosted checks remain pending. Score remains41/100; full issue274 is open until actual coverage/publication acceptance. The six source PRs stay open until merge and exact-main preservation proof.
+**Next:** publish/update346, complete its bounded integration review, then reconcile against verified main after the earlier code PRs. Perform manual squash only after all applicable gates/reviews/merge-hold pass. No auto-merge or count-driven closure. BaselineB requires no unresolved integration/security blockers, passing mandatory checks and individually triaged residuals under the latest owner refinement; governance1–6 have not started. Original UI/S09 WIP, runners and ownership remain intact.
+
+## Retained historical checkpoints and workstream records
+
+### Historical source checkpoint — Phase 0 English technical guides — 17 November 2026
+
+**Source:** guide comparison parent `cece3041187e1b7d08ec7708c36b84c728d6e2d2`, integrating verified main `95d59ad52761c1f8f0201d934556902b90ce63cb` after PR343. Draft PR346 includes the CI guide, native material-library guide, IPC-wait probe README and native IPC-wait contract.
+**Verified:** independent AI semantic comparisons and exact code/identifier/numeric/anchor preservation pass on all four guide hashes. The CI guide's earlier receipt remains intact. [Native guide receipt](verification/phase0-english-guides-20261117/README.md). Both parent handoffs and independent workstream history are retained below.
+**Gates and limits:** current integrated workflow checks (26 tests), progress write/check and whitespace checks pass (exit 0); current-head hosted checks remain pending. Native tests are NOT RUN for this documentation-only change. Progress remains 41/100; no new implementation or acceptance is claimed. Full issue #274, final integrated assessment and baseline B remain unfinished.
+**Resume:** run/record the local checks, publish this integrated draft and verify its required current-head CI. Eligible Phase 0 squash merges are explicitly authorized after all gates; no auto-merge/bypass. Preserve Orbitaal/S09 WIP, runners, claims and ownership. Governance phases 1–6 have not started.
+
+## Historical pre-integration checkpoints
+
+These records retain their original observations; the current handoff and updated owner Phase 0 authority supersede their pending-check and separate-approval instructions.
+
+### Historical CI guide task — 17 November 2026
+
+**Source:** main `b718f6bafdfc4927d3b7acfe786e67dcb8f88eec`; branch `codex/phase0-ci-guide-english`. The separate integration oversight checkpoint is draft PR #345.
+**Completed:** `docs/CI.md` translated without changing technical requirements, commands or historical evidence. Independent AI semantic review and preservation checks pass; all 26 workflow contract tests pass (exit 0). [Source-bound receipt](verification/phase0-ci-guide-20261117/README.md).
+**Progress and limits:** 41/100 remains 41/100. Issue #274 stays open; full translation and live Wiki consistency are unfinished. Native tests NOT RUN for this documentation-only change. Current-head hosted checks must be checked separately. Baseline B is NOT ESTABLISHED; governance phases 1–6 have NOT STARTED.
+**Authority and resume:** no merge or auto-merge approval is granted by this task. Verify the remote source and required checks, then return to the Phase 0 integration queue. Preserve every existing stream's handoff, WIP, claims and ownership; the retained Orbitaal record below remains independently authoritative for its stream.
+
+## Retained workstream handoff — Design pipeline (Orbitaal UI/UX), draft PR #332 — 14 November 2026
 
 ## Retained workstream handoff — Design pipeline (Orbitaal UI/UX), continuation branch `claude/baryon-os-design-pipeline-20261115` (PR #339) — 15 November 2026
 

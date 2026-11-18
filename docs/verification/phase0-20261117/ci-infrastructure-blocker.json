@@ -1,0 +1,55 @@
+{
+  "source": "e7169e43bf772307acf328590b4300fa52a4ad73",
+  "run_id": 44143910228,
+  "jobs": [
+    {
+      "id": 134253737144,
+      "name": "component-quality (table-editor)"
+    },
+    {
+      "id": 134253737267,
+      "name": "component-quality (net-config)"
+    }
+  ],
+  "annotation": "The job was not started because your account is locked due to a billing issue.",
+  "evidence_level": "NOT RUN: GitHub infrastructure billing lock",
+  "owner_notification": "Requested account unlock; no billing/paid infrastructure changes performed",
+  "baseline_B": "not established",
+  "score": 41,
+  "pr336": {
+    "head": "c26b0903627fea59f5d286f8eff4c4887b017b9a",
+    "observed_failed_jobs": 49,
+    "detail": "See archived pr336-check-annotations.json for actual cause per job; no local pass substitutes hosted acceptance",
+    "failed_to_start_billing_annotations_verified": 49
+  },
+  "main_ci_required_jobs": [
+    {
+      "id": 134253734840,
+      "name": "qemu-smoke",
+      "conclusion": "success"
+    },
+    {
+      "id": 134253735338,
+      "name": "host-quality",
+      "conclusion": "success"
+    }
+  ],
+  "additional_main_blocked_jobs": [
+    {
+      "id": 134257879280,
+      "name": "upload-coverage-rust",
+      "status": "NOT RUN: account billing lock"
+    },
+    {
+      "id": 134257879326,
+      "name": "upload-coverage-javascript",
+      "status": "NOT RUN: account billing lock"
+    },
+    {
+      "id": 134257879632,
+      "name": "upload-coverage-python",
+      "status": "NOT RUN: account billing lock"
+    }
+  ],
+  "correction": "The preceding checkpoint incorrectly described qemu-smoke as billing-blocked. Actual main host-quality and qemu-smoke succeeded; the three CI coverage-upload jobs did not start. Raw API annotations retained."
+}

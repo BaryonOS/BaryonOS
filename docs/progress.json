@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-18",
-    "source_commit": "1a2758368bf416205e6e4b2787d7304397ff4daa",
+    "source_commit": "3966b43f115c23fc0d2bd51e33ebbad49ec97cd9",
     "assessment_basis": "parent_commit",
     "branch": "claude/baryon-os-design-pipeline-20261115",
-    "task": "Merge main (H02 PR333: native USB HID containment and input policy protection) into the design pipeline branch; UX-A11Y-DS run 2 stays queued",
+    "task": "Phase 0 PR339: preserve Claude research and independently verified successor checker on actual main",
     "previous_score": 41,
-    "summary": "41/100 remains 41/100. The merge combines main's H02 PR333 work, which adds evidence to H02 while H02 stays open, with the design pipeline state; neither side accepts a criterion. The ds-1.1 design changes remain uncommitted and unaccepted, UX-A11Y-R is an intermediate research checkpoint, and the successor matrix checker remains an open lead item."
+    "summary": "41/100 unchanged. Existing51 baseline identities and original research/archive are preserved; successor checker closes path confinement and baseline-demotion validation gaps. This structural validation is no systematic review, native accessibility acceptance or human audit. Security and final combined-source gates remain open."
   },
   "tracks": [
     {

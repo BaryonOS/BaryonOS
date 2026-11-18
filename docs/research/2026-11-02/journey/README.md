@@ -1,45 +1,55 @@
-# Fase 4 — installatie, eerste gebruik en herkenning
+<a id="fase-4--installatie-eerste-gebruik-en-herkenning"></a>
 
-Onderzocht op **2 november 2026**. Uitbreiding van [het fase 2–4-onderzoek](../README.md), uitsluitend documentatie. Geen installer/onboarding gebouwd, installatie-images gedownload, echte schijven gebruikt, OS-sessies doorlopen of deelnemers getest.
+# Phase 4 — installation, first use and familiarity
 
-## Onderzoeksvragen en methode
+Researched on **2 November 2026**. An extension of [the phase 2–4 research](../README.md), documentation only. No installer/onboarding was built. No installation images were downloaded, no real disks were used, no OS sessions were completed and no participants were tested.
 
-Welke installatiebeslissingen zijn gedeeld, waar verschillen daadwerkelijke routes, welke handelingen van de eerste werkdag zijn overdraagbaar en welke verwachtingen moet nieuw-os ondersteunen? Welke innovatie lost een concreet probleem op zonder bekende basisacties opnieuw te laten leren?
+<a id="onderzoeksvragen-en-methode"></a>
 
-Zoekroute: officiële actuele downloads/releases → versiegebonden installatie-/herstelgids → desktoptaakhandleidingen → vaste broncodetag/configuratie wanneer de gids te algemeen, verouderd of tegenstrijdig is. Windows/macOS, Linux-installers en dagelijkse bediening zijn parallel onderzocht en centraal samengevoegd. Zoekclusters: Windows 26H2 media/Setup/OOBE, macOS Recovery/Setup Assistant/FileVault, Ubuntu 26.04-installatie, Fedora Live Anaconda hidden pages, Kubuntu Calamares-manifest/patches, GNOME 51- en Plasma 6.8-taakroutes, mental models en W3C cognitieve toegankelijkheid.
+## Research questions and method
 
-Voorkeur voor de ondersteunde Ubuntu/Kubuntu-LTS; Fedora actuele stabiele Workstation. Upstream GNOME 51/Plasma 6.8 in dagelijkse bediening worden niet toegeschreven aan distributies die GNOME 50/Plasma 6.6 bevatten. Dynamic supportpagina's zijn geen gepinde ISO-opname. Broncode bewijst configuratie/logica, geen end-to-end-succes.
+Which installation decisions are shared, where do actual routes differ, which first-day actions are transferable, and which expectations should nieuw-os support? Which innovation solves a concrete problem without requiring familiar basic actions to be relearned?
 
-Labels: **[BRON]** controleerbare beschrijving, **[ANALYSE]** duiding, **[HYPOTHESE]/[VOORSTEL]/[ONTWERPKEUZE]** nog te toetsen richting, **[REPOSITORY]** exact afgebakende code-/bewijsbasis. Conceptuele staptellingen zijn documentanalyse, geen gemeten klikken, tijden, foutkansen of bewezen bekendheid. Niet-vastgestelde details blijven zichtbaar onbekend.
+Search route: current official downloads/releases → version-bound installation/recovery guide → desktop task manuals → fixed source-code tag/configuration when the guide is too general, outdated or contradictory. Windows/macOS, Linux installers and daily controls were researched in parallel and merged centrally. Search clusters: Windows 26H2 media/Setup/OOBE, macOS Recovery/Setup Assistant/FileVault, Ubuntu 26.04 installation, Fedora Live Anaconda hidden pages, Kubuntu Calamares manifest/patches, GNOME 51 and Plasma 6.8 task routes, mental models and W3C cognitive accessibility.
 
-## Leesroute en geleverde artefacten
+Preference was given to supported Ubuntu/Kubuntu LTS releases and the current stable Fedora Workstation. Upstream GNOME 51/Plasma 6.8 daily controls are not attributed to distributions containing GNOME 50/Plasma 6.6. Dynamic support pages are not a pinned ISO capture. Source code demonstrates configuration/logic, not end-to-end success.
 
-| Document | Opbrengst |
+Labels: **[BRON]** verifiable description, **[ANALYSE]** interpretation, **[HYPOTHESE]/[VOORSTEL]/[ONTWERPKEUZE]** direction still to be tested, **[REPOSITORY]** precisely bounded code/evidence baseline. Conceptual step counts are document analysis, not measured clicks, times, error probabilities or demonstrated familiarity. Unestablished details remain visibly unknown.
+
+<a id="leesroute-en-geleverde-artefacten"></a>
+
+## Reading route and delivered artifacts
+
+| Document | Contribution |
 |---|---|
-| [Installatievergelijking](../../os-installation-comparison.md) | 31 aspecten × Windows/macOS/Ubuntu/Fedora/Kubuntu plus expliciet toekomstige nieuw-os-kolom; werkelijke volgorde, A/B/C, veilige automatisering |
-| [Windows/macOS-brondossier](windows-macos-installation.md) | 31 aspecten, clean/in-place/Recovery/Intel-varianten, WI-bronregister |
-| [Linux-brondossier](linux-installation.md) | 31 aspecten, distributieprofielen/versies/patches, LI-bronregister |
-| [Dagelijkse interactie](../../os-interaction-patterns.md) | 28 taken × Windows/macOS/GNOME/KDE/nieuw-os, telmethode, termen/iconen/toetsen, UI-bronregister |
-| [Overdraagbare mentale modellen](../../transferable-mental-models.md) | Gedeelde concepten, herkomstprofielen, verwachtingscompatibiliteit, familiarity budget, J-bronregister |
-| [Overstapfrictie](../../switching-friction.md) | Herkomstspecifieke hypotheses, compatibiliteit en installatierisico's; verband met fase 3 |
-| [Installer](../../../product/new-os-installer-spec.md) | Volledige gemotiveerde funnel, stapcontracten, grens vóór iedere mutatie, open backendgates en IN-acceptatie |
-| [Onboarding](../../../product/new-os-onboarding-spec.md) | Eén UI, optionele begeleiding, lokaal inert aliasregister, eerlijke ontbrekendstatus en ON-acceptatie |
-| [Interactieprincipes](../../../product/interaction-principles.md) | Meetbare voorstelcriteria, toegankelijkheid en onderzoeks-/verificatieplan |
-| [Bestaand productplan](../../../implementation/PRODUCT-SPEC.md) | Begrensde aanvulling na deze vergelijking; geen P2-uitbreiding of implementatie in deze opdracht |
-| [Documentcontrole](verification.json) | Matrixdekking, bron-/linkconsistentie, ongewijzigde productboom/rubric, exacte uitgevoerde controles |
+| [Installation comparison](../../os-installation-comparison.md) | 31 aspects × Windows/macOS/Ubuntu/Fedora/Kubuntu plus an explicitly future nieuw-os column; actual sequence, A/B/C, safe automation |
+| [Windows/macOS source dossier](windows-macos-installation.md) | 31 aspects, clean/in-place/Recovery/Intel variants, WI source register |
+| [Linux source dossier](linux-installation.md) | 31 aspects, distribution profiles/versions/patches, LI source register |
+| [Daily interaction](../../os-interaction-patterns.md) | 28 tasks × Windows/macOS/GNOME/KDE/nieuw-os, counting method, terms/icons/keys, UI source register |
+| [Transferable mental models](../../transferable-mental-models.md) | Shared concepts, prior-platform profiles, expectation compatibility, familiarity budget, J source register |
+| [Switching friction](../../switching-friction.md) | Prior-platform-specific hypotheses, compatibility and installation risks; connection with phase 3 |
+| [Installer](../../../product/new-os-installer-spec.md) | Full justified funnel, step contracts, boundary before every mutation, open backend gates and IN acceptance |
+| [Onboarding](../../../product/new-os-onboarding-spec.md) | One UI, optional guidance, locally inert alias register, honest missing status and ON acceptance |
+| [Interaction principles](../../../product/interaction-principles.md) | Measurable proposal criteria, accessibility and research/verification plan |
+| [Existing product plan](../../../implementation/PRODUCT-SPEC.md) | Bounded supplement following this comparison; no P2 extension or implementation in this assignment |
+| [Document check](verification.json) | Matrix coverage, source/link consistency, unchanged product tree/rubric, exact executed checks |
 
-De bronnenregisters staan bij het dossier dat de claim bezit, met titel, organisatie, datum/versie, raadpleegdatum, directe URL en beperkingen. De centrale matrix gebruikt dezelfde WI-/LI-ID's en URLs. Bestaande gebruikers-/adoptiebronnen EA/WM/LM/DT blijven in [het oorspronkelijke register](../sources.md). Geen dubbele telling van dezelfde leverancierstekst als onafhankelijke gebruikersstem.
+Source registers are kept with the dossier responsible for the claim and include title, organization, date/version, access date, direct URL and limitations. The central matrix uses the same WI/LI IDs and URLs. Existing user/adoption sources EA/WM/LM/DT remain in [the original register](../sources.md). The same vendor text is not counted again as an independent user voice.
 
-## Synthese, keuzes en verworpen richtingen
+<a id="synthese-keuzes-en-verworpen-richtingen"></a>
 
-[ANALYSE] Herkenbare concepten zijn breder overdraagbaar dan precieze schermposities of toetscombinaties. Vooral app versus venster, zoekbereik, statusgebied, werkruimten, pakketbronnen en account-/schijfgevolgen verschillen. Dat levert toetsvragen op, geen nieuw-os-succesclaim.
+## Synthesis, choices and rejected directions
 
-[VOORSTEL] Behoud normale werkwoorden en zichtbare gevolgen; verbeter vindbaarheid met lokale synoniemen en breng schijfmutaties achter één volledige autorisatiegrens. Vraag optioneel naar eerdere ervaring voor tijdelijke hulp, niet voor vier shells. Introduceer Materiaal geleidelijk binnen dezelfde basisbediening.
+[ANALYSE] Familiar concepts are more broadly transferable than exact screen positions or key combinations. In particular, app versus window, search scope, status area, workspaces, package sources and account/disk consequences differ. This raises questions to test, not a nieuw-os success claim.
 
-Verworpen voor deze richting: een bestaand OS visueel kopiëren, vier verschillende interfaces, gebruikersherkomst als machtiging, een zoekopdracht die direct systeemacties uitvoert, onbekende schijven als leeg behandelen, dummy-encryptie/authenticatie, AI/provideraccount als noodzakelijke toegangspoort en minder stappen als enige kwaliteitsmaat. Redenen en acceptatie staan in de gekoppelde specificaties. Deze voorstellen wijzigen geen gerealiseerde securitygaranties.
+[VOORSTEL] Preserve ordinary verbs and visible consequences; improve discoverability with local synonyms and place disk mutations behind one complete authorization boundary. Optionally ask about prior experience for temporary help, not for four shells. Introduce Materiaal gradually within the same basic controls.
 
-## Beperkingen en volgende bewijsstap
+Rejected for this direction: visually copying an existing OS, four different interfaces, prior platform as authorization, a search query that directly executes system actions, treating unknown disks as empty, dummy encryption/authentication, an AI/provider account as a required entry gate, and fewer steps as the sole quality measure. Rationale and acceptance are recorded in the linked specifications. These proposals change no implemented security guarantees.
 
-Geen volledige releasegebonden installatie-opname, gebruiksonderzoek, keyboard-/screenreader-/touchproef of fysieke hardwarevalidatie. Enkele macOS-paneelposities, defaults en exacte KDE-staptellingen zijn niet vastgesteld. De KDE-applet-/displayingangen zijn aanvullend op tag v6.8.0 gelezen, maar de volledige backend-/shellroute is niet uitgevoerd. De native referentie blijft exact `1f0dd9c`, los van de mainbasis van deze branch.
+<a id="beperkingen-en-volgende-bewijsstap"></a>
 
-Voorkeursvervolg: eerst actuele code-/servicegates hercontroleren, dan een begrensde read-only plan-/aliasproef en veilige taakobservatie. Vóór echte writes: capability-/auth-/encryptie-/recoverybewijs met disposable images en onafhankelijke review. Een menselijke audit en representatieve adoptie-/retentiemeting blijven afzonderlijk nodig. De vaste productscore blijft **34/100** op deze mainbasis; extra documenten leveren geen acceptatiepunten op.
+## Limitations and next evidence step
+
+No complete release-bound installation capture, user research, keyboard/screen-reader/touch trial or physical hardware validation. Some macOS panel positions, defaults and exact KDE step counts have not been established. The KDE applet/display entry points were additionally read at tag v6.8.0, but the full backend/shell route was not executed. The native reference remains exactly `1f0dd9c`, separate from this branch's main baseline.
+
+Preferred next step: first recheck current code/service gates, then a bounded read-only plan/alias experiment and safe task observation. Before actual writes: capability/auth/encryption/recovery evidence with disposable images and independent review. A human audit and representative adoption/retention measurement remain separately necessary. The fixed product score remains **34/100** on this main baseline; additional documents earn no acceptance points.

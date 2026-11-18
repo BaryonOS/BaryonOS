@@ -1,0 +1,9 @@
+{
+  "scope": "tools/agent_gate.py default log retention",
+  "source_main": "e7169e43bf772307acf328590b4300fa52a4ad73",
+  "equivalent_recall": "No equivalent found in bounded relevantrecall; not a proof ofglobalabsence",
+  "submitted": true,
+  "session": "phase0-20261117",
+  "status": "Durable intake/candidate pending processing and authorized review, NOT published/accepted",
+  "fact": "Use unique--log pergate orarchivefullrawlog before nextcall; defaultgate.log openedw, PASSstdoutisnotcompletecommandlog"
+}

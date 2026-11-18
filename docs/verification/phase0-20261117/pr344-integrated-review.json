@@ -1,0 +1,19 @@
+{
+  "source_head": "64a855754fad55cb0941d9756d7b6b2ca34bb913",
+  "tree": "aba147a7e7f486a9405b0797738468d09e5ac57a",
+  "independent_result": "PASS for source/status reconciliation; native/hosted gates separate",
+  "report_sha256": "b63ee83de92ebe8c6f2353e8c6cb374ad8131f012afce0d7abbff0b664c5d313",
+  "parent_union_preserved": true,
+  "unchanged_criteria": 51,
+  "fixed_weight": 100,
+  "accepted_points": 41,
+  "manual_conflicts": [
+    "docs/PROJECT-STATE.md",
+    "docs/progress.json"
+  ],
+  "checks": {
+    "progress_check_exit": 0,
+    "diff_check_exit": 0
+  },
+  "raw_report": "/home/simon/projects/baryonos-handoffs/claude-to-codex/phase0-20261117/P0-344-INTEGRATED-review.md"
+}

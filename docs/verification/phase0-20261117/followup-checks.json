@@ -1,0 +1,141 @@
+[
+  {
+    "worktree": "pr343",
+    "source_commit": "aa7a0387aa34c2f9ead9a46d9a3ee7df32f5a3a5",
+    "command": "PATH=/snap/rustup/current/bin:$PATH python3 -B -m unittest discover -s tools/tests -p test_*.py",
+    "exit_code": 0,
+    "duration_seconds": 15.088,
+    "raw_log": "/tmp/baryonos-phase0-20261117/pr343/build/tokenguard/run-am84x9ve.log",
+    "sha256": "a7bed6bef33c943d56aeb3312ffda3cd4356ae9ca1b12d5e64bc996ce88732a0",
+    "test_summary": [
+      "Ran 349 tests in 14.910s"
+    ]
+  },
+  {
+    "worktree": "pr344",
+    "source_commit": "57a9e5f3a1abe6c6f2364d340d765fcaa198aa35",
+    "command": "PATH=/snap/rustup/current/bin:$PATH python3 -B -u tools/test_update.py",
+    "exit_code": 0,
+    "duration_seconds": 73.304,
+    "raw_log": "/tmp/baryonos-phase0-20261117/pr344/build/tokenguard/run-nzeuxiyl.log",
+    "sha256": "05389640be590068e14e4b988c4ce7d22df08b70626c26cec6fecac1fb7fcffb",
+    "test_summary": [
+      "B03 gate passed=True stages=18"
+    ]
+  },
+  {
+    "worktree": "pr336",
+    "source_commit": "6b2f3d2698cd525904ec69f35ab3081d5cad18d9",
+    "command": "PATH=/snap/rustup/current/bin:$PATH cargo +1.90.0 test --locked -p update-core",
+    "exit_code": 0,
+    "duration_seconds": 2.239,
+    "raw_log": "/tmp/baryonos-phase0-20261117/pr336/build/tokenguard/run-jra8c0wz.log",
+    "sha256": "2b02759c3cb6a077d0e77b5f97d502f24278e06b73d2fb887c42b6c2166d09d7",
+    "test_summary": [
+      "test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.16s",
+      "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s"
+    ]
+  },
+  {
+    "worktree": "pr336",
+    "source_commit": "6b2f3d2698cd525904ec69f35ab3081d5cad18d9",
+    "command": "PATH=/snap/rustup/current/bin:$PATH python3 -B -u tools/test_policy_envelopes.py",
+    "exit_code": 0,
+    "duration_seconds": 17.509,
+    "raw_log": "/tmp/baryonos-phase0-20261117/pr336/build/tokenguard/run-3q4vjj35.log",
+    "sha256": "57fc7e21498ffc11d7522923373d3bb5601e88cf07781ee285b132d050e24f11",
+    "test_summary": [
+      "B03 policy envelopes: passed=True raw=33 duration=2.3s /tmp/baryonos-phase0-20261117/pr336/build/run/policy-envelopes-4e8fd5ef52"
+    ]
+  },
+  {
+    "kind": "Source-bound local preintegration and residual consistency checkpoint",
+    "records": [
+      {
+        "pr": 339,
+        "local_head": "dd6630ec38b4d9dd3086547667d9c9f27f975926",
+        "main_parent": "38d4cc17687156379677993be9945447591bd4c1",
+        "separate_published_preview": "codex/phase0-pr339-preintegration",
+        "normal_push_exit": 0,
+        "local_result": "PASS bounded source/config/document preservation with existing independent review",
+        "evidence": {
+          "P0-339-current-main-independent-review.md": {
+            "sha256": "9b23e38718daf6cc4da96adb8b0731024269cbfca675ca6c29a21a1ea55704f4",
+            "bytes": 8996
+          },
+          "P0-339-latest-source-review.md": {
+            "sha256": "8fb918efc37f18be6c12038c2f319dd75813df0840e62fe827801e8534c37698",
+            "bytes": 11620
+          }
+        },
+        "actual_pr_head_unchanged": true,
+        "required_next": "Reconcile actual main after preceding core integrations; publish actual PR head only after ownership/source check; fresh hosted checks/reviews/merge-hold remain mandatory",
+        "not_claimed": "Main merge, complete issue acceptance, new native/hardware/human evidence or paid/inherited account controls"
+      },
+      {
+        "pr": 346,
+        "local_head": "04e29181ef7e755eea2db0054c463b9216184671",
+        "main_parent": "38d4cc17687156379677993be9945447591bd4c1",
+        "separate_published_preview": "codex/phase0-pr346-preintegration",
+        "normal_push_exit": 0,
+        "local_result": "PASS bounded source/config/document preservation with existing independent review",
+        "evidence": {
+          "P0-346-current-main-result.md": {
+            "sha256": "0c63ecb9e91d0d85d3d550d8cd9ec81b3fb473bbdb58e61abda42faf3482f4b7",
+            "bytes": 16438
+          },
+          "P0-346-lead-current-main-review.json": {
+            "sha256": "a16714b10759229a3f61188aebad3372919cb7ffb5ae61cb66b180805f5745d9",
+            "bytes": 1016
+          }
+        },
+        "actual_pr_head_unchanged": true,
+        "required_next": "Reconcile actual main after preceding core integrations; publish actual PR head only after ownership/source check; fresh hosted checks/reviews/merge-hold remain mandatory",
+        "not_claimed": "Main merge, complete issue acceptance, new native/hardware/human evidence or paid/inherited account controls"
+      },
+      {
+        "pr": 350,
+        "local_head": "7b4b618e7ef0eee6b2a67ce693afcb9f2f20809c",
+        "main_parent": "38d4cc17687156379677993be9945447591bd4c1",
+        "separate_published_preview": "codex/phase0-pr350-preintegration",
+        "normal_push_exit": 0,
+        "local_result": "PASS bounded source/config/document preservation with existing independent review",
+        "evidence": {
+          "P0-350-integration-result.md": {
+            "sha256": "35abedd8d8fbe3bf0a9846d5f7ba2dcabc63a6a8e82c02be6cfe730de71a4728",
+            "bytes": 12058
+          },
+          "P0-350-lead-integration-review.json": {
+            "sha256": "ec344e6d3ba7e76bca8025f0ea01ad10dd72c80a40b40571417005584f05826b",
+            "bytes": 839
+          }
+        },
+        "actual_pr_head_unchanged": true,
+        "required_next": "Reconcile actual main after preceding core integrations; publish actual PR head only after ownership/source check; fresh hosted checks/reviews/merge-hold remain mandatory",
+        "not_claimed": "Main merge, complete issue acceptance, new native/hardware/human evidence or paid/inherited account controls"
+      }
+    ],
+    "residual_consistency": {
+      "source": "e5149801c5837944aa5746fb84edc7e56305f010",
+      "report": "P0-0C-residual-consistency-review.md",
+      "sha256": "e1c28dc264354ae824da77bfe74f9c34e5d2a16580c0db1f34780a0ac760f047",
+      "result": "PASS within bounded existing five-issue/nine-residual/21historical-path scope; no new B blocker established",
+      "scope": "Does not complete0C/B or replace current-source integration gates/final assessment/T1"
+    },
+    "raw_root": "/home/simon/projects/baryonos-handoffs/claude-to-codex/phase0-20261117",
+    "score": "41/100 unchanged"
+  },
+  {
+    "task": "cloud_handoff_20261118",
+    "status": "RELEASED_TO_NEXT_CODEX_CLOUD_TASK",
+    "source": "aec1fb5f75e6165da82ba81f3f43d7a0d912ab1d",
+    "source_branch": "codex/phase0-pipeline-isolation",
+    "rust_source": "aa5015378e78783fe6486480be45fdfd44656cfc",
+    "pr339_preview": "bba804996b93d93e82b6fb323cdeea9779f6fe99",
+    "private_evidence_manifest_sha256": "1e7f7fdaf9956f1e003293accc9f397067d5b186697601d9c3d9ec5f6d68d42a",
+    "finding": "OPEN",
+    "merge": "BLOCKED",
+    "ownership": "Listed Codex work released after GitHub source/handoff verification. Local writers stopped; next cloud task must claim against current remote. Original Claude/user work excluded.",
+    "prepared_commit": "c64d81d6bde1a0e649350325db15d87cde11e1cd"
+  }
+]

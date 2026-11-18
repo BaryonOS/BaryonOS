@@ -1,357 +1,380 @@
-# Nieuw OS — volledige testrelease
+<a id="nieuw-os--volledige-testrelease"></a>
+# Nieuw OS — full test release
 
-**Toestand: in uitvoering; volledige productacceptatie open.** Dit is de
-bindende releaseopdracht en het acceptatieregister. Een documentatiecheckpoint,
-een afzonderlijke mijlpaal en een groene VM-deelproef zijn geen oplevering.
+**Status: in progress; full product acceptance remains open.** This is the
+binding release assignment and acceptance register. A documentation checkpoint,
+an individual milestone or a passing partial VM test does not constitute delivery.
 
-## Doel, bron en voortgang
+<a id="doel-bron-en-voortgang"></a>
+## Objective, source and progress
 
-De vastgelegde `/goal` luidt:
+The recorded `/goal`, as stated by the project owner, is:
 
 > Realiseer de volledige native testrelease van Nieuw OS volgens docs/FULL-TEST-RELEASE.md. Blijf implementeren, integreren, testen en repareren tot alle verplichte functionele, visuele, beveiligings- en herstelcriteria aantoonbaar slagen op het geleverde releaseimage. Behoud de volledige productomvang en architectuur; vervang ontbrekende functies niet door mocks, verborgen bediening of uitstel. Gebruik beschikbare agents voor onafhankelijk werk. Bewaar bij een harde blokkade of limiet de exacte werkstand en hervatstap. Meld voltooiing uitsluitend met het complete testpakket en herleidbaar acceptatiebewijs.
 
-De oorspronkelijke opdracht staat **onverkort** aan het einde van dit document.
-De aanvullende instructie van 30 oktober 2026 is normatief verwerkt in
-[uitvoerings- en productcontext](FULL-TEST-RELEASE-CONTEXT.md), inclusief concrete
-gebruikstaken/compatibiliteitsgrenzen, formaatdekking, TCB en duuracceptatie.
-Zij behoudt deze volledige opdracht, stabiele ID's, `/goal` en voortgangsrubric.
-De aanvullende eis luidt: **“externe opslag van uitsluitend
-versleutelde objecten moet kunnen”**. Daarom blijft een expliciet gekozen
-externe provider toegestaan als onbetrouwbare opslaglaag voor uitsluitend
-client-side versleutelde opaque objecten volgens
-[privacycontract revisie 4](LOCAL-PRIVACY-CONTRACT.md) en
-[het versleutelde-objectcontract](implementation/ENCRYPTED-OBJECT-STORAGE.md).
-Geen inhoudssleutels, plaintext, verplichte leverancierscloud, stille fallback,
-provider-key-escrow, OS-telemetrie of cloudinferentie. Deze verduidelijking
-verandert de overige opdracht niet.
+**English translation of the project owner's recorded `/goal`:**
 
-Er is één voortgangsketen; de bestanden hebben verschillende functies:
+> Deliver the full native test release of Nieuw OS under docs/FULL-TEST-RELEASE.md. Continue implementation, integration, testing and repair until all mandatory functional, visual, security and recovery criteria demonstrably pass on the delivered release image. Preserve the full product scope and architecture; do not replace missing functions with mocks, hidden controls or deferral. Use available agents for independent work. At a hard blocker or limit, preserve the exact work state and resume step. Report completion only with the complete test package and traceable acceptance evidence.
 
-| Bron | Verantwoordelijkheid |
+The original assignment is preserved **in full** at the end of this document,
+followed by a clearly labelled English translation. The supplementary instruction
+of 30 October 2026 is incorporated normatively in the
+[execution and product context](FULL-TEST-RELEASE-CONTEXT.md), including concrete
+user tasks and compatibility limits, format coverage, TCB and endurance acceptance.
+It preserves this full assignment, stable IDs, `/goal` and progress rubric.
+The supplementary requirement states: **“externe opslag van uitsluitend
+versleutelde objecten moet kunnen”**. **English translation:** “external storage
+of encrypted objects only must be possible”. An explicitly selected external
+provider therefore remains permitted as an untrusted storage layer solely for
+client-side encrypted opaque objects under
+[privacy contract revision 4](LOCAL-PRIVACY-CONTRACT.md) and the
+[encrypted-object contract](implementation/ENCRYPTED-OBJECT-STORAGE.md).
+No content keys, plaintext, mandatory vendor cloud, silent fallback,
+provider key escrow, OS telemetry or cloud inference. This clarification
+leaves the rest of the assignment unchanged.
+
+There is one progress chain; the files have distinct responsibilities:
+
+| Source | Responsibility |
 |---|---|
-| Dit document | Bindende volledige opdracht, stabiele productacceptatie en aftekenregels |
-| [progress.json](progress.json) en [PROGRESS.md](PROGRESS.md) | Bestaande vaste gewogen ontwikkelrubric; geen vervangende releasescore |
-| [PROJECT-STATE.md](PROJECT-STATE.md) | Actuele bron, artifact, uitgevoerde tests, blokkades en eerstvolgende hervatstap |
-| [WORK-QUEUE.md](WORK-QUEUE.md) | Uitvoerbare taken, actuele eigenaren, exclusieve schrijfgebieden, contracten en acceptatie-ID's |
-| [ROADMAP.md](ROADMAP.md) | Bestaande technische/productroute en afzonderlijk vastgelegd onderzoek |
+| This document | Binding full assignment, stable product acceptance and sign-off rules |
+| [progress.json](progress.json) and [PROGRESS.md](PROGRESS.md) | Existing fixed weighted development rubric; no replacement release score |
+| [PROJECT-STATE.md](PROJECT-STATE.md) | Current source, artifact, executed tests, blockers and next resume step |
+| [WORK-QUEUE.md](WORK-QUEUE.md) | Executable tasks, current owners, exclusive write sets, contracts and acceptance IDs |
+| [ROADMAP.md](ROADMAP.md) | Existing technical/product route and separately recorded research |
 
-De hoofdagent onderhoudt deze koppelingen en de gedeelde voortgangsbestanden.
-Een taak gebruikt de ID's hieronder en de bestaande rubric-ID's; zij introduceert
-geen concurrerende roadmap. De opgeslagen beginscore is **32/100, rubric v1**.
-Die score blijft staan zonder nieuw criteriumbewijs en is geen verklaring dat
-32% van deze release al op één image is geaccepteerd. Historische native
-resultaten blijven aan hun eigen bronversie gebonden. Alle productrijen hieronder
-beginnen open; bestaand werk wordt hergebruikt en op de uiteindelijke combinatie
-opnieuw beoordeeld.
+The lead agent maintains these links and the shared progress files.
+Tasks use the IDs below and the existing rubric IDs; they do not introduce
+a competing roadmap. The recorded starting score is **32/100, rubric v1**.
+That score remains unchanged without new criterion evidence and does not mean
+that 32% of this release has already been accepted on one image. Historical
+native results remain bound to their own source version. All product rows below
+start open; existing work is reused and reassessed on the final combination.
 
-### Gecontroleerde ontwikkelbasis
+<a id="gecontroleerde-ontwikkelbasis"></a>
+### Checked development baseline
 
-| Controle | Vaststelling en bewijsgrens |
+| Check | Finding and evidence limit |
 |---|---|
-| Ingangsbron | Branch `work`, commit `73ebc1e169b893eb5aba4b4f8ac06d7798136de3`; schone werkboom bij de repositorycontrole van 29 oktober 2026 |
-| Rubriccontrole | `python3 tools/progress.py --check`: exit 0, 32/100, rubric v1 consistent; controleert berekening/verwijzingen/weergaven, geen OS-uitvoering |
-| Historische K05-basis | Exact geteste bron `56b576b16da1e4503bc5f9167a476474a58c33cf`, vijf native gevallen; [K05-bewijs](verification/k05-startup-slots/README.md) |
-| Actuele herhaling | De integrator rapporteert op bron `73ebc1e` vijf herhaalde K05-VM-runs en 238 root-Rust-hosttests, exit 0. Archief: `docs/verification/full-release-baseline/supervisor-gate.json` en `git-build-audit.json`; volledige raw hostlogs zijn niet opnieuw compleet gearchiveerd en een deel van de uitvoer is alleen tooltranscript. Geen productrij sluit hiermee; geen gecombineerd desktop-/opslag-/netwerkimage bewezen. De integrator legt de exacte huidige commandologs en artifactbinding vast. |
-| Belangrijk open | Gecombineerd native profiel, B02 persistente geauthenticeerde opslag, volwaardige native UI/apps/netwerk/NAS/AI/updates en integrale releasevalidatie; fysieke/human-auditgates blijven op hun vereiste bewijsniveau open |
+| Starting source | Branch `work`, commit `73ebc1e169b893eb5aba4b4f8ac06d7798136de3`; clean worktree at the repository check of 29 October 2026 |
+| Rubric check | `python3 tools/progress.py --check`: exit 0, 32/100, rubric v1 consistent; checks calculation/references/displays, no OS execution |
+| Historical K05 baseline | Exact tested source `56b576b16da1e4503bc5f9167a476474a58c33cf`, five native cases; [K05 evidence](verification/k05-startup-slots/README.md) |
+| Current repeat | The integrator reports five repeated K05 VM runs and 238 root Rust host tests on source `73ebc1e`, exit 0. Archive: `docs/verification/full-release-baseline/supervisor-gate.json` and `git-build-audit.json`; complete raw host logs were not archived again in full, and some output exists only in the tool transcript. This closes no product row; no combined desktop/storage/network image has been demonstrated. The integrator records the exact current command logs and artifact binding. |
+| Key open items | Combined native profile, B02 persistent authenticated storage, full native UI/apps/network/NAS/AI/updates and integrated release validation; physical/human-audit gates remain open at their required evidence level |
 
-## Profielen, grenzen en bewijs
+<a id="profielen-grenzen-en-bewijs"></a>
+## Profiles, boundaries and evidence
 
-`VM-B0` is uitsluitend de bestaande smalle regressiebasis: x86_64,
-`pc-q35-8.2`, `qemu64`, TCG, één CPU, 256 MiB, UEFI/OVMF 4M, eigen loader/kernel,
-modern virtio-blk en virtio-rng waar de betreffende proef dat vereist. De
-integrator registreert de werkelijk gebruikte QEMU-/OVMF-versies en hashes;
-de historische basis gebruikte QEMU 10.0.13 en OVMF 2025.02-8+deb13u1.
+`VM-B0` is solely the existing narrow regression baseline: x86_64,
+`pc-q35-8.2`, `qemu64`, TCG, one CPU, 256 MiB, UEFI/OVMF 4M, the project's own
+loader/kernel, and modern virtio-blk and virtio-rng where the test requires them.
+The integrator records the actual QEMU/OVMF versions and hashes;
+the historical baseline used QEMU 10.0.13 and OVMF 2025.02-8+deb13u1.
 
-`VM-FR` is het geplande geïntegreerde functionele releaseprofiel:
-`pc-q35-8.2`, `Nehalem-v1`, één vCPU/TCG, 8 GiB RAM, een eigen sparse
-32 GiB-disk, GOP 1280×720 plus lay-outcontrole op 1920×1080 en 200% schaal,
-PS/2-invoer en virtio-blk/rng/net/snd. TPM 2.0 CRB gebruikt een aparte
-swTPM-state. QEMU 10.0.13 en passende OVMF 4M zijn in de huidige
-ontwikkelomgeving beschikbaar; dit is geen claim dat alle geplande devices
-of componenten al native werken. `VM-AI` gebruikt dit profiel of een vooraf
-vastgelegde passende uitbreiding met expliciet model-/resourcebudget; het
-daadwerkelijke model en benodigde resources blijven een zichtbare gate.
-De exacte configuratie en hashes worden vóór acceptatieruns bevroren.
-Een profielnaam op zichzelf is geen ondersteuningsclaim. Bestaande kleine
-proeflimieten zijn geen productlimieten. Het concrete ondersteunde
-bestandsformaat-/capaciteitsregister en de prestatiegrenzen worden vóór de
-bijbehorende implementatiegate vastgesteld; ontbrekende waarden blokkeren
-aftekenen en mogen geen lagere productomvang verbergen.
+`VM-FR` is the planned integrated functional release profile:
+`pc-q35-8.2`, `Nehalem-v1`, one vCPU/TCG, 8 GiB RAM, a dedicated sparse
+32 GiB disk, GOP 1280×720 plus layout checks at 1920×1080 and 200% scale,
+PS/2 input and virtio-blk/rng/net/snd. TPM 2.0 CRB uses separate
+swTPM state. QEMU 10.0.13 and suitable OVMF 4M are available in the current
+development environment; this does not claim that all planned devices
+or components already work natively. `VM-AI` uses this profile or a suitable
+extension specified in advance with an explicit model/resource budget; the
+actual model and required resources remain a visible gate.
+The exact configuration and hashes are frozen before acceptance runs.
+A profile name alone is not a support claim. Existing small
+probe limits are not product limits. The concrete supported
+file-format/capacity register and performance limits are fixed before the
+corresponding implementation gate; missing values block sign-off and
+must not conceal a reduced product scope.
 
-`HW-FR` en `HW-AI` zijn afzonderlijke fysieke profielen. Hardware-identiteit,
-onderdelen, ondersteunde functies, gecontroleerde image, instructies en
-herstelroute moeten concreet zijn. Het fysieke apparaat is nog niet voor
-schijfwrites, firmwarewijzigingen of aanpassing van bootconfiguratie
-geautoriseerd. Dit blokkeert onafhankelijk VM-/bronwerk niet. Een bestaande
-verplichte fysieke of menselijke gate blijft open; zij wordt geen `N/A`
-omdat toegang, apparatuur of externe review ontbreekt.
+`HW-FR` and `HW-AI` are separate physical profiles. Hardware identity,
+components, supported functions, verified image, instructions and
+recovery route must be concrete. Disk writes, firmware changes or changes
+to boot configuration on the physical device have not yet been authorized.
+This does not block independent VM/source work. An existing
+mandatory physical or human gate remains open; it does not become `N/A`
+because access, equipment or external review is unavailable.
 
-Alle VM-disks zijn speciaal gemaakte wegwerpimages onder de aangewezen build-
-en runpaden. Geen persoonlijke schijf, echte NAS-inhoud, account of fysiek
-apparaat koppelen zonder gerichte autorisatie. Netwerk-/NAS-tegenpartijen zijn
-afgebakende protocolconforme testservers met synthetische gegevens. Hosttools
-mogen bouwen, observeren en emuleren; zij voeren geen ontbrekende OS-client,
-crypto-, opslag-, UI- of inferentiefunctie namens Nieuw OS uit.
+All VM disks are purpose-built disposable images under the designated build
+and run paths. No personal disk, real NAS content, account or physical
+device may be attached without specific authorization. Network/NAS peers are
+bounded protocol-conforming test servers with synthetic data. Host tools
+may build, observe and emulate; they do not perform missing OS client,
+cryptographic, storage, UI or inference functions on behalf of Nieuw OS.
 
-### Aftekenmodel
+<a id="aftekenmodel"></a>
+### Sign-off model
 
-Elke afgetekende rij krijgt een compact rapport onder `docs/verification/`
-met matrix-ID, exact broncommit en bronvingerafdruk, configuratie, toolversies,
-exacte commando's, exitstatus, log-/artifactpaden en SHA-256 van geleverde
-loader/kernel/images. Bewijs dat vóór een relevante wijziging is opgenomen,
-wordt niet naar de nieuwe bron omgelabeld. Een mislukte run blijft mislukt
-bewaard; een timeout telt alleen als geslaagd wanneer juist dat negatieve
-scenario aantoonbaar wordt verwacht en gecontroleerd.
+Every signed-off row receives a compact report under `docs/verification/`
+with its matrix ID, exact source commit and source fingerprint, configuration,
+tool versions, exact commands, exit status, log/artifact paths and SHA-256 of
+the delivered loader/kernel/images. Evidence captured before a relevant change
+is not relabelled as evidence for the new source. A failed run remains
+archived as failed; a timeout counts as a pass only when that exact negative
+scenario is demonstrably expected and checked.
 
-Bewijscodes in de matrix gelden cumulatief:
+Evidence codes in the matrix are cumulative:
 
-| Code | Vereist bewijs |
+| Code | Required evidence |
 |---|---|
-| N | Echte native uitvoering via eigen kernel/diensten op het geïntegreerde image; waarneembare handeling plus normale en negatieve assertions, bovenstaande bron-/hashbinding |
-| D | Onafhankelijke inspectie van werkelijk opgeslagen bytes, koude nieuwe VM na volledige stop en waar relevant crash-/onderbrekingsproef; geen geheugensnapshot als duurzaamheid |
-| V | Werkelijk gerenderde interface én bedieningsproef; screenshots/video ondersteunen de assertions en vervangen de bediening niet |
-| T | Verkeer/ciphertext bij het afgesproken observatiepunt, identiteit/rechten en negatieve protocolgevallen; externe testserver is alleen tegenpartij |
-| P | Metingen met vooraf vastgelegde workload, herhalingen, p50/p95 of toepasselijke verdeling, geheugen/CPU/latency/energiegrenzen en fout-/duurcriteria |
-| H | Werkelijk uitgevoerd op het exacte fysieke profiel, met onderdelenlijst en herstelroute; VM-resultaten afzonderlijk |
-| A | Afgebakende menselijke/gebruiker-/externe-deskundigencontrole waar bestaande acceptatie dat vraagt; AI-review afzonderlijk en geen vervanging |
-| X | Compleet controleerbaar opleverartifact, reproduceerbare procedure en controle door een andere schone omgeving waar vereist |
+| N | Actual native execution through the project's own kernel/services on the integrated image; observable action plus normal and negative assertions, with the source/hash binding above |
+| D | Independent inspection of actual stored bytes, a cold new VM after a complete stop and, where relevant, a crash/interruption test; a memory snapshot does not demonstrate durability |
+| V | Actually rendered interface and an interaction test; screenshots/video support the assertions and do not replace interaction |
+| T | Traffic/ciphertext at the agreed observation point, identity/permissions and negative protocol cases; an external test server serves only as a peer |
+| P | Measurements using a workload specified in advance, repetitions, p50/p95 or the applicable distribution, memory/CPU/latency/energy limits and failure/endurance criteria |
+| H | Actual execution on the exact physical profile, with a component list and recovery route; VM results remain separate |
+| A | Bounded human/user/external-expert checks where existing acceptance requires them; AI review remains separate and is no substitute |
+| X | Complete verifiable delivery artifact, reproducible procedure and verification from another clean environment where required |
 
-Toestanden: `open`, `in uitvoering`, `geblokkeerd`, `afgetekend`.
-`afgetekend` vereist al het genoemde bewijs. Een geweigerde toestemming of
-ontbrekend ondersteund apparaat is alleen een normale runtimeconditie als de
-betreffende implementatie werkelijk bestaat. Ontbrekende implementatie blijft
-een open releasevereiste. Iedere hieronder genoemde eigenaar is een
-verantwoordelijk werkspoor, geen claim van een al actieve agent. De actuele
-persoon/agent en exclusieve bestanden staan alleen in de werkqueue.
+States: `open`, `in uitvoering` (in progress), `geblokkeerd` (blocked),
+`afgetekend` (signed off). `afgetekend` requires all specified evidence.
+Denied permission or an unavailable supported device is a normal runtime
+condition only if the corresponding implementation actually exists.
+Missing implementation remains an open release requirement. Each owner named
+below denotes a responsible workstream, not an already active agent. The
+current person/agent and exclusive files appear only in the work queue.
 
-## Actuele deelbewijzen behouden de volledige acceptatie
+<a id="actuele-deelbewijzen-behouden-de-volledige-acceptatie"></a>
+## Current partial evidence preserves full acceptance requirements
 
-Alle 62 verplichte rijen blijven open. FR-B01/FR-O05/FR-N03 hebben native RANDOM-deelbewijs: vier echte gevallen op 2b5 en 9aa, opnieuw alle vier uitgevoerd in CI op `844ec40`. Firmware, ELF's, schijfbytes en canaries zijn afzonderlijk gecontroleerd. Dit levert geen persistente sleutels, volledige TLS of VM-FR-aftekening.
+All 62 mandatory rows remain open. FR-B01/FR-O05/FR-N03 have partial native RANDOM evidence: four real cases on 2b5 and 9aa, all four rerun in CI on `844ec40`. Firmware, ELFs, disk bytes and canaries were checked separately. This does not establish persistent keys, full TLS or VM-FR sign-off.
 
-FR-U01/FR-A02 tonen in GUI-bron `5e126b7` echte Materiaal- en editorframes; de vaste 200-secondenketen faalt nog vóór Saved/Reopen/afsluiten. Een hostoptimalisatie op `1fd879d` blijkt native trager; de variantkeuze volgt daarom een echte eigen-kernelmeting. Geen veiligheidscontrole of acceptatiegrens wordt verwijderd.
+FR-U01/FR-A02 show real Materiaal and editor frames in GUI source `5e126b7`; the fixed 200-second chain still fails before Saved/Reopen/afsluiten (shutdown). A host optimization on `1fd879d` proves slower natively; variant selection therefore follows an actual measurement on the project's own kernel. No security check or acceptance boundary is removed.
 
-FR-A03 heeft op `844ec40` een geslaagde native PNG/JPEG-decoderproef na een gericht herstel van de echte JPEG-stackguardfout. Stack, heap en pixeloracles zijn behouden; een onafhankelijke artifactcontrole slaagt. Dit tekent geen beeldviewer, volledige formaatdekking of native OOM/herstel af. Alle negen CI-workflows op die exacte bron slagen, inclusief vijf verplichte native foundationstappen. Op de latere gezamenlijke bron `9596abc` slagen opnieuw alle negen workflows met de vijf echte foundationstappen; de afzonderlijke GUI-keten blijft na 20.000 PIT-ticks rood met twee werkelijk gepresenteerde frames. [Gezamenlijke CI](verification/full-release-ci-9596abc/README.md) en [rode GUI-uitvoer](verification/full-release-gui-9596abc/README.md). [Decoderbewijs](verification/full-release-images-844ec40/README.md) en [CI-bewijs](verification/full-release-ci-844ec40/README.md).
+FR-A03 has a passing native PNG/JPEG decoder test on `844ec40` after a targeted repair of the actual JPEG stack-guard failure. Stack, heap and pixel oracles are preserved; independent artifact verification passes. This does not sign off an image viewer, full format coverage or native OOM/recovery. All nine CI workflows on that exact source pass, including five mandatory native foundation steps. On the later combined source `9596abc`, all nine workflows with the five real foundation steps pass again; the separate GUI chain still fails after 20.000 PIT ticks (twenty thousand) with two actually presented frames. [Combined CI](verification/full-release-ci-9596abc/README.md) and [failing GUI output](verification/full-release-gui-9596abc/README.md). [Decoder evidence](verification/full-release-images-844ec40/README.md) and [CI evidence](verification/full-release-ci-844ec40/README.md).
 
-De volledige opdracht, stabiele ID's, vereiste profielen en bewijsniveaus blijven ongewijzigd. Exacte actuele uitvoering staat bovenaan PROJECT-STATE en in WORK-QUEUE; een beperkt fixtureprofiel vervangt VM-FR niet.
+The full assignment, stable IDs, required profiles and evidence levels remain unchanged. Exact current execution is recorded at the top of PROJECT-STATE and in WORK-QUEUE; a restricted fixture profile does not replace VM-FR.
 
-## Acceptatiematrix
+<a id="acceptatiematrix"></a>
+## Acceptance matrix
 
-Werkpakketten gebruiken in de actuele queue het voorvoegsel `TASK-` en verwijzen
-expliciet naar onderstaande acceptatie-ID's. Oudere ontwikkelcontracten en
-testlogs noemen die werkpakketten soms `FR-I01`, `FR-A03` of `FR-B02`; dat zijn
-geen aftekeningen van gelijknamige matrixrijen. Zo blijft `FR-A03` de
-afbeeldingsviewer en `FR-B02` de boot-/imageauthenticiteit. Een documentadapter
-of recordcodec kan die criteria niet sluiten.
+Work packages in the current queue use the `TASK-` prefix and explicitly
+reference the acceptance IDs below. Older development contracts and
+test logs sometimes call these work packages `FR-I01`, `FR-A03` or `FR-B02`;
+these are not sign-offs for matrix rows of the same name. `FR-A03` therefore
+remains the image viewer and `FR-B02` boot/image authenticity. A document adapter
+or record codec cannot close these criteria.
 
-ID's `FR-<domein><nummer>` blijven stabiel bij herplanning. Splitsen voegt nieuwe
-ID's toe en behoudt de oorspronkelijke eis; geen rij verwijderen, verbergen
-of als niet-verplicht markeren om groen te krijgen. Iedere verwijzing in de
-laatste kolom is naar het bestaande register in [progress.json](progress.json).
-`nieuw` bij een interface betekent dat de native contractuitwerking nog open
-is, niet dat een dienst al bestaat.
+IDs `FR-<domein><nummer>` remain stable during replanning. Splitting adds new
+IDs and preserves the original requirement; no row may be removed, hidden
+or marked optional to obtain a pass. Every reference in the
+last column points to the existing register in [progress.json](progress.json).
+`nieuw` (new) for an interface means that its native contract specification
+remains open, not that a service already exists.
 
-### Kern, drivers, sessie en dagelijkse bediening
+<a id="kern-drivers-sessie-en-dagelijkse-bediening"></a>
+### Kernel, drivers, session and daily interaction
 
-| ID / gebruikershandeling | Native componenten / interfaces | Normaal + foutscenario's | Profiel | Bewijs | Afhankelijkheden / blokkades | Eigenaar | Status | Rubric |
+| ID / user action | Native components / interfaces | Normal + failure scenarios | Profile | Evidence | Dependencies / blockers | Owner | Status | Rubric |
 |---|---|---|---|---|---|---|---|---|
-| FR-K01 — start het eigen OS | Eigen UEFI-loader, BootInfo, Rust no_std-kernel | Normale overdracht; ontbrekende/corrupte kernel, panic en begrensde boot-timeout | VM-FR; HW-FR | N,H | Geïntegreerde bootketen en finale imagebinding | kern | open | K01,B04 |
-| FR-K02 — gebruik meerdere apps zonder elkaar te beschadigen | Paging/W^X, scheduler, ring 3, generiek proces-/dienstbeheer | Appstart/exit/herstart; appfault, parent-exit, orphan/cleanup, resource-uitputting; andere apps blijven werken | VM-FR; HW-FR | N,P,H | Profielen combineren; SMP voor vereiste meerkernondersteuning | kern | open | K02,K03,K05,K06,K07 |
-| FR-K03 — verleen, weiger en trek taakrechten in | Capability-engine, Message320-IPC, usercopy, generaties/epochs | Geldige beperkte overdracht; stale handles, foute types/rechten/lengtes/pointers en toekomstige acties na intrekking geweigerd | VM-FR; HW-FR | N,H | Alle productdiensten aansluiten; geen rechtenverruiming | kern/beveiliging | open | K04,A03,B06 |
-| FR-H01 — bedien met toetsenbord, muis en ondersteunde USB-apparaten | Inputdrivers, devicebroker, native events naar sessie | Toetsen/aanwijzer/hotplug; unplug, malformed deviceantwoord, uitval/herstart en begrensde buffers | VM-FR; HW-FR | N,V,P,H | Native inputketen, benoemde fysieke onderdelen | drivers | open | H02,U02 |
-| FR-H02 — zie beeld en hoor geluid | Framebuffer/GPU-/audiodriver, geïsoleerde compositor-/audiobroker | Render/audio onder belasting; deviceverlies, ongeldige buffers, clipping/underrun, driver-/compositorherstel | VM-FR; HW-FR | N,V,P,H | Native graphics/audio, latencybudgetten en fysieke meting | drivers/sessie | open | H03,U01 |
-| FR-H03 — gebruik afgesproken verbindingen en apparaten | Netwerkdriver, Ethernet/wifi en afgesproken Bluetooth | Verbinden/verbreken/hervatten; hotplug, driverfout en ontbrekend onderdeel met ware reden | VM-FR; HW-FR | N,T,P,H | Concrete hardwarematrix en driverondersteuning | drivers/netwerk | open | H04,H06 |
-| FR-S01 — richt eerste gebruik en lokaal profiel in | Native onboarding, profiel-/sessiedienst, keyring, instellingenopslag | Taal/bediening/profiel/opslag kiezen en lokaal beginnen; terug/annuleer, fout en onderbroken inrichting zonder half profiel | VM-FR; HW-FR | N,D,V,H | Native UI, sleutel-/profielpersistentie; geen verplicht leverancieraccount | sessie | open | U01,U05,B01 |
-| FR-S02 — vergrendel en ontgrendel de sessie | Sessiebroker, authenticatie, keyring-/surfacegrenzen | Herhaald lock/unlock; fout geheim, afgebroken poging, inputrace en toegang vanuit vergrendelde apps | VM-FR; HW-FR | N,V,H | Werkelijke authenticatie-/sleutelgrens, geen decoratief slotscherm | sessie/beveiliging | open | U01,U05,B02 |
-| FR-S03 — wijzig instellingen en vind ze na herstart terug | Instellingendienst, gebruikersscope, volume/keyring | Wijzigen/terugzetten; ongeldige waarde, volle opslag, I/O-fout en koude herstart zonder valse bevestiging | VM-FR; HW-FR | N,D,V,H | FR-O01–O05, profiel-/apparaatinstellingen | sessie | open | U05,S08 |
-| FR-S04 — herstart of sluit af met open werk | Sessiebroker, app lifecycle, opslagflush, ACPI/power | Opgeslagen werk behouden; onopgeslagen werk bewaren/verwerpen/annuleren, niet-reagerende app en flushfout begrijpelijk afhandelen | VM-FR; HW-FR | N,D,V,H | Native shutdown/restartpad en app-savecontract | sessie/drivers | open | H05,U05,R01 |
-| FR-S05 — hervat en gebruik energiebeheer volgens profiel | ACPI-/energiebeleid, device-/sessieherstel | Ondersteunde slaap/wek, batterij/thermiek; onderbreking, timeout en herstel zonder verlies/rechtenherleving | HW-FR; VM-FR waar toepasselijk | N,D,P,H | Exact fysiek energieprofiel en autorisatie; geen VM-naar-hardwareclaim | drivers | open | H05,R02 |
-| FR-U01 — navigeer Materiaal, Bewerken, Gereedschap, Toegang, Apparaten en Assistent | Native compositor/sessie, surfaces en begrensde app-/dienstendpoints | Alle afgesproken routes terug/vooruit; appwisseling, focusherstel, compositorcrash en ontbrekende inhoud | VM-FR; HW-FR | N,V,H | Alle schermen native porteren; browserprototype alleen ontwerpbron | gebruikersomgeving | open | U01,U02,U03,U05 |
-| FR-U02 — selecteer, kopieer/plak, gebruik contextmenu en sleep | Focus-/selectiemodel, klembord-/dragbroker, taakgrants | Toetsenbord/muis, meervoudige selectie waar afgesproken; geannuleerd slepen, ongeldige bestemming en geweigerde cross-app-data | VM-FR; HW-FR | N,V,H | Native input, veilige gegevensoverdracht en productspecificatie | gebruikersomgeving | open | U02,A03,B06 |
-| FR-U03 — begrijp voortgang, annuleren en fouten | Gedeeld native component-/statusmodel, asynchrone operaties | Werkelijke loading/leeg/succes; cancel, timeout, stale response, retry en herstel zonder nepstatus | VM-FR; HW-FR | N,V,H | Werkende serviceoperaties achter iedere bediening | gebruikersomgeving | open | U02,U05,U06 |
-| FR-U04 — gebruik een afgewerkte consistente interface | Onderhoudbare design tokens, typografie/iconen/spacing/motion en appcomponenten | Alle toestanden; hover/focus/selection/disabled, lange tekst, venstergrootte, schalen; geen onafgewerkt scherm of placeholder voor vereisten | VM-FR; HW-FR | N,V,A,H | Native renderketen; alle apps visueel beoordelen en bedienen | ontwerp/UI | open | U06,A04 |
-| FR-U05 — bedien toegankelijk | Native accessibility-tree/-events, tekst/focus, schaal/zoom, contrast/reduced-motion | Keyboard-only, schermlezer, leesbaarheid, 200%/afgesproken schalen; focusval/afgekapte labels/statusverlies voorkomen, reducedmotion en informatiezonderkleur | VM-FR; HW-FR | N,V,A,H | Native hulpmiddelen en echte gebruikerstaken; web-WCAG-test geen native bewijs | ontwerp/UI | open | U04,U06 |
+| FR-K01 — start the project's own OS | Project UEFI loader, BootInfo, Rust no_std kernel | Normal handover; missing/corrupt kernel, panic and bounded boot timeout | VM-FR; HW-FR | N,H | Integrated boot chain and final image binding | kernel | open | K01,B04 |
+| FR-K02 — use multiple apps without mutual damage | Paging/W^X, scheduler, ring 3, generic process/service management | App start/exit/restart; app fault, parent exit, orphan/cleanup, resource exhaustion; other apps remain operational | VM-FR; HW-FR | N,P,H | Combine profiles; SMP for required multicore support | kernel | open | K02,K03,K05,K06,K07 |
+| FR-K03 — grant, deny and revoke task permissions | Capability engine, Message320 IPC, usercopy, generations/epochs | Valid restricted transfer; stale handles, incorrect types/permissions/lengths/pointers and future actions after revocation denied | VM-FR; HW-FR | N,H | Connect all product services; no permission expansion | kernel/security | open | K04,A03,B06 |
+| FR-H01 — use keyboard, mouse and supported USB devices | Input drivers, device broker, native events to session | Keys/pointer/hotplug; unplug, malformed device response, failure/restart and bounded buffers | VM-FR; HW-FR | N,V,P,H | Native input chain, named physical components | drivers | open | H02,U02 |
+| FR-H02 — see graphics and hear audio | Framebuffer/GPU/audio driver, isolated compositor/audio broker | Rendering/audio under load; device loss, invalid buffers, clipping/underrun, driver/compositor recovery | VM-FR; HW-FR | N,V,P,H | Native graphics/audio, latency budgets and physical measurement | drivers/session | open | H03,U01 |
+| FR-H03 — use agreed connections and devices | Network driver, Ethernet/wifi and agreed Bluetooth | Connect/disconnect/resume; hotplug, driver error and missing component with the actual reason | VM-FR; HW-FR | N,T,P,H | Concrete hardware matrix and driver support | drivers/network | open | H04,H06 |
+| FR-S01 — complete first use and configure a local profile | Native onboarding, profile/session service, keyring, settings storage | Choose language/interaction/profile/storage and start locally; back/cancel, error and interrupted setup without a partial profile | VM-FR; HW-FR | N,D,V,H | Native UI, key/profile persistence; no mandatory vendor account | session | open | U01,U05,B01 |
+| FR-S02 — lock and unlock the session | Session broker, authentication, keyring/surface boundaries | Repeated lock/unlock; incorrect secret, aborted attempt, input race and access from locked apps | VM-FR; HW-FR | N,V,H | Actual authentication/key boundary, no decorative lock screen | session/security | open | U01,U05,B02 |
+| FR-S03 — change settings and recover them after restart | Settings service, user scope, volume/keyring | Change/reset; invalid value, full storage, I/O error and cold restart without false confirmation | VM-FR; HW-FR | N,D,V,H | FR-O01–O05, profile/device settings | session | open | U05,S08 |
+| FR-S04 — restart or shut down with work open | Session broker, app lifecycle, storage flush, ACPI/power | Preserve saved work; handle save/discard/cancel for unsaved work, an unresponsive app and flush failure understandably | VM-FR; HW-FR | N,D,V,H | Native shutdown/restart path and app save contract | session/drivers | open | H05,U05,R01 |
+| FR-S05 — resume and use power management according to the profile | ACPI/power policy, device/session recovery | Supported sleep/wake, battery/thermal behavior; interruption, timeout and recovery without loss or revived permissions | HW-FR; VM-FR where applicable | N,D,P,H | Exact physical power profile and authorization; no extrapolation from VM to hardware | drivers | open | H05,R02 |
+| FR-U01 — navigate Materiaal, Bewerken, Gereedschap, Toegang, Apparaten and Assistent | Native compositor/session, surfaces and bounded app/service endpoints | All agreed routes back/forward; app switching, focus recovery, compositor crash and missing content | VM-FR; HW-FR | N,V,H | Port all screens natively; browser prototype is only a design source | user environment | open | U01,U02,U03,U05 |
+| FR-U02 — select, copy/paste, use context menus and drag | Focus/selection model, clipboard/drag broker, task grants | Keyboard/mouse, multiple selection where agreed; cancelled drag, invalid destination and denied cross-app data | VM-FR; HW-FR | N,V,H | Native input, secure data transfer and product specification | user environment | open | U02,A03,B06 |
+| FR-U03 — understand progress, cancellation and errors | Shared native component/status model, asynchronous operations | Actual loading/empty/success states; cancel, timeout, stale response, retry and recovery without fake status | VM-FR; HW-FR | N,V,H | Working service operations behind every control | user environment | open | U02,U05,U06 |
+| FR-U04 — use a polished, consistent interface | Maintainable design tokens, typography/icons/spacing/motion and app components | All states; hover/focus/selection/disabled, long text, window size, scaling; no unfinished screen or placeholder for requirements | VM-FR; HW-FR | N,V,A,H | Native rendering chain; visually assess and operate all apps | design/UI | open | U06,A04 |
+| FR-U05 — interact accessibly | Native accessibility tree/events, text/focus, scale/zoom, contrast/reduced-motion | Keyboard-only, screen reader, readability, 200%/agreed scales; prevent focus traps/truncated labels/lost status, reduced motion and information without color alone | VM-FR; HW-FR | N,V,A,H | Native assistive tools and real user tasks; web WCAG test is not native evidence | design/UI | open | U04,U06 |
 
-### Basisprogramma's en appbeheer
+<a id="basisprogrammas-en-appbeheer"></a>
+### Basic applications and app management
 
-| ID / gebruikershandeling | Native componenten / interfaces | Normaal + foutscenario's | Profiel | Bewijs | Afhankelijkheden / blokkades | Eigenaar | Status | Rubric |
+| ID / user action | Native components / interfaces | Normal + failure scenarios | Profile | Evidence | Dependencies / blockers | Owner | Status | Rubric |
 |---|---|---|---|---|---|---|---|---|
-| FR-A01 — maak, zoek en orden materiaal/bestanden | Native Materiaal-app, catalog-/volumeclient, zoek-/metadatadienst | Maken/openen/zoeken/ordenen/hernoemen/verplaatsen; geen resultaat, naamconflict, ingetrokken recht, stale revisie en volle opslag | VM-FR; HW-FR | N,D,V,H | FR-O01–O07, native zoekindex en bruikbare capaciteit | apps/opslag | open | U03,U05,A04,S06 |
-| FR-A02 — schrijf en bewerk tekst | Native teksteditor, document-session, opslag-/klembordportaal | Nieuw/open/bewerk/selecteer/undo/opslaan/weer openen; grote UTF-8-invoer, extern gewijzigde revisie, crash, onopgeslagen sluiting en I/O-fout | VM-FR; HW-FR | N,D,V,H | Editor en concrete formaat-/omvangmatrix; geen voorgevuld scherm | apps | open | A04,U03,S05 |
-| FR-A03 — bekijk afbeeldingen | Native image-app, begrensde decoder, object-/renderbroker | Open ondersteunde echte afbeeldingen, zoom/pan/schalen; beschadigd, te groot, unsupported formaat en geweigerd object | VM-FR; HW-FR | N,V,P,H | Vastgezette formaten/decoders, dependency-/licentiecontrole | apps | open | A04,H03 |
-| FR-A04 — lees PDF | Native PDF-app/onderhouden engine, object-/renderbroker | Echte meerdere pagina's, navigatie/zoom/zoeken waar afgesproken; corrupt/beschermd/te groot document en parser/resourcegrens | VM-FR; HW-FR | N,V,P,H | PDF-engineport, feature-/formaatmatrix en sandbox | apps | open | A04,U03 |
-| FR-A05 — browse en download binnen verleende rechten | Native browser/onderhouden engine, netwerk/TLS/DNS, downloadportaal | Navigeren, link/formulier, eigen testsite en downloaden/openen; DNS/time-out/TLS-fout, geweigerde bestemming/bestandsactie en intrekking | VM-FR; HW-FR | N,D,V,T,H | Chromium/Gecko-vergelijking vóór enginebesluit, engineport, FR-N01–N04, app-/objectrechten | apps/netwerk | open | A04,N01,N02,N03,N04,A03 |
-| FR-A06 — speel audio af | Native player, codec, audiobroker en objectclient | Echte gangbare afgesproken bestanden afspelen/pauze/seek/volume; corrupt/unsupported, einde, deviceverlies en resourcegrens | VM-FR; HW-FR | N,V,P,H | Audio-/codecport en concrete formaten; gemeten hoorbare uitvoer | apps/drivers | open | A04,H03 |
-| FR-A07 — speel video af | Native player, demux/codec, render-/audiobroker | Echte afgesproken video met beeld/geluidsync, pauze/seek; corrupt/unsupported, dropped frames en CPU/geheugendruk | VM-FR; HW-FR | N,V,P,H | Video-/audio-/renderketen en concrete codecprofielen | apps/drivers | open | A04,H03,R02 |
-| FR-A08 — reken met de rekenmachine | Native app, begrensde parser/rekenkern | Werkelijke invoer, bewerken en resultaten; delen door nul, grote waarden, ongeldige expressie en herstel van invoer | VM-FR; HW-FR | N,V,H | Native app en gedocumenteerde reken-/precisiegrenzen | apps | open | A04 |
-| FR-A09 — maak en bewaar een screenshot | Capturebroker, compositor, object-/saveportaal | Scherm/afgesproken selectie vastleggen, opslaan en heropenen; cancel, geweigerde capture, volle opslag en lockscreenbescherming | VM-FR; HW-FR | N,D,V,H | Screenshot is gekozen toegestane minimale capturefunctie; native capturegrens | apps/UI | open | A04,A03,U01 |
-| FR-A10 — bekijk systeeminformatie, diagnose en Nederlandse hulp | Native diagnose-/hulpapp, gescopete status/log-API | Echte configuratie/versie/resourcegegevens, foutuitleg/logexport; ontbrekend device, redacties, geweigerde privileged data en offline hulp | VM-FR; HW-FR | N,V,X,H | Werkelijke meetbronnen, geen hardcoded systeemstatus of secrets in logs | apps/release | open | A04,U05,R03 |
-| FR-A11 — installeer een app uit afgesproken bronnen | Pakketdienst, manifest/handtekening, appimage-loader, capabilitybeleid | Geldig pakket installeren en echt uitvoeren; ongeldige signatuur/hash/manifest, disk vol, onderbreking en geweigerde installatiebron | VM-FR; HW-FR | N,D,V,T,H | Pakketformaat, meerdere bronnen, geen onbeperkte installscripts of automatische grants | appbeheer/beveiliging | open | A01,A02,B04,B06 |
-| FR-A12 — werk apps bij en verwijder ze | Pakkettransactie-/versiebeheer, proces-/objectrechten | Bijwerken/verwijderen/weer openen waar passend; draaiende app, onderbreking, ongeldig pakket, behoud-/wisgedrag en ingetrokken oude autoriteit | VM-FR; HW-FR | N,D,V,H | FR-A11, opslagtransacties en expliciet gebruikersdatacontract | appbeheer | open | A02,A03 |
-| FR-A13 — kies standaardgereedschap en open/bewaar samenhangend | MIME/formaatregister, open/saveportaal, SDK, taakbroker | Bestand naar passende app, default bewaren en beperkte grants; onbekend formaat, verwijderde default, deny/revoke en kwaadaardige helper | VM-FR; HW-FR | N,D,V,H | Concrete formaten en portalen; ondertekening is herkomst, geen toestemming | appbeheer/UI | open | A01,A03,A04,B06 |
-| FR-A14 — maak en bewerk tabelmateriaal | Native tabelgereedschap volgens P3/P4, document-/objectmodel en gedeelde UI-/savebroker | Realistische tabel maken/openen/bewerken/bewaren/heropenen; ongeldige invoer, grote tabel, conflict en I/O-fout; afgesproken import/export per feature toetsen | VM-FR; HW-FR | N,D,V,P,H | Bestaand PRODUCT-SPEC-productiviteitsmodel; concrete tabel-/formaatfeatures blijven zichtbaar open tot vastlegging/bewijs | apps | open | A04,U03,S05,U06 |
-| FR-A15 — maak en bewerk presentatiemateriaal | Native presentatiegereedschap volgens P3/P4, object-/render-/savebroker | Realistische presentatie maken/openen/bewerken/bewaren/weergeven; beschadigde inhoud, schalen/lange tekst, conflict en I/O-fout; afgesproken import/export per feature toetsen | VM-FR; HW-FR | N,D,V,P,H | Bestaand PRODUCT-SPEC-productiviteitsmodel; geen ongefundeerde PPTX-round-tripclaim | apps | open | A04,U03,S05,U06 |
+| FR-A01 — create, find and organize material/files | Native Materiaal app, catalog/volume client, search/metadata service | Create/open/search/organize/rename/move; no results, name conflict, revoked permission, stale revision and full storage | VM-FR; HW-FR | N,D,V,H | FR-O01–O07, native search index and usable capacity | apps/storage | open | U03,U05,A04,S06 |
+| FR-A02 — write and edit text | Native text editor, document-session, storage/clipboard portal | New/open/edit/select/undo/save/reopen; large UTF-8 input, externally changed revision, crash, closing unsaved work and I/O error | VM-FR; HW-FR | N,D,V,H | Editor and concrete format/size matrix; no prefilled screen | apps | open | A04,U03,S05 |
+| FR-A03 — view images | Native image app, bounded decoder, object/render broker | Open supported real images, zoom/pan/scale; damaged, oversized, unsupported format and denied object | VM-FR; HW-FR | N,V,P,H | Fixed formats/decoders, dependency/license review | apps | open | A04,H03 |
+| FR-A04 — read PDF | Native PDF app/maintained engine, object/render broker | Actual multipage documents, navigation/zoom/search where agreed; corrupt/protected/oversized document and parser/resource limit | VM-FR; HW-FR | N,V,P,H | PDF engine port, feature/format matrix and sandbox | apps | open | A04,U03 |
+| FR-A05 — browse and download within granted permissions | Native browser/maintained engine, network/TLS/DNS, download portal | Navigate, link/form, own test site and download/open; DNS/timeout/TLS error, denied destination/file action and revocation | VM-FR; HW-FR | N,D,V,T,H | Chromium/Gecko comparison before engine decision, engine port, FR-N01–N04, app/object permissions | apps/network | open | A04,N01,N02,N03,N04,A03 |
+| FR-A06 — play audio | Native player, codec, audio broker and object client | Play/pause/seek/volume for real agreed common files; corrupt/unsupported, end, device loss and resource limit | VM-FR; HW-FR | N,V,P,H | Audio/codec port and concrete formats; measured audible output | apps/drivers | open | A04,H03 |
+| FR-A07 — play video | Native player, demux/codec, render/audio broker | Real agreed video with picture/sound synchronization, pause/seek; corrupt/unsupported, dropped frames and CPU/memory pressure | VM-FR; HW-FR | N,V,P,H | Video/audio/render chain and concrete codec profiles | apps/drivers | open | A04,H03,R02 |
+| FR-A08 — calculate with the calculator | Native app, bounded parser/calculation core | Actual input, editing and results; division by zero, large values, invalid expression and input recovery | VM-FR; HW-FR | N,V,H | Native app and documented calculation/precision limits | apps | open | A04 |
+| FR-A09 — create and save a screenshot | Capture broker, compositor, object/save portal | Capture screen/agreed selection, save and reopen; cancel, denied capture, full storage and lock-screen protection | VM-FR; HW-FR | N,D,V,H | Screenshot is the selected permitted minimum capture function; native capture boundary | apps/UI | open | A04,A03,U01 |
+| FR-A10 — view system information, diagnostics and Dutch help | Native diagnostic/help app, scoped status/log API | Actual configuration/version/resource data, error explanation/log export; missing device, redactions, denied privileged data and offline help | VM-FR; HW-FR | N,V,X,H | Actual measurement sources, no hardcoded system status or secrets in logs | apps/release | open | A04,U05,R03 |
+| FR-A11 — install an app from agreed sources | Package service, manifest/signature, app image loader, capability policy | Install a valid package and actually execute it; invalid signature/hash/manifest, full disk, interruption and denied installation source | VM-FR; HW-FR | N,D,V,T,H | Package format, multiple sources, no unrestricted install scripts or automatic grants | app management/security | open | A01,A02,B04,B06 |
+| FR-A12 — update and remove apps | Package transaction/version management, process/object permissions | Update/remove/reopen where applicable; running app, interruption, invalid package, preservation/deletion behavior and revoked old authority | VM-FR; HW-FR | N,D,V,H | FR-A11, storage transactions and explicit user-data contract | app management | open | A02,A03 |
+| FR-A13 — choose default tools and use coherent open/save behavior | MIME/format register, open/save portal, SDK, task broker | File to suitable app, preserve default and limited grants; unknown format, removed default, deny/revoke and malicious helper | VM-FR; HW-FR | N,D,V,H | Concrete formats and portals; signing establishes provenance, not permission | app management/UI | open | A01,A03,A04,B06 |
+| FR-A14 — create and edit tabular material | Native table tool under P3/P4, document/object model and shared UI/save broker | Create/open/edit/save/reopen a realistic table; invalid input, large table, conflict and I/O error; test agreed import/export per feature | VM-FR; HW-FR | N,D,V,P,H | Existing PRODUCT-SPEC productivity model; concrete table/format features remain visibly open until specified/demonstrated | apps | open | A04,U03,S05,U06 |
+| FR-A15 — create and edit presentation material | Native presentation tool under P3/P4, object/render/save broker | Create/open/edit/save/display a realistic presentation; damaged content, scaling/long text, conflict and I/O error; test agreed import/export per feature | VM-FR; HW-FR | N,D,V,P,H | Existing PRODUCT-SPEC productivity model; no unsupported PPTX round-trip claim | apps | open | A04,U03,S05,U06 |
 
-### Opslag, netwerk, NAS en lokale AI
+<a id="opslag-netwerk-nas-en-lokale-ai"></a>
+### Storage, networking, NAS and local AI
 
-| ID / gebruikershandeling | Native componenten / interfaces | Normaal + foutscenario's | Profiel | Bewijs | Afhankelijkheden / blokkades | Eigenaar | Status | Rubric |
+| ID / user action | Native components / interfaces | Normal + failure scenarios | Profile | Evidence | Dependencies / blockers | Owner | Status | Rubric |
 |---|---|---|---|---|---|---|---|---|
-| FR-O01 — bewaar en vind gegevens na koude herstart | Virtio-blokbroker, volume/catalogus, READ/WRITE/FLUSH, document-session | Bevestigde writes teruglezen in nieuwe VM; kill vóór/tijdens/na commit en geen bevestigde data verliezen binnen contract | VM-FR; HW-FR | N,D,H | Gecombineerd native profiel, onafhankelijke diskoracle en echte powerroute | opslag | open | S01,S02,S03,S07 |
-| FR-O02 — werk met bruikbare volumes en documenten | Volumeallocator/compactie, streams, quota en bounded buffers | Normaal lang gebruik/hergebruik/grote invoer; Full/Quota/deelwrite/overflow en afgebroken compactie | VM-FR; HW-FR | N,D,P,H | Proefcaps verantwoord uitbreiden; productomvang/limieten exact vastzetten | opslag | open | S04,S05,K07 |
-| FR-O03 — organiseer metadata en gebruik geschiedenis/herstel | NOSVOL02/IPC v6 of versieerbare opvolger, collecties/revisies | Namen/collecties/metadata/revisies wijzigen en herstel als nieuwe revisie; conflict, delete/recover en onderbroken transactie | VM-FR; HW-FR | N,D,V,H | Native appkoppeling, herstelbeleid en indexconsistentie | opslag/UI | open | S03,S06,U03 |
-| FR-O04 — herstel bij opslagfouten | Supervisor, block-/volumeservice, epochs/reset/quarantaine | Dienstherstart/corruptie/timeout/diskuitval; Unknown blijft geen ACK, geen write-replay, geen stille herinitialisatie en overige apps reageren | VM-FR; HW-FR | N,D,V,P,H | FR-I01, requestercrash/reset-zonder-ACKbewijs, algemeen herstelpad | opslag/kern | open | S07,S08,K05,K07 |
-| FR-O05 — bescherm inhoud, metadata en sleutels | Keyring/entropy, geauthenticeerde persistente volume-/objectlaag | Persistente seal/unseal/recovery; manipulatie/tag/header/replay/rollback volgens threat model, sleutelverlies/intrekking en cold reopen | VM-FR; HW-FR | N,D,H,A | B02 open; geen zelfbedachte crypto, koude antirollback expliciet | beveiliging/opslag | open | B01,B02,B06 |
-| FR-O06 — importeer/exporteer en maak herstelkopieën | Formaatadapters, export-/backupportaal, onafhankelijke kopie | Echte ondersteunde bestanden import/export/restore; corrupt/incompatibel, naamconflict, vol doel, afgebroken transfer en bronverlies | VM-FR; HW-FR | N,D,V,X,H | S09-bron eerst terugvinden/hergebruiken; concrete formaten/compatibiliteitsgrenzen | opslag/apps | open | S09,A04,R01 |
-| FR-O07 — zoek lokale inhoud en metadata | Gescopeerde lokale index-/zoekdienst, object/revisie-identiteit | Nieuwe/geüpdatete/verwijderde inhoud vinden; indexcrash/rebuild, deny/revoke, geen vreemde domeinresultaten en geen indexlek | VM-FR; HW-FR | N,D,V,P,H | Index persistentie, werkelijke queries en toegangsgrens | opslag/UI | open | U05,S06,B06 |
-| FR-O08 — initialiseer nieuwe opslag veilig | Volumedetectie/-initialisatie, format-/versiemarker, expliciete herstelkeuze | Nieuw aangewezen leeg testvolume gebruiken; onbekend/niet-leeg/corrupt/ouder volume weigeren of gecontroleerd migreren; onderbreking bewaart eerdere bevestigde data | VM-FR; HW-FR | N,D,V,H | Nooit automatisch een niet-herkend bestaand volume overschrijven; fysieke target pas na gerichte autorisatie | opslag/release | open | S02,S04,S08,R01 |
-| FR-N01 — configureer netwerk en maak verbinding | Native netdriver/-dienst, IP/TCP/UDP, adres-/routebeheer | Echte packets/configuratie/reconnect; malformed packets, backpressure, linkverlies, timeout en bounded resources | VM-FR; HW-FR | N,T,P,H | Native stack en benoemde deviceprofielen | netwerk | open | N01,N02,H04 |
-| FR-N02 — gebruik naamresolutie | Native DNS/resolver-/netwerkdienst, procesbestemmingsrechten | Geldige naam/response/cache; NXDOMAIN, timeout, malformed/truncated, stale antwoord en weigering | VM-FR; HW-FR | N,T,H | FR-N01, werkelijk protocolconforme testresolver | netwerk | open | N02,N04 |
-| FR-N03 — gebruik geauthenticeerd beveiligd transport | Onderhouden TLS/crypto, keyring/entropy, hybride PQC-contract | Authentieke peer/hostname/ALPN; verlopen/verkeerd certificaat, mismatch, malformed handshake, geen stille klassieke/onveilige fallback | VM-FR; HW-FR | N,T,P,H,A | Native crypto/TLS-port; host-N02 is voorbereidend bewijs | netwerk/beveiliging | open | N03,B01,B04 |
-| FR-N04 — sta netwerk per app/bestemming toe en trek in | Kernelcapabilities, netwerkbroker, grants/generaties | Browser mag bedoelde bestemming; deny/revoke op actieve/nieuwe verbinding, helperroute en onverwachte luisterpoort | VM-FR; HW-FR | N,T,H | Socket-/bestemmingsafdwinging; LP-08–10/23/30/31 | netwerk/beveiliging | open | N04,A03,B06 |
-| FR-P01 — koppel eigen of gedeelde NAS | Native client/NAS-rol, identiteitscontrole, transport en uitnodiging | Gecontroleerd koppelen/ontvangen/aanbieden; verkeerde peer, oude/hergebruikte/verlopen invite en afzonderlijk LAN/internetrecht | VM-FR met test-NAS; HW-FR | N,V,T,H | FR-N01–N04, native key lifecycle; LP-02/03/19/24 | NAS | open | P01,P04,B06 |
-| FR-P02 — bewaar versleuteld op NAS en werk offline | Client-side encrypted objects, keyring, lokale volume-/synclaag | Namen/inhoud vóór verzending versleuteld; NAS-state+admincredentials geven geen plaintext/keys, outage/timeout behoudt lokale bruikbaarheid | VM-FR met test-NAS; HW-FR | N,D,V,T,H,A | FR-O05, geen hostclient of NAS-inferentie; LP-01/14/15/20/22 | NAS/beveiliging | open | P01,B02,B06 |
-| FR-P03 — synchroniseer, hervat en los conflicten op | Native syncengine, revisies, tickets en peergebonden autoriteit | Offline edits, herverbinden/LAN-internetwisseling; concurrente schrijvers, gedeeltelijke upload, conflict, crash en geen stille dataverliezen | VM-FR, meerdere testclients; HW-FR | N,D,V,T,P,H | Persistente sync-/recoverykeys en begrensde queues | NAS/opslag | open | P02,P03,S09 |
-| FR-P04 — nodig uit, deel, beheer quota en trek ruimte in | Afzonderlijke NAS-admincapability, quota/reserveringen, tombstones | Ruimte aanbieden/ontvangen/delen/revoke/evict; volle quota, abort/retry, offline/weigerende gast, oude sessie/upload na herstart geen herleving | VM-FR met test-NAS; HW-FR | N,D,V,T,H | Beheerder kan eigen kopie wissen zonder gebruikerssleutel/consent; LP-16–18/21/25 | NAS | open | P04,P01,B06 |
-| FR-P05 — voeg apparaten toe, roteer/herstel gebruikerssleutels | Deviceidentiteit, keyring, geauthenticeerde multidevice-recovery | Nieuw geautoriseerd apparaat en rotatie; intrekking, verloren sleutel, gelijktijdige schrijvers en geen provider-key-escrow | VM-FR, meerdere testclients; HW-FR | N,D,V,T,H,A | Threat model/rollbackgrenzen en onafhankelijk herstelmedium | NAS/beveiliging | open | P03,B01,B02 |
-| FR-P06 — kies optionele externe ciphertextopslag | Provider-onafhankelijke native encrypted-objectadapter, providernamespace/-credentials en netwerkbroker | Alleen gekozen ciphertextnamespace; credentials zonder content key, manipulatie/rollback, outage/delete en revoke zonder stille fallback | VM-FR met testprovider; HW-FR | N,D,V,T,H,A | Expliciete keuze, FR-O05/N04; LP-26–28; provider is geen OS-vertrouwensanker | NAS/provider | open | P01,B02,B06,S09 |
-| FR-L01 — activeer/verwijder lokale AI en kies een model | Native modelbeheer, geïsoleerde downloader, pinned model/licentie/formaat | Opt-in/download/install/remove; gewijzigde modelbytes, unsupported parser, geen model en te weinig opslag/RAM; OS blijft bruikbaar | VM-AI; HW-AI | N,D,V,T,P,H | Model/engineport en profiel; downloader krijgt geen persoonlijke context/keys | AI | open | L01,A02,B06 |
-| FR-L02 — gebruik AI met expliciet geselecteerde context | Echte lokale inference op CPU/GPU/NPU van profiel, contextbroker | Afgesproken taken op nieuwe invoer, echte verwerking/antwoord; ontbrekend model/capaciteit en onleesbare/niet-geselecteerde context | VM-AI; HW-AI | N,V,T,P,H | Geen vaste antwoorden; netwerkloze inference; context-/uitvoergrenzen | AI | open | L01,B06 |
-| FR-L03 — annuleer AI en controleer toegestane acties | Begrensde job-/actiebroker, quota en lifecycle | Cancel tijdens verwerking en gescopeerde actie; deny/revoke, geheugen-/CPUdruk, modelcrash en helper-/socket-/uploadweigering | VM-AI; HW-AI | N,V,T,P,H | FR-K03, geen algemene shellbroker/cloudfallback; LP-04–07 | AI/beveiliging | open | L01,K07,A03,B06 |
-| FR-L04 — behoud native lokale quantumfunctie | Bestaande lokale simulator/jobinterface met quota/annuleren | Referentiecircuits en annulering na integratie; fout circuit/resourcegrens en geen externe quantumcloud | VM-FR; benoemd HW-profiel | N,P,H waar vereist | Bestaand L02 niet verliezen; fysieke QPU blijft apart onderzoek | quantum/integratie | open | L02 |
+| FR-O01 — save and recover data after a cold restart | Virtio block broker, volume/catalog, READ/WRITE/FLUSH, document-session | Read confirmed writes in a new VM; kill before/during/after commit and no loss of confirmed data within the contract | VM-FR; HW-FR | N,D,H | Combined native profile, independent disk oracle and real power path | storage | open | S01,S02,S03,S07 |
+| FR-O02 — work with usable volumes and documents | Volume allocator/compaction, streams, quotas and bounded buffers | Normal prolonged use/reuse/large input; Full/Quota/partial write/overflow and interrupted compaction | VM-FR; HW-FR | N,D,P,H | Responsibly expand probe caps; fix exact product scope/limits | storage | open | S04,S05,K07 |
+| FR-O03 — organize metadata and use history/recovery | NOSVOL02/IPC v6 or versioned successor, collections/revisions | Change names/collections/metadata/revisions and restore as a new revision; conflict, delete/recover and interrupted transaction | VM-FR; HW-FR | N,D,V,H | Native app integration, recovery policy and index consistency | storage/UI | open | S03,S06,U03 |
+| FR-O04 — recover from storage errors | Supervisor, block/volume service, epochs/reset/quarantine | Service restart/corruption/timeout/disk failure; Unknown still receives no ACK, no write replay, no silent reinitialization and other apps remain responsive | VM-FR; HW-FR | N,D,V,P,H | FR-I01, requester-crash/reset-without-ACK evidence, general recovery path | storage/kernel | open | S07,S08,K05,K07 |
+| FR-O05 — protect content, metadata and keys | Keyring/entropy, authenticated persistent volume/object layer | Persistent seal/unseal/recovery; tampering/tag/header/replay/rollback under the threat model, key loss/revocation and cold reopen | VM-FR; HW-FR | N,D,H,A | B02 open; no invented cryptography, explicit cold anti-rollback | security/storage | open | B01,B02,B06 |
+| FR-O06 — import/export and create recovery copies | Format adapters, export/backup portal, independent copy | Import/export/restore real supported files; corrupt/incompatible, name conflict, full destination, interrupted transfer and source loss | VM-FR; HW-FR | N,D,V,X,H | Locate/reuse S09 source first; concrete formats/compatibility limits | storage/apps | open | S09,A04,R01 |
+| FR-O07 — search local content and metadata | Scoped local index/search service, object/revision identity | Find new/updated/deleted content; index crash/rebuild, deny/revoke, no results from other domains and no index leak | VM-FR; HW-FR | N,D,V,P,H | Index persistence, actual queries and access boundary | storage/UI | open | U05,S06,B06 |
+| FR-O08 — initialize new storage safely | Volume detection/initialization, format/version marker, explicit recovery choice | Use a newly designated empty test volume; reject or migrate unknown/nonempty/corrupt/older volumes in a controlled way; interruption preserves previously confirmed data | VM-FR; HW-FR | N,D,V,H | Never automatically overwrite an unrecognized existing volume; physical target only after specific authorization | storage/release | open | S02,S04,S08,R01 |
+| FR-N01 — configure networking and connect | Native network driver/service, IP/TCP/UDP, address/route management | Real packets/configuration/reconnect; malformed packets, backpressure, link loss, timeout and bounded resources | VM-FR; HW-FR | N,T,P,H | Native stack and named device profiles | network | open | N01,N02,H04 |
+| FR-N02 — use name resolution | Native DNS/resolver/network service, process destination permissions | Valid name/response/cache; NXDOMAIN, timeout, malformed/truncated, stale response and denial | VM-FR; HW-FR | N,T,H | FR-N01, actual protocol-conforming test resolver | network | open | N02,N04 |
+| FR-N03 — use authenticated secure transport | Maintained TLS/cryptography, keyring/entropy, hybrid PQC contract | Authentic peer/hostname/ALPN; expired/incorrect certificate, mismatch, malformed handshake, no silent classical/insecure fallback | VM-FR; HW-FR | N,T,P,H,A | Native cryptography/TLS port; host-N02 is preparatory evidence | network/security | open | N03,B01,B04 |
+| FR-N04 — allow and revoke networking per app/destination | Kernel capabilities, network broker, grants/generations | Browser may access the intended destination; deny/revoke on active/new connections, helper route and unexpected listening port | VM-FR; HW-FR | N,T,H | Socket/destination enforcement; LP-08–10/23/30/31 | network/security | open | N04,A03,B06 |
+| FR-P01 — pair a personal or shared NAS | Native client/NAS role, identity verification, transport and invitation | Controlled pairing/receiving/offering; incorrect peer, old/reused/expired invite and separate LAN/internet permission | VM-FR with test NAS; HW-FR | N,V,T,H | FR-N01–N04, native key lifecycle; LP-02/03/19/24 | NAS | open | P01,P04,B06 |
+| FR-P02 — store encrypted data on NAS and work offline | Client-side encrypted objects, keyring, local volume/sync layer | Names/content encrypted before transmission; NAS state+admin credentials yield no plaintext/keys, outage/timeout preserves local usability | VM-FR with test NAS; HW-FR | N,D,V,T,H,A | FR-O05, no host client or NAS inference; LP-01/14/15/20/22 | NAS/security | open | P01,B02,B06 |
+| FR-P03 — synchronize, resume and resolve conflicts | Native sync engine, revisions, tickets and peer-bound authority | Offline edits, reconnect/LAN-internet transition; concurrent writers, partial upload, conflict, crash and no silent data loss | VM-FR, multiple test clients; HW-FR | N,D,V,T,P,H | Persistent sync/recovery keys and bounded queues | NAS/storage | open | P02,P03,S09 |
+| FR-P04 — invite, share, manage quotas and reclaim space | Separate NAS admin capability, quotas/reservations, tombstones | Offer/receive/share/revoke/evict space; full quota, abort/retry, offline/refusing guest, old session/upload after restart cannot revive access | VM-FR with test NAS; HW-FR | N,D,V,T,H | Administrator can erase their own copy without the user's key/consent; LP-16–18/21/25 | NAS | open | P04,P01,B06 |
+| FR-P05 — add devices and rotate/recover user keys | Device identity, keyring, authenticated multi-device recovery | Newly authorized device and rotation; revocation, lost key, concurrent writers and no provider key escrow | VM-FR, multiple test clients; HW-FR | N,D,V,T,H,A | Threat model/rollback limits and independent recovery medium | NAS/security | open | P03,B01,B02 |
+| FR-P06 — choose optional external ciphertext storage | Provider-independent native encrypted-object adapter, provider namespace/credentials and network broker | Selected ciphertext namespace only; credentials without content key, tampering/rollback, outage/delete and revoke without silent fallback | VM-FR with test provider; HW-FR | N,D,V,T,H,A | Explicit choice, FR-O05/N04; LP-26–28; provider is not an OS trust anchor | NAS/provider | open | P01,B02,B06,S09 |
+| FR-L01 — enable/remove local AI and choose a model | Native model management, isolated downloader, pinned model/license/format | Opt-in/download/install/remove; changed model bytes, unsupported parser, no model and insufficient storage/RAM; OS remains usable | VM-AI; HW-AI | N,D,V,T,P,H | Model/engine port and profile; downloader receives no personal context/keys | AI | open | L01,A02,B06 |
+| FR-L02 — use AI with explicitly selected context | Actual local inference on the profile's CPU/GPU/NPU, context broker | Agreed tasks on new input, actual processing/response; missing model/capacity and unreadable/unselected context | VM-AI; HW-AI | N,V,T,P,H | No fixed answers; networkless inference; context/output boundaries | AI | open | L01,B06 |
+| FR-L03 — cancel AI and control permitted actions | Bounded job/action broker, quotas and lifecycle | Cancel during processing and scoped action; deny/revoke, memory/CPU pressure, model crash and helper/socket/upload denial | VM-AI; HW-AI | N,V,T,P,H | FR-K03, no general shell broker/cloud fallback; LP-04–07 | AI/security | open | L01,K07,A03,B06 |
+| FR-L04 — retain native local quantum functionality | Existing local simulator/job interface with quotas/cancellation | Reference circuits and cancellation after integration; invalid circuit/resource limit and no external quantum cloud | VM-FR; named HW profile | N,P,H where required | Preserve existing L02; physical QPU remains separate research | quantum/integration | open | L02 |
 
-### Beveiliging, updates, integrale validatie en oplevering
+<a id="beveiliging-updates-integrale-validatie-en-oplevering"></a>
+### Security, updates, integrated validation and delivery
 
-| ID / gebruikershandeling | Native componenten / interfaces | Normaal + foutscenario's | Profiel | Bewijs | Afhankelijkheden / blokkades | Eigenaar | Status | Rubric |
+| ID / user action | Native components / interfaces | Normal + failure scenarios | Profile | Evidence | Dependencies / blockers | Owner | Status | Rubric |
 |---|---|---|---|---|---|---|---|---|
-| FR-B01 — vertrouw entropy en sleutelbescherming | Virtio-rng/geschikte fysieke bron, broker, keyring met onderhouden crypto | Gezonde bron/key lifecycle/recovery; stuck/no-device/time-out, monotone intrekking, requestercrash en reset zonder ACK/quarantaine | VM-FR; HW-FR | N,D,H,A | B01 historisch bewijs scopebewust hergebruiken; fysieke RNG/TPM niet verzinnen | beveiliging/drivers | open | B01,B02 |
-| FR-B02 — boot/verifieer alleen toegestane images | Boot-/signature-/PQC-contract, sleutelrotatie en distributieketen | Geldige testrelease met herkenbare testsleutels; gewijzigde kernel/image/signatuur, onbekende key, rotatie en trust failure | VM-FR; HW-FR | N,D,H,A,X | Native bootauthenticiteit, afgebakende testsleutels; geen productieclaim | beveiliging/boot | open | B04,B03 |
-| FR-B03 — update het systeem en herstel na mislukking | Native updateplanner/installatie, slots/transacties, authenticiteit/integriteit | Geldige update en toegestane vorige versie; corrupt/verkeerd ondertekend, onderbreking elke kritieke fase, downgradeaanval en gebruikersdatabehoud | VM-FR; HW-FR | N,D,V,H,A | Update-/rollback-/migratiecontract en echte recoveryboot | updates/opslag | open | B03,R01 |
-| FR-B04 — behoud privacy en Security Floor | Afdwinging op kernel-/dienstgrenzen, lokale logs, download-/appgrants | Alle toepasselijke LP-01–31; schone installatie/periodieke diensten/privacypopup uit zonder capabilitydelta; geen OS-telemetrie of AI-fallback | VM-FR/VM-AI; HW-FR/HW-AI | N,D,V,T,H,A | Alle relevante native componenten en negatieve helperroutes | beveiliging | open | B06,A03,N04 |
-| FR-B05 — laat beveiligingsgrenzen onafhankelijk controleren | Kernel-/dienst-/DMA-/parser-/capabilitycontracten, gekozen formele modellen | Afgebakende deskundigenreview en machinegecontroleerde gekozen invarianten; blockers herstellen en opnieuw testen, beperkingen publiceren | Exacte releasebron/profielen | A,N,H waar vereist,X | Menselijke externe deskundigen nog niet uitgevoerd; AI-review geen vervanging | beveiliging/release | open | B05,B04,R03 |
-| FR-R01 — doorloop het dagelijkse product als geheel | Alle productcomponenten op één finale image | Eerste start, sessie/apps, materiaal CRUD/restore, cold save, browser/download/media, appbeheer/instellingen, NAS/AI/rechten/update en herstel; fouten uit elke betrokken rij | VM-FR/VM-AI; HW-FR/HW-AI | N,D,V,T,P,H,A | Alle functionele rijen; geen losse featureimages als totaalbewijs | integrator/verifier | open | U01–U06,A02–A04,P01–P04,L01,R01 |
-| FR-R02 — start herhaald en werk langdurig gecombineerd | Productworkload, resource-/performanceobserver met lokale logs | Honderd koude starts en24uur gecombineerde productsessie op stabiele finaleimage; geheugengroei, CPU/IPCdruk, volle opslag en netwerkstoringen; dataintegriteit behouden | VM-FR/VM-AI; HW-FR/HW-AI | N,D,P,H | Duur/workload/p50/p95/energie/geheugen/latencygrenzen vooraf vastzetten, niet achteraf versoepelen | release/verifier | open | R02,K07,H05 |
-| FR-R03 — installeer/herstel op ondersteunde fysieke configuraties | Gecontroleerde image, installatie-/herstelprocedure en hardwaredrivers | Praktijkproef met behoud-/wisopties; mislukte start/update en zelfstandige recovery op benoemde onderdelen | HW-FR/HW-AI | N,D,V,H,A,X | Concrete apparaatidentiteit en gerichte toestemming voor fysieke handelingen ontbreken; meerdere configuraties waar H06 vereist | hardware/release | open | H06,R01,H02–H05 |
-| FR-R04 — reproduceer en beoordeel het complete testpakket | Broncommit, build/start/recoverytooling, handleiding, matrix en evidencebundle | Schone build/controle van hashes, Nederlandse taakhandleiding/testplan, log-/foutmeldroute; ontbrekende dependency/licentie/SBOM en onherleidbaar artifact blokkeren | Schone bouwomgeving + alle releaseprofielen | X,N,H,A waar vereist | Volledig pakket uit §14, onderhouds-/patchbeleid en reproduceerbaarheid | integrator/release | open | R03,A01,B04 |
+| FR-B01 — rely on entropy and key protection | Virtio-rng/suitable physical source, broker, keyring with maintained cryptography | Healthy source/key lifecycle/recovery; stuck/no-device/time-out, monotonic revocation, requester crash and reset without ACK/quarantine | VM-FR; HW-FR | N,D,H,A | Reuse historical B01 evidence within its scope; do not invent physical RNG/TPM support | security/drivers | open | B01,B02 |
+| FR-B02 — boot/verify only permitted images | Boot/signature/PQC contract, key rotation and distribution chain | Valid test release with recognizable test keys; modified kernel/image/signature, unknown key, rotation and trust failure | VM-FR; HW-FR | N,D,H,A,X | Native boot authenticity, bounded test keys; no production claim | security/boot | open | B04,B03 |
+| FR-B03 — update the system and recover from failure | Native update planning/installation, slots/transactions, authenticity/integrity | Valid update and permitted previous version; corrupt/incorrectly signed, interruption at every critical phase, downgrade attack and preservation of user data | VM-FR; HW-FR | N,D,V,H,A | Update/rollback/migration contract and actual recovery boot | updates/storage | open | B03,R01 |
+| FR-B04 — preserve privacy and the Security Floor | Enforcement at kernel/service boundaries, local logs, download/app grants | All applicable LP-01–31; clean installation/periodic services/privacy popup disabled without capability delta; no OS telemetry or AI fallback | VM-FR/VM-AI; HW-FR/HW-AI | N,D,V,T,H,A | All relevant native components and negative helper routes | security | open | B06,A03,N04 |
+| FR-B05 — obtain independent checks of security boundaries | Kernel/service/DMA/parser/capability contracts, selected formal models | Bounded expert review and machine-checked selected invariants; fix blockers and retest, publish limitations | Exact release source/profiles | A,N,H where required,X | Human external-expert checks not yet executed; AI review is no substitute | security/release | open | B05,B04,R03 |
+| FR-R01 — exercise the daily product as a whole | All product components on one final image | First start, session/apps, material CRUD/restore, cold save, browser/download/media, app management/settings, NAS/AI/permissions/update and recovery; failures from each involved row | VM-FR/VM-AI; HW-FR/HW-AI | N,D,V,T,P,H,A | All functional rows; separate feature images are not overall evidence | integrator/verifier | open | U01–U06,A02–A04,P01–P04,L01,R01 |
+| FR-R02 — boot repeatedly and run extended combined sessions | Product workload, resource/performance observer with local logs | One hundred cold starts and 24 hours of combined product use on a stable final image; memory growth, CPU/IPC pressure, full storage and network failures; data integrity preserved | VM-FR/VM-AI; HW-FR/HW-AI | N,D,P,H | Fix endurance/workload/p50/p95/energy/memory/latency limits in advance; do not relax them afterwards | release/verifier | open | R02,K07,H05 |
+| FR-R03 — install/recover on supported physical configurations | Verified image, installation/recovery procedure and hardware drivers | Practical test with preservation/erasure options; failed start/update and independent recovery on named components | HW-FR/HW-AI | N,D,V,H,A,X | Concrete device identity and specific permission for physical operations are missing; multiple configurations where H06 requires them | hardware/release | open | H06,R01,H02–H05 |
+| FR-R04 — reproduce and assess the complete test package | Source commit, build/start/recovery tools, manual, matrix and evidence bundle | Clean build/hash verification, Dutch task manual/test plan, log/error-reporting route; missing dependency/license/SBOM and untraceable artifact block acceptance | Clean build environment + all release profiles | X,N,H,A where required | Complete package from §14, maintenance/patch policy and reproducibility | integrator/release | open | R03,A01,B04 |
 
-De rubriclink verwijst naar bestaande criteria; een samengestelde verwijzing
-zoals `U01–U06` omvat alle tussenliggende bestaande ID's. De provideradapter
-uit de privacyroadmap blijft expliciet zichtbaar ook al heeft de huidige
-vaste rubric geen afzonderlijk P05-punt. Dat verandert geen gewichten of
-acceptatieverplichting. Volledige formele verificatie, CHERI, extra ISA's en
-fysieke QPU-besturing behouden hun al afzonderlijk vastgelegde onderzoeksroute;
-zij zijn geen reden bestaande releasevereisten uit deze matrix te halen.
+The rubric link refers to existing criteria; a combined reference such as
+`U01–U06` covers all existing intermediate IDs. The provider adapter from the
+privacy roadmap remains explicitly visible even though the current
+fixed rubric has no separate P05 point. This changes neither weights nor
+acceptance obligations. Full formal verification, CHERI, additional ISAs and
+physical QPU control retain their separately recorded research route;
+they do not justify removing existing release requirements from this matrix.
 
-## Uitvoering en integratie
+<a id="uitvoering-en-integratie"></a>
+## Execution and integration
 
-De cyclus blijft onderzoeken → implementeren → bouwen → uitvoeren → beoordelen
-→ repareren → integreren. Gebruik bestaande kernel-, service-, SDK- en
-toolimplementaties; los gerichte fouten op zonder algemene architectuurherstart.
-Bibliotheken/engines zijn toegestaan na herkomst-, versie-, onderhoud-,
-licentie-, no_std-/ABI-/buildscript- en sandboxbeoordeling. De kernel blijft
-klein: productbeleid, documentformaten, rendering, cryptobeleid en inferentie
-horen in geïsoleerde diensten/apps. Een noodzakelijke grenswijziging krijgt
-motivatie, contract en negatieve tests vóór integratie.
+The cycle remains research → implement → build → execute → assess
+→ repair → integrate. Reuse existing kernel, service, SDK and
+tool implementations; fix specific defects without restarting the overall architecture.
+Libraries/engines are permitted after review of provenance, version, maintenance,
+license, no_std/ABI/build scripts and sandboxing. The kernel remains
+small: product policy, document formats, rendering, cryptographic policy and inference
+belong in isolated services/apps. A necessary boundary change receives
+rationale, a contract and negative tests before integration.
 
-### Eerste concrete verticale integratie: FR-I01
+<a id="eerste-concrete-verticale-integratie-fr-i01"></a>
+### First concrete vertical integration: FR-I01
 
-**Doel:** het generieke supervisor-/procespad, echte blok-I/O en de bestaande
-entropy/keyringbron tegelijk op één eigen-kernelprofiel laten functioneren.
-Deze stap is een afhankelijkheid van FR-K02, FR-O04 en FR-B01; zij voltooit
-geen desktop, B02 of volledige release.
+**Objective:** run the generic supervisor/process path, actual block I/O and
+the existing entropy/keyring source together on one profile using the project's
+own kernel. This step is a dependency of FR-K02, FR-O04 and FR-B01; it completes
+neither a desktop nor B02 nor the full release.
 
-- De integrator bezit de gedeelde launch-/startupcapability-/syscallcontracten,
-  featureselectie en finale profielconfiguratie. Behoud `proc_spawn`-posities,
-  beperkte Launch/Process-rechten, Message320 en bestaande block-/entropy-API's.
-- Gewone appprocessen krijgen taakendpoints, geen block-/entropy-/MMIO-/DMA-
-  of onbeperkt startrecht. De supervisor mag uitsluitend de bedoelde diensten
-  beheren; geen algemene rootcapability toevoegen om integratie te versnellen.
-- Bevestig echte blokbytes/WRITE/FLUSH en echte entropycompletion via hun
-  bestaande brokers op hetzelfde image. Laat client en onafhankelijke
-  voortgangsprocessen doorwerken bij dienstcrash, timeout, deny/revoke en
-  resource-uitputting. Oude epochs/handles worden geweigerd; onbekende I/O
-  krijgt geen succes-ACK of replay. DMA-pools blijven gepind tot reset-ACK
-  of gaan in quarantaine.
-- Acceptatie: gerichte hosttests, freestanding build, echte normale en negatieve
-  VM-cases, onafhankelijk diskoracle, bron-/artifacthashes en relevante K05,
-  volume/storage-resilience en keyringregressies op de samengevoegde bron.
-  Fixtureinjecties expliciet labelen; een testfeature bewijst alleen haar
-  onderzochte eigenschap. Het uitvoerbare commando en werkelijke uitslagen
-  komen in de actuele werkqueue/status, niet als verzonnen uitvoering hier.
+- The integrator owns the shared launch/startup-capability/syscall contracts,
+  feature selection and final profile configuration. Preserve `proc_spawn` positions,
+  restricted Launch/Process permissions, Message320 and existing block/entropy APIs.
+- Ordinary app processes receive task endpoints, not block/entropy/MMIO/DMA
+  permissions or unrestricted launch rights. The supervisor may manage only
+  the intended services; do not add a general root capability to accelerate integration.
+- Confirm actual block bytes/WRITE/FLUSH and real entropy completion through
+  their existing brokers on the same image. Keep the client and independent
+  progress processes running during service crash, timeout, deny/revoke and
+  resource exhaustion. Old epochs/handles are rejected; unknown I/O receives
+  no success ACK or replay. DMA pools remain pinned until reset ACK
+  or enter quarantine.
+- Acceptance: targeted host tests, freestanding build, actual normal and negative
+  VM cases, independent disk oracle, source/artifact hashes and relevant K05,
+  volume/storage-resilience and keyring regressions on the combined source.
+  Explicitly label fixture injections; a test feature proves only the property
+  under examination. The executable command and actual results belong in the
+  current work queue/status, not as invented execution here.
 
-### Parallel werk met één integratie-eigenaar
+<a id="parallel-werk-met-één-integratie-eigenaar"></a>
+### Parallel work with one integration owner
 
-Gebruik alle werkelijk beschikbare onafhankelijke agentplaatsen nuttig, met
-eigen worktrees/buildmappen waar nodig. Alleen een geslaagde agentstart telt
-als actieve capaciteit. De taakbrief bevat ID, doel, exclusieve schrijfbestanden,
-contractversie, afhankelijkheden, invarianten, foutgevallen, acceptatiecommando's
-en oplevervorm. Eén schrijver per gedeeld bestand en één eigenaar per
-kernel-/wire-/SDK-interface. Een reviewer begint read-only. Een verifier
-controleert de werkelijk geïntegreerde bron en artifacts onafhankelijk van
-de builder; AI-verificatie blijft als zodanig gelabeld.
+Use all genuinely available independent agent slots productively, with
+separate worktrees/build directories where needed. Only a successful agent start
+counts as active capacity. Each task brief contains an ID, objective, exclusive
+write files, contract version, dependencies, invariants, failure cases, acceptance
+commands and delivery format. One writer per shared file and one owner per
+kernel/wire/SDK interface. A reviewer begins read-only. A verifier
+checks the actually integrated source and artifacts independently of
+the builder; AI verification remains labelled as such.
 
-Onafhankelijke sporen zijn kern/IPC, drivers, opslag/herstel, UI/ontwerp,
-apps/appbeheer, netwerk/NAS/provider, lokale AI en beveiliging/update/release.
-Beschikbare plaatsen worden op concrete afhankelijkheden verdeeld; niet ieder
-spoor hoeft tegelijk actief te zijn. De hoofdagent integreert conflicten met
-inhoudsbehoud, controleert actuele Git-/PR-status en regressies, onderhoudt
-score/status/queue en levert het ene werkende product op. Een afgeronde
-agenttaak is geen productaftekening.
+Independent workstreams are kernel/IPC, drivers, storage/recovery, UI/design,
+apps/app management, network/NAS/provider, local AI and security/update/release.
+Available slots are allocated according to concrete dependencies; not every
+workstream must be active simultaneously. The lead agent integrates conflicts
+while preserving content, checks current Git/PR status and regressions, maintains
+score/status/queue and delivers the single working product. Completing an
+agent task does not constitute product sign-off.
 
-### Integrale test- en aftekenvolgorde
+<a id="integrale-test--en-aftekenvolgorde"></a>
+### Integrated test and sign-off sequence
 
-1. Bevries profiel, bestandsformaten, capaciteit en meetbare prestatie-/duur-
-   en herstelcriteria vóór de relevante gates. Bewaar baseline en foutgevallen.
-2. Integreer elke verticale functie met normale/negatieve native proeven;
-   herhaal relevante bestaande regressies na gedeelde grenswijzigingen.
-3. Bouw het finale image reproduceerbaar en doorloop FR-R01/FR-R02 als
-   samenhangend product, met koude opslagcontrole en netwerkobservatie.
-4. Voer vereiste menselijke/accessibility-/deskundigenproeven en afzonderlijke
-   geautoriseerde fysieke profieltests werkelijk uit. Bereid bij ontbrekende
-   autorisatie het concrete pakket voor; werk onafhankelijk verder.
-5. Herstel blockers en test opnieuw op de definitieve bron. Vul iedere
-   matrixrij met bron-/hashgebonden bewijs en lever het volledige pakket.
+1. Freeze profile, file formats, capacity and measurable performance/endurance
+   and recovery criteria before the relevant gates. Preserve baseline and failure cases.
+2. Integrate each vertical function with normal/negative native tests;
+   rerun relevant existing regressions after changes to shared boundaries.
+3. Build the final image reproducibly and exercise FR-R01/FR-R02 as
+   a coherent product, with cold storage verification and network observation.
+4. Actually execute required human/accessibility/expert tests and separate
+   authorized physical-profile tests. If authorization is missing, prepare
+   the concrete package; continue independent work.
+5. Fix blockers and retest on the final source. Complete every
+   matrix row with source/hash-bound evidence and deliver the full package.
 
-**“Volwaardige testrelease gereed” is uitsluitend toegestaan wanneer alle
-verplichte matrixrijen slagen op de exact geleverde geïntegreerde image(s),
-alle bestaande vereisten op hun voorgeschreven bewijsniveau zijn aangetoond,
-geen blokkerende defecten resteren en het complete testpakket reproduceerbaar
-is.** Bestaande verplichte fysieke/human-auditcriteria blijven open tot echt
-bewijs; geen VM-only voltooiing en geen onbevoegde uitvoering van externe gates.
-Een volledig geslaagde VM-functiepoort met open externe gates is een
-tussentijdse geïntegreerde VM-validatie, geen afgeronde opdracht.
+**The declaration “Volwaardige testrelease gereed” (full test release ready) is
+permitted only when all mandatory matrix rows pass on the exact delivered
+integrated image(s), all existing requirements have been demonstrated at their
+prescribed evidence level, no blocking defects remain and the complete test
+package is reproducible.** Existing mandatory physical/human-audit criteria remain
+open until actual evidence exists; no VM-only completion or unauthorized execution
+of external gates. A fully passing VM functional gate with open external gates
+is an interim integrated VM validation, not a completed assignment.
 
-## Oplevering, blokkades en hervatten
+<a id="oplevering-blokkades-en-hervatten"></a>
+## Delivery, blockers and resumption
 
-Het testpakket bevat geïntegreerde broncode/commit; het werkelijk geteste
-releaseimage met hashes; reproduceerbare build; start-/herstelprocedures;
-toegankelijke Nederlandse gebruikershandleiding; ondersteunde configuraties;
-een productbreed beoordelingsplan; ingevulde matrix/bewijs; uitsluitend
-niet-blokkerende bekende beperkingen; en een duidelijke foutmeld-/logroute.
-Development-testsleutels zijn herkenbaar als testsleutels. Compatibiliteits-,
-hardware-, security- en prestatieclaims blijven beperkt tot echt onderzochte
-eigenschappen en aannames.
+The test package contains integrated source code/commit; the actually tested
+release image with hashes; a reproducible build; start/recovery procedures;
+an accessible Dutch user manual; supported configurations;
+a product-wide assessment plan; completed matrix/evidence; only
+nonblocking known limitations; and a clear error-reporting/log route.
+Development test keys are recognizable as test keys. Compatibility,
+hardware, security and performance claims remain limited to actually
+investigated properties and assumptions.
 
-Bij een blokkade blijft de relevante rij open/geblokkeerd met reden en
-afhankelijkheid. Een autorisatiegrens wordt niet omzeild. Fysieke schrijftests,
-firmware/bootwijzigingen, publicatie, betaalde infrastructuur en externe
-opdrachten volgen alleen hun concrete bevoegdheidsgrens. De integrator maakt
-de concrete image, instructies en herstelroute eerst reviewbaar.
+At a blocker, the relevant row remains open/blocked with its reason and
+dependency. Authorization boundaries are not bypassed. Physical write tests,
+firmware/boot changes, publication, paid infrastructure and external
+assignments follow their specific authority boundaries. The integrator first
+makes the concrete image, instructions and recovery route reviewable.
 
-Bij iedere onderbreking bewaart het actuele `NEXT AGENT HANDOFF` in
-PROJECT-STATE: exacte branch/commit en lokale wijzigingen; laatste bruikbare
-artifact met hashes/configuratie; open matrix-/rubric-ID's; uitgevoerde
-commando's/exitstatus/logs en niet-uitgevoerde tests; concrete blokkades; en
-één eerstvolgende uitvoerbare hervatstap. Lees bij hervatten dit document,
-actuele status/queue/AGENTS en de werkelijke bron opnieuw op verschillen.
-De opdracht hieronder en de expliciete ciphertextverduidelijking blijven
-inhoudelijk intact bij samenvatting, compaction en overdracht.
+At each interruption, the current `NEXT AGENT HANDOFF` in
+PROJECT-STATE preserves: exact branch/commit and local changes; last usable
+artifact with hashes/configuration; open matrix/rubric IDs; executed
+commands/exit statuses/logs and unexecuted tests; concrete blockers; and
+one next executable resume step. On resumption, reread this document,
+current status/queue/AGENTS and actual source for changes.
+The assignment below and the explicit ciphertext clarification remain
+substantively intact through summaries, compaction and handoff.
 
-## Oorspronkelijke opdracht — onverkort
+<a id="oorspronkelijke-opdracht--onverkort"></a>
+## Original assignment — unabridged
 
-De onderstaande kopie heeft 14 genummerde secties. De SHA-256 van de exacte
-UTF-8-tekst tussen de markers, zonder omringende marker-newlines, is
+The following quotation from the project owner contains 14 numbered sections.
+The SHA-256 of the exact UTF-8 text between the markers, excluding the
+surrounding marker newlines, is
 `e47f7a5885fd1f45d29a1edec7883a3dbaa8fdfba97f396fd1ebda9549d1eea2`.
-Dit maakt onbedoelde latere wijziging van de bewaarde opdracht controleerbaar;
-het is geen claim van externe authenticatie of releaseacceptatie.
+This makes unintended later changes to the preserved assignment detectable;
+it is not a claim of external authentication or release acceptance.
 
 <!-- FULL-RELEASE-REQUEST:BEGIN -->
 ROL EN HOOFDOPDRACHT
@@ -684,3 +707,328 @@ De eindverklaring “volwaardige testrelease gereed” is alleen toegestaan als 
 
 Begin nu met de actuele repositorycontrole, leg het volledige werk vast en ga aansluitend door met implementatie.
 <!-- FULL-RELEASE-REQUEST:END -->
+
+## English translation of the original assignment
+
+The following is a faithful English translation of the project owner's quotation
+above. The original wording and its hash remain authoritative as the preserved
+source record; this translation creates no new requirement or authority.
+
+> ROLE AND MAIN ASSIGNMENT
+>
+> You are the lead developer and integration lead for Nieuw OS.
+>
+> My assignment is to continue development until a complete, coherent, professionally finished test release of the operating system is available. I want to be able to assess and use the complete product on the specified test platform.
+>
+> The final objective includes working system functions, a polished user environment, usable basic applications, settings, storage, networking, local AI, NAS functionality, security, updates and recovery.
+>
+> A boot demo, note-taking test, technical preview, browser prototype, collection of separate components or interface with simulated functions does not satisfy the assignment.
+>
+> Record this assignment in docs/FULL-TEST-RELEASE.md. Link this document to the existing project status and work queue so that there is one consistent source for progress. Preserve the content of this assignment during summarization and resumption.
+>
+> Then create an executable plan and begin execution immediately. Delivering a plan does not complete the assignment.
+>
+> 1. CHECK THE ACTUAL PROJECT STATE
+>
+> Read the current AGENTS.md files, README, project status, architecture decisions, product specifications, privacy contracts, security contracts, build instructions and test procedures.
+>
+> Check the active branch, commits, relevant development branches, open pull requests and existing local changes. Use the current implementation and traceable test evidence as the starting point.
+>
+> Old chat claims, progress percentages, documentation and passing tests from other commits do not automatically count as evidence for the current release.
+>
+> Build on usable existing implementations. Reuse and integrate good work. Resolve conflicts, duplicate implementations and contradictory interfaces without losing existing user work.
+>
+> Do not restart the overall architecture when a targeted improvement is sufficient.
+>
+> 2. RECORD FULL ACCEPTANCE
+>
+> Create an acceptance matrix for the full test release.
+>
+> For each mandatory function, state:
+> - Which concrete user action must work.
+> - Which native components and interfaces it requires.
+> - Which normal and failure scenarios are tested.
+> - On which hardware or VM profile the function is supported.
+> - What evidence is required to sign off the function.
+> - Which dependencies or blockers remain open.
+>
+> Use the existing product agreements and the requirements below as the basis. This assignment replaces the earlier limited objective of only booting and saving a short note.
+>
+> Do not reduce the product scope to obtain a passing result sooner.
+>
+> Do not remove, hide or disable a mandatory function to pass acceptance. Do not independently move difficult release requirements to “later”. If a requirement is not yet executable, it remains visibly open.
+>
+> Distinguish existing release requirements from research that already has a separate track in the recorded roadmap. Do not use that distinction to create new exceptions.
+>
+> 3. PRESERVE THE PROJECT'S OWN ARCHITECTURE
+>
+> Nieuw OS remains an independent operating system with its own kernel and product experience.
+>
+> Preserve the agreed microkernel direction, capability security, process isolation, IPC contracts and separation between kernel, drivers and system services.
+>
+> Do not expand the trusted core solely to simplify integration. Justify necessary changes and check their consequences.
+>
+> Use permitted standards, libraries, engines and development tools when they help the project. Check compatibility, maintenance, licenses and security boundaries. A browser engine or another library need not be reinvented if responsible reuse is possible.
+>
+> Do not replace the project's own kernel with Linux, BSD, XNU, Zircon or another existing kernel.
+>
+> Native functionality must work through the project's own kernel and system services. Host tools may build, test and emulate, but must not perform missing OS functionality as though it already exists in Nieuw OS.
+>
+> Test data and protocol-conforming test servers are permitted. Simulated success messages and host prototypes do not count as implementation evidence.
+>
+> 4. DELIVER A COMPLETE USER ENVIRONMENT
+>
+> Develop Materiaal into a coherent native user environment.
+>
+> Provide:
+> - A polished boot and first-use experience.
+> - User profile, session, locking and unlocking.
+> - The agreed screens for material, editing, tools, access, devices and assistant.
+> - Reliable navigation, focus and interaction with keyboard and mouse.
+> - Working selection, context menus, clipboard and dragging where the product specification requires them.
+> - Understandable notifications, progress, cancellation and error handling.
+> - Consistent settings that persist after restart.
+> - Correct restart and shutdown, with prior handling of saved and unsaved work.
+> - Power and resume behavior according to the recorded requirements of the supported profile.
+>
+> Every visible control must actually perform the intended action.
+>
+> Conditionally unavailable functions, for example because hardware is missing or permission is denied, must show their actual state and reason. Missing implementation must not be disguised as such a normal condition.
+>
+> 5. MAKE VISUAL QUALITY A RELEASE CONDITION
+>
+> The OS must feel coherent, calm, recognizable and professional.
+>
+> Use one coherent design system for typography, colors, icons, spacing, components, animations and interaction states. Preserve the selected distinct identity and the Materiaal direction.
+>
+> Also design and check:
+> - Loading, empty states, errors, confirmation and recovery.
+> - Focus, selection, hover and disabled controls.
+> - Long text, different window sizes and display scales.
+> - Keyboard navigation, readability, contrast and accessibility.
+> - Consistency between system screens and included applications.
+>
+> No lorem ipsum, unfinished default windows, broken layouts, unexplained technical messages or “coming soon” for mandatory functions.
+>
+> Keep design and assets maintainable so that designs supplied later can be integrated consistently.
+>
+> Check the actually rendered interface. Screenshots support that check but do not replace an interaction test.
+>
+> 6. DELIVER USABLE BASIC APPLICATIONS AND APP MANAGEMENT
+>
+> Implement the basic applications from the product specification. Include at least the following in this test release:
+> - Material/file management with search and organization.
+> - A usable text editor.
+> - Image viewing.
+> - PDF viewing.
+> - A web browser.
+> - Audio and video playback for specified common formats.
+> - A calculator.
+> - Screen recording or screenshot functionality.
+> - System information, diagnostics and accessible help.
+> - App installation, updating and removal.
+>
+> Specify supported file formats and behavior concretely. Make opening, saving, default tools and access permissions coherent.
+>
+> An application that only opens or shows a prefilled screen does not satisfy the assignment.
+>
+> App installation must use a working package and permission structure. Support the agreed installation sources. Treat a valid signature as evidence of provenance, not as general permission.
+>
+> Claim compatibility with applications from other operating systems only when it has actually been implemented and tested.
+>
+> 7. MAKE STORAGE SUITABLE FOR ACTUAL USE
+>
+> Develop the storage layer into a usable foundation for the full test release.
+>
+> Support the agreed functions for names, metadata, organization, search, modification, deletion, history and recovery.
+>
+> Remove experimental capacity limits that prevent normal use by responsibly extending the underlying implementation.
+>
+> Provide:
+> - Durable storage after a complete shutdown and restart.
+> - Correct boundaries for large input, full storage and failed I/O.
+> - Preservation of previously confirmed data during relevant failures.
+> - Safe initialization, space management and recovery.
+> - The agreed encryption and protection of content and metadata.
+> - Reliable import and export in supported formats.
+>
+> A restored memory snapshot is not evidence of durable storage.
+>
+> Run recovery tests on disposable images and inspect the actual stored data independently of success messages in the interface alone.
+>
+> 8. INTEGRATE NETWORKING, NAS AND LOCAL AI
+>
+> These components belong to this test release and must not be reduced to separate demonstrations.
+>
+> NETWORKING
+>
+> Deliver working network configuration, connectivity, name resolution and secure transport for the selected profile. Check network loss, recovery, timeouts, certificate errors and denied permissions.
+>
+> NAS
+>
+> Implement the current privacy contract for explicitly paired personal or shared NAS storage:
+> - Actual pairing and identity verification.
+> - Encryption before personal content is transmitted.
+> - Keys held by the user according to the agreed model.
+> - Working storage, synchronization and error handling.
+> - Quotas, invitations, sharing and revocation.
+> - The agreed distinction between user and NAS administrator.
+> - Local usability when the NAS is unreachable.
+> - Separately permitted connections according to the current agreements.
+>
+> A protocol-conforming test NAS may serve as an external peer. The OS client, permission checks and local processing must actually function in Nieuw OS.
+>
+> LOCAL AI
+>
+> Deliver an optionally enabled, actually working local AI function on a suitable supported profile:
+> - Actual model execution on the user's own device.
+> - Explicit context selection.
+> - Bounded access and actions through the agreed broker.
+> - Cancellation and visible processing state.
+> - Control of memory and compute use.
+> - Understandable behavior when a model is missing or capacity is insufficient.
+>
+> Do not use prewritten answers as evidence that AI works.
+>
+> Preserve the agreed exclusion of vendor cloud for personal OS storage, mandatory vendor accounts, external OS telemetry and cloud fallback for system AI.
+>
+> 9. DELIVER WORKING SECURITY, UPDATES AND RECOVERY
+>
+> Security policy must actually be enforced by the relevant system boundaries.
+>
+> Check, among other things:
+> - Process and service isolation.
+> - Granting, denial and revocation of permissions.
+> - Validated communication between processes.
+> - Storage and key protection.
+> - Secure entropy and correct cryptographic integration.
+> - The recorded boot, signing and PQC contracts.
+> - Fault isolation and bounded resource consumption.
+>
+> Do not disable checks to make a demonstration pass.
+>
+> Deliver a working update and recovery path:
+> - Authenticity and integrity checks.
+> - Correct installation.
+> - Recovery from a failed or interrupted update.
+> - A controlled return to a permitted working version.
+> - Preservation of user data according to the recovery contract.
+>
+> Use clearly bounded test keys where needed for development. Do not present them as production infrastructure.
+>
+> Do not claim unbreakability, universal hardware support or full formal verification. Bind every security claim to the actually investigated property and assumptions.
+>
+> 10. USE MAXIMUM USEFUL PARALLELIZATION
+>
+> Use actually available agents to execute independent components in parallel.
+>
+> Distribute tasks, for example, across:
+> - Kernel, processes and IPC.
+> - Drivers and hardware support.
+> - Storage and recovery.
+> - User environment and design.
+> - Basic applications and app management.
+> - Networking and NAS.
+> - Local AI.
+> - Security, updates and release validation.
+>
+> Align the distribution with available capacity and concrete dependencies.
+>
+> Record ownership, interface contracts and acceptance per task. Use separate worktrees where needed. Prevent simultaneous uncoordinated changes to the same files.
+>
+> The lead agent remains responsible for integration, conflict resolution, regressions and operation of the entire OS.
+>
+> Completing a subtask does not mean the product is ready.
+>
+> 11. TEST THE COHERENT PRODUCT
+>
+> Execute real user scenarios on the final release image.
+>
+> Check at least:
+> - First start and setup.
+> - Daily startup, locking, unlocking and shutdown.
+> - Using multiple applications and switching between them.
+> - Creating, opening, editing, searching, deleting and restoring material.
+> - Saving and recovering data after a cold restart.
+> - Browser use and downloading within granted permissions.
+> - Opening and playing media.
+> - Installing, updating and removing apps.
+> - Changing settings and recovering them after restart.
+> - Pairing, using, interrupting and reconnecting NAS.
+> - Using and cancelling local AI with selected context.
+> - Denying and revoking access.
+> - Update, failed update and recovery.
+> - Relevant resource, storage and network failures.
+>
+> Also test repeated booting and longer combined usage sessions with criteria specified in advance.
+>
+> Set measurable performance limits on the reference profile. Measure instead of merely stating that something feels “fast” or “smooth”.
+>
+> Bind evidence to the exact commit, configuration and hashes of the delivered images. A passing host test or compilation does not replace native execution.
+>
+> Declare the release ready only when all mandatory acceptance criteria pass and known blocking defects have been resolved.
+>
+> 12. PROTECT THE TEST COMPUTER
+>
+> Build and validate first in a controlled virtual environment with dedicated test images.
+>
+> Use bounded test networks, test data and permitted test servers for network and NAS tests.
+>
+> Do not attach personal disks, real NAS content, accounts or physical devices without specific authorization. Do not automatically proceed to physical disk writes, partitioning, firmware flashing or changes to the existing boot configuration.
+>
+> Restrict build, startup and reset scripts to their designated files and paths.
+>
+> For physical hardware, provide a separate profile with supported components, a verified image, concrete instructions and a recovery route. A passing VM test must not be presented as a passing test on my laptop.
+>
+> Missing information about my physical device must not halt independent development work and VM validation.
+>
+> 13. CONTINUE EXECUTION UNTIL THE FINAL OBJECTIVE IS REACHED
+>
+> Work continuously in the cycle:
+> research → implement → build → execute → assess → repair → integrate.
+>
+> Make normal technical decisions independently within the assignment and existing authority.
+>
+> Do not stop after:
+> - A plan.
+> - A documentation update.
+> - A partial commit or pull request.
+> - A successful compilation.
+> - An individual working function.
+> - An interim milestone.
+>
+> Give brief progress reports with completed acceptance criteria, actual evidence, next work and concrete blockers. Then continue.
+>
+> Preserve the existing progress rubric. Increase percentages only when the required evidence exists.
+>
+> Stop at full acceptance, my pause/stop instruction, a hard system or budget limit, or an external blocker for which no permitted next step exists.
+>
+> At a partial blocker, complete the independent components. Do not bypass permissions, limits or security rules.
+>
+> At an interruption, preserve:
+> - The exact work state.
+> - The last usable artifact.
+> - Open acceptance criteria.
+> - Executed tests and their results.
+> - Concrete blockers.
+> - The next executable resume step.
+>
+> Do not call an interrupted or blocked assignment complete.
+>
+> 14. DELIVER A COMPLETE TEST PACKAGE
+>
+> Delivery includes:
+> - Integrated source code and its commit.
+> - The actually tested release image.
+> - A reproducible build procedure.
+> - Startup and recovery procedures.
+> - An accessible Dutch user manual.
+> - Supported configurations.
+> - A test plan with which I can assess the entire product.
+> - The completed acceptance overview with evidence.
+> - Known limitations and remaining nonblocking findings.
+> - A clear route for error reports and logs.
+>
+> The final declaration “volwaardige testrelease gereed” (full test release ready) is permitted only if the delivered package passes all mandatory acceptance.
+>
+> Begin now with the current repository check, record the full work and then continue with implementation.

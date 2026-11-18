@@ -1,59 +1,71 @@
-# Nieuw-os — interactieprincipes en meetbare UX-criteria
+<a id="nieuw-os--interactieprincipes-en-meetbare-ux-criteria"></a>
 
-Datum: 2 november 2026. Status: **voorgestelde product- en onderzoekscriteria; geen behaalde UX-score**. Dit document verbindt de [installatievergelijking](../research/os-installation-comparison.md), [dagelijkse taken](../research/os-interaction-patterns.md), [mentale modellen](../research/transferable-mental-models.md) en [overstapbarrières](../research/switching-friction.md) met later te toetsen gedrag.
+# Nieuw-os — interaction principles and measurable UX criteria
 
-## Ontwerpgrondslag
+Date: 2 November 2026. Status: **proposed product and research criteria; no achieved UX score**. This document connects the [installation comparison](../research/os-installation-comparison.md), [daily tasks](../research/os-interaction-patterns.md), [mental models](../research/transferable-mental-models.md) and [switching barriers](../research/switching-friction.md) to behaviour that requires later testing.
 
-**Herkenbaar waar herkenning frictie verlaagt; vernieuwend waar vernieuwing meetbare waarde creëert.** [OPDRACHT] De eigen identiteit zit in de samenhang van materiaal, acties, rechten en herstel. Zij vereist geen nieuwe betekenis voor openen, venster sluiten, kopiëren of schijfwissen.
+<a id="ontwerpgrondslag"></a>
 
-[BRON] Nielsen's heuristieken adviseren herkenning, consistente bediening, gebruikerscontrole en foutpreventie. W3C's aanvullende cognitieve richtlijn adviseert vertrouwde bediening. Dit zijn ontwerprichtlijnen, geen bewijs dat deze nieuw-os-oplossing beter presteert. WCAG 2.2 is een webstandaard; de gekozen contrast-, focus- en invoerprincipes helpen het prototype en zijn input voor een native toegankelijkheidscontract. Zij bewijzen geen OS-brede conformiteit. [J01/J03 in het modellenregister](../research/transferable-mental-models.md#bronregister-voor-deze-analyse), [W3C WCAG 2.2](https://www.w3.org/TR/WCAG22/) (12 december 2024; geraadpleegd 2 november 2026).
+## Design foundation
 
-## Criteria en traceerbaarheid
+**Familiar where familiarity reduces friction; innovative where innovation creates measurable value.** [ASSIGNMENT] The project's own identity lies in the coherence of material, actions, permissions and recovery. It requires no new meaning for opening, closing a window, copying or erasing a disk.
 
-Getallen hieronder zijn **vooraf gekozen toetsdoelen**, niet uit onderzoek afgeleide universele grenzen of al behaalde resultaten. Ze worden na een pilot met reden herzien. Een gemiddelde compenseert geen blokkade of dataverlies. `IN-xx` verwijst naar [de installer](new-os-installer-spec.md), `ON-xx` naar [onboarding](new-os-onboarding-spec.md); TASK 01–28 verwijzen naar de taakvergelijking.
+[SOURCE] Nielsen's heuristics recommend recognition, consistent controls, user control and error prevention. W3C's supplemental cognitive guidance recommends familiar controls. These are design guidelines, not evidence that this nieuw-os solution performs better. WCAG 2.2 is a web standard; the selected contrast, focus and input principles help the prototype and inform a native accessibility contract. They do not prove OS-wide conformance. [J01/J03 in the model register](../research/transferable-mental-models.md#bronregister-voor-deze-analyse), [W3C WCAG 2.2](https://www.w3.org/TR/WCAG22/) (12 December 2024; accessed 2 November 2026).
 
-| ID | Principe en voorgesteld criterium | Onderbouwing | Toets en grens |
+<a id="criteria-en-traceerbaarheid"></a>
+
+## Criteria and traceability
+
+The numbers below are **preselected test targets**, not research-derived universal thresholds or results already achieved. They will be revised after a pilot, with reasons recorded. An average does not compensate for a barrier or data loss. `IN-xx` refers to [the installer](new-os-installer-spec.md), `ON-xx` to [onboarding](new-os-onboarding-spec.md); TASK 01–28 refer to the task comparison.
+
+| ID | Principle and proposed criterion | Supporting basis | Test and boundary |
 |---|---|---|---|
-| UX-01 | Alle 28 ondersteunde basistaken zijn zonder handleiding bereikbaar; doel bij latere bevestiging: ≥90% zelfstandige taakvoltooiing per herkomstsegment | Herkenning/consistentie [J01/J03]; gedocumenteerde TASK 01–28 | Observeer eerste poging, hulp, fouten en resultaat per taak; rapporteer ontbrekende functies apart. Kleine pilot levert geen betrouwbaar populatiepercentage |
-| UX-02 | Iedere destructieve installatieactie toont doel en gevolgen vóór autorisatie; nul ongeautoriseerde schijfmutaties in de vastgelegde veiligheidsmatrix | Installatiestappen 10–14/25; eigen veiligheidskeuze IN-01/02 | Machineproeven met disposable images plus deelnemers laten uitleggen wat behouden/gewist wordt. “100% geslaagde testgevallen” is geen absolute veiligheidsclaim |
-| UX-03 | Beginnerspad bevat geen verplichte invoer van EFI, GPT, mount point, filesystem of partitietabel | Verschillen technische installerkeuzes; cognitieve richtlijn | IN-03-taakproef en tekstaudit; Advanced blijft expliciet bereikbaar met dezelfde gevolgencontrole |
-| UX-04 | Iedere geleverde instelling is vindbaar via categorie én ten minste één gewone zoekterm | TASK 06, mentale modellen instellingen/zoeken | Dekkingscheck van werkelijk geleverde instellingen; menselijke zoekopdracht zonder vooraf de eigen naam te geven |
-| UX-05 | Iedere vastgelegde herkomstalias leidt naar het juiste beschikbare doel, duidelijke keuze of eerlijke ontbrekendstatus; query voert nul acties uit | Herkomstprofielen; ON-03 | Registerproeven per taal en serviceversie; ook ambigue “Task Manager”, verkeerd gespelde term en ontbrekende service |
-| UX-06 | Dezelfde actie heeft dezelfde uitkomst en toegangscontrole via toetsenbord, muis, touch of toegankelijkheids-API | J01; WCAG-invoerprincipes; TASK 13/16–19 | Volledige route met keyboard en passende hulpmiddelen; geen verplichte drag/hover/gesture; fysieke touch en screenreader apart verifiëren |
-| UX-07 | Taal, invoer en benodigde hulpmiddelen werken vóór geheimen en schijfkeuze | Installatiestappen 3/5/6/14/17 | IN-04, focusvolgorde, schermlezer, toetsenbordtest en terugkeer zonder geheimen te loggen |
-| UX-08 | Alleen noodzakelijke informatie blokkeert installatie; lokaal kerngebruik vereist geen provideraccount, cloud, telemetrie of AI | Bestaand privacycontract; bronverschillen account/netwerk/OOBE | Offlinepad waar payload compleet is, weigeren/overslaan, nul externe fallback; ontbrekende echte lokale services blijven releaseblokkerend |
-| UX-09 | Op ieder moment zijn voortgang, resterende keuze en annuleergrens begrijpelijk | J01 status/controle; installatie 25–30 | IN-05; rapporteer fase en fout, geen verzonnen percentage of tijd. Onderbreking na schrijven belooft geen undo |
-| UX-10 | Basisbediening gebruikt KEEP FAMILIAR of EVOLVE; REINVENT/NEW krijgt probleem, bewijs en aparte toets vóór opname | Familiarity budget en taakverschillen | Ontwerpreview per hoofdroute, niet alleen screenshots; eigen Materiaal-model mag geen toegangseis voor simpele basistaak zijn |
-| UX-11 | Tekstcontrast ≥4,5:1, grote tekst en betekenisvolle UI-grenzen/staten ≥3:1; zichtbare focus, reflow/schaal en reduced motion | Bestaand P2-contract, WCAG 2.2; eigen componentkeuzes | Werkelijke toestanden meten. 200% browserzoom/320 CSS px gelden voor prototype; native tekstschaal, focus en semantiek eigen bewijs. Geen volledige WCAG-claim uit kleurmetingen |
-| UX-12 | Begeleiding is overslaanbaar, hervatbaar en lokaal wisbaar; herkomstkeuze verandert nul privileges of kernroutes | J02 individuele modellen; ON-01/02/04 | Toestandsproeven, vergelijking alle profielen, retentie-/wisproef; geen herkomst uit gebruik afleiden |
-| UX-13 | Gegevensimport laat bron intact en onderscheidt gekopieerd, gecontroleerd en niet overgenomen | Overstap-/formaatbarrières; bestaande recoveryprincipes | Synthetische bron, afwijkende bestanden/rechten/formats, onderbreken/hervatten; geen succes op basis van alleen een voortgangsbalk |
-| UX-14 | Werking en bewijsstatus zijn zichtbaar: ontbrekende backend geeft geen succesvolle systeemhandeling | Repositorybasis; bestaande product-/brokergrens | Echte service-uitkomst en negatieve paden; prototypefixtures als simulatie blijven herkennen |
+| UX-01 | All 28 supported basic tasks are reachable without a manual; target for later confirmation: ≥90% independent task completion per prior-platform segment | Recognition/consistency [J01/J03]; documented TASK 01–28 | Observe first attempt, help, errors and result per task; report missing functions separately. A small pilot does not provide a reliable population percentage |
+| UX-02 | Every destructive installation action shows destination and consequences before authorisation; zero unauthorised disk mutations in the recorded safety matrix | Installation steps 10–14/25; project safety decision IN-01/02 | Machine trials with disposable images plus asking participants to explain what is preserved/erased. “100% geslaagde testgevallen” (English: all test cases passed) does not constitute an absolute safety claim |
+| UX-03 | Beginner path requires no input of EFI, GPT, mount point, filesystem or partition table | Differences in technical installer choices; cognitive guidance | IN-03 task trial and text audit; Advanced remains explicitly reachable with the same consequence check |
+| UX-04 | Every provided setting is discoverable through a category and at least one ordinary search term | TASK 06, settings/search mental models | Coverage check of actually provided settings; human search task without first providing the setting's nieuw-os name |
+| UX-05 | Every recorded prior-platform alias leads to the correct available destination, a clear choice or an honest missing status; query performs zero actions | Prior-platform profiles; ON-03 | Register trials per language and service version; include ambiguous “Task Manager”, misspelled term and missing service |
+| UX-06 | The same action has the same outcome and access control through keyboard, mouse, touch or accessibility API | J01; WCAG input principles; TASK 13/16–19 | Complete route with keyboard and appropriate assistive tools; no mandatory drag/hover/gesture; verify physical touch and screenreader separately |
+| UX-07 | Language, input and necessary assistive tools work before secrets and disk selection | Installation steps 3/5/6/14/17 | IN-04, focus order, screenreader, keyboard test and return without logging secrets |
+| UX-08 | Only necessary information blocks installation; local core use requires no provider account, cloud, telemetry or AI | Existing privacy contract; source differences in account/network/OOBE | Offline path where payload is complete, refuse/skip, zero external fallback; missing real local services remain release blockers |
+| UX-09 | Progress, remaining choice and cancellation boundary are understandable at all times | J01 status/control; installation 25–30 | IN-05; report phase and error, no invented percentage or time. Interruption after writing promises no undo |
+| UX-10 | Basic controls use KEEP FAMILIAR or EVOLVE; REINVENT/NEW requires a problem, evidence and separate testing before inclusion | Familiarity budget and task differences | Design review per main route, beyond screenshots; the project's own Materiaal model must not be an entry requirement for a simple basic task |
+| UX-11 | Text contrast ≥4.5:1, large text and meaningful UI boundaries/states ≥3:1; visible focus, reflow/scaling and reduced motion | Existing P2 contract, WCAG 2.2; project component choices | Measure actual states. 200% browser zoom/320 CSS px apply to the prototype; native text scale, focus and semantics require their own evidence. No complete WCAG claim from colour measurements |
+| UX-12 | Guidance is skippable, resumable and locally deletable; prior-platform choice changes zero privileges or core routes | J02 individual models; ON-01/02/04 | State trials, comparison of all profiles, retention/deletion trial; do not infer prior platform from use |
+| UX-13 | Data import leaves the source intact and distinguishes copied, verified and not imported | Switching/format barriers; existing recovery principles | Synthetic source, differing files/permissions/formats, interrupt/resume; no success based solely on a progress bar |
+| UX-14 | Operation and evidence status are visible: a missing backend does not report a successful system action | Repository baseline; existing product/broker boundary | Actual service outcome and negative paths; prototype fixtures remain recognisable as simulation |
 
-De 90%-ambitie in UX-01 is een productdoel voor een latere voldoende grote bevestigende studie, geen eis om met een handvol deelnemers een percentage te claimen. Tijd tot resultaat, aantal conceptuele stappen, verkeerd doel, hulp en herstel worden eveneens gerapporteerd. Snelheid alleen bepaalt de winnaar niet: één extra begrijpelijke controle vóór wissen kan noodzakelijk zijn.
+The 90% ambition in UX-01 is a product objective for a later, sufficiently large confirmatory study, not a requirement to claim a percentage from a handful of participants. Time to result, number of conceptual steps, wrong destination, help and recovery are also reported. Speed alone does not determine the winner: one extra understandable check before erasure may be necessary.
 
-## Familiarity budget toepassen
+<a id="familiarity-budget-toepassen"></a>
 
-De volledige onderverdeling staat in [transferable-mental-models.md](../research/transferable-mental-models.md#familiarity-budget). Toepassing per wijziging:
+## Applying the familiarity budget
 
-- **KEEP FAMILIAR:** betekenis van bestanden/mappen, selecteren, vensterbediening, status, terug/annuleren en expliciete doelschijfkeuze. Afwijking vereist meer dan stijlvoorkeur.
-- **EVOLVE:** instellingen plus zoeken, herkenbare aliassen, installerwijzigingsplan en contextuele rechten. Bestaand doel en werkwoorden blijven herkenbaar.
-- **REINVENT:** een verplichte provideraccountpoort voor de lokale kern verwijderen volgens het bestaande privacycontract. Hiermee is geen alternatieve authenticatie al gebouwd.
-- **NEW:** Materiaal-/toolconcept en inspectie van objectrechten/herstel alleen waar zij een echte taak verbeteren; aparte uitleg en toets, zonder nieuwe metafoor voor wissen.
+The complete classification is in [transferable-mental-models.md](../research/transferable-mental-models.md#familiarity-budget). Application to each change:
 
-Dit is een kwalitatief budget. Geen bron onderbouwt een magisch percentage vernieuwing. Niet aanbevolen: vier shells per herkomst, een nieuw pictogram zonder label voor een kritieke keuze, providerlogin voor basisgebruik, automatisch kiezen van een te wissen schijf, vrije AI-acties en uitsluitend decoratieve futuristische effecten.
+- **KEEP FAMILIAR:** meaning of files/folders, selection, window controls, status, back/cancel and explicit destination-disk selection. Deviation requires more than a style preference.
+- **EVOLVE:** settings plus search, familiar aliases, installer change plan and contextual permissions. Existing purpose and verbs remain recognisable.
+- **REINVENT:** remove a mandatory provider-account gateway for the local core under the existing privacy contract. This does not mean alternative authentication has already been built.
+- **NEW:** Materiaal/tool concept and inspection of object permissions/recovery only where they improve a real task; separate explanation and testing, without a new metaphor for erasure.
 
-## Onderzoeks- en verificatieplan
+This is a qualitative budget. No source supports a magic percentage of innovation. Not recommended: four shells by prior platform, a new unlabelled icon for a critical choice, provider login for basic use, automatic selection of a disk to erase, unrestricted AI actions and purely decorative futuristic effects.
 
-**Eerst technische geschiktheid:** documenteer werkelijk ondersteunde account-, opslag-, netwerk-, update- en hulpmiddelroutes. Een ontbrekende functie wordt geen usability-succes door de taak te verwijderen. Test onbekende schijf, wisselende device-identiteit, corrupte planning, stroomonderbreking en recovery met disposable VM-beelden voordat iemand een echte schijf zou mogen gebruiken.
+<a id="onderzoeks--en-verificatieplan"></a>
 
-**Verkennende pilot:** voorstel 8–12 deelnemers met uiteenlopende herkomst en hulpmiddelen, bewust geworven op relevante taken. Dit aantal is een planningkeuze; het levert geen representatieve of per-OS statistisch betrouwbare uitspraken op. Bied synthetische gegevens, een veilige VM/prototypeomgeving en geen echte geheimen. Registreer achtergrondversie en dagelijkse taken zonder afkomst als vaardigheidsscore te behandelen.
+## Research and verification plan
 
-**Taken en uitkomsten:** vraag eerst wat de deelnemer verwacht, laat vervolgens uitvoeren. Houd vooraf de beginstaat en het gewenste eindresultaat gelijk. Meet taakvoltooiing zonder hulp, verkeerd doel, ernstige fout, herstel, hulpbehoefte en tijd. Codeer installatiebegrip (“welke gegevens verdwijnen?”) apart van het kunnen indrukken van een knop. Vergelijk bronroute en nieuw-os niet met een klikranglijst: account-, veiligheids- en hardwarevoorwaarden verschillen.
+**Technical suitability first:** document actually supported account, storage, network, update and assistive-tool routes. Removing a task does not turn a missing function into a usability success. Test unknown disks, changing device identity, corrupt planning, power interruption and recovery with disposable VM images before anyone could be permitted to use a real disk.
 
-**Bevestiging:** ontwerp pas na de pilot een grotere steekproef en analyse per herkomst/taak, met onzekerheidsmarges, vooraf vastgelegde uitkomstdefinities en passende power-/precisieberekening. Toets hints bij dezelfde interface met en zonder begeleiding. Toets behoud/verbetering van bestaande routes en vrijwillige migratie/retentie apart; een voorkeurstem is geen bewijs van overstappen.
+**Exploratory pilot:** proposal for 8–12 participants with varied prior platforms and assistive tools, deliberately recruited for relevant tasks. This number is a planning choice; it does not provide representative or statistically reliable per-OS findings. Provide synthetic data, a safe VM/prototype environment and no real secrets. Record prior-platform version and daily tasks without treating prior platform as a skill score.
 
-**Technische regressie:** latere implementatie vereist state-/brokertests, build/type-/lintchecks waar passend, echte keyboard-/focus-/screenreaderproeven, contrast en schaal/reduced motion, responsive layout en onderbrekingsherstel. Nu zijn uitsluitend documentconsistentie, bronroutes, matrixdekking en repositoryscope gecontroleerd; er is geen gebruikersmeting of nieuwe native acceptatie.
+**Tasks and outcomes:** first ask what the participant expects, then let the participant perform the task. Define a consistent initial state and desired end result in advance. Measure unaided task completion, wrong destination, serious error, recovery, need for help and time. Code understanding of installation (“welke gegevens verdwijnen?”; English: which data will disappear?) separately from the ability to press a button. Do not compare a source route and nieuw-os using a click ranking: account, safety and hardware prerequisites differ.
 
-## Besluit en open risico's
+**Confirmation:** only after the pilot, design a larger sample and analysis by prior platform/task, with uncertainty margins, predefined outcome definitions and appropriate power/precision calculations. Test hints in the same interface with and without guidance. Test preservation/improvement of existing routes and voluntary migration/retention separately; a preference vote is not evidence of switching.
 
-Voorkeursrichting: één consistente kern met herkenbare basisacties, contextuele hulp en expliciete gevolgen. Ondersteunende richtlijnen maken dit verdedigbaar om te testen; zij bewijzen de nieuwe productwaarde nog niet. Belangrijkste risico's blijven ontbrekende compatibiliteit/services, onvoldoende installer-/encryptieveiligheid, nog onvolledige native toegankelijkheid, bronversiedrift en een kleine of selectieve latere steekproef. Nieuwe implementaties blijven achter de gates in [het bestaande productplan](../implementation/PRODUCT-SPEC.md).
+**Technical regression:** later implementation requires state/broker tests, build/type/lint checks where applicable, real keyboard/focus/screenreader trials, contrast and scaling/reduced motion, responsive layout and recovery after interruption. At present, only document consistency, source routes, matrix coverage and repository scope have been checked; there is no user measurement or new native acceptance.
+
+<a id="besluit-en-open-risicos"></a>
+
+## Decision and open risks
+
+Preferred direction: one consistent core with familiar basic actions, contextual help and explicit consequences. Supporting guidelines make this defensible to test; they do not yet demonstrate new product value. The main risks remain missing compatibility/services, insufficient installer/encryption safety, still-incomplete native accessibility, source-version drift and a small or selective later sample. New implementations remain subject to the gates in [the existing product plan](../implementation/PRODUCT-SPEC.md).

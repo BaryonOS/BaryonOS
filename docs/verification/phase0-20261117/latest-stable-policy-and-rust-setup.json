@@ -1,0 +1,65 @@
+{
+  "task": "P0-MOD verified policy and namedcompiler setup, not completed source migration",
+  "source_checkpoint_parent": "e5149801c5837944aa5746fb84edc7e56305f010",
+  "accepted_policy_ADR": "ADR-VERSION-POLICY-20261117",
+  "independent_policy_review": "PASS textonly; original decision/dependency bodies preserved exactly",
+  "upstream_Rust": {
+    "stable": "1.100.0",
+    "released": "2026-11-12",
+    "source_commit": "0ef1bc386059596dada8fb65b50425aab2ea637a",
+    "release_url": "https://blog.rust-lang.org/2026/11/12/Rust-1.100.0/",
+    "official_manifest_sha256": "3051e859570f64a8c5acb9d09e87425db52c7d97287c67e8f6d57d7d34ef9258"
+  },
+  "installation": {
+    "exit_code": 0,
+    "rustc": "1.100.0",
+    "cargo": "1.100.0",
+    "clippy": "0.1.100",
+    "rustfmt": "1.11.0-stable",
+    "targets": [
+      "x86_64-unknown-linux-gnu",
+      "x86_64-unknown-none",
+      "x86_64-unknown-uefi"
+    ],
+    "global_default_and_previous_project_pin_preserved": true,
+    "meaning": "Verified named developer toolchain only; active repository pin migration/compatibility/currentheadCI still pending"
+  },
+  "current_review_tasks": [
+    "P0-MOD-1 one source-backed stack inventory",
+    "P0-MOD-RUST-SEC Cargo advisory and support applicability",
+    "P0-MOD-RUST100 isolated active-pin migration/compatibility"
+  ],
+  "pending_security": "Older active compilers unsupported by current upstream stable-only policy; Cargo advisory applicability under independent review. No source/security fix or exception accepted by this receipt. Urgent confirmed findings resolved beforeB.",
+  "evidence": {
+    "P0-MOD-policy-independent-review.md": {
+      "sha256": "5fca9397e828a0d7c3e745adb91fe756baf2bdc1107a074887fbe59caeaef5cc",
+      "bytes": 3635
+    },
+    "p0-modernization-inventory/rust-1.100.0-upstream-evidence.json": {
+      "sha256": "a87ae4836e2fa0d9ac8c4c00ca34a7489721e5f9d59e3e539634af945df4f39d",
+      "bytes": 93482
+    },
+    "logs/rust-1.100.0-official-distribution-probe.json": {
+      "sha256": "6196426d3114f23e351ce2c6dd106b8871045b7e5bbb5bcc2a304f1c85bf45c7",
+      "bytes": 526
+    },
+    "logs/rust-1.100.0-selected-distributions.json": {
+      "sha256": "3776b99bc6aec4fb5b487912833bd3bab18aa11dce96aafa9d2af14a374c9a10",
+      "bytes": 2564
+    },
+    "logs/rust-1.100.0-install-receipt.json": {
+      "sha256": "2a71cd1db2e2d6300cc339fe1fc2f3397c4fc533fb2f5d6cb9c085b32ae50ebd",
+      "bytes": 806
+    },
+    "logs/rust-1.100.0-installed-verification.json": {
+      "sha256": "04fdf0714eff17590b5d8a11bf7b34c1b6c83162c2b85807925924b0fb606d74",
+      "bytes": 2099
+    },
+    "P0-274-community-preview.md": {
+      "sha256": "7239f8e804c25b64a0ec39bc9191d2101ba7232e422839031123695ab4694ec7",
+      "bytes": 13031
+    }
+  },
+  "not_run": "New1.100 source/native/crypto/IPC/DMA/currentheadCI acceptance, completed all-stack modernization or human audit",
+  "score": "41/100 unchanged"
+}

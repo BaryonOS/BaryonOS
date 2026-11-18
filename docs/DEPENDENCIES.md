@@ -1,5 +1,48 @@
 # Dependencies and provenance
 
+## Latest stable selection and exceptions
+
+[ADR-VERSION-POLICY-20261117](DECISIONS.md) establishes the permanent current
+selection policy. The version-specific notes below retain their original source,
+date and evidence scope; they are not a claim that those versions remain current.
+The single Phase 0 inventory is in progress. No exception or upgrade is accepted
+merely by recording this procedure.
+
+Before accepting a new component or update:
+
+1. Identify its exact upstream stable release, release date, support channel,
+   provenance/immutable commit or checksum, licence and security advisories.
+   Include transitive and vendored inputs, build scripts and actual enabled
+   features; a lockfile presence alone does not prove runtime inclusion.
+2. Compare current resolver output and active pins with that source. Assess MSRV,
+   API/ABI, compiler/target behavior and required firmware CODE/VARS pairing.
+   Distinguish a declared MSRV support floor from an active compiler pin.
+   Managed hosted tooling may expose no pin or version; document that limitation
+   as `NOT VERIFIED` and identify the responsible provider/owner.
+3. Use an isolated scoped branch and keep manifests, lockfiles, active CI/tooling
+   and documentation consistent. Preserve historical receipts and original source
+   versions. Run targeted checks, then applicable mandatory host/native/security,
+   formatting and Clippy gates. Record exact source, commands, exits and raw logs;
+   obtain independent review and prove the rollback before manual squash.
+4. Record every exception here or in its existing component provenance record:
+   exact version/source, required technical constraint, upstream comparison,
+   advisory/support evidence, affected interfaces, retained risks, owner,
+   verification and reassessment trigger/date. Distinguish proposed exceptions
+   from verified/authorized ones; do not silently grandfather vulnerable or
+   prerelease inputs. Security or trust-boundary decisions outside existing
+   authority require the project owner.
+5. Reassess active exceptions at baseline/release review, on relevant upstream
+   stable/security releases and when compatibility constraints change. Use the
+   existing Dependabot/security cadence for changed components rather than repeat
+   whole-stack inventories or add a parallel updater. A new dependency is checked
+   before acceptance, not deferred until the next inventory.
+
+No floating `latest`, speculative installation, scanner suppression, weakened gate
+or acceptance-score increase follows from version selection. Latest does not mean
+secure without bounded evidence. Ongoing tested integration and other workstreams
+remain preserved while urgent findings and noncritical migrations are prioritized
+under the current Phase 0 owner instruction.
+
 M6b adds only the project's own local crate `object-core 0.1.0`: `no_std`,
 no allocator or external dependencies, and `forbid(unsafe_code)` in the core.
 The native adapter uses existing fixed syscall buffers and a justified
