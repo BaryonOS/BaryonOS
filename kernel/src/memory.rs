@@ -3,7 +3,13 @@
 use core::arch::asm;
 
 #[no_mangle]
-pub unsafe extern "C" fn memcpy(dst: *mut u8, src: *const u8, n: usize) -> *mut u8 {
+pub unsafe extern "C" fn memcpy(
+    dst: *mut core::ffi::c_void,
+    src: *const core::ffi::c_void,
+    n: usize,
+) -> *mut core::ffi::c_void {
+    let dst = dst.cast::<u8>();
+    let src = src.cast::<u8>();
     // SAFETY: Caller supplies n readable/writable, valid nonoverlapping bytes;
     // x86 permits unaligned word accesses. Only n/8 complete words are copied,
     // then exactly n%8 bytes; neither side is touched beyond its valid range.
@@ -14,22 +20,33 @@ pub unsafe extern "C" fn memcpy(dst: *mut u8, src: *const u8, n: usize) -> *mut 
             inout("rdi") dst => _, inout("rsi") src => _,
             inout("rcx") n / 8 => _, options(nostack));
     }
-    dst
+    dst.cast()
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn memset(dst: *mut u8, value: i32, n: usize) -> *mut u8 {
+pub unsafe extern "C" fn memset(
+    dst: *mut core::ffi::c_void,
+    value: i32,
+    n: usize,
+) -> *mut core::ffi::c_void {
+    let dst = dst.cast::<u8>();
     // SAFETY: Caller supplies n writable bytes; the operation writes exactly n.
     unsafe {
         asm!("cld", "rep stosb", inout("rdi") dst => _, in("al") value as u8, inout("rcx") n => _, options(nostack));
     }
-    dst
+    dst.cast()
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn memmove(dst: *mut u8, src: *const u8, n: usize) -> *mut u8 {
+pub unsafe extern "C" fn memmove(
+    dst: *mut core::ffi::c_void,
+    src: *const core::ffi::c_void,
+    n: usize,
+) -> *mut core::ffi::c_void {
+    let dst = dst.cast::<u8>();
+    let src = src.cast::<u8>();
     if n == 0 {
-        return dst;
+        return dst.cast();
     }
     if (dst as usize) <= (src as usize) {
         // SAFETY: Forward order is correct when dst precedes src, even with overlap.
@@ -44,11 +61,17 @@ pub unsafe extern "C" fn memmove(dst: *mut u8, src: *const u8, n: usize) -> *mut
                 inout("rsi") src.add(n - 1) => _, inout("rcx") n => _, options(nostack));
         }
     }
-    dst
+    dst.cast()
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn memcmp(a: *const u8, b: *const u8, n: usize) -> i32 {
+pub unsafe extern "C" fn memcmp(
+    a: *const core::ffi::c_void,
+    b: *const core::ffi::c_void,
+    n: usize,
+) -> i32 {
+    let a = a.cast::<u8>();
+    let b = b.cast::<u8>();
     // SAFETY: Clear the direction flag even for an empty range; no memory is
     // accessed. The kernel ABI requires DF=0 on return.
     unsafe {
