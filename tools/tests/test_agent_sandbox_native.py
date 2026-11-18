@@ -13,6 +13,7 @@ import tempfile
 import time
 import unittest
 from concurrent.futures import ThreadPoolExecutor
+from threading import Event
 from unittest import mock
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
@@ -51,6 +52,8 @@ class NativeBoundary(unittest.TestCase):
     def test_runtime_is_readonly_and_process_capabilities_are_empty(self):
         code = ("from pathlib import Path\nimport errno\n"
                 "assert 'CapEff:\\t0000000000000000' in Path('/proc/self/status').read_text()\n"
+                "assert not Path('/run/user/1000/bus').exists()\n"
+                "assert not Path('/run/user/1000/systemd/private').exists()\n"
                 "try: Path('/usr/bin/unaccepted').write_text('x')\n"
                 "except OSError as error: assert error.errno in (errno.EROFS, errno.EACCES)\n"
                 "else: raise AssertionError('writable runtime')\n")
@@ -250,33 +253,53 @@ class NativeBoundary(unittest.TestCase):
     def test_z_live_survivor_cleanup_failure_quarantines_the_root(self):
         marker = self.work / "quarantine-heartbeat"
         body = ("from pathlib import Path\nimport time\n"
-                "deadline=time.monotonic()+5\n"
+                "deadline=time.monotonic()+20\n"
                 "Path('quarantine-heartbeat').write_text(str(time.time_ns()))\n"
                 "print('ready',flush=True)\n"
                 "while time.monotonic() < deadline:\n"
                 " Path('quarantine-heartbeat').write_text(str(time.time_ns())); time.sleep(0.02)")
-        code = ("import subprocess; child=subprocess.Popen("
+        code = ("import subprocess,time; child=subprocess.Popen("
                 f"['/usr/bin/python3','-I','-B','-c',{body!r}],"
-                "stdout=subprocess.PIPE,stderr=subprocess.DEVNULL,text=True); "
-                "assert child.stdout.readline() == 'ready\\n'; print('started',flush=True)")
+                "stdout=subprocess.PIPE,stderr=subprocess.DEVNULL,text=True,start_new_session=True); "
+                "assert child.stdout.readline() == 'ready\\n'; print('x'*2048,flush=True); time.sleep(20)")
         captured = {}
+        termination_started = Event()
+        release_termination = Event()
+
+        def uncertain_termination(_control, _environment, unit):
+            captured["unit"] = unit
+            termination_started.set()
+            if not release_termination.wait(5):
+                raise SandboxError("termination uncertainty probe was not released")
+            raise SandboxError("synthetic termination uncertainty")
 
         def uncertain_cleanup(_control, _environment, unit, _state):
-            captured["unit"] = unit
+            self.assertEqual(captured.get("unit"), unit)
             raise SandboxError("synthetic cleanup uncertainty")
 
         try:
-            with mock.patch.object(self.sandbox, "_cleanup_scope", side_effect=uncertain_cleanup), \
-                    self.assertRaisesRegex(SandboxError, "resource cleanup failed"):
-                self.python(code)
+            with mock.patch.object(self.sandbox, "_terminate_scope", side_effect=uncertain_termination), \
+                    mock.patch.object(self.sandbox, "_cleanup_scope", side_effect=uncertain_cleanup), \
+                    ThreadPoolExecutor(max_workers=1) as pool:
+                future = pool.submit(self.python, code, output_limit=1024)
+                try:
+                    self.assertTrue(termination_started.wait(5), "termination path did not start")
+                    first = marker.read_text()
+                    time.sleep(0.15)
+                    self.assertNotEqual(marker.read_text(), first)
+                finally:
+                    release_termination.set()
+                with self.assertRaisesRegex(SandboxError, "captured output exceeded") as raised:
+                    future.result(timeout=15)
+            notes = "\n".join(raised.exception.__notes__)
+            self.assertIn("isolated resource cleanup failed", notes)
+            self.assertIn("isolated resource termination failed", notes)
             self.assertTrue(self.lease.receipt["quarantined"])
             self.assertFalse(self.lease.receipt["cleaned"])
             self.assertTrue(self.lease.container.exists())
             self.assertTrue(any(self.lease.root.iterdir()))
-            first = marker.read_text()
-            time.sleep(0.15)
-            self.assertNotEqual(marker.read_text(), first)
         finally:
+            release_termination.set()
             unit = captured.get("unit")
             if unit is not None:
                 with self.sandbox._verified_resource_tools() as (_manager, control, environment):
