@@ -12,6 +12,7 @@
 extern crate std;
 
 pub mod catalog;
+pub mod installer;
 pub mod journal;
 pub mod protocol;
 pub mod store;
@@ -32,6 +33,18 @@ pub struct PackageIdentity {
 }
 
 impl PackageIdentity {
+    pub(crate) fn from_verified(verified: &app_package_core::SourceVerifiedExecutable<'_>) -> Self {
+        let manifest = verified.executable().manifest();
+        Self {
+            app_id: *manifest.app_id.as_bytes(),
+            source_id: *verified.source_id().as_bytes(),
+            source_generation: verified.source_generation(),
+            version: manifest.version,
+            image_length: manifest.image_length,
+            image_sha256: manifest.image_sha256,
+        }
+    }
+
     pub const fn app_id(&self) -> &[u8; app_package_core::APP_ID_LEN] {
         &self.app_id
     }
