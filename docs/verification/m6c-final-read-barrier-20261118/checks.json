@@ -1,0 +1,64 @@
+{
+  "base": "fc35563668ae2ba3dc2fc90e6e30575c38b6f578",
+  "integrated_main": "6f29b6720b51aecad5714faa48b445afd6e2f5a9",
+  "fixed_files": {
+    "kernel/src/m2/m3/m6c.rs": "b55845f7933a7f632fac10984891d342513a5d14b746209131a931b9edd3d163",
+    "userspace/m6c_probe.rs": "9ed511ccce7a3806451f6c34e470b405770167684e78548924558053408eb8ff"
+  },
+  "negative_kernel_sha256": "0435db123c11d4c663910d37daab3b9e5914eb85893a27f75a088d85d3dc184d",
+  "negative_probe": "same delayed userspace probe as fixed_files",
+  "runs": [
+    {
+      "case": "errors",
+      "result": "build/run/m6c-errors-a307212673/result.json",
+      "result_sha256": "a3a4d56f058847969c96362f78dedfd989639300b912959094eb108c71d7d61b",
+      "command_exit": 1,
+      "raw_qemu_exit": 35,
+      "passed": false,
+      "source_sha256": "73db455cac19ebc67f22f28b7acf2db4819e768c47b0c2c609714654784d1f50",
+      "source_unchanged": true,
+      "disk_oracle_passed": false,
+      "raw_log": "build/tokenguard/run-k6hvd12x.log"
+    },
+    {
+      "case": "errors",
+      "result": "build/run/m6c-errors-47ce9d48a2/result.json",
+      "result_sha256": "780e1ae47584bcf5ebca4ac759e9ffc7187c0e7cc5bd5aee727e407b2918fe41",
+      "command_exit": 0,
+      "raw_qemu_exit": 33,
+      "passed": true,
+      "source_sha256": "b24c517f7bbb6d0020743ba88a493ce31889d7bd806afcfcfbeb8db0f5b5850d",
+      "source_unchanged": true,
+      "disk_oracle_passed": true,
+      "raw_log": "build/tokenguard/run-bqffgmv4.log"
+    },
+    {
+      "case": "normal",
+      "result": "build/run/m6c-normal-0698c583c1/result.json",
+      "result_sha256": "efb96dbbfa75afa7c58abe5ad9497a148dfd27f67246d842703573f5b39a4c99",
+      "command_exit": 0,
+      "raw_qemu_exit": 33,
+      "passed": true,
+      "source_sha256": "b24c517f7bbb6d0020743ba88a493ce31889d7bd806afcfcfbeb8db0f5b5850d",
+      "source_unchanged": true,
+      "disk_oracle_passed": true,
+      "raw_log": "build/tokenguard/run-ycqeqm50.log"
+    }
+  ],
+  "host": {
+    "command": "python3 -B -m unittest discover -s tests -p 'test_m6c*.py'",
+    "exit": 0,
+    "tests": 49,
+    "raw_log": "build/tokenguard/run-28jpvrtl.log"
+  },
+  "format": {
+    "exit": 0,
+    "raw_log": "build/tokenguard/run-rnfv6o1l.log"
+  },
+  "limits": [
+    "No new full native matrix",
+    "No hardware/human audit",
+    "No Daybreak resolution or held pipeline activation",
+    "Prior M6b evidence is unchanged-source reuse; prior full M6c matrix is historical, not current-source acceptance"
+  ]
+}

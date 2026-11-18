@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-18",
-    "source_commit": "04e464963cd0d969f8687208404f480f289d54a4",
+    "source_commit": "aaf01bae291faba593567845dc8da4fe606a7959",
     "assessment_basis": "parent_commit",
     "branch": "codex/coderabbit-oss-config",
-    "task": "PR350 conflict-only reconciliation with main 6f29b672",
+    "task": "PR350 conflict-only reconciliation with main 2eac8ca3",
     "previous_score": 41,
-    "summary": "41/100 unchanged. Only overlapping checkpoint and assessment records required resolution. Both histories, reviewed CodeRabbit configuration, every fixed criterion and all main runtime/security changes are preserved. Hosted checks on the resulting head are required; no local build or QEMU acceptance is inferred."
+    "summary": "41/100 unchanged. The reviewed CodeRabbit free-tier configuration is preserved while current main, including PR #361 containment and final-read ordering, is incorporated. Only the checkpoint and assessment records required manual resolution. Hosted checks on the resulting head remain authoritative; no local build or QEMU acceptance is inferred."
   },
   "tracks": [
     {
