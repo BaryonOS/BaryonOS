@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-18",
-    "source_commit": "2f3631c0ef8f79331f631bae6ea8fc0f0ecbf8e7",
+    "source_commit": "b87436dfd8ef8c277dea1dbde780f2e2229283a9",
     "assessment_basis": "parent_commit",
-    "branch": "codex/n02-resolver-cache",
-    "task": "N02-T1: bounded DNS resolver cache with validated NXDOMAIN",
+    "branch": "codex/unified-governance",
+    "task": "GOV-1-6 reconciliation with main 5a3295b6",
     "previous_score": 41,
-    "summary": "41/100 unchanged. A bounded allocation-free A/AAAA cache now handles exact TTL expiry, epoch invalidation, deterministic eviction and validated NXDOMAIN lifetimes without adding sockets or network authority. N02 remains open because native resolver traffic, DNSSEC and transport integration are unproven. Current-main reconciliation changes only checkpoint state; hosted checks on the resulting head remain authoritative."
+    "summary": "41/100 unchanged. Shared role and workflow contracts, client adapters and compact continuation are reconciled with actual main after #350. Targeted quarantine (5) and execution-hold (3) regressions remain source-bound; disabled manifest and source hold remain intact. Governance has no zero-open-items/baseline-B prerequisite. Host adapter/protection checks do not establish client runtime parity, Daybreak acceptance, hardware or human audit. No product criterion or weight changes."
   },
   "tracks": [
     {

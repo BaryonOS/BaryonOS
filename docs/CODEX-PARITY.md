@@ -1,5 +1,11 @@
 # Codex–Claude instruction and workflow parity
 
+**Evidence scope:** this checklist concerns client runtime parity, separately from
+repository governance. Historical NOT RUN observations below are not prerequisites
+for independent implementation. Shared instructions and adapters do not establish
+client tool access, isolation, hardware support or acceptance. Record new observations
+with source/environment; never infer all-surface parity from a single session.
+
 **Evidence status: NOT ACCEPTED (15 November 2026).** This checklist is a mutable verification record, not an agent policy and not an OS acceptance criterion. GitHub source review cannot establish the user's on-device Codex configuration or run the local Git hooks.
 
 ## What is implemented in this repository
@@ -32,7 +38,7 @@ Run only in a clean checkout and **do not allow source writes** during the canar
 4. Then execute one explicitly scoped, disposable test task on an isolated branch/worktree with hooks enabled. Require exact test commands, raw exit codes, relevant log hashes, complete diff review and a draft PR. Verify clean rollback for a rejected edit and never bypass protected-path policies.
 5. Record the transcript/check identifiers, source SHA, active tool versions, checks not run and unresolved blockers here or in a new `docs/verification/` child. Only mark parity verified after all required observations pass on the same source and environment.
 
-**Blocking limitation:** This GitHub-connected review cannot access or execute the user's home-directory Codex runtime, its authentication, CLI session, or local hooks. The Codex canary therefore remains NOT RUN. Do not merge this documentation as evidence of completed parity or native acceptance.
+**Historical runtime-parity limitation:** This GitHub-connected review cannot access or execute the user's home-directory Codex runtime, its authentication, CLI session, or local hooks. The Codex canary therefore remains NOT RUN. Do not merge this documentation as evidence of completed parity or native acceptance.
 
 ## Safe continuation
 
