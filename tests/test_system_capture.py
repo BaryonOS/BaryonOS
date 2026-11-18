@@ -89,7 +89,7 @@ class SystemCaptureTests(unittest.TestCase):
         hosts = []
         host_commands = [
             [sys.executable, "-B", "-m", "unittest", "discover", "-s", "tests", "-p", "test_system_*.py"],
-            ["cargo", "+1.90.0", "test", "--locked", "--manifest-path", "sdk/Cargo.toml", "-p", "nieuw-os-sdk-runtime"],
+            ["cargo", "+1.100.0", "test", "--locked", "--manifest-path", "sdk/Cargo.toml", "-p", "nieuw-os-sdk-runtime"],
         ]
         for index in range(2):
             host = dict(command=host_commands[index], exit=0)
@@ -375,8 +375,8 @@ class SystemCaptureTests(unittest.TestCase):
         put_json(self.build / "manifest.json", self.manifests[0])
         commands = [
             [sys.executable, "-B", "-m", "unittest", "discover", "-s", "tests", "-p", "test_net_*.py"],
-            ["cargo", "+1.90.0", "test", "--locked", "-p", "capability-core"],
-            ["cargo", "+1.90.0", "test", "--locked", "--manifest-path", "sdk/Cargo.toml", "-p", "nieuw-os-sdk-runtime"],
+            ["cargo", "+1.100.0", "test", "--locked", "-p", "capability-core"],
+            ["cargo", "+1.100.0", "test", "--locked", "--manifest-path", "sdk/Cargo.toml", "-p", "nieuw-os-sdk-runtime"],
         ]
         self.gate["host"] = []
         for index, command in enumerate(commands):

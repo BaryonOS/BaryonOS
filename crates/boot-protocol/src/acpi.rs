@@ -644,7 +644,7 @@ fn parse_dmar(table: &[u8], result: &mut Discovery) -> Result<(), Error> {
                 {
                     return Err(Error::Dmar);
                 }
-                for path in remaining[6..size].chunks_exact(2) {
+                for path in remaining[6..size].as_chunks::<2>().0 {
                     if path[0] > 31 || path[1] > 7 {
                         return Err(Error::Dmar);
                     }

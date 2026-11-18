@@ -32,22 +32,22 @@ jobs:
           persist-credentials: false
       - name: Pinned Python
         uses: ./.github/actions/setup-python
-      - name: Rust 1.91.1
+      - name: Rust 1.100.0
         run: |
-          rustup toolchain install 1.91.1 --profile minimal
-          rustup component add --toolchain 1.91.1 rustfmt clippy
-          rustup target add --toolchain 1.91.1 x86_64-unknown-none
+          rustup toolchain install 1.100.0 --profile minimal
+          rustup component add --toolchain 1.100.0 rustfmt clippy
+          rustup target add --toolchain 1.100.0 x86_64-unknown-none
       - name: Broker and transport host gates
         run: |
           for crate in net-broker net-stack network-service; do
-            cargo +1.91.1 test --locked --manifest-path "services/$crate/Cargo.toml"
-            cargo +1.91.1 clippy --locked --manifest-path "services/$crate/Cargo.toml" --all-targets -- -D warnings
-            cargo +1.91.1 fmt --manifest-path "services/$crate/Cargo.toml" --all -- --check
+            cargo +1.100.0 test --locked --manifest-path "services/$crate/Cargo.toml"
+            cargo +1.100.0 clippy --locked --manifest-path "services/$crate/Cargo.toml" --all-targets -- -D warnings
+            cargo +1.100.0 fmt --manifest-path "services/$crate/Cargo.toml" --all -- --check
           done
       - name: Allocator-free baremetal library
         run: |
-          cargo +1.91.1 build --locked --manifest-path services/net-broker/Cargo.toml --release --target x86_64-unknown-none
-          cargo +1.91.1 build --locked --manifest-path services/network-service/Cargo.toml --release --target x86_64-unknown-none
+          cargo +1.100.0 build --locked --manifest-path services/net-broker/Cargo.toml --release --target x86_64-unknown-none
+          cargo +1.100.0 build --locked --manifest-path services/network-service/Cargo.toml --release --target x86_64-unknown-none
       - name: No generated source changes
         run: git diff --exit-code
 
@@ -70,10 +70,10 @@ jobs:
         uses: ./.github/actions/setup-python
       - name: Pinned kernel and service compilers
         run: |
-          rustup toolchain install 1.90.0 --profile minimal
-          rustup toolchain install 1.91.1 --profile minimal
-          rustup target add --toolchain 1.90.0 x86_64-unknown-none x86_64-unknown-uefi
-          rustup target add --toolchain 1.91.1 x86_64-unknown-none
+          rustup toolchain install 1.100.0 --profile minimal
+          rustup toolchain install 1.100.0 --profile minimal
+          rustup target add --toolchain 1.100.0 x86_64-unknown-none x86_64-unknown-uefi
+          rustup target add --toolchain 1.100.0 x86_64-unknown-none
       - name: Pinned QEMU and OVMF
         uses: ./.github/actions/setup-qemu
       - name: Ubuntu emulator package diagnostics
@@ -84,7 +84,7 @@ jobs:
           test -f "$OS_OVMF_VARS"
       - name: Fetch locked inputs before offline native builders
         run: |
-          cargo +1.90.0 fetch --locked
+          cargo +1.100.0 fetch --locked
           for manifest in \
             sdk/Cargo.toml \
             sdk/examples/system/Cargo.toml \
@@ -93,13 +93,13 @@ jobs:
             services/network-service/protocol/Cargo.toml \
             sdk/net-client/Cargo.toml
           do
-            cargo +1.90.0 fetch --locked --manifest-path "$manifest"
+            cargo +1.100.0 fetch --locked --manifest-path "$manifest"
           done
-          cargo +1.91.1 fetch --locked --manifest-path sdk/examples/network-service/Cargo.toml
+          cargo +1.100.0 fetch --locked --manifest-path sdk/examples/network-service/Cargo.toml
       - name: Wire protocol, client and controlled peer counterexamples
         run: |
-          cargo +1.90.0 test --offline --locked --manifest-path services/network-service/protocol/Cargo.toml
-          cargo +1.90.0 test --offline --locked --manifest-path sdk/net-client/Cargo.toml
+          cargo +1.100.0 test --offline --locked --manifest-path services/network-service/protocol/Cargo.toml
+          cargo +1.100.0 test --offline --locked --manifest-path sdk/net-client/Cargo.toml
           python3 -B -m unittest discover -s tools -p test_network_service_peer.py
       - name: Native packets lifetimes helper isolation revocation reset and exhaustion
         env:

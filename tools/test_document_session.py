@@ -162,7 +162,7 @@ def compiler_binding(snapshot, original_build, root):
         metadata = read_json(snapshot / 'logs' / (log + '.json'))
         command = metadata.get('command')
         require(isinstance(command, list) and all(isinstance(arg, str) for arg in command), 'Invalid compiler command')
-        require(command and Path(command[0]).name in ('rustc', 'rustc.exe') and command[1:2] == ['+1.90.0'], 'Pinned rustc launcher missing')
+        require(command and Path(command[0]).name in ('rustc', 'rustc.exe') and command[1:2] == ['+1.100.0'], 'Pinned rustc launcher missing')
         require(type(metadata.get('returncode')) is int and metadata['returncode'] == 0
                 and metadata.get('timed_out', False) is False and metadata.get('cwd') == str(root), 'Failed or foreign compile evidence')
         for option, expected in (('--crate-name', crate), ('--crate-type', kind), ('--target', 'x86_64-unknown-none'), ('-o', str(original_build / output))):

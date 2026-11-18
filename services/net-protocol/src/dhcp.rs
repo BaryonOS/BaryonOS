@@ -174,8 +174,8 @@ fn address_list<const N: usize>(
     if entries > N {
         return Err(Error::TooManyAddresses);
     }
-    for (index, address) in value.chunks_exact(4).enumerate() {
-        let address: [u8; 4] = address.try_into().unwrap();
+    for (index, address) in value.as_chunks::<4>().0.iter().enumerate() {
+        let address = *address;
         if !unicast_ipv4(address) {
             return Err(Error::InvalidAddress);
         }

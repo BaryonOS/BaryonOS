@@ -936,7 +936,7 @@ cp -- "$ACTIONLINT_FIXTURE" "$output"
                         "CARGO_TARGET_X86_64_UNKNOWN_NONE_RUSTFLAGS"):
                 self.assertNotIn(key, env)
         args = shlex.split(step["run"])
-        self.assertEqual(args[:3], ["cargo", "+1.90.0", "build"])
+        self.assertEqual(args[:3], ["cargo", "+1.100.0", "build"])
         self.assertEqual(args.count("--config"), 1)
         additions = tomllib.loads(args[args.index("--config") + 1])
         self.assertEqual(additions, {"target": {"x86_64-unknown-none": {
