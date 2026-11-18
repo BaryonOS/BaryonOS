@@ -1,0 +1,30 @@
+{
+  "task": "SEC359-LOCAL",
+  "owner": "Local Codex lead, chat 01a1ee34-6bfb-72f0-96f0-6b7ca3f103a5",
+  "claimed_at": "2026-11-18T10:54:06.004989+00:00",
+  "baseline": "de9b99047138c4fd0015ffc3f874b273b3537484",
+  "pr_source": "b5f756a233bbfef0ecc143f41834899b399e3805",
+  "goal": "Reconcile and verify PR359 containment on current main; close direct ready_tasks selection gap.",
+  "invariant": "All issue selection and transaction ingress refuses before filesystem/network/model/gate/publication effects; no runtime override; preserve current main and original user/Claude/S09 work.",
+  "write_set": [
+    "tools/agent_pipeline.py",
+    "tools/tests/test_pipeline_quarantine.py",
+    "docs/PROJECT-STATE.md",
+    "docs/progress.json",
+    "README.md",
+    "docs/PROGRESS.md",
+    "docs/assets/progress.svg",
+    "docs/verification/phase0-sec359-local-20261118/**"
+  ],
+  "acceptance": [
+    "python3 -B -m unittest discover -s tools/tests -p test_pipeline_quarantine.py",
+    "python3 -B -m unittest discover -s tools/tests -p test_*.py",
+    "python3 -B tools/preflight.py --strict",
+    "python3 -B tools/build.py",
+    "python3 -B tools/run.py --smoke --milestone m1",
+    "current-head hosted required and applicable checks; independent source review; actual-main verification"
+  ],
+  "evidence_limit": "Containment only. No full isolation acceptance, Daybreak closure, issue closure, baseline B or governance authorization.",
+  "governance_gate": "Strict zero open issues/PRs and unresolved actionable security/quality findings; owner exception required if blocked.",
+  "status": "claimed"
+}

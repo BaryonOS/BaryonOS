@@ -1,5 +1,17 @@
 # Current project status
 
+## NEXT AGENT HANDOFF — Local PR359 containment reconciliation — 18 November 2026
+
+**Authority and ownership:** the project owner approved autonomous local execution and verified manual squash merges. Cloud handoff `88b801ab8cd47f4765ef7d925b161542dbbf684e` releases Codex work only. Local Codex exclusively owns this PR359 reconciliation in an isolated worktree; the original unfinished merge, Claude UI/UX and broader S09 remain untouched.
+
+**Source and scope:** existing PR359 parent `b5f756a233bbfef0ecc143f41834899b399e3805`, reconciled with actual main `de9b99047138c4fd0015ffc3f874b273b3537484`. Latest main is retained, including PR339 accessibility source. The unconditional legacy-controller hold is retained and extended to direct issue selection. It has no runtime release override. This is containment only; complete PR355/357 isolation and all three Daybreak findings remain open.
+
+**Checks:** the new direct-selection regression fails before the repair (exit1); all five quarantine tests pass after repair (exit0). All404 tools tests, strict preflight/build/M1 pass (wrapper exit0; real guest33, no timeout). Evidence correction `b526c039b527a51c3f833d78469f5aa4198ab27f` binds a repeated negative overlay to exact source/test/log hashes, while the original negative log remains historical evidence without a source binding. It narrows the independent review to executable containment source and records that the writable QEMU variable-store copy was not bound before launch. The raw native result remains byte-identical. Current-head hosted checks and resulting-main acceptance remain pending. Raw evidence is retained under `build/tokenguard/`; source-bound receipts are `docs/verification/phase0-sec359-local-20261118/` and `docs/verification/phase0-sec359-evidence-correction-20261118/`. Score remains41/100.
+
+**Stabilization gate:** finite baseline B retains its previously approved meaning. The later governance transition additionally requires genuine zero open issues, zero open PRs and zero unresolved actionable security/quality findings, unless the project owner explicitly authorizes an exception. Missing external authority, licence, hardware or capability evidence remains an open blocker; independent feasible work continues. No false closure, auto-merge, bypass or vulnerable issue-pipeline execution is authorized.
+
+**Next:** independently review and publish the evidence correction, then require a fresh exact-head hosted rollup. Manually squash only when every applicable check and actionable review is satisfied. Verify resulting main before continuing PR355/357 and the remaining security queue. Governance has not started.
+
 ## NEXT AGENT HANDOFF — Phase 0 PR339 safe checker and integration — 18 November 2026
 
 **Actual main:** `67d5859d735836331b6fb971eae89162b7fa8465` after verified manual squash merges #345 and #346. Actual trees equal their independently reviewed candidates. Translation source PRs #347–#349/#351–#353 were closed only after actual-main inclusion proof; original refs remain preserved. Five issues and seven PRs remain open at this cutoff. Project5 synchronization uses the existing workflow.

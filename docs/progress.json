@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-18",
-    "source_commit": "3966b43f115c23fc0d2bd51e33ebbad49ec97cd9",
-    "assessment_basis": "parent_commit",
-    "branch": "claude/baryon-os-design-pipeline-20261115",
-    "task": "Phase 0 PR339: preserve Claude research and independently verified successor checker on actual main",
+    "source_commit": "b526c039b527a51c3f833d78469f5aa4198ab27f",
+    "assessment_basis": "source_commit",
+    "branch": "codex/security-pipeline-quarantine",
+    "task": "SEC359-EVIDENCE: correct containment evidence scope and bindings",
     "previous_score": 41,
-    "summary": "41/100 unchanged. Existing51 baseline identities and original research/archive are preserved; successor checker closes path confinement and baseline-demotion validation gaps. This structural validation is no systematic review, native accessibility acceptance or human audit. Security and final combined-source gates remain open."
+    "summary": "41/100 unchanged. Source b526c039 binds a repeated negative control to exact overlay inputs while retaining the original log as historical evidence without source binding, limits independent review to executable containment source, and explicitly marks the writable QEMU variable-store copy unbound. Fresh exact-head hosted checks and actual-main integration remain pending. This completes no product criterion, full PR355/357 isolation, Daybreak finding, issue, baseline B or governance transition."
   },
   "tracks": [
     {
