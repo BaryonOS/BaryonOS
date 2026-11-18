@@ -69,6 +69,7 @@ from child-process environments.
 | 20 unpinned archive reproduction | new current-tree evidence supersedes, not rewrites, old archive | exact source/tree output and manifest |
 | 21 mutable Wiki publication verification | four exact source/baseline/publication identities | live Wiki verifier and optimized verifier logs |
 | 22 source provenance outside PR ancestry | current reconciled commit recorded | lead must retain 4ae9a1c as an ancestor of the published sibling or regenerate |
+| 23 current-head CodeQL comment elision | remove HTML comments to a fixed point before tag extraction; truncate unmatched comments | fixed_point_html_comment_elision rejects an anchor exposed by one-pass removal |
 
 Additional reviewer controls cover complete Wiki baseline inventory, exact
 before/after preservation and publication ancestry. The negative cases are
@@ -120,7 +121,7 @@ references and eight community forms. The one unresolved target is the expected
 generated build/toolchain-provenance.json reference; it is not suppressed.
 
 The live Wiki verifier checks 15 source pages, 13 byte-identically preserved
-baseline pages, 171 local targets and one fragment. The self-test is a host-level
+baseline pages, 171 local targets and one fragment. The 32-case self-test is a host-level
 deterministic fixture, not hosted CI, native QEMU, hardware or human language/UI
 acceptance. No GitHub/Wiki state was mutated. Issue #274, UI localisation,
 language-quality acceptance and full issue acceptance remain open. The lead must

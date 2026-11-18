@@ -111,6 +111,7 @@ def main() -> None:
         "[Wiki invalid fragment](https://github.com/BaryonOS/BaryonOS/wiki/Target#missing)",
         "[Wiki fenced anchor](https://github.com/BaryonOS/BaryonOS/wiki/Target#fenced-hidden)",
         "[Wiki inline anchor](https://github.com/BaryonOS/BaryonOS/wiki/Target#inline-hidden)",
+        "[Wiki overlapping comment anchor](https://github.com/BaryonOS/BaryonOS/wiki/Target#overlap-hidden)",
         "[Wiki symlink](https://github.com/BaryonOS/BaryonOS/wiki/Alias)",
         "[Malformed](docs/bad%ZZ.md)",
         "",
@@ -138,7 +139,7 @@ def main() -> None:
     if checker_module.candidate_lines(indented) != [2] or checker_module.candidate_lines(illegal_info) != [2]:
         raise ValueError("illegal CommonMark fence regression")
     cases["illegal_fence_openers"] = "PASS"
-    anchor_fixture = "\x60\x60\x60\n# Hidden\n<a id=\"fenced-hidden\"></a>\n\x60\x60\x60\nInline \x60<a id=\"inline-hidden\"></a>\x60\n# A\n# A\n# A-1\n"
+    anchor_fixture = "\x60\x60\x60\n# Hidden\n<a id=\"fenced-hidden\"></a>\n\x60\x60\x60\nInline \x60<a id=\"inline-hidden\"></a>\x60\n<div>\n<!<!--hidden-->--><a id=\"overlap-hidden\"></a>-->\n</div>\n\n# A\n# A\n# A-1\n"
     anchor_set = verifier.anchors(anchor_fixture)
     if {"hidden", "fenced-hidden", "inline-hidden"} & anchor_set or not {"a", "a-1", "a-1-1"}.issubset(anchor_set):
         raise ValueError("fence-aware duplicate-anchor regression")
@@ -218,7 +219,7 @@ def main() -> None:
         unresolved = collection["unresolved_local_targets"]
         if not any(item.get("fragment") == "missing" and item.get("reason") == "unresolved-fragment" for item in unresolved):
             raise ValueError("invalid Wiki fragment not detected")
-        for hidden in ("fenced-hidden", "inline-hidden"):
+        for hidden in ("fenced-hidden", "inline-hidden", "overlap-hidden"):
             if not any(item.get("fragment") == hidden and item.get("reason") == "unresolved-fragment" for item in unresolved):
                 raise ValueError("hidden explicit anchor was accepted: " + hidden)
         if any(item.get("fragment") == "a-1-1" and item.get("reason") == "unresolved-fragment" for item in unresolved):
@@ -239,6 +240,7 @@ def main() -> None:
             "malformed_percent_encoding": "PASS",
             "yaml_form_inventory": "PASS",
             "split_link_counts": "PASS",
+            "fixed_point_html_comment_elision": "PASS",
         })
         marker = source / "marker.txt"
         marker.write_text("bound\n")

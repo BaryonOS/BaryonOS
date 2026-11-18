@@ -4,7 +4,7 @@
   "source_tree": "a6eb48f68f30cf443b96c7cfc9da636a2a179532",
   "wiki_commit": "4a01b8b2ad2695da509a512ea688007c964f56da",
   "wiki_tree": "f7bee30ee39abb60da294d48357af5b6c85f2fae",
-  "generated_at_utc": "2026-11-18T18:10:39.080Z",
+  "generated_at_utc": "2026-11-18T18:20:50.830Z",
   "method": "Immutable Git-tree Markdown/YAML inventory; exact repository and Wiki blobs; candidate detection is not language-quality proof.",
   "counts": {
     "tracked_markdown": 840,

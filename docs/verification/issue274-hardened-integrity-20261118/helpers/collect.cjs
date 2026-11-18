@@ -58,18 +58,19 @@ function candidates(text){
   return result;
 }
 function slug(value){return value.replace(/<[^>]*>/g,'').replace(/[\x60*]/g,'').toLowerCase().replace(/[^\p{L}\p{N}_\- ]/gu,'').replace(/ /g,'-');}
+function visibleHtml(value){for(;;){const next=value.replace(/<!--[\s\S]*?-->/g,'');if(next===value)return value.includes('<!--')?value.slice(0,value.indexOf('<!--')):value;value=next;}}
 function walk(tokens,visit,seen=new WeakSet()){if(!tokens||typeof tokens!=='object'||seen.has(tokens))return;seen.add(tokens);if(!Array.isArray(tokens))visit(tokens);for(const value of Object.values(tokens))if(value&&typeof value==='object')walk(value,visit,seen);}
 function parseMarkdown(text){
   const links=[],anchors=new Set(),explicitAnchors=new Set(),used=new Set();
   walk(lexer(text),token=>{
     if((token.type==='link'||token.type==='image')&&token.href)links.push({href:token.href,image:token.type==='image'});
     if(token.type==='html'){
-      const rendered=token.raw.replace(/<!--[\s\S]*?-->/g,'');
+      const rendered=visibleHtml(token.raw);
       for(const match of rendered.matchAll(/\b(?:href|src)\s*=\s*["']([^"']+)["']/gi))links.push({href:match[1],html:true});
     }
     if(token.type==='heading'){const base=slug(token.text);let anchor=base,suffix=0;while(used.has(anchor))anchor=base+'-'+(++suffix);used.add(anchor);anchors.add(anchor);}
   });
-  const renderedHtml=parse(text).replace(/<!--[\s\S]*?-->/g,'');
+  const renderedHtml=visibleHtml(parse(text));
   for(const match of renderedHtml.matchAll(/<a\s+(?:id|name)=["']([^"']+)["']/gi)){anchors.add(match[1]);explicitAnchors.add(match[1]);}
   return {links,anchors,explicitAnchors};
 }

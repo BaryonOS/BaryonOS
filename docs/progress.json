@@ -8,7 +8,7 @@
     "branch": "codex/pr358-review-fixes",
     "task": "ISSUE274-INTEGRITY: harden PR358 source and publication evidence",
     "previous_score": 41,
-    "summary": "41/100 unchanged. Source 4ae9a1c reconciles PR #358 with current main, corrects three bounded documentation defects and adds a new sibling evidence child that closes 22 verified integrity gaps without rewriting historical evidence. Immutable repository/Wiki binding, 31 positive/negative controls, exact hashes and independent review pass. This host evidence does not complete issue #274, language or UI acceptance, native QEMU, hardware, any security finding, baseline B or the governance transition; fresh exact-head hosted checks remain required."
+    "summary": "41/100 unchanged. Source 4ae9a1c reconciles PR #358 with current main, corrects three bounded documentation defects and adds a new sibling evidence child that closes 22 earlier integrity gaps without rewriting historical evidence. The current-head CodeQL comment-elision finding is corrected with a fixed-point parser guard and a 32nd negative control. Immutable repository/Wiki binding and exact hashes pass; fresh independent review and hosted checks remain required. This host evidence does not complete issue #274, language or UI acceptance, native QEMU, hardware, any security finding, baseline B or the governance transition."
   },
   "tracks": [
     {
