@@ -106,7 +106,7 @@ def slug(value: str) -> str:
     return value.replace(" ", "-")
 
 
-def strip_inline_code(line: str) -> str:
+def strip_inline_code(line: str, preserve_contents: bool = False) -> str:
     result: list[str] = []
     index = 0
     marker = "\x60"
@@ -136,14 +136,65 @@ def strip_inline_code(line: str) -> str:
             result.append(line[index:end])
             index = end
         else:
+            if preserve_contents:
+                content = line[end:closing - length].replace("\t", " ")
+                if content.startswith(" ") and content.endswith(" ") and content.strip():
+                    content = content[1:-1]
+                result.append(content)
             index = closing
     return "".join(result)
+
+
+def link_destinations(text: str) -> list[str]:
+    definitions: dict[str, str] = {}
+    lines: list[str] = []
+    fence: tuple[str, int] | None = None
+    for line in text.splitlines():
+        marker = re.match(r"^ {0,3}((?:\x60){3,}|~{3,})(.*)$", line)
+        if marker:
+            current = (marker.group(1)[0], len(marker.group(1)))
+            if fence is None:
+                if current[0] != "\x60" or "\x60" not in marker.group(2):
+                    fence = current
+                    continue
+            elif current[0] == fence[0] and current[1] >= fence[1] and not marker.group(2).strip():
+                fence = None
+                continue
+        if fence:
+            continue
+        rendered = strip_inline_code(line)
+        definition = re.match(r"^ {0,3}\[([^\]]+)\]:[ \t]*(?:<([^>]+)>|(\S+))", rendered)
+        if definition:
+            label = " ".join(definition.group(1).lower().split())
+            definitions[label] = definition.group(2) or definition.group(3)
+            lines.append("")
+        else:
+            lines.append(rendered)
+    body = "\n".join(lines)
+    destinations: list[str] = []
+    consumed = list(body)
+    pattern = re.compile(r"\[([^\]\n]+)\]\(([^)\n]+)\)|\[([^\]\n]+)\]\[([^\]\n]*)\]")
+    for match in pattern.finditer(body):
+        if match.group(2) is not None:
+            destinations.append(match.group(2))
+        else:
+            label = match.group(4) or match.group(3)
+            destination = definitions.get(" ".join(label.lower().split()))
+            if destination is not None:
+                destinations.append(destination)
+        consumed[match.start():match.end()] = " " * (match.end() - match.start())
+    for match in re.finditer(r"(?<!!)\[([^\]\n]+)\]", "".join(consumed)):
+        destination = definitions.get(" ".join(match.group(1).lower().split()))
+        if destination is not None:
+            destinations.append(destination)
+    return destinations
 
 
 def anchors(text: str) -> set[str]:
     result: set[str] = set()
     used: set[str] = set()
     rendered_lines: list[str] = []
+    heading_lines: list[str] = []
     fence: tuple[str, int] | None = None
     for line in text.splitlines():
         marker = re.match(r"^ {0,3}((?:\x60){3,}|~{3,})(.*)$", line)
@@ -159,20 +210,22 @@ def anchors(text: str) -> set[str]:
         if fence:
             continue
         rendered_lines.append(strip_inline_code(line))
+        heading_lines.append(strip_inline_code(line, preserve_contents=True))
     rendered_text = "\n".join(rendered_lines)
+    heading_source = "\n".join(heading_lines)
     heading_parts: list[str] = []
     position = 0
     while True:
-        start = rendered_text.find("<!--", position)
+        start = heading_source.find("<!--", position)
         if start < 0:
-            heading_parts.append(rendered_text[position:])
+            heading_parts.append(heading_source[position:])
             break
-        heading_parts.append(rendered_text[position:start])
-        end = rendered_text.find("-->", start + 4)
+        heading_parts.append(heading_source[position:start])
+        end = heading_source.find("-->", start + 4)
         if end < 0:
-            heading_parts.append(re.sub(r"[^\n]", "\x00", rendered_text[start:]))
+            heading_parts.append(re.sub(r"[^\n]", "\x00", heading_source[start:]))
             break
-        heading_parts.append(re.sub(r"[^\n]", "\x00", rendered_text[start:end + 3]))
+        heading_parts.append(re.sub(r"[^\n]", "\x00", heading_source[start:end + 3]))
         position = end + 3
     heading_text = "".join(heading_parts)
     while True:
@@ -321,8 +374,8 @@ def main() -> None:
                 expected = expected.replace("[LICENSE-PLAN]", "[LICENSING]").replace("/main/LICENSE-PLAN.md", "/main/LICENSING.md")
             require(raw.decode("utf-8", "strict") == expected.rstrip() + "\n", "Prepared source transformation mismatch")
         text = raw.decode("utf-8", "strict")
-        for match in re.finditer(r"\[[^\]]+\]\(([^)]+)\)", text):
-            url = urlsplit(match.group(1))
+        for destination in link_destinations(text):
+            url = urlsplit(destination)
             decoded_path = strict_unquote(url.path)
             fragment = strict_unquote(url.fragment)
             if url.netloc == "github.com" and decoded_path.startswith("/BaryonOS/BaryonOS/wiki/"):
@@ -342,6 +395,10 @@ def main() -> None:
             elif url.netloc == "github.com" and decoded_path.startswith("/BaryonOS/BaryonOS/tree/main/"):
                 target = relative_path(decoded_path.split("/tree/main/", 1)[1]).rstrip("/")
                 require(any(name.startswith(target + "/") for name in source_tree), "Missing repository tree: " + target)
+                checked += 1
+            elif not url.scheme and not url.netloc and not decoded_path and fragment:
+                require(fragment in anchors(text), "Missing same-page Wiki fragment: " + wiki_path + "#" + fragment)
+                fragments += 1
                 checked += 1
             elif not url.scheme and decoded_path and not decoded_path.startswith("/"):
                 target = relative_path(decoded_path + ".md")

@@ -145,6 +145,11 @@ def main() -> None:
         raise ValueError("fence-aware duplicate-anchor regression")
     if verifier.anchors("<!--hidden--># Not a heading\n# Visible\n") != {"visible"}:
         raise ValueError("comment removal synthesized a heading")
+    if verifier.anchors("# Heading `secret`\n") != {"heading-secret"}:
+        raise ValueError("inline-code heading contents were discarded")
+    reference_fixture = "[Full][target]\n[Collapsed][]\n[shortcut]\n[target]: Target#a\n[collapsed]: Target#a-1\n[shortcut]: #local\n"
+    if verifier.link_destinations(reference_fixture) != ["Target#a", "Target#a-1", "#local"]:
+        raise ValueError("reference-style links were not resolved")
     for tag in ("pre", "code"):
         unclosed = f"# Visible\n<{tag}>\n# Hidden heading {tag}\n<a id=\"hidden-anchor-{tag}\"></a>\n"
         if verifier.anchors(unclosed) != {"visible"}:
