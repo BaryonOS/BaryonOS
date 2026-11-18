@@ -1,15 +1,17 @@
 # Current project status
 
-## NEXT AGENT HANDOFF — L01-T1 proposed contract — 18 November2026
+## NEXT AGENT HANDOFF — L01-T1 delivery — 18 November 2026
 
-**Claim:** Codex, codex/l01-local-ai-contract, basefac5a864830e6c1f88f89015f88f32357fb314c6.
-**Goal:** Write docs/implementation/LOCAL-AI-L01-PROPOSAL.md: candidate core task set from PRODUCT-SPEC, model candidate, engine route, context/KV bound, VM-AI budget, and positive and negative native test designs for LP-04..07 and capability-absence network denial, with owner-decision markers.
-**Invariant:** PROPOSED; no new trust root, escrow, capability or security-hold change.
-**Write set:** docs/implementation/LOCAL-AI-L01-PROPOSAL.md; lead state.
-**Acceptance:** cited source paths/symbols and progress/diff checks.
-**Evidence limit:** proposal only; owner/security decisions required before code.
-**Ownership:** no open-PR write overlap; integration/Claude branches preserved.
-**Next:** publish bounded proposal, next independent READY task. Score41/100.
+**Source:** `b019a8d2b99dc4a7006a5db50cdb3efcd516cf71`, `codex/l01-local-ai-contract`.
+**Delivered:** PROPOSED selected-text summarization/clarification trial preserves existing exact Qwen candidate pins; host-reference engine route,1024-token/128MiB-KV/2GiB-VM ceilings and LP04–07 native negative owners specified. Four local paths, VerifiedArtifact and unchanged pins checked; no model download or new runtime.
+**Checks:** executed targeted commands and raw exit codes are in the
+[exact command/log receipt](roadmap-pipeline/receipts/L01-T1.json).
+Lead source/diff review completed; no duplicate matrix. Progress **41 → 41/100**.
+**Limits:** Design only. Task/quality/model provenance/engine port/budget and numeric profile require owner decision; pinned config lookup unavailable, no actual KV or quality/latency claim. Native inference/hardware/human review NOT RUN;41/100 unchanged.
+**Ownership:** Integration Manager owns PR integration/merges/closure. Earlier
+delivery branches and Claude S09/UI remain untouched. Unsafe unattended hold active.
+**Next:** publish new draft, immediately claim the next independent READY functional
+slice from this ledger; no waiting for integration. Prior delivery checkpoints retained.
 
 ## Retained checkpoint — unified governance implementation — 18 November 2026
 
