@@ -10,13 +10,15 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import time
 import subprocess
 import sys
 import tempfile
+from dataclasses import dataclass
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from agent_sandbox import Sandbox, SandboxError, resource_evidence
+from agent_sandbox import Sandbox, SandboxError, SandboxResourceExceeded, resource_evidence
 from common import (ROOT, SOURCE_RECEIPT_NAME, agent_source_paths,
                     agent_source_selection_state, agent_source_state,
                     controller_source_commit, isolated_environment, source_hash,
@@ -26,6 +28,34 @@ from common import (ROOT, SOURCE_RECEIPT_NAME, agent_source_paths,
 SETUP_MARKERS = ("rustup ", "apt-get", "sudo ")
 PROGRESS_CHECK = ("progress.py --check", "python3 tools/progress.py --check", {})
 FAIL_EXIT = 2
+
+GateCommand = tuple[str, str, dict[str, str]]
+
+
+@dataclass(frozen=True)
+class GatePlan:
+    """Commands sharing one deadline, plus bounded cleanup that always follows execution."""
+
+    commands: tuple[GateCommand, ...]
+    finalizers: tuple[GateCommand, ...] = ()
+    timeout_seconds: int | None = None
+    finalizer_reserve_seconds: int = 0
+
+    def __post_init__(self) -> None:
+        object.__setattr__(self, "commands", tuple(self.commands))
+        object.__setattr__(self, "finalizers", tuple(self.finalizers))
+        if (self.timeout_seconds is not None
+                and (type(self.timeout_seconds) is not int or self.timeout_seconds < 1)):
+            raise ValueError("gate timeout must be a positive integer")
+        if (type(self.finalizer_reserve_seconds) is not int
+                or self.finalizer_reserve_seconds < 0
+                or len(self.finalizers) > 1
+                or (self.finalizer_reserve_seconds and not self.finalizers)
+                or (self.finalizers and (self.timeout_seconds is None
+                                         or not self.finalizer_reserve_seconds))
+                or (self.timeout_seconds is not None
+                    and self.finalizer_reserve_seconds >= self.timeout_seconds)):
+            raise ValueError("gate finalizer reserve is invalid")
 
 
 WORKSPACE = "${{ github.workspace }}"
@@ -74,7 +104,7 @@ def job_steps(workflow: Path, job: str) -> list[tuple[str, str, dict[str, str]]]
     return steps
 
 
-def resolve(refs: list[str], workflows: Path) -> list[tuple[str, str, dict[str, str]]]:
+def resolve(refs: list[str], workflows: Path) -> GatePlan:
     """Turn `ci.yml#host-quality` refs into steps; workflows come from the trusted checkout."""
     commands = []
     for ref in refs:
@@ -83,13 +113,15 @@ def resolve(refs: list[str], workflows: Path) -> list[tuple[str, str, dict[str, 
         if not sep or not job or path.parent != workflows.resolve() or not path.is_file():
             raise ValueError(f"unknown gate reference: {ref!r} (expected <workflow>.yml#<job>)")
         commands += job_steps(path, job)
-    return commands + [PROGRESS_CHECK]
+    return GatePlan(tuple(commands + [PROGRESS_CHECK]))
 
 
-def run_gate(commands: list[tuple[str, str, dict[str, str]]], cwd: Path, log_path: Path,
+def run_gate(commands: GatePlan | list[GateCommand], cwd: Path, log_path: Path,
              base_env: dict[str, str] | None = None, *, sandbox: Sandbox | None = None,
              source_paths: list[str] | None = None) -> int:
-    """Run steps in order, stop at the first failure. 0 = pass, 2 = fail."""
+    """Run one bounded job; always run its reserved finalizers. 0 = pass, 2 = fail."""
+    plan = commands if isinstance(commands, GatePlan) else GatePlan(tuple(commands))
+    started = time.monotonic()
     log_path.parent.mkdir(parents=True, exist_ok=True)
     with log_path.open("w", encoding="utf-8") as log:
         try:
@@ -122,31 +154,90 @@ def run_gate(commands: list[tuple[str, str, dict[str, str]]], cwd: Path, log_pat
             fingerprint = hashlib.sha256(json.dumps(agent_source_state(stage), sort_keys=True).encode()).hexdigest()
             log.write(f"## source commit: {commit}\n## source inputs SHA256: {frozen}\n"
                       f"## staged source SHA256: {fingerprint}\n## retained isolated outputs: {stage.name}\n")
-            for index, (name, script, step_env) in enumerate(commands):
-                log.write(f"## step: {name}\n")
+
+            def execute(index: int, command: GateCommand, *, finalizer: bool,
+                        status: str) -> bool:
+                name, script, step_env = command
+                kind = "finalizer" if finalizer else "step"
+                label = f"{kind}-{index}"
+                log.write(f"## {kind}: {name}\n")
                 log.flush()
-                values = {k: v.replace("${GITHUB_WORKSPACE}", "/workspace") for k, v in step_env.items()}
-                values["NOS_SOURCE_RECEIPT"] = f"/workspace/{SOURCE_RECEIPT_NAME}"
-                env = isolated_environment({**values, **host})
-                done = sandbox.run(["/bin/bash", "--noprofile", "--norc", "-eo", "pipefail", "-c", script],
-                                   stage, profile="gate", env=env, read_only=True)
+                try:
+                    values = {k: v.replace("${GITHUB_WORKSPACE}", "/workspace")
+                              for k, v in step_env.items()}
+                    values["NOS_SOURCE_RECEIPT"] = f"/workspace/{SOURCE_RECEIPT_NAME}"
+                    env = isolated_environment({**values, **host})
+                    if finalizer:
+                        script = f"export CI_TEST_STATUS={status}\n{script}"
+                    timeout = None
+                    if plan.timeout_seconds is not None:
+                        reserve = plan.finalizer_reserve_seconds if not finalizer else 0
+                        remaining = plan.timeout_seconds - (time.monotonic() - started) - reserve
+                        if remaining < 1:
+                            log.write(f"## TIMEOUT: total gate deadline exhausted before {name}\n")
+                            return False
+                        timeout = min(int(remaining), plan.finalizer_reserve_seconds) \
+                            if finalizer else int(remaining)
+                        sandbox_limit = getattr(sandbox, "timeout", None)
+                        if type(sandbox_limit) is int:
+                            timeout = min(timeout, sandbox_limit)
+                    kwargs = {"profile": "gate", "env": env, "read_only": True}
+                    if timeout is not None:
+                        kwargs["timeout"] = timeout
+                    done = sandbox.run(
+                        ["/bin/bash", "--noprofile", "--norc", "-eo", "pipefail", "-c", script],
+                        stage, **kwargs)
+                except subprocess.TimeoutExpired as error:
+                    for stream in ("stdout", "stderr"):
+                        raw = getattr(error, stream + "_bytes", (getattr(error, stream) or "").encode())
+                        log_path.with_name(
+                            f"{log_path.name}.{label}.timeout.{stream}.log").write_bytes(raw)
+                    log.write(f"## resource: {json.dumps(resource_evidence(error), sort_keys=True)}\n"
+                              f"{error.stdout or ''}\n{error.stderr or ''}\n"
+                              f"## TIMEOUT: {error.timeout}s\n")
+                    return False
+                except SandboxResourceExceeded as error:
+                    for stream in ("stdout", "stderr"):
+                        raw = getattr(error, stream + "_bytes", None)
+                        if isinstance(raw, bytes):
+                            log_path.with_name(
+                                f"{log_path.name}.{label}.resource.{stream}.log").write_bytes(raw)
+                    log.write(f"## resource: {json.dumps(resource_evidence(error), sort_keys=True)}\n"
+                              f"## BLOCKED: {error}\n")
+                    return False
+                except SandboxError:
+                    raise
+                except (ValueError, OSError) as error:
+                    log.write(f"## BLOCKED: {error}\n")
+                    return False
                 for stream in ("stdout", "stderr"):
                     raw = getattr(done, stream + "_bytes", getattr(done, stream).encode())
-                    log_path.with_name(f"{log_path.name}.step-{index}.{stream}.log").write_bytes(raw)
-                log.write(f"## resource: {json.dumps(resource_evidence(done), sort_keys=True)}\n")
+                    log_path.with_name(f"{log_path.name}.{label}.{stream}.log").write_bytes(raw)
+                evidence = resource_evidence(done)
+                log.write(f"## resource: {json.dumps(evidence, sort_keys=True)}\n")
                 log.write(done.stdout + done.stderr)
                 log.write(f"\n## exit: {done.returncode}\n")
-                if done.returncode:
+                resource_result = evidence.get("Result")
+                if done.returncode or resource_result not in (None, "success"):
                     log.write(f"## FAIL: {name} (exit {done.returncode})\n")
-                    return FAIL_EXIT
+                    return False
+                return True
+
+            failed = False
+            for index, command in enumerate(plan.commands):
+                if not execute(index, command, finalizer=False, status="success"):
+                    failed = True
+                    break
+            primary_failed = failed
+            status = "failure" if primary_failed else "success"
+            for offset, command in enumerate(plan.finalizers, len(plan.commands)):
+                if not execute(offset, command, finalizer=True, status=status):
+                    if primary_failed:
+                        log.write("## FINALIZER FAIL: primary gate failure preserved\n")
+                    failed = True
+            if failed:
+                return FAIL_EXIT
             log.write("## PASS\n")
-        except subprocess.TimeoutExpired as error:
-            for stream in ("stdout", "stderr"):
-                raw = getattr(error, stream + "_bytes", (getattr(error, stream) or "").encode())
-                log_path.with_name(f"{log_path.name}.timeout.{stream}.log").write_bytes(raw)
-            log.write(f"## resource: {json.dumps(resource_evidence(error), sort_keys=True)}\n"
-                      f"{error.stdout or ''}\n{error.stderr or ''}\n## TIMEOUT: {error.timeout}s\n")
-            return FAIL_EXIT
         except (SandboxError, ValueError, OSError) as error:
             if isinstance(error, SandboxError):
                 for stream in ("stdout", "stderr"):
@@ -176,14 +267,15 @@ def main() -> int:
     parser.add_argument("--list", action="store_true", help="print the resolved steps and exit")
     args = parser.parse_args()
     # Workflows are always read from this (trusted) checkout, never from --root.
-    commands = resolve(args.job, ROOT / ".github" / "workflows")
+    plan = resolve(args.job, ROOT / ".github" / "workflows")
     if args.list:
-        for name, script, _ in commands:
+        for name, script, _ in plan.commands:
             print(f"## {name}\n{script.rstrip()}")
         return 0
     log = args.log or args.root / "build" / "agent-pipeline" / "gate.log"
-    code = run_gate(commands, args.root.resolve(), log)
-    print(f"gate: {'PASS' if code == 0 else 'FAIL'} ({len(commands)} steps); log: {log}")
+    code = run_gate(plan, args.root.resolve(), log)
+    count = len(plan.commands) + len(plan.finalizers)
+    print(f"gate: {'PASS' if code == 0 else 'FAIL'} ({count} steps); log: {log}")
     if code:
         print(condensed(log))
     return code

@@ -11,7 +11,7 @@ import unittest.mock as mock
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import agent_gate
 import agent_pipeline as ap
-from agent_sandbox import SandboxResourceExceeded
+from agent_sandbox import SandboxError, SandboxResourceExceeded
 
 ROOT = Path(__file__).resolve().parents[2]
 HAS_YAML = importlib.util.find_spec("yaml") is not None
@@ -77,8 +77,8 @@ class Gate(unittest.TestCase):
 
     def test_supported_run_step_expands_workspace(self):
         commands = agent_gate.resolve(["w.yml#supported"], self.workflows)
-        self.assertEqual([c[0] for c in commands], ["Test", "progress.py --check"])
-        self.assertEqual(self.gate(commands[:1]), 0)
+        self.assertEqual([c[0] for c in commands.commands], ["Test", "progress.py --check"])
+        self.assertEqual(self.gate(commands.commands[:1]), 0)
         child_env = self.sandbox.run.call_args.kwargs["env"]
         self.assertEqual(child_env["MACHINE"], "q35")
         self.assertEqual(child_env["OUT"], "/workspace/build/x")
@@ -123,14 +123,135 @@ class Gate(unittest.TestCase):
         self.assertIn('"Result": "oom-kill"', log)
         self.assertIn('"memory_max": "67108864"', log)
 
+    def test_finalizer_runs_after_success_with_the_primary_status(self):
+        plan = agent_gate.GatePlan(
+            [("one", "true", {})], finalizers=[("collect", "true", {})],
+            timeout_seconds=1800, finalizer_reserve_seconds=60)
+        self.assertEqual(self.gate(plan), 0)
+        self.assertEqual(self.sandbox.run.call_count, 2)
+        self.assertIn("export CI_TEST_STATUS=success\n",
+                      self.sandbox.run.call_args_list[1].args[0][-1])
+
+    def test_ordinary_failure_skips_later_work_but_runs_the_finalizer(self):
+        failed = subprocess.CompletedProcess([], 9, "", "failed\n")
+        failed.resource_status = {"Result": "oom-kill", "MemoryPeak": "67108864"}
+        passed = subprocess.CompletedProcess([], 0, "", "")
+        self.sandbox.run.side_effect = [failed, passed]
+        plan = agent_gate.GatePlan(
+            [("one", "exit 9", {}), ("never", "true", {})],
+            finalizers=[("collect", "true", {})],
+            timeout_seconds=1800, finalizer_reserve_seconds=60)
+
+        self.assertEqual(self.gate(plan), agent_gate.FAIL_EXIT)
+        self.assertEqual(self.sandbox.run.call_count, 2)
+        finalizer = self.sandbox.run.call_args_list[1].args[0][-1]
+        self.assertIn("export CI_TEST_STATUS=failure\n", finalizer)
+        self.assertTrue(finalizer.endswith("true"))
+
+    def test_timeout_and_resource_overflow_still_run_the_finalizer(self):
+        timeout = subprocess.TimeoutExpired(["bash"], 10, output="partial", stderr="")
+        timeout.stdout_bytes, timeout.stderr_bytes = b"partial", b""
+        overflow = SandboxResourceExceeded("captured output exceeded")
+        overflow.stdout_bytes, overflow.stderr_bytes = b"bounded", b""
+        overflow.resource_status = {"Result": "oom-kill"}
+        for error in (timeout, overflow):
+            with self.subTest(error=type(error).__name__):
+                self.sandbox.run.reset_mock()
+                self.sandbox.run.side_effect = [error, subprocess.CompletedProcess([], 0, "", "")]
+                plan = agent_gate.GatePlan(
+                    [("one", "true", {})], finalizers=[("collect", "true", {})],
+                    timeout_seconds=1800, finalizer_reserve_seconds=60)
+                self.assertEqual(self.gate(plan), agent_gate.FAIL_EXIT)
+                self.assertEqual(self.sandbox.run.call_count, 2)
+                self.assertIn("export CI_TEST_STATUS=failure\n",
+                              self.sandbox.run.call_args_list[1].args[0][-1])
+
+    def test_finalizer_failure_does_not_replace_the_primary_failure(self):
+        self.sandbox.run.side_effect = [
+            subprocess.CompletedProcess([], 7, "", "primary\n"),
+            subprocess.CompletedProcess([], 8, "", "finalizer\n"),
+        ]
+        plan = agent_gate.GatePlan(
+            [("one", "exit 7", {})], finalizers=[("collect", "exit 8", {})],
+            timeout_seconds=1800, finalizer_reserve_seconds=60)
+        self.assertEqual(self.gate(plan), agent_gate.FAIL_EXIT)
+        log = (self.tmp / "g.log").read_text()
+        self.assertLess(log.index("primary"), log.index("finalizer"))
+        self.assertIn("primary", log)
+        self.assertIn("finalizer", log)
+
+    def test_total_deadline_reserves_time_for_the_finalizer(self):
+        plan = agent_gate.GatePlan(
+            [("one", "true", {})], finalizers=[("collect", "true", {})],
+            timeout_seconds=1800, finalizer_reserve_seconds=60)
+        with mock.patch.object(agent_gate.time, "monotonic", return_value=100.0):
+            self.assertEqual(self.gate(plan), 0)
+        ordinary = self.sandbox.run.call_args_list[0].kwargs["timeout"]
+        finalizer = self.sandbox.run.call_args_list[1].kwargs["timeout"]
+        self.assertGreater(ordinary, 0)
+        self.assertLessEqual(ordinary, 1740)
+        self.assertGreater(finalizer, 0)
+        self.assertLessEqual(finalizer, 60)
+
+    def test_finalizers_require_one_explicit_bounded_reserve(self):
+        finalizer = [("collect", "true", {})]
+        with self.assertRaisesRegex(ValueError, "finalizer reserve"):
+            agent_gate.GatePlan([], finalizers=finalizer)
+        with self.assertRaises(ValueError):
+            agent_gate.GatePlan([], finalizers=finalizer * 2,
+                                timeout_seconds=1800, finalizer_reserve_seconds=60)
+
     def test_gate_retains_bounded_resource_overflow_streams(self):
         error = SandboxResourceExceeded("captured output exceeded")
         error.stdout_bytes, error.stderr_bytes = b"bounded stdout", b"bounded stderr"
         error.resource_status = {"profile": "gate", "unit": "fixture.scope"}
         self.sandbox.run.side_effect = error
         self.assertEqual(self.gate([("one", "true", {})]), agent_gate.FAIL_EXIT)
-        self.assertEqual((self.tmp / "g.log.resource.stdout.log").read_bytes(), b"bounded stdout")
-        self.assertEqual((self.tmp / "g.log.resource.stderr.log").read_bytes(), b"bounded stderr")
+        self.assertEqual((self.tmp / "g.log.step-0.resource.stdout.log").read_bytes(), b"bounded stdout")
+        self.assertEqual((self.tmp / "g.log.step-0.resource.stderr.log").read_bytes(), b"bounded stderr")
+
+    def test_primary_and_finalizer_resource_streams_are_kept_separately(self):
+        primary = SandboxResourceExceeded("primary overflow")
+        primary.stdout_bytes, primary.stderr_bytes = b"primary out", b"primary err"
+        primary.resource_status = {"Result": "oom-kill"}
+        finalizer = SandboxResourceExceeded("finalizer overflow")
+        finalizer.stdout_bytes, finalizer.stderr_bytes = b"finalizer out", b"finalizer err"
+        finalizer.resource_status = {"Result": "failed"}
+        self.sandbox.run.side_effect = [primary, finalizer]
+        plan = agent_gate.GatePlan(
+            [("one", "true", {})], finalizers=[("collect", "true", {})],
+            timeout_seconds=1800, finalizer_reserve_seconds=60)
+
+        self.assertEqual(self.gate(plan), agent_gate.FAIL_EXIT)
+        self.assertEqual((self.tmp / "g.log.step-0.resource.stdout.log").read_bytes(),
+                         b"primary out")
+        self.assertEqual((self.tmp / "g.log.step-0.resource.stderr.log").read_bytes(),
+                         b"primary err")
+        self.assertEqual((self.tmp / "g.log.finalizer-1.resource.stdout.log").read_bytes(),
+                         b"finalizer out")
+        self.assertEqual((self.tmp / "g.log.finalizer-1.resource.stderr.log").read_bytes(),
+                         b"finalizer err")
+
+    def test_generic_sandbox_failure_aborts_without_a_finalizer(self):
+        self.sandbox.run.side_effect = SandboxError("isolated resource cleanup failed")
+        plan = agent_gate.GatePlan(
+            [("one", "true", {})], finalizers=[("collect", "true", {})],
+            timeout_seconds=1800, finalizer_reserve_seconds=60)
+
+        self.assertEqual(self.gate(plan), agent_gate.FAIL_EXIT)
+        self.sandbox.run.assert_called_once()
+        self.assertNotIn("## finalizer:", (self.tmp / "g.log").read_text())
+
+    def test_disallowed_step_environment_still_runs_the_finalizer(self):
+        plan = agent_gate.GatePlan(
+            [("one", "true", {"UNAVAILABLE_IN_ISOLATION": "x"})],
+            finalizers=[("collect", "true", {})],
+            timeout_seconds=1800, finalizer_reserve_seconds=60)
+
+        self.assertEqual(self.gate(plan), agent_gate.FAIL_EXIT)
+        self.sandbox.run.assert_called_once()
+        self.assertIn("export CI_TEST_STATUS=failure\n",
+                      self.sandbox.run.call_args.args[0][-1])
 
     def test_gate_blocks_a_commit_change_while_staging(self):
         with mock.patch.object(agent_gate, "controller_source_commit",
