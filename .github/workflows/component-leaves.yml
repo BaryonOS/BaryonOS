@@ -40,6 +40,9 @@ jobs:
           - component: virtio-snd
             manifest: drivers/virtio-snd/Cargo.toml
             toolchain: "1.100.0"
+          - component: power-lifecycle-core
+            manifest: crates/power-lifecycle-core/Cargo.toml
+            toolchain: "1.100.0"
           - component: acpi-power
             manifest: drivers/acpi-power/Cargo.toml
             toolchain: "1.100.0"
