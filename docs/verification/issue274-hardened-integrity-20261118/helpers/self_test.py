@@ -150,6 +150,16 @@ def main() -> None:
     reference_fixture = "[Full][target]\n[Collapsed][]\n[shortcut]\n[target]: Target#a\n[collapsed]: Target#a-1\n[shortcut]: #local\n"
     if verifier.link_destinations(reference_fixture) != ["Target#a", "Target#a-1", "#local"]:
         raise ValueError("reference-style links were not resolved")
+    rendered_link_fixture = "\n".join([
+        '[Titled](Target "a title")',
+        '<a href="Missing-page#missing">Missing</a>',
+        '<!-- <a href="Commented">Commented</a> -->',
+        '`<a href="Inline-code">Inline code</a>`',
+        '<pre><a href="Preformatted">Preformatted</a></pre>',
+    ])
+    if verifier.link_destinations(rendered_link_fixture) != ["Target", "Missing-page#missing"]:
+        raise ValueError("rendered HTML or titled Markdown link regression")
+    cases["rendered_html_and_titled_markdown_links"] = "PASS"
     for tag in ("pre", "code"):
         unclosed = f"# Visible\n<{tag}>\n# Hidden heading {tag}\n<a id=\"hidden-anchor-{tag}\"></a>\n"
         if verifier.anchors(unclosed) != {"visible"}:

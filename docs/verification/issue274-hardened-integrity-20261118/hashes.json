@@ -3,7 +3,7 @@
   "files": {
     "DESIGN.md": {
       "bytes": 10184,
-      "sha256": "18fe9a52a5757cabf9ef37f11277a6dc715ac6e000b37eb84f5392a16da120be"
+      "sha256": "c9af21613f0ad2196d2f43b8702c7aebadd9cb268ea2b7e81fbd31c8c193b7d4"
     },
     "README.md": {
       "bytes": 1127,
@@ -26,12 +26,12 @@
       "sha256": "646755e125e761f1f9b5d7bcc393a39911d842c65b2c9fad98b2f662291fdbb0"
     },
     "helpers/self_test.py": {
-      "bytes": 27453,
-      "sha256": "66ad8b031478447ca5a44243c7435e4c7c18d9104a9d7d1e64fa9cdaffd49de3"
+      "bytes": 27994,
+      "sha256": "e1b20cd1952d4671183a36e12180395441afee139ca41710272c16cb79c5176a"
     },
     "helpers/verify.py": {
-      "bytes": 19000,
-      "sha256": "d3e7b428e9379ddbe3eca0c42a552d8e54d2e63e8db158dcf85ee2a986b69c51"
+      "bytes": 20086,
+      "sha256": "443106db4b807c34733c9b2b75414635d9fb938692dbcc95a2c445e05ee31f4f"
     },
     "inputs/publication.json": {
       "bytes": 9676,
@@ -62,12 +62,12 @@
       "sha256": "195917f2ecf3e8c92905c74295a3a3e7245919c671e5e04ff1496aa001534aaa"
     },
     "logs/05-self-test.json": {
-      "bytes": 3012,
-      "sha256": "1c7d504f4a1bd58055a7dbe594e61c01197d6c1e5d9211b231dd759dc132ee7f"
+      "bytes": 3067,
+      "sha256": "79a24d4124307d80e80f2d88b2f71c568295ddcfeff16a6f16e2902eaf7f6e6f"
     },
     "manifest.json": {
       "bytes": 2939,
-      "sha256": "d5741f4c25d8240fa2b3a17bffc0350a4988ae7568111b02f3aff8ae789a3a77"
+      "sha256": "847a22392a8e552e55e13aab2a36f1b29c3155be339a535c599c8efe06a23507"
     },
     "output/collector.json": {
       "bytes": 39098,

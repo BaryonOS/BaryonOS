@@ -145,6 +145,27 @@ def strip_inline_code(line: str, preserve_contents: bool = False) -> str:
     return "".join(result)
 
 
+def rendered_html(text: str) -> str:
+    while True:
+        visible = re.sub(r"<!--[\s\S]*?-->", "", text)
+        if visible == text:
+            text = text.split("<!--", 1)[0]
+            break
+        text = visible
+    hidden = r"<(?:pre|code)\b[^>]*>[\s\S]*?</(?:pre|code)>"
+    text = re.sub(hidden, "", text, flags=re.IGNORECASE)
+    opening = re.search(r"<(?:pre|code)\b[^>]*>", text, flags=re.IGNORECASE)
+    return text[:opening.start()] if opening else text
+
+
+def inline_destination(value: str) -> str | None:
+    match = re.fullmatch(
+        r"\s*(?:<([^>\n]+)>|((?:\\.|[^\s])+))(?:\s+(?:\"[^\"\n]*\"|'[^'\n]*'|\([^\)\n]*\)))?\s*",
+        value,
+    )
+    return (match.group(1) or match.group(2)) if match else None
+
+
 def link_destinations(text: str) -> list[str]:
     definitions: dict[str, str] = {}
     lines: list[str] = []
@@ -176,7 +197,9 @@ def link_destinations(text: str) -> list[str]:
     pattern = re.compile(r"\[([^\]\n]+)\]\(([^)\n]+)\)|\[([^\]\n]+)\]\[([^\]\n]*)\]")
     for match in pattern.finditer(body):
         if match.group(2) is not None:
-            destinations.append(match.group(2))
+            destination = inline_destination(match.group(2))
+            if destination is not None:
+                destinations.append(destination)
         else:
             label = match.group(4) or match.group(3)
             destination = definitions.get(" ".join(label.lower().split()))
@@ -187,6 +210,15 @@ def link_destinations(text: str) -> list[str]:
         destination = definitions.get(" ".join(match.group(1).lower().split()))
         if destination is not None:
             destinations.append(destination)
+    visible_html = rendered_html(body)
+    destinations.extend(
+        match.group(2)
+        for match in re.finditer(
+            r"<a\b[^>]*\bhref\s*=\s*([\"'])(.*?)\1",
+            visible_html,
+            flags=re.IGNORECASE,
+        )
+    )
     return destinations
 
 

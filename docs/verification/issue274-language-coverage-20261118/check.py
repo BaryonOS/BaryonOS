@@ -12,7 +12,8 @@ import tempfile
 
 
 WORDS = r"\b(?:het|een|zijn|wordt|worden|voor|geen|alleen|ook|deze|dit|moet|moeten|zonder|niet|gegevens|gebruiker|bestanden|veiligheid|mogelijk|beschikbaar|toestemming|verplicht|ondersteund|huidige|volgende|bewijs|onderzoek|ontwerp)\b"
-GIT_ENV = {**os.environ, "GIT_NO_LAZY_FETCH": "1", "GIT_TERMINAL_PROMPT": "0"}
+GIT_ENV = {key: value for key, value in os.environ.items() if not key.startswith("GIT_")}
+GIT_ENV.update(GIT_NO_LAZY_FETCH="1", GIT_TERMINAL_PROMPT="0")
 
 
 def candidates(text):
@@ -77,7 +78,7 @@ def path_controls(root, scratch):
         git("add", "--all")
         base = commit("Initial documentation fixture")
         command = ["python3", "-B", str(temporary / relative / "check.py")]
-        if subprocess.run(command, capture_output=True).returncode != 0:
+        if subprocess.run(command, capture_output=True, env=GIT_ENV).returncode != 0:
             raise ValueError("Minimal path fixture failed its positive control")
         names = ["docs/café.md", "docs/cafe\u0301.md", "docs/tab\tname.md", "docs/line\nbreak.md", "docs/carriage\rreturn.md", 'docs/quote"name.md', "docs/back\\slash.md"]
         for name in names:
@@ -87,19 +88,125 @@ def path_controls(root, scratch):
             git("add", "--", name)
         special = commit("Unicode and special documentation paths")
         for arguments in ([], ["--ref", special]):
-            result = subprocess.run(command + arguments, text=True, capture_output=True)
+            result = subprocess.run(command + arguments, text=True, capture_output=True, env=GIT_ENV)
             if result.returncode != 1 or set(json.loads(result.stdout)["unclassified_paths"]) != set(names):
                 raise ValueError("Index/tree path enumeration omitted an exact special filename")
         wiki = outer / "wiki"
         wiki.mkdir()
+        def wiki_git(*arguments):
+            return subprocess.check_output(["git", "-C", str(wiki), *arguments], env=GIT_ENV)
+        def wiki_commit(message):
+            wiki_git("-c", "user.name=Language fixture", "-c", "user.email=fixture@example.invalid", "commit", "--allow-empty", "-qm", message)
+            return wiki_git("rev-parse", "HEAD").decode().strip()
+        wiki_git("init", "-q")
+        wiki_commit("Empty Wiki snapshot")
         collect = ["node", str(temporary / relative / "collect.cjs"), "--wiki", str(wiki)]
-        result = subprocess.run(collect, text=True, capture_output=True)
+        result = subprocess.run(collect, text=True, capture_output=True, env=GIT_ENV)
         if result.returncode != 0:
             raise ValueError("Regular special-path collector control failed: " + result.stderr)
         report_path = temporary / "build/english-coverage-20261118/coverage.json"
         found = {item["path"] for item in json.loads(report_path.read_text())["inventory"]}
         if not set(names).issubset(found):
             raise ValueError("Collector omitted a Unicode or special tracked path")
+        (temporary / "docs/Navigation.md").write_text("# Present\n")
+        (temporary / "docs/guide").mkdir()
+        (temporary / "docs/guide/README.md").write_text("# Directory\n")
+        (temporary / "docs/wiki").mkdir()
+        (temporary / "docs/wiki/Unpublished.md").write_text("# Present\n")
+        (wiki / "Guide.md").write_text("# Good\n\n# Repeated\n\n# Repeated\n")
+        wiki_git("add", "--all")
+        wiki_head = wiki_commit("Published Wiki guide")
+        (temporary / "docs/Html.md").write_text('\n'.join([
+            '# <span title="het > een">Good **label** `code`</span>',
+            '[heading](#good-label-code)',
+            '<span title="het > een">English prose</span>',
+            '<div title="het > een">English prose</div>',
+            '`het een` English prose',
+            '[English](https://example.invalid/het/een)',
+            '<broken title="het > een" English prose',
+        ]) + '\n')
+        readme.write_text("# English fixture\n\n" + "\n".join([
+            "[tracked](docs/Navigation.md#present)", "[directory](docs/guide/)",
+            "[Git alias](https://github.com/BaryonOS/BaryonOS/blob/main/docs/%2e%2e%2FREADME.md#english-fixture)",
+            "[untracked](build/untracked.txt)",
+            "[wiki valid](https://github.com/BaryonOS/BaryonOS/wiki/Guide#repeated-1)",
+            "[wiki invalid](https://github.com/BaryonOS/BaryonOS/wiki/Guide#missing)",
+            "[unpublished Wiki](https://github.com/BaryonOS/BaryonOS/wiki/Unpublished#present)",
+            "[bad path](docs/%ZZ.md)", "[bad fragment](docs/Navigation.md#%ZZ)",
+            "[bad Git path](https://github.com/BaryonOS/BaryonOS/blob/main/docs/%ZZ.md)",
+            "[bad Git fragment](https://github.com/BaryonOS/BaryonOS/blob/main/README.md#%ZZ)",
+            "[bad Wiki path](https://github.com/BaryonOS/BaryonOS/wiki/%ZZ)",
+            "[bad Wiki fragment](https://github.com/BaryonOS/BaryonOS/wiki/Guide#%ZZ)",
+        ]) + "\n")
+        (temporary / "docs/wiki/Probe.md").write_text("# Probe\n\n[good](Guide#good)\n[missing](Guide#missing)\n[bad](Guide#%ZZ)\n[repository](../Navigation.md#present)\n[source](Unpublished.md#present)\n")
+        git("add", "--all")
+        commit("Navigation target and fragment controls")
+        result = subprocess.run(collect, text=True, capture_output=True, env=GIT_ENV)
+        if result.returncode != 0:
+            raise ValueError("Navigation collector failed: " + result.stderr)
+        navigation = json.loads(report_path.read_text())
+        if navigation["wiki_source"]["head"] != wiki_head:
+            raise ValueError("Collector did not bind the selected Wiki commit")
+        html = next(item for item in navigation["inventory"] if item["path"] == "docs/Html.md")
+        if [item["line"] for item in html["candidates"]] != [7] or set(html["candidates"][0]["words"]) != {"het", "een"}:
+            raise ValueError("Markdown AST lost malformed visible text or included HTML/code/URL metadata")
+        unresolved = navigation["unresolved_local_targets"]
+        if {(item["target"], item["fragment"], item["reason"]) for item in unresolved} != {
+            ("build/untracked.txt", "", "missing-target"), ("wiki/Guide.md", "missing", "unresolved-fragment"),
+            ("wiki/Unpublished.md", "present", "missing-target"),
+        } or len(unresolved) != 4:
+            raise ValueError("Wiki fragment or Git-tree target validation changed")
+        if len(navigation["unsupported_local_targets"]) != 7 or any(item["reason"] != "Invalid percent encoding" for item in navigation["unsupported_local_targets"]):
+            raise ValueError("Malformed percent encoding was not reported for every local link form")
+        (temporary / "docs/Navigation.md").unlink()
+        (temporary / "docs/guide/README.md").unlink()
+        untracked = temporary / "build/untracked.txt"
+        untracked.parent.mkdir(exist_ok=True)
+        untracked.write_text("Not in the selected Git tree.\n")
+        result = subprocess.run(collect, text=True, capture_output=True, env=GIT_ENV)
+        if result.returncode != 0:
+            raise ValueError("Sparse working-tree collector failed: " + result.stderr)
+        sparse = json.loads(report_path.read_text())
+        for key in ("counts", "unresolved_local_targets", "unsupported_local_targets", "wiki_references", "wiki_source"):
+            if sparse[key] != navigation[key]:
+                raise ValueError("Working-tree files changed Git-tree navigation: " + key)
+        outside_wiki = outer / "outside-wiki.md"
+        outside_wiki.write_text("# Secret fixture heading\n")
+        forbid_reads = outer / "forbid-wiki-reads.cjs"
+        forbid_reads.write_text(
+            "const fs=require('node:fs'),path=require('node:path');const original=fs.readFileSync;"
+            "fs.readFileSync=function(file,...args){if(typeof file==='string'&&path.resolve(file).startsWith("
+            + json.dumps(str(wiki) + os.sep)
+            + "))throw new Error('Mutable Wiki filesystem read');return original.call(this,file,...args);};"
+        )
+        result = subprocess.run(["node", "--require", str(forbid_reads), *collect[1:]], text=True, capture_output=True, env=GIT_ENV)
+        if result.returncode != 0:
+            raise ValueError("Collector retained a check-then-read Wiki path: " + result.stderr)
+        (wiki / "Guide.md").unlink()
+        (wiki / "Guide.md").symlink_to(outside_wiki)
+        (wiki / "Unpublished.md").write_text("# Present\n")
+        result = subprocess.run(["node", "--require", str(forbid_reads), *collect[1:]], text=True, capture_output=True, env=GIT_ENV)
+        if result.returncode != 0:
+            raise ValueError("Collector read the mutable Wiki filesystem: " + result.stderr)
+        frozen_wiki = json.loads(report_path.read_text())
+        for key in ("counts", "unresolved_local_targets", "unsupported_local_targets", "wiki_references", "wiki_source"):
+            if frozen_wiki[key] != navigation[key]:
+                raise ValueError("Uncommitted Wiki changes replaced the frozen snapshot: " + key)
+        decoy = outer / "decoy"
+        decoy.mkdir()
+        subprocess.run(["git", "-C", str(decoy), "init", "-q"], check=True, capture_output=True, env=GIT_ENV)
+        poison = {**GIT_ENV, "GIT_DIR": str(decoy / ".git"), "GIT_WORK_TREE": str(decoy), "GIT_INDEX_FILE": str(decoy / ".git/index")}
+        result = subprocess.run(collect, text=True, capture_output=True, env=poison)
+        if result.returncode != 0 or json.loads(report_path.read_text())["counts"] != sparse["counts"]:
+            raise ValueError("Collector inherited a foreign Git repository")
+        wiki_git("add", "--", "Guide.md")
+        wiki_commit("Reject a tracked Wiki symlink")
+        result = subprocess.run(collect, text=True, capture_output=True, env=GIT_ENV)
+        if result.returncode != 0:
+            raise ValueError("Tracked Wiki symlink control failed: " + result.stderr)
+        rejected = json.loads(report_path.read_text())
+        if any(item["wiki_path"] == "Guide.md" for item in rejected["wiki_references"]) or sum(item["reason"] == "Non-regular tracked Wiki target" for item in rejected["unsupported_local_targets"]) != 4:
+            raise ValueError("Collector accepted a non-regular tracked Wiki target")
         outside = outer / "outside.md"
         outside.write_text("Dit is een buiten repository gegevensbestand.\n")
         readme.unlink()
@@ -107,12 +214,12 @@ def path_controls(root, scratch):
         git("add", "--", "README.md")
         commit("Escaping tracked source symlink")
         report_path.unlink()
-        result = subprocess.run(collect, text=True, capture_output=True)
+        result = subprocess.run(collect, text=True, capture_output=True, env=GIT_ENV)
         if result.returncode == 0 or "Non-regular tracked source: README.md" not in result.stderr or report_path.exists():
             raise ValueError("Collector did not reject the escaping source before reporting")
-        if subprocess.run(command + ["--ref", base], capture_output=True).returncode != 0:
+        if subprocess.run(command + ["--ref", base], capture_output=True, env=GIT_ENV).returncode != 0:
             raise ValueError("Immutable regular snapshot incorrectly followed a working-tree symlink")
-    return {"special_names": len(names), "index_unknown_paths_raw": 1, "tree_unknown_paths_raw": 1, "regular_git_blob_collector_raw": 0, "escaping_symlink_rejected": True}
+    return {"special_names": len(names), "index_unknown_paths_raw": 1, "tree_unknown_paths_raw": 1, "regular_git_blob_collector_raw": 0, "escaping_symlink_rejected": True, "git_tree_navigation_ignores_worktree_drift": True, "wiki_fragments_validated": True, "malformed_link_forms_reported": 7, "foreign_git_environment_ignored": True, "markdown_ast_visible_text_checked": True, "wiki_git_snapshot_bound": True, "mutable_wiki_reads_forbidden": True, "tracked_wiki_symlink_rejected": True}
 
 
 def self_test(root, record):
@@ -133,22 +240,22 @@ def self_test(root, record):
             target.parent.mkdir(parents=True, exist_ok=True)
             shutil.copyfile(source, target)
         (temporary / relative / "coverage.json").write_text(json.dumps(record) + "\n")
-        subprocess.run(["git", "-C", str(temporary), "init", "-q"], check=True, capture_output=True)
-        subprocess.run(["git", "-C", str(temporary), "add", "--all"], check=True, capture_output=True)
+        subprocess.run(["git", "-C", str(temporary), "init", "-q"], check=True, capture_output=True, env=GIT_ENV)
+        subprocess.run(["git", "-C", str(temporary), "add", "--all"], check=True, capture_output=True, env=GIT_ENV)
         command = ["python3", "-B", str(temporary / relative / "check.py")]
-        baseline = subprocess.run(command, text=True, capture_output=True)
+        baseline = subprocess.run(command, text=True, capture_output=True, env=GIT_ENV)
         if baseline.returncode != 0:
             raise ValueError("Copied-source positive control failed")
         target = temporary / "docs/ARCHITECTURE.md"
         target.write_text(target.read_text() + "\nDit is een nieuwe Nederlandse zin.\n")
-        changed = subprocess.run(command, text=True, capture_output=True)
+        changed = subprocess.run(command, text=True, capture_output=True, env=GIT_ENV)
         result = json.loads(changed.stdout)
         if changed.returncode != 1 or "docs/ARCHITECTURE.md" not in result["source_changes"] or "docs/ARCHITECTURE.md" not in result["lexical_changes"]:
             raise ValueError("Changed-prose negative control was not detected")
         target = temporary / "docs/UNCLASSIFIED.md"
         target.write_text("# Nieuwe tekst\n\nDit is een nieuw document.\n")
-        subprocess.run(["git", "-C", str(temporary), "add", "--", "docs/UNCLASSIFIED.md"], check=True, capture_output=True)
-        added = subprocess.run(command, text=True, capture_output=True)
+        subprocess.run(["git", "-C", str(temporary), "add", "--", "docs/UNCLASSIFIED.md"], check=True, capture_output=True, env=GIT_ENV)
+        added = subprocess.run(command, text=True, capture_output=True, env=GIT_ENV)
         if added.returncode != 1 or json.loads(added.stdout)["unclassified_paths"] != ["docs/UNCLASSIFIED.md"]:
             raise ValueError("New-document negative control was not detected")
     special = path_controls(root, scratch)

@@ -121,7 +121,7 @@ references and eight community forms. The one unresolved target is the expected
 generated build/toolchain-provenance.json reference; it is not suppressed.
 
 The live Wiki verifier checks 15 source pages, 13 byte-identically preserved
-baseline pages, 171 local targets and one fragment. The 32-case self-test is a host-level
+baseline pages, 171 local targets and one fragment. The 33-case self-test is a host-level
 deterministic fixture, not hosted CI, native QEMU, hardware or human language/UI
 acceptance. No GitHub/Wiki state was mutated. Issue #274, UI localisation,
 language-quality acceptance and full issue acceptance remain open. The lead must
