@@ -1,6 +1,17 @@
 # Current project status
 
-## NEXT AGENT HANDOFF — unified governance implementation — 18 November 2026
+## NEXT AGENT HANDOFF — P03-T1 proposed contract — 18 November2026
+
+**Claim:** Codex, codex/p03-device-key-contract, basefac5a864830e6c1f88f89015f88f32357fb314c6.
+**Goal:** Write docs/implementation/NAS-DEVICE-KEYS-PROPOSAL.md: verified-pairing options with maintained implementations, device revocation, rotation, recovery secret without escrow, mapped to EO-10/EO-12 and LP-19/LP-20; every new trust boundary explicitly marked for owner decision.
+**Invariant:** PROPOSED; no new trust root, escrow, capability or security-hold change.
+**Write set:** docs/implementation/NAS-DEVICE-KEYS-PROPOSAL.md; lead state.
+**Acceptance:** cited source paths/symbols and progress/diff checks.
+**Evidence limit:** proposal only; owner/security decisions required before code.
+**Ownership:** no open-PR write overlap; integration/Claude branches preserved.
+**Next:** publish bounded proposal, next independent READY task. Score41/100.
+
+## Retained checkpoint — unified governance implementation — 18 November 2026
 
 **Claim:** GOV-1-6, sole writer Codex in `codex/unified-governance`, base
 `5a3295b6093549f4b5ff6164ab2773ac4c264996`. The project owner authorizes immediate
