@@ -305,6 +305,10 @@ Status: accepted by the project owner on 14 November 2026; recorded on
 15 November 2026. It decides D6 of
 [S09-BACKUP-DESTINATION-PROPOSAL.md](implementation/S09-BACKUP-DESTINATION-PROPOSAL.md)
 only. D1–D5 of that proposal remain undecided.
+Implementation status (15 November 2026): the name check and the test-only
+native stage `archive-ustar` are on draft PR #340; local gate run 14 passed
+([USTAR-NATIVE-20261115.md](verification/s09-archive/USTAR-NATIVE-20261115.md)).
+The decision is unchanged and S09 remains open.
 
 **Context:**
 - S09 requires that a user can create, verify, restore and export independent

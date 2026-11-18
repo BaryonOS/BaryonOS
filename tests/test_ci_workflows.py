@@ -6,6 +6,7 @@ execute GitHub's expression engine, download from the network, or provide
 native QEMU acceptance.
 """
 
+import ast
 import hashlib
 import io
 import json
@@ -395,6 +396,23 @@ class WorkflowContractTests(unittest.TestCase):
         for path, job_id, job in self.jobs():
             with self.subTest(path=path, job=job_id):
                 self.assertIn(job.get("runs-on"), ("ubuntu-24.04", "ubuntu-26.04"))
+
+    def test_volume_gate_stage_counts_match_plan(self):
+        """Pin the volume report count and step label to the real gate PLAN."""
+        # Parse rather than import: importing pulls in the build and QEMU runner chain.
+        source = (ROOT / "tools/test_volume.py").read_text(encoding="utf-8")
+        plan = next(node.value for node in ast.parse(source).body
+                    if isinstance(node, ast.Assign)
+                    and [getattr(target, "id", None) for target in node.targets] == ["PLAN"])
+        stages = len(ast.literal_eval(plan))
+        pilot = "\n".join(step.get("run", "") for step in
+                          self.workflows[".github/workflows/kvm-pilot.yml"]["jobs"]["kvm-pilot"]["steps"])
+        self.assertEqual(re.findall(r'"volume": \("run/volume-\*/result\.json", (\d+),', pilot),
+                         [str(stages)])
+        names = [step.get("name", "") for step in
+                 self.workflows[".github/workflows/volume-acceptance.yml"]["jobs"]["m6e"]["steps"]
+                 if step.get("run") == "python3 -B -u tools/test_volume.py"]
+        self.assertEqual(names, [f"M6e/S06 native volume gate ({stages} QEMU runs)"])
 
     def test_kvm_pilot_is_manual_hosted_and_cannot_replace_tcg_acceptance(self):
         """Keep KVM opt-in, fail-closed, narrow, and outside required checks."""
