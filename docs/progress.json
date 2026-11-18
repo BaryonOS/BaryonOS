@@ -3,7 +3,7 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-18",
-    "source_commit": "088c7801b7617fa90bd688b3a8afe9cf99229587",
+    "source_commit": "0e06ab0dcb79e82d6b80414af1d2fcceeed1dc84",
     "assessment_basis": "parent_commit",
     "branch": "codex/phase0-english-coverage",
     "task": "PR #358 reconciliation with main fac5a864 and review repairs",
