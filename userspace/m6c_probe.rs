@@ -13,10 +13,92 @@ mod journal;
 use catalog_core::journal;
 #[cfg(not(nos_sdk_runtime))]
 #[path = "m6_runtime.rs"]
-mod rt;
+mod raw_rt;
 #[cfg(nos_sdk_runtime)]
 #[path = "sdk_probe_runtime.rs"]
-mod rt;
+mod raw_rt;
+mod rt {
+    pub use super::raw_rt::*;
+
+    pub fn call(number: u64, args: [u64; 6]) -> (i64, u64) {
+        if word(112) == 2
+            && word(0) == 0
+            && word(288) == 0
+            && word(336) == 0
+            && number == 0x42
+        {
+            put(336, 1);
+            if super::raw_rt::call(0x40, [args[0], 0, 0, 128, 0, 0]) != (-1, 0) {
+                fail(94);
+            }
+            let result = super::raw_rt::call(number, args);
+            if result.0 != 0 || result.1 == 0 {
+                fail(89);
+            }
+            if super::raw_rt::call(number, args) != (-8, 0) {
+                fail(90);
+            }
+            if super::raw_rt::call(0x43, [args[0], 0, 0, 0, 0, 0]) != (-8, 0) {
+                fail(91);
+            }
+            if super::raw_rt::call(0x42, [args[0], args[1], args[2], 511, 0, 0]) != (-11, 0) {
+                fail(92);
+            }
+            if super::raw_rt::call(0x41, [args[0], result.1 + 1, OUT, 320, 0, 0]) != (-1, 0) {
+                fail(93);
+            }
+            return result;
+        }
+        if word(112) == 2 && word(0) == 0 && word(288) == 1 && word(328) == 0 && number == 0x42 {
+            put(328, 1);
+            let wrong_write = [args[0], args[1] + 1, args[2], args[3], 0, 0];
+            if super::raw_rt::call(0x43, [args[0], 0, 0, 0, 0, 0]) != (-1, 0) {
+                fail(83);
+            }
+            if super::raw_rt::call(0x42, [args[0], args[1] + 1, args[2], 511, 0, 0])
+                != (-11, 0)
+            {
+                fail(87);
+            }
+            if super::raw_rt::call(0x42, wrong_write) != (-1, 0) {
+                fail(84);
+            }
+            if super::raw_rt::call(0x43, [args[0], 0, 0, 0, 0, 0]) != (-1, 0) {
+                fail(85);
+            }
+            if super::raw_rt::call(0x42, wrong_write) != (-1, 0) {
+                fail(86);
+            }
+            if super::raw_rt::call(0x40, [args[0], 0, 0, 128, 0, 0]) != (-1, 0) {
+                fail(88);
+            }
+        }
+        super::raw_rt::call(number, args)
+    }
+
+    pub fn receive(endpoint: u64) -> Option<Message> {
+        if word(112) == 2 && word(0) == 0 && word(320) == 0 {
+            for _ in 0..LIMIT {
+                if word(256) == 1 {
+                    break;
+                }
+                yield_now();
+            }
+            if word(256) != 1 {
+                fail(80);
+            }
+            let block = word(48);
+            if super::raw_rt::call(0x42, [block, 0, SECTOR, 512, 0, 0]) != (-1, 0) {
+                fail(81);
+            }
+            if super::raw_rt::call(0x43, [block, 0, 0, 0, 0, 0]) != (-1, 0) {
+                fail(82);
+            }
+            put(320, 1);
+        }
+        super::raw_rt::receive(endpoint)
+    }
+}
 #[cfg(not(nos_document_session))]
 #[path = "../services/catalog/src/wire.rs"]
 mod wire;
@@ -592,8 +674,31 @@ fn client() -> ! {
         #[cfg(not(nos_document_session))]
         {
             put(14, object, 2);
+            if case == 2 && domain == 1 {
+                // Exercise the peer's terminal probe while these reads are delayed.
+                for _ in 0..32 {
+                    rt::yield_now();
+                }
+            }
             check_get(15, object, 3, true);
             check_list(16, domain, [3, 2], [true, false]);
+        }
+        if case == 2 {
+            wait(288);
+            if domain == 0 {
+                let next = value(object, 4);
+                let message = request(
+                    17,
+                    object,
+                    3,
+                    wire::PUT,
+                    Some(name(object, 4)),
+                    Some(&next),
+                );
+                transact(&message, wire::Status::Unknown);
+            } else {
+                wait(296);
+            }
         }
     }
     finish(object)

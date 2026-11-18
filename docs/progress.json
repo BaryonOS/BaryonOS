@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-18",
-    "source_commit": "d03ae904048a91defc74b9e4ba854d3526595580",
-    "assessment_basis": "source_commit",
+    "source_commit": "70576d968bb39e134c55117aa494e06ac08afc4e",
+    "assessment_basis": "parent_commit",
     "branch": "codex/roadmap-codex",
-    "task": "A02-T1: verified package installer composition and fresh Codex fallback",
+    "task": "A02-T1: package publication composition and fresh Codex dispatch",
     "previous_score": 41,
-    "summary": "41/100 unchanged. A02-T1 now connects source verification, exact immutable image streaming, current-source publication and catalogue journal recovery. 48 host tests, Clippy, format and freestanding release build with existing CI crypto backends pass. The existing roadmap controller prepares locked, durable fresh Codex claims; actual distinct CLI sessions ran under supervision. Automatic continuation is not established and source execution hold remains active. Native installer, authenticated recovery, hardware and human audit remain open; A02 is not accepted."
+    "summary": "41/100 unchanged. A02-T1 composes dual-signed verification, exact image streaming, current-source validation, catalogue publication and journal reconciliation while the roadmap controller prepares immutable fresh Codex dispatch plans and exclusive claims. Native installer execution and secure unattended activation remain open. Current-main reconciliation changes only checkpoint state; hosted checks remain authoritative."
   },
   "tracks": [
     {
