@@ -4,7 +4,7 @@ import pathlib
 import subprocess
 import sys
 import unittest
-from unittest import mock
+import unittest.mock
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))
 import agent_pipeline as pipeline
@@ -13,7 +13,7 @@ import agent_pipeline as pipeline
 class Quarantine(unittest.TestCase):
     def test_scheduler_stops_before_selecting_issues(self):
         controller = pipeline.Pipeline(["codex"], False, False)
-        with mock.patch.object(controller, "ready_tasks", return_value=[]) as select:
+        with unittest.mock.patch.object(controller, "ready_tasks", return_value=[]) as select:
             with self.assertRaisesRegex(pipeline.TaskError, "disabled"):
                 controller.run_once()
             select.assert_not_called()
@@ -24,17 +24,17 @@ class Quarantine(unittest.TestCase):
         for name in ("prepare", "execute", "integrate", "publish", "finish", "discard", "work"):
             with self.subTest(entry=name), contextlib.ExitStack() as stack:
                 for target in ("sh", "run_agent", "run_gate"):
-                    stack.enter_context(mock.patch.object(pipeline, target, side_effect=AssertionError(target)))
-                stack.enter_context(mock.patch.object(pathlib.Path, "mkdir", side_effect=AssertionError("mkdir")))
-                stack.enter_context(mock.patch.object(pathlib.Path, "read_text", side_effect=AssertionError("read")))
-                stack.enter_context(mock.patch.object(pipeline.shutil, "rmtree", side_effect=AssertionError("remove")))
+                    stack.enter_context(unittest.mock.patch.object(pipeline, target, side_effect=AssertionError(target)))
+                stack.enter_context(unittest.mock.patch.object(pathlib.Path, "mkdir", side_effect=AssertionError("mkdir")))
+                stack.enter_context(unittest.mock.patch.object(pathlib.Path, "read_text", side_effect=AssertionError("read")))
+                stack.enter_context(unittest.mock.patch.object(pipeline.shutil, "rmtree", side_effect=AssertionError("remove")))
                 with self.assertRaisesRegex(pipeline.TaskError, "disabled"):
                     getattr(controller, name)(task)
 
     def test_cli_flags_cannot_release_execution(self):
         for flags in (("--once",), ("--once", "--dry-run", "--auto-merge-parallel")):
-            with self.subTest(flags=flags), mock.patch.object(sys, "argv", ["agent_pipeline.py", *flags]):
-                with mock.patch.object(pipeline, "Pipeline") as constructor:
+            with self.subTest(flags=flags), unittest.mock.patch.object(sys, "argv", ["agent_pipeline.py", *flags]):
+                with unittest.mock.patch.object(pipeline, "Pipeline") as constructor:
                     with self.assertRaises(SystemExit) as stopped:
                         pipeline.main()
                     self.assertEqual(stopped.exception.code, 2)
