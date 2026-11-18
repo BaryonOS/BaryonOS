@@ -1,22 +1,24 @@
 # Current project status
 
-## NEXT AGENT HANDOFF — B02-T1 native tamper — 18 November 2026
+## NEXT AGENT HANDOFF — B02-T1 native refusal slice — 18 November 2026
 
-**Claim:** Codex, `codex/b02-native-tamper`, base `69d820753b83ee834e4ef24ee3e3c886dada9587`.
-**Goal:** cold read-only refusal for object8 AEAD corruption, document1 tag/chunk
-swaps and withheld secret; preserve honest unprotected old-generation replay.
-**Invariant:** no plaintext on failed authentication/key loss; no cold writes or
-disk changes. No new keys, crypto, rights, production syscall or runner activation.
-**Write set:** `tools/run_system.py`, `tests/test_system_harness.py`,
-`sdk/examples/system/src/init.rs`, `kernel/src/m2/m3/system.rs`; lead state.
-Existing entry points reused; no S09/archive pipeline changes.
-**Acceptance:** targeted system harness tests and actual normal/cold probes with
-exact refusal/no-plaintext markers and unchanged disk hashes; finite native runs.
-**Evidence limit:** QEMU fixtures only; no cold antirollback, hardware or audit.
-**Ownership:** no open-PR path overlap; Claude/integration branches untouched.
-**Next:** implement bounded slice; draft PR; next independent READY task.
-Prior deliveries372,374,375,377–379,381 preserved. N04 prototype380 BLOCKED.
-Score41/100; unsafe unattended hold active.
+**Source:** `c8ae69094abf91e96e52a18510a430fa9d7312d9`, `codex/b02-native-tamper`, fingerprint `b2ecf3c04ec5bfc3ba2ca09fd34b61e9706b363a4a9aaeb6c6f8fbf61c7f7fbc`.
+**Delivered:** object8 AEAD byte corruption, document1 tag corruption, two64-byte
+ciphertext-block swap and wrong-secret substitution produce exact kernel-checked
+refusal, zero plaintext replies, disk writes/flushes and unchanged cold disk hashes.
+Outer noncryptographic checksums repaired; no new rights/crypto/syscall.
+**Checks:**55 host tests exit0 (`build/tokenguard/run-7y0184dg.log`); normal, recover
+and four cold cases runner0/QEMU33. Deliberately wrong compiled case runner1 as
+expected. [Exact commands/artifacts/limits](roadmap-pipeline/receipts/B02-T1.json).
+Lead reviewed complete diff; corrected existing volume Client epoch0→1 before final
+source-frozen suite; earlier failure retained separately. No repeated native run.
+**Partial/blocked:** one168-byte record occupies one volume chunk, so the block
+swap does not prove multiple-record chunk ordering. True multi-chunk and native
+old-generation replay NOT RUN; cold antirollback unprotected. Secret substitution
+is a fixture refusal, not physical erasure. Hardware/human audit NOT RUN.
+**Ownership:** Integration Manager/Claude branches preserved; unsafe hold active.
+Score41→41/100. B05 draft381 delivered; N04 draft380 blocked on throughput.
+**Next:** B06-T1 checker is implemented in a separate worktree; publish and continue.
 
 ## Retained checkpoint — unified governance implementation — 18 November 2026
 

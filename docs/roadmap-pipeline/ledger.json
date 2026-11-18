@@ -1067,7 +1067,7 @@
       "criterion": "B02",
       "milestone": "M8",
       "executor": "worker",
-      "status": "active",
+      "status": "blocked",
       "native": true,
       "title": "Native tamper and key-loss cold-reopen cases with exact refusal markers",
       "goal": "Using the existing test-system-recover feature, add cases where the host mutates a copy of a normal disk (AEAD bytes in object 8, the document 1 tag, swapped chunks) or withholds the secret; the guest must fail closed with one exact refusal marker and no plaintext marker, and the read-only image bytes stay unchanged. Old-generation replay is recorded as a documented unprotected cold case, not as a pass.",
@@ -1107,8 +1107,17 @@
           "event": "active",
           "at": "2026-11-18T22:07:50.793921+00:00",
           "reason": "Codex isolated native-tamper task. Exact write paths have no open-PR overlap. Handoff excludes B02-T2/R03-T1, not this B02-T1 probe. No Claude S09/archive/backup files or integration branches touched."
+        },
+        {
+          "event": "blocked",
+          "at": "2026-11-18T22:14:41.787813+00:00",
+          "source_commit": "c8ae69094abf91e96e52a18510a430fa9d7312d9",
+          "reason": "Native byte/tag/ciphertext-block/withheld-secret negatives delivered. True multi-record chunk swap needs a larger fixture; old-generation native replay observation NOT RUN. Cold antirollback unprotected. Full task remains partial."
         }
-      ]
+      ],
+      "source_commit": "c8ae69094abf91e96e52a18510a430fa9d7312d9",
+      "receipt": "docs/roadmap-pipeline/receipts/B02-T1.json",
+      "blocker": "Native byte/tag/ciphertext-block/withheld-secret negatives delivered. True multi-record chunk swap needs a larger fixture; old-generation native replay observation NOT RUN. Cold antirollback unprotected. Full task remains partial."
     },
     {
       "id": "B05-T2",
