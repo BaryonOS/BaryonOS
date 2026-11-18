@@ -3,11 +3,11 @@
   "files": {
     "DESIGN.md": {
       "bytes": 10130,
-      "sha256": "a99b62358d06a2636ab0242229e7a8b188840b50f92e1f5f1e4d7789c9e5d2de"
+      "sha256": "adaef53b708013f2b3a149fda56b47833854c9e969877c57f94f926c70a69f7d"
     },
     "README.md": {
       "bytes": 1127,
-      "sha256": "6e5f32d6e4c58d295051eb340715bd57119998fe56bc40f7ce5feac7a6932498"
+      "sha256": "617b8b1c6b2084f7fbed2554455aaa0cf0f8c78ac170a1bca413f7081181a3e4"
     },
     "helpers/capture.py": {
       "bytes": 1476,
@@ -47,11 +47,11 @@
     },
     "logs/01-collector.json": {
       "bytes": 1583,
-      "sha256": "ca3ba23c26a0758c82d1c4d181592ab7155b658a0353e88f4058daf64eeb2d49"
+      "sha256": "6878ca5aae51bc9c25a98793484ee1652f45112828e29fb84d065e3943f365f8"
     },
     "logs/02-checker.json": {
       "bytes": 1154,
-      "sha256": "42d19c13e37a8f8dba043f3a571d5a6d857249bfaf7bf13915818ba34abc0dbd"
+      "sha256": "2b16c7854006a5d39bfa65853f9c8c367bdb8d9783591b72c750a42db4241be1"
     },
     "logs/03-wiki-verifier.json": {
       "bytes": 959,
@@ -67,15 +67,15 @@
     },
     "manifest.json": {
       "bytes": 2939,
-      "sha256": "5f5e4c01232d68c1873652fe874a19ede54ed2320685ca8242742ea22d7c4b8a"
+      "sha256": "105823e663dd5133c1625caff162f7b02c4cd8075e2bf1b8afac06f78cb01beb"
     },
     "output/collector.json": {
       "bytes": 38864,
-      "sha256": "5946f85d0ab2cff0a1912d0de07671c122dcb0d91da0755863dd6a6548d2ec9e"
+      "sha256": "0acbce4720231bb111d3681cfefda976fd836591f5d101d7af55b4c071572a65"
     },
     "output/coverage.json": {
       "bytes": 1012613,
-      "sha256": "9085207ed4a30ae483f2d9a14d3aa2add535db70afce2812f5f2032718241ef0"
+      "sha256": "f233e5df3b48df48ddf14c796c390ea1588235294e938caafd59ea8215ee74e4"
     }
   }
 }

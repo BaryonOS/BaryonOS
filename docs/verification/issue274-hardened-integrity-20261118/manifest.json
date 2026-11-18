@@ -2,7 +2,7 @@
   "collector_helper": "docs/verification/issue274-hardened-integrity-20261118/helpers/collect.cjs",
   "collector_output": "docs/verification/issue274-hardened-integrity-20261118/output/collector.json",
   "files": {
-    "docs/verification/issue274-hardened-integrity-20261118/DESIGN.md": "a99b62358d06a2636ab0242229e7a8b188840b50f92e1f5f1e4d7789c9e5d2de",
+    "docs/verification/issue274-hardened-integrity-20261118/DESIGN.md": "adaef53b708013f2b3a149fda56b47833854c9e969877c57f94f926c70a69f7d",
     "docs/verification/issue274-hardened-integrity-20261118/helpers/capture.py": "65133c847be233e133587299c4fb131c798593e891c8cd57fe221d6feda1d513",
     "docs/verification/issue274-hardened-integrity-20261118/helpers/check.py": "0b88ee96d42c3c58241ac0061fb024d4ed17040324ca3ffa0967afb5ce71526f",
     "docs/verification/issue274-hardened-integrity-20261118/helpers/collect.cjs": "262bd8f4b6e71e88bdfdf62dbc3624f4f833bedf25411d165e43b2d7a039a7e0",
@@ -12,8 +12,8 @@
     "docs/verification/issue274-hardened-integrity-20261118/inputs/publication.json": "7e316cc7ee1b2f848e4b90f986ee3490b8c501ebefde96b1c6587e665fc3532c",
     "docs/verification/issue274-hardened-integrity-20261118/inputs/published.json": "5f96941c2bf52ad7206c7a15d2e4dd61f47b19129feb984d51abdb0b6b2c4f02",
     "docs/verification/issue274-hardened-integrity-20261118/inputs/review.json": "1eb6fa5bce46cdf2a20de9fa8b41db73b5ac90800df5e4e5767691dce355fb61",
-    "docs/verification/issue274-hardened-integrity-20261118/output/collector.json": "5946f85d0ab2cff0a1912d0de07671c122dcb0d91da0755863dd6a6548d2ec9e",
-    "docs/verification/issue274-hardened-integrity-20261118/output/coverage.json": "9085207ed4a30ae483f2d9a14d3aa2add535db70afce2812f5f2032718241ef0"
+    "docs/verification/issue274-hardened-integrity-20261118/output/collector.json": "0acbce4720231bb111d3681cfefda976fd836591f5d101d7af55b4c071572a65",
+    "docs/verification/issue274-hardened-integrity-20261118/output/coverage.json": "f233e5df3b48df48ddf14c796c390ea1588235294e938caafd59ea8215ee74e4"
   },
   "helpers": [
     "docs/verification/issue274-hardened-integrity-20261118/helpers/collect.cjs",
@@ -25,8 +25,8 @@
   "published_receipt": "docs/verification/issue274-hardened-integrity-20261118/inputs/published.json",
   "review": "docs/verification/issue274-hardened-integrity-20261118/inputs/review.json",
   "schema_version": 1,
-  "source_commit": "ec90e1fd628f8dc200c4e2013bf85790e16f2e1e",
-  "source_tree": "2b56363d892ed4586e1b432b4b33a3c2c03b8d92",
+  "source_commit": "c99c872d2a93372f1a514495153deaba7517bbd7",
+  "source_tree": "35443a7ea0775de4a1658b43af8144f348af6a62",
   "wiki_commit": "4a01b8b2ad2695da509a512ea688007c964f56da",
   "wiki_tree": "f7bee30ee39abb60da294d48357af5b6c85f2fae"
 }

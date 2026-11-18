@@ -1,10 +1,10 @@
 {
   "schema_version": 2,
-  "source_commit": "ec90e1fd628f8dc200c4e2013bf85790e16f2e1e",
-  "source_tree": "2b56363d892ed4586e1b432b4b33a3c2c03b8d92",
+  "source_commit": "c99c872d2a93372f1a514495153deaba7517bbd7",
+  "source_tree": "35443a7ea0775de4a1658b43af8144f348af6a62",
   "wiki_commit": "4a01b8b2ad2695da509a512ea688007c964f56da",
   "wiki_tree": "f7bee30ee39abb60da294d48357af5b6c85f2fae",
-  "generated_at_utc": "2026-11-18T22:50:52.435Z",
+  "generated_at_utc": "2026-11-18T23:05:18.394Z",
   "method": "Immutable Git-tree Markdown/YAML inventory; exact repository and Wiki blobs; candidate detection is not language-quality proof.",
   "combined_review_manifest": {
     "path": "docs/verification/issue274-hardened-integrity-20261118/inputs/review.json",
@@ -31989,12 +31989,12 @@
     {
       "path": "docs/verification/issue274-hardened-integrity-20261118/DESIGN.md",
       "reason": "Source-bound historical verification record",
-      "blob": "2de328e1f5a643478ffffb04120c175df9d96457"
+      "blob": "b92a7e074fc57c98190ac2af53ebfe72bcb14c0f"
     },
     {
       "path": "docs/verification/issue274-hardened-integrity-20261118/README.md",
       "reason": "Source-bound historical verification record",
-      "blob": "5f158485721fb0a5a3ee2df270c78638c52952ce"
+      "blob": "4223b904fe35733d1777af8662b1207741918f94"
     },
     {
       "path": "docs/verification/issue274-helper-corrections-20261118/README.md",
