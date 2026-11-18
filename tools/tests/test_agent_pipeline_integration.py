@@ -91,14 +91,14 @@ class OfflineTransaction(unittest.TestCase):
             }]}},
         }))
         self.write(".github/agent-pipeline.json", json.dumps({
-            "schema": 1, "enabled": False, "tasks": {},
+            "schema": 2, "enabled": False, "engines": ["fixture"], "tasks": {},
         }))
         self.git("add", ".")
         self.git("commit", "-q", "-m", "test: seed offline fixture")
         self.seed = self.git("rev-parse", "HEAD").strip()
         task = ap.parse_issue(self.issue, {"F01"})
         self.write(".github/agent-pipeline.json", json.dumps({
-            "schema": 1, "enabled": True, "sandbox": config,
+            "schema": 2, "enabled": True, "engines": ["fixture"], "sandbox": config,
             "tasks": {"7": {
                 "base": self.seed, "issue_sha256": ap.issue_digest(task),
                 "criterion": "F01", "mode": "serial", "gates": task.gates,

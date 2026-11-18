@@ -102,7 +102,8 @@ class Authority(unittest.TestCase):
             self.assertFalse(self.task.dir.exists())
 
     def test_unapproved_controller_never_starts_configured_backend(self):
-        policy = {"schema": 1, "enabled": True, "tasks": {}, "sandbox": {}}
+        policy = {"schema": 2, "enabled": True, "engines": ["codex"],
+                  "tasks": {}, "sandbox": {}}
         with mock.patch.object(ap, "load_policy", return_value=policy), \
                 mock.patch.object(ap, "verify_controller"), \
                 mock.patch.object(ap, "sh", side_effect=["", "local", "main"]), \

@@ -27,7 +27,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from agent_gate import condensed, resolve, run_gate
+from agent_gate import condensed, policy_authorizes_engines, resolve, run_gate
 from agent_sandbox import Sandbox, SandboxError, resource_evidence
 from common import (ROOT, CONTROLLER_GIT, CONTROLLER_GH, controller_environment,
                     agent_relative, agent_source_paths, agent_source_state,
@@ -192,7 +192,7 @@ def issue_digest(task: Task) -> str:
 
 def load_policy() -> dict:
     policy = json.loads((ROOT / ".github" / "agent-pipeline.json").read_text(encoding="utf-8"))
-    if (policy.get("schema") != 1 or policy.get("enabled") is not True
+    if (not policy_authorizes_engines(policy, ENGINES)
             or not isinstance(policy.get("tasks"), dict)):
         raise TaskError("Issue-pipeline execution requires reviewed owner-controlled authorization.")
     return policy
@@ -395,6 +395,8 @@ def merge_prompt(task: Task, ours: str, theirs: str) -> str:
 class Pipeline:
     def __init__(self, engines: list[str], auto_merge_parallel: bool, dry_run: bool):
         self.policy = load_policy()
+        if engines != self.policy["engines"]:
+            raise TaskError("Engine selection and failover order must match owner authorization.")
         if auto_merge_parallel:
             raise TaskError("Automatic merging is unavailable; reviewed publication creates draft PRs only.")
         verify_controller()
@@ -408,12 +410,9 @@ class Pipeline:
         self.engines = engines
         self.auto_merge_parallel = auto_merge_parallel
         self.dry_run = dry_run
-        self.turn = 0
 
     def order(self) -> list[str]:
-        self.turn += 1
-        k = self.turn % len(self.engines)
-        return self.engines[k:] + self.engines[:k]
+        return list(self.engines)
 
     def ready_tasks(self) -> list[Task]:
         require_pipeline_release()
@@ -610,9 +609,10 @@ def main() -> int:
     parser.add_argument("--dry-run", action="store_true", help="no push and no PR")
     parser.add_argument("--idle-seconds", type=int, default=900, help="wait when no task is ready")
     args = parser.parse_args()
-    engines = [e for e in args.engines.split(",") if e]
-    if not engines or any(e not in ENGINES for e in engines):
-        raise SystemExit(f"--engines must be a subset of {','.join(ENGINES)}")
+    engines = args.engines.split(",")
+    if (not engines or any(not engine or engine not in ENGINES for engine in engines)
+            or len(engines) != len(set(engines))):
+        raise SystemExit(f"--engines must be unique names from {','.join(ENGINES)}")
     try:
         require_pipeline_release()
         pipeline = Pipeline(engines, args.auto_merge_parallel, args.dry_run)

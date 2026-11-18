@@ -27,14 +27,16 @@ recorded only by the lead, with the required evidence level.
 `.github/agent-pipeline.json` until reviewed authorization and a verified offline
 runtime exist. Labels and model-produced specifications grant no write authority.
 
-The manifest has schema `1`, an `enabled` boolean, a `sandbox` object and a `tasks`
-mapping keyed by issue number. Each task grants exact `targets` and `reads` file
-lists, `criterion`, `mode`, `gates`, a full reviewed `base` SHA and `issue_sha256`
-from `agent_pipeline.issue_digest`. The grant binds the issue's title, body,
-dependencies and execution fields before L0. Between that base and the main commit
-containing its grant, only the manifest may differ. A subsequent source change
-blocks the task until its authorization is renewed. L0 may narrow these sets;
-lockfiles require explicit authority too. Existing ownership and claims still apply.
+The manifest has schema `2`, an `enabled` boolean, an exact ordered `engines` list,
+a `sandbox` object and a `tasks` mapping keyed by issue number. CLI engine selection
+and failover order must equal the reviewed manifest before any controller or sandbox
+operation. Each task grants exact `targets` and `reads` file lists, `criterion`,
+`mode`, `gates`, a full reviewed `base` SHA and `issue_sha256` from
+`agent_pipeline.issue_digest`. The grant binds the issue's title, body, dependencies
+and execution fields before L0. Between that base and the main commit containing its
+grant, only the manifest may differ. A subsequent source change blocks the task until
+its authorization is renewed. L0 may narrow these sets; lockfiles require explicit
+authority too. Existing ownership and claims still apply.
 
 The sandbox object requires `backend`, `backend_sha256`, `rootfs`,
 `rootfs_sha256` and `timeout_seconds` (1–7200). It binds a nonprivileged, maintained

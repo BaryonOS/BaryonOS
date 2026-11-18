@@ -28,8 +28,17 @@ from common import (ROOT, SOURCE_RECEIPT_NAME, agent_source_paths,
 SETUP_MARKERS = ("rustup ", "apt-get", "sudo ")
 PROGRESS_CHECK = ("progress.py --check", "python3 tools/progress.py --check", {})
 FAIL_EXIT = 2
+KNOWN_ENGINES = frozenset({"claude", "codex", "copilot"})
 
 GateCommand = tuple[str, str, dict[str, str]]
+
+
+def policy_authorizes_engines(policy: dict, known_engines=KNOWN_ENGINES) -> bool:
+    engines = policy.get("engines")
+    return (policy.get("schema") == 2 and policy.get("enabled") is True
+            and isinstance(engines, list) and bool(engines)
+            and all(type(name) is str and name in known_engines for name in engines)
+            and len(engines) == len(set(engines)))
 
 
 @dataclass(frozen=True)
@@ -127,7 +136,7 @@ def run_gate(commands: GatePlan | list[GateCommand], cwd: Path, log_path: Path,
         try:
             if sandbox is None:
                 policy = json.loads((ROOT / ".github" / "agent-pipeline.json").read_text())
-                if policy.get("schema") != 1 or policy.get("enabled") is not True:
+                if not policy_authorizes_engines(policy):
                     raise SandboxError("isolated gate execution is not authorized")
                 sandbox = Sandbox(policy.get("sandbox", {}))
             sandbox.verify()

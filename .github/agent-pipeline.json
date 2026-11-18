@@ -1,6 +1,7 @@
 {
-  "schema": 1,
+  "schema": 2,
   "enabled": false,
+  "engines": ["claude", "codex", "copilot"],
   "sandbox": {},
   "tasks": {}
 }

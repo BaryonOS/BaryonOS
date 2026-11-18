@@ -303,6 +303,25 @@ class Gate(unittest.TestCase):
             with self.subTest(job=job), self.assertRaisesRegex(ValueError, "explicit local adapter"):
                 agent_gate.resolve([f"ci.yml#{job}"], ROOT / ".github" / "workflows")
 
+    def test_standalone_gate_rejects_invalid_engine_policy_before_sandbox(self):
+        invalid = [
+            {"schema": 2, "enabled": True},
+            {"schema": 2, "enabled": True, "engines": []},
+            {"schema": 2, "enabled": True, "engines": ["codex", "codex"]},
+            {"schema": 2, "enabled": True, "engines": [7]},
+            {"schema": 2, "enabled": True, "engines": ["unknown"]},
+        ]
+        manifest = self.tmp / ".github" / "agent-pipeline.json"
+        manifest.parent.mkdir()
+        for policy in invalid:
+            with self.subTest(engines=policy.get("engines")):
+                manifest.write_text(json.dumps(policy))
+                with mock.patch.object(agent_gate, "ROOT", self.tmp), \
+                        mock.patch.object(agent_gate, "Sandbox") as sandbox:
+                    self.assertEqual(agent_gate.run_gate([], self.tmp, self.tmp / "g.log"),
+                                     agent_gate.FAIL_EXIT)
+                sandbox.assert_not_called()
+
     def test_pipeline_translates_gate_resolution_failure_to_task_error(self):
         pipeline = ap.Pipeline.__new__(ap.Pipeline)
         task = ap.Task(7, "t", "parallel", "K06", ["ci.yml#host-quality"], [], "")
@@ -403,6 +422,62 @@ class Planning(unittest.TestCase):
 
     def test_stale_reports_changed_and_removed_paths(self):
         self.assertEqual(ap.stale({"a": "1", "b": "2", "c": None}, {"a": "1", "b": "3"}), ["b"])
+
+    def test_policy_requires_a_valid_owner_authorized_engine_order(self):
+        valid = {"schema": 2, "enabled": True, "engines": ["claude"], "tasks": {}}
+        invalid = [
+            {key: value for key, value in valid.items() if key != "engines"},
+            {**valid, "engines": []},
+            {**valid, "engines": ["claude", "claude"]},
+            {**valid, "engines": [7]},
+            {**valid, "engines": ["unknown"]},
+        ]
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            (root / ".github").mkdir()
+            manifest = root / ".github" / "agent-pipeline.json"
+            with mock.patch.object(ap, "ROOT", root):
+                for policy in invalid:
+                    with self.subTest(engines=policy.get("engines")):
+                        manifest.write_text(json.dumps(policy))
+                        with self.assertRaises(ap.TaskError):
+                            ap.load_policy()
+                manifest.write_text(json.dumps(valid))
+                self.assertEqual(ap.load_policy()["engines"], ["claude"])
+
+    def test_pipeline_binds_engine_selection_and_order_before_controller_access(self):
+        policy = {"schema": 2, "enabled": True, "engines": ["claude", "codex"], "tasks": {}}
+        controller = mock.Mock()
+        with mock.patch.object(ap, "load_policy", return_value=policy), \
+                mock.patch.object(ap, "verify_controller", controller), \
+                mock.patch.object(ap, "sh") as shell, \
+                mock.patch.object(ap, "Sandbox") as sandbox, \
+                mock.patch.object(ap, "run_agent") as model:
+            for engines in (["codex", "claude"], ["claude"],
+                            ["claude", "codex", "copilot"]):
+                with self.subTest(engines=engines), \
+                        self.assertRaisesRegex(ap.TaskError, "match owner authorization"):
+                    ap.Pipeline(engines, False, True)
+                controller.assert_not_called()
+                shell.assert_not_called()
+                sandbox.assert_not_called()
+                model.assert_not_called()
+
+    def test_exact_engine_order_reaches_the_next_controller_check(self):
+        policy = {"schema": 2, "enabled": True, "engines": ["claude"], "tasks": {}}
+        with mock.patch.object(ap, "load_policy", return_value=policy), \
+                mock.patch.object(ap, "verify_controller", side_effect=ap.TaskError("next check")) as controller, \
+                mock.patch.object(ap, "sh") as shell, \
+                self.assertRaisesRegex(ap.TaskError, "next check"):
+            ap.Pipeline(["claude"], False, True)
+        controller.assert_called_once_with()
+        shell.assert_not_called()
+
+    def test_engine_order_does_not_rotate_between_attempts(self):
+        pipeline = object.__new__(ap.Pipeline)
+        pipeline.engines = ["claude", "codex", "copilot"]
+        expected = ["claude", "codex", "copilot"]
+        self.assertEqual([pipeline.order(), pipeline.order()], [expected, expected])
 
 
 class GitAndEngines(unittest.TestCase):
