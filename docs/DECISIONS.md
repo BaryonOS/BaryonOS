@@ -5,6 +5,51 @@ This document distinguishes the decisions and authority of the project owner
 from those of the executing roles. Source quotations retain their original
 wording and speaker.
 
+## ADR-VERSION-POLICY-20261117 — Latest stable components with verified exceptions
+
+Status: accepted by the project owner on 17 November 2026. Authority and execution
+scope: [owner amendment](verification/phase0-20261117/owner-latest-stable-policy.json).
+This applies to Claude Code, Codex, GitHub Copilot and other project executors.
+
+**Decision:** existing and new project dependencies, compilers, runtimes, libraries,
+frameworks, SDKs, GitHub Actions, firmware, build tools, plugins, MCP tooling and
+vendored components target the latest officially released, stable, actively
+maintained and security-supported version by default. Verify the current release
+and support/advisory status against authoritative upstream sources at execution
+time. Pin accepted exact versions and immutable commits/checksums for reproducible
+inputs; floating `latest` references are not accepted.
+
+The newest release is not automatically the safest compatible selection. A
+technical exception requires verified constraints, exact affected versions,
+evidence, risks, an owner and reassessment conditions. Beta, nightly, release
+candidates and known-vulnerable versions require an explicitly justified exception;
+a consequential security-policy or trust-boundary exception still requires the
+project owner's authority. Unknown support or inaccessible version data is
+`NOT VERIFIED`, not an approved exception. The Security Floor remains mandatory.
+
+**Rationale and alternatives:** ad hoc old pins provide no current support claim;
+unconditional upgrades provide no compatibility or safety claim. The selected
+policy combines current upstream selection with source-bound regression evidence
+and explicit, reviewable exceptions. It preserves accepted architecture,
+functionality, licensing and release criteria rather than selecting versions by
+age alone.
+
+**Procedure and consequences:** use the existing [dependency maintenance and
+exception records](DEPENDENCIES.md#latest-stable-selection-and-exceptions).
+Material updates assess provenance, licensing, advisories, MSRV, API/ABI and compiler
+behavior, and run affected host/native/security regressions with independent review
+before a gated manual squash. Preserve a tested rollback. Do not rewrite historical
+source/test versions as current evidence or disturb another workstream's environment.
+
+One targeted existing-stack inventory starts in Phase 0. Resolve urgent confirmed
+security, unsupported-component and compatibility blockers before baseline B;
+process larger noncritical migrations in bounded owned tasks without delaying
+baseline/governance solely by count. Extend existing security/Dependabot automation
+only where justified, without duplicate systems or unnecessary CI work. The
+approved governance migration adds a concise inherited root `AGENTS.md` rule;
+this record grants no completed upgrade, accepted exception or runtime parity.
+
+
 ## ADR-DESIGN-OWNER-20261115 — Owner decisions of 15 November 2026 on accessibility tiers, permission prompts and flashing media
 
 **Date:** decided by the project owner on 15 November 2026; recorded in this

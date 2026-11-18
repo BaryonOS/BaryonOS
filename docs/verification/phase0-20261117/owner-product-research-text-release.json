@@ -1,0 +1,18 @@
+{
+  "scope": "Active Dutch project-authored prose only in docs/product/ and docs/research/",
+  "owner_answer": "Alleen deze tekstvertalingen vrijgeven",
+  "does_not_release": [
+    "Product/design/security decisions",
+    "Original quotations or evidence archives",
+    "UI/source WIP and runners",
+    "Broader Orbitaal/S09 ownership"
+  ],
+  "draft_prs": [
+    351,
+    352,
+    353
+  ],
+  "independent_semantic_reviews": "PASS on exact recorded file hashes; product QuickLook ambiguity retained",
+  "issue274": "OPEN",
+  "points": 41
+}

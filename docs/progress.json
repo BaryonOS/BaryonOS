@@ -2,13 +2,13 @@
   "schema_version": 1,
   "rubric_version": 1,
   "assessment": {
-    "date": "2026-11-17",
-    "source_commit": "1a2758368bf416205e6e4b2787d7304397ff4daa",
+    "date": "2026-11-18",
+    "source_commit": "bba804996b93d93e82b6fb323cdeea9779f6fe99",
     "assessment_basis": "parent_commit",
-    "branch": "codex/phase0-pr339-integration",
-    "task": "Phase0: preserve latest Claude decisions while checkpointing the released claim correction for cloud continuation",
+    "branch": "codex/phase0-pr339-preintegration",
+    "task": "Phase 0: prepare one combined current-main integration candidate with preserved source ownership",
     "previous_score": 41,
-    "summary": "41/100 unchanged. Exact latest1a275836 accepted decisions and design/research/checker/archive content are preserved. The systematic review and uncommitted ds-1.1 remain open and Claude-owned. This integration checkpoint resolves assessment metadata only, retains earlier evidence and requires current-head CI and review. The security workstream remains the primary blocker; no new product or research acceptance is claimed."
+    "summary": "41/100 unchanged. Actual339main equals fully verified7213candidate; remaining source PRs are not closed or accepted by this preparation. Complete combined-source host/native/CI and independent review remain required; unfinished355/357 and platform-blocked private kernel WIP are excluded."
   },
   "tracks": [
     {
@@ -217,7 +217,9 @@
           "points": 3,
           "status": "open",
           "acceptance": "Common input and USB devices work on the documented reference profile; hotplug and invalid device responses remain bounded.",
-          "evidence": []
+          "evidence": [
+            "docs/verification/issue42-native-input-20261114/README.md"
+          ]
         },
         {
           "id": "H03",

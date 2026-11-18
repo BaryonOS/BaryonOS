@@ -1,0 +1,84 @@
+name: Native HID input IPC (synthetic reports)
+
+on:
+  workflow_dispatch: {}
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths-ignore: ['docs/**', '**.md', '.github/ISSUE_TEMPLATE/**', '.github/DISCUSSION_TEMPLATE/**', '.github/workflows/project-classification.yml', 'tools/project_classification.py', 'tests/test_project_classification.py']
+  push:
+    branches: [main]
+    paths-ignore: ['docs/**', '**.md', '.github/ISSUE_TEMPLATE/**', '.github/DISCUSSION_TEMPLATE/**', '.github/workflows/project-classification.yml', 'tools/project_classification.py', 'tests/test_project_classification.py']
+
+permissions:
+  contents: read
+
+concurrency:
+  group: native-hid-input-${{ github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  native-hid-input:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      NOS_QEMU_MACHINE: pc-q35-8.2
+      NOS_BUILD_DIR: ${{ github.workspace }}/build/hid-input-native
+      NOS_TARGET_DIR: ${{ github.workspace }}/target/hid-input-native
+      CARGO_TARGET_DIR: ${{ github.workspace }}/target/hid-input-host
+      OS_OVMF_CODE: /usr/share/OVMF/OVMF_CODE_4M.fd
+      OS_OVMF_VARS: /usr/share/OVMF/OVMF_VARS_4M.fd
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Pinned Python
+        uses: ./.github/actions/setup-python
+      - name: Pinned Rust toolchain
+        run: >-
+          python3 -B tools/tokenguard.py run -- rustup toolchain install 1.90.0
+          --profile minimal --component rustfmt,clippy
+          --target x86_64-unknown-none,x86_64-unknown-uefi
+      - name: Pinned QEMU and OVMF
+        uses: ./.github/actions/setup-qemu
+      - name: Preflight and fetch locked dependencies for offline builders
+        run: |
+          set -euo pipefail
+          python3 -B tools/tokenguard.py run -- python3 -B tools/preflight.py --strict
+          python3 -B tools/tokenguard.py run -- cargo +1.90.0 fetch --locked
+          for manifest in sdk/Cargo.toml sdk/examples/{materiaal,input-service,window-session,calculator}/Cargo.toml ui/{graphics,native,surface-protocol}/Cargo.toml; do
+            python3 -B tools/tokenguard.py run -- cargo +1.90.0 fetch --locked --manifest-path "$manifest"
+          done
+      - name: HID session, policy, publication and oracle regressions
+        run: |
+          set -euo pipefail
+          for manifest in drivers/usb/Cargo.toml services/input-core/Cargo.toml sdk/examples/input-service/Cargo.toml; do
+            python3 -B tools/tokenguard.py run -- cargo +1.90.0 fmt --manifest-path "$manifest" -- --check
+            python3 -B tools/tokenguard.py run -- cargo +1.90.0 test --locked --offline --manifest-path "$manifest"
+            python3 -B tools/tokenguard.py run -- cargo +1.90.0 clippy --locked --offline --manifest-path "$manifest" --all-targets -- -D warnings
+          done
+          python3 -B tools/tokenguard.py run -- cargo +1.90.0 fmt --manifest-path sdk/examples/window-session/Cargo.toml -- --check
+          python3 -B tools/tokenguard.py run -- python3 -B -m unittest discover -s tools/tests -p test_hid_input_probe.py -v
+      - name: Actual own-kernel IPC with synthetic HID completions
+        run: |
+          set -euo pipefail
+          python3 -B tools/tokenguard.py run -- test -f /usr/share/seabios/vgabios-stdvga.bin
+          python3 -B tools/tokenguard.py run -- python3 -B tools/build.py --kernel-feature native-hid-input-probe
+          python3 -B tools/tokenguard.py run -- python3 -B tools/run_hid_input.py --vga-rom /usr/share/seabios/vgabios-stdvga.bin
+      - name: Preserve compact source-bound reports only
+        if: ${{ always() }}
+        uses: ./.github/actions/preserve-evidence
+        with:
+          job-status: ${{ job.status }}
+          full-evidence: 'false'
+          name: native-hid-input-evidence
+          path: |
+            build/hid-input-native/hid-input-report.json
+            build/hid-input-native/manifest.json
+            build/hid-input-native/users/materiaal/build-report.json
+          required-paths: build/hid-input-native/hid-input-report.json
+          if-no-files-found: error

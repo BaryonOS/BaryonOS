@@ -1,0 +1,13 @@
+    Finished `release` profile [optimized] target(s) in 0.01s
+   Compiling os-kernel v0.1.0 (/workspace/scratch/7264b5153599/h02-native/kernel)
+warning: function `hex` is never used
+   --> kernel/src/serial.rs:184:8
+    |
+184 | pub fn hex(label: &[u8], value: u64) {
+    |        ^^^
+    |
+    = note: `#[warn(dead_code)]` on by default
+
+warning: `os-kernel` (bin "os-kernel") generated 1 warning
+    Finished `release` profile [optimized] target(s) in 0.15s
+Built and inspected normal: 3 ELF load segments

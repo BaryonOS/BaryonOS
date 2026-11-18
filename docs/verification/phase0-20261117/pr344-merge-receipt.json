@@ -1,0 +1,19 @@
+{
+  "baseRefName": "main",
+  "headRefOid": "64a855754fad55cb0941d9756d7b6b2ca34bb913",
+  "mergeCommit": {
+    "oid": "e7169e43bf772307acf328590b4300fa52a4ad73"
+  },
+  "mergedAt": "2026-11-17T18:04:35Z",
+  "state": "MERGED",
+  "verified_main_sha": "e7169e43bf772307acf328590b4300fa52a4ad73",
+  "verified_main_tree": "aba147a7e7f486a9405b0797738468d09e5ac57a",
+  "tree_equal_reviewed_head": true,
+  "pr": 344,
+  "method": "squash",
+  "merge_exit": 0,
+  "premerge_checks": "All64 completed success/skipped/neutral; required/applicable named gates succeeded",
+  "premerge_full_diff_sha256": "be58149f2c89720adaed60e574234fd26271da4bc3fceb54c45cc8e8fec3d3cb",
+  "independent_reconciliation_review": "PASS b63ee83de92ebe8c6f2353e8c6cb374ad8131f012afce0d7abbff0b664c5d313",
+  "postmerge": "Main host-quality and qemu-smoke succeeded. Two component jobs and three coverage-upload jobs failed to start with the GitHub account-billing-lock annotation. Other post-merge workflows tracked by exact source. BaselineB not established."
+}

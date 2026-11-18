@@ -1,0 +1,19 @@
+{
+  "authority": "Explicit project-owner amendment: Mandatory Latest-Stable Policy & Modernization",
+  "date": "2026-11-17",
+  "status": "Binding permanent policy; targeted existing-stack inventory in progress, not claimed complete",
+  "policy": [
+    "Use latest officially released stable, actively maintained and security-supported components by default; verify authoritative upstream at execution time.",
+    "Pin accepted exact versions and immutable commit SHAs/checksums; no floating latest references.",
+    "Do not introduce beta/nightly/RC or known-vulnerable components without an explicitly justified, verified exception.",
+    "Upgrade only after provenance/licensing/advisory, MSRV/API/ABI/compiler compatibility and relevant security/host/native regression verification.",
+    "Exceptions record technical constraints, risks, owner and reassessment triggers; unknown support or unavailable version data is NOT VERIFIED, not an accepted exception.",
+    "Preserve historical source/evidence versions without reclassifying them as latest or current acceptance."
+  ],
+  "scope": "Rust/Cargo/Clippy/rustfmt/targets; all Cargo workspaces/manifests/locks/dependencies; Python/Node/npm/runtimes; QEMU/OVMF/firmware; Actions/CI dependencies; cryptography/security-sensitive libraries; SDK/devtools/plugins/MCP/vendored components",
+  "execution": "One targeted source/upstream inventory, isolated scoped upgrade PRs and independent verification. Existing integration, unrelated WIP and exclusive ownership remain preserved. No installations or upgrades are claimed by this receipt.",
+  "baseline_gate": "Urgent confirmed security/unsupported/compatibility blockers beforeB. Larger noncritical upgrades remain individually owned bounded work; do not unnecessarily delay B/governance. Existing mandatory checks and safe manual squash conditions remain.",
+  "durability": "Record accepted policy in docs/DECISIONS.md and detailed maintenance/exceptions in existing authoritative dependency documentation; during approved governance add concise inherited rootAGENTS rule for Claude/Codex/Copilot.",
+  "active_task": "P0-MOD-1 source-backed inventory, separate read-only agent; raw evidence under p0-modernization-inventory/",
+  "score": "41/100 unchanged; no completed upgrade, security resolution or native acceptance inferred"
+}

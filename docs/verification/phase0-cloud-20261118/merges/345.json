@@ -1,0 +1,13 @@
+{
+  "pr": 345,
+  "candidate": "f14f7c946e10120ad10a34885551f2656f84b059",
+  "main": "55bc7b06d20a3bfdffdc2eb7d8fe42a39f6e59c5",
+  "method": "manual squash; expected head enforced",
+  "candidate_and_main_tree": "6ba7b3e27a277487b367d53f92bc396626ff7b02",
+  "tree_equality_exit_code": 0,
+  "candidate_checks": "host-quality, qemu-smoke, all CodeQL analyses, merge-hold, CodeRabbit success; independent AI COMMENT review without blocker",
+  "post_merge_checks": "pending at receipt; not accepted as passing",
+  "issues_closed": [],
+  "security_findings_closed": [],
+  "score": 41
+}

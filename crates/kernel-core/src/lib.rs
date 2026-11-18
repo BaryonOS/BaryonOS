@@ -19,8 +19,19 @@ pub enum Owner {
     Reserved,
     Free,
     Kernel,
+    /// Lease-bound DMA memory. Generic allocation and release reject this owner.
+    Dma(DmaPin),
     PageTable(u16),
     User(u64, Kind),
+}
+
+/// Opaque identity for one device lease's DMA record. Copying this metadata
+/// grants no allocation or release authority; only the lease lifecycle can
+/// create or retire the corresponding pins. This is not IOMMU containment.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct DmaPin {
+    lease: u64,
+    record: u64,
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Kind {
@@ -115,7 +126,11 @@ impl<const N: usize> Frames<N> {
                 start: i as u64 * PAGE,
                 end: (i as u64 + 1) * PAGE,
             };
-            if i != 0 && !retained.iter().any(|r| r.overlaps(page)) {
+            if i != 0
+                && self.owners[i] == Owner::Reserved
+                && self.aliases[i] == EMPTY
+                && !retained.iter().any(|r| r.overlaps(page))
+            {
                 self.owners[i] = Owner::Free;
             }
         }
@@ -153,12 +168,12 @@ impl<const N: usize> Frames<N> {
     /// Allocate the first free page for `owner` and zero it before publishing
     /// the ownership change.
     ///
-    /// `owner` cannot be [`Owner::Free`] or [`Owner::Reserved`], and a user
-    /// owner must have a nonzero process ID and remain within [`USER_QUOTA`].
+    /// `owner` cannot be free, reserved, or DMA-pinned. A user owner must have
+    /// a nonzero process ID and remain within [`USER_QUOTA`].
     /// The callback must zero exactly the supplied unpublished page and return
     /// normally; it is called only after the request passes resource checks.
     pub fn allocate(&mut self, owner: Owner, mut zero: impl FnMut(u64)) -> Result<u64, Error> {
-        if matches!(owner, Owner::Free | Owner::Reserved) {
+        if matches!(owner, Owner::Free | Owner::Reserved | Owner::Dma(_)) {
             return Err(Error::Owner);
         }
         if let Owner::User(pid, _) = owner {
@@ -199,7 +214,7 @@ impl<const N: usize> Frames<N> {
         output: &mut [u64],
         mut zero: impl FnMut(u64),
     ) -> Result<(), Error> {
-        if matches!(owner, Owner::Free | Owner::Reserved) {
+        if matches!(owner, Owner::Free | Owner::Reserved | Owner::Dma(_)) {
             return Err(Error::Owner);
         }
         if output.is_empty() {
@@ -248,11 +263,18 @@ impl<const N: usize> Frames<N> {
         Ok(())
     }
 
-    /// Zero and release a page owned by `owner`.
+    /// Zero and release a page owned by `owner`, excluding DMA-pinned pages.
     ///
     /// A page with any tracked mapping cannot be freed. The callback must zero
     /// exactly the supplied page and return normally before it becomes free.
-    pub fn free(
+    pub fn free(&mut self, address: u64, owner: Owner, zero: impl FnMut(u64)) -> Result<(), Error> {
+        if matches!(owner, Owner::Dma(_)) {
+            return Err(Error::Owner);
+        }
+        self.free_owned(address, owner, zero)
+    }
+
+    fn free_owned(
         &mut self,
         address: u64,
         owner: Owner,
@@ -268,6 +290,34 @@ impl<const N: usize> Frames<N> {
         zero(address);
         self.owners[i] = Owner::Free;
         Ok(())
+    }
+
+    // Device execution creates pins through this crate-internal lifecycle.
+    // The existing batch preflight makes resource failure atomic; no pinned
+    // owner is published until all zeroing has completed.
+    fn allocate_dma_pages(
+        &mut self,
+        pin: DmaPin,
+        output: &mut [u64],
+        zero: impl FnMut(u64),
+    ) -> Result<(), Error> {
+        if pin.lease == 0 || pin.record == 0 {
+            return Err(Error::Owner);
+        }
+        self.allocate_many(Owner::Kernel, output, zero)?;
+        for &address in output.iter() {
+            self.owners[(address / PAGE) as usize] = Owner::Dma(pin);
+        }
+        Ok(())
+    }
+
+    fn free_dma_page(
+        &mut self,
+        address: u64,
+        pin: DmaPin,
+        zero: impl FnMut(u64),
+    ) -> Result<(), Error> {
+        self.free_owned(address, Owner::Dma(pin), zero)
     }
 
     /// Record one physical alias and enforce the pool's owner and W^X policy.
@@ -288,7 +338,10 @@ impl<const N: usize> Frames<N> {
             return Err(Error::Owner);
         }
         let a = self.aliases[i];
-        if (writable && (executable || a.executable != 0)) || (executable && a.writable != 0) {
+        if (executable && matches!(self.owners[i], Owner::Dma(_)))
+            || (writable && (executable || a.executable != 0))
+            || (executable && a.writable != 0)
+        {
             return Err(Error::Permission);
         }
         let total = a.total.checked_add(1).ok_or(Error::Quota)?;
@@ -352,6 +405,26 @@ impl<const N: usize> Frames<N> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn readmission_preserves_existing_owners_and_reserved_mappings() {
+        let mut frames = Frames::<4>::new();
+        let mapped = PAGE;
+        frames.map(mapped, false, true, false).unwrap();
+        let range = Range::pages(0, 4).unwrap();
+        frames.admit(range, 7, 8, &[]);
+        assert_eq!(frames.owner(mapped), Ok(Owner::Reserved));
+        let owned = frames.allocate(Owner::Kernel, |_| {}).unwrap();
+        assert_ne!(owned, mapped);
+        frames.admit(range, 7, 8, &[]);
+        assert_eq!(frames.owner(owned), Ok(Owner::Kernel));
+        assert_eq!(frames.owner(mapped), Ok(Owner::Reserved));
+        frames.unmap(mapped, false, true).unwrap();
+        frames.admit(range, 7, 8, &[]);
+        assert_eq!(frames.owner(mapped), Ok(Owner::Free));
+        assert_eq!(frames.owner(owned), Ok(Owner::Kernel));
+    }
+
     #[test]
     fn physical_page_width_and_overflow_fail_closed() {
         assert!(physical_page_fits(0xfffff000, 32));

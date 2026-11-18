@@ -1,0 +1,19 @@
+{
+  "head": "fd7d92265672294561e873722581fded013891f8",
+  "finding_id": "345169078c5aa53938950d21",
+  "reviewer": "CodeRabbit current-head COMMENTED review",
+  "original_severity": "Minor",
+  "category": "Maintainability & Code Quality",
+  "path": "docs/DECISIONS.md",
+  "root_cause": "The generic Template for a new decision in docs/DECISIONS.md lists alternatives and rationale/sources; historical ADR-B03K3 lacks explicit entries, although it links the approved proposal. The review cites ADR-054, which is actually the separate artifact-store contract.",
+  "status": "OPEN: legitimate nonblocking documentation follow-up; not dismissed or called resolved",
+  "priority": "P3 Low",
+  "owner": "Codex integrator, governance phase1 documentation contract",
+  "evidence": "Exact review body in logs/pr336-final-review-snapshot.json; existing ADR/proposal source is preserved, no runtime/test/permission/security-boundary change",
+  "next_step": "Add a scoped editorial rationale/source pointer and distinguish actually documented alternatives from unrecorded evaluation. Use the existing proposal and preserve historical approval/identifier/date; never invent a retrospective owner decision.",
+  "baseline_disposition": "Does not block the technically verified TEST experiment or finite baseline under latest owner refinement. All mandatory current-head checks and blocking reviews remain mandatory. No accepted security risk or scanner suppression.",
+  "source_verification": {
+    "generic_template": "docs/DECISIONS.md:2086 on fd7d9226",
+    "incorrect_review_reference": "ADR-054 is Shared immutable artifact-store contract; retain this citation correction without dismissing the genuine editorial gap"
+  }
+}

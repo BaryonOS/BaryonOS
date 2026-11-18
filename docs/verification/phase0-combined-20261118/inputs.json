@@ -1,0 +1,19 @@
+{
+  "base_main": "de9b99047138c4fd0015ffc3f874b273b3537484",
+  "preserved_preview": "bba804996b93d93e82b6fb323cdeea9779f6fe99",
+  "status": "unaccepted integration in progress",
+  "intended_inputs": {
+    "340": "8609a4d1",
+    "350": "04e464963cd0d969f8687208404f480f289d54a4",
+    "354": "f0b4b6ed1f93012ff4bcfbeec7787de6eaa736da",
+    "358": "await final reviewed publication/English coverage receipt",
+    "359": "6e72098e58db19d1c72667a4deb06d1d9b3115d8"
+  },
+  "excluded": [
+    "355 unfinished full isolation",
+    "357 untested resource recovery",
+    "Unpublished platform-blocked kernel-security WIP"
+  ],
+  "source_pr_closure": "Only after final-main inclusion proof",
+  "score": 41
+}

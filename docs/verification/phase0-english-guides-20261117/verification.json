@@ -1,0 +1,88 @@
+{
+  "source_parent": "cece3041187e1b7d08ec7708c36b84c728d6e2d2",
+  "integrated_main": "95d59ad52761c1f8f0201d934556902b90ce63cb",
+  "files": [
+    {
+      "path": "docs/implementation/NATIVE-MATERIAL-LIBRARY.md",
+      "original_sha256": "2ed5147b39b7b2f7abb05b3e118c02fbbfc858d094d5f5ce76b8656edff41d6c",
+      "translated_sha256": "f71d2adfd90c7984fd9d3eeb478bf7b9b8ecd3fd0ae196388e692b4741fb8c40",
+      "independent_semantic_review": "PASS"
+    },
+    {
+      "path": "sdk/examples/ipc-wait-probe/README.md",
+      "original_sha256": "dd191ea8cc2eba9af4421fb83f8b6ac77194971b1882083811c85136440ac5e9",
+      "translated_sha256": "2e05dbfc96f62c86b2f23606b399ed88a0009671c3d5cfad1ee416a77b5a7afd",
+      "independent_semantic_review": "PASS"
+    },
+    {
+      "path": "docs/contracts/NATIVE-IPC-WAIT.md",
+      "original_sha256": "c9aca17e837aec6e739fb9deaff81ff986450d69148cc85ef061f6a6b4352686",
+      "translated_sha256": "939278a379dbf7adfd9f9e0a54e670b63be80a5cf8d138d1668940894a77f6e2",
+      "independent_semantic_review": "PASS"
+    }
+  ],
+  "earlier_ci_guide_sha256": "5a1018e07494bf9dfbc45d455f3af7b9227b70d59008fadda8d517f34ce8a87a",
+  "source_preservation": {
+    "two_native_guides": {
+      "code_blocks": 2,
+      "inline_spans": 82,
+      "numeric_literals": 267,
+      "legacy_anchors": 11,
+      "local_paths": 8,
+      "exit_code": 0
+    },
+    "ipc_contract": {
+      "code_blocks": 3,
+      "inline_spans": 21,
+      "prose_numeric_tokens": 91,
+      "legacy_anchors": 7,
+      "exit_code": 0
+    }
+  },
+  "reports": {
+    "P0-274-GUIDES-report.md": {
+      "sha256": "2db6bcf74bdf66f416d6ccdb27f520cc4ea03b621a2e87ad4fe96ec214ebf1e3",
+      "durable_archive": "/home/simon/projects/baryonos-handoffs/claude-to-codex/phase0-20261117/P0-274-GUIDES-report.md"
+    },
+    "P0-274-IPC-CONTRACT-report.md": {
+      "sha256": "70eb47c02e920954d5da89fe799bb3f9cc754c12d248b0f65159e90f6d985c3f",
+      "durable_archive": "/home/simon/projects/baryonos-handoffs/claude-to-codex/phase0-20261117/P0-274-IPC-CONTRACT-report.md"
+    },
+    "P0-274-GUIDES-independent-review.md": {
+      "sha256": "c33f40ad096fc71d30f2dd9e8e2297e118a467513214aeb9ab937967886eb2e0",
+      "durable_archive": "/home/simon/projects/baryonos-handoffs/claude-to-codex/phase0-20261117/P0-274-GUIDES-independent-review.md"
+    }
+  },
+  "historical_check_failures": "Auxiliary extraction heuristics rejected English forms; diagnoses and corrected checks retained in full reports, no product test weakened",
+  "progress": {
+    "previous": 41,
+    "current": 41
+  },
+  "not_run": [
+    "Native/runtime/hardware suites: documentation-only change",
+    "Human audit",
+    "Full issue274coverage"
+  ],
+  "current_head_hosted": "PENDING",
+  "integrated_local_checks": [
+    {
+      "command": "python3 -B tools/tokenguard.py run --output bounded -- python3 -B -m unittest discover -s tests -p test_ci_workflows.py",
+      "exit_code": 0,
+      "tests": 26,
+      "raw_log": "build/tokenguard/run-a94hh_mz.log",
+      "raw_log_sha256": "ead053e190dcd47e8b54fdce0df573d9c2a026ba19244d0fd5380512fb469881"
+    },
+    {
+      "command": "python3 -B tools/progress.py --write",
+      "exit_code": 0
+    },
+    {
+      "command": "python3 -B tools/progress.py --check",
+      "exit_code": 0
+    },
+    {
+      "command": "git diff --check",
+      "exit_code": 0
+    }
+  ]
+}

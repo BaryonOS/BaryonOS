@@ -1,0 +1,187 @@
+{
+  "head": "de793ed7ec83e2c121bf3f02fd0873271f86fe58",
+  "queued_predecessor": "c26b0903627fea59f5d286f8eff4c4887b017b9a",
+  "actual_main": "e7169e43bf772307acf328590b4300fa52a4ad73",
+  "fix": "Only native-update-policy-probe kernel uses cargo rustc -C link-arg=--strip-all, no dependency/profile/global changes",
+  "original_failure": {
+    "head": "089eb2e9953a5538a08aefe835933302e4e35e0c",
+    "kernel_bytes": 2100296,
+    "cap": 2097152,
+    "sign_exit": 1
+  },
+  "superseded_candidate": {
+    "head": "54bccda9c9c2265964d1719713d4931d613ff77a",
+    "native_gates": 0,
+    "loaded_byte_identity": "FAIL due Cargo-profile function/vtable reorder; not claimedbyteidentical"
+  },
+  "final_results": [
+    {
+      "source": "de793ed7ec83e2c121bf3f02fd0873271f86fe58",
+      "command": [
+        "python3",
+        "-B",
+        "-u",
+        "tools/test_policy_envelopes.py",
+        "--timeout",
+        "900"
+      ],
+      "exit_code": 0,
+      "duration_seconds": 2.866,
+      "raw_log": "/tmp/baryonos-phase0-20261117/logs/pr333-linker-gate-0.log",
+      "sha256": "43696547bd54d94ece9168898d547cf6d3e97266aae4dddfe3e4ba3dcd9438ae",
+      "native": {
+        "source_v3": "3c15e8127ce9bf6fc1ca7587fd137fa54d94f51e43dace05ed2ca9a15238ab40",
+        "raw_qemu_exit": 33,
+        "cases_per_consumer": 26,
+        "kernel_bytes": 2073616,
+        "headroom": 23536,
+        "fixed_cap": 2097152,
+        "entry_and_all_PT_LOAD_bytes_equal": true,
+        "kernel_sha256": "703dc09fda97791943377607615ecf23bda496b4ab7a3d783df758f7c520e792",
+        "load_segments": {
+          "entry": 33554432,
+          "segments": [
+            {
+              "flags": 5,
+              "vaddr": 33554432,
+              "paddr": 33554432,
+              "filesz": 131415,
+              "memsz": 131415,
+              "align": 4096,
+              "sha256": "f346caa3c798c16b048e748b37c446e300eac9e8585f20e382c75ec42bbee398"
+            },
+            {
+              "flags": 4,
+              "vaddr": 33689600,
+              "paddr": 33689600,
+              "filesz": 214416,
+              "memsz": 214416,
+              "align": 4096,
+              "sha256": "26eb395dfb70b6ea055f560d83fdf6f45bce9c818720cf15d62c047a6f6bdf89"
+            },
+            {
+              "flags": 6,
+              "vaddr": 33906688,
+              "paddr": 33906688,
+              "filesz": 1716840,
+              "memsz": 5389952,
+              "align": 4096,
+              "sha256": "b0931c1dd2dae52d3e286f83de2d8676c968a05738c6ba321da34217ddf5e26e"
+            }
+          ]
+        },
+        "fixture_hashes": {
+          "SHA256SUMS": "537de0d8a274cb4b15ad8b9b8ed2ef7e52ce383fc17dae2ff2d19d7bd245e65c",
+          "binding-expired.bin": "6c89c0fd287b3c9fe15cfb2921dba21a9e99f04d483846a3e8cd70d2ed765867",
+          "binding-premature.bin": "23c556c6d7efb7f507f69a39cb83bb0fd50d8f0efd069b1694f4abd0e0f038ab",
+          "binding-revoked.bin": "cb9d9cbc329156c7379c5c80059f5b56f72a8fc072f026a74b3536f2e9e81f8c",
+          "binding.bin": "3919d4b7803e886cdc5a21203b27e11cb3a2417cbf2daeb1ce6d3ac1ec716808",
+          "manifest.bin": "f76e80557fbcf823e8dfb0878bac0a9ede02484c12c103accd871a5b42c9e3d3",
+          "payload.bin": "ce7ccfd59b8c3d5ca8bb16d35920e9373a5742e0017ca2e2eceafc44324cc657",
+          "policy-expired.bin": "d930d65e3f23d77bea7b2392a65561d78b7e1623fbb11beea66980d6d4996b65",
+          "policy-premature.bin": "e9f47eff57e4d05b85083eed28886d68b5b3d8f97dd01e45d37bcb2172490003",
+          "policy-revoked.bin": "8027247a46a5305d67d64217db3a91c4519e8c559c9227f63194754ea248693b",
+          "policy.bin": "16e39e36198f100ee545bd1f430584556ef98658a77e42f326b1f054209bf1da",
+          "root-ed25519.bin": "b41fd894f96ec8adca19a85feb4f33462fc2eb7d977fdf0113955a54084d08ba",
+          "root-mldsa65.bin": "3ad5baed36f110401f14cadef9d28f5fa4aecb2b0f515257371d74b37fda33f0"
+        },
+        "store_before": "df8ad932fbdcea588d9fd65ef787839b90e59d1129873c622713f430ca1909f9",
+        "store_after": "df8ad932fbdcea588d9fd65ef787839b90e59d1129873c622713f430ca1909f9",
+        "run_directory": "/tmp/baryonos-phase0-20261117/pr333/build/run/policy-envelopes-c446c99802"
+      }
+    },
+    {
+      "source": "de793ed7ec83e2c121bf3f02fd0873271f86fe58",
+      "command": [
+        "python3",
+        "-B",
+        "tools/agent_gate.py",
+        "--job",
+        "native-xhci.yml#native-xhci"
+      ],
+      "exit_code": 0,
+      "duration_seconds": 12.364,
+      "raw_log": "/tmp/baryonos-phase0-20261117/logs/pr333-linker-gate-1.log",
+      "sha256": "8768888837ea15335955d7133514fd7f72b2e881d7335a48217ecc0f07710fa5"
+    },
+    {
+      "source": "de793ed7ec83e2c121bf3f02fd0873271f86fe58",
+      "command": [
+        "python3",
+        "-B",
+        "tools/agent_gate.py",
+        "--job",
+        "native-hid-input.yml#native-hid-input"
+      ],
+      "exit_code": 0,
+      "duration_seconds": 4.936,
+      "raw_log": "/tmp/baryonos-phase0-20261117/logs/pr333-linker-gate-2.log",
+      "sha256": "8fca2271500ac4fb48e0108f4358a041b5a241f0844ad29c8426fd790eb6f561"
+    },
+    {
+      "source": "de793ed7ec83e2c121bf3f02fd0873271f86fe58",
+      "command": [
+        "python3",
+        "-B",
+        "tools/agent_gate.py",
+        "--job",
+        "signed-updates.yml#b03-native-update"
+      ],
+      "exit_code": 0,
+      "duration_seconds": 56.626,
+      "raw_log": "/tmp/baryonos-phase0-20261117/logs/pr333-linker-gate-3.log",
+      "sha256": "8ed5c23805ec622d3fc139374f3c1f6e5104b1f33691c67f00024b0a2e422d8b"
+    }
+  ],
+  "complete_raw_log_retention": {
+    "signed_updates": {
+      "source": "de793ed7ec83e2c121bf3f02fd0873271f86fe58",
+      "full_raw_gate_log": "/tmp/baryonos-phase0-20261117/logs/pr333-de793ed7-signed-updates-full-gate.log",
+      "sha256": "51ccf000c00a5a6988410be707f21642d31f4784271e9f4fd9d5103acfb6b617",
+      "exit_code": 0,
+      "execution_record": "logs/pr333-linker-gates.json row3"
+    },
+    "affected": [
+      {
+        "source": "de793ed7ec83e2c121bf3f02fd0873271f86fe58",
+        "command": [
+          "python3",
+          "-B",
+          "tools/agent_gate.py",
+          "--job",
+          "native-xhci.yml#native-xhci",
+          "--log",
+          "/tmp/baryonos-phase0-20261117/logs/pr333-de793ed7-0-full-gate.log"
+        ],
+        "exit_code": 0,
+        "seconds": 12.436,
+        "full_raw_gate_log": "/tmp/baryonos-phase0-20261117/logs/pr333-de793ed7-0-full-gate.log",
+        "sha256": "1e79204af5e58c3a4597de7176e4432420143644cbd6e97ee07fda9b208d38d6"
+      },
+      {
+        "source": "de793ed7ec83e2c121bf3f02fd0873271f86fe58",
+        "command": [
+          "python3",
+          "-B",
+          "tools/agent_gate.py",
+          "--job",
+          "native-hid-input.yml#native-hid-input",
+          "--log",
+          "/tmp/baryonos-phase0-20261117/logs/pr333-de793ed7-1-full-gate.log"
+        ],
+        "exit_code": 0,
+        "seconds": 5.058,
+        "full_raw_gate_log": "/tmp/baryonos-phase0-20261117/logs/pr333-de793ed7-1-full-gate.log",
+        "sha256": "6782570fbc54503893d23566dd5c31ca538b2d6d97f9811d9cfef66eb4958b3f"
+      }
+    ],
+    "reason": "Default agent_gate log is opened w; earlier outer controller outputs were summaries. Preserve actual full logs explicitly instead of claiming summaries are complete raw evidence."
+  },
+  "independent_final_review": "PENDING",
+  "hosted_current_head": "PENDING",
+  "limits": [
+    "No completeH02/hardware/human audit",
+    "No points/issueclosure",
+    "Actualmain after336 muststillbereconciled"
+  ]
+}

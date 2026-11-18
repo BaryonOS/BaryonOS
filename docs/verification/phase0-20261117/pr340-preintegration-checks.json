@@ -1,0 +1,280 @@
+{
+  "preview_head": "f5a976f17a3167a08ad513f0328cba8de3dd8a62",
+  "source_v3": "4a2597628573f45914a892400607ccf86d365dd2aebb22dd17646d4432e9a8d0",
+  "actual_pr_head": "90816de39460b76e35cd626721d4dac9bde905e2",
+  "publication_branch": "codex/phase0-pr340-preintegration",
+  "checks": [
+    {
+      "source": "f5a976f17a3167a08ad513f0328cba8de3dd8a62",
+      "command": [
+        "cargo",
+        "+1.90.0",
+        "test",
+        "--offline",
+        "--locked",
+        "-p",
+        "volume-core"
+      ],
+      "exit_code": 0,
+      "seconds": 22.717,
+      "controller_log": "/tmp/baryonos-phase0-20261117/logs/pr340-f5-host-0.log",
+      "token_guard": {
+        "duration_seconds": 22.685,
+        "emitted_bytes": 7624,
+        "exit_code": 0,
+        "log": "build/tokenguard/run-1kkdd3mi.log",
+        "output_complete": true,
+        "presentation_scope": "sanitized_text",
+        "raw_bytes": 7387,
+        "rtk_used": false,
+        "schema_version": 1
+      },
+      "raw_sha256": "52cd19487660592de09b8eede49e956d59cce654ae0ef5e69f47d72303aa5ce6"
+    },
+    {
+      "source": "f5a976f17a3167a08ad513f0328cba8de3dd8a62",
+      "command": [
+        "cargo",
+        "+1.90.0",
+        "clippy",
+        "--offline",
+        "--locked",
+        "-p",
+        "volume-core",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit_code": 0,
+      "seconds": 0.967,
+      "controller_log": "/tmp/baryonos-phase0-20261117/logs/pr340-f5-host-1.log",
+      "token_guard": {
+        "duration_seconds": 0.933,
+        "emitted_bytes": 480,
+        "exit_code": 0,
+        "log": "build/tokenguard/run-gh9vwtas.log",
+        "output_complete": true,
+        "presentation_scope": "sanitized_text",
+        "raw_bytes": 246,
+        "rtk_used": false,
+        "schema_version": 1
+      },
+      "raw_sha256": "806899592d99d44b24457aa5f1afc765f4797f4f4f09ac91788c0bb52b1e3e2f"
+    },
+    {
+      "source": "f5a976f17a3167a08ad513f0328cba8de3dd8a62",
+      "command": [
+        "cargo",
+        "+1.90.0",
+        "clippy",
+        "--offline",
+        "--locked",
+        "--release",
+        "--manifest-path",
+        "sdk/examples/volume-docs/Cargo.toml",
+        "--target",
+        "x86_64-unknown-none",
+        "--features",
+        "native,archive-portal",
+        "--bins",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit_code": 0,
+      "seconds": 0.077,
+      "controller_log": "/tmp/baryonos-phase0-20261117/logs/pr340-f5-host-2.log",
+      "token_guard": {
+        "duration_seconds": 0.045,
+        "emitted_bytes": 295,
+        "exit_code": 0,
+        "log": "build/tokenguard/run-xxfy9i8g.log",
+        "output_complete": true,
+        "presentation_scope": "sanitized_text",
+        "raw_bytes": 62,
+        "rtk_used": false,
+        "schema_version": 1
+      },
+      "raw_sha256": "222a02ed477d249a21359df8cae975864a62d848f4739cadc5b00b6190a963c6"
+    },
+    {
+      "source": "f5a976f17a3167a08ad513f0328cba8de3dd8a62",
+      "command": [
+        "cargo",
+        "+1.90.0",
+        "fmt",
+        "--all",
+        "--",
+        "--check"
+      ],
+      "exit_code": 0,
+      "seconds": 0.681,
+      "controller_log": "/tmp/baryonos-phase0-20261117/logs/pr340-f5-host-3.log",
+      "token_guard": {
+        "duration_seconds": 0.649,
+        "emitted_bytes": 231,
+        "exit_code": 0,
+        "log": "build/tokenguard/run-uklv9rzk.log",
+        "output_complete": true,
+        "presentation_scope": "sanitized_text",
+        "raw_bytes": 0,
+        "rtk_used": false,
+        "schema_version": 1
+      },
+      "raw_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "source": "f5a976f17a3167a08ad513f0328cba8de3dd8a62",
+      "command": [
+        "python3",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tests",
+        "-p",
+        "test_volume_ustar_export.py"
+      ],
+      "exit_code": 0,
+      "seconds": 0.078,
+      "controller_log": "/tmp/baryonos-phase0-20261117/logs/pr340-f5-host-4.log",
+      "token_guard": {
+        "duration_seconds": 0.046,
+        "emitted_bytes": 334,
+        "exit_code": 0,
+        "log": "build/tokenguard/run-gfpoebg9.log",
+        "output_complete": true,
+        "presentation_scope": "sanitized_text",
+        "raw_bytes": 100,
+        "rtk_used": false,
+        "schema_version": 1
+      },
+      "raw_sha256": "fe008aab760eb03ccac7578e2b84665b1b50b0d7f855b17a0c7a8d039435b658"
+    },
+    {
+      "source": "f5a976f17a3167a08ad513f0328cba8de3dd8a62",
+      "command": [
+        "python3",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tests",
+        "-p",
+        "test_volume_ustar_names.py"
+      ],
+      "exit_code": 0,
+      "seconds": 0.258,
+      "controller_log": "/tmp/baryonos-phase0-20261117/logs/pr340-f5-host-5.log",
+      "token_guard": {
+        "duration_seconds": 0.226,
+        "emitted_bytes": 335,
+        "exit_code": 0,
+        "log": "build/tokenguard/run-_w6l6tpv.log",
+        "output_complete": true,
+        "presentation_scope": "sanitized_text",
+        "raw_bytes": 101,
+        "rtk_used": false,
+        "schema_version": 1
+      },
+      "raw_sha256": "7919a7878f31f6b5248f306f9c34ff4dcf09670d45c56d8d887aba76aeab25d4"
+    },
+    {
+      "source": "f5a976f17a3167a08ad513f0328cba8de3dd8a62",
+      "command": [
+        "python3",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tests",
+        "-p",
+        "test_ci_workflows.py"
+      ],
+      "exit_code": 0,
+      "seconds": 0.344,
+      "controller_log": "/tmp/baryonos-phase0-20261117/logs/pr340-f5-host-6.log",
+      "token_guard": {
+        "duration_seconds": 0.311,
+        "emitted_bytes": 360,
+        "exit_code": 0,
+        "log": "build/tokenguard/run-q60u0lxc.log",
+        "output_complete": true,
+        "presentation_scope": "sanitized_text",
+        "raw_bytes": 126,
+        "rtk_used": false,
+        "schema_version": 1
+      },
+      "raw_sha256": "e2a828a38042c932e43f872412a2c76b18b66eb16118ec4733a27af2c9fc5471"
+    },
+    {
+      "source": "f5a976f17a3167a08ad513f0328cba8de3dd8a62",
+      "command": [
+        "python3",
+        "-B",
+        "tools/agent_gate.py",
+        "--job",
+        "volume-acceptance.yml#m6e",
+        "--log",
+        "/tmp/baryonos-phase0-20261117/logs/pr340-f5-native-0-full.log"
+      ],
+      "exit_code": 0,
+      "seconds": 153.434,
+      "full_raw_gate_log": "/tmp/baryonos-phase0-20261117/logs/pr340-f5-native-0-full.log",
+      "sha256": "0061671c2ff7e31227881de0b1f912b7e7989838b5ce4ea1015c503150e17310"
+    },
+    {
+      "source": "f5a976f17a3167a08ad513f0328cba8de3dd8a62",
+      "command": [
+        "python3",
+        "-B",
+        "tools/agent_gate.py",
+        "--job",
+        "native-xhci.yml#native-xhci",
+        "--log",
+        "/tmp/baryonos-phase0-20261117/logs/pr340-f5-native-1-full.log"
+      ],
+      "exit_code": 0,
+      "seconds": 18.732,
+      "full_raw_gate_log": "/tmp/baryonos-phase0-20261117/logs/pr340-f5-native-1-full.log",
+      "sha256": "82af87671bc5babde67da5f82a9f071562b1d82a59dc3088ee90287f2f6c2449"
+    },
+    {
+      "source": "f5a976f17a3167a08ad513f0328cba8de3dd8a62",
+      "command": [
+        "python3",
+        "-B",
+        "tools/agent_gate.py",
+        "--job",
+        "native-hid-input.yml#native-hid-input",
+        "--log",
+        "/tmp/baryonos-phase0-20261117/logs/pr340-f5-native-2-full.log"
+      ],
+      "exit_code": 0,
+      "seconds": 16.104,
+      "full_raw_gate_log": "/tmp/baryonos-phase0-20261117/logs/pr340-f5-native-2-full.log",
+      "sha256": "b0eafc1ac91c833b8cb3c15b940ac1ceeef3b0b2e26d8ffa1b9a7d4b2016b3ab"
+    },
+    {
+      "source": "f5a976f17a3167a08ad513f0328cba8de3dd8a62",
+      "command": [
+        "python3",
+        "-B",
+        "tools/agent_gate.py",
+        "--job",
+        "signed-updates.yml#b03-native-update",
+        "--log",
+        "/tmp/baryonos-phase0-20261117/logs/pr340-f5-native-3-full.log"
+      ],
+      "exit_code": 0,
+      "seconds": 85.703,
+      "full_raw_gate_log": "/tmp/baryonos-phase0-20261117/logs/pr340-f5-native-3-full.log",
+      "sha256": "b80f45a3c264d047f377c92ec09b4e5994b2409661975eda55dd2e3b80a8ed95"
+    }
+  ],
+  "limit": "Preview source only; fresh actual-main reconciliation/current PR head CI/reviews remain mandatory. Broader S09/D1-D5/Claude WIP remain outside the released fix."
+}
