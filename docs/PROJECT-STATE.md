@@ -16,7 +16,22 @@ negative stale generation, exhaustion and reset tests; existing tests unchanged.
 **Evidence limit:** host tracker/build; native loss/reconnect and hardware remain
 open. Unsafe runner remains held; score41/100. N02-T2 is blocked by absent Rust1.91.1
 (no code changed; exact tests NOT RUN); P02-T3 remains blocked by protocol/network.
-**Next:** implement the bounded tracker; no new dependency or kernel policy.
+**Delivered/source:** `1249f015b32dfdf88d9d839dbacbfe95e8488001` exports the pure `link::Tracker`. It requires
+negotiated FEATURE_STATUS, monotonic nonzero u64 observation serials, and counts
+only real transitions after the first sample. Stale samples leave state intact;
+reset or transition-budget exhaustion latches an error and exposes no usable state.
+No implicit recovery, live queue/DMA/MMIO/kernel or protocol changes.
+**Executed:** all22 driver host tests including4 new regressions, Clippy with
+warnings denied, workspace fmt and x86_64-unknown-none release build exit0.
+Lead source/diff review completed; no extra review cycle.
+[Receipt](roadmap-pipeline/receipts/H04-T2.json) records exact commands/log hashes.
+Progress **41 → 41/100**; H04/native reconnect remain open.
+**Not run:** native link loss/reconnect, kernel wiring or physical NICs/human tests.
+**Next:** publish independent draft. N02-T2 resumes with installed Rust1.91.1;
+P02-T3 needs NASP Head and native network dependencies. Preserve source branches
+PR362–368; no merge readiness is inferred. PR366 setup download hash failure
+was recorded on its PR and retried once with unchanged controls; result remains
+pending. No CI polling or execution-hold bypass was performed.
 
 ## Retained checkpoint — P02-T2 checkpoint codec — 18 November 2026
 
