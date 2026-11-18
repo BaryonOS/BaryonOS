@@ -1,0 +1,252 @@
+{
+  "source_commit": "2a08f4a33eff63b354821f6892e1be28f7602c9b",
+  "source_fingerprint_version": 3,
+  "source_sha256": "25dd6d69621f1d9d4c8ed353633b3db62818562fa6ce50efa4445207505adb44",
+  "checks": [
+    {
+      "name": "noop-build",
+      "command": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+        "-B",
+        "tools/build.py",
+        "--kernel-feature",
+        "native-xhci-probe"
+      ],
+      "environment": {
+        "NOS_QEMU_MACHINE": "pc-q35-8.2",
+        "NOS_BUILD_DIR": "/workspace/baryon-h02-completion/build/h02-combined-2a08f4a3/noop",
+        "NOS_TARGET_DIR": "/workspace/baryon-h02-completion/target/h02-combined-native",
+        "CARGO_TARGET_DIR": "/workspace/baryon-h02-completion/target/h02-combined-native"
+      },
+      "exit_code": 0,
+      "duration_seconds": 4.265,
+      "log": "build/h02-combined-2a08f4a3/noop-build.log",
+      "log_sha256": "8376b82817aeb036a6bead1f12b99a47649ba87e75575aef4705502b0bf234bd"
+    },
+    {
+      "name": "noop-run",
+      "command": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+        "-B",
+        "tools/run_xhci.py",
+        "--case",
+        "noop"
+      ],
+      "environment": {
+        "NOS_QEMU_MACHINE": "pc-q35-8.2",
+        "NOS_BUILD_DIR": "/workspace/baryon-h02-completion/build/h02-combined-2a08f4a3/noop",
+        "NOS_TARGET_DIR": "/workspace/baryon-h02-completion/target/h02-combined-native",
+        "CARGO_TARGET_DIR": "/workspace/baryon-h02-completion/target/h02-combined-native"
+      },
+      "exit_code": 0,
+      "duration_seconds": 5.285,
+      "log": "build/h02-combined-2a08f4a3/noop-run.log",
+      "log_sha256": "9b30be0008189b3efbb07045953b0231c1b54d86c08bf7f42908088ec73dfab0"
+    },
+    {
+      "name": "fault-build",
+      "command": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+        "-B",
+        "tools/build.py",
+        "--kernel-feature",
+        "test-xhci-dma-fault"
+      ],
+      "environment": {
+        "NOS_QEMU_MACHINE": "pc-q35-8.2",
+        "NOS_BUILD_DIR": "/workspace/baryon-h02-completion/build/h02-combined-2a08f4a3/fault",
+        "NOS_TARGET_DIR": "/workspace/baryon-h02-completion/target/h02-combined-native",
+        "CARGO_TARGET_DIR": "/workspace/baryon-h02-completion/target/h02-combined-native"
+      },
+      "exit_code": 0,
+      "duration_seconds": 1.617,
+      "log": "build/h02-combined-2a08f4a3/fault-build.log",
+      "log_sha256": "47d83df948face32f42f1c48f4b27cb88fb165e966e1ffe99b47b4eae765673c"
+    },
+    {
+      "name": "fault-run",
+      "command": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+        "-B",
+        "tools/run_xhci.py",
+        "--case",
+        "fault"
+      ],
+      "environment": {
+        "NOS_QEMU_MACHINE": "pc-q35-8.2",
+        "NOS_BUILD_DIR": "/workspace/baryon-h02-completion/build/h02-combined-2a08f4a3/fault",
+        "NOS_TARGET_DIR": "/workspace/baryon-h02-completion/target/h02-combined-native",
+        "CARGO_TARGET_DIR": "/workspace/baryon-h02-completion/target/h02-combined-native"
+      },
+      "exit_code": 0,
+      "duration_seconds": 3.106,
+      "log": "build/h02-combined-2a08f4a3/fault-run.log",
+      "log_sha256": "eb2839b13ca58a627d298ebcb844276cf6a9eed407c464b6b63f5cc6a25616a4"
+    },
+    {
+      "name": "no-dmar-build",
+      "command": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+        "-B",
+        "tools/build.py",
+        "--kernel-feature",
+        "test-xhci-no-dmar"
+      ],
+      "environment": {
+        "NOS_QEMU_MACHINE": "pc-q35-8.2",
+        "NOS_BUILD_DIR": "/workspace/baryon-h02-completion/build/h02-combined-2a08f4a3/no-dmar",
+        "NOS_TARGET_DIR": "/workspace/baryon-h02-completion/target/h02-combined-native",
+        "CARGO_TARGET_DIR": "/workspace/baryon-h02-completion/target/h02-combined-native"
+      },
+      "exit_code": 0,
+      "duration_seconds": 1.359,
+      "log": "build/h02-combined-2a08f4a3/no-dmar-build.log",
+      "log_sha256": "4ff2d31fc64ebdf6018537b0d619c8a67a3ba5d2da7e1b040831d68fc750af9e"
+    },
+    {
+      "name": "no-dmar-run",
+      "command": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+        "-B",
+        "tools/run_xhci.py",
+        "--case",
+        "no-dmar"
+      ],
+      "environment": {
+        "NOS_QEMU_MACHINE": "pc-q35-8.2",
+        "NOS_BUILD_DIR": "/workspace/baryon-h02-completion/build/h02-combined-2a08f4a3/no-dmar",
+        "NOS_TARGET_DIR": "/workspace/baryon-h02-completion/target/h02-combined-native",
+        "CARGO_TARGET_DIR": "/workspace/baryon-h02-completion/target/h02-combined-native"
+      },
+      "exit_code": 0,
+      "duration_seconds": 2.989,
+      "log": "build/h02-combined-2a08f4a3/no-dmar-run.log",
+      "log_sha256": "b06f028865268ef53a367ba446f452d114e2600d263639f9d6ae9cbed5547045"
+    },
+    {
+      "name": "usb-reports-build",
+      "command": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+        "-B",
+        "tools/build.py",
+        "--kernel-feature",
+        "native-usb-hid-probe"
+      ],
+      "environment": {
+        "NOS_QEMU_MACHINE": "pc-q35-8.2",
+        "NOS_BUILD_DIR": "/workspace/baryon-h02-completion/build/h02-combined-2a08f4a3/usb-reports",
+        "NOS_TARGET_DIR": "/workspace/baryon-h02-completion/target/h02-combined-native",
+        "CARGO_TARGET_DIR": "/workspace/baryon-h02-completion/target/h02-combined-native"
+      },
+      "exit_code": 0,
+      "duration_seconds": 1.813,
+      "log": "build/h02-combined-2a08f4a3/usb-reports-build.log",
+      "log_sha256": "39acc829d963527f0417f4d2374e0db6fefd04629124b6a6f66439a1c0fb6d8a"
+    },
+    {
+      "name": "usb-reports-run",
+      "command": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+        "-B",
+        "tools/run_usb_hid.py",
+        "--case",
+        "reports"
+      ],
+      "environment": {
+        "NOS_QEMU_MACHINE": "pc-q35-8.2",
+        "NOS_BUILD_DIR": "/workspace/baryon-h02-completion/build/h02-combined-2a08f4a3/usb-reports",
+        "NOS_TARGET_DIR": "/workspace/baryon-h02-completion/target/h02-combined-native",
+        "CARGO_TARGET_DIR": "/workspace/baryon-h02-completion/target/h02-combined-native"
+      },
+      "exit_code": 0,
+      "duration_seconds": 3.351,
+      "log": "build/h02-combined-2a08f4a3/usb-reports-run.log",
+      "log_sha256": "0e9d44e79bb7ca9d10f9939548066b4842a9ed7e7a522ee658599bfe68e728c4"
+    },
+    {
+      "name": "usb-readonly-build",
+      "command": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+        "-B",
+        "tools/build.py",
+        "--kernel-feature",
+        "test-usb-hid-readonly-fault"
+      ],
+      "environment": {
+        "NOS_QEMU_MACHINE": "pc-q35-8.2",
+        "NOS_BUILD_DIR": "/workspace/baryon-h02-completion/build/h02-combined-2a08f4a3/usb-readonly",
+        "NOS_TARGET_DIR": "/workspace/baryon-h02-completion/target/h02-combined-native",
+        "CARGO_TARGET_DIR": "/workspace/baryon-h02-completion/target/h02-combined-native"
+      },
+      "exit_code": 0,
+      "duration_seconds": 1.58,
+      "log": "build/h02-combined-2a08f4a3/usb-readonly-build.log",
+      "log_sha256": "e6242d44be170cf8f2a104a56317e9f295da198f1de41d8a07857eeeb33aad6e"
+    },
+    {
+      "name": "usb-readonly-run",
+      "command": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+        "-B",
+        "tools/run_usb_hid.py",
+        "--case",
+        "readonly"
+      ],
+      "environment": {
+        "NOS_QEMU_MACHINE": "pc-q35-8.2",
+        "NOS_BUILD_DIR": "/workspace/baryon-h02-completion/build/h02-combined-2a08f4a3/usb-readonly",
+        "NOS_TARGET_DIR": "/workspace/baryon-h02-completion/target/h02-combined-native",
+        "CARGO_TARGET_DIR": "/workspace/baryon-h02-completion/target/h02-combined-native"
+      },
+      "exit_code": 0,
+      "duration_seconds": 3.766,
+      "log": "build/h02-combined-2a08f4a3/usb-readonly-run.log",
+      "log_sha256": "62b15c6d812d643ab381bd3001a08af6de7359dac26ac0dc8d60563b404f62cd"
+    },
+    {
+      "name": "hid-ipc-build",
+      "command": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+        "-B",
+        "tools/build.py",
+        "--kernel-feature",
+        "native-hid-input-probe"
+      ],
+      "environment": {
+        "NOS_QEMU_MACHINE": "pc-q35-8.2",
+        "NOS_BUILD_DIR": "/workspace/baryon-h02-completion/build/h02-combined-2a08f4a3/hid-ipc",
+        "NOS_TARGET_DIR": "/workspace/baryon-h02-completion/target/h02-combined-native",
+        "CARGO_TARGET_DIR": "/workspace/baryon-h02-completion/target/h02-combined-native"
+      },
+      "exit_code": 0,
+      "duration_seconds": 21.347,
+      "log": "build/h02-combined-2a08f4a3/hid-ipc-build.log",
+      "log_sha256": "2dc6205ce525566baa636b40f880149f5ed9bbeab6df324d4ba37689bb369b27"
+    },
+    {
+      "name": "hid-ipc-run",
+      "command": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+        "-B",
+        "tools/run_hid_input.py",
+        "--vga-rom",
+        "/workspace/.nieuw-os-env/sysroot/usr/share/seabios/vgabios-stdvga.bin"
+      ],
+      "environment": {
+        "NOS_QEMU_MACHINE": "pc-q35-8.2",
+        "NOS_BUILD_DIR": "/workspace/baryon-h02-completion/build/h02-combined-2a08f4a3/hid-ipc",
+        "NOS_TARGET_DIR": "/workspace/baryon-h02-completion/target/h02-combined-native",
+        "CARGO_TARGET_DIR": "/workspace/baryon-h02-completion/target/h02-combined-native"
+      },
+      "exit_code": 0,
+      "duration_seconds": 4.124,
+      "log": "build/h02-combined-2a08f4a3/hid-ipc-run.log",
+      "log_sha256": "ac10598af0b91467aa36d6f67e6a46ef5e676c469eb3ba8b0eb019f822722cc5"
+    }
+  ],
+  "status": "completed",
+  "scope": "Six existing H02 native cases; no integrated USB-to-UI or physical hardware acceptance",
+  "observed_source_sha256": "25dd6d69621f1d9d4c8ed353633b3db62818562fa6ce50efa4445207505adb44",
+  "source_unchanged": true,
+  "passed": true
+}

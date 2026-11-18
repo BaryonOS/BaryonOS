@@ -483,7 +483,7 @@ fn parse_name_string(bytes: &[u8]) -> Result<(&[u8], usize, bool), Error> {
     let names_len = count.checked_mul(4).ok_or(Error::MalformedAml)?;
     let end = cursor.checked_add(names_len).ok_or(Error::MalformedAml)?;
     let segments = bytes.get(cursor..end).ok_or(Error::MalformedAml)?;
-    for segment in segments.chunks_exact(4) {
+    for segment in segments.as_chunks::<4>().0 {
         if !valid_name_seg(segment) {
             return Err(Error::MalformedAml);
         }

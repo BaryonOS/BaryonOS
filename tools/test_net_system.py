@@ -24,8 +24,8 @@ def main() -> int:
     save_json(path, summary)
     commands = [
         [sys.executable, "-B", "-m", "unittest", "discover", "-s", "tests", "-p", "test_net_*.py"],
-        ["cargo", "+1.90.0", "test", "--locked", "-p", "capability-core"],
-        ["cargo", "+1.90.0", "test", "--locked", "--manifest-path", "sdk/Cargo.toml", "-p", "nieuw-os-sdk-runtime"],
+        ["cargo", "+1.100.0", "test", "--locked", "-p", "capability-core"],
+        ["cargo", "+1.100.0", "test", "--locked", "--manifest-path", "sdk/Cargo.toml", "-p", "nieuw-os-sdk-runtime"],
     ]
     try:
         for index, command in enumerate(commands):

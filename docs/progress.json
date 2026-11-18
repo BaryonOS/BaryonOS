@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-18",
-    "source_commit": "b87436dfd8ef8c277dea1dbde780f2e2229283a9",
+    "source_commit": "a863167986910ec127779e80e10743f89b626d8f",
     "assessment_basis": "parent_commit",
-    "branch": "codex/unified-governance",
-    "task": "GOV-1-6 reconciliation with main 5a3295b6",
+    "branch": "codex/phase0-pr339-preintegration",
+    "task": "PR #356 reconciliation with main 69d82075",
     "previous_score": 41,
-    "summary": "41/100 unchanged. Shared role and workflow contracts, client adapters and compact continuation are reconciled with actual main after #350. Targeted quarantine (5) and execution-hold (3) regressions remain source-bound; disabled manifest and source hold remain intact. Governance has no zero-open-items/baseline-B prerequisite. Host adapter/protection checks do not establish client runtime parity, Daybreak acceptance, hardware or human audit. No product criterion or weight changes."
+    "summary": "41/100 unchanged. The Phase 0 Rust 1.100, English coverage and retained source-bound evidence candidate is reconciled with main 69d82075. The newer governance contracts, disabled issue controller and unconditional execution hold remain intact. Targeted host regressions pass; mandatory current-head hosted checks remain required. This reconciliation does not establish new native, hardware, human-audit or product-criterion acceptance."
   },
   "tracks": [
     {

@@ -13,9 +13,9 @@ from run_supervisor import FEATURE, SMP_FEATURE, run_supervisor
 
 TEST_INPUTS = "test_supervisor_*.py"
 HOST = [
-    ["cargo", "+1.90.0", "test", "--locked", "-p", "capability-core"],
-    ["cargo", "+1.90.0", "test", "--locked", "--manifest-path", "sdk/Cargo.toml", "-p", "nieuw-os-sdk-runtime"],
-    ["cargo", "+1.90.0", "test", "--locked", "--manifest-path", "sdk/Cargo.toml", "-p", "nieuw-os-supervisor-example", "--lib"],
+    ["cargo", "+1.100.0", "test", "--locked", "-p", "capability-core"],
+    ["cargo", "+1.100.0", "test", "--locked", "--manifest-path", "sdk/Cargo.toml", "-p", "nieuw-os-sdk-runtime"],
+    ["cargo", "+1.100.0", "test", "--locked", "--manifest-path", "sdk/Cargo.toml", "-p", "nieuw-os-supervisor-example", "--lib"],
     [sys.executable, "-B", "-m", "unittest", "discover", "-s", "tests", "-p", TEST_INPUTS],
 ]
 PLAN = ("normal", "crash", "denied", "parent-exit", "quota", "wait")

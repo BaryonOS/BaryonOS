@@ -182,9 +182,9 @@ impl InputRouter {
         let bits = event.buttons.bits();
         let changed = bits ^ self.device_buttons;
         self.device_buttons = bits;
-        for index in 0..3 {
+        for (index, owner) in self.buttons.iter_mut().enumerate() {
             if changed & (1 << index) != 0 {
-                self.buttons[index] = if bits & (1 << index) != 0 {
+                *owner = if bits & (1 << index) != 0 {
                     current
                 } else {
                     None

@@ -22,9 +22,9 @@ def host_commands() -> list[list[str]]:
     return [
         [sys.executable, "-B", "-m", "unittest", "discover", "-s", "tests", "-p", "test_tcp_*.py"],
         [sys.executable, "-B", "-m", "unittest", "discover", "-s", "sdk/examples/tcp-probe", "-p", "test_peer.py"],
-        ["cargo", "+1.91.1", "test", "--locked", "--manifest-path", "services/net-stack/Cargo.toml"],
-        ["cargo", "+1.90.0", "test", "--locked", "-p", "capability-core"],
-        ["cargo", "+1.90.0", "test", "--locked", "--manifest-path", "sdk/Cargo.toml", "-p", "nieuw-os-sdk-runtime"],
+        ["cargo", "+1.100.0", "test", "--locked", "--manifest-path", "services/net-stack/Cargo.toml"],
+        ["cargo", "+1.100.0", "test", "--locked", "-p", "capability-core"],
+        ["cargo", "+1.100.0", "test", "--locked", "--manifest-path", "sdk/Cargo.toml", "-p", "nieuw-os-sdk-runtime"],
     ]
 
 

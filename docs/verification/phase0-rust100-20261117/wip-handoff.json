@@ -1,0 +1,70 @@
+{
+  "schema": "phase0-rust100-wip-handoff.v1",
+  "date": "2026-11-17",
+  "status": "INCOMPLETE_COMPILER_COMPATIBILITY_WIP",
+  "goal": "Preserve the four existing compiler-compatibility edits on the existing draft PR without extending source scope.",
+  "invariant": "The four reviewed working-tree source files retain their exact pre-handoff bytes. Existing validation, ABI, ownership boundaries, lockfiles and shared progress records remain unchanged by this handoff.",
+  "source": {
+    "branch": "codex/phase0-rust-1-100",
+    "parent": "0b608cd3e5ede9d0fd0a9c73c4a652bfc3242dfd",
+    "pull_request": "https://github.com/BaryonOS/BaryonOS/pull/354",
+    "temporary_stacked_base": "codex/phase0-pr340-preintegration",
+    "temporary_stacked_base_sha": "f5a976f17a3167a08ad513f0328cba8de3dd8a62",
+    "integration_limit": "Do not merge into the temporary feature base. Reconcile and retarget to actual main only through the lead integration step and obtain all required current-head checks."
+  },
+  "write_set": [
+    "crates/boot-protocol/src/acpi.rs",
+    "crates/capability-core/src/lib.rs",
+    "crates/kernel-core/src/device_execution.rs",
+    "services/catalog/src/journal.rs",
+    "docs/verification/phase0-rust100-20261117/wip-handoff.json"
+  ],
+  "preserved_source_sha256": {
+    "crates/boot-protocol/src/acpi.rs": "45b8bc775ada8fd1c4cc97d7aece9ca52d8729f51a907eedf376b721de4361d9",
+    "crates/capability-core/src/lib.rs": "4980c3f2ab8f7d81dbc3733537916217eeac6df9cb5228d2449162dff4890275",
+    "crates/kernel-core/src/device_execution.rs": "f60a627a8137b8861c906bb0ee96cfbfd748b1decc8b6c97dbb0fc1e038bcf85",
+    "services/catalog/src/journal.rs": "8fe06db4b455c8975831b7f246aa13948222cf22eb41f5e0adfad31a9b83d58f"
+  },
+  "bounded_review": {
+    "complete_existing_diff": "Four files, 38 insertions and 42 deletions; no further source edit was made during handoff.",
+    "acpi_and_digest_chunks": "Existing ACPI length/evenness checks remain before fixed-size chunk iteration. Capability payload and encoded message sizes remain 256 and 320 bytes, both divisible by eight.",
+    "slot_and_catalog_iteration": "Slot selection retains indices 1 through 255 and the same predicate. Catalog domain validation remains before iteration over two entries of the four-object array.",
+    "test_only_edits": "Node array initialization uses the same Copy value. The removed DMA test local had no effect on an operation or assertion.",
+    "atomic_api": "The checked increment closure, Relaxed orderings and exhaustion mapping are retained. Official Rust documentation describes fetch_update as an alias renamed to try_update.",
+    "atomic_reference": "https://doc.rust-lang.org/stable/core/sync/atomic/type.AtomicU64.html#method.fetch_update",
+    "limit": "Source review and formatting do not establish full compiler, runtime, security or native acceptance."
+  },
+  "checks": [
+    {
+      "command": "rtk git ls-remote origin refs/heads/codex/phase0-rust-1-100 refs/heads/codex/phase0-pr340-preintegration",
+      "exit": 0,
+      "result": "Remote branch and temporary base matched the recorded source before checkpointing. The initial sandboxed attempt failed DNS with exit 128; the authorized network retry succeeded."
+    },
+    {
+      "command": "rtk git diff --check",
+      "exit": 0,
+      "result": "No whitespace errors in the existing four-file source diff."
+    },
+    {
+      "command": "python3 -B tools/tokenguard.py run -- env PATH=/snap/rustup/current/bin:/usr/bin:/bin rustfmt +1.100.0 --check --edition 2021 --config skip_children=true crates/boot-protocol/src/acpi.rs crates/capability-core/src/lib.rs crates/kernel-core/src/device_execution.rs services/catalog/src/journal.rs",
+      "exit": 0,
+      "raw_log": "build/tokenguard/run-zzxxu1th.log"
+    },
+    {
+      "command": "python3 -B tools/tokenguard.py run -- env PATH=/snap/rustup/current/bin:/usr/bin:/bin rustfmt +1.100.0 --version",
+      "exit": 0,
+      "result": "rustfmt 1.11.0-stable (0ef1bc3860 2026-11-09)",
+      "raw_log": "build/tokenguard/run-8_z_4b8t.log"
+    }
+  ],
+  "acceptance_commands": "Targeted rustfmt, complete diff review, git diff --check, preserved-source SHA-256 checks and exact remote SHA verification before and after a fast-forward-only checkpoint push.",
+  "evidence_limit": "No new Cargo test, complete Clippy, cross-target build, native QEMU, current-main hosted gate, hardware test or human audit was performed for these four source edits.",
+  "not_run": [
+    "Current complete workspace/component compatibility and Clippy gates",
+    "Affected native boot, IPC, capability, DMA, crypto, policy, update and volume regressions",
+    "Reconciliation with actual main and all applicable current-head hosted checks",
+    "Hardware acceptance and independent human audit"
+  ],
+  "open_blocker": "The existing Clippy needless_range_loop diagnostic at crates/ui-core/src/routing.rs:185 remains open. UI source changes are outside this handoff scope.",
+  "next_step": "The lead integrates this explicit WIP checkpoint into the existing PR354 handoff, resolves ownership of remaining blockers and runs the required source-bound compatibility and native gates. Shared progress and project-state metadata remain lead-owned."
+}
