@@ -19,7 +19,7 @@ HOST_CONTRACTS = {
     'strict-development-inventory': ('m6b-preflight', 'python',
         ['-B', 'tools/preflight.py', '--strict']),
     'object-core-and-wire-host-tests': ('m6b-host-tests', 'cargo',
-        ['+1.90.0', 'test', '--locked', '--offline', '-p', 'object-core']),
+        ['+1.100.0', 'test', '--locked', '--offline', '-p', 'object-core']),
     'external-oracle-and-crash-harness-tests': ('m6b-harness-tests', 'python',
         ['-B', '-m', 'unittest', 'discover', '-s', 'tests', '-p', 'test_m6b_*.py']),
 }

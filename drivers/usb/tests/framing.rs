@@ -8,7 +8,7 @@ fn every_encodable_length_and_transfer_cut_has_an_exact_boundary_result() {
         for length in 0..=u8::MAX {
             let size = usize::from(length).max(2);
             let mut bytes = vec![0x5a; offset + size];
-            for prefix in bytes[..offset].chunks_exact_mut(2) {
+            for prefix in bytes[..offset].as_chunks_mut::<2>().0 {
                 prefix.copy_from_slice(&[2, 0xee]);
             }
             bytes[offset] = length;

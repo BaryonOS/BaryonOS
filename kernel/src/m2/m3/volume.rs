@@ -53,6 +53,7 @@ struct AppEvidence {
     recovered_collection: u64,
     recovered_second: u64,
     phase: u64,
+    ustar_bytes: u64,
 }
 const NO_APP: AppEvidence = AppEvidence {
     exited: false,
@@ -69,6 +70,7 @@ const NO_APP: AppEvidence = AppEvidence {
     recovered_collection: 0,
     recovered_second: 0,
     phase: 0,
+    ustar_bytes: 0,
 };
 
 struct Runtime {
@@ -242,6 +244,8 @@ fn case() -> u64 {
         10
     } else if cfg!(feature = "test-volume-archive-full") {
         11
+    } else if cfg!(feature = "test-volume-archive-ustar") {
+        12
     } else {
         0
     }
@@ -250,10 +254,11 @@ fn case() -> u64 {
 fn read_only() -> bool {
     cfg!(feature = "test-system-recover") || matches!(case(), 1 | 4 | 5)
 }
-/// Archive export (also into a too-small target) writes only the archive
-/// range: the device stays writable, but the volume service receives READ alone.
+/// Archive export (also into a too-small target, or followed by the ustar
+/// export) writes only the archive range: the device stays writable, but the
+/// volume service receives READ alone.
 fn service_read_only() -> bool {
-    read_only() || matches!(case(), 7 | 11)
+    read_only() || matches!(case(), 7 | 11 | 12)
 }
 fn marker() -> &'static [u8] {
     match case() {
@@ -266,6 +271,7 @@ fn marker() -> &'static [u8] {
         9 => b"VOLUME:CASE:ARCHIVE_CORRUPT:PASS\n",
         10 => b"VOLUME:CASE:ARCHIVE_CONFLICT:PASS\n",
         11 => b"VOLUME:CASE:ARCHIVE_FULL:PASS\n",
+        12 => b"VOLUME:CASE:ARCHIVE_USTAR:PASS\n",
         _ => b"VOLUME:FAIL:CUT_NOT_OBSERVED\n",
     }
 }
@@ -469,7 +475,7 @@ pub fn manifest(s: &mut State) {
     {
         fail(b"READONLY_RIGHTS");
     }
-    if matches!(case(), 7..=11) {
+    if matches!(case(), 7..=12) {
         archive_grant(s, e, service, clients, block);
     }
     if !e.check_invariants() {
@@ -484,10 +490,11 @@ pub fn manifest(s: &mut State) {
 
 /// S09 fixture grant: the slot-1 portal alone receives the archive range;
 /// export READ|WRITE|FLUSH; restore, corrupt and conflict READ only; the
-/// full-target export READ|WRITE|FLUSH on the first FULL_SECTORS only. The
-/// service and slot 2 keep exactly their earlier authority.
+/// full-target export READ|WRITE|FLUSH on the first FULL_SECTORS only; the
+/// ustar export READ|WRITE|FLUSH on the same range as export. The service and
+/// slot 2 keep exactly their earlier authority.
 fn archive_grant(s: &mut State, e: &mut Engine, service: u64, clients: [u64; 2], block: u64) {
-    let writes = matches!(case(), 7 | 11);
+    let writes = matches!(case(), 7 | 11 | 12);
     let scope = BlockScope {
         device: 0,
         first_sector: ARCHIVE_FIRST_SECTOR,
@@ -959,6 +966,7 @@ fn snapshot(s: &State, slot: usize) {
     app.recovered_revision = word(s, slot, 480);
     app.recovered_collection = word(s, slot, 488);
     app.recovered_second = word(s, slot, 496);
+    app.ustar_bytes = word(s, slot, 512);
 }
 
 pub fn observe_exit(s: &mut State, slot: usize) {
@@ -1094,6 +1102,9 @@ fn finish(s: &mut State) -> ! {
             7 => a[0] > 0 && a[1] > 0 && a[2] > 0 && r.publications[1..] == a[1..],
             8..=10 => a[0] > 0 && a[1..] == [0, 0],
             11 => a[0] > 0 && a[1..] == [FULL_SECTORS, 0] && r.publications[1..] == a[1..],
+            // ustar: the export's flush and the ustar stream's flush; the host
+            // checks that the writes are exactly both streams' sectors.
+            12 => a[0] > 0 && a[1] > 0 && a[2] == 2 && r.publications[1..] == a[1..],
             _ => a == [0; 3],
         };
         if !archive {
@@ -1168,10 +1179,13 @@ fn finish(s: &mut State) -> ! {
     print_number(b"VOLUME:BROKER:FLUSHES:", r.publications[2]);
     print_number(b"VOLUME:BROKER:TABLE_SECTOR_WRITES:", r.table_writes);
     print_number(b"VOLUME:BROKER:DATA_SECTOR_WRITES:", r.data_writes);
-    if matches!(case(), 7..=11) {
+    if matches!(case(), 7..=12) {
         print_number(b"VOLUME:ARCHIVE:READS:", r.archive_ops[0]);
         print_number(b"VOLUME:ARCHIVE:WRITES:", r.archive_ops[1]);
         print_number(b"VOLUME:ARCHIVE:FLUSHES:", r.archive_ops[2]);
+    }
+    if case() == 12 {
+        print_number(b"VOLUME:ARCHIVE:USTAR_BYTES:", r.apps[0].ustar_bytes);
     }
     print_number(
         b"VOLUME:APP_DEVICE_DENIALS:",
