@@ -1,0 +1,124 @@
+{
+  "worktrees": [
+    {
+      "path": "/workspace/BaryonOS",
+      "head_at_inventory": "b718f6bafdfc4927d3b7acfe786e67dcb8f88eec",
+      "tracked_changes_at_inventory": [],
+      "untracked_count": 0
+    },
+    {
+      "path": "/workspace/baryon-coderabbit",
+      "head_at_inventory": "04e464963cd0d969f8687208404f480f289d54a4",
+      "tracked_changes_at_inventory": [],
+      "untracked_count": 0
+    },
+    {
+      "path": "/workspace/baryon-combined-host-quality",
+      "head_at_inventory": "31ccacc2498e8d2a5d3cb763e859c7b49282728c",
+      "tracked_changes_at_inventory": [],
+      "untracked_count": 0
+    },
+    {
+      "path": "/workspace/baryon-combined-native-validate",
+      "head_at_inventory": "d16fa0862a42d83f7de7fda8dd2de54357d3e533",
+      "tracked_changes_at_inventory": [],
+      "untracked_count": 47
+    },
+    {
+      "path": "/workspace/baryon-design-check",
+      "head_at_inventory": "7213e22416e6df39b64d6b53e9b3c53ce9b116f1",
+      "tracked_changes_at_inventory": [],
+      "untracked_count": 0
+    },
+    {
+      "path": "/workspace/baryon-docs",
+      "head_at_inventory": "59c07e88abdd1b3a6d06a44ea1c8fe27fdbb5ce4",
+      "tracked_changes_at_inventory": [],
+      "untracked_count": 0
+    },
+    {
+      "path": "/workspace/baryon-english-followup",
+      "head_at_inventory": "4fae439d8492aff4769c1c208332e3dafdf38f4b",
+      "tracked_changes_at_inventory": [],
+      "untracked_count": 0
+    },
+    {
+      "worktree": "PRIVATE-WIP-B",
+      "status": "Private checkpoint only; NOT TRANSFERRED; no implementation ownership retained"
+    },
+    {
+      "path": "/workspace/baryon-final-integration",
+      "head_at_inventory": "06a6230c2765be2a0125d800d39681f2eddf8d3f",
+      "tracked_changes_at_inventory": [],
+      "untracked_count": 0
+    },
+    {
+      "path": "/workspace/baryon-h02-completion",
+      "head_at_inventory": "d16fa0862a42d83f7de7fda8dd2de54357d3e533",
+      "tracked_changes_at_inventory": [],
+      "untracked_count": 59
+    },
+    {
+      "path": "/workspace/baryon-integration",
+      "head_at_inventory": "f14f7c946e10120ad10a34885551f2656f84b059",
+      "tracked_changes_at_inventory": [],
+      "untracked_count": 0
+    },
+    {
+      "path": "/workspace/baryon-language-freeze",
+      "head_at_inventory": "2073e4affd8a46a4bd0a1b95bcb06f7c2b0062c2",
+      "tracked_changes_at_inventory": [],
+      "untracked_count": 0
+    },
+    {
+      "worktree": "PRIVATE-WIP-A",
+      "status": "Private checkpoint only; NOT TRANSFERRED; no implementation ownership retained"
+    },
+    {
+      "path": "/workspace/baryon-quarantine",
+      "head_at_inventory": "b5f756a233bbfef0ecc143f41834899b399e3805",
+      "tracked_changes_at_inventory": [],
+      "untracked_count": 0
+    },
+    {
+      "path": "/workspace/baryon-rust",
+      "head_at_inventory": "f0b4b6ed1f93012ff4bcfbeec7787de6eaa736da",
+      "tracked_changes_at_inventory": [],
+      "untracked_count": 1475
+    },
+    {
+      "path": "/workspace/baryon-rust-reconcile",
+      "head_at_inventory": "f2a6ad4970433b0da8fd648c6eaba45ff919f517",
+      "tracked_changes_at_inventory": [],
+      "untracked_count": 0
+    },
+    {
+      "path": "/workspace/baryon-rust-validate",
+      "head_at_inventory": "71c9d0592d7243fc8db72d452a616a66748afe38",
+      "tracked_changes_at_inventory": [],
+      "untracked_count": 0
+    },
+    {
+      "path": "/workspace/baryon-s09",
+      "head_at_inventory": "8609a4d1cd91223202b1043f5486ff8746eef583",
+      "tracked_changes_at_inventory": [],
+      "untracked_count": 0
+    },
+    {
+      "path": "/workspace/baryon-security",
+      "head_at_inventory": "5b946202c9f7323044913a26d76c96e490f5e0e6",
+      "tracked_changes_at_inventory": [],
+      "untracked_count": 0
+    }
+  ],
+  "duplicate_captures_verified_in_candidate": 106,
+  "untracked_non_generated_public_source_exceptions": 0,
+  "rust_untracked_generated_target_files": 1475,
+  "separate_clean_toolchain_clone": {
+    "path": "/workspace/nieuw-os",
+    "head": "8bb153092e967aae314ecde35bcf963565a87ac7",
+    "branch": "work",
+    "changes": 0
+  },
+  "generated_binaries_and_caches": "Retained in Cloud, not transferred as source; source/loaded hashes and reproduction commands are preserved in published receipts."
+}

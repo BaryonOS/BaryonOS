@@ -1,0 +1,36 @@
+{
+  "status": "NOT TRANSFERRED",
+  "disposition": "Intentionally excluded from public GitHub. No external upload occurred. Private fixtures are unverified preparation, not missing implemented kernel fixes.",
+  "fixtures": [
+    {
+      "logical_id": "PVT-A1",
+      "bytes": 11574,
+      "sha256": "a7cdbb37c9f61ec1c64c5729c2649527d85186a69617356f7843e017287235e0",
+      "verification": "Fixture preparation only; no native acceptance"
+    },
+    {
+      "logical_id": "PVT-A2",
+      "bytes": 10530,
+      "sha256": "80ea677670e9511924af72d648d31069934010f05ab5b8d5f76afc759edf0b88",
+      "verification": "Fixture preparation only; no native acceptance"
+    },
+    {
+      "logical_id": "PVT-B1",
+      "bytes": 9664,
+      "sha256": "f8a282dfc3f8360c0f075d64595552d7caa14d34951173bfaa53ca86ba2bd7eb",
+      "verification": "Harness compilation failed; no executed contract/native acceptance"
+    }
+  ],
+  "public_source_base": "67d5859d735836331b6fb971eae89162b7fa8465",
+  "kernel_and_capability_source": "Unchanged by both private fixture workstreams",
+  "cloud_only_encrypted_inventory": {
+    "file": "baryonos-private-recovery-20261118.aesgcm.json",
+    "bytes": 1811656,
+    "sha256": "3e4333b02781584b8c91c78972df9636b3224779614fccfaf51deb8fbadb19b4",
+    "preserved_payload_files": 101,
+    "local_integrity_and_decryption": "Verified; not evidence of delivery",
+    "private_details_keys_and_archive_contents": "Never included in this repository"
+  },
+  "local_recovery": "Use the public source/contracts and authorised private Daybreak service to establish fresh permitted local synthetic tests. Do not claim equivalence to unavailable Cloud fixtures without new verification. Treat prior platform content-risk blocks as blocks, not permission to reroute the operation.",
+  "security_acceptance": "No finding closed or declared fixed; no private fixture needed to reproduce the published accepted host/native proofs."
+}

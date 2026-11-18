@@ -1,3 +1,183 @@
+# Cloud-to-Local handoff — 18 November 2026
+
+**Execution: PAUSED. Cloud development has ended. The next executor is a new
+Local Codex session on the owner's Ubuntu workstation.** No successor task was
+scheduled or launched. This transfer does not resume implementation, merge any
+PR, close any issue/finding, enable the issue pipeline or establish baseline B.
+
+Recorded: `2026-11-18T11:29:00+01:00`. Current main:
+`de9b99047138c4fd0015ffc3f874b273b3537484`. Inventory: **8 open PRs, 5 open issues,
+3 unresolved Daybreak findings**. Score remains **41/100** with the fixed rubric.
+The handoff checkpoint branch is `codex/cloud-to-local-handoff-20261118`; its immutable SHA
+and URL are supplied in the final verified receipt. Existing PR #356 separately
+references the transferred source commit `0617b07ccf5f48a7c40c72c87b365c436bfea775`
+(tree `a99dd67359f8dd485e4779fe3018e40bea5f3a28`). This separate handoff-only
+branch preserves that candidate without turning transfer metadata into merge acceptance. Machine-readable evidence is
+in [cloud-to-local-20261118](cloud-to-local-20261118/inventory.json).
+
+## Transferred source and acceptance boundary
+
+The content candidate before this handoff is `06a6230c2765be2a0125d800d39681f2eddf8d3f`,
+tree `b8d133c930000af6b6fb24d62302bef5014c0da7`. It contains the original
+published preview and all reviewed Codex integration history; normal pushes
+preserve those original commits. The last executed source is
+`d16fa0862a42d83f7de7fda8dd2de54357d3e533`, fingerprint v3
+`42163e2d99138eecda0977feab534c5eebb9f77bc25a2e04abd5f2d28752be92`.
+Subsequent differences are documentation, audit evidence and handoff packaging;
+all non-documentation runtime/test blobs remain identical. The CPUID cleanup
+only removes two obsolete unsafe block markers and comment prefixes; all
+maximum-leaf, MAXPHYADDR, firmware-read and PAT/MSR contracts remain intact.
+The later quarantine-test cleanup only qualifies unittest.mock imports and
+references; no guard, assertion or test vector changes.
+
+| PR | Existing branch | Source head before the handoff publication | Disposition |
+|---|---|---|---|
+| #340 | `feat/s09-ustar-name-check` | `8609a4d1cd91223202b1043f5486ff8746eef583` | Included in candidate; approved D6(a) ustar subset only; full S09/D1–D5 unaccepted |
+| #350 | `codex/coderabbit-oss-config` | `04e464963cd0d969f8687208404f480f289d54a4` | Exact reviewed free-tier configuration; no billing change |
+| #354 | `codex/phase0-rust-1-100` | `f0b4b6ed1f93012ff4bcfbeec7787de6eaa736da` | Included with reviewed current-main reconciliation `f2a6ad4970433b0da8fd648c6eaba45ff919f517`; PR itself still has historical stacked base |
+| #355 | `codex/phase0-pipeline-isolation` | `5b946202c9f7323044913a26d76c96e490f5e0e6` | Preserved, excluded from combined candidate, security acceptance blocked |
+| #356 | `codex/phase0-pr339-preintegration` | `0617b07ccf5f48a7c40c72c87b365c436bfea775` | Safe source transfer verified; draft, unaccepted; no Cloud merge |
+| #357 | `codex/phase0-pr355-resource-wip-untested` | `8a32bc582790fa16234dbadf37a0a176de620900` | Untested recovery-only source, excluded, not superseded or accepted |
+| #358 | `codex/phase0-english-coverage` | `4fae439d8492aff4769c1c208332e3dafdf38f4b` | Exact original commit normally pushed and included; helper repairs, English routes and versioned inventory |
+| #359 | `codex/security-pipeline-quarantine` | `b5f756a233bbfef0ecc143f41834899b399e3805` | Included; unconditional legacy-controller hold plus import cleanup; not full isolation remediation |
+
+Main already contains genuine verified squash merges #345 at
+`55bc7b06d20a3bfdffdc2eb7d8fe42a39f6e59c5`, #346 at
+`67d5859d735836331b6fb971eae89162b7fa8465`, and #339 at current main above.
+Actual trees were compared with their reviewed candidates. Source PRs
+#347–#349/#351–#353 were closed as incorporated after actual-main proof, not
+reported as separate merges. Original closed-PR heads remain accessible through
+`refs/pull/345/head` (`f14f7c946e10120ad10a34885551f2656f84b059`),
+`refs/pull/346/head` (`59c07e88abdd1b3a6d06a44ea1c8fe27fdbb5ce4`) and
+`refs/pull/339/head` (`7213e22416e6df39b64d6b53e9b3c53ce9b116f1`).
+The old #345/#346 head branch names are absent; do not invent their existence.
+The original requested handoff source `e7752fe0` remains historical source,
+not the current execution checkpoint.
+
+## Completed verification, exact scope and remaining checks
+
+On source `d16fa0862a42d83f7de7fda8dd2de54357d3e533`:
+
+- All 18 local executable host-quality steps passed: raw wrapper exit 0,
+  300.233 seconds, transcript and receipt hashes preserved.
+- All 15 real QEMU volume stages passed: raw wrapper exit 0, 303.022 seconds;
+  twelve raw guest exits 33 and three intentional live host power cuts -9.
+- Both real DocumentSession normal/cold-reopen cases passed: wrapper exit 0,
+  19.009 seconds, both guests raw33, source/artifact/disk/serial bindings retained.
+- Six H02 cases passed: twelve build/run commands exit0, six real VMs raw33,
+  no timeout, 26.202 seconds, 25 loaded artifacts independently rehashed.
+  Actual USB transport and synthetic protected-HID IPC remain separate proofs.
+- The exact content tree at `06a6230c2765be2a0125d800d39681f2eddf8d3f` received independent source,
+  artifact, disk/serial oracle and language-inventory review with no blocking
+  finding in that scope. Raw review logs are preserved in the subordinate receipt.
+
+[Combined results](../phase0-combined-20261118/README.md) and
+`checks-d16fa086.json` preserve raw exits and lossless logs; earlier 44f/2a
+receipts remain source-bound rather than relabelled. H02 results are in
+`../issue42-combined-20261118-d16fa086/`. Selected generated-prose audit
+`../issue274-generated-prose-audit-20261118/` preserves 25 source hashes,
+11 successful checks/60 tests, English rendered progress/community fields and
+intentional parser/anchor exceptions. Its bounded scope is not a whole-product
+language or browser/pixel acceptance claim.
+
+The versioned English inventory at frozen source
+`2073e4affd8a46a4bd0a1b95bcb06f7c2b0062c2` reproduces 398 first-party
+documents, 179 navigation nodes, 11 compatibility anchors, 34 English routes
+and 33 retained original dossiers. Its live check passed before handoff-only
+Markdown changed. Both Git-path/symlink helper defects passed real negative
+fixtures and independent review. This handoff and PROJECT-STATE are new English
+transfer prose; the old snapshot must not be falsely presented as their hash
+approval. Its immutable `--ref 2073...` check remains the source-bound command.
+The actual Wiki publication is `4a01b8b2ad2695da509a512ea688007c964f56da`;
+15 source blobs and 13 prior pages were preserved. Discussion category display
+names were checked in English; no stable slug was blindly changed.
+
+At the inventory cutoff, older published #356 head `8c511e67` had **59 successful
+checks, 9 intentional skips, 0 pending and 0 failed**, with auto-merge disabled.
+Those results do not approve this new transfer head. **Current-head hosted CI,
+final candidate review, actual-main integration and post-merge verification
+remain pending/not verified.** No pending/missing/skipped mandatory gate is a pass.
+The new handoff-only packaging was not independently approved for merging.
+
+## Security, issues and private material
+
+All three canonical Daybreak findings remain open/new: one High, one Medium,
+one Low, re-queried for the authorised repository. IDs and private details stay
+in Daybreak. No new scan or resolution was performed. CodeQL/Code Quality,
+Dependabot and secret-alert inventories remain **NOT VERIFIED** after HTTP403;
+successful scan jobs do not prove zero alerts.
+
+#355 has verified limited pre-L0 revocation and failed-model-candidate fixes,
+real Linux isolation/offline tests and host/smoke receipts, but lacks complete
+kernel-enforced resource/scratch/process-tree limits and selected authenticated
+model-client/CI-gate compatibility. Cloud has read-only cgroup-v2, no required
+private user-bus runtime and older systemd. Bubblewrap >=0.13.1 remains required;
+the verified local build alone is not full runtime acceptance. #357 is untested:
+scratch polling is not kernel quota, several paths/output/lifecycle boundaries
+remain outside scope, and three actionable recovery review threads remain open.
+The main manifest stays disabled; the unconditional controller hold is in
+unmerged #359/#356. **Do not invoke or enable the issue pipeline, or use an
+unisolated fallback.** Do not declare repaired main or close the High finding.
+
+Two private fixture workstreams received platform content-risk blocks and never
+implemented their proposed kernel fixes. Their three source fixtures and private
+diagnostics are **NOT TRANSFERRED**, deliberately excluded from public GitHub.
+[Sanitised inventory](cloud-to-local-20261118/private-inventory.json) records
+logical identifiers, hashes, verification status and fresh-local-test requirements.
+An encrypted Cloud-only archive passed integrity/decryption checks; this is not
+evidence of delivery. An external upload was rejected and was not retried or
+rerouted. No confidential payload, credential or key is in this repository.
+Do not rely on Cloud paths or private original evidence being available locally.
+Recreate permitted synthetic verification from public contracts and authorised
+private findings; executor transfer does not authorise bypassing platform blocks.
+
+All five issues remain open against their entire definitions of done:
+
+- #41: persistent policy/anchor transitions, replay resistance and production
+  custody/trust/time/human requirements; existing TEST vectors are not production.
+- #42: long-lived USB-to-protected-input completion/coexistence contract,
+  IRQ/reset/general hotplug/malformed-device and authorised physical evidence.
+- #43: actual fixed-rubric target50 remains unmet; score41 is unchanged.
+- #274: English document routes and bounded audits are preserved, while genuine
+  public native/SDK/prototype localisation gaps remain actionable; no waiver.
+- #283: original historical licence grant and missing historical Git/expired
+  Actions audit bytes remain unresolved; no source/evidence is fabricated.
+
+## Ownership, plan and first Local action
+
+Cloud implementation/review agents are stopped and all Codex write claims are
+released for the new Local executor after remote source verification. No Cloud
+task resumes after this receipt. Independent Claude UI/UX, broader S09/D1–D5,
+human research and product ownership are not transferred or overwritten.
+Original working clones are retained; 106 duplicated captures were compared
+with the candidate, and generated caches/binaries are distinct from source.
+
+Project #5 last verified synchronisation: run `44226887984`, current main,
+20 rule tests passed;90 items scanned,0 updates needed,0 missing fields. No new
+classification/token/billing changes or paid features were made during transfer.
+The approved Phase0 plan, Security Floor, ADRs, ownership releases and latest-
+stable policy remain authoritative. Use the existing checkpoint README and
+owner-policy records; do not restart completed research or invent a new plan.
+**Baseline B is not established; governance phases1–6 have not started.**
+
+The first safe Local action is to fetch the existing eight source branches,
+`codex/cloud-to-local-handoff-20261118`, and the exact final handoff SHA, read this file and repository instructions, and
+compare actual GitHub heads/main with the receipt. Verify `d16fa086` source and
+its archived native evidence before claiming a workstream. Re-query current-head
+checks and unresolved reviews; do not merge solely from old8c results. Keep the
+pipeline disabled and private material NOT TRANSFERRED until permitted fresh
+local evidence exists. No production keys, signing, release or physical hardware
+action is implied by this transfer.
+
+---
+
+## Retained prior Cloud handoff — verbatim historical record
+
+The following bytes are preserved from the previous handoff (SHA-256
+`43697dd7d4a07e48c3d68ca5831f41c9a187278d24c2630c8e3e0e669eceafd7`).
+Its old task state and source heads are historical; current transfer status above
+supersedes their operational instructions.
+
 # Phase 0 cloud handoff — 18 November 2026
 
 **Execution status: PAUSED.** This one-time amendment transfers recoverable WIP

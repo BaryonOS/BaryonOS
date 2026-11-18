@@ -1,0 +1,11 @@
+{
+  "codex/security-pipeline-quarantine": "b5f756a233bbfef0ecc143f41834899b399e3805",
+  "codex/phase0-english-coverage": "4fae439d8492aff4769c1c208332e3dafdf38f4b",
+  "codex/phase0-pr355-resource-wip-untested": "8a32bc582790fa16234dbadf37a0a176de620900",
+  "codex/phase0-pr339-preintegration": "0617b07ccf5f48a7c40c72c87b365c436bfea775",
+  "codex/phase0-pipeline-isolation": "5b946202c9f7323044913a26d76c96e490f5e0e6",
+  "codex/phase0-rust-1-100": "f0b4b6ed1f93012ff4bcfbeec7787de6eaa736da",
+  "codex/coderabbit-oss-config": "04e464963cd0d969f8687208404f480f289d54a4",
+  "feat/s09-ustar-name-check": "8609a4d1cd91223202b1043f5486ff8746eef583",
+  "main": "de9b99047138c4fd0015ffc3f874b273b3537484"
+}

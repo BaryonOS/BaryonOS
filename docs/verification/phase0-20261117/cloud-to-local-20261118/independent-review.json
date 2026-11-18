@@ -1,0 +1,80 @@
+{
+  "reviewed_candidate": "06a6230c2765be2a0125d800d39681f2eddf8d3f",
+  "exact_tree": "b8d133c930000af6b6fb24d62302bef5014c0da7",
+  "source_sha256_v3": "42163e2d99138eecda0977feab534c5eebb9f77bc25a2e04abd5f2d28752be92",
+  "verdict": "No blocking findings within the documented source/receipt/UI-audit scope",
+  "scope": "1244 Git inputs, all non-docs blobs equal d16, final host18/volume15/DocumentSession2/H02six proofs and loaded artifacts/oracles, current398-document snapshot and truthful UI gap classification",
+  "limits": "Not a review approval of later handoff packaging or final hosted CI; not human/physical/production/full274 acceptance",
+  "lossless_logs": [
+    {
+      "path": "review-logs/run-bjg85s4q.json.gz",
+      "raw_sha256": "a151d6b8e9f2d66eafb91c76d66890b66095a8493dcf3d95e4c1bb445fd8d922",
+      "archive_sha256": "7a9febded028ae9831ad6b5d77ca7aecc61440859219d38a39c1427f9273a64b"
+    },
+    {
+      "path": "review-logs/run-bjg85s4q.log.gz",
+      "raw_sha256": "b5cd001cc6a4b6460fd1470a7afcc915658eaecb9b74e2a4dcef8b9dafcccfea",
+      "archive_sha256": "e24fd92a07609756434a6ee529cdfb8f231bea33ca3b0d4e1633d7d21249785b"
+    },
+    {
+      "path": "review-logs/run-xnxe5kku.json.gz",
+      "raw_sha256": "3a599280aadb6efdf7b0b3ab36ad2888ab662ed47ca6b535114a8f7e934392c6",
+      "archive_sha256": "a2d95d37514f61cd25e0f38ef960d7be13e7a15a76a82622f18c80d9bb459127"
+    },
+    {
+      "path": "review-logs/run-xnxe5kku.log.gz",
+      "raw_sha256": "f0b6aae653c0520ad76921aa091a7f7e1ca3d57f81e31203fd3dd3ff181d5ed8",
+      "archive_sha256": "710072d05db8f8959aeadb2a25e7cf67cad22ef0b8bf4495c250dbc991e11f9c"
+    },
+    {
+      "path": "review-logs/run-jsdxejxh.json.gz",
+      "raw_sha256": "1adf59f7eacf915f5783b67e6ad04af7567660ad268b0d540895546171fd1db3",
+      "archive_sha256": "f3d12a7ac7706df2837db04b6bfcef3dfce7eadd578107f4608e7cac0b7dbd57"
+    },
+    {
+      "path": "review-logs/run-jsdxejxh.log.gz",
+      "raw_sha256": "dbb17a017e50e46a502ee0448c83c74f778dadc1569729f0c7ff735ce6a1f49c",
+      "archive_sha256": "e8e90ca5530a57cc7d5ce099b45b6cf230d0510e6cab5b179253d178ed0f5ee1"
+    },
+    {
+      "path": "review-logs/run-uua9nf2t.json.gz",
+      "raw_sha256": "de6a9433649093cf5d2ba73d94d125545b6a5f353c7be170ec2eec537dee062a",
+      "archive_sha256": "503f188dba85a0614023b62eeca6dbd4936dfeeb3ade7ef47aae17d3c260017c"
+    },
+    {
+      "path": "review-logs/run-uua9nf2t.log.gz",
+      "raw_sha256": "69d428360a3ee75ea00a3372140a1b2873b98c0593dc0fde5deae7340e7973d7",
+      "archive_sha256": "c104d7bb79be3bd3d50fe3d0d8c748920be20132374a9ce35eff357561aa975e"
+    },
+    {
+      "path": "review-logs/run-otdbhe9u.json.gz",
+      "raw_sha256": "89a61674d03142d2228b8921ff374f613847b6afba8319507814f4ab6bc91ee9",
+      "archive_sha256": "05183df88aa392e0d8ef4d33828ce4753ce907a1e9af15f020745be270c3015b"
+    },
+    {
+      "path": "review-logs/run-otdbhe9u.log.gz",
+      "raw_sha256": "e58b632b295a167ffc3c06d5df6156fd9500df4a8d41398c844c3036846a227e",
+      "archive_sha256": "8ebb6daf69e5d2e04e53e43481102023d331ed9036b8a66ce4d123d6a7adb604"
+    },
+    {
+      "path": "review-logs/run-se1a2oim.json.gz",
+      "raw_sha256": "4b3f3aa3c40d7b4998b8112094540aa99e9d24f7a6ddbeb493112c0be8e76268",
+      "archive_sha256": "ffbb4c7b842cde9df6829981fae1c1aef9dad6453b31adb782b53998e7a444cf"
+    },
+    {
+      "path": "review-logs/run-se1a2oim.log.gz",
+      "raw_sha256": "e58b632b295a167ffc3c06d5df6156fd9500df4a8d41398c844c3036846a227e",
+      "archive_sha256": "8ebb6daf69e5d2e04e53e43481102023d331ed9036b8a66ce4d123d6a7adb604"
+    },
+    {
+      "path": "review-logs/run-axhl20gs.json.gz",
+      "raw_sha256": "486edd72634ad1e25d9eaac978cfebaa179af690adfe2e4ed9c71d17df133403",
+      "archive_sha256": "a07aba3c596a22fd6b6f7beb5d56d98b08b138a9fa266343c8d70f3f30f29c07"
+    },
+    {
+      "path": "review-logs/run-axhl20gs.log.gz",
+      "raw_sha256": "f3a30d22f8842b73a88d5b39314ef3926cbe6a36e1d314fe21fee162c0c613a6",
+      "archive_sha256": "960d15a4c42d80c7fe78d3d01254130dddf0a6dcb89336f7c8f53ebd803b9e75"
+    }
+  ]
+}

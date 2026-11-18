@@ -1,6 +1,37 @@
 # Current project status
 
-## NEXT AGENT HANDOFF — Phase 0 combined integration candidate — 18 November 2026
+## Cloud-to-Local transfer — execution paused — 18 November 2026
+
+**Cloud development has ended; no Cloud write ownership is retained.** The next
+executor is a new Local Codex session. The authoritative, source-bound transfer
+is [CLOUD-HANDOFF.md](verification/phase0-20261117/CLOUD-HANDOFF.md), on
+`codex/cloud-to-local-handoff-20261118`. Existing PR #356 source branch
+`codex/phase0-pr339-preintegration` is verified at
+`0617b07ccf5f48a7c40c72c87b365c436bfea775`. Its final remote SHA is in
+the verified transfer receipt; the exact pre-handoff content candidate is
+`06a6230c2765be2a0125d800d39681f2eddf8d3f`. No PR was merged and no issue/finding was closed by transfer.
+
+**Actual main:** `de9b99047138c4fd0015ffc3f874b273b3537484`. Eight PRs and five issues remain open;
+three Daybreak findings remain unresolved; inaccessible alert categories are
+NOT VERIFIED. Score41/100 is unchanged. Baseline B and governance1–6 remain
+unestablished. Current transfer-head hosted checks and final integration remain
+pending, irrespective of older candidate successes.
+
+**Private boundary:** three unverified private fixtures and confidential raw
+diagnostics are NOT TRANSFERRED. A sanitised hash/status inventory is in the
+handoff. No private upload succeeded; none will be retried or rerouted. Fresh
+permitted local verification is required; unavailable Cloud evidence is not a
+passing result. All safe source/evidence changes are preserved in the transfer
+branch; original history and independent Claude/UI/S09 ownership remain intact.
+
+**First action:** fetch and verify the exact handoff/source refs, read repository
+instructions, re-query GitHub checks/reviews and claim a single Local workstream.
+Keep the issue pipeline disabled. No successor Cloud task is scheduled.
+
+The following checkpoints are retained history; their Cloud execution and
+ownership statements are superseded by the transfer above.
+
+## Retained Cloud integration checkpoint — Phase 0 combined candidate — 18 November 2026
 
 **Verified main:** `de9b99047138c4fd0015ffc3f874b273b3537484` follows the verified manual squash merges of #345, #346 and #339. Each actual-main tree equals its reviewed candidate. The earlier #339 automatic merge rejection was respected until all required checks and reviews passed. Six translation source PRs were closed only after actual-main inclusion was proved; their original branches and evidence remain preserved.
 

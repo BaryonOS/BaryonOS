@@ -1,0 +1,128 @@
+{
+  "cutoff_utc": "2026-11-18T10:19:00Z",
+  "main": "de9b99047138c4fd0015ffc3f874b273b3537484",
+  "open_prs": [
+    {
+      "baseRefName": "main",
+      "headRefName": "codex/security-pipeline-quarantine",
+      "headRefOid": "b5f756a233bbfef0ecc143f41834899b399e3805",
+      "isDraft": false,
+      "number": 359,
+      "title": "security(pipeline): enforce disabled issue execution until verified isolation"
+    },
+    {
+      "baseRefName": "main",
+      "headRefName": "codex/phase0-english-coverage",
+      "headRefOid": "4fae439d8492aff4769c1c208332e3dafdf38f4b",
+      "isDraft": false,
+      "number": 358,
+      "title": "docs(english): publish Wiki concepts and record current coverage gaps"
+    },
+    {
+      "baseRefName": "codex/phase0-pipeline-isolation",
+      "headRefName": "codex/phase0-pr355-resource-wip-untested",
+      "headRefOid": "8a32bc582790fa16234dbadf37a0a176de620900",
+      "isDraft": true,
+      "number": 357,
+      "title": "wip(security): checkpoint untested resource isolation"
+    },
+    {
+      "baseRefName": "main",
+      "headRefName": "codex/phase0-pr339-preintegration",
+      "headRefOid": "0617b07ccf5f48a7c40c72c87b365c436bfea775",
+      "isDraft": true,
+      "number": 356,
+      "title": "integration: reconcile verified S09, Rust stable, English coverage and pipeline containment"
+    },
+    {
+      "baseRefName": "main",
+      "headRefName": "codex/phase0-pipeline-isolation",
+      "headRefOid": "5b946202c9f7323044913a26d76c96e490f5e0e6",
+      "isDraft": false,
+      "number": 355,
+      "title": "security: isolate issue-pipeline execution from publication credentials"
+    },
+    {
+      "baseRefName": "codex/phase0-pr340-preintegration",
+      "headRefName": "codex/phase0-rust-1-100",
+      "headRefOid": "f0b4b6ed1f93012ff4bcfbeec7787de6eaa736da",
+      "isDraft": false,
+      "number": 354,
+      "title": "build(rust): migrate active toolchains to stable 1.100.0"
+    },
+    {
+      "baseRefName": "main",
+      "headRefName": "codex/coderabbit-oss-config",
+      "headRefOid": "04e464963cd0d969f8687208404f480f289d54a4",
+      "isDraft": false,
+      "number": 350,
+      "title": "chore(coderabbit): enable free-tier draft reviews and project guidance"
+    },
+    {
+      "baseRefName": "main",
+      "headRefName": "feat/s09-ustar-name-check",
+      "headRefOid": "8609a4d1cd91223202b1043f5486ff8746eef583",
+      "isDraft": false,
+      "number": 340,
+      "title": "feat(s09): approved ustar user export \u2014 name validation and native stage"
+    }
+  ],
+  "open_issues": [
+    {
+      "number": 283,
+      "title": "Integration backlog: preserve and selectively reintegrate after clearing the PR queue"
+    },
+    {
+      "number": 274,
+      "title": "docs(i18n): complete English coverage of active technical documentation and GitHub Wiki"
+    },
+    {
+      "number": 43,
+      "title": "EXECUTION: evidence-based route from 20% to 50% across parallel workstreams"
+    },
+    {
+      "number": 42,
+      "title": "H02 \u2014 native keyboard/mouse and controlled USB/hotplug"
+    },
+    {
+      "number": 41,
+      "title": "B03 \u2014 authenticated native updates with A/B rollback and key boundaries"
+    }
+  ],
+  "prior_published_ci": {
+    "published_head": "8c511e67a495f743e83cf226dffa77af3337a98e",
+    "success": 59,
+    "skipped": 9,
+    "pending": 0,
+    "failed": 0,
+    "auto_merge": null
+  },
+  "local_candidate": "06a6230c2765be2a0125d800d39681f2eddf8d3f",
+  "handoff_recorded_at": "2026-11-18T11:29:00+01:00",
+  "execution_status": "PAUSED; Cloud development ended; next executor is a new Local Codex session",
+  "source_candidate_before_handoff": "06a6230c2765be2a0125d800d39681f2eddf8d3f",
+  "source_sha256_v3": "42163e2d99138eecda0977feab534c5eebb9f77bc25a2e04abd5f2d28752be92",
+  "handoff_branch": "codex/cloud-to-local-handoff-20261118",
+  "private_material": "NOT TRANSFERRED; see private-inventory.json; fresh permitted local verification required",
+  "merged_this_cloud_task": {
+    "345": "55bc7b06d20a3bfdffdc2eb7d8fe42a39f6e59c5",
+    "346": "67d5859d735836331b6fb971eae89162b7fa8465",
+    "339": "de9b99047138c4fd0015ffc3f874b273b3537484"
+  },
+  "closed_as_incorporated_not_separate_merges": [
+    347,
+    348,
+    349,
+    351,
+    352,
+    353
+  ],
+  "transferred_pr356_head": "0617b07ccf5f48a7c40c72c87b365c436bfea775",
+  "source_transfer_tree": "a99dd67359f8dd485e4779fe3018e40bea5f3a28",
+  "public_source_transfer": "VERIFIED: normal Git push, matching remote/local Git tree, tested d16 commit reachable",
+  "ownership": {
+    "cloud": "RELEASED; five worker agents completed; no implementation writer remains",
+    "next_executor": "New Local Codex session",
+    "independent_claude_ui_s09": "Excluded; existing ownership is preserved"
+  }
+}
