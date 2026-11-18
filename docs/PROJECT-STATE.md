@@ -1,6 +1,24 @@
 # Current project status
 
-## NEXT AGENT HANDOFF — unified governance implementation — 18 November 2026
+## NEXT AGENT HANDOFF — B02-T1 native tamper — 18 November 2026
+
+**Claim:** Codex, `codex/b02-native-tamper`, base `69d820753b83ee834e4ef24ee3e3c886dada9587`.
+**Goal:** cold read-only refusal for object8 AEAD corruption, document1 tag/chunk
+swaps and withheld secret; preserve honest unprotected old-generation replay.
+**Invariant:** no plaintext on failed authentication/key loss; no cold writes or
+disk changes. No new keys, crypto, rights, production syscall or runner activation.
+**Write set:** `tools/run_system.py`, `tests/test_system_harness.py`,
+`sdk/examples/system/src/init.rs`, `kernel/src/m2/m3/system.rs`; lead state.
+Existing entry points reused; no S09/archive pipeline changes.
+**Acceptance:** targeted system harness tests and actual normal/cold probes with
+exact refusal/no-plaintext markers and unchanged disk hashes; finite native runs.
+**Evidence limit:** QEMU fixtures only; no cold antirollback, hardware or audit.
+**Ownership:** no open-PR path overlap; Claude/integration branches untouched.
+**Next:** implement bounded slice; draft PR; next independent READY task.
+Prior deliveries372,374,375,377–379,381 preserved. N04 prototype380 BLOCKED.
+Score41/100; unsafe unattended hold active.
+
+## Retained checkpoint — unified governance implementation — 18 November 2026
 
 **Claim:** GOV-1-6, sole writer Codex in `codex/unified-governance`, base
 `5a3295b6093549f4b5ff6164ab2773ac4c264996`. The project owner authorizes immediate

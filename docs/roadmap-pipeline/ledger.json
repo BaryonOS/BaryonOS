@@ -1,8 +1,8 @@
 {
   "schema": 1,
   "purpose": "Execution queue of the H/U/N/B/A/P/L/R clean-session roadmap pipeline; child tasks of the fixed criteria in docs/progress.json. Not a second roadmap and not an acceptance register.",
-  "branch": "claude/baryonos-autonomous-pipeline-81tujs",
-  "base": "d572052b731149016dad1a99e2c4ebde90474a96",
+  "branch": "codex/b02-native-tamper",
+  "base": "69d820753b83ee834e4ef24ee3e3c886dada9587",
   "score": {
     "accepted": 41,
     "of": 100,
@@ -18,11 +18,635 @@
   },
   "tasks": [
     {
+      "id": "B04-T2",
+      "criterion": "B04",
+      "milestone": "M11",
+      "executor": "worker",
+      "status": "verified",
+      "title": "Reproducible-build check for loader, kernel and image",
+      "goal": "Add tools/repro_check.py: run the default tools/build.py twice with separate NOS_BUILD_DIR and NOS_TARGET_DIR and compare SHA-256 of the kernel ELF, loader EFI and image; report differing artifacts honestly; unit tests inject a differing artifact.",
+      "why_now": "Build provenance evidence for B04 and R03 with offline root dependencies.",
+      "deps": [],
+      "write_paths": [
+        "tools/repro_check.py",
+        "tools/tests/test_repro_check.py"
+      ],
+      "read_paths": [
+        "tools/build.py",
+        "tools/common.py"
+      ],
+      "checks": [
+        "python3 -B -m unittest discover -s tools/tests -p test_repro_check.py -v",
+        "python3 -B tools/repro_check.py"
+      ],
+      "acceptance": [
+        "identical hashes, or a red result that names the differing artifacts",
+        "the unit test with an injected difference fails the check"
+      ],
+      "non_claimable": "Independent reproduction in a second environment stays open.",
+      "risk": "low",
+      "size": "S",
+      "evidence_level": "host",
+      "rollback": "Revert the commit.",
+      "next": "B04-T3 after owner decisions D1-D7.",
+      "history": [
+        {
+          "event": "active",
+          "at": "2026-11-18T21:43:31.691244+00:00",
+          "reason": "Two isolated default builds. Actual build exports an ESP directory for QEMU virtual FAT, not a standalone disk image; compare kernel/loader plus canonical ESP payload digest with that limitation explicit. Reuse existing check_esp."
+        },
+        {
+          "at": "2026-11-18T21:47:04.795154+00:00",
+          "event": "verified",
+          "source_commit": "2b47d4ffb72f885686790885aec97f7a28c3c05c",
+          "reason": "Repro checker runs two isolated default builds and verifies kernel/loader plus canonical ESP payload against manifests.8 unit tests pass. Real comparison exit1: kernel identical, loader/image_payload differ; tool reports red honestly. Same-host tooling only; actual build is NOT reproducible here and no B04 acceptance granted. ESP is a virtual-FAT payload directory, not a byte-identical disk image. No QEMU/hardware/independent environment run."
+        }
+      ],
+      "source_commit": "2b47d4ffb72f885686790885aec97f7a28c3c05c",
+      "receipt": "docs/roadmap-pipeline/receipts/B04-T2.json"
+    },
+    {
+      "id": "U05-T2",
+      "criterion": "U05",
+      "milestone": "M7",
+      "executor": "worker",
+      "status": "blocked",
+      "title": "search-index core with grant-scoped results (host model)",
+      "goal": "Create sdk/search-index (no_std): per-domain index of names, collections, metadata and UTF-8 tokens with object/revision identity; update and delete; rebuild from a catalogue snapshot; results only from currently granted domains; bounded memory; add it to the sdk workspace.",
+      "why_now": "U05 local search is a fixed list today; a scoped index is host-testable now.",
+      "deps": [],
+      "write_paths": [
+        "sdk/search-index/",
+        "sdk/Cargo.toml",
+        "sdk/Cargo.lock"
+      ],
+      "read_paths": [
+        "sdk/catalog-client/",
+        "docs/implementation/NATIVE-MATERIAL-LIBRARY.md"
+      ],
+      "checks": [
+        "cargo +1.90.0 test --manifest-path sdk/Cargo.toml --locked",
+        "cargo +1.90.0 clippy --manifest-path sdk/Cargo.toml --locked --all-targets -- -D warnings",
+        "cargo +1.90.0 fmt --manifest-path sdk/Cargo.toml --all -- --check"
+      ],
+      "acceptance": [
+        "negative: foreign-domain object, revoked domain, stale revision, oversize token, invalid UTF-8, corrupt index detected and rebuilt rather than trusted"
+      ],
+      "out_of_scope": [
+        "native service",
+        "content extraction from documents"
+      ],
+      "non_claimable": "Native search and user tests stay open.",
+      "risk": "security",
+      "size": "M",
+      "evidence_level": "host",
+      "rollback": "Revert the commit and the sdk workspace member line.",
+      "next": "U05-T3 native service.",
+      "history": [
+        {
+          "event": "active",
+          "at": "2026-11-18T21:35:50.478870+00:00",
+          "reason": "Independent standalone search-index core slice. Shared SDK membership deferred to integration PR366; no SDK manifest/lock edits or unchanged matrix."
+        },
+        {
+          "at": "2026-11-18T21:42:05.135005+00:00",
+          "event": "blocked",
+          "source_commit": "9bb822db5e2e80c62ca85d7e508567995fb813a8",
+          "reason": "Standalone bounded domain/object/revision search index with UTF8 tokens, update/delete tombstones, atomic catalogue rebuild, current grant epochs and accidental-corruption checks.11 host tests pass; bounds precede untrusted text scanning. Full U05-T2 remains BLOCKED on shared SDK membership owned by integration PR366. Host model only; trusted catalogue/service identity and grant authentication remain external, no native search/UI acceptance."
+        }
+      ],
+      "source_commit": "9bb822db5e2e80c62ca85d7e508567995fb813a8",
+      "receipt": "docs/roadmap-pipeline/receipts/U05-T2.json",
+      "blocker": "Standalone core delivered; shared SDK manifest/lock membership remains owned by Integration Manager PR366. After ownership release remove nested workspace/add member and run SDK gates. No source/core blocker."
+    },
+    {
+      "id": "U05-T1",
+      "criterion": "U05",
+      "milestone": "M7",
+      "executor": "worker",
+      "status": "blocked",
+      "title": "settings-core: typed, versioned, revertible settings with A/B persistence (host model)",
+      "goal": "Create sdk/settings-core (no_std): typed versioned schema; validate, set and revert; A/B persistence over a media trait with SHA-256 for integrity only; fail closed on corruption or I/O error; never confirm a failed write; add it to the sdk workspace.",
+      "why_now": "U05 needs a real settings service behind the shell's fixed Settings page; this is the smallest host-testable core and has no dependency on open PRs.",
+      "deps": [],
+      "write_paths": [
+        "sdk/settings-core/",
+        "sdk/Cargo.toml",
+        "sdk/Cargo.lock"
+      ],
+      "read_paths": [
+        "docs/implementation/DESKTOP-SHELL.md",
+        "docs/implementation/PROFILES-AND-USERS.md",
+        "sdk/app-management/src/journal.rs"
+      ],
+      "checks": [
+        "cargo +1.90.0 test --manifest-path sdk/Cargo.toml --locked",
+        "cargo +1.90.0 clippy --manifest-path sdk/Cargo.toml --locked --all-targets -- -D warnings",
+        "cargo +1.90.0 fmt --manifest-path sdk/Cargo.toml --all -- --check"
+      ],
+      "acceptance": [
+        "negative: invalid value, unknown schema version, torn write at every byte offset, flush or read error, full medium, both copies corrupt",
+        "revert restores the previous committed value; a failed write is never reported as committed"
+      ],
+      "out_of_scope": [
+        "per-user encryption (B02)",
+        "native service",
+        "UI"
+      ],
+      "non_claimable": "Native settings service, encryption at rest and user tests stay open.",
+      "risk": "medium",
+      "size": "M",
+      "evidence_level": "host",
+      "rollback": "Revert the commit and the sdk workspace member line.",
+      "next": "U05-T3 native service.",
+      "history": [
+        {
+          "event": "active",
+          "at": "2026-11-18T21:27:23.266123+00:00",
+          "reason": "Independent standalone settings-core implementation slice. Do not edit SDK/Cargo.toml/lock owned by integration PR366; full task remains pending that membership. Target standalone crate checks, not unchanged SDK matrix."
+        },
+        {
+          "at": "2026-11-18T21:35:19.474146+00:00",
+          "event": "blocked",
+          "source_commit": "1c3696d22d87fed1ef9e554febc690d443dbb568",
+          "reason": "Standalone typed appearance/accessibility settings core, integrity-only A/B persistence, explicit recovery and persistent new-generation revert.14 host tests including every0..96 torn-write offset pass. Full U05-T1 remains BLOCKED on shared SDK membership owned by integration PR366; no shared SDK files changed/matrix rerun. No native/UI/encryption/antirollback/hardware acceptance."
+        }
+      ],
+      "source_commit": "1c3696d22d87fed1ef9e554febc690d443dbb568",
+      "receipt": "docs/roadmap-pipeline/receipts/U05-T1.json",
+      "blocker": "Standalone core delivered; pending SDK workspace membership in shared manifest/lock owned by Integration Manager PR366. Reconcile only after ownership release, remove standalone [workspace], add member and run SDK gates. No owner confirmation needed."
+    },
+    {
+      "id": "P04-T2",
+      "criterion": "P04",
+      "milestone": "M8",
+      "executor": "worker",
+      "status": "verified",
+      "native": true,
+      "title": "Native NAS quota-full, cancel/retry and offline-guest revoke stage (QEMU TCG)",
+      "goal": "Extend the native NAS normal stage with LP-16/LP-18: the guest fills its quota with staged uploads, receives the quota error, cancels and retries; the admin changes quota while the guest is full; the guest exits before revoke; revoke and evict still succeed; expected per-role ok/error counts and the disk oracle are updated.",
+      "why_now": "Builds on the green native NAS gate without kernel or tools/build.py changes; it adds the main untested P04 quota and offline-revoke paths natively.",
+      "deps": [],
+      "write_paths": [
+        "services/nas/native-probe/src/",
+        "services/nas/native-probe/CONTRACT.md",
+        "services/nas/native-probe/tests/",
+        "services/nas/native-probe/disk_oracle.py",
+        "services/nas/native-probe/verification/README.md",
+        "tools/test_nas.py",
+        "tests/test_nas_runner.py",
+        "kernel/src/m2/m3/nas.rs"
+      ],
+      "read_paths": [
+        "kernel/src/m2/m3/nas.rs",
+        "services/nas/native-core/src/lib.rs",
+        "tools/build_nas.py"
+      ],
+      "checks": [
+        "python3 -B -m unittest discover -s tests -p test_nas_runner.py",
+        "python3 -B -m unittest discover -s tests -p test_nas_build.py",
+        "python3 -B -m unittest discover -s services/nas/native-probe/tests -p test_disk_oracle.py",
+        "cargo +1.90.0 test --locked --manifest-path services/nas/native-probe/Cargo.toml",
+        "cargo +1.90.0 test --locked --manifest-path services/nas/native-core/Cargo.toml",
+        "python3 -B -u tools/test_nas.py"
+      ],
+      "acceptance": [
+        "native normal and recover stages exit 0 with the new expected counts and 0 cold writes",
+        "negative: stage over quota rejected; cancelled reservation released in usage; old token Stale after revoke; token-leak window check still passes"
+      ],
+      "out_of_scope": [
+        "LP-25 interrupted purge (P04-T1)",
+        "remote guest over the network"
+      ],
+      "non_claimable": "Product administrator identity, remote guests, the LP-21 admin screen and physical hardware stay open.",
+      "risk": "medium",
+      "size": "M",
+      "evidence_level": "native-QEMU (TCG)",
+      "rollback": "Revert the commit.",
+      "next": "P04-T1 interrupted purge.",
+      "history": [
+        {
+          "event": "active",
+          "at": "2026-11-18T21:18:53.602528+00:00",
+          "reason": "Native quota/cancel/offline revoke. Minimal fixture-only kernel counts/guest-exit observation permitted because current hardcoded counts would reject every added RPC and userland notification alone cannot prove guest exit; no new rights or runtime ABI."
+        },
+        {
+          "at": "2026-11-18T21:26:40.165776+00:00",
+          "event": "verified",
+          "source_commit": "a73e41a7db7b8aa90fa47a299886feb6d607fd0c",
+          "reason": "Native NAS Cancel14, full-quota rejection/reservation release/retry, full-quota adjustment and kernel-observed offline-guest revoke/evict delivered. Normal/recover QEMU33;0cold writes/flushes, exact2 tombstones/core11/volume21.78host tests and native gate exit0. Local native QEMU/IPC only; no remote authenticated guest, product admin UI, hardware or full P04 acceptance. Existing token leak/replay checks retained; source fingerprint4af81525 matches the published code."
+        }
+      ],
+      "source_commit": "a73e41a7db7b8aa90fa47a299886feb6d607fd0c",
+      "receipt": "docs/roadmap-pipeline/receipts/P04-T2.json"
+    },
+    {
+      "id": "L01-T2",
+      "criterion": "L01",
+      "milestone": "M8",
+      "executor": "worker",
+      "status": "verified",
+      "title": "Bounded no_std safetensors header and tensor-table parser over verified artifacts (host)",
+      "goal": "Create experiments/ai/model-format (no_std, forbid(unsafe_code)): parse a safetensors header and tensor table from a VerifiedArtifact, treating all model bytes as untrusted; bounded header length, strict UTF-8, duplicate-key rejection, dtype allow-list, shape/offset overflow checks, no overlapping or out-of-range tensors, no uncovered or trailing bytes, nesting depth limit.",
+      "why_now": "Model parsing is the first security boundary any local inference engine needs and depends on no owner decision or open PR. Needs CI wiring by the lead once it lands (CI-L1).",
+      "deps": [],
+      "write_paths": [
+        "experiments/ai/model-format/"
+      ],
+      "read_paths": [
+        "experiments/ai/model-store-contract/src/lib.rs",
+        "crates/artifact-store-core/src/lib.rs",
+        "docs/implementation/ARTIFACT-STORE-CONTRACT.md"
+      ],
+      "checks": [
+        "cargo +1.90.0 test --locked --manifest-path experiments/ai/model-format/Cargo.toml",
+        "cargo +1.90.0 clippy --locked --manifest-path experiments/ai/model-format/Cargo.toml --all-targets -- -D warnings",
+        "cargo +1.90.0 fmt --manifest-path experiments/ai/model-format/Cargo.toml -- --check",
+        "cargo +1.90.0 build --locked --release --lib --target x86_64-unknown-none --manifest-path experiments/ai/model-format/Cargo.toml"
+      ],
+      "acceptance": [
+        "negative: header length over bound, non-UTF-8, duplicate keys, unknown dtype, shape or offset overflow, overlapping or out-of-range tensors, uncovered or trailing bytes, nesting over the limit",
+        "positive: synthetic fixture with Qwen2-style tensor names",
+        "no new dependency beyond those already pinned by model-store-contract"
+      ],
+      "out_of_scope": [
+        "inference",
+        "model download"
+      ],
+      "non_claimable": "Native inference, model provenance decisions and measurements stay open.",
+      "risk": "security",
+      "size": "M",
+      "evidence_level": "host",
+      "rollback": "Revert the commit.",
+      "next": "L01-T3 reference forward pass.",
+      "history": [
+        {
+          "event": "active",
+          "at": "2026-11-18T21:11:06.537399+00:00",
+          "reason": "Independent functional verified-artifact parser; no SDK manifest/integration or Claude overlap."
+        },
+        {
+          "at": "2026-11-18T21:17:44.285281+00:00",
+          "event": "verified",
+          "source_commit": "3a77b1d0d5c91f6844d9c7475f3e54a6f52dc6d1",
+          "reason": "VerifiedArtifact safetensors header/table parser with bounded no-escape JSON profile, duplicate/dtype/overflow checks and exact nonoverlapping coverage;14 host regressions pass. One bounded security review found no blocker. Host parser/build only; no real-model compatibility, inference, native/provenance acceptance. Existing pinned dependencies and soft SHA2 build profile reused."
+        }
+      ],
+      "source_commit": "3a77b1d0d5c91f6844d9c7475f3e54a6f52dc6d1",
+      "receipt": "docs/roadmap-pipeline/receipts/L01-T2.json"
+    },
+    {
+      "id": "H02-T2",
+      "criterion": "H02",
+      "milestone": "M9",
+      "executor": "worker",
+      "status": "verified",
+      "title": "USB attach/detach generation model with stale-completion rejection (host)",
+      "goal": "Add drivers/usb/src/hotplug.rs: per-port attach generation, rejection of completions from an older generation, bounded re-enumeration attempts and an attach-storm budget; detach during enumeration releases state; no change to the existing boot_session API consumed by PR #333.",
+      "why_now": "H02 requires bounded hotplug; this is a host prerequisite outside the paths PR #333 owns.",
+      "deps": [],
+      "write_paths": [
+        "drivers/usb/src/hotplug.rs",
+        "drivers/usb/src/lib.rs",
+        "drivers/usb/tests/hotplug.rs",
+        "drivers/usb/verification/hotplug.md"
+      ],
+      "read_paths": [
+        "drivers/usb/src/boot_session.rs",
+        "drivers/usb/src/lib.rs",
+        "drivers/usb/verification/boot-session.md",
+        "docs/drivers/HARDWARE-TARGETS.md"
+      ],
+      "checks": [
+        "cargo +1.90.0 test --locked --manifest-path drivers/usb/Cargo.toml",
+        "cargo +1.90.0 clippy --locked --manifest-path drivers/usb/Cargo.toml --all-targets -- -D warnings",
+        "cargo +1.90.0 fmt --manifest-path drivers/usb/Cargo.toml -- --check",
+        "cargo +1.90.0 build --locked --release --lib --target x86_64-unknown-none --manifest-path drivers/usb/Cargo.toml"
+      ],
+      "acceptance": [
+        "negative: old-generation completion rejected, attach storm hits its budget, detach during enumeration releases state, generation counter never wraps silently",
+        "existing 44 USB tests still pass unchanged"
+      ],
+      "out_of_scope": [
+        "kernel xHCI wiring (PR #333)",
+        "hubs and isochronous transfers"
+      ],
+      "non_claimable": "Native hotplug, physical devices and the H02 reference profile stay open.",
+      "risk": "medium",
+      "size": "M",
+      "evidence_level": "host",
+      "rollback": "Revert the commit; the module is additive.",
+      "next": "H02-T3 after PR #333 merges.",
+      "history": [
+        {
+          "event": "active",
+          "at": "2026-11-18T21:08:29.083712+00:00",
+          "reason": "Independent bounded driver implementation; no boot_session/kernel edits or integration overlap."
+        },
+        {
+          "at": "2026-11-18T21:09:41.994750+00:00",
+          "event": "verified",
+          "source_commit": "75074d7f5e0da8c2ad968fe33c966184f88163cb",
+          "reason": "Per-port attach generations, correlated enumeration attempts and lifetime storm/retry budgets implemented; stale completions cannot revive detached/replaced devices. Existing boot_session API unchanged. Host state/build only; no transport/DMA quiescence, native hotplug or H02 acceptance."
+        }
+      ],
+      "source_commit": "75074d7f5e0da8c2ad968fe33c966184f88163cb",
+      "receipt": "docs/roadmap-pipeline/receipts/H02-T2.json"
+    },
+    {
+      "id": "H05-T1",
+      "criterion": "H05",
+      "milestone": "M9",
+      "executor": "worker",
+      "status": "verified",
+      "title": "ACPI _S3_ sleep-type extraction and FACS validation (host)",
+      "goal": "Extend drivers/acpi-power with _S3_ extraction and FACS validation: FIRMWARE_CTRL/X_FIRMWARE_CTRL resolution and conflict rejection, signature, length >= 64, 64-byte alignment and waking-vector fields; the existing S5 API stays unchanged.",
+      "why_now": "H05 sleep/wake starts with validated firmware tables; host-only, existing component CI.",
+      "deps": [],
+      "write_paths": [
+        "drivers/acpi-power/src/lib.rs",
+        "drivers/acpi-power/tests/",
+        "drivers/acpi-power/README.md",
+        "drivers/acpi-power/verification/"
+      ],
+      "read_paths": [
+        "drivers/acpi-power/src/lib.rs",
+        "docs/verification/h05-acpi-s5/README.md"
+      ],
+      "checks": [
+        "cargo +1.90.0 test --locked --manifest-path drivers/acpi-power/Cargo.toml",
+        "cargo +1.90.0 clippy --locked --manifest-path drivers/acpi-power/Cargo.toml --all-targets -- -D warnings",
+        "cargo +1.90.0 fmt --manifest-path drivers/acpi-power/Cargo.toml -- --check",
+        "cargo +1.90.0 build --locked --release --lib --target x86_64-unknown-none --manifest-path drivers/acpi-power/Cargo.toml"
+      ],
+      "acceptance": [
+        "negative: conflicting FIRMWARE_CTRL and X_FIRMWARE_CTRL, misaligned FACS, short FACS, missing _S3_, truncated package",
+        "existing S5 tests unchanged"
+      ],
+      "out_of_scope": [
+        "kernel S3 entry or waking trampoline (H05-T3)"
+      ],
+      "non_claimable": "Native S3, physical sleep/wake, thermal and battery stay open.",
+      "risk": "medium",
+      "size": "M",
+      "evidence_level": "host",
+      "rollback": "Revert the commit.",
+      "next": "H05-T3 native S3 after PR #333.",
+      "history": [
+        {
+          "at": "2026-11-18T20:56:29.302853+00:00",
+          "event": "active",
+          "reason": "Next independent functional READY slice after N02-T2 PR370. No path overlap with integration or Claude ownership. Existing S5 source and primary ACPI6.6 sections5.2.9/5.2.10 reviewed."
+        },
+        {
+          "at": "2026-11-18T21:02:06.293241+00:00",
+          "event": "verified",
+          "source_commit": "7ca7e182cbda15c2d8525fa99c7a8d9f1052596b",
+          "reason": "36 host tests pass,1 existing external fixture ignored; Clippy/fmt/freestanding library build pass. Existing S5 tests unchanged; no native sleep/wake/H05 acceptance."
+        }
+      ],
+      "source_commit": "7ca7e182cbda15c2d8525fa99c7a8d9f1052596b",
+      "receipt": "docs/roadmap-pipeline/receipts/H05-T1.json"
+    },
+    {
+      "id": "N02-T2",
+      "criterion": "N02",
+      "milestone": "M8",
+      "executor": "worker",
+      "status": "verified",
+      "title": "Host-integrate the net-config coordinator into network-service (DHCP replaces static config)",
+      "goal": "Make DHCP-acquired address, route and DNS settings from services/net-config replace the static Config on the same Stack and PacketDevice in services/network-service; NAK, lease expiry and link-down withdraw them and later OpenTcp is refused; no default DNS when the option is absent; reconnect keeps no old sockets.",
+      "why_now": "Prerequisite for any native DHCP case; reuses the reviewed coordinator.",
+      "deps": [
+        "N02-T1"
+      ],
+      "write_paths": [
+        "services/network-service/Cargo.toml",
+        "services/network-service/Cargo.lock",
+        "services/network-service/src/lib.rs",
+        "services/network-service/tests/dhcp_config.rs",
+        "services/net-config/src/service.rs",
+        "sdk/examples/network-service/Cargo.lock"
+      ],
+      "read_paths": [
+        "services/net-config/src/service.rs",
+        "services/net-config/README.md",
+        "services/network-service/tests/service.rs"
+      ],
+      "checks": [
+        "cargo +1.91.1 test --locked --manifest-path services/network-service/Cargo.toml",
+        "cargo +1.91.1 clippy --locked --manifest-path services/network-service/Cargo.toml --all-targets -- -D warnings"
+      ],
+      "acceptance": [
+        "DISCOVER to ACK applies the address; NAK, expiry and link-down withdraw it",
+        "existing network-service tests unchanged"
+      ],
+      "non_claimable": "Native DHCP and real authorized networks stay open.",
+      "risk": "medium",
+      "size": "L",
+      "evidence_level": "host",
+      "rollback": "Revert the commit.",
+      "next": "N02-T3 native DHCP case after PR #333.",
+      "history": [
+        {
+          "at": "2026-11-18T20:46:54.925806+00:00",
+          "event": "active",
+          "reason": "Rust1.91.1 now installed; rustc version confirmed, Clippy/fmt present, unknown-none target installed without default change. New isolated branch; integration-owned PRs unchanged. Allow one minimal trusted coordinator transport seam if necessary to reuse same Stack for UDP/TCP/control."
+        },
+        {
+          "at": "2026-11-18T20:55:43.331425+00:00",
+          "event": "verified",
+          "source_commit": "ed44d77c32d0d19e0b6fab51398b169a962f9409",
+          "reason": "Environment blocker resolved;58 host tests, both crates Clippy/fmt, freestanding lib build and locked static SDK native check pass. No native DHCP acceptance."
+        }
+      ],
+      "source_commit": "ed44d77c32d0d19e0b6fab51398b169a962f9409",
+      "receipt": "docs/roadmap-pipeline/receipts/N02-T2.json"
+    },
+    {
+      "id": "H04-T2",
+      "criterion": "H04",
+      "milestone": "M9",
+      "executor": "worker",
+      "status": "verified",
+      "title": "virtio-net link-state transition tracker with flap budget (host)",
+      "goal": "Add drivers/virtio-net/src/link.rs: generation-bound link up/down events derived from FEATURE_STATUS, a flap budget, rejection of a stale 'up' that would resurrect pre-down state, and a link event during reset returning an I/O error; wire only the pure tracker into lib.rs.",
+      "why_now": "H04 needs disconnect/resume paths; the tracker is host-testable and feeds net-config later.",
+      "deps": [],
+      "write_paths": [
+        "drivers/virtio-net/src/link.rs",
+        "drivers/virtio-net/src/lib.rs",
+        "drivers/virtio-net/src/tests.rs"
+      ],
+      "read_paths": [
+        "drivers/virtio-net/src/lib.rs",
+        "services/net-config/src/service.rs",
+        "docs/implementation/VIRTIO-NET.md"
+      ],
+      "checks": [
+        "cargo +1.90.0 test --locked -p virtio-net-driver",
+        "cargo +1.90.0 clippy --locked -p virtio-net-driver --all-targets -- -D warnings",
+        "cargo +1.90.0 fmt --all -- --check"
+      ],
+      "acceptance": [
+        "negative: stale generation, flap storm, link event during reset"
+      ],
+      "out_of_scope": [
+        "kernel network service wiring",
+        "real NIC drivers"
+      ],
+      "non_claimable": "Native link loss, physical NICs and Wi-Fi/Bluetooth stay open.",
+      "risk": "medium",
+      "size": "S",
+      "evidence_level": "host",
+      "rollback": "Revert the commit.",
+      "next": "H04-T3 native link-loss run.",
+      "history": [
+        {
+          "at": "2026-11-18T20:36:30.023943+00:00",
+          "event": "active",
+          "reason": "Independent Rust1.90 functional driver tracker; N02-T2 toolchain unavailable, P02-T3 protocol/network dependency blocked."
+        },
+        {
+          "at": "2026-11-18T20:38:02.717210+00:00",
+          "event": "verified",
+          "source_commit": "1249f015b32dfdf88d9d839dbacbfe95e8488001",
+          "reason": "22 driver host tests incl4 link regressions, Clippy, root fmt and freestanding build exit0. Pure tracker only; no native/H04 acceptance."
+        }
+      ],
+      "source_commit": "1249f015b32dfdf88d9d839dbacbfe95e8488001",
+      "receipt": "docs/roadmap-pipeline/receipts/H04-T2.json"
+    },
+    {
+      "id": "P02-T2",
+      "criterion": "P02",
+      "milestone": "M8",
+      "executor": "worker",
+      "status": "verified",
+      "title": "Canonical versioned client checkpoint encoding with strict validation (host)",
+      "goal": "Add services/nas/native-client/src/checkpoint.rs: canonical, versioned, fixed-length encoding of the client checkpoint with strict decode validation; a restored checkpoint yields only NeedsReconcile; no anti-rollback claim.",
+      "why_now": "Durable offline edits are a P02 condition and the checkpoint is not yet a persistent schema.",
+      "deps": [
+        "P02-T1"
+      ],
+      "write_paths": [
+        "services/nas/native-client/src/checkpoint.rs",
+        "services/nas/native-client/src/lib.rs",
+        "services/nas/native-client/tests/checkpoint.rs",
+        "services/nas/native-client/README.md"
+      ],
+      "read_paths": [
+        "services/nas/native-core/src/snapshot.rs"
+      ],
+      "checks": [
+        "cargo +1.90.0 test --locked --manifest-path services/nas/native-client/Cargo.toml",
+        "cargo +1.90.0 clippy --locked --manifest-path services/nas/native-client/Cargo.toml --all-targets -- -D warnings",
+        "cargo +1.90.0 fmt --manifest-path services/nas/native-client/Cargo.toml -- --check"
+      ],
+      "acceptance": [
+        "negative decodes: truncated, wrong magic or version, non-zero reserved bytes, invalid state, length over bound, duplicate slot",
+        "restored checkpoint yields only NeedsReconcile"
+      ],
+      "out_of_scope": [
+        "rollback anchor (B02)"
+      ],
+      "non_claimable": "Anti-rollback and native persistence stay open.",
+      "risk": "medium",
+      "size": "S",
+      "evidence_level": "host",
+      "rollback": "Revert the commit.",
+      "next": "P02-T3 native scenario.",
+      "history": [
+        {
+          "at": "2026-11-18T20:31:37.717049+00:00",
+          "event": "active",
+          "reason": "Sequential lead-owned dependent slice stacked on PR367; no concurrent writer or unrelated Claude paths."
+        },
+        {
+          "at": "2026-11-18T20:33:51.585853+00:00",
+          "event": "verified",
+          "source_commit": "8536ec8581cd41e0094c1e61bf43491d31192e4f",
+          "reason": "21 host tests incl4 codec regressions, Clippy/fmt exit0. Stacked dependency PR367, no acceptance inferred."
+        }
+      ],
+      "source_commit": "8536ec8581cd41e0094c1e61bf43491d31192e4f",
+      "receipt": "docs/roadmap-pipeline/receipts/P02-T2.json"
+    },
+    {
+      "id": "P02-T1",
+      "criterion": "P02",
+      "milestone": "M8",
+      "executor": "worker",
+      "status": "verified",
+      "title": "Authority-checked guest head query in NAS native-core for resume discovery (host)",
+      "goal": "Add to services/nas/native-core an authority-checked guest head query (latest committed revision per object within the caller's namespace and session) and use it in native-client so NeedsReconcile edits can discover the remote revision; snapshot format (NOSNAS01) and wire unchanged; output unchanged on every error.",
+      "why_now": "The native-client README names remote head discovery as the missing piece for automatic resume (P02). It builds on verified CAS/authority code and needs no open PR path.",
+      "deps": [],
+      "write_paths": [
+        "services/nas/native-core/src/lib.rs",
+        "services/nas/native-core/tests/authority.rs",
+        "services/nas/native-core/README.md",
+        "services/nas/native-client/src/lib.rs",
+        "services/nas/native-client/tests/resume.rs",
+        "services/nas/native-client/README.md"
+      ],
+      "read_paths": [
+        "services/nas/native-core/src/snapshot.rs",
+        "services/nas/native-probe/CONTRACT.md",
+        "docs/implementation/NAS-SHARING-AND-INTERNET.md"
+      ],
+      "checks": [
+        "cargo +1.90.0 test --locked --manifest-path services/nas/native-core/Cargo.toml",
+        "cargo +1.90.0 clippy --locked --manifest-path services/nas/native-core/Cargo.toml --all-targets -- -D warnings",
+        "cargo +1.90.0 fmt --manifest-path services/nas/native-core/Cargo.toml -- --check",
+        "cargo +1.90.0 test --locked --manifest-path services/nas/native-client/Cargo.toml",
+        "cargo +1.90.0 clippy --locked --manifest-path services/nas/native-client/Cargo.toml --all-targets -- -D warnings",
+        "cargo +1.90.0 fmt --manifest-path services/nas/native-client/Cargo.toml -- --check",
+        "cargo +1.90.0 test --locked --manifest-path services/nas/native-volume/Cargo.toml",
+        "cargo +1.90.0 clippy --locked --manifest-path services/nas/native-volume/Cargo.toml --all-targets -- -D warnings",
+        "cargo +1.90.0 fmt --manifest-path services/nas/native-volume/Cargo.toml -- --check",
+        "cargo +1.90.0 test --locked --manifest-path services/nas/native-probe/Cargo.toml",
+        "cargo +1.90.0 clippy --locked --manifest-path services/nas/native-probe/Cargo.toml --all-targets -- -D warnings",
+        "cargo +1.90.0 fmt --manifest-path services/nas/native-probe/Cargo.toml -- --check",
+        "python3 -B -m unittest discover -s services/nas/native-probe/tests -p test_disk_oracle.py"
+      ],
+      "acceptance": [
+        "negative: stale session after revoke returns Stale; another principal returns Denied; foreign or evicted namespace rejected; outputs unchanged on error",
+        "client never commits an Unknown edit automatically",
+        "NOSNAS01 SNAPSHOT_BYTES unchanged"
+      ],
+      "out_of_scope": [
+        "NASP wire opcode (P02-T3)",
+        "network transport"
+      ],
+      "non_claimable": "Native resume over real connections stays open (N02/N03/N04).",
+      "risk": "medium",
+      "size": "M",
+      "evidence_level": "host",
+      "rollback": "Revert the commit.",
+      "next": "P02-T2 checkpoint encoding.",
+      "history": [
+        {
+          "at": "2026-11-18T20:28:27.361178+00:00",
+          "event": "active",
+          "reason": "Lead supervised implementation; promote bounded existing-code NAS resume integration ahead of documentation-only proposals. Disjoint from S09 and UI; no unattended activation."
+        },
+        {
+          "at": "2026-11-18T20:30:43.706662+00:00",
+          "event": "verified",
+          "source_commit": "c5c56f93d14a737c5c62dbec7ae237e34fe505fe",
+          "reason": "57 Rust host tests, 8 disk-oracle tests, Clippy/fmt pass. One bounded source review no blocker. Not native/criterion acceptance."
+        }
+      ],
+      "source_commit": "c5c56f93d14a737c5c62dbec7ae237e34fe505fe",
+      "receipt": "docs/roadmap-pipeline/receipts/P02-T1.json"
+    },
+    {
       "id": "A02-T1",
       "criterion": "A02",
       "milestone": "M7",
       "executor": "worker",
-      "status": "ready",
+      "status": "verified",
       "title": "Host installer orchestrator binding source verification, artifact commit and catalogue journal",
       "goal": "Add sdk/app-management/src/installer.rs: a bounded no_std orchestrator for install, update and remove that (1) verifies the package only through the existing app_package_core::SourceRegistry::verify_executable (no second verifier, no public self-constructible verified token), (2) derives PackageIdentity crate-internally from the SourceVerifiedExecutable, (3) streams the exact image through store::InstallTransaction and commits it, (4) re-checks the current source generation and revocation state immediately before catalogue prepare/apply so a rotate or revoke between verification and commit fails closed (APP-SOURCE-RECOVERY section 7), (5) applies catalog::InstallCatalog and persists through journal::Journal, and (6) maps store/journal Unknown to a fail-closed state without replay or automatic recommit. The SourceRegistry stays caller-supplied and in memory: no new trust root, anchor, durable source backend or launch capability.",
       "why_now": "A02 is open and every lower layer (package verification, source policy, streaming store, catalogue, journal) is host-tested but unconnected. A single orchestrator is the smallest step that proves the layers compose without authority gaps, and it is the prerequisite for the native installer service (A02-T3) and for A03/A04 app lifecycle work. Covered by an existing CI job.",
@@ -92,6 +716,13 @@
           "run": "20261115T020104-23862",
           "session_id": "539a48f7-3153-478d-8f8c-dc618d90a5c1",
           "reason": "Worker reported the 5-hour usage limit after 609 s and 20 turns (0 compactions, peak context 120k, 198k output tokens, estimated 2.42 USD); the controller stopped on the rate-limit guard. No file changed. Resumed after the reset."
+        },
+        {
+          "at": "2026-11-18T20:08:23+00:00",
+          "event": "source-bound-branch-reference",
+          "source_commit": "d03ae904048a91defc74b9e4ba854d3526595580",
+          "pr": 363,
+          "reason": "Verified task on preserved source branch; no full criterion acceptance or main integration inferred."
         }
       ]
     },
@@ -100,7 +731,7 @@
       "criterion": "B01",
       "milestone": "M8",
       "executor": "worker",
-      "status": "ready",
+      "status": "verified",
       "native": true,
       "title": "Native positive management recovery through a manifest-named admin principal (keyring)",
       "goal": "In the native-keyring normal case, add a management-role process (a second instance of the existing keyring-app ELF, named in the manifest as the admin caller and connected to the existing admin ingress words) that performs EXPORT_RECOVERY on service A and RESTORE into service B, after which B unseals a ciphertext sealed by A. Negative cases in the same run: a wrong recovery secret returns Auth; GENERATE on the admin ingress is denied; the ordinary app's test-only SEND alias to the admin ingress is counted as bad_caller with no reply and no state change. Existing APP_RECOVERY_EXPORT_DENIED and APP_RECOVERY_RESTORE_DENIED counters stay 1. Reuse existing ELFs and kernel features only: no tools/build.py edit, no new capability kind, no change to the KEY1 wire.",
@@ -152,14 +783,22 @@
       "evidence_level": "native-QEMU (TCG)",
       "rollback": "Revert the commit; the new process exists only in the native-keyring test profile.",
       "next": "Lead acceptance review of B01; then B01-T2 after PR #333 releases tools/build.py.",
-      "history": []
+      "history": [
+        {
+          "at": "2026-11-18T20:08:23+00:00",
+          "event": "source-bound-branch-reference",
+          "source_commit": "3847e9f",
+          "pr": 364,
+          "reason": "Verified task on preserved source branch; no full criterion acceptance or main integration inferred."
+        }
+      ]
     },
     {
       "id": "N02-T1",
       "criterion": "N02",
       "milestone": "M8",
       "executor": "worker",
-      "status": "ready",
+      "status": "verified",
       "title": "Bounded DNS resolver core with TTL, negative caching and epoch invalidation (host)",
       "goal": "Add services/net-protocol/src/resolver.rs: a pure, allocation-free resolver core with a bounded cache keyed by name and type, monotonic-tick TTL with exact expiry, negative caching of NXDOMAIN, CNAME depth limit, explicit TC/NXDOMAIN/SERVFAIL/ID-or-question-mismatch errors with no partial records, cache flush on configuration-epoch change, and bounded eviction.",
       "why_now": "N02 needs everyday name resolution and only single-query parsing exists. The crate has no dependencies, builds offline and is covered by ci.yml#host-quality.",
@@ -168,7 +807,9 @@
         "services/net-protocol/src/resolver.rs",
         "services/net-protocol/src/lib.rs",
         "services/net-protocol/tests/resolver.rs",
-        "services/net-protocol/README.md"
+        "services/net-protocol/README.md",
+        "services/net-protocol/src/dns.rs",
+        "services/net-protocol/tests/dns.rs"
       ],
       "read_paths": [
         "services/net-protocol/src/dns.rs",
@@ -186,7 +827,8 @@
         "NXDOMAIN negatively cached with a bound",
         "negative: TC bit, wrong ID or question, compression loop, TTL overflow, oversize name each give an error with no partial records",
         "epoch change drops the cache; a full cache evicts within its bound",
-        "no name-to-IP authorization is implied (broker scope unchanged)"
+        "no name-to-IP authorization is implied (broker scope unchanged)",
+        "Negative replies are fully validated before cache mutation; malformed NXDOMAIN cannot poison the cache; reuse the existing DNS decoder without changing strict positive parse_response behavior."
       ],
       "out_of_scope": [
         "native resolver service",
@@ -198,14 +840,29 @@
       "evidence_level": "host",
       "rollback": "Revert the commit.",
       "next": "N02-T2 net-config integration.",
-      "history": []
+      "history": [
+        {
+          "at": "2026-11-18T20:08:23+00:00",
+          "event": "supervised-claim",
+          "owner": "Codex",
+          "branch": "codex/n02-resolver-cache",
+          "base": "6f29b6720b51aecad5714faa48b445afd6e2f5a9"
+        },
+        {
+          "at": "2026-11-18T20:17:44+00:00",
+          "event": "verified",
+          "source_commit": "138d48de9f351836956db79f2d30dbd93814c59e",
+          "receipt": "docs/roadmap-pipeline/receipts/N02-T1.json",
+          "summary": "79 host tests and Clippy/fmt/freestanding build pass; no native resolver or N02 acceptance."
+        }
+      ]
     },
     {
       "id": "B02-T2",
       "criterion": "B02",
       "milestone": "M8",
       "executor": "worker",
-      "status": "ready",
+      "status": "blocked",
       "title": "Keyring write-ahead contract: no seal or revoke confirmation before durable commit (host)",
       "goal": "Implement spec item 4 of B02-SECURE-RECORDS.md in keyring-core on the host: a newly generated handle cannot seal until snapshot generation G is committed; revocation is confirmed only after commit; crash points never reissue an index; Unknown I/O is never confirmed or retried.",
       "why_now": "The B02 spec marks this as still to be built; host-first, offline and covered by host-quality.",
@@ -243,47 +900,20 @@
       "evidence_level": "host",
       "rollback": "Revert the commit.",
       "next": "B02-T1 native tamper and key-loss cases.",
-      "history": []
-    },
-    {
-      "id": "N04-T2",
-      "criterion": "N04",
-      "milestone": "M8",
-      "executor": "worker",
-      "status": "ready",
-      "title": "Production issuer, delegated helper subgrants and durable revocation contract (design)",
-      "goal": "Write docs/implementation/N04-ISSUER-DELEGATION.md: invariants, interfaces and negative tests for a production issuer and PolicyAuthority, attenuation-only helper subgrants, regrant generations and revocation that survives a service restart, before any code; no new trust root and no automatic regrant.",
-      "why_now": "Implementation of the next step is blocked on an owner or review decision that needs an evidence-based basis first.",
-      "deps": [],
-      "write_paths": [
-        "docs/implementation/N04-ISSUER-DELEGATION.md"
-      ],
-      "read_paths": [
-        "services/net-broker/README.md",
-        "services/network-service/src/lib.rs",
-        "docs/implementation/KERNEL-AND-SECURITY-CONTRACT.md",
-        "docs/verification/n04-helper-20261114/README.md"
-      ],
-      "checks": [
-        "python3 tools/progress.py --check"
-      ],
-      "acceptance": [
-        "labelled PROPOSED where it proposes decisions; no new trust root, escrow or capability is adopted",
-        "every cited path and symbol exists in the current tree"
-      ],
-      "non_claimable": "Owner or reviewer decision; no criterion effect.",
-      "risk": "low",
-      "size": "S",
-      "evidence_level": "design",
-      "rollback": "Revert the commit.",
-      "history": []
+      "history": [
+        {
+          "at": "2026-11-18T20:08:23+00:00",
+          "event": "ownership-block",
+          "reason": "S09-NEXT remains Claude-owned; owner decision pending."
+        }
+      ]
     },
     {
       "id": "A03-T1",
       "criterion": "A03",
       "milestone": "M7",
       "executor": "worker",
-      "status": "ready",
+      "status": "verified",
       "title": "task-grant-core: time-bounded, revocable per-object task grants (host model)",
       "goal": "Create sdk/task-grant-core (no_std, forbid(unsafe_code)) and add it to the sdk workspace: grants of (app principal, process epoch) x (object id, revision) x {read, write, export} x {until-close, session}, generation-bound revoke, no delegation or inheritance to helper processes, no capability material in messages, bounded tables. Fail closed on stale epoch, stale generation, overflow and unknown object.",
       "why_now": "A03 has domain-level volume grants but no task-grant model; it is the policy core that the trusted grant UI (UX-C) and native broker (A03-T3) need. Host-only, covered by the sdk CI step.",
@@ -320,6 +950,59 @@
       "evidence_level": "host",
       "rollback": "Revert the commit and the sdk workspace member line.",
       "next": "A03-T3 native broker after an ADR for per-object volume grants.",
+      "history": [
+        {
+          "at": "2026-11-18T20:17:44+00:00",
+          "event": "implementation-priority",
+          "reason": "Owner prioritizes functional implementation; N04-T2 is a documentation-only proposal and remains ready for later."
+        },
+        {
+          "at": "2026-11-18T20:19:37+00:00",
+          "event": "supervised-claim",
+          "owner": "Codex",
+          "base": "6f29b6720b51aecad5714faa48b445afd6e2f5a9",
+          "branch": "codex/a03-task-grants"
+        },
+        {
+          "at": "2026-11-18T20:25:41+00:00",
+          "event": "verified",
+          "source_commit": "e1cc7c1ce04942f0f46c91875eab751044c6b260",
+          "receipt": "docs/roadmap-pipeline/receipts/A03-T1.json",
+          "summary": "128 SDK tests including12 grant regressions, Clippy/fmt and freestanding build pass. No A03/native acceptance."
+        }
+      ]
+    },
+    {
+      "id": "N04-T2",
+      "criterion": "N04",
+      "milestone": "M8",
+      "executor": "worker",
+      "status": "ready",
+      "title": "Production issuer, delegated helper subgrants and durable revocation contract (design)",
+      "goal": "Write docs/implementation/N04-ISSUER-DELEGATION.md: invariants, interfaces and negative tests for a production issuer and PolicyAuthority, attenuation-only helper subgrants, regrant generations and revocation that survives a service restart, before any code; no new trust root and no automatic regrant.",
+      "why_now": "Implementation of the next step is blocked on an owner or review decision that needs an evidence-based basis first.",
+      "deps": [],
+      "write_paths": [
+        "docs/implementation/N04-ISSUER-DELEGATION.md"
+      ],
+      "read_paths": [
+        "services/net-broker/README.md",
+        "services/network-service/src/lib.rs",
+        "docs/implementation/KERNEL-AND-SECURITY-CONTRACT.md",
+        "docs/verification/n04-helper-20261114/README.md"
+      ],
+      "checks": [
+        "python3 tools/progress.py --check"
+      ],
+      "acceptance": [
+        "labelled PROPOSED where it proposes decisions; no new trust root, escrow or capability is adopted",
+        "every cited path and symbol exists in the current tree"
+      ],
+      "non_claimable": "Owner or reviewer decision; no criterion effect.",
+      "risk": "low",
+      "size": "S",
+      "evidence_level": "design",
+      "rollback": "Revert the commit.",
       "history": []
     },
     {
@@ -327,7 +1010,7 @@
       "criterion": "N04",
       "milestone": "M8",
       "executor": "worker",
-      "status": "ready",
+      "status": "blocked",
       "native": true,
       "title": "Native full TCP and bounded UDP listener sweep before and after revoke",
       "goal": "Extend the native network-service revoke case so the peer sweeps all 65,535 guest TCP ports and a documented bounded set of UDP ports before and after revocation; the guest must answer only with exact RSTs, never a SYN-ACK or UDP payload; bounded frame and time budget for the case.",
@@ -362,14 +1045,29 @@
       "evidence_level": "native-QEMU (TCG)",
       "rollback": "Revert the commit.",
       "next": "N04-T2 issuer and delegation contract.",
-      "history": []
+      "history": [
+        {
+          "event": "active",
+          "at": "2026-11-18T21:50:07.067760+00:00",
+          "reason": "Bounded full native TCP/UDP refusal sweep; GraphQL open PR files show no overlap. Keep exact RST and zero payload negatives; no production issuer changes."
+        },
+        {
+          "event": "blocked",
+          "at": "2026-11-18T22:05:48.497612+00:00",
+          "source_commit": "5acd07961bd12d389987fc2251f4f7834faae97d",
+          "reason": "Full streaming sweep host prototype passes32 tests; native full sweep not demonstrated within finite budget. Unsupported optional IPC wait removed; no feature/rights activation. Continue B05-T2. Preserved in draft PR380."
+        }
+      ],
+      "source_commit": "5acd07961bd12d389987fc2251f4f7834faae97d",
+      "receipt": "docs/roadmap-pipeline/receipts/N04-T1.json",
+      "blocker": "Before optional timed-wait experiment, full sweep measured1540input frames over6.989656652s (median4.513ms per input, ~220RST/s), peer healthy; appB failed step32 at8.375s. This extrapolates to about591s for131070RSTs, beyond180s. Required native full-port acceptance remains open. Existing revoke feature lacks ipc-wait; optional wait experiment failed POLICYstep3 and has been fully removed without enabling new syscall/feature."
     },
     {
       "id": "B02-T1",
       "criterion": "B02",
       "milestone": "M8",
       "executor": "worker",
-      "status": "ready",
+      "status": "active",
       "native": true,
       "title": "Native tamper and key-loss cold-reopen cases with exact refusal markers",
       "goal": "Using the existing test-system-recover feature, add cases where the host mutates a copy of a normal disk (AEAD bytes in object 8, the document 1 tag, swapped chunks) or withholds the secret; the guest must fail closed with one exact refusal marker and no plaintext marker, and the read-only image bytes stay unchanged. Old-generation replay is recorded as a documented unprotected cold case, not as a pass.",
@@ -404,14 +1102,20 @@
       "evidence_level": "native-QEMU (TCG)",
       "rollback": "Revert the commit.",
       "next": "B02-T3 after the owner rollback ADR.",
-      "history": []
+      "history": [
+        {
+          "event": "active",
+          "at": "2026-11-18T22:07:50.793921+00:00",
+          "reason": "Codex isolated native-tamper task. Exact write paths have no open-PR overlap. Handoff excludes B02-T2/R03-T1, not this B02-T1 probe. No Claude S09/archive/backup files or integration branches touched."
+        }
+      ]
     },
     {
       "id": "B05-T2",
       "criterion": "B05",
       "milestone": "M8",
       "executor": "worker",
-      "status": "ready",
+      "status": "verified",
       "title": "Bounded exhaustive revocation model test over capability-core",
       "goal": "Add crates/capability-core/tests/exhaustive_revocation.rs: enumerate bounded sequences of create_endpoint, send/transfer, close and revoke across two or three processes; check no use of a stale handle after revoke, no rights amplification and monotonic generations.",
       "why_now": "B05 requires machine-checked invariants; this is offline and CI-covered.",
@@ -437,104 +1141,21 @@
       "evidence_level": "host",
       "rollback": "Revert the commit.",
       "next": "B05-T1 review scope packet.",
-      "history": []
-    },
-    {
-      "id": "U05-T1",
-      "criterion": "U05",
-      "milestone": "M7",
-      "executor": "worker",
-      "status": "ready",
-      "title": "settings-core: typed, versioned, revertible settings with A/B persistence (host model)",
-      "goal": "Create sdk/settings-core (no_std): typed versioned schema; validate, set and revert; A/B persistence over a media trait with SHA-256 for integrity only; fail closed on corruption or I/O error; never confirm a failed write; add it to the sdk workspace.",
-      "why_now": "U05 needs a real settings service behind the shell's fixed Settings page; this is the smallest host-testable core and has no dependency on open PRs.",
-      "deps": [],
-      "write_paths": [
-        "sdk/settings-core/",
-        "sdk/Cargo.toml",
-        "sdk/Cargo.lock"
+      "history": [
+        {
+          "event": "active",
+          "at": "2026-11-18T22:03:02.510481+00:00",
+          "reason": "Sole Codex writer; new isolated worktree. One test file only; production authority engine unchanged. Exhaust all words of a fixed bounded action alphabet over three registered processes, independent stale/right/generation observations. Native acceptance and human audit not claimed."
+        },
+        {
+          "at": "2026-11-18T22:06:51.642281+00:00",
+          "event": "verified",
+          "source_commit": "4517279e819314fc226ec8b34fec2e9d7a3a3890",
+          "reason": "Exhaustive host test over7^5 words,19607 nonempty prefixes, three processes: creation, restricted delegation, queued transfer, receive, close, revoke and amplification attempts. Independent lifetime/right/generation model; explicit regrant after revoke stays valid. Targeted test/Clippy/fmt exit0; isolated revoke-marking mutant fails101 at stale handle assertion. Bounded five-step host exploration only, not unbounded verification/native acceptance/external human audit. Production engine unchanged. N04-T1 draftPR380 remains BLOCKED on native throughput; optional unsupported IPC wait removed. Score41/100 unchanged."
+        }
       ],
-      "read_paths": [
-        "docs/implementation/DESKTOP-SHELL.md",
-        "docs/implementation/PROFILES-AND-USERS.md",
-        "sdk/app-management/src/journal.rs"
-      ],
-      "checks": [
-        "cargo +1.90.0 test --manifest-path sdk/Cargo.toml --locked",
-        "cargo +1.90.0 clippy --manifest-path sdk/Cargo.toml --locked --all-targets -- -D warnings",
-        "cargo +1.90.0 fmt --manifest-path sdk/Cargo.toml --all -- --check"
-      ],
-      "acceptance": [
-        "negative: invalid value, unknown schema version, torn write at every byte offset, flush or read error, full medium, both copies corrupt",
-        "revert restores the previous committed value; a failed write is never reported as committed"
-      ],
-      "out_of_scope": [
-        "per-user encryption (B02)",
-        "native service",
-        "UI"
-      ],
-      "non_claimable": "Native settings service, encryption at rest and user tests stay open.",
-      "risk": "medium",
-      "size": "M",
-      "evidence_level": "host",
-      "rollback": "Revert the commit and the sdk workspace member line.",
-      "next": "U05-T3 native service.",
-      "history": []
-    },
-    {
-      "id": "P02-T1",
-      "criterion": "P02",
-      "milestone": "M8",
-      "executor": "worker",
-      "status": "ready",
-      "title": "Authority-checked guest head query in NAS native-core for resume discovery (host)",
-      "goal": "Add to services/nas/native-core an authority-checked guest head query (latest committed revision per object within the caller's namespace and session) and use it in native-client so NeedsReconcile edits can discover the remote revision; snapshot format (NOSNAS01) and wire unchanged; output unchanged on every error.",
-      "why_now": "The native-client README names remote head discovery as the missing piece for automatic resume (P02). It builds on verified CAS/authority code and needs no open PR path.",
-      "deps": [],
-      "write_paths": [
-        "services/nas/native-core/src/lib.rs",
-        "services/nas/native-core/tests/authority.rs",
-        "services/nas/native-core/README.md",
-        "services/nas/native-client/src/lib.rs",
-        "services/nas/native-client/tests/resume.rs",
-        "services/nas/native-client/README.md"
-      ],
-      "read_paths": [
-        "services/nas/native-core/src/snapshot.rs",
-        "services/nas/native-probe/CONTRACT.md",
-        "docs/implementation/NAS-SHARING-AND-INTERNET.md"
-      ],
-      "checks": [
-        "cargo +1.90.0 test --locked --manifest-path services/nas/native-core/Cargo.toml",
-        "cargo +1.90.0 clippy --locked --manifest-path services/nas/native-core/Cargo.toml --all-targets -- -D warnings",
-        "cargo +1.90.0 fmt --manifest-path services/nas/native-core/Cargo.toml -- --check",
-        "cargo +1.90.0 test --locked --manifest-path services/nas/native-client/Cargo.toml",
-        "cargo +1.90.0 clippy --locked --manifest-path services/nas/native-client/Cargo.toml --all-targets -- -D warnings",
-        "cargo +1.90.0 fmt --manifest-path services/nas/native-client/Cargo.toml -- --check",
-        "cargo +1.90.0 test --locked --manifest-path services/nas/native-volume/Cargo.toml",
-        "cargo +1.90.0 clippy --locked --manifest-path services/nas/native-volume/Cargo.toml --all-targets -- -D warnings",
-        "cargo +1.90.0 fmt --manifest-path services/nas/native-volume/Cargo.toml -- --check",
-        "cargo +1.90.0 test --locked --manifest-path services/nas/native-probe/Cargo.toml",
-        "cargo +1.90.0 clippy --locked --manifest-path services/nas/native-probe/Cargo.toml --all-targets -- -D warnings",
-        "cargo +1.90.0 fmt --manifest-path services/nas/native-probe/Cargo.toml -- --check",
-        "python3 -B -m unittest discover -s services/nas/native-probe/tests -p test_disk_oracle.py"
-      ],
-      "acceptance": [
-        "negative: stale session after revoke returns Stale; another principal returns Denied; foreign or evicted namespace rejected; outputs unchanged on error",
-        "client never commits an Unknown edit automatically",
-        "NOSNAS01 SNAPSHOT_BYTES unchanged"
-      ],
-      "out_of_scope": [
-        "NASP wire opcode (P02-T3)",
-        "network transport"
-      ],
-      "non_claimable": "Native resume over real connections stays open (N02/N03/N04).",
-      "risk": "medium",
-      "size": "M",
-      "evidence_level": "host",
-      "rollback": "Revert the commit.",
-      "next": "P02-T2 checkpoint encoding.",
-      "history": []
+      "source_commit": "4517279e819314fc226ec8b34fec2e9d7a3a3890",
+      "receipt": "docs/roadmap-pipeline/receipts/B05-T2.json"
     },
     {
       "id": "N03-T1",
@@ -569,216 +1190,11 @@
       "history": []
     },
     {
-      "id": "H02-T2",
-      "criterion": "H02",
-      "milestone": "M9",
-      "executor": "worker",
-      "status": "ready",
-      "title": "USB attach/detach generation model with stale-completion rejection (host)",
-      "goal": "Add drivers/usb/src/hotplug.rs: per-port attach generation, rejection of completions from an older generation, bounded re-enumeration attempts and an attach-storm budget; detach during enumeration releases state; no change to the existing boot_session API consumed by PR #333.",
-      "why_now": "H02 requires bounded hotplug; this is a host prerequisite outside the paths PR #333 owns.",
-      "deps": [],
-      "write_paths": [
-        "drivers/usb/src/hotplug.rs",
-        "drivers/usb/src/lib.rs",
-        "drivers/usb/tests/hotplug.rs",
-        "drivers/usb/verification/hotplug.md"
-      ],
-      "read_paths": [
-        "drivers/usb/src/boot_session.rs",
-        "drivers/usb/src/lib.rs",
-        "drivers/usb/verification/boot-session.md",
-        "docs/drivers/HARDWARE-TARGETS.md"
-      ],
-      "checks": [
-        "cargo +1.90.0 test --locked --manifest-path drivers/usb/Cargo.toml",
-        "cargo +1.90.0 clippy --locked --manifest-path drivers/usb/Cargo.toml --all-targets -- -D warnings",
-        "cargo +1.90.0 fmt --manifest-path drivers/usb/Cargo.toml -- --check",
-        "cargo +1.90.0 build --locked --release --lib --target x86_64-unknown-none --manifest-path drivers/usb/Cargo.toml"
-      ],
-      "acceptance": [
-        "negative: old-generation completion rejected, attach storm hits its budget, detach during enumeration releases state, generation counter never wraps silently",
-        "existing 44 USB tests still pass unchanged"
-      ],
-      "out_of_scope": [
-        "kernel xHCI wiring (PR #333)",
-        "hubs and isochronous transfers"
-      ],
-      "non_claimable": "Native hotplug, physical devices and the H02 reference profile stay open.",
-      "risk": "medium",
-      "size": "M",
-      "evidence_level": "host",
-      "rollback": "Revert the commit; the module is additive.",
-      "next": "H02-T3 after PR #333 merges.",
-      "history": []
-    },
-    {
-      "id": "H05-T1",
-      "criterion": "H05",
-      "milestone": "M9",
-      "executor": "worker",
-      "status": "ready",
-      "title": "ACPI _S3_ sleep-type extraction and FACS validation (host)",
-      "goal": "Extend drivers/acpi-power with _S3_ extraction and FACS validation: FIRMWARE_CTRL/X_FIRMWARE_CTRL resolution and conflict rejection, signature, length >= 64, 64-byte alignment and waking-vector fields; the existing S5 API stays unchanged.",
-      "why_now": "H05 sleep/wake starts with validated firmware tables; host-only, existing component CI.",
-      "deps": [],
-      "write_paths": [
-        "drivers/acpi-power/src/lib.rs",
-        "drivers/acpi-power/tests/",
-        "drivers/acpi-power/README.md",
-        "drivers/acpi-power/verification/"
-      ],
-      "read_paths": [
-        "drivers/acpi-power/src/lib.rs",
-        "docs/verification/h05-acpi-s5/README.md"
-      ],
-      "checks": [
-        "cargo +1.90.0 test --locked --manifest-path drivers/acpi-power/Cargo.toml",
-        "cargo +1.90.0 clippy --locked --manifest-path drivers/acpi-power/Cargo.toml --all-targets -- -D warnings",
-        "cargo +1.90.0 fmt --manifest-path drivers/acpi-power/Cargo.toml -- --check",
-        "cargo +1.90.0 build --locked --release --lib --target x86_64-unknown-none --manifest-path drivers/acpi-power/Cargo.toml"
-      ],
-      "acceptance": [
-        "negative: conflicting FIRMWARE_CTRL and X_FIRMWARE_CTRL, misaligned FACS, short FACS, missing _S3_, truncated package",
-        "existing S5 tests unchanged"
-      ],
-      "out_of_scope": [
-        "kernel S3 entry or waking trampoline (H05-T3)"
-      ],
-      "non_claimable": "Native S3, physical sleep/wake, thermal and battery stay open.",
-      "risk": "medium",
-      "size": "M",
-      "evidence_level": "host",
-      "rollback": "Revert the commit.",
-      "next": "H05-T3 native S3 after PR #333.",
-      "history": []
-    },
-    {
-      "id": "H04-T2",
-      "criterion": "H04",
-      "milestone": "M9",
-      "executor": "worker",
-      "status": "ready",
-      "title": "virtio-net link-state transition tracker with flap budget (host)",
-      "goal": "Add drivers/virtio-net/src/link.rs: generation-bound link up/down events derived from FEATURE_STATUS, a flap budget, rejection of a stale 'up' that would resurrect pre-down state, and a link event during reset returning an I/O error; wire only the pure tracker into lib.rs.",
-      "why_now": "H04 needs disconnect/resume paths; the tracker is host-testable and feeds net-config later.",
-      "deps": [],
-      "write_paths": [
-        "drivers/virtio-net/src/link.rs",
-        "drivers/virtio-net/src/lib.rs",
-        "drivers/virtio-net/src/tests.rs"
-      ],
-      "read_paths": [
-        "drivers/virtio-net/src/lib.rs",
-        "services/net-config/src/service.rs",
-        "docs/implementation/VIRTIO-NET.md"
-      ],
-      "checks": [
-        "cargo +1.90.0 test --locked -p virtio-net-driver",
-        "cargo +1.90.0 clippy --locked -p virtio-net-driver --all-targets -- -D warnings",
-        "cargo +1.90.0 fmt --all -- --check"
-      ],
-      "acceptance": [
-        "negative: stale generation, flap storm, link event during reset"
-      ],
-      "out_of_scope": [
-        "kernel network service wiring",
-        "real NIC drivers"
-      ],
-      "non_claimable": "Native link loss, physical NICs and Wi-Fi/Bluetooth stay open.",
-      "risk": "medium",
-      "size": "S",
-      "evidence_level": "host",
-      "rollback": "Revert the commit.",
-      "next": "H04-T3 native link-loss run.",
-      "history": []
-    },
-    {
-      "id": "U05-T2",
-      "criterion": "U05",
-      "milestone": "M7",
-      "executor": "worker",
-      "status": "ready",
-      "title": "search-index core with grant-scoped results (host model)",
-      "goal": "Create sdk/search-index (no_std): per-domain index of names, collections, metadata and UTF-8 tokens with object/revision identity; update and delete; rebuild from a catalogue snapshot; results only from currently granted domains; bounded memory; add it to the sdk workspace.",
-      "why_now": "U05 local search is a fixed list today; a scoped index is host-testable now.",
-      "deps": [],
-      "write_paths": [
-        "sdk/search-index/",
-        "sdk/Cargo.toml",
-        "sdk/Cargo.lock"
-      ],
-      "read_paths": [
-        "sdk/catalog-client/",
-        "docs/implementation/NATIVE-MATERIAL-LIBRARY.md"
-      ],
-      "checks": [
-        "cargo +1.90.0 test --manifest-path sdk/Cargo.toml --locked",
-        "cargo +1.90.0 clippy --manifest-path sdk/Cargo.toml --locked --all-targets -- -D warnings",
-        "cargo +1.90.0 fmt --manifest-path sdk/Cargo.toml --all -- --check"
-      ],
-      "acceptance": [
-        "negative: foreign-domain object, revoked domain, stale revision, oversize token, invalid UTF-8, corrupt index detected and rebuilt rather than trusted"
-      ],
-      "out_of_scope": [
-        "native service",
-        "content extraction from documents"
-      ],
-      "non_claimable": "Native search and user tests stay open.",
-      "risk": "security",
-      "size": "M",
-      "evidence_level": "host",
-      "rollback": "Revert the commit and the sdk workspace member line.",
-      "next": "U05-T3 native service.",
-      "history": []
-    },
-    {
-      "id": "L01-T2",
-      "criterion": "L01",
-      "milestone": "M8",
-      "executor": "worker",
-      "status": "ready",
-      "title": "Bounded no_std safetensors header and tensor-table parser over verified artifacts (host)",
-      "goal": "Create experiments/ai/model-format (no_std, forbid(unsafe_code)): parse a safetensors header and tensor table from a VerifiedArtifact, treating all model bytes as untrusted; bounded header length, strict UTF-8, duplicate-key rejection, dtype allow-list, shape/offset overflow checks, no overlapping or out-of-range tensors, no uncovered or trailing bytes, nesting depth limit.",
-      "why_now": "Model parsing is the first security boundary any local inference engine needs and depends on no owner decision or open PR. Needs CI wiring by the lead once it lands (CI-L1).",
-      "deps": [],
-      "write_paths": [
-        "experiments/ai/model-format/"
-      ],
-      "read_paths": [
-        "experiments/ai/model-store-contract/src/lib.rs",
-        "crates/artifact-store-core/src/lib.rs",
-        "docs/implementation/ARTIFACT-STORE-CONTRACT.md"
-      ],
-      "checks": [
-        "cargo +1.90.0 test --locked --manifest-path experiments/ai/model-format/Cargo.toml",
-        "cargo +1.90.0 clippy --locked --manifest-path experiments/ai/model-format/Cargo.toml --all-targets -- -D warnings",
-        "cargo +1.90.0 fmt --manifest-path experiments/ai/model-format/Cargo.toml -- --check",
-        "cargo +1.90.0 build --locked --release --lib --target x86_64-unknown-none --manifest-path experiments/ai/model-format/Cargo.toml"
-      ],
-      "acceptance": [
-        "negative: header length over bound, non-UTF-8, duplicate keys, unknown dtype, shape or offset overflow, overlapping or out-of-range tensors, uncovered or trailing bytes, nesting over the limit",
-        "positive: synthetic fixture with Qwen2-style tensor names",
-        "no new dependency beyond those already pinned by model-store-contract"
-      ],
-      "out_of_scope": [
-        "inference",
-        "model download"
-      ],
-      "non_claimable": "Native inference, model provenance decisions and measurements stay open.",
-      "risk": "security",
-      "size": "M",
-      "evidence_level": "host",
-      "rollback": "Revert the commit.",
-      "next": "L01-T3 reference forward pass.",
-      "history": []
-    },
-    {
       "id": "R03-T1",
       "criterion": "R03",
       "milestone": "M11",
       "executor": "worker",
-      "status": "ready",
+      "status": "blocked",
       "title": "Offline deterministic SPDX SBOM and dependency-provenance check for all Cargo.lock files",
       "goal": "Add tools/sbom.py (standard library only): SPDX 2.3 JSON for every Cargo.lock, the pinned toolchain and THIRD-PARTY assets, plus --check: registry checksums present, no git sources, exact '=' pins for cryptographic crates, records for vendored crates, licences cross-checked against THIRD-PARTY.md or NOASSERTION, never guessed; deterministic bytes.",
       "why_now": "Serves R03 (licensing/SBOM) and the B04 dependency-provenance clause; host-only.",
@@ -813,41 +1229,13 @@
       "evidence_level": "host",
       "rollback": "Revert the commit.",
       "next": "B04-T2 reproducibility check.",
-      "history": []
-    },
-    {
-      "id": "B04-T2",
-      "criterion": "B04",
-      "milestone": "M11",
-      "executor": "worker",
-      "status": "ready",
-      "title": "Reproducible-build check for loader, kernel and image",
-      "goal": "Add tools/repro_check.py: run the default tools/build.py twice with separate NOS_BUILD_DIR and NOS_TARGET_DIR and compare SHA-256 of the kernel ELF, loader EFI and image; report differing artifacts honestly; unit tests inject a differing artifact.",
-      "why_now": "Build provenance evidence for B04 and R03 with offline root dependencies.",
-      "deps": [],
-      "write_paths": [
-        "tools/repro_check.py",
-        "tools/tests/test_repro_check.py"
-      ],
-      "read_paths": [
-        "tools/build.py",
-        "tools/common.py"
-      ],
-      "checks": [
-        "python3 -B -m unittest discover -s tools/tests -p test_repro_check.py -v",
-        "python3 -B tools/repro_check.py"
-      ],
-      "acceptance": [
-        "identical hashes, or a red result that names the differing artifacts",
-        "the unit test with an injected difference fails the check"
-      ],
-      "non_claimable": "Independent reproduction in a second environment stays open.",
-      "risk": "low",
-      "size": "S",
-      "evidence_level": "host",
-      "rollback": "Revert the commit.",
-      "next": "B04-T3 after owner decisions D1-D7.",
-      "history": []
+      "history": [
+        {
+          "at": "2026-11-18T20:08:23+00:00",
+          "event": "ownership-block",
+          "reason": "S09-NEXT remains Claude-owned; owner decision pending."
+        }
+      ]
     },
     {
       "id": "B06-T1",
@@ -920,135 +1308,6 @@
       "evidence_level": "host",
       "rollback": "Revert the commit.",
       "next": "H06-T2 owner selection of reference PCs.",
-      "history": []
-    },
-    {
-      "id": "P04-T2",
-      "criterion": "P04",
-      "milestone": "M8",
-      "executor": "worker",
-      "status": "ready",
-      "native": true,
-      "title": "Native NAS quota-full, cancel/retry and offline-guest revoke stage (QEMU TCG)",
-      "goal": "Extend the native NAS normal stage with LP-16/LP-18: the guest fills its quota with staged uploads, receives the quota error, cancels and retries; the admin changes quota while the guest is full; the guest exits before revoke; revoke and evict still succeed; expected per-role ok/error counts and the disk oracle are updated.",
-      "why_now": "Builds on the green native NAS gate without kernel or tools/build.py changes; it adds the main untested P04 quota and offline-revoke paths natively.",
-      "deps": [],
-      "write_paths": [
-        "services/nas/native-probe/src/",
-        "services/nas/native-probe/CONTRACT.md",
-        "services/nas/native-probe/tests/",
-        "services/nas/native-probe/disk_oracle.py",
-        "services/nas/native-probe/verification/README.md",
-        "tools/test_nas.py",
-        "tests/test_nas_runner.py"
-      ],
-      "read_paths": [
-        "kernel/src/m2/m3/nas.rs",
-        "services/nas/native-core/src/lib.rs",
-        "tools/build_nas.py"
-      ],
-      "checks": [
-        "python3 -B -m unittest discover -s tests -p test_nas_runner.py",
-        "python3 -B -m unittest discover -s tests -p test_nas_build.py",
-        "python3 -B -m unittest discover -s services/nas/native-probe/tests -p test_disk_oracle.py",
-        "cargo +1.90.0 test --locked --manifest-path services/nas/native-probe/Cargo.toml",
-        "cargo +1.90.0 test --locked --manifest-path services/nas/native-core/Cargo.toml",
-        "python3 -B -u tools/test_nas.py"
-      ],
-      "acceptance": [
-        "native normal and recover stages exit 0 with the new expected counts and 0 cold writes",
-        "negative: stage over quota rejected; cancelled reservation released in usage; old token Stale after revoke; token-leak window check still passes"
-      ],
-      "out_of_scope": [
-        "LP-25 interrupted purge (P04-T1)",
-        "remote guest over the network"
-      ],
-      "non_claimable": "Product administrator identity, remote guests, the LP-21 admin screen and physical hardware stay open.",
-      "risk": "medium",
-      "size": "M",
-      "evidence_level": "native-QEMU (TCG)",
-      "rollback": "Revert the commit.",
-      "next": "P04-T1 interrupted purge.",
-      "history": []
-    },
-    {
-      "id": "P02-T2",
-      "criterion": "P02",
-      "milestone": "M8",
-      "executor": "worker",
-      "status": "ready",
-      "title": "Canonical versioned client checkpoint encoding with strict validation (host)",
-      "goal": "Add services/nas/native-client/src/checkpoint.rs: canonical, versioned, fixed-length encoding of the client checkpoint with strict decode validation; a restored checkpoint yields only NeedsReconcile; no anti-rollback claim.",
-      "why_now": "Durable offline edits are a P02 condition and the checkpoint is not yet a persistent schema.",
-      "deps": [
-        "P02-T1"
-      ],
-      "write_paths": [
-        "services/nas/native-client/src/checkpoint.rs",
-        "services/nas/native-client/src/lib.rs",
-        "services/nas/native-client/tests/checkpoint.rs",
-        "services/nas/native-client/README.md"
-      ],
-      "read_paths": [
-        "services/nas/native-core/src/snapshot.rs"
-      ],
-      "checks": [
-        "cargo +1.90.0 test --locked --manifest-path services/nas/native-client/Cargo.toml",
-        "cargo +1.90.0 clippy --locked --manifest-path services/nas/native-client/Cargo.toml --all-targets -- -D warnings",
-        "cargo +1.90.0 fmt --manifest-path services/nas/native-client/Cargo.toml -- --check"
-      ],
-      "acceptance": [
-        "negative decodes: truncated, wrong magic or version, non-zero reserved bytes, invalid state, length over bound, duplicate slot",
-        "restored checkpoint yields only NeedsReconcile"
-      ],
-      "out_of_scope": [
-        "rollback anchor (B02)"
-      ],
-      "non_claimable": "Anti-rollback and native persistence stay open.",
-      "risk": "medium",
-      "size": "S",
-      "evidence_level": "host",
-      "rollback": "Revert the commit.",
-      "next": "P02-T3 native scenario.",
-      "history": []
-    },
-    {
-      "id": "N02-T2",
-      "criterion": "N02",
-      "milestone": "M8",
-      "executor": "worker",
-      "status": "ready",
-      "title": "Host-integrate the net-config coordinator into network-service (DHCP replaces static config)",
-      "goal": "Make DHCP-acquired address, route and DNS settings from services/net-config replace the static Config on the same Stack and PacketDevice in services/network-service; NAK, lease expiry and link-down withdraw them and later OpenTcp is refused; no default DNS when the option is absent; reconnect keeps no old sockets.",
-      "why_now": "Prerequisite for any native DHCP case; reuses the reviewed coordinator.",
-      "deps": [
-        "N02-T1"
-      ],
-      "write_paths": [
-        "services/network-service/Cargo.toml",
-        "services/network-service/Cargo.lock",
-        "services/network-service/src/lib.rs",
-        "services/network-service/tests/dhcp_config.rs"
-      ],
-      "read_paths": [
-        "services/net-config/src/service.rs",
-        "services/net-config/README.md",
-        "services/network-service/tests/service.rs"
-      ],
-      "checks": [
-        "cargo +1.91.1 test --locked --manifest-path services/network-service/Cargo.toml",
-        "cargo +1.91.1 clippy --locked --manifest-path services/network-service/Cargo.toml --all-targets -- -D warnings"
-      ],
-      "acceptance": [
-        "DISCOVER to ACK applies the address; NAK, expiry and link-down withdraw it",
-        "existing network-service tests unchanged"
-      ],
-      "non_claimable": "Native DHCP and real authorized networks stay open.",
-      "risk": "medium",
-      "size": "L",
-      "evidence_level": "host",
-      "rollback": "Revert the commit.",
-      "next": "N02-T3 native DHCP case after PR #333.",
       "history": []
     },
     {
