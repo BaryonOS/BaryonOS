@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-18",
-    "source_commit": "47835c4ebc5dad0576c0feaa3ec3654f3679f14d",
+    "source_commit": "edd1a6a9af2d80a56848ec500bbf2b702799dced",
     "assessment_basis": "source_commit",
     "branch": "codex/phase0-pipeline-isolation",
-    "task": "SEC355-ENGINE-POLICY: bind exact model-client selection and order to owner authorization",
+    "task": "SEC355-SCRATCH-CAPS: bind staging, workspace and output evidence to hard transaction budgets",
     "previous_score": 41,
-    "summary": "41/100 unchanged. Source 47835c4e binds the exact reviewed engine set and failover order in manifest schema 2, rejects CLI mismatches before controller, Git, sandbox or model-client side effects, and applies the same fail-closed validation to standalone gates. The execution hold and disabled manifest remain intact. The private authenticated client/runtime contract, complete selected-gate adapter, aggregate scratch/staging/export cap, hosted acceptance and final Daybreak resolution remain open."
+    "summary": "41/100 unchanged. Source edd1a6a9 requires an exclusive verified tmpfs lease with exact byte/inode caps, preflight source/export budgets, capped writable directories and /dev/shm, read-only /dev and /dev/pts, quarantine on uncertain cleanup, and one cumulative raw-output budget per agent transaction or gate plan. The execution hold and disabled manifest remain intact. Native private-runtime scratch/PTY/ENOSPC/sibling evidence, authenticated clients, complete selected-gate compatibility, hosted acceptance and final Daybreak resolution remain open."
   },
   "tracks": [
     {

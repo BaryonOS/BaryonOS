@@ -1,5 +1,40 @@
 # Current project status
 
+## NEXT AGENT HANDOFF — PR #355 capped scratch transactions — 18 November 2026
+
+**Source and change:** security checkpoint
+`edd1a6a9af2d80a56848ec500bbf2b702799dced` extends engine-policy evidence head
+`ce3d9407f4a80015b96cf4695a0087b0696eb5e3`. Each agent or gate transaction now
+requires an exclusive lease on one verified dedicated tmpfs with exact byte and inode
+caps. Source and export copies have preflight budgets; `build`, `target`, temporary
+directories, homes and `/dev/shm` share the same hard cap. `/dev` and Bubblewrap's
+separate `/dev/pts` mount are read-only. Cleanup uncertainty quarantines the lease and
+preserves the primary pipe, timeout, overflow, nonzero or body failure. Stdout and
+stderr share one cumulative raw-byte budget across engine failover or a complete gate
+plan and are not duplicated in controller text logs. The execution hold and disabled
+manifest are unchanged.
+
+**Checks:** on the exact source commit, all 513 tools tests pass with eleven explicit
+environment skips; 123 focused sandbox/pipeline/isolation tests pass with ten private
+runtime skips. The applicable Python host-quality groups, 26 workflow-contract tests,
+syntax compilation, strict preflight and whitespace checks pass. M6c, DocumentSession,
+native quantum-job and SDK-app normal/denied gates pass in QEMU; native guest runs
+return the expected raw exit 33. Independent AI security rereview found and verified
+fixes for five initial lifecycle/output findings plus combined cleanup-failure evidence
+and the non-recursive `/dev/pts` mount. This is not a human audit.
+[Source-bound receipt](verification/phase0-sec355-scratch-contract-20261118/README.md).
+
+**Measured limits and open boundary:** no active profile changed: the checked-in
+manifest still has no sandbox values. The prior source-bound development reference
+remains `MemoryHigh=6442450944`, `MemoryMax=8589934592`, swap 0, 512 tasks and 400%
+CPU; deliberately small OOM probes remain negative tests, not workload defaults. A
+private pinned Bubblewrap 0.13.1 fixture and real dedicated tmpfs roots were not
+available, so PTY denial, ENOSPC/inode exhaustion, parallel sibling isolation and live
+survivor quarantine remain unproven. Authenticated model-client provisioning, complete
+selected-gate compatibility, hosted current-head CI/CodeQL and final Daybreak
+acceptance also remain open. Keep the manifest disabled. Score 41/100 is unchanged;
+no finding, issue, baseline or governance acceptance is inferred.
+
 ## NEXT AGENT HANDOFF — PR #355 owner-bound engine policy — 18 November 2026
 
 **Source and change:** security checkpoint
