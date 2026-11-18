@@ -1,15 +1,17 @@
 # Current project status
 
-## NEXT AGENT HANDOFF — P03-T1 proposed contract — 18 November2026
+## NEXT AGENT HANDOFF — P03-T1 delivery — 18 November 2026
 
-**Claim:** Codex, codex/p03-device-key-contract, basefac5a864830e6c1f88f89015f88f32357fb314c6.
-**Goal:** Write docs/implementation/NAS-DEVICE-KEYS-PROPOSAL.md: verified-pairing options with maintained implementations, device revocation, rotation, recovery secret without escrow, mapped to EO-10/EO-12 and LP-19/LP-20; every new trust boundary explicitly marked for owner decision.
-**Invariant:** PROPOSED; no new trust root, escrow, capability or security-hold change.
-**Write set:** docs/implementation/NAS-DEVICE-KEYS-PROPOSAL.md; lead state.
-**Acceptance:** cited source paths/symbols and progress/diff checks.
-**Evidence limit:** proposal only; owner/security decisions required before code.
-**Ownership:** no open-PR write overlap; integration/Claude branches preserved.
-**Next:** publish bounded proposal, next independent READY task. Score41/100.
+**Source:** `590e1d4188688434cd4f9aa80bb67302b802f770`, `codex/p03-device-key-contract`.
+**Delivered:** PROPOSED two verified enrollment routes using existing maintained TLS port candidate, device-scope revocation/rotation/recovery and explicit owner decisions, mapped to EO10/12 and LP19/20. Six source paths/three declarations and progress checks pass; no authority or crypto adoption.
+**Checks:** executed targeted commands and raw exit codes are in the
+[exact command/log receipt](roadmap-pipeline/receipts/P03-T1.json).
+Lead source/diff review completed; no duplicate matrix. Progress **41 → 41/100**.
+**Limits:** Design only. Native TLS/provider, enrollment identity, rotation distribution, recovery authority and cold freshness remain decision/dependency boundaries. No new trust root/escrow/grant, native device lifecycle, hardware or human audit;41/100 unchanged.
+**Ownership:** Integration Manager owns PR integration/merges/closure. Earlier
+delivery branches and Claude S09/UI remain untouched. Unsafe unattended hold active.
+**Next:** publish new draft, immediately claim the next independent READY functional
+slice from this ledger; no waiting for integration. Prior delivery checkpoints retained.
 
 ## Retained checkpoint — unified governance implementation — 18 November 2026
 
