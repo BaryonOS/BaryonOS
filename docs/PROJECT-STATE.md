@@ -1,47 +1,39 @@
 # Current project status
 
-## NEXT AGENT HANDOFF — PR #355 verified resource scopes — 18 November 2026
+## NEXT AGENT HANDOFF — PR #355 current-main reconciliation — 18 November 2026
 
-**Source and authority:** PR #355 branch `codex/phase0-pipeline-isolation` now contains
-resource-scope implementation commit `3ac59bac4b5d04ef4e5dcb86dbd7725f00ab9ded`
-and review-correction commit `c14d9a14a13e625bcc0f1cd29c5e2c270478bb1d`
-on security parent `511936850e53d384c36254e4ad43424cf457377e`. The project
-owner authorized continuation of the approved security queue. The original shared
-merge, Claude UI/UX and S09 work remain untouched.
+**Source and preservation:** security merge `fa4895daf92eaf48bf7b9ecd07751d50f5537490`
+(tree `d36212c7e3e98db85cd8d7760a40cab716817430`) combines prior PR #355
+source `2cb7d9366425ee1c43ac5857be2101b43b4dcb67` with verified main
+`1c10cdb5b30df2f3d30bea74430383f59c398931`, the squash of PR #359. The
+unconditional execution hold remains before issue selection, all nine transaction
+ingresses and CLI construction. The resource/OOM implementation is byte-identical to
+the reviewed PR #355 source. The original dirty checkout, Claude UI/UX and S09 work
+remain untouched.
 
-**Implemented:** every untrusted agent or gate invocation now requires an explicit
-named cgroup-v2 profile. Pinned bubblewrap/systemd executables, live memory/swap/task/
-CPU checks, a private guard receipt, bounded dual-stream capture, OOM classification
-and exception-safe whole-scope cleanup fail closed. The pipeline retains bounded raw
-overflow evidence and never interprets `oom-kill` as a textual rate-limit fallback.
-The manifest remains disabled; no vulnerable issue-pipeline execution occurred.
+**Checks:** 91 combined pipeline/isolation/sandbox tests pass with ten explicit
+environment skips; the complete tools suite passes 474 tests with the same ten skips.
+Strict preflight, normal build, M1, M6c, DocumentSession, native quantum-job and both
+normal/denied SDK-app QEMU gates pass; real guests return the expected raw exit 33.
+The disabled manifest rejects the local host-quality gate before any workload starts.
+Two independent AI reviews found no actionable integration or boundary issue after
+test-local harness repairs; this is not a human audit. [Source-bound receipt](verification/phase0-sec355-main-reconciliation-20261118/README.md).
 
-**Measured:** the deliberate 64 MiB/96 MiB allocation case reports
-`Result=oom-kill` and a 64 MiB peak. It is a negative control, not a development
-preset. The real gate profile reads back high 6 GiB, maximum 8 GiB, swap 0, 512 tasks
-and 400% CPU. Earlier ordinary Rust/build/M1/M6c workloads passed inside that profile
-with a 592.70 MiB aggregate peak and no OOM event. A 2 MiB workspace artifact passes
-despite the separate 1 MiB captured-stream negative limit. Eight native backend
-cases leave zero transient scopes. [Evidence](verification/phase0-sec355-resource-scope-20261118/README.md).
+**Measured limits:** the 64 MiB allocation profile remains an intentional negative
+OOM control, never a normal workload preset. On the exact reconciled source, a clean
+trusted reference scope read back `MemoryHigh=6442450944`,
+`MemoryMax=8589934592`, swap 0, 512 tasks and 400% CPU. Rust tests, normal/M6c builds
+and M1/M6c QEMU all passed with a 699,133,952-byte peak and zero high, max, OOM or
+kill events. No global limit, OOM-killer setting or isolation boundary changed.
 
-**Checks and review:** 454 tools tests pass with 10 explicit environment-gated
-fixture skips; compileall, strict preflight, normal build and fresh M1 QEMU smoke pass
-(raw guest exit 33). Independent AI source review found no remaining actionable item
-after cleanup, raw-stream and OOM-precedence corrections; this is not a human audit.
-The follow-up removes the unused host import and direct `BaseException` catches while
-retaining tested cleanup on `KeyboardInterrupt`; its focused, module and complete tools
-suites pass. Hosted Code Quality must confirm the five review findings on the next
-coherent head. Score 41/100 is unchanged.
-
-**Open boundary and resume:** authenticated model-client provisioning,
-kernel-bounded aggregate scratch/staging/export, complete offline gate compatibility,
-hosted current-head checks and final Daybreak acceptance remain open in PR #355.
-PR #359 head `5aa381379891df00140a04e01814cd0712ef096f` has both required
-checks and 55 other passes with one native-window job still running; it must not merge
-until every applicable job finishes and the head/base/reviews are rechecked. PR #356
-head `4192474e5c4efca8a7c43a82d74e143d58444655` clears its three CodeQL
-alerts, but remains draft and must reconcile after #359. No governance start,
-auto-merge, bypass, false finding closure or premature issue closure.
+**Open boundary and resume:** the manifest remains disabled. Authenticated model-client
+provisioning, kernel-bounded aggregate scratch/staging/export, the private opt-in
+offline transaction fixture, complete selected gate compatibility, hosted exact-head
+host-quality/CodeQL/review and final Daybreak acceptance remain open. Publish this
+checkpoint to PR #355, require all current-head hosted gates, and continue those three
+implementation boundaries before considering a merge. PR #356 remains draft for later
+reconciliation. No governance, auto-merge, bypass, false finding closure or premature
+issue closure is authorized. Score 41/100 is unchanged.
 
 ## Historical checkpoint — Local PR #355 bounded memory review — 18 November 2026
 
