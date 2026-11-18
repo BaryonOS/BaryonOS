@@ -1,6 +1,18 @@
 # Current project status
 
-## NEXT AGENT HANDOFF — unified governance implementation — 18 November 2026
+## NEXT AGENT HANDOFF — N04-T2 proposed issuer contract — 18 November 2026
+
+**Claim:** Codex, `codex/n04-issuer-contract`, base69d82075.
+**Goal:** proposed authentic issuer/helper attenuation/generation/durable deny seam.
+**Invariant:** no new trust root, constructor, capability or automatic regrant;
+existing fences and unsafe runner hold retained.
+**Write set:** docs/implementation/N04-ISSUER-DELEGATION.md and lead state.
+**Acceptance:** cited paths/symbols checked against owning source, progress check.
+**Evidence limit:** design only; owner/security alignment required before code.
+**Next:** publish compact proposal and continue independent READY work.
+H06 draft384, B06 draft383, B02 partial382 and N04 blocked380 preserved.
+
+## Retained checkpoint — unified governance implementation — 18 November 2026
 
 **Claim:** GOV-1-6, sole writer Codex in `codex/unified-governance`, base
 `5a3295b6093549f4b5ff6164ab2773ac4c264996`. The project owner authorizes immediate
