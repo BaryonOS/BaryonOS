@@ -139,10 +139,16 @@ def main() -> None:
     if checker_module.candidate_lines(indented) != [2] or checker_module.candidate_lines(illegal_info) != [2]:
         raise ValueError("illegal CommonMark fence regression")
     cases["illegal_fence_openers"] = "PASS"
-    anchor_fixture = "\x60\x60\x60\n# Hidden\n<a id=\"fenced-hidden\"></a>\n\x60\x60\x60\nInline \x60<a id=\"inline-hidden\"></a>\x60\n<div>\n<!<!--hidden-->--><a id=\"overlap-hidden\"></a>-->\n</div>\n\n# A\n# A\n# A-1\n"
+    anchor_fixture = "\x60\x60\x60\n# Hidden\n<a id=\"fenced-hidden\"></a>\n\x60\x60\x60\nInline \x60<a id=\"inline-hidden\"></a>\x60\n<div>\n<!<!--hidden-->--><a id=\"overlap-hidden\"></a>-->\n</div>\n<!--\n# Commented heading\n-->\n\n# A\n# A\n# A-1\n"
     anchor_set = verifier.anchors(anchor_fixture)
-    if {"hidden", "fenced-hidden", "inline-hidden"} & anchor_set or not {"a", "a-1", "a-1-1"}.issubset(anchor_set):
+    if {"hidden", "fenced-hidden", "inline-hidden", "overlap-hidden", "commented-heading"} & anchor_set or not {"a", "a-1", "a-1-1"}.issubset(anchor_set):
         raise ValueError("fence-aware duplicate-anchor regression")
+    if verifier.anchors("<!--hidden--># Not a heading\n# Visible\n") != {"visible"}:
+        raise ValueError("comment removal synthesized a heading")
+    for tag in ("pre", "code"):
+        unclosed = f"# Visible\n<{tag}>\n# Hidden heading {tag}\n<a id=\"hidden-anchor-{tag}\"></a>\n"
+        if verifier.anchors(unclosed) != {"visible"}:
+            raise ValueError("unclosed HTML block exposed anchors: " + tag)
     cases["fence_aware_duplicate_anchors"] = "PASS"
 
     with tempfile.TemporaryDirectory(prefix="self-test-", dir=draft) as location:

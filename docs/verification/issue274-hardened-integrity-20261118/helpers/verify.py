@@ -143,7 +143,6 @@ def strip_inline_code(line: str) -> str:
 def anchors(text: str) -> set[str]:
     result: set[str] = set()
     used: set[str] = set()
-    headings: list[str] = []
     rendered_lines: list[str] = []
     fence: tuple[str, int] | None = None
     for line in text.splitlines():
@@ -159,17 +158,51 @@ def anchors(text: str) -> set[str]:
                 continue
         if fence:
             continue
-        rendered = strip_inline_code(line)
-        rendered_lines.append(rendered)
-        heading = re.match(r"^ {0,3}#{1,6}(?:[ \t]+|$)(.*)$", rendered)
-        if heading:
-            headings.append(re.sub(r"[ \t]+#+[ \t]*$", "", heading.group(1)))
+        rendered_lines.append(strip_inline_code(line))
     rendered_text = "\n".join(rendered_lines)
-    rendered_text = re.sub(r"<!--[\s\S]*?-->", "", rendered_text)
-    rendered_text = re.sub(r"<(?:pre|code)\b[^>]*>[\s\S]*?</(?:pre|code)>", "", rendered_text, flags=re.IGNORECASE)
+    heading_parts: list[str] = []
+    position = 0
+    while True:
+        start = rendered_text.find("<!--", position)
+        if start < 0:
+            heading_parts.append(rendered_text[position:])
+            break
+        heading_parts.append(rendered_text[position:start])
+        end = rendered_text.find("-->", start + 4)
+        if end < 0:
+            heading_parts.append(re.sub(r"[^\n]", "\x00", rendered_text[start:]))
+            break
+        heading_parts.append(re.sub(r"[^\n]", "\x00", rendered_text[start:end + 3]))
+        position = end + 3
+    heading_text = "".join(heading_parts)
+    while True:
+        visible = re.sub(r"<!--[\s\S]*?-->", "", rendered_text)
+        if visible == rendered_text:
+            rendered_text = rendered_text.split("<!--", 1)[0]
+            break
+        rendered_text = visible
+    hidden_html = r"<(?:pre|code)\b[^>]*>[\s\S]*?</(?:pre|code)>"
+    heading_text = re.sub(
+        hidden_html,
+        lambda match: re.sub(r"[^\n]", "\x00", match.group()),
+        heading_text,
+        flags=re.IGNORECASE,
+    )
+    rendered_text = re.sub(hidden_html, "", rendered_text, flags=re.IGNORECASE)
+    opening_html = r"<(?:pre|code)\b[^>]*>"
+    unclosed = re.search(opening_html, heading_text, flags=re.IGNORECASE)
+    if unclosed:
+        heading_text = heading_text[:unclosed.start()]
+    unclosed = re.search(opening_html, rendered_text, flags=re.IGNORECASE)
+    if unclosed:
+        rendered_text = rendered_text[:unclosed.start()]
     result.update(re.findall(r"<a\s+(?:id|name)=[\"']([^\"']+)[\"']", rendered_text, re.IGNORECASE))
-    for heading in headings:
-        base = slug(heading)
+    for line in heading_text.splitlines():
+        heading = re.match(r"^ {0,3}#{1,6}(?:[ \t]+(.*))?$", line)
+        if not heading:
+            continue
+        value = re.sub(r"[ \t]+#+[ \t]*$", "", heading.group(1) or "").replace("\x00", "")
+        base = slug(value)
         candidate = base
         suffix = 0
         while candidate in used:
