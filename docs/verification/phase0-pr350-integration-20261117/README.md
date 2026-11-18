@@ -1,0 +1,9 @@
+# PR350 local integration preparation — 17 November 2026
+
+The reviewed repository configuration is reconciled locally with assigned main while preserving both parents and their independent workstream records. [Exact sources and checks](integration.json) bind the original configuration/schema evidence and the existing separate AI review. [Historical parent checkpoints](parent-checkpoints.json) preserve the original observations and assessments as data.
+
+The reviewed `.coderabbit.yaml` and the original `coderabbit-oss-20261117` receipts remain byte-identical. No setting is reinterpreted as a spending control or hosted-runtime guarantee. The accepted main ADR, OS runtime/build configuration and workflow source retain main bytes; only the two status/assessment conflicts are manually reconciled. The full main state body is retained with its previous current title labelled historical; the independent workstream body is not duplicated.
+
+Local exact-config/schema and complete parent-preservation checks pass (exit 0). `python3 -B tools/progress.py --write`, `python3 -B tools/progress.py --check` and the working-diff whitespace check pass (exit 0); exact command/raw-log hashes are recorded in the integration receipt. The fixed register remains identical to both parents. The initial merge conflict exit 1 is retained, not reported as a clean automatic merge. The final external integration result binds the actual local commit/tree/parents and final staged/post-commit checks.
+
+This task performs no push, GitHub update, main merge or account/support/payment operation. The lead retains final reconciliation after PR333, actual current-head hosted checks/review and publication. Native OS, hardware, hosted review behavior, inherited account controls, cost guarantees and human audit are not tested. Progress remains 41/100 and no criterion is newly accepted.

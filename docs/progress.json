@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-18",
-    "source_commit": "d40c728b76a10bbec9997d1ab19aca919f8d5228",
+    "source_commit": "b87436dfd8ef8c277dea1dbde780f2e2229283a9",
     "assessment_basis": "parent_commit",
-    "branch": "codex/b01-management-recovery",
-    "task": "B01-T1: native management recovery through manifest-bound ingress",
+    "branch": "codex/unified-governance",
+    "task": "GOV-1-6 reconciliation with main 5a3295b6",
     "previous_score": 41,
-    "summary": "41/100 unchanged. A manifest-bound management keyring principal completes bounded native export, wrong-secret refusal, restore and ordinary-app unseal in the QEMU fixture. This is fixture evidence only; full B01, production recovery, physical entropy and human review remain open. Current-main reconciliation changes only checkpoint state; hosted checks on the resulting head remain authoritative."
+    "summary": "41/100 unchanged. Shared role and workflow contracts, client adapters and compact continuation are reconciled with actual main after #350. Targeted quarantine (5) and execution-hold (3) regressions remain source-bound; disabled manifest and source hold remain intact. Governance has no zero-open-items/baseline-B prerequisite. Host adapter/protection checks do not establish client runtime parity, Daybreak acceptance, hardware or human audit. No product criterion or weight changes."
   },
   "tracks": [
     {
