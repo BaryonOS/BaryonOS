@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-18",
-    "source_commit": "f8cae29f94a1d6ef5765a36be3beabca652d9a34",
+    "source_commit": "ef75a64d3bba96782e59bf3b1fd0a441b36dd33a",
     "assessment_basis": "parent_commit",
-    "branch": "codex/phase0-ci-guide-english",
-    "task": "Phase 0: reconcile reviewed English candidate after verified PR345 integration",
+    "branch": "codex/security-pipeline-quarantine",
+    "task": "Phase 0: enforce disabled legacy issue-controller execution while full isolation remains blocked",
     "previous_score": 41,
-    "summary": "41/100 unchanged. PR345 actual main tree equals verified candidate. PR346 reviewed translations and all runtime source are unchanged after new-main reconciliation. No issue, security finding, native criterion or baseline B acceptance is inferred."
+    "summary": "41/100 unchanged. All388 tools tests and standard gates pass on source-enforced quarantine candidate; no OS criterion or full355 security fix follows. Integrated345/346 content and incorporated translations preserved. Pending native suites, inaccessible scans, platform-blocked kernel WIP and complete issue acceptance remain explicit."
   },
   "tracks": [
     {

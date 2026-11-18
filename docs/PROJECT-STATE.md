@@ -1,6 +1,18 @@
 # Current project status
 
-## NEXT AGENT HANDOFF — Phase 0 integration after PR345 — 18 November 2026
+## NEXT AGENT HANDOFF — Phase 0 containment and verification queue — 18 November 2026
+
+**Integrated main:** `67d5859d735836331b6fb971eae89162b7fa8465`. PR345 and346 were manually squash-merged only after their gates/reviews; actual trees equal reviewed candidates. Incorporated translation PR347–349/351–353 are closed with exact inclusion evidence and preserved branches. All5 issues remain open. Main mandatory post-merge checks pass; final complete integrated native assessment remains outstanding.
+
+**Containment candidate:** legacy issue-controller sourceef75a64d now has an unconditional hold before all transaction ingresses and CLI construction. Four targeted tests,388 complete tools tests, strict preflight/build/M1smoke(raw33) and independent AI review pass. [Source-bound receipt](verification/phase0-pipeline-quarantine-20261118/README.md). This candidate is not integrated and completes no355 isolation or finding acceptance. It has no runtime enable override.
+
+**Merge restriction:** automatic approval review rejected the attempted339 squash while native suites were running and its state was UNSTABLE. No bypass/retry through another interface occurred. Wait for genuine final check results before attempting that merge again. Candidate3397213e224 preserves original Claude research and the independently verified successor checker;340 has fresh combined-source15-stage evidence but must reconcile actual integrated main;350 requires latest-main reconciliation. Rust354bfbb4a6d retains exact-source15-stage/DocumentSession evidence, with current hosted compiler/workflow failures under repair. Wiki followup358 is prepared and independently reviewed before publication.
+
+**Security blockers:**355/357 remains blocked on complete resource/process/scratch limits and selected client/gate compatibility. Cloud lacks required writable cgroup-v2/private user-bus runtime. Three Daybreak findings remain open; scanner REST categories are NOT VERIFIED403. A separate kernel security worker was stopped by a platform content-risk filter; only two unpublished service-fixture edits remain, no kernel fix or runtime acceptance. Preserve that WIP and private evidence; do not retry the blocked reproduction through another executor.
+
+**Continuity:** root owns merges, status and score; all accepted architecture, ADRs, Security Floor and original work are preserved. Score41/100; baseline B and governance1–6 unestablished. Continue independent verified work and current-head gates, without auto-merge, protection bypass, paid-feature activation or false issue/finding closure.
+
+## Retained handoff — Phase 0 integration after PR345 — 18 November 2026
 
 **Integrated:** PR #345 was manually squash-merged as `55bc7b06d20a3bfdffdc2eb7d8fe42a39f6e59c5`; its actual main tree exactly equals independently reviewed candidate `f14f7c946e10120ad10a34885551f2656f84b059`. All candidate mandatory CI, CodeQL and merge-hold checks passed; main post-merge checks are tracked separately. [Merge receipt](verification/phase0-cloud-20261118/merges/345.json).
 
