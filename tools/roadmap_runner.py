@@ -336,6 +336,8 @@ class Controller:
         self.cfg = cfg
         self.state = state
         self.lock_file = None
+        self.lock_acquired = False
+        self.lease_owned = False
         self.spent = 0.0
         self.run_id = dt.datetime.now().strftime("%Y%m%dT%H%M%S") + f"-{os.getpid()}"
 
@@ -347,6 +349,7 @@ class Controller:
             fcntl.flock(self.lock_file, fcntl.LOCK_EX | fcntl.LOCK_NB)
         except BlockingIOError as error:
             raise Stop("another controller holds build/roadmap-pipeline/controller.lock") from error
+        self.lock_acquired = True
         self.lock_file.seek(0)
         self.lock_file.truncate()
         self.lock_file.write(json.dumps({"pid": os.getpid(), "run": self.run_id, "started": now()}))
@@ -354,12 +357,16 @@ class Controller:
         self.recover()
 
     def release(self) -> None:
-        with contextlib.suppress(FileNotFoundError):
-            (self.state / "lease.json").unlink()
+        if self.lease_owned:
+            with contextlib.suppress(FileNotFoundError):
+                (self.state / "lease.json").unlink()
         if self.lock_file:
-            fcntl.flock(self.lock_file, fcntl.LOCK_UN)
+            if self.lock_acquired:
+                fcntl.flock(self.lock_file, fcntl.LOCK_UN)
             self.lock_file.close()
             self.lock_file = None
+        self.lock_acquired = False
+        self.lease_owned = False
 
     def recover(self) -> None:
         """A lease without a live owner means an interrupted task: never auto-clean it."""
@@ -387,6 +394,7 @@ class Controller:
         lease = json.loads(lease_path.read_text()) if lease_path.exists() else {}
         lease.update(fields, controller_pid=os.getpid(), run=self.run_id, heartbeat=now())
         atomic_write(lease_path, json.dumps(lease, indent=2))
+        self.lease_owned = True
 
     def check_controls(self) -> None:
         if (self.state / "STOP").exists():
@@ -630,7 +638,7 @@ Rules (binding, in addition to AGENTS.md):
 
     def prepare_manual(self) -> dict:
         """Claim a READY task without executing untrusted code or lifting the hold."""
-        if self.lock_file is None:
+        if not self.lock_acquired:
             raise Stop("manual claim requires the controller lock")
         self.check_controls()
         head = self.preflight()

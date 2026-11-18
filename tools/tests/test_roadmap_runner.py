@@ -73,6 +73,22 @@ class Ledger(unittest.TestCase):
                 finally:
                     controller.release()
 
+    def test_refused_controller_does_not_remove_foreign_lease(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            state = Path(tmp)
+            owner = rr.Controller(rr.Config(), state)
+            contender = rr.Controller(rr.Config(), state)
+            owner.acquire()
+            owner.heartbeat(task="A")
+            try:
+                with self.assertRaisesRegex(rr.Stop, "another controller"):
+                    contender.acquire()
+                contender.release()
+                self.assertTrue((state / "lease.json").exists())
+            finally:
+                owner.release()
+            self.assertFalse((state / "lease.json").exists())
+
     def test_selects_first_ready_task_with_verified_dependencies(self):
         ledger = {"tasks": [task("A", "blocked"), task("B", deps=["A"]), task("C"), task("D")]}
         self.assertEqual(rr.select_task(ledger)["id"], "C")
