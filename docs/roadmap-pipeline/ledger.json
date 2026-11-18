@@ -1572,7 +1572,7 @@
       "criterion": "R03",
       "milestone": "M11",
       "executor": "lead",
-      "status": "active",
+      "status": "verified",
       "title": "CI coverage for new standalone crates (drivers/intel-hda, drivers/e1000e, power-lifecycle-core)",
       "goal": "Workers may not edit workflows; the lead adds component-leaves.yml entries when such a crate lands.",
       "deps": [],
@@ -1592,8 +1592,16 @@
           "event": "active",
           "at": "2026-11-18T22:37:48.949367+00:00",
           "reason": "Existing standalone power-lifecycle-core is present on main but absent from component-leaves CI. Exact workflow path unclaimed. Add only that existing crate; no jobs for absent HDA/e1000 crates."
+        },
+        {
+          "at": "2026-11-18T22:39:16.649254+00:00",
+          "event": "verified",
+          "source_commit": "6db0ea9e3803551500de630675cfead804b55274",
+          "reason": "Existing standalone power-lifecycle-core added to current component matrix with unchanged pinned steps/permissions/concurrency. Rust1.100:7tests,Clippy,fmt,scalar freestanding build all0; actionlint1.7.12 and27workflow tests0. Missing actionlint installed only under ignored build after release-checksum/MIT verification. No OS source or native/hosted acceptance claim. Required hosted checks pending independently; noCIpolling. AbsentHDA/e1000 crates not scheduled. Future new crate gates must be added with their integration.41/100 unchanged; no global Rust default/PATH or security hold change."
         }
-      ]
+      ],
+      "source_commit": "6db0ea9e3803551500de630675cfead804b55274",
+      "receipt": "docs/roadmap-pipeline/receipts/CI-L1.json"
     },
     {
       "id": "U03-L1",

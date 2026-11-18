@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-18",
-    "source_commit": "a863167986910ec127779e80e10743f89b626d8f",
+    "source_commit": "6db0ea9e3803551500de630675cfead804b55274",
     "assessment_basis": "parent_commit",
-    "branch": "codex/phase0-pr339-preintegration",
-    "task": "PR #356 reconciliation with main 69d82075",
+    "branch": "codex/ci-power-lifecycle",
+    "task": "CI-L1: Existing standalone power-lifecycle-core added to current component matrix with unchanged pinned steps/permissions/concurrency. Rust1.100:7tests,Clippy,fmt,scalar freestanding build all0; actionlint1.7.12 and27workflow tests0. Missing actionlint installed only under ignored build after release-checksum/MIT verification.",
     "previous_score": 41,
-    "summary": "41/100 unchanged. The Phase 0 Rust 1.100, English coverage and retained source-bound evidence candidate is reconciled with main 69d82075. The newer governance contracts, disabled issue controller and unconditional execution hold remain intact. Targeted host regressions pass; mandatory current-head hosted checks remain required. This reconciliation does not establish new native, hardware, human-audit or product-criterion acceptance."
+    "summary": "41/100 unchanged. Existing standalone power-lifecycle-core added to current component matrix with unchanged pinned steps/permissions/concurrency. Rust1.100:7tests,Clippy,fmt,scalar freestanding build all0; actionlint1.7.12 and27workflow tests0. Missing actionlint installed only under ignored build after release-checksum/MIT verification. No OS source or native/hosted acceptance claim. Required hosted checks pending independently; noCIpolling. AbsentHDA/e1000 crates not scheduled. Future new crate gates must be added with their integration.41/100 unchanged; no global Rust default/PATH or security hold change. Integration/Claude ownership and execution hold preserved."
   },
   "tracks": [
     {

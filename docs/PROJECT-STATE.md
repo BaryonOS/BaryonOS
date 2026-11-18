@@ -1,17 +1,53 @@
 # Current project status
 
-## NEXT AGENT HANDOFF — CI-L1 existing power core coverage —18November2026
+## NEXT AGENT HANDOFF — supervised delivery checkpoint —18November2026
 
-**Claim:** Codex lead, `codex/ci-power-lifecycle`, basefac5a864.
-**Goal:** add present standalone power-lifecycle-core to existing component CI.
-**Invariant:** same permissions/pins/maxparallel/mandatory checks; no absent
-component, production OS code or unsafe runner activation.
-**Write set:** .github/workflows/component-leaves.yml; lead state only.
-**Acceptance:** actionlint, existing workflow tests; actual Rust1.100 host
-test/Clippy/fmt/freestanding scalar build using isolated target cache.
-**Evidence limit:** local checks and CI declaration, not hosted/native acceptance.
-**Next:** draft PR. Current native H02/H04/N02 follow-ups need actual pending
-source/interfaces or currently held write paths, not historical PR333/336 holds.
+**Latest slice:** CI-L1 source `6db0ea9e`, `codex/ci-power-lifecycle`,
+base `fac5a864`. Existing power-lifecycle-core now uses the unchanged component
+quality steps, Rust1.100, permissions and maxparallel4. Seven Rust tests, Clippy,
+fmt, scalar freestanding build, actionlint1.7.12 and27workflow tests exit0.
+[Exact receipt and tool provenance](roadmap-pipeline/receipts/CI-L1.json).
+Missing actionlint was installed only under ignored build after release checksum
+and MIT verification; no global toolchain/default/PATH changed.
+
+**Functional deliveries:** USB hotplug core372; verified-artifact safetensors374;
+native NAS quota/cancel/offline eviction375 (normal/cold QEMU33); settings377 and
+search378 standalone cores (shared SDK membership still integration-owned).
+Capability model381 explores19607 nonempty prefixes and rejects an isolated
+revoke-weakening mutant. Native cold refusal382 passes55host tests and normal,
+recover plus four negative QEMU33 cases with unchanged cold disks. Its true
+multi-record chunk/replay coverage remains partial. Full-port prototype380 is
+BLOCKED on measured throughput, not accepted natively. Repro comparator379 reports
+actual loader/ESP differences; it does not claim reproducibility.
+
+**Supporting work:** structural LP checker383, hardware matrix384 and proposed
+review inventory390 are not compliance/security/hardware acceptance. Proposals
+385/387/388/389 enable owner decisions without adopting authority; TLS evaluation386
+remains partial/blocked. Existing model pin preserved; no inference/model download.
+Earlier branch evidence retains its own source/compiler; no Rust1.100/current-main
+native acceptance is inferred from older Rust1.90/1.91 receipts.
+
+**Stop reason:** no unclaimed READY/active task remains in this ledger (22 verified
+bounded tasks, including proposals/checkers;43 blocked). Historical PR333/336 are
+MERGED and no longer active ownership holds. A narrow source lookup replaced the
+selected stale native holds: N02 needs PR370's missing coordinator join; H04 lacks
+a native link-event/reconnect seam and its limited probe overlaps PR380's harness;
+H02 already proves terminal unplug but needs a new ring/lifetime coordinator plus
+PR372 before safe re-add. Keyring/S3 follow-ups overlap PR364/371. All seven directly
+relevant PRs364/369/370/371/372/380/382 were still OPEN at the last ownership check.
+No waiting/polling, duplicate implementation or security certification was started.
+
+**Exact next claim:** N02-T3 native DHCP/link-transition, after PR370 integration
+and explicit write-set release. Reconcile only that new main/source/ownership,
+record a bounded fixture/write set, then actual native peer checks. H04-T3 and
+H02-T3 remain separate interface/lifecycle work, not QMP-only acceptance. Newly
+integrated standalone crates374/377/378 need component CI entries with integration;
+this CI-L1 change covers the already present power core only.
+
+**Preserved:** integration branches/merges/closure stay with Integration Manager;
+ClaudeS09/UI and original dirty checkout untouched. Unattended hold and mandatory
+hooks/protections retained. Hosted checks, hardware and external human audit are
+NOT RUN/NOT CLAIMED here. Score41→41/100; no criterion/weight inflation.
 
 ## Retained checkpoint — unified governance implementation — 18 November 2026
 
