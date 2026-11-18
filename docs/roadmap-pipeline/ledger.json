@@ -1,8 +1,8 @@
 {
   "schema": 1,
   "purpose": "Execution queue of the H/U/N/B/A/P/L/R clean-session roadmap pipeline; child tasks of the fixed criteria in docs/progress.json. Not a second roadmap and not an acceptance register.",
-  "branch": "claude/baryonos-autonomous-pipeline-81tujs",
-  "base": "d572052b731149016dad1a99e2c4ebde90474a96",
+  "branch": "codex/h04-link-tracker",
+  "base": "6f29b6720b51aecad5714faa48b445afd6e2f5a9",
   "score": {
     "accepted": 41,
     "of": 100,
@@ -18,11 +18,181 @@
   },
   "tasks": [
     {
+      "id": "H04-T2",
+      "criterion": "H04",
+      "milestone": "M9",
+      "executor": "worker",
+      "status": "active",
+      "title": "virtio-net link-state transition tracker with flap budget (host)",
+      "goal": "Add drivers/virtio-net/src/link.rs: generation-bound link up/down events derived from FEATURE_STATUS, a flap budget, rejection of a stale 'up' that would resurrect pre-down state, and a link event during reset returning an I/O error; wire only the pure tracker into lib.rs.",
+      "why_now": "H04 needs disconnect/resume paths; the tracker is host-testable and feeds net-config later.",
+      "deps": [],
+      "write_paths": [
+        "drivers/virtio-net/src/link.rs",
+        "drivers/virtio-net/src/lib.rs",
+        "drivers/virtio-net/src/tests.rs"
+      ],
+      "read_paths": [
+        "drivers/virtio-net/src/lib.rs",
+        "services/net-config/src/service.rs",
+        "docs/implementation/VIRTIO-NET.md"
+      ],
+      "checks": [
+        "cargo +1.90.0 test --locked -p virtio-net-driver",
+        "cargo +1.90.0 clippy --locked -p virtio-net-driver --all-targets -- -D warnings",
+        "cargo +1.90.0 fmt --all -- --check"
+      ],
+      "acceptance": [
+        "negative: stale generation, flap storm, link event during reset"
+      ],
+      "out_of_scope": [
+        "kernel network service wiring",
+        "real NIC drivers"
+      ],
+      "non_claimable": "Native link loss, physical NICs and Wi-Fi/Bluetooth stay open.",
+      "risk": "medium",
+      "size": "S",
+      "evidence_level": "host",
+      "rollback": "Revert the commit.",
+      "next": "H04-T3 native link-loss run.",
+      "history": [
+        {
+          "at": "2026-11-18T20:36:30.023943+00:00",
+          "event": "active",
+          "reason": "Independent Rust1.90 functional driver tracker; N02-T2 toolchain unavailable, P02-T3 protocol/network dependency blocked."
+        }
+      ]
+    },
+    {
+      "id": "P02-T2",
+      "criterion": "P02",
+      "milestone": "M8",
+      "executor": "worker",
+      "status": "verified",
+      "title": "Canonical versioned client checkpoint encoding with strict validation (host)",
+      "goal": "Add services/nas/native-client/src/checkpoint.rs: canonical, versioned, fixed-length encoding of the client checkpoint with strict decode validation; a restored checkpoint yields only NeedsReconcile; no anti-rollback claim.",
+      "why_now": "Durable offline edits are a P02 condition and the checkpoint is not yet a persistent schema.",
+      "deps": [
+        "P02-T1"
+      ],
+      "write_paths": [
+        "services/nas/native-client/src/checkpoint.rs",
+        "services/nas/native-client/src/lib.rs",
+        "services/nas/native-client/tests/checkpoint.rs",
+        "services/nas/native-client/README.md"
+      ],
+      "read_paths": [
+        "services/nas/native-core/src/snapshot.rs"
+      ],
+      "checks": [
+        "cargo +1.90.0 test --locked --manifest-path services/nas/native-client/Cargo.toml",
+        "cargo +1.90.0 clippy --locked --manifest-path services/nas/native-client/Cargo.toml --all-targets -- -D warnings",
+        "cargo +1.90.0 fmt --manifest-path services/nas/native-client/Cargo.toml -- --check"
+      ],
+      "acceptance": [
+        "negative decodes: truncated, wrong magic or version, non-zero reserved bytes, invalid state, length over bound, duplicate slot",
+        "restored checkpoint yields only NeedsReconcile"
+      ],
+      "out_of_scope": [
+        "rollback anchor (B02)"
+      ],
+      "non_claimable": "Anti-rollback and native persistence stay open.",
+      "risk": "medium",
+      "size": "S",
+      "evidence_level": "host",
+      "rollback": "Revert the commit.",
+      "next": "P02-T3 native scenario.",
+      "history": [
+        {
+          "at": "2026-11-18T20:31:37.717049+00:00",
+          "event": "active",
+          "reason": "Sequential lead-owned dependent slice stacked on PR367; no concurrent writer or unrelated Claude paths."
+        },
+        {
+          "at": "2026-11-18T20:33:51.585853+00:00",
+          "event": "verified",
+          "source_commit": "8536ec8581cd41e0094c1e61bf43491d31192e4f",
+          "reason": "21 host tests incl4 codec regressions, Clippy/fmt exit0. Stacked dependency PR367, no acceptance inferred."
+        }
+      ],
+      "source_commit": "8536ec8581cd41e0094c1e61bf43491d31192e4f",
+      "receipt": "docs/roadmap-pipeline/receipts/P02-T2.json"
+    },
+    {
+      "id": "P02-T1",
+      "criterion": "P02",
+      "milestone": "M8",
+      "executor": "worker",
+      "status": "verified",
+      "title": "Authority-checked guest head query in NAS native-core for resume discovery (host)",
+      "goal": "Add to services/nas/native-core an authority-checked guest head query (latest committed revision per object within the caller's namespace and session) and use it in native-client so NeedsReconcile edits can discover the remote revision; snapshot format (NOSNAS01) and wire unchanged; output unchanged on every error.",
+      "why_now": "The native-client README names remote head discovery as the missing piece for automatic resume (P02). It builds on verified CAS/authority code and needs no open PR path.",
+      "deps": [],
+      "write_paths": [
+        "services/nas/native-core/src/lib.rs",
+        "services/nas/native-core/tests/authority.rs",
+        "services/nas/native-core/README.md",
+        "services/nas/native-client/src/lib.rs",
+        "services/nas/native-client/tests/resume.rs",
+        "services/nas/native-client/README.md"
+      ],
+      "read_paths": [
+        "services/nas/native-core/src/snapshot.rs",
+        "services/nas/native-probe/CONTRACT.md",
+        "docs/implementation/NAS-SHARING-AND-INTERNET.md"
+      ],
+      "checks": [
+        "cargo +1.90.0 test --locked --manifest-path services/nas/native-core/Cargo.toml",
+        "cargo +1.90.0 clippy --locked --manifest-path services/nas/native-core/Cargo.toml --all-targets -- -D warnings",
+        "cargo +1.90.0 fmt --manifest-path services/nas/native-core/Cargo.toml -- --check",
+        "cargo +1.90.0 test --locked --manifest-path services/nas/native-client/Cargo.toml",
+        "cargo +1.90.0 clippy --locked --manifest-path services/nas/native-client/Cargo.toml --all-targets -- -D warnings",
+        "cargo +1.90.0 fmt --manifest-path services/nas/native-client/Cargo.toml -- --check",
+        "cargo +1.90.0 test --locked --manifest-path services/nas/native-volume/Cargo.toml",
+        "cargo +1.90.0 clippy --locked --manifest-path services/nas/native-volume/Cargo.toml --all-targets -- -D warnings",
+        "cargo +1.90.0 fmt --manifest-path services/nas/native-volume/Cargo.toml -- --check",
+        "cargo +1.90.0 test --locked --manifest-path services/nas/native-probe/Cargo.toml",
+        "cargo +1.90.0 clippy --locked --manifest-path services/nas/native-probe/Cargo.toml --all-targets -- -D warnings",
+        "cargo +1.90.0 fmt --manifest-path services/nas/native-probe/Cargo.toml -- --check",
+        "python3 -B -m unittest discover -s services/nas/native-probe/tests -p test_disk_oracle.py"
+      ],
+      "acceptance": [
+        "negative: stale session after revoke returns Stale; another principal returns Denied; foreign or evicted namespace rejected; outputs unchanged on error",
+        "client never commits an Unknown edit automatically",
+        "NOSNAS01 SNAPSHOT_BYTES unchanged"
+      ],
+      "out_of_scope": [
+        "NASP wire opcode (P02-T3)",
+        "network transport"
+      ],
+      "non_claimable": "Native resume over real connections stays open (N02/N03/N04).",
+      "risk": "medium",
+      "size": "M",
+      "evidence_level": "host",
+      "rollback": "Revert the commit.",
+      "next": "P02-T2 checkpoint encoding.",
+      "history": [
+        {
+          "at": "2026-11-18T20:28:27.361178+00:00",
+          "event": "active",
+          "reason": "Lead supervised implementation; promote bounded existing-code NAS resume integration ahead of documentation-only proposals. Disjoint from S09 and UI; no unattended activation."
+        },
+        {
+          "at": "2026-11-18T20:30:43.706662+00:00",
+          "event": "verified",
+          "source_commit": "c5c56f93d14a737c5c62dbec7ae237e34fe505fe",
+          "reason": "57 Rust host tests, 8 disk-oracle tests, Clippy/fmt pass. One bounded source review no blocker. Not native/criterion acceptance."
+        }
+      ],
+      "source_commit": "c5c56f93d14a737c5c62dbec7ae237e34fe505fe",
+      "receipt": "docs/roadmap-pipeline/receipts/P02-T1.json"
+    },
+    {
       "id": "A02-T1",
       "criterion": "A02",
       "milestone": "M7",
       "executor": "worker",
-      "status": "ready",
+      "status": "verified",
       "title": "Host installer orchestrator binding source verification, artifact commit and catalogue journal",
       "goal": "Add sdk/app-management/src/installer.rs: a bounded no_std orchestrator for install, update and remove that (1) verifies the package only through the existing app_package_core::SourceRegistry::verify_executable (no second verifier, no public self-constructible verified token), (2) derives PackageIdentity crate-internally from the SourceVerifiedExecutable, (3) streams the exact image through store::InstallTransaction and commits it, (4) re-checks the current source generation and revocation state immediately before catalogue prepare/apply so a rotate or revoke between verification and commit fails closed (APP-SOURCE-RECOVERY section 7), (5) applies catalog::InstallCatalog and persists through journal::Journal, and (6) maps store/journal Unknown to a fail-closed state without replay or automatic recommit. The SourceRegistry stays caller-supplied and in memory: no new trust root, anchor, durable source backend or launch capability.",
       "why_now": "A02 is open and every lower layer (package verification, source policy, streaming store, catalogue, journal) is host-tested but unconnected. A single orchestrator is the smallest step that proves the layers compose without authority gaps, and it is the prerequisite for the native installer service (A02-T3) and for A03/A04 app lifecycle work. Covered by an existing CI job.",
@@ -92,6 +262,13 @@
           "run": "20261115T020104-23862",
           "session_id": "539a48f7-3153-478d-8f8c-dc618d90a5c1",
           "reason": "Worker reported the 5-hour usage limit after 609 s and 20 turns (0 compactions, peak context 120k, 198k output tokens, estimated 2.42 USD); the controller stopped on the rate-limit guard. No file changed. Resumed after the reset."
+        },
+        {
+          "at": "2026-11-18T20:08:23+00:00",
+          "event": "source-bound-branch-reference",
+          "source_commit": "d03ae904048a91defc74b9e4ba854d3526595580",
+          "pr": 363,
+          "reason": "Verified task on preserved source branch; no full criterion acceptance or main integration inferred."
         }
       ]
     },
@@ -100,7 +277,7 @@
       "criterion": "B01",
       "milestone": "M8",
       "executor": "worker",
-      "status": "ready",
+      "status": "verified",
       "native": true,
       "title": "Native positive management recovery through a manifest-named admin principal (keyring)",
       "goal": "In the native-keyring normal case, add a management-role process (a second instance of the existing keyring-app ELF, named in the manifest as the admin caller and connected to the existing admin ingress words) that performs EXPORT_RECOVERY on service A and RESTORE into service B, after which B unseals a ciphertext sealed by A. Negative cases in the same run: a wrong recovery secret returns Auth; GENERATE on the admin ingress is denied; the ordinary app's test-only SEND alias to the admin ingress is counted as bad_caller with no reply and no state change. Existing APP_RECOVERY_EXPORT_DENIED and APP_RECOVERY_RESTORE_DENIED counters stay 1. Reuse existing ELFs and kernel features only: no tools/build.py edit, no new capability kind, no change to the KEY1 wire.",
@@ -152,14 +329,22 @@
       "evidence_level": "native-QEMU (TCG)",
       "rollback": "Revert the commit; the new process exists only in the native-keyring test profile.",
       "next": "Lead acceptance review of B01; then B01-T2 after PR #333 releases tools/build.py.",
-      "history": []
+      "history": [
+        {
+          "at": "2026-11-18T20:08:23+00:00",
+          "event": "source-bound-branch-reference",
+          "source_commit": "3847e9f",
+          "pr": 364,
+          "reason": "Verified task on preserved source branch; no full criterion acceptance or main integration inferred."
+        }
+      ]
     },
     {
       "id": "N02-T1",
       "criterion": "N02",
       "milestone": "M8",
       "executor": "worker",
-      "status": "ready",
+      "status": "verified",
       "title": "Bounded DNS resolver core with TTL, negative caching and epoch invalidation (host)",
       "goal": "Add services/net-protocol/src/resolver.rs: a pure, allocation-free resolver core with a bounded cache keyed by name and type, monotonic-tick TTL with exact expiry, negative caching of NXDOMAIN, CNAME depth limit, explicit TC/NXDOMAIN/SERVFAIL/ID-or-question-mismatch errors with no partial records, cache flush on configuration-epoch change, and bounded eviction.",
       "why_now": "N02 needs everyday name resolution and only single-query parsing exists. The crate has no dependencies, builds offline and is covered by ci.yml#host-quality.",
@@ -168,7 +353,9 @@
         "services/net-protocol/src/resolver.rs",
         "services/net-protocol/src/lib.rs",
         "services/net-protocol/tests/resolver.rs",
-        "services/net-protocol/README.md"
+        "services/net-protocol/README.md",
+        "services/net-protocol/src/dns.rs",
+        "services/net-protocol/tests/dns.rs"
       ],
       "read_paths": [
         "services/net-protocol/src/dns.rs",
@@ -186,7 +373,8 @@
         "NXDOMAIN negatively cached with a bound",
         "negative: TC bit, wrong ID or question, compression loop, TTL overflow, oversize name each give an error with no partial records",
         "epoch change drops the cache; a full cache evicts within its bound",
-        "no name-to-IP authorization is implied (broker scope unchanged)"
+        "no name-to-IP authorization is implied (broker scope unchanged)",
+        "Negative replies are fully validated before cache mutation; malformed NXDOMAIN cannot poison the cache; reuse the existing DNS decoder without changing strict positive parse_response behavior."
       ],
       "out_of_scope": [
         "native resolver service",
@@ -198,14 +386,29 @@
       "evidence_level": "host",
       "rollback": "Revert the commit.",
       "next": "N02-T2 net-config integration.",
-      "history": []
+      "history": [
+        {
+          "at": "2026-11-18T20:08:23+00:00",
+          "event": "supervised-claim",
+          "owner": "Codex",
+          "branch": "codex/n02-resolver-cache",
+          "base": "6f29b6720b51aecad5714faa48b445afd6e2f5a9"
+        },
+        {
+          "at": "2026-11-18T20:17:44+00:00",
+          "event": "verified",
+          "source_commit": "138d48de9f351836956db79f2d30dbd93814c59e",
+          "receipt": "docs/roadmap-pipeline/receipts/N02-T1.json",
+          "summary": "79 host tests and Clippy/fmt/freestanding build pass; no native resolver or N02 acceptance."
+        }
+      ]
     },
     {
       "id": "B02-T2",
       "criterion": "B02",
       "milestone": "M8",
       "executor": "worker",
-      "status": "ready",
+      "status": "blocked",
       "title": "Keyring write-ahead contract: no seal or revoke confirmation before durable commit (host)",
       "goal": "Implement spec item 4 of B02-SECURE-RECORDS.md in keyring-core on the host: a newly generated handle cannot seal until snapshot generation G is committed; revocation is confirmed only after commit; crash points never reissue an index; Unknown I/O is never confirmed or retried.",
       "why_now": "The B02 spec marks this as still to be built; host-first, offline and covered by host-quality.",
@@ -243,47 +446,20 @@
       "evidence_level": "host",
       "rollback": "Revert the commit.",
       "next": "B02-T1 native tamper and key-loss cases.",
-      "history": []
-    },
-    {
-      "id": "N04-T2",
-      "criterion": "N04",
-      "milestone": "M8",
-      "executor": "worker",
-      "status": "ready",
-      "title": "Production issuer, delegated helper subgrants and durable revocation contract (design)",
-      "goal": "Write docs/implementation/N04-ISSUER-DELEGATION.md: invariants, interfaces and negative tests for a production issuer and PolicyAuthority, attenuation-only helper subgrants, regrant generations and revocation that survives a service restart, before any code; no new trust root and no automatic regrant.",
-      "why_now": "Implementation of the next step is blocked on an owner or review decision that needs an evidence-based basis first.",
-      "deps": [],
-      "write_paths": [
-        "docs/implementation/N04-ISSUER-DELEGATION.md"
-      ],
-      "read_paths": [
-        "services/net-broker/README.md",
-        "services/network-service/src/lib.rs",
-        "docs/implementation/KERNEL-AND-SECURITY-CONTRACT.md",
-        "docs/verification/n04-helper-20261114/README.md"
-      ],
-      "checks": [
-        "python3 tools/progress.py --check"
-      ],
-      "acceptance": [
-        "labelled PROPOSED where it proposes decisions; no new trust root, escrow or capability is adopted",
-        "every cited path and symbol exists in the current tree"
-      ],
-      "non_claimable": "Owner or reviewer decision; no criterion effect.",
-      "risk": "low",
-      "size": "S",
-      "evidence_level": "design",
-      "rollback": "Revert the commit.",
-      "history": []
+      "history": [
+        {
+          "at": "2026-11-18T20:08:23+00:00",
+          "event": "ownership-block",
+          "reason": "S09-NEXT remains Claude-owned; owner decision pending."
+        }
+      ]
     },
     {
       "id": "A03-T1",
       "criterion": "A03",
       "milestone": "M7",
       "executor": "worker",
-      "status": "ready",
+      "status": "verified",
       "title": "task-grant-core: time-bounded, revocable per-object task grants (host model)",
       "goal": "Create sdk/task-grant-core (no_std, forbid(unsafe_code)) and add it to the sdk workspace: grants of (app principal, process epoch) x (object id, revision) x {read, write, export} x {until-close, session}, generation-bound revoke, no delegation or inheritance to helper processes, no capability material in messages, bounded tables. Fail closed on stale epoch, stale generation, overflow and unknown object.",
       "why_now": "A03 has domain-level volume grants but no task-grant model; it is the policy core that the trusted grant UI (UX-C) and native broker (A03-T3) need. Host-only, covered by the sdk CI step.",
@@ -320,6 +496,59 @@
       "evidence_level": "host",
       "rollback": "Revert the commit and the sdk workspace member line.",
       "next": "A03-T3 native broker after an ADR for per-object volume grants.",
+      "history": [
+        {
+          "at": "2026-11-18T20:17:44+00:00",
+          "event": "implementation-priority",
+          "reason": "Owner prioritizes functional implementation; N04-T2 is a documentation-only proposal and remains ready for later."
+        },
+        {
+          "at": "2026-11-18T20:19:37+00:00",
+          "event": "supervised-claim",
+          "owner": "Codex",
+          "base": "6f29b6720b51aecad5714faa48b445afd6e2f5a9",
+          "branch": "codex/a03-task-grants"
+        },
+        {
+          "at": "2026-11-18T20:25:41+00:00",
+          "event": "verified",
+          "source_commit": "e1cc7c1ce04942f0f46c91875eab751044c6b260",
+          "receipt": "docs/roadmap-pipeline/receipts/A03-T1.json",
+          "summary": "128 SDK tests including12 grant regressions, Clippy/fmt and freestanding build pass. No A03/native acceptance."
+        }
+      ]
+    },
+    {
+      "id": "N04-T2",
+      "criterion": "N04",
+      "milestone": "M8",
+      "executor": "worker",
+      "status": "ready",
+      "title": "Production issuer, delegated helper subgrants and durable revocation contract (design)",
+      "goal": "Write docs/implementation/N04-ISSUER-DELEGATION.md: invariants, interfaces and negative tests for a production issuer and PolicyAuthority, attenuation-only helper subgrants, regrant generations and revocation that survives a service restart, before any code; no new trust root and no automatic regrant.",
+      "why_now": "Implementation of the next step is blocked on an owner or review decision that needs an evidence-based basis first.",
+      "deps": [],
+      "write_paths": [
+        "docs/implementation/N04-ISSUER-DELEGATION.md"
+      ],
+      "read_paths": [
+        "services/net-broker/README.md",
+        "services/network-service/src/lib.rs",
+        "docs/implementation/KERNEL-AND-SECURITY-CONTRACT.md",
+        "docs/verification/n04-helper-20261114/README.md"
+      ],
+      "checks": [
+        "python3 tools/progress.py --check"
+      ],
+      "acceptance": [
+        "labelled PROPOSED where it proposes decisions; no new trust root, escrow or capability is adopted",
+        "every cited path and symbol exists in the current tree"
+      ],
+      "non_claimable": "Owner or reviewer decision; no criterion effect.",
+      "risk": "low",
+      "size": "S",
+      "evidence_level": "design",
+      "rollback": "Revert the commit.",
       "history": []
     },
     {
@@ -482,61 +711,6 @@
       "history": []
     },
     {
-      "id": "P02-T1",
-      "criterion": "P02",
-      "milestone": "M8",
-      "executor": "worker",
-      "status": "ready",
-      "title": "Authority-checked guest head query in NAS native-core for resume discovery (host)",
-      "goal": "Add to services/nas/native-core an authority-checked guest head query (latest committed revision per object within the caller's namespace and session) and use it in native-client so NeedsReconcile edits can discover the remote revision; snapshot format (NOSNAS01) and wire unchanged; output unchanged on every error.",
-      "why_now": "The native-client README names remote head discovery as the missing piece for automatic resume (P02). It builds on verified CAS/authority code and needs no open PR path.",
-      "deps": [],
-      "write_paths": [
-        "services/nas/native-core/src/lib.rs",
-        "services/nas/native-core/tests/authority.rs",
-        "services/nas/native-core/README.md",
-        "services/nas/native-client/src/lib.rs",
-        "services/nas/native-client/tests/resume.rs",
-        "services/nas/native-client/README.md"
-      ],
-      "read_paths": [
-        "services/nas/native-core/src/snapshot.rs",
-        "services/nas/native-probe/CONTRACT.md",
-        "docs/implementation/NAS-SHARING-AND-INTERNET.md"
-      ],
-      "checks": [
-        "cargo +1.90.0 test --locked --manifest-path services/nas/native-core/Cargo.toml",
-        "cargo +1.90.0 clippy --locked --manifest-path services/nas/native-core/Cargo.toml --all-targets -- -D warnings",
-        "cargo +1.90.0 fmt --manifest-path services/nas/native-core/Cargo.toml -- --check",
-        "cargo +1.90.0 test --locked --manifest-path services/nas/native-client/Cargo.toml",
-        "cargo +1.90.0 clippy --locked --manifest-path services/nas/native-client/Cargo.toml --all-targets -- -D warnings",
-        "cargo +1.90.0 fmt --manifest-path services/nas/native-client/Cargo.toml -- --check",
-        "cargo +1.90.0 test --locked --manifest-path services/nas/native-volume/Cargo.toml",
-        "cargo +1.90.0 clippy --locked --manifest-path services/nas/native-volume/Cargo.toml --all-targets -- -D warnings",
-        "cargo +1.90.0 fmt --manifest-path services/nas/native-volume/Cargo.toml -- --check",
-        "cargo +1.90.0 test --locked --manifest-path services/nas/native-probe/Cargo.toml",
-        "cargo +1.90.0 clippy --locked --manifest-path services/nas/native-probe/Cargo.toml --all-targets -- -D warnings",
-        "cargo +1.90.0 fmt --manifest-path services/nas/native-probe/Cargo.toml -- --check",
-        "python3 -B -m unittest discover -s services/nas/native-probe/tests -p test_disk_oracle.py"
-      ],
-      "acceptance": [
-        "negative: stale session after revoke returns Stale; another principal returns Denied; foreign or evicted namespace rejected; outputs unchanged on error",
-        "client never commits an Unknown edit automatically",
-        "NOSNAS01 SNAPSHOT_BYTES unchanged"
-      ],
-      "out_of_scope": [
-        "NASP wire opcode (P02-T3)",
-        "network transport"
-      ],
-      "non_claimable": "Native resume over real connections stays open (N02/N03/N04).",
-      "risk": "medium",
-      "size": "M",
-      "evidence_level": "host",
-      "rollback": "Revert the commit.",
-      "next": "P02-T2 checkpoint encoding.",
-      "history": []
-    },
-    {
       "id": "N03-T1",
       "criterion": "N03",
       "milestone": "M8",
@@ -654,46 +828,6 @@
       "history": []
     },
     {
-      "id": "H04-T2",
-      "criterion": "H04",
-      "milestone": "M9",
-      "executor": "worker",
-      "status": "ready",
-      "title": "virtio-net link-state transition tracker with flap budget (host)",
-      "goal": "Add drivers/virtio-net/src/link.rs: generation-bound link up/down events derived from FEATURE_STATUS, a flap budget, rejection of a stale 'up' that would resurrect pre-down state, and a link event during reset returning an I/O error; wire only the pure tracker into lib.rs.",
-      "why_now": "H04 needs disconnect/resume paths; the tracker is host-testable and feeds net-config later.",
-      "deps": [],
-      "write_paths": [
-        "drivers/virtio-net/src/link.rs",
-        "drivers/virtio-net/src/lib.rs",
-        "drivers/virtio-net/src/tests.rs"
-      ],
-      "read_paths": [
-        "drivers/virtio-net/src/lib.rs",
-        "services/net-config/src/service.rs",
-        "docs/implementation/VIRTIO-NET.md"
-      ],
-      "checks": [
-        "cargo +1.90.0 test --locked -p virtio-net-driver",
-        "cargo +1.90.0 clippy --locked -p virtio-net-driver --all-targets -- -D warnings",
-        "cargo +1.90.0 fmt --all -- --check"
-      ],
-      "acceptance": [
-        "negative: stale generation, flap storm, link event during reset"
-      ],
-      "out_of_scope": [
-        "kernel network service wiring",
-        "real NIC drivers"
-      ],
-      "non_claimable": "Native link loss, physical NICs and Wi-Fi/Bluetooth stay open.",
-      "risk": "medium",
-      "size": "S",
-      "evidence_level": "host",
-      "rollback": "Revert the commit.",
-      "next": "H04-T3 native link-loss run.",
-      "history": []
-    },
-    {
       "id": "U05-T2",
       "criterion": "U05",
       "milestone": "M7",
@@ -778,7 +912,7 @@
       "criterion": "R03",
       "milestone": "M11",
       "executor": "worker",
-      "status": "ready",
+      "status": "blocked",
       "title": "Offline deterministic SPDX SBOM and dependency-provenance check for all Cargo.lock files",
       "goal": "Add tools/sbom.py (standard library only): SPDX 2.3 JSON for every Cargo.lock, the pinned toolchain and THIRD-PARTY assets, plus --check: registry checksums present, no git sources, exact '=' pins for cryptographic crates, records for vendored crates, licences cross-checked against THIRD-PARTY.md or NOASSERTION, never guessed; deterministic bytes.",
       "why_now": "Serves R03 (licensing/SBOM) and the B04 dependency-provenance clause; host-only.",
@@ -813,7 +947,13 @@
       "evidence_level": "host",
       "rollback": "Revert the commit.",
       "next": "B04-T2 reproducibility check.",
-      "history": []
+      "history": [
+        {
+          "at": "2026-11-18T20:08:23+00:00",
+          "event": "ownership-block",
+          "reason": "S09-NEXT remains Claude-owned; owner decision pending."
+        }
+      ]
     },
     {
       "id": "B04-T2",
@@ -972,52 +1112,11 @@
       "history": []
     },
     {
-      "id": "P02-T2",
-      "criterion": "P02",
-      "milestone": "M8",
-      "executor": "worker",
-      "status": "ready",
-      "title": "Canonical versioned client checkpoint encoding with strict validation (host)",
-      "goal": "Add services/nas/native-client/src/checkpoint.rs: canonical, versioned, fixed-length encoding of the client checkpoint with strict decode validation; a restored checkpoint yields only NeedsReconcile; no anti-rollback claim.",
-      "why_now": "Durable offline edits are a P02 condition and the checkpoint is not yet a persistent schema.",
-      "deps": [
-        "P02-T1"
-      ],
-      "write_paths": [
-        "services/nas/native-client/src/checkpoint.rs",
-        "services/nas/native-client/src/lib.rs",
-        "services/nas/native-client/tests/checkpoint.rs",
-        "services/nas/native-client/README.md"
-      ],
-      "read_paths": [
-        "services/nas/native-core/src/snapshot.rs"
-      ],
-      "checks": [
-        "cargo +1.90.0 test --locked --manifest-path services/nas/native-client/Cargo.toml",
-        "cargo +1.90.0 clippy --locked --manifest-path services/nas/native-client/Cargo.toml --all-targets -- -D warnings",
-        "cargo +1.90.0 fmt --manifest-path services/nas/native-client/Cargo.toml -- --check"
-      ],
-      "acceptance": [
-        "negative decodes: truncated, wrong magic or version, non-zero reserved bytes, invalid state, length over bound, duplicate slot",
-        "restored checkpoint yields only NeedsReconcile"
-      ],
-      "out_of_scope": [
-        "rollback anchor (B02)"
-      ],
-      "non_claimable": "Anti-rollback and native persistence stay open.",
-      "risk": "medium",
-      "size": "S",
-      "evidence_level": "host",
-      "rollback": "Revert the commit.",
-      "next": "P02-T3 native scenario.",
-      "history": []
-    },
-    {
       "id": "N02-T2",
       "criterion": "N02",
       "milestone": "M8",
       "executor": "worker",
-      "status": "ready",
+      "status": "blocked",
       "title": "Host-integrate the net-config coordinator into network-service (DHCP replaces static config)",
       "goal": "Make DHCP-acquired address, route and DNS settings from services/net-config replace the static Config on the same Stack and PacketDevice in services/network-service; NAK, lease expiry and link-down withdraw them and later OpenTcp is refused; no default DNS when the option is absent; reconnect keeps no old sockets.",
       "why_now": "Prerequisite for any native DHCP case; reuses the reviewed coordinator.",
@@ -1049,7 +1148,8 @@
       "evidence_level": "host",
       "rollback": "Revert the commit.",
       "next": "N02-T3 native DHCP case after PR #333.",
-      "history": []
+      "history": [],
+      "blocker": "Required Rust1.91.1 is not installed (rustup toolchain list 18 November:1.90.0,1.100.0,stable,beta,nightly). No installation attempted in this bounded delivery pass; exact required tests NOT RUN. Resume with installed1.91.1; no source changed."
     },
     {
       "id": "P01-T1",
