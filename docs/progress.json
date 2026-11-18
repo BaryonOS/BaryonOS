@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-18",
-    "source_commit": "aaf01bae291faba593567845dc8da4fe606a7959",
+    "source_commit": "5a3295b6093549f4b5ff6164ab2773ac4c264996",
     "assessment_basis": "parent_commit",
-    "branch": "codex/coderabbit-oss-config",
-    "task": "PR350 conflict-only reconciliation with main 2eac8ca3",
+    "branch": "codex/codeql-pr-fast-suite",
+    "task": "CodeQL fast pre-merge/default and extended main analysis",
     "previous_score": 41,
-    "summary": "41/100 unchanged. The reviewed CodeRabbit free-tier configuration is preserved while current main, including PR #361 containment and final-read ordering, is incorporated. Only the checkpoint and assessment records required manual resolution. Hosted checks on the resulting head remain authoritative; no local build or QEMU acceptance is inferred."
+    "summary": "41/100 unchanged. CodeQL retains four-language default security analysis before merge and security-extended analysis on main, schedule and manual runs. The strict required checks, high-or-higher code-scanning rule, permissions and execution hold are unchanged. Workflow contract tests pass, but hosted CodeQL must still validate syntax and measure latency; no OS criterion or evidence level changes."
   },
   "tracks": [
     {
