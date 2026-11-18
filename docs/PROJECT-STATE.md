@@ -1,66 +1,120 @@
 # Current project status
 
-## NEXT AGENT HANDOFF — Codex H/U/N/B/A/P/L/R continuation — 18 November 2026
+## NEXT AGENT HANDOFF — unified governance implementation — 18 November 2026
 
-**Task/ownership:** Codex owns technical roadmap and its controller. Claude retains
-S09 and Orbitaal/UI/UX. Existing #338 is merged; reuse its ledger and runner on
-`codex/roadmap-codex`, base `6f29b6720b51aecad5714faa48b445afd6e2f5a9`. No foreign
-checkout is changed. Supporting governance is draft #362; it is not a prerequisite.
-Kernel PR #361 already has the final-read race repair at `86ba7726`, with targeted
-negative/positive native results; current-head hosted checks remain pending.
+**Claim:** GOV-1-6, sole writer Codex in `codex/unified-governance`, base
+`5a3295b6093549f4b5ff6164ab2773ac4c264996`. The project owner authorizes immediate
+governance without a zero-open-items or completed baseline-B prerequisite.
 
-**Goal:** restore Codex fresh-task dispatch while preserving fail-closed automation,
-then implement the highest-value independent READY task in the existing ledger.
-**Invariant:** no Claude execution for this roadmap; no held execution/gate bypass,
-credential/permission expansion, foreign WIP writes or fabricated readiness.
-**Write set:** `tools/roadmap_runner.py`, its tests, existing roadmap README/ledger,
-this checkpoint/progress displays, and bounded new receipts; A02-T1 installer paths
-are assigned separately only after current-source validation.
-**Acceptance:** focused runner/hold regressions, verified installed Codex 0.167.2
-interface, actual fresh-session logs, controller lock/ledger transitions and targeted
-functionality tests. No repeated native matrices for unchanged code.
-**Evidence limit:** manual fresh-session dispatch does not establish safe unattended
-execution, automatic continuation or runtime parity. Issue execution stays held.
+**Goal:** working shared instructions, role contracts, thin client adapters and
+clean-session continuation using existing project state.
+**Invariant:** preserve the independent kernel, Security Floor, unconditional
+issue-pipeline execution hold, disabled manifest, merge protections and foreign WIP.
+**Write set:** root `AGENTS.md`, `CLAUDE.md`, `CODEX-WORKFLOW.md`, shared roles/skills
+under `.agents/`, existing `.codex/agents/` and `.github/agents/` adapters,
+`.github/copilot-instructions.md`, Claude skill/role adapters, `docs/CODEX-START.md`,
+`docs/CODEX-PARITY.md`, `docs/STATUS.md`, this checkpoint, `docs/DECISIONS.md`, progress
+assessment/displays and targeted governance tests in `tools/tests/`. A protection
+change, if required, is limited to `tools/agent_pipeline.py` and its targeted test.
+**Acceptance:** targeted governance and protected-path tests, existing quarantine
+and execution-hold regressions, tools suite, progress generation/check and diff
+review. Full native matrices are not repeated for unchanged OS code.
+**Evidence limit:** repository contracts and host regressions do not prove client
+runtime parity, sandbox activation, Daybreak remediation, hardware or human audit.
 
-**Delivered:** existing controller `brief` freezes a Codex argv/brief, claims one
-READY task under the existing lock and preserves active work across sessions. All
-automatic worker/check/task ingresses stay source-held. No hooks, MCP connections or
-permissions were disabled. B02-T2/R03-T1 remain blocked for S09 ownership.
+**Reconciliation:** current main includes #359, #355, #361 and #350. Quarantine 5/5 and
+execution-hold 3/3 pass, exit 0 (raw logs
+`build/tokenguard/run-425ldpp4.log`, `run-yheavd50.log`). Manifest `enabled: false`.
+No active `agents/independent.md` reference was found. Four real `os_*` roles exist.
 
-A02-T1 implementation source `d03ae904048a91defc74b9e4ba854d3526595580` composes verified package streaming,
-current source-state checks, private catalogue publication and fail-closed journal
-recovery. Public test fixtures reuse existing signing helpers and pinned dependencies;
-no product dependency/manifest/lock change. [Receipt](roadmap-pipeline/receipts/A02-T1.json).
+**Preserved:** original dirty main checkout; former #355 checkout `sec355-local`
+at `124a679c` with `tools/agent_gate.py`, `tools/tests/test_agent_pipeline.py` and
+untracked offline-QEMU evidence; Claude UI/UX and suite worktrees; S09 worktree.
+No WIP was discarded, staged or published from those checkouts. #357 remains
+recovery-only WIP. Authenticated model clients, offline gate compatibility and
+Daybreak finding acceptance remain open; they do not block this disjoint task.
 
-**Executed:** 48 app-management host tests, Clippy, fmt and `x86_64-unknown-none`
-release build with existing CI serial/soft crypto backends all exit 0. Controller
-suite: 21 tests, exit 0; full tools suite: 520 tests, 15 explicit skips, exit 0. Actual
-automatic `run` and conflicting manual claim refuse with exit 2. Raw logs/hashes are
-in the receipt. Initial Snap exit 46 and a cross-build without the documented backend
-flags (SIGILL, exit 101) are retained as failures; the corrected commands pass.
-One focused read-only AI source review found no blocker; no human audit claimed.
+**Delivered:** shared workflow and four canonical roles; thin Claude/Codex/Copilot
+adapters; guarded shared policy paths; compact overview and recovery; risk-based
+verification and explicit separation from client runtime parity. Root policy is
+changed in a separate `docs(agents):` commit for owner review.
 
-**Fresh sessions:** read-only init `01a1f020-429b-7f80-bc3e-eee3dbfc123c` reached
-Graphify at the exact baseline; real implementation session
-`01a1f029-f1fe-7a00-9cbb-c18f7c8a735f` used the frozen task brief, changed only its
-write set and exited 0. Two intermediate sessions exposed a Cortex routing false
-positive and absent test fixtures; both causes were resolved. The routing hook stays
-enabled. Source `call\s+...` matched the suffix of `recall`; quoted tool identifiers
-in the brief avoid false role requests. No optional role file is required.
+**Checks:** governance 4/4, quarantine 5/5 and hold 3/3 pass. Complete tools suite:
+521 tests, 15 explicit skips, exit 0 (`build/tokenguard/run-wxpuqkrf.log`); this is host
+regression evidence, including mocked harness tests, not a fresh QEMU run.
+`python3 -B -m compileall -q tools`, exit 0 (`run-fwyt6wkl.log`);
+`python3 -B tools/progress.py --write` / `--check`, both exit 0
+(`run-6s7777_y.log`, `run-69_0ev73.log`). Whitespace check exits 0
+(`run-uido1a9x.log`). Full raw logs remain under this worktree's `build/tokenguard/`.
+One read-only `os_security_reviewer` found no P1/P2 issue; the sole P3 wording
+correction now scopes the Copilot allowlist statement to that adapter. AI review
+is not a human audit. Native matrices and client runtime-parity canaries: NOT RUN,
+because OS code is unchanged and these are separate evidence levels.
 
-**Boundary/stop reason:** automatic launch/continuation of two functioning task
-sessions and `AUTONOMOUS_RUNNER_READY` are NOT ESTABLISHED. Authenticated model-client
-isolation and offline gate compatibility remain unaccepted; no hold was bypassed to
-claim success. The functioning fallback is lead-supervised fresh Codex CLI execution.
-No worker remains after process-group cleanup. Native installer execution, hardware,
-authenticated recovery and human audit are NOT RUN. Existing foreign WIP is unchanged.
+**Blocker:** no local governance blocker. Hosted current-head checks are pending
+publication; no merge acceptance is inferred. Existing Daybreak/model-client/offline
+runtime gaps remain open, outside governance acceptance. Prefix-sibling overprotection
+remains a nonblocking P3; no protection was relaxed for this task.
+**Next:** publish the reconciled governance PR and require fresh exact-head hosted
+checks before manual squash. Then continue the released roadmap PR queue without
+changing the independently owned UI/UX or active S09 branches.
+Progress **41 → 41/100**, no accepted criterion/weight change.
 
-**Next:** publish the coherent controller/A02-T1 draft, let mandatory CI run without
-polling, and resume the existing ledger at **B01-T1 — Native positive management recovery through a manifest-named admin principal (keyring)**
-after checking its current source/ownership. Use `python3 -B tools/roadmap_runner.py
-brief` for the next supervised fresh task; automatic `run` remains disabled. Progress
-**41 → 41/100**, with no criterion, weight or release-scope change.
+## NEXT AGENT HANDOFF — PR #350 conflict-only integration — 18 November 2026
 
+PR #350 head `aaf01bae291faba593567845dc8da4fe606a7959` is reconciled
+with actual main `2eac8ca39ce04753f4f6bef3b09ee9b3610c065f`.
+Only checkpoint and assessment conflicts required resolution. Both histories remain
+below; prior checkpoints retain their original evidence limits. The reviewed
+CodeRabbit configuration is unchanged, and all non-checkpoint main changes merge
+without manual edits. The issue-pipeline execution hold and disabled manifest remain
+intact. No account, billing, criterion, permission or runtime change is introduced
+by this reconciliation. Score remains 41/100. Required hosted checks on the new head
+must pass before a manual squash merge; local build/QEMU suites are not repeated
+for this conflict-only correction.
+
+## NEXT AGENT HANDOFF — PR #361 integration and final-read barrier — 18 November 2026
+
+**Claim/source:** Codex sole writer in `codex/block-order-integration`, PR #361 head
+`fc35563668ae2ba3dc2fc90e6e30575c38b6f578`, merging main `6f29b672`.
+Original syscall-order worktree and all foreign WIP remain untouched. Governance
+is independently published as draft PR #362; its hosted checks remain pending.
+
+**Goal:** repair the confirmed case-2 final-read/terminal-error scheduling race and
+resolve the two status-only integration conflicts, preserving #355/#359 containment.
+**Invariant:** successful final GET/LIST replies from both clients precede terminal
+uncertainty injection; capability, pointer, ordering and device guards stay intact.
+**Write set:** `kernel/src/m2/m3/m6c.rs`, `userspace/m6c_probe.rs`, this checkpoint,
+progress assessment/displays and one new verification child for concise test results.
+**Acceptance:** adversarial delayed-read negative control; targeted M6c build and
+native `errors` plus `normal`; M6c host harness, formatting, progress/check and exact
+head hosted checks. Reuse unchanged M6b and previous full-matrix evidence explicitly.
+**Evidence limit:** native QEMU is not hardware, full certification, Daybreak closure
+or client runtime parity. No broad repeated matrix or optional review quota request.
+
+**Result:** the delayed-read negative control fails on the old ACK-only barrier
+(guest 35, exit 1); fixed native errors and normal pass (guest 33, exit 0), with disk
+oracles and stable source fingerprints. 49 host tests and formatting pass, exit 0.
+[Compact source-bound receipt](verification/m6c-final-read-barrier-20261118/checks.json).
+One focused read-only security review found no blocking defect; no tests were repeated
+by that reviewer. The old M6b evidence is reused for unchanged sources. Full native
+matrices, hardware and human audit are NOT RUN for this correction.
+
+**Next:** publish the integrated head to existing PR #361 and require its current-head
+mandatory checks/review. Then continue the Codex-owned H/U/N/B/A/P/L/R controller in
+`codex/roadmap-codex`, following the owner's executor correction. #355 WIP and Claude
+S09/UI work remain untouched. No auto-merge, protection bypass or finding closure.
+Progress **41 → 41/100**; no criterion/weight changes.
+
+## Retained checkpoint — Daybreak block-syscall ordering repair — 18 November 2026
+
+**Source and ownership:** isolated branch `codex/security-block-syscall-order` now contains implementation/evidence commit `616737b8a85877cde79d9bdc43d808c628ee8325`, based on verified main `1c10cdb5b30df2f3d30bea74430383f59c398931`. The original dirty checkout, Claude UI/UX, S09, PR355 and the preserved broad `sec-m6-observer-local` WIP were not modified. This is the bounded repair for Daybreak finding `acf_4d7b2e454297c2c851a4b7cadcff2587`; the finding remains open pending an accepted exact-head scan and resulting-main verification.
+
+**Security result:** M6b/M6c reject post-recovery READ and invalid WRITE/FLUSH ordering after complete ABI/capability validation but before policy or device publication. A second valid or malformed submit cannot change any already-live request; only a correctly bound mutating POLL may make its own request terminal. M6c terminal accounting is idempotent. Negative controls reproduced the pre-active timeout and both live-I/O failure classes before repair. Independent review found and drove closure of repeated-terminal, live-Busy, malformed-live and active-READ panic paths, then returned PASS on exact source fingerprint `5a6a5cca407e288973e302ae46840c7f851a57db70a848917f552c23821d4fbf`.
+
+**Verification:** targeted M6b/M6c builds and `errors` QEMU runs pass (wrapper exit0, guest33); host harnesses pass38/38 and49/49; object-core passes22/22 and catalog-core45/45. Full native M6b passes32 groups and M6c35 groups, including cold recovery and final M1 guest33. Strict preflight, Rust formatting, evidence JSON and diff whitespace pass. Raw logs remain under ignored `build/tokenguard/`; the source-bound receipt is [daybreak-block-order-20261118](verification/daybreak-block-order-20261118/README.md). Physical hardware, formal proof, hosted CI and a fresh Daybreak scan are not claimed.
+
+**Progress and next:** score remains41/100 because no fixed product criterion is newly accepted. Publish the branch as a draft PR, require fresh current-head `host-quality`, `qemu-smoke`, CodeQL and merge-hold, obtain exact-head Daybreak acceptance, and manually squash only when all actionable findings and reviews are resolved. Then verify resulting main and resume the unchanged PR355 isolation blockers and remaining security queue. Governance phases1–6 remain blocked by the strict stabilization gate.
 ## Retained checkpoint — PR #355 native test quality — 18 November 2026
 
 **Source and change:** security-quality checkpoint
@@ -355,6 +409,22 @@ issue closure is authorized. Score 41/100 is unchanged.
 **Source:** existing PR #346 parent `04e29181ef7e755eea2db0054c463b9216184671`, reconciled with main `366b82b353485207a9b0d6b1ae63dafbbe265bae`. Scope: English documentation. The project owner explicitly resumed autonomous execution on 18 November 2026; current review, protection and gate requirements remain binding.
 
 **Preservation:** current-main source, accepted decisions, historical evidence and independent workstream ownership are retained. Only overlapping checkpoint/assessment text requires conflict resolution. The prior branch checkpoint and assessment are retained as explicitly historical records in [the cloud receipt](verification/phase0-pr346-cloud-20261118/README.md). The two actionable translation review comments receive additive English explanations; the original ABI and installer sequence remain unchanged. No product acceptance criterion or security boundary changes. Score remains 41/100.
+
+## Retained historical handoff — Phase 0 PR350 reconciliation — 18 November 2026
+
+**Integrated main:** `55bc7b06d20a3bfdffdc2eb7d8fe42a39f6e59c5` after verified PR345 manual squash. Actual main tree equals reviewed candidate; post-merge host-quality and qemu-smoke pass. Existing Project5 synchronization run44209117311 completed successfully on that main; its raw-log endpoint returned403, so detailed field effects remain NOT VERIFIED.
+
+**Candidate:** existing PR350 preserves the independently reviewed CodeRabbit free-tier configuration byte-for-byte; only checkpoint/main reconciliation changes. Original source f8/c4 review found no blocker, and strict preflight/build/QEMU raw33/progress/preservation checks passed. Fresh schema download remains NOT VERIFIED (proxy403); no paid features, account/billing change or automatic approval is enabled. Latest-main candidate CI and independent incremental review remain required.
+
+**Other work:** PR346 reviewed translations are preserved on latest-main candidate59c07e88; PR340 candidate41b894cd has15 fresh native volume stages and source-bound capture; PR354 latest-stable compiler regressions are under repair with frozen-source gates. The new accessibility checker is independently reviewed before any Claude-branch publication; original historical evidence is immutable.
+
+**Security and acceptance:** live Daybreak inventory has3 open findings (High/Medium/Low); none is resolved by ordinary CI. PR355 remains blocked on resource/process/scratch and selected client/gate compatibility, with its manifest disabled;357 recovery remains unaccepted. Scanner REST categories remain NOT VERIFIED403. All5 issues remain open against full acceptance. Score41/100 unchanged; baseline B and governance1–6 are unestablished. Continue safe independent work and verified manual squashes without auto-merge or bypass.
+
+## Retained handoff — Phase 0 PR350 cloud reconciliation — 18 November 2026
+
+**Source:** existing PR #350 parent `7b4b618e7ef0eee6b2a67ce693afcb9f2f20809c`, reconciled with main `366b82b353485207a9b0d6b1ae63dafbbe265bae`. Scope: CodeRabbit free-tier configuration. The project owner explicitly resumed autonomous execution on 18 November 2026; current review, protection and gate requirements remain binding.
+
+**Preservation:** current-main source, accepted decisions, historical evidence and independent workstream ownership are retained. Only overlapping checkpoint/assessment text requires conflict resolution. The prior branch checkpoint and assessment are retained as explicitly historical records in [the cloud receipt](verification/phase0-pr350-cloud-20261118/README.md). The accepted free-tier configuration remains byte-identical to its reviewed parent. No product acceptance criterion or security boundary changes. Score remains 41/100.
 
 **Validation:** source-preservation assertions, progress regeneration/check and whitespace verification are required on the reconciled tree; their actual results are recorded in the receipt. Current-head hosted checks and independent final review remain required before a manual squash merge. Full issue #274, production security acceptance, baseline B and governance phases 1–6 remain open.
 
