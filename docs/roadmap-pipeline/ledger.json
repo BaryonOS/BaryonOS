@@ -1,7 +1,7 @@
 {
   "schema": 1,
   "purpose": "Execution queue of the H/U/N/B/A/P/L/R clean-session roadmap pipeline; child tasks of the fixed criteria in docs/progress.json. Not a second roadmap and not an acceptance register.",
-  "branch": "codex/h02-usb-hotplug",
+  "branch": "claude/baryonos-autonomous-pipeline-81tujs",
   "base": "5a3295b6093549f4b5ff6164ab2773ac4c264996",
   "score": {
     "accepted": 41,
