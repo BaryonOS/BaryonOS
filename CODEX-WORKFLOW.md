@@ -1,8 +1,10 @@
-# Codex: short development loop that preserves evidence
+# Shared client workflow and evidence
 
 AGENTS.md takes precedence. This is an execution guide, not a second roadmap,
 security proof or guarantee about speed. Current project status and criteria
-remain in docs/PROJECT-STATE.md and docs/progress.json.
+remain in docs/STATUS.md, docs/PROJECT-STATE.md and docs/progress.json.
+The canonical task procedure is `.agents/skills/development-loop/SKILL.md`; this
+file supplies command examples and evidence details, not additional mandatory phases.
 
 ## 1. Resuming without starting over
 
@@ -60,7 +62,9 @@ Check formatting early, before a costly integration run. For integration, use
 the current commands from `.github/workflows/` and the relevant native gate;
 do not copy an outdated test list from a chat. Keep negative capability,
 recovery and fault-injection tests intact. A host test does not prove native
-behaviour. Never skip a check because a cache was restored.
+behaviour. A cache hit is not evidence. Reuse valid source-bound results for unchanged code
+when inputs/profile/environment remain applicable; record why they still apply.
+Do not repeat full native matrices for documentation or adapter-only changes.
 
 ## 3. Working in parallel without losing locks or integration
 
@@ -134,7 +138,9 @@ A cache that turns out to cost more than rebuilding can be removed again.
 
 ## 6. Handoff and recovery
 
-Update the existing PROJECT-STATE.md and progress assessment according to
+Keep docs/STATUS.md as the compact current overview, pointing to the single lead
+checkpoint and independent workstream handoffs. Update the existing PROJECT-STATE.md
+and progress assessment according to
 AGENTS.md. Use one compact `NEXT AGENT HANDOFF` there, for example:
 
 ```text
