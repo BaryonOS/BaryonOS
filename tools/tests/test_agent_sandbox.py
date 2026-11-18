@@ -429,6 +429,19 @@ class SandboxTests(unittest.TestCase):
         self.assertGreaterEqual(sum("kill" in command for command in controls), 2)
         self.assertTrue(any("reset-failed" in command for command in controls))
 
+    def test_keyboard_interrupt_still_kills_and_releases_the_complete_scope(self):
+        process = self.process()
+        process.poll.return_value = None
+        self.communication.side_effect = KeyboardInterrupt()
+        self.scope_states[0]["ControlGroup"] = "/fixture.scope"
+        with mock.patch.object(sandbox.Sandbox, "_scope_populated", return_value=True), \
+                self.assertRaises(KeyboardInterrupt):
+            sandbox.Sandbox(self.config).run(["tool"], self.workspace, profile="agent")
+        controls = [call.args[0] for call in self.version.call_args_list
+                    if call.args[0][7] == "systemctl"]
+        self.assertGreaterEqual(sum("kill" in command for command in controls), 2)
+        self.assertTrue(any("reset-failed" in command for command in controls))
+
     def test_launcher_wait_failure_still_checks_scope_cleanup(self):
         process = self.process()
         process.poll.return_value = None

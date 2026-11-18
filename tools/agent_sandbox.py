@@ -9,7 +9,6 @@ import json
 import os
 from pathlib import Path
 import re
-import resource
 import secrets
 import selectors
 import signal
@@ -592,7 +591,7 @@ class Sandbox:
                     if stop_error is None:
                         try:
                             self._terminate_scope(control, resource_environment, unit)
-                        except BaseException as exc:
+                        except (Exception, KeyboardInterrupt, SystemExit) as exc:
                             stop_error = exc
 
                 stdout = stderr = b""
@@ -602,7 +601,7 @@ class Sandbox:
                 try:
                     stdout, stderr, output_exceeded, timed_out = _communicate_bounded(
                         process, limits["output_max_bytes"], deadline, stop_scope)
-                except BaseException as exc:
+                except (Exception, KeyboardInterrupt, SystemExit) as exc:
                     execution_error = exc
                 finally:
                     if process.poll() is None:
@@ -613,6 +612,7 @@ class Sandbox:
                         try:
                             os.killpg(process.pid, signal.SIGKILL)
                         except ProcessLookupError:
+                            # The launcher exited after the preceding poll.
                             pass
                         try:
                             process.wait(timeout=5)
@@ -621,7 +621,7 @@ class Sandbox:
                     try:
                         resource_status = self._unit_properties(control, resource_environment, unit)
                         self._cleanup_scope(control, resource_environment, unit, resource_status)
-                    except BaseException as exc:
+                    except (Exception, KeyboardInterrupt, SystemExit) as exc:
                         resource_status = {}
                         cleanup_error = exc
                 if cleanup_error is not None:
