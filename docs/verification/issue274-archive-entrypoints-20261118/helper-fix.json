@@ -1,0 +1,69 @@
+{
+  "schema_version": 1,
+  "original_checkpoint": "87412ce9f4c3eb2e7ba7b5b3bf3ab50e52717118",
+  "english_sources_checkpoint": "221d0322fe4a53070eec72982d8382f4ee1cf47f",
+  "implemented_fixes": [
+    "NUL-delimited index/tree names, strict UTF-8, no whitespace splitting or Git quote-path loss",
+    "Collector reads regular immutable Git blobs, rejecting symbolic/nonregular tracked sources before prose reporting",
+    "Immutable snapshot reads do not resolve the current working-tree symlink",
+    "Git metadata reads disable lazy fetching"
+  ],
+  "tool_source_sha256": {
+    "check.py": "50ad2b1bdec170b664057e877e7aae2bd0fcda1ec5483349a3da4ee7a52e3700",
+    "collect.cjs": "f3140e738ded1f157e7ae0540184c33cd8658a3e8310eb18dfba8bf7d1434407"
+  },
+  "checks": [
+    {
+      "command": "check.py --inventory issue274-archive-entrypoints-20261118/coverage.json --self-test",
+      "raw_exit": 0,
+      "local_log": "build/tokenguard/run-4ihtoyp4.log",
+      "log_sha256": "0087fc226c24fab8b5f1aad6a2deb8aff5c6ef70e3766cc2f025c14259e1ede8"
+    },
+    {
+      "command": "check.py --ref 68757cd2a2f313972609f9573f6cc10d45541b85 (unchanged historical snapshot)",
+      "raw_exit": 0,
+      "local_log": "build/tokenguard/run-qbsdplgp.log",
+      "log_sha256": "c8597cce7dd0e1b011ed672d84365aa3519f1f0fe781d98f31ef8f356b02922e"
+    },
+    {
+      "command": "check.py --inventory issue274-archive-entrypoints-20261118/coverage.json",
+      "raw_exit": 0,
+      "local_log": "build/tokenguard/run-nw_c567w.log",
+      "log_sha256": "872fb5c315259099ca4ccc03fe779c7353e0d23ac500059267b5830a1fdec316"
+    },
+    {
+      "command": "Corrected collector using NUL metadata and regular Git blobs",
+      "raw_exit": 0,
+      "local_log": "build/tokenguard/run-2evmsjrb.log",
+      "log_sha256": "6557ac08d601ce0887ac88707a71d4a8645a82553f82a849078d075cdc6702ef"
+    },
+    {
+      "command": "Earlier test invocation with an incorrect full legacy SHA; no source scan",
+      "raw_exit": 1,
+      "local_log": "build/tokenguard/run-qi0ony01.log",
+      "log_sha256": "34f6091f47ea1d507755a804772f15636cb6a89eca8280c31fc728067aa87e78"
+    }
+  ],
+  "path_regressions": {
+    "special_names": 7,
+    "index_unclassified_raw_exit": 1,
+    "tree_unclassified_raw_exit": 1,
+    "regular_blob_collector_raw_exit": 0,
+    "escaping_symlink_rejected_before_report": true,
+    "synthetic_fixture_only": true,
+    "scope": "POSIX temporary Git repository; no remote"
+  },
+  "old_snapshot_result": {
+    "source": "68757cd2a2f313972609f9573f6cc10d45541b85",
+    "documents": 392,
+    "normal_navigation": 140,
+    "anchors": 11,
+    "historical_open_records_at_that_snapshot": 34,
+    "raw_exit": 0
+  },
+  "initial_bad_ref_disposition": "The invocation used an incorrect full SHA and Git returned 128 (checker exit1); the actual stored source SHA was loaded from the unchanged inventory and reproduced successfully. No pass is inferred from the failed invocation.",
+  "review_status": "Both implementation fixes and regression controls completed; independent exact-head re-review pending",
+  "ui_localisation": "OPEN and unchanged",
+  "score_before": 41,
+  "score_after": 41
+}

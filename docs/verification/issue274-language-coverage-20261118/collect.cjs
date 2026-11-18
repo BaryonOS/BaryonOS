@@ -9,17 +9,34 @@ fs.mkdirSync(out, {recursive:true});
 const wikiArgument = process.argv.indexOf('--wiki');
 if(wikiArgument < 0 || !process.argv[wikiArgument+1]) throw new Error('Pass --wiki /absolute/path/to/BaryonOS.wiki');
 const wikiRoot = path.resolve(process.argv[wikiArgument+1]);
-const git = (...args) => cp.execFileSync('git', ['-C', root, ...args], {encoding:'utf8'}).trim();
+const gitEnvironment = {...process.env, GIT_NO_LAZY_FETCH: "1", GIT_TERMINAL_PROMPT: "0"};
+const git = (...args) => cp.execFileSync('git', ['-C', root, ...args], {encoding:'utf8',env:gitEnvironment}).trim();
 const sha256 = raw => crypto.createHash('sha256').update(raw).digest('hex');
 const head = git('rev-parse', 'HEAD');
-const oldAudit = JSON.parse(fs.readFileSync(path.join(root, 'docs/verification/english-translation-20261109/postmerge-link-audit.json')));
-const oldLanguage = JSON.parse(fs.readFileSync(path.join(root, 'docs/verification/english-translation-20261109/english-final-readonly-audit.json')));
-const oldPaths = new Set(oldAudit.snapshot.changed_active_paths);
-function tree(ref) {
-  try {const value=cp.execFileSync('git',['-C',root,'ls-tree','-r',ref],{encoding:'utf8',stdio:['ignore','pipe','pipe']}).trim();return new Map(value.split('\n').map(l => {const [meta,p] = l.split('\t'); return [p,meta.split(' ')[2]];}));}
-  catch {return new Map();}
+const utf8 = raw => new TextDecoder('utf-8', {fatal:true}).decode(raw);
+function tree(ref, required=false) {
+  try {
+    const value=cp.execFileSync('git',['-C',root,'ls-tree','-r','-z',ref],{stdio:['ignore','pipe','pipe'],env:gitEnvironment,maxBuffer:8*1024*1024});
+    return new Map(utf8(value).split('\0').filter(Boolean).map(row=>{
+      const separator=row.indexOf('\t');
+      if(separator<0) throw new Error('Invalid Git tree record');
+      const [mode,type,sha]=row.slice(0,separator).split(' ');
+      return [row.slice(separator+1),{mode,type,sha}];
+    }));
+  } catch(error) {if(required) throw error;return new Map();}
 }
-const currentTree = tree(head), oldTree = tree(oldLanguage.head);
+const currentTree = tree(head,true);
+function sourceBlob(relative) {
+  const entry=currentTree.get(relative);
+  if(!entry||entry.type!=='blob'||!['100644','100755'].includes(entry.mode)) {
+    throw new Error('Non-regular tracked source: '+relative);
+  }
+  return cp.execFileSync('git',['-C',root,'cat-file','blob',entry.sha],{stdio:['ignore','pipe','pipe'],env:gitEnvironment,maxBuffer:8*1024*1024});
+}
+const oldAudit = JSON.parse(utf8(sourceBlob('docs/verification/english-translation-20261109/postmerge-link-audit.json')));
+const oldLanguage = JSON.parse(utf8(sourceBlob('docs/verification/english-translation-20261109/english-final-readonly-audit.json')));
+const oldPaths = new Set(oldAudit.snapshot.changed_active_paths);
+const oldTree = tree(oldLanguage.head);
 function bounded(base, relative) {
   const boundary=fs.realpathSync(base);
   let target=path.resolve(boundary,relative);
@@ -48,8 +65,8 @@ function walk(tokens, visit, seen=new WeakSet()) {
 }
 for (const p of docs) {
   const reason = protectedReason(p);
-  if(reason) {excluded.push({path:p,reason,blob:currentTree.get(p)});continue;}
-  const raw=fs.readFileSync(path.join(root,p));const text=raw.toString('utf8');textByPath.set(p,text);
+  if(reason) {excluded.push({path:p,reason,blob:currentTree.get(p).sha});continue;}
+  const raw=sourceBlob(p);const text=utf8(raw);textByPath.set(p,text);
   const tokens=lexer(text);const anchors=new Set();const counts=new Map();
   walk(tokens,t=>{
     if((t.type==='link'||t.type==='image') && t.href) links.push({source:p,href:t.href,image:t.type==='image'});
@@ -67,7 +84,7 @@ for (const p of docs) {
     const words=[...visible.matchAll(dutch)].map(x=>x[0]);
     if(words.length) hits.push({line:index+1,words:[...new Set(words)],quoted:line.trimStart().startsWith('>'),excerpt:visible.trim().slice(0,260)});
   });
-  inventory.push({path:p,blob:currentTree.get(p),sha256:sha256(raw),bytes:raw.length,reused_prior_named_english_audit:oldPaths.has(p)&&oldTree.get(p)===currentTree.get(p),dutch_candidate_lines:hits.length,candidates:hits});
+  inventory.push({path:p,blob:currentTree.get(p).sha,sha256:sha256(raw),bytes:raw.length,reused_prior_named_english_audit:oldPaths.has(p)&&oldTree.get(p)?.sha===currentTree.get(p).sha,dutch_candidate_lines:hits.length,candidates:hits});
 }
 const edges=new Map(inventory.map(x=>[x.path,new Set()]));const unresolved=[];const legacy=[];const skipped=[];const wikiReferences=[];
 for(const l of links) {
