@@ -1,0 +1,17 @@
+{
+  "status": "passed",
+  "base_commit": "95d59ad52761c1f8f0201d934556902b90ce63cb",
+  "schema_url": "https://coderabbit.ai/integrations/schema.v2.json",
+  "schema_sha256": "7cf74e734250be78c4ec0e37f9ad6275b917997f247081216f98a273ab589eb3",
+  "config_sha256": "0e0747bc87c0c4c649b9032d9f47d7230653598bbbe95f3f551e51424b81d127",
+  "validator_version": "4.19.2",
+  "checks": [
+    "official V2 schema",
+    "unique YAML keys",
+    "parent-policy preservation with three requested additions and retired no-op removal",
+    "vendor marks docstring check deprecated",
+    "invalid boolean rejected",
+    "duplicate-key negative control rejected"
+  ],
+  "evidence_limit": "Host configuration validation only; no hosted review, native OS acceptance or billing guarantee."
+}
