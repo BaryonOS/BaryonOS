@@ -16,9 +16,26 @@ ledger/checkpoint/progress/one compact receipt. No UI, native broker or storage 
 and a targeted freestanding build. The lock changes only for the new local member.
 **Evidence limit:** host model/build only; native per-object enforcement and A03
 acceptance remain open. Unsafe unattended runner remains disabled and separate.
-**Next:** implement the bounded core using existing conventions, then publish one
-draft PR. N04-T2 remains a later design proposal; no broad audit or native matrix.
-Progress remains 41/100; Claude S09/UI ownership is unchanged.
+**Delivered/source:** `e1cc7c1ce04942f0f46c91875eab751044c6b260` adds the dependency-free, allocation-free grant
+core. It binds app/PID/process epoch, exact known object revision, independent rights,
+unique table session and monotonic issuance generation. Revocation, close, process
+retirement, revision change and session end invalidate retained handles; full tables
+and overflow do not evict live grants. [Receipt](roadmap-pipeline/receipts/A03-T1.json).
+
+**Executed:** 128 SDK tests including 12 new grant regressions, SDK Clippy with
+warnings denied, formatting and targeted freestanding release build all exit 0.
+Exact commands/log hashes are in the receipt. SDK lock comparison shows only the new
+local package entry; no existing dependency/version changed. One bounded read-only
+AI review found no blocker. No duplicate test matrix was run by the lead/reviewer.
+
+**Limits:** trusted-adapter assumptions are explicit in the crate README. No native
+broker, IPC authentication, UI consent, volume enforcement or end-to-end LP acceptance
+is claimed. A03 stays open; progress **41 → 41/100**. Unsafe unattended execution,
+Claude work and PR362/363/364/365 remain preserved. Worker group is stopped.
+
+**Next:** publish this independent draft; select the next bounded functional READY
+slice after source/ownership checks. Prefer existing-code integration over a new
+model or documentation-only proposal. Mandatory hosted checks remain separate.
 
 ## Retained checkpoint — PR #355 native test quality — 18 November 2026
 

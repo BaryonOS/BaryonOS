@@ -289,7 +289,7 @@
       "criterion": "A03",
       "milestone": "M7",
       "executor": "worker",
-      "status": "active",
+      "status": "verified",
       "title": "task-grant-core: time-bounded, revocable per-object task grants (host model)",
       "goal": "Create sdk/task-grant-core (no_std, forbid(unsafe_code)) and add it to the sdk workspace: grants of (app principal, process epoch) x (object id, revision) x {read, write, export} x {until-close, session}, generation-bound revoke, no delegation or inheritance to helper processes, no capability material in messages, bounded tables. Fail closed on stale epoch, stale generation, overflow and unknown object.",
       "why_now": "A03 has domain-level volume grants but no task-grant model; it is the policy core that the trusted grant UI (UX-C) and native broker (A03-T3) need. Host-only, covered by the sdk CI step.",
@@ -338,6 +338,13 @@
           "owner": "Codex",
           "base": "6f29b6720b51aecad5714faa48b445afd6e2f5a9",
           "branch": "codex/a03-task-grants"
+        },
+        {
+          "at": "2026-11-18T20:25:41+00:00",
+          "event": "verified",
+          "source_commit": "e1cc7c1ce04942f0f46c91875eab751044c6b260",
+          "receipt": "docs/roadmap-pipeline/receipts/A03-T1.json",
+          "summary": "128 SDK tests including12 grant regressions, Clippy/fmt and freestanding build pass. No A03/native acceptance."
         }
       ]
     },
