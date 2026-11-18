@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-18",
-    "source_commit": "aaf01bae291faba593567845dc8da4fe606a7959",
+    "source_commit": "b87436dfd8ef8c277dea1dbde780f2e2229283a9",
     "assessment_basis": "parent_commit",
-    "branch": "codex/coderabbit-oss-config",
-    "task": "PR350 conflict-only reconciliation with main 2eac8ca3",
+    "branch": "codex/unified-governance",
+    "task": "GOV-1-6 reconciliation with main 5a3295b6",
     "previous_score": 41,
-    "summary": "41/100 unchanged. The reviewed CodeRabbit free-tier configuration is preserved while current main, including PR #361 containment and final-read ordering, is incorporated. Only the checkpoint and assessment records required manual resolution. Hosted checks on the resulting head remain authoritative; no local build or QEMU acceptance is inferred."
+    "summary": "41/100 unchanged. Shared role and workflow contracts, client adapters and compact continuation are reconciled with actual main after #350. Targeted quarantine (5) and execution-hold (3) regressions remain source-bound; disabled manifest and source hold remain intact. Governance has no zero-open-items/baseline-B prerequisite. Host adapter/protection checks do not establish client runtime parity, Daybreak acceptance, hardware or human audit. No product criterion or weight changes."
   },
   "tracks": [
     {
