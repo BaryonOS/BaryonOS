@@ -1,0 +1,15 @@
+{
+  "head": "fd7d92265672294561e873722581fded013891f8",
+  "runtime_parent": "c26b0903627fea59f5d286f8eff4c4887b017b9a",
+  "independent_review": "PASS",
+  "sha256": "c0dfd101729f1c67eb72c12050ceb3bbd3c9cda39198df5134364b71e39c3c72",
+  "unchanged_blobs": 7414,
+  "adr_block_bytes": 2861,
+  "adr_block_sha256": "32cf55d02c9c8495008c43d8e956e52d4895fae74b3a153e9a33e56e9622c348",
+  "review_dispositions": "Two proposal ambiguities fixed, unchangedADR block moved, establishedidentifier/date preserved",
+  "git_diff_initial_exit": 2,
+  "enclosing_initial_script_exit": 1,
+  "whitespace_fix_exit": 0,
+  "current_head_ci": "PENDING;51success8skip1neutral, windows/SMP/mergehold stillnotallcomplete at last snapshot",
+  "pr_description": "Updated scope/commands/rollback/instructions/limits; generatedbot summary preserved"
+}

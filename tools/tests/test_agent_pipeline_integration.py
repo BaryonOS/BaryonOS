@@ -43,6 +43,7 @@ class OfflineTransaction(unittest.TestCase):
             (ap, "ROOT", self.root), (ap, "RUN", self.root / "build/agent-pipeline"),
             (common, "ROOT", self.root), (agent_gate, "ROOT", self.root),
             (ap, "ENGINES", {"fixture": ["fixture-agent"]}),
+            (ap, "require_pipeline_release", lambda: None),
             (ap.verify_controller, "__defaults__", (self.root,)),
             (ap.snapshot, "__defaults__", (self.root,)),
         ):

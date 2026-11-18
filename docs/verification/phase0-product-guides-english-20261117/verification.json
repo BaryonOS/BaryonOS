@@ -1,0 +1,66 @@
+{
+  "task": "P0-274-PRODUCT",
+  "source_commit": "95d59ad52761c1f8f0201d934556902b90ce63cb",
+  "authority": "Owner released active Dutch authored prose only in docs/product/ and docs/research/: Alleen deze tekstvertalingen vrijgeven",
+  "files": [
+    {
+      "path": "docs/product/interaction-principles.md",
+      "source_sha256": "f40d442bf5a2e2c4b8ab99cd3d76a9d8cad4413d135e9e1aac62e5d88f8540b1",
+      "translated_sha256": "e1918b6005e32567a3af6cdda3527f1d17e40042cbb3fe01f59affa75558bdf7"
+    },
+    {
+      "path": "docs/product/new-os-installer-spec.md",
+      "source_sha256": "d4b302729d86df587406498211e39ccebb8220ee23c764141c8666ff6ff79de0",
+      "translated_sha256": "66162f1c9b80559adbf6e3cfa1a5d9da6faffef5fbd58bd94c4bd3b3fc9ea4f3"
+    },
+    {
+      "path": "docs/product/new-os-onboarding-spec.md",
+      "source_sha256": "aea62fd6fab541468b3eb0bec6c1e10a32a06c7376288cacfd048e04b2727ca2",
+      "translated_sha256": "264564e8df5c788258b2908c0f6f01c8ad93ecb95a2150a23040375689144680"
+    }
+  ],
+  "independent_semantic_review": "PASS",
+  "preservation_exit": 0,
+  "legacy_heading_targets_preserved": 21,
+  "reports": {
+    "P0-274-PRODUCT-report.md": {
+      "sha256": "bfe6accbdbac1450e42a0865f065c177c72640863b5f852768896eac73687d01",
+      "raw_archive": "/home/simon/projects/baryonos-handoffs/claude-to-codex/phase0-20261117/P0-274-PRODUCT-report.md"
+    },
+    "P0-274-PRODUCT-independent-review.md": {
+      "sha256": "63e79a44c6c9d50fc77c0467011ffc49771eaf10139d7e457b6b60be1971e927",
+      "raw_archive": "/home/simon/projects/baryonos-handoffs/claude-to-codex/phase0-20261117/P0-274-PRODUCT-independent-review.md"
+    }
+  },
+  "progress": {
+    "previous": 41,
+    "current": 41
+  },
+  "issue274": "OPEN",
+  "required_current_head_hosted": "PENDING",
+  "not_run": [
+    "New research/source-validity assessment",
+    "Runtime/native/hardware",
+    "User trials/rendering",
+    "Human audit"
+  ],
+  "remaining_ambiguity": "Original Quick Look wording and its uncertainty are explicitly retained; no app-launch/security rule is selected before future implementation.",
+  "lead_checks": [
+    {
+      "command": "Final exact independently reviewed document hashes",
+      "exit_code": 0
+    },
+    {
+      "command": "python3 -B tools/progress.py --write",
+      "exit_code": 0
+    },
+    {
+      "command": "python3 -B tools/progress.py --check",
+      "exit_code": 0
+    },
+    {
+      "command": "git diff --check",
+      "exit_code": 0
+    }
+  ]
+}

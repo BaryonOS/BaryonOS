@@ -1,0 +1,9 @@
+{
+  "date": "2026-11-17",
+  "source_commit": "3fda27ac6e48a011d11cdec89649c22e6d4e71af",
+  "assessment_basis": "parent_commit",
+  "branch": "codex/phase0-ci-guide-english",
+  "task": "Phase 0 PR346: reconcile verified English integration with actual main",
+  "previous_score": 41,
+  "summary": "41/100 unchanged. Local reconciliation with actual main38d4cc1 preserves all39 reviewed source/evidence blobs, accepted main runtime/B03 corrections and complete workstream history. Hash/scope/history assertions, progress write/check and diff checks pass locally. Current-head hosted checks and full issue274 publication/coverage remain required."
+}

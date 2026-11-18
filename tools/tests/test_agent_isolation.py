@@ -56,10 +56,11 @@ class Authority(unittest.TestCase):
 
     def test_unauthorized_task_stops_before_worktree_or_l0(self):
         with tempfile.TemporaryDirectory() as temporary, mock.patch.object(ap, "RUN", Path(temporary)), \
+                mock.patch.object(ap, "require_pipeline_release"), \
                 mock.patch.object(ap, "sh", return_value=self.base), mock.patch.object(ap, "run_agent") as run:
             pipeline = ap.Pipeline.__new__(ap.Pipeline)
             pipeline.policy = {"tasks": {}}
-            with self.assertRaises(ap.TaskError):
+            with self.assertRaisesRegex(ap.TaskError, "authorization is absent"):
                 pipeline.prepare(self.task)
             self.assertFalse(self.task.dir.exists())
             run.assert_not_called()
@@ -87,6 +88,7 @@ class Authority(unittest.TestCase):
             return ""
 
         with tempfile.TemporaryDirectory() as temporary, mock.patch.object(ap, "RUN", Path(temporary)), \
+                mock.patch.object(ap, "require_pipeline_release"), \
                 mock.patch.object(ap, "load_policy", return_value=self.policy), \
                 mock.patch.object(ap, "sh", side_effect=controller), \
                 mock.patch.object(ap, "run_agent") as run:
@@ -94,7 +96,7 @@ class Authority(unittest.TestCase):
             pipeline.policy = self.policy
             pipeline.sandbox = mock.Mock()
             pipeline.order = mock.Mock(return_value=["codex"])
-            with self.assertRaises(ap.TaskError):
+            with self.assertRaisesRegex(ap.TaskError, "changed or was revoked"):
                 pipeline.prepare(self.task)
             run.assert_not_called()
             self.assertFalse(self.task.dir.exists())
@@ -315,7 +317,8 @@ class Publication(unittest.TestCase):
                 return task.base if cwd == ap.ROOT else task.verified_head
             return ""
         with mock.patch.object(ap, "sh", side_effect=controller) as run, \
-                mock.patch.object(ap, "load_policy", return_value={}):
+                mock.patch.object(ap, "load_policy", return_value={}), \
+                mock.patch.object(ap, "require_pipeline_release"):
             pipeline.publish(task)
         publication = [c for c in run.call_args_list if c.args[0][:2] in (["git", "push"], ["gh", "pr"])]
         self.assertEqual(len(publication), 2)

@@ -1,0 +1,9 @@
+{
+  "pr": 343,
+  "head_sha": "aa7a0387aa34c2f9ead9a46d9a3ee7df32f5a3a5",
+  "source": "Explicit project-owner response in the Codex session",
+  "owner_response_verbatim": "Goedkeuren na resterend groen",
+  "scope": "Squash merge of PR343 only after the two pending window-session jobs pass and current head/base/review/required-check conditions are rechecked",
+  "not_authorized": ["Other PR merges", "Auto-merge", "Bypass of checks or branch protection"],
+  "merge_executed": false
+}

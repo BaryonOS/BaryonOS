@@ -1,0 +1,118 @@
+{
+  "source_commit": "fd0f76bcfc48cda4f0663091179d45b0f880ac65",
+  "baseline_main": "de9b99047138c4fd0015ffc3f874b273b3537484",
+  "source_fingerprint_version": 3,
+  "source_sha256": "8ac03776bc1fc3fca7e3f4aff085467425cf2ee16161bd06348465e898d5cb31",
+  "changed_source_sha256": {
+    "tools/agent_pipeline.py": "827d8446204f0cabcf886e136f8da4e7aa4d8f98749b05c4bb474f375655f558",
+    "tools/tests/test_pipeline_quarantine.py": "a396d1517805eaab448e476c6b4d5edcb9e709fa0fac2e6c969fa5d6e408657e"
+  },
+  "test_source_binding": "Focused/full tools tests ran on the uncommitted merge tree with these exact source/test blobs; native build and run executed on the committed source above.",
+  "checks": [
+    {
+      "name": "negative-control",
+      "command": "python3 -B -m unittest discover -s tools/tests -p test_pipeline_quarantine.py",
+      "exit_code": 1,
+      "duration_seconds": 0.081,
+      "raw_local_log": "build/tokenguard/run-2h9zjh4h.log",
+      "raw_log_sha256": "c6cda5bdabb2a90c7a1239990032651464f3022212e4392fd733d4fb33a79dc0",
+      "public_log": "logs/negative-control.log.gz",
+      "public_log_sha256": "d11caf2682a92b3bf1aff95d9fa3b62b45a720664c3740cc68864c5aff7f7fa7",
+      "public_log_derivation": "absolute task worktree path replaced with ${WORKTREE}; raw original retained locally",
+      "repeat_source_binding": "../phase0-sec359-evidence-correction-20261118/checks.json#negative_control",
+      "original_source_binding": "NOT ESTABLISHED; this original log remains historical evidence only."
+    },
+    {
+      "name": "quarantine",
+      "command": "python3 -B -m unittest discover -s tools/tests -p test_pipeline_quarantine.py",
+      "exit_code": 0,
+      "duration_seconds": 0.075,
+      "raw_local_log": "build/tokenguard/run-vxfwxqu6.log",
+      "raw_log_sha256": "439948b0a317324f48becf3d82e008c0def1e7c24f4bacad0ae5744c16490d43",
+      "public_log": "logs/quarantine.log.gz",
+      "public_log_sha256": "124093a985bba741a986c3a270b2b08e984355827b4007b1f2867e960c0b03a4",
+      "public_log_derivation": "absolute task worktree path replaced with ${WORKTREE}; raw original retained locally"
+    },
+    {
+      "name": "tools",
+      "command": "python3 -B -m unittest discover -s tools/tests -p 'test_*.py'",
+      "exit_code": 0,
+      "duration_seconds": 16.233,
+      "raw_local_log": "build/tokenguard/run-ooljx21w.log",
+      "raw_log_sha256": "0b3a664c6004b2dbfe377ba0c3d9e60dbabf212b3f40299d1ca2fe7dddb35eba",
+      "public_log": "logs/tools.log.gz",
+      "public_log_sha256": "c56ef6e0a1176b1608a53bee10756027c0850cc29eef8ff2c2113170dcda3f16",
+      "public_log_derivation": "absolute task worktree path replaced with ${WORKTREE}; raw original retained locally"
+    },
+    {
+      "name": "preflight",
+      "command": "python3 -B tools/preflight.py --strict",
+      "exit_code": 0,
+      "duration_seconds": 1.045,
+      "raw_local_log": "build/tokenguard/run-n6mm68x1.log",
+      "raw_log_sha256": "55ff56c3b8ef8cad3c343fe64515f78f926cd7dc90ab6e9bbfb298feb006a324",
+      "public_log": "logs/preflight.log.gz",
+      "public_log_sha256": "cf81605e3e1c65e84801412854330e544180dde18ac865b03d3f9d2cad3c519f",
+      "public_log_derivation": "absolute task worktree path replaced with ${WORKTREE}; raw original retained locally"
+    },
+    {
+      "name": "build",
+      "command": "python3 -B tools/build.py",
+      "exit_code": 0,
+      "duration_seconds": 1.432,
+      "raw_local_log": "build/tokenguard/run-qbx7lvi9.log",
+      "raw_log_sha256": "f4d85898dbded5ed87dbb78100316bb1ea5404b288d85dd7bd6fb1117392892b",
+      "public_log": "logs/build.log.gz",
+      "public_log_sha256": "f35d2a33747f4f6222e5dcf11680ca0d41ef79c6ac495be49dcda8b745ccbddc",
+      "public_log_derivation": "absolute task worktree path replaced with ${WORKTREE}; raw original retained locally"
+    },
+    {
+      "name": "smoke",
+      "command": "python3 -B tools/run.py --smoke --milestone m1",
+      "exit_code": 0,
+      "duration_seconds": 1.232,
+      "raw_local_log": "build/tokenguard/run-gagvmu3x.log",
+      "raw_log_sha256": "5db2e9a71f9bc70f4613d0c10ceb7ebe53050604fe527448b504e76002fb21b7",
+      "public_log": "logs/smoke.log.gz",
+      "public_log_sha256": "5acda6dc9343daccfc615007facb68236686b95c05615c0bef361ea1279e9061",
+      "public_log_derivation": "absolute task worktree path replaced with ${WORKTREE}; raw original retained locally"
+    }
+  ],
+  "tests": {
+    "quarantine": 5,
+    "complete_tools": 404
+  },
+  "native": {
+    "raw_qemu_exit": 33,
+    "immutable_inputs_rehashed_after_run": true,
+    "writable_ovmf_vars_binding_passed": false,
+    "writable_ovmf_vars_binding_note": "NOT RECORDED before launch; the raw result used an empty expected-artifact set, so its true binding field is not acceptance evidence.",
+    "raw_serial_stdout_sha256": "688293e2acf7b50d0f17a57d0dfe5a4c8914db05552b54903f334c078579aacd",
+    "raw_serial_stdout_bytes": 271,
+    "raw_serial_stdout_source": "native-result.json stdout decoded as UTF-8; firmware CRLF bytes are preserved inside the JSON string",
+    "committed_serial_sha256": "c6b5008f629362bc43e7078dee438d6e7971b04d13de92c8d77e57811f7f1fab",
+    "committed_serial_bytes": 269,
+    "committed_serial_representation": "serial.txt is the Git-normalized LF convenience view and is not the raw-byte artifact",
+    "immutable_inputs_rehashed_after_run_sha256": {
+      "esp/kernel.elf": "60356c867b3ce554013fcbb7c143c6169d14c58a92ffe6dbe3286f0faa23944d",
+      "esp/EFI/BOOT/BOOTX64.EFI": "c6d3aebfe858a06189566300933e7f8f9913240990ec478c551a736e629270be",
+      "OVMF_CODE.fd": "874f15a7c9110e78a89db159f0f68fc97e9076b74777520de1c235426f758aa7",
+      "OVMF_VARS.template.fd": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e"
+    }
+  },
+  "review": {
+    "kind": "independent AI source review, not human audit",
+    "source_commit": "fd0f76bcfc48cda4f0663091179d45b0f880ac65",
+    "result": "PASS for the executable containment source only; the prior review does not establish a complete PR-diff or evidence audit.",
+    "scope": "tools/agent_pipeline.py, tools/tests/test_pipeline_quarantine.py, nine class ingress guards and CLI, and absence of a runtime override."
+  },
+  "limits": [
+    "Current-head hosted CI and actual-main integration remain pending.",
+    "Containment only; PR355/357 full isolation and all three Daybreak findings remain open.",
+    "No physical hardware, human audit, client parity, production signing, baseline B or governance acceptance."
+  ],
+  "score": {
+    "previous": 41,
+    "current": 41
+  }
+}

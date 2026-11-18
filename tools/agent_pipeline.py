@@ -74,6 +74,17 @@ class TaskError(RuntimeError):
     """The task cannot continue without a human."""
 
 
+# This temporary source-enforced hold has no flag, environment or configuration override.
+# Removal requires a reviewed replacement with the complete verified security boundary.
+EXECUTION_HOLD = (
+    "Issue-driven execution is disabled pending the fully verified PR #355 security boundary."
+)
+
+
+def require_pipeline_release() -> None:
+    raise TaskError(EXECUTION_HOLD)
+
+
 @dataclass
 class Task:
     number: int
@@ -405,6 +416,7 @@ class Pipeline:
         return self.engines[k:] + self.engines[:k]
 
     def ready_tasks(self) -> list[Task]:
+        require_pipeline_release()
         progress = json.loads((ROOT / "docs" / "progress.json").read_text(encoding="utf-8"))
         criteria = open_criteria(progress)
         issues = json.loads(sh(["gh", "issue", "list", "--state", "open", "--limit", "500",
@@ -429,6 +441,7 @@ class Pipeline:
 
     def prepare(self, task: Task) -> None:
         """Fresh worktree from origin/main plus the L0 spec (step 1A)."""
+        require_pipeline_release()
         sh(["git", "fetch", "-q", "origin", "main"])
         base = sh(["git", "rev-parse", "origin/main"]).strip()
         authorize_source(task, self.policy, base)
@@ -465,6 +478,7 @@ class Pipeline:
 
     def execute(self, task: Task, feedback: str = "", allow_unchanged: bool = False) -> None:
         """Step 1B plus the self-healing gate loop (max MAX_ATTEMPTS executor runs)."""
+        require_pipeline_release()
         gate = resolve(task.gates, ROOT / ".github" / "workflows")
         for attempt in range(1, MAX_ATTEMPTS + 1):
             run_agent(exec_prompt(task, feedback), task.worktree, task.dir / "agent.log", self.order(),
@@ -495,11 +509,13 @@ class Pipeline:
 
     def integrate(self, task: Task) -> None:
         """A changed main invalidates the frozen authorization, including merger repairs."""
+        require_pipeline_release()
         sh(["git", "fetch", "-q", "origin", "main"])
         if sh(["git", "rev-parse", "origin/main"]).strip() != task.base:
             raise TaskError("Main changed; retain the task and renew source-bound owner authorization.")
 
     def publish(self, task: Task) -> None:
+        require_pipeline_release()
         self.integrate(task)
         if (sh(["git", "rev-parse", "HEAD"]).strip() != task.base
                 or sh(["git", "status", "--porcelain"]).strip()
@@ -528,13 +544,16 @@ class Pipeline:
         print(f"#{task.number}: {url}")
 
     def finish(self, task: Task) -> None:
+        require_pipeline_release()
         sh(["git", "worktree", "remove", str(task.worktree)], check=False)
 
     def discard(self, task: Task) -> None:
         """Keep unused prepared work and its exclusive claim for explicit disposition."""
+        require_pipeline_release()
         print(f"#{task.number}: prepared task retained; not selected in this batch")
 
     def work(self, task: Task) -> bool:
+        require_pipeline_release()
         try:
             self.execute(task)
             return True
@@ -543,6 +562,7 @@ class Pipeline:
             return False
 
     def run_once(self) -> bool:
+        require_pipeline_release()
         tasks = self.ready_tasks()
         serial = [t for t in tasks if t.mode == "serial"]
         if serial:
@@ -591,8 +611,11 @@ def main() -> int:
     if not engines or any(e not in ENGINES for e in engines):
         raise SystemExit(f"--engines must be a subset of {','.join(ENGINES)}")
     try:
+        require_pipeline_release()
         pipeline = Pipeline(engines, args.auto_merge_parallel, args.dry_run)
-    except (TaskError, SandboxError, ValueError, OSError) as error:
+    except TaskError as error:
+        parser.exit(2, f"{error}\n")
+    except (SandboxError, ValueError, OSError) as error:
         print(f"pipeline blocked: {error}", file=sys.stderr)
         return 2
     while True:

@@ -26,7 +26,9 @@ class ExecutionHoldTests(unittest.TestCase):
             root = Path(directory)
             (root / ".github").mkdir()
             (root / ".github/agent-pipeline.json").write_text(json.dumps({"schema": 1, "enabled": False}))
-            self.assertEqual(agent_pipeline.main(), 2)
+            with self.assertRaises(SystemExit) as stopped:
+                agent_pipeline.main()
+            self.assertEqual(stopped.exception.code, 2)
         controller.assert_not_called()
         child.assert_not_called()
 

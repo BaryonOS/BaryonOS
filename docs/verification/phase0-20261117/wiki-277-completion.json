@@ -1,0 +1,36 @@
+{
+  "issue": 277,
+  "state": "CLOSED",
+  "reason": "Actual explanatory Wiki acceptance verified, not PR-count reduction",
+  "source_before": "4d6624d807040191b105c46788637be334f4ef9d",
+  "published_commit": "ff7a4748a0b61bfb5de8598344464ac94080bc4d",
+  "reviewed_and_published_tree": "91e49b1ce83441f468f5be24addfc684bb7c05a1",
+  "existing_files_preserved": 15,
+  "explanatory_pages_reviewed": 7,
+  "wiki_link_checks": 36,
+  "repo_targets_checked": 42,
+  "source_checks_exit": 0,
+  "post_publication": {
+    "remote_sha_matches": true,
+    "served_html_pages": 3,
+    "all_http_200_and_new_content": true,
+    "legacy_routes": 6,
+    "all_legacy_http_200": true,
+    "receipt": "logs/wiki-live/receipt.json",
+    "routes": "logs/wiki-live/legacy-routes.json"
+  },
+  "independent_review_sha256": "94639c872a06992740df6a8913ff7e89bd3ca078732bc77d7404b9114ce72c74",
+  "writer_report_sha256": "c4ac9d6c91681d4ec72d946efafc90dece422f71eac363bf68168686d9e808ff",
+  "review_finding_repaired": "Missing canonical LICENSING.md and SECURITY.md references",
+  "ui_check": "7/7 Markdown explanatory structures match; separate one-file H1 canary detected",
+  "not_evaluated": [
+    "GitHub CSS/theme, focus, contrast, visual layout and overflow",
+    "Native/runtime/hardware/human acceptance"
+  ],
+  "progress": {
+    "previous": 41,
+    "current": 41
+  },
+  "full_translation_274": "OPEN",
+  "canonical_current_state": "Repository main docs/PROJECT-STATE.md and criterion register; no Wiki status/score copy"
+}

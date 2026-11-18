@@ -1,0 +1,371 @@
+{
+ "task": "UX-A11Y-R",
+ "date": "2026-11-15",
+ "run": "wf_baf4e604-27b (run 2)",
+ "verification_round": "r2-1 (after one repair round)",
+ "verdict": "ACCEPT: 0 blockers, 0 majors, 10 minors",
+ "nature": "Independent AI verification; not a human audit, not a user test, not evidence of user effect.",
+ "findings": [
+  {
+   "severity": "minor",
+   "file": "docs/design/accessibility/ACCESSIBILITY-RESEARCH.md",
+   "area": "Tiers / stripe-texture comfort bound (row 21), sections 2.2 item 4, 3.4 and 13; matrix row 21 prototype cell",
+   "problem": "The texts contradict each other about what 'inside' and 'outside' the bound mean. Section 2.2 says a texture with more than five light-dark pairs above 1.5:1 'is outside it' (a violation). Section 3.4, section 13 and the row 21 prototype cell say the reduced-motion progress stripes (17.4:1 to 21:1, more than five pairs on tracks wider than 80 px) 'fall inside the bound', which reads as compliance. The stripes in fact break the bound. Section 13 still says 'replace it', so the required action is clear, but a reader could take the stripes as compliant. The tier itself is acceptable: the rule has an access reason (pattern discomfort in people with migraine, PER-WILKINS84) and only constrains artwork after calibration.",
+   "fix": "Replace 'fall inside the bound' with 'are within the scope of the bound and break it' in section 3.4, section 13 and the matrix row 21 prototype cell."
+  },
+  {
+   "severity": "minor",
+   "file": "docs/design/accessibility/ACCESSIBILITY-MATRIX.md",
+   "area": "Evidence grading, row 53 (reminders after acquired brain injury, strong)",
+   "problem": "Strong rests on two sources. COG-GILL11 is a descriptive systematic review of 91 studies across mixed clinical populations, with no pooled effect and no quality appraisal reported in its abstract. COG-WILS01 is one randomised crossover trial (n = 143), re-resolved here. The fixed scale's letter ('systematic review') allows strong. In substance the target-population evidence is one well-controlled RCT plus a review whose population only partly matches. Synthesis rule 3 (another population caps the grade at limited) is not explicitly reconciled with the mixed population of GILL11.",
+   "fix": "Either lower the core part to moderate, or add one sentence to the section 1.4 table and the row 53 caveat. It should say why rule 3 does not cap the mixed-population review, and that GILL11 does not appraise study quality."
+  },
+  {
+   "severity": "minor",
+   "file": "docs/design/accessibility/ACCESSIBILITY-RESEARCH.md",
+   "area": "Evidence grading, section 4 'Colour-blind correcting glasses' (contradicted, PER-GOMEZ18 sole source)",
+   "problem": "Rule 6 requires a study that is 'not small'. The abstract gives no sample size, only 'a high number of individuals'. PER-PIEPENBROCK13 was moved from contradicted to insufficient for the same missing sample size, so the two cases are treated differently. The difference is defensible, because only the GOMEZ18 abstract asserts a large sample. Optics Express is open access, but the publisher fetch in this verification hit a bot challenge (HTTP 202, 598 bytes), so the sample size was not established here either.",
+   "fix": "Read the open-access full text and record n in section 4. If n cannot be established, apply the PIEPENBROCK13 treatment: insufficient, with the GOMEZ18 result as limited context."
+  },
+  {
+   "severity": "minor",
+   "file": "docs/verification/a11y-research-20261115/check.py",
+   "area": "Checker coverage",
+   "problem": "Demoting a non-safety baseline row (row 62, full keyboard operation with no trap, a mandatory access limit in section 6.1) to 'setting' with a consistent axis edit makes check.py exit 0. The scratch mutation run confirmed this. The checker documents it as a known limit, but none of the mandatory access limits (no keyboard trap, never sound-only, speech never the only input, no data loss on time-out) is pinned.",
+   "fix": "Add a MANDATORY_BASELINE_TOPICS map like SAFETY_TOPICS: stable Adaptation regexes that must each match a baseline row. Extend the self-test to demote each of those rows with a consistent axis edit."
+  },
+  {
+   "severity": "minor",
+   "file": "docs/design/accessibility/ACCESSIBILITY-MATRIX.md",
+   "area": "Grade semantics, row 39 (typeface, contradicted)",
+   "problem": "The value-set header says the Empirical evidence column grades the effect of the row's adaptation. In row 39 the grade 'contradicted' rates the dyslexia-font claim that the row rejects, not the adaptation itself (no dyslexia font as an aid; a plain reading-face preference later). Only the Verification cell explains this, so the column has two meanings.",
+   "fix": "State this exception in the value-set paragraph, or regrade the row's own adaptation and carry the contradicted dyslexia-font claim in section 4 only."
+  },
+  {
+   "severity": "minor",
+   "file": "docs/design/accessibility/ACCESSIBILITY-MATRIX.md",
+   "area": "Safety row 24 (flash limit), normative completeness",
+   "problem": "Row 24 cites ITU-R BT.1702-3 Guideline 1. Guideline 1 also warns that a flashing sequence lasting more than five seconds may be a risk even when it meets the thresholds. That clause is not reflected in the flash limit.",
+   "fix": "Add to row 24 that no system-drawn flashing sequence, even one under the thresholds, lasts more than 5 s, or record why that clause is not applied."
+  },
+  {
+   "severity": "minor",
+   "file": "docs/design/accessibility/ACCESSIBILITY-RESEARCH.md",
+   "area": "Section 3.5 Q2 (empirical)",
+   "problem": "The bullet 'Observational reductions in incidence after broadcast guidelines' has no source id, although it is listed as empirical support for a safety limit.",
+   "fix": "Cite the source that reports the reductions, or mark the bullet as own inference or remove it."
+  },
+  {
+   "severity": "minor",
+   "file": "docs/design/accessibility/ACCESSIBILITY-RESEARCH.md",
+   "area": "Tiers: row 26 / section 3.5 Q6 per-item reveal for third-party flashing media",
+   "problem": "The warned, non-persistent reveal is an exception carved out of a Q6 safety limit. The owner asked for limits that hold regardless of the chosen settings. The document keeps the reveal outside the guarantee, off, and gated on a clinical safety review, so nothing currently depends on a setting. Clinical approval alone is not an owner decision, however.",
+   "fix": "Record that offering the reveal also needs an explicit project-owner decision, in addition to the clinical safety review."
+  },
+  {
+   "severity": "minor",
+   "file": "docs/design/accessibility/ACCESSIBILITY-MATRIX.md",
+   "area": "Citation, INT-JACOB1991 on safety row 69 (and row 68)",
+   "problem": "INT-JACOB1991 resolves: title, year 1991 and ACM TOIS match by DOI in OpenAlex and Semantic Scholar. Neither index has a usable abstract, so the row 69 premise that unintended gaze activation is a known risk cannot be checked at abstract level. It is the only peer-reviewed source on safety row 69. No grade depends on it: row 69 is insufficient and rests on WCAG SC 3.2.1 and 2.5.2 plus a design rule.",
+   "fix": "Mark the source resolution as 'resolved (metadata only; claim from full text not read)', or add a source whose abstract states the problem of unintended gaze activation."
+  },
+  {
+   "severity": "minor",
+   "file": "docs/design/accessibility/ACCESSIBILITY-RESEARCH.md",
+   "area": "Design ambition (reasoned AI opinion), section 3.6 Q6 vestibular category exclusions",
+   "problem": "The baseline excludes whole-screen fly-through and zoom-through transitions by category. That exclusion rests on own design rules, and the vestibular evidence comes from other contexts, so it is graded at most limited. Section 12 priority 3 calibrates the area and duration bounds, but it does not say whether the category exclusion can be relaxed if the tests allow it. That leaves a class of spatial, futuristic transitions closed off without a calibration path.",
+   "fix": "Extend section 12 priority 3 to test bounded large-field zoom transitions (≤ 320 ms, once) with vestibular participants. State that the category exclusion is revisited on that result."
+  }
+ ],
+ "owner_conformance": "The owner decision was read verbatim (Dutch, both messages; message 2 takes precedence), as was the futuristic ambition of 14 November 2026.\n\n**Needs.** All eight named need groups have matrix rows and a research section with Q1–Q6 answered:\n- colour vision: rows 1–5, section 3.1;\n- low vision, blindness and magnification: rows 6–18, sections 3.2–3.3;\n- light sensitivity and migraine: rows 19–23, section 3.4;\n- photosensitive epilepsy, vestibular and motion: rows 24–32, sections 3.5–3.6;\n- dyslexia, dyscalculia and other learning differences: rows 34–43, sections 3.7–3.8 and 3.12;\n- ADHD, autism and other cognitive or sensory needs: rows 44–53, sections 3.9–3.11;\n- motor and alternative input: rows 57–74, section 3.13;\n- hearing: rows 75–81, section 3.14.\n\n**Additions.** The categories were extended as the owner asked: stereoscopic depth, memory and acquired brain injury, plain language, speech, and deafblindness and braille (sections 3.11, 3.12, 3.15, 3.16), each with Q1–Q6.\n\n**Dyslexia and dyscalculia.** Alternatives were studied: read-aloud, paired text spacing, line length, a reading ruler, and numeric aids that never remove the exact value. Dyslexia fonts are rejected and graded contradicted, with no cure claims.\n\n**Medical claims.** No unproven medical claim was found. Tint, overlays, blue light, correcting glasses and dyslexia fonts are explicitly claim-free, and section 6.1 makes 'no setting claims to treat or cure' a baseline rule.\n\n**Extensions.** They are recorded separately: section 10.1 lists 8 extensions of existing contracts and section 10.2 lists 8 new contracts. No contract file changed.\n\n**Matrix columns.** The matrix has 12 columns covering need, barrier, adaptation, tier, configuration, normative basis, evidence grade, sources, prototype status, native status, verification method and user test. These cover every element the owner listed. The exact required column list was not given to this verifier, so the matrix was judged against the owner text.\n\n**Two tiers (message 2), both directions.**\n- Every safety limit is baseline and none depends on a manual setting. This includes the vestibular limit at boot, before any preference exists.\n- Device preferences start the settings automatically.\n- The default is protected from dulling: rich only adds intensity, every flagship identity feature is in the regular default, light, opacity and colour stay free under the vestibular limit, and the 1400 ms boot convergence is kept as a convergence of light.\n- No diagnosis profiles; presets are named combinations of axes only.",
+ "citation_audit": [
+  {
+   "id": "COG-WOOD17",
+   "claim": "Random-effects meta-analysis of text-to-speech and read-aloud tools for students with reading difficulties; weighted effect size .35 (95 % CI .14–.56); study-design moderators",
+   "resolved_via": "OpenAlex API by DOI 10.1177/0022219416688170 (abstract)",
+   "matches": true,
+   "note": "Sole peer-reviewed support of strong row 38. Population is students with reading difficulties, as the caveat states."
+  },
+  {
+   "id": "COG-GILL11",
+   "claim": "Systematic review of 91 studies of assistive technology for cognition in clinical populations, descriptive, no pooled effect",
+   "resolved_via": "OpenAlex API by DOI 10.1017/s1355617711001548",
+   "matches": true,
+   "note": "89 publications, 91 studies. Abstract says the technology effectively supported memory and planning; mixed clinical populations; no quality appraisal reported (see finding on row 53)."
+  },
+  {
+   "id": "COG-WILS01",
+   "claim": "Randomised crossover trial, n = 143, mostly traumatic head injury or stroke, paging system for everyday memory and planning",
+   "resolved_via": "OpenAlex API by DOI 10.1136/jnnp.70.4.477",
+   "matches": true,
+   "note": "Confirmed: crossover RCT, 143 people aged 8–83, more than 80 % more successful with the pager."
+  },
+  {
+   "id": "INT-GREEN2021",
+   "claim": "n = 432 people with disordered speech; personalised recognition error far lower than speaker-independent error",
+   "resolved_via": "Semantic Scholar Graph API by DOI 10.21437/Interspeech.2021-1384 (OpenAlex had no abstract)",
+   "matches": true,
+   "note": "Sole support of moderate row 83. Personalised models beat speaker-independent models (median word error rate 31 %) and human transcribers. The outcome is word error rate, as the caveat says."
+  },
+  {
+   "id": "PER-GOMEZ18",
+   "claim": "Controlled study with a 'high number' of observers with colour-vision deficiency; EnChroma glasses improved neither diagnostic test results nor normal colour vision",
+   "resolved_via": "OpenAlex API by DOI 10.1364/OE.26.028693",
+   "matches": true,
+   "note": "Sole support of a contradicted item (section 4). The abstract gives no n; the open-access full-text fetch was blocked."
+  },
+  {
+   "id": "COG-AZZ26",
+   "claim": "2026 meta-analysis of 15 studies found a negligible effect of dyslexia fonts",
+   "resolved_via": "Semantic Scholar Graph API by DOI 10.1007/s11881-026-00389-8 (PMID 42536336)",
+   "matches": true,
+   "note": "15 studies, 91 effect sizes, N = 688, g = −0.04, in dyslexic children and students."
+  },
+  {
+   "id": "INT-JACOB1991",
+   "claim": "Gaze as input risks unintended activation (premise of safety row 69 and row 68)",
+   "resolved_via": "OpenAlex and Semantic Scholar metadata by DOI 10.1145/123078.128728 (ACM TOIS 1991)",
+   "matches": false,
+   "note": "Not a mismatch: the reference exists, but no usable abstract is indexed, so the claim could not be checked at abstract level. No grade depends on it."
+  },
+  {
+   "id": "PER-RUBIN89",
+   "claim": "19 low-vision observers; 5 read white-on-black faster, 4 of them with cloudy ocular media",
+   "resolved_via": "OpenAlex API by DOI 10.1016/0042-6989(89)90175-2",
+   "matches": true,
+   "note": "Exact match."
+  },
+  {
+   "id": "PER-FERNANDES16",
+   "claim": "Dynamic field-of-view reduction lowered VR sickness in 30 seated participants",
+   "resolved_via": "OpenAlex API by DOI 10.1109/3dui.2016.7460053",
+   "matches": true,
+   "note": "Other context (VR), correctly capped at limited."
+  },
+  {
+   "id": "PER-WILKINS84",
+   "claim": "High-contrast stripes are unpleasant and induce illusions; people with headache report more illusions",
+   "resolved_via": "OpenAlex API by DOI 10.1093/brain/107.4.989",
+   "matches": true,
+   "note": "Sole empirical source for the row 21 comfort bound."
+  },
+  {
+   "id": "PER-SINGH23",
+   "claim": "Cochrane review of 17 trials: low-certainty evidence of no short-term difference in visual fatigue",
+   "resolved_via": "OpenAlex API by DOI 10.1002/14651858.CD013244.pub2",
+   "matches": true,
+   "note": "17 RCTs (5–156 participants each); low certainty, as stated."
+  },
+  {
+   "id": "PER-WILKINS02",
+   "claim": "Double-masked crossover trial in 17 migraine patients; marginal reduction in headache frequency, suggestive not conclusive",
+   "resolved_via": "OpenAlex API by DOI 10.1046/j.1468-2982.2002.00362.x",
+   "matches": true,
+   "note": "Exact match."
+  },
+  {
+   "id": "PER-CHOPIN19",
+   "claim": "About 7 % of adults under 60 are stereoblind; older adults may have a higher prevalence",
+   "resolved_via": "PubMed efetch PMID 30776852 (DOI 10.1111/opo.12607)",
+   "matches": true,
+   "note": "Both statements are in the abstract."
+  },
+  {
+   "id": "PER-HARDING05",
+   "claim": "Expert consensus of the Epilepsy Foundation of America on flash and pattern limits",
+   "resolved_via": "OpenAlex API by DOI 10.1111/j.1528-1167.2005.31305.x",
+   "matches": true,
+   "note": "The consensus allows up to eight pairs for unchanging patterns; the matrix's five-pair stationary rule comes from BT.1702-3 and is stricter."
+  },
+  {
+   "id": "PER-FISHER05",
+   "claim": "Photosensitivity occurs in about 0.3–3 % of people",
+   "resolved_via": "OpenAlex API by DOI 10.1111/j.1528-1167.2005.31405.x",
+   "matches": true,
+   "note": "Barrier statement on safety row 24; exact match."
+  },
+  {
+   "id": "COG-RELLO13",
+   "claim": "48 readers with dyslexia; sans-serif, monospaced and roman faster than serif, proportional and italic",
+   "resolved_via": "OpenAlex API by DOI 10.1145/2513383.2513447",
+   "matches": true,
+   "note": "Graded limited, which is consistent."
+  },
+  {
+   "id": "COG-GALL20",
+   "claim": "Letter spacing increased alone slowed reading; letterform had no effect",
+   "resolved_via": "OpenAlex API by DOI 10.1007/s11881-020-00194-x",
+   "matches": true,
+   "note": "Two groups of 64 children."
+  },
+  {
+   "id": "COG-SCHNEPS13",
+   "claim": "Shorter lines reduce regressions for readers who struggle",
+   "resolved_via": "OpenAlex API by DOI 10.1371/journal.pone.0071161",
+   "matches": true,
+   "note": "Regressions more than halved with short lines."
+  },
+  {
+   "id": "COG-NIK23",
+   "claim": "Digital reading rulers benefit readers with dyslexia",
+   "resolved_via": "OpenAlex API by DOI 10.1145/3544548.3581367",
+   "matches": true,
+   "note": "Crowdsourced: 91 readers with dyslexia and 86 without; limited is consistent for an uncontrolled online setting."
+  },
+  {
+   "id": "COG-GR17",
+   "claim": "Visual aids helped less numerate people most (systematic review, health risk communication)",
+   "resolved_via": "OpenAlex API by DOI 10.1177/0018720817690634",
+   "matches": true,
+   "note": "Other context; capped at limited."
+  },
+  {
+   "id": "COG-WILS26",
+   "claim": "Easy-read evidence is of low quality",
+   "resolved_via": "OpenAlex API by DOI 10.1111/jar.70195",
+   "matches": true,
+   "note": "29 studies; evidence base underdeveloped and of low quality."
+  },
+  {
+   "id": "INT-GERNSBACHER2015",
+   "claim": "Narrative review: captions benefit many groups, including deaf and hard-of-hearing viewers",
+   "resolved_via": "OpenAlex API by DOI 10.1177/2372732215602130",
+   "matches": true,
+   "note": "The share of deaf and hard-of-hearing studies is not stated; capping the grade at limited is correct."
+  },
+  {
+   "id": "INT-BURNHAM2008",
+   "claim": "Caption rate 130–230 wpm and text reduction 84–100 % affect comprehension differently by reading level, hearing status and age",
+   "resolved_via": "OpenAlex API by DOI 10.1093/deafed/enn003",
+   "matches": true,
+   "note": "Exact match; used only for the barrier and Q4, as stated."
+  },
+  {
+   "id": "INT-FINDLATER2019",
+   "claim": "Survey of 201 deaf and hard-of-hearing respondents; almost all wanted visual and haptic alerts",
+   "resolved_via": "OpenAlex API by DOI 10.1145/3290605.3300276",
+   "matches": true,
+   "note": "Exact match."
+  },
+  {
+   "id": "INT-FAGER2022",
+   "claim": "Combined gaze and switch input gave fewer errors; four individual response patterns",
+   "resolved_via": "OpenAlex API by DOI 10.1080/10400435.2022.2053895",
+   "matches": true,
+   "note": "Typing was slower; the abstract reports four subgroups."
+  },
+  {
+   "id": "INT-BETKE2002",
+   "claim": "Camera-based pointer (Camera Mouse) for people with severe disabilities",
+   "resolved_via": "OpenAlex API by DOI 10.1109/TNSRE.2002.1021581",
+   "matches": true,
+   "note": "20 people without disabilities, plus 12 with severe cerebral palsy or traumatic brain injury, of whom 9 succeeded. Uncontrolled; limited is consistent."
+  },
+  {
+   "id": "INT-RUSSOMANNO2015",
+   "claim": "Removing sliding contact lowered braille letter recognition",
+   "resolved_via": "OpenAlex API by DOI 10.1109/TOH.2015.2423492",
+   "matches": true,
+   "note": "Exact match."
+  },
+  {
+   "id": "PER-ITU1702",
+   "claim": "BT.1702-3 Guideline 1 absolute rules (20 cd/m2 below 160 cd/m2; Michelson contrast above 1/17 at or above 160 cd/m2) and Guideline 2 pattern limits (more than five pairs; 40 % stationary, 25 % moving)",
+   "resolved_via": "Primary fetch: ITU PDF R-REC-BT.1702-3-202311-I (12 pages)",
+   "matches": true,
+   "note": "All thresholds match rows 25 and 27. The note on sequences longer than 5 s is not reflected (finding)."
+  }
+ ],
+ "normative_checks": [
+  {
+   "item": "WCAG 2.2 W3C Recommendation date and document hash",
+   "source_url": "https://www.w3.org/TR/WCAG22/",
+   "matches": true,
+   "note": "Recommendation of 12 December 2024. 512,457 bytes; sha256 6e3c5fe3…7057 is identical to Appendix A.2. 86 SC parsed."
+  },
+  {
+   "item": "Every SC number and level cited in both documents",
+   "source_url": "https://www.w3.org/TR/WCAG22/",
+   "matches": true,
+   "note": "All 'n.n.n (level)' tokens and every 'SC n.n.n' list were extracted by regex from both files and compared with the parsed list: 0 mismatches. 4.1.2 (A) and 3.3.7 (A) were checked by hand."
+  },
+  {
+   "item": "SC 2.3.1 general and red flash thresholds, 0.006 sr area, 341 × 256 px at 1024 × 768",
+   "source_url": "https://www.w3.org/TR/WCAG22/",
+   "matches": true,
+   "note": "10 % of maximum relative luminance with the darker state below 0.80; 25 % of any 10-degree field; red flash involves a saturated red."
+  },
+  {
+   "item": "SC 1.4.12 values, 2.5.8 (24 px), 2.5.5 (44 px), 1.4.10 (320 CSS px), 1.4.3 / 1.4.6 / 1.4.11 ratios, 2.2.1 (ten times, 20 s, 20 h), 1.4.8 (80 characters)",
+   "source_url": "https://www.w3.org/TR/WCAG22/",
+   "matches": true,
+   "note": "All thresholds found verbatim in the fetched text."
+  },
+  {
+   "item": "Motion-animation definition excludes colour, blur and opacity changes (basis of 'reduced keeps fades')",
+   "source_url": "https://www.w3.org/TR/WCAG22/",
+   "matches": true,
+   "note": "The glossary note confirms it."
+  },
+  {
+   "item": "Understanding 2.2.2: content that stops within 5 s, and preload Note 4",
+   "source_url": "https://www.w3.org/WAI/WCAG22/Understanding/pause-stop-hide.html",
+   "matches": true,
+   "note": "An advertisement that stops after 5 s is a listed example; Note 4 covers essential preload animation."
+  },
+  {
+   "item": "Understanding 2.3.1: saturated-red definition from ISO 9241-391",
+   "source_url": "https://www.w3.org/WAI/WCAG22/Understanding/three-flashes-or-below-threshold.html",
+   "matches": true,
+   "note": "R/(R+G+B) ≥ 0.8 and chromaticity difference above 0.2, attributed to ISO 9241-391."
+  },
+  {
+   "item": "Understanding 2.3.3: parallax and scroll-linked motion trigger vestibular reactions",
+   "source_url": "https://www.w3.org/WAI/WCAG22/Understanding/animation-from-interactions.html",
+   "matches": true,
+   "note": "Confirmed."
+  },
+  {
+   "item": "WCAG 3 status and contrast metric",
+   "source_url": "https://www.w3.org/TR/wcag-3.0/",
+   "matches": true,
+   "note": "W3C Working Draft of 10 September 2026 on the fetch date. An editor's note says the contrast algorithm is yet to be determined, so not adopting APCA is consistent."
+  },
+  {
+   "item": "EN 301 549 version V4.1.1 (2026-09) and file hash",
+   "source_url": "https://www.etsi.org/deliver/etsi_en/301500_301599/301549/04.01.01_60/en_301549v040101p.pdf",
+   "matches": true,
+   "note": "HTTP 200, 3,971,655 bytes; sha256 636914c5…cb824 is identical to the recorded value. The title page reads V4.1.1 (2026-09)."
+  },
+  {
+   "item": "Every EN 301 549 clause number cited in both documents",
+   "source_url": "https://www.etsi.org/deliver/etsi_en/301500_301599/301549/04.01.01_60/en_301549v040101p.pdf",
+   "matches": true,
+   "note": "Regex extraction of every 'clause(s) n.n…' token against the headings of the pdftotext output: 0 not found."
+  },
+  {
+   "item": "EN 301 549 4.2.2 Notes 2, 3, 4 (8 CSS px x-height) and 7; 11.7 Notes 5 and 6",
+   "source_url": "https://www.etsi.org/deliver/etsi_en/301500_301599/301549/04.01.01_60/en_301549v040101p.pdf",
+   "matches": true,
+   "note": "The note renumbering described in section 2.2 is correct."
+  },
+  {
+   "item": "ITU-R BT.1702-3 Guideline 1 absolute rules and Guideline 2 pattern limits",
+   "source_url": "https://www.itu.int/dms_pubrec/itu-r/rec/bt/R-REC-BT.1702-3-202311-I!!PDF-E.pdf",
+   "matches": true,
+   "note": "Rows 25 and 27 match. The Guideline 1 note on sequences longer than 5 s is not reflected in row 24 (minor)."
+  },
+  {
+   "item": "Paywalled ISO and IEEE texts marked 'not read in full'",
+   "source_url": "https://www.iso.org/standard/56350.html",
+   "matches": true,
+   "note": "The sources table has 5 'not read in full' entries: PER-ISO9241-391, INT-ISO9241-171, COG-ISO24495, PER-IEEE1789 and INT-TREWIN1999. Every ISO and IEEE text is covered; only their public scope is cited."
+  }
+ ],
+ "check_py": "`python3 -I -B docs/verification/a11y-research-20261115/check.py <worktree>` exits 0. It reports 92 rows, 110 sources, 11 safety rows, self-test passed and no errors.\n\n**Mutations.** They were run against scratch copies of the repository layout (symlinked ui/ and docs/, mutated matrix copy) by `build/design-evidence/a11y/verify-r2-1/mutate.py`:\n- unmutated copy: exit 0;\n- unknown tier ('mandatory'): exit 1;\n- source id not in the table (PER-BIRCH99): exit 1;\n- a referenced source row deleted: exit 1;\n- safety row 24 demoted to setting, tier only: exit 1;\n- safety row 24 demoted with a consistent axis edit: exit 1;\n- keyboard-filter safety row 65 demoted consistently: exit 1;\n- vestibular row 29 untagged, demoted and given a motion axis: exit 1.\n\n**Known limit confirmed.** Non-safety baseline row 62 (full keyboard operation) demoted with a consistent axis edit exits 0. check.py documents this as a known limit; it is reported as a minor finding. The real matrix was never edited.",
+ "tiers_and_axes": "**Safety.** Never depends on a manual setting. All 11 'Safety:' rows are baseline, and check.py enforces that. The vestibular limit covers boot and first-run before any preference exists. The third-party flash guard is future research but is never a setting. The per-item reveal is outside the guarantee and not offered (minor: it needs an owner decision).\n\n**Device preferences.** Followed automatically where the platform offers them:\n- prefers-reduced-motion selects 'reduced';\n- prefers-color-scheme, prefers-contrast or forced-colors, prefers-reduced-transparency, and the device text-size, caption and do-not-disturb states start their axes;\n- natively, the profile store acts as the device preference (a profiles extension).\n\n**Default not dulled.** The regular default is not made duller without a baseline reason. Stimulus 'regular' is the middle step, and 'rich' only adds. The vestibular limit restricts movement of surfaces larger than about a quarter of the display (once, ≤ 320 ms) and keeps light, opacity and glow free. The ask halo settles after 5 s on SC 2.2.2 (A) grounds. The stripe-texture comfort rule (row 21) is untagged baseline with an access reason (pattern discomfort, PER-WILKINS84) and constrains artwork only after calibration. The vestibular baseline is an explicit own tiering decision under the owner's 'dangerous visual effects without configuration' rule; that is acceptable, with bounds flagged for user test.\n\n**Axes, rules and reset.**\n- Axes are combinable properties (28 axes, one owner per rendered property).\n- There are no diagnosis profiles, and presets are named combinations only.\n- Combination rules: section 7.2 (one owner per property, fixed colour pipeline with floors re-verified, preferences as inputs, presets).\n- Conflict resolution: section 5, 13 conflicts.\n- Findability and reset: section 7.3 (settings, quick tile, trusted screens, first-run, per-axis reset and an undoable reset-all; safety rows are not resettable).",
+ "status_claims": "**Prototype.** All 46 works and partial cells were checked by script: every selector, attribute, custom property, ARIA token and quoted string was grepped in ui/design/system, and every cited line number was checked to exist and be non-empty. The only miss was `[data-density]`, which exists as `[data-density=\"compact\"]` (tokens.css 45, components.css 156).\n\nThe three works cells were confirmed by hand:\n- **Row 32:** components.css 355–364 designs the static forms.\n- **Row 40:** Inter at tokens.css line 23. The only weights in tokens and components are 400 and 600 (the 100 is the @font-face range). There is no italic or font-style anywhere.\n- **Row 57:** --space-target-min 24px at tokens.css line 46, applied at components.css 49, 80 and 95. .ds-check and .ds-radio also meet 24 px, .ds-window-ctl is 40 × 32, and the compact 20 px .ds-place is a non-interactive span.\n\nOther cited lines were read and match: tokens.css 80, 88, 124–128, 187, 286 and 427–431; components.css 14, 37, 42–44, 239, 246–247 and 350–381; index.html 2 and 87. No prefers-color-scheme, prefers-contrast, forced-colors or prefers-reduced-transparency mapping exists, as claimed.\n\n**Native.** All 92 cells use a valid value (needs-extension 64, feasible-now 21, future-research 7), and each names a real component, document or contract. The following were checked to exist with matching content:\n- SemanticNode in ui/native/src/render.rs (lines 1025–1042);\n- controller.rs line 405, render.rs line 438, theme.rs line 58 (wallpaper), and the MATERIAAL and HIGH_CONTRAST palettes;\n- design.rs line 71 ('No animation is introduced');\n- PROFILES-AND-USERS.md 44–51 (no back buffer, page flip or vsync);\n- NATIVE-COMPOSITOR.md line 53;\n- TYPOGRAPHY.md 8.4–8.6 and the italic rule (F12 and line 655);\n- CAPABILITY-MATRIX dependency 20 'Accessibility service' (U04 open);\n- FR-S03, D2, services/input-core, both text.rs files, drivers/virtio-snd and NATIVE-FEASIBILITY.md.\n\nExtensions are recorded separately in section 10. No contract file changed.",
+ "boundaries": "`git -C <worktree> diff --stat HEAD -- ui docs/implementation docs/LOCAL-PRIVACY-CONTRACT.md docs/DESIGN-AMBITION.md docs/design/DESIGN-SYSTEM.md docs/design/TYPOGRAPHY.md docs/design/suite kernel crates drivers sdk tools` printed nothing.\n\n`git status --short` shows only `?? docs/design/accessibility/` and `?? docs/verification/a11y-research-20261115/`; nothing else is reported. HEAD is 5647bb87 on claude/baryon-os-design-pipeline-20261115.\n\nThis verification's scratch files are under the git-ignored build/design-evidence/a11y/verify-r2-1/. No repository file was edited, and no git write command was run.",
+ "design_ambition": "Reasoned AI opinion, not evidence of user effect.\n\nThe proposal supports a light, futuristic, refined default and treats settings as variants of the same identity:\n- Section 6.1 states that no baseline item dulls the default.\n- Section 6.2 and the axis table keep materials, place colours, Orbit, typography and the light-blade language recognisable in every combination.\n- 'rich' only adds intensity, and every flagship feature stays in the regular default.\n- Polarity variants are both full-identity variants.\n- The vestibular limit leaves light, glow and colour changes free and keeps the 1400 ms boot as a convergence of light.\n\nInnovative principles are labelled in section 11 with the required tiers:\n- **works now:** light-blade focus language, the static ask ring;\n- **technically feasible:** invisible pointer assistance, ability-based calibration, the single input-timing axis, paired spacing, three-form numbers, the adaptive layer outside the familiar path;\n- **future research:** semantic group scanning with gaze, the compositor flash guard, the on-device 'where was I' summary, the personal voice model.\n\nOne actionable shortfall (minor): the category exclusion of whole-screen zoom-through and fly-through transitions rests on own rules, and section 12 has no calibration path to relax it. Product default polarity is deferred to UX-A11Y-DS, which is acceptable.",
+ "limitations": "**Matrix reading.** The long Barrier, Adaptation, Normative-basis and Verification cells of all 92 rows were not read word by word. For every row I read Need, Tier, Axis, Grade, Sources, Prototype status, Native status and User test via a parsed dump. I read in full the 11 safety rows (Adaptation and Normative) and the rows graded strong, moderate or contradicted (Adaptation and Verification). SC and EN tokens were checked by regex over both whole files. The research text was read in full in slices.\n\n**References not re-resolved.**\n- Earlier-list references other than the required ones: COG-KUSTER17, COG-WERY16, PER-PIEPENBROCK13, INT-WOBBROCK2009, COG-ZORZI12 and others.\n- About 50 further peer-reviewed references were not sampled.\n- PER-GOMEZ18's sample size could not be established: the open-access full-text fetch hit a bot challenge.\n- INT-JACOB1991 has no indexed abstract.\n- Paywalled ISO and IEEE texts were not read.\n- Platform documentation sources and W3C notes (COGA, low vision, NAUR, Core-AAM, MQ5) were not re-fetched.\n\n**Not checked.**\n- Native status reflects contract documents and code reads, not running code.\n- The prototype was checked by grep and line reads, not rendered.\n- No contrast, flash or reflow measurement was repeated.\n- The harmonisation status of EN 301 549 V4.1.1 under the European Accessibility Act was not checked.\n\n**Tools and inputs.**\n- The hosted Graphify MCP was not used; code references were verified by literal reads.\n- The exact required matrix column specification was not provided to this verifier, so the columns were judged against the owner's list.\n\n**Nature of this review.** It is AI review only and is not evidence of user effect or a human accessibility audit. No user test exists for any row."
+}
