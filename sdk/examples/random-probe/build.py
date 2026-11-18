@@ -24,7 +24,7 @@ def main() -> int:
              "-C", "link-arg=--build-id=none", "-C", "link-arg=-zmax-page-size=0x1000"]
     env["CARGO_ENCODED_RUSTFLAGS"] = "\x1f".join(flags)
     env.setdefault("CARGO_TARGET_DIR", str(ROOT / "build/sdk-random-probe"))
-    command = ["cargo", "+1.90.0", action, "--offline", "--locked", "--release",
+    command = ["cargo", "+1.100.0", action, "--offline", "--locked", "--release",
                "--manifest-path", str(EXAMPLE / "Cargo.toml"), "--features", "native",
                "--bin", "random-probe", "--target", "x86_64-unknown-none"]
     if action == "clippy":

@@ -1,5 +1,7 @@
 # Dependencies and provenance
 
+The active compiler pin is **Rust 1.100.0** in `rust-toolchain.toml` and CI. Current command guidance is in [DEVELOPMENT.md](DEVELOPMENT.md#active-compiler-pin--18-november-2026); historical profiles and dependency-investigation records retain their original measured versions. Compiler migration evidence is [source-bound](verification/phase0-rust100-ci-repair-20261118/README.md), with final combined-main and hosted acceptance tracked separately.
+
 ## Latest stable selection and exceptions
 
 [ADR-VERSION-POLICY-20261117](DECISIONS.md) establishes the permanent current
@@ -81,7 +83,7 @@ repeated licence/build-script checks and the component gates.
 **Removal plan:** each crate is confined to one service workspace; removal
 means replacing that service or adapter without kernel, ABI or root-lock changes.
 
-The new Linux development variant uses Rust 1.90.0, QEMU 10.0.2
+The recorded Linux development profile uses Rust 1.90.0, QEMU 10.0.2
 (`1:10.0.2+ds-2+deb13u1~bpo12+1`) and matching OVMF 2025.02-8+deb13u1.
 Rust came from static.rust-lang.org; Debian packages were verified through
 signed InRelease, Packages SHA256 and package SHA256 and extracted locally

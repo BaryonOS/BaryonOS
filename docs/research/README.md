@@ -20,6 +20,14 @@ installation, 28 first-day tasks, transferable knowledge and proposed
 installer/onboarding contracts. These are document analyses and designs,
 not completed installations or new native acceptance evidence.
 
+## Source-bound session and repository assessments
+
+- [Session routes — English equivalent](SESSION-ROUTES-2026-11-02.en.md) preserves the 2 November reference research and proposed native service boundaries; the [Dutch source record](SESSION-ROUTES-2026-11-02.md) remains unchanged.
+- [Completeness assessment — English reading guide](../audit/os-completeness/ENGLISH.md) explains the sixteen records assessed against `380111b` and their release/evidence limits.
+- [Multidisciplinary assessment — English reading guide](../audits/README.md) explains the coordinating report and sixteen specialist records assessed against `beafdedf`.
+
+These source-bound assessments retain their original observations and proposal status. Their English entrypoints do not establish current implementation, adopt a new roadmap or replace the current normative contracts and checkpoint.
+
 This directory preserves the repository adaptation of two studies from 28 October 2026:
 
 - market research into gaps in the desktop OS market, European alternatives, design/performance trends, positioning and sustained switching;

@@ -97,8 +97,8 @@ def environment() -> dict[str, str]:
     env["PATH"] = os.pathsep.join(paths + [env.get("PATH", "")])
     rustc = shutil.which("rustc", path=env["PATH"])
     if rustc:
-        sysroot = subprocess.run([rustc, "+1.90.0", "--print", "sysroot"], env=env, cwd=ROOT, text=True, capture_output=True, timeout=15)
-        version = subprocess.run([rustc, "+1.90.0", "-vV"], env=env, cwd=ROOT, text=True, capture_output=True, timeout=15)
+        sysroot = subprocess.run([rustc, "+1.100.0", "--print", "sysroot"], env=env, cwd=ROOT, text=True, capture_output=True, timeout=15)
+        version = subprocess.run([rustc, "+1.100.0", "-vV"], env=env, cwd=ROOT, text=True, capture_output=True, timeout=15)
         if sysroot.returncode == version.returncode == 0:
             host = next(line.split(": ", 1)[1] for line in version.stdout.splitlines() if line.startswith("host: "))
             env["PATH"] = str(Path(sysroot.stdout.strip()) / "lib/rustlib" / host / "bin") + os.pathsep + env["PATH"]

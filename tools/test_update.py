@@ -15,7 +15,7 @@ import run_update
 
 TEST_INPUTS = "test_update_*.py"
 HOST = [
-    ["cargo", "+1.90.0", "test", "--locked", "-p", "update-core", "-p", "update-tool",
+    ["cargo", "+1.100.0", "test", "--locked", "-p", "update-core", "-p", "update-tool",
      "--features", "update-core/test-signing-anchors"],
     [sys.executable, "-B", "-m", "unittest", "discover", "-s", "tests", "-p", TEST_INPUTS],
 ]
@@ -57,7 +57,7 @@ def check_policy_guards(frozen: str) -> dict:
     env = environment()
     for name, target, arguments, positive, negative, diagnostic in POLICY_GUARDS:
         for mode, features in [("positive", positive), ("negative", negative)]:
-            command = ["cargo", "+1.90.0", "check", "--locked", "--no-default-features",
+            command = ["cargo", "+1.100.0", "check", "--locked", "--no-default-features",
                        "--message-format=json", *arguments, "--features", features]
             try:
                 result = subprocess.run(command, cwd=ROOT, env=env, capture_output=True, text=True,

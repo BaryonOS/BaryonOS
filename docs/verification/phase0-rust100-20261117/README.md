@@ -1,0 +1,9 @@
+# Rust 1.100 source checkpoint — 17 November 2026
+
+The active named Rust execution/CI selectors and their dependent current harness/oracle expectations are migrated to 1.100.0. This source checkpoint precedes lengthy compiler compatibility gates. The independently installed official toolchain does not establish runtime or security acceptance. [Exact source/hash record](verification.json).
+
+The complete reviewed queued runtime source `f5a976f1`, including H02/S09 work, is preserved. All 80 modified existing pin/oracle paths already exist on reference main `38d4cc17`; seven contain additional queued runtime context that remains unchanged. The lead must reconcile actual main after PR #333 before publication and required hosted acceptance. No new PR is opened by this worker.
+
+The 312 mapped active lines and one escaped compiler-version regex are updated. Fifty-eight genuine package MSRV floors, Cargo locks, dependencies, historical evidence/version statements, shared progress/status/AGENTS/DECISIONS/DEPENDENCIES and UI/design/S09 business logic are unchanged. Existing generic pipeline/permission fixture versions are retained. Version-relative preflight negative cases still reject old, prerelease, future and malformed compilers; no assertion or gate is weakened.
+
+All six targeted Python host/unit/mock suites pass at this checkpoint; exact argv/exits are recorded. The initial preflight failure is retained and resolved through the missing escaped version pin. Fixture messages mentioning VM groups are synthetic test output, not newly executed guests. Cargo/Clippy/fmt, target builds, relevant native policy/DMA/IPC/boot/crypto gates, actual-main/current-head hosted checks, hardware and human audit remain NOT RUN pending separate version-bound results. Score remains 41/100, lead-owned.

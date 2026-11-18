@@ -80,20 +80,20 @@ jobs:
         uses: ./.github/actions/setup-python
       - name: Pinned Rust and emulator
         run: |
-          rustup toolchain install 1.90.0 --profile minimal --component rustfmt,clippy --target x86_64-unknown-none,x86_64-unknown-uefi
+          rustup toolchain install 1.100.0 --profile minimal --component rustfmt,clippy --target x86_64-unknown-none,x86_64-unknown-uefi
       - name: Pinned QEMU and OVMF
         uses: ./.github/actions/setup-qemu
       - name: MADT parser, serial oracle and formatting
         run: |
-          cargo +1.90.0 test --locked -p boot-protocol
-          cargo +1.90.0 clippy --locked -p boot-protocol --all-targets -- -D warnings
-          cargo +1.90.0 test --locked -p smp-lock
-          cargo +1.90.0 clippy --locked -p smp-lock --all-targets -- -D warnings
+          cargo +1.100.0 test --locked -p boot-protocol
+          cargo +1.100.0 clippy --locked -p boot-protocol --all-targets -- -D warnings
+          cargo +1.100.0 test --locked -p smp-lock
+          cargo +1.100.0 clippy --locked -p smp-lock --all-targets -- -D warnings
           python3 -B -m unittest discover -s tools/tests -p test_smp_serial.py -v
           # Audit F8: static swapgs/lfence discipline (sole evidence for GS-5).
           python3 -B -m unittest discover -s tools/tests -p test_gs_discipline.py -v
           python3 -B -m unittest discover -s tools/tests -p test_acpi_serial.py -v
-          cargo +1.90.0 fmt --all -- --check
+          cargo +1.100.0 fmt --all -- --check
       - name: Normal, capacity and duplicate-MADT boots (1/2/4/8/9 vCPUs)
         env:
           NOS_BUILD_DIR: ${{ github.workspace }}/build/k06-native-smp
@@ -288,7 +288,7 @@ jobs:
         with:
           system-python: 'true'
       - name: Pinned Rust
-        run: rustup toolchain install 1.90.0 --profile minimal --target x86_64-unknown-none,x86_64-unknown-uefi
+        run: rustup toolchain install 1.100.0 --profile minimal --target x86_64-unknown-none,x86_64-unknown-uefi
       - name: Quiet hosted runner background services
         # Best effort: on the 4-vCPU hosted runner, background jobs compete with the
         # guest vCPU threads and QEMU's PIT timer; lost IRQ0 edges show up as clock drift.
@@ -426,7 +426,7 @@ jobs:
         with:
           system-python: 'true'
       - name: Pinned Rust
-        run: rustup toolchain install 1.90.0 --profile minimal --target x86_64-unknown-none,x86_64-unknown-uefi
+        run: rustup toolchain install 1.100.0 --profile minimal --target x86_64-unknown-none,x86_64-unknown-uefi
       - name: Quiet hosted runner background services
         # Best effort: on the 4-vCPU hosted runner, background jobs compete with the
         # guest vCPU threads and QEMU's PIT timer; lost IRQ0 edges show up as clock drift.
@@ -516,7 +516,7 @@ jobs:
         with:
           system-python: 'true'
       - name: Pinned Rust
-        run: rustup toolchain install 1.90.0 --profile minimal --target x86_64-unknown-none,x86_64-unknown-uefi
+        run: rustup toolchain install 1.100.0 --profile minimal --target x86_64-unknown-none,x86_64-unknown-uefi
       - name: Quiet hosted runner background services
         # The same best-effort step as the acceptance shards, so margins are comparable.
         run: |
@@ -601,7 +601,7 @@ jobs:
         with:
           system-python: 'true'
       - name: Pinned Rust
-        run: rustup toolchain install 1.90.0 --profile minimal --component rustfmt,clippy --target x86_64-unknown-none,x86_64-unknown-uefi
+        run: rustup toolchain install 1.100.0 --profile minimal --component rustfmt,clippy --target x86_64-unknown-none,x86_64-unknown-uefi
       - name: Rehearse tools/gate.sh on the final-gate runner (not acceptance, no matrix before it)
         run: |
           mkdir -p build/k06-gate-rehearsal/logs
@@ -652,7 +652,7 @@ jobs:
         with:
           system-python: 'true'
       - name: Pinned Rust
-        run: rustup toolchain install 1.90.0 --profile minimal --target x86_64-unknown-none,x86_64-unknown-uefi
+        run: rustup toolchain install 1.100.0 --profile minimal --target x86_64-unknown-none,x86_64-unknown-uefi
       - name: Quiet hosted runner background services
         # Best effort: on the 4-vCPU hosted runner, background jobs compete with the
         # guest vCPU threads and QEMU's PIT timer; lost IRQ0 edges show up as clock drift.
@@ -708,8 +708,8 @@ jobs:
           host-dependencies: 'true'
       - name: Pinned Rust for guard-page host tests
         run: |
-          rustup toolchain install 1.90.0 --profile minimal
-          cargo +1.90.0 fetch --locked --manifest-path Cargo.toml
+          rustup toolchain install 1.100.0 --profile minimal
+          cargo +1.100.0 fetch --locked --manifest-path Cargo.toml
       - name: Download every case and soak report
         uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
@@ -727,8 +727,8 @@ jobs:
           set -o pipefail
           {
             python3 -c 'import yaml; assert yaml.__version__ == "6.0.3", yaml.__version__'
-            cargo +1.90.0 --version
-            rustc +1.90.0 --version
+            cargo +1.100.0 --version
+            rustc +1.100.0 --version
             python3 -B -m unittest discover -s tools/tests -p 'test_*.py' -v
             python3 -B -m unittest discover -s tests -p test_qemu_smoke_gate.py -v
           } 2>&1 | tee build/k06-smp-matrix/host-oracles.log
@@ -773,7 +773,7 @@ jobs:
         with:
           system-python: 'true'
       - name: Pinned Rust
-        run: rustup toolchain install 1.90.0 --profile minimal --component rustfmt,clippy --target x86_64-unknown-none,x86_64-unknown-uefi
+        run: rustup toolchain install 1.100.0 --profile minimal --component rustfmt,clippy --target x86_64-unknown-none,x86_64-unknown-uefi
       - name: Run tools/gate.sh only after the complete matrix
         run: |
           mkdir -p build/k06-smp-final-gate/logs
@@ -839,11 +839,11 @@ jobs:
         uses: ./.github/actions/setup-python
         with:
           system-python: 'true'
-      - name: Pinned Rust 1.90.0
+      - name: Pinned Rust 1.100.0
         run: |
           set -euo pipefail
-          rustup toolchain install 1.90.0 --profile minimal --target x86_64-unknown-none,x86_64-unknown-uefi
-          rustc +1.90.0 --version | tee "$NOS_BUILD_DIR/diagnostic/rust-version.txt"
+          rustup toolchain install 1.100.0 --profile minimal --target x86_64-unknown-none,x86_64-unknown-uefi
+          rustc +1.100.0 --version | tee "$NOS_BUILD_DIR/diagnostic/rust-version.txt"
           cp "$RUNNER_TEMP/nieuw-os-qemu-environment.txt" "$NOS_BUILD_DIR/diagnostic/qemu-environment.txt"
       - name: Build the unchanged native-smp-m3 profile
         run: |
@@ -1075,7 +1075,7 @@ jobs:
         uses: ./.github/actions/setup-python
       - name: Pinned Rust
         run: |
-          rustup toolchain install 1.90.0 --profile minimal --component rustfmt,clippy --target x86_64-unknown-none,x86_64-unknown-uefi
+          rustup toolchain install 1.100.0 --profile minimal --component rustfmt,clippy --target x86_64-unknown-none,x86_64-unknown-uefi
       - name: Pinned QEMU and OVMF
         uses: ./.github/actions/setup-qemu
       - name: All 15 legacy M3/M4 SMP native and negative profiles

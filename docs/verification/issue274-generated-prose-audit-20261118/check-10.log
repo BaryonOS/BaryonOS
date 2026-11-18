@@ -1,0 +1,11 @@
+test_cli_flags_cannot_release_execution (test_pipeline_quarantine.Quarantine.test_cli_flags_cannot_release_execution) ... Issue-driven execution is disabled pending the fully verified PR #355 security boundary.
+Issue-driven execution is disabled pending the fully verified PR #355 security boundary.
+ok
+test_real_cli_refuses_without_credentials_or_external_tools (test_pipeline_quarantine.Quarantine.test_real_cli_refuses_without_credentials_or_external_tools) ... ok
+test_scheduler_stops_before_selecting_issues (test_pipeline_quarantine.Quarantine.test_scheduler_stops_before_selecting_issues) ... ok
+test_transaction_ingresses_stop_before_any_side_effect (test_pipeline_quarantine.Quarantine.test_transaction_ingresses_stop_before_any_side_effect) ... ok
+
+----------------------------------------------------------------------
+Ran 4 tests in 0.101s
+
+OK
