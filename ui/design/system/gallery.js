@@ -95,10 +95,13 @@ form.addEventListener('change', (e) => { if (e.target.name?.startsWith('a11y-'))
 const optText = (inp) => [...inp.parentElement.childNodes].filter(n => n.nodeType === 3).map(n => n.textContent).join('').trim()
 function renderChips() {
   const on = $$('fieldset[data-axis]', form).filter(f => $('input:checked', f).value !== '')
-  chips.innerHTML = on.length ? on.map(f => {
+  const el = (tag, attrs, text) => { const n = document.createElement(tag); for (const [k, v] of attrs) n.setAttribute(k, v); if (text) n.textContent = text; return n }
+  // DOM text goes in as text, never as HTML (CodeQL js/xss-through-dom); attribute order matches the former markup
+  chips.replaceChildren(...(on.length ? on.map(f => {
     const leg = $('legend', f).textContent, v = optText($('input:checked', f)), d = optText($('input', f))
-    return `<li><button class="ds-btn" data-variant="secondary" type="button" data-reset="${f.dataset.axis}" aria-label="${leg}: ${v}. Terug naar ${d}">${leg}: ${v}<i data-icon="close"></i></button></li>`
-  }).join('') : '<li class="gal-tag">Niets aangepast: je ziet BaryonOS zoals ontworpen, met de voorkeuren van je apparaat.</li>'
+    const b = el('button', [['class', 'ds-btn'], ['data-variant', 'secondary'], ['type', 'button'], ['data-reset', f.dataset.axis], ['aria-label', `${leg}: ${v}. Terug naar ${d}`]], `${leg}: ${v}`)
+    b.append(el('i', [['data-icon', 'close']])); const li = el('li', []); li.append(b); return li
+  }) : [el('li', [['class', 'gal-tag']], 'Niets aangepast: je ziet BaryonOS zoals ontworpen, met de voorkeuren van je apparaat.')]))
   hydrate(chips)
 }
 chips.addEventListener('click', (e) => {
