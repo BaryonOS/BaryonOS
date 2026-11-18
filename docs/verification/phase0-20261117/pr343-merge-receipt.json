@@ -1,0 +1,25 @@
+{
+  "pr": 343,
+  "verified_head": "aa7a0387aa34c2f9ead9a46d9a3ee7df32f5a3a5",
+  "verified_base_before": "b718f6bafdfc4927d3b7acfe786e67dcb8f88eec",
+  "merge_method": "squash",
+  "merge_exit_code": 0,
+  "new_main_sha": "95d59ad52761c1f8f0201d934556902b90ce63cb",
+  "merged_at": "2026-11-17T16:52:49Z",
+  "tree": "897bb49ae3a8d9cae8aea989338731d985367d52",
+  "tree_equal_to_reviewed_head": true,
+  "check_conclusions": {
+    "SUCCESS": 55,
+    "SKIPPED": 8,
+    "NEUTRAL": 1
+  },
+  "window_jobs": "Both SUCCESS before merge",
+  "unresolved_review_threads": 0,
+  "independent_review": "Existing exact implementation hash review reused; head and base unchanged",
+  "complete_diff_sha256": "1798ffdccc95d6befa75378d8cee64d750aa8146ec28b9c7dab19f83c03f0510",
+  "raw_premerge_receipt": "logs/pr343-premerge.json",
+  "raw_merge_log": "logs/pr343-merge.log",
+  "main_postmerge": "19 push workflows observed; no failure at observation, some still running",
+  "full_74x50": "NOT RUN; no guest change/full acceptance claimed",
+  "auto_merge": false
+}

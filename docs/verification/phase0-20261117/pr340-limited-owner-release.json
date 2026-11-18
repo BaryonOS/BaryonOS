@@ -1,0 +1,9 @@
+{
+  "pr":340,
+  "source_head":"93797f3a6075af9cc4fdd533dad288bfa7894ffe",
+  "owner_response_verbatim":"Codex mag deze beperkte PR-340-fix doen",
+  "scope":"Only portal-Clippy repair, bounded name-safety wording and required tests/evidence in a separate clone",
+  "preserved":["Existing S09 worktrees/WIP/runners","D1–D5 and full product acceptance","Claude ownership outside this limited repair"],
+  "merge_authorized":false,
+  "auto_merge_authorized":false
+}

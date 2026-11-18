@@ -1,0 +1,40 @@
+{
+  "source_parent": "e7752fe03ccde548762dca1c1dc0cc096470730d",
+  "integrated_main": "366b82b353485207a9b0d6b1ae63dafbbe265bae",
+  "scope": "Documentation/policy/historical receipts only; native runtime matches main",
+  "checks": [
+    {
+      "command": "python3 -B tools/preflight.py --strict",
+      "exit_code": 0
+    },
+    {
+      "command": "python3 -B tools/build.py",
+      "exit_code": 0
+    },
+    {
+      "command": "python3 -B tools/run.py --smoke",
+      "exit_code": 0,
+      "qemu_raw_exit": 33,
+      "marker": "M1:PASS"
+    },
+    {
+      "command": "python3 -B tools/progress.py --write",
+      "exit_code": 0
+    },
+    {
+      "command": "python3 -B tools/progress.py --check",
+      "exit_code": 0
+    },
+    {
+      "command": "git diff --check",
+      "exit_code": 0
+    }
+  ],
+  "log": "build/tokenguard/run-tzxq1ur_.log",
+  "log_sha256": "3cd3019811c06e440e2d8ae36e018bac53b91977e00b64d51827e7960266e57b",
+  "limits": [
+    "Current-head hosted CI and independent candidate review remain pending",
+    "Scanner category counts NOT VERIFIED (HTTP403)",
+    "Security resource runtime not available; pipeline remains disabled"
+  ]
+}

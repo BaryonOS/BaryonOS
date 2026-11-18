@@ -1,0 +1,29 @@
+{
+  "baseRefName": "main",
+  "headRefOid": "fd7d92265672294561e873722581fded013891f8",
+  "mergeCommit": {
+    "oid": "38d4cc17687156379677993be9945447591bd4c1"
+  },
+  "mergedAt": "2026-11-17T19:23:17Z",
+  "state": "MERGED",
+  "verified_remote_main": "38d4cc17687156379677993be9945447591bd4c1",
+  "verified_main_tree": "9d86b1eeb416d0014a5bb476d824f77bcaa2acda",
+  "equals_reviewed_head_tree": true,
+  "merge_exit": 0,
+  "pr": 336,
+  "method": "squash",
+  "reviewed_head": "fd7d92265672294561e873722581fded013891f8",
+  "premerge": {
+    "checks_total": 65,
+    "success": 56,
+    "skipped_intentional": 8,
+    "neutral": 1,
+    "required_and_applicable": "PASS",
+    "unresolved_review_threads": 0,
+    "auto_merge": false,
+    "bypass": false,
+    "full_diff_sha256": "22d189640c677a11cedda0fdf2ad4505868dc2dd8019c5e675b6a7cd116cad95"
+  },
+  "postmerge": "16 of18 push workflows SUCCESS at latest snapshot; native SMP and window-session still running. Project5 dispatch SUCCESS;0 updates/0 missing. Issue41 independently confirmed OPEN.",
+  "remaining_risk": "Public TEST immutable experiment only. Persistent policy/backend/production custody/hardware/human audit remain open. Legitimate P3 editorial rationale follow-up remains individually tracked."
+}

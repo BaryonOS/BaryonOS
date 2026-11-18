@@ -2,13 +2,13 @@
   "schema_version": 1,
   "rubric_version": 1,
   "assessment": {
-    "date": "2026-11-17",
-    "source_commit": "de793ed7ec83e2c121bf3f02fd0873271f86fe58",
+    "date": "2026-11-18",
+    "source_commit": "e7752fe03ccde548762dca1c1dc0cc096470730d",
     "assessment_basis": "parent_commit",
-    "branch": "feat/issue42-native-input",
-    "task": "Phase 0 PR333: reconcile actual main after336 without runtime changes",
+    "branch": "codex/phase0-baseline",
+    "task": "Phase 0: resume authorized Cloud execution and reconcile current main",
     "previous_score": 41,
-    "summary": "41/100 unchanged. All runtime/source-v3 and native evidence stay identical to reviewedde793ed7; actual336 documentation corrections and one canonicalADR are retained. Fresh current-head hosted gates and bounded independent review remain required; no fullH02/hardware or baselineB acceptance."
+    "summary": "41/100 unchanged. Main333 H02 evidence and accepted ADRs are preserved. Explicit owner resumption supersedes the historical pause. Security runtime/resource and model compatibility gates remain blocking; inaccessible scanner categories are NOT VERIFIED. No product criterion, finding, issue, baseline B or governance phase is completed by this checkpoint."
   },
   "tracks": [
     {

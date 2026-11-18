@@ -1,0 +1,390 @@
+{
+  "source_head": "b0aac21645d1f9b178dcc076360a4c016ffda8fd",
+  "source_fingerprint": "4bd03c68711faf5bfd15eac64f92c8f3f1bb0edab0b066753fff839e97c7d90e",
+  "qemu": "10.2.1",
+  "scope": "Local executable CI subsets; setup/conditional/composite workflow steps are not claimed as fully emulated CI.",
+  "commands": [
+    {
+      "command": "PATH=/snap/rustup/current/bin:$PATH python3 -B tools/agent_gate.py --job native-xhci.yml#native-xhci",
+      "exit_code": 0,
+      "steps_passed": 3
+    },
+    {
+      "command": "PATH=/snap/rustup/current/bin:$PATH python3 -B tools/agent_gate.py --job native-hid-input.yml#native-hid-input",
+      "exit_code": 0,
+      "steps_passed": 4
+    }
+  ],
+  "shared_native_lock": "/run/user/1000/baryonos-heavy-native.lock",
+  "reports": [
+    {
+      "path": "/tmp/baryonos-phase0-20261117/pr333/build/xhci-native/fault/xhci-fault-report.json",
+      "sha256": "15781125e4a3b48cb603ba7bf5c6cc3c3b15e7455ee05745550f1e01b1130b68",
+      "case": "fault",
+      "passed": true,
+      "source_sha256": "4bd03c68711faf5bfd15eac64f92c8f3f1bb0edab0b066753fff839e97c7d90e"
+    },
+    {
+      "path": "/tmp/baryonos-phase0-20261117/pr333/build/xhci-native/no-dmar/xhci-no-dmar-report.json",
+      "sha256": "1d85448810a6c82fb9247d7499705956939c968f8ff7053a5e54ef6832a02a40",
+      "case": "no-dmar",
+      "passed": true,
+      "source_sha256": "4bd03c68711faf5bfd15eac64f92c8f3f1bb0edab0b066753fff839e97c7d90e"
+    },
+    {
+      "path": "/tmp/baryonos-phase0-20261117/pr333/build/xhci-native/noop/xhci-noop-report.json",
+      "sha256": "9a5e4f6a6ede9c747bcfa2d10195ee78f6b2ee1c81f4a57a51b9403479860958",
+      "case": "noop",
+      "passed": true,
+      "source_sha256": "4bd03c68711faf5bfd15eac64f92c8f3f1bb0edab0b066753fff839e97c7d90e"
+    },
+    {
+      "path": "/tmp/baryonos-phase0-20261117/pr333/build/xhci-native/usb-readonly/usb-hid-readonly-report.json",
+      "sha256": "f83a16fc879442c7a5ac075ee54da05260fbdf53cff1d1f4052953ad91aae22d",
+      "case": "readonly",
+      "passed": true,
+      "source_sha256": "4bd03c68711faf5bfd15eac64f92c8f3f1bb0edab0b066753fff839e97c7d90e"
+    },
+    {
+      "path": "/tmp/baryonos-phase0-20261117/pr333/build/xhci-native/usb-reports/usb-hid-reports-report.json",
+      "sha256": "c9a21cec5cf13f60eefacfc06a1cef05fe399351b4a69c2372540353b4bed749",
+      "case": "reports",
+      "passed": true,
+      "source_sha256": "4bd03c68711faf5bfd15eac64f92c8f3f1bb0edab0b066753fff839e97c7d90e"
+    },
+    {
+      "path": "/tmp/baryonos-phase0-20261117/pr333/build/hid-input-native/hid-input-report.json",
+      "sha256": "f86c36b48eb7d247cda84cdc25941e711be6a023878d0790d002ac1c79014ef5",
+      "case": "hid-input",
+      "passed": true,
+      "source_sha256": "4bd03c68711faf5bfd15eac64f92c8f3f1bb0edab0b066753fff839e97c7d90e"
+    }
+  ],
+  "raw_child_logs": [
+    {
+      "metadata": "/tmp/baryonos-phase0-20261117/pr333/build/tokenguard/run-0kde112i.json",
+      "exit_code": 0,
+      "raw_log": "/tmp/baryonos-phase0-20261117/pr333/build/tokenguard/run-0kde112i.log",
+      "sha256": "cd19aced927203bfdae03d5fb2c8d825d3a186229093f9fe15846b84135b5b6f",
+      "duration_seconds": 0.511
+    },
+    {
+      "metadata": "/tmp/baryonos-phase0-20261117/pr333/build/tokenguard/run-2_sfjsv6.json",
+      "exit_code": 0,
+      "raw_log": "/tmp/baryonos-phase0-20261117/pr333/build/tokenguard/run-2_sfjsv6.log",
+      "sha256": "63abd22a87e66b97fb399d807e3aa2d3c4c912d6360a792ab53c8ec84c237b2e",
+      "duration_seconds": 0.125
+    },
+    {
+      "metadata": "/tmp/baryonos-phase0-20261117/pr333/build/tokenguard/run-2lhe2vn6.json",
+      "exit_code": 0,
+      "raw_log": "/tmp/baryonos-phase0-20261117/pr333/build/tokenguard/run-2lhe2vn6.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "duration_seconds": 0.018
+    },
+    {
+      "metadata": "/tmp/baryonos-phase0-20261117/pr333/build/tokenguard/run-2rml8ftj.json",
+      "exit_code": 0,
+      "raw_log": "/tmp/baryonos-phase0-20261117/pr333/build/tokenguard/run-2rml8ftj.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "duration_seconds": 0.029
+    },
+    {
+      "metadata": "/tmp/baryonos-phase0-20261117/pr333/build/tokenguard/run-2yd16_4w.json",
+      "exit_code": 0,
+      "raw_log": "/tmp/baryonos-phase0-20261117/pr333/build/tokenguard/run-2yd16_4w.log",
+      "sha256": "4ecee799a345f79408324ececc995416f361501f8374495fdb08be8f802f3ec1",
+      "duration_seconds": 0.655
+    },
+    {
+      "metadata": "/tmp/baryonos-phase0-20261117/pr333/build/tokenguard/run-3egtk_wi.json",
+      "exit_code": 0,
+      "raw_log": "/tmp/baryonos-phase0-20261117/pr333/build/tokenguard/run-3egtk_wi.log",
+      "sha256": "63abd22a87e66b97fb399d807e3aa2d3c4c912d6360a792ab53c8ec84c237b2e",
+      "duration_seconds": 0.115
+    },
+    {
+      "metadata": "/tmp/baryonos-phase0-20261117/pr333/build/tokenguard/run-40uunt_v.json",
+      "exit_code": 0,
+      "raw_log": "/tmp/baryonos-phase0-20261117/pr333/build/tokenguard/run-40uunt_v.log",
+      "sha256": "2aa2fe4b8e1cc1d5b750bcd1a0268b032d662b75d4e3ebf79bf1422edf4dd591",
+      "duration_seconds": 0.179
+    },
+    {
+      "metadata": "/tmp/baryonos-phase0-20261117/pr333/build/tokenguard/run-6_uzrtl0.json",
+      "exit_code": 0,
+      "raw_log": "/tmp/baryonos-phase0-20261117/pr333/build/tokenguard/run-6_uzrtl0.log",
+      "sha256": "8371cda31402970fe7fa93b9100de6272b1a60fb0c1b107647b968ba82110bd7",
+      "duration_seconds": 1.448
+    },
+    {
+      "metadata": "/tmp/baryonos-phase0-20261117/pr333/build/tokenguard/run-6tesz21d.json",
+      "exit_code": 0,
+      "raw_log": "/tmp/baryonos-phase0-20261117/pr333/build/tokenguard/run-6tesz21d.log",
+      "sha256": "a849d48b497a3c4ae1d0b191e26d8fdfd4bb0265f802740a3c9b732438c17c01",
+      "duration_seconds": 2.57
+    },
+    {
+      "metadata": "/tmp/baryonos-phase0-20261117/pr333/build/tokenguard/run-8yolxq5x.json",
+      "exit_code": 0,
+      "raw_log": "/tmp/baryonos-phase0-20261117/pr333/build/tokenguard/run-8yolxq5x.log",
+      "sha256": "5b8167fb32949c77b09842d2828e9e173fd0a6ca2b644767d78367921a6c3361",
+      "duration_seconds": 1.771
+    },
+    {
+      "metadata": "/tmp/baryonos-phase0-20261117/pr333/build/tokenguard/run-9gu4_ov5.json",
+      "exit_code": 0,
+      "raw_log": "/tmp/baryonos-phase0-20261117/pr333/build/tokenguard/run-9gu4_ov5.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "duration_seconds": 0.038
+    },
+    {
+      "metadata": "/tmp/baryonos-phase0-20261117/pr333/build/tokenguard/run-9yxnvdpk.json",
+      "exit_code": 0,
+      "raw_log": "/tmp/baryonos-phase0-20261117/pr333/build/tokenguard/run-9yxnvdpk.log",
+      "sha256": "e349098604322dc93d576807670c3ecf6f0d450e152b0c51c1331196ab6a5dad",
+      "duration_seconds": 2.561
+    },
+    {
+      "metadata": "/tmp/baryonos-phase0-20261117/pr333/build/tokenguard/run-bm9obzj1.json",
+      "exit_code": 0,
+      "raw_log": "/tmp/baryonos-phase0-20261117/pr333/build/tokenguard/run-bm9obzj1.log",
+      "sha256": "be5b4869a0ef7fda5af6df14f57554c059562f3c42e1c22782c39196ebe6c16c",
+      "duration_seconds": 0.575
+    },
+    {
+      "metadata": "/tmp/baryonos-phase0-20261117/pr333/build/tokenguard/run-c8fk1jjr.json",
+      "exit_code": 0,
+      "raw_log": "/tmp/baryonos-phase0-20261117/pr333/build/tokenguard/run-c8fk1jjr.log",
+      "sha256": "8d90a4a990cd893532d01fb6593666e95b1bcc3df9abde47a76cd06154e3499b",
+      "duration_seconds": 0.064
+    },
+    {
+      "metadata": "/tmp/baryonos-phase0-20261117/pr333/build/tokenguard/run-dn16so5x.json",
+      "exit_code": 0,
+      "raw_log": "/tmp/baryonos-phase0-20261117/pr333/build/tokenguard/run-dn16so5x.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "duration_seconds": 0.033
+    },
+    {
+      "metadata": "/tmp/baryonos-phase0-20261117/pr333/build/tokenguard/run-dncdj6uu.json",
+      "exit_code": 0,
+      "raw_log": "/tmp/baryonos-phase0-20261117/pr333/build/tokenguard/run-dncdj6uu.log",
+      "sha256": "9cfc2f47d116834985d2c2228b93da879290b5429731eda512e4b1f096499447",
+      "duration_seconds": 0.513
+    },
+    {
+      "metadata": "/tmp/baryonos-phase0-20261117/pr333/build/tokenguard/run-dofz3x3v.json",
+      "exit_code": 0,
+      "raw_log": "/tmp/baryonos-phase0-20261117/pr333/build/tokenguard/run-dofz3x3v.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "duration_seconds": 0.025
+    },
+    {
+      "metadata": "/tmp/baryonos-phase0-20261117/pr333/build/tokenguard/run-e28o12zp.json",
+      "exit_code": 0,
+      "raw_log": "/tmp/baryonos-phase0-20261117/pr333/build/tokenguard/run-e28o12zp.log",
+      "sha256": "157ccd6f48014e0f89465427e140a6c0ded6bb9d80afd26566bf03d17b0cf38b",
+      "duration_seconds": 0.821
+    },
+    {
+      "metadata": "/tmp/baryonos-phase0-20261117/pr333/build/tokenguard/run-e5fg_960.json",
+      "exit_code": 0,
+      "raw_log": "/tmp/baryonos-phase0-20261117/pr333/build/tokenguard/run-e5fg_960.log",
+      "sha256": "051759049e4753b503dcc0d3c5f641a99cf57d369e2297ab8476c9f15ed192bc",
+      "duration_seconds": 1.682
+    },
+    {
+      "metadata": "/tmp/baryonos-phase0-20261117/pr333/build/tokenguard/run-etnkvg__.json",
+      "exit_code": 0,
+      "raw_log": "/tmp/baryonos-phase0-20261117/pr333/build/tokenguard/run-etnkvg__.log",
+      "sha256": "a82dccdf9cbfcdf673d33090f6b1bd87dee542f59e4be7047888055fe81274bf",
+      "duration_seconds": 0.511
+    },
+    {
+      "metadata": "/tmp/baryonos-phase0-20261117/pr333/build/tokenguard/run-fuf29xvg.json",
+      "exit_code": 0,
+      "raw_log": "/tmp/baryonos-phase0-20261117/pr333/build/tokenguard/run-fuf29xvg.log",
+      "sha256": "23c3cf0117c333efaf7367aadfafc7deb5b036d14d2fc6a3464a7ba99c505b9f",
+      "duration_seconds": 9.839
+    },
+    {
+      "metadata": "/tmp/baryonos-phase0-20261117/pr333/build/tokenguard/run-fw9p0xbb.json",
+      "exit_code": 0,
+      "raw_log": "/tmp/baryonos-phase0-20261117/pr333/build/tokenguard/run-fw9p0xbb.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "duration_seconds": 0.043
+    },
+    {
+      "metadata": "/tmp/baryonos-phase0-20261117/pr333/build/tokenguard/run-hjteof5x.json",
+      "exit_code": 0,
+      "raw_log": "/tmp/baryonos-phase0-20261117/pr333/build/tokenguard/run-hjteof5x.log",
+      "sha256": "24cfbda78369e4a62cd7e649e74c4e7cf1aaa6b7383bda29be3d617fc7464ede",
+      "duration_seconds": 0.848
+    },
+    {
+      "metadata": "/tmp/baryonos-phase0-20261117/pr333/build/tokenguard/run-ie0bwhy_.json",
+      "exit_code": 0,
+      "raw_log": "/tmp/baryonos-phase0-20261117/pr333/build/tokenguard/run-ie0bwhy_.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "duration_seconds": 0.017
+    },
+    {
+      "metadata": "/tmp/baryonos-phase0-20261117/pr333/build/tokenguard/run-jhkd_eso.json",
+      "exit_code": 0,
+      "raw_log": "/tmp/baryonos-phase0-20261117/pr333/build/tokenguard/run-jhkd_eso.log",
+      "sha256": "c071da07b9a876da32efdd651259bb30cb0b0ad1553a713926d2ba54ca1893a9",
+      "duration_seconds": 0.634
+    },
+    {
+      "metadata": "/tmp/baryonos-phase0-20261117/pr333/build/tokenguard/run-k7k7he97.json",
+      "exit_code": 0,
+      "raw_log": "/tmp/baryonos-phase0-20261117/pr333/build/tokenguard/run-k7k7he97.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "duration_seconds": 0.03
+    },
+    {
+      "metadata": "/tmp/baryonos-phase0-20261117/pr333/build/tokenguard/run-kyomsz5a.json",
+      "exit_code": 0,
+      "raw_log": "/tmp/baryonos-phase0-20261117/pr333/build/tokenguard/run-kyomsz5a.log",
+      "sha256": "e37d7c97e8532e6dab6faf02ca1cf3582c87dd1c66fdb8b0810d1a18f0066e5e",
+      "duration_seconds": 0.261
+    },
+    {
+      "metadata": "/tmp/baryonos-phase0-20261117/pr333/build/tokenguard/run-mf543ow1.json",
+      "exit_code": 0,
+      "raw_log": "/tmp/baryonos-phase0-20261117/pr333/build/tokenguard/run-mf543ow1.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "duration_seconds": 0.018
+    },
+    {
+      "metadata": "/tmp/baryonos-phase0-20261117/pr333/build/tokenguard/run-mps1fjaf.json",
+      "exit_code": 0,
+      "raw_log": "/tmp/baryonos-phase0-20261117/pr333/build/tokenguard/run-mps1fjaf.log",
+      "sha256": "ee03b17f2a004070bc31987826347e50da31b2c428ceb99bb06bfe321a126903",
+      "duration_seconds": 0.203
+    },
+    {
+      "metadata": "/tmp/baryonos-phase0-20261117/pr333/build/tokenguard/run-nd8h74k7.json",
+      "exit_code": 0,
+      "raw_log": "/tmp/baryonos-phase0-20261117/pr333/build/tokenguard/run-nd8h74k7.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "duration_seconds": 0.016
+    },
+    {
+      "metadata": "/tmp/baryonos-phase0-20261117/pr333/build/tokenguard/run-qadsnb5_.json",
+      "exit_code": 0,
+      "raw_log": "/tmp/baryonos-phase0-20261117/pr333/build/tokenguard/run-qadsnb5_.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "duration_seconds": 0.02
+    },
+    {
+      "metadata": "/tmp/baryonos-phase0-20261117/pr333/build/tokenguard/run-qok_zgc9.json",
+      "exit_code": 0,
+      "raw_log": "/tmp/baryonos-phase0-20261117/pr333/build/tokenguard/run-qok_zgc9.log",
+      "sha256": "63d3772255303be2b4014237a68a32301506dba81485c5e2c80276e28e7e6dd6",
+      "duration_seconds": 0.489
+    },
+    {
+      "metadata": "/tmp/baryonos-phase0-20261117/pr333/build/tokenguard/run-qzj6604q.json",
+      "exit_code": 0,
+      "raw_log": "/tmp/baryonos-phase0-20261117/pr333/build/tokenguard/run-qzj6604q.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "duration_seconds": 0.018
+    },
+    {
+      "metadata": "/tmp/baryonos-phase0-20261117/pr333/build/tokenguard/run-ra4s312b.json",
+      "exit_code": 0,
+      "raw_log": "/tmp/baryonos-phase0-20261117/pr333/build/tokenguard/run-ra4s312b.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "duration_seconds": 0.072
+    },
+    {
+      "metadata": "/tmp/baryonos-phase0-20261117/pr333/build/tokenguard/run-rfei_ub7.json",
+      "exit_code": 0,
+      "raw_log": "/tmp/baryonos-phase0-20261117/pr333/build/tokenguard/run-rfei_ub7.log",
+      "sha256": "a257c458533f6bc30af326839d0bb1aad45b00a067315ce5ba1a0cd69a4de30d",
+      "duration_seconds": 0.031
+    },
+    {
+      "metadata": "/tmp/baryonos-phase0-20261117/pr333/build/tokenguard/run-rh25wbpj.json",
+      "exit_code": 0,
+      "raw_log": "/tmp/baryonos-phase0-20261117/pr333/build/tokenguard/run-rh25wbpj.log",
+      "sha256": "8a7acabe25782acd374c32e0f4acf909bb68a7cda6eba6b5d014bd90b0bd3a80",
+      "duration_seconds": 0.363
+    },
+    {
+      "metadata": "/tmp/baryonos-phase0-20261117/pr333/build/tokenguard/run-rxhzftka.json",
+      "exit_code": 0,
+      "raw_log": "/tmp/baryonos-phase0-20261117/pr333/build/tokenguard/run-rxhzftka.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "duration_seconds": 0.614
+    },
+    {
+      "metadata": "/tmp/baryonos-phase0-20261117/pr333/build/tokenguard/run-scec4fjv.json",
+      "exit_code": 0,
+      "raw_log": "/tmp/baryonos-phase0-20261117/pr333/build/tokenguard/run-scec4fjv.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "duration_seconds": 0.036
+    },
+    {
+      "metadata": "/tmp/baryonos-phase0-20261117/pr333/build/tokenguard/run-sromfff9.json",
+      "exit_code": 0,
+      "raw_log": "/tmp/baryonos-phase0-20261117/pr333/build/tokenguard/run-sromfff9.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "duration_seconds": 0.002
+    },
+    {
+      "metadata": "/tmp/baryonos-phase0-20261117/pr333/build/tokenguard/run-urzskv0m.json",
+      "exit_code": 0,
+      "raw_log": "/tmp/baryonos-phase0-20261117/pr333/build/tokenguard/run-urzskv0m.log",
+      "sha256": "f5db2c41568fb25dbb2800d31183a81bcca3c3afc94f4206d91837cbbb08b883",
+      "duration_seconds": 0.046
+    },
+    {
+      "metadata": "/tmp/baryonos-phase0-20261117/pr333/build/tokenguard/run-vrietz3m.json",
+      "exit_code": 0,
+      "raw_log": "/tmp/baryonos-phase0-20261117/pr333/build/tokenguard/run-vrietz3m.log",
+      "sha256": "c1d5cecdf2692d2b97b666f27fa7bc715cc00ddfebdd2307b838b186263551c4",
+      "duration_seconds": 0.658
+    },
+    {
+      "metadata": "/tmp/baryonos-phase0-20261117/pr333/build/tokenguard/run-w1ul21b1.json",
+      "exit_code": 0,
+      "raw_log": "/tmp/baryonos-phase0-20261117/pr333/build/tokenguard/run-w1ul21b1.log",
+      "sha256": "5f731d1d847ee85a75a3cd02935dcb84536d5cd562535d827ca6393ccb079c6b",
+      "duration_seconds": 0.796
+    },
+    {
+      "metadata": "/tmp/baryonos-phase0-20261117/pr333/build/tokenguard/run-w3xiprwh.json",
+      "exit_code": 0,
+      "raw_log": "/tmp/baryonos-phase0-20261117/pr333/build/tokenguard/run-w3xiprwh.log",
+      "sha256": "2478782df91d80c375ca3034d0e875d91bcf70b9530d58d6a1118a4c58f5bd38",
+      "duration_seconds": 0.207
+    },
+    {
+      "metadata": "/tmp/baryonos-phase0-20261117/pr333/build/tokenguard/run-whuqfin4.json",
+      "exit_code": 0,
+      "raw_log": "/tmp/baryonos-phase0-20261117/pr333/build/tokenguard/run-whuqfin4.log",
+      "sha256": "6077dfdb58542f84016982293089b603d4ddb9a7f1be97232d40f84e35cd1cf3",
+      "duration_seconds": 1.454
+    },
+    {
+      "metadata": "/tmp/baryonos-phase0-20261117/pr333/build/tokenguard/run-wvgxi5at.json",
+      "exit_code": 0,
+      "raw_log": "/tmp/baryonos-phase0-20261117/pr333/build/tokenguard/run-wvgxi5at.log",
+      "sha256": "9071b8b6453a82ae4d3e446f2524cf4ed9e157ce6e4f1755f9eb1cd77fea6997",
+      "duration_seconds": 1.424
+    }
+  ],
+  "combined_gate_log": {
+    "path": "/tmp/baryonos-phase0-20261117/logs/pr333-native-gates.log",
+    "sha256": "e1915e1a1cd19f25ff7c2c0e0f58079e299084bb141f1a6be55269232e1a1e22"
+  },
+  "limitations": [
+    "Real USB-to-Session and synthetic HID-to-policy remain separate proofs.",
+    "No physical/hotplug/IRQ/device-owner product acceptance or new H02 points.",
+    "BEHIND main: reconciliation and current-head hosted checks required before merge."
+  ],
+  "independent_security_review": "No concrete blocker in reviewed DMA/IOMMU/completion/IPC scope; not a human audit."
+}

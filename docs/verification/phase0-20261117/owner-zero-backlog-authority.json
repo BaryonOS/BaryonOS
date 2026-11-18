@@ -1,0 +1,52 @@
+{
+  "authority": "Project owner explicitly expands active Phase0 stabilization before governance",
+  "source": "Current execution instruction; previous finite-disposition/no-zero baseline condition is superseded, technical/product/security/ownership decisions retained",
+  "scope": "Every currently open issue/PR and narrow remediation/followups; manual eligible squash authorized",
+  "targets": {
+    "open_issues": 0,
+    "open_prs": 0,
+    "unresolved_security_alerts": 0,
+    "open_code_quality_codeql_findings": 0,
+    "required_ci": "PASS",
+    "relevant_native_integration": "PASS",
+    "blocking_reviews": 0,
+    "main_baseline": "verified",
+    "source_bound_evidence": "recorded"
+  },
+  "rules": [
+    "Do not falsify closure/findings or weaken coverage/gates",
+    "Preserve allWIP/ownership/locks and acceptedcontracts",
+    "No auto-merge",
+    "Final inventory cutoffT1 is not yet established; reconcile every item open byT1; critical newdefects reopenstabilization",
+    "Unavailable categories NOT VERIFIED; unresolvedexceptions requireownerdecision beforegovernance"
+  ],
+  "snapshot": {
+    "main": "e7169e43bf772307acf328590b4300fa52a4ad73",
+    "open_issues": [
+      41,
+      42,
+      43,
+      274,
+      283
+    ],
+    "open_prs": [
+      333,
+      336,
+      339,
+      340,
+      345,
+      346,
+      347,
+      348,
+      349,
+      350,
+      351,
+      352,
+      353
+    ]
+  },
+  "baseline_B": "NOT ESTABLISHED",
+  "governance_1_6": "NOT STARTED",
+  "primary_milestone": "0B",
+  "native_progress_tool": "Unavailable in this session; one visible checklist in conversation, no duplicate trackingfiles"
+}
