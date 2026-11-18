@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-18",
-    "source_commit": "364b94964cc7f3fbb8ff2377e87861e858ef03ad",
+    "source_commit": "47835c4ebc5dad0576c0feaa3ec3654f3679f14d",
     "assessment_basis": "source_commit",
     "branch": "codex/phase0-pipeline-isolation",
-    "task": "SEC355-GATE-FINALIZER: preserve bounded always-run evidence after controlled failures",
+    "task": "SEC355-ENGINE-POLICY: bind exact model-client selection and order to owner authorization",
     "previous_score": 41,
-    "summary": "41/100 unchanged. Source 364b9496 adds a single total gate deadline with a reserved, capped evidence finalizer after controlled failures, while generic sandbox cleanup or guard failures still abort without launching another process. Primary evidence remains separate and the real qemu-smoke job stays blocked. The private runtime/cache contract, complete selected-gate adapter, authenticated client, aggregate scratch/staging/export, hosted acceptance and final Daybreak resolution remain open."
+    "summary": "41/100 unchanged. Source 47835c4e binds the exact reviewed engine set and failover order in manifest schema 2, rejects CLI mismatches before controller, Git, sandbox or model-client side effects, and applies the same fail-closed validation to standalone gates. The execution hold and disabled manifest remain intact. The private authenticated client/runtime contract, complete selected-gate adapter, aggregate scratch/staging/export cap, hosted acceptance and final Daybreak resolution remain open."
   },
   "tracks": [
     {

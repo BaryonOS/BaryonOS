@@ -1,5 +1,32 @@
 # Current project status
 
+## NEXT AGENT HANDOFF — PR #355 owner-bound engine policy — 18 November 2026
+
+**Source and change:** security checkpoint
+`47835c4ebc5dad0576c0feaa3ec3654f3679f14d` extends published PR head
+`79d8674324d14d0b7608fb15f19701f33ddc939c`. Manifest schema 2 now binds the
+exact reviewed engine set and failover order. A CLI mismatch is rejected before
+controller verification, Git, sandbox or model-client access, and each retry keeps
+that order instead of rotating it. Standalone gates share the same fail-closed
+engine-policy validation. The source execution hold remains unconditional and the
+checked-in manifest remains disabled.
+
+**Checks:** 67 focused pipeline/isolation/hold tests pass with one explicit private
+runtime skip; all 493 tools tests pass with ten environment skips. All 26 workflow
+contract tests, Python compilation, manifest parsing and whitespace checks pass.
+Independent security review found one inconsistent standalone-gate validation path;
+the shared validator and negative regression fixed it, and rereview reports no
+actionable finding. This is AI review, not a human audit.
+[Source-bound receipt](verification/phase0-sec355-engine-policy-20261118/README.md).
+
+**Open boundary and resume:** the private authenticated model-client/runtime contract,
+complete selected-gate adapter and aggregate scratch/staging/export filesystem cap
+remain open. Local `actionlint` is unavailable and private sandbox integration was
+not run; hosted checks are required on the eventual published exact head. Preserve
+the current published-head native jobs until they finish, then publish this complete
+checkpoint and require fresh CI/review. Score 41/100 is unchanged; no Daybreak
+finding, issue, baseline or governance acceptance is inferred.
+
 ## NEXT AGENT HANDOFF — PR #355 bounded gate finalizer — 18 November 2026
 
 **Source and change:** security checkpoint `364b94964cc7f3fbb8ff2377e87861e858ef03ad`
