@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-18",
-    "source_commit": "ae5ad402b0b65857ea5fd1e25fa2e75d8218307a",
+    "source_commit": "b87436dfd8ef8c277dea1dbde780f2e2229283a9",
     "assessment_basis": "parent_commit",
-    "branch": "codex/p02-head-discovery",
-    "task": "P02-T1: committed-head discovery for read-only resume",
+    "branch": "codex/unified-governance",
+    "task": "GOV-1-6 reconciliation with main 5a3295b6",
     "previous_score": 41,
-    "summary": "41/100 unchanged. Native NAS clients can query a committed session-scoped head and reconcile the latest published ciphertext while staged writes remain invisible and uncertain publication is not replayed automatically. P02 remains open because native resume, durable transport and hardware evidence are absent. Current-main reconciliation changes only checkpoint state; hosted checks remain authoritative."
+    "summary": "41/100 unchanged. Shared role and workflow contracts, client adapters and compact continuation are reconciled with actual main after #350. Targeted quarantine (5) and execution-hold (3) regressions remain source-bound; disabled manifest and source hold remain intact. Governance has no zero-open-items/baseline-B prerequisite. Host adapter/protection checks do not establish client runtime parity, Daybreak acceptance, hardware or human audit. No product criterion or weight changes."
   },
   "tracks": [
     {

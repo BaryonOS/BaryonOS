@@ -2,6 +2,8 @@
 # Keep inherited review tools and project instructions; override only review behaviour.
 inheritance: true
 language: en-GB
+# Billing and paid add-ons are controlled in the account, not by this flag.
+enable_free_tier: true
 
 reviews:
   # Important comments stay inline; smaller suggestions move to the summary.
@@ -12,6 +14,10 @@ reviews:
   auto_review:
     enabled: true
     auto_incremental_review: true
-  pre_merge_checks:
-    docstrings:
-      mode: warning
+    # Project changes are opened as drafts before owner review.
+    drafts: true
+
+knowledge_base:
+  code_guidelines:
+    # CodeRabbit discovers root and directory AGENTS.md files automatically.
+    enabled: true
