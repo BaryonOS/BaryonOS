@@ -1,0 +1,22 @@
+test_lead_and_owner_tasks_are_never_selected_for_workers (test_roadmap_runner.Ledger.test_lead_and_owner_tasks_are_never_selected_for_workers) ... ok
+test_ledger_round_trip_is_atomic_and_validated (test_roadmap_runner.Ledger.test_ledger_round_trip_is_atomic_and_validated) ... ok
+test_no_ready_task_returns_none (test_roadmap_runner.Ledger.test_no_ready_task_returns_none) ... ok
+test_repository_ledger_is_valid (test_roadmap_runner.Ledger.test_repository_ledger_is_valid) ... ok
+test_selects_first_ready_task_with_verified_dependencies (test_roadmap_runner.Ledger.test_selects_first_ready_task_with_verified_dependencies) ... ok
+test_update_task_rereads_and_keeps_other_edits (test_roadmap_runner.Ledger.test_update_task_rereads_and_keeps_other_edits) ... ok
+test_validation_rejects_unsafe_ledgers (test_roadmap_runner.Ledger.test_validation_rejects_unsafe_ledgers) ... ok
+test_porcelain_parsing_handles_renames_and_quotes (test_roadmap_runner.Scope.test_porcelain_parsing_handles_renames_and_quotes) ... ok
+test_write_set_matching (test_roadmap_runner.Scope.test_write_set_matching) ... ok
+test_allow_rules_are_task_scoped (test_roadmap_runner.Session.test_allow_rules_are_task_scoped) ... ok
+test_argv_is_a_fresh_session_without_resume_or_bypass (test_roadmap_runner.Session.test_argv_is_a_fresh_session_without_resume_or_bypass) ... ok
+test_dead_pid_is_not_alive (test_roadmap_runner.Session.test_dead_pid_is_not_alive) ... ok
+test_effort_is_full_for_security_and_routine_otherwise (test_roadmap_runner.Session.test_effort_is_full_for_security_and_routine_otherwise) ... ok
+test_failure_fingerprint_ignores_timings_but_not_content (test_roadmap_runner.Session.test_failure_fingerprint_ignores_timings_but_not_content) ... ok
+test_structured_output_and_blocking_findings (test_roadmap_runner.Session.test_structured_output_and_blocking_findings) ... ok
+test_transcript_check_counts_compactions_and_proves_a_fresh_start (test_roadmap_runner.Session.test_transcript_check_counts_compactions_and_proves_a_fresh_start) ... ok
+test_worker_environment_drops_credentials_and_parent_session (test_roadmap_runner.Session.test_worker_environment_drops_credentials_and_parent_session) ... ok
+
+----------------------------------------------------------------------
+Ran 17 tests in 0.004s
+
+OK

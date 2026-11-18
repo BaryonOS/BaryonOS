@@ -1,0 +1,57 @@
+{
+  "source_commit": "d16fa0862a42d83f7de7fda8dd2de54357d3e533",
+  "source_fingerprint_version": 3,
+  "source_sha256": "42163e2d99138eecda0977feab534c5eebb9f77bc25a2e04abd5f2d28752be92",
+  "final_git_status": "",
+  "gate_command": [
+    "python3",
+    "-B",
+    "tools/agent_gate.py",
+    "--job",
+    "ci.yml#host-quality",
+    "--log",
+    "build/combined-host-quality-final.log"
+  ],
+  "exit_code": 0,
+  "duration_seconds": 300.233,
+  "steps": 18,
+  "token_guard_receipt": "build/tokenguard/run-vb7io6rg.json",
+  "full_gate_log": "build/combined-host-quality-final.log",
+  "artifacts": [
+    {
+      "path": "build/tokenguard/run-vb7io6rg.json",
+      "sha256": "44e93d371e994bb46b6ebaaac631ae4f15ffcc7b858fc145a44b5f738c6cd2bd"
+    },
+    {
+      "path": "build/tokenguard/run-vb7io6rg.log",
+      "sha256": "4b169fe8e6014ac46061e3c73d97b567f787a7361e6bedcb3bc9da40d4776272"
+    },
+    {
+      "path": "build/combined-host-quality-final.log",
+      "sha256": "c33c6989dfcd1186786fe389c60ddcc19b4fd26348f5df1975d96045b4ad7ba3"
+    },
+    {
+      "path": "build/combined-host-quality-validation-final/source-before.json",
+      "sha256": "e223e7b6004106bc05daf9f47d8dac5abab58a8555f0867250a8feeae593cb09"
+    }
+  ],
+  "preserved_original_artifacts": [
+    {
+      "path": "build/combined-host-quality-validation/result.json",
+      "sha256": "baaf80f53ebefbeca08c7bec558aef76f6a1bdc0ac8b64921521e48389ae56fe"
+    },
+    {
+      "path": "build/combined-host-quality.log",
+      "sha256": "9f5e08961c2bbcc65bd3292a196570c4528da4941364cbe70a174070a0022cc3"
+    },
+    {
+      "path": "build/combined-host-quality-validation-cpuid/result.json",
+      "sha256": "701ef7eede83a8f4c8109a430f8627827cf84af7328b1602169be2d6fca4ee5a"
+    },
+    {
+      "path": "build/combined-host-quality-cpuid.log",
+      "sha256": "c56ecfeacbe3002378327a5066f88063cec4340987084074d2a01349efd47955"
+    }
+  ],
+  "limits": "Local executable host-quality steps only. Native runtime gates, hosted CI and integrated main verification remain separate."
+}

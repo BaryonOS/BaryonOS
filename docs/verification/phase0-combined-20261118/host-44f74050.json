@@ -1,0 +1,44 @@
+{
+  "source_commit": "44f7405003977dbf7f33eb5bca77f8a8f82c6f1c",
+  "source_fingerprint_version": 3,
+  "source_sha256": "3e3ee0876817b21612410b537f925681349c65c01d7ea397226f20e9ccf5bb1e",
+  "final_git_status": "",
+  "gate_command": [
+    "python3",
+    "-B",
+    "tools/agent_gate.py",
+    "--job",
+    "ci.yml#host-quality",
+    "--log",
+    "build/combined-host-quality.log"
+  ],
+  "exit_code": 0,
+  "duration_seconds": 356.202,
+  "steps": 18,
+  "token_guard_receipt": "build/tokenguard/run-ulm9j_g3.json",
+  "full_gate_log": "build/combined-host-quality.log",
+  "artifacts": [
+    {
+      "path": "build/tokenguard/run-ulm9j_g3.json",
+      "sha256": "d136fd96c0c09309db5bfd898d984fb2469b16939c17a2ee53aa985a15322853"
+    },
+    {
+      "path": "build/tokenguard/run-ulm9j_g3.log",
+      "sha256": "e06a828f80bbed204d2461b35021c08687365397cd5906551c4cd1fe570b9763"
+    },
+    {
+      "path": "build/combined-host-quality.log",
+      "sha256": "9f5e08961c2bbcc65bd3292a196570c4528da4941364cbe70a174070a0022cc3"
+    },
+    {
+      "path": "build/combined-host-quality-validation/source-before.json",
+      "sha256": "580a182874e9796535f2043e85079e0396451e90ae720f2f5a3549b6d943f407"
+    }
+  ],
+  "earlier_metadata_helper": {
+    "receipt": "build/tokenguard/run-__snpe85.json",
+    "exit_code": 1,
+    "reason": "Missing metadata constant; no gate command had run. Corrected helper succeeded."
+  },
+  "limits": "Local executable host-quality steps only. Native runtime gates, hosted CI and integrated main verification remain separate."
+}

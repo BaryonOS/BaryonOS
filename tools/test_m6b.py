@@ -51,7 +51,7 @@ def test_m6b():
     try:
         run_logged([sys.executable,'-B','tools/preflight.py','--strict'],'m6b-preflight')
         record('strict-development-inventory',True,BUILD/'logs/m6b-preflight.stdout.txt',['M6B-TOOLS'])
-        run_logged(['cargo','+1.90.0','test','--locked','--offline','-p','object-core'],'m6b-host-tests')
+        run_logged(['cargo','+1.100.0','test','--locked','--offline','-p','object-core'],'m6b-host-tests')
         record('object-core-and-wire-host-tests',True,BUILD/'logs/m6b-host-tests.stdout.txt',
                ['M6B-REVISIONS','M6B-TOMBSTONES','M6B-BOUNDED-RECOVERY'])
         run_logged([sys.executable,'-B','-m','unittest','discover','-s','tests','-p','test_m6b_*.py'],

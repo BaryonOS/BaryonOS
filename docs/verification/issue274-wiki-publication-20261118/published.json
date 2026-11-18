@@ -1,0 +1,100 @@
+{
+  "schema_version": 1,
+  "verified_at_utc": "2026-11-18T01:45:26.701061+00:00",
+  "source_candidate": "5eae79a2bb6a5b1d655de16c7a293be96a07a9a6",
+  "independent_review": "Lead independent content review of exact 15-file candidate completed before publication; no blockers.",
+  "wiki_before": "ff7a4748a0b61bfb5de8598344464ac94080bc4d",
+  "wiki_after": "4a01b8b2ad2695da509a512ea688007c964f56da",
+  "status": "PUBLISHED AND REMOTE SOURCE EQUIVALENCE VERIFIED",
+  "publication_method": "normal fast-forward push to existing Wiki master; explicit 15 Markdown paths only",
+  "published_files": [
+    {
+      "path": "Architecture-Overview.md",
+      "sha256": "5720a636d78f968937f67a751086d6e34f6531c5320d03c7300b09332eb66370",
+      "remote_blob": "0d0500a2e4c46eb243bff140aa78c8ef991569fa"
+    },
+    {
+      "path": "Build-and-Run.md",
+      "sha256": "7262c3d33e98cd1d353f42f5b1b140347ceac33a2cad073f74382bf0e731dfec",
+      "remote_blob": "b5e42fbfc58fd7d0edd1059a7210af01c92030c6"
+    },
+    {
+      "path": "FAQ.md",
+      "sha256": "4d312b0cdbe2d5ba6b82a4a5f1f01bb98b923cb74d41f08b57f765e013bc0494",
+      "remote_blob": "24028ebc564495520087168672d871cf9f088098"
+    },
+    {
+      "path": "Glossary.md",
+      "sha256": "5b53223b544002cfef02f9984b40838fe2d1ce00a8f0de2a5ac2f8a8735b9ca7",
+      "remote_blob": "1afb570f98f513aa00f49600315d08eec5dfe894"
+    },
+    {
+      "path": "Material.md",
+      "sha256": "dd79a7a2d51c0230b5dcb35bf093c9f18791a2530ccc73e2ea2d8fa3af39d7eb",
+      "remote_blob": "3ccb276358eeeff9dded431dddb2ad4bf9ec5659"
+    },
+    {
+      "path": "Privacy-and-Local-first.md",
+      "sha256": "a7e8893fe7786e6c7c7576b97a6fb92801ae5af8ebac8e8d5c3219742da70243",
+      "remote_blob": "2e0e750075e9dd1a0808062abdb4d6e4771fbefc"
+    },
+    {
+      "path": "Repository-Guide.md",
+      "sha256": "ad8072cf654356ca871990be743b89fc74d956ea84c97a23f1cd07e26b035892",
+      "remote_blob": "8ec011bc3fb087dde3051f66b6a4eade9f22a18b"
+    },
+    {
+      "path": "Research-Tracks.md",
+      "sha256": "d6c6a113540c6729effe032fa894c6b1b0d6384818fc7062ae39088401a57b07",
+      "remote_blob": "281ca8a1ddbe992452b11c3846d0b8b8b2ce6cd5"
+    },
+    {
+      "path": "Roadmap-Explained.md",
+      "sha256": "fb86a63174049773edece8072465ca27baa21cdec4cf6ca0fda6e93a4057b956",
+      "remote_blob": "1329d4d7a09c87bed3ebec85b2bc369bffb5ec65"
+    },
+    {
+      "path": "Security-Model.md",
+      "sha256": "1201da2832d7aa0716602a464ebd852209bb07f799f3cfe5e0efa0488b9abdde",
+      "remote_blob": "ea62109deabe148e873c31696671ff3148257fc4"
+    },
+    {
+      "path": "Testing-and-Evidence.md",
+      "sha256": "454d2a2dca65645f6b47a9470c77a99777972ef921772e86ad67526874e9ba54",
+      "remote_blob": "34e99962daa17f4e63f236162fb2862066a18c08"
+    },
+    {
+      "path": "What-is-Baryon-OS.md",
+      "sha256": "d792523c652f79587a42a8b09daa412e670490e68319e9d5405ce8cea7be4914",
+      "remote_blob": "8a3f203cf3cb4494c8d9c2d6ac1e4f1e1b1c9a6f"
+    },
+    {
+      "path": "Why-Baryon.md",
+      "sha256": "79c2d6e54345ab3e91ca2c9d8339853894b68aa3b509aaf14e5692b15c64d8f8",
+      "remote_blob": "c6ecbc57ef473d8016895919871e270718f616b5"
+    },
+    {
+      "path": "Home.md",
+      "sha256": "106a2e8739fcd63fd1850ea09f079fd172f8d8578a304d9d1cc20aab89f17260",
+      "remote_blob": "90c5ce76e98ffd2686215a6e233823a9d63560f8"
+    },
+    {
+      "path": "_Sidebar.md",
+      "sha256": "6adcfbb5888372f9388fdda3ae9525616e11232f6c66026cdc6baca868b42ca4",
+      "remote_blob": "c59a3a001b173b47ca214f3933ddcee5c10a4cd4"
+    }
+  ],
+  "existing_files_preserved_byte_identical": 13,
+  "original_home_sidebar_lines_preserved": true,
+  "raw_push_exit": 0,
+  "post_publication_verification_exit": 0,
+  "local_targets_prepublication": 171,
+  "legacy_readme_fragments": 1,
+  "score_before": 41,
+  "score_after": 41,
+  "issue274": "OPEN: complete first-party language/coverage audit, maintained inventory and user-visible localisation acceptance remain incomplete",
+  "wiki_push_log": {
+    "location": "Wiki checkout build/tokenguard/run-juuxqfw0.log",
+    "sha256": "b1d2f585f81acc92dd40d64fc4a4feb71fdb0aa2b3ee950db29b2d335b1f11c1"
+  }
+}

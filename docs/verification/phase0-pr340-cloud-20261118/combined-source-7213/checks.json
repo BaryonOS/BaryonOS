@@ -1,0 +1,20 @@
+{
+  "tested_commit": "f0f92cf25d22b85c1a64ae7215fe13d9e9e366ae",
+  "actual_main": "67d5859d735836331b6fb971eae89162b7fa8465",
+  "preintegrated_candidate_339": "7213e22416e6df39b64d6b53e9b3c53ce9b116f1",
+  "source_fingerprint_version": 3,
+  "source_sha256": "ffeda99941939623bbe5ef281be7f40faa77e1c3e997d790cd14931d656349f1",
+  "native_stages": 15,
+  "native_gate_exit_code": 0,
+  "duration_seconds": 293.0,
+  "capture_files_verified": 46,
+  "gate_log": "build/tokenguard/run-22_kuiio.log",
+  "gate_log_sha256": "479b96ae10a19cfc77a8481cc6abdba2767473df433cb204cf76122297e539ab",
+  "scope": "Complete English/checker source set plus unchanged S09 runtime, before any pipeline-containment integration",
+  "pending": [
+    "Actual main integration of339",
+    "Current-head hosted/native CI",
+    "Further source input changes require new source-bound gates"
+  ],
+  "score": 41
+}

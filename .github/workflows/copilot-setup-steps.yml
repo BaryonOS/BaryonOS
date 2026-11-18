@@ -41,7 +41,7 @@ jobs:
       - name: Rust toolchains and freestanding targets
         shell: bash
         run: |
-          for toolchain in 1.90.0 1.91.1; do
+          for toolchain in 1.100.0 1.100.0; do
             rustup toolchain install "$toolchain" --profile minimal \
               --component rustfmt,clippy \
               --target x86_64-unknown-none,x86_64-unknown-uefi

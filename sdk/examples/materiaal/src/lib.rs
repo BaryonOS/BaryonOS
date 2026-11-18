@@ -542,7 +542,7 @@ impl<'a, V: Transport, I: Transport, S: Transport> App<'a, V, I, S> {
                 }
                 for (p, chunk) in pixels
                     .iter()
-                    .zip(bytes[..rectangle.bytes()].chunks_exact_mut(4))
+                    .zip(bytes[..rectangle.bytes()].as_chunks_mut::<4>().0.iter_mut())
                 {
                     chunk.copy_from_slice(&p.to_le_bytes());
                 }
