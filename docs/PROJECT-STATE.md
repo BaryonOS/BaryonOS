@@ -1,6 +1,24 @@
 # Current project status
 
-## NEXT AGENT HANDOFF — unified governance implementation — 18 November 2026
+## NEXT AGENT HANDOFF — N04-T1 native refusal sweep — 18 November 2026
+
+**Claim:** Codex, codex/n04-port-sweep, base69d82075.
+**Goal:** all65535 TCP ports plus documented bounded UDP probes before/after
+revoke; exact RSTs only, zero SYN-ACK/UDP payload, bounded time/frame budgets.
+**Invariant:** existing caller/destination/revoke/transport guards unchanged;
+no timeout or missing response becomes success, no new production authority.
+**Write set:** existing N04-T1 peer/runner/tests/kernel-fixture paths, lead state.
+No historical evidence rewrites/new report framework. Native tools reused.
+**Acceptance:** peer negative unit tests plus actual revoke case; one relevant
+subsystem regression run where shared peer changes require it, no broad OS matrix.
+**Evidence limit:** native QEMU transport only; production issuer/delegation,
+physical interfaces and full N04 acceptance remain open. Score41/100.
+**Ownership:** all open PR file metadata checked for overlap; integration branches
+and Claude S09/UI untouched. Unsafe unattended hold preserved. Prior B04 comparator
+PR379 correctly reports loader/ESP difference; no reproducible acceptance.
+**Next:** supervised bounded implementation, publish draft, continue next READY task.
+
+## Retained checkpoint — unified governance implementation — 18 November 2026
 
 **Claim:** GOV-1-6, sole writer Codex in `codex/unified-governance`, base
 `5a3295b6093549f4b5ff6164ab2773ac4c264996`. The project owner authorizes immediate
@@ -60,7 +78,7 @@ checks before manual squash. Then continue the released roadmap PR queue without
 changing the independently owned UI/UX or active S09 branches.
 Progress **41 → 41/100**, no accepted criterion/weight change.
 
-## NEXT AGENT HANDOFF — PR #350 conflict-only integration — 18 November 2026
+## Retained checkpoint — PR #350 conflict-only integration — 18 November 2026
 
 PR #350 head `aaf01bae291faba593567845dc8da4fe606a7959` is reconciled
 with actual main `2eac8ca39ce04753f4f6bef3b09ee9b3610c065f`.
@@ -73,7 +91,7 @@ by this reconciliation. Score remains 41/100. Required hosted checks on the new 
 must pass before a manual squash merge; local build/QEMU suites are not repeated
 for this conflict-only correction.
 
-## NEXT AGENT HANDOFF — PR #361 integration and final-read barrier — 18 November 2026
+## Retained checkpoint — PR #361 integration and final-read barrier — 18 November 2026
 
 **Claim/source:** Codex sole writer in `codex/block-order-integration`, PR #361 head
 `fc35563668ae2ba3dc2fc90e6e30575c38b6f578`, merging main `6f29b672`.
