@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-18",
-    "source_commit": "aaf01bae291faba593567845dc8da4fe606a7959",
+    "source_commit": "75074d7f5e0da8c2ad968fe33c966184f88163cb",
     "assessment_basis": "parent_commit",
-    "branch": "codex/coderabbit-oss-config",
-    "task": "PR350 conflict-only reconciliation with main 2eac8ca3",
+    "branch": "codex/h02-usb-hotplug",
+    "task": "H02-T2: Per-port attach generations, correlated enumeration attempts and lifetime storm/retry budgets implemented; stale completions cannot revive detached/replaced devices. Existing boot_session API unchanged.",
     "previous_score": 41,
-    "summary": "41/100 unchanged. The reviewed CodeRabbit free-tier configuration is preserved while current main, including PR #361 containment and final-read ordering, is incorporated. Only the checkpoint and assessment records required manual resolution. Hosted checks on the resulting head remain authoritative; no local build or QEMU acceptance is inferred."
+    "summary": "41/100 unchanged. Per-port attach generations, correlated enumeration attempts and lifetime storm/retry budgets implemented; stale completions cannot revive detached/replaced devices. Existing boot_session API unchanged. Host state/build only; no transport/DMA quiescence, native hotplug or H02 acceptance. Integration/Claude ownership and execution hold preserved."
   },
   "tracks": [
     {

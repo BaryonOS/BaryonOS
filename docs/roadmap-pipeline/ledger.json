@@ -22,7 +22,7 @@
       "criterion": "H02",
       "milestone": "M9",
       "executor": "worker",
-      "status": "active",
+      "status": "verified",
       "title": "USB attach/detach generation model with stale-completion rejection (host)",
       "goal": "Add drivers/usb/src/hotplug.rs: per-port attach generation, rejection of completions from an older generation, bounded re-enumeration attempts and an attach-storm budget; detach during enumeration releases state; no change to the existing boot_session API consumed by PR #333.",
       "why_now": "H02 requires bounded hotplug; this is a host prerequisite outside the paths PR #333 owns.",
@@ -64,8 +64,16 @@
           "event": "active",
           "at": "2026-11-18T21:08:29.083712+00:00",
           "reason": "Independent bounded driver implementation; no boot_session/kernel edits or integration overlap."
+        },
+        {
+          "at": "2026-11-18T21:09:41.994750+00:00",
+          "event": "verified",
+          "source_commit": "75074d7f5e0da8c2ad968fe33c966184f88163cb",
+          "reason": "Per-port attach generations, correlated enumeration attempts and lifetime storm/retry budgets implemented; stale completions cannot revive detached/replaced devices. Existing boot_session API unchanged. Host state/build only; no transport/DMA quiescence, native hotplug or H02 acceptance."
         }
-      ]
+      ],
+      "source_commit": "75074d7f5e0da8c2ad968fe33c966184f88163cb",
+      "receipt": "docs/roadmap-pipeline/receipts/H02-T2.json"
     },
     {
       "id": "H05-T1",

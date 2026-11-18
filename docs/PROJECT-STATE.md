@@ -1,19 +1,17 @@
 # Current project status
 
-## NEXT AGENT HANDOFF — H02-T2 USB hotplug — 18 November 2026
+## NEXT AGENT HANDOFF — H02-T2 delivery — 18 November 2026
 
-**Claim:** Codex, codex/h02-usb-hotplug, current-main base5a3295b6.
-**Goal:** per-port attach/attempt correlation and bounded re-enumeration/storm state.
-**Invariant:** stale completions never affect a later attach/attempt; counters never
-wrap; detach retires model state only, never promises physical DMA quiescence.
-**Write set:** usb hotplug.rs, module export, new tests and short module contract;
-lead ledger/checkpoint/progress/one receipt. boot_session API unchanged.
-**Acceptance:** Rust1.90 USB tests/Clippy/fmt/freestanding build, negative stale
-completion, retry/storm exhaustion, detach-during-enumeration and overflow checks.
-**Evidence limit:** host driver state/build only; no native hotplug/H02 acceptance.
-**Ownership:** Integration Manager owns existing PRs364–371; Claude S09/UI untouched.
-Unsafe unattended hold preserved. Prior checkpoint73c52796 and deliveries retained.
-**Next:** implement, publish draft, immediately continue next independent READY slice.
+**Source:** `75074d7f5e0da8c2ad968fe33c966184f88163cb`, `codex/h02-usb-hotplug`.
+**Delivered:** Per-port attach generations, correlated enumeration attempts and lifetime storm/retry budgets implemented; stale completions cannot revive detached/replaced devices. Existing boot_session API unchanged.
+**Checks:** targeted Rust tests, Clippy (-D warnings), formatting and freestanding
+library build exit0; [exact commands/raw-log hashes](roadmap-pipeline/receipts/H02-T2.json).
+Lead source/diff review completed; no duplicate matrix. Progress **41 → 41/100**.
+**Limits:** Host state/build only; no transport/DMA quiescence, native hotplug or H02 acceptance.
+**Ownership:** Integration Manager owns PR integration/merges/closure. Earlier
+delivery branches and Claude S09/UI remain untouched. Unsafe unattended hold active.
+**Next:** publish new draft, immediately claim the next independent READY functional
+slice from this ledger; no waiting for integration. Prior delivery checkpoints retained.
 
 ## Retained checkpoint — PR #350 conflict-only integration — 18 November 2026
 
