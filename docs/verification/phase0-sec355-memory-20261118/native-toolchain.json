@@ -1,0 +1,7 @@
+{
+  "source": "/snap/rustup/1533/bin/rustup",
+  "installed_revision": "rustup Snap1533; only native Rustup binary copied, no Snap launcher",
+  "binary_sha256": "7535af458dd1c78351182055890a42132d18859a198bf2b8832dc43dd28c18bc",
+  "version": "rustup 1.29.2 (d8c92c676 2026-10-21)",
+  "scope": "Task-local native compiler proxies; no global PATH or toolchain modification."
+}

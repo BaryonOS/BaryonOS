@@ -1,6 +1,8 @@
-# TCP-afhankelijkheden: licentieteksten
+<a id="tcp-afhankelijkheden-licentieteksten"></a>
 
-Deze teksten horen bij de vastgepinde TCP-bibliotheek en het gebouwde TCP-programma. Voor dual-licensed crates is hier de MIT-optie gekozen. Neem dit bestand mee bij binaire distributie; het is geen licentie voor Nieuw OS zelf.
+# TCP dependencies: license texts
+
+These texts accompany the pinned TCP library and the built TCP program. The MIT option is selected here for dual-licensed crates. Include this file with binary distributions; it is not a license for Nieuw OS itself.
 
 ## smoltcp 0.14.0 — LICENSE-0BSD.txt
 

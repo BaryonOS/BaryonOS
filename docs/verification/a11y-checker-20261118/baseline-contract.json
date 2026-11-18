@@ -1,0 +1,212 @@
+{
+  "schema": 1,
+  "source_commit": "5e222780c916205bb9aa4e54ba9ccaa983ce61e7",
+  "matrix_sha256": "e12d566f069a56e1066689e598f5bfbad7ac646c6347e14da2dc94b0a5a6e6b5",
+  "reference_checker_sha256": "cf1b65d170a385a0e4fde9724d326bbbe4f5d1cdbd7186073800f7b1bd251bab",
+  "baseline_rows": [
+    {
+      "need": "Colour vision differences",
+      "adaptation": "Every colour-coded meaning carries a redundant non-colour cue (shape, icon, label, position or line style) so that no state, category or warning depends on hue."
+    },
+    {
+      "need": "Colour vision differences",
+      "adaptation": "Every state pair that matters keeps a lightness (luminance) difference or a non-colour cue, verified on a greyscale rendering; achromatopsia is served by combining the light-intensity, polarity and magnification settings, not by a separate profile."
+    },
+    {
+      "need": "Colour vision differences",
+      "adaptation": "Default data-visualisation palettes are lightness-ordered (sequential) or chosen to stay distinguishable under protan, deutan and tritan simulation, and series are directly labelled."
+    },
+    {
+      "need": "Low vision and age-related vision",
+      "adaptation": "Text at least 4.5:1 (large text 3:1) and UI components, states and focus at least 3:1 in every regular theme, measured against the worst-case backdrop of every translucent material. The floors hold in every setting combination: a setting may raise a floor, never lower it."
+    },
+    {
+      "need": "Low vision and age-related vision",
+      "adaptation": "Text and controls scale to at least 200 % without loss of content or function, and content reflows to a single column at a width equivalent to 320 CSS px; scaling is a system property every app inherits."
+    },
+    {
+      "need": "Blindness and screen-reader use",
+      "adaptation": "Every shell, system and SDK element exposes name, role, value, states, relationships, actions and status messages through one system accessibility service that screen readers and other assistive technology query; first-party UI follows Core-AAM-like role mappings; speech output runs on-device without network permission."
+    },
+    {
+      "need": "Blindness and screen-reader use",
+      "adaptation": "Focus tracking and change notification: the service emits focus, selection, window and live-region events; status messages announced without moving focus; politeness levels respected."
+    },
+    {
+      "need": "Blindness and screen-reader use",
+      "adaptation": "Headings and named regions in shell and apps (Orbit, window title bar, content, notifications); quick navigation by heading and region; landmarks as a complement, not the only structure."
+    },
+    {
+      "need": "Blindness and screen-reader use",
+      "adaptation": "Use one semantic schema for the native toolkit, with AccessKit's push-based tree model as a reference design; adapters to other OSes only for host tooling."
+    },
+    {
+      "need": "Light sensitivity, migraine and dimmed display",
+      "adaptation": "Comfort bound for stripe, grid or dot textures used as fills in system chrome, wallpapers and loaders (baseline comfort design rule, not a safety limit and not a measured threshold; it constrains identity artwork such as wallpapers and ornaments only after the user test of research section 12, priority 4, has calibrated it): a periodic texture fill (wallpaper, background, ornament, loader or progress-track fill) with more than five light-dark pairs in any direction keeps a relative-luminance contrast ratio of at most 1.5:1 between its light and dark elements, at any period and any area. Text, glyphs, icons and component structure (borders, separators, list rows, table and calendar grids, slider ticks, page-indicator dots) are outside the rule and stay under the contrast floors of row 6. Textures with at most five pairs, or at most 1.5:1, stay available to the regular themes. The pattern limit (pairs and area, ITU-R BT.1702-3 Guideline 2) is row 25. The reduced-motion striped progress track falls inside the bound when the track is wider than 80 px (more than five 16 px periods): its stripes are 17.4:1 (dark), 17.9:1 (light) and 21:1 (contrast) against the track (--color-text on --color-surface-inset, tokens.css); it is replaced by a static non-striped indicator (for example a solid track with a text status)."
+    },
+    {
+      "need": "Photosensitive epilepsy",
+      "adaptation": "Safety: hard limit for all system UI: nothing flashes more than three times in any one-second period unless below the WCAG general and red flash thresholds (a general flash is a pair of opposing relative-luminance changes of 10 % or more where the darker state is below 0.80; area limit a combined 0.006 sr, that is 25 % of any 10-degree field, where a 341 x 256 px rectangle at 1024 x 768 approximates the 10-degree field); no saturated-red flashing. Holds under every theme and setting combination, including theme and setting switches. This includes alerts, scan highlights, dwell and progress feedback; a full-screen visual alert is drawn as a sub-threshold luminance change."
+    },
+    {
+      "need": "Photosensitive epilepsy",
+      "adaptation": "Safety: hard limit for system wallpapers, backgrounds, loaders and effects: no more than five clearly discernible light-dark stripe pairs when the pattern occupies more than 40 % of the screen while stationary, or more than 25 % when it moves, oscillates, flashes or reverses."
+    },
+    {
+      "need": "Photosensitive epilepsy",
+      "adaptation": "Safety: innovative principle (future research): the compositor measures luminance change per screen region in real time and, when content would exceed the flash thresholds, attenuates it (for example temporal smoothing) and shows a notice; app review also checks declared animations. The guard is never a setting and can never be switched off for system-drawn surfaces. Recorded candidate exception, outside the baseline safety guarantee: for third-party media only, a deliberate, warned, non-persistent reveal of one item for one viewing (never remembered, never a default, never applied to other items, not completable by a single accidental activation), kept as a candidate because some content carries its meaning in the flashing itself. The reveal is off (not offered) until a safety review with clinical expertise approves it, and it never applies to system-drawn surfaces; most people who seized in the 1997 broadcast incident had no earlier unprovoked seizure (PER-ISHIGURO04), so a warning alone does not protect."
+    },
+    {
+      "need": "Photosensitive epilepsy",
+      "adaptation": "Safety: when native output knows display luminance (HDR or calibrated panels), apply the ITU-R BT.1702-3 absolute rules as well: 20 cd/m2 difference when the darker image is below 160 cd/m2, Michelson contrast above 1/17 at or above 160 cd/m2."
+    },
+    {
+      "need": "Photosensitive epilepsy",
+      "adaptation": "Safety: measure full-screen redraw on the native path and, if any region alternates luminance more than three times per second during redraw, move to double buffering or page flip before release."
+    },
+    {
+      "need": "Vestibular disorders and motion intolerance",
+      "adaptation": "Safety: vestibular safety limit for large-field motion in every regular theme, at boot and before any preference exists. Excluded by category: parallax backgrounds, scroll-linked movement of backgrounds or large surfaces, auto-panning, auto-zooming or drifting wallpapers, and fly-through or zoom-through transitions of the whole screen. Bounded: a non-essential transition that moves, scales or rotates a surface larger than about a quarter of the display (window open and close, workspace or place switch, any surface movement within the boot convergence) runs once, never loops and lasts at most 320 ms (--motion-duration-slow); these area and duration bounds are own design rules, not evidence-derived safe values, and are calibrated by user test. Small purposeful motion stays (the 12 px ds-rise, blade sweeps, the ask halo; components.css lines 350-354), so the default stays animated. First-run setup follows any device preference already present and offers the motion choice on its first screen; the boot sequence itself stays inside this bound. The limit restricts movement (translation, scaling, rotation) of large surfaces only: light, opacity, glow and colour that change in place over large areas are not movement and stay free within the flash limits, but a light front or gradient that travels across more than about a quarter of the display counts as movement. The boot convergence can therefore keep its 1400 ms as large surfaces brightening and fading in place, with small elements moving into the Orbit."
+    },
+    {
+      "need": "Vestibular disorders and motion intolerance",
+      "adaptation": "Safety: auto-starting moving, blinking or scrolling content that lasts more than 5 s beside other content stops by itself within 5 s or has a pause or stop control, in the default theme too: the ask halo settles to its static double ring after at most 5 s; a loader counts as essential only while no interaction is possible and progress must be shown."
+    },
+    {
+      "need": "Vestibular disorders and motion intolerance",
+      "adaptation": "Safety: every motion has a designed static equivalent that keeps its meaning (static double ring for ask, still arc for spinner, text status for progress), so reduced motion never removes information."
+    },
+    {
+      "need": "Reduced stereoscopic depth perception (added)",
+      "adaptation": "No information is conveyed by depth alone: layering, focus and trusted surfaces also differ by edge, contrast, label or position, so depth stays expressive but redundant."
+    },
+    {
+      "need": "Dyslexia and reading difficulties",
+      "adaptation": "Every regular theme and component survives the WCAG text-spacing override (line height 1.5, paragraph 2, letter 0.12, word 0.16 x font size) without clipping, overlap or lost function."
+    },
+    {
+      "need": "Dyslexia and reading difficulties",
+      "adaptation": "Reading surfaces (documents, help, long explanations) cap the measure at 80 characters and are ragged-right, never justified; short UI strings are unaffected."
+    },
+    {
+      "need": "Dyslexia and reading difficulties",
+      "adaptation": "Upright (roman) sans-serif text without italics (COG-RELLO13: sans serif and roman styles read faster than serif and italic). Emphasis by weight (600) and 'never underline-only' are own design rules that the source did not test."
+    },
+    {
+      "need": "Dyscalculia and low numeracy (added: older adults)",
+      "adaptation": "System text states quantities in words and numbers with units, consistent nl-NL formats and tabular digits; every number that drives a decision also shows its complement or reference ('7,2 GB vrij van 10 GB') and never relies on colour alone."
+    },
+    {
+      "need": "ADHD and attention differences",
+      "adaptation": "Notifications never take keyboard focus, never auto-dismiss an actionable item before it is stored in the notification centre, and non-urgent items can be postponed or suppressed (do not disturb)."
+    },
+    {
+      "need": "Autism and sensory-processing differences",
+      "adaptation": "Regions have clear boundaries and names; related controls grouped; no decorative element looks interactive."
+    },
+    {
+      "need": "Autism and sensory-processing differences",
+      "adaptation": "Predictable layout: navigation and repeated controls stay in the same order; nothing changes context on focus or input; adaptive suggestions appear in a separate, labelled place and never reorder the familiar path."
+    },
+    {
+      "need": "Memory, cognitive load and acquired brain injury (added)",
+      "adaptation": "Return to context: closing a dialog, toast or menu returns focus to where it was; windows and documents reopen at the last position."
+    },
+    {
+      "need": "Memory, cognitive load and acquired brain injury (added)",
+      "adaptation": "Destructive actions are reversible (trash, undo, version history); actions that cannot be undone ask for confirmation in plain words naming the object and the consequence."
+    },
+    {
+      "need": "Memory, cognitive load and acquired brain injury (added)",
+      "adaptation": "Recognition over recall: primary actions have visible text labels; icon-only controls have an accessible name and tooltip; the same function has the same name and icon everywhere."
+    },
+    {
+      "need": "Plain language: low literacy, second language, intellectual disability (added)",
+      "adaptation": "Plain-language system text: short sentences, common words, one idea per sentence, action-first button labels; unusual words and abbreviations have a definition on demand."
+    },
+    {
+      "need": "Plain language: low literacy, second language, intellectual disability (added)",
+      "adaptation": "Errors name the item, say what happened in plain words and suggest a fix; shown with text, icon and shape, never colour alone."
+    },
+    {
+      "need": "Motor impairments: pointer input",
+      "adaptation": "Every hit area at least 24 x 24 CSS px or meets the 24 px spacing circle; destructive and consent controls never adjacent to frequent controls."
+    },
+    {
+      "need": "Motor impairments: pointer input",
+      "adaptation": "Every gesture or drag has a single-pointer, non-path alternative; activation on up-event with abort by moving away; no function requires simultaneous actions."
+    },
+    {
+      "need": "Motor impairments: keyboard-only operation (also blind users)",
+      "adaptation": "Visible focus indicator in every theme and setting combination: 2 px outline in --color-focus with at least 3:1 against adjacent colours; the focused element is never fully hidden by Orbit, toasts or overlays; focus order follows meaning."
+    },
+    {
+      "need": "Motor impairments: keyboard-only operation (also blind users)",
+      "adaptation": "All shell and app functions operable by keyboard without timing; documented shortcuts per DESKTOP-SHELL; no keyboard trap; Escape closes transient surfaces."
+    },
+    {
+      "need": "Motor impairments: keyboard-only operation (also blind users)",
+      "adaptation": "Single-key shortcuts can be turned off or remapped, or act only on focus; system shortcuts use modifiers."
+    },
+    {
+      "need": "Motor impairments: keyboard filters",
+      "adaptation": "Safety: filter state always visible; a modifier-free off path and a reset on the trusted Ctrl+Alt+Delete screen; activation shortcut asks for confirmation; settings apply per user and at sign-in."
+    },
+    {
+      "need": "Motor impairments: eye tracking and dwell",
+      "adaptation": "Safety: consent prompts and destructive actions need a deliberate, distinct confirmation that a resting gaze, a stray switch press or a misheard phrase cannot complete; no default choice in consent prompts."
+    },
+    {
+      "need": "Motor impairments: voice control",
+      "adaptation": "Accessible name contains the visible label; icon-only controls carry a stable visible-on-demand name; numbered overlay ('show numbers') and grid fallback for unnamed targets."
+    },
+    {
+      "need": "Input timing: motor, memory and fatigue needs",
+      "adaptation": "No time limit without a way to turn it off, adjust it to at least ten times the default, or extend it after a warning with at least 20 s to respond (exceptions: real-time, essential, longer than 20 hours); locking, sign-out or time-out never discards entered data; transient messages stay until dismissed or have an adjustable duration."
+    },
+    {
+      "need": "Hearing: deaf and hard of hearing (captions and transcripts)",
+      "adaptation": "First-party media, system videos and onboarding ship synchronised captions; audio-only content ships a transcript; players always offer caption display. Automatic captions, wherever they appear, are labelled as automatic."
+    },
+    {
+      "need": "Hearing: deaf and hard of hearing (visual and haptic alerts)",
+      "adaptation": "Never sound-only: every audible system event has a visual representation (and haptic where hardware exists); status changes are also exposed programmatically."
+    },
+    {
+      "need": "Hearing: sign-language users",
+      "adaptation": "Do not present avatars or machine sign translation as equivalent access; label any experiment as research."
+    },
+    {
+      "need": "Speech impairments (added)",
+      "adaptation": "Speech is never the only input: every voice feature has keyboard, pointer or text equivalents; voice interfaces allow repeat, slower pacing and adjustable response time."
+    },
+    {
+      "need": "All needs (cross-cutting): system-wide preference following",
+      "adaptation": "System-rendered components and SDK apps follow device and user preferences automatically (colour scheme, contrast, text size and face, spacing, focus indicator, motion, transparency, stimulus load, language level) without code and without reading raw values; apps must follow documented platform preferences unless essential and must not disrupt platform accessibility features."
+    },
+    {
+      "need": "All needs (cross-cutting): privacy of preference values",
+      "adaptation": "Apps receive system-rendered adaptation (themed components, scaled text, spacing) rather than raw preference values; any app-facing preference API is a separate, coarse capability with its own consent that never discloses whether assistive technology is running, and preference values are stored as the user's personal data. Read-aloud, captions, voice recognition and any other inference on preference or voice data run on the device without network permission; voice enrolment data stays local and deletable."
+    },
+    {
+      "need": "All needs (cross-cutting): findable, combinable and resettable settings",
+      "adaptation": "Settings are independent property axes, never diagnosis profiles: findable in Settings > Accessibility, in quick settings and before sign-in; each axis is resettable on its own and all at once; every rendered property has exactly one owning axis, so no axis silently switches another off; a convenience preset is only a named combination that stays individually adjustable; baseline safety rows hold under every combination. No setting, preset or help text claims to treat or cure a condition (fonts, tints, filters, presets)."
+    },
+    {
+      "need": "All needs (cross-cutting): security and consent signals under every setting",
+      "adaptation": "Safety: permission prompts, trust indicators, security and data-loss warnings are never batched, delayed, hidden or simplified away by any stimulus-load, notification, language or motion setting; they may become calmer in form, never absent."
+    },
+    {
+      "need": "All needs (cross-cutting): platform conformance target",
+      "adaptation": "Treat EN 301 549 V4.1.1 clause 11 (with clause 5 for closed functionality) as the platform checklist and ISO 9241-171:2025 as guidance; record WCAG 3 only as a draft."
+    },
+    {
+      "need": "All needs (cross-cutting): trusted assistive-technology role (added)",
+      "adaptation": "A distinct, user-enabled trusted assistive-technology capability: read access to the semantic tree of focused apps and synthetic input through the input service only; secure fields hidden; AT cannot approve its own capability prompts; enable/disable only from trusted UI."
+    },
+    {
+      "need": "All needs (cross-cutting): accessible sign-in, lock and trusted screens (added)",
+      "adaptation": "Sign-in, lock and Ctrl+Alt+Delete screens offer a route without a cognitive function test (paste and password-manager entry, PIN with assistance, device-bound security key), never a CAPTCHA and never biometrics as the only means; screen reader, magnifier, keyboard filters, switch access and the user's display axes are available there; security strength is unchanged and assistive-technology state is isolated between users. The screen reader (with braille), magnifier and motion choice are reachable from first boot, before any account exists, and first-run setup and sign-in can be completed by braille alone."
+    }
+  ]
+}

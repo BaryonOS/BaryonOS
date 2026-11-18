@@ -1,0 +1,59 @@
+{
+  "source_commit": "95d59ad52761c1f8f0201d934556902b90ce63cb",
+  "source_file_sha256": "4aed11cbc29464fee2e9c7c666a5c0996aabf65edf744956f4b85f651ee5d7d3",
+  "translated_file_sha256": "160a14a985bcf2fe58c7e873ce827dd5f39fa880620a19b705d8c120e107c647",
+  "original_request_sha256": "e47f7a5885fd1f45d29a1edec7883a3dbaa8fdfba97f396fd1ebda9549d1eea2",
+  "original_marker_bytes_unchanged": true,
+  "independent_semantic_review": "PASS; all62 matrix rows and14 original/English assignment sections read",
+  "preserved": {
+    "matrix_rows": 62,
+    "legacy_heading_anchors": 17,
+    "original_inline_code_fragments": 42,
+    "link_references": 14
+  },
+  "source_preservation_exit": 0,
+  "reports": {
+    "P0-274-RELEASE-report.md": {
+      "sha256": "12430e8ce8168c4ca4c52917d66593f7c16df866a375ecd1ca35b8ff09cc6e0d",
+      "raw_archive": "/home/simon/projects/baryonos-handoffs/claude-to-codex/phase0-20261117/P0-274-RELEASE-report.md"
+    },
+    "P0-274-RELEASE-independent-review.md": {
+      "sha256": "120fe2ad72f88ebbb00f8823125ab0f3aec1840b9c388ab80bbfdc21c3e2b55c",
+      "raw_archive": "/home/simon/projects/baryonos-handoffs/claude-to-codex/phase0-20261117/P0-274-RELEASE-independent-review.md"
+    }
+  },
+  "not_run": [
+    "Runtime/native/QEMU",
+    "Hardware",
+    "Human audit"
+  ],
+  "progress": {
+    "previous": 41,
+    "current": 41
+  },
+  "issue274": "OPEN",
+  "required_current_head_hosted": "PENDING",
+  "lead_checks": [
+    {
+      "command": "Exact independent-reviewed hash and byte comparison of complete marker-bound original",
+      "exit_code": 0
+    },
+    {
+      "command": "python3 -B tools/progress.py --write",
+      "exit_code": 0
+    },
+    {
+      "command": "python3 -B tools/progress.py --check",
+      "exit_code": 0
+    },
+    {
+      "command": "git diff --check",
+      "exit_code": 0
+    },
+    {
+      "command": "Targeted three-dot filename comparison against existing PR333/336/339/340/344 write sets",
+      "exit_code": 0,
+      "result": "No overlapping translation target"
+    }
+  ]
+}

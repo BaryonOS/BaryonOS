@@ -1,16 +1,22 @@
-# Nieuw-os — volledige installer vanuit herkenning
+<a id="nieuw-os--volledige-installer-vanuit-herkenning"></a>
 
-Datum: 2 november 2026. **Status: voorstel na vergelijkend onderzoek; geen installer gebouwd of vrijgegeven.** De actuele repository heeft eigen UEFI/QEMU-boot en een begrensde native sessie, geen bewezen fysieke installatie, persoonlijke authenticatie of volledige account-/encryptie-/herstelketen. [Repositorybasis](../research/2026-11-02/repository-baseline.md)
+# Nieuw-os — complete installer built on familiarity
 
-## Gebruikersprobleem en keuze
+Date: 2 November 2026. **Status: proposal following comparative research; no installer has been built or released.** The current repository has its own UEFI/QEMU boot process and a bounded native session; it has no demonstrated physical installation, personal authentication or complete account/encryption/recovery chain. [Repository baseline](../research/2026-11-02/repository-baseline.md)
 
-[BRON] De [31-aspectvergelijking](../research/os-installation-comparison.md) laat gedeelde concepten maar verschillende faseringen zien: Setup/OOBE, Recovery/Setup Assistant en distributiegebonden installers/eerste-startwizards. Sommige geavanceerde opslagroutes schrijven vóór een latere eindbevestiging. Een gekopieerde schermvolgorde is daarom geen veilige of bewezen universele funnel.
+<a id="gebruikersprobleem-en-keuze"></a>
 
-[ONTWERPKEUZE] Gebruik één herkenbare route: eerst kunnen waarnemen en invoeren, dan veilig proberen en geschiktheid begrijpen, daarna doel en bescherming kiezen, en pas na een compleet wijzigingsplan schrijven. First boot verifieert de feitelijke uitkomst. Optionele begeleiding en diensten komen nadat de noodzakelijke basis bruikbaar is. Dit is een te toetsen ontwerpkeuze, geen uit de bronnen bewezen optimale volgorde.
+## User problem and design decision
 
-De installer bedient ervaren computergebruikers zonder verplichte handleiding en beginners zonder verplichte kennis van EFI, GPT, mount points of filesystems. Advanced geeft technische controle, met dezelfde veiligheidsgrenzen. De eigen kernel blijft de basis; Calamares/Anaconda zijn onderzoeksmateriaal, geen aangenomen platformarchitectuur.
+[SOURCE] The [31-aspect comparison](../research/os-installation-comparison.md) shows shared concepts but different phase sequences: Setup/OOBE, Recovery/Setup Assistant and distribution-specific installers/first-start wizards. Some advanced storage routes write before a later final confirmation. A copied screen sequence is therefore neither a safe nor a proven universal funnel.
 
-## Voorgestelde funnel
+[DESIGN DECISION] Use one familiar route: first ensure the interface can be perceived and operated, then provide a safe trial and explain suitability, then select the destination and protection, and write only after a complete change plan. First boot verifies the actual outcome. Optional guidance and services follow once the necessary foundation is usable. This design decision requires testing; the sources do not establish it as the optimal sequence.
+
+The installer serves experienced computer users without a mandatory manual and beginners without requiring knowledge of EFI, GPT, mount points or filesystems. Advanced provides technical control with the same safety boundaries. The project's own kernel remains the foundation; Calamares/Anaconda are research material, not an adopted platform architecture.
+
+<a id="voorgestelde-funnel"></a>
+
+## Proposed funnel
 
 ```text
 Gecontroleerd opstartmedium
@@ -29,76 +35,105 @@ Gecontroleerd opstartmedium
   → Desktop + optionele, hervatbare onboarding/migratie
 ```
 
-Netwerk is geen aparte verplichte poort als alle geauthenticeerde kernonderdelen op het medium staan. Download, tijdsynchronisatie of latere providerkoppeling tonen hun eigen reden en netwerkgrens. Een onvolledig medium kan niet via een nep-offlinepad verder. De gebruiker kan terug naar proberen of stoppen zonder schijfmutatie.
+English equivalent of the preserved source sequence:
 
-## Stapcontract
+```text
+Verified boot medium
+  → Welcome: language + accessibility that is always reachable
+  → Try keyboard/input
+  → Try / Install / Recovery (available routes only)
+  → Suitability and required connectivity
+  → Installation method + identified disk
+  → Proposed data/boot changes
+  → Local account + protection and recovery method
+  → Local preferences + privacy review
+  → Complete change plan + explicit confirmation before writing
+  → Installation with actual phase/error status
+  → Restart + instructions for the correct medium
+  → First boot: check actual configuration and access
+  → Desktop + optional, resumable onboarding/migration
+```
 
-Iedere rij is [VOORSTEL]. Verwijzingen `Ixx` zijn de dimensies van de bronmatrix, niet schermnummers van andere systemen. De vergelijkingsdossiers geven de precieze bronnen en uitzonderingen.
+Networking is not a separate mandatory gate when all authenticated core components are on the medium. Downloads, time synchronisation or later provider connections show their own purpose and network boundary. An incomplete medium cannot proceed through a fictitious offline path. The user can return to the trial or stop without modifying the disk.
 
-| Stap | Waarom / herkenbare vergelijking | Informatie voor beginner | Advanced en veilige default | Combineren, uitstellen of weglaten |
+<a id="stapcontract"></a>
+
+## Step contract
+
+Every row is a [PROPOSAL]. References `Ixx` are dimensions of the source matrix, not screen numbers from other systems. The comparison dossiers provide the precise sources and exceptions.
+
+| Step | Purpose / familiar comparison | Information for beginners | Advanced and safe default | Combine, defer or omit |
 |---|---|---|---|---|
-| S00 Boot | Bron en doel scheiden; alle onderzochte routes hebben boot/recovery (I01) | Naam/versie medium, proefstatus en beperkte hardwareondersteuning | Alleen gecontroleerde payload/bootketen; geen automatische reparatie van hostopslag | Geen firmwareconfiguratie verbergen in “Volgende” |
-| S01 Welkom | Taal vóór belangrijke tekst; Ubuntu zet toegankelijkheid vroeg (I03/06) | Taal, groter/contrasterend beeld, spraak/invoer waar echt geleverd | Geen netwerkdetectie van nationaliteit; behoud gekozen hulpmiddelen | Toegankelijkheid permanent bereikbaar, geen verplichte vragenlijst |
-| S02 Invoer | Keyboard vóór geheimen; Windows/Ubuntu hebben vroege keuze (I05) | Voorbeeld typen, layout en zichtbaar testresultaat zonder opslag | Andere layouts/IME alleen indien werkelijk ondersteund; geen wachtwoord als testtekst | Later wijzigbaar; niet opnieuw vragen in first boot |
-| S03 Intentie | Linux live-Try is een herkenbaar veilig experiment (I08) | “Proberen verandert de interne schijf niet”; installatie en herstel apart | Proefsessie krijgt geen opslagmutatierecht; herstel alleen als echt geleverd | Mag bij welkom aangeboden worden, maar gevoelige stappen pas na bruikbare invoer |
-| S04 Gereedheid | Eisen/hardware zijn verschillend bij alle routes (I09/23) | Werkt beeld/invoer/opslag; bekende beperkingen en ruimte/energie | Exact getest profiel; waarschuwing ≠ garantie. Onveilig/ongekend schrijfpunt blokkeert installatie | Vóór schijfkeuze tonen; nog geen drivers/firmware stil installeren |
-| S05 Verbinding indien nodig | Ubuntu optioneel; Windows/macOS hebben routeafhankelijke afhankelijkheid (I07/22) | Waarom verbinding nodig is, welke download en alternatief | Offline complete kern; geverifieerde downloads, geen externe fallback of captive-portalgeheimen loggen | Overslaan als niet nodig; normale wifiwisseling later in instellingen |
-| S06 Methode/doel | Alle routes onderscheiden doel en behoud/vervangen (I10–13) | “Bestaand systeem behouden”, “Deze schijf vervangen” of bewezen herstelroute; schijfnaam/capaciteit/identiteit | Geen te wissen doel vooraf geselecteerd; onbekende layout is geen vrije ruimte | Methode en schijf samen tonen; technische editor achter Advanced |
-| S07 Wijzigingsvoorstel | Automatische en handmatige layouts bestaan naast elkaar (I11/25) | Voor/na: welke gegevens/systemen blijven, verdwijnen of verplaatsen; bootgevolgen | Interne layout berekenen na expliciete keuze; geen schrijfacties tijdens preview | Normale gebruiker hoeft geen partitietype te kiezen; Advanced behoudt hetzelfde planmodel |
-| S08 Persoonlijk account | Account is gedeeld concept, positie verschilt (I15/18) | Naam en echte aanmeldmethode op dit apparaat; provider is afzonderlijk | Lokale account; geen ongeauthenticeerde guest als persoonlijk. Privileges niet afleiden uit een webformulier | Apparaatnaam niet-identificerend voorstellen, bewerkbaar in detail; geen verplichte onlineaccount |
-| S09 Bescherming/herstel | Encryptie- en herstelmodellen verschillen sterk (I14/17) | Wat beschermd is, hoe ontgrendelen werkt en wat verlies van herstelmiddel betekent | Persoonlijke gegevens versleuteld als productdoel; alleen aanbieden bij echte crypto/sleutel-/authketen; anders blokkade | Met account combineren als uitleg helder blijft; PIN, loginwachtwoord en encryptiesleutel niet verwarren |
-| S10 Lokale voorkeuren | Tijdzone/regio niet overal dezelfde stap (I04) | Tijdzone en eventueel regio voor weergave; geen locatie nodig | Bewerkbaar voorstel zonder stil GeoIP; eigen apparaatnaam zichtbaar | Taal/keyboard niet dupliceren; tijdzone kan met voorkeuren worden gecombineerd |
-| S11 Privacycontrole | OOBE/first-startkeuzes lopen uiteen (I19–21/24) | Lokale opslag, geen OS-telemetrie, optionele latere koppelingen; security floor blijft aan | Geen providerescrow, geen cloud/AI nodig; geen privacykeuze die isolatie uitzet | Korte controle, geen verzameling extra dienstenvragen; apps/AI/telefoon later |
-| S12 Samenvatting/autoriseer | Duidelijke schrijfgrens ontbreekt niet overal, maar is niet uniform (I25) | Concreet doel, behouden/gewist, bootwijzigingen, bescherming/herstel en netwerkdownload | Geen autorisatie bij onzeker/stale plan; expliciete actie met gevolg in knoptekst | Eén volledige grens vóór iedere mutatie, ook vanuit Advanced |
-| S13 Installeren | Alle routes tonen uitvoering en overgang (I26) | Werkelijke fase, fouten, annuleer-/herstelgrens; geen valse ETA | Installerbroker voert uitsluitend geautoriseerd plan uit; geheimen niet loggen | Geen aanbiedingen, quiz of nieuwe accountkeuze tijdens kopiëren |
-| S14 Herstart/medium | Routes verschillen van automatische reboot tot live-exit (I27/28) | Gereed, welk medium verwijderen, waar volgende boot vandaan komt | Geen reboot als onafgeronde writes; fout toont herstelpad | Geen ingebouwde-recovery-USB-instructie tonen als er geen USB is |
-| S15 Eerste boot | Nieuwe configuratiefase komt breed voor (I29/30) | Feitelijke accounttoegang en installatiestatus; noodzakelijke foutafhandeling | Toestand controleren, niet blind wizardvlag geloven; geen herformat bij mislukking | Geen herhaalde taal/privacyvragen; optionele begeleiding mag naar desktop worden overgeslagen |
-| S16 Desktop | Succes betekent bruikbare geïnstalleerde sessie (I31) | Waar apps, zoeken, materiaal, instellingen en hulp staan, voor zover geleverd | Eerlijke status van proefsessie/persoonlijk/beheerd; geen nepnetwerk/apps | [Onboarding](new-os-onboarding-spec.md) vrijwillig; import afzonderlijk en bronbehoudend |
+| S00 Boot | Separate source and destination; all studied routes have boot/recovery (I01) | Medium name/version, trial status and limited hardware support | Only verified payload/boot chain; no automatic repair of host storage | Do not hide firmware configuration in “Volgende” |
+| S01 Welcome | Language before important text; Ubuntu provides accessibility early (I03/06) | Language, larger/higher-contrast display, speech/input where actually provided | No network detection of nationality; preserve selected assistive tools | Accessibility always reachable, no mandatory questionnaire |
+| S02 Input | Keyboard before secrets; Windows/Ubuntu offer an early choice (I05) | Type a sample, choose a layout and see a test result without storage | Other layouts/IMEs only if actually supported; no password as test text | Changeable later; do not ask again at first boot |
+| S03 Intent | Linux live-Try is a familiar safe experiment (I08) | “Proberen verandert de interne schijf niet”; installation and recovery separate | Trial session has no storage mutation right; recovery only if actually provided | May be offered at welcome, but sensitive steps follow usable input |
+| S04 Readiness | Requirements/hardware differ across all routes (I09/23) | Whether display/input/storage work; known limitations and space/power | Precisely tested profile; warning ≠ guarantee. Unsafe/unknown write destination blocks installation | Show before disk selection; do not silently install drivers/firmware yet |
+| S05 Connection if needed | Optional in Ubuntu; route-dependent in Windows/macOS (I07/22) | Why a connection is needed, which download and what alternative | Complete offline core; verified downloads, no external fallback or logging of captive-portal secrets | Skip if unnecessary; normal wifi switching later in settings |
+| S06 Method/destination | All routes distinguish destination and preservation/replacement (I10–13) | “Bestaand systeem behouden”, “Deze schijf vervangen” or a demonstrated recovery route; disk name/capacity/identity | No destination to erase preselected; unknown layout is not free space | Show method and disk together; technical editor behind Advanced |
+| S07 Change proposal | Automatic and manual layouts coexist (I11/25) | Before/after: which data/systems remain, disappear or move; boot consequences | Calculate internal layout after explicit choice; no writes during preview | Ordinary users need not choose a partition type; Advanced retains the same plan model |
+| S08 Personal account | Account is a shared concept, its position differs (I15/18) | Name and actual sign-in method on this device; provider separate | Local account; no unauthenticated guest presented as personal. Do not derive privileges from a web form | Propose a non-identifying device name, editable in details; no mandatory online account |
+| S09 Protection/recovery | Encryption and recovery models differ substantially (I14/17) | What is protected, how unlocking works and what losing the recovery material means | Personal data encrypted as a product objective; offer only with a real crypto/key/authentication chain; otherwise block | Combine with account if explanation remains clear; do not confuse PIN, login password and encryption key |
+| S10 Local preferences | Timezone/region are not the same step everywhere (I04) | Timezone and optional display region; no location needed | Editable suggestion without silent GeoIP; device name visible | Do not duplicate language/keyboard; timezone can be combined with preferences |
+| S11 Privacy check | OOBE/first-start choices differ (I19–21/24) | Local storage, no OS telemetry, optional later connections; security floor remains enabled | No provider escrow, no cloud/AI required; no privacy choice that disables isolation | Brief check, no collection of extra service questions; apps/AI/phone later |
+| S12 Summary/authorise | A clear write boundary exists in some routes but is not uniform (I25) | Concrete destination, preserved/erased data, boot changes, protection/recovery and network download | No authorisation for an uncertain/stale plan; explicit action with consequence in button text | One complete boundary before any mutation, including through Advanced |
+| S13 Install | All routes show execution and transition (I26) | Actual phase, errors, cancellation/recovery boundary; no false ETA | Installer broker executes only the authorised plan; do not log secrets | No offers, quiz or new account choice during copying |
+| S14 Reboot/medium | Routes range from automatic reboot to live exit (I27/28) | Completion, which medium to remove, where the next boot comes from | No reboot with unfinished writes; error shows recovery path | Do not show a USB instruction for built-in recovery when no USB is present |
+| S15 First boot | A new configuration phase is common (I29/30) | Actual account access and installation status; necessary error handling | Check state rather than blindly trusting a wizard flag; no reformat on failure | No repeated language/privacy questions; optional guidance may be skipped to reach the desktop |
+| S16 Desktop | Success means a usable installed session (I31) | Where apps, search, material, settings and help are located, insofar as provided | Honest trial/personal/managed status; no fictitious network/apps | [Onboarding](new-os-onboarding-spec.md) voluntary; import separate and preserves the source |
 
-## Schijfveiligheid en herstelbaarheid
+<a id="schijfveiligheid-en-herstelbaarheid"></a>
 
-**Geen mutatie vóór S12.** Inventarisatie is read-only en mag geen filesystemreparatie, automatische mount met writes, journal replay op bronvolumes, resize, bootentrywijziging, encryptieconversie of “voorbereidend” formatteren uitvoeren. Ook Advanced mag geen direct schrijvende editor om de bevestigingsgrens heen aanbieden. Deze strengere grens is een eigen veiligheidsbesluit op basis van de gevonden uitzonderingen, geen claim dat alle bestaande installers zo werken.
+## Disk safety and recoverability
 
-Het wijzigingsplan bevat minimaal: stabiele device-identiteit plus menselijk herkenbare naam/capaciteit, bron-/doelrol, alle te behouden/wissen/verkleinen delen, bestaande OS-/gegevensdetectie met onzekerheidslabel, bootwijzigingen, encryptie-/herstelstatus, benodigde ruimte en eventuele download. Onbekende of versleutelde gegevens worden expliciet onbekend genoemd. Het plan noemt exacte gevolgen; een bevestigingscheckbox is geen vervanging voor begrijpelijke informatie.
+**No mutation before S12.** Inventory is read-only and must not perform filesystem repair, automatic mounting with writes, journal replay on source volumes, resize, boot-entry changes, encryption conversion or formatting described as “voorbereidend” (preparatory). Advanced must not offer an editor that writes directly around the confirmation boundary either. This stricter boundary is a project safety decision based on the exceptions found, not a claim that all existing installers work this way.
 
-Elke wijziging aan doelidentiteit, media, plan, versleutelstatus of voorwaarden maakt de autorisatie ongeldig. De broker valideert identiteit en geautoriseerd plan opnieuw vlak vóór de eerste write en bij relevante fasen. Een hotplug, corrupte planning of verkeerde doelhandle geeft een blokkade, geen automatische vervangende doelschijf. Een UI-renderer bezit geen algemeen schijfrecht en kan geen consentbewijs fabriceren. Het toekomstige broker-/capabilitycontract vereist afzonderlijk ontwerp en negatieve tests.
+The change plan contains at least: stable device identity plus a human-recognisable name/capacity, source/destination role, all parts to preserve/erase/shrink, existing OS/data detection with uncertainty labels, boot changes, encryption/recovery status, required space and any download. Unknown or encrypted data are explicitly identified as unknown. The plan states exact consequences; a confirmation checkbox does not replace understandable information.
 
-**Dual boot is conditioneel:** alleen aanbieden voor precies geteste boot-, ruimte-, bestandssysteem-, resize- en encryptiecombinaties met herstelroute. Anders uitleggen dat behoud op deze schijf niet ondersteund is; een expliciet gekozen andere schijf of stoppen blijft mogelijk. De installer mag niet stil de enige aangeboden wisroute kiezen. Een back-up is vooraf nodig bij wijzigingen aan bestaande gegevens; een gedetecteerde back-up is geen bewijs dat herstel werkt.
+Any change to destination identity, media, plan, encryption status or prerequisites invalidates authorisation. The broker revalidates identity and the authorised plan immediately before the first write and at relevant phases. Hotplug, corrupt planning or an incorrect destination handle causes a block, not an automatic replacement destination disk. A UI renderer has no general disk right and cannot fabricate evidence of consent. The future broker/capability contract requires separate design and negative tests.
 
-**Annuleren vóór schrijven:** nul schijfwijzigingen en tijdelijke geheimen wissen. **Na schrijven:** geen beloofde undo; stop alleen op veilige fasegrenzen en rapporteer werkelijk voltooide/onvoltooide stappen en herstelopties. Bronverlies na expliciet wissen is niet door een “Terug”-knop herstelbaar. Onderbrekingstest en herstelmedium zijn releasegates. Downloadfouten laten een geldige bron/installatie intact waar technisch bewezen; geen nieuwe schijf initialiseren om een fout te maskeren.
+**Dual boot is conditional:** offer it only for precisely tested boot, space, filesystem, resize and encryption combinations with a recovery route. Otherwise explain that preservation on this disk is unsupported; an explicitly selected other disk or stopping remains possible. The installer must not silently select the only offered erasure route. A backup is required beforehand when changing existing data; detecting a backup does not prove that recovery works.
 
-## Encryptie, accounts en persoonsgegevens
+**Cancellation before writing:** zero disk changes and erase temporary secrets. **After writing:** no promised undo; stop only at safe phase boundaries and report actually completed/incomplete steps and recovery options. Source loss after explicit erasure cannot be recovered with a “Terug” button. Interruption testing and recovery media are release gates. Download errors leave a valid source/installation intact where technically demonstrated; do not initialise a new disk to mask an error.
 
-Persoonlijke gegevensbescherming sluit aan op [het lokale privacycontract](../LOCAL-PRIVACY-CONTRACT.md), niet op een nieuwe zelfbedachte cryptolaag. Onderhoudbare crypto, entropy, sleutelisolatie, authenticatie, opslagintegriteit, update-/pakketvertrouwen en herstel moeten daadwerkelijk bestaan. Een ontbrekende keten blokkeert de claim “veilig persoonlijk geïnstalleerd”. Geen dummycheckbox, plaintext-terugval of automatische provider-key-escrow.
+<a id="encryptie-accounts-en-persoonsgegevens"></a>
 
-De normale route maakt onderscheid tussen login, ontgrendelen en herstel. Biometrie/TPM/PIN alleen bij bewezen ondersteunde hardware en veilige fallback; geen fysieke aanwezigheid of biometrie suggereren op basis van een VM. Herstelmiddelen worden buiten het te wissen of ermee beschermde volume bewaard, met uitleg en een veilige controle van beschikbaarheid; zij worden niet naar een provider verstuurd, in telemetrie gezet of in logs/screenshotbewijs opgenomen. Geheimen uit inputbuffers/voortgangstoestand verwijderen volgens een apart te testen geheugen-/servicecontract.
+## Encryption, accounts and personal data
 
-## State, navigatie, techniek en uitvoeringsplan
+Personal data protection follows [the local privacy contract](../LOCAL-PRIVACY-CONTRACT.md), not a newly invented cryptographic layer. Maintainable cryptography, entropy, key isolation, authentication, storage integrity, update/package trust and recovery must actually exist. A missing chain blocks the claim “veilig persoonlijk geïnstalleerd” (English: securely installed for personal use). No dummy checkbox, plaintext fallback or automatic provider key escrow.
 
-Voorgesteld toestandsmodel: read-only inventarisatie → conceptplan → compleet gevalideerd plan → expliciet geautoriseerd plan → uitvoering → verifieerbare afronding, fout of herstel. Teruggaan vóór uitvoering verwijdert afhankelijke autorisaties; het bewaren van taal of layout bewaart geen schijfconsent. Na schrijven vervangen veilige fase-/herstelacties het gewone wizard-Terug.
+The normal route distinguishes login, unlocking and recovery. Biometrics/TPM/PIN require demonstrably supported hardware and a safe fallback; do not suggest physical presence or biometrics on the basis of a VM. Recovery material is stored outside the volume to be erased or protected by it, with explanation and a safe availability check; it is not sent to a provider, placed in telemetry or included in logs/screenshot evidence. Remove secrets from input buffers/progress state under a memory/service contract to be tested separately.
 
-Toekomstige componenten: boot-/payloadverifier, readinessprobe, read-only opslaginventaris, planbuilder, account-/sleutelservice, samenvattingsrenderer, begrensde installerbroker, voortgangs-/recoverycoördinator en first-bootvalidator. Dit zijn benodigde onderdelen, **geen bestaande services**. De exacte native bestanden en IPC-contracten worden pas vastgesteld na actuele code-inspectie en securityontwerp. Geen brede herschrijving, bestaand bewijs of QEMU-opslagmodel wijzigen om deze documentatie als werkend te laten lijken.
+<a id="state-navigatie-techniek-en-uitvoeringsplan"></a>
 
-Voorkeursvolgorde voor een later implementatieplan:
+## State, navigation, technology and implementation plan
 
-1. Pure, niet-schrijvende plan-/stateproef met synthetische schijven; ongeldige en ambigue doelen centraal. Een UI-prototype blijft als simulatie gelabeld.
-2. Echte opslaginventaris en capabilitygrens met wegwerpimages; geen onbekende-volume-initialisatie. Eerst negatieve tests en onderbrekingen.
-3. Echte account-/crypto-/herstelketen en toegankelijke invoer vanaf boot. Niet alvast persoonlijke privacy claimen.
-4. Geautoriseerde uitvoering en first-bootherstel op het vaste virtuele profiel; vervolgens volledige regressiegates en menselijke taakproef.
-5. Alleen na afzonderlijk hardwarebewijs en expliciete opdracht ooit fysieke installatie. Deze onderzoeksopdracht verleent die toestemming niet.
+Proposed state model: read-only inventory → draft plan → fully validated plan → explicitly authorised plan → execution → verifiable completion, error or recovery. Going back before execution removes dependent authorisations; retaining language or layout does not retain disk consent. After writing, safe phase/recovery actions replace the ordinary wizard action Terug.
 
-Prestatie-impact: inventarisatie/download mag invoer en hulpmiddelen niet blokkeren; annuleerbare probes, begrensde geheugen-/loggroei en geen animatie afhankelijk van elke disk-read. Meet respons en fasekosten op het echte profiel; er is geen onderbouwd tijdsbudget of installatieduur vastgesteld.
+Future components: boot/payload verifier, readiness probe, read-only storage inventory, plan builder, account/key service, summary renderer, bounded installer broker, progress/recovery coordinator and first-boot validator. These are required components, **not existing services**. Exact native files and IPC contracts are determined only after current code inspection and security design. Do not perform a broad rewrite or modify existing evidence or the QEMU storage model to make this documentation appear operational.
 
-## Acceptatie en regressierisico
+Preferred sequence for a later implementation plan:
 
-| ID | Vereist vóór ondersteunde uitvoering | Controle |
+1. Pure, non-writing plan/state experiment with synthetic disks; focus on invalid and ambiguous destinations. A UI prototype remains labelled as a simulation.
+2. Real storage inventory and capability boundary with disposable images; no initialisation of unknown volumes. Negative tests and interruptions first.
+3. Real account/crypto/recovery chain and accessible input from boot. Do not claim personal privacy in advance.
+4. Authorised execution and first-boot recovery on the fixed virtual profile; then complete regression gates and a human task trial.
+5. Physical installation only after separate hardware evidence and an explicit instruction. This research assignment does not grant that permission.
+
+Performance impact: inventory/downloads must not block input or assistive tools; cancellable probes, bounded memory/log growth and no animation dependent on every disk read. Measure response and phase costs on the actual profile; no substantiated time budget or installation duration has been established.
+
+<a id="acceptatie-en-regressierisico"></a>
+
+## Acceptance and regression risk
+
+| ID | Required before supported execution | Check |
 |---|---|---|
-| IN-01 | Geen mutatie vóór complete planbevestiging, ook in Advanced | Broker-/state-negatieftests, read-only bronbewaking, write-audit op disposable beelden |
-| IN-02 | Juiste doelidentiteit; verandering invalideert bevestiging; onbekend ≠ leeg | Meerdere gelijke schijven, encrypted/unknown/full, hotplug, stale/corrupt plan, ongeautoriseerde handle |
-| IN-03 | Beginners begrijpen behoud/wissen zonder technische layouttermen | Taakproef met synthetische gegevens: vooraf gevolgen laten uitleggen; ernstig misbegrip blokkeert release |
-| IN-04 | Keyboard, taal, hulpmiddelen en focus werken vóór geheimen en schijfkeuze | Keyboard-/screenreader-/contrast-/schaal-/reduced-motionproef vanaf boot, niet alleen op desktop |
-| IN-05 | Werkelijke voortgang, veilige annuleergrens, herstel na onderbreking en correcte eerste boot | Foutinspuiting per fase, mislukte payload/update/boot, herstelmiddelproef; geen nep-success |
-| IN-06 | Lokaal account en bescherming zijn echt; optionele providers wijzigen geen security floor | Auth-, isolatie-, sleutel-, grant- en netwerknegatieftests; menselijke beveiligingsreview blijft apart |
-| IN-07 | Bronbehoud en boot-/dual-bootclaim kloppen per aangeboden route | Voor/na-inventaris, toepasselijke hashes/metadata, boot/herstel van ieder behouden systeem |
+| IN-01 | No mutation before complete plan confirmation, including in Advanced | Broker/state negative tests, read-only source monitoring, write audit on disposable images |
+| IN-02 | Correct destination identity; change invalidates confirmation; unknown ≠ empty | Multiple identical disks, encrypted/unknown/full, hotplug, stale/corrupt plan, unauthorised handle |
+| IN-03 | Beginners understand preservation/erasure without technical layout terms | Task trial with synthetic data: ask participants to explain consequences beforehand; serious misunderstanding blocks release |
+| IN-04 | Keyboard, language, assistive tools and focus work before secrets and disk selection | Keyboard/screenreader/contrast/scale/reduced-motion trial from boot, not only on the desktop |
+| IN-05 | Actual progress, safe cancellation boundary, recovery after interruption and correct first boot | Fault injection at each phase, failed payload/update/boot, recovery-material trial; no fictitious success |
+| IN-06 | Local account and protection are real; optional providers do not change the security floor | Authentication, isolation, key, grant and network negative tests; human security review remains separate |
+| IN-07 | Source preservation and boot/dual-boot claims hold for each offered route | Before/after inventory, applicable hashes/metadata, boot/recovery of every preserved system |
 
-Risico's: stale device-identiteit, schijfinventaris die al schrijft, verkeerd opgeslagen herstelmiddel, verschil tussen UI-consent en brokerrechten, misleidende first-bootstatus, ontbrekende drivers/hulpmiddelen en regressie van bestaande virtuele opslagrecovery. Bouw-, lint-/type-/testcommando's volgen de actuele betrokken code; ze zijn hier niet uitgevoerd omdat uitsluitend documentatie wordt toegevoegd. Veiligheidsbewijs, bruikbaarheid en fysieke ondersteuning blijven afzonderlijke acceptatieniveaus.
+Risks: stale device identity, disk inventory that already writes, incorrectly stored recovery material, differences between UI consent and broker rights, misleading first-boot status, missing drivers/assistive tools and regression in existing virtual storage recovery. Build, lint/type/test commands follow the current code involved; they were not executed here because only documentation is being added. Safety evidence, usability and physical support remain separate acceptance levels.

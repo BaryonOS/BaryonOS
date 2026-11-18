@@ -1,0 +1,91 @@
+{
+  "schema": 1,
+  "source_commit": "b39948e4355b789faeffa9c92a92c1a443dd3480",
+  "parent_commit": "ef2db95f42f3883a3f85e5107971e2129291451f",
+  "checks": [
+    {
+      "name": "combined pipeline isolation sandbox quarantine hold and roadmap tests",
+      "result": "PASS",
+      "tests": 116,
+      "skipped": 10,
+      "exit_code": 0,
+      "log": "build/tokenguard/run-gcnadolk.log",
+      "sha256": "9b1bc3eb1964ffcb3b645ca79678f4dddbb30bb35f52557851989189a0f2bd96"
+    },
+    {
+      "name": "complete tools suite",
+      "result": "PASS",
+      "tests": 479,
+      "skipped": 10,
+      "exit_code": 0,
+      "log": "build/tokenguard/run-lrhvfi11.log",
+      "sha256": "144fad0d0c9eb5239687609de0d0a8f300b68a3179d1fc3dcec4fefc74f3dc05"
+    },
+    {
+      "name": "applicable host workflow harness patterns",
+      "result": "PASS",
+      "tests": 107,
+      "exit_code": 0,
+      "log": "build/tokenguard/run-0yfmsqs7.log",
+      "sha256": "c325ab3cec9752361546c3419afe2b2150da198db46b7e578b593d4cb1011517"
+    },
+    {
+      "name": "strict preflight with host tools",
+      "result": "PASS",
+      "exit_code": 0,
+      "log": "build/tokenguard/run-128gwt50.log",
+      "sha256": "854426658a0d533beb67762b1dc6500fef5b645df0fe3a4982a6e30be56eb0cc"
+    },
+    {
+      "name": "M6c exact-source build and QEMU smoke",
+      "result": "PASS",
+      "raw_qemu_exit": 33,
+      "exit_code": 0,
+      "logs": {
+        "build": {
+          "path": "build/tokenguard/run-3wg2fsp8.log",
+          "sha256": "2dc10fb80280b60203bc167dbda5e9b64337f4294e1373ed536a341fb7191648"
+        },
+        "qemu": {
+          "path": "build/tokenguard/run-qn79aes2.log",
+          "sha256": "c3c9e121ef94c83ccad586bdd094842628292e75da37b99110def7279b48101f"
+        },
+        "result": {
+          "path": "build/run/m6c-normal-1383c53959/result.json",
+          "sha256": "bf887253cf9862815b18a2df52f19ccfaee74fe32fce489f20f5580b0a34a1f5"
+        }
+      }
+    },
+    {
+      "name": "DocumentSession normal and cold-recovery gate",
+      "result": "PASS",
+      "real_vm_invocations": 2,
+      "source_freeze_checks": 9,
+      "exit_code": 0,
+      "log": "build/tokenguard/run-qeraf1uc.log",
+      "sha256": "9f74a0357b9b228aee16544cd43f3e5057baab97b5db29f8af11a29d860a065f",
+      "result_path": "build/ci-document.Zdeyyl/document-session-gate/result.json",
+      "result_sha256": "f10bc4c5c1f549d333cdc6593ee247cac90ceefff7a3995fc0530c3ead458f3e"
+    },
+    {
+      "name": "independent receipt and source-race verification",
+      "result": "PASS",
+      "agent_pipeline_tests": 28,
+      "logs": {
+        "focused": {
+          "path": "build/tokenguard/run-slea70w5.log",
+          "sha256": "d77960e7bf4a96522895369999c1d7a0530b9f62241556f53cb3212c009e8e54"
+        },
+        "race_probe": {
+          "path": "build/tokenguard/run-6c1rmp3a.log",
+          "sha256": "9ae61694af0d16e77cfcb64c97e73959caedc9663ccd17734de5acd985b02201"
+        }
+      }
+    }
+  ],
+  "not_run": [
+    "The private opt-in native sandbox runtime was not available, so the receipt path was verified with controller/sandbox doubles rather than a live isolated runtime.",
+    "The complete qemu-smoke workflow adapter, pinned offline caches and always-run evidence finalizer remain unimplemented.",
+    "Hosted CI has not yet run on this unpublished exact head."
+  ]
+}

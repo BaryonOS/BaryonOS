@@ -1,0 +1,7 @@
+{
+  "record_kind": "Session authority provenance; not a project decision record or ADR.",
+  "source": "Explicit project-owner instruction in the local execution chat, 18 November 2026.",
+  "scope": "Execution authority for independently verified stabilization work.",
+  "governance_status": "Not started and outside PR #359; this file does not establish a governance transition.",
+  "repository_decision_source": "docs/DECISIONS.md remains authoritative for versioned project decisions."
+}

@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-18",
-    "source_commit": "c4f94860fb19f94efdb4aa94254f3a0b463ce5b5",
+    "source_commit": "04e464963cd0d969f8687208404f480f289d54a4",
     "assessment_basis": "parent_commit",
     "branch": "codex/coderabbit-oss-config",
-    "task": "Phase 0 PR350: preserve reviewed free-tier settings on integrated main",
+    "task": "PR350 conflict-only reconciliation with main 6f29b672",
     "previous_score": 41,
-    "summary": "41/100 unchanged. Reviewed OSS review configuration unchanged after main345 reconciliation; post-merge main mandatory checks and Project5 workflow pass. Runtime/schema/finding/product limits remain explicit; no acceptance points or scanner resolution inferred."
+    "summary": "41/100 unchanged. Only overlapping checkpoint and assessment records required resolution. Both histories, reviewed CodeRabbit configuration, every fixed criterion and all main runtime/security changes are preserved. Hosted checks on the resulting head are required; no local build or QEMU acceptance is inferred."
   },
   "tracks": [
     {

@@ -1,6 +1,314 @@
 # Current project status
 
-## NEXT AGENT HANDOFF — Phase 0 PR350 reconciliation — 18 November 2026
+## NEXT AGENT HANDOFF — PR #350 conflict-only integration — 18 November 2026
+
+PR #350 head `04e464963cd0d969f8687208404f480f289d54a4` is reconciled
+with actual main `6f29b6720b51aecad5714faa48b445afd6e2f5a9`.
+Only checkpoint and assessment conflicts required resolution. Both histories remain
+below; prior checkpoints retain their original evidence limits. The reviewed
+CodeRabbit configuration is unchanged, and all non-checkpoint main changes merge
+without manual edits. The issue-pipeline execution hold and disabled manifest remain
+intact. No account, billing, criterion, permission or runtime change is introduced
+by this reconciliation. Score remains 41/100. Required hosted checks on the new head
+must pass before a manual squash merge; local build/QEMU suites are not repeated
+for this conflict-only correction.
+
+## NEXT AGENT HANDOFF — PR #355 native test quality — 18 November 2026
+
+**Source and change:** security-quality checkpoint
+`a53c6eb9642a30b846cff194c30fad0d4eccbcc1` extends documented native-evidence
+head `c17f5a526298c82ae58df151d51640a7db005a76`. The only source change
+normalizes the native test's `unittest.mock` import. Two Code Quality reports about
+catching `BaseException` were retained and dispositioned because interrupt and exit
+paths must not bypass scratch cleanup or return uncertain state to the pool. The
+execution hold remains active and the manifest remains disabled.
+
+**Checks:** on the exact clean source, all 14 native tests and all 517 tools tests
+pass; the latter retain fifteen explicit environment skips. Strict preflight, Python
+syntax compilation and the whitespace check pass. The native receipt records
+unchanged source and rootfs hashes, no cleanup error and no residual scope or cgroup.
+[Source-bound receipt](verification/phase0-sec355-code-quality-20261118/README.md).
+
+**Open boundary and resume:** the prior fixture-only 256/512 MiB and normal gate
+6/8 GiB distinctions are unchanged. Authenticated model-client provisioning and the
+complete selected-gate offline runtime require separate pinned trust boundaries;
+neither is fabricated by this quality fix. Await the already-running hosted checks
+for `c17f5a52`, then publish this checkpoint without cancelling that evidence and
+require fresh current-head CI/CodeQL/Code Quality. Score 41/100 is unchanged. No
+Daybreak, issue, baseline or governance acceptance is inferred.
+
+## NEXT AGENT HANDOFF — PR #355 native resource boundary — 18 November 2026
+
+**Source and change:** security checkpoint
+`6dbe373a84929df6c781e5bf2355d61f7b1f39c9` extends capped-scratch source
+`edd1a6a9af2d80a56848ec500bbf2b702799dced`. A source-bound disposable native
+fixture now exercises the real Bubblewrap, user-scope cgroup v2 and dedicated-tmpfs
+boundaries. It retains the outer network namespace, drops every capability before
+the trusted controller, hides controller sockets and descriptors from the payload,
+and verifies exact source, fixture and rootfs hashes before and after execution. The
+execution hold and disabled manifest are unchanged.
+
+**Checks:** the exact clean source passed the native canary and all 14 full native
+tests. Real byte and inode exhaustion, separate parallel leases, sibling hiding,
+device and shared-memory bounds, payload credential/socket absence, read-only gate
+source, inner network separation, descendant termination and uncertain-cleanup
+quarantine passed. No unit or cgroup remained. All 517 tools tests pass with fifteen
+explicit skips; 28 document-session harness tests, strict preflight, Python syntax
+compilation and the whitespace check also pass. Independent AI verification
+reproduced the receipts and current empty-residue checks without rerunning the
+privileged fixture; this is not a human audit.
+[Source-bound receipt](verification/phase0-sec355-native-20261118/README.md).
+
+**Measured limits and evidence boundary:** the fixture agent read back 256 MiB high,
+512 MiB maximum, swap 0, OOM-group enabled, 128 tasks and 200% CPU. This is a native
+isolation probe, not a normal model-agent workload profile. The normal development
+gate read back 6 GiB high, 8 GiB maximum, swap 0, OOM-group enabled, 512 tasks and
+400% CPU. Scratch roots were capped at 64 MiB and 4096 inodes. No actual OOM kill,
+representative agent workload, full build or QEMU run was performed under 512 MiB.
+Authenticated clients, complete selected-gate compatibility, hosted current-head
+CI/CodeQL/Code Quality and Daybreak acceptance remain open. Keep the manifest
+disabled. Score 41/100 is unchanged; no finding, issue, baseline or governance
+acceptance is inferred.
+
+## NEXT AGENT HANDOFF — PR #355 capped scratch transactions — 18 November 2026
+
+**Source and change:** security checkpoint
+`edd1a6a9af2d80a56848ec500bbf2b702799dced` extends engine-policy evidence head
+`ce3d9407f4a80015b96cf4695a0087b0696eb5e3`. Each agent or gate transaction now
+requires an exclusive lease on one verified dedicated tmpfs with exact byte and inode
+caps. Source and export copies have preflight budgets; `build`, `target`, temporary
+directories, homes and `/dev/shm` share the same hard cap. `/dev` and Bubblewrap's
+separate `/dev/pts` mount are read-only. Cleanup uncertainty quarantines the lease and
+preserves the primary pipe, timeout, overflow, nonzero or body failure. Stdout and
+stderr share one cumulative raw-byte budget across engine failover or a complete gate
+plan and are not duplicated in controller text logs. The execution hold and disabled
+manifest are unchanged.
+
+**Checks:** on the exact source commit, all 513 tools tests pass with eleven explicit
+environment skips; 123 focused sandbox/pipeline/isolation tests pass with ten private
+runtime skips. The applicable Python host-quality groups, 26 workflow-contract tests,
+syntax compilation, strict preflight and whitespace checks pass. M6c, DocumentSession,
+native quantum-job and SDK-app normal/denied gates pass in QEMU; native guest runs
+return the expected raw exit 33. Independent AI security rereview found and verified
+fixes for five initial lifecycle/output findings plus combined cleanup-failure evidence
+and the non-recursive `/dev/pts` mount. This is not a human audit.
+[Source-bound receipt](verification/phase0-sec355-scratch-contract-20261118/README.md).
+
+**Measured limits and open boundary:** no active profile changed: the checked-in
+manifest still has no sandbox values. The prior source-bound development reference
+remains `MemoryHigh=6442450944`, `MemoryMax=8589934592`, swap 0, 512 tasks and 400%
+CPU; deliberately small OOM probes remain negative tests, not workload defaults. A
+private pinned Bubblewrap 0.13.1 fixture and real dedicated tmpfs roots were not
+available, so PTY denial, ENOSPC/inode exhaustion, parallel sibling isolation and live
+survivor quarantine remain unproven. Authenticated model-client provisioning, complete
+selected-gate compatibility, hosted current-head CI/CodeQL and final Daybreak
+acceptance also remain open. Keep the manifest disabled. Score 41/100 is unchanged;
+no finding, issue, baseline or governance acceptance is inferred.
+
+## NEXT AGENT HANDOFF — PR #355 owner-bound engine policy — 18 November 2026
+
+**Source and change:** security checkpoint
+`47835c4ebc5dad0576c0feaa3ec3654f3679f14d` extends published PR head
+`79d8674324d14d0b7608fb15f19701f33ddc939c`. Manifest schema 2 now binds the
+exact reviewed engine set and failover order. A CLI mismatch is rejected before
+controller verification, Git, sandbox or model-client access, and each retry keeps
+that order instead of rotating it. Standalone gates share the same fail-closed
+engine-policy validation. The source execution hold remains unconditional and the
+checked-in manifest remains disabled.
+
+**Checks:** 67 focused pipeline/isolation/hold tests pass with one explicit private
+runtime skip; all 493 tools tests pass with ten environment skips. All 26 workflow
+contract tests, Python compilation, manifest parsing and whitespace checks pass.
+Independent security review found one inconsistent standalone-gate validation path;
+the shared validator and negative regression fixed it, and rereview reports no
+actionable finding. An independent verifier then reproduced nine focused tests,
+both log hashes, the clean parent chain and all five weakened-validator detections
+on exact checkpoint head `b738669d550be4fab05cdbb733b30c7a037b01c6`.
+This is AI review, not a human audit.
+[Source-bound receipt](verification/phase0-sec355-engine-policy-20261118/README.md).
+
+**Open boundary and resume:** the private authenticated model-client/runtime contract,
+complete selected-gate adapter and aggregate scratch/staging/export filesystem cap
+remain open. Local `actionlint` is unavailable and private sandbox integration was
+not run; hosted checks are required on the eventual published exact head. Preserve
+the current published-head native jobs until they finish, then publish this complete
+checkpoint and require fresh CI/review. Score 41/100 is unchanged; no Daybreak
+finding, issue, baseline or governance acceptance is inferred.
+
+## NEXT AGENT HANDOFF — PR #355 bounded gate finalizer — 18 November 2026
+
+**Source and change:** security checkpoint `364b94964cc7f3fbb8ff2377e87861e858ef03ad`
+extends immutable-receipt evidence head `467e25b6394fcffc97d85a7be025bd5814b0806e`.
+The gate controller now applies one total deadline, reserves and caps one finalizer,
+and preserves separate primary/finalizer evidence. Normal failures, verified OOM
+results, cleaned timeouts and bounded-output failures run the finalizer. Generic
+sandbox guard, termination or cleanup failures abort without starting another
+process. The execution hold and disabled manifest are unchanged.
+
+**Checks:** 55 focused controller tests and all 488 tools tests pass with ten explicit
+environment skips. Syntax compilation and diff checks pass. Independent security
+review found and verified fixes for unreserved finalizers, overwritten raw evidence,
+environment-validation bypass and unsafe finalization after cleanup failure; final
+rereview reports no blocking finding. This is AI review, not a human audit.
+[Source-bound receipt](verification/phase0-sec355-gate-finalizer-20261118/README.md).
+Both prior-head native-window jobs completed successfully, so publication no longer
+needs to preserve that old run.
+
+**Open boundary and resume:** `ci.yml#qemu-smoke` remains explicitly blocked at its
+first unmodelled action. The private rootfs, offline Cargo cache and tool receipts
+were not transferred, so no runtime layout or partial gate claim was invented.
+Aggregate scratch/staging/export limits and authenticated model-client provisioning
+also remain open. Publish the complete checkpoint, require all hosted checks on the
+new exact head, and continue independent feasible isolation work. Score 41/100 is
+unchanged; no finding, issue, baseline or governance acceptance is inferred.
+
+## Historical checkpoint — PR #355 immutable source receipt — 18 November 2026
+
+**Source and change:** security checkpoint `b39948e4355b789faeffa9c92a92c1a443dd3480`
+extends fail-closed gate evidence head `ef2db95f42f3883a3f85e5107971e2129291451f`.
+The trusted controller now stages only a stable selection of regular source files,
+checks both source and HEAD before and after staging, and creates a fixed read-only
+receipt binding the tested commit to the v3 source hash. M6c and DocumentSession can
+consume that receipt without Git metadata in the sandbox. Invalid paths, links,
+write bits, duplicate/unknown keys, source drift and commit drift fail closed.
+
+**Checks:** 116 combined pipeline/isolation/sandbox/hold/roadmap tests pass with ten
+explicit environment skips; the complete tools suite passes 479 with the same skips.
+The applicable 107 host harness tests, syntax compilation and strict preflight pass.
+On exact commit `b39948e4`, M6c rebuilds and passes in QEMU with raw exit 33; the full
+DocumentSession gate passes two real VM runs and all nine source-freeze checks.
+Independent security review and verification report no blocking finding after fixes
+for owner-writable receipts and a staging source race. This is AI review, not a human
+audit. [Source-bound receipt](verification/phase0-sec355-source-receipt-20261118/README.md).
+
+**Open boundary and resume:** the manifest and unconditional execution hold remain
+disabled. The complete `qemu-smoke` adapter still requires pinned offline runtime and
+cache inputs, one total job deadline and an `always()` evidence finalizer. Aggregate
+scratch/staging/export limits and authenticated model-client provisioning also remain
+open. Publish this checkpoint only after the two prior-head native-window jobs finish,
+then require all hosted checks on the new exact head. Score 41/100 is unchanged; no
+finding, issue, baseline or governance acceptance is inferred.
+
+## Historical checkpoint — PR #355 fail-closed gate resolution — 18 November 2026
+
+**Source and change:** security checkpoint `b35433d27e07de2e55e5703d3186a4ab5ba2b78a`
+extends the published reconciliation head `a1e12249b09c5cab94ccf2a27747116cd15dbb76`.
+The local gate resolver now rejects `uses`, conditional, setup and commandless steps
+instead of silently omitting them. Both controllers convert that refusal into their
+existing blocked-task records. The manifest and unconditional execution hold remain
+unchanged and disabled; no generated source can reach a partial gate.
+
+**Checks:** 114 combined pipeline, isolation, sandbox, quarantine, hold and roadmap
+tests pass with ten explicit environment skips. The complete tools suite passes 477
+tests with the same ten skips. Focused independent verification passes 26 agent
+pipeline and 18 roadmap tests and confirms that both current `host-quality` and
+`qemu-smoke` definitions block before returning a partial command list. Independent
+security rereview reports no blocking finding. This is AI review, not a human audit.
+[Source-bound receipt](verification/phase0-sec355-gate-failclosed-20261118/README.md).
+
+**Open boundary and resume:** this checkpoint does not implement the selected-gate
+adapter. Job-level timeout/finalizer semantics, authenticated model-client
+provisioning and kernel-bounded aggregate scratch/staging/export remain open. Hosted
+checks must be repeated on the published exact head. Continue with the complete
+`qemu-smoke` adapter and scratch boundary; keep the pipeline disabled until every
+isolation and transaction gate passes. Score 41/100 is unchanged. No issue, finding,
+baseline or governance acceptance follows from this checkpoint.
+
+## Historical checkpoint — PR #355 current-main reconciliation — 18 November 2026
+
+**Source and preservation:** security merge `fa4895daf92eaf48bf7b9ecd07751d50f5537490`
+(tree `d36212c7e3e98db85cd8d7760a40cab716817430`) combines prior PR #355
+source `2cb7d9366425ee1c43ac5857be2101b43b4dcb67` with verified main
+`1c10cdb5b30df2f3d30bea74430383f59c398931`, the squash of PR #359. The
+unconditional execution hold remains before issue selection, all nine transaction
+ingresses and CLI construction. The resource/OOM implementation is byte-identical to
+the reviewed PR #355 source. The original dirty checkout, Claude UI/UX and S09 work
+remain untouched.
+
+**Checks:** 91 combined pipeline/isolation/sandbox tests pass with ten explicit
+environment skips; the complete tools suite passes 474 tests with the same ten skips.
+Strict preflight, normal build, M1, M6c, DocumentSession, native quantum-job and both
+normal/denied SDK-app QEMU gates pass; real guests return the expected raw exit 33.
+The disabled manifest rejects the local host-quality gate before any workload starts.
+Two independent AI reviews found no actionable integration or boundary issue after
+test-local harness repairs; this is not a human audit. [Source-bound receipt](verification/phase0-sec355-main-reconciliation-20261118/README.md).
+
+**Measured limits:** the 64 MiB allocation profile remains an intentional negative
+OOM control, never a normal workload preset. On the exact reconciled source, a clean
+trusted reference scope read back `MemoryHigh=6442450944`,
+`MemoryMax=8589934592`, swap 0, 512 tasks and 400% CPU. Rust tests, normal/M6c builds
+and M1/M6c QEMU all passed with a 699,133,952-byte peak and zero high, max, OOM or
+kill events. No global limit, OOM-killer setting or isolation boundary changed.
+
+**Open boundary and resume:** the manifest remains disabled. Authenticated model-client
+provisioning, kernel-bounded aggregate scratch/staging/export, the private opt-in
+offline transaction fixture, complete selected gate compatibility, hosted exact-head
+host-quality/CodeQL/review and final Daybreak acceptance remain open. Publish this
+checkpoint to PR #355, require all current-head hosted gates, and continue those three
+implementation boundaries before considering a merge. PR #356 remains draft for later
+reconciliation. No governance, auto-merge, bypass, false finding closure or premature
+issue closure is authorized. Score 41/100 is unchanged.
+
+## Historical checkpoint — Local PR #355 bounded memory review — 18 November 2026
+
+**Source and authority:** the project owner requested a bounded memory investigation inside the continuing PR #355 remediation, followed by automatic resumption of the approved queue. Existing PR #355 parent is `5b946202c9f7323044913a26d76c96e490f5e0e6`; reference workloads executed on containment source `9789ce565c247f70eab6d321f657dc05a64a8513`. The original shared merge, Claude UI/UX and broader S09 remain untouched.
+
+**Measured result:** two 128 MiB / 160 MiB allocation probes are intentional OOM-negative enforcement. No active normal MemoryMax/default exists in PR #355;PR #357's 64 MiB is a mocked fixture. A corrected actual 8 GiB/ high 6 GiB/ swap 0/four-job reference bundle passes all five Rust/build/M1/M6c commands with 592.70 MiB aggregate peak and zero OOM events. Snap Cargo moved compiler descendants outside its selected scope; task-local pinned native Rustup proxies correct that measurement/launcher issue. No global limits, sandbox boundary or OOM-killer setting changed. [Source-bound receipt](verification/phase0-sec355-memory-20261118/README.md).
+
+**Limits:** disk-backed reference sizing is not full bounded-tmpfs, staging/export, authenticated-client or complete-CI acceptance. The PR #355 manifest remains disabled; PR #357 remains recovery-only. Real kernel resource/scratch/descendant probes and bubblewrap 0.13.1 are available locally but do not finish the full isolation composition. All three Daybreak findings remain open.
+
+**Resume:** continue from published PR #359 containment `9789ce56` pending final hosted native-window acceptance, PR #356 helper correction `eba1bfa7` has three reported CodeQL collector alerts under repair; new-head CI/review is required, and the independent public M6 observer fix. Repair reported failures first. Finite B retains its approved meaning; governance additionally requires strict genuine zero issues/PRs/actionable findings or an explicit project-owner exception. Score 41/100 remains unchanged. No vulnerable issue-pipeline execution, auto-merge, bypass, false closure or governance start.
+
+## NEXT AGENT HANDOFF — Phase 0 execution isolation — 17 November 2026
+
+**Source:** integrated main `366b82b353485207a9b0d6b1ae63dafbbe265bae` after the authorized PR333 squash; isolated branch `codex/phase0-pipeline-isolation`, security parent `aec1fb5f75e6165da82ba81f3f43d7a0d912ab1d`.
+**Primary milestone:** 0D security remediation. Integration0B is waiting; baselineB and governance1–6 remain blocked. A private security report requires verification of the development execution boundary. Its sensitive evidence remains outside the public repository.
+**Implementation checkpoint:** protected source-bound task authorization precedes L0. Agent edits are imported from disposable copies; gates use immutable source/evaluators and separate generated outputs. Authentication remains in the trusted publication controller. Missing isolation and unsupported hooks/helpers fail closed. The committed manifest remains disabled. This is not deployed-main protection, production readiness or finding resolution.
+**Verified evidence:** 406 tools tests pass (exit 0), including real Linux namespace/descriptor/source-integrity controls and a deterministic offline transaction with real local Git and dry-run publication. A fresh QEMU execution of the cached integrated TEST-policy guest passes its existing 26-case oracle (raw exit 33); it is not a guest rebuild or hardware acceptance. [Bounded checkpoint](verification/phase0-pipeline-isolation-20261117/README.md). Earlier failed probes and initial blocking review remain privately preserved.
+**Hosted follow-up:** the first current-head host-quality run failed in an object-only metadata fixture under runner Git content-filter settings. The scoped fix preserves executable/environment restrictions and explicitly denies implicit object fetching; 78 final targeted tests pass (exit0). Refreshed hosted CI remains pending.
+**Remaining blockers:** independent review requires bounded worker resources and compatible complete client/gate transactions before merge or enablement. Network setup, Git-dependent workflow checks and explicit compilation-cache writes are not supported by this offline evaluation profile; none are skipped. Real model-client parity remains NOT RUN. Current-head CI, final source-bound security verification and supported Daybreak resolution remain pending. A usage metadata flag is not a proven scan-start rejection; the latest manual scan completed on unchanged main38.
+**Ownership and evidence:** original user work, independent UI/S09 workstreams, existing PRs and compiler WIP remain preserved. No original worktree was reset or cleaned. Private managed artifacts retain exact source/commands/limits. Score41/100 is unchanged; no product criterion or security result is accepted by this checkpoint.
+**Next:** preserve this draft checkpoint, resolve the independently identified blockers, then require current-head CI/security verification before manual squash and source-bound Daybreak closure. Prepare the authorized cloudhandoff after reconciling branches/WIP; ownership is not transferred until remote commits are verified. Do not use the affected issue pipeline for remediation. Resume the existing integration/modernization work only after the boundary is verified.
+
+## NEXT AGENT HANDOFF — Local PR359 containment reconciliation — 18 November 2026
+
+**Authority and ownership:** the project owner approved autonomous local execution and verified manual squash merges. Cloud handoff `88b801ab8cd47f4765ef7d925b161542dbbf684e` releases Codex work only. Local Codex exclusively owns this PR359 reconciliation in an isolated worktree; the original unfinished merge, Claude UI/UX and broader S09 remain untouched.
+
+**Source and scope:** existing PR359 parent `b5f756a233bbfef0ecc143f41834899b399e3805`, reconciled with actual main `de9b99047138c4fd0015ffc3f874b273b3537484`. Latest main is retained, including PR339 accessibility source. The unconditional legacy-controller hold is retained and extended to direct issue selection. It has no runtime release override. This is containment only; complete PR355/357 isolation and all three Daybreak findings remain open.
+
+**Checks:** the new direct-selection regression fails before the repair (exit1); all five quarantine tests pass after repair (exit0). All404 tools tests, strict preflight/build/M1 pass (wrapper exit0; real guest33, no timeout). Evidence correction `b526c039b527a51c3f833d78469f5aa4198ab27f` binds a repeated negative overlay to exact source/test/log hashes, while the original negative log remains historical evidence without a source binding. It narrows the independent review to executable containment source and records that the writable QEMU variable-store copy was not bound before launch. The raw native result remains byte-identical. Current-head hosted checks and resulting-main acceptance remain pending. Raw evidence is retained under `build/tokenguard/`; source-bound receipts are `docs/verification/phase0-sec359-local-20261118/` and `docs/verification/phase0-sec359-evidence-correction-20261118/`. Score remains41/100.
+
+**Stabilization gate:** finite baseline B retains its previously approved meaning. The later governance transition additionally requires genuine zero open issues, zero open PRs and zero unresolved actionable security/quality findings, unless the project owner explicitly authorizes an exception. Missing external authority, licence, hardware or capability evidence remains an open blocker; independent feasible work continues. No false closure, auto-merge, bypass or vulnerable issue-pipeline execution is authorized.
+
+**Next:** independently review and publish the evidence correction, then require a fresh exact-head hosted rollup. Manually squash only when every applicable check and actionable review is satisfied. Verify resulting main before continuing PR355/357 and the remaining security queue. Governance has not started.
+
+## NEXT AGENT HANDOFF — Phase 0 PR339 safe checker and integration — 18 November 2026
+
+**Actual main:** `67d5859d735836331b6fb971eae89162b7fa8465` after verified manual squash merges #345 and #346. Actual trees equal their independently reviewed candidates. Translation source PRs #347–#349/#351–#353 were closed only after actual-main inclusion proof; original refs remain preserved. Five issues and seven PRs remain open at this cutoff. Project5 synchronization uses the existing workflow.
+
+**Candidate:** canonical Claude source `5e222780c916205bb9aa4e54ba9ccaa983ce61e7` is preserved. New successor structural checker source `a2792a2c1ee8e8eeb604549ac8a04272ed70168a`, receipt head3966b43f, binds the archived parser and all51 existing baseline identities, rejects external/absolute/traversal/symlink and truncated-path aliases, and leaves original research/matrix/archive bytes unchanged. Independent review reproduced and corrected an intermediate path-alias bypass, then rejected32 alternate unsafe paths;15 focused and399 complete tools tests passed at that source. [Successor evidence](verification/a11y-checker-20261118/README.md). Current combined-source checks, hosted CI and independent integration review remain required.
+
+**Scope:** research remains a targeted intermediate checkpoint; systematic review, native accessibility conformance and human/user validation remain open. No baseline policy or product score changes. Score41/100; baseline B/governance1–6 are unestablished. Existing Claude WIP/runners are untouched.
+
+**Other work:** S09 candidate41b894cd has verified15-stage native evidence and46 committed hashes; its fingerprint must be verified again after broad source changes. Rust354 latest-stable compiler migration retains source-bound intermediate proofs and needs final combined-source acceptance. Security355 remains blocked on resource/process/scratch and client/gate compatibility;357 is preserved, unaccepted and not merged. Three Daybreak findings remain open; scanner REST categories are NOT VERIFIED403. The issue pipeline remains disabled. Continue independent eligible work without bypassing gates.
+
+## Retained handoff — Phase 0 integration after PR345 — 18 November 2026
+
+**Integrated:** PR #345 was manually squash-merged as `55bc7b06d20a3bfdffdc2eb7d8fe42a39f6e59c5`; its actual main tree exactly equals independently reviewed candidate `f14f7c946e10120ad10a34885551f2656f84b059`. All candidate mandatory CI, CodeQL and merge-hold checks passed; main post-merge checks are tracked separately. [Merge receipt](verification/phase0-cloud-20261118/merges/345.json).
+
+**Active:** existing PR #346 is reconciled against that main without changing its reviewed translation content or any runtime source. Original source PRs #347–#349 and #351–#353 remain open until integrated inclusion is proved. PR #350 is independently reviewed and needs current-main reconciliation. PR #340 has a fresh isolated native gate in progress; PR #354 compiler/runtime fixes have separate targeted/native verification.
+
+**Security:** limited PR #355 corrections are independently reviewed at `5b946202c9f7323044913a26d76c96e490f5e0e6`, including fresh pre-L0 grant revocation and failed-candidate isolation. Full resource/scratch/process-lifecycle and selected client/gate compatibility remain blocking. Recovery #357 stays preserved and unaccepted; the issue pipeline remains disabled. Cloud lacks writable cgroup-v2/private systemd-user runtime requirements. No finding is closed. Scanner API categories remain NOT VERIFIED (HTTP403).
+
+**Remaining:** all five issues remain open against their full definitions of done. Score41/100 is unchanged; baseline B and governance1–6 are not established. Root owns integration/state; the successor accessibility checker uses new files and preserves Claude's historical matrix/research. Continue only verified manual squash merges and exact-source evidence, without auto-merge or gate bypass.
+
+## Retained handoff — Phase 0 PR346 cloud reconciliation — 18 November 2026
+
+**Source:** existing PR #346 parent `04e29181ef7e755eea2db0054c463b9216184671`, reconciled with main `366b82b353485207a9b0d6b1ae63dafbbe265bae`. Scope: English documentation. The project owner explicitly resumed autonomous execution on 18 November 2026; current review, protection and gate requirements remain binding.
+
+**Preservation:** current-main source, accepted decisions, historical evidence and independent workstream ownership are retained. Only overlapping checkpoint/assessment text requires conflict resolution. The prior branch checkpoint and assessment are retained as explicitly historical records in [the cloud receipt](verification/phase0-pr346-cloud-20261118/README.md). The two actionable translation review comments receive additive English explanations; the original ABI and installer sequence remain unchanged. No product acceptance criterion or security boundary changes. Score remains 41/100.
+
+## Retained historical handoff — Phase 0 PR350 reconciliation — 18 November 2026
 
 **Integrated main:** `55bc7b06d20a3bfdffdc2eb7d8fe42a39f6e59c5` after verified PR345 manual squash. Actual main tree equals reviewed candidate; post-merge host-quality and qemu-smoke pass. Existing Project5 synchronization run44209117311 completed successfully on that main; its raw-log endpoint returned403, so detailed field effects remain NOT VERIFIED.
 
@@ -121,7 +429,38 @@ The following statements preserve their original observation. The current handof
 **Checks:** 7 SMP CI tests, 26 workflow tests, 8 evidence-verifier tests and pinned actionlint pass (exit 0). Initial tools-suite failure from snap launchers retained; installed-rustup rerun running. Hosted action/current-head CI pending. Progress 41/100 unchanged; no merge.
 **Next:** verify hosted roundtrip and required jobs, record exact head/merge SHA and request specific owner merge approval. Independent #344 dependency record work can proceed. Orbitaal/S09 ownership remains unchanged. Baseline B not established; governance phases 1–6 not started.
 
+### Historical source checkpoint — Phase 0 English publication integration — 17 November 2026
+
+**Source:** existing346 parent `bc2db3975a773af95acd113e2f59af4cc95300e1`, preserving the reviewed source heads of347–349/351–353. This branch still needs reconciliation with the main resulting from the existing code integration queue.
+**Changed:** the independently reviewed English translations/evidence are consolidated into one issue274 draft, plus four small independently reviewed explanatory comments/glosses. [Source/hash manifest](verification/phase0-english-integration-20261117/manifest.json). Source/evidence hashes and independent workstream handoffs remain preserved. No runtime, policy, security boundary or licensing change.
+**Checks:** independent integration review found four gloss rows bound to their pre-edit parent instead of the first Git commit. Only that metadata is corrected; all39 source/evidence hashes now resolve to the recorded Git blobs. Scoped semantic checks pass; independent recheck and actual current-head hosted checks remain pending. Score remains41/100; full issue274 is open until actual coverage/publication acceptance. The six source PRs stay open until merge and exact-main preservation proof.
+**Next:** publish/update346, complete its bounded integration review, then reconcile against verified main after the earlier code PRs. Perform manual squash only after all applicable gates/reviews/merge-hold pass. No auto-merge or count-driven closure. BaselineB requires no unresolved integration/security blockers, passing mandatory checks and individually triaged residuals under the latest owner refinement; governance1–6 have not started. Original UI/S09 WIP, runners and ownership remain intact.
+
+## Retained historical checkpoints and workstream records
+
+### Historical source checkpoint — Phase 0 English technical guides — 17 November 2026
+
+**Source:** guide comparison parent `cece3041187e1b7d08ec7708c36b84c728d6e2d2`, integrating verified main `95d59ad52761c1f8f0201d934556902b90ce63cb` after PR343. Draft PR346 includes the CI guide, native material-library guide, IPC-wait probe README and native IPC-wait contract.
+**Verified:** independent AI semantic comparisons and exact code/identifier/numeric/anchor preservation pass on all four guide hashes. The CI guide's earlier receipt remains intact. [Native guide receipt](verification/phase0-english-guides-20261117/README.md). Both parent handoffs and independent workstream history are retained below.
+**Gates and limits:** current integrated workflow checks (26 tests), progress write/check and whitespace checks pass (exit 0); current-head hosted checks remain pending. Native tests are NOT RUN for this documentation-only change. Progress remains 41/100; no new implementation or acceptance is claimed. Full issue #274, final integrated assessment and baseline B remain unfinished.
+**Resume:** run/record the local checks, publish this integrated draft and verify its required current-head CI. Eligible Phase 0 squash merges are explicitly authorized after all gates; no auto-merge/bypass. Preserve Orbitaal/S09 WIP, runners, claims and ownership. Governance phases 1–6 have not started.
+
+## Historical pre-integration checkpoints
+
+These records retain their original observations; the current handoff and updated owner Phase 0 authority supersede their pending-check and separate-approval instructions.
+
+### Historical CI guide task — 17 November 2026
+
+**Source:** main `b718f6bafdfc4927d3b7acfe786e67dcb8f88eec`; branch `codex/phase0-ci-guide-english`. The separate integration oversight checkpoint is draft PR #345.
+**Completed:** `docs/CI.md` translated without changing technical requirements, commands or historical evidence. Independent AI semantic review and preservation checks pass; all 26 workflow contract tests pass (exit 0). [Source-bound receipt](verification/phase0-ci-guide-20261117/README.md).
+**Progress and limits:** 41/100 remains 41/100. Issue #274 stays open; full translation and live Wiki consistency are unfinished. Native tests NOT RUN for this documentation-only change. Current-head hosted checks must be checked separately. Baseline B is NOT ESTABLISHED; governance phases 1–6 have NOT STARTED.
+**Authority and resume:** no merge or auto-merge approval is granted by this task. Verify the remote source and required checks, then return to the Phase 0 integration queue. Preserve every existing stream's handoff, WIP, claims and ownership; the retained Orbitaal record below remains independently authoritative for its stream.
+
 ## Retained workstream handoff — Design pipeline (Orbitaal UI/UX), draft PR #332 — 14 November 2026
+
+## Retained workstream handoff — Design pipeline (Orbitaal UI/UX), continuation branch `claude/baryon-os-design-pipeline-20261115` (PR #339) — 15 November 2026
+
+**Phase 0 scope correction (17 November 2026):** published source `ca3534f32b8bd80373143542e14b8d3afe0ea298` provides a targeted, abstract-level research checkpoint. The project owner's systematic-review requirement remains open. The historical independent AI verdict is retained in the [verification record](verification/a11y-research-20261115/README.md); it does not establish completion of that requirement. Design WIP, runners and workstream ownership are unchanged.
 
 **Source:** branch `claude/baryon-os-ui-ux-design-152adb` at `ea4e033d`
 (S0 `b305fa7c`, S1 `8e4abd8d`, v2 board `ea4e033d`) after merge `89e8b1c9` of
@@ -140,10 +479,11 @@ milestones never enter `docs/progress.json`; every BaryonOS capability is
 | ID | Deliverable | Target | Status |
 |---|---|---|---|
 | UX-v2 | Orbitaal v2 board, CONCEPTS.md v2 section | `ui/design/concepts/orbitaal-v2/` Accepted (`ea4e033d`): independent rendered AI recheck, 21/21 planner items resolved, 0 blockers or majors, 6 minors open ([record](verification/orbitaal-v2-20261114/README.md)) |
-| UX-D | Design system ds-1.0 (tokens, icons, components, gallery) | `docs/design/DESIGN-SYSTEM.md`, `ui/design/system/` | Intermediate, **not Accepted**: base `46957bac` ([record](verification/ds-1.0-base-20261114/README.md)); correction UX-D-C1 (owner permission model) committed after run `wf_72e6bcf3-50d` ended `blocked_after_2_repairs` with 0 blockers, 1 major (design quality, AI opinion: generic empty, loading and error states) and 7 minors; owner conformance met, contract test 48 assertions passed ([record](verification/ds-1.0-c1-20261115/README.md)). The major is a must-fix of UX-A11Y-DS |
-| UX-A11Y-R | Systematic accessibility literature review and checkable accessibility matrix (owner decision, 15 Nov) | `docs/design/accessibility/`, `docs/verification/a11y-research-20261115/` | Open; next serial run |
-| UX-A11Y-DS | Two-tier accessibility system in ds-1.x: baseline in every regular theme, combinable setting axes as variants of the same identity, coherence across themes and combinations, automatic and manual checks; carries the UX-D design-quality major | `ui/design/system/`, `docs/design/DESIGN-SYSTEM.md` | Open; after UX-A11Y-R |
-| UX-C | Informed-consent experience for permission requests (owner ambition, 14 Nov) | research and concepts in ignored `build/design-evidence/uxc/`, then `ui/design/system/`, `docs/design/DESIGN-SYSTEM.md` | Open; after UX-A11Y-DS, blocks UX-E |
+| UX-D | Design system ds-1.0 (tokens, icons, components, gallery) | `docs/design/DESIGN-SYSTEM.md`, `ui/design/system/` | Intermediate, **not Accepted**: base `46957bac` ([record](verification/ds-1.0-base-20261114/README.md)); correction UX-D-C1 (owner permission model) committed after run `wf_72e6bcf3-50d` ended `blocked_after_2_repairs` with 0 blockers, 1 major (design quality, AI opinion: generic empty, loading and error states) and 7 minors; owner conformance met, contract test 48 assertions passed ([record](verification/ds-1.0-c1-20261115/README.md)). The major is a must-fix of UX-A11Y-DS. The owner decision of 15 Nov replaced the permission model, so prompt conformance moves to UX-C; UX-D closes when the UX-A11Y-DS verifier passes, including the carried major |
+| UX-A11Y-R | Systematic accessibility literature review and checkable accessibility matrix (owner decision, 15 Nov) | `docs/design/accessibility/`, `docs/verification/a11y-research-20261115/` | Intermediate checkpoint (`8cca1167`); the systematic-review requirement remains open. Research document and matrix (92 rows, 110 sources; 51 baseline, 41 setting, 11 safety rows all baseline; grades strong 2, moderate 1, limited 51, insufficient 37, contradicted 1). Run 1 `wf_4f6a5638-e4a` ended `blocked_after_2_repairs`; run 2 `wf_baf4e604-27b` repaired the files in place and its independent AI verifier accepted them after one repair: 0 blockers, 0 majors, 10 minors open (row 26 reveal needs an owner decision before it may be offered). Literature, standards and AI review only; no user test or human audit ([record](verification/a11y-research-20261115/README.md)) |
+| UX-A11Y-DS | Two-tier accessibility system in ds-1.x: baseline in every regular theme, combinable setting axes as variants of the same identity, coherence across themes and combinations, automatic and manual checks; carries the UX-D design-quality major | `ui/design/system/`, `docs/design/DESIGN-SYSTEM.md` | **Not accepted.** Run 1 (`wf_f9909b01-8a7`, 15 Nov 14:45–20:31 CET) built ds-1.1 (two tiers, nine setting axes, place-aware empty, loading and error states, an accessibility settings group, `check.mjs`) and ended `blocked_after_2_repairs`: the independent verifier rounds found 5, 2 and 0 blockers and 6, 4 and 1 majors. The remaining major is a combination defect (`.ds-tabs` widens the page with wider text spacing at 200 %), with 9 minors; the final round judged the carried C1 design-quality major resolved (AI opinion). The deliverables stay uncommitted in the worktree until a verified run accepts them (snapshot and hashes in the ignored checkpoint). Run 2 (`runs-20261115/uxa11y-ds-run2.js`) repairs in place after a systematic overflow sweep; a further block becomes an owner blocker. Carries UX-A11Y-R minor 1; minor 6 (five-second clause) is superseded by the owner correction of 15 Nov and moves to UX-A11Y-A1 |
+| UX-A11Y-A1 | Amendment of the UX-A11Y-R research checkpoint, matrix and design criteria for the owner decisions of 15 Nov on flashing media and photosensitivity: system interface, unsolicited content, and deliberately started games and media as three contexts with their own rules | `docs/design/accessibility/`, `docs/design/DESIGN-SYSTEM.md` | Open; after UX-A11Y-DS (draft `runs-20261115/uxa11y-r-a1-flash-draft.js`) |
+| UX-C | Informed-consent experience for permission requests (owner ambition, 14 Nov; simplified permission model of 15 Nov: "Toestaan" / "Weigeren" plus an optional remember control, to be researched and verified before adoption; ADR before native persistent grants and remembered denials) | research and concepts in ignored `build/design-evidence/uxc/`, then `ui/design/system/`, `docs/design/DESIGN-SYSTEM.md` | Open; after UX-A11Y-DS, blocks UX-E |
 | UX-E | Connected prototype journey (simulation) | `ui/design/prototype/` | Open |
 | UX-F | Visual verification, at most two polish passes | `docs/verification/` | Open |
 | UX-G | Native vertical slice, QEMU screenshots | `ui/native`, `ui/graphics` | Plan done; G0 measured; G1 (licence and packaging) next |
@@ -172,7 +512,7 @@ the stored output byte for byte; an independent AI verifier checked 13 claims
 (12 supported, 1 corrected). The merge result differs from main by exactly
 `git diff 41b94b47 524df7b0`. No native build or QEMU run in this step.
 
-**Order:** UX-v2 → S0 → UX-D (base, then correction C1) → UX-A11Y-R → UX-A11Y-DS → UX-C → UX-E with S7 and S8 → UX-F → UX-G, with
+**Order:** UX-v2 → S0 → UX-D (base, then correction C1) → UX-A11Y-R → UX-A11Y-DS → UX-A11Y-A1 → UX-C → UX-E with S7 and S8 → UX-F → UX-G, with
 S1–S6 and S9–S10 running in free agent slots alongside UX-E to UX-G. The
 native slice follows `docs/design/NATIVE-FEASIBILITY.md` section 4, plus the
 `ui/native` Inter licence and package entries and the high-contrast
@@ -194,15 +534,94 @@ The detailed checkpoint lists run IDs, results, hashes, briefs, tools and
 owner decisions: `build/design-pipeline-checkpoint/handoff-baryonos-design-pipeline.md`
 (ignored, section 14 for this session).
 
-**Next:** UX-A11Y-R, the accessibility research run required by the project
-owner's decision of 15 November 2026 before further design work (script
-`build/design-pipeline-checkpoint/runs-20261115/uxa11y-r-run1.js`: three
-cluster researchers, one synthesis writer, one independent verifier with a
-citation re-resolution audit, at most two repair rounds). It delivers
-`docs/design/accessibility/ACCESSIBILITY-RESEARCH.md`, the checkable
-`ACCESSIBILITY-MATRIX.md` and its `check.py`. UX-A11Y-DS then integrates the
-two-tier system into ds-1.x and fixes the open UX-D major before UX-C starts.
-The preview servers run under `build/design-pipeline-checkpoint/tools/design-servers.sh`.
+**Shutdown checkpoint (15 November 2026, about 02:00 CET):** PR #332 was
+squash-merged by the project owner at 01:34 CET as `8be897c8` (head
+`ec577292`); the shutdown commits after `ec577292` are on the branch but in no
+pull request. No workflow,
+agent or preview server is running; `RUNNER.lock` is released (moved to
+`runs-20261115/RUNNER.lock.uxa11y-r-interrupted`). Run `wf_1c2c1a08-2d1`
+(UX-A11Y-R) was stopped during its synthesis stage; the three researcher
+results are kept in ignored `build/design-evidence/a11y/research/` (hashes in
+`build/design-pipeline-checkpoint/runs-20261115/uxa11y-r-partial-SHA256SUMS`)
+and as structured output in
+`runs-20261115/uxa11y-r-researcher-results-wf_1c2c1a08-2d1.json`. They are
+unverified research inputs, not accepted evidence. Two owner decisions of
+15 November are recorded verbatim in the checkpoint directory: the
+accessibility decision (two tiers) and the simplified permission model (with
+the owner's approval of the coordinator readings R2–R5); the register entry
+is [ADR-DESIGN-OWNER-20261115](DECISIONS.md), D1 and D2. The C1 record covers
+the superseded 14 November model only
+([SUPERSEDED.md](verification/ds-1.0-c1-20261115/SUPERSEDED.md)).
+
+**Next:** in a fresh session, first reconcile Git, lock and process state
+(checkpoint section 14, last entry). The continuation branch
+`claude/baryon-os-design-pipeline-20261115` (draft PR #339, no auto-merge)
+carries the shutdown commits cherry-picked unchanged onto main `d572052b`.
+UX-A11Y-R is an intermediate research checkpoint (`8cca1167`, run 2
+`wf_baf4e604-27b`); the systematic-review requirement remains open. UX-A11Y-DS run 1
+ended `blocked_after_2_repairs` and is not accepted; its deliverables are the
+uncommitted changes in the worktree. Next: UX-A11Y-DS run 2
+(`runs-20261115/uxa11y-ds-run2.js`, arguments in `uxa11y-ds-run2-args.json`):
+a repair writer first sweeps every gallery panel for overflow across themes,
+text spacing, scale and widths, fixes the remaining major and the mechanical
+minors, then a fresh verifier runs the ten checks, at most two repairs;
+acceptance is no blocker or major and stored screenshots, and it also closes
+UX-D. If run 2 ends blocked, the residual becomes a concrete owner blocker.
+Run 2 is queued, not started: the plan's weekly usage limit stood at 94 % on
+15 November at 20:40 CET (run 1 used about 1.94 M subagent tokens), and it
+resets on 18 November 2026 at 07:00 CET.
+Then UX-A11Y-A1, UX-C run 1 (`runs-20261115/uxc-run1.js`), UX-C run 2, UX-E,
+UX-F, UX-G and G1.
+
+**Review correction (17 November 2026):** after CodeRabbit review of
+`4005ca67`, two matrix cells that contradicted the research document were
+corrected. Row 59 (autism and sensory processing) no longer lets `stimulus`
+reduce translucency, which belongs to the `transparency` axis (research section
+7.1). Row 98 (system-wide preference following) now cites EN 301 549 V4.1.1
+clause 11.7 as recorded in research section 2.2 instead of the superseded
+V3.2.1 reading. The structural checker
+`docs/verification/a11y-research-20261115/check.py` gives the same result
+before and after (92 rows, 110 sources, self-test passed, 0 errors). The
+historical `SHA256SUMS` in that record binds the matrix as of `4005ca67`
+(sha256 `26c065ed…`); the current matrix differs from it only in these two
+cells. GitHub Actions started no job for `4005ca67` (account billing lock), so
+no hosted check evidence exists for that head.
+
+**Checker review findings (17 November 2026):** the Graphify review of
+`84b0198f` reported two findings in the archived checker
+`docs/verification/a11y-research-20261115/check.py`, and both are valid.
+`missing_files` does not confine a named path to the repository root, so an
+absolute or `../` path to an existing file outside the repository passes the
+named-file check. A non-safety mandatory baseline row, for example "no keyboard
+trap", that is demoted together with a consistent axis edit also passes; the
+verification record already lists this as known limit 4. The checker is archived
+evidence bound by `SHA256SUMS` and protected under the root `AGENTS.md`, so it is
+not edited in place. Open lead item: a successor checker in a new evidence
+directory that confines named paths to the repository and pins the mandatory
+baseline rows, with negative self-tests for both cases.
+
+**Owner decisions of 15 November on flashing media and photosensitivity**
+(register entry: [ADR-DESIGN-OWNER-20261115](DECISIONS.md), D3)
+(verbatim, Dutch, in the checkpoint directory:
+`owner-decision-third-party-flash-20261115.md`, its clarification
+`owner-decision-photosensitivity-games-20261115.md`, which takes precedence,
+and `owner-correction-flash-readings-20261115.md`, which corrects coordinator
+readings F1, F2 and F5 and confirms F3 and F4). In short: the system interface
+meets the actual flash criteria (WCAG 2.2 SC 2.3.1; ITU-R BT.1702-3 flash and
+pattern limits), with the ITU-R BT.1702-3 five-second remark as an additional
+risk consideration rather than a universal hard limit, and safe animation is
+not restricted needlessly; unsolicited content is protected where possible and
+unassessed moving media is not presumed safe; deliberately started games and
+media remain the user's choice, with optional photosensitivity settings,
+per-app preferences and warnings. Starting media is not a bypass of a safety
+block, and one click never switches off all protective measures. A warning is
+no guarantee, and no claim of complete automatic detection is made. Reduced
+motion and photosensitivity are separate personal preferences. Apps need not
+receive medical or raw personal settings where BaryonOS can enforce
+presentation itself or pass it through a limited interface. UX-A11Y-DS run 1
+followed the earlier coordinator wording and documents the five-second remark
+as a hard limit; UX-A11Y-A1 corrects that wording without changing any
+animation.
 
 **G0 (measured, evidence in ignored `build/design-evidence/g0/`):**
 `materiaal-app` `.text` is 157 289 B with Open Sans (6 551 B below the

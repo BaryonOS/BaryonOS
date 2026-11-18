@@ -1,0 +1,385 @@
+{
+  "task": "P0-346 local reconciliation with actual main",
+  "source_parent": "3fda27ac6e48a011d11cdec89649c22e6d4e71af",
+  "actual_main": "38d4cc17687156379677993be9945447591bd4c1",
+  "source_parent_tree": "62da4f1bad772375e0ddc968a5e8142de15d361a",
+  "actual_main_tree": "9d86b1eeb416d0014a5bb476d824f77bcaa2acda",
+  "merge_base": "95d59ad52761c1f8f0201d934556902b90ce63cb",
+  "status": "Local source preservation PASS; no hosted/merge acceptance",
+  "conflicts": [
+    "docs/PROJECT-STATE.md",
+    "docs/progress.json"
+  ],
+  "resolution": "One current handoff; both exact complete parent prefixes/assessments archived and distinct historical paragraphs retained live; duplicated identical PR343 record appears once; complete actual-main independent history retained. Fixed progress tracks unchanged.",
+  "original_manifest": {
+    "path": "docs/verification/phase0-english-integration-20261117/manifest.json",
+    "sha256": "be00e8559eeaf56dfc2f4e974c456316d2f983ba0d5df47caa13223efaef50de",
+    "source_and_current_bytes": "UNCHANGED"
+  },
+  "reused_independent_review": {
+    "report": "P0-274-consolidated-independent-review.md",
+    "reviewed_head": "3fda27ac6e48a011d11cdec89649c22e6d4e71af",
+    "sha256": "610161bdf97b344db81b8011c7ba52d92be0b700f3375773d28c5b5afe309620",
+    "meaning": "Existing independent AI semantic/source-preservation review at unchanged hashes; no new full semantic audit"
+  },
+  "preserved_source_files": [
+    {
+      "path": "docs/CI.md",
+      "sha256": "5a1018e07494bf9dfbc45d455f3af7b9227b70d59008fadda8d517f34ce8a87a",
+      "source_head": "bc2db3975a773af95acd113e2f59af4cc95300e1",
+      "status": "EXACT"
+    },
+    {
+      "path": "docs/contracts/NATIVE-IPC-WAIT.md",
+      "sha256": "939278a379dbf7adfd9f9e0a54e670b63be80a5cf8d138d1668940894a77f6e2",
+      "source_head": "bc2db3975a773af95acd113e2f59af4cc95300e1",
+      "status": "EXACT"
+    },
+    {
+      "path": "docs/implementation/NATIVE-MATERIAL-LIBRARY.md",
+      "sha256": "f71d2adfd90c7984fd9d3eeb478bf7b9b8ecd3fd0ae196388e692b4741fb8c40",
+      "source_head": "bc2db3975a773af95acd113e2f59af4cc95300e1",
+      "status": "EXACT"
+    },
+    {
+      "path": "docs/verification/phase0-ci-guide-20261117/README.md",
+      "sha256": "0b7e4641bfd62ada1f5fd52cc07032b87c01efbd0e95d35773a708c72edb378b",
+      "source_head": "bc2db3975a773af95acd113e2f59af4cc95300e1",
+      "status": "EXACT"
+    },
+    {
+      "path": "docs/verification/phase0-ci-guide-20261117/verification.json",
+      "sha256": "7834d3e5c0d088b9002acaa812fbcf7d883d80e7cfee577fd9a86233bde93f47",
+      "source_head": "bc2db3975a773af95acd113e2f59af4cc95300e1",
+      "status": "EXACT"
+    },
+    {
+      "path": "docs/verification/phase0-english-guides-20261117/README.md",
+      "sha256": "721a035064097924e89063c8953099406990badfff8228b3e8b8d34742928da9",
+      "source_head": "bc2db3975a773af95acd113e2f59af4cc95300e1",
+      "status": "EXACT"
+    },
+    {
+      "path": "docs/verification/phase0-english-guides-20261117/verification.json",
+      "sha256": "8e157eaf050ef2ccbd8edece6ba916ce4026dbb0ca33c73b92bd6f2ce5dda36b",
+      "source_head": "bc2db3975a773af95acd113e2f59af4cc95300e1",
+      "status": "EXACT"
+    },
+    {
+      "path": "sdk/examples/ipc-wait-probe/README.md",
+      "sha256": "2e05dbfc96f62c86b2f23606b399ed88a0009671c3d5cfad1ee416a77b5a7afd",
+      "source_head": "bc2db3975a773af95acd113e2f59af4cc95300e1",
+      "status": "EXACT"
+    },
+    {
+      "path": "docs/implementation/K06-SMP.md",
+      "sha256": "3dba5104d2d57158534c72ae35929751fdb653c1034eff8327e7d13ce26643ad",
+      "source_head": "1ecabe0cfdd2e4ba22021b2ece83ca9fc20751ec",
+      "status": "EXACT"
+    },
+    {
+      "path": "docs/verification/phase0-smp-guide-english-20261117/README.md",
+      "sha256": "17424b400bb90617f22edeb925f75442075f31cc50ed518d14436da529485337",
+      "source_head": "1ecabe0cfdd2e4ba22021b2ece83ca9fc20751ec",
+      "status": "EXACT"
+    },
+    {
+      "path": "docs/verification/phase0-smp-guide-english-20261117/verification.json",
+      "sha256": "686647a9f9b09ba76b945daef61cb15266177973a2be7b99ac3b86bd98e4d1ba",
+      "source_head": "1ecabe0cfdd2e4ba22021b2ece83ca9fc20751ec",
+      "status": "EXACT"
+    },
+    {
+      "path": "docs/FULL-TEST-RELEASE.md",
+      "sha256": "160a14a985bcf2fe58c7e873ce827dd5f39fa880620a19b705d8c120e107c647",
+      "source_head": "f2e0318cc4ab900aeb7fcc5560dd9b0b764e14f0",
+      "status": "EXACT"
+    },
+    {
+      "path": "docs/verification/phase0-release-guide-english-20261117/README.md",
+      "sha256": "a9b5b9670d5bc910a560ce409def07a8a34a16c05b0a62080f7573eab3a45213",
+      "source_head": "f2e0318cc4ab900aeb7fcc5560dd9b0b764e14f0",
+      "status": "EXACT"
+    },
+    {
+      "path": "docs/verification/phase0-release-guide-english-20261117/verification.json",
+      "sha256": "bb167d4c45c7682bd5970a993a059267fe693cb398afd91678f683202f12d27e",
+      "source_head": "f2e0318cc4ab900aeb7fcc5560dd9b0b764e14f0",
+      "status": "EXACT"
+    },
+    {
+      "path": "docs/verification/phase0-module-guides-english-20261117/README.md",
+      "sha256": "a85b41adb944eaa78d7b1984a2db0c68cdd87256068397ec422e281f8400f368",
+      "source_head": "8a61fd6d402b73b8e4dab2e917e63f8cba4f4c42",
+      "status": "EXACT"
+    },
+    {
+      "path": "docs/verification/phase0-module-guides-english-20261117/verification.json",
+      "sha256": "a52acdcda9b0b6608b763d43260a9c6f06e85cbc35cd1ff3523d4085acbd88af",
+      "source_head": "8a61fd6d402b73b8e4dab2e917e63f8cba4f4c42",
+      "status": "EXACT"
+    },
+    {
+      "path": "services/net-stack/THIRD-PARTY.md",
+      "sha256": "53ddde1aa1d280ee8523c46294cd4d1199d0083bc8f85bb7139e3689a282ebbf",
+      "source_head": "8a61fd6d402b73b8e4dab2e917e63f8cba4f4c42",
+      "status": "EXACT"
+    },
+    {
+      "path": "userspace/IPC-PROBE.md",
+      "sha256": "77dc5ad3962127a2a464bb9a8e6d9d0488a52677e92868bc8ff5f6ce97f69fea",
+      "source_head": "8a61fd6d402b73b8e4dab2e917e63f8cba4f4c42",
+      "status": "EXACT"
+    },
+    {
+      "path": "docs/product/interaction-principles.md",
+      "sha256": "e1918b6005e32567a3af6cdda3527f1d17e40042cbb3fe01f59affa75558bdf7",
+      "source_head": "18faac9806969483c7f146cb5f2994f83c9aea11",
+      "status": "EXACT"
+    },
+    {
+      "path": "docs/product/new-os-installer-spec.md",
+      "sha256": "66162f1c9b80559adbf6e3cfa1a5d9da6faffef5fbd58bd94c4bd3b3fc9ea4f3",
+      "source_head": "18faac9806969483c7f146cb5f2994f83c9aea11",
+      "status": "EXACT"
+    },
+    {
+      "path": "docs/product/new-os-onboarding-spec.md",
+      "sha256": "264564e8df5c788258b2908c0f6f01c8ad93ecb95a2150a23040375689144680",
+      "source_head": "18faac9806969483c7f146cb5f2994f83c9aea11",
+      "status": "EXACT"
+    },
+    {
+      "path": "docs/verification/phase0-product-guides-english-20261117/README.md",
+      "sha256": "b5b0916cb9d6bc6a48406ca78d399994c740e5b4bcc1bdcc1465b9838b0312c2",
+      "source_head": "18faac9806969483c7f146cb5f2994f83c9aea11",
+      "status": "EXACT"
+    },
+    {
+      "path": "docs/verification/phase0-product-guides-english-20261117/verification.json",
+      "sha256": "767d7800cfa23f6ab6a05c7248b8a1166fa01e5627dab1593a31c75311c66f2d",
+      "source_head": "18faac9806969483c7f146cb5f2994f83c9aea11",
+      "status": "EXACT"
+    },
+    {
+      "path": "docs/research/2026-11-02/README.md",
+      "sha256": "2d8630c1ccc2f18affc5ba7aa4f8e6084388fa6cf59cd33e176fb17f908f05d5",
+      "source_head": "1da2b23dafe8732bf064dd8b490c0763cfe6193a",
+      "status": "EXACT"
+    },
+    {
+      "path": "docs/research/2026-11-02/journey/README.md",
+      "sha256": "9cec46365824db6240a10c6ec27dad9574c32b6cf8e3c1e288c9832c8cc9dba7",
+      "source_head": "1da2b23dafe8732bf064dd8b490c0763cfe6193a",
+      "status": "EXACT"
+    },
+    {
+      "path": "docs/research/README.md",
+      "sha256": "060084b4d05b6afdc44bbae811f5e61492053e1cc9909f7518e4a95a03209a1e",
+      "source_head": "1da2b23dafe8732bf064dd8b490c0763cfe6193a",
+      "status": "EXACT"
+    },
+    {
+      "path": "docs/research/switching-friction.md",
+      "sha256": "ce571a9fd61432be835f5d8b99147df2fc544aecfd853f8c77b3e15299f50707",
+      "source_head": "1da2b23dafe8732bf064dd8b490c0763cfe6193a",
+      "status": "EXACT"
+    },
+    {
+      "path": "docs/verification/phase0-research-index-english-20261117/README.md",
+      "sha256": "9e2bca9f789d37f5ed815ba029907a7a777bbeacca22b6a204fdcf67aa9a4855",
+      "source_head": "1da2b23dafe8732bf064dd8b490c0763cfe6193a",
+      "status": "EXACT"
+    },
+    {
+      "path": "docs/verification/phase0-research-index-english-20261117/verification.json",
+      "sha256": "17ff1274d22a13f41edf825e30dee0c3077d893879b7eefb4974100f183e7fcd",
+      "source_head": "1da2b23dafe8732bf064dd8b490c0763cfe6193a",
+      "status": "EXACT"
+    },
+    {
+      "path": "docs/research/2026-11-02/future-os-design.md",
+      "sha256": "8cca5d70dd49122585640106e3f5dcb147206762ece5be20dd621206cf9cb06b",
+      "source_head": "976b3a40100860618e3c1a0e4b821fd052866e2e",
+      "status": "EXACT"
+    },
+    {
+      "path": "docs/research/2026-11-02/os-user-needs.md",
+      "sha256": "4625407bd523d835d4076eff5edc66797a28e2c4edefdb661baad9c02e0dffc8",
+      "source_head": "976b3a40100860618e3c1a0e4b821fd052866e2e",
+      "status": "EXACT"
+    },
+    {
+      "path": "docs/research/2026-11-02/sources.md",
+      "sha256": "e77f00ed427c3e6d80c00bca16d3cb29ba31c6673020d08a6dcc5f2b068ba035",
+      "source_head": "976b3a40100860618e3c1a0e4b821fd052866e2e",
+      "status": "EXACT"
+    },
+    {
+      "path": "docs/research/2026-11-02/windows-macos-needs.md",
+      "sha256": "7e462c8078812e36fc25248ac292584380fdef2591e6f33d59793811b2d3d04d",
+      "source_head": "976b3a40100860618e3c1a0e4b821fd052866e2e",
+      "status": "EXACT"
+    },
+    {
+      "path": "docs/verification/phase0-research-summaries-english-20261117/README.md",
+      "sha256": "149495b5905da2a1aa929f4be2e7ff806001342399d18fc04e223596df0cc40e",
+      "source_head": "976b3a40100860618e3c1a0e4b821fd052866e2e",
+      "status": "EXACT"
+    },
+    {
+      "path": "docs/verification/phase0-research-summaries-english-20261117/verification.json",
+      "sha256": "5c280b255ceea91015f2cc3c16851240790fd2217077c994bd0b555fbe5aec28",
+      "source_head": "976b3a40100860618e3c1a0e4b821fd052866e2e",
+      "status": "EXACT"
+    },
+    {
+      "path": "docs/implementation/KERNEL-AND-SECURITY-CONTRACT.md",
+      "sha256": "f4f803bebec120cf94ffff262fc14e9ec3db955e51822fa0fb1c68bfc3fb0daa",
+      "source_head": "c7cb95f5be88bf2935d8a1a30dcdaafa98d82126",
+      "status": "EXACT"
+    },
+    {
+      "path": "docs/implementation/KEYRING-SDK-CLIENT.md",
+      "sha256": "9a955ae2593696154e5dd24cf3e198a824de99bdedf70971be4d43c1fe6b9fa3",
+      "source_head": "c7cb95f5be88bf2935d8a1a30dcdaafa98d82126",
+      "status": "EXACT"
+    },
+    {
+      "path": "docs/implementation/B01-ENTROPY-AND-KEYS.md",
+      "sha256": "d0f49f3ff812d3a3658c1dc0dc10bc1fb916060e95991bd4e8de76466b09e310",
+      "source_head": "c7cb95f5be88bf2935d8a1a30dcdaafa98d82126",
+      "status": "EXACT"
+    },
+    {
+      "path": "docs/implementation/B03-SIGNED-UPDATES.md",
+      "sha256": "0893c64ce35481348c459e1683926b4bce16b29d12433ca82e831e7e6ffe2e23",
+      "source_head": "c7cb95f5be88bf2935d8a1a30dcdaafa98d82126",
+      "status": "EXACT"
+    }
+  ],
+  "changed_source_or_prior_evidence_files": [],
+  "documentation_count": 23,
+  "prior_receipt_count": 16,
+  "same_document_main_overlap": [],
+  "all_main_runtime_config_dependency_blobs": "EXACT including modes; no manual runtime edits",
+  "main_non_document_path_count": 2062,
+  "accepted_main_decision_hashes": {
+    "docs/DECISIONS.md": "ec714cc0118fe58e06457b10a8ccdb710261b134481b22d62e9c96d4f2645899",
+    "docs/implementation/B03-POLICY-TRANSITION-PROPOSAL.md": "1a4616596fc2fc4cd1a94424f776325ee8cb56ffcd8ef90fb26c0029f6d0714f",
+    "docs/implementation/B03-PRODUCTION-POLICY-PROPOSAL.md": "1b9ab5ef2965ddba6d0828274b92c34aa7db5ec952ed909583cf18bbf33306ff"
+  },
+  "history": {
+    "english_tail_bytes": 162205,
+    "english_tail_sha256": "73ef48060b68a4cdee098f311059ec3ad2c02ab222f5fc86ee4f473c5a76a61c",
+    "current_main_tail_bytes": 167527,
+    "current_main_tail_sha256": "3dd624f60f276c81455d7cc7b50682e36437949270858423c04139a44d08100f",
+    "accepted_main_addition_bytes": 5322,
+    "accepted_main_addition_sha256": "0c8b06e37481f17401402f354bc8cf56610fc289132c566fdb476ea2b8adec36",
+    "parent_prefixes": [
+      {
+        "head": "3fda27ac6e48a011d11cdec89649c22e6d4e71af",
+        "bytes": 5469,
+        "sha256": "adbd9880571ed2ae4f1acb5863e7ab0fb59d383e58ae6103fc41b24e5bf57593"
+      },
+      {
+        "head": "38d4cc17687156379677993be9945447591bd4c1",
+        "bytes": 5289,
+        "sha256": "5e5f99d3d51b1e46d978c175f545db932e5227db7406eec573d77150b22f41d9"
+      }
+    ],
+    "current_project_handoffs": 1
+  },
+  "parent_archive": {
+    "path": "docs/verification/phase0-pr346-main-20261117/parents.json",
+    "sha256": "6065384d3d0c16d46b20fdb12529b36843d3f45dee50370eab97d57632bb6221"
+  },
+  "current_metadata_hashes": {
+    "docs/PROJECT-STATE.md": "42bf8116990035f4f9efc5339f213233b38d06811855626aad12680ad7602bf8",
+    "docs/progress.json": "1f986445b8c1a40357b8882fdc2d093eca7860db4e2760746b1d3c7bb2958d4b"
+  },
+  "local_commands": [
+    {
+      "command": "rtk bypass python3 -B tools/progress.py --write",
+      "exit": 0
+    },
+    {
+      "command": "rtk bypass python3 -B tools/progress.py --check",
+      "exit": 0
+    },
+    {
+      "command": "rtk bypass git --no-optional-locks diff --cached --check",
+      "exit": 0
+    },
+    {
+      "command": "rtk bypass git --no-optional-locks diff --check",
+      "exit": 0
+    },
+    {
+      "command": "rtk bypass python3 -B /tmp/baryonos-phase0-20261117/p346-current-main-raw/verify.py preservation-complete",
+      "exit": 0
+    }
+  ],
+  "preservation_checker_controls": [
+    {
+      "control": "one-byte reviewed source corruption",
+      "result": "DETECTED",
+      "expected_exception": "AssertionError"
+    },
+    {
+      "control": "accepted main runtime corruption",
+      "result": "DETECTED",
+      "expected_exception": "AssertionError"
+    },
+    {
+      "control": "dropped accepted B03 history addition",
+      "result": "DETECTED",
+      "expected_exception": "AssertionError"
+    },
+    {
+      "control": "criterion status change",
+      "result": "DETECTED",
+      "expected_exception": "AssertionError"
+    }
+  ],
+  "raw_source_verification": {
+    "path": "/tmp/baryonos-phase0-20261117/p346-current-main-raw/preservation-complete-verification.json",
+    "sha256": "1a59a91679cec9d184c13eacf12347969b8c626d158d86dea73a10a8369aeb8d"
+  },
+  "diagnostics": [
+    {
+      "command": "rtk git merge --no-commit --no-ff 38d4cc17687156379677993be9945447591bd4c1",
+      "exit": 1,
+      "meaning": "Expected two metadata conflicts; resolved with complete source preservation"
+    },
+    {
+      "command": "verify.py initial",
+      "exit": 1,
+      "meaning": "Reviewer helper counted19 documents by excluding four separately labelled glosses. Corrected kind classification; required23 documents and16 receipts and all39 exact source/hash expectations unchanged. No product/test expectation change."
+    },
+    {
+      "command": "verify.py source-preservation",
+      "exit": 130,
+      "meaning": "Reviewer character-level history comparison interrupted; replaced by exact line-level insertion comparison. No OS test executed."
+    }
+  ],
+  "progress": {
+    "previous": 41,
+    "current": 41,
+    "fixed_tracks_status_weights_evidence": "EXACT_BOTH_PARENTS",
+    "H02": "open"
+  },
+  "authority": "Only local worktree reconciliation and commit; publication/current-head checks/main merge remain lead-owned",
+  "publication": "Source drafts remain open until actual merge and exact intended main inclusion are verified",
+  "governance": "Finite baseline requires no integration/security blockers, mandatory checks and individually triaged residuals; zero remains a continuing target",
+  "not_run": [
+    "push or GitHub/PR mutation",
+    "current-head hosted CI and merge-hold",
+    "Cargo/native/QEMU/hardware",
+    "new semantic/language/research/legal audit",
+    "human audit",
+    "full issue274 publication/coverage acceptance",
+    "baseline/governance acceptance"
+  ],
+  "issue274": "OPEN"
+}

@@ -1,0 +1,58 @@
+{
+  "task": "P0-274-SMP",
+  "source_commit": "95d59ad52761c1f8f0201d934556902b90ce63cb",
+  "source_sha256": "a6c562dac7eebf6593bdeda197ae7ebab8ce3e8a0337417b3602d76c1217c0aa",
+  "translated_sha256": "3dba5104d2d57158534c72ae35929751fdb653c1034eff8327e7d13ce26643ad",
+  "independent_semantic_review": "PASS after one thousands-separator clarification",
+  "source_preservation_exit": 0,
+  "preserved": {
+    "inline_spans": 365,
+    "numeric_tokens": 773,
+    "urls": 2,
+    "legacy_heading_anchors": 41,
+    "command_block": "byte-identical",
+    "English_appendix": "byte-identical"
+  },
+  "reports": {
+    "P0-274-SMP-report.md": {
+      "sha256": "c996beb684b0ba8ab90873e9818336fdfc5c39cefefc43405cb0398a9cde32a1",
+      "raw_archive": "/home/simon/projects/baryonos-handoffs/claude-to-codex/phase0-20261117/P0-274-SMP-report.md"
+    },
+    "P0-274-SMP-independent-review.md": {
+      "sha256": "fe9400458f2707f3f2cf04dcc3203548e05110072aa8aed9ac1a724ff6548d06",
+      "raw_archive": "/home/simon/projects/baryonos-handoffs/claude-to-codex/phase0-20261117/P0-274-SMP-independent-review.md"
+    }
+  },
+  "existing_unavailable_artifact": "docs/verification/k06-smp-sched/native-report.json absent at source and current; no replacement/current K06 acceptance inferred",
+  "not_run": [
+    "Native/runtime/QEMU",
+    "Full74x50matrix",
+    "Hardware",
+    "Human audit"
+  ],
+  "progress": {
+    "previous": 41,
+    "current": 41
+  },
+  "issue274": "OPEN",
+  "current_head_hosted": "PENDING",
+  "lead_checks": [
+    {
+      "command": "python3 -B tools/progress.py --write",
+      "exit_code": 0
+    },
+    {
+      "command": "python3 -B tools/progress.py --check",
+      "exit_code": 0
+    },
+    {
+      "command": "git diff --check",
+      "exit_code": 0
+    },
+    {
+      "command": "Targeted three-dot filename comparison against existing PR333/336/339/340/344 write sets",
+      "exit_code": 0,
+      "result": "No overlapping translation target"
+    }
+  ]
+}

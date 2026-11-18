@@ -1,0 +1,62 @@
+{
+  "schema": 1,
+  "status": "DRAFT_CHECKPOINT_NOT_ACCEPTED",
+  "base": "38d4cc17687156379677993be9945447591bd4c1",
+  "source_parent": "5682370eb3c1102284e9ed8456086110fabb702b",
+  "source_files_sha256": {
+    ".github/agent-pipeline.json": "b9c1b46f2bb54b682382a7ec685c70209f0b8ff68f4f878821ebd4b814f699e6",
+    "tools/agent_pipeline.py": "7df4889121ffee4c71a22f557a89ccb1ef2a9b787353e78a3e130d2f23e204d6",
+    "tools/agent_gate.py": "4714ea62f36f0fd80c6b9af6190090f6490b28656bd55a6653e76defd3d8b191",
+    "tools/common.py": "950546ea4aadc591685ed2afbe486c247565624203edf62ac4deb64ec05c0c02",
+    "tools/agent_sandbox.py": "1a178d5af9884d2c2cfd86da93fdbe58f1f19094e09efd987bc021e239474721",
+    "tools/tests/test_agent_execution_hold.py": "adbdaca867901088f8202f5aed3f8d140a2a963c5360c2658e9761edcb681108",
+    "tools/tests/test_agent_isolation.py": "e0ec5d1464540f6cb3323d8a54fb518c4cf69d22ce4e6166c35650ccdb42aa0f",
+    "tools/tests/test_agent_pipeline.py": "e24adf27d071ef5f4d4d2be0be96788e0cf290babb3f2558c616dd1a1b761d50",
+    "tools/tests/test_agent_pipeline_integration.py": "b5c45b308a5b387833808a6b2813cb5b501f0074deaa87c25eb359da784cb1d6",
+    "tools/tests/test_agent_sandbox.py": "6cbeeed3be45bc841968777f57187f754983310851ffcbaa31ff667235cb0e27",
+    "tools/tests/test_agent_sandbox_native.py": "13fd2fed04a3be193c5eaff125bde1173c0992344ce5d9341645f11708e49bf2"
+  },
+  "checks": [
+    {
+      "command": "BARYON_SANDBOX_TEST_CONFIG=<reviewed-private-fixture> python3 -B -m unittest discover -s tools/tests -p test_*.py",
+      "exit": 0,
+      "tests": 406,
+      "skipped": 0,
+      "raw_log_sha256": "23108fdb2d316114a63cfadccd8036bf5d50c7af93dbb6fd83bc82c077f62dec",
+      "scope": "host tests, real Linux isolation controls and deterministic offline Git transaction; no authenticated model client"
+    }
+  ],
+  "independent_review": {
+    "initial_private_report_sha256": "95b0a59b138d9bbdea1695fd211603bd217e53611a3440081dea0c5b645ada04",
+    "repair_private_report_sha256": "67f4548fe4c20d91ccde87c6f4919d4447536341ff40c2fa7aa230a4c2fd4f7b",
+    "status": "SOURCE_REPAIRS_REVIEWED; MERGE_AND_ENABLEMENT_BLOCKED",
+    "not_a_human_audit": true
+  },
+  "pending": [
+    "bounded worker resources",
+    "complete selected client and gate compatibility",
+    "current-head hosted CI",
+    "final source-bound security verification and Daybreak closure"
+  ],
+  "production_enabled": false,
+  "progress_before": 41,
+  "progress_after": 41,
+  "ci_followup": {
+    "source_parent": "2c78fb48925220caaec52fd3eeadf7ca94bf9a58",
+    "reason": "First hosted host-quality run rejected the object-only snapshot fixture under runner Git content-filter configuration",
+    "first_failed_run": "https://github.com/BaryonOS/BaryonOS/actions/runs/44193960085",
+    "change": "Keep fixed executable/environment and explicit no-lazy-fetch metadata lookup; preserve mutation/publication callback and hook checks",
+    "source_files_sha256": {
+      "tools/agent_pipeline.py": "cd9e07f67f086e282f2c6723ee10919f73ce258b38540970096e10f994fe2e05",
+      "tools/common.py": "f964b153fedf10698d81947b98fbe24badc3eb904f0dd38023f297bbd0219226",
+      "tools/tests/test_agent_pipeline.py": "f718c7cb559aae8471487f8c2364a3492f6851c4a98b8a1a365ac29798e389fc",
+      "tools/tests/test_agent_isolation.py": "b8645bf25d931d4f4ce7815bbb9aa212cb8ca216d34d0b37389119fa398ef782"
+    },
+    "targeted_command": "BARYON_SANDBOX_TEST_CONFIG=<reviewed-private-fixture> python3 -B -m unittest discover -s tools/tests -p test_agent_*.py",
+    "targeted_tests": 78,
+    "targeted_exit": 0,
+    "targeted_raw_log_sha256": "2db0e17228f0a73f207c581712c14dcbbcb93e0bc2bcd00e2b99d3ee6e4403cb",
+    "current_head_ci": "PENDING AFTER PUSH",
+    "merge_and_enablement": "BLOCKED by independent review; no production client or resource-profile acceptance"
+  }
+}

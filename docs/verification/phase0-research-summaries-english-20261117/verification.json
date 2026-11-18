@@ -1,0 +1,81 @@
+{
+  "task": "P0-274-RESEARCH-SUMMARIES",
+  "source_commit": "95d59ad52761c1f8f0201d934556902b90ce63cb",
+  "authority": "Owner released active Dutch authored prose only in docs/product/ and docs/research/: Alleen deze tekstvertalingen vrijgeven",
+  "files": [
+    {
+      "path": "docs/research/2026-11-02/future-os-design.md",
+      "source_sha256": "7a736f0c23e583532a6f35e209d4e4ab554f18ed77f595f7e0151145188dcbb2",
+      "translated_sha256": "8cca5d70dd49122585640106e3f5dcb147206762ece5be20dd621206cf9cb06b"
+    },
+    {
+      "path": "docs/research/2026-11-02/os-user-needs.md",
+      "source_sha256": "96f5e5c33a88631e30c485c91fbc05ead4d1b1baa758a04491b8887d4d482b38",
+      "translated_sha256": "4625407bd523d835d4076eff5edc66797a28e2c4edefdb661baad9c02e0dffc8"
+    },
+    {
+      "path": "docs/research/2026-11-02/sources.md",
+      "source_sha256": "fbcc850b7a11838b47a314c5290fe791fc9e2afd62eaa7fdafdf5250f0be5740",
+      "translated_sha256": "e77f00ed427c3e6d80c00bca16d3cb29ba31c6673020d08a6dcc5f2b068ba035"
+    },
+    {
+      "path": "docs/research/2026-11-02/windows-macos-needs.md",
+      "source_sha256": "7ebd6fe47ac712f3ffd800c4cc5e9632e1a7bb2e66d075e8ed9ec7e5dbc117a7",
+      "translated_sha256": "7e462c8078812e36fc25248ac292584380fdef2591e6f33d59793811b2d3d04d"
+    }
+  ],
+  "independent_semantic_review": "PASS",
+  "preservation_exit": 0,
+  "legacy_heading_targets_preserved": 26,
+  "reports": {
+    "P0-274-RESEARCH-SUMMARIES-report.md": {
+      "sha256": "4f7240a6b2ee0c69d48e47d0184c3c5a86107cb1c426c1ca6bb0d862fcf0af16",
+      "raw_archive": "/home/simon/projects/baryonos-handoffs/claude-to-codex/phase0-20261117/P0-274-RESEARCH-SUMMARIES-report.md"
+    },
+    "P0-274-RESEARCH-SUMMARIES-independent-review.md": {
+      "sha256": "8d0597d5ec463be9bb0a42ba2caecbdc68803985089d46d4e485fb84a94960b9",
+      "raw_archive": "/home/simon/projects/baryonos-handoffs/claude-to-codex/phase0-20261117/P0-274-RESEARCH-SUMMARIES-independent-review.md"
+    }
+  },
+  "progress": {
+    "previous": 41,
+    "current": 41
+  },
+  "issue274": "OPEN",
+  "required_current_head_hosted": "PENDING",
+  "not_run": [
+    "New research/source-validity assessment",
+    "Runtime/native/hardware",
+    "User trials/rendering",
+    "Human audit"
+  ],
+  "preserved": {
+    "inline_spans": 25,
+    "numeric_components": 1040,
+    "urls": 142,
+    "link_targets": 154,
+    "reference_definitions": 96,
+    "source_titles": 55,
+    "evidence_markers": 374,
+    "legacy_heading_targets": 26,
+    "negative_controls": "8/8 deliberately changed in-memory inputs rejected with expected exit1; driver exit0"
+  },
+  "lead_checks": [
+    {
+      "command": "Final exact independently reviewed document hashes",
+      "exit_code": 0
+    },
+    {
+      "command": "python3 -B tools/progress.py --write",
+      "exit_code": 0
+    },
+    {
+      "command": "python3 -B tools/progress.py --check",
+      "exit_code": 0
+    },
+    {
+      "command": "git diff --check",
+      "exit_code": 0
+    }
+  ]
+}

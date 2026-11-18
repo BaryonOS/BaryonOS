@@ -1,0 +1,44 @@
+{
+  "source_commit": "ef75a64d3bba96782e59bf3b1fd0a441b36dd33a",
+  "base_main": "67d5859d735836331b6fb971eae89162b7fa8465",
+  "scope": "Source-enforced legacy issue-controller hold; no release override; full isolation355 remains incomplete",
+  "red_mocked_regression_exit": 1,
+  "red_failures": 10,
+  "focused_tests": 4,
+  "focused_exit": 0,
+  "complete_tools_tests": 388,
+  "complete_tools_exit": 0,
+  "strict_preflight_exit": 0,
+  "standard_build_exit": 0,
+  "standard_smoke_exit": 0,
+  "qemu_raw_exit": 33,
+  "qemu_marker": "M1:PASS",
+  "logs": [
+    {
+      "path": "build/tokenguard/run-5bk_nkp5.log",
+      "sha256": "f916d5acc171c3a48c88b339d161bc451f99c7474fa8c6bebe7bdeebe0a1bf71",
+      "exit_code": 1
+    },
+    {
+      "path": "build/tokenguard/run-rmur6y1z.log",
+      "sha256": "45598050bdd460c881f8b620c39efd7112da28d2e71b586bdfbe92894b1dd5ba",
+      "exit_code": 0
+    },
+    {
+      "path": "build/tokenguard/run-gg4ytx2l.log",
+      "sha256": "c019ee285c82978bc443e22b533ed5f1351f60d5c56205e9690a1ebe65c7f124",
+      "exit_code": 0
+    }
+  ],
+  "source_hashes": {
+    "tools/agent_pipeline.py": "fa95e89967b0ad5a1d36be8560e6ad3f665fff05cffb9d029f40418cbb2b0a60",
+    "tools/tests/test_pipeline_quarantine.py": "03e4a55cabafd59c429671feb8c8885c91d2246118890c8cdff3c68b187b0b0c"
+  },
+  "independent_ai_review": "ef75a64d: no blocking narrow-hold defect; four tests and eight real credential-free CLI variants verified",
+  "pending": [
+    "Final metadata review",
+    "Current-head hosted CI and native suites"
+  ],
+  "finding_closed": false,
+  "score": 41
+}

@@ -1,0 +1,69 @@
+{
+  "source_commit": "95d59ad52761c1f8f0201d934556902b90ce63cb",
+  "files": [
+    {
+      "path": "userspace/IPC-PROBE.md",
+      "source_sha256": "1bb4b5acf8c63223e17f98aa7474edb60096df6aea8abaa1a69c6117df5bc72b",
+      "translated_sha256": "77dc5ad3962127a2a464bb9a8e6d9d0488a52677e92868bc8ff5f6ce97f69fea"
+    },
+    {
+      "path": "services/net-stack/THIRD-PARTY.md",
+      "source_sha256": "96e5b1582398bc1f0bd081cc4a368c9b3acd9a27df18aa3c19327e337f25e344",
+      "translated_sha256": "53ddde1aa1d280ee8523c46294cd4d1199d0083bc8f85bb7139e3689a282ebbf"
+    }
+  ],
+  "independent_semantic_review": "PASS",
+  "preservation_exit": 0,
+  "preserved": {
+    "fences": 10,
+    "inline_spans": 45,
+    "numeric_tokens": 254,
+    "legacy_heading_targets": 17
+  },
+  "license_tail": {
+    "bytes": 8077,
+    "lines": 209,
+    "sha256": "a002eb055aa3ca022b7dbf8571722e8dcf1fe82864db8efbd9c0164093c16a8a",
+    "byte_identical": true
+  },
+  "original_pr_target_overlap": false,
+  "reports": {
+    "P0-274-MODULES-report.md": {
+      "sha256": "f01e428bef89afc0211550a15d839bfcc9f3eda4a663229c904f369761809664",
+      "raw_archive": "/home/simon/projects/baryonos-handoffs/claude-to-codex/phase0-20261117/P0-274-MODULES-report.md"
+    },
+    "P0-274-MODULES-independent-review.md": {
+      "sha256": "d9ff152b8968cf278cbafd6b1bb2d00ee03e19d2aa69df5d82759c5a1fea28c1",
+      "raw_archive": "/home/simon/projects/baryonos-handoffs/claude-to-codex/phase0-20261117/P0-274-MODULES-independent-review.md"
+    }
+  },
+  "not_run": [
+    "Runtime/native/hardware",
+    "Legal assessment",
+    "Human audit"
+  ],
+  "progress": {
+    "previous": 41,
+    "current": 41
+  },
+  "issue274": "OPEN",
+  "required_current_head_hosted": "PENDING",
+  "lead_checks": [
+    {
+      "command": "Exact two independent-reviewed guide hashes",
+      "exit_code": 0
+    },
+    {
+      "command": "python3 -B tools/progress.py --write",
+      "exit_code": 0
+    },
+    {
+      "command": "python3 -B tools/progress.py --check",
+      "exit_code": 0
+    },
+    {
+      "command": "git diff --check",
+      "exit_code": 0
+    }
+  ]
+}
