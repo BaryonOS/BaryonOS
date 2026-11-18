@@ -65,6 +65,7 @@ struct Runtime {
     client_send: [u64; 2],
     client_reply: [u64; 2],
     calls: u64,
+    observer_denials: u64,
     publications: [u64; 3],
     completions: [u64; 3],
     published_at: u64,
@@ -122,6 +123,7 @@ static mut RUNTIME: Runtime = Runtime {
     client_send: [0; 2],
     client_reply: [0; 2],
     calls: 0,
+    observer_denials: 0,
     publications: [0; 3],
     completions: [0; 3],
     published_at: 0,
@@ -369,11 +371,22 @@ pub fn manifest(s: &mut State) {
 }
 
 pub fn syscall(s: &mut State, slot: usize, n: u64, a: [u64; 6]) -> (i64, u64) {
-    if slot == 0 {
-        runtime().calls += 1;
-    }
-    let result = device_call(s, slot, n, a);
+    let (uncertain_before, denials_before, live_request) = if slot == 0 {
+        let r = runtime();
+        (
+            r.uncertain.is_some(),
+            r.observer_denials,
+            r.error.is_some() || r.policy.request().is_some(),
+        )
+    } else {
+        (false, 0, false)
+    };
+    let mut terminal = slot == 0 && matches!(n, 0x42 | 0x43) && !uncertain_before && !live_request;
+    let result = device_call(s, slot, n, a, &mut terminal);
     let r = runtime();
+    if slot == 0 && !uncertain_before && r.observer_denials == denials_before {
+        r.calls += 1;
+    }
     r.last_number[slot] = n;
     r.last_result[slot] = result.as_ref().err().copied().unwrap_or(0);
     match result {
@@ -385,12 +398,17 @@ pub fn syscall(s: &mut State, slot: usize, n: u64, a: [u64; 6]) -> (i64, u64) {
             // failed WRITE/FLUSH; the observer must not turn that into a panic
             // by still predicting a successful ACK.
             if slot == 0
-                && (matches!(n, 0x42 | 0x43) || n == 0x41 && code != -8)
+                && terminal
+                && code != -8
                 && r.active.as_ref().is_some_and(|a| a.candidate.is_some())
             {
-                assert!(r.uncertain.is_none());
-                r.active.as_mut().unwrap().io_error = Some(code);
-                r.uncertain = Some(IoSnapshot::read(r));
+                if r.active.as_ref().unwrap().io_error.is_none() {
+                    assert!(r.uncertain.is_none());
+                    r.active.as_mut().unwrap().io_error = Some(code);
+                    r.uncertain = Some(IoSnapshot::read(r));
+                } else {
+                    assert!(r.uncertain.is_some());
+                }
             }
             if slot > 0 && matches!(code, -4 | -6) {
                 r.app_device_denials[slot - 1] += 1;
@@ -399,7 +417,17 @@ pub fn syscall(s: &mut State, slot: usize, n: u64, a: [u64; 6]) -> (i64, u64) {
         }
     }
 }
-fn device_call(s: &mut State, slot: usize, n: u64, a: [u64; 6]) -> Result<u64, i64> {
+fn reject_observer(r: &mut Runtime) -> Result<u64, i64> {
+    r.observer_denials += 1;
+    Err(-1)
+}
+fn device_call(
+    s: &mut State,
+    slot: usize,
+    n: u64,
+    a: [u64; 6],
+    terminal: &mut bool,
+) -> Result<u64, i64> {
     if !matches!(n, 0x40..=0x43) {
         return Err(-2);
     }
@@ -440,6 +468,10 @@ fn device_call(s: &mut State, slot: usize, n: u64, a: [u64; 6]) -> Result<u64, i
         }
         let output = m4::plan(s, slot, a[2], 320, true).map_err(|e| e.code())?;
         let r = runtime();
+        if r.uncertain.is_some() {
+            return reject_observer(r);
+        }
+        *terminal = slot == 0 && request.operation.is_mutating();
         if let Some((_, code)) = r.error.take() {
             if r.policy.peek(binding, a[1]).is_ok() {
                 let _ = r.policy.consume(binding, a[1]);
@@ -497,6 +529,9 @@ fn device_call(s: &mut State, slot: usize, n: u64, a: [u64; 6]) -> Result<u64, i
         None
     };
     let r = runtime();
+    if r.uncertain.is_some() {
+        return reject_observer(r);
+    }
     if r.offline != 0 {
         return Err(r.offline);
     }
@@ -504,30 +539,44 @@ fn device_call(s: &mut State, slot: usize, n: u64, a: [u64; 6]) -> Result<u64, i
         return Err(-8);
     }
     let capacity = r.device.as_ref().ok_or(-14)?.capacity;
+    if matches!(op, Operation::Read { .. }) && r.ready {
+        return reject_observer(r);
+    }
     // Acceptance observer only: the broker's authority checks above do not
     // know object IDs, domains or journal revisions.
     if let Some(bytes) = input.as_ref() {
-        let active = r
-            .active
-            .as_ref()
-            .expect("WRITE without received object request");
-        let candidate = active
-            .candidate
-            .as_ref()
-            .expect("WRITE for rejected/nonmutating request");
-        assert_eq!(slot, 0);
-        assert_eq!(*bytes, *candidate.record());
-        assert_eq!(
-            op,
-            Operation::Write {
-                sector: 4 + r.current.as_ref().unwrap().sequence()
-            }
-        );
-        assert!(!active.write_done && !active.flush_done);
+        let valid = r.active.as_ref().is_some_and(|active| {
+            slot == 0
+                && active.status == wire::Status::Ok
+                && active.io_error.is_none()
+                && !active.write_done
+                && !active.flush_done
+                && active
+                    .candidate
+                    .as_ref()
+                    .is_some_and(|candidate| bytes == candidate.record())
+                && r.current.as_ref().is_some_and(|current| {
+                    op == Operation::Write {
+                        sector: 4 + current.sequence(),
+                    }
+                })
+        });
+        if !valid {
+            return reject_observer(r);
+        }
     }
     if op == Operation::Flush && r.ready {
-        let active = r.active.as_ref().expect("FLUSH without mutation");
-        assert!(active.candidate.is_some() && active.write_done && !active.flush_done);
+        let valid = r.active.as_ref().is_some_and(|active| {
+            slot == 0
+                && active.status == wire::Status::Ok
+                && active.io_error.is_none()
+                && active.candidate.is_some()
+                && active.write_done
+                && !active.flush_done
+        });
+        if !valid {
+            return reject_observer(r);
+        }
     }
     let request = r
         .policy
@@ -790,8 +839,9 @@ fn observe_ready(s: &State) {
     r.current = Some(state);
     r.ready = true;
     serial::write(b"M6C:READY\n");
-    // Test fixture barrier only; creates/delegates no capability. Both clients
-    // still use their distinct kernel-bound ingress and reply endpoints.
+    // Test fixture barrier only; creates/delegates no capability. The service
+    // probe and both clients retain their existing distinct authority.
+    put(s, 0, 256, 1);
     for slot in 1..3 {
         put(s, slot, 256, 1);
     }
@@ -819,8 +869,8 @@ pub fn sent(_s: &State, slot: usize, handle: u64, message: &Message) {
     }
     assert_eq!(body, active.response);
     if let Some(snapshot) = r.uncertain {
-        // No service syscall, publication, successful completion or replay is
-        // allowed after the error is delivered, even if the device reset works.
+        // Validation still runs, but no accepted block syscall, publication,
+        // successful completion or replay may follow the terminal error.
         assert_eq!(IoSnapshot::read(r), snapshot);
     }
     if active.io_error.is_some() {
@@ -984,6 +1034,10 @@ pub fn received(s: &State, slot: usize, handle: u64, message: &Message) {
         if wire::header(&body).status == wire::Status::Unknown as i32 {
             r.unknown_received += 1;
             assert!(r.unknown_received <= r.unknown_sent);
+            if case() == 2 && r.unknown_received == 1 {
+                assert_eq!(domain, 0);
+                put(s, 2, 296, 1);
+            }
             if fault_case() && r.unknown_received == 1 {
                 assert_eq!(domain, 0);
                 // Fixture-only barrier releases the second app after a real
@@ -999,6 +1053,13 @@ pub fn received(s: &State, slot: usize, handle: u64, message: &Message) {
                 // It grants no authority and cannot fabricate service ACKs.
                 for client in 1..3 {
                     put(s, client, 272, 1);
+                }
+            }
+            if case() == 2 && r.ack_received == 10 {
+                // Both domains completed their real mutations before the
+                // terminal-error retry probe starts; no authority is added.
+                for slot in 0..3 {
+                    put(s, slot, 288, 1);
                 }
             }
             if case() == 3 && r.ack_received == 32 {
@@ -1289,7 +1350,14 @@ pub fn poll(s: &mut State) -> Option<*const u64> {
                 3 => 23,
                 _ => 0,
             };
-            assert_eq!(r.requests, [requests; 2]);
+            assert_eq!(
+                r.requests,
+                if case() == 2 {
+                    [requests + 1, requests]
+                } else {
+                    [requests; 2]
+                }
+            );
             let current = r.current.as_ref().unwrap();
             match case() {
                 0 | 2 => {
@@ -1301,6 +1369,13 @@ pub fn poll(s: &mut State) -> Option<*const u64> {
                         assert_eq!(entry.present, object % 2 == 0);
                     }
                     assert_eq!(r.rejected, if case() == 2 { 80 } else { 6 });
+                    if case() == 2 {
+                        assert_eq!(r.observer_denials, 9);
+                        assert_eq!((r.unknown_sent, r.unknown_received), (1, 1));
+                        assert_eq!(word(s, 0, 328), 1);
+                        assert_eq!(word(s, 0, 336), 1);
+                        assert_eq!(IoSnapshot::read(r), r.uncertain.unwrap());
+                    }
                 }
                 1 => {
                     assert_eq!(r.ack_received, 0);

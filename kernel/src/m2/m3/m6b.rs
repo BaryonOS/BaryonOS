@@ -53,6 +53,7 @@ struct Runtime {
     client_send: [u64; 2],
     client_reply: [u64; 2],
     calls: u64,
+    observer_denials: u64,
     publications: [u64; 3],
     completions: [u64; 3],
     io_errors: [u64; 3],
@@ -122,6 +123,7 @@ static mut RUNTIME: Runtime = Runtime {
     client_send: [0; 2],
     client_reply: [0; 2],
     calls: 0,
+    observer_denials: 0,
     publications: [0; 3],
     completions: [0; 3],
     io_errors: [0; 3],
@@ -368,21 +370,19 @@ pub fn syscall(s: &mut State, slot: usize, n: u64, a: [u64; 6]) -> (i64, u64) {
     if slot == 0 {
         runtime().calls += 1;
     }
-    // Snapshot the operation before polling can consume/reset its ticket. The
-    // observer follows the actual error delivered to the service, never a
-    // service-writable status word or the status claimed by a reply.
-    let mutating = if slot == 0 && n == 0x41 {
+    let live_request = if slot == 0 {
         let r = runtime();
-        r.error
-            .map(|(request, _)| request)
-            .or_else(|| r.policy.request())
-            .is_some_and(|request| request.operation.is_mutating())
+        r.error.is_some() || r.policy.request().is_some()
     } else {
-        slot == 0 && matches!(n, 0x42 | 0x43)
+        false
     };
-    let result = device_call(s, slot, n, a);
+    // A second submit cannot define the outcome of an already-live request.
+    // POLL becomes terminal-eligible only after its binding, ticket and output
+    // plan have been validated inside device_call.
+    let mut terminal = slot == 0 && matches!(n, 0x42 | 0x43) && !live_request;
+    let result = device_call(s, slot, n, a, &mut terminal);
     let r = runtime();
-    if mutating && result.as_ref().is_err_and(|code| n != 0x41 || *code != -8) {
+    if terminal && result.as_ref().is_err_and(|code| *code != -8) {
         // The native adapter treats every terminal mutation failure as
         // uncertain, including rejection before publication. Retain the
         // candidate only as observer metadata; never commit or replay it.
@@ -400,7 +400,17 @@ pub fn syscall(s: &mut State, slot: usize, n: u64, a: [u64; 6]) -> (i64, u64) {
         }
     }
 }
-fn device_call(s: &mut State, slot: usize, n: u64, a: [u64; 6]) -> Result<u64, i64> {
+fn reject_observer(r: &mut Runtime) -> Result<u64, i64> {
+    r.observer_denials += 1;
+    Err(-1)
+}
+fn device_call(
+    s: &mut State,
+    slot: usize,
+    n: u64,
+    a: [u64; 6],
+    terminal: &mut bool,
+) -> Result<u64, i64> {
     if !matches!(n, 0x40..=0x43) {
         return Err(-2);
     }
@@ -440,6 +450,7 @@ fn device_call(s: &mut State, slot: usize, n: u64, a: [u64; 6]) -> Result<u64, i
             return Err(-1);
         }
         let output = m4::plan(s, slot, a[2], 320, true).map_err(|e| e.code())?;
+        *terminal = slot == 0 && request.operation.is_mutating();
         let r = runtime();
         if let Some((_, code)) = r.error.take() {
             if r.policy.peek(binding, a[1]).is_ok() {
@@ -512,30 +523,42 @@ fn device_call(s: &mut State, slot: usize, n: u64, a: [u64; 6]) -> Result<u64, i
         return Err(-8);
     }
     let capacity = r.device.as_ref().ok_or(-14)?.capacity;
+    if matches!(op, Operation::Read { .. }) && r.ready {
+        return reject_observer(r);
+    }
     // Acceptance observer only: the broker's authority checks above do not
     // know object IDs, domains or journal revisions.
     if let Some(bytes) = input.as_ref() {
-        let active = r
-            .active
-            .as_ref()
-            .expect("WRITE without received object request");
-        let candidate = active
-            .candidate
-            .as_ref()
-            .expect("WRITE for rejected/nonmutating request");
-        assert_eq!(slot, 0);
-        assert_eq!(*bytes, *candidate.record());
-        assert_eq!(
-            op,
-            Operation::Write {
-                sector: 4 + r.current.as_ref().unwrap().sequence()
-            }
-        );
-        assert!(!active.write_done && !active.flush_done);
+        let valid = r.active.as_ref().is_some_and(|active| {
+            slot == 0
+                && active.status == wire::Status::Ok
+                && !active.write_done
+                && !active.flush_done
+                && active
+                    .candidate
+                    .as_ref()
+                    .is_some_and(|candidate| bytes == candidate.record())
+                && r.current.as_ref().is_some_and(|current| {
+                    op == Operation::Write {
+                        sector: 4 + current.sequence(),
+                    }
+                })
+        });
+        if !valid {
+            return reject_observer(r);
+        }
     }
     if op == Operation::Flush && r.ready {
-        let active = r.active.as_ref().expect("FLUSH without mutation");
-        assert!(active.candidate.is_some() && active.write_done && !active.flush_done);
+        let valid = r.active.as_ref().is_some_and(|active| {
+            slot == 0
+                && active.status == wire::Status::Ok
+                && active.candidate.is_some()
+                && active.write_done
+                && !active.flush_done
+        });
+        if !valid {
+            return reject_observer(r);
+        }
     }
     let request = r
         .policy
@@ -848,8 +871,9 @@ fn observe_ready(s: &State) {
     }
     r.current = Some(state);
     r.ready = true;
-    // Test fixture barrier only; creates/delegates no capability. Both clients
-    // still use their distinct kernel-bound ingress and reply endpoints.
+    // Test fixture barrier only; creates/delegates no capability. The service
+    // probe and both clients retain their existing distinct authority.
+    put(s, 0, 256, 1);
     for slot in 1..3 {
         put(s, slot, 256, 1);
     }
@@ -1302,6 +1326,8 @@ pub fn poll(s: &mut State) -> Option<*const u64> {
                     }
                     if case() == 2 {
                         assert!(r.rejected >= 34);
+                        assert_eq!(r.observer_denials, 3);
+                        assert_eq!(word(s, 0, 336), 1);
                     }
                 }
                 1 => assert_eq!(r.ack_received, 0),
