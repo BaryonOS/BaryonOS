@@ -18,7 +18,8 @@
       "raw_log_sha256": "c6cda5bdabb2a90c7a1239990032651464f3022212e4392fd733d4fb33a79dc0",
       "public_log": "logs/negative-control.log.gz",
       "public_log_sha256": "d11caf2682a92b3bf1aff95d9fa3b62b45a720664c3740cc68864c5aff7f7fa7",
-      "public_log_derivation": "absolute task worktree path replaced with ${WORKTREE}; raw original retained locally"
+      "public_log_derivation": "absolute task worktree path replaced with ${WORKTREE}; raw original retained locally",
+      "source_binding_correction": "../phase0-sec359-evidence-correction-20261118/checks.json#negative_control"
     },
     {
       "name": "quarantine",
@@ -82,14 +83,16 @@
   },
   "native": {
     "raw_qemu_exit": 33,
-    "artifact_binding_passed": true,
+    "immutable_inputs_rehashed_after_run": true,
+    "writable_ovmf_vars_binding_passed": false,
+    "writable_ovmf_vars_binding_note": "NOT RECORDED before launch; the raw result used an empty expected-artifact set, so its true binding field is not acceptance evidence.",
     "raw_serial_stdout_sha256": "688293e2acf7b50d0f17a57d0dfe5a4c8914db05552b54903f334c078579aacd",
     "raw_serial_stdout_bytes": 271,
     "raw_serial_stdout_source": "native-result.json stdout decoded as UTF-8; firmware CRLF bytes are preserved inside the JSON string",
     "committed_serial_sha256": "c6b5008f629362bc43e7078dee438d6e7971b04d13de92c8d77e57811f7f1fab",
     "committed_serial_bytes": 269,
     "committed_serial_representation": "serial.txt is the Git-normalized LF convenience view and is not the raw-byte artifact",
-    "artifacts_rehashed": {
+    "immutable_inputs_rehashed_after_run_sha256": {
       "esp/kernel.elf": "60356c867b3ce554013fcbb7c143c6169d14c58a92ffe6dbe3286f0faa23944d",
       "esp/EFI/BOOT/BOOTX64.EFI": "c6d3aebfe858a06189566300933e7f8f9913240990ec478c551a736e629270be",
       "OVMF_CODE.fd": "874f15a7c9110e78a89db159f0f68fc97e9076b74777520de1c235426f758aa7",
@@ -99,8 +102,8 @@
   "review": {
     "kind": "independent AI source review, not human audit",
     "source_commit": "fd0f76bcfc48cda4f0663091179d45b0f880ac65",
-    "result": "PASS within containment/preservation scope",
-    "scope": "Complete PR diff, nine class ingress guards and CLI, no runtime override, unchanged current-main runtime/UI/design and criterion identities."
+    "result": "PASS for the executable containment source only; the prior review does not establish a complete PR-diff or evidence audit.",
+    "scope": "tools/agent_pipeline.py, tools/tests/test_pipeline_quarantine.py, nine class ingress guards and CLI, and absence of a runtime override."
   },
   "limits": [
     "Current-head hosted CI and actual-main integration remain pending.",

@@ -1,13 +1,7 @@
 {
-  "authority": "Explicit project-owner approval in the local execution chat, 18 November 2026",
-  "finite_baseline_B": "Preserved under the existing approved owner-objective-refinement record.",
-  "governance_start_requires": [
-    "zero genuinely open issues",
-    "zero genuinely open PRs",
-    "zero unresolved actionable security and quality findings",
-    "integrated source-bound required/native/CI verification"
-  ],
-  "exception": "Only an explicit project-owner exception authorizes governance before strict stabilization.",
-  "manual_squash": "Authorized when every mandatory condition passes; no auto-merge or protection bypass.",
-  "remaining_blockers": "Preserve incomplete work, finish independent feasible tasks, request only the necessary owner decision."
+  "record_kind": "Session authority provenance; not a project decision record or ADR.",
+  "source": "Explicit project-owner instruction in the local execution chat, 18 November 2026.",
+  "scope": "Execution authority for independently verified stabilization work.",
+  "governance_status": "Not started and outside PR #359; this file does not establish a governance transition.",
+  "repository_decision_source": "docs/DECISIONS.md remains authoritative for versioned project decisions."
 }
