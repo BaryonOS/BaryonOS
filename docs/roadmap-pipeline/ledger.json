@@ -145,6 +145,13 @@
           "source_commit": "d03ae904048a91defc74b9e4ba854d3526595580",
           "receipt": "docs/roadmap-pipeline/receipts/A02-T1.json",
           "summary": "Host installer composition: 48 tests, Clippy, fmt and freestanding CI-profile build pass. No A02 product acceptance."
+        },
+        {
+          "at": "2026-11-18T19:57:13+00:00",
+          "event": "source-bound-branch-reference",
+          "source_commit": "d03ae904048a91defc74b9e4ba854d3526595580",
+          "pr": 363,
+          "reason": "Host/build task verified on separate preserved branch; no native A02 acceptance or main integration inferred."
         }
       ]
     },
@@ -153,7 +160,7 @@
       "criterion": "B01",
       "milestone": "M8",
       "executor": "worker",
-      "status": "ready",
+      "status": "verified",
       "native": true,
       "title": "Native positive management recovery through a manifest-named admin principal (keyring)",
       "goal": "In the native-keyring normal case, add a management-role process (a second instance of the existing keyring-app ELF, named in the manifest as the admin caller and connected to the existing admin ingress words) that performs EXPORT_RECOVERY on service A and RESTORE into service B, after which B unseals a ciphertext sealed by A. Negative cases in the same run: a wrong recovery secret returns Auth; GENERATE on the admin ingress is denied; the ordinary app's test-only SEND alias to the admin ingress is counted as bad_caller with no reply and no state change. Existing APP_RECOVERY_EXPORT_DENIED and APP_RECOVERY_RESTORE_DENIED counters stay 1. Reuse existing ELFs and kernel features only: no tools/build.py edit, no new capability kind, no change to the KEY1 wire.",
@@ -167,7 +174,7 @@
         "tools/test_keyring.py",
         "tests/test_keyring_harness.py",
         "docs/implementation/B01-ENTROPY-AND-KEYS.md",
-        "docs/verification/b01-management-recovery-20261115/"
+        "docs/verification/b01-management-recovery-20261118/"
       ],
       "graph_notes": "Graphify (index d572052): AdminIngress, admin_ingress(), poll_admin() and admin_evidence() in sdk/examples/keyring/src/service.rs; the native-system admin route admin()/persist_key_state() in sdk/examples/system/src/init.rs is the reference pattern for a manifest-bound management caller; host proof management_ingress_can_export_and_restore_legacy_recovery() in services/keyring/tests/persistent_wire.rs; run_keyring()/expected_markers() in tools/run_keyring.py. Pitfall: capability-core test manifest_equation_is_exact_and_detects_a_seventh_app_handle() pins manifest handle counts, so an added process must keep the manifest equation exact. Memory: ordinary app recovery export/restore stays denied; only management dispatch allows it (PR #155).",
       "read_paths": [
@@ -205,7 +212,22 @@
       "evidence_level": "native-QEMU (TCG)",
       "rollback": "Revert the commit; the new process exists only in the native-keyring test profile.",
       "next": "Lead acceptance review of B01; then B01-T2 after PR #333 releases tools/build.py.",
-      "history": []
+      "history": [
+        {
+          "at": "2026-11-18T19:57:13+00:00",
+          "event": "supervised-claim",
+          "owner": "Codex",
+          "branch": "codex/b01-management-recovery",
+          "base": "6f29b6720b51aecad5714faa48b445afd6e2f5a9"
+        },
+        {
+          "at": "2026-11-18T20:06:13+00:00",
+          "event": "verified",
+          "source_commit": "3847e9f2166b71020aa7b78bb82c8f06ae787590",
+          "evidence": "docs/verification/b01-management-recovery-20261118/checks.json",
+          "summary": "Five native cases guest33, required negative control red, host checks pass; no full B01 acceptance."
+        }
+      ]
     },
     {
       "id": "N02-T1",
@@ -301,6 +323,11 @@
           "at": "2026-11-18",
           "event": "owner-scope-preserved",
           "reason": "S09-NEXT ownership decision pending (owner); Claude S09 work remains excluded"
+        },
+        {
+          "at": "2026-11-18T20:06:13+00:00",
+          "event": "ownership-block",
+          "reason": "S09-NEXT ownership remains with Claude; owner decision pending."
         }
       ]
     },
@@ -877,6 +904,11 @@
           "at": "2026-11-18",
           "event": "owner-scope-preserved",
           "reason": "S09-NEXT ownership decision pending (owner); Claude S09 work remains excluded"
+        },
+        {
+          "at": "2026-11-18T20:06:13+00:00",
+          "event": "ownership-block",
+          "reason": "S09-NEXT ownership remains with Claude; owner decision pending."
         }
       ]
     },
