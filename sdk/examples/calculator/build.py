@@ -25,7 +25,7 @@ def main() -> int:
              "-C", "target-feature=-sse,-sse2,-sse3,-ssse3,-sse4.1,-sse4.2,-avx,-avx2"]
     environment["CARGO_ENCODED_RUSTFLAGS"] = "\x1f".join(flags)
     environment.setdefault("CARGO_TARGET_DIR", str(ROOT / "build/sdk-calculator"))
-    command = ["cargo", "+1.90.0", action, "--offline", "--locked", "--release",
+    command = ["cargo", "+1.100.0", action, "--offline", "--locked", "--release",
                "--manifest-path", str(EXAMPLE / "Cargo.toml"), "--features", "native",
                "--bin", "calculator-app", "--target", "x86_64-unknown-none"]
     if action == "clippy":

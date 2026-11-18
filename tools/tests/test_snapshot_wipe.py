@@ -48,11 +48,11 @@ impl core::ops::DerefMut for Word { fn deref_mut(&mut self)->&mut u64 { &mut sel
                 source = directory/'fixture.rs'
                 source.write_text(fixture)
                 library = directory/'libfixture.rlib'
-                built = subprocess.run([rustc,'+1.90.0','--edition','2021','--crate-name',
+                built = subprocess.run([rustc,'+1.100.0','--edition','2021','--crate-name',
                     'capability_core','--crate-type','rlib',str(source),'-o',str(library)],
                     env=env,text=True,capture_output=True,timeout=30)
                 self.assertEqual(built.returncode,0,built.stdout+built.stderr)
-                checked = subprocess.run([rustc,'+1.90.0','--edition','2021','--crate-type',
+                checked = subprocess.run([rustc,'+1.100.0','--edition','2021','--crate-type',
                     'rlib','--extern',f'capability_core={library}',str(probe),'-o',str(directory/'probe.rlib')],
                     env=env,text=True,capture_output=True,timeout=30)
                 if name == 'current':
@@ -68,13 +68,13 @@ impl core::ops::DerefMut for Word { fn deref_mut(&mut self)->&mut u64 { &mut sel
         env = dict(os.environ, RUSTUP_AUTO_INSTALL='0', CARGO_PROFILE_RELEASE_PANIC='unwind')
         with tempfile.TemporaryDirectory(prefix='nieuw-os-snapshot-wipe-') as directory:
             directory = Path(directory)
-            built = subprocess.run([cargo, '+1.90.0', 'build', '--offline', '--locked',
+            built = subprocess.run([cargo, '+1.100.0', 'build', '--offline', '--locked',
                 '--release', '-p', 'capability-core', '--target-dir', str(directory/'target')],
                 cwd=ROOT, env=env, text=True, capture_output=True, timeout=60)
             self.assertEqual(built.returncode, 0, built.stdout+built.stderr)
             library = directory/'target/release/libcapability_core.rlib'
             binary = directory/'wipe-tests'
-            compiled = subprocess.run([rustc, '+1.90.0', '--edition', '2021', '--test',
+            compiled = subprocess.run([rustc, '+1.100.0', '--edition', '2021', '--test',
                 '-C', 'opt-level=3', '--extern', f'capability_core={library}',
                 str(ROOT/'tools/tests/native_snapshot_wipe.rs'), '-o', str(binary)],
                 cwd=ROOT, env=env, text=True, capture_output=True, timeout=60)

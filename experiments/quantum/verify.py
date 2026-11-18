@@ -47,14 +47,14 @@ def main() -> int:
         return code == 0
 
     checks = [
-        ("cargo-version", [cargo, "+1.90.0", "--version"], 30),
-        ("rust-version", [str(Path(cargo).with_name("rustc.exe" if os.name == "nt" else "rustc")), "+1.90.0", "-vV"], 30),
-        ("format", [cargo, "+1.90.0", "fmt", "--all", "--", "--check"], 30),
-        ("build-tests", [cargo, "+1.90.0", "test", "--workspace", "--locked", "--offline", "--no-run"], 180),
-        ("tests", [cargo, "+1.90.0", "test", "--workspace", "--locked", "--offline", "--", "--nocapture"], 30),
-        ("clippy", [cargo, "+1.90.0", "clippy", "--workspace", "--all-targets", "--locked", "--offline", "--", "-D", "warnings"], 180),
-        ("no-std", [cargo, "+1.90.0", "check", "-p", "qsim-core", "--target", "x86_64-unknown-none", "--locked", "--offline"], 30),
-        ("dependency-tree", [cargo, "+1.90.0", "tree", "--locked", "--offline"], 30),
+        ("cargo-version", [cargo, "+1.100.0", "--version"], 30),
+        ("rust-version", [str(Path(cargo).with_name("rustc.exe" if os.name == "nt" else "rustc")), "+1.100.0", "-vV"], 30),
+        ("format", [cargo, "+1.100.0", "fmt", "--all", "--", "--check"], 30),
+        ("build-tests", [cargo, "+1.100.0", "test", "--workspace", "--locked", "--offline", "--no-run"], 180),
+        ("tests", [cargo, "+1.100.0", "test", "--workspace", "--locked", "--offline", "--", "--nocapture"], 30),
+        ("clippy", [cargo, "+1.100.0", "clippy", "--workspace", "--all-targets", "--locked", "--offline", "--", "-D", "warnings"], 180),
+        ("no-std", [cargo, "+1.100.0", "check", "-p", "qsim-core", "--target", "x86_64-unknown-none", "--locked", "--offline"], 30),
+        ("dependency-tree", [cargo, "+1.100.0", "tree", "--locked", "--offline"], 30),
     ]
     good = True
     for name, argv, timeout in checks:

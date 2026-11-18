@@ -413,26 +413,33 @@ pub extern "C" fn _start() -> ! {
 fn panic(_: &core::panic::PanicInfo) -> ! { fail(0xff) }
 
 #[no_mangle]
-unsafe extern "C" fn memcpy(dst: *mut u8, src: *const u8, size: usize) -> *mut u8 {
+unsafe extern "C" fn memcpy(dst: *mut core::ffi::c_void, src: *const core::ffi::c_void, size: usize) -> *mut core::ffi::c_void {
+    let dst = dst.cast::<u8>();
+    let src = src.cast::<u8>();
     unsafe { asm!("cld", "rep movsb", inout("rdi") dst => _, inout("rsi") src => _, inout("rcx") size => _, options(nostack)); }
-    dst
+    dst.cast()
 }
 #[no_mangle]
-unsafe extern "C" fn memset(dst: *mut u8, byte: i32, size: usize) -> *mut u8 {
+unsafe extern "C" fn memset(dst: *mut core::ffi::c_void, byte: i32, size: usize) -> *mut core::ffi::c_void {
+    let dst = dst.cast::<u8>();
     unsafe { asm!("cld", "rep stosb", inout("rdi") dst => _, in("al") byte as u8, inout("rcx") size => _, options(nostack)); }
-    dst
+    dst.cast()
 }
 #[no_mangle]
-unsafe extern "C" fn memmove(dst: *mut u8, src: *const u8, size: usize) -> *mut u8 {
+unsafe extern "C" fn memmove(dst: *mut core::ffi::c_void, src: *const core::ffi::c_void, size: usize) -> *mut core::ffi::c_void {
+    let dst = dst.cast::<u8>();
+    let src = src.cast::<u8>();
     if dst as usize <= src as usize {
         unsafe { asm!("cld", "rep movsb", inout("rdi") dst => _, inout("rsi") src => _, inout("rcx") size => _, options(nostack)); }
     } else {
         for offset in (0..size).rev() { unsafe { dst.add(offset).write_volatile(src.add(offset).read_volatile()) }; }
     }
-    dst
+    dst.cast()
 }
 #[no_mangle]
-unsafe extern "C" fn memcmp(a: *const u8, b: *const u8, size: usize) -> i32 {
+unsafe extern "C" fn memcmp(a: *const core::ffi::c_void, b: *const core::ffi::c_void, size: usize) -> i32 {
+    let a = a.cast::<u8>();
+    let b = b.cast::<u8>();
     for offset in 0..size {
         let (left, right) = unsafe { (a.add(offset).read_volatile(), b.add(offset).read_volatile()) };
         if left != right { return i32::from(left) - i32::from(right); }
