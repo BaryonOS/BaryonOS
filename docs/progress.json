@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-18",
-    "source_commit": "c5c56f93d14a737c5c62dbec7ae237e34fe505fe",
+    "source_commit": "8536ec8581cd41e0094c1e61bf43491d31192e4f",
     "assessment_basis": "source_commit",
-    "branch": "codex/p02-head-discovery",
-    "task": "P02-T1: committed NAS head discovery and read-only resume",
+    "branch": "codex/p02-checkpoint-codec",
+    "task": "P02-T2: canonical offline checkpoint codec delivered",
     "previous_score": 41,
-    "summary": "41/100 unchanged. Session-scoped committed head query and client latest reconciliation implemented; 57 Rust host tests, 8 disk-oracle tests, Clippy/fmt pass. No automatic uncertain-write replay. NOSNAS01/wire unchanged. Native/transport/durability and P02 acceptance stay open; runner hold and Claude work preserved."
+    "summary": "41/100 unchanged. Versioned fixed-size checkpoint encoding retains local/observed ciphertext and slot holes, validates all structural bounds and duplicates, restores only NeedsReconcile with no live tickets or stored ACK. 21 client host tests, Clippy/fmt pass. No disk/auth/freshness/native persistence or P02 acceptance. Stacked on PR367; unsafe runner hold and other work preserved."
   },
   "tracks": [
     {

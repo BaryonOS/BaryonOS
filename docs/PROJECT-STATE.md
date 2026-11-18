@@ -14,7 +14,20 @@ README; lead-owned state/progress and one receipt.
 bounds/duplicate regressions and roundtrip preserving local+remote ciphertext.
 **Evidence limit:** host codec; no authenticated storage, rollback anchor, durable
 save ACK or native persistence. Unsafe runner remains held; score41/100.
-**Next:** implement codec using existing bounded Checkpoint/Edit/Version types.
+**Delivered/source:** `8536ec8581cd41e0094c1e61bf43491d31192e4f` adds canonical 8,464-byte `NOSNCP01` v1
+checkpoint encoding/decoding. It preserves holes and both ciphertext versions,
+rejects malformed sizes/version/state/flags/padding/bounds/duplicates/overflow,
+and converts all occupied records to NeedsReconcile. No ticket/ACK serialized.
+**Executed:** 21 client host tests (4 new codec regressions), Clippy with warnings
+denied and formatting exit0. One bounded AI review found no blocker.
+[Receipt](roadmap-pipeline/receipts/P02-T2.json) contains commands/raw-log hashes.
+Progress **41 → 41/100**; P02 stays open.
+**Not run:** native persistence/recovery, authenticated atomic disk adapter,
+rollback protection, real transport, hardware/human acceptance. Codec alone
+provides no durable-save ACK, authentication or freshness.
+**Next:** publish dependent draft against PR367. P02-T3 remains explicitly blocked
+on NASP Head opcode and N02/N03/N04; select an independent READY functional slice.
+Local Cargo target caches are untracked and excluded from publication.
 
 ## Retained checkpoint — P02-T1 NAS revision discovery — 18 November 2026
 
