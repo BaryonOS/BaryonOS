@@ -2,8 +2,9 @@
 
 Updated 18 November 2026. Source baseline: main
 `6f29b6720b51aecad5714faa48b445afd6e2f5a9` (#355), preceded by #359 at `1c10cdb5`.
-Current task branch: `codex/unified-governance`. Details and executable resume step:
-[lead checkpoint](PROJECT-STATE.md#next-agent-handoff--unified-governance-implementation--18-november-2026).
+Current development: N04-T1 prototype blocked on native throughput; next B05-T2.
+[Single lead checkpoint and continuation](PROJECT-STATE.md).
+Integration/merges/closure remain with the separate Integration Manager.
 
 | Workstream | State and owner | Next boundary |
 |---|---|---|

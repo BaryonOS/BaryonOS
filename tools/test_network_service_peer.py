@@ -2,13 +2,16 @@
 """Host adversarial checks of N01 peer/harness; no native success claim."""
 from __future__ import annotations
 import os
+import hashlib
+import json
 from pathlib import Path
 import struct
 import subprocess
+import socket
 import sys
 import tempfile
 import unittest
-from network_service_peer import (ACK, FIN, PSH, RST, SYN, CLIENT_IP, CLIENT_MAC, PROBES, PROBE_ISN,
+from network_service_peer import (ACK, FIN, PSH, RST, SYN, CLIENT_IP, CLIENT_MAC, PROBE_ISN, PROBE_PEERS, PROBE_PORTS, UDP_PROBE_PORTS,
                                   PEER_IP, PEER_MAC, REQUESTS, RESPONSES, RESET_PROBE, UDP_PAYLOADS,
                                   FrameDecoder, Machine, DiscardMachine, Peer, ProtocolError, checksum,
                                   framed, validate_transcript)
@@ -35,14 +38,39 @@ def client_udp(slot):
     return client_ip(udp[:6] + struct.pack("!H", value) + udp[8:], 17)
 
 
+_CAPTURES = tempfile.TemporaryDirectory(prefix="nieuw-os-sweep-host-")
+
+
 def transcript(case="normal"):
     """Construct legal synthetic client packets only for host parser checks."""
     machine, actions, now = Machine(case), [], 0.0
+    capture = tempfile.NamedTemporaryFile(dir=_CAPTURES.name, delete=False) if case == "revoke" else None
+    digest, action_count, byte_count = hashlib.sha256(), 0, 0
+    def record(action):
+        nonlocal action_count, byte_count
+        if capture is None:
+            actions.append(action)
+        else:
+            raw = (json.dumps(action, separators=(",", ":")) + "\n").encode()
+            capture.write(raw)
+            digest.update(raw)
+            action_count += 1
+            byte_count += len(raw)
+    def sweep():
+        nonlocal now
+        while machine.probes:
+            guest, isn = next(iter(machine.probes.items()))
+            feed(client_tcp(PROBE_PEERS[int(machine.sweep_phase == "post")], guest, 0, isn + 1, RST | ACK))
+        for _ in range(10):
+            now += .05
+            output = machine.poll(now)
+            if output:
+                record(dict(kind="poll", at=now, output=[p.hex() for p in output]))
     def feed(packet):
         nonlocal now
         now += 0.001
         output = machine.handle(packet, now)
-        actions.append(dict(kind="input", at=now, input=packet.hex(), output=[p.hex() for p in output]))
+        record(dict(kind="input", at=now, input=packet.hex(), output=[p.hex() for p in output]))
         return output
     def finish(port):
         nonlocal now
@@ -62,7 +90,7 @@ def transcript(case="normal"):
             feed(client_tcp(port, c.source, c.client_next, c.server_start, ACK))
             now += 0.251
             output = machine.poll(now)
-            actions.append(dict(kind="poll", at=now, output=[p.hex() for p in output]))
+            record(dict(kind="poll", at=now, output=[p.hex() for p in output]))
         feed(client_tcp(port, c.source, c.client_next, c.data_end, ACK))
         feed(client_tcp(port, c.source, c.client_next, c.data_end + 1, ACK))
         feed(client_tcp(port, c.source, c.client_next, c.data_end + 1, FIN | ACK))
@@ -80,16 +108,14 @@ def transcript(case="normal"):
         feed(client_udp(0))
     else:
         if case == "revoke":
-            # A's live request is held; the guest answers both probes with
-            # RST, then the revocation aborts A (plus the bare RST race).
+            # Stream every synthetic exact refusal; never retain the 131k packets.
             feed(client_tcp(8080, 40000, 100))
-            for guest, peer in ((g, PROBES[g]) for g in (22, 443)):
-                feed(client_tcp(peer, guest, 0, PROBE_ISN + guest + 1, RST | ACK))
+            sweep()
             c = machine.connections[8080]
             feed(client_tcp(8080, 40000, c.client_next, c.server_start, ACK))
             feed(client_tcp(8080, 40000, c.client_next, c.server_start, ACK | PSH, REQUESTS[0]))
             feed(client_tcp(8080, 40000, c.client_next, c.server_start, RST | ACK))
-            feed(client_tcp(50002, 40000, 0, PROBE_ISN + 40000 + 1, RST | ACK))
+            sweep()
             feed(client_tcp(8080, 40000, c.client_next, 0, RST))
             feed(client_tcp(8090, 40001, 200))
         else:
@@ -103,9 +129,14 @@ def transcript(case="normal"):
             feed(client_tcp(port, source, 1000 + source))
             finish(port)
     feed(client_udp(1))
+    if case == "revoke":
+        sweep()
     result = machine.summary()
     result.update(actions=actions, wire_frames_sent=result["counts"]["server_frames"],
                   connected=True, error=None, rejected_frame=None, passed=True)
+    if capture is not None:
+        capture.close()
+        result.update(raw_path=capture.name, capture=dict(actions=action_count, bytes=byte_count, sha256=digest.hexdigest()))
     return result
 
 
@@ -213,7 +244,8 @@ def native_serial(case="normal"):
 class PeerChecks(unittest.TestCase):
     def test_full_quota_budget_is_specific_to_exhaustion(self):
         self.assertEqual(native_limits("exhaustion"), (11_999, 150))
-        for case in ("normal", "client-exit", "revoke", "device-reset", "helper"):
+        self.assertEqual(native_limits("revoke"), (17_999, 180))
+        for case in ("normal", "client-exit", "device-reset", "helper"):
             self.assertEqual(native_limits(case), (6000, 90))
             serial = native_serial(case)
             boundary = serial.replace("NETSVC:APP_B_EXIT_TICKS:00000000000000000500",
@@ -484,34 +516,38 @@ else:
         summary = validate_transcript(value, case="revoke")
         self.assertTrue(summary["complete"])
         self.assertEqual(summary["cases"]["8080"]["phase"], "revoked")
-        self.assertEqual((summary["counts"]["probe_rsts"], summary["counts"]["revoke_rsts"]), (3, 2))
+        self.assertEqual((summary["counts"]["probe_rsts"], summary["counts"]["revoke_rsts"]), (2 * PROBE_PORTS, 2))
         for wrong in ("normal", "client-exit"):
             with self.assertRaises(ProtocolError):
                 validate_transcript(value, case=wrong)
-        # Without the abort's RST|ACK, or without a probe RST, nothing is proven.
-        for drop in ("abort", "probe"):
-            machine = Machine("revoke")
-            machine.handle(client_tcp(8080, 40000, 100))
-            if drop != "probe":
-                for guest, peer in ((g, PROBES[g]) for g in (22, 443)):
-                    machine.handle(client_tcp(peer, guest, 0, PROBE_ISN + guest + 1, RST | ACK))
-            c = machine.connections[8080]
-            machine.handle(client_tcp(8080, 40000, c.client_next, c.server_start, ACK | PSH, REQUESTS[0]))
-            if drop != "abort":
-                machine.handle(client_tcp(8080, 40000, c.client_next, c.server_start, RST | ACK))
-            self.assertFalse(machine.summary()["complete"], drop)
+        self.assertEqual(summary["sweeps"], {
+            phase: dict(syns=65535, rsts=65535, udp=len(UDP_PROBE_PORTS)) for phase in ("pre", "post")})
+        self.assertEqual(summary["counts"]["probe_udp_sent"], 2 * len(UDP_PROBE_PORTS))
+        self.assertEqual(summary["counts"]["probe_syn_acks"], 0)
+        self.assertEqual(summary["counts"]["probe_udp_replies"], 0)
+        # A missing reply stalls a finite four-frame window, never a pass.
+        machine = Machine("revoke")
+        machine.handle(client_tcp(8080, 40000, 100))
+        self.assertEqual(len(machine.probes), 4)
+        self.assertEqual(machine.poll(179), [])
+        self.assertEqual(machine.counts["probe_syns"], 4)
+        self.assertFalse(machine.summary()["complete"])
 
     def test_revoke_case_rejects_listening_port_reuse_and_late_traffic(self):
         def held():
             machine = Machine("revoke")
             machine.handle(client_tcp(8080, 40000, 100))
             c = machine.connections[8080]
+            # Focused established/reset parser setup. Full wire sweeps are
+            # independently streamed/replayed by the positive test above.
+            machine.probes.clear()
+            machine.sweep_phase = "pre-done"
             machine.handle(client_tcp(8080, 40000, c.client_next, c.server_start, ACK | PSH, REQUESTS[0]))
             return machine, c
         attempts = {
-            "probe-syn-ack": lambda m, c: m.handle(client_tcp(50000, 22, 0, PROBE_ISN + 23, SYN | ACK)),
+            "probe-syn-ack": lambda m, c: m.handle(client_tcp(50000, 1, 0, PROBE_ISN + 2, SYN | ACK)),
             "probe-wrong-ack": lambda m, c: m.handle(client_tcp(50000, 22, 0, PROBE_ISN, RST | ACK)),
-            "probe-twice": lambda m, c: [m.handle(client_tcp(50000, 22, 0, PROBE_ISN + 23, RST | ACK))
+            "probe-twice": lambda m, c: [m.handle(client_tcp(50000, 1, 0, PROBE_ISN + 2, RST | ACK))
                                          for _ in range(2)],
             "reset-twice": lambda m, c: [m.handle(client_tcp(8080, 40000, c.client_next, c.server_start, RST | ACK))
                                          for _ in range(2)],
@@ -528,6 +564,62 @@ else:
             machine, c = held()
             with self.subTest(name=name), self.assertRaises(ProtocolError):
                 attempt(machine, c)
+
+    def test_live_sweep_decoder_crosses_old_256_frame_budget_with_bounded_window(self):
+        with tempfile.TemporaryDirectory() as directory:
+            with Peer(case="revoke", raw_path=Path(directory) / "sweep.jsonl") as peer:
+                with socket.create_connection(("127.0.0.1", peer.port), timeout=2) as connection:
+                    connection.sendall(framed(client_tcp(8080, 40000, 100)))
+                    decoder, replied = FrameDecoder(), 0
+                    while replied < 300:
+                        # Host fixture decodes only one finite four-frame batch.
+                        decoder.count = 0
+                        frames = decoder.feed(connection.recv(4096))
+                        for frame in frames:
+                            guest = struct.unpack_from("!H", frame, 36)[0]
+                            isn = struct.unpack_from("!I", frame, 38)[0]
+                            connection.sendall(framed(client_tcp(50000, guest, 0, isn + 1, RST | ACK)))
+                            replied += 1
+                    connection.shutdown(socket.SHUT_WR)
+                    while connection.recv(4096):
+                        pass
+                result = peer.finish()
+                self.assertIsNone(result["error"])
+                self.assertGreaterEqual(result["counts"]["probe_rsts"], 300)
+                self.assertLessEqual(len(peer.machine.probes), 4)
+                self.assertEqual(result["actions"], [])
+                self.assertFalse(result["complete"])
+
+    def test_sweep_aggregate_frame_budget_remains_enforced(self):
+        import network_service_peer as peer_module
+        machine = Machine("revoke")
+        machine.counts["client_frames"] = peer_module.MAX_REVOKE_FRAMES
+        with self.assertRaisesRegex(ProtocolError, "input frame budget"):
+            machine.handle(client_tcp(8080, 40000, 100))
+        self.assertEqual(machine.counts["client_frames"], peer_module.MAX_REVOKE_FRAMES)
+
+    def test_listener_sweep_rejects_syn_ack_udp_reply_and_corrupt_refusals(self):
+        for flags, ack_delta, corrupt in ((SYN | ACK, 0, False), (RST | ACK, 1, False), (RST | ACK, 0, True)):
+            machine = Machine("revoke")
+            machine.handle(client_tcp(8080, 40000, 100))
+            packet = client_tcp(50000, 1, 0, PROBE_ISN + 2 + ack_delta, flags)
+            if corrupt:
+                packet = packet[:50] + bytes([packet[50] ^ 1]) + packet[51:]
+            with self.subTest(flags=flags, corrupt=corrupt), self.assertRaises(ProtocolError):
+                machine.handle(packet)
+        machine = Machine("revoke")
+        machine.handle(client_tcp(8080, 40000, 100))
+        udp = struct.pack("!HHHH", 45000, 53000, 9, 0) + b"x"
+        value = checksum(CLIENT_IP + PEER_IP + struct.pack("!BBH", 0, 17, len(udp)) + udp) or 0xffff
+        with self.assertRaises(ProtocolError):
+            machine.handle(client_ip(udp[:6] + struct.pack("!H", value) + udp[8:], 17))
+        # One accepted response cannot be replayed, even while the window advances.
+        machine = Machine("revoke")
+        machine.handle(client_tcp(8080, 40000, 100))
+        packet = client_tcp(50000, 1, 0, PROBE_ISN + 2, RST | ACK)
+        machine.handle(packet)
+        with self.assertRaises(ProtocolError):
+            machine.handle(packet)
 
     def test_revoke_native_serial_binds_policy_latency_and_denials(self):
         good = native_serial("revoke")

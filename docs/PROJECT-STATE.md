@@ -1,6 +1,24 @@
 # Current project status
 
-## NEXT AGENT HANDOFF — unified governance implementation — 18 November 2026
+## NEXT AGENT HANDOFF — N04-T1 blocked prototype — 18 November 2026
+
+**Source:** `5acd07961bd12d389987fc2251f4f7834faae97d`, `codex/n04-port-sweep`, base `69d82075`.
+**Implemented:** bounded four-frame streaming full TCP sweep before/after revoke;
+16 UDP probes/phase; exact RST validation; streaming causal replay; cumulative
+frame/byte/time limits and decoder regression beyond256 frames.
+**Checks:**32 host tests exit0 (`build/tokenguard/run-hvivgkav.log`), kernel fmt0
+(`run-uiqmbbhv.log`), diff check0. [Exact receipt](roadmap-pipeline/receipts/N04-T1.json).
+**BLOCKED:** native measurements exit1/QEMU35; healthy peer reached1538 exactRSTs
+before appB step32 timeout. Measured4.51ms/input projects about591s for131070RSTs,
+not a completed sweep and beyond180s. Optional IPC-wait experiment lacked its
+feature and was entirely removed; production authority/syscalls unchanged.
+Final-source native and other five native cases NOT RUN; no native acceptance.
+**Preserved:** unattended hold, integration branches, ClaudeS09/UI, foreign WIP.
+Score41→41/100. Prior delivered development PRs372,374,375,377–379 remain separate.
+**Next:** B05-T2 claimed in isolated worktree, no wait for integration. N04 needs
+a bounded test-only scheduling/feature decision before another native attempt.
+
+## Retained checkpoint — unified governance implementation — 18 November 2026
 
 **Claim:** GOV-1-6, sole writer Codex in `codex/unified-governance`, base
 `5a3295b6093549f4b5ff6164ab2773ac4c264996`. The project owner authorizes immediate
@@ -60,7 +78,7 @@ checks before manual squash. Then continue the released roadmap PR queue without
 changing the independently owned UI/UX or active S09 branches.
 Progress **41 → 41/100**, no accepted criterion/weight change.
 
-## NEXT AGENT HANDOFF — PR #350 conflict-only integration — 18 November 2026
+## Retained checkpoint — PR #350 conflict-only integration — 18 November 2026
 
 PR #350 head `aaf01bae291faba593567845dc8da4fe606a7959` is reconciled
 with actual main `2eac8ca39ce04753f4f6bef3b09ee9b3610c065f`.
@@ -73,7 +91,7 @@ by this reconciliation. Score remains 41/100. Required hosted checks on the new 
 must pass before a manual squash merge; local build/QEMU suites are not repeated
 for this conflict-only correction.
 
-## NEXT AGENT HANDOFF — PR #361 integration and final-read barrier — 18 November 2026
+## Retained checkpoint — PR #361 integration and final-read barrier — 18 November 2026
 
 **Claim/source:** Codex sole writer in `codex/block-order-integration`, PR #361 head
 `fc35563668ae2ba3dc2fc90e6e30575c38b6f578`, merging main `6f29b672`.
