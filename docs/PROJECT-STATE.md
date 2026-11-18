@@ -1,6 +1,23 @@
 # Current project status
 
-## NEXT AGENT HANDOFF — PR #350 conflict-only integration — 18 November 2026
+## NEXT AGENT HANDOFF — U05-T1 independent settings core — 18 November 2026
+
+**Claim:** Codex, codex/u05-settings-core, base5a3295b6. Prior native P04 PR375 delivered.
+**Goal:** typed versioned appearance/accessibility settings, set/revert and A/B
+SHA256 integrity-only media persistence without false failed-write confirmation.
+**Invariant:** no authority/key/network policy from settings; validate all stored
+bytes, any I/O/uncertain write retires in-memory state. Recovery follows existing
+journal valid-highest-generation rules; no authentication/antirollback claim.
+**Write set:** sdk/settings-core/ only, plus lead state/progress/one receipt.
+Shared SDK manifest/lock remain integration-manager-owned (open PR366).
+**Acceptance:** standalone Rust1.90 tests/Clippy/fmt/freestanding build; invalid
+values/version, every torn-write byte, flush/read/full errors, both-corrupt and revert.
+**Evidence limit:** host core only; full U05-T1 SDK membership remains blocked by
+shared-file ownership; native/per-user encryption/UI/hardware acceptance remain open.
+**Next:** implement/publish independent core slice, record pending membership and
+continue the next independent READY task. Claude work and execution hold preserved.
+
+## Retained checkpoint — PR #350 conflict-only integration — 18 November 2026
 
 PR #350 head `aaf01bae291faba593567845dc8da4fe606a7959` is reconciled
 with actual main `2eac8ca39ce04753f4f6bef3b09ee9b3610c065f`.
@@ -13,7 +30,7 @@ by this reconciliation. Score remains 41/100. Required hosted checks on the new 
 must pass before a manual squash merge; local build/QEMU suites are not repeated
 for this conflict-only correction.
 
-## NEXT AGENT HANDOFF — PR #361 integration and final-read barrier — 18 November 2026
+## Retained checkpoint — PR #361 integration and final-read barrier — 18 November 2026
 
 **Claim/source:** Codex sole writer in `codex/block-order-integration`, PR #361 head
 `fc35563668ae2ba3dc2fc90e6e30575c38b6f578`, merging main `6f29b672`.
@@ -312,7 +329,7 @@ issue closure is authorized. Score 41/100 is unchanged.
 **Ownership and evidence:** original user work, independent UI/S09 workstreams, existing PRs and compiler WIP remain preserved. No original worktree was reset or cleaned. Private managed artifacts retain exact source/commands/limits. Score41/100 is unchanged; no product criterion or security result is accepted by this checkpoint.
 **Next:** preserve this draft checkpoint, resolve the independently identified blockers, then require current-head CI/security verification before manual squash and source-bound Daybreak closure. Prepare the authorized cloudhandoff after reconciling branches/WIP; ownership is not transferred until remote commits are verified. Do not use the affected issue pipeline for remediation. Resume the existing integration/modernization work only after the boundary is verified.
 
-## NEXT AGENT HANDOFF — Local PR359 containment reconciliation — 18 November 2026
+## Retained checkpoint — Local PR359 containment reconciliation — 18 November 2026
 
 **Authority and ownership:** the project owner approved autonomous local execution and verified manual squash merges. Cloud handoff `88b801ab8cd47f4765ef7d925b161542dbbf684e` releases Codex work only. Local Codex exclusively owns this PR359 reconciliation in an isolated worktree; the original unfinished merge, Claude UI/UX and broader S09 remain untouched.
 
@@ -324,7 +341,7 @@ issue closure is authorized. Score 41/100 is unchanged.
 
 **Next:** independently review and publish the evidence correction, then require a fresh exact-head hosted rollup. Manually squash only when every applicable check and actionable review is satisfied. Verify resulting main before continuing PR355/357 and the remaining security queue. Governance has not started.
 
-## NEXT AGENT HANDOFF — Phase 0 PR339 safe checker and integration — 18 November 2026
+## Retained checkpoint — Phase 0 PR339 safe checker and integration — 18 November 2026
 
 **Actual main:** `67d5859d735836331b6fb971eae89162b7fa8465` after verified manual squash merges #345 and #346. Actual trees equal their independently reviewed candidates. Translation source PRs #347–#349/#351–#353 were closed only after actual-main inclusion proof; original refs remain preserved. Five issues and seven PRs remain open at this cutoff. Project5 synchronization uses the existing workflow.
 
