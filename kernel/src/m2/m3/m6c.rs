@@ -82,6 +82,7 @@ struct Runtime {
     mutation_pending: [bool; 2],
     ack_sent: u64,
     ack_received: u64,
+    final_reads_received: [bool; 2],
     get_replies: u64,
     catalog_replies: u64,
     rejected: u64,
@@ -140,6 +141,7 @@ static mut RUNTIME: Runtime = Runtime {
     mutation_pending: [false; 2],
     ack_sent: 0,
     ack_received: 0,
+    final_reads_received: [false; 2],
     get_replies: 0,
     catalog_replies: 0,
     rejected: 0,
@@ -1031,6 +1033,21 @@ pub fn received(s: &State, slot: usize, handle: u64, message: &Message) {
         assert_eq!(message.cap_count, 0);
         assert_eq!(body, r.reply_bytes[domain]);
         r.reply_pending[domain] = false;
+        let header = wire::header(&body);
+        if case() == 2
+            && header.request_id == 16
+            && header.operation == wire::LIST
+            && header.status == wire::Status::Ok as i32
+        {
+            assert!(!r.final_reads_received[domain]);
+            r.final_reads_received[domain] = true;
+            if r.final_reads_received == [true; 2] {
+                // Both clients received their final reads before terminal uncertainty.
+                for slot in 0..3 {
+                    put(s, slot, 288, 1);
+                }
+            }
+        }
         if wire::header(&body).status == wire::Status::Unknown as i32 {
             r.unknown_received += 1;
             assert!(r.unknown_received <= r.unknown_sent);
@@ -1053,13 +1070,6 @@ pub fn received(s: &State, slot: usize, handle: u64, message: &Message) {
                 // It grants no authority and cannot fabricate service ACKs.
                 for client in 1..3 {
                     put(s, client, 272, 1);
-                }
-            }
-            if case() == 2 && r.ack_received == 10 {
-                // Both domains completed their real mutations before the
-                // terminal-error retry probe starts; no authority is added.
-                for slot in 0..3 {
-                    put(s, slot, 288, 1);
                 }
             }
             if case() == 3 && r.ack_received == 32 {
@@ -1370,6 +1380,7 @@ pub fn poll(s: &mut State) -> Option<*const u64> {
                     }
                     assert_eq!(r.rejected, if case() == 2 { 80 } else { 6 });
                     if case() == 2 {
+                        assert_eq!(r.final_reads_received, [true; 2]);
                         assert_eq!(r.observer_denials, 9);
                         assert_eq!((r.unknown_sent, r.unknown_received), (1, 1));
                         assert_eq!(word(s, 0, 328), 1);

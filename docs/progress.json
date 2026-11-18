@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-18",
-    "source_commit": "616737b8a85877cde79d9bdc43d808c628ee8325",
+    "source_commit": "fc35563668ae2ba3dc2fc90e6e30575c38b6f578",
     "assessment_basis": "source_commit",
-    "branch": "codex/security-block-syscall-order",
-    "task": "DAYBREAK-BLOCK-ORDER: reject untrusted M6b/M6c syscall ordering without kernel panic",
+    "branch": "codex/block-order-integration",
+    "task": "PR361 integration: order terminal error after both final reads",
     "previous_score": 41,
-    "summary": "41/100 unchanged. Source 616737b8 replaces ring-3-triggerable M6b/M6c block-order assertions with fail-closed validation, preserves startup recovery and real terminal-error handling, and adds native regressions for pre-active, live, malformed, read and repeated-terminal ordering. Targeted and full native QEMU, host suites, strict preflight and independent bounded security review pass on source fingerprint 5a6a5cca; hosted current-head checks, Daybreak acceptance and resulting-main verification remain pending. This completes no fixed product criterion, issue, PR355/357 isolation, baseline B or governance transition."
+    "summary": "41/100 unchanged. Integrated #355/#359 containment and repaired M6c case-2 final-read barrier. Delayed-read native negative fails on the old barrier (guest35); fixed errors/normal pass (guest33) with disk oracles, plus 49 host tests and formatting. Current-head hosted checks remain pending. No product criterion, Daybreak resolution or execution-hold activation."
   },
   "tracks": [
     {

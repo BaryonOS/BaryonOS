@@ -1,0 +1,87 @@
+{
+  "schema": 1,
+  "tested_source": "fa4895daf92eaf48bf7b9ecd07751d50f5537490",
+  "tested_tree": "d36212c7e3e98db85cd8d7760a40cab716817430",
+  "main": "1c10cdb5b30df2f3d30bea74430383f59c398931",
+  "checks": [
+    {
+      "name": "combined pipeline isolation sandbox",
+      "result": "PASS",
+      "tests": 91,
+      "skipped": 10,
+      "exit_code": 0,
+      "log": "build/tokenguard/run-pta4m58p.log",
+      "sha256": "006203422563d1bcb74e118a56409c8f3595e46c9a4c36cf44695fbb62e35717"
+    },
+    {
+      "name": "complete tools suite",
+      "result": "PASS",
+      "tests": 474,
+      "skipped": 10,
+      "exit_code": 0,
+      "log": "build/tokenguard/run-rzdtlyej.log",
+      "sha256": "cf338769025c3f58897be5c87cd52138989a01a02c852f0f2aaf626412dd5bf5"
+    },
+    {
+      "name": "strict preflight with host tests",
+      "result": "PASS",
+      "exit_code": 0,
+      "log": "build/tokenguard/run-_39t2pof.log",
+      "sha256": "854426658a0d533beb67762b1dc6500fef5b645df0fe3a4982a6e30be56eb0cc"
+    },
+    {
+      "name": "exact-source cgroup workload",
+      "result": "PASS",
+      "exit_code": 0,
+      "memory_high": 6442450944,
+      "memory_max": 8589934592,
+      "memory_swap_max": 0,
+      "tasks_max": 512,
+      "cpu_quota": "400000 100000",
+      "memory_peak": 699133952,
+      "oom_events": 0,
+      "log": "build/sec355-reconcile-resource/results.json",
+      "sha256": "607f508269dc6f39570c60677fabc4dd845d94ab72af25cea6da58d3d9e2d963"
+    },
+    {
+      "name": "required local qemu-smoke workloads",
+      "result": "PASS",
+      "exit_code": 0,
+      "parts": [
+        "M6c normal",
+        "DocumentSession normal and cold recovery",
+        "native quantum job",
+        "SDK application normal",
+        "SDK application denied"
+      ],
+      "log_sha256": {
+        "document_session": "e1cfb591c4ddef4f9ada4f9e03d24a9f90d776c1b4aed5a9766d1c0f3168d197",
+        "quantum_build": "7d42264b61004b1f16c223f850f42b0f9807a8540c31b205a73ce2ca1b459109",
+        "quantum_run": "7cbf541add2fb340f7473060d0eaa8b1e5dea11ff60773499299bfb3df65fdab",
+        "sdk_normal_build": "85ca55acb37f487a33293de8371549961c4c821b6f6bb4d99755ad552dbec024",
+        "sdk_normal_run": "be1cf2e6c19c2567ddbc84e9dc3317f86de1d29241599b75da97839b5660fe70",
+        "sdk_denied_build": "1badcc8f5857e60d4dac980607042d3cecc1917968b93a51f0d55c711107812f",
+        "sdk_denied_run": "a697463f7e16ff92f3562d7f837f804ae44443133b8a30d116169c4ee96d5307"
+      }
+    },
+    {
+      "name": "disabled-manifest host-quality negative",
+      "result": "EXPECTED_BLOCK",
+      "exit_code": 2,
+      "detail": "Gate refused before workload execution because isolated gate execution is not authorized.",
+      "log": "build/sec355-reconcile-resource/host-quality-disabled.log",
+      "sha256": "58df42d51272ac2248381c8c400882486f6b73a898bf822590ce0d920f56f8bb"
+    },
+    {
+      "name": "independent integration and boundary review",
+      "result": "PASS",
+      "reviewers": 2,
+      "scope": "AI source review; not a human audit"
+    }
+  ],
+  "not_run": [
+    "Private BARYON_SANDBOX_TEST_CONFIG offline transaction fixture: not transferred to this worktree.",
+    "Local actionlint and coverage-emission steps: tools unavailable; exact-head hosted host-quality remains required.",
+    "Authenticated model-client transaction and aggregate bounded scratch/staging/export: implementation incomplete."
+  ]
+}

@@ -674,6 +674,12 @@ fn client() -> ! {
         #[cfg(not(nos_document_session))]
         {
             put(14, object, 2);
+            if case == 2 && domain == 1 {
+                // Exercise the peer's terminal probe while these reads are delayed.
+                for _ in 0..32 {
+                    rt::yield_now();
+                }
+            }
             check_get(15, object, 3, true);
             check_list(16, domain, [3, 2], [true, false]);
         }

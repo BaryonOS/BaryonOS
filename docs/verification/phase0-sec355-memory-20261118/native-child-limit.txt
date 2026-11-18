@@ -1,0 +1,3 @@
+0::/user.slice/user-1000.slice/user@1000.service/app.slice/baryonos-mem355-verify-native-727e9ce5273149c29118c77305898740.scope
+memory.max=1073741824
+memory.high=max

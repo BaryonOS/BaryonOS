@@ -1,0 +1,146 @@
+{
+  "task": "MEM355",
+  "completed_utc": "2026-11-18T11:27:24.164260+00:00",
+  "sources": {
+    "pr355": "5b946202c9f7323044913a26d76c96e490f5e0e6",
+    "pr357": "8a32bc582790fa16234dbadf37a0a176de620900",
+    "reference_workload_source": "9789ce565c247f70eab6d321f657dc05a64a8513"
+  },
+  "host": {
+    "MemTotal_kib": 62108440,
+    "usable_gib": 59.231224060058594,
+    "caller_and_ancestors_memory_max": "max",
+    "caller_local_oom_kill": 0
+  },
+  "intentional_negative": {
+    "memory_max_bytes": 134217728,
+    "allocation_bytes": 167772160,
+    "service_result": "oom-kill",
+    "scope_result": "oom-kill",
+    "classification": "Expected negative enforcement, not a normal workload failure.",
+    "evidence": "/home/simon/.cache/baryonos/sec355-backend-20261118/probes/"
+  },
+  "existing_configuration": {
+    "pr355": "No MemoryMax default; manifest disabled, sandbox {}.",
+    "pr357": "Explicit memory_max_bytes required; 64MiB exists in mocked unit fixture only, not normal preset.",
+    "normal_default_correction": "No active normal limit was raised or removed."
+  },
+  "measurement_correction": {
+    "initial_reference": "All commands exited0 but Snap cargo moved compiler children to another cgroup; its low memory.peak is invalid as compiler-envelope evidence.",
+    "snap_child_limit": {
+      "argv": [
+        "/usr/bin/systemd-run",
+        "--user",
+        "--scope",
+        "--quiet",
+        "--unit=baryonos-mem355-verify-snap-3be6be48b815405da799d3695feff104.scope",
+        "--property=MemoryMax=1G",
+        "--property=MemorySwapMax=0",
+        "--property=TasksMax=128",
+        "--property=RuntimeMaxSec=30s",
+        "--property=OOMPolicy=kill",
+        "--",
+        "/usr/bin/env",
+        "-i",
+        "PATH=/snap/bin:/usr/bin:/bin",
+        "HOME=/home/simon",
+        "LANG=C.UTF-8",
+        "CARGO_NET_OFFLINE=true",
+        "CARGO_BUILD_JOBS=2",
+        "CARGO_TARGET_DIR=${SEC359_WORKTREE}/build/sec355-memory-review-20261118/verify-snap-target",
+        "EXPECTED_SCOPE=baryonos-mem355-verify-snap-3be6be48b815405da799d3695feff104.scope",
+        "PROBE_RECEIPT=${SEC359_WORKTREE}/build/sec355-memory-review-20261118/snap-child-limit.txt",
+        "/snap/bin/cargo",
+        "+1.90.0",
+        "check",
+        "--manifest-path",
+        "build/sec355-memory-review-20261118/containment-probe/Cargo.toml"
+      ],
+      "unit": "baryonos-mem355-verify-snap-3be6be48b815405da799d3695feff104.scope",
+      "exit_code": 101,
+      "child_limits": "0::/user.slice/user-1000.slice/user@1000.service/app.slice/snap.rustup.cargo-93d50145-9fdd-47c2-8ba7-06bb9ca1a3d3.scope\nmemory.max=max\nmemory.high=max\n"
+    },
+    "native_child_limit": {
+      "argv": [
+        "/usr/bin/systemd-run",
+        "--user",
+        "--scope",
+        "--quiet",
+        "--unit=baryonos-mem355-verify-native-727e9ce5273149c29118c77305898740.scope",
+        "--property=MemoryMax=1G",
+        "--property=MemorySwapMax=0",
+        "--property=TasksMax=128",
+        "--property=RuntimeMaxSec=30s",
+        "--property=OOMPolicy=kill",
+        "--",
+        "/usr/bin/env",
+        "-i",
+        "PATH=${SEC359_WORKTREE}/build/sec355-memory-review-20261118/native-bin:/usr/bin:/bin",
+        "HOME=/home/simon",
+        "LANG=C.UTF-8",
+        "CARGO_NET_OFFLINE=true",
+        "CARGO_BUILD_JOBS=2",
+        "CARGO_TARGET_DIR=${SEC359_WORKTREE}/build/sec355-memory-review-20261118/verify-native-target",
+        "EXPECTED_SCOPE=baryonos-mem355-verify-native-727e9ce5273149c29118c77305898740.scope",
+        "PROBE_RECEIPT=${SEC359_WORKTREE}/build/sec355-memory-review-20261118/native-child-limit.txt",
+        "${SEC359_WORKTREE}/build/sec355-memory-review-20261118/native-bin/cargo",
+        "+1.90.0",
+        "check",
+        "--manifest-path",
+        "build/sec355-memory-review-20261118/containment-probe/Cargo.toml"
+      ],
+      "unit": "baryonos-mem355-verify-native-727e9ce5273149c29118c77305898740.scope",
+      "exit_code": 0,
+      "child_limits": "0::/user.slice/user-1000.slice/user@1000.service/app.slice/baryonos-mem355-verify-native-727e9ce5273149c29118c77305898740.scope\nmemory.max=1073741824\nmemory.high=max\n"
+    },
+    "correction": "Use task-local pinned native Rustup proxies, not the Snap launcher; keep actual compiler descendants in the selected cgroup. No global toolchain/PATH change.",
+    "native_toolchain": {
+      "source": "/snap/rustup/1533/bin/rustup",
+      "installed_revision": "rustup Snap1533; only native Rustup binary copied, no Snap launcher",
+      "binary_sha256": "7535af458dd1c78351182055890a42132d18859a198bf2b8832dc43dd28c18bc",
+      "version": "rustup 1.29.2 (d8c92c676 2026-10-21)",
+      "scope": "Task-local native compiler proxies; no global PATH or toolchain modification."
+    }
+  },
+  "positive_reference_profile": {
+    "MemoryMax": 8589934592,
+    "MemoryHigh": 6442450944,
+    "MemorySwapMax": 0,
+    "TasksMax": 512,
+    "cpu_max": "400000 100000",
+    "CARGO_BUILD_JOBS": 4,
+    "memory_peak_bytes": 621486080,
+    "memory_peak_mib": 592.6953125,
+    "memory_events": {
+      "low": "0",
+      "high": "0",
+      "max": "0",
+      "oom": "0",
+      "oom_kill": "0",
+      "oom_group_kill": "0",
+      "sock_throttled": "0"
+    },
+    "exit_codes": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "workload_result": "build/sec355-memory-review-20261118/native-native-workload-results.json",
+    "cache_condition": "Fresh NOS_TARGET_DIR for measurement; existing Cargo registry/toolchain and OS page caches reused."
+  },
+  "limits": [
+    "Trusted reviewed reference workloads only; not full PR355 sandbox/resource lifecycle acceptance.",
+    "Scratch for the positive sizing run is disk-backed; a future kernel-bounded tmpfs profile must budget its memory and inode overhead too.",
+    "Authenticated agent clients and the complete CI gate have not been sized in the final supported isolation composition.",
+    "The 8GiB reference budget is not an unmeasured universal preset; profile selection and aggregate admission must reserve RAM for the host/IDE and simultaneous tasks.",
+    "The PR357 64GiB schema ceiling is not a suitable default for this workstation with59.23GiB usable.",
+    "OOMPolicy kill, swap0 and security gates remain unchanged; no OOM killer disabled."
+  ],
+  "resume_checkpoint": {
+    "pr359": "9789ce565c247f70eab6d321f657dc05a64a8513, current-head hosted native-window scales pending; no merge untilpass",
+    "pr356": "0617b07c plus independently reviewed helper corrections,406tools and realWiki under-O passed; lead evidence/commit/push next",
+    "security": "Continue355/357 and remainingDaybreak; governance not started."
+  }
+}
