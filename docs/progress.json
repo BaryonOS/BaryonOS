@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-18",
-    "source_commit": "fa4895daf92eaf48bf7b9ecd07751d50f5537490",
+    "source_commit": "b35433d27e07de2e55e5703d3186a4ab5ba2b78a",
     "assessment_basis": "source_commit",
     "branch": "codex/phase0-pipeline-isolation",
-    "task": "SEC355-MAIN-RECONCILIATION: preserve PR359 containment with verified resource scopes",
+    "task": "SEC355-GATE-FAILCLOSED: reject unsupported CI semantics without partial gate claims",
     "previous_score": 41,
-    "summary": "41/100 unchanged. Source fa4895da reconciles PR #355 with main 1c10cdb5 while preserving all PR #359 execution holds and the byte-identical fail-closed resource implementation. The 64 MiB OOM case remains an intentional negative control; an exact-source 6/8 GiB reference passed Rust/build/M1/M6c workloads at a 699133952-byte peak with zero OOM events. The manifest stays disabled and authenticated client, aggregate scratch/staging/export, complete selected gate and hosted acceptance remain open; no finding, issue, baseline or governance acceptance is inferred."
+    "summary": "41/100 unchanged. Source b35433d2 removes a local-gate false-pass path: uses, conditional, setup and commandless workflow steps now block instead of being omitted, and both controllers record that refusal as a failed task. The manifest and execution hold remain disabled. Complete selected-gate semantics, authenticated client, aggregate scratch/staging/export, hosted exact-head acceptance and final Daybreak resolution remain open; no finding, issue, baseline or governance acceptance is inferred."
   },
   "tracks": [
     {

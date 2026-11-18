@@ -1,0 +1,53 @@
+{
+  "schema": 1,
+  "source_commit": "b35433d27e07de2e55e5703d3186a4ab5ba2b78a",
+  "parent_commit": "a1e12249b09c5cab94ccf2a27747116cd15dbb76",
+  "checks": [
+    {
+      "name": "combined pipeline isolation sandbox quarantine hold and roadmap tests",
+      "command": "python3 -B -m unittest tools.tests.test_agent_pipeline tools.tests.test_agent_pipeline_integration tools.tests.test_agent_isolation tools.tests.test_agent_sandbox tools.tests.test_agent_sandbox_native tools.tests.test_pipeline_quarantine tools.tests.test_agent_execution_hold tools.tests.test_roadmap_runner",
+      "result": "PASS",
+      "tests": 114,
+      "skipped": 10,
+      "exit_code": 0,
+      "log": "build/tokenguard/run-4miea1bt.log",
+      "sha256": "baae9e38dbe729de00d21d0233e60e51b806548f179be4c6d67b043546e68818"
+    },
+    {
+      "name": "complete tools suite",
+      "command": "python3 -B -m unittest discover -s tools/tests -p 'test_*.py'",
+      "result": "PASS",
+      "tests": 477,
+      "skipped": 10,
+      "exit_code": 0,
+      "log": "build/tokenguard/run-7p0ctm5s.log",
+      "sha256": "976335d17558bfafea9f131fcf849d026a5d701f78e7ceb45dce49a90740e17d"
+    },
+    {
+      "name": "independent focused verification",
+      "result": "PASS",
+      "agent_pipeline_tests": 26,
+      "roadmap_tests": 18,
+      "exit_code": 0,
+      "logs": {
+        "agent_pipeline": {
+          "path": "build/tokenguard/run-7ijt9v48.log",
+          "sha256": "2d7d1a40324951cf67105bca14ab45f7c757d3b89cd33a6aaec3c5289947c6ee"
+        },
+        "roadmap": {
+          "path": "build/tokenguard/run-h7g94mcr.log",
+          "sha256": "9532112f53adedc49b685fb5abde36098cff3e23a3f5adfbac30054a89a86fad"
+        },
+        "real_gate_and_receipt_probe": {
+          "path": "build/tokenguard/run-s9aq4kon.log",
+          "sha256": "bd5889213a484c950ffb148e6262c7cb34677fc2fe25314b27a15d31b3bfc5c4"
+        }
+      }
+    }
+  ],
+  "not_run": [
+    "Native and QEMU workloads were not repeated for this Python controller-only checkpoint.",
+    "Hosted CI was not run on this unpushed local source; exact-head checks remain mandatory.",
+    "Complete selected-gate adapter and live authenticated model-client transactions remain unavailable."
+  ]
+}

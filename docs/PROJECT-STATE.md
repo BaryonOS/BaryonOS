@@ -1,6 +1,31 @@
 # Current project status
 
-## NEXT AGENT HANDOFF — PR #355 current-main reconciliation — 18 November 2026
+## NEXT AGENT HANDOFF — PR #355 fail-closed gate resolution — 18 November 2026
+
+**Source and change:** security checkpoint `b35433d27e07de2e55e5703d3186a4ab5ba2b78a`
+extends the published reconciliation head `a1e12249b09c5cab94ccf2a27747116cd15dbb76`.
+The local gate resolver now rejects `uses`, conditional, setup and commandless steps
+instead of silently omitting them. Both controllers convert that refusal into their
+existing blocked-task records. The manifest and unconditional execution hold remain
+unchanged and disabled; no generated source can reach a partial gate.
+
+**Checks:** 114 combined pipeline, isolation, sandbox, quarantine, hold and roadmap
+tests pass with ten explicit environment skips. The complete tools suite passes 477
+tests with the same ten skips. Focused independent verification passes 26 agent
+pipeline and 18 roadmap tests and confirms that both current `host-quality` and
+`qemu-smoke` definitions block before returning a partial command list. Independent
+security rereview reports no blocking finding. This is AI review, not a human audit.
+[Source-bound receipt](verification/phase0-sec355-gate-failclosed-20261118/README.md).
+
+**Open boundary and resume:** this checkpoint does not implement the selected-gate
+adapter. Job-level timeout/finalizer semantics, authenticated model-client
+provisioning and kernel-bounded aggregate scratch/staging/export remain open. Hosted
+checks must be repeated on the published exact head. Continue with the complete
+`qemu-smoke` adapter and scratch boundary; keep the pipeline disabled until every
+isolation and transaction gate passes. Score 41/100 is unchanged. No issue, finding,
+baseline or governance acceptance follows from this checkpoint.
+
+## Historical checkpoint — PR #355 current-main reconciliation — 18 November 2026
 
 **Source and preservation:** security merge `fa4895daf92eaf48bf7b9ecd07751d50f5537490`
 (tree `d36212c7e3e98db85cd8d7760a40cab716817430`) combines prior PR #355
