@@ -1,0 +1,2 @@
+*/serial.txt -text whitespace=cr-at-eol
+logs/** -text

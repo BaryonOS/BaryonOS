@@ -68,11 +68,11 @@ jobs:
           PY
       - name: Pinned Rust, lint tools and real targets
         run: |
-          rustup toolchain install 1.90.0 --profile minimal
-          rustup component add --toolchain 1.90.0 rustfmt clippy
-          rustup target add --toolchain 1.90.0 x86_64-unknown-none x86_64-unknown-uefi
-          rustc +1.90.0 -vV > "$CI_EVIDENCE_DIR/rustc.txt"
-          cargo +1.90.0 --version > "$CI_EVIDENCE_DIR/cargo.txt"
+          rustup toolchain install 1.100.0 --profile minimal
+          rustup component add --toolchain 1.100.0 rustfmt clippy
+          rustup target add --toolchain 1.100.0 x86_64-unknown-none x86_64-unknown-uefi
+          rustc +1.100.0 -vV > "$CI_EVIDENCE_DIR/rustc.txt"
+          cargo +1.100.0 --version > "$CI_EVIDENCE_DIR/cargo.txt"
       - name: Cache Cargo downloads only
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
@@ -101,7 +101,7 @@ jobs:
         run: python3 -B tools/preflight.py --strict | tee "$CI_EVIDENCE_DIR/preflight.json"
       - name: Fetch every locked app dependency before offline builders
         run: |
-          cargo +1.90.0 fetch --locked
+          cargo +1.100.0 fetch --locked
           for manifest in \
             sdk/Cargo.toml \
             sdk/examples/materiaal/Cargo.toml \
@@ -112,7 +112,7 @@ jobs:
             ui/native/Cargo.toml \
             ui/surface-protocol/Cargo.toml
           do
-            cargo +1.90.0 fetch --locked --manifest-path "$manifest"
+            cargo +1.100.0 fetch --locked --manifest-path "$manifest"
           done
       - name: Runner and Windows packager counterexamples
         run: |
@@ -120,15 +120,15 @@ jobs:
           python3 -B -m unittest tools.tests.test_package_windows_qemu 2>&1 | tee "$CI_EVIDENCE_DIR/package-host.txt"
       - name: Real scene and protocol host checks
         run: |
-          cargo +1.90.0 test --offline --locked --manifest-path sdk/examples/window-session/Cargo.toml 2>&1 | tee "$CI_EVIDENCE_DIR/scene-host.txt"
-          cargo +1.90.0 clippy --offline --locked --manifest-path sdk/examples/window-session/Cargo.toml --all-targets -- -D warnings 2>&1 | tee "$CI_EVIDENCE_DIR/scene-clippy.txt"
-          cargo +1.90.0 fmt --manifest-path sdk/examples/window-session/Cargo.toml -- --check
-          cargo +1.90.0 test --offline --locked --manifest-path ui/surface-protocol/Cargo.toml --features client 2>&1 | tee "$CI_EVIDENCE_DIR/surface-host.txt"
-          cargo +1.90.0 test --offline --locked --manifest-path ui/graphics/Cargo.toml 2>&1 | tee "$CI_EVIDENCE_DIR/graphics-host.txt"
+          cargo +1.100.0 test --offline --locked --manifest-path sdk/examples/window-session/Cargo.toml 2>&1 | tee "$CI_EVIDENCE_DIR/scene-host.txt"
+          cargo +1.100.0 clippy --offline --locked --manifest-path sdk/examples/window-session/Cargo.toml --all-targets -- -D warnings 2>&1 | tee "$CI_EVIDENCE_DIR/scene-clippy.txt"
+          cargo +1.100.0 fmt --manifest-path sdk/examples/window-session/Cargo.toml -- --check
+          cargo +1.100.0 test --offline --locked --manifest-path ui/surface-protocol/Cargo.toml --features client 2>&1 | tee "$CI_EVIDENCE_DIR/surface-host.txt"
+          cargo +1.100.0 test --offline --locked --manifest-path ui/graphics/Cargo.toml 2>&1 | tee "$CI_EVIDENCE_DIR/graphics-host.txt"
           for crate in materiaal calculator; do
-            cargo +1.90.0 test --offline --locked --manifest-path "sdk/examples/$crate/Cargo.toml" 2>&1 | tee "$CI_EVIDENCE_DIR/$crate-host.txt"
-            cargo +1.90.0 clippy --offline --locked --manifest-path "sdk/examples/$crate/Cargo.toml" --all-targets -- -D warnings 2>&1 | tee "$CI_EVIDENCE_DIR/$crate-clippy.txt"
-            cargo +1.90.0 fmt --manifest-path "sdk/examples/$crate/Cargo.toml" -- --check
+            cargo +1.100.0 test --offline --locked --manifest-path "sdk/examples/$crate/Cargo.toml" 2>&1 | tee "$CI_EVIDENCE_DIR/$crate-host.txt"
+            cargo +1.100.0 clippy --offline --locked --manifest-path "sdk/examples/$crate/Cargo.toml" --all-targets -- -D warnings 2>&1 | tee "$CI_EVIDENCE_DIR/$crate-clippy.txt"
+            cargo +1.100.0 fmt --manifest-path "sdk/examples/$crate/Cargo.toml" -- --check
           done
       - name: Build the eight-process native window probe
         # No image/target cache: the existing builder inspects and embeds all

@@ -38,7 +38,7 @@ fn read_bmp(bytes: &[u8]) -> (usize, usize, Vec<u32>) {
     assert_eq!(bytes.len(), 54 + height * stride);
     let mut rgb = Vec::new();
     for row in bytes[54..].chunks_exact(stride).rev() {
-        for pixel in row[..width * 3].chunks_exact(3) {
+        for pixel in row[..width * 3].as_chunks::<3>().0 {
             rgb.push(
                 (u32::from(pixel[2]) << 16) | (u32::from(pixel[1]) << 8) | u32::from(pixel[0]),
             );
@@ -146,7 +146,7 @@ fn actual_png_and_jpeg_export_every_pixel_matches_existing_codec_and_explicit_ba
             (width, height),
             (decoded.display_width, decoded.display_height)
         );
-        for (pixel, expected) in pixels.iter().zip(rgba.chunks_exact(4)) {
+        for (pixel, expected) in pixels.iter().zip(rgba.as_chunks::<4>().0.iter()) {
             let a = u32::from(expected[3]);
             let channel = |value: u8, bg: u32| (u32::from(value) * a + bg * (255 - a) + 127) / 255;
             assert_eq!(

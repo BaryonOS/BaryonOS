@@ -1,0 +1,13 @@
+usage: agent_gate.py [-h] [--job WORKFLOW#JOB] [--root ROOT] [--log LOG]
+                     [--list]
+
+Agent-pipeline gate: run the exact `run:` steps of chosen CI jobs, then
+progress.py --check.
+
+options:
+  -h, --help          show this help message and exit
+  --job WORKFLOW#JOB  CI job whose run-steps form the gate, e.g. ci.yml#host-
+                      quality
+  --root ROOT         checkout to test (cwd of the steps)
+  --log LOG           full log (default: <root>/build/agent-pipeline/gate.log)
+  --list              print the resolved steps and exit

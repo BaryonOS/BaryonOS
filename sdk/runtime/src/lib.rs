@@ -92,7 +92,10 @@ fn encode_wait(conditions: &[WaitCondition]) -> Result<[u8; 256], Error> {
         return Err(Error::MessageSize);
     }
     let mut bytes = [0; 256];
-    for (condition, entry) in conditions.iter().zip(bytes.chunks_exact_mut(16)) {
+    for (condition, entry) in conditions
+        .iter()
+        .zip(bytes.as_chunks_mut::<16>().0.iter_mut())
+    {
         entry[..8].copy_from_slice(&condition.handle.raw().to_le_bytes());
         entry[8..].copy_from_slice(&condition.interest.to_le_bytes());
     }

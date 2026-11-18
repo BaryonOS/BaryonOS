@@ -80,9 +80,9 @@ def main() -> int:
         return completed.stdout
 
     try:
-        report["rustc"] = run(["rustc", "+1.90.0", "--version"], "rustc").strip()
+        report["rustc"] = run(["rustc", "+1.100.0", "--version"], "rustc").strip()
         run([
-            "cargo", "+1.90.0", "build", "--manifest-path", str(HERE / "Cargo.toml"),
+            "cargo", "+1.100.0", "build", "--manifest-path", str(HERE / "Cargo.toml"),
             "--locked", "--offline", "--release", "--target", "x86_64-unknown-none",
             "--bin", "qsim-job-native",
         ], "build")
