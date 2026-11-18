@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-18",
-    "source_commit": "2a08f4a33eff63b354821f6892e1be28f7602c9b",
+    "source_commit": "0617b07ccf5f48a7c40c72c87b365c436bfea775",
     "assessment_basis": "parent_commit",
     "branch": "codex/phase0-pr339-preintegration",
-    "task": "Phase 0: validate the preserved combined current-main integration candidate",
+    "task": "SEC356-HELPERS: repair source-bound navigation, Git fixture isolation and optimized Wiki verification",
     "previous_score": 41,
-    "summary": "41/100 unchanged. Main de9b9904 contains verified PRs #345/#346/#339. Combined runtime 2a08f4a3 passed 18 local host-quality steps, 15 volume VMs and two DocumentSession VMs; six additional H02 native cases passed. Final English helper review/inventory, current-head hosted CI and exact-candidate independent review remain pending. Source PRs stay open; unfinished #355/#357 and platform-blocked kernel WIP are excluded."
+    "summary": "41/100 unchanged. Seven helper defects are corrected with preserved negative controls, complete tools suite (406 tests) PASS, actual optimized Wiki verification and independent AI review. Existing source-bound native evidence remains historical; current-head CI and integrated-main verification remain required. All five issues and three Daybreak findings stay open; strict governance stabilization has not passed."
   },
   "tracks": [
     {

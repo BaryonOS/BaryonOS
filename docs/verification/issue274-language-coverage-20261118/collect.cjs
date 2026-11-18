@@ -9,14 +9,14 @@ fs.mkdirSync(out, {recursive:true});
 const wikiArgument = process.argv.indexOf('--wiki');
 if(wikiArgument < 0 || !process.argv[wikiArgument+1]) throw new Error('Pass --wiki /absolute/path/to/BaryonOS.wiki');
 const wikiRoot = path.resolve(process.argv[wikiArgument+1]);
-const gitEnvironment = {...process.env, GIT_NO_LAZY_FETCH: "1", GIT_TERMINAL_PROMPT: "0"};
+const gitEnvironment = {...Object.fromEntries(Object.entries(process.env).filter(([key])=>!key.startsWith('GIT_'))), GIT_NO_LAZY_FETCH: "1", GIT_TERMINAL_PROMPT: "0"};
 const git = (...args) => cp.execFileSync('git', ['-C', root, ...args], {encoding:'utf8',env:gitEnvironment}).trim();
 const sha256 = raw => crypto.createHash('sha256').update(raw).digest('hex');
 const head = git('rev-parse', 'HEAD');
 const utf8 = raw => new TextDecoder('utf-8', {fatal:true}).decode(raw);
 function tree(ref, required=false) {
   try {
-    const value=cp.execFileSync('git',['-C',root,'ls-tree','-r','-z',ref],{stdio:['ignore','pipe','pipe'],env:gitEnvironment,maxBuffer:8*1024*1024});
+    const value=cp.execFileSync('git',['-C',root,'ls-tree','-r','-t','-z',ref],{stdio:['ignore','pipe','pipe'],env:gitEnvironment,maxBuffer:8*1024*1024});
     return new Map(utf8(value).split('\0').filter(Boolean).map(row=>{
       const separator=row.indexOf('\t');
       if(separator<0) throw new Error('Invalid Git tree record');
@@ -53,7 +53,7 @@ const protectedReason = p => {
   if (p.startsWith('experiments/quantum/third-party/')) return 'Third-party source';
   return null;
 };
-const docs = [...currentTree.keys()].filter(p=>p.endsWith('.md'));
+const docs = [...currentTree.keys()].filter(p=>p.endsWith('.md')&&currentTree.get(p).type==='blob');
 const inventory = [], excluded = [], links = [], textByPath = new Map(), anchorsByPath = new Map();
 const dutch = /\b(?:het|een|zijn|wordt|worden|voor|geen|alleen|ook|deze|dit|moet|moeten|zonder|niet|gegevens|gebruiker|bestanden|veiligheid|mogelijk|beschikbaar|toestemming|verplicht|ondersteund|huidige|volgende|bewijs|onderzoek|ontwerp)\b/giu;
 function slug(value) {return value.replace(/<[^>]*>/g,'').replace(/[*`]/g,'').toLowerCase().replace(/[^\p{L}\p{N}_\- ]/gu,'').replace(/ /g,'-');}
@@ -63,18 +63,24 @@ function walk(tokens, visit, seen=new WeakSet()) {
   if (!Array.isArray(tokens)) visit(tokens);
   for (const value of Object.values(tokens)) if(value && typeof value==='object') walk(value,visit,seen);
 }
+function markdownAnchors(text) {
+  const anchors=new Set();const counts=new Map();
+  walk(lexer(text),t=>{
+    if(t.type==='heading') {const base=slug(t.text);const n=counts.get(base)||0;counts.set(base,n+1);anchors.add(base+(n?'-'+n:''));}
+  });
+  for(const m of text.matchAll(/<a\s+(?:id|name)=["']([^"']+)["']/gi)) anchors.add(m[1]);
+  return anchors;
+}
 for (const p of docs) {
   const reason = protectedReason(p);
   if(reason) {excluded.push({path:p,reason,blob:currentTree.get(p).sha});continue;}
   const raw=sourceBlob(p);const text=utf8(raw);textByPath.set(p,text);
-  const tokens=lexer(text);const anchors=new Set();const counts=new Map();
+  const tokens=lexer(text);
   walk(tokens,t=>{
     if((t.type==='link'||t.type==='image') && t.href) links.push({source:p,href:t.href,image:t.type==='image'});
     if(t.type==='html') for(const m of t.raw.matchAll(/\b(?:href|src)\s*=\s*["']([^"']+)["']/gi)) links.push({source:p,href:m[1],html:true});
-    if(t.type==='heading') {const base=slug(t.text);const n=counts.get(base)||0;counts.set(base,n+1);anchors.add(base+(n?'-'+n:''));}
   });
-  for(const m of text.matchAll(/<a\s+(?:id|name)=["']([^"']+)["']/gi)) anchors.add(m[1]);
-  anchorsByPath.set(p,anchors);
+  anchorsByPath.set(p,markdownAnchors(text));
   const hits=[];let fence=null;
   text.split(/\r?\n/).forEach((line,index)=>{
     const m=line.match(/^\s*(`{3,}|~{3,})/);
@@ -87,28 +93,40 @@ for (const p of docs) {
   inventory.push({path:p,blob:currentTree.get(p).sha,sha256:sha256(raw),bytes:raw.length,reused_prior_named_english_audit:oldPaths.has(p)&&oldTree.get(p)?.sha===currentTree.get(p).sha,dutch_candidate_lines:hits.length,candidates:hits});
 }
 const edges=new Map(inventory.map(x=>[x.path,new Set()]));const unresolved=[];const legacy=[];const skipped=[];const wikiReferences=[];
+function wikiReference(link, name, fragment) {
+  const live=bounded(wikiRoot,name);
+  if(!live) {skipped.push({...link,reason:'Outside Wiki checkout'});return true;}
+  if(!fs.existsSync(live)||!fs.statSync(live).isFile()) return false;
+  const raw=fs.readFileSync(live);
+  wikiReferences.push({...link,wiki_path:name,sha256:sha256(raw)});
+  if(fragment&&!markdownAnchors(utf8(raw)).has(fragment)) unresolved.push({...link,target:'wiki/'+name,fragment,reason:'unresolved-fragment'});
+  return true;
+}
 for(const l of links) {
   let href=l.href.replace(/&amp;/g,'&');let target,fragment='';
   if(/^(?:mailto|tel|data|javascript):/i.test(href)) continue;
+  try {
   if(/^https?:\/\//i.test(href)) {
     let u;try{u=new URL(href);}catch{skipped.push({...l,reason:'Unparseable URL'});continue;}
     if(u.hostname!=='github.com')continue;
     const m=u.pathname.match(/^\/(BaryonOS\/BaryonOS|simonvanieperen\/(?:BaryonOS|nieuw-os))\/(blob|tree)\/([^/]+)\/(.*)$/i);
     if(m){if(m[1]!=='BaryonOS/BaryonOS')legacy.push({...l,kind:m[3]==='main'?'legacy-current-main':'legacy-pinned-or-branch'});if(m[3]!=='main')continue;target=decodeURIComponent(m[4]);fragment=decodeURIComponent(u.hash.slice(1));}
-    else {const w=u.pathname.match(/^\/(?:BaryonOS\/BaryonOS|simonvanieperen\/(?:BaryonOS|nieuw-os))\/wiki(?:\/(.*))?$/i);if(w){const name=decodeURIComponent(w[1]||'Home')+'.md';const live=bounded(wikiRoot,name);if(!live){skipped.push({...l,reason:'Outside Wiki checkout'});continue;}if(fs.existsSync(live)){wikiReferences.push({...l,wiki_path:name,sha256:sha256(fs.readFileSync(live))});continue;}target='docs/wiki/'+name;}else continue;}
+    else {const w=u.pathname.match(/^\/(?:BaryonOS\/BaryonOS|simonvanieperen\/(?:BaryonOS|nieuw-os))\/wiki(?:\/(.*))?$/i);if(w){const name=decodeURIComponent(w[1]||'Home')+'.md';fragment=decodeURIComponent(u.hash.slice(1));if(!wikiReference(l,name,fragment))unresolved.push({...l,target:'wiki/'+name,fragment,reason:'missing-target'});continue;}else continue;}
   }else{
     const hash=href.indexOf('#');if(hash>=0){fragment=decodeURIComponent(href.slice(hash+1));href=href.slice(0,hash);}
     const q=href.indexOf('?');if(q>=0)href=href.slice(0,q);
-    try{href=decodeURIComponent(href);}catch{skipped.push({...l,reason:'Invalid percent encoding'});continue;}
+    href=decodeURIComponent(href);
     const relativeWiki=bounded(wikiRoot,href+'.md');
-    if(l.source.startsWith('docs/wiki/')&&href&&!path.posix.extname(href)&&relativeWiki&&fs.existsSync(relativeWiki)){wikiReferences.push({...l,wiki_path:href+'.md',sha256:sha256(fs.readFileSync(relativeWiki))});continue;}
+    if(l.source.startsWith('docs/wiki/')&&href&&!path.posix.extname(href)&&relativeWiki&&wikiReference(l,href+'.md',fragment))continue;
     target=href?path.posix.normalize(path.posix.join(path.posix.dirname(l.source),href)):l.source;
   }
-  if(target.startsWith('../')||path.isAbsolute(target)){skipped.push({...l,reason:'Outside repository'});continue;}
-  let full=bounded(root,target);
-  if(!full){skipped.push({...l,reason:'Resolved target outside repository'});continue;}
-  if(fs.existsSync(full)&&fs.statSync(full).isDirectory()){if(fs.existsSync(path.join(full,'README.md'))){target=path.posix.join(target,'README.md');full=path.join(full,'README.md');}else continue;}
-  if(!fs.existsSync(full)){unresolved.push({...l,target,fragment,reason:'missing-target'});continue;}
+  } catch(error) {if(!(error instanceof URIError))throw error;skipped.push({...l,reason:'Invalid percent encoding'});continue;}
+  target=path.posix.normalize(target).replace(/\/+$/,'')||'.';
+  if(target==='..'||target.startsWith('../')||path.isAbsolute(target)){skipped.push({...l,reason:'Outside repository'});continue;}
+  if(target==='.'||currentTree.get(target)?.type==='tree'){const readme=path.posix.join(target,'README.md');if(currentTree.has(readme))target=readme;else continue;}
+  const entry=currentTree.get(target);
+  if(!entry){unresolved.push({...l,target,fragment,reason:'missing-target'});continue;}
+  if(entry.type!=='blob'||!['100644','100755'].includes(entry.mode)){skipped.push({...l,target,reason:'Non-regular tracked target'});continue;}
   if(edges.has(target))edges.get(l.source).add(target);
   if(fragment && target.endsWith('.md') && anchorsByPath.has(target) && !anchorsByPath.get(target).has(fragment))unresolved.push({...l,target,fragment,reason:'unresolved-fragment'});
 }

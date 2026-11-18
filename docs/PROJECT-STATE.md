@@ -1,5 +1,15 @@
 # Current project status
 
+## NEXT AGENT HANDOFF — Local PR #356 helper corrections — 18 November 2026
+
+**Source and ownership:** the Cloud-to-Local release `88b801ab8cd47f4765ef7d925b161542dbbf684e` was verified. Local Codex owns this continuation of existing PR #356 parent `0617b07ccf5f48a7c40c72c87b365c436bfea775`; original shared-main merge, Claude UI/UX and broader S09 remain untouched. Main was verified at `de9b99047138c4fd0015ffc3f874b273b3537484`.
+
+**Changes and evidence:** three active helpers and one host regression module correct Git-tree target resolution, inherited Git environment, malformed local URLs, Wiki fragment/publication confinement and optimized Python checks. Seven genuine review defects are covered. All 406 tools tests and actual Wiki verification under `-O` pass (exit 0); the immutable 2073 inventory reproduces its preserved counts. Independent AI review passes the bounded helper scope. [New receipt](verification/issue274-helper-corrections-20261118/README.md). Original source-bound runtime/native receipts remain separate; current-head hosted and actual-main acceptance are pending.
+
+**Security and stabilization:** PR #359 containment is independently reviewed and locally native-verified at published `9789ce565c247f70eab6d321f657dc05a64a8513`; remaining hosted native-window checks precede any merge. PR #355/#357 full isolation remains unfinished. Local bubblewrap 0.13.1 and kernel resource probes are provisioned without global changes, not accepted as full client/gate parity. Three Daybreak findings and all five issues remain open. Finite baseline B retains its approved definition; governance additionally requires genuine zero open issues/PRs and actionable security/quality findings, unless the project owner explicitly authorizes an exception. Score 41/100 is unchanged.
+
+**Next:** reconcile actual main after verified containment integration, publish this existing PR #356 continuation, repair any current-head check/review failure, and merge only after all mandatory conditions pass. Preserve source PRs until actual-main inclusion is proven. No auto-merge, issue-pipeline execution, false closure or governance start.
+
 ## NEXT AGENT HANDOFF — Phase 0 combined integration candidate — 18 November 2026
 
 **Verified main:** `de9b99047138c4fd0015ffc3f874b273b3537484` follows the verified manual squash merges of #345, #346 and #339. Each actual-main tree equals its reviewed candidate. The earlier #339 automatic merge rejection was respected until all required checks and reviews passed. Six translation source PRs were closed only after actual-main inclusion was proved; their original branches and evidence remain preserved.
