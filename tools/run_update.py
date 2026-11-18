@@ -342,7 +342,7 @@ def execute(args, env, *, cut_marker=None, timeout=MAX_TIMEOUT):
 
 
 def update_tool(env, *args) -> None:
-    subprocess.run(["cargo", "+1.90.0", "run", "--locked", "--release", "-q", "-p", "update-tool", "--", *args],
+    subprocess.run(["cargo", "+1.100.0", "run", "--locked", "--release", "-q", "-p", "update-tool", "--", *args],
                    cwd=ROOT, env=env, check=True, capture_output=True, text=True)
 
 

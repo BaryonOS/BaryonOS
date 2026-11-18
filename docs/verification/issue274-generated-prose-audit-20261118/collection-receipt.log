@@ -1,0 +1,70 @@
+check 0 0
+check 1 0
+check 2 0
+check 3 0
+check 4 0
+check 5 0
+check 6 0
+check 7 0
+check 8 0
+check 9 0
+{
+  "source_commit": "31ccacc2498e8d2a5d3cb763e859c7b49282728c",
+  "scope_count": 24,
+  "result": "REVIEW_REQUIRED",
+  "generator_literal_hits": [
+    {
+      "path": "tools/progress.py",
+      "line": 101,
+      "text": "\n<a id=\"voortgang-naar-een-volwaardig-zelfstandig-os\"></a>\n## Progress toward a complete independent OS\n\n![Baryon OS: ",
+      "disposition": "Preserved parser alias or legacy bookmark anchor",
+      "allowed": true
+    },
+    {
+      "path": "tools/agent_pipeline.py",
+      "line": 122,
+      "text": "Criterium",
+      "disposition": "Preserved parser alias or legacy bookmark anchor",
+      "allowed": true
+    },
+    {
+      "path": "tools/agent_pipeline.py",
+      "line": 128,
+      "text": "Afhankelijk van",
+      "disposition": "Preserved parser alias or legacy bookmark anchor",
+      "allowed": true
+    },
+    {
+      "path": "docs/verification/issue274-language-coverage-20261118/check.py",
+      "line": 14,
+      "text": "\\b(?:het|een|zijn|wordt|worden|voor|geen|alleen|ook|deze|dit|moet|moeten|zonder|niet|gegevens|gebruiker|bestanden|veiligheid|mogelijk|beschikbaar|toestemming|verplicht|ondersteund|huidige|volgende|bewijs|onderzoek|ontwerp)\\b",
+      "disposition": "Review required",
+      "allowed": false
+    },
+    {
+      "path": "docs/verification/issue274-language-coverage-20261118/check.py",
+      "line": 104,
+      "text": "Dit is een buiten repository gegevensbestand.\n",
+      "disposition": "Review required",
+      "allowed": false
+    },
+    {
+      "path": "docs/verification/issue274-language-coverage-20261118/check.py",
+      "line": 149,
+      "text": "# Nieuwe tekst\n\nDit is een nieuw document.\n",
+      "disposition": "Review required",
+      "allowed": false
+    },
+    {
+      "path": "docs/verification/issue274-language-coverage-20261118/check.py",
+      "line": 143,
+      "text": "\nDit is een nieuwe Nederlandse zin.\n",
+      "disposition": "Review required",
+      "allowed": false
+    }
+  ],
+  "input_hits": [],
+  "checks": 10,
+  "failed_checks": 1,
+  "artifacts": "/workspace/issue274-generated-prose-audit-20261118"
+}

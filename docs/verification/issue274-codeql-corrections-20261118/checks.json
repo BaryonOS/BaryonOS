@@ -1,0 +1,93 @@
+{
+  "implementation_source": "159eda463c70dc538aec3b4c04ae4527b1c6c7e2",
+  "parent": "eba1bfa76d9b044c6776f69bede8dd51d1b95911",
+  "source_tree": "89d5f956779b7a1389a88bfeddeb4067b4a194b7",
+  "source_sha256": {
+    "docs/DEVELOPMENT.md": "b1bab8d031c7740dc05f144cd77b35b1ea335c8d4190be7f9b8474648d32b4af",
+    "docs/verification/issue274-language-coverage-20261118/collect.cjs": "165852fb96dc280922a357d8f3c6d1ecdb3e58449ad0a0dd974f6d8bef8bebc0",
+    "docs/verification/issue274-language-coverage-20261118/check.py": "a06680a871a1b019b630a65180bffac298a5d5d15bf15cc65413cc90f9570936",
+    "docs/verification/issue274-wiki-publication-20261118/verify.py": "63d8d540b4ed3d7eebe03351d84263bda7d4aef75b21966b635f3feaa5f0039e",
+    "tools/tests/test_language_coverage_helpers.py": "6bd5125abbd93f9493d6532f3897d0712b44a83f3f09a3a383ade5e7b14a2a0d"
+  },
+  "negative_controls": [
+    {
+      "name": "restored incomplete HTML regular expressions",
+      "expected_exit": 1,
+      "actual_exit": 1,
+      "driver_sha256": "cde85f8450231a0b2bd37b07e5ee49414f8f8d07de0b50ab3374d0d43637d3c3",
+      "raw_local_log": "build/tokenguard/run-73uq9t50.log",
+      "raw_log_sha256": "fb959904f2556715cb104320d44c14dcb5208463def3ff0cf3a5feb7cdbaade7"
+    },
+    {
+      "name": "restored Wiki filesystem check/read helper",
+      "expected_exit": 1,
+      "actual_exit": 1,
+      "driver_sha256": "19519d613ea799717a9e916563f345547610d8df907374bbfdeac161eb8e73cf",
+      "raw_local_log": "build/tokenguard/run-wrk3wtfg.log",
+      "raw_log_sha256": "ff1418ba77ee348e38dfad60af3f23e728b17af3e9265831154c6dac840b9836"
+    }
+  ],
+  "checks": [
+    {
+      "name": "CodeQL repair synthetic controls",
+      "command": "NODE_PATH=build/sec356-helper-fix/node/node_modules python3 -B tools/tokenguard.py run -- python3 -B build/sec356-helper-fix/collector-controls-exact.py",
+      "exit_code": 0,
+      "driver_sha256": "5c393c09e9242856a9cb111941e24687709702226ce3db4983ac9a14c7038233",
+      "raw_local_log": "build/tokenguard/run-cam_bcgr.log",
+      "raw_log_sha256": "df839cb7dde566d1f64f3ebad68dd4f4832846c3adf9f06363464a9ca2a76344"
+    },
+    {
+      "name": "focused Python regressions on implementation source",
+      "command": "python3 -B tools/tokenguard.py run -- python3 -B -m unittest discover -s tools/tests -p test_language_coverage_helpers.py -v",
+      "tests": 3,
+      "exit_code": 0,
+      "raw_local_log": "build/tokenguard/run-qzcg0h6h.log",
+      "raw_log_sha256": "5660ddb5d77a2f7ad37cc27c8158d865e45f689aefd0afd8b111dd2ae7174032"
+    },
+    {
+      "name": "Node syntax on implementation source",
+      "command": "python3 -B tools/tokenguard.py run -- node --check docs/verification/issue274-language-coverage-20261118/collect.cjs",
+      "exit_code": 0,
+      "raw_local_log": "build/tokenguard/run-_dlhxojn.log",
+      "raw_log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "actual supplied Wiki Git snapshot collector on implementation source",
+      "command": "NODE_PATH=build/sec356-helper-fix/node/node_modules python3 -B tools/tokenguard.py run --output bounded -- node docs/verification/issue274-language-coverage-20261118/collect.cjs --wiki build/issue274-wiki-readonly",
+      "exit_code": 0,
+      "raw_local_log": "build/tokenguard/run-jplqc26m.log",
+      "raw_log_sha256": "676801219398c9b2a5c5982842b33a879ddc0488dedb28e8e9245359ef615489",
+      "report_sha256": "b27c58cae3f96d2eae8bce39bb0474d9c2616c8fac2669e1ab7fd21771d5444c",
+      "source_head": "159eda463c70dc538aec3b4c04ae4527b1c6c7e2",
+      "wiki_head": "4a01b8b2ad2695da509a512ea688007c964f56da",
+      "wiki_tree": "f7bee30ee39abb60da294d48357af5b6c85f2fae",
+      "local_links": 7667,
+      "unresolved_local_targets": 0,
+      "unsupported_local_targets": 0
+    },
+    {
+      "name": "complete tools suite on exact helper blobs before documentation-only link correction",
+      "command": "python3 -B tools/tokenguard.py run -- python3 -B -m unittest discover -s tools/tests -p 'test_*.py'",
+      "tests": 406,
+      "exit_code": 0,
+      "raw_local_log": "build/tokenguard/run-kdnlx6aj.log",
+      "raw_log_sha256": "92a307cd19044506a135738ee34abba1ae34ae1978bf27b2349c9c0e280f676b",
+      "source_binding": "collect.cjs and check.py match implementation_source byte-for-byte; docs/DEVELOPMENT.md still contained the later-corrected link text"
+    }
+  ],
+  "independent_review": {
+    "kind": "read-only AI review, not human audit",
+    "result": "PASS",
+    "scope": "Exact collect.cjs and check.py blobs; no query/workflow suppression and no mutable Wiki filesystem reads"
+  },
+  "hosted_codeql": "PENDING on the published current head",
+  "score": {
+    "previous": 41,
+    "current": 41
+  },
+  "limits": [
+    "Host helper behavior only; issue 274 remains open.",
+    "The ignored local marked 18.2.1 installation was used with scripts disabled; no repository dependency or lockfile changed.",
+    "No native, full localization, UI, human or security acceptance is claimed."
+  ]
+}

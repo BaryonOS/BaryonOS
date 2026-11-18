@@ -1,0 +1,90 @@
+{
+  "source_parent_commit": "68757cd2a2f313972609f9573f6cc10d45541b85",
+  "tool_source_sha256": {
+    "check.py": "9a60fc1931b936bb5c72323c2681c737d6343cf82694275a90e12731cea4d6a5",
+    "collect.cjs": "e0155ba0bd3a55bbd6c4909518b6bfd58fbb54f0fc4046491bbc61be83ece481"
+  },
+  "checks": [
+    {
+      "command": "python3 -B docs/verification/issue274-language-coverage-20261118/check.py",
+      "raw_exit": 0,
+      "local_log": "build/tokenguard/run-3r9mxnn2.log",
+      "log_sha256": "3e72ab9dc7c6a400df796395480cf0e6178fe7011cb6961c957703edd3e3da67"
+    },
+    {
+      "command": "python3 -B docs/verification/issue274-language-coverage-20261118/check.py --self-test",
+      "raw_exit": 0,
+      "local_log": "build/tokenguard/run-dl9sqhnl.log",
+      "log_sha256": "1123d169f5727275c78f0b9cd4117a7d5e078211e0b90bf10918675ae2201110"
+    },
+    {
+      "command": "python3 -B docs/verification/issue274-language-coverage-20261118/check.py --ref <recorded source parent>",
+      "raw_exit": 0,
+      "local_log": "build/tokenguard/run-3pk_3421.log",
+      "log_sha256": "3e72ab9dc7c6a400df796395480cf0e6178fe7011cb6961c957703edd3e3da67"
+    },
+    {
+      "command": "Initial immutable-ref check before Git tree-pathspec repair",
+      "raw_exit": 1,
+      "local_log": "build/tokenguard/run-akp8ppyw.log",
+      "log_sha256": "c405d5e5307c746b3ad1d9ec8bc9f8f0af581e8a1b2e7d1015477b85cd8da6bf"
+    },
+    {
+      "command": "node docs/verification/issue274-language-coverage-20261118/collect.cjs --wiki <actual Wiki checkout>",
+      "raw_exit": 0,
+      "local_log": "build/tokenguard/run-9gsjjchg.log",
+      "log_sha256": "5d31fd1f3f9f3e836ef4db8fad8e916d0323effe3bf127639f95a8f8bea51922"
+    },
+    {
+      "command": "python3 -B docs/verification/issue274-wiki-publication-20261118/verify.py --wiki <actual Wiki checkout>",
+      "raw_exit": 0,
+      "local_log": "build/tokenguard/run-mlmc_nbm.log",
+      "log_sha256": "65c9a547c4ed0bd2e39fa56d2cebfb59449152c4e6b72cfda1d5e53ba94c89ef"
+    },
+    {
+      "command": "python3 -B tools/preflight.py --strict",
+      "raw_exit": 0,
+      "local_log": "build/tokenguard/run-soxxnxm4.log",
+      "log_sha256": "0bdc30084d5f86f1fe8df13e0f6cda5a4f0964d06923bae1f7a77d48f1e9eaee"
+    },
+    {
+      "command": "python3 -B tools/build.py",
+      "raw_exit": 0,
+      "local_log": "build/tokenguard/run-z8cersl6.log",
+      "log_sha256": "1315d89b35c71b8455b34116b1193585ad33c8828f01c9ae75a918843d64b631"
+    },
+    {
+      "command": "python3 -B tools/run.py --smoke",
+      "raw_exit": 0,
+      "local_log": "build/tokenguard/run-jmx5x4yc.log",
+      "log_sha256": "864cb9bc0d1a718756ee411a0816e4ea3d16ae2b9e7f1e9bae80e9ffc490ef38"
+    },
+    {
+      "command": "python3 -B tools/progress.py --check",
+      "raw_exit": 0,
+      "local_log": "build/tokenguard/run-riqwso09.log",
+      "log_sha256": "14b305fe38d23ae7244745b59dcbbad1fa41b2ffd4a173070a72a8aca2f3aa5f"
+    },
+    {
+      "command": "RB-01 original/hash/identifier/link/score preservation assertions",
+      "raw_exit": 0,
+      "local_log": "build/tokenguard/run-4mjk1au4.log",
+      "log_sha256": "e3a3a666aaa42c0a03f135329f6b1790017d893a8a3bd95a977f31fca74d4e01"
+    }
+  ],
+  "negative_controls": {
+    "unchanged_copied_source": 0,
+    "changed_prose": 1,
+    "new_unclassified_tracked_document": 1,
+    "negative_raw_exit_expected": 1
+  },
+  "initial_failure_disposition": "Uncommitted verifier WIP used a Git ls-tree glob pathspec and obtained an empty scope. The correction enumerates tree metadata once and filters Markdown paths explicitly; current worktree and immutable-ref checks pass. The initial raw failure remains recorded.",
+  "native_smoke": {
+    "raw_qemu_exit": 33,
+    "marker": "M1:PASS",
+    "scope": "Generic M1; no native localisation or feature acceptance"
+  },
+  "score_before": 41,
+  "score_after": 41,
+  "issue274": "OPEN: source inventory reproduction is not complete language/localisation acceptance"
+}
