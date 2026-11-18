@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-18",
-    "source_commit": "c5c56f93d14a737c5c62dbec7ae237e34fe505fe",
-    "assessment_basis": "source_commit",
+    "source_commit": "ae5ad402b0b65857ea5fd1e25fa2e75d8218307a",
+    "assessment_basis": "parent_commit",
     "branch": "codex/p02-head-discovery",
-    "task": "P02-T1: committed NAS head discovery and read-only resume",
+    "task": "P02-T1: committed-head discovery for read-only resume",
     "previous_score": 41,
-    "summary": "41/100 unchanged. Session-scoped committed head query and client latest reconciliation implemented; 57 Rust host tests, 8 disk-oracle tests, Clippy/fmt pass. No automatic uncertain-write replay. NOSNAS01/wire unchanged. Native/transport/durability and P02 acceptance stay open; runner hold and Claude work preserved."
+    "summary": "41/100 unchanged. Native NAS clients can query a committed session-scoped head and reconcile the latest published ciphertext while staged writes remain invisible and uncertain publication is not replayed automatically. P02 remains open because native resume, durable transport and hardware evidence are absent. Current-main reconciliation changes only checkpoint state; hosted checks remain authoritative."
   },
   "tracks": [
     {
