@@ -16,6 +16,8 @@
   ],
   "source_pr_closure": "Only after final-main inclusion proof",
   "score": 41,
-  "tested_source_checkpoint": "44f7405003977dbf7f33eb5bca77f8a8f82c6f1c",
-  "rust_reconciliation": "f2a6ad4970433b0da8fd648c6eaba45ff919f517"
+  "tested_source_checkpoint": "2a08f4a33eff63b354821f6892e1be28f7602c9b",
+  "rust_reconciliation": "f2a6ad4970433b0da8fd648c6eaba45ff919f517",
+  "source_fingerprint_version": 3,
+  "source_sha256": "25dd6d69621f1d9d4c8ed353633b3db62818562fa6ce50efa4445207505adb44"
 }

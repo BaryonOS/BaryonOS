@@ -23,9 +23,9 @@ were verified. No protection or gate was bypassed.
 
 Existing PR #356 is the sole combined integration PR. Its original preview
 `bba804996b93d93e82b6fb323cdeea9779f6fe99` remains in the ancestry, including
-its unique historical receipt. The frozen executable source checkpoint is
-`44f7405003977dbf7f33eb5bca77f8a8f82c6f1c`, source fingerprint v3
-`3e3ee0876817b21612410b537f925681349c65c01d7ea397226f20e9ccf5bb1e`.
+its unique historical receipt. The frozen runtime source checkpoint is
+`2a08f4a33eff63b354821f6892e1be28f7602c9b`, source fingerprint v3
+`25dd6d69621f1d9d4c8ed353633b3db62818562fa6ce50efa4445207505adb44`.
 `inputs.json` identifies the incorporated source heads. Source PRs remain open
 until actual-main inclusion and acceptance are proved.
 
@@ -48,13 +48,16 @@ At source `705b5cb9`, 403 tools tests, strict preflight, the M1 build and smoke
 test passed; the guest emitted raw exit 33. These are preliminary receipts,
 not acceptance of the final combined source.
 
-At frozen source `44f74050`, the complete local executable host-quality subset
-and the 15-VM native volume gate are running in separate worktrees with
-isolated build directories. Results must be recorded from their raw exit
-receipts. Neither a pending run nor an absent report counts as passing.
-Fresh DocumentSession, final language inventory, exact-candidate independent
-review and current-head hosted CI remain required. Historical native proofs
-remain source-bound and are not relabeled as final-source evidence.
+Source `44f74050` passed all 18 local executable host-quality steps, the
+15-VM volume gate and both DocumentSession VMs. After the two reviewed
+obsolete CPUID unsafe blocks were removed at
+`2a08f4a33eff63b354821f6892e1be28f7602c9b`, all three gates passed again:
+18 steps (303.390 s), 15 volume stages (347.294 s) and two DocumentSession
+VMs (19.403 s), each raw wrapper exit 0. The runtime fingerprint is v3
+`25dd6d69621f1d9d4c8ed353633b3db62818562fa6ce50efa4445207505adb44`.
+Separate original-source receipts and raw logs remain preserved. Final
+language inventory, exact-candidate independent review and current-head hosted
+CI remain required; historical proofs are not relabeled as final-source evidence.
 
 The prepared Wiki was independently reviewed and published by a normal push
 at `4a01b8b2ad2695da509a512ea688007c964f56da`; the repository receipt preserves
@@ -84,9 +87,8 @@ jobs do not establish zero alerts. No paid scan, runner or review feature was
 enabled. Private finding contents and reproduction evidence remain outside
 public Git.
 
-The latest existing Project #5 synchronisation run, `44214565550`, succeeded:
-20 rule tests passed; 90 items were scanned, two classifications were updated
-and no fields were missing. Synchronisation must be repeated after further
+The latest existing Project #5 synchronisation run, `44226887984` on main `de9b9904`, succeeded: 20 rule tests passed;
+90 items were scanned, no updates were needed and no fields were missing. Synchronisation must be repeated after further
 integrations and closures.
 
 ## Resume operations
