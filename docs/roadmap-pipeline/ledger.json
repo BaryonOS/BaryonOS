@@ -118,6 +118,19 @@
           "event": "codex-session-blocked-hook-false-positive",
           "session_id": "01a1f024-b05d-7643-824a-f0271ef8c924",
           "reason": "Cortex agent-call-enforcer matches call + word without word boundary; call recall was misrouted to nonexistent agents/recall.md. No worker edits. Keep hook enabled; quote tool name and use invoke."
+        },
+        {
+          "at": "2026-11-18T19:33:39+00:00",
+          "event": "manual-codex-claim",
+          "base": "c86418e416bc5a151926fe8722232acf0c00cbb4",
+          "dispatch": "/home/simon/projects/BaryonOS-worktrees/roadmap-codex/build/roadmap-pipeline/manual/A02-T1-ae1274012f8b47869c579cd80bbc457c/dispatch.json",
+          "brief_sha256": "56a58378304f240a73e1b537925d60f52665811200a7963e5dc956dc73a86060"
+        },
+        {
+          "at": "2026-11-18T19:37:08+00:00",
+          "event": "lead-resolved-test-fixture-blocker",
+          "session_id": "01a1f026-8a57-79b1-9d54-cc83e2237341",
+          "reason": "Worker made no changes; lead supplied verified public dual-signed ELF package fixtures using existing app-package-core test helpers and existing pinned dependencies. Continue original write scope; no runtime dependency, test verifier bypass or trust contract change."
         }
       ]
     },
