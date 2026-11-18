@@ -1,0 +1,24 @@
+{
+  "main": "e7169e43bf772307acf328590b4300fa52a4ad73",
+  "snapshot": "17November2026,18:35UTC API;18:38UTC metadata/UI",
+  "open_counts": {
+    "code_scanning_codeql": 0,
+    "code_quality_standard": 0,
+    "dependabot": 0,
+    "secret_scanning_provider_default": 0,
+    "secret_scanning_generic_types_and_password": 0
+  },
+  "api_result": "HTTP200/exit0; complete pagination",
+  "code_quality_ai": {
+    "ui_displayed_findings": 0,
+    "analysis": "DISABLED / NOT RUN; no analysisSHA exposed, do not call this completed AIanalysis"
+  },
+  "push_protection": {
+    "enabled": true,
+    "delegated_bypass": false,
+    "delegated_bypass_requests": "NOT VERIFIED: endpoint404/exit1; disabled prerequisite, no0inference"
+  },
+  "not_proof": "Initial inventory only, not finalT1, fullsourceaudit or absenceofvulnerabilities",
+  "report": "P0-current-alert-inventory.md",
+  "manifest": "p0-alert-counts/MANIFEST.sha256"
+}

@@ -1,0 +1,51 @@
+{
+  "date": "2026-11-17",
+  "authority": "Explicit updated project-owner instruction in this execution session",
+  "scope": {
+    "original_prs": [
+      333,
+      336,
+      339,
+      340,
+      343,
+      344
+    ],
+    "additional": "All narrowly scoped PRs necessary for approved Phase0 integration, issue resolution, security and quality work",
+    "explicit_checkpoint_and_translation_prs": [
+      345,
+      346
+    ],
+    "issues": [
+      41,
+      42,
+      43,
+      274,
+      277,
+      283
+    ],
+    "issue_actions": "Investigate, implement, test, review, resolve and close only after actual acceptance criteria are demonstrably met"
+  },
+  "merge_method": "squash only, performed explicitly by lead",
+  "supersedes": "Separate per-PR owner merge-approval requirement within Phase0 scope",
+  "auto_merge": false,
+  "conditions": [
+    "Current head/base/complete diff verified",
+    "Conflicts resolved preserving accepted content",
+    "All applicable GitHub checks pass on integrated source",
+    "Relevant host/native/security regression evidence",
+    "Blocking findings and all outstanding threads resolved",
+    "Independent risk-appropriate verification",
+    "No unauthorized changes, evidence manipulation, security regression or ownership conflict",
+    "No protection/hook/gate bypass",
+    "Verify new main SHA and applicable post-merge checks",
+    "Record source-bound merge/tests/evidence/risks/issues",
+    "Do not inflate progress; long-term unmet criteria retain precise open status, blocker and next action"
+  ],
+  "pr343_additional_condition": "Previously outstanding window-session checks must complete successfully; preserve existing conditions",
+  "unchanged_separate_authority_boundaries": [
+    "New product/architecture/security/trust decisions",
+    "Unsafe unresolved blockers or unavailable mandatory evidence",
+    "Destructive actions, production keys, real hardware",
+    "Unreconciled ownership or permissions"
+  ]
+}

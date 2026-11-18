@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-18",
-    "source_commit": "90816de39460b76e35cd626721d4dac9bde905e2",
+    "source_commit": "d7c561afec44906ce3beaf16e7ef1d8e3650e6fd",
     "assessment_basis": "parent_commit",
     "branch": "feat/s09-ustar-name-check",
-    "task": "Phase 0 PR340: reconcile main without changing approved ustar runtime",
+    "task": "Phase 0 PR340: fresh 15-stage native acceptance and actual-main reconciliation",
     "previous_score": 41,
-    "summary": "41/100 unchanged. Existing approved D6(a) implementation and main H02 evidence are preserved. D1\u2013D5/full S09, fresh native acceptance, current-head CI and independent candidate review remain separate requirements."
+    "summary": "41/100 unchanged. All15 native ustar/volume stages and relevant host/Clippy/standard gates pass on preserved S09 runtime. Main345 documentation and H02 evidence retained. D1\u2013D5/full S09, current-head hosted checks and independent final integration review remain separate requirements."
   },
   "tracks": [
     {

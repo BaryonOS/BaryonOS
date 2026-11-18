@@ -1,0 +1,35 @@
+{
+  "source_head": "6b2f3d2698cd525904ec69f35ab3081d5cad18d9",
+  "pr": 336,
+  "disposition": "Retain all three functions. These fan-out advisories describe bounded model/test orchestration; independent inspection found no concrete defect requiring refactoring.",
+  "items": [
+    {
+      "thread": "PRRT_kwDOVZC91s63k4Dw",
+      "path": "docs/verification/b03-policy-transition-20261114/model.py",
+      "line": 135,
+      "reason": "One bounded candidate-policy transition with fail-closed readback/lineage/revocation checks; no I/O or real CAS."
+    },
+    {
+      "thread": "PRRT_kwDOVZC91s63k4Dy",
+      "path": "docs/verification/b03-policy-transition-20261114/model.py",
+      "line": 189,
+      "reason": "Finite test driver; failed checks raise RuntimeError and PASS follows all92 checks."
+    },
+    {
+      "thread": "PRRT_kwDOVZC91s63k4D0",
+      "path": "tools/test_policy_envelopes.py",
+      "line": 112,
+      "reason": "Source-freeze/build/disposable-QEMU/oracle orchestration; evaluate/check_store/validate_build already separate detailed validation."
+    }
+  ],
+  "file_sha256": {
+    "docs/verification/b03-policy-transition-20261114/model.py": "427ed6e65ea180f235305a4c6e9a45f6ef2be6ba1b372a4a0b62598ce909d228",
+    "tools/test_policy_envelopes.py": "0181195e9b476de2c1ddf0e95387fc1470d360617c35b93cd77b43a30be31b72"
+  },
+  "independent_model_check": {
+    "exit_code": 0,
+    "result": "PASS,92 checks",
+    "evidence_level": "finite host model, not real storage or rollback proof"
+  },
+  "limits": "No source refactor; no production policy/persistence or new criterion accepted. Separate native/host results are in followup-checks.json; main reconciliation is still required."
+}
