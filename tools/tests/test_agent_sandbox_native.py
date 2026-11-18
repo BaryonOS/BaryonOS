@@ -59,6 +59,7 @@ class NativeBoundary(unittest.TestCase):
                 "else: raise AssertionError('writable runtime')\n")
         done = self.python(code)
         self.assertEqual(done.returncode, 0, done.stderr)
+        print(json.dumps({"native_agent_resource": done.resource_status}, sort_keys=True))
 
     def test_devices_are_readonly_and_shared_memory_uses_the_capped_scratch(self):
         capacity = self.sandbox.scratch["capacity_bytes"]
@@ -198,6 +199,7 @@ class NativeBoundary(unittest.TestCase):
             ["/usr/bin/python3", "-B", "-c", code], self.lease,
             profile="gate", read_only=True)
         self.assertEqual(done.returncode, 0, done.stderr)
+        print(json.dumps({"native_gate_resource": done.resource_status}, sort_keys=True))
 
     def test_host_network_and_session_home_are_not_shared(self):
         with socket.socket() as listener:
