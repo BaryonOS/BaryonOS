@@ -24,14 +24,14 @@ from build_users import inspect_user
 from run_fpu import private_path, publish, publish_json, load_json
 from run_system import check_esp, network_arguments
 from network_service_peer import (Peer, validate_transcript, REQUESTS, RESPONSES, RESET_PROBE,
-                                  MAX_FRAMES, PORT_BUDGET, MAX_EXHAUSTION_FRAMES)
+                                  MAX_FRAMES, PORT_BUDGET, MAX_EXHAUSTION_FRAMES, MAX_REVOKE_FRAMES)
 
 FEATURE = "native-net-service"
 FEATURES = {"normal": FEATURE, "client-exit": "test-net-service-client-exit", "revoke": "test-net-service-revoke",
             "device-reset": "test-net-service-device-reset", "exhaustion": "test-net-service-exhaustion",
             "helper": "test-net-service-helper"}
-# Exhaustion must finish before tick 12,000; the other native cases retain
-# their existing inclusive 6,000-tick boundary and 90-second host default.
+# Exhaustion ends before tick 12,000; revoke before tick 18,000/180 host seconds.
+# Other native cases retain the inclusive 6,000-tick/90-second boundary.
 EXHAUSTION_TICK_DEADLINE = 12_000
 BOOT = ("BOOT:EBS_OK", "KERNEL:ENTRY", "BOOTINFO:OK", "KS-01:PASS", "KS-02:PASS", "KS-03:PASS", "M2:PASS")
 OFFSETS = (240, 400, 408, 416, 424, 432, 440, 448, 456, 464, 472, 480, 488, 496, 504, 512, 520, 528, 536, 544, 552)
@@ -120,6 +120,8 @@ def native_limits(case):
     """Inclusive observation tick ceiling and default host timeout in seconds."""
     if case not in FEATURES:
         raise ValueError("Unknown native service case")
+    if case == "revoke":
+        return (17_999, 180)
     return (EXHAUSTION_TICK_DEADLINE - 1, 150) if case == "exhaustion" else (6000, 90)
 
 
@@ -253,7 +255,7 @@ def sequence(stdout, case="normal"):
         if revoke_match:
             if revoke_ticks is not None or exit_ticks:
                 raise ValueError("Duplicate or late revocation request")
-            revoke_ticks = integer(int(revoke_match.group(1)), 1, 6000)
+            revoke_ticks = integer(int(revoke_match.group(1)), 1, last_tick)
             continue
         exhaustion_match = re.fullmatch(r"NETSVC:EXHAUSTION_RELEASE_TICKS:([0-9]{20})", line) if case == "exhaustion" else None
         if exhaustion_match:
@@ -377,8 +379,9 @@ def sequence(stdout, case="normal"):
             or network["NET_DENIED"] != 2 + revoke + helper or network["NET_TX_TIMEOUTS"] != 0
             or network["NET_RESETS"] != 1 or network["NET_RESET_ACKS"] != 1):
         raise ValueError("Native NIC completion/denial/reset evidence differs")
-    integer(service[416], 1, MAX_FRAMES)
-    integer(service[424], 1, MAX_FRAMES)
+    bound = MAX_REVOKE_FRAMES if revoke else MAX_FRAMES
+    integer(service[416], 1, bound)
+    integer(service[424], 1, bound)
     result = {"processes": {r: {str(k): v for k, v in values.items()} for r, values in found.items()}, "network": network, "entropy_bytes": entropy, "exit_ticks": exit_ticks, "revoke_ticks": revoke_ticks}
     if helper:
         result.update(helper_release_tick=helper_ticks, helper_fence={str(k): v for k, v in helper_fence.items()})
@@ -418,8 +421,9 @@ def evaluate(report, peer, *, case="normal"):
     if (peer.get("passed") is not True or peer.get("connected") is not True
             or peer.get("error") is not None or peer.get("rejected_frame") is not None):
         raise ValueError("Actual synthetic packet peer failed: " + str(peer.get("error")))
-    if case == "exhaustion":
-        raw_path = private_path(Path(report["run_directory"]) / "network-discard.bin", regular=True)
+    if case in ("exhaustion", "revoke"):
+        name = "network-discard.bin" if case == "exhaustion" else "network-sweep.jsonl"
+        raw_path = private_path(Path(report["run_directory"]) / name, regular=True)
         if peer.get("raw_path") != str(raw_path):
             raise ValueError("Discard stream is not bound to the actual run directory")
     replay = validate_transcript(peer, case=case)
@@ -491,7 +495,8 @@ def run_network_service(*, case="normal", timeout=None):
                   run_directory=str(directory), timeout_s=timeout, started_utc=datetime.now(timezone.utc).isoformat(),
                   qemu_sha256=qemu_hash, firmware_sha256=original_firmware, snapshot_sha256=snapshots,
                   qemu_version=subprocess.check_output([qemu, "--version"], env=env, text=True, timeout=10).strip())
-    raw_path = private_path(directory / "network-discard.bin") if case == "exhaustion" else None
+    raw_name = "network-discard.bin" if case == "exhaustion" else "network-sweep.jsonl"
+    raw_path = private_path(directory / raw_name) if case in ("exhaustion", "revoke") else None
     with Peer(timeout=timeout, case=case, raw_path=raw_path) as peer:
         command += network_arguments(peer.port)
         begin = time.monotonic()
@@ -538,7 +543,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--case", choices=tuple(FEATURES), default="normal")
     parser.add_argument("--timeout", type=int,
-                        help="host timeout seconds (default: exhaustion 150, other cases 90)")
+                        help="host timeout seconds (default: revoke 180, exhaustion 150, other cases 90)")
     parser.add_argument("--no-build", action="store_true", help="require an existing source-matching build")
     args = parser.parse_args()
     if not args.no_build:

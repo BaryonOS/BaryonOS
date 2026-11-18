@@ -393,6 +393,8 @@ pub(super) fn poll(s: &mut State) -> Option<*const u64> {
     }
     let timed_out = if EXHAUSTION {
         s.ticks >= EXHAUSTION_TICK_DEADLINE
+    } else if REVOKE {
+        s.ticks >= 18_000
     } else {
         s.ticks > 6000
     };
