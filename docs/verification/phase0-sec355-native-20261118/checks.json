@@ -1,0 +1,88 @@
+{
+  "schema": 1,
+  "source_commit": "6dbe373a84929df6c781e5bf2355d61f7b1f39c9",
+  "branch": "codex/phase0-pipeline-isolation",
+  "score_before": 41,
+  "score_after": 41,
+  "resource_profiles": {
+    "fixture_agent": {
+      "memory_high": 268435456,
+      "memory_max": 536870912,
+      "memory_swap_max": 0,
+      "memory_oom_group": 1,
+      "tasks_max": 128,
+      "cpu_quota_percent": 200,
+      "file_descriptors": 512
+    },
+    "development_gate": {
+      "memory_high": 6442450944,
+      "memory_max": 8589934592,
+      "memory_swap_max": 0,
+      "memory_oom_group": 1,
+      "tasks_max": 512,
+      "cpu_quota_percent": 400,
+      "file_descriptors": 1024
+    },
+    "scratch": {
+      "bytes": 67108864,
+      "inodes": 4096
+    }
+  },
+  "checks": [
+    {
+      "command": "python3 -B build/sec355-native-fixture/run-native.py --execute canary",
+      "exit_code": 0,
+      "result": "native canary passed; source and rootfs unchanged; no residual scope",
+      "receipt": "build/sec355-native-fixture/native-canary-20261118T175021-1552761.json",
+      "receipt_sha256": "19addcfcb35bc1159dbb9c311abef82ce595fc23e2d02e09fec596acb15b015c",
+      "stdout_sha256": "84f29700307a47898c188469fbfa2197d99986c2671da312697150e874afb06c",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": "python3 -B build/sec355-native-fixture/run-native.py --execute full",
+      "exit_code": 0,
+      "result": "14 native tests passed in 15.137 seconds; source and rootfs unchanged; no residual scope",
+      "receipt": "build/sec355-native-fixture/native-full-20261118T175022-1552968.json",
+      "receipt_sha256": "8c8b07f3edce29010b2ed871dc75cb59d89178f164da5e2bb17448a53229f84c",
+      "stdout_sha256": "a5d84cb9e8475bf73cc9e3f22d52c45970cf9ef6f6d90c037b252b55f56a39e3",
+      "stderr_sha256": "07d1c0701cac0a79c9fa8742aed742189ce5280502c1b7be1e6ba247b6c132e0"
+    },
+    {
+      "command": "python3 -B -m unittest discover -s tools/tests -p 'test_*.py'",
+      "exit_code": 0,
+      "result": "517 passed; 15 explicit skips",
+      "raw_log": "build/tokenguard/run-lu74eyxp.log",
+      "raw_log_sha256": "0a53f3737ccf6ccade54f6426dbfb1bfe7906572cc514c3c9e7787d77617c769"
+    },
+    {
+      "command": "python3 -B -m unittest discover -s tests -p 'test_document_session_harness.py'",
+      "exit_code": 0,
+      "result": "28 passed",
+      "raw_log": "build/tokenguard/run-3nyxsgus.log",
+      "raw_log_sha256": "348a0f19857c0e626d674cb27e1a10c9b3d5fe2aebbee826bf3a5ba68a1df15f"
+    },
+    {
+      "command": "python3 -B tools/preflight.py --strict",
+      "exit_code": 0,
+      "raw_log": "build/tokenguard/run-25jys8od.log",
+      "raw_log_sha256": "854426658a0d533beb67762b1dc6500fef5b645df0fe3a4982a6e30be56eb0cc"
+    },
+    {
+      "command": "python3 -B -m compileall -q tools",
+      "exit_code": 0
+    },
+    {
+      "command": "git diff --check",
+      "exit_code": 0
+    }
+  ],
+  "not_run": [
+    "Actual kernel OOM exhaustion",
+    "Representative model-agent workload under the 512 MiB fixture profile",
+    "Full build or QEMU workload under the 512 MiB fixture profile",
+    "Authenticated model-client transactions",
+    "Complete selected-gate compatibility",
+    "Hosted current-head CI, CodeQL and Code Quality",
+    "Independent human security audit"
+  ]
+}

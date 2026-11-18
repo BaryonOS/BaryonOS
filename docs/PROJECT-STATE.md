@@ -1,5 +1,38 @@
 # Current project status
 
+## NEXT AGENT HANDOFF — PR #355 native resource boundary — 18 November 2026
+
+**Source and change:** security checkpoint
+`6dbe373a84929df6c781e5bf2355d61f7b1f39c9` extends capped-scratch source
+`edd1a6a9af2d80a56848ec500bbf2b702799dced`. A source-bound disposable native
+fixture now exercises the real Bubblewrap, user-scope cgroup v2 and dedicated-tmpfs
+boundaries. It retains the outer network namespace, drops every capability before
+the trusted controller, hides controller sockets and descriptors from the payload,
+and verifies exact source, fixture and rootfs hashes before and after execution. The
+execution hold and disabled manifest are unchanged.
+
+**Checks:** the exact clean source passed the native canary and all 14 full native
+tests. Real byte and inode exhaustion, separate parallel leases, sibling hiding,
+device and shared-memory bounds, payload credential/socket absence, read-only gate
+source, inner network separation, descendant termination and uncertain-cleanup
+quarantine passed. No unit or cgroup remained. All 517 tools tests pass with fifteen
+explicit skips; 28 document-session harness tests, strict preflight, Python syntax
+compilation and the whitespace check also pass. Independent AI verification
+reproduced the receipts and current empty-residue checks without rerunning the
+privileged fixture; this is not a human audit.
+[Source-bound receipt](verification/phase0-sec355-native-20261118/README.md).
+
+**Measured limits and evidence boundary:** the fixture agent read back 256 MiB high,
+512 MiB maximum, swap 0, OOM-group enabled, 128 tasks and 200% CPU. This is a native
+isolation probe, not a normal model-agent workload profile. The normal development
+gate read back 6 GiB high, 8 GiB maximum, swap 0, OOM-group enabled, 512 tasks and
+400% CPU. Scratch roots were capped at 64 MiB and 4096 inodes. No actual OOM kill,
+representative agent workload, full build or QEMU run was performed under 512 MiB.
+Authenticated clients, complete selected-gate compatibility, hosted current-head
+CI/CodeQL/Code Quality and Daybreak acceptance remain open. Keep the manifest
+disabled. Score 41/100 is unchanged; no finding, issue, baseline or governance
+acceptance is inferred.
+
 ## NEXT AGENT HANDOFF — PR #355 capped scratch transactions — 18 November 2026
 
 **Source and change:** security checkpoint
