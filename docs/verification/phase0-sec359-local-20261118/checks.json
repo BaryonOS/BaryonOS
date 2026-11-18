@@ -83,7 +83,12 @@
   "native": {
     "raw_qemu_exit": 33,
     "artifact_binding_passed": true,
-    "serial_sha256": "688293e2acf7b50d0f17a57d0dfe5a4c8914db05552b54903f334c078579aacd",
+    "raw_serial_stdout_sha256": "688293e2acf7b50d0f17a57d0dfe5a4c8914db05552b54903f334c078579aacd",
+    "raw_serial_stdout_bytes": 271,
+    "raw_serial_stdout_source": "native-result.json stdout decoded as UTF-8; firmware CRLF bytes are preserved inside the JSON string",
+    "committed_serial_sha256": "c6b5008f629362bc43e7078dee438d6e7971b04d13de92c8d77e57811f7f1fab",
+    "committed_serial_bytes": 269,
+    "committed_serial_representation": "serial.txt is the Git-normalized LF convenience view and is not the raw-byte artifact",
     "artifacts_rehashed": {
       "esp/kernel.elf": "60356c867b3ce554013fcbb7c143c6169d14c58a92ffe6dbe3286f0faa23944d",
       "esp/EFI/BOOT/BOOTX64.EFI": "c6d3aebfe858a06189566300933e7f8f9913240990ec478c551a736e629270be",
