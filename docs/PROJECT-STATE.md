@@ -16,8 +16,27 @@ lead-owned ledger/checkpoint/progress/one compact receipt.
 build; existing DNS regressions plus negative-cache poisoning/boundary tests.
 **Evidence limit:** host and compile evidence only; no native resolver, DNSSEC,
 network transport integration, per-process name permission or N02 acceptance.
-**Next:** implement one bounded cache slice, verify targeted checks, publish one
-independent draft PR. No QEMU rerun or general security audit. Score 41/100 unchanged.
+**Delivered/source:** `138d48de9f351836956db79f2d30dbd93814c59e` adds a 16-entry allocation-free resolver cache,
+exact positive expiry, epoch flush, deterministic bounded eviction and NXDOMAIN
+caching only after full supported record validation and applicable SOA lifetime.
+The public strict DNS parser retains its previous error behavior; transport and
+permission authority remain external. [Receipt](roadmap-pipeline/receipts/N02-T1.json).
+
+**Executed:** 79 host tests, Clippy all targets with warnings denied, formatting
+and the freestanding `x86_64-unknown-none` release build all exit 0. Exact commands,
+raw log hashes and source hashes are in the receipt. No repeated full native matrix.
+One bounded read-only AI review found no blocker. Worker Snap failures and initial
+format failures remain in raw logs; only final successful commands are counted.
+Lead verified actual commands/diff rather than trusting the final worker prose.
+
+**Limits:** no native resolver, real DNS traffic, DNSSEC, permission-broker integration
+or hardware/human audit. N02 stays open; progress **41 → 41/100**. Unsafe unattended
+execution and Claude S09/UI work are unchanged. The worker process group is stopped.
+
+**Next:** publish this independent draft, then implement A03-T1 (bounded per-object
+task grants) in a fresh isolated worktree. It is prioritized over the still-ready,
+documentation-only N04-T2 proposal under the owner's functional-delivery direction.
+PR362/363/364 remain preserved; mandatory hosted checks are not assumed passed.
 
 ## Retained checkpoint — PR #355 native test quality — 18 November 2026
 

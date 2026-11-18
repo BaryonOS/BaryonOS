@@ -174,7 +174,7 @@
       "criterion": "N02",
       "milestone": "M8",
       "executor": "worker",
-      "status": "active",
+      "status": "verified",
       "title": "Bounded DNS resolver core with TTL, negative caching and epoch invalidation (host)",
       "goal": "Add services/net-protocol/src/resolver.rs: a pure, allocation-free resolver core with a bounded cache keyed by name and type, monotonic-tick TTL with exact expiry, negative caching of NXDOMAIN, CNAME depth limit, explicit TC/NXDOMAIN/SERVFAIL/ID-or-question-mismatch errors with no partial records, cache flush on configuration-epoch change, and bounded eviction.",
       "why_now": "N02 needs everyday name resolution and only single-query parsing exists. The crate has no dependencies, builds offline and is covered by ci.yml#host-quality.",
@@ -223,6 +223,13 @@
           "owner": "Codex",
           "branch": "codex/n02-resolver-cache",
           "base": "6f29b6720b51aecad5714faa48b445afd6e2f5a9"
+        },
+        {
+          "at": "2026-11-18T20:17:44+00:00",
+          "event": "verified",
+          "source_commit": "138d48de9f351836956db79f2d30dbd93814c59e",
+          "receipt": "docs/roadmap-pipeline/receipts/N02-T1.json",
+          "summary": "79 host tests and Clippy/fmt/freestanding build pass; no native resolver or N02 acceptance."
         }
       ]
     },
@@ -278,39 +285,6 @@
       ]
     },
     {
-      "id": "N04-T2",
-      "criterion": "N04",
-      "milestone": "M8",
-      "executor": "worker",
-      "status": "ready",
-      "title": "Production issuer, delegated helper subgrants and durable revocation contract (design)",
-      "goal": "Write docs/implementation/N04-ISSUER-DELEGATION.md: invariants, interfaces and negative tests for a production issuer and PolicyAuthority, attenuation-only helper subgrants, regrant generations and revocation that survives a service restart, before any code; no new trust root and no automatic regrant.",
-      "why_now": "Implementation of the next step is blocked on an owner or review decision that needs an evidence-based basis first.",
-      "deps": [],
-      "write_paths": [
-        "docs/implementation/N04-ISSUER-DELEGATION.md"
-      ],
-      "read_paths": [
-        "services/net-broker/README.md",
-        "services/network-service/src/lib.rs",
-        "docs/implementation/KERNEL-AND-SECURITY-CONTRACT.md",
-        "docs/verification/n04-helper-20261114/README.md"
-      ],
-      "checks": [
-        "python3 tools/progress.py --check"
-      ],
-      "acceptance": [
-        "labelled PROPOSED where it proposes decisions; no new trust root, escrow or capability is adopted",
-        "every cited path and symbol exists in the current tree"
-      ],
-      "non_claimable": "Owner or reviewer decision; no criterion effect.",
-      "risk": "low",
-      "size": "S",
-      "evidence_level": "design",
-      "rollback": "Revert the commit.",
-      "history": []
-    },
-    {
       "id": "A03-T1",
       "criterion": "A03",
       "milestone": "M7",
@@ -352,6 +326,45 @@
       "evidence_level": "host",
       "rollback": "Revert the commit and the sdk workspace member line.",
       "next": "A03-T3 native broker after an ADR for per-object volume grants.",
+      "history": [
+        {
+          "at": "2026-11-18T20:17:44+00:00",
+          "event": "implementation-priority",
+          "reason": "Owner prioritizes functional implementation; N04-T2 is a documentation-only proposal and remains ready for later."
+        }
+      ]
+    },
+    {
+      "id": "N04-T2",
+      "criterion": "N04",
+      "milestone": "M8",
+      "executor": "worker",
+      "status": "ready",
+      "title": "Production issuer, delegated helper subgrants and durable revocation contract (design)",
+      "goal": "Write docs/implementation/N04-ISSUER-DELEGATION.md: invariants, interfaces and negative tests for a production issuer and PolicyAuthority, attenuation-only helper subgrants, regrant generations and revocation that survives a service restart, before any code; no new trust root and no automatic regrant.",
+      "why_now": "Implementation of the next step is blocked on an owner or review decision that needs an evidence-based basis first.",
+      "deps": [],
+      "write_paths": [
+        "docs/implementation/N04-ISSUER-DELEGATION.md"
+      ],
+      "read_paths": [
+        "services/net-broker/README.md",
+        "services/network-service/src/lib.rs",
+        "docs/implementation/KERNEL-AND-SECURITY-CONTRACT.md",
+        "docs/verification/n04-helper-20261114/README.md"
+      ],
+      "checks": [
+        "python3 tools/progress.py --check"
+      ],
+      "acceptance": [
+        "labelled PROPOSED where it proposes decisions; no new trust root, escrow or capability is adopted",
+        "every cited path and symbol exists in the current tree"
+      ],
+      "non_claimable": "Owner or reviewer decision; no criterion effect.",
+      "risk": "low",
+      "size": "S",
+      "evidence_level": "design",
+      "rollback": "Revert the commit.",
       "history": []
     },
     {

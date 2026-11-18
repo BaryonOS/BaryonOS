@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-18",
-    "source_commit": "6f29b6720b51aecad5714faa48b445afd6e2f5a9",
+    "source_commit": "138d48de9f351836956db79f2d30dbd93814c59e",
     "assessment_basis": "source_commit",
     "branch": "codex/n02-resolver-cache",
-    "task": "N02-T1: bounded resolver/cache core",
+    "task": "N02-T1: bounded resolver/cache host core delivered",
     "previous_score": 41,
-    "summary": "41/100 unchanged. Supervised N02-T1 claims a pure bounded resolver cache above the existing DNS parser. Implementation and targeted tests pending; no native resolver or N02 criterion accepted. A02-T1 and B01-T1 remain verified on their own source branches, PR363/364; unsafe runner and Claude work remain untouched."
+    "summary": "41/100 unchanged. N02-T1 adds allocation-free bounded positive/negative DNS caching, exact TTL expiry, epoch invalidation and fully validated NXDOMAIN/SOA processing above the existing decoder. 79 host tests, Clippy, fmt and freestanding build pass. No native resolver, network authorization, DNSSEC or full N02 acceptance. A02/B01 remain source-bound separate deliverables; unsafe runner and Claude work preserved."
   },
   "tracks": [
     {
