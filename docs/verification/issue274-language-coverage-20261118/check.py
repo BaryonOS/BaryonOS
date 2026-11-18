@@ -6,6 +6,7 @@ import os
 from pathlib import Path
 import re
 import shutil
+import stat
 import subprocess
 import tempfile
 
@@ -45,6 +46,75 @@ def protected(relative):
     )
 
 
+def path_controls(root, scratch):
+    if os.name != "posix":
+        raise RuntimeError("POSIX special-path controls: NOT RUN on this platform")
+    relative = Path("docs/verification/issue274-language-coverage-20261118")
+    old_metadata = Path("docs/verification/english-translation-20261109")
+    with tempfile.TemporaryDirectory(prefix="path-controls-", dir=scratch) as location:
+        outer = Path(location).resolve()
+        temporary = outer / "repository"
+        temporary.mkdir()
+        (temporary / relative).mkdir(parents=True)
+        for name in ("check.py", "collect.cjs"):
+            shutil.copyfile(root / relative / name, temporary / relative / name)
+        (temporary / old_metadata).mkdir(parents=True)
+        (temporary / old_metadata / "postmerge-link-audit.json").write_text(json.dumps({"snapshot": {"changed_active_paths": []}, "head_at_start": "HEAD", "preexisting_active_findings": []}))
+        (temporary / old_metadata / "english-final-readonly-audit.json").write_text(json.dumps({"head": "HEAD"}))
+        initial = b"# English fixture\n"
+        readme = temporary / "README.md"
+        readme.write_bytes(initial)
+        digest = hashlib.sha256(initial).hexdigest()
+        minimal = {"documents": [{"path": "README.md", "sha256": digest, "candidate_lines": []}], "community_forms": [], "compatibility_anchors": [], "translated_original": {"path": "README.md", "sha256": digest, "english_equivalent": "README.md"}, "counts": {"normal_navigation_reachable": 1}, "historical_dutch_residuals": []}
+        (temporary / relative / "coverage.json").write_text(json.dumps(minimal))
+        def git(*arguments):
+            return subprocess.check_output(["git", "-C", str(temporary), *arguments], env=GIT_ENV)
+        def commit(message):
+            git("-c", "user.name=Language fixture", "-c", "user.email=fixture@example.invalid", "commit", "-qm", message)
+            return git("rev-parse", "HEAD").decode().strip()
+        git("init", "-q")
+        git("config", "core.quotePath", "true")
+        git("add", "--all")
+        base = commit("Initial documentation fixture")
+        command = ["python3", "-B", str(temporary / relative / "check.py")]
+        if subprocess.run(command, capture_output=True).returncode != 0:
+            raise ValueError("Minimal path fixture failed its positive control")
+        names = ["docs/café.md", "docs/cafe\u0301.md", "docs/tab\tname.md", "docs/line\nbreak.md", "docs/carriage\rreturn.md", 'docs/quote"name.md', "docs/back\\slash.md"]
+        for name in names:
+            target = temporary / name
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_bytes(initial)
+            git("add", "--", name)
+        special = commit("Unicode and special documentation paths")
+        for arguments in ([], ["--ref", special]):
+            result = subprocess.run(command + arguments, text=True, capture_output=True)
+            if result.returncode != 1 or set(json.loads(result.stdout)["unclassified_paths"]) != set(names):
+                raise ValueError("Index/tree path enumeration omitted an exact special filename")
+        wiki = outer / "wiki"
+        wiki.mkdir()
+        collect = ["node", str(temporary / relative / "collect.cjs"), "--wiki", str(wiki)]
+        result = subprocess.run(collect, text=True, capture_output=True)
+        if result.returncode != 0:
+            raise ValueError("Regular special-path collector control failed: " + result.stderr)
+        report_path = temporary / "build/english-coverage-20261118/coverage.json"
+        found = {item["path"] for item in json.loads(report_path.read_text())["inventory"]}
+        if not set(names).issubset(found):
+            raise ValueError("Collector omitted a Unicode or special tracked path")
+        outside = outer / "outside.md"
+        outside.write_text("Dit is een buiten repository gegevensbestand.\n")
+        readme.unlink()
+        readme.symlink_to(outside)
+        git("add", "--", "README.md")
+        commit("Escaping tracked source symlink")
+        report_path.unlink()
+        result = subprocess.run(collect, text=True, capture_output=True)
+        if result.returncode == 0 or "Non-regular tracked source: README.md" not in result.stderr or report_path.exists():
+            raise ValueError("Collector did not reject the escaping source before reporting")
+        if subprocess.run(command + ["--ref", base], capture_output=True).returncode != 0:
+            raise ValueError("Immutable regular snapshot incorrectly followed a working-tree symlink")
+    return {"special_names": len(names), "index_unknown_paths_raw": 1, "tree_unknown_paths_raw": 1, "regular_git_blob_collector_raw": 0, "escaping_symlink_rejected": True}
+
+
 def self_test(root, record):
     relative = Path("docs/verification/issue274-language-coverage-20261118")
     scratch = root / "build" / "english-coverage-20261118"
@@ -53,6 +123,8 @@ def self_test(root, record):
         temporary = Path(location).resolve()
         paths = {item["path"] for item in record["documents"] + record["community_forms"]}
         paths.add(str(relative / "check.py"))
+        if record.get("historical_entrypoints_manifest"):
+            paths.add(record["historical_entrypoints_manifest"])
         for name in paths:
             source = (root / name).resolve()
             target = (temporary / name).resolve()
@@ -79,7 +151,8 @@ def self_test(root, record):
         added = subprocess.run(command, text=True, capture_output=True)
         if added.returncode != 1 or json.loads(added.stdout)["unclassified_paths"] != ["docs/UNCLASSIFIED.md"]:
             raise ValueError("New-document negative control was not detected")
-    print(json.dumps({"self_test": "PASS", "raw_exits": {"unchanged_source": 0, "changed_prose": 1, "new_tracked_document": 1}, "expected_negative_exits": 1}))
+    special = path_controls(root, scratch)
+    print(json.dumps({"self_test": "PASS", "raw_exits": {"unchanged_source": 0, "changed_prose": 1, "new_tracked_document": 1}, "expected_negative_exits": 1, "path_controls": special}))
 
 
 def main():
@@ -102,11 +175,15 @@ def main():
         return
     command = ["git", "-C", str(root)]
     if args.ref:
-        command += ["ls-tree", "-r", "--name-only", args.ref]
+        command += ["ls-tree", "-r", "--name-only", "-z", args.ref]
     else:
-        command += ["ls-files", "--cached", "--", "*.md"]
+        command += ["ls-files", "--cached", "-z", "--", "*.md"]
     actual_paths = {
-        relative for relative in subprocess.check_output(command, text=True, env=GIT_ENV).splitlines()
+        relative for relative in (
+            value.decode("utf-8")
+            for value in subprocess.check_output(command, env=GIT_ENV).split(b"\0")
+            if value
+        )
         if relative.endswith(".md") and not protected(relative)
     }
     expected_paths = {item["path"] for item in record["documents"]}
@@ -115,11 +192,15 @@ def main():
         raise SystemExit(1)
 
     def read(relative):
-        target = (root / relative).resolve()
-        if not target.is_relative_to(root):
+        if Path(relative).is_absolute() or ".." in Path(relative).parts:
             raise ValueError("Path outside repository")
         if args.ref:
             return subprocess.check_output(["git", "-C", str(root), "show", args.ref + ":" + relative], env=GIT_ENV)
+        target = (root / relative).resolve()
+        if not target.is_relative_to(root):
+            raise ValueError("Path outside repository")
+        if not stat.S_ISREG((root / relative).lstat().st_mode):
+            raise ValueError("Non-regular source")
         return target.read_bytes()
 
     changed = []
@@ -149,6 +230,28 @@ def main():
         raise ValueError("Historical identifiers or commands changed")
     if set(re.findall(r"\b[0-9a-f]{40}\b", source)) != set(re.findall(r"\b[0-9a-f]{40}\b", equivalent)):
         raise ValueError("Historical commit identifiers changed")
+    entrypoints = []
+    if record.get("historical_entrypoints_manifest"):
+        entrypoints = json.loads(read(record["historical_entrypoints_manifest"]))["cases"]
+        for item in entrypoints:
+            raw = read(item["original"])
+            if hashlib.sha256(raw).hexdigest() != item["original_sha256"]:
+                raise ValueError("Historical assessment original changed")
+            target, _, fragment = item["english_entrypoint"].partition("#")
+            english_raw = read(target)
+            if hashlib.sha256(english_raw).hexdigest() != item["english_document_sha256"]:
+                raise ValueError("English assessment entrypoint changed")
+            text = english_raw.decode()
+            if fragment and 'id="' + fragment + '"' not in text:
+                raise ValueError("Missing English assessment entrypoint anchor")
+            if item["coverage_kind"] == "Full historical English equivalent":
+                original_text = raw.decode()
+                if not all(token in text for token in re.findall(r"`([^`]+)`", original_text)):
+                    raise ValueError("Session research identifier changed")
+                if set(re.findall(r"\b[0-9a-f]{40}\b", original_text)) != set(re.findall(r"\b[0-9a-f]{40}\b", text)):
+                    raise ValueError("Session research source commit changed")
+                if not all(href in re.findall(r"\]\(([^)]+)\)", text) for href in re.findall(r"\]\(([^)]+)\)", original_text)):
+                    raise ValueError("Session research reference target changed")
     if changed or lexical_changes:
         print(json.dumps({"source_changes": changed, "lexical_changes": lexical_changes, "inventory_result": "REVIEW REQUIRED"}))
         raise SystemExit(1)
@@ -158,6 +261,7 @@ def main():
         "normal_navigation_documents": record["counts"]["normal_navigation_reachable"],
         "compatibility_anchors": len(record["compatibility_anchors"]),
         "historical_dutch_records_without_equivalent": len(record["historical_dutch_residuals"]),
+        "historical_records_with_english_entrypoints": len(entrypoints),
         "language_quality_proof": False,
         "full_issue274_acceptance": "NOT COMPLETE",
         "ui_localisation": "OPEN; fixed Dutch native menu/status strings remain",
