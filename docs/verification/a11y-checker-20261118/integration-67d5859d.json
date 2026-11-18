@@ -1,0 +1,19 @@
+{
+  "tested_source": "d9380240390b7c1f7e791697af795298c3ee8e87",
+  "integrated_main": "67d5859d735836331b6fb971eae89162b7fa8465",
+  "original_claude_source": "5e222780c916205bb9aa4e54ba9ccaa983ce61e7",
+  "original_matrix_research_archive_unchanged": true,
+  "complete_tools_tests": 399,
+  "tools_tests_exit_code": 0,
+  "strict_preflight_exit_code": 0,
+  "standard_build_exit_code": 0,
+  "standard_smoke_exit_code": 0,
+  "standard_qemu_raw_exit": 33,
+  "log": "build/tokenguard/run-bqwm_ex6.log",
+  "log_sha256": "f4641051f6ea6a76b02fc59e3b9ddef5e8d3d3ec28728196f51b98b6a715e6e1",
+  "pending": [
+    "Independent final integration review",
+    "Current-head hosted CI"
+  ],
+  "progress": 41
+}
