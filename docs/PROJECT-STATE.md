@@ -1,6 +1,20 @@
 # Current project status
 
-## NEXT AGENT HANDOFF — unified governance implementation — 18 November 2026
+## NEXT AGENT HANDOFF — B06-T1 LP matrix checker — 18 November 2026
+
+**Claim:** Codex, `codex/b06-lp-matrix`, base `69d82075`.
+**Goal:** exact31 contract IDs, bounded evidence references and residual coverage.
+**Invariant:** missing or host-only evidence never becomes native acceptance;
+no source policy/security hold or historical evidence changes.
+**Write set:** tools/lp_matrix.py, tools/tests/test_lp_matrix.py and new child
+`docs/verification/b06-lp-matrix-20261115/` (task-named path; created18November).
+**Acceptance:** targeted Python negative tests and actual --check; no native reruns.
+**Evidence limit:** structural mapping only, no evidence-content audit/compliance.
+Unmapped rows stay none; previous partial tests are not erased or reclassified.
+**Ownership:** exactpaths noopenPRoverlap; B02 verifier owns separateworktree.
+**Next:** publish checker; continue independent READY task. Score41/100.
+
+## Retained checkpoint — unified governance implementation — 18 November 2026
 
 **Claim:** GOV-1-6, sole writer Codex in `codex/unified-governance`, base
 `5a3295b6093549f4b5ff6164ab2773ac4c264996`. The project owner authorizes immediate
