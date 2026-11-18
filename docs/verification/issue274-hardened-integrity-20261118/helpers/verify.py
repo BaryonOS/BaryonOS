@@ -168,6 +168,23 @@ def rendered_html(text: str) -> str:
     return text[:opening.start()] if opening else text
 
 
+def mask_html_comments(line: str, in_comment: bool) -> tuple[str, bool]:
+    masked = list(line)
+    position = 0
+    while True:
+        start = position if in_comment else line.find("<!--", position)
+        if start < 0:
+            break
+        end = line.find("-->", start if in_comment else start + 4)
+        if end < 0:
+            masked[start:] = " " * (len(line) - start)
+            return "".join(masked), True
+        masked[start:end + 3] = " " * (end + 3 - start)
+        position = end + 3
+        in_comment = False
+    return "".join(masked), in_comment
+
+
 def inline_destination(value: str) -> str | None:
     match = re.fullmatch(
         r"\s*(?:<([^>\n]+)>|((?:\\.|[^\s])+))(?:\s+(?:\"[^\"\n]*\"|'[^'\n]*'|\([^\)\n]*\)))?\s*",
@@ -179,8 +196,13 @@ def inline_destination(value: str) -> str | None:
 def link_destinations(text: str) -> list[str]:
     lines: list[str] = []
     fence: tuple[str, int] | None = None
+    in_comment = False
     for line in text.splitlines():
-        marker = re.match(r"^ {0,3}((?:\x60){3,}|~{3,})(.*)$", line)
+        scan_line = line
+        next_comment = in_comment
+        if fence is None:
+            scan_line, next_comment = mask_html_comments(line, in_comment)
+        marker = re.match(r"^ {0,3}((?:\x60){3,}|~{3,})(.*)$", scan_line)
         if marker:
             current = (marker.group(1)[0], len(marker.group(1)))
             if fence is None:
@@ -190,6 +212,7 @@ def link_destinations(text: str) -> list[str]:
             elif current[0] == fence[0] and current[1] >= fence[1] and not marker.group(2).strip():
                 fence = None
                 continue
+        in_comment = next_comment
         if fence:
             continue
         lines.append(strip_inline_code(line, replacement="code"))

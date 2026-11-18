@@ -184,6 +184,10 @@ def main() -> None:
         '[Visible hidden reference][hidden-reference]',
         '`<a href="Inline-code">Inline code</a>`',
         '`[Inline Markdown](Inline-Markdown)`',
+        '<!--',
+        '```',
+        '-->',
+        '[After commented fence](After-Comment)',
         '```html',
         '<!--',
         '```',
@@ -191,7 +195,7 @@ def main() -> None:
         '<pre><a href="Preformatted">Preformatted</a></pre>',
         '<pre>[Preformatted Markdown](Preformatted-Markdown)</pre>',
     ])
-    if verifier.link_destinations(rendered_link_fixture) != ["Target", "Missing-page", "After-Fence", "Missing-page#missing"]:
+    if verifier.link_destinations(rendered_link_fixture) != ["Target", "Missing-page", "After-Comment", "After-Fence", "Missing-page#missing"]:
         raise ValueError("rendered HTML or titled Markdown link regression")
     cases["rendered_html_and_titled_markdown_links"] = "PASS"
     for tag in ("pre", "code"):
