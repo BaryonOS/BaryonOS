@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-18",
-    "source_commit": "138d48de9f351836956db79f2d30dbd93814c59e",
-    "assessment_basis": "source_commit",
+    "source_commit": "2f3631c0ef8f79331f631bae6ea8fc0f0ecbf8e7",
+    "assessment_basis": "parent_commit",
     "branch": "codex/n02-resolver-cache",
-    "task": "N02-T1: bounded resolver/cache host core delivered",
+    "task": "N02-T1: bounded DNS resolver cache with validated NXDOMAIN",
     "previous_score": 41,
-    "summary": "41/100 unchanged. N02-T1 adds allocation-free bounded positive/negative DNS caching, exact TTL expiry, epoch invalidation and fully validated NXDOMAIN/SOA processing above the existing decoder. 79 host tests, Clippy, fmt and freestanding build pass. No native resolver, network authorization, DNSSEC or full N02 acceptance. A02/B01 remain source-bound separate deliverables; unsafe runner and Claude work preserved."
+    "summary": "41/100 unchanged. A bounded allocation-free A/AAAA cache now handles exact TTL expiry, epoch invalidation, deterministic eviction and validated NXDOMAIN lifetimes without adding sockets or network authority. N02 remains open because native resolver traffic, DNSSEC and transport integration are unproven. Current-main reconciliation changes only checkpoint state; hosted checks on the resulting head remain authoritative."
   },
   "tracks": [
     {
