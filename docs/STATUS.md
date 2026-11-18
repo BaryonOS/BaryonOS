@@ -1,7 +1,6 @@
 # Current overview
 
-Updated 18 November 2026. Source baseline: main
-`6f29b6720b51aecad5714faa48b445afd6e2f5a9` (#355), preceded by #359 at `1c10cdb5`.
+Updated 18 November 2026. Source baseline: main `69d82075` (#362 governance and #340 S09 included).
 Current task branch: `codex/unified-governance`. Details and executable resume step:
 [lead checkpoint](PROJECT-STATE.md#next-agent-handoff--unified-governance-implementation--18-november-2026).
 
