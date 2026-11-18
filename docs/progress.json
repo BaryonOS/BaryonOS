@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-18",
-    "source_commit": "3ac59bac4b5d04ef4e5dcb86dbd7725f00ab9ded",
+    "source_commit": "c14d9a14a13e625bcc0f1cd29c5e2c270478bb1d",
     "assessment_basis": "source_commit",
     "branch": "codex/phase0-pipeline-isolation",
-    "task": "SEC355-RESOURCE-SCOPE: enforce and verify explicit cgroup-v2 workload profiles",
+    "task": "SEC355-CODE-QUALITY: preserve fail-closed cleanup without broad exception catches",
     "previous_score": 41,
-    "summary": "41/100 unchanged. Source 3ac59bac enforces explicit agent/gate cgroup-v2 profiles, live limit receipts, bounded output and exception-safe whole-scope cleanup. A 64 MiB OOM case remains an intentional negative control; the measured 6/8 GiB gate reference passes ordinary Rust/build/QEMU workloads. The manifest stays disabled and full client/scratch/gate isolation remains open; no finding, issue, baseline or governance acceptance is inferred."
+    "summary": "41/100 unchanged. Source c14d9a14 removes five reported Code Quality patterns while preserving fail-closed resource-scope cleanup, including a KeyboardInterrupt regression. The 64 MiB OOM case remains an intentional negative control; the measured 6/8 GiB gate reference passes ordinary Rust/build/QEMU workloads. The manifest stays disabled and full client/scratch/gate isolation remains open; no finding, issue, baseline or governance acceptance is inferred."
   },
   "tracks": [
     {

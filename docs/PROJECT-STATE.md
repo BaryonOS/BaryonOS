@@ -4,6 +4,7 @@
 
 **Source and authority:** PR #355 branch `codex/phase0-pipeline-isolation` now contains
 resource-scope implementation commit `3ac59bac4b5d04ef4e5dcb86dbd7725f00ab9ded`
+and review-correction commit `c14d9a14a13e625bcc0f1cd29c5e2c270478bb1d`
 on security parent `511936850e53d384c36254e4ad43424cf457377e`. The project
 owner authorized continuation of the approved security queue. The original shared
 merge, Claude UI/UX and S09 work remain untouched.
@@ -23,17 +24,20 @@ with a 592.70 MiB aggregate peak and no OOM event. A 2 MiB workspace artifact pa
 despite the separate 1 MiB captured-stream negative limit. Eight native backend
 cases leave zero transient scopes. [Evidence](verification/phase0-sec355-resource-scope-20261118/README.md).
 
-**Checks and review:** 453 tools tests pass with 10 explicit environment-gated
+**Checks and review:** 454 tools tests pass with 10 explicit environment-gated
 fixture skips; compileall, strict preflight, normal build and fresh M1 QEMU smoke pass
 (raw guest exit 33). Independent AI source review found no remaining actionable item
 after cleanup, raw-stream and OOM-precedence corrections; this is not a human audit.
-Score 41/100 is unchanged.
+The follow-up removes the unused host import and direct `BaseException` catches while
+retaining tested cleanup on `KeyboardInterrupt`; its focused, module and complete tools
+suites pass. Hosted Code Quality must confirm the five review findings on the next
+coherent head. Score 41/100 is unchanged.
 
 **Open boundary and resume:** authenticated model-client provisioning,
 kernel-bounded aggregate scratch/staging/export, complete offline gate compatibility,
 hosted current-head checks and final Daybreak acceptance remain open in PR #355.
 PR #359 head `5aa381379891df00140a04e01814cd0712ef096f` has both required
-checks and 56 other passes with one native-window job still running; it must not merge
+checks and 55 other passes with one native-window job still running; it must not merge
 until every applicable job finishes and the head/base/reviews are rechecked. PR #356
 head `4192474e5c4efca8a7c43a82d74e143d58444655` clears its three CodeQL
 alerts, but remains draft and must reconcile after #359. No governance start,
