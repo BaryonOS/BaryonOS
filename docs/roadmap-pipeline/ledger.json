@@ -1,8 +1,8 @@
 {
   "schema": 1,
   "purpose": "Execution queue of the H/U/N/B/A/P/L/R clean-session roadmap pipeline; child tasks of the fixed criteria in docs/progress.json. Not a second roadmap and not an acceptance register.",
-  "branch": "claude/baryonos-autonomous-pipeline-81tujs",
-  "base": "d572052b731149016dad1a99e2c4ebde90474a96",
+  "branch": "codex/roadmap-codex",
+  "base": "6f29b6720b51aecad5714faa48b445afd6e2f5a9",
   "score": {
     "accepted": 41,
     "of": 100,
@@ -14,7 +14,8 @@
     "PR #333 (H02 native USB/HID)": "kernel/src/m2/xhci*, iommu.rs, paging.rs, window_session.rs, main.rs, m2.rs, drivers/xhci/, services/input-core/, sdk/examples/input-service/, tools/build.py, tools/run.py, tools/run_*hid*/xhci",
     "PR #336 (B03 policy envelopes)": "crates/update-core/, boot/loader/src/signed.rs, kernel/src/m2/m3/update.rs, sdk/examples/update/, tools/run_update.py",
     "UI/UX pipeline": "ui/design/, docs/design/, ui/prototype/tokens.css, planned UX-G in ui/native and ui/graphics",
-    "S09 pipeline": "S09 backup/export/recovery"
+    "S09 pipeline": "S09 backup/export/recovery",
+    "H/U/N/B/A/P/L/R controller and technical roadmap": "OpenAI Codex; Claude-specific dispatch is legacy, not authorized execution"
   },
   "tasks": [
     {
@@ -205,7 +206,7 @@
       "criterion": "B02",
       "milestone": "M8",
       "executor": "worker",
-      "status": "ready",
+      "status": "blocked",
       "title": "Keyring write-ahead contract: no seal or revoke confirmation before durable commit (host)",
       "goal": "Implement spec item 4 of B02-SECURE-RECORDS.md in keyring-core on the host: a newly generated handle cannot seal until snapshot generation G is committed; revocation is confirmed only after commit; crash points never reissue an index; Unknown I/O is never confirmed or retried.",
       "why_now": "The B02 spec marks this as still to be built; host-first, offline and covered by host-quality.",
@@ -243,7 +244,13 @@
       "evidence_level": "host",
       "rollback": "Revert the commit.",
       "next": "B02-T1 native tamper and key-loss cases.",
-      "history": []
+      "history": [
+        {
+          "at": "2026-11-18",
+          "event": "owner-scope-preserved",
+          "reason": "S09-NEXT ownership decision pending (owner); Claude S09 work remains excluded"
+        }
+      ]
     },
     {
       "id": "N04-T2",
@@ -778,7 +785,7 @@
       "criterion": "R03",
       "milestone": "M11",
       "executor": "worker",
-      "status": "ready",
+      "status": "blocked",
       "title": "Offline deterministic SPDX SBOM and dependency-provenance check for all Cargo.lock files",
       "goal": "Add tools/sbom.py (standard library only): SPDX 2.3 JSON for every Cargo.lock, the pinned toolchain and THIRD-PARTY assets, plus --check: registry checksums present, no git sources, exact '=' pins for cryptographic crates, records for vendored crates, licences cross-checked against THIRD-PARTY.md or NOASSERTION, never guessed; deterministic bytes.",
       "why_now": "Serves R03 (licensing/SBOM) and the B04 dependency-provenance clause; host-only.",
@@ -813,7 +820,13 @@
       "evidence_level": "host",
       "rollback": "Revert the commit.",
       "next": "B04-T2 reproducibility check.",
-      "history": []
+      "history": [
+        {
+          "at": "2026-11-18",
+          "event": "owner-scope-preserved",
+          "reason": "S09-NEXT ownership decision pending (owner); Claude S09 work remains excluded"
+        }
+      ]
     },
     {
       "id": "B04-T2",

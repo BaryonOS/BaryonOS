@@ -1,27 +1,12 @@
 #!/usr/bin/env python3
-"""Clean-session roadmap runner: one fresh headless Claude Code session per ledger task.
+"""Codex roadmap task dispatch with fail-closed legacy automation.
 
-The long-lived part is this small deterministic controller, not a chat transcript.
-It owns the task ledger, an exclusive controller lock, a write lease with heartbeat,
-stop/pause files, logs and receipts. For each READY task it
-
-1. checks that the checkout is clean, on the expected branch, with no live worker;
-2. writes an immutable worker brief (task, bounded source pointers, rules, checks);
-3. starts a NEW `claude -p` process with a fresh `--session-id` (never --continue,
-   --resume or --fork-session), an allow-listed environment, `--permission-prompts
-   none`, file edits plus the task's own check commands only, and `--autocompact`;
-4. validates the result itself: changed files against the task's write set,
-   protected paths, the ledger's trusted check commands with raw exit codes, and the
-   progress register; the worker's self-reported JSON is recorded, never trusted;
-5. asks a second fresh, read-only session to verify the diff independently;
-6. commits verified work with a compact receipt, pushes the dedicated branch and
-   releases the lease before the next task starts in another fresh session.
-
-It reuses `agent_gate.run_gate` for CI-job gates and `agent_pipeline.is_protected`
-for the rule that agents never edit the files that judge them. It never merges,
-never enables auto-merge and never pushes to any branch but `--branch`.
-Runtime state lives in ignored build/roadmap-pipeline/; the task ledger and
-receipts are versioned under docs/roadmap-pipeline/ so a new container can resume.
+`brief` claims one READY task and prepares an immutable Codex dispatch plan for
+the lead. No model or gate is executed by that command. Automatic execution and
+legacy Claude helpers remain source-held until the shared isolation replacement
+is accepted. The existing ledger, lock, stop/pause controls and recovery are reused;
+there is no second queue and no transfer of this roadmap to Claude.
+Runtime state stays in ignored build/roadmap-pipeline/.
 """
 from __future__ import annotations
 
@@ -44,7 +29,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from agent_gate import FAIL_EXIT as GATE_FAIL_EXIT, resolve as resolve_gate, run_gate  # noqa: E402
-from agent_pipeline import is_protected  # noqa: E402
+from agent_pipeline import TaskError, is_protected, require_pipeline_release  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[1]
 LEDGER = ROOT / "docs" / "roadmap-pipeline" / "ledger.json"
@@ -270,6 +255,12 @@ def claude_argv(cfg: Config, name: str, session_id: str, settings: Path, schema:
     return argv
 
 
+def codex_argv(result: Path) -> list[str]:
+    """Installed Codex 0.167.2 interface; retain user config, auth, MCP and hooks."""
+    return ["codex", "exec", "--ephemeral", "--strict-config", "--sandbox", "workspace-write",
+            "--json", "--output-last-message", str(result), "-"]
+
+
 def failure_fingerprint(kind: str, text: str) -> str:
     lines = [re.sub(r"\d+(\.\d+)?(ms|s)\b", "<t>", l) for l in text.splitlines()[-20:]]
     return sha256(kind + "\n" + "\n".join(lines))[:16]
@@ -423,6 +414,7 @@ class Controller:
     def session(self, kind: str, task_id: str, attempt_dir: Path, prompt: str, schema: dict,
                 rules: list[str], mode: str, timeout: int, disallowed: str | None = None,
                 budget: float | None = None, effort: str | None = None) -> dict:
+        require_pipeline_release()
         if self.spent >= self.cfg.total_budget_usd:
             raise Stop(f"cumulative estimated cost {self.spent:.2f} USD reached the cap")
         session_id = str(uuid.uuid4())
@@ -532,6 +524,7 @@ class Controller:
                     shutil.rmtree(target) if target.is_dir() else target.unlink()
 
     def run_checks(self, task: dict, attempt_dir: Path) -> tuple[bool, list[dict], str]:
+        require_pipeline_release()
         results, failure = [], ""
         lock = (self.state / "qemu.lock").open("a+") if task.get("native") else None
         if lock:
@@ -585,8 +578,8 @@ class Controller:
                                            "out_of_scope", "non_claimable", "risk", "evidence_level")}
         text = f"""roadmap-pipeline-task {task['id']} (run {self.run_id})
 
-You are a FRESH worker session of the BaryonOS H/U/N/B/A/P/L/R roadmap pipeline. You
-have no earlier conversation; this brief, AGENTS.md (already loaded through CLAUDE.md)
+You are a FRESH Codex worker session of the BaryonOS H/U/N/B/A/P/L/R roadmap pipeline. You
+have no earlier conversation; read this brief, AGENTS.md and applicable directory rules
 and the repository are your only context. Implement exactly ONE cohesive, verifiable
 slice described below, then stop.
 
@@ -596,10 +589,12 @@ Task (immutable; from docs/roadmap-pipeline/ledger.json):
 {json.dumps(fields, indent=2, ensure_ascii=False)}
 
 Rules (binding, in addition to AGENTS.md):
+- Use the actual builder role `.codex/agents/os_builder.toml`; optional missing
+  role files are not prerequisites. Claude owns S09 and Orbitaal, Codex owns this task.
 - Write ONLY inside write_paths. Never edit .github/, tools/agent_*.py, tools/common.py,
   tools/progress.py, tools/roadmap_runner.py, AGENTS.md, CLAUDE.md, docs/progress.json,
   docs/PROGRESS.md, docs/PROJECT-STATE.md, docs/DECISIONS.md, README.md or
-  docs/roadmap-pipeline/. The controller reverts anything else and records it.
+  docs/roadmap-pipeline/. The lead checks the full diff before accepting it.
 - Do not run git commands that change state, do not commit, push, fetch or use gh.
   Read-only git (status/diff/log/show) is allowed. No network access is needed.
 - Graphify first: if Graphify MCP tools are available, call recall with your write
@@ -609,24 +604,58 @@ Rules (binding, in addition to AGENTS.md):
 - Load the `ponytail` skill (full) if available: smallest safe change, reuse existing
   utilities, no reduced functionality or test evidence. Use relevant
   `verification-loop` guidance and `.agents/skills/os-dev` only where it applies.
-- You may run exactly the task's check commands (optionally through
+- You may run the task's check commands (optionally through
   `python3 -B tools/tokenguard.py run -- <command>`), plus read-only git. Other commands
-  are denied automatically; that is expected, not an error to work around.
+  are outside this assignment; tool policy is not a claim of technical isolation.
 - Security Floor: no new trust roots, key escrow, telemetry, cloud fallback, broader
   capabilities or relaxed verification. Do not invent cryptography. Validate untrusted
   lengths and pointers. Add negative tests for every new boundary.
 - Public text, comments and docs in professional, impersonal English. Label evidence
   levels honestly (host test, native QEMU, physical hardware, human study, external
   audit). Never claim a check passed unless you ran it and saw exit code 0; the
-  controller re-runs every check independently anyway.
+  lead validates results against source and raw logs before acceptance.
 - Do not change docs/progress.json or award acceptance; report what evidence exists.
 - If the task is not safely implementable as specified, stop and report state
   "blocked" with the precise blocker instead of improvising a different task.
 """
         if feedback:
             text += f"\nThe previous attempt was rejected. Resolve ONLY these concrete findings:\n{feedback}\n"
-        text += "\nFinish with the structured result (JSON schema enforced): no log dumps, no false success.\n"
+        for plugin, skill in (("ponytail/ponytail", "ponytail"), ("ecc/ecc", "verification-loop")):
+            paths = list((Path.home() / ".codex/plugins/cache" / plugin).glob(f"*/skills/{skill}/SKILL.md"))
+            if paths:
+                text += f"\nRead {max(paths, key=lambda path: path.stat().st_mtime)} once; apply only relevant guidance.\n"
+        text += "\nFinish with one JSON result matching WORKER_SCHEMA in tools/roadmap_runner.py; no log dumps or false success.\n"
         return text
+
+    def prepare_manual(self) -> dict:
+        """Claim a READY task without executing untrusted code or lifting the hold."""
+        if self.lock_file is None:
+            raise Stop("manual claim requires the controller lock")
+        self.check_controls()
+        head = self.preflight()
+        ledger = load_ledger(LEDGER)
+        if any(task["status"] == "active" for task in ledger["tasks"]):
+            raise Stop("a manual task is already active; validate or recover it first")
+        task = select_task(ledger)
+        if task is None:
+            raise Stop("no eligible READY task; preserve active/manual work")
+        directory = self.state / "manual" / f"{task['id']}-{uuid.uuid4().hex}"
+        directory.mkdir(parents=True)
+        prompt = self.worker_prompt(task, head, "")
+        prompt += ("\nManual fresh-session fallback: the lead launches this session, validates the diff "
+                   "and runs required gates directly. Do not run the held controllers or agent_gate. "
+                   "No automatic continuation or safe unattended readiness is established.\n")
+        atomic_write(directory / "brief.md", prompt)
+        plan = {"task_id": task["id"], "base": head, "branch": self.cfg.branch,
+                "brief_sha256": sha256(prompt), "stdin": str(directory / "brief.md"),
+                "argv": codex_argv(directory / "final.json"),
+                "stdout": str(directory / "events.jsonl"), "stderr": str(directory / "stderr.log"),
+                "manual_required": True, "unattended_ready": False}
+        atomic_write(directory / "dispatch.json", json.dumps(plan, indent=2))
+        update_task(task["id"], path=LEDGER, status="active", history={
+            "at": now(), "event": "manual-codex-claim", "base": head,
+            "dispatch": str(directory / "dispatch.json"), "brief_sha256": plan["brief_sha256"]})
+        return plan
 
     def verifier_prompt(self, task: dict, head: str, diff: str, untracked: list[str], checks: list[dict]) -> str:
         return f"""roadmap-pipeline-verify {task['id']} (run {self.run_id})
@@ -683,6 +712,7 @@ Return the structured result.
 
     # --- task lifecycle ---
     def run_task(self, task: dict) -> str:
+        require_pipeline_release()
         head = self.preflight()
         # The ledger is not touched while a worker runs: 'active' is the lease itself.
         self.heartbeat(task=task["id"], phase="start", base=head)
@@ -908,7 +938,7 @@ def main() -> int:
     run.add_argument("--model", default=Config.model)
     run.add_argument("--effort", default=Config.effort, help="security/high-risk tasks")
     run.add_argument("--routine-effort", default=Config.routine_effort, help="low/medium-risk tasks")
-    for name in ("status", "stop", "pause", "resume", "validate"):
+    for name in ("status", "stop", "pause", "resume", "validate", "brief"):
         sub.add_parser(name)
     args = parser.parse_args()
     STATE.mkdir(parents=True, exist_ok=True)
@@ -927,6 +957,22 @@ def main() -> int:
             (STATE / name).unlink(missing_ok=True)
         print("stop/pause cleared")
         return 0
+    if args.cmd == "brief":
+        controller = Controller(Config(branch=git("branch", "--show-current").strip()))
+        try:
+            controller.acquire()
+            print(json.dumps(controller.prepare_manual(), indent=2))
+        except Stop as error:
+            print(str(error))
+            return 2
+        finally:
+            controller.release()
+        return 0
+    try:
+        require_pipeline_release()
+    except TaskError as error:
+        print(f"{error} Use `brief` for lead-supervised fresh Codex dispatch.")
+        return 2
     cfg = Config(push=not args.no_push, total_budget_usd=args.total_budget_usd,
                  session_budget_usd=args.session_budget_usd, model=args.model, effort=args.effort,
                  routine_effort=args.routine_effort)
