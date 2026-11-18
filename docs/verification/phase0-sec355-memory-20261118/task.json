@@ -1,0 +1,23 @@
+{
+  "task": "MEM355",
+  "owner": "Local Codex lead",
+  "goal": "Classify intentional OOM tests and verify normal reference workload MemoryMax on this workstation; correct measurement launcher only when evidence requires.",
+  "invariant": "Keep issue pipeline disabled, security gates/OOM killer active, original user/Claude/S09 work and global limits unchanged.",
+  "write_set": [
+    "docs/verification/phase0-sec355-memory-20261118/**",
+    "docs/PROJECT-STATE.md",
+    "docs/progress.json",
+    "README.md",
+    "docs/PROGRESS.md",
+    "docs/assets/progress.svg"
+  ],
+  "acceptance": [
+    "Actual cgroup limits/events and source355/357 inspected",
+    "Intentional128MiBOOM proofs retained",
+    "Snap/native compiler-membership negative/positivecontrols",
+    "Native8GiB reference Rust/build/M1/M6c bundle exits0 with zeroOOM",
+    "Independent artifact review and progress consistency"
+  ],
+  "evidence_limit": "Reference workload sizing only; no whole sandbox lifecycle, authenticated client/fullCI or tmpfs-memory acceptance.",
+  "resume": "Continue existing359/355/356 andremainingDaybreak queue; no governance."
+}

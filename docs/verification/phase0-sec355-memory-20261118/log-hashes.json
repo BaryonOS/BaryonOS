@@ -1,0 +1,117 @@
+{
+  "summary.json": {
+    "raw_local": "/home/simon/projects/BaryonOS-worktrees/sec359-local/build/sec355-memory-review-20261118/summary.json",
+    "raw_sha256": "08b0a48ac3d934e277dcf089b248af5bb94a2632b7f3a542ed0ec39400309a5d",
+    "public_sha256": "b1618f4c804d228739777b12748d2ee0f17f30e513eebcca49a4689e082619e9"
+  },
+  "native-native-workload-results.json": {
+    "raw_local": "/home/simon/projects/BaryonOS-worktrees/sec359-local/build/sec355-memory-review-20261118/native-native-workload-results.json",
+    "raw_sha256": "e3d48f43663e36ddd1f2a4a19864918ddf05d650b522f006a90949d330bf3250",
+    "public_sha256": "e3d48f43663e36ddd1f2a4a19864918ddf05d650b522f006a90949d330bf3250"
+  },
+  "snap-limit-verification.json": {
+    "raw_local": "/home/simon/projects/BaryonOS-worktrees/sec359-local/build/sec355-memory-review-20261118/snap-limit-verification.json",
+    "raw_sha256": "dc28b78534ff314c5549c9531b551c2b941e2af37327a0524fa00db3b45be558",
+    "public_sha256": "88f63855838127420a30b269b4f0e77145cb435a843111e6aaf7dd91a9594454"
+  },
+  "native-limit-verification.json": {
+    "raw_local": "/home/simon/projects/BaryonOS-worktrees/sec359-local/build/sec355-memory-review-20261118/native-limit-verification.json",
+    "raw_sha256": "1aa3d0e8cdda751ef4ecb30b57163da974938cdd1ff6aaa37b6597da2061e2ee",
+    "public_sha256": "53c653d0ef2e2d3a22393a7cc25cf24dcd4d2ff2c43f701245ec684e26703fda"
+  },
+  "native-toolchain.json": {
+    "raw_local": "/home/simon/projects/BaryonOS-worktrees/sec359-local/build/sec355-memory-review-20261118/native-toolchain.json",
+    "raw_sha256": "71794e86014f1120caea267bd03092ade236a1779cc73ff4297c7e5ec592defd",
+    "public_sha256": "71794e86014f1120caea267bd03092ade236a1779cc73ff4297c7e5ec592defd"
+  },
+  "native-child-limit.txt": {
+    "raw_local": "/home/simon/projects/BaryonOS-worktrees/sec359-local/build/sec355-memory-review-20261118/native-child-limit.txt",
+    "raw_sha256": "d87a5607f0fb4118205b8e769963be4f4e823b427c25ef2fed92451bb390d7e9",
+    "public_sha256": "d87a5607f0fb4118205b8e769963be4f4e823b427c25ef2fed92451bb390d7e9"
+  },
+  "snap-child-limit.txt": {
+    "raw_local": "/home/simon/projects/BaryonOS-worktrees/sec359-local/build/sec355-memory-review-20261118/snap-child-limit.txt",
+    "raw_sha256": "a8a4eb989070d61f9f05c32a27deca2112d53bfea3f5c31c421201b049b602f0",
+    "public_sha256": "a8a4eb989070d61f9f05c32a27deca2112d53bfea3f5c31c421201b049b602f0"
+  },
+  "native-membership.json": {
+    "raw_local": "/home/simon/projects/BaryonOS-worktrees/sec359-local/build/sec355-memory-review-20261118/native-membership.json",
+    "raw_sha256": "5a374eae697bbff8ace409eb47d169cfc839f9cc129605e9a4fe7d17cd55f23c",
+    "public_sha256": "182231855c7e6ca9aa02ce2c199b77c446dde41d156255bcebdc95471ba47d7d"
+  },
+  "snap-membership.json": {
+    "raw_local": "/home/simon/projects/BaryonOS-worktrees/sec359-local/build/sec355-memory-review-20261118/snap-membership.json",
+    "raw_sha256": "29eb26cd57ed1482f69ab5090c6fb619254d2f9e41f1efdf89e62c6b0ae95969",
+    "public_sha256": "2c085e7d41e535d133c4482dd100caf917e893590be18c6093bdd8a5d90e473b"
+  },
+  "launch-native.json": {
+    "raw_local": "/home/simon/projects/BaryonOS-worktrees/sec359-local/build/sec355-memory-review-20261118/launch-native.json",
+    "raw_sha256": "29c1654c91906dd010631f3a7e85f3e4b464ab45f9e0e429c7c050fc8b0b1aea",
+    "public_sha256": "b42a849a22f91ad41df83d0184b6c8fe989e5ffb4c4ced7cb05456a44479f897"
+  },
+  "logs/scope-native.log.gz": {
+    "raw_local": "/home/simon/projects/BaryonOS-worktrees/sec359-local/build/sec355-memory-review-20261118/scope-native.log",
+    "raw_sha256": "a25d86b528463a930f00caae00a64d7a08eaeb5240f9a97b80bbf9d3a8e7693a",
+    "public_sha256": "6a6b854651194c05ae355279b86cb2a5741ffb606ce190a1c7ba1949e0147f7d"
+  },
+  "logs/snap-limit-verification.log.gz": {
+    "raw_local": "/home/simon/projects/BaryonOS-worktrees/sec359-local/build/sec355-memory-review-20261118/snap-limit-verification.log",
+    "raw_sha256": "c11db41641ed1350e687bc713ac05213e26f80795d69d29b29edd3d022b9a317",
+    "public_sha256": "b0883276b260ce1c2e94a2b63f5ff059bcb9cfbe44cd20e6c8434174c0862f6e"
+  },
+  "logs/native-limit-verification.log.gz": {
+    "raw_local": "/home/simon/projects/BaryonOS-worktrees/sec359-local/build/sec355-memory-review-20261118/native-limit-verification.log",
+    "raw_sha256": "952ad34858a1ab0b0b23031223135d2a1aaa035b613a587fc3dafb32fe34b761",
+    "public_sha256": "5702ea3e4acde68c2ca0c719ec2d58fd9a22d870a3ab25acbac3c1a10db40b0b"
+  },
+  "logs/native-workload-0.log.gz": {
+    "raw_local": "/home/simon/projects/BaryonOS-worktrees/sec359-local/build/sec355-memory-review-20261118/native-workload-0.log",
+    "raw_sha256": "d5d846d8356172398ba2f5cf12b1b010053c8bdda408cd755dfa59e17d994dbe",
+    "public_sha256": "f3b5d8b6ef8bba34d1b9199aff6d6555570c3df7cd25100501da6561f4e621b8"
+  },
+  "logs/native-workload-1.log.gz": {
+    "raw_local": "/home/simon/projects/BaryonOS-worktrees/sec359-local/build/sec355-memory-review-20261118/native-workload-1.log",
+    "raw_sha256": "b526d8358e3adf19ef4d1d823fba9bafd0a23b34e6b840b4e170179a315b1f82",
+    "public_sha256": "52fbf578dc3e5519b31f5634b6a1563c46abf94e3a13821fe057339467059de2"
+  },
+  "logs/native-workload-2.log.gz": {
+    "raw_local": "/home/simon/projects/BaryonOS-worktrees/sec359-local/build/sec355-memory-review-20261118/native-workload-2.log",
+    "raw_sha256": "0fe2a6813bf19acbd23fca432160ef8e055e4f05fa80732d88d9bcbdcdf35363",
+    "public_sha256": "6b58aa00b31efa90a1f717bdd4adc4705402bd68134b3dc9d7020d04f7ec958a"
+  },
+  "logs/native-workload-3.log.gz": {
+    "raw_local": "/home/simon/projects/BaryonOS-worktrees/sec359-local/build/sec355-memory-review-20261118/native-workload-3.log",
+    "raw_sha256": "a40bd73e5a6edd7a5a5bbb25ab8358b56e39254ba685e3a6719a5ac51561ba22",
+    "public_sha256": "1131fe6b543773732c182b679815a44d6cbabea6c7deed780ae8419b849c9b4b"
+  },
+  "logs/native-workload-4.log.gz": {
+    "raw_local": "/home/simon/projects/BaryonOS-worktrees/sec359-local/build/sec355-memory-review-20261118/native-workload-4.log",
+    "raw_sha256": "e6bb0d87d441e83144f6de8bf25d47d0f32df993c3d6526ce6c0536aa8aa1654",
+    "public_sha256": "07b808ec631b1b8246c0c6cae45636c87b69c7353240e9ee44e608822712ec07"
+  },
+  "negative-memory-unit.txt": {
+    "raw_local": "/home/simon/.cache/baryonos/sec355-backend-20261118/probes/memory-unit.txt",
+    "raw_sha256": "b3626c96808f60323909c8d96523eebe4cbb2da9a1f1d2bde2f5d458349d37f3",
+    "public_sha256": "b3626c96808f60323909c8d96523eebe4cbb2da9a1f1d2bde2f5d458349d37f3"
+  },
+  "negative-scope-memory-unit.txt": {
+    "raw_local": "/home/simon/.cache/baryonos/sec355-backend-20261118/probes/scope/memory-unit.txt",
+    "raw_sha256": "92ae24c2b749beec2258796e2515bc69182e833204953720f386f7e21f902b65",
+    "public_sha256": "92ae24c2b749beec2258796e2515bc69182e833204953720f386f7e21f902b65"
+  },
+  "membership-probe.rs": {
+    "raw_local": "/home/simon/projects/BaryonOS-worktrees/sec359-local/build/sec355-memory-review-20261118/containment-probe/build.rs",
+    "raw_sha256": "8fabbc7dad887f93ed096e2ba3a4d21abad8672679e99a929ac8f175450bd8ef",
+    "public_sha256": "8fabbc7dad887f93ed096e2ba3a4d21abad8672679e99a929ac8f175450bd8ef"
+  },
+  "smoke-d6e1616a9e-result.json": {
+    "raw_local": "/home/simon/projects/BaryonOS-worktrees/sec359-local/build/sec355-memory-review-20261118/build-native/run/smoke-d6e1616a9e/result.json",
+    "raw_sha256": "1ff193f1a487297d276223fa323be721306f81ff97c8f7e2d3e3c59691cb824d",
+    "public_sha256": "036595a963b02c133983effc7228ca938f0dfb14bda3bddd78c5998472ae7477"
+  },
+  "m6c-normal-838842ac37-result.json": {
+    "raw_local": "/home/simon/projects/BaryonOS-worktrees/sec359-local/build/sec355-memory-review-20261118/build-native/run/m6c-normal-838842ac37/result.json",
+    "raw_sha256": "d0fd5fbcf64a2a93c161d4d330d1a99e88b3f47a1dcf43bde5f3db727c3f19c6",
+    "public_sha256": "3f83ae639dc86faecfd5ee023ad842f11e3f6fb2db6aead4e01710157cd5e360"
+  }
+}

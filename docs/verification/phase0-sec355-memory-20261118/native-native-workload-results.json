@@ -1,0 +1,134 @@
+{
+  "before": {
+    "memory.max": "8589934592",
+    "memory.high": "6442450944",
+    "memory.swap.max": "0",
+    "memory.current": "6582272",
+    "memory.peak": "6590464",
+    "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\nsock_throttled 0",
+    "pids.max": "512",
+    "cpu.max": "400000 100000"
+  },
+  "steps": [
+    {
+      "argv": [
+        "cargo",
+        "+1.90.0",
+        "test",
+        "--locked",
+        "-p",
+        "kernel-core",
+        "-p",
+        "capability-core",
+        "-p",
+        "volume-core",
+        "-p",
+        "update-core"
+      ],
+      "exit_code": 0,
+      "duration_seconds": 26.977848733000428,
+      "log": "build/sec355-memory-review-20261118/native-workload-0.log",
+      "cgroup": {
+        "memory.max": "8589934592",
+        "memory.high": "6442450944",
+        "memory.swap.max": "0",
+        "memory.current": "389296128",
+        "memory.peak": "621486080",
+        "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\nsock_throttled 0",
+        "pids.max": "512",
+        "cpu.max": "400000 100000"
+      }
+    },
+    {
+      "argv": [
+        "python3",
+        "-B",
+        "tools/build.py"
+      ],
+      "exit_code": 0,
+      "duration_seconds": 0.9569331689999672,
+      "log": "build/sec355-memory-review-20261118/native-workload-1.log",
+      "cgroup": {
+        "memory.max": "8589934592",
+        "memory.high": "6442450944",
+        "memory.swap.max": "0",
+        "memory.current": "399630336",
+        "memory.peak": "621486080",
+        "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\nsock_throttled 0",
+        "pids.max": "512",
+        "cpu.max": "400000 100000"
+      }
+    },
+    {
+      "argv": [
+        "python3",
+        "-B",
+        "tools/run.py",
+        "--smoke",
+        "--milestone",
+        "m1"
+      ],
+      "exit_code": 0,
+      "duration_seconds": 1.08009176700034,
+      "log": "build/sec355-memory-review-20261118/native-workload-2.log",
+      "cgroup": {
+        "memory.max": "8589934592",
+        "memory.high": "6442450944",
+        "memory.swap.max": "0",
+        "memory.current": "403230720",
+        "memory.peak": "621486080",
+        "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\nsock_throttled 0",
+        "pids.max": "512",
+        "cpu.max": "400000 100000"
+      }
+    },
+    {
+      "argv": [
+        "python3",
+        "-B",
+        "tools/build.py",
+        "--kernel-feature",
+        "milestone-m6c"
+      ],
+      "exit_code": 0,
+      "duration_seconds": 1.4585789330003536,
+      "log": "build/sec355-memory-review-20261118/native-workload-3.log",
+      "cgroup": {
+        "memory.max": "8589934592",
+        "memory.high": "6442450944",
+        "memory.swap.max": "0",
+        "memory.current": "412176384",
+        "memory.peak": "621486080",
+        "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\nsock_throttled 0",
+        "pids.max": "512",
+        "cpu.max": "400000 100000"
+      }
+    },
+    {
+      "argv": [
+        "python3",
+        "-B",
+        "tools/run_m6c.py",
+        "--case",
+        "normal",
+        "--smoke"
+      ],
+      "exit_code": 0,
+      "duration_seconds": 1.6760641619994203,
+      "log": "build/sec355-memory-review-20261118/native-workload-4.log",
+      "cgroup": {
+        "memory.max": "8589934592",
+        "memory.high": "6442450944",
+        "memory.swap.max": "0",
+        "memory.current": "418906112",
+        "memory.peak": "621486080",
+        "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\nsock_throttled 0",
+        "pids.max": "512",
+        "cpu.max": "400000 100000"
+      }
+    }
+  ],
+  "source_commit": "9789ce565c247f70eab6d321f657dc05a64a8513",
+  "cache_condition": "Fresh NOS_TARGET_DIR for measurement; existing Cargo registry/toolchain and OS page caches reused.",
+  "scope": "Trusted reviewed source reference workloads; not selected model-client or full PR355 sandbox acceptance."
+}

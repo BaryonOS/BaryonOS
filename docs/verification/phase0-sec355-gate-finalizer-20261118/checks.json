@@ -1,0 +1,58 @@
+{
+  "schema": 1,
+  "source_commit": "364b94964cc7f3fbb8ff2377e87861e858ef03ad",
+  "parent_commit": "467e25b6394fcffc97d85a7be025bd5814b0806e",
+  "checks": [
+    {
+      "name": "agent gate and roadmap controller tests",
+      "result": "PASS",
+      "tests": 55,
+      "exit_code": 0,
+      "log": "build/tokenguard/run-4vtlqhy4.log",
+      "sha256": "cac5c0036c81356cd9c4108f0c46b896562c0e5b98e71a5397f97c4065a32ee1"
+    },
+    {
+      "name": "complete tools suite",
+      "result": "PASS",
+      "tests": 488,
+      "skipped": 10,
+      "exit_code": 0,
+      "log": "build/tokenguard/run-nf6t9f4j.log",
+      "sha256": "020549a3d2abeac0226484c390d3e2cb626fe25fa40a55ce048f420280e36b73"
+    },
+    {
+      "name": "Python syntax compilation and diff check",
+      "result": "PASS",
+      "commands": [
+        "python3 -B -m compileall -q tools",
+        "git diff --check"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "independent security rereview",
+      "result": "PASS",
+      "resolved_findings": [
+        "finalizers without a positive total deadline and reserve",
+        "primary raw streams overwritten by finalizer streams",
+        "environment validation bypassing finalization",
+        "finalizer launch after an untrusted sandbox cleanup failure"
+      ]
+    },
+    {
+      "name": "prior published-head native window jobs",
+      "result": "PASS",
+      "source_commit": "a1e12249b09c5cab94ccf2a27747116cd15dbb76",
+      "jobs": [
+        "native-window-session (1)",
+        "native-window-session (2)"
+      ]
+    }
+  ],
+  "not_run": [
+    "The private opt-in native sandbox runtime, offline Cargo cache and tool receipts were not available.",
+    "The complete 13-step qemu-smoke adapter remains intentionally blocked rather than partially modelled.",
+    "Native sandbox finalizer execution and QEMU were not repeated for this controller-only change.",
+    "Hosted CI has not yet run on this unpublished exact head."
+  ]
+}

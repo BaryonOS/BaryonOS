@@ -53,6 +53,76 @@ class QuantumSourceBinding(unittest.TestCase):
                 self.assertNotEqual(changed_manifest, common.source_hash())
 
 
+class SourceReceipt(unittest.TestCase):
+    def setUp(self):
+        self.temporary = tempfile.TemporaryDirectory()
+        self.addCleanup(self.temporary.cleanup)
+        self.root = Path(self.temporary.name).resolve()
+        source = self.root / "boot/source.rs"
+        source.parent.mkdir()
+        source.write_text("source\n")
+        self.receipt = self.root / common.SOURCE_RECEIPT_NAME
+
+    def write(self, *, commit="a" * 40, source=None):
+        self.receipt.write_text(json.dumps({"schema": 1, "source_commit": commit,
+                                            "source_sha256": source or common.source_hash(self.root)}) + "\n")
+        self.receipt.chmod(0o444)
+
+    def identity(self):
+        return common.source_identity(self.root, {"NOS_SOURCE_RECEIPT": str(self.receipt)})
+
+    def test_read_only_receipt_binds_commit_to_current_source(self):
+        self.write()
+        self.assertEqual(self.identity(), ("a" * 40, common.source_hash(self.root)))
+
+    def test_source_change_and_noncanonical_receipt_fail_closed(self):
+        self.write()
+        (self.root / "boot/source.rs").write_text("changed\n")
+        with self.assertRaisesRegex(ValueError, "does not bind"):
+            self.identity()
+        other = self.root / "other.json"
+        other.write_bytes(self.receipt.read_bytes())
+        other.chmod(0o444)
+        with self.assertRaisesRegex(ValueError, "fixed private"):
+            common.source_identity(self.root, {"NOS_SOURCE_RECEIPT": str(other)})
+
+    def test_duplicate_or_writable_receipt_fails_closed(self):
+        self.receipt.write_text('{"schema":1,"schema":1,"source_commit":"' + "a" * 40
+                                + '","source_sha256":"' + common.source_hash(self.root) + '"}\n')
+        self.receipt.chmod(0o444)
+        with self.assertRaisesRegex(ValueError, "duplicate"):
+            self.identity()
+        self.receipt.chmod(0o644)
+        self.write()
+        for mode in (0o644, 0o666):
+            with self.subTest(mode=oct(mode)):
+                self.receipt.chmod(mode)
+                with self.assertRaisesRegex(ValueError, "fixed private"):
+                    self.identity()
+
+    def test_host_fallback_keeps_the_existing_git_identity_path(self):
+        with patch.object(common.subprocess, "check_output", return_value="b" * 40 + "\n") as git:
+            self.assertEqual(common.source_identity(self.root, {}),
+                             ("b" * 40, common.source_hash(self.root)))
+        git.assert_called_once()
+
+    def test_controller_commit_disables_lazy_fetch_and_ambient_credentials(self):
+        environment = {"PATH": "/usr/bin:/bin", "GIT_NO_LAZY_FETCH": "1"}
+        with patch.object(common, "controller_environment", return_value=environment), \
+                patch.object(common.subprocess, "check_output", return_value="c" * 40 + "\n") as git:
+            self.assertEqual(common.controller_source_commit(self.root), "c" * 40)
+        self.assertEqual(git.call_args.args[0],
+                         [common.CONTROLLER_GIT, "--no-lazy-fetch", "rev-parse", "HEAD"])
+        self.assertEqual(git.call_args.kwargs["env"], environment)
+
+    def test_controller_commit_failure_is_a_controlled_refusal(self):
+        failure = subprocess.CalledProcessError(128, [common.CONTROLLER_GIT])
+        with patch.object(common, "controller_environment", return_value={}), \
+                patch.object(common.subprocess, "check_output", side_effect=failure), \
+                self.assertRaisesRegex(ValueError, "unavailable"):
+            common.controller_source_commit(self.root)
+
+
 class MachineSelection(unittest.TestCase):
     def test_only_explicit_versioned_profiles_and_no_silent_fallback(self):
         with patch.dict(os.environ, {}, clear=True):

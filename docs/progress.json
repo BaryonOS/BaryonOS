@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-18",
-    "source_commit": "4ae9a1c4f19bcf84ed06f0a8afcfdfc40fb237a8",
-    "assessment_basis": "source_commit",
-    "branch": "codex/pr358-review-fixes",
-    "task": "ISSUE274-INTEGRITY: harden PR358 source and publication evidence",
+    "source_commit": "aaf01bae291faba593567845dc8da4fe606a7959",
+    "assessment_basis": "parent_commit",
+    "branch": "codex/coderabbit-oss-config",
+    "task": "PR350 conflict-only reconciliation with main 2eac8ca3",
     "previous_score": 41,
-    "summary": "41/100 unchanged. Source 4ae9a1c reconciles PR #358 with current main, corrects three bounded documentation defects and adds a new sibling evidence child that closes 22 earlier integrity gaps without rewriting historical evidence. The current-head CodeQL comment-elision finding is corrected with a fixed-point parser guard and a 32nd negative control. Immutable repository/Wiki binding and exact hashes pass; fresh independent review and hosted checks remain required. This host evidence does not complete issue #274, language or UI acceptance, native QEMU, hardware, any security finding, baseline B or the governance transition."
+    "summary": "41/100 unchanged. The reviewed CodeRabbit free-tier configuration is preserved while current main, including PR #361 containment and final-read ordering, is incorporated. Only the checkpoint and assessment records required manual resolution. Hosted checks on the resulting head remain authoritative; no local build or QEMU acceptance is inferred."
   },
   "tracks": [
     {
