@@ -2,6 +2,10 @@
 
 Recorded on 27 October 2026. This guide describes the Windows development route that was actually set up. The individual build, QEMU, product and quantum results are in [PROJECT-STATE.md](PROJECT-STATE.md) and their raw reports. Available tools and these commands are not, on their own, a passed OS test.
 
+## Active compiler pin — 18 November 2026
+
+Active command examples use Rust **1.100.0**, pinned by `rust-toolchain.toml` and the current CI workflows. The migration and source-bound compatibility receipts are in [the Rust verification record](verification/phase0-rust100-ci-repair-20261118/README.md). Historical setup tables and recorded runs below retain their actual versions and host assumptions. Current Windows development-host execution requires separate verification; Linux host tests and a packaged Windows QEMU bundle provide their own bounded evidence.
+
 ## Native M6c/M6d on the Linux development variant
 
 The current M6c/M6d gate uses the toolchain described below and the
@@ -54,7 +58,7 @@ build when automatic discovery does not find a pair. No global
 PATH, package or shell changes are needed for the recorded local route.
 
 ```bash
-python3 -B tools/dev.py cargo +1.90.0 fetch --locked
+python3 -B tools/dev.py cargo +1.100.0 fetch --locked
 python3 -B tools/preflight.py --strict
 python3 -B tools/build.py --kernel-feature milestone-m6b
 python3 -B tools/run_m6b.py --case normal --smoke
@@ -191,8 +195,8 @@ The later source fingerprint version 2 excludes generated `verification/`, `buil
 A single development command in the same environment:
 
 ```powershell
-python tools/dev.py cargo +1.90.0 test --locked -p boot-protocol -p elf-loader-core
-python tools/dev.py rustc +1.90.0 -vV
+python tools/dev.py cargo +1.100.0 test --locked -p boot-protocol -p elf-loader-core
+python tools/dev.py rustc +1.100.0 -vV
 ```
 
 The loader and kernel use separate targets. Setting a single global workspace target would disrupt the host tests and is not part of this setup.
@@ -267,7 +271,7 @@ Check the quantum trial and run the Bell fixture:
 
 ```powershell
 python experiments/quantum/verify.py
-Get-Content -Raw experiments/quantum/fixtures/bell8.json | python tools/dev.py cargo +1.90.0 run --manifest-path experiments/quantum/Cargo.toml --locked --offline -p qsim-cli
+Get-Content -Raw experiments/quantum/fixtures/bell8.json | python tools/dev.py cargo +1.100.0 run --manifest-path experiments/quantum/Cargo.toml --locked --offline -p qsim-cli
 ```
 
 The quantum workspace is outside the kernel workspace. `verify.py` writes output, source/binary hashes and exact command lines to `experiments/quantum/verification/`. This is local host simulation; not a physical QPU, an own-OS port or a cryptographic random number generator. See [the quantum guide](../experiments/quantum/README.md).
