@@ -1185,7 +1185,7 @@
       "criterion": "N03",
       "milestone": "M8",
       "executor": "worker",
-      "status": "active",
+      "status": "blocked",
       "title": "Native TLS CryptoProvider evaluation for the fixed PQC profile (design)",
       "goal": "Write docs/implementation/N03-NATIVE-TLS-PROVIDER.md: provenance, licence, no_std, build-script and maintenance evaluation of rustls CryptoProvider candidates for TLS 1.3 X25519MLKEM768 with TLS_AES_256_GCM_SHA384, with RNG-route binding; no custom cryptography and no trust root.",
       "why_now": "Implementation of the next step is blocked on an owner or review decision that needs an evidence-based basis first.",
@@ -1215,8 +1215,17 @@
           "event": "active",
           "at": "2026-11-18T22:22:16.604714+00:00",
           "reason": "Isolated Codex proposed contract only; no production authority, dependency or trust root adoption."
+        },
+        {
+          "at": "2026-11-18T22:22:38.668730+00:00",
+          "event": "blocked",
+          "source_commit": "526aca548c0ee22025f80401d017f779c8d59179",
+          "reason": "Bounded source/primary-source provider evaluation records fixed TLS profile, existing Rustls pins and random/time adapter limits. No provider selected; version-specific manifests/build scripts and maintenance evaluation incomplete after inaccessible primary endpoints. Local paths/symbol and progress checks pass. Proposed design only; accepted native provider/RNG/platform, calendar/signing/bootstrap boundaries remain unresolved. No cryptographic dependency or trust root adopted; no native handshake/hardware/audit evidence. Task remains BLOCKED and41/100 unchanged."
         }
-      ]
+      ],
+      "source_commit": "526aca548c0ee22025f80401d017f779c8d59179",
+      "receipt": "docs/roadmap-pipeline/receipts/N03-T1.json",
+      "blocker": "Provider/RNG/platform and trusted certificate/signing/bootstrap contracts unresolved; exact candidate manifest/build-script/maintenance evaluation incomplete. Version-specific primary docs inaccessible; no fallback selected."
     },
     {
       "id": "R03-T1",
