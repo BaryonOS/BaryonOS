@@ -105,6 +105,19 @@
           "at": "2026-11-18T19:31:38+00:00",
           "event": "brief-superseded-before-launch",
           "reason": "No worker started; clarify Codex read-only source commands and lead-owned active ledger change before freezing replacement brief."
+        },
+        {
+          "at": "2026-11-18T19:31:38+00:00",
+          "event": "manual-codex-claim",
+          "base": "70e154e3f50ddcd7776ad085a7654eb392ac6b01",
+          "dispatch": "/home/simon/projects/BaryonOS-worktrees/roadmap-codex/build/roadmap-pipeline/manual/A02-T1-595b9877c0c74045a47c55dc3c6adbf2/dispatch.json",
+          "brief_sha256": "286529d04bdc60d14893da2372e17d1d60e5e5186221dd8c10104ebefcd0e79d"
+        },
+        {
+          "at": "2026-11-18T19:33:39+00:00",
+          "event": "codex-session-blocked-hook-false-positive",
+          "session_id": "01a1f024-b05d-7643-824a-f0271ef8c924",
+          "reason": "Cortex agent-call-enforcer matches call + word without word boundary; call recall was misrouted to nonexistent agents/recall.md. No worker edits. Keep hook enabled; quote tool name and use invoke."
         }
       ]
     },

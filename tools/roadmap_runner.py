@@ -597,10 +597,10 @@ Rules (binding, in addition to AGENTS.md):
   docs/roadmap-pipeline/. The lead checks the full diff before accepting it.
 - Do not run git commands that change state, do not commit, push, fetch or use gh.
   Read-only git (status/diff/log/show) is allowed. No network access is needed.
-- Graphify first: if Graphify MCP tools are available, call recall with your write
+- Graphify first: if Graphify MCP tools are available, invoke `recall` with your write
   paths and use graphify_find/impact/tests_for/file_neighbors before editing; the graph
   reflects main, so confirm against current files. If unavailable, read code directly
-  and say so. Do not call remember (the lead records durable notes).
+  and say so. Do not invoke `remember` (the lead records durable notes).
 - Load the `ponytail` skill (full) if available: smallest safe change, reuse existing
   utilities, no reduced functionality or test evidence. Use relevant
   `verification-loop` guidance and `.agents/skills/os-dev` only where it applies.
