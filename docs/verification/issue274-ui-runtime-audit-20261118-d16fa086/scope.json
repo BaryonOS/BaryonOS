@@ -1,0 +1,1006 @@
+{
+  "source_commit": "d16fa0862a42d83f7de7fda8dd2de54357d3e533",
+  "path_enumeration": "git ls-files -z with explicit finite pathspecs; UTF-8 strict; current bytes equal exact HEAD blobs",
+  "groups": {
+    "native_ui": [
+      "ui/native/src"
+    ],
+    "design_prototype_and_consumers": [
+      "ui/design"
+    ],
+    "legacy_browser_prototype": [
+      "ui/prototype"
+    ],
+    "sdk_application_sources": [
+      ":(glob)sdk/examples/*/src/**"
+    ],
+    "userspace_diagnostics_and_probes": [
+      "userspace"
+    ],
+    "boot_loader_diagnostics": [
+      "boot/loader/src"
+    ],
+    "boot_kernel_entry_serial": [
+      "kernel/src/main.rs",
+      "kernel/src/serial.rs"
+    ]
+  },
+  "suffixes": [
+    ".S",
+    ".html",
+    ".js",
+    ".jsx",
+    ".mjs",
+    ".rs",
+    ".ts",
+    ".tsx"
+  ],
+  "files": [
+    {
+      "path": "ui/native/src/controller.rs",
+      "group": "native_ui",
+      "bytes": 88090,
+      "sha256": "73e3124a776c6c73ea93617fc533c1b97ff2ec7b11dc06055138711483fe82a1"
+    },
+    {
+      "path": "ui/native/src/design.rs",
+      "group": "native_ui",
+      "bytes": 2865,
+      "sha256": "999d283155e1cca3d6aca84b0012b493f37ef1887a52d7a4071ee4338901ab82"
+    },
+    {
+      "path": "ui/native/src/desktop.rs",
+      "group": "native_ui",
+      "bytes": 17302,
+      "sha256": "5c257f7f2088c9e2d666516b62633a4568f55c728de1449560af42c0ed319354"
+    },
+    {
+      "path": "ui/native/src/lib.rs",
+      "group": "native_ui",
+      "bytes": 3548,
+      "sha256": "1c1b17e0eafe6826bed58a0a4f602c4723862b7c4c8c208d78f8d2933d564bc7"
+    },
+    {
+      "path": "ui/native/src/render.rs",
+      "group": "native_ui",
+      "bytes": 128037,
+      "sha256": "2412bc6cbddabf93081042ef43952bb431200bf6a9eaca60567e85878c9d4dad"
+    },
+    {
+      "path": "ui/native/src/session.rs",
+      "group": "native_ui",
+      "bytes": 23038,
+      "sha256": "0388858099523e1b538ea5fca846b6003cd0256d31d62070d27072238071cc13"
+    },
+    {
+      "path": "ui/native/src/text.rs",
+      "group": "native_ui",
+      "bytes": 8489,
+      "sha256": "339334af733636ed12e38e2dca8696f98d6aecbc51089c940ac780ff7ead1767"
+    },
+    {
+      "path": "ui/native/src/workspace.rs",
+      "group": "native_ui",
+      "bytes": 3604,
+      "sha256": "e9865c412fae79fedf26b9822bc768f1f927e1de779e2bdf4d713a4eca908884"
+    },
+    {
+      "path": "ui/design/concepts/materie/index.html",
+      "group": "design_prototype_and_consumers",
+      "bytes": 400306,
+      "sha256": "8095dbaedc315abb4b370524aafb699d7a1bc6a585b22aa7e807a6a748bbe8f0"
+    },
+    {
+      "path": "ui/design/concepts/orbitaal-v2/index.html",
+      "group": "design_prototype_and_consumers",
+      "bytes": 151046,
+      "sha256": "2a658658ed2c181a692f0e8ca5df679c69e3efa34673a508967ef55c02f86266"
+    },
+    {
+      "path": "ui/design/concepts/orbitaal/index.html",
+      "group": "design_prototype_and_consumers",
+      "bytes": 115347,
+      "sha256": "e3ad9ee3088e2136f827a75d933a7166553e4c9479c5e7b9e9518de0a6f6390f"
+    },
+    {
+      "path": "ui/design/concepts/triade/index.html",
+      "group": "design_prototype_and_consumers",
+      "bytes": 143451,
+      "sha256": "e21bdfb73875eb24ca6da566c128a206e8f1e9d0426bbadab70a33c06c1bb8c0"
+    },
+    {
+      "path": "ui/design/prototype/contract.js",
+      "group": "design_prototype_and_consumers",
+      "bytes": 11381,
+      "sha256": "dbe3dcf793ed2be267d19b87b0d1ba5c84009d58f349d8ddeb6da27df44a70a5"
+    },
+    {
+      "path": "ui/design/prototype/data.js",
+      "group": "design_prototype_and_consumers",
+      "bytes": 6863,
+      "sha256": "2794a9291cd3e78cc6223913fc0311c2f4d4c571230b8813036edb31555e64d3"
+    },
+    {
+      "path": "ui/design/prototype/icons.js",
+      "group": "design_prototype_and_consumers",
+      "bytes": 43,
+      "sha256": "220542e3da903c1d7a5c3df3d4e141c90ebf78549ef7cea74069090ed65086f8"
+    },
+    {
+      "path": "ui/design/prototype/strings.js",
+      "group": "design_prototype_and_consumers",
+      "bytes": 15799,
+      "sha256": "53e84f718a2bb29b8e5659d488df0f2947d1da5d713e307e37b253ed9e4785de"
+    },
+    {
+      "path": "ui/design/system/gallery.js",
+      "group": "design_prototype_and_consumers",
+      "bytes": 27987,
+      "sha256": "ab729d296d62f15b416d318a6cfea17cc44343cba4cb5af5265048dbe4075e4a"
+    },
+    {
+      "path": "ui/design/system/icons.js",
+      "group": "design_prototype_and_consumers",
+      "bytes": 8130,
+      "sha256": "134301990d319dc14e0a500c638863aad68c33059116704e37e15c31fb690122"
+    },
+    {
+      "path": "ui/design/system/index.html",
+      "group": "design_prototype_and_consumers",
+      "bytes": 55625,
+      "sha256": "cdd4a888471f2c71d0c7776ae91dd140b3fba3e37d183a6a3a2dad2e750df7db"
+    },
+    {
+      "path": "ui/design/typography/specimens/index.html",
+      "group": "design_prototype_and_consumers",
+      "bytes": 26107,
+      "sha256": "680e83578a145762cc34adb72093e797ca08fa07c739304188bf600ddef95ed8"
+    },
+    {
+      "path": "ui/prototype/app.js",
+      "group": "legacy_browser_prototype",
+      "bytes": 56203,
+      "sha256": "d25a8f334ef1ccfd911c835f6d67ea6912b4b0dff48a5292004d66bf2369fae3"
+    },
+    {
+      "path": "ui/prototype/broker.js",
+      "group": "legacy_browser_prototype",
+      "bytes": 8366,
+      "sha256": "8bfc3721fce6b09e154d7a4c06616c86d118f8980333e1a9596abe9bea87e77a"
+    },
+    {
+      "path": "ui/prototype/fixtures.js",
+      "group": "legacy_browser_prototype",
+      "bytes": 3460,
+      "sha256": "a6fdd3e04282c0dd495f9f4a16e8bc2dba9c47275c707f78db8f8f19cc321a39"
+    },
+    {
+      "path": "ui/prototype/index.html",
+      "group": "legacy_browser_prototype",
+      "bytes": 932,
+      "sha256": "dddf09829040c2e8940f0e475a31403ae8b12082a80a4977bea26495403fd3fe"
+    },
+    {
+      "path": "ui/prototype/nas-sharing.js",
+      "group": "legacy_browser_prototype",
+      "bytes": 10393,
+      "sha256": "1e60aa77dfcd31f9434f0c2242a71402bbcee3fa310bd7d6f5596d42dee30f2e"
+    },
+    {
+      "path": "ui/prototype/state.js",
+      "group": "legacy_browser_prototype",
+      "bytes": 18717,
+      "sha256": "c5e7a64522a66ac901ec36082b89a811d733f98241d4a44273a7f73dfdf5c0a6"
+    },
+    {
+      "path": "sdk/examples/audio-clip/src/lib.rs",
+      "group": "sdk_application_sources",
+      "bytes": 6380,
+      "sha256": "cf6cb6b569f6674d161b34d5e3ad5bd3a42a3a4c0fade9fdc7da19a4036c2513"
+    },
+    {
+      "path": "sdk/examples/audio-clip/src/main.rs",
+      "group": "sdk_application_sources",
+      "bytes": 2329,
+      "sha256": "14174518f5782995dc48e678af0e5659e47e2944b96dbd2508160f64d383890c"
+    },
+    {
+      "path": "sdk/examples/calculator/src/app.rs",
+      "group": "sdk_application_sources",
+      "bytes": 17104,
+      "sha256": "08e180c4102b26513206e6dfe2cf1edb038429305bea53864d04c3f2fce557a1"
+    },
+    {
+      "path": "sdk/examples/calculator/src/bin/oracle.rs",
+      "group": "sdk_application_sources",
+      "bytes": 2220,
+      "sha256": "c7a5a5589ccb9a0da3a001805dd4ec34eaa6541f90469abbaaf9e697fadf0efc"
+    },
+    {
+      "path": "sdk/examples/calculator/src/bootstrap.rs",
+      "group": "sdk_application_sources",
+      "bytes": 3341,
+      "sha256": "4cb7ec30c83093f9e688d43a53e1470a997ccc3e0c88fde76170b34075967360"
+    },
+    {
+      "path": "sdk/examples/calculator/src/decimal.rs",
+      "group": "sdk_application_sources",
+      "bytes": 9873,
+      "sha256": "acafe4526892bb25de3d60400093bf776874103dea559460b0ea17210833adb2"
+    },
+    {
+      "path": "sdk/examples/calculator/src/idle.rs",
+      "group": "sdk_application_sources",
+      "bytes": 3590,
+      "sha256": "965eb3880f8c805e2b283feb2f3407273037561ba8200bbbf61b57b8edbb0980"
+    },
+    {
+      "path": "sdk/examples/calculator/src/lib.rs",
+      "group": "sdk_application_sources",
+      "bytes": 129,
+      "sha256": "dd817d184e47197fe9ddc21a12be2fb7c8466a5477ed900b6d9c3a3ab2179ac5"
+    },
+    {
+      "path": "sdk/examples/calculator/src/main.rs",
+      "group": "sdk_application_sources",
+      "bytes": 10243,
+      "sha256": "f5b26551619f597755f7f3516f3ac8c7699568966bb16d4da7dc2298efa137ac"
+    },
+    {
+      "path": "sdk/examples/calculator/src/model.rs",
+      "group": "sdk_application_sources",
+      "bytes": 38115,
+      "sha256": "e16b20365d15a196954b3672506f4b813a2e9131659cacd8ff2f4931d727797e"
+    },
+    {
+      "path": "sdk/examples/calculator/src/render.rs",
+      "group": "sdk_application_sources",
+      "bytes": 18347,
+      "sha256": "8c648c7db2b5eb5295d98637e3055eddaec3f089272eb37ab5aa88299a7517df"
+    },
+    {
+      "path": "sdk/examples/catalog-read/src/main.rs",
+      "group": "sdk_application_sources",
+      "bytes": 2581,
+      "sha256": "db07837724f3da8215a677b20ae4977b00a333b3ba92ff9a262a2fddb938c1b7"
+    },
+    {
+      "path": "sdk/examples/catalog-read/src/service.rs",
+      "group": "sdk_application_sources",
+      "bytes": 3860,
+      "sha256": "338c25427babbde5dc7f6ba547b759cc4f1d09bf6f794d060ed4638f8685629b"
+    },
+    {
+      "path": "sdk/examples/catalog-read/src/support.rs",
+      "group": "sdk_application_sources",
+      "bytes": 3202,
+      "sha256": "c739d1cd32936944c2f47cb98f416265f38cc60193f73cf04b6c34d2602a6d4b"
+    },
+    {
+      "path": "sdk/examples/compositor/src/boot.rs",
+      "group": "sdk_application_sources",
+      "bytes": 3749,
+      "sha256": "4f222365be03fb67b2b2607cf6e45d36cafa7bdb237056c33e2645e905bd3ccb"
+    },
+    {
+      "path": "sdk/examples/compositor/src/chrome.rs",
+      "group": "sdk_application_sources",
+      "bytes": 7601,
+      "sha256": "c134a2a742b0ac22174eda2cc00e1f9e0d6043272007e63b728759571f27de58"
+    },
+    {
+      "path": "sdk/examples/compositor/src/control.rs",
+      "group": "sdk_application_sources",
+      "bytes": 10485,
+      "sha256": "b561f1a539089152953d3250d50142d562cfa497142323313f0ca262c754abc2"
+    },
+    {
+      "path": "sdk/examples/compositor/src/lib.rs",
+      "group": "sdk_application_sources",
+      "bytes": 325,
+      "sha256": "a936d5093697a7e70603183e72d39b7bf49cb15e77747c6a43c2dd571153e27a"
+    },
+    {
+      "path": "sdk/examples/compositor/src/main.rs",
+      "group": "sdk_application_sources",
+      "bytes": 8532,
+      "sha256": "bf586d37497bb3847f1b6b4c2906cd4ce36b0fe1b8cc2ac098db80d212ba93f0"
+    },
+    {
+      "path": "sdk/examples/compositor/src/surface.rs",
+      "group": "sdk_application_sources",
+      "bytes": 9507,
+      "sha256": "4295349cc90af106ee9ec4ddcbb61d661da59079a6ed5730ff8652375fc595f2"
+    },
+    {
+      "path": "sdk/examples/desktop-init/src/boot.rs",
+      "group": "sdk_application_sources",
+      "bytes": 3241,
+      "sha256": "525e2051fa6d225b811e743f769473a8b0fe821dc3b4189dd7743128b86868b8"
+    },
+    {
+      "path": "sdk/examples/desktop-init/src/controller.rs",
+      "group": "sdk_application_sources",
+      "bytes": 5647,
+      "sha256": "a1f348c2a3a61da70c36e3d3e68bd496d33cef538629675d297a05e889895d81"
+    },
+    {
+      "path": "sdk/examples/desktop-init/src/controller_main.rs",
+      "group": "sdk_application_sources",
+      "bytes": 2173,
+      "sha256": "b8c95016b3148b1dedb79f51278c19c52040f5a2e622550c73d9f52619424f8f"
+    },
+    {
+      "path": "sdk/examples/desktop-init/src/lib.rs",
+      "group": "sdk_application_sources",
+      "bytes": 103,
+      "sha256": "44dce867b369b3d7a9881f2b834c0f9c6b3fc1fae14a8f0436ea3c953f66d6e3"
+    },
+    {
+      "path": "sdk/examples/desktop-init/src/main.rs",
+      "group": "sdk_application_sources",
+      "bytes": 3697,
+      "sha256": "bf5f04b83f219eb30b8262929b81bcf10a8d1807276703b88dee98df42f88640"
+    },
+    {
+      "path": "sdk/examples/desktop-init/src/supervisor.rs",
+      "group": "sdk_application_sources",
+      "bytes": 13234,
+      "sha256": "c3f463eaaa31eddb771721e407d728bf821bf1733e403cabd233dc13391e279f"
+    },
+    {
+      "path": "sdk/examples/desktop-init/src/wire.rs",
+      "group": "sdk_application_sources",
+      "bytes": 4854,
+      "sha256": "e275d38611beb4655e7fb0847ec49cb1cb2ce2534406be315b42c0694d94adb6"
+    },
+    {
+      "path": "sdk/examples/display-input-probe/src/common.rs",
+      "group": "sdk_application_sources",
+      "bytes": 3994,
+      "sha256": "86d80c9e48865a7330325ef1d929417f61f417b610fdfacc8a9f6951af6c021c"
+    },
+    {
+      "path": "sdk/examples/display-input-probe/src/contract.rs",
+      "group": "sdk_application_sources",
+      "bytes": 2199,
+      "sha256": "21137307ea97195347458e0f7dbccd65bbde38c079a5dfcb248ce201276289ad"
+    },
+    {
+      "path": "sdk/examples/display-input-probe/src/display.rs",
+      "group": "sdk_application_sources",
+      "bytes": 5415,
+      "sha256": "b0ba452232e6a7900253abfbe2873035caf3eff4a3ffd477ae8581fe7ad01620"
+    },
+    {
+      "path": "sdk/examples/display-input-probe/src/input.rs",
+      "group": "sdk_application_sources",
+      "bytes": 3860,
+      "sha256": "be5465ed2532fcc88be8a646c524b49a3df602599c73852c9991105c507d5e02"
+    },
+    {
+      "path": "sdk/examples/display-input-probe/src/intruder.rs",
+      "group": "sdk_application_sources",
+      "bytes": 717,
+      "sha256": "6ed92e738c107744481661c5ffb8f9ee09221a798e00f1f5c7d6ea3d28e08d88"
+    },
+    {
+      "path": "sdk/examples/display-input-probe/src/lib.rs",
+      "group": "sdk_application_sources",
+      "bytes": 132,
+      "sha256": "c62642092a4c1b6efc22fb9e134e9f740f75753f54d1e1066cb1070a85f0e19f"
+    },
+    {
+      "path": "sdk/examples/document-export/src/lib.rs",
+      "group": "sdk_application_sources",
+      "bytes": 6957,
+      "sha256": "d73f111f22b368fcc102a6f8f4b984ddf9fa291e453f98bdb4901a421ba4709c"
+    },
+    {
+      "path": "sdk/examples/document-export/src/main.rs",
+      "group": "sdk_application_sources",
+      "bytes": 1254,
+      "sha256": "6adbdc480d8135334c6e06c1fd9f25f80a77449da3c1277c95afac9b7628257a"
+    },
+    {
+      "path": "sdk/examples/document-import/src/lib.rs",
+      "group": "sdk_application_sources",
+      "bytes": 11171,
+      "sha256": "bc70f7613ee09aa7343e52575bd5aab9b359c25f78b09b52ee547b9b9be15cf5"
+    },
+    {
+      "path": "sdk/examples/document-import/src/main.rs",
+      "group": "sdk_application_sources",
+      "bytes": 1181,
+      "sha256": "006d1064421327e8bb70fcc560669cf6f362e5a6cbd1d03eb635350aea250201"
+    },
+    {
+      "path": "sdk/examples/document-import/src/package.rs",
+      "group": "sdk_application_sources",
+      "bytes": 8117,
+      "sha256": "176655b7edba8d46304424bddac7bc7b4792a16ce5fe7b404ce6d398d5c94e23"
+    },
+    {
+      "path": "sdk/examples/fpu/src/a.rs",
+      "group": "sdk_application_sources",
+      "bytes": 253,
+      "sha256": "56dcd303e258fbdd17035687aaab312aa2f4a9814da4718a2f4dba54bd4502df"
+    },
+    {
+      "path": "sdk/examples/fpu/src/b.rs",
+      "group": "sdk_application_sources",
+      "bytes": 253,
+      "sha256": "bd729845e814d252201e2fed7fc843931306f89227ed4fb23bef3d592622fcf6"
+    },
+    {
+      "path": "sdk/examples/fpu/src/probe.S",
+      "group": "sdk_application_sources",
+      "bytes": 7718,
+      "sha256": "5cc94c48a48f15e69e896f2c31999fe622156d63d4b1a8536ff97b965d04cd31"
+    },
+    {
+      "path": "sdk/examples/image-crop/src/lib.rs",
+      "group": "sdk_application_sources",
+      "bytes": 2754,
+      "sha256": "2b7f6f3fa00eb3a3fb5d8e6579ca42cd4172147eb9a7ecd4b84c323fa506036d"
+    },
+    {
+      "path": "sdk/examples/image-crop/src/main.rs",
+      "group": "sdk_application_sources",
+      "bytes": 4586,
+      "sha256": "d9cfec3553d147877471216f5df15950b01177422e09a22e86481f1f7aebef31"
+    },
+    {
+      "path": "sdk/examples/image-export/src/lib.rs",
+      "group": "sdk_application_sources",
+      "bytes": 4262,
+      "sha256": "b63589367bbce1a6a1e898a1792b7c8009fe8834eb22573c987e5535d9580385"
+    },
+    {
+      "path": "sdk/examples/image-export/src/main.rs",
+      "group": "sdk_application_sources",
+      "bytes": 1759,
+      "sha256": "d610e182b7e01c99f8e0342eb1b824fc2364833ab7699e99da4a1f0177a8223f"
+    },
+    {
+      "path": "sdk/examples/image-probe/src/main.rs",
+      "group": "sdk_application_sources",
+      "bytes": 7895,
+      "sha256": "0f04ff1251efc660d509387a0d65453de5556c1db97fb0c2e83791d1ca29f121"
+    },
+    {
+      "path": "sdk/examples/image-viewer/src/lib.rs",
+      "group": "sdk_application_sources",
+      "bytes": 22940,
+      "sha256": "6e3bbb70a35626bcd652fd37c0bc9371717451f5c3e767701ced128b028d7d43"
+    },
+    {
+      "path": "sdk/examples/input-service/src/boot.rs",
+      "group": "sdk_application_sources",
+      "bytes": 5267,
+      "sha256": "7af4e2d57d5834bf0159cdf43b758b999be1d514998a8d8130591c862967a25b"
+    },
+    {
+      "path": "sdk/examples/input-service/src/hid.rs",
+      "group": "sdk_application_sources",
+      "bytes": 8366,
+      "sha256": "9aaa8a4222d79952a00541f6bc739daaa65ce59ffa5e27de9c52f66a37f51d17"
+    },
+    {
+      "path": "sdk/examples/input-service/src/hid_probe_main.rs",
+      "group": "sdk_application_sources",
+      "bytes": 9236,
+      "sha256": "02f7030d936eb1350682ba67af9cd6811d4e59ff72d78aa18dca75fb1d8a7087"
+    },
+    {
+      "path": "sdk/examples/input-service/src/lib.rs",
+      "group": "sdk_application_sources",
+      "bytes": 1634,
+      "sha256": "7d9d606970d15d5abede90c33324047705f18b2d3b1050b214edc53f32eb7c8c"
+    },
+    {
+      "path": "sdk/examples/input-service/src/policy.rs",
+      "group": "sdk_application_sources",
+      "bytes": 11538,
+      "sha256": "d81a6bfd628998e93bd7ebfb8825fc5358ff6d166f708ade1a7c075e8abf1ba3"
+    },
+    {
+      "path": "sdk/examples/input-service/src/policy_main.rs",
+      "group": "sdk_application_sources",
+      "bytes": 5626,
+      "sha256": "ece296cff545fffe04b1e575728e1cc75fa8d08792eea174eebce45a90fb1f61"
+    },
+    {
+      "path": "sdk/examples/input-service/src/protocol.rs",
+      "group": "sdk_application_sources",
+      "bytes": 1254,
+      "sha256": "59678987c65deaf592a6a765cb18f02dbaafe7d4d8be56682d939355dd9cfd71"
+    },
+    {
+      "path": "sdk/examples/input-service/src/source.rs",
+      "group": "sdk_application_sources",
+      "bytes": 10843,
+      "sha256": "d734358643a8290fa16f0f19c6a9589d9f6f8c903d84de4ea79fa08442769c00"
+    },
+    {
+      "path": "sdk/examples/input-service/src/source_main.rs",
+      "group": "sdk_application_sources",
+      "bytes": 5125,
+      "sha256": "991eb4bff53099c1fa86f59d787865b0ac9569dd56f2e2b23c9265faaa8075cd"
+    },
+    {
+      "path": "sdk/examples/input-service/src/wait.rs",
+      "group": "sdk_application_sources",
+      "bytes": 22787,
+      "sha256": "c5ad3e978754a7318e8b1c3475cd6df38db7628ee45159f4878a96176a9ea834"
+    },
+    {
+      "path": "sdk/examples/ipc-wait-probe/src/lib.rs",
+      "group": "sdk_application_sources",
+      "bytes": 3767,
+      "sha256": "579d21280099a198b3ea6ccd275621de1d02d77f7820f34748899792a1de799a"
+    },
+    {
+      "path": "sdk/examples/ipc-wait-probe/src/main.rs",
+      "group": "sdk_application_sources",
+      "bytes": 12929,
+      "sha256": "4801e3360895b89d9388937091ef0702d251ccef7b47e5bd6c257686b891ebb4"
+    },
+    {
+      "path": "sdk/examples/ipc-wait-probe/src/support.rs",
+      "group": "sdk_application_sources",
+      "bytes": 2597,
+      "sha256": "b248566ea9ad999fff499f5f6dcaf8e790ec5543d16c9354a0c4fd720e7e2a04"
+    },
+    {
+      "path": "sdk/examples/keyring/src/app.rs",
+      "group": "sdk_application_sources",
+      "bytes": 11817,
+      "sha256": "0ae502e58b2de4f6c3ea22d8b0e2e96306307c9f2d8c230febbd339ed41a5c78"
+    },
+    {
+      "path": "sdk/examples/keyring/src/service.rs",
+      "group": "sdk_application_sources",
+      "bytes": 20261,
+      "sha256": "8404e258fe84df486c9b946c01ea45f2d9d490d590b7329197b36cb24e94bab6"
+    },
+    {
+      "path": "sdk/examples/keyring/src/support.rs",
+      "group": "sdk_application_sources",
+      "bytes": 3251,
+      "sha256": "49ec8c4262565568966b258f9b5e63d07b72341ad67224d06d3d92925c838ccf"
+    },
+    {
+      "path": "sdk/examples/materiaal/src/bootstrap.rs",
+      "group": "sdk_application_sources",
+      "bytes": 2921,
+      "sha256": "13f1cfb15d668abb6ba03e2951f5f9ba6b52276d4e941b21d46023573b3c78ed"
+    },
+    {
+      "path": "sdk/examples/materiaal/src/idle.rs",
+      "group": "sdk_application_sources",
+      "bytes": 3590,
+      "sha256": "965eb3880f8c805e2b283feb2f3407273037561ba8200bbbf61b57b8edbb0980"
+    },
+    {
+      "path": "sdk/examples/materiaal/src/lib.rs",
+      "group": "sdk_application_sources",
+      "bytes": 29060,
+      "sha256": "719ddd52080ada363bff4037712b8dfe98f46d97ff969275b61af99ce013d91f"
+    },
+    {
+      "path": "sdk/examples/materiaal/src/main.rs",
+      "group": "sdk_application_sources",
+      "bytes": 12777,
+      "sha256": "4932db6b598fcd7df25eb398ad8edbcfd3df5b0853e3e93ecbd3636a95197d13"
+    },
+    {
+      "path": "sdk/examples/memory/src/contract.rs",
+      "group": "sdk_application_sources",
+      "bytes": 909,
+      "sha256": "232782c01960272da81c0dbb9f9cdddb77f46b1e6f0ea07f8995fdcc1a140f5f"
+    },
+    {
+      "path": "sdk/examples/memory/src/main.rs",
+      "group": "sdk_application_sources",
+      "bytes": 14034,
+      "sha256": "f97467d6fb970cbd21d0f59cbae7535e3b015a464e120adc316baab9aba15471"
+    },
+    {
+      "path": "sdk/examples/net-probe/src/main.rs",
+      "group": "sdk_application_sources",
+      "bytes": 10694,
+      "sha256": "3a3056baba8fb1c691fcc4f958eab4a30b7b4ce6f7cde1a3a94c29f1f136aa90"
+    },
+    {
+      "path": "sdk/examples/network-service/src/client.rs",
+      "group": "sdk_application_sources",
+      "bytes": 29459,
+      "sha256": "0c5c20b9901add14d804a106744813b69e6e03bf6e75f5226da037308eb6ed5e"
+    },
+    {
+      "path": "sdk/examples/network-service/src/service.rs",
+      "group": "sdk_application_sources",
+      "bytes": 14697,
+      "sha256": "46acd994b95aac22f8bd345e61cf11fbc2663813f5aec52617651faf5265f4e8"
+    },
+    {
+      "path": "sdk/examples/presentation/src/lib.rs",
+      "group": "sdk_application_sources",
+      "bytes": 5955,
+      "sha256": "da6eec19ef20bb9d25f0793af11bb7ef1d98ffefbba8d30859d1a2864d625d86"
+    },
+    {
+      "path": "sdk/examples/presentation/src/main.rs",
+      "group": "sdk_application_sources",
+      "bytes": 2845,
+      "sha256": "5d72a452b53919d7ab5347a63f17618f55058c766adab19f1871781388b2ad16"
+    },
+    {
+      "path": "sdk/examples/random-probe/src/contract.rs",
+      "group": "sdk_application_sources",
+      "bytes": 3499,
+      "sha256": "801a25556ebd546c9e16bf1ee0e1b8220fa0ff33885c545adfccc9bfa5c8d8e7"
+    },
+    {
+      "path": "sdk/examples/random-probe/src/lib.rs",
+      "group": "sdk_application_sources",
+      "bytes": 67,
+      "sha256": "b62eedefd2365a3292969cc18a25aca678b570abe9ed97dfa3df5307c5f7fe61"
+    },
+    {
+      "path": "sdk/examples/random-probe/src/main.rs",
+      "group": "sdk_application_sources",
+      "bytes": 15655,
+      "sha256": "ee04fa13bf7dbfba3f7282b318f2cb0ae82251e22056b50449b1438caad16dfe"
+    },
+    {
+      "path": "sdk/examples/random-probe/src/wire.rs",
+      "group": "sdk_application_sources",
+      "bytes": 2153,
+      "sha256": "2a1a9a8d4a20ea1850b26282e8b0acc3f42de11df540457f741f9c2aa885fb3a"
+    },
+    {
+      "path": "sdk/examples/spreadsheet/src/lib.rs",
+      "group": "sdk_application_sources",
+      "bytes": 9288,
+      "sha256": "306e68deb91b88af29f00c25ca46607e0d21edd1db85ce7ee7f23878222fe622"
+    },
+    {
+      "path": "sdk/examples/spreadsheet/src/main.rs",
+      "group": "sdk_application_sources",
+      "bytes": 2148,
+      "sha256": "3ded2c11052ad393b3ba4975778ab6b570db2570c523eebb1c6b85e2f54e03ed"
+    },
+    {
+      "path": "sdk/examples/supervisor/src/client.rs",
+      "group": "sdk_application_sources",
+      "bytes": 10634,
+      "sha256": "8068c8485acad8738c84527c3f931654682a9409e7dd85e4c97cd397a2974f23"
+    },
+    {
+      "path": "sdk/examples/supervisor/src/protocol.rs",
+      "group": "sdk_application_sources",
+      "bytes": 4033,
+      "sha256": "14d0a1ea88a8ddc23f2b2fc665602a9e17ac4f1187494359c07355e6928ae4ba"
+    },
+    {
+      "path": "sdk/examples/supervisor/src/supervisor.rs",
+      "group": "sdk_application_sources",
+      "bytes": 23920,
+      "sha256": "fbf9c64a2c26f1bed9e3e49a732f6d554347a2b3171dff70be48b9726435f7f5"
+    },
+    {
+      "path": "sdk/examples/supervisor/src/support.rs",
+      "group": "sdk_application_sources",
+      "bytes": 3273,
+      "sha256": "2d400dfa9bed7e23bec928ae2929ac4e117054ed9bf05e3ed15fe069cd353c03"
+    },
+    {
+      "path": "sdk/examples/supervisor/src/worker.rs",
+      "group": "sdk_application_sources",
+      "bytes": 6556,
+      "sha256": "6319ad6e6cdba25746f19d7771c6f3db19f9b25769c75819eb315951c6a42bcc"
+    },
+    {
+      "path": "sdk/examples/system/src/app.rs",
+      "group": "sdk_application_sources",
+      "bytes": 26547,
+      "sha256": "e192fd5f1de1f080ff99f05e232a3e2be5157b7c23ac7d3585a716fc6aec137d"
+    },
+    {
+      "path": "sdk/examples/system/src/init.rs",
+      "group": "sdk_application_sources",
+      "bytes": 13182,
+      "sha256": "236685ef3e00c4b7c090644bb2d6f39be77c9800672f8aa231663650b3bd8e44"
+    },
+    {
+      "path": "sdk/examples/system/src/protocol.rs",
+      "group": "sdk_application_sources",
+      "bytes": 5108,
+      "sha256": "60540feabddaca02e4b0684a261ffbf300c289fa491ae74b64204d4b831e6d33"
+    },
+    {
+      "path": "sdk/examples/system/src/support.rs",
+      "group": "sdk_application_sources",
+      "bytes": 3242,
+      "sha256": "d898943c14e0901d47f98feb6e5a81e333926fc94dc3e431f4c01565fd1fd2c1"
+    },
+    {
+      "path": "sdk/examples/system/src/worker.rs",
+      "group": "sdk_application_sources",
+      "bytes": 797,
+      "sha256": "595a93c88b3d0d37eb35a6d631e5e50c71d784be2e6a0b3e1237710f4fb614dd"
+    },
+    {
+      "path": "sdk/examples/table-editor/src/lib.rs",
+      "group": "sdk_application_sources",
+      "bytes": 9092,
+      "sha256": "87a827890583431ab31f1e90cac6f6323301a7d2c2c8fb59eadbd9555cab257b"
+    },
+    {
+      "path": "sdk/examples/table-editor/src/main.rs",
+      "group": "sdk_application_sources",
+      "bytes": 1982,
+      "sha256": "24832f18a19c177aea8681ef55cde92f5d7a77d2d4d22628137c9ec8738ee2b6"
+    },
+    {
+      "path": "sdk/examples/tcp-probe/src/contract.rs",
+      "group": "sdk_application_sources",
+      "bytes": 602,
+      "sha256": "70752a15a186f9dd89c7b655a0c9c9c34620c3b0a4cc40a196d8ee9fdfd0d153"
+    },
+    {
+      "path": "sdk/examples/tcp-probe/src/main.rs",
+      "group": "sdk_application_sources",
+      "bytes": 12366,
+      "sha256": "0ad0fd208c166615f0234aacddf9c1d78d3b76a0cc3557ebfd2b8165178752b4"
+    },
+    {
+      "path": "sdk/examples/update/src/service.rs",
+      "group": "sdk_application_sources",
+      "bytes": 12419,
+      "sha256": "a6e41dddaf050588f3129c7950202fb8ac7cda89d2c001020516d707a1a6052b"
+    },
+    {
+      "path": "sdk/examples/update/src/support.rs",
+      "group": "sdk_application_sources",
+      "bytes": 3249,
+      "sha256": "c22cb41d38e8ae9bff2efc5f4f408dae2f94f179836eb81b5d79bd00a810bb2b"
+    },
+    {
+      "path": "sdk/examples/volume-docs/src/app.rs",
+      "group": "sdk_application_sources",
+      "bytes": 42494,
+      "sha256": "15e8c8b6247a1972fc33ce9c6eb6086500a666a6ffb4c239351e02bc2e19a936"
+    },
+    {
+      "path": "sdk/examples/volume-docs/src/disk.rs",
+      "group": "sdk_application_sources",
+      "bytes": 1854,
+      "sha256": "b8567702814e4d7f65bc9bc613821165d1cd12f11facc90d9ec9beb3d1522976"
+    },
+    {
+      "path": "sdk/examples/volume-docs/src/service.rs",
+      "group": "sdk_application_sources",
+      "bytes": 7203,
+      "sha256": "3c91acf250818d788aec4d57a0182d4f7224cbb9c91e6e047a4c41232f8ff92f"
+    },
+    {
+      "path": "sdk/examples/volume-docs/src/support.rs",
+      "group": "sdk_application_sources",
+      "bytes": 3202,
+      "sha256": "c739d1cd32936944c2f47cb98f416265f38cc60193f73cf04b6c34d2602a6d4b"
+    },
+    {
+      "path": "sdk/examples/window-session/src/boot.rs",
+      "group": "sdk_application_sources",
+      "bytes": 4185,
+      "sha256": "99ae56ab43bc0b18727bf3d84e08243d43e4021af16acb902fabbb4e3311f373"
+    },
+    {
+      "path": "sdk/examples/window-session/src/clipboard.rs",
+      "group": "sdk_application_sources",
+      "bytes": 7552,
+      "sha256": "4e4649d8bf6f265b31dd9560696518e1c0df7abb17a9355bba49d3968fb29a8d"
+    },
+    {
+      "path": "sdk/examples/window-session/src/hid_probe.rs",
+      "group": "sdk_application_sources",
+      "bytes": 7575,
+      "sha256": "d4b973e6b0bc34fce997eb831e8cbda05f856540b5fc11865be272f1fb168dc8"
+    },
+    {
+      "path": "sdk/examples/window-session/src/idle.rs",
+      "group": "sdk_application_sources",
+      "bytes": 3859,
+      "sha256": "850344b0933bda24e6a4ccbfa9f31c132a23cecbfe6bd00c0da9191f4358acbc"
+    },
+    {
+      "path": "sdk/examples/window-session/src/init.rs",
+      "group": "sdk_application_sources",
+      "bytes": 9637,
+      "sha256": "38fa08adc849786ca5ffe793f642206d7764d6cfbacb4fe2b57609296b6f039b"
+    },
+    {
+      "path": "sdk/examples/window-session/src/input.rs",
+      "group": "sdk_application_sources",
+      "bytes": 10468,
+      "sha256": "aaf5c86d714bb204814757ffecc507382cd60a2c701ae75c9168e49a8a94875a"
+    },
+    {
+      "path": "sdk/examples/window-session/src/lib.rs",
+      "group": "sdk_application_sources",
+      "bytes": 486,
+      "sha256": "a3d8de2edccd2e3c5d441e5a968e6dccba7f26bb80cb38863ff44f693ce1a0eb"
+    },
+    {
+      "path": "sdk/examples/window-session/src/main.rs",
+      "group": "sdk_application_sources",
+      "bytes": 37528,
+      "sha256": "893344d228aaa86e40409aaeaacaa4b8743b65116bd2b2ecd19c7cdfc85c9027"
+    },
+    {
+      "path": "sdk/examples/window-session/src/probe.rs",
+      "group": "sdk_application_sources",
+      "bytes": 4702,
+      "sha256": "06be922b3d3223735b10f30224b3c8c9e5055423d55e811d4ce7f16016236a6a"
+    },
+    {
+      "path": "sdk/examples/window-session/src/recovery.rs",
+      "group": "sdk_application_sources",
+      "bytes": 3721,
+      "sha256": "6a9ed215cfc81c78a10fdb00fd6945b2a8164cd70faf981df1159e27fd55ea11"
+    },
+    {
+      "path": "sdk/examples/window-session/src/scene.rs",
+      "group": "sdk_application_sources",
+      "bytes": 85286,
+      "sha256": "fa5d4465dd2dc353f2a271befab9843e65df2135b2540628ecc76e0bdf71fc0b"
+    },
+    {
+      "path": "sdk/examples/window-session/src/shell.rs",
+      "group": "sdk_application_sources",
+      "bytes": 32356,
+      "sha256": "97aa73dd6af1680389bfb6fbf8ad0699c4370d08c6fbf6f93521499e12f4b4f8"
+    },
+    {
+      "path": "sdk/examples/window-session/src/surface.rs",
+      "group": "sdk_application_sources",
+      "bytes": 2927,
+      "sha256": "6228555b84ee2584e7fb0147131c6e1cf75597626e1891bc99ae2bffa4267ac3"
+    },
+    {
+      "path": "userspace/document_session_probe.rs",
+      "group": "userspace_diagnostics_and_probes",
+      "bytes": 5493,
+      "sha256": "12152c588b8c3730878d8c249cbc379ee9035cae1441a14a195796c9d13f6692"
+    },
+    {
+      "path": "userspace/ipc_probe.rs",
+      "group": "userspace_diagnostics_and_probes",
+      "bytes": 5700,
+      "sha256": "1b82644c161b25b2eec7087e20aaacc3335480f106d149145eed8668a27dcf74"
+    },
+    {
+      "path": "userspace/m5_probe.rs",
+      "group": "userspace_diagnostics_and_probes",
+      "bytes": 10328,
+      "sha256": "5da71bb42e801bfb754d3834e9ac60d8630d9e3a6a53b64fd38d516ffa2a3633"
+    },
+    {
+      "path": "userspace/m5_runtime.rs",
+      "group": "userspace_diagnostics_and_probes",
+      "bytes": 7527,
+      "sha256": "4c5181c2573e50c3bde00149ca677d4f5b1905267f1c6c1153f9037460d4f89c"
+    },
+    {
+      "path": "userspace/m6_probe.rs",
+      "group": "userspace_diagnostics_and_probes",
+      "bytes": 9156,
+      "sha256": "bdbf3e8fa8708cd28b2676bf6cdb263e6da72b5ce0d7549860d20754418f192c"
+    },
+    {
+      "path": "userspace/m6_runtime.rs",
+      "group": "userspace_diagnostics_and_probes",
+      "bytes": 7734,
+      "sha256": "d9d53fb22821eeeffaf17a1162089217abc17eff06d5b5cdf86962009da56be5"
+    },
+    {
+      "path": "userspace/m6b_probe.rs",
+      "group": "userspace_diagnostics_and_probes",
+      "bytes": 10164,
+      "sha256": "177955b0cdc3da40d16a5b24df1ca281d41f3f5c339656cdf58baf5601463eac"
+    },
+    {
+      "path": "userspace/m6c_probe.rs",
+      "group": "userspace_diagnostics_and_probes",
+      "bytes": 19341,
+      "sha256": "5ecda84b213a0108f7ca1d3b7c84db8ddc1b2cfd6143ba5c7fad59917db9d34a"
+    },
+    {
+      "path": "userspace/probe.rs",
+      "group": "userspace_diagnostics_and_probes",
+      "bytes": 10612,
+      "sha256": "be4ee00efd516458411f77a57cff224d6c7111568d6b67000c9026d4de6cef22"
+    },
+    {
+      "path": "userspace/sdk_probe_runtime.rs",
+      "group": "userspace_diagnostics_and_probes",
+      "bytes": 5346,
+      "sha256": "b21c5e575fbf34589b1aca96afc8d128ac1f57e34d4a5e212b8c0aa27d1dcf76"
+    },
+    {
+      "path": "userspace/smp_unmap.rs",
+      "group": "userspace_diagnostics_and_probes",
+      "bytes": 1818,
+      "sha256": "3cd25d6a965d670b44cfe7e5708f52aee1a9e724061a213e9e7ef084ce2d9024"
+    },
+    {
+      "path": "boot/loader/src/graphics.rs",
+      "group": "boot_loader_diagnostics",
+      "bytes": 4126,
+      "sha256": "c2c5857952d874229ae1cfeef8ec1666f7bc14bc7b089263c660b7716f6ee99e"
+    },
+    {
+      "path": "boot/loader/src/handoff.S",
+      "group": "boot_loader_diagnostics",
+      "bytes": 302,
+      "sha256": "7dcc6d3efdb480b2b73528fe830ab046b468ca509ddb36901d32d71876c8c933"
+    },
+    {
+      "path": "boot/loader/src/main.rs",
+      "group": "boot_loader_diagnostics",
+      "bytes": 337,
+      "sha256": "f7102f5d1a7469a7f034f690762fb23364ec928cede85a9d24240eaa6d77fc1e"
+    },
+    {
+      "path": "boot/loader/src/main_default.rs",
+      "group": "boot_loader_diagnostics",
+      "bytes": 30523,
+      "sha256": "f66646dd01c7252eb3a0fe9439ce03c397adf637c659d5380e0ca9750f1cdec0"
+    },
+    {
+      "path": "boot/loader/src/main_legacy.rs",
+      "group": "boot_loader_diagnostics",
+      "bytes": 37146,
+      "sha256": "cec8dfcf8efa63ede28982bfec2cdfb245dd51cce4081526efbfeb96a232e975"
+    },
+    {
+      "path": "boot/loader/src/memory.rs",
+      "group": "boot_loader_diagnostics",
+      "bytes": 2626,
+      "sha256": "e439d1887b9d2946d38f31b5f1770b0a0d98beec60117638a6510ad50e426e81"
+    },
+    {
+      "path": "boot/loader/src/serial.rs",
+      "group": "boot_loader_diagnostics",
+      "bytes": 2458,
+      "sha256": "0fe305bd2ec153fb35d91a8c65bdff75e80a76682550bcb47b60ad9b04fd2a8e"
+    },
+    {
+      "path": "boot/loader/src/signed.rs",
+      "group": "boot_loader_diagnostics",
+      "bytes": 13080,
+      "sha256": "e93d1e1e09831f00af22e072c9ca41dcdd102aed49cb097d0b2ed6894da8a50b"
+    },
+    {
+      "path": "kernel/src/main.rs",
+      "group": "boot_kernel_entry_serial",
+      "bytes": 7866,
+      "sha256": "9eda89a7e92df971533222166f874f1ab3ea0ab8b76a1bc94cc81fe0503bfd1b"
+    },
+    {
+      "path": "kernel/src/serial.rs",
+      "group": "boot_kernel_entry_serial",
+      "bytes": 6872,
+      "sha256": "35816aa8731c90ce744a88a3e818c92722a773a0c78e4f3db6f4c7b808864c9d"
+    }
+  ],
+  "limits": [
+    "Lexical candidates require manual contextual classification.",
+    "No source, UI, HTML, JavaScript or Markdown was changed.",
+    "Tests, binary assets, CSS and generated font data are excluded.",
+    "This does not prove complete OS localisation or dynamic user-content language."
+  ]
+}

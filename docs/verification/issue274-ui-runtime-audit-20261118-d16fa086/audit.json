@@ -1,0 +1,431 @@
+{
+  "schema_version": 1,
+  "status": "completed bounded read-only audit; localisation gaps remain",
+  "source_commit": "d16fa0862a42d83f7de7fda8dd2de54357d3e533",
+  "source_fingerprint_version": 3,
+  "source_sha256": "42163e2d99138eecda0977feab534c5eebb9f77bc25a2e04abd5f2d28752be92",
+  "scope_file": "scope.json",
+  "scope_counts": {
+    "native_ui": 8,
+    "design_prototype_and_consumers": 12,
+    "legacy_browser_prototype": 6,
+    "sdk_application_sources": 113,
+    "userspace_diagnostics_and_probes": 11,
+    "boot_loader_diagnostics": 8,
+    "boot_kernel_entry_serial": 2
+  },
+  "literal_inventory": {
+    "count": 6258,
+    "dutch_lexical_candidates": 1439,
+    "language_heuristic_limit": "A lexical candidate count is not a count of verified public Dutch labels. For example assembly je, identifiers, sample material and tests produce false positives.",
+    "context_review": "Reviewed native/shell human-candidate rows (243), other SDK human-candidate rows (166), catalogue declarations and selected values/consumers, HTML/JSX declarations, all locale-mechanism matches, and diagnostic/probe categories. All 6,258 literal candidates are retained for reproduction, not claimed individually semantically reviewed."
+  },
+  "findings": [
+    {
+      "id": "UI01",
+      "title": "Native document controls and accessible labels",
+      "classification": "genuine public Dutch UI and accessibility text",
+      "actual_localisation_mechanism": "Hard-coded Rust labels; menu_label(index, tool) has no locale argument. The same provider is called by render_tile and visit_semantics.",
+      "evidence": [
+        {
+          "path": "ui/native/src/render.rs",
+          "sha256": "2412bc6cbddabf93081042ef43952bb431200bf6a9eaca60567e85878c9d4dad",
+          "first_line": 1738,
+          "last_line": 1748,
+          "excerpt": "fn menu_label(index: usize, tool: DocumentTool) -> &'static str {\n    match index {\n        0 => \"Alles selecteren\",\n        1 => match tool {\n            DocumentTool::Write => \"Lezen\",\n            DocumentTool::Read => \"Schrijven\",\n        },\n        2 => \"Opslaan\",\n        _ => \"Annuleren\",\n    }\n}"
+        },
+        {
+          "path": "ui/native/src/render.rs",
+          "sha256": "2412bc6cbddabf93081042ef43952bb431200bf6a9eaca60567e85878c9d4dad",
+          "first_line": 1243,
+          "last_line": 1256,
+          "excerpt": "                    SemanticId::LibrarySearch,\n                    Some(SemanticId::Window),\n                    Role::TextEditor,\n                    \"Zoek in Nebula · Ctrl+F\",\n                    Some(self.view.workspace.query()),\n                    l.search,\n                    Some(Focus::Search),\n                    true,\n                );\n                push(\n                    SemanticId::CollectionFilter,\n                    Some(SemanticId::Window),\n                    Role::Button,\n                    \"Collectie kiezen\","
+        }
+      ],
+      "preservation_reason_for_this_audit": "Genuine public Dutch text is recorded as an actionable localisation gap. The read-only audit preserves the existing UI owner work and source-bound visual/native evidence; it does not classify these strings as fixtures or waive the gap.",
+      "follow_up": "U01/native UI owner: introduce a reviewed locale catalogue with stable message IDs and explicit locale/fallback; use the same catalogue for pixels and accessibility semantics; verify widths, focus, both native scales and preserved security-warning meaning."
+    },
+    {
+      "id": "UI02",
+      "title": "Native status, failure and recovery messages",
+      "classification": "genuine public Dutch runtime text",
+      "actual_localisation_mechanism": "status_label(Status) returns fixed Dutch strings; pixel, semantic, desktop and workspace paths use this provider.",
+      "evidence": [
+        {
+          "path": "ui/native/src/render.rs",
+          "sha256": "2412bc6cbddabf93081042ef43952bb431200bf6a9eaca60567e85878c9d4dad",
+          "first_line": 1750,
+          "last_line": 1766,
+          "excerpt": "pub fn status_label(status: Status) -> &'static str {\n    use nieuw_os_document_session::volume::Error as S;\n    match status {\n        Status::Ready => \"Je materiaal op dit apparaat.\",\n        Status::ReadOnly => \"Alleen lezen op dit apparaat.\",\n        Status::Opened => \"Document geopend.\",\n        Status::Dirty => \"Wijzigingen nog niet opgeslagen.\",\n        Status::Saving { .. } => \"Opslaan...\",\n        Status::Saved { .. } => \"Op dit apparaat opgeslagen.\",\n        Status::Renamed => \"Naam gewijzigd. Bewaar om de wijziging vast te leggen.\",\n        Status::Organized { .. } => \"Document in de collectie bewaard.\",\n        Status::Restored { .. } => \"Eerdere inhoud als nieuwe revisie bewaard.\",\n        Status::RestoreRefreshFailed { .. } => {\n            \"Herstel bewaard; opnieuw lezen mislukt. Bewerk deze oude weergave niet.\"\n        }\n        Status::NeedsSave => \"Bewaar eerst je wijzigingen of ga verder met bewerken.\",\n        Status::CollectionSavedAssignmentFailed => \"Collectie bewaard; document niet verplaatst. Heropen het document voordat je opnieuw ordent.\","
+        },
+        {
+          "path": "ui/native/src/render.rs",
+          "sha256": "2412bc6cbddabf93081042ef43952bb431200bf6a9eaca60567e85878c9d4dad",
+          "first_line": 1770,
+          "last_line": 1794,
+          "excerpt": "        Status::Cancelled => \"Opslaan geannuleerd. Je tekst blijft open.\",\n        Status::InputLost => \"Invoer onderbroken. Je tekst blijft open.\",\n        Status::ClipboardCopied => \"Tekst gekopieerd.\",\n        Status::ClipboardEmpty => \"Het klembord is leeg.\",\n        Status::ClipboardSelection => \"Selecteer eerst tekst.\",\n        Status::ClipboardTooLong => \"Deze selectie past nog niet op het klembord.\",\n        Status::ClipboardUnavailable => \"Kopiëren of plakken onderbroken. Probeer opnieuw.\",\n        Status::Failed(UiError::InvalidUtf8) => \"Dit bestand is geen geldige UTF-8-tekst.\",\n        Status::Failed(UiError::NoFreeObject) => \"Er is geen ruimte voor een nieuw document.\",\n        Status::Failed(UiError::Storage(S::ReadOnly)) => {\n            \"Alleen lezen: wijzigen is niet toegestaan.\"\n        }\n        Status::Failed(UiError::Storage(S::ContentTooLarge)) => {\n            \"Tekst past niet in de beschikbare ruimte.\"\n        }\n        Status::Failed(UiError::Storage(S::Conflict)) => {\n            \"Er is een nieuwe versie. Je tekst blijft open.\"\n        }\n        Status::Failed(UiError::Storage(S::Uncertain)) => \"Opslag onzeker. Je tekst blijft open.\",\n        Status::Failed(UiError::Storage(S::Closed)) => {\n            \"Opslagverbinding verbroken. Tekst blijft open.\"\n        }\n        Status::Failed(UiError::Storage(S::Busy)) => \"Opslaan loopt al. Je tekst blijft open.\",\n        Status::Failed(_) => \"Handeling mislukt. Je tekst blijft open.\",\n    }"
+        }
+      ],
+      "preservation_reason_for_this_audit": "Genuine public Dutch text is recorded as an actionable localisation gap. The read-only audit preserves the existing UI owner work and source-bound visual/native evidence; it does not classify these strings as fixtures or waive the gap.",
+      "follow_up": "U01/native UI owner: introduce a reviewed locale catalogue with stable message IDs and explicit locale/fallback; use the same catalogue for pixels and accessibility semantics; verify widths, focus, both native scales and preserved security-warning meaning."
+    },
+    {
+      "id": "UI03",
+      "title": "Native sign-in, desktop and test-session caveats",
+      "classification": "genuine public Dutch labels with explicit VM/test limitations",
+      "actual_localisation_mechanism": "Fixed text in native desktop/rendering; no locale selection is present in the reviewed provider API.",
+      "evidence": [
+        {
+          "path": "ui/native/src/desktop.rs",
+          "sha256": "5c257f7f2088c9e2d666516b62633a4568f55c728de1449560af42c0ed319354",
+          "first_line": 187,
+          "last_line": 195,
+          "excerpt": "                        if compact { 152 } else { 232 },\n                        if compact { 56 } else { 76 },\n                    ),\n                    \"Eigen gebruiker\",\n                )),\n                None,\n                None,\n                None,\n                None,"
+        },
+        {
+          "path": "ui/native/src/render.rs",
+          "sha256": "2412bc6cbddabf93081042ef43952bb431200bf6a9eaca60567e85878c9d4dad",
+          "first_line": 2577,
+          "last_line": 2585,
+          "excerpt": "                        y + 370,\n                        if desktop.page() == Page::Accounts {\n                            \"Nieuw OS · Horizon\"\n                        } else if desktop.is_guest() {\n                            \"Gast (VM-test) · uitsluitend testgegevens\"\n                        } else {\n                            \"Authenticatie is in deze testversie niet beschikbaar.\"\n                        },\n                        shell_muted,"
+        }
+      ],
+      "preservation_reason_for_this_audit": "Genuine public Dutch text is recorded as an actionable localisation gap. The read-only audit preserves the existing UI owner work and source-bound visual/native evidence; it does not classify these strings as fixtures or waive the gap. Any future translation must retain the warning that authentication is unavailable in this test version.",
+      "follow_up": "U01/native UI owner: introduce a reviewed locale catalogue with stable message IDs and explicit locale/fallback; use the same catalogue for pixels and accessibility semantics; verify widths, focus, both native scales and preserved security-warning meaning."
+    },
+    {
+      "id": "UI04",
+      "title": "Window-session shell, switcher and clipboard",
+      "classification": "genuine public Dutch native application/shell text",
+      "actual_localisation_mechanism": "Fixed Rust shell and scene strings; typed state selects messages, not a locale catalogue.",
+      "evidence": [
+        {
+          "path": "sdk/examples/window-session/src/clipboard.rs",
+          "sha256": "4e4649d8bf6f265b31dd9560696518e1c0df7abb17a9355bba49d3968fb29a8d",
+          "first_line": 18,
+          "last_line": 27,
+          "excerpt": "    pub const fn label(self) -> &'static str {\n        match self {\n            Self::None => \"\",\n            Self::Copied => \"Tekst gekopieerd\",\n            Self::Offered => \"Plakken aangeboden\",\n            Self::Cleared => \"Klembord leeg\",\n            Self::Empty => \"Geen gekopieerde tekst\",\n            Self::Denied => \"Klembordactie vervallen\",\n        }\n    }"
+        },
+        {
+          "path": "sdk/examples/window-session/src/shell.rs",
+          "sha256": "97aa73dd6af1680389bfb6fbf8ad0699c4370d08c6fbf6f93521499e12f4b4f8",
+          "first_line": 243,
+          "last_line": 274,
+          "excerpt": "                (p.height / scale) as i32 - 68,\n                \"Aanmelden\",\n                Icon::User,\n                1,\n            ),\n            Page::Users => {\n                add(0, 112, \"VM-gast · openbare testsessie\", Icon::User, 2);\n                add(\n                    1,\n                    176,\n                    \"Lokale gebruiker · nog niet gekoppeld\",\n                    Icon::User,\n                    3,\n                );\n                add(2, 264, \"Terug naar vergrendelscherm\", Icon::ChevronLeft, 4);\n            }\n            Page::Auth => {\n                if self.flow.selected_account() == Some(Account::VmGuest) {\n                    add(0, 168, \"Open testsessie\", Icon::ChevronRight, 5);\n                    add(1, 232, \"Andere gebruiker\", Icon::User, 1);\n                } else {\n                    add(0, 112, \"Wachtwoord · dienst niet beschikbaar\", Icon::Key, 6);\n                    add(\n                        1,\n                        168,\n                        \"Vingerafdruk · sensor niet beschikbaar\",\n                        Icon::Fingerprint,\n                        7,\n                    );\n                    add(2, 224, \"FIDO2-sleutel · geen apparaatdienst\", Icon::Key, 8);\n                    add(3, 296, \"Andere gebruiker\", Icon::ChevronLeft, 1);\n                }"
+        },
+        {
+          "path": "sdk/examples/window-session/src/scene.rs",
+          "sha256": "fa5d4465dd2dc353f2a271befab9843e65df2135b2540628ecc76e0bdf71fc0b",
+          "first_line": 1901,
+          "last_line": 1915,
+          "excerpt": "                card.y + 152 * s as i32,\n                if selected {\n                    \"Geselecteerd\"\n                } else {\n                    \"Open venster\"\n                },\n                small,\n                p.muted,\n            );\n        }\n        c.text(\n            r.x + 26 * s as i32,\n            r.y + 250 * s as i32,\n            \"Tab kiezen · Alt los / Enter openen · Esc terug\",\n            small,"
+        }
+      ],
+      "preservation_reason_for_this_audit": "Genuine public Dutch text is recorded as an actionable localisation gap. The read-only audit preserves the existing UI owner work and source-bound visual/native evidence; it does not classify these strings as fixtures or waive the gap.",
+      "follow_up": "U01/native UI owner: introduce a reviewed locale catalogue with stable message IDs and explicit locale/fallback; use the same catalogue for pixels and accessibility semantics; verify widths, focus, both native scales and preserved security-warning meaning."
+    },
+    {
+      "id": "UI05",
+      "title": "Calculator notices and arithmetic labels",
+      "classification": "genuine public Dutch application error/status text",
+      "actual_localisation_mechanism": "decimal::Error::label and model::Notice::label return Dutch static strings; model.rs:72 calls error.label and status() uses notice.label. This is not a translated fixture.",
+      "evidence": [
+        {
+          "path": "sdk/examples/calculator/src/decimal.rs",
+          "sha256": "acafe4526892bb25de3d60400093bf776874103dea559460b0ea17210833adb2",
+          "first_line": 26,
+          "last_line": 38,
+          "excerpt": "    const fn new(kind: Kind, position: usize) -> Self {\n        Self { kind, position }\n    }\n    pub const fn label(self) -> &'static str {\n        match self.kind {\n            Kind::Empty => \"Voer een berekening in.\",\n            Kind::Syntax => \"Controleer de berekening.\",\n            Kind::DivideByZero => \"Delen door nul kan niet.\",\n            Kind::Range => \"Getal buiten bereik: maximaal 10 gehele cijfers.\",\n            Kind::TooLong => \"Maximaal 256 tekens. Je invoer blijft behouden.\",\n            Kind::Nesting => \"Maximaal 32 geneste tekens. Je invoer blijft behouden.\",\n            Kind::Unsupported => \"Gebruik cijfers, + - * / ( ) en een komma of punt.\",\n        }"
+        },
+        {
+          "path": "sdk/examples/calculator/src/model.rs",
+          "sha256": "e16b20365d15a196954b3672506f4b813a2e9131659cacd8ff2f4931d727797e",
+          "first_line": 55,
+          "last_line": 73,
+          "excerpt": "    pub const fn label(self) -> &'static str {\n        use decimal::Kind;\n        match self {\n            Self::None => \"\",\n            Self::TooLong => \"Maximaal 256 tekens.\",\n            Self::InputLost => \"Invoerverbinding verbroken.\",\n            Self::ClipboardCopied => \"Tekst gekopieerd.\",\n            Self::ClipboardEmpty => \"Het klembord is leeg.\",\n            Self::ClipboardSelection => \"Selecteer eerst tekst.\",\n            Self::ClipboardTooLong => \"Deze selectie past nog niet op het klembord.\",\n            Self::ClipboardUnavailable => \"Kopiëren of plakken onderbroken. Probeer opnieuw.\",\n            Self::ClipboardUnsupported => \"Plak cijfers, + - * / ( ) en een komma of punt.\",\n            Self::Arithmetic(error) => match error.kind {\n                Kind::Range => \"Maximaal 10 gehele cijfers.\",\n                Kind::Nesting => \"Maximaal 32 geneste tekens.\",\n                Kind::Unsupported => \"Dit teken kan hier niet.\",\n                Kind::TooLong => \"Maximaal 256 tekens.\",\n                _ => error.label(),\n            },"
+        }
+      ],
+      "preservation_reason_for_this_audit": "Genuine public Dutch text is recorded as an actionable localisation gap. The read-only audit preserves the existing UI owner work and source-bound visual/native evidence; it does not classify these strings as fixtures or waive the gap.",
+      "follow_up": "SDK/application owner coordinated with U01: retain typed errors, protocol/storage identifiers, arguments and data formats; localise human labels through an explicit locale mechanism and add meaningful locale/negative-case coverage before changing visual/native expectations."
+    },
+    {
+      "id": "UI06",
+      "title": "Image-viewer failure and state labels",
+      "classification": "genuine public Dutch application text",
+      "actual_localisation_mechanism": "Failure::label and viewer status match typed state to fixed Dutch strings, without locale input.",
+      "evidence": [
+        {
+          "path": "sdk/examples/image-viewer/src/lib.rs",
+          "sha256": "6e3bbb70a35626bcd652fd37c0bc9371717451f5c3e767701ced128b028d7d43",
+          "first_line": 40,
+          "last_line": 53,
+          "excerpt": "impl Failure {\n    pub const fn label(self) -> &'static str {\n        match self {\n            Self::Denied => \"Geen toegang tot deze afbeelding.\",\n            Self::Revoked => \"Toegang tot de afbeelding is ingetrokken.\",\n            Self::Stale => \"De gekozen versie is gewijzigd. Open opnieuw.\",\n            Self::Io => \"De afbeelding kon niet worden gelezen.\",\n            Self::TooLarge => \"De afbeelding past niet binnen het afgesproken geheugenbudget.\",\n            Self::Corrupt => \"De afbeelding is beschadigd.\",\n            Self::Unsupported => \"Dit afbeeldingsformaat wordt niet ondersteund.\",\n            Self::OutOfMemory => \"Onvoldoende geheugen om de afbeelding te openen.\",\n            Self::Cancelled => \"Openen geannuleerd.\",\n            Self::Decoder(_) => \"De afbeelding kon niet worden verwerkt.\",\n        }"
+        },
+        {
+          "path": "sdk/examples/image-viewer/src/lib.rs",
+          "sha256": "6e3bbb70a35626bcd652fd37c0bc9371717451f5c3e767701ced128b028d7d43",
+          "first_line": 372,
+          "last_line": 379,
+          "excerpt": "            state: self.state,\n            status: match self.state {\n                State::Empty => \"Geen afbeelding geopend.\",\n                State::Loading => \"Afbeelding openen.\",\n                State::Ready => \"Afbeelding geopend.\",\n                State::Failed(failure) => failure.label(),\n                State::Closed => \"Afbeeldingsviewer gesloten.\",\n            },"
+        }
+      ],
+      "preservation_reason_for_this_audit": "Genuine public Dutch text is recorded as an actionable localisation gap. The read-only audit preserves the existing UI owner work and source-bound visual/native evidence; it does not classify these strings as fixtures or waive the gap.",
+      "follow_up": "SDK/application owner coordinated with U01: retain typed errors, protocol/storage identifiers, arguments and data formats; localise human labels through an explicit locale mechanism and add meaningful locale/negative-case coverage before changing visual/native expectations."
+    },
+    {
+      "id": "UI07",
+      "title": "Spreadsheet, table and media/converter diagnostics",
+      "classification": "genuine public Dutch developer/application CLI messages",
+      "actual_localisation_mechanism": "Rust Display implementations and CLI errors contain Dutch prose; stable command flags and data formats are separate identifiers.",
+      "evidence": [
+        {
+          "path": "sdk/examples/spreadsheet/src/lib.rs",
+          "sha256": "306e68deb91b88af29f00c25ca46607e0d21edd1db85ce7ee7f23878222fe622",
+          "first_line": 78,
+          "last_line": 104,
+          "excerpt": "impl fmt::Display for CellError {\n    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {\n        match self {\n            Self::Cycle => f.write_str(\"circulaire celverwijzing\"),\n            Self::DependencyDepth => f.write_str(\"maximale afhankelijkheidsdiepte bereikt\"),\n            Self::MissingReference => f.write_str(\"verwezen cel ontbreekt\"),\n            Self::InvalidReference => f.write_str(\"ongeldige celverwijzing\"),\n            Self::InvalidNumber => f.write_str(\"ongeldig getal\"),\n            Self::ExpandedLimit => f.write_str(\"uitgebreide formule is te lang\"),\n            Self::Arithmetic(error) => write!(\n                f,\n                \"{} (positie {} in de geëvalueerde formule)\",\n                error.label(),\n                error.position\n            ),\n        }\n    }\n}\n\nimpl fmt::Display for Error {\n    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {\n        match self {\n            Self::InvalidAddress => f.write_str(\"ongeldig celadres (gebruik A1 t/m Z64)\"),\n            Self::InputLimit => f.write_str(\"celinvoer is ongeldig of te lang\"),\n            Self::CellLimit => f.write_str(\"maximaal 64 gevulde cellen\"),\n            Self::OutOfMemory => f.write_str(\"onvoldoende geheugen\"),\n            Self::Cell { address, kind } => write!(f, \"Cel {address}: {kind}\"),"
+        },
+        {
+          "path": "sdk/examples/document-import/src/main.rs",
+          "sha256": "006d1064421327e8bb70fcc560669cf6f362e5a6cbd1d03eb635350aea250201",
+          "first_line": 10,
+          "last_line": 15,
+          "excerpt": "\nfn run() -> Result<(), String> {\n    let args: Vec<_> = std::env::args_os().skip(1).collect();\n    if args.len() != 1 || args[0] != \"--plain-text\" {\n        return Err(\"gebruik: docx-text --plain-text < bron.docx > tekst.txt; verliest opmaak, importeert geen tabellen/velden/afbeeldingen/header- of footertekst\".into());\n    }"
+        },
+        {
+          "path": "sdk/examples/table-editor/src/main.rs",
+          "sha256": "24832f18a19c177aea8681ef55cde92f5d7a77d2d4d22628137c9ec8738ee2b6",
+          "first_line": 10,
+          "last_line": 18,
+          "excerpt": "            value\n                .into_string()\n                .map_err(|_| \"Argument is geen geldige UTF-8-tekst.\".to_string())\n        })\n        .collect::<Result<_, _>>()?;\n    if !args.len().is_multiple_of(4) || args.chunks(4).any(|edit| edit[0] != \"--set\") {\n        return Err(\n            \"Gebruik: table-csv [--set RIJ KOLOM TEKST]...; indices beginnen bij 1.\".into(),\n        );"
+        },
+        {
+          "path": "sdk/examples/image-crop/src/main.rs",
+          "sha256": "d9cfec3553d147877471216f5df15950b01177422e09a22e86481f1f7aebef31",
+          "first_line": 49,
+          "last_line": 57,
+          "excerpt": "    }\n    if !drop_metadata || !unmanaged {\n        return Err(\"vereist --drop-metadata --unmanaged-colour: uitvoer bewaart samples/alpha, niet metadata of ICC/gamma-kleurweergave\".into());\n    }\n    Ok(Rect {\n        x: x.ok_or(\"ontbreekt --x\")?,\n        y: y.ok_or(\"ontbreekt --y\")?,\n        width: width.ok_or(\"ontbreekt --width\")?,\n        height: height.ok_or(\"ontbreekt --height\")?,"
+        },
+        {
+          "path": "sdk/examples/audio-clip/src/main.rs",
+          "sha256": "14174518f5782995dc48e678af0e5659e47e2944b96dbd2508160f64d383890c",
+          "first_line": 24,
+          "last_line": 29,
+          "excerpt": "    let frames = number(args.next()).filter(|n| *n != 0).ok_or(usage)?;\n    let end = start\n        .checked_add(frames)\n        .ok_or(\"Framebereik buiten bereik.\")?;\n    let drop_metadata = match args.next() {\n        None => false,"
+        }
+      ],
+      "preservation_reason_for_this_audit": "Genuine public Dutch text is recorded as an actionable localisation gap. The read-only audit preserves the existing UI owner work and source-bound visual/native evidence; it does not classify these strings as fixtures or waive the gap.",
+      "follow_up": "SDK/application owner coordinated with U01: retain typed errors, protocol/storage identifiers, arguments and data formats; localise human labels through an explicit locale mechanism and add meaningful locale/negative-case coverage before changing visual/native expectations."
+    },
+    {
+      "id": "UI08",
+      "title": "Shared browser prototype catalogue",
+      "classification": "genuine public Dutch simulation UI catalogue",
+      "actual_localisation_mechanism": "T is one central Dutch object, including parameterised functions. It is re-exported by contract.js and imported by gallery.js. A catalogue is present; an English bundle, locale selector or fallback is not implemented in the reviewed scope.",
+      "evidence": [
+        {
+          "path": "ui/design/prototype/strings.js",
+          "sha256": "53e84f718a2bb29b8e5659d488df0f2947d1da5d713e307e37b253ed9e4785de",
+          "first_line": 1,
+          "last_line": 12,
+          "excerpt": "// Every user-visible string of the BaryonOS prototype (Dutch). Names follow\n// docs/design/NAMING-AND-IA.md (proposal P-NAMES-1); native strings are unchanged.\n// Functions are used where grammar depends on a value, never string fragments.\nexport const T = {\n  product: 'BaryonOS',\n  simulation: 'Simulatie · geen echt besturingssysteem',\n  simulationLong:\n    'Dit is een simulatie in de browser met voorbeeldgegevens. Er is geen echte beveiliging, versleuteling, opslag of netwerkverbinding.',\n\n  boot: { label: 'BaryonOS start', skip: 'Overslaan' },\n\n  lock: {"
+        },
+        {
+          "path": "ui/design/prototype/contract.js",
+          "sha256": "dbe3dcf793ed2be267d19b87b0d1ba5c84009d58f349d8ddeb6da27df44a70a5",
+          "first_line": 1,
+          "last_line": 10,
+          "excerpt": "// Shared contract of the BaryonOS prototype: DOM helper, event bus, in-memory\n// state and the file store. Simulation only: state lives in this page and is\n// lost on reload. Apps receive a ctx from the shell (see shell/windows.js):\n//   { open(appId, args), close(), setTitle(s), notify({title, body, actions}),\n//     ask(request), files, grants, store, t }   ask: see \"Permission prompts\" below\nimport { T } from './strings.js'\nimport { DATA } from './data.js'\nimport { ICONS } from './icons.js'\n\nexport { T, DATA }"
+        },
+        {
+          "path": "ui/design/system/gallery.js",
+          "sha256": "ab729d296d62f15b416d318a6cfea17cc44343cba4cb5af5265048dbe4075e4a",
+          "first_line": 1,
+          "last_line": 7,
+          "excerpt": "// BaryonOS design system ds-1.0: component gallery behaviour. DESIGN ARTEFACT, 14 November 2026; not a working OS.\n// Builds one specimen set per theme from <template id=\"tpl-panel\"> ({p} = id prefix, {k} = Kern theme, the opposite\n// theme per MF1), renders icons with contract.js icon(), lists token swatches, and wires keyboard behaviour:\n// Tab/Shift+Tab (native), Space/Enter (native buttons), arrows for tabs, listbox rows and menu (radios are native),\n// Escape closes the menu, dialogs and tooltips. Query: ?only=dark|light|contrast|scale|ref ?motion=reduce ?measure=1\nimport { icon, T, ask, setPrompt, grants, files, bus, destination } from '../prototype/contract.js'\nimport { ICONS } from './icons.js'"
+        }
+      ],
+      "preservation_reason_for_this_audit": "Retain the original P-NAMES-1 naming proposal and simulation/permission disclosures. This is public prototype UI text, not a protected test fixture and not a native implementation claim.",
+      "follow_up": "U01/UI design owner: keep catalogue message keys and parameter contracts, introduce explicit English/NL bundles and fallback handling, then verify all consumers and simulated-security disclosures."
+    },
+    {
+      "id": "UI09",
+      "title": "Legacy browser onboarding and search",
+      "classification": "genuine public Dutch simulation UI",
+      "actual_localisation_mechanism": "HTML declares lang=nl. The onboarding language control offers only Nederlands and explicitly says the demo is Dutch-only. broker.js uses toLocaleLowerCase(nl) for matching; this is not UI translation.",
+      "evidence": [
+        {
+          "path": "ui/prototype/index.html",
+          "sha256": "dddf09829040c2e8940f0e475a31403ae8b12082a80a4977bea26495403fd3fe",
+          "first_line": 1,
+          "last_line": 4,
+          "excerpt": "<!doctype html>\n<html lang=\"nl\">\n<head>\n  <meta charset=\"utf-8\">"
+        },
+        {
+          "path": "ui/prototype/app.js",
+          "sha256": "d25a8f334ef1ccfd911c835f6d67ea6912b4b0dff48a5292004d66bf2369fae3",
+          "first_line": 132,
+          "last_line": 139,
+          "excerpt": "function startScreen() {\n  const step = state.onboarding.step;\n  const titles = ['Een eigen plek om te werken.', 'Alles begint lokaal.', 'Jouw materiaal. Jouw plek.'];\n  const intro = ['Stel de bediening in. De rest kan later.', 'Een lokaal profiel is genoeg om te beginnen.', 'Bewaar je werk op dit apparaat. Je eigen NAS koppel je wanneer je wilt.'];\n  let body;\n  if (step === 1) body = `<label class=\"field\">Taal<select id=\"language\" aria-describedby=\"language-help\"><option>Nederlands</option></select></label><p class=\"meta\" id=\"language-help\">Deze eerste demo is beschikbaar in het Nederlands.</p><label class=\"checkbox\"><input id=\"reduce-motion\" type=\"checkbox\" ${state.onboarding.reducedMotion ? 'checked' : ''}>Minder beweging</label><p class=\"meta\">Alle handelingen werken ook met Tab, Shift+Tab en Enter.</p>`;\n  if (step === 2) body = `<label class=\"field\">Naam van je voorbeeldprofiel<input id=\"profile-name\" value=\"${escape(state.onboarding.name)}\" maxlength=\"40\" autocomplete=\"off\" aria-describedby=\"profile-help\"></label><p class=\"meta\" id=\"profile-help\">Gebruik een fictieve naam. Geen accountregistratie of wachtwoord nodig.</p><div class=\"onboarding-facts\"><p>${icon('devices')}Je instellingen blijven in deze lokale demo.</p><p>${icon('shield')}Gereedschappen vragen toegang per document.</p></div>`;\n  if (step === 3) body = `<div class=\"onboarding-facts\"><p>${icon('devices')}Begin op dit apparaat. Je kunt direct documenten maken en bewerken.</p><p>${icon('nas')}Koppel later je eigen NAS of ontvang versleutelde ruimte van vrienden of familie.</p><p>${icon('assistant')}De lokale assistent is optioneel. In deze demo is het antwoord gesimuleerd.</p></div>${notice('Dit is een interactieprototype met fictieve gegevens. Er wordt geen OS geïnstalleerd.')}`;"
+        },
+        {
+          "path": "ui/prototype/broker.js",
+          "sha256": "8bfc3721fce6b09e154d7a4c06616c86d118f8980333e1a9596abe9bea87e77a",
+          "first_line": 8,
+          "last_line": 15,
+          "excerpt": "const toolById = (state, id) => state.tools.find((tool) => tool.id === id);\n\nexport function listObjects(state, { query = '', collection = 'Alles' } = {}) {\n  const needle = String(query).trim().toLocaleLowerCase('nl');\n  return ok(state.objects.filter((object) =>\n    (collection === 'Alles' || object.collectionId === collection)\n    && (!needle || `${object.title} ${object.collectionId} ${object.mediaType === 'image' ? 'Afbeelding SVG' : 'Tekstdocument tekst'}`.toLocaleLowerCase('nl').includes(needle))));\n}"
+        }
+      ],
+      "preservation_reason_for_this_audit": "Genuine public Dutch text is recorded as an actionable localisation gap. The read-only audit preserves the existing UI owner work and source-bound visual/native evidence; it does not classify these strings as fixtures or waive the gap.",
+      "follow_up": "Legacy prototype/UI owner: either implement proper locale resources consistently or retain a clearly documented Dutch-only simulation exception; do not claim the single-option control is a working locale switch."
+    },
+    {
+      "id": "UI10",
+      "title": "Concept HTML/inline JSX, design gallery and typography specimen",
+      "classification": "public Dutch design/simulation reference text",
+      "actual_localisation_mechanism": "Concept pages have fixed Dutch HTML/inline JSX; the gallery is explicitly a design artefact. Typography specimens include reference phrases. No English runtime locale is established by these artefacts.",
+      "evidence": [
+        {
+          "path": "ui/design/concepts/orbitaal-v2/index.html",
+          "sha256": "2a658658ed2c181a692f0e8ca5df679c69e3efa34673a508967ef55c02f86266",
+          "first_line": 1,
+          "last_line": 4,
+          "excerpt": "<!doctype html>\n<html lang=\"nl\">\n<head>\n<meta charset=\"utf-8\">"
+        },
+        {
+          "path": "ui/design/system/index.html",
+          "sha256": "cdd4a888471f2c71d0c7776ae91dd140b3fba3e37d183a6a3a2dad2e750df7db",
+          "first_line": 1,
+          "last_line": 4,
+          "excerpt": "<!doctype html>\n<html lang=\"nl\" data-theme=\"dark\">\n<head>\n<meta charset=\"utf-8\">"
+        },
+        {
+          "path": "ui/design/system/gallery.js",
+          "sha256": "ab729d296d62f15b416d318a6cfea17cc44343cba4cb5af5265048dbe4075e4a",
+          "first_line": 1,
+          "last_line": 6,
+          "excerpt": "// BaryonOS design system ds-1.0: component gallery behaviour. DESIGN ARTEFACT, 14 November 2026; not a working OS.\n// Builds one specimen set per theme from <template id=\"tpl-panel\"> ({p} = id prefix, {k} = Kern theme, the opposite\n// theme per MF1), renders icons with contract.js icon(), lists token swatches, and wires keyboard behaviour:\n// Tab/Shift+Tab (native), Space/Enter (native buttons), arrows for tabs, listbox rows and menu (radios are native),\n// Escape closes the menu, dialogs and tooltips. Query: ?only=dark|light|contrast|scale|ref ?motion=reduce ?measure=1\nimport { icon, T, ask, setPrompt, grants, files, bus, destination } from '../prototype/contract.js'"
+        }
+      ],
+      "preservation_reason_for_this_audit": "Preserve original concept/reference artefacts, proposal naming, mock-state warnings and source-bound design evidence. Their public Dutch text remains disclosed; preserving it does not mean it is already translated.",
+      "follow_up": "UI/research owner: maintain clear English navigation and provenance for original design artefacts; localise active product-facing descendants through a reviewed catalogue rather than rewriting original evidence."
+    },
+    {
+      "id": "UI11",
+      "title": "Example material and probe payloads",
+      "classification": "sample content and explicitly synthetic native-test data, not general UI labels",
+      "actual_localisation_mechanism": "Example document names/content and synthetic probe bytes have no locale semantics. User-supplied content must not be translated automatically.",
+      "evidence": [
+        {
+          "path": "userspace/m6c_probe.rs",
+          "sha256": "5ecda84b213a0108f7ca1d3b7c84db8ddc1b2cfd6143ba5c7fad59917db9d34a",
+          "first_line": 39,
+          "last_line": 46,
+          "excerpt": "        b\"Werk B\",\n    ];\n    let new: [&[u8]; 4] = [\n        \"Café hernoemd A\".as_bytes(),\n        b\"Werk hernoemd A\",\n        \"Café hernoemd B\".as_bytes(),\n        b\"Werk hernoemd B\",\n    ];"
+        },
+        {
+          "path": "userspace/m6c_probe.rs",
+          "sha256": "5ecda84b213a0108f7ca1d3b7c84db8ddc1b2cfd6143ba5c7fad59917db9d34a",
+          "first_line": 560,
+          "last_line": 565,
+          "excerpt": "            object,\n            16,\n            wire::RENAME,\n            Some(b\"Mag niet overschrijven\"),\n            None,\n        );"
+        },
+        {
+          "path": "sdk/examples/volume-docs/src/app.rs",
+          "sha256": "15e8c8b6247a1972fc33ce9c6eb6086500a666a6ffb4c239351e02bc2e19a936",
+          "first_line": 773,
+          "last_line": 779,
+          "excerpt": "        check(count == 0, 11);\n        return;\n    }\n    app.write(0, 0, b\"Voor de crash\", 9000, 20);\n    app.verify(0, 1, 25);\n    if case == CUT_TXN {\n        app.write(1, 0, b\"Tweede\", 300, 30);"
+        }
+      ],
+      "preservation_reason_for_this_audit": "Keep hash-bound synthetic payloads and sample-material identity intact. This rationale applies to the cited data, not to ordinary public menu, status or CLI strings.",
+      "follow_up": "Document fixture/sample provenance; if a UI displays these examples, distinguish the content language from interface locale."
+    },
+    {
+      "id": "UI12",
+      "title": "Boot diagnostics, protocol markers and inline assembly",
+      "classification": "diagnostic identifiers/code and explicit build guard messages",
+      "actual_localisation_mechanism": "The reviewed loader/userspace paths primarily emit stable uppercase test/protocol markers or contain assembly instruction strings; guard prose observed here is English. Dutch heuristic matches on the je instruction are false language positives.",
+      "evidence": [
+        {
+          "path": "boot/loader/src/main_default.rs",
+          "sha256": "f66646dd01c7252eb3a0fe9439ce03c397adf637c659d5380e0ca9750f1cdec0",
+          "first_line": 2,
+          "last_line": 5,
+          "excerpt": "#[cfg(all(feature = \"signed-boot\", not(feature = \"signed-boot-test\")))]\ncompile_error!(\n    \"signed-boot requires an explicit signing policy; TEST anchors require signed-boot-test\"\n);"
+        },
+        {
+          "path": "kernel/src/main.rs",
+          "sha256": "9eda89a7e92df971533222166f874f1ab3ea0ab8b76a1bc94cc81fe0503bfd1b",
+          "first_line": 18,
+          "last_line": 29,
+          "excerpt": "    any(\n        feature = \"milestone-m3\",\n        feature = \"native-smp\",\n        feature = \"native-smp-legacy\",\n        feature = \"framebuffer\",\n        feature = \"native-rtc\",\n        feature = \"native-acpi-s5\"\n    )\n))]\ncompile_error!(\"native-xhci-probe exclusively owns the single-CPU IF0 DMA fixture\");\n#[cfg(all(feature = \"test-xhci-dma-fault\", feature = \"test-xhci-no-dmar\"))]\ncompile_error!(\"xHCI negative cases require separate boots\");"
+        },
+        {
+          "path": "userspace/ipc_probe.rs",
+          "sha256": "1b82644c161b25b2eec7087e20aaacc3335480f106d149145eed8668a27dcf74",
+          "first_line": 15,
+          "last_line": 22,
+          "excerpt": "// only for local helper return addresses. Deliberate ud2 is an explicit fixture\n// operation for receiver-fault lifecycle tests, never an automatic success.\nglobal_asm!(r#\"\n    .macro resolve dest, offset, bit\n    mov \\dest, qword ptr [rbp + \\offset]\n    bt rbx, \\bit\n    jnc .Lresolved\\@\n    cmp \\dest, 32"
+        }
+      ],
+      "preservation_reason_for_this_audit": "Preserve protocol/test marker spelling, ABI instruction strings and build guards. They are not ordinary user-facing translatable labels.",
+      "follow_up": "Any future human-readable diagnostic layer should be separate from machine-parsed markers and preserve failure semantics."
+    }
+  ],
+  "graph_navigation": {
+    "index_commit": "de9b99047138c4fd0015ffc3f874b273b3537484",
+    "current_commit": "d16fa0862a42d83f7de7fda8dd2de54357d3e533",
+    "native_renderer_blob_unchanged_since_graph": true,
+    "queries": [
+      {
+        "provider": "menu_label",
+        "definition": "ui/native/src/render.rs:1738",
+        "typed_callers": [
+          "render_tile at436, call996",
+          "visit_semantics at1040, call1130"
+        ]
+      },
+      {
+        "provider": "status_label",
+        "definition": "ui/native/src/render.rs:1750",
+        "typed_callers": [
+          "render_tile at436, call890",
+          "visit_semantics at1040, call1145",
+          "desktop at2278, call2742",
+          "workspace at1913, call2137"
+        ]
+      },
+      {
+        "file": "ui/design/prototype/strings.js",
+        "neighbors": [
+          "ui/design/prototype/contract.js",
+          "ui/design/system/gallery.js"
+        ]
+      },
+      {
+        "provider": "calculator.decimal.Error.label",
+        "definition": "sdk/examples/calculator/src/decimal.rs:29",
+        "coverage": "Graphify had no resolved caller edges; current source fallback confirms model.rs:72 and status()/Notice.label. Empty graph edges were not interpreted as unused."
+      }
+    ]
+  },
+  "preserved_identifiers": [
+    "BaryonOS",
+    "Materiaal",
+    "paths and symbols",
+    "message/route IDs",
+    "protocol and storage formats",
+    "command flags",
+    "machine-parsed evidence markers",
+    "original proposed brand names and design-source quotations"
+  ],
+  "acceptance_limits": [
+    "No source, UI, Markdown, fixture, golden, locale, capability or scoring change was made.",
+    "This audit does not implement English runtime localisation, approve an exception, close issue274, establish U01 acceptance or prove whole-OS language coverage.",
+    "The independent integration reviewer must assess the issue274 documentation completion criterion and reasoned exceptions separately.",
+    "Browser interaction, physical-device testing, human usability and assistive-technology acceptance were not run by this read-only audit.",
+    "External dependency/vendored resources, CSS, binary/font assets, source documentation and test paths are outside this finite runtime-label scope. Inline test candidates are labelled separately."
+  ],
+  "follow_up_owner": "U01/UI owner for native/browser locale contracts, coordinated with SDK/application owners and the lead integration owner; existing security and visual ownership remains binding."
+}

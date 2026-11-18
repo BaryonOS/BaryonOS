@@ -1,0 +1,54 @@
+{
+  "source_commit": "d16fa0862a42d83f7de7fda8dd2de54357d3e533",
+  "source_sha256": "42163e2d99138eecda0977feab534c5eebb9f77bc25a2e04abd5f2d28752be92",
+  "source_files_rehashed": 160,
+  "source_unchanged": true,
+  "credential_scan": "Known current credential values and common token/private-key patterns absent",
+  "files": [
+    {
+      "path": "audit.json",
+      "sha256": "5b162823516101b6fbf1d50411e7ddfe80baaf68db12114a768d67d4938c77a8",
+      "bytes": 41709
+    },
+    {
+      "path": "collect.py.gz",
+      "sha256": "7879698a660c05b87c83c17f80e9f156784d2e802393fae9930fab5728cfca58",
+      "bytes": 3175
+    },
+    {
+      "path": "formatting-locale-candidates.json",
+      "sha256": "5bbdbd4602c3304248849ab2ffebba5ddb409117bb4e09dfd726f9c61ced6ddb",
+      "bytes": 394
+    },
+    {
+      "path": "lexical-summary.json",
+      "sha256": "52a81ef72575a1845853c44f7424a822762ec1d7fa0ef59d3b3ffc06ff9a9407",
+      "bytes": 2755
+    },
+    {
+      "path": "literal-candidates.json.gz",
+      "sha256": "cbf321fb0176e13eb43b70b7d4a5651160db41c3d1df8f0432bdcdcf15be1e36",
+      "bytes": 90975
+    },
+    {
+      "path": "locale-candidates.json",
+      "sha256": "925c979a90f1c49dae25049f311729226ad1932e4d1cf457ffb30de506d58582",
+      "bytes": 460281
+    },
+    {
+      "path": "native-shell-review.json",
+      "sha256": "6e00084e7144b45109f75fbdc854406e92119ca5b850aa0691cbfd838b1647da",
+      "bytes": 43288
+    },
+    {
+      "path": "scope.json",
+      "sha256": "698f0998a20334520403dc71ef4c6fdeb2bbebe2842c47786f3ff82cc06dd5b6",
+      "bytes": 35064
+    },
+    {
+      "path": "sdk-human-review.json",
+      "sha256": "c50356d13951e3412c25bedb2d191decadb72c67877391451158ffc5ae303f55",
+      "bytes": 32616
+    }
+  ]
+}

@@ -1,0 +1,25 @@
+test_conflicting_signals_are_not_guessed (test_project_classification.ClassificationTests.test_conflicting_signals_are_not_guessed) ... ok
+test_do_not_overwrite_existing_values (test_project_classification.ClassificationTests.test_do_not_overwrite_existing_values) ... ok
+test_missing_field_or_option_remains_unmodified (test_project_classification.ClassificationTests.test_missing_field_or_option_remains_unmodified) ... ok
+test_only_explicit_priority_and_no_effort_guess (test_project_classification.ClassificationTests.test_only_explicit_priority_and_no_effort_guess) ... ok
+test_trusted_prefixes (test_project_classification.ClassificationTests.test_trusted_prefixes) ... ok
+test_issue_facts (test_project_classification.StatusDerivationTests.test_issue_facts) ... ok
+test_missing_option_falls_back_or_skips (test_project_classification.StatusDerivationTests.test_missing_option_falls_back_or_skips) ... ok
+test_no_change_when_status_already_matches (test_project_classification.StatusDerivationTests.test_no_change_when_status_already_matches) ... ok
+test_pull_request_lifecycle (test_project_classification.StatusDerivationTests.test_pull_request_lifecycle) ... ok
+test_unknown_content_is_ignored (test_project_classification.StatusDerivationTests.test_unknown_content_is_ignored) ... ok
+test_unmerged_close_and_manual_statuses_are_kept (test_project_classification.StatusDerivationTests.test_unmerged_close_and_manual_statuses_are_kept) ... ok
+test_add_missing_can_be_disabled (test_project_classification.SynchronisationTests.test_add_missing_can_be_disabled) ... ok
+test_apply_is_idempotent_across_repeated_runs (test_project_classification.SynchronisationTests.test_apply_is_idempotent_across_repeated_runs) ... ok
+test_dry_run_reports_without_mutating (test_project_classification.SynchronisationTests.test_dry_run_reports_without_mutating) ... ok
+test_missing_content_deduplicates (test_project_classification.SynchronisationTests.test_missing_content_deduplicates) ... ok
+test_missing_project_access_fails_closed (test_project_classification.SynchronisationTests.test_missing_project_access_fails_closed) ... ok
+test_truncated_scan_never_adds (test_project_classification.SynchronisationTests.test_truncated_scan_never_adds) ... ok
+test_manual_run_without_token_fails (test_project_classification.TokenHandlingTests.test_manual_run_without_token_fails) ... ok
+test_rejected_token_returns_failure (test_project_classification.TokenHandlingTests.test_rejected_token_returns_failure) ... ok
+test_scheduled_run_without_token_is_skipped_with_warning (test_project_classification.TokenHandlingTests.test_scheduled_run_without_token_is_skipped_with_warning) ... ok
+
+----------------------------------------------------------------------
+Ran 20 tests in 0.004s
+
+OK

@@ -462,7 +462,7 @@ fn parse_reply(
         negative_soa: None,
     };
     let mut cursor = question_end + 4;
-    for index in 0..count {
+    for (index, record) in response.records[..count].iter_mut().enumerate() {
         let start = cursor;
         let (_, header) = decode_name(message, start, message.len())?;
         let kind = word(message, header)?;
@@ -519,7 +519,7 @@ fn parse_reply(
             }
             _ => RecordData::Opaque(data),
         };
-        response.records[index] = Some(Record {
+        *record = Some(Record {
             owner: NameRef {
                 message,
                 start,

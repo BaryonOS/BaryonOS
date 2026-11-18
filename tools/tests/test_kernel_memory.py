@@ -17,7 +17,7 @@ class KernelMemoryBoundaryTests(unittest.TestCase):
             self.skipTest('existing Rust toolchain unavailable')
         with tempfile.TemporaryDirectory(prefix='nieuw-os-memory-') as directory:
             binary = Path(directory) / 'boundaries'
-            built = subprocess.run([rustc, '+1.90.0', '--edition', '2021', '--test',
+            built = subprocess.run([rustc, '+1.100.0', '--edition', '2021', '--test',
                 '-C', 'opt-level=3', str(ROOT / 'tools/tests/native_memory_boundaries.rs'),
                 '-o', str(binary)], cwd=ROOT, text=True, capture_output=True, timeout=60)
             self.assertEqual(built.returncode, 0, built.stdout + built.stderr)

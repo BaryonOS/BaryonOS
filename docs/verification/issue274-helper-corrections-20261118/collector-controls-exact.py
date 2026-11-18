@@ -1,0 +1,1 @@
+import importlib.util,json; from pathlib import Path; root=Path.cwd(); p=root/"docs/verification/issue274-language-coverage-20261118/check.py"; spec=importlib.util.spec_from_file_location("language",p); m=importlib.util.module_from_spec(spec); spec.loader.exec_module(m); print(json.dumps(m.path_controls(root,root/"build/sec356-helper-fix")))

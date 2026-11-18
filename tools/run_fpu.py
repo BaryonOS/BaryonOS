@@ -92,7 +92,7 @@ def build_users() -> tuple[dict, dict]:
     linker = ROOT / "sdk/examples/fpu/linker.ld"
     flags = ("-C code-model=small -C relocation-model=static -C no-redzone=yes "
              f"-C link-arg=-T{linker} -C link-arg=--no-pie -C link-arg=--build-id=none -C link-arg=-zmax-page-size=0x1000")
-    run_logged(["cargo", "+1.90.0", "build", "--offline", "--locked", "--release", "--target", "x86_64-unknown-none",
+    run_logged(["cargo", "+1.100.0", "build", "--offline", "--locked", "--release", "--target", "x86_64-unknown-none",
                 "--manifest-path", str(ROOT / "sdk/examples/fpu/Cargo.toml"), "--features", "native", "--bins"],
                "build-fpu-users", extra_env={"CARGO_TARGET_DIR": str(TARGET / "fpu"), "RUSTFLAGS": flags})
     apps = []

@@ -21,7 +21,7 @@ def main() -> int:
              f"--remap-path-prefix={ROOT}=/nieuw-os"]
     environment["CARGO_ENCODED_RUSTFLAGS"] = "\x1f".join(flags)
     environment.setdefault("CARGO_TARGET_DIR", str(ROOT / "build/sdk-materiaal"))
-    command = ["cargo", "+1.90.0", "build", "--offline", "--locked", "--release",
+    command = ["cargo", "+1.100.0", "build", "--offline", "--locked", "--release",
                "--manifest-path", str(EXAMPLE / "Cargo.toml"), "--features", "native",
                "--bin", "materiaal-app", "--target", "x86_64-unknown-none"]
     print(json.dumps({"command": command, "target_dir": environment["CARGO_TARGET_DIR"]}), flush=True)

@@ -334,7 +334,10 @@ impl<I: Transport, S: Transport> App<I, S> {
             )
             .map_err(|_| Error::Binding)?;
             let mut bytes = [0u8; 1024];
-            for (pixel, chunk) in pixels.iter().zip(bytes[..r.bytes()].chunks_exact_mut(4)) {
+            for (pixel, chunk) in pixels
+                .iter()
+                .zip(bytes[..r.bytes()].as_chunks_mut::<4>().0.iter_mut())
+            {
                 chunk.copy_from_slice(&pixel.to_le_bytes());
             }
             self.surface
