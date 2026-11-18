@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-18",
-    "source_commit": "f8cae29f94a1d6ef5765a36be3beabca652d9a34",
+    "source_commit": "3966b43f115c23fc0d2bd51e33ebbad49ec97cd9",
     "assessment_basis": "parent_commit",
-    "branch": "codex/phase0-ci-guide-english",
-    "task": "Phase 0: reconcile reviewed English candidate after verified PR345 integration",
+    "branch": "claude/baryon-os-design-pipeline-20261115",
+    "task": "Phase 0 PR339: preserve Claude research and independently verified successor checker on actual main",
     "previous_score": 41,
-    "summary": "41/100 unchanged. PR345 actual main tree equals verified candidate. PR346 reviewed translations and all runtime source are unchanged after new-main reconciliation. No issue, security finding, native criterion or baseline B acceptance is inferred."
+    "summary": "41/100 unchanged. Existing51 baseline identities and original research/archive are preserved; successor checker closes path confinement and baseline-demotion validation gaps. This structural validation is no systematic review, native accessibility acceptance or human audit. Security and final combined-source gates remain open."
   },
   "tracks": [
     {
