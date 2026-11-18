@@ -1,6 +1,20 @@
 # Current project status
 
-## NEXT AGENT HANDOFF — unified governance implementation — 18 November 2026
+## NEXT AGENT HANDOFF — B05-T2 bounded revocation — 18 November 2026
+
+**Claim:** Codex, `codex/b05-exhaustive-revocation`, base `69d820753b83ee834e4ef24ee3e3c886dada9587`.
+**Goal:** exhaust a stated finite operation alphabet over three processes.
+**Invariant:** stale or revoked handles never regain rights; no amplification;
+slot generations increase on reuse. Production code/security hold unchanged.
+**Write set:** `crates/capability-core/tests/exhaustive_revocation.rs`; lead state.
+**Acceptance:** targeted integration test, crate Clippy, workspace fmt; negative
+revoke-weakening mutation in isolated scratch. Exact bounds/count asserted.
+**Evidence limit:** host bounded exploration only, no native or external audit.
+**Ownership:** no open PR owns the new test path; shared library untouched.
+N04 sweep WIP is being frozen with a concrete native throughput blocker.
+**Next:** implement and publish draft; continue next independent READY task.
+
+## Retained checkpoint — unified governance implementation — 18 November 2026
 
 **Claim:** GOV-1-6, sole writer Codex in `codex/unified-governance`, base
 `5a3295b6093549f4b5ff6164ab2773ac4c264996`. The project owner authorizes immediate
