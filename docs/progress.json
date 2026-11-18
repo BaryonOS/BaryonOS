@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-18",
-    "source_commit": "a863167986910ec127779e80e10743f89b626d8f",
+    "source_commit": "619f18a9a02bdc8a44f4bc38c85ceb431fbb6b81",
     "assessment_basis": "parent_commit",
-    "branch": "codex/phase0-pr339-preintegration",
-    "task": "PR #356 reconciliation with main 69d82075",
+    "branch": "codex/phase0-english-coverage",
+    "task": "PR #358 reconciliation with main fac5a864 and review repairs",
     "previous_score": 41,
-    "summary": "41/100 unchanged. The Phase 0 Rust 1.100, English coverage and retained source-bound evidence candidate is reconciled with main 69d82075. The newer governance contracts, disabled issue controller and unconditional execution hold remain intact. Targeted host regressions pass; mandatory current-head hosted checks remain required. This reconciliation does not establish new native, hardware, human-audit or product-criterion acceptance."
+    "summary": "41/100 unchanged. The English documentation and Wiki evidence candidate is reconciled with main fac5a864. Rendered HTML links and titled Markdown destinations now remain inside immutable publication validation, with focused regression evidence; current main's hardened language and publication helpers are retained. This does not establish professional-language, native, hardware, human-audit or full issue #274 acceptance."
   },
   "tracks": [
     {
