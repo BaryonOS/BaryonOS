@@ -1,18 +1,17 @@
 # Current project status
 
-## NEXT AGENT HANDOFF — B06-T1 LP matrix checker — 18 November 2026
+## NEXT AGENT HANDOFF — B06-T1 delivery — 18 November 2026
 
-**Claim:** Codex, `codex/b06-lp-matrix`, base `69d82075`.
-**Goal:** exact31 contract IDs, bounded evidence references and residual coverage.
-**Invariant:** missing or host-only evidence never becomes native acceptance;
-no source policy/security hold or historical evidence changes.
-**Write set:** tools/lp_matrix.py, tools/tests/test_lp_matrix.py and new child
-`docs/verification/b06-lp-matrix-20261115/` (task-named path; created18November).
-**Acceptance:** targeted Python negative tests and actual --check; no native reruns.
-**Evidence limit:** structural mapping only, no evidence-content audit/compliance.
-Unmapped rows stay none; previous partial tests are not erased or reclassified.
-**Ownership:** exactpaths noopenPRoverlap; B02 verifier owns separateworktree.
-**Next:** publish checker; continue independent READY task. Score41/100.
+**Source:** `f0b99f764c20f8c894259e78b63ceaa6e44da7b2`, `codex/b06-lp-matrix`.
+**Delivered:** Working31-ID LP reference checker and residual list; strict IDs/statuses, contained canonical paths, SHA256 and archived source-bound QEMU record checks for native tier. Four grouped adversarial tests and actual --check pass; verified bytes parsed once. No historic evidence audit or acceptance promotion.
+**Checks:** executed targeted commands and raw exit codes are in the
+[exact command/log receipt](roadmap-pipeline/receipts/B06-T1.json).
+Lead source/diff review completed; no duplicate matrix. Progress **41 → 41/100**.
+**Limits:** Structural mapping only, not evidence authenticity/privacy acceptance. All31 complete-scenario rows remain explicitly unmapped; existing partial evidence is not discarded. B02 partial native slice PR382 and N04 blocked prototype PR380 preserved. No OS code change/native rerun; score41/100 unchanged.
+**Ownership:** Integration Manager owns PR integration/merges/closure. Earlier
+delivery branches and Claude S09/UI remain untouched. Unsafe unattended hold active.
+**Next:** publish new draft, immediately claim the next independent READY functional
+slice from this ledger; no waiting for integration. Prior delivery checkpoints retained.
 
 ## Retained checkpoint — unified governance implementation — 18 November 2026
 
