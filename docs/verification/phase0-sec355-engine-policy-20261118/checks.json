@@ -44,6 +44,25 @@
       "resolved_findings": [
         "standalone gates accepted malformed schema-2 engine authorization"
       ]
+    },
+    {
+      "name": "independent exact-source verifier",
+      "result": "PASS",
+      "verification_head": "b738669d550be4fab05cdbb733b30c7a037b01c6",
+      "tests": 9,
+      "exit_code": 0,
+      "log": "build/tokenguard/run-s9ypbnjy.log",
+      "sha256": "81f063fe6390ab38b99a9fe9f9983c278fcf6e2c9c25e8beccf1a4e857f84440"
+    },
+    {
+      "name": "weakened-validator negative control",
+      "result": "PASS",
+      "expected_subtest_failures": 5,
+      "observed_subtest_failures": 5,
+      "detector_exit_code": 0,
+      "log": "build/tokenguard/run-8annxi55.log",
+      "sha256": "eb665eb20101d02a3659b0394049f29d5d9a43329008da338c63922269dc44e9",
+      "note": "A temporary in-memory weakened validator reached Sandbox in all invalid cases; the repository source was not changed."
     }
   ],
   "not_run": [

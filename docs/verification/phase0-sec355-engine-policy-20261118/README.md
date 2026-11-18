@@ -16,6 +16,15 @@ schema-2 manifest which the pipeline rejected. The shared validator and a negati
 regression corrected that path; rereview reports no actionable finding. Commands,
 raw-log hashes and evidence limits are recorded in [checks.json](checks.json).
 
+An independent verifier on checkpoint head
+`b738669d550be4fab05cdbb733b30c7a037b01c6` reproduced the parent chain, disabled
+manifest, unconditional hold, shared validator, progress score and both original
+log hashes. Nine focused tests passed. A temporary in-memory weakened validator made
+all five invalid-policy subcases fail at the expected pre-sandbox assertion, proving
+that the regression detects removal of the boundary. The first verifier wrapper
+miscounted those subtest failures; its corrected detector passed without a source
+change.
+
 The checked-in manifest remains disabled and the source execution hold remains
 unconditional. This checkpoint does not supply the missing private authenticated
 model-client/runtime contract, complete selected-gate adapter or aggregate

@@ -16,7 +16,10 @@ runtime skip; all 493 tools tests pass with ten environment skips. All 26 workfl
 contract tests, Python compilation, manifest parsing and whitespace checks pass.
 Independent security review found one inconsistent standalone-gate validation path;
 the shared validator and negative regression fixed it, and rereview reports no
-actionable finding. This is AI review, not a human audit.
+actionable finding. An independent verifier then reproduced nine focused tests,
+both log hashes, the clean parent chain and all five weakened-validator detections
+on exact checkpoint head `b738669d550be4fab05cdbb733b30c7a037b01c6`.
+This is AI review, not a human audit.
 [Source-bound receipt](verification/phase0-sec355-engine-policy-20261118/README.md).
 
 **Open boundary and resume:** the private authenticated model-client/runtime contract,
