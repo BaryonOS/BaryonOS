@@ -23,7 +23,7 @@ def test_m5():
             raise RuntimeError(f"M5 gate failed: {name}")
 
     try:
-        run_logged(["cargo", "+1.90.0", "test", "--locked", "--offline", "-p", "virtio-core",
+        run_logged(["cargo", "+1.100.0", "test", "--locked", "--offline", "-p", "virtio-core",
                     "-p", "capability-core", "-p", "block-protocol", "-p", "kernel-core"], "m5-host-tests")
         record("typed-capability-virtio-policy-protocol-host-tests", True,
                "build/logs/m5-host-tests.stdout.txt", ["M5-TYPED", "M5-QUEUE", "M5-PROTOCOL"])

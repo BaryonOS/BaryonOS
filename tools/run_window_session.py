@@ -187,7 +187,7 @@ def generate_switcher_fixture(directory: Path, image: bytes, scale: int) -> dict
     env = environment()
     env.update(CARGO_TARGET_DIR=str(private_path(TARGET / "window-switcher-fixture")),
                OS_SWITCHER_FIXTURE_DIRECTORY=str(directory), OS_SWITCHER_FIXTURE_SCALE=str(scale))
-    command = ["cargo", "+1.90.0", "test", "--offline", "--locked", "--manifest-path",
+    command = ["cargo", "+1.100.0", "test", "--offline", "--locked", "--manifest-path",
                str(ROOT / "sdk/examples/window-session/Cargo.toml"), "--test", "switcher_native_fixture"]
     with (directory / "switcher-generator.log").open("xb") as log:
         result = subprocess.run(command, cwd=ROOT, env=env, stdout=log, stderr=subprocess.STDOUT,
@@ -223,16 +223,16 @@ def generate_fixture(*, clipboard: bool = False, workspace: bool = False, scale:
     env["OS_WINDOW_SHELL_SCALE"] = str(scale)
     env["OS_WINDOW_SHELL_CLIPBOARD"] = "1" if clipboard else "0"
     width, height, body, calculator_body = profile_geometry(scale)
-    command = ["cargo", "+1.90.0", "test", "--offline", "--locked", "--manifest-path",
+    command = ["cargo", "+1.100.0", "test", "--offline", "--locked", "--manifest-path",
                str(ROOT / "ui/native/Cargo.toml"), "--test",
                "library_native_fixture" if library else "window_native_fixture", "--", "--nocapture"]
     commands = [command]
     if clipboard:
-        commands.append(["cargo", "+1.90.0", "test", "--offline", "--locked", "--manifest-path",
+        commands.append(["cargo", "+1.100.0", "test", "--offline", "--locked", "--manifest-path",
                          str(ROOT / "sdk/examples/calculator/Cargo.toml"), "--test",
                          "clipboard_native_fixture", "--", "--nocapture"])
     if workspace:
-        commands.append(["cargo", "+1.90.0", "test", "--offline", "--locked", "--manifest-path",
+        commands.append(["cargo", "+1.100.0", "test", "--offline", "--locked", "--manifest-path",
                          str(ROOT / "sdk/examples/window-session/Cargo.toml"), "--test",
                          "workspace_native_fixture", "--", "--nocapture"])
     with (directory / "generator.log").open("xb") as log:

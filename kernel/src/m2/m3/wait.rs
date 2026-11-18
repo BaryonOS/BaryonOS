@@ -56,7 +56,7 @@ impl WaitSet {
         };
         for (entry, wire) in result.conditions[..count]
             .iter_mut()
-            .zip(bytes.chunks_exact(CONDITION_BYTES))
+            .zip(bytes.as_chunks::<CONDITION_BYTES>().0.iter())
         {
             let interest = u64::from_le_bytes(wire[8..16].try_into().unwrap());
             if interest != SEND && interest != RECV {
@@ -258,7 +258,9 @@ mod tests {
     }
     fn wire(entries: &[(u64, u64)]) -> [u8; WIRE_BYTES] {
         let mut bytes = [0; WIRE_BYTES];
-        for ((handle, interest), entry) in entries.iter().zip(bytes.chunks_exact_mut(16)) {
+        for ((handle, interest), entry) in
+            entries.iter().zip(bytes.as_chunks_mut::<16>().0.iter_mut())
+        {
             entry[..8].copy_from_slice(&handle.to_le_bytes());
             entry[8..].copy_from_slice(&interest.to_le_bytes());
         }
