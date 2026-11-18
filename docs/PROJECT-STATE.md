@@ -1,6 +1,33 @@
 # Current project status
 
-## NEXT AGENT HANDOFF — PR #355 fail-closed gate resolution — 18 November 2026
+## NEXT AGENT HANDOFF — PR #355 immutable source receipt — 18 November 2026
+
+**Source and change:** security checkpoint `b39948e4355b789faeffa9c92a92c1a443dd3480`
+extends fail-closed gate evidence head `ef2db95f42f3883a3f85e5107971e2129291451f`.
+The trusted controller now stages only a stable selection of regular source files,
+checks both source and HEAD before and after staging, and creates a fixed read-only
+receipt binding the tested commit to the v3 source hash. M6c and DocumentSession can
+consume that receipt without Git metadata in the sandbox. Invalid paths, links,
+write bits, duplicate/unknown keys, source drift and commit drift fail closed.
+
+**Checks:** 116 combined pipeline/isolation/sandbox/hold/roadmap tests pass with ten
+explicit environment skips; the complete tools suite passes 479 with the same skips.
+The applicable 107 host harness tests, syntax compilation and strict preflight pass.
+On exact commit `b39948e4`, M6c rebuilds and passes in QEMU with raw exit 33; the full
+DocumentSession gate passes two real VM runs and all nine source-freeze checks.
+Independent security review and verification report no blocking finding after fixes
+for owner-writable receipts and a staging source race. This is AI review, not a human
+audit. [Source-bound receipt](verification/phase0-sec355-source-receipt-20261118/README.md).
+
+**Open boundary and resume:** the manifest and unconditional execution hold remain
+disabled. The complete `qemu-smoke` adapter still requires pinned offline runtime and
+cache inputs, one total job deadline and an `always()` evidence finalizer. Aggregate
+scratch/staging/export limits and authenticated model-client provisioning also remain
+open. Publish this checkpoint only after the two prior-head native-window jobs finish,
+then require all hosted checks on the new exact head. Score 41/100 is unchanged; no
+finding, issue, baseline or governance acceptance is inferred.
+
+## Historical checkpoint — PR #355 fail-closed gate resolution — 18 November 2026
 
 **Source and change:** security checkpoint `b35433d27e07de2e55e5703d3186a4ab5ba2b78a`
 extends the published reconciliation head `a1e12249b09c5cab94ccf2a27747116cd15dbb76`.
