@@ -44,6 +44,7 @@ def main() -> int:
     features = ["native"]
     if "--fault-injection" in sys.argv: features.append("fault-injection")
     if "--session-preview" in sys.argv: features.append("session-preview")
+    if "--hid-probe" in sys.argv: features.append("hid-probe")
     command = ["cargo", f"+{TOOLCHAIN}", "build", "--offline", "--locked", "--release",
                "--manifest-path", str(EXAMPLE / "Cargo.toml"), "--features", ",".join(features),
                "--bins", "--target", "x86_64-unknown-none"]
@@ -54,9 +55,14 @@ def main() -> int:
         return result.returncode
     from build_users import inspect_user
     binaries = {name: Path(env["CARGO_TARGET_DIR"]).resolve() / "x86_64-unknown-none/release" / name for name in ("window-compositor", "window-init")}
+    if "--hid-probe" in sys.argv:
+        binaries["window-hid-probe"] = Path(env["CARGO_TARGET_DIR"]).resolve() / "x86_64-unknown-none/release/window-hid-probe"
+    extra_env = {"NOS_WINDOW_COMPOSITOR_ELF": str(binaries["window-compositor"]),
+                 "NOS_WINDOW_INIT_ELF": str(binaries["window-init"])}
+    if "--hid-probe" in sys.argv:
+        extra_env["NOS_HID_PROBE_ELF"] = str(binaries["window-hid-probe"])
     print(json.dumps({"passed": True, "native_runtime_performed": False,
-                      "extra_env": {"NOS_WINDOW_COMPOSITOR_ELF": str(binaries["window-compositor"]),
-                                    "NOS_WINDOW_INIT_ELF": str(binaries["window-init"])},
+                      "extra_env": extra_env,
                       "apps": [{"name": name, "sha256": sha256(binary), "elf": inspect_user(binary)}
                                for name, binary in binaries.items()]}), flush=True)
     return 0

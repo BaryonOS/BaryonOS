@@ -2,13 +2,13 @@
   "schema_version": 1,
   "rubric_version": 1,
   "assessment": {
-    "date": "2026-11-17",
-    "source_commit": "42a7c2dba056ebc828e0086e031e989cd5f200c6",
+    "date": "2026-11-18",
+    "source_commit": "7b4b618e7ef0eee6b2a67ce693afcb9f2f20809c",
     "assessment_basis": "parent_commit",
-    "branch": "codex/phase0-pr350-integration",
-    "task": "Phase 0 PR350: reconcile reviewed repository configuration with assigned main",
+    "branch": "codex/coderabbit-oss-config",
+    "task": "Phase 0 PR350: source-preserving cloud reconciliation",
     "previous_score": 41,
-    "summary": "41/100 unchanged. Local integration preserves exact reviewed CodeRabbit YAML/schema evidence and all main/workstream records. No OS criterion or account control is changed. Configuration/schema and parent-preservation checks pass; final actual-main/hosted integration remains a lead gate."
+    "summary": "41/100 unchanged. CodeRabbit free-tier configuration is reconciled with main 366b82b35348. Existing acceptance criteria, source evidence and independent ownership remain intact; this editorial/tooling integration adds no native acceptance evidence. Actual local validation is retained in the cloud receipt; current-head hosted checks and independent review remain required."
   },
   "tracks": [
     {
@@ -217,7 +217,9 @@
           "points": 3,
           "status": "open",
           "acceptance": "Common input and USB devices work on the documented reference profile; hotplug and invalid device responses remain bounded.",
-          "evidence": []
+          "evidence": [
+            "docs/verification/issue42-native-input-20261114/README.md"
+          ]
         },
         {
           "id": "H03",
