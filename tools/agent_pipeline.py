@@ -28,7 +28,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from agent_gate import condensed, resolve, run_gate
-from agent_sandbox import Sandbox, SandboxError
+from agent_sandbox import Sandbox, SandboxError, resource_evidence
 from common import (ROOT, CONTROLLER_GIT, CONTROLLER_GH, controller_environment,
                     agent_relative, agent_source_paths, agent_source_state,
                     import_agent_changes, stage_agent_source)
@@ -298,20 +298,24 @@ def run_agent(prompt: str, cwd: Path, log: Path, order: list[str], *,
                 stage = Path(temporary)
                 stage_agent_source(cwd, stage, paths)
                 before = agent_source_state(stage)
-                done = sandbox.run([*command, prompt], stage)
+                done = sandbox.run([*command, prompt], stage, profile="agent")
                 log.parent.mkdir(parents=True, exist_ok=True)
                 prefix = f"{log.stem}-{time.time_ns()}-{name}"
                 for stream in ("stdout", "stderr"):
                     raw = getattr(done, stream + "_bytes", getattr(done, stream).encode())
                     (log.parent / f"{prefix}.{stream}.log").write_bytes(raw)
+                evidence = resource_evidence(done)
                 with log.open("a", encoding="utf-8") as out:
                     out.write(f"## engine {name} exit {done.returncode}; raw streams: {prefix}\n"
+                              f"## resource: {json.dumps(evidence, sort_keys=True)}\n"
                               f"{done.stdout}\n{done.stderr}\n")
                 if done.returncode == 0:
                     # Only a successful candidate may reach controller-owned source.
                     # Failed attempts and rate-limit fallbacks discard all edits.
                     import_agent_changes(stage, cwd, before, writes)
                     return name
+                if evidence.get("Result") == "oom-kill":
+                    raise TaskError(f"engine {name} exceeded its memory profile; see {log}")
                 if not RATE_LIMIT.search(done.stdout + done.stderr):
                     raise TaskError(f"engine {name} failed (exit {done.returncode}); see {log}")
     except subprocess.TimeoutExpired as error:
@@ -320,9 +324,24 @@ def run_agent(prompt: str, cwd: Path, log: Path, order: list[str], *,
             raw = getattr(error, stream + "_bytes", (getattr(error, stream) or "").encode())
             (log.parent / f"{log.stem}-timeout-{time.time_ns()}.{stream}.log").write_bytes(raw)
         with log.open("a", encoding="utf-8") as out:
-            out.write(f"## engine timeout after {error.timeout}s\n{error.stdout or ''}\n{error.stderr or ''}\n")
+            out.write(f"## engine timeout after {error.timeout}s\n"
+                      f"## resource: {json.dumps(resource_evidence(error), sort_keys=True)}\n"
+                      f"{error.stdout or ''}\n{error.stderr or ''}\n")
         raise TaskError("Isolated agent timed out; raw output retained.") from error
     except (SandboxError, ValueError, OSError) as error:
+        if isinstance(error, SandboxError):
+            log.parent.mkdir(parents=True, exist_ok=True)
+            prefix = f"{log.stem}-resource-{time.time_ns()}"
+            streams_retained = False
+            for stream in ("stdout", "stderr"):
+                raw = getattr(error, stream + "_bytes", None)
+                if isinstance(raw, bytes):
+                    (log.parent / f"{prefix}.{stream}.log").write_bytes(raw)
+                    streams_retained = True
+            with log.open("a", encoding="utf-8") as out:
+                out.write(f"## resource: {json.dumps(resource_evidence(error), sort_keys=True)}\n")
+                if streams_retained:
+                    out.write(f"## bounded resource streams: {prefix}\n")
         raise TaskError(f"Isolated agent execution blocked: {error}") from error
     raise TaskError(f"no engine available (tried {', '.join(order)})")
 

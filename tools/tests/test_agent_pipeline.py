@@ -11,6 +11,7 @@ import unittest.mock as mock
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import agent_gate
 import agent_pipeline as ap
+from agent_sandbox import SandboxResourceExceeded
 
 ROOT = Path(__file__).resolve().parents[2]
 HAS_YAML = importlib.util.find_spec("yaml") is not None
@@ -69,11 +70,29 @@ class Gate(unittest.TestCase):
 
     def test_failure_is_exit_two_and_stops(self):
         commands = [("one", "exit 3", {}), ("two", "touch two", {})]
-        self.sandbox.run.return_value = subprocess.CompletedProcess([], 3, "", "failed\n")
+        failed = subprocess.CompletedProcess([], 3, "", "failed\n")
+        failed.resource_status = {
+            "profile": "gate", "unit": "fixture.scope", "LoadState": "loaded",
+            "Result": "oom-kill",
+            "MemoryPeak": "67108864", "verified": {"memory_max": "67108864"},
+        }
+        self.sandbox.run.return_value = failed
         code = self.gate(commands)
         self.assertEqual(code, agent_gate.FAIL_EXIT)
         self.assertEqual(self.sandbox.run.call_count, 1)
-        self.assertIn("## FAIL: one (exit 3)", (self.tmp / "g.log").read_text())
+        log = (self.tmp / "g.log").read_text()
+        self.assertIn("## FAIL: one (exit 3)", log)
+        self.assertIn('"Result": "oom-kill"', log)
+        self.assertIn('"memory_max": "67108864"', log)
+
+    def test_gate_retains_bounded_resource_overflow_streams(self):
+        error = SandboxResourceExceeded("captured output exceeded")
+        error.stdout_bytes, error.stderr_bytes = b"bounded stdout", b"bounded stderr"
+        error.resource_status = {"profile": "gate", "unit": "fixture.scope"}
+        self.sandbox.run.side_effect = error
+        self.assertEqual(self.gate([("one", "true", {})]), agent_gate.FAIL_EXIT)
+        self.assertEqual((self.tmp / "g.log.resource.stdout.log").read_bytes(), b"bounded stdout")
+        self.assertEqual((self.tmp / "g.log.resource.stderr.log").read_bytes(), b"bounded stderr")
 
     def test_build_dirs_come_from_the_checkout_not_the_caller(self):
         env = dict(self.env, CARGO_TARGET_DIR="/shared", OS_OVMF_CODE="/local/ovmf")
@@ -252,7 +271,8 @@ class GitAndEngines(unittest.TestCase):
         (sandbox.rootfs / "usr/bin").mkdir(parents=True)
         for name in results:
             (sandbox.rootfs / "usr/bin" / name).write_text("fixture")
-        def run(command, stage):
+        def run(command, stage, *, profile):
+            self.assertEqual(profile, "agent")
             code, error = results[command[0]]
             return subprocess.CompletedProcess(command, code, "", error)
         sandbox.run.side_effect = run
@@ -266,6 +286,49 @@ class GitAndEngines(unittest.TestCase):
                 ap.run_agent("p", self.tmp, log, ["broken", "fine"], sandbox=sandbox, writes=["a"])
             with self.assertRaises(ap.TaskError):
                 ap.run_agent("p", self.tmp, log, ["limited"], sandbox=sandbox, writes=["a"])
+
+    def test_agent_failure_logs_oom_separately_from_ordinary_exit(self):
+        sandbox = mock.Mock()
+        sandbox.rootfs = self.tmp / "runtime"
+        (sandbox.rootfs / "usr/bin").mkdir(parents=True)
+        (sandbox.rootfs / "usr/bin/broken").write_text("fixture")
+        (sandbox.rootfs / "usr/bin/fine").write_text("fixture")
+        failed = subprocess.CompletedProcess(["broken"], -9, "", "rate limit exceeded\n")
+        failed.resource_status = {
+            "profile": "agent", "unit": "fixture.scope", "LoadState": "loaded",
+            "Result": "oom-kill",
+            "MemoryPeak": "67108864", "verified": {"memory_max": "67108864"},
+        }
+        sandbox.run.return_value = failed
+        log = self.tmp / "oom-agent.log"
+        with mock.patch.dict(ap.ENGINES, {"broken": ["broken"], "fine": ["fine"]}, clear=True), \
+                mock.patch.object(ap, "agent_source_paths", return_value=[]), \
+                self.assertRaises(ap.TaskError):
+            ap.run_agent("p", self.tmp, log, ["broken", "fine"], sandbox=sandbox, writes=["a"])
+        self.assertEqual(sandbox.run.call_count, 1)
+        text = log.read_text()
+        self.assertIn('"Result": "oom-kill"', text)
+        self.assertIn('"memory_max": "67108864"', text)
+
+    def test_agent_retains_bounded_resource_overflow_streams(self):
+        sandbox = mock.Mock()
+        sandbox.rootfs = self.tmp / "runtime"
+        (sandbox.rootfs / "usr/bin").mkdir(parents=True)
+        (sandbox.rootfs / "usr/bin/broken").write_text("fixture")
+        error = SandboxResourceExceeded("captured output exceeded")
+        error.stdout_bytes, error.stderr_bytes = b"bounded stdout", b"bounded stderr"
+        error.resource_status = {"profile": "agent", "unit": "fixture.scope"}
+        sandbox.run.side_effect = error
+        log = self.tmp / "overflow-agent.log"
+        with mock.patch.dict(ap.ENGINES, {"broken": ["broken"]}, clear=True), \
+                mock.patch.object(ap, "agent_source_paths", return_value=[]), \
+                self.assertRaises(ap.TaskError):
+            ap.run_agent("p", self.tmp, log, ["broken"], sandbox=sandbox, writes=["a"])
+        retained = sorted(self.tmp.glob("overflow-agent-resource-*.stdout.log"))
+        self.assertEqual(len(retained), 1)
+        self.assertEqual(retained[0].read_bytes(), b"bounded stdout")
+        self.assertEqual(retained[0].with_name(retained[0].name.replace("stdout", "stderr")).read_bytes(),
+                         b"bounded stderr")
 
 
 if __name__ == "__main__":

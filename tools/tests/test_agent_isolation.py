@@ -180,7 +180,8 @@ class SourceBoundary(unittest.TestCase):
         sandbox.rootfs = self.root / "runtime"
         (sandbox.rootfs / "usr/bin").mkdir(parents=True)
         (sandbox.rootfs / "usr/bin/codex").write_text("fixture")
-        def run(command, stage):
+        def run(command, stage, *, profile):
+            self.assertEqual(profile, "agent")
             (stage / "allowed").write_text("new")
             (stage / "other").write_text("out of scope")
             return subprocess.CompletedProcess(command, 0, "", "")
@@ -198,7 +199,8 @@ class SourceBoundary(unittest.TestCase):
         for name in ("limited", "accepted", "broken"):
             (sandbox.rootfs / "usr/bin" / name).write_text("fixture")
 
-        def run(command, stage):
+        def run(command, stage, *, profile):
+            self.assertEqual(profile, "agent")
             self.assertEqual((stage / "allowed").read_text(), "original")
             self.assertEqual((self.source / "allowed").read_text(), "original")
             if command[0] == "accepted":

@@ -1,0 +1,182 @@
+{
+    "cases": [
+        {
+            "case": "agent-normal-32m",
+            "resource": {
+                "profile": "agent",
+                "unit": "baryonos-agent-3bf161ea5d2d632cce6ce8d9.scope",
+                "verified": {
+                    "cgroup": "/sys/fs/cgroup/user.slice/user-1000.slice/user@1000.service/app.slice/baryonos-agent-3bf161ea5d2d632cce6ce8d9.scope",
+                    "cpu_period": "100000",
+                    "cpu_quota": "100000",
+                    "memory_high": "67108864",
+                    "memory_max": "67108864",
+                    "memory_oom_group": "1",
+                    "memory_swap_max": "0",
+                    "open_files_max": "128",
+                    "tasks_max": "32"
+                }
+            },
+            "returncode": 0,
+            "stderr_bytes": 0,
+            "stdout_bytes": 10
+        },
+        {
+            "case": "gate-normal-128m",
+            "resource": {
+                "profile": "gate",
+                "unit": "baryonos-agent-b2215a8982d628d409206e30.scope",
+                "verified": {
+                    "cgroup": "/sys/fs/cgroup/user.slice/user-1000.slice/user@1000.service/app.slice/baryonos-agent-b2215a8982d628d409206e30.scope",
+                    "cpu_period": "100000",
+                    "cpu_quota": "400000",
+                    "memory_high": "6442450944",
+                    "memory_max": "8589934592",
+                    "memory_oom_group": "1",
+                    "memory_swap_max": "0",
+                    "open_files_max": "1024",
+                    "tasks_max": "512"
+                }
+            },
+            "returncode": 0,
+            "stderr_bytes": 0,
+            "stdout_bytes": 10
+        },
+        {
+            "artifact_bytes": 2097152,
+            "case": "workspace-artifact-over-output-limit",
+            "resource": {
+                "profile": "agent",
+                "unit": "baryonos-agent-235a334b417520e4dce9274b.scope",
+                "verified": {
+                    "cgroup": "/sys/fs/cgroup/user.slice/user-1000.slice/user@1000.service/app.slice/baryonos-agent-235a334b417520e4dce9274b.scope",
+                    "cpu_period": "100000",
+                    "cpu_quota": "100000",
+                    "memory_high": "67108864",
+                    "memory_max": "67108864",
+                    "memory_oom_group": "1",
+                    "memory_swap_max": "0",
+                    "open_files_max": "128",
+                    "tasks_max": "32"
+                }
+            },
+            "returncode": 0,
+            "stderr_bytes": 0,
+            "stdout_bytes": 12
+        },
+        {
+            "case": "intentional-oom-negative",
+            "resource": {
+                "CPUUsageNSec": "24700000",
+                "MemoryHigh": "67108864",
+                "MemoryMax": "67108864",
+                "MemoryPeak": "67108864",
+                "MemorySwapMax": "0",
+                "Result": "oom-kill",
+                "TasksMax": "32",
+                "profile": "agent",
+                "unit": "baryonos-agent-fbe44c70930e6cc08030f0a8.scope",
+                "verified": {
+                    "cgroup": "/sys/fs/cgroup/user.slice/user-1000.slice/user@1000.service/app.slice/baryonos-agent-fbe44c70930e6cc08030f0a8.scope",
+                    "cpu_period": "100000",
+                    "cpu_quota": "100000",
+                    "memory_high": "67108864",
+                    "memory_max": "67108864",
+                    "memory_oom_group": "1",
+                    "memory_swap_max": "0",
+                    "open_files_max": "128",
+                    "tasks_max": "32"
+                }
+            },
+            "returncode": -9,
+            "stderr_bytes": 0,
+            "stdout_bytes": 0
+        },
+        {
+            "case": "pids-limit-negative",
+            "created": 29,
+            "resource": {
+                "profile": "agent",
+                "unit": "baryonos-agent-c676887e4e07938f7b081848.scope",
+                "verified": {
+                    "cgroup": "/sys/fs/cgroup/user.slice/user-1000.slice/user@1000.service/app.slice/baryonos-agent-c676887e4e07938f7b081848.scope",
+                    "cpu_period": "100000",
+                    "cpu_quota": "100000",
+                    "memory_high": "67108864",
+                    "memory_max": "67108864",
+                    "memory_oom_group": "1",
+                    "memory_swap_max": "0",
+                    "open_files_max": "128",
+                    "tasks_max": "32"
+                }
+            },
+            "returncode": 0,
+            "stderr_bytes": 0,
+            "stdout_bytes": 38
+        },
+        {
+            "case": "captured-output-negative",
+            "classification": "SandboxResourceExceeded",
+            "resource": {
+                "profile": "agent",
+                "unit": "baryonos-agent-7d02161b790f7f70206525dd.scope",
+                "verified": {
+                    "cgroup": "/sys/fs/cgroup/user.slice/user-1000.slice/user@1000.service/app.slice/baryonos-agent-7d02161b790f7f70206525dd.scope",
+                    "cpu_period": "100000",
+                    "cpu_quota": "100000",
+                    "memory_high": "67108864",
+                    "memory_max": "67108864",
+                    "memory_oom_group": "1",
+                    "memory_swap_max": "0",
+                    "open_files_max": "128",
+                    "tasks_max": "32"
+                }
+            },
+            "stderr_bytes": 0,
+            "stdout_bytes": 1048576
+        },
+        {
+            "case": "timeout-negative",
+            "classification": "TimeoutExpired",
+            "resource": {
+                "profile": "agent",
+                "unit": "baryonos-agent-3104bb91425083f01289b3a5.scope",
+                "verified": {
+                    "cgroup": "/sys/fs/cgroup/user.slice/user-1000.slice/user@1000.service/app.slice/baryonos-agent-3104bb91425083f01289b3a5.scope",
+                    "cpu_period": "100000",
+                    "cpu_quota": "100000",
+                    "memory_high": "67108864",
+                    "memory_max": "67108864",
+                    "memory_oom_group": "1",
+                    "memory_swap_max": "0",
+                    "open_files_max": "128",
+                    "tasks_max": "32"
+                }
+            }
+        },
+        {
+            "case": "detached-descendant-cleanup",
+            "heartbeat_stopped": true,
+            "resource": {
+                "profile": "agent",
+                "unit": "baryonos-agent-cc5ffb8766c2668ba0cee6c8.scope",
+                "verified": {
+                    "cgroup": "/sys/fs/cgroup/user.slice/user-1000.slice/user@1000.service/app.slice/baryonos-agent-cc5ffb8766c2668ba0cee6c8.scope",
+                    "cpu_period": "100000",
+                    "cpu_quota": "100000",
+                    "memory_high": "67108864",
+                    "memory_max": "67108864",
+                    "memory_oom_group": "1",
+                    "memory_swap_max": "0",
+                    "open_files_max": "128",
+                    "tasks_max": "32"
+                }
+            },
+            "returncode": 0,
+            "stderr_bytes": 0,
+            "stdout_bytes": 9
+        }
+    ],
+    "remaining_units": 0,
+    "schema": 1
+}

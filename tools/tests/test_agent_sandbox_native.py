@@ -30,7 +30,9 @@ class NativeBoundary(unittest.TestCase):
         self.work.mkdir(mode=0o700)
 
     def python(self, code, **options):
-        return self.sandbox.run(["/usr/bin/python3", "-I", "-B", "-c", code], self.work, **options)
+        return self.sandbox.run(
+            ["/usr/bin/python3", "-I", "-B", "-c", code], self.work,
+            profile="agent", **options)
 
     def test_credential_environment_and_controller_files_are_absent(self):
         private = self.root / "controller-only"
@@ -97,7 +99,9 @@ class NativeBoundary(unittest.TestCase):
                 "try: Path(sys.pycache_prefix).mkdir(parents=True,exist_ok=True)\n"
                 "except OSError as error: assert error.errno in (errno.EROFS,errno.EACCES)\n"
                 "else: raise AssertionError('mutable interpreter cache')\n")
-        done = self.sandbox.run(["/usr/bin/python3", "-B", "-c", code], self.work, read_only=True)
+        done = self.sandbox.run(
+            ["/usr/bin/python3", "-B", "-c", code], self.work,
+            profile="gate", read_only=True)
         self.assertEqual(done.returncode, 0, done.stderr)
 
     def test_host_network_and_session_home_are_not_shared(self):

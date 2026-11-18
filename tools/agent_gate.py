@@ -16,7 +16,7 @@ import tempfile
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from agent_sandbox import Sandbox, SandboxError
+from agent_sandbox import Sandbox, SandboxError, resource_evidence
 from common import ROOT, agent_source_paths, agent_source_state, isolated_environment, stage_agent_source
 
 # Steps that install the runner environment; locally tools/common.py provides it.
@@ -104,10 +104,11 @@ def run_gate(commands: list[tuple[str, str, dict[str, str]]], cwd: Path, log_pat
                 values = {k: v.replace("${GITHUB_WORKSPACE}", "/workspace") for k, v in step_env.items()}
                 env = isolated_environment({**values, **host})
                 done = sandbox.run(["/bin/bash", "--noprofile", "--norc", "-eo", "pipefail", "-c", script],
-                                   stage, env=env, read_only=True)
+                                   stage, profile="gate", env=env, read_only=True)
                 for stream in ("stdout", "stderr"):
                     raw = getattr(done, stream + "_bytes", getattr(done, stream).encode())
                     log_path.with_name(f"{log_path.name}.step-{index}.{stream}.log").write_bytes(raw)
+                log.write(f"## resource: {json.dumps(resource_evidence(done), sort_keys=True)}\n")
                 log.write(done.stdout + done.stderr)
                 log.write(f"\n## exit: {done.returncode}\n")
                 if done.returncode:
@@ -118,9 +119,16 @@ def run_gate(commands: list[tuple[str, str, dict[str, str]]], cwd: Path, log_pat
             for stream in ("stdout", "stderr"):
                 raw = getattr(error, stream + "_bytes", (getattr(error, stream) or "").encode())
                 log_path.with_name(f"{log_path.name}.timeout.{stream}.log").write_bytes(raw)
-            log.write(f"{error.stdout or ''}\n{error.stderr or ''}\n## TIMEOUT: {error.timeout}s\n")
+            log.write(f"## resource: {json.dumps(resource_evidence(error), sort_keys=True)}\n"
+                      f"{error.stdout or ''}\n{error.stderr or ''}\n## TIMEOUT: {error.timeout}s\n")
             return FAIL_EXIT
         except (SandboxError, ValueError, OSError) as error:
+            if isinstance(error, SandboxError):
+                for stream in ("stdout", "stderr"):
+                    raw = getattr(error, stream + "_bytes", None)
+                    if isinstance(raw, bytes):
+                        log_path.with_name(f"{log_path.name}.resource.{stream}.log").write_bytes(raw)
+                log.write(f"## resource: {json.dumps(resource_evidence(error), sort_keys=True)}\n")
             log.write(f"## BLOCKED: {error}\n")
             return FAIL_EXIT
     return 0
