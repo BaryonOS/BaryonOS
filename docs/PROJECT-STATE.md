@@ -1,5 +1,15 @@
 # Current project status
 
+## NEXT AGENT HANDOFF — PR #356 CodeQL correction — 18 November 2026
+
+**Source and change:** implementation commit `159eda463c70dc538aec3b4c04ae4527b1c6c7e2` removes the three genuine helper CodeQL root causes without changing a query or workflow. Markdown-visible text uses the existing lexer; Wiki content is read from regular blobs at one frozen Git commit rather than through a filesystem check/read pair. The sole generated-build documentation link is represented as a local code path. [Source-bound receipt](verification/issue274-codeql-corrections-20261118/README.md).
+
+**Checks and limits:** both restored vulnerable implementations fail their controls as expected. Three focused regressions, Node syntax, the actual Wiki collector and the 406-test tools suite pass with exact helper hashes. The final collector binds source `159eda463c70dc538aec3b4c04ae4527b1c6c7e2`, reports zero unresolved or unsupported targets, and uses Wiki commit `4a01b8b2ad2695da509a512ea688007c964f56da`. Independent AI review passes the exact helper blobs; it is not a human audit. Hosted current-head CodeQL and all mandatory PR checks remain pending. Issue #274 and score 41/100 remain unchanged.
+
+**Security queue:** PR #359 passed every check at its prior source, then received and fixed a genuine serial-evidence normalization review finding at `5aa381379891df00140a04e01814cd0712ef096f`; its new-head checks must pass before merge. PR #355 remains disabled and fail-closed while verified whole-lifecycle resource and client/gate isolation continue. No Daybreak finding is closed, no issue is complete, and governance has not started.
+
+**Next:** publish this #356 checkpoint, require hosted CodeQL to clear the three annotations without suppressions, and repair any current-head failure. Merge #359 only after its corrected head is fully green with no unresolved review thread; then reconcile #356 against actual main. No auto-merge or protection bypass.
+
 ## NEXT AGENT HANDOFF — Local PR #356 helper corrections — 18 November 2026
 
 **Source and ownership:** the Cloud-to-Local release `88b801ab8cd47f4765ef7d925b161542dbbf684e` was verified. Local Codex owns this continuation of existing PR #356 parent `0617b07ccf5f48a7c40c72c87b365c436bfea775`; original shared-main merge, Claude UI/UX and broader S09 remain untouched. Main was verified at `de9b99047138c4fd0015ffc3f874b273b3537484`.

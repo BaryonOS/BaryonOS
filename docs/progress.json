@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-18",
-    "source_commit": "0617b07ccf5f48a7c40c72c87b365c436bfea775",
-    "assessment_basis": "parent_commit",
+    "source_commit": "159eda463c70dc538aec3b4c04ae4527b1c6c7e2",
+    "assessment_basis": "implementation_commit",
     "branch": "codex/phase0-pr339-preintegration",
-    "task": "SEC356-HELPERS: repair source-bound navigation, Git fixture isolation and optimized Wiki verification",
+    "task": "SEC356-CODEQL: replace incomplete HTML sanitization and mutable Wiki reads without suppressions",
     "previous_score": 41,
-    "summary": "41/100 unchanged. Seven helper defects are corrected with preserved negative controls, complete tools suite (406 tests) PASS, actual optimized Wiki verification and independent AI review. Existing source-bound native evidence remains historical; current-head CI and integrated-main verification remain required. All five issues and three Daybreak findings stay open; strict governance stabilization has not passed."
+    "summary": "41/100 unchanged. Three genuine helper CodeQL root causes are corrected with restored-source negative controls, exact helper hashes, three focused regressions, the complete 406-test tools suite and an actual immutable-Wiki collector reporting zero unresolved targets. Hosted current-head CodeQL and integrated-main verification remain required. All five issues and three Daybreak findings stay open; strict governance stabilization has not passed."
   },
   "tracks": [
     {
