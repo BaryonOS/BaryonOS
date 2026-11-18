@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-18",
-    "source_commit": "ef75a64d3bba96782e59bf3b1fd0a441b36dd33a",
+    "source_commit": "de9b99047138c4fd0015ffc3f874b273b3537484",
     "assessment_basis": "parent_commit",
     "branch": "codex/security-pipeline-quarantine",
-    "task": "Phase 0: enforce disabled legacy issue-controller execution while full isolation remains blocked",
+    "task": "SEC359-LOCAL: reconcile unconditional issue-controller hold with current main",
     "previous_score": 41,
-    "summary": "41/100 unchanged. All388 tools tests and standard gates pass on source-enforced quarantine candidate; no OS criterion or full355 security fix follows. Integrated345/346 content and incorporated translations preserved. Pending native suites, inaccessible scans, platform-blocked kernel WIP and complete issue acceptance remain explicit."
+    "summary": "41/100 unchanged. Current main is preserved; issue selection and transaction entry points remain held pending complete PR355 isolation acceptance. Containment grants no product criterion, Daybreak resolution, baseline B or governance start. Fresh targeted/tools/native/current-head checks and independent review are required."
   },
   "tracks": [
     {

@@ -268,6 +268,7 @@ class Pipeline:
         return self.engines[k:] + self.engines[:k]
 
     def ready_tasks(self) -> list[Task]:
+        require_pipeline_release()
         progress = json.loads((ROOT / "docs" / "progress.json").read_text(encoding="utf-8"))
         criteria = open_criteria(progress)
         issues = json.loads(sh(["gh", "issue", "list", "--state", "open", "--limit", "500",

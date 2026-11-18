@@ -11,6 +11,13 @@ import agent_pipeline as pipeline
 
 
 class Quarantine(unittest.TestCase):
+    def test_direct_issue_selection_stops_before_any_side_effect(self):
+        controller = pipeline.Pipeline(["codex"], False, False)
+        with unittest.mock.patch.object(pathlib.Path, "read_text", side_effect=AssertionError("read")):
+            with unittest.mock.patch.object(pipeline, "sh", side_effect=AssertionError("external command")):
+                with self.assertRaisesRegex(pipeline.TaskError, "disabled"):
+                    controller.ready_tasks()
+
     def test_scheduler_stops_before_selecting_issues(self):
         controller = pipeline.Pipeline(["codex"], False, False)
         with unittest.mock.patch.object(controller, "ready_tasks", return_value=[]) as select:
