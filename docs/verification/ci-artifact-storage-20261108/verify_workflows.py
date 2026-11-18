@@ -219,9 +219,20 @@ def run(repo, baseline=DEFAULT_BASELINE):
                     )
                     record("removed-package-selection-rejected:" + path,
                            not package_is_selected(package, without_package))
-            dispatch = after["on"].get("workflow_dispatch", {})
-            record("manual-default-compact:" + path,
-                   dispatch.get("inputs", {}).get("full_evidence", {}).get("default") == "false")
+            dispatch = after["on"].get("workflow_dispatch") or {}
+            inputs = dispatch.get("inputs", {}) if isinstance(dispatch, dict) else None
+            compact = False
+            if isinstance(inputs, dict):
+                if "full_evidence" in inputs:
+                    selector = inputs["full_evidence"]
+                    compact = isinstance(selector, dict) and selector.get("default") == "false"
+                else:
+                    # Compact-only gates expose no full-archive selector. Require
+                    # every call to fix false; action defaults/expressions do not
+                    # establish this narrower policy.
+                    compact = all(new["with"].get("full-evidence") == "false"
+                                  for new in after_preserve)
+            record("manual-default-compact:" + path, compact)
 
         if path not in baseline_paths:
             record("original-tests-runners-gates-preserved:" + path, False,

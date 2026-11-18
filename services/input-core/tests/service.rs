@@ -194,6 +194,313 @@ impl Model {
         self.sync().unwrap();
         self.focus(101).unwrap();
     }
+    fn hid_command(&mut self, operation: Operation, arg0: u64, arg1: u64) -> Result<Reply, Error> {
+        self.source_id += 1;
+        self.call(
+            0,
+            1,
+            self.source_send,
+            request(operation, self.source_id, arg0, arg1),
+        )
+    }
+    fn hid_start(&mut self) {
+        self.hid_command(Operation::Sync, wire::HID_PROFILE, 0)
+            .unwrap();
+        self.focus(101).unwrap();
+    }
+    fn hid_key(&mut self, bytes: [u8; 8]) -> Result<Reply, Error> {
+        self.hid_command(Operation::HidKeyboard, u64::from_le_bytes(bytes), 0)
+    }
+    fn hid_mouse(&mut self, bytes: [u8; 3]) -> Result<Reply, Error> {
+        let mut payload = [0; 8];
+        payload[..3].copy_from_slice(&bytes);
+        self.hid_command(Operation::HidMouse, u64::from_le_bytes(payload), 3)
+    }
+}
+
+#[test]
+fn hid_wire_profiles_lengths_padding_and_detach_masks_are_canonical() {
+    assert!(Request::decode(&request(Operation::Sync, 1, 2, 0).encode(), EPOCH).is_ok());
+    assert_eq!(
+        Request::decode(&request(Operation::Sync, 1, 3, 0).encode(), EPOCH),
+        Err(Error::Malformed)
+    );
+    for length in 0..=255 {
+        let encoded = request(Operation::HidMouse, 1, 0, length).encode();
+        assert_eq!(
+            Request::decode(&encoded, EPOCH).is_ok(),
+            (3..=8).contains(&length)
+        );
+    }
+    for length in 3..8 {
+        assert_eq!(
+            Request::decode(
+                &request(Operation::HidMouse, 1, 1 << (length * 8), length).encode(),
+                EPOCH
+            ),
+            Err(Error::Malformed)
+        );
+    }
+    assert_eq!(
+        Request::decode(&request(Operation::HidKeyboard, 1, 0, 1).encode(), EPOCH),
+        Err(Error::Malformed)
+    );
+    for mask in 0..=255 {
+        assert_eq!(
+            Request::decode(&request(Operation::HidDetach, 1, mask, 0).encode(), EPOCH).is_ok(),
+            (1..=3).contains(&mask)
+        );
+    }
+}
+
+#[test]
+fn hid_cannot_start_before_sync_or_switch_the_established_source_profile() {
+    let mut m = Model::new();
+    assert_eq!(
+        m.hid_key([0, 0, 4, 0, 0, 0, 0, 0]),
+        Err(Error::NotSynchronized)
+    );
+    m.hid_start();
+    let next = m.source_id + 1;
+    assert_eq!(
+        m.call(
+            0,
+            1,
+            m.source_send,
+            request(Operation::Sync, next, wire::PS2_PROFILE, 0)
+        ),
+        Err(Error::Malformed)
+    );
+    assert!(m.service.is_online());
+    m.hid_key([0, 0, 4, 0, 0, 0, 0, 0]).unwrap();
+    assert_eq!(m.peek(0).payload()[42], ui_core::PhysicalKey::A as u8);
+    assert_eq!(m.sample(1, 0x30), Err(Error::Malformed));
+    assert!(!m.service.is_online());
+    let mut ps2 = Model::new();
+    ps2.start();
+    assert_eq!(ps2.hid_key([0; 8]), Err(Error::Malformed));
+    assert_eq!(
+        ps2.hid_command(Operation::Sync, wire::HID_PROFILE, 0),
+        Err(Error::Malformed)
+    );
+}
+
+#[test]
+fn hid_payloads_do_not_replace_the_actual_source_sender_or_ingress_role() {
+    let mut m = Model::new();
+    m.hid_start();
+    for (operation, arg0, arg1) in [
+        (Operation::HidKeyboard, 0, 0),
+        (Operation::HidMouse, 0, 3),
+        (Operation::HidDetach, 3, 0),
+    ] {
+        assert_eq!(
+            m.call(3, 4, m.app_send[0], request(operation, 1, arg0, arg1)),
+            Err(Error::WrongRole)
+        );
+        assert_eq!(
+            m.call(1, 2, m.control_send, request(operation, 1, arg0, arg1)),
+            Err(Error::WrongRole)
+        );
+    }
+    let stolen_route = m
+        .engine
+        .bootstrap_delegate(SERVICE, m.roots[0], 4, SEND)
+        .unwrap();
+    assert_eq!(
+        m.call(
+            0,
+            4,
+            stolen_route,
+            request(Operation::HidKeyboard, m.source_id + 1, 4 << 16, 0)
+        ),
+        Err(Error::Access)
+    );
+    assert_eq!(m.service.queued(), 0);
+    m.hid_key([0, 0, 4, 0, 0, 0, 0, 0]).unwrap();
+    assert_eq!(m.peek(0).payload()[42], ui_core::PhysicalKey::A as u8);
+}
+
+#[test]
+fn hid_held_keys_and_modifiers_cannot_cross_focus_via_repeated_reports() {
+    let mut m = Model::new();
+    m.hid_start();
+    m.hid_key([1, 0, 4, 0, 0, 0, 0, 0]).unwrap();
+    let control = m.peek(0);
+    assert_eq!(
+        control.payload()[42],
+        ui_core::PhysicalKey::LeftControl as u8
+    );
+    m.ack(0, &control);
+    let old = m.peek(0);
+    assert_eq!(old.payload()[44] & 4, 4);
+    m.focus(202).unwrap();
+    assert!(!m.service.reply_is_current(&old));
+    m.hid_key([1, 0, 4, 0, 0, 0, 0, 0]).unwrap();
+    assert_eq!(number(m.peek(1).payload(), 24), 1);
+    m.hid_key([1, 0, 4, 5, 0, 0, 0, 0]).unwrap();
+    let fresh = m.peek(1);
+    assert_eq!(fresh.payload()[42], ui_core::PhysicalKey::B as u8);
+    assert_eq!(fresh.payload()[44] & 4, 0);
+    m.ack(1, &fresh);
+    m.hid_key([0; 8]).unwrap();
+    let release = m.peek(1);
+    assert_eq!(
+        &release.payload()[40..43],
+        &[1, 3, ui_core::PhysicalKey::B as u8]
+    );
+}
+
+#[test]
+fn hid_resync_retains_suppression_until_the_first_absolute_release() {
+    for focus_before_hold in [false, true] {
+        let mut m = Model::new();
+        m.hid_command(Operation::Sync, wire::HID_PROFILE, 0)
+            .unwrap();
+        if focus_before_hold {
+            m.focus(101).unwrap();
+        }
+        m.hid_key([1, 0, 4, 0, 0, 0, 0, 0]).unwrap();
+        m.focus(101).unwrap();
+        m.hid_command(Operation::Sync, wire::HID_PROFILE, 0)
+            .unwrap();
+        let cancel = m.peek(0);
+        assert_eq!(&cancel.payload()[40..42], &[3, 4]);
+        m.ack(0, &cancel);
+        m.hid_key([1, 0, 4, 0, 0, 0, 0, 0]).unwrap();
+        assert_eq!(number(m.peek(0).payload(), 24), 1);
+        m.hid_key([0; 8]).unwrap();
+        assert_eq!(number(m.peek(0).payload(), 24), 1);
+        m.hid_key([0, 0, 4, 0, 0, 0, 0, 0]).unwrap();
+        assert_eq!(
+            &m.peek(0).payload()[40..43],
+            &[1, 1, ui_core::PhysicalKey::A as u8]
+        );
+    }
+}
+
+#[test]
+fn hid_detaching_keyboard_does_not_rearm_a_still_held_mouse_button() {
+    let mut m = Model::new();
+    m.hid_start();
+    m.hid_key([0, 0, 4, 0, 0, 0, 0, 0]).unwrap();
+    m.hid_mouse([1, 0, 0]).unwrap();
+    let old = m.peek(0);
+    m.hid_command(Operation::HidDetach, 1, 0).unwrap();
+    assert!(!m.service.reply_is_current(&old));
+    let cancel = m.peek(0);
+    assert_eq!(&cancel.payload()[40..42], &[3, 2]);
+    m.ack(0, &cancel);
+    m.hid_mouse([1, 3, 0]).unwrap();
+    let movement = m.peek(0);
+    assert_eq!(&movement.payload()[40..44], &[2, 0, 0, 0]);
+    m.ack(0, &movement);
+    m.hid_key([0, 0, 4, 0, 0, 0, 0, 0]).unwrap();
+    let key = m.peek(0);
+    assert_eq!(
+        &key.payload()[40..43],
+        &[1, 1, ui_core::PhysicalKey::A as u8]
+    );
+    m.ack(0, &key);
+    m.hid_mouse([0, 0, 0]).unwrap();
+    m.hid_mouse([1, 0, 0]).unwrap();
+    assert_eq!(&m.peek(0).payload()[42..44], &[1, 1]);
+}
+
+#[test]
+fn hid_detaching_mouse_does_not_rearm_a_still_held_keyboard_chord() {
+    let mut m = Model::new();
+    m.hid_start();
+    m.hid_key([1, 0, 4, 0, 0, 0, 0, 0]).unwrap();
+    m.hid_mouse([1, 0, 0]).unwrap();
+    m.hid_command(Operation::HidDetach, 2, 0).unwrap();
+    let cancel = m.peek(0);
+    m.ack(0, &cancel);
+    m.hid_key([1, 0, 4, 0, 0, 0, 0, 0]).unwrap();
+    assert_eq!(number(m.peek(0).payload(), 24), 1);
+    m.hid_mouse([1, 0, 0]).unwrap();
+    let button = m.peek(0);
+    assert_eq!(&button.payload()[42..44], &[1, 1]);
+    m.ack(0, &button);
+    m.hid_key([0; 8]).unwrap();
+    m.hid_key([0, 0, 4, 0, 0, 0, 0, 0]).unwrap();
+    assert_eq!(m.peek(0).payload()[42], ui_core::PhysicalKey::A as u8);
+}
+
+#[test]
+fn hid_mouse_uses_screen_y_convention_and_rejects_invalid_delta_without_movement() {
+    let mut m = Model::new();
+    m.hid_start();
+    m.hid_mouse([1, 5, 7]).unwrap();
+    assert_eq!(m.service.cursor(), (5, 7));
+    let event = m.peek(0);
+    assert_eq!(
+        i16::from_le_bytes(event.payload()[46..48].try_into().unwrap()),
+        -7
+    );
+    assert_eq!(m.hid_mouse([0, 128, 0]), Err(Error::DecodeFault));
+    assert_eq!(m.service.cursor(), (5, 7));
+    assert!(!m.service.reply_is_current(&event));
+    m.hid_command(Operation::Sync, wire::HID_PROFILE, 0)
+        .unwrap();
+    let cancel = m.peek(0);
+    m.ack(0, &cancel);
+    m.hid_mouse([1, 0, 0]).unwrap();
+    assert_eq!(number(m.peek(0).payload(), 24), 1);
+    m.hid_mouse([0, 0, 0]).unwrap();
+    m.hid_mouse([1, 0, 0]).unwrap();
+    assert_eq!(&m.peek(0).payload()[42..44], &[1, 1]);
+}
+
+#[test]
+fn hid_aliases_are_one_physical_key_and_ambiguous_reports_fail_closed() {
+    let mut m = Model::new();
+    m.hid_start();
+    m.hid_key([0, 0, 0x31, 0, 0, 0, 0, 0]).unwrap();
+    let press = m.peek(0);
+    assert_eq!(press.payload()[42], ui_core::PhysicalKey::Backslash as u8);
+    m.ack(0, &press);
+    m.hid_key([0, 0, 0x32, 0, 0, 0, 0, 0]).unwrap();
+    assert_eq!(number(m.peek(0).payload(), 24), 1);
+    assert_eq!(
+        m.hid_key([0, 0, 0x31, 0x32, 0, 0, 0, 0]),
+        Err(Error::DecodeFault)
+    );
+    m.hid_command(Operation::Sync, wire::HID_PROFILE, 0)
+        .unwrap();
+    let cancel = m.peek(0);
+    m.ack(0, &cancel);
+    m.hid_key([0; 8]).unwrap();
+    m.hid_key([0, 0, 4, 0xfe, 0, 0, 0, 0]).unwrap();
+    assert_eq!(m.service.queued(), 1); // Unsupported usage cannot invent a key.
+    assert_eq!(m.peek(0).payload()[42], ui_core::PhysicalKey::A as u8);
+}
+
+#[test]
+fn hid_batch_overflow_cancels_instead_of_leaking_partial_input_to_new_focus() {
+    let mut m = Model::new();
+    m.hid_start();
+    m.hid_key([255, 0, 4, 5, 6, 7, 8, 9]).unwrap();
+    assert_eq!(m.service.queued(), 14);
+    assert_eq!(
+        m.hid_key([255, 0, 10, 11, 12, 13, 14, 15]),
+        Err(Error::QueueFull)
+    );
+    assert_eq!(m.service.queued(), 0);
+    let cancel = m.peek(0);
+    assert_eq!(&cancel.payload()[40..42], &[3, 3]);
+    m.ack(0, &cancel);
+    m.focus(202).unwrap();
+    m.hid_key([255, 0, 10, 11, 12, 13, 14, 15]).unwrap();
+    assert_eq!(number(m.peek(1).payload(), 24), 1);
+    m.hid_key([0; 8]).unwrap();
+    // D was released after the point where the bounded delivery queue filled.
+    // That physical release must still clear its suppression marker.
+    m.hid_key([0, 0, 7, 0, 0, 0, 0, 0]).unwrap();
+    assert_eq!(
+        &m.peek(1).payload()[40..43],
+        &[1, 1, ui_core::PhysicalKey::D as u8]
+    );
 }
 
 #[test]

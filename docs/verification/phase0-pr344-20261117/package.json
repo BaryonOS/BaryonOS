@@ -1,0 +1,17 @@
+{
+  "archive_bytes": 71579,
+  "archive_sha256": "985ede7b27e96936c369ba18787c9178af0ef38d130792fc88e936242a7071c4",
+  "registry_version": "7.2.0",
+  "vcs": {
+    "git": {
+      "sha1": "c0371abfefa6e779867c378f62f750747e320ca9"
+    },
+    "path_in_vcs": ""
+  },
+  "licence": "MIT OR Apache-2.0 OR LGPL-2.1-or-later",
+  "msrv": "1.68",
+  "build_script": false,
+  "default_features": [],
+  "notice_sha256": "cfb1806058da831762bbfd08d2f44da0f4cba49339e0782d8985ed84d42de75e",
+  "notice_unchanged": true
+}

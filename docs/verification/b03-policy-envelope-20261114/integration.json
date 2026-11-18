@@ -1,0 +1,238 @@
+{
+  "schema_version": 1,
+  "date": "2026-11-14",
+  "pull_request": "https://github.com/BaryonOS/BaryonOS/pull/336",
+  "verified_source": {
+    "commit": "f34e96a6a52299097dc09baf285699c6f906d301",
+    "tree": "66416e79f4c7ed282e02d2d9ef9bf701205334a1",
+    "main_parent": "ce47359fcd9c62abca50da87ac62183026aac91c",
+    "source_fingerprint_version": 3,
+    "source_sha256": "31b8b8851db624e311836e1d01b9b98c8612802cc662e133118f1054ea410718",
+    "identity": "Local commands executed with HEAD at the published commit, after integrating merged N04 source. Later documentation receipts do not change executable inputs."
+  },
+  "environment": {
+    "rustc": "rustc 1.90.0 (1159e78c4 2025-09-14)",
+    "python": "3.12.14",
+    "qemu": "QEMU emulator version 10.0.13 (Debian 1:10.0.13+ds-0+deb13u1)\nCopyright (c) 2003-2025 Fabrice Bellard and the QEMU Project developers",
+    "machine": "pc-q35-10.0",
+    "native_setup": "source /workspace/scratch/3daca0062c76/qemu-deps/env.sh; PATH=/home/agent/.cargo/bin:$PATH; NOS_BUILD_DIR=$PWD/build; NOS_TARGET_DIR=$PWD/target; CARGO_TARGET_DIR=$PWD/target",
+    "host_cargo_target": "$PWD/target/policy-host",
+    "firmware_code_sha256": "624e06de18b4fa535e90db7160d00d3d07d206422b89999bf1e27d920264e4e0",
+    "firmware_template_sha256": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e"
+  },
+  "commands": [
+    {
+      "name": "strict_preflight",
+      "command": "python3 -B tools/preflight.py --strict --firmware $OS_OVMF_CODE",
+      "exit_code": 0,
+      "result": "PASS; no missing tools",
+      "log": "build/tokenguard/run-qa0wdot4.log",
+      "log_sha256": "b00a6a66192a4d4e730ca8947436fcb37dfd213b0b2bb1b7fafabe83cc8a82ca"
+    },
+    {
+      "name": "rust_host",
+      "command": "cargo +1.90.0 test --offline --locked -p update-core -p update-tool --features update-core/test-policy-envelope-probe",
+      "exit_code": 0,
+      "result": "32 tests passed: 9 library, 6 pinned-policy, 13 envelopes, 4 CLI",
+      "log": "build/tokenguard/run-5mk77vlr.log",
+      "log_sha256": "a6b7304103d14af43d2dede9d9b1d119fcd3b0365adb065771a4b3e9b906fe98"
+    },
+    {
+      "name": "probe_host_oracle",
+      "command": "python3 -B -m unittest discover -s tests -p test_policy_envelopes.py",
+      "exit_code": 0,
+      "result": "8 tests passed",
+      "log": "build/tokenguard/run-ri4jlc6k.log",
+      "log_sha256": "62f67c313d8a5c5b2836f7cfc93f186393741a548f1380a2e9aa55ea95990c80"
+    },
+    {
+      "name": "symbolic_model",
+      "command": "python3 -B docs/verification/b03-policy-transition-20261114/model.py",
+      "exit_code": 0,
+      "result": "92 finite symbolic checks; no native persistence claim",
+      "log": "build/tokenguard/run-2dbzqy9_.log",
+      "log_sha256": "0e944f111c0b1c9d51632ddafb97bf3c34a30359a08f6f2946a1f9a8d093b569"
+    },
+    {
+      "name": "strict_clippy",
+      "command": "cargo +1.90.0 clippy --offline --locked -p update-core -p update-tool --features update-core/test-policy-envelope-probe --all-targets -- -D warnings",
+      "exit_code": 0,
+      "result": "PASS",
+      "log": "build/tokenguard/run-ofxgylgz.log",
+      "log_sha256": "63d9abc99a8368da8af1ef4211be8ffb6b43f685ddbf119be6356f92f88f5c27"
+    },
+    {
+      "name": "root_format",
+      "command": "cargo +1.90.0 fmt --all -- --check",
+      "exit_code": 0,
+      "result": "PASS",
+      "log": "build/tokenguard/run-klgngx8w.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "sdk_format",
+      "command": "cargo +1.90.0 fmt --manifest-path sdk/Cargo.toml --all -- --check",
+      "exit_code": 0,
+      "result": "PASS",
+      "log": "build/tokenguard/run-mtjqnivb.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "build_paths",
+      "command": "python3 -B -m unittest discover -s tests -p test_build_paths.py",
+      "exit_code": 0,
+      "result": "3 tests passed",
+      "log": "build/tokenguard/run-u_lgvazo.log",
+      "log_sha256": "edb4e2159c923ea45a32656078835cdf531c3d7b414c670dd786978875cb0678"
+    },
+    {
+      "name": "ci_contracts",
+      "command": "python3 -B -m unittest discover -s tests -p test_ci_workflows.py",
+      "exit_code": 0,
+      "result": "26 tests passed",
+      "log": "build/tokenguard/run-64bqqtt_.log",
+      "log_sha256": "cb5aa4b4858d85453570449a0cc11627377d67f669098440c133f40789230b23"
+    },
+    {
+      "name": "native_probe",
+      "command": "python3 -B tools/test_policy_envelopes.py --timeout 900",
+      "exit_code": 0,
+      "result": "26/26 in each consumer; raw QEMU exit 33; no block writes/flushes; unchanged slot disk",
+      "log": "build/tokenguard/run-tz7hr44k.log",
+      "log_sha256": "c07eec1943982d3825da2b52ab5c2404803be0d0544875df5e16ca8dfc2915a8"
+    },
+    {
+      "name": "native_update_gate",
+      "command": "python3 -B -u tools/test_update.py",
+      "exit_code": 0,
+      "result": "18 native stages, 6 compiler controls, 15 existing Python harness tests and legacy host tests passed",
+      "log": "build/tokenguard/run-6pcw7wmu.log",
+      "log_sha256": "67edc7860c87cfa3d6a8536059d6407964041b081d1a6dea3118e3c50ddc72dc"
+    },
+    {
+      "name": "standard_build",
+      "command": "python3 -B tools/build.py",
+      "exit_code": 0,
+      "result": "PASS; normal profile",
+      "log": "build/tokenguard/run-c81j_rka.log",
+      "log_sha256": "7ea5f37f0f283f59a8fd5af019f4175634e50d89df1c1ba53e569bb343347bb8"
+    },
+    {
+      "name": "standard_smoke",
+      "command": "python3 -B tools/run.py --smoke",
+      "exit_code": 0,
+      "result": "PASS; M1:PASS; raw QEMU exit 33; no timeout",
+      "log": "build/tokenguard/run-fyeubn88.log",
+      "log_sha256": "81adfca902add34b0832ec52574f5fbc580b28c07fad9a6e0aa80e24eaa8d79e"
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "docs/verification/b03-policy-envelope-20261114/native-policy-probe.json",
+      "bytes": 12307,
+      "sha256": "8f32f523b9922b18942243c6c7fed3dd2852b4133a3a65675893b114a7db29a3"
+    },
+    {
+      "path": "docs/verification/b03-policy-envelope-20261114/standard-build.json",
+      "bytes": 2034,
+      "sha256": "88a11b820ff5c6c7e01df50d5deba97ea7806bc1d092f851d92216e124d61573"
+    },
+    {
+      "path": "docs/verification/b03-policy-envelope-20261114/standard-smoke.json",
+      "bytes": 2691,
+      "sha256": "5f11566c2e45ff66c84513df9e65e48ccf691bea7b44ad3bd24a2e199c6e1b4a"
+    },
+    {
+      "path": "docs/verification/b03-policy-envelope-20261114/qemu-provenance.json",
+      "bytes": 7863,
+      "sha256": "45495a049177ad438a7544e64fa0c214c8f4beb364a7150835e1447f2b7c515d"
+    },
+    {
+      "path": "docs/verification/b03-policy-envelope-20261114/native-update-stages.json",
+      "bytes": 268033,
+      "sha256": "ce5ed3091e5680577c6239b9614a74e1e4cf69fb80f143c84bfccbf5c4a0b7fc"
+    },
+    {
+      "path": "docs/verification/b03-policy-envelope-20261114/native-update-gate.json",
+      "bytes": 40483,
+      "sha256": "f237207398716e2d92c3b573abb2aa84b3efe426b6144e6aaf9ae813611693fb"
+    },
+    {
+      "path": "docs/verification/b03-policy-envelope-20261114/hosted.json",
+      "bytes": 11381,
+      "sha256": "b67a48148f0b9be0574cabd517e757b6ca3b8785ec381259287f8ddac0180108"
+    }
+  ],
+  "independent_ai_replay": {
+    "kind": "Separate read-only AI verification, not a human security audit",
+    "source_commit": "f34e96a6a52299097dc09baf285699c6f906d301",
+    "log": "build/tokenguard/run-szd9ecmu.log",
+    "log_sha256": "89423fdeffb6429b0f560446568c0c5988532babfee1c8b761473b02cee987b2",
+    "checks": [
+      "Recomputed source fingerprint before and after review",
+      "Re-evaluated actual serial bytes and phase-ordered oracle",
+      "Matched frozen loader, kernel, firmware, fixture and Python-test hashes",
+      "Reconstructed the complete starting store from the copied manifest/kernel and compared every byte",
+      "Confirmed kernel 2096008 bytes, 1144-byte headroom, empty stderr and no block writes/flushes"
+    ]
+  },
+  "corrected_findings": [
+    {
+      "finding_and_resolution": "Host test stack overflow fixed by heap storage for host-only heavyweight signing keys; no thread-stack increase",
+      "historical_log": "/workspace/scratch/3daca0062c76/baryonos-policy-codec/build/tokenguard/run-ldrflktf.log",
+      "log_sha256": "a64e5dbdb4ee77fb1f3ddfc4d1ebafdbf192ea31e3068bc67248872222f15df8"
+    },
+    {
+      "finding_and_resolution": "Standalone freestanding compiler SIMD crash avoided with existing serial/soft backends; native profiles reuse their established flags",
+      "historical_log": "/workspace/scratch/3daca0062c76/baryonos-policy-codec/build/tokenguard/run-2s3ie2e1.log",
+      "log_sha256": "99f9b9b4f8c64e2acd08ba1ad259da459e7eda6535f92903bf2ead944fba3b73"
+    },
+    {
+      "finding_and_resolution": "Service COUNT/MASK accepted before handover by the first oracle; corrected phase filtering and regression cases",
+      "historical_log": "/workspace/scratch/3daca0062c76/baryonos-policy-native/build/tokenguard/run-qa99sk8e.log",
+      "log_sha256": "9e43819e50014177ace758ee3eae50ce10c92b11347f84aa2b68ca18f210ce80"
+    },
+    {
+      "finding_and_resolution": "Initial probe kernel 2104200 bytes correctly exceeded the fixed 2097152-byte slot limit. Redundant TEST envelopes were reused; final kernel 2096008 bytes. No limit was raised."
+    }
+  ],
+  "limitations": [
+    "The 26-case probe authenticates immutable public TEST vectors in the loader and service; it does not implement policy ingress, persistent commits, interruption/replay recovery or replacement ELF activation.",
+    "Zero block writes and an unchanged store do not imply zero firmware writes: the existing image floor may advance.",
+    "Ordinary OVMF storage does not establish rollback resistance; production custody, B04 boot trust and independent human review remain open.",
+    "Local QEMU 10.0.13 / pc-q35-10.0 is separate from the hosted QEMU 8.2.2 run recorded in hosted.json.",
+    "Existing kernel dead-code warnings remain; strict Clippy for the affected host crates passed."
+  ],
+  "progress": {
+    "before": 41,
+    "after": 41,
+    "criterion_register_changed": false,
+    "issue_41_state": "open"
+  },
+  "receipt_checks": [
+    {
+      "name": "progress_consistency",
+      "command": "python3 -B tools/progress.py --check",
+      "exit_code": 0,
+      "scope": "Documentation receipt worktree; executable inputs remain those of the verified published source",
+      "log": "build/tokenguard/run-_6m4egj_.log",
+      "log_sha256": "14b305fe38d23ae7244745b59dcbbad1fa41b2ffd4a173070a72a8aca2f3aa5f"
+    },
+    {
+      "name": "executable_identity",
+      "command": "Recompute source-v3 and compare criterion register and receipt JSON",
+      "exit_code": 0,
+      "scope": "Documentation receipt worktree; executable inputs remain those of the verified published source",
+      "log": "build/tokenguard/run-xmo4fs6x.log",
+      "log_sha256": "56f61af4668452ba85e1f7a8da3d53019adf73328d98a389d76e01ce51ab8290"
+    },
+    {
+      "name": "whitespace",
+      "command": "git diff --check",
+      "exit_code": 0,
+      "scope": "Documentation receipt worktree; executable inputs remain those of the verified published source",
+      "log": "build/tokenguard/run-a6e6zlcm.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ]
+}

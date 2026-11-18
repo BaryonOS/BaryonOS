@@ -1,0 +1,4 @@
+    Checking driver-core v0.1.0 (/workspace/scratch/7264b5153599/h02-native/crates/driver-core)
+    Checking pci-core v0.1.0 (/workspace/scratch/7264b5153599/h02-native/crates/pci-core)
+    Checking nieuw-os-xhci-probe v0.1.0 (/workspace/scratch/7264b5153599/h02-native/drivers/xhci)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.30s

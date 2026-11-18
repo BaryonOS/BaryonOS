@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-18",
-    "source_commit": "c64d81d6bde1a0e649350325db15d87cde11e1cd",
+    "source_commit": "e7752fe03ccde548762dca1c1dc0cc096470730d",
     "assessment_basis": "parent_commit",
     "branch": "codex/phase0-baseline",
-    "task": "Phase0: preserve security and independent WIP checkpoints for verified cloud handoff",
+    "task": "Phase 0: resume authorized Cloud execution and reconcile current main",
     "previous_score": 41,
-    "summary": "41/100 unchanged. Source-bound PR355 checkpoints and published Rust/PR339 WIP are preserved; required resource/workflow/security and current-head gates remain open. Cloud ownership is released after remote source/handoff verification; local writers stop. No issue, finding, product criterion or baseline B is falsely completed."
+    "summary": "41/100 unchanged. Main333 H02 evidence and accepted ADRs are preserved. Explicit owner resumption supersedes the historical pause. Security runtime/resource and model compatibility gates remain blocking; inaccessible scanner categories are NOT VERIFIED. No product criterion, finding, issue, baseline B or governance phase is completed by this checkpoint."
   },
   "tracks": [
     {
@@ -217,7 +217,9 @@
           "points": 3,
           "status": "open",
           "acceptance": "Common input and USB devices work on the documented reference profile; hotplug and invalid device responses remain bounded.",
-          "evidence": []
+          "evidence": [
+            "docs/verification/issue42-native-input-20261114/README.md"
+          ]
         },
         {
           "id": "H03",
