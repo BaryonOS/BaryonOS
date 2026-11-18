@@ -1,5 +1,15 @@
 # Current project status
 
+## NEXT AGENT HANDOFF — PR355 boundary and PR358 hardened integrity — 18 November 2026
+
+**Security priority:** PR #359 is contained in main `1c10cdb5b30df2f3d30bea74430383f59c398931`. PR #355 remains the active security task at exact head `124a679cbd03fc1eb39e941f6760cb2da9dea382`; 54 checks pass, eight are legitimately skipped, two native window-session jobs remain in progress and no review thread is unresolved. The branch remains draft even if those jobs pass: the authenticated model-client boundary and pinned offline selected-gate runtime are not yet accepted. The manifest stays disabled, containment is preserved and no merge is authorized at this checkpoint.
+
+**Independent feasible slice:** PR #358 was reconciled with that main without conflict. Source `4ae9a1c4f19bcf84ed06f0a8afcfdfc40fb237a8` (tree `a6eb48f68f30cf443b96c7cfc9da636a2a179532`) contains three bounded documentation corrections. New sibling evidence under `verification/issue274-hardened-integrity-20261118/` corrects all 22 validated integrity gaps without rewriting historical records. It binds immutable repository and Wiki trees, corrected helpers, fixed inputs, fresh semantic output, raw exits and a complete SHA-256 register.
+
+**Verification and limits:** the immutable checker, normal and optimized Wiki verifiers, and 31-case positive/negative self-test pass with exit 0. All 19 retained files match their registered hashes; Python/Node syntax and `git diff --check` pass. Independent exact-byte review reports no remaining blocker. This is host-level evidence only: issue #274, professional language acceptance, UI localisation, native QEMU, hardware and human acceptance remain open. Score remains 41/100.
+
+**Next:** publish this checkpoint on the existing PR #358 branch, require fresh exact-head hosted checks and resolve only findings proven against that head. Merge only if every applicable gate passes; do not close issue #274. Continue the independent security queue while PR #355 remains blocked, without weakening the execution hold or starting governance.
+
 ## NEXT AGENT HANDOFF — Local PR359 containment reconciliation — 18 November 2026
 
 **Authority and ownership:** the project owner approved autonomous local execution and verified manual squash merges. Cloud handoff `88b801ab8cd47f4765ef7d925b161542dbbf684e` releases Codex work only. Local Codex exclusively owns this PR359 reconciliation in an isolated worktree; the original unfinished merge, Claude UI/UX and broader S09 remain untouched.

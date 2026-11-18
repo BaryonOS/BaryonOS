@@ -1,0 +1,32 @@
+{
+  "collector_helper": "docs/verification/issue274-hardened-integrity-20261118/helpers/collect.cjs",
+  "collector_output": "docs/verification/issue274-hardened-integrity-20261118/output/collector.json",
+  "files": {
+    "docs/verification/issue274-hardened-integrity-20261118/DESIGN.md": "dcfe3c06b9144c91c968e83e278440dca650c5a1d5d30ddf6d7e5553c89997ba",
+    "docs/verification/issue274-hardened-integrity-20261118/helpers/capture.py": "65133c847be233e133587299c4fb131c798593e891c8cd57fe221d6feda1d513",
+    "docs/verification/issue274-hardened-integrity-20261118/helpers/check.py": "0b88ee96d42c3c58241ac0061fb024d4ed17040324ca3ffa0967afb5ce71526f",
+    "docs/verification/issue274-hardened-integrity-20261118/helpers/collect.cjs": "b742c97f9aa935e00fc6e542260697eaa6b2cc0bda67817788d08aa236a5a06f",
+    "docs/verification/issue274-hardened-integrity-20261118/helpers/make_manifest.py": "646755e125e761f1f9b5d7bcc393a39911d842c65b2c9fad98b2f662291fdbb0",
+    "docs/verification/issue274-hardened-integrity-20261118/helpers/self_test.py": "fbe84535d1a9a4912334f0d3a38c4da4976c9fa7483b928678b1003d8ec4c133",
+    "docs/verification/issue274-hardened-integrity-20261118/helpers/verify.py": "6f321b9e7dcff116ce27bec44c5c629ea6f2b9fd2156f7ac351a549146d9b174",
+    "docs/verification/issue274-hardened-integrity-20261118/inputs/publication.json": "7e316cc7ee1b2f848e4b90f986ee3490b8c501ebefde96b1c6587e665fc3532c",
+    "docs/verification/issue274-hardened-integrity-20261118/inputs/published.json": "5f96941c2bf52ad7206c7a15d2e4dd61f47b19129feb984d51abdb0b6b2c4f02",
+    "docs/verification/issue274-hardened-integrity-20261118/inputs/review.json": "1eb6fa5bce46cdf2a20de9fa8b41db73b5ac90800df5e4e5767691dce355fb61",
+    "docs/verification/issue274-hardened-integrity-20261118/output/collector.json": "202696d1fc924c4bbe2fed84c5d2b238a7be7abbbeca3da862be1be7ed3dbbb8",
+    "docs/verification/issue274-hardened-integrity-20261118/output/coverage.json": "ffc1c551897fa6cab7ffd3ac96948c45bbe6fc56b90d3d914fe47d143ea3e224"
+  },
+  "helpers": [
+    "docs/verification/issue274-hardened-integrity-20261118/helpers/collect.cjs",
+    "docs/verification/issue274-hardened-integrity-20261118/helpers/check.py",
+    "docs/verification/issue274-hardened-integrity-20261118/helpers/verify.py"
+  ],
+  "inventory": "docs/verification/issue274-hardened-integrity-20261118/output/coverage.json",
+  "publication_record": "docs/verification/issue274-hardened-integrity-20261118/inputs/publication.json",
+  "published_receipt": "docs/verification/issue274-hardened-integrity-20261118/inputs/published.json",
+  "review": "docs/verification/issue274-hardened-integrity-20261118/inputs/review.json",
+  "schema_version": 1,
+  "source_commit": "4ae9a1c4f19bcf84ed06f0a8afcfdfc40fb237a8",
+  "source_tree": "a6eb48f68f30cf443b96c7cfc9da636a2a179532",
+  "wiki_commit": "4a01b8b2ad2695da509a512ea688007c964f56da",
+  "wiki_tree": "f7bee30ee39abb60da294d48357af5b6c85f2fae"
+}
