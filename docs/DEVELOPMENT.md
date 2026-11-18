@@ -278,7 +278,7 @@ The quantum workspace is outside the kernel workspace. `verify.py` writes output
 
 ## Provenance and hashes
 
-The values below come from the [build/toolchain-provenance.json](../build/toolchain-provenance.json) that was actually created. Hashes identify the files used; they do not prove error-free or secure software.
+The values below come from the generated local file `build/toolchain-provenance.json` that was actually created. Hashes identify the files used; they do not prove error-free or secure software.
 
 | File | Algorithm | Recorded hash |
 |---|---|---|
