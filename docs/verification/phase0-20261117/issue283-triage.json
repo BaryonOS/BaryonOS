@@ -1,0 +1,57 @@
+{
+  "source_main": "b718f6bafdfc4927d3b7acfe786e67dcb8f88eec",
+  "issue": 283,
+  "direct_main_ancestor_prs": [
+    154,
+    155,
+    167,
+    181,
+    185,
+    207,
+    210,
+    213,
+    214,
+    215,
+    216,
+    218,
+    233,
+    243,
+    257,
+    259,
+    269,
+    271,
+    273,
+    275,
+    280,
+    281,
+    282
+  ],
+  "intermediate_branch_merges": [
+    231,
+    244
+  ],
+  "documented_replacements": [
+    227,
+    229,
+    232,
+    238,
+    245,
+    246,
+    270
+  ],
+  "replacements_on_main": [
+    249,
+    296,
+    319
+  ],
+  "owner_disposition_pending": [
+    260
+  ],
+  "limitations": [
+    "Ancestry proves historical integration, not current runtime acceptance.",
+    "231/244 merged only into a K06 branch; replacement via296/319 is documented, full equivalence unproven.",
+    "270 README archive links were transformed; do not claim exact byte identity against its original head.",
+    "260 large deletion proposal remains closed/unmerged; no authority to apply it."
+  ],
+  "decision": "Keep issue283 open; retain history and explicit residual dispositions. No baseline-blocking regression established by this triage."
+}

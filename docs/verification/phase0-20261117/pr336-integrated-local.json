@@ -1,0 +1,556 @@
+{
+  "source_commit": "c26b0903627fea59f5d286f8eff4c4887b017b9a",
+  "integrated_main": "e7169e43bf772307acf328590b4300fa52a4ad73",
+  "checks": [
+    {
+      "source_commit": "c26b0903627fea59f5d286f8eff4c4887b017b9a",
+      "command": [
+        "cargo",
+        "+1.90.0",
+        "test",
+        "--offline",
+        "--locked",
+        "-p",
+        "update-core",
+        "-p",
+        "update-tool",
+        "--features",
+        "update-core/test-policy-envelope-probe"
+      ],
+      "exit_code": 0,
+      "duration_seconds": 3.573,
+      "presentation_log": "logs/pr336-integrated-check-00.log",
+      "token_guard": {
+        "duration_seconds": 3.54,
+        "emitted_bytes": 4028,
+        "exit_code": 0,
+        "log": "build/tokenguard/run-tpo7ytl6.log",
+        "output_complete": true,
+        "presentation_scope": "sanitized_text",
+        "raw_bytes": 3793,
+        "rtk_used": false,
+        "schema_version": 1
+      },
+      "raw_log_sha256": "7191c97810679902b855678d32aa4b41ecdb7101131a0b6f868645d953465922"
+    },
+    {
+      "source_commit": "c26b0903627fea59f5d286f8eff4c4887b017b9a",
+      "command": [
+        "cargo",
+        "+1.90.0",
+        "clippy",
+        "--offline",
+        "--locked",
+        "-p",
+        "update-core",
+        "-p",
+        "update-tool",
+        "--all-targets",
+        "--features",
+        "update-core/test-policy-envelope-probe",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit_code": 0,
+      "duration_seconds": 2.988,
+      "presentation_log": "logs/pr336-integrated-check-01.log",
+      "token_guard": {
+        "duration_seconds": 2.958,
+        "emitted_bytes": 1341,
+        "exit_code": 0,
+        "log": "build/tokenguard/run-450eiuuq.log",
+        "output_complete": true,
+        "presentation_scope": "sanitized_text",
+        "raw_bytes": 1105,
+        "rtk_used": false,
+        "schema_version": 1
+      },
+      "raw_log_sha256": "b7521ad88758766c136342cd6240fc93e1596e42e2ecf804e3d392f33fec5e46"
+    },
+    {
+      "source_commit": "c26b0903627fea59f5d286f8eff4c4887b017b9a",
+      "command": [
+        "cargo",
+        "+1.90.0",
+        "fmt",
+        "--all",
+        "--",
+        "--check"
+      ],
+      "exit_code": 0,
+      "duration_seconds": 0.618,
+      "presentation_log": "logs/pr336-integrated-check-02.log",
+      "token_guard": {
+        "duration_seconds": 0.587,
+        "emitted_bytes": 231,
+        "exit_code": 0,
+        "log": "build/tokenguard/run-pf5rcsc_.log",
+        "output_complete": true,
+        "presentation_scope": "sanitized_text",
+        "raw_bytes": 0,
+        "rtk_used": false,
+        "schema_version": 1
+      },
+      "raw_log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "source_commit": "c26b0903627fea59f5d286f8eff4c4887b017b9a",
+      "command": [
+        "cargo",
+        "+1.90.0",
+        "fmt",
+        "--manifest-path",
+        "sdk/Cargo.toml",
+        "--all",
+        "--",
+        "--check"
+      ],
+      "exit_code": 0,
+      "duration_seconds": 0.616,
+      "presentation_log": "logs/pr336-integrated-check-03.log",
+      "token_guard": {
+        "duration_seconds": 0.584,
+        "emitted_bytes": 231,
+        "exit_code": 0,
+        "log": "build/tokenguard/run-tbgn5vr3.log",
+        "output_complete": true,
+        "presentation_scope": "sanitized_text",
+        "raw_bytes": 0,
+        "rtk_used": false,
+        "schema_version": 1
+      },
+      "raw_log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "source_commit": "c26b0903627fea59f5d286f8eff4c4887b017b9a",
+      "command": [
+        "python3",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tests",
+        "-p",
+        "test_policy_envelopes.py"
+      ],
+      "exit_code": 0,
+      "duration_seconds": 0.126,
+      "presentation_log": "logs/pr336-integrated-check-04.log",
+      "token_guard": {
+        "duration_seconds": 0.097,
+        "emitted_bytes": 340,
+        "exit_code": 0,
+        "log": "build/tokenguard/run-1l2lepz_.log",
+        "output_complete": true,
+        "presentation_scope": "sanitized_text",
+        "raw_bytes": 106,
+        "rtk_used": false,
+        "schema_version": 1
+      },
+      "raw_log_sha256": "31cf1957eee9f44d5a7cbdf606d6f8fe532aa31259e4efd4e96d9318630d0a4b"
+    },
+    {
+      "source_commit": "c26b0903627fea59f5d286f8eff4c4887b017b9a",
+      "command": [
+        "python3",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tests",
+        "-p",
+        "test_update_harness.py"
+      ],
+      "exit_code": 0,
+      "duration_seconds": 0.355,
+      "presentation_log": "logs/pr336-integrated-check-05.log",
+      "token_guard": {
+        "duration_seconds": 0.322,
+        "emitted_bytes": 1469,
+        "exit_code": 0,
+        "log": "build/tokenguard/run-h8nvml47.log",
+        "output_complete": true,
+        "presentation_scope": "sanitized_text",
+        "raw_bytes": 1233,
+        "rtk_used": false,
+        "schema_version": 1
+      },
+      "raw_log_sha256": "72e63bdc955d73ce22b33dc12325f43f20d83f72cd9abedf88c450f785c40a46"
+    },
+    {
+      "source_commit": "c26b0903627fea59f5d286f8eff4c4887b017b9a",
+      "command": [
+        "python3",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tests",
+        "-p",
+        "test_ci_workflows.py"
+      ],
+      "exit_code": 0,
+      "duration_seconds": 0.333,
+      "presentation_log": "logs/pr336-integrated-check-06.log",
+      "token_guard": {
+        "duration_seconds": 0.304,
+        "emitted_bytes": 359,
+        "exit_code": 0,
+        "log": "build/tokenguard/run-dv8wm4z_.log",
+        "output_complete": true,
+        "presentation_scope": "sanitized_text",
+        "raw_bytes": 125,
+        "rtk_used": false,
+        "schema_version": 1
+      },
+      "raw_log_sha256": "cc41c309bf499097a0dc7f72fb32256cd777430e21d4b84a322c451d3e1bc78b"
+    },
+    {
+      "source_commit": "c26b0903627fea59f5d286f8eff4c4887b017b9a",
+      "command": [
+        "python3",
+        "-B",
+        "docs/verification/b03-policy-transition-20261114/model.py"
+      ],
+      "exit_code": 0,
+      "duration_seconds": 0.05,
+      "presentation_log": "logs/pr336-integrated-check-07.log",
+      "token_guard": {
+        "duration_seconds": 0.017,
+        "emitted_bytes": 862,
+        "exit_code": 0,
+        "log": "build/tokenguard/run-gsgyt704.log",
+        "output_complete": true,
+        "presentation_scope": "sanitized_text",
+        "raw_bytes": 628,
+        "rtk_used": false,
+        "schema_version": 1
+      },
+      "raw_log_sha256": "0e944f111c0b1c9d51632ddafb97bf3c34a30359a08f6f2946a1f9a8d093b569"
+    },
+    {
+      "source_commit": "c26b0903627fea59f5d286f8eff4c4887b017b9a",
+      "command": [
+        "python3",
+        "-B",
+        "tools/preflight.py",
+        "--strict"
+      ],
+      "exit_code": 0,
+      "duration_seconds": 0.196,
+      "presentation_log": "logs/pr336-integrated-check-08.log",
+      "token_guard": {
+        "duration_seconds": 0.16,
+        "emitted_bytes": 3338,
+        "exit_code": 0,
+        "log": "build/tokenguard/run-gr_755bs.log",
+        "output_complete": false,
+        "presentation_scope": "sanitized_text",
+        "raw_bytes": 14611,
+        "rtk_used": false,
+        "schema_version": 1
+      },
+      "raw_log_sha256": "a0632be9561584ee9f899ec7e9603355205c9980be21a4326f61a3a955a4109b"
+    },
+    {
+      "source_commit": "c26b0903627fea59f5d286f8eff4c4887b017b9a",
+      "command": [
+        "python3",
+        "-B",
+        "-u",
+        "tools/test_update.py"
+      ],
+      "exit_code": 0,
+      "duration_seconds": 61.034,
+      "presentation_log": "logs/pr336-integrated-check-09.log",
+      "token_guard": {
+        "duration_seconds": 61.003,
+        "emitted_bytes": 7896,
+        "exit_code": 0,
+        "log": "build/tokenguard/run-k00z3gva.log",
+        "output_complete": true,
+        "presentation_scope": "sanitized_text",
+        "raw_bytes": 7659,
+        "rtk_used": false,
+        "schema_version": 1
+      },
+      "raw_log_sha256": "9da4035805dcf576774f2e9e0824e7ad72b3b73962cd784adab1a37ef4546ac4"
+    },
+    {
+      "source_commit": "c26b0903627fea59f5d286f8eff4c4887b017b9a",
+      "command": [
+        "python3",
+        "-B",
+        "-u",
+        "tools/test_policy_envelopes.py",
+        "--timeout",
+        "900"
+      ],
+      "exit_code": 0,
+      "duration_seconds": 3.282,
+      "presentation_log": "logs/pr336-integrated-check-10.log",
+      "token_guard": {
+        "duration_seconds": 3.25,
+        "emitted_bytes": 1808,
+        "exit_code": 0,
+        "log": "build/tokenguard/run-3athi0r2.log",
+        "output_complete": true,
+        "presentation_scope": "sanitized_text",
+        "raw_bytes": 1573,
+        "rtk_used": false,
+        "schema_version": 1
+      },
+      "raw_log_sha256": "2cf42dd0f6dfd6bf4abfa72923584e66d1c8f5438be4f76f5615be1ea52df4df"
+    }
+  ],
+  "extra_build_path_tests": {
+    "command": "python3 -B -m unittest discover -s tests -p test_build_paths.py",
+    "tests": 3,
+    "exit_code": 0,
+    "raw_log": "pr336/build/tokenguard/run-moc8dz1r.log",
+    "sha256": "199ba496f288116d36c62f29346d4fbf0bd75745a1c893abfcbdaa4c6d5b1033"
+  },
+  "native_source_fingerprint_v3": "5179235624993c934a94518aaeca1bdaaf7b1954511d39953856cf5ea3ca0ecb",
+  "update_stages": [
+    {
+      "stage": "install",
+      "passed": true,
+      "raw_qemu_exit": 33,
+      "host_kill": false,
+      "run_directory": "/tmp/baryonos-phase0-20261117/pr336/build/run/update-install-b5b1347779"
+    },
+    {
+      "stage": "boot-v2",
+      "passed": true,
+      "raw_qemu_exit": 33,
+      "host_kill": false,
+      "run_directory": "/tmp/baryonos-phase0-20261117/pr336/build/run/update-boot-v2-512837d636"
+    },
+    {
+      "stage": "downgrade",
+      "passed": true,
+      "raw_qemu_exit": 33,
+      "host_kill": false,
+      "run_directory": "/tmp/baryonos-phase0-20261117/pr336/build/run/update-downgrade-704e39d56d"
+    },
+    {
+      "stage": "bad-signature",
+      "passed": true,
+      "raw_qemu_exit": 33,
+      "host_kill": false,
+      "run_directory": "/tmp/baryonos-phase0-20261117/pr336/build/run/update-bad-signature-5f1f5f871f"
+    },
+    {
+      "stage": "bad-digest",
+      "passed": true,
+      "raw_qemu_exit": 33,
+      "host_kill": false,
+      "run_directory": "/tmp/baryonos-phase0-20261117/pr336/build/run/update-bad-digest-8eae8b6949"
+    },
+    {
+      "stage": "bad-elf",
+      "passed": true,
+      "raw_qemu_exit": 33,
+      "host_kill": false,
+      "run_directory": "/tmp/baryonos-phase0-20261117/pr336/build/run/update-bad-elf-034678ee63"
+    },
+    {
+      "stage": "cut",
+      "passed": true,
+      "raw_qemu_exit": -9,
+      "host_kill": true,
+      "run_directory": "/tmp/baryonos-phase0-20261117/pr336/build/run/update-cut-0ad67b60d9"
+    },
+    {
+      "stage": "cut-resume",
+      "passed": true,
+      "raw_qemu_exit": 33,
+      "host_kill": false,
+      "run_directory": "/tmp/baryonos-phase0-20261117/pr336/build/run/update-cut-resume-37b20e14f8"
+    },
+    {
+      "stage": "cut-final",
+      "passed": true,
+      "raw_qemu_exit": 33,
+      "host_kill": false,
+      "run_directory": "/tmp/baryonos-phase0-20261117/pr336/build/run/update-cut-final-7ea51352c0"
+    },
+    {
+      "stage": "no-valid-slot",
+      "passed": true,
+      "raw_qemu_exit": 35,
+      "host_kill": false,
+      "run_directory": "/tmp/baryonos-phase0-20261117/pr336/build/run/update-no-valid-slot-c2de2d75c6"
+    },
+    {
+      "stage": "inbox-signature",
+      "passed": true,
+      "raw_qemu_exit": 33,
+      "host_kill": false,
+      "run_directory": "/tmp/baryonos-phase0-20261117/pr336/build/run/update-inbox-signature-4df366cce0"
+    },
+    {
+      "stage": "inbox-downgrade",
+      "passed": true,
+      "raw_qemu_exit": 33,
+      "host_kill": false,
+      "run_directory": "/tmp/baryonos-phase0-20261117/pr336/build/run/update-inbox-downgrade-eea3a17f6f"
+    },
+    {
+      "stage": "inbox-key",
+      "passed": true,
+      "raw_qemu_exit": 33,
+      "host_kill": false,
+      "run_directory": "/tmp/baryonos-phase0-20261117/pr336/build/run/update-inbox-key-225d9028c4"
+    },
+    {
+      "stage": "rotate-install",
+      "passed": true,
+      "raw_qemu_exit": 33,
+      "host_kill": false,
+      "run_directory": "/tmp/baryonos-phase0-20261117/pr336/build/run/update-rotate-install-a0e559f9cd"
+    },
+    {
+      "stage": "rotate-boot",
+      "passed": true,
+      "raw_qemu_exit": 33,
+      "host_kill": false,
+      "run_directory": "/tmp/baryonos-phase0-20261117/pr336/build/run/update-rotate-boot-f0ed71c64b"
+    },
+    {
+      "stage": "key-revoked",
+      "passed": true,
+      "raw_qemu_exit": 33,
+      "host_kill": false,
+      "run_directory": "/tmp/baryonos-phase0-20261117/pr336/build/run/update-key-revoked-cd2d05b272"
+    },
+    {
+      "stage": "key-expired",
+      "passed": true,
+      "raw_qemu_exit": 33,
+      "host_kill": false,
+      "run_directory": "/tmp/baryonos-phase0-20261117/pr336/build/run/update-key-expired-20be0b0ab9"
+    },
+    {
+      "stage": "key-not-yet-valid",
+      "passed": true,
+      "raw_qemu_exit": 33,
+      "host_kill": false,
+      "run_directory": "/tmp/baryonos-phase0-20261117/pr336/build/run/update-key-not-yet-valid-c65937cb6b"
+    }
+  ],
+  "policy_guards": {
+    "passed": true,
+    "checks": [
+      {
+        "name": "loader-positive",
+        "exit": 0,
+        "passed": true,
+        "expected_diagnostic": null
+      },
+      {
+        "name": "loader-negative",
+        "exit": 101,
+        "passed": true,
+        "expected_diagnostic": "signed-boot requires an explicit signing policy; TEST anchors require signed-boot-test"
+      },
+      {
+        "name": "loader-legacy-positive",
+        "exit": 0,
+        "passed": true,
+        "expected_diagnostic": null
+      },
+      {
+        "name": "loader-legacy-negative",
+        "exit": 101,
+        "passed": true,
+        "expected_diagnostic": "signed-boot requires an explicit signing policy; TEST anchors require signed-boot-test"
+      },
+      {
+        "name": "service-positive",
+        "exit": 0,
+        "passed": true,
+        "expected_diagnostic": null
+      },
+      {
+        "name": "service-negative",
+        "exit": 101,
+        "passed": true,
+        "expected_diagnostic": "the update service requires an explicit signing policy; TEST anchors are test-only"
+      }
+    ]
+  },
+  "probe": {
+    "profile": "native-update-policy-probe",
+    "started_utc": "2026-11-17T18:11:36.231838+00:00",
+    "duration_s": 2.275702860999445,
+    "raw_qemu_exit": 33,
+    "timed_out": false,
+    "host_kill": false,
+    "passed": true,
+    "cases": [
+      "policy-authentic",
+      "binding-image-authentic",
+      "successor-authentic",
+      "policy-ed-tampered",
+      "policy-pq-tampered",
+      "policy-target",
+      "policy-truncated",
+      "policy-length",
+      "policy-root",
+      "root-ed-role",
+      "root-pq-role",
+      "successor-lineage",
+      "binding-ed-tampered",
+      "binding-pq-tampered",
+      "binding-policy-digest",
+      "binding-manifest-digest",
+      "binding-target",
+      "binding-truncated",
+      "image-digest",
+      "image-floor",
+      "signer-revoked",
+      "signer-premature",
+      "signer-expired",
+      "policy-trailing",
+      "policy-domain-confusion",
+      "binding-domain-confusion"
+    ],
+    "run_directory": "/tmp/baryonos-phase0-20261117/pr336/build/run/policy-envelopes-a5a58d08da",
+    "store_before_sha256": "a1fd3583f80a69c44b8fad2760042f63565f4f6ba0343e3578abb0eee636b9c3",
+    "store_after_sha256": "a1fd3583f80a69c44b8fad2760042f63565f4f6ba0343e3578abb0eee636b9c3",
+    "fixture_hashes": {
+      "SHA256SUMS": "537de0d8a274cb4b15ad8b9b8ed2ef7e52ce383fc17dae2ff2d19d7bd245e65c",
+      "binding-expired.bin": "6c89c0fd287b3c9fe15cfb2921dba21a9e99f04d483846a3e8cd70d2ed765867",
+      "binding-premature.bin": "23c556c6d7efb7f507f69a39cb83bb0fd50d8f0efd069b1694f4abd0e0f038ab",
+      "binding-revoked.bin": "cb9d9cbc329156c7379c5c80059f5b56f72a8fc072f026a74b3536f2e9e81f8c",
+      "binding.bin": "3919d4b7803e886cdc5a21203b27e11cb3a2417cbf2daeb1ce6d3ac1ec716808",
+      "manifest.bin": "f76e80557fbcf823e8dfb0878bac0a9ede02484c12c103accd871a5b42c9e3d3",
+      "payload.bin": "ce7ccfd59b8c3d5ca8bb16d35920e9373a5742e0017ca2e2eceafc44324cc657",
+      "policy-expired.bin": "d930d65e3f23d77bea7b2392a65561d78b7e1623fbb11beea66980d6d4996b65",
+      "policy-premature.bin": "e9f47eff57e4d05b85083eed28886d68b5b3d8f97dd01e45d37bcb2172490003",
+      "policy-revoked.bin": "8027247a46a5305d67d64217db3a91c4519e8c559c9227f63194754ea248693b",
+      "policy.bin": "16e39e36198f100ee545bd1f430584556ef98658a77e42f326b1f054209bf1da",
+      "root-ed25519.bin": "b41fd894f96ec8adca19a85feb4f33462fc2eb7d977fdf0113955a54084d08ba",
+      "root-mldsa65.bin": "3ad5baed36f110401f14cadef9d28f5fa4aecb2b0f515257371d74b37fda33f0"
+    },
+    "evidence_boundary": "Immutable TEST-vector native authentication only; no policy ingress, commit or rollback-resistance evidence. Existing firmware image floor may advance."
+  },
+  "environment_failure_retained": {
+    "command": "cargo via default snap launcher",
+    "exit_code": 46,
+    "raw_log": "pr336/build/tokenguard/run-07dhfedw.log",
+    "correction": "Select the already installed /snap/rustup/current/bin via PATH; sandbox unchanged"
+  },
+  "independent_integrated_review": "PENDING",
+  "hosted_current_head": "PENDING / billing-blocked; never accepted as passed",
+  "limits": [
+    "Immutable public TEST experiment only",
+    "No production custody/persistent policy/hardware/human audit",
+    "Score41; issue41 remains open"
+  ]
+}

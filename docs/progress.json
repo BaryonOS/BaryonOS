@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-18",
-    "source_commit": "7b4b618e7ef0eee6b2a67ce693afcb9f2f20809c",
+    "source_commit": "c4f94860fb19f94efdb4aa94254f3a0b463ce5b5",
     "assessment_basis": "parent_commit",
     "branch": "codex/coderabbit-oss-config",
-    "task": "Phase 0 PR350: source-preserving cloud reconciliation",
+    "task": "Phase 0 PR350: preserve reviewed free-tier settings on integrated main",
     "previous_score": 41,
-    "summary": "41/100 unchanged. CodeRabbit free-tier configuration is reconciled with main 366b82b35348. Existing acceptance criteria, source evidence and independent ownership remain intact; this editorial/tooling integration adds no native acceptance evidence. Actual local validation is retained in the cloud receipt; current-head hosted checks and independent review remain required."
+    "summary": "41/100 unchanged. Reviewed OSS review configuration unchanged after main345 reconciliation; post-merge main mandatory checks and Project5 workflow pass. Runtime/schema/finding/product limits remain explicit; no acceptance points or scanner resolution inferred."
   },
   "tracks": [
     {

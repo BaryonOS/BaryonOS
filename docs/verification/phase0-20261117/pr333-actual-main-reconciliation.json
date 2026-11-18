@@ -1,0 +1,18 @@
+{
+  "head": "db4581c11333448ad70e757b41329ef1f67b7b60",
+  "main_parent": "38d4cc17687156379677993be9945447591bd4c1",
+  "tested_parent": "de793ed7ec83e2c121bf3f02fd0873271f86fe58",
+  "source_v3": "3c15e8127ce9bf6fc1ca7587fd137fa54d94f51e43dace05ed2ca9a15238ab40",
+  "non_document_blobs_identical": true,
+  "accepted_proposals_and_decisions": "Exact current main; canonical ADR retained once; other decisions and both historical handoffs preserved",
+  "push_exit": 0,
+  "current_hosted_checks": "Running; NOT accepted yet",
+  "issue42": "OPEN; bounded H02 evidence only, no new points",
+  "independent_review": {
+    "result": "PASS within bounded document/runtime identity scope",
+    "report": "P0-333-actual-main-independent-review.md",
+    "sha256": "cfe6d61e0ad8ca3fe410309014524db37a43d1ffdc87c905c65f443f2f2bdff6",
+    "exit_code": 0,
+    "not_run": "No new native execution/hosted/hardware/human acceptance"
+  }
+}
