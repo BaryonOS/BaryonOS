@@ -857,7 +857,7 @@ achromatic except place colours (135 elements, 0 tinted; `build/design-evidence/
 
 | State | Treatment |
 |---|---|
-| Open (native `<dialog>` `showModal()`) | `::backdrop` `--color-scrim`; focus starts on the safest action (Annuleren); rises over `--motion-duration-ask` |
+| Open (native `<dialog>` `showModal()`) | `::backdrop` `--color-scrim`; focus starts on the safest action (Annuleren); rises over `--motion-duration-ask`; a held Enter or Space opens it once and never closes it again through Annuleren (§15, held key) |
 | Static specimen | `.ds-scrim` over an inert stage |
 | Narrow (ds-1.1 repair 2) | A plain dialog is a size container; at most 320 px wide it stacks its actions at full width and a long label wraps inside its button (the `data-variant="ask"` shell is not a container) |
 | `data-variant="ask"` | Transparent shell hosting a `.ds-ask`; the body scrolls inside the viewport under a fixed band (Permission prompt, Modal fit) |
@@ -1349,6 +1349,7 @@ not implement a keymap.
 | Groups, one tab stop each | Listbox rows and tabs use a roving `tabindex`; radios, including the segmented choice `.ds-seg`, are native groups |
 | Arrow keys (gallery simulation) | Listbox: ArrowUp, ArrowDown, Home, End move and select (Left and Right ignored), Space selects; tabs: ArrowLeft, ArrowRight (also Up and Down), Home, End select and focus (automatic activation); menu: ArrowDown or ArrowUp on the trigger opens on the first or last item, arrows and Home and End move; Right and Left act as Down and Up, since no item opens a submenu. Arrow movement wraps at the ends. |
 | Activation | Space and Enter on native buttons, switch and menu items |
+| Held key (ds-1.1 run 3, tier 1, B8) | One activation per physical key press: an auto-repeated Enter or Space (`KeyboardEvent.repeat`) never activates a button, switch, menu item, tab or `summary` again (gallery.js, the first check in the document `keydown` handler). Without it, holding Enter on the delete-dialog opener moved focus to Annuleren, the next repeat closed the dialog and the one after reopened it: 56 open/close changes in 2 s, 28 per second, over 43.8 % of a 1024 x 768 screen in light as measured by the run-2 verifier (WCAG 2.3.1 limits flashes to three per second). The menu trigger, the toast close/show pair and every switch flipped the same way at 33 per second. Measured with CDP auto-repeat every 30 ms in dark, light and contrast, standard and dimmed plus reduced motion: before 54 to 66 changes per 2 s hold, after exactly 1 for Enter and Space in all 76 cases; four separate presses still give four changes (`build/design-evidence/a11y-ds/run3-writer/i1-hold-*.json`, `i1-taps-after.log`; independently verified in UX-A11Y-DS run 3, 19 November 2026). Arrow-key repeat (listbox, tabs, menus, the settings radios, already throttled to one preview change per 400 ms) and typing in text fields are unchanged |
 | Escape | Closes the menu and returns focus to its trigger; closes dialogs and returns focus to the opener; answers a permission prompt with deny; hides a tooltip |
 | Modal focus | `showModal()` makes the page behind the dialog inert; Tab cycles through the dialog controls and the browser UI, never page content; Escape always closes it, so there is no keyboard trap. Tab out of an open menu closes it. |
 | Initial focus | Permission prompt: the title (`tabindex="-1"`); Enter and Space at open do nothing; Tab reaches the choices in visual order (§11.1; real key presses in `build/design-evidence/ds-1.0/c1/writer/kbd-real-keys.txt`). Delete dialog: Annuleren (the safe choice, NAMING-AND-IA.md §6) |
@@ -1692,6 +1693,8 @@ native yet.
 | O-A21 | Design quality (AI opinion, run-2 verifier; not user evidence): Instellingen › Toegankelijkheid still reads close to an existing OS accessibility page (a preview pinned beside the edited group, or orbit and blade language in the Actief strip, were not attempted); the `.ds-empty` composition remains icon left, text right; run-2 repair 1 only strengthened the ring and tail, rendered at rest and in reduced motion, not mid-loop. Second run-2 verifier (AI opinion): the group is a stack of segmented controls with a generic "Aa" tile sample, and the preview changes only once a value is chosen. Proposed, not built (it would touch the 400 ms flash limiter and the stored keyboard evidence): while a segment is hovered (keyboard focus already selects), the preview shows that value through the same limiter and returns when the pointer leaves, never for Thema, which would restyle the panel under the pointer; the "Aa" samples become Orbitaal specimens (a place node, a list row, the ask band). Stimulus: in the dark theme "Rustig" and "Rijk" are hard to tell from "Standaard" in the preview (pixels differing by more than 8 per channel: dark 0.9 % calm and 6.0 % rich, light 6.2 % and 10.7 %; `run2-repair-2/stim.mjs`, `stim-diff.txt`), because shadows barely show on the dark base. The stimulus layer lives in the protected `tokens.css`; a proposed dark-rich halo (window and Orbit halo alpha 0.2 → 0.34 with a 4 to 6 px spread, injected for measurement only) raises dark rich to 12.6 %, and calm has no token-only lever that keeps the blade signature, so a stronger calm needs a design decision (for example no glow and a shorter blade on inactive surfaces). |
 | O-A22 | Row 21 (§21.6): the contrast-theme skeleton (six pairs on a vertical scan, up to nine along one placeholder row at 21:1), the stacked place-node column (nine pairs, every theme) and the `.ds-empty` orbit frame (nine vertical and six horizontal pairs, up to 8.5:1 dark and 21:1 contrast; run-2 verifier) pass only through the icon and component-structure clause. Accept, or reduce (for example outline only the outer frame, or fewer placeholder rows); a lead or project-owner decision. |
 | O-A23 | Tooltip placement is chosen by the author (`data-align`); there is no automatic flip near an edge, and §17 has no native placement rule yet. Recorded, not fixed: the compact-density "Vergelijken" label passes its button by 2.0 px at 320 px with wider spacing, and `.ds-row-name` truncates without a `title` (§21.9). |
+| O-A24 | Text inside specimens, not gallery captions or notes, that still sits in a neighbouring specimen's modelled shadow fringe (alpha 0.02 to 0.1; run 3, `build/design-evidence/a11y-ds/run3-writer/i2-shadow-after.json`): the Standaard, Rustig and Rijk labels beside the stimulus samples (their own `--elev-plate`), the menu trigger Bestand under its open menu, the swatch labels of the elevation and material reference (each tile's shadow reaches the next tile), the place labels of the 200 % strip beside its ask, and two settings-preview hints under rich. All pass the run-3 rendered contrast sweep (0 failures in 19 configurations); whether a specimen's own composition should also keep its shadow off neighbouring labels is a design decision, not a contrast defect. Run 3 repair 1 moved the elevation reference's effect on the next panel's heading, its subtitle and the swatch value captions out of this item. These are gallery text, and the reference now clips its own reach (§21.9). The tile-to-tile labels inside the reference remain here. |
+| O-A25 | The gallery's reach rules (run 3, repairs 1 and 2, gallery `<style>` in `index.html`) are px copies of the `--elev-*` geometry, and no automated check enforces them. The elevation reference clips its own reach, so a token change there can only crop it. The ask row, Orbit stage, settings preview, menu and window and toast rows have no such clip. A token change there could put a caption back in a shadow without failing any gate. Proposal for the lead: add a static check to `check.mjs`. For each theme block and stimulus block in `tokens.css`, it would parse the outer layers of each `--elev-*` value and compute the reach: up is blur plus spread minus the y offset, and down is the y offset plus spread plus blur. It would then assert that each reserved literal in the gallery `<style>` is at least the largest reach it covers. These literals are the `.gal-asks` margins (`--elev-trusted`), the Orbit stage padding at the bottom and the rich top (`--elev-orbit`), and `--gal-reach-up`, `--gal-reach-down` and `--gal-pop-down` per stimulus value (`--elev-window`, `--elev-window-inactive`; below a card less `--gal-air`). They also include the rich top padding of the settings preview (`--elev-window`) and `--gal-elev-up` and `--gal-elev-down` (all nine reference tiles). `build/design-evidence/a11y-ds/run3-repair-2/reachcheck.mjs` is a rendered reference for the same rule. Repair 2 closed the two class instances this item listed (the Menu card heading and the accessibility panel subtitle). It also closed three more: the Orbit-item heading, which the run-3 verifier reported, and two from its own wider sweep, the Banner heading at 720 px and the Melding met acties heading at 44 px targets. The clipped reach check finds 0 overlaps in 51 configurations. The run-3 verifier's unclipped geometry still counts the stage dialog over the Voortgang note under rich at 1000 to 1200 px; the stage clips that shadow (`overflow: hidden`), and the pixel delta there is 0 (§21.9). What stays open is only the missing automated check. |
 
 ## 21. Accessibility: two tiers (ds-1.1)
 
@@ -1709,14 +1712,14 @@ an AI judgement is not user evidence. Nothing here is a medical claim.
 
 | ID | Baseline guarantee | Implementation | Matrix row |
 |---|---|---|---|
-| B1 | Text at least 4.5:1, UI parts, focus and blade at least 3:1, in every theme and every axis combination, on every surface and under every hover, selection and button overlay, at full and dimmed light; 7:1 for text under increased contrast. Target, not met at run 2: the gallery caption `p.gal-note` below the ask specimens measures 3.47:1 in light (§21.9) | `tokens.css` theme and axis blocks (dimmed compensation per theme); `docs/verification/a11y-ds-20261115/check.mjs` (6) evaluates every §4 pair on every overlay stack at sRGB × 1 and × 0.85 | 6 |
+| B1 | Text at least 4.5:1, UI parts, focus and blade at least 3:1, in every theme and every axis combination, on every surface and under every hover, selection and button overlay, at full and dimmed light; 7:1 for text under increased contrast. Run 2 measured the gallery caption `p.gal-note` below the ask specimens at 3.47:1 in light, inside the ask card's shadow; run 3 and its repair 2 keep every specimen shadow's reach free of gallery captions and notes (clipped reach check: 0 overlaps in 51 configurations; the stage dialog's shadow, which an unclipped model counts at 1000 to 1200 px under rich, is clipped by its stage, pixel delta 0; §21.9) | `tokens.css` theme and axis blocks (dimmed compensation per theme); `docs/verification/a11y-ds-20261115/check.mjs` (6) evaluates every §4 pair on every overlay stack at sRGB × 1 and × 0.85 | 6 |
 | B2 | A 2 px focus ring that keeps 3:1 in every combination | `components.css` focus rules; `check.mjs` focus pairs | 61 |
 | B3 | Every hit area at least 24 × 24 CSS px, including rows, menu items, tabs and window controls | `max(<size>, var(--space-target-min))` in `components.css` | 57 |
 | B4 | Lists reflow: a list narrower than 440 px stacks each row's cells; menus fit a 320 px viewport | `@container (max-width: 440px)` on `.ds-list`; `.ds-menu` `min-width: min(300px, calc(100vw - 32px))` | 7 (partial, §14) |
 | B5 | Components tolerate the WCAG 1.4.12 spacing values; the wider-text axis applies exactly those values | `[data-text-spacing="wider"]`; wider row columns | 34 (partial, §14) |
 | B6 | Reading surfaces cap the measure at 80 characters and align to the start | `.ds-t-reading { max-width: 58ch; text-align: start }`: in Inter `1ch` is the width of "0", so the measure was counted per rendered line: 58ch holds 70–78 characters (80ch held 100–108) | 36 |
 | B7 | No stripe, grid or dot texture is used as a fill | the ds-1.0 reduced-motion stripes are removed | 21 |
-| B8 | Nothing flashes more than three times per second; every animation is finite and ends within 5 s; no flashing or looping sequence runs beyond 5 s (WCAG 2.2.2 and 2.3.1; ITU-R BT.1702-3 Guideline 1) | §12 durations and iteration counts; the gallery `?measure=1` loop sweep; the settings panel and its preview change at most once per 400 ms, so a held arrow key makes at most 3 changes, 1.5 flash pairs, in any second (measured with a held arrow key at 33 Hz: at most 3 panel-background transitions, one flash pair, in any 1-s window; this evidence covers the settings panel only). Target, not met at run 2: a held Enter on the delete-dialog opener opens and closes the modal about 28 times per second (§21.9) | 24, 25, 31 |
+| B8 | Nothing flashes more than three times per second; every animation is finite and ends within 5 s; no flashing or looping sequence runs beyond 5 s (WCAG 2.2.2 and 2.3.1; ITU-R BT.1702-3 Guideline 1) | §12 durations and iteration counts; the gallery `?measure=1` loop sweep; the settings panel and its preview change at most once per 400 ms, so a held arrow key makes at most 3 changes, 1.5 flash pairs, in any second (measured with a held arrow key at 33 Hz: at most 3 panel-background transitions, one flash pair, in any 1-s window; this evidence covers the settings panel only). A held Enter or Space activates a control once per physical key press (§15, held key; run 2 measured 28 open/close changes per second on the delete dialog) | 24, 25, 31 |
 | B9 | Every motion has a static form that carries the same information | §12 reduced motion | 32 |
 | B10 | Device preferences apply automatically: colour scheme, contrast, reduced transparency, reduced motion; forced colours keep place-node shapes | contrast, transparency, motion and forced colours: media blocks in `tokens.css` and `components.css`; colour scheme: script, because a theme is a whole token set (gallery `deviceTheme()` in `gallery.js`; natively the settings store) (§21.3) | 86 (partial) |
 | B11 | Colour never carries meaning alone: a place is colour, node shape, icon and label | §5, §10 place badge | 1 |
@@ -1739,7 +1742,7 @@ owner's value wins, and that value holds the floors at × 0.85 itself
 |---|---|---|---|---|---|---|
 | Theme, polarity (Thema) | `data-theme="dark"`, `data-theme="light"`, `data-theme="contrast"` | dark | `prefers-color-scheme` (gallery: `deviceTheme()` in `gallery.js`) | every themed token | 10 | works in the prototype |
 | Contrast (Contrast) | `data-contrast="increased"` | standard | `prefers-contrast: more` | text and line tokens: `--color-text*`, `--color-line*`, rim and glass lines, Kern secondary text and line, neutral twins | 9, 23 | works; in the contrast theme, which already meets it, it only thickens the edges to 2 px |
-| Light intensity (Lichtsterkte) | `data-light-intensity="dimmed"` | standard | none (no media feature exists) | an output filter `brightness(.85)` (about 30 % less luminance) on the element and on modal dialogs (top layer), applied once and last; plus a compensation block per theme for `--color-text-subtle`, `--color-text-disabled`, `--color-line-strong` and, in dark, `--color-text-muted`, `--place-internet` and its line, placed before the contrast and colour-perception blocks so that those win where set | 19, 23 | partial: one step |
+| Light intensity (Lichtsterkte) | `data-light-intensity="dimmed"` | standard | none (no media feature exists) | an output filter `brightness(.85)` (about 30 % less luminance) on the element and on modal dialogs and their `::backdrop` (top layer), applied once and last; plus a compensation block per theme for `--color-text-subtle`, `--color-text-disabled`, `--color-line-strong` and, in dark, `--color-text-muted`, `--place-internet` and its line, placed before the contrast and colour-perception blocks so that those win where set | 19, 23 | partial: one step |
 | Transparency (Transparantie) | `data-transparency="opaque"` | translucent | `prefers-reduced-transparency: reduce` | `--material-glass`, `--material-orbit-bg`, `--material-launch`; Orbit backdrop blur | 11, 47 | works; no-op in the contrast theme |
 | Colour perception (Kleuren onderscheiden) | `data-colour-perception="protan"`, `data-colour-perception="deutan"`, `data-colour-perception="tritan"` | off | none | `--place-device`, `--place-nas`, `--place-internet`, `--place-internet-line`, Kern warning icon and line (opaque in the contrast theme) | 4 | partial: palettes only, verified by simulation; each option shows its palette as a static sample; no intensity control, no per-user storage |
 | Motion (Beweging) | `data-motion="reduce"`, `data-motion="full"` | full | `prefers-reduced-motion: reduce` | every `--motion-duration-*` | 30, 46 | partial: no middle level |
@@ -1775,7 +1778,14 @@ whose value equals the attribute rule (checked by `check.mjs`). Exceptions:
 - Light intensity is applied last, as an output filter over everything below
   it, including Kern and modal dialogs, which render in the top layer and get
   the filter once (pixel sample: 0.85 of the undimmed surface). The modal's
-  `::backdrop` does not get it yet (§21.9). Its token
+  `::backdrop` is a separate top-layer box and gets the same rule (run 3; before
+  it, opening a modal under dimmed brightened the light page from 194,198,206 to
+  205,211,218; now the composited scrim is 192,197,204 against the expected
+  192,197,205, and the computed `::backdrop` filter is `brightness(0.85)` in all
+  three themes). The gallery has no popover; its menus, tooltips and toasts are
+  in flow and inherit the root filter. No dialog opener sits under a non-root
+  light-intensity scope (the settings preview and the combination specimens hold
+  none, run 3 probe `i3-scope.mjs`), so a modal follows the root value. Its token
   compensation block precedes the contrast and colour-perception blocks with
   the same specificity, so an explicit or device increased contrast and a
   re-mapped palette keep their own (stronger) values under dimmed light.
@@ -1952,11 +1962,11 @@ static motion forms (32), wider text (35), reading measure and line length
 no texture fills (21; the contrast-theme skeleton relies on the structure
 clause, §21.6), upright Inter in weights 400 and 600 (40), 24 px minimum
 targets (57). Partial: colour-perception palettes (4, palettes only, simulation), light
-intensity (19, one step; modal backdrop not dimmed, §21.9), graded motion (30, 46, no middle level), visual
+intensity (19, one step), graded motion (30, 46, no middle level), visual
 intensity (47, glow and depth), reflow (7) and
 text spacing (34), device following (86, forced colours only for nodes),
 independent settings (88, contrast-theme bundle), flash limits (24, 25; boot
-sequence and wallpaper not analysed; held-Enter dialog toggling open, §21.9), focus in every combination (61, focus
+sequence and wallpaper not analysed), focus in every combination (61, focus
 obscuring untested), text size (13, only the 200 % page zoom of
 `[data-scale="2"]`). Not in the prototype: text size 125 % and 150 % (13),
 screen reader, magnifier, read-aloud, captions, keyboard filters, switch, eye,
@@ -1978,14 +1988,138 @@ filter (26).
 
 ### 21.9 Not verified
 
-- Three defects from the run-2 final verifier are open (owner-approved bounded
-  run 3): a held Enter on the delete-dialog opener opens and closes the modal
-  about 28 times per second over more than 25 % of the screen (B8); the first
-  line of `p.gal-note` below the ask specimens sits in the dark ask card's
-  shadow at 3.47:1 in light and 5.93:1 in contrast (B1); under
-  `data-light-intensity="dimmed"` a modal's `::backdrop` is not dimmed, so
-  opening a modal brightens the page (§21.3). B1 and B8 remain targets until
-  these close.
+- Run 3 (owner-approved bounded run, 18 November 2026) fixed the three run-2
+  final-verifier defects, each as a class; the writer measured them, independent
+  verification is pending. Evidence, scripts and renders are in
+  `build/design-evidence/a11y-ds/run3-writer/`:
+  - B8, held key: a held Enter on the delete-dialog opener opened and closed the
+    modal 56 times in 2 s (28 per second; the run-2 verifier measured 43.8 % of a
+    1024 x 768 screen in light, not re-measured); the menu trigger, the toast close/show pair and every switch
+    flipped at 33 per second. Now one activation per physical key press (§15):
+    exactly 1 change per 2 s hold of Enter or Space on each of these openers
+    and on the motion switch, in dark, light and contrast, standard and dimmed
+    with reduced motion (76 cases, `i1-hold-before.json`, `i1-hold-after.json`),
+    and at 200 % in light (`i1i3-extra-after.json`); separate presses still act
+    every time (`i1-taps-after.log`); the settings chips and Standaard herstellen
+    change no more under a held Enter than under one press (the undo button,
+    shown only after a reset, was not held).
+  - B1, captions in a shadow: no gallery caption or note (`.gal-note`,
+    `.gal-card > h3`) sits inside a specimen's shadow. Each elevated specimen
+    keeps its shadow's reach free (offset + spread + blur radius, past which the
+    Gaussian is under 2.3 % of the shadow alpha; gallery `<style>` in
+    `index.html`): the ask row 30 px above and 98 px below, the Orbit stage
+    64 px of bottom padding, the window and toast rows 28 px above (10 calm,
+    64 rich). Modelled shadow alpha over every caption and note line: at most
+    0.013 in 15 configurations, 200 % (`data-scale="2"`) and a 720 px layout
+    included, against 0.39 before (`i2-shadow-*.json`). Rendered contrast of
+    every text in every panel, the method of the run-2 verifier with bands of at
+    most 4000 px: 0 failures in 19 configurations (axes, device increased
+    contrast, 200 %, 720 px); the caption that measured 3.47:1 (light panel),
+    3.09 (dimmed), 5.93 and 4.79 (increased, increased plus dimmed) now
+    measures, first and second line of the light-panel caption, 8.40 / 8.47,
+    7.07 / 7.13, 14.36 / 14.48 and 10.95 / 11.04; its dark-panel instance
+    measures 8.45, 7.58, 14.32 and 10.54 (re-measured after repair 2 with the
+    run-3 verifier's caption method, `run3-repair-2/cap-a.log`). The before sweep
+    (`i2-contrast-before.json`) took each panel as one tall clip; its 303 and 14
+    failures near 1.1:1 under 200 % plus increased plus dimmed and 720 px plus rich
+    plus increased plus dimmed are blank-capture artefacts, not defects. The
+    Orbit stage padding and the room above the window and toast rows go beyond
+    the reported caption; they follow the same measured rule and are reasoned
+    design judgement that the lead may trim.
+  - Repair 1 (writer-measured, not yet independently verified; evidence in
+    `build/design-evidence/a11y-ds/run3-repair-1/`): the run-3 verifier found
+    the same class at the elevation reference under rich. Its tiles' shadows
+    reached the next panel's heading and subtitle (`.gal-panel > h2`, its
+    `<small>`) and the swatch value captions above them (`.gal-sw figcaption`).
+    These count as gallery text. The reference (`.gal-elev`) now keeps its
+    tiles' reach inside its own padding and clips there (`overflow-y: clip`):
+    30 px above and 100 below, 64 and 128 under rich, no room in the contrast
+    theme. A later token change can therefore only crop the reference; it cannot
+    reach that text. Results:
+    - The geometric reach check (`reachcheck.mjs`, 12 configurations including
+      calm, neutral surface, wider text, compact, increased plus dimmed, 200 %
+      and 720 px) finds 0 gallery-text overlaps from the reference, and every
+      tile's reach fits its clip box.
+    - A repair-1 copy of the run-3 verifier's pixel shadow diff (change of at
+      least 3 channel levels, 8 configurations, `shadowdiff-final.log`) reports
+      only the tile labels (O-A24). The verifier's own run before the fix
+      reported 19 texts under rich (`run3-verify-0/sd-1.log`).
+    - The light subtitle measures 7.14:1 under rich (was 6.63) and 9.37 under
+      rich plus increased plus dimmed (was 8.70). The caster delta is now 0.
+    - The rendered caption contrast sweep gives 0 caption failures in the
+      verifier's 24 configurations (`cap-*.log`).
+    After repair 1 the class was not closed everywhere. Under rich, the modelled shadow alpha
+    (run-3 writer method, `i2-shadow-repair1.json`) is 0.044 over the dark Menu
+    card heading and 0.020 over the accessibility panel subtitle, against the
+    0.013 yardstick. The first comes from a window in the card above; the run-3
+    model wrongly counted it as covered. The second comes from the preview
+    window. Disabling the window shadows changes those line boxes by 1 to 2
+    channel levels. Contrast stays at 15.97:1 (dark Menu), 17.12:1 (light Menu,
+    17.42 without the shadow) and 9.38:1 (`reach-residual.log`). Not fixed in
+    repair 1; repair 2 closed them.
+  - Repair 2 (19 November 2026, writer-measured, not yet independently
+    verified; evidence in `build/design-evidence/a11y-ds/run3-repair-2/`):
+    the run-3 verifier's geometric test (reach = offset + spread + blur
+    against every caption line box) still found the class. The
+    writer's own wider baseline sweep found two more casters (`reachcheck-before.json`).
+    Before the fix, these instances were open:
+    - the window row in the Vensterrand card over the Menu card heading and its code
+      (3 px deep standard, 31 dark and 15 light rich);
+    - the settings preview window over the accessibility panel subtitle (rich);
+    - the Orbit over the Orbit-item heading and its code (rich, also at 200 % and 720 px);
+    - the toast over the Banner heading (rich, 720 px);
+    - the open menu over the Melding met acties heading at 44 px targets. Its box
+      also ended 14 px past its own card there.
+
+    Each of these specimens now keeps its own reach inside its own card, stage or preview (gallery
+    `<style>` in `index.html`):
+    - Below a card's last specimen, the reach first crosses at least 50 px of
+      gallery air (`--gal-air`: card padding of at least `--space-3` on both
+      cards, two 1 px borders, the `--space-6` grid gap). The window row keeps the
+      rest of its down-reach: 50 px standard, 0 calm, 78 rich. The toast and the
+      open menu keep the rest of theirs (`--elev-window-inactive`): 22, 0 and 38 px.
+    - In the gallery, the open menu is in flow under its button (like the
+      stage dialog), with the same 300 px width. A taller menu now grows its
+      card; at 44 px targets the card grows by 61 px. Closing that menu returns
+      the card to its 420 px minimum (`menunarrow-after.log`). At 320, 360 and
+      640 px with 200 %, the menu's right edge, the page's scroll width and the
+      button's position measure the same as before (`menunarrow-*.log`). The
+      run-2 minor on menu fit at 200 % stays open. The gallery's keyboard
+      self-test gives the same menu result before and after (`selftest.log`).
+    - The Orbit stage has 28 px of top padding under rich.
+    - The settings preview has 40 px of top padding under rich. The rule also
+      matches the preview itself, because the Prikkels choice sets
+      `data-stimulus` there.
+
+    Results:
+    - The writer's clipped reach check (`reachcheck.mjs`) finds 0
+      gallery-text overlaps in 51 configurations. These cover dark, light and
+      contrast roots; the standard, calm and rich stimulus values; 32 and 44 px
+      targets; wider text, short lines, increased plus dimmed, opaque, the
+      neutral surface and compact density; 200 %, also at 720 px; widths of 360
+      to 1440 px around both container breakpoints; and the settings form path
+      with the sticky preview scrolled beside the form.
+    - The verifier's unclipped test (`reachgeo.mjs`, same configurations)
+      finds 0 overlaps except under rich at widths of 1000 to 1200 px. There it
+      counts the stage dialog's reach over the neighbouring Voortgang note,
+      but the stage clips that shadow (`overflow: hidden`). The pixel delta
+      over that note is 0 at 1000, 1100 and 1200 px, before and after this
+      repair (`reachpx.log`, `reachpx-1200.log`).
+    - Disabling each former caster changes its former caption by 0 channel
+      levels, against 0 to 18 before (`reachpx.log`). Before the fix, the Orbit-item heading and its code, the Banner heading
+      at 720 px and the light Menu heading under standard were geometric
+      instances only (0 levels); the other instances changed by 1 to 18. The light Melding met
+      acties heading at 44 px targets plus rich measured 15.11:1 with the menu
+      shadow and 17.42 without; it now measures 17.42.
+    - The rendered caption sweep (the verifier's method, 16 runs including light
+      root, 200 % and 720 px) finds 0 caption failures (`cap-*.log`).
+  - Light intensity x top layer: the `::backdrop` rule (§21.3); composited
+    scrim in light dimmed 192,197,204 against the expected 192,197,205 (was
+    205,211,218, brighter than the closed page); dark and contrast unchanged
+    in pixels, computed `::backdrop` filter `brightness(0.85)` under dimmed in
+    all three themes and at 200 % (`i3-backdrop-*.json`, `i1i3-extra-after.json`).
+  Text inside specimens (not captions or notes) can still sit in a
+  neighbouring specimen's shadow fringe; it passes the rendered sweep (O-A24).
 - No user has tried any axis, the settings group or the reworked states.
 - Colour-perception palettes are verified by simulation only (Machado et al.
   2009, severity 1.0, CIE76 ΔE at least 40 between the three places, at least

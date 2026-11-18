@@ -58,6 +58,38 @@
   .gal-asks { display: flex; flex-wrap: wrap; gap: var(--space-6); align-items: start; }
   .gal-asks > div { min-width: 0; max-width: 100%; }
   .gal-orbit-wrap { display: flex; justify-content: center; padding: var(--space-6) 0 var(--space-2); border-radius: var(--radius-tile); background: var(--color-surface-panel); }
+  /* run 3 (I2): no caption or note sits in a specimen's shadow. An elevated specimen keeps its shadow's reach free of gallery text:
+     offset + spread + blur radius, past which the Gaussian is under 2.3 % of the shadow alpha. Reaches per theme and stimulus value
+     come from build/design-evidence/a11y-ds/run3-writer/i2-reach.mjs; the contrast theme has no shadow, so there the room is only air.
+     Lengths are px, so they scale with [data-scale="2"] exactly as the shadows do. A .gal-card is block flow: these margins collapse
+     with the heading's and the note's own margins, so each one is the whole reach. */
+  .gal-asks { margin-block: 30px 98px; } /* --elev-trusted (0 34px 64px): 30 px up, 98 px down; no stimulus value changes it */
+  .gal-orbit-wrap { padding-bottom: calc(76px - var(--space-3)); } /* --elev-orbit: 62 px down, 76 px under rich; the shadow now fades inside its own stage */
+  /* run 3 repair 2: the same rule below a card's last specimen and above the Orbit and the settings preview. Below a card the reach
+     first crosses at least --gal-air of gallery air (this card's padding >= --space-3, two 1 px card borders, the --space-6 grid gap,
+     the next card's padding >= --space-3) before the next heading; the specimen keeps the rest inside its own card. Reaches above /
+     below the box, standard / calm / rich (the larger of dark and light): window 28 / 10 / 64 up, 100 / 26 / 128 down; menu and
+     toast (--elev-window-inactive) 72 / 20 / 88 down; Orbit 26 / 10 / 44 up. Sweep: run3-repair-2/reachcheck.mjs and reachgeo.mjs. */
+  .gal-card { --gal-reach-up: 28px; --gal-reach-down: 100px; --gal-pop-down: 72px; --gal-air: calc(2 * var(--space-3) + var(--space-6) + 2px); }
+  [data-stimulus="calm"] .gal-card { --gal-reach-up: 10px; --gal-reach-down: 26px; --gal-pop-down: 20px; }
+  [data-stimulus="rich"] .gal-card { --gal-reach-up: 64px; --gal-reach-down: 128px; --gal-pop-down: 88px; }
+  .gal-card > h3 + :is(.gal-windows:has(> .ds-window), .ds-toast) { margin-top: var(--gal-reach-up); }
+  .gal-card > .gal-windows:has(> .ds-window) { margin-bottom: max(0px, var(--gal-reach-down) - var(--gal-air)); }
+  .gal-card > .ds-toast { margin-bottom: max(0px, var(--gal-pop-down) - var(--gal-air)); }
+  /* in the gallery the open menu is in flow under its button (as .gal-stage .ds-dialog), so a taller menu (44 px targets, wider text)
+     grows its card instead of crossing it; at 44 px targets the absolute menu ended 14 px past its card. Width as before: min-content, 300 px floor */
+  .gal-menu-card .ds-menu { position: static; width: min-content; margin-block: var(--space-1) max(0px, var(--gal-pop-down) - var(--gal-air)); }
+  [data-stimulus="rich"] .gal-orbit-wrap { padding-top: calc(44px - var(--space-4)); } /* the heading's margin is the rest of the 44 px glow */
+  /* the settings form sets data-stimulus on the preview itself, so this matches the carrier as well as an ancestor; the panel
+     heading's --space-6 margin is the rest of the 64 px window glow */
+  .gal-preview:is([data-stimulus="rich"], [data-stimulus="rich"] *) { padding-top: calc(64px - var(--space-6)); }
+  /* run 3 repair 1: the elevation reference holds its tiles' reach inside its own padding and clips there (overflow-y: clip), so the
+     swatch captions above and the next panel's heading below stay outside every tile's shadow; a later token change can only crop the
+     reference, never reach that text. Reach over the nine tiles (repair-1 reachcheck.mjs): 30 up / 100 down standard (--elev-trusted,
+     --elev-window), 30 / 98 calm, 64 / 128 rich (dark --elev-window glow and 26px 44px 84px; light 56 / 112). Tile-to-tile: O-A24. */
+  .gal-elev { --gal-elev-up: 30px; --gal-elev-down: 100px; padding-block: var(--gal-elev-up) var(--gal-elev-down); overflow-y: clip; }
+  [data-stimulus="rich"] .gal-elev { --gal-elev-up: 64px; --gal-elev-down: 128px; }
+  .gal-panel[data-theme="contrast"] .gal-elev { --gal-elev-up: var(--space-6); --gal-elev-down: 0px; } /* no shadow there: no room */
   .gal-sw { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 196px), 1fr)); gap: var(--space-3); }
   .gal-sw figure { display: grid; grid-template-columns: 40px minmax(0, 1fr); gap: var(--space-2); align-items: center; }
   .gal-chip { width: 40px; height: 40px; border-radius: var(--radius-tile-small); border: 1px solid var(--color-line-strong); }
@@ -503,7 +535,7 @@
 
   <div class="gal-card w12"><h3>Kleur- en materiaaltokens <code>waarden zoals dit thema ze oplost</code></h3>
     <div class="gal-sw" data-swatches="color"></div>
-    <div class="gal-elev" data-swatches="elev" style="margin-top: var(--space-6)"></div>
+    <div class="gal-elev" data-swatches="elev"></div>
   </div>
 </div>
 </template>

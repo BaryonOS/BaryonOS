@@ -380,6 +380,10 @@ document.addEventListener('click', (e) => {
 document.addEventListener('keydown', (e) => {
   const t = e.target
   const k = e.key
+  // B8 (WCAG 2.3.1, ds-1.1 run 3): one activation per physical key press. An auto-repeated Enter or Space never activates a
+  // control again, so no dialog, menu, toast or switch opener can flip open and closed at the key-repeat rate (about 30 Hz)
+  // when focus lands on a control that closes it (the delete dialog's Annuleren). Arrow keys and text fields keep their repeat.
+  if (e.repeat && (k === 'Enter' || k === ' ') && t.matches('button, [role="button"], [role="switch"], [role="menuitem"], [role="tab"], summary, input:is([type="button"], [type="submit"], [type="reset"])')) return e.preventDefault()
   const menu = t.closest('[role="menu"]')
   if (menu) {
     const btn = document.querySelector(`[aria-controls="${menu.id}"]`)

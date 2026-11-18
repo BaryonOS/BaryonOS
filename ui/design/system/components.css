@@ -15,8 +15,10 @@
 /* light-intensity (ds-1.1): an output white level applied last (research 7.2 pipeline): sRGB channels x 0.85, about 30 % less
    luminance. The filter alone breaks floors on hover and selection stacks; tokens.css therefore strengthens text-subtle, disabled,
    line-strong and the dark internet place under dimmed, and check.mjs (6) evaluates every pair, overlay stacks included, at x 1 and
-   x 0.85. A top-layer dialog is outside its opener's box, so it gets the same filter. Deeper steps: open item O-A6. */
-[data-light-intensity="dimmed"], [data-light-intensity="dimmed"] dialog:modal { filter: brightness(.85); } /* a modal dialog renders in the top layer, outside the filtered ancestor; a non-modal one inherits the filter once */
+   x 0.85. A top-layer dialog and its ::backdrop are outside their opener's box, so both get the same filter (run 3: the scrim
+   had stayed undimmed, so opening a modal brightened the page). The gallery has no popover; its menus and toasts are in flow
+   and inherit the filter. Deeper steps: open item O-A6. */
+[data-light-intensity="dimmed"], [data-light-intensity="dimmed"] dialog:modal, [data-light-intensity="dimmed"] dialog:modal::backdrop { filter: brightness(.85); } /* a modal dialog and its backdrop render in the top layer, outside the filtered ancestor; a non-modal one inherits the filter once */
 /* text-spacing wider: WCAG 1.4.12 letter 0.12 em, word 0.16 em, paragraph 2 em (line heights are tokens) */
 [data-text-spacing="wider"], [data-text-spacing="wider"] * { letter-spacing: .12em; word-spacing: .16em; }
 [data-text-spacing="wider"] p:not(:last-child) { margin-block-end: 2em; }
