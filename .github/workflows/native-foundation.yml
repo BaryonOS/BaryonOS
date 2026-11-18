@@ -46,9 +46,9 @@ jobs:
         uses: ./.github/actions/setup-python
       - name: Pinned Rust, lint tools and real targets
         run: |
-          rustup toolchain install 1.90.0 --profile minimal
-          rustup component add --toolchain 1.90.0 rustfmt clippy
-          rustup target add --toolchain 1.90.0 x86_64-unknown-none x86_64-unknown-uefi
+          rustup toolchain install 1.100.0 --profile minimal
+          rustup component add --toolchain 1.100.0 rustfmt clippy
+          rustup target add --toolchain 1.100.0 x86_64-unknown-none x86_64-unknown-uefi
       - name: Cache Cargo downloads only
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
@@ -71,7 +71,7 @@ jobs:
         run: python3 -B tools/preflight.py --strict | tee "$NOS_BUILD_DIR/logs/preflight.json"
       - name: Fetch every locked dependency closure before offline checks
         run: |
-          cargo +1.90.0 fetch --locked
+          cargo +1.100.0 fetch --locked
           for manifest in \
             sdk/Cargo.toml \
             sdk/keyring-client/Cargo.toml \
@@ -80,22 +80,22 @@ jobs:
             services/image-codec/Cargo.toml \
             drivers/tpm-crb/Cargo.toml
           do
-            cargo +1.90.0 fetch --locked --manifest-path "$manifest"
+            cargo +1.100.0 fetch --locked --manifest-path "$manifest"
           done
       - name: Real keyring cores, SDK sessions and capability-engine probe tests
         run: |
-          cargo +1.90.0 test --offline --locked -p keyring-core 2>&1 | tee "$NOS_BUILD_DIR/logs/keyring-core-host.txt"
-          cargo +1.90.0 clippy --offline --locked -p keyring-core --all-targets -- -D warnings 2>&1 | tee "$NOS_BUILD_DIR/logs/keyring-core-clippy.txt"
-          cargo +1.90.0 test --offline --locked --manifest-path sdk/Cargo.toml -p nieuw-os-keyring-random-client 2>&1 | tee "$NOS_BUILD_DIR/logs/random-client-host.txt"
-          cargo +1.90.0 clippy --offline --locked --manifest-path sdk/Cargo.toml -p nieuw-os-keyring-random-client --all-targets -- -D warnings 2>&1 | tee "$NOS_BUILD_DIR/logs/random-client-clippy.txt"
+          cargo +1.100.0 test --offline --locked -p keyring-core 2>&1 | tee "$NOS_BUILD_DIR/logs/keyring-core-host.txt"
+          cargo +1.100.0 clippy --offline --locked -p keyring-core --all-targets -- -D warnings 2>&1 | tee "$NOS_BUILD_DIR/logs/keyring-core-clippy.txt"
+          cargo +1.100.0 test --offline --locked --manifest-path sdk/Cargo.toml -p nieuw-os-keyring-random-client 2>&1 | tee "$NOS_BUILD_DIR/logs/random-client-host.txt"
+          cargo +1.100.0 clippy --offline --locked --manifest-path sdk/Cargo.toml -p nieuw-os-keyring-random-client --all-targets -- -D warnings 2>&1 | tee "$NOS_BUILD_DIR/logs/random-client-clippy.txt"
           for manifest in \
             sdk/keyring-client/Cargo.toml \
             sdk/examples/random-probe/Cargo.toml \
             services/image-codec/Cargo.toml \
             drivers/tpm-crb/Cargo.toml
           do
-            cargo +1.90.0 test --offline --locked --manifest-path "$manifest" 2>&1 | tee -a "$NOS_BUILD_DIR/logs/component-host.txt"
-            cargo +1.90.0 clippy --offline --locked --manifest-path "$manifest" --all-targets -- -D warnings 2>&1 | tee -a "$NOS_BUILD_DIR/logs/component-clippy.txt"
+            cargo +1.100.0 test --offline --locked --manifest-path "$manifest" 2>&1 | tee -a "$NOS_BUILD_DIR/logs/component-host.txt"
+            cargo +1.100.0 clippy --offline --locked --manifest-path "$manifest" --all-targets -- -D warnings 2>&1 | tee -a "$NOS_BUILD_DIR/logs/component-clippy.txt"
           done
       - name: Formatting and scalar freestanding libraries
         env:
@@ -108,10 +108,10 @@ jobs:
             --cfg chacha20_backend="soft"
             --cfg poly1305_backend="soft" --cfg sha2_backend="soft"
         run: |
-          cargo +1.90.0 fmt --all -- --check 2>&1 | tee "$NOS_BUILD_DIR/logs/root-format.txt"
-          cargo +1.90.0 fmt --manifest-path sdk/Cargo.toml --all -- --check 2>&1 | tee "$NOS_BUILD_DIR/logs/sdk-format.txt"
-          cargo +1.90.0 build --offline --locked --release --lib --target x86_64-unknown-none -p keyring-core 2>&1 | tee "$NOS_BUILD_DIR/logs/keyring-core-scalar.txt"
-          cargo +1.90.0 build --offline --locked --release --lib --target x86_64-unknown-none --manifest-path sdk/Cargo.toml -p nieuw-os-keyring-random-client 2>&1 | tee "$NOS_BUILD_DIR/logs/random-client-scalar.txt"
+          cargo +1.100.0 fmt --all -- --check 2>&1 | tee "$NOS_BUILD_DIR/logs/root-format.txt"
+          cargo +1.100.0 fmt --manifest-path sdk/Cargo.toml --all -- --check 2>&1 | tee "$NOS_BUILD_DIR/logs/sdk-format.txt"
+          cargo +1.100.0 build --offline --locked --release --lib --target x86_64-unknown-none -p keyring-core 2>&1 | tee "$NOS_BUILD_DIR/logs/keyring-core-scalar.txt"
+          cargo +1.100.0 build --offline --locked --release --lib --target x86_64-unknown-none --manifest-path sdk/Cargo.toml -p nieuw-os-keyring-random-client 2>&1 | tee "$NOS_BUILD_DIR/logs/random-client-scalar.txt"
           for manifest in \
             sdk/keyring-client/Cargo.toml \
             sdk/examples/random-probe/Cargo.toml \
@@ -120,16 +120,16 @@ jobs:
           do
             # Check owned workspace sources, preserving hash-pinned upstream
             # JPEG formatting. --all would also traverse path dependencies.
-            cargo +1.90.0 fmt --manifest-path "$manifest" -- --check 2>&1 | tee -a "$NOS_BUILD_DIR/logs/component-format.txt"
-            cargo +1.90.0 build --offline --locked --release --lib --target x86_64-unknown-none --manifest-path "$manifest" 2>&1 | tee -a "$NOS_BUILD_DIR/logs/component-scalar.txt"
+            cargo +1.100.0 fmt --manifest-path "$manifest" -- --check 2>&1 | tee -a "$NOS_BUILD_DIR/logs/component-format.txt"
+            cargo +1.100.0 build --offline --locked --release --lib --target x86_64-unknown-none --manifest-path "$manifest" 2>&1 | tee -a "$NOS_BUILD_DIR/logs/component-scalar.txt"
           done
-          cargo +1.90.0 fmt --manifest-path sdk/examples/image-probe/Cargo.toml -- --check 2>&1 | tee "$NOS_BUILD_DIR/logs/image-probe-format.txt"
+          cargo +1.100.0 fmt --manifest-path sdk/examples/image-probe/Cargo.toml -- --check 2>&1 | tee "$NOS_BUILD_DIR/logs/image-probe-format.txt"
       - name: Pinned native fixture lint
         env:
           CARGO_TARGET_DIR: ${{ github.workspace }}/target/foundation-ci-probe-lint
         run: |
           python3 -B sdk/examples/random-probe/build.py clippy 2>&1 | tee "$NOS_BUILD_DIR/logs/random-probe-clippy.txt"
-          cargo +1.90.0 clippy --offline --locked --release --target x86_64-unknown-none --manifest-path sdk/examples/image-probe/Cargo.toml --features native --bin image-probe -- -D warnings 2>&1 | tee "$NOS_BUILD_DIR/logs/image-probe-clippy.txt"
+          cargo +1.100.0 clippy --offline --locked --release --target x86_64-unknown-none --manifest-path sdk/examples/image-probe/Cargo.toml --features native --bin image-probe -- -D warnings 2>&1 | tee "$NOS_BUILD_DIR/logs/image-probe-clippy.txt"
       - name: Explicit gate discovery and hostile vendor-source checks
         id: quality
         run: |

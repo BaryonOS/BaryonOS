@@ -21,8 +21,10 @@ fn generate_switcher_from_native_app_backing_when_requested() {
     let bytes = std::fs::read(directory.join("backing.bin")).unwrap();
     assert_eq!(bytes.len(), MAX_PIXELS * 4);
     let backing: Vec<u32> = bytes
-        .chunks_exact(4)
-        .map(|p| u32::from_le_bytes(p.try_into().unwrap()))
+        .as_chunks::<4>()
+        .0
+        .iter()
+        .map(|p| u32::from_le_bytes(*p))
         .collect();
     assert!(backing.iter().all(|color| color >> 24 == 0));
     let mut scene = Scene::new(width, height, scale, [1, 2]).unwrap();
