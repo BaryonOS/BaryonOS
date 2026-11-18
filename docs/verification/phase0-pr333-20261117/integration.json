@@ -1,0 +1,29 @@
+{
+  "pr": 333,
+  "original_head": "b0aac21645d1f9b178dcc076360a4c016ffda8fd",
+  "queued_predecessor": "c26b0903627fea59f5d286f8eff4c4887b017b9a",
+  "actual_main": "e7169e43bf772307acf328590b4300fa52a4ad73",
+  "predecessor_merged": false,
+  "merge_order": [
+    336,
+    333
+  ],
+  "manual_conflicts": [
+    "docs/PROJECT-STATE.md: retain both complete historical checkpoint blocks"
+  ],
+  "manual_runtime_source_edits": [],
+  "auto_merged_paths_requiring_independent_review": [
+    "Cargo.lock",
+    "kernel/Cargo.toml",
+    "tools/build.py"
+  ],
+  "criterion_changes": "Definitions, weights and statuses unchanged; original333 H02 bounded evidence reference retained, still open",
+  "gates": "Fresh affected/union host/native, independent review and actual current-head hosted checks pending",
+  "billing_retry": "After owner update, attempt2 main jobs still report the billing lock and no runner; no acceptance exception",
+  "limits": [
+    "Synthetic/native QEMU USB/HID evidence distinct",
+    "No general IRQ/reset/hotplug/lifecycle or hardware acceptance",
+    "TEST policy only; no production/persistent custody",
+    "No auto-merge or ownership expansion"
+  ]
+}

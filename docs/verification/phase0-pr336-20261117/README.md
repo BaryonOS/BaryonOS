@@ -1,0 +1,7 @@
+# Phase 0 PR336 integration — 17 November 2026
+
+The existing independently reviewed PR336 experiment is reconciled with main after PR343/PR344. [Exact parent versions, scope and blockers](integration.json). The merge is conflict-free; both consumers, dual-signature checks, opt-in guards, frozen public TEST fixtures and all existing update stages remain required.
+
+The lead owns the current checkpoint, assessment and this new receipt. No historical verification record is rewritten. Acceptance commands are the pinned Rust feature tests/Clippy/formatting, Python update/policy/build/workflow tests, finite model, strict preflight, all18 native update stages and the26-case policy probe in both loader and service, independent reconciliation/security review, then actual hosted current-head required/applicable checks and merge-hold. Gates not yet executed are pending, never passed. Complete raw logs and exit sidecars are kept outside Git and compact source-bound results will be recorded.
+
+This experiment does not implement production custody or persistent native policy ingress/readback/recovery. Disposable QEMU/host/model evidence does not prove hardware security or a human audit. Issue41 and all unrelated workstream requirements remain open. Progress remains41/100; baseline B and governance phases1–6 are not accepted. GitHub reported an external billing lock on two main jobs; no exception or billing change is authorized.

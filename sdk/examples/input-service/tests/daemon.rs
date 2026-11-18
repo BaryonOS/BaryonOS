@@ -9,6 +9,9 @@ use nieuw_os_input_core::{
     wire::{self, Operation, Request},
     Actor, ClientBinding, Configuration,
 };
+use nieuw_os_native_input_service::hid::{
+    Error as HidError, Progress as HidProgress, Source as HidSource,
+};
 use nieuw_os_native_input_service::{
     policy::{Client, Policy, Replies},
     source::{self, Progress, RawInput, Source},
@@ -16,6 +19,10 @@ use nieuw_os_native_input_service::{
 };
 use nieuw_os_sdk_runtime::{
     Capability, Error, Handle, Outgoing, ReceiveEndpoint, Received, Rights, SendEndpoint,
+};
+use nieuw_os_usb_core::{
+    boot_interface::Speed,
+    boot_session::{CompletionStatus::*, Error as SessionError, Lifetime, Session},
 };
 use std::{cell::RefCell, collections::VecDeque, rc::Rc};
 
@@ -209,6 +216,300 @@ impl Model {
         .unwrap();
         self.call(0, message)
     }
+    fn hid_source(&self) -> HidSource {
+        HidSource::new(source::Configuration {
+            epoch: EPOCH,
+            policy_pid: POLICY,
+            request: send(self.requests[0]),
+            response: recv(self.responses[0]),
+        })
+        .unwrap()
+    }
+    fn hid_exchange(&mut self, source: &mut HidSource, now: u64, operation: Operation) {
+        assert_eq!(
+            source.step(now, &mut self.ports[0]),
+            Ok(HidProgress::Pending)
+        );
+        self.step();
+        assert_eq!(
+            source.step(now + 1, &mut self.ports[0]),
+            Ok(HidProgress::Acknowledged(operation))
+        );
+    }
+}
+
+fn hid_session(protocol: u8, generation: u64) -> Session {
+    let config = [
+        9, 2, 34, 0, 1, 1, 0, 0x80, 50, 9, 4, 0, 0, 1, 3, 1, protocol, 0, 9, 0x21, 0x11, 1, 0, 1,
+        0x22, 63, 0, 7, 5, 0x81, 3, 8, 0, 10,
+    ];
+    let mut session = Session::new(
+        Lifetime {
+            device: 9,
+            generation,
+        },
+        &config,
+        0,
+        Speed::Full,
+    )
+    .unwrap();
+    let protocol = session.begin_protocol().unwrap();
+    session
+        .complete_protocol(protocol.token, Success, 0)
+        .unwrap();
+    session
+}
+
+fn hid_completion_publication_requires_sync_and_matching_valid_transport_work_impl() {
+    let mut m = Model::new();
+    let mut source = m.hid_source();
+    let mut session = hid_session(1, 1);
+    let input = session.begin_input().unwrap();
+    let bytes = [0, 0, 4, 0, 0, 0, 0, 0];
+    assert_eq!(
+        source.complete_input(1, &mut session, input.token, Success, &bytes),
+        Err(HidError::NotSynchronized)
+    );
+    source.synchronize(1).unwrap();
+    assert_eq!(
+        source.complete_input(1, &mut session, input.token, Success, &bytes),
+        Err(HidError::Pending)
+    );
+    m.hid_exchange(&mut source, 1, Operation::Sync);
+    m.call(1, request(Operation::Focus, 1, 101));
+    source
+        .complete_input(3, &mut session, input.token, Success, &bytes)
+        .unwrap();
+    m.hid_exchange(&mut source, 3, Operation::HidKeyboard);
+    let event = m.call(3, request(Operation::Peek, 1, 0));
+    assert_eq!(event.payload()[40], 1);
+    let sends = m.ports[0].sends;
+    assert_eq!(
+        source.complete_input(5, &mut session, input.token, Success, &bytes),
+        Err(HidError::Session(SessionError::UnexpectedCompletion))
+    );
+    for (status, data) in [
+        (Failed, &bytes[..]),
+        (Success, &[][..]),
+        (Success, &[0; 9][..]),
+    ] {
+        let input = session.begin_input().unwrap();
+        assert!(matches!(
+            source.complete_input(5, &mut session, input.token, status, data),
+            Err(HidError::Session(_))
+        ));
+        assert_eq!(source.step(5, &mut m.ports[0]), Ok(HidProgress::Idle));
+    }
+    assert_eq!(m.ports[0].sends, sends);
+    let input = session.begin_input().unwrap();
+    source
+        .complete_input(6, &mut session, input.token, Success, &[0; 8])
+        .unwrap();
+    m.hid_exchange(&mut source, 6, Operation::HidKeyboard); // No skipped source ID.
+}
+
+fn hid_real_ipc_backpressure_retains_the_original_request_and_deadline_impl() {
+    let mut m = Model::new();
+    let mut source = m.hid_source();
+    for _ in 0..16 {
+        m.engine
+            .borrow_mut()
+            .send(1, m.requests[0], &Message::new())
+            .unwrap();
+    }
+    source.synchronize(1).unwrap();
+    assert_eq!(source.step(1, &mut m.ports[0]), Ok(HidProgress::Pending));
+    assert_eq!(source.synchronize(2), Err(HidError::Pending));
+    for _ in 0..16 {
+        m.engine.borrow_mut().receive(POLICY, m.ingress[0]).unwrap();
+    }
+    m.hid_exchange(&mut source, 3, Operation::Sync);
+    assert_eq!(m.ports[0].sends, 2); // One EAGAIN, then the original request once.
+    assert_eq!(source.step(5, &mut m.ports[0]), Ok(HidProgress::Idle));
+    source.synchronize(6).unwrap();
+    assert_eq!(
+        source.step(206, &mut m.ports[0]),
+        Err(HidError::Fatal(source::Fatal::Deadline))
+    );
+    assert_eq!(m.ports[0].sends, 2);
+}
+
+fn hid_detach_invalidates_pending_usb_immediately_and_rejects_reattach_replay_impl() {
+    let mut m = Model::new();
+    let mut source = m.hid_source();
+    source.synchronize(1).unwrap();
+    m.hid_exchange(&mut source, 1, Operation::Sync);
+    m.call(1, request(Operation::Focus, 1, 101));
+    let mut old = hid_session(1, 1);
+    let first = old.begin_input().unwrap();
+    source
+        .complete_input(3, &mut old, first.token, Success, &[0, 0, 4, 0, 0, 0, 0, 0])
+        .unwrap();
+    let late = old.begin_input().unwrap();
+    assert_eq!(source.detach(3, &mut old), Err(HidError::Pending));
+    assert_eq!(
+        old.complete_input(late.token, Success, &[0; 8]),
+        Err(SessionError::UnexpectedCompletion)
+    );
+    m.hid_exchange(&mut source, 3, Operation::HidKeyboard);
+    source.detach(5, &mut old).unwrap();
+    let mut new = hid_session(1, 2);
+    let input = new.begin_input().unwrap();
+    assert_eq!(
+        source.complete_input(5, &mut new, input.token, Success, &[0; 8]),
+        Err(HidError::Pending)
+    );
+    m.hid_exchange(&mut source, 5, Operation::HidDetach);
+    assert_eq!(
+        source.complete_input(7, &mut new, first.token, Success, &[0; 8]),
+        Err(HidError::Session(SessionError::UnexpectedCompletion))
+    );
+    source
+        .complete_input(7, &mut new, input.token, Success, &[0; 8])
+        .unwrap();
+    m.hid_exchange(&mut source, 7, Operation::HidKeyboard);
+    let cancel = m.call(3, request(Operation::Peek, 1, 0));
+    assert_eq!(&cancel.payload()[40..42], &[3, 2]);
+}
+
+fn hid_wrong_actual_reply_sender_cannot_acknowledge_sync_or_enable_publication_impl() {
+    let mut m = Model::new();
+    let mut source = m.hid_source();
+    source.synchronize(1).unwrap();
+    assert_eq!(source.step(1, &mut m.ports[0]), Ok(HidProgress::Pending));
+    let forged_send = m
+        .engine
+        .borrow_mut()
+        .bootstrap_delegate(1, m.responses[0], 2, SEND)
+        .unwrap();
+    let ack = wire::response(
+        Request {
+            operation: Operation::Sync,
+            id: 1,
+            epoch: EPOCH,
+            arg0: wire::HID_PROFILE,
+            arg1: 0,
+        },
+        0,
+        None,
+    );
+    m.ports[1]
+        .send(send(forged_send), &Outgoing::new(wire::TAG, &ack).unwrap())
+        .unwrap();
+    assert_eq!(
+        source.step(2, &mut m.ports[0]),
+        Err(HidError::Fatal(source::Fatal::Protocol))
+    );
+    assert_eq!(
+        source.synchronize(3),
+        Err(HidError::Fatal(source::Fatal::Protocol))
+    );
+}
+
+fn hid_mouse_session_publishes_exact_completed_bytes_through_policy_impl() {
+    let mut m = Model::new();
+    let mut source = m.hid_source();
+    source.synchronize(1).unwrap();
+    m.hid_exchange(&mut source, 1, Operation::Sync);
+    m.call(1, request(Operation::Focus, 1, 101));
+    let mut mouse = hid_session(2, 1);
+    let input = mouse.begin_input().unwrap();
+    source
+        .complete_input(3, &mut mouse, input.token, Success, &[1, 5, 7])
+        .unwrap();
+    m.hid_exchange(&mut source, 3, Operation::HidMouse);
+    let event = m.call(3, request(Operation::Peek, 1, 0));
+    assert_eq!(&event.payload()[40..44], &[2, 0, 1, 1]);
+    assert_eq!(
+        i16::from_le_bytes(event.payload()[44..46].try_into().unwrap()),
+        5
+    );
+    assert_eq!(
+        i16::from_le_bytes(event.payload()[46..48].try_into().unwrap()),
+        -7
+    );
+}
+
+fn hid_replayed_ack_remote_error_and_clock_reversal_fail_closed_impl() {
+    for variant in 0..3 {
+        let mut m = Model::new();
+        let mut source = m.hid_source();
+        source.synchronize(5).unwrap();
+        if variant == 2 {
+            assert_eq!(
+                source.step(4, &mut m.ports[0]),
+                Err(HidError::Fatal(source::Fatal::Clock))
+            );
+            continue;
+        }
+        assert_eq!(source.step(5, &mut m.ports[0]), Ok(HidProgress::Pending));
+        let request = Request {
+            operation: Operation::Sync,
+            id: if variant == 0 { 2 } else { 1 },
+            epoch: EPOCH,
+            arg0: wire::HID_PROFILE,
+            arg1: 0,
+        };
+        let ack = if variant == 0 {
+            wire::response(request, 0, None)
+        } else {
+            wire::failure(request, 0, nieuw_os_input_core::Error::StreamLost)
+        };
+        m.policy_io
+            .send(
+                send(m.reply_send[0]),
+                &Outgoing::new(wire::TAG, &ack).unwrap(),
+            )
+            .unwrap();
+        let expected = if variant == 0 {
+            source::Fatal::Protocol
+        } else {
+            source::Fatal::Remote(12)
+        };
+        assert_eq!(
+            source.step(6, &mut m.ports[0]),
+            Err(HidError::Fatal(expected))
+        );
+        assert_eq!(
+            source.step(7, &mut m.ports[0]),
+            Err(HidError::Fatal(source::Fatal::Protocol))
+        );
+    }
+}
+
+fn hid_unexpected_reply_capability_is_closed_before_terminal_rejection_impl() {
+    let mut m = Model::new();
+    let mut source = m.hid_source();
+    source.synchronize(1).unwrap();
+    assert_eq!(source.step(1, &mut m.ports[0]), Ok(HidProgress::Pending));
+    let bytes = wire::response(
+        Request {
+            operation: Operation::Sync,
+            id: 1,
+            epoch: EPOCH,
+            arg0: wire::HID_PROFILE,
+            arg1: 0,
+        },
+        0,
+        None,
+    );
+    let mut outgoing = Outgoing::new(wire::TAG, &bytes).unwrap();
+    outgoing
+        .push_cap(Capability {
+            handle: Handle::from_raw(m.ingress[0]).unwrap(),
+            rights: Rights::SEND,
+        })
+        .unwrap();
+    m.policy_io.send(send(m.reply_send[0]), &outgoing).unwrap();
+    assert_eq!(
+        source.step(2, &mut m.ports[0]),
+        Err(HidError::Fatal(source::Fatal::Protocol))
+    );
+    assert_eq!(m.ports[0].closed.len(), 1);
+    assert_eq!(
+        m.engine.borrow_mut().close(1, m.ports[0].closed[0]),
+        Err(capability_core::Error::BadHandle)
+    );
 }
 #[derive(Default)]
 struct Raw {
@@ -566,4 +867,32 @@ scenario!(
 scenario!(
     canonical_ack_from_wrong_kernel_sender_cannot_report_source_ready,
     canonical_ack_from_wrong_kernel_sender_cannot_report_source_ready_impl
+);
+scenario!(
+    hid_completion_publication_requires_sync_and_matching_valid_transport_work,
+    hid_completion_publication_requires_sync_and_matching_valid_transport_work_impl
+);
+scenario!(
+    hid_real_ipc_backpressure_retains_the_original_request_and_deadline,
+    hid_real_ipc_backpressure_retains_the_original_request_and_deadline_impl
+);
+scenario!(
+    hid_detach_invalidates_pending_usb_immediately_and_rejects_reattach_replay,
+    hid_detach_invalidates_pending_usb_immediately_and_rejects_reattach_replay_impl
+);
+scenario!(
+    hid_wrong_actual_reply_sender_cannot_acknowledge_sync_or_enable_publication,
+    hid_wrong_actual_reply_sender_cannot_acknowledge_sync_or_enable_publication_impl
+);
+scenario!(
+    hid_mouse_session_publishes_exact_completed_bytes_through_policy,
+    hid_mouse_session_publishes_exact_completed_bytes_through_policy_impl
+);
+scenario!(
+    hid_replayed_ack_remote_error_and_clock_reversal_fail_closed,
+    hid_replayed_ack_remote_error_and_clock_reversal_fail_closed_impl
+);
+scenario!(
+    hid_unexpected_reply_capability_is_closed_before_terminal_rejection,
+    hid_unexpected_reply_capability_is_closed_before_terminal_rejection_impl
 );

@@ -36,6 +36,8 @@ class Ledger(unittest.TestCase):
             {"tasks": [task("A"), task("A")]},
             {"tasks": [task("A", deps=["Z"])]},
             {"tasks": [task("A", writes=["docs/progress.json"])]},
+            {"tasks": [task("A", writes=["services/AGENTS.md"])]},
+            {"tasks": [task("A", writes=[".codex/config.toml"])]},
             {"tasks": [task("A", writes=[".github/workflows/x.yml"])]},
             {"tasks": [task("A", writes=["docs/roadmap-pipeline/ledger.json"])]},
             {"tasks": [task("A", writes=["../escape"])]},
@@ -46,6 +48,7 @@ class Ledger(unittest.TestCase):
             with self.subTest(ledger=ledger), self.assertRaises(ValueError):
                 rr.validate_ledger(ledger)
         rr.validate_ledger({"tasks": [task("A"), task("B", "blocked", checks=[])]})
+        rr.validate_ledger({"tasks": [task("C", writes=["docs/verification/new-20261115/"])]})
 
     def test_ledger_round_trip_is_atomic_and_validated(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -82,7 +85,8 @@ class Scope(unittest.TestCase):
             self.assertTrue(rr.in_write_set(path, writes), path)
         for path in ("crates/a/src/other.rs", "services/netx/a.rs", "docs/progress.json",
                      "tools/roadmap_runner.py", ".github/workflows/ci.yml", "AGENTS.md",
-                     "docs/PROJECT-STATE.md"):
+                     "docs/PROJECT-STATE.md", "services/net/AGENTS.md",
+                     "tools/CLAUDE.md", ".codex/config.toml"):
             self.assertFalse(rr.in_write_set(path, writes + ["docs/", ".github/", "tools/"]), path)
 
     def test_porcelain_parsing_handles_renames_and_quotes(self):

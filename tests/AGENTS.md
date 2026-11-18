@@ -4,3 +4,4 @@ Boot logs must come from an actual emulator test; scripts must not fabricate exp
 Mocks demonstrate only the mocked layer. Explicitly identify checks that were not run.
 Isolate images, seeds and temporary files. Do not use internet destinations, personal data or real disks. Compare performance only under recorded conditions.
 Report failures without weakening tests to obtain a passing result.
+Commands: Python host tests run in pattern groups, `python3 -B -m unittest discover -s tests -p '<pattern>'`, as listed in `ci.yml#host-quality`. There is no `tests/fixtures`: harnesses generate their inputs.

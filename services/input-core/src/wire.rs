@@ -5,12 +5,17 @@ pub const SIZE: usize = 96;
 pub const TAG: u64 = 0x4e49_4e50_5554_0001;
 pub const VERSION: u16 = 1;
 pub const REPLY: u16 = 0x8000;
+pub const PS2_PROFILE: u64 = 1;
+pub const HID_PROFILE: u64 = 2;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 #[repr(u16)]
 pub enum Operation {
     Sync = 1,
     Sample = 2,
+    HidKeyboard = 3,
+    HidMouse = 4,
+    HidDetach = 5,
     Focus = 16,
     ClientDead = 32,
     SourceDead = 33,
@@ -59,6 +64,9 @@ impl Request {
         let operation = match u16::from_le_bytes([bytes[6], bytes[7]]) {
             1 => Operation::Sync,
             2 => Operation::Sample,
+            3 => Operation::HidKeyboard,
+            4 => Operation::HidMouse,
+            5 => Operation::HidDetach,
             16 => Operation::Focus,
             32 => Operation::ClientDead,
             33 => Operation::SourceDead,
@@ -81,8 +89,18 @@ impl Request {
             return Err(Error::Malformed);
         }
         let valid = match operation {
-            Operation::Sync => request.arg0 == 1 && request.arg1 == 0,
+            Operation::Sync => {
+                matches!(request.arg0, PS2_PROFILE | HID_PROFILE) && request.arg1 == 0
+            }
             Operation::Sample => request.arg0 <= u8::MAX as u64 && request.arg1 <= u8::MAX as u64,
+            Operation::HidKeyboard => request.arg1 == 0,
+            Operation::HidMouse => {
+                (3..=8).contains(&request.arg1)
+                    && request.arg0.to_le_bytes()[request.arg1 as usize..]
+                        .iter()
+                        .all(|byte| *byte == 0)
+            }
+            Operation::HidDetach => (1..=3).contains(&request.arg0) && request.arg1 == 0,
             Operation::Focus => request.arg1 == 0,
             Operation::ClientDead | Operation::Ack => request.arg0 != 0 && request.arg1 == 0,
             Operation::SourceDead | Operation::CompositorDead | Operation::Peek => {
