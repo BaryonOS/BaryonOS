@@ -3,7 +3,7 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-18",
-    "source_commit": "de9b99047138c4fd0015ffc3f874b273b3537484",
+    "source_commit": "1c10cdb5b30df2f3d30bea74430383f59c398931",
     "assessment_basis": "parent_commit",
     "branch": "claude/baryon-os-design-pipeline-20261118",
     "task": "UX-A11Y-DS run 2 checkpoint: blocked after 2 repairs, owner blocker, not accepted",

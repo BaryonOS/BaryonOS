@@ -66,6 +66,17 @@ class TaskError(RuntimeError):
     """The task cannot continue without a human."""
 
 
+# This temporary source-enforced hold has no flag, environment or configuration override.
+# Removal requires a reviewed replacement with the complete verified security boundary.
+EXECUTION_HOLD = (
+    "Issue-driven execution is disabled pending the fully verified PR #355 security boundary."
+)
+
+
+def require_pipeline_release() -> None:
+    raise TaskError(EXECUTION_HOLD)
+
+
 @dataclass
 class Task:
     number: int
@@ -257,6 +268,7 @@ class Pipeline:
         return self.engines[k:] + self.engines[:k]
 
     def ready_tasks(self) -> list[Task]:
+        require_pipeline_release()
         progress = json.loads((ROOT / "docs" / "progress.json").read_text(encoding="utf-8"))
         criteria = open_criteria(progress)
         issues = json.loads(sh(["gh", "issue", "list", "--state", "open", "--limit", "500",
@@ -279,6 +291,7 @@ class Pipeline:
 
     def prepare(self, task: Task) -> None:
         """Fresh worktree from origin/main plus the L0 spec (step 1A)."""
+        require_pipeline_release()
         task.dir.mkdir(parents=True)
         sh(["git", "fetch", "-q", "origin", "main"])
         sh(["git", "worktree", "add", "-q", "-b", task.branch, str(task.worktree), "origin/main"])
@@ -303,6 +316,7 @@ class Pipeline:
 
     def execute(self, task: Task, feedback: str = "", allow_unchanged: bool = False) -> None:
         """Step 1B plus the self-healing gate loop (max MAX_ATTEMPTS executor runs)."""
+        require_pipeline_release()
         gate = resolve(task.gates, ROOT / ".github" / "workflows")
         for attempt in range(1, MAX_ATTEMPTS + 1):
             # Gate runs can leave unignored build output; only the agent's own edits count.
@@ -330,6 +344,7 @@ class Pipeline:
 
     def integrate(self, task: Task) -> None:
         """STORM stale-dependency check against current main; merger on conflicts."""
+        require_pipeline_release()
         saved = json.loads((task.dir / "read_snapshot.json").read_text())
         sh(["git", "fetch", "-q", "origin", "main"], task.worktree)
         moved = stale(saved["blobs"], snapshot(list(saved["blobs"]), "origin/main", task.worktree))
@@ -356,6 +371,7 @@ class Pipeline:
             {"base": base, "blobs": snapshot(list(saved["blobs"]), base, task.worktree)}, indent=2))
 
     def publish(self, task: Task) -> None:
+        require_pipeline_release()
         if self.dry_run:
             print(f"dry-run: #{task.number} ready on {task.branch}; no push or PR")
             return
@@ -375,15 +391,18 @@ class Pipeline:
         print(f"#{task.number}: {url}")
 
     def finish(self, task: Task) -> None:
+        require_pipeline_release()
         sh(["git", "worktree", "remove", "--force", str(task.worktree)], check=False)
 
     def discard(self, task: Task) -> None:
         """Undo prepare() for a task that did not fit this round; it is re-planned later."""
+        require_pipeline_release()
         self.finish(task)
         sh(["git", "branch", "-D", task.branch], check=False)
         shutil.rmtree(task.dir, ignore_errors=True)
 
     def work(self, task: Task) -> bool:
+        require_pipeline_release()
         try:
             self.execute(task)
             return True
@@ -392,6 +411,7 @@ class Pipeline:
             return False
 
     def run_once(self) -> bool:
+        require_pipeline_release()
         tasks = self.ready_tasks()
         serial = [t for t in tasks if t.mode == "serial"]
         if serial:
@@ -439,6 +459,10 @@ def main() -> int:
     engines = [e for e in args.engines.split(",") if e]
     if not engines or any(e not in ENGINES for e in engines):
         raise SystemExit(f"--engines must be a subset of {','.join(ENGINES)}")
+    try:
+        require_pipeline_release()
+    except TaskError as error:
+        parser.exit(2, f"{error}\n")
     pipeline = Pipeline(engines, args.auto_merge_parallel, args.dry_run)
     while True:
         worked = pipeline.run_once()

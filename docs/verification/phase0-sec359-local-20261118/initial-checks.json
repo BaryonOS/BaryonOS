@@ -1,0 +1,44 @@
+{
+  "status": "5 targeted and 404 complete tools tests PASS; strict preflight PASS; native/hosted pending",
+  "checks": [
+    {
+      "receipt": "build/tokenguard/run-2h9zjh4h.json",
+      "log": "build/tokenguard/run-2h9zjh4h.log",
+      "exit_code": 1,
+      "log_sha256": "c6cda5bdabb2a90c7a1239990032651464f3022212e4392fd733d4fb33a79dc0"
+    },
+    {
+      "receipt": "build/tokenguard/run-vxfwxqu6.json",
+      "log": "build/tokenguard/run-vxfwxqu6.log",
+      "exit_code": 0,
+      "log_sha256": "439948b0a317324f48becf3d82e008c0def1e7c24f4bacad0ae5744c16490d43"
+    },
+    {
+      "receipt": "build/tokenguard/run-n6mm68x1.json",
+      "log": "build/tokenguard/run-n6mm68x1.log",
+      "exit_code": 0,
+      "log_sha256": "55ff56c3b8ef8cad3c343fe64515f78f926cd7dc90ab6e9bbfb298feb006a324"
+    },
+    {
+      "receipt": "build/tokenguard/run-j3a3yxda.json",
+      "log": "build/tokenguard/run-j3a3yxda.log",
+      "exit_code": 0,
+      "log_sha256": "62ebad9bc1b8d27851fbe4be8091c80217e43e64dfa64f554c574c2861a847fc"
+    },
+    {
+      "receipt": "build/tokenguard/run-lgdhccgm.json",
+      "log": "build/tokenguard/run-lgdhccgm.log",
+      "exit_code": 0,
+      "log_sha256": "14b305fe38d23ae7244745b59dcbbad1fa41b2ffd4a173070a72a8aca2f3aa5f"
+    },
+    {
+      "receipt": "build/tokenguard/run-ooljx21w.json",
+      "log": "build/tokenguard/run-ooljx21w.log",
+      "exit_code": 0,
+      "log_sha256": "0b3a664c6004b2dbfe377ba0c3d9e60dbabf212b3f40299d1ca2fe7dddb35eba",
+      "tests": 404
+    }
+  ],
+  "main": "de9b99047138c4fd0015ffc3f874b273b3537484",
+  "source_runtime_preserved": true
+}

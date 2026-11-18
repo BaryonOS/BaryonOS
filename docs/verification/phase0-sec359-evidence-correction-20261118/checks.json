@@ -1,0 +1,42 @@
+{
+  "schema": 1,
+  "correction_target": "docs/verification/phase0-sec359-local-20261118/",
+  "negative_control": {
+    "fixed_source_commit": "5aa381379891df00140a04e01814cd0712ef096f",
+    "fixed_tools_agent_pipeline_sha256": "827d8446204f0cabcf886e136f8da4e7aa4d8f98749b05c4bb474f375655f558",
+    "overlay": "Remove only require_pipeline_release() from Pipeline.ready_tasks().",
+    "overlay_diff_sha256": "a8e2750e1a22beb3675302a29f9e9a0b31a420b4188a60cd80ec4e3f482edebe",
+    "overlaid_tools_agent_pipeline_sha256": "fa95e89967b0ad5a1d36be8560e6ad3f665fff05cffb9d029f40418cbb2b0a60",
+    "test_source_sha256": "a396d1517805eaab448e476c6b4d5edcb9e709fa0fac2e6c969fa5d6e408657e",
+    "command": "python3 -B -m unittest discover -s tools/tests -p test_pipeline_quarantine.py",
+    "exit_code": 1,
+    "tests": 5,
+    "failures": 1,
+    "expected_failure": "test_direct_issue_selection_stops_before_any_side_effect reaches progress.json after the direct hold is removed",
+    "raw_local_log": "build/sec359-evidence-correction/run-8hc_1a71.log",
+    "raw_log_sha256": "6e41832561d91a3162f8b1221ff1213220b8795d85d0163cb9b006dad1d603fb",
+    "raw_receipt": "build/sec359-evidence-correction/run-8hc_1a71.json",
+    "raw_receipt_sha256": "4a24c4a73c080ee08a91a66bf6f6784933dd5bafbc9324a3c8bff4c3e7e3c4ae"
+  },
+  "review_scope": {
+    "supported": "Executable containment source and direct regression only.",
+    "complete_pr_diff_review": "NOT ESTABLISHED by the prior review."
+  },
+  "native_binding": {
+    "raw_native_result_sha256": "c061ada38d435e18b94f832a33b5a056a152800ce4889f45c09a78395c889a4f",
+    "raw_result_expected_artifact_count": 0,
+    "writable_ovmf_vars_prelaunch_sha256": null,
+    "writable_ovmf_vars_binding": "NOT ESTABLISHED",
+    "immutable_inputs_rehashed_after_run": true
+  },
+  "governance": {
+    "owner_clarification_kind": "session provenance, not ADR",
+    "governance_started": false
+  },
+  "limits": [
+    "The negative control is a host unittest overlay, not native execution.",
+    "No new QEMU run was performed for this correction.",
+    "The writable OVMF variable-store copy remains unbound.",
+    "No full PR-diff review, human audit, baseline or governance acceptance is claimed."
+  ]
+}
