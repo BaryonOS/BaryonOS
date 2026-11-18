@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-18",
-    "source_commit": "e1cc7c1ce04942f0f46c91875eab751044c6b260",
-    "assessment_basis": "source_commit",
+    "source_commit": "f44c399f47b47c51877e8772c6fe37b1f1410206",
+    "assessment_basis": "parent_commit",
     "branch": "codex/a03-task-grants",
-    "task": "A03-T1: bounded task grant host core delivered",
+    "task": "A03-T1: bounded per-object task grant policy core",
     "previous_score": 41,
-    "summary": "41/100 unchanged. New no_std task-grant core binds object revision, app/PID/epoch, rights, event lifetime and generation. 128 SDK tests including12 new grant regressions, Clippy/fmt and targeted freestanding build pass. Only the local SDK package lock entry changes. No native/IPC/UI/storage enforcement or A03 acceptance. Unsafe runner, existing PRs and Claude ownership preserved."
+    "summary": "41/100 unchanged. The bounded no_std task-grant core binds explicit rights to app, process epoch, object revision, session and generation, with lifecycle revocation and fail-closed exhaustion. A03 remains open because native IPC and end-to-end enforcement are not implemented. Current-main reconciliation changes only checkpoint state; hosted checks on the resulting head remain authoritative."
   },
   "tracks": [
     {

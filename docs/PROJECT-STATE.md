@@ -1,42 +1,59 @@
 # Current project status
 
-## NEXT AGENT HANDOFF — A03-T1 bounded task grants — 18 November 2026
+## NEXT AGENT HANDOFF — A03 task-grant integration — 18 November 2026
 
-**Claim:** Codex in `codex/a03-task-grants`, base `6f29b672`. Existing PR362/363,
-B01-T1 PR364 and N02-T1 PR365 remain preserved on their source branches. The shared
-ledger carries their source-bound task status without inferring main integration.
-**Goal:** SDK host core for per-object read/write/export grants bound to an app and
-specific process incarnation, revision, revocation generation and close/session life.
-**Invariant:** default no access; no helper inheritance/delegation; stale actors,
-handles/revisions/generations and exhausted tables/counters fail closed. No runtime
-capability material in messages or new native authorization path.
-**Write set:** `sdk/task-grant-core/`, SDK workspace manifest/lock and lead-owned
-ledger/checkpoint/progress/one compact receipt. No UI, native broker or storage edits.
-**Acceptance:** new grant-core regressions, affected SDK workspace tests/Clippy/fmt
-and a targeted freestanding build. The lock changes only for the new local member.
-**Evidence limit:** host model/build only; native per-object enforcement and A03
-acceptance remain open. Unsafe unattended runner remains disabled and separate.
-**Delivered/source:** `e1cc7c1ce04942f0f46c91875eab751044c6b260` adds the dependency-free, allocation-free grant
-core. It binds app/PID/process epoch, exact known object revision, independent rights,
-unique table session and monotonic issuance generation. Revocation, close, process
-retirement, revision change and session end invalidate retained handles; full tables
-and overflow do not evict live grants. [Receipt](roadmap-pipeline/receipts/A03-T1.json).
+PR #366 source `f44c399f47b47c51877e8772c6fe37b1f1410206` is reconciled with
+main `2eac8ca39ce04753f4f6bef3b09ee9b3610c065f`. The allocation-free
+task-grant core binds read, write and export rights to an app, PID/process epoch,
+object revision, session and issuance generation. Close, process, session, revision
+and explicit revoke events invalidate retained handles; table or generation
+exhaustion fails closed. The change adds no IPC serialization or runtime authority.
+Source-bound tests and static checks remain in the A03-T1 receipt. Native IPC,
+end-to-end enforcement, hardware and human acceptance remain open; score stays
+41/100. Fresh exact-head hosted checks are required before squash merge.
 
-**Executed:** 128 SDK tests including 12 new grant regressions, SDK Clippy with
-warnings denied, formatting and targeted freestanding release build all exit 0.
-Exact commands/log hashes are in the receipt. SDK lock comparison shows only the new
-local package entry; no existing dependency/version changed. One bounded read-only
-AI review found no blocker. No duplicate test matrix was run by the lead/reviewer.
+## NEXT AGENT HANDOFF — PR #361 integration and final-read barrier — 18 November 2026
 
-**Limits:** trusted-adapter assumptions are explicit in the crate README. No native
-broker, IPC authentication, UI consent, volume enforcement or end-to-end LP acceptance
-is claimed. A03 stays open; progress **41 → 41/100**. Unsafe unattended execution,
-Claude work and PR362/363/364/365 remain preserved. Worker group is stopped.
+**Claim/source:** Codex sole writer in `codex/block-order-integration`, PR #361 head
+`fc35563668ae2ba3dc2fc90e6e30575c38b6f578`, merging main `6f29b672`.
+Original syscall-order worktree and all foreign WIP remain untouched. Governance
+is independently published as draft PR #362; its hosted checks remain pending.
 
-**Next:** publish this independent draft; select the next bounded functional READY
-slice after source/ownership checks. Prefer existing-code integration over a new
-model or documentation-only proposal. Mandatory hosted checks remain separate.
+**Goal:** repair the confirmed case-2 final-read/terminal-error scheduling race and
+resolve the two status-only integration conflicts, preserving #355/#359 containment.
+**Invariant:** successful final GET/LIST replies from both clients precede terminal
+uncertainty injection; capability, pointer, ordering and device guards stay intact.
+**Write set:** `kernel/src/m2/m3/m6c.rs`, `userspace/m6c_probe.rs`, this checkpoint,
+progress assessment/displays and one new verification child for concise test results.
+**Acceptance:** adversarial delayed-read negative control; targeted M6c build and
+native `errors` plus `normal`; M6c host harness, formatting, progress/check and exact
+head hosted checks. Reuse unchanged M6b and previous full-matrix evidence explicitly.
+**Evidence limit:** native QEMU is not hardware, full certification, Daybreak closure
+or client runtime parity. No broad repeated matrix or optional review quota request.
 
+**Result:** the delayed-read negative control fails on the old ACK-only barrier
+(guest 35, exit 1); fixed native errors and normal pass (guest 33, exit 0), with disk
+oracles and stable source fingerprints. 49 host tests and formatting pass, exit 0.
+[Compact source-bound receipt](verification/m6c-final-read-barrier-20261118/checks.json).
+One focused read-only security review found no blocking defect; no tests were repeated
+by that reviewer. The old M6b evidence is reused for unchanged sources. Full native
+matrices, hardware and human audit are NOT RUN for this correction.
+
+**Next:** publish the integrated head to existing PR #361 and require its current-head
+mandatory checks/review. Then continue the Codex-owned H/U/N/B/A/P/L/R controller in
+`codex/roadmap-codex`, following the owner's executor correction. #355 WIP and Claude
+S09/UI work remain untouched. No auto-merge, protection bypass or finding closure.
+Progress **41 → 41/100**; no criterion/weight changes.
+
+## Retained checkpoint — Daybreak block-syscall ordering repair — 18 November 2026
+
+**Source and ownership:** isolated branch `codex/security-block-syscall-order` now contains implementation/evidence commit `616737b8a85877cde79d9bdc43d808c628ee8325`, based on verified main `1c10cdb5b30df2f3d30bea74430383f59c398931`. The original dirty checkout, Claude UI/UX, S09, PR355 and the preserved broad `sec-m6-observer-local` WIP were not modified. This is the bounded repair for Daybreak finding `acf_4d7b2e454297c2c851a4b7cadcff2587`; the finding remains open pending an accepted exact-head scan and resulting-main verification.
+
+**Security result:** M6b/M6c reject post-recovery READ and invalid WRITE/FLUSH ordering after complete ABI/capability validation but before policy or device publication. A second valid or malformed submit cannot change any already-live request; only a correctly bound mutating POLL may make its own request terminal. M6c terminal accounting is idempotent. Negative controls reproduced the pre-active timeout and both live-I/O failure classes before repair. Independent review found and drove closure of repeated-terminal, live-Busy, malformed-live and active-READ panic paths, then returned PASS on exact source fingerprint `5a6a5cca407e288973e302ae46840c7f851a57db70a848917f552c23821d4fbf`.
+
+**Verification:** targeted M6b/M6c builds and `errors` QEMU runs pass (wrapper exit0, guest33); host harnesses pass38/38 and49/49; object-core passes22/22 and catalog-core45/45. Full native M6b passes32 groups and M6c35 groups, including cold recovery and final M1 guest33. Strict preflight, Rust formatting, evidence JSON and diff whitespace pass. Raw logs remain under ignored `build/tokenguard/`; the source-bound receipt is [daybreak-block-order-20261118](verification/daybreak-block-order-20261118/README.md). Physical hardware, formal proof, hosted CI and a fresh Daybreak scan are not claimed.
+
+**Progress and next:** score remains41/100 because no fixed product criterion is newly accepted. Publish the branch as a draft PR, require fresh current-head `host-quality`, `qemu-smoke`, CodeQL and merge-hold, obtain exact-head Daybreak acceptance, and manually squash only when all actionable findings and reviews are resolved. Then verify resulting main and resume the unchanged PR355 isolation blockers and remaining security queue. Governance phases1–6 remain blocked by the strict stabilization gate.
 ## Retained checkpoint — PR #355 native test quality — 18 November 2026
 
 **Source and change:** security-quality checkpoint
@@ -294,7 +311,7 @@ issue closure is authorized. Score 41/100 is unchanged.
 **Ownership and evidence:** original user work, independent UI/S09 workstreams, existing PRs and compiler WIP remain preserved. No original worktree was reset or cleaned. Private managed artifacts retain exact source/commands/limits. Score41/100 is unchanged; no product criterion or security result is accepted by this checkpoint.
 **Next:** preserve this draft checkpoint, resolve the independently identified blockers, then require current-head CI/security verification before manual squash and source-bound Daybreak closure. Prepare the authorized cloudhandoff after reconciling branches/WIP; ownership is not transferred until remote commits are verified. Do not use the affected issue pipeline for remediation. Resume the existing integration/modernization work only after the boundary is verified.
 
-## Retained checkpoint — Local PR359 containment reconciliation — 18 November 2026
+## NEXT AGENT HANDOFF — Local PR359 containment reconciliation — 18 November 2026
 
 **Authority and ownership:** the project owner approved autonomous local execution and verified manual squash merges. Cloud handoff `88b801ab8cd47f4765ef7d925b161542dbbf684e` releases Codex work only. Local Codex exclusively owns this PR359 reconciliation in an isolated worktree; the original unfinished merge, Claude UI/UX and broader S09 remain untouched.
 
@@ -306,7 +323,7 @@ issue closure is authorized. Score 41/100 is unchanged.
 
 **Next:** independently review and publish the evidence correction, then require a fresh exact-head hosted rollup. Manually squash only when every applicable check and actionable review is satisfied. Verify resulting main before continuing PR355/357 and the remaining security queue. Governance has not started.
 
-## Retained checkpoint — Phase 0 PR339 safe checker and integration — 18 November 2026
+## NEXT AGENT HANDOFF — Phase 0 PR339 safe checker and integration — 18 November 2026
 
 **Actual main:** `67d5859d735836331b6fb971eae89162b7fa8465` after verified manual squash merges #345 and #346. Actual trees equal their independently reviewed candidates. Translation source PRs #347–#349/#351–#353 were closed only after actual-main inclusion proof; original refs remain preserved. Five issues and seven PRs remain open at this cutoff. Project5 synchronization uses the existing workflow.
 
