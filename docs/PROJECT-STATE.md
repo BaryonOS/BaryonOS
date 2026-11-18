@@ -3,7 +3,7 @@
 ## NEXT AGENT HANDOFF — unified governance implementation — 18 November 2026
 
 **Claim:** GOV-1-6, sole writer Codex in `codex/unified-governance`, base
-`2eac8ca39ce04753f4f6bef3b09ee9b3610c065f`. The project owner authorizes immediate
+`5a3295b6093549f4b5ff6164ab2773ac4c264996`. The project owner authorizes immediate
 governance without a zero-open-items or completed baseline-B prerequisite.
 
 **Goal:** working shared instructions, role contracts, thin client adapters and
@@ -22,7 +22,7 @@ review. Full native matrices are not repeated for unchanged OS code.
 **Evidence limit:** repository contracts and host regressions do not prove client
 runtime parity, sandbox activation, Daybreak remediation, hardware or human audit.
 
-**Reconciliation:** current main includes #359, #355 and #361. Quarantine 5/5 and
+**Reconciliation:** current main includes #359, #355, #361 and #350. Quarantine 5/5 and
 execution-hold 3/3 pass, exit 0 (raw logs
 `build/tokenguard/run-425ldpp4.log`, `run-yheavd50.log`). Manifest `enabled: false`.
 No active `agents/independent.md` reference was found. Four real `os_*` roles exist.
@@ -59,6 +59,19 @@ remains a nonblocking P3; no protection was relaxed for this task.
 checks before manual squash. Then continue the released roadmap PR queue without
 changing the independently owned UI/UX or active S09 branches.
 Progress **41 → 41/100**, no accepted criterion/weight change.
+
+## NEXT AGENT HANDOFF — PR #350 conflict-only integration — 18 November 2026
+
+PR #350 head `aaf01bae291faba593567845dc8da4fe606a7959` is reconciled
+with actual main `2eac8ca39ce04753f4f6bef3b09ee9b3610c065f`.
+Only checkpoint and assessment conflicts required resolution. Both histories remain
+below; prior checkpoints retain their original evidence limits. The reviewed
+CodeRabbit configuration is unchanged, and all non-checkpoint main changes merge
+without manual edits. The issue-pipeline execution hold and disabled manifest remain
+intact. No account, billing, criterion, permission or runtime change is introduced
+by this reconciliation. Score remains 41/100. Required hosted checks on the new head
+must pass before a manual squash merge; local build/QEMU suites are not repeated
+for this conflict-only correction.
 
 ## NEXT AGENT HANDOFF — PR #361 integration and final-read barrier — 18 November 2026
 
@@ -396,6 +409,22 @@ issue closure is authorized. Score 41/100 is unchanged.
 **Source:** existing PR #346 parent `04e29181ef7e755eea2db0054c463b9216184671`, reconciled with main `366b82b353485207a9b0d6b1ae63dafbbe265bae`. Scope: English documentation. The project owner explicitly resumed autonomous execution on 18 November 2026; current review, protection and gate requirements remain binding.
 
 **Preservation:** current-main source, accepted decisions, historical evidence and independent workstream ownership are retained. Only overlapping checkpoint/assessment text requires conflict resolution. The prior branch checkpoint and assessment are retained as explicitly historical records in [the cloud receipt](verification/phase0-pr346-cloud-20261118/README.md). The two actionable translation review comments receive additive English explanations; the original ABI and installer sequence remain unchanged. No product acceptance criterion or security boundary changes. Score remains 41/100.
+
+## Retained historical handoff — Phase 0 PR350 reconciliation — 18 November 2026
+
+**Integrated main:** `55bc7b06d20a3bfdffdc2eb7d8fe42a39f6e59c5` after verified PR345 manual squash. Actual main tree equals reviewed candidate; post-merge host-quality and qemu-smoke pass. Existing Project5 synchronization run44209117311 completed successfully on that main; its raw-log endpoint returned403, so detailed field effects remain NOT VERIFIED.
+
+**Candidate:** existing PR350 preserves the independently reviewed CodeRabbit free-tier configuration byte-for-byte; only checkpoint/main reconciliation changes. Original source f8/c4 review found no blocker, and strict preflight/build/QEMU raw33/progress/preservation checks passed. Fresh schema download remains NOT VERIFIED (proxy403); no paid features, account/billing change or automatic approval is enabled. Latest-main candidate CI and independent incremental review remain required.
+
+**Other work:** PR346 reviewed translations are preserved on latest-main candidate59c07e88; PR340 candidate41b894cd has15 fresh native volume stages and source-bound capture; PR354 latest-stable compiler regressions are under repair with frozen-source gates. The new accessibility checker is independently reviewed before any Claude-branch publication; original historical evidence is immutable.
+
+**Security and acceptance:** live Daybreak inventory has3 open findings (High/Medium/Low); none is resolved by ordinary CI. PR355 remains blocked on resource/process/scratch and selected client/gate compatibility, with its manifest disabled;357 recovery remains unaccepted. Scanner REST categories remain NOT VERIFIED403. All5 issues remain open against full acceptance. Score41/100 unchanged; baseline B and governance1–6 are unestablished. Continue safe independent work and verified manual squashes without auto-merge or bypass.
+
+## Retained handoff — Phase 0 PR350 cloud reconciliation — 18 November 2026
+
+**Source:** existing PR #350 parent `7b4b618e7ef0eee6b2a67ce693afcb9f2f20809c`, reconciled with main `366b82b353485207a9b0d6b1ae63dafbbe265bae`. Scope: CodeRabbit free-tier configuration. The project owner explicitly resumed autonomous execution on 18 November 2026; current review, protection and gate requirements remain binding.
+
+**Preservation:** current-main source, accepted decisions, historical evidence and independent workstream ownership are retained. Only overlapping checkpoint/assessment text requires conflict resolution. The prior branch checkpoint and assessment are retained as explicitly historical records in [the cloud receipt](verification/phase0-pr350-cloud-20261118/README.md). The accepted free-tier configuration remains byte-identical to its reviewed parent. No product acceptance criterion or security boundary changes. Score remains 41/100.
 
 **Validation:** source-preservation assertions, progress regeneration/check and whitespace verification are required on the reconciled tree; their actual results are recorded in the receipt. Current-head hosted checks and independent final review remain required before a manual squash merge. Full issue #274, production security acceptance, baseline B and governance phases 1–6 remain open.
 
