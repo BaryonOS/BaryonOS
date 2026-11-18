@@ -1,0 +1,23 @@
+{
+  "pr": 346,
+  "method": "manual squash",
+  "candidate": "59c07e88abdd1b3a6d06a44ea1c8fe27fdbb5ce4",
+  "main": "67d5859d735836331b6fb971eae89162b7fa8465",
+  "equal_tree": "23ec9a8b6db38f71eed8076922c84be6dd3e3aa9",
+  "tree_comparison_exit": 0,
+  "candidate_checks": "all successful/completed at merge, independent final COMMENT review no blocker",
+  "preserved_reviewed_files": 39,
+  "byte_identical": 37,
+  "original_lines_preserved_additive_glosses": 2,
+  "closed_as_incorporated": [
+    347,
+    348,
+    349,
+    351,
+    352,
+    353
+  ],
+  "source_heads_requeried_before_closure": true,
+  "branches_preserved": true,
+  "issues_closed": []
+}
