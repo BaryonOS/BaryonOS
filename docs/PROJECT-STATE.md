@@ -1,18 +1,17 @@
 # Current project status
 
-## NEXT AGENT HANDOFF — L01-T2 model header validation — 18 November 2026
+## NEXT AGENT HANDOFF — L01-T2 delivery — 18 November 2026
 
-**Claim:** Codex, codex/l01-model-format, base5a3295b6.
-**Goal:** bounded safetensors header/table parser over existing VerifiedArtifact.
-**Invariant:** verification does not make model bytes trusted; reject duplicate
-keys, invalid UTF8/dtype/shape/offsets, holes/overlap/trailing bytes and excess depth.
-**Write set:** experiments/ai/model-format/ only; lead state/progress/one receipt.
-**Acceptance:** Rust1.90 new crate tests/Clippy/fmt/freestanding build; meaningful
-malformed/overflow/bounds/store-error/short-read regressions plus Qwen-style fixture.
-**Evidence limit:** host parser/build, no inference/native model acceptance.
-**Ownership:** no changes to integration-manager PRs or Claude S09/UI; hold preserved.
-H02-T2 source75074d7f/checkpoint7db16365 delivered in draft PR372.
-**Next:** supervised implementation, publish draft, continue next READY functional task.
+**Source:** `3a77b1d0d5c91f6844d9c7475f3e54a6f52dc6d1`, `codex/l01-model-format`.
+**Delivered:** VerifiedArtifact safetensors header/table parser with bounded no-escape JSON profile, duplicate/dtype/overflow checks and exact nonoverlapping coverage;14 host regressions pass. One bounded security review found no blocker.
+**Checks:** targeted Rust tests, Clippy (-D warnings), formatting and freestanding
+library build exit0; [exact commands/raw-log hashes](roadmap-pipeline/receipts/L01-T2.json).
+Lead source/diff review completed; no duplicate matrix. Progress **41 → 41/100**.
+**Limits:** Host parser/build only; no real-model compatibility, inference, native/provenance acceptance. Existing pinned dependencies and soft SHA2 build profile reused.
+**Ownership:** Integration Manager owns PR integration/merges/closure. Earlier
+delivery branches and Claude S09/UI remain untouched. Unsafe unattended hold active.
+**Next:** publish new draft, immediately claim the next independent READY functional
+slice from this ledger; no waiting for integration. Prior delivery checkpoints retained.
 
 ## Retained checkpoint — PR #350 conflict-only integration — 18 November 2026
 

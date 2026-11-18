@@ -1,0 +1,68 @@
+{
+  "task": "L01-T2",
+  "source_commit": "3a77b1d0d5c91f6844d9c7475f3e54a6f52dc6d1",
+  "level": "host/build",
+  "checks": [
+    {
+      "argv": [
+        "cargo",
+        "test",
+        "--locked",
+        "--manifest-path",
+        "experiments/ai/model-format/Cargo.toml"
+      ],
+      "exit_code": 0,
+      "raw_log": "build/tokenguard/run-4_nsgct1.log",
+      "sha256": "bcc985f757f8e8196a59d68d1371f74bd50213256321a67151f795a9223c699f"
+    },
+    {
+      "argv": [
+        "cargo",
+        "clippy",
+        "--locked",
+        "--manifest-path",
+        "experiments/ai/model-format/Cargo.toml",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit_code": 0,
+      "raw_log": "build/tokenguard/run-qp9ejbew.log",
+      "sha256": "78a4d10d005e447710e968733dc13c4f7c62d828cbf51cf93de53f92cac922da"
+    },
+    {
+      "argv": [
+        "cargo",
+        "fmt",
+        "--manifest-path",
+        "experiments/ai/model-format/Cargo.toml",
+        "--",
+        "--check"
+      ],
+      "exit_code": 0,
+      "raw_log": "build/tokenguard/run-5vhjwq2z.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "argv": [
+        "cargo",
+        "build",
+        "--locked",
+        "--release",
+        "--lib",
+        "--target",
+        "x86_64-unknown-none",
+        "--manifest-path",
+        "experiments/ai/model-format/Cargo.toml"
+      ],
+      "exit_code": 0,
+      "raw_log": "build/tokenguard/run-2xwbgaik.log",
+      "RUSTFLAGS": "-C no-redzone=yes -C target-feature=-sse,-sse2,-sse3,-ssse3,-sse4.1,-sse4.2,-avx,-avx2 --cfg sha2_backend=\"soft\"",
+      "sha256": "288d2727ccebbcdc2c4962f7af4726422ba9996864a04cb776a6c84abc0fc769"
+    }
+  ],
+  "limits": "Host parser/build only; no real-model compatibility, inference, native/provenance acceptance. Existing pinned dependencies and soft SHA2 build profile reused.",
+  "review": "Lead source/diff review; no native/human acceptance.",
+  "score": "41 -> 41/100"
+}

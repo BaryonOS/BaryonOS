@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-18",
-    "source_commit": "aaf01bae291faba593567845dc8da4fe606a7959",
+    "source_commit": "3a77b1d0d5c91f6844d9c7475f3e54a6f52dc6d1",
     "assessment_basis": "parent_commit",
-    "branch": "codex/coderabbit-oss-config",
-    "task": "PR350 conflict-only reconciliation with main 2eac8ca3",
+    "branch": "codex/l01-model-format",
+    "task": "L01-T2: VerifiedArtifact safetensors header/table parser with bounded no-escape JSON profile, duplicate/dtype/overflow checks and exact nonoverlapping coverage;14 host regressions pass. One bounded security review found no blocker.",
     "previous_score": 41,
-    "summary": "41/100 unchanged. The reviewed CodeRabbit free-tier configuration is preserved while current main, including PR #361 containment and final-read ordering, is incorporated. Only the checkpoint and assessment records required manual resolution. Hosted checks on the resulting head remain authoritative; no local build or QEMU acceptance is inferred."
+    "summary": "41/100 unchanged. VerifiedArtifact safetensors header/table parser with bounded no-escape JSON profile, duplicate/dtype/overflow checks and exact nonoverlapping coverage;14 host regressions pass. One bounded security review found no blocker. Host parser/build only; no real-model compatibility, inference, native/provenance acceptance. Existing pinned dependencies and soft SHA2 build profile reused. Integration/Claude ownership and execution hold preserved."
   },
   "tracks": [
     {

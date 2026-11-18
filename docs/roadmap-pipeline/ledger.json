@@ -22,7 +22,7 @@
       "criterion": "L01",
       "milestone": "M8",
       "executor": "worker",
-      "status": "active",
+      "status": "verified",
       "title": "Bounded no_std safetensors header and tensor-table parser over verified artifacts (host)",
       "goal": "Create experiments/ai/model-format (no_std, forbid(unsafe_code)): parse a safetensors header and tensor table from a VerifiedArtifact, treating all model bytes as untrusted; bounded header length, strict UTF-8, duplicate-key rejection, dtype allow-list, shape/offset overflow checks, no overlapping or out-of-range tensors, no uncovered or trailing bytes, nesting depth limit.",
       "why_now": "Model parsing is the first security boundary any local inference engine needs and depends on no owner decision or open PR. Needs CI wiring by the lead once it lands (CI-L1).",
@@ -61,8 +61,16 @@
           "event": "active",
           "at": "2026-11-18T21:11:06.537399+00:00",
           "reason": "Independent functional verified-artifact parser; no SDK manifest/integration or Claude overlap."
+        },
+        {
+          "at": "2026-11-18T21:17:44.285281+00:00",
+          "event": "verified",
+          "source_commit": "3a77b1d0d5c91f6844d9c7475f3e54a6f52dc6d1",
+          "reason": "VerifiedArtifact safetensors header/table parser with bounded no-escape JSON profile, duplicate/dtype/overflow checks and exact nonoverlapping coverage;14 host regressions pass. One bounded security review found no blocker. Host parser/build only; no real-model compatibility, inference, native/provenance acceptance. Existing pinned dependencies and soft SHA2 build profile reused."
         }
-      ]
+      ],
+      "source_commit": "3a77b1d0d5c91f6844d9c7475f3e54a6f52dc6d1",
+      "receipt": "docs/roadmap-pipeline/receipts/L01-T2.json"
     },
     {
       "id": "H02-T2",
