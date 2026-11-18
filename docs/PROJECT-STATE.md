@@ -1,22 +1,22 @@
 # Current project status
 
-## NEXT AGENT HANDOFF — N04-T1 native refusal sweep — 18 November 2026
+## NEXT AGENT HANDOFF — N04-T1 blocked prototype — 18 November 2026
 
-**Claim:** Codex, codex/n04-port-sweep, base69d82075.
-**Goal:** all65535 TCP ports plus documented bounded UDP probes before/after
-revoke; exact RSTs only, zero SYN-ACK/UDP payload, bounded time/frame budgets.
-**Invariant:** existing caller/destination/revoke/transport guards unchanged;
-no timeout or missing response becomes success, no new production authority.
-**Write set:** existing N04-T1 peer/runner/tests/kernel-fixture paths, lead state.
-No historical evidence rewrites/new report framework. Native tools reused.
-**Acceptance:** peer negative unit tests plus actual revoke case; one relevant
-subsystem regression run where shared peer changes require it, no broad OS matrix.
-**Evidence limit:** native QEMU transport only; production issuer/delegation,
-physical interfaces and full N04 acceptance remain open. Score41/100.
-**Ownership:** all open PR file metadata checked for overlap; integration branches
-and Claude S09/UI untouched. Unsafe unattended hold preserved. Prior B04 comparator
-PR379 correctly reports loader/ESP difference; no reproducible acceptance.
-**Next:** supervised bounded implementation, publish draft, continue next READY task.
+**Source:** `5acd07961bd12d389987fc2251f4f7834faae97d`, `codex/n04-port-sweep`, base `69d82075`.
+**Implemented:** bounded four-frame streaming full TCP sweep before/after revoke;
+16 UDP probes/phase; exact RST validation; streaming causal replay; cumulative
+frame/byte/time limits and decoder regression beyond256 frames.
+**Checks:**32 host tests exit0 (`build/tokenguard/run-hvivgkav.log`), kernel fmt0
+(`run-uiqmbbhv.log`), diff check0. [Exact receipt](roadmap-pipeline/receipts/N04-T1.json).
+**BLOCKED:** native measurements exit1/QEMU35; healthy peer reached1538 exactRSTs
+before appB step32 timeout. Measured4.51ms/input projects about591s for131070RSTs,
+not a completed sweep and beyond180s. Optional IPC-wait experiment lacked its
+feature and was entirely removed; production authority/syscalls unchanged.
+Final-source native and other five native cases NOT RUN; no native acceptance.
+**Preserved:** unattended hold, integration branches, ClaudeS09/UI, foreign WIP.
+Score41→41/100. Prior delivered development PRs372,374,375,377–379 remain separate.
+**Next:** B05-T2 claimed in isolated worktree, no wait for integration. N04 needs
+a bounded test-only scheduling/feature decision before another native attempt.
 
 ## Retained checkpoint — unified governance implementation — 18 November 2026
 

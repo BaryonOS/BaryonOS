@@ -2,7 +2,7 @@
 
 Updated 18 November 2026. Source baseline: main
 `6f29b6720b51aecad5714faa48b445afd6e2f5a9` (#355), preceded by #359 at `1c10cdb5`.
-Current development: `codex/n04-port-sweep`, N04-T1.
+Current development: N04-T1 prototype blocked on native throughput; next B05-T2.
 [Single lead checkpoint and continuation](PROJECT-STATE.md).
 Integration/merges/closure remain with the separate Integration Manager.
 

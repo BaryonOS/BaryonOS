@@ -22,7 +22,7 @@
       "criterion": "N04",
       "milestone": "M8",
       "executor": "worker",
-      "status": "active",
+      "status": "blocked",
       "native": true,
       "title": "Native full TCP and bounded UDP listener sweep before and after revoke",
       "goal": "Extend the native network-service revoke case so the peer sweeps all 65,535 guest TCP ports and a documented bounded set of UDP ports before and after revocation; the guest must answer only with exact RSTs, never a SYN-ACK or UDP payload; bounded frame and time budget for the case.",
@@ -62,8 +62,17 @@
           "event": "active",
           "at": "2026-11-18T21:50:07.067760+00:00",
           "reason": "Bounded full native TCP/UDP refusal sweep; GraphQL open PR files show no overlap. Keep exact RST and zero payload negatives; no production issuer changes."
+        },
+        {
+          "event": "blocked",
+          "at": "2026-11-18T22:05:48.497612+00:00",
+          "source_commit": "5acd07961bd12d389987fc2251f4f7834faae97d",
+          "reason": "Full streaming sweep host prototype passes32 tests; native full sweep not demonstrated within finite budget. Unsupported optional IPC wait removed; no feature/rights activation. Continue B05-T2."
         }
-      ]
+      ],
+      "source_commit": "5acd07961bd12d389987fc2251f4f7834faae97d",
+      "receipt": "docs/roadmap-pipeline/receipts/N04-T1.json",
+      "blocker": "Before optional timed-wait experiment, full sweep measured1540input frames over6.989656652s (median4.513ms per input, ~220RST/s), peer healthy; appB failed step32 at8.375s. This extrapolates to about591s for131070RSTs, beyond180s. Required native full-port acceptance remains open. Existing revoke feature lacks ipc-wait; optional wait experiment failed POLICYstep3 and has been fully removed without enabling new syscall/feature."
     },
     {
       "id": "B04-T2",
