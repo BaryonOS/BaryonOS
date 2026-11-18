@@ -22,7 +22,7 @@
       "criterion": "P04",
       "milestone": "M8",
       "executor": "worker",
-      "status": "active",
+      "status": "verified",
       "native": true,
       "title": "Native NAS quota-full, cancel/retry and offline-guest revoke stage (QEMU TCG)",
       "goal": "Extend the native NAS normal stage with LP-16/LP-18: the guest fills its quota with staged uploads, receives the quota error, cancels and retries; the admin changes quota while the guest is full; the guest exits before revoke; revoke and evict still succeed; expected per-role ok/error counts and the disk oracle are updated.",
@@ -70,8 +70,16 @@
           "event": "active",
           "at": "2026-11-18T21:18:53.602528+00:00",
           "reason": "Native quota/cancel/offline revoke. Minimal fixture-only kernel counts/guest-exit observation permitted because current hardcoded counts would reject every added RPC and userland notification alone cannot prove guest exit; no new rights or runtime ABI."
+        },
+        {
+          "at": "2026-11-18T21:26:40.165776+00:00",
+          "event": "verified",
+          "source_commit": "a73e41a7db7b8aa90fa47a299886feb6d607fd0c",
+          "reason": "Native NAS Cancel14, full-quota rejection/reservation release/retry, full-quota adjustment and kernel-observed offline-guest revoke/evict delivered. Normal/recover QEMU33;0cold writes/flushes, exact2 tombstones/core11/volume21.78host tests and native gate exit0. Local native QEMU/IPC only; no remote authenticated guest, product admin UI, hardware or full P04 acceptance. Existing token leak/replay checks retained; source fingerprint4af81525 matches the published code."
         }
-      ]
+      ],
+      "source_commit": "a73e41a7db7b8aa90fa47a299886feb6d607fd0c",
+      "receipt": "docs/roadmap-pipeline/receipts/P04-T2.json"
     },
     {
       "id": "L01-T2",

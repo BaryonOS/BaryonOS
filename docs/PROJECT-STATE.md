@@ -1,22 +1,17 @@
 # Current project status
 
-## NEXT AGENT HANDOFF — P04-T2 native NAS quota — 18 November 2026
+## NEXT AGENT HANDOFF — P04-T2 delivery — 18 November 2026
 
-**Claim:** Codex, codex/p04-native-quota, base5a3295b6. Prior L01-T2 delivered in PR374.
-**Goal:** native quota rejection, cancelled reservation/retry, quota adjustment
-while full and actual offline-guest revoke/evict on the existing NAS probe.
-**Invariant:** caller/session/upload guards and token leak check unchanged; no
-fake completion or message-only proof of exit. Cold recovery performs zero writes.
-**Write set:** existing P04-T2 probe/harness/oracle/test paths plus minimal
-kernel NAS fixture expected-count/actual guest-exit observation only. No new rights,
-production syscall, tools/build.py or general kernel change. PR356 paths do not overlap.
-**Acceptance:** targeted Rust/Python suites and existing native normal/recover gate
-under the shared heavy-test lock with disposable images. No repeated broad matrix.
-**Evidence limit:** native local IPC/QEMU TCG only, no remote guest/admin product identity,
-physical durability or full P04 acceptance. Score41/100.
-**Ownership:** Integration Manager retains existing PRs; Claude S09/UI untouched.
-Unsafe unattended hold unchanged. Original dirty checkout preserved.
-**Next:** supervised bounded implementation, publish draft, continue next READY slice.
+**Source:** `a73e41a7db7b8aa90fa47a299886feb6d607fd0c`, `codex/p04-native-quota`.
+**Delivered:** Native NAS Cancel14, full-quota rejection/reservation release/retry, full-quota adjustment and kernel-observed offline-guest revoke/evict delivered. Normal/recover QEMU33;0cold writes/flushes, exact2 tombstones/core11/volume21.78host tests and native gate exit0.
+**Checks:** targeted Rust tests, Clippy (-D warnings), formatting and freestanding
+library build exit0; [exact commands/raw-log hashes](roadmap-pipeline/receipts/P04-T2.json).
+Lead source/diff review completed; no duplicate matrix. Progress **41 → 41/100**.
+**Limits:** Local native QEMU/IPC only; no remote authenticated guest, product admin UI, hardware or full P04 acceptance. Existing token leak/replay checks retained; source fingerprint4af81525 matches the published code.
+**Ownership:** Integration Manager owns PR integration/merges/closure. Earlier
+delivery branches and Claude S09/UI remain untouched. Unsafe unattended hold active.
+**Next:** publish new draft, immediately claim the next independent READY functional
+slice from this ledger; no waiting for integration. Prior delivery checkpoints retained.
 
 ## Retained checkpoint — PR #350 conflict-only integration — 18 November 2026
 
