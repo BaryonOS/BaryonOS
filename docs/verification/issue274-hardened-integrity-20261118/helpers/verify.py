@@ -106,6 +106,10 @@ def slug(value: str) -> str:
     return value.replace(" ", "-")
 
 
+def rendered_markdown_label(value: str) -> str:
+    return re.sub(r"!?\[([^\]\n]*)\]\([^\)\n]*\)", r"\1", value)
+
+
 def strip_inline_code(
     line: str,
     preserve_contents: bool = False,
@@ -173,8 +177,6 @@ def inline_destination(value: str) -> str | None:
 
 
 def link_destinations(text: str) -> list[str]:
-    text = rendered_html(text)
-    definitions: dict[str, str] = {}
     lines: list[str] = []
     fence: tuple[str, int] | None = None
     for line in text.splitlines():
@@ -190,7 +192,11 @@ def link_destinations(text: str) -> list[str]:
                 continue
         if fence:
             continue
-        rendered = strip_inline_code(line, replacement="code")
+        lines.append(strip_inline_code(line, replacement="code"))
+    body = rendered_html("\n".join(lines))
+    definitions: dict[str, str] = {}
+    lines = []
+    for rendered in body.splitlines():
         definition = re.match(r"^ {0,3}\[([^\]]+)\]:[ \t]*(?:<([^>]+)>|(\S+))", rendered)
         if definition:
             label = " ".join(definition.group(1).lower().split())
@@ -293,7 +299,7 @@ def anchors(text: str) -> set[str]:
         if not heading:
             continue
         value = re.sub(r"[ \t]+#+[ \t]*$", "", heading.group(1) or "").replace("\x00", "")
-        base = slug(value)
+        base = slug(rendered_markdown_label(value))
         candidate = base
         suffix = 0
         while candidate in used:

@@ -14,6 +14,22 @@ import subprocess
 import tempfile
 
 
+FIXTURE_GIT_ENV = {
+    name: value for name, value in os.environ.items() if not name.startswith("GIT_")
+}
+FIXTURE_GIT_ENV.update({
+    "GIT_CONFIG_NOSYSTEM": "1",
+    "GIT_CONFIG_GLOBAL": "/dev/null",
+    "GIT_NO_LAZY_FETCH": "1",
+    "GIT_NO_REPLACE_OBJECTS": "1",
+    "GIT_TERMINAL_PROMPT": "0",
+})
+FIXTURE_REPLACE_ENV = {
+    name: value for name, value in FIXTURE_GIT_ENV.items()
+    if name != "GIT_NO_REPLACE_OBJECTS"
+}
+
+
 def run(command: list[str], *, cwd: Path | None = None, env: dict[str, str] | None = None,
         input_bytes: bytes | None = None) -> subprocess.CompletedProcess[bytes]:
     return subprocess.run(command, cwd=cwd, env=env, input=input_bytes, capture_output=True)
@@ -32,7 +48,7 @@ def git(repo: Path, *arguments: str, input_bytes: bytes | None = None) -> str:
     result = run(
         ["git", "--no-optional-locks", "-C", str(repo), *arguments],
         input_bytes=input_bytes,
-        env={**os.environ, "GIT_NO_REPLACE_OBJECTS": "1", "GIT_TERMINAL_PROMPT": "0"},
+        env=FIXTURE_GIT_ENV,
     )
     need(result, 0, "git " + " ".join(arguments))
     return result.stdout.decode().strip()
@@ -103,6 +119,12 @@ def main() -> None:
     verifier = load("hardened_verifier", verifier_path)
     cases: dict[str, object] = {}
     raw_exits: dict[str, int] = {}
+    if any(name.startswith("GIT_") for name in FIXTURE_GIT_ENV if name not in {
+        "GIT_CONFIG_GLOBAL", "GIT_CONFIG_NOSYSTEM", "GIT_NO_LAZY_FETCH",
+        "GIT_NO_REPLACE_OBJECTS", "GIT_TERMINAL_PROMPT",
+    }):
+        raise ValueError("fixture Git environment retained caller redirection")
+    cases["fixture_git_environment_sanitized"] = "PASS"
     fixture_text = "\n".join([
         "# Fixture",
         "",
@@ -147,6 +169,8 @@ def main() -> None:
         raise ValueError("comment removal synthesized a heading")
     if verifier.anchors("# Heading `secret`\n") != {"heading-secret"}:
         raise ValueError("inline-code heading contents were discarded")
+    if verifier.anchors("# [Heading](https://example.invalid)\n") != {"heading"}:
+        raise ValueError("heading link destination changed the rendered anchor")
     reference_fixture = "[Full][target]\n[Collapsed][]\n[shortcut]\n[target]: Target#a\n[collapsed]: Target#a-1\n[shortcut]: #local\n"
     if verifier.link_destinations(reference_fixture) != ["Target#a", "Target#a-1", "#local"]:
         raise ValueError("reference-style links were not resolved")
@@ -160,10 +184,14 @@ def main() -> None:
         '[Visible hidden reference][hidden-reference]',
         '`<a href="Inline-code">Inline code</a>`',
         '`[Inline Markdown](Inline-Markdown)`',
+        '```html',
+        '<!--',
+        '```',
+        '[After fenced HTML example](After-Fence)',
         '<pre><a href="Preformatted">Preformatted</a></pre>',
         '<pre>[Preformatted Markdown](Preformatted-Markdown)</pre>',
     ])
-    if verifier.link_destinations(rendered_link_fixture) != ["Target", "Missing-page", "Missing-page#missing"]:
+    if verifier.link_destinations(rendered_link_fixture) != ["Target", "Missing-page", "After-Fence", "Missing-page#missing"]:
         raise ValueError("rendered HTML or titled Markdown link regression")
     cases["rendered_html_and_titled_markdown_links"] = "PASS"
     for tag in ("pre", "code"):
@@ -208,7 +236,10 @@ def main() -> None:
         malicious_tree = git(source, "mktree", input_bytes=("100644 blob " + malicious_blob + "\tREADME.md\n").encode())
         malicious_commit = git(source, "commit-tree", malicious_tree, "-m", "replacement")
         git(source, "replace", source_commit, malicious_commit)
-        replaced = run(["git", "-C", str(source), "ls-tree", "-r", "--name-only", source_commit])
+        replaced = run(
+            ["git", "-C", str(source), "ls-tree", "-r", "--name-only", source_commit],
+            env=FIXTURE_REPLACE_ENV,
+        )
         need(replaced, 0, "replacement positive control")
         if b"docs/plain.md" in replaced.stdout:
             raise ValueError("replacement-ref fixture did not activate")
