@@ -275,8 +275,9 @@ class Publication(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
             backend = mock.Mock()
-            result = agent_gate.run_gate([("step", "true", {"BASH_ENV": "untrusted"})], root,
-                                         root / "gate.log", sandbox=backend, source_paths=[])
+            with mock.patch.object(agent_gate, "controller_source_commit", return_value="a" * 40):
+                result = agent_gate.run_gate([("step", "true", {"BASH_ENV": "untrusted"})], root,
+                                             root / "gate.log", sandbox=backend, source_paths=[])
             self.assertEqual(result, 2)
             backend.run.assert_not_called()
 
@@ -287,8 +288,9 @@ class Publication(unittest.TestCase):
             done = subprocess.CompletedProcess([], 0, "replacement", "diagnostic")
             done.stdout_bytes, done.stderr_bytes = b"\xff\0\n", b"\xfe\n"
             backend.run.return_value = done
-            self.assertEqual(agent_gate.run_gate([("step", "true", {})], root, root / "gate.log",
-                                                sandbox=backend, source_paths=[]), 0)
+            with mock.patch.object(agent_gate, "controller_source_commit", return_value="a" * 40):
+                self.assertEqual(agent_gate.run_gate([("step", "true", {})], root, root / "gate.log",
+                                                    sandbox=backend, source_paths=[]), 0)
             self.assertEqual((root / "gate.log.step-0.stdout.log").read_bytes(), b"\xff\0\n")
             self.assertEqual((root / "gate.log.step-0.stderr.log").read_bytes(), b"\xfe\n")
 

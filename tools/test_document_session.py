@@ -17,7 +17,7 @@ import shutil
 import subprocess
 import time
 
-from common import ROOT, BUILD, TARGET, sha256, source_hash
+from common import ROOT, BUILD, TARGET, sha256, source_hash, source_identity
 from build import build
 from build_users import inspect_user, sdk_dependency_artifact, sdk_dependency_command, SDK_DEPENDENCY_ID
 from capture_m6c import check_run
@@ -301,8 +301,7 @@ def run_gate(expected_head=None, expected_source=None):
     require((expected_head is None) == (expected_source is None), 'Provide both expected HEAD and source, or neither')
     if expected_head is not None:
         require(re.fullmatch('[0-9a-f]{40}', expected_head) and re.fullmatch('[0-9a-f]{64}', expected_source), 'Require full frozen HEAD/source hashes')
-    head = subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=ROOT, text=True, timeout=10).strip()
-    frozen = source_hash()
+    head, frozen = source_identity(ROOT)
     require(expected_head is None or (head, frozen) == (expected_head, expected_source), 'Initial source differs from requested freeze')
     fresh_roots()
     output = BUILD / 'document-session-gate'
@@ -317,8 +316,7 @@ def run_gate(expected_head=None, expected_source=None):
     save_report(result_path, report)
 
     def freeze(stage):
-        observed_head = subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=ROOT, text=True, timeout=10).strip()
-        observed = source_hash()
+        observed_head, observed = source_identity(ROOT)
         row = {'stage': stage, 'head': observed_head, 'source_sha256': observed,
                'passed': observed_head == head and observed == frozen}
         report['freeze_checks'].append(row)

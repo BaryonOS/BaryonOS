@@ -12,7 +12,8 @@ import subprocess
 import threading
 import time
 import uuid
-from common import ROOT, BUILD, environment, firmware, qemu_machine, save_json, sha256, source_hash
+from common import (ROOT, BUILD, environment, firmware, qemu_machine, save_json, sha256,
+                    source_hash, source_identity)
 from build import M6C_CASES, M6C_FAULT_CASES
 from m6c_faults import outcome_valid
 from m6c_disk import Volume, create_volume, verify_volume
@@ -212,7 +213,7 @@ def run_m6c(case="normal", *, volume: Volume | None = None, label=None, timeout=
         raise ValueError("Only this harness's synthetic Volume objects are accepted")
     image = volume.guard()
     machine = qemu_machine()
-    frozen = source_hash()
+    base_commit, frozen = source_identity(ROOT)
     previous = previous_stage(volume, expected_source=frozen) if case == "recover" else None
     if case != "recover" and (volume.directory / "last-stage.json").exists():
         raise ValueError("Refuse to replay a mutator stage on an already used volume")
@@ -263,8 +264,6 @@ def run_m6c(case="normal", *, volume: Volume | None = None, label=None, timeout=
         args += ["-L", str(Path(qemu).parent / "share")]
     version = subprocess.check_output([qemu, "--version"], env=env, text=True, timeout=10).strip()
     qemu_hash = sha256(Path(qemu))
-    base_commit = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT,
-                                          env=env, text=True, timeout=10).strip()
     cut = CUTS.get(case)
     started = datetime.now(timezone.utc).isoformat()
     clock = time.monotonic()

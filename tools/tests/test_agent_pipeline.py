@@ -71,8 +71,9 @@ class Gate(unittest.TestCase):
         self.sandbox.run.return_value = subprocess.CompletedProcess([], 0, "", "")
 
     def gate(self, commands, env=None):
-        return agent_gate.run_gate(commands, self.tmp, self.tmp / "g.log", env or self.env,
-                                   sandbox=self.sandbox, source_paths=[])
+        with mock.patch.object(agent_gate, "controller_source_commit", return_value="a" * 40):
+            return agent_gate.run_gate(commands, self.tmp, self.tmp / "g.log", env or self.env,
+                                       sandbox=self.sandbox, source_paths=[])
 
     def test_supported_run_step_expands_workspace(self):
         commands = agent_gate.resolve(["w.yml#supported"], self.workflows)
@@ -81,6 +82,12 @@ class Gate(unittest.TestCase):
         child_env = self.sandbox.run.call_args.kwargs["env"]
         self.assertEqual(child_env["MACHINE"], "q35")
         self.assertEqual(child_env["OUT"], "/workspace/build/x")
+        self.assertEqual(child_env["NOS_SOURCE_RECEIPT"],
+                         "/workspace/" + agent_gate.SOURCE_RECEIPT_NAME)
+        stage = self.sandbox.run.call_args.args[1]
+        receipt = json.loads((stage / agent_gate.SOURCE_RECEIPT_NAME).read_text())
+        self.assertEqual(receipt["source_commit"], "a" * 40)
+        self.assertEqual(receipt["source_sha256"], agent_gate.source_hash(self.tmp))
         self.assertFalse((self.tmp / "out.txt").exists())
 
     def test_refuses_unmodelled_steps_instead_of_skipping_them(self):
@@ -124,6 +131,32 @@ class Gate(unittest.TestCase):
         self.assertEqual(self.gate([("one", "true", {})]), agent_gate.FAIL_EXIT)
         self.assertEqual((self.tmp / "g.log.resource.stdout.log").read_bytes(), b"bounded stdout")
         self.assertEqual((self.tmp / "g.log.resource.stderr.log").read_bytes(), b"bounded stderr")
+
+    def test_gate_blocks_a_commit_change_while_staging(self):
+        with mock.patch.object(agent_gate, "controller_source_commit",
+                               side_effect=["a" * 40, "b" * 40]):
+            code = agent_gate.run_gate([], self.tmp, self.tmp / "g.log", self.env,
+                                       sandbox=self.sandbox, source_paths=[])
+        self.assertEqual(code, agent_gate.FAIL_EXIT)
+        self.assertIn("source commit changed", (self.tmp / "g.log").read_text())
+        self.sandbox.run.assert_not_called()
+
+    def test_gate_blocks_a_source_change_while_staging(self):
+        source = self.tmp / "source.txt"
+        source.write_text("before")
+        copy = agent_gate.stage_agent_source
+
+        def mutate(root, stage, paths):
+            copy(root, stage, paths)
+            source.write_text("after")
+
+        with mock.patch.object(agent_gate, "controller_source_commit", return_value="a" * 40), \
+                mock.patch.object(agent_gate, "stage_agent_source", side_effect=mutate):
+            code = agent_gate.run_gate([], self.tmp, self.tmp / "g.log", self.env,
+                                       sandbox=self.sandbox, source_paths=["source.txt"])
+        self.assertEqual(code, agent_gate.FAIL_EXIT)
+        self.assertIn("gate source changed", (self.tmp / "g.log").read_text())
+        self.sandbox.run.assert_not_called()
 
     def test_build_dirs_come_from_the_checkout_not_the_caller(self):
         env = dict(self.env, CARGO_TARGET_DIR="/shared", OS_OVMF_CODE="/local/ovmf")

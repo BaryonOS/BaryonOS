@@ -9,7 +9,7 @@ import shutil
 import stat
 import subprocess
 import time
-from collections.abc import Callable
+from collections.abc import Callable, Mapping
 
 ROOT = Path(__file__).resolve().parents[1]
 CONTROLLER_GIT = "/usr/bin/git"
@@ -22,6 +22,7 @@ QEMU_MACHINES = ("pc-q35-10.0", "pc-q35-8.2", "pc-q35-7.2")
 # other ACPI status (rejected handoff, invalid tables, ...) is a gate failure.
 EXPECTED_ACPI_MARKER = "ACPI:UNAVAILABLE:NO_DMAR"
 DEVICE_EXECUTION_MARKER = "DEVICE-EXECUTION:BLOCKED:ADAPTER_ABSENT"
+SOURCE_RECEIPT_NAME = ".baryonos-source-receipt.json"
 
 
 def without_acpi_diagnostics(stdout: str) -> str:
@@ -120,6 +121,7 @@ def isolated_environment(extra: dict[str, str] | None = None) -> dict[str, str]:
         "NOS_BUILD_DIR", "NOS_TARGET_DIR", "CARGO_TARGET_DIR", "NODE_V8_COVERAGE",
         "RUSTFLAGS", "RUST_TOOLCHAIN", "COMPONENT_MANIFEST", "COMPONENT_FEATURES",
         "ACTIONLINT_VERSION", "ACTIONLINT_SHA256", "MACHINE", "OUT",
+        "NOS_SOURCE_RECEIPT",
     }
     for key, value in (extra or {}).items():
         if not isinstance(value, str) or "\0" in value:
@@ -199,6 +201,16 @@ def stage_agent_source(source: Path, stage: Path, paths: list[str]) -> None:
         target.chmod(0o755 if original.stat().st_mode & 0o111 else 0o644)
 
 
+def agent_source_selection_state(root: Path, paths: list[str]) -> dict[str, tuple[str, int] | None]:
+    """Hash exactly the regular source selection, normalising its staged mode."""
+    result = {}
+    for relative in paths:
+        path = agent_file(root, relative)
+        result[relative] = ((sha256(path), 0o755 if path.stat().st_mode & 0o111 else 0o644)
+                            if path.exists() else None)
+    return result
+
+
 def agent_source_state(root: Path) -> dict[str, tuple[str, int]]:
     result = {}
     for parent, directories, files in os.walk(root, followlinks=False):
@@ -265,23 +277,83 @@ def save_json(path: Path, value: object) -> None:
     path.write_text(json.dumps(value, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
 
 
-def source_hash() -> str:
+def source_hash(root: Path | None = None) -> str:
     """Fingerprint source inputs without traversing generated artifacts or caches."""
+    root = (ROOT if root is None else root).resolve()
     digest = hashlib.sha256()
     digest.update(b"nieuw-os source inputs v3\n")
-    for folder in (ROOT / "boot", ROOT / "kernel", ROOT / "crates", ROOT / "drivers", ROOT / "services", ROOT / "userspace", ROOT / "sdk", ROOT / "ui/native", ROOT / "ui/graphics", ROOT / "ui/surface-protocol", ROOT / "experiments/quantum/qsim-core", ROOT / "experiments/quantum/native", ROOT / "experiments/quantum/job-protocol", ROOT / "tools", ROOT / ".cargo"):
+    for folder in (root / "boot", root / "kernel", root / "crates", root / "drivers", root / "services", root / "userspace", root / "sdk", root / "ui/native", root / "ui/graphics", root / "ui/surface-protocol", root / "experiments/quantum/qsim-core", root / "experiments/quantum/native", root / "experiments/quantum/job-protocol", root / "tools", root / ".cargo"):
         if folder.exists():
             # Path ordering is case-insensitive on Windows. Explicit string
             # components preserve the v3 POSIX order on every build host.
             for path in sorted(folder.rglob("*"), key=lambda item: item.relative_to(folder).parts):
                 if path.is_file() and not {"__pycache__", "verification", "target", "build", ".git"}.intersection(path.relative_to(folder).parts):
-                    digest.update(path.relative_to(ROOT).as_posix().encode())
+                    digest.update(path.relative_to(root).as_posix().encode())
                     digest.update(path.read_bytes())
     for name in ("Cargo.toml", "Cargo.lock", "rust-toolchain.toml", "experiments/quantum/Cargo.toml", "ui/prototype/tokens.css"):
-        if (ROOT / name).exists():
+        if (root / name).exists():
             digest.update(name.encode())
-            digest.update((ROOT / name).read_bytes())
+            digest.update((root / name).read_bytes())
     return digest.hexdigest()
+
+
+def controller_source_commit(root: Path) -> str:
+    """Read a commit identity without content filters, credentials or lazy fetching."""
+    try:
+        head = subprocess.check_output(
+            [CONTROLLER_GIT, "--no-lazy-fetch", "rev-parse", "HEAD"], cwd=root.resolve(),
+            env=controller_environment(), text=True, timeout=10).strip()
+    except (OSError, subprocess.SubprocessError) as error:
+        raise ValueError("Controller source commit is unavailable") from error
+    if not re.fullmatch(r"[0-9a-f]{40}", head):
+        raise ValueError("Git returned an invalid source commit")
+    return head
+
+
+def source_identity(root: Path | None = None,
+                    environ: Mapping[str, str] | None = None) -> tuple[str, str]:
+    """Bind the current source hash to Git or a controller-created read-only receipt."""
+    root = (ROOT if root is None else root).resolve()
+    frozen = source_hash(root)
+    values = os.environ if environ is None else environ
+    receipt_value = values.get("NOS_SOURCE_RECEIPT")
+    if receipt_value is None:
+        head = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=root,
+                                       text=True, timeout=10).strip()
+        if not re.fullmatch(r"[0-9a-f]{40}", head):
+            raise ValueError("Git returned an invalid source commit")
+        return head, frozen
+
+    receipt = Path(receipt_value)
+    expected = root / SOURCE_RECEIPT_NAME
+    try:
+        metadata = receipt.lstat()
+    except OSError as error:
+        raise ValueError("Source receipt is unavailable") from error
+    if (receipt != expected or receipt.is_symlink() or not stat.S_ISREG(metadata.st_mode)
+            or metadata.st_nlink != 1 or metadata.st_size > 4096
+            or stat.S_IMODE(metadata.st_mode) & 0o222):
+        raise ValueError("Source receipt is not the fixed private regular file")
+
+    def unique(pairs):
+        result = {}
+        for key, value in pairs:
+            if key in result:
+                raise ValueError("Source receipt contains a duplicate key")
+            result[key] = value
+        return result
+
+    try:
+        data = json.loads(receipt.read_text(encoding="utf-8"), object_pairs_hook=unique)
+    except (OSError, UnicodeError, json.JSONDecodeError) as error:
+        raise ValueError("Source receipt is not valid JSON") from error
+    if (not isinstance(data, dict) or set(data) != {"schema", "source_commit", "source_sha256"}
+            or type(data["schema"]) is not int or data["schema"] != 1
+            or not isinstance(data["source_commit"], str)
+            or not re.fullmatch(r"[0-9a-f]{40}", data["source_commit"])
+            or data["source_sha256"] != frozen):
+        raise ValueError("Source receipt does not bind the current source")
+    return data["source_commit"], frozen
 
 
 def run_logged(args: list[str], name: str, *, cwd: Path = ROOT, timeout: int = 180,

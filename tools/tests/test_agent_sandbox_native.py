@@ -86,8 +86,9 @@ class NativeBoundary(unittest.TestCase):
         source.chmod(0o644)
         script = "python3 -I -B -c 'from pathlib import Path; Path(\"evaluator.py\").write_text(\"pass\")'"
         log = self.root / "immutable-gate.log"
-        code = agent_gate.run_gate([("mutator", script, {}), ("evaluator", "python3 evaluator.py", {})],
-                                   self.work, log, sandbox=self.sandbox, source_paths=["evaluator.py"])
+        with mock.patch.object(agent_gate, "controller_source_commit", return_value="a" * 40):
+            code = agent_gate.run_gate([("mutator", script, {}), ("evaluator", "python3 evaluator.py", {})],
+                                       self.work, log, sandbox=self.sandbox, source_paths=["evaluator.py"])
         self.assertEqual(code, 2)
         self.assertIn("## FAIL: mutator (exit 1)", log.read_text())
         self.assertNotIn("## step: evaluator", log.read_text())
@@ -122,8 +123,9 @@ class NativeBoundary(unittest.TestCase):
 
     def test_gate_preserves_pipefail_and_does_not_run_later_steps(self):
         log = self.root / "gate.log"
-        code = agent_gate.run_gate([("producer", "false | true", {}), ("later", "exit 9", {})],
-                                   self.work, log, sandbox=self.sandbox, source_paths=[])
+        with mock.patch.object(agent_gate, "controller_source_commit", return_value="a" * 40):
+            code = agent_gate.run_gate([("producer", "false | true", {}), ("later", "exit 9", {})],
+                                       self.work, log, sandbox=self.sandbox, source_paths=[])
         self.assertEqual(code, 2)
         self.assertIn("## FAIL: producer (exit 1)", log.read_text())
         self.assertNotIn("## step: later", log.read_text())

@@ -17,7 +17,10 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from agent_sandbox import Sandbox, SandboxError, resource_evidence
-from common import ROOT, agent_source_paths, agent_source_state, isolated_environment, stage_agent_source
+from common import (ROOT, SOURCE_RECEIPT_NAME, agent_source_paths,
+                    agent_source_selection_state, agent_source_state,
+                    controller_source_commit, isolated_environment, source_hash,
+                    stage_agent_source)
 
 # Steps that install the runner environment; locally tools/common.py provides it.
 SETUP_MARKERS = ("rustup ", "apt-get", "sudo ")
@@ -101,14 +104,29 @@ def run_gate(commands: list[tuple[str, str, dict[str, str]]], cwd: Path, log_pat
             paths = agent_source_paths() if source_paths is None else source_paths
             if any(Path(path).parts[0] in {"build", "target"} for path in paths):
                 raise SandboxError("gate output mounts must not mask source inputs")
+            commit = controller_source_commit(cwd)
+            before = agent_source_selection_state(cwd, paths)
             stage = Path(tempfile.mkdtemp(prefix="gate-source-", dir=log_path.parent))
             stage_agent_source(cwd, stage, paths)
+            if (agent_source_selection_state(cwd, paths) != before
+                    or agent_source_selection_state(stage, paths) != before):
+                raise SandboxError("gate source changed while staging")
+            frozen = source_hash(stage)
+            if controller_source_commit(cwd) != commit:
+                raise SandboxError("source commit changed while staging the gate")
+            receipt = stage / SOURCE_RECEIPT_NAME
+            receipt.write_text(json.dumps({"schema": 1, "source_commit": commit,
+                                           "source_sha256": frozen}, sort_keys=True) + "\n",
+                               encoding="utf-8")
+            receipt.chmod(0o444)
             fingerprint = hashlib.sha256(json.dumps(agent_source_state(stage), sort_keys=True).encode()).hexdigest()
-            log.write(f"## source SHA256: {fingerprint}\n## retained isolated outputs: {stage.name}\n")
+            log.write(f"## source commit: {commit}\n## source inputs SHA256: {frozen}\n"
+                      f"## staged source SHA256: {fingerprint}\n## retained isolated outputs: {stage.name}\n")
             for index, (name, script, step_env) in enumerate(commands):
                 log.write(f"## step: {name}\n")
                 log.flush()
                 values = {k: v.replace("${GITHUB_WORKSPACE}", "/workspace") for k, v in step_env.items()}
+                values["NOS_SOURCE_RECEIPT"] = f"/workspace/{SOURCE_RECEIPT_NAME}"
                 env = isolated_environment({**values, **host})
                 done = sandbox.run(["/bin/bash", "--noprofile", "--norc", "-eo", "pipefail", "-c", script],
                                    stage, profile="gate", env=env, read_only=True)
