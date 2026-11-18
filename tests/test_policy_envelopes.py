@@ -17,12 +17,12 @@ spec.loader.exec_module(probe)
 
 def transcript() -> str:
     lines = [
-        "BOOT:POLICY_PROBE:COUNT:26", "BOOT:POLICY_PROBE:MASK:67108863", "BOOT:POLICY_PROBE:PASS",
+        "BOOT:POLICY_PROBE:COUNT:34", "BOOT:POLICY_PROBE:MASK:17179869183", "BOOT:POLICY_PROBE:PASS",
         "BOOT:FLOOR:0", "BOOT:SLOT:B:REJECTED:FORMAT", "BOOT:SLOT:A:VERSION:1",
         "BOOT:SIGNED:OK", "BOOT:EBS_OK", "KERNEL:ENTRY", "BOOTINFO:OK",
         "KERNEL:IMAGE_VERSION:00000000000000000001", "UPDATE:MANIFEST:PASS",
-        "UPDATE:POLICY_PROBE:COUNT:00000000000000000026",
-        "UPDATE:POLICY_PROBE:MASK:00000000000067108863", "UPDATE:POLICY_PROBE:PASS", "UPDATE:READY",
+        "UPDATE:POLICY_PROBE:COUNT:00000000000000000034",
+        "UPDATE:POLICY_PROBE:MASK:00000000017179869183", "UPDATE:POLICY_PROBE:PASS", "UPDATE:READY",
     ]
     for key, value in probe.EXPECTED_NUMBERS.items():
         if key not in ("POLICY_PROBE:COUNT", "POLICY_PROBE:MASK", "IMAGE_VERSION"):
@@ -54,8 +54,8 @@ def fixture_store():
 
 class ProbeOracle(unittest.TestCase):
     def test_complete_reports_and_native_handover_are_required(self):
-        self.assertEqual(len(probe.CASE_NAMES), 26)
-        self.assertEqual(probe.EXPECTED_MASK, (1 << 26) - 1)
+        self.assertEqual(len(probe.CASE_NAMES), 34)
+        self.assertEqual(probe.EXPECTED_MASK, (1 << 34) - 1)
         self.assertEqual(evaluate(transcript())["RESULT"], 4)
         for marker in (*probe.LOADER_MARKERS, *probe.SERVICE_MARKERS,
                        "KERNEL:ENTRY", "UPDATE:RESOURCES:PASS", "M1:PASS"):
@@ -74,7 +74,7 @@ class ProbeOracle(unittest.TestCase):
 
     def test_each_consumer_needs_every_case_not_only_a_pass_label(self):
         for prefix in ("BOOT", "UPDATE"):
-            for label, value in (("COUNT", 25), ("MASK", 67_108_862)):
+            for label, value in (("COUNT", 33), ("MASK", 17_179_869_182)):
                 lines = transcript().splitlines()
                 needle = f"{prefix}:POLICY_PROBE:{label}:"
                 lines = [f"{needle}{value:020d}" if line.startswith(needle) else line for line in lines]

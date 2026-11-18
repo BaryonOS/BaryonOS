@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-18",
-    "source_commit": "aaf01bae291faba593567845dc8da4fe606a7959",
+    "source_commit": "5a3295b6093549f4b5ff6164ab2773ac4c264996",
     "assessment_basis": "parent_commit",
-    "branch": "codex/coderabbit-oss-config",
-    "task": "PR350 conflict-only reconciliation with main 2eac8ca3",
+    "branch": "codex/issue41-policy-anchor",
+    "task": "Issue #41 synthetic anchor and transition identity",
     "previous_score": 41,
-    "summary": "41/100 unchanged. The reviewed CodeRabbit free-tier configuration is preserved while current main, including PR #361 containment and final-read ordering, is incorporated. Only the checkpoint and assessment records required manual resolution. Hosted checks on the resulting head remain authoritative; no local build or QEMU acceptance is inferred."
+    "summary": "41/100 unchanged. ADR-B03K3's canonical TEST anchor, complete transition identity and fail-closed compare/readback oracle are implemented and covered by Rust and host-oracle tests. The existing loader and update-service probe now executes eight additional cases, but current-head native QEMU, durable storage/CAS, cut/replay, rollback resistance, production custody, B04 trust, hardware and human review remain unaccepted. Issue #41 and B03's score therefore remain unchanged."
   },
   "tracks": [
     {
