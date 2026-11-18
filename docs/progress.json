@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-18",
-    "source_commit": "aec1fb5f75e6165da82ba81f3f43d7a0d912ab1d",
+    "source_commit": "5b946202c9f7323044913a26d76c96e490f5e0e6",
     "assessment_basis": "parent_commit",
     "branch": "codex/phase0-pipeline-isolation",
-    "task": "Phase0: reconcile PR333 main and continue pipeline isolation remediation",
+    "task": "MEM355: classify OOM controls and verify workstation reference memory profile",
     "previous_score": 41,
-    "summary": "41/100 unchanged. PR333 is integrated on main with its source-bound evidence and H02 limitations preserved. The security candidate retains78 final targeted tests and its earlier isolation evidence, but independent resource and complete workflow/client blockers remain. Required refreshed hosted CI and security verification remain open; no finding, issue, native criterion or deployed-main boundary is accepted."
+    "summary": "41/100 unchanged. Intentional 128 MiB OOM tests are distinguished from normal workloads. Native Rustup corrects Snap compiler cgroup migration; five source-bound reference commands pass at 8 GiB with a 592.70 MiB peak and zero OOM events. Full isolation/client/gate acceptance remains open; no finding, issue, baseline or governance acceptance is inferred."
   },
   "tracks": [
     {

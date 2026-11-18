@@ -1,5 +1,15 @@
 # Current project status
 
+## NEXT AGENT HANDOFF — Local PR #355 bounded memory review — 18 November 2026
+
+**Source and authority:** the project owner requested a bounded memory investigation inside the continuing PR #355 remediation, followed by automatic resumption of the approved queue. Existing PR #355 parent is `5b946202c9f7323044913a26d76c96e490f5e0e6`; reference workloads executed on containment source `9789ce565c247f70eab6d321f657dc05a64a8513`. The original shared merge, Claude UI/UX and broader S09 remain untouched.
+
+**Measured result:** two 128 MiB / 160 MiB allocation probes are intentional OOM-negative enforcement. No active normal MemoryMax/default exists in PR #355;PR #357's 64 MiB is a mocked fixture. A corrected actual 8 GiB/ high 6 GiB/ swap 0/four-job reference bundle passes all five Rust/build/M1/M6c commands with 592.70 MiB aggregate peak and zero OOM events. Snap Cargo moved compiler descendants outside its selected scope; task-local pinned native Rustup proxies correct that measurement/launcher issue. No global limits, sandbox boundary or OOM-killer setting changed. [Source-bound receipt](verification/phase0-sec355-memory-20261118/README.md).
+
+**Limits:** disk-backed reference sizing is not full bounded-tmpfs, staging/export, authenticated-client or complete-CI acceptance. The PR #355 manifest remains disabled; PR #357 remains recovery-only. Real kernel resource/scratch/descendant probes and bubblewrap 0.13.1 are available locally but do not finish the full isolation composition. All three Daybreak findings remain open.
+
+**Resume:** continue from published PR #359 containment `9789ce56` pending final hosted native-window acceptance, PR #356 helper correction `eba1bfa7` has three reported CodeQL collector alerts under repair; new-head CI/review is required, and the independent public M6 observer fix. Repair reported failures first. Finite B retains its approved meaning; governance additionally requires strict genuine zero issues/PRs/actionable findings or an explicit project-owner exception. Score 41/100 remains unchanged. No vulnerable issue-pipeline execution, auto-merge, bypass, false closure or governance start.
+
 ## NEXT AGENT HANDOFF — Phase 0 execution isolation — 17 November 2026
 
 **Source:** integrated main `366b82b353485207a9b0d6b1ae63dafbbe265bae` after the authorized PR333 squash; isolated branch `codex/phase0-pipeline-isolation`, security parent `aec1fb5f75e6165da82ba81f3f43d7a0d912ab1d`.
