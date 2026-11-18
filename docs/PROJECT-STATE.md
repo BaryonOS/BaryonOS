@@ -1,6 +1,27 @@
 # Current project status
 
-## NEXT AGENT HANDOFF — PR #361 integration and final-read barrier — 18 November 2026
+## NEXT AGENT HANDOFF — N02-T2 DHCP/service integration — 18 November 2026
+
+**Claim:** Codex implementation, `codex/n02-dhcp-service`, base `2eac8ca39ce04753f4f6bef3b09ee9b3610c065f`.
+Resume source ledger from checkpoint34a2a30d; integration/closure of PR364–369
+belongs to the separate Integration Manager. Claude S09/UI and dirty main untouched.
+**Goal:** replace static network-service configuration with the existing DHCP
+coordinator on the same Stack/PacketDevice; withdraw address/route/DNS and sockets
+on NAK, expiry and link-down, with no default DNS or automatic old-socket reuse.
+**Invariant:** fixed authenticated ingress/destination rights remain; DHCP data
+never grants app/network authority. Existing static callers/tests remain supported.
+No duplicate stack, synthetic TX completion or execution-hold changes.
+**Write set:** network-service manifest/lock/lib/tests/dhcp_config.rs; minimal
+trusted net-config service transport seam if needed; lead checkpoint/ledger/progress.
+**Acceptance:** Rust1.91.1 network-service tests/Clippy/fmt/freestanding build,
+existing net-config regressions, real host DHCP/probe frames, withdrawal negatives.
+**Evidence limit:** host service integration/build; native DHCP, authorized real
+networks and full N02 acceptance remain open. Score41/100.
+**Environment:** rustc1.91.1 confirmed (ed61e7d7e), Clippy/rustfmt installed;
+x86_64-unknown-none target installed. Global default remains nightly.
+**Next:** one supervised builder implements bounded integration; no PR integration.
+
+## Retained checkpoint — PR #361 integration and final-read barrier — 18 November 2026
 
 **Claim/source:** Codex sole writer in `codex/block-order-integration`, PR #361 head
 `fc35563668ae2ba3dc2fc90e6e30575c38b6f578`, merging main `6f29b672`.
