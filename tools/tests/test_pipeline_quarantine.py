@@ -11,8 +11,15 @@ import agent_pipeline as pipeline
 
 
 class Quarantine(unittest.TestCase):
+    def test_direct_issue_selection_stops_before_any_side_effect(self):
+        controller = pipeline.Pipeline.__new__(pipeline.Pipeline)
+        with unittest.mock.patch.object(pathlib.Path, "read_text", side_effect=AssertionError("read")):
+            with unittest.mock.patch.object(pipeline, "sh", side_effect=AssertionError("external command")):
+                with self.assertRaisesRegex(pipeline.TaskError, "disabled"):
+                    controller.ready_tasks()
+
     def test_scheduler_stops_before_selecting_issues(self):
-        controller = pipeline.Pipeline(["codex"], False, False)
+        controller = pipeline.Pipeline.__new__(pipeline.Pipeline)
         with unittest.mock.patch.object(controller, "ready_tasks", return_value=[]) as select:
             with self.assertRaisesRegex(pipeline.TaskError, "disabled"):
                 controller.run_once()
@@ -20,7 +27,7 @@ class Quarantine(unittest.TestCase):
 
     def test_transaction_ingresses_stop_before_any_side_effect(self):
         task = pipeline.Task(7, "bounded task", "parallel", "K05", ["ci.yml#host-quality"], [], "")
-        controller = pipeline.Pipeline(["claude", "codex", "copilot"], True, True)
+        controller = pipeline.Pipeline.__new__(pipeline.Pipeline)
         for name in ("prepare", "execute", "integrate", "publish", "finish", "discard", "work"):
             with self.subTest(entry=name), contextlib.ExitStack() as stack:
                 for target in ("sh", "run_agent", "run_gate"):

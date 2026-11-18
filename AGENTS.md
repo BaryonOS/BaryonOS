@@ -15,7 +15,7 @@ preserve all mandatory features, evidence levels and stop/resume rules. Booting 
 or saving a note is no longer an adequate end goal. A partial commit, passing build
 or partial probe does not complete that assignment.
 
-Start with the branch, HEAD and `git status --short`; preserve unfinished user work. In a new session, read README.md, the current checkpoint at the top of docs/PROJECT-STATE.md and docs/LOCAL-PRIVACY-CONTRACT.md. Then read the relevant decisions in docs/DECISIONS.md, implementation specifications and all local AGENTS.md files beneath the directories being changed. Extend this reading when dependencies or a changed trust boundary require it; a short reading route is not a reason to skip security contracts.
+Start with the branch, HEAD and `git status --short`; preserve unfinished user work. In a new session, read docs/STATUS.md and the current relevant checkpoint at the top of docs/PROJECT-STATE.md. Read README.md and docs/LOCAL-PRIVACY-CONTRACT.md once for missing product or security context; do not reload unchanged history. Then read the relevant decisions in docs/DECISIONS.md, implementation specifications and all local AGENTS.md files beneath the directories being changed. Extend this reading when dependencies or a changed trust boundary require it; a short reading route is not a reason to skip security contracts.
 For continued work in the same session, compare source versions and read changes and missing context, rather than rereading the entire repository or unchanged historical status. START-CODING.md and FIRST-BATCH.md describe the original implementation baseline; first check what current code and acceptance evidence already provide. An old research assignment is not a new implementation assignment.
 For OS development tasks, use the repository skill `.agents/skills/os-dev/SKILL.md`; retrieve only the relevant OSDev or book passages. Not every client automatically loads nested instructions from the root. Start from source versions and existing code; research proposals are not automatically implemented. Practical test selection, measurement and handoff are in CODEX-WORKFLOW.md; read only the required section.
 
@@ -31,8 +31,9 @@ For OS development tasks, use the repository skill `.agents/skills/os-dev/SKILL.
 
 ## Token-efficient execution
 
-Use the shared protocol in `plugins/token-guard/skills/token-guard/SKILL.md` for
-coding tasks unless the installed Token Guard plugin has already loaded it.
+Use the shared task procedure in `.agents/skills/development-loop/SKILL.md`.
+Use RTK or the shared protocol in `plugins/token-guard/skills/token-guard/SKILL.md`
+selectively when it reduces output while preserving full logs and exit codes.
 The repository launcher is `python3 -B tools/tokenguard.py`: use `run --` for
 suitable foreground text checks, `run --output bounded --` for text data, and
 targeted `inspect`/`slice` reads. Interactive, protocol, background and TTY-sensitive
@@ -69,8 +70,11 @@ Quantum is an explicit third research track: post-quantum protection, local quan
 
 ## Collaboration
 
-Use subagents when work can be divided independently. The default is at most three at a time. An explicit instruction for **maximum useful parallelisation** overrides this soft default: then use all genuinely available independent agent slots without exceeding platform limits, permissions, security boundaries or one owner per shared interface. Claim agents are running only after a successful start; when quota or an execution environment is unavailable, record tasks as queued, not active. Give every agent a task ID, goal, permitted write files, interfaces, acceptance criteria and delivery format. No simultaneous writers to the same file.
-Architect/researcher and security reviewer begin read-only. A builder implements one small step. A verifier checks the result independently. Review by a second AI is not an independent human audit.
+Use one primary agent by default. Add at most one focused reviewer when risk warrants it; routine corrections do not require repeated reviews. An explicit instruction for **maximum useful parallelisation** overrides this soft default: then use all genuinely available independent agent slots without exceeding platform limits, permissions, security boundaries or one owner per shared interface. Claim agents are running only after a successful start; when quota or an execution environment is unavailable, record tasks as queued, not active. Give every agent a task ID, goal, permitted write files, interfaces, acceptance criteria and delivery format. No simultaneous writers to the same file.
+Canonical role contracts live in `.agents/roles/`: `os_architect`, `os_builder`,
+`os_verifier` and `os_security_reviewer`. Client role adapters reference those files.
+Use the available verifier or security reviewer; no optional `independent` role is
+required. Role instructions grant no tool permissions. Architect/researcher and security reviewer begin read-only. A builder implements one small step. A verifier checks the result independently. Review by a second AI is not an independent human audit.
 The lead agent integrates changes, resolves conflicts on evidence and tests the combined version. AGENTS.md and agent roles constrain behaviour, not technical access; actual boundaries come from permissions, sandboxes and credentials.
 
 ## Graphify: hosted MCP only (decision of 5–6 November 2026)
@@ -86,7 +90,7 @@ This applies to every AI in this project: Claude, Codex, Copilot and every pipel
 
 Tasks come from open issues labelled `pipeline:serial` or `pipeline:parallel`.
 The body contains `Criterion: <open ID from docs/progress.json>`, `Gate: <workflow>.yml#<job>`
-and optionally `Depends on: #N`. Existing `Criterium:` and `Afhankelijk van:` fields remain accepted for compatibility. There is no separate backlog. Each agent invocation is a new CLI process (`claude -p`, `codex exec` or `copilot -p`) that only edits files. The pipeline executes commands itself. First comes an L0 specification with Graphify MCP, then the executor, then `tools/agent_gate.py`: applicable local CI check steps (some conditional, setup and composite steps are excluded) plus `progress.py --check`. Raw exit codes determine this local prefilter, not hosted CI acceptance; rtk only shortens displayed errors. A `serial` task runs alone and ends as a draft PR for review by the project owner. At most three `parallel` tasks with separate access sets run in their own worktrees. `--auto-merge-parallel` enables squash auto-merge for those PRs and must not be used without the project owner's explicit approval (decision of 13 November 2026). Nothing goes directly to `main`. Agents do not edit workflow, pipeline or progress files.
+and optionally `Depends on: #N`. Existing `Criterium:` and `Afhankelijk van:` fields remain accepted for compatibility. There is no separate backlog. Each agent invocation is a new CLI process (`claude -p`, `codex exec` or `copilot -p`) that only edits files. The pipeline executes commands itself. First comes an L0 specification with Graphify MCP, then the executor, then `tools/agent_gate.py`: applicable local CI check steps (some conditional, setup and composite steps are excluded) plus `progress.py --check`. Raw exit codes determine this local prefilter, not hosted CI acceptance; rtk only shortens displayed errors. A `serial` task runs alone and ends as a draft PR for review by the project owner. At most three `parallel` tasks with separate access sets run in their own worktrees. The issue controller remains source-held and `.github/agent-pipeline.json` remains disabled until a separately reviewed isolation replacement is accepted. Do not activate the controller or enable auto-merge. These dormant scheduling descriptions grant no execution authority. Nothing goes directly to `main`. Agents do not edit workflow, pipeline or progress files.
 Runtime state is stored in ignored `build/agent-pipeline/`. A blocked task retains its directory there until a human removes it.
 
 ## Execution
@@ -99,9 +103,10 @@ Add dependencies only after checking provenance, licensing, maintenance, `no_std
 
 The CI workflows in `.github/workflows/` define the actual hosted gates. `python3 -B tools/agent_gate.py --job <workflow>.yml#<job> --list` shows the local executable subset; omit `--list` to run it. This **does not execute every CI step** (e.g. setup, conditional and composite steps). Required hosted PR checks include `ci.yml#host-quality` and `ci.yml#qemu-smoke`. Directory `AGENTS.md` files specify subsystem checks.
 
-- **Install:** follow `docs/DEVELOPMENT.md`; Rust `1.100.0` across the workspaces, required Rust cross-targets, QEMU/OVMF/SeaBIOS, C compiler, Python dependencies from `.github/actions/setup-python/requirements.txt` and Node.js. Fetch locked Rust dependencies per manifest with `cargo +1.100.0 fetch --locked`; record unavailable tools instead of assuming success.
+- **Version selection:** follow ADR-VERSION-POLICY-20261117 and `docs/DEPENDENCIES.md`: verify current stable/support status when selecting or updating a component, pin exact accepted inputs and document technical exceptions. Existing pins below are reproducible command examples, not a claim of current upstream support; no routine reinstall or stack-wide upgrade.
+- **Install:** follow `docs/DEVELOPMENT.md`; Rust `1.90.0` (`1.91.1` for the network crates in `services/AGENTS.md`), required Rust cross-targets, QEMU/OVMF/SeaBIOS, C compiler, Python dependencies from `.github/actions/setup-python/requirements.txt` and Node.js. Fetch locked Rust dependencies per manifest with `cargo +1.90.0 fetch --locked`; record unavailable tools instead of assuming success.
 - **Preflight/build/boot:** `python3 -B tools/preflight.py --strict` (also `--strict-host-tests` where needed); `python3 -B tools/build.py [--kernel-feature <feature>]`; `python3 -B tools/run.py --smoke [--milestone m1|m2|m3|m4|m5]`. For M1 use `python3 -B tools/test.py`; for M6c use `python3 -B tools/build.py --kernel-feature milestone-m6c` and `python3 -B tools/run_m6c.py --case normal --smoke`. Only actual kernel markers plus raw exit 33 substantiate a smoke pass.
-- **Targeted quality:** `cargo +1.100.0 test --locked -p <package>`, `clippy --locked -p <package> --all-targets -- -D warnings`, `fmt --all -- --check` (use `--manifest-path` for separate workspaces); Python `unittest` suites and `python3 -m compileall -q`; Node `node --test --test-isolation=none <dir>/tests/*.test.mjs`. Exact suites come from the relevant workflows and directory instructions. No repository-wide Python lint/type gate is defined.
+- **Targeted quality:** `cargo +1.90.0 test --locked -p <package>`, `clippy --locked -p <package> --all-targets -- -D warnings`, `fmt --all -- --check` (use `--manifest-path` for separate workspaces); Python `unittest` suites and `python3 -m compileall -q`; Node `node --test --test-isolation=none <dir>/tests/*.test.mjs`. Exact suites come from the relevant workflows and directory instructions. No repository-wide Python lint/type gate is defined.
 - **Workflow changes:** `actionlint -shellcheck= -pyflakes=` and `python3 -B -m unittest discover -s tests -p 'test_ci_workflows.py'`. Reassess the score through the lead-owned `python3 tools/progress.py --write`, then `--check`; do not grant untested progress.
 - **Environment:** `NOS_BUILD_DIR`, `NOS_TARGET_DIR`, `CARGO_TARGET_DIR` isolate builds; `NOS_QEMU_MACHINE` (CI: `pc-q35-8.2`), optional `NOS_QEMU_ACCEL=kvm`, paired `OS_OVMF_CODE`/`OS_OVMF_VARS`, and opt-in `NOS_SDK_RUNTIME`/`NOS_DOCUMENT_SESSION`. Internal `NOS_*_ELF` values are not user secrets. Do not commit tokens, keys or `.env*`.
 - **Fixtures/manual checks:** harnesses create disposable images under `$NOS_BUILD_DIR/run/`; committed fixtures reside with their component; `tools/update-keys/TEST-*` are public QEMU-only test keys. Browser keyboard/permission/recovery checks are in `ui/AGENTS.md`; Windows QEMU and human UI trials require separate evidence. Hardware (H) and human audit (A) remain unverified without their own tests.
@@ -109,7 +114,7 @@ The CI workflows in `.github/workflows/` define the actual hosted gates. `python
 
 ## Conventions
 
-- `cargo +1.100.0 ... --locked`; change `Cargo.lock` files or `rust-toolchain.toml` only with a documented reason.
+- `cargo +1.90.0 ... --locked`; change `Cargo.lock` files or `rust-toolchain.toml` only with a documented reason.
 - Kernel, boot, drivers, services, SDK and core crates are `#![no_std]` (or `cfg_attr(not(test), no_std)`). Keep existing `#![forbid(unsafe_code)]` and `#![deny(unsafe_op_in_unsafe_fn)]`; every `unsafe` block has a local `// SAFETY:` comment.
 - Tests: Rust `#[cfg(test)]` and `tests/*.rs`; Python `unittest` in `tests/`, `tools/tests/`, `userspace/tests/`; native gates pair a `tools/build.py` profile with a `tools/run_*.py` runner. Run Python as `python3 -B`; reuse existing entry points.
 - Commits use `type(scope): summary`. PRs follow `.github/pull_request_template.md`: a verification table with command, exit status and evidence, plus a Not run list.
@@ -118,26 +123,26 @@ The CI workflows in `.github/workflows/` define the actual hosted gates. `python
 ## Protected files
 
 Unattended pipeline workers must never change policy, their evaluators, or evidence. A lead may change these only in an explicitly scoped, reviewed PR, with relevant tests:
-- Any `AGENTS.md` or `CLAUDE.md` at **any directory depth**, `.codex/config.toml`, `.github/**`, `tools/agent_gate.py`, `tools/agent_pipeline.py`, `tools/roadmap_runner.py`, `tools/common.py`, `tools/progress.py`.
+- Any `AGENTS.md` or `CLAUDE.md` at **any directory depth**, `.agents/**`, `.claude/**`, `.codex/**`, `.github/**`, `tools/agent_gate.py`, `tools/agent_pipeline.py`, `tools/roadmap_runner.py`, `tools/common.py`, `tools/progress.py`.
 - `docs/progress.json` and generated `README.md`, `docs/PROGRESS.md`, `docs/assets/progress.svg`; `docs/PROJECT-STATE.md` and `docs/DECISIONS.md` are lead-owned.
 - Historical `docs/verification/**` and `docs/history/**`; new evidence must use a new child directory. Vendored or licensed source: `services/keyring/vendor/`, `services/image-codec/vendor/`, `experiments/quantum/third-party/`, `.agents/skills/os-dev/references/`, `LICENSE`, `plugins/token-guard/LICENSE`, `docs/third-party/licenses/`.
 - `ui/prototype/tokens.css` (frozen), `ui/design/system/tokens.css` (generated), `CODEX-WORKFLOW.md` section 4/Sources, and `tools/update-keys/TEST-*`. Do not commit private keys, `.env*`, `build/`, `target/` or `graphify-out/`.
 
-## Short development loop
+## Shared execution and verification
 
-Every agent (Claude, Codex, Copilot and pipeline workers) runs each task through the same loop; a worker performs the steps its role allows and the controller or lead does the rest. Client files may add detail, not other steps.
-1. **Orient:** branch, HEAD and `git status --short`; the state locations above; the relevant directory `AGENTS.md`.
-2. **Select and claim** one task; respect locks, leases and the owners of its write set.
-3. **Context, cheaply:** hosted Graphify first (`recall`, then `graphify_rank_files` or `graphify_find`, `graphify_callers`, `graphify_impact`, `graphify_tests_for`); Token Guard `inspect` and `slice` for large files. With too little context, make a read-only plan before editing.
-4. **Specify:** goal, invariant, write set, acceptance commands and evidence limit.
-5. **Implement** the smallest complete change; reuse existing code; no unrelated cleanup.
-6. **Validate:** targeted tests, then the required gates; quote exit codes; mark anything not executed NOT RUN with its reason.
-7. **Review and iterate:** read the complete diff; fix root causes; never weaken a test. After two identical failures without new evidence, record the diagnosis and choose another task or ask.
-8. **Checkpoint:** state files, commit, push and a draft PR under the rules below.
-9. **Learn:** one Graphify `remember` note per durable pitfall; durable working-method changes go to the right `AGENTS.md` layer.
-10. **Continue or stop:** take the next eligible task, or stop with a written reason and resume step.
+Follow `.agents/skills/development-loop/SKILL.md` for the single task loop across
+clients. Use existing task records; no second backlog or project-management system.
+Default verification is proportional to changed behaviour and risk: targeted checks,
+meaningful negative tests for security changes, then applicable integration gates.
+Do not repeat complete native matrices for unchanged code, create extensive evidence
+packages for trivial edits, or poll CI continuously. Reuse valid source-bound evidence
+with its limits stated. Required hosted checks, Security Floor and acceptance criteria
+remain unchanged. Run broader checks when the diff, failure or trust boundary warrants it.
 
-Ask instead of guessing: in an interactive session, ask one focused question; unattended, block with a precise `OWNER:` question and continue only disjoint authorized work. Never guess security, authority, cryptography or destructive actions. The lead owns integration and the sole status handoff; workers own disjoint write sets in isolated worktrees, with separate build directories when parallel. Preserve existing build caches, complete raw logs and exit codes; do not routinely reinstall, clean, or re-audit without new evidence. Run targeted checks first and all applicable native/hosted gates for shared interfaces or permissions. A cache hit is never proof. Finish each step with one source-bound checkpoint and continue the next safe task.
+Governance and independent implementation do not require zero open issues, PRs or
+findings, completed baseline B, unrelated hardware acceptance or client runtime parity.
+Track unresolved findings accurately; this exception does not release execution holds,
+close findings, accept criteria or override another workstream's ownership.
 
 ## Definition of done
 

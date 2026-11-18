@@ -43,7 +43,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from agent_gate import resolve as resolve_gate, run_gate  # noqa: E402
+from agent_gate import FAIL_EXIT as GATE_FAIL_EXIT, resolve as resolve_gate, run_gate  # noqa: E402
 from agent_pipeline import is_protected  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -559,11 +559,19 @@ class Controller:
                     return False, results, failure
             if task.get("gates"):
                 log = attempt_dir / "gate.log"
-                code = run_gate(resolve_gate(task["gates"], ROOT / ".github" / "workflows"), ROOT, log)
+                try:
+                    commands = resolve_gate(task["gates"], ROOT / ".github" / "workflows")
+                except (KeyError, ValueError) as error:
+                    failure = f"gate blocked: {error}"
+                    log.write_text(failure + "\n")
+                    code = GATE_FAIL_EXIT
+                else:
+                    code = run_gate(commands, ROOT, log)
                 results.append({"name": "gates", "command": " ".join(task["gates"]), "exit_code": code,
                                 "log_sha256": sha256(log.read_bytes())})
                 if code:
-                    return False, results, "\n".join(log.read_text(errors="replace").splitlines()[-120:])
+                    return False, results, failure or "\n".join(
+                        log.read_text(errors="replace").splitlines()[-120:])
             return True, results, ""
         finally:
             if lock:

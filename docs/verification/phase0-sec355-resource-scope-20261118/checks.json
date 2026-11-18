@@ -1,0 +1,91 @@
+{
+  "schema": 1,
+  "task": "SEC355-RESOURCE-SCOPE",
+  "source_base": "511936850e53d384c36254e4ad43424cf457377e",
+  "host": {
+    "usable_memory_kib": 62108440,
+    "systemd": "259.9",
+    "bubblewrap": "0.13.1"
+  },
+  "pinned_executables": {
+    "bubblewrap_sha256": "8ddfbb3122f651246ed8e41b3232d720c12491059308e47b54f31edd4e4ed138",
+    "systemd_run_sha256": "6eaf6650fc3bc07ba2fb51242d9d286e56770a2abd7306678aa22050ddf9f935",
+    "systemctl_sha256": "639bce3ce5c06b605079ea56f74e3f08216ddffcfa76e11f62073aa775180082"
+  },
+  "source_sha256": {
+    "tools/agent_sandbox.py": "30862579101b33d334cabb0fb25b1736e705263f859d6bec7b18d3a9c52e3e69",
+    "tools/agent_gate.py": "298539cdfa84efbc7e6940b45094e2071c5d548fd19e7f5d3dbe6d0940517fa8",
+    "tools/agent_pipeline.py": "74a1068598eacae97c4c8c975e39c93ddce8f2337e67b8469beb1767e39575e9",
+    "tools/tests/test_agent_sandbox.py": "4eca9e73cfb7682a24475b26a87c492db9405e360ec0dfddcedeab958ab57967",
+    "tools/tests/test_agent_pipeline.py": "3230dedce6a5a233cab4b4bd0e15f29b7c4a932a4abe92b496171bbb8d95b84b",
+    "tools/tests/test_agent_isolation.py": "35b397f68a14efe93ce481bf374d9e07736561a3b521406108edefa6c8b03424",
+    "tools/tests/test_agent_sandbox_native.py": "c9f3973d5a03a1863d582e405ac26ef0cae8286f7454d3b1d3fc71b9d69599d6"
+  },
+  "native_fixture": {
+    "probe_source_sha256": "8f7abb1b3302ae6ace0b5cf44c8f2e9a36ffeaa3d6fd1249fa985dd9646ef968",
+    "probe_binary_sha256": "5ea25311282d05f30c881fd95c5507b3f3ab07e048358991a3fcae644a121648",
+    "rootfs_tree_sha256": "f27f65e0a69d69c50f077e387cc6cd32d39e4493a4c3ed39cd7815500538df4e",
+    "runner_sha256": "b3dcc1860d87538b5832a6487be6b388279621080f16f30607755ae3cdc2888d",
+    "config_sha256": "dd1e7f3a07814aaad73ee4cb8d626e5fbe145e0fedae73480654ea112f5106ed"
+  },
+  "commands": [
+    {
+      "command": "env PYTHONPATH=tools python3 -B build/sec355-resource-scope/probe_all.py",
+      "exit_code": 0,
+      "result": "8 real cgroup/bubblewrap cases passed; zero remaining transient units",
+      "raw_log": "build/tokenguard/run-vwnvvdix.log",
+      "raw_log_sha256": "5622c1892e4cac4bf0bd93e5e7de5a0a468f16cbffa95c582dd1c243f9936fc1"
+    },
+    {
+      "command": "python3 -B -m unittest tools.tests.test_agent_sandbox tools.tests.test_agent_pipeline tools.tests.test_agent_isolation",
+      "exit_code": 0,
+      "result": "75 tests passed",
+      "raw_log": "build/tokenguard/run-c7ur17v8.log",
+      "raw_log_sha256": "696f51e6a1fea301eefa2cc9c6a1e651c6da27dcf765f276bb4e615a86bea69c"
+    },
+    {
+      "command": "python3 -B -m unittest discover -s tools/tests -p 'test_*.py'",
+      "exit_code": 0,
+      "result": "453 tests passed; 10 environment-gated native fixture tests skipped",
+      "raw_log": "build/tokenguard/run-hu0wvkc6.log",
+      "raw_log_sha256": "ce6ee41709fa53b11ad9901bff5d9b668ea162866afc8150877482801bf37ecb"
+    },
+    {
+      "command": "python3 -B -m compileall -q tools",
+      "exit_code": 0,
+      "raw_log": "build/tokenguard/run-p13n_l5_.log",
+      "raw_log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": "python3 -B tools/preflight.py --strict",
+      "exit_code": 0,
+      "raw_log": "build/tokenguard/run-diue879f.log",
+      "raw_log_sha256": "854426658a0d533beb67762b1dc6500fef5b645df0fe3a4982a6e30be56eb0cc"
+    },
+    {
+      "command": "python3 -B tools/build.py",
+      "exit_code": 0,
+      "result": "normal image built and inspected; existing dead-code warning retained",
+      "raw_log": "build/tokenguard/run-20kmntm4.log",
+      "raw_log_sha256": "c6d2ce6d4fc5d2414a06a592a69e1e389213309bb986b16526ef2869a2a9361c"
+    },
+    {
+      "command": "python3 -B tools/run.py --smoke --milestone m1",
+      "exit_code": 0,
+      "result": "M1:PASS; QEMU raw exit 33 matched expected 33",
+      "raw_log": "build/tokenguard/run-o_yps3sa.log",
+      "raw_log_sha256": "e3c8ac096316a9e89340ef381fa036fd580edc57518d6747a5ad3f622dc4cad1"
+    }
+  ],
+  "review": {
+    "kind": "independent AI source review, not a human audit",
+    "result": "no remaining actionable finding in the resource-scope write set",
+    "verified_corrections": [
+      "exception-safe scope cleanup",
+      "bounded overflow stream retention",
+      "OOM precedence over textual rate-limit fallback",
+      "checked descriptor errors are not masked across context-manager yield"
+    ]
+  },
+  "acceptance_boundary": "PR #355 remains open and the issue pipeline remains disabled. This checkpoint does not accept authenticated clients, aggregate scratch/staging/export or the complete offline gate."
+}
