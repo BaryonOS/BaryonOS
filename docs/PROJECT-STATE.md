@@ -1,6 +1,22 @@
 # Current project status
 
-## NEXT AGENT HANDOFF — unified governance implementation — 18 November 2026
+## NEXT AGENT HANDOFF — H06-T1 hardware inventory — 18 November 2026
+
+**Claim:** Codex, `codex/h06-hardware-matrix`, base `69d82075`.
+**Goal:** machine-checked VM-FR/VM-VMW/HW-FR inventory, driver source paths,
+explicit DMA posture, evidence existence and no unsupported physical claims.
+**Invariant:** xHCI remains pending; no VT-d/physical support without evidence;
+no physical machine selection or unsafe runner activation.
+**Write set:** tools/hw_matrix.py, tools/tests/test_hw_matrix.py,
+docs/drivers/hardware-matrix.json and docs/drivers/HARDWARE-TARGETS.md.
+**Acceptance:** missing-DMA/dangling-path/no-H-evidence negative tests, actual
+--check and targeted compile check. No native/hardware matrix rerun.
+**Evidence limit:** inventory/reference validation, not device acceptance.
+**Ownership:** no open-PR overlap; integration/Claude branches untouched.
+**Next:** draft and next independent READY task; prior B02 partial382, B06
+checker383 and N04 blocked380 preserved. Score41/100.
+
+## Retained checkpoint — unified governance implementation — 18 November 2026
 
 **Claim:** GOV-1-6, sole writer Codex in `codex/unified-governance`, base
 `5a3295b6093549f4b5ff6164ab2773ac4c264996`. The project owner authorizes immediate
