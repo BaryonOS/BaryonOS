@@ -1,0 +1,16 @@
+Id=baryonos-sec355-aa1f3ddc329a42ec872d97ff64209bf0.scope
+LoadState=loaded
+ActiveState=failed
+SubState=failed
+Result=oom-kill
+RuntimeMaxUSec=10s
+ControlGroup=
+MemoryPeak=134217728
+CPUUsageNSec=31632000
+TasksCurrent=[not set]
+CPUQuotaPerSecUSec=250ms
+CPUQuotaPeriodUSec=100ms
+MemoryMax=134217728
+MemorySwapMax=0
+TasksMax=32
+KillMode=control-group

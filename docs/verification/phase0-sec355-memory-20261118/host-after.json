@@ -1,0 +1,11 @@
+{
+  "recorded_utc": "2026-11-18T11:41:51.995736+00:00",
+  "memory": {
+    "MemTotal": "62108440 kB",
+    "MemAvailable": "41640484 kB",
+    "SwapTotal": "8388604 kB",
+    "SwapFree": "8388604 kB"
+  },
+  "caller_cgroup": "0::/user.slice/user-1000.slice/user@1000.service/app.slice/app-org.chromium.Chromium-14264.scope",
+  "memory_limited_scope": "All completed reference/probe units were transient and do not alter existing desktop/user-unit limits."
+}

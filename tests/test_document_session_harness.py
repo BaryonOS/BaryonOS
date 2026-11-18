@@ -424,8 +424,7 @@ class LaunchBoundaryTests(unittest.TestCase):
             environ = {'NOS_DOCUMENT_SESSION': '1', 'NOS_SDK_RUNTIME': '1', 'NOS_BUILD_DIR': str(build),
                        'NOS_TARGET_DIR': str(target), 'CARGO_TARGET_DIR': str(target)}
             with mock.patch.multiple(gate, ROOT=root, BUILD=build, TARGET=target), mock.patch.dict(os.environ, environ), \
-                    mock.patch.object(gate.subprocess, 'check_output', return_value=HEAD), \
-                    mock.patch.object(gate, 'source_hash', side_effect=[SOURCE, SOURCE, '3' * 64]), \
+                    mock.patch.object(gate, 'source_identity', side_effect=[(HEAD, SOURCE), (HEAD, SOURCE), (HEAD, '3' * 64)]), \
                     mock.patch.object(gate, 'build') as compile_step, \
                     mock.patch.object(gate, 'run_m6c') as native_step, mock.patch('builtins.print'):
                 report = gate.run_gate(HEAD, SOURCE)

@@ -1,0 +1,101 @@
+{
+  "schema": 1,
+  "source_commit": "edd1a6a9af2d80a56848ec500bbf2b702799dced",
+  "branch": "codex/phase0-pipeline-isolation",
+  "score_before": 41,
+  "score_after": 41,
+  "checks": [
+    {
+      "command": "python3 -B -m unittest discover -s tools/tests -p 'test_*.py'",
+      "exit_code": 0,
+      "result": "513 passed; 11 explicit skips",
+      "raw_log": "build/tokenguard/run-4p8wyw73.log",
+      "raw_log_sha256": "e697ff9092f18fa7a89b390a596dab3a30c2bb2bd56d8a840ee6ec38c7dc336d"
+    },
+    {
+      "command": "python3 -B -m unittest tools.tests.test_agent_sandbox tools.tests.test_agent_pipeline tools.tests.test_agent_isolation tools.tests.test_agent_sandbox_native",
+      "exit_code": 0,
+      "result": "123 passed; 10 private-runtime skips",
+      "raw_log": "build/tokenguard/run-esd5o3k8.log",
+      "raw_log_sha256": "2193bed2cb4bffb71a441e8a7619cd05778e774c7ce020c2a580cde3fb1b6ab0"
+    },
+    {
+      "command": "python3 -B -m unittest discover -s tests -p 'test_ci_workflows.py'",
+      "exit_code": 0,
+      "result": "26 passed"
+    },
+    {
+      "command": "python3 -B tools/preflight.py --strict",
+      "exit_code": 0,
+      "raw_log": "build/tokenguard/run-flus0n_w.log",
+      "raw_log_sha256": "854426658a0d533beb67762b1dc6500fef5b645df0fe3a4982a6e30be56eb0cc"
+    },
+    {
+      "command": "python3 -B tools/build.py --kernel-feature milestone-m6c",
+      "exit_code": 0,
+      "raw_log": "build/tokenguard/run-uiiv2qfh.log",
+      "raw_log_sha256": "4423e2d28993bf3d140a85084640d5832c67b84437e344b76a5b4ec9ef07decf"
+    },
+    {
+      "command": "python3 -B tools/run_m6c.py --case normal --smoke",
+      "exit_code": 0,
+      "result": "raw guest exit 33",
+      "raw_log": "build/tokenguard/run-p4e_ybdc.log",
+      "raw_log_sha256": "7747841b83be6861a7e3583f3a8f4d2db07eddbacb68cce384c89f1fd0790c8f"
+    },
+    {
+      "command": "NOS_DOCUMENT_SESSION=1 NOS_SDK_RUNTIME=1 NOS_BUILD_DIR=build/sec355-edd1-document NOS_TARGET_DIR=target/sec355-edd1-document CARGO_TARGET_DIR=target/sec355-edd1-document python3 -B tools/test_document_session.py",
+      "exit_code": 0,
+      "result": "2 actual VM results accepted",
+      "raw_log": "build/tokenguard/run-r4qgt8kd.log",
+      "raw_log_sha256": "e82e1994579829477b9f78fdfb93a448b81ebd48818a7fde2955cb77f4c7ad2c"
+    },
+    {
+      "command": "NOS_BUILD_DIR=build/sec355-edd1-qsim-job NOS_TARGET_DIR=target/sec355-edd1-qsim-job CARGO_TARGET_DIR=target/sec355-edd1-qsim-job python3 -B tools/build.py --kernel-feature native-qsim-job",
+      "exit_code": 0,
+      "raw_log": "build/tokenguard/run-ihbtgfoa.log",
+      "raw_log_sha256": "f9609f31f15e0cc68186f80975a5be03132a93105927a94106cb7754e8d70c46"
+    },
+    {
+      "command": "NOS_BUILD_DIR=build/sec355-edd1-qsim-job NOS_TARGET_DIR=target/sec355-edd1-qsim-job CARGO_TARGET_DIR=target/sec355-edd1-qsim-job python3 -B tools/run_qsim_job.py",
+      "exit_code": 0,
+      "result": "raw guest exit 33",
+      "raw_log": "build/tokenguard/run-91wj6koi.log",
+      "raw_log_sha256": "5198562a9ec76552c42544c677ffc672234ddcbb6c44f290b380d954024d452c"
+    },
+    {
+      "command": "NOS_BUILD_DIR=build/sec355-edd1-sdk-normal NOS_TARGET_DIR=target/sec355-edd1-sdk-normal CARGO_TARGET_DIR=target/sec355-edd1-sdk-normal python3 -B tools/build.py --kernel-feature native-sdk-app",
+      "exit_code": 0,
+      "raw_log": "build/tokenguard/run-kjcmmdcl.log",
+      "raw_log_sha256": "94a0895306ac1d1f27aa2b15148c1ca6ef1f51ac2efb0205e391338a79681925"
+    },
+    {
+      "command": "NOS_BUILD_DIR=build/sec355-edd1-sdk-normal NOS_TARGET_DIR=target/sec355-edd1-sdk-normal CARGO_TARGET_DIR=target/sec355-edd1-sdk-normal python3 -B tools/run_sdk_app.py --case normal",
+      "exit_code": 0,
+      "result": "raw guest exit 33",
+      "raw_log": "build/tokenguard/run-opw6ta6i.log",
+      "raw_log_sha256": "050694d1d9de2e4320c7af5f74de11f17aee29540f6fb726fecc4b37466cd117"
+    },
+    {
+      "command": "NOS_BUILD_DIR=build/sec355-edd1-sdk-denied NOS_TARGET_DIR=target/sec355-edd1-sdk-denied CARGO_TARGET_DIR=target/sec355-edd1-sdk-denied python3 -B tools/build.py --kernel-feature test-sdk-app-denied",
+      "exit_code": 0,
+      "raw_log": "build/tokenguard/run-v4jsdj82.log",
+      "raw_log_sha256": "b059a7cd2dfc2aa64d56be370adf96c724fe9d98c614683c691b169caa88cc25"
+    },
+    {
+      "command": "NOS_BUILD_DIR=build/sec355-edd1-sdk-denied NOS_TARGET_DIR=target/sec355-edd1-sdk-denied CARGO_TARGET_DIR=target/sec355-edd1-sdk-denied python3 -B tools/run_sdk_app.py --case denied",
+      "exit_code": 0,
+      "result": "raw guest exit 33",
+      "raw_log": "build/tokenguard/run-_r2db058.log",
+      "raw_log_sha256": "510683155782b1b7cfcd533b3397592c4f4ed1245b3a8c9122d5c480aa1dba96"
+    }
+  ],
+  "not_run": [
+    "Private pinned Bubblewrap 0.13.1 fixture transaction",
+    "Real scratch ENOSPC and inode exhaustion",
+    "Parallel sibling-task isolation",
+    "Live survivor quarantine",
+    "Authenticated model-client transactions",
+    "Hosted current-head CI and CodeQL"
+  ]
+}
