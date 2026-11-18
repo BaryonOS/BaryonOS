@@ -1,6 +1,33 @@
 # Current project status
 
-## NEXT AGENT HANDOFF — PR #355 immutable source receipt — 18 November 2026
+## NEXT AGENT HANDOFF — PR #355 bounded gate finalizer — 18 November 2026
+
+**Source and change:** security checkpoint `364b94964cc7f3fbb8ff2377e87861e858ef03ad`
+extends immutable-receipt evidence head `467e25b6394fcffc97d85a7be025bd5814b0806e`.
+The gate controller now applies one total deadline, reserves and caps one finalizer,
+and preserves separate primary/finalizer evidence. Normal failures, verified OOM
+results, cleaned timeouts and bounded-output failures run the finalizer. Generic
+sandbox guard, termination or cleanup failures abort without starting another
+process. The execution hold and disabled manifest are unchanged.
+
+**Checks:** 55 focused controller tests and all 488 tools tests pass with ten explicit
+environment skips. Syntax compilation and diff checks pass. Independent security
+review found and verified fixes for unreserved finalizers, overwritten raw evidence,
+environment-validation bypass and unsafe finalization after cleanup failure; final
+rereview reports no blocking finding. This is AI review, not a human audit.
+[Source-bound receipt](verification/phase0-sec355-gate-finalizer-20261118/README.md).
+Both prior-head native-window jobs completed successfully, so publication no longer
+needs to preserve that old run.
+
+**Open boundary and resume:** `ci.yml#qemu-smoke` remains explicitly blocked at its
+first unmodelled action. The private rootfs, offline Cargo cache and tool receipts
+were not transferred, so no runtime layout or partial gate claim was invented.
+Aggregate scratch/staging/export limits and authenticated model-client provisioning
+also remain open. Publish the complete checkpoint, require all hosted checks on the
+new exact head, and continue independent feasible isolation work. Score 41/100 is
+unchanged; no finding, issue, baseline or governance acceptance is inferred.
+
+## Historical checkpoint — PR #355 immutable source receipt — 18 November 2026
 
 **Source and change:** security checkpoint `b39948e4355b789faeffa9c92a92c1a443dd3480`
 extends fail-closed gate evidence head `ef2db95f42f3883a3f85e5107971e2129291451f`.

@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-18",
-    "source_commit": "b39948e4355b789faeffa9c92a92c1a443dd3480",
+    "source_commit": "364b94964cc7f3fbb8ff2377e87861e858ef03ad",
     "assessment_basis": "source_commit",
     "branch": "codex/phase0-pipeline-isolation",
-    "task": "SEC355-SOURCE-RECEIPT: bind immutable staged source without sandbox Git metadata",
+    "task": "SEC355-GATE-FINALIZER: preserve bounded always-run evidence after controlled failures",
     "previous_score": 41,
-    "summary": "41/100 unchanged. Source b39948e4 adds a fixed read-only controller receipt binding the stable staged source selection to its commit and v3 hash without sandbox Git metadata. Writable, redirected, malformed, stale and racing receipts or source selections fail closed. Exact-source M6c and two-run DocumentSession QEMU evidence pass. The manifest and execution hold remain disabled; complete selected-gate semantics, authenticated client, aggregate scratch/staging/export, hosted acceptance and final Daybreak resolution remain open."
+    "summary": "41/100 unchanged. Source 364b9496 adds a single total gate deadline with a reserved, capped evidence finalizer after controlled failures, while generic sandbox cleanup or guard failures still abort without launching another process. Primary evidence remains separate and the real qemu-smoke job stays blocked. The private runtime/cache contract, complete selected-gate adapter, authenticated client, aggregate scratch/staging/export, hosted acceptance and final Daybreak resolution remain open."
   },
   "tracks": [
     {
