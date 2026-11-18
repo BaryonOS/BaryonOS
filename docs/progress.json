@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-18",
-    "source_commit": "3847e9f2166b71020aa7b78bb82c8f06ae787590",
-    "assessment_basis": "source_commit",
+    "source_commit": "d40c728b76a10bbec9997d1ab19aca919f8d5228",
+    "assessment_basis": "parent_commit",
     "branch": "codex/b01-management-recovery",
-    "task": "B01-T1: native management recovery fixture delivered",
+    "task": "B01-T1: native management recovery through manifest-bound ingress",
     "previous_score": 41,
-    "summary": "41/100 unchanged. B01-T1 now demonstrates manifest-bound management export/restore from A to B and ordinary-app unseal with preserved recovery denials. All five QEMU cases return guest33; the isolated wrong-caller mutation makes normal fail. Targeted host checks and formatting pass. This is native fixture evidence, not physical entropy, production recovery, human audit or full B01 acceptance. Unsafe unattended execution stays disabled; PR362/363 and foreign work preserved."
+    "summary": "41/100 unchanged. A manifest-bound management keyring principal completes bounded native export, wrong-secret refusal, restore and ordinary-app unseal in the QEMU fixture. This is fixture evidence only; full B01, production recovery, physical entropy and human review remain open. Current-main reconciliation changes only checkpoint state; hosted checks on the resulting head remain authoritative."
   },
   "tracks": [
     {
