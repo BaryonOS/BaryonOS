@@ -3,12 +3,12 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>BaryonOS ontwerpsysteem ds-1.0</title>
+<title>BaryonOS ontwerpsysteem ds-1.1</title>
 <link rel="icon" href="data:,">
-<!-- DESIGN ARTEFACT, 14 November 2026: component gallery of ds-1.0. Not a working OS and not product code.
+<!-- DESIGN ARTEFACT, 14 November 2026 (ds-1.1 accessibility axes 15 November 2026): component gallery of ds-1.1. Not a working OS and not product code.
      Tokens: tokens.css; components: components.css; behaviour and specimens: gallery.js.
      Requirements: docs/design/suite/WORKSPACE-REQUIREMENTS.md (S0). Source of truth: ../concepts/orbitaal-v2/index.html.
-     Query: ?only=dark|light|contrast|scale|ref  ?motion=reduce  ?measure=1 (self-check into #out) -->
+     Query: ?only=dark|light|contrast|a11y|combos|scale|ref  ?motion=reduce  ?theme=dark|light|contrast  ?measure=1 (self-check into #out) -->
 <script>window.__errs = []; addEventListener('error', e => __errs.push(String(e.message || e.type) + ' @ ' + (e.filename || (e.target && (e.target.src || e.target.href)) || '')), true); addEventListener('unhandledrejection', e => __errs.push('rejection: ' + e.reason));</script>
 <link rel="stylesheet" href="./tokens.css">
 <link rel="stylesheet" href="./components.css">
@@ -19,43 +19,46 @@
   h1, h2, h3, h4, p, figure, dl { margin: 0; }
   b, strong { font-weight: var(--font-weight-strong); }
   code, kbd, button, input { font-family: var(--font-family-ui); font-size: inherit; }
-  .gal-head { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: var(--space-6); align-items: end; padding: var(--space-10) var(--space-10) var(--space-6); border-bottom: 1px solid var(--color-line); }
+  .gal-head { display: flex; flex-wrap: wrap; justify-content: space-between; gap: var(--space-6); align-items: end; padding: var(--space-10) min(var(--space-10), 5%) var(--space-6); border-bottom: 1px solid var(--color-line); }
   .gal-head h1 { font-size: var(--type-title-size); line-height: var(--type-title-line); font-weight: var(--type-title-weight); }
-  .gal-head p { color: var(--color-text-muted); max-width: 880px; }
+  .gal-head > :first-child { flex: 1 1 320px; min-width: 0; }
+  .gal-head p { color: var(--color-text-muted); max-width: 880px; overflow-wrap: anywhere; }
   .gal-disc { display: inline-flex; align-items: center; gap: var(--space-2); margin-bottom: var(--space-2); font-weight: var(--font-weight-strong); color: var(--color-text); }
   .gal-disc .icon { width: 18px; height: 18px; }
-  .gal-tools { display: flex; gap: var(--space-6); align-items: center; }
-  .gal-panel { padding: var(--space-8) var(--space-10) var(--space-10); border-bottom: 1px solid var(--color-line); background: var(--color-bg); }
-  .gal-panel > h2 { display: flex; align-items: baseline; gap: var(--space-3); margin-bottom: var(--space-6); font-size: var(--type-title-size); line-height: var(--type-title-line); font-weight: var(--type-title-weight); }
+  .gal-tools { display: flex; flex-wrap: wrap; gap: var(--space-2) var(--space-6); align-items: center; }
+  .gal-panel { padding: var(--space-8) min(var(--space-10), 5%) var(--space-10); border-bottom: 1px solid var(--color-line); background: var(--color-bg); }
+  .gal-panel > h2 { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--space-3); margin-bottom: var(--space-6); font-size: var(--type-title-size); line-height: var(--type-title-line); font-weight: var(--type-title-weight); }
   .gal-panel > h2 small { color: var(--color-text-muted); font-size: var(--type-body-size); line-height: var(--type-body-line); font-weight: var(--type-body-weight); }
-  .gal-grid { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: var(--space-6); }
-  .gal-card { grid-column: span 6; min-width: 0; padding: var(--space-6); border: 1px solid var(--color-line); border-radius: var(--radius-card); background: var(--color-surface); }
+  .gal-grid { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: var(--space-6); container-type: inline-size; }
+  .gal-card { grid-column: span 6; min-width: 0; padding: max(var(--space-3), min(var(--space-6), 5%)); border: 1px solid var(--color-line); border-radius: var(--radius-card); background: var(--color-surface); }
   .gal-card.w12 { grid-column: span 12; } .gal-card.w8 { grid-column: span 8; } .gal-card.w4 { grid-column: span 4; }
   .gal-card > h3 { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--space-2); margin-bottom: var(--space-4); font-size: var(--type-body-strong-size); line-height: var(--type-body-strong-line); font-weight: var(--type-body-strong-weight); }
-  .gal-card > h3 code, .gal-note code { font-family: var(--font-family-ui); color: var(--color-text-muted); font-size: var(--type-caption-size); line-height: var(--type-caption-line); font-weight: var(--type-caption-weight); }
+  .gal-card > h3 code, .gal-note code { overflow-wrap: anywhere; font-family: var(--font-family-ui); color: var(--color-text-muted); font-size: var(--type-caption-size); line-height: var(--type-caption-line); font-weight: var(--type-caption-weight); }
   .gal-note { margin-top: var(--space-3); color: var(--color-text-muted); font-size: var(--type-caption-size); line-height: var(--type-caption-line); }
   .gal-row { display: flex; flex-wrap: wrap; gap: var(--space-4); align-items: center; }
-  .gal-col { display: grid; gap: var(--space-4); align-content: start; }
+  .gal-col { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-4); align-content: start; } /* run 2: the implicit auto track grew to its widest child's min-content */
   .gal-2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-6); }
   /* S0 D3 specimen scaffolding: the neutral host resolves colour and fill itself (inherited colour is already resolved upstream) */
-  .gal-neutral { display: grid; gap: var(--space-4); align-content: start; padding: var(--space-4); border: 1px solid var(--color-line); border-radius: var(--radius-window); background: var(--color-surface); color: var(--color-text); }
-  .gal-surround { padding: var(--space-6); border-radius: var(--radius-tile); background: var(--color-surface-surround); }
+  .gal-neutral { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-4); align-content: start; padding: min(var(--space-4), 4%); border: 1px solid var(--color-line); border-radius: var(--radius-window); background: var(--color-surface); color: var(--color-text); }
+  .gal-surround { padding: min(var(--space-6), 5%); border-radius: var(--radius-tile); background: var(--color-surface-surround); }
   [data-theme="contrast"] .gal-surround { box-shadow: inset 0 0 0 1px var(--color-line-strong); }
   .gal-canvas { height: 96px; border-radius: var(--radius-tile-small); background: linear-gradient(135deg, var(--color-surface-raised), var(--color-silver)); }
-  .gal-canvas:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
-  .gal-raised { display: grid; gap: var(--space-3); padding: var(--space-4); border-radius: var(--radius-card); background: var(--color-surface-raised); }
-  .gal-matrix { display: grid; grid-template-columns: 96px repeat(6, minmax(0, 1fr)); gap: var(--space-3) var(--space-2); align-items: center; }
+  .gal-canvas:is(:focus-visible, [data-demo~="focus"]) { outline: 2px solid var(--color-focus); outline-offset: 2px; }
+  .gal-raised { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-3); padding: min(var(--space-4), 4%); border-radius: var(--radius-card); background: var(--color-surface-raised); }
+  /* repair-2: a state matrix is a two-dimensional comparison (WCAG 1.4.10 exception): columns never squeeze a label; narrow windows scroll it inside the card */
+  .gal-matrix { display: grid; grid-template-columns: 96px repeat(6, minmax(min-content, 1fr)); gap: var(--space-3) var(--space-2); align-items: center; overflow-x: auto; padding: var(--space-1); }
   .gal-matrix > .gal-lab { color: var(--color-text-muted); font-size: var(--type-caption-size); line-height: var(--type-caption-line); }
   .gal-cell { display: flex; }
-  .gal-stage { position: relative; height: 300px; overflow: hidden; border-radius: var(--radius-tile); border: 1px solid var(--color-line); background: var(--color-surface-panel); }
-  .gal-stage .ds-dialog { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); margin: 0; animation: none; }
-  .gal-stage-text { padding: var(--space-4); color: var(--color-text-muted); }
-  .gal-windows { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-6); align-items: start; }
+  .gal-stage { position: relative; display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: auto 1fr; justify-items: center; align-items: center; min-height: 300px; padding-bottom: var(--space-6); overflow: hidden; border-radius: var(--radius-tile); border: 1px solid var(--color-line); background: var(--color-surface-panel); }
+  .gal-stage .ds-dialog { position: relative; margin: 0; animation: none; } /* in flow: the stage grows with the dialog (run 2) */
+  .gal-stage-text { justify-self: stretch; padding: var(--space-4); color: var(--color-text-muted); }
+  .gal-windows { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); gap: var(--space-6); align-items: start; }
   .gal-maxframe { border: 1px solid var(--color-line); border-radius: var(--radius-tile); overflow: hidden; }
   .gal-menu-card { min-height: 420px; }
   .gal-asks { display: flex; flex-wrap: wrap; gap: var(--space-6); align-items: start; }
+  .gal-asks > div { min-width: 0; max-width: 100%; }
   .gal-orbit-wrap { display: flex; justify-content: center; padding: var(--space-6) 0 var(--space-2); border-radius: var(--radius-tile); background: var(--color-surface-panel); }
-  .gal-sw { display: grid; grid-template-columns: repeat(auto-fill, minmax(196px, 1fr)); gap: var(--space-3); }
+  .gal-sw { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 196px), 1fr)); gap: var(--space-3); }
   .gal-sw figure { display: grid; grid-template-columns: 40px minmax(0, 1fr); gap: var(--space-2); align-items: center; }
   .gal-chip { width: 40px; height: 40px; border-radius: var(--radius-tile-small); border: 1px solid var(--color-line-strong); }
   .gal-sw figcaption { min-width: 0; font-size: var(--type-caption-size); line-height: var(--type-caption-line); overflow-wrap: anywhere; }
@@ -67,20 +70,68 @@
   .gal-icons figure { display: grid; justify-items: center; gap: var(--space-1); padding: var(--space-3) var(--space-1); border-radius: var(--radius-tile-small); border: 1px solid var(--color-line); }
   .gal-icons .icon { width: 24px; height: 24px; }
   .gal-icons figcaption { font-size: var(--type-caption-size); line-height: var(--type-caption-line); color: var(--color-text-muted); }
-  .gal-type { display: grid; gap: var(--space-4); }
+  .gal-type { display: grid; gap: var(--space-4); overflow-wrap: anywhere; }
   .gal-type > div { display: grid; grid-template-columns: 200px minmax(0, 1fr); gap: var(--space-4); align-items: baseline; border-bottom: 1px solid var(--color-line); padding-bottom: var(--space-3); }
   .gal-type .lab { color: var(--color-text-muted); font-size: var(--type-caption-size); line-height: var(--type-caption-line); }
-  .gal-scale { overflow: hidden; }
+  /* run 2: below 900 px of grid width (narrow windows, 200 %) every card takes the full row; 12 gaps alone exceeded a 320 px row */
+  /* run-2 repair 2: these blocks follow the .gal-2 and .gal-type rules they override; placed before them they never applied, so the
+     two-column specimens stayed two 117 px columns at 320 px. .gal-2 stacks only below 480 px: between 480 and 900 px its two columns
+     keep the lists in their stacked form, where one full-width column would leave a row name about 50 px (ds-1.0 list, 441-500 px) */
+  @container (max-width: 900px) { .gal-grid > :is(.gal-card, .gal-card.w12, .gal-card.w8, .gal-card.w4) { grid-column: 1 / -1; } .gal-type > div { grid-template-columns: minmax(0, 1fr); gap: var(--space-1); } }
+  @container (max-width: 480px) { .gal-2 { grid-template-columns: minmax(0, 1fr); } }
+  .gal-scale { overflow-x: auto; overflow-y: hidden; } /* run 2: the 1360 px strip scrolls inside its panel in a narrow window instead of being cut off */
   .gal-scale [data-scale="2"] { width: 680px; }
   [data-only] .gal-panel:not([data-show]), [data-only] .gal-ref:not([data-show]) { display: none; }
   pre#out { display: none; }
+  /* ds-1.1 accessibility panel and combinations (gallery layout only) */
+  .gal-a11y { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: var(--space-6); align-items: start; }
+  .gal-set { display: grid; gap: var(--space-5); }
+  /* repair-2: axes grouped by what they change, each a segmented choice whose tiles carry a static sample of their own value */
+  .gal-group { display: grid; gap: var(--space-4); }
+  .gal-group + .gal-group { padding-top: var(--space-4); border-top: 1px solid var(--color-line); }
+  .gal-group-h { margin: 0; display: flex; align-items: center; gap: var(--space-2); color: var(--color-text-muted); font-size: var(--type-caption-size); line-height: var(--type-caption-line); font-weight: var(--type-caption-weight); letter-spacing: .08em; text-transform: uppercase; }
+  .gal-group-h::before { content: ""; width: 14px; height: 2px; border-radius: var(--radius-mark); background: var(--color-blade); box-shadow: 0 0 6px var(--color-blade-glow); }
+  .gal-active { display: grid; gap: var(--space-3); padding: var(--space-4); border: 1px solid var(--color-line); border-radius: var(--radius-card); background: var(--color-surface); }
+  .gal-chips { display: flex; flex-wrap: wrap; gap: var(--space-2); margin: 0; padding: 0; list-style: none; }
+  .gal-chips .ds-btn { height: auto; min-height: max(var(--space-control-height), var(--space-target-min)); padding-block: var(--space-1); white-space: normal; text-align: start; }
+  .gal-sample { position: relative; display: inline-flex; flex: none; align-items: center; justify-content: center; gap: 3px; width: 52px; height: 32px; border: 1px solid var(--color-line); border-radius: var(--radius-tile-small); background: var(--color-surface); color: var(--color-text); overflow: hidden; font-size: var(--type-caption-size); line-height: var(--type-caption-line); font-weight: var(--type-caption-weight); }
+  .gal-sample[data-sample="theme"] { background: var(--color-bg); }
+  .gal-sample:is([data-sample="theme"], [data-sample="light"])::after { content: ""; position: absolute; left: 26%; right: 26%; bottom: 4px; height: 2px; border-radius: var(--radius-mark); background: var(--color-blade); }
+  .gal-sample[data-sample="contrast"] { color: var(--color-text-muted); }
+  .gal-sample[data-sample="glass"]::before { content: ""; position: absolute; left: 7px; top: 7px; width: 16px; height: 16px; border-radius: var(--radius-round); background: var(--place-nas); }
+  .gal-sample[data-sample="glass"]::after { content: ""; position: absolute; left: 15px; top: 4px; right: 6px; bottom: 4px; border: 1px solid var(--color-line); border-radius: var(--radius-tile-small); background: var(--material-glass); }
+  .gal-sample[data-sample="motion"] { justify-content: flex-end; padding-right: 10px; }
+  .gal-sample[data-sample="motion"]::before { content: ""; position: absolute; left: 8px; right: 24px; top: calc(50% - 1px); height: 2px; border-radius: var(--radius-mark); background: linear-gradient(90deg, transparent, var(--color-blade)); }
+  .gal-sample[data-sample="motion"][data-motion="reduce"]::before { content: none; }
+  @media (prefers-reduced-motion: reduce) { .gal-sample[data-sample="motion"]:not([data-motion])::before { content: none; } }
+  .gal-sample[data-sample="stimulus"] { box-shadow: var(--elev-plate); }
+  .gal-sample[data-sample="stimulus"]::before { content: ""; width: 60%; height: 2px; border-radius: var(--radius-mark); background: var(--color-blade); box-shadow: 0 0 8px 2px var(--color-blade-glow); }
+  .gal-sample[data-sample="line"] { flex-direction: column; align-items: flex-start; gap: 3px; padding: 0 6px; }
+  .gal-sample[data-sample="line"] > i { display: block; width: 38px; height: 2px; border-radius: var(--radius-mark); background: var(--color-text-muted); }
+  .gal-sample[data-sample="line"] > i:last-child { width: 24px; }
+  .gal-sample[data-sample="line"][data-line-length="short"] > i { width: 22px; }
+  .gal-sample[data-sample="line"][data-line-length="short"] > i:last-child { width: 14px; }
+  .gal-sample[data-sample="target"]::before { content: ""; position: absolute; width: calc(var(--space-target-min) * .66); height: calc(var(--space-target-min) * .66); border: 1px solid var(--color-line-strong); border-radius: var(--radius-tile-small); }
+  .gal-sample[data-sample="target"] > i { width: 8px; height: 8px; border-radius: var(--radius-round); background: var(--color-text); }
+  .gal-set .gal-row { gap: var(--space-1) var(--space-4); }
+  .gal-tag { color: var(--color-text-muted); font-size: var(--type-caption-size); line-height: var(--type-caption-line); font-weight: var(--type-caption-weight); }
+  .gal-preview { display: grid; gap: var(--space-4); padding: var(--space-6); border-radius: var(--radius-window); background: var(--color-bg); color: var(--color-text); position: sticky; top: var(--space-4); }
+  .gal-kern { display: flex; align-items: center; gap: var(--space-2); padding: var(--space-2) var(--space-3); border-radius: var(--radius-tile); background: var(--material-kern-bg); color: var(--material-kern-tx); border: 1px solid var(--material-kern-line); }
+  .gal-combo-row { display: grid; grid-template-columns: 200px repeat(3, minmax(0, 1fr)); gap: var(--space-3); align-items: start; padding: var(--space-3) 0; border-bottom: 1px solid var(--color-line); }
+  .gal-combo-row > .gal-tag { overflow-wrap: anywhere; }
+  .gal-combo { display: grid; gap: var(--space-2); min-width: 0; padding: var(--space-3); border-radius: var(--radius-card); background: var(--color-surface); color: var(--color-text); border: 1px solid var(--color-line); }
+  /* run-2 repair 1: the reading text gets a strip across the three specimen columns, so 58ch and 37ch both bind (line-length axis) */
+  .gal-combo-row > .gal-combo-read { grid-column: 2 / -1; padding: var(--space-3); border-radius: var(--radius-card); background: var(--color-surface); color: var(--color-text); border: 1px solid var(--color-line); }
+  .gal-combo-read > .ds-t-reading { margin: 0; }
+  .gal-panel { container-type: inline-size; } /* run 2: a container query, unlike a media query, also reacts to [data-scale="2"] on the root */
+  @container (max-width: 1100px) { .gal-a11y, .gal-combo-row { grid-template-columns: minmax(0, 1fr); } .gal-combo-row > .gal-combo-read { grid-column: auto; } .gal-preview { position: static; } }
 </style>
 </head>
 <body>
 <header class="gal-head">
   <div>
     <p class="gal-disc"><i data-icon="warn"></i>Ontwerpartefact, geen werkend besturingssysteem. Alle gegevens zijn fictief.</p>
-    <h1>BaryonOS ontwerpsysteem ds-1.0</h1>
+    <h1>BaryonOS ontwerpsysteem ds-1.1</h1>
     <p>Componenten met al hun staten in drie thema's (donker, licht, hoog contrast), een strook op 200 % en de tokens van <code>tokens.css</code>. Kleur betekent alleen plaats: groen dit apparaat, blauw NAS, rood internet; plaats en staat zijn altijd vorm, pictogram en tekst. Gevormd door S0 (<code>docs/design/suite/WORKSPACE-REQUIREMENTS.md</code>): geen statuskleur, fout is een vierkant in tekstkleur.</p>
   </div>
   <div class="gal-tools">
@@ -90,6 +141,42 @@
 
 <main>
   <div id="panels"></div>
+
+  <section class="gal-panel" id="panel-a11y" data-theme="dark" aria-labelledby="h-a11y">
+    <h2 id="h-a11y">Instellingen › Toegankelijkheid <small>twee lagen: de basis geldt altijd · elke instelling apart te combineren · ds-1.1 §21</small></h2>
+    <div class="gal-a11y">
+      <form class="gal-set" id="a11y-form" aria-describedby="a11y-intro">
+        <p class="ds-field-hint" id="a11y-intro">Leesbaar contrast, zichtbare focus, toetsenbord, klikvlakken van 24 px en veilige beweging gelden altijd, zonder instelling. Hieronder pas je BaryonOS verder aan; elke keuze werkt los en samen met de andere. Elke keuze toont een klein voorbeeld van zichzelf; het voorbeeld rechts toont alles samen.</p>
+<section class="gal-active" aria-labelledby="g-actief"><h3 class="gal-group-h" id="g-actief">Actief</h3><ul class="gal-chips" id="a11y-chips"><li class="gal-tag">Niets aangepast: je ziet BaryonOS zoals ontworpen, met de voorkeuren van je apparaat.</li></ul><div class="gal-row"><button class="ds-btn" data-variant="secondary" type="button" id="a11y-reset"><i data-icon="versies"></i>Standaard herstellen</button><button class="ds-btn" data-variant="quiet" type="button" id="a11y-undo" hidden>Ongedaan maken</button></div></section>
+<section class="gal-group" aria-labelledby="g-zien"><h3 class="gal-group-h" id="g-zien">Zien</h3>
+<fieldset class="ds-fieldset" data-axis="theme"><legend>Thema</legend><div class="ds-seg"><label class="ds-radio"><input type="radio" name="a11y-theme" value="" checked><span class="gal-sample" data-sample="theme" data-theme="dark" data-follow aria-hidden="true"><span>Aa</span></span>Volg apparaat</label><label class="ds-radio"><input type="radio" name="a11y-theme" value="dark"><span class="gal-sample" data-sample="theme" data-theme="dark" aria-hidden="true"><span>Aa</span></span>Donker</label><label class="ds-radio"><input type="radio" name="a11y-theme" value="light"><span class="gal-sample" data-sample="theme" data-theme="light" aria-hidden="true"><span>Aa</span></span>Licht</label><label class="ds-radio"><input type="radio" name="a11y-theme" value="contrast"><span class="gal-sample" data-sample="theme" data-theme="contrast" aria-hidden="true"><span>Aa</span></span>Hoog contrast</label></div><p class="ds-field-hint">Volg apparaat kiest licht of donker zoals je apparaat is ingesteld. <span class="gal-tag">Werkt in dit prototype.</span></p></fieldset>
+<fieldset class="ds-fieldset" data-axis="contrast"><legend>Contrast</legend><div class="ds-seg"><label class="ds-radio"><input type="radio" name="a11y-contrast" value="" checked><span class="gal-sample" data-sample="contrast" data-theme="dark" aria-hidden="true"><span>Aa</span></span>Volg apparaat</label><label class="ds-radio"><input type="radio" name="a11y-contrast" value="standard"><span class="gal-sample" data-sample="contrast" data-theme="dark" data-contrast="standard" aria-hidden="true"><span>Aa</span></span>Standaard</label><label class="ds-radio"><input type="radio" name="a11y-contrast" value="increased"><span class="gal-sample" data-sample="contrast" data-theme="dark" data-contrast="increased" aria-hidden="true"><span>Aa</span></span>Verhoogd</label></div><p class="ds-field-hint">Verhoogd: tekst minstens 7:1 en randen van 2 px, in licht en donker. Beweging en materialen blijven. <span class="gal-tag">Werkt in dit prototype.</span></p><p class="ds-field-hint gal-inert" id="inert-contrast" hidden>In Hoog contrast is het contrast al hoger dan Verhoogd; deze keuze maakt daar alleen de randen 2 px dik.</p></fieldset>
+<fieldset class="ds-fieldset" data-axis="light-intensity"><legend>Lichtsterkte</legend><div class="ds-seg"><label class="ds-radio"><input type="radio" name="a11y-light-intensity" value="" checked><span class="gal-sample" data-sample="light" data-theme="dark" aria-hidden="true"><span>Aa</span></span>Standaard</label><label class="ds-radio"><input type="radio" name="a11y-light-intensity" value="dimmed"><span class="gal-sample" data-sample="light" data-theme="dark" data-light-intensity="dimmed" aria-hidden="true"><span>Aa</span></span>Gedimd</label></div><p class="ds-field-hint">Gedimd maakt alles ongeveer 30 % minder fel (elk kleurkanaal × 0,85); fijne tekst en randen worden iets sterker, zodat de contrastgrenzen blijven gelden. <span class="gal-tag">Deels in dit prototype: één stap. Diepere stappen: nog niet.</span></p></fieldset>
+<fieldset class="ds-fieldset" data-axis="transparency"><legend>Transparantie</legend><div class="ds-seg"><label class="ds-radio"><input type="radio" name="a11y-transparency" value="" checked><span class="gal-sample" data-sample="glass" data-theme="dark" aria-hidden="true"></span>Volg apparaat</label><label class="ds-radio"><input type="radio" name="a11y-transparency" value="translucent"><span class="gal-sample" data-sample="glass" data-theme="dark" data-transparency="translucent" aria-hidden="true"></span>Doorschijnend</label><label class="ds-radio"><input type="radio" name="a11y-transparency" value="opaque"><span class="gal-sample" data-sample="glass" data-theme="dark" data-transparency="opaque" aria-hidden="true"></span>Ondoorzichtig</label></div><p class="ds-field-hint">Ondoorzichtig maakt glas, Orbit en starter dicht, in dezelfde kleurfamilie. <span class="gal-tag">Werkt in dit prototype.</span></p><p class="ds-field-hint gal-inert" id="inert-transparency" hidden>Hoog contrast is al ondoorzichtig; deze keuze verandert daar niets.</p></fieldset>
+<fieldset class="ds-fieldset" data-axis="colour-perception"><legend>Kleuren onderscheiden</legend><div class="ds-seg"><label class="ds-radio"><input type="radio" name="a11y-colour-perception" value="" checked><span class="gal-sample" data-sample="colour" data-theme="dark" aria-hidden="true"><i class="ds-node" data-place="device" data-shape="device"></i><i class="ds-node" data-place="nas" data-shape="nas"></i><i class="ds-node" data-place="internet" data-shape="internet"></i></span>Uit</label><label class="ds-radio"><input type="radio" name="a11y-colour-perception" value="protan"><span class="gal-sample" data-sample="colour" data-theme="dark" data-colour-perception="protan" aria-hidden="true"><i class="ds-node" data-place="device" data-shape="device"></i><i class="ds-node" data-place="nas" data-shape="nas"></i><i class="ds-node" data-place="internet" data-shape="internet"></i></span>Rood lijkt donker</label><label class="ds-radio"><input type="radio" name="a11y-colour-perception" value="deutan"><span class="gal-sample" data-sample="colour" data-theme="dark" data-colour-perception="deutan" aria-hidden="true"><i class="ds-node" data-place="device" data-shape="device"></i><i class="ds-node" data-place="nas" data-shape="nas"></i><i class="ds-node" data-place="internet" data-shape="internet"></i></span>Rood en groen lijken op elkaar</label><label class="ds-radio"><input type="radio" name="a11y-colour-perception" value="tritan"><span class="gal-sample" data-sample="colour" data-theme="dark" data-colour-perception="tritan" aria-hidden="true"><i class="ds-node" data-place="device" data-shape="device"></i><i class="ds-node" data-place="nas" data-shape="nas"></i><i class="ds-node" data-place="internet" data-shape="internet"></i></span>Blauw en geel lijken op elkaar</label></div><p class="ds-field-hint">Kiest plaatskleuren die in een simulatie van dit kleurzien verder uit elkaar liggen (in vaktaal protan, deutan en tritan); of dat voor jou beter werkt, is nog niet met gebruikers getest. Vorm, pictogram en tekst blijven altijd. <span class="gal-tag">Deels in dit prototype: alleen de kleurpaletten. Sterkte en opslag per gebruiker: nog niet.</span></p></fieldset>
+</section>
+<section class="gal-group" aria-labelledby="g-beweging"><h3 class="gal-group-h" id="g-beweging">Beweging en prikkels</h3>
+<fieldset class="ds-fieldset" data-axis="motion"><legend>Beweging</legend><div class="ds-seg"><label class="ds-radio"><input type="radio" name="a11y-motion" value="" checked><span class="gal-sample" data-sample="motion" data-theme="dark" aria-hidden="true"><i class="ds-node" data-place="nas" data-shape="nas"></i></span>Volg apparaat</label><label class="ds-radio"><input type="radio" name="a11y-motion" value="full"><span class="gal-sample" data-sample="motion" data-theme="dark" data-motion="full" aria-hidden="true"><i class="ds-node" data-place="nas" data-shape="nas"></i></span>Volledig</label><label class="ds-radio"><input type="radio" name="a11y-motion" value="reduce"><span class="gal-sample" data-sample="motion" data-theme="dark" data-motion="reduce" aria-hidden="true"><i class="ds-node" data-place="nas" data-shape="nas"></i></span>Beperkt</label></div><p class="ds-field-hint">Beperkt zet alle beweging stil; elke animatie heeft een stilstaande vorm met dezelfde informatie. Ook bij Volledig stopt alles wat herhaalt binnen 5 seconden. <span class="gal-tag">Deels in dit prototype: nog geen tussenstand.</span></p></fieldset>
+<fieldset class="ds-fieldset" data-axis="stimulus"><legend>Prikkels</legend><div class="ds-seg"><label class="ds-radio"><input type="radio" name="a11y-stimulus" value="" checked><span class="gal-sample" data-sample="stimulus" data-theme="dark" aria-hidden="true"></span>Standaard</label><label class="ds-radio"><input type="radio" name="a11y-stimulus" value="calm"><span class="gal-sample" data-sample="stimulus" data-theme="dark" data-stimulus="calm" aria-hidden="true"></span>Rustig</label><label class="ds-radio"><input type="radio" name="a11y-stimulus" value="rich"><span class="gal-sample" data-sample="stimulus" data-theme="dark" data-stimulus="rich" aria-hidden="true"></span>Rijk</label></div><p class="ds-field-hint">Rustig haalt de gloed weg en maakt de schaduwdiepte vlakker; Rijk maakt gloed en diepte sterker. Vorm, plaatskleur en indeling blijven. <span class="gal-tag">Deels in dit prototype: gloed en diepte.</span></p><p class="ds-field-hint gal-inert" id="inert-stimulus" hidden>Hoog contrast heeft al geen gloed en geen schaduwdiepte; deze keuze verandert daar niets.</p></fieldset>
+</section>
+<section class="gal-group" aria-labelledby="g-lezen"><h3 class="gal-group-h" id="g-lezen">Lezen</h3>
+<fieldset class="ds-fieldset" data-axis="text-spacing"><legend>Ruimere tekst</legend><div class="ds-seg"><label class="ds-radio"><input type="radio" name="a11y-text-spacing" value="" checked><span class="gal-sample" data-sample="text" data-theme="dark" aria-hidden="true"><span>Tuin</span></span>Standaard</label><label class="ds-radio"><input type="radio" name="a11y-text-spacing" value="wider"><span class="gal-sample" data-sample="text" data-theme="dark" data-text-spacing="wider" aria-hidden="true"><span>Tuin</span></span>Ruimer</label></div><p class="ds-field-hint">Meer ruimte tussen letters, woorden, regels en alinea’s. <span class="gal-tag">Werkt in dit prototype.</span></p></fieldset>
+<fieldset class="ds-fieldset" data-axis="line-length"><legend>Regellengte</legend><div class="ds-seg"><label class="ds-radio"><input type="radio" name="a11y-line-length" value="" checked><span class="gal-sample" data-sample="line" data-theme="dark" aria-hidden="true"><i></i><i></i><i></i></span>Standaard</label><label class="ds-radio"><input type="radio" name="a11y-line-length" value="short"><span class="gal-sample" data-sample="line" data-theme="dark" data-line-length="short" aria-hidden="true"><i></i><i></i><i></i></span>Kort</label></div><p class="ds-field-hint">Leesteksten krijgen kortere regels: ongeveer 45 tot 50 tekens in plaats van ten hoogste 80. <span class="gal-tag">Werkt in dit prototype.</span></p></fieldset>
+</section>
+<section class="gal-group" aria-labelledby="g-bedienen"><h3 class="gal-group-h" id="g-bedienen">Bedienen</h3>
+<fieldset class="ds-fieldset" data-axis="targets"><legend>Klikvlakken</legend><div class="ds-seg"><label class="ds-radio"><input type="radio" name="a11y-targets" value="" checked><span class="gal-sample" data-sample="target" data-theme="dark" aria-hidden="true"><i></i></span>24 px</label><label class="ds-radio"><input type="radio" name="a11y-targets" value="32"><span class="gal-sample" data-sample="target" data-theme="dark" data-targets="32" aria-hidden="true"><i></i></span>32 px</label><label class="ds-radio"><input type="radio" name="a11y-targets" value="44"><span class="gal-sample" data-sample="target" data-theme="dark" data-targets="44" aria-hidden="true"><i></i></span>44 px</label></div><p class="ds-field-hint">Maakt klikvlakken groter zonder dat het ontwerp verandert. <span class="gal-tag">Werkt in dit prototype.</span></p></fieldset>
+</section>
+        <p class="ds-live" role="status" id="a11y-live"></p>
+        <p class="ds-field-hint">Native haalbaar, nog niet in dit prototype: schermlezer, vergrootglas, voorlezen, tekstgrootte 125 % en 150 % (lettertypecontract), leesliniaal, getallen met hulpbeelden, meldingen bundelen, ondertiteling, toetsenbordfilters, schakel-, oog-, hoofd- en spraakbediening. Onderzoek: flitsdemping door de compositor. Status per instelling: ds-1.1 §21.</p>
+      </form>
+      <div class="gal-preview" id="a11y-preview" data-theme="dark" aria-label="Voorbeeld met de gekozen instellingen" role="group"></div>
+    </div>
+  </section>
+
+  <section class="gal-panel" id="panel-combos" data-theme="dark" aria-labelledby="h-combos">
+    <h2 id="h-combos">Combinaties <small>standaard plus een paarsgewijze set over alle assen, elk in donker, licht en hoog contrast</small></h2>
+    <div id="combo-host"></div>
+  </section>
 
   <section class="gal-panel gal-scale" id="panel-scale" data-theme="dark" aria-labelledby="h-scale">
     <h2 id="h-scale">Strook op 200 % <small>[data-scale="2"] { zoom: 2 } · alle maten in logische px</small></h2>
@@ -180,6 +267,7 @@
         <label class="ds-radio"><input type="radio" name="{p}-scale" value="2">200 %</label>
         <label class="ds-radio"><input type="radio" name="{p}-scale" value="1.5" disabled>150 % (niet beschikbaar)</label>
       </fieldset>
+      <fieldset class="ds-fieldset"><legend>Regellengte <span class="gal-tag">segmentkeuze .ds-seg</span></legend><div class="ds-seg"><label class="ds-radio"><input type="radio" name="{p}-seg" value="" checked><span class="gal-sample" data-sample="line" data-theme="{p}" aria-hidden="true"><i></i><i></i><i></i></span>Standaard</label><label class="ds-radio" data-demo="hover"><input type="radio" name="{p}-seg" value="short"><span class="gal-sample" data-sample="line" data-theme="{p}" data-line-length="short" aria-hidden="true"><i></i><i></i><i></i></span>Kort (hover)</label></div></fieldset>
     </div>
     <p class="gal-note">Een aangevinkt keuzerondje is een gevulde schijf met een uitgespaard midden; ring-met-stip blijft voorbehouden aan NAS.</p>
   </div>
@@ -263,7 +351,7 @@
     <div class="gal-windows">
       <section class="ds-window" data-state="active" aria-label="Bestanden, actief venster">
         <header class="ds-window-bar"><i data-icon="bestanden"></i><h4 class="ds-window-title">Bestanden</h4>
-          <div class="ds-window-ctls"><button class="ds-window-ctl" aria-label="Minimaliseren"><i data-icon="min"></i></button><button class="ds-window-ctl" aria-label="Maximaliseren"><i data-icon="max"></i></button><span class="ds-tip-anchor"><button class="ds-window-ctl" aria-label="Sluiten" aria-describedby="{p}-tip-close"><i data-icon="close"></i></button><span class="ds-tip" role="tooltip" id="{p}-tip-close">Sluiten <kbd class="ds-kbd">Alt+F4</kbd></span></span></div></header>
+          <div class="ds-window-ctls"><button class="ds-window-ctl" aria-label="Minimaliseren"><i data-icon="min"></i></button><button class="ds-window-ctl" aria-label="Maximaliseren"><i data-icon="max"></i></button><span class="ds-tip-anchor"><button class="ds-window-ctl" aria-label="Sluiten" aria-describedby="{p}-tip-close"><i data-icon="close"></i></button><span class="ds-tip" role="tooltip" id="{p}-tip-close" data-align="end">Sluiten <kbd class="ds-kbd">Alt+F4</kbd></span></span></div></header>
         <div class="ds-window-body ds-muted">Actief: lichtblad in de bovenrand, volle schaduw.</div>
       </section>
       <section class="ds-window" data-state="inactive" aria-label="Notities, inactief venster">
@@ -351,33 +439,29 @@
 
   <div class="gal-card"><h3>Voortgang <code>.ds-progress role=progressbar · determinate · data-state=indeterminate</code></h3>
     <div class="gal-col">
-      <div class="ds-progress-field"><div class="ds-progress-label"><span id="{p}-pg1">Tuinplan bijwerken op Thuis-NAS</span><span class="ds-num">64 %</span></div>
+      <div class="ds-progress-field"><div class="ds-progress-label"><span id="{p}-pg1"><i class="ds-node" data-place="nas" data-shape="nas" aria-hidden="true"></i>Tuinplan bijwerken op Thuis-NAS</span><span class="ds-num">64 %</span></div>
         <div class="ds-progress" role="progressbar" aria-labelledby="{p}-pg1" aria-valuemin="0" aria-valuemax="100" aria-valuenow="64" style="--ds-value: 64%"><span class="ds-progress-bar"></span></div></div>
-      <div class="ds-progress-field"><div class="ds-progress-label"><span id="{p}-pg2">Bestanden laden…</span><span>Bezig</span></div>
+      <div class="ds-progress-field"><div class="ds-progress-label"><span id="{p}-pg2"><i class="ds-node" data-place="device" data-shape="device" aria-hidden="true"></i>Bestanden laden op dit apparaat</span><span class="ds-num" data-elapsed>Bezig</span></div>
         <div class="ds-progress" data-state="indeterminate" role="progressbar" aria-labelledby="{p}-pg2" aria-valuetext="Bezig"><span class="ds-progress-bar"></span></div></div>
     </div>
-    <p class="gal-note">Onbepaald schuift alleen als beweging mag; met beperkte beweging wordt het een stilstaande gestreepte balk met het woord Bezig.</p>
+    <p class="gal-note">De vulling eindigt in het lichtblad, de handtekening van het actieve venster. Onbepaald: een lichtblad zwaait drie keer (4,2 s) en rust dan in het midden; met beperkte beweging staat het meteen stil. Geen strepen; het woord Bezig draagt de staat.</p>
   </div>
 
-  <div class="gal-card w12"><h3>Lege staat, laden en fout <code>.ds-empty · .ds-skeleton aria-busy · .ds-empty data-tone=error</code></h3>
+  <div class="gal-card w12"><h3>Lege staat, laden en fout <code>.ds-empty · .ds-empty-orbit · data-state=busy (laden, .ds-skeleton, verstreken tijd) · data-tone=error · plaats = vorm + pictogram + tekst</code></h3>
     <div class="gal-windows">
-      <div class="ds-empty"><i data-icon="nofiles"></i><p class="ds-empty-title">Deze collectie is leeg</p><p class="ds-empty-hint">Sleep bestanden hierheen of kies Verplaatsen naar collectie.</p><div class="ds-empty-actions"><button class="ds-btn" data-variant="secondary"><i data-icon="coll"></i>Verplaatsen naar collectie</button></div></div>
-      <div class="ds-skeleton" role="status" aria-busy="true"><span class="ds-vh">Bestanden laden…</span>
-        <div class="ds-skeleton-row" aria-hidden="true"><span class="ds-skeleton-line" data-shape="icon"></span><span class="ds-skeleton-line" style="width: 70%"></span><span class="ds-skeleton-line"></span></div>
-        <div class="ds-skeleton-row" aria-hidden="true"><span class="ds-skeleton-line" data-shape="icon"></span><span class="ds-skeleton-line" style="width: 52%"></span><span class="ds-skeleton-line"></span></div>
-        <div class="ds-skeleton-row" aria-hidden="true"><span class="ds-skeleton-line" data-shape="icon"></span><span class="ds-skeleton-line" style="width: 84%"></span><span class="ds-skeleton-line"></span></div>
-        <div class="ds-skeleton-row" aria-hidden="true"><span class="ds-skeleton-line" data-shape="icon"></span><span class="ds-skeleton-line" style="width: 60%"></span><span class="ds-skeleton-line"></span></div>
-      </div>
-      <div class="ds-empty" data-tone="error" role="alert"><i data-icon="nas"></i><p class="ds-empty-title"><span class="ds-status-marker" aria-hidden="true"></span>Thuis-NAS niet bereikbaar</p><p class="ds-empty-hint">Je werk staat veilig op dit apparaat en wordt bijgewerkt zodra de NAS terug is.</p><div class="ds-empty-actions"><button class="ds-btn" data-variant="primary">Opnieuw proberen</button><button class="ds-btn" data-variant="quiet">Opslag en NAS openen</button></div></div>
+      <section class="ds-empty" aria-labelledby="{p}-em-t"><div class="ds-empty-orbit" aria-hidden="true"><i data-icon="nas"></i><span class="ds-empty-sat" data-place="nas"><i class="ds-node" data-place="nas" data-shape="nas"></i></span></div><h4 class="ds-empty-title" id="{p}-em-t">Collectie Tuin is leeg</h4><p class="ds-empty-place">Staat op <span class="ds-place" data-place="nas"><i class="ds-node" data-shape="nas" aria-hidden="true"></i><i data-icon="nas"></i>Thuis-NAS</span></p><p class="ds-empty-hint">Sleep bestanden hierheen of kies Verplaatsen naar collectie; ze komen dan ook op Thuis-NAS.</p><div class="ds-empty-actions"><button class="ds-btn" data-variant="secondary"><i data-icon="coll"></i>Verplaatsen naar collectie</button></div></section>
+      <section class="ds-empty" data-state="busy" aria-labelledby="{p}-ld-t"><div class="ds-empty-orbit" aria-hidden="true"><i data-icon="nas"></i><span class="ds-empty-sat" data-place="nas"><i class="ds-node" data-place="nas" data-shape="nas"></i></span></div><h4 class="ds-empty-title" id="{p}-ld-t" role="status">Bestanden laden…</h4><p class="ds-empty-place">Van <span class="ds-place" data-place="nas"><i class="ds-node" data-shape="nas" aria-hidden="true"></i><i data-icon="nas"></i>Thuis-NAS</span></p><p class="ds-empty-tick ds-num" data-elapsed>Nog bezig · 0:00</p><div class="ds-skeleton" aria-hidden="true"><div class="ds-skeleton-row"><span class="ds-skeleton-line" data-shape="icon"></span><span class="ds-skeleton-line" style="width: 70%"></span><i class="ds-node" data-place="nas" data-shape="nas"></i><span class="ds-skeleton-line"></span></div><div class="ds-skeleton-row"><span class="ds-skeleton-line" data-shape="icon"></span><span class="ds-skeleton-line" style="width: 52%"></span><i class="ds-node" data-place="nas" data-shape="nas"></i><span class="ds-skeleton-line"></span></div><div class="ds-skeleton-row"><span class="ds-skeleton-line" data-shape="icon"></span><span class="ds-skeleton-line" style="width: 84%"></span><i class="ds-node" data-place="nas" data-shape="nas"></i><span class="ds-skeleton-line"></span></div></div></section>
+      <section class="ds-empty" data-tone="error" role="alert" aria-labelledby="{p}-er-t"><div class="ds-empty-orbit" aria-hidden="true"><i data-icon="nas"></i><span class="ds-empty-sat" data-place="nas"><i class="ds-node" data-place="nas" data-shape="nas" data-state="off"></i></span></div><h4 class="ds-empty-title" id="{p}-er-t"><span class="ds-status-marker" aria-hidden="true"></span>Thuis-NAS niet bereikbaar</h4><p class="ds-empty-place">Je werk staat veilig op <span class="ds-place" data-place="device"><i class="ds-node" data-shape="device" aria-hidden="true"></i><i data-icon="device"></i>Dit apparaat</span></p><p class="ds-empty-hint">Het wordt bijgewerkt zodra de NAS terug is.</p><div class="ds-empty-actions"><button class="ds-btn" data-variant="primary">Opnieuw proberen</button><button class="ds-btn" data-variant="quiet">Opslag en NAS openen</button></div></section>
     </div>
+    <p class="gal-note">Eén kader voor leeg, laden en fout: de plaats van de collectie staat als knoop op een baan rond het plaatspictogram, met een lichtblad als kroon. Laden: de knoop draait drie keer rond (4,2 s) en rust bovenaan; het label zegt wat er van waar laadt. Fout: de baan breekt open, de holle knoop staat in de opening en de titel krijgt het foutvierkant. Stilstaand draagt elke vorm dezelfde informatie. Ontwerpvoorstel; het effect op gebruikers is niet onderzocht.</p>
   </div>
 
-  <div class="gal-card"><h3>Tooltip <code>.ds-tip role=tooltip · hover en focus · Esc verbergt</code></h3>
+  <div class="gal-card"><h3>Tooltip <code>.ds-tip role=tooltip · hover en focus · Esc verbergt · data-align start | end</code></h3>
     <div class="gal-row" style="padding-top: var(--space-10)">
-      <span class="ds-tip-anchor"><button class="ds-btn" data-variant="quiet" data-shape="icon" aria-label="Versies" aria-describedby="{p}-tip-v"><i data-icon="versies"></i></button><span class="ds-tip" role="tooltip" id="{p}-tip-v">Versies vergelijken en terugzetten</span></span>
+      <span class="ds-tip-anchor"><button class="ds-btn" data-variant="quiet" data-shape="icon" aria-label="Versies" aria-describedby="{p}-tip-v"><i data-icon="versies"></i></button><span class="ds-tip" role="tooltip" id="{p}-tip-v" data-align="start">Versies vergelijken en terugzetten</span></span>
       <span class="ds-tip-anchor"><button class="ds-btn" data-variant="quiet" data-shape="icon" aria-label="Zoeken" aria-describedby="{p}-tip-z"><i data-icon="zoeken"></i></button><span class="ds-tip" role="tooltip" id="{p}-tip-z" data-state="open">Zoeken <kbd class="ds-kbd">Ctrl+F</kbd></span></span>
     </div>
-    <p class="gal-note">De tooltip bij Zoeken staat vast open als specimen; de andere verschijnt bij hover of toetsenbordfocus.</p>
+    <p class="gal-note">De tooltip bij Zoeken staat vast open als specimen; de andere verschijnt bij hover of toetsenbordfocus. Een tip bij de eerste of laatste knop van een balk lijnt uit met die rand (data-align) en loopt door naar een tweede regel in plaats van buiten beeld te vallen.</p>
   </div>
 
   <div class="gal-card w12"><h3>Compacte dichtheid en neutraal oppervlak <code>data-density="compact" (S0 D2) · data-surface="neutral" (S0 D3) · waarden PROVISIONAL</code></h3>
@@ -496,7 +580,33 @@
   <div data-ask="action"></div>
   <ul class="ds-grants" aria-label="Appmachtigingen op 200 %" data-grants></ul>
   <p class="ds-live" role="status" data-grants-live></p>
+  <div class="gal-windows"><section class="ds-empty" aria-labelledby="{p}-em-t"><div class="ds-empty-orbit" aria-hidden="true"><i data-icon="nas"></i><span class="ds-empty-sat" data-place="nas"><i class="ds-node" data-place="nas" data-shape="nas"></i></span></div><h4 class="ds-empty-title" id="{p}-em-t">Collectie Tuin is leeg</h4><p class="ds-empty-place">Staat op <span class="ds-place" data-place="nas"><i class="ds-node" data-shape="nas" aria-hidden="true"></i><i data-icon="nas"></i>Thuis-NAS</span></p><p class="ds-empty-hint">Sleep bestanden hierheen of kies Verplaatsen naar collectie; ze komen dan ook op Thuis-NAS.</p><div class="ds-empty-actions"><button class="ds-btn" data-variant="secondary"><i data-icon="coll"></i>Verplaatsen naar collectie</button></div></section><section class="ds-empty" data-state="busy" aria-labelledby="{p}-ld-t"><div class="ds-empty-orbit" aria-hidden="true"><i data-icon="nas"></i><span class="ds-empty-sat" data-place="nas"><i class="ds-node" data-place="nas" data-shape="nas"></i></span></div><h4 class="ds-empty-title" id="{p}-ld-t" role="status">Bestanden laden…</h4><p class="ds-empty-place">Van <span class="ds-place" data-place="nas"><i class="ds-node" data-shape="nas" aria-hidden="true"></i><i data-icon="nas"></i>Thuis-NAS</span></p><p class="ds-empty-tick ds-num" data-elapsed>Nog bezig · 0:00</p><div class="ds-skeleton" aria-hidden="true"><div class="ds-skeleton-row"><span class="ds-skeleton-line" data-shape="icon"></span><span class="ds-skeleton-line" style="width: 70%"></span><i class="ds-node" data-place="nas" data-shape="nas"></i><span class="ds-skeleton-line"></span></div><div class="ds-skeleton-row"><span class="ds-skeleton-line" data-shape="icon"></span><span class="ds-skeleton-line" style="width: 52%"></span><i class="ds-node" data-place="nas" data-shape="nas"></i><span class="ds-skeleton-line"></span></div><div class="ds-skeleton-row"><span class="ds-skeleton-line" data-shape="icon"></span><span class="ds-skeleton-line" style="width: 84%"></span><i class="ds-node" data-place="nas" data-shape="nas"></i><span class="ds-skeleton-line"></span></div></div></section><section class="ds-empty" data-tone="error" role="alert" aria-labelledby="{p}-er-t"><div class="ds-empty-orbit" aria-hidden="true"><i data-icon="nas"></i><span class="ds-empty-sat" data-place="nas"><i class="ds-node" data-place="nas" data-shape="nas" data-state="off"></i></span></div><h4 class="ds-empty-title" id="{p}-er-t"><span class="ds-status-marker" aria-hidden="true"></span>Thuis-NAS niet bereikbaar</h4><p class="ds-empty-place">Je werk staat veilig op <span class="ds-place" data-place="device"><i class="ds-node" data-shape="device" aria-hidden="true"></i><i data-icon="device"></i>Dit apparaat</span></p><p class="ds-empty-hint">Het wordt bijgewerkt zodra de NAS terug is.</p><div class="ds-empty-actions"><button class="ds-btn" data-variant="primary">Opnieuw proberen</button><button class="ds-btn" data-variant="quiet">Opslag en NAS openen</button></div></section></div>
+  <fieldset class="ds-fieldset" data-axis="colour-perception"><legend>Kleuren onderscheiden</legend><div class="ds-seg"><label class="ds-radio"><input type="radio" name="s-cp" value="" checked><span class="gal-sample" data-sample="colour" data-theme="dark" aria-hidden="true"><i class="ds-node" data-place="device" data-shape="device"></i><i class="ds-node" data-place="nas" data-shape="nas"></i><i class="ds-node" data-place="internet" data-shape="internet"></i></span>Uit</label><label class="ds-radio"><input type="radio" name="s-cp" value="protan"><span class="gal-sample" data-sample="colour" data-theme="dark" data-colour-perception="protan" aria-hidden="true"><i class="ds-node" data-place="device" data-shape="device"></i><i class="ds-node" data-place="nas" data-shape="nas"></i><i class="ds-node" data-place="internet" data-shape="internet"></i></span>Rood lijkt donker</label><label class="ds-radio"><input type="radio" name="s-cp" value="deutan"><span class="gal-sample" data-sample="colour" data-theme="dark" data-colour-perception="deutan" aria-hidden="true"><i class="ds-node" data-place="device" data-shape="device"></i><i class="ds-node" data-place="nas" data-shape="nas"></i><i class="ds-node" data-place="internet" data-shape="internet"></i></span>Rood en groen lijken op elkaar</label><label class="ds-radio"><input type="radio" name="s-cp" value="tritan"><span class="gal-sample" data-sample="colour" data-theme="dark" data-colour-perception="tritan" aria-hidden="true"><i class="ds-node" data-place="device" data-shape="device"></i><i class="ds-node" data-place="nas" data-shape="nas"></i><i class="ds-node" data-place="internet" data-shape="internet"></i></span>Blauw en geel lijken op elkaar</label></div><p class="ds-field-hint">Kiest plaatskleuren die in een simulatie van dit kleurzien verder uit elkaar liggen; of dat voor jou beter werkt, is nog niet met gebruikers getest. <span class="gal-tag">Deels in dit prototype: alleen de kleurpaletten.</span></p></fieldset>
 </div>
+</template>
+
+<template id="tpl-combo">
+<div class="gal-combo">
+  <p class="ds-t-body-strong">Tuinplan</p>
+  <div class="gal-row"><span class="ds-place" data-place="device"><i class="ds-node" data-shape="device" aria-hidden="true"></i><i data-icon="device"></i>Dit apparaat</span><span class="ds-place" data-place="nas"><i class="ds-node" data-shape="nas" aria-hidden="true"></i><i data-icon="nas"></i>NAS</span><span class="ds-place" data-place="internet"><i class="ds-node" data-shape="internet" aria-hidden="true"></i><i data-icon="internet"></i>Internet</span></div>
+  <div class="gal-row"><button class="ds-btn" data-variant="primary" tabindex="-1">Opslaan</button><button class="ds-btn" data-variant="secondary" data-demo="focus" tabindex="-1">Versies</button><button class="ds-switch" role="switch" aria-checked="true" tabindex="-1"><span class="ds-switch-track" aria-hidden="true"></span>Niet storen</button></div>
+  <div class="ds-progress-field"><div class="ds-progress-label"><span><i class="ds-node" data-place="nas" data-shape="nas" aria-hidden="true"></i>Bijwerken op NAS</span><span class="ds-num">64 %</span></div><div class="ds-progress" role="progressbar" aria-label="Bijwerken op NAS" aria-valuenow="64" aria-valuemin="0" aria-valuemax="100" style="--ds-value: 64%"><span class="ds-progress-bar"></span></div></div>
+  <div class="gal-kern" data-theme="{k}"><i data-icon="lock"></i>Kern in tegengesteld thema</div>
+</div>
+</template>
+<template id="tpl-combo-read">
+  <p class="ds-t-reading ds-muted">Moestuin achterin: tomaten langs het hek, bonen tegen de schutting. Kruiden bij de keukendeur, zodat ze binnen handbereik staan als het regent.</p>
+</template>
+<template id="tpl-preview">
+  <section class="ds-window" data-state="active" aria-label="Bestanden, voorbeeld"><header class="ds-window-bar"><i data-icon="bestanden"></i><h3 class="ds-window-title">Bestanden</h3><div class="ds-window-ctls"><button class="ds-window-ctl" aria-label="Minimaliseren"><i data-icon="min"></i></button><button class="ds-window-ctl" aria-label="Sluiten"><i data-icon="close"></i></button></div></header>
+    <div class="ds-window-body gal-col">
+      <div class="ds-list" role="listbox" aria-label="Documenten, voorbeeld"><div class="ds-row" role="option" aria-selected="true" tabindex="0"><i data-icon="note"></i><span class="ds-row-name">Tuinplan</span><span class="ds-place" data-place="nas"><i class="ds-node" data-shape="nas" aria-hidden="true"></i><i data-icon="nas"></i>Thuis-NAS</span><span class="ds-row-meta">4 kB</span><span class="ds-row-date">Vandaag <span class="ds-num">09:12</span></span></div><div class="ds-row" role="option" aria-selected="false" tabindex="-1"><i data-icon="list"></i><span class="ds-row-name">Boodschappen</span><span class="ds-place" data-place="device"><i class="ds-node" data-shape="device" aria-hidden="true"></i><i data-icon="device"></i>Dit apparaat</span><span class="ds-row-meta">1 kB</span><span class="ds-row-date">Vandaag <span class="ds-num">08:05</span></span></div><div class="ds-row" role="option" aria-selected="false" tabindex="-1"><i data-icon="image"></i><span class="ds-row-name">Vakantiefoto's Lissabon</span><span class="ds-place" data-place="internet"><i class="ds-node" data-shape="internet" aria-hidden="true"></i><i data-icon="internet"></i>Internet</span><span class="ds-row-meta">38 MB</span><span class="ds-row-date">zo <span class="ds-num">8</span> nov</span></div></div>
+      <div class="ds-progress-field"><div class="ds-progress-label"><span><i class="ds-node" data-place="nas" data-shape="nas" aria-hidden="true"></i>Tuinplan bijwerken op Thuis-NAS</span><span class="ds-num">64 %</span></div><div class="ds-progress" role="progressbar" aria-label="Tuinplan bijwerken op Thuis-NAS" aria-valuenow="64" aria-valuemin="0" aria-valuemax="100" style="--ds-value: 64%"><span class="ds-progress-bar"></span></div></div>
+      <p class="ds-t-reading">Moestuin achterin: tomaten langs het hek, bonen tegen de schutting. Kruiden bij de keukendeur, zodat ze binnen handbereik staan als het regent.</p>
+      <div class="gal-row"><button class="ds-btn" data-variant="primary">Opslaan</button><button class="ds-btn" data-variant="secondary"><i data-icon="versies"></i>Versies</button><button class="ds-switch" role="switch" aria-checked="true"><span class="ds-switch-track" aria-hidden="true"></span>Niet storen</button></div>
+    </div></section>
+  <section class="ds-empty" data-state="busy" aria-label="Laden, voorbeeld"><div class="ds-empty-orbit" aria-hidden="true"><i data-icon="nas"></i><span class="ds-empty-sat" data-place="nas"><i class="ds-node" data-place="nas" data-shape="nas"></i></span></div><p class="ds-empty-title">Collectie Tuin laden…</p><p class="ds-empty-place">Van <span class="ds-place" data-place="nas"><i class="ds-node" data-shape="nas" aria-hidden="true"></i><i data-icon="nas"></i>Thuis-NAS</span></p></section>
+  <div class="gal-row"><nav class="ds-orbit" aria-label="Orbit, voorbeeld"><button class="ds-taskitem" data-state="active" aria-label="Bestanden, actief"><i data-icon="bestanden"></i></button><button class="ds-taskitem" data-state="running" aria-label="Notities, open"><i data-icon="notities"></i></button><button class="ds-taskitem" aria-label="Instellingen"><i data-icon="instellingen"></i></button></nav><div class="gal-kern" data-kern><i data-icon="lock"></i>Kern: vertrouwd oppervlak</div></div>
 </template>
 
 <pre id="out"></pre>

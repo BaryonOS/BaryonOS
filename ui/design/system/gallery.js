@@ -1,8 +1,9 @@
-// BaryonOS design system ds-1.0: component gallery behaviour. DESIGN ARTEFACT, 14 November 2026; not a working OS.
+// BaryonOS design system ds-1.1: component gallery behaviour. DESIGN ARTEFACT, 14 November 2026 (ds-1.1 15 November 2026); not a working OS.
 // Builds one specimen set per theme from <template id="tpl-panel"> ({p} = id prefix, {k} = Kern theme, the opposite
 // theme per MF1), renders icons with contract.js icon(), lists token swatches, and wires keyboard behaviour:
 // Tab/Shift+Tab (native), Space/Enter (native buttons), arrows for tabs, listbox rows and menu (radios are native),
-// Escape closes the menu, dialogs and tooltips. Query: ?only=dark|light|contrast|scale|ref ?motion=reduce ?measure=1
+// Escape closes the menu, dialogs and tooltips. Query: ?only=dark|light|contrast|a11y|combos|scale|ref ?motion=reduce
+// ?theme=dark|light|contrast ?measure=1. ds-1.1: the Toegankelijkheid settings group drives #a11y-preview; #combo-host renders a pairwise set.
 import { icon, T, ask, setPrompt, grants, files, bus, destination } from '../prototype/contract.js'
 import { ICONS } from './icons.js'
 
@@ -13,6 +14,9 @@ const $$ = (s, el = document) => [...el.querySelectorAll(s)]
 const THEMES = [['dark', 'Donker', 'light'], ['light', 'Licht', 'dark'], ['contrast', 'Hoog contrast', 'contrast']]
 const KERN = Object.fromEntries(THEMES.map(([p, , k]) => [p, k]))
 if (q.get('motion') === 'reduce') root.dataset.motion = 'reduce'
+// polarity follows the device (prefers-color-scheme) unless the URL names a theme (ds-1.1 section 21.4)
+const deviceTheme = () => matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark'
+root.dataset.theme = ['dark', 'light', 'contrast'].includes(q.get('theme')) ? q.get('theme') : deviceTheme()
 
 const fill = (id, p, k) => document.getElementById(id).innerHTML.replaceAll('{p}', p).replaceAll('{k}', k)
 function hydrate(scope) {
@@ -39,6 +43,91 @@ for (const h of $$('[data-ask]')) {
   const p = h.closest('#scale-host') ? 's' : h.closest('.gal-panel').dataset.theme
   h.innerHTML = fill(`tpl-ask-${h.dataset.ask}`, p, p === 's' ? 'light' : KERN[p])
 }
+// ---------- ds-1.1 accessibility: preview, settings group and pairwise combinations (DESIGN-SYSTEM.md section 21) ----------
+const prev = $('#a11y-preview')
+prev.innerHTML = fill('tpl-preview', 'v', '')
+for (const c of prev.children) c.inert = true // illustrative: no Tab stops after the settings (repair-1); the group keeps its label
+const AXES = [['data-contrast', ['', 'increased']], ['data-transparency', ['', 'opaque']], ['data-light-intensity', ['', 'dimmed']], ['data-colour-perception', ['', 'protan', 'deutan', 'tritan']], ['data-stimulus', ['', 'calm', 'rich']], ['data-text-spacing', ['', 'wider']], ['data-line-length', ['', 'short']], ['data-targets', ['', '32', '44']], ['data-motion', ['', 'reduce']]]
+function pairwise() { // greedy covering array: every value pair of every two axes appears in at least one row; row 0 is the default
+  const key = (i, x, j, y) => i < j ? `${i}:${x}|${j}:${y}` : `${j}:${y}|${i}:${x}`
+  const need = new Set(); AXES.forEach(([, a], i) => AXES.forEach(([, b], j) => { if (j > i) a.forEach((_, x) => b.forEach((_, y) => need.add(key(i, x, j, y)))) }))
+  const total = need.size, rows = []
+  const cover = r => { rows.push(r); r.forEach((x, i) => r.forEach((y, j) => { if (j > i) need.delete(key(i, x, j, y)) })) }
+  cover(AXES.map(() => 0))
+  while (need.size) {
+    const [[i, x], [j, y]] = [...need][0].split('|').map(t => t.split(':').map(Number)), r = AXES.map(() => null); r[i] = x; r[j] = y
+    for (let k = 0; k < AXES.length; k++) if (r[k] === null) {
+      let best = 0, bg = -1
+      AXES[k][1].forEach((_, v) => { const g = r.filter((w, m) => w !== null && need.has(key(m, w, k, v))).length; if (g > bg) { bg = g; best = v } })
+      r[k] = best
+    }
+    cover(r)
+  }
+  return { rows, total, uncovered: need.size }
+}
+const PW = pairwise()
+$('#combo-host').innerHTML = PW.rows.map((r, n) => {
+  const attrs = r.map((v, k) => AXES[k][1][v] ? `${AXES[k][0]}="${AXES[k][1][v]}"` : '').filter(Boolean)
+  return `<div class="gal-combo-row"><p class="gal-tag">${n ? `${n}. ` + attrs.join(' · ') : '0. standaard (geen attribuut)'}</p>` +
+    THEMES.map(([p, name, k]) => `<div data-theme="${p}" ${attrs.join(' ')} inert aria-label="${name}">${fill('tpl-combo', p, k)}</div>`).join('') +
+    THEMES.map(([p, name, k]) => `<div class="gal-combo-read" data-theme="${p}" ${attrs.join(' ')} inert aria-label="${name}, leestekst">${fill('tpl-combo-read', p, k)}</div>`).join('') + '</div>'
+}).join('')
+const setKern = () => { $('[data-kern]', prev).dataset.theme = KERN[prev.dataset.theme] }
+const form = $('#a11y-form'), panel = $('#panel-a11y'), chips = $('#a11y-chips')
+function applyAxis(axis, v) {
+  if (axis === 'theme') prev.dataset.theme = v || deviceTheme()
+  else if (v) prev.setAttribute(`data-${axis}`, v); else prev.removeAttribute(`data-${axis}`)
+  if (axis === 'theme') { // the settings surface follows the chosen theme too (repair-2); each tile sample shows its own value in that theme
+    setKern(); panel.dataset.theme = prev.dataset.theme
+    for (const s of $$('.gal-sample:not([data-sample="theme"])', form)) s.dataset.theme = prev.dataset.theme
+    $('.gal-sample[data-follow]', form).dataset.theme = deviceTheme()
+  }
+  const inert = prev.dataset.theme === 'contrast' // these axes change nothing (contrast: only 2 px edges) in the contrast theme: say so where the choice is made
+  for (const n of $$('.gal-inert', form)) { n.hidden = !inert; const f = n.closest('fieldset'); if (inert) f.setAttribute('aria-describedby', n.id); else f.removeAttribute('aria-describedby') } // a hidden description would still be read
+}
+// Photosensitive safety (B8, WCAG 2.3.1): the radio selection follows focus at once, but the preview changes at most once per 400 ms,
+// so holding an arrow key (about 33 Hz auto-repeat) makes at most 3 changes, 1.5 flash pairs, in any second (the panel and preview).
+const GAP = 400, queued = new Map(); let lastApply = -Infinity, timer = 0
+function flush() { timer = 0; lastApply = performance.now(); for (const [a, v] of queued) applyAxis(a, v); queued.clear() }
+function queueAxis(axis, v) { queued.set(axis, v); if (timer) return; const wait = lastApply + GAP - performance.now(); if (wait <= 0) flush(); else timer = setTimeout(flush, wait) }
+form.addEventListener('change', (e) => { if (e.target.name?.startsWith('a11y-')) { queueAxis(e.target.name.slice(5), e.target.value); renderChips() } })
+// Actief (repair-2): one chip per axis that is not on its first value; a chip returns that axis alone, focus moves to the next chip
+const optText = (inp) => [...inp.parentElement.childNodes].filter(n => n.nodeType === 3).map(n => n.textContent).join('').trim()
+function renderChips() {
+  const on = $$('fieldset[data-axis]', form).filter(f => $('input:checked', f).value !== '')
+  chips.innerHTML = on.length ? on.map(f => {
+    const leg = $('legend', f).textContent, v = optText($('input:checked', f)), d = optText($('input', f))
+    return `<li><button class="ds-btn" data-variant="secondary" type="button" data-reset="${f.dataset.axis}" aria-label="${leg}: ${v}. Terug naar ${d}">${leg}: ${v}<i data-icon="close"></i></button></li>`
+  }).join('') : '<li class="gal-tag">Niets aangepast: je ziet BaryonOS zoals ontworpen, met de voorkeuren van je apparaat.</li>'
+  hydrate(chips)
+}
+chips.addEventListener('click', (e) => {
+  const b = e.target.closest('[data-reset]'); if (!b) return
+  const f = $(`fieldset[data-axis="${b.dataset.reset}"]`, form), first = $('input', f), i = $$('[data-reset]', chips).indexOf(b)
+  first.checked = true; queueAxis(f.dataset.axis, ''); renderChips()
+  const rest = $$('[data-reset]', chips); (rest[Math.min(i, rest.length - 1)] || $('#a11y-reset')).focus()
+  $('#a11y-live').textContent = `${$('legend', f).textContent} staat weer op ${optText(first)}.`
+})
+matchMedia('(prefers-color-scheme: light)').addEventListener('change', () => { if ($('input[name="a11y-theme"]:checked', form)?.value === '') queueAxis('theme', '') }) // Volg apparaat follows live
+// liveness of a long busy state after its finite loops end: elapsed time as text every 5 s (not a live region, not motion)
+const t0 = performance.now()
+setInterval(() => { const s = Math.floor((performance.now() - t0) / 5000) * 5; for (const n of $$('[data-elapsed]')) n.textContent = `Nog bezig · ${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}` }, 5000)
+let undoState = null
+const formState = () => Object.fromEntries($$('fieldset[data-axis]', form).map(f => [f.dataset.axis, $('input:checked', f).value]))
+const setForm = (st) => { for (const [a, v] of Object.entries(st)) { $(`input[name="a11y-${a}"][value="${v}"]`, form).checked = true; queueAxis(a, v) } renderChips() }
+$('#a11y-reset').addEventListener('click', () => {
+  undoState = formState(); setForm(Object.fromEntries(Object.keys(undoState).map(a => [a, ''])))
+  $('#a11y-live').textContent = 'Alle toegankelijkheidsinstellingen staan weer op standaard; je apparaatvoorkeuren gelden weer.'
+  $('#a11y-undo').hidden = false
+})
+$('#a11y-undo').addEventListener('click', () => {
+  if (undoState) setForm(undoState)
+  undoState = null
+  $('#a11y-live').textContent = 'Je vorige toegankelijkheidsinstellingen zijn terug.'; $('#a11y-undo').hidden = true; $('#a11y-reset').focus()
+})
+const qt = ['dark', 'light', 'contrast'].includes(q.get('theme')) ? q.get('theme') : '' // ?theme= preselects Thema, so the group itself renders in that theme
+$(`input[name="a11y-theme"][value="${qt}"]`, form).checked = true
+applyAxis('theme', qt); renderChips()
 hydrate(document)
 
 // ---------- permission model (contract.js ask/grants; owner decision of 14 November 2026, DESIGN-SYSTEM.md §11) ----------
@@ -321,7 +410,7 @@ document.addEventListener('focusout', undismiss)
 document.addEventListener('mouseout', undismiss)
 
 // ---------- query: ?only and ?measure ----------
-const ONLY = { dark: '#panel-dark', light: '#panel-light', contrast: '#panel-contrast', scale: '#panel-scale', ref: '#panel-ref' }
+const ONLY = { dark: '#panel-dark', light: '#panel-light', contrast: '#panel-contrast', a11y: '#panel-a11y', combos: '#panel-combos', scale: '#panel-scale', ref: '#panel-ref' }
 if (ONLY[q.get('only')]) { root.dataset.only = q.get('only'); $(ONLY[q.get('only')]).dataset.show = '' }
 
 const rgb = (s) => {
@@ -338,6 +427,12 @@ function baseOf(el) {
     if (c && !/rgba\(.*,\s*0\)$/.test(c) && c !== 'transparent') return rgb(c)
   }
   return rgb(getComputedStyle(document.body).backgroundColor)
+}
+
+// the element's own fill, composited over the base below it when translucent (an inset focus ring sits on it)
+function ownBase(el) {
+  const m = (getComputedStyle(el).backgroundColor.match(/[\d.]+/g) || []).map(Number), a = m.length > 3 ? m[3] : 1, b = baseOf(el)
+  return !m.length || a === 0 ? b : m.slice(0, 3).map((v, i) => v * a + b[i] * (1 - a))
 }
 
 async function measure() {
@@ -363,22 +458,29 @@ async function measure() {
   const TY = { 13: ['18/400'], 15: ['22/400', '20/400', '22/600'], 16: ['26/400'], 22: ['28/600'], 48: ['56/400'] }
   const off = new Set(); let tn = 0
   for (const el of $$('body *')) {
-    if (el.closest('template, [data-scale], #out, svg, dialog:not([open])') || !el.getClientRects().length) continue
+    if (el.closest('template, [data-scale], #out, svg, dialog:not([open]), #a11y-preview, #combo-host, .gal-sample') || !el.getClientRects().length) continue // axis specimens and tile samples vary type on purpose (section 21)
     if (!el.matches('input:not([type="checkbox"], [type="radio"])') && ![...el.childNodes].some(c => c.nodeType === 3 && c.textContent.trim())) continue
     const c = getComputedStyle(el), sz = Math.round(parseFloat(c.fontSize)), lh = Math.round(parseFloat(c.lineHeight)), w = +c.fontWeight; tn++
     if (!/^"?Inter/.test(c.fontFamily) || !(TY[sz] || []).includes(`${lh}/${w}`)) off.add(`${el.tagName.toLowerCase()}.${el.className} ${c.fontFamily.split(',')[0]} ${sz}/${c.lineHeight}/${w}`)
   }
   out.type = { textElements: tn, offRole: [...off].slice(0, 20) }
   // focus ring: every interactive kind, in every theme; ring colour against the base it sits on
-  const KINDS = ['.ds-btn[data-variant="primary"]', '.ds-btn[data-variant="secondary"]', '.ds-btn[data-variant="danger"]', '.ds-input', '.ds-switch', '.ds-check > input', '.ds-radio > input', '.ds-row', '.ds-tab', '.ds-tabpanel', '.ds-window-ctl', '.ds-taskitem', '.ds-ask .ds-btn[data-choice="deny"]', '[aria-haspopup="menu"]']
+  const KINDS = ['.ds-btn[data-variant="primary"]', '.ds-btn[data-variant="secondary"]', '.ds-btn[data-variant="danger"]', '.ds-input', '.ds-switch', '.ds-check > input', '.ds-radio:not(.ds-seg > *) > input', '.ds-seg > .ds-radio > input', '.ds-row', '.ds-tab', '.ds-tabpanel', '.ds-window-ctl', '.ds-taskitem', '.ds-ask .ds-btn[data-choice="deny"]', '[aria-haspopup="menu"]']
   out.focus = {}
   for (const [p] of THEMES) for (const [h, host] of [['', ''], [' compact', ' [data-density="compact"]'], [' neutral', ' [data-surface="neutral"]']]) {
     out.focus[p + h] = [...KINDS, '.gal-canvas'].map(sel => {
       const el = $$(`#panel-${p}${host} ${sel}`).find(x => !x.closest('[inert]') && !x.disabled && x.getClientRects().length)
       if (!el) return `${sel}: none`
       el.focus({ focusVisible: true, preventScroll: true })
-      const c = getComputedStyle(el), ring = rgb(c.outlineColor)
-      return `${sel}: fv=${el.matches(':focus-visible')} ${c.outlineStyle} ${c.outlineWidth} off ${c.outlineOffset} ring:base ${ratio(ring, baseOf(el))}`
+      const box = el.closest('.ds-seg > .ds-radio') || el // a segmented tile draws the ring for its transparent radio (repair-2)
+      // a headless page without system focus never matches :focus-visible, so no ring was drawn and outline-color was the text
+      // colour (run-2 repair 1); the focus rules also accept [data-demo~="focus"], which draws the same ring
+      const fv = el.matches(':focus-visible'), demo = box.dataset.demo
+      if (!fv) box.dataset.demo = ((demo || '') + ' focus').trim()
+      const c = getComputedStyle(box), st = c.outlineStyle, w = c.outlineWidth, off = c.outlineOffset
+      const res = st === 'none' ? 'no ring rendered' : `ring:base ${ratio(rgb(c.outlineColor), parseFloat(off) < 0 ? ownBase(box) : baseOf(box))}` // inset ring: on the element's own fill
+      if (!fv) { if (demo === undefined) delete box.dataset.demo; else box.dataset.demo = demo }
+      return `${sel}: fv=${fv}${fv ? '' : ' via data-demo'} ${st} ${w} off ${off} ${res}`
     })
   }
   document.activeElement.blur()
@@ -424,7 +526,34 @@ async function measure() {
   root.dataset.motion = 'reduce'; const a1 = anim()
   if (was) root.dataset.motion = was; else delete root.dataset.motion
   out.motion = { normal: a0, reduce: a1, media: matchMedia('(prefers-reduced-motion: reduce)').matches }
+  // 200 % specimens (repair-1, repair-2): no element of .ds-empty, a progress field, the privacy strip or a settings fieldset is wider
+  // than its box, and every label's text (Range rect) stays inside its box on both axes: scrollWidth cannot see vertical spill
+  const SC = '#scale-host :is(.ds-empty, .ds-progress-field, .ds-fieldset, .ds-privacy)'
+  const LB = `${SC} :is(.ds-btn, .ds-place, .ds-radio, .ds-empty-title, .ds-empty-place, .ds-progress-label > *, .ds-privacy-lbl, .ds-privacy-text > *)`
+  out.scaleClip = $$(`${SC} *`).filter(e => e.getClientRects().length && e.scrollWidth > e.clientWidth + 1 && getComputedStyle(e).overflowX !== 'visible').map(e => `${e.className || e.tagName} ${e.scrollWidth}>${e.clientWidth}`).slice(0, 20)
+  const lb = $$(LB).filter(b => b.getClientRects().length)
+  out.scaleTextFit = { checked: lb.length, outside: lb.map(b => {
+    const r = b.getBoundingClientRect(), g = document.createRange(); g.selectNodeContents(b); const t = g.getBoundingClientRect()
+    const dy = Math.max(0, r.top - t.top, t.bottom - r.bottom), dx = Math.max(0, r.left - t.left, t.right - r.right)
+    return dy > 1 || dx > 1 ? `${b.className} "${b.textContent.trim().slice(0, 24)}" x${Math.round(dx)} y${Math.round(dy)}` : ''
+  }).filter(Boolean) }
   out.scale = (() => { const r = $('#scale-host .ds-btn').getBoundingClientRect(); return `zoom=${getComputedStyle($('#scale-host')).zoom} btnHeight=${r.height}` })()
+  // ds-1.1 (matrix rows 24, 31): every animation in the gallery is finite, ends within 5 s and repeats at most every 1 s
+  const loops = []; let animated = 0
+  for (const el of $$('body *')) for (const pe of [null, '::before', '::after']) {
+    const c = getComputedStyle(el, pe); if (c.animationName === 'none') continue
+    const durs = c.animationDuration.split(','), its = c.animationIterationCount.split(',')
+    c.animationName.split(',').forEach((n, i) => {
+      animated++
+      const ds = durs[i % durs.length].trim(), d = parseFloat(ds) * (ds.endsWith('ms') ? 1 : 1000), it = its[i % its.length].trim()
+      const end = it === 'infinite' ? Infinity : d * +it
+      if (end > 5000 || (+it > 1 && d < 1000 && d > 0)) loops.push(`${el.className?.baseVal ?? el.className}${pe || ''} ${n} ${d}ms x ${it}`)
+    })
+  }
+  out.loops = { animated, over5sOrFast: loops.slice(0, 20) }
+  out.combos = { rows: PW.rows.length, specimens: $$('#combo-host .gal-combo').length, pairs: PW.total, uncovered: PW.uncovered }
+  const kern = $('#combo-host [data-theme="light"][data-contrast="increased"] .gal-kern')
+  out.axisCascade = kern ? `Kern in light+increased: data-theme=${kern.dataset.theme} --color-text=${getComputedStyle(kern).getPropertyValue('--color-text').trim()} --color-text-muted=${getComputedStyle(kern).getPropertyValue('--color-text-muted').trim()}` : 'none'
   out.errorsAfter = window.__errs.length
   $('#out').textContent = JSON.stringify(out, null, 1)
   document.title += ' [measured]'

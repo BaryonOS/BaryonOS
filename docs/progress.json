@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-18",
-    "source_commit": "3966b43f115c23fc0d2bd51e33ebbad49ec97cd9",
+    "source_commit": "de9b99047138c4fd0015ffc3f874b273b3537484",
     "assessment_basis": "parent_commit",
-    "branch": "claude/baryon-os-design-pipeline-20261115",
-    "task": "Phase 0 PR339: preserve Claude research and independently verified successor checker on actual main",
+    "branch": "claude/baryon-os-design-pipeline-20261118",
+    "task": "UX-A11Y-DS run 2 checkpoint: blocked after 2 repairs, owner blocker, not accepted",
     "previous_score": 41,
-    "summary": "41/100 unchanged. Existing51 baseline identities and original research/archive are preserved; successor checker closes path confinement and baseline-demotion validation gaps. This structural validation is no systematic review, native accessibility acceptance or human audit. Security and final combined-source gates remain open."
+    "summary": "41/100 unchanged. UX-A11Y-DS run 2 ended blocked_after_2_repairs (2 blockers, 1 major in the final verifier round, all fixable in the authorised write set; tokens.css and check.mjs frozen). Deliverables are committed for review only and accept no criterion. Successor matrix checker exit 0 is structural validation, not native accessibility acceptance or a human audit."
   },
   "tracks": [
     {
