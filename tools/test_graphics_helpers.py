@@ -212,9 +212,9 @@ def run_helpers(output_root, qmp_source, rustc):
     save()
     try:
         ok, version = command('rustc-version', [rustc, '-vV'])
-        report['checks']['rust-1.90.0'] = ok and version.startswith(b'rustc 1.90.0 ')
-        if not report['checks']['rust-1.90.0']:
-            raise RuntimeError('G0 helper gate requires the pinned Rust 1.90.0 compiler')
+        report['checks']['rust-1.100.0'] = ok and version.startswith(b'rustc 1.100.0 ')
+        if not report['checks']['rust-1.100.0']:
+            raise RuntimeError('G0 helper gate requires the pinned Rust 1.100.0 compiler')
         libraries = []
         for name in ('boot-protocol', 'ui-core', 'kernel-core'):
             crate = name.replace('-', '_')

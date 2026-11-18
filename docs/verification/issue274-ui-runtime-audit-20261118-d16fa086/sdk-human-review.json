@@ -1,0 +1,1164 @@
+[
+  {
+    "path": "sdk/examples/audio-clip/src/main.rs",
+    "line": 27,
+    "kind": "rust_literal",
+    "value": "Framebereik buiten bereik.",
+    "dutch_lexical_candidate": false
+  },
+  {
+    "path": "sdk/examples/audio-clip/src/main.rs",
+    "line": 39,
+    "kind": "rust_literal",
+    "value": "Onvoldoende geheugen.",
+    "dutch_lexical_candidate": false
+  },
+  {
+    "path": "sdk/examples/audio-clip/src/main.rs",
+    "line": 44,
+    "kind": "rust_literal",
+    "value": "WAV lezen mislukt: {error}",
+    "dutch_lexical_candidate": true
+  },
+  {
+    "path": "sdk/examples/audio-clip/src/main.rs",
+    "line": 48,
+    "kind": "rust_literal",
+    "value": "Fragment maken mislukt: {error:?}",
+    "dutch_lexical_candidate": true
+  },
+  {
+    "path": "sdk/examples/audio-clip/src/main.rs",
+    "line": 53,
+    "kind": "rust_literal",
+    "value": "Fragment schrijven mislukt: {error}",
+    "dutch_lexical_candidate": true
+  },
+  {
+    "path": "sdk/examples/calculator/src/bin/oracle.rs",
+    "line": 12,
+    "kind": "rust_literal",
+    "value": "supported preview viewport",
+    "dutch_lexical_candidate": false
+  },
+  {
+    "path": "sdk/examples/calculator/src/bin/oracle.rs",
+    "line": 55,
+    "kind": "rust_literal",
+    "value": "host driver expects stdin or --preview FILE SCALE",
+    "dutch_lexical_candidate": false
+  },
+  {
+    "path": "sdk/examples/calculator/src/decimal.rs",
+    "line": 31,
+    "kind": "rust_literal",
+    "value": "Voer een berekening in.",
+    "dutch_lexical_candidate": false
+  },
+  {
+    "path": "sdk/examples/calculator/src/decimal.rs",
+    "line": 32,
+    "kind": "rust_literal",
+    "value": "Controleer de berekening.",
+    "dutch_lexical_candidate": false
+  },
+  {
+    "path": "sdk/examples/calculator/src/decimal.rs",
+    "line": 33,
+    "kind": "rust_literal",
+    "value": "Delen door nul kan niet.",
+    "dutch_lexical_candidate": true
+  },
+  {
+    "path": "sdk/examples/calculator/src/decimal.rs",
+    "line": 34,
+    "kind": "rust_literal",
+    "value": "Getal buiten bereik: maximaal 10 gehele cijfers.",
+    "dutch_lexical_candidate": false
+  },
+  {
+    "path": "sdk/examples/calculator/src/decimal.rs",
+    "line": 35,
+    "kind": "rust_literal",
+    "value": "Maximaal 256 tekens. Je invoer blijft behouden.",
+    "dutch_lexical_candidate": true
+  },
+  {
+    "path": "sdk/examples/calculator/src/decimal.rs",
+    "line": 36,
+    "kind": "rust_literal",
+    "value": "Maximaal 32 geneste tekens. Je invoer blijft behouden.",
+    "dutch_lexical_candidate": true
+  },
+  {
+    "path": "sdk/examples/calculator/src/decimal.rs",
+    "line": 37,
+    "kind": "rust_literal",
+    "value": "Gebruik cijfers, + - * / ( ) en een komma of punt.",
+    "dutch_lexical_candidate": false
+  },
+  {
+    "path": "sdk/examples/calculator/src/decimal.rs",
+    "line": 108,
+    "kind": "rust_literal",
+    "value": "decimal formatter emits ASCII",
+    "dutch_lexical_candidate": false
+  },
+  {
+    "path": "sdk/examples/calculator/src/model.rs",
+    "line": 60,
+    "kind": "rust_literal",
+    "value": "Invoerverbinding verbroken.",
+    "dutch_lexical_candidate": false
+  },
+  {
+    "path": "sdk/examples/calculator/src/model.rs",
+    "line": 61,
+    "kind": "rust_literal",
+    "value": "Tekst gekopieerd.",
+    "dutch_lexical_candidate": false
+  },
+  {
+    "path": "sdk/examples/calculator/src/model.rs",
+    "line": 62,
+    "kind": "rust_literal",
+    "value": "Het klembord is leeg.",
+    "dutch_lexical_candidate": false
+  },
+  {
+    "path": "sdk/examples/calculator/src/model.rs",
+    "line": 63,
+    "kind": "rust_literal",
+    "value": "Selecteer eerst tekst.",
+    "dutch_lexical_candidate": false
+  },
+  {
+    "path": "sdk/examples/calculator/src/model.rs",
+    "line": 64,
+    "kind": "rust_literal",
+    "value": "Deze selectie past nog niet op het klembord.",
+    "dutch_lexical_candidate": true
+  },
+  {
+    "path": "sdk/examples/calculator/src/model.rs",
+    "line": 65,
+    "kind": "rust_literal",
+    "value": "Kopiëren of plakken onderbroken. Probeer opnieuw.",
+    "dutch_lexical_candidate": true
+  },
+  {
+    "path": "sdk/examples/calculator/src/model.rs",
+    "line": 66,
+    "kind": "rust_literal",
+    "value": "Plak cijfers, + - * / ( ) en een komma of punt.",
+    "dutch_lexical_candidate": false
+  },
+  {
+    "path": "sdk/examples/calculator/src/model.rs",
+    "line": 68,
+    "kind": "rust_literal",
+    "value": "Maximaal 10 gehele cijfers.",
+    "dutch_lexical_candidate": false
+  },
+  {
+    "path": "sdk/examples/calculator/src/model.rs",
+    "line": 69,
+    "kind": "rust_literal",
+    "value": "Maximaal 32 geneste tekens.",
+    "dutch_lexical_candidate": false
+  },
+  {
+    "path": "sdk/examples/calculator/src/model.rs",
+    "line": 70,
+    "kind": "rust_literal",
+    "value": "Dit teken kan hier niet.",
+    "dutch_lexical_candidate": true
+  },
+  {
+    "path": "sdk/examples/calculator/src/model.rs",
+    "line": 342,
+    "kind": "rust_literal",
+    "value": "calculator input is ASCII",
+    "dutch_lexical_candidate": false
+  },
+  {
+    "path": "sdk/examples/calculator/src/model.rs",
+    "line": 355,
+    "kind": "rust_literal",
+    "value": "formatted calculator result is ASCII",
+    "dutch_lexical_candidate": false
+  },
+  {
+    "path": "sdk/examples/calculator/src/model.rs",
+    "line": 467,
+    "kind": "rust_literal",
+    "value": "Resultaat: Ctrl+C om te kopiëren",
+    "dutch_lexical_candidate": false
+  },
+  {
+    "path": "sdk/examples/calculator/src/model.rs",
+    "line": 469,
+    "kind": "rust_literal",
+    "value": "Afgerond op 9 decimalen.",
+    "dutch_lexical_candidate": false
+  },
+  {
+    "path": "sdk/examples/calculator/src/model.rs",
+    "line": 471,
+    "kind": "rust_literal",
+    "value": "Klik resultaat of Ctrl+R: selecteren",
+    "dutch_lexical_candidate": true
+  },
+  {
+    "path": "sdk/examples/calculator/src/model.rs",
+    "line": 473,
+    "kind": "rust_literal",
+    "value": "Omlaag: volgende of eigen invoer",
+    "dutch_lexical_candidate": true
+  },
+  {
+    "path": "sdk/examples/calculator/src/model.rs",
+    "line": 475,
+    "kind": "rust_literal",
+    "value": "Omhoog: eerdere berekening",
+    "dutch_lexical_candidate": false
+  },
+  {
+    "path": "sdk/examples/calculator/src/model.rs",
+    "line": 478,
+    "kind": "rust_literal",
+    "value": "Ctrl+Z: ongedaan | Ctrl+Y: opnieuw",
+    "dutch_lexical_candidate": true
+  },
+  {
+    "path": "sdk/examples/calculator/src/model.rs",
+    "line": 480,
+    "kind": "rust_literal",
+    "value": "Ctrl+Y: opnieuw",
+    "dutch_lexical_candidate": true
+  },
+  {
+    "path": "sdk/examples/calculator/src/model.rs",
+    "line": 687,
+    "kind": "rust_literal",
+    "value": "recall retains its starting draft",
+    "dutch_lexical_candidate": false
+  },
+  {
+    "path": "sdk/examples/calculator/src/render.rs",
+    "line": 302,
+    "kind": "rust_literal",
+    "value": "Vorig resultaat",
+    "dutch_lexical_candidate": false
+  },
+  {
+    "path": "sdk/examples/catalog-read/src/main.rs",
+    "line": 8,
+    "kind": "rust_literal",
+    "value": "catalog-read is only for the Nieuw OS x86_64-unknown-none target",
+    "dutch_lexical_candidate": true
+  },
+  {
+    "path": "sdk/examples/catalog-read/src/service.rs",
+    "line": 12,
+    "kind": "rust_literal",
+    "value": "Nieuw OS SDK",
+    "dutch_lexical_candidate": true
+  },
+  {
+    "path": "sdk/examples/catalog-read/src/support.rs",
+    "line": 8,
+    "kind": "rust_literal",
+    "value": ".section .app.startup,\"aw\",@progbits\n.balign 8\n.global app_startup\napp_startup:\n.zero 1024",
+    "dutch_lexical_candidate": false
+  },
+  {
+    "path": "sdk/examples/compositor/src/chrome.rs",
+    "line": 118,
+    "kind": "rust_literal",
+    "value": "Invoer nog niet actief",
+    "dutch_lexical_candidate": true
+  },
+  {
+    "path": "sdk/examples/compositor/src/chrome.rs",
+    "line": 119,
+    "kind": "rust_literal",
+    "value": "Invoer actief",
+    "dutch_lexical_candidate": false
+  },
+  {
+    "path": "sdk/examples/compositor/src/chrome.rs",
+    "line": 120,
+    "kind": "rust_literal",
+    "value": "Werkruimte gesloten",
+    "dutch_lexical_candidate": false
+  },
+  {
+    "path": "sdk/examples/compositor/src/chrome.rs",
+    "line": 134,
+    "kind": "rust_literal",
+    "value": "Nieuw OS",
+    "dutch_lexical_candidate": true
+  },
+  {
+    "path": "sdk/examples/document-export/src/lib.rs",
+    "line": 14,
+    "kind": "rust_literal",
+    "value": "<?xml version=\"1.0\" encoding=\"UTF-8\"?><w:document xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:body>",
+    "dutch_lexical_candidate": false
+  },
+  {
+    "path": "sdk/examples/document-export/src/main.rs",
+    "line": 12,
+    "kind": "rust_literal",
+    "value": "Onvoldoende geheugen.",
+    "dutch_lexical_candidate": false
+  },
+  {
+    "path": "sdk/examples/document-export/src/main.rs",
+    "line": 17,
+    "kind": "rust_literal",
+    "value": "Tekst lezen mislukt: {error}",
+    "dutch_lexical_candidate": true
+  },
+  {
+    "path": "sdk/examples/document-export/src/main.rs",
+    "line": 19,
+    "kind": "rust_literal",
+    "value": "DOCX exporteren mislukt: {error:?}",
+    "dutch_lexical_candidate": true
+  },
+  {
+    "path": "sdk/examples/document-export/src/main.rs",
+    "line": 24,
+    "kind": "rust_literal",
+    "value": "DOCX schrijven mislukt: {error}",
+    "dutch_lexical_candidate": true
+  },
+  {
+    "path": "sdk/examples/document-import/src/main.rs",
+    "line": 14,
+    "kind": "rust_literal",
+    "value": "gebruik: docx-text --plain-text < bron.docx > tekst.txt; verliest opmaak, importeert geen tabellen/velden/afbeeldingen/header- of footertekst",
+    "dutch_lexical_candidate": true
+  },
+  {
+    "path": "sdk/examples/document-import/src/main.rs",
+    "line": 24,
+    "kind": "rust_literal",
+    "value": "lezen: {e}",
+    "dutch_lexical_candidate": true
+  },
+  {
+    "path": "sdk/examples/document-import/src/main.rs",
+    "line": 25,
+    "kind": "rust_literal",
+    "value": "import geweigerd: {e:?}",
+    "dutch_lexical_candidate": false
+  },
+  {
+    "path": "sdk/examples/document-import/src/main.rs",
+    "line": 30,
+    "kind": "rust_literal",
+    "value": "schrijven: {e}",
+    "dutch_lexical_candidate": true
+  },
+  {
+    "path": "sdk/examples/image-crop/src/main.rs",
+    "line": 18,
+    "kind": "rust_literal",
+    "value": "coordinaten en afmetingen moeten decimale gehele getallen zijn",
+    "dutch_lexical_candidate": true
+  },
+  {
+    "path": "sdk/examples/image-crop/src/main.rs",
+    "line": 20,
+    "kind": "rust_literal",
+    "value": "getal buiten bereik",
+    "dutch_lexical_candidate": false
+  },
+  {
+    "path": "sdk/examples/image-crop/src/main.rs",
+    "line": 41,
+    "kind": "rust_literal",
+    "value": "onbekend of dubbel argument: {arg}",
+    "dutch_lexical_candidate": true
+  },
+  {
+    "path": "sdk/examples/image-crop/src/main.rs",
+    "line": 44,
+    "kind": "rust_literal",
+    "value": "dubbel argument: {arg}",
+    "dutch_lexical_candidate": false
+  },
+  {
+    "path": "sdk/examples/image-crop/src/main.rs",
+    "line": 47,
+    "kind": "rust_literal",
+    "value": "ontbrekende getalwaarde",
+    "dutch_lexical_candidate": false
+  },
+  {
+    "path": "sdk/examples/image-crop/src/main.rs",
+    "line": 51,
+    "kind": "rust_literal",
+    "value": "vereist --drop-metadata --unmanaged-colour: uitvoer bewaart samples/alpha, niet metadata of ICC/gamma-kleurweergave",
+    "dutch_lexical_candidate": true
+  },
+  {
+    "path": "sdk/examples/image-crop/src/main.rs",
+    "line": 54,
+    "kind": "rust_literal",
+    "value": "ontbreekt --x",
+    "dutch_lexical_candidate": true
+  },
+  {
+    "path": "sdk/examples/image-crop/src/main.rs",
+    "line": 55,
+    "kind": "rust_literal",
+    "value": "ontbreekt --y",
+    "dutch_lexical_candidate": true
+  },
+  {
+    "path": "sdk/examples/image-crop/src/main.rs",
+    "line": 56,
+    "kind": "rust_literal",
+    "value": "ontbreekt --width",
+    "dutch_lexical_candidate": true
+  },
+  {
+    "path": "sdk/examples/image-crop/src/main.rs",
+    "line": 57,
+    "kind": "rust_literal",
+    "value": "ontbreekt --height",
+    "dutch_lexical_candidate": true
+  },
+  {
+    "path": "sdk/examples/image-crop/src/main.rs",
+    "line": 66,
+    "kind": "rust_literal",
+    "value": "PNG-uitvoer overschrijdt 8 MiB",
+    "dutch_lexical_candidate": false
+  },
+  {
+    "path": "sdk/examples/image-crop/src/main.rs",
+    "line": 70,
+    "kind": "rust_literal",
+    "value": "geen uitvoergeheugen",
+    "dutch_lexical_candidate": true
+  },
+  {
+    "path": "sdk/examples/image-crop/src/main.rs",
+    "line": 85,
+    "kind": "rust_literal",
+    "value": "geen invoergeheugen",
+    "dutch_lexical_candidate": true
+  },
+  {
+    "path": "sdk/examples/image-crop/src/main.rs",
+    "line": 90,
+    "kind": "rust_literal",
+    "value": "lezen: {e}",
+    "dutch_lexical_candidate": true
+  },
+  {
+    "path": "sdk/examples/image-crop/src/main.rs",
+    "line": 102,
+    "kind": "rust_literal",
+    "value": "decoder weigert invoer: {e:?}",
+    "dutch_lexical_candidate": false
+  },
+  {
+    "path": "sdk/examples/image-crop/src/main.rs",
+    "line": 103,
+    "kind": "rust_literal",
+    "value": "crop geweigerd: {e:?}",
+    "dutch_lexical_candidate": false
+  },
+  {
+    "path": "sdk/examples/image-crop/src/main.rs",
+    "line": 119,
+    "kind": "rust_literal",
+    "value": "schrijven: {e}",
+    "dutch_lexical_candidate": true
+  },
+  {
+    "path": "sdk/examples/image-export/src/main.rs",
+    "line": 23,
+    "kind": "rust_literal",
+    "value": "Onvoldoende geheugen voor invoer.",
+    "dutch_lexical_candidate": true
+  },
+  {
+    "path": "sdk/examples/image-export/src/main.rs",
+    "line": 28,
+    "kind": "rust_literal",
+    "value": "Afbeelding lezen mislukt: {error}",
+    "dutch_lexical_candidate": true
+  },
+  {
+    "path": "sdk/examples/image-export/src/main.rs",
+    "line": 30,
+    "kind": "rust_literal",
+    "value": "Afbeelding exporteren mislukt: {error:?}",
+    "dutch_lexical_candidate": true
+  },
+  {
+    "path": "sdk/examples/image-export/src/main.rs",
+    "line": 35,
+    "kind": "rust_literal",
+    "value": "BMP schrijven mislukt: {error}",
+    "dutch_lexical_candidate": true
+  },
+  {
+    "path": "sdk/examples/image-probe/src/main.rs",
+    "line": 22,
+    "kind": "rust_literal",
+    "value": ".section .text.entry,\"ax\",@progbits\n.global _start\n_start:\n    cld\n    jmp image_main",
+    "dutch_lexical_candidate": false
+  },
+  {
+    "path": "sdk/examples/image-probe/src/main.rs",
+    "line": 150,
+    "kind": "rust_literal",
+    "value": "not an image",
+    "dutch_lexical_candidate": false
+  },
+  {
+    "path": "sdk/examples/image-viewer/src/lib.rs",
+    "line": 43,
+    "kind": "rust_literal",
+    "value": "Geen toegang tot deze afbeelding.",
+    "dutch_lexical_candidate": true
+  },
+  {
+    "path": "sdk/examples/image-viewer/src/lib.rs",
+    "line": 44,
+    "kind": "rust_literal",
+    "value": "Toegang tot de afbeelding is ingetrokken.",
+    "dutch_lexical_candidate": true
+  },
+  {
+    "path": "sdk/examples/image-viewer/src/lib.rs",
+    "line": 45,
+    "kind": "rust_literal",
+    "value": "De gekozen versie is gewijzigd. Open opnieuw.",
+    "dutch_lexical_candidate": true
+  },
+  {
+    "path": "sdk/examples/image-viewer/src/lib.rs",
+    "line": 46,
+    "kind": "rust_literal",
+    "value": "De afbeelding kon niet worden gelezen.",
+    "dutch_lexical_candidate": true
+  },
+  {
+    "path": "sdk/examples/image-viewer/src/lib.rs",
+    "line": 47,
+    "kind": "rust_literal",
+    "value": "De afbeelding past niet binnen het afgesproken geheugenbudget.",
+    "dutch_lexical_candidate": true
+  },
+  {
+    "path": "sdk/examples/image-viewer/src/lib.rs",
+    "line": 48,
+    "kind": "rust_literal",
+    "value": "De afbeelding is beschadigd.",
+    "dutch_lexical_candidate": false
+  },
+  {
+    "path": "sdk/examples/image-viewer/src/lib.rs",
+    "line": 49,
+    "kind": "rust_literal",
+    "value": "Dit afbeeldingsformaat wordt niet ondersteund.",
+    "dutch_lexical_candidate": true
+  },
+  {
+    "path": "sdk/examples/image-viewer/src/lib.rs",
+    "line": 50,
+    "kind": "rust_literal",
+    "value": "Onvoldoende geheugen om de afbeelding te openen.",
+    "dutch_lexical_candidate": true
+  },
+  {
+    "path": "sdk/examples/image-viewer/src/lib.rs",
+    "line": 51,
+    "kind": "rust_literal",
+    "value": "Openen geannuleerd.",
+    "dutch_lexical_candidate": true
+  },
+  {
+    "path": "sdk/examples/image-viewer/src/lib.rs",
+    "line": 52,
+    "kind": "rust_literal",
+    "value": "De afbeelding kon niet worden verwerkt.",
+    "dutch_lexical_candidate": true
+  },
+  {
+    "path": "sdk/examples/image-viewer/src/lib.rs",
+    "line": 374,
+    "kind": "rust_literal",
+    "value": "Geen afbeelding geopend.",
+    "dutch_lexical_candidate": true
+  },
+  {
+    "path": "sdk/examples/image-viewer/src/lib.rs",
+    "line": 375,
+    "kind": "rust_literal",
+    "value": "Afbeelding openen.",
+    "dutch_lexical_candidate": true
+  },
+  {
+    "path": "sdk/examples/image-viewer/src/lib.rs",
+    "line": 376,
+    "kind": "rust_literal",
+    "value": "Afbeelding geopend.",
+    "dutch_lexical_candidate": true
+  },
+  {
+    "path": "sdk/examples/image-viewer/src/lib.rs",
+    "line": 378,
+    "kind": "rust_literal",
+    "value": "Afbeeldingsviewer gesloten.",
+    "dutch_lexical_candidate": false
+  },
+  {
+    "path": "sdk/examples/input-service/src/wait.rs",
+    "line": 360,
+    "kind": "rust_inline_test_literal",
+    "value": "unexpected local work",
+    "dutch_lexical_candidate": false
+  },
+  {
+    "path": "sdk/examples/input-service/src/wait.rs",
+    "line": 421,
+    "kind": "rust_inline_test_literal",
+    "value": "not blocked",
+    "dutch_lexical_candidate": false
+  },
+  {
+    "path": "sdk/examples/ipc-wait-probe/src/main.rs",
+    "line": 14,
+    "kind": "rust_literal",
+    "value": ".section .text.entry,\"ax\",@progbits\n.global _start\n_start:\n    cld\n    mov rax, rsp\n    and eax, 15\n    cmp eax, 8\n    jne .Lwait_bad_alignment\n    jmp ipc_wait_main\n.Lwait_bad_alignment:\n    ud2",
+    "dutch_lexical_candidate": false
+  },
+  {
+    "path": "sdk/examples/ipc-wait-probe/src/support.rs",
+    "line": 6,
+    "kind": "rust_literal",
+    "value": ".section .app.startup,\"aw\",@progbits\n.balign 8\n.global app_startup\napp_startup:\n.zero 1024",
+    "dutch_lexical_candidate": false
+  },
+  {
+    "path": "sdk/examples/keyring/src/app.rs",
+    "line": 12,
+    "kind": "rust_literal",
+    "value": "keyring-app is only for the Nieuw OS x86_64-unknown-none target",
+    "dutch_lexical_candidate": true
+  },
+  {
+    "path": "sdk/examples/keyring/src/app.rs",
+    "line": 215,
+    "kind": "rust_literal",
+    "value": "Materiaal: geheim dat alleen de sleuteldienst kan openen.",
+    "dutch_lexical_candidate": true
+  },
+  {
+    "path": "sdk/examples/keyring/src/service.rs",
+    "line": 16,
+    "kind": "rust_literal",
+    "value": "keyring-service is only for the Nieuw OS x86_64-unknown-none target",
+    "dutch_lexical_candidate": true
+  },
+  {
+    "path": "sdk/examples/keyring/src/support.rs",
+    "line": 8,
+    "kind": "rust_literal",
+    "value": ".section .app.startup,\"aw\",@progbits\n.balign 8\n.global app_startup\napp_startup:\n.zero 1024",
+    "dutch_lexical_candidate": false
+  },
+  {
+    "path": "sdk/examples/memory/src/main.rs",
+    "line": 172,
+    "kind": "rust_literal",
+    "value": "Nieuw OS eigen geheugen.",
+    "dutch_lexical_candidate": true
+  },
+  {
+    "path": "sdk/examples/memory/src/main.rs",
+    "line": 174,
+    "kind": "rust_literal",
+    "value": "Nieuw OS",
+    "dutch_lexical_candidate": true
+  },
+  {
+    "path": "sdk/examples/memory/src/main.rs",
+    "line": 390,
+    "kind": "rust_literal",
+    "value": "jmp rax",
+    "dutch_lexical_candidate": false
+  },
+  {
+    "path": "sdk/examples/net-probe/src/main.rs",
+    "line": 214,
+    "kind": "rust_literal",
+    "value": "nieuw-os-native/1:",
+    "dutch_lexical_candidate": true
+  },
+  {
+    "path": "sdk/examples/net-probe/src/main.rs",
+    "line": 236,
+    "kind": "rust_literal",
+    "value": "native.nieuw.test",
+    "dutch_lexical_candidate": true
+  },
+  {
+    "path": "sdk/examples/net-probe/src/main.rs",
+    "line": 286,
+    "kind": "rust_literal",
+    "value": "timeout.nieuw.test",
+    "dutch_lexical_candidate": true
+  },
+  {
+    "path": "sdk/examples/network-service/src/client.rs",
+    "line": 255,
+    "kind": "rust_literal",
+    "value": "unauthorized helper",
+    "dutch_lexical_candidate": false
+  },
+  {
+    "path": "sdk/examples/network-service/src/client.rs",
+    "line": 651,
+    "kind": "rust_literal",
+    "value": "after revoke",
+    "dutch_lexical_candidate": false
+  },
+  {
+    "path": "sdk/examples/network-service/src/client.rs",
+    "line": 806,
+    "kind": "rust_literal",
+    "value": "Nieuw OS UDP app A",
+    "dutch_lexical_candidate": true
+  },
+  {
+    "path": "sdk/examples/network-service/src/client.rs",
+    "line": 808,
+    "kind": "rust_literal",
+    "value": "Nieuw OS UDP app B",
+    "dutch_lexical_candidate": true
+  },
+  {
+    "path": "sdk/examples/presentation/src/lib.rs",
+    "line": 180,
+    "kind": "rust_literal",
+    "value": "ASCII page counter",
+    "dutch_lexical_candidate": false
+  },
+  {
+    "path": "sdk/examples/presentation/src/main.rs",
+    "line": 32,
+    "kind": "rust_literal",
+    "value": "Onvoldoende geheugen.",
+    "dutch_lexical_candidate": false
+  },
+  {
+    "path": "sdk/examples/presentation/src/main.rs",
+    "line": 37,
+    "kind": "rust_literal",
+    "value": "Deck lezen mislukt: {e}",
+    "dutch_lexical_candidate": true
+  },
+  {
+    "path": "sdk/examples/presentation/src/main.rs",
+    "line": 39,
+    "kind": "rust_literal",
+    "value": "Deck is te groot.",
+    "dutch_lexical_candidate": false
+  },
+  {
+    "path": "sdk/examples/presentation/src/main.rs",
+    "line": 41,
+    "kind": "rust_literal",
+    "value": "Deck is geen UTF-8.",
+    "dutch_lexical_candidate": true
+  },
+  {
+    "path": "sdk/examples/presentation/src/main.rs",
+    "line": 42,
+    "kind": "rust_literal",
+    "value": "Deck ongeldig: {e:?}",
+    "dutch_lexical_candidate": false
+  },
+  {
+    "path": "sdk/examples/presentation/src/main.rs",
+    "line": 44,
+    "kind": "rust_literal",
+    "value": "Dia selecteren mislukt: {e:?}",
+    "dutch_lexical_candidate": true
+  },
+  {
+    "path": "sdk/examples/presentation/src/main.rs",
+    "line": 49,
+    "kind": "rust_literal",
+    "value": "Onvoldoende geheugen.",
+    "dutch_lexical_candidate": false
+  },
+  {
+    "path": "sdk/examples/presentation/src/main.rs",
+    "line": 52,
+    "kind": "rust_literal",
+    "value": "Dia renderen mislukt: {e:?}",
+    "dutch_lexical_candidate": true
+  },
+  {
+    "path": "sdk/examples/presentation/src/main.rs",
+    "line": 56,
+    "kind": "rust_literal",
+    "value": "Onvoldoende geheugen.",
+    "dutch_lexical_candidate": false
+  },
+  {
+    "path": "sdk/examples/presentation/src/main.rs",
+    "line": 58,
+    "kind": "rust_literal",
+    "value": "PPM-header mislukt: {e}",
+    "dutch_lexical_candidate": true
+  },
+  {
+    "path": "sdk/examples/presentation/src/main.rs",
+    "line": 66,
+    "kind": "rust_literal",
+    "value": "Voorbeeld schrijven mislukt: {e}",
+    "dutch_lexical_candidate": true
+  },
+  {
+    "path": "sdk/examples/random-probe/src/main.rs",
+    "line": 414,
+    "kind": "rust_literal",
+    "value": ".section .text.entry,\"ax\",@progbits\n.global _start\n_start:\n    cld\n    sub rsp, 8\n    call random_main\n    ud2",
+    "dutch_lexical_candidate": false
+  },
+  {
+    "path": "sdk/examples/spreadsheet/src/lib.rs",
+    "line": 81,
+    "kind": "rust_literal",
+    "value": "circulaire celverwijzing",
+    "dutch_lexical_candidate": false
+  },
+  {
+    "path": "sdk/examples/spreadsheet/src/lib.rs",
+    "line": 82,
+    "kind": "rust_literal",
+    "value": "maximale afhankelijkheidsdiepte bereikt",
+    "dutch_lexical_candidate": false
+  },
+  {
+    "path": "sdk/examples/spreadsheet/src/lib.rs",
+    "line": 83,
+    "kind": "rust_literal",
+    "value": "verwezen cel ontbreekt",
+    "dutch_lexical_candidate": true
+  },
+  {
+    "path": "sdk/examples/spreadsheet/src/lib.rs",
+    "line": 84,
+    "kind": "rust_literal",
+    "value": "ongeldige celverwijzing",
+    "dutch_lexical_candidate": false
+  },
+  {
+    "path": "sdk/examples/spreadsheet/src/lib.rs",
+    "line": 85,
+    "kind": "rust_literal",
+    "value": "ongeldig getal",
+    "dutch_lexical_candidate": false
+  },
+  {
+    "path": "sdk/examples/spreadsheet/src/lib.rs",
+    "line": 86,
+    "kind": "rust_literal",
+    "value": "uitgebreide formule is te lang",
+    "dutch_lexical_candidate": false
+  },
+  {
+    "path": "sdk/examples/spreadsheet/src/lib.rs",
+    "line": 89,
+    "kind": "rust_literal",
+    "value": "{} (positie {} in de geëvalueerde formule)",
+    "dutch_lexical_candidate": false
+  },
+  {
+    "path": "sdk/examples/spreadsheet/src/lib.rs",
+    "line": 100,
+    "kind": "rust_literal",
+    "value": "ongeldig celadres (gebruik A1 t/m Z64)",
+    "dutch_lexical_candidate": false
+  },
+  {
+    "path": "sdk/examples/spreadsheet/src/lib.rs",
+    "line": 101,
+    "kind": "rust_literal",
+    "value": "celinvoer is ongeldig of te lang",
+    "dutch_lexical_candidate": false
+  },
+  {
+    "path": "sdk/examples/spreadsheet/src/lib.rs",
+    "line": 102,
+    "kind": "rust_literal",
+    "value": "maximaal 64 gevulde cellen",
+    "dutch_lexical_candidate": false
+  },
+  {
+    "path": "sdk/examples/spreadsheet/src/lib.rs",
+    "line": 103,
+    "kind": "rust_literal",
+    "value": "onvoldoende geheugen",
+    "dutch_lexical_candidate": false
+  },
+  {
+    "path": "sdk/examples/spreadsheet/src/lib.rs",
+    "line": 198,
+    "kind": "rust_literal",
+    "value": "only occupied indices are resolved",
+    "dutch_lexical_candidate": false
+  },
+  {
+    "path": "sdk/examples/spreadsheet/src/lib.rs",
+    "line": 217,
+    "kind": "rust_literal",
+    "value": "occupied cell",
+    "dutch_lexical_candidate": false
+  },
+  {
+    "path": "sdk/examples/spreadsheet/src/main.rs",
+    "line": 21,
+    "kind": "rust_literal",
+    "value": "Ongeldig adres '{address_text}': {e}",
+    "dutch_lexical_candidate": false
+  },
+  {
+    "path": "sdk/examples/spreadsheet/src/main.rs",
+    "line": 29,
+    "kind": "rust_literal",
+    "value": "Cel instellen mislukt: {e}",
+    "dutch_lexical_candidate": true
+  },
+  {
+    "path": "sdk/examples/spreadsheet/src/main.rs",
+    "line": 33,
+    "kind": "rust_literal",
+    "value": "Herberekenen mislukt: {e}",
+    "dutch_lexical_candidate": true
+  },
+  {
+    "path": "sdk/examples/spreadsheet/src/main.rs",
+    "line": 37,
+    "kind": "rust_literal",
+    "value": "Onvoldoende geheugen.",
+    "dutch_lexical_candidate": false
+  },
+  {
+    "path": "sdk/examples/spreadsheet/src/main.rs",
+    "line": 53,
+    "kind": "rust_literal",
+    "value": "Resultaat schrijven mislukt: {e}",
+    "dutch_lexical_candidate": true
+  },
+  {
+    "path": "sdk/examples/supervisor/src/client.rs",
+    "line": 11,
+    "kind": "rust_literal",
+    "value": "k05-client is only for the Nieuw OS x86_64-unknown-none target",
+    "dutch_lexical_candidate": true
+  },
+  {
+    "path": "sdk/examples/supervisor/src/supervisor.rs",
+    "line": 13,
+    "kind": "rust_literal",
+    "value": "k05-supervisor is only for the Nieuw OS x86_64-unknown-none target",
+    "dutch_lexical_candidate": true
+  },
+  {
+    "path": "sdk/examples/supervisor/src/support.rs",
+    "line": 8,
+    "kind": "rust_literal",
+    "value": ".section .app.startup,\"aw\",@progbits\n.balign 8\n.global app_startup\napp_startup:\n.zero 1024",
+    "dutch_lexical_candidate": false
+  },
+  {
+    "path": "sdk/examples/supervisor/src/worker.rs",
+    "line": 12,
+    "kind": "rust_literal",
+    "value": "k05-worker is only for the Nieuw OS x86_64-unknown-none target",
+    "dutch_lexical_candidate": true
+  },
+  {
+    "path": "sdk/examples/system/src/app.rs",
+    "line": 516,
+    "kind": "rust_literal",
+    "value": "read-only must retain the recovered document",
+    "dutch_lexical_candidate": false
+  },
+  {
+    "path": "sdk/examples/system/src/app.rs",
+    "line": 695,
+    "kind": "rust_literal",
+    "value": "Nieuw OS: echte lokale cryptografie via ring-3 IPC.",
+    "dutch_lexical_candidate": true
+  },
+  {
+    "path": "sdk/examples/system/src/support.rs",
+    "line": 8,
+    "kind": "rust_literal",
+    "value": ".section .app.startup,\"aw\",@progbits\n.balign 8\n.global app_startup\napp_startup:\n.zero 1024",
+    "dutch_lexical_candidate": false
+  },
+  {
+    "path": "sdk/examples/table-editor/src/main.rs",
+    "line": 12,
+    "kind": "rust_literal",
+    "value": "Argument is geen geldige UTF-8-tekst.",
+    "dutch_lexical_candidate": true
+  },
+  {
+    "path": "sdk/examples/table-editor/src/main.rs",
+    "line": 17,
+    "kind": "rust_literal",
+    "value": "Gebruik: table-csv [--set RIJ KOLOM TEKST]...; indices beginnen bij 1.",
+    "dutch_lexical_candidate": false
+  },
+  {
+    "path": "sdk/examples/table-editor/src/main.rs",
+    "line": 26,
+    "kind": "rust_literal",
+    "value": "CSV lezen mislukt: {error}",
+    "dutch_lexical_candidate": true
+  },
+  {
+    "path": "sdk/examples/table-editor/src/main.rs",
+    "line": 28,
+    "kind": "rust_literal",
+    "value": "CSV import mislukt: {error:?}",
+    "dutch_lexical_candidate": true
+  },
+  {
+    "path": "sdk/examples/table-editor/src/main.rs",
+    "line": 35,
+    "kind": "rust_literal",
+    "value": "Rij en kolom moeten positieve gehele getallen zijn.",
+    "dutch_lexical_candidate": true
+  },
+  {
+    "path": "sdk/examples/table-editor/src/main.rs",
+    "line": 39,
+    "kind": "rust_literal",
+    "value": "Cel bewerken mislukt: {error:?}",
+    "dutch_lexical_candidate": true
+  },
+  {
+    "path": "sdk/examples/table-editor/src/main.rs",
+    "line": 43,
+    "kind": "rust_literal",
+    "value": "CSV export mislukt: {error:?}",
+    "dutch_lexical_candidate": true
+  },
+  {
+    "path": "sdk/examples/table-editor/src/main.rs",
+    "line": 47,
+    "kind": "rust_literal",
+    "value": "CSV schrijven mislukt: {error}",
+    "dutch_lexical_candidate": true
+  },
+  {
+    "path": "sdk/examples/tcp-probe/src/main.rs",
+    "line": 12,
+    "kind": "rust_literal",
+    "value": "GET /nieuw-os-tcp HTTP/1.1\\r\\nHost: fixture.invalid\\r\\nConnection: close\\r\\n\\r\\n",
+    "dutch_lexical_candidate": true
+  },
+  {
+    "path": "sdk/examples/tcp-probe/src/main.rs",
+    "line": 15,
+    "kind": "rust_literal",
+    "value": "POST /nieuw-os-backpressure HTTP/1.1\\r\\nHost: fixture.invalid\\r\\nContent-Length: 8088\\r\\nConnection: close\\r\\n\\r\\n",
+    "dutch_lexical_candidate": true
+  },
+  {
+    "path": "sdk/examples/update/src/service.rs",
+    "line": 13,
+    "kind": "rust_literal",
+    "value": "update-service is only for the Nieuw OS x86_64-unknown-none target",
+    "dutch_lexical_candidate": true
+  },
+  {
+    "path": "sdk/examples/update/src/service.rs",
+    "line": 30,
+    "kind": "rust_literal",
+    "value": "the update service requires an explicit signing policy; TEST anchors are test-only",
+    "dutch_lexical_candidate": false
+  },
+  {
+    "path": "sdk/examples/update/src/support.rs",
+    "line": 8,
+    "kind": "rust_literal",
+    "value": ".section .app.startup,\"aw\",@progbits\n.balign 8\n.global app_startup\napp_startup:\n.zero 1024",
+    "dutch_lexical_candidate": false
+  },
+  {
+    "path": "sdk/examples/volume-docs/src/app.rs",
+    "line": 12,
+    "kind": "rust_literal",
+    "value": "volume-app is only for the Nieuw OS x86_64-unknown-none target",
+    "dutch_lexical_candidate": true
+  },
+  {
+    "path": "sdk/examples/volume-docs/src/app.rs",
+    "line": 465,
+    "kind": "rust_literal",
+    "value": "Notitie ✓",
+    "dutch_lexical_candidate": true
+  },
+  {
+    "path": "sdk/examples/volume-docs/src/app.rs",
+    "line": 486,
+    "kind": "rust_literal",
+    "value": "Notitie",
+    "dutch_lexical_candidate": true
+  },
+  {
+    "path": "sdk/examples/volume-docs/src/app.rs",
+    "line": 491,
+    "kind": "rust_literal",
+    "value": "Notitie ✓",
+    "dutch_lexical_candidate": true
+  },
+  {
+    "path": "sdk/examples/volume-docs/src/app.rs",
+    "line": 776,
+    "kind": "rust_literal",
+    "value": "Voor de crash",
+    "dutch_lexical_candidate": true
+  },
+  {
+    "path": "sdk/examples/volume-docs/src/app.rs",
+    "line": 795,
+    "kind": "rust_literal",
+    "value": "Tijdens de crash",
+    "dutch_lexical_candidate": false
+  },
+  {
+    "path": "sdk/examples/volume-docs/src/service.rs",
+    "line": 9,
+    "kind": "rust_literal",
+    "value": "volume-service is only for the Nieuw OS x86_64-unknown-none target",
+    "dutch_lexical_candidate": true
+  },
+  {
+    "path": "sdk/examples/volume-docs/src/support.rs",
+    "line": 8,
+    "kind": "rust_literal",
+    "value": ".section .app.startup,\"aw\",@progbits\n.balign 8\n.global app_startup\napp_startup:\n.zero 1024",
+    "dutch_lexical_candidate": false
+  }
+]

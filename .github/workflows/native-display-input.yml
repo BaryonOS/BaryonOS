@@ -45,9 +45,9 @@ jobs:
         uses: ./.github/actions/setup-python
       - name: Pinned Rust, lint tools and real targets
         run: |
-          rustup toolchain install 1.90.0 --profile minimal
-          rustup component add --toolchain 1.90.0 rustfmt clippy
-          rustup target add --toolchain 1.90.0 x86_64-unknown-none x86_64-unknown-uefi
+          rustup toolchain install 1.100.0 --profile minimal
+          rustup component add --toolchain 1.100.0 rustfmt clippy
+          rustup target add --toolchain 1.100.0 x86_64-unknown-none x86_64-unknown-uefi
       - name: Cache Cargo downloads only
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
@@ -70,7 +70,7 @@ jobs:
         run: python3 -B tools/preflight.py --strict | tee "$NOS_BUILD_DIR/logs/preflight.json"
       - name: Fetch locked dependencies before offline component and native builds
         run: |
-          cargo +1.90.0 fetch --locked
+          cargo +1.100.0 fetch --locked
           for manifest in \
             drivers/ps2/Cargo.toml \
             sdk/display-client/Cargo.toml \
@@ -79,7 +79,7 @@ jobs:
             sdk/examples/input-service/Cargo.toml \
             sdk/examples/display-input-probe/Cargo.toml
           do
-            cargo +1.90.0 fetch --locked --manifest-path "$manifest"
+            cargo +1.100.0 fetch --locked --manifest-path "$manifest"
           done
       - name: Standalone host tests, lint and formatting
         run: |
@@ -90,9 +90,9 @@ jobs:
             ui/surface-protocol/Cargo.toml \
             sdk/examples/input-service/Cargo.toml
           do
-            cargo +1.90.0 test --offline --locked --manifest-path "$manifest" 2>&1 | tee -a "$NOS_BUILD_DIR/logs/standalone-host.txt"
-            cargo +1.90.0 clippy --offline --locked --manifest-path "$manifest" --all-targets -- -D warnings 2>&1 | tee -a "$NOS_BUILD_DIR/logs/standalone-host.txt"
-            cargo +1.90.0 fmt --manifest-path "$manifest" --all -- --check 2>&1 | tee -a "$NOS_BUILD_DIR/logs/standalone-host.txt"
+            cargo +1.100.0 test --offline --locked --manifest-path "$manifest" 2>&1 | tee -a "$NOS_BUILD_DIR/logs/standalone-host.txt"
+            cargo +1.100.0 clippy --offline --locked --manifest-path "$manifest" --all-targets -- -D warnings 2>&1 | tee -a "$NOS_BUILD_DIR/logs/standalone-host.txt"
+            cargo +1.100.0 fmt --manifest-path "$manifest" --all -- --check 2>&1 | tee -a "$NOS_BUILD_DIR/logs/standalone-host.txt"
           done
       - name: Scalar freestanding libraries
         env:
@@ -105,7 +105,7 @@ jobs:
             ui/native/Cargo.toml \
             ui/surface-protocol/Cargo.toml
           do
-            cargo +1.90.0 build --offline --locked --release --lib --target x86_64-unknown-none --manifest-path "$manifest" 2>&1 | tee -a "$NOS_BUILD_DIR/logs/standalone-scalar.txt"
+            cargo +1.100.0 build --offline --locked --release --lib --target x86_64-unknown-none --manifest-path "$manifest" 2>&1 | tee -a "$NOS_BUILD_DIR/logs/standalone-scalar.txt"
           done
       - name: Cross-build isolated input daemon executables
         env:
@@ -115,7 +115,7 @@ jobs:
         run: python3 -B sdk/examples/input-service/build.py 2>&1 | tee "$NOS_BUILD_DIR/logs/input-service-build.txt"
       - name: Native fixture and evidence-gate counterexamples
         run: |
-          cargo +1.90.0 test --offline --locked --manifest-path sdk/examples/display-input-probe/Cargo.toml 2>&1 | tee "$NOS_BUILD_DIR/logs/display-fixture-host.txt"
+          cargo +1.100.0 test --offline --locked --manifest-path sdk/examples/display-input-probe/Cargo.toml 2>&1 | tee "$NOS_BUILD_DIR/logs/display-fixture-host.txt"
           python3 -B tools/test_display_probe.py 2>&1 | tee "$NOS_BUILD_DIR/logs/display-gate-host.txt"
       - name: Build the paired native display/input image once
         # No native image/report cache: all three embedded CPL3 programs and

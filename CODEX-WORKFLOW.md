@@ -44,11 +44,11 @@ shared crate, the relevant consumers must also be tested.
 
 ```sh
 # Example: a change in volume-core.
-cargo +1.90.0 test --locked -p volume-core
-cargo +1.90.0 clippy --locked -p volume-core --all-targets -- -D warnings
+cargo +1.100.0 test --locked -p volume-core
+cargo +1.100.0 clippy --locked -p volume-core --all-targets -- -D warnings
 
 # SDK: separate workspace.
-cargo +1.90.0 test --manifest-path sdk/Cargo.toml --locked
+cargo +1.100.0 test --manifest-path sdk/Cargo.toml --locked
 
 # Host harness for DocumentSession.
 python3 -m unittest discover -s tests -p 'test_document_session_*.py'
@@ -127,7 +127,7 @@ A local Linux measurement can, for example, be taken like this, without a
 pipeline that hides a failure:
 
 ```sh
-/usr/bin/time -p cargo +1.90.0 test --locked -p volume-core
+/usr/bin/time -p cargo +1.100.0 test --locked -p volume-core
 ```
 
 Use the same session and valid environment for related follow-up work.
