@@ -1381,7 +1381,7 @@
       "criterion": "P01",
       "milestone": "M8",
       "executor": "worker",
-      "status": "active",
+      "status": "verified",
       "title": "NAS seal-lifecycle consumer contract (design)",
       "goal": "Write docs/implementation/NAS-SEAL-LIFECYCLE.md: existing keyring seal_record API, the missing NAS namespace/object/revision to RecordContext seam, chunking (128 B plaintext vs 104 B NASP payload), admin never holding a domain key, revoke/device loss/cold restore/Unknown/rollback, and a negative acceptance table for LP-15, LP-22, EO-01..03 and EO-10 with test owners. Every cited symbol must exist.",
       "why_now": "Implementation is blocked on an owner decision that needs an evidence-based proposal first.",
@@ -1414,8 +1414,16 @@
           "event": "active",
           "at": "2026-11-18T22:23:56.646943+00:00",
           "reason": "Isolated Codex proposed contract only; no production authority, dependency or trust root adoption."
+        },
+        {
+          "at": "2026-11-18T22:24:29.384578+00:00",
+          "event": "verified",
+          "source_commit": "91797da1ce5353465670402d273b4e4a88b660b6",
+          "reason": "PROPOSED NAS consumer contract maps existing RecordContext and opaque NAS interfaces,128/168-byte record vs104-byte wire bound, administrator/key separation, uncertainty/revocation/recovery and owned negative acceptance table. Seven source paths/11 declarations and progress checks pass. Design only; namespace-to-volume assignment, manifest publication and bounded transport format require owner/security decision. No consumer implementation/crypto or grant change, cold rollback/hardware/human audit acceptance.41/100 unchanged."
         }
-      ]
+      ],
+      "source_commit": "91797da1ce5353465670402d273b4e4a88b660b6",
+      "receipt": "docs/roadmap-pipeline/receipts/P01-T1.json"
     },
     {
       "id": "P03-T1",

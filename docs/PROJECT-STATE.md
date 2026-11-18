@@ -1,15 +1,17 @@
 # Current project status
 
-## NEXT AGENT HANDOFF — P01-T1 proposed contract — 18 November2026
+## NEXT AGENT HANDOFF — P01-T1 delivery — 18 November 2026
 
-**Claim:** Codex, codex/p01-seal-contract, basefac5a864830e6c1f88f89015f88f32357fb314c6.
-**Goal:** Write docs/implementation/NAS-SEAL-LIFECYCLE.md: existing keyring seal_record API, the missing NAS namespace/object/revision to RecordContext seam, chunking (128 B plaintext vs 104 B NASP payload), admin never holding a domain key, revoke/device loss/cold restore/Unknown/rollback, and a negative acceptance table for LP-15, LP-22, EO-01..03 and EO-10 with test owners. Every cited symbol must exist.
-**Invariant:** PROPOSED; no new trust root, escrow, capability or security-hold change.
-**Write set:** docs/implementation/NAS-SEAL-LIFECYCLE.md; lead state.
-**Acceptance:** cited source paths/symbols and progress/diff checks.
-**Evidence limit:** proposal only; owner/security decisions required before code.
-**Ownership:** no open-PR write overlap; integration/Claude branches preserved.
-**Next:** publish bounded proposal, next independent READY task. Score41/100.
+**Source:** `91797da1ce5353465670402d273b4e4a88b660b6`, `codex/p01-seal-contract`.
+**Delivered:** PROPOSED NAS consumer contract maps existing RecordContext and opaque NAS interfaces,128/168-byte record vs104-byte wire bound, administrator/key separation, uncertainty/revocation/recovery and owned negative acceptance table. Seven source paths/11 declarations and progress checks pass.
+**Checks:** executed targeted commands and raw exit codes are in the
+[exact command/log receipt](roadmap-pipeline/receipts/P01-T1.json).
+Lead source/diff review completed; no duplicate matrix. Progress **41 → 41/100**.
+**Limits:** Design only; namespace-to-volume assignment, manifest publication and bounded transport format require owner/security decision. No consumer implementation/crypto or grant change, cold rollback/hardware/human audit acceptance.41/100 unchanged.
+**Ownership:** Integration Manager owns PR integration/merges/closure. Earlier
+delivery branches and Claude S09/UI remain untouched. Unsafe unattended hold active.
+**Next:** publish new draft, immediately claim the next independent READY functional
+slice from this ledger; no waiting for integration. Prior delivery checkpoints retained.
 
 ## Retained checkpoint — unified governance implementation — 18 November 2026
 

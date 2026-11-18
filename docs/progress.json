@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-18",
-    "source_commit": "a863167986910ec127779e80e10743f89b626d8f",
+    "source_commit": "91797da1ce5353465670402d273b4e4a88b660b6",
     "assessment_basis": "parent_commit",
-    "branch": "codex/phase0-pr339-preintegration",
-    "task": "PR #356 reconciliation with main 69d82075",
+    "branch": "codex/p01-seal-contract",
+    "task": "P01-T1: PROPOSED NAS consumer contract maps existing RecordContext and opaque NAS interfaces,128/168-byte record vs104-byte wire bound, administrator/key separation, uncertainty/revocation/recovery and owned negative acceptance table. Seven source paths/11 declarations and progress checks pass.",
     "previous_score": 41,
-    "summary": "41/100 unchanged. The Phase 0 Rust 1.100, English coverage and retained source-bound evidence candidate is reconciled with main 69d82075. The newer governance contracts, disabled issue controller and unconditional execution hold remain intact. Targeted host regressions pass; mandatory current-head hosted checks remain required. This reconciliation does not establish new native, hardware, human-audit or product-criterion acceptance."
+    "summary": "41/100 unchanged. PROPOSED NAS consumer contract maps existing RecordContext and opaque NAS interfaces,128/168-byte record vs104-byte wire bound, administrator/key separation, uncertainty/revocation/recovery and owned negative acceptance table. Seven source paths/11 declarations and progress checks pass. Design only; namespace-to-volume assignment, manifest publication and bounded transport format require owner/security decision. No consumer implementation/crypto or grant change, cold rollback/hardware/human audit acceptance.41/100 unchanged. Integration/Claude ownership and execution hold preserved."
   },
   "tracks": [
     {
