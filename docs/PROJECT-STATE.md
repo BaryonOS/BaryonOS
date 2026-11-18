@@ -1,25 +1,24 @@
 # Current project status
 
-## NEXT AGENT HANDOFF — N02-T2 DHCP/service integration — 18 November 2026
+## NEXT AGENT HANDOFF — N02-T2 DHCP/service delivery — 18 November 2026
 
-**Claim:** Codex implementation, `codex/n02-dhcp-service`, base `2eac8ca39ce04753f4f6bef3b09ee9b3610c065f`.
-Resume source ledger from checkpoint34a2a30d; integration/closure of PR364–369
-belongs to the separate Integration Manager. Claude S09/UI and dirty main untouched.
-**Goal:** replace static network-service configuration with the existing DHCP
-coordinator on the same Stack/PacketDevice; withdraw address/route/DNS and sockets
-on NAK, expiry and link-down, with no default DNS or automatic old-socket reuse.
-**Invariant:** fixed authenticated ingress/destination rights remain; DHCP data
-never grants app/network authority. Existing static callers/tests remain supported.
-No duplicate stack, synthetic TX completion or execution-hold changes.
-**Write set:** network-service manifest/lock/lib/tests/dhcp_config.rs; minimal
-trusted net-config service transport seam if needed; lead checkpoint/ledger/progress.
-**Acceptance:** Rust1.91.1 network-service tests/Clippy/fmt/freestanding build,
-existing net-config regressions, real host DHCP/probe frames, withdrawal negatives.
-**Evidence limit:** host service integration/build; native DHCP, authorized real
-networks and full N02 acceptance remain open. Score41/100.
-**Environment:** rustc1.91.1 confirmed (ed61e7d7e), Clippy/rustfmt installed;
-x86_64-unknown-none target installed. Global default remains nightly.
-**Next:** one supervised builder implements bounded integration; no PR integration.
+**Source:** `ed44d77c32d0d19e0b6fab51398b169a962f9409`, `codex/n02-dhcp-service`, base `2eac8ca3`.
+**Delivered:** existing DHCP coordinator on one Stack/PacketDevice; completed
+probes gate address/route/DNS. NAK/expiry/link-down withdraw configuration and old
+tokens/UDP/neighbors, while preserving revocation, replay floors and generations.
+Timestamped TX/completion required in DHCP mode. Static API/tests unchanged.
+One minimal trusted coordinator seam and both downstream local dependency locks.
+**Checks:**20 service +38 coordinator host tests, both crates Clippy/fmt,
+freestanding library build and locked static SDK native check exit0.
+[Exact commands/log hashes](roadmap-pipeline/receipts/N02-T2.json).
+Rust1.91.1 confirmed; unknown-none target installed; global default unchanged.
+Lead source/diff review complete; progress **41 → 41/100**, N02 remains open.
+**Not run:** native DHCP/QEMU, SDK linking, real networks, hardware/human acceptance.
+**Ownership:** separate Integration Manager owns reviewing/merging/closing existing
+PR364–369. No modifications to those branches/PRs or Claude S09/UI. Unsafe runner
+hold preserved. Original dirty checkout untouched.
+**Next:** publish this new draft, then independent READY H05-T1 ACPI table parsing;
+no waiting for integration. N02-T3 retains its actual native dependencies.
 
 ## Retained checkpoint — PR #361 integration and final-read barrier — 18 November 2026
 

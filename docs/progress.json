@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-18",
-    "source_commit": "fc35563668ae2ba3dc2fc90e6e30575c38b6f578",
+    "source_commit": "ed44d77c32d0d19e0b6fab51398b169a962f9409",
     "assessment_basis": "source_commit",
-    "branch": "codex/block-order-integration",
-    "task": "PR361 integration: order terminal error after both final reads",
+    "branch": "codex/n02-dhcp-service",
+    "task": "N02-T2: DHCP/service host integration delivered",
     "previous_score": 41,
-    "summary": "41/100 unchanged. Integrated #355/#359 containment and repaired M6c case-2 final-read barrier. Delayed-read native negative fails on the old barrier (guest35); fixed errors/normal pass (guest33) with disk oracles, plus 49 host tests and formatting. Current-head hosted checks remain pending. No product criterion, Daybreak resolution or execution-hold activation."
+    "summary": "41/100 unchanged. Existing DHCP coordinator owns the same Stack/PacketDevice, applies address/route/DNS only after completed probes, withdraws on NAK/expiry/linkdown and preserves app authority/replay floors.20 network-service and38 net-config tests, Clippy/fmt, freestanding lib build and static SDK check pass. Rust1.91.1 blocker resolved without global default change. No native DHCP/real network acceptance. Integration Manager owns earlier PRs; unsafe runner and Claude work preserved."
   },
   "tracks": [
     {
