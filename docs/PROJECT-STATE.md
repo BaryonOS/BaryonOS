@@ -1,12 +1,330 @@
 # Current project status
 
-## NEXT AGENT HANDOFF — S09 final combined-source verification — 18 November 2026
+## NEXT AGENT HANDOFF — PR #350 conflict-only integration — 18 November 2026
 
-**Preintegration:** PR340 now contains actual main67d5859d and independently reviewed accessibility successor candidate7213e224. Original S09 runtime is preserved. Candidate339 remains separately gated; PR340 must not merge before canonical339 is actually integrated, current main is reconciled and runtime/source-v3 equality is verified. This preparation claims no accepted merge or pending test pass.
+PR #350 head `aaf01bae291faba593567845dc8da4fe606a7959` is reconciled
+with actual main `2eac8ca39ce04753f4f6bef3b09ee9b3610c065f`.
+Only checkpoint and assessment conflicts required resolution. Both histories remain
+below; prior checkpoints retain their original evidence limits. The reviewed
+CodeRabbit configuration is unchanged, and all non-checkpoint main changes merge
+without manual edits. The issue-pipeline execution hold and disabled manifest remain
+intact. No account, billing, criterion, permission or runtime change is introduced
+by this reconciliation. Score remains 41/100. Required hosted checks on the new head
+must pass before a manual squash merge; local build/QEMU suites are not repeated
+for this conflict-only correction.
 
-**Why a new gate:** source_hash v3 includes README/THIRD-PARTY documents beneath sdk/services/userspace and all tools. The English translation and successor-checker additions therefore change the source fingerprint despite unchanged S09 executable behavior. Earlier15-stage proof at41b894cd is retained as historical source-bound evidence; a fresh combined-source15-stage gate is required. Other fixed S09 limits, D1–D5/full acceptance and score41/100 remain unchanged. Security pipeline remains disabled and all5 issues/3Daybreak findings remain open.
+## NEXT AGENT HANDOFF — PR #361 integration and final-read barrier — 18 November 2026
 
-## Retained handoff — Phase 0 PR339 safe checker and integration — 18 November 2026
+**Claim/source:** Codex sole writer in `codex/block-order-integration`, PR #361 head
+`fc35563668ae2ba3dc2fc90e6e30575c38b6f578`, merging main `6f29b672`.
+Original syscall-order worktree and all foreign WIP remain untouched. Governance
+is independently published as draft PR #362; its hosted checks remain pending.
+
+**Goal:** repair the confirmed case-2 final-read/terminal-error scheduling race and
+resolve the two status-only integration conflicts, preserving #355/#359 containment.
+**Invariant:** successful final GET/LIST replies from both clients precede terminal
+uncertainty injection; capability, pointer, ordering and device guards stay intact.
+**Write set:** `kernel/src/m2/m3/m6c.rs`, `userspace/m6c_probe.rs`, this checkpoint,
+progress assessment/displays and one new verification child for concise test results.
+**Acceptance:** adversarial delayed-read negative control; targeted M6c build and
+native `errors` plus `normal`; M6c host harness, formatting, progress/check and exact
+head hosted checks. Reuse unchanged M6b and previous full-matrix evidence explicitly.
+**Evidence limit:** native QEMU is not hardware, full certification, Daybreak closure
+or client runtime parity. No broad repeated matrix or optional review quota request.
+
+**Result:** the delayed-read negative control fails on the old ACK-only barrier
+(guest 35, exit 1); fixed native errors and normal pass (guest 33, exit 0), with disk
+oracles and stable source fingerprints. 49 host tests and formatting pass, exit 0.
+[Compact source-bound receipt](verification/m6c-final-read-barrier-20261118/checks.json).
+One focused read-only security review found no blocking defect; no tests were repeated
+by that reviewer. The old M6b evidence is reused for unchanged sources. Full native
+matrices, hardware and human audit are NOT RUN for this correction.
+
+**Next:** publish the integrated head to existing PR #361 and require its current-head
+mandatory checks/review. Then continue the Codex-owned H/U/N/B/A/P/L/R controller in
+`codex/roadmap-codex`, following the owner's executor correction. #355 WIP and Claude
+S09/UI work remain untouched. No auto-merge, protection bypass or finding closure.
+Progress **41 → 41/100**; no criterion/weight changes.
+
+## Retained checkpoint — Daybreak block-syscall ordering repair — 18 November 2026
+
+**Source and ownership:** isolated branch `codex/security-block-syscall-order` now contains implementation/evidence commit `616737b8a85877cde79d9bdc43d808c628ee8325`, based on verified main `1c10cdb5b30df2f3d30bea74430383f59c398931`. The original dirty checkout, Claude UI/UX, S09, PR355 and the preserved broad `sec-m6-observer-local` WIP were not modified. This is the bounded repair for Daybreak finding `acf_4d7b2e454297c2c851a4b7cadcff2587`; the finding remains open pending an accepted exact-head scan and resulting-main verification.
+
+**Security result:** M6b/M6c reject post-recovery READ and invalid WRITE/FLUSH ordering after complete ABI/capability validation but before policy or device publication. A second valid or malformed submit cannot change any already-live request; only a correctly bound mutating POLL may make its own request terminal. M6c terminal accounting is idempotent. Negative controls reproduced the pre-active timeout and both live-I/O failure classes before repair. Independent review found and drove closure of repeated-terminal, live-Busy, malformed-live and active-READ panic paths, then returned PASS on exact source fingerprint `5a6a5cca407e288973e302ae46840c7f851a57db70a848917f552c23821d4fbf`.
+
+**Verification:** targeted M6b/M6c builds and `errors` QEMU runs pass (wrapper exit0, guest33); host harnesses pass38/38 and49/49; object-core passes22/22 and catalog-core45/45. Full native M6b passes32 groups and M6c35 groups, including cold recovery and final M1 guest33. Strict preflight, Rust formatting, evidence JSON and diff whitespace pass. Raw logs remain under ignored `build/tokenguard/`; the source-bound receipt is [daybreak-block-order-20261118](verification/daybreak-block-order-20261118/README.md). Physical hardware, formal proof, hosted CI and a fresh Daybreak scan are not claimed.
+
+**Progress and next:** score remains41/100 because no fixed product criterion is newly accepted. Publish the branch as a draft PR, require fresh current-head `host-quality`, `qemu-smoke`, CodeQL and merge-hold, obtain exact-head Daybreak acceptance, and manually squash only when all actionable findings and reviews are resolved. Then verify resulting main and resume the unchanged PR355 isolation blockers and remaining security queue. Governance phases1–6 remain blocked by the strict stabilization gate.
+## Retained checkpoint — PR #355 native test quality — 18 November 2026
+
+**Source and change:** security-quality checkpoint
+`a53c6eb9642a30b846cff194c30fad0d4eccbcc1` extends documented native-evidence
+head `c17f5a526298c82ae58df151d51640a7db005a76`. The only source change
+normalizes the native test's `unittest.mock` import. Two Code Quality reports about
+catching `BaseException` were retained and dispositioned because interrupt and exit
+paths must not bypass scratch cleanup or return uncertain state to the pool. The
+execution hold remains active and the manifest remains disabled.
+
+**Checks:** on the exact clean source, all 14 native tests and all 517 tools tests
+pass; the latter retain fifteen explicit environment skips. Strict preflight, Python
+syntax compilation and the whitespace check pass. The native receipt records
+unchanged source and rootfs hashes, no cleanup error and no residual scope or cgroup.
+[Source-bound receipt](verification/phase0-sec355-code-quality-20261118/README.md).
+
+**Open boundary and resume:** the prior fixture-only 256/512 MiB and normal gate
+6/8 GiB distinctions are unchanged. Authenticated model-client provisioning and the
+complete selected-gate offline runtime require separate pinned trust boundaries;
+neither is fabricated by this quality fix. Await the already-running hosted checks
+for `c17f5a52`, then publish this checkpoint without cancelling that evidence and
+require fresh current-head CI/CodeQL/Code Quality. Score 41/100 is unchanged. No
+Daybreak, issue, baseline or governance acceptance is inferred.
+
+## Retained checkpoint — PR #355 native resource boundary — 18 November 2026
+
+**Source and change:** security checkpoint
+`6dbe373a84929df6c781e5bf2355d61f7b1f39c9` extends capped-scratch source
+`edd1a6a9af2d80a56848ec500bbf2b702799dced`. A source-bound disposable native
+fixture now exercises the real Bubblewrap, user-scope cgroup v2 and dedicated-tmpfs
+boundaries. It retains the outer network namespace, drops every capability before
+the trusted controller, hides controller sockets and descriptors from the payload,
+and verifies exact source, fixture and rootfs hashes before and after execution. The
+execution hold and disabled manifest are unchanged.
+
+**Checks:** the exact clean source passed the native canary and all 14 full native
+tests. Real byte and inode exhaustion, separate parallel leases, sibling hiding,
+device and shared-memory bounds, payload credential/socket absence, read-only gate
+source, inner network separation, descendant termination and uncertain-cleanup
+quarantine passed. No unit or cgroup remained. All 517 tools tests pass with fifteen
+explicit skips; 28 document-session harness tests, strict preflight, Python syntax
+compilation and the whitespace check also pass. Independent AI verification
+reproduced the receipts and current empty-residue checks without rerunning the
+privileged fixture; this is not a human audit.
+[Source-bound receipt](verification/phase0-sec355-native-20261118/README.md).
+
+**Measured limits and evidence boundary:** the fixture agent read back 256 MiB high,
+512 MiB maximum, swap 0, OOM-group enabled, 128 tasks and 200% CPU. This is a native
+isolation probe, not a normal model-agent workload profile. The normal development
+gate read back 6 GiB high, 8 GiB maximum, swap 0, OOM-group enabled, 512 tasks and
+400% CPU. Scratch roots were capped at 64 MiB and 4096 inodes. No actual OOM kill,
+representative agent workload, full build or QEMU run was performed under 512 MiB.
+Authenticated clients, complete selected-gate compatibility, hosted current-head
+CI/CodeQL/Code Quality and Daybreak acceptance remain open. Keep the manifest
+disabled. Score 41/100 is unchanged; no finding, issue, baseline or governance
+acceptance is inferred.
+
+## Retained checkpoint — PR #355 capped scratch transactions — 18 November 2026
+
+**Source and change:** security checkpoint
+`edd1a6a9af2d80a56848ec500bbf2b702799dced` extends engine-policy evidence head
+`ce3d9407f4a80015b96cf4695a0087b0696eb5e3`. Each agent or gate transaction now
+requires an exclusive lease on one verified dedicated tmpfs with exact byte and inode
+caps. Source and export copies have preflight budgets; `build`, `target`, temporary
+directories, homes and `/dev/shm` share the same hard cap. `/dev` and Bubblewrap's
+separate `/dev/pts` mount are read-only. Cleanup uncertainty quarantines the lease and
+preserves the primary pipe, timeout, overflow, nonzero or body failure. Stdout and
+stderr share one cumulative raw-byte budget across engine failover or a complete gate
+plan and are not duplicated in controller text logs. The execution hold and disabled
+manifest are unchanged.
+
+**Checks:** on the exact source commit, all 513 tools tests pass with eleven explicit
+environment skips; 123 focused sandbox/pipeline/isolation tests pass with ten private
+runtime skips. The applicable Python host-quality groups, 26 workflow-contract tests,
+syntax compilation, strict preflight and whitespace checks pass. M6c, DocumentSession,
+native quantum-job and SDK-app normal/denied gates pass in QEMU; native guest runs
+return the expected raw exit 33. Independent AI security rereview found and verified
+fixes for five initial lifecycle/output findings plus combined cleanup-failure evidence
+and the non-recursive `/dev/pts` mount. This is not a human audit.
+[Source-bound receipt](verification/phase0-sec355-scratch-contract-20261118/README.md).
+
+**Measured limits and open boundary:** no active profile changed: the checked-in
+manifest still has no sandbox values. The prior source-bound development reference
+remains `MemoryHigh=6442450944`, `MemoryMax=8589934592`, swap 0, 512 tasks and 400%
+CPU; deliberately small OOM probes remain negative tests, not workload defaults. A
+private pinned Bubblewrap 0.13.1 fixture and real dedicated tmpfs roots were not
+available, so PTY denial, ENOSPC/inode exhaustion, parallel sibling isolation and live
+survivor quarantine remain unproven. Authenticated model-client provisioning, complete
+selected-gate compatibility, hosted current-head CI/CodeQL and final Daybreak
+acceptance also remain open. Keep the manifest disabled. Score 41/100 is unchanged;
+no finding, issue, baseline or governance acceptance is inferred.
+
+## Retained checkpoint — PR #355 owner-bound engine policy — 18 November 2026
+
+**Source and change:** security checkpoint
+`47835c4ebc5dad0576c0feaa3ec3654f3679f14d` extends published PR head
+`79d8674324d14d0b7608fb15f19701f33ddc939c`. Manifest schema 2 now binds the
+exact reviewed engine set and failover order. A CLI mismatch is rejected before
+controller verification, Git, sandbox or model-client access, and each retry keeps
+that order instead of rotating it. Standalone gates share the same fail-closed
+engine-policy validation. The source execution hold remains unconditional and the
+checked-in manifest remains disabled.
+
+**Checks:** 67 focused pipeline/isolation/hold tests pass with one explicit private
+runtime skip; all 493 tools tests pass with ten environment skips. All 26 workflow
+contract tests, Python compilation, manifest parsing and whitespace checks pass.
+Independent security review found one inconsistent standalone-gate validation path;
+the shared validator and negative regression fixed it, and rereview reports no
+actionable finding. An independent verifier then reproduced nine focused tests,
+both log hashes, the clean parent chain and all five weakened-validator detections
+on exact checkpoint head `b738669d550be4fab05cdbb733b30c7a037b01c6`.
+This is AI review, not a human audit.
+[Source-bound receipt](verification/phase0-sec355-engine-policy-20261118/README.md).
+
+**Open boundary and resume:** the private authenticated model-client/runtime contract,
+complete selected-gate adapter and aggregate scratch/staging/export filesystem cap
+remain open. Local `actionlint` is unavailable and private sandbox integration was
+not run; hosted checks are required on the eventual published exact head. Preserve
+the current published-head native jobs until they finish, then publish this complete
+checkpoint and require fresh CI/review. Score 41/100 is unchanged; no Daybreak
+finding, issue, baseline or governance acceptance is inferred.
+
+## Retained checkpoint — PR #355 bounded gate finalizer — 18 November 2026
+
+**Source and change:** security checkpoint `364b94964cc7f3fbb8ff2377e87861e858ef03ad`
+extends immutable-receipt evidence head `467e25b6394fcffc97d85a7be025bd5814b0806e`.
+The gate controller now applies one total deadline, reserves and caps one finalizer,
+and preserves separate primary/finalizer evidence. Normal failures, verified OOM
+results, cleaned timeouts and bounded-output failures run the finalizer. Generic
+sandbox guard, termination or cleanup failures abort without starting another
+process. The execution hold and disabled manifest are unchanged.
+
+**Checks:** 55 focused controller tests and all 488 tools tests pass with ten explicit
+environment skips. Syntax compilation and diff checks pass. Independent security
+review found and verified fixes for unreserved finalizers, overwritten raw evidence,
+environment-validation bypass and unsafe finalization after cleanup failure; final
+rereview reports no blocking finding. This is AI review, not a human audit.
+[Source-bound receipt](verification/phase0-sec355-gate-finalizer-20261118/README.md).
+Both prior-head native-window jobs completed successfully, so publication no longer
+needs to preserve that old run.
+
+**Open boundary and resume:** `ci.yml#qemu-smoke` remains explicitly blocked at its
+first unmodelled action. The private rootfs, offline Cargo cache and tool receipts
+were not transferred, so no runtime layout or partial gate claim was invented.
+Aggregate scratch/staging/export limits and authenticated model-client provisioning
+also remain open. Publish the complete checkpoint, require all hosted checks on the
+new exact head, and continue independent feasible isolation work. Score 41/100 is
+unchanged; no finding, issue, baseline or governance acceptance is inferred.
+
+## Historical checkpoint — PR #355 immutable source receipt — 18 November 2026
+
+**Source and change:** security checkpoint `b39948e4355b789faeffa9c92a92c1a443dd3480`
+extends fail-closed gate evidence head `ef2db95f42f3883a3f85e5107971e2129291451f`.
+The trusted controller now stages only a stable selection of regular source files,
+checks both source and HEAD before and after staging, and creates a fixed read-only
+receipt binding the tested commit to the v3 source hash. M6c and DocumentSession can
+consume that receipt without Git metadata in the sandbox. Invalid paths, links,
+write bits, duplicate/unknown keys, source drift and commit drift fail closed.
+
+**Checks:** 116 combined pipeline/isolation/sandbox/hold/roadmap tests pass with ten
+explicit environment skips; the complete tools suite passes 479 with the same skips.
+The applicable 107 host harness tests, syntax compilation and strict preflight pass.
+On exact commit `b39948e4`, M6c rebuilds and passes in QEMU with raw exit 33; the full
+DocumentSession gate passes two real VM runs and all nine source-freeze checks.
+Independent security review and verification report no blocking finding after fixes
+for owner-writable receipts and a staging source race. This is AI review, not a human
+audit. [Source-bound receipt](verification/phase0-sec355-source-receipt-20261118/README.md).
+
+**Open boundary and resume:** the manifest and unconditional execution hold remain
+disabled. The complete `qemu-smoke` adapter still requires pinned offline runtime and
+cache inputs, one total job deadline and an `always()` evidence finalizer. Aggregate
+scratch/staging/export limits and authenticated model-client provisioning also remain
+open. Publish this checkpoint only after the two prior-head native-window jobs finish,
+then require all hosted checks on the new exact head. Score 41/100 is unchanged; no
+finding, issue, baseline or governance acceptance is inferred.
+
+## Historical checkpoint — PR #355 fail-closed gate resolution — 18 November 2026
+
+**Source and change:** security checkpoint `b35433d27e07de2e55e5703d3186a4ab5ba2b78a`
+extends the published reconciliation head `a1e12249b09c5cab94ccf2a27747116cd15dbb76`.
+The local gate resolver now rejects `uses`, conditional, setup and commandless steps
+instead of silently omitting them. Both controllers convert that refusal into their
+existing blocked-task records. The manifest and unconditional execution hold remain
+unchanged and disabled; no generated source can reach a partial gate.
+
+**Checks:** 114 combined pipeline, isolation, sandbox, quarantine, hold and roadmap
+tests pass with ten explicit environment skips. The complete tools suite passes 477
+tests with the same ten skips. Focused independent verification passes 26 agent
+pipeline and 18 roadmap tests and confirms that both current `host-quality` and
+`qemu-smoke` definitions block before returning a partial command list. Independent
+security rereview reports no blocking finding. This is AI review, not a human audit.
+[Source-bound receipt](verification/phase0-sec355-gate-failclosed-20261118/README.md).
+
+**Open boundary and resume:** this checkpoint does not implement the selected-gate
+adapter. Job-level timeout/finalizer semantics, authenticated model-client
+provisioning and kernel-bounded aggregate scratch/staging/export remain open. Hosted
+checks must be repeated on the published exact head. Continue with the complete
+`qemu-smoke` adapter and scratch boundary; keep the pipeline disabled until every
+isolation and transaction gate passes. Score 41/100 is unchanged. No issue, finding,
+baseline or governance acceptance follows from this checkpoint.
+
+## Historical checkpoint — PR #355 current-main reconciliation — 18 November 2026
+
+**Source and preservation:** security merge `fa4895daf92eaf48bf7b9ecd07751d50f5537490`
+(tree `d36212c7e3e98db85cd8d7760a40cab716817430`) combines prior PR #355
+source `2cb7d9366425ee1c43ac5857be2101b43b4dcb67` with verified main
+`1c10cdb5b30df2f3d30bea74430383f59c398931`, the squash of PR #359. The
+unconditional execution hold remains before issue selection, all nine transaction
+ingresses and CLI construction. The resource/OOM implementation is byte-identical to
+the reviewed PR #355 source. The original dirty checkout, Claude UI/UX and S09 work
+remain untouched.
+
+**Checks:** 91 combined pipeline/isolation/sandbox tests pass with ten explicit
+environment skips; the complete tools suite passes 474 tests with the same ten skips.
+Strict preflight, normal build, M1, M6c, DocumentSession, native quantum-job and both
+normal/denied SDK-app QEMU gates pass; real guests return the expected raw exit 33.
+The disabled manifest rejects the local host-quality gate before any workload starts.
+Two independent AI reviews found no actionable integration or boundary issue after
+test-local harness repairs; this is not a human audit. [Source-bound receipt](verification/phase0-sec355-main-reconciliation-20261118/README.md).
+
+**Measured limits:** the 64 MiB allocation profile remains an intentional negative
+OOM control, never a normal workload preset. On the exact reconciled source, a clean
+trusted reference scope read back `MemoryHigh=6442450944`,
+`MemoryMax=8589934592`, swap 0, 512 tasks and 400% CPU. Rust tests, normal/M6c builds
+and M1/M6c QEMU all passed with a 699,133,952-byte peak and zero high, max, OOM or
+kill events. No global limit, OOM-killer setting or isolation boundary changed.
+
+**Open boundary and resume:** the manifest remains disabled. Authenticated model-client
+provisioning, kernel-bounded aggregate scratch/staging/export, the private opt-in
+offline transaction fixture, complete selected gate compatibility, hosted exact-head
+host-quality/CodeQL/review and final Daybreak acceptance remain open. Publish this
+checkpoint to PR #355, require all current-head hosted gates, and continue those three
+implementation boundaries before considering a merge. PR #356 remains draft for later
+reconciliation. No governance, auto-merge, bypass, false finding closure or premature
+issue closure is authorized. Score 41/100 is unchanged.
+
+## Historical checkpoint — Local PR #355 bounded memory review — 18 November 2026
+
+**Source and authority:** the project owner requested a bounded memory investigation inside the continuing PR #355 remediation, followed by automatic resumption of the approved queue. Existing PR #355 parent is `5b946202c9f7323044913a26d76c96e490f5e0e6`; reference workloads executed on containment source `9789ce565c247f70eab6d321f657dc05a64a8513`. The original shared merge, Claude UI/UX and broader S09 remain untouched.
+
+**Measured result:** two 128 MiB / 160 MiB allocation probes are intentional OOM-negative enforcement. No active normal MemoryMax/default exists in PR #355;PR #357's 64 MiB is a mocked fixture. A corrected actual 8 GiB/ high 6 GiB/ swap 0/four-job reference bundle passes all five Rust/build/M1/M6c commands with 592.70 MiB aggregate peak and zero OOM events. Snap Cargo moved compiler descendants outside its selected scope; task-local pinned native Rustup proxies correct that measurement/launcher issue. No global limits, sandbox boundary or OOM-killer setting changed. [Source-bound receipt](verification/phase0-sec355-memory-20261118/README.md).
+
+**Limits:** disk-backed reference sizing is not full bounded-tmpfs, staging/export, authenticated-client or complete-CI acceptance. The PR #355 manifest remains disabled; PR #357 remains recovery-only. Real kernel resource/scratch/descendant probes and bubblewrap 0.13.1 are available locally but do not finish the full isolation composition. All three Daybreak findings remain open.
+
+**Resume:** continue from published PR #359 containment `9789ce56` pending final hosted native-window acceptance, PR #356 helper correction `eba1bfa7` has three reported CodeQL collector alerts under repair; new-head CI/review is required, and the independent public M6 observer fix. Repair reported failures first. Finite B retains its approved meaning; governance additionally requires strict genuine zero issues/PRs/actionable findings or an explicit project-owner exception. Score 41/100 remains unchanged. No vulnerable issue-pipeline execution, auto-merge, bypass, false closure or governance start.
+
+## Retained checkpoint — Phase 0 execution isolation — 17 November 2026
+
+**Source:** integrated main `366b82b353485207a9b0d6b1ae63dafbbe265bae` after the authorized PR333 squash; isolated branch `codex/phase0-pipeline-isolation`, security parent `aec1fb5f75e6165da82ba81f3f43d7a0d912ab1d`.
+**Primary milestone:** 0D security remediation. Integration0B is waiting; baselineB and governance1–6 remain blocked. A private security report requires verification of the development execution boundary. Its sensitive evidence remains outside the public repository.
+**Implementation checkpoint:** protected source-bound task authorization precedes L0. Agent edits are imported from disposable copies; gates use immutable source/evaluators and separate generated outputs. Authentication remains in the trusted publication controller. Missing isolation and unsupported hooks/helpers fail closed. The committed manifest remains disabled. This is not deployed-main protection, production readiness or finding resolution.
+**Verified evidence:** 406 tools tests pass (exit 0), including real Linux namespace/descriptor/source-integrity controls and a deterministic offline transaction with real local Git and dry-run publication. A fresh QEMU execution of the cached integrated TEST-policy guest passes its existing 26-case oracle (raw exit 33); it is not a guest rebuild or hardware acceptance. [Bounded checkpoint](verification/phase0-pipeline-isolation-20261117/README.md). Earlier failed probes and initial blocking review remain privately preserved.
+**Hosted follow-up:** the first current-head host-quality run failed in an object-only metadata fixture under runner Git content-filter settings. The scoped fix preserves executable/environment restrictions and explicitly denies implicit object fetching; 78 final targeted tests pass (exit0). Refreshed hosted CI remains pending.
+**Remaining blockers:** independent review requires bounded worker resources and compatible complete client/gate transactions before merge or enablement. Network setup, Git-dependent workflow checks and explicit compilation-cache writes are not supported by this offline evaluation profile; none are skipped. Real model-client parity remains NOT RUN. Current-head CI, final source-bound security verification and supported Daybreak resolution remain pending. A usage metadata flag is not a proven scan-start rejection; the latest manual scan completed on unchanged main38.
+**Ownership and evidence:** original user work, independent UI/S09 workstreams, existing PRs and compiler WIP remain preserved. No original worktree was reset or cleaned. Private managed artifacts retain exact source/commands/limits. Score41/100 is unchanged; no product criterion or security result is accepted by this checkpoint.
+**Next:** preserve this draft checkpoint, resolve the independently identified blockers, then require current-head CI/security verification before manual squash and source-bound Daybreak closure. Prepare the authorized cloudhandoff after reconciling branches/WIP; ownership is not transferred until remote commits are verified. Do not use the affected issue pipeline for remediation. Resume the existing integration/modernization work only after the boundary is verified.
+
+## NEXT AGENT HANDOFF — Local PR359 containment reconciliation — 18 November 2026
+
+**Authority and ownership:** the project owner approved autonomous local execution and verified manual squash merges. Cloud handoff `88b801ab8cd47f4765ef7d925b161542dbbf684e` releases Codex work only. Local Codex exclusively owns this PR359 reconciliation in an isolated worktree; the original unfinished merge, Claude UI/UX and broader S09 remain untouched.
+
+**Source and scope:** existing PR359 parent `b5f756a233bbfef0ecc143f41834899b399e3805`, reconciled with actual main `de9b99047138c4fd0015ffc3f874b273b3537484`. Latest main is retained, including PR339 accessibility source. The unconditional legacy-controller hold is retained and extended to direct issue selection. It has no runtime release override. This is containment only; complete PR355/357 isolation and all three Daybreak findings remain open.
+
+**Checks:** the new direct-selection regression fails before the repair (exit1); all five quarantine tests pass after repair (exit0). All404 tools tests, strict preflight/build/M1 pass (wrapper exit0; real guest33, no timeout). Evidence correction `b526c039b527a51c3f833d78469f5aa4198ab27f` binds a repeated negative overlay to exact source/test/log hashes, while the original negative log remains historical evidence without a source binding. It narrows the independent review to executable containment source and records that the writable QEMU variable-store copy was not bound before launch. The raw native result remains byte-identical. Current-head hosted checks and resulting-main acceptance remain pending. Raw evidence is retained under `build/tokenguard/`; source-bound receipts are `docs/verification/phase0-sec359-local-20261118/` and `docs/verification/phase0-sec359-evidence-correction-20261118/`. Score remains41/100.
+
+**Stabilization gate:** finite baseline B retains its previously approved meaning. The later governance transition additionally requires genuine zero open issues, zero open PRs and zero unresolved actionable security/quality findings, unless the project owner explicitly authorizes an exception. Missing external authority, licence, hardware or capability evidence remains an open blocker; independent feasible work continues. No false closure, auto-merge, bypass or vulnerable issue-pipeline execution is authorized.
+
+**Next:** independently review and publish the evidence correction, then require a fresh exact-head hosted rollup. Manually squash only when every applicable check and actionable review is satisfied. Verify resulting main before continuing PR355/357 and the remaining security queue. Governance has not started.
+
+## NEXT AGENT HANDOFF — Phase 0 PR339 safe checker and integration — 18 November 2026
 
 **Actual main:** `67d5859d735836331b6fb971eae89162b7fa8465` after verified manual squash merges #345 and #346. Actual trees equal their independently reviewed candidates. Translation source PRs #347–#349/#351–#353 were closed only after actual-main inclusion proof; original refs remain preserved. Five issues and seven PRs remain open at this cutoff. Project5 synchronization uses the existing workflow.
 
@@ -32,64 +350,25 @@
 
 **Preservation:** current-main source, accepted decisions, historical evidence and independent workstream ownership are retained. Only overlapping checkpoint/assessment text requires conflict resolution. The prior branch checkpoint and assessment are retained as explicitly historical records in [the cloud receipt](verification/phase0-pr346-cloud-20261118/README.md). The two actionable translation review comments receive additive English explanations; the original ABI and installer sequence remain unchanged. No product acceptance criterion or security boundary changes. Score remains 41/100.
 
+## Retained historical handoff — Phase 0 PR350 reconciliation — 18 November 2026
+
+**Integrated main:** `55bc7b06d20a3bfdffdc2eb7d8fe42a39f6e59c5` after verified PR345 manual squash. Actual main tree equals reviewed candidate; post-merge host-quality and qemu-smoke pass. Existing Project5 synchronization run44209117311 completed successfully on that main; its raw-log endpoint returned403, so detailed field effects remain NOT VERIFIED.
+
+**Candidate:** existing PR350 preserves the independently reviewed CodeRabbit free-tier configuration byte-for-byte; only checkpoint/main reconciliation changes. Original source f8/c4 review found no blocker, and strict preflight/build/QEMU raw33/progress/preservation checks passed. Fresh schema download remains NOT VERIFIED (proxy403); no paid features, account/billing change or automatic approval is enabled. Latest-main candidate CI and independent incremental review remain required.
+
+**Other work:** PR346 reviewed translations are preserved on latest-main candidate59c07e88; PR340 candidate41b894cd has15 fresh native volume stages and source-bound capture; PR354 latest-stable compiler regressions are under repair with frozen-source gates. The new accessibility checker is independently reviewed before any Claude-branch publication; original historical evidence is immutable.
+
+**Security and acceptance:** live Daybreak inventory has3 open findings (High/Medium/Low); none is resolved by ordinary CI. PR355 remains blocked on resource/process/scratch and selected client/gate compatibility, with its manifest disabled;357 recovery remains unaccepted. Scanner REST categories remain NOT VERIFIED403. All5 issues remain open against full acceptance. Score41/100 unchanged; baseline B and governance1–6 are unestablished. Continue safe independent work and verified manual squashes without auto-merge or bypass.
+
+## Retained handoff — Phase 0 PR350 cloud reconciliation — 18 November 2026
+
+**Source:** existing PR #350 parent `7b4b618e7ef0eee6b2a67ce693afcb9f2f20809c`, reconciled with main `366b82b353485207a9b0d6b1ae63dafbbe265bae`. Scope: CodeRabbit free-tier configuration. The project owner explicitly resumed autonomous execution on 18 November 2026; current review, protection and gate requirements remain binding.
+
+**Preservation:** current-main source, accepted decisions, historical evidence and independent workstream ownership are retained. Only overlapping checkpoint/assessment text requires conflict resolution. The prior branch checkpoint and assessment are retained as explicitly historical records in [the cloud receipt](verification/phase0-pr350-cloud-20261118/README.md). The accepted free-tier configuration remains byte-identical to its reviewed parent. No product acceptance criterion or security boundary changes. Score remains 41/100.
+
 **Validation:** source-preservation assertions, progress regeneration/check and whitespace verification are required on the reconciled tree; their actual results are recorded in the receipt. Current-head hosted checks and independent final review remain required before a manual squash merge. Full issue #274, production security acceptance, baseline B and governance phases 1–6 remain open.
 
 ## Retained source-bound main checkpoints
-
-## Retained handoff — Phase 0 PR340 verified native checkpoint — 18 November 2026
-
-**Source:** canonical S09 parent `90816de39460b76e35cd626721d4dac9bde905e2`, reconciled with actual main `55bc7b06d20a3bfdffdc2eb7d8fe42a39f6e59c5` after verified PR345 squash. Both checkpoints, accepted ADRs and main H02 evidence are preserved. The current main adds documentation only to the tested runtime.
-
-**Verified:** all 15 fresh native volume stages pass, including ustar; 93 volume-core tests, volume-core Clippy and 53 Python volume tests pass; strict preflight, standard build and M1 QEMU smoke pass (raw33); exact native/archive-portal Clippy passes without suppression. [New source-bound capture](verification/phase0-pr340-cloud-20261118/README.md). Current-head hosted checks and independent final integration review remain required.
-
-**Scope:** approved D6(a) lossy ustar export and bounded name rules only. D1–D5, user-selected capability-backed destination, encrypted destination and full S09 acceptance remain open. No 8.3 alias or target-path-length guarantee is inferred. Score stays41/100. Security355/357 remains blocked and its pipeline disabled; all five issues remain open. Baseline B/governance1–6 remain unestablished. Other Claude worktrees/WIP/runners are untouched.
-
-## Retained handoff — Cloud PR340 integration — 18 November 2026
-
-Canonical source `90816de39460b76e35cd626721d4dac9bde905e2` is reconciled with main `366b82b353485207a9b0d6b1ae63dafbbe265bae` in an isolated worktree under the project owner's explicit autonomous integration authorization. Both independent checkpoint histories and main H02 evidence are retained. S09 runtime changes are unchanged; source-bound host/native and current-head hosted gates must pass before a manual squash. D1–D5, encrypted destination and full S09 acceptance remain open; score stays 41/100. The issue pipeline remains disabled; no security boundary is expanded.
-
-## Retained handoff — Phase0 limited PR340 repair — 17 November2026
-
-**Source:** parent93797f3a6075af9cc4fdd533dad288bfa7894ffe; existing feat/s09-ustar-name-check branch, separate clone.
-**Authority:** project owner released only portal lint/wording and tests/evidence. Other Claude S09 worktrees/WIP/runners and D1–D5 remain unchanged; no merge/auto-merge authorization.
-**Changed:** positive-length/alignment predicate uses the standard is_multiple_of method; name-safety wording is limited to checked rules. [Source-bound receipt](verification/phase0-pr340-20261117/README.md).
-**Checks:** exact portal Clippy101→0;93 volume-core and53 Python host tests pass, independent read-only review has no blocker. Full15-stage native gate/new fingerprint and current-head CI pending. Progress41/100 unchanged.
-**Next:** run the full volume gate on the committed source, retain new reports/hashes, then reconcile main and request separate owner merge approval when eligible. BaselineB not established; governance phases1–6 not started.
-
-## Retained workstream handoff — S09 ustar export runner (separate from the design pipeline) — 15 November 2026
-
-The design-pipeline handoff below remains the authoritative handoff for the UI/UX
-track. This section covers only the S09 track, which runs in its own worktree. The
-evidence is in the checkpoint "S09 ustar export recorded (S09-RECORD)" below.
-
-**Source:**
-- Worktree `/home/simon/projects/BaryonOS-worktrees/s09-native-archive`, branch `feat/s09-ustar-name-check`, created from main `d572052b`. Draft PR #340.
-- Commits `1b1ef0fb` … `2766e636` (14) and the S09-RECORD documentation commit. The last source change is `18da1eb9`.
-- Source-v3 fingerprint of `18da1eb9`: `36cab7938fbbac4e8dbbc71e66e59f5c95a636651d69f5ca2fd1b378aacd54b8`. Later commits change only `docs/`, which the fingerprint excludes; the value was recomputed at `2766e636`.
-
-**Done (verified locally):**
-- **D6(a):** recorded as `ADR-S09-USTAR-20261114` (#337).
-- **Name check:** `volume_core::ustar::check` refuses with reason bits CHARACTER, RESERVED (Windows device names and, at the export root under case fold, the pax entry name `PaxHeader`), TRAILING, CASE, FILE_AND_DIRECTORY and UNCHECKED. There is no partial export and no rename.
-- **Native stage:** the test-only stage `archive-ustar` runs in the 15-stage volume gate. Local gate run 14 passed at `18da1eb9`.
-- **Unchanged:** the format-v1 recovery archive, `walk` and `valid_name`.
-
-**Open:**
-- **D1–D5:** BLOCKED on project-owner decisions. The proposal is unchanged.
-- **Portal Clippy:** `clippy::manual_is_multiple_of` at `sdk/examples/volume-docs/src/app.rs:1056` (fix: `length.is_multiple_of(SECTOR as u64)`). It is a source change and needs a gate re-run.
-- **Review findings A, C, D and H** (S09-REVIEW) remain. B is fixed in `18da1eb9`; E, F and G are closed.
-- **Status:** S09 stays open; the score stays 41/100.
-
-**Runner:** a controller in the ignored folder `build/s09-ustar-notes/runner/`. It alone pushes, without force, and keeps one draft PR. Workers have no push URL or GitHub token; this guards against accidents and is not a security boundary. Queue: S09-D6-ADR to S09-VERIFY done, S09-RECORD is this step, S09-NEXT is ready. One native gate runs at a time, host-wide, through `runner/heavy.sh`.
-
-**Separate tracks:** the design pipeline and the open PRs #336 (B03) and #333 (H02). Their files are not touched.
-
-**Next action:**
-1. `git status --short` and `git ls-remote origin refs/heads/feat/s09-ustar-name-check`; confirm that the remote holds the S09-RECORD commit.
-2. S09-NEXT selects the next authorised task. Work on D1–D5 waits for the project owner.
-
-## Retained handoff — Design pipeline (Orbitaal UI/UX), draft PR #332 — 14 November 2026
-
-## Retained handoff — Phase 0 PR333 actual-main reconciliation — 17 November 2026
 
 ## Retained handoff — Autonomous Cloud resumption — 18 November 2026
 
@@ -415,46 +694,6 @@ After that, in order:
 - S1: re-verify;
 - ds-1.0;
 - G1 (Inter licence and packaging).
-
-## Previous checkpoint — S09 ustar export recorded (S09-RECORD) — 15 November 2026
-
-**Source:**
-- Branch `feat/s09-ustar-name-check`, draft PR #340. This record is based on `2766e636910a112dc37abf7cb3d2537ba165a001`.
-- Tested source commit `18da1eb9cce655ad2798d8e8601faced3d37c092`, source-v3 fingerprint `36cab7938fbbac4e8dbbc71e66e59f5c95a636651d69f5ca2fd1b378aacd54b8`. The same value was recomputed at `2766e636` in this step (exit 0).
-
-**What the branch adds against main `d572052b`:**
-- `services/volume/src/ustar.rs`: the name check and its reason bits, including the root `PaxHeader` refusal (`18da1eb9`).
-- `services/volume/tests/archive.rs`, `services/volume/tests/ustar-names.txt`, `tests/test_volume_ustar_names.py` and `tests/test_volume_ustar_export.py`: host tests and independent oracles.
-- The test-only native stage `archive-ustar`: kernel feature `test-volume-archive-ustar` (`kernel/Cargo.toml`, `kernel/src/m2/m3/volume.rs`), the portal case in `sdk/examples/volume-docs/src/app.rs`, and the `tarfile` oracle `check_ustar` in `tools/run_volume.py`.
-- Stage-count expectations pinned to the gate PLAN (`tools/test_volume.py`, two workflows and `tests/test_ci_workflows.py`).
-- No capability, destination, trust boundary, encryption architecture or recovery-format byte changes.
-
-**Evidence (local host, not CI):**
-- Native gate run 14: `build/s09-ustar-notes/runner/heavy.sh python3 -B tools/test_volume.py`, exit 0, 164 s, 15/15 stages, QEMU 10.2.1 TCG with one CPU. The fingerprint was identical before and after the run. Record: [USTAR-NATIVE-20261115.md](verification/s09-archive/USTAR-NATIVE-20261115.md); captured stage results: [run14-20261115/](verification/s09-archive/run14-20261115/).
-- `sha256sum -c SHA256SUMS --quiet` on a `git archive` of `run14-20261115/` at `2766e636`: exit 0 (re-run in this step).
-- Host checks at `18da1eb9` (S09-VERIFY), each exit 0: `volume-core` test (93 passed), Clippy, fmt and the `x86_64-unknown-none` build; SDK runtime tests; `test_volume_*.py` (53 tests); `preflight.py --strict`.
-- FAILED, exit 101, and not run by any workflow:
-  - `volume-docs` Clippy with `native,archive-portal` (one lint at `app.rs:1056`, introduced in `8f4c7f3e`);
-  - kernel Clippy with `test-volume-archive-ustar` (14 older errors, none in a changed hunk).
-- Name-check oracles and mutation record: [NAMES-ORACLE-20261115.md](verification/s09-archive/NAMES-ORACLE-20261115.md), 43/43 mutants killed. The record predates the `PaxHeader` guard.
-- Historical: the committed `SHA256SUMS` of `run13-20261114/` does not verify (exit 1, re-run in this step); it is left unchanged.
-
-**Progress:** S09 stays open; 41/100 is unchanged. The assessment is in `docs/progress.json`.
-
-**Open limits:**
-- No user-chosen destination behind its own capability, no B01 encrypted variant and no user task.
-- Not run: KVM, real hardware, CI on this head, Windows or macOS extraction, bsdtar or Windows `tar` as readers, a pax-unaware reader, byte comparison with an independent pax writer, and an independent human audit.
-- 8.3 short-name aliasing and target path-length limits are not handled (see the specification).
-- Review findings A, C, D and H; the portal Clippy lint above.
-
-**Owner decisions, BLOCKED** (unchanged in [S09-BACKUP-DESTINATION-PROPOSAL.md](implementation/S09-BACKUP-DESTINATION-PROPOSAL.md); this record prefers no option):
-- D1 — what the destination is;
-- D2 — who chooses the destination and how the grant is issued;
-- D3 — rights per operation;
-- D4 — which component holds the authority;
-- D5 — encrypted destinations (NAS and provider).
-
-**Next:** the controller pushes this commit. S09-NEXT selects the next authorised task.
 
 ## Previous checkpoint — PR #333 integration with main — 15 November 2026
 

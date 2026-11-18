@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-18",
-    "source_commit": "41b894cd96556701af8fa4c1056be6d75f5afac1",
+    "source_commit": "aaf01bae291faba593567845dc8da4fe606a7959",
     "assessment_basis": "parent_commit",
-    "branch": "feat/s09-ustar-name-check",
-    "task": "Phase 0 PR340: bind final native gate to complete English/checker source set",
+    "branch": "codex/coderabbit-oss-config",
+    "task": "PR350 conflict-only reconciliation with main 2eac8ca3",
     "previous_score": 41,
-    "summary": "41/100 unchanged. Source_hash v3 includes added tool and module-documentation inputs, so old native evidence is retained without reclassifying it as current. New combined-source gate and actual339integration/current-head CI are required; D1\u2013D5/full S09 remain open."
+    "summary": "41/100 unchanged. The reviewed CodeRabbit free-tier configuration is preserved while current main, including PR #361 containment and final-read ordering, is incorporated. Only the checkpoint and assessment records required manual resolution. Hosted checks on the resulting head remain authoritative; no local build or QEMU acceptance is inferred."
   },
   "tracks": [
     {

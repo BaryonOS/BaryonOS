@@ -178,6 +178,22 @@ class Session(unittest.TestCase):
         self.assertTrue(rr.pid_alive(1) or True)
         self.assertFalse(rr.pid_alive(2 ** 22 + 12345))
 
+    def test_gate_resolution_failure_is_a_recorded_check_failure(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            attempt = root / "attempt"
+            attempt.mkdir()
+            controller = rr.Controller(rr.Config(), root / "state")
+            checked = dict(task("A", checks=[]), gates=["ci.yml#host-quality"])
+            with unittest.mock.patch.object(controller, "heartbeat"), \
+                    unittest.mock.patch.object(rr.subprocess, "call", return_value=0), \
+                    unittest.mock.patch.object(rr, "resolve_gate", side_effect=ValueError("unsupported gate")):
+                passed, results, failure = controller.run_checks(checked, attempt)
+            self.assertFalse(passed)
+            self.assertEqual(results[-1]["exit_code"], rr.GATE_FAIL_EXIT)
+            self.assertEqual(failure, "gate blocked: unsupported gate")
+            self.assertEqual((attempt / "gate.log").read_text(), failure + "\n")
+
 
 if __name__ == "__main__":
     unittest.main()

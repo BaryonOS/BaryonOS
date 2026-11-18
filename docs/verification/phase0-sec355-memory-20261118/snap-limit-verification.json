@@ -1,0 +1,33 @@
+{
+  "argv": [
+    "/usr/bin/systemd-run",
+    "--user",
+    "--scope",
+    "--quiet",
+    "--unit=baryonos-mem355-verify-snap-3be6be48b815405da799d3695feff104.scope",
+    "--property=MemoryMax=1G",
+    "--property=MemorySwapMax=0",
+    "--property=TasksMax=128",
+    "--property=RuntimeMaxSec=30s",
+    "--property=OOMPolicy=kill",
+    "--",
+    "/usr/bin/env",
+    "-i",
+    "PATH=/snap/bin:/usr/bin:/bin",
+    "HOME=/home/simon",
+    "LANG=C.UTF-8",
+    "CARGO_NET_OFFLINE=true",
+    "CARGO_BUILD_JOBS=2",
+    "CARGO_TARGET_DIR=${SEC359_WORKTREE}/build/sec355-memory-review-20261118/verify-snap-target",
+    "EXPECTED_SCOPE=baryonos-mem355-verify-snap-3be6be48b815405da799d3695feff104.scope",
+    "PROBE_RECEIPT=${SEC359_WORKTREE}/build/sec355-memory-review-20261118/snap-child-limit.txt",
+    "/snap/bin/cargo",
+    "+1.90.0",
+    "check",
+    "--manifest-path",
+    "build/sec355-memory-review-20261118/containment-probe/Cargo.toml"
+  ],
+  "unit": "baryonos-mem355-verify-snap-3be6be48b815405da799d3695feff104.scope",
+  "exit_code": 101,
+  "child_limits": "0::/user.slice/user-1000.slice/user@1000.service/app.slice/snap.rustup.cargo-93d50145-9fdd-47c2-8ba7-06bb9ca1a3d3.scope\nmemory.max=max\nmemory.high=max\n"
+}

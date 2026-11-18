@@ -1,0 +1,46 @@
+{
+  "schema": 1,
+  "source_commit": "a53c6eb9642a30b846cff194c30fad0d4eccbcc1",
+  "branch": "codex/phase0-pipeline-isolation",
+  "score_before": 41,
+  "score_after": 41,
+  "checks": [
+    {
+      "command": "python3 -B build/sec355-native-fixture/run-native.py --execute full",
+      "exit_code": 0,
+      "result": "14 native tests passed in 15.431 seconds; source and rootfs unchanged; no residual scope",
+      "receipt": "build/sec355-native-fixture/native-full-20261118T180432-1592611.json",
+      "receipt_sha256": "a666e75c3a7077a388be33e56f4b1753f5fd9a4a97d536b67133ad432d9737d2",
+      "stdout_sha256": "d7093160a481adcd181a52aff0680790a8f3a187226568ca4dfae0853090bb2d",
+      "stderr_sha256": "e5b1d90e1cebf249ae6a726c6d611590f03ef3ba3c9f89fbfb4c54cd922c71a1"
+    },
+    {
+      "command": "python3 -B -m unittest discover -s tools/tests -p 'test_*.py'",
+      "exit_code": 0,
+      "result": "517 passed; 15 explicit skips",
+      "raw_log": "build/tokenguard/run-a86krka7.log",
+      "raw_log_sha256": "519370f10867e078b760673ec5b1865cec8bcdbe3a8674b27b87970a3bdef562"
+    },
+    {
+      "command": "python3 -B tools/preflight.py --strict",
+      "exit_code": 0,
+      "raw_log": "build/tokenguard/run-zuc7eh1w.log",
+      "raw_log_sha256": "854426658a0d533beb67762b1dc6500fef5b645df0fe3a4982a6e30be56eb0cc"
+    },
+    {
+      "command": "python3 -B -m compileall -q tools",
+      "exit_code": 0
+    },
+    {
+      "command": "git diff --check",
+      "exit_code": 0
+    }
+  ],
+  "not_run": [
+    "Actual kernel OOM exhaustion",
+    "Authenticated model-client transactions",
+    "Complete selected-gate compatibility",
+    "Hosted CI and Code Quality on the eventual evidence head",
+    "Independent human security audit"
+  ]
+}

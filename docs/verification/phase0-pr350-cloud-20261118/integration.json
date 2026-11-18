@@ -1,0 +1,91 @@
+{
+  "schema_version": 1,
+  "pr": 350,
+  "parent": "7b4b618e7ef0eee6b2a67ce693afcb9f2f20809c",
+  "main": "366b82b353485207a9b0d6b1ae63dafbbe265bae",
+  "score_before": 41,
+  "score_after": 41,
+  "scope": "CodeRabbit free-tier configuration",
+  "status": "local preservation verified; current-head hosted checks and independent final review required",
+  "fixed_progress_register_unchanged": true,
+  "changed_paths_from_main": [
+    ".coderabbit.yaml",
+    "docs/PROJECT-STATE.md",
+    "docs/assets/progress.svg",
+    "docs/progress.json",
+    "docs/verification/coderabbit-oss-20261117/README.md",
+    "docs/verification/coderabbit-oss-20261117/validation.json",
+    "docs/verification/phase0-pr350-cloud-20261118/README.md",
+    "docs/verification/phase0-pr350-cloud-20261118/integration.json",
+    "docs/verification/phase0-pr350-cloud-20261118/prior-assessment.json",
+    "docs/verification/phase0-pr350-cloud-20261118/prior-checkpoint.md",
+    "docs/verification/phase0-pr350-cloud-20261118/verify.py",
+    "docs/verification/phase0-pr350-integration-20261117/README.md",
+    "docs/verification/phase0-pr350-integration-20261117/integration.json",
+    "docs/verification/phase0-pr350-integration-20261117/parent-checkpoints.json"
+  ],
+  "config_sha256": "0e0747bc87c0c4c649b9032d9f47d7230653598bbbe95f3f551e51424b81d127",
+  "reviewed_config_byte_identical": true,
+  "preservation_exit_code": 0,
+  "checks": [
+    {
+      "command": "progress.py --write",
+      "exit_code": 0,
+      "local_log": "build/tokenguard/run-u93ajlme.log",
+      "log_sha256": "62ebad9bc1b8d27851fbe4be8091c80217e43e64dfa64f554c574c2861a847fc"
+    },
+    {
+      "command": "progress.py --check",
+      "exit_code": 0,
+      "local_log": "build/tokenguard/run-bmezf0lk.log",
+      "log_sha256": "14b305fe38d23ae7244745b59dcbbad1fa41b2ffd4a173070a72a8aca2f3aa5f"
+    },
+    {
+      "command": "preservation assertions",
+      "exit_code": 0,
+      "local_log": "build/tokenguard/run-0t_eme97.log",
+      "log_sha256": "88ad9350b4582765067beb11df08ebbb91172401bf4b5102583bc808920e0c02"
+    },
+    {
+      "command": "live schema validation (network rejected)",
+      "exit_code": 1,
+      "local_log": "build/tokenguard/run-84z8vcf9.log",
+      "log_sha256": "ebd8f7e50411548672b8d1dd4bc3b6b4f1ab8ede939e1e1aa8705a5c1102e8be"
+    },
+    {
+      "command": "YAML parse and free-tier/nonapproval contract",
+      "exit_code": 0,
+      "local_log": "build/tokenguard/run-lc7gsrbh.log",
+      "log_sha256": "d8d3fd19a72152e7f3f16a567d175275f1f398f14867b91a40e0c94026306f74"
+    },
+    {
+      "command": "preflight.py --strict and build.py (activated environment)",
+      "exit_code": 0,
+      "local_log": "build/tokenguard/run-r6jihwel.log",
+      "log_sha256": "bd03f7f6811622d0c80abb28866e54cc008552f0ae846ddf9f886b6b351ffcb8"
+    },
+    {
+      "command": "git diff --check",
+      "exit_code": 0,
+      "local_log": "build/tokenguard/run-dvg669a6.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": "run.py --smoke (activated environment)",
+      "exit_code": 0,
+      "local_log": "build/tokenguard/run-417h2qgs.log",
+      "log_sha256": "838b24cb8ca940903b9f6f3ad5920d171a0dfbbfe83ac8a53bddbaba8a342e01"
+    }
+  ],
+  "live_schema_validation": "NOT VERIFIED: HTTPS proxy tunnel rejected coderabbit.ai with HTTP403; historical reviewed config and schema evidence unchanged",
+  "native_smoke": {
+    "raw_qemu_exit": 33,
+    "markers": [
+      "BOOT:EBS_OK",
+      "KERNEL:ENTRY",
+      "BOOTINFO:OK",
+      "M1:PASS"
+    ],
+    "scope": "generic M1 smoke; no native feature acceptance"
+  }
+}

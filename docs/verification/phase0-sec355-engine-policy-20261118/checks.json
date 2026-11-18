@@ -1,0 +1,75 @@
+{
+  "schema": 1,
+  "source_commit": "47835c4ebc5dad0576c0feaa3ec3654f3679f14d",
+  "parent_commit": "79d8674324d14d0b7608fb15f19701f33ddc939c",
+  "checks": [
+    {
+      "name": "focused pipeline, isolation, hold and offline-transaction tests",
+      "result": "PASS",
+      "tests": 67,
+      "skipped": 1,
+      "exit_code": 0,
+      "log": "build/tokenguard/run-r1rq_4jj.log",
+      "sha256": "44cfc52a6bc77ded5d69ebcb6a8734a48f53f98438af9d31c82e3972dbc50386"
+    },
+    {
+      "name": "complete tools suite",
+      "result": "PASS",
+      "tests": 493,
+      "skipped": 10,
+      "exit_code": 0,
+      "log": "build/tokenguard/run-e2mhv1hu.log",
+      "sha256": "941a6fc75323ff85f6f9b8e3024ead4ea64d6b73c7b0ffe2555c7cafb028e164"
+    },
+    {
+      "name": "workflow contract suite",
+      "result": "PASS",
+      "tests": 26,
+      "exit_code": 0,
+      "command": "python3 -B -m unittest discover -s tests -p 'test_ci_workflows.py' -v"
+    },
+    {
+      "name": "syntax, manifest and whitespace checks",
+      "result": "PASS",
+      "exit_code": 0,
+      "commands": [
+        "python3 -m compileall -q tools",
+        "python3 -B -m json.tool .github/agent-pipeline.json",
+        "git diff --check"
+      ]
+    },
+    {
+      "name": "independent security rereview",
+      "result": "PASS",
+      "resolved_findings": [
+        "standalone gates accepted malformed schema-2 engine authorization"
+      ]
+    },
+    {
+      "name": "independent exact-source verifier",
+      "result": "PASS",
+      "verification_head": "b738669d550be4fab05cdbb733b30c7a037b01c6",
+      "tests": 9,
+      "exit_code": 0,
+      "log": "build/tokenguard/run-s9ypbnjy.log",
+      "sha256": "81f063fe6390ab38b99a9fe9f9983c278fcf6e2c9c25e8beccf1a4e857f84440"
+    },
+    {
+      "name": "weakened-validator negative control",
+      "result": "PASS",
+      "expected_subtest_failures": 5,
+      "observed_subtest_failures": 5,
+      "detector_exit_code": 0,
+      "log": "build/tokenguard/run-8annxi55.log",
+      "sha256": "eb665eb20101d02a3659b0394049f29d5d9a43329008da338c63922269dc44e9",
+      "note": "A temporary in-memory weakened validator reached Sandbox in all invalid cases; the repository source was not changed."
+    }
+  ],
+  "not_run": [
+    "The private opt-in sandbox integration was unavailable; its test is the explicit focused-suite skip.",
+    "Local actionlint was unavailable (exit 127); hosted host-quality remains required.",
+    "Native QEMU was not repeated for this controller/configuration-only milestone.",
+    "Hosted CI has not yet run on this unpublished exact head.",
+    "No model client or vulnerable issue-pipeline execution was started."
+  ]
+}

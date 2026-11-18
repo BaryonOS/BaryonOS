@@ -6,6 +6,7 @@
 
 - Repository root and subsystem `AGENTS.md` files contain durable rules; only client-level working methods belong in `~/.codex/AGENTS.md`. Runtime state, owner decisions, logs and evidence remain outside `AGENTS.md`.
 - `CODEX-WORKFLOW.md` and `docs/CODEX-START.md` describe the ten-step loop; `tools/agent_pipeline.py` implements the issue-driven L0 / execution / local gate route, while `tools/roadmap_runner.py` implements a **Claude-only** clean-session roadmap runner. These controllers are not interchangeable and no Codex end-to-end equivalence has been demonstrated.
+- Issue-driven execution and the shared local gate now require a reviewed owner-controlled manifest and an isolated offline runtime; the committed configuration is disabled. [Execution constraints](roadmap-pipeline/README.md#separate-issue-driven-controller-default-deny-execution) describe the boundary and its unverified client surfaces. Offline fixtures do not establish model-client parity, and the roadmap runner's direct commands are not covered.
 - Hosted Graphify is mandatory for architectural navigation **when available**; fallback is a bounded direct source inspection with the limitation recorded. `docs/roadmap-pipeline/README.md` reports no Graphify MCP servers in fresh headless Claude processes on the measured container.
 - Token Guard and RTK are output-filtering tools, not test oracles. Ponytail guides minimal changes. ECC/Git hooks must remain enabled in the actual development checkout; an API-created commit does not verify local hooks.
 
