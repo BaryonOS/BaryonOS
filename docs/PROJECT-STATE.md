@@ -1,135 +1,59 @@
 # Current project status
 
-## NEXT AGENT HANDOFF — H04-T2 link tracker — 18 November 2026
+## NEXT AGENT HANDOFF — H04 link-tracker integration — 18 November 2026
 
-**Claim:** Codex lead, `codex/h04-link-tracker`, base `6f29b672`.
-Earlier PR362–368, original dirty checkout and Claude S09/UI remain untouched.
-**Goal:** pure virtio-net tracker for generation-bound FEATURE_STATUS observations
-with a bounded transition budget and rejection during reset.
-**Invariant:** stale up observations never resurrect a newer down state; budget
-exhaustion/reset fails closed. Trusted adapter supplies ordered u64 observation
-serials, not the wrapping device configuration-generation byte.
-**Write set:** drivers/virtio-net/src/{link.rs,lib.rs,tests.rs}; lead state/progress
-and one receipt. No live queue, DMA, MMIO, kernel or network-service changes.
-**Acceptance:** targeted driver tests/Clippy/freestanding build and root fmt;
-negative stale generation, exhaustion and reset tests; existing tests unchanged.
-**Evidence limit:** host tracker/build; native loss/reconnect and hardware remain
-open. Unsafe runner remains held; score41/100. N02-T2 is blocked by absent Rust1.91.1
-(no code changed; exact tests NOT RUN); P02-T3 remains blocked by protocol/network.
-**Delivered/source:** `1249f015b32dfdf88d9d839dbacbfe95e8488001` exports the pure `link::Tracker`. It requires
-negotiated FEATURE_STATUS, monotonic nonzero u64 observation serials, and counts
-only real transitions after the first sample. Stale samples leave state intact;
-reset or transition-budget exhaustion latches an error and exposes no usable state.
-No implicit recovery, live queue/DMA/MMIO/kernel or protocol changes.
-**Executed:** all22 driver host tests including4 new regressions, Clippy with
-warnings denied, workspace fmt and x86_64-unknown-none release build exit0.
-Lead source/diff review completed; no extra review cycle.
-[Receipt](roadmap-pipeline/receipts/H04-T2.json) records exact commands/log hashes.
-Progress **41 → 41/100**; H04/native reconnect remain open.
-**Not run:** native link loss/reconnect, kernel wiring or physical NICs/human tests.
-**Next:** publish independent draft. N02-T2 resumes with installed Rust1.91.1;
-P02-T3 needs NASP Head and native network dependencies. Preserve source branches
-PR362–368; no merge readiness is inferred. PR366 setup download hash failure
-was recorded on its PR and retried once with unchanged controls; result remains
-pending. No CI polling or execution-hold bypass was performed.
+PR #369 source `34a2a30d386aa56b48414bd1dfb1ad11d23f687d` is reconciled with
+main `2eac8ca39ce04753f4f6bef3b09ee9b3610c065f`. The virtio-net driver
+adds a bounded generation-aware tracker: stale observations cannot resurrect an old
+link state, stable observations do not spend the transition budget, and exhaustion
+or reset latches an unusable state. The pure tracker has no MMIO, DMA, kernel or
+network-service wiring. Source-bound Rust tests, Clippy, formatting and freestanding
+build evidence remains in `docs/roadmap-pipeline/receipts/H04-T2.json`. Native link
+loss/reconnect, physical NICs and human acceptance remain open; H04 stays open and
+the score remains 41/100. Fresh exact-head hosted checks are required.
 
-## Retained checkpoint — P02-T2 checkpoint codec — 18 November 2026
+## NEXT AGENT HANDOFF — PR #361 integration and final-read barrier — 18 November 2026
 
-**Claim:** Codex lead, `codex/p02-checkpoint-codec`, stacked on preserved PR367
-`ae5ad402`. Sequential ownership of native-client; prior delivery branches intact.
-**Goal:** canonical versioned fixed-length encoding of offline ciphertext edits.
-**Invariant:** decoding never restores authority or acknowledged publication; every
-occupied edit becomes NeedsReconcile. Strict bounds, canonical zero padding and
-unique namespace/object pairs. Reject malformed input without partial output.
-**Write set:** native-client checkpoint.rs, lib export/docs, tests/checkpoint.rs,
-README; lead-owned state/progress and one receipt.
-**Acceptance:** client tests/Clippy/fmt plus malformed-length/version/state/padding/
-bounds/duplicate regressions and roundtrip preserving local+remote ciphertext.
-**Evidence limit:** host codec; no authenticated storage, rollback anchor, durable
-save ACK or native persistence. Unsafe runner remains held; score41/100.
-**Delivered/source:** `8536ec8581cd41e0094c1e61bf43491d31192e4f` adds canonical 8,464-byte `NOSNCP01` v1
-checkpoint encoding/decoding. It preserves holes and both ciphertext versions,
-rejects malformed sizes/version/state/flags/padding/bounds/duplicates/overflow,
-and converts all occupied records to NeedsReconcile. No ticket/ACK serialized.
-**Executed:** 21 client host tests (4 new codec regressions), Clippy with warnings
-denied and formatting exit0. One bounded AI review found no blocker.
-[Receipt](roadmap-pipeline/receipts/P02-T2.json) contains commands/raw-log hashes.
-Progress **41 → 41/100**; P02 stays open.
-**Not run:** native persistence/recovery, authenticated atomic disk adapter,
-rollback protection, real transport, hardware/human acceptance. Codec alone
-provides no durable-save ACK, authentication or freshness.
-**Next:** publish dependent draft against PR367. P02-T3 remains explicitly blocked
-on NASP Head opcode and N02/N03/N04; select an independent READY functional slice.
-Local Cargo target caches are untracked and excluded from publication.
+**Claim/source:** Codex sole writer in `codex/block-order-integration`, PR #361 head
+`fc35563668ae2ba3dc2fc90e6e30575c38b6f578`, merging main `6f29b672`.
+Original syscall-order worktree and all foreign WIP remain untouched. Governance
+is independently published as draft PR #362; its hosted checks remain pending.
 
-## Retained checkpoint — P02-T1 NAS revision discovery — 18 November 2026
+**Goal:** repair the confirmed case-2 final-read/terminal-error scheduling race and
+resolve the two status-only integration conflicts, preserving #355/#359 containment.
+**Invariant:** successful final GET/LIST replies from both clients precede terminal
+uncertainty injection; capability, pointer, ordering and device guards stay intact.
+**Write set:** `kernel/src/m2/m3/m6c.rs`, `userspace/m6c_probe.rs`, this checkpoint,
+progress assessment/displays and one new verification child for concise test results.
+**Acceptance:** adversarial delayed-read negative control; targeted M6c build and
+native `errors` plus `normal`; M6c host harness, formatting, progress/check and exact
+head hosted checks. Reuse unchanged M6b and previous full-matrix evidence explicitly.
+**Evidence limit:** native QEMU is not hardware, full certification, Daybreak closure
+or client runtime parity. No broad repeated matrix or optional review quota request.
 
-**Claim:** Codex lead, `codex/p02-head-discovery`, base `6f29b672`.
-Prior delivered branches/PRs 362–366 and Claude S09/UI remain preserved.
-**Goal:** authenticated session-scoped latest committed revision discovery and
-read-only reconciliation in the existing NAS client.
-**Invariant:** existing principal/session/namespace authority; no automatic replay
-of uncertain writes, no output mutation on failed reads, unchanged NOSNAS01/wire.
-**Write set:** native-core lib/tests/README and native-client lib/tests/README;
-lead-owned ledger, checkpoint, progress assessment and one compact receipt.
-**Acceptance:** targeted core/client/volume/probe tests, Clippy/fmt and existing
-probe disk oracle; negative wrong-principal/stale/evicted/poisoned/bounds cases and
-uncertain publication discovery. No source changes to S09, UI or runner.
-**Evidence limit:** host/library integration only; no NASP opcode, native resume,
-transport authentication, physical durability or P02 acceptance. Score 41/100.
-**Delivered/source:** `c5c56f93d14a737c5c62dbec7ae237e34fe505fe` adds `Service::head` and `Client::reconcile_latest`,
-reusing existing authority and read-only reconciliation. Wrong/retired tokens,
-foreign namespaces, revocation, eviction, bounds and poisoned storage reject.
-Staging is invisible; recovery discovers whether an uncertain write actually
-committed, without automatically replaying it. Explicit revision hints still work.
+**Result:** the delayed-read negative control fails on the old ACK-only barrier
+(guest 35, exit 1); fixed native errors and normal pass (guest 33, exit 0), with disk
+oracles and stable source fingerprints. 49 host tests and formatting pass, exit 0.
+[Compact source-bound receipt](verification/m6c-final-read-barrier-20261118/checks.json).
+One focused read-only security review found no blocking defect; no tests were repeated
+by that reviewer. The old M6b evidence is reused for unchanged sources. Full native
+matrices, hardware and human audit are NOT RUN for this correction.
 
-**Executed:** core 23, client 17, volume 10 and probe 7 Rust host tests (57 total),
-8 Python disk-oracle tests, four crates' Clippy (`-D warnings`) and formatting all
-exit 0. [Receipt](roadmap-pipeline/receipts/P02-T1.json) preserves exact commands,
-raw-log hashes and two corrected test-setup failures. One focused AI review found
-no blocker. Snapshot source/wire unchanged. Progress **41 → 41/100**; P02 open.
+**Next:** publish the integrated head to existing PR #361 and require its current-head
+mandatory checks/review. Then continue the Codex-owned H/U/N/B/A/P/L/R controller in
+`codex/roadmap-codex`, following the owner's executor correction. #355 WIP and Claude
+S09/UI work remain untouched. No auto-merge, protection bypass or finding closure.
+Progress **41 → 41/100**; no criterion/weight changes.
 
-**Not run:** native resume, real NAS transport, hardware durability and human audit.
-**Next:** publish independent draft, then P02-T2 canonical checkpoint encoding in
-a separately owned slice. No unattended execution or acceptance inferred.
+## Retained checkpoint — Daybreak block-syscall ordering repair — 18 November 2026
 
-## Retained checkpoint — A03-T1 bounded task grants — 18 November 2026
+**Source and ownership:** isolated branch `codex/security-block-syscall-order` now contains implementation/evidence commit `616737b8a85877cde79d9bdc43d808c628ee8325`, based on verified main `1c10cdb5b30df2f3d30bea74430383f59c398931`. The original dirty checkout, Claude UI/UX, S09, PR355 and the preserved broad `sec-m6-observer-local` WIP were not modified. This is the bounded repair for Daybreak finding `acf_4d7b2e454297c2c851a4b7cadcff2587`; the finding remains open pending an accepted exact-head scan and resulting-main verification.
 
-**Claim:** Codex in `codex/a03-task-grants`, base `6f29b672`. Existing PR362/363,
-B01-T1 PR364 and N02-T1 PR365 remain preserved on their source branches. The shared
-ledger carries their source-bound task status without inferring main integration.
-**Goal:** SDK host core for per-object read/write/export grants bound to an app and
-specific process incarnation, revision, revocation generation and close/session life.
-**Invariant:** default no access; no helper inheritance/delegation; stale actors,
-handles/revisions/generations and exhausted tables/counters fail closed. No runtime
-capability material in messages or new native authorization path.
-**Write set:** `sdk/task-grant-core/`, SDK workspace manifest/lock and lead-owned
-ledger/checkpoint/progress/one compact receipt. No UI, native broker or storage edits.
-**Acceptance:** new grant-core regressions, affected SDK workspace tests/Clippy/fmt
-and a targeted freestanding build. The lock changes only for the new local member.
-**Evidence limit:** host model/build only; native per-object enforcement and A03
-acceptance remain open. Unsafe unattended runner remains disabled and separate.
-**Delivered/source:** `e1cc7c1ce04942f0f46c91875eab751044c6b260` adds the dependency-free, allocation-free grant
-core. It binds app/PID/process epoch, exact known object revision, independent rights,
-unique table session and monotonic issuance generation. Revocation, close, process
-retirement, revision change and session end invalidate retained handles; full tables
-and overflow do not evict live grants. [Receipt](roadmap-pipeline/receipts/A03-T1.json).
+**Security result:** M6b/M6c reject post-recovery READ and invalid WRITE/FLUSH ordering after complete ABI/capability validation but before policy or device publication. A second valid or malformed submit cannot change any already-live request; only a correctly bound mutating POLL may make its own request terminal. M6c terminal accounting is idempotent. Negative controls reproduced the pre-active timeout and both live-I/O failure classes before repair. Independent review found and drove closure of repeated-terminal, live-Busy, malformed-live and active-READ panic paths, then returned PASS on exact source fingerprint `5a6a5cca407e288973e302ae46840c7f851a57db70a848917f552c23821d4fbf`.
 
-**Executed:** 128 SDK tests including 12 new grant regressions, SDK Clippy with
-warnings denied, formatting and targeted freestanding release build all exit 0.
-Exact commands/log hashes are in the receipt. SDK lock comparison shows only the new
-local package entry; no existing dependency/version changed. One bounded read-only
-AI review found no blocker. No duplicate test matrix was run by the lead/reviewer.
+**Verification:** targeted M6b/M6c builds and `errors` QEMU runs pass (wrapper exit0, guest33); host harnesses pass38/38 and49/49; object-core passes22/22 and catalog-core45/45. Full native M6b passes32 groups and M6c35 groups, including cold recovery and final M1 guest33. Strict preflight, Rust formatting, evidence JSON and diff whitespace pass. Raw logs remain under ignored `build/tokenguard/`; the source-bound receipt is [daybreak-block-order-20261118](verification/daybreak-block-order-20261118/README.md). Physical hardware, formal proof, hosted CI and a fresh Daybreak scan are not claimed.
 
-**Limits:** trusted-adapter assumptions are explicit in the crate README. No native
-broker, IPC authentication, UI consent, volume enforcement or end-to-end LP acceptance
-is claimed. A03 stays open; progress **41 → 41/100**. Unsafe unattended execution,
-Claude work and PR362/363/364/365 remain preserved. Worker group is stopped.
-
-**Next:** publish this independent draft; select the next bounded functional READY
-slice after source/ownership checks. Prefer existing-code integration over a new
-model or documentation-only proposal. Mandatory hosted checks remain separate.
-
+**Progress and next:** score remains41/100 because no fixed product criterion is newly accepted. Publish the branch as a draft PR, require fresh current-head `host-quality`, `qemu-smoke`, CodeQL and merge-hold, obtain exact-head Daybreak acceptance, and manually squash only when all actionable findings and reviews are resolved. Then verify resulting main and resume the unchanged PR355 isolation blockers and remaining security queue. Governance phases1–6 remain blocked by the strict stabilization gate.
 ## Retained checkpoint — PR #355 native test quality — 18 November 2026
 
 **Source and change:** security-quality checkpoint
@@ -387,7 +311,7 @@ issue closure is authorized. Score 41/100 is unchanged.
 **Ownership and evidence:** original user work, independent UI/S09 workstreams, existing PRs and compiler WIP remain preserved. No original worktree was reset or cleaned. Private managed artifacts retain exact source/commands/limits. Score41/100 is unchanged; no product criterion or security result is accepted by this checkpoint.
 **Next:** preserve this draft checkpoint, resolve the independently identified blockers, then require current-head CI/security verification before manual squash and source-bound Daybreak closure. Prepare the authorized cloudhandoff after reconciling branches/WIP; ownership is not transferred until remote commits are verified. Do not use the affected issue pipeline for remediation. Resume the existing integration/modernization work only after the boundary is verified.
 
-## Retained checkpoint — Local PR359 containment reconciliation — 18 November 2026
+## NEXT AGENT HANDOFF — Local PR359 containment reconciliation — 18 November 2026
 
 **Authority and ownership:** the project owner approved autonomous local execution and verified manual squash merges. Cloud handoff `88b801ab8cd47f4765ef7d925b161542dbbf684e` releases Codex work only. Local Codex exclusively owns this PR359 reconciliation in an isolated worktree; the original unfinished merge, Claude UI/UX and broader S09 remain untouched.
 
@@ -399,7 +323,7 @@ issue closure is authorized. Score 41/100 is unchanged.
 
 **Next:** independently review and publish the evidence correction, then require a fresh exact-head hosted rollup. Manually squash only when every applicable check and actionable review is satisfied. Verify resulting main before continuing PR355/357 and the remaining security queue. Governance has not started.
 
-## Retained checkpoint — Phase 0 PR339 safe checker and integration — 18 November 2026
+## NEXT AGENT HANDOFF — Phase 0 PR339 safe checker and integration — 18 November 2026
 
 **Actual main:** `67d5859d735836331b6fb971eae89162b7fa8465` after verified manual squash merges #345 and #346. Actual trees equal their independently reviewed candidates. Translation source PRs #347–#349/#351–#353 were closed only after actual-main inclusion proof; original refs remain preserved. Five issues and seven PRs remain open at this cutoff. Project5 synchronization uses the existing workflow.
 

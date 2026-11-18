@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-18",
-    "source_commit": "1249f015b32dfdf88d9d839dbacbfe95e8488001",
-    "assessment_basis": "source_commit",
+    "source_commit": "34a2a30d386aa56b48414bd1dfb1ad11d23f687d",
+    "assessment_basis": "parent_commit",
     "branch": "codex/h04-link-tracker",
-    "task": "H04-T2: bounded virtio-net link tracker delivered",
+    "task": "H04-T2: bounded generation-aware link tracker",
     "previous_score": 41,
-    "summary": "41/100 unchanged. Pure FEATURE_STATUS tracker binds monotonic observation serials, rejects stale up after down, counts bounded transitions and latches reset/exhaustion.22 driver host tests incl4 regressions, Clippy, root fmt and freestanding build pass. No live driver/kernel wiring, native reconnect or H04 acceptance. N02-T2 exact tests NOT RUN: required1.91.1 absent; no weaker substitution. Runner hold, Claude work and prior delivery PRs preserved."
+    "summary": "41/100 unchanged. The virtio-net driver gains a bounded generation-aware link tracker that rejects stale observations, preserves stable samples without consuming the transition budget, and latches exhaustion or reset as unusable. H04 remains open because live device wiring and native reconnect evidence are absent. Current-main reconciliation changes only checkpoint state; hosted checks remain authoritative."
   },
   "tracks": [
     {
