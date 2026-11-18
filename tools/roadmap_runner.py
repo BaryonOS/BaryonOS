@@ -583,7 +583,7 @@ have no earlier conversation; read this brief, AGENTS.md and applicable director
 and the repository are your only context. Implement exactly ONE cohesive, verifiable
 slice described below, then stop.
 
-Repository: {ROOT} on branch {self.cfg.branch} at {head}. {"The working tree holds the previous attempt's uncommitted change; repair it." if feedback else "The checkout was clean when you started."}
+Repository: {ROOT} on branch {self.cfg.branch} at {head}. {"The working tree holds the previous attempt's uncommitted change; repair it." if feedback else "The checkout was clean before the controller recorded this active ledger claim; that lead-owned ledger change is expected."}
 
 Task (immutable; from docs/roadmap-pipeline/ledger.json):
 {json.dumps(fields, indent=2, ensure_ascii=False)}
@@ -604,7 +604,8 @@ Rules (binding, in addition to AGENTS.md):
 - Load the `ponytail` skill (full) if available: smallest safe change, reuse existing
   utilities, no reduced functionality or test evidence. Use relevant
   `verification-loop` guidance and `.agents/skills/os-dev` only where it applies.
-- You may run the task's check commands (optionally through
+- Targeted read-only source inspection using cat, rg, sed or Token Guard inspect/slice
+  is allowed. You may run the task's check commands (optionally through
   `python3 -B tools/tokenguard.py run -- <command>`), plus read-only git. Other commands
   are outside this assignment; tool policy is not a claim of technical isolation.
 - Security Floor: no new trust roots, key escrow, telemetry, cloud fallback, broader

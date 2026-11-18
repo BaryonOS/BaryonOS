@@ -93,6 +93,18 @@
           "run": "20261115T020104-23862",
           "session_id": "539a48f7-3153-478d-8f8c-dc618d90a5c1",
           "reason": "Worker reported the 5-hour usage limit after 609 s and 20 turns (0 compactions, peak context 120k, 198k output tokens, estimated 2.42 USD); the controller stopped on the rate-limit guard. No file changed. Resumed after the reset."
+        },
+        {
+          "at": "2026-11-18T19:31:06+00:00",
+          "event": "manual-codex-claim",
+          "base": "8a46c15e272005caaa96baa88b73f3a2a7cbb9e3",
+          "dispatch": "/home/simon/projects/BaryonOS-worktrees/roadmap-codex/build/roadmap-pipeline/manual/A02-T1-0e0c6833e079437f9eb76f127330624a/dispatch.json",
+          "brief_sha256": "687899aa74057db93124f6fd1a763c6bc20c4104069ff4736f6865dc022b2e8c"
+        },
+        {
+          "at": "2026-11-18T19:31:38+00:00",
+          "event": "brief-superseded-before-launch",
+          "reason": "No worker started; clarify Codex read-only source commands and lead-owned active ledger change before freezing replacement brief."
         }
       ]
     },
