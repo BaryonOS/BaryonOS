@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-18",
-    "source_commit": "0bbe4a7624178f01a527075af7b4c2cfadfc5b19",
+    "source_commit": "b87436dfd8ef8c277dea1dbde780f2e2229283a9",
     "assessment_basis": "parent_commit",
-    "branch": "codex/p02-checkpoint-codec",
-    "task": "P02-T2: canonical offline checkpoint codec",
+    "branch": "codex/unified-governance",
+    "task": "GOV-1-6 reconciliation with main 5a3295b6",
     "previous_score": 41,
-    "summary": "41/100 unchanged. The native NAS client adds a canonical fixed-size checkpoint codec for retained local and observed remote ciphertext while preserving slot holes and restoring every occupied slot as NeedsReconcile. The format carries no session, upload or publication acknowledgement. P02 remains open because authenticated durable storage and native recovery are absent. Hosted checks on the stacked resulting head remain authoritative."
+    "summary": "41/100 unchanged. Shared role and workflow contracts, client adapters and compact continuation are reconciled with actual main after #350. Targeted quarantine (5) and execution-hold (3) regressions remain source-bound; disabled manifest and source hold remain intact. Governance has no zero-open-items/baseline-B prerequisite. Host adapter/protection checks do not establish client runtime parity, Daybreak acceptance, hardware or human audit. No product criterion or weight changes."
   },
   "tracks": [
     {
