@@ -1,6 +1,29 @@
 # Current project status
 
-## NEXT AGENT HANDOFF — PR #355 native test quality — 18 November 2026
+## NEXT AGENT HANDOFF — B01-T1 native management recovery — 18 November 2026
+
+**Claim:** Codex in `codex/b01-management-recovery`, base `6f29b672`.
+PR #362 governance and #363 controller/A02-T1 remain preserved and independently
+pending integration. Automatic runner activation remains a separate blocked security
+dependency; this task uses the supervised fresh-Codex fallback only.
+
+**Goal:** native normal-case recovery from Key Service A into B through an existing
+management ingress whose caller is named by the kernel manifest.
+**Invariant:** ordinary app recovery remains denied; caller identity comes from IPC,
+not request bytes. No KEY1 change, new crypto, capability kind or pipeline activation.
+**Write set:** the existing B01-T1 ledger paths (keyring kernel/profile, existing SDK
+keyring app/service, keyring runners/tests, B01 implementation doc and one new evidence
+child), plus lead-owned ledger/checkpoint/progress assessment.
+**Acceptance:** focused keyring host tests; five existing native keyring cases;
+a wrong-admin-caller negative control; relevant formatting and progress checks.
+**Evidence limit:** QEMU fixture proof only, no physical entropy, external audit,
+authenticated production recovery or full B01 acceptance inferred.
+
+**Next:** implement the bounded manifest/admin process route, run targeted checks,
+then publish one draft PR. No native matrix for unrelated subsystems and no CI polling.
+A02-T1 remains verified on its own source branch; the score remains 41/100.
+
+## Retained checkpoint — PR #355 native test quality — 18 November 2026
 
 **Source and change:** security-quality checkpoint
 `a53c6eb9642a30b846cff194c30fad0d4eccbcc1` extends documented native-evidence
@@ -24,7 +47,7 @@ for `c17f5a52`, then publish this checkpoint without cancelling that evidence an
 require fresh current-head CI/CodeQL/Code Quality. Score 41/100 is unchanged. No
 Daybreak, issue, baseline or governance acceptance is inferred.
 
-## NEXT AGENT HANDOFF — PR #355 native resource boundary — 18 November 2026
+## Retained checkpoint — PR #355 native resource boundary — 18 November 2026
 
 **Source and change:** security checkpoint
 `6dbe373a84929df6c781e5bf2355d61f7b1f39c9` extends capped-scratch source
@@ -57,7 +80,7 @@ CI/CodeQL/Code Quality and Daybreak acceptance remain open. Keep the manifest
 disabled. Score 41/100 is unchanged; no finding, issue, baseline or governance
 acceptance is inferred.
 
-## NEXT AGENT HANDOFF — PR #355 capped scratch transactions — 18 November 2026
+## Retained checkpoint — PR #355 capped scratch transactions — 18 November 2026
 
 **Source and change:** security checkpoint
 `edd1a6a9af2d80a56848ec500bbf2b702799dced` extends engine-policy evidence head
@@ -92,7 +115,7 @@ selected-gate compatibility, hosted current-head CI/CodeQL and final Daybreak
 acceptance also remain open. Keep the manifest disabled. Score 41/100 is unchanged;
 no finding, issue, baseline or governance acceptance is inferred.
 
-## NEXT AGENT HANDOFF — PR #355 owner-bound engine policy — 18 November 2026
+## Retained checkpoint — PR #355 owner-bound engine policy — 18 November 2026
 
 **Source and change:** security checkpoint
 `47835c4ebc5dad0576c0feaa3ec3654f3679f14d` extends published PR head
@@ -122,7 +145,7 @@ the current published-head native jobs until they finish, then publish this comp
 checkpoint and require fresh CI/review. Score 41/100 is unchanged; no Daybreak
 finding, issue, baseline or governance acceptance is inferred.
 
-## NEXT AGENT HANDOFF — PR #355 bounded gate finalizer — 18 November 2026
+## Retained checkpoint — PR #355 bounded gate finalizer — 18 November 2026
 
 **Source and change:** security checkpoint `364b94964cc7f3fbb8ff2377e87861e858ef03ad`
 extends immutable-receipt evidence head `467e25b6394fcffc97d85a7be025bd5814b0806e`.
@@ -246,7 +269,7 @@ issue closure is authorized. Score 41/100 is unchanged.
 
 **Resume:** continue from published PR #359 containment `9789ce56` pending final hosted native-window acceptance, PR #356 helper correction `eba1bfa7` has three reported CodeQL collector alerts under repair; new-head CI/review is required, and the independent public M6 observer fix. Repair reported failures first. Finite B retains its approved meaning; governance additionally requires strict genuine zero issues/PRs/actionable findings or an explicit project-owner exception. Score 41/100 remains unchanged. No vulnerable issue-pipeline execution, auto-merge, bypass, false closure or governance start.
 
-## NEXT AGENT HANDOFF — Phase 0 execution isolation — 17 November 2026
+## Retained checkpoint — Phase 0 execution isolation — 17 November 2026
 
 **Source:** integrated main `366b82b353485207a9b0d6b1ae63dafbbe265bae` after the authorized PR333 squash; isolated branch `codex/phase0-pipeline-isolation`, security parent `aec1fb5f75e6165da82ba81f3f43d7a0d912ab1d`.
 **Primary milestone:** 0D security remediation. Integration0B is waiting; baselineB and governance1–6 remain blocked. A private security report requires verification of the development execution boundary. Its sensitive evidence remains outside the public repository.
@@ -257,7 +280,7 @@ issue closure is authorized. Score 41/100 is unchanged.
 **Ownership and evidence:** original user work, independent UI/S09 workstreams, existing PRs and compiler WIP remain preserved. No original worktree was reset or cleaned. Private managed artifacts retain exact source/commands/limits. Score41/100 is unchanged; no product criterion or security result is accepted by this checkpoint.
 **Next:** preserve this draft checkpoint, resolve the independently identified blockers, then require current-head CI/security verification before manual squash and source-bound Daybreak closure. Prepare the authorized cloudhandoff after reconciling branches/WIP; ownership is not transferred until remote commits are verified. Do not use the affected issue pipeline for remediation. Resume the existing integration/modernization work only after the boundary is verified.
 
-## NEXT AGENT HANDOFF — Local PR359 containment reconciliation — 18 November 2026
+## Retained checkpoint — Local PR359 containment reconciliation — 18 November 2026
 
 **Authority and ownership:** the project owner approved autonomous local execution and verified manual squash merges. Cloud handoff `88b801ab8cd47f4765ef7d925b161542dbbf684e` releases Codex work only. Local Codex exclusively owns this PR359 reconciliation in an isolated worktree; the original unfinished merge, Claude UI/UX and broader S09 remain untouched.
 
@@ -269,7 +292,7 @@ issue closure is authorized. Score 41/100 is unchanged.
 
 **Next:** independently review and publish the evidence correction, then require a fresh exact-head hosted rollup. Manually squash only when every applicable check and actionable review is satisfied. Verify resulting main before continuing PR355/357 and the remaining security queue. Governance has not started.
 
-## NEXT AGENT HANDOFF — Phase 0 PR339 safe checker and integration — 18 November 2026
+## Retained checkpoint — Phase 0 PR339 safe checker and integration — 18 November 2026
 
 **Actual main:** `67d5859d735836331b6fb971eae89162b7fa8465` after verified manual squash merges #345 and #346. Actual trees equal their independently reviewed candidates. Translation source PRs #347–#349/#351–#353 were closed only after actual-main inclusion proof; original refs remain preserved. Five issues and seven PRs remain open at this cutoff. Project5 synchronization uses the existing workflow.
 

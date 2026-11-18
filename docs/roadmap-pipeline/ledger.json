@@ -1,8 +1,8 @@
 {
   "schema": 1,
   "purpose": "Execution queue of the H/U/N/B/A/P/L/R clean-session roadmap pipeline; child tasks of the fixed criteria in docs/progress.json. Not a second roadmap and not an acceptance register.",
-  "branch": "claude/baryonos-autonomous-pipeline-81tujs",
-  "base": "d572052b731149016dad1a99e2c4ebde90474a96",
+  "branch": "codex/b01-management-recovery",
+  "base": "6f29b6720b51aecad5714faa48b445afd6e2f5a9",
   "score": {
     "accepted": 41,
     "of": 100,
@@ -22,7 +22,7 @@
       "criterion": "A02",
       "milestone": "M7",
       "executor": "worker",
-      "status": "ready",
+      "status": "verified",
       "title": "Host installer orchestrator binding source verification, artifact commit and catalogue journal",
       "goal": "Add sdk/app-management/src/installer.rs: a bounded no_std orchestrator for install, update and remove that (1) verifies the package only through the existing app_package_core::SourceRegistry::verify_executable (no second verifier, no public self-constructible verified token), (2) derives PackageIdentity crate-internally from the SourceVerifiedExecutable, (3) streams the exact image through store::InstallTransaction and commits it, (4) re-checks the current source generation and revocation state immediately before catalogue prepare/apply so a rotate or revoke between verification and commit fails closed (APP-SOURCE-RECOVERY section 7), (5) applies catalog::InstallCatalog and persists through journal::Journal, and (6) maps store/journal Unknown to a fail-closed state without replay or automatic recommit. The SourceRegistry stays caller-supplied and in memory: no new trust root, anchor, durable source backend or launch capability.",
       "why_now": "A02 is open and every lower layer (package verification, source policy, streaming store, catalogue, journal) is host-tested but unconnected. A single orchestrator is the smallest step that proves the layers compose without authority gaps, and it is the prerequisite for the native installer service (A02-T3) and for A03/A04 app lifecycle work. Covered by an existing CI job.",
@@ -92,6 +92,13 @@
           "run": "20261115T020104-23862",
           "session_id": "539a48f7-3153-478d-8f8c-dc618d90a5c1",
           "reason": "Worker reported the 5-hour usage limit after 609 s and 20 turns (0 compactions, peak context 120k, 198k output tokens, estimated 2.42 USD); the controller stopped on the rate-limit guard. No file changed. Resumed after the reset."
+        },
+        {
+          "at": "2026-11-18T19:57:13+00:00",
+          "event": "source-bound-branch-reference",
+          "source_commit": "d03ae904048a91defc74b9e4ba854d3526595580",
+          "pr": 363,
+          "reason": "Host/build task verified on separate preserved branch; no native A02 acceptance or main integration inferred."
         }
       ]
     },
@@ -100,7 +107,7 @@
       "criterion": "B01",
       "milestone": "M8",
       "executor": "worker",
-      "status": "ready",
+      "status": "active",
       "native": true,
       "title": "Native positive management recovery through a manifest-named admin principal (keyring)",
       "goal": "In the native-keyring normal case, add a management-role process (a second instance of the existing keyring-app ELF, named in the manifest as the admin caller and connected to the existing admin ingress words) that performs EXPORT_RECOVERY on service A and RESTORE into service B, after which B unseals a ciphertext sealed by A. Negative cases in the same run: a wrong recovery secret returns Auth; GENERATE on the admin ingress is denied; the ordinary app's test-only SEND alias to the admin ingress is counted as bad_caller with no reply and no state change. Existing APP_RECOVERY_EXPORT_DENIED and APP_RECOVERY_RESTORE_DENIED counters stay 1. Reuse existing ELFs and kernel features only: no tools/build.py edit, no new capability kind, no change to the KEY1 wire.",
@@ -114,7 +121,7 @@
         "tools/test_keyring.py",
         "tests/test_keyring_harness.py",
         "docs/implementation/B01-ENTROPY-AND-KEYS.md",
-        "docs/verification/b01-management-recovery-20261115/"
+        "docs/verification/b01-management-recovery-20261118/"
       ],
       "graph_notes": "Graphify (index d572052): AdminIngress, admin_ingress(), poll_admin() and admin_evidence() in sdk/examples/keyring/src/service.rs; the native-system admin route admin()/persist_key_state() in sdk/examples/system/src/init.rs is the reference pattern for a manifest-bound management caller; host proof management_ingress_can_export_and_restore_legacy_recovery() in services/keyring/tests/persistent_wire.rs; run_keyring()/expected_markers() in tools/run_keyring.py. Pitfall: capability-core test manifest_equation_is_exact_and_detects_a_seventh_app_handle() pins manifest handle counts, so an added process must keep the manifest equation exact. Memory: ordinary app recovery export/restore stays denied; only management dispatch allows it (PR #155).",
       "read_paths": [
@@ -152,7 +159,15 @@
       "evidence_level": "native-QEMU (TCG)",
       "rollback": "Revert the commit; the new process exists only in the native-keyring test profile.",
       "next": "Lead acceptance review of B01; then B01-T2 after PR #333 releases tools/build.py.",
-      "history": []
+      "history": [
+        {
+          "at": "2026-11-18T19:57:13+00:00",
+          "event": "supervised-claim",
+          "owner": "Codex",
+          "branch": "codex/b01-management-recovery",
+          "base": "6f29b6720b51aecad5714faa48b445afd6e2f5a9"
+        }
+      ]
     },
     {
       "id": "N02-T1",
@@ -205,7 +220,7 @@
       "criterion": "B02",
       "milestone": "M8",
       "executor": "worker",
-      "status": "ready",
+      "status": "blocked",
       "title": "Keyring write-ahead contract: no seal or revoke confirmation before durable commit (host)",
       "goal": "Implement spec item 4 of B02-SECURE-RECORDS.md in keyring-core on the host: a newly generated handle cannot seal until snapshot generation G is committed; revocation is confirmed only after commit; crash points never reissue an index; Unknown I/O is never confirmed or retried.",
       "why_now": "The B02 spec marks this as still to be built; host-first, offline and covered by host-quality.",
@@ -778,7 +793,7 @@
       "criterion": "R03",
       "milestone": "M11",
       "executor": "worker",
-      "status": "ready",
+      "status": "blocked",
       "title": "Offline deterministic SPDX SBOM and dependency-provenance check for all Cargo.lock files",
       "goal": "Add tools/sbom.py (standard library only): SPDX 2.3 JSON for every Cargo.lock, the pinned toolchain and THIRD-PARTY assets, plus --check: registry checksums present, no git sources, exact '=' pins for cryptographic crates, records for vendored crates, licences cross-checked against THIRD-PARTY.md or NOASSERTION, never guessed; deterministic bytes.",
       "why_now": "Serves R03 (licensing/SBOM) and the B04 dependency-provenance clause; host-only.",
