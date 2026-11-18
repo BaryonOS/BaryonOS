@@ -2,8 +2,11 @@
 
 Updated 18 November 2026. Source baseline: main
 `6f29b6720b51aecad5714faa48b445afd6e2f5a9` (#355), preceded by #359 at `1c10cdb5`.
-Current development task: `codex/b04-repro-check`, B04-T2; base `69d820753b83ee834e4ef24ee3e3c886dada9587`.
-Latest implementation sequence and executable resume: [lead checkpoint](PROJECT-STATE.md).
+Latest development checkpoint: `codex/b04-repro-check` (B04-T2 comparator delivered;
+real build comparison RED: loader/ESP differ). [Executable continuation](PROJECT-STATE.md).
+This implementation session delivered PR372 USB, PR374 model parser, PR375 native
+NAS quota/offline eviction, PR377 settings and PR378 scoped search. SDK-core membership
+remains with the integration owner; no native U05 acceptance. Overall41/100 unchanged.
 Integration/merge/closure remains owned by the separate Integration Manager.
 
 | Workstream | State and owner | Next boundary |

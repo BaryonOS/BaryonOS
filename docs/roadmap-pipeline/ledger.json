@@ -22,7 +22,7 @@
       "criterion": "B04",
       "milestone": "M11",
       "executor": "worker",
-      "status": "active",
+      "status": "verified",
       "title": "Reproducible-build check for loader, kernel and image",
       "goal": "Add tools/repro_check.py: run the default tools/build.py twice with separate NOS_BUILD_DIR and NOS_TARGET_DIR and compare SHA-256 of the kernel ELF, loader EFI and image; report differing artifacts honestly; unit tests inject a differing artifact.",
       "why_now": "Build provenance evidence for B04 and R03 with offline root dependencies.",
@@ -54,8 +54,16 @@
           "event": "active",
           "at": "2026-11-18T21:43:31.691244+00:00",
           "reason": "Two isolated default builds. Actual build exports an ESP directory for QEMU virtual FAT, not a standalone disk image; compare kernel/loader plus canonical ESP payload digest with that limitation explicit. Reuse existing check_esp."
+        },
+        {
+          "at": "2026-11-18T21:47:04.795154+00:00",
+          "event": "verified",
+          "source_commit": "2b47d4ffb72f885686790885aec97f7a28c3c05c",
+          "reason": "Repro checker runs two isolated default builds and verifies kernel/loader plus canonical ESP payload against manifests.8 unit tests pass. Real comparison exit1: kernel identical, loader/image_payload differ; tool reports red honestly. Same-host tooling only; actual build is NOT reproducible here and no B04 acceptance granted. ESP is a virtual-FAT payload directory, not a byte-identical disk image. No QEMU/hardware/independent environment run."
         }
-      ]
+      ],
+      "source_commit": "2b47d4ffb72f885686790885aec97f7a28c3c05c",
+      "receipt": "docs/roadmap-pipeline/receipts/B04-T2.json"
     },
     {
       "id": "U05-T2",

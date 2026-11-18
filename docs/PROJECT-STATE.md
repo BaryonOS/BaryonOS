@@ -1,21 +1,17 @@
 # Current project status
 
-## NEXT AGENT HANDOFF — B04-T2 build reproducibility — 18 November 2026
+## NEXT AGENT HANDOFF — B04-T2 delivery — 18 November 2026
 
-**Claim:** Codex, codex/b04-repro-check, base69d82075.
-**Goal:** two default build.py executions in separate build/target directories;
-compare SHA256 of kernel ELF, loader EFI and canonical boot ESP payload.
-**Invariant:** failure/missing artifacts/source drift never reports reproducible;
-no existing build/target/WIP overwritten or shared Cargo output.
-**Write set:** tools/repro_check.py, tools/tests/test_repro_check.py and lead state.
-**Acceptance:** unit differences/missing/source drift/isolation negatives, then
-one real double-build under heavy-test lock; red differences honestly retained.
-**Evidence limit:** same-host comparison; default build has ESP directory consumed
-by QEMU virtual FAT, not a standalone disk image. No physical/independent reproduction.
-**Ownership:** Integration Manager retains prior PRs; no changes to old branches.
-Claude S09/UI and unsafe hold preserved. SDK cores delivered with shared-membership
-blockers; no waiting for that integration. Prior checkpoints/delivery branches intact.
-**Next:** implement comparison, publish draft, continue next independent READY task.
+**Source:** `2b47d4ffb72f885686790885aec97f7a28c3c05c`, `codex/b04-repro-check`.
+**Delivered:** Repro checker runs two isolated default builds and verifies kernel/loader plus canonical ESP payload against manifests.8 unit tests pass. Real comparison exit1: kernel identical, loader/image_payload differ; tool reports red honestly.
+**Checks:** executed targeted commands and raw exit codes are in the
+[exact command/log receipt](roadmap-pipeline/receipts/B04-T2.json).
+Lead source/diff review completed; no duplicate matrix. Progress **41 → 41/100**.
+**Limits:** Same-host tooling only; actual build is NOT reproducible here and no B04 acceptance granted. ESP is a virtual-FAT payload directory, not a byte-identical disk image. No QEMU/hardware/independent environment run.
+**Ownership:** Integration Manager owns PR integration/merges/closure. Earlier
+delivery branches and Claude S09/UI remain untouched. Unsafe unattended hold active.
+**Next:** publish new draft, immediately claim the next independent READY functional
+slice from this ledger; no waiting for integration. Prior delivery checkpoints retained.
 
 ## Retained checkpoint — unified governance implementation — 18 November 2026
 
