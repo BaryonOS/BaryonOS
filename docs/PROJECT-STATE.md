@@ -1,6 +1,23 @@
 # Current project status
 
-## NEXT AGENT HANDOFF — unified governance implementation — 18 November 2026
+## NEXT AGENT HANDOFF — B04-T2 build reproducibility — 18 November 2026
+
+**Claim:** Codex, codex/b04-repro-check, base69d82075.
+**Goal:** two default build.py executions in separate build/target directories;
+compare SHA256 of kernel ELF, loader EFI and canonical boot ESP payload.
+**Invariant:** failure/missing artifacts/source drift never reports reproducible;
+no existing build/target/WIP overwritten or shared Cargo output.
+**Write set:** tools/repro_check.py, tools/tests/test_repro_check.py and lead state.
+**Acceptance:** unit differences/missing/source drift/isolation negatives, then
+one real double-build under heavy-test lock; red differences honestly retained.
+**Evidence limit:** same-host comparison; default build has ESP directory consumed
+by QEMU virtual FAT, not a standalone disk image. No physical/independent reproduction.
+**Ownership:** Integration Manager retains prior PRs; no changes to old branches.
+Claude S09/UI and unsafe hold preserved. SDK cores delivered with shared-membership
+blockers; no waiting for that integration. Prior checkpoints/delivery branches intact.
+**Next:** implement comparison, publish draft, continue next independent READY task.
+
+## Retained checkpoint — unified governance implementation — 18 November 2026
 
 **Claim:** GOV-1-6, sole writer Codex in `codex/unified-governance`, base
 `5a3295b6093549f4b5ff6164ab2773ac4c264996`. The project owner authorizes immediate
@@ -60,7 +77,7 @@ checks before manual squash. Then continue the released roadmap PR queue without
 changing the independently owned UI/UX or active S09 branches.
 Progress **41 → 41/100**, no accepted criterion/weight change.
 
-## NEXT AGENT HANDOFF — PR #350 conflict-only integration — 18 November 2026
+## Retained checkpoint — PR #350 conflict-only integration — 18 November 2026
 
 PR #350 head `aaf01bae291faba593567845dc8da4fe606a7959` is reconciled
 with actual main `2eac8ca39ce04753f4f6bef3b09ee9b3610c065f`.
@@ -73,7 +90,7 @@ by this reconciliation. Score remains 41/100. Required hosted checks on the new 
 must pass before a manual squash merge; local build/QEMU suites are not repeated
 for this conflict-only correction.
 
-## NEXT AGENT HANDOFF — PR #361 integration and final-read barrier — 18 November 2026
+## Retained checkpoint — PR #361 integration and final-read barrier — 18 November 2026
 
 **Claim/source:** Codex sole writer in `codex/block-order-integration`, PR #361 head
 `fc35563668ae2ba3dc2fc90e6e30575c38b6f578`, merging main `6f29b672`.
