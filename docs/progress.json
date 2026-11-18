@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-18",
-    "source_commit": "aaf01bae291faba593567845dc8da4fe606a7959",
+    "source_commit": "1c3696d22d87fed1ef9e554febc690d443dbb568",
     "assessment_basis": "parent_commit",
-    "branch": "codex/coderabbit-oss-config",
-    "task": "PR350 conflict-only reconciliation with main 2eac8ca3",
+    "branch": "codex/u05-settings-core",
+    "task": "U05-T1: Standalone typed appearance/accessibility settings core, integrity-only A/B persistence, explicit recovery and persistent new-generation revert.14 host tests including every0..96 torn-write offset pass.",
     "previous_score": 41,
-    "summary": "41/100 unchanged. The reviewed CodeRabbit free-tier configuration is preserved while current main, including PR #361 containment and final-read ordering, is incorporated. Only the checkpoint and assessment records required manual resolution. Hosted checks on the resulting head remain authoritative; no local build or QEMU acceptance is inferred."
+    "summary": "41/100 unchanged. Standalone typed appearance/accessibility settings core, integrity-only A/B persistence, explicit recovery and persistent new-generation revert.14 host tests including every0..96 torn-write offset pass. Full U05-T1 remains BLOCKED on shared SDK membership owned by integration PR366; no shared SDK files changed/matrix rerun. No native/UI/encryption/antirollback/hardware acceptance. Integration/Claude ownership and execution hold preserved."
   },
   "tracks": [
     {

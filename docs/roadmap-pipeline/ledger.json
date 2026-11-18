@@ -22,7 +22,7 @@
       "criterion": "U05",
       "milestone": "M7",
       "executor": "worker",
-      "status": "active",
+      "status": "blocked",
       "title": "settings-core: typed, versioned, revertible settings with A/B persistence (host model)",
       "goal": "Create sdk/settings-core (no_std): typed versioned schema; validate, set and revert; A/B persistence over a media trait with SHA-256 for integrity only; fail closed on corruption or I/O error; never confirm a failed write; add it to the sdk workspace.",
       "why_now": "U05 needs a real settings service behind the shell's fixed Settings page; this is the smallest host-testable core and has no dependency on open PRs.",
@@ -62,8 +62,17 @@
           "event": "active",
           "at": "2026-11-18T21:27:23.266123+00:00",
           "reason": "Independent standalone settings-core implementation slice. Do not edit SDK/Cargo.toml/lock owned by integration PR366; full task remains pending that membership. Target standalone crate checks, not unchanged SDK matrix."
+        },
+        {
+          "at": "2026-11-18T21:35:19.474146+00:00",
+          "event": "blocked",
+          "source_commit": "1c3696d22d87fed1ef9e554febc690d443dbb568",
+          "reason": "Standalone typed appearance/accessibility settings core, integrity-only A/B persistence, explicit recovery and persistent new-generation revert.14 host tests including every0..96 torn-write offset pass. Full U05-T1 remains BLOCKED on shared SDK membership owned by integration PR366; no shared SDK files changed/matrix rerun. No native/UI/encryption/antirollback/hardware acceptance."
         }
-      ]
+      ],
+      "source_commit": "1c3696d22d87fed1ef9e554febc690d443dbb568",
+      "receipt": "docs/roadmap-pipeline/receipts/U05-T1.json",
+      "blocker": "Standalone core delivered; pending SDK workspace membership in shared manifest/lock owned by Integration Manager PR366. Reconcile only after ownership release, remove standalone [workspace], add member and run SDK gates. No owner confirmation needed."
     },
     {
       "id": "P04-T2",

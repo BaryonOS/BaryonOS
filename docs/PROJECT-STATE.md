@@ -1,21 +1,17 @@
 # Current project status
 
-## NEXT AGENT HANDOFF — U05-T1 independent settings core — 18 November 2026
+## NEXT AGENT HANDOFF — U05-T1 delivery — 18 November 2026
 
-**Claim:** Codex, codex/u05-settings-core, base5a3295b6. Prior native P04 PR375 delivered.
-**Goal:** typed versioned appearance/accessibility settings, set/revert and A/B
-SHA256 integrity-only media persistence without false failed-write confirmation.
-**Invariant:** no authority/key/network policy from settings; validate all stored
-bytes, any I/O/uncertain write retires in-memory state. Recovery follows existing
-journal valid-highest-generation rules; no authentication/antirollback claim.
-**Write set:** sdk/settings-core/ only, plus lead state/progress/one receipt.
-Shared SDK manifest/lock remain integration-manager-owned (open PR366).
-**Acceptance:** standalone Rust1.90 tests/Clippy/fmt/freestanding build; invalid
-values/version, every torn-write byte, flush/read/full errors, both-corrupt and revert.
-**Evidence limit:** host core only; full U05-T1 SDK membership remains blocked by
-shared-file ownership; native/per-user encryption/UI/hardware acceptance remain open.
-**Next:** implement/publish independent core slice, record pending membership and
-continue the next independent READY task. Claude work and execution hold preserved.
+**Source:** `1c3696d22d87fed1ef9e554febc690d443dbb568`, `codex/u05-settings-core`.
+**Delivered:** Standalone typed appearance/accessibility settings core, integrity-only A/B persistence, explicit recovery and persistent new-generation revert.14 host tests including every0..96 torn-write offset pass.
+**Checks:** targeted Rust tests, Clippy (-D warnings), formatting and freestanding
+library build exit0; [exact commands/raw-log hashes](roadmap-pipeline/receipts/U05-T1.json).
+Lead source/diff review completed; no duplicate matrix. Progress **41 → 41/100**.
+**Limits:** Full U05-T1 remains BLOCKED on shared SDK membership owned by integration PR366; no shared SDK files changed/matrix rerun. No native/UI/encryption/antirollback/hardware acceptance.
+**Ownership:** Integration Manager owns PR integration/merges/closure. Earlier
+delivery branches and Claude S09/UI remain untouched. Unsafe unattended hold active.
+**Next:** publish new draft, immediately claim the next independent READY functional
+slice from this ledger; no waiting for integration. Prior delivery checkpoints retained.
 
 ## Retained checkpoint — PR #350 conflict-only integration — 18 November 2026
 
