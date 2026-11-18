@@ -187,7 +187,7 @@
 
 /* ---------- privacy instrument [v2 .tri] ---------- */
 /* repair-2: the frame wraps (text below the track) and labels wrap between words, so wider text and narrow containers stay inside (rows 34, 35) */
-.ds-privacy { --ds-pb: 1px; position: relative; display: inline-flex; flex-wrap: wrap; row-gap: 0; max-width: 100%; align-items: center; gap: var(--space-4); min-height: 48px; padding: 0 var(--space-3) 0 var(--space-4); border-radius: var(--radius-tile); background: var(--color-well); border: var(--ds-pb) solid var(--color-line); white-space: nowrap; color: var(--color-text); }
+.ds-privacy { --ds-pb: 1px; position: relative; display: inline-flex; flex-wrap: wrap; max-width: 100%; align-items: center; column-gap: var(--space-4); row-gap: 0; min-height: 48px; padding: 0 var(--space-3) 0 var(--space-4); border-radius: var(--radius-tile); background: var(--color-well); border: var(--ds-pb) solid var(--color-line); white-space: nowrap; color: var(--color-text); }
 .ds-privacy[data-state="ask"] { border-color: var(--place-internet-line); }
 /* the 48 px track overhangs the frame border as in ds-1.0, so the resting frame stays 48 px tall (--ds-pb = its border width) */
 .ds-privacy-track { position: relative; display: flex; gap: var(--space-1); min-height: 48px; margin-block: calc(-1 * var(--ds-pb)); }
@@ -433,7 +433,7 @@
 @keyframes ds-halo { 0% { transform: scale(.55); opacity: .7; } 70%, 100% { transform: scale(1.15); opacity: 0; } }
 @keyframes ds-spin { to { transform: rotate(360deg); } }
 @keyframes ds-sweep { 0% { transform: translateX(-240%); } 33% { transform: translateX(240%); } 33.01% { transform: translateX(-240%); } 66% { transform: translateX(240%); } 66.01% { transform: translateX(-240%); } 100% { transform: translateX(0); } }
-@keyframes ds-orbit { to { transform: rotate(1080deg); } }
+@keyframes ds-orbit { 33.333% { transform: rotate(360deg); } 66.667% { transform: rotate(720deg); } to { transform: rotate(1080deg); } } /* one keyframe per turn: the easing applies per turn, so each turn takes 1.4 s (one keyframe eased all three turns, the first in about 0.3 s) */
 @keyframes ds-rise { from { opacity: 0; transform: translateY(12px); } }
 /* Baseline (ds-1.1, matrix rows 24, 29, 31): every system loop is finite and ends within 5 s in its designed static form (WCAG 2.2.2;
    ITU-R BT.1702-3 Guideline 1: no flashing sequence lasts longer than 5 s), every period is >= 1.4 s (under 3 flashes per second,

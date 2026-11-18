@@ -87,6 +87,13 @@ colour-perception palettes by simulation only.
 
 ## Hashes of the checked files (SHA-256)
 
+Repair-1 snapshot, superseded: these are the files this record checked. Run 2 and later
+commits (`862d29d7`, `7ba822f5`) changed `components.css`, `index.html`, `gallery.js`,
+`DESIGN-SYSTEM.md` and `ACCESSIBILITY-MATRIX.md`, so `sha256sum -c` on the committed tree
+reports those five as changed; `tokens.css`, `icons.js` and `check.mjs` still match. The
+results above, including the clipping counts, describe the repair-1 tree. Run-2 results
+are summarised in `docs/PROJECT-STATE.md` and `DESIGN-SYSTEM.md` §21.9.
+
 ```
 c4513523d43435c64691749d7d8b9771c3657fa8db9cdcb01835aa08fe96ee39  ui/design/system/tokens.css
 0e1fff4e7f1cb479531bc93a29451677a0adae2ed9cb2c43ce480a23809690c6  ui/design/system/components.css

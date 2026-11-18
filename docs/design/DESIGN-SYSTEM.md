@@ -1709,14 +1709,14 @@ an AI judgement is not user evidence. Nothing here is a medical claim.
 
 | ID | Baseline guarantee | Implementation | Matrix row |
 |---|---|---|---|
-| B1 | Text at least 4.5:1, UI parts, focus and blade at least 3:1, in every theme and every axis combination, on every surface and under every hover, selection and button overlay, at full and dimmed light; 7:1 for text under increased contrast | `tokens.css` theme and axis blocks (dimmed compensation per theme); `docs/verification/a11y-ds-20261115/check.mjs` (6) evaluates every §4 pair on every overlay stack at sRGB × 1 and × 0.85 | 6 |
+| B1 | Text at least 4.5:1, UI parts, focus and blade at least 3:1, in every theme and every axis combination, on every surface and under every hover, selection and button overlay, at full and dimmed light; 7:1 for text under increased contrast. Target, not met at run 2: the gallery caption `p.gal-note` below the ask specimens measures 3.47:1 in light (§21.9) | `tokens.css` theme and axis blocks (dimmed compensation per theme); `docs/verification/a11y-ds-20261115/check.mjs` (6) evaluates every §4 pair on every overlay stack at sRGB × 1 and × 0.85 | 6 |
 | B2 | A 2 px focus ring that keeps 3:1 in every combination | `components.css` focus rules; `check.mjs` focus pairs | 61 |
 | B3 | Every hit area at least 24 × 24 CSS px, including rows, menu items, tabs and window controls | `max(<size>, var(--space-target-min))` in `components.css` | 57 |
 | B4 | Lists reflow: a list narrower than 440 px stacks each row's cells; menus fit a 320 px viewport | `@container (max-width: 440px)` on `.ds-list`; `.ds-menu` `min-width: min(300px, calc(100vw - 32px))` | 7 (partial, §14) |
 | B5 | Components tolerate the WCAG 1.4.12 spacing values; the wider-text axis applies exactly those values | `[data-text-spacing="wider"]`; wider row columns | 34 (partial, §14) |
 | B6 | Reading surfaces cap the measure at 80 characters and align to the start | `.ds-t-reading { max-width: 58ch; text-align: start }`: in Inter `1ch` is the width of "0", so the measure was counted per rendered line: 58ch holds 70–78 characters (80ch held 100–108) | 36 |
 | B7 | No stripe, grid or dot texture is used as a fill | the ds-1.0 reduced-motion stripes are removed | 21 |
-| B8 | Nothing flashes more than three times per second; every animation is finite and ends within 5 s; no flashing or looping sequence runs beyond 5 s (WCAG 2.2.2 and 2.3.1; ITU-R BT.1702-3 Guideline 1) | §12 durations and iteration counts; the gallery `?measure=1` loop sweep; the settings panel and its preview change at most once per 400 ms, so a held arrow key makes at most 3 changes, 1.5 flash pairs, in any second (measured with a held arrow key at 33 Hz: at most 3 panel-background transitions, one flash pair, in any 1-s window) | 24, 25, 31 |
+| B8 | Nothing flashes more than three times per second; every animation is finite and ends within 5 s; no flashing or looping sequence runs beyond 5 s (WCAG 2.2.2 and 2.3.1; ITU-R BT.1702-3 Guideline 1) | §12 durations and iteration counts; the gallery `?measure=1` loop sweep; the settings panel and its preview change at most once per 400 ms, so a held arrow key makes at most 3 changes, 1.5 flash pairs, in any second (measured with a held arrow key at 33 Hz: at most 3 panel-background transitions, one flash pair, in any 1-s window; this evidence covers the settings panel only). Target, not met at run 2: a held Enter on the delete-dialog opener opens and closes the modal about 28 times per second (§21.9) | 24, 25, 31 |
 | B9 | Every motion has a static form that carries the same information | §12 reduced motion | 32 |
 | B10 | Device preferences apply automatically: colour scheme, contrast, reduced transparency, reduced motion; forced colours keep place-node shapes | contrast, transparency, motion and forced colours: media blocks in `tokens.css` and `components.css`; colour scheme: script, because a theme is a whole token set (gallery `deviceTheme()` in `gallery.js`; natively the settings store) (§21.3) | 86 (partial) |
 | B11 | Colour never carries meaning alone: a place is colour, node shape, icon and label | §5, §10 place badge | 1 |
@@ -1774,7 +1774,8 @@ whose value equals the attribute rule (checked by `check.mjs`). Exceptions:
   duration; `data-motion="reduce"` sets every duration to 0 ms (§12).
 - Light intensity is applied last, as an output filter over everything below
   it, including Kern and modal dialogs, which render in the top layer and get
-  the filter once (pixel sample: 0.85 of the undimmed surface). Its token
+  the filter once (pixel sample: 0.85 of the undimmed surface). The modal's
+  `::backdrop` does not get it yet (§21.9). Its token
   compensation block precedes the contrast and colour-perception blocks with
   the same specificity, so an explicit or device increased contrast and a
   re-mapped palette keep their own (stronger) values under dimmed light.
@@ -1951,11 +1952,11 @@ static motion forms (32), wider text (35), reading measure and line length
 no texture fills (21; the contrast-theme skeleton relies on the structure
 clause, §21.6), upright Inter in weights 400 and 600 (40), 24 px minimum
 targets (57). Partial: colour-perception palettes (4, palettes only, simulation), light
-intensity (19, one step), graded motion (30, 46, no middle level), visual
+intensity (19, one step; modal backdrop not dimmed, §21.9), graded motion (30, 46, no middle level), visual
 intensity (47, glow and depth), reflow (7) and
 text spacing (34), device following (86, forced colours only for nodes),
 independent settings (88, contrast-theme bundle), flash limits (24, 25; boot
-sequence and wallpaper not analysed), focus in every combination (61, focus
+sequence and wallpaper not analysed; held-Enter dialog toggling open, §21.9), focus in every combination (61, focus
 obscuring untested), text size (13, only the 200 % page zoom of
 `[data-scale="2"]`). Not in the prototype: text size 125 % and 150 % (13),
 screen reader, magnifier, read-aloud, captions, keyboard filters, switch, eye,
@@ -1977,6 +1978,14 @@ filter (26).
 
 ### 21.9 Not verified
 
+- Three defects from the run-2 final verifier are open (owner-approved bounded
+  run 3): a held Enter on the delete-dialog opener opens and closes the modal
+  about 28 times per second over more than 25 % of the screen (B8); the first
+  line of `p.gal-note` below the ask specimens sits in the dark ask card's
+  shadow at 3.47:1 in light and 5.93:1 in contrast (B1); under
+  `data-light-intensity="dimmed"` a modal's `::backdrop` is not dimmed, so
+  opening a modal brightens the page (§21.3). B1 and B8 remain targets until
+  these close.
 - No user has tried any axis, the settings group or the reworked states.
 - Colour-perception palettes are verified by simulation only (Machado et al.
   2009, severity 1.0, CIE76 ΔE at least 40 between the three places, at least
