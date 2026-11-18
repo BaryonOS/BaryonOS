@@ -1685,12 +1685,17 @@
       "deps": [],
       "write_paths": [],
       "checks": [],
-      "blocker": "Historical PR333 ownership hold is obsolete (PR333 merged17November2026). Current exact source dependencies/write ownership require narrow reconciliation before native implementation; no security activation implied.",
+      "blocker": "PR333 is merged. Current requester-crash/reset fixture write set overlaps open integration-owned PR364 (kernel m3/keyring, SDK keyring app and keyring harness); wait for explicit write ownership release, not CI polling.",
       "history": [
         {
           "event": "blocked",
           "at": "2026-11-18",
           "reason": "Historical PR333 ownership hold is obsolete (PR333 merged17November2026). Current exact source dependencies/write ownership require narrow reconciliation before native implementation; no security activation implied."
+        },
+        {
+          "event": "blocked",
+          "at": "2026-11-18",
+          "reason": "PR333 is merged. Current requester-crash/reset fixture write set overlaps open integration-owned PR364 (kernel m3/keyring, SDK keyring app and keyring harness); wait for explicit write ownership release, not CI polling."
         }
       ]
     },
@@ -1761,8 +1766,14 @@
       "deps": [],
       "write_paths": [],
       "checks": [],
-      "blocker": "All write paths are owned by open PR #333 (kernel/src/m2/xhci*, tools/run_usb_hid.py, tools/build.py).",
-      "history": []
+      "blocker": "PR333 is merged. Existing native QMP unplug mid-transfer is already terminal and safe; guest then shuts down controller/denies DMA and exits. Re-add requires a new native generation/ring/context coordinator plus pending PR372 core and explicit DMA/event-reuse contract; adding device_add alone is not implementation.",
+      "history": [
+        {
+          "event": "blocked",
+          "at": "2026-11-18",
+          "reason": "PR333 is merged. Existing native QMP unplug mid-transfer is already terminal and safe; guest then shuts down controller/denies DMA and exits. Re-add requires a new native generation/ring/context coordinator plus pending PR372 core and explicit DMA/event-reuse contract; adding device_add alone is not implementation."
+        }
+      ]
     },
     {
       "id": "H03-T3",
@@ -1789,12 +1800,17 @@
       "deps": [],
       "write_paths": [],
       "checks": [],
-      "blocker": "Historical PR333 ownership hold is obsolete (PR333 merged17November2026). Current exact source dependencies/write ownership require narrow reconciliation before native implementation; no security activation implied.",
+      "blocker": "PR333 is merged. Current driver exposes link_up, but no native service link-event/reconnect seam exists; PR369 owns tracker integration. A limited independent linkstatus/QMP probe would require shared harness paths currently held by draftPR380. No full reconnect claim.",
       "history": [
         {
           "event": "blocked",
           "at": "2026-11-18",
           "reason": "Historical PR333 ownership hold is obsolete (PR333 merged17November2026). Current exact source dependencies/write ownership require narrow reconciliation before native implementation; no security activation implied."
+        },
+        {
+          "event": "blocked",
+          "at": "2026-11-18",
+          "reason": "PR333 is merged. Current driver exposes link_up, but no native service link-event/reconnect seam exists; PR369 owns tracker integration. A limited independent linkstatus/QMP probe would require shared harness paths currently held by draftPR380. No full reconnect claim."
         }
       ]
     },
@@ -1809,8 +1825,14 @@
       "deps": [],
       "write_paths": [],
       "checks": [],
-      "blocker": "Kernel and runner paths owned by PR #333; OVMF S3 unverified here.",
-      "history": []
+      "blocker": "Historical PR333 hold released. New S3/FACS parser implementation is pending integration-owned PR371; OVMF S3 remains unverified. Do not duplicate parser or claim actual suspend.",
+      "history": [
+        {
+          "event": "blocked",
+          "at": "2026-11-18",
+          "reason": "Historical PR333 hold released. New S3/FACS parser implementation is pending integration-owned PR371; OVMF S3 remains unverified. Do not duplicate parser or claim actual suspend."
+        }
+      ]
     },
     {
       "id": "H06-T2",
@@ -1865,12 +1887,17 @@
       "deps": [],
       "write_paths": [],
       "checks": [],
-      "blocker": "Historical PR333 ownership hold is obsolete (PR333 merged17November2026). Current exact source dependencies/write ownership require narrow reconciliation before native implementation; no security activation implied.",
+      "blocker": "PR333 is merged. Currentmain still has static native network configuration; the missing DHCP coordinator wiring is pending integration-owned PR370. Rebuilding it here would duplicate that work.",
       "history": [
         {
           "event": "blocked",
           "at": "2026-11-18",
           "reason": "Historical PR333 ownership hold is obsolete (PR333 merged17November2026). Current exact source dependencies/write ownership require narrow reconciliation before native implementation; no security activation implied."
+        },
+        {
+          "event": "blocked",
+          "at": "2026-11-18",
+          "reason": "PR333 is merged. Currentmain still has static native network configuration; the missing DHCP coordinator wiring is pending integration-owned PR370. Rebuilding it here would duplicate that work."
         }
       ]
     },
