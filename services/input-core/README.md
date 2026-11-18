@@ -1,7 +1,7 @@
 # Nieuw OS input service core
 
 Allocator-free `no_std` core with `forbid(unsafe_code)`. Reuses the existing
-`ui-core` PS/2 decoders and `InputRouter`; no device I/O, syscalls, new
+`ui-core` PS/2 decoders, USB boot-report parsers and `InputRouter`; no device I/O, syscalls, new
 kernel rights, native service loop or compositor. Four bootstrap-bound
 RECV ingresses separate source, focus controller, lifecycle and app requests.
 
@@ -28,6 +28,43 @@ status in arg0 and the bound client ID in arg1. Status 0=Ok, 1=Empty,
 or cancel watermark at 56, pointer X/Y at 64/68. Bytes 72–95 remain zero.
 A PEEK without an event has a zero-filled event body. All request bytes from
 40 onward are zero; unused arguments are likewise zero.
+
+## Boot-HID source profile
+
+The first authenticated `SYNC` selects profile 1 (PS/2) or profile 2 (one boot
+keyboard and one boot mouse). The profile stays fixed for the service epoch;
+switching requires a new bootstrap lifetime. Existing PS/2 operations retain
+their encoding. The following additional INP1 operations are source-only:
+
+| Operation | Opcode | arg0 | arg1 |
+|---|---|---|---|
+| HID keyboard | 3 | Eight completed report bytes, little-endian | Zero |
+| HID mouse | 4 | Completed bytes, little-endian, zero padding | Actual length 3–8 |
+| HID detach | 5 | Mask: keyboard=1, mouse=2, both=3 | Zero |
+
+The transport owner must authenticate device generations and publish only
+matching successful boot-session completions. Numeric identifiers and report
+bytes grant no authority. The service independently parses reports and retains
+the same sender/endpoint, source sequence, epoch, focus and queue checks.
+
+HID held state survives stream loss and `SYNC`: the first new absolute report
+can release old suppression markers without inventing a new press. Actual
+detach cancels queued/delivered state and clears only the detached role's known
+holds. A complete keyboard batch updates physical ownership before publication;
+overflow cannot leave half-applied releases or bind later presses to the new
+cancel generation. Mouse screen-down Y is converted to the shared up-positive
+event convention. Keyboard modifiers and current `PhysicalKey` positions are
+mapped explicitly; usages outside that contract produce no key event. US
+backslash/non-US hash aliases are coalesced, and simultaneous aliases are rejected.
+Repeat timing, layouts, LED control, extra mouse buttons and wheels remain outside
+this boot profile. No xHCI, DMA containment or physical-device support is implied.
+
+Sources: USB-IF. (2001). *Device class definition for human interface devices
+(HID), version 1.11*, Appendix B. https://www.usb.org/sites/default/files/documents/hid1_11.pdf
+USB-IF. (2022). *HID usage tables, version 1.3*, Keyboard/Keypad page.
+https://www.usb.org/sites/default/files/hut1_3_0.pdf
+Atmel. (2009). *AT91 USB HID driver implementation* (6273B), p. 10.
+https://ww1.microchip.com/downloads/aemDocuments/documents/OTH/ApplicationNotes/ApplicationNotes/doc6273.pdf
 
 ```sh
 cargo +1.90.0 test --manifest-path services/input-core/Cargo.toml --locked --offline

@@ -2,13 +2,13 @@
   "schema_version": 1,
   "rubric_version": 1,
   "assessment": {
-    "date": "2026-11-17",
-    "source_commit": "3fda27ac6e48a011d11cdec89649c22e6d4e71af",
+    "date": "2026-11-18",
+    "source_commit": "04e29181ef7e755eea2db0054c463b9216184671",
     "assessment_basis": "parent_commit",
     "branch": "codex/phase0-ci-guide-english",
-    "task": "Phase 0 PR346: reconcile verified English integration with actual main",
+    "task": "Phase 0 PR346: source-preserving cloud reconciliation",
     "previous_score": 41,
-    "summary": "41/100 unchanged. Local reconciliation with actual main38d4cc1 preserves all39 reviewed source/evidence blobs, accepted main runtime/B03 corrections and complete workstream history. Hash/scope/history assertions, progress write/check and diff checks pass locally. Current-head hosted checks and full issue274 publication/coverage remain required."
+    "summary": "41/100 unchanged. English documentation is reconciled with main 366b82b35348. Existing acceptance criteria, source evidence and independent ownership remain intact; this editorial/tooling integration adds no native acceptance evidence. Actual local validation is retained in the cloud receipt; current-head hosted checks and independent review remain required."
   },
   "tracks": [
     {
@@ -217,7 +217,9 @@
           "points": 3,
           "status": "open",
           "acceptance": "Common input and USB devices work on the documented reference profile; hotplug and invalid device responses remain bounded.",
-          "evidence": []
+          "evidence": [
+            "docs/verification/issue42-native-input-20261114/README.md"
+          ]
         },
         {
           "id": "H03",

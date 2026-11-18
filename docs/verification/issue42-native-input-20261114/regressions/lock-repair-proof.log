@@ -1,0 +1,3 @@
+{"path": "sdk/input-client/Cargo.lock", "added_package": "nieuw-os-usb-core", "added_edges_from": ["nieuw-os-input-core"], "version_changes": 0, "unrelated_changes": 0}
+{"path": "ui/native/Cargo.lock", "added_package": "nieuw-os-usb-core", "added_edges_from": ["nieuw-os-input-core", "nieuw-os-native-input-service"], "version_changes": 0, "unrelated_changes": 0}
+{"tracked_locks": 67, "input_core_lock_closure_complete": 11}

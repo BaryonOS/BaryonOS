@@ -35,6 +35,25 @@ Gecontroleerd opstartmedium
   → Desktop + optionele, hervatbare onboarding/migratie
 ```
 
+English equivalent of the preserved source sequence:
+
+```text
+Verified boot medium
+  → Welcome: language + accessibility that is always reachable
+  → Try keyboard/input
+  → Try / Install / Recovery (available routes only)
+  → Suitability and required connectivity
+  → Installation method + identified disk
+  → Proposed data/boot changes
+  → Local account + protection and recovery method
+  → Local preferences + privacy review
+  → Complete change plan + explicit confirmation before writing
+  → Installation with actual phase/error status
+  → Restart + instructions for the correct medium
+  → First boot: check actual configuration and access
+  → Desktop + optional, resumable onboarding/migration
+```
+
 Networking is not a separate mandatory gate when all authenticated core components are on the medium. Downloads, time synchronisation or later provider connections show their own purpose and network boundary. An incomplete medium cannot proceed through a fictitious offline path. The user can return to the trial or stop without modifying the disk.
 
 <a id="stapcontract"></a>

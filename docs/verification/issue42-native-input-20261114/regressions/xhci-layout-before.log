@@ -1,0 +1,24 @@
+   Compiling driver-core v0.1.0 (/workspace/scratch/7264b5153599/h02-native/crates/driver-core)
+   Compiling pci-core v0.1.0 (/workspace/scratch/7264b5153599/h02-native/crates/pci-core)
+   Compiling nieuw-os-xhci-probe v0.1.0 (/workspace/scratch/7264b5153599/h02-native/drivers/xhci)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.83s
+     Running unittests src/lib.rs (drivers/xhci/target/debug/deps/nieuw_os_xhci_probe-3d925061760a2fd0)
+
+running 1 test
+test tests::qemu_extended_protocol_header_can_precede_operational_registers ... FAILED
+
+failures:
+
+---- tests::qemu_extended_protocol_header_can_precede_operational_registers stdout ----
+
+thread 'tests::qemu_extended_protocol_header_can_precede_operational_registers' panicked at src/tests.rs:10:7:
+called `Result::unwrap()` on an `Err` value: InvalidRegister
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    tests::qemu_extended_protocol_header_can_precede_operational_registers
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 15 filtered out; finished in 0.00s
+
+error: test failed, to rerun pass `--lib`

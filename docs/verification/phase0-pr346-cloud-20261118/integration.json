@@ -1,0 +1,456 @@
+{
+  "schema_version": 1,
+  "pr": 346,
+  "parent": "04e29181ef7e755eea2db0054c463b9216184671",
+  "main": "366b82b353485207a9b0d6b1ae63dafbbe265bae",
+  "score_before": 41,
+  "score_after": 41,
+  "scope": "English documentation",
+  "status": "local preservation verified; current-head hosted checks and independent final review required",
+  "fixed_progress_register_unchanged": true,
+  "changed_paths_from_main": [
+    "docs/CI.md",
+    "docs/FULL-TEST-RELEASE.md",
+    "docs/PROJECT-STATE.md",
+    "docs/assets/progress.svg",
+    "docs/contracts/NATIVE-IPC-WAIT.md",
+    "docs/implementation/B01-ENTROPY-AND-KEYS.md",
+    "docs/implementation/B03-SIGNED-UPDATES.md",
+    "docs/implementation/K06-SMP.md",
+    "docs/implementation/KERNEL-AND-SECURITY-CONTRACT.md",
+    "docs/implementation/KEYRING-SDK-CLIENT.md",
+    "docs/implementation/NATIVE-MATERIAL-LIBRARY.md",
+    "docs/product/interaction-principles.md",
+    "docs/product/new-os-installer-spec.md",
+    "docs/product/new-os-onboarding-spec.md",
+    "docs/progress.json",
+    "docs/research/2026-11-02/README.md",
+    "docs/research/2026-11-02/future-os-design.md",
+    "docs/research/2026-11-02/journey/README.md",
+    "docs/research/2026-11-02/os-user-needs.md",
+    "docs/research/2026-11-02/sources.md",
+    "docs/research/2026-11-02/windows-macos-needs.md",
+    "docs/research/README.md",
+    "docs/research/switching-friction.md",
+    "docs/verification/phase0-ci-guide-20261117/README.md",
+    "docs/verification/phase0-ci-guide-20261117/verification.json",
+    "docs/verification/phase0-english-guides-20261117/README.md",
+    "docs/verification/phase0-english-guides-20261117/verification.json",
+    "docs/verification/phase0-english-integration-20261117/README.md",
+    "docs/verification/phase0-english-integration-20261117/historical-checkpoints.json",
+    "docs/verification/phase0-english-integration-20261117/manifest.json",
+    "docs/verification/phase0-module-guides-english-20261117/README.md",
+    "docs/verification/phase0-module-guides-english-20261117/verification.json",
+    "docs/verification/phase0-pr346-cloud-20261118/README.md",
+    "docs/verification/phase0-pr346-cloud-20261118/integration.json",
+    "docs/verification/phase0-pr346-cloud-20261118/prior-assessment.json",
+    "docs/verification/phase0-pr346-cloud-20261118/prior-checkpoint.md",
+    "docs/verification/phase0-pr346-cloud-20261118/verify.py",
+    "docs/verification/phase0-pr346-main-20261117/README.md",
+    "docs/verification/phase0-pr346-main-20261117/integration.json",
+    "docs/verification/phase0-pr346-main-20261117/parents.json",
+    "docs/verification/phase0-product-guides-english-20261117/README.md",
+    "docs/verification/phase0-product-guides-english-20261117/verification.json",
+    "docs/verification/phase0-release-guide-english-20261117/README.md",
+    "docs/verification/phase0-release-guide-english-20261117/verification.json",
+    "docs/verification/phase0-research-index-english-20261117/README.md",
+    "docs/verification/phase0-research-index-english-20261117/verification.json",
+    "docs/verification/phase0-research-summaries-english-20261117/README.md",
+    "docs/verification/phase0-research-summaries-english-20261117/verification.json",
+    "docs/verification/phase0-smp-guide-english-20261117/README.md",
+    "docs/verification/phase0-smp-guide-english-20261117/verification.json",
+    "sdk/examples/ipc-wait-probe/README.md",
+    "services/net-stack/THIRD-PARTY.md",
+    "userspace/IPC-PROBE.md"
+  ],
+  "reviewed_sources": [
+    {
+      "path": "docs/CI.md",
+      "source_head": "bc2db3975a773af95acd113e2f59af4cc95300e1",
+      "original_sha256": "5a1018e07494bf9dfbc45d455f3af7b9227b70d59008fadda8d517f34ce8a87a",
+      "current_sha256": "5a1018e07494bf9dfbc45d455f3af7b9227b70d59008fadda8d517f34ce8a87a",
+      "byte_identical": true,
+      "original_lines_preserved_in_order": true
+    },
+    {
+      "path": "docs/contracts/NATIVE-IPC-WAIT.md",
+      "source_head": "bc2db3975a773af95acd113e2f59af4cc95300e1",
+      "original_sha256": "939278a379dbf7adfd9f9e0a54e670b63be80a5cf8d138d1668940894a77f6e2",
+      "current_sha256": "4fd1097f10c98b9cee48420f296ede9f88d2e10bc1a05a36ed9d3e6bb6e01537",
+      "byte_identical": false,
+      "original_lines_preserved_in_order": true
+    },
+    {
+      "path": "docs/implementation/NATIVE-MATERIAL-LIBRARY.md",
+      "source_head": "bc2db3975a773af95acd113e2f59af4cc95300e1",
+      "original_sha256": "f71d2adfd90c7984fd9d3eeb478bf7b9b8ecd3fd0ae196388e692b4741fb8c40",
+      "current_sha256": "f71d2adfd90c7984fd9d3eeb478bf7b9b8ecd3fd0ae196388e692b4741fb8c40",
+      "byte_identical": true,
+      "original_lines_preserved_in_order": true
+    },
+    {
+      "path": "docs/verification/phase0-ci-guide-20261117/README.md",
+      "source_head": "bc2db3975a773af95acd113e2f59af4cc95300e1",
+      "original_sha256": "0b7e4641bfd62ada1f5fd52cc07032b87c01efbd0e95d35773a708c72edb378b",
+      "current_sha256": "0b7e4641bfd62ada1f5fd52cc07032b87c01efbd0e95d35773a708c72edb378b",
+      "byte_identical": true,
+      "original_lines_preserved_in_order": true
+    },
+    {
+      "path": "docs/verification/phase0-ci-guide-20261117/verification.json",
+      "source_head": "bc2db3975a773af95acd113e2f59af4cc95300e1",
+      "original_sha256": "7834d3e5c0d088b9002acaa812fbcf7d883d80e7cfee577fd9a86233bde93f47",
+      "current_sha256": "7834d3e5c0d088b9002acaa812fbcf7d883d80e7cfee577fd9a86233bde93f47",
+      "byte_identical": true,
+      "original_lines_preserved_in_order": true
+    },
+    {
+      "path": "docs/verification/phase0-english-guides-20261117/README.md",
+      "source_head": "bc2db3975a773af95acd113e2f59af4cc95300e1",
+      "original_sha256": "721a035064097924e89063c8953099406990badfff8228b3e8b8d34742928da9",
+      "current_sha256": "721a035064097924e89063c8953099406990badfff8228b3e8b8d34742928da9",
+      "byte_identical": true,
+      "original_lines_preserved_in_order": true
+    },
+    {
+      "path": "docs/verification/phase0-english-guides-20261117/verification.json",
+      "source_head": "bc2db3975a773af95acd113e2f59af4cc95300e1",
+      "original_sha256": "8e157eaf050ef2ccbd8edece6ba916ce4026dbb0ca33c73b92bd6f2ce5dda36b",
+      "current_sha256": "8e157eaf050ef2ccbd8edece6ba916ce4026dbb0ca33c73b92bd6f2ce5dda36b",
+      "byte_identical": true,
+      "original_lines_preserved_in_order": true
+    },
+    {
+      "path": "sdk/examples/ipc-wait-probe/README.md",
+      "source_head": "bc2db3975a773af95acd113e2f59af4cc95300e1",
+      "original_sha256": "2e05dbfc96f62c86b2f23606b399ed88a0009671c3d5cfad1ee416a77b5a7afd",
+      "current_sha256": "2e05dbfc96f62c86b2f23606b399ed88a0009671c3d5cfad1ee416a77b5a7afd",
+      "byte_identical": true,
+      "original_lines_preserved_in_order": true
+    },
+    {
+      "path": "docs/implementation/K06-SMP.md",
+      "source_head": "1ecabe0cfdd2e4ba22021b2ece83ca9fc20751ec",
+      "original_sha256": "3dba5104d2d57158534c72ae35929751fdb653c1034eff8327e7d13ce26643ad",
+      "current_sha256": "3dba5104d2d57158534c72ae35929751fdb653c1034eff8327e7d13ce26643ad",
+      "byte_identical": true,
+      "original_lines_preserved_in_order": true
+    },
+    {
+      "path": "docs/verification/phase0-smp-guide-english-20261117/README.md",
+      "source_head": "1ecabe0cfdd2e4ba22021b2ece83ca9fc20751ec",
+      "original_sha256": "17424b400bb90617f22edeb925f75442075f31cc50ed518d14436da529485337",
+      "current_sha256": "17424b400bb90617f22edeb925f75442075f31cc50ed518d14436da529485337",
+      "byte_identical": true,
+      "original_lines_preserved_in_order": true
+    },
+    {
+      "path": "docs/verification/phase0-smp-guide-english-20261117/verification.json",
+      "source_head": "1ecabe0cfdd2e4ba22021b2ece83ca9fc20751ec",
+      "original_sha256": "686647a9f9b09ba76b945daef61cb15266177973a2be7b99ac3b86bd98e4d1ba",
+      "current_sha256": "686647a9f9b09ba76b945daef61cb15266177973a2be7b99ac3b86bd98e4d1ba",
+      "byte_identical": true,
+      "original_lines_preserved_in_order": true
+    },
+    {
+      "path": "docs/FULL-TEST-RELEASE.md",
+      "source_head": "f2e0318cc4ab900aeb7fcc5560dd9b0b764e14f0",
+      "original_sha256": "160a14a985bcf2fe58c7e873ce827dd5f39fa880620a19b705d8c120e107c647",
+      "current_sha256": "160a14a985bcf2fe58c7e873ce827dd5f39fa880620a19b705d8c120e107c647",
+      "byte_identical": true,
+      "original_lines_preserved_in_order": true
+    },
+    {
+      "path": "docs/verification/phase0-release-guide-english-20261117/README.md",
+      "source_head": "f2e0318cc4ab900aeb7fcc5560dd9b0b764e14f0",
+      "original_sha256": "a9b5b9670d5bc910a560ce409def07a8a34a16c05b0a62080f7573eab3a45213",
+      "current_sha256": "a9b5b9670d5bc910a560ce409def07a8a34a16c05b0a62080f7573eab3a45213",
+      "byte_identical": true,
+      "original_lines_preserved_in_order": true
+    },
+    {
+      "path": "docs/verification/phase0-release-guide-english-20261117/verification.json",
+      "source_head": "f2e0318cc4ab900aeb7fcc5560dd9b0b764e14f0",
+      "original_sha256": "bb167d4c45c7682bd5970a993a059267fe693cb398afd91678f683202f12d27e",
+      "current_sha256": "bb167d4c45c7682bd5970a993a059267fe693cb398afd91678f683202f12d27e",
+      "byte_identical": true,
+      "original_lines_preserved_in_order": true
+    },
+    {
+      "path": "docs/verification/phase0-module-guides-english-20261117/README.md",
+      "source_head": "8a61fd6d402b73b8e4dab2e917e63f8cba4f4c42",
+      "original_sha256": "a85b41adb944eaa78d7b1984a2db0c68cdd87256068397ec422e281f8400f368",
+      "current_sha256": "a85b41adb944eaa78d7b1984a2db0c68cdd87256068397ec422e281f8400f368",
+      "byte_identical": true,
+      "original_lines_preserved_in_order": true
+    },
+    {
+      "path": "docs/verification/phase0-module-guides-english-20261117/verification.json",
+      "source_head": "8a61fd6d402b73b8e4dab2e917e63f8cba4f4c42",
+      "original_sha256": "a52acdcda9b0b6608b763d43260a9c6f06e85cbc35cd1ff3523d4085acbd88af",
+      "current_sha256": "a52acdcda9b0b6608b763d43260a9c6f06e85cbc35cd1ff3523d4085acbd88af",
+      "byte_identical": true,
+      "original_lines_preserved_in_order": true
+    },
+    {
+      "path": "services/net-stack/THIRD-PARTY.md",
+      "source_head": "8a61fd6d402b73b8e4dab2e917e63f8cba4f4c42",
+      "original_sha256": "53ddde1aa1d280ee8523c46294cd4d1199d0083bc8f85bb7139e3689a282ebbf",
+      "current_sha256": "53ddde1aa1d280ee8523c46294cd4d1199d0083bc8f85bb7139e3689a282ebbf",
+      "byte_identical": true,
+      "original_lines_preserved_in_order": true
+    },
+    {
+      "path": "userspace/IPC-PROBE.md",
+      "source_head": "8a61fd6d402b73b8e4dab2e917e63f8cba4f4c42",
+      "original_sha256": "77dc5ad3962127a2a464bb9a8e6d9d0488a52677e92868bc8ff5f6ce97f69fea",
+      "current_sha256": "77dc5ad3962127a2a464bb9a8e6d9d0488a52677e92868bc8ff5f6ce97f69fea",
+      "byte_identical": true,
+      "original_lines_preserved_in_order": true
+    },
+    {
+      "path": "docs/product/interaction-principles.md",
+      "source_head": "18faac9806969483c7f146cb5f2994f83c9aea11",
+      "original_sha256": "e1918b6005e32567a3af6cdda3527f1d17e40042cbb3fe01f59affa75558bdf7",
+      "current_sha256": "e1918b6005e32567a3af6cdda3527f1d17e40042cbb3fe01f59affa75558bdf7",
+      "byte_identical": true,
+      "original_lines_preserved_in_order": true
+    },
+    {
+      "path": "docs/product/new-os-installer-spec.md",
+      "source_head": "18faac9806969483c7f146cb5f2994f83c9aea11",
+      "original_sha256": "66162f1c9b80559adbf6e3cfa1a5d9da6faffef5fbd58bd94c4bd3b3fc9ea4f3",
+      "current_sha256": "cfc33c4aa0a26c8a7dbd168149a296117e52f9028c1da84136229c23f235c797",
+      "byte_identical": false,
+      "original_lines_preserved_in_order": true
+    },
+    {
+      "path": "docs/product/new-os-onboarding-spec.md",
+      "source_head": "18faac9806969483c7f146cb5f2994f83c9aea11",
+      "original_sha256": "264564e8df5c788258b2908c0f6f01c8ad93ecb95a2150a23040375689144680",
+      "current_sha256": "264564e8df5c788258b2908c0f6f01c8ad93ecb95a2150a23040375689144680",
+      "byte_identical": true,
+      "original_lines_preserved_in_order": true
+    },
+    {
+      "path": "docs/verification/phase0-product-guides-english-20261117/README.md",
+      "source_head": "18faac9806969483c7f146cb5f2994f83c9aea11",
+      "original_sha256": "b5b0916cb9d6bc6a48406ca78d399994c740e5b4bcc1bdcc1465b9838b0312c2",
+      "current_sha256": "b5b0916cb9d6bc6a48406ca78d399994c740e5b4bcc1bdcc1465b9838b0312c2",
+      "byte_identical": true,
+      "original_lines_preserved_in_order": true
+    },
+    {
+      "path": "docs/verification/phase0-product-guides-english-20261117/verification.json",
+      "source_head": "18faac9806969483c7f146cb5f2994f83c9aea11",
+      "original_sha256": "767d7800cfa23f6ab6a05c7248b8a1166fa01e5627dab1593a31c75311c66f2d",
+      "current_sha256": "767d7800cfa23f6ab6a05c7248b8a1166fa01e5627dab1593a31c75311c66f2d",
+      "byte_identical": true,
+      "original_lines_preserved_in_order": true
+    },
+    {
+      "path": "docs/research/2026-11-02/README.md",
+      "source_head": "1da2b23dafe8732bf064dd8b490c0763cfe6193a",
+      "original_sha256": "2d8630c1ccc2f18affc5ba7aa4f8e6084388fa6cf59cd33e176fb17f908f05d5",
+      "current_sha256": "2d8630c1ccc2f18affc5ba7aa4f8e6084388fa6cf59cd33e176fb17f908f05d5",
+      "byte_identical": true,
+      "original_lines_preserved_in_order": true
+    },
+    {
+      "path": "docs/research/2026-11-02/journey/README.md",
+      "source_head": "1da2b23dafe8732bf064dd8b490c0763cfe6193a",
+      "original_sha256": "9cec46365824db6240a10c6ec27dad9574c32b6cf8e3c1e288c9832c8cc9dba7",
+      "current_sha256": "9cec46365824db6240a10c6ec27dad9574c32b6cf8e3c1e288c9832c8cc9dba7",
+      "byte_identical": true,
+      "original_lines_preserved_in_order": true
+    },
+    {
+      "path": "docs/research/README.md",
+      "source_head": "1da2b23dafe8732bf064dd8b490c0763cfe6193a",
+      "original_sha256": "060084b4d05b6afdc44bbae811f5e61492053e1cc9909f7518e4a95a03209a1e",
+      "current_sha256": "060084b4d05b6afdc44bbae811f5e61492053e1cc9909f7518e4a95a03209a1e",
+      "byte_identical": true,
+      "original_lines_preserved_in_order": true
+    },
+    {
+      "path": "docs/research/switching-friction.md",
+      "source_head": "1da2b23dafe8732bf064dd8b490c0763cfe6193a",
+      "original_sha256": "ce571a9fd61432be835f5d8b99147df2fc544aecfd853f8c77b3e15299f50707",
+      "current_sha256": "ce571a9fd61432be835f5d8b99147df2fc544aecfd853f8c77b3e15299f50707",
+      "byte_identical": true,
+      "original_lines_preserved_in_order": true
+    },
+    {
+      "path": "docs/verification/phase0-research-index-english-20261117/README.md",
+      "source_head": "1da2b23dafe8732bf064dd8b490c0763cfe6193a",
+      "original_sha256": "9e2bca9f789d37f5ed815ba029907a7a777bbeacca22b6a204fdcf67aa9a4855",
+      "current_sha256": "9e2bca9f789d37f5ed815ba029907a7a777bbeacca22b6a204fdcf67aa9a4855",
+      "byte_identical": true,
+      "original_lines_preserved_in_order": true
+    },
+    {
+      "path": "docs/verification/phase0-research-index-english-20261117/verification.json",
+      "source_head": "1da2b23dafe8732bf064dd8b490c0763cfe6193a",
+      "original_sha256": "17ff1274d22a13f41edf825e30dee0c3077d893879b7eefb4974100f183e7fcd",
+      "current_sha256": "17ff1274d22a13f41edf825e30dee0c3077d893879b7eefb4974100f183e7fcd",
+      "byte_identical": true,
+      "original_lines_preserved_in_order": true
+    },
+    {
+      "path": "docs/research/2026-11-02/future-os-design.md",
+      "source_head": "976b3a40100860618e3c1a0e4b821fd052866e2e",
+      "original_sha256": "8cca5d70dd49122585640106e3f5dcb147206762ece5be20dd621206cf9cb06b",
+      "current_sha256": "8cca5d70dd49122585640106e3f5dcb147206762ece5be20dd621206cf9cb06b",
+      "byte_identical": true,
+      "original_lines_preserved_in_order": true
+    },
+    {
+      "path": "docs/research/2026-11-02/os-user-needs.md",
+      "source_head": "976b3a40100860618e3c1a0e4b821fd052866e2e",
+      "original_sha256": "4625407bd523d835d4076eff5edc66797a28e2c4edefdb661baad9c02e0dffc8",
+      "current_sha256": "4625407bd523d835d4076eff5edc66797a28e2c4edefdb661baad9c02e0dffc8",
+      "byte_identical": true,
+      "original_lines_preserved_in_order": true
+    },
+    {
+      "path": "docs/research/2026-11-02/sources.md",
+      "source_head": "976b3a40100860618e3c1a0e4b821fd052866e2e",
+      "original_sha256": "e77f00ed427c3e6d80c00bca16d3cb29ba31c6673020d08a6dcc5f2b068ba035",
+      "current_sha256": "e77f00ed427c3e6d80c00bca16d3cb29ba31c6673020d08a6dcc5f2b068ba035",
+      "byte_identical": true,
+      "original_lines_preserved_in_order": true
+    },
+    {
+      "path": "docs/research/2026-11-02/windows-macos-needs.md",
+      "source_head": "976b3a40100860618e3c1a0e4b821fd052866e2e",
+      "original_sha256": "7e462c8078812e36fc25248ac292584380fdef2591e6f33d59793811b2d3d04d",
+      "current_sha256": "7e462c8078812e36fc25248ac292584380fdef2591e6f33d59793811b2d3d04d",
+      "byte_identical": true,
+      "original_lines_preserved_in_order": true
+    },
+    {
+      "path": "docs/verification/phase0-research-summaries-english-20261117/README.md",
+      "source_head": "976b3a40100860618e3c1a0e4b821fd052866e2e",
+      "original_sha256": "149495b5905da2a1aa929f4be2e7ff806001342399d18fc04e223596df0cc40e",
+      "current_sha256": "149495b5905da2a1aa929f4be2e7ff806001342399d18fc04e223596df0cc40e",
+      "byte_identical": true,
+      "original_lines_preserved_in_order": true
+    },
+    {
+      "path": "docs/verification/phase0-research-summaries-english-20261117/verification.json",
+      "source_head": "976b3a40100860618e3c1a0e4b821fd052866e2e",
+      "original_sha256": "5c280b255ceea91015f2cc3c16851240790fd2217077c994bd0b555fbe5aec28",
+      "current_sha256": "5c280b255ceea91015f2cc3c16851240790fd2217077c994bd0b555fbe5aec28",
+      "byte_identical": true,
+      "original_lines_preserved_in_order": true
+    },
+    {
+      "path": "docs/implementation/KERNEL-AND-SECURITY-CONTRACT.md",
+      "source_head": "c7cb95f5be88bf2935d8a1a30dcdaafa98d82126",
+      "original_sha256": "f4f803bebec120cf94ffff262fc14e9ec3db955e51822fa0fb1c68bfc3fb0daa",
+      "current_sha256": "f4f803bebec120cf94ffff262fc14e9ec3db955e51822fa0fb1c68bfc3fb0daa",
+      "byte_identical": true,
+      "original_lines_preserved_in_order": true
+    },
+    {
+      "path": "docs/implementation/KEYRING-SDK-CLIENT.md",
+      "source_head": "c7cb95f5be88bf2935d8a1a30dcdaafa98d82126",
+      "original_sha256": "9a955ae2593696154e5dd24cf3e198a824de99bdedf70971be4d43c1fe6b9fa3",
+      "current_sha256": "9a955ae2593696154e5dd24cf3e198a824de99bdedf70971be4d43c1fe6b9fa3",
+      "byte_identical": true,
+      "original_lines_preserved_in_order": true
+    },
+    {
+      "path": "docs/implementation/B01-ENTROPY-AND-KEYS.md",
+      "source_head": "c7cb95f5be88bf2935d8a1a30dcdaafa98d82126",
+      "original_sha256": "d0f49f3ff812d3a3658c1dc0dc10bc1fb916060e95991bd4e8de76466b09e310",
+      "current_sha256": "d0f49f3ff812d3a3658c1dc0dc10bc1fb916060e95991bd4e8de76466b09e310",
+      "byte_identical": true,
+      "original_lines_preserved_in_order": true
+    },
+    {
+      "path": "docs/implementation/B03-SIGNED-UPDATES.md",
+      "source_head": "c7cb95f5be88bf2935d8a1a30dcdaafa98d82126",
+      "original_sha256": "0893c64ce35481348c459e1683926b4bce16b29d12433ca82e831e7e6ffe2e23",
+      "current_sha256": "0893c64ce35481348c459e1683926b4bce16b29d12433ca82e831e7e6ffe2e23",
+      "byte_identical": true,
+      "original_lines_preserved_in_order": true
+    }
+  ],
+  "source_summary": {
+    "files": 39,
+    "byte_identical": 37,
+    "additive_english_glosses": [
+      "docs/contracts/NATIVE-IPC-WAIT.md",
+      "docs/product/new-os-installer-spec.md"
+    ]
+  },
+  "preservation_exit_code": 0,
+  "checks": [
+    {
+      "command": "progress.py --write",
+      "exit_code": 0,
+      "local_log": "build/tokenguard/run-5mix70cd.log",
+      "log_sha256": "62ebad9bc1b8d27851fbe4be8091c80217e43e64dfa64f554c574c2861a847fc"
+    },
+    {
+      "command": "progress.py --check",
+      "exit_code": 0,
+      "local_log": "build/tokenguard/run-06s0heeq.log",
+      "log_sha256": "14b305fe38d23ae7244745b59dcbbad1fa41b2ffd4a173070a72a8aca2f3aa5f"
+    },
+    {
+      "command": "preflight.py --strict (initial PATH)",
+      "exit_code": 2,
+      "local_log": "build/tokenguard/run-ope6neru.log",
+      "log_sha256": "5a0539335ef226fff026feac4a641b74a1fb84e4534f8ab14181b404f243eb75"
+    },
+    {
+      "command": "preflight.py --strict (activated environment)",
+      "exit_code": 0,
+      "local_log": "build/tokenguard/run-tl3n_8v2.log",
+      "log_sha256": "629c02464a783780850665b236b724542bb18d4b1684495ea9c9534bc70d51a3"
+    },
+    {
+      "command": "build.py (activated environment)",
+      "exit_code": 0,
+      "local_log": "build/tokenguard/run-8t_30fuv.log",
+      "log_sha256": "ddf694fe76f1a51c47a98059e83f11c414a68e34e24c436ce27219af647aba16"
+    },
+    {
+      "command": "run.py --smoke (activated environment)",
+      "exit_code": 0,
+      "local_log": "build/tokenguard/run-aqbuoh96.log",
+      "log_sha256": "839f8d6ba128885f8c3afe8ddd24bf33effe3f37fa5beaf59fbc0f08c5c2c9c0"
+    },
+    {
+      "command": "source preservation assertions (initial helper omitted external module guides)",
+      "exit_code": 1,
+      "local_log": "build/tokenguard/run-le2xm1ov.log",
+      "log_sha256": "eeda190d41158d22030d929479c62e2155f13af92b45e8be9f72b6909bd3c4c9"
+    },
+    {
+      "command": "source preservation assertions (corrected helper scope)",
+      "exit_code": 0,
+      "local_log": "build/tokenguard/run-u40d9dyw.log",
+      "log_sha256": "d2e6e2bc0698c373e4b48c3a262686a81f600730e8d3c710478cc1fc54707c38"
+    },
+    {
+      "command": "git diff --check",
+      "exit_code": 0,
+      "local_log": "build/tokenguard/run-xg0lpeto.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "native_smoke": {
+    "raw_qemu_exit": 33,
+    "markers": [
+      "BOOT:EBS_OK",
+      "KERNEL:ENTRY",
+      "BOOTINFO:OK",
+      "M1:PASS"
+    ],
+    "runtime_source": "all runtime paths identical to main 366b82b353485207a9b0d6b1ae63dafbbe265bae",
+    "scope": "generic M1 smoke; no translated feature acceptance"
+  }
+}

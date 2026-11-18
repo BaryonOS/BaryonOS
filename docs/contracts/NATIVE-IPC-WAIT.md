@@ -50,6 +50,14 @@ RDX == 0: deadline verstreken zonder ready entry
 RAX < 0: bestaande kernelfout; RDX == 0
 ```
 
+English reading of the preserved ABI example: `interest` is either 1 (SEND) or
+2 (RECV), never both and with no other bits. At most 16 entries and 256 copied
+bytes are accepted. A zero count requires a null pointer. The future deadline
+distance is at most 1,000 PIT ticks, nominally 10 seconds. With `RAX == 0`,
+bit `i` in `RDX` identifies ready input entry `i`; a zero mask means the deadline
+expired without a ready entry. A negative `RAX` is an existing kernel error and
+requires `RDX == 0`.
+
 The entire input is validated before registration and converted into a bounded
 kernel copy. No CopyPlan, user pointer, user buffer, message, object index
 or node reference is retained in a wait record. The normally saved
