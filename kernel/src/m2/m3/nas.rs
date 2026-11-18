@@ -336,6 +336,12 @@ pub(super) fn observe_exit(s: &mut State, slot: usize, _: u64) {
     }
     evidence().roles[slot] = Some(words);
     m4::engine().process_died(s.processes[slot].pid, PROCESS_EXITED, 0);
+    if slot == GUEST && !RECOVER {
+        // Fixture-only observation; a userland readiness message is not exit.
+        require(word(s, ADMIN, 200) == 0, b"OFFLINE_FLAG");
+        put(s, ADMIN, 200, 1);
+        serial::write(b"NAS:GUEST_OFFLINE:PASS\n");
+    }
 }
 pub(super) fn observe_fault(_: &mut State, slot: usize, _: &[u64; 22], _: u64) {
     print_number(b"NAS:ERROR:SLOT:", slot as u64);
@@ -364,7 +370,7 @@ pub(super) fn poll(s: &mut State) -> Option<*const u64> {
     let expected = if RECOVER {
         [(4, 0), (4, 5), (0, 5)]
     } else {
-        [(6, 1), (12, 6), (6, 5)]
+        [(16, 1), (27, 7), (11, 6)]
     };
     for (slot, (ok, errors)) in [ADMIN, NAS, GUEST].into_iter().zip(expected) {
         let words = evidence().roles[slot].unwrap();
