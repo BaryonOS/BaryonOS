@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-18",
-    "source_commit": "7ca7e182cbda15c2d8525fa99c7a8d9f1052596b",
-    "assessment_basis": "source_commit",
-    "branch": "codex/h05-s3-facs",
-    "task": "H05-T1: bounded S3/FACS parser delivered after N02-T2",
+    "source_commit": "b87436dfd8ef8c277dea1dbde780f2e2229283a9",
+    "assessment_basis": "parent_commit",
+    "branch": "codex/unified-governance",
+    "task": "GOV-1-6 reconciliation with main 5a3295b6",
     "previous_score": 41,
-    "summary": "41/100 unchanged. Shared AML/SDT/PM1 validation selects S3 independently of S5; FACS discovery/snapshot binding, exact extents, alignment, versions2/3, flags and selected waking-vector bounds validated without I/O.36 host tests pass,1 existing external fixture ignored; Clippy/fmt/freestanding build pass. S5 tests unchanged. No native S3/physical wake/thermal/battery/H05 acceptance. N02-T2 delivered independently in PR370, Rust1.91.1 dependency resolved; integration/Claude ownership and unsafe runner hold preserved."
+    "summary": "41/100 unchanged. Shared role and workflow contracts, client adapters and compact continuation are reconciled with actual main after #350. Targeted quarantine (5) and execution-hold (3) regressions remain source-bound; disabled manifest and source hold remain intact. Governance has no zero-open-items/baseline-B prerequisite. Host adapter/protection checks do not establish client runtime parity, Daybreak acceptance, hardware or human audit. No product criterion or weight changes."
   },
   "tracks": [
     {
