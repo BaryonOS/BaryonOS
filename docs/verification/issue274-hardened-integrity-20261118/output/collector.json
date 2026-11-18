@@ -1,21 +1,21 @@
 {
   "schema_version": 2,
-  "source_commit": "4ae9a1c4f19bcf84ed06f0a8afcfdfc40fb237a8",
-  "source_tree": "a6eb48f68f30cf443b96c7cfc9da636a2a179532",
+  "source_commit": "ec90e1fd628f8dc200c4e2013bf85790e16f2e1e",
+  "source_tree": "2b56363d892ed4586e1b432b4b33a3c2c03b8d92",
   "wiki_commit": "4a01b8b2ad2695da509a512ea688007c964f56da",
   "wiki_tree": "f7bee30ee39abb60da294d48357af5b6c85f2fae",
-  "generated_at_utc": "2026-11-18T18:20:50.830Z",
+  "generated_at_utc": "2026-11-18T22:50:52.435Z",
   "method": "Immutable Git-tree Markdown/YAML inventory; exact repository and Wiki blobs; candidate detection is not language-quality proof.",
   "counts": {
-    "tracked_markdown": 840,
-    "firstparty_candidates": 398,
-    "protected_excluded": 442,
+    "tracked_markdown": 886,
+    "firstparty_candidates": 410,
+    "protected_excluded": 476,
     "normal_navigation_reachable": 179,
     "documents_with_dutch_candidates": 56,
     "dutch_candidate_lines": 3007,
-    "extracted_links": 7658,
-    "classified_local_links": 5697,
-    "unresolved_local_targets": 1,
+    "extracted_links": 7681,
+    "classified_local_links": 5720,
+    "unresolved_local_targets": 0,
     "legacy_url_occurrences": 67,
     "unsupported_local_targets": 0,
     "wiki_references": 58,
@@ -27,16 +27,7 @@
     "docs/DEVELOPMENT.md",
     "docs/WIKI.md"
   ],
-  "unresolved_local_targets": [
-    {
-      "source": "docs/DEVELOPMENT.md",
-      "href": "../build/toolchain-provenance.json",
-      "image": false,
-      "target": "build/toolchain-provenance.json",
-      "fragment": "",
-      "reason": "missing-target"
-    }
-  ],
+  "unresolved_local_targets": [],
   "unsupported_local_targets": [],
   "legacy_urls": [
     {

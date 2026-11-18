@@ -1,31 +1,76 @@
 {
   "schema_version": 2,
-  "source_commit": "4ae9a1c4f19bcf84ed06f0a8afcfdfc40fb237a8",
-  "source_tree": "a6eb48f68f30cf443b96c7cfc9da636a2a179532",
+  "source_commit": "ec90e1fd628f8dc200c4e2013bf85790e16f2e1e",
+  "source_tree": "2b56363d892ed4586e1b432b4b33a3c2c03b8d92",
   "wiki_commit": "4a01b8b2ad2695da509a512ea688007c964f56da",
   "wiki_tree": "f7bee30ee39abb60da294d48357af5b6c85f2fae",
-  "generated_at_utc": "2026-11-18T18:20:50.830Z",
+  "generated_at_utc": "2026-11-18T22:50:52.435Z",
   "method": "Immutable Git-tree Markdown/YAML inventory; exact repository and Wiki blobs; candidate detection is not language-quality proof.",
   "combined_review_manifest": {
     "path": "docs/verification/issue274-hardened-integrity-20261118/inputs/review.json",
     "sha256": "1eb6fa5bce46cdf2a20de9fa8b41db73b5ac90800df5e4e5767691dce355fb61"
   },
   "counts": {
-    "tracked_markdown": 840,
-    "firstparty_candidates": 398,
-    "protected_excluded": 442,
+    "tracked_markdown": 886,
+    "firstparty_candidates": 410,
+    "protected_excluded": 476,
     "normal_navigation_reachable": 179,
     "documents_with_dutch_candidates": 56,
     "dutch_candidate_lines": 3007,
-    "extracted_links": 7658,
-    "classified_local_links": 5697,
-    "unresolved_local_targets": 1,
+    "extracted_links": 7681,
+    "classified_local_links": 5720,
+    "unresolved_local_targets": 0,
     "legacy_url_occurrences": 67,
     "unsupported_local_targets": 0,
     "wiki_references": 58,
     "community_forms": 8
   },
   "documents": [
+    {
+      "path": ".agents/roles/os_architect.md",
+      "blob": "33eb1d590a3fa4cebded778a3556cfa820a70d69",
+      "sha256": "80199a9e7ebc3ef997a7ba02cf3c18276337149d47e94133fe2b134f638d20a2",
+      "bytes": 1850,
+      "candidate_lines": [],
+      "candidates": [],
+      "reachable_from_normal_navigation": false
+    },
+    {
+      "path": ".agents/roles/os_builder.md",
+      "blob": "641040f448a538ab7a5beac786a2519f94980344",
+      "sha256": "52daa5bd19e6fbf7b4ce4331bf0aba7b761191a14a8e43c1c573f847f5e00ef1",
+      "bytes": 2073,
+      "candidate_lines": [],
+      "candidates": [],
+      "reachable_from_normal_navigation": false
+    },
+    {
+      "path": ".agents/roles/os_security_reviewer.md",
+      "blob": "9732bbea8c6523bb98f6d6fd5f9bfeaa6747e8d0",
+      "sha256": "f12a7b270386ff6cf25682d79f4d78ab2e631188d34c4dec65afff1766cae2bf",
+      "bytes": 1738,
+      "candidate_lines": [],
+      "candidates": [],
+      "reachable_from_normal_navigation": false
+    },
+    {
+      "path": ".agents/roles/os_verifier.md",
+      "blob": "feb548cc4fbe10c25a33e8a86c2ee3f021ada21e",
+      "sha256": "fae01993eca5f7f0fc9127aabc134e8d395851efec08e82146fc741849121be6",
+      "bytes": 2021,
+      "candidate_lines": [],
+      "candidates": [],
+      "reachable_from_normal_navigation": false
+    },
+    {
+      "path": ".agents/skills/development-loop/SKILL.md",
+      "blob": "aa45f8fad147d8146865efac036a254929074f37",
+      "sha256": "f840c898f240ef2f6529b859337ae7cbb65f35b34c9d0fd2b5a8aea9d0f7bed3",
+      "bytes": 3356,
+      "candidate_lines": [],
+      "candidates": [],
+      "reachable_from_normal_navigation": false
+    },
     {
       "path": ".agents/skills/os-dev/BRONNEN-EN-LICENTIES.md",
       "blob": "68210a8e4b682f416afd6ba9db590784aa5fbb01",
@@ -441,6 +486,51 @@
       "reachable_from_normal_navigation": false
     },
     {
+      "path": ".claude/agents/os-architect.md",
+      "blob": "f599376dc5bc9a671f3dff3bc9219f011af0f3a0",
+      "sha256": "a8072c47575f1d728f72c718484b348bb9f1267318e641cbf923d7fb79fe257c",
+      "bytes": 347,
+      "candidate_lines": [],
+      "candidates": [],
+      "reachable_from_normal_navigation": false
+    },
+    {
+      "path": ".claude/agents/os-builder.md",
+      "blob": "32ee7d5a366d7e81ccd27dd6ac9d0960e5858e29",
+      "sha256": "83e98f58f6080820f616fd770403f0239d646464d063d37067ce1069c3c418be",
+      "bytes": 299,
+      "candidate_lines": [],
+      "candidates": [],
+      "reachable_from_normal_navigation": false
+    },
+    {
+      "path": ".claude/agents/os-security-reviewer.md",
+      "blob": "1ba1e0ce1350fc9e67bb051523d5217e4871a74b",
+      "sha256": "695fc776c49ecd99b52ee6cd385695c84f6781752da6a0ff0d6c0367e929e3fa",
+      "bytes": 352,
+      "candidate_lines": [],
+      "candidates": [],
+      "reachable_from_normal_navigation": false
+    },
+    {
+      "path": ".claude/agents/os-verifier.md",
+      "blob": "3a1ed2d100695f25c83781a03cca311491274c24",
+      "sha256": "1e8b361aa655ae8386801832119cd462b9f360947ab35f498d119062b857d454",
+      "bytes": 326,
+      "candidate_lines": [],
+      "candidates": [],
+      "reachable_from_normal_navigation": false
+    },
+    {
+      "path": ".claude/skills/development-loop/SKILL.md",
+      "blob": "6bea472678aadb7acf159bf2203bbe71807f246c",
+      "sha256": "b3d992adc7edf580537a9de73741673cab7ccc2e6da9c48bf8a09eb6ec394af1",
+      "bytes": 247,
+      "candidate_lines": [],
+      "candidates": [],
+      "reachable_from_normal_navigation": false
+    },
+    {
       "path": ".claude/skills/token-guard/SKILL.md",
       "blob": "1058f07690550b40f0321aaf822f251563996817",
       "sha256": "03350ed51036dcaf034f4af77500c3e661d273166eaac86facfacc2ed9c59140",
@@ -469,18 +559,18 @@
     },
     {
       "path": ".github/agents/os-architect.agent.md",
-      "blob": "c0cf9fe8b7e529e224133cc9725bb89d5c9e2ff3",
-      "sha256": "22e60c610d21ace89b044f877da7f70754c689d3c701d69a33c533d626979f5e",
-      "bytes": 1776,
+      "blob": "47767c5ca5b2cb7c6ddcfa3d3d1ca48fe13e1e64",
+      "sha256": "8ee0dd4cf0d7929e0c5d680b4ab1155493d32ba035bb7a2fda5622f1e55905a7",
+      "bytes": 512,
       "candidate_lines": [],
       "candidates": [],
       "reachable_from_normal_navigation": false
     },
     {
       "path": ".github/agents/os-builder.agent.md",
-      "blob": "bc77fd9cd354d851b129996422cd209eab75e40d",
-      "sha256": "8241fa6c0659e24932dfaf5528246a2410f87fe2740bd40ac2eb1ab6e324e77f",
-      "bytes": 2003,
+      "blob": "77c6caa7c7f37c95428fafcdb4858fe898cc5cad",
+      "sha256": "0f50492db6700a7ff6dd923f197d7236e02e1fe003d9b49e6effcb06b35aa6b5",
+      "bytes": 531,
       "candidate_lines": [],
       "candidates": [],
       "reachable_from_normal_navigation": false
@@ -577,9 +667,9 @@
     },
     {
       "path": ".github/agents/os-security-reviewer.agent.md",
-      "blob": "4ae04ec9e8269e9e4333d84b60aea1cc19bcf9ab",
-      "sha256": "4ccc6ba3f5a0a71a891f4df418fa8ef79ca9e5d79b1bdeda9123b2d97b6b61c4",
-      "bytes": 1726,
+      "blob": "fe8835662441b960abb14f6cca7b8e63f945a8a4",
+      "sha256": "dabcdd5a3dddcbf364b63c2f27580924ea7bacf668721bccb4b4840fa775b0f2",
+      "bytes": 543,
       "candidate_lines": [],
       "candidates": [],
       "reachable_from_normal_navigation": false
@@ -595,18 +685,18 @@
     },
     {
       "path": ".github/agents/os-verifier.agent.md",
-      "blob": "a05c2e6a89cdf4faf9de59ce9bb0daccc7acf2f4",
-      "sha256": "c8ff74a95b7da1422ee9467713baa85ef795456187b6b1c7630a84afadee2ec1",
-      "bytes": 1921,
+      "blob": "d42a36c352df999cc774fd6fc452b6f9752190d7",
+      "sha256": "9ddc5236141256264eda09168c1f41f13f5a406defb941ae175581a0a776abeb",
+      "bytes": 493,
       "candidate_lines": [],
       "candidates": [],
       "reachable_from_normal_navigation": false
     },
     {
       "path": ".github/copilot-instructions.md",
-      "blob": "715a73757c25c3e0b5d039c60fb792e9afb55dec",
-      "sha256": "c3b5fd41f5f0d56eded974ea72ed86785b3cda1cdebe5882d9834f396aa45dec",
-      "bytes": 761,
+      "blob": "8ea7154376a20816a91beb7e9b54623a34acfbb0",
+      "sha256": "9ed8f97c1826295c23dce0e27c7f264003e4cfce183da5924ef290c5ddc760c7",
+      "bytes": 801,
       "candidate_lines": [],
       "candidates": [],
       "reachable_from_normal_navigation": false
@@ -616,6 +706,15 @@
       "blob": "59cdc597236db998cdb87fff5c5a1e7503de091f",
       "sha256": "2f0d73c9e87153f62c7c7b6534ef1810db34cc7b7fc6840c3444d190ad521dd6",
       "bytes": 2419,
+      "candidate_lines": [],
+      "candidates": [],
+      "reachable_from_normal_navigation": false
+    },
+    {
+      "path": ".github/skills/development-loop/SKILL.md",
+      "blob": "6bea472678aadb7acf159bf2203bbe71807f246c",
+      "sha256": "b3d992adc7edf580537a9de73741673cab7ccc2e6da9c48bf8a09eb6ec394af1",
+      "bytes": 247,
       "candidate_lines": [],
       "candidates": [],
       "reachable_from_normal_navigation": false
@@ -631,9 +730,9 @@
     },
     {
       "path": "AGENTS.md",
-      "blob": "1564c326e13a6d41f7ea3106a79f0eceaf137392",
-      "sha256": "53c36d311957dc49e5082814738413edcb7cd60b3c4f1df3ad3509dde5062519",
-      "bytes": 26307,
+      "blob": "2b2670e27e366f479356bc92736e2e13fa68dea4",
+      "sha256": "aaa88d983c970ed22f823a8cfce40c9c4af740e158b3c4789c82d720ade7e1ca",
+      "bytes": 26074,
       "candidate_lines": [],
       "candidates": [],
       "reachable_from_normal_navigation": true
@@ -649,18 +748,18 @@
     },
     {
       "path": "CLAUDE.md",
-      "blob": "43c994c2d3617f947bcb5adf1933e21dabe46bb5",
-      "sha256": "336cc4fbf19beaada7ccf9986414fa91851a8d7a07dfb3ccbe800a69eed0ab49",
-      "bytes": 11,
+      "blob": "bed9704acd3d377dc7bfeb1b5eab7b6111b7aa93",
+      "sha256": "17626b4d0359c716c2cef9df4071d665443db6116383b4210772d8b07a98df30",
+      "bytes": 341,
       "candidate_lines": [],
       "candidates": [],
       "reachable_from_normal_navigation": false
     },
     {
       "path": "CODEX-WORKFLOW.md",
-      "blob": "3f6cf3fcb12ae955112cada0a3cf0367202eb785",
-      "sha256": "74f8497dd17acb42d13ed205200d0d02a91b7b8b296a15ae08d73c3d14ddda8a",
-      "bytes": 8192,
+      "blob": "6ef767cadbe955ff58a52900156ccc02e480fb9b",
+      "sha256": "43136ce6a23902a4cb8c98c3e832b106a955dad005462a1f2949afe716535f20",
+      "bytes": 8680,
       "candidate_lines": [],
       "candidates": [],
       "reachable_from_normal_navigation": false
@@ -757,9 +856,9 @@
     },
     {
       "path": "crates/AGENTS.md",
-      "blob": "0920f2743ab2b423f1160417769a91b1cd421e5e",
-      "sha256": "97a6063918427c76d35069352d05dd971cdb27e2f9f0cafc7770dbb5fec7c103",
-      "bytes": 1320,
+      "blob": "9bcd9d6ce172256b96f6d42136259be3e8d2c015",
+      "sha256": "7ea0b0f39f120567b867a64c461368882e61f8287ccc967a6818ab4fe675339d",
+      "bytes": 1323,
       "candidate_lines": [],
       "candidates": [],
       "reachable_from_normal_navigation": false
@@ -904,18 +1003,18 @@
     },
     {
       "path": "docs/CODEX-PARITY.md",
-      "blob": "6f661921912722d75ae9103cd71ef684d9237565",
-      "sha256": "1631f2f75c2c9fd6d06b56d25f3e586a635845229720d9ec395c2c48c9336228",
-      "bytes": 4848,
+      "blob": "f826b6c1967b7b3ab8fb78aec77722aa0c569efb",
+      "sha256": "479b49e3f89c8b9b8f2b973d08f7bf7d77b14f83b05493991ac1e982c23c4c98",
+      "bytes": 5733,
       "candidate_lines": [],
       "candidates": [],
       "reachable_from_normal_navigation": false
     },
     {
       "path": "docs/CODEX-START.md",
-      "blob": "41cc7959f693878c37f2ad1944801cd1a3c01be1",
-      "sha256": "afe6a6541a7e9f89af14ad6a28260f1b1e473e346bbfd091cde80c761959b8dd",
-      "bytes": 3375,
+      "blob": "c7adda7eb4ff123e1c9f42c7a947359a14a3d28f",
+      "sha256": "c8023ed4d6dfcde86fd13a5a882a5f5ebcbcd87703b362dc4c7aaca066894c96",
+      "bytes": 2604,
       "candidate_lines": [],
       "candidates": [],
       "reachable_from_normal_navigation": false
@@ -940,31 +1039,31 @@
     },
     {
       "path": "docs/DECISIONS.md",
-      "blob": "271cedda8315c4e8789ca5eb34b3ec1a5a62a203",
-      "sha256": "dd51260218ee13b2868afad9ff12d1e8c179482ad0413e15fc44378da68e477f",
-      "bytes": 291878,
+      "blob": "31f8362ebdc3fe4edae53445180f8cd357a64acd",
+      "sha256": "afe58d78a1cee81d4ffcac73c9331c7dcf8a85dc6df17c7c1d2276ded2c8250c",
+      "bytes": 298076,
       "candidate_lines": [
-        1365,
-        1805,
-        2813
+        1414,
+        1854,
+        2862
       ],
       "candidates": [
         {
-          "line": 1365,
+          "line": 1414,
           "words": [
             "het"
           ],
           "excerpt": "the  contract (original: “PTE wissen en TLB invalideren vóór het"
         },
         {
-          "line": 1805,
+          "line": 1854,
           "words": [
             "Bestanden"
           ],
           "excerpt": "the Bestanden (Files) app, recent items in the start menu and permission"
         },
         {
-          "line": 2813,
+          "line": 2862,
           "words": [
             "alleen",
             "het"
@@ -976,9 +1075,9 @@
     },
     {
       "path": "docs/DEPENDENCIES.md",
-      "blob": "9cc26ba2c45d6997e388262aa668442f7de5b363",
-      "sha256": "f2aae4980a254fcd192861b11683bb2baa7a7ff2dda0e5fa0a4e0b7afccfa92a",
-      "bytes": 12481,
+      "blob": "dc6c1c7725fce0f68f7168e4d8afbc3de548a003",
+      "sha256": "782512bf06d738a21a6bd648886f52b5cca231b4c0bd4e1ba1847d1603144fbe",
+      "bytes": 12937,
       "candidate_lines": [],
       "candidates": [],
       "reachable_from_normal_navigation": true
@@ -994,9 +1093,9 @@
     },
     {
       "path": "docs/DEVELOPMENT.md",
-      "blob": "956ccf39fc897eefe2d5360eb1710ebc906e259e",
-      "sha256": "c3ac5f1f05bd01e2bf4e375e9101728685df4f4753b0273b7dccf535399f2566",
-      "bytes": 19555,
+      "blob": "99e7e2e5338c9f6cb8567851ec72ee1f20ccb323",
+      "sha256": "b1bab8d031c7740dc05f144cd77b35b1ea335c8d4190be7f9b8474648d32b4af",
+      "bytes": 20111,
       "candidate_lines": [],
       "candidates": [],
       "reachable_from_normal_navigation": true
@@ -2099,9 +2198,9 @@
     },
     {
       "path": "docs/PROJECT-STATE.md",
-      "blob": "affd8abbbed349437e1fca9fdec0f11e3a8d5b19",
-      "sha256": "540b161bf5d5bb1c6a92b602a05d5b9ea5ffd0e912911e25b87b06878dac7664",
-      "bytes": 213221,
+      "blob": "feda94f11fc564d908c4c0911f8282f02ffb23b0",
+      "sha256": "3f01485732c55e165a04ac904b5d928b7978bca5e971831f3c7d1fd3d01204f1",
+      "bytes": 247221,
       "candidate_lines": [],
       "candidates": [],
       "reachable_from_normal_navigation": true
@@ -2141,6 +2240,15 @@
       "candidate_lines": [],
       "candidates": [],
       "reachable_from_normal_navigation": true
+    },
+    {
+      "path": "docs/STATUS.md",
+      "blob": "d19492615d3cc3b7465bcf6720ff6935f024e11a",
+      "sha256": "8478e48ff38215065c52550c2edee817b0a36c3921c1590d99358485fcae9a24",
+      "bytes": 2070,
+      "candidate_lines": [],
+      "candidates": [],
+      "reachable_from_normal_navigation": false
     },
     {
       "path": "docs/TASK-TEMPLATE.md",
@@ -27689,9 +27797,9 @@
     },
     {
       "path": "docs/implementation/S09-BACKUP-ARCHIVE.md",
-      "blob": "fb2db8fd90fa67c89fc9c9cbcf854df7ce9fe9ea",
-      "sha256": "7a0aaf48fc40cd272dd28f67e3f5e685f250fb68b6059557c8dabdc5edcac9ec",
-      "bytes": 21322,
+      "blob": "9f1d7cb73a75daf6a3418f53b416b5f140d6afe5",
+      "sha256": "b3d4e7928bf16e951f15aa6f3722f1a980f39537c0e07fa6b5f73a634a73bcb1",
+      "bytes": 29288,
       "candidate_lines": [],
       "candidates": [],
       "reachable_from_normal_navigation": true
@@ -29138,9 +29246,9 @@
     },
     {
       "path": "docs/roadmap-pipeline/README.md",
-      "blob": "c118902245402c6b41c7a554cc665490ee043366",
-      "sha256": "dee9deb917f9abe39db214d436b83c06f99705e9069f1520ba2e4928d2eef1df",
-      "bytes": 6828,
+      "blob": "f7dbf18f7af25f29049962fc8c0b657ed86bf580",
+      "sha256": "fd6d0fbb9cebf8b13af813dd46c17a7acf1fbb44f731fcf56a43199d3fec3091",
+      "bytes": 12061,
       "candidate_lines": [],
       "candidates": [],
       "reachable_from_normal_navigation": false
@@ -29300,9 +29408,9 @@
     },
     {
       "path": "drivers/AGENTS.md",
-      "blob": "ef9953c582b211659d485ef018d0e7f1009bb048",
-      "sha256": "3fd445ae9a0dc233540eee758c27a4f1202a851c157e8ade59b063adb41557a1",
-      "bytes": 1124,
+      "blob": "bcd20caa1436c93105b9ad0908b9f3031d649854",
+      "sha256": "3cc90198bafeb019f63b222032e4187a33e46886dfaca3ad41ecdc7ff612c8b6",
+      "bytes": 1125,
       "candidate_lines": [],
       "candidates": [],
       "reachable_from_normal_navigation": false
@@ -29363,9 +29471,9 @@
     },
     {
       "path": "experiments/AGENTS.md",
-      "blob": "3a03bd3fb83a926e378b2b29962405fdf3a8fdd0",
-      "sha256": "1d74ad6d713e99ac9e141397c0b711d0f93568def7358f04cf489097494a0e74",
-      "bytes": 1110,
+      "blob": "27733d97586bd5c6507f99b96f6177ae92f9ca00",
+      "sha256": "615bbcb2cf28e5de81e7d714fa2dfcc5651e750c197fc51006538d54275776af",
+      "bytes": 1114,
       "candidate_lines": [],
       "candidates": [],
       "reachable_from_normal_navigation": false
@@ -29426,9 +29534,9 @@
     },
     {
       "path": "kernel/AGENTS.md",
-      "blob": "12d32b2576ad04670b137099bef58e27d5a4c49e",
-      "sha256": "6582214325602cbb23a62acc319be993122c979836a846b67411f65cf286bd0d",
-      "bytes": 1597,
+      "blob": "d48a18405739f07fca858d966898387882aa2a93",
+      "sha256": "3864042717479ad4d0b7509e570eb97eec4a19d223426a4e5d94ee5ce2ac5b84",
+      "bytes": 1598,
       "candidate_lines": [],
       "candidates": [],
       "reachable_from_normal_navigation": false
@@ -29471,9 +29579,9 @@
     },
     {
       "path": "sdk/AGENTS.md",
-      "blob": "c23e84005dd868e7935c193a04169ac1102ace23",
-      "sha256": "759693c3d9cd434df93ab0f739105f800eb044374e95a8ff154a03ee6f8b2535",
-      "bytes": 1009,
+      "blob": "33d079eb6bb557212d4f8d5919ed1600b67f8074",
+      "sha256": "6cad3d6c69ba1458be9c47e1c8df0203aee4f3a903107625467e892369ac4d35",
+      "bytes": 1012,
       "candidate_lines": [],
       "candidates": [],
       "reachable_from_normal_navigation": false
@@ -29741,9 +29849,9 @@
     },
     {
       "path": "services/AGENTS.md",
-      "blob": "35518c11ee0008c8ea7021b7501646ee02c4c015",
-      "sha256": "ceb916182baae160ccb99450b0e7245e751a757294968e361f5190dbf146845d",
-      "bytes": 2632,
+      "blob": "7eb309a6a40131fbe20c79c1e82f7d34af1172bf",
+      "sha256": "502f101993fca51f5fbe71a3e63f44484bee6d980d35bb8e2eb5b12bb36e184c",
+      "bytes": 2634,
       "candidate_lines": [],
       "candidates": [],
       "reachable_from_normal_navigation": false
@@ -31549,6 +31657,16 @@
       "blob": "d35cabef04a439e595ba9a243e6153ddd3795d03"
     },
     {
+      "path": "docs/verification/coderabbit-oss-20261117/README.md",
+      "reason": "Source-bound historical verification record",
+      "blob": "2daeac1ac6762f2564da9f5a7274132e264332f8"
+    },
+    {
+      "path": "docs/verification/daybreak-block-order-20261118/README.md",
+      "reason": "Source-bound historical verification record",
+      "blob": "b271e5729de596ec9d27c155cb8078c04bc5e36f"
+    },
+    {
       "path": "docs/verification/dependabot-coverage-283.md",
       "reason": "Source-bound historical verification record",
       "blob": "2a3776d7034bc672ecb56a9f08c56297f8bab110"
@@ -31864,6 +31982,26 @@
       "blob": "f11c75a346595c9b796c2177f23a9d4dd9f1f7f3"
     },
     {
+      "path": "docs/verification/issue274-codeql-corrections-20261118/README.md",
+      "reason": "Source-bound historical verification record",
+      "blob": "8deaaa33ca58734406d7e0c6926301e8b8de1202"
+    },
+    {
+      "path": "docs/verification/issue274-hardened-integrity-20261118/DESIGN.md",
+      "reason": "Source-bound historical verification record",
+      "blob": "2de328e1f5a643478ffffb04120c175df9d96457"
+    },
+    {
+      "path": "docs/verification/issue274-hardened-integrity-20261118/README.md",
+      "reason": "Source-bound historical verification record",
+      "blob": "5f158485721fb0a5a3ee2df270c78638c52952ce"
+    },
+    {
+      "path": "docs/verification/issue274-helper-corrections-20261118/README.md",
+      "reason": "Source-bound historical verification record",
+      "blob": "018546ad0b7aacc2a26c609e3a569a03a22968ec"
+    },
+    {
       "path": "docs/verification/issue274-language-coverage-20261118/README.md",
       "reason": "Source-bound historical verification record",
       "blob": "7bd946a9befdc54e95eec8ff551dc19bd228905d"
@@ -31877,6 +32015,11 @@
       "path": "docs/verification/issue274-wiki-publication-20261118/README.md",
       "reason": "Source-bound historical verification record",
       "blob": "50cf80b6e76529bbce16a3fc0ea4f62d41872c51"
+    },
+    {
+      "path": "docs/verification/issue42-combined-20261118/README.md",
+      "reason": "Source-bound historical verification record",
+      "blob": "7838b8b1e1c582d2d04a3c561e94d2ea8357aa84"
     },
     {
       "path": "docs/verification/issue42-native-input-20261114/README.md",
@@ -32122,6 +32265,11 @@
       "path": "docs/verification/m6b/README.md",
       "reason": "Source-bound historical verification record",
       "blob": "577d5dba3d9d2fcefbe2eb7bc52562bca03bce2c"
+    },
+    {
+      "path": "docs/verification/m6c-final-read-barrier-20261118/README.md",
+      "reason": "Source-bound historical verification record",
+      "blob": "616e36fa3f756ebc5739a83ac0b3ced6126ca784"
     },
     {
       "path": "docs/verification/m6c-review/README.md",
@@ -32664,6 +32812,16 @@
       "blob": "6a1af14e268df06ba8c655db9b64036ebb784285"
     },
     {
+      "path": "docs/verification/phase0-combined-20261118/CONTINUATION.md",
+      "reason": "Source-bound historical verification record",
+      "blob": "20b41ceb3520175cb54cfcd1bcdf5a161ace0e7c"
+    },
+    {
+      "path": "docs/verification/phase0-combined-20261118/README.md",
+      "reason": "Source-bound historical verification record",
+      "blob": "f3993fa74d5b39b6b63f79909fa505bc1a574bef"
+    },
+    {
       "path": "docs/verification/phase0-english-guides-20261117/README.md",
       "reason": "Source-bound historical verification record",
       "blob": "88964643fa69b5a8091e1f811812f30bcec4728e"
@@ -32679,6 +32837,16 @@
       "blob": "e6845309f36bb573d752a2ac8779fbe809d9f428"
     },
     {
+      "path": "docs/verification/phase0-pipeline-isolation-20261117/README.md",
+      "reason": "Source-bound historical verification record",
+      "blob": "50f715aff9d9e0735c37ac85ea179f39d836e14d"
+    },
+    {
+      "path": "docs/verification/phase0-pipeline-isolation-20261118/README.md",
+      "reason": "Source-bound historical verification record",
+      "blob": "b4c923a525dd454ce3e50cd9d648cb055f08c758"
+    },
+    {
       "path": "docs/verification/phase0-pipeline-quarantine-20261118/README.md",
       "reason": "Source-bound historical verification record",
       "blob": "5812e1290fe849ba824b15bed8f621d9f1cef720"
@@ -32692,6 +32860,26 @@
       "path": "docs/verification/phase0-pr336-20261117/README.md",
       "reason": "Source-bound historical verification record",
       "blob": "4528738a953714696cffad346809392cd79a69ab"
+    },
+    {
+      "path": "docs/verification/phase0-pr340-20261117/README.md",
+      "reason": "Source-bound historical verification record",
+      "blob": "75e1e95efa082ce6cc43d7a19c2e5bdc62256be6"
+    },
+    {
+      "path": "docs/verification/phase0-pr340-cloud-20261118/README.md",
+      "reason": "Source-bound historical verification record",
+      "blob": "fc352bb93797167f799a32d207c12a053f3eef45"
+    },
+    {
+      "path": "docs/verification/phase0-pr340-cloud-20261118/combined-source-7213/README.md",
+      "reason": "Source-bound historical verification record",
+      "blob": "74b344ede32c1534902e3236f7df6d9583c43e58"
+    },
+    {
+      "path": "docs/verification/phase0-pr340-integration-20261117/README.md",
+      "reason": "Source-bound historical verification record",
+      "blob": "d1d2fba04d9d63254fb9329704529a04e2df9740"
     },
     {
       "path": "docs/verification/phase0-pr343-20261117/README.md",
@@ -32719,6 +32907,21 @@
       "blob": "7b53e2629806b3cc448c16c72cc764de30a7897a"
     },
     {
+      "path": "docs/verification/phase0-pr350-cloud-20261118/README.md",
+      "reason": "Source-bound historical verification record",
+      "blob": "2f6d478ae439a8f463d05a4cfa21e2d69cf2c7cc"
+    },
+    {
+      "path": "docs/verification/phase0-pr350-cloud-20261118/prior-checkpoint.md",
+      "reason": "Source-bound historical verification record",
+      "blob": "c6f0a1343653d16f3e334d242d51be7bdd3cb882"
+    },
+    {
+      "path": "docs/verification/phase0-pr350-integration-20261117/README.md",
+      "reason": "Source-bound historical verification record",
+      "blob": "813f8abaed3ce52c8976522be8d9d73957a209ca"
+    },
+    {
       "path": "docs/verification/phase0-product-guides-english-20261117/README.md",
       "reason": "Source-bound historical verification record",
       "blob": "c0c2855b0f2da926943a7d824c666b8686d5eb72"
@@ -32737,6 +32940,71 @@
       "path": "docs/verification/phase0-research-summaries-english-20261117/README.md",
       "reason": "Source-bound historical verification record",
       "blob": "051c6aea10d2ec9acb650cc509b69108b5fa25fd"
+    },
+    {
+      "path": "docs/verification/phase0-rust100-20261117/README.md",
+      "reason": "Source-bound historical verification record",
+      "blob": "ca26d22e60676e2e90af423ca01e3f9d25c959c9"
+    },
+    {
+      "path": "docs/verification/phase0-rust100-ci-repair-20261118/README.md",
+      "reason": "Source-bound historical verification record",
+      "blob": "fd27bfe51b1f2ea63bd4f2a9067b377f9f42596b"
+    },
+    {
+      "path": "docs/verification/phase0-rust100-cloud-20261118/README.md",
+      "reason": "Source-bound historical verification record",
+      "blob": "3f8149e27f031ab6c0dce0d35bb07f99a0704f32"
+    },
+    {
+      "path": "docs/verification/phase0-sec355-code-quality-20261118/README.md",
+      "reason": "Source-bound historical verification record",
+      "blob": "e53f2c59b53ebfa26052d41281eb4240da746258"
+    },
+    {
+      "path": "docs/verification/phase0-sec355-engine-policy-20261118/README.md",
+      "reason": "Source-bound historical verification record",
+      "blob": "f6494c89d8a2a28254aeba2f834e6991b608e4e7"
+    },
+    {
+      "path": "docs/verification/phase0-sec355-gate-failclosed-20261118/README.md",
+      "reason": "Source-bound historical verification record",
+      "blob": "5fe15c7b82a1c8b4d21439b0f6a36a8f465004a6"
+    },
+    {
+      "path": "docs/verification/phase0-sec355-gate-finalizer-20261118/README.md",
+      "reason": "Source-bound historical verification record",
+      "blob": "e5bb118fcba407ff73877cf2a07e629ea8333aa4"
+    },
+    {
+      "path": "docs/verification/phase0-sec355-main-reconciliation-20261118/README.md",
+      "reason": "Source-bound historical verification record",
+      "blob": "095461f323f08f19d938fad5c99398402e1f2ff0"
+    },
+    {
+      "path": "docs/verification/phase0-sec355-memory-20261118/README.md",
+      "reason": "Source-bound historical verification record",
+      "blob": "6946276b3b9d334fdd44daaaad1afd2da8070881"
+    },
+    {
+      "path": "docs/verification/phase0-sec355-native-20261118/README.md",
+      "reason": "Source-bound historical verification record",
+      "blob": "486290617d319ad68ff68e72ed9ce5cbeb62fc07"
+    },
+    {
+      "path": "docs/verification/phase0-sec355-resource-scope-20261118/README.md",
+      "reason": "Source-bound historical verification record",
+      "blob": "55285cef630ef5c3f5b2b0903f95740971e46dbd"
+    },
+    {
+      "path": "docs/verification/phase0-sec355-scratch-contract-20261118/README.md",
+      "reason": "Source-bound historical verification record",
+      "blob": "b120d62ab64c1ab4c20dd6ba8115d35e5091a7f8"
+    },
+    {
+      "path": "docs/verification/phase0-sec355-source-receipt-20261118/README.md",
+      "reason": "Source-bound historical verification record",
+      "blob": "1e87a7ce04056a1a6f8b9ee6a1f24a96b7f0e72f"
     },
     {
       "path": "docs/verification/phase0-sec359-evidence-correction-20261118/README.md",
@@ -32884,6 +33152,11 @@
       "blob": "81813374d6e0c7f3f3cc4d627480d090a2e038fa"
     },
     {
+      "path": "docs/verification/s09-archive/NAMES-ORACLE-20261115.md",
+      "reason": "Source-bound historical verification record",
+      "blob": "bf5826af22a511292f82ab398f9edab92b848c3c"
+    },
+    {
       "path": "docs/verification/s09-archive/NATIVE-20261113.md",
       "reason": "Source-bound historical verification record",
       "blob": "0156bcbd31bce07609ad29eb9b4ffed622bdde69"
@@ -32897,6 +33170,11 @@
       "path": "docs/verification/s09-archive/USTAR-20261114.md",
       "reason": "Source-bound historical verification record",
       "blob": "79f9e05ce6cb867951da582d0bfb71a55c2aa53c"
+    },
+    {
+      "path": "docs/verification/s09-archive/USTAR-NATIVE-20261115.md",
+      "reason": "Source-bound historical verification record",
+      "blob": "8dd8c55a82b16199a690c5a597d270792a869215"
     },
     {
       "path": "docs/verification/security-audit-20261103.md",

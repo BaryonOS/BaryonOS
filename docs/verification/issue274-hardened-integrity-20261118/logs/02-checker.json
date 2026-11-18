@@ -6,7 +6,7 @@
     "--root",
     "/home/simon/projects/BaryonOS-worktrees/pr358-review-fixes",
     "--ref",
-    "4ae9a1c4f19bcf84ed06f0a8afcfdfc40fb237a8",
+    "ec90e1fd628f8dc200c4e2013bf85790e16f2e1e",
     "--inventory",
     "docs/verification/issue274-hardened-integrity-20261118/output/coverage.json",
     "--review",
@@ -19,6 +19,6 @@
     "/home/simon/projects/BaryonOS-worktrees/phase0-combined-local/build/sec356-helper-fix/node/node_modules"
   ],
   "exit_code": 0,
-  "stdout_utf8": "{\"community_forms\": 8, \"compatibility_anchors\": 221, \"documents\": 398, \"exit_code\": 0, \"full_issue274_acceptance\": false, \"manifest_files\": 12, \"source_commit\": \"4ae9a1c4f19bcf84ed06f0a8afcfdfc40fb237a8\", \"source_tree\": \"a6eb48f68f30cf443b96c7cfc9da636a2a179532\"}\n",
+  "stdout_utf8": "{\"community_forms\": 8, \"compatibility_anchors\": 221, \"documents\": 410, \"exit_code\": 0, \"full_issue274_acceptance\": false, \"manifest_files\": 12, \"source_commit\": \"ec90e1fd628f8dc200c4e2013bf85790e16f2e1e\", \"source_tree\": \"2b56363d892ed4586e1b432b4b33a3c2c03b8d92\"}\n",
   "stderr_utf8": ""
 }

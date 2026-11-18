@@ -7,8 +7,8 @@ to the source identities below.
 
 ## Bound source state
 
-- Repository commit: 4ae9a1c4f19bcf84ed06f0a8afcfdfc40fb237a8
-- Repository tree: a6eb48f68f30cf443b96c7cfc9da636a2a179532
+- Repository commit: ec90e1fd628f8dc200c4e2013bf85790e16f2e1e
+- Repository tree: 2b56363d892ed4586e1b432b4b33a3c2c03b8d92
 - Wiki publication source: 5eae79a2bb6a5b1d655de16c7a293be96a07a9a6
 - Wiki baseline: ff7a4748a0b61bfb5de8598344464ac94080bc4d
 - Wiki publication: 4a01b8b2ad2695da509a512ea688007c964f56da
@@ -61,14 +61,14 @@ from child-process environments.
 | 12 fence parser | character, length, indentation and info legality | python_fence_character_and_length and illegal_fence_openers |
 | 13 unbound manifest | required roles and SHA-256 member set | manifest_sha_binding and manifest_required_wiki_roles; omission/tamper exits 1 |
 | 14 mislabeled historical run | exact current commit in command/output | live collector and checker logs |
-| 15 overloaded local-link count | extracted and classified fields | split_link_counts; live 7658 versus 5697 |
+| 15 overloaded local-link count | extracted and classified fields | split_link_counts; live 7681 versus 5720 |
 | 16 mutable Wiki input | exact Wiki commit/tree blobs | live collector output and full_sha_required |
 | 17 unpinned primary reproduction | required full repository SHA | mutable_ref_negative exit 1 |
 | 18 missing prerequisites | versions and marked module path recorded | this document and command logs |
 | 19 overstated fence exclusion | CommonMark controls and bounded method text | illegal_fence_openers and fence-aware fragment control |
 | 20 unpinned archive reproduction | new current-tree evidence supersedes, not rewrites, old archive | exact source/tree output and manifest |
 | 21 mutable Wiki publication verification | four exact source/baseline/publication identities | live Wiki verifier and optimized verifier logs |
-| 22 source provenance outside PR ancestry | current reconciled commit recorded | lead must retain 4ae9a1c as an ancestor of the published sibling or regenerate |
+| 22 source provenance outside PR ancestry | current reconciled commit recorded | ec90e1f is an ancestor of this refreshed evidence checkpoint |
 | 23 current-head CodeQL comment elision | remove HTML comments to a fixed point before tag extraction; truncate unmatched comments | fixed_point_html_comment_elision rejects an anchor exposed by one-pass removal |
 
 Additional reviewer controls cover complete Wiki baseline inventory, exact
@@ -86,14 +86,14 @@ complete command, stdout, stderr and raw exit code.
 1. Collector: logs/01-collector.json, exit 0.
 
 ~~~text
-NODE_PATH=/home/simon/projects/BaryonOS-worktrees/phase0-combined-local/build/sec356-helper-fix/node/node_modules node docs/verification/issue274-hardened-integrity-20261118/helpers/collect.cjs --root /home/simon/projects/BaryonOS-worktrees/pr358-review-fixes --ref 4ae9a1c4f19bcf84ed06f0a8afcfdfc40fb237a8 --wiki /home/simon/projects/BaryonOS-worktrees/phase0-combined-local/build/issue274-wiki-readonly --wiki-ref 4a01b8b2ad2695da509a512ea688007c964f56da --review /home/simon/projects/BaryonOS-worktrees/pr358-review-fixes/docs/verification/issue274-hardened-integrity-20261118/inputs/review.json --out /home/simon/projects/BaryonOS-worktrees/pr358-review-fixes/docs/verification/issue274-hardened-integrity-20261118/output
+NODE_PATH=/home/simon/projects/BaryonOS-worktrees/phase0-combined-local/build/sec356-helper-fix/node/node_modules node docs/verification/issue274-hardened-integrity-20261118/helpers/collect.cjs --root /home/simon/projects/BaryonOS-worktrees/pr358-review-fixes --ref ec90e1fd628f8dc200c4e2013bf85790e16f2e1e --wiki /home/simon/projects/BaryonOS-worktrees/phase0-combined-local/build/issue274-wiki-readonly --wiki-ref 4a01b8b2ad2695da509a512ea688007c964f56da --review /home/simon/projects/BaryonOS-worktrees/pr358-review-fixes/docs/verification/issue274-hardened-integrity-20261118/inputs/review.json --out /home/simon/projects/BaryonOS-worktrees/pr358-review-fixes/docs/verification/issue274-hardened-integrity-20261118/output
 ~~~
 
 2. Immutable checker and semantic collector reproduction:
 logs/02-checker.json, exit 0.
 
 ~~~text
-python3 -B docs/verification/issue274-hardened-integrity-20261118/helpers/check.py --root /home/simon/projects/BaryonOS-worktrees/pr358-review-fixes --ref 4ae9a1c4f19bcf84ed06f0a8afcfdfc40fb237a8 --inventory docs/verification/issue274-hardened-integrity-20261118/output/coverage.json --review docs/verification/issue274-hardened-integrity-20261118/inputs/review.json --manifest docs/verification/issue274-hardened-integrity-20261118/manifest.json --wiki /home/simon/projects/BaryonOS-worktrees/phase0-combined-local/build/issue274-wiki-readonly --marked-node-path /home/simon/projects/BaryonOS-worktrees/phase0-combined-local/build/sec356-helper-fix/node/node_modules
+python3 -B docs/verification/issue274-hardened-integrity-20261118/helpers/check.py --root /home/simon/projects/BaryonOS-worktrees/pr358-review-fixes --ref ec90e1fd628f8dc200c4e2013bf85790e16f2e1e --inventory docs/verification/issue274-hardened-integrity-20261118/output/coverage.json --review docs/verification/issue274-hardened-integrity-20261118/inputs/review.json --manifest docs/verification/issue274-hardened-integrity-20261118/manifest.json --wiki /home/simon/projects/BaryonOS-worktrees/phase0-combined-local/build/issue274-wiki-readonly --marked-node-path /home/simon/projects/BaryonOS-worktrees/phase0-combined-local/build/sec356-helper-fix/node/node_modules
 ~~~
 
 3. Exact Wiki verifier: logs/03-wiki-verifier.json, exit 0. The same command
@@ -114,11 +114,11 @@ python3 -B docs/verification/issue274-hardened-integrity-20261118/helpers/self_t
 
 ## Results and evidence limits
 
-The live collector reports 840 tracked Markdown paths, 398 first-party candidate
-documents, 442 protected exclusions, 179 normally reachable documents, 3,007
-candidate lines, 7,658 extracted links, 5,697 locally classified links, 58 Wiki
-references and eight community forms. The one unresolved target is the expected
-generated build/toolchain-provenance.json reference; it is not suppressed.
+The live collector reports 886 tracked Markdown paths, 410 first-party candidate
+documents, 476 protected exclusions, 179 normally reachable documents, 3,007
+candidate lines, 7,681 extracted links, 5,720 locally classified links, 58 Wiki
+references and eight community forms. No unresolved or unsupported local target is
+suppressed in the refreshed output.
 
 The live Wiki verifier checks 15 source pages, 13 byte-identically preserved
 baseline pages, 171 local targets and one fragment. The 34-case self-test is a host-level

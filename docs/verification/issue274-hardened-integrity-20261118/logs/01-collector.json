@@ -7,7 +7,7 @@
     "--root",
     "/home/simon/projects/BaryonOS-worktrees/pr358-review-fixes",
     "--ref",
-    "4ae9a1c4f19bcf84ed06f0a8afcfdfc40fb237a8",
+    "ec90e1fd628f8dc200c4e2013bf85790e16f2e1e",
     "--wiki",
     "/home/simon/projects/BaryonOS-worktrees/phase0-combined-local/build/issue274-wiki-readonly",
     "--wiki-ref",
@@ -18,6 +18,6 @@
     "/home/simon/projects/BaryonOS-worktrees/pr358-review-fixes/docs/verification/issue274-hardened-integrity-20261118/output"
   ],
   "exit_code": 0,
-  "stdout_utf8": "{\"source_commit\":\"4ae9a1c4f19bcf84ed06f0a8afcfdfc40fb237a8\",\"wiki_commit\":\"4a01b8b2ad2695da509a512ea688007c964f56da\",\"counts\":{\"tracked_markdown\":840,\"firstparty_candidates\":398,\"protected_excluded\":442,\"normal_navigation_reachable\":179,\"documents_with_dutch_candidates\":56,\"dutch_candidate_lines\":3007,\"extracted_links\":7658,\"classified_local_links\":5697,\"unresolved_local_targets\":1,\"legacy_url_occurrences\":67,\"unsupported_local_targets\":0,\"wiki_references\":58,\"community_forms\":8},\"output\":\"/home/simon/projects/BaryonOS-worktrees/pr358-review-fixes/docs/verification/issue274-hardened-integrity-20261118/output\"}\n",
+  "stdout_utf8": "{\"source_commit\":\"ec90e1fd628f8dc200c4e2013bf85790e16f2e1e\",\"wiki_commit\":\"4a01b8b2ad2695da509a512ea688007c964f56da\",\"counts\":{\"tracked_markdown\":886,\"firstparty_candidates\":410,\"protected_excluded\":476,\"normal_navigation_reachable\":179,\"documents_with_dutch_candidates\":56,\"dutch_candidate_lines\":3007,\"extracted_links\":7681,\"classified_local_links\":5720,\"unresolved_local_targets\":0,\"legacy_url_occurrences\":67,\"unsupported_local_targets\":0,\"wiki_references\":58,\"community_forms\":8},\"output\":\"/home/simon/projects/BaryonOS-worktrees/pr358-review-fixes/docs/verification/issue274-hardened-integrity-20261118/output\"}\n",
   "stderr_utf8": ""
 }

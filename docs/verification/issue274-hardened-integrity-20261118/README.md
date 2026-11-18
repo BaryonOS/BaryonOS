@@ -6,8 +6,8 @@ Wiki trees, corrected helpers, fixed inputs, fresh semantic output, raw exit rec
 and a complete SHA-256 register.
 
 The checked repository source is
-`4ae9a1c4f19bcf84ed06f0a8afcfdfc40fb237a8` (tree
-`a6eb48f68f30cf443b96c7cfc9da636a2a179532`). The checked Wiki publication is
+`ec90e1fd628f8dc200c4e2013bf85790e16f2e1e` (tree
+`2b56363d892ed4586e1b432b4b33a3c2c03b8d92`). The checked Wiki publication is
 `4a01b8b2ad2695da509a512ea688007c964f56da` (tree
 `f7bee30ee39abb60da294d48357af5b6c85f2fae`).
 
