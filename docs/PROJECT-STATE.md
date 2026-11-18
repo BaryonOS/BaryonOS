@@ -1,6 +1,45 @@
 # Current project status
 
-## NEXT AGENT HANDOFF — Local PR #355 bounded memory review — 18 November 2026
+## NEXT AGENT HANDOFF — PR #355 verified resource scopes — 18 November 2026
+
+**Source and authority:** PR #355 branch `codex/phase0-pipeline-isolation` now contains
+resource-scope implementation commit `3ac59bac4b5d04ef4e5dcb86dbd7725f00ab9ded`
+on security parent `511936850e53d384c36254e4ad43424cf457377e`. The project
+owner authorized continuation of the approved security queue. The original shared
+merge, Claude UI/UX and S09 work remain untouched.
+
+**Implemented:** every untrusted agent or gate invocation now requires an explicit
+named cgroup-v2 profile. Pinned bubblewrap/systemd executables, live memory/swap/task/
+CPU checks, a private guard receipt, bounded dual-stream capture, OOM classification
+and exception-safe whole-scope cleanup fail closed. The pipeline retains bounded raw
+overflow evidence and never interprets `oom-kill` as a textual rate-limit fallback.
+The manifest remains disabled; no vulnerable issue-pipeline execution occurred.
+
+**Measured:** the deliberate 64 MiB/96 MiB allocation case reports
+`Result=oom-kill` and a 64 MiB peak. It is a negative control, not a development
+preset. The real gate profile reads back high 6 GiB, maximum 8 GiB, swap 0, 512 tasks
+and 400% CPU. Earlier ordinary Rust/build/M1/M6c workloads passed inside that profile
+with a 592.70 MiB aggregate peak and no OOM event. A 2 MiB workspace artifact passes
+despite the separate 1 MiB captured-stream negative limit. Eight native backend
+cases leave zero transient scopes. [Evidence](verification/phase0-sec355-resource-scope-20261118/README.md).
+
+**Checks and review:** 453 tools tests pass with 10 explicit environment-gated
+fixture skips; compileall, strict preflight, normal build and fresh M1 QEMU smoke pass
+(raw guest exit 33). Independent AI source review found no remaining actionable item
+after cleanup, raw-stream and OOM-precedence corrections; this is not a human audit.
+Score 41/100 is unchanged.
+
+**Open boundary and resume:** authenticated model-client provisioning,
+kernel-bounded aggregate scratch/staging/export, complete offline gate compatibility,
+hosted current-head checks and final Daybreak acceptance remain open in PR #355.
+PR #359 head `5aa381379891df00140a04e01814cd0712ef096f` has both required
+checks and 56 other passes with one native-window job still running; it must not merge
+until every applicable job finishes and the head/base/reviews are rechecked. PR #356
+head `4192474e5c4efca8a7c43a82d74e143d58444655` clears its three CodeQL
+alerts, but remains draft and must reconcile after #359. No governance start,
+auto-merge, bypass, false finding closure or premature issue closure.
+
+## Historical checkpoint — Local PR #355 bounded memory review — 18 November 2026
 
 **Source and authority:** the project owner requested a bounded memory investigation inside the continuing PR #355 remediation, followed by automatic resumption of the approved queue. Existing PR #355 parent is `5b946202c9f7323044913a26d76c96e490f5e0e6`; reference workloads executed on containment source `9789ce565c247f70eab6d321f657dc05a64a8513`. The original shared merge, Claude UI/UX and broader S09 remain untouched.
 
