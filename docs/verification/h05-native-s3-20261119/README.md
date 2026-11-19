@@ -8,10 +8,13 @@ bootstrap; no ring-3 process, device or service across sleep).
 recoverable sleep/wake, shutdown and thermal/battery behaviour on supported
 hardware.
 
-Source binding: commit `9c707c8db0f4` (branch `ccr-38238c58-g8y1l6`, base
+Source binding: commit `c54b9e25b43e` (branch `ccr-38238c58-g8y1l6`, base
 main `035b44e`), source fingerprint v3
-`e76b8fbfbda3e635965643f30336b8c053301bfc31c1140da8db548fffb2f3ea` for all
-three cases. [native-report.json](native-report.json) holds the manifest and
+`ce3e3145f56ba336d767cb9a64976f89b6c566c64badadc5c36104a1be5ced77` for all
+three cases. The runs executed on the working tree that was then committed
+unchanged as `c54b9e25b43e`, so the reports' `base_commit` names its parent
+`6d23553`. The first evidence round on `9c707c8` (fingerprint `e76b8fbf…`)
+passed identically before the review hardening. [native-report.json](native-report.json) holds the manifest and
 artifact SHA-256, commands, QMP traces and events, and full serial output.
 It replaces the absolute checkout prefix with `<CHECKOUT>`; nothing else was
 changed.
@@ -43,9 +46,9 @@ each time through its own wake path:
 
 | Case | Kernel feature | Oracle | Result |
 |---|---|---|---|
-| `cycles` | `native-acpi-s3` | 3× `query-status`=`suspended` with a 0.5 s serial-silent dwell, 3× harness `system_wakeup`, QMP events `SUSPEND,WAKEUP`×3, one EBS handoff, exact serial tail, raw exit 33 | pass, raw exit 33, 3.9 s, 3 sleep/wake |
-| `corrupt-facs` | `test-acpi-s3-corrupt-facs` | `POWER:S3:REJECTED:InvalidSignature`, no QMP `SUSPEND`, raw exit 33 | pass, raw exit 33, 2.4 s, 0 sleep/wake |
-| `stale-token` | `test-acpi-s3-stale-token` | one real sleep and wake, then `POWER:S3:WAKE:REJECTED:TOKEN:ARMED=1:PAGE=0x5a5a0001`, no `RESUMED`, raw exit 33 | pass, raw exit 33, 2.8 s, 1 sleep/wake |
+| `cycles` | `native-acpi-s3` | 3× `query-status`=`suspended` with a 0.5 s serial-silent dwell, 3× harness `system_wakeup`, QMP events `SUSPEND,WAKEUP`×3, one EBS handoff, exact serial tail, raw exit 33 | pass, raw exit 33, 4.0 s, 3 sleep/wake |
+| `corrupt-facs` | `test-acpi-s3-corrupt-facs` | `POWER:S3:REJECTED:InvalidSignature`, no QMP `SUSPEND`, raw exit 33 | pass, raw exit 33, 2.2 s, 0 sleep/wake |
+| `stale-token` | `test-acpi-s3-stale-token` | one real sleep and wake, then `POWER:S3:WAKE:REJECTED:TOKEN:ARMED=1:PAGE=0x5a5a0001`, no `RESUMED`, raw exit 33 | pass, raw exit 33, 2.9 s, 1 sleep/wake |
 
 Each resumed cycle reports
 `ENTRY=PM32:PM1_STS=0x8101:WAK_STS=1:SCI_EN=RESTORED:HWSIG=SAME:FACS=DISARMED:CANARY=PASS:CR3=SAME`.
@@ -99,6 +102,21 @@ Regression on the same tree: `native-acpi-s5` (`run_power.py --repeat 5`),
 `test-acpi-s5-corrupt-dsdt` (`--repeat 2`), the standard smoke and the
 `milestone-m2` and `milestone-m3` smokes (the shared firmware reader was
 refactored). CI runs the S3 cases in `.github/workflows/native-power.yml`.
+
+## Review
+
+An independent AI review (two lenses: security/isolation and low-level
+correctness, each finding adversarially verified) reported three low-severity
+findings, all refuted as not reachable in this profile. They were applied as
+hardening anyway: both entries now run `cld`, the 32-bit stage loads CR4 as
+PAE-only instead of OR-ing into the firmware value, the 64-bit stage sets
+RFLAGS to 2 on its own wake stack before Rust runs, and an arm failure or a
+missing transition now disarms the FACS and reports `:DISARMED`, or fails
+closed when the disarm itself fails. Hosted CI also flagged two defects in the
+first push, both fixed: the S3 resume duplicated `install`'s GS selector load
+and GS-base resets (`tools/tests/test_gs_discipline.py`); both now share one
+`arch::load_tables`. The ledger listed a protected workflow in `write_paths`
+(moved to `lead_paths`). An AI review is not an independent human audit.
 
 ## Not demonstrated / open
 

@@ -4,7 +4,7 @@
 
 **Mandate:** project-owner instruction of 19 November 2026 assigns the whole H track
 (H01–H06) to a Claude hardware-track lead on branch `ccr-38238c58-g8y1l6` (one draft PR).
-**Source:** `9c707c8db0f4a2d9ec8ce0a40f2b00eb210233bf` on base main `035b44e`.
+**Source:** `c54b9e25b43ee8bada3c9b9bf5ea3a93328111e5` on base main `035b44e` (first slice `9c707c8`, then CI/review fixes).
 **Delivered (H05-T3, verified, not accepted):** the independent kernel suspends to RAM
 and resumes three times per boot through its own wake path (`native-acpi-s3`), with
 negative profiles `test-acpi-s3-corrupt-facs` and `test-acpi-s3-stale-token`.
@@ -14,7 +14,7 @@ truncation); the profile arms a 32-bit entry under the explicit `Edk2Version0Ext
 policy and restores `SCI_EN`, which OVMF leaves clear (ADR-H05-S3-WAKE-20261119).
 **Checks (exit 0):** acpi-power test/clippy/fmt/freestanding build; root `fmt --all`;
 `test_sleep.py` 6 host counterexamples; `run_sleep.py` cycles/corrupt-facs/stale-token on
-source v3 `e76b8fbf…`; S5 ×5 + corrupt-DSDT ×2, standard, M2 and M3 smokes; actionlint and
+source v3 `ce3e3145…` (and earlier `e76b8fbf…`); S5 ×5 + corrupt-DSDT ×2, standard, M2 and M3 smokes; actionlint and
 CI workflow/evidence tests. [Evidence](verification/h05-native-s3-20261119/README.md).
 **Limits:** QEMU/TCG only; no physical firmware, other wake sources, AML `_PTS`/`_WAK`,
 devices/services/SMP across sleep, thermal or battery. Score 41 → 41/100.
@@ -22,7 +22,8 @@ devices/services/SMP across sleep, thermal or battery. Score 41 → 41/100.
 reattach; H03-T3a kernel-only virtio-snd with exact WAV oracle; H04-T3 virtio-net link
 loss/reconnect (needs a lead ADR for its query syscall and error code); H06-T4 physical
 test protocols and signed-evidence validator. An independent AI review of the S3 diff
-was running at this checkpoint; its findings are handled in a follow-up commit.
+found three low findings (all refuted for this profile, applied as hardening); hosted
+host-quality found two real defects (GS discipline, ledger protected path), both fixed.
 **Next:** integrate the builders one by one; then H05-T4 (S3 from the native-system
 profile via the POWER capability behind the storage gate, PIC/PIT re-init, resumed
 processes) on top of H04-T3's QMP hook; H06-T3 inventory image. Physical acceptance

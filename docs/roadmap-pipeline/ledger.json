@@ -1976,11 +1976,16 @@
           "event": "verified",
           "at": "2026-11-19",
           "reason": "Claimed by the Claude H-track lead under the project owner's H-track instruction of 19 Nov 2026 (PR371 merged). Three native S3 cycles, corrupt-FACS and stale-token cases pass on 9c707c8 (source v3 e76b8fbf); S5/M2/M3/standard regressions pass. Evidence: docs/verification/h05-native-s3-20261119/. No acceptance."
+        },
+        {
+          "event": "verified",
+          "at": "2026-11-19",
+          "reason": "Re-verified on c54b9e25b43e (source v3 ce3e3145) after the hosted host-quality fixes (shared arch::load_tables for GS discipline; protected workflow moved to lead_paths) and review hardening; all three S3 cases pass."
         }
       ],
       "evidence_level": "native QEMU/TCG",
       "non_claimable": "Physical firmware/hardware, other wake sources, AML _PTS/_WAK, devices/services/SMP across sleep, thermal/battery and H05 acceptance stay open.",
-      "source_commit": "9c707c8db0f4a2d9ec8ce0a40f2b00eb210233bf",
+      "source_commit": "c54b9e25b43ee8bada3c9b9bf5ea3a93328111e5",
       "next": "H05-T4: S3 from the native-system profile via the POWER capability behind the storage gate, with PIC/PIT re-init and resumed processes; reuse the QMP hook from H04-T3.",
       "lead_paths": [
         ".github/workflows/native-power.yml",
