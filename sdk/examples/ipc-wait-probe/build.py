@@ -13,7 +13,7 @@ ROOT = EXAMPLE.parents[2]
 sys.path.insert(0, str(ROOT / "tools"))
 from common import environment as toolchain_environment, sha256
 
-TOOLCHAIN = "1.90.0"
+TOOLCHAIN = "1.100.0"
 
 
 def main() -> int:

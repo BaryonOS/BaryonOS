@@ -1,0 +1,77 @@
+{
+  "task": "H04-T2",
+  "source_commit": "1249f015b32dfdf88d9d839dbacbfe95e8488001",
+  "base": "6f29b6720b51aecad5714faa48b445afd6e2f5a9",
+  "level": "host/build",
+  "toolchain": "installed Rust1.90.0 via PATH",
+  "checks": [
+    {
+      "command": [
+        "cargo",
+        "test",
+        "--locked",
+        "-p",
+        "virtio-net-driver"
+      ],
+      "exit_code": 0,
+      "summary_log": "build/h04-checks/00.log",
+      "raw_log": "build/tokenguard/run-oexjg_bn.log",
+      "sha256": "f529ee1d2cc5bc0b4dfe8b9ad0ee429d28e93399153876e9948476ed8fe57d80"
+    },
+    {
+      "command": [
+        "cargo",
+        "clippy",
+        "--locked",
+        "-p",
+        "virtio-net-driver",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit_code": 0,
+      "summary_log": "build/h04-checks/01.log",
+      "raw_log": "build/tokenguard/run-5gn0d2dt.log",
+      "sha256": "d1bb77758a08324102b72f70b5ce296949e0d2c8955e704e7c1cafacd857d689"
+    },
+    {
+      "command": [
+        "cargo",
+        "fmt",
+        "--all",
+        "--",
+        "--check"
+      ],
+      "exit_code": 0,
+      "summary_log": "build/h04-checks/02.log",
+      "raw_log": "build/tokenguard/run-_gybczw2.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": [
+        "cargo",
+        "build",
+        "--locked",
+        "-p",
+        "virtio-net-driver",
+        "--release",
+        "--target",
+        "x86_64-unknown-none"
+      ],
+      "exit_code": 0,
+      "summary_log": "build/h04-checks/03.log",
+      "raw_log": "build/tokenguard/run-apt3qtkt.log",
+      "sha256": "91b273ea7a7e58244b7a05b7790887714c56b5a6c904300adb6cffa0d95106f4"
+    }
+  ],
+  "review": "Lead source/diff review; no additional AI review for this pure disconnected tracker.",
+  "not_run": [
+    "Native link loss or reconnect",
+    "Kernel/network-service wiring",
+    "Physical NICs",
+    "Hardware/human acceptance"
+  ],
+  "score": "41 -> 41/100; H04 open",
+  "dependency": "N02-T2 required Rust1.91.1 absent; no test substitution or source changes. P02-T3 remains blocked separately."
+}

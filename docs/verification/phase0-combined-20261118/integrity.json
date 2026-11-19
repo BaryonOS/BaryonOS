@@ -1,0 +1,47 @@
+{
+  "source": "2a08f4a33eff63b354821f6892e1be28f7602c9b",
+  "initial_diff_check_exit": 2,
+  "initial_diagnostic": "Git treated preserved CRLF serial line endings as trailing whitespace. Native bytes were not changed.",
+  "correction": "Per-serial-file Git attributes declare CR as part of the captured line ending; no source lint or scanner was disabled.",
+  "final_diff_check_exit": 0,
+  "exact_staged_blobs_verified": 132,
+  "verification_scope": "Staged receipt tree before this integrity record was added; all raw native and compressed logs compared byte-for-byte to staged Git objects.",
+  "lossless_logs": [
+    {
+      "original_path": "build/tokenguard/run-6wyiu394.json",
+      "raw_sha256": "d692d12740d696479257c808ee78611923a4957b8f64ad087f084acd33a0f393",
+      "path": "logs/integrity-run-6wyiu394.json.gz",
+      "archive_sha256": "23d0abf765fe807bdee671ba0f178c422350dd94c7ddcbd18e90119234c28640"
+    },
+    {
+      "original_path": "build/tokenguard/run-6wyiu394.log",
+      "raw_sha256": "c4ec1ce719d2ffe96c42e4b315035efa2db93d29b5d44026bb778baf8516a68a",
+      "path": "logs/integrity-run-6wyiu394.log.gz",
+      "archive_sha256": "0b5306001b8232b61ce28dec9c998d4f2e1e4dbe5e09398f261bef66690110bd"
+    },
+    {
+      "original_path": "build/tokenguard/run-7zylbu3y.json",
+      "raw_sha256": "87ada5de847a511cbd7d669c782bd861eccd9a9cde73564c1bd30cd617e65c00",
+      "path": "logs/integrity-run-7zylbu3y.json.gz",
+      "archive_sha256": "3f507c4448e40177f08baca088e3a4c409cb1289f4ebbea47a45207a2f8ef33d"
+    },
+    {
+      "original_path": "build/tokenguard/run-7zylbu3y.log",
+      "raw_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "path": "logs/integrity-run-7zylbu3y.log.gz",
+      "archive_sha256": "f61f27bd17de546264aa58f40f3aafaac7021e0ef69c17f6b1b4cd7664a037ec"
+    },
+    {
+      "original_path": "build/tokenguard/run-2ye7c7fz.json",
+      "raw_sha256": "5e240bc26683f05525f3c20d098293f514f41ec26f7ec57437e9536f3619c3a7",
+      "path": "logs/integrity-run-2ye7c7fz.json.gz",
+      "archive_sha256": "dfa624776a8f7dc7a12f9dbfc51e060a403ff32f040c746ce5e7813d596acde3"
+    },
+    {
+      "original_path": "build/tokenguard/run-2ye7c7fz.log",
+      "raw_sha256": "b4572ed24e22ec4c36af6d80dfe8aabde9ec7263963412aaec2f06dfb73a8ee8",
+      "path": "logs/integrity-run-2ye7c7fz.log.gz",
+      "archive_sha256": "5511a06246cdf669533119b88f697e6d1e7942e53178a543b936eb995302ff96"
+    }
+  ]
+}

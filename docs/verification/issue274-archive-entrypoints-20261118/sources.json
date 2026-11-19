@@ -1,0 +1,361 @@
+{
+  "schema_version": 1,
+  "scope": "Individual English entrypoint/equivalent mapping for the 34 first-party source records identified in the earlier coverage inventory",
+  "cases": [
+    {
+      "original": "docs/audit/os-completeness/README.md",
+      "original_sha256": "dac4e9cfb3a104c48914bba8fe6046e63ac6a69dbb79e24127f825457dd415e5",
+      "actual_source_role": "Read-only completeness assessment against 380111b; its introduction and map explicitly preserve product criteria/weights and normative FR requirements",
+      "english_entrypoint": "docs/audit/os-completeness/ENGLISH.md#introduction",
+      "coverage_kind": "English source-specific summary and entrypoint",
+      "english_document_sha256": "2a3e893824324b4f738fdd66ca797bcd752916b4838bd0f3290ba9b55138a1e4",
+      "original_bytes_preserved": true,
+      "entrypoint_acceptance": "Independent final review pending; no complete issue274 closure claimed"
+    },
+    {
+      "original": "docs/audit/os-completeness/accessibility-gaps.md",
+      "original_sha256": "9077a37b06cfc9388d7ccdd985fbd25d15c834cee871c74306977edc2e3cffbf",
+      "actual_source_role": "Read-only completeness assessment against 380111b; its introduction and map explicitly preserve product criteria/weights and normative FR requirements",
+      "english_entrypoint": "docs/audit/os-completeness/ENGLISH.md#accessibility-gaps",
+      "coverage_kind": "English source-specific summary and entrypoint",
+      "english_document_sha256": "2a3e893824324b4f738fdd66ca797bcd752916b4838bd0f3290ba9b55138a1e4",
+      "original_bytes_preserved": true,
+      "entrypoint_acceptance": "Independent final review pending; no complete issue274 closure claimed"
+    },
+    {
+      "original": "docs/audit/os-completeness/compatibility-gaps.md",
+      "original_sha256": "45e001c8737adbd0b35bcba39ddd6b68fa52223724aa9cd6896c1eed530531da",
+      "actual_source_role": "Read-only completeness assessment against 380111b; its introduction and map explicitly preserve product criteria/weights and normative FR requirements",
+      "english_entrypoint": "docs/audit/os-completeness/ENGLISH.md#compatibility-gaps",
+      "coverage_kind": "English source-specific summary and entrypoint",
+      "english_document_sha256": "2a3e893824324b4f738fdd66ca797bcd752916b4838bd0f3290ba9b55138a1e4",
+      "original_bytes_preserved": true,
+      "entrypoint_acceptance": "Independent final review pending; no complete issue274 closure claimed"
+    },
+    {
+      "original": "docs/audit/os-completeness/completeness-matrix.md",
+      "original_sha256": "fa795a780f0126b3f815b9d613284055ab8730c368f64686070bee26c62b718b",
+      "actual_source_role": "Read-only completeness assessment against 380111b; its introduction and map explicitly preserve product criteria/weights and normative FR requirements",
+      "english_entrypoint": "docs/audit/os-completeness/ENGLISH.md#completeness-matrix",
+      "coverage_kind": "English source-specific summary and entrypoint",
+      "english_document_sha256": "2a3e893824324b4f738fdd66ca797bcd752916b4838bd0f3290ba9b55138a1e4",
+      "original_bytes_preserved": true,
+      "entrypoint_acceptance": "Independent final review pending; no complete issue274 closure claimed"
+    },
+    {
+      "original": "docs/audit/os-completeness/dependency-map.md",
+      "original_sha256": "ed32a02d8b75522182fc71a52427ac2b78639856119551ae4b0de7e8688553a6",
+      "actual_source_role": "Read-only completeness assessment against 380111b; its introduction and map explicitly preserve product criteria/weights and normative FR requirements",
+      "english_entrypoint": "docs/audit/os-completeness/ENGLISH.md#dependency-map",
+      "coverage_kind": "English source-specific summary and entrypoint",
+      "english_document_sha256": "2a3e893824324b4f738fdd66ca797bcd752916b4838bd0f3290ba9b55138a1e4",
+      "original_bytes_preserved": true,
+      "entrypoint_acceptance": "Independent final review pending; no complete issue274 closure claimed"
+    },
+    {
+      "original": "docs/audit/os-completeness/evidence-register.md",
+      "original_sha256": "6c2312f05bcfb71f5bb5dc830fadfe44935dc31631614e327094056b247a77fb",
+      "actual_source_role": "Read-only completeness assessment against 380111b; its introduction and map explicitly preserve product criteria/weights and normative FR requirements",
+      "english_entrypoint": "docs/audit/os-completeness/ENGLISH.md#evidence-register",
+      "coverage_kind": "English source-specific summary and entrypoint",
+      "english_document_sha256": "2a3e893824324b4f738fdd66ca797bcd752916b4838bd0f3290ba9b55138a1e4",
+      "original_bytes_preserved": true,
+      "entrypoint_acceptance": "Independent final review pending; no complete issue274 closure claimed"
+    },
+    {
+      "original": "docs/audit/os-completeness/priorities.md",
+      "original_sha256": "a052b1c2eff3dded3db71b043507d0f45e867e3bd820499055ca75cb6e212763",
+      "actual_source_role": "Read-only completeness assessment against 380111b; its introduction and map explicitly preserve product criteria/weights and normative FR requirements",
+      "english_entrypoint": "docs/audit/os-completeness/ENGLISH.md#priorities",
+      "coverage_kind": "English source-specific summary and entrypoint",
+      "english_document_sha256": "2a3e893824324b4f738fdd66ca797bcd752916b4838bd0f3290ba9b55138a1e4",
+      "original_bytes_preserved": true,
+      "entrypoint_acceptance": "Independent final review pending; no complete issue274 closure claimed"
+    },
+    {
+      "original": "docs/audit/os-completeness/product-gaps.md",
+      "original_sha256": "6fc057291b8b4aa915664b118e3f0cc48d3343464d87c38b67f36ef60c3a9999",
+      "actual_source_role": "Read-only completeness assessment against 380111b; its introduction and map explicitly preserve product criteria/weights and normative FR requirements",
+      "english_entrypoint": "docs/audit/os-completeness/ENGLISH.md#product-gaps",
+      "coverage_kind": "English source-specific summary and entrypoint",
+      "english_document_sha256": "2a3e893824324b4f738fdd66ca797bcd752916b4838bd0f3290ba9b55138a1e4",
+      "original_bytes_preserved": true,
+      "entrypoint_acceptance": "Independent final review pending; no complete issue274 closure claimed"
+    },
+    {
+      "original": "docs/audit/os-completeness/recommended-roadmap.md",
+      "original_sha256": "80dad2c5ac428852c10c088b027dec00eb49227d8f7a642976b412b407b96cd0",
+      "actual_source_role": "Read-only completeness assessment against 380111b; its introduction and map explicitly preserve product criteria/weights and normative FR requirements",
+      "english_entrypoint": "docs/audit/os-completeness/ENGLISH.md#recommended-roadmap",
+      "coverage_kind": "English source-specific summary and entrypoint",
+      "english_document_sha256": "2a3e893824324b4f738fdd66ca797bcd752916b4838bd0f3290ba9b55138a1e4",
+      "original_bytes_preserved": true,
+      "entrypoint_acceptance": "Independent final review pending; no complete issue274 closure claimed"
+    },
+    {
+      "original": "docs/audit/os-completeness/release-criteria-map.md",
+      "original_sha256": "3a5a2fb7f1b12b6a6957481f83bb94806a607495aa1e8cc246652524e392247d",
+      "actual_source_role": "Read-only completeness assessment against 380111b; its introduction and map explicitly preserve product criteria/weights and normative FR requirements",
+      "english_entrypoint": "docs/audit/os-completeness/ENGLISH.md#release-criteria-map",
+      "coverage_kind": "English source-specific summary and entrypoint",
+      "english_document_sha256": "2a3e893824324b4f738fdd66ca797bcd752916b4838bd0f3290ba9b55138a1e4",
+      "original_bytes_preserved": true,
+      "entrypoint_acceptance": "Independent final review pending; no complete issue274 closure claimed"
+    },
+    {
+      "original": "docs/audit/os-completeness/release-profiles.md",
+      "original_sha256": "c0b87d16510eac9ac8331699d59b52eb9951d0c0a87e61ed58eab392078151cb",
+      "actual_source_role": "Read-only completeness assessment against 380111b; its introduction and map explicitly preserve product criteria/weights and normative FR requirements",
+      "english_entrypoint": "docs/audit/os-completeness/ENGLISH.md#release-profiles",
+      "coverage_kind": "English source-specific summary and entrypoint",
+      "english_document_sha256": "2a3e893824324b4f738fdd66ca797bcd752916b4838bd0f3290ba9b55138a1e4",
+      "original_bytes_preserved": true,
+      "entrypoint_acceptance": "Independent final review pending; no complete issue274 closure claimed"
+    },
+    {
+      "original": "docs/audit/os-completeness/risk-register.md",
+      "original_sha256": "a6a481fe316e307fe2afb754117fb3039b7ce368e505a4701683d2d9fdff7783",
+      "actual_source_role": "Read-only completeness assessment against 380111b; its introduction and map explicitly preserve product criteria/weights and normative FR requirements",
+      "english_entrypoint": "docs/audit/os-completeness/ENGLISH.md#risk-register",
+      "coverage_kind": "English source-specific summary and entrypoint",
+      "english_document_sha256": "2a3e893824324b4f738fdd66ca797bcd752916b4838bd0f3290ba9b55138a1e4",
+      "original_bytes_preserved": true,
+      "entrypoint_acceptance": "Independent final review pending; no complete issue274 closure claimed"
+    },
+    {
+      "original": "docs/audit/os-completeness/security-gaps.md",
+      "original_sha256": "d2303a139f53c3dea1a335997b671e369c80922b0d1bae7990440e5a5a6dc134",
+      "actual_source_role": "Read-only completeness assessment against 380111b; its introduction and map explicitly preserve product criteria/weights and normative FR requirements",
+      "english_entrypoint": "docs/audit/os-completeness/ENGLISH.md#security-gaps",
+      "coverage_kind": "English source-specific summary and entrypoint",
+      "english_document_sha256": "2a3e893824324b4f738fdd66ca797bcd752916b4838bd0f3290ba9b55138a1e4",
+      "original_bytes_preserved": true,
+      "entrypoint_acceptance": "Independent final review pending; no complete issue274 closure claimed"
+    },
+    {
+      "original": "docs/audit/os-completeness/source-baseline.md",
+      "original_sha256": "d00624cce78b06f311ef0955af61005eb86dec508c9980414015308c296391d3",
+      "actual_source_role": "Read-only completeness assessment against 380111b; its introduction and map explicitly preserve product criteria/weights and normative FR requirements",
+      "english_entrypoint": "docs/audit/os-completeness/ENGLISH.md#source-baseline",
+      "coverage_kind": "English source-specific summary and entrypoint",
+      "english_document_sha256": "2a3e893824324b4f738fdd66ca797bcd752916b4838bd0f3290ba9b55138a1e4",
+      "original_bytes_preserved": true,
+      "entrypoint_acceptance": "Independent final review pending; no complete issue274 closure claimed"
+    },
+    {
+      "original": "docs/audit/os-completeness/technical-gaps.md",
+      "original_sha256": "824b4256101ce8757ff24610019e8c1d43d05ebd6d68051ef2d1d362b1ccdfc1",
+      "actual_source_role": "Read-only completeness assessment against 380111b; its introduction and map explicitly preserve product criteria/weights and normative FR requirements",
+      "english_entrypoint": "docs/audit/os-completeness/ENGLISH.md#technical-gaps",
+      "coverage_kind": "English source-specific summary and entrypoint",
+      "english_document_sha256": "2a3e893824324b4f738fdd66ca797bcd752916b4838bd0f3290ba9b55138a1e4",
+      "original_bytes_preserved": true,
+      "entrypoint_acceptance": "Independent final review pending; no complete issue274 closure claimed"
+    },
+    {
+      "original": "docs/audit/os-completeness/visual-design-gaps.md",
+      "original_sha256": "04ca4357cc8f1d38bef80e0cdb4d135d20c7a0904cfee747d68aebe8c6a00ae5",
+      "actual_source_role": "Read-only completeness assessment against 380111b; its introduction and map explicitly preserve product criteria/weights and normative FR requirements",
+      "english_entrypoint": "docs/audit/os-completeness/ENGLISH.md#visual-design-gaps",
+      "coverage_kind": "English source-specific summary and entrypoint",
+      "english_document_sha256": "2a3e893824324b4f738fdd66ca797bcd752916b4838bd0f3290ba9b55138a1e4",
+      "original_bytes_preserved": true,
+      "entrypoint_acceptance": "Independent final review pending; no complete issue274 closure claimed"
+    },
+    {
+      "original": "docs/audits/OS-MULTI-AGENT-AUDIT.md",
+      "original_sha256": "1c89a560ec8b20a40a3defc6a278c27c8a8fecb48ca42a785892a11dc80bdec4",
+      "actual_source_role": "Source-specific AI assessment against beafdedf; every original header identifies that source, and the coordinator disclaims audit of later code or any normative change",
+      "english_entrypoint": "docs/audits/README.md#coordinating-report",
+      "coverage_kind": "English coordinating/specialist summary and entrypoint",
+      "english_document_sha256": "3e43d79a037474a16e3863558c8606c2863d14e3c376f009bcc28f8efd8906c1",
+      "original_bytes_preserved": true,
+      "entrypoint_acceptance": "Independent final review pending; no complete issue274 closure claimed"
+    },
+    {
+      "original": "docs/audits/subagents/01-architecture.md",
+      "original_sha256": "e6430dfcc411d5187ce7acab7d244c10c05c3b8e4184cb4ee9792c32aac1458c",
+      "actual_source_role": "Source-specific AI assessment against beafdedf; every original header identifies that source, and the coordinator disclaims audit of later code or any normative change",
+      "english_entrypoint": "docs/audits/README.md#audit-01",
+      "coverage_kind": "English coordinating/specialist summary and entrypoint",
+      "english_document_sha256": "3e43d79a037474a16e3863558c8606c2863d14e3c376f009bcc28f8efd8906c1",
+      "original_bytes_preserved": true,
+      "entrypoint_acceptance": "Independent final review pending; no complete issue274 closure claimed"
+    },
+    {
+      "original": "docs/audits/subagents/02-build-status.md",
+      "original_sha256": "122c6bc2f351ade0c7a43d5828793cdecc8d107d7a2754891c5b3a5cc4945336",
+      "actual_source_role": "Source-specific AI assessment against beafdedf; every original header identifies that source, and the coordinator disclaims audit of later code or any normative change",
+      "english_entrypoint": "docs/audits/README.md#audit-02",
+      "coverage_kind": "English coordinating/specialist summary and entrypoint",
+      "english_document_sha256": "3e43d79a037474a16e3863558c8606c2863d14e3c376f009bcc28f8efd8906c1",
+      "original_bytes_preserved": true,
+      "entrypoint_acceptance": "Independent final review pending; no complete issue274 closure claimed"
+    },
+    {
+      "original": "docs/audits/subagents/03-verification.md",
+      "original_sha256": "da09de85eb31e70d52c35bfa5fea4bc61f48194ecb5a11ee88ce64f9ffffce5c",
+      "actual_source_role": "Source-specific AI assessment against beafdedf; every original header identifies that source, and the coordinator disclaims audit of later code or any normative change",
+      "english_entrypoint": "docs/audits/README.md#audit-03",
+      "coverage_kind": "English coordinating/specialist summary and entrypoint",
+      "english_document_sha256": "3e43d79a037474a16e3863558c8606c2863d14e3c376f009bcc28f8efd8906c1",
+      "original_bytes_preserved": true,
+      "entrypoint_acceptance": "Independent final review pending; no complete issue274 closure claimed"
+    },
+    {
+      "original": "docs/audits/subagents/04-security.md",
+      "original_sha256": "51ff47efcc9d76104cd630025115b48a64559b81cb60eb72484168d3d28cfa77",
+      "actual_source_role": "Source-specific AI assessment against beafdedf; every original header identifies that source, and the coordinator disclaims audit of later code or any normative change",
+      "english_entrypoint": "docs/audits/README.md#audit-04",
+      "coverage_kind": "English coordinating/specialist summary and entrypoint",
+      "english_document_sha256": "3e43d79a037474a16e3863558c8606c2863d14e3c376f009bcc28f8efd8906c1",
+      "original_bytes_preserved": true,
+      "entrypoint_acceptance": "Independent final review pending; no complete issue274 closure claimed"
+    },
+    {
+      "original": "docs/audits/subagents/05-maturity.md",
+      "original_sha256": "37dd1d5ffe778b6ab6b9f4741066112d1a5d2786668a689fbc21ccc5fff2651b",
+      "actual_source_role": "Source-specific AI assessment against beafdedf; every original header identifies that source, and the coordinator disclaims audit of later code or any normative change",
+      "english_entrypoint": "docs/audits/README.md#audit-05",
+      "coverage_kind": "English coordinating/specialist summary and entrypoint",
+      "english_document_sha256": "3e43d79a037474a16e3863558c8606c2863d14e3c376f009bcc28f8efd8906c1",
+      "original_bytes_preserved": true,
+      "entrypoint_acceptance": "Independent final review pending; no complete issue274 closure claimed"
+    },
+    {
+      "original": "docs/audits/subagents/06-privacy.md",
+      "original_sha256": "b0d19e5827a47084670f1fc890665b42f7d1193ce7574aca0810cc4d012356ee",
+      "actual_source_role": "Source-specific AI assessment against beafdedf; every original header identifies that source, and the coordinator disclaims audit of later code or any normative change",
+      "english_entrypoint": "docs/audits/README.md#audit-06",
+      "coverage_kind": "English coordinating/specialist summary and entrypoint",
+      "english_document_sha256": "3e43d79a037474a16e3863558c8606c2863d14e3c376f009bcc28f8efd8906c1",
+      "original_bytes_preserved": true,
+      "entrypoint_acceptance": "Independent final review pending; no complete issue274 closure claimed"
+    },
+    {
+      "original": "docs/audits/subagents/07-eu-compliance.md",
+      "original_sha256": "e8fccc17d0bbdd6feeae47470430ba652032bbc6bceac95633d7012190aaeb67",
+      "actual_source_role": "Source-specific AI assessment against beafdedf; every original header identifies that source, and the coordinator disclaims audit of later code or any normative change",
+      "english_entrypoint": "docs/audits/README.md#audit-07",
+      "coverage_kind": "English coordinating/specialist summary and entrypoint",
+      "english_document_sha256": "3e43d79a037474a16e3863558c8606c2863d14e3c376f009bcc28f8efd8906c1",
+      "original_bytes_preserved": true,
+      "entrypoint_acceptance": "Independent final review pending; no complete issue274 closure claimed"
+    },
+    {
+      "original": "docs/audits/subagents/08-release-supply-chain.md",
+      "original_sha256": "24bf7c420101366612939b0582607eb4edb238d063a1434e719cf777110fbaa8",
+      "actual_source_role": "Source-specific AI assessment against beafdedf; every original header identifies that source, and the coordinator disclaims audit of later code or any normative change",
+      "english_entrypoint": "docs/audits/README.md#audit-08",
+      "coverage_kind": "English coordinating/specialist summary and entrypoint",
+      "english_document_sha256": "3e43d79a037474a16e3863558c8606c2863d14e3c376f009bcc28f8efd8906c1",
+      "original_bytes_preserved": true,
+      "entrypoint_acceptance": "Independent final review pending; no complete issue274 closure claimed"
+    },
+    {
+      "original": "docs/audits/subagents/09-hardware-drivers.md",
+      "original_sha256": "8fb58e8eaac227a546235feacdf642588dabda5fe08ca42598753efda5baa709",
+      "actual_source_role": "Source-specific AI assessment against beafdedf; every original header identifies that source, and the coordinator disclaims audit of later code or any normative change",
+      "english_entrypoint": "docs/audits/README.md#audit-09",
+      "coverage_kind": "English coordinating/specialist summary and entrypoint",
+      "english_document_sha256": "3e43d79a037474a16e3863558c8606c2863d14e3c376f009bcc28f8efd8906c1",
+      "original_bytes_preserved": true,
+      "entrypoint_acceptance": "Independent final review pending; no complete issue274 closure claimed"
+    },
+    {
+      "original": "docs/audits/subagents/10-ux-accessibility.md",
+      "original_sha256": "3d776bb666ff8adf39357f4b76d26f0d48edd083544c2cd26611536f4c0694b0",
+      "actual_source_role": "Source-specific AI assessment against beafdedf; every original header identifies that source, and the coordinator disclaims audit of later code or any normative change",
+      "english_entrypoint": "docs/audits/README.md#audit-10",
+      "coverage_kind": "English coordinating/specialist summary and entrypoint",
+      "english_document_sha256": "3e43d79a037474a16e3863558c8606c2863d14e3c376f009bcc28f8efd8906c1",
+      "original_bytes_preserved": true,
+      "entrypoint_acceptance": "Independent final review pending; no complete issue274 closure claimed"
+    },
+    {
+      "original": "docs/audits/subagents/11-reliability-recovery.md",
+      "original_sha256": "e88d631a15acbdc5d98fabd74c400c1b839c9df22032eec84646264cd388ac97",
+      "actual_source_role": "Source-specific AI assessment against beafdedf; every original header identifies that source, and the coordinator disclaims audit of later code or any normative change",
+      "english_entrypoint": "docs/audits/README.md#audit-11",
+      "coverage_kind": "English coordinating/specialist summary and entrypoint",
+      "english_document_sha256": "3e43d79a037474a16e3863558c8606c2863d14e3c376f009bcc28f8efd8906c1",
+      "original_bytes_preserved": true,
+      "entrypoint_acceptance": "Independent final review pending; no complete issue274 closure claimed"
+    },
+    {
+      "original": "docs/audits/subagents/12-app-platform-sdk.md",
+      "original_sha256": "cbd9befc0eb1d61ac1b4ea0eb9ad95d975e85c5892b31f931fb8aaa19c2b8c5e",
+      "actual_source_role": "Source-specific AI assessment against beafdedf; every original header identifies that source, and the coordinator disclaims audit of later code or any normative change",
+      "english_entrypoint": "docs/audits/README.md#audit-12",
+      "coverage_kind": "English coordinating/specialist summary and entrypoint",
+      "english_document_sha256": "3e43d79a037474a16e3863558c8606c2863d14e3c376f009bcc28f8efd8906c1",
+      "original_bytes_preserved": true,
+      "entrypoint_acceptance": "Independent final review pending; no complete issue274 closure claimed"
+    },
+    {
+      "original": "docs/audits/subagents/13-red-team.md",
+      "original_sha256": "dbcbcb20f4b77707b2bd60a4031544701c5a5e63897d0118d3bcacc3df7fdeab",
+      "actual_source_role": "Source-specific AI assessment against beafdedf; every original header identifies that source, and the coordinator disclaims audit of later code or any normative change",
+      "english_entrypoint": "docs/audits/README.md#audit-13",
+      "coverage_kind": "English coordinating/specialist summary and entrypoint",
+      "english_document_sha256": "3e43d79a037474a16e3863558c8606c2863d14e3c376f009bcc28f8efd8906c1",
+      "original_bytes_preserved": true,
+      "entrypoint_acceptance": "Independent final review pending; no complete issue274 closure claimed"
+    },
+    {
+      "original": "docs/audits/subagents/14-performance-energy.md",
+      "original_sha256": "d3563828e66aa394fca78ff809e419814de1fcff071d866b922b22a4ad8cc057",
+      "actual_source_role": "Source-specific AI assessment against beafdedf; every original header identifies that source, and the coordinator disclaims audit of later code or any normative change",
+      "english_entrypoint": "docs/audits/README.md#audit-14",
+      "coverage_kind": "English coordinating/specialist summary and entrypoint",
+      "english_document_sha256": "3e43d79a037474a16e3863558c8606c2863d14e3c376f009bcc28f8efd8906c1",
+      "original_bytes_preserved": true,
+      "entrypoint_acceptance": "Independent final review pending; no complete issue274 closure claimed"
+    },
+    {
+      "original": "docs/audits/subagents/15-network-distributed.md",
+      "original_sha256": "3b8b1eb996fb3bc1e2cd9d4e87335cf6aa2a75c870bb25cf90929e75fd472f6a",
+      "actual_source_role": "Source-specific AI assessment against beafdedf; every original header identifies that source, and the coordinator disclaims audit of later code or any normative change",
+      "english_entrypoint": "docs/audits/README.md#audit-15",
+      "coverage_kind": "English coordinating/specialist summary and entrypoint",
+      "english_document_sha256": "3e43d79a037474a16e3863558c8606c2863d14e3c376f009bcc28f8efd8906c1",
+      "original_bytes_preserved": true,
+      "entrypoint_acceptance": "Independent final review pending; no complete issue274 closure claimed"
+    },
+    {
+      "original": "docs/audits/subagents/16-claims.md",
+      "original_sha256": "47b6668f66888566c88968670b6f4a52a36dbf9c6cced473c42b47384ef1745d",
+      "actual_source_role": "Source-specific AI assessment against beafdedf; every original header identifies that source, and the coordinator disclaims audit of later code or any normative change",
+      "english_entrypoint": "docs/audits/README.md#audit-16",
+      "coverage_kind": "English coordinating/specialist summary and entrypoint",
+      "english_document_sha256": "3e43d79a037474a16e3863558c8606c2863d14e3c376f009bcc28f8efd8906c1",
+      "original_bytes_preserved": true,
+      "entrypoint_acceptance": "Independent final review pending; no complete issue274 closure claimed"
+    },
+    {
+      "original": "docs/research/SESSION-ROUTES-2026-11-02.md",
+      "original_sha256": "43e6daad2389a05011d8af924c2a403188c1500fd4f738f351cf83bd9769ac58",
+      "actual_source_role": "Reference research/design against 1f0dd9c before new visual integration; original explicitly separates source patterns, project choices and uncompleted acceptance requirements",
+      "english_entrypoint": "docs/research/SESSION-ROUTES-2026-11-02.en.md",
+      "coverage_kind": "Full historical English equivalent",
+      "english_document_sha256": "c449177f3456c917d906abc141cf5e1150033a842fea75a5ca789c4ae0f0c3f2",
+      "original_bytes_preserved": true,
+      "entrypoint_acceptance": "Independent final review pending; no complete issue274 closure claimed"
+    }
+  ],
+  "counts": {
+    "originals": 34,
+    "full_equivalents": 1,
+    "summary_entrypoints": 33,
+    "originals_modified": 0
+  },
+  "normative_contracts": "Current FULL-TEST-RELEASE, LOCAL-PRIVACY-CONTRACT, DECISIONS and PROJECT-STATE remain authoritative. Historical audit proposals and source observations are not adopted or relabelled current.",
+  "source_ambiguity": {
+    "path": "docs/audit/os-completeness/release-profiles.md",
+    "issue": "Opening uses wijzigen without explicit negation despite no-criteria-change statements in introduction/map",
+    "treatment": "Original untouched; English guide records ambiguity and preserves current normative release contract without adopting a weaker gate"
+  },
+  "ui_localisation": "OPEN and untouched; no source fixture, native label or runtime locale behaviour changed",
+  "score_before": 41,
+  "score_after": 41
+}

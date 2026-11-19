@@ -217,6 +217,18 @@ impl<'a> Service<'a> {
         Ok(self.active)
     }
 
+    /// Read-only transport snapshot for the trusted loop; no clock advances here.
+    pub fn transport_snapshot(&self) -> &Stack<'a> {
+        &self.stack
+    }
+
+    /// Trusted integration seam: observe expiry before lending the same Stack.
+    /// The borrower must retain coordinator ownership of DHCP/probe completion.
+    pub fn transport_mut(&mut self, ticks: u64) -> Result<&mut Stack<'a>, Error> {
+        self.now(ticks)?;
+        Ok(&mut self.stack)
+    }
+
     /// Trusted service-loop access to the existing transport, not an app
     /// grant. Every operation observes lease expiry before touching TCP.
     pub fn add_transport_client(
@@ -573,6 +585,29 @@ impl<'a> Service<'a> {
     pub fn transmission(&mut self, ticks: u64) -> Result<Option<Transmission<'_>>, Error> {
         self.now(ticks)?;
         Ok(self.stack.transmission())
+    }
+
+    /// Identity of a frame a fence withdrew while still queued. The adapter must
+    /// decide from its own record whether it was ever handed to the broker.
+    pub fn withheld_transmission(&mut self, ticks: u64) -> Result<Option<u64>, Error> {
+        self.now(ticks)?;
+        Ok(self.stack.withheld_transmission())
+    }
+
+    /// Only for a withheld frame the adapter never submitted: no device can
+    /// reference it, so the slot is released without a fabricated completion.
+    /// A submitted frame must still await `complete_transmission`.
+    pub fn discard_withheld_transmission(&mut self, id: u64, ticks: u64) -> Result<(), Error> {
+        self.now(ticks)?;
+        self.stack.discard_withheld_transmission(id)?;
+        if self
+            .pending
+            .as_ref()
+            .is_some_and(|pending| pending.id == id)
+        {
+            self.pending = None;
+        }
+        Ok(())
     }
 
     pub fn link_down(&mut self, ticks: u64) -> Result<(), Error> {

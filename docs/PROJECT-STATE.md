@@ -8,12 +8,168 @@
 library build exit0; [exact commands/raw-log hashes](roadmap-pipeline/receipts/U05-T1.json).
 Lead source/diff review completed; no duplicate matrix. Progress **41 → 41/100**.
 **Limits:** Full U05-T1 remains BLOCKED on shared SDK membership owned by integration PR366; no shared SDK files changed/matrix rerun. No native/UI/encryption/antirollback/hardware acceptance.
+
+## NEXT AGENT HANDOFF — CodeQL pre-merge latency — 18 November 2026
+
+**Claim/source:** Codex sole writer in `codex/codeql-pr-fast-suite`, based on main
+`5a3295b6093549f4b5ff6164ab2773ac4c264996`. No open PR owns `codeql.yml`.
+**Goal:** shorten the CodeQL critical path without changing the repository ruleset,
+required status checks, language coverage, security-event permissions or execution hold.
+
+**Measured baseline:** the active ruleset requires strict current-main
+`host-quality`, `qemu-smoke` and `merge-hold`, plus CodeQL code-scanning results at
+`high_or_higher`; coverage, Code Quality, CodeRabbit and other analysis jobs are not
+required status checks. Three successful PR CodeQL runs completed in 7:45–8:18.
+Their Rust jobs took 7:02–8:14 and dominated; one measured Rust analysis step took
+6:34, while setup, checkout, toolchain and init together took 23 seconds.
+
+**Change:** pull-request and merge-group runs keep all four languages and CodeQL's
+default high-precision security queries. Pushes to main, weekly schedule and manual
+runs keep `security-extended`, which includes the default suite plus additional
+lower-precision/severity queries. The high-or-higher merge rule is unchanged.
+
+**Checks:** all 27 workflow-contract tests pass, exit 0
+(`build/tokenguard/run-sokqmluq.log`). `actionlint -shellcheck= -pyflakes=` is NOT RUN:
+the executable is unavailable (exit 127, `run-npl6cyh_.log`). Hosted CodeQL/workflow
+checks must validate syntax and measure the actual duration. No local CodeQL scan,
+QEMU matrix, ruleset mutation or security-alert dismissal was performed.
+
+**Trade-off/evidence limit:** additional extended queries no longer block the PR;
+they run after merge on main and weekly. Default queries and the mandatory severity
+threshold remain pre-merge. A speedup is expected only in query evaluation and is
+not yet measured on this head. **Next:** publish one focused draft PR, compare its
+four CodeQL job durations with the 7:45–8:18 baseline, and merge only after the
+unchanged mandatory rules pass. Progress remains **41 → 41/100**.
+
+## NEXT AGENT HANDOFF — P04-T2 delivery — 18 November 2026
+
+**Source:** `a73e41a7db7b8aa90fa47a299886feb6d607fd0c`, `codex/p04-native-quota`.
+**Delivered:** Native NAS Cancel14, full-quota rejection/reservation release/retry, full-quota adjustment and kernel-observed offline-guest revoke/evict delivered. Normal/recover QEMU33;0cold writes/flushes, exact2 tombstones/core11/volume21.78host tests and native gate exit0.
+**Checks:** targeted Rust tests, Clippy (-D warnings), formatting and freestanding
+library build exit0; [exact commands/raw-log hashes](roadmap-pipeline/receipts/P04-T2.json).
+Lead source/diff review completed; no duplicate matrix. Progress **41 → 41/100**.
+**Limits:** Local native QEMU/IPC only; no remote authenticated guest, product admin UI, hardware or full P04 acceptance. Existing token leak/replay checks retained; source fingerprint4af81525 matches the published code.
+
+## NEXT AGENT HANDOFF — L01-T2 delivery — 18 November 2026
+
+**Source:** `3a77b1d0d5c91f6844d9c7475f3e54a6f52dc6d1`, `codex/l01-model-format`.
+**Delivered:** VerifiedArtifact safetensors header/table parser with bounded no-escape JSON profile, duplicate/dtype/overflow checks and exact nonoverlapping coverage;14 host regressions pass. One bounded security review found no blocker.
+**Checks:** targeted Rust tests, Clippy (-D warnings), formatting and freestanding
+library build exit0; [exact commands/raw-log hashes](roadmap-pipeline/receipts/L01-T2.json).
+Lead source/diff review completed; no duplicate matrix. Progress **41 → 41/100**.
+**Limits:** Host parser/build only; no real-model compatibility, inference, native/provenance acceptance. Existing pinned dependencies and soft SHA2 build profile reused.
 **Ownership:** Integration Manager owns PR integration/merges/closure. Earlier
 delivery branches and Claude S09/UI remain untouched. Unsafe unattended hold active.
 **Next:** publish new draft, immediately claim the next independent READY functional
 slice from this ledger; no waiting for integration. Prior delivery checkpoints retained.
 
 ## Retained checkpoint — PR #350 conflict-only integration — 18 November 2026
+
+
+
+
+
+## NEXT AGENT HANDOFF — issue #41 synthetic anchor contract — 18 November 2026
+
+**Claim/source:** Codex sole writer in `codex/issue41-policy-anchor`, based on actual
+main `5a3295b6093549f4b5ff6164ab2773ac4c264996`. No open PR owns the changed B03
+policy paths. Claude-owned S09/UI worktrees and H/U/N/B/A/P/L/R branches are untouched.
+
+**Goal:** implement the ADR-B03K3 TEST anchor encoding, complete transition identity
+and fail-closed compare/readback oracle, then execute the oracle in both existing
+native policy-probe consumers. **Invariant:** no production authority, persistent
+backend, app capability, slot-format reinterpretation or rollback-resistance claim.
+**Write set:** `crates/update-core` anchor/probe sources, their focused Rust/Python
+tests, the approved B03 transition specification and this lead-owned checkpoint.
+
+**Result:** the experimental feature now provides a canonical 120-byte anchor,
+monotonic successor construction, full-operation SHA-256 identity, exact-predecessor
+CAS decisions and independent predecessor/successor/conflict readback classification.
+Eight new cases extend the existing loader/service probe from 26 to 34 cases.
+Malformed, torn, stale, conflicting and floor-rollback states fail closed.
+
+**Checks:** `cargo +1.90.0 test --locked -p update-core --features
+experimental-policy-test,test-signing-anchors` passes 31 tests, exit 0
+(`build/tokenguard/run-qr8h9g0u.log`). Matching Clippy `-D warnings` passes, exit 0
+(`run-yqvwsz7e.log`). Policy-envelope Python oracle tests pass 8/8, exit 0
+(`run-w08fizsg.log`). Formatting and `git diff --check` pass, exit 0. An initial
+unit run exposed an invalid max-revision fixture (exit 101, `run-a3gj2nqm.log`);
+the corrected focused test and full suite pass (`run-y4ga34bz.log`).
+
+**Evidence limit/blocker:** local native QEMU was NOT RUN; hosted signed-update CI is
+the next native gate. The pure oracle does not supply durable atomic storage,
+rollback resistance, cut/replay evidence, production custody, B04 trust, physical
+hardware or human review. Issue #41 therefore remains open. **Next:** publish one
+focused draft PR and require exact-head hosted checks; then implement the bounded
+TEST backend/staging adapter without widening production authority. Progress remains
+**41 → 41/100** because no fixed criterion is fully accepted.
+
+**Integration note (19 November 2026):** review repair aligned the kernel
+policy-probe observer with the 34-case report (`kernel/src/m2/m3/update.rs`);
+`python3 -B tools/test_policy_envelopes.py` passed locally with raw exit 33 and
+`UPDATE:POLICY_PROBE:PASS`. This is source-bound host-QEMU evidence only.
+
+## NEXT AGENT HANDOFF — unified governance implementation — 18 November 2026
+
+**Claim:** GOV-1-6, sole writer Codex in `codex/unified-governance`, base
+`5a3295b6093549f4b5ff6164ab2773ac4c264996`. The project owner authorizes immediate
+governance without a zero-open-items or completed baseline-B prerequisite.
+
+**Goal:** working shared instructions, role contracts, thin client adapters and
+clean-session continuation using existing project state.
+**Invariant:** preserve the independent kernel, Security Floor, unconditional
+issue-pipeline execution hold, disabled manifest, merge protections and foreign WIP.
+**Write set:** root `AGENTS.md`, `CLAUDE.md`, `CODEX-WORKFLOW.md`, shared roles/skills
+under `.agents/`, existing `.codex/agents/` and `.github/agents/` adapters,
+`.github/copilot-instructions.md`, Claude skill/role adapters, `docs/CODEX-START.md`,
+`docs/CODEX-PARITY.md`, `docs/STATUS.md`, this checkpoint, `docs/DECISIONS.md`, progress
+assessment/displays and targeted governance tests in `tools/tests/`. A protection
+change, if required, is limited to `tools/agent_pipeline.py` and its targeted test.
+**Acceptance:** targeted governance and protected-path tests, existing quarantine
+and execution-hold regressions, tools suite, progress generation/check and diff
+review. Full native matrices are not repeated for unchanged OS code.
+**Evidence limit:** repository contracts and host regressions do not prove client
+runtime parity, sandbox activation, Daybreak remediation, hardware or human audit.
+
+**Reconciliation:** current main includes #359, #355, #361 and #350. Quarantine 5/5 and
+execution-hold 3/3 pass, exit 0 (raw logs
+`build/tokenguard/run-425ldpp4.log`, `run-yheavd50.log`). Manifest `enabled: false`.
+No active `agents/independent.md` reference was found. Four real `os_*` roles exist.
+
+**Preserved:** original dirty main checkout; former #355 checkout `sec355-local`
+at `124a679c` with `tools/agent_gate.py`, `tools/tests/test_agent_pipeline.py` and
+untracked offline-QEMU evidence; Claude UI/UX and suite worktrees; S09 worktree.
+No WIP was discarded, staged or published from those checkouts. #357 remains
+recovery-only WIP. Authenticated model clients, offline gate compatibility and
+Daybreak finding acceptance remain open; they do not block this disjoint task.
+
+**Delivered:** shared workflow and four canonical roles; thin Claude/Codex/Copilot
+adapters; guarded shared policy paths; compact overview and recovery; risk-based
+verification and explicit separation from client runtime parity. Root policy is
+changed in a separate `docs(agents):` commit for owner review.
+
+**Checks:** governance 4/4, quarantine 5/5 and hold 3/3 pass. Complete tools suite:
+521 tests, 15 explicit skips, exit 0 (`build/tokenguard/run-wxpuqkrf.log`); this is host
+regression evidence, including mocked harness tests, not a fresh QEMU run.
+`python3 -B -m compileall -q tools`, exit 0 (`run-fwyt6wkl.log`);
+`python3 -B tools/progress.py --write` / `--check`, both exit 0
+(`run-6s7777_y.log`, `run-69_0ev73.log`). Whitespace check exits 0
+(`run-uido1a9x.log`). Full raw logs remain under this worktree's `build/tokenguard/`.
+One read-only `os_security_reviewer` found no P1/P2 issue; the sole P3 wording
+correction now scopes the Copilot allowlist statement to that adapter. AI review
+is not a human audit. Native matrices and client runtime-parity canaries: NOT RUN,
+because OS code is unchanged and these are separate evidence levels.
+
+**Blocker:** no local governance blocker. Hosted current-head checks are pending
+publication; no merge acceptance is inferred. Existing Daybreak/model-client/offline
+runtime gaps remain open, outside governance acceptance. Prefix-sibling overprotection
+remains a nonblocking P3; no protection was relaxed for this task.
+**Next:** publish the reconciled governance PR and require fresh exact-head hosted
+checks before manual squash. Then continue the released roadmap PR queue without
+changing the independently owned UI/UX or active S09 branches.
+Progress **41 → 41/100**, no accepted criterion/weight change.
+
+## NEXT AGENT HANDOFF — PR #350 conflict-only integration — 18 November 2026
 
 PR #350 head `aaf01bae291faba593567845dc8da4fe606a7959` is reconciled
 with actual main `2eac8ca39ce04753f4f6bef3b09ee9b3610c065f`.

@@ -1,0 +1,240 @@
+{
+  "schema_version": 1,
+  "repository_source": "67d5859d735836331b6fb971eae89162b7fa8465",
+  "wiki_before": "ff7a4748a0b61bfb5de8598344464ac94080bc4d",
+  "wiki_after": null,
+  "status": "prepared; not published",
+  "new_concept_pages": [
+    "Architecture-Overview.md",
+    "Build-and-Run.md",
+    "FAQ.md",
+    "Glossary.md",
+    "Material.md",
+    "Privacy-and-Local-first.md",
+    "Repository-Guide.md",
+    "Research-Tracks.md",
+    "Roadmap-Explained.md",
+    "Security-Model.md",
+    "Testing-and-Evidence.md",
+    "What-is-Baryon-OS.md",
+    "Why-Baryon.md"
+  ],
+  "source_pages": [
+    {
+      "path": "docs/wiki/Architecture-Overview.md",
+      "sha256": "5720a636d78f968937f67a751086d6e34f6531c5320d03c7300b09332eb66370",
+      "original_source_sha256": "8485c76ac79bd22f5497ed49d20f068d5cb235ac93c9d8c6632ed3d1688be332"
+    },
+    {
+      "path": "docs/wiki/Build-and-Run.md",
+      "sha256": "7262c3d33e98cd1d353f42f5b1b140347ceac33a2cad073f74382bf0e731dfec",
+      "original_source_sha256": "2a0176c5c5a6afb4dfd5a15e3a4d238f7a1f048e02b0e1c5f18caa67978379cb"
+    },
+    {
+      "path": "docs/wiki/FAQ.md",
+      "sha256": "4d312b0cdbe2d5ba6b82a4a5f1f01bb98b923cb74d41f08b57f765e013bc0494",
+      "original_source_sha256": "416090d17d2be8ab0bce9387ab06bb7bb6999799f0fcd93c9d19fb7961c7ae93"
+    },
+    {
+      "path": "docs/wiki/Glossary.md",
+      "sha256": "5b53223b544002cfef02f9984b40838fe2d1ce00a8f0de2a5ac2f8a8735b9ca7",
+      "original_source_sha256": "57983ff93335ca29be720ea6b02c82a31f0e5d1d241d61226efa9c97bafe3798"
+    },
+    {
+      "path": "docs/wiki/Material.md",
+      "sha256": "dd79a7a2d51c0230b5dcb35bf093c9f18791a2530ccc73e2ea2d8fa3af39d7eb",
+      "original_source_sha256": "f1537890f6b35e50b13b071c96897c3846da611a5f2e08931b3c02bd0ca9ed5b"
+    },
+    {
+      "path": "docs/wiki/Privacy-and-Local-first.md",
+      "sha256": "a7e8893fe7786e6c7c7576b97a6fb92801ae5af8ebac8e8d5c3219742da70243",
+      "original_source_sha256": "15c35fb3ca95695ddb95741f2f0891c6897fb7d5ee2a5a1a7cfb1b3cff1734dc"
+    },
+    {
+      "path": "docs/wiki/Repository-Guide.md",
+      "sha256": "ad8072cf654356ca871990be743b89fc74d956ea84c97a23f1cd07e26b035892",
+      "original_source_sha256": "ebcf542c345d40aab13c89e02eb8d6b0acb21e6799833e850df3196df064f3d8"
+    },
+    {
+      "path": "docs/wiki/Research-Tracks.md",
+      "sha256": "d6c6a113540c6729effe032fa894c6b1b0d6384818fc7062ae39088401a57b07",
+      "original_source_sha256": "45084e5d35263cf166682b7b61b18cf21f21de7b2b7f44e6f7abb2505e65f8bd"
+    },
+    {
+      "path": "docs/wiki/Roadmap-Explained.md",
+      "sha256": "fb86a63174049773edece8072465ca27baa21cdec4cf6ca0fda6e93a4057b956",
+      "original_source_sha256": "8c12d44a3a06fb33876b4a628384f86f1894e67c82fd41e3aaf4b1eb31315508"
+    },
+    {
+      "path": "docs/wiki/Security-Model.md",
+      "sha256": "1201da2832d7aa0716602a464ebd852209bb07f799f3cfe5e0efa0488b9abdde",
+      "original_source_sha256": "5d7b78ab0abfd7d8a6e2fc85d62fa423ac0d9d69425585004e4534bf5f53f47c"
+    },
+    {
+      "path": "docs/wiki/Testing-and-Evidence.md",
+      "sha256": "454d2a2dca65645f6b47a9470c77a99777972ef921772e86ad67526874e9ba54",
+      "original_source_sha256": "2bff4c7b312235d510dbac3afed6dc1488fe6f242f7cbd24bd936bc5a0ab9b17"
+    },
+    {
+      "path": "docs/wiki/What-is-Baryon-OS.md",
+      "sha256": "d792523c652f79587a42a8b09daa412e670490e68319e9d5405ce8cea7be4914",
+      "original_source_sha256": "573c2d0b1232bb6c31de4dc6eb08dce1aae89c87394a068f05983dec42c5f07a"
+    },
+    {
+      "path": "docs/wiki/Why-Baryon.md",
+      "sha256": "79c2d6e54345ab3e91ca2c9d8339853894b68aa3b509aaf14e5692b15c64d8f8",
+      "original_source_sha256": "39446a28f1f365e92501f3772aa05ef7a92ab3fd8c17becd95156aa12ba6e11e"
+    },
+    {
+      "path": "docs/wiki/Home.md",
+      "sha256": "106a2e8739fcd63fd1850ea09f079fd172f8d8578a304d9d1cc20aab89f17260",
+      "original_source_sha256": "096a05e3ac64045c580a71643871c0ac1b012eba39735df085cab8b2a037126d"
+    },
+    {
+      "path": "docs/wiki/_Sidebar.md",
+      "sha256": "6adcfbb5888372f9388fdda3ae9525616e11232f6c66026cdc6baca868b42ca4",
+      "original_source_sha256": null
+    }
+  ],
+  "existing_wiki_pages": [
+    {
+      "path": "Development-workflow.md",
+      "sha256_before": "5ecf0de37955cb2ca190e30370d01b8c81eae38baca4017a1e527eb2cb5edd20",
+      "preserved_byte_identical": true
+    },
+    {
+      "path": "_Sidebar.md",
+      "sha256_before": "890fd698917889ac96f3fea78367ffa000a4c079c3520aa17fb7c7f0f78ea2d7",
+      "preserved_byte_identical": false
+    },
+    {
+      "path": "Privacy-and-security.md",
+      "sha256_before": "2f8bc3904008216ba342030efb46bdfcf39f00e9b4de14278071c663e7155fc0",
+      "preserved_byte_identical": true
+    },
+    {
+      "path": "Project-status-and-roadmap.md",
+      "sha256_before": "002355218861773819d00331effa2747a1edf8583c48740ee8d815b5051cb866",
+      "preserved_byte_identical": true
+    },
+    {
+      "path": "Privacy-en-beveiliging.md",
+      "sha256_before": "b46ae27a57d4d15f8162a07d75716708e2ab02c887f3d7c324c98db7ecd50af0",
+      "preserved_byte_identical": true
+    },
+    {
+      "path": "Bouwen-en-testen.md",
+      "sha256_before": "3a3dc3b2b1ca670b6a5925f5427521c92cdae79a6bef22ea8046d7a2bec5c3c4",
+      "preserved_byte_identical": true
+    },
+    {
+      "path": "Building-and-testing.md",
+      "sha256_before": "e26bc04ebbfc322f39e10b9391fe76a497259aaa37c6a4cc27b42d4edc36d46f",
+      "preserved_byte_identical": true
+    },
+    {
+      "path": "_Footer.md",
+      "sha256_before": "1fa765e6bb065d1b82bf889978c88a2d66ca12f184fcfff08270b697527e401a",
+      "preserved_byte_identical": true
+    },
+    {
+      "path": "Home.md",
+      "sha256_before": "51714a7c48bf27bd73d65c30a670a3d6f873bb882cf49e9c5940a444f251bd7b",
+      "preserved_byte_identical": false
+    },
+    {
+      "path": "Bronnen-en-wikibeheer.md",
+      "sha256_before": "74ae0f877bf24aab4706646ab7942eab47b7addf55e0424e2954c9ad14e4ce48",
+      "preserved_byte_identical": true
+    },
+    {
+      "path": "Sources-and-wiki-maintenance.md",
+      "sha256_before": "1f6dc72e8d894ddac8d90d28490f452f5a45e265f912f3d1d013ca7f20828824",
+      "preserved_byte_identical": true
+    },
+    {
+      "path": "Ontwikkelwerkwijze.md",
+      "sha256_before": "9601cb15b6d19728dd5e9ad731c6a1d7382dcec84d18c012f5065da86ab2bc9e",
+      "preserved_byte_identical": true
+    },
+    {
+      "path": "Architectuur-en-codekaart.md",
+      "sha256_before": "0247e38307d2399ffdb14b5f7c056fd411b00fe8e5840e8f8bcecefacacbe680",
+      "preserved_byte_identical": true
+    },
+    {
+      "path": "Architecture-and-code-map.md",
+      "sha256_before": "c5ad10b2aa5cab9753c492c8b59391d413ab8b7970ef1be62baf2323b38b824d",
+      "preserved_byte_identical": true
+    },
+    {
+      "path": "Projectstatus-en-roadmap.md",
+      "sha256_before": "4b04fa07a9c7bb58b031efb3b7972d9575ecd6695423940270a429923b313505",
+      "preserved_byte_identical": true
+    }
+  ],
+  "authority": "Existing live guides and six Dutch compatibility redirects remain in place. Product status and acceptance remain in canonical repository sources.",
+  "language_scope": "Existing English explanatory concept pages and navigation; no runtime localisation, source corpus translation or full repository coverage claim.",
+  "discussion_categories": {
+    "verification": "GraphQL read successful, six English names/descriptions, hasNextPage false; no names, slugs or IDs changed",
+    "query_log": "build/tokenguard/run-xqn0npby.log"
+  },
+  "remaining_issue274_scope": [
+    "Complete current first-party navigation/language coverage verification beyond this Wiki slice.",
+    "Public UI and runtime localisation acceptance; literal UI/test strings were deliberately untouched.",
+    "A maintained full first-party translation coverage inventory and language checks."
+  ],
+  "score_before": 41,
+  "score_after": 41,
+  "checks": [
+    {
+      "command": "Wiki source/publication equivalence and local target validation",
+      "exit_code": 0,
+      "local_log": "build/tokenguard/run-9bdby7d3.log",
+      "log_sha256": "65c9a547c4ed0bd2e39fa56d2cebfb59449152c4e6b72cfda1d5e53ba94c89ef"
+    },
+    {
+      "command": "Path confinement negative checks",
+      "exit_code": 0,
+      "local_log": "build/tokenguard/run-axbt3ges.log",
+      "log_sha256": "d1c12cd6e27b002abed332e9ba36190e97c7d7e8754c7d4df9000e8dc785d6f0"
+    },
+    {
+      "command": "preflight.py --strict (existing activated environment)",
+      "exit_code": 0,
+      "local_log": "build/tokenguard/run-xsb_cx4d.log",
+      "log_sha256": "0bdc30084d5f86f1fe8df13e0f6cda5a4f0964d06923bae1f7a77d48f1e9eaee"
+    },
+    {
+      "command": "build.py (existing activated environment)",
+      "exit_code": 0,
+      "local_log": "build/tokenguard/run-j9kzcrcn.log",
+      "log_sha256": "0673a2ad85a053a4f90dbd34a711d5534b24ab67a9aaa974dcf1afb6345cb602"
+    },
+    {
+      "command": "progress.py --check",
+      "exit_code": 0,
+      "local_log": "build/tokenguard/run-_ze6le_2.log",
+      "log_sha256": "14b305fe38d23ae7244745b59dcbbad1fa41b2ffd4a173070a72a8aca2f3aa5f"
+    },
+    {
+      "command": "repository whitespace check",
+      "exit_code": 0,
+      "local_log": "build/tokenguard/run-qz_9f3zl.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": "run.py --smoke (existing activated environment)",
+      "exit_code": 0,
+      "raw_qemu_exit": 33,
+      "markers": [
+        "BOOT:EBS_OK",
+        "KERNEL:ENTRY",
+        "BOOTINFO:OK",
+        "M1:PASS"
+      ],
+      "local_log": "build/tokenguard/run-nlzn98hy.log",
+      "log_sha256": "711be14af0dc6cbcd6ada2fa277e6126c060781e7f2f972dbb8beb927a4669ea"
+    }
+  ]
+}

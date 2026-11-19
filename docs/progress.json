@@ -3,7 +3,7 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-18",
-    "source_commit": "1c3696d22d87fed1ef9e554febc690d443dbb568",
+    "source_commit": "76ca134523d0429beb3c17d2551d60b9712ad82d",
     "assessment_basis": "parent_commit",
     "branch": "codex/u05-settings-core",
     "task": "U05-T1: Standalone typed appearance/accessibility settings core, integrity-only A/B persistence, explicit recovery and persistent new-generation revert.14 host tests including every0..96 torn-write offset pass.",
