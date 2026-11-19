@@ -1,8 +1,10 @@
 # S09 — Request: a test-only second virtual disk for the archive fixture
 
-**Status: request to the project owner, 19 November 2026. Not implemented.**
-This document asks for one bounded decision. It grants no capability and
-changes no security contract. It does not decide D1–D5 of
+**Status: approved by the project owner on 19 November 2026 (bounds B1–B6
+and the write set below), in the S09 session, verbatim: "Yes, approve
+B1–B6". Implementation in progress on branch `claude/s09-independent-recovery`.**
+The approval covers a test fixture only. It grants no product capability and
+changes no product security contract. It does not decide D1–D5 of
 [S09-BACKUP-DESTINATION-PROPOSAL.md](S09-BACKUP-DESTINATION-PROPOSAL.md),
 which stay open and unchanged.
 

@@ -5,6 +5,34 @@ This document distinguishes the decisions and authority of the project owner
 from those of the executing roles. Source quotations retain their original
 wording and speaker.
 
+## ADR-S09-DUALDISK-20261119 — Test-only second virtio-blk device for the S09 archive fixture
+
+**Status:** approved by the project owner on 19 November 2026 (verbatim: "Yes,
+approve B1–B6"). It covers the request in
+[S09-DUAL-DISK-FIXTURE-REQUEST.md](implementation/S09-DUAL-DISK-FIXTURE-REQUEST.md).
+
+**Context.** The S09 assignment asks for an independent recovery copy on a
+second virtual disk and a cold restore without the source disk. The
+virtio-blk driver serves exactly one fixed PCI function, and the volume
+profile refuses every block capability on a device other than 0. A second
+disk is therefore a device-ownership change in a shared driver and kernel
+profile.
+
+**Decision.** A second virtio-blk device is allowed only as a test fixture,
+under the request's bounds:
+- B1: a closed set of two fixed PCI functions, with `discover()` unchanged for
+  its existing callers;
+- B2: a feature-gated second device with disjoint DMA pages, and
+  `device != 0` still refused outside that feature;
+- B3: a portal-only capability on device 1, ending below the disk end, and
+  nothing on device 1 for the volume service or slot 2;
+- B4: disposable images only;
+- B5: no product authority;
+- B6: QEMU evidence only.
+
+**Consequences.** The released write set is listed in the request. D1–D5 of
+the destination proposal stay undecided. S09 stays open.
+
 ## ADR-AGENT-GOVERNANCE-20261118 — Shared contracts and risk-based execution
 
 Status: accepted project-owner direction, 18 November 2026, fresh-session execution
