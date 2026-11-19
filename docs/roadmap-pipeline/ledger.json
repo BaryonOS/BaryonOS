@@ -1229,7 +1229,9 @@
         "services/network-service/Cargo.toml",
         "services/network-service/Cargo.lock",
         "services/network-service/src/lib.rs",
-        "services/network-service/tests/dhcp_config.rs"
+        "services/network-service/tests/dhcp_config.rs",
+        "services/net-config/src/service.rs",
+        "sdk/examples/network-service/Cargo.lock"
       ],
       "read_paths": [
         "services/net-config/src/service.rs",
@@ -1250,8 +1252,22 @@
       "evidence_level": "host",
       "rollback": "Revert the commit.",
       "next": "N02-T3 native DHCP case after PR #333.",
-      "history": [],
-      "blocker": "Required Rust1.91.1 is not installed (rustup toolchain list 18 November:1.90.0,1.100.0,stable,beta,nightly). No installation attempted in this bounded delivery pass; exact required tests NOT RUN. Resume with installed1.91.1; no source changed."
+      "history": [
+        {
+          "at": "2026-11-18T20:46:54.925806+00:00",
+          "event": "active",
+          "reason": "Rust1.91.1 now installed; rustc version confirmed, Clippy/fmt present, unknown-none target installed without default change. New isolated branch; integration-owned PRs unchanged. Allow one minimal trusted coordinator transport seam if necessary to reuse same Stack for UDP/TCP/control."
+        },
+        {
+          "at": "2026-11-18T20:55:43.331425+00:00",
+          "event": "verified",
+          "source_commit": "ed44d77c32d0d19e0b6fab51398b169a962f9409",
+          "reason": "Environment blocker resolved;58 host tests, both crates Clippy/fmt, freestanding lib build and locked static SDK native check pass. No native DHCP acceptance."
+        }
+      ],
+      "blocker": "Required Rust1.91.1 is not installed (rustup toolchain list 18 November:1.90.0,1.100.0,stable,beta,nightly). No installation attempted in this bounded delivery pass; exact required tests NOT RUN. Resume with installed1.91.1; no source changed.",
+      "source_commit": "ed44d77c32d0d19e0b6fab51398b169a962f9409",
+      "receipt": "docs/roadmap-pipeline/receipts/N02-T2.json"
     },
     {
       "id": "P01-T1",
