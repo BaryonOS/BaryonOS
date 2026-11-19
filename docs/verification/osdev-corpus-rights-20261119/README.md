@@ -97,7 +97,9 @@ Issue #283 remains open until all of the following hold:
    as ADR-W001473-PROVENANCE-20261119 (PR #395). Without a verifiable original
    grant, exclusion is the disposition; no reuse right is assumed.
 2. The 27 other imported records and the 5 third-party records are excluded
-   (PRs #399 and #400), or each has a recorded owner exception.
+   (PRs #399 and #400), or each is retained on a documented verifiable licence,
+   original permission or independently written replacement, as required by
+   the owner's follow-up decision in ADR-W001473-PROVENANCE-20261119 (PR #395).
 3. Every one of the 1,298 uncertain records has a recorded disposition, and the
    resulting measures are merged.
 
