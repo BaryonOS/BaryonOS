@@ -1,8 +1,9 @@
 # Review of screening-flagged records — 19 November 2026
 
 Individual review of the 149 records flagged by text screening in classes A–C
-(the four flagged class D records are excluded with their class). Each record's
-matching passage was read in context. Categories are review outcomes, not legal
+(the four flagged class D records are excluded with their class). For each
+record, up to two matching passages were read with about 60 characters of context
+on each side; a record with further unread matches may need a second pass. Categories are review outcomes, not legal
 findings.
 
 ## 1. Third-party text with unknown terms — exclude (5)
