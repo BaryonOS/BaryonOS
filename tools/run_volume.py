@@ -5,7 +5,11 @@ The S09 archive stages add an export into a disjoint archive range of the same
 disposable image, a restore, a damaged-archive refusal and a restore into a
 domain with conflicting names and collections on fresh images, an export
 into a target too small for the archive that must fail without a usable archive,
-and the D6(a) user export of that archive to ustar, read back with Python tarfile."""
+and the D6(a) user export of that archive to ustar, read back with Python tarfile.
+The archive-disk stages attach a test-only second virtio-blk disk at 00:06.0:
+export to it, a cold restore from it alone, an absent and a too-small disk, a
+grant of the wrong disk, and a power cut during an export over an older
+archive followed by a cold verify."""
 from __future__ import annotations
 import argparse
 from datetime import datetime, timezone
@@ -36,13 +40,20 @@ FEATURE = {"normal": "native-volume", "recover": "test-volume-recover",
            "archive-corrupt": "test-volume-archive-corrupt",
            "archive-conflict": "test-volume-archive-conflict",
            "archive-full": "test-volume-archive-full",
-           "archive-ustar": "test-volume-archive-ustar"}
-CUT_MARKER = {"cut-data": "VOLUME:CUT:DATA", "cut-table": "VOLUME:CUT:TABLE", "cut-txn": "VOLUME:CUT:TXN"}
+           "archive-ustar": "test-volume-archive-ustar",
+           **{case: f"test-volume-{case}" for case in (
+               "archive-disk-export", "archive-disk-restore", "archive-disk-absent", "archive-disk-small",
+               "archive-disk-wrong", "archive-disk-cut", "archive-disk-verify")}}
+CUT_MARKER = {"cut-data": "VOLUME:CUT:DATA", "cut-table": "VOLUME:CUT:TABLE", "cut-txn": "VOLUME:CUT:TXN",
+              "archive-disk-cut": "VOLUME:CUT:ARCHIVE"}
 CASE_MARKER = {"normal": "NORMAL", "recover": "RECOVER", "recover-cut": "RECOVER_CUT",
                "corrupt": "CORRUPT", "foreign": "CORRUPT", "archive-export": "ARCHIVE_EXPORT",
                "archive-restore": "ARCHIVE_RESTORE", "archive-corrupt": "ARCHIVE_CORRUPT",
                "archive-conflict": "ARCHIVE_CONFLICT", "archive-full": "ARCHIVE_FULL",
-               "archive-ustar": "ARCHIVE_USTAR"}
+               "archive-ustar": "ARCHIVE_USTAR", "archive-disk-export": "ARCHIVE_DISK_EXPORT",
+               "archive-disk-restore": "ARCHIVE_DISK_RESTORE", "archive-disk-absent": "ARCHIVE_DISK_ABSENT",
+               "archive-disk-small": "ARCHIVE_DISK_SMALL", "archive-disk-wrong": "ARCHIVE_DISK_WRONG",
+               "archive-disk-verify": "ARCHIVE_DISK_VERIFY"}
 READ_ONLY = ("recover", "recover-cut", "corrupt", "foreign")
 MAX_TIMEOUT = 600
 # S09 archive range; must equal ARCHIVE_FIRST_SECTOR/ARCHIVE_SECTORS in the
@@ -70,6 +81,18 @@ USTAR_START = ARCHIVE_SPAN.start + USTAR_FIRST * SECTOR
 # portal() in sdk/examples/volume-docs/src/app.rs): object -> (name, length),
 # content = fixture(object, 1, length); collection index -> name.
 CONFLICT_OBJECTS = {3: ("Bezet", 77), 6: ("Herstart", 33)}
+# S09 test-only second disk (archive.img next to volume.img), attached at
+# 00:06.0. The portal's scope on it starts at sector 0 and has the device-0
+# scope sizes, so it ends below the disk: ARCHIVE_SECTORS of a 2048-sector
+# disk, or FULL_SECTORS of a too-small disk (the driver needs >= 8 sectors).
+DISK_CASES = ("archive-disk-export", "archive-disk-restore", "archive-disk-absent", "archive-disk-small",
+              "archive-disk-wrong", "archive-disk-cut", "archive-disk-verify")
+DISK1_READ_ONLY = ("archive-disk-restore", "archive-disk-wrong", "archive-disk-verify")
+DISK1_SECTORS, SMALL_DISK_SECTORS = 2048, FULL_SECTORS + 8
+assert ARCHIVE_SECTORS < DISK1_SECTORS and 8 <= FULL_SECTORS < SMALL_DISK_SECTORS
+DISK1_SPAN = slice(0, ARCHIVE_SECTORS * SECTOR)
+# Completed device-1 writes before the power cut (ARCHIVE_CUT_WRITES in the kernel).
+ARCHIVE_CUT_WRITES = 20
 CONFLICT_COLLECTIONS = {1: "Werk", 2: "Anders"}
 
 # Expected final state of the normal fixture: object -> (revision, content
@@ -191,6 +214,9 @@ def run_volume(case: str, volume_dir: Path | None = None, *, timeout=MAX_TIMEOUT
         if (last.get("passed") is not True or last.get("after_sha256") != sha256(volume_dir / "volume.img")
                 or last.get("source_sha256") != frozen):
             raise ValueError("recovery requires the exact image left by a passing previous stage")
+        if (volume_dir / "archive.img").exists() and last.get("archive_after_sha256") != sha256(
+                volume_dir / "archive.img"):
+            raise ValueError("the archive disk differs from the one left by the previous stage")
     parent = None
     if case not in ("normal", "cut-data", "cut-table", "cut-txn", "corrupt", "foreign"):
         parent = last["case"]
@@ -198,10 +224,44 @@ def run_volume(case: str, volume_dir: Path | None = None, *, timeout=MAX_TIMEOUT
                                   ("recover-cut", "cut-table"), ("recover-cut", "cut-txn"),
                                   ("archive-export", "recover"), ("archive-restore", "archive-export"),
                                   ("archive-corrupt", "archive-export"), ("archive-conflict", "archive-export"),
-                                  ("archive-full", "archive-export"), ("archive-ustar", "archive-export")):
+                                  ("archive-full", "archive-export"), ("archive-ustar", "archive-export"),
+                                  ("archive-disk-export", "archive-export"), ("archive-disk-absent", "archive-export"),
+                                  ("archive-disk-small", "archive-export"),
+                                  ("archive-disk-restore", "archive-disk-export"),
+                                  ("archive-disk-wrong", "archive-disk-export"),
+                                  ("archive-disk-cut", "archive-disk-export"),
+                                  ("archive-disk-verify", "archive-disk-cut")):
             raise ValueError(f"{case} cannot follow {parent}")
     archive_flip = archive_reference = None
-    if case in ("archive-full", "archive-ustar"):
+    disk1 = None
+    if case in DISK_CASES:
+        parent_dir = volume_dir
+        volume_dir = BUILD / "run" / f"volume-image-{uuid.uuid4().hex[:10]}"
+        volume_dir.mkdir(parents=True)
+        if case in ("archive-disk-export", "archive-disk-absent", "archive-disk-small"):
+            # Disk 0: the recovered fixture without its archive (as for archive-full);
+            # disk 1: a fresh disk of canaries, or none at all.
+            exported = (parent_dir / "volume.img").read_bytes()
+            archive_reference = stored_archive(exported)
+            fresh = outside_archive(exported)
+            (volume_dir / "volume.img").write_bytes(fresh)
+            info = dict(info, variant=case, sha256=hashlib.sha256(fresh).hexdigest())
+            if case != "archive-disk-absent":
+                disk1 = disk1_image(DISK1_SECTORS if case == "archive-disk-export" else SMALL_DISK_SECTORS)
+        elif case == "archive-disk-cut":
+            # Both disks of the export stage: the volume, and its archive as the older one.
+            shutil.copyfile(parent_dir / "volume.img", volume_dir / "volume.img")
+            disk1 = (parent_dir / "archive.img").read_bytes()
+            info = dict(info, variant=case)
+        else:
+            # Source loss: a fresh empty disk 0 and only the parent's disk 1.
+            info = volume_disk.create_image(volume_dir / "volume.img", "empty")
+            disk1 = (parent_dir / "archive.img").read_bytes()
+            info = dict(info, variant=case)
+        if disk1 is not None:
+            (volume_dir / "archive.img").write_bytes(disk1)
+        (volume_dir / "volume.json").write_text(json.dumps(info, indent=2) + "\n", encoding="utf-8")
+    elif case in ("archive-full", "archive-ustar"):
         # The export stage's input again: the recovered fixture whose archive
         # range holds its canaries and no archive. The export stage's archive
         # is the reference for the bytes the too-small target may receive and
@@ -229,10 +289,13 @@ def run_volume(case: str, volume_dir: Path | None = None, *, timeout=MAX_TIMEOUT
         info = dict(info, variant=case, sha256=hashlib.sha256(fresh).hexdigest(), archive_flip=archive_flip)
         (volume_dir / "volume.json").write_text(json.dumps(info, indent=2) + "\n", encoding="utf-8")
     image = volume_dir / "volume.img"
-    if image.stat().st_nlink != 1:
-        raise ValueError("volume image must have exactly one link")
+    archive_image = volume_dir / "archive.img" if disk1 is not None else None
+    for path in (image, archive_image):
+        if path is not None and path.stat().st_nlink != 1:
+            raise ValueError("volume and archive images must have exactly one link")
     before = sha256(image)
     before_bytes = image.read_bytes()
+    archive_before = sha256(archive_image) if archive_image else None
     rel = run_dir.relative_to(ROOT).as_posix()
     image_rel = image.relative_to(ROOT).as_posix()
     readonly = "on" if case in READ_ONLY else "off"
@@ -245,6 +308,14 @@ def run_volume(case: str, volume_dir: Path | None = None, *, timeout=MAX_TIMEOUT
             "-device", "isa-debug-exit,iobase=0xf4,iosize=0x04",
             "-drive", f"if=none,id=volume,format=raw,cache=writeback,readonly={readonly},file={image_rel}",
             "-device", "virtio-blk-pci,drive=volume,id=volblk,addr=0x5,disable-legacy=on,num-queues=1,queue-size=8,serial=NOS-M6E-TEST"]
+    if archive_image is not None:
+        # Explicit slot 6: QEMU refuses an explicit addr that is already taken,
+        # so a boot also shows the auto-assigned ESP is not on 00:06.0.
+        readonly1 = "on" if case in DISK1_READ_ONLY else "off"
+        args += ["-drive", f"if=none,id=archive,format=raw,cache=writeback,readonly={readonly1},"
+                           f"file={archive_image.relative_to(ROOT).as_posix()}",
+                 "-device", "virtio-blk-pci,drive=archive,id=arcblk,addr=0x6,disable-legacy=on,num-queues=1,"
+                            "queue-size=8,serial=NOS-S09-ARCHIVE"]
     started = datetime.now(timezone.utc).isoformat()
     start = time.monotonic()
     rc, out, err, timed_out, killed, running = execute(
@@ -254,12 +325,16 @@ def run_volume(case: str, volume_dir: Path | None = None, *, timeout=MAX_TIMEOUT
     (run_dir / "stderr.txt").write_text(err, encoding="utf-8")
     after = sha256(image)
     shutil.copy2(image, run_dir / "volume.after.img")
+    archive_after = sha256(archive_image) if archive_image else None
+    if archive_image:
+        shutil.copy2(archive_image, run_dir / "archive.after.img")
     report = dict(schema_version=1, case=case, kernel_feature=FEATURE[case], started_utc=started,
                   duration_s=duration, timeout_s=timeout, timed_out=timed_out, raw_qemu_exit=rc,
                   host_kill=killed, running_before_kill=running, command=args,
                   qemu_version=subprocess.check_output([qemu, "--version"], text=True).strip(),
                   source_fingerprint_version=3, source_sha256=frozen, volume_identity=info["identity"],
                   parent_case=parent, volume_directory=str(volume_dir), before_sha256=before, after_sha256=after,
+                  archive_before_sha256=archive_before, archive_after_sha256=archive_after,
                   run_directory=str(run_dir), kernel_sha256=manifest["kernel"]["sha256"],
                   volume_docs=manifest.get("volume_docs"), stdout=out, stderr=err, passed=False)
     try:
@@ -277,7 +352,11 @@ def run_volume(case: str, volume_dir: Path | None = None, *, timeout=MAX_TIMEOUT
             raise ValueError("read-only case changed the image")
         evidence = numbers(out)
         oracle = None
-        if case in ("corrupt", "foreign"):
+        if case in DISK_CASES:
+            oracle = check_disk(case, before_bytes, image.read_bytes(),
+                                disk1, archive_image.read_bytes() if archive_image else None,
+                                evidence, archive_reference)
+        elif case in ("corrupt", "foreign"):
             try:
                 volume_disk.analyse(image.read_bytes())
                 raise ValueError(f"oracle accepted the {case} fixture")
@@ -297,7 +376,8 @@ def run_volume(case: str, volume_dir: Path | None = None, *, timeout=MAX_TIMEOUT
         report["error"] = f"{type(error).__name__}: {error}"
     save_json(run_dir / "result.json", report)
     save_json(volume_dir / "last-stage.json", dict(case=case, passed=report["passed"],
-              run_directory=str(run_dir), after_sha256=after, source_sha256=frozen))
+              run_directory=str(run_dir), after_sha256=after, archive_after_sha256=archive_after,
+              source_sha256=frozen))
     print(f"M6e {case}: passed={report['passed']} raw={rc} duration={duration:.1f}s {run_dir}")
     if "error" in report:
         print(report["error"])
@@ -314,11 +394,7 @@ def outside_archive(image: bytes) -> bytes:
 
 
 def stored_archive(image: bytes) -> bytes:
-    region = image[ARCHIVE_SPAN]
-    length = volume_archive.stored_length(region[:volume_archive.HEADER])
-    if length > len(region):
-        raise ValueError("archive header claims more than the archive range")
-    return region[:length]
+    return stored_archive_in(image[ARCHIVE_SPAN])
 
 
 def check_archive(case: str, before: bytes, after: bytes, evidence, reference: bytes | None = None):
@@ -382,83 +458,221 @@ def check_archive(case: str, before: bytes, after: bytes, evidence, reference: b
             raise ValueError("export wrote past the archive length")
         if counts[1] != (end - ARCHIVE_SPAN.start) // SECTOR or counts[0] == 0 or counts[2] == 0:
             raise ValueError(f"archive I/O counts {counts}")
-        archive = volume_archive.parse(data)
         oracle = volume_disk.analyse(outside_archive(after))
         check_state("recover", oracle, evidence)
-        # The header carries the domain generation that LIST reports: the sum
-        # of the domain's object and collection revisions (not the global one).
-        domain = (sum(item["revision"] for item in oracle["objects"][:volume_disk.PER_DOMAIN])
-                  + sum(c["revision"] for c in oracle["collections"] if c["domain"] == 0))
-        if archive["generation"] != domain:
-            raise ValueError("archive generation differs from the domain generation")
-        present = [item["object"] for item in oracle["objects"][:volume_disk.PER_DOMAIN] if item["present"]]
-        if [item["slot"] for item in archive["objects"]] != present:
-            raise ValueError("archive objects differ from the domain-0 objects")
-        for source in archive["objects"]:
-            item = oracle["objects"][source["slot"]]
-            version = current(item)
-            found = (source["name"], source["length"], source["collection"], source["revision"],
-                     source["tags"], source["kind"], source["created"], source["modified"], source["content"])
-            want = (version["name"], version["length"], item["collection"], item["revision"], item["tags"],
-                    item["kind"], item["created"], item["modified"],
-                    volume_disk.fixture(source["slot"], version["content_revision"], version["length"]))
-            if found != want:
-                raise ValueError(f"archive object {source['slot']} differs from the volume")
-        names = {c["index"]: c["name"] for c in oracle["collections"] if c["domain"] == 0 and c["present"]}
-        if archive["collections"] != names:
-            raise ValueError("archive collections differ from the volume")
+        matches_volume(volume_archive.parse(data), oracle)
     else:
         if after[ARCHIVE_SPAN] != before[ARCHIVE_SPAN] or counts[0] == 0 or counts[1:] != [0, 0]:
             raise ValueError(f"archive range changed or I/O counts {counts}")
         data = stored_archive(before)
-        if case == "archive-corrupt":
-            try:
-                volume_archive.parse(data)
-                raise ValueError("format reader accepted the damaged archive")
-            except ValueError as error:
-                if "accepted" in str(error):
-                    raise
-            oracle = volume_disk.analyse(outside_archive(after))
-            pre, expected = {}, volume_archive.expected_restore({"objects": []}, {}, {})
-        else:
-            archive = volume_archive.parse(data)
-            pre, held = (CONFLICT_OBJECTS, CONFLICT_COLLECTIONS) if case == "archive-conflict" else ({}, {})
-            # The end state follows from the archive and the pre-state by the spec rule alone.
-            expected = volume_archive.expected_restore(archive, {o: name for o, (name, _) in pre.items()}, held)
-            # The native fixture exercises these four rules. Two more are host tests in
-            # services/volume/tests/archive.rs: "no collection for a conflicting object" cannot hold
-            # together with the four here (the archive has only two collected objects), and
-            # "uncollected without metadata stays at revision 1" is not exercised by this fixture.
-            if case == "archive-conflict" and not all(
-                    expected[key] for key in ("slot_conflicts", "name_conflicts", "uncollected", "reused")):
-                raise ValueError(f"conflict fixture misses a restore rule: {expected}")
-            # Only restored objects carry archive bytes; the pre-state must stay a written fixture.
-            oracle = volume_disk.analyse(outside_archive(after), opaque=frozenset(expected["objects"]))
-        for item in oracle["objects"]:
-            obj, source = item["object"], expected["objects"].get(item["object"])
-            if obj in pre:
-                version = current(item)
-                found = (item["revision"], len(item["versions"]), version["name"], version["length"],
-                         version["content_revision"], item["collection"], item["tags"], item["kind"])
-                if found != (1, 1, *pre[obj], 1, 0, 0, 0):
-                    raise ValueError(f"restore changed pre-existing object {obj}: {found}")
-            elif source is None:
-                if item["present"] or item["revision"]:
-                    raise ValueError(f"unexpected object {obj} after {case}")
-            else:
-                version = current(item)
-                found = (item["revision"], len(item["versions"]), version["name"], version["length"],
-                         item["collection"], item["tags"], item["kind"], bytes.fromhex(version["content_hex"]))
-                want = (source["revision"], 1, source["name"], source["length"], source["collection"],
-                        source["tags"], source["kind"], source["content"])
-                if found != want:
-                    raise ValueError(f"restored object {obj} differs from the archive: {found[:7]}")
-        check_collections(oracle, {(0, index): name for index, name in expected["collections"].items()})
-        if [evidence["VOLUME:A:DIGEST:"], evidence["VOLUME:B:DIGEST:"]] != oracle["digests"]:
-            raise ValueError("guest-reported digests differ from the disk oracle")
+        oracle = check_restored(case, data, after, evidence)
     oracle["archive"] = {"length": len(data), "sha256": hashlib.sha256(data).hexdigest(), "io": counts}
     if reference is not None:
         oracle["archive"]["reference_length"] = len(reference)
+    return oracle
+
+
+def matches_volume(archive: dict, oracle) -> None:
+    """The parsed archive equals domain 0 of the volume oracle: objects with
+    their content and metadata, collections and the header generation."""
+    # The header carries the domain generation that LIST reports: the sum
+    # of the domain's object and collection revisions (not the global one).
+    domain = (sum(item["revision"] for item in oracle["objects"][:volume_disk.PER_DOMAIN])
+              + sum(c["revision"] for c in oracle["collections"] if c["domain"] == 0))
+    if archive["generation"] != domain:
+        raise ValueError("archive generation differs from the domain generation")
+    present = [item["object"] for item in oracle["objects"][:volume_disk.PER_DOMAIN] if item["present"]]
+    if [item["slot"] for item in archive["objects"]] != present:
+        raise ValueError("archive objects differ from the domain-0 objects")
+    for source in archive["objects"]:
+        item = oracle["objects"][source["slot"]]
+        version = current(item)
+        found = (source["name"], source["length"], source["collection"], source["revision"],
+                 source["tags"], source["kind"], source["created"], source["modified"], source["content"])
+        want = (version["name"], version["length"], item["collection"], item["revision"], item["tags"],
+                item["kind"], item["created"], item["modified"],
+                volume_disk.fixture(source["slot"], version["content_revision"], version["length"]))
+        if found != want:
+            raise ValueError(f"archive object {source['slot']} differs from the volume")
+    names = {c["index"]: c["name"] for c in oracle["collections"] if c["domain"] == 0 and c["present"]}
+    if archive["collections"] != names:
+        raise ValueError("archive collections differ from the volume")
+
+
+def refused(data: bytes, label: str) -> str:
+    """The format reader must refuse `data`; returns its reason."""
+    try:
+        volume_archive.parse(data)
+    except ValueError as error:
+        return str(error)
+    raise ValueError(f"format reader accepted the {label}")
+
+
+def check_restored(case: str, data: bytes, after: bytes, evidence):
+    """A restore (or a refused one) from `data` into the fresh disk 0 `after`."""
+    if case in ("archive-corrupt", "archive-disk-wrong", "archive-disk-verify"):
+        refused(data, "damaged archive")
+        oracle = volume_disk.analyse(outside_archive(after))
+        pre, expected = {}, volume_archive.expected_restore({"objects": []}, {}, {})
+    else:
+        archive = volume_archive.parse(data)
+        pre, held = (CONFLICT_OBJECTS, CONFLICT_COLLECTIONS) if case == "archive-conflict" else ({}, {})
+        # The end state follows from the archive and the pre-state by the spec rule alone.
+        expected = volume_archive.expected_restore(archive, {o: name for o, (name, _) in pre.items()}, held)
+        # The native fixture exercises these four rules. Two more are host tests in
+        # services/volume/tests/archive.rs: "no collection for a conflicting object" cannot hold
+        # together with the four here (the archive has only two collected objects), and
+        # "uncollected without metadata stays at revision 1" is not exercised by this fixture.
+        if case == "archive-conflict" and not all(
+                expected[key] for key in ("slot_conflicts", "name_conflicts", "uncollected", "reused")):
+            raise ValueError(f"conflict fixture misses a restore rule: {expected}")
+        # Only restored objects carry archive bytes; the pre-state must stay a written fixture.
+        oracle = volume_disk.analyse(outside_archive(after), opaque=frozenset(expected["objects"]))
+    for item in oracle["objects"]:
+        obj, source = item["object"], expected["objects"].get(item["object"])
+        if obj in pre:
+            version = current(item)
+            found = (item["revision"], len(item["versions"]), version["name"], version["length"],
+                     version["content_revision"], item["collection"], item["tags"], item["kind"])
+            if found != (1, 1, *pre[obj], 1, 0, 0, 0):
+                raise ValueError(f"restore changed pre-existing object {obj}: {found}")
+        elif source is None:
+            if item["present"] or item["revision"]:
+                raise ValueError(f"unexpected object {obj} after {case}")
+        else:
+            version = current(item)
+            found = (item["revision"], len(item["versions"]), version["name"], version["length"],
+                     item["collection"], item["tags"], item["kind"], bytes.fromhex(version["content_hex"]))
+            want = (source["revision"], 1, source["name"], source["length"], source["collection"],
+                    source["tags"], source["kind"], source["content"])
+            if found != want:
+                raise ValueError(f"restored object {obj} differs from the archive: {found[:7]}")
+    check_collections(oracle, {(0, index): name for index, name in expected["collections"].items()})
+    if [evidence["VOLUME:A:DIGEST:"], evidence["VOLUME:B:DIGEST:"]] != oracle["digests"]:
+        raise ValueError("guest-reported digests differ from the disk oracle")
+    return oracle
+
+
+def disk1_image(sectors: int) -> bytes:
+    """A fresh archive disk: every sector holds its canary."""
+    return b"".join(volume_disk.canary(index) for index in range(sectors))
+
+
+def disk_archive(disk: bytes) -> bytes:
+    """The archive stored from sector 0 of the archive disk's scope."""
+    return stored_archive_in(disk[DISK1_SPAN])
+
+
+def stored_archive_in(region: bytes) -> bytes:
+    length = volume_archive.stored_length(region[:volume_archive.HEADER])
+    if length > len(region):
+        raise ValueError("archive header claims more than the archive range")
+    return region[:length]
+
+
+def refused_disk(disk: bytes, label: str) -> str:
+    """The archive disk must not hold an archive: either its header claims
+    more than the scope, or the reader refuses the stored length it claims."""
+    try:
+        data = disk_archive(disk)
+    except ValueError as error:
+        return str(error)
+    return refused(data, label)
+
+
+def torn_archive(before: bytes, after: bytes, limit: int) -> dict:
+    """Power cut over an older archive: classify the archive disk. The older
+    archive must parse; the cut must have changed sector 0 (the new header)
+    and nothing at or past sector `limit` (the kernel stopped the guest after
+    `limit` completed writes). Then the region is neither the older archive
+    nor a complete new one, and only Corrupt is a correct verdict."""
+    older = disk_archive(before)
+    volume_archive.parse(older)
+    changed = [index for index in range(len(after) // SECTOR)
+               if after[index * SECTOR:(index + 1) * SECTOR] != before[index * SECTOR:(index + 1) * SECTOR]]
+    if not changed or changed[0] != 0 or changed[-1] >= limit:
+        raise ValueError(f"cut did not leave a torn new header within {limit} sectors: {changed[:4]}...")
+    if len(older) <= limit * SECTOR:
+        raise ValueError("the older archive ends before the cut: no torn mix is possible")
+    reason = refused_disk(after, "torn archive")
+    return {"classification": "corrupt", "changed_sectors": len(changed), "last_changed": changed[-1],
+            "older_length": len(older), "older_sha256": hashlib.sha256(older).hexdigest(),
+            "reason": f"new header over the older body; reader: {reason}"}
+
+
+def check_disk(case: str, before: bytes, after: bytes, disk1_before: bytes | None, disk1_after: bytes | None,
+               evidence, reference: bytes | None):
+    """Host acceptance of the second-disk stages: both disks byte for byte,
+    the independent format reader and the volume oracle."""
+    if case == "archive-disk-cut":
+        oracle = volume_disk.analyse(after)
+        oracle["archive_disk"] = torn_archive(disk1_before, disk1_after, ARCHIVE_CUT_WRITES)
+        return oracle
+    counts = [evidence[f"VOLUME:ARCHIVE:{name}:"] for name in ("READS", "WRITES", "FLUSHES")]
+    device = [evidence[f"VOLUME:BROKER:ARCHIVE_DISK_{name}:"] for name in ("READS", "WRITES", "FLUSHES")]
+    granted = 0 if case == "archive-disk-wrong" else 1
+    offline = 14 if case == "archive-disk-absent" else 0
+    if (evidence["VOLUME:ARCHIVE:DEVICE:"], evidence["VOLUME:ARCHIVE:DISK_OFFLINE:"]) != (granted, offline):
+        raise ValueError("archive grant on the wrong device or device-1 state")
+    if evidence["VOLUME:ARCHIVE:DISK_FOUND:"] != (case != "archive-disk-absent"):
+        raise ValueError("archive disk presence differs from the attached devices")
+    # The portal's past-the-end probe (and, too small, its write past the scope).
+    if evidence["VOLUME:ARCHIVE:SCOPE_REFUSALS:"] < (2 if case == "archive-disk-small" else 1):
+        raise ValueError("scope refusals on the archive capability not observed")
+    if granted and (device != counts or evidence["VOLUME:ARCHIVE:ESCAPE_DENIALS:"] != 2):
+        raise ValueError(f"device-1 I/O {device} is not exactly the portal's {counts}, or escape probes missing")
+    if case in ("archive-disk-export", "archive-disk-absent", "archive-disk-small"):
+        # The source volume is mounted read-only: disk 0 is byte-identical.
+        if after != before or (evidence["VOLUME:BROKER:VOLUME_DISK_WRITES:"], evidence["VOLUME:BROKER:VOLUME_DISK_FLUSHES:"]) != (0, 0):
+            raise ValueError("export changed disk 0")
+        oracle = volume_disk.analyse(after)
+        check_state("recover", oracle, evidence)
+    if case == "archive-disk-absent":
+        if counts != [0, 0, 0] or disk1_after is not None:
+            raise ValueError(f"absent archive disk saw I/O {counts}")
+        return oracle
+    if case == "archive-disk-export":
+        data = disk_archive(disk1_after)
+        end = -(-len(data) // SECTOR) * SECTOR
+        if reference is None or data != reference:
+            raise ValueError("archive disk differs from the archive exported to disk 0")
+        if disk1_after[len(data):end] != bytes(end - len(data)) or disk1_after[end:] != disk1_before[end:]:
+            raise ValueError("archive disk padding is not zero or the export wrote past the archive")
+        if counts[0] == 0 or counts[1] != end // SECTOR or counts[2] == 0:
+            raise ValueError(f"archive I/O counts {counts}")
+        matches_volume(volume_archive.parse(data), oracle)
+    elif case == "archive-disk-small":
+        cut = FULL_SECTORS * SECTOR
+        if reference is None or len(reference) <= cut or disk1_after[:cut] != reference[:cut]:
+            raise ValueError("small disk does not hold the prefix of the export stage's archive")
+        if disk1_after[cut:] != disk1_before[cut:]:
+            raise ValueError("export wrote past the scope of the small disk")
+        if counts[0] == 0 or counts[1:] != [FULL_SECTORS, 0]:
+            raise ValueError(f"archive I/O counts {counts}")
+        refused(disk1_after[:cut], "unfinished cut range")
+        refused(disk1_after, "whole small disk")
+        data = disk1_after[:cut]
+    else:
+        if disk1_after != disk1_before or counts[0] == 0 or counts[1:] != [0, 0]:
+            raise ValueError(f"archive disk changed or I/O counts {counts}")
+        if after[ARCHIVE_SPAN] != before[ARCHIVE_SPAN]:
+            raise ValueError("the device-0 archive range changed")
+        if case == "archive-disk-wrong":
+            # Granted the device-0 range (canaries): Corrupt, though disk 1 holds a valid archive.
+            if device != [0, 0, 0]:
+                raise ValueError(f"wrong-device case touched disk 1: {device}")
+            volume_archive.parse(disk_archive(disk1_after))
+            data = after[ARCHIVE_SPAN]
+        elif case == "archive-disk-verify":
+            refused_disk(disk1_after, "torn archive")
+            data = disk1_after[DISK1_SPAN]
+        else:
+            data = disk_archive(disk1_after)
+        oracle = check_restored(case, data, after, evidence)
+        if case == "archive-disk-verify":
+            oracle["archive_disk"] = {"classification": "corrupt", "reason": refused_disk(disk1_after, "torn archive")}
+    oracle["archive"] = {"length": len(data), "sha256": hashlib.sha256(data).hexdigest(), "io": counts,
+                         "device1": device}
     return oracle
 
 
