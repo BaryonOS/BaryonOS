@@ -66,7 +66,7 @@ fn transfer(scene: &Scene, index: usize, rect: Rect, pixels: &[u32], backing: &m
     let count = (width * height) as usize;
     for (color, out) in pixels[..count]
         .iter()
-        .zip(bytes[..count * 4].chunks_exact_mut(4))
+        .zip(bytes[..count * 4].as_chunks_mut::<4>().0.iter_mut())
     {
         out.copy_from_slice(&color.to_le_bytes());
     }

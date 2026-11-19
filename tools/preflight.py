@@ -13,7 +13,7 @@ from common import environment, firmware
 
 ROOT = Path(__file__).resolve().parents[1]
 PROBE_ENV = environment()
-RUST_TOOLCHAIN = "1.90.0"
+RUST_TOOLCHAIN = "1.100.0"
 REQUIRED_TARGETS = ("x86_64-unknown-uefi", "x86_64-unknown-none")
 REQUIRED_RLIBS = ("core", "alloc", "compiler_builtins")
 def host_test_tools(os_name: str) -> tuple[str, ...]:
@@ -147,8 +147,8 @@ def rust_inventory(rustc: dict, rustup: dict) -> dict:
     if not usable(rustc) or not rustc.get("path"):
         result["error"] = "pinned rustc probe unavailable or failed"
         return result
-    if not re.match(r"^rustc 1\.90\.0(?:\s|$)", rustc.get("version") or ""):
-        result["error"] = "selected compiler is not the pinned Rust 1.90.0"
+    if not re.match(r"^rustc 1\.100\.0(?:\s|$)", rustc.get("version") or ""):
+        result["error"] = "selected compiler is not the pinned Rust 1.100.0"
         return result
     arguments = rustc.get("toolchain_args", ["+" + RUST_TOOLCHAIN])
     if arguments not in ([], ["+" + RUST_TOOLCHAIN]):
@@ -218,7 +218,7 @@ def main() -> int:
     required = ("git", "rustc", "cargo", "qemu-system-x86_64")
     missing = [name for name in required if not usable(tools[name])]
     if not rust["compiler_valid"] and "rustc" not in missing:
-        missing.append("Rust 1.90.0 compiler/sysroot")
+        missing.append("Rust 1.100.0 compiler/sysroot")
     missing_targets = [target for target in REQUIRED_TARGETS if target not in installed_targets]
     missing_host_test_tools = [name for name in HOST_TEST_TOOLS if not usable(tools[name])]
     if not firmware_candidates:
@@ -226,7 +226,7 @@ def main() -> int:
     report = {
         "schema_version": 2,
         "scope": "inventory only; no build, boot, acceleration or ABI validated",
-        "build_launcher_scope": "Shared builds still require a pinned launcher or compatible +1.90.0 wrapper; direct-tool inventory does not validate that build chain.",
+        "build_launcher_scope": "Shared builds still require a pinned launcher or compatible +1.100.0 wrapper; direct-tool inventory does not validate that build chain.",
         "workspace": str(ROOT),
         "host": {
             "system": platform.system(),

@@ -1,0 +1,25 @@
+{
+  "canonical_parent": "90816de39460b76e35cd626721d4dac9bde905e2",
+  "integrated_main": "55bc7b06d20a3bfdffdc2eb7d8fe42a39f6e59c5",
+  "native_stages": 15,
+  "native_gate_exit": 0,
+  "volume_rust_tests": 93,
+  "volume_python_tests": 53,
+  "standard_qemu_raw_exit": 33,
+  "commands_exit_code": 0,
+  "logs": [
+    {
+      "path": "build/tokenguard/run-7f6fcked.log",
+      "sha256": "49c8e799391ecd19357b9dec3fc8a2566a11c8afd44b981847d7b943f01c24d4"
+    },
+    {
+      "path": "build/tokenguard/run-xdubqqpx.log",
+      "sha256": "bf0f4144c80d31ba27efcd5ae528ac60eb294d2d5de9b6083d3f13db3053b46e"
+    }
+  ],
+  "limitations": [
+    "D1\u2013D5/full S09 open",
+    "Independent exact-head integration review and hosted checks pending",
+    "No physical hardware or human audit"
+  ]
+}

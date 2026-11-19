@@ -274,7 +274,7 @@ fn png16_preserves_every_sample_and_display_conversion_does_not_modify_it() {
     assert_eq!(samples.len(), 97 * 65 * 4);
     assert!(samples
         .iter()
-        .zip(expected.chunks_exact(2))
+        .zip(expected.as_chunks::<2>().0.iter())
         .all(|(sample, pair)| *sample == u16::from_be_bytes([pair[0], pair[1]])));
     assert!(samples.iter().any(|x| *x > 255 && x % 257 != 0));
     let mut preview = vec![0; samples.len()];
@@ -480,7 +480,9 @@ fn exif_orientation_reference_matches_asymmetric_pixel_matrix() {
         assert_eq!(width * height, expected.len());
         assert_eq!(
             display
-                .chunks_exact(4)
+                .as_chunks::<4>()
+                .0
+                .iter()
                 .map(|pixel| pixel[0])
                 .collect::<Vec<_>>(),
             expected

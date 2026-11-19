@@ -1,0 +1,71 @@
+{
+  "source_parent": "93797f3a6075af9cc4fdd533dad288bfa7894ffe",
+  "owner_release": "Explicit limited release in Codex session: Codex mag deze beperkte PR-340-fix doen",
+  "source_sha256": {
+    "sdk/examples/volume-docs/src/app.rs": "15e8c8b6247a1972fc33ce9c6eb6086500a666a6ffb4c239351e02bc2e19a936",
+    "services/volume/src/ustar.rs": "dd3ae91021369b6dd334f8ce016d877fece681ccff5ce807dfc4021d9db11716"
+  },
+  "checks": [
+    {
+      "command": "Initial host-target Clippy invocation (invalid for native-only bins)",
+      "exit_code": 101,
+      "log": "build/tokenguard/run-snwdzv7b.log",
+      "log_sha256": "d8a7540d015a4783d119be638edfeb3034c91796e1dac9b9957dafceb0b6714a",
+      "duration_seconds": 0.317,
+      "summary": []
+    },
+    {
+      "command": "cargo +1.90.0 clippy --offline --locked --release --manifest-path sdk/examples/volume-docs/Cargo.toml --target x86_64-unknown-none --features native,archive-portal --bins -- -D warnings (before fix)",
+      "exit_code": 101,
+      "log": "build/tokenguard/run-8_xda_g4.log",
+      "log_sha256": "d3e7b98012ff7b6a43cce230312abf8d7747697f36e39233c4471ec338e6178f",
+      "duration_seconds": 0.309,
+      "summary": []
+    },
+    {
+      "command": "same exact target/release/feature Clippy command after fix",
+      "exit_code": 0,
+      "log": "build/tokenguard/run-pb6u8_md.log",
+      "log_sha256": "5bca10d040f3bd43525b88730dcbd78d2d0fe7a413b524e7cf10a2a3a10ec8a4",
+      "duration_seconds": 0.244,
+      "summary": []
+    },
+    {
+      "command": "cargo +1.90.0 test --locked -p volume-core",
+      "exit_code": 0,
+      "log": "build/tokenguard/run-l3zbyk1v.log",
+      "log_sha256": "92f75d2983f78bb45af35401dab9c2f118034e0d017f689758431308c04c9197",
+      "duration_seconds": 23.099,
+      "summary": [
+        "test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+        "test result: ok. 38 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.07s",
+        "test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 22.17s",
+        "test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+        "test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s",
+        "test result: ok. 30 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.07s",
+        "test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+        "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s"
+      ]
+    },
+    {
+      "command": "python3 -B -m unittest discover -s tests -p test_volume_*.py",
+      "exit_code": 0,
+      "log": "build/tokenguard/run-ak2zf101.log",
+      "log_sha256": "bdf1666adbfb11bc247e7c7509526084322e87048c0b7252c9022be8f5bd449e",
+      "duration_seconds": 1.187,
+      "summary": [
+        "Ran 53 tests in 1.139s"
+      ]
+    }
+  ],
+  "independent_review": "No blockers on these exact two source hashes. >0 and512-byte alignment preserved; wording limited. AI review, not human audit.",
+  "pending": [
+    "Fresh complete15-stage volume gate/fingerprint after commit",
+    "Current-head hosted checks and main reconciliation"
+  ],
+  "not_authorized": [
+    "Merge/auto-merge",
+    "D1\u2013D5/product/hardware authority",
+    "Existing S09 runner/worktree/WIP changes"
+  ]
+}

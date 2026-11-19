@@ -2,13 +2,13 @@
   "schema_version": 1,
   "rubric_version": 1,
   "assessment": {
-    "date": "2026-11-18",
-    "source_commit": "6f29b6720b51aecad5714faa48b445afd6e2f5a9",
+    "date": "2026-11-19",
+    "source_commit": "2cb2dd85de4a86bd78c87a63157cf540cb40fdb1",
     "assessment_basis": "parent_commit",
     "branch": "claude/baryon-os-design-pipeline-20261118",
-    "task": "UX-A11Y-DS run 2 checkpoint: blocked after 2 repairs, owner blocker, not accepted",
+    "task": "UX-A11Y-DS run 3 accepted and main merged into PR #360",
     "previous_score": 41,
-    "summary": "41/100 unchanged. UX-A11Y-DS run 2 ended blocked_after_2_repairs (2 blockers, 1 major in the final verifier round, all fixable in the authorised write set; tokens.css and check.mjs frozen). Deliverables are committed for review only and accept no criterion. Successor matrix checker exit 0 is structural validation, not native accessibility acceptance or a human audit."
+    "summary": "41/100 unchanged. UX-A11Y-DS run 3 (held-key guard, caption reach, dimmed modal backdrop) was accepted by an independent verifier with no open findings; check.mjs, its self-test and the matrix checker exit 0. This is design-system prototype evidence only: it accepts no criterion and is not native accessibility acceptance or a human audit."
   },
   "tracks": [
     {

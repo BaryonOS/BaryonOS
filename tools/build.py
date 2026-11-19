@@ -23,7 +23,7 @@ M6B_FAULT_CASES = ("write-error", "flush-error") + M6B_TIMEOUT_CASES
 M6B_CASES = ("recover", "errors", "full", "corrupt", "vm-cut-before-ack", "vm-cut-after-flush") + M6B_FAULT_CASES
 M6C_CASES = ("recover", "errors", "full", "corrupt", "legacy", "vm-cut-before-rename", "vm-cut-after-rename") + M6C_FAULT_CASES
 VOLUME_ARCHIVE_CASES = ("archive-export", "archive-restore", "archive-corrupt", "archive-conflict",
-                        "archive-full")
+                        "archive-full", "archive-ustar")
 VOLUME_CASES = ("recover", "cut-data", "cut-table", "recover-cut", "corrupt", "foreign", "cut-txn",
                 *VOLUME_ARCHIVE_CASES)
 VOLUME_FEATURES = ("native-volume", *(f"test-volume-{case}" for case in VOLUME_CASES))
@@ -311,10 +311,13 @@ def build(loader_feature=None, kernel_feature=None, label="normal", image_versio
         service = volume_target / "x86_64-unknown-none/release/volume-service"
         if kernel_feature in (f"test-volume-{case}" for case in VOLUME_ARCHIVE_CASES):
             # S09 portal app (separate target dir); the service stays the normal build.
+            # opt-level "s": with the ustar export linked in, opt-level 3 text
+            # exceeds the 64 KiB app text bound of the volume-docs linker script.
             portal_target = TARGET / "volume-docs-portal"
             run_logged([sys.executable, "-B", str(ROOT / "sdk/examples/volume-docs/build.py"),
                         "--archive-portal"], "build-volume-docs-portal",
-                       extra_env={"CARGO_TARGET_DIR": str(portal_target)})
+                       extra_env={"CARGO_TARGET_DIR": str(portal_target),
+                                  "CARGO_PROFILE_RELEASE_OPT_LEVEL": "s"})
             app = portal_target / "x86_64-unknown-none/release/volume-app"
         qsim_report = {
             "app_sha256": sha256(app), "app_elf": inspect_user(app),
@@ -374,9 +377,9 @@ def build(loader_feature=None, kernel_feature=None, label="normal", image_versio
             extra_env["NOS_M6C_ELF"] = str(build_users("m6c", sdk_runtime=use_sdk,
                 document_session=use_document_session).resolve())
     if not (ROOT / "Cargo.lock").exists():
-        run_logged(["cargo", "+1.90.0", "generate-lockfile"], "lockfile")
+        run_logged(["cargo", "+1.100.0", "generate-lockfile"], "lockfile")
     for package, target, feature in (("os-loader", "x86_64-unknown-uefi", loader_feature), ("os-kernel", "x86_64-unknown-none", kernel_feature)):
-        args = ["cargo", "+1.90.0", "build", "--locked", "--release", "--target-dir", str(TARGET), "-p", package, "--target", target]
+        args = ["cargo", "+1.100.0", "build", "--locked", "--release", "--target-dir", str(TARGET), "-p", package, "--target", target]
         if feature:
             args += ["--features", feature]
         if package == "os-kernel" and kernel_feature == "native-update-policy-probe":

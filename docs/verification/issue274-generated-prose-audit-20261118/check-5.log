@@ -1,0 +1,26 @@
+usage: project_classification.py [-h] [--organization ORGANIZATION]
+                                 [--repository REPOSITORY] [--project PROJECT]
+                                 [--limit LIMIT] [--apply] [--no-add-missing]
+                                 [--skip-without-token]
+
+Conservatively classify and synchronise existing GitHub Projects V2 items.
+Work Type, Subsystem and Priority come only from unambiguous conventional
+title prefixes and explicit labels; existing values are never overwritten.
+Status is derived from GitHub facts (issue/PR state, draft flag and an
+explicit ``blocked`` label). Terminal facts win: a merged PR or an issue
+closed as completed becomes Done. Manually chosen statuses outside the managed
+set are left untouched. Project Status is organisational only; it never
+replaces a GitHub Actions result. Open issues and pull requests of the
+repository that are missing from the project are added (bounded per run).
+Nothing is added when the project scan was truncated, so the dry-run and apply
+outputs stay exact. No issue, PR, label or milestone is modified.
+
+options:
+  -h, --help            show this help message and exit
+  --organization ORGANIZATION
+  --repository REPOSITORY
+  --project PROJECT
+  --limit LIMIT
+  --apply
+  --no-add-missing      Do not add open issues/PRs missing from the project
+  --skip-without-token  Exit 0 with a warning when the token is not configured

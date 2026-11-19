@@ -1,0 +1,11 @@
+usage: roadmap_runner.py [-h] {run,status,stop,pause,resume,validate} ...
+
+Clean-session roadmap runner: one fresh headless Claude Code session per
+ledger task.
+
+positional arguments:
+  {run,status,stop,pause,resume,validate}
+    run                 run the controller loop
+
+options:
+  -h, --help            show this help message and exit

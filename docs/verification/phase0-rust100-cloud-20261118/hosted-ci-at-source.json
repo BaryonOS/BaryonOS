@@ -1,0 +1,586 @@
+{
+  "baseRefName": "codex/phase0-pr340-preintegration",
+  "headRefOid": "92e44b0c23a34be1b31037dc0561a4b22b04ef5a",
+  "statusCheckRollup": [
+    {
+      "__typename": "CheckRun",
+      "completedAt": "0001-01-01T00:00:00Z",
+      "conclusion": "",
+      "detailsUrl": "https://github.com/BaryonOS/BaryonOS/actions/runs/44210535064/job/134487426599",
+      "name": "host-quality",
+      "startedAt": "2026-11-18T00:46:58Z",
+      "status": "IN_PROGRESS",
+      "workflowName": "CI"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "0001-01-01T00:00:00Z",
+      "conclusion": "",
+      "detailsUrl": "https://github.com/BaryonOS/BaryonOS/actions/runs/44210534914/job/134487563230",
+      "name": "native-system",
+      "startedAt": "2026-11-18T00:47:46Z",
+      "status": "IN_PROGRESS",
+      "workflowName": "FR-I01 joint native system acceptance"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "0001-01-01T00:00:00Z",
+      "conclusion": "",
+      "detailsUrl": "https://github.com/BaryonOS/BaryonOS/actions/runs/44210534979/job/134487557124",
+      "name": "native-window-session (1)",
+      "startedAt": "2026-11-18T00:46:53Z",
+      "status": "IN_PROGRESS",
+      "workflowName": "Native window session and Windows QEMU bundle"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-11-18T00:48:03Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/BaryonOS/BaryonOS/actions/runs/44210535009/job/134487425946",
+      "name": "app-package-core and app-management host/target quality",
+      "startedAt": "2026-11-18T00:47:10Z",
+      "status": "COMPLETED",
+      "workflowName": "App package and artifact quality"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-11-18T00:46:54Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/BaryonOS/BaryonOS/actions/runs/44210534890/job/134487424421",
+      "name": "artifact-store-core",
+      "startedAt": "2026-11-18T00:46:22Z",
+      "status": "COMPLETED",
+      "workflowName": "Artifact store contract quality"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-11-18T00:48:14Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/BaryonOS/BaryonOS/actions/runs/44210534712/job/134487422183",
+      "name": "b01-native-supervisor",
+      "startedAt": "2026-11-18T00:46:19Z",
+      "status": "COMPLETED",
+      "workflowName": "B01 entropy and key management acceptance"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-11-18T00:50:42Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/BaryonOS/BaryonOS/actions/runs/44210535037/job/134487426492",
+      "name": "b03-native-update",
+      "startedAt": "2026-11-18T00:47:07Z",
+      "status": "COMPLETED",
+      "workflowName": "B03 signed updates acceptance"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-11-18T00:47:56Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/BaryonOS/BaryonOS/actions/runs/44210534844/job/134487423330",
+      "name": "component-quality (ai-model-reader)",
+      "startedAt": "2026-11-18T00:47:23Z",
+      "status": "COMPLETED",
+      "workflowName": "Component leaf quality"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-11-18T00:48:00Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/BaryonOS/BaryonOS/actions/runs/44210534990/job/134487425940",
+      "name": "copilot-setup-steps",
+      "startedAt": "2026-11-18T00:46:36Z",
+      "status": "COMPLETED",
+      "workflowName": "Copilot hosted development environment"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-11-18T00:48:09Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/BaryonOS/BaryonOS/actions/runs/44210534832/job/134487423147",
+      "name": "k05-native-supervisor",
+      "startedAt": "2026-11-18T00:46:20Z",
+      "status": "COMPLETED",
+      "workflowName": "K05 process management acceptance"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-11-18T00:51:24Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/BaryonOS/BaryonOS/actions/runs/44210534783/job/134487423060",
+      "name": "m6e-native-volume",
+      "startedAt": "2026-11-18T00:46:19Z",
+      "status": "COMPLETED",
+      "workflowName": "M6e scalable volume acceptance"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-11-18T00:47:52Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/BaryonOS/BaryonOS/actions/runs/44210534870/job/134487423861",
+      "name": "merge-hold",
+      "startedAt": "2026-11-18T00:47:39Z",
+      "status": "COMPLETED",
+      "workflowName": "Merge hold"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-11-18T00:47:10Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/BaryonOS/BaryonOS/actions/runs/44210534775/job/134487422893",
+      "name": "nas-native-core-host-target",
+      "startedAt": "2026-11-18T00:46:35Z",
+      "status": "COMPLETED",
+      "workflowName": "NAS host, target and native normal/cold checks"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-11-18T00:47:53Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/BaryonOS/BaryonOS/actions/runs/44210534889/job/134487425366",
+      "name": "native-power",
+      "startedAt": "2026-11-18T00:46:36Z",
+      "status": "COMPLETED",
+      "workflowName": "Native ACPI S5 poweroff (H05 step)"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-11-18T00:47:54Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/BaryonOS/BaryonOS/actions/runs/44210534961/job/134487424804",
+      "name": "native-rtc",
+      "startedAt": "2026-11-18T00:46:45Z",
+      "status": "COMPLETED",
+      "workflowName": "Native CMOS RTC acceptance"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-11-18T00:47:50Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/BaryonOS/BaryonOS/actions/runs/44210534741/job/134487422579",
+      "name": "native-hid-input",
+      "startedAt": "2026-11-18T00:46:19Z",
+      "status": "COMPLETED",
+      "workflowName": "Native HID input IPC (synthetic reports)"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-11-18T00:49:15Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/BaryonOS/BaryonOS/actions/runs/44210535012/job/134487426620",
+      "name": "native-foundation",
+      "startedAt": "2026-11-18T00:47:14Z",
+      "status": "COMPLETED",
+      "workflowName": "Native RANDOM and image foundation acceptance"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-11-18T00:47:50Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/BaryonOS/BaryonOS/actions/runs/44210534740/job/134487570413",
+      "name": "Artifact download contract (fixtures only)",
+      "startedAt": "2026-11-18T00:47:38Z",
+      "status": "COMPLETED",
+      "workflowName": "Native SMP bring-up (K06 step 1)"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-11-18T00:49:17Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/BaryonOS/BaryonOS/actions/runs/44210534976/job/134487426253",
+      "name": "native-display-input",
+      "startedAt": "2026-11-18T00:46:30Z",
+      "status": "COMPLETED",
+      "workflowName": "Native display and input acceptance"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-11-18T00:48:24Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/BaryonOS/BaryonOS/actions/runs/44210534840/job/134487424055",
+      "name": "native-xhci",
+      "startedAt": "2026-11-18T00:46:27Z",
+      "status": "COMPLETED",
+      "workflowName": "Native xHCI DMA and USB HID transport"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-11-18T00:47:50Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/BaryonOS/BaryonOS/actions/runs/44210534874/job/134487424404",
+      "name": "net-tls-quality",
+      "startedAt": "2026-11-18T00:46:20Z",
+      "status": "COMPLETED",
+      "workflowName": "Network TLS adapter quality"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-11-18T00:47:03Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/BaryonOS/BaryonOS/actions/runs/44210534721/job/134487422181",
+      "name": "net-broker-quality",
+      "startedAt": "2026-11-18T00:46:19Z",
+      "status": "COMPLETED",
+      "workflowName": "Network broker quality"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-11-18T00:48:09Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/BaryonOS/BaryonOS/actions/runs/44210534940/job/134487425258",
+      "name": "k07-native",
+      "startedAt": "2026-11-18T00:46:54Z",
+      "status": "COMPLETED",
+      "workflowName": "Resource pressure acceptance"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-11-18T00:48:50Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/BaryonOS/BaryonOS/actions/runs/44210535046/job/134487426129",
+      "name": "s08-native-resilience",
+      "startedAt": "2026-11-18T00:46:31Z",
+      "status": "COMPLETED",
+      "workflowName": "Storage resilience acceptance"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-11-18T00:48:23Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/BaryonOS/BaryonOS/actions/runs/44210534701/job/134487423011",
+      "name": "package-and-verify",
+      "startedAt": "2026-11-18T00:46:48Z",
+      "status": "COMPLETED",
+      "workflowName": "Windows QEMU native Materiaal test bundle"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "0001-01-01T00:00:00Z",
+      "conclusion": "",
+      "detailsUrl": "https://github.com/BaryonOS/BaryonOS/actions/runs/44210534979/job/134487556767",
+      "name": "native-window-session (2)",
+      "startedAt": "2026-11-18T00:46:56Z",
+      "status": "IN_PROGRESS",
+      "workflowName": "Native window session and Windows QEMU bundle"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-11-18T00:47:08Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/BaryonOS/BaryonOS/actions/runs/44210534844/job/134487423174",
+      "name": "component-quality (image-viewer)",
+      "startedAt": "2026-11-18T00:46:35Z",
+      "status": "COMPLETED",
+      "workflowName": "Component leaf quality"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-11-18T00:47:11Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/BaryonOS/BaryonOS/actions/runs/44210534775/job/134487422483",
+      "name": "nas-native-volume-host-target",
+      "startedAt": "2026-11-18T00:46:34Z",
+      "status": "COMPLETED",
+      "workflowName": "NAS host, target and native normal/cold checks"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-11-18T00:47:12Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/BaryonOS/BaryonOS/actions/runs/44210534844/job/134487423392",
+      "name": "component-quality (virtio-snd)",
+      "startedAt": "2026-11-18T00:46:37Z",
+      "status": "COMPLETED",
+      "workflowName": "Component leaf quality"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-11-18T00:47:36Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/BaryonOS/BaryonOS/actions/runs/44210534775/job/134487422881",
+      "name": "nas-native-probe-host-target",
+      "startedAt": "2026-11-18T00:46:56Z",
+      "status": "COMPLETED",
+      "workflowName": "NAS host, target and native normal/cold checks"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-11-18T00:46:46Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/BaryonOS/BaryonOS/actions/runs/44210534844/job/134487422967",
+      "name": "component-quality (acpi-power)",
+      "startedAt": "2026-11-18T00:46:22Z",
+      "status": "COMPLETED",
+      "workflowName": "Component leaf quality"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-11-18T00:47:43Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/BaryonOS/BaryonOS/actions/runs/44210534775/job/134487422957",
+      "name": "nas-native-client-host-target",
+      "startedAt": "2026-11-18T00:47:12Z",
+      "status": "COMPLETED",
+      "workflowName": "NAS host, target and native normal/cold checks"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-11-18T00:48:20Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/BaryonOS/BaryonOS/actions/runs/44210534844/job/134487423386",
+      "name": "component-quality (usb)",
+      "startedAt": "2026-11-18T00:47:47Z",
+      "status": "COMPLETED",
+      "workflowName": "Component leaf quality"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-11-18T00:48:27Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/BaryonOS/BaryonOS/actions/runs/44210534844/job/134487423262",
+      "name": "component-quality (document-import)",
+      "startedAt": "2026-11-18T00:47:53Z",
+      "status": "COMPLETED",
+      "workflowName": "Component leaf quality"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-11-18T00:48:27Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/BaryonOS/BaryonOS/actions/runs/44210534844/job/134487423463",
+      "name": "component-quality (document-export)",
+      "startedAt": "2026-11-18T00:47:54Z",
+      "status": "COMPLETED",
+      "workflowName": "Component leaf quality"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-11-18T00:48:40Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/BaryonOS/BaryonOS/actions/runs/44210534844/job/134487423302",
+      "name": "component-quality (image-crop)",
+      "startedAt": "2026-11-18T00:48:03Z",
+      "status": "COMPLETED",
+      "workflowName": "Component leaf quality"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-11-18T00:48:57Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/BaryonOS/BaryonOS/actions/runs/44210534844/job/134487423225",
+      "name": "component-quality (image-export)",
+      "startedAt": "2026-11-18T00:48:23Z",
+      "status": "COMPLETED",
+      "workflowName": "Component leaf quality"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-11-18T00:49:05Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/BaryonOS/BaryonOS/actions/runs/44210534844/job/134487423479",
+      "name": "component-quality (audio-clip)",
+      "startedAt": "2026-11-18T00:48:30Z",
+      "status": "COMPLETED",
+      "workflowName": "Component leaf quality"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-11-18T00:49:06Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/BaryonOS/BaryonOS/actions/runs/44210534844/job/134487423354",
+      "name": "component-quality (presentation)",
+      "startedAt": "2026-11-18T00:48:31Z",
+      "status": "COMPLETED",
+      "workflowName": "Component leaf quality"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-11-18T00:49:15Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/BaryonOS/BaryonOS/actions/runs/44210534844/job/134487423487",
+      "name": "component-quality (spreadsheet)",
+      "startedAt": "2026-11-18T00:48:43Z",
+      "status": "COMPLETED",
+      "workflowName": "Component leaf quality"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-11-18T00:49:30Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/BaryonOS/BaryonOS/actions/runs/44210534844/job/134487423478",
+      "name": "component-quality (table-editor)",
+      "startedAt": "2026-11-18T00:49:00Z",
+      "status": "COMPLETED",
+      "workflowName": "Component leaf quality"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-11-18T00:49:37Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/BaryonOS/BaryonOS/actions/runs/44210534844/job/134487423299",
+      "name": "component-quality (net-config)",
+      "startedAt": "2026-11-18T00:49:08Z",
+      "status": "COMPLETED",
+      "workflowName": "Component leaf quality"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "0001-01-01T00:00:00Z",
+      "conclusion": "",
+      "detailsUrl": "https://github.com/BaryonOS/BaryonOS/actions/runs/44210534740/job/134487570005",
+      "name": "native-smp",
+      "startedAt": "2026-11-18T00:46:57Z",
+      "status": "IN_PROGRESS",
+      "workflowName": "Native SMP bring-up (K06 step 1)"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-11-18T00:48:59Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/BaryonOS/BaryonOS/actions/runs/44210535064/job/134487426353",
+      "name": "qemu-smoke",
+      "startedAt": "2026-11-18T00:46:47Z",
+      "status": "COMPLETED",
+      "workflowName": "CI"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-11-18T00:48:21Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/BaryonOS/BaryonOS/actions/runs/44210534775/job/134487422934",
+      "name": "nas-native-normal-cold",
+      "startedAt": "2026-11-18T00:46:39Z",
+      "status": "COMPLETED",
+      "workflowName": "NAS host, target and native normal/cold checks"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-11-18T00:48:47Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/BaryonOS/BaryonOS/actions/runs/44210534889/job/134487425617",
+      "name": "power-system-gate",
+      "startedAt": "2026-11-18T00:46:29Z",
+      "status": "COMPLETED",
+      "workflowName": "Native ACPI S5 poweroff (H05 step)"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-11-18T00:51:01Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/BaryonOS/BaryonOS/actions/runs/44210534721/job/134487785948",
+      "name": "native-network-service",
+      "startedAt": "2026-11-18T00:47:55Z",
+      "status": "COMPLETED",
+      "workflowName": "Network broker quality"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-11-18T00:46:35Z",
+      "conclusion": "SKIPPED",
+      "detailsUrl": "https://github.com/BaryonOS/BaryonOS/actions/runs/44210534740/job/134487572001",
+      "name": "SMP Ubuntu 26.04 and K07 probe",
+      "startedAt": "2026-11-18T00:46:35Z",
+      "status": "COMPLETED",
+      "workflowName": "Native SMP bring-up (K06 step 1)"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-11-18T00:46:35Z",
+      "conclusion": "SKIPPED",
+      "detailsUrl": "https://github.com/BaryonOS/BaryonOS/actions/runs/44210534740/job/134487571880",
+      "name": "DIAGNOSTIC margins (${{ matrix.case }})",
+      "startedAt": "2026-11-18T00:46:35Z",
+      "status": "COMPLETED",
+      "workflowName": "Native SMP bring-up (K06 step 1)"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-11-18T00:46:35Z",
+      "conclusion": "SKIPPED",
+      "detailsUrl": "https://github.com/BaryonOS/BaryonOS/actions/runs/44210534740/job/134487572393",
+      "name": "DIAGNOSTIC final gate rehearsal",
+      "startedAt": "2026-11-18T00:46:35Z",
+      "status": "COMPLETED",
+      "workflowName": "Native SMP bring-up (K06 step 1)"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-11-18T00:46:35Z",
+      "conclusion": "SKIPPED",
+      "detailsUrl": "https://github.com/BaryonOS/BaryonOS/actions/runs/44210534740/job/134487572027",
+      "name": "DIAGNOSTIC ONLY \u2014 m3-one-multi 50 traced repetitions",
+      "startedAt": "2026-11-18T00:46:35Z",
+      "status": "COMPLETED",
+      "workflowName": "Native SMP bring-up (K06 step 1)"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "0001-01-01T00:00:00Z",
+      "conclusion": "",
+      "detailsUrl": "https://github.com/BaryonOS/BaryonOS/actions/runs/44210534740/job/134487570470",
+      "name": "experimental-m3-m4-smp",
+      "startedAt": "2026-11-18T00:47:48Z",
+      "status": "IN_PROGRESS",
+      "workflowName": "Native SMP bring-up (K06 step 1)"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-11-18T00:46:35Z",
+      "conclusion": "SKIPPED",
+      "detailsUrl": "https://github.com/BaryonOS/BaryonOS/actions/runs/44210534740/job/134487572066",
+      "name": "SMP 50/50 (${{ matrix.case }})",
+      "startedAt": "2026-11-18T00:46:35Z",
+      "status": "COMPLETED",
+      "workflowName": "Native SMP bring-up (K06 step 1)"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-11-18T00:46:35Z",
+      "conclusion": "SKIPPED",
+      "detailsUrl": "https://github.com/BaryonOS/BaryonOS/actions/runs/44210534740/job/134487572082",
+      "name": "SMP soak 5/50 (shard ${{ matrix.shard }})",
+      "startedAt": "2026-11-18T00:46:35Z",
+      "status": "COMPLETED",
+      "workflowName": "Native SMP bring-up (K06 step 1)"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-11-18T00:46:35Z",
+      "conclusion": "SKIPPED",
+      "detailsUrl": "https://github.com/BaryonOS/BaryonOS/actions/runs/44210534740/job/134487572328",
+      "name": "SMP section 9 aggregate 74x50",
+      "startedAt": "2026-11-18T00:46:35Z",
+      "status": "COMPLETED",
+      "workflowName": "Native SMP bring-up (K06 step 1)"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-11-18T00:46:35Z",
+      "conclusion": "SKIPPED",
+      "detailsUrl": "https://github.com/BaryonOS/BaryonOS/actions/runs/44210534740/job/134487573458",
+      "name": "SMP final repository gate",
+      "startedAt": "2026-11-18T00:46:35Z",
+      "status": "COMPLETED",
+      "workflowName": "Native SMP bring-up (K06 step 1)"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-11-18T00:49:34Z",
+      "conclusion": "NEUTRAL",
+      "detailsUrl": "https://graphify.com",
+      "name": "Graphify Formal Verification",
+      "startedAt": "2026-11-18T00:49:34Z",
+      "status": "COMPLETED",
+      "workflowName": ""
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-11-18T00:46:21Z",
+      "conclusion": "SKIPPED",
+      "detailsUrl": "https://coderabbit.ai?utm_source=cr_app&utm_medium=github",
+      "name": "CodeRabbit",
+      "startedAt": "2026-11-18T00:46:21Z",
+      "status": "COMPLETED",
+      "workflowName": ""
+    }
+  ]
+}
