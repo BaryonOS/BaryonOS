@@ -1,12 +1,11 @@
 """HOST_ONLY S3 verifier counterexamples; fixtures are not native evidence."""
-import json
 import os
 from pathlib import Path
 import subprocess
 import sys
 import time
 import unittest
-from unittest import mock
+import unittest.mock
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import run_sleep as gate
@@ -139,7 +138,12 @@ emit({"QMP": {"version": {}}})
 sys.stdin.readline()
 emit({"return": {}, "id": 1})
 for event in sys.argv[1:]:
-    emit({"event": event, "timestamp": {}})
+    if event == "TRUNCATED":
+        # A final message cut off by the end of stream (no newline).
+        sys.stdout.write('{"event": "WAK')
+        sys.stdout.flush()
+    else:
+        emit({"event": event, "timestamp": {}})
 """
 
 
@@ -165,16 +169,17 @@ class EventDrain(unittest.TestCase):
         self.assertEqual(control.events, [])
 
     def test_truncated_final_message_is_an_error(self):
-        control = self.control("SUSPEND")
-        control.pending.extend(b'{"event": "WAK')
+        control = self.control("SUSPEND", "TRUNCATED")
         with self.assertRaises(RuntimeError):
             control.drain()
+        self.assertEqual(control.events, ["SUSPEND"])
 
 
 class MachinePin(unittest.TestCase):
     def test_other_machine_types_are_refused_before_launch(self):
-        with mock.patch.dict(os.environ, {"NOS_QEMU_MACHINE": "pc-q35-10.0"}):
-            with mock.patch.object(gate, "save_json"), self.assertRaisesRegex(ValueError, "pinned"):
+        with unittest.mock.patch.dict(os.environ, {"NOS_QEMU_MACHINE": "pc-q35-10.0"}):
+            with unittest.mock.patch.object(gate, "save_json"), \
+                    self.assertRaisesRegex(ValueError, "pinned"):
                 gate.run_case("cycles")
 
 
