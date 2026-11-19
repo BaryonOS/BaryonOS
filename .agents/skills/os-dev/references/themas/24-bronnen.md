@@ -7,7 +7,6 @@ This section contains reference works, project examples, porting, additional com
 - [Resources](../corpus/wiki-01.md#w001368) [W001368] · revision 28287 · 2023-08-20T09:46:01Z
 - [Books](../corpus/wiki-02.md#w001572) [W001572] · revision 29661 · 2025-09-18T03:57:46Z
 - [Academic Papers](../corpus/wiki-11.md#w003903) [W003903] · revision 31041 · 2026-10-23T21:22:10Z
-- [Licensing](../corpus/wiki-03.md#w001885) [W001885] · revision 30983 · 2026-09-28T14:13:16Z
 - [Code Management](../corpus/wiki-09.md#w003405) [W003405] · revision 25368 · 2020-11-19T19:25:42Z
 - [Portability](../corpus/wiki-09.md#w003402) [W003402] · revision 29011 · 2024-06-06T17:31:33Z
 - [Cross-Porting Software](../corpus/wiki-10.md#w003628) [W003628] · revision 28165 · 2023-07-10T14:49:59Z
@@ -46,7 +45,6 @@ The selection below was generated automatically from page titles and categories;
 - [Intel Advanced Encryption Standard New Instructions](../corpus/wiki-12.md#w004064) [W004064]
 - [Learning 80x86 Assembly](../corpus/wiki-06.md#w002703) [W002703]
 - [Library Calls](../corpus/wiki-03.md#w001912) [W001912]
-- [Licensing](../corpus/wiki-03.md#w001885) [W001885]
 - [Making a Compiler](../corpus/wiki-09.md#w003408) [W003408]
 - [MP Specification](../corpus/wiki-10.md#w003591) [W003591]
 - [Ne2000](../corpus/wiki-02.md#w001627) [W001627]

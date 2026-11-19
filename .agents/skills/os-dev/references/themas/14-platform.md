@@ -42,5 +42,4 @@ The selection below was generated automatically from page titles and categories;
 - [SSDT](../corpus/wiki-07.md#w003108) [W003108]
 - [UACPI](../corpus/wiki-14.md#w004861) [W004861]
 - [WAET](../corpus/wiki-14.md#w004807) [W004807]
-- [Wish List](../corpus/wiki-03.md#w001943) [W001943]
 - [XSDT](../corpus/wiki-08.md#w003319) [W003319]
