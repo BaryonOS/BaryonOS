@@ -128,6 +128,9 @@ class ExcludeScript(unittest.TestCase):
             target = self._target(root)
             corpus = root / target["local_path"]
             original = corpus.read_bytes()
+            index = root / "references/source-index.json"
+            page = root / "references/pagina-index.md"
+            index_before, page_before = index.read_bytes(), page.read_bytes()
             mod = self._module(root)
             real = Path.write_bytes
             calls = {}
@@ -136,7 +139,7 @@ class ExcludeScript(unittest.TestCase):
                 calls[self.name] = calls.get(self.name, 0) + 1
                 if self.name.startswith("source-manifest.json"):
                     raise OSError("simulated write failure")
-                if self.name.startswith("source-index.json") and calls[self.name] > 1:
+                if self.name == "source-index.json.exclude-tmp" and calls[self.name] > 1:
                     raise OSError("simulated restore failure")
                 return real(self, data)
 
@@ -149,4 +152,10 @@ class ExcludeScript(unittest.TestCase):
                 Path.write_bytes = real
             self.assertIsInstance(ctx.exception.__cause__, OSError)
             self.assertEqual(corpus.read_bytes(), original)
+            # Files written after the unrestorable one are still restored.
+            self.assertEqual(page.read_bytes(), page_before)
+            # The unrestored file's original is kept and named in the error.
+            kept = index.with_name("source-index.json.exclude-orig")
+            self.assertEqual(kept.read_bytes(), index_before)
+            self.assertIn(str(kept), str(ctx.exception))
             self.assertEqual(list(root.rglob("*.exclude-tmp")), [])

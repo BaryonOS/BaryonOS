@@ -26,12 +26,25 @@ def write_atomic(path: Path, data: bytes) -> None:
         tmp.unlink(missing_ok=True)
 
 
+def keep_original(path: Path, data: bytes | None) -> str:
+    """Save an unrestored file's original bytes beside it; return where, or why not."""
+    if data is None:
+        return "file did not exist"
+    copy = path.with_name(path.name + ".exclude-orig")
+    try:
+        copy.write_bytes(data)
+    except OSError as exc:
+        return f"not saved: {exc}"
+    return str(copy)
+
+
 def commit(staged: dict[Path, bytes]) -> None:
     """Write every staged file or none: restore the originals if any write fails.
 
     Each file is replaced atomically, so the file whose write failed keeps its
     original contents. Rollback attempts every written file even when one
-    restoration fails, and reports the files it could not restore.
+    restoration fails, and reports the files it could not restore together with
+    a saved copy of their original contents.
     """
     originals = {p: (p.read_bytes() if p.exists() else None) for p in staged}
     written = []
@@ -48,9 +61,9 @@ def commit(staged: dict[Path, bytes]) -> None:
                 else:
                     write_atomic(path, originals[path])
             except OSError:
-                unrestored.append(str(path))
+                unrestored.append(f"{path} (original: {keep_original(path, originals[path])})")
         if unrestored:
-            raise OSError(f"write failed and rollback could not restore: {', '.join(unrestored)}") from err
+            raise OSError("write failed and rollback could not restore: " + "; ".join(unrestored)) from err
         raise
 
 
