@@ -1,5 +1,37 @@
 # Current project status
 
+## NEXT AGENT HANDOFF — CodeQL pre-merge latency — 18 November 2026
+
+**Claim/source:** Codex sole writer in `codex/codeql-pr-fast-suite`, based on main
+`5a3295b6093549f4b5ff6164ab2773ac4c264996`. No open PR owns `codeql.yml`.
+**Goal:** shorten the CodeQL critical path without changing the repository ruleset,
+required status checks, language coverage, security-event permissions or execution hold.
+
+**Measured baseline:** the active ruleset requires strict current-main
+`host-quality`, `qemu-smoke` and `merge-hold`, plus CodeQL code-scanning results at
+`high_or_higher`; coverage, Code Quality, CodeRabbit and other analysis jobs are not
+required status checks. Three successful PR CodeQL runs completed in 7:45–8:18.
+Their Rust jobs took 7:02–8:14 and dominated; one measured Rust analysis step took
+6:34, while setup, checkout, toolchain and init together took 23 seconds.
+
+**Change:** pull-request and merge-group runs keep all four languages and CodeQL's
+default high-precision security queries. Pushes to main, weekly schedule and manual
+runs keep `security-extended`, which includes the default suite plus additional
+lower-precision/severity queries. The high-or-higher merge rule is unchanged.
+
+**Checks:** all 27 workflow-contract tests pass, exit 0
+(`build/tokenguard/run-sokqmluq.log`). `actionlint -shellcheck= -pyflakes=` is NOT RUN:
+the executable is unavailable (exit 127, `run-npl6cyh_.log`). Hosted CodeQL/workflow
+checks must validate syntax and measure the actual duration. No local CodeQL scan,
+QEMU matrix, ruleset mutation or security-alert dismissal was performed.
+
+**Trade-off/evidence limit:** additional extended queries no longer block the PR;
+they run after merge on main and weekly. Default queries and the mandatory severity
+threshold remain pre-merge. A speedup is expected only in query evaluation and is
+not yet measured on this head. **Next:** publish one focused draft PR, compare its
+four CodeQL job durations with the 7:45–8:18 baseline, and merge only after the
+unchanged mandatory rules pass. Progress remains **41 → 41/100**.
+
 ## NEXT AGENT HANDOFF — P04-T2 delivery — 18 November 2026
 
 **Source:** `a73e41a7db7b8aa90fa47a299886feb6d607fd0c`, `codex/p04-native-quota`.

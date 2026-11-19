@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-18",
-    "source_commit": "5265eb2f3e39c5736a66ff2ea45cfabc1553a48f",
+    "source_commit": "c5464ebb90e62e9e072e852dfe658d7036af742b",
     "assessment_basis": "parent_commit",
-    "branch": "codex/p04-native-quota",
-    "task": "P04-T2: Native NAS Cancel14, full-quota rejection/reservation release/retry, full-quota adjustment and kernel-observed offline-guest revoke/evict delivered. Normal/recover QEMU33;0cold writes/flushes, exact2 tombstones/core11/volume21.78host tests and native gate exit0.",
+    "branch": "codex/codeql-pr-fast-suite",
+    "task": "CodeQL fast pre-merge/default and extended main analysis",
     "previous_score": 41,
-    "summary": "41/100 unchanged. Native NAS Cancel14, full-quota rejection/reservation release/retry, full-quota adjustment and kernel-observed offline-guest revoke/evict delivered. Normal/recover QEMU33;0cold writes/flushes, exact2 tombstones/core11/volume21.78host tests and native gate exit0. Local native QEMU/IPC only; no remote authenticated guest, product admin UI, hardware or full P04 acceptance. Existing token leak/replay checks retained; source fingerprint4af81525 matches the published code. Integration/Claude ownership and execution hold preserved."
+    "summary": "41/100 unchanged. CodeQL retains four-language default security analysis before merge and security-extended analysis on main, schedule and manual runs. The strict required checks, high-or-higher code-scanning rule, permissions and execution hold are unchanged. Workflow contract tests pass, but hosted CodeQL must still validate syntax and measure latency; no OS criterion or evidence level changes."
   },
   "tracks": [
     {
