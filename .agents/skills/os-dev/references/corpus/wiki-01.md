@@ -9841,30 +9841,6 @@ This category lists information regarding kernel design.
 [[Category:OS theory]]
 ````
 
-<a id="w001473"></a>
-
-## W001473 — Monotasking Systems
-
-Bron-ID: W001473
-Namespace: Main (0)
-Revisie: 11215 | Datum: 2011-03-06T09:09:27Z
-Bron: https://wiki.osdev.org/Monotasking_Systems
-Revisie-URL: https://wiki.osdev.org/index.php?title=Monotasking_Systems&oldid=11215
-
-````text
-{{Stub}}
-
-Monotasking systems, also referred to as single-tasking systems, are operating systems in which only one thread of execution is run at a given time. When an application is executed, it takes control of the whole computer, save for a 'resident' part of the OS which handles system calls and reloads the rest of the system when the application exits. Generally speaking, such systems have little or no protection against malicious software.
-
-There are two forms of monotasking systems. The first form is where only one program can be running at once (DexOS is a perfect example), with the second form allowing multiple programs to be running simultaneously but only one program can be in focus at a time as a limitation of the user interface (early Unix systems, or imagine Linux with only one TTY device).
-
-The canonical example of a monotasking operating system is MS-DOS, which falls in between the two forms. While not supporting multitasking directly, MS-DOS allows programs to terminate execution but does not mark the memory they exist in as usable (known as [http://en.wikipedia.org/wiki/Terminate_and_Stay_Resident Terminate and Stay Resident]). Programs which TSR can be communicated with after they quit by devices and other programs.
-
-While they are easier to design and write, monotasking operating systems are extremely limited. As a result, nearly all modern general-purpose OS designs are for [[Multitasking Systems]].
-
-[[Category:Task Models]]
-````
-
 <a id="w001474"></a>
 
 ## W001474 — Multitasking Systems

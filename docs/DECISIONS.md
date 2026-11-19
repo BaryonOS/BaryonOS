@@ -5,6 +5,178 @@ This document distinguishes the decisions and authority of the project owner
 from those of the executing roles. Source quotations retain their original
 wording and speaker.
 
+## Project-owner decision package of 19 November 2026 — scope and limits
+
+The six ADRs below record one decision package issued by the project owner on
+19 November 2026. They authorize scoped technical planning, implementation,
+isolated testing and reviewable draft PRs within existing project permissions.
+They do not override the Security Floor, current workstream ownership, branch
+protection, merge authorization, production-signing boundaries, physical-device
+restrictions or the unattended-execution hold. Each ADR separates the approved
+architecture from unfinished implementation, acceptance and release authority.
+An approved direction is not an accepted criterion and changes no score.
+
+## ADR-S09-DESTINATION-20261119 — Backup destination service, trusted dialog and OS backup portal
+
+Status: accepted by the project owner on 19 November 2026. It decides D1–D5 of
+[S09-BACKUP-DESTINATION-PROPOSAL.md](implementation/S09-BACKUP-DESTINATION-PROPOSAL.md)
+and confirms D6, superseding that proposal's "D1–D5 remain undecided" status and
+the corresponding limitation in [ADR-S09-USTAR-20261114](#adr-s09-ustar-20261114--posix-ustar-with-pax-path-records-as-the-lossy-s09-user-export-format-d6-a).
+
+**Decision:**
+
+- **D1 (b):** a dedicated backup destination service owns the target device or
+  partition and exposes named, append-only archive entries.
+- **D2 (a):** a trusted system dialog authorizes the explicitly selected
+  destination and operation. Remembered permissions are revocable and follow the
+  existing permission model.
+- **D3:** rights are least-privilege and operation-specific for export,
+  verification and restore. The backup portal never acquires unrestricted volume
+  access.
+- **D4 (a):** a trusted OS backup portal holds destination capabilities.
+  Third-party applications receive no direct raw backup-device authority.
+- **D5 (a):** initially only local, user-owned destinations. Encrypted NAS and
+  external-provider destinations require the existing key-management and
+  client-side encryption contracts
+  ([ENCRYPTED-OBJECT-STORAGE.md](implementation/ENCRYPTED-OBJECT-STORAGE.md)).
+- **D6:** the approved POSIX ustar/pax interchange format is retained.
+
+**Implementation boundary:** the first independent recovery test runs on
+isolated, disposable QEMU disks. A separate destination service and any new
+production capability boundary require a documented interface, a security
+review, negative tests and verified enforcement before activation. The
+existing test-fixture grant in [S09-BACKUP-ARCHIVE.md](implementation/S09-BACKUP-ARCHIVE.md)
+remains a fixture. S09 stays open until its full acceptance passes; Claude S09
+ownership of the implementation is unchanged.
+
+## ADR-B03-B04-TARGET-20261119 — Target architecture for update authenticity and recovery
+
+Status: accepted by the project owner on 19 November 2026 as the target security
+architecture. It adopts D1–D7 of
+[B03-PRODUCTION-POLICY-PROPOSAL.md](implementation/B03-PRODUCTION-POLICY-PROPOSAL.md),
+superseding its "unapproved" status for the architecture only, and extends
+[ADR-B03K3](#adr-b03k3--authorised-synthetic-policy-transition-experiment).
+
+**Decision:**
+
+- separate offline policy-root and release-signing roles (D1);
+- bounded, canonical, authenticated policy envelopes and target-bound image
+  manifests (D2,
+  [B03-POLICY-TRANSITION-PROPOSAL.md](implementation/B03-POLICY-TRANSITION-PROPOSAL.md));
+- demonstrable persistent rollback resistance against the declared threat
+  model (D3);
+- revocation and recovery that never bypass signatures or lower security floors
+  (D4);
+- the initial loader and root authenticated through a separately verified boot
+  chain (D5);
+- authenticated release-version windows; ordinary RTC time does not establish
+  trusted expiry (D6);
+- authorization covers specifications, synthetic-key implementation and
+  disposable-QEMU verification only (D7).
+
+**Still subject to separate verification and approval:** the production
+custodians, signing environment, persistent anchor backend, firmware trust
+chain and recovery procedures.
+
+**Not authorized:** real production-key generation, production signing, release
+publication, physical firmware modification or activation of an unverified trust
+mechanism. Issue #41 and B03/B04 remain open; scores are unchanged.
+
+## ADR-DESIGN-TOKENS-20261119 — Deterministic generator for design tokens
+
+Status: accepted by the project owner on 19 November 2026 for the token work in
+draft PR #360. It refines the generated-token rule in `ui/AGENTS.md` and
+[DESIGN-SYSTEM.md](design/DESIGN-SYSTEM.md) without changing it.
+
+**Decision:** approve a deterministic, version-controlled token generator with
+validated inputs, reproducibility checks and regression tests.
+`ui/prototype/tokens.css` and `ui/design/system/tokens.css` stay frozen until the
+generator reproduces the intended output and the change passes independent
+review. Unresolved review threads and required checks are not bypassed.
+Accessibility requirements and the existing design identity are preserved. PR
+#360 remains owned by the Claude UI/UX workstream.
+
+## ADR-P-NAMES-1-20261119 — Functional, localizable user-facing names
+
+Status: accepted by the project owner on 19 November 2026. It decides proposal
+P-NAMES-1 in [NAMING-AND-IA.md](design/NAMING-AND-IA.md) §8 and supersedes the
+user-facing names of 5 November 2026 in
+[DESKTOP-SHELL.md](implementation/DESKTOP-SHELL.md) §7.
+
+| Previous name | User-facing name (EN / NL) |
+|---|---|
+| Horizon | Desktop / Bureaublad |
+| Zenit | Menu |
+| Signaal | Search / Zoeken |
+| Nebula | Files / Bestanden |
+| Kern | Settings / Instellingen |
+| Orbit | Orbit, with a descriptive dock label |
+| Haven | Haven, with a descriptive application-store label |
+
+Materiaal remains the internal object and permission model. Existing code
+identifiers, stable APIs, storage formats and historical references stay
+unchanged unless a change is separately justified. User-visible strings follow
+these names through localization, not through renaming internal identifiers.
+
+## ADR-PROGRESS-ROUTE-20261119 — Route from 41 to at least 50 points (issue #43)
+
+Status: accepted by the project owner on 19 November 2026. It sets priority only
+and does not change the rubric, weights or acceptance conditions.
+
+**Decision:** the fixed 100-point rubric and the accepted baseline of 41/100 are
+retained. Completing existing functional criteria takes priority over new
+prototypes or wider claims. The preferred route is S09 (+2), N02 (+3), U05 (+2)
+and H02 (+3), which reaches 51/100 only if all four pass their full acceptance
+independently. H02 physical-device acceptance depends on a separately selected
+and authorized reference machine; if that blocks progress, U03 is assessed as an
+alternative three-point criterion under its unchanged conditions. Claude's
+S09/UI ownership, Codex's roadmap ownership and the Integration Manager's
+integration authority remain separate.
+
+## ADR-W001473-PROVENANCE-20261119 — Disposition route for historical source record W001473 (issue #283)
+
+Status: accepted by the project owner on 19 November 2026.
+
+**Decision:** first establish the original author, source revision and valid
+reuse permission for W001473 (referenced from
+`.agents/skills/os-dev/references/`). If sufficient primary evidence cannot be
+obtained, prepare a narrowly scoped exclusion or an independently authored
+replacement, supported by a source comparison, a licensing review and a
+publication-impact assessment. Permission is never inferred from missing
+evidence. Git history is not rewritten, unrelated reference sources are not
+deleted and no legal clearance is claimed without proper verification. Issue
+#283 remains open until the selected disposition is substantiated and reviewed.
+
+**Follow-up decision (project owner, 19 November 2026), after the provenance
+search:** the primary search found W001473 to be a 2006 port from the old OS
+Wiki with no verifiable original grant
+(`docs/verification/w001473-provenance-20261119/`). The owner therefore chose,
+and extended to the whole OSDev corpus, a risk-based review:
+
+1. Exclude W001473 through a separate, targeted and reviewed change that
+   rebuilds the indexes and keeps the provenance record (PR #397).
+2. Examine the other 27 explicitly imported pages individually; keep a page
+   only with demonstrably sufficient rights, otherwise exclude it in a targeted
+   change (PR #399).
+3. Examine the 641 pages that predate the CC0 statement of 6 June 2011, without
+   blind deletion, and screen the other pages for older copied text (PR #398).
+4. Retain text only on a verifiable licence, original permission or an
+   independently written replacement; claim no new MPL-2.0 licence for copied
+   text. Third-party text without such a basis is excluded (PR #400).
+5. Report which texts are reusable, uncertain or excluded, and the residual
+   Git-history risk.
+
+*Consequences:* protected skill files change only through separate, scoped and
+reviewed PRs; there is no mass deletion, no history rewrite and no licence
+claim without evidence. Records with an owner decision still pending (licences
+with notice or share-alike obligations, quotations) stay in the corpus as
+uncertain until decided. Legal clearance and acceptance of these ADRs remain
+separate steps. The product score is unchanged.
+*Review criterion:* #283 closes only when W001473, the 27 imports and the
+third-party records are excluded or retained on a documented verifiable basis,
+the pre-CC0 review and older-text screening are recorded, and every remaining
+uncertain record (including the pre-CC0 pages) has a recorded disposition.
+
 ## ADR-AGENT-GOVERNANCE-20261118 — Shared contracts and risk-based execution
 
 Status: accepted project-owner direction, 18 November 2026, fresh-session execution
@@ -304,7 +476,8 @@ existing TEST update path and missing-policy guards intact.
 Status: accepted by the project owner on 14 November 2026; recorded on
 15 November 2026. It decides D6 of
 [S09-BACKUP-DESTINATION-PROPOSAL.md](implementation/S09-BACKUP-DESTINATION-PROPOSAL.md)
-only. D1–D5 of that proposal remain undecided.
+only. D1–D5 were decided later by
+[ADR-S09-DESTINATION-20261119](#adr-s09-destination-20261119--backup-destination-service-trusted-dialog-and-os-backup-portal).
 Implementation status (15 November 2026): the name check and the test-only
 native stage `archive-ustar` are on draft PR #340; local gate run 14 passed
 ([USTAR-NATIVE-20261115.md](verification/s09-archive/USTAR-NATIVE-20261115.md)).
@@ -362,7 +535,7 @@ auto-merge without the project owner's explicit approval
   are documented in S09-BACKUP-ARCHIVE.md, section "User export to ustar".
 
 **Not decided and not authorised:**
-- D1–D5 remain undecided. This decision does not choose a destination, a
+- At the time of this decision, D1–D5 remained undecided; ADR-S09-DESTINATION-20261119 later decided them. This decision does not choose a destination, a
   grant path, per-operation rights, the component that holds the authority or
   the encrypted NAS/provider variant.
 - No new destination capability, trust boundary or encryption architecture is

@@ -43,7 +43,6 @@ The selection below was generated automatically from page titles and categories;
 - [Microkernel](../corpus/wiki-01.md#w001411) [W001411]
 - [Modular Kernel](../corpus/wiki-03.md#w001906) [W001906]
 - [Monolithic Kernel](../corpus/wiki-01.md#w001410) [W001410]
-- [Monotasking Systems](../corpus/wiki-01.md#w001473) [W001473]
 - [Multiboot 1 Higher Half x86 Bare Bones](../corpus/wiki-11.md#w003929) [W003929]
 - [Multikernel](../corpus/wiki-14.md#w004919) [W004919]
 - [Multitasking Systems](../corpus/wiki-01.md#w001474) [W001474]
