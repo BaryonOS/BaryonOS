@@ -1,0 +1,84 @@
+{
+  "task": "L01-T3",
+  "source_commit": "4a9a44ac4046dcfd69df1abb73f428522e703f65",
+  "level": "host numerical reference and no_std scalar library compilation",
+  "checks": [
+    {
+      "argv": [
+        "cargo",
+        "test",
+        "--locked",
+        "--manifest-path",
+        "experiments/ai/reference-forward/Cargo.toml"
+      ],
+      "exit_code": 0,
+      "raw_log": "build/tokenguard/run-ogx_akvb.log",
+      "sha256": "783f7939c1a904a8bbb5656ee47bd49e388569b5ba90fef2e97440eb5b15b787"
+    },
+    {
+      "argv": [
+        "cargo",
+        "clippy",
+        "--locked",
+        "--manifest-path",
+        "experiments/ai/reference-forward/Cargo.toml",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit_code": 0,
+      "raw_log": "build/tokenguard/run-q0_lh1fq.log",
+      "sha256": "bfb92a6f6727978be0d9f2b7560ce52c5a5ee429c2b5c8e64a0d630892226c7c"
+    },
+    {
+      "argv": [
+        "cargo",
+        "fmt",
+        "--manifest-path",
+        "experiments/ai/reference-forward/Cargo.toml",
+        "--",
+        "--check"
+      ],
+      "exit_code": 0,
+      "raw_log": "build/tokenguard/run-20i1wxuh.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "argv": [
+        "cargo",
+        "build",
+        "--locked",
+        "--release",
+        "--lib",
+        "--target",
+        "x86_64-unknown-none",
+        "--manifest-path",
+        "experiments/ai/reference-forward/Cargo.toml"
+      ],
+      "exit_code": 0,
+      "raw_log": "build/tokenguard/run-i1eiqxvy.log",
+      "sha256": "e5c132f64ca7520393fb034bdd9f56dd093fbbf06096169463adb931541a0cd8"
+    }
+  ],
+  "toolchain": "1.100.0",
+  "environment": {
+    "PATH_prefix": "/home/simon/.rustup/toolchains/1.100.0-x86_64-unknown-linux-gnu/bin",
+    "CARGO_TARGET_DIR": "build/reference-target",
+    "freestanding_RUSTFLAGS": "-C no-redzone=yes -C target-feature=-sse,-sse2,-sse3,-ssse3,-sse4.1,-sse4.2,-avx,-avx2"
+  },
+  "dependency": {
+    "libm": "0.2.16",
+    "checksum": "b6d2cec3eae94f9f509c767b45932f1ada8350c4bdb85af2fcab4a3c14807981",
+    "license": "MIT",
+    "selection": "default-features=false;force-soft-floats",
+    "review": "Primary release metadata, archive digest, licence, build.rs/configure.rs and no_std/dependency closure inspected before adding. Build script emits cfg/env only."
+  },
+  "not_run": [
+    "Native linkage/execution/FP context preservation",
+    "Full transformer attention/RoPE/KV and real model graph",
+    "Model/tokenizer/quality acceptance",
+    "Hosted CI; component entry requires integration alongside PR391"
+  ],
+  "score": "41 -> 41/100"
+}

@@ -1,0 +1,31 @@
+{
+  "task": "P03-T1",
+  "source_commit": "590e1d4188688434cd4f9aa80bb67302b802f770",
+  "level": "proposed design/source-reference checks",
+  "checks": [
+    {
+      "argv": [
+        "python3",
+        "-B",
+        "build/task-checks/check-references.py"
+      ],
+      "exit_code": 0,
+      "raw_log": "build/tokenguard/run-9z3j9_e5.log",
+      "sha256": "bf0eb1eb24ba707962b2204f5bd1cd57bd685e05ae36d1a7559e576440087d90"
+    },
+    {
+      "argv": [
+        "python3",
+        "-B",
+        "tools/progress.py",
+        "--check"
+      ],
+      "exit_code": 0,
+      "raw_log": "build/tokenguard/run-fksswid9.log",
+      "sha256": "14b305fe38d23ae7244745b59dcbbad1fa41b2ffd4a173070a72a8aca2f3aa5f"
+    }
+  ],
+  "limits": "Design only. Native TLS/provider, enrollment identity, rotation distribution, recovery authority and cold freshness remain decision/dependency boundaries. No new trust root/escrow/grant, native device lifecycle, hardware or human audit;41/100 unchanged.",
+  "review": "Lead source/diff review; no native/human acceptance.",
+  "score": "41 -> 41/100"
+}

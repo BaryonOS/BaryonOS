@@ -1,0 +1,229 @@
+{
+  "task": "P04-T2",
+  "source_commit": "a73e41a7db7b8aa90fa47a299886feb6d607fd0c",
+  "level": "host/build",
+  "checks": [
+    {
+      "argv": [
+        "cargo",
+        "test",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "services/nas/native-probe/Cargo.toml"
+      ],
+      "exit_code": 0,
+      "raw_log": "build/tokenguard/run-gn7_0zje.log",
+      "environment": {
+        "PATH_prefix": "/home/simon/.rustup/toolchains/1.90.0-x86_64-unknown-linux-gnu/bin",
+        "CARGO_TARGET_DIR": "build/p04-target"
+      },
+      "sha256": "2a29d37bd787755e21d8c037e4e8ee6f0375d42eb451e26ec6918c106a13efd1"
+    },
+    {
+      "argv": [
+        "cargo",
+        "clippy",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "services/nas/native-probe/Cargo.toml",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit_code": 0,
+      "raw_log": "build/tokenguard/run-q09g_00f.log",
+      "environment": {
+        "PATH_prefix": "/home/simon/.rustup/toolchains/1.90.0-x86_64-unknown-linux-gnu/bin",
+        "CARGO_TARGET_DIR": "build/p04-target"
+      },
+      "sha256": "b14bff71ffb8c1575cae77983c810908ec6f71316e80029b1d205c2c2089855c"
+    },
+    {
+      "argv": [
+        "cargo",
+        "fmt",
+        "--manifest-path",
+        "services/nas/native-probe/Cargo.toml",
+        "--all",
+        "--",
+        "--check"
+      ],
+      "exit_code": 0,
+      "raw_log": "build/tokenguard/run-80_8bqt0.log",
+      "environment": {
+        "PATH_prefix": "/home/simon/.rustup/toolchains/1.90.0-x86_64-unknown-linux-gnu/bin",
+        "CARGO_TARGET_DIR": "build/p04-target"
+      },
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "argv": [
+        "cargo",
+        "test",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "services/nas/native-core/Cargo.toml"
+      ],
+      "exit_code": 0,
+      "raw_log": "build/tokenguard/run-a6q_f_si.log",
+      "environment": {
+        "PATH_prefix": "/home/simon/.rustup/toolchains/1.90.0-x86_64-unknown-linux-gnu/bin",
+        "CARGO_TARGET_DIR": "build/p04-target"
+      },
+      "sha256": "015a22f994952e536845fae8372aa55c5cdd0abd5027e453952afdf000f2f7eb"
+    },
+    {
+      "argv": [
+        "cargo",
+        "clippy",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "services/nas/native-core/Cargo.toml",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit_code": 0,
+      "raw_log": "build/tokenguard/run-at5uyy_z.log",
+      "environment": {
+        "PATH_prefix": "/home/simon/.rustup/toolchains/1.90.0-x86_64-unknown-linux-gnu/bin",
+        "CARGO_TARGET_DIR": "build/p04-target"
+      },
+      "sha256": "6db2dbbf0be3f4bfe89a56ef01c3bcbbfee974148173b644710316f473266208"
+    },
+    {
+      "argv": [
+        "cargo",
+        "fmt",
+        "--manifest-path",
+        "services/nas/native-core/Cargo.toml",
+        "--all",
+        "--",
+        "--check"
+      ],
+      "exit_code": 0,
+      "raw_log": "build/tokenguard/run-4ijyf_5b.log",
+      "environment": {
+        "PATH_prefix": "/home/simon/.rustup/toolchains/1.90.0-x86_64-unknown-linux-gnu/bin",
+        "CARGO_TARGET_DIR": "build/p04-target"
+      },
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "argv": [
+        "python3",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tests",
+        "-p",
+        "test_nas_runner.py"
+      ],
+      "exit_code": 0,
+      "raw_log": "build/tokenguard/run-qsdl1t96.log",
+      "environment": {
+        "PATH_prefix": "/home/simon/.rustup/toolchains/1.90.0-x86_64-unknown-linux-gnu/bin",
+        "CARGO_TARGET_DIR": "build/p04-target"
+      },
+      "sha256": "7b05a24f9014cf530c3cb684682ca511f73e045783b357f46e4be5e4bf3683ec"
+    },
+    {
+      "argv": [
+        "python3",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tests",
+        "-p",
+        "test_nas_build.py"
+      ],
+      "exit_code": 0,
+      "raw_log": "build/tokenguard/run-3xwxhej9.log",
+      "environment": {
+        "PATH_prefix": "/home/simon/.rustup/toolchains/1.90.0-x86_64-unknown-linux-gnu/bin",
+        "CARGO_TARGET_DIR": "build/p04-target"
+      },
+      "sha256": "5d8a174d448d59185fd227bcbab9c964e39b10a9c2e28965972cfb0c833dd854"
+    },
+    {
+      "argv": [
+        "python3",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "services/nas/native-probe/tests",
+        "-p",
+        "test_disk_oracle.py"
+      ],
+      "exit_code": 0,
+      "raw_log": "build/tokenguard/run-y56ujxnd.log",
+      "environment": {
+        "PATH_prefix": "/home/simon/.rustup/toolchains/1.90.0-x86_64-unknown-linux-gnu/bin",
+        "CARGO_TARGET_DIR": "build/p04-target"
+      },
+      "sha256": "ccea17206411a7ebe36a01b7f98da865774039d6528a041196a00ac07bad6870"
+    },
+    {
+      "argv": [
+        "rustfmt",
+        "--edition",
+        "2021",
+        "--check",
+        "kernel/src/m2/m3/nas.rs"
+      ],
+      "exit_code": 0,
+      "raw_log": "build/tokenguard/run-nyxk6ya4.log",
+      "environment": {
+        "PATH_prefix": "/home/simon/.rustup/toolchains/1.90.0-x86_64-unknown-linux-gnu/bin",
+        "CARGO_TARGET_DIR": "build/p04-target"
+      },
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "argv": [
+        "flock",
+        "-n",
+        "/run/user/1000/baryonos-heavy-native.lock",
+        "python3",
+        "-B",
+        "-u",
+        "tools/test_nas.py"
+      ],
+      "exit_code": 0,
+      "raw_log": "build/tokenguard/run-5wo5w0rw.log",
+      "environment": {
+        "PATH_prefix": "/snap/rustup/current/bin",
+        "RUSTUP_TOOLCHAIN": "1.90.0",
+        "NOS_QEMU_MACHINE": "pc-q35-8.2",
+        "NOS_BUILD_DIR": "build/p04-native",
+        "NOS_TARGET_DIR": "build/p04-native-target",
+        "CARGO_TARGET_DIR": "build/p04-target"
+      },
+      "native_report": "build/p04-native/nas-system-gate.json",
+      "native_report_sha256": "7ff77635b52699c354639b3e47fabdfe5b876abdc67eed5c5d1cd964c93996d9",
+      "source_sha256": "4af815256836229848e785afa9d6b6aeedb2958ace4cde07a1d8cec8c48e4cdb",
+      "qemu_exit": {
+        "normal": 33,
+        "recover": 33
+      },
+      "cold_writes": 0,
+      "cold_flushes": 0,
+      "sha256": "a324b21ab1099a917e86698576e9001da3a2772ae459a9e9cf8c1eefb6fcd2e5"
+    }
+  ],
+  "limits": "Local native QEMU/IPC only; no remote authenticated guest, product admin UI, hardware or full P04 acceptance. Existing token leak/replay checks retained; source fingerprint4af81525 matches the published code.",
+  "review": "Lead source/diff review; no native/human acceptance.",
+  "score": "41 -> 41/100"
+}

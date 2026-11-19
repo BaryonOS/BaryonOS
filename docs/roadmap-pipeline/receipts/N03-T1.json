@@ -1,0 +1,31 @@
+{
+  "task": "N03-T1",
+  "source_commit": "526aca548c0ee22025f80401d017f779c8d59179",
+  "level": "partial proposed design; not complete provider qualification",
+  "checks": [
+    {
+      "argv": [
+        "python3",
+        "-B",
+        "build/task-checks/check-references.py"
+      ],
+      "exit_code": 0,
+      "raw_log": "build/tokenguard/run-otebvt4g.log",
+      "sha256": "4afcd347920caaf9bcdfe87c41ae5b340479a721c1b18ddd1d57103fc0269257"
+    },
+    {
+      "argv": [
+        "python3",
+        "-B",
+        "tools/progress.py",
+        "--check"
+      ],
+      "exit_code": 0,
+      "raw_log": "build/tokenguard/run-pgzrpzkg.log",
+      "sha256": "14b305fe38d23ae7244745b59dcbbad1fa41b2ffd4a173070a72a8aca2f3aa5f"
+    }
+  ],
+  "limits": "Proposed design only; accepted native provider/RNG/platform, calendar/signing/bootstrap boundaries remain unresolved. No cryptographic dependency or trust root adopted; no native handshake/hardware/audit evidence. Task remains BLOCKED and41/100 unchanged.",
+  "review": "Lead source/diff review; no native/human acceptance.",
+  "score": "41 -> 41/100"
+}

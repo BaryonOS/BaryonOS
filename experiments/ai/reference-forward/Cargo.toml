@@ -1,0 +1,10 @@
+[package]
+name = "baryon-ai-reference-forward"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[dependencies]
+libm = { version = "=0.2.16", default-features = false, features = ["force-soft-floats"] }
+
+[workspace]
