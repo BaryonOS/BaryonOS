@@ -1,5 +1,14 @@
 # Current project status
 
+## NEXT AGENT HANDOFF — L01-T1 delivery — 18 November 2026
+
+**Source:** `b019a8d2b99dc4a7006a5db50cdb3efcd516cf71`, `codex/l01-local-ai-contract`.
+**Delivered:** PROPOSED selected-text summarization/clarification trial preserves existing exact Qwen candidate pins; host-reference engine route,1024-token/128MiB-KV/2GiB-VM ceilings and LP04–07 native negative owners specified. Four local paths, VerifiedArtifact and unchanged pins checked; no model download or new runtime.
+**Checks:** executed targeted commands and raw exit codes are in the
+[exact command/log receipt](roadmap-pipeline/receipts/L01-T1.json).
+Lead source/diff review completed; no duplicate matrix. Progress **41 → 41/100**.
+**Limits:** Design only. Task/quality/model provenance/engine port/budget and numeric profile require owner decision; pinned config lookup unavailable, no actual KV or quality/latency claim. Native inference/hardware/human review NOT RUN;41/100 unchanged.
+
 ## NEXT AGENT HANDOFF — P03-T1 delivery — 18 November 2026
 
 **Source:** `590e1d4188688434cd4f9aa80bb67302b802f770`, `codex/p03-device-key-contract`.
@@ -167,6 +176,8 @@ delivery branches and Claude S09/UI remain untouched. Unsafe unattended hold act
 slice from this ledger; no waiting for integration. Prior delivery checkpoints retained.
 
 ## Retained checkpoint — unified governance implementation — 18 November 2026
+
+
 
 
 
