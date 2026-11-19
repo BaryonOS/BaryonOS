@@ -1,0 +1,17 @@
+# BaryonOS physical hardware evidence: allowed OpenSSH signers.
+#
+# Format: ssh-keygen(1) ALLOWED SIGNERS, one entry per line:
+#   <principal> namespaces="baryonos-hw-evidence" <key-type> <base64-public-key> [comment]
+#
+# This file intentionally lists no key. Which signing key(s) and operators may
+# attest physical evidence is an open project-owner decision (OD-HW-SIGNERS in
+# docs/drivers/hardware-matrix.json). Until the project owner adds a public key
+# here in a reviewed commit, tools/hw_evidence.py rejects every physical
+# evidence record (fail closed) and no hardware-matrix row can be `supported`.
+#
+# Rules enforced by tools/hw_evidence.py:
+# - every entry carries exactly namespaces="baryonos-hw-evidence";
+# - principals are exact identities without wildcard patterns; no cert-authority;
+# - key types: ssh-ed25519, sk-ssh-ed25519@openssh.com, ecdsa-sha2-nistp256,
+#   ecdsa-sha2-nistp384, ecdsa-sha2-nistp521, sk-ecdsa-sha2-nistp256@openssh.com;
+# - only public keys belong here; never commit a private key.
