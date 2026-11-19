@@ -30,6 +30,17 @@ def backup_path(path: Path) -> Path:
     return path.with_name(path.name + ".exclude-orig")
 
 
+def remove_copies(copies) -> list[str]:
+    """Remove recovery copies; return the ones that could not be removed."""
+    stale = []
+    for copy in copies:
+        try:
+            copy.unlink(missing_ok=True)
+        except OSError:
+            stale.append(str(copy))
+    return stale
+
+
 def commit(staged: dict[Path, bytes]) -> None:
     """Write every staged file or none: restore the originals if any write fails.
 
@@ -45,11 +56,11 @@ def commit(staged: dict[Path, bytes]) -> None:
     try:
         for path, data in originals.items():
             if data is not None:
-                backup_path(path).write_bytes(data)
+                # Track the copy before writing it, so a partial copy is removed too.
                 backups.append(backup_path(path))
+                backup_path(path).write_bytes(data)
     except OSError:
-        for copy in backups:
-            copy.unlink(missing_ok=True)
+        remove_copies(backups)
         raise
     written = []
     try:
@@ -66,17 +77,21 @@ def commit(staged: dict[Path, bytes]) -> None:
                     write_atomic(path, originals[path])
             except OSError:
                 unrestored.append(path)
-        for path, data in originals.items():
-            if data is not None and path not in unrestored:
-                backup_path(path).unlink(missing_ok=True)
-        if unrestored:
-            names = "; ".join(
-                f"{p} (original: {backup_path(p) if originals[p] is not None else 'file did not exist'})"
-                for p in unrestored)
-            raise OSError("write failed and rollback could not restore: " + names) from err
+        stale = remove_copies(
+            backup_path(p) for p, d in originals.items() if d is not None and p not in unrestored)
+        if unrestored or stale:
+            parts = []
+            if unrestored:
+                parts.append("rollback could not restore: " + "; ".join(
+                    f"{p} (original: {backup_path(p) if originals[p] is not None else 'file did not exist'})"
+                    for p in unrestored))
+            if stale:
+                parts.append("recovery copies left behind: " + "; ".join(stale))
+            raise OSError("write failed; " + "; ".join(parts)) from err
         raise
-    for copy in backups:
-        copy.unlink(missing_ok=True)
+    stale = remove_copies(backups)
+    if stale:
+        print("warning: recovery copies left behind: " + "; ".join(stale))
 
 
 def main() -> int:

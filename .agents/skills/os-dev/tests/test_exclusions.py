@@ -193,3 +193,58 @@ class ExcludeScript(unittest.TestCase):
             sys.argv = ["x", "--reason", "test", "--record", "none", target["source_id"]]
             self.assertEqual(mod.main(), 0)
             self.assertEqual(list(root.rglob("*.exclude-orig")), [])
+
+    def test_partial_backup_is_removed(self):
+        import sys
+        with tempfile.TemporaryDirectory() as tmp:
+            root = self._copy(tmp)
+            target = self._target(root)
+            before = self._snapshot(root)
+            mod = self._module(root)
+            real = Path.write_bytes
+
+            def failing(self, data):
+                if self.name == "source-manifest.json.exclude-orig":
+                    real(self, b"partial")
+                    raise OSError("simulated full disk")
+                return real(self, data)
+
+            sys.argv = ["x", "--reason", "test", "--record", "none", target["source_id"]]
+            Path.write_bytes = failing
+            try:
+                with self.assertRaises(OSError):
+                    mod.main()
+            finally:
+                Path.write_bytes = real
+            self.assertEqual(self._snapshot(root), before)
+            self.assertEqual(list(root.rglob("*.exclude-orig")), [])
+
+    def test_cleanup_failure_keeps_rollback_report(self):
+        import sys
+        with tempfile.TemporaryDirectory() as tmp:
+            root = self._copy(tmp)
+            target = self._target(root)
+            corpus = root / target["local_path"]
+            original = corpus.read_bytes()
+            mod = self._module(root)
+            real_write, real_unlink = Path.write_bytes, Path.unlink
+
+            def failing_write(self, data):
+                if self.name == "source-manifest.json.exclude-tmp":
+                    raise OSError("simulated write failure")
+                return real_write(self, data)
+
+            def failing_unlink(self, missing_ok=False):
+                if self.name.endswith(".exclude-orig"):
+                    raise OSError("simulated read-only filesystem")
+                return real_unlink(self, missing_ok=missing_ok)
+
+            sys.argv = ["x", "--reason", "test", "--record", "none", target["source_id"]]
+            Path.write_bytes, Path.unlink = failing_write, failing_unlink
+            try:
+                with self.assertRaisesRegex(OSError, "recovery copies left behind") as ctx:
+                    mod.main()
+            finally:
+                Path.write_bytes, Path.unlink = real_write, real_unlink
+            self.assertEqual(str(ctx.exception.__cause__), "simulated write failure")
+            self.assertEqual(corpus.read_bytes(), original)
