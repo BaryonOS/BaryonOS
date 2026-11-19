@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-18",
-    "source_commit": "881744fac6c0e4c7a247a2a05d7857331c46f433",
+    "source_commit": "e3825e58dfd429f982f46386d71f9041d27ed113",
     "assessment_basis": "parent_commit",
-    "branch": "codex/b02-native-tamper",
-    "task": "B02-T1 native refusal partial slice",
+    "branch": "codex/b06-lp-matrix",
+    "task": "B06-T1: Working31-ID LP reference checker and residual list; strict IDs/statuses, contained canonical paths, SHA256 and archived source-bound QEMU record checks for native tier. Four grouped adversarial tests and actual --check pass; verified bytes parsed once. No historic evidence audit or acceptance promotion.",
     "previous_score": 41,
-    "summary": "41/100 unchanged. Native normal/recover/four refusal probes pass; true multi-chunk/replay task scope remains open. No criterion acceptance."
+    "summary": "41/100 unchanged. Working31-ID LP reference checker and residual list; strict IDs/statuses, contained canonical paths, SHA256 and archived source-bound QEMU record checks for native tier. Four grouped adversarial tests and actual --check pass; verified bytes parsed once. No historic evidence audit or acceptance promotion. Structural mapping only, not evidence authenticity/privacy acceptance. All31 complete-scenario rows remain explicitly unmapped; existing partial evidence is not discarded. B02 partial native slice PR382 and N04 blocked prototype PR380 preserved. No OS code change/native rerun; score41/100 unchanged. Integration/Claude ownership and execution hold preserved."
   },
   "tracks": [
     {

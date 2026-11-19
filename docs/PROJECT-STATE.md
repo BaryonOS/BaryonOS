@@ -1,5 +1,14 @@
 # Current project status
 
+## NEXT AGENT HANDOFF — B06-T1 delivery — 18 November 2026
+
+**Source:** `f0b99f764c20f8c894259e78b63ceaa6e44da7b2`, `codex/b06-lp-matrix`.
+**Delivered:** Working31-ID LP reference checker and residual list; strict IDs/statuses, contained canonical paths, SHA256 and archived source-bound QEMU record checks for native tier. Four grouped adversarial tests and actual --check pass; verified bytes parsed once. No historic evidence audit or acceptance promotion.
+**Checks:** executed targeted commands and raw exit codes are in the
+[exact command/log receipt](roadmap-pipeline/receipts/B06-T1.json).
+Lead source/diff review completed; no duplicate matrix. Progress **41 → 41/100**.
+**Limits:** Structural mapping only, not evidence authenticity/privacy acceptance. All31 complete-scenario rows remain explicitly unmapped; existing partial evidence is not discarded. B02 partial native slice PR382 and N04 blocked prototype PR380 preserved. No OS code change/native rerun; score41/100 unchanged.
+
 ## NEXT AGENT HANDOFF — B02-T1 native refusal slice — 18 November 2026
 
 **Source:** `c8ae69094abf91e96e52a18510a430fa9d7312d9`, `codex/b02-native-tamper`, fingerprint `b2ecf3c04ec5bfc3ba2ca09fd34b61e9706b363a4a9aaeb6c6f8fbf61c7f7fbc`.
@@ -113,6 +122,8 @@ delivery branches and Claude S09/UI remain untouched. Unsafe unattended hold act
 slice from this ledger; no waiting for integration. Prior delivery checkpoints retained.
 
 ## Retained checkpoint — unified governance implementation — 18 November 2026
+
+
 
 
 

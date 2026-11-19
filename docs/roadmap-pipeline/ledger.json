@@ -573,6 +573,12 @@
           "at": "2026-11-18T22:14:41.787813+00:00",
           "source_commit": "c8ae69094abf91e96e52a18510a430fa9d7312d9",
           "reason": "Native byte/tag/ciphertext-block/withheld-secret negatives delivered. True multi-record chunk swap needs a larger fixture; old-generation native replay observation NOT RUN. Cold antirollback unprotected. Full task remains partial."
+        },
+        {
+          "event": "blocked",
+          "at": "2026-11-18T22:14:41.787813+00:00",
+          "source_commit": "c8ae69094abf91e96e52a18510a430fa9d7312d9",
+          "reason": "Native byte/tag/ciphertext-block/withheld-secret negatives delivered. True multi-record chunk swap needs a larger fixture; old-generation native replay observation NOT RUN. Cold antirollback unprotected. Full task remains partial. Partial slice preserved in draft PR382."
         }
       ],
       "source_commit": "c8ae69094abf91e96e52a18510a430fa9d7312d9",
@@ -1171,7 +1177,7 @@
       "criterion": "B06",
       "milestone": "M8",
       "executor": "worker",
-      "status": "ready",
+      "status": "verified",
       "title": "LP-01..LP-31 traceability matrix and checker with residual-risk list",
       "goal": "Add tools/lp_matrix.py and its JSON matrix: all 31 LP IDs parsed from LOCAL-PRIVACY-CONTRACT.md, each with status native, host or none and an evidence path; 'native' requires an existing docs/verification record; publish the remaining-risk list.",
       "why_now": "Makes B06 progress measurable and publishes residual risks; host-only.",
@@ -1198,7 +1204,21 @@
       "evidence_level": "host",
       "rollback": "Revert the commit.",
       "next": "B06-T2 LP-13 egress oracle.",
-      "history": []
+      "history": [
+        {
+          "event": "active",
+          "at": "2026-11-18T22:12:51.549955+00:00",
+          "reason": "Sole source writer while disjoint B02 native verification runs. One structural evidence-reference checker; no LP acceptance reassessment or broad audit."
+        },
+        {
+          "at": "2026-11-18T22:15:36.045151+00:00",
+          "event": "verified",
+          "source_commit": "f0b99f764c20f8c894259e78b63ceaa6e44da7b2",
+          "reason": "Working31-ID LP reference checker and residual list; strict IDs/statuses, contained canonical paths, SHA256 and archived source-bound QEMU record checks for native tier. Four grouped adversarial tests and actual --check pass; verified bytes parsed once. No historic evidence audit or acceptance promotion. Structural mapping only, not evidence authenticity/privacy acceptance. All31 complete-scenario rows remain explicitly unmapped; existing partial evidence is not discarded. B02 partial native slice PR382 and N04 blocked prototype PR380 preserved. No OS code change/native rerun; score41/100 unchanged."
+        }
+      ],
+      "source_commit": "f0b99f764c20f8c894259e78b63ceaa6e44da7b2",
+      "receipt": "docs/roadmap-pipeline/receipts/B06-T1.json"
     },
     {
       "id": "H06-T1",

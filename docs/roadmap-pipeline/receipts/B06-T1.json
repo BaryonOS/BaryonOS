@@ -1,0 +1,52 @@
+{
+  "task": "B06-T1",
+  "source_commit": "f0b99f764c20f8c894259e78b63ceaa6e44da7b2",
+  "level": "host/build",
+  "checks": [
+    {
+      "argv": [
+        "python3",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tools/tests",
+        "-p",
+        "test_lp_matrix.py",
+        "-v"
+      ],
+      "exit_code": 0,
+      "raw_log": "build/tokenguard/run-8qk68bf7.log",
+      "sha256": "803f09e6cf1b1fbc0ee07eccabc31460a418eae7886e8a98252e1f7646a0be3e"
+    },
+    {
+      "argv": [
+        "python3",
+        "-B",
+        "tools/lp_matrix.py",
+        "--check"
+      ],
+      "exit_code": 0,
+      "raw_log": "build/tokenguard/run-jmlmzz4_.log",
+      "sha256": "a2d350bfe534cac3a967a9477e736cc46f78615e63098a4cc7f1c431ab07ecb0"
+    },
+    {
+      "argv": [
+        "python3",
+        "-B",
+        "-m",
+        "compileall",
+        "-q",
+        "tools/lp_matrix.py",
+        "tools/tests/test_lp_matrix.py"
+      ],
+      "exit_code": 0,
+      "raw_log": "build/tokenguard/run-2wwqo4wb.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "limits": "Structural mapping only, not evidence authenticity/privacy acceptance. All31 complete-scenario rows remain explicitly unmapped; existing partial evidence is not discarded. B02 partial native slice PR382 and N04 blocked prototype PR380 preserved. No OS code change/native rerun; score41/100 unchanged.",
+  "review": "Lead source/diff review; no native/human acceptance.",
+  "score": "41 -> 41/100"
+}
