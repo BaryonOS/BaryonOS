@@ -84,6 +84,11 @@ struct Runtime {
     restart_stage: u8,
     restart_deadline: u64,
     restarted_bytes: u64,
+    /// Completed results reclaimed because their consumption lease expired.
+    lease_reclaims: u64,
+    lease_stage: u8,
+    lease_deadline: u64,
+    lease_ticket: u64,
     app_exited: bool,
     app_code: u64,
     app: [u64; 17],
@@ -119,6 +124,10 @@ static mut RUNTIME: Runtime = Runtime {
     restart_stage: 0,
     restart_deadline: 0,
     restarted_bytes: 0,
+    lease_reclaims: 0,
+    lease_stage: 0,
+    lease_deadline: 0,
+    lease_ticket: 0,
     app_exited: false,
     app_code: 0,
     app: [0; 17],
@@ -149,12 +158,15 @@ fn binding_is_live(binding: EntropyBinding) -> bool {
 }
 
 fn reclaim_completed(now: u64) {
-    let completed = runtime().completed;
-    if completed.is_some_and(|request| now >= request.deadline || !binding_is_live(request.binding))
-    {
+    let Some(completed) = runtime().completed else {
+        return;
+    };
+    let expired = now >= completed.deadline;
+    if expired || !binding_is_live(completed.binding) {
         let r = runtime();
         r.completed = None;
         r.bytes = [0; 256];
+        r.lease_reclaims += u64::from(expired);
     }
 }
 
@@ -730,6 +742,9 @@ pub fn poll(s: &mut State) -> Option<*const u64> {
     if case() == RESTART && !restart_fixture(s) {
         return None;
     }
+    if case() == NORMAL && !lease_fixture(s) {
+        return None;
+    }
     finish(s)
 }
 
@@ -806,6 +821,123 @@ fn restart_fixture(s: &State) -> bool {
         }
     }
     true
+}
+
+fn entropy_handle(s: &State, slot: usize) -> u64 {
+    word(s, slot, 48)
+}
+
+/// Labelled native fixture (normal case only), driven by the real syscall
+/// handler and real timer ticks after the services went idle. Service A
+/// abandons a completed answer; service B is refused with EAGAIN while the
+/// lease runs and admitted once the kernel reclaimed and wiped the answer.
+fn lease_fixture(s: &mut State) -> bool {
+    let (a, b) = (entropy_handle(s, 0), entropy_handle(s, 1));
+    match runtime().lease_stage {
+        0 => {
+            let r = runtime();
+            require(
+                r.completed.is_none() && r.offline == 0 && !r.resetting,
+                b"LEASE_BROKER_BUSY",
+            );
+            let ticket =
+                call(s, 0, 0x60, [a, 256, 0, 0, 0, 0]).unwrap_or_else(|_| fail(b"LEASE_REQUEST"));
+            let r = runtime();
+            r.lease_ticket = ticket;
+            r.lease_deadline = s.ticks + TIMEOUT;
+            r.lease_stage = 1;
+            false
+        }
+        1 | 3 => {
+            let r = runtime();
+            let Some(completed) = r.completed else {
+                require(s.ticks < r.lease_deadline, b"LEASE_NO_ANSWER");
+                return false;
+            };
+            require(
+                completed.ticket == r.lease_ticket
+                    && completed.result == Ok(256)
+                    && r.bytes.iter().any(|byte| *byte != 0),
+                b"LEASE_ANSWER",
+            );
+            // poll() returns before this fixture while a request is pending, so
+            // advance() created the answer on this tick: pin the documented 64.
+            require(completed.deadline == s.ticks + 64, b"LEASE_LENGTH");
+            r.lease_deadline = completed.deadline;
+            if r.lease_stage == 1 {
+                // The abandoned answer blocks the peer only while leased.
+                require(
+                    call(s, 1, 0x60, [b, 256, 0, 0, 0, 0]) == Err(-8),
+                    b"LEASE_PEER_NOT_BUSY",
+                );
+            }
+            runtime().lease_stage += 1;
+            false
+        }
+        stage => {
+            let r = runtime();
+            if s.ticks < r.lease_deadline {
+                require(r.completed.is_some(), b"LEASE_EARLY_RECLAIM");
+                return false;
+            }
+            // poll() ran advance() for this tick: the lease has expired.
+            require(
+                r.completed.is_none() && r.bytes.iter().all(|byte| *byte == 0),
+                b"LEASE_NOT_RECLAIMED",
+            );
+            if stage == 4 {
+                return true;
+            }
+            let ticket = r.lease_ticket;
+            require(
+                call(s, 0, 0x61, [a, ticket, 0, 256, 0, 0]) == Err(-1),
+                b"LEASE_STALE_TICKET",
+            );
+            let ticket = call(s, 1, 0x60, [b, 256, 0, 0, 0, 0])
+                .unwrap_or_else(|_| fail(b"LEASE_PEER_BLOCKED"));
+            let r = runtime();
+            r.lease_ticket = ticket;
+            r.lease_deadline = s.ticks + TIMEOUT;
+            r.lease_stage = 3;
+            false
+        }
+    }
+}
+
+/// Labelled native fixture (normal case only): a holder that closes its
+/// entropy handle while its DMA request is pending stops the device. The
+/// peer then sees Offline (-14) until reboot; see B01-ENTROPY-AND-KEYS.md.
+fn authority_loss_fixture(s: &mut State) {
+    let r = runtime();
+    require(
+        r.pending.is_none() && r.completed.is_none() && r.offline == 0 && !r.quarantined,
+        b"QUARANTINE_BROKER_BUSY",
+    );
+    let (pid, a, b) = (
+        s.processes[0].pid,
+        entropy_handle(s, 0),
+        entropy_handle(s, 1),
+    );
+    call(s, 0, 0x60, [a, 256, 0, 0, 0, 0]).unwrap_or_else(|_| fail(b"QUARANTINE_REQUEST"));
+    require(runtime().pending.is_some(), b"QUARANTINE_NOT_PENDING");
+    if m4::engine().close(pid, a).is_err() {
+        fail(b"QUARANTINE_CLOSE");
+    }
+    advance(s);
+    let r = runtime();
+    require(
+        r.quarantined
+            && r.offline == -14
+            && r.pending.is_none()
+            && r.completed.is_none()
+            && r.bytes.iter().all(|byte| *byte == 0),
+        b"AUTHORITY_NOT_QUARANTINED",
+    );
+    require(
+        call(s, 1, 0x60, [b, 256, 0, 0, 0, 0]) == Err(-14),
+        b"QUARANTINE_PEER",
+    );
+    print_number(b"KEYRING:AUTHORITY_QUARANTINE:", 1);
 }
 
 fn finish(s: &mut State) -> ! {
@@ -988,6 +1120,7 @@ fn finish(s: &mut State) -> ! {
         (b"KEYRING:RESET_ACKS:", r.reset_acks),
         (b"KEYRING:QUARANTINED:", u64::from(r.quarantined)),
         (b"KEYRING:RESTARTED_BYTES:", r.restarted_bytes),
+        (b"KEYRING:LEASE_RECLAIMS:", r.lease_reclaims),
         (b"KEYRING:SERVICE_A_STATE:", services[0][0]),
         (b"KEYRING:SERVICE_B_STATE:", services[1][0]),
         (b"KEYRING:SERVICE_A_REASON:", services[0][1]),
@@ -1017,6 +1150,10 @@ fn finish(s: &mut State) -> ! {
     ] {
         print_number(label, value);
     }
+    if case() == NORMAL {
+        authority_loss_fixture(s);
+    }
+    let r = runtime();
     serial::write(marker());
     // Resource accounting: release both live services, then require the exact
     // frame baseline and an empty engine. The DMA pool stays kernel-owned.
