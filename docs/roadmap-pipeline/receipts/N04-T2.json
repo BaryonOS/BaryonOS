@@ -1,0 +1,31 @@
+{
+  "task": "N04-T2",
+  "source_commit": "8274efb32e885c9337a33eceb025c2ca5e806812",
+  "level": "proposed design and source-reference checks only",
+  "checks": [
+    {
+      "argv": [
+        "python3",
+        "-B",
+        "tools/progress.py",
+        "--check"
+      ],
+      "exit_code": 0,
+      "raw_log": "build/tokenguard/run-gqdctef2.log",
+      "sha256": "14b305fe38d23ae7244745b59dcbbad1fa41b2ffd4a173070a72a8aca2f3aa5f"
+    },
+    {
+      "argv": [
+        "python3",
+        "-B",
+        "build/task-checks/check-references.py"
+      ],
+      "exit_code": 0,
+      "raw_log": "build/tokenguard/run-oxvvrdo1.log",
+      "sha256": "37657dc439a011aa68fb30709541ee99738a0ce5a28b858b4dd9a5cd83789f00"
+    }
+  ],
+  "limits": "Design only. Production issuer/storage ownership, durable acknowledgement and trusted cold freshness require explicit owner/security alignment before code. No native or hardware acceptance;41/100 unchanged. Existing fences and unattended hold retained.",
+  "review": "Lead source/diff review; no native/human acceptance.",
+  "score": "41 -> 41/100"
+}

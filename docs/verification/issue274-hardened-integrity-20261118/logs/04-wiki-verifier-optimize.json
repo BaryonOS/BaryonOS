@@ -1,0 +1,21 @@
+{
+  "command": [
+    "env",
+    "PYTHONOPTIMIZE=1",
+    "python3",
+    "-B",
+    "-O",
+    "docs/verification/issue274-hardened-integrity-20261118/helpers/verify.py",
+    "--root",
+    "/home/simon/projects/BaryonOS-worktrees/pr358-review-fixes",
+    "--wiki",
+    "/home/simon/projects/BaryonOS-worktrees/phase0-combined-local/build/issue274-wiki-readonly",
+    "--record",
+    "docs/verification/issue274-hardened-integrity-20261118/inputs/publication.json",
+    "--published",
+    "docs/verification/issue274-hardened-integrity-20261118/inputs/published.json"
+  ],
+  "exit_code": 0,
+  "stdout_utf8": "{\"assertions_used\": false, \"existing_pages_preserved_byte_identical\": 13, \"exit_code\": 0, \"repository_source\": \"5eae79a2bb6a5b1d655de16c7a293be96a07a9a6\", \"source_pages\": 15, \"validated_fragments\": 1, \"validated_local_targets\": 171, \"wiki_after\": \"4a01b8b2ad2695da509a512ea688007c964f56da\", \"wiki_before\": \"ff7a4748a0b61bfb5de8598344464ac94080bc4d\"}\n",
+  "stderr_utf8": ""
+}
