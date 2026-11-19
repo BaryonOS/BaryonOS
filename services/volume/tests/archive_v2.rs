@@ -326,7 +326,7 @@ fn restore_native_replays_history_into_a_fresh_domain() {
             );
         }
     }
-    // History names are not on the wire; the durable table carries them.
+    // The durable table carries the history names (VERSION_STAT also does).
     let table = recover(disk.settled()).unwrap();
     for o in source.objects[..source.object_count]
         .iter()

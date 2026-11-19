@@ -628,8 +628,8 @@ impl<D: Disk> Source for DiskSource<'_, D> {
     }
 }
 
-// --- Format v2 (`docs/implementation/S09-ARCHIVE-V2.md`): reader and L1
-// history replay only. There is no v2 writer; v1 above is unchanged.
+// --- Format v2 (`docs/implementation/S09-ARCHIVE-V2.md`): writer over the
+// own-domain reads, reader and L1 history replay. v1 above is unchanged.
 
 pub const VERSION_V2: u16 = 2;
 pub const HEADER_V2: usize = 64;
@@ -1144,4 +1144,221 @@ pub fn restore_native<S: Source, T: Transport>(
         report.restored |= 1 << object.slot;
     }
     Ok(report)
+}
+
+/// Result of [`export_v2`]: what the archive records (no content), and the
+/// number of retained history versions left out because they follow a
+/// revision gap and may predate a DELETE (R2, owner decision).
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub struct ExportV2 {
+    pub archive: ArchiveV2,
+    pub omitted: usize,
+}
+
+fn put_version_v2<S: Sink>(out: &mut Out<'_, S>, version: &VersionV2) -> Result<(), Status> {
+    let mut record = [0; VERSION_RECORD_V2];
+    record[0] = version.name_length as u8;
+    put32(&mut record, 4, version.length as u32);
+    put64(&mut record, 8, version.revision);
+    put64(&mut record, 16, version.content_sum);
+    record[24..24 + version.name_length].copy_from_slice(version.name());
+    seal(&mut record);
+    out.put(&record)
+}
+
+/// Export `domain` (the client must be bound to it) as a v2 archive.
+///
+/// Policy (S09-ARCHIVE-V2 section 3, S09-OWN-DOMAIN-READS section 3):
+/// `TOMBSTONES` is never set (R2); `ACCOUNTED` is always set, and the only
+/// content-free records are those S9 needs: one per absent slot with a
+/// non-zero revision (deleted, tombstoned or purged; stamps from
+/// VERSION_STAT, no content, no name) and every deleted collection. A present
+/// object carries only its consecutive-revision prefix of versions, the same
+/// prefix L1 replays; later versions are counted in `omitted`. Every recorded
+/// value is a source value read from the service; nothing is synthesised and
+/// no source identifier exists. DOMAIN_STAT is the first request, so an older
+/// service (`NoSys`) gets nothing written. The final DOMAIN_STAT must equal
+/// the first, otherwise `Stale` and no trailer: on any error the caller must
+/// discard the output (and may retry).
+pub fn export_v2<T: Transport>(
+    client: &mut Client<T>,
+    domain: usize,
+    sink: &mut impl Sink,
+) -> Result<ExportV2, Status> {
+    if domain >= DOMAINS {
+        return Err(Status::Invalid);
+    }
+    let first = client.domain_stat(domain)?;
+    let (generation, clock) = first;
+    let mut archive = ArchiveV2 {
+        accounted: true,
+        generation,
+        clock,
+        ..ArchiveV2::default()
+    };
+    let mut omitted = 0;
+    for index in 1..=COLLECTIONS {
+        let info = client.collection_stat(domain, index)?;
+        if info.revision == 0 {
+            continue;
+        }
+        // A bound violation under a fixed clock means a concurrent change.
+        if info.revision > clock {
+            return Err(Status::Stale);
+        }
+        archive.collections[archive.collection_count] = CollectionV2 {
+            index,
+            present: info.present,
+            revision: info.revision,
+            name_length: info.name_length,
+            name: info.name,
+        };
+        archive.collection_count += 1;
+    }
+    for slot in 0..PER_DOMAIN {
+        let object = (domain * PER_DOMAIN + slot) as u64;
+        let mut o = ObjectV2 {
+            slot,
+            ..ObjectV2::default()
+        };
+        match client.stat(object) {
+            Ok(stat) => {
+                let collected = stat.collection == 0
+                    || archive.collections[..archive.collection_count]
+                        .iter()
+                        .any(|c| c.present && c.index == usize::from(stat.collection));
+                if !collected {
+                    return Err(Status::Stale);
+                }
+                o.present = true;
+                o.collection = stat.collection;
+                o.kind = stat.kind;
+                o.tags = stat.tags;
+                o.revision = stat.revision;
+                o.created = stat.created;
+                o.modified = stat.modified;
+                o.versions[0] = VersionV2 {
+                    revision: stat.version_revision,
+                    length: stat.length,
+                    content_sum: stat.content_sum,
+                    name_length: stat.name_length,
+                    name: stat.name,
+                };
+                for (version, info) in o.versions[1..].iter_mut().zip(&stat.history) {
+                    version.revision = info.revision;
+                    version.length = info.length;
+                    version.content_sum = info.content_sum;
+                }
+                o.version_count = 1 + stat.history_count;
+                let keep = replayable(&o);
+                omitted += o.version_count - keep;
+                o.version_count = keep;
+                o.versions[keep..].fill(VersionV2::default());
+                for (selector, version) in o.versions[..keep].iter_mut().enumerate().skip(1) {
+                    let named = client
+                        .version_stat(object, stat.revision, selector)
+                        .map_err(|(status, _)| status)?;
+                    if named.version_revision != version.revision {
+                        return Err(Status::Corrupt);
+                    }
+                    version.name_length = named.name_length;
+                    version.name = named.name;
+                }
+            }
+            Err((Status::NotFound, 0)) => continue,
+            Err((Status::NotFound, revision)) => {
+                let stamps = client
+                    .version_stat(object, revision, 0)
+                    .map_err(|(status, _)| status)?;
+                if stamps.present {
+                    return Err(Status::Corrupt);
+                }
+                o.revision = revision;
+                o.created = stamps.created;
+                o.modified = stamps.modified;
+            }
+            Err((status, _)) => return Err(status),
+        }
+        if o.revision > clock || o.modified > clock {
+            return Err(Status::Stale);
+        }
+        archive.objects[archive.object_count] = o;
+        archive.object_count += 1;
+    }
+    let objects = &archive.objects[..archive.object_count];
+    let version_count: usize = objects.iter().map(|o| o.version_count).sum();
+    archive.content_bytes = objects
+        .iter()
+        .flat_map(|o| &o.versions[..o.version_count])
+        .map(|v| v.length as u64)
+        .sum();
+
+    let mut out = Out {
+        sink,
+        sum: FNV_OFFSET,
+    };
+    let mut header = [0; HEADER_V2];
+    header[..8].copy_from_slice(&MAGIC);
+    put16(&mut header, 8, VERSION_V2);
+    header[10] = ACCOUNTED;
+    header[12] = archive.object_count as u8;
+    header[13] = archive.collection_count as u8;
+    put16(&mut header, 14, version_count as u16);
+    put64(&mut header, 16, generation);
+    put64(&mut header, 24, archive.content_bytes);
+    put64(&mut header, 32, clock);
+    seal(&mut header);
+    out.put(&header)?;
+    for c in &archive.collections[..archive.collection_count] {
+        let mut record = [0; COLLECTION_RECORD_V2];
+        record[0] = c.index as u8;
+        record[1] = u8::from(c.present);
+        record[2] = c.name_length as u8;
+        put64(&mut record, 8, c.revision);
+        record[16..16 + c.name_length].copy_from_slice(c.name());
+        seal(&mut record);
+        out.put(&record)?;
+    }
+    for o in &archive.objects[..archive.object_count] {
+        let mut record = [0; OBJECT_RECORD_V2];
+        record[0] = o.slot as u8;
+        record[1] = u8::from(o.present);
+        record[2] = o.collection;
+        record[3] = (o.version_count - usize::from(o.present)) as u8;
+        put16(&mut record, 4, o.kind);
+        put32(&mut record, 8, o.tags);
+        put64(&mut record, 16, o.revision);
+        put64(&mut record, 24, o.created);
+        put64(&mut record, 32, o.modified);
+        seal(&mut record);
+        out.put(&record)?;
+        let object = (domain * PER_DOMAIN + o.slot) as u64;
+        for (selector, version) in o.versions[..o.version_count].iter().enumerate() {
+            put_version_v2(&mut out, version)?;
+            let mut failed = None;
+            let mut sum = FNV_OFFSET;
+            let read =
+                client.read_version(object, o.revision, selector, version.length, |_, chunk| {
+                    sum = checksum_update(sum, chunk);
+                    if failed.is_none() {
+                        failed = out.put(chunk).err();
+                    }
+                })?;
+            if let Some(status) = failed {
+                return Err(status);
+            }
+            if read != version.length || sum != version.content_sum {
+                return Err(Status::Corrupt);
+            }
+        }
+    }
+    // Snapshot rule: an unchanged own clock proves no own commit happened.
+    if client.domain_stat(domain)? != first {
+        return Err(Status::Stale);
+    }
+    let mut trailer = [0; TRAILER];
+    trailer[..8].copy_from_slice(&END);
+    put64(&mut trailer, 8, out.sum);
+    out.sink.put(&trailer)?;
+    Ok(ExportV2 { archive, omitted })
 }
