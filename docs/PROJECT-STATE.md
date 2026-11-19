@@ -1,5 +1,31 @@
 # Current project status
 
+## NEXT AGENT HANDOFF — PR integration pass — 19 November 2026
+
+**Source:** main `ea628ef5d9ae523cc53aa0c2d1761bb7c0654463` after #393. Lead integration session; no criterion accepted.
+**Merged in creation order:** #365–#379, #381–#393 (squash, strict required checks
+green on the exact head; no CodeQL bypass). Ledger conflicts were merged per task
+(history union, main preferred on true field conflicts).
+**Review repairs made during integration (focused tests, negative controls fail without fix):**
+#370 recovery of a withheld, never-submitted DHCP TX frame; #373 kernel policy-probe
+observer accepts the 34-case report (local `tools/test_policy_envelopes.py`: raw 33,
+`UPDATE:POLICY_PROBE:PASS`); #375 Rust volume oracle fixture mirrors the native probe;
+#377 `recover` requires a flush/readback barrier; #378 corruption recovery keeps intact
+tombstones; Dependabot coverage for new cargo workspaces; CI-L1 protected path moved
+from `write_paths` to `lead_paths`; memchr 2.8.3 provenance recorded.
+**Open PRs:** #360 permanent exclusion (Claude UI/UX). #380 blocked: native full-port
+sweep projects ~591 s against the 180 s budget (QEMU 35); needs protocol scheduling
+or throughput work. N04-T1 `receipt` is null on main until #380 lands.
+**Issues (all remain open):** #41 needs native policy storage/ingress and production
+custody decisions; #42 needs long-lived kernel/device-service handoff and physical
+hardware evidence; #43 tracks 20→50%; #274 English coverage remains large;
+#283's 33 historical PRs were reconciled on 17 November (including merged #154 and
+#155); only the unestablished original licence grant for the W001473 historical
+source remains, which needs external rights evidence, not code.
+**Next action:** repair #380 (bounded sweep scheduling within the 180 s budget while
+keeping full-port coverage), or continue #41/#42 native slices; #283 waits on
+W001473 provenance evidence.
+
 ## NEXT AGENT HANDOFF — L01-T3 partial delivery — 18 November 2026
 
 **Source:** `4a9a44ac4046dcfd69df1abb73f428522e703f65`, `codex/l01-reference-forward`, base `fac5a864`.
