@@ -320,7 +320,15 @@ reset, and so after the remount FLUSH, is not settled by the VIRTIO sections
 cited above (5.2.6.2 covers completed writes only) and is *[unproven]* for
 QEMU and its host storage stack (section 8, O9). The resolution above holds
 only under that assumption; N24 (section 6) states the expected outcome if it
-fails. The portal
+fails. **Safe path while O9 is unproven:** after any `Unknown` on a catalog
+write or flush, the destination accepts no further catalog or entry write for
+the rest of the boot (read-only: INFO, LIST, VERIFY, READ), so a late write
+cannot overwrite a newer catalog copy or a newly allocated extent. The
+in-boot resolution is reported to the portal only as "provisional"; the
+export counts as confirmed only after a cold boot, whose mount FLUSH and
+catalog read follow a device power cycle that no request of the previous
+boot survives *[design; QEMU process restart assumed equivalent, unproven]*,
+and after VERIFY of the entry. The portal
 treats `Unknown` as "not sealed" until the export lane's LIST returns the entry
 ID; it must not repeat the export blindly and must not report success. If the
 remount yields `Corrupt`, the service fails closed as in 2.6.
@@ -699,6 +707,10 @@ hosted gate runs. No human audit.
   whether the K4/K5 per-device broker implements the reset fence of the M3
   volume broker for disk 1. Both are *[unproven]*; N24 (b) records the
   outcome without counting it as a pass.
+  Until both are shown, the 2.7 safe path applies (read-only for the rest of
+  the boot after an `Unknown`; confirmation only after a cold boot and
+  VERIFY). N24 is a planned test, not evidence; the independent security
+  review (R1 of 8.2) also remains open before implementation.
 
 ### 8.2 Staged route
 
