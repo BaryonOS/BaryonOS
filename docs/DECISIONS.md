@@ -147,6 +147,35 @@ evidence. Git history is not rewritten, unrelated reference sources are not
 deleted and no legal clearance is claimed without proper verification. Issue
 #283 remains open until the selected disposition is substantiated and reviewed.
 
+**Follow-up decision (project owner, 19 November 2026), after the provenance
+search:** the primary search found W001473 to be a 2006 port from the old OS
+Wiki with no verifiable original grant
+(`docs/verification/w001473-provenance-20261119/`). The owner therefore chose,
+and extended to the whole OSDev corpus, a risk-based review:
+
+1. Exclude W001473 through a separate, targeted and reviewed change that
+   rebuilds the indexes and keeps the provenance record (PR #397).
+2. Examine the other 27 explicitly imported pages individually; keep a page
+   only with demonstrably sufficient rights, otherwise exclude it in a targeted
+   change (PR #399).
+3. Examine the 641 pages that predate the CC0 statement of 6 June 2011, without
+   blind deletion, and screen the other pages for older copied text (PR #398).
+4. Retain text only on a verifiable licence, original permission or an
+   independently written replacement; claim no new MPL-2.0 licence for copied
+   text. Third-party text without such a basis is excluded (PR #400).
+5. Report which texts are reusable, uncertain or excluded, and the residual
+   Git-history risk.
+
+*Consequences:* protected skill files change only through separate, scoped and
+reviewed PRs; there is no mass deletion, no history rewrite and no licence
+claim without evidence. Records with an owner decision still pending (licences
+with notice or share-alike obligations, quotations) stay in the corpus as
+uncertain until decided. Legal clearance and acceptance of these ADRs remain
+separate steps. The product score is unchanged.
+*Review criterion:* #283 closes only when W001473, the 27 imports and the
+third-party records are excluded or retained on a documented verifiable basis,
+and every remaining uncertain record has a recorded disposition.
+
 ## ADR-AGENT-GOVERNANCE-20261118 — Shared contracts and risk-based execution
 
 Status: accepted project-owner direction, 18 November 2026, fresh-session execution

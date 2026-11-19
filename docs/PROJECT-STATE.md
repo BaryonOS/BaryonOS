@@ -9,11 +9,13 @@ ADR-PROGRESS-ROUTE-20261119 and ADR-W001473-PROVENANCE-20261119. They approve
 architecture and route only; no criterion is accepted and no production signing,
 key generation, firmware change or physical-device work is authorized.
 **Next action:** pursue the #43 route (S09, N02, U05, H02/U03) within each
-workstream's ownership. For #283, the owner route of 19 November applies: exclude
-W001473 (PR #397) and the 27 other imported and 5 third-party records (#399,
-#400) unless a recorded owner exception applies, and record a disposition for each
-of the 1,298 uncertain records (PR #398). #283 stays open until all three hold; no
-reuse right is assumed for W001473 without a verifiable original grant.
+workstream's ownership. For #283, follow the owner's follow-up decision recorded
+in ADR-W001473-PROVENANCE-20261119: the provenance search found no verifiable
+grant for W001473, so it is excluded (PR #397); the 27 other imported and 5
+third-party records are excluded (#399, #400) unless a verifiable licence,
+original permission or independent replacement is documented; and each of the
+1,298 uncertain records receives a recorded disposition (PR #398). #283 stays open
+until all three hold.
 
 ## NEXT AGENT HANDOFF — PR integration pass — 19 November 2026
 
