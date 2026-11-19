@@ -119,6 +119,19 @@ impl BlockAuthorization {
     }
 }
 
+/// Stable identity of an authorized entropy object. The key includes the
+/// object's generation, so a later object that reuses its slot cannot inherit
+/// authority recorded for an earlier request.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct EntropyAuthorization {
+    object_key: u64,
+}
+impl EntropyAuthorization {
+    pub const fn object_key(self) -> u64 {
+        self.object_key
+    }
+}
+
 /// Read-only view of a `Process` object for the holder of an OBSERVE/KILL node.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct ProcessView {
@@ -816,13 +829,20 @@ impl Engine {
         );
         Ok(self.attach(p, slot, self.node_id(node)))
     }
-    pub fn check_entropy(&self, pid: u64, handle: u64) -> Result<(), Error> {
+    pub fn authorize_entropy(&self, pid: u64, handle: u64) -> Result<EntropyAuthorization, Error> {
         let node = self.resolve(pid, handle)?;
-        let i = self.nodes[node].object.index as usize;
+        let object = self.nodes[node].object;
+        let i = object.index as usize;
         if !(ENTROPY_BASE..NETWORK_BASE).contains(&i) {
             return Err(Error::Type);
         }
-        self.require(node, ENTROPY)
+        self.require(node, ENTROPY)?;
+        Ok(EntropyAuthorization {
+            object_key: (u64::from(object.generation) << 32) | u64::from(object.index),
+        })
+    }
+    pub fn check_entropy(&self, pid: u64, handle: u64) -> Result<(), Error> {
+        self.authorize_entropy(pid, handle).map(|_| ())
     }
     /// Manifest-only raw network authority. No process can manufacture, derive
     /// or transfer this handle; closing it and owner exit invalidate it.
