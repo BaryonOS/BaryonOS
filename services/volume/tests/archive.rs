@@ -5,12 +5,15 @@ mod common;
 
 use common::{fill, pattern, recover, Local, SimDisk};
 use volume_core::{
-    archive::{self, DiskSink, DiskSource, Report, Sink, Source, HEADER, OBJECT_RECORD, TRAILER},
+    archive::{
+        self, DiskSink, DiskSource, Report, Sink, Source, COLLECTION_RECORD, HEADER, OBJECT_RECORD,
+        TRAILER,
+    },
     checksum_update,
     client::{Client, Stat, Transport},
     service::Service,
     table::Table,
-    ustar, wire, Disk, Status, CHUNK, FNV_OFFSET, MAX_LENGTH, SECTOR,
+    ustar, wire, Disk, Status, CHUNK, FNV_OFFSET, MAX_LENGTH, SECTOR, VOLUME_SECTORS,
 };
 
 const EPOCH: u64 = 4;
@@ -930,6 +933,351 @@ fn disk_source_refuses_empty_oversized_and_damaged_ranges() {
         padded.sectors[needed - 1][SECTOR - 1] = 0xFF;
     }
     assert!(verify(&mut padded, needed as u64).is_ok());
+}
+
+/// Host model of the planned native dual-disk target: a second, independent
+/// block device that holds nothing but backups, written from its sector 0.
+/// `SimDisk` keeps unflushed writes in a volatile cache, so a cold restart
+/// sees only what a flush made durable.
+fn export_to_device(source: &mut Client<Local<'_>>, device: &mut impl Disk) -> Result<u64, Status> {
+    let mut sink = DiskSink::new(device, VOLUME_SECTORS);
+    archive::export(source, 0, &mut sink)?;
+    sink.finish()
+}
+
+fn verify_device(device: &mut impl Disk) -> Result<archive::Summary, Status> {
+    archive::verify(&mut DiskSource::new(device, VOLUME_SECTORS), &mut scratch())
+}
+
+fn device_bytes(image: &[[u8; SECTOR]], length: usize) -> Vec<u8> {
+    image.iter().flatten().take(length).copied().collect()
+}
+
+/// (slot, source revision, created, modified) of every object record.
+fn archived_stamps(bytes: &[u8]) -> Vec<(u8, u64, u64, u64)> {
+    let word = |at: usize| u64::from_le_bytes(bytes[at..at + 8].try_into().unwrap());
+    let mut at = HEADER + usize::from(bytes[13]) * COLLECTION_RECORD;
+    (0..bytes[12])
+        .map(|_| {
+            let length = u32::from_le_bytes(bytes[at + 12..at + 16].try_into().unwrap());
+            let record = (bytes[at], word(at + 16), word(at + 24), word(at + 32));
+            at += OBJECT_RECORD + length as usize;
+            record
+        })
+        .collect()
+}
+
+#[test]
+fn independent_backup_device_restores_after_source_loss_and_cold_restarts() {
+    let big = 2 * CHUNK + 173;
+    let mut backup = SimDisk::new();
+    let (length, sources) = {
+        let mut disk = SimDisk::new();
+        let mut service = Service::new(EPOCH, Table::EMPTY, false);
+        let mut source = client(&mut service, &mut disk, 0);
+        populate(&mut source, big);
+        let sources = [0, 1, 5].map(|object| source.stat(object).unwrap());
+        let length = export_to_device(&mut source, &mut backup).unwrap();
+        (length as usize, sources)
+    }; // the source service, volume and disk are gone from here on
+    assert!(backup.pending.is_empty(), "success only after the flush");
+    // Cold restart of the backup device: only flushed sectors survive.
+    let mut backup = SimDisk::from_image(backup.durable.clone());
+    let summary = verify_device(&mut backup).unwrap();
+    assert_eq!(
+        (summary.objects, summary.collections, summary.content_bytes),
+        (3, 1, 300 + big as u64)
+    );
+    // The archive keeps every source revision and both source times.
+    let stamps: Vec<_> = [0, 1, 5]
+        .into_iter()
+        .zip(&sources)
+        .map(|(slot, s)| (slot, s.revision, s.created, s.modified))
+        .collect();
+    assert_eq!(
+        archived_stamps(&device_bytes(&backup.durable, length)),
+        stamps
+    );
+
+    let durable = {
+        let mut disk = SimDisk::new();
+        let mut service = Service::new(EPOCH, Table::EMPTY, false);
+        let mut destination = client(&mut service, &mut disk, 1);
+        // Earlier activity in the destination domain advances its clock.
+        let revision = destination
+            .write(15, 0, b"Other", 9, fill(15, 1))
+            .unwrap()
+            .0;
+        destination
+            .write(15, revision, b"Other", 9, fill(15, 2))
+            .unwrap();
+        let report = archive::restore(
+            &mut DiskSource::new(&mut backup, VOLUME_SECTORS),
+            &mut scratch(),
+            &mut destination,
+            1,
+        )
+        .unwrap();
+        assert_eq!((report.restored, report.conflicts), (0b10_0011, 0));
+        assert!(disk.pending.is_empty());
+        disk.durable.clone()
+    };
+    assert_eq!(backup.mutating_ops, 0, "verify and restore only read");
+    // Cold restart of the restored volume.
+    let table = recover(durable.clone()).unwrap();
+    let mut disk = SimDisk::from_image(durable);
+    let mut service = Service::new(EPOCH + 1, table, true);
+    let mut restored = Client::new(
+        Local {
+            service: &mut service,
+            disk: &mut disk,
+            domain: 1,
+        },
+        EPOCH + 1,
+        1,
+    );
+    let other = restored.stat(15).unwrap().modified;
+    // Same bytes, name and metadata; the destination assigns its own
+    // revision (1, or 2 after metadata) and its own times.
+    let cases = [(0, 300, 2, 1), (1, big, 1, 2), (5, 0, 1, 1)];
+    for ((slot, length, revision, version), source) in cases.into_iter().zip(&sources) {
+        let (stat, data) = content(&mut restored, 8 + slot);
+        assert_eq!(data, expected(slot, version, length), "slot {slot}");
+        assert_eq!(stat.content_sum, source.content_sum, "slot {slot}");
+        assert_eq!(
+            &stat.name[..stat.name_length],
+            &source.name[..source.name_length]
+        );
+        assert_eq!(
+            (stat.tags, stat.kind, stat.collection),
+            (source.tags, source.kind, source.collection)
+        );
+        assert_eq!((stat.revision, stat.history_count), (revision, 0));
+        assert!(stat.created > other && stat.modified >= stat.created);
+        assert_ne!(
+            (stat.created, stat.modified),
+            (source.created, source.modified),
+            "slot {slot}"
+        );
+    }
+}
+
+#[test]
+fn power_cut_during_export_over_an_older_archive_leaves_it_the_new_one_or_nothing() {
+    let mut disk = SimDisk::new();
+    let mut service = Service::new(EPOCH, Table::EMPTY, false);
+    let mut source = client(&mut service, &mut disk, 0);
+    populate(&mut source, CHUNK + 9);
+    let mut device = SimDisk::new();
+    let mut old_length = export_to_device(&mut source, &mut device).unwrap() as usize;
+    let mut older = device.durable;
+    // "Plan" shrinks, then grows: the new archive is shorter, then longer.
+    for (revision, big) in [(3, CHUNK / 2), (4, 3 * CHUNK)] {
+        source
+            .write(1, revision - 1, b"Plan", big, fill(1, revision))
+            .unwrap();
+        let old = device_bytes(&older, old_length);
+        let mut clean = SimDisk::from_image(older.clone());
+        let new_length = export_to_device(&mut source, &mut clean).unwrap() as usize;
+        let new = device_bytes(&clean.durable, new_length);
+        let (mut kept_old, mut kept_new) = (0, 0);
+        // The power fails before each sector write and before the final flush.
+        for cut in 0..clean.mutating_ops {
+            let mut device = SimDisk::from_image(older.clone());
+            device.crash_at = Some(cut);
+            assert_eq!(
+                export_to_device(&mut source, &mut device),
+                Err(Status::Io),
+                "cut {cut}"
+            );
+            let mut images: Vec<_> = (0..=device.pending.len())
+                .flat_map(|keep| {
+                    [
+                        device.crash_image(keep, None),
+                        device.crash_image(keep, Some(100)),
+                    ]
+                })
+                .collect();
+            images.push(device.crash_subset(|index| index != 0)); // header lost
+            images.push(device.crash_subset(|index| index == 0)); // only header
+            images.push(device.crash_subset(|index| index % 2 == 1));
+            for image in images {
+                match verify_device(&mut SimDisk::from_image(image.clone())) {
+                    Ok(_) if device_bytes(&image, old_length) == old => kept_old += 1,
+                    Ok(_) if device_bytes(&image, new_length) == new => kept_new += 1,
+                    Ok(summary) => panic!("cut {cut}: a mixed archive verified: {summary:?}"),
+                    Err(status) => assert_eq!(status, Status::Corrupt, "cut {cut}"),
+                }
+            }
+        }
+        // The older copy survives only while none of the new sectors landed;
+        // all sectors landed with the flush cut yields the new archive.
+        assert!(kept_old > 0 && kept_new > 0, "{kept_old} {kept_new}");
+        (older, old_length) = (clean.durable, new_length);
+    }
+}
+
+/// A backup device whose `at`-th mutating operation reports `status`; with
+/// `landed` the operation took effect anyway (an uncertain outcome).
+struct Uncertain {
+    disk: SimDisk,
+    at: usize,
+    status: Status,
+    landed: bool,
+    seen: usize,
+}
+impl Uncertain {
+    fn mutate(
+        &mut self,
+        op: impl FnOnce(&mut SimDisk) -> Result<(), Status>,
+    ) -> Result<(), Status> {
+        self.seen += 1;
+        if self.seen - 1 != self.at {
+            return op(&mut self.disk);
+        }
+        if self.landed {
+            op(&mut self.disk)?;
+        }
+        Err(self.status)
+    }
+}
+impl Disk for Uncertain {
+    fn read(&mut self, sector: u64, buffer: &mut [u8; SECTOR]) -> Result<(), Status> {
+        self.disk.read(sector, buffer)
+    }
+    fn write(&mut self, sector: u64, buffer: &[u8; SECTOR]) -> Result<(), Status> {
+        self.mutate(|disk| disk.write(sector, buffer))
+    }
+    fn flush(&mut self) -> Result<(), Status> {
+        self.mutate(SimDisk::flush)
+    }
+}
+
+#[test]
+fn export_never_confirms_an_uncertain_or_detached_backup_device() {
+    let mut disk = SimDisk::new();
+    let mut service = Service::new(EPOCH, Table::EMPTY, false);
+    let mut source = client(&mut service, &mut disk, 0);
+    populate(&mut source, CHUNK + 9);
+    let mut clean = SimDisk::new();
+    export_to_device(&mut source, &mut clean).unwrap();
+    let ops = clean.mutating_ops;
+    let faults = [
+        (Status::Unknown, true),
+        (Status::Unknown, false),
+        (Status::NoDevice, false),
+    ];
+    for at in 0..ops {
+        for (status, landed) in faults {
+            let mut device = Uncertain {
+                disk: SimDisk::new(),
+                at,
+                status,
+                landed,
+                seen: 0,
+            };
+            assert_eq!(
+                export_to_device(&mut source, &mut device),
+                Err(status),
+                "op {at}"
+            );
+            // Only a final flush that landed leaves a durable archive; it is
+            // accepted later through `verify`, never through the export result.
+            let mut durable = SimDisk::from_image(device.disk.durable.clone());
+            assert_eq!(
+                verify_device(&mut durable).is_ok(),
+                at == ops - 1 && landed,
+                "op {at} {status:?} {landed}"
+            );
+        }
+    }
+}
+
+#[test]
+fn restore_from_a_vanishing_backup_device_resumes_without_overwriting() {
+    let big = 2 * CHUNK + 173;
+    let mut backup = SimDisk::new();
+    let length = {
+        let mut disk = SimDisk::new();
+        let mut service = Service::new(EPOCH, Table::EMPTY, false);
+        let mut source = client(&mut service, &mut disk, 0);
+        populate(&mut source, big);
+        export_to_device(&mut source, &mut backup).unwrap() as usize
+    };
+    let (sectors, written) = (sectors_for(length) as u64, backup.mutating_ops);
+    for from in [0, 1, sectors - 1] {
+        assert!(verify_device(&mut backup).is_ok());
+        let mut disk = SimDisk::new();
+        let mut service = Service::new(EPOCH, Table::EMPTY, false);
+        let mut destination = client(&mut service, &mut disk, 1);
+        // The device disappears after `verify` passed.
+        backup.fail_reads_from = Some(from);
+        let (status, first) = archive::restore(
+            &mut DiskSource::new(&mut backup, VOLUME_SECTORS),
+            &mut scratch(),
+            &mut destination,
+            1,
+        )
+        .unwrap_err();
+        assert_eq!(status, Status::Io, "from {from}");
+        assert_ne!(first.restored, 0b10_0011, "from {from}");
+        let before = [8, 9, 13].map(|object| destination.stat(object).ok().map(|s| s.revision));
+        // Back again: the rest is restored; earlier objects are conflicts.
+        backup.fail_reads_from = None;
+        let second = archive::restore(
+            &mut DiskSource::new(&mut backup, VOLUME_SECTORS),
+            &mut scratch(),
+            &mut destination,
+            1,
+        )
+        .unwrap();
+        assert_eq!(second.restored, 0b10_0011 & !first.restored, "from {from}");
+        assert_eq!(second.conflicts, first.restored, "from {from}");
+        for (object, revision) in [8, 9, 13].into_iter().zip(before) {
+            if let Some(revision) = revision {
+                assert_eq!(destination.stat(object).unwrap().revision, revision);
+            }
+        }
+        assert_eq!(content(&mut destination, 8).1, expected(0, 1, 300));
+        assert_eq!(content(&mut destination, 9).1, expected(1, 2, big));
+        assert_eq!(content(&mut destination, 13).1.len(), 0);
+    }
+    assert_eq!(backup.mutating_ops, written, "restore only reads");
+}
+
+/// Reads the backup device one sector further on: a misaddressed range.
+struct Shifted<'a>(&'a mut SimDisk);
+impl Disk for Shifted<'_> {
+    fn read(&mut self, sector: u64, buffer: &mut [u8; SECTOR]) -> Result<(), Status> {
+        self.0.read(sector + 1, buffer)
+    }
+    fn write(&mut self, _: u64, _: &[u8; SECTOR]) -> Result<(), Status> {
+        Err(Status::Access)
+    }
+    fn flush(&mut self) -> Result<(), Status> {
+        Err(Status::Access)
+    }
+}
+
+#[test]
+fn archive_on_the_wrong_device_or_offset_is_refused() {
+    let mut disk = SimDisk::new();
+    let mut service = Service::new(EPOCH, Table::EMPTY, false);
+    let mut source = client(&mut service, &mut disk, 0);
+    populate(&mut source, CHUNK + 9);
+    let mut backup = SimDisk::new();
+    export_to_device(&mut source, &mut backup).unwrap();
+    assert!(verify_device(&mut backup).is_ok());
+    // The source volume's own disk is not a backup device.
+    assert_eq!(verify_device(&mut disk), Err(Status::Corrupt));
+    // The right device read from the wrong first sector.
+    assert_eq!(
+        archive::verify(
+            &mut DiskSource::new(&mut Shifted(&mut backup), VOLUME_SECTORS - 1),
+            &mut scratch()
+        ),
+        Err(Status::Corrupt)
+    );
 }
 
 /// Python's stdlib `tarfile` is the independent reader of the ustar export.

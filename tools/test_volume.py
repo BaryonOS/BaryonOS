@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Complete M6e/S06 gate: host tests, then fifteen real QEMU invocations in order.
+"""Complete M6e/S06 gate: host tests, then twenty-two real QEMU invocations in order.
 
 normal -> cold read-only recover (same image) -> S09 archive export into a
 disjoint range of that image (volume mounted read-only) -> restore of only that
@@ -7,6 +7,10 @@ range on a fresh image, the same range with one damaged byte refused, and a
 restore into a domain that already holds conflicting names and collections,
 and an export into a target too small for the archive that must fail cleanly,
 and the D6(a) ustar user export of that archive, read back with Python tarfile;
+S09 test-only second disk at 00:06.0: export to it (disk 0 unchanged), an
+absent and a too-small archive disk, a cold restore from that disk alone, the
+wrong disk granted, and a power cut during an export over the older archive
+followed by a cold verify that must report Corrupt;
 cut-data (real kill) -> cold
 recover; cut-table (real kill) -> cold recover; cut-txn (real kill inside a
 multi-object transaction) -> cold recover; corrupt image refused.
@@ -46,6 +50,10 @@ PLAN = [("normal", None), ("recover", "normal"), ("archive-export", "recover"),
         ("archive-restore", "archive-export"), ("archive-corrupt", "archive-export"),
         ("archive-conflict", "archive-export"), ("archive-full", "archive-export"),
         ("archive-ustar", "archive-export"),
+        ("archive-disk-export", "archive-export"), ("archive-disk-absent", "archive-export"),
+        ("archive-disk-small", "archive-export"), ("archive-disk-restore", "archive-disk-export"),
+        ("archive-disk-wrong", "archive-disk-export"), ("archive-disk-cut", "archive-disk-export"),
+        ("archive-disk-verify", "archive-disk-cut"),
         ("cut-data", None), ("recover-cut", "cut-data"), ("cut-table", None),
         ("recover-cut", "cut-table"), ("cut-txn", None), ("recover-cut", "cut-txn"), ("corrupt", None)]
 
@@ -83,6 +91,7 @@ def main() -> int:
                                   "volume_identity": report["volume_identity"],
                                   "before_sha256": report["before_sha256"],
                                   "after_sha256": report["after_sha256"],
+                                  "archive_after_sha256": report.get("archive_after_sha256"),
                                   "raw_qemu_exit": report["raw_qemu_exit"],
                                   "duration_s": report["duration_s"],
                                   "error": report.get("error")})

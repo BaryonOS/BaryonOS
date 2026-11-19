@@ -23,7 +23,10 @@ M6B_FAULT_CASES = ("write-error", "flush-error") + M6B_TIMEOUT_CASES
 M6B_CASES = ("recover", "errors", "full", "corrupt", "vm-cut-before-ack", "vm-cut-after-flush") + M6B_FAULT_CASES
 M6C_CASES = ("recover", "errors", "full", "corrupt", "legacy", "vm-cut-before-rename", "vm-cut-after-rename") + M6C_FAULT_CASES
 VOLUME_ARCHIVE_CASES = ("archive-export", "archive-restore", "archive-corrupt", "archive-conflict",
-                        "archive-full", "archive-ustar")
+                        "archive-full", "archive-ustar",
+                        # S09 test-only second disk (kernel feature test-volume-archive-device).
+                        "archive-disk-export", "archive-disk-restore", "archive-disk-absent",
+                        "archive-disk-small", "archive-disk-wrong", "archive-disk-cut", "archive-disk-verify")
 VOLUME_CASES = ("recover", "cut-data", "cut-table", "recover-cut", "corrupt", "foreign", "cut-txn",
                 *VOLUME_ARCHIVE_CASES)
 VOLUME_FEATURES = ("native-volume", *(f"test-volume-{case}" for case in VOLUME_CASES))
