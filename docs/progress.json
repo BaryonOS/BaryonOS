@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-18",
-    "source_commit": "524fde721fb69f1bc74ed8bc0e8db806b0d16d1b",
+    "source_commit": "3b7db2dd5ea079d8e5fab4a1bfa08d6900c4a8a7",
     "assessment_basis": "parent_commit",
-    "branch": "codex/n04-issuer-contract",
-    "task": "N04-T2: Compact PROPOSED issuer/helper attenuation/regrant/durable denial contract tied to existing opaque contexts, broker operations and source-bound native helper evidence. Four cited paths/six source symbols and progress check pass; no production interface or authority adopted.",
+    "branch": "codex/n03-provider-evaluation",
+    "task": "N03-T1: Bounded source/primary-source provider evaluation records fixed TLS profile, existing Rustls pins and random/time adapter limits. No provider selected; version-specific manifests/build scripts and maintenance evaluation incomplete after inaccessible primary endpoints. Local paths/symbol and progress checks pass.",
     "previous_score": 41,
-    "summary": "41/100 unchanged. Compact PROPOSED issuer/helper attenuation/regrant/durable denial contract tied to existing opaque contexts, broker operations and source-bound native helper evidence. Four cited paths/six source symbols and progress check pass; no production interface or authority adopted. Design only. Production issuer/storage ownership, durable acknowledgement and trusted cold freshness require explicit owner/security alignment before code. No native or hardware acceptance;41/100 unchanged. Existing fences and unattended hold retained. Integration/Claude ownership and execution hold preserved."
+    "summary": "41/100 unchanged. Bounded source/primary-source provider evaluation records fixed TLS profile, existing Rustls pins and random/time adapter limits. No provider selected; version-specific manifests/build scripts and maintenance evaluation incomplete after inaccessible primary endpoints. Local paths/symbol and progress checks pass. Proposed design only; accepted native provider/RNG/platform, calendar/signing/bootstrap boundaries remain unresolved. No cryptographic dependency or trust root adopted; no native handshake/hardware/audit evidence. Task remains BLOCKED and41/100 unchanged. Integration/Claude ownership and execution hold preserved."
   },
   "tracks": [
     {
