@@ -82,7 +82,7 @@ pub struct Paging {
     framebuffer: Option<(u64, u64)>,
     #[cfg(feature = "native-smp")]
     lapic: Option<u64>,
-    #[cfg(feature = "native-xhci-probe")]
+    #[cfg(feature = "if0-device-window")]
     native_devices: [u64; 64],
 }
 /// Fixed supervisor UC/NX window for the xAPIC register page (native-smp only).
@@ -95,7 +95,7 @@ pub const SHOOTDOWN_WINDOW: u64 = 0x3f1d0000;
 impl Paging {
     /// Reserve the entire fixture MMIO page-table path before CR3 activation.
     /// Later device mappings cannot require an unmapped CPU page-table frame.
-    #[cfg(feature = "native-xhci-probe")]
+    #[cfg(feature = "if0-device-window")]
     pub(super) fn prepare_native_devices(&mut self, frames: &mut Frames<FRAME_COUNT>) {
         let mut table = self.root;
         for shift in [39, 30, 21] {
@@ -111,7 +111,7 @@ impl Paging {
     }
     /// Dedicated IF0 fixture MMIO, independent of service mappings. Every leaf
     /// has an exact physical binding for the page-table audit below.
-    #[cfg(feature = "native-xhci-probe")]
+    #[cfg(feature = "if0-device-window")]
     pub(super) fn map_native_device(
         &mut self,
         frames: &mut Frames<FRAME_COUNT>,
@@ -355,7 +355,7 @@ impl Paging {
         feature = "native-keyring",
         feature = "native-tpm-crb",
         feature = "native-smp",
-        feature = "native-xhci-probe"
+        feature = "if0-device-window"
     ))]
     fn map_device_page(
         &mut self,
@@ -421,7 +421,7 @@ impl Paging {
             framebuffer: None,
             #[cfg(feature = "native-smp")]
             lapic: None,
-            #[cfg(feature = "native-xhci-probe")]
+            #[cfg(feature = "if0-device-window")]
             native_devices: [0; 64],
         };
         result.tables[0] = root;
@@ -672,7 +672,7 @@ impl Paging {
             framebuffer: kernel.framebuffer,
             #[cfg(feature = "native-smp")]
             lapic: kernel.lapic,
-            #[cfg(feature = "native-xhci-probe")]
+            #[cfg(feature = "if0-device-window")]
             native_devices: kernel.native_devices,
         };
         result.tables[0] = root;
@@ -682,7 +682,7 @@ impl Paging {
     #[cfg(any(
         feature = "milestone-m3",
         feature = "native-smp",
-        feature = "native-xhci-probe"
+        feature = "if0-device-window"
     ))]
     pub fn unmap(&mut self, frames: &mut Frames<FRAME_COUNT>, va: u64) {
         let entry = self.clear_leaf(va);
@@ -723,7 +723,7 @@ impl Paging {
     #[cfg(any(
         feature = "milestone-m3",
         feature = "native-smp",
-        feature = "native-xhci-probe"
+        feature = "if0-device-window"
     ))]
     pub(super) fn clear_leaf(&mut self, va: u64) -> u64 {
         let (table, index) = self.location(va);
@@ -742,7 +742,7 @@ impl Paging {
     #[cfg(any(
         feature = "milestone-m3",
         feature = "native-smp",
-        feature = "native-xhci-probe"
+        feature = "if0-device-window"
     ))]
     fn location(&self, va: u64) -> (u64, usize) {
         let mut table = self.root;
@@ -759,7 +759,7 @@ impl Paging {
     #[cfg(any(
         feature = "milestone-m3",
         feature = "native-smp",
-        feature = "native-xhci-probe"
+        feature = "if0-device-window"
     ))]
     pub fn begin_scratch(&mut self, frames: &mut Frames<FRAME_COUNT>) {
         let (table, index) = self.location(SCRATCH);
@@ -897,7 +897,7 @@ impl Paging {
                     // walk's own transient alias); every other slot must be empty.
                     continue;
                 }
-                #[cfg(feature = "native-xhci-probe")]
+                #[cfg(feature = "if0-device-window")]
                 if (0x3f200000..0x3f240000).contains(&va) {
                     let index = ((va - 0x3f200000) / PAGE) as usize;
                     assert_eq!(
@@ -981,7 +981,7 @@ fn write(table: u64, index: usize, value: u64) {
 #[cfg(any(
     feature = "milestone-m3",
     feature = "native-smp",
-    feature = "native-xhci-probe"
+    feature = "if0-device-window"
 ))]
 pub(super) fn release_leaf(frames: &mut Frames<FRAME_COUNT>, entry: u64) {
     let pa = entry & ADDRESS;
@@ -1088,7 +1088,7 @@ pub fn physical<R>(pa: u64, operation: impl FnOnce(*mut u8) -> R) -> R {
         result
     }
 }
-#[cfg(any(feature = "milestone-m4", feature = "native-xhci-probe"))]
+#[cfg(any(feature = "milestone-m4", feature = "if0-device-window"))]
 pub fn physical_read<R>(pa: u64, operation: impl FnOnce(*const u8) -> R) -> R {
     assert_eq!(pa % PAGE, 0);
     assert!(pa != 0 && pa < PAGE * FRAME_COUNT as u64);

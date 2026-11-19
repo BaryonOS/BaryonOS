@@ -1,8 +1,9 @@
 # TASK-H03-TRANSPORT-CONTRACT-1 — virtio-snd transport, reset, and epoch boundary
 
-Status: **proposed contract; not implemented or executed.** This step changes no
-code, IRQ, MMIO, transport, capability, syscall, or shared ABI.
-Rubric H03/A04; FR-H02/A06/A07 remain open. The host codec under `src/` is not
+Status: **contract. The kernel-only fixture subset of §3-§6 is implemented and
+executed in QEMU 8.2.2 (H03-T3a, §10); the broker, capability, syscall and
+revocation parts remain proposals.** No IRQ, capability, syscall or shared ABI
+exists for audio. Rubric H03/A04; FR-H02/A06/A07 remain open. The host codec under `src/` is not
 native audio. Document owner: TL-HW. Integration and any root, kernel,
 capability, or ABI change require the release/kernel manager and a separate
 security review; this document grants no write access to those areas.
@@ -12,24 +13,32 @@ security review; this document grants no write access to those areas.
 | Source | Version / hash | Used for |
 | --- | --- | --- |
 | OASIS, *Virtual I/O Device (VIRTIO) Version 1.3*, <https://docs.oasis-open.org/virtio/virtio/v1.3/virtio-v1.3.html> | sha256 `3423e9507f2c363fc8e7bbdd013afc0436ed2954b79aa34db55cbf9afa07d45d`, retrieved 30 October 2026 | §2.4 reset (status 0, then no queue interaction), §2.7.8 used ring (no epoch), §5.14.5 initialisation, §5.14.6.6.5 RELEASE, §5.14.6.8 PCM I/O |
-| QEMU `v10.2.1` `hw/audio/virtio-snd.c`, <https://github.com/qemu/qemu/blob/v10.2.1/hw/audio/virtio-snd.c> | sha256 `ccb7e3b6ed7937602f86bf2a3badc70e77bd4e63d2dafb06664c717c74f81114` | stream direction, duplicate RELEASE, invalid TX, reset |
-| QEMU `v10.2.1` `audio/wavaudio.c`, <https://github.com/qemu/qemu/blob/v10.2.1/audio/wavaudio.c> | sha256 `94ad3a5456465bac6aec549bcb0c5d24790a548c84a47c9caa8954094c3eae54` | observation oracle for the runtime gate (S16 supported) |
+| QEMU 8.2.2 release, <https://download.qemu.org/qemu-8.2.2.tar.xz> (the version CI installs on ubuntu-24.04, `.github/actions/setup-qemu`; locally `1:8.2.2+ds-0ubuntu1.18`) | tarball sha256 `847346c1b82c1a54b2c38f6edbd85549edeb17430b7d4d3da12620e2962bc4f3`, retrieved 19 November 2026 | the version the fixture runs against |
+| QEMU 8.2.2 `hw/audio/virtio-snd.c` (from that tarball) | sha256 `99a13ef25d0729dd46e9947dea12986598b5b9242422a052fb05214f22e7794d` | stream direction, control used length, RELEASE, invalid TX, reset |
+| QEMU 8.2.2 `audio/wavaudio.c` and `audio/audio.c` | sha256 `39f693bfa8ce76fbd8c8cd15ff16c6ceef3335807378705337eede4c41800c0d` and `b77b325c191410b46d53ff6e8820911bdd0fe292e539cf205366805a8de7da03` | WAV oracle: header finalised at exit, writes on the virtual-clock audio timer, voice disable on STOP |
 | `crates/virtio-core/src/lib.rs` @ `ca45a7d` | sha256 `24dc240458ff4558eac959c0512b11e73ca9b09da28ddd5179bf2b4361cbd293` | `Policy`: epoch, `reset_completed`, quarantine, ticket |
 | `drivers/virtio-net/src/lib.rs` @ `ca45a7d` | sha256 `9d6689a2cc9c02e4ebd2f211b3d4760e95da052b168ec3c30691f99fadf8f7b5` | pinned-ring/bounce-buffer pattern, idle used-index rejection |
 | `crates/capability-core/src/lib.rs` @ `ca45a7d` | sha256 `9c41ac47e783405901663423b0e0463d5fa665f445abfb8d62de1349debd9fb4` | manifest-only, non-delegable rights (`NETWORK`, `DISPLAY`, `INPUT`) |
 | `docs/DECISIONS.md` ADR-026 (M5) and ADR-044 (network broker) | sha256 `651fc7586d42a08fef8c545b5dfc47a3a1ae2dc2b13bee5a72b39cdfa38882d1` @ `ca45a7d` | trusted kernel transport, no IOMMU, reset acknowledgement/quarantine |
 | `docs/implementation/VIRTIO-NET.md` | sha256 `2114863edb97b2dbe2310ae0b8ccf78ce371839cb6dbe7527821cb97f1787de6` | bus mastering disabled + status 0 = confirmed reset |
 | `docs/verification/m5/transport-review.md` | sha256 `e16d63180001056b4521206ae2a888a2c7abe3098f2e28aae8028312e8a2f06b` | error paths after BME enablement, device scope, orphaned error |
-| QEMU detection probe (TL-HW session evidence) | QEMU 10.2.1, OVMF 4M | `1af4:1059` at `00:08.0`, streams 2, jacks 0, chmaps 0 |
+| QEMU detection probe (TL-HW session evidence, historical) | QEMU 10.2.1, OVMF 4M | `1af4:1059` at `00:08.0`, streams 2, jacks 0, chmaps 0 |
 
-Observed QEMU behaviour (source inspection, not execution): stream IDs
-`< streams/2 + streams%2` are output streams and the remainder are input
-streams; `streams=2` therefore makes stream 0 output and stream 1 **input**.
-Stream information exposes `channels_min=1` and sets `channels_max` to the
-configured audiodev channel count; it also exposes S16 and 48 kHz. A second
-RELEASE of the same stream invokes `virtio_error` (device broken). A TX
-request with an invalid or input stream ID completes with status `BAD_MSG`,
-although §5.14.6.8 lists only `OK` or `IO_ERR` for I/O.
+The earlier pins of QEMU `v10.2.1` sources were source inspection for a
+version CI does not run; §1 is re-pinned to 8.2.2, and §10 lists what the
+fixture actually observed there. QEMU 8.2.2 behaviour from its source (rows
+above): stream IDs `< streams/2 + streams%2` are output streams and the
+remainder are input streams; `streams=2` therefore makes stream 0 output and
+stream 1 **input**, `streams=1` only an output stream. Stream information
+exposes `features=0`, `channels_min=1`, `channels_max` = audiodev channels,
+S16 and 48 kHz; every stream is prepared with default parameters at realize.
+`virtio_error` on RELEASE covers only an unknown stream ID: a released stream
+is never cleared, so a second RELEASE of the same stream would be answered
+`OK` (correcting the earlier reading); the driver refuses it before encoding
+(F19). Every control response, PCM_INFO included, is pushed with used length
+`sizeof(virtio_snd_hdr)` = 4. A TX request with an invalid or input stream ID
+completes with status `BAD_MSG`, although §5.14.6.8 lists only `OK` or
+`IO_ERR` for I/O. `virtio_snd_reset` drains only the control command queue.
 
 ## 2. Trust model
 
@@ -144,6 +153,8 @@ twice), every state `→Fencing` on error/revocation, and
 ## 7. Next minimum runtime gate (VM-SND-1, not executed)
 
 Precondition: B1–B4 decided and root integration performed by release.
+The broker form below is not executed. H03-T3a executed a kernel-only
+precursor with this oracle unchanged (§10).
 
 ```text
 qemu-system-x86_64 -machine pc-q35-8.2 -cpu Nehalem-v1 -accel tcg -smp 1 -m 8G \
@@ -231,7 +242,70 @@ Host model for these rules (model evidence only):
 
 ## 9. Evidence boundary
 
-This document contains design work only, based on primary sources and existing
-project contracts. Nothing was executed in a guest. It makes no claim of audio
-output, latency, DMA isolation, physical-hardware operation, or human audit.
-Rollback consists of removing this file; nothing depends on it.
+§1-§8 are design work based on primary sources and project contracts. Only
+§10 reports execution, and only of a kernel-only QEMU fixture. Nothing here
+claims audible output, latency, DMA isolation, physical-hardware operation or
+a human audit.
+
+## 10. H03-T3a kernel-only fixture (executed in QEMU 8.2.2)
+
+Kernel feature `native-virtio-snd-probe` (IF0 M2 profile, one CPU, polling,
+exclusive with M3, framebuffer, SMP, RTC, ACPI S3/S5 and xHCI), negative
+builds `test-snd-fence-reinit` and `test-snd-quarantine`, runner
+`tools/run_virtio_snd.py`, evidence `docs/verification/h03-virtio-snd-20261119/`.
+The kernel itself generates the §7 pattern A (and pattern B, `L = !n`,
+`R = !n ^ 0x2000`, after a fence). No syscall number (B2), capability (B1),
+broker, process lease or microphone path exists; F13-F16 therefore do not
+apply. `00:08.0` is used as a fixture address only (B4). rxq is never enabled
+(B5: disabled). Trusted transport, no IOMMU (B3/B9).
+
+QEMU command: `-machine pc-q35-8.2 -accel tcg,thread=single -icount
+shift=0,sleep=off -cpu qemu64 -smp 1 -m 256M`, OVMF 4M, `-audiodev
+wav,...,out.frequency=48000,out.channels=2,out.format=s16`, `-device
+virtio-sound-pci,addr=08.0,audiodev=snd0,streams=1`. `-icount` puts the TSC,
+PIT and QEMU's audio timer (which also paces the WAV writes) on one virtual
+clock, so deadlines and the WAV contents do not depend on host load.
+
+Observed QEMU 8.2.2 behaviour and the resulting driver rules:
+
+- Every control response, PCM_INFO included, carries used length 4. The
+  driver accepts that header-only length **for PCM_INFO only**, besides the
+  exact `4 + 32n`; it zeroes the response area before publication and parses
+  the records strictly, so a response that really carries only the header
+  fails closed (`channels_min` 0). Every other used length is exact.
+- `virtio_snd_reset` keeps already popped TX elements. An exploratory
+  in-flight fence (non-acceptance) showed QEMU playing them after
+  re-initialisation and completing used id 0 with length 8 while head 0 was
+  not outstanding; the driver detected it and failed closed, and the WAV showed
+  replayed slot data. The accepted fence-reinit case therefore fences with no
+  TX outstanding; an in-flight fence followed by re-initialisation is not
+  recoverable on this QEMU (quarantine is).
+- A TX completion means QEMU accepted the samples, which the WAV backend then
+  writes on the audio timer; STOP disables the voice and drops samples still
+  buffered (exploratory run: the last 480 frames were missing). The driver
+  drains for 200 ms while RUNNING with nothing outstanding, then STOPs, then
+  watches a 200 ms quiet window.
+- Underruns insert no silence; QEMU writes the WAV sizes at exit
+  (`isa-debug-exit` runs the audio cleanup), a killed guest leaves size 0.
+- `iommu_platform=on` is accepted without a vIOMMU and offers
+  `ACCESS_PLATFORM` (bit 33); the driver refuses it before FEATURES_OK.
+- The event queue is unimplemented (never completed).
+
+| # | Coverage in H03-T3a |
+| --- | --- |
+| F1 | native: no device ⇒ `SND:ABSENT`, no WAV |
+| F2 | native: `iommu_platform=on` ⇒ offline, BME never set, no DRIVER_OK, empty WAV |
+| F3 | host codec only: QEMU refuses `streams` outside 1..10 |
+| F4, F9 | host codec |
+| F5, F7, F8, F11 | host (`queue` tests) and the strict checks of every native run; the exploratory in-flight run exercised F7/F11 detection |
+| F6 | not run (no blocked backend) |
+| F10 | every native poll requires status `0x0f`; reported after the refused second RELEASE |
+| F12 | native: zero fence deadline ⇒ quarantine, nothing published afterwards, pool pinned |
+| F17 | code path and host tests (QEMU sends no events); `CTL_NOTIFY` counts against the bound |
+| F18 | host test |
+| F19 | native and host: second RELEASE refused before encoding, nothing sent |
+
+Fence-reinit: 10 periods of A, fence acknowledged (status 0, BME off, used
+rings stable for 50 ms), epoch 1, full §5.14.5 re-initialisation, all of B.
+Oracle: an exact A prefix no longer than the 4800 submitted frames, at most
+4800 silent frames, all 48000 B frames, never A after B.

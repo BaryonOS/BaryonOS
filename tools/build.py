@@ -55,6 +55,7 @@ LEGACY_SMP_FEATURES = ("native-smp-legacy", "native-smp-legacy-m3", "native-smp-
                        "native-smp-m3-lock-contention", "native-smp-m4", "native-smp-m4-revoke")
 KERNEL_FEATURES = ["test-panic", "test-hang", "milestone-m2", "native-rtc",
                    "native-xhci-probe", "test-xhci-dma-fault", "test-xhci-no-dmar", "native-usb-hid-probe", "native-usb-hid-reattach", "test-usb-hid-readonly-fault",
+                   "native-virtio-snd-probe", "test-snd-fence-reinit", "test-snd-quarantine",
                    "native-smp-m3-ipc", "native-smp-m3-migrate", "test-smp-m3-canary",
                    "native-smp-m3-load", "native-smp-m3-soak", "native-smp-m4-quotas", "native-smp-qsim", "native-smp-m3-kill",
                    "native-smp-m3-unmap", "test-smp-m3-no-shootdown",
