@@ -1,0 +1,20 @@
+# Current overview
+
+Updated 19 November 2026. Source baseline: main `ea628ef5` (#393).
+Integration pass of 19 November 2026 squash-merged PRs #365–#379 and #381–#393 in
+creation order, with review repairs where findings were valid. Open PRs: #360
+(Claude UI/UX, excluded) and #380 (blocked native full-port sweep). Overall 41/100
+unchanged. [Executable continuation](PROJECT-STATE.md).
+
+| Workstream | Current boundary | Next step |
+|---|---|---|
+| Codex H/U/N/B/A/P/L/R | Released READY queue processed; bounded code/native slices and supporting proposals preserved in draft PRs | N02-T3 after PR370 integration/write ownership release; actual source blockers in checkpoint |
+| Integration | Separate Integration Manager owns existing PR review, merge and closure | No Codex development duplicate integration or CI polling |
+| ClaudeS09/UI | Claude-owned worktrees preserved; main includes S09 #340 | Follow those workstreams' own handoffs; no Codex writes |
+| Shared governance | Contracts/adapters/roles/skills integrated in main #362 | Runtime parity and held automation remain separate |
+| Unsafe unattended runner | Source hold and disabled policy preserved | No activation; existing Daybreak/model-client/runtime findings remain open |
+| Former #355 WIP | Original preserved checkout and recovery-only #357 remain unincorporated | Do not discard or publish blindly |
+
+Branch-bound host/QEMU evidence does not establish current-main acceptance,
+physical support, a human audit or release readiness. Proposed owner/security
+boundaries remain proposed. No wiki or new project-management system was created.

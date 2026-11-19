@@ -27,6 +27,8 @@ use volume_core::{
     wire::{self, Header, ListEntry, SubOp},
     Status, CHUNK, COLLECTIONS, FNV_OFFSET, MAX_LENGTH, PER_DOMAIN,
 };
+#[cfg(feature = "archive-portal")]
+use volume_core::{ustar, Disk, SECTOR};
 
 const LIMIT: usize = 400_000;
 
@@ -49,6 +51,15 @@ const ARCHIVE_CORRUPT: u64 = 9;
 const ARCHIVE_CONFLICT: u64 = 10;
 #[cfg(feature = "archive-portal")]
 const ARCHIVE_FULL: u64 = 11;
+#[cfg(feature = "archive-portal")]
+const ARCHIVE_USTAR: u64 = 12;
+/// S09 second-disk flows of their own (the kernel maps the other archive-disk
+/// cases onto the flows above): the archive disk is absent, and the power cut
+/// during an export over an older archive.
+#[cfg(feature = "archive-portal")]
+const ARCHIVE_ABSENT: u64 = 15;
+#[cfg(feature = "archive-portal")]
+const ARCHIVE_CUT: u64 = 18;
 /// Startup word with the portal's archive range capability (slot 1, archive
 /// cases only); the range size must equal the kernel manifest's scope.
 #[cfg(feature = "archive-portal")]
@@ -58,6 +69,30 @@ const ARCHIVE_SECTORS: u64 = 1040;
 /// Scope of the full-target case, below the 180 sectors the export needs.
 #[cfg(feature = "archive-portal")]
 const FULL_SECTORS: u64 = 100;
+/// The ustar case stores its archive in the lower half of the range and the
+/// ustar stream from this sector; tools/run_volume.py uses the same split.
+#[cfg(feature = "archive-portal")]
+const USTAR_FIRST: u64 = ARCHIVE_SECTORS / 2;
+
+/// The upper half of the archive range as a disk of its own, so the ustar
+/// stream cannot reach the archive it is read from.
+#[cfg(feature = "archive-portal")]
+struct Shifted(NativeDisk);
+
+#[cfg(feature = "archive-portal")]
+impl Disk for Shifted {
+    fn read(&mut self, sector: u64, buffer: &mut [u8; SECTOR]) -> Result<(), Status> {
+        self.0.read(sector + USTAR_FIRST, buffer)
+    }
+
+    fn write(&mut self, sector: u64, buffer: &[u8; SECTOR]) -> Result<(), Status> {
+        self.0.write(sector + USTAR_FIRST, buffer)
+    }
+
+    fn flush(&mut self) -> Result<(), Status> {
+        self.0.flush()
+    }
+}
 /// Private, zeroed 64 KiB RW/NX heap the kernel maps for every process
 /// before entry; the portal's only use is the archive content scratch.
 #[cfg(feature = "archive-portal")]
@@ -837,7 +872,8 @@ fn portal(app: &mut App, case: u64) {
     // reference, held for the rest of the portal run on one thread.
     let scratch = unsafe { &mut *(HEAP as *mut [u8; MAX_LENGTH]) };
     let mut disk = NativeDisk { device };
-    // The broker serves one block request at a time (others get Busy), so
+    // The broker serves one block request at a time across both disks (others
+    // get Busy), so
     // archive I/O must not overlap service I/O: slot 2 waits for phase 2,
     // and every case reaches a READY service before its first archive read.
     app.phase(1);
@@ -985,6 +1021,84 @@ fn portal(app: &mut App, case: u64) {
                 815,
             );
         }
+        ARCHIVE_USTAR => {
+            // D6(a) user export: archive the read-only fixture into the lower
+            // half, then convert that stored archive into the upper half. It
+            // reuses the portal's existing `unsafe` HEAP scratch cast above and
+            // adds no further `unsafe`.
+            verify_final(app, FINAL_A, 820);
+            let mut sink = DiskSink::new(&mut disk, USTAR_FIRST);
+            let summary =
+                archive::export(&mut app.client, 0, &mut sink).unwrap_or_else(|_| fail(830));
+            sink.finish().unwrap_or_else(|_| fail(831));
+            let (checked, names) =
+                ustar::check(&mut DiskSource::new(&mut disk, USTAR_FIRST), scratch)
+                    .unwrap_or_else(|_| fail(832));
+            check(checked == summary && !names.refused(), 833);
+            let mut target = Shifted(NativeDisk { device });
+            let mut out = DiskSink::new(&mut target, ARCHIVE_SECTORS - USTAR_FIRST);
+            // Reasons are judged again, so a caller cannot clear a refusal: a
+            // reserved name gives Invalid before the first byte reaches `out`.
+            let mut refused = names;
+            refused.object[0].bytes[..3].copy_from_slice(b"CON");
+            refused.object[0].length = 3;
+            check(
+                ustar::from_archive(
+                    &mut DiskSource::new(&mut disk, USTAR_FIRST),
+                    scratch,
+                    &refused,
+                    &mut out,
+                ) == Err(Status::Invalid),
+                834,
+            );
+            check(
+                ustar::from_archive(
+                    &mut DiskSource::new(&mut disk, USTAR_FIRST),
+                    scratch,
+                    &names,
+                    &mut out,
+                ) == Ok(summary),
+                835,
+            );
+            let length = out.finish().unwrap_or_else(|_| fail(836));
+            check(length > 0 && length.is_multiple_of(SECTOR as u64), 837);
+            // The host reads the stream with Python tarfile at this length.
+            support::put(512, length);
+        }
+        ARCHIVE_ABSENT => {
+            // The kernel granted a range of a disk that is not there: the
+            // broker answers NoDevice, so nothing is written or finalized.
+            verify_final(app, FINAL_A, 840);
+            let mut sink = DiskSink::new(&mut disk, ARCHIVE_SECTORS);
+            check(
+                archive::export(&mut app.client, 0, &mut sink) == Err(Status::NoDevice),
+                850,
+            );
+            check(
+                archive::verify(&mut DiskSource::new(&mut disk, ARCHIVE_SECTORS), scratch)
+                    == Err(Status::NoDevice),
+                851,
+            );
+            check(app.list(0, 852).1 == FINAL_A.len(), 853);
+            let object = app.object(7);
+            check(
+                app.client.write(object, 0, b"Nee", 1, fill(object, 1)) == Err(Status::Access),
+                854,
+            );
+        }
+        ARCHIVE_CUT => {
+            // Change the domain so the new archive differs from the older one
+            // on the disk from its header on, then export over it. The kernel
+            // stops the guest after a fixed number of archive writes.
+            verify_final(app, FINAL_A, 860);
+            // A new collection needs no content chunk (the fixture is near
+            // full) and changes the header's collection count and generation.
+            check(app.client.collection(0, 3, 0, b"Nieuw") == Ok(1), 870);
+            let mut sink = DiskSink::new(&mut disk, ARCHIVE_SECTORS);
+            let _ = archive::export(&mut app.client, 0, &mut sink);
+            // Not reached when the cut happens.
+            fail(879);
+        }
         _ => fail(769),
     }
     app.phase(2);
@@ -1042,6 +1156,7 @@ fn run() {
         RECOVER_CUT => recover_cut(&mut app),
         #[cfg(feature = "archive-portal")]
         ARCHIVE_EXPORT | ARCHIVE_RESTORE | ARCHIVE_CORRUPT | ARCHIVE_CONFLICT | ARCHIVE_FULL
+        | ARCHIVE_USTAR | ARCHIVE_ABSENT | ARCHIVE_CUT
             if domain == 0 =>
         {
             portal(&mut app, case)
@@ -1049,7 +1164,8 @@ fn run() {
         // The ordinary app holds no archive authority; it reports its domain
         // only after the portal finished its archive I/O (kernel gate 2).
         #[cfg(feature = "archive-portal")]
-        ARCHIVE_EXPORT | ARCHIVE_RESTORE | ARCHIVE_CORRUPT | ARCHIVE_CONFLICT | ARCHIVE_FULL => {
+        ARCHIVE_EXPORT | ARCHIVE_RESTORE | ARCHIVE_CORRUPT | ARCHIVE_CONFLICT | ARCHIVE_FULL
+        | ARCHIVE_USTAR | ARCHIVE_ABSENT | ARCHIVE_CUT => {
             app.phase(1);
             app.wait_gate(2);
             app.report(760)

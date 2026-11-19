@@ -13,6 +13,40 @@ Key Service boundary from [ENCRYPTED-OBJECT-STORAGE](ENCRYPTED-OBJECT-STORAGE.md
 
 ## 1. Problem
 
+B01-T1 implementation contract (18 November 2026), based on source commit
+`fb26f3b9b744db7b495d93e4bfae13cbfab5f887`: extend only the native-keyring
+fixture with a manifest-named management instance of the existing app ELF.
+The invariant is that IPC sender identity authorizes management recovery and
+ordinary app recovery remains denied. The write set is the keyring kernel
+fixture and profile selection, SDK keyring source, keyring harness/tests and
+this specification. Acceptance commands are `cargo +1.90.0 test --locked -p
+keyring-core`, `python3 -B -m unittest discover -s tests -p 'test_keyring_*.py'`,
+`python3 -B tools/build.py --kernel-feature native-keyring` and kernel formatting.
+The lead runs the five-case native gate and the wrong-caller counterexample.
+Compilation and host tests do not prove native execution; eventual native
+evidence is QEMU TCG only, not physical RNG quality or an external audit.
+
+The normal fixture assigns the management process a private reply endpoint
+and SEND to each service's existing admin ingress. The kernel writes the
+authorized PID at startup offset 168, alongside handles at 96 and 104;
+the service compares that PID with the actual IPC sender. A labelled app
+SEND alias to B's admin ingress tests rejection without a reply or changed
+key state before management starts. Management exports A's recovery material,
+receives `Auth` for a wrong secret, restores B, and receives `Invalid` for
+`GENERATE` on the admin ingress. The ordinary app then unseals A's ciphertext
+through B and checks that the imported revoked key remains revoked. The
+four other cases retain their three-process manifests.
+
+Required counterexample for the lead's scratch worktree: in `poll_admin()`
+in `sdk/examples/keyring/src/service.rs`, replace the single line
+`if message.sender() != ingress.caller {` with
+`if message.sender() != ingress.caller && message.sender() != support::word(160) {`.
+This incorrectly authorizes the ordinary app PID. The normal gate must fail:
+the bad-caller count cannot reach one and the rejected-call barrier cannot
+release management. This mutation has not been executed by the worker.
+The lead records native results and the final source commit in the new
+verification record; this implementation contract does not grant acceptance.
+
 Until now the own OS has no entropy source and no keys. Without a
 tested source with readiness and an error path, no key may be
 generated (SECURITY-AND-QUANTUM.md §7). B02 (authenticated storage), B03

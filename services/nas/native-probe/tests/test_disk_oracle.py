@@ -19,17 +19,23 @@ def snapshot():
     raw = bytearray(17216)
     raw[:8] = b"NOSNAS01"
     struct.pack_into("<H", raw, 8, 1)
-    struct.pack_into("<Q", raw, 16, 6)
+    struct.pack_into("<Q", raw, 16, 11)
     raw[24:56] = b"NOSPROC1" + (11).to_bytes(8, "little") + bytes(16)
     raw[64:96] = bytes([0xA7]) * 32
     raw[96] = 4
     struct.pack_into("<Q", raw, 104, 2)
-    struct.pack_into("<I", raw, 112, 128)
+    struct.pack_into("<I", raw, 112, 256)
     raw[120:152] = b"NOSPROC1" + (12).to_bytes(8, "little") + bytes(16)
+    at = 64 + oracle.NS_BYTES
+    raw[at:at + 32] = bytes([0xB8]) * 32
+    raw[at + 32] = 4
+    struct.pack_into("<Q", raw, at + 40, 2)
+    struct.pack_into("<I", raw, at + 48, 128)
+    raw[at + 56:at + 88] = b"NOSPROC1" + (12).to_bytes(8, "little") + bytes(16)
     return bytes(raw)
 
 
-def image_bytes(raw=None, *, history=False, other_object=False, generation=11):
+def image_bytes(raw=None, *, history=False, other_object=False, generation=21):
     raw = snapshot() if raw is None else raw
     with tempfile.TemporaryDirectory(prefix="nieuw-os-nas-oracle-") as directory:
         path = Path(directory) / "synthetic.img"
@@ -40,7 +46,7 @@ def image_bytes(raw=None, *, history=False, other_object=False, generation=11):
         start = (disk.FIRST + disk.DATA_START + index * disk.CHUNK_SECTORS) * disk.SECTOR
         image[start:start + len(chunk)] = chunk
     current = {
-        "revision": 10, "length": len(raw), "name": b"nas-authority-v1",
+        "revision": 20, "length": len(raw), "name": b"nas-authority-v1",
         "content_sum": disk.fnv(raw), "chunks": list(range(len(chunks))),
         "sums": [disk.fnv(chunk) for chunk in chunks],
     }
@@ -75,7 +81,8 @@ class DiskOracleTests(unittest.TestCase):
         self.assertNotIn(snapshot().hex(), json.dumps(cold))
 
     def test_every_cleared_object_byte_is_required_zero(self):
-        for at in range(64 + 128, 64 + oracle.NS_BYTES):
+        for at in [start + relative for start in (64, 64 + oracle.NS_BYTES)
+                   for relative in range(128, oracle.NS_BYTES)]:
             with self.subTest(offset=at):
                 raw = bytearray(snapshot())
                 raw[at] = 1
@@ -83,7 +90,7 @@ class DiskOracleTests(unittest.TestCase):
                     oracle.check_snapshot(raw, 11, 12)
 
     def test_schema_metadata_identity_and_extra_namespace_are_not_ignored(self):
-        for at in [0, 8, 10, 16, 24, 56, 96, 97, 104, 112, 116, 120, 152, 184, 4352, 17215]:
+        for at in [0, 8, 10, 16, 24, 56, 96, 97, 104, 112, 116, 120, 152, 184, 8640, 17215]:
             with self.subTest(offset=at):
                 raw = bytearray(snapshot())
                 raw[at] ^= 1
@@ -101,6 +108,21 @@ class DiskOracleTests(unittest.TestCase):
                 oracle.check_snapshot(snapshot(), admin, guest)
         with self.assertRaises(ValueError):
             oracle.check_snapshot(snapshot(), 12, 11)
+
+    def test_both_tombstones_are_required_distinct_and_exact(self):
+        for offset in (0, 32, 40, 48, 56, 88, 127):
+            raw = bytearray(snapshot())
+            at = 64 + oracle.NS_BYTES
+            if offset == 0:
+                raw[at:at + 32] = bytes(32)
+            else:
+                raw[at + offset] ^= 1
+            with self.subTest(offset=offset), self.assertRaises(ValueError):
+                oracle.check_snapshot(raw, 11, 12)
+        raw = bytearray(snapshot())
+        raw[64 + oracle.NS_BYTES:96 + oracle.NS_BYTES] = raw[64:96]
+        with self.assertRaises(ValueError):
+            oracle.check_snapshot(raw, 11, 12)
 
     def test_retained_history_and_unrelated_mutations_are_rejected(self):
         for kwargs in [{"history": True}, {"other_object": True}]:

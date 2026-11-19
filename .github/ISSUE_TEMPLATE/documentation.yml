@@ -6,7 +6,7 @@ body:
     attributes:
       value: |
         The current source and evidence limits are authoritative. An old test result does not automatically apply to new code.
-        Use [Questions and help](https://github.com/simonvanieperen/BaryonOS/discussions/categories/questions-and-help)
+        Use [Questions and help](https://github.com/BaryonOS/BaryonOS/discussions/categories/questions-and-help)
         when primarily seeking an explanation. Do not share sensitive data or vulnerability details.
   - type: input
     id: location

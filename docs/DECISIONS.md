@@ -5,6 +5,279 @@ This document distinguishes the decisions and authority of the project owner
 from those of the executing roles. Source quotations retain their original
 wording and speaker.
 
+## ADR-S09-DUALDISK-20261119 — Test-only second virtio-blk device for the S09 archive fixture
+
+**Status:** approved by the project owner on 19 November 2026 (verbatim: "Yes,
+approve B1–B6"). It covers the request in
+[S09-DUAL-DISK-FIXTURE-REQUEST.md](implementation/S09-DUAL-DISK-FIXTURE-REQUEST.md).
+
+**Context.** The S09 assignment asks for an independent recovery copy on a
+second virtual disk and a cold restore without the source disk. The
+virtio-blk driver serves exactly one fixed PCI function, and the volume
+profile refuses every block capability on a device other than 0. A second
+disk is therefore a device-ownership change in a shared driver and kernel
+profile.
+
+**Decision.** A second virtio-blk device is allowed only as a test fixture,
+under the request's bounds:
+- B1: a closed set of two fixed PCI functions, with `discover()` unchanged for
+  its existing callers;
+- B2: a feature-gated second device with disjoint DMA pages, and
+  `device != 0` still refused outside that feature;
+- B3: a portal-only capability on device 1, ending below the disk end, and
+  nothing on device 1 for the volume service or slot 2;
+- B4: disposable images only;
+- B5: no product authority;
+- B6: QEMU evidence only.
+
+**Alternatives considered.**
+- Keep the archive range on the volume's own disk (the current native slice).
+  That cannot show a restore after the source disk is lost.
+- Host model only (`services/volume/tests/archive.rs`, five dual-device
+  tests). That gives no native evidence of a second device.
+- A general multi-device virtio-blk driver that probes the bus. That is a
+  wider ownership change than the fixture needs, and it could claim the boot
+  ESP.
+- A second device in every profile. The fixture needs it in the volume
+  profile only.
+
+**Rationale.** A closed enum of two fixed functions keeps the driver's
+`unsafe` port-I/O justification bounded, because no caller can supply an
+arbitrary bus/device/function number. A dedicated test feature keeps every
+existing profile unchanged. A portal-only `BlockScope { device: 1, .. }`
+reuses the capability engine as it is; routing stays in the kernel broker.
+Source: the request's "Why a decision is needed" facts, read at main
+`8f970866`.
+
+**Migration and rollback.** There is no data or format migration.
+`discover()` keeps its `00:05.0` behaviour, so existing callers need no
+change. Rollback: revert the implementing commits and remove the
+second-device stages from `PLAN` in `tools/test_volume.py`. Profiles without
+the test feature keep refusing `device != 0`.
+
+**Consequences.** The released write set is listed in the request. This
+ADR decided nothing about D1–D5; those are decided separately by
+[ADR-S09-DESTINATION-20261119](#adr-s09-destination-20261119--backup-destination-service-trusted-dialog-and-os-backup-portal)
+(D1 (b), D2 (a), D3, D4 (a), D5 (a)), which keeps this grant a fixture. S09
+stays open.
+
+## Project-owner decision package of 19 November 2026 — scope and limits
+
+The six ADRs below record one decision package issued by the project owner on
+19 November 2026. They authorize scoped technical planning, implementation,
+isolated testing and reviewable draft PRs within existing project permissions.
+They do not override the Security Floor, current workstream ownership, branch
+protection, merge authorization, production-signing boundaries, physical-device
+restrictions or the unattended-execution hold. Each ADR separates the approved
+architecture from unfinished implementation, acceptance and release authority.
+An approved direction is not an accepted criterion and changes no score.
+
+## ADR-S09-DESTINATION-20261119 — Backup destination service, trusted dialog and OS backup portal
+
+Status: accepted by the project owner on 19 November 2026. It decides D1–D5 of
+[S09-BACKUP-DESTINATION-PROPOSAL.md](implementation/S09-BACKUP-DESTINATION-PROPOSAL.md)
+and confirms D6, superseding that proposal's "D1–D5 remain undecided" status and
+the corresponding limitation in [ADR-S09-USTAR-20261114](#adr-s09-ustar-20261114--posix-ustar-with-pax-path-records-as-the-lossy-s09-user-export-format-d6-a).
+
+**Decision:**
+
+- **D1 (b):** a dedicated backup destination service owns the target device or
+  partition and exposes named, append-only archive entries.
+- **D2 (a):** a trusted system dialog authorizes the explicitly selected
+  destination and operation. Remembered permissions are revocable and follow the
+  existing permission model.
+- **D3:** rights are least-privilege and operation-specific for export,
+  verification and restore. The backup portal never acquires unrestricted volume
+  access.
+- **D4 (a):** a trusted OS backup portal holds destination capabilities.
+  Third-party applications receive no direct raw backup-device authority.
+- **D5 (a):** initially only local, user-owned destinations. Encrypted NAS and
+  external-provider destinations require the existing key-management and
+  client-side encryption contracts
+  ([ENCRYPTED-OBJECT-STORAGE.md](implementation/ENCRYPTED-OBJECT-STORAGE.md)).
+- **D6:** the approved POSIX ustar/pax interchange format is retained.
+
+**Implementation boundary:** the first independent recovery test runs on
+isolated, disposable QEMU disks. A separate destination service and any new
+production capability boundary require a documented interface, a security
+review, negative tests and verified enforcement before activation. The
+existing test-fixture grant in [S09-BACKUP-ARCHIVE.md](implementation/S09-BACKUP-ARCHIVE.md)
+remains a fixture. S09 stays open until its full acceptance passes; Claude S09
+ownership of the implementation is unchanged.
+
+## ADR-B03-B04-TARGET-20261119 — Target architecture for update authenticity and recovery
+
+Status: accepted by the project owner on 19 November 2026 as the target security
+architecture. It adopts D1–D7 of
+[B03-PRODUCTION-POLICY-PROPOSAL.md](implementation/B03-PRODUCTION-POLICY-PROPOSAL.md),
+superseding its "unapproved" status for the architecture only, and extends
+[ADR-B03K3](#adr-b03k3--authorised-synthetic-policy-transition-experiment).
+
+**Decision:**
+
+- separate offline policy-root and release-signing roles (D1);
+- bounded, canonical, authenticated policy envelopes and target-bound image
+  manifests (D2,
+  [B03-POLICY-TRANSITION-PROPOSAL.md](implementation/B03-POLICY-TRANSITION-PROPOSAL.md));
+- demonstrable persistent rollback resistance against the declared threat
+  model (D3);
+- revocation and recovery that never bypass signatures or lower security floors
+  (D4);
+- the initial loader and root authenticated through a separately verified boot
+  chain (D5);
+- authenticated release-version windows; ordinary RTC time does not establish
+  trusted expiry (D6);
+- authorization covers specifications, synthetic-key implementation and
+  disposable-QEMU verification only (D7).
+
+**Still subject to separate verification and approval:** the production
+custodians, signing environment, persistent anchor backend, firmware trust
+chain and recovery procedures.
+
+**Not authorized:** real production-key generation, production signing, release
+publication, physical firmware modification or activation of an unverified trust
+mechanism. Issue #41 and B03/B04 remain open; scores are unchanged.
+
+## ADR-DESIGN-TOKENS-20261119 — Deterministic generator for design tokens
+
+Status: accepted by the project owner on 19 November 2026 for the token work in
+draft PR #360. It refines the generated-token rule in `ui/AGENTS.md` and
+[DESIGN-SYSTEM.md](design/DESIGN-SYSTEM.md) without changing it.
+
+**Decision:** approve a deterministic, version-controlled token generator with
+validated inputs, reproducibility checks and regression tests.
+`ui/prototype/tokens.css` and `ui/design/system/tokens.css` stay frozen until the
+generator reproduces the intended output and the change passes independent
+review. Unresolved review threads and required checks are not bypassed.
+Accessibility requirements and the existing design identity are preserved. PR
+#360 remains owned by the Claude UI/UX workstream.
+
+## ADR-P-NAMES-1-20261119 — Functional, localizable user-facing names
+
+Status: accepted by the project owner on 19 November 2026. It decides proposal
+P-NAMES-1 in [NAMING-AND-IA.md](design/NAMING-AND-IA.md) §8 and supersedes the
+user-facing names of 5 November 2026 in
+[DESKTOP-SHELL.md](implementation/DESKTOP-SHELL.md) §7.
+
+| Previous name | User-facing name (EN / NL) |
+|---|---|
+| Horizon | Desktop / Bureaublad |
+| Zenit | Menu |
+| Signaal | Search / Zoeken |
+| Nebula | Files / Bestanden |
+| Kern | Settings / Instellingen |
+| Orbit | Orbit, with a descriptive dock label |
+| Haven | Haven, with a descriptive application-store label |
+
+Materiaal remains the internal object and permission model. Existing code
+identifiers, stable APIs, storage formats and historical references stay
+unchanged unless a change is separately justified. User-visible strings follow
+these names through localization, not through renaming internal identifiers.
+
+## ADR-PROGRESS-ROUTE-20261119 — Route from 41 to at least 50 points (issue #43)
+
+Status: accepted by the project owner on 19 November 2026. It sets priority only
+and does not change the rubric, weights or acceptance conditions.
+
+**Decision:** the fixed 100-point rubric and the accepted baseline of 41/100 are
+retained. Completing existing functional criteria takes priority over new
+prototypes or wider claims. The preferred route is S09 (+2), N02 (+3), U05 (+2)
+and H02 (+3), which reaches 51/100 only if all four pass their full acceptance
+independently. H02 physical-device acceptance depends on a separately selected
+and authorized reference machine; if that blocks progress, U03 is assessed as an
+alternative three-point criterion under its unchanged conditions. Claude's
+S09/UI ownership, Codex's roadmap ownership and the Integration Manager's
+integration authority remain separate.
+
+## ADR-W001473-PROVENANCE-20261119 — Disposition route for historical source record W001473 (issue #283)
+
+Status: accepted by the project owner on 19 November 2026.
+
+**Decision:** first establish the original author, source revision and valid
+reuse permission for W001473 (referenced from
+`.agents/skills/os-dev/references/`). If sufficient primary evidence cannot be
+obtained, prepare a narrowly scoped exclusion or an independently authored
+replacement, supported by a source comparison, a licensing review and a
+publication-impact assessment. Permission is never inferred from missing
+evidence. Git history is not rewritten, unrelated reference sources are not
+deleted and no legal clearance is claimed without proper verification. Issue
+#283 remains open until the selected disposition is substantiated and reviewed.
+
+**Follow-up decision (project owner, 19 November 2026), after the provenance
+search:** the primary search found W001473 to be a 2006 port from the old OS
+Wiki with no verifiable original grant
+(`docs/verification/w001473-provenance-20261119/`). The owner therefore chose,
+and extended to the whole OSDev corpus, a risk-based review:
+
+1. Exclude W001473 through a separate, targeted and reviewed change that
+   rebuilds the indexes and keeps the provenance record (PR #397).
+2. Examine the other 27 explicitly imported pages individually; keep a page
+   only with demonstrably sufficient rights, otherwise exclude it in a targeted
+   change (PR #399).
+3. Examine the 641 pages that predate the CC0 statement of 6 June 2011, without
+   blind deletion, and screen the other pages for older copied text (PR #398).
+4. Retain text only on a verifiable licence, original permission or an
+   independently written replacement; claim no new MPL-2.0 licence for copied
+   text. Third-party text without such a basis is excluded (PR #400).
+5. Report which texts are reusable, uncertain or excluded, and the residual
+   Git-history risk.
+
+*Consequences:* protected skill files change only through separate, scoped and
+reviewed PRs; there is no mass deletion, no history rewrite and no licence
+claim without evidence. Records with an owner decision still pending (licences
+with notice or share-alike obligations, quotations) stay in the corpus as
+uncertain until decided. Legal clearance and acceptance of these ADRs remain
+separate steps. The product score is unchanged.
+*Review criterion:* #283 closes only when W001473, the 27 imports and the
+third-party records are excluded or retained on a documented verifiable basis,
+the pre-CC0 review and older-text screening are recorded, and every remaining
+uncertain record (including the pre-CC0 pages) has a recorded disposition.
+
+## ADR-AGENT-GOVERNANCE-20261118 — Shared contracts and risk-based execution
+
+Status: accepted project-owner direction, 18 November 2026, fresh-session execution
+request. This supersedes earlier prerequisites requiring completed Phase 0/baseline B
+or zero open issues, PRs and findings before governance. Historical evidence remains
+unchanged. It does not declare baseline B complete or resolve security findings.
+
+**Decision:** root `AGENTS.md` is canonical policy; directory instructions refine
+subsystems. `.agents/skills/development-loop/SKILL.md` holds the common procedure;
+`.agents/roles/` holds the four common role contracts. Claude Code, Codex and Copilot
+adapters reference those contracts and retain surface-specific tool restrictions.
+Use `os_verifier` or `os_security_reviewer` where appropriate; no optional
+`agents/independent.md` is required. No active reference to that missing file was
+found during reconciliation, so no replacement role is invented.
+
+Default to one primary agent, with at most one additional reviewer when risk warrants
+it. Claim bounded write paths in existing task state and isolate writers by worktree.
+`docs/STATUS.md` is the compact current overview; `docs/PROJECT-STATE.md` keeps the
+single lead continuation checkpoint while independent workstreams retain their own
+handoffs. Do not create a second backlog. New sessions read current state, then only
+missing contracts, relevant decisions and changed source.
+
+Verification follows changed functionality and risk. Preserve meaningful negative
+security tests, mandatory hosted checks and merge protections. Reuse valid
+source-bound evidence with its applicability stated. Do not repeatedly run full native
+matrices for unchanged code, assemble large trivial-fix evidence packages, poll CI
+continuously or repeat optional reviews after quota failures. Manual squash is
+explicitly authorized for this assignment only when mandatory checks pass; auto-merge
+and protection bypass remain prohibited.
+
+**Rationale and alternatives:** a shared contract prevents duplicated client policy
+from drifting while allowing tool capabilities to differ. Separate client policies
+and a new orchestration framework add maintenance without requested functionality.
+Exhaustive repeated verification consumed excessive resources; targeted regression
+checks retain the security invariant without conflating development feedback with
+full product acceptance. Existing role definitions and checkpoints are reused.
+
+**Consequences and limits:** governance acceptance is distinct from client runtime
+parity, Daybreak acceptance, physical hardware and human audit. The #359 unconditional
+execution hold and #355 disabled manifest remain in force. Offline gate/model-client
+work and unfinished local WIP remain separately owned; this ADR grants no activation.
+The new canonical policy paths are protected from unattended pipeline edits. Validate
+adapter targets, retained tool restrictions and protected-path denial through host
+regressions. No OS criterion or acceptance weight changes.
+
 ## ADR-VERSION-POLICY-20261117 — Latest stable components with verified exceptions
 
 Status: accepted by the project owner on 17 November 2026. Authority and execution
@@ -259,7 +532,12 @@ existing TEST update path and missing-policy guards intact.
 Status: accepted by the project owner on 14 November 2026; recorded on
 15 November 2026. It decides D6 of
 [S09-BACKUP-DESTINATION-PROPOSAL.md](implementation/S09-BACKUP-DESTINATION-PROPOSAL.md)
-only. D1–D5 of that proposal remain undecided.
+only. D1–D5 were decided later by
+[ADR-S09-DESTINATION-20261119](#adr-s09-destination-20261119--backup-destination-service-trusted-dialog-and-os-backup-portal).
+Implementation status (15 November 2026): the name check and the test-only
+native stage `archive-ustar` are on draft PR #340; local gate run 14 passed
+([USTAR-NATIVE-20261115.md](verification/s09-archive/USTAR-NATIVE-20261115.md)).
+The decision is unchanged and S09 remains open.
 
 **Context:**
 - S09 requires that a user can create, verify, restore and export independent
@@ -313,7 +591,7 @@ auto-merge without the project owner's explicit approval
   are documented in S09-BACKUP-ARCHIVE.md, section "User export to ustar".
 
 **Not decided and not authorised:**
-- D1–D5 remain undecided. This decision does not choose a destination, a
+- At the time of this decision, D1–D5 remained undecided; ADR-S09-DESTINATION-20261119 later decided them. This decision does not choose a destination, a
   grant path, per-operation rights, the component that holds the authority or
   the encrypted NAS/provider variant.
 - No new destination capability, trust boundary or encryption architecture is
@@ -3892,3 +4170,49 @@ The project owner approved D1–D5 in the direction below, on the condition that
 **Statistics, stated plainly.** Five timing failures in the three full matrices give 1.7 expected failures per matrix (exact 95 % interval 0.5–3.9), a pass probability of about 19 % (2–58 %) for the unchanged contract. A pass probability of 99 % for 3 550 guests needs a per-guest false-failure rate of at most 2.8 × 10⁻⁶; showing that at 95 % confidence takes about 1.06 million failure-free boots, roughly 300 clean matrices, so no available sample can demonstrate it. After D1–D3 the known mechanisms are removed by construction, but the incident history shows a new rare class in almost every full matrix: three classes were seen exactly once in about 9 800 guests, which puts the probability of yet another class at an order of one per matrix (pass probability about 35 %), while the optimistic assumption that the mechanism list is complete gives 85–90 %. The 250 clean hosted boots do not separate these estimates.
 
 **Risks and open items.** The liveness window, the cap, the receptive-span threshold and the host-loss bound are engineering limits, not proofs. TCG results do not transfer to KVM or hardware. The normative step texts live on branch `docs/k06-step-specs` and must receive the approved changes when that branch is integrated. A review by an AI is not an independent human audit.
+
+
+## ADR-B03K3 — Authorised synthetic policy-transition experiment
+
+**Date:** 14 November 2026. **Scope:** issue #41; TEST keys and disposable
+QEMU state only. The project owner authorised publication of the reviewed
+transition work and implementation of the explicitly bounded experiment after
+the proposal and its evidence limits were presented. PR #328 had already been
+squash-merged; missing work therefore continues on `feat/issue41-policy-test`.
+
+**Approved experimental design:** fixed, distinct root/release roles; the
+canonical policy and image-binding envelopes in
+[B03-POLICY-TRANSITION-PROPOSAL.md](implementation/B03-POLICY-TRANSITION-PROPOSAL.md);
+complete operation identity; monotonically enforced policy/image floors;
+permanent revoked-pair tombstones; eligible, policy-bound fallback; and
+fail-closed handling of uncertain durable state. The synthetic experiment may
+use deliberately public TEST seeds. Both signature algorithms remain required.
+
+**Execution order:** first implement and negatively test the bounded `no_std`
+codec with the existing reviewed crypto dependencies, behind an explicit
+`experimental-policy-test` feature. Then execute the same verifier on the
+project's own native path with TEST fixtures. Freeze the exact native ingress,
+anchor encoding, write/flush/readback semantics and fault oracle before wiring
+a persistent policy transition. Retain all 18 existing update acceptance stages
+and the missing-production-policy compiler guards. No new ordinary-app rights,
+implicit kernel policy parser or production-profile activation follows.
+
+**D1–D7 disposition:** the experiment's roles, format, transition rules, fixed
+root, release-version semantics and TEST-only activation scope are approved.
+Production custody/ceremony, a concrete rollback-resistant backend, production
+ingress, B04 enrolment/boot/root recovery, trusted freshness/calendar expiry
+and independent release-chain review remain unresolved. An emulator variable
+or host-controlled anchor can expose behaviour and counterexamples; it cannot
+prove physical persistence or whole-state rollback resistance.
+
+**Evidence:** the preceding 92-check symbolic model is a finite specification
+exercise, not native crypto/storage evidence. Each implementation checkpoint
+records its actual source and executed checks separately. No acceptance point
+is awarded by this approval. Real key generation, production signing, release
+publication and physical-device changes remain outside this authorisation.
+
+**Revision criteria:** reassess after native interruption/replay results, a
+concrete backend or ingress contract, a proposed production trust change, or
+independent review. Never reinterpret experimental success as production
+acceptance. Reverting the experimental feature and its fixtures leaves the
+existing TEST update path and missing-policy guards intact.

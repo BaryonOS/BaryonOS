@@ -78,6 +78,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "nieuw-os-net-config"
+version = "0.1.0"
+dependencies = [
+ "nieuw-os-net-protocol",
+ "nieuw-os-net-stack",
+]
+
+[[package]]
 name = "nieuw-os-net-protocol"
 version = "0.1.0"
 
@@ -96,6 +104,7 @@ version = "0.1.0"
 name = "nieuw-os-network-service"
 version = "0.1.0"
 dependencies = [
+ "nieuw-os-net-config",
  "nieuw-os-net-protocol",
  "nieuw-os-net-stack",
  "nieuw-os-network-protocol",

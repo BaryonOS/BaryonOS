@@ -1,0 +1,9 @@
+{
+  "date": "2026-11-17",
+  "source_commit": "42a7c2dba056ebc828e0086e031e989cd5f200c6",
+  "assessment_basis": "parent_commit",
+  "branch": "codex/phase0-pr350-integration",
+  "task": "Phase 0 PR350: reconcile reviewed repository configuration with assigned main",
+  "previous_score": 41,
+  "summary": "41/100 unchanged. Local integration preserves exact reviewed CodeRabbit YAML/schema evidence and all main/workstream records. No OS criterion or account control is changed. Configuration/schema and parent-preservation checks pass; final actual-main/hosted integration remains a lead gate."
+}

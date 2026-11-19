@@ -84,9 +84,9 @@ The long-term route progresses from independent boot and isolation to storage, n
 - [Roadmap and technical milestones](docs/ROADMAP.md)
 - [Current criteria and score](docs/PROGRESS.md)
 - [Current execution status](docs/PROJECT-STATE.md)
-- [Issues](https://github.com/simonvanieperen/BaryonOS/issues)
-- [Discussions](https://github.com/simonvanieperen/BaryonOS/discussions)
-- [GitHub Wiki](https://github.com/simonvanieperen/BaryonOS/wiki)
+- [Issues](https://github.com/BaryonOS/BaryonOS/issues)
+- [Discussions](https://github.com/BaryonOS/BaryonOS/discussions)
+- [GitHub Wiki](https://github.com/BaryonOS/BaryonOS/wiki)
 - [English Wiki source and publication guide](docs/WIKI.md)
 
 Historical development checkpoints are stored under [docs/history/](docs/history/) rather than in this README. The former Dutch README is preserved as a dated [9 November 2026 snapshot](docs/history/README-2026-11-09.nl.md); it is not the current implementation specification.

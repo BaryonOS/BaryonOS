@@ -1,0 +1,652 @@
+{
+  "schema_version": 1,
+  "artifacts": [
+    {
+      "path": "logs/host-quality.log.gz",
+      "raw_sha256": "5628707567365852083a107b2034c2442f9a8d3427a24cf9a797ab8882c6c39c",
+      "archive_sha256": "0860333f732f86bdca76b39b61cfb1adcafc84f6a2ca34c9b84d4246ac5684bc"
+    },
+    {
+      "path": "logs/host-quality-receipt.json.gz",
+      "raw_sha256": "a672f6ea5613b6a81b06ccd032058b6b417165e58a875f85868a82110454eb38",
+      "archive_sha256": "0eab48aaf12d924a21bfa353e35cdaaf3733ae687b457f858d4f5881cdd69eee"
+    },
+    {
+      "path": "logs/window-host-0.log.gz",
+      "raw_sha256": "2e440011ae1b64fa04e13d590574908543333554c88bffcc07cf99c860b3f42c",
+      "archive_sha256": "45f63655dd265f302293dcfb8e367781ee7c50195268785166c0a19ab34e7341"
+    },
+    {
+      "path": "logs/window-host-1.log.gz",
+      "raw_sha256": "1464c3c1799160516a2430c6c138298cc1336580a7fad8972a30cfd616ece072",
+      "archive_sha256": "1fd1d7ab834f66263328fb4d03e10f9fda11ed74d7434a8cbba1472a188e5015"
+    },
+    {
+      "path": "logs/window-host-2.log.gz",
+      "raw_sha256": "771d6ca4c92fb426c37be944a399e449f73ded8f2d769268510c29b5944fdcef",
+      "archive_sha256": "240e6e4bbdcf64f62d2016a734510313086d539bc068fd883cde0086682456d2"
+    },
+    {
+      "path": "logs/window-host-3.log.gz",
+      "raw_sha256": "8c233a54790c4800d3dd585436af679aa838da259bfdb129412e2d51cdb75cdc",
+      "archive_sha256": "c2ee1cd7582b7798519ba1cb39aad1f402ca2c9660d929243a6236f8de7be937"
+    },
+    {
+      "path": "logs/window-host-4.log.gz",
+      "raw_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "archive_sha256": "f61f27bd17de546264aa58f40f3aafaac7021e0ef69c17f6b1b4cd7664a037ec"
+    },
+    {
+      "path": "logs/window-host-5.log.gz",
+      "raw_sha256": "3503ca59f2780e19c2b8f0c175aeac26870e0171c17ea00f4d1211d7fa400a50",
+      "archive_sha256": "32692a80eec12d1f631787b09a70530b658538f7eb279da1afce5decb0ab0c70"
+    },
+    {
+      "path": "logs/window-host-6.log.gz",
+      "raw_sha256": "65e46095cfffb6c4e9ee0b8399a86ddc1fe5693bded8cedea57440862ed6096c",
+      "archive_sha256": "c3208902ed24f7ceaf0e456c30550321615279636dd58e639a42bd99a1a9a2df"
+    },
+    {
+      "path": "logs/window-host-7.log.gz",
+      "raw_sha256": "b6063de0eaa13c58a6d48076ec35f2b1813134ce43757a68885af815f310d8f7",
+      "archive_sha256": "b92b1f59dd8a5411d9c668872e8082d8a22c36e5691622548bbc9d8bd7728f18"
+    },
+    {
+      "path": "logs/window-host-8.log.gz",
+      "raw_sha256": "02db5a66fa0c60ca8618bd08aac556eac4f3ec863e8630a0d353dba6a0f6e126",
+      "archive_sha256": "bd7f4579701e1efb091dbb6c8fc07a75aa02bafeec4dfd47fa46450ce72071f4"
+    },
+    {
+      "path": "logs/window-host-9.log.gz",
+      "raw_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "archive_sha256": "f61f27bd17de546264aa58f40f3aafaac7021e0ef69c17f6b1b4cd7664a037ec"
+    },
+    {
+      "path": "logs/window-host-10.log.gz",
+      "raw_sha256": "1d5efadae470b586d3b456296d56ac627547ad89113d595d377776a4d6bc52af",
+      "archive_sha256": "e739f356bdd05cc6c25543b29191b6804f661ad2cd6f9690370728c4c5872ab4"
+    },
+    {
+      "path": "logs/window-host-11.log.gz",
+      "raw_sha256": "1d42bcc55f5eba44e4e3e7a8d571a5400216e457d184922217f3552a6052cf91",
+      "archive_sha256": "3cfd0a95f1f782afba1b88bfa49f4bb9325aee1824c90c326f03875dc5ab572c"
+    },
+    {
+      "path": "logs/window-host-12.log.gz",
+      "raw_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "archive_sha256": "f61f27bd17de546264aa58f40f3aafaac7021e0ef69c17f6b1b4cd7664a037ec"
+    },
+    {
+      "path": "logs/window-build-0.log.gz",
+      "raw_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "archive_sha256": "f61f27bd17de546264aa58f40f3aafaac7021e0ef69c17f6b1b4cd7664a037ec"
+    },
+    {
+      "path": "logs/window-build-1.log.gz",
+      "raw_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "archive_sha256": "f61f27bd17de546264aa58f40f3aafaac7021e0ef69c17f6b1b4cd7664a037ec"
+    },
+    {
+      "path": "logs/window-build-2.log.gz",
+      "raw_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "archive_sha256": "f61f27bd17de546264aa58f40f3aafaac7021e0ef69c17f6b1b4cd7664a037ec"
+    },
+    {
+      "path": "logs/window-build-3.log.gz",
+      "raw_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "archive_sha256": "f61f27bd17de546264aa58f40f3aafaac7021e0ef69c17f6b1b4cd7664a037ec"
+    },
+    {
+      "path": "logs/window-build-4.log.gz",
+      "raw_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "archive_sha256": "f61f27bd17de546264aa58f40f3aafaac7021e0ef69c17f6b1b4cd7664a037ec"
+    },
+    {
+      "path": "logs/window-build-5.log.gz",
+      "raw_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "archive_sha256": "f61f27bd17de546264aa58f40f3aafaac7021e0ef69c17f6b1b4cd7664a037ec"
+    },
+    {
+      "path": "logs/window-build-6.log.gz",
+      "raw_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "archive_sha256": "f61f27bd17de546264aa58f40f3aafaac7021e0ef69c17f6b1b4cd7664a037ec"
+    },
+    {
+      "path": "logs/window-build-7.log.gz",
+      "raw_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "archive_sha256": "f61f27bd17de546264aa58f40f3aafaac7021e0ef69c17f6b1b4cd7664a037ec"
+    },
+    {
+      "path": "logs/window-build-8.log.gz",
+      "raw_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "archive_sha256": "f61f27bd17de546264aa58f40f3aafaac7021e0ef69c17f6b1b4cd7664a037ec"
+    },
+    {
+      "path": "logs/window-build-9.log.gz",
+      "raw_sha256": "1f383a5d64bcf079ed9d00315661df1762cc74cbe3247499138d555bcd0a71cc",
+      "archive_sha256": "7f95d5ea3efb4107074067955e50b1216ecb287cb14e0d9114c087ee2f940f03"
+    },
+    {
+      "path": "logs/window-build-10.log.gz",
+      "raw_sha256": "fef11cff4e94a58de4ca832e5ad4cc2b98900a6c4945ec7d0e740936805a90eb",
+      "archive_sha256": "26be0f8c2f3382112f05080f5f2b2ca8139f4b0ba9bc225873656e0d145e22a4"
+    },
+    {
+      "path": "logs/window-host-receipt.json.gz",
+      "raw_sha256": "a293d0c31576b67a0c2c391447ebe3403f6d247e9904aad2a701e5d506a6f6a7",
+      "archive_sha256": "76a0597e33736611c03c2f927e27f19626566d3be5a8b71a8d271c9ee4a9ae1b"
+    },
+    {
+      "path": "logs/window-build-receipt.json.gz",
+      "raw_sha256": "332ec57757694e9f6b0ae61740d14f9176eea10abc093e71226e80a13f30202d",
+      "archive_sha256": "fc02bfa0e730c6833ba7a8c4cc617ee9729f3b75ef928e5570934ae6f929b623"
+    },
+    {
+      "path": "logs/network-msrv190.log.gz",
+      "raw_sha256": "8357a231622e2e4c0f3d29e7cadaee259eabad0b5b72c4684e2b80b1a8260a38",
+      "archive_sha256": "dba87fc6ecbaa7131f5a4cbd5fbe44cf49f1329365f89567be720b1fc592403e"
+    },
+    {
+      "path": "logs/initial-window-timeout.log.gz",
+      "raw_sha256": "de592c364670bcf4cf3fb96c56a35a9eac92d40b0019d4273dba8410d0580c7a",
+      "archive_sha256": "b84c0f0e7ea91b24e8405c8d4e8226fa7d28c5915eaa60f081203bb3192a298e"
+    },
+    {
+      "path": "logs/additional-window-diagnostics.log.gz",
+      "raw_sha256": "6a3699570583a5328fce1cb23a7669a36000fa8dc9b8f2ae8a81a4b5f3bf6870",
+      "archive_sha256": "35f41b6ea112dc1fe6935af7942eb05651f96d9f04fc33c0d45ca45ef07a8a7a"
+    },
+    {
+      "path": "logs/interrupted-session-command-output.log.gz",
+      "raw_sha256": "a938a6ccccf29afcbf9210c36b82522cd64573d2ccdd329fae95c36ae07f780a",
+      "archive_sha256": "eecb1e6249b912216e40dc68ee36e180842babadcd756ca1813470bd947a03c3"
+    }
+  ],
+  "source_commit": "71c9d0592d7243fc8db72d452a616a66748afe38",
+  "source_fingerprint_version": 3,
+  "source_sha256": "acc0da9822c62c8251eff8e935fd34c12d34295b316e1d0ab94f21578beb6391",
+  "previous_published_head": "bfbb4a6d12c79ec7f5fe0bf7a001bd8f01b9a8f9",
+  "temporary_base": "codex/phase0-pr340-preintegration",
+  "scope": "Preintegration compiler repairs; not acceptance of the eventual combined main.",
+  "host_quality": {
+    "command": "python3 -B tools/agent_gate.py --job ci.yml#host-quality --log build/rust100-current-host-quality.log",
+    "exit_code": 0,
+    "steps": 18,
+    "duration_seconds": 310.917,
+    "log": {
+      "path": "logs/host-quality.log.gz",
+      "raw_sha256": "5628707567365852083a107b2034c2442f9a8d3427a24cf9a797ab8882c6c39c",
+      "archive_sha256": "0860333f732f86bdca76b39b61cfb1adcafc84f6a2ca34c9b84d4246ac5684bc"
+    },
+    "receipt": {
+      "path": "logs/host-quality-receipt.json.gz",
+      "raw_sha256": "a672f6ea5613b6a81b06ccd032058b6b417165e58a875f85868a82110454eb38",
+      "archive_sha256": "0eab48aaf12d924a21bfa353e35cdaaf3733ae687b457f858d4f5881cdd69eee"
+    },
+    "boundary": "Existing local CI prefilter; composite actions, conditional steps and hosted runner acceptance remain separate."
+  },
+  "window_host_commands": [
+    {
+      "command": [
+        "python3",
+        "-B",
+        "tools/test_window_session.py"
+      ],
+      "exit": 0,
+      "evidence": {
+        "path": "logs/window-host-0.log.gz",
+        "raw_sha256": "2e440011ae1b64fa04e13d590574908543333554c88bffcc07cf99c860b3f42c",
+        "archive_sha256": "45f63655dd265f302293dcfb8e367781ee7c50195268785166c0a19ab34e7341"
+      }
+    },
+    {
+      "command": [
+        "python3",
+        "-B",
+        "-m",
+        "unittest",
+        "tools.tests.test_package_windows_qemu"
+      ],
+      "exit": 0,
+      "evidence": {
+        "path": "logs/window-host-1.log.gz",
+        "raw_sha256": "1464c3c1799160516a2430c6c138298cc1336580a7fad8972a30cfd616ece072",
+        "archive_sha256": "1fd1d7ab834f66263328fb4d03e10f9fda11ed74d7434a8cbba1472a188e5015"
+      }
+    },
+    {
+      "command": [
+        "cargo",
+        "+1.100.0",
+        "test",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "sdk/examples/window-session/Cargo.toml"
+      ],
+      "exit": 0,
+      "evidence": {
+        "path": "logs/window-host-2.log.gz",
+        "raw_sha256": "771d6ca4c92fb426c37be944a399e449f73ded8f2d769268510c29b5944fdcef",
+        "archive_sha256": "240e6e4bbdcf64f62d2016a734510313086d539bc068fd883cde0086682456d2"
+      }
+    },
+    {
+      "command": [
+        "cargo",
+        "+1.100.0",
+        "clippy",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "sdk/examples/window-session/Cargo.toml",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit": 0,
+      "evidence": {
+        "path": "logs/window-host-3.log.gz",
+        "raw_sha256": "8c233a54790c4800d3dd585436af679aa838da259bfdb129412e2d51cdb75cdc",
+        "archive_sha256": "c2ee1cd7582b7798519ba1cb39aad1f402ca2c9660d929243a6236f8de7be937"
+      }
+    },
+    {
+      "command": [
+        "cargo",
+        "+1.100.0",
+        "fmt",
+        "--manifest-path",
+        "sdk/examples/window-session/Cargo.toml",
+        "--",
+        "--check"
+      ],
+      "exit": 0,
+      "evidence": {
+        "path": "logs/window-host-4.log.gz",
+        "raw_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "archive_sha256": "f61f27bd17de546264aa58f40f3aafaac7021e0ef69c17f6b1b4cd7664a037ec"
+      }
+    },
+    {
+      "command": [
+        "cargo",
+        "+1.100.0",
+        "test",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "ui/surface-protocol/Cargo.toml",
+        "--features",
+        "client"
+      ],
+      "exit": 0,
+      "evidence": {
+        "path": "logs/window-host-5.log.gz",
+        "raw_sha256": "3503ca59f2780e19c2b8f0c175aeac26870e0171c17ea00f4d1211d7fa400a50",
+        "archive_sha256": "32692a80eec12d1f631787b09a70530b658538f7eb279da1afce5decb0ab0c70"
+      }
+    },
+    {
+      "command": [
+        "cargo",
+        "+1.100.0",
+        "test",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "ui/graphics/Cargo.toml"
+      ],
+      "exit": 0,
+      "evidence": {
+        "path": "logs/window-host-6.log.gz",
+        "raw_sha256": "65e46095cfffb6c4e9ee0b8399a86ddc1fe5693bded8cedea57440862ed6096c",
+        "archive_sha256": "c3208902ed24f7ceaf0e456c30550321615279636dd58e639a42bd99a1a9a2df"
+      }
+    },
+    {
+      "command": [
+        "cargo",
+        "+1.100.0",
+        "test",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "sdk/examples/materiaal/Cargo.toml"
+      ],
+      "exit": 0,
+      "evidence": {
+        "path": "logs/window-host-7.log.gz",
+        "raw_sha256": "b6063de0eaa13c58a6d48076ec35f2b1813134ce43757a68885af815f310d8f7",
+        "archive_sha256": "b92b1f59dd8a5411d9c668872e8082d8a22c36e5691622548bbc9d8bd7728f18"
+      }
+    },
+    {
+      "command": [
+        "cargo",
+        "+1.100.0",
+        "clippy",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "sdk/examples/materiaal/Cargo.toml",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit": 0,
+      "evidence": {
+        "path": "logs/window-host-8.log.gz",
+        "raw_sha256": "02db5a66fa0c60ca8618bd08aac556eac4f3ec863e8630a0d353dba6a0f6e126",
+        "archive_sha256": "bd7f4579701e1efb091dbb6c8fc07a75aa02bafeec4dfd47fa46450ce72071f4"
+      }
+    },
+    {
+      "command": [
+        "cargo",
+        "+1.100.0",
+        "fmt",
+        "--manifest-path",
+        "sdk/examples/materiaal/Cargo.toml",
+        "--",
+        "--check"
+      ],
+      "exit": 0,
+      "evidence": {
+        "path": "logs/window-host-9.log.gz",
+        "raw_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "archive_sha256": "f61f27bd17de546264aa58f40f3aafaac7021e0ef69c17f6b1b4cd7664a037ec"
+      }
+    },
+    {
+      "command": [
+        "cargo",
+        "+1.100.0",
+        "test",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "sdk/examples/calculator/Cargo.toml"
+      ],
+      "exit": 0,
+      "evidence": {
+        "path": "logs/window-host-10.log.gz",
+        "raw_sha256": "1d5efadae470b586d3b456296d56ac627547ad89113d595d377776a4d6bc52af",
+        "archive_sha256": "e739f356bdd05cc6c25543b29191b6804f661ad2cd6f9690370728c4c5872ab4"
+      }
+    },
+    {
+      "command": [
+        "cargo",
+        "+1.100.0",
+        "clippy",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "sdk/examples/calculator/Cargo.toml",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit": 0,
+      "evidence": {
+        "path": "logs/window-host-11.log.gz",
+        "raw_sha256": "1d42bcc55f5eba44e4e3e7a8d571a5400216e457d184922217f3552a6052cf91",
+        "archive_sha256": "3cfd0a95f1f782afba1b88bfa49f4bb9325aee1824c90c326f03875dc5ab572c"
+      }
+    },
+    {
+      "command": [
+        "cargo",
+        "+1.100.0",
+        "fmt",
+        "--manifest-path",
+        "sdk/examples/calculator/Cargo.toml",
+        "--",
+        "--check"
+      ],
+      "exit": 0,
+      "evidence": {
+        "path": "logs/window-host-12.log.gz",
+        "raw_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "archive_sha256": "f61f27bd17de546264aa58f40f3aafaac7021e0ef69c17f6b1b4cd7664a037ec"
+      }
+    }
+  ],
+  "window_host_duration_seconds": 631.045,
+  "dependency_preparation_and_probe_builds": [
+    {
+      "command": [
+        "cargo",
+        "+1.100.0",
+        "fetch",
+        "--locked",
+        "--manifest-path",
+        "Cargo.toml"
+      ],
+      "exit": 0,
+      "evidence": {
+        "path": "logs/window-build-0.log.gz",
+        "raw_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "archive_sha256": "f61f27bd17de546264aa58f40f3aafaac7021e0ef69c17f6b1b4cd7664a037ec"
+      }
+    },
+    {
+      "command": [
+        "cargo",
+        "+1.100.0",
+        "fetch",
+        "--locked",
+        "--manifest-path",
+        "sdk/Cargo.toml"
+      ],
+      "exit": 0,
+      "evidence": {
+        "path": "logs/window-build-1.log.gz",
+        "raw_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "archive_sha256": "f61f27bd17de546264aa58f40f3aafaac7021e0ef69c17f6b1b4cd7664a037ec"
+      }
+    },
+    {
+      "command": [
+        "cargo",
+        "+1.100.0",
+        "fetch",
+        "--locked",
+        "--manifest-path",
+        "sdk/examples/materiaal/Cargo.toml"
+      ],
+      "exit": 0,
+      "evidence": {
+        "path": "logs/window-build-2.log.gz",
+        "raw_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "archive_sha256": "f61f27bd17de546264aa58f40f3aafaac7021e0ef69c17f6b1b4cd7664a037ec"
+      }
+    },
+    {
+      "command": [
+        "cargo",
+        "+1.100.0",
+        "fetch",
+        "--locked",
+        "--manifest-path",
+        "sdk/examples/input-service/Cargo.toml"
+      ],
+      "exit": 0,
+      "evidence": {
+        "path": "logs/window-build-3.log.gz",
+        "raw_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "archive_sha256": "f61f27bd17de546264aa58f40f3aafaac7021e0ef69c17f6b1b4cd7664a037ec"
+      }
+    },
+    {
+      "command": [
+        "cargo",
+        "+1.100.0",
+        "fetch",
+        "--locked",
+        "--manifest-path",
+        "sdk/examples/window-session/Cargo.toml"
+      ],
+      "exit": 0,
+      "evidence": {
+        "path": "logs/window-build-4.log.gz",
+        "raw_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "archive_sha256": "f61f27bd17de546264aa58f40f3aafaac7021e0ef69c17f6b1b4cd7664a037ec"
+      }
+    },
+    {
+      "command": [
+        "cargo",
+        "+1.100.0",
+        "fetch",
+        "--locked",
+        "--manifest-path",
+        "sdk/examples/calculator/Cargo.toml"
+      ],
+      "exit": 0,
+      "evidence": {
+        "path": "logs/window-build-5.log.gz",
+        "raw_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "archive_sha256": "f61f27bd17de546264aa58f40f3aafaac7021e0ef69c17f6b1b4cd7664a037ec"
+      }
+    },
+    {
+      "command": [
+        "cargo",
+        "+1.100.0",
+        "fetch",
+        "--locked",
+        "--manifest-path",
+        "ui/graphics/Cargo.toml"
+      ],
+      "exit": 0,
+      "evidence": {
+        "path": "logs/window-build-6.log.gz",
+        "raw_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "archive_sha256": "f61f27bd17de546264aa58f40f3aafaac7021e0ef69c17f6b1b4cd7664a037ec"
+      }
+    },
+    {
+      "command": [
+        "cargo",
+        "+1.100.0",
+        "fetch",
+        "--locked",
+        "--manifest-path",
+        "ui/native/Cargo.toml"
+      ],
+      "exit": 0,
+      "evidence": {
+        "path": "logs/window-build-7.log.gz",
+        "raw_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "archive_sha256": "f61f27bd17de546264aa58f40f3aafaac7021e0ef69c17f6b1b4cd7664a037ec"
+      }
+    },
+    {
+      "command": [
+        "cargo",
+        "+1.100.0",
+        "fetch",
+        "--locked",
+        "--manifest-path",
+        "ui/surface-protocol/Cargo.toml"
+      ],
+      "exit": 0,
+      "evidence": {
+        "path": "logs/window-build-8.log.gz",
+        "raw_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "archive_sha256": "f61f27bd17de546264aa58f40f3aafaac7021e0ef69c17f6b1b4cd7664a037ec"
+      }
+    },
+    {
+      "command": [
+        "python3",
+        "-B",
+        "-u",
+        "tools/build.py",
+        "--kernel-feature",
+        "native-window-session-probe"
+      ],
+      "scale": 1,
+      "feature": "native-window-session-probe",
+      "exit": 0,
+      "build": "/workspace/baryon-rust/build/rust100-window-scale1/probe",
+      "target": "/workspace/baryon-rust/target/rust100-window-scale1-native",
+      "evidence": {
+        "path": "logs/window-build-9.log.gz",
+        "raw_sha256": "1f383a5d64bcf079ed9d00315661df1762cc74cbe3247499138d555bcd0a71cc",
+        "archive_sha256": "7f95d5ea3efb4107074067955e50b1216ecb287cb14e0d9114c087ee2f940f03"
+      },
+      "manifest": "probe-scale1-manifest.json"
+    },
+    {
+      "command": [
+        "python3",
+        "-B",
+        "-u",
+        "tools/build.py",
+        "--kernel-feature",
+        "native-window-session-hidpi-probe"
+      ],
+      "scale": 2,
+      "feature": "native-window-session-hidpi-probe",
+      "exit": 0,
+      "build": "/workspace/baryon-rust/build/rust100-window-scale2/probe",
+      "target": "/workspace/baryon-rust/target/rust100-window-scale2-native",
+      "evidence": {
+        "path": "logs/window-build-10.log.gz",
+        "raw_sha256": "fef11cff4e94a58de4ca832e5ad4cc2b98900a6c4945ec7d0e740936805a90eb",
+        "archive_sha256": "26be0f8c2f3382112f05080f5f2b2ca8139f4b0ba9bc225873656e0d145e22a4"
+      },
+      "manifest": "probe-scale2-manifest.json"
+    }
+  ],
+  "dependency_preparation_and_probe_builds_duration_seconds": 44.926,
+  "tool_pins": {
+    "rust": "1.100.0",
+    "cargo-llvm-cov": "0.9.1",
+    "coverage": "7.11.3",
+    "c8": "10.1.3",
+    "PyYAML": "6.0.3",
+    "actionlint": "1.7.12",
+    "actionlint_archive_sha256": "8aca8db96f1b94770f1b0d72b6dddcb1ebb8123cb3712530b08cc387b349a3d8"
+  },
+  "network_msrv": {
+    "command": "cargo +1.90.0 check --locked --manifest-path services/net-protocol/Cargo.toml --target x86_64-unknown-none",
+    "exit_code": 0,
+    "declared_rust_version": "1.90"
+  },
+  "diagnostics": [
+    {
+      "source_head": "bfbb4a6d12c79ec7f5fe0bf7a001bd8f01b9a8f9",
+      "host_quality_run": 44212255642,
+      "host_quality_job": 134493298618,
+      "window_run": 44212255740,
+      "window_jobs": [
+        134493299582,
+        134493299186
+      ],
+      "result": "Actual compiler diagnostics in network parsing and window fixture code; repaired without suppressions."
+    },
+    {
+      "exit_code": 124,
+      "duration_seconds": 240.005,
+      "result": "Initial short outer bound expired during rendering; not a passing window host run."
+    },
+    {
+      "exit_code": null,
+      "result": "Frontend readiness cycle lost one aggregate exec session; retained per-command output includes a real Clippy exit101. No passing aggregate is inferred."
+    }
+  ],
+  "not_verified": [
+    "Current-head hosted CI after publication",
+    "Long native window runtime matrix and Windows bundle execution",
+    "Reconciliation and final combined-main gates",
+    "Physical hardware and human audit"
+  ],
+  "preservation": "The previous 83-file source-bound evidence archive and generated local target directories remain unchanged."
+}

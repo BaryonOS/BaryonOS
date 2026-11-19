@@ -46,8 +46,8 @@ jobs:
         uses: ./.github/actions/setup-python
       - name: Pinned Rust and real targets
         run: |
-          rustup toolchain install 1.90.0 --profile minimal
-          rustup target add --toolchain 1.90.0 x86_64-unknown-none x86_64-unknown-uefi
+          rustup toolchain install 1.100.0 --profile minimal
+          rustup target add --toolchain 1.100.0 x86_64-unknown-none x86_64-unknown-uefi
       - name: Pinned QEMU and OVMF
         uses: ./.github/actions/setup-qemu
       - name: Require usable hosted KVM
@@ -69,8 +69,8 @@ jobs:
       - name: Fetch the selected gate's locked dependencies
         run: |
           set -euo pipefail
-          cargo +1.90.0 fetch --locked
-          cargo +1.90.0 fetch --locked --manifest-path sdk/Cargo.toml
+          cargo +1.100.0 fetch --locked
+          cargo +1.100.0 fetch --locked --manifest-path sdk/Cargo.toml
           if [[ "$PILOT_GATE" == window ]]; then
             for manifest in \
               sdk/examples/materiaal/Cargo.toml \
@@ -81,7 +81,7 @@ jobs:
               ui/native/Cargo.toml \
               ui/surface-protocol/Cargo.toml
             do
-              cargo +1.90.0 fetch --locked --manifest-path "$manifest"
+              cargo +1.100.0 fetch --locked --manifest-path "$manifest"
             done
           fi
       - name: Run the selected KVM pilot gate
@@ -121,7 +121,7 @@ jobs:
           root = Path(os.environ["NOS_BUILD_DIR"])
           patterns = {
               "system": ("run/system-*/result.json", 2, "system-gate.json"),
-              "volume": ("run/volume-*/result.json", 9, "volume-gate.json"),
+              "volume": ("run/volume-*/result.json", 22, "volume-gate.json"),
               "window": ("window-session-report.json", 1, None),
           }
           pattern, count, summary = patterns[gate]

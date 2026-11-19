@@ -5,12 +5,15 @@ mod common;
 
 use common::{fill, pattern, recover, Local, SimDisk};
 use volume_core::{
-    archive::{self, DiskSink, DiskSource, Report, Sink, Source, HEADER, OBJECT_RECORD, TRAILER},
+    archive::{
+        self, DiskSink, DiskSource, Report, Sink, Source, COLLECTION_RECORD, HEADER, OBJECT_RECORD,
+        TRAILER,
+    },
     checksum_update,
     client::{Client, Stat, Transport},
     service::Service,
     table::Table,
-    ustar, wire, Disk, Status, CHUNK, FNV_OFFSET, MAX_LENGTH, SECTOR,
+    ustar, wire, Disk, Status, CHUNK, FNV_OFFSET, MAX_LENGTH, SECTOR, VOLUME_SECTORS,
 };
 
 const EPOCH: u64 = 4;
@@ -932,6 +935,351 @@ fn disk_source_refuses_empty_oversized_and_damaged_ranges() {
     assert!(verify(&mut padded, needed as u64).is_ok());
 }
 
+/// Host model of the planned native dual-disk target: a second, independent
+/// block device that holds nothing but backups, written from its sector 0.
+/// `SimDisk` keeps unflushed writes in a volatile cache, so a cold restart
+/// sees only what a flush made durable.
+fn export_to_device(source: &mut Client<Local<'_>>, device: &mut impl Disk) -> Result<u64, Status> {
+    let mut sink = DiskSink::new(device, VOLUME_SECTORS);
+    archive::export(source, 0, &mut sink)?;
+    sink.finish()
+}
+
+fn verify_device(device: &mut impl Disk) -> Result<archive::Summary, Status> {
+    archive::verify(&mut DiskSource::new(device, VOLUME_SECTORS), &mut scratch())
+}
+
+fn device_bytes(image: &[[u8; SECTOR]], length: usize) -> Vec<u8> {
+    image.iter().flatten().take(length).copied().collect()
+}
+
+/// (slot, source revision, created, modified) of every object record.
+fn archived_stamps(bytes: &[u8]) -> Vec<(u8, u64, u64, u64)> {
+    let word = |at: usize| u64::from_le_bytes(bytes[at..at + 8].try_into().unwrap());
+    let mut at = HEADER + usize::from(bytes[13]) * COLLECTION_RECORD;
+    (0..bytes[12])
+        .map(|_| {
+            let length = u32::from_le_bytes(bytes[at + 12..at + 16].try_into().unwrap());
+            let record = (bytes[at], word(at + 16), word(at + 24), word(at + 32));
+            at += OBJECT_RECORD + length as usize;
+            record
+        })
+        .collect()
+}
+
+#[test]
+fn independent_backup_device_restores_after_source_loss_and_cold_restarts() {
+    let big = 2 * CHUNK + 173;
+    let mut backup = SimDisk::new();
+    let (length, sources) = {
+        let mut disk = SimDisk::new();
+        let mut service = Service::new(EPOCH, Table::EMPTY, false);
+        let mut source = client(&mut service, &mut disk, 0);
+        populate(&mut source, big);
+        let sources = [0, 1, 5].map(|object| source.stat(object).unwrap());
+        let length = export_to_device(&mut source, &mut backup).unwrap();
+        (length as usize, sources)
+    }; // the source service, volume and disk are gone from here on
+    assert!(backup.pending.is_empty(), "success only after the flush");
+    // Cold restart of the backup device: only flushed sectors survive.
+    let mut backup = SimDisk::from_image(backup.durable.clone());
+    let summary = verify_device(&mut backup).unwrap();
+    assert_eq!(
+        (summary.objects, summary.collections, summary.content_bytes),
+        (3, 1, 300 + big as u64)
+    );
+    // The archive keeps every source revision and both source times.
+    let stamps: Vec<_> = [0, 1, 5]
+        .into_iter()
+        .zip(&sources)
+        .map(|(slot, s)| (slot, s.revision, s.created, s.modified))
+        .collect();
+    assert_eq!(
+        archived_stamps(&device_bytes(&backup.durable, length)),
+        stamps
+    );
+
+    let durable = {
+        let mut disk = SimDisk::new();
+        let mut service = Service::new(EPOCH, Table::EMPTY, false);
+        let mut destination = client(&mut service, &mut disk, 1);
+        // Earlier activity in the destination domain advances its clock.
+        let revision = destination
+            .write(15, 0, b"Other", 9, fill(15, 1))
+            .unwrap()
+            .0;
+        destination
+            .write(15, revision, b"Other", 9, fill(15, 2))
+            .unwrap();
+        let report = archive::restore(
+            &mut DiskSource::new(&mut backup, VOLUME_SECTORS),
+            &mut scratch(),
+            &mut destination,
+            1,
+        )
+        .unwrap();
+        assert_eq!((report.restored, report.conflicts), (0b10_0011, 0));
+        assert!(disk.pending.is_empty());
+        disk.durable.clone()
+    };
+    assert_eq!(backup.mutating_ops, 0, "verify and restore only read");
+    // Cold restart of the restored volume.
+    let table = recover(durable.clone()).unwrap();
+    let mut disk = SimDisk::from_image(durable);
+    let mut service = Service::new(EPOCH + 1, table, true);
+    let mut restored = Client::new(
+        Local {
+            service: &mut service,
+            disk: &mut disk,
+            domain: 1,
+        },
+        EPOCH + 1,
+        1,
+    );
+    let other = restored.stat(15).unwrap().modified;
+    // Same bytes, name and metadata; the destination assigns its own
+    // revision (1, or 2 after metadata) and its own times.
+    let cases = [(0, 300, 2, 1), (1, big, 1, 2), (5, 0, 1, 1)];
+    for ((slot, length, revision, version), source) in cases.into_iter().zip(&sources) {
+        let (stat, data) = content(&mut restored, 8 + slot);
+        assert_eq!(data, expected(slot, version, length), "slot {slot}");
+        assert_eq!(stat.content_sum, source.content_sum, "slot {slot}");
+        assert_eq!(
+            &stat.name[..stat.name_length],
+            &source.name[..source.name_length]
+        );
+        assert_eq!(
+            (stat.tags, stat.kind, stat.collection),
+            (source.tags, source.kind, source.collection)
+        );
+        assert_eq!((stat.revision, stat.history_count), (revision, 0));
+        assert!(stat.created > other && stat.modified >= stat.created);
+        assert_ne!(
+            (stat.created, stat.modified),
+            (source.created, source.modified),
+            "slot {slot}"
+        );
+    }
+}
+
+#[test]
+fn power_cut_during_export_over_an_older_archive_leaves_it_the_new_one_or_nothing() {
+    let mut disk = SimDisk::new();
+    let mut service = Service::new(EPOCH, Table::EMPTY, false);
+    let mut source = client(&mut service, &mut disk, 0);
+    populate(&mut source, CHUNK + 9);
+    let mut device = SimDisk::new();
+    let mut old_length = export_to_device(&mut source, &mut device).unwrap() as usize;
+    let mut older = device.durable;
+    // "Plan" shrinks, then grows: the new archive is shorter, then longer.
+    for (revision, big) in [(3, CHUNK / 2), (4, 3 * CHUNK)] {
+        source
+            .write(1, revision - 1, b"Plan", big, fill(1, revision))
+            .unwrap();
+        let old = device_bytes(&older, old_length);
+        let mut clean = SimDisk::from_image(older.clone());
+        let new_length = export_to_device(&mut source, &mut clean).unwrap() as usize;
+        let new = device_bytes(&clean.durable, new_length);
+        let (mut kept_old, mut kept_new) = (0, 0);
+        // The power fails before each sector write and before the final flush.
+        for cut in 0..clean.mutating_ops {
+            let mut device = SimDisk::from_image(older.clone());
+            device.crash_at = Some(cut);
+            assert_eq!(
+                export_to_device(&mut source, &mut device),
+                Err(Status::Io),
+                "cut {cut}"
+            );
+            let mut images: Vec<_> = (0..=device.pending.len())
+                .flat_map(|keep| {
+                    [
+                        device.crash_image(keep, None),
+                        device.crash_image(keep, Some(100)),
+                    ]
+                })
+                .collect();
+            images.push(device.crash_subset(|index| index != 0)); // header lost
+            images.push(device.crash_subset(|index| index == 0)); // only header
+            images.push(device.crash_subset(|index| index % 2 == 1));
+            for image in images {
+                match verify_device(&mut SimDisk::from_image(image.clone())) {
+                    Ok(_) if device_bytes(&image, old_length) == old => kept_old += 1,
+                    Ok(_) if device_bytes(&image, new_length) == new => kept_new += 1,
+                    Ok(summary) => panic!("cut {cut}: a mixed archive verified: {summary:?}"),
+                    Err(status) => assert_eq!(status, Status::Corrupt, "cut {cut}"),
+                }
+            }
+        }
+        // The older copy survives only while none of the new sectors landed;
+        // all sectors landed with the flush cut yields the new archive.
+        assert!(kept_old > 0 && kept_new > 0, "{kept_old} {kept_new}");
+        (older, old_length) = (clean.durable, new_length);
+    }
+}
+
+/// A backup device whose `at`-th mutating operation reports `status`; with
+/// `landed` the operation took effect anyway (an uncertain outcome).
+struct Uncertain {
+    disk: SimDisk,
+    at: usize,
+    status: Status,
+    landed: bool,
+    seen: usize,
+}
+impl Uncertain {
+    fn mutate(
+        &mut self,
+        op: impl FnOnce(&mut SimDisk) -> Result<(), Status>,
+    ) -> Result<(), Status> {
+        self.seen += 1;
+        if self.seen - 1 != self.at {
+            return op(&mut self.disk);
+        }
+        if self.landed {
+            op(&mut self.disk)?;
+        }
+        Err(self.status)
+    }
+}
+impl Disk for Uncertain {
+    fn read(&mut self, sector: u64, buffer: &mut [u8; SECTOR]) -> Result<(), Status> {
+        self.disk.read(sector, buffer)
+    }
+    fn write(&mut self, sector: u64, buffer: &[u8; SECTOR]) -> Result<(), Status> {
+        self.mutate(|disk| disk.write(sector, buffer))
+    }
+    fn flush(&mut self) -> Result<(), Status> {
+        self.mutate(SimDisk::flush)
+    }
+}
+
+#[test]
+fn export_never_confirms_an_uncertain_or_detached_backup_device() {
+    let mut disk = SimDisk::new();
+    let mut service = Service::new(EPOCH, Table::EMPTY, false);
+    let mut source = client(&mut service, &mut disk, 0);
+    populate(&mut source, CHUNK + 9);
+    let mut clean = SimDisk::new();
+    export_to_device(&mut source, &mut clean).unwrap();
+    let ops = clean.mutating_ops;
+    let faults = [
+        (Status::Unknown, true),
+        (Status::Unknown, false),
+        (Status::NoDevice, false),
+    ];
+    for at in 0..ops {
+        for (status, landed) in faults {
+            let mut device = Uncertain {
+                disk: SimDisk::new(),
+                at,
+                status,
+                landed,
+                seen: 0,
+            };
+            assert_eq!(
+                export_to_device(&mut source, &mut device),
+                Err(status),
+                "op {at}"
+            );
+            // Only a final flush that landed leaves a durable archive; it is
+            // accepted later through `verify`, never through the export result.
+            let mut durable = SimDisk::from_image(device.disk.durable.clone());
+            assert_eq!(
+                verify_device(&mut durable).is_ok(),
+                at == ops - 1 && landed,
+                "op {at} {status:?} {landed}"
+            );
+        }
+    }
+}
+
+#[test]
+fn restore_from_a_vanishing_backup_device_resumes_without_overwriting() {
+    let big = 2 * CHUNK + 173;
+    let mut backup = SimDisk::new();
+    let length = {
+        let mut disk = SimDisk::new();
+        let mut service = Service::new(EPOCH, Table::EMPTY, false);
+        let mut source = client(&mut service, &mut disk, 0);
+        populate(&mut source, big);
+        export_to_device(&mut source, &mut backup).unwrap() as usize
+    };
+    let (sectors, written) = (sectors_for(length) as u64, backup.mutating_ops);
+    for from in [0, 1, sectors - 1] {
+        assert!(verify_device(&mut backup).is_ok());
+        let mut disk = SimDisk::new();
+        let mut service = Service::new(EPOCH, Table::EMPTY, false);
+        let mut destination = client(&mut service, &mut disk, 1);
+        // The device disappears after `verify` passed.
+        backup.fail_reads_from = Some(from);
+        let (status, first) = archive::restore(
+            &mut DiskSource::new(&mut backup, VOLUME_SECTORS),
+            &mut scratch(),
+            &mut destination,
+            1,
+        )
+        .unwrap_err();
+        assert_eq!(status, Status::Io, "from {from}");
+        assert_ne!(first.restored, 0b10_0011, "from {from}");
+        let before = [8, 9, 13].map(|object| destination.stat(object).ok().map(|s| s.revision));
+        // Back again: the rest is restored; earlier objects are conflicts.
+        backup.fail_reads_from = None;
+        let second = archive::restore(
+            &mut DiskSource::new(&mut backup, VOLUME_SECTORS),
+            &mut scratch(),
+            &mut destination,
+            1,
+        )
+        .unwrap();
+        assert_eq!(second.restored, 0b10_0011 & !first.restored, "from {from}");
+        assert_eq!(second.conflicts, first.restored, "from {from}");
+        for (object, revision) in [8, 9, 13].into_iter().zip(before) {
+            if let Some(revision) = revision {
+                assert_eq!(destination.stat(object).unwrap().revision, revision);
+            }
+        }
+        assert_eq!(content(&mut destination, 8).1, expected(0, 1, 300));
+        assert_eq!(content(&mut destination, 9).1, expected(1, 2, big));
+        assert_eq!(content(&mut destination, 13).1.len(), 0);
+    }
+    assert_eq!(backup.mutating_ops, written, "restore only reads");
+}
+
+/// Reads the backup device one sector further on: a misaddressed range.
+struct Shifted<'a>(&'a mut SimDisk);
+impl Disk for Shifted<'_> {
+    fn read(&mut self, sector: u64, buffer: &mut [u8; SECTOR]) -> Result<(), Status> {
+        self.0.read(sector + 1, buffer)
+    }
+    fn write(&mut self, _: u64, _: &[u8; SECTOR]) -> Result<(), Status> {
+        Err(Status::Access)
+    }
+    fn flush(&mut self) -> Result<(), Status> {
+        Err(Status::Access)
+    }
+}
+
+#[test]
+fn archive_on_the_wrong_device_or_offset_is_refused() {
+    let mut disk = SimDisk::new();
+    let mut service = Service::new(EPOCH, Table::EMPTY, false);
+    let mut source = client(&mut service, &mut disk, 0);
+    populate(&mut source, CHUNK + 9);
+    let mut backup = SimDisk::new();
+    export_to_device(&mut source, &mut backup).unwrap();
+    assert!(verify_device(&mut backup).is_ok());
+    // The source volume's own disk is not a backup device.
+    assert_eq!(verify_device(&mut disk), Err(Status::Corrupt));
+    // The right device read from the wrong first sector.
+    assert_eq!(
+        archive::verify(
+            &mut DiskSource::new(&mut Shifted(&mut backup), VOLUME_SECTORS - 1),
+            &mut scratch()
+        ),
+        Err(Status::Corrupt)
+    );
+}
+
 /// Python's stdlib `tarfile` is the independent reader of the ustar export.
 const TARFILE: &str = r#"
 import sys, io, tarfile
@@ -991,10 +1339,61 @@ fn tar_extract(tar: &[u8]) -> std::path::PathBuf {
     dir
 }
 
+/// Both passes of the export: check every name, then write.
 fn ustar(bytes: &[u8]) -> (Result<archive::Summary, Status>, Vec<u8>) {
     let mut out = Bytes(Vec::new());
-    let result = ustar::from_archive(&mut reader(bytes), &mut scratch(), &mut out);
+    let result = ustar::check(&mut reader(bytes), &mut scratch()).and_then(|(_, names)| {
+        ustar::from_archive(&mut reader(bytes), &mut scratch(), &names, &mut out)
+    });
     (result, out.0)
+}
+
+fn names(bytes: &[u8]) -> ustar::Names {
+    ustar::check(&mut reader(bytes), &mut scratch()).unwrap().1
+}
+
+/// For a valid archive whose export is refused: no output at all, and every
+/// refused name (objects in slot order, then collections) with its reasons.
+fn report(bytes: &[u8]) -> Vec<(Vec<u8>, u8)> {
+    assert!(archive::verify(&mut reader(bytes), &mut scratch()).is_ok());
+    let (result, tar) = ustar(bytes);
+    assert_eq!(result, Err(Status::Invalid));
+    assert!(tar.is_empty(), "a refused export writes nothing");
+    let names = names(bytes);
+    assert!(names.refused());
+    names.object[..names.objects]
+        .iter()
+        .chain(&names.collection)
+        .filter(|name| name.reasons != 0)
+        .map(|name| (name.name().to_vec(), name.reasons))
+        .collect()
+}
+
+/// Object records of `exported(500)`.
+const NOTES: usize = HEADER + 48;
+const PLAN: usize = NOTES + OBJECT_RECORD + 300;
+
+/// Rename the object record at `at` and move it to `collection`.
+fn renamed(bytes: &[u8], at: usize, name: &str, collection: u8) -> Vec<u8> {
+    resealed(bytes.to_vec(), at, OBJECT_RECORD, |r| {
+        r[1] = name.len() as u8;
+        r[2] = collection;
+        r[48..80].fill(0);
+        r[48..48 + name.len()].copy_from_slice(name.as_bytes());
+    })
+}
+
+/// Rename collection 1 ("Werk", which holds "Notes").
+fn collection_renamed(bytes: &[u8], name: &str) -> Vec<u8> {
+    resealed(bytes.to_vec(), HEADER, 48, |r| {
+        r[1] = name.len() as u8;
+        r[8..40].fill(0);
+        r[8..8 + name.len()].copy_from_slice(name.as_bytes());
+    })
+}
+
+fn only(name: &str, reasons: u8) -> Vec<(Vec<u8>, u8)> {
+    vec![(name.as_bytes().to_vec(), reasons)]
 }
 
 #[test]
@@ -1046,60 +1445,468 @@ fn ustar_export_opens_with_a_standard_reader() {
 }
 
 #[test]
+fn ustar_export_accepts_latin_names_and_dingbats() {
+    let bytes = exported(500);
+    let accepted = renamed(&renamed(&bytes, NOTES, "Privé", 1), PLAN, "Notitie ✓", 0);
+    let (result, tar) = ustar(&accepted);
+    assert_eq!(result.map(|s| s.objects), Ok(3));
+    let paths: Vec<String> = tarfile(&tar)
+        .iter()
+        .map(|row| row.split('\t').next().unwrap().to_owned())
+        .collect();
+    assert_eq!(paths, ["Werk/Privé", "Notitie ✓", "Empty"]);
+    for name in [
+        "Straße",
+        "ŁÓDŹ",
+        "Œuvre ½",
+        "a b",
+        "Plan.txt",
+        "#1 [draft]",
+        "~$x",
+        "CONSOLE",
+        "COM10",
+        "LPT",
+        "xCON",
+        "COM¹0",
+        ".CON",
+        "CON-1",
+        "NUL_",
+    ] {
+        assert_eq!(ustar::reasons(name.as_bytes()), 0, "{name}");
+        assert!(ustar(&renamed(&bytes, PLAN, name, 0)).0.is_ok(), "{name}");
+    }
+}
+
+#[test]
+fn ustar_export_refuses_windows_characters() {
+    let bytes = exported(500);
+    // ":" anywhere also covers drive ("C:x") and alternate stream forms.
+    for name in [
+        "a<b", "a>b", "a\"b", "a|b", "a?b", "a*b", "C:x", "1:x", "é:x", "Plan:2",
+    ] {
+        assert_eq!(
+            report(&renamed(&bytes, PLAN, name, 0)),
+            only(name, ustar::CHARACTER),
+            "{name}"
+        );
+    }
+    let emoji = "\u{1F600}:x";
+    assert_eq!(
+        report(&renamed(&bytes, PLAN, emoji, 0)),
+        only(emoji, ustar::CHARACTER | ustar::UNCHECKED)
+    );
+    assert_eq!(
+        report(&collection_renamed(&bytes, "C:")),
+        only("C:", ustar::CHARACTER)
+    );
+    // The archive format refuses these names already (`walk`: Corrupt).
+    for name in ["a/b", "a\\b", "a\tb", "\0", "a\u{7F}", "a\u{85}b"] {
+        assert_eq!(
+            ustar::reasons(name.as_bytes()),
+            ustar::CHARACTER,
+            "{name:?}"
+        );
+    }
+}
+
+#[test]
+fn ustar_export_refuses_windows_device_names() {
+    let bytes = exported(500);
+    for name in [
+        "CON",
+        "prn",
+        "Aux",
+        "nul.txt",
+        "LPT3.tar.gz",
+        "COM0",
+        "LPT0",
+        "COM¹",
+        "Lpt²",
+        "com³.x",
+        "con .txt",
+        "CONIN$",
+        "conout$.log",
+    ] {
+        assert_eq!(
+            report(&renamed(&bytes, PLAN, name, 0)),
+            only(name, ustar::RESERVED),
+            "{name}"
+        );
+    }
+    assert_eq!(
+        report(&collection_renamed(&bytes, "AUX")),
+        only("AUX", ustar::RESERVED)
+    );
+    assert_eq!(ustar::reasons(b"CON "), ustar::RESERVED | ustar::TRAILING);
+}
+
+#[test]
+fn ustar_export_refuses_trailing_dots_and_spaces() {
+    let bytes = exported(500);
+    for name in ["Plan.", "Plan ", "Plan. .", "x.."] {
+        assert_eq!(
+            report(&renamed(&bytes, PLAN, name, 0)),
+            only(name, ustar::TRAILING),
+            "{name}"
+        );
+    }
+    assert_eq!(
+        report(&collection_renamed(&bytes, "Werk.")),
+        only("Werk.", ustar::TRAILING)
+    );
+    // The archive format refuses these names already (`walk`: Corrupt).
+    for name in [".", ".."] {
+        assert_eq!(ustar::reasons(name.as_bytes()), ustar::TRAILING, "{name}");
+    }
+}
+
+/// Collection 1 "Werk" holds "Notes", collection 2 `second` holds "Plan".
+fn two_collections(second: &[u8]) -> Vec<u8> {
+    let mut disk = SimDisk::new();
+    let mut service = Service::new(EPOCH, Table::EMPTY, false);
+    let mut source = client(&mut service, &mut disk, 0);
+    source.collection(0, 1, 0, b"Werk").unwrap();
+    source.collection(0, 2, 0, second).unwrap();
+    for (object, name, collection) in [(0, &b"Notes"[..], 1), (1, b"Plan", 2)] {
+        let r = source
+            .write(object, 0, name, 10, fill(object, 1))
+            .unwrap()
+            .0;
+        source.meta(object, r, 0, 0, collection).unwrap();
+    }
+    let mut out = Bytes(Vec::new());
+    archive::export(&mut source, 0, &mut out).unwrap();
+    out.0
+}
+
+#[test]
+fn ustar_export_refuses_names_equal_under_case_folding() {
+    let bytes = exported(500);
+    assert_eq!(
+        report(&renamed(&bytes, PLAN, "notes", 1)),
+        [
+            (b"Notes".to_vec(), ustar::CASE),
+            (b"notes".to_vec(), ustar::CASE)
+        ]
+    );
+    let pair = |a: &str, b: &str| report(&renamed(&renamed(&bytes, NOTES, a, 0), PLAN, b, 0));
+    for (a, b) in [
+        ("Plan", "Plan"),
+        ("Straße", "STRASSE"),
+        ("Ærø", "æRØ"),
+        ("ſ", "S"),
+        ("ı", "I"),
+        ("İ", "i"),
+        ("ÿ", "Ÿ"),
+        ("Łódź", "ŁÓDŹ"),
+    ] {
+        let expected = [
+            (a.as_bytes().to_vec(), ustar::CASE),
+            (b.as_bytes().to_vec(), ustar::CASE),
+        ];
+        assert_eq!(pair(a, b), expected, "{a} {b}");
+    }
+    // The same name in different collections is not a collision.
+    assert!(ustar(&renamed(&bytes, PLAN, "Notes", 0)).0.is_ok());
+    // Two collections that hold objects are two directories.
+    assert!(ustar(&two_collections(b"Work")).0.is_ok());
+    assert_eq!(
+        report(&two_collections(b"werk")),
+        [
+            (b"Werk".to_vec(), ustar::CASE),
+            (b"werk".to_vec(), ustar::CASE)
+        ]
+    );
+}
+
+#[test]
+fn ustar_export_refuses_a_file_where_a_directory_is() {
+    let bytes = exported(500);
+    assert_eq!(
+        report(&renamed(&bytes, PLAN, "Werk", 0)),
+        [
+            (b"Werk".to_vec(), ustar::FILE_AND_DIRECTORY),
+            (b"Werk".to_vec(), ustar::FILE_AND_DIRECTORY)
+        ]
+    );
+    // Also against a declared collection without objects, under case folding.
+    let empty = renamed(&renamed(&bytes, NOTES, "Notes", 0), PLAN, "WERK", 0);
+    assert_eq!(
+        report(&empty),
+        [
+            (b"WERK".to_vec(), ustar::FILE_AND_DIRECTORY),
+            (b"Werk".to_vec(), ustar::FILE_AND_DIRECTORY)
+        ]
+    );
+}
+
+#[test]
+fn ustar_export_refuses_the_pax_entry_name_at_the_root() {
+    /// Counts `put` calls, so a refused export provably wrote nothing.
+    struct Counting(usize);
+    impl Sink for Counting {
+        fn put(&mut self, _: &[u8]) -> Result<(), Status> {
+            self.0 += 1;
+            Ok(())
+        }
+    }
+    let written = |bytes: &[u8], names: &ustar::Names| {
+        let mut sink = Counting(0);
+        let result = ustar::from_archive(&mut reader(bytes), &mut scratch(), names, &mut sink);
+        (result, sink.0)
+    };
+    let bytes = exported(500);
+    // Inside a collection the name cannot meet the root pax entry.
+    let inside = renamed(&collection_renamed(&bytes, "Docs"), NOTES, "PaxHeader", 1);
+    let (result, tar) = ustar(&inside);
+    assert!(result.is_ok());
+    assert!(tar.starts_with(b"Docs/PaxHeader\0"));
+    for (bad, name) in [
+        (renamed(&bytes, PLAN, "PaxHeader", 0), "PaxHeader"),
+        (renamed(&bytes, PLAN, "paxheader", 0), "paxheader"),
+        (collection_renamed(&bytes, "PAXHEADER"), "PAXHEADER"),
+    ] {
+        let mut checked = names(&bad);
+        assert_eq!(written(&bad, &checked), (Err(Status::Invalid), 0), "{name}");
+        assert_eq!(report(&bad), only(name, ustar::RESERVED), "{name}");
+        // The second pass judges again, so cleared bits do not help.
+        for each in checked.object.iter_mut().chain(&mut checked.collection) {
+            each.reasons = 0;
+        }
+        assert_eq!(written(&bad, &checked), (Err(Status::Invalid), 0), "{name}");
+    }
+}
+
+#[test]
+fn ustar_export_refuses_characters_outside_the_checked_set() {
+    let bytes = exported(500);
+    // A combining mark, CJK, Greek capital mu (equal to "µ" on NTFS), the
+    // invisible soft hyphen, a superscript four and a non-BMP character.
+    for name in [
+        "e\u{301}",
+        "中文",
+        "\u{39C}",
+        "\u{AD}x",
+        "COM⁴",
+        "\u{1F600}",
+    ] {
+        assert_eq!(
+            report(&renamed(&bytes, PLAN, name, 0)),
+            only(name, ustar::UNCHECKED),
+            "{name}"
+        );
+    }
+    assert_eq!(ustar::reasons(&[0xFF]), ustar::UNCHECKED);
+}
+
+#[test]
+fn ustar_export_reports_every_refused_name_at_once() {
+    let bytes = exported(500);
+    let all = renamed(
+        &renamed(&collection_renamed(&bytes, "Aux"), NOTES, "a?", 1),
+        PLAN,
+        "CON.",
+        0,
+    );
+    assert_eq!(
+        report(&all),
+        [
+            (b"a?".to_vec(), ustar::CHARACTER),
+            (b"CON.".to_vec(), ustar::RESERVED | ustar::TRAILING),
+            (b"Aux".to_vec(), ustar::RESERVED),
+        ]
+    );
+    let names = names(&all);
+    assert_eq!(names.objects, 3);
+    assert_eq!(
+        (
+            names.object[2].name(),
+            names.object[2].slot,
+            names.object[2].reasons
+        ),
+        (&b"Empty"[..], 5, 0)
+    );
+}
+
+#[test]
+fn ustar_case_fold_matches_unicode_case_within_the_checked_set() {
+    let set: Vec<char> = (' '..='~')
+        .chain('\u{A0}'..='\u{17F}')
+        .chain('\u{2700}'..='\u{27BF}')
+        .filter(|&c| c != '\u{AD}')
+        .collect();
+    let mut one = [0; 4];
+    for &c in &set {
+        assert_eq!(
+            ustar::reasons(c.encode_utf8(&mut one).as_bytes()) & ustar::UNCHECKED,
+            0
+        );
+    }
+    for c in ['\u{9F}', '\u{AD}', '\u{180}', '\u{26FF}', '\u{27C0}'] {
+        assert_ne!(
+            ustar::reasons(c.encode_utf8(&mut one).as_bytes()),
+            0,
+            "{c:?}"
+        );
+    }
+    // Equal full upper case, except that "İ" is also taken as "i".
+    let key = |c: char| match c {
+        'İ' => "I".to_owned(),
+        _ => c.to_uppercase().collect::<String>(),
+    };
+    let (mut a, mut b) = ([0; 4], [0; 4]);
+    for &x in &set {
+        for &y in &set {
+            assert_eq!(
+                ustar::collide(
+                    x.encode_utf8(&mut a).as_bytes(),
+                    y.encode_utf8(&mut b).as_bytes()
+                ),
+                key(x) == key(y),
+                "{x:?} {y:?}"
+            );
+        }
+    }
+    assert!(ustar::collide("ß".as_bytes(), b"ss"));
+    assert!(!ustar::collide("ß".as_bytes(), b"s"));
+}
+
+#[test]
+fn ustar_case_fold_is_at_least_as_coarse_as_core_case_mapping() {
+    let set: Vec<char> = (' '..='~')
+        .chain('\u{A0}'..='\u{17F}')
+        .chain('\u{2700}'..='\u{27BF}')
+        .filter(|&c| c != '\u{AD}')
+        .collect();
+    let core = |c: char| {
+        c.to_lowercase()
+            .collect::<String>()
+            .to_uppercase()
+            .to_lowercase()
+    };
+    let keys: Vec<String> = set.iter().map(|&c| core(c)).collect();
+    let (mut a, mut b) = ([0; 4], [0; 4]);
+    for (x, kx) in set.iter().zip(&keys) {
+        for (y, ky) in set.iter().zip(&keys) {
+            if kx == ky {
+                assert!(
+                    ustar::collide(
+                        x.encode_utf8(&mut a).as_bytes(),
+                        y.encode_utf8(&mut b).as_bytes()
+                    ),
+                    "{x:?} {y:?}"
+                );
+            }
+        }
+    }
+    // A name spelt as another's key collides with it (this covers "ß" and "ss").
+    let mut outside = Vec::new();
+    for (&c, k) in set.iter().zip(&keys) {
+        if k.chars().all(|k| set.contains(&k)) {
+            assert!(
+                ustar::collide(c.encode_utf8(&mut a).as_bytes(), k.as_bytes()),
+                "{c:?} {k:?}"
+            );
+        } else {
+            outside.push(c);
+        }
+    }
+    // Their keys ("μ", "i̇", "ʼn") are names the check already refuses as unchecked.
+    assert_eq!(outside, ['µ', 'İ', 'ŉ']);
+}
+
+#[test]
+fn ustar_names_agree_with_the_shared_fixture() {
+    let hex = |field: &str| -> Vec<u8> {
+        (0..field.len())
+            .step_by(2)
+            .map(|i| u8::from_str_radix(&field[i..i + 2], 16).expect("hex"))
+            .collect()
+    };
+    let mut checked = 0;
+    for line in include_str!("ustar-names.txt").lines() {
+        let data = line.split('#').next().unwrap_or_default();
+        match data.split_whitespace().collect::<Vec<_>>()[..] {
+            [] => continue,
+            ["name", bits, name] => {
+                assert_eq!(
+                    ustar::reasons(&hex(name)),
+                    bits.parse::<u8>().expect("bits"),
+                    "{line}"
+                )
+            }
+            ["collide", x, y] => assert!(ustar::collide(&hex(x), &hex(y)), "{line}"),
+            ["distinct", x, y] => assert!(!ustar::collide(&hex(x), &hex(y)), "{line}"),
+            _ => panic!("malformed fixture line: {line}"),
+        }
+        checked += 1;
+    }
+    assert_eq!(checked, 107);
+}
+
+#[test]
+fn ustar_export_judges_names_again_and_refuses_another_source() {
+    let bytes = exported(500);
+    let export = |bytes: &[u8], names: &ustar::Names| {
+        let mut out = Bytes(Vec::new());
+        let result = ustar::from_archive(&mut reader(bytes), &mut scratch(), names, &mut out);
+        (result, out.0)
+    };
+    // A single-name refusal and a pairwise one (CASE: "Notes" and "notes").
+    for bad in [
+        renamed(&bytes, PLAN, "CON", 0),
+        renamed(&bytes, PLAN, "notes", 1),
+    ] {
+        let mut cleared = names(&bad);
+        for name in cleared.object.iter_mut().chain(&mut cleared.collection) {
+            name.reasons = 0;
+        }
+        assert!(!cleared.refused());
+        assert_eq!(export(&bad, &cleared), (Err(Status::Invalid), Vec::new()));
+    }
+    let mut over = names(&bytes);
+    over.objects = 9;
+    assert_eq!(export(&bytes, &over), (Err(Status::Invalid), Vec::new()));
+    // Names checked on one archive do not export another.
+    let checked = names(&bytes);
+    let renamed_collection = collection_renamed(&bytes, "Work");
+    assert_eq!(
+        export(&renamed_collection, &checked),
+        (Err(Status::Stale), Vec::new())
+    );
+    assert_eq!(
+        export(&renamed(&bytes, PLAN, "Plan2", 0), &checked).0,
+        Err(Status::Stale)
+    );
+    let mut fewer = checked;
+    fewer.objects = 2;
+    assert_eq!(export(&bytes, &fewer).0, Err(Status::Stale));
+    let mut more = checked;
+    // "Notes" moved to the root: a valid name, but not in this archive.
+    more.object[3] = ustar::Name {
+        slot: 6,
+        collection: 0,
+        ..more.object[0]
+    };
+    more.objects = 4;
+    assert_eq!(export(&bytes, &more).0, Err(Status::Stale));
+}
+
+#[test]
 fn ustar_export_ends_only_after_the_whole_archive_checked_out() {
     let bytes = exported(500);
     let (result, good) = ustar(&bytes);
     assert!(result.is_ok());
     let mut bad = bytes.clone();
     *bad.last_mut().unwrap() ^= 1;
-    let (result, partial) = ustar(&bad);
+    // The check pass reads the whole archive before the first byte.
+    assert_eq!(ustar(&bad), (Err(Status::Corrupt), Vec::new()));
+    // A source that breaks between the passes: every file was written, but
+    // not the end-of-archive blocks.
+    let mut out = Bytes(Vec::new());
+    let result = ustar::from_archive(&mut reader(&bad), &mut scratch(), &names(&bytes), &mut out);
     assert_eq!(result, Err(Status::Corrupt));
-    // Every file was written, but not the end-of-archive blocks.
-    assert_eq!(partial, good[..good.len() - 2 * ustar::BLOCK]);
-    // A reader accepts that silently, so callers verify first and discard the
-    // output on error.
-    assert_eq!(tarfile(&partial).len(), 3);
-}
-
-#[test]
-fn ustar_export_refuses_colliding_paths_and_drive_names() {
-    let bytes = exported(500);
-    let plan = HEADER + 48 + OBJECT_RECORD + 300;
-    let rename = |name: &'static [u8], collection: u8| {
-        resealed(bytes.clone(), plan, OBJECT_RECORD, move |r| {
-            r[1] = name.len() as u8;
-            r[2] = collection;
-            r[48..80].fill(0);
-            r[48..48 + name.len()].copy_from_slice(name);
-        })
-    };
-    assert!(
-        ustar(&rename(b"Plan", 0)).0.is_ok(),
-        "an unchanged rename stays exportable"
-    );
-    assert!(
-        ustar(&rename(b"Plan:2", 0)).0.is_ok(),
-        "a later colon is kept"
-    );
-    let drive = resealed(bytes.clone(), HEADER, 48, |r| {
-        r[1] = 2;
-        r[8..40].fill(0);
-        r[8..10].copy_from_slice(b"C:");
-    });
-    // A file and a directory at "Werk"; two files at "Werk/Notes"; paths that
-    // Windows reads as a drive: "C:x", "C:/Notes", and drives that are not a
-    // letter or not one UTF-8 byte ("1:x", "é:x"), plus a non-BMP character
-    // that Python's ntpath reads as a drive.
-    for archive in [
-        rename(b"Werk", 0),
-        rename(b"Notes", 1),
-        rename(b"C:x", 0),
-        rename(b"1:x", 0),
-        rename("é:x".as_bytes(), 0),
-        rename("\u{1F600}:x".as_bytes(), 0),
-        drive,
-    ] {
-        assert!(archive::verify(&mut reader(&archive), &mut scratch()).is_ok());
-        assert_eq!(ustar(&archive).0, Err(Status::Invalid));
-    }
+    assert_eq!(out.0, good[..good.len() - 2 * ustar::BLOCK]);
+    // A reader accepts that silently, so callers discard output on error.
+    assert_eq!(tarfile(&out.0).len(), 3);
 }

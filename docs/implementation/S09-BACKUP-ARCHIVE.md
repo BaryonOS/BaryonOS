@@ -2,7 +2,8 @@
 
 **Status:** host-implemented in `services/volume/src/archive.rs`, tested in
 `services/volume/tests/archive.rs`; a native fixture portal passes the local
-QEMU gate (see "Native slice"). No user-chosen target, no user task, no
+QEMU gate (see "Native slice"), including the test-only `archive-ustar` stage
+(gate run 14, 15 November 2026). No user-chosen target, no user task, no
 physical disk. S09 remains open.
 
 ## Goal and invariant
@@ -84,9 +85,54 @@ tested. Not covered by a test: omitting the revision comparison on
 list/stat on export (only relevant if another writer or the service itself
 deviates).
 
+Independent backup device, host model (19 November 2026, commit `c4ac9ec1`
+on branch `claude/s09-independent-recovery`). Five tests model the planned
+second virtual disk as its own `SimDisk`, with a volatile write cache, read and
+written through `DiskSink`/`DiskSource` from sector 0:
+1. Export to the device, then loss of the source service, volume and disk, then
+   cold restarts of the device and of the restored volume. Content, names,
+   tags, kind and collection are byte-exact. The archive records keep each
+   source revision and the source times. The destination assigns its own
+   revision (1, or 2 after metadata) and later times.
+2. A power cut before every write and before the final flush of an export over
+   an older archive, with the new archive both shorter and longer. Every kept
+   prefix, a torn sector and three reordered subsets are tried. `verify`
+   accepts only the unchanged older archive or the complete new one, and
+   otherwise returns `Corrupt`. The older copy is lost as soon as one differing
+   new sector lands.
+3. `Unknown` (landed or not) and `NoDevice` at every write and at the final
+   flush. `export` never reports success. Only a landed final flush leaves an
+   archive, and only `verify` accepts it.
+4. The device failing reads from sector 0, 1 or the last after `verify`
+   passed. Restore stops with `Io`. A second restore from the returned device
+   restores the rest and reports the earlier objects as conflicts, unchanged.
+5. The source volume's disk, and the backup device read one sector off, are
+   refused with `Corrupt`.
+
+Two mutations of `DiskSink::finish` were tried. Skipping the flush fails four
+tests. Ignoring a flush error fails two, both new: no earlier test caught it.
+The native step needs a second kernel-owned virtio-blk device. That is a
+device-ownership change and is requested in
+[S09-DUAL-DISK-FIXTURE-REQUEST.md](S09-DUAL-DISK-FIXTURE-REQUEST.md).
+
+**Native second disk (19 November 2026, local QEMU gate passed).** Under the
+approved bounds the fixture now has a test-only second virtio-blk disk at
+`00:06.0` (kernel feature `test-volume-archive-device`, driver enum
+`Function`). Seven stages run on it: `archive-disk-export` (disk 0
+byte-identical, disk 1 parsed independently and equal to the volume),
+`archive-disk-absent` (`NoDevice`), `archive-disk-small` (`Full`, nothing past
+the scope), `archive-disk-restore` (blank disk 0, disk 1 read-only),
+`archive-disk-wrong` (device-0 range granted: `Corrupt`), and
+`archive-disk-cut` followed by `archive-disk-verify` (kill after 20 archive
+writes over an older archive; the torn result is `Corrupt`). Evidence:
+[verification/s09-archive/dual-disk-native-20261119/](../verification/s09-archive/dual-disk-native-20261119/README.md).
+This is fixture evidence. D1–D5 are decided (`ADR-S09-DESTINATION-20261119`),
+but their destination service, the user task and the encrypted variant are
+not implemented.
+
 Open for S09/FR-O06: native backup portal with a target volume and capability
-chosen by the user, native QEMU trial with a second virtual disk,
-user export to common formats (e.g. plain text/image per
+chosen by the user (the native second-disk trial above is a fixture grant,
+not a user choice), user export to common formats (e.g. plain text/image per
 document), encrypted variant for NAS/provider, and a user task.
 
 ## Native slice — local QEMU gate passes (13 November 2026, branch `feat/s09-native-archive`)
@@ -148,7 +194,7 @@ without this ordering (run 2) failed it with a Busy status instead of
 `Corrupt` (step 740).
 
 **Runner stages** (`tools/run_volume.py`, plan of `tools/test_volume.py`, now
-14 QEMU runs): `archive-export` on the image left by `recover` (volume mounted
+22 QEMU runs, including the seven second-disk stages below): `archive-export` on the image left by `recover` (volume mounted
 read-only, every byte outside the archive range unchanged, zero padding, no
 write past the archive, writes = ⌈length/512⌉); `archive-restore` and
 `archive-corrupt` on a fresh image that holds only the copied archive range
@@ -200,24 +246,63 @@ archive. It does not show that a failed export invalidates an older archive
 already in the range; an older archive whose leading sectors equal the new
 stream would still verify as that older archive.
 
-## User export to ustar (approved format, host-tested, 13 November 2026)
+`archive-ustar` (test-only kernel case 12, feature `test-volume-archive-ustar`)
+writes the approved ustar user export natively. It starts from the export
+stage's input image, like `archive-full`, and uses the same slot-1 portal
+grant as `archive-export`: READ|WRITE|FLUSH on the `ARCHIVE_SECTORS` fixture
+range. It adds no capability, destination or production authority. The portal
+exports the recovered fixture into the lower half of the range, runs
+`ustar::check` on that stored archive and requires a summary equal to the
+export's and no refused name. It then passes `ustar::from_archive` a copy of
+the returned `Names` whose first object name is replaced by `CON` while the
+refusal bits stay clear; the conversion must return `Invalid`. Finally it
+converts the archive with the unchanged `Names` into the upper half and
+reports the stream length. The conversion reuses the portal's existing
+`unsafe` scratch cast of the kernel-mapped heap (one `unsafe` block with its
+SAFETY comment in `sdk/examples/volume-docs/src/app.rs`); this stage adds no
+further `unsafe`. The runner requires that the lower half equals the export
+stage's archive, that the stream starts exactly at the upper half and is
+zero-padded to a sector, and that no other sector changed. Writes must equal
+the archive sectors plus the stream sectors, so the refused conversion wrote
+nothing, and there must be exactly two flushes. Python's `tarfile` is the
+independent reader of the exported bytes (strict UTF-8). `check_ustar` in
+`tools/run_volume.py` compares them with the parsed archive: member names in
+archive order, a pax `path` record exactly for non-ASCII paths, regular-file
+type, ustar magic, mode, uid, gid, mtime, content, zero padding,
+member offsets and exactly two end blocks. `tests/test_volume_ustar_export.py`
+shows that this oracle refuses nine kinds of differing stream. Measured on
+15 November 2026 in gate run 14 (tested commit `18da1eb9`, source fingerprint
+`36cab793…`, all 15 stages passed, evidence in
+[USTAR-NATIVE-20261115.md](../verification/s09-archive/USTAR-NATIVE-20261115.md);
+an earlier pass at fingerprint `0af1c15e…` was not captured): 1,440 reads, 368 writes, 2 flushes and a 96,256-byte stream (sha256
+`13bdbe8d…`) with the five fixture paths, among them `Privé/Notitie ✓` with a
+pax record. The archive in the lower half has the export stage's sha256
+`d75aa5c8…` and 91,801 bytes. The archive portal is built with release
+opt-level `s` for every archive stage, because with the ustar converter linked
+its text at opt-level 3 exceeds the 64 KiB app text bound of its linker
+script. Limits: the native refusal covers only a reserved name in a
+caller-edited `Names`; the other refusal rules are host-tested. The pax output
+is checked by `tarfile`, not compared byte for byte with an independent
+writer. Archive and stream share the one fixture range on the volume's disk.
+
+## User export to ustar (approved format, host-tested and native test stage, 13–15 November 2026)
 
 **Status:** approved by the project owner on 14 November 2026 under
 [ADR-S09-USTAR-20261114](../DECISIONS.md) (D6 (a) in
 [S09-BACKUP-DESTINATION-PROPOSAL.md](S09-BACKUP-DESTINATION-PROPOSAL.md)).
 It is a lossy interchange format, not the native Baryon OS/Materiaal format
-and not a recovery copy; format v1 stays the only recovery format. Approval
-is not implementation: the converter is host-tested only and does not yet
-refuse every name the ADR requires it to refuse (see "Not handled" and
-"Implementation limits" below). It changes no capability. It has no native
-stage yet. The project owner authorised a native test stage that uses the
-existing test-only permissions and storage fixtures; it is a later task,
-adds no production authority and does not decide D1.
+and not a recovery copy; format v1 stays the only recovery format. The
+converter and its name check (S09-NAMES, 15 November 2026) are host-tested;
+the native `archive-ustar` stage exercises the conversion and one refusal (a
+reserved name in a caller-edited `Names`) only. It changes no capability. The native test stage `archive-ustar` (see
+Runner stages above) uses the existing test-only permissions and storage
+fixtures, as the project owner authorised; it adds no production authority
+and does not decide D1.
 
-`ustar::from_archive` converts a format-v1 archive into a POSIX.1-1988 ustar
-stream, with POSIX.1-2001 pax `path` records for names that are not ASCII.
-It is meant for common tar readers outside Baryon OS; the readers tested are
-Python's `tarfile` module and GNU tar 1.35.
+The export converts a format-v1 archive into a POSIX.1-1988 ustar stream,
+with POSIX.1-2001 pax `path` records for names that are not ASCII. It is meant
+for common tar readers outside Baryon OS; the readers tested are Python's
+`tarfile` module and GNU tar 1.35.
 - **Layout.** Per object, in slot order, one regular file holding its bytes
   as stored: `<collection>/<name>` for a collected object, `<name>` otherwise.
   There are no directory entries, so an empty collection is not exported.
@@ -230,57 +315,40 @@ Python's `tarfile` module and GNU tar 1.35.
   indices are dropped. The export is for other systems, not a recovery copy,
   and nothing restores from it. Content is not converted: the volume has no
   registry of kinds, so a document is exported as the bytes it holds.
-- **Refusals.** These give `Invalid`, and nothing is renamed:
-  - two objects with one path;
-  - an uncollected object whose name equals a declared collection's name (a
-    file and a directory at one path). This conservative rule also refuses
-    the export when that collection is empty, although an empty collection
-    gets no directory;
-  - a path whose first character, of any kind, is followed by `:`. The Windows
-    path parser takes any single UTF-16 code unit followed by `:` as a drive,
-    not only A–Z. Such a drive exists only once it is created, for example
-    with `subst` (`+:`, `€:`); File Explorer and PowerShell do not accept it
-    ([R. Liptak, "Windows drive letters are not limited to A-Z"](https://www.ryanliptak.com/blog/windows-drive-letters-are-not-limited-to-a-z/)).
-    Where it exists, such a path can leave the extraction directory. Python's
-    `ntpath` takes any one character there as a drive, also one outside the
-    Basic Multilingual Plane, which Win32 does not; the rule refuses both.
-    Extraction on Windows was not tested. A later `:` is kept.
-- **Order of checks.** Each file is written while `archive::walk` checks its
-  object. The two end-of-archive blocks are written only after the trailer and
-  the end of the stream have been checked. Python's `tarfile` reads a stream
-  without those blocks without an error (tested), so the caller verifies the
-  same bytes first and discards the output on any error, as for restore.
-- **Names.** Object and collection names are UTF-8. They hold no control
-  characters (Unicode category Cc), no `/` or `\`, and none of the
-  bidirectional embedding, override and isolate controls U+202A–U+202E and
-  U+2066–U+2069; they are never `.` or `..`. A path therefore stays inside
-  the extraction directory on POSIX systems, and the drive rule above covers
-  the Windows drive form, including drives that are not a letter.
-  Bidirectional marks such as U+200E, U+200F and U+061C are allowed.
-- **Not handled (extraction elsewhere).** The following names still export
-  unchanged, but extract differently. The ADR requires the export to refuse
-  them and to report each refused name; the name check that does so is not
-  yet built.
-  - On Windows, a later `:` names an alternate data stream.
-  - On Windows, the reserved device names (for example `NUL`) and names with
-    trailing dots or spaces are altered or lost.
-  - On Windows, other characters that it forbids, such as `?`, are not
-    accepted.
-  - Names that differ only in case, or only in Unicode normalisation (NFC
-    against NFD), collide on case-insensitive or normalisation-insensitive file
-    systems such as default macOS and Windows volumes. One file then
-    overwrites the other.
+- **Two passes.** A `Source` is read once, so the export reads the archive
+  twice. `ustar::check` walks and checks the whole archive, as
+  `archive::verify` does, and returns `ustar::Names`: every object name in
+  slot order and every collection name, each with its refusal bits.
+  `ustar::from_archive` takes the archive again with those `Names`, judges
+  the names again (so clearing the bits does not help) and writes nothing
+  when any name is refused. The whole export is then refused with `Invalid`
+  before its first byte, and the report names every refused name, not only
+  the first. Nothing is renamed. `Names` that claim more objects than a
+  domain holds are refused with `Invalid` as well; no name carries a bit then.
 
-**Implementation limits (to be built by later tasks).** The ADR fixes what
-the export must refuse; these parts of the name check are not yet built or
-defined:
-- **Allowed character set.** The set of characters that the name check
-  accepts is not yet defined; the S09-NAMES task defines it.
-- **Reserved device names.** The primary list is the one in Microsoft's
+**Names.** The archive format already refuses some names: `archive::walk`
+gives `Corrupt` for a name that is not valid UTF-8, holds a control character
+(Unicode category Cc), `/` or `\`, or one of the bidirectional embedding,
+override and isolate controls U+202A–U+202E and U+2066–U+2069, or is `.` or
+`..`. The name check judges each object name and each collection name that
+becomes a directory (a collection that holds an object); `ustar::reasons`
+classifies the names that the format refuses as well. The refusal bits are:
+- `CHARACTER`: `< > : " | ? * / \` or a control character. `:` anywhere also
+  covers the Windows drive form and alternate data streams (`name:stream`).
+  The Windows path parser takes any single UTF-16 code unit followed by `:`
+  as a drive, not only A–Z; such a drive exists only once it is created, for
+  example with `subst` (`+:`, `€:`), and can lead a path out of the extraction
+  directory
+  ([R. Liptak, "Windows drive letters are not limited to A-Z"](https://www.ryanliptak.com/blog/windows-drive-letters-are-not-limited-to-a-z/)).
+  macOS Finder shows `:` as `/`.
+- `RESERVED`: a Windows device name, compared with the part before the first
+  `.` after trailing spaces are removed, in any ASCII case (`nul.txt`,
+  `con .txt`, `LPT3.tar.gz`). The primary list is the one in Microsoft's
   ["Naming a file"](https://learn.microsoft.com/en-us/windows/win32/fileio/naming-a-file),
   section "Naming Conventions": CON, PRN, AUX, NUL, COM1–COM9, COM¹, COM²,
-  COM³, LPT1–LPT9, LPT¹, LPT² and LPT³. Four names are conservative
-  additions that are not on that list:
+  COM³, LPT1–LPT9, LPT¹, LPT² and LPT³ (the superscripts as UTF-8 U+00B9,
+  U+00B2 and U+00B3). Four names are conservative additions that are not on
+  that list:
   - COM0 and LPT0. Source: Microsoft's
     [`RtlIsDosDeviceName_U`](https://learn.microsoft.com/en-us/windows/win32/devnotes/rtlisdosdevicename_u)
     documentation lists COMn and LPTn "where n is a digit", which includes 0.
@@ -292,35 +360,127 @@ defined:
     added in Python 3.13, also reserves them (a secondary source, not
     re-checked).
 
-**Evidence (host).** Three `volume-core` tests in
-`services/volume/tests/archive.rs`. The reader test needs `python3` and `tar`,
-and the end-block test needs `python3`; each fails when its tool is missing. The
-refusal test starts no external tool:
-- Python's standard `tarfile` module is the independent reader. It reads an
-  export that contains a collection, a multi-chunk object, an empty object and
-  the name `Notitie ✓`. Names, the pax `path` record, type, size, mode, mtime,
-  uid, gid and content all match. The system tar (GNU tar 1.35 locally)
-  extracts the same stream into a fresh directory with byte-identical files,
-  and a second conversion gives equal bytes.
-- An archive with a flipped trailer byte gives `Corrupt`. The output then
-  lacks exactly the two end-of-archive blocks, and `tarfile` still reads its
-  three files without an error.
-- Resealed archives that `verify` accepts give `Invalid` when their paths
-  collide or take the drive form: uncollected `C:x`, `1:x`, `é:x` and
-  `😀:x`, and a collection named `C:`. A name with a later colon,
-  `Plan:2`, is still exported.
+  Names that only contain a device name, such as `CONSOLE`, `COM10`, `LPT`,
+  `xCON`, `.CON` or `CON-1`, are accepted.
 
-Nine mutants of the converter were each killed: no pax record, no
-file/directory check, no duplicate check, no drive check, a drive check for
-ASCII letters only, a checksum off by one, mode 0600, end blocks before the
-trailer check, and no content padding.
+  `RESERVED` also marks the exporter's own pax entry name: an uncollected
+  object, or a collection that holds an object, whose name equals `PaxHeader`
+  under the case fold below (`PaxHeader`, `paxheader`, `PAXHEADER`). Every pax
+  `x` header is written under the root ustar name `PaxHeader`, and a reader
+  without pax support extracts it as a regular root file, which would
+  overwrite or clash with the user's name. The rule is positional: an object
+  inside a collection, such as `Docs/PaxHeader`, is accepted, and so is a name
+  that only contains it, such as `PaxHeader.txt`. It applies even when the
+  archive needs no pax record. The judging in `ustar::check` and
+  `ustar::from_archive` sets it, not `ustar::reasons`, so the shared name
+  fixture does not cover it. Evidence is host tests only; no pax-unaware
+  reader has been run.
+- `TRAILING`: the name ends in `.` or a space, which Windows strips.
+- `CASE`: the name equals another name in the same directory under the case
+  fold below: two objects in one collection, two uncollected objects, or two
+  collections that hold objects. Both names are reported.
+- `FILE_AND_DIRECTORY`: an uncollected object and a declared collection share
+  one path under the case fold: a file and a directory. This conservative rule
+  also applies when the collection is empty, although an empty collection gets
+  no directory. Both names are reported.
+- `UNCHECKED`: a character outside the checked set, for which no case fold is
+  defined (for example `中文`, Greek, a combining mark such as the U+0301 in
+  a decomposed (NFD) `é`, the soft hyphen
+  U+00AD, `⁴`, an emoji or the bidirectional marks U+200E, U+200F and U+061C).
+
+**Checked set and case fold.** A name is accepted only when every character
+lies in the checked set: printable ASCII U+0020–U+007E, Latin-1 Supplement
+and Latin Extended-A U+00A0–U+017F without the invisible soft hyphen U+00AD,
+and Dingbats U+2700–U+27BF (for example `✓`). `ustar::collide` compares two
+names after a hand-written fold to lower case: the letter pairs of ASCII,
+Latin-1 and Latin Extended-A, and `ß` = `ss`, `ſ` = `s`, `ı` = `İ` = `i` and
+`ÿ` = `Ÿ`. `µ`, `ĸ` and `ŉ` stay as they are, because what they fold to lies
+outside the set. No Unicode normalisation (NFC, NFD or compatibility forms) is
+applied, and none is claimed. The argument that none is needed within the set:
+the set holds no combining mark, so two different names in it are never
+canonically equivalent, and NFC against NFD differences need a character from
+outside the set, which is refused. Some folds over-refuse on some file
+systems: NTFS keeps `ß` and `ss` apart, and keeps `İ` apart from `i`; the
+check refuses them anyway.
+
+**Order of checks.** `ustar::check` reads the whole archive, including the
+trailer and the end of the stream, before `ustar::from_archive` writes its
+first byte. The second walk must meet the same slots, names and collections in
+the same order and the same number of objects as the checked `Names`;
+otherwise it stops with `Stale`. A source that changed or broke between the
+passes (`Stale` or `Corrupt` during the second walk) can leave files already
+written, but never the two end-of-archive blocks: they are written only after
+the whole archive checked out again. Python's `tarfile` reads such a
+truncated stream without an error (tested), so the caller discards the output
+on any error, as for restore.
+
+**Not handled.**
+- Names in other scripts, and any other character outside the checked set,
+  are refused, not exported; a later, separately specified fold could widen
+  the set.
+- Windows 8.3 short names: on a volume that generates short names, a name of
+  the form `PROGRA~1` can equal the short name of another extracted file. The
+  check does not model short names.
+- The length of the extraction directory plus a path of at most 65 bytes can
+  still exceed a Windows path limit; that depends on the target and is not
+  checked.
+- Extraction on Windows or macOS was not tested; the rules above follow the
+  cited documentation and the case fold is checked against Rust's Unicode
+  upper-case mapping, not against NTFS or APFS tables.
+
+**Evidence (host).** `volume-core` tests in `services/volume/tests/archive.rs`.
+The reader test needs `python3` and `tar`, and the end-block test needs
+`python3`; each fails when its tool is missing. The other tests start no
+external tool:
+- `ustar_export_opens_with_a_standard_reader`: Python's standard `tarfile`
+  module is the independent reader. It reads an export that contains a
+  collection, a multi-chunk object, an empty object and the name `Notitie ✓`.
+  Names, the pax `path` record, type, size, mode, mtime, uid, gid and content
+  all match. The system tar (GNU tar 1.35 locally) extracts the same stream
+  into a fresh directory with byte-identical files, and a second conversion
+  gives equal bytes.
+- `ustar_export_accepts_latin_names_and_dingbats`: `Werk/Privé` and
+  `Notitie ✓` are exported, and so are `Straße`, `ŁÓDŹ`, `CONSOLE`, `COM10`
+  and other names next to the refused forms.
+- One test per refusal bit, each on a resealed archive that `verify` accepts:
+  the export gives `Invalid`, writes no byte, and reports exactly the refused
+  names with their bits. `ustar_export_refuses_windows_characters` (also
+  `C:x`, `1:x`, `é:x`, `Plan:2` and a collection `C:`),
+  `ustar_export_refuses_windows_device_names`,
+  `ustar_export_refuses_trailing_dots_and_spaces`,
+  `ustar_export_refuses_names_equal_under_case_folding`,
+  `ustar_export_refuses_a_file_where_a_directory_is` and
+  `ustar_export_refuses_characters_outside_the_checked_set`.
+- `ustar_export_reports_every_refused_name_at_once`: three bad names in one
+  archive (`a?`, `CON.` and a collection `Aux`) are all reported.
+- `ustar_case_fold_matches_unicode_case_within_the_checked_set`: for every
+  pair of characters in the set, `collide` agrees with equal full upper case
+  (Rust's `char::to_uppercase`), except that `İ` is also taken as `i`; the
+  characters just outside the set are refused.
+- `ustar_export_judges_names_again_and_refuses_another_source`: cleared
+  refusal bits, single-name (`CON`) and pairwise (`CASE`), still give
+  `Invalid`, and so do `Names` that claim more objects than a domain holds;
+  names checked on one archive give `Stale` on another.
+- `ustar_export_ends_only_after_the_whole_archive_checked_out`: an archive
+  with a flipped trailer byte gives `Corrupt` from the check pass with no
+  output; when the source breaks between the passes, the output lacks exactly
+  the two end-of-archive blocks, and `tarfile` still reads its three files.
+- Independent oracles and mutation checks for the name check:
+  - `ustar_case_fold_is_at_least_as_coarse_as_core_case_mapping` shows,
+    exhaustively over the set, that names with equal
+    lower→upper→lower `core` keys collide.
+  - `ustar_names_agree_with_the_shared_fixture` and the Python oracle
+    `tests/test_volume_ustar_names.py` both check the 107 cases in
+    `services/volume/tests/ustar-names.txt`. The Python oracle also shows
+    that the set has no combining marks and that NFD is injective on it.
+  - All 43 mutants that disable a refusal rule are killed. See
+    [NAMES-ORACLE-20261115.md](../verification/s09-archive/NAMES-ORACLE-20261115.md).
+
 Not checked: bsdtar and Windows `tar` as readers, extraction on Windows or
-macOS, and a native stage.
+macOS, over-refusal (precision) mutants of the name check.
 
 **Still open for S09:** a user-chosen target behind its own capability (not a
-fixture range on the same disk); the name check that ADR-S09-USTAR-20261114
-requires for the approved ustar export (D6 (a)) and a native test stage that
-writes it out; the encrypted NAS/provider variant; a user-facing task;
+fixture range on the same disk); the encrypted NAS/provider variant; a user-facing task;
 a second simultaneously attached disk (archive and volume
 share one virtual device here). Plaintext archives are used only on
 harness-assigned local test images. The destination and its capability

@@ -32,5 +32,4 @@ The selection below was generated automatically from page titles and categories;
 - [Supervisor Memory Protection](../corpus/wiki-11.md#w004037) [W004037]
 - [TLS Encryption](../corpus/wiki-11.md#w003913) [W003913]
 - [TLS Handshake](../corpus/wiki-11.md#w003912) [W003912]
-- [Triple Fault](../corpus/wiki-03.md#w001856) [W001856]
 - [X86 Paging](../corpus/wiki-04.md#w002122) [W002122]
