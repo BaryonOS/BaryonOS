@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-19",
-    "source_commit": "ea628ef5d9ae523cc53aa0c2d1761bb7c0654463",
+    "source_commit": "8f9708663a8c7b94db3d35613047bcbad3a308c3",
     "assessment_basis": "parent_commit",
     "branch": "ccr-eb161a01-03937i",
-    "task": "PR integration pass #365-#393",
+    "task": "Record the project-owner decision package of 19 November 2026",
     "previous_score": 41,
-    "summary": "41/100 unchanged. Integration of completed host and partial-native slices with review repairs; no fixed criterion gained complete native, hardware or human-audit acceptance."
+    "summary": "41/100 unchanged. Architecture and priority decisions recorded as ADRs; no implementation or acceptance evidence changes any criterion."
   },
   "tracks": [
     {

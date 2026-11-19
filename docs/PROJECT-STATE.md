@@ -1,5 +1,27 @@
 # Current project status
 
+## NEXT AGENT HANDOFF — owner decision package recorded — 19 November 2026
+
+**Source:** main `8f970866`. The project-owner decisions of 19 November 2026 are
+recorded in [DECISIONS.md](DECISIONS.md): ADR-S09-DESTINATION-20261119,
+ADR-B03-B04-TARGET-20261119, ADR-DESIGN-TOKENS-20261119, ADR-P-NAMES-1-20261119,
+ADR-PROGRESS-ROUTE-20261119 and ADR-W001473-PROVENANCE-20261119. They approve
+architecture and route only; no criterion is accepted and no production signing,
+key generation, firmware change or physical-device work is authorized.
+**Next action:** pursue the #43 route (S09, N02, U05, H02/U03) within each
+workstream's ownership. For #283, follow the owner's follow-up decision recorded
+in ADR-W001473-PROVENANCE-20261119. Planned, not yet applied on main: exclude
+W001473, which has no verifiable grant (PR #397), and exclude the 27 other
+imported records and the 5 third-party records with unknown terms (#399, #400)
+unless a verifiable licence, original permission or independent replacement is
+documented. Records awaiting an owner decision (5 licences with notice or
+share-alike obligations, 12 quotations) stay in the corpus as uncertain until
+decided. The review of the pages that predate the CC0 statement and the screening
+for older copied text are recorded in PR #398; their 1,298 uncertain records
+(which include the pre-CC0 pages) each need a recorded disposition. #283 stays
+open until W001473 and the import and third-party exclusions are merged and every
+uncertain record has a disposition.
+
 ## NEXT AGENT HANDOFF — PR integration pass — 19 November 2026
 
 **Source:** main `ea628ef5d9ae523cc53aa0c2d1761bb7c0654463` after #393. Lead integration session; no criterion accepted.
