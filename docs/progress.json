@@ -3,7 +3,7 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-19",
-    "source_commit": "c54b9e25b43ee8bada3c9b9bf5ea3a93328111e5",
+    "source_commit": "887c446d8b530b17ba34a1e9798b6e3d012aedcc",
     "assessment_basis": "parent_commit",
     "branch": "ccr-38238c58-g8y1l6",
     "task": "H05-T3: own-kernel ACPI S3 suspend/resume in the QEMU 8.2 q35/OVMF/TCG profile",

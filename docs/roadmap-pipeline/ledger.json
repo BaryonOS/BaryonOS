@@ -1981,11 +1981,16 @@
           "event": "verified",
           "at": "2026-11-19",
           "reason": "Re-verified on c54b9e25b43e (source v3 ce3e3145) after the hosted host-quality fixes (shared arch::load_tables for GS discipline; protected workflow moved to lead_paths) and review hardening; all three S3 cases pass."
+        },
+        {
+          "event": "verified",
+          "at": "2026-11-19",
+          "reason": "CodeRabbit review fixes on 887c446d8b53 (source v3 7710f46d): QMP event drain, pc-q35-8.2 pin, NO_TRANSITION fail-closed, ADR sources; S3 cases rerun and pass."
         }
       ],
       "evidence_level": "native QEMU/TCG",
       "non_claimable": "Physical firmware/hardware, other wake sources, AML _PTS/_WAK, devices/services/SMP across sleep, thermal/battery and H05 acceptance stay open.",
-      "source_commit": "c54b9e25b43ee8bada3c9b9bf5ea3a93328111e5",
+      "source_commit": "887c446d8b530b17ba34a1e9798b6e3d012aedcc",
       "next": "H05-T4: S3 from the native-system profile via the POWER capability behind the storage gate, with PIC/PIT re-init and resumed processes; reuse the QMP hook from H04-T3.",
       "lead_paths": [
         ".github/workflows/native-power.yml",

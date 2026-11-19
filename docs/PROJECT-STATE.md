@@ -4,7 +4,7 @@
 
 **Mandate:** project-owner instruction of 19 November 2026 assigns the whole H track
 (H01–H06) to a Claude hardware-track lead on branch `ccr-38238c58-g8y1l6` (one draft PR).
-**Source:** `c54b9e25b43ee8bada3c9b9bf5ea3a93328111e5` on base main `035b44e` (first slice `9c707c8`, then CI/review fixes).
+**Source:** `887c446d8b530b17ba34a1e9798b6e3d012aedcc` on base main `035b44e` (first slice `9c707c8`, then CI and review fixes).
 **Delivered (H05-T3, verified, not accepted):** the independent kernel suspends to RAM
 and resumes three times per boot through its own wake path (`native-acpi-s3`), with
 negative profiles `test-acpi-s3-corrupt-facs` and `test-acpi-s3-stale-token`.
@@ -14,7 +14,7 @@ truncation); the profile arms a 32-bit entry under the explicit `Edk2Version0Ext
 policy and restores `SCI_EN`, which OVMF leaves clear (ADR-H05-S3-WAKE-20261119).
 **Checks (exit 0):** acpi-power test/clippy/fmt/freestanding build; root `fmt --all`;
 `test_sleep.py` 6 host counterexamples; `run_sleep.py` cycles/corrupt-facs/stale-token on
-source v3 `ce3e3145…` (and earlier `e76b8fbf…`); S5 ×5 + corrupt-DSDT ×2, standard, M2 and M3 smokes; actionlint and
+source v3 `7710f46d…` (earlier rounds `ce3e3145…`, `e76b8fbf…`); S5 ×5 + corrupt-DSDT ×2, standard, M2 and M3 smokes; actionlint and
 CI workflow/evidence tests. [Evidence](verification/h05-native-s3-20261119/README.md).
 **Limits:** QEMU/TCG only; no physical firmware, other wake sources, AML `_PTS`/`_WAK`,
 devices/services/SMP across sleep, thermal or battery. Score 41 → 41/100.

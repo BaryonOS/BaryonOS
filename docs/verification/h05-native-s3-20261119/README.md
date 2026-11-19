@@ -8,13 +8,13 @@ bootstrap; no ring-3 process, device or service across sleep).
 recoverable sleep/wake, shutdown and thermal/battery behaviour on supported
 hardware.
 
-Source binding: commit `c54b9e25b43e` (branch `ccr-38238c58-g8y1l6`, base
+Source binding: commit `887c446d8b53` (branch `ccr-38238c58-g8y1l6`, base
 main `035b44e`), source fingerprint v3
-`ce3e3145f56ba336d767cb9a64976f89b6c566c64badadc5c36104a1be5ced77` for all
+`7710f46d313be1b46b3baf8969c7bda5af34cc62166454bdebb95c41aa8bcbe5` for all
 three cases. The runs executed on the working tree that was then committed
-unchanged as `c54b9e25b43e`, so the reports' `base_commit` names its parent
-`6d23553`. The first evidence round on `9c707c8` (fingerprint `e76b8fbf…`)
-passed identically before the review hardening. [native-report.json](native-report.json) holds the manifest and
+unchanged as `887c446d8b53`, so the reports' `base_commit` names its parent.
+Earlier rounds passed identically on `9c707c8` (fingerprint `e76b8fbf…`) and
+`c54b9e25` (fingerprint `ce3e3145…`). [native-report.json](native-report.json) holds the manifest and
 artifact SHA-256, commands, QMP traces and events, and full serial output.
 It replaces the absolute checkout prefix with `<CHECKOUT>`; nothing else was
 changed.
@@ -46,9 +46,9 @@ each time through its own wake path:
 
 | Case | Kernel feature | Oracle | Result |
 |---|---|---|---|
-| `cycles` | `native-acpi-s3` | 3× `query-status`=`suspended` with a 0.5 s serial-silent dwell, 3× harness `system_wakeup`, QMP events `SUSPEND,WAKEUP`×3, one EBS handoff, exact serial tail, raw exit 33 | pass, raw exit 33, 4.0 s, 3 sleep/wake |
-| `corrupt-facs` | `test-acpi-s3-corrupt-facs` | `POWER:S3:REJECTED:InvalidSignature`, no QMP `SUSPEND`, raw exit 33 | pass, raw exit 33, 2.2 s, 0 sleep/wake |
-| `stale-token` | `test-acpi-s3-stale-token` | one real sleep and wake, then `POWER:S3:WAKE:REJECTED:TOKEN:ARMED=1:PAGE=0x5a5a0001`, no `RESUMED`, raw exit 33 | pass, raw exit 33, 2.9 s, 1 sleep/wake |
+| `cycles` | `native-acpi-s3` | 3× `query-status`=`suspended` with a 0.5 s serial-silent dwell, 3× harness `system_wakeup`, QMP events `SUSPEND,WAKEUP`×3, one EBS handoff, exact serial tail, raw exit 33 | pass, raw exit 33, 3.9 s, 3 sleep/wake |
+| `corrupt-facs` | `test-acpi-s3-corrupt-facs` | `POWER:S3:REJECTED:InvalidSignature`, no QMP `SUSPEND`, raw exit 33 | pass, raw exit 33, 2.3 s, 0 sleep/wake |
+| `stale-token` | `test-acpi-s3-stale-token` | one real sleep and wake, then `POWER:S3:WAKE:REJECTED:TOKEN:ARMED=1:PAGE=0x5a5a0001`, no `RESUMED`, raw exit 33 | pass, raw exit 33, 2.8 s, 1 sleep/wake |
 
 Each resumed cycle reports
 `ENTRY=PM32:PM1_STS=0x8101:WAK_STS=1:SCI_EN=RESTORED:HWSIG=SAME:FACS=DISARMED:CANARY=PASS:CR3=SAME`.
@@ -82,9 +82,21 @@ would end QEMU with exit 0, rejected).
   on cycles 2 and 3 before the restore was added). The kernel restores it
   when it was set before sleep, as Linux does.
 
+The three bullets above are measurements. The explanations rely on these
+version-bound sources (read 19 November 2026): edk2 `edk2-stable202402`
+`S3Resume.c` (`S3ResumeBootOs`: extended path whenever
+`XFirmwareWakingVector != 0`, `AsmDisablePaging64` without 64-bit wake) and
+`BootScriptExecutorDxe/X64/S3Asm.nasm` (`AsmTransferControl`); ACPICA
+`R2025_04_04` `hwxfsleep.c` (`AcpiHwSetFirmwareWakingVector`); Linux `v6.12`
+`drivers/acpi/sleep.c` (`acpi_suspend_enter`, "bug compatibility" `SCI_EN`
+write). Full URLs are listed in ADR-H05-S3-WAKE-20261119.
+
 ## Commands
 
+The S3 harness refuses any machine type other than `pc-q35-8.2`.
+
 ```bash
+export NOS_QEMU_MACHINE=pc-q35-8.2
 cargo +1.100.0 test --locked --manifest-path drivers/acpi-power/Cargo.toml
 cargo +1.100.0 clippy --locked --manifest-path drivers/acpi-power/Cargo.toml --all-targets -- -D warnings
 cargo +1.100.0 fmt --all -- --check
@@ -98,10 +110,19 @@ NOS_BUILD_DIR=build/sleep-stale-token python3 -B tools/build.py --kernel-feature
 NOS_BUILD_DIR=build/sleep-stale-token python3 -B tools/run_sleep.py --case stale-token
 ```
 
-Regression on the same tree: `native-acpi-s5` (`run_power.py --repeat 5`),
-`test-acpi-s5-corrupt-dsdt` (`--repeat 2`), the standard smoke and the
-`milestone-m2` and `milestone-m3` smokes (the shared firmware reader was
-refactored). CI runs the S3 cases in `.github/workflows/native-power.yml`.
+Regression, recorded per source: on fingerprint `ce3e3145…` (the tree of
+`c54b9e25`, which carries the GS-loader refactor) `native-acpi-s5`
+(`run_power.py --repeat 5`), `test-acpi-s5-corrupt-dsdt` (`--repeat 2`), the
+standard smoke and the `milestone-m2` and `milestone-m3` smokes passed;
+`run_smp.py --profile native-smp` passed its one-, two- and four-CPU cases;
+the eight-CPU case failed only on the host-load-sensitive calibration band
+(`SMP:TIMER:RATIO:75704`, band 50000-75000) while four parallel agent builds
+shared the host's four CPUs. The hosted `native-smp` job is the
+authoritative rerun. An earlier round on the pre-fmt tree of
+`9c707c8` also passed. Commit `887c446d8b53` (QMP event drain, machine pin,
+`NO_TRANSITION` fail-closed) changes only the S3 profile's kernel path and
+the S3 harness; the three S3 cases above were rerun on it, and broader
+profiles are left to hosted CI (`native-power.yml`, `ci.yml`).
 
 ## Review
 
