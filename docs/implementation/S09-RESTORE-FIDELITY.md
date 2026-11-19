@@ -266,9 +266,18 @@ each with its own tests and without changing v1 behaviour:
 7. **L2 (separate decision):** table v3 provenance fields, INSTALL operation,
    STAT extension, recovery and crash tests.
 
-**Owner decisions required:**
+**Owner decisions (R1 decided; R2–R4 open):**
 
-- **R1:** native recovery target level: L1 only, or L1 then L2.
+- **R1 — decided by the project owner, 19 November 2026:** L1 first,
+  followed by a separately reviewed L2 implementation; L3 is not pursued.
+  L1 is completed and independently verified before L2 begins. L2 is the
+  intended long-term native recovery target: original source revisions and
+  logical timestamps are kept as immutable provenance, separate from the
+  destination-assigned live revisions and clocks. Before implementation or
+  activation, L2 requires explicit review of table v3, the crash-recovery
+  invariants, compatibility, security boundaries and negative tests.
+  Historical values are never fabricated, v1 restore behaviour is unchanged,
+  and the POSIX ustar/pax export is not native recovery.
 - **R2:** include tombstones (deleted, unpurged content) in native archives.
   Recommendation: off by default, because a backup would otherwise retain
   content the user deleted after PURGE on the source.
