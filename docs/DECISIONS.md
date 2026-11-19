@@ -5,6 +5,56 @@ This document distinguishes the decisions and authority of the project owner
 from those of the executing roles. Source quotations retain their original
 wording and speaker.
 
+## ADR-S09-RESTORE-FIDELITY-20261119 — L1 history replay first, then a separately reviewed L2 provenance level
+
+Status: accepted by the project owner on 19 November 2026 (decisions R1–R4 and source identity of
+[S09-RESTORE-FIDELITY.md](implementation/S09-RESTORE-FIDELITY.md)).
+
+**Decision:**
+
+- **L1 first:** native restore replays the retained versions, names and
+  metadata of each object into a destination domain; source revisions and
+  logical timestamps are kept in the archive and in the restore report only.
+- **R2 (decided 19 November 2026):** tombstone content (deleted, unpurged) is
+  excluded by default. Content-free accounting records are included only where
+  they are demonstrably required for a consistency check; they never restore
+  deleted content.
+  History that may predate a delete is not restored either (owner answer of
+  19 November 2026: "Nee, weigeren"): L1 replays only the newest versions of
+  an object whose revisions are consecutive, because DELETE, like META and
+  RENAME, raises the object revision without adding a version.
+- **R3 (decided 19 November 2026):** native restore runs only into a
+  demonstrably never-used domain. Existing domains are never overwritten or
+  merged automatically; merging into a used domain remains the v1 restore.
+- **R4 (decided 19 November 2026):** the destination range is sized from the
+  derived maximum v2 archive of 494 416 bytes, with separate, separately
+  verified capacity for destination metadata.
+- **Source identity (decided 19 November 2026):** archive v2 records no source
+  volume or domain identifier, also not behind a feature flag. Source
+  revisions and logical timestamps are kept as separate historical values; no
+  stable domain identity is invented.
+  Consequences: header bytes 40..56 of archive v2 stay reserved and zero and
+  a reader refuses any other value; the L2 `origin_*` fields carry no source
+  identity. Revisited only by a new owner decision.
+- **L2 as the long-term target, separately reviewed:** original source
+  revisions and logical timestamps are kept as immutable provenance, separate
+  from the destination-assigned live revisions and clocks. L2 begins only
+  after L1 is completed and independently verified.
+- **L3 rejected:** installing source values as live destination revisions and
+  clocks would change the crash-recovery invariants (per-domain clock sum
+  equal to the generation, `g ± 1` adjacency of the A/B table copies) and the
+  cross-domain stamp property tested by
+  `stamps_do_not_reveal_other_domain_commits`.
+
+**L2 review criteria (before implementation or activation):** table v3 format
+and invariants; crash-recovery tests; compatibility with v1 and v2 archives
+and v2 tables; the security boundary of the new wire reads; negative tests.
+
+**Consequences:** the v1 restore remains the only implemented recovery path
+and is unchanged. The POSIX ustar/pax export stays a lossy interchange format,
+not native recovery. No historical revision or timestamp is fabricated. S09
+stays open; this decision changes no score.
+
 ## ADR-S09-DUALDISK-20261119 — Test-only second virtio-blk device for the S09 archive fixture
 
 **Status:** approved by the project owner on 19 November 2026 (verbatim: "Yes,
