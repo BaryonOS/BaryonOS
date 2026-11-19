@@ -2,12 +2,19 @@
 #![forbid(unsafe_code)]
 //! A reusable userspace network service. Trusted startup binds two ingress
 //! peers to fixed destination ranges; packet fields and app bodies grant nothing.
+use nieuw_os_net_config::{
+    dhcp_client::Lease,
+    service::{
+        DriveError, DriveOutcome, Error as DhcpError, ProbeTiming, RandomSource, Service as Dhcp,
+    },
+};
 use nieuw_os_net_protocol::{
     arp::{Interface, NeighborSlot},
     build_udp_ipv4, parse, UdpIpv4Tx,
 };
 use nieuw_os_net_stack::{
-    Client, Config, Error as StackError, SocketStorage, Stack, State, Transmission, FRAME_BYTES,
+    Client, Config, Error as StackError, LinkConfig, SocketStorage, Stack, State, Transmission,
+    FRAME_BYTES,
 };
 pub use nieuw_os_network_protocol as wire;
 use wire::{ConnectionState, Operation, Packet, Status, DATA};
@@ -27,6 +34,14 @@ pub struct Configuration {
     pub link: Config,
     pub destinations: [Destination; CLIENTS],
 }
+/// Trusted startup authority; DHCP supplies configuration, never destination rights.
+#[derive(Clone, Copy)]
+pub struct DhcpConfiguration {
+    pub epoch: u64,
+    pub pids: [u64; CLIENTS],
+    pub link: LinkConfig,
+    pub destinations: [Destination; CLIENTS],
+}
 pub struct Buffers<'a> {
     pub storage: &'a mut [SocketStorage<'a>],
     pub rx_frame: &'a mut [u8; FRAME_BYTES],
@@ -40,6 +55,12 @@ pub enum Fault {
     Clock,
     Transport,
     Exhausted,
+    Dhcp(DhcpError),
+}
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub enum DhcpDriveError<E> {
+    Service(Fault),
+    Coordinator(DriveError<E>),
 }
 #[derive(Clone, Copy, Default, Debug)]
 pub struct Counters {
@@ -70,19 +91,74 @@ struct Owner {
     revoked: bool,
     udp: [u8; DATA],
     udp_len: Option<usize>,
-    neighbor: NeighborSlot,
+    neighbor: Option<NeighborSlot>,
+}
+// Both modes keep bounded storage inline: this no_std service has no allocator.
+#[allow(clippy::large_enum_variant)]
+enum Transport<'a> {
+    Static(Stack<'a>),
+    Dhcp(Dhcp<'a>),
+}
+impl<'a> core::ops::Deref for Transport<'a> {
+    type Target = Stack<'a>;
+    fn deref(&self) -> &Self::Target {
+        match self {
+            Self::Static(stack) => stack,
+            Self::Dhcp(service) => service.transport_snapshot(),
+        }
+    }
+}
+impl<'a> Transport<'a> {
+    fn get_mut(&mut self, now: u64) -> Result<&mut Stack<'a>, Fault> {
+        match self {
+            Self::Static(stack) => Ok(stack),
+            Self::Dhcp(service) => service.transport_mut(now).map_err(Fault::Dhcp),
+        }
+    }
 }
 pub struct Service<'a> {
     config: Configuration,
-    stack: Stack<'a>,
+    stack: Transport<'a>,
     owners: [Owner; CLIENTS],
     last_tick: u64,
     identification: u16,
     counters: Counters,
     needs_poll: bool,
+    lease: Option<Lease>,
 }
 impl<'a> Service<'a> {
     pub fn new(config: Configuration, buffers: Buffers<'a>, now: u64) -> Result<Self, Fault> {
+        Self::new_inner(config, buffers, now, None)
+    }
+    pub fn new_dhcp(
+        config: DhcpConfiguration,
+        buffers: Buffers<'a>,
+        timing: ProbeTiming,
+        now: u64,
+    ) -> Result<Self, Fault> {
+        Self::new_inner(
+            Configuration {
+                epoch: config.epoch,
+                pids: config.pids,
+                destinations: config.destinations,
+                link: Config {
+                    mac: config.link.mac,
+                    random_seed: config.link.random_seed,
+                    ipv4: [0; 4],
+                    prefix_len: 0,
+                },
+            },
+            buffers,
+            now,
+            Some(timing),
+        )
+    }
+    fn new_inner(
+        config: Configuration,
+        buffers: Buffers<'a>,
+        now: u64,
+        dhcp: Option<ProbeTiming>,
+    ) -> Result<Self, Fault> {
         if config.epoch == 0
             || config.pids.contains(&0)
             || config.pids[0] == config.pids[1]
@@ -90,7 +166,9 @@ impl<'a> Service<'a> {
         {
             return Err(Fault::Configuration);
         }
-        let mask = if config.link.prefix_len == 0 || config.link.prefix_len > 32 {
+        let mask = if dhcp.is_some() {
+            0
+        } else if config.link.prefix_len == 0 || config.link.prefix_len > 32 {
             return Err(Fault::Configuration);
         } else {
             u32::MAX << (32 - config.link.prefix_len)
@@ -99,10 +177,14 @@ impl<'a> Service<'a> {
             if d.ipv4[0] == 0
                 || d.ipv4[0] == 127
                 || d.ipv4[0] >= 224
-                || d.ipv4 == config.link.ipv4
-                || (config.link.prefix_len < 31 && u32::from_be_bytes(d.ipv4) & !mask == 0)
-                || (config.link.prefix_len < 31 && u32::from_be_bytes(d.ipv4) & !mask == !mask)
-                || u32::from_be_bytes(d.ipv4) & mask != u32::from_be_bytes(config.link.ipv4) & mask
+                || (dhcp.is_none()
+                    && (d.ipv4 == config.link.ipv4
+                        || (config.link.prefix_len < 31
+                            && u32::from_be_bytes(d.ipv4) & !mask == 0)
+                        || (config.link.prefix_len < 31
+                            && u32::from_be_bytes(d.ipv4) & !mask == !mask)
+                        || u32::from_be_bytes(d.ipv4) & mask
+                            != u32::from_be_bytes(config.link.ipv4) & mask))
                 || d.tcp_first == 0
                 || d.tcp_count == 0
                 || d.tcp_count > 8
@@ -112,13 +194,26 @@ impl<'a> Service<'a> {
                 return Err(Fault::Configuration);
             }
         }
-        let mut stack = Stack::new(
-            config.link,
-            buffers.storage,
-            buffers.rx_frame,
-            buffers.tx_frame,
-            now,
-        )
+        let mut stack = if dhcp.is_some() {
+            Stack::new_unconfigured(
+                LinkConfig {
+                    mac: config.link.mac,
+                    random_seed: config.link.random_seed,
+                },
+                buffers.storage,
+                buffers.rx_frame,
+                buffers.tx_frame,
+                now,
+            )
+        } else {
+            Stack::new(
+                config.link,
+                buffers.storage,
+                buffers.rx_frame,
+                buffers.tx_frame,
+                now,
+            )
+        }
         .map_err(|_| Fault::Configuration)?;
         let [ra, rb] = buffers.rx_sockets;
         let [ta, tb] = buffers.tx_sockets;
@@ -145,25 +240,108 @@ impl<'a> Service<'a> {
                 revoked: false,
                 udp: [0; DATA],
                 udp_len: None,
-                neighbor: NeighborSlot::new(local).map_err(|_| Fault::Configuration)?,
+                neighbor: if dhcp.is_some() {
+                    None
+                } else {
+                    Some(NeighborSlot::new(local).map_err(|_| Fault::Configuration)?)
+                },
             })
         };
         Ok(Self {
             config,
-            stack,
+            stack: match dhcp {
+                Some(timing) => {
+                    Transport::Dhcp(Dhcp::new(stack, timing, now).map_err(Fault::Dhcp)?)
+                }
+                None => Transport::Static(stack),
+            },
             owners: [make(clients[0], 0)?, make(clients[1], 1)?],
             last_tick: now,
             identification: 0,
             counters: Counters::default(),
             needs_poll: false,
+            lease: None,
         })
     }
-    fn time(&self, now: u64) -> Result<(), Fault> {
+    fn time(&mut self, now: u64) -> Result<(), Fault> {
+        if let Transport::Dhcp(service) = &mut self.stack {
+            let result = service.configuration(now);
+            self.sync_configuration(result.as_ref().ok().copied().flatten())?;
+            result.map_err(Fault::Dhcp)?;
+        }
         if now < self.last_tick || now > nieuw_os_net_stack::MAX_MONOTONIC_TICKS {
             Err(Fault::Clock)
         } else {
+            if matches!(self.stack, Transport::Dhcp(_)) {
+                self.last_tick = now;
+            }
             Ok(())
         }
+    }
+    fn sync_configuration(&mut self, lease: Option<Lease>) -> Result<(), Fault> {
+        let changed = self
+            .lease
+            .map(|l| (l.address, l.prefix_len, l.routers().first().copied()))
+            != lease.map(|l| (l.address, l.prefix_len, l.routers().first().copied()));
+        if changed {
+            for owner in &mut self.owners {
+                owner.active = false;
+                owner.token = 0;
+                owner.closing = false;
+                owner.timed_out = false;
+                owner.udp.fill(0);
+                owner.udp_len = None;
+                owner.neighbor = lease
+                    .map(|l| {
+                        NeighborSlot::new(Interface {
+                            mac: self.config.link.mac,
+                            ipv4: l.address,
+                        })
+                    })
+                    .transpose()
+                    .map_err(|_| Fault::Configuration)?;
+            }
+        }
+        self.config.link.ipv4 = lease.map_or([0; 4], |l| l.address);
+        self.config.link.prefix_len = lease.map_or(0, |l| l.prefix_len);
+        self.lease = lease;
+        Ok(())
+    }
+    pub fn dhcp_configuration(&mut self, now: u64) -> Result<Option<Lease>, Fault> {
+        self.time(now)?;
+        Ok(self.lease)
+    }
+    pub fn link_up(&mut self, now: u64) -> Result<(), Fault> {
+        self.time(now)?;
+        let Transport::Dhcp(service) = &mut self.stack else {
+            return Err(Fault::Configuration);
+        };
+        service.automatic_link_up(now).map_err(Fault::Dhcp)?;
+        self.time(now)
+    }
+    pub fn link_down(&mut self, now: u64) -> Result<(), Fault> {
+        self.time(now)?;
+        let Transport::Dhcp(service) = &mut self.stack else {
+            return Err(Fault::Configuration);
+        };
+        let result = service.link_down(now);
+        self.time(now)?;
+        result.map_err(Fault::Dhcp)
+    }
+    /// One bounded automatic coordinator step, with caller-provided entropy.
+    /// Feed ingress and matching real completions first, then drive and poll.
+    pub fn drive_dhcp<R: RandomSource>(
+        &mut self,
+        now: u64,
+        random: &mut R,
+    ) -> Result<DriveOutcome, DhcpDriveError<R::Error>> {
+        self.time(now).map_err(DhcpDriveError::Service)?;
+        let Transport::Dhcp(service) = &mut self.stack else {
+            return Err(DhcpDriveError::Service(Fault::Configuration));
+        };
+        let result = service.drive(now, random);
+        self.time(now).map_err(DhcpDriveError::Service)?;
+        result.map_err(DhcpDriveError::Coordinator)
     }
     pub fn counters(&self) -> Counters {
         self.counters
@@ -174,17 +352,67 @@ impl<'a> Service<'a> {
     pub fn can_receive_frame(&self) -> bool {
         self.stack.can_receive_frame()
     }
+    /// Legacy static-mode snapshot; DHCP requires the timestamped API.
     pub fn transmission(&self) -> Option<Transmission<'_>> {
-        self.stack.transmission()
+        match &self.stack {
+            Transport::Static(stack) => stack.transmission(),
+            Transport::Dhcp(_) => None,
+        }
     }
+    /// Legacy static-mode completion; DHCP requires the timestamped API.
     pub fn complete_transmission(&mut self, id: u64) -> Result<(), Fault> {
-        self.stack
-            .complete_transmission(id)
-            .map_err(|_| Fault::Transport)
+        if matches!(self.stack, Transport::Dhcp(_)) {
+            return Err(Fault::Configuration);
+        }
+        self.complete_transmission_at(id, self.last_tick)
+    }
+    pub fn complete_transmission_at(&mut self, id: u64, now: u64) -> Result<(), Fault> {
+        self.time(now)?;
+        let result = match &mut self.stack {
+            Transport::Static(stack) => stack
+                .complete_transmission(id)
+                .map_err(|_| Fault::Transport),
+            Transport::Dhcp(service) => service.complete_transmission(id, now).map_err(Fault::Dhcp),
+        };
+        self.time(now)?;
+        result
+    }
+    pub fn transmission_at(&mut self, now: u64) -> Result<Option<Transmission<'_>>, Fault> {
+        self.time(now)?;
+        Ok(self.stack.transmission())
+    }
+    /// Pending frame withdrawn by lease expiry or link-down while still queued.
+    pub fn withheld_transmission_at(&mut self, now: u64) -> Result<Option<u64>, Fault> {
+        self.time(now)?;
+        let result = match &mut self.stack {
+            Transport::Static(stack) => Ok(stack.withheld_transmission()),
+            Transport::Dhcp(service) => service.withheld_transmission(now).map_err(Fault::Dhcp),
+        };
+        self.time(now)?;
+        result
+    }
+    /// Adapter attests the withheld frame was never submitted to the broker.
+    /// A submitted frame keeps its slot until `complete_transmission_at`.
+    pub fn discard_withheld_transmission_at(&mut self, id: u64, now: u64) -> Result<(), Fault> {
+        self.time(now)?;
+        let result = match &mut self.stack {
+            Transport::Static(stack) => stack
+                .discard_withheld_transmission(id)
+                .map_err(|_| Fault::Transport),
+            Transport::Dhcp(service) => service
+                .discard_withheld_transmission(id, now)
+                .map_err(Fault::Dhcp),
+        };
+        self.time(now)?;
+        result
     }
     pub fn poll(&mut self, now: u64) -> Result<(), Fault> {
         self.time(now)?;
-        self.stack.poll(now).map_err(|_| Fault::Clock)?;
+        match &mut self.stack {
+            Transport::Static(stack) => stack.poll(now).map_err(|_| Fault::Clock)?,
+            Transport::Dhcp(service) => service.poll(now).map_err(Fault::Dhcp)?,
+        }
+        self.time(now)?;
         self.needs_poll = false;
         self.last_tick = now;
         // The OpenTcp deadline bounds connection establishment only. After the
@@ -202,6 +430,7 @@ impl<'a> Service<'a> {
                 )
             {
                 self.stack
+                    .get_mut(now)?
                     .cancel(owner.client)
                     .map_err(|_| Fault::Transport)?;
                 owner.timed_out = true;
@@ -213,9 +442,36 @@ impl<'a> Service<'a> {
     }
     pub fn ingress(&mut self, frame: &[u8], now: u64) -> Result<(), Fault> {
         self.time(now)?;
+        let dhcp_packet =
+            parse(frame).is_ok_and(|p| p.source_port() == 67 && p.destination_port() == 68);
+        if matches!(self.stack, Transport::Dhcp(_))
+            && (dhcp_packet || frame.get(12..14) == Some(&[8, 6]))
+        {
+            let Transport::Dhcp(service) = &mut self.stack else {
+                unreachable!()
+            };
+            let result = service.receive_frame(frame, now);
+            self.time(now)?;
+            result.map_err(Fault::Dhcp)?;
+            if dhcp_packet {
+                return Ok(());
+            }
+            // The coordinator already offered this ARP frame to the shared Stack.
+            for owner in &mut self.owners {
+                if let Some(neighbor) = &mut owner.neighbor {
+                    let _ = neighbor.accept_reply(frame, now, 2000);
+                }
+            }
+            return Ok(());
+        }
+        if matches!(self.stack, Transport::Dhcp(_)) && self.lease.is_none() {
+            return Ok(());
+        }
         if frame.len() >= 14 && frame[12..14] == [8, 6] {
             for owner in &mut self.owners {
-                let _ = owner.neighbor.accept_reply(frame, now, 2000);
+                if let Some(neighbor) = &mut owner.neighbor {
+                    let _ = neighbor.accept_reply(frame, now, 2000);
+                }
             }
         }
         if frame.len() > 23 && frame[12..14] == [8, 0] && frame[23] == 17 {
@@ -266,7 +522,10 @@ impl<'a> Service<'a> {
             self.counters.malformed_frames = self.counters.malformed_frames.saturating_add(1);
             return Ok(());
         }
-        self.stack.push_frame(frame).map_err(|_| Fault::Transport)
+        self.stack
+            .get_mut(now)?
+            .push_frame(frame)
+            .map_err(|_| Fault::Transport)
     }
     pub fn retire_all(&mut self, now: u64) -> Result<(), Fault> {
         self.time(now)?;
@@ -276,8 +535,11 @@ impl<'a> Service<'a> {
             owner.active = false;
             owner.udp.fill(0);
             owner.udp_len = None;
-            owner.neighbor.cancel();
+            if let Some(neighbor) = &mut owner.neighbor {
+                neighbor.cancel();
+            }
             self.stack
+                .get_mut(now)?
                 .close(owner.client)
                 .map_err(|_| Fault::Transport)?;
         }
@@ -298,8 +560,11 @@ impl<'a> Service<'a> {
         owner.token = 0;
         owner.udp.fill(0);
         owner.udp_len = None;
-        owner.neighbor.cancel();
+        if let Some(neighbor) = &mut owner.neighbor {
+            neighbor.cancel();
+        }
         self.stack
+            .get_mut(now)?
             .cancel(owner.client)
             .map_err(|_| Fault::Transport)?;
         self.needs_poll = true;
@@ -319,8 +584,11 @@ impl<'a> Service<'a> {
         owner.closing = true;
         owner.udp.fill(0);
         owner.udp_len = None;
-        owner.neighbor.cancel();
+        if let Some(neighbor) = &mut owner.neighbor {
+            neighbor.cancel();
+        }
         self.stack
+            .get_mut(now)?
             .cancel(owner.client)
             .map_err(|_| Fault::Transport)?;
         self.needs_poll = true;
@@ -342,9 +610,7 @@ impl<'a> Service<'a> {
         if !self.owners[slot].revoked {
             return Ok(false);
         }
-        self.stack
-            .complete_transmission(id)
-            .map_err(|_| Fault::Transport)?;
+        self.complete_transmission_at(id, self.last_tick)?;
         self.counters.revoked_frames_discarded =
             self.counters.revoked_frames_discarded.saturating_add(1);
         self.needs_poll = true;
@@ -453,6 +719,27 @@ impl<'a> Service<'a> {
             self.counters.rejected = self.counters.rejected.saturating_add(1);
             return Ok(refusal(h, Status::Stale));
         }
+        if matches!(self.stack, Transport::Dhcp(_))
+            && self.lease.is_none()
+            && matches!(
+                h.operation,
+                Operation::OpenTcp | Operation::SendUdp | Operation::ReceiveUdp
+            )
+        {
+            return Ok(refusal(h, Status::Again));
+        }
+        if self.lease.is_some() && matches!(h.operation, Operation::OpenTcp | Operation::SendUdp) {
+            let mask = u32::MAX << (32 - self.config.link.prefix_len);
+            if d.ipv4 == self.config.link.ipv4
+                || (self.config.link.prefix_len < 31
+                    && u32::from_be_bytes(d.ipv4) & mask
+                        == u32::from_be_bytes(self.config.link.ipv4) & mask
+                    && (u32::from_be_bytes(d.ipv4) & !mask == 0
+                        || u32::from_be_bytes(d.ipv4) & !mask == !mask))
+            {
+                return Ok(refusal(h, Status::Access));
+            }
+        }
         let mut data = [0; DATA];
         let (status, argument) = match h.operation {
             Operation::OpenTcp => {
@@ -478,7 +765,7 @@ impl<'a> Service<'a> {
                     return Ok(refusal(h, Status::Exhausted));
                 };
                 let deadline = now.checked_add(u64::from(h.argument)).ok_or(Fault::Clock)?;
-                match self.stack.connect(
+                match self.stack.get_mut(now)?.connect(
                     self.owners[slot].client,
                     h.address,
                     h.port,
@@ -506,7 +793,11 @@ impl<'a> Service<'a> {
                 if self.owners[slot].closing {
                     (Status::Closed, 0)
                 } else {
-                    match self.stack.send(self.owners[slot].client, request.data()) {
+                    match self
+                        .stack
+                        .get_mut(now)?
+                        .send(self.owners[slot].client, request.data())
+                    {
                         Ok(n) => {
                             self.counters.sent = self.counters.sent.saturating_add(n as u64);
                             (if n == 0 { Status::Again } else { Status::Ok }, n as u32)
@@ -524,7 +815,11 @@ impl<'a> Service<'a> {
                 }
             }
             Operation::ReceiveTcp => {
-                match self.stack.receive(self.owners[slot].client, &mut data) {
+                match self
+                    .stack
+                    .get_mut(now)?
+                    .receive(self.owners[slot].client, &mut data)
+                {
                     Ok(n) => {
                         self.counters.received = self.counters.received.saturating_add(n as u64);
                         (if n == 0 { Status::Again } else { Status::Ok }, n as u32)
@@ -546,6 +841,7 @@ impl<'a> Service<'a> {
             }
             Operation::CloseTcp => {
                 self.stack
+                    .get_mut(now)?
                     .close(self.owners[slot].client)
                     .map_err(|_| Fault::Transport)?;
                 self.owners[slot].closing = true;
@@ -555,7 +851,22 @@ impl<'a> Service<'a> {
             }
             Operation::State => (Status::Ok, self.state(slot)? as u32),
             Operation::SendUdp => {
-                if let Some(mac) = self.owners[slot].neighbor.lookup(d.ipv4, now) {
+                let mask = u32::MAX << (32 - self.config.link.prefix_len);
+                let next_hop = if u32::from_be_bytes(d.ipv4) & mask
+                    == u32::from_be_bytes(self.config.link.ipv4) & mask
+                {
+                    d.ipv4
+                } else if let Some(gateway) = self.lease.and_then(|l| l.routers().first().copied())
+                {
+                    gateway
+                } else {
+                    return Ok(refusal(h, Status::Again));
+                };
+                if let Some(mac) = self.owners[slot]
+                    .neighbor
+                    .as_mut()
+                    .and_then(|n| n.lookup(next_hop, now))
+                {
                     let mut frame = [0; FRAME_BYTES];
                     let id = self.identification;
                     let n = build_udp_ipv4(
@@ -574,7 +885,11 @@ impl<'a> Service<'a> {
                         &mut frame,
                     )
                     .map_err(|_| Fault::Configuration)?;
-                    match self.stack.queue_control_frame(&frame[..n], now) {
+                    match self
+                        .stack
+                        .get_mut(now)?
+                        .queue_control_frame(&frame[..n], now)
+                    {
                         Ok(_) => {
                             self.identification = self.identification.wrapping_add(1);
                             self.counters.udp_sent = self.counters.udp_sent.saturating_add(1);
@@ -590,14 +905,26 @@ impl<'a> Service<'a> {
                             mac: self.config.link.mac,
                             ipv4: self.config.link.ipv4,
                         },
-                        d.ipv4,
+                        next_hop,
                         &mut frame,
                     )
                     .map_err(|_| Fault::Configuration)?;
-                    if self.owners[slot].neighbor.begin(d.ipv4, now, 100).is_ok() {
-                        match self.stack.queue_control_frame(&frame[..n], now) {
+                    if self.owners[slot]
+                        .neighbor
+                        .as_mut()
+                        .is_some_and(|n| n.begin(next_hop, now, 100).is_ok())
+                    {
+                        match self
+                            .stack
+                            .get_mut(now)?
+                            .queue_control_frame(&frame[..n], now)
+                        {
                             Ok(_) => {}
-                            Err(StackError::Busy) => self.owners[slot].neighbor.cancel(),
+                            Err(StackError::Busy) => {
+                                if let Some(neighbor) = &mut self.owners[slot].neighbor {
+                                    neighbor.cancel();
+                                }
+                            }
                             Err(_) => return Err(Fault::Transport),
                         }
                     }
@@ -620,8 +947,11 @@ impl<'a> Service<'a> {
                 owner.active = false;
                 owner.udp.fill(0);
                 owner.udp_len = None;
-                owner.neighbor.cancel();
+                if let Some(neighbor) = &mut owner.neighbor {
+                    neighbor.cancel();
+                }
                 self.stack
+                    .get_mut(now)?
                     .close(owner.client)
                     .map_err(|_| Fault::Transport)?;
                 self.needs_poll = true;

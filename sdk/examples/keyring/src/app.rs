@@ -1,12 +1,11 @@
 #![no_std]
 #![no_main]
 #![deny(unsafe_op_in_unsafe_fn)]
-//! Native B01 acceptance app. It holds SEND capabilities to both domains of
-//! two Key Service instances and one reply endpoint, nothing else. It never
-//! sees a key byte: it drives generate/seal/unseal/revoke, probes the
-//! negative paths, and verifies that ordinary app authority cannot export or
-//! restore recovery material. Every observation is an evidence word the
-//! kernel checks.
+//! Native B01 acceptance app. The ordinary role holds domain SEND and reply
+//! capabilities plus a normal-case test-only admin SEND alias. A separate
+//! manifest-selected management instance holds only admin SEND and reply
+//! capabilities. The ordinary app never receives recovery material or key
+//! bytes. Both roles report evidence words checked by the kernel.
 
 #[cfg(not(all(target_arch = "x86_64", target_os = "none")))]
 compile_error!("keyring-app is only for the Nieuw OS x86_64-unknown-none target");
@@ -78,8 +77,9 @@ impl Client {
         body: &[u8],
     ) -> (Status, [u8; wire::SIZE], usize) {
         self.request += 1;
-        let request = wire::request(op, index, self.request, body).unwrap_or_else(|| fail(10));
+        let mut request = wire::request(op, index, self.request, body).unwrap_or_else(|| fail(10));
         let message = Outgoing::new(wire::TAG, &request).unwrap_or_else(|_| fail(11));
+        keyring_core::random::clear_bytes(&mut request);
         let mut sent = false;
         for _ in 0..LIMIT {
             tick();
@@ -306,6 +306,113 @@ fn run_normal(client: &mut Client, a0: &Target, a1: &Target, b0: &Target) {
         fail(49);
     }
     bump(EV_RECOVERY_RESTORE_DENIED);
+    if support::word(112) == CASE_NORMAL {
+        let alias = SendEndpoint::from_handle(handle(support::word(104)));
+        let request =
+            wire::request(wire::RESTORE, 0, u64::MAX, &recovery).unwrap_or_else(|| fail(50));
+        let message = Outgoing::new(wire::TAG, &request).unwrap_or_else(|_| fail(50));
+        let mut sent = false;
+        for _ in 0..LIMIT {
+            match native::send(alias, &message) {
+                Ok(()) => {
+                    sent = true;
+                    break;
+                }
+                Err(error) if error.is_again() => {
+                    let _ = native::yield_now();
+                }
+                Err(_) => fail(50),
+            }
+        }
+        if !sent {
+            fail(50);
+        }
+        support::put(512, 1);
+        wait_for(520);
+        // A rejected alias request must never produce an ordinary-app reply.
+        match native::receive(client.reply) {
+            Err(error) if error.is_again() => {}
+            Ok(reply) => {
+                let _ = native::close_received_caps(&reply);
+                fail(51);
+            }
+            Err(_) => fail(51),
+        }
+        let (plain, n) = client
+            .unseal(b0, k0, &sealed[..length])
+            .unwrap_or_else(|_| fail(52));
+        if n != plaintext.len() || plain[..n] != plaintext[..] {
+            fail(53);
+        }
+        bump(528);
+        client.expect_unseal_denied(
+            b0,
+            k1,
+            &sealed[..length],
+            Status::Revoked,
+            EV_REVOKED_DENIED,
+            54,
+        );
+    }
+}
+
+fn wait_for(offset: u64) {
+    for _ in 0..LIMIT {
+        tick();
+        if support::word(offset) == 1 {
+            return;
+        }
+        let _ = native::yield_now();
+    }
+    fail(70)
+}
+
+/// The same ELF has a separate manifest-selected management role. Recovery
+/// secrets remain inside this process and are cleared before its normal exit.
+fn run_management() -> ! {
+    wait_for(512);
+    let mut client = Client {
+        reply: ReceiveEndpoint::from_handle(handle(support::word(56))),
+        request: 0,
+    };
+    let a = Target {
+        send: SendEndpoint::from_handle(handle(support::word(64))),
+        service: support::word(160),
+    };
+    let b = Target {
+        send: SendEndpoint::from_handle(handle(support::word(80))),
+        service: support::word(168),
+    };
+    let (status, mut exported, n) = client.call(&a, wire::EXPORT_RECOVERY, 0, &[]);
+    if status != Status::Ok || n != SECRET_BYTES + RECOVERY_BLOB {
+        fail(71);
+    }
+    bump(400);
+    let mut recovery = [0u8; SECRET_BYTES + RECOVERY_BLOB];
+    recovery.copy_from_slice(&exported[..n]);
+    keyring_core::random::clear_bytes(&mut exported);
+    recovery[0] ^= 1;
+    let (status, mut reply, n) = client.call(&b, wire::RESTORE, 0, &recovery);
+    if status != Status::Auth || n != 0 {
+        fail(72);
+    }
+    keyring_core::random::clear_bytes(&mut reply);
+    bump(416);
+    recovery[0] ^= 1;
+    let (status, mut reply, n) = client.call(&b, wire::RESTORE, 0, &recovery);
+    keyring_core::random::clear_bytes(&mut recovery);
+    if status != Status::Ok || n != 1 || reply[0] != 2 {
+        fail(73);
+    }
+    keyring_core::random::clear_bytes(&mut reply);
+    bump(408);
+    let (status, _, n) = client.call(&b, wire::GENERATE, 0, &[]);
+    if status != Status::Invalid || n != 0 {
+        fail(74);
+    }
+    bump(424);
+    support::put(40, 1);
+    native::exit(0)
 }
 
 fn run_blocked(client: &mut Client, a0: &Target, b0: &Target, expected_reason: u8) {
@@ -335,7 +442,13 @@ fn main() -> ! {
     if native::check_abi().is_err() {
         fail(2);
     }
-    if support::word(0) != 2 || support::word(32) != 1 {
+    if support::word(32) != 1 {
+        fail(3);
+    }
+    if support::word(0) == 3 {
+        run_management();
+    }
+    if support::word(0) != 2 {
         fail(3);
     }
     let case = support::word(112);
