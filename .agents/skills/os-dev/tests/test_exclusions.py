@@ -88,8 +88,9 @@ class ExcludeScript(unittest.TestCase):
             real = Path.write_bytes
 
             def failing(self, data):
-                if self.name == "source-manifest.json":
-                    raise OSError("simulated write failure")
+                if self.name.startswith("source-manifest.json"):
+                    real(self, b"partial")
+                    raise OSError("simulated partial write failure")
                 return real(self, data)
 
             sys.argv = ["x", "--reason", "test", "--record", "none", target["source_id"]]
@@ -119,3 +120,33 @@ class ExcludeScript(unittest.TestCase):
                 mod.main()
             after = self._snapshot(root)
             self.assertEqual(before, after)
+
+    def test_rollback_continues_after_a_failed_restoration(self):
+        import sys
+        with tempfile.TemporaryDirectory() as tmp:
+            root = self._copy(tmp)
+            target = self._target(root)
+            corpus = root / target["local_path"]
+            original = corpus.read_bytes()
+            mod = self._module(root)
+            real = Path.write_bytes
+            calls = {}
+
+            def failing(self, data):
+                calls[self.name] = calls.get(self.name, 0) + 1
+                if self.name.startswith("source-manifest.json"):
+                    raise OSError("simulated write failure")
+                if self.name.startswith("source-index.json") and calls[self.name] > 1:
+                    raise OSError("simulated restore failure")
+                return real(self, data)
+
+            sys.argv = ["x", "--reason", "test", "--record", "none", target["source_id"]]
+            Path.write_bytes = failing
+            try:
+                with self.assertRaisesRegex(OSError, "source-index.json") as ctx:
+                    mod.main()
+            finally:
+                Path.write_bytes = real
+            self.assertIsInstance(ctx.exception.__cause__, OSError)
+            self.assertEqual(corpus.read_bytes(), original)
+            self.assertEqual(list(root.rglob("*.exclude-tmp")), [])

@@ -9,27 +9,48 @@ pages, updates the manifest counts and appends a provenance entry to
 Usage: exclude_sources.py --reason TEXT --record PATH SOURCE_ID [...]
 """
 from __future__ import annotations
-import argparse, hashlib, json, re
+import argparse, hashlib, json, os, re
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 REF = ROOT / "references"
 
 
+def write_atomic(path: Path, data: bytes) -> None:
+    """Replace `path` in one step, so a failed write leaves the old contents."""
+    tmp = path.with_name(path.name + ".exclude-tmp")
+    try:
+        tmp.write_bytes(data)
+        os.replace(tmp, path)
+    finally:
+        tmp.unlink(missing_ok=True)
+
+
 def commit(staged: dict[Path, bytes]) -> None:
-    """Write every staged file or none: restore the originals if any write fails."""
+    """Write every staged file or none: restore the originals if any write fails.
+
+    Each file is replaced atomically, so the file whose write failed keeps its
+    original contents. Rollback attempts every written file even when one
+    restoration fails, and reports the files it could not restore.
+    """
     originals = {p: (p.read_bytes() if p.exists() else None) for p in staged}
     written = []
     try:
         for path, data in staged.items():
-            path.write_bytes(data)
+            write_atomic(path, data)
             written.append(path)
-    except OSError:
+    except OSError as err:
+        unrestored = []
         for path in written:
-            if originals[path] is None:
-                path.unlink(missing_ok=True)
-            else:
-                path.write_bytes(originals[path])
+            try:
+                if originals[path] is None:
+                    path.unlink(missing_ok=True)
+                else:
+                    write_atomic(path, originals[path])
+            except OSError:
+                unrestored.append(str(path))
+        if unrestored:
+            raise OSError(f"write failed and rollback could not restore: {', '.join(unrestored)}") from err
         raise
 
 
