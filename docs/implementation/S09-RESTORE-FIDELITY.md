@@ -130,7 +130,7 @@ decision point.
 
 - **Separate mode.** A new `restore_native` beside the unchanged `restore`.
   The existing v1 restore semantics, report and conflict rule stay as they are.
-- **Destination precondition** (the R3 recommendation; R3 is open, section 4).
+- **Destination precondition** (owner decision R3, section 4).
   Native mode runs only into a domain in which
   every slot and collection has revision 0 (never used). Otherwise it refuses
   before any write, with a distinct status; it does not merge. Merging into a
@@ -191,7 +191,8 @@ decision point.
   archive records the revision of every such slot and collection; with
   tombstones excluded (the R2 default) that needs content-free revision
   records for deleted, purged and tombstoned slots and for deleted
-  collections. Whether v2 carries such records is part of R2; without them
+  collections. Under R2 such records are included only where demonstrably
+  required for this check; without them
   the check is not applicable and is not performed. Any violation: `Corrupt`,
   nothing installed. Values are copied only from validated records, never derived,
   interpolated or defaulted.
@@ -210,15 +211,15 @@ decision point.
   slot holds exactly the replayed content, and META or DELETE then moves it to
   the archived state without touching content; any other metadata difference
   was not produced by this restore and is a conflict.
-  **Ownership control (required for the exception; conditional on R3, still
-  open).** Matching versions prove content, not owner: another writer in the
+  **Ownership control (required for the exception; R3 decided: never-used
+  domain only).** Matching versions prove content, not owner: another writer in the
   same domain could have produced identical versions with default metadata.
   The exception therefore applies only if the domain stays exclusive to the
   native restore from its start until it reports completion, including the
   interval between an interruption and the rerun. One control suffices:
   (a) the native restore holds the only write grant to that domain, which is
-  possible only under the R3 option "never-used domain" with a domain that no
-  other process can write until completion; or (b) a durable per-slot
+  possible under the decided R3 (never-used domain) when no other process can
+  write that domain until completion; or (b) a durable per-slot
   restore-ownership record, written with the first replayed version and
   verified before META or DELETE, which needs a table change. Neither control
   exists on `main` and neither is specified here: how an exclusive write grant
@@ -282,7 +283,8 @@ specified in `docs/implementation/S09-ARCHIVE-V2.md` (sections 2, 4 and 7),
 which is in open PR #404 (head `a468f589`, not merged); where it differs from
 the indicative list below, that specification applies. It does not settle
 the R2 decision: it defines flag gating for tombstones and content-free
-records, while their inclusion by default remains part of R2. L2 needs no
+records; R2 (decided) excludes tombstone content by default and admits
+content-free records only where demonstrably required for a consistency check. L2 needs no
 archive change: v2 already records the source values that L2 stores as
 provenance (object revision, `created`, `modified`, per-version revision and
 collection revision; `S09-ARCHIVE-V2.md` section 7). The representation of
@@ -397,7 +399,7 @@ each with its own tests and without changing v1 behaviour:
    tests. Content: table v3 provenance fields, INSTALL operation, STAT and
    COLLECTION_STAT extensions (3.3), recovery and crash tests.
 
-**Owner decisions (R1 decided; R2–R4 open):**
+**Owner decisions (all decided on 19 November 2026):**
 
 - **R1 — decided by the project owner, 19 November 2026:** L1 first,
   followed by a separately reviewed L2 implementation; L3 is not pursued.
@@ -409,13 +411,18 @@ each with its own tests and without changing v1 behaviour:
   invariants, compatibility, security boundaries and negative tests.
   Historical values are never fabricated, v1 restore behaviour is unchanged,
   and the POSIX ustar/pax export is not native recovery.
-- **R2:** include tombstones (deleted, unpurged content) in native archives.
-  Recommendation: off by default, because a backup would otherwise retain
-  content the user deleted after PURGE on the source.
-- **R3:** native mode only into a never-used domain (recommended) or also
-  into conflict-free slots of a used domain.
-- **R4:** v2 range sizing for the destination service (D1) based on the
-  derived 494 416-byte bound.
+- **R2 — decided 19 November 2026:** tombstone content is excluded by
+  default; content-free accounting records only where demonstrably required
+  for a consistency check, never restoring deleted content.
+- **R3 — decided 19 November 2026:** native restore only into a demonstrably
+  never-used domain; existing domains are never overwritten or merged
+  automatically.
+- **R4 — decided 19 November 2026:** destination range sized from the
+  494 416-byte maximum v2 archive, with separate, separately verified
+  capacity for destination metadata.
+- **Source identity — decided 19 November 2026:** none is recorded in
+  archive v2, also not behind a feature flag; no stable domain identity is
+  invented.
 
 **Risks:** archive size grows up to about threefold for objects with history
 (bounded as above); L1 replay can hit the destination quota; L2 is a table
@@ -490,7 +497,7 @@ coordinated workflow pin update described in section 4.
 - The L1 resume exception (META or DELETE on a version match, 3.2) depends on
   an ownership control that does not exist: an exclusive write grant to the
   restore domain kept across an interruption, or a durable per-slot
-  restore-ownership record. It is conditional on R3 (open); until one control
+  restore-ownership record. R3 is decided (never-used domain only); until one control
   is specified, reviewed and tested, the exception is not applied.
 - No operation on `main` returns a collection's L2 `origin_revision`; the
   COLLECTION_STAT extension in 3.3 is a proposal only.
