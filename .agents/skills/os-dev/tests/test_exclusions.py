@@ -46,6 +46,12 @@ class ExcludeScript(unittest.TestCase):
         shutil.copytree(ROOT, dst, ignore=shutil.ignore_patterns("__pycache__", "book.pdf"))
         return dst
 
+    @staticmethod
+    def _snapshot(root):
+        # Every data file the script may write: references/ and assets/.
+        return {p: p.read_bytes() for d in ("references", "assets")
+                for p in (root / d).rglob("*") if p.is_file()}
+
     def _module(self, root):
         spec = importlib.util.spec_from_file_location("exclude_sources_copy", root / "scripts/exclude_sources.py")
         mod = importlib.util.module_from_spec(spec)
@@ -77,7 +83,7 @@ class ExcludeScript(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             root = self._copy(tmp)
             target = self._target(root)
-            before = {p: p.read_bytes() for p in (root / "references").rglob("*") if p.is_file()}
+            before = self._snapshot(root)
             mod = self._module(root)
             real = Path.write_bytes
 
@@ -93,7 +99,7 @@ class ExcludeScript(unittest.TestCase):
                     mod.main()
             finally:
                 Path.write_bytes = real
-            after = {p: p.read_bytes() for p in (root / "references").rglob("*") if p.is_file()}
+            after = self._snapshot(root)
             self.assertEqual(before, after)
 
     def test_rejected_batch_leaves_every_file_unchanged(self):
@@ -106,10 +112,10 @@ class ExcludeScript(unittest.TestCase):
             second = next(r for r in rows if r["kind"] == "wiki" and r["local_path"].endswith("wiki-04.md"))
             second["text_sha256"] = "0" * 64
             index.write_text(json.dumps(rows, separators=(",", ":"), ensure_ascii=False) + "\n", encoding="utf-8")
-            before = {p: p.read_bytes() for p in (root / "references").rglob("*") if p.is_file()}
+            before = self._snapshot(root)
             mod = self._module(root)
             sys.argv = ["x", "--reason", "test", "--record", "none", first["source_id"], second["source_id"]]
             with self.assertRaises(SystemExit):
                 mod.main()
-            after = {p: p.read_bytes() for p in (root / "references").rglob("*") if p.is_file()}
+            after = self._snapshot(root)
             self.assertEqual(before, after)
