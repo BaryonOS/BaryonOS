@@ -41,7 +41,11 @@ the input, counts against the quota and publishes nothing yet. Commit re-checks
 the original revision; a competing writer gets a
 conflict, not a silent overwrite. Cancelling and closing release only
 the caller's own reservations. Reading yields an unchanged
-output buffer on every rejection.
+output buffer on every rejection. `head` uses the same session checks to return
+only the committed object revision (zero before the first publication), without
+writes or visibility of staged uploads. Wrong/retired session tokens return `Stale`;
+opening another principal's namespace returns `Denied`. This local API adds no
+NASP opcode, snapshot field or authentication mechanism.
 
 `Storage::replace` must replace an entire snapshot atomically and durably;
 an old or a complete new snapshot are the only permitted

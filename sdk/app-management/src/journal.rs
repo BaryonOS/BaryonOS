@@ -534,8 +534,8 @@ mod tests {
         journal.commit(&mut media, &catalog).unwrap();
         let healthy = media.slots.clone();
 
-        for slot in 0..2 {
-            media.slots[slot][3] ^= 0xff;
+        for slot in &mut media.slots {
+            slot[3] ^= 0xff;
         }
         assert_eq!(
             cold_boot(&mut media, EPOCH + 1).err(),

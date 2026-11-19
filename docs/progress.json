@@ -3,7 +3,7 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-18",
-    "source_commit": "8274efb32e885c9337a33eceb025c2ca5e806812",
+    "source_commit": "524fde721fb69f1bc74ed8bc0e8db806b0d16d1b",
     "assessment_basis": "parent_commit",
     "branch": "codex/n04-issuer-contract",
     "task": "N04-T2: Compact PROPOSED issuer/helper attenuation/regrant/durable denial contract tied to existing opaque contexts, broker operations and source-bound native helper evidence. Four cited paths/six source symbols and progress check pass; no production interface or authority adopted.",

@@ -1,10 +1,11 @@
-# ACPI S5 parser core
+# ACPI S3/S5 parser core
 
 ## Purpose and trust boundary
 
 This dependency-free `no_std` crate validates bounded raw FADT and DSDT SDT
-snapshots and extracts only S5 sleep types and legacy x86 PM1a/PM1b control
-register addresses. Public input is `AcpiTableSnapshot`, containing two
+snapshots and extracts S3/S5 sleep types and legacy x86 PM1a/PM1b control
+register addresses. The S3 route additionally validates a bounded FACS snapshot.
+Public input is `AcpiTableSnapshot`, containing two
 `TableSnapshot` values: exact bytes plus the original firmware address
 established by the kernel. Caller-supplied metadata is not authorisation
 evidence. In the opt-in `native-acpi-s5` profile, the FADT address comes from
@@ -109,3 +110,50 @@ QEMU. Evidence and limitations are documented in
 [`docs/verification/h05-acpi-s5`](../../docs/verification/h05-acpi-s5/README.md).
 Service- or user-initiated shutdown, H05 acceptance and physical-hardware
 verification remain outstanding.
+
+## Host-only S3 and FACS observations
+
+`parse_s3(tables, facs)` reuses the same bounded AML walk, SDT/DSDT binding
+and PM1 validation to select root `Name(_S3_, Package(...))`. `_S3_` and
+`_S5_` are selected independently; existing S5 interfaces and rejection
+behavior are preserved. `S3Plan` is opaque and exposes parsed PM1 settings
+and `FacsInfo` observations. Neither is an authority to enter sleep or jump
+to a waking vector. No kernel caller, trampoline, firmware method execution,
+FACS mutation, global-lock acquisition or I/O is implemented.
+
+`fadt_facs_address` resolves the validated FADT pointer so the trusted kernel
+reader can authorize and obtain the snapshot without duplicating pointer parsing.
+The FACS snapshot must match the FADT's `FIRMWARE_CTRL` (offset 36) or
+`X_FIRMWARE_CTRL` (offset 132), with a nonzero address aligned to 64 bytes.
+Partial extended fields, inconsistent nonzero pointers, snapshot mismatch
+and overflowing source extents are rejected. **Stricter profile:** ACPI
+prefers a nonzero extended pointer; this parser rejects contradictory
+nonzero FADT pointers instead. This rule does not apply to the two waking
+vectors: a nonzero extended waking vector supersedes the legacy value.
+
+FACS is shared firmware state, **not a checksum-bearing SDT**. Its signature
+must be `FACS`, its declared length must equal the complete supplied extent,
+and the extent must be between 64 bytes and the existing 1 MiB parser bound.
+This profile accepts fixed-layout versions 2 and 3 only. Reserved bytes
+(including any extension beyond byte 64), global-lock reserved bits,
+unknown flags and unsupported versions are rejected. Hardware signature and
+global-lock pending/owned bits are not authentication or ownership evidence.
+Only FACS flag bits 0/1 and OSPM flag bit 0 are accepted; requesting 64-bit
+wake requires the firmware support bit. A selected legacy vector must be
+below 1 MiB; a selected extended vector above the 32-bit address range
+requires a supported 64-bit wake request. Zero vectors are accepted as
+unprepared state. These are field checks, not executable-memory, mapping,
+platform support or resume-readiness validation. Firmware can mutate FACS
+after a snapshot; future integration must provide its own synchronization,
+memory authorization and execution validation.
+
+Primary layout references: [UEFI ACPI 6.6, sections 5.2.9 and 5.2.10](https://uefi.org/specs/ACPI/6.6/05_ACPI_Software_Programming_Model.html#firmware-acpi-control-structure-facs)
+(version 3) and [TianoCore EDK II ACPI 6.1 definitions](https://github.com/tianocore/edk2/blob/master/MdePkg/Include/IndustryStandard/Acpi61.h)
+(version 2). No specification or third-party implementation code was copied.
+
+`tests/s3_facs.rs` uses synthetic host fixtures for independent S3/S5
+selection, root-scope handling, malformed/missing/duplicate S3, FADT/FACS
+binding, exact extent and address bounds, versions, flags, reserved fields
+and vector precedence. Existing S5 tests remain unchanged. Host tests and
+freestanding compilation do not establish native S3 entry, physical
+sleep/wake, thermal/battery behavior or H05 acceptance.

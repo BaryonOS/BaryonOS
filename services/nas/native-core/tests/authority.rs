@@ -721,3 +721,59 @@ fn opaque_token_decoding_and_admin_enumeration_never_grant_authority() {
     let wrong = nieuw_os_nas_core::Session::from_bytes(&wrong).unwrap();
     assert_eq!(service.close(ALICE, wrong), Err(Error::Stale));
 }
+
+#[test]
+fn head_is_committed_only_session_scoped_and_read_only() {
+    let mut work = Box::new(Workspace::new());
+    let (mut service, disk, mut entropy) = fixture(&mut work);
+    let alice = pair(&mut service, &mut entropy, ALICE);
+    let bob = pair(&mut service, &mut entropy, BOB);
+    let a = service.open(ALICE, &alice.namespace).unwrap();
+    let b = service.open(BOB, &bob.namespace).unwrap();
+    assert_eq!(service.head(ALICE, a, 0), Ok(0));
+    let upload = service.stage(ALICE, a, 0, 0, b"ciphertext").unwrap();
+    assert_eq!(service.head(ALICE, a, 0), Ok(0));
+    assert_eq!(service.commit(ALICE, a, upload), Ok(1));
+    let writes = disk.0.borrow().writes;
+    assert_eq!(service.head(ALICE, a, 0), Ok(1));
+    assert_eq!(service.head(BOB, b, 0), Ok(0));
+    assert_eq!(service.head(BOB, a, 0), Err(Error::Stale));
+    assert!(matches!(
+        service.open(BOB, &alice.namespace),
+        Err(Error::Denied)
+    ));
+    let mut out = [0xa5; MAX_CIPHERTEXT];
+    assert_eq!(service.read(BOB, a, 0, 1, &mut out), Err(Error::Stale));
+    assert_eq!(out, [0xa5; MAX_CIPHERTEXT]);
+    assert_eq!(service.head(ALICE, a, usize::MAX), Err(Error::Invalid));
+    assert_eq!(disk.0.borrow().writes, writes);
+    service.close(ALICE, a).unwrap();
+    assert_eq!(service.head(ALICE, a, 0), Err(Error::Stale));
+    service.revoke(ADMIN, &bob.namespace).unwrap();
+    assert_eq!(service.head(BOB, b, 0), Err(Error::Stale));
+    let a = service.open(ALICE, &alice.namespace).unwrap();
+    service.evict(ADMIN, &alice.namespace).unwrap();
+    assert_eq!(service.head(ALICE, a, 0), Err(Error::Stale));
+    let replacement = pair(&mut service, &mut entropy, ALICE);
+    assert_ne!(replacement.namespace, alice.namespace);
+    assert_eq!(service.head(ALICE, a, 0), Err(Error::Stale));
+}
+
+#[test]
+fn head_cannot_observe_uncertain_storage_until_recovery() {
+    for committed in [false, true] {
+        let mut work = Box::new(Workspace::new());
+        let (mut service, disk, mut entropy) = fixture(&mut work);
+        let alice = pair(&mut service, &mut entropy, ALICE);
+        let a = service.open(ALICE, &alice.namespace).unwrap();
+        let upload = service.stage(ALICE, a, 0, 0, b"ciphertext").unwrap();
+        fail_next(&disk, 1, committed);
+        assert_eq!(service.commit(ALICE, a, upload), Err(Error::Unknown));
+        assert_eq!(service.head(ALICE, a, 0), Err(Error::ReopenRequired));
+        let mut recovered =
+            Service::recover(service.into_storage(), &mut entropy, &mut work).unwrap();
+        assert_eq!(recovered.head(ALICE, a, 0), Err(Error::Stale));
+        let fresh = recovered.open(ALICE, &alice.namespace).unwrap();
+        assert_eq!(recovered.head(ALICE, fresh, 0), Ok(u64::from(committed)));
+    }
+}

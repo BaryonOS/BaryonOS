@@ -1,0 +1,50 @@
+{
+  "tested_source": "d16fa0862a42d83f7de7fda8dd2de54357d3e533",
+  "source_fingerprint_version": 3,
+  "source_sha256": "42163e2d99138eecda0977feab534c5eebb9f77bc25a2e04abd5f2d28752be92",
+  "final_local_results": {
+    "host_quality": {
+      "steps": 18,
+      "exit": 0,
+      "seconds": 300.233
+    },
+    "volume": {
+      "vms": 15,
+      "exit": 0,
+      "seconds": 303.022
+    },
+    "document_session": {
+      "vms": 2,
+      "exit": 0,
+      "seconds": 19.009
+    },
+    "h02": {
+      "vms": 6,
+      "commands": 12,
+      "exit": 0,
+      "seconds": 26.202
+    }
+  },
+  "source_changes_after_2a": "Only the consistent unittest.mock import/reference correction in the existing four quarantine tests; same assertions/guards retained. All four targeted tests passed before final complete gates were rerun.",
+  "markdown_freeze": "2073e4affd8a46a4bd0a1b95bcb06f7c2b0062c2",
+  "language_current_source_check": {
+    "exit": 0,
+    "log": "build/tokenguard/run-nm183ryd.log",
+    "scope": "398 first-party documents,179 navigation nodes,11 anchors,34 English routes,33 retained originals; not full274 acceptance."
+  },
+  "publication_interruption": {
+    "cli_expiry": "HTTP401/push128; no force or security-setting change",
+    "environment": "Became unavailable, then recovered with original commits/bundle intact and refreshed Git credentials.",
+    "connector_probe": "Only unreferenced object writes; no Git Data ref was moved. Large collector object upload did not confirm expectedSHA and was abandoned.",
+    "recovery": "Exact original4fae439d branch published with normal Git push; original full integration ancestry will be preserved by normal push."
+  },
+  "not_accepted": [
+    "Full355/357 isolation",
+    "Three Daybreak findings",
+    "Five full issue acceptance conditions",
+    "Physical/human/production acceptance",
+    "Alert inventories denied403",
+    "BaselineB/governance1-6"
+  ],
+  "score": 41
+}
