@@ -1,5 +1,14 @@
 # Current project status
 
+## NEXT AGENT HANDOFF — U05-T1 delivery — 18 November 2026
+
+**Source:** `1c3696d22d87fed1ef9e554febc690d443dbb568`, `codex/u05-settings-core`.
+**Delivered:** Standalone typed appearance/accessibility settings core, integrity-only A/B persistence, explicit recovery and persistent new-generation revert.14 host tests including every0..96 torn-write offset pass.
+**Checks:** targeted Rust tests, Clippy (-D warnings), formatting and freestanding
+library build exit0; [exact commands/raw-log hashes](roadmap-pipeline/receipts/U05-T1.json).
+Lead source/diff review completed; no duplicate matrix. Progress **41 → 41/100**.
+**Limits:** Full U05-T1 remains BLOCKED on shared SDK membership owned by integration PR366; no shared SDK files changed/matrix rerun. No native/UI/encryption/antirollback/hardware acceptance.
+
 ## NEXT AGENT HANDOFF — CodeQL pre-merge latency — 18 November 2026
 
 **Claim/source:** Codex sole writer in `codex/codeql-pr-fast-suite`, based on main
@@ -55,6 +64,8 @@ delivery branches and Claude S09/UI remain untouched. Unsafe unattended hold act
 slice from this ledger; no waiting for integration. Prior delivery checkpoints retained.
 
 ## Retained checkpoint — PR #350 conflict-only integration — 18 November 2026
+
+
 
 
 

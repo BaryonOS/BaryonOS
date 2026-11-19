@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-18",
-    "source_commit": "c5464ebb90e62e9e072e852dfe658d7036af742b",
+    "source_commit": "76ca134523d0429beb3c17d2551d60b9712ad82d",
     "assessment_basis": "parent_commit",
-    "branch": "codex/codeql-pr-fast-suite",
-    "task": "CodeQL fast pre-merge/default and extended main analysis",
+    "branch": "codex/u05-settings-core",
+    "task": "U05-T1: Standalone typed appearance/accessibility settings core, integrity-only A/B persistence, explicit recovery and persistent new-generation revert.14 host tests including every0..96 torn-write offset pass.",
     "previous_score": 41,
-    "summary": "41/100 unchanged. CodeQL retains four-language default security analysis before merge and security-extended analysis on main, schedule and manual runs. The strict required checks, high-or-higher code-scanning rule, permissions and execution hold are unchanged. Workflow contract tests pass, but hosted CodeQL must still validate syntax and measure latency; no OS criterion or evidence level changes."
+    "summary": "41/100 unchanged. Standalone typed appearance/accessibility settings core, integrity-only A/B persistence, explicit recovery and persistent new-generation revert.14 host tests including every0..96 torn-write offset pass. Full U05-T1 remains BLOCKED on shared SDK membership owned by integration PR366; no shared SDK files changed/matrix rerun. No native/UI/encryption/antirollback/hardware acceptance. Integration/Claude ownership and execution hold preserved."
   },
   "tracks": [
     {
