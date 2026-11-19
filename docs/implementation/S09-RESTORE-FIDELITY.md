@@ -154,11 +154,33 @@ decision point.
   crash-recovery path and needs its own recovery tests. The alternative, one
   INSTALL commit per version, keeps the v2 invariant but loses the
   one-commit, no-partial-state property used under "Interruption" below.
-  Provenance fields are immutable after installation and are never fed into
-  `touch`.
+  The INSTALL commit writes presence, tags, kind and collection together with
+  the versions, so no META step follows it. Provenance fields are immutable
+  after installation and are never fed into `touch`.
+  **Revision source after INSTALL.** WRITE and RESTORE on `main` give the new
+  current version the *object* revision + 1 (`current` is the `Entry`;
+  `service.rs:532`, `:555`, `:630`, `:662`). After an INSTALL (object revision
+  1, current version ordinal for example 3) that would give ordinal 2, below
+  the history ordinals 3 and 2 that `push_history` moves down
+  (`table.rs:199-206`), and break the strictly decreasing order. Table v3
+  therefore assigns the new current version
+  `1 + max(object revision, newest retained version ordinal)`, where the
+  newest retained ordinal is the current version's for a present object and
+  history slot 1's for a tombstone (`current` is empty, `service.rs:684-692`).
+  For a non-installed object the v2 invariant makes the maximum equal to the
+  object revision, so the rule reduces to the v2 rule. The value is derived
+  from the durable entry alone, so recovery after an interrupted WRITE or
+  RESTORE needs no new state: a commit either landed with that ordinal or did
+  not. Required tests (not written): INSTALL then WRITE; INSTALL then RESTORE
+  of each history slot; INSTALL of a tombstone then WRITE; each with a cut
+  before, during and after the table write, followed by a fresh-instance mount
+  that validates the v3 order.
 - **Validation before install** (both levels; source-state bound from 3.3):
   per object `version revisions strictly decreasing` from the current version
-  through history; `current version revision ≤ object revision`;
+  through history; `current version revision ≤ object revision` for objects
+  without L2 provenance (for installed objects the v3 ordinal rule under L2
+  applies instead: ordinals ≥ 1, strictly decreasing, no bound by the object
+  revision);
   `0 < created ≤ modified ≤ source clock`; `object revision ≤ source clock`;
   collection revision ≤ source clock. **Conditional:** the recomputed sum of
   object and collection revisions equals the header domain generation. The
@@ -173,9 +195,25 @@ decision point.
   nothing installed. Values are copied only from validated records, never derived,
   interpolated or defaulted.
 - **Interruption.** A rerun after interruption treats a slot whose state
-  equals the archived object completely (all versions by length, name and
-  checksum, and under L2 the provenance) as already restored, installs empty
-  slots and refuses any other state with a conflict. The destination precondition is
+  equals the archived object completely (presence; all versions by length,
+  name and checksum; tags, kind and collection; under L2 the provenance) as
+  already restored, installs empty slots and refuses any other state with a
+  conflict, with one exception under L1: when every version matches exactly
+  and only the metadata differs, the rerun completes the deterministic tail
+  that the interruption cut off. That is META when the destination metadata is
+  still the post-WRITE default (tags 0, kind 0, collection 0), and for an
+  archived tombstone the final DELETE when the slot is still present with the
+  archived versions and default metadata (DELETE resets metadata,
+  `service.rs:684-692`, so a present slot with non-default metadata is a
+  conflict). This is safe because the versions prove that the slot holds
+  exactly the replayed content, and META or DELETE then moves it to the
+  archived state without touching content; any other metadata difference
+  was not produced by this restore and is a conflict. Under L2 the single
+  INSTALL commit writes metadata with the versions, so a version match with a
+  metadata difference is always a conflict. History names are compared through
+  the extension proposed under 3.3 for every slot, present or tombstone, since
+  STAT on `main` returns no history names; for a tombstone slot all version
+  fields come from that extension. The destination precondition is
   checked per slot on resume, not per domain. A partly replayed L1 object (a
   prefix of its version chain) is a conflict that no in-domain operation can
   clear: DELETE leaves a tombstone and PURGE clears history but keeps the
@@ -184,8 +222,17 @@ decision point.
   such a slot is therefore a new native restore into a fresh (never-used)
   domain or a fresh volume; the partly restored domain stays as it is and is
   reported. L2's one-commit INSTALL avoids that state.
-- **Unknown outcome.** Accepted only if STAT shows exactly the expected
-  state, as in the current rule (`archive.rs:464-478`).
+- **Unknown outcome.** After an `Unknown` table write the volume service
+  instance is uncertain and answers every later request, STAT included, with
+  `Unknown` (`service.rs:6-9`, `:288-291`; set by the table writes in `publish`,
+  `:874`, `:894`, `:903`, and by the SHUTDOWN flush, `:518-519`); the current v1 rule
+  (`archive.rs:464-478`) therefore returns `Unknown` when it runs on that
+  instance. The native restore stops at an `Unknown`, and its outcome is
+  decided only after a fresh volume service instance has recovered from disk
+  (a service restart or reboot; this design specifies no restart mechanism).
+  The outcome is accepted only if STAT on that fresh instance shows exactly
+  the expected state; otherwise the rerun proceeds by the interruption rule
+  above.
 
 ### 3.3 Archive format changes (v2)
 
@@ -201,8 +248,23 @@ Indicative layout; sizes are proposals, not decided:
   revision, created, modified, `history_count`, seal.
 - Version record (64 B, `1 + history_count` per object, current first,
   omitted current for a tombstone): version revision, length, content FNV-64,
-  name, seal; content follows each version record. History names need a wire
-  extension (STAT or READ-with-selector returning the version name).
+  name, seal; content follows each version record. On `main` the per-version
+  fields are reachable for present objects only: STAT returns history
+  revision, length and checksum but no history names (`service.rs:333-348`),
+  and for a non-present slot (tombstone) it returns only `NotFound` with the
+  object revision (`service.rs:327-331`, error reply `:322`); LIST omits
+  tombstones (`service.rs:1011`); READ with a history selector reaches a
+  tombstone's history once given that revision (`service.rs:911-926`) but
+  returns content bytes only, without version revision, checksum or name.
+  **Proposed extension (step-2 wire work, not reviewed, does not exist):** a
+  STAT variant with a selector that, for the caller's own domain only,
+  returns `present`, `history_count` and, per history version, revision,
+  length, content checksum and name, for present and non-present slots
+  alike. The exporter uses it for the history names of present objects and for every
+  tombstone version, and the resume comparison under 3.2 uses it for the
+  history names of every slot and for all version fields of a tombstone slot. It discloses only the
+  caller's own retained history; whether that is acceptable after a DELETE
+  belongs to the R2 decision.
 - Trailer unchanged in shape. Content is stored per version without
   deduplication, so the independent Python reader stays simple.
 

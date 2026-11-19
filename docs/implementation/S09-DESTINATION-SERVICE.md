@@ -96,7 +96,13 @@ sequence starts afresh when the service starts.
 ### 2.3 Operations
 
 Entry IDs are u64, assigned by the service from a monotonic counter stored in
-the catalog (2.6); 0 is invalid and an ID is never reused. Labels follow
+the catalog (2.6); 0 is invalid. Only a *sealed* entry's ID is an entry
+identity, and a sealed entry's ID is never reused. The ID that CREATE returns
+is provisional: the catalog's next entry ID advances only in the SEAL commit
+(2.7, step 4), so the ID of an entry that is aborted, discarded or lost on
+reboot is issued again by a later CREATE. A provisional ID has no meaning
+outside its export binding and none after a reboot; BIND, VERIFY, READ and
+LIST accept only sealed IDs. Labels follow
 `valid_name` (UTF-8, 1–32 bytes, no `.`/`..`); labels need not be unique,
 because the entry ID identifies the entry.
 
@@ -104,7 +110,7 @@ because the entry ID identifies the entry.
 |---|---|---|---|---|
 | 1 | INFO | entry 0 | aux = free sectors, count = sealed entries, length 24: data = 16-byte destination ID, u64 formatted sectors; `Corrupt` or blank state in status/aux | every lane, control |
 | 2 | LIST | entry 0, count = cursor 0..16 | up to 2 entry records of 80 bytes (2.6 layout), length = 80 × n; count = next cursor or 0 | control (all entries); export lane sees only its own entry once sealed; verify/restore lanes only their bound entry |
-| 3 | CREATE | entry 0, label in data | entry = new ID, state `writing` | export lane, once per binding |
+| 3 | CREATE | entry 0, label in data | entry = provisional ID (2.3), state `writing` | export lane, once per binding |
 | 4 | APPEND | entry = writing ID, offset = bytes appended so far, ≤ 160 bytes | offset = new total | export lane |
 | 5 | SEAL | entry = writing ID, offset = total length | entry state `sealed`, aux = archive trailer FNV | export lane |
 | 6 | ABORT | entry = writing ID | state discarded | export lane, control |
@@ -176,9 +182,11 @@ u64, sealing sequence u64, label length u8, 7 × 0, label[32] zero-padded. Unuse
 records and bytes 1344..2040 are zero. Bytes 2040..2048 hold FNV-64 over
 0..2040. A copy is valid only if every rule holds: magic, version, checksum,
 count, records strictly ascending by entry ID and by first sector, extents
-disjoint, each extent inside [16, `next_free`), `next_free` ≤ formatted count,
+disjoint, each extent inside [16, `next_free`), 16 ≤ `next_free` ≤ formatted
+count (also for a catalog with zero entries),
 formatted count = granted scope's `sector_count`, every entry ID < next entry
-ID, and all padding zero.
+ID, next entry ID ≥ 1 (also for a catalog with zero entries), and all padding
+zero.
 
 The destination ID is 16 bytes drawn once at format time from the existing
 entropy capability (an `Entropy` object and handle held by the destination
@@ -187,30 +195,47 @@ FNV-64 detects accidental damage only; a deliberately altered, swapped or
 rolled-back image is not detected (section 5.4).
 
 **Mount rule.** Read both copies. If exactly one is valid, use it. If both are
-valid, use the higher sequence; equal sequences with different bytes give
+valid, use the higher sequence (the read is preceded by a FLUSH, below); equal sequences with different bytes give
 `Corrupt`. If neither is valid and all sectors 0–15 are zero, the device is a
 *blank candidate*; zero in sectors 0–15 is only a heuristic and does not show
 that the rest of the scope holds no data. Otherwise the destination is
 `Corrupt`: the service refuses every operation except INFO and never formats
-automatically.
+automatically. Every mount, including a remount (2.7), first issues a FLUSH
+and reads the catalog only after it completes, so that the copies read are
+not merely held in a volatile write cache. **Failed mount FLUSH.** If a mount
+or remount FLUSH fails, the service writes nothing; INFO is answered and
+reports `Io` -12 in its status field; LIST on an export lane whose binding is
+still *unknown* (2.7) returns status `Unknown` -16 with zero records; every
+other request on any lane returns `Io` -12.
 
 **Format.** Only the trusted control path may format, and only a *blank*
 scope: before any write, FORMAT reads the whole granted scope and returns
 `Access` unless every sector is zero. Format writes copy A with sequence 1,
-flushes, writes the identical copy B, and flushes. The cost of the full-scope
+zero entries, next entry ID 1 and `next_free` = 16, flushes, writes the identical copy B, and flushes. The cost of the full-scope
 read on large devices is not measured *[unproven]*.
 
 ### 2.7 Durability and flush order
 
 The `Disk` contract *[main]* applies: a completed write is not durable until a
-later flush. QEMU's virtio-blk FLUSH is trusted to honour this *[unproven]* for
-physical media.
+later flush. The primary source for the barrier is *Virtual I/O Device
+(VIRTIO) Version 1.2*, OASIS Committee Specification 01
+(<https://docs.oasis-open.org/virtio/virtio/v1.2/cs01/virtio-v1.2-cs01.html>):
+section 5.2.3 defines feature bit 9, `VIRTIO_BLK_F_FLUSH`; section 5.2.6
+defines request type `VIRTIO_BLK_T_FLUSH`; section 5.2.6.2 treats a completed
+write as stable once a flush request sent after it has completed. The driver
+negotiates bit 9 unless a test profile clears it (`no_flush`,
+`drivers/virtio-blk/src/lib.rs:243-244` *[main 8a7a3594]*). Three claims are kept
+apart: the specification states the requirement; that QEMU and its host
+storage stack honour it is assumed *[unproven]*; durability on physical media
+is *[unproven]* and not tested here.
 
 1. CREATE reserves `first = next_free` in memory only.
 2. APPEND writes whole sectors in `[first, first + ⌈len/512⌉)`; a partial last
    sector is buffered and zero-padded at SEAL. A write at or beyond the scope end
    returns `Full`. There are exactly two write paths: the entry path accepts
-   only `sector >= next_free` (committed value) and below the scope end; the
+   only `sector >= max(16, next_free)` (`next_free` the committed value) and
+   below the scope end, so it never relies on catalog validation to keep
+   sectors 0–15 out of reach; the
    catalog path accepts only catalog sectors 0–7 (order below). Any other
    write is refused before it reaches the device.
 3. SEAL: write the padded last sector; **flush (barrier 1)**; read the extent
@@ -226,15 +251,28 @@ physical media.
 If step 4, barrier 2, step 5 or barrier 3 fails with `Io` or `Timeout`, the
 service replies `Unknown`, discards its in-memory catalog and writing-entry
 state and remounts from the device before it accepts another request. Lane
-bindings, including the export binding's created entry ID, are kept across
-this remount. Immediately after the remount the service resolves that export
-binding once: *sealed* if the remounted catalog lists the created entry ID,
-otherwise *not sealed*; the outcome is fixed in the binding and does not
-depend on later catalog changes. The lane then accepts only INFO and LIST; its
-LIST returns the entry record if the outcome is *sealed* and zero records
-otherwise. The portal treats `Unknown` as "not sealed" until that LIST returns
-the entry ID; it must not repeat the export blindly and must not report
-success. If the remount yields `Corrupt`, the service fails closed as in 2.6.
+bindings, including the export binding's provisional entry ID, are kept across
+this remount; no CREATE is accepted on any lane until the outcome below is
+resolved, so that ID cannot be issued again in the meantime.
+
+A catalog read after a failed write or barrier can return bytes still held in
+the device's volatile write cache, which a power loss may discard. The
+remount therefore begins with a FLUSH (2.6, mount rule), and only a remount
+whose FLUSH completed resolves the export binding, once: *sealed* if the
+remounted catalog lists the provisional entry ID, otherwise *not sealed*; the
+outcome is fixed in the binding and does not depend on later catalog changes.
+The lane then accepts only INFO and LIST; its LIST returns the entry record if
+the outcome is *sealed* and zero records otherwise. If the remount's FLUSH
+fails, the outcome stays *unknown* and the failed-mount-FLUSH rule of 2.6
+applies (INFO answered with `Io`; the export lane's LIST returns `Unknown` with
+zero records; every other request `Io`). Bindings do not survive a service restart;
+a later instance mounts only after its own mount FLUSH completes, and the
+export is then not confirmed to the portal. Whether a request that the driver
+reported as `Timeout` can still complete after the remount FLUSH has not been
+checked; the resolution above assumes it cannot *[unproven]*. The portal
+treats `Unknown` as "not sealed" until the export lane's LIST returns the entry
+ID; it must not repeat the export blindly and must not report success. If the
+remount yields `Corrupt`, the service fails closed as in 2.6.
 
 **Append-only meaning.** No operation writes a sealed extent, and catalog
 copies are written only in the order above. An interrupted new export therefore cannot damage
@@ -489,7 +527,7 @@ disposable images.
 | N1 | Unauthorized device | app or portal without a destination block handle | block read/write with own or forged handle | K: `BadHandle` -4 or `Access` -5; counted in `app_device_denials` | K | QEMU |
 | N2 | Scope escape, device | destination service | block write at scope end | K: `Access` -5; host sees no byte past the scope | K | QEMU |
 | N3 | Scope escape, entry | restore lane bound to entry E | READ entry ≠ E; READ past E's length; APPEND on a verify lane | S: `Access` -5; `Range` -3; `Access` -5 | S | host + QEMU |
-| N4 | Scope escape, sealed extent | export writing after sealed entries | crafted write path below `next_free` (mutation test) | write refused; sealed extents byte-identical | S | host |
+| N4 | Scope escape, sealed extent | export writing after sealed entries; separately, a crafted catalog with zero entries and `next_free` < 16; a crafted catalog with zero entries and next entry ID 0 | crafted write path below `next_free` and below sector 16 (mutation test); mount of each crafted catalog | write refused; sealed extents and sectors 0–15 byte-identical; each crafted copy is invalid | S | host |
 | N5 | Revoked before operation | dialog revoked the lane | portal `send` | K: `Revoked` -10 (syscall return) | K | host + QEMU |
 | N6 | Revoked during export | 50 % appended | dialog sends UNBIND, then revokes | K: `Revoked` -10 on next send; S discards writing entry; LIST unchanged; earlier entries verify | K + S | host + QEMU |
 | N7 | Corrupted entry | one byte flipped in a sealed extent on the host image | VERIFY; restore flow | S: `Corrupt` -18; P: `archive::verify` `Corrupt`, nothing restored | S + P | host + QEMU |
@@ -498,7 +536,7 @@ disposable images.
 | N10 | Non-archive bytes | appended bytes fail `verify` | SEAL | S: `Corrupt` -18; nothing listed; `next_free` unchanged after reboot | S | host + QEMU |
 | N11 | Power cut during APPEND | one sealed entry E1; export of E2 running | QEMU SIGKILL after k destination writes | after cold boot: LIST = {E1}; E1 verifies byte-identical | S (2.7) + H | host + QEMU |
 | N12 | Power cut during SEAL | cut after barrier 1, during the catalog write, after barrier 2 | SIGKILL at each point (host: every write prefix with cache loss) | LIST = {E1} or {E1, E2}; a listed E2 verifies; never a listed E2 that fails | S + H | host + QEMU |
-| N13 | `Unknown` at SEAL | catalog flush returns `Timeout` at barrier 2 or 3, with and without the new copy durable | SEAL, then LIST on the export lane | S: `Unknown` -16, remount, binding kept; export-lane LIST returns E2's record if the remounted catalog lists E2 (P reports sealed), else zero records (P reports not sealed); further CREATE/APPEND/SEAL on that lane `Access` -5; no repeated export | S + P | host |
+| N13 | `Unknown` at SEAL | catalog flush returns `Timeout` at barrier 2 or 3, with and without the new copy durable; then the remount FLUSH succeeds, or fails | SEAL, then LIST on the export lane; CREATE on another lane before resolution | S: `Unknown` -16, remount, binding kept; remount FLUSH succeeds: export-lane LIST returns E2's record if the remounted catalog lists E2 (P reports sealed), else zero records (P reports not sealed); remount FLUSH fails (2.6 failed-mount-FLUSH rule): LIST status `Unknown` -16 with zero records, INFO reports `Io`, every other request `Io` -12, no device write (P reports not confirmed); CREATE on any lane before resolution refused; further CREATE/APPEND/SEAL on that lane `Access` -5; no repeated export | S + P | host |
 | N14 | Wrong or foreign device | grant names ID X; device holds Y or a non-Baryon, non-blank layout | any lane op; format | S: `NoDevice` -14, no I/O; format not offered, control format `Access` -5 | S + D | host + QEMU |
 | N15 | Destination full | free space < archive | export | S: `Full` -17 at APPEND; nothing sealed; earlier entries intact; catalog sequence unchanged | S | host + QEMU |
 | N16 | Third-party raw access | app process in the profile | forged lane, control and block handles; IPC to service without a handle | K: `BadHandle` -4; counted; service receives nothing | K | QEMU |
@@ -549,7 +587,8 @@ for the source image, the `ARCHIVE_ESCAPE` counting and the
 | `dest-export-2` | `dest-export` | second entry appended; first extent and its catalog record byte-identical |
 | `dest-cut-append` | `dest-export` | `VOLUME:CUT:` marker after k writes, host SIGKILL |
 | `dest-cut-seal` | `dest-export` | cut between barrier 1 and barrier 2 |
-| `dest-after-cut` | each cut stage | cold boot; LIST and VERIFY per N11/N12; oracle agrees |
+| `dest-cut-mirror` | `dest-export` | cut after barrier 2 completes, before barrier 3 completes (N12, third point) |
+| `dest-after-cut` | each cut stage | cold boot; LIST and VERIFY per N11/N12, for `dest-cut-mirror` LIST = {E1, E2} and E2 verifies; oracle agrees |
 | `dest-restore` | `dest-export-2` + blank disk 0 | verify then restore entry 2; byte-exact per the existing restore oracle |
 | `dest-revoke` | `dest-export` | revoke mid-export (N6) |
 | `dest-foreign`, `dest-full`, `dest-replay`, `dest-corrupt` | as N14, N15, N17, N7/N8 | as in the matrix |
