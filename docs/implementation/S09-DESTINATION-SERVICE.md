@@ -356,7 +356,9 @@ under that assumption, and O9 remains a blocking open assumption. The
 read-only state must also bind a restarted service instance in the same boot
 and survive any reboot that is not a cold boot; the mechanism that carries it
 is not specified (O8, O9), and until it is, recovery after such an `Unknown`
-is a cold boot. The in-boot resolution is reported to the portal only as
+is a cold boot. A replacement instance's completed mount FLUSH does not clear
+the read-only state; until a hand-off of that state is specified, a
+replacement instance in the same boot accepts no destination write. The in-boot resolution is reported to the portal only as
 "provisional"; the export counts as confirmed only after a cold boot, whose
 mount FLUSH and catalog read follow a device power cycle that no request of
 the previous boot survives *[design; QEMU process restart assumed
@@ -749,6 +751,10 @@ hosted gate runs. No human audit.
   specified; its trigger covers entry writes as well as catalog writes. N24 is
   a planned test, not evidence; the independent security review (R1 of 8.2)
   also remains open before implementation.
+  The cold-boot confirmation further assumes that a QEMU process restart is
+  equivalent to a device power cycle that no request of the previous boot
+  survives; this is *[unproven]* and no confirmation counts as evidence until
+  it is shown.
 - **O10** `Corrupt` after an interrupted FORMAT (2.6, N25): the policy by
   which a product distinguishes a FORMAT interrupted before its first copy
   was durable from a damaged existing destination, and whether any recovery
