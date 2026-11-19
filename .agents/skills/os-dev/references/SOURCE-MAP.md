@@ -52,8 +52,8 @@ surrounding Markdown. It is a source register, not a program.
 - [Volume 14](corpus/wiki-14.md)
 - [Volume 15](corpus/wiki-15.md)
 
-The 3,053 pages comprise 786 non-redirect articles in the main namespace,
-385 main-namespace redirects and 1,882 other pages. Talk, user, administrative,
+The 3,026 pages comprise 763 non-redirect articles in the main namespace,
+381 main-namespace redirects and 1,882 other pages. Talk, user, administrative,
 template and media-description pages are retained, but are not automatically
 technically authoritative. Source classification is visible in the index.
 Excluded records are listed in [exclusions.json](exclusions.json).

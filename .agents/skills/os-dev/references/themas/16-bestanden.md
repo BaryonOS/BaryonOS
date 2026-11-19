@@ -5,7 +5,6 @@ The book begins with a read-only filesystem in a RAM image, then introduces inod
 ## Selected entry points
 
 - [File Systems](../corpus/wiki-01.md#w001505) [W001505] · revision 29795 · 2025-12-19T21:49:56Z
-- [File Management](../corpus/wiki-03.md#w001859) [W001859] · revision 29945 · 2026-02-09T19:32:39Z
 - [Hierarchical VFS Theory](../corpus/wiki-07.md#w002957) [W002957] · revision 27996 · 2023-07-09T17:40:12Z
 - [Initrd](../corpus/wiki-08.md#w003194) [W003194] · revision 28032 · 2023-07-09T18:43:01Z
 - [FAT](../corpus/wiki-01.md#w001506) [W001506] · revision 30279 · 2026-03-16T17:58:45Z
@@ -31,7 +30,6 @@ The selection below was generated automatically from page titles and categories;
 - [Ext4](../corpus/wiki-07.md#w003001) [W003001]
 - [FAT](../corpus/wiki-01.md#w001506) [W001506]
 - [FFS (Amiga)](../corpus/wiki-01.md#w001514) [W001514]
-- [File Management](../corpus/wiki-03.md#w001859) [W001859]
 - [File Systems](../corpus/wiki-01.md#w001505) [W001505]
 - [FUSE](../corpus/wiki-13.md#w004372) [W004372]
 - [HFS](../corpus/wiki-06.md#w002769) [W002769]

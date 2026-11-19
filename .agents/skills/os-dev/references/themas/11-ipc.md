@@ -10,7 +10,6 @@ This section brings together system calls, message passing, shared memory and RP
 - [IPC Data Copying methods](../corpus/wiki-09.md#w003424) [W003424] · revision 28094 · 2023-07-09T21:29:39Z
 - [Shared Memory](../corpus/wiki-03.md#w001765) [W001765] · revision 28212 · 2023-07-10T18:54:12Z
 - [Remote Procedure Call](../corpus/wiki-03.md#w001763) [W001763] · revision 13503 · 2012-06-05T09:18:12Z
-- [Signals](../corpus/wiki-03.md#w001890) [W001890] · revision 24290 · 2020-01-10T14:38:06Z
 
 ## Related PDF book pages
 
@@ -33,10 +32,8 @@ The selection below was generated automatically from page titles and categories;
 - [Select](../corpus/wiki-10.md#w003750) [W003750]
 - [Semaphore](../corpus/wiki-03.md#w001752) [W001752]
 - [Shared Memory](../corpus/wiki-03.md#w001765) [W001765]
-- [Signals](../corpus/wiki-03.md#w001890) [W001890]
 - [Socket](../corpus/wiki-10.md#w003751) [W003751]
 - [Spinlock](../corpus/wiki-05.md#w002494) [W002494]
-- [Synchronization Primitives](../corpus/wiki-03.md#w001889) [W001889]
 - [SYSENTER](../corpus/wiki-08.md#w003323) [W003323]
 - [System Calls](../corpus/wiki-04.md#w001961) [W001961]
 - [Unix Pipes](../corpus/wiki-03.md#w001915) [W001915]

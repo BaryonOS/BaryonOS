@@ -33,7 +33,6 @@ The selection below was generated automatically from page titles and categories;
 - [Internal Kernel Debugger](../corpus/wiki-13.md#w004472) [W004472]
 - [IPL and Loading your kernel](../corpus/wiki-14.md#w005069) [W005069]
 - [Kernel](../corpus/wiki-06.md#w002697) [W002697]
-- [Kernel Debugging](../corpus/wiki-03.md#w001947) [W001947]
 - [Kernel Multitasking](../corpus/wiki-13.md#w004503) [W004503]
 - [Kernel Panic](../corpus/wiki-13.md#w004470) [W004470]
 - [Kernel Stdio Theory](../corpus/wiki-06.md#w002701) [W002701]

@@ -262,3 +262,22 @@ class ExcludeScript(unittest.TestCase):
             with self.assertRaisesRegex(OSError, "earlier failed run"):
                 mod.main()
             self.assertEqual(self._snapshot(root), before)
+
+    def test_rebuilt_manifest_without_optional_totals(self):
+        import sys
+        with tempfile.TemporaryDirectory() as tmp:
+            root = self._copy(tmp)
+            target = self._target(root)
+            mf = root / "assets/source-manifest.json"
+            m = json.loads(mf.read_text(encoding="utf-8"))
+            for key in ("source_text_bytes", "wiki_main_namespace_pages",
+                        "wiki_main_articles_excluding_redirects"):
+                m.pop(key, None)
+            before = m["source_records"]
+            mf.write_text(json.dumps(m, indent=2) + "\n", encoding="utf-8")
+            mod = self._module(root)
+            sys.argv = ["x", "--reason", "test", "--record", "none", target["source_id"]]
+            self.assertEqual(mod.main(), 0)
+            after = json.loads(mf.read_text(encoding="utf-8"))
+            self.assertEqual(after["source_records"], before - 1)
+            self.assertNotIn("source_text_bytes", after)

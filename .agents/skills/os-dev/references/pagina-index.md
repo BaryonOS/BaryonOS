@@ -1,6 +1,6 @@
 # Complete source index
 
-All 3,131 source IDs with local locations. Source navigation only; no execution instructions.
+All 3,104 source IDs with local locations. Source navigation only; no execution instructions.
 
 ## Wiki
 
@@ -11,7 +11,7 @@ All 3,131 source IDs with local locations. Source navigation only; no execution 
 - [W001429 — 3c90x](corpus/wiki-01.md#w001429) · source lines 4648–4678 | namespace 0 | revision 22698 | 2018-09-10T01:35:54Z
 - [W004019 — 3D Renderer Basics](corpus/wiki-11.md#w004019) · source lines 14910–15167 | namespace 0 | revision 23566 | 2019-04-08T09:15:57Z
 - [W002626 — 802.11](corpus/wiki-06.md#w002626) · source lines 3106–3141 | namespace 0 | revision 21595 | 2017-10-01T21:45:18Z
-- [W001478 — 8259 PIC](corpus/wiki-01.md#w001478) · source lines 10169–10437 | namespace 0 | revision 30849 | 2026-07-04T18:16:11Z
+- [W001478 — 8259 PIC](corpus/wiki-01.md#w001478) · source lines 9847–10115 | namespace 0 | revision 30849 | 2026-07-04T18:16:11Z
 - [W001955 — A.out](corpus/wiki-04.md#w001955) · source lines 195–366 | namespace 0 | revision 30550 | 2026-05-02T19:07:46Z
 - [W003016 — A20](corpus/wiki-07.md#w003016) · source lines 9302–9303 | namespace 0 | revision 11766 | 2011-07-10T17:16:45Z
 - [W001433 — A20 Line](corpus/wiki-01.md#w001433) · source lines 4974–5489 | namespace 0 | revision 30909 | 2026-08-14T21:48:42Z
@@ -22,7 +22,6 @@ All 3,131 source IDs with local locations. Source navigation only; no execution 
 - [W004233 — Abandoned Projects](corpus/wiki-12.md#w004233) · source lines 7634–8523 | namespace 0 | revision 28552 | 2024-01-09T21:37:07Z
 - [W003314 — AC97](corpus/wiki-08.md#w003314) · source lines 12598–12999 | namespace 0 | revision 30980 | 2026-09-28T12:28:12Z
 - [W003903 — Academic Papers](corpus/wiki-11.md#w003903) · source lines 7808–7859 | namespace 0 | revision 31041 | 2026-10-23T21:22:10Z
-- [W001854 — Accelerated Graphic Cards](corpus/wiki-03.md#w001854) · source lines 6232–6314 | namespace 0 | revision 27656 | 2023-03-06T10:00:26Z
 - [W003399 — Accelerated Graphics Cards](corpus/wiki-09.md#w003399) · source lines 1180–1180 | namespace 0 | revision 15098 | 2013-08-12T08:56:15Z
 - [W001438 — ACPI](corpus/wiki-01.md#w001438) · source lines 5635–5687 | namespace 0 | revision 30223 | 2026-03-16T14:50:17Z
 - [W002946 — Acpi](corpus/wiki-07.md#w002946) · source lines 4058–4058 | namespace 0 | revision 11054 | 2010-12-20T23:04:19Z
@@ -38,11 +37,10 @@ All 3,131 source IDs with local locations. Source navigation only; no execution 
 - [W002090 — Advanced Integrated Peripheral](corpus/wiki-04.md#w002090) · source lines 6332–6358 | namespace 0 | revision 19821 | 2016-09-17T15:43:43Z
 - [W004962 — Advanced Interrupt Architecture](corpus/wiki-14.md#w004962) · source lines 14870–15037 | namespace 0 | revision 30817 | 2026-06-24T14:58:21Z
 - [W004538 — Advanced Projects](corpus/wiki-13.md#w004538) · source lines 12682–12790 | namespace 0 | revision 27855 | 2023-07-08T17:59:27Z
-- [W001520 — AFS](corpus/wiki-01.md#w001520) · source lines 15804–15812 | namespace 0 | revision 5919 | 2008-07-14T23:04:26Z
-- [W001855 — AGP](corpus/wiki-03.md#w001855) · source lines 6328–6440 | namespace 0 | revision 29908 | 2026-01-21T03:34:34Z
+- [W001520 — AFS](corpus/wiki-01.md#w001520) · source lines 15482–15490 | namespace 0 | revision 5919 | 2008-07-14T23:04:26Z
 - [W002185 — AGP Information](corpus/wiki-04.md#w002185) · source lines 10584–10584 | namespace 0 | revision 4747 | 2007-10-23T10:07:33Z
 - [W002674 — AHCI](corpus/wiki-06.md#w002674) · source lines 5293–6058 | namespace 0 | revision 29504 | 2025-04-29T14:21:32Z
-- [W001500 — ALink](corpus/wiki-01.md#w001500) · source lines 12833–12856 | namespace 0 | revision 31016 | 2026-10-12T11:57:25Z
+- [W001500 — ALink](corpus/wiki-01.md#w001500) · source lines 12511–12534 | namespace 0 | revision 31016 | 2026-10-12T11:57:25Z
 - [W004980 — Alpha](corpus/wiki-14.md#w004980) · source lines 15406–15435 | namespace 0 | revision 30145 | 2026-03-05T23:21:38Z
 - [W002449 — Alta Lang](corpus/wiki-05.md#w002449) · source lines 10957–10989 | namespace 0 | revision 30200 | 2026-03-11T23:59:48Z
 - [W004257 — AMD Atombios](corpus/wiki-12.md#w004257) · source lines 9350–10134 | namespace 0 | revision 30413 | 2026-03-25T03:12:18Z
@@ -51,7 +49,6 @@ All 3,131 source IDs with local locations. Source navigation only; no execution 
 - [W002816 — AMD64](corpus/wiki-06.md#w002816) · source lines 16226–16226 | namespace 0 | revision 9888 | 2010-03-02T20:37:40Z
 - [W003184 — AML](corpus/wiki-08.md#w003184) · source lines 3562–3958 | namespace 0 | revision 30224 | 2026-03-16T14:52:15Z
 - [W004491 — Andy Microbaum](corpus/wiki-13.md#w004491) · source lines 10371–10398 | namespace 0 | revision 29225 | 2024-08-18T21:05:17Z
-- [W001882 — APIC](corpus/wiki-03.md#w001882) · source lines 8012–8622 | namespace 0 | revision 30723 | 2026-06-11T04:36:56Z
 - [W002956 — Apic](corpus/wiki-07.md#w002956) · source lines 4575–4575 | namespace 0 | revision 11095 | 2011-01-11T13:37:46Z
 - [W003127 — APIC Timer](corpus/wiki-07.md#w003127) · source lines 14408–14665 | namespace 0 | revision 28146 | 2023-07-10T14:11:19Z
 - [W004793 — APIC timer](corpus/wiki-14.md#w004793) · source lines 9208–9208 | namespace 0 | revision 28147 | 2023-07-10T14:11:19Z
@@ -124,16 +121,15 @@ All 3,131 source IDs with local locations. Source navigation only; no execution 
 - [W004369 — BCM System Timer](corpus/wiki-13.md#w004369) · source lines 2861–2881 | namespace 0 | revision 28167 | 2023-07-10T14:52:12Z
 - [W002682 — BDA](corpus/wiki-06.md#w002682) · source lines 6384–6384 | namespace 0 | revision 8628 | 2009-07-26T15:16:45Z
 - [W003038 — Beagleboard](corpus/wiki-07.md#w003038) · source lines 10583–10583 | namespace 0 | revision 12054 | 2011-09-30T15:36:05Z
-- [W001512 — BeFS](corpus/wiki-01.md#w001512) · source lines 15098–15239 | namespace 0 | revision 29835 | 2026-01-07T06:35:01Z
-- [W001879 — Beginner Mistakes](corpus/wiki-03.md#w001879) · source lines 7578–7733 | namespace 0 | revision 31014 | 2026-10-11T21:52:42Z
+- [W001512 — BeFS](corpus/wiki-01.md#w001512) · source lines 14776–14917 | namespace 0 | revision 29835 | 2026-01-07T06:35:01Z
 - [W001604 — BFI](corpus/wiki-02.md#w001604) · source lines 6678–6682 | namespace 0 | revision 28809 | 2024-05-13T10:51:12Z
-- [W001517 — BFS](corpus/wiki-01.md#w001517) · source lines 15736–15745 | namespace 0 | revision 30004 | 2026-02-14T16:40:08Z
+- [W001517 — BFS](corpus/wiki-01.md#w001517) · source lines 15414–15423 | namespace 0 | revision 30004 | 2026-02-14T16:40:08Z
 - [W002576 — BGA](corpus/wiki-06.md#w002576) · source lines 360–360 | namespace 0 | revision 9616 | 2010-01-11T14:54:37Z
 - [W004600 — BGRT](corpus/wiki-13.md#w004600) · source lines 15640–15711 | namespace 0 | revision 29081 | 2024-06-07T13:37:35Z
 - [W003746 — Big-endian](corpus/wiki-10.md#w003746) · source lines 16972–16972 | namespace 0 | revision 17961 | 2015-04-29T19:03:38Z
 - [W003137 — Binary Notation](corpus/wiki-07.md#w003137) · source lines 14928–15018 | namespace 0 | revision 16269 | 2014-04-24T05:32:44Z
 - [W004051 — Binutils](corpus/wiki-12.md#w004051) · source lines 826–850 | namespace 0 | revision 22633 | 2018-09-09T23:02:02Z
-- [W001484 — BIOS](corpus/wiki-01.md#w001484) · source lines 10614–10936 | namespace 0 | revision 30975 | 2026-09-27T17:55:31Z
+- [W001484 — BIOS](corpus/wiki-01.md#w001484) · source lines 10292–10614 | namespace 0 | revision 30975 | 2026-09-27T17:55:31Z
 - [W003053 — BIOS (PC)](corpus/wiki-07.md#w003053) · source lines 11072–11072 | namespace 0 | revision 12288 | 2011-12-12T14:36:19Z
 - [W003623 — BIOS32](corpus/wiki-10.md#w003623) · source lines 7109–7202 | namespace 0 | revision 30199 | 2026-03-11T21:16:30Z
 - [W001797 — Blocking Process](corpus/wiki-03.md#w001797) · source lines 3505–3533 | namespace 0 | revision 24004 | 2019-09-25T13:09:58Z
@@ -143,8 +139,8 @@ All 3,131 source IDs with local locations. Source navigation only; no execution 
 - [W002231 — Bochs VBE Extensions](corpus/wiki-04.md#w002231) · source lines 12383–12544 | namespace 0 | revision 30571 | 2026-05-12T15:39:18Z
 - [W002727 — Bochs VBE extensions](corpus/wiki-06.md#w002727) · source lines 9101–9101 | namespace 0 | revision 9222 | 2009-11-16T18:09:14Z
 - [W001572 — Books](corpus/wiki-02.md#w001572) · source lines 4446–5277 | namespace 0 | revision 29661 | 2025-09-18T03:57:46Z
-- [W001870 — Boot Magic](corpus/wiki-03.md#w001870) · source lines 6813–6821 | namespace 0 | revision 6475 | 2008-10-29T09:37:51Z
-- [W001871 — Boot Sequence](corpus/wiki-03.md#w001871) · source lines 6835–6906 | namespace 0 | revision 30544 | 2026-05-02T10:58:50Z
+- [W001870 — Boot Magic](corpus/wiki-03.md#w001870) · source lines 6511–6519 | namespace 0 | revision 6475 | 2008-10-29T09:37:51Z
+- [W001871 — Boot Sequence](corpus/wiki-03.md#w001871) · source lines 6533–6604 | namespace 0 | revision 30544 | 2026-05-02T10:58:50Z
 - [W003050 — Boot sequence](corpus/wiki-07.md#w003050) · source lines 11027–11027 | namespace 0 | revision 12256 | 2011-12-12T10:34:25Z
 - [W003732 — Boot Signature](corpus/wiki-10.md#w003732) · source lines 16177–16177 | namespace 0 | revision 19564 | 2016-07-23T11:58:22Z
 - [W003762 — Boot signature](corpus/wiki-10.md#w003762) · source lines 17337–17337 | namespace 0 | revision 20682 | 2017-04-10T17:39:51Z
@@ -157,7 +153,7 @@ All 3,131 source IDs with local locations. Source navigation only; no execution 
 - [W001682 — Bootloader](corpus/wiki-02.md#w001682) · source lines 8526–8605 | namespace 0 | revision 30966 | 2026-09-22T22:19:12Z
 - [W004321 — Bootloader FAQ](corpus/wiki-12.md#w004321) · source lines 16820–16897 | namespace 0 | revision 29620 | 2025-08-06T22:24:49Z
 - [W003753 — Bootloaders](corpus/wiki-10.md#w003753) · source lines 17172–17172 | namespace 0 | revision 17775 | 2015-03-11T15:21:10Z
-- [W001916 — BootProg](corpus/wiki-03.md#w001916) · source lines 14368–14375 | namespace 0 | revision 28477 | 2023-11-23T08:43:57Z
+- [W001916 — BootProg](corpus/wiki-03.md#w001916) · source lines 12199–12206 | namespace 0 | revision 28477 | 2023-11-23T08:43:57Z
 - [W001950 — Bran's Kernel Development Tutorial Known Bugs](corpus/wiki-04.md#w001950) · source lines 16–99 | namespace 0 | revision 27236 | 2022-07-12T19:46:31Z
 - [W004488 — Bran's Known Bugs](corpus/wiki-13.md#w004488) · source lines 10303–10303 | namespace 0 | revision 24787 | 2020-06-18T13:00:27Z
 - [W003809 — Brendan's Memory Management Guide](corpus/wiki-11.md#w003809) · source lines 2812–2895 | namespace 0 | revision 23066 | 2018-10-31T19:39:58Z
@@ -186,7 +182,7 @@ All 3,131 source IDs with local locations. Source navigation only; no execution 
 - [W001759 — Calling Conventions](corpus/wiki-03.md#w001759) · source lines 1392–1513 | namespace 0 | revision 29385 | 2025-02-08T13:33:55Z
 - [W003336 — Calling Global Constructors](corpus/wiki-08.md#w003336) · source lines 15396–15694 | namespace 0 | revision 28110 | 2023-07-09T22:43:14Z
 - [W003134 — Can I have a list of IO Ports](corpus/wiki-07.md#w003134) · source lines 14882–14883 | namespace 0 | revision 12937 | 2012-03-07T18:36:43Z
-- [W001884 — Canadian Cross](corpus/wiki-03.md#w001884) · source lines 8730–8730 | namespace 0 | revision 3158 | 2007-03-06T13:32:52Z
+- [W001884 — Canadian Cross](corpus/wiki-03.md#w001884) · source lines 7277–7277 | namespace 0 | revision 3158 | 2007-03-06T13:32:52Z
 - [W002962 — Cannot perform PE operations on non-PE file](corpus/wiki-07.md#w002962) · source lines 4918–4919 | namespace 0 | revision 11178 | 2011-02-07T17:03:15Z
 - [W002845 — Categorized Main Page](corpus/wiki-06.md#w002845) · source lines 17637–17654 | namespace 0 | revision 29148 | 2024-06-24T04:50:14Z
 - [W001780 — Category talk:Babystep](corpus/wiki-03.md#w001780) · source lines 2908–2909 | namespace 15 | revision 2795 | 2007-01-13T10:07:28Z
@@ -210,7 +206,7 @@ All 3,131 source IDs with local locations. Source navigation only; no execution 
 - [W002333 — Category:ARM](corpus/wiki-05.md#w002333) · source lines 5078–5078 | namespace 14 | revision 5781 | 2008-07-02T20:17:04Z
 - [W005002 — Category:ARM Virtualization](corpus/wiki-14.md#w005002) · source lines 17992–17993 | namespace 14 | revision 30114 | 2026-03-03T15:12:24Z
 - [W004308 — Category:Articles Written in First Person](corpus/wiki-12.md#w004308) · source lines 16434–16436 | namespace 14 | revision 29403 | 2025-02-17T08:45:29Z
-- [W001489 — Category:Assemblers](corpus/wiki-01.md#w001489) · source lines 12547–12547 | namespace 14 | revision 3106 | 2007-02-28T06:47:36Z
+- [W001489 — Category:Assemblers](corpus/wiki-01.md#w001489) · source lines 12225–12225 | namespace 14 | revision 3106 | 2007-02-28T06:47:36Z
 - [W001708 — Category:Assembly](corpus/wiki-02.md#w001708) · source lines 10764–10764 | namespace 14 | revision 8480 | 2009-07-10T08:16:28Z
 - [W002240 — Category:ATA](corpus/wiki-04.md#w002240) · source lines 13871–13891 | namespace 14 | revision 23196 | 2019-01-12T07:37:08Z
 - [W001772 — Category:Babystep](corpus/wiki-03.md#w001772) · source lines 2125–2128 | namespace 14 | revision 29109 | 2024-06-07T13:41:27Z
@@ -221,7 +217,7 @@ All 3,131 source IDs with local locations. Source navigation only; no execution 
 - [W003624 — Category:BIOS](corpus/wiki-10.md#w003624) · source lines 7216–7219 | namespace 14 | revision 20360 | 2017-02-11T17:28:17Z
 - [W001574 — Category:Book Covers](corpus/wiki-02.md#w001574) · source lines 5307–5309 | namespace 14 | revision 2339 | 2006-12-16T20:57:48Z
 - [W004769 — Category:Booting](corpus/wiki-14.md#w004769) · source lines 8879–8879 | namespace 14 | revision 27899 | 2023-07-09T04:50:07Z
-- [W001504 — Category:Bootloaders](corpus/wiki-01.md#w001504) · source lines 12961–12964 | namespace 14 | revision 2433 | 2006-12-18T11:21:34Z
+- [W001504 — Category:Bootloaders](corpus/wiki-01.md#w001504) · source lines 12639–12642 | namespace 14 | revision 2433 | 2006-12-18T11:21:34Z
 - [W004782 — Category:Build Tools](corpus/wiki-14.md#w004782) · source lines 9049–9050 | namespace 14 | revision 30162 | 2026-03-09T08:52:22Z
 - [W001848 — Category:Buses](corpus/wiki-03.md#w001848) · source lines 5962–5962 | namespace 14 | revision 3053 | 2007-02-15T01:25:57Z
 - [W002658 — Category:C](corpus/wiki-06.md#w002658) · source lines 4876–4876 | namespace 14 | revision 8482 | 2009-07-10T08:18:21Z
@@ -233,7 +229,7 @@ All 3,131 source IDs with local locations. Source navigation only; no execution 
 - [W005009 — Category:Compatability Layers](corpus/wiki-14.md#w005009) · source lines 18117–18117 | namespace 14 | revision 30175 | 2026-03-09T16:44:16Z
 - [W004785 — Category:Compatibility Layers](corpus/wiki-14.md#w004785) · source lines 9092–9092 | namespace 14 | revision 30174 | 2026-03-09T16:44:16Z
 - [W004789 — Category:Compiler Development](corpus/wiki-14.md#w004789) · source lines 9150–9150 | namespace 14 | revision 28075 | 2023-07-09T20:47:37Z
-- [W001491 — Category:Compilers](corpus/wiki-01.md#w001491) · source lines 12561–12562 | namespace 14 | revision 16376 | 2014-05-15T02:48:35Z
+- [W001491 — Category:Compilers](corpus/wiki-01.md#w001491) · source lines 12239–12240 | namespace 14 | revision 16376 | 2014-05-15T02:48:35Z
 - [W003885 — Category:CPU Registers](corpus/wiki-11.md#w003885) · source lines 6671–6673 | namespace 14 | revision 19601 | 2016-07-25T12:34:40Z
 - [W004672 — Category:CSharp](corpus/wiki-14.md#w004672) · source lines 3108–3109 | namespace 14 | revision 27587 | 2023-01-14T06:08:51Z
 - [W004310 — Category:D](corpus/wiki-12.md#w004310) · source lines 16464–16465 | namespace 14 | revision 27588 | 2023-01-14T06:10:59Z
@@ -246,11 +242,11 @@ All 3,131 source IDs with local locations. Source navigation only; no execution 
 - [W001795 — Category:Disputed Pages](corpus/wiki-03.md#w001795) · source lines 3367–3369 | namespace 14 | revision 2853 | 2007-01-20T10:23:26Z
 - [W003376 — Category:Driver Interfaces](corpus/wiki-09.md#w003376) · source lines 319–321 | namespace 14 | revision 14847 | 2013-06-13T07:49:31Z
 - [W003375 — Category:Drivers](corpus/wiki-09.md#w003375) · source lines 303–305 | namespace 14 | revision 14846 | 2013-06-13T07:46:48Z
-- [W001492 — Category:Emulators](corpus/wiki-01.md#w001492) · source lines 12576–12576 | namespace 14 | revision 1839 | 2006-12-06T01:33:53Z
+- [W001492 — Category:Emulators](corpus/wiki-01.md#w001492) · source lines 12254–12254 | namespace 14 | revision 1839 | 2006-12-06T01:33:53Z
 - [W001953 — Category:Executable Formats](corpus/wiki-04.md#w001953) · source lines 147–149 | namespace 14 | revision 3292 | 2007-03-11T05:08:38Z
 - [W004883 — Category:FAQ](corpus/wiki-14.md#w004883) · source lines 11718–11720 | namespace 14 | revision 29097 | 2024-06-07T13:39:26Z
 - [W004780 — Category:File Formats](corpus/wiki-14.md#w004780) · source lines 9020–9020 | namespace 14 | revision 27987 | 2023-07-09T17:30:00Z
-- [W001518 — Category:Filesystems](corpus/wiki-01.md#w001518) · source lines 15759–15761 | namespace 14 | revision 2343 | 2006-12-16T20:59:43Z
+- [W001518 — Category:Filesystems](corpus/wiki-01.md#w001518) · source lines 15437–15439 | namespace 14 | revision 2343 | 2006-12-16T20:59:43Z
 - [W002928 — Category:Firmware](corpus/wiki-07.md#w002928) · source lines 2857–2860 | namespace 14 | revision 12565 | 2012-02-06T18:17:29Z
 - [W004788 — Category:Fonts](corpus/wiki-14.md#w004788) · source lines 9136–9136 | namespace 14 | revision 28069 | 2023-07-09T20:41:38Z
 - [W002895 — Category:Gameboy Advance](corpus/wiki-07.md#w002895) · source lines 1177–1179 | namespace 14 | revision 10505 | 2010-06-30T18:31:14Z
@@ -272,14 +268,14 @@ All 3,131 source IDs with local locations. Source navigation only; no execution 
 - [W002161 — Category:Interrupts](corpus/wiki-04.md#w002161) · source lines 9233–9237 | namespace 14 | revision 4525 | 2007-09-06T04:33:36Z
 - [W001710 — Category:IPC](corpus/wiki-02.md#w001710) · source lines 10792–10794 | namespace 14 | revision 2609 | 2006-12-29T23:34:34Z
 - [W002745 — Category:Itanium2](corpus/wiki-06.md#w002745) · source lines 9565–9569 | namespace 14 | revision 9348 | 2009-12-06T22:43:19Z
-- [W001472 — Category:Kernel](corpus/wiki-01.md#w001472) · source lines 9838–9841 | namespace 14 | revision 2332 | 2006-12-16T20:47:23Z
+- [W001472 — Category:Kernel](corpus/wiki-01.md#w001472) · source lines 9516–9519 | namespace 14 | revision 2332 | 2006-12-16T20:47:23Z
 - [W001573 — Category:Languages](corpus/wiki-02.md#w001573) · source lines 5291–5293 | namespace 14 | revision 8458 | 2009-07-09T22:07:11Z
 - [W003128 — Category:Level 0 Tutorials](corpus/wiki-07.md#w003128) · source lines 14679–14680 | namespace 14 | revision 12925 | 2012-03-07T13:10:13Z
 - [W003129 — Category:Level 1 Tutorials](corpus/wiki-07.md#w003129) · source lines 14694–14695 | namespace 14 | revision 12926 | 2012-03-07T13:11:55Z
 - [W003130 — Category:Level 2 Tutorials](corpus/wiki-07.md#w003130) · source lines 14709–14710 | namespace 14 | revision 12927 | 2012-03-07T13:12:39Z
 - [W003131 — Category:Level 3 Tutorials](corpus/wiki-07.md#w003131) · source lines 14724–14725 | namespace 14 | revision 12928 | 2012-03-07T13:13:04Z
 - [W003084 — Category:Level 4 Tutorials](corpus/wiki-07.md#w003084) · source lines 12458–12460 | namespace 14 | revision 12564 | 2012-02-06T18:09:17Z
-- [W001497 — Category:Linkers](corpus/wiki-01.md#w001497) · source lines 12753–12753 | namespace 14 | revision 1849 | 2006-12-06T03:13:14Z
+- [W001497 — Category:Linkers](corpus/wiki-01.md#w001497) · source lines 12431–12431 | namespace 14 | revision 1849 | 2006-12-06T03:13:14Z
 - [W004791 — Category:Linux](corpus/wiki-14.md#w004791) · source lines 9178–9179 | namespace 14 | revision 30163 | 2026-03-09T08:54:14Z
 - [W004765 — Category:Loaders](corpus/wiki-14.md#w004765) · source lines 8821–8821 | namespace 14 | revision 27888 | 2023-07-09T04:37:59Z
 - [W003690 — Category:Lovecraftian](corpus/wiki-10.md#w003690) · source lines 13648–13649 | namespace 14 | revision 17259 | 2014-12-03T18:03:35Z
@@ -332,7 +328,7 @@ All 3,131 source IDs with local locations. Source navigation only; no execution 
 - [W004777 — Category:Standard Libraries](corpus/wiki-14.md#w004777) · source lines 8978–8978 | namespace 14 | revision 27961 | 2023-07-09T16:16:38Z
 - [W001672 — Category:Standards](corpus/wiki-02.md#w001672) · source lines 8350–8352 | namespace 14 | revision 2363 | 2006-12-16T21:15:31Z
 - [W004688 — Category:Stivale](corpus/wiki-14.md#w004688) · source lines 4068–4069 | namespace 14 | revision 27589 | 2023-01-14T06:21:49Z
-- [W001471 — Category:Storage](corpus/wiki-01.md#w001471) · source lines 9821–9824 | namespace 14 | revision 1765 | 2006-12-03T08:31:01Z
+- [W001471 — Category:Storage](corpus/wiki-01.md#w001471) · source lines 9499–9502 | namespace 14 | revision 1765 | 2006-12-03T08:31:01Z
 - [W001526 — Category:Stubs](corpus/wiki-02.md#w001526) · source lines 158–160 | namespace 14 | revision 2349 | 2006-12-16T21:06:09Z
 - [W001758 — Category:Synchronization](corpus/wiki-03.md#w001758) · source lines 1378–1378 | namespace 14 | revision 2766 | 2007-01-11T11:50:52Z
 - [W004797 — Category:System Calls](corpus/wiki-14.md#w004797) · source lines 9265–9265 | namespace 14 | revision 28169 | 2023-07-10T14:55:38Z
@@ -343,7 +339,7 @@ All 3,131 source IDs with local locations. Source navigation only; no execution 
 - [W003103 — Category:Time](corpus/wiki-07.md#w003103) · source lines 13828–13829 | namespace 14 | revision 12672 | 2012-02-19T18:50:37Z
 - [W004778 — Category:Timers](corpus/wiki-14.md#w004778) · source lines 8992–8992 | namespace 14 | revision 27963 | 2023-07-09T16:17:59Z
 - [W004042 — Category:Tone](corpus/wiki-11.md#w004042) · source lines 16453–16455 | namespace 14 | revision 29405 | 2025-02-17T09:01:30Z
-- [W001493 — Category:Tools](corpus/wiki-01.md#w001493) · source lines 12590–12592 | namespace 14 | revision 2395 | 2006-12-17T00:24:51Z
+- [W001493 — Category:Tools](corpus/wiki-01.md#w001493) · source lines 12268–12270 | namespace 14 | revision 2395 | 2006-12-17T00:24:51Z
 - [W001673 — Category:Troubleshooting](corpus/wiki-02.md#w001673) · source lines 8366–8368 | namespace 14 | revision 5587 | 2008-06-04T19:32:05Z
 - [W001751 — Category:Tutorials](corpus/wiki-03.md#w001751) · source lines 1123–1125 | namespace 14 | revision 6683 | 2008-11-18T11:36:45Z
 - [W004080 — Category:UEFI](corpus/wiki-12.md#w004080) · source lines 2812–2814 | namespace 14 | revision 21067 | 2017-08-10T09:56:00Z
@@ -396,13 +392,13 @@ All 3,131 source IDs with local locations. Source navigation only; no execution 
 - [W003671 — Cooperative Multitasking](corpus/wiki-10.md#w003671) · source lines 12090–12097 | namespace 0 | revision 30768 | 2026-06-16T15:05:25Z
 - [W004493 — Cowboy Coder](corpus/wiki-13.md#w004493) · source lines 10426–10464 | namespace 0 | revision 29821 | 2026-01-02T03:40:59Z
 - [W002668 — CPlusPlus](corpus/wiki-06.md#w002668) · source lines 4994–4994 | namespace 0 | revision 8516 | 2009-07-10T13:22:58Z
-- [W001452 — CPU Bugs](corpus/wiki-01.md#w001452) · source lines 7080–7221 | namespace 0 | revision 30264 | 2026-03-16T17:43:15Z
+- [W001452 — CPU Bugs](corpus/wiki-01.md#w001452) · source lines 6758–6899 | namespace 0 | revision 30264 | 2026-03-16T17:43:15Z
 - [W002699 — CPU Caches](corpus/wiki-06.md#w002699) · source lines 7024–7105 | namespace 0 | revision 28242 | 2023-07-10T23:29:26Z
 - [W003775 — CPU Register x86](corpus/wiki-11.md#w003775) · source lines 791–791 | namespace 0 | revision 17967 | 2015-04-30T08:21:30Z
 - [W003729 — CPU Registers x86](corpus/wiki-10.md#w003729) · source lines 15510–16147 | namespace 0 | revision 30487 | 2026-04-16T09:34:41Z
 - [W003869 — CPU Registers x86 64](corpus/wiki-11.md#w003869) · source lines 5840–5840 | namespace 0 | revision 18836 | 2016-01-10T11:29:17Z
 - [W003774 — CPU Registers x86-64](corpus/wiki-11.md#w003774) · source lines 16–776 | namespace 0 | revision 30266 | 2026-03-16T17:44:07Z
-- [W001450 — CPUID](corpus/wiki-01.md#w001450) · source lines 6819–7066 | namespace 0 | revision 30267 | 2026-03-16T17:44:54Z
+- [W001450 — CPUID](corpus/wiki-01.md#w001450) · source lines 6497–6744 | namespace 0 | revision 30267 | 2026-03-16T17:44:54Z
 - [W003736 — CR0](corpus/wiki-10.md#w003736) · source lines 16336–16336 | namespace 0 | revision 17970 | 2015-04-30T08:23:13Z
 - [W004653 — Cr2](corpus/wiki-14.md#w004653) · source lines 2368–2368 | namespace 0 | revision 26554 | 2021-10-20T06:06:32Z
 - [W004654 — Cr3](corpus/wiki-14.md#w004654) · source lines 2383–2383 | namespace 0 | revision 26555 | 2021-10-20T06:06:53Z
@@ -419,8 +415,7 @@ All 3,131 source IDs with local locations. Source navigation only; no execution 
 - [W003628 — Cross-Porting Software](corpus/wiki-10.md#w003628) · source lines 7469–7632 | namespace 0 | revision 28165 | 2023-07-10T14:49:59Z
 - [W003062 — Crt0](corpus/wiki-07.md#w003062) · source lines 11949–11949 | namespace 0 | revision 14158 | 2012-12-19T14:02:11Z
 - [W002661 — CSharp](corpus/wiki-06.md#w002661) · source lines 4919–4919 | namespace 0 | revision 8488 | 2009-07-10T08:23:05Z
-- [W001453 — Cygwin](corpus/wiki-01.md#w001453) · source lines 7235–7281 | namespace 0 | revision 30176 | 2026-03-09T16:45:35Z
-- [W001880 — Cygwin Issues](corpus/wiki-03.md#w001880) · source lines 7747–7967 | namespace 0 | revision 27988 | 2023-07-09T17:31:36Z
+- [W001453 — Cygwin](corpus/wiki-01.md#w001453) · source lines 6913–6959 | namespace 0 | revision 30176 | 2026-03-09T16:45:35Z
 - [W002508 — D](corpus/wiki-05.md#w002508) · source lines 13326–13347 | namespace 0 | revision 30986 | 2026-09-28T14:34:58Z
 - [W002528 — D Bare Bones](corpus/wiki-05.md#w002528) · source lines 14230–14401 | namespace 0 | revision 30605 | 2026-05-22T14:00:48Z
 - [W002530 — D Bare bones](corpus/wiki-05.md#w002530) · source lines 14416–14416 | namespace 0 | revision 7519 | 2009-04-03T10:20:59Z
@@ -436,8 +431,8 @@ All 3,131 source IDs with local locations. Source navigation only; no execution 
 - [W002985 — Deprecated](corpus/wiki-07.md#w002985) · source lines 6017–6075 | namespace 0 | revision 20311 | 2017-02-01T11:33:01Z
 - [W002882 — Descriptor](corpus/wiki-07.md#w002882) · source lines 588–789 | namespace 0 | revision 28185 | 2023-07-10T17:32:31Z
 - [W002124 — Descriptor Cache](corpus/wiki-04.md#w002124) · source lines 7881–7895 | namespace 0 | revision 26974 | 2022-02-16T18:25:12Z
-- [W001877 — Descriptors](corpus/wiki-03.md#w001877) · source lines 7222–7381 | namespace 0 | revision 16219 | 2014-04-17T18:42:21Z
-- [W001914 — Detecting Colour and Monochrome Monitors](corpus/wiki-03.md#w001914) · source lines 14285–14311 | namespace 0 | revision 28077 | 2023-07-09T20:51:24Z
+- [W001877 — Descriptors](corpus/wiki-03.md#w001877) · source lines 6920–7079 | namespace 0 | revision 16219 | 2014-04-17T18:42:21Z
+- [W001914 — Detecting Colour and Monochrome Monitors](corpus/wiki-03.md#w001914) · source lines 12116–12142 | namespace 0 | revision 28077 | 2023-07-09T20:51:24Z
 - [W001446 — Detecting CPU Speed](corpus/wiki-01.md#w001446) · source lines 6003–6233 | namespace 0 | revision 30288 | 2026-03-16T18:58:39Z
 - [W002973 — Detecting CPU Topology (80x86)](corpus/wiki-07.md#w002973) · source lines 5395–5521 | namespace 0 | revision 28239 | 2023-07-10T23:27:32Z
 - [W003884 — Detecting Hardware](corpus/wiki-11.md#w003884) · source lines 6643–6657 | namespace 0 | revision 28187 | 2023-07-10T17:33:43Z
@@ -445,15 +440,15 @@ All 3,131 source IDs with local locations. Source navigation only; no execution 
 - [W002279 — Detecting Memory (x86)](corpus/wiki-05.md#w002279) · source lines 2248–3140 | namespace 0 | revision 30850 | 2026-07-05T02:38:23Z
 - [W004416 — Detecting Raspberry Pi Board](corpus/wiki-13.md#w004416) · source lines 5164–5239 | namespace 0 | revision 30289 | 2026-03-16T18:59:11Z
 - [W002665 — Dev-C PlusPlus](corpus/wiki-06.md#w002665) · source lines 4964–4964 | namespace 0 | revision 8375 | 2009-07-05T22:46:45Z
-- [W001893 — Dev-C++](corpus/wiki-03.md#w001893) · source lines 9460–9485 | namespace 0 | revision 28244 | 2023-07-10T23:38:35Z
+- [W001893 — Dev-C++](corpus/wiki-03.md#w001893) · source lines 7291–7316 | namespace 0 | revision 28244 | 2023-07-10T23:38:35Z
 - [W003410 — Device Driver Interfaces](corpus/wiki-09.md#w003410) · source lines 2019–2019 | namespace 0 | revision 15223 | 2013-10-02T22:07:49Z
 - [W002355 — Device Management](corpus/wiki-05.md#w002355) · source lines 7248–7310 | namespace 0 | revision 28406 | 2023-10-18T07:43:32Z
 - [W004422 — Devicetree](corpus/wiki-13.md#w004422) · source lines 6226–6246 | namespace 0 | revision 30825 | 2026-06-29T19:22:14Z
-- [W001901 — Direct Mapping](corpus/wiki-03.md#w001901) · source lines 12405–12467 | namespace 0 | revision 30754 | 2026-06-15T09:50:02Z
+- [W001901 — Direct Mapping](corpus/wiki-03.md#w001901) · source lines 10236–10298 | namespace 0 | revision 30754 | 2026-06-15T09:50:02Z
 - [W002495 — Disassemble](corpus/wiki-05.md#w002495) · source lines 12744–12744 | namespace 0 | revision 21457 | 2017-08-30T18:00:25Z
 - [W002245 — Disk access using the BIOS (INT 13h)](corpus/wiki-04.md#w002245) · source lines 14169–14386 | namespace 0 | revision 30242 | 2026-03-16T15:43:42Z
 - [W001606 — Disk Images](corpus/wiki-02.md#w001606) · source lines 6732–6986 | namespace 0 | revision 26884 | 2022-01-24T01:55:20Z
-- [W001872 — Diskless Booting](corpus/wiki-03.md#w001872) · source lines 6920–7000 | namespace 0 | revision 29089 | 2024-06-07T13:38:42Z
+- [W001872 — Diskless Booting](corpus/wiki-03.md#w001872) · source lines 6618–6698 | namespace 0 | revision 29089 | 2024-06-07T13:38:42Z
 - [W003052 — Diskless booting](corpus/wiki-07.md#w003052) · source lines 11057–11057 | namespace 0 | revision 12265 | 2011-12-12T10:39:30Z
 - [W004709 — DisplayPort](corpus/wiki-14.md#w004709) · source lines 5863–5984 | namespace 0 | revision 28118 | 2023-07-10T02:06:27Z
 - [W002951 — Dithering](corpus/wiki-07.md#w002951) · source lines 4420–4483 | namespace 0 | revision 11089 | 2011-01-09T16:56:30Z
@@ -468,7 +463,6 @@ All 3,131 source IDs with local locations. Source navigation only; no execution 
 - [W002188 — DP8390](corpus/wiki-04.md#w002188) · source lines 10777–10787 | namespace 0 | revision 22650 | 2018-09-09T23:36:25Z
 - [W003964 — DPL](corpus/wiki-11.md#w003964) · source lines 10048–10052 | namespace 0 | revision 28238 | 2023-07-10T22:05:40Z
 - [W004597 — Drawing In a Linear Framebuffer](corpus/wiki-13.md#w004597) · source lines 15319–15545 | namespace 0 | revision 30599 | 2026-05-21T22:46:51Z
-- [W001934 — Drawing In Protected Mode](corpus/wiki-03.md#w001934) · source lines 15333–15333 | namespace 0 | revision 25994 | 2021-05-27T23:35:35Z
 - [W003111 — DSDT](corpus/wiki-07.md#w003111) · source lines 13952–14021 | namespace 0 | revision 30291 | 2026-03-16T19:00:48Z
 - [W005072 — DTB](corpus/wiki-14.md#w005072) · source lines 22107–22107 | namespace 0 | revision 30826 | 2026-06-29T19:23:36Z
 - [W005073 — DTS](corpus/wiki-14.md#w005073) · source lines 22122–22122 | namespace 0 | revision 30827 | 2026-06-29T19:23:55Z
@@ -490,7 +484,7 @@ All 3,131 source IDs with local locations. Source navigation only; no execution 
 - [W001578 — Eleanore Semaphore](corpus/wiki-02.md#w001578) · source lines 5444–5515 | namespace 0 | revision 24892 | 2020-06-22T13:53:15Z
 - [W001542 — ELF](corpus/wiki-02.md#w001542) · source lines 2100–2505 | namespace 0 | revision 30569 | 2026-05-10T03:28:40Z
 - [W003429 — ELF Tutorial](corpus/wiki-09.md#w003429) · source lines 2961–3557 | namespace 0 | revision 30303 | 2026-03-16T20:34:39Z
-- [W001895 — EM64T](corpus/wiki-03.md#w001895) · source lines 9499–9524 | namespace 0 | revision 28117 | 2023-07-09T23:15:46Z
+- [W001895 — EM64T](corpus/wiki-03.md#w001895) · source lines 7330–7355 | namespace 0 | revision 28117 | 2023-07-09T23:15:46Z
 - [W002678 — Emulator Comparison](corpus/wiki-06.md#w002678) · source lines 6093–6323 | namespace 0 | revision 25140 | 2020-09-08T02:50:42Z
 - [W002595 — Emulators](corpus/wiki-06.md#w002595) · source lines 1322–1383 | namespace 0 | revision 16270 | 2014-04-24T05:34:09Z
 - [W003773 — Endian](corpus/wiki-10.md#w003773) · source lines 18298–18298 | namespace 0 | revision 17959 | 2015-04-29T19:00:54Z
@@ -511,11 +505,11 @@ All 3,131 source IDs with local locations. Source navigation only; no execution 
 - [W003857 — Execution Architecture](corpus/wiki-11.md#w003857) · source lines 5620–5621 | namespace 0 | revision 22214 | 2018-03-16T00:31:24Z
 - [W003824 — Execution Loader](corpus/wiki-11.md#w003824) · source lines 3458–3466 | namespace 0 | revision 27879 | 2023-07-09T04:22:45Z
 - [W003739 — ExFAT](corpus/wiki-10.md#w003739) · source lines 16373–16750 | namespace 0 | revision 30517 | 2026-04-26T04:15:40Z
-- [W001465 — Exokernel](corpus/wiki-01.md#w001465) · source lines 9096–9155 | namespace 0 | revision 29667 | 2025-09-19T21:30:09Z
+- [W001465 — Exokernel](corpus/wiki-01.md#w001465) · source lines 8774–8833 | namespace 0 | revision 29667 | 2025-09-19T21:30:09Z
 - [W004974 — ExoOs](corpus/wiki-14.md#w004974) · source lines 15264–15264 | namespace 0 | revision 29855 | 2026-01-10T19:13:45Z
 - [W003549 — Expand Down](corpus/wiki-10.md#w003549) · source lines 1675–1675 | namespace 0 | revision 16091 | 2014-04-13T05:16:20Z
 - [W004888 — Expanded Main Page](corpus/wiki-14.md#w004888) · source lines 11783–11800 | namespace 0 | revision 30560 | 2026-05-06T12:56:57Z
-- [W001509 — Ext2](corpus/wiki-01.md#w001509) · source lines 14400–15020 | namespace 0 | revision 29719 | 2025-10-19T14:43:19Z
+- [W001509 — Ext2](corpus/wiki-01.md#w001509) · source lines 14078–14698 | namespace 0 | revision 29719 | 2025-10-19T14:43:19Z
 - [W002998 — Ext3](corpus/wiki-07.md#w002998) · source lines 6724–6847 | namespace 0 | revision 29777 | 2025-12-01T16:12:15Z
 - [W003001 — Ext4](corpus/wiki-07.md#w003001) · source lines 6946–7652 | namespace 0 | revision 30518 | 2026-04-26T04:18:19Z
 - [W002681 — Extensible Driver Interface](corpus/wiki-06.md#w002681) · source lines 6352–6369 | namespace 0 | revision 27966 | 2023-07-09T16:27:40Z
@@ -524,18 +518,17 @@ All 3,131 source IDs with local locations. Source navigation only; no execution 
 - [W002812 — FADT](corpus/wiki-06.md#w002812) · source lines 15616–15800 | namespace 0 | revision 30278 | 2026-03-16T17:57:33Z
 - [W002433 — FAQ](corpus/wiki-05.md#w002433) · source lines 10143–10143 | namespace 0 | revision 6702 | 2008-11-21T11:37:20Z
 - [W001584 — FASM](corpus/wiki-02.md#w001584) · source lines 5760–5777 | namespace 0 | revision 25422 | 2020-12-10T16:20:30Z
-- [W001506 — FAT](corpus/wiki-01.md#w001506) · source lines 13151–14183 | namespace 0 | revision 30279 | 2026-03-16T17:58:45Z
+- [W001506 — FAT](corpus/wiki-01.md#w001506) · source lines 12829–13861 | namespace 0 | revision 30279 | 2026-03-16T17:58:45Z
 - [W002401 — Fat imgen](corpus/wiki-05.md#w002401) · source lines 9247–9267 | namespace 0 | revision 22632 | 2018-09-09T23:00:35Z
 - [W002331 — FAT12](corpus/wiki-05.md#w002331) · source lines 4472–4472 | namespace 0 | revision 28332 | 2023-09-28T15:07:39Z
 - [W002337 — FAT16](corpus/wiki-05.md#w002337) · source lines 5182–5182 | namespace 0 | revision 28333 | 2023-09-28T15:08:09Z
 - [W002330 — FAT32](corpus/wiki-05.md#w002330) · source lines 4457–4457 | namespace 0 | revision 28334 | 2023-09-28T15:08:19Z
 - [W002900 — FDC](corpus/wiki-07.md#w002900) · source lines 1212–1212 | namespace 0 | revision 10575 | 2010-07-31T11:03:50Z
-- [W001514 — FFS (Amiga)](corpus/wiki-01.md#w001514) · source lines 15276–15524 | namespace 0 | revision 29569 | 2025-06-22T13:32:16Z
+- [W001514 — FFS (Amiga)](corpus/wiki-01.md#w001514) · source lines 14954–15202 | namespace 0 | revision 29569 | 2025-06-22T13:32:16Z
 - [W002779 — FFS (BSD)](corpus/wiki-06.md#w002779) · source lines 10548–10548 | namespace 0 | revision 9522 | 2009-12-21T21:11:31Z
 - [W001601 — File Disk](corpus/wiki-02.md#w001601) · source lines 6595–6608 | namespace 0 | revision 12043 | 2011-09-30T06:25:03Z
-- [W001859 — File Management](corpus/wiki-03.md#w001859) · source lines 6496–6520 | namespace 0 | revision 29945 | 2026-02-09T19:32:39Z
 - [W004220 — File System](corpus/wiki-12.md#w004220) · source lines 6437–6437 | namespace 0 | revision 21768 | 2017-11-26T17:51:44Z
-- [W001505 — File Systems](corpus/wiki-01.md#w001505) · source lines 12978–13137 | namespace 0 | revision 29795 | 2025-12-19T21:49:56Z
+- [W001505 — File Systems](corpus/wiki-01.md#w001505) · source lines 12656–12815 | namespace 0 | revision 29795 | 2025-12-19T21:49:56Z
 - [W003112 — File talk:Difficulty 2.png](corpus/wiki-07.md#w003112) · source lines 14035–14037 | namespace 7 | revision 12798 | 2012-02-22T19:35:19Z
 - [W002446 — File talk:PS2 connector.png](corpus/wiki-05.md#w002446) · source lines 10912–10913 | namespace 7 | revision 6784 | 2008-11-28T22:49:28Z
 - [W004517 — File:1267.png](corpus/wiki-13.md#w004517) · source lines 11316–11316 | namespace 6 | revision 25091 | 2020-08-25T13:28:23Z
@@ -614,7 +607,7 @@ All 3,131 source IDs with local locations. Source navigation only; no execution 
 - [W001543 — File:Elfdiagram.png](corpus/wiki-02.md#w001543) · source lines 2519–2519 | namespace 6 | revision 1955 | 2006-12-08T07:28:59Z
 - [W003891 — File:Exdos64.png](corpus/wiki-11.md#w003891) · source lines 6747–6747 | namespace 6 | revision 19035 | 2016-04-02T11:30:49Z
 - [W004947 — File:ExectOS.png](corpus/wiki-14.md#w004947) · source lines 14225–14225 | namespace 6 | revision 29597 | 2025-07-19T21:45:01Z
-- [W001486 — File:Exokernel.png](corpus/wiki-01.md#w001486) · source lines 12357–12357 | namespace 6 | revision 1818 | 2006-12-05T02:48:40Z
+- [W001486 — File:Exokernel.png](corpus/wiki-01.md#w001486) · source lines 12035–12035 | namespace 6 | revision 1818 | 2006-12-05T02:48:40Z
 - [W002631 — File:FailedACKTx.gif](corpus/wiki-06.md#w002631) · source lines 3429–3429 | namespace 6 | revision 8278 | 2009-06-24T22:41:23Z
 - [W002630 — File:FailedDataTx.gif](corpus/wiki-06.md#w002630) · source lines 3415–3415 | namespace 6 | revision 10430 | 2010-06-14T05:43:57Z
 - [W004743 — File:Fig15-3.gif](corpus/wiki-14.md#w004743) · source lines 7982–7982 | namespace 6 | revision 27657 | 2023-03-06T12:53:21Z
@@ -882,7 +875,7 @@ All 3,131 source IDs with local locations. Source navigation only; no execution 
 - [W003931 — File:Vga mode.gif](corpus/wiki-11.md#w003931) · source lines 9163–9163 | namespace 6 | revision 19409 | 2016-07-08T19:25:41Z
 - [W001696 — File:VGA overview.gif](corpus/wiki-02.md#w001696) · source lines 8889–8889 | namespace 6 | revision 2455 | 2006-12-19T11:16:22Z
 - [W004871 — File:Vinix.png](corpus/wiki-14.md#w004871) · source lines 11660–11660 | namespace 6 | revision 28871 | 2024-05-26T17:48:46Z
-- [W001487 — File:Virtual memory.png](corpus/wiki-01.md#w001487) · source lines 12371–12371 | namespace 6 | revision 1819 | 2006-12-05T02:48:58Z
+- [W001487 — File:Virtual memory.png](corpus/wiki-01.md#w001487) · source lines 12049–12049 | namespace 6 | revision 1819 | 2006-12-05T02:48:58Z
 - [W004819 — File:VirtualBox BleskOS 28 09 2023 16 46 49.png](corpus/wiki-14.md#w004819) · source lines 9963–9963 | namespace 6 | revision 28336 | 2023-09-28T15:40:33Z
 - [W004244 — File:Visopsys.png](corpus/wiki-12.md#w004244) · source lines 8677–8677 | namespace 6 | revision 22037 | 2018-01-04T10:05:51Z
 - [W004282 — File:Vscode dbg1.PNG](corpus/wiki-12.md#w004282) · source lines 14277–14277 | namespace 6 | revision 22544 | 2018-08-03T22:40:02Z
@@ -905,7 +898,7 @@ All 3,131 source IDs with local locations. Source navigation only; no execution 
 - [W003114 — Floats](corpus/wiki-07.md#w003114) · source lines 14052–14052 | namespace 0 | revision 12808 | 2012-02-22T20:30:24Z
 - [W003297 — Floppy](corpus/wiki-08.md#w003297) · source lines 10367–10367 | namespace 0 | revision 14123 | 2012-12-02T20:42:31Z
 - [W002767 — Floppy disk](corpus/wiki-06.md#w002767) · source lines 10298–10298 | namespace 0 | revision 9465 | 2009-12-20T14:50:06Z
-- [W001458 — Floppy Disk Controller](corpus/wiki-01.md#w001458) · source lines 7844–8745 | namespace 0 | revision 28697 | 2024-03-12T03:43:00Z
+- [W001458 — Floppy Disk Controller](corpus/wiki-01.md#w001458) · source lines 7522–8423 | namespace 0 | revision 28697 | 2024-03-12T03:43:00Z
 - [W002092 — Floppy Drive Controller](corpus/wiki-04.md#w002092) · source lines 6433–6433 | namespace 0 | revision 4094 | 2007-06-17T11:32:14Z
 - [W002000 — Floppy Driver](corpus/wiki-04.md#w002000) · source lines 3501–3501 | namespace 0 | revision 4100 | 2007-06-17T11:44:02Z
 - [W003734 — Floppy Programming](corpus/wiki-10.md#w003734) · source lines 16268–16268 | namespace 0 | revision 17672 | 2015-03-02T15:34:48Z
@@ -923,12 +916,11 @@ All 3,131 source IDs with local locations. Source navigation only; no execution 
 - [W002889 — GameBoy Advance Introduction](corpus/wiki-07.md#w002889) · source lines 852–911 | namespace 0 | revision 22870 | 2018-09-14T23:27:49Z
 - [W001698 — Garbage collection](corpus/wiki-02.md#w001698) · source lines 9895–9948 | namespace 0 | revision 19321 | 2016-06-02T20:59:53Z
 - [W004210 — Garbage Collection](corpus/wiki-12.md#w004210) · source lines 5137–5137 | namespace 0 | revision 21680 | 2017-11-12T19:31:04Z
-- [W001480 — GAS](corpus/wiki-01.md#w001480) · source lines 10494–10527 | namespace 0 | revision 20294 | 2017-01-26T21:05:28Z
-- [W001481 — GCC](corpus/wiki-01.md#w001481) · source lines 10541–10600 | namespace 0 | revision 27491 | 2022-11-18T21:23:12Z
+- [W001480 — GAS](corpus/wiki-01.md#w001480) · source lines 10172–10205 | namespace 0 | revision 20294 | 2017-01-26T21:05:28Z
+- [W001481 — GCC](corpus/wiki-01.md#w001481) · source lines 10219–10278 | namespace 0 | revision 27491 | 2022-11-18T21:23:12Z
 - [W003870 — GCC and Libc++](corpus/wiki-11.md#w003870) · source lines 5854–5986 | namespace 0 | revision 28088 | 2023-07-09T21:21:49Z
 - [W001824 — GCC Canadian Cross](corpus/wiki-03.md#w001824) · source lines 4751–4758 | namespace 0 | revision 22688 | 2018-09-10T01:13:02Z
 - [W003034 — GCC Cross Compiler](corpus/wiki-07.md#w003034) · source lines 10140–10140 | namespace 0 | revision 12001 | 2011-09-15T09:01:01Z
-- [W001448 — GCC Cross-Compiler](corpus/wiki-01.md#w001448) · source lines 6479–6787 | namespace 0 | revision 30955 | 2026-09-17T11:09:07Z
 - [W003657 — GCC Stack Smashing Protector](corpus/wiki-10.md#w003657) · source lines 11667–11667 | namespace 0 | revision 16949 | 2014-10-22T23:28:49Z
 - [W001544 — GDB](corpus/wiki-02.md#w001544) · source lines 2533–2608 | namespace 0 | revision 28511 | 2023-12-13T07:13:30Z
 - [W004606 — GDC Cross-Compiler](corpus/wiki-13.md#w004606) · source lines 15814–15876 | namespace 0 | revision 28036 | 2023-07-09T18:46:46Z
@@ -977,11 +969,10 @@ All 3,131 source IDs with local locations. Source navigation only; no execution 
 - [W003822 — Hdaudio](corpus/wiki-11.md#w003822) · source lines 3102–3102 | namespace 0 | revision 18439 | 2015-11-03T22:24:07Z
 - [W001600 — Hdiutil](corpus/wiki-02.md#w001600) · source lines 6534–6581 | namespace 0 | revision 11353 | 2011-04-05T04:03:19Z
 - [W003452 — Heap](corpus/wiki-09.md#w003452) · source lines 5790–5813 | namespace 0 | revision 15620 | 2014-02-21T23:16:16Z
-- [W001940 — Help My Kernel Crashed](corpus/wiki-03.md#w001940) · source lines 15689–15689 | namespace 0 | revision 6971 | 2008-12-31T16:51:17Z
 - [W001565 — Help:Editing](corpus/wiki-02.md#w001565) · source lines 4341–4341 | namespace 12 | revision 6618 | 2008-11-04T22:24:04Z
 - [W001387 — Help:Starting a new page](corpus/wiki-01.md#w001387) · source lines 2973–2973 | namespace 12 | revision 6617 | 2008-11-04T22:23:37Z
 - [W003293 — Henriavelabarbe:D barebone with ldc2](corpus/wiki-08.md#w003293) · source lines 9970–10310 | namespace 0 | revision 22661 | 2018-09-10T00:02:43Z
-- [W001455 — Hexadecimal Notation](corpus/wiki-01.md#w001455) · source lines 7687–7778 | namespace 0 | revision 29869 | 2026-01-12T02:51:39Z
+- [W001455 — Hexadecimal Notation](corpus/wiki-01.md#w001455) · source lines 7365–7456 | namespace 0 | revision 29869 | 2026-01-12T02:51:39Z
 - [W002947 — Hexeditor](corpus/wiki-07.md#w002947) · source lines 4072–4086 | namespace 0 | revision 28470 | 2023-11-16T15:47:35Z
 - [W002769 — HFS](corpus/wiki-06.md#w002769) · source lines 10327–10333 | namespace 0 | revision 30689 | 2026-06-03T20:32:09Z
 - [W002770 — HFS+](corpus/wiki-06.md#w002770) · source lines 10347–10357 | namespace 0 | revision 18331 | 2015-09-01T22:29:12Z
@@ -989,26 +980,23 @@ All 3,131 source IDs with local locations. Source navigation only; no execution 
 - [W004291 — HiFive-1 Bare Bones](corpus/wiki-12.md#w004291) · source lines 15812–16178 | namespace 0 | revision 30458 | 2026-04-06T15:40:25Z
 - [W003944 — Higher Half bare bones](corpus/wiki-11.md#w003944) · source lines 9704–9704 | namespace 0 | revision 19518 | 2016-07-22T14:07:48Z
 - [W003947 — Higher Half Bare Bones](corpus/wiki-11.md#w003947) · source lines 9719–9719 | namespace 0 | revision 30682 | 2026-06-03T11:15:19Z
-- [W001868 — Higher Half Kernel](corpus/wiki-03.md#w001868) · source lines 6761–6799 | namespace 0 | revision 30637 | 2026-05-27T07:15:31Z
+- [W001868 — Higher Half Kernel](corpus/wiki-03.md#w001868) · source lines 6459–6497 | namespace 0 | revision 30637 | 2026-05-27T07:15:31Z
 - [W005041 — Higher Half x86 Bare Bones](corpus/wiki-14.md#w005041) · source lines 19867–19867 | namespace 0 | revision 30654 | 2026-05-28T12:50:08Z
 - [W001745 — Higher Half x86 Bare Bones (Backup)](corpus/wiki-03.md#w001745) · source lines 649–822 | namespace 0 | revision 23056 | 2018-10-27T19:39:13Z
 - [W003850 — Historical Notes on CISC and RISC](corpus/wiki-11.md#w003850) · source lines 5139–5183 | namespace 0 | revision 30409 | 2026-03-24T22:16:35Z
 - [W001409 — History](corpus/wiki-01.md#w001409) · source lines 3745–3797 | namespace 0 | revision 30565 | 2026-05-06T21:21:54Z
 - [W003458 — Host Triplet](corpus/wiki-09.md#w003458) · source lines 6700–6700 | namespace 0 | revision 15660 | 2014-02-26T19:06:33Z
 - [W003637 — Hosted GCC Cross-Compiler](corpus/wiki-10.md#w003637) · source lines 10965–11081 | namespace 0 | revision 30283 | 2026-03-16T18:03:27Z
-- [W001935 — How Do I Determine The Amount Of RAM](corpus/wiki-03.md#w001935) · source lines 15348–15349 | namespace 0 | revision 5465 | 2008-05-17T20:33:21Z
 - [W002565 — How do I set a graphics mode](corpus/wiki-05.md#w002565) · source lines 16038–16063 | namespace 0 | revision 25183 | 2020-09-17T16:21:17Z
 - [W002505 — How do I set a VGA mode without the BIOS](corpus/wiki-05.md#w002505) · source lines 13183–13184 | namespace 0 | revision 7236 | 2009-02-14T15:15:17Z
 - [W002146 — How Do I Test](corpus/wiki-04.md#w002146) · source lines 8729–8729 | namespace 0 | revision 4458 | 2007-08-31T05:50:07Z
 - [W003372 — How Do I Use A Debugger With My OS](corpus/wiki-09.md#w003372) · source lines 182–183 | namespace 0 | revision 14839 | 2013-06-05T16:45:48Z
-- [W001896 — How kernel, compiler, and C library work together](corpus/wiki-03.md#w001896) · source lines 9538–9607 | namespace 0 | revision 27935 | 2023-07-09T15:07:12Z
-- [W001883 — How To Ask Questions](corpus/wiki-03.md#w001883) · source lines 8636–8715 | namespace 0 | revision 29797 | 2025-12-22T15:27:09Z
+- [W001896 — How kernel, compiler, and C library work together](corpus/wiki-03.md#w001896) · source lines 7369–7438 | namespace 0 | revision 27935 | 2023-07-09T15:07:12Z
 - [W002511 — How to develop on Mac OS X](corpus/wiki-05.md#w002511) · source lines 13417–13419 | namespace 0 | revision 7353 | 2009-03-06T23:36:58Z
 - [W003378 — HPET](corpus/wiki-09.md#w003378) · source lines 351–730 | namespace 0 | revision 30935 | 2026-09-01T14:51:09Z
-- [W001507 — HPFS](corpus/wiki-01.md#w001507) · source lines 14197–14213 | namespace 0 | revision 30688 | 2026-06-03T20:31:41Z
+- [W001507 — HPFS](corpus/wiki-01.md#w001507) · source lines 13875–13891 | namespace 0 | revision 30688 | 2026-06-03T20:31:41Z
 - [W004977 — HPPA](corpus/wiki-14.md#w004977) · source lines 15363–15363 | namespace 0 | revision 29890 | 2026-01-12T21:16:53Z
 - [W002695 — Hybrid Kernel](corpus/wiki-06.md#w002695) · source lines 6912–6926 | namespace 0 | revision 30585 | 2026-05-19T18:12:29Z
-- [W001939 — I Can't Get Interrupts Working](corpus/wiki-03.md#w001939) · source lines 15451–15674 | namespace 0 | revision 30847 | 2026-07-04T12:50:02Z
 - [W003847 — I Cant Get Interrupts Working](corpus/wiki-11.md#w003847) · source lines 4556–4556 | namespace 0 | revision 18731 | 2015-12-26T12:16:00Z
 - [W003710 — I have followed a tutorial and it does not work](corpus/wiki-10.md#w003710) · source lines 14946–14958 | namespace 0 | revision 28081 | 2023-07-09T21:04:15Z
 - [W002715 — I use a Custom Filesystem - What Bootloader Solution is right for me?](corpus/wiki-06.md#w002715) · source lines 7843–7892 | namespace 0 | revision 28121 | 2023-07-10T02:30:35Z
@@ -1018,7 +1006,7 @@ All 3,131 source IDs with local locations. Source navigation only; no execution 
 - [W005021 — I2C](corpus/wiki-14.md#w005021) · source lines 18825–18825 | namespace 0 | revision 30454 | 2026-04-05T17:55:29Z
 - [W003160 — I8042 PS/2 Controller](corpus/wiki-08.md#w003160) · source lines 597–1136 | namespace 0 | revision 30586 | 2026-05-20T07:46:42Z
 - [W002772 — IA-64](corpus/wiki-06.md#w002772) · source lines 10386–10428 | namespace 0 | revision 30370 | 2026-03-22T23:17:15Z
-- [W001897 — IA32 Architecture Family](corpus/wiki-03.md#w001897) · source lines 9621–10145 | namespace 0 | revision 22159 | 2018-02-21T05:15:22Z
+- [W001897 — IA32 Architecture Family](corpus/wiki-03.md#w001897) · source lines 7452–7976 | namespace 0 | revision 22159 | 2018-02-21T05:15:22Z
 - [W005085 — IBM Mainframe architecture](corpus/wiki-15.md#w005085) · source lines 422–584 | namespace 0 | revision 30934 | 2026-09-01T00:37:40Z
 - [W003844 — Ich](corpus/wiki-11.md#w003844) · source lines 4446–4446 | namespace 0 | revision 18713 | 2015-12-15T22:53:30Z
 - [W003915 — ICMP](corpus/wiki-11.md#w003915) · source lines 8489–8489 | namespace 0 | revision 19281 | 2016-05-28T12:20:27Z
@@ -1070,7 +1058,7 @@ All 3,131 source IDs with local locations. Source navigation only; no execution 
 - [W005069 — IPL and Loading your kernel](corpus/wiki-14.md#w005069) · source lines 21710–22029 | namespace 0 | revision 30811 | 2026-06-23T02:07:13Z
 - [W002358 — IRQ](corpus/wiki-05.md#w002358) · source lines 7357–7357 | namespace 0 | revision 6076 | 2008-07-28T19:38:25Z
 - [W002187 — ISA](corpus/wiki-04.md#w002187) · source lines 10598–10763 | namespace 0 | revision 30189 | 2026-03-11T02:45:58Z
-- [W001467 — ISA DMA](corpus/wiki-01.md#w001467) · source lines 9169–9720 | namespace 0 | revision 30347 | 2026-03-17T21:08:14Z
+- [W001467 — ISA DMA](corpus/wiki-01.md#w001467) · source lines 8847–9398 | namespace 0 | revision 30347 | 2026-03-17T21:08:14Z
 - [W002785 — ISO](corpus/wiki-06.md#w002785) · source lines 11083–11083 | namespace 0 | revision 9575 | 2010-01-03T12:07:56Z
 - [W002211 — ISO 9660](corpus/wiki-04.md#w002211) · source lines 11208–11686 | namespace 0 | revision 29375 | 2025-02-06T23:03:34Z
 - [W002370 — ISR](corpus/wiki-05.md#w002370) · source lines 7975–7975 | namespace 0 | revision 6217 | 2008-08-20T15:34:36Z
@@ -1086,7 +1074,7 @@ All 3,131 source IDs with local locations. Source navigation only; no execution 
 - [W003849 — Java Primer](corpus/wiki-11.md#w003849) · source lines 4585–5125 | namespace 0 | revision 28229 | 2023-07-10T20:34:16Z
 - [W004523 — Jbd2](corpus/wiki-13.md#w004523) · source lines 12162–12166 | namespace 0 | revision 27954 | 2023-07-09T16:08:12Z
 - [W003633 — JFFS2](corpus/wiki-10.md#w003633) · source lines 7730–7743 | namespace 0 | revision 30942 | 2026-09-04T15:46:18Z
-- [W001499 — JLoc](corpus/wiki-01.md#w001499) · source lines 12798–12819 | namespace 0 | revision 30984 | 2026-09-28T14:17:30Z
+- [W001499 — JLoc](corpus/wiki-01.md#w001499) · source lines 12476–12497 | namespace 0 | revision 30984 | 2026-09-28T14:17:30Z
 - [W002775 — Joliet](corpus/wiki-06.md#w002775) · source lines 10472–10488 | namespace 0 | revision 27897 | 2023-07-09T04:48:05Z
 - [W003000 — Journaling](corpus/wiki-07.md#w003000) · source lines 6875–6932 | namespace 0 | revision 27725 | 2023-04-02T22:31:31Z
 - [W004399 — Joystick](corpus/wiki-13.md#w004399) · source lines 4437–4437 | namespace 0 | revision 23756 | 2019-07-13T20:35:16Z
@@ -1095,7 +1083,6 @@ All 3,131 source IDs with local locations. Source navigation only; no execution 
 - [W002975 — JWASM](corpus/wiki-07.md#w002975) · source lines 5552–5552 | namespace 0 | revision 11413 | 2011-04-19T11:40:55Z
 - [W002317 — KBC](corpus/wiki-05.md#w002317) · source lines 3920–3920 | namespace 0 | revision 17682 | 2015-03-02T16:19:02Z
 - [W002697 — Kernel](corpus/wiki-06.md#w002697) · source lines 6955–6995 | namespace 0 | revision 11619 | 2011-06-13T09:17:47Z
-- [W001947 — Kernel Debugging](corpus/wiki-03.md#w001947) · source lines 15885–16146 | namespace 0 | revision 28799 | 2024-05-05T23:19:00Z
 - [W004503 — Kernel Multitasking](corpus/wiki-13.md#w004503) · source lines 10808–10933 | namespace 0 | revision 30655 | 2026-05-28T14:09:53Z
 - [W004470 — Kernel Panic](corpus/wiki-13.md#w004470) · source lines 8864–8950 | namespace 0 | revision 29939 | 2026-01-30T17:29:41Z
 - [W002701 — Kernel Stdio Theory](corpus/wiki-06.md#w002701) · source lines 7157–7248 | namespace 0 | revision 28519 | 2023-12-13T08:05:24Z
@@ -1110,7 +1097,7 @@ All 3,131 source IDs with local locations. Source navigation only; no execution 
 - [W001680 — Languages](corpus/wiki-02.md#w001680) · source lines 8458–8512 | namespace 0 | revision 27206 | 2022-07-01T04:41:39Z
 - [W004812 — LAPIC](corpus/wiki-14.md#w004812) · source lines 9623–9623 | namespace 0 | revision 28282 | 2023-08-16T22:23:38Z
 - [W005003 — LBA](corpus/wiki-14.md#w005003) · source lines 18008–18008 | namespace 0 | revision 30141 | 2026-03-05T16:54:34Z
-- [W001496 — LD](corpus/wiki-01.md#w001496) · source lines 12666–12739 | namespace 0 | revision 27591 | 2023-01-15T00:03:15Z
+- [W001496 — LD](corpus/wiki-01.md#w001496) · source lines 12344–12417 | namespace 0 | revision 27591 | 2023-01-15T00:03:15Z
 - [W004696 — LDT](corpus/wiki-14.md#w004696) · source lines 4496–4496 | namespace 0 | revision 26961 | 2022-02-16T13:45:55Z
 - [W001958 — LE](corpus/wiki-04.md#w001958) · source lines 1017–1030 | namespace 0 | revision 30374 | 2026-03-22T23:32:17Z
 - [W002851 — LEAN](corpus/wiki-06.md#w002851) · source lines 17712–17946 | namespace 0 | revision 27486 | 2022-11-09T22:15:35Z
@@ -1120,21 +1107,20 @@ All 3,131 source IDs with local locations. Source navigation only; no execution 
 - [W004404 — Libc](corpus/wiki-13.md#w004404) · source lines 4745–4745 | namespace 0 | revision 23811 | 2019-08-12T08:34:19Z
 - [W003457 — Libgcc](corpus/wiki-09.md#w003457) · source lines 6591–6685 | namespace 0 | revision 30323 | 2026-03-17T19:08:33Z
 - [W003615 — Libgcc without red zone](corpus/wiki-10.md#w003615) · source lines 6579–6668 | namespace 0 | revision 28491 | 2023-12-05T12:37:20Z
-- [W001912 — Library Calls](corpus/wiki-03.md#w001912) · source lines 14090–14174 | namespace 0 | revision 28159 | 2023-07-10T14:40:06Z
+- [W001912 — Library Calls](corpus/wiki-03.md#w001912) · source lines 11921–12005 | namespace 0 | revision 28159 | 2023-07-10T14:40:06Z
 - [W004903 — Libreboot](corpus/wiki-14.md#w004903) · source lines 12311–12329 | namespace 0 | revision 30563 | 2026-05-06T13:30:09Z
 - [W002160 — Libsupcxx](corpus/wiki-04.md#w002160) · source lines 9140–9219 | namespace 0 | revision 17502 | 2015-01-28T12:50:16Z
-- [W001885 — Licensing](corpus/wiki-03.md#w001885) · source lines 8744–8907 | namespace 0 | revision 30983 | 2026-09-28T14:13:16Z
 - [W001978 — Licensing Issues](corpus/wiki-04.md#w001978) · source lines 2562–2562 | namespace 0 | revision 3404 | 2007-03-20T02:20:17Z
-- [W001907 — LILO](corpus/wiki-03.md#w001907) · source lines 13271–13282 | namespace 0 | revision 17713 | 2015-03-03T15:18:58Z
+- [W001907 — LILO](corpus/wiki-03.md#w001907) · source lines 11102–11113 | namespace 0 | revision 17713 | 2015-03-03T15:18:58Z
 - [W004530 — Limine](corpus/wiki-13.md#w004530) · source lines 12288–12321 | namespace 0 | revision 30493 | 2026-04-18T12:40:08Z
 - [W004702 — Limine Bare Bones](corpus/wiki-14.md#w004702) · source lines 4988–5567 | namespace 0 | revision 30950 | 2026-09-15T06:39:45Z
 - [W005017 — Linear Executable](corpus/wiki-14.md#w005017) · source lines 18272–18272 | namespace 0 | revision 30375 | 2026-03-22T23:32:50Z
 - [W004726 — Lingemu](corpus/wiki-14.md#w004726) · source lines 7591–7597 | namespace 0 | revision 28097 | 2023-07-09T22:34:09Z
-- [W001501 — Link](corpus/wiki-01.md#w001501) · source lines 12870–12884 | namespace 0 | revision 22691 | 2018-09-10T01:16:14Z
-- [W001908 — Link Archiver](corpus/wiki-03.md#w001908) · source lines 13296–13322 | namespace 0 | revision 19525 | 2016-07-22T19:42:53Z
+- [W001501 — Link](corpus/wiki-01.md#w001501) · source lines 12548–12562 | namespace 0 | revision 22691 | 2018-09-10T01:16:14Z
+- [W001908 — Link Archiver](corpus/wiki-03.md#w001908) · source lines 11127–11153 | namespace 0 | revision 19525 | 2016-07-22T19:42:53Z
 - [W004536 — Linker Script](corpus/wiki-13.md#w004536) · source lines 12555–12555 | namespace 0 | revision 25280 | 2020-10-29T21:06:17Z
 - [W002604 — Linker Scripts](corpus/wiki-06.md#w002604) · source lines 2048–2237 | namespace 0 | revision 30365 | 2026-03-22T17:18:01Z
-- [W001495 — Linkers](corpus/wiki-01.md#w001495) · source lines 12606–12652 | namespace 0 | revision 25052 | 2020-08-10T05:21:16Z
+- [W001495 — Linkers](corpus/wiki-01.md#w001495) · source lines 12284–12330 | namespace 0 | revision 25052 | 2020-08-10T05:21:16Z
 - [W002762 — Links](corpus/wiki-06.md#w002762) · source lines 10238–10238 | namespace 0 | revision 9455 | 2009-12-20T14:24:09Z
 - [W001582 — Lino Commando](corpus/wiki-02.md#w001582) · source lines 5699–5746 | namespace 0 | revision 26660 | 2021-11-07T17:09:25Z
 - [W003766 — Linux](corpus/wiki-10.md#w003766) · source lines 17367–17367 | namespace 0 | revision 17876 | 2015-04-12T10:48:52Z
@@ -1180,11 +1166,11 @@ All 3,131 source IDs with local locations. Source navigation only; no execution 
 - [W000898 — MediaWiki:Portal-url](corpus/wiki-01.md#w000898) · source lines 44–44 | namespace 8 | revision 5682 | 2008-06-18T23:17:10Z
 - [W001090 — MediaWiki:Sidebar](corpus/wiki-01.md#w001090) · source lines 58–68 | namespace 8 | revision 2278 | 2006-12-16T16:14:15Z
 - [W003026 — Megalithic Kernel](corpus/wiki-07.md#w003026) · source lines 9864–9871 | namespace 0 | revision 27517 | 2022-12-12T04:08:52Z
-- [W001460 — Memory Allocation](corpus/wiki-01.md#w001460) · source lines 8759–8891 | namespace 0 | revision 30361 | 2026-03-19T23:08:33Z
+- [W001460 — Memory Allocation](corpus/wiki-01.md#w001460) · source lines 8437–8569 | namespace 0 | revision 30361 | 2026-03-19T23:08:33Z
 - [W003855 — Memory Architecture](corpus/wiki-11.md#w003855) · source lines 5304–5542 | namespace 0 | revision 30886 | 2026-07-12T13:42:29Z
 - [W003852 — Memory Architectures](corpus/wiki-11.md#w003852) · source lines 5258–5259 | namespace 0 | revision 18781 | 2016-01-07T00:38:42Z
 - [W002499 — Memory barriers](corpus/wiki-05.md#w002499) · source lines 12871–12885 | namespace 0 | revision 22592 | 2018-08-22T04:05:59Z
-- [W001469 — Memory management](corpus/wiki-01.md#w001469) · source lines 9734–9807 | namespace 0 | revision 29805 | 2025-12-26T12:33:42Z
+- [W001469 — Memory management](corpus/wiki-01.md#w001469) · source lines 9412–9485 | namespace 0 | revision 29805 | 2025-12-26T12:33:42Z
 - [W001536 — Memory Management](corpus/wiki-02.md#w001536) · source lines 1700–1700 | namespace 0 | revision 1938 | 2006-12-07T20:56:29Z
 - [W003010 — Memory Management Unit](corpus/wiki-07.md#w003010) · source lines 8726–8911 | namespace 0 | revision 30832 | 2026-06-30T04:52:39Z
 - [W003695 — Memory Map](corpus/wiki-10.md#w003695) · source lines 14223–14224 | namespace 0 | revision 26505 | 2021-10-15T19:03:02Z
@@ -1207,9 +1193,9 @@ All 3,131 source IDs with local locations. Source navigation only; no execution 
 - [W001599 — Mkisofs](corpus/wiki-02.md#w001599) · source lines 6335–6520 | namespace 0 | revision 24395 | 2020-02-10T11:04:25Z
 - [W002125 — MMU](corpus/wiki-04.md#w002125) · source lines 7910–7910 | namespace 0 | revision 24592 | 2020-04-11T16:54:22Z
 - [W003100 — MMX](corpus/wiki-07.md#w003100) · source lines 13766–13780 | namespace 0 | revision 29873 | 2026-01-12T03:39:52Z
-- [W001919 — Model Specific Registers](corpus/wiki-03.md#w001919) · source lines 14446–14587 | namespace 0 | revision 30860 | 2026-07-07T17:25:46Z
+- [W001919 — Model Specific Registers](corpus/wiki-03.md#w001919) · source lines 12277–12418 | namespace 0 | revision 30860 | 2026-07-07T17:25:46Z
 - [W005077 — Modula-2 Bare Bones](corpus/wiki-14.md#w005077) · source lines 22181–22716 | namespace 0 | revision 30902 | 2026-07-24T17:17:24Z
-- [W001906 — Modular Kernel](corpus/wiki-03.md#w001906) · source lines 13203–13257 | namespace 0 | revision 23607 | 2019-05-07T17:18:28Z
+- [W001906 — Modular Kernel](corpus/wiki-03.md#w001906) · source lines 11034–11088 | namespace 0 | revision 23607 | 2019-05-07T17:18:28Z
 - [W004891 — Module:Flex columns](corpus/wiki-14.md#w004891) · source lines 12054–12096 | namespace 828 | revision 29135 | 2024-06-22T22:39:18Z
 - [W004890 — Module:Flex columns/styles.css](corpus/wiki-14.md#w004890) · source lines 11991–12040 | namespace 828 | revision 29134 | 2024-06-22T22:38:07Z
 - [W004727 — Mold](corpus/wiki-14.md#w004727) · source lines 7611–7617 | namespace 0 | revision 28090 | 2023-07-09T21:24:24Z
@@ -1217,7 +1203,7 @@ All 3,131 source IDs with local locations. Source navigation only; no execution 
 - [W001410 — Monolithic Kernel](corpus/wiki-01.md#w001410) · source lines 3811–3843 | namespace 0 | revision 30583 | 2026-05-19T15:50:22Z
 - [W002298 — Monolithic kernel](corpus/wiki-05.md#w002298) · source lines 3792–3792 | namespace 0 | revision 5593 | 2008-06-04T19:36:06Z
 - [W003996 — Mouse](corpus/wiki-11.md#w003996) · source lines 13110–13110 | namespace 0 | revision 19976 | 2016-11-29T18:32:26Z
-- [W001909 — Mouse Input](corpus/wiki-03.md#w001909) · source lines 13336–13822 | namespace 0 | revision 29232 | 2024-08-24T14:58:02Z
+- [W001909 — Mouse Input](corpus/wiki-03.md#w001909) · source lines 11167–11653 | namespace 0 | revision 29232 | 2024-08-24T14:58:02Z
 - [W003591 — MP Specification](corpus/wiki-10.md#w003591) · source lines 5000–5024 | namespace 0 | revision 29078 | 2024-06-07T13:37:11Z
 - [W003290 — MSR](corpus/wiki-08.md#w003290) · source lines 9582–9582 | namespace 0 | revision 14088 | 2012-11-21T20:17:22Z
 - [W001602 — MTools](corpus/wiki-02.md#w001602) · source lines 6622–6643 | namespace 0 | revision 25359 | 2020-11-14T05:13:24Z
@@ -1228,28 +1214,27 @@ All 3,131 source IDs with local locations. Source navigation only; no execution 
 - [W004919 — Multikernel](corpus/wiki-14.md#w004919) · source lines 12994–13012 | namespace 0 | revision 29437 | 2025-03-14T19:26:14Z
 - [W002671 — Multiprocessing](corpus/wiki-06.md#w002671) · source lines 5221–5279 | namespace 0 | revision 20657 | 2017-04-06T14:13:17Z
 - [W003858 — Multiprocessing Architecture](corpus/wiki-11.md#w003858) · source lines 5635–5636 | namespace 0 | revision 18786 | 2016-01-07T00:45:11Z
-- [W001888 — Multiprocessor Scheduling](corpus/wiki-03.md#w001888) · source lines 8921–8975 | namespace 0 | revision 28122 | 2023-07-10T02:32:25Z
-- [W001474 — Multitasking Systems](corpus/wiki-01.md#w001474) · source lines 9855–9894 | namespace 0 | revision 30762 | 2026-06-16T09:33:34Z
+- [W001474 — Multitasking Systems](corpus/wiki-01.md#w001474) · source lines 9533–9572 | namespace 0 | revision 30762 | 2026-06-16T09:33:34Z
 - [W004907 — Multithreaded Kernel](corpus/wiki-14.md#w004907) · source lines 12371–12384 | namespace 0 | revision 29495 | 2025-04-27T00:25:46Z
-- [W001867 — Mutual Exclusion](corpus/wiki-03.md#w001867) · source lines 6730–6747 | namespace 0 | revision 11335 | 2011-03-28T11:24:45Z
+- [W001867 — Mutual Exclusion](corpus/wiki-03.md#w001867) · source lines 6428–6445 | namespace 0 | revision 11335 | 2011-03-28T11:24:45Z
 - [W003688 — My Bootloader Does Not Work](corpus/wiki-10.md#w003688) · source lines 13532–13608 | namespace 0 | revision 27998 | 2023-07-09T17:42:22Z
 - [W001956 — MZ](corpus/wiki-04.md#w001956) · source lines 380–585 | namespace 0 | revision 30558 | 2026-05-05T18:04:16Z
 - [W002387 — Nanokernel](corpus/wiki-05.md#w002387) · source lines 8570–8570 | namespace 0 | revision 6395 | 2008-10-22T10:43:52Z
-- [W001479 — NASM](corpus/wiki-01.md#w001479) · source lines 10451–10480 | namespace 0 | revision 30122 | 2026-03-03T19:43:57Z
+- [W001479 — NASM](corpus/wiki-01.md#w001479) · source lines 10129–10158 | namespace 0 | revision 30122 | 2026-03-03T19:43:57Z
 - [W004026 — Native Intel graphics](corpus/wiki-11.md#w004026) · source lines 15682–15862 | namespace 0 | revision 25649 | 2021-02-08T17:43:25Z
 - [W001957 — NE](corpus/wiki-04.md#w001957) · source lines 599–1003 | namespace 0 | revision 29636 | 2025-08-31T18:33:08Z
 - [W001627 — Ne2000](corpus/wiki-02.md#w001627) · source lines 7268–7409 | namespace 0 | revision 27691 | 2023-03-18T08:54:41Z
 - [W002422 — Network devices:Cards](corpus/wiki-05.md#w002422) · source lines 9794–9794 | namespace 0 | revision 6596 | 2008-11-04T16:17:14Z
 - [W002538 — Network Stack](corpus/wiki-05.md#w002538) · source lines 14931–15172 | namespace 0 | revision 23577 | 2019-04-16T19:16:04Z
 - [W002341 — Networking](corpus/wiki-05.md#w002341) · source lines 5836–5836 | namespace 0 | revision 7596 | 2009-04-06T22:56:07Z
-- [W001519 — NFS](corpus/wiki-01.md#w001519) · source lines 15775–15790 | namespace 0 | revision 29013 | 2024-06-06T17:31:45Z
+- [W001519 — NFS](corpus/wiki-01.md#w001519) · source lines 15453–15468 | namespace 0 | revision 29013 | 2024-06-06T17:31:45Z
 - [W001581 — Nick Stacky](corpus/wiki-02.md#w001581) · source lines 5631–5685 | namespace 0 | revision 19878 | 2016-10-12T17:13:37Z
 - [W002179 — NMI](corpus/wiki-04.md#w002179) · source lines 10321–10321 | namespace 0 | revision 4697 | 2007-09-26T21:43:19Z
-- [W001913 — Non Maskable Interrupt](corpus/wiki-03.md#w001913) · source lines 14188–14271 | namespace 0 | revision 29100 | 2024-06-07T13:39:38Z
+- [W001913 — Non Maskable Interrupt](corpus/wiki-03.md#w001913) · source lines 12019–12102 | namespace 0 | revision 29100 | 2024-06-07T13:39:38Z
 - [W002771 — Non-Maskable Interrupt](corpus/wiki-06.md#w002771) · source lines 10372–10372 | namespace 0 | revision 9473 | 2009-12-20T15:57:57Z
 - [W001821 — Norton Diskedit](corpus/wiki-03.md#w001821) · source lines 4723–4737 | namespace 0 | revision 14304 | 2013-01-16T05:29:00Z
 - [W003874 — Notable Projects](corpus/wiki-11.md#w003874) · source lines 6044–6217 | namespace 0 | revision 30216 | 2026-03-14T22:03:52Z
-- [W001508 — NTFS](corpus/wiki-01.md#w001508) · source lines 14227–14386 | namespace 0 | revision 30013 | 2026-02-15T17:38:49Z
+- [W001508 — NTFS](corpus/wiki-01.md#w001508) · source lines 13905–14064 | namespace 0 | revision 30013 | 2026-02-15T17:38:49Z
 - [W003733 — Null Character](corpus/wiki-10.md#w003733) · source lines 16191–16253 | namespace 0 | revision 30226 | 2026-03-16T14:53:30Z
 - [W003764 — Null character](corpus/wiki-10.md#w003764) · source lines 17352–17352 | namespace 0 | revision 17718 | 2015-03-03T19:52:11Z
 - [W004432 — NVMe](corpus/wiki-13.md#w004432) · source lines 6549–6925 | namespace 0 | revision 30943 | 2026-09-07T18:30:41Z
@@ -1259,7 +1244,7 @@ All 3,131 source IDs with local locations. Source navigation only; no execution 
 - [W003680 — Object oriented OS](corpus/wiki-10.md#w003680) · source lines 13301–13329 | namespace 0 | revision 30403 | 2026-03-24T22:07:04Z
 - [W002912 — OHCI](corpus/wiki-07.md#w002912) · source lines 1752–1752 | namespace 0 | revision 10766 | 2010-09-21T06:40:33Z
 - [W004539 — OPAL](corpus/wiki-13.md#w004539) · source lines 12804–12903 | namespace 0 | revision 30246 | 2026-03-16T15:46:40Z
-- [W001862 — Opcode syntax](corpus/wiki-03.md#w001862) · source lines 6534–6644 | namespace 0 | revision 31002 | 2026-10-04T08:29:27Z
+- [W001862 — Opcode syntax](corpus/wiki-03.md#w001862) · source lines 6232–6342 | namespace 0 | revision 31002 | 2026-10-04T08:29:27Z
 - [W004850 — Open Firmware](corpus/wiki-14.md#w004850) · source lines 10647–10671 | namespace 0 | revision 30971 | 2026-09-25T17:03:30Z
 - [W002911 — Open Host Controller Interface](corpus/wiki-07.md#w002911) · source lines 1578–1737 | namespace 0 | revision 29933 | 2026-01-27T02:39:37Z
 - [W004595 — Open Programmable Interrupt Controller](corpus/wiki-13.md#w004595) · source lines 15260–15290 | namespace 0 | revision 30159 | 2026-03-09T08:43:48Z
@@ -1299,26 +1284,24 @@ All 3,131 source IDs with local locations. Source navigation only; no execution 
 - [W002417 — OSDevWiki:About](corpus/wiki-05.md#w002417) · source lines 9726–9726 | namespace 0 | revision 6569 | 2008-11-04T15:12:46Z
 - [W002418 — OSDevWiki:Editing](corpus/wiki-05.md#w002418) · source lines 9741–9741 | namespace 0 | revision 6570 | 2008-11-04T15:14:59Z
 - [W002419 — OSDevWiki:Joining](corpus/wiki-05.md#w002419) · source lines 9756–9756 | namespace 0 | revision 6574 | 2008-11-04T15:21:34Z
-- [W001927 — OSKit](corpus/wiki-03.md#w001927) · source lines 15002–15016 | namespace 0 | revision 30990 | 2026-09-28T14:53:29Z
 - [W002763 — OSRC](corpus/wiki-06.md#w002763) · source lines 10253–10253 | namespace 0 | revision 9456 | 2009-12-20T14:24:22Z
-- [W001881 — Other Compilers](corpus/wiki-03.md#w001881) · source lines 7981–7998 | namespace 0 | revision 24957 | 2020-06-27T16:38:00Z
 - [W004562 — OVMF](corpus/wiki-13.md#w004562) · source lines 13787–13806 | namespace 0 | revision 30143 | 2026-03-05T23:16:12Z
 - [W004975 — PA-RISC](corpus/wiki-14.md#w004975) · source lines 15278–15333 | namespace 0 | revision 29961 | 2026-02-10T23:34:36Z
 - [W002936 — PAE](corpus/wiki-07.md#w002936) · source lines 3362–3362 | namespace 0 | revision 10892 | 2010-10-23T13:11:47Z
 - [W002368 — Page directory](corpus/wiki-05.md#w002368) · source lines 7945–7945 | namespace 0 | revision 6212 | 2008-08-20T14:51:19Z
-- [W001461 — Page Frame Allocation](corpus/wiki-01.md#w001461) · source lines 8905–9009 | namespace 0 | revision 30500 | 2026-04-20T16:42:28Z
+- [W001461 — Page Frame Allocation](corpus/wiki-01.md#w001461) · source lines 8583–8687 | namespace 0 | revision 30500 | 2026-04-20T16:42:28Z
 - [W002369 — Page table](corpus/wiki-05.md#w002369) · source lines 7960–7960 | namespace 0 | revision 6213 | 2008-08-20T14:51:46Z
 - [W005053 — Page Tables](corpus/wiki-14.md#w005053) · source lines 21141–21141 | namespace 0 | revision 30732 | 2026-06-12T15:53:08Z
 - [W005055 — Paging](corpus/wiki-14.md#w005055) · source lines 21180–21180 | namespace 0 | revision 30736 | 2026-06-12T16:50:24Z
 - [W003550 — Pancakes:IPC EntryBased](corpus/wiki-10.md#w003550) · source lines 1689–1915 | namespace 0 | revision 16114 | 2014-04-13T23:45:27Z
 - [W002094 — Parallel port](corpus/wiki-04.md#w002094) · source lines 6462–6628 | namespace 0 | revision 30349 | 2026-03-18T04:22:33Z
-- [W001905 — Partition Table](corpus/wiki-03.md#w001905) · source lines 13048–13189 | namespace 0 | revision 30519 | 2026-04-26T04:19:04Z
+- [W001905 — Partition Table](corpus/wiki-03.md#w001905) · source lines 10879–11020 | namespace 0 | revision 30519 | 2026-04-26T04:19:04Z
 - [W002868 — Partition table](corpus/wiki-06.md#w002868) · source lines 18573–18573 | namespace 0 | revision 10323 | 2010-05-18T17:31:21Z
 - [W001541 — Pascal](corpus/wiki-02.md#w001541) · source lines 2007–2086 | namespace 0 | revision 30257 | 2026-03-16T16:00:38Z
 - [W003055 — Pascal Bare Bones](corpus/wiki-07.md#w003055) · source lines 11101–11749 | namespace 0 | revision 30608 | 2026-05-22T14:06:01Z
 - [W003999 — PC Screen Font](corpus/wiki-11.md#w003999) · source lines 13345–13595 | namespace 0 | revision 30385 | 2026-03-23T13:53:25Z
 - [W002248 — PC Speaker](corpus/wiki-05.md#w002248) · source lines 540–618 | namespace 0 | revision 30842 | 2026-07-03T00:11:15Z
-- [W001485 — PCI](corpus/wiki-01.md#w001485) · source lines 10950–12343 | namespace 0 | revision 30693 | 2026-06-05T06:45:16Z
+- [W001485 — PCI](corpus/wiki-01.md#w001485) · source lines 10628–12021 | namespace 0 | revision 30693 | 2026-06-05T06:45:16Z
 - [W003794 — Pci](corpus/wiki-11.md#w003794) · source lines 1139–1139 | namespace 0 | revision 18064 | 2015-05-12T11:28:18Z
 - [W002829 — PCI Express](corpus/wiki-06.md#w002829) · source lines 16604–17042 | namespace 0 | revision 30435 | 2026-03-30T08:31:03Z
 - [W002716 — PCI IDE Controller](corpus/wiki-06.md#w002716) · source lines 7906–8984 | namespace 0 | revision 28314 | 2023-09-21T01:33:51Z
@@ -1327,7 +1310,6 @@ All 3,131 source IDs with local locations. Source navigation only; no execution 
 - [W004814 — PCIE](corpus/wiki-14.md#w004814) · source lines 9839–9839 | namespace 0 | revision 28318 | 2023-09-24T22:37:58Z
 - [W004894 — PCIe](corpus/wiki-14.md#w004894) · source lines 12156–12156 | namespace 0 | revision 29163 | 2024-06-28T08:24:01Z
 - [W004658 — PDE](corpus/wiki-14.md#w004658) · source lines 2523–2523 | namespace 0 | revision 26569 | 2021-10-21T16:48:43Z
-- [W001892 — PE](corpus/wiki-03.md#w001892) · source lines 9116–9446 | namespace 0 | revision 30358 | 2026-03-18T19:44:21Z
 - [W001959 — PE Binaries](corpus/wiki-04.md#w001959) · source lines 1045–1045 | namespace 0 | revision 3302 | 2007-03-11T05:21:58Z
 - [W004487 — PE+](corpus/wiki-13.md#w004487) · source lines 10288–10288 | namespace 0 | revision 24747 | 2020-06-07T12:18:07Z
 - [W003180 — PearPC](corpus/wiki-08.md#w003180) · source lines 3454–3471 | namespace 0 | revision 28048 | 2023-07-09T19:03:32Z
@@ -1344,11 +1326,10 @@ All 3,131 source IDs with local locations. Source navigation only; no execution 
 - [W002170 — Plug-and-Play](corpus/wiki-04.md#w002170) · source lines 9805–9837 | namespace 0 | revision 30134 | 2026-03-05T02:48:31Z
 - [W003666 — Pmode](corpus/wiki-10.md#w003666) · source lines 11807–11807 | namespace 0 | revision 17006 | 2014-11-09T10:30:48Z
 - [W004997 — PnP](corpus/wiki-14.md#w004997) · source lines 17900–17900 | namespace 0 | revision 30092 | 2026-03-01T16:45:35Z
-- [W001931 — PNP Calls In Protected Mode](corpus/wiki-03.md#w001931) · source lines 15045–15078 | namespace 0 | revision 30253 | 2026-03-16T15:54:36Z
 - [W002839 — Port IO](corpus/wiki-06.md#w002839) · source lines 17232–17253 | namespace 0 | revision 29780 | 2025-12-03T10:14:58Z
 - [W003402 — Portability](corpus/wiki-09.md#w003402) · source lines 1222–1254 | namespace 0 | revision 29011 | 2024-06-06T17:31:33Z
 - [W003731 — Porting GCC](corpus/wiki-10.md#w003731) · source lines 16162–16162 | namespace 0 | revision 17667 | 2015-03-02T14:12:23Z
-- [W001873 — Porting GCC to your OS](corpus/wiki-03.md#w001873) · source lines 7014–7035 | namespace 0 | revision 28221 | 2023-07-10T20:22:23Z
+- [W001873 — Porting GCC to your OS](corpus/wiki-03.md#w001873) · source lines 6712–6733 | namespace 0 | revision 28221 | 2023-07-10T20:22:23Z
 - [W002126 — Porting Newlib](corpus/wiki-04.md#w002126) · source lines 7924–8259 | namespace 0 | revision 28218 | 2023-07-10T20:21:11Z
 - [W002547 — Porting Python](corpus/wiki-05.md#w002547) · source lines 15371–15573 | namespace 0 | revision 30384 | 2026-03-23T13:51:48Z
 - [W004698 — Porting Rust standard library](corpus/wiki-14.md#w004698) · source lines 4524–4931 | namespace 0 | revision 29768 | 2025-11-22T05:27:48Z
@@ -1379,7 +1360,7 @@ All 3,131 source IDs with local locations. Source navigation only; no execution 
 - [W001713 — Protected Mode](corpus/wiki-02.md#w001713) · source lines 11079–11122 | namespace 0 | revision 30251 | 2026-03-16T15:51:19Z
 - [W002252 — Protected mode](corpus/wiki-05.md#w002252) · source lines 664–664 | namespace 0 | revision 5292 | 2008-03-26T11:37:12Z
 - [W003159 — PS/2](corpus/wiki-08.md#w003159) · source lines 530–583 | namespace 0 | revision 28619 | 2024-02-10T07:14:23Z
-- [W001900 — PS/2 Keyboard](corpus/wiki-03.md#w001900) · source lines 10159–12391 | namespace 0 | revision 30840 | 2026-07-02T19:01:15Z
+- [W001900 — PS/2 Keyboard](corpus/wiki-03.md#w001900) · source lines 7990–10222 | namespace 0 | revision 30840 | 2026-07-02T19:01:15Z
 - [W003157 — PS/2 Mouse](corpus/wiki-08.md#w003157) · source lines 254–480 | namespace 0 | revision 30841 | 2026-07-02T19:10:32Z
 - [W003955 — Ps2](corpus/wiki-11.md#w003955) · source lines 9857–9857 | namespace 0 | revision 19643 | 2016-08-01T15:07:17Z
 - [W003161 — PS2 Keyboard](corpus/wiki-08.md#w003161) · source lines 1151–1151 | namespace 0 | revision 17654 | 2015-03-01T15:09:38Z
@@ -1400,7 +1381,7 @@ All 3,131 source IDs with local locations. Source navigation only; no execution 
 - [W004332 — QEMU RISC-V Virt Bare Bones](corpus/wiki-12.md#w004332) · source lines 18004–18170 | namespace 0 | revision 30478 | 2026-04-12T16:51:34Z
 - [W004722 — QEMU RISC-V Virt Meaty Skeleton](corpus/wiki-14.md#w004722) · source lines 6895–7515 | namespace 0 | revision 30471 | 2026-04-10T16:14:38Z
 - [W002760 — Quick Links](corpus/wiki-06.md#w002760) · source lines 10208–10208 | namespace 0 | revision 9453 | 2009-12-20T14:22:05Z
-- [W001923 — Ralf Brown's Interrupt List](corpus/wiki-03.md#w001923) · source lines 14631–14695 | namespace 0 | revision 28140 | 2023-07-10T03:01:33Z
+- [W001923 — Ralf Brown's Interrupt List](corpus/wiki-03.md#w001923) · source lines 12462–12526 | namespace 0 | revision 28140 | 2023-07-10T03:01:33Z
 - [W004853 — Ramfb](corpus/wiki-14.md#w004853) · source lines 10714–10864 | namespace 0 | revision 30875 | 2026-07-09T01:06:40Z
 - [W002935 — Random Number Generator](corpus/wiki-07.md#w002935) · source lines 3035–3347 | namespace 0 | revision 27595 | 2023-01-16T02:22:23Z
 - [W003306 — Raspberry Pi](corpus/wiki-08.md#w003306) · source lines 11419–11577 | namespace 0 | revision 30457 | 2026-04-06T15:36:18Z
@@ -1412,7 +1393,7 @@ All 3,131 source IDs with local locations. Source navigation only; no execution 
 - [W004953 — Rave Bare Bones](corpus/wiki-14.md#w004953) · source lines 14355–14540 | namespace 0 | revision 30335 | 2026-03-17T20:58:21Z
 - [W001962 — RAWRITE](corpus/wiki-04.md#w001962) · source lines 1272–1272 | namespace 0 | revision 3316 | 2007-03-11T13:40:29Z
 - [W001960 — Rawwrite](corpus/wiki-04.md#w001960) · source lines 1059–1077 | namespace 0 | revision 20231 | 2017-01-23T00:58:39Z
-- [W001922 — RBIL](corpus/wiki-03.md#w001922) · source lines 14617–14617 | namespace 0 | revision 3260 | 2007-03-09T06:39:23Z
+- [W001922 — RBIL](corpus/wiki-03.md#w001922) · source lines 12448–12448 | namespace 0 | revision 3260 | 2007-03-09T06:39:23Z
 - [W004550 — Reading sectors under UEFI](corpus/wiki-13.md#w004550) · source lines 13416–13479 | namespace 0 | revision 25441 | 2020-12-15T16:38:07Z
 - [W001712 — Real Mode](corpus/wiki-02.md#w001712) · source lines 10883–11065 | namespace 0 | revision 30882 | 2026-07-11T14:56:49Z
 - [W002251 — Real mode](corpus/wiki-05.md#w002251) · source lines 649–649 | namespace 0 | revision 5290 | 2008-03-26T11:35:54Z
@@ -1424,11 +1405,11 @@ All 3,131 source IDs with local locations. Source navigation only; no execution 
 - [W002487 — Real mode assembly IV](corpus/wiki-05.md#w002487) · source lines 12007–12058 | namespace 0 | revision 27882 | 2023-07-09T04:26:33Z
 - [W004020 — Real Mode OS Warning](corpus/wiki-11.md#w004020) · source lines 15181–15250 | namespace 0 | revision 25148 | 2020-09-10T07:29:58Z
 - [W002932 — Real Time Clock](corpus/wiki-07.md#w002932) · source lines 3021–3021 | namespace 0 | revision 10876 | 2010-10-17T20:45:51Z
-- [W001476 — Real-Time Systems](corpus/wiki-01.md#w001476) · source lines 9928–9952 | namespace 0 | revision 22704 | 2018-09-10T01:53:31Z
+- [W001476 — Real-Time Systems](corpus/wiki-01.md#w001476) · source lines 9606–9630 | namespace 0 | revision 22704 | 2018-09-10T01:53:31Z
 - [W001844 — Reboot](corpus/wiki-03.md#w001844) · source lines 5765–5855 | namespace 0 | revision 26084 | 2021-06-04T22:16:55Z
 - [W004246 — Reduced State Vector Processor](corpus/wiki-12.md#w004246) · source lines 8720–8720 | namespace 0 | revision 22062 | 2018-01-12T02:23:32Z
 - [W003851 — Register Machine Model of Computation](corpus/wiki-11.md#w003851) · source lines 5197–5243 | namespace 0 | revision 26032 | 2021-05-31T18:06:33Z
-- [W001511 — ReiserFS](corpus/wiki-01.md#w001511) · source lines 15066–15084 | namespace 0 | revision 11686 | 2011-07-02T18:13:32Z
+- [W001511 — ReiserFS](corpus/wiki-01.md#w001511) · source lines 14744–14762 | namespace 0 | revision 11686 | 2011-07-02T18:13:32Z
 - [W001763 — Remote Procedure Call](corpus/wiki-03.md#w001763) · source lines 1574–1607 | namespace 0 | revision 13503 | 2012-06-05T09:18:12Z
 - [W003073 — Required Knowledge](corpus/wiki-07.md#w003073) · source lines 12100–12127 | namespace 0 | revision 31039 | 2026-10-23T14:00:30Z
 - [W003074 — Required Knowlege](corpus/wiki-07.md#w003074) · source lines 12142–12142 | namespace 0 | revision 12444 | 2012-01-26T06:03:15Z
@@ -1443,7 +1424,7 @@ All 3,131 source IDs with local locations. Source navigation only; no execution 
 - [W004036 — Rng](corpus/wiki-11.md#w004036) · source lines 16193–16193 | namespace 0 | revision 20566 | 2017-03-07T01:48:18Z
 - [W004458 — Roll Your Own Bootloader](corpus/wiki-13.md#w004458) · source lines 7479–7479 | namespace 0 | revision 24379 | 2020-02-03T01:45:51Z
 - [W003638 — Roll Your Own Filesystem](corpus/wiki-10.md#w003638) · source lines 11095–11121 | namespace 0 | revision 30846 | 2026-07-04T13:13:54Z
-- [W001878 — Rolling Your Own Bootloader](corpus/wiki-03.md#w001878) · source lines 7395–7564 | namespace 0 | revision 30336 | 2026-03-17T20:59:00Z
+- [W001878 — Rolling Your Own Bootloader](corpus/wiki-03.md#w001878) · source lines 7093–7262 | namespace 0 | revision 30336 | 2026-03-17T20:59:00Z
 - [W002473 — Root System Description Pointer](corpus/wiki-05.md#w002473) · source lines 11524–11524 | namespace 0 | revision 6934 | 2008-12-22T15:56:23Z
 - [W001764 — RPC](corpus/wiki-03.md#w001764) · source lines 1622–1622 | namespace 0 | revision 2758 | 2007-01-11T10:19:20Z
 - [W001440 — RSDP](corpus/wiki-01.md#w001440) · source lines 5701–5777 | namespace 0 | revision 30901 | 2026-07-24T07:08:46Z
@@ -1463,7 +1444,7 @@ All 3,131 source IDs with local locations. Source navigation only; no execution 
 - [W002243 — SATA](corpus/wiki-04.md#w002243) · source lines 14079–14115 | namespace 0 | revision 30508 | 2026-04-22T09:38:37Z
 - [W004388 — Scalable Screen Font](corpus/wiki-13.md#w004388) · source lines 3844–3943 | namespace 0 | revision 30325 | 2026-03-17T20:49:30Z
 - [W003909 — Scheduler](corpus/wiki-11.md#w003909) · source lines 7950–7950 | namespace 0 | revision 19220 | 2016-05-13T13:01:13Z
-- [W001477 — Scheduling Algorithms](corpus/wiki-01.md#w001477) · source lines 9966–10155 | namespace 0 | revision 28155 | 2023-07-10T14:36:22Z
+- [W001477 — Scheduling Algorithms](corpus/wiki-01.md#w001477) · source lines 9644–9833 | namespace 0 | revision 28155 | 2023-07-10T14:36:22Z
 - [W004245 — Schol-R-LEA/Reduced State Vector Processor](corpus/wiki-12.md#w004245) · source lines 8691–8705 | namespace 0 | revision 22061 | 2018-01-12T02:23:32Z
 - [W002591 — SciTE](corpus/wiki-06.md#w002591) · source lines 1025–1029 | namespace 0 | revision 9761 | 2010-02-13T02:50:39Z
 - [W004521 — SCSI](corpus/wiki-13.md#w004521) · source lines 12091–12132 | namespace 0 | revision 28359 | 2023-10-03T09:56:53Z
@@ -1474,7 +1455,7 @@ All 3,131 source IDs with local locations. Source navigation only; no execution 
 - [W003548 — Segment Limits](corpus/wiki-10.md#w003548) · source lines 1562–1660 | namespace 0 | revision 24065 | 2019-10-25T13:33:23Z
 - [W004675 — Segment Selector](corpus/wiki-14.md#w004675) · source lines 3167–3196 | namespace 0 | revision 31019 | 2026-10-13T15:25:46Z
 - [W004695 — Segment selector](corpus/wiki-14.md#w004695) · source lines 4481–4481 | namespace 0 | revision 26939 | 2022-02-14T07:23:04Z
-- [W001488 — Segmentation](corpus/wiki-01.md#w001488) · source lines 12385–12533 | namespace 0 | revision 31007 | 2026-10-09T18:17:42Z
+- [W001488 — Segmentation](corpus/wiki-01.md#w001488) · source lines 12063–12211 | namespace 0 | revision 31007 | 2026-10-09T18:17:42Z
 - [W003750 — Select](corpus/wiki-10.md#w003750) · source lines 17082–17117 | namespace 0 | revision 17763 | 2015-03-08T09:18:24Z
 - [W002883 — Selector](corpus/wiki-07.md#w002883) · source lines 804–804 | namespace 0 | revision 10420 | 2010-06-11T16:02:25Z
 - [W001752 — Semaphore](corpus/wiki-03.md#w001752) · source lines 1139–1203 | namespace 0 | revision 11881 | 2011-08-06T15:34:51Z
@@ -1491,7 +1472,6 @@ All 3,131 source IDs with local locations. Source navigation only; no execution 
 - [W001765 — Shared Memory](corpus/wiki-03.md#w001765) · source lines 1636–1658 | namespace 0 | revision 28212 | 2023-07-10T18:54:12Z
 - [W002478 — Shell](corpus/wiki-05.md#w002478) · source lines 11864–11864 | namespace 0 | revision 19413 | 2016-07-09T21:56:09Z
 - [W001845 — Shutdown](corpus/wiki-03.md#w001845) · source lines 5869–5948 | namespace 0 | revision 30327 | 2026-03-17T20:50:27Z
-- [W001890 — Signals](corpus/wiki-03.md#w001890) · source lines 9090–9102 | namespace 0 | revision 24290 | 2020-01-10T14:38:06Z
 - [W004252 — Silcos Kernel](corpus/wiki-12.md#w004252) · source lines 9042–9042 | namespace 0 | revision 22085 | 2018-01-14T14:28:35Z
 - [W002217 — SILO](corpus/wiki-04.md#w002217) · source lines 11875–11909 | namespace 0 | revision 20389 | 2017-02-11T20:51:26Z
 - [W001579 — SimICS](corpus/wiki-02.md#w001579) · source lines 5529–5535 | namespace 0 | revision 29959 | 2026-02-10T23:22:00Z
@@ -1533,7 +1513,7 @@ All 3,131 source IDs with local locations. Source navigation only; no execution 
 - [W004555 — Stivale](corpus/wiki-13.md#w004555) · source lines 13539–13539 | namespace 0 | revision 27250 | 2022-07-19T14:29:54Z
 - [W004554 — Stivale Bare Bones](corpus/wiki-13.md#w004554) · source lines 13524–13524 | namespace 0 | revision 27249 | 2022-07-19T14:27:54Z
 - [W004669 — Stivale2 CSharp BareBones](corpus/wiki-14.md#w004669) · source lines 2657–3064 | namespace 0 | revision 27028 | 2022-04-03T17:43:07Z
-- [W001457 — Storage](corpus/wiki-01.md#w001457) · source lines 7812–7830 | namespace 0 | revision 30961 | 2026-09-22T13:12:22Z
+- [W001457 — Storage](corpus/wiki-01.md#w001457) · source lines 7490–7508 | namespace 0 | revision 30961 | 2026-09-22T13:12:22Z
 - [W003661 — Strings do not work](corpus/wiki-10.md#w003661) · source lines 11731–11732 | namespace 0 | revision 25273 | 2020-10-28T20:10:00Z
 - [W005084 — STSI and ECAG](corpus/wiki-15.md#w005084) · source lines 193–408 | namespace 0 | revision 31026 | 2026-10-18T07:40:28Z
 - [W004037 — Supervisor Memory Protection](corpus/wiki-11.md#w004037) · source lines 16207–16268 | namespace 0 | revision 24076 | 2019-11-04T08:34:00Z
@@ -1543,8 +1523,7 @@ All 3,131 source IDs with local locations. Source navigation only; no execution 
 - [W004629 — Swift Barebones](corpus/wiki-14.md#w004629) · source lines 984–984 | namespace 0 | revision 26304 | 2021-08-12T23:03:32Z
 - [W003063 — Symbol Table](corpus/wiki-07.md#w003063) · source lines 11963–11994 | namespace 0 | revision 30541 | 2026-05-01T15:30:56Z
 - [W003748 — Symbolic link](corpus/wiki-10.md#w003748) · source lines 17001–17043 | namespace 0 | revision 28100 | 2023-07-09T22:36:58Z
-- [W001910 — Symmetric Multiprocessing](corpus/wiki-03.md#w001910) · source lines 13836–14047 | namespace 0 | revision 30332 | 2026-03-17T20:53:43Z
-- [W001889 — Synchronization Primitives](corpus/wiki-03.md#w001889) · source lines 8989–9076 | namespace 0 | revision 27650 | 2023-03-02T04:54:54Z
+- [W001910 — Symmetric Multiprocessing](corpus/wiki-03.md#w001910) · source lines 11667–11878 | namespace 0 | revision 30332 | 2026-03-17T20:53:43Z
 - [W003324 — SYSCALL](corpus/wiki-08.md#w003324) · source lines 14728–14728 | namespace 0 | revision 14427 | 2013-02-04T18:08:06Z
 - [W003323 — SYSENTER](corpus/wiki-08.md#w003323) · source lines 14627–14713 | namespace 0 | revision 30835 | 2026-07-02T03:22:15Z
 - [W003327 — Sysenter](corpus/wiki-08.md#w003327) · source lines 14773–14773 | namespace 0 | revision 14446 | 2013-02-07T17:46:25Z
@@ -1554,7 +1533,7 @@ All 3,131 source IDs with local locations. Source navigation only; no execution 
 - [W004206 — Sysroot](corpus/wiki-12.md#w004206) · source lines 5042–5042 | namespace 0 | revision 21614 | 2017-10-14T16:27:18Z
 - [W002831 — System Call](corpus/wiki-06.md#w002831) · source lines 17057–17057 | namespace 0 | revision 10038 | 2010-04-14T14:29:50Z
 - [W001961 — System Calls](corpus/wiki-04.md#w001961) · source lines 1091–1257 | namespace 0 | revision 30333 | 2026-03-17T20:54:10Z
-- [W001911 — System Commander](corpus/wiki-03.md#w001911) · source lines 14061–14076 | namespace 0 | revision 24861 | 2020-06-21T19:00:10Z
+- [W001911 — System Commander](corpus/wiki-03.md#w001911) · source lines 11892–11907 | namespace 0 | revision 24861 | 2020-06-21T19:00:10Z
 - [W001807 — System Initialization (SGI Mips)](corpus/wiki-03.md#w001807) · source lines 4606–4635 | namespace 0 | revision 29801 | 2025-12-25T05:18:23Z
 - [W001801 — System Initialization (Sparc)](corpus/wiki-03.md#w001801) · source lines 4388–4420 | namespace 0 | revision 28031 | 2023-07-09T18:42:28Z
 - [W001840 — System Initialization (x86)](corpus/wiki-03.md#w001840) · source lines 5632–5723 | namespace 0 | revision 27975 | 2023-07-09T17:20:20Z
@@ -1679,13 +1658,13 @@ All 3,131 source IDs with local locations. Source navigation only; no execution 
 - [W003456 — Talk:Exceptions](corpus/wiki-09.md#w003456) · source lines 6553–6577 | namespace 1 | revision 25246 | 2020-10-10T12:32:30Z
 - [W002143 — Talk:Executable Formats](corpus/wiki-04.md#w002143) · source lines 8688–8690 | namespace 1 | revision 4419 | 2007-08-28T00:45:03Z
 - [W002855 — Talk:Expanded Main Page](corpus/wiki-06.md#w002855) · source lines 18018–18024 | namespace 1 | revision 12711 | 2012-02-19T20:15:39Z
-- [W001510 — Talk:Ext2](corpus/wiki-01.md#w001510) · source lines 15034–15052 | namespace 1 | revision 13918 | 2012-08-19T09:51:57Z
+- [W001510 — Talk:Ext2](corpus/wiki-01.md#w001510) · source lines 14712–14730 | namespace 1 | revision 13918 | 2012-08-19T09:51:57Z
 - [W002480 — Talk:Far Call Trick](corpus/wiki-05.md#w002480) · source lines 11878–11908 | namespace 1 | revision 6999 | 2009-01-06T02:43:24Z
 - [W003060 — Talk:Fasm-TCC BareBones](corpus/wiki-07.md#w003060) · source lines 11905–11905 | namespace 1 | revision 12313 | 2011-12-13T06:07:12Z
 - [W001523 — Talk:FAT](corpus/wiki-02.md#w001523) · source lines 51–130 | namespace 1 | revision 28555 | 2024-01-10T16:33:48Z
 - [W004692 — Talk:File Systems](corpus/wiki-14.md#w004692) · source lines 4411–4428 | namespace 1 | revision 27016 | 2022-03-28T00:38:58Z
 - [W003116 — Talk:Floating Point Number](corpus/wiki-07.md#w003116) · source lines 14084–14092 | namespace 1 | revision 27469 | 2022-10-21T22:56:22Z
-- [W001464 — Talk:Floppy Disk Controller](corpus/wiki-01.md#w001464) · source lines 9074–9082 | namespace 1 | revision 4095 | 2007-06-17T11:32:14Z
+- [W001464 — Talk:Floppy Disk Controller](corpus/wiki-01.md#w001464) · source lines 8752–8760 | namespace 1 | revision 4095 | 2007-06-17T11:32:14Z
 - [W002093 — Talk:Floppy Drive Controller](corpus/wiki-04.md#w002093) · source lines 6448–6448 | namespace 1 | revision 4096 | 2007-06-17T11:32:14Z
 - [W002001 — Talk:Floppy Driver](corpus/wiki-04.md#w002001) · source lines 3516–3516 | namespace 1 | revision 6223 | 2008-08-20T16:11:33Z
 - [W004713 — Talk:Game port](corpus/wiki-14.md#w004713) · source lines 6042–6046 | namespace 1 | revision 27212 | 2022-07-07T14:25:10Z
@@ -1725,7 +1704,7 @@ All 3,131 source IDs with local locations. Source navigation only; no execution 
 - [W003088 — Talk:IDT problems](corpus/wiki-07.md#w003088) · source lines 12505–12505 | namespace 1 | revision 12585 | 2012-02-09T18:14:54Z
 - [W002191 — Talk:IDT2](corpus/wiki-04.md#w002191) · source lines 10834–10836 | namespace 1 | revision 4865 | 2007-11-14T21:43:25Z
 - [W003989 — Talk:Implementing Conditional Statements And Loops](corpus/wiki-11.md#w003989) · source lines 11482–11482 | namespace 1 | revision 19917 | 2016-10-27T19:16:50Z
-- [W001863 — Talk:Inline Assembly](corpus/wiki-03.md#w001863) · source lines 6658–6677 | namespace 1 | revision 15583 | 2014-02-13T10:21:21Z
+- [W001863 — Talk:Inline Assembly](corpus/wiki-03.md#w001863) · source lines 6356–6375 | namespace 1 | revision 15583 | 2014-02-13T10:21:21Z
 - [W002581 — Talk:Inline Assembly/Examples](corpus/wiki-06.md#w002581) · source lines 396–448 | namespace 1 | revision 11312 | 2011-03-22T15:55:58Z
 - [W003951 — Talk:Instruction Set Architecture](corpus/wiki-11.md#w003951) · source lines 9828–9828 | namespace 1 | revision 19574 | 2016-07-23T21:48:29Z
 - [W004845 — Talk:Intel Ethernet i217](corpus/wiki-14.md#w004845) · source lines 10557–10557 | namespace 1 | revision 28602 | 2024-02-03T18:33:21Z
@@ -1747,14 +1726,14 @@ All 3,131 source IDs with local locations. Source navigation only; no execution 
 - [W002105 — Talk:Kernel Debugging](corpus/wiki-04.md#w002105) · source lines 7115–7124 | namespace 1 | revision 14821 | 2013-06-04T05:11:40Z
 - [W004504 — Talk:Kernel Multitasking](corpus/wiki-13.md#w004504) · source lines 10948–10948 | namespace 1 | revision 24924 | 2020-06-24T05:48:28Z
 - [W003759 — Talk:Kernel Stdio Theory](corpus/wiki-10.md#w003759) · source lines 17245–17245 | namespace 1 | revision 17812 | 2015-03-17T08:15:58Z
-- [W001463 — Talk:Kernels](corpus/wiki-01.md#w001463) · source lines 9044–9060 | namespace 1 | revision 2666 | 2007-01-03T09:21:14Z
+- [W001463 — Talk:Kernels](corpus/wiki-01.md#w001463) · source lines 8722–8738 | namespace 1 | revision 2666 | 2007-01-03T09:21:14Z
 - [W002139 — Talk:Keyboard Input](corpus/wiki-04.md#w002139) · source lines 8633–8633 | namespace 1 | revision 17656 | 2015-03-01T15:12:20Z
 - [W004609 — Talk:LAI](corpus/wiki-13.md#w004609) · source lines 16064–16069 | namespace 1 | revision 26052 | 2021-06-01T14:37:11Z
 - [W004611 — Talk:Lai](corpus/wiki-13.md#w004611) · source lines 16099–16099 | namespace 1 | revision 26046 | 2021-06-01T06:03:41Z
 - [W004676 — Talk:Languages](corpus/wiki-14.md#w004676) · source lines 3210–3211 | namespace 1 | revision 26719 | 2021-11-29T04:49:03Z
 - [W002115 — Talk:LE](corpus/wiki-04.md#w002115) · source lines 7293–7294 | namespace 1 | revision 4257 | 2007-07-10T02:56:18Z
 - [W003659 — Talk:Libgcc without red zone](corpus/wiki-10.md#w003659) · source lines 11696–11700 | namespace 1 | revision 16964 | 2014-10-23T19:59:22Z
-- [W001921 — Talk:Library Calls](corpus/wiki-03.md#w001921) · source lines 14601–14602 | namespace 1 | revision 3212 | 2007-03-07T10:40:09Z
+- [W001921 — Talk:Library Calls](corpus/wiki-03.md#w001921) · source lines 12432–12433 | namespace 1 | revision 3212 | 2007-03-07T10:40:09Z
 - [W003418 — Talk:Libsupcxx](corpus/wiki-09.md#w003418) · source lines 2506–2512 | namespace 1 | revision 15363 | 2013-11-04T15:52:20Z
 - [W002361 — Talk:Licensing](corpus/wiki-05.md#w002361) · source lines 7400–7412 | namespace 1 | revision 6246 | 2008-08-27T06:08:30Z
 - [W004895 — Talk:Limine Bare Bones](corpus/wiki-14.md#w004895) · source lines 12170–12171 | namespace 1 | revision 29169 | 2024-06-29T15:04:05Z
@@ -1825,7 +1804,7 @@ All 3,131 source IDs with local locations. Source navigation only; no execution 
 - [W003115 — Talk:Print Functions](corpus/wiki-07.md#w003115) · source lines 14066–14070 | namespace 1 | revision 12814 | 2012-02-23T09:16:48Z
 - [W003262 — Talk:Printing to Screen](corpus/wiki-08.md#w003262) · source lines 8112–8112 | namespace 1 | revision 13827 | 2012-07-17T22:03:51Z
 - [W005033 — Talk:Printing To Screen](corpus/wiki-14.md#w005033) · source lines 19492–19492 | namespace 1 | revision 30590 | 2026-05-21T06:16:16Z
-- [W001475 — Talk:Processes and Threads](corpus/wiki-01.md#w001475) · source lines 9908–9914 | namespace 1 | revision 1786 | 2006-12-03T15:37:15Z
+- [W001475 — Talk:Processes and Threads](corpus/wiki-01.md#w001475) · source lines 9586–9592 | namespace 1 | revision 1786 | 2006-12-03T15:37:15Z
 - [W003193 — Talk:Programmable Interval Timer](corpus/wiki-08.md#w003193) · source lines 5896–5905 | namespace 1 | revision 13472 | 2012-05-30T09:54:52Z
 - [W001376 — Talk:Projects](corpus/wiki-01.md#w001376) · source lines 2501–2564 | namespace 1 | revision 21932 | 2017-12-17T15:50:31Z
 - [W001736 — Talk:Protected Mode](corpus/wiki-02.md#w001736) · source lines 14311–14316 | namespace 1 | revision 5293 | 2008-03-26T11:37:12Z
@@ -1875,7 +1854,7 @@ All 3,131 source IDs with local locations. Source navigation only; no execution 
 - [W002452 — Talk:Stack](corpus/wiki-05.md#w002452) · source lines 11392–11402 | namespace 1 | revision 14546 | 2013-03-28T12:12:07Z
 - [W002896 — Talk:Stack Smashing Protector](corpus/wiki-07.md#w002896) · source lines 1193–1197 | namespace 1 | revision 16950 | 2014-10-22T23:28:49Z
 - [W002514 — Talk:Stack Trace](corpus/wiki-05.md#w002514) · source lines 13558–13564 | namespace 1 | revision 27647 | 2023-03-01T23:46:55Z
-- [W001462 — Talk:Storage](corpus/wiki-01.md#w001462) · source lines 9023–9030 | namespace 1 | revision 5057 | 2008-01-22T07:49:35Z
+- [W001462 — Talk:Storage](corpus/wiki-01.md#w001462) · source lines 8701–8708 | namespace 1 | revision 5057 | 2008-01-22T07:49:35Z
 - [W004328 — Talk:SUBLEQ](corpus/wiki-12.md#w004328) · source lines 17489–17489 | namespace 1 | revision 22993 | 2018-09-27T06:12:40Z
 - [W002004 — Talk:Symmetric Multiprocessing](corpus/wiki-04.md#w002004) · source lines 3600–3602 | namespace 1 | revision 7601 | 2009-04-07T10:15:01Z
 - [W002302 — Talk:Synchronisation Primitives](corpus/wiki-05.md#w002302) · source lines 3837–3837 | namespace 1 | revision 5602 | 2008-06-04T19:53:14Z
@@ -1922,14 +1901,14 @@ All 3,131 source IDs with local locations. Source navigation only; no execution 
 - [W003419 — Talk:Win95 DOS Call](corpus/wiki-09.md#w003419) · source lines 2526–2530 | namespace 1 | revision 15399 | 2013-11-11T07:13:08Z
 - [W003082 — Talk:Windows Virtual PC](corpus/wiki-07.md#w003082) · source lines 12424–12428 | namespace 1 | revision 12550 | 2012-02-06T07:55:29Z
 - [W002158 — Talk:WinImage](corpus/wiki-04.md#w002158) · source lines 9094–9095 | namespace 1 | revision 4497 | 2007-09-01T00:48:55Z
-- [W001944 — Talk:Wish List](corpus/wiki-03.md#w001944) · source lines 15780–15809 | namespace 1 | revision 30277 | 2026-03-16T17:56:50Z
+- [W001944 — Talk:Wish List](corpus/wiki-03.md#w001944) · source lines 12833–12862 | namespace 1 | revision 30277 | 2026-03-16T17:56:50Z
 - [W002506 — Talk:Wish List/Archive](corpus/wiki-05.md#w002506) · source lines 13198–13243 | namespace 1 | revision 16356 | 2014-05-09T12:46:01Z
 - [W002590 — Talk:Writing A Page Frame Allocator](corpus/wiki-06.md#w002590) · source lines 1011–1011 | namespace 1 | revision 7941 | 2009-05-11T14:17:34Z
 - [W005065 — Talk:X86 Cooperative Multitasking Tutorial](corpus/wiki-14.md#w005065) · source lines 21652–21652 | namespace 1 | revision 30766 | 2026-06-16T15:01:23Z
 - [W002002 — Talk:X86 Interrupts](corpus/wiki-04.md#w002002) · source lines 3530–3553 | namespace 1 | revision 30757 | 2026-06-15T16:30:27Z
 - [W005054 — Talk:X86 Page Tables](corpus/wiki-14.md#w005054) · source lines 21155–21165 | namespace 1 | revision 30734 | 2026-06-12T16:24:55Z
 - [W002123 — Talk:X86 Paging](corpus/wiki-04.md#w002123) · source lines 7850–7867 | namespace 1 | revision 30737 | 2026-06-12T16:50:24Z
-- [W001449 — Talk:X86-64](corpus/wiki-01.md#w001449) · source lines 6801–6805 | namespace 1 | revision 1686 | 2006-11-30T20:19:58Z
+- [W001449 — Talk:X86-64](corpus/wiki-01.md#w001449) · source lines 6479–6483 | namespace 1 | revision 1686 | 2006-11-30T20:19:58Z
 - [W004811 — Talk:XSDP](corpus/wiki-14.md#w004811) · source lines 9608–9608 | namespace 1 | revision 28280 | 2023-08-16T14:47:18Z
 - [W003057 — Tar](corpus/wiki-07.md#w003057) · source lines 11786–11875 | namespace 0 | revision 28704 | 2024-03-17T18:03:23Z
 - [W003420 — Target Triplet](corpus/wiki-09.md#w003420) · source lines 2544–2606 | namespace 0 | revision 30316 | 2026-03-17T19:01:58Z
@@ -1961,7 +1940,7 @@ All 3,131 source IDs with local locations. Source navigation only; no execution 
 - [W002073 — Template:CloserInspectionValidity](corpus/wiki-04.md#w002073) · source lines 4970–4970 | namespace 10 | revision 12736 | 2012-02-19T20:33:03Z
 - [W003387 — Template:CloserInspectionValidityNew](corpus/wiki-09.md#w003387) · source lines 893–893 | namespace 10 | revision 14990 | 2013-08-03T22:05:57Z
 - [W002198 — Template:Conversion](corpus/wiki-04.md#w002198) · source lines 10921–10921 | namespace 10 | revision 4905 | 2007-11-20T09:37:39Z
-- [W001864 — Template:Convert](corpus/wiki-03.md#w001864) · source lines 6691–6716 | namespace 10 | revision 12732 | 2012-02-19T20:31:36Z
+- [W001864 — Template:Convert](corpus/wiki-03.md#w001864) · source lines 6389–6414 | namespace 10 | revision 12732 | 2012-02-19T20:31:36Z
 - [W004318 — Template:DiscussThis](corpus/wiki-12.md#w004318) · source lines 16565–16565 | namespace 10 | revision 22868 | 2018-09-14T23:24:23Z
 - [W001794 — Template:Disputed](corpus/wiki-03.md#w001794) · source lines 3346–3353 | namespace 10 | revision 22865 | 2018-09-14T23:21:50Z
 - [W005016 — Template:Distinguish](corpus/wiki-14.md#w005016) · source lines 18257–18257 | namespace 10 | revision 30368 | 2026-03-22T22:57:00Z
@@ -2029,7 +2008,7 @@ All 3,131 source IDs with local locations. Source navigation only; no execution 
 - [W002325 — Template:SmallNavBox](corpus/wiki-05.md#w002325) · source lines 4328–4364 | namespace 10 | revision 29007 | 2024-06-06T17:30:42Z
 - [W004316 — Template:Sole Editor](corpus/wiki-12.md#w004316) · source lines 16537–16537 | namespace 10 | revision 22852 | 2018-09-14T23:04:57Z
 - [W004312 — Template:Spelling](corpus/wiki-12.md#w004312) · source lines 16493–16493 | namespace 10 | revision 22816 | 2018-09-10T05:32:00Z
-- [W001513 — Template:Stub](corpus/wiki-01.md#w001513) · source lines 15253–15262 | namespace 10 | revision 29006 | 2024-06-06T17:30:33Z
+- [W001513 — Template:Stub](corpus/wiki-01.md#w001513) · source lines 14931–14940 | namespace 10 | revision 29006 | 2024-06-06T17:30:33Z
 - [W002303 — Template:Stylenav](corpus/wiki-05.md#w002303) · source lines 3851–3853 | namespace 10 | revision 10138 | 2010-04-26T19:42:17Z
 - [W004021 — Template:Tone](corpus/wiki-11.md#w004021) · source lines 15264–15266 | namespace 10 | revision 22744 | 2018-09-10T03:18:26Z
 - [W001393 — Template:Tools](corpus/wiki-01.md#w001393) · source lines 3080–3088 | namespace 10 | revision 10176 | 2010-04-28T20:29:36Z
@@ -2048,26 +2027,23 @@ All 3,131 source IDs with local locations. Source navigation only; no execution 
 - [W004920 — Template:X86 protected mode interrupts](corpus/wiki-14.md#w004920) · source lines 13026–13235 | namespace 10 | revision 29448 | 2025-04-01T23:09:14Z
 - [W001403 — Template:Yes](corpus/wiki-01.md#w001403) · source lines 3244–3244 | namespace 10 | revision 28957 | 2024-06-06T17:17:39Z
 - [W004567 — Terminals](corpus/wiki-13.md#w004567) · source lines 14073–14267 | namespace 0 | revision 29384 | 2025-02-08T12:30:48Z
-- [W001946 — Testing](corpus/wiki-03.md#w001946) · source lines 15823–15871 | namespace 0 | revision 29356 | 2025-01-30T03:35:06Z
 - [W002696 — Text mode](corpus/wiki-06.md#w002696) · source lines 6941–6941 | namespace 0 | revision 8874 | 2009-08-26T04:24:58Z
-- [W001932 — Text Mode Cursor](corpus/wiki-03.md#w001932) · source lines 15092–15318 | namespace 0 | revision 30460 | 2026-04-06T15:42:13Z
 - [W001553 — Text UI](corpus/wiki-02.md#w001553) · source lines 3208–3352 | namespace 0 | revision 30318 | 2026-03-17T19:03:37Z
 - [W003907 — TFS](corpus/wiki-11.md#w003907) · source lines 7920–7920 | namespace 0 | revision 19213 | 2016-05-11T12:57:43Z
 - [W005101 — Theia OS](corpus/wiki-15.md#w005101) · source lines 1293–1343 | namespace 0 | revision 31028 | 2026-10-18T22:31:11Z
 - [W004247 — Thread](corpus/wiki-12.md#w004247) · source lines 8734–8838 | namespace 0 | revision 30651 | 2026-05-28T11:09:18Z
 - [W003673 — Thread Local Storage](corpus/wiki-10.md#w003673) · source lines 12149–12266 | namespace 0 | revision 17081 | 2014-11-18T20:50:43Z
 - [W003806 — Time](corpus/wiki-11.md#w003806) · source lines 2661–2661 | namespace 0 | revision 18226 | 2015-07-08T14:18:38Z
-- [W001903 — Time And Date](corpus/wiki-03.md#w001903) · source lines 12520–12694 | namespace 0 | revision 30770 | 2026-06-17T10:09:27Z
+- [W001903 — Time And Date](corpus/wiki-03.md#w001903) · source lines 10351–10525 | namespace 0 | revision 30770 | 2026-06-17T10:09:27Z
 - [W004719 — Timekeeping in virtual machines](corpus/wiki-14.md#w004719) · source lines 6704–6799 | namespace 0 | revision 30321 | 2026-03-17T19:06:47Z
 - [W004069 — Timer Interrupt Sources](corpus/wiki-12.md#w004069) · source lines 1908–2178 | namespace 0 | revision 30009 | 2026-02-15T17:24:53Z
 - [W003043 — TKisem](corpus/wiki-07.md#w003043) · source lines 10661–10685 | namespace 0 | revision 12152 | 2011-11-03T09:43:26Z
 - [W002792 — TLB](corpus/wiki-06.md#w002792) · source lines 12598–12642 | namespace 0 | revision 28002 | 2023-07-09T17:46:29Z
-- [W001498 — TLink](corpus/wiki-01.md#w001498) · source lines 12767–12784 | namespace 0 | revision 22856 | 2018-09-14T23:11:42Z
+- [W001498 — TLink](corpus/wiki-01.md#w001498) · source lines 12445–12462 | namespace 0 | revision 22856 | 2018-09-14T23:11:42Z
 - [W003813 — TLS](corpus/wiki-11.md#w003813) · source lines 2947–2947 | namespace 0 | revision 18302 | 2015-08-21T12:08:02Z
 - [W003913 — TLS Encryption](corpus/wiki-11.md#w003913) · source lines 8318–8459 | namespace 0 | revision 28485 | 2023-12-02T12:55:11Z
 - [W003912 — TLS Handshake](corpus/wiki-11.md#w003912) · source lines 7964–8304 | namespace 0 | revision 28023 | 2023-07-09T18:08:57Z
 - [W001405 — Tool Comparison](corpus/wiki-01.md#w001405) · source lines 3272–3665 | namespace 0 | revision 24610 | 2020-04-19T17:20:13Z
-- [W001856 — Triple Fault](corpus/wiki-03.md#w001856) · source lines 6454–6482 | namespace 0 | revision 16538 | 2014-07-17T05:58:04Z
 - [W002471 — Triple-fault](corpus/wiki-05.md#w002471) · source lines 11486–11486 | namespace 0 | revision 6921 | 2008-12-19T10:45:48Z
 - [W001540 — Troubleshooting](corpus/wiki-02.md#w001540) · source lines 1744–1993 | namespace 0 | revision 28507 | 2023-12-13T06:59:56Z
 - [W002909 — TrueType Fonts](corpus/wiki-07.md#w002909) · source lines 1459–1540 | namespace 0 | revision 29690 | 2025-09-23T20:38:56Z
@@ -2096,19 +2072,19 @@ All 3,131 source IDs with local locations. Source navigation only; no execution 
 - [W003449 — UEFI ISO Bare Bones](corpus/wiki-09.md#w003449) · source lines 5545–5545 | namespace 0 | revision 25174 | 2020-09-17T15:46:02Z
 - [W004081 — UEFI NVRAM](corpus/wiki-12.md#w004081) · source lines 2828–2864 | namespace 0 | revision 21070 | 2017-08-10T10:11:08Z
 - [W003317 — Uefi.inc](corpus/wiki-08.md#w003317) · source lines 13678–14425 | namespace 0 | revision 25442 | 2020-12-15T16:46:45Z
-- [W001515 — UFS](corpus/wiki-01.md#w001515) · source lines 15538–15554 | namespace 0 | revision 30372 | 2026-03-22T23:21:00Z
+- [W001515 — UFS](corpus/wiki-01.md#w001515) · source lines 15216–15232 | namespace 0 | revision 30372 | 2026-03-22T23:21:00Z
 - [W003308 — UHCI](corpus/wiki-08.md#w003308) · source lines 11606–11606 | namespace 0 | revision 14235 | 2013-01-12T17:51:31Z
-- [W001902 — UltraSPARC](corpus/wiki-03.md#w001902) · source lines 12481–12506 | namespace 0 | revision 30665 | 2026-05-28T15:47:13Z
+- [W001902 — UltraSPARC](corpus/wiki-03.md#w001902) · source lines 10312–10337 | namespace 0 | revision 30665 | 2026-05-28T15:47:13Z
 - [W004038 — Undefined Behavior Sanitization](corpus/wiki-11.md#w004038) · source lines 16282–16393 | namespace 0 | revision 28093 | 2023-07-09T21:29:07Z
 - [W005044 — Unicode](corpus/wiki-14.md#w005044) · source lines 20293–20599 | namespace 0 | revision 30674 | 2026-05-29T13:53:50Z
 - [W002927 — Unified Extensible Firmware Interface](corpus/wiki-07.md#w002927) · source lines 2843–2843 | namespace 0 | revision 10843 | 2010-10-11T19:00:59Z
 - [W002747 — Uniform Driver Interface](corpus/wiki-06.md#w002747) · source lines 9608–9774 | namespace 0 | revision 19808 | 2016-09-08T22:35:45Z
-- [W001918 — Unit Testing](corpus/wiki-03.md#w001918) · source lines 14412–14432 | namespace 0 | revision 27984 | 2023-07-09T17:27:43Z
+- [W001918 — Unit Testing](corpus/wiki-03.md#w001918) · source lines 12243–12263 | namespace 0 | revision 27984 | 2023-07-09T17:27:43Z
 - [W003445 — Universal Driver Block Format](corpus/wiki-09.md#w003445) · source lines 4226–4226 | namespace 0 | revision 15540 | 2014-01-17T13:19:12Z
 - [W003305 — Universal Host Controller Interface](corpus/wiki-08.md#w003305) · source lines 10992–11405 | namespace 0 | revision 29856 | 2026-01-11T05:17:33Z
 - [W004364 — Universal Plug-n-Play](corpus/wiki-13.md#w004364) · source lines 2285–2510 | namespace 0 | revision 27957 | 2023-07-09T16:13:51Z
 - [W001725 — Universal Serial Bus](corpus/wiki-02.md#w001725) · source lines 12000–14055 | namespace 0 | revision 29542 | 2025-06-08T17:41:27Z
-- [W001915 — Unix Pipes](corpus/wiki-03.md#w001915) · source lines 14325–14354 | namespace 0 | revision 23425 | 2019-02-27T15:47:23Z
+- [W001915 — Unix Pipes](corpus/wiki-03.md#w001915) · source lines 12156–12185 | namespace 0 | revision 23425 | 2019-02-27T15:47:23Z
 - [W001715 — Unreal Mode](corpus/wiki-02.md#w001715) · source lines 11136–11268 | namespace 0 | revision 30244 | 2026-03-16T15:45:50Z
 - [W002597 — Unreal mode](corpus/wiki-06.md#w002597) · source lines 1508–1508 | namespace 0 | revision 8008 | 2009-05-28T23:43:42Z
 - [W002787 — USB](corpus/wiki-06.md#w002787) · source lines 11231–11231 | namespace 0 | revision 9589 | 2010-01-08T07:11:21Z
@@ -2878,7 +2854,7 @@ All 3,131 source IDs with local locations. Source navigation only; no execution 
 - [W004497 — User:Superleaf1995/uniFS](corpus/wiki-13.md#w004497) · source lines 10686–10686 | namespace 2 | revision 24886 | 2020-06-22T12:26:53Z
 - [W002437 — User:Tantrikwizard](corpus/wiki-05.md#w002437) · source lines 10705–10711 | namespace 2 | revision 6727 | 2008-11-24T20:16:58Z
 - [W004742 — User:Techflash](corpus/wiki-14.md#w004742) · source lines 7966–7968 | namespace 2 | revision 27649 | 2023-03-01T23:51:03Z
-- [W001456 — User:Telexicon](corpus/wiki-01.md#w001456) · source lines 7792–7798 | namespace 2 | revision 1804 | 2006-12-04T11:28:38Z
+- [W001456 — User:Telexicon](corpus/wiki-01.md#w001456) · source lines 7470–7476 | namespace 2 | revision 1804 | 2006-12-04T11:28:38Z
 - [W004280 — User:TheCool1Kevin/VSCode Debug](corpus/wiki-12.md#w004280) · source lines 14074–14249 | namespace 2 | revision 30319 | 2026-03-17T19:05:04Z
 - [W004934 — User:Thedabbingduck/OStrichFS](corpus/wiki-14.md#w004934) · source lines 13777–13966 | namespace 2 | revision 30320 | 2026-03-17T19:05:56Z
 - [W003883 — User:Thefarmingbunny](corpus/wiki-11.md#w003883) · source lines 6629–6629 | namespace 2 | revision 18968 | 2016-03-05T11:33:09Z
@@ -2958,19 +2934,19 @@ All 3,131 source IDs with local locations. Source navigation only; no execution 
 - [W004545 — Using UEFI Runtime Services in your Kernel](corpus/wiki-13.md#w004545) · source lines 13183–13282 | namespace 0 | revision 25396 | 2020-12-01T00:08:34Z
 - [W004201 — USTAR](corpus/wiki-12.md#w004201) · source lines 4675–4836 | namespace 0 | revision 30314 | 2026-03-17T18:59:46Z
 - [W003829 — Vagrant](corpus/wiki-11.md#w003829) · source lines 3537–3582 | namespace 0 | revision 27971 | 2023-07-09T16:31:44Z
-- [W001502 — VAL](corpus/wiki-01.md#w001502) · source lines 12898–12919 | namespace 0 | revision 28562 | 2024-01-17T00:50:51Z
+- [W001502 — VAL](corpus/wiki-01.md#w001502) · source lines 12576–12597 | namespace 0 | revision 28562 | 2024-01-17T00:50:51Z
 - [W002795 — VBE](corpus/wiki-06.md#w002795) · source lines 12692–12692 | namespace 0 | revision 20684 | 2017-04-10T17:40:58Z
 - [W003836 — Vesa](corpus/wiki-11.md#w003836) · source lines 4043–4043 | namespace 0 | revision 18662 | 2015-11-28T17:32:40Z
 - [W003837 — VESA](corpus/wiki-11.md#w003837) · source lines 4058–4058 | namespace 0 | revision 18663 | 2015-11-28T17:38:28Z
 - [W003101 — VESA BIOS Extension/Accelerator Functions](corpus/wiki-07.md#w003101) · source lines 13794–13800 | namespace 0 | revision 28042 | 2023-07-09T18:59:21Z
-- [W001904 — VESA Video Modes](corpus/wiki-03.md#w001904) · source lines 12708–13034 | namespace 0 | revision 30513 | 2026-04-26T04:10:17Z
+- [W001904 — VESA Video Modes](corpus/wiki-03.md#w001904) · source lines 10539–10865 | namespace 0 | revision 30513 | 2026-04-26T04:10:17Z
 - [W002778 — VFAT](corpus/wiki-06.md#w002778) · source lines 10533–10533 | namespace 0 | revision 28335 | 2023-09-28T15:08:31Z
 - [W002258 — VFS](corpus/wiki-05.md#w002258) · source lines 1133–1212 | namespace 0 | revision 29334 | 2024-12-30T14:15:40Z
 - [W002321 — VGA](corpus/wiki-05.md#w002321) · source lines 3963–3963 | namespace 0 | revision 6820 | 2008-12-09T00:27:24Z
 - [W003092 — VGA Fonts](corpus/wiki-07.md#w003092) · source lines 12759–13516 | namespace 0 | revision 30306 | 2026-03-17T18:50:19Z
 - [W001697 — VGA Hardware](corpus/wiki-02.md#w001697) · source lines 8903–9881 | namespace 0 | revision 30577 | 2026-05-17T09:47:51Z
 - [W001443 — VGA Resources](corpus/wiki-01.md#w001443) · source lines 5963–5989 | namespace 0 | revision 25369 | 2020-11-19T20:15:07Z
-- [W001925 — VGA Text Mode](corpus/wiki-03.md#w001925) · source lines 14709–14988 | namespace 0 | revision 30595 | 2026-05-21T17:49:20Z
+- [W001925 — VGA Text Mode](corpus/wiki-03.md#w001925) · source lines 12540–12819 | namespace 0 | revision 30595 | 2026-05-21T17:49:20Z
 - [W003737 — Video RAM](corpus/wiki-10.md#w003737) · source lines 16350–16359 | namespace 0 | revision 22819 | 2018-09-10T05:37:55Z
 - [W002533 — Video Signals And Timing](corpus/wiki-05.md#w002533) · source lines 14445–14870 | namespace 0 | revision 18071 | 2015-05-14T06:26:30Z
 - [W003311 — Virtio](corpus/wiki-08.md#w003311) · source lines 11798–12031 | namespace 0 | revision 30307 | 2026-03-17T18:50:51Z
@@ -2986,7 +2962,7 @@ All 3,131 source IDs with local locations. Source navigation only; no execution 
 - [W003970 — VirtualBox/Guest Additions](corpus/wiki-11.md#w003970) · source lines 10762–10762 | namespace 0 | revision 19747 | 2016-08-30T06:58:53Z
 - [W002759 — Visual C](corpus/wiki-06.md#w002759) · source lines 10193–10193 | namespace 0 | revision 9443 | 2009-12-20T05:46:52Z
 - [W002992 — Visual C++ Runtime](corpus/wiki-07.md#w002992) · source lines 6324–6460 | namespace 0 | revision 28135 | 2023-07-10T02:51:55Z
-- [W001454 — Visual Studio](corpus/wiki-01.md#w001454) · source lines 7295–7673 | namespace 0 | revision 25386 | 2020-11-28T04:21:26Z
+- [W001454 — Visual Studio](corpus/wiki-01.md#w001454) · source lines 6973–7351 | namespace 0 | revision 25386 | 2020-11-28T04:21:26Z
 - [W001555 — VMware](corpus/wiki-02.md#w001555) · source lines 3403–3462 | namespace 0 | revision 29214 | 2024-08-11T22:01:38Z
 - [W003346 — VMWare](corpus/wiki-08.md#w003346) · source lines 16425–16425 | namespace 0 | revision 14601 | 2013-04-30T11:22:02Z
 - [W004730 — VMWare SVGA-II](corpus/wiki-14.md#w004730) · source lines 7659–7766 | namespace 0 | revision 27868 | 2023-07-09T04:02:56Z
@@ -2998,13 +2974,11 @@ All 3,131 source IDs with local locations. Source navigation only; no execution 
 - [W004568 — VT100](corpus/wiki-13.md#w004568) · source lines 14282–14282 | namespace 0 | revision 25701 | 2021-02-19T11:56:26Z
 - [W004931 — Vulkan](corpus/wiki-14.md#w004931) · source lines 13349–13469 | namespace 0 | revision 30692 | 2026-06-04T13:52:46Z
 - [W004807 — WAET](corpus/wiki-14.md#w004807) · source lines 9442–9541 | namespace 0 | revision 30066 | 2026-02-23T17:00:05Z
-- [W001938 — Watcom](corpus/wiki-03.md#w001938) · source lines 15363–15437 | namespace 0 | revision 29233 | 2024-08-25T18:45:00Z
 - [W004419 — WebAssembly](corpus/wiki-13.md#w004419) · source lines 5451–5549 | namespace 0 | revision 28777 | 2024-04-30T10:23:13Z
 - [W003481 — What do I need to know about SMM](corpus/wiki-09.md#w003481) · source lines 10949–10950 | namespace 0 | revision 15828 | 2014-03-30T11:37:33Z
 - [W002213 — What filesystem should I use](corpus/wiki-04.md#w002213) · source lines 11805–11806 | namespace 0 | revision 5034 | 2008-01-03T13:27:27Z
 - [W004314 — What order should I make things in](corpus/wiki-12.md#w004314) · source lines 16508–16508 | namespace 0 | revision 22841 | 2018-09-14T22:53:18Z
 - [W001577 — What Order Should I Make Things In?](corpus/wiki-02.md#w001577) · source lines 5353–5430 | namespace 0 | revision 29273 | 2024-10-09T17:06:17Z
-- [W001930 — Where Can I Find Info On PNP](corpus/wiki-03.md#w001930) · source lines 15031–15031 | namespace 0 | revision 4610 | 2007-09-16T21:23:01Z
 - [W002363 — Where Can I Find Information About Ports](corpus/wiki-05.md#w002363) · source lines 7464–7517 | namespace 0 | revision 26316 | 2021-08-12T23:52:57Z
 - [W003993 — Which assembler should I use?(x86)](corpus/wiki-11.md#w003993) · source lines 11540–11561 | namespace 0 | revision 28524 | 2023-12-15T19:31:16Z
 - [W003355 — Why do I need a Cross Compiler](corpus/wiki-08.md#w003355) · source lines 16895–16895 | namespace 0 | revision 14683 | 2013-05-15T06:22:27Z
@@ -3021,8 +2995,7 @@ All 3,131 source IDs with local locations. Source navigation only; no execution 
 - [W002990 — Windows Tools](corpus/wiki-07.md#w002990) · source lines 6182–6296 | namespace 0 | revision 22685 | 2018-09-10T01:09:53Z
 - [W003081 — Windows Virtual PC](corpus/wiki-07.md#w003081) · source lines 12410–12410 | namespace 0 | revision 12551 | 2012-02-06T11:42:20Z
 - [W001603 — WinImage](corpus/wiki-02.md#w001603) · source lines 6657–6664 | namespace 0 | revision 28076 | 2023-07-09T20:48:31Z
-- [W001943 — Wish List](corpus/wiki-03.md#w001943) · source lines 15703–15766 | namespace 0 | revision 30399 | 2026-03-24T21:51:29Z
-- [W001503 — WLink](corpus/wiki-01.md#w001503) · source lines 12933–12947 | namespace 0 | revision 12870 | 2012-03-01T15:13:06Z
+- [W001503 — WLink](corpus/wiki-01.md#w001503) · source lines 12611–12625 | namespace 0 | revision 12870 | 2012-03-01T15:13:06Z
 - [W002064 — Writing a memory manager](corpus/wiki-04.md#w002064) · source lines 4832–4907 | namespace 0 | revision 20837 | 2017-06-03T09:33:27Z
 - [W002586 — Writing A Page Frame Allocator](corpus/wiki-06.md#w002586) · source lines 739–869 | namespace 0 | revision 30274 | 2026-03-16T17:52:28Z
 - [W003639 — Writing GRUB Modules](corpus/wiki-10.md#w003639) · source lines 11135–11217 | namespace 0 | revision 28139 | 2023-07-10T02:59:29Z
@@ -3031,7 +3004,7 @@ All 3,131 source IDs with local locations. Source navigation only; no execution 
 - [W002445 — X86](corpus/wiki-05.md#w002445) · source lines 10898–10898 | namespace 0 | revision 6776 | 2008-11-28T04:45:41Z
 - [W005064 — X86 Cooperative Multitasking Tutorial](corpus/wiki-14.md#w005064) · source lines 21476–21638 | namespace 0 | revision 30764 | 2026-06-16T15:00:50Z
 - [W003033 — X86 Instruction Encoding](corpus/wiki-07.md#w003033) · source lines 10125–10125 | namespace 0 | revision 12000 | 2011-09-12T16:37:44Z
-- [W001874 — X86 Interrupts](corpus/wiki-03.md#w001874) · source lines 7049–7208 | namespace 0 | revision 30830 | 2026-06-29T19:40:14Z
+- [W001874 — X86 Interrupts](corpus/wiki-03.md#w001874) · source lines 6747–6906 | namespace 0 | revision 30830 | 2026-06-29T19:40:14Z
 - [W003344 — X86 Page Tables](corpus/wiki-08.md#w003344) · source lines 15902–16410 | namespace 0 | revision 30733 | 2026-06-12T16:13:00Z
 - [W002122 — X86 Paging](corpus/wiki-04.md#w002122) · source lines 7460–7836 | namespace 0 | revision 30739 | 2026-06-12T16:52:38Z
 - [W001447 — X86-64](corpus/wiki-01.md#w001447) · source lines 6247–6465 | namespace 0 | revision 30486 | 2026-04-15T15:10:11Z
@@ -3040,11 +3013,11 @@ All 3,131 source IDs with local locations. Source navigation only; no execution 
 - [W004705 — X87](corpus/wiki-14.md#w004705) · source lines 5665–5665 | namespace 0 | revision 27036 | 2022-04-11T15:49:10Z
 - [W003957 — Xbox](corpus/wiki-11.md#w003957) · source lines 9885–9931 | namespace 0 | revision 23829 | 2019-08-25T00:01:01Z
 - [W004656 — Xcr0](corpus/wiki-14.md#w004656) · source lines 2413–2413 | namespace 0 | revision 26558 | 2021-10-20T06:09:10Z
-- [W001516 — XFS](corpus/wiki-01.md#w001516) · source lines 15568–15722 | namespace 0 | revision 29834 | 2026-01-07T05:54:31Z
+- [W001516 — XFS](corpus/wiki-01.md#w001516) · source lines 15246–15400 | namespace 0 | revision 29834 | 2026-01-07T05:54:31Z
 - [W003310 — XHCI](corpus/wiki-08.md#w003310) · source lines 11784–11784 | namespace 0 | revision 14241 | 2013-01-12T19:50:45Z
 - [W004386 — Xilinx Ultrascale+ MPSoC](corpus/wiki-13.md#w004386) · source lines 3811–3811 | namespace 0 | revision 23624 | 2019-05-17T05:40:40Z
 - [W003786 — XNU](corpus/wiki-11.md#w003786) · source lines 949–949 | namespace 0 | revision 20690 | 2017-04-10T17:43:31Z
-- [W001917 — XOSL](corpus/wiki-03.md#w001917) · source lines 14389–14398 | namespace 0 | revision 10694 | 2010-09-06T16:19:29Z
+- [W001917 — XOSL](corpus/wiki-03.md#w001917) · source lines 12220–12229 | namespace 0 | revision 10694 | 2010-09-06T16:19:29Z
 - [W004810 — XSDP](corpus/wiki-14.md#w004810) · source lines 9594–9594 | namespace 0 | revision 28281 | 2023-08-16T22:21:10Z
 - [W003319 — XSDT](corpus/wiki-08.md#w003319) · source lines 14439–14557 | namespace 0 | revision 30273 | 2026-03-16T17:51:03Z
 - [W004392 — Xv6](corpus/wiki-13.md#w004392) · source lines 4001–4031 | namespace 0 | revision 29896 | 2026-01-17T08:16:24Z

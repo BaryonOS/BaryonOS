@@ -10,7 +10,7 @@ Use a W number for a wiki page and a B number for a physical PDF page. Find the 
 
 Begin with the required programming and hardware knowledge, selection of the target platform and the first verifiable boot. The wiki includes both minimal bare-bones examples and more extensive project skeletons. The book proceeds from boot and output through interrupts and memory to user programs, filesystems, system calls and multitasking.
 
-Source entry points: [W001748: Getting Started]; [W003073: Required Knowledge]; [W001879: Beginner Mistakes]; [W001577: What Order Should I Make Things In?]; [W002497: Bare bones]; [W003448: Meaty Skeleton].
+Source entry points: [W001748: Getting Started]; [W003073: Required Knowledge]; [W001577: What Order Should I Make Things In?]; [W002497: Bare bones]; [W003448: Meaty Skeleton].
 
 Book: p. 7–17, p. 19–22.
 
@@ -32,7 +32,7 @@ Book: p. 11–12, p. 19–22, p. 67–68.
 
 The source pages connect cross-compilation with the intended target platform, object files, ABIs, linker scripts and builds. The book shows how an entry symbol, sections and memory addresses together define the kernel file. Preserve the distinction between host tools and the operating system that will execute the resulting file.
 
-Source entry points: [W001448: GCC Cross-Compiler]; [W002968: LLVM Cross-Compiler]; [W002604: Linker Scripts]; [W001759: Calling Conventions]; [W003507: System V ABI]; [W002864: Object Files]; [W001785: Makefile].
+Source entry points: [W002968: LLVM Cross-Compiler]; [W002604: Linker Scripts]; [W001759: Calling Conventions]; [W003507: System V ABI]; [W002864: Object Files]; [W001785: Makefile].
 
 Book: p. 13–16, p. 19–22, p. 57–58, p. 61–62.
 
@@ -72,7 +72,7 @@ Book: p. 51–59, p. 61–63.
 
 The process pages distinguish a running program and its resources from its individual execution flows. The book progresses from a loaded module to userspace, then to cooperative and preemptive scheduling. Registers, address space and stacks form part of the state that the implementation must manage.
 
-Source entry points: [W001415: Processes and Threads]; [W004247: Thread]; [W002603: Getting to Ring 3]; [W001418: Context Switching]; [W001477: Scheduling Algorithms]; [W001797: Blocking Process]; [W001888: Multiprocessor Scheduling].
+Source entry points: [W001415: Processes and Threads]; [W004247: Thread]; [W002603: Getting to Ring 3]; [W001418: Context Switching]; [W001477: Scheduling Algorithms]; [W001797: Blocking Process].
 
 Book: p. 47–49, p. 65–68, p. 73–75.
 
@@ -80,7 +80,7 @@ Book: p. 47–49, p. 65–68, p. 73–75.
 
 The wiki groups mutual exclusion, rendezvous, reader/writer access, semaphores, spinlocks, atomic operations and memory barriers. It discusses fairness and starvation as well as correctness. The book does not cover a multicore OS; its explanation of preemption is therefore not a complete SMP guide.
 
-Source entry points: [W001889: Synchronization Primitives]; [W001766: Atomic operation]; [W002494: Spinlock]; [W001752: Semaphore]; [W001729: Deadlock]; [W002499: Memory barriers]; [W002671: Multiprocessing].
+Source entry points: [W001766: Atomic operation]; [W002494: Spinlock]; [W001752: Semaphore]; [W001729: Deadlock]; [W002499: Memory barriers]; [W002671: Multiprocessing].
 
 Book: p. 73–75.
 
@@ -88,7 +88,7 @@ Book: p. 73–75.
 
 This section brings together system calls, message passing, shared memory and RPC. The book discusses a syscall API, a software interrupt as the transfer mechanism and a TSS for switching to a kernel stack. The wiki includes other transfer mechanisms and IPC designs; their ABIs remain separate choices.
 
-Source entry points: [W001961: System Calls]; [W003327: Sysenter]; [W001711: Message Passing]; [W003424: IPC Data Copying methods]; [W001765: Shared Memory]; [W001763: Remote Procedure Call]; [W001890: Signals].
+Source entry points: [W001961: System Calls]; [W003327: Sysenter]; [W001711: Message Passing]; [W003424: IPC Data Copying methods]; [W001765: Shared Memory]; [W001763: Remote Procedure Call].
 
 Book: p. 71–72.
 
@@ -96,7 +96,7 @@ Book: p. 71–72.
 
 The sources distinguish executable formats, object files, relocation, loaders and libraries. The book begins with a flat binary and leaves ELF support for user programs as a possible extension. The later ELF and loader pages provide information for developing that step specifically.
 
-Source entry points: [W001542: ELF]; [W003429: ELF Tutorial]; [W001954: Executable Formats]; [W001892: PE]; [W002811: COFF]; [W003824: Execution Loader]; [W002367: Loading a Process]; [W004000: Dynamic Linker].
+Source entry points: [W001542: ELF]; [W003429: ELF Tutorial]; [W001954: Executable Formats]; [W002811: COFF]; [W003824: Execution Loader]; [W002367: Loading a Process]; [W004000: Dynamic Linker].
 
 Book: p. 47–49, p. 67–68.
 
@@ -124,7 +124,7 @@ Source entry points: [W002239: ATA PIO Mode]; [W002241: ATA/ATAPI using DMA]; [W
 
 The book begins with a read-only filesystem in a RAM image, then introduces inodes and VFS. The wiki discusses specific formats, free space, naming, metadata, caches, journaling and custom filesystems. Each format remains identifiable in the text: specifications for different formats are not merged.
 
-Source entry points: [W001505: File Systems]; [W001859: File Management]; [W002957: Hierarchical VFS Theory]; [W003194: Initrd]; [W001506: FAT]; [W001509: Ext2]; [W003000: Journaling]; [W003638: Roll Your Own Filesystem].
+Source entry points: [W001505: File Systems]; [W002957: Hierarchical VFS Theory]; [W003194: Initrd]; [W001506: FAT]; [W001509: Ext2]; [W003000: Journaling]; [W003638: Roll Your Own Filesystem].
 
 Book: p. 69–70.
 
@@ -168,7 +168,7 @@ Book: p. 65–66, p. 71–72.
 
 The book develops in small steps and checks the kernel in an emulator; serial output later becomes a logging channel. The wiki covers emulator use, GDB, unit tests and known tutorial errors. Include log output, symbols, the selected machine configuration and the exact source revision in a reproducible fault description.
 
-Source entry points: [W001946: Testing]; [W001918: Unit Testing]; [W001947: Kernel Debugging]; [W001544: GDB]; [W002941: Qemu]; [W001556: Bochs]; [W001540: Troubleshooting]; [W003459: James Molloy's Tutorial Known Bugs].
+Source entry points: [W001918: Unit Testing]; [W001544: GDB]; [W002941: Qemu]; [W001556: Bochs]; [W001540: Troubleshooting]; [W003459: James Molloy's Tutorial Known Bugs].
 
 Book: p. 8–8, p. 16–17, p. 26–31.
 
@@ -182,5 +182,5 @@ Source entry points: [W002332: ARM Overview]; [W004267: AArch64]; [W004033: RISC
 
 This section contains reference works, project examples, porting, additional computer science and community information. Links to external manuals are retained as references; the complete external documents are not automatically part of a wiki export.
 
-Source entry points: [W001368: Resources]; [W001572: Books]; [W003903: Academic Papers]; [W001885: Licensing]; [W003405: Code Management]; [W003402: Portability]; [W003628: Cross-Porting Software]; [W001367: Projects].
+Source entry points: [W001368: Resources]; [W001572: Books]; [W003903: Academic Papers]; [W003405: Code Management]; [W003402: Portability]; [W003628: Cross-Porting Software]; [W001367: Projects].
 
