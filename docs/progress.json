@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-18",
-    "source_commit": "cc90a352ba999c5bceb3b98d4c4ae3dc8ea454e5",
+    "source_commit": "34a424ec2c20d9c8bde1a8cda8f75a3552603c88",
     "assessment_basis": "parent_commit",
-    "branch": "codex/phase0-english-coverage",
-    "task": "PR #358 reconciliation with main fac5a864 and review repairs",
+    "branch": "codex/issue41-policy-anchor",
+    "task": "Issue #41 synthetic anchor and transition identity",
     "previous_score": 41,
-    "summary": "41/100 unchanged. The English documentation and Wiki evidence candidate is reconciled with main fac5a864. Rendered link, heading-anchor and fixture Git isolation regressions have focused controls, and the immutable coverage inventory is regenerated against an ancestor of this checkpoint; current main's hardened language and publication helpers are retained. This does not establish professional-language, native, hardware, human-audit or full issue #274 acceptance."
+    "summary": "41/100 unchanged. ADR-B03K3's canonical TEST anchor, complete transition identity and fail-closed compare/readback oracle are implemented and covered by Rust and host-oracle tests. The existing loader and update-service probe now executes eight additional cases, but current-head native QEMU, durable storage/CAS, cut/replay, rollback resistance, production custody, B04 trust, hardware and human review remain unaccepted. Issue #41 and B03's score therefore remain unchanged."
   },
   "tracks": [
     {

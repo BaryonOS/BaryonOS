@@ -1,5 +1,45 @@
 # Current project status
 
+## NEXT AGENT HANDOFF — issue #41 synthetic anchor contract — 18 November 2026
+
+**Claim/source:** Codex sole writer in `codex/issue41-policy-anchor`, based on actual
+main `5a3295b6093549f4b5ff6164ab2773ac4c264996`. No open PR owns the changed B03
+policy paths. Claude-owned S09/UI worktrees and H/U/N/B/A/P/L/R branches are untouched.
+
+**Goal:** implement the ADR-B03K3 TEST anchor encoding, complete transition identity
+and fail-closed compare/readback oracle, then execute the oracle in both existing
+native policy-probe consumers. **Invariant:** no production authority, persistent
+backend, app capability, slot-format reinterpretation or rollback-resistance claim.
+**Write set:** `crates/update-core` anchor/probe sources, their focused Rust/Python
+tests, the approved B03 transition specification and this lead-owned checkpoint.
+
+**Result:** the experimental feature now provides a canonical 120-byte anchor,
+monotonic successor construction, full-operation SHA-256 identity, exact-predecessor
+CAS decisions and independent predecessor/successor/conflict readback classification.
+Eight new cases extend the existing loader/service probe from 26 to 34 cases.
+Malformed, torn, stale, conflicting and floor-rollback states fail closed.
+
+**Checks:** `cargo +1.90.0 test --locked -p update-core --features
+experimental-policy-test,test-signing-anchors` passes 31 tests, exit 0
+(`build/tokenguard/run-qr8h9g0u.log`). Matching Clippy `-D warnings` passes, exit 0
+(`run-yqvwsz7e.log`). Policy-envelope Python oracle tests pass 8/8, exit 0
+(`run-w08fizsg.log`). Formatting and `git diff --check` pass, exit 0. An initial
+unit run exposed an invalid max-revision fixture (exit 101, `run-a3gj2nqm.log`);
+the corrected focused test and full suite pass (`run-y4ga34bz.log`).
+
+**Evidence limit/blocker:** local native QEMU was NOT RUN; hosted signed-update CI is
+the next native gate. The pure oracle does not supply durable atomic storage,
+rollback resistance, cut/replay evidence, production custody, B04 trust, physical
+hardware or human review. Issue #41 therefore remains open. **Next:** publish one
+focused draft PR and require exact-head hosted checks; then implement the bounded
+TEST backend/staging adapter without widening production authority. Progress remains
+**41 → 41/100** because no fixed criterion is fully accepted.
+
+**Integration note (19 November 2026):** review repair aligned the kernel
+policy-probe observer with the 34-case report (`kernel/src/m2/m3/update.rs`);
+`python3 -B tools/test_policy_envelopes.py` passed locally with raw exit 33 and
+`UPDATE:POLICY_PROBE:PASS`. This is source-bound host-QEMU evidence only.
+
 ## NEXT AGENT HANDOFF — unified governance implementation — 18 November 2026
 
 **Claim:** GOV-1-6, sole writer Codex in `codex/unified-governance`, base
