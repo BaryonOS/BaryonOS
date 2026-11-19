@@ -1,7 +1,7 @@
 {
   "schema": 1,
   "purpose": "Execution queue of the H/U/N/B/A/P/L/R clean-session roadmap pipeline; child tasks of the fixed criteria in docs/progress.json. Not a second roadmap and not an acceptance register.",
-  "branch": "codex/a03-task-grants",
+  "branch": "codex/roadmap-codex",
   "base": "6f29b6720b51aecad5714faa48b445afd6e2f5a9",
   "score": {
     "accepted": 41,
@@ -14,7 +14,8 @@
     "PR #333 (H02 native USB/HID)": "kernel/src/m2/xhci*, iommu.rs, paging.rs, window_session.rs, main.rs, m2.rs, drivers/xhci/, services/input-core/, sdk/examples/input-service/, tools/build.py, tools/run.py, tools/run_*hid*/xhci",
     "PR #336 (B03 policy envelopes)": "crates/update-core/, boot/loader/src/signed.rs, kernel/src/m2/m3/update.rs, sdk/examples/update/, tools/run_update.py",
     "UI/UX pipeline": "ui/design/, docs/design/, ui/prototype/tokens.css, planned UX-G in ui/native and ui/graphics",
-    "S09 pipeline": "S09 backup/export/recovery"
+    "S09 pipeline": "S09 backup/export/recovery",
+    "H/U/N/B/A/P/L/R controller and technical roadmap": "OpenAI Codex; Claude-specific dispatch is legacy, not authorized execution"
   },
   "tasks": [
     {
@@ -94,6 +95,65 @@
           "reason": "Worker reported the 5-hour usage limit after 609 s and 20 turns (0 compactions, peak context 120k, 198k output tokens, estimated 2.42 USD); the controller stopped on the rate-limit guard. No file changed. Resumed after the reset."
         },
         {
+          "at": "2026-11-18T19:31:06+00:00",
+          "event": "manual-codex-claim",
+          "base": "8a46c15e272005caaa96baa88b73f3a2a7cbb9e3",
+          "dispatch": "/home/simon/projects/BaryonOS-worktrees/roadmap-codex/build/roadmap-pipeline/manual/A02-T1-0e0c6833e079437f9eb76f127330624a/dispatch.json",
+          "brief_sha256": "687899aa74057db93124f6fd1a763c6bc20c4104069ff4736f6865dc022b2e8c"
+        },
+        {
+          "at": "2026-11-18T19:31:38+00:00",
+          "event": "brief-superseded-before-launch",
+          "reason": "No worker started; clarify Codex read-only source commands and lead-owned active ledger change before freezing replacement brief."
+        },
+        {
+          "at": "2026-11-18T19:31:38+00:00",
+          "event": "manual-codex-claim",
+          "base": "70e154e3f50ddcd7776ad085a7654eb392ac6b01",
+          "dispatch": "/home/simon/projects/BaryonOS-worktrees/roadmap-codex/build/roadmap-pipeline/manual/A02-T1-595b9877c0c74045a47c55dc3c6adbf2/dispatch.json",
+          "brief_sha256": "286529d04bdc60d14893da2372e17d1d60e5e5186221dd8c10104ebefcd0e79d"
+        },
+        {
+          "at": "2026-11-18T19:33:39+00:00",
+          "event": "codex-session-blocked-hook-false-positive",
+          "session_id": "01a1f024-b05d-7643-824a-f0271ef8c924",
+          "reason": "Cortex agent-call-enforcer matches call + word without word boundary; call recall was misrouted to nonexistent agents/recall.md. No worker edits. Keep hook enabled; quote tool name and use invoke."
+        },
+        {
+          "at": "2026-11-18T19:33:39+00:00",
+          "event": "manual-codex-claim",
+          "base": "c86418e416bc5a151926fe8722232acf0c00cbb4",
+          "dispatch": "/home/simon/projects/BaryonOS-worktrees/roadmap-codex/build/roadmap-pipeline/manual/A02-T1-ae1274012f8b47869c579cd80bbc457c/dispatch.json",
+          "brief_sha256": "56a58378304f240a73e1b537925d60f52665811200a7963e5dc956dc73a86060"
+        },
+        {
+          "at": "2026-11-18T19:37:08+00:00",
+          "event": "lead-resolved-test-fixture-blocker",
+          "session_id": "01a1f026-8a57-79b1-9d54-cc83e2237341",
+          "reason": "Worker made no changes; lead supplied verified public dual-signed ELF package fixtures using existing app-package-core test helpers and existing pinned dependencies. Continue original write scope; no runtime dependency, test verifier bypass or trust contract change."
+        },
+        {
+          "at": "2026-11-18T19:37:08+00:00",
+          "event": "manual-codex-claim",
+          "base": "d292cea88902a9e0ba79b9d4a91747df0971f023",
+          "dispatch": "/home/simon/projects/BaryonOS-worktrees/roadmap-codex/build/roadmap-pipeline/manual/A02-T1-b3db287a0560474a964320e56ef99921/dispatch.json",
+          "brief_sha256": "955324ba5569f3d183192ede75247327059897c023d06433d42ce67b0b918731"
+        },
+        {
+          "at": "2026-11-18T19:46:42+00:00",
+          "event": "verified",
+          "source_commit": "d03ae904048a91defc74b9e4ba854d3526595580",
+          "receipt": "docs/roadmap-pipeline/receipts/A02-T1.json",
+          "summary": "Host installer composition: 48 tests, Clippy, fmt and freestanding CI-profile build pass. No A02 product acceptance."
+        },
+        {
+          "at": "2026-11-18T19:57:13+00:00",
+          "event": "source-bound-branch-reference",
+          "source_commit": "d03ae904048a91defc74b9e4ba854d3526595580",
+          "pr": 363,
+          "reason": "Host/build task verified on separate preserved branch; no native A02 acceptance or main integration inferred."
+        },
+        {
           "at": "2026-11-18T20:08:23+00:00",
           "event": "source-bound-branch-reference",
           "source_commit": "d03ae904048a91defc74b9e4ba854d3526595580",
@@ -121,7 +181,7 @@
         "tools/test_keyring.py",
         "tests/test_keyring_harness.py",
         "docs/implementation/B01-ENTROPY-AND-KEYS.md",
-        "docs/verification/b01-management-recovery-20261115/"
+        "docs/verification/b01-management-recovery-20261118/"
       ],
       "graph_notes": "Graphify (index d572052): AdminIngress, admin_ingress(), poll_admin() and admin_evidence() in sdk/examples/keyring/src/service.rs; the native-system admin route admin()/persist_key_state() in sdk/examples/system/src/init.rs is the reference pattern for a manifest-bound management caller; host proof management_ingress_can_export_and_restore_legacy_recovery() in services/keyring/tests/persistent_wire.rs; run_keyring()/expected_markers() in tools/run_keyring.py. Pitfall: capability-core test manifest_equation_is_exact_and_detects_a_seventh_app_handle() pins manifest handle counts, so an added process must keep the manifest equation exact. Memory: ordinary app recovery export/restore stays denied; only management dispatch allows it (PR #155).",
       "read_paths": [
@@ -160,6 +220,20 @@
       "rollback": "Revert the commit; the new process exists only in the native-keyring test profile.",
       "next": "Lead acceptance review of B01; then B01-T2 after PR #333 releases tools/build.py.",
       "history": [
+        {
+          "at": "2026-11-18T19:57:13+00:00",
+          "event": "supervised-claim",
+          "owner": "Codex",
+          "branch": "codex/b01-management-recovery",
+          "base": "6f29b6720b51aecad5714faa48b445afd6e2f5a9"
+        },
+        {
+          "at": "2026-11-18T20:06:13+00:00",
+          "event": "verified",
+          "source_commit": "3847e9f2166b71020aa7b78bb82c8f06ae787590",
+          "evidence": "docs/verification/b01-management-recovery-20261118/checks.json",
+          "summary": "Five native cases guest33, required negative control red, host checks pass; no full B01 acceptance."
+        },
         {
           "at": "2026-11-18T20:08:23+00:00",
           "event": "source-bound-branch-reference",
@@ -278,11 +352,54 @@
       "next": "B02-T1 native tamper and key-loss cases.",
       "history": [
         {
+          "at": "2026-11-18",
+          "event": "owner-scope-preserved",
+          "reason": "S09-NEXT ownership decision pending (owner); Claude S09 work remains excluded"
+        },
+        {
+          "at": "2026-11-18T20:06:13+00:00",
+          "event": "ownership-block",
+          "reason": "S09-NEXT ownership remains with Claude; owner decision pending."
+        },
+        {
           "at": "2026-11-18T20:08:23+00:00",
           "event": "ownership-block",
           "reason": "S09-NEXT remains Claude-owned; owner decision pending."
         }
       ]
+    },
+    {
+      "id": "N04-T2",
+      "criterion": "N04",
+      "milestone": "M8",
+      "executor": "worker",
+      "status": "ready",
+      "title": "Production issuer, delegated helper subgrants and durable revocation contract (design)",
+      "goal": "Write docs/implementation/N04-ISSUER-DELEGATION.md: invariants, interfaces and negative tests for a production issuer and PolicyAuthority, attenuation-only helper subgrants, regrant generations and revocation that survives a service restart, before any code; no new trust root and no automatic regrant.",
+      "why_now": "Implementation of the next step is blocked on an owner or review decision that needs an evidence-based basis first.",
+      "deps": [],
+      "write_paths": [
+        "docs/implementation/N04-ISSUER-DELEGATION.md"
+      ],
+      "read_paths": [
+        "services/net-broker/README.md",
+        "services/network-service/src/lib.rs",
+        "docs/implementation/KERNEL-AND-SECURITY-CONTRACT.md",
+        "docs/verification/n04-helper-20261114/README.md"
+      ],
+      "checks": [
+        "python3 tools/progress.py --check"
+      ],
+      "acceptance": [
+        "labelled PROPOSED where it proposes decisions; no new trust root, escrow or capability is adopted",
+        "every cited path and symbol exists in the current tree"
+      ],
+      "non_claimable": "Owner or reviewer decision; no criterion effect.",
+      "risk": "low",
+      "size": "S",
+      "evidence_level": "design",
+      "rollback": "Revert the commit.",
+      "history": []
     },
     {
       "id": "A03-T1",
@@ -347,39 +464,6 @@
           "summary": "128 SDK tests including12 grant regressions, Clippy/fmt and freestanding build pass. No A03/native acceptance."
         }
       ]
-    },
-    {
-      "id": "N04-T2",
-      "criterion": "N04",
-      "milestone": "M8",
-      "executor": "worker",
-      "status": "ready",
-      "title": "Production issuer, delegated helper subgrants and durable revocation contract (design)",
-      "goal": "Write docs/implementation/N04-ISSUER-DELEGATION.md: invariants, interfaces and negative tests for a production issuer and PolicyAuthority, attenuation-only helper subgrants, regrant generations and revocation that survives a service restart, before any code; no new trust root and no automatic regrant.",
-      "why_now": "Implementation of the next step is blocked on an owner or review decision that needs an evidence-based basis first.",
-      "deps": [],
-      "write_paths": [
-        "docs/implementation/N04-ISSUER-DELEGATION.md"
-      ],
-      "read_paths": [
-        "services/net-broker/README.md",
-        "services/network-service/src/lib.rs",
-        "docs/implementation/KERNEL-AND-SECURITY-CONTRACT.md",
-        "docs/verification/n04-helper-20261114/README.md"
-      ],
-      "checks": [
-        "python3 tools/progress.py --check"
-      ],
-      "acceptance": [
-        "labelled PROPOSED where it proposes decisions; no new trust root, escrow or capability is adopted",
-        "every cited path and symbol exists in the current tree"
-      ],
-      "non_claimable": "Owner or reviewer decision; no criterion effect.",
-      "risk": "low",
-      "size": "S",
-      "evidence_level": "design",
-      "rollback": "Revert the commit.",
-      "history": []
     },
     {
       "id": "N04-T1",
@@ -873,6 +957,16 @@
       "rollback": "Revert the commit.",
       "next": "B04-T2 reproducibility check.",
       "history": [
+        {
+          "at": "2026-11-18",
+          "event": "owner-scope-preserved",
+          "reason": "S09-NEXT ownership decision pending (owner); Claude S09 work remains excluded"
+        },
+        {
+          "at": "2026-11-18T20:06:13+00:00",
+          "event": "ownership-block",
+          "reason": "S09-NEXT ownership remains with Claude; owner decision pending."
+        },
         {
           "at": "2026-11-18T20:08:23+00:00",
           "event": "ownership-block",
