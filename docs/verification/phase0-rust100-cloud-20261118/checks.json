@@ -1,0 +1,294 @@
+{
+  "schema_version": 1,
+  "scope": "Preintegration Rust 1.100 compatibility checkpoint; not combined-main acceptance",
+  "working_directory": "/workspace/baryon-rust",
+  "repository": "BaryonOS/BaryonOS",
+  "source_commit": "92e44b0c23a34be1b31037dc0561a4b22b04ef5a",
+  "branch": "codex/phase0-rust-1-100",
+  "temporary_base": "codex/phase0-pr340-preintegration",
+  "temporary_base_commit": "f5a976f17a3167a08ad513f0328cba8de3dd8a62",
+  "source_fingerprint_version": 3,
+  "source_sha256": "62ee135a73f76641d57dcda5870b0d6b5f19c4f76337154bea6fccb217e62ed7",
+  "rust_provenance": {
+    "url": "https://static.rust-lang.org/dist/channel-rust-stable.toml",
+    "observed_release_date": "2026-11-12",
+    "rust_version": "1.100.0 (0ef1bc386 2026-11-09)",
+    "manifest_sha256": "3051e859570f64a8c5acb9d09e87425db52c7d97287c67e8f6d57d7d34ef9258",
+    "installation": "rustup toolchain install 1.100.0 --profile minimal --component rustfmt,clippy --target x86_64-unknown-none,x86_64-unknown-uefi",
+    "installation_log": "build/tokenguard/run-inbeenjk.log",
+    "installation_exit": 0
+  },
+  "checks": [
+    {
+      "reproduction_command": "python3 -B tools/preflight.py --strict",
+      "exit_code": 0,
+      "tested_source": "92e44b0c23a34be1b31037dc0561a4b22b04ef5a",
+      "scope": "Strict inventory; build and actual smoke are separate checks.",
+      "raw_log": "logs/run-_n7jyw53.log.gz",
+      "raw_log_format": "gzip",
+      "raw_log_sha256": "587632a41b7aa220c672b5b76c592028ed02f0679980aaf0f0f48bb9f0980650",
+      "archive_sha256": "a982a1b12751b2631a8f15e09e1249d57fd6b7dd79b107523eb7d8be30454a45"
+    },
+    {
+      "reproduction_command": "python3 -B tools/build.py",
+      "exit_code": 0,
+      "tested_source": "92e44b0c23a34be1b31037dc0561a4b22b04ef5a",
+      "scope": "Normal loader/kernel build; existing warnings remain visible.",
+      "raw_log": "logs/run-1if9ovbx.log.gz",
+      "raw_log_format": "gzip",
+      "raw_log_sha256": "c619852a5fa10b7c4ca9048c86a6af126b312196ca480005348ca350f91bf535",
+      "archive_sha256": "0f2fb0d9d705a4bf6f4acb6f7f44a67addc7876e0766b1b8b0f8abb4c98a82d7"
+    },
+    {
+      "reproduction_command": "python3 -B tools/run.py --smoke",
+      "exit_code": 0,
+      "tested_source": "92e44b0c23a34be1b31037dc0561a4b22b04ef5a",
+      "scope": "Fresh M1 QEMU smoke; raw QEMU exit 33 and M1:PASS.",
+      "raw_log": "logs/run-pf0p16h_.log.gz",
+      "raw_log_format": "gzip",
+      "raw_log_sha256": "55b2d8b03fc10462a8ebc23e43c2e79205fd451f41ee9ac960ed2d894d63e771",
+      "archive_sha256": "35501b1eadb0d0ed869bfbc74aedf39e5fe1323f9a1bf1c0daf7ba280508c679"
+    },
+    {
+      "reproduction_command": "NOS_DOCUMENT_SESSION=1 NOS_SDK_RUNTIME=1 NOS_BUILD_DIR=build/docsession-rust100-final2 NOS_TARGET_DIR=target/docsession-rust100-r3 CARGO_TARGET_DIR=target/docsession-rust100-r3 python3 -B tools/test_document_session.py",
+      "exit_code": 0,
+      "tested_source": "92e44b0c23a34be1b31037dc0561a4b22b04ef5a",
+      "scope": "Fresh normal and cold read-only recovery, two actual VMs.",
+      "raw_log": "logs/run-5mh60pvh.log.gz",
+      "raw_log_format": "gzip",
+      "raw_log_sha256": "e6b237c62b53b32c60d0e32e763aea3d598888445a684bfded59ae16b1f2c2ff",
+      "archive_sha256": "3374142ee3c7732e85a3041ac55838af1a6b7fc1358046fd15aa613348dd9ba9",
+      "duration_seconds": 31.022
+    },
+    {
+      "reproduction_command": "NOS_BUILD_DIR=build/volume-rust100-final2 NOS_TARGET_DIR=target/volume-rust100 CARGO_TARGET_DIR=target/volume-rust100 python3 -B tools/test_volume.py",
+      "exit_code": 0,
+      "tested_source": "92e44b0c23a34be1b31037dc0561a4b22b04ef5a",
+      "scope": "Complete unchanged 15-stage gate; three expected host crash injections have raw exit -9.",
+      "raw_log": "logs/run-thw3c5_9.log.gz",
+      "raw_log_format": "gzip",
+      "raw_log_sha256": "47d6ff5ee1aec558c2fa5c161bdea34ced7695d4fee93e1df7aa0c3ab37f9a54",
+      "archive_sha256": "64db5fc90ed0d4ee149e9b946c08e1da30d102fe7d68e4310084c60b0cff44f8",
+      "duration_seconds": 304.104
+    },
+    {
+      "reproduction_command": "NOS_BUILD_DIR=build/volume-rust100-final2 python3 -B tools/capture_volume.py --destination docs/verification/phase0-rust100-cloud-20261118/volume",
+      "exit_code": 0,
+      "tested_source": "92e44b0c23a34be1b31037dc0561a4b22b04ef5a",
+      "scope": "Existing capture entrypoint verified every completed stage and disk hash; no images published.",
+      "raw_log": "logs/run-675ir4pc.log.gz",
+      "raw_log_format": "gzip",
+      "raw_log_sha256": "36a944cd1113a993ae2d391ccc24cd1e67a1c8d933a3cd7594e8ba11843cc31d",
+      "archive_sha256": "e7b32669df4444e7b0449d6e29e7662ce38a0a21dd859d41c42987a97329f8d3"
+    },
+    {
+      "exit_code": 0,
+      "tested_source": "working source subsequently committed as 92e44b0c23a34be1b31037dc0561a4b22b04ef5a",
+      "scope": "All five native-display-input host manifests: ps2, display-client, native UI, surface-protocol, input-service.",
+      "raw_log": "logs/run-a7adnnro.log.gz",
+      "raw_log_format": "gzip",
+      "raw_log_sha256": "c3038aea1e8a971633cecb3a9891302c2d4debc9c22856c4a1a7fdcbfd51a6e2",
+      "archive_sha256": "493c9628cc44c867c8f1b151e3a1bff66f2f77f3b71ac0b3456c3cc9281298f6",
+      "reproduction_commands": [
+        "cargo +1.100.0 clippy --offline --locked --manifest-path drivers/ps2/Cargo.toml --all-targets -- -D warnings",
+        "cargo +1.100.0 clippy --offline --locked --manifest-path sdk/display-client/Cargo.toml --all-targets -- -D warnings",
+        "cargo +1.100.0 clippy --offline --locked --manifest-path ui/native/Cargo.toml --all-targets -- -D warnings",
+        "cargo +1.100.0 clippy --offline --locked --manifest-path ui/surface-protocol/Cargo.toml --all-targets -- -D warnings",
+        "cargo +1.100.0 clippy --offline --locked --manifest-path sdk/examples/input-service/Cargo.toml --all-targets -- -D warnings"
+      ]
+    },
+    {
+      "exit_code": 0,
+      "tested_source": "working source subsequently committed as 92e44b0c23a34be1b31037dc0561a4b22b04ef5a",
+      "scope": "All four native-display-input scalar library manifests with the original no-redzone/no-SIMD flags.",
+      "raw_log": "logs/run-2n8ndfao.log.gz",
+      "raw_log_format": "gzip",
+      "raw_log_sha256": "619f0b18dd881846f044d8f6fa4cac81bbb5dcc6b044c942e7a14f735d522371",
+      "archive_sha256": "4c1ed1d1f1508cc1abe39914ba64003c7cd34dc2b6265f2a09d0a58d2d96ff90",
+      "reproduction_commands": [
+        "cargo +1.100.0 build --offline --locked --release --lib --target x86_64-unknown-none --manifest-path drivers/ps2/Cargo.toml",
+        "cargo +1.100.0 build --offline --locked --release --lib --target x86_64-unknown-none --manifest-path sdk/display-client/Cargo.toml",
+        "cargo +1.100.0 build --offline --locked --release --lib --target x86_64-unknown-none --manifest-path ui/native/Cargo.toml",
+        "cargo +1.100.0 build --offline --locked --release --lib --target x86_64-unknown-none --manifest-path ui/surface-protocol/Cargo.toml"
+      ],
+      "environment": {
+        "CARGO_TARGET_DIR": "/workspace/baryon-rust/target/display-compat-scalar",
+        "RUSTFLAGS": "-C no-redzone=yes -C target-feature=-sse,-sse2,-sse3,-ssse3,-sse4.1,-sse4.2,-avx,-avx2"
+      }
+    },
+    {
+      "reproduction_command": "cargo +1.100.0 test --offline --locked --manifest-path ui/surface-protocol/Cargo.toml",
+      "exit_code": 0,
+      "tested_source": "working source subsequently committed as 92e44b0c23a34be1b31037dc0561a4b22b04ef5a",
+      "scope": "23 protocol tests, including malformed pixels/geometry, stale authority, expiry and failed callbacks.",
+      "raw_log": "logs/run-fm6grihg.log.gz",
+      "raw_log_format": "gzip",
+      "raw_log_sha256": "ff467b2957d5d1214fb179c623f05c55f7705ac8a95aaa746b2d6d0c8e860b1d",
+      "archive_sha256": "c0d1a38d9cddcd6e420dcf751429e536412baa44d96a4748ba7bc8e99c7646b7"
+    },
+    {
+      "reproduction_command": "cargo +1.100.0 fmt --manifest-path ui/surface-protocol/Cargo.toml -- --check",
+      "exit_code": 0,
+      "tested_source": "working source subsequently committed as 92e44b0c23a34be1b31037dc0561a4b22b04ef5a",
+      "scope": "Affected protocol formatting.",
+      "raw_log": "logs/run-526lahcw.log.gz",
+      "raw_log_format": "gzip",
+      "raw_log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "archive_sha256": "f61f27bd17de546264aa58f40f3aafaac7021e0ef69c17f6b1b4cd7664a037ec"
+    },
+    {
+      "reproduction_command": "python3 -B -m unittest discover -s tools/tests -q",
+      "exit_code": 0,
+      "tested_source": "e7bb219a721889323f9ce072cc7b2eef7900bc00",
+      "scope": "384 host tests; the subsequent change only alters the surface-protocol Rust chunk iterator.",
+      "raw_log": "logs/run-8hk4cwd5.log.gz",
+      "raw_log_format": "gzip",
+      "raw_log_sha256": "f8caf5c53529b97dda7db68ace5afb3de5692327514441ee07073bdd594dd34d",
+      "archive_sha256": "0ed92aab9b113f544a6ff2f885d4da472f9dfed0ee72dee3108e8401aeeab303"
+    },
+    {
+      "reproduction_command": "python3 -B -m unittest discover -s tests -p test_document_session_harness.py",
+      "exit_code": 0,
+      "tested_source": "e7bb219a721889323f9ce072cc7b2eef7900bc00",
+      "scope": "29 binding tests including exact Cargo-1.100 crate/hash path negatives.",
+      "raw_log": "logs/run-l9cwb7sf.log.gz",
+      "raw_log_format": "gzip",
+      "raw_log_sha256": "cda67284f9cc313477dc6c1ce6ba22d5b9995b66884c24e251fb017cd0bd754e",
+      "archive_sha256": "6c1d23ff161e35ab54d0d9327244205a0f084093a51e98113bffebcc0639f446"
+    },
+    {
+      "reproduction_command": "python3 -B -m unittest discover -s tests -p test_ci_workflows.py",
+      "exit_code": 0,
+      "tested_source": "e7bb219a721889323f9ce072cc7b2eef7900bc00",
+      "scope": "27 workflow contract tests.",
+      "raw_log": "logs/run-8limdyne.log.gz",
+      "raw_log_format": "gzip",
+      "raw_log_sha256": "2e3ceeef075cd62ae28aab20189cdb1a5cf67d0b2e8da7b91dbefbbbd7681f15",
+      "archive_sha256": "08b24bc9d348bb7dec2be53a5b735e5b3cc8b2b0ac87c43c99d307b195f20c4e"
+    },
+    {
+      "reproduction_command": "cargo +1.100.0 test --locked --manifest-path ui/native/Cargo.toml --test session_board",
+      "exit_code": 0,
+      "tested_source": "e7bb219a721889323f9ce072cc7b2eef7900bc00",
+      "scope": "Fresh final-helper eight-state rendered session board test.",
+      "raw_log": "logs/run-qidi2w4n.log.gz",
+      "raw_log_format": "gzip",
+      "raw_log_sha256": "be54f28caccc1bffea6d2be99b03ff1020e880afd216529167d06cbc1d390b21",
+      "archive_sha256": "7526d1b7fb2debec0bbec2bcd247a588f7b469da6e20901ecd2413e0f1892b96"
+    },
+    {
+      "reproduction_command": "python3 -B -m unittest discover -s tools/tests -p test_kernel_memory.py -v",
+      "exit_code": 0,
+      "tested_source": "4139debddf6a7e251007e7b4547a8188c67514ce",
+      "scope": "Actual optimized kernel intrinsics: five unchanged Rust guard-page/direction-flag/overlap tests inside one host harness.",
+      "raw_log": "logs/run-oll86k_4.log.gz",
+      "raw_log_format": "gzip",
+      "raw_log_sha256": "84dd7b1bdc8941fdb71c6c694eb5b871960f975adbe2688e41addb5fbbbba97b",
+      "archive_sha256": "f9e995aa4eddce9ef8c069694b1445488e8634777743fd17d42a2fad053f613f"
+    },
+    {
+      "reproduction_command": "cargo +1.100.0 test --locked -p boot-protocol -p elf-loader-core -p kernel-core -p capability-core -p virtio-core -p ui-core -p virtio-blk-driver -p block-protocol -p object-core -p catalog-core -p volume-core -p keyring-core -p virtio-rng-driver -p virtio-net-driver -p driver-core -p pci-core -p update-core -p update-tool",
+      "exit_code": 0,
+      "tested_source": "7b1b119f0c7583fda08674f66d54ea4fa31ab9ca",
+      "scope": "Complete root CI package suite; the separate extended SMP stress attempt is recorded below.",
+      "raw_log": "logs/run-eimgc8qi.log.gz",
+      "raw_log_format": "gzip",
+      "raw_log_sha256": "eafcb44e4ce2fdd40fe840ddad5115ba28a8fd02af5b5adaaedf25ea055ed6ea",
+      "archive_sha256": "697bf0a36e276c04c9604de44bdf5269c8820c3b4a22183e9593becb70d91c10"
+    },
+    {
+      "reproduction_command": "cargo +1.100.0 test --locked -p smp-lock sched::",
+      "exit_code": 0,
+      "tested_source": "7b1b119f0c7583fda08674f66d54ea4fa31ab9ca",
+      "scope": "19 scheduler tests, 21 filtered; not a complete SMP suite.",
+      "raw_log": "logs/run-70tzbgcx.log.gz",
+      "raw_log_format": "gzip",
+      "raw_log_sha256": "75eff8904194ad27a0ace06d963653b0c51407339ad2f96f32771d4dfb696603",
+      "archive_sha256": "109adeebe35f292190642da8856df190f2ce17ad385054b803abc8dbe29caf0e"
+    },
+    {
+      "reproduction_command": "cargo +1.100.0 test --locked --manifest-path sdk/Cargo.toml",
+      "exit_code": 0,
+      "tested_source": "working source subsequently committed as 7b1b119f0c7583fda08674f66d54ea4fa31ab9ca",
+      "scope": "SDK workspace host suite.",
+      "raw_log": "logs/run-3x2bsyc6.log.gz",
+      "raw_log_format": "gzip",
+      "raw_log_sha256": "1216e8afb2f6a4d0e2089a136896582acbc182b17316f4fa13cf3f31b7a9b129",
+      "archive_sha256": "a3dc04a2a9e94c33d2f445ee3453a2dc6d5cc012db95f0201506c5a0094b20da"
+    },
+    {
+      "reproduction_command": "cargo +1.100.0 clippy --locked --release --manifest-path services/nas/native-probe/Cargo.toml --features native --bins --target x86_64-unknown-none -- -D warnings",
+      "exit_code": 0,
+      "tested_source": "working source subsequently committed as 4139debddf6a7e251007e7b4547a8188c67514ce",
+      "scope": "Native NAS executables with repaired C ABI signatures.",
+      "raw_log": "logs/run-790h6_ls.log.gz",
+      "raw_log_format": "gzip",
+      "raw_log_sha256": "16f27f9fc7490d27f5b38111a4b23c6bdf24e56331662119f6b4373c06a51b5a",
+      "archive_sha256": "02a699ee8ce5edf0be98a57d68cd4848e0bfc81d015beef37cb74436752cb9d6"
+    },
+    {
+      "reproduction_command": "python3 -B services/image-codec/verify_vendor.py",
+      "exit_code": 0,
+      "tested_source": "4139debddf6a7e251007e7b4547a8188c67514ce",
+      "scope": "Protected vendor source unchanged; an upstream macro_use deprecation warning remains.",
+      "raw_log": "logs/run-t5b_0myo.log.gz",
+      "raw_log_format": "gzip",
+      "raw_log_sha256": "ff9e6c553ffdd8d0af9516a2bb0935a59dc34d3772b4705efbd1e73a03418195",
+      "archive_sha256": "3337b8981d541df3aabb91299e772fd0473bb23e5b70017d91404957056c9403"
+    },
+    {
+      "reproduction_command": "cargo +1.100.0 test --locked -p boot-protocol -p elf-loader-core -p kernel-core -p capability-core -p virtio-core -p ui-core -p virtio-blk-driver -p block-protocol -p object-core -p catalog-core -p volume-core -p keyring-core -p virtio-rng-driver -p virtio-net-driver -p driver-core -p pci-core -p update-core -p update-tool -p smp-lock",
+      "exit_code": 101,
+      "tested_source": "working source later committed in 7b1b119f0c7583fda08674f66d54ea4fa31ab9ca",
+      "scope": "Extended nonmandatory local run interrupted after 414.654s in mutual_exclusion_under_contention; SIGTERM to its own test process. Not a passing SMP suite.",
+      "raw_log": "logs/run-2kbc97l2.log.gz",
+      "raw_log_format": "gzip",
+      "raw_log_sha256": "4572dcb32ebc7ec701c40d2fd1f5a4e58342b4ff9df6802fa78e419bdd6ebea1",
+      "archive_sha256": "bdceb1f45dbb10ac75edb64dd185edd2a641d18d44fa9f14edfe36ccb9d21bba",
+      "duration_seconds": 414.654
+    },
+    {
+      "reproduction_command": "NOS_BUILD_DIR=build/volume-rust100 python3 -B tools/test_volume.py",
+      "exit_code": 143,
+      "tested_source": "4139debddf6a7e251007e7b4547a8188c67514ce",
+      "scope": "Earlier volume attempt stopped after 279.012s for a concrete later compiler diagnostic; partial stages are not acceptance.",
+      "raw_log": "logs/run-swl5qmgq.log.gz",
+      "raw_log_format": "gzip",
+      "raw_log_sha256": "3cb0484b50af0f4d6c1c3f5b28668f6cd56f6bab0f8ac8c23062a74bccb84487",
+      "archive_sha256": "dc3729235788dd656bc616f28c1286042897261449a9a3116eb60e109a1388aa",
+      "duration_seconds": 279.012
+    },
+    {
+      "reproduction_command": "NOS_DOCUMENT_SESSION=1 NOS_SDK_RUNTIME=1 NOS_BUILD_DIR=build/docsession-rust100-r2 python3 -B tools/test_document_session.py",
+      "exit_code": 1,
+      "tested_source": "changing working tree before 7b1b119f",
+      "scope": "Rejected because source changed during the VM run. Replaced by fresh complete gates on immutable committed heads.",
+      "raw_log": "logs/run-73lqjo_m.log.gz",
+      "raw_log_format": "gzip",
+      "raw_log_sha256": "590dfdcd079c8290f44de79b4ef635d158f08d7d5ed4bdef0151dd50d96bdd0d",
+      "archive_sha256": "d86a982da7a80c8734818bbff3a573c804f68ca9da85233bdacf2543c131a15c"
+    },
+    {
+      "reproduction_command": "git diff --cached --check",
+      "exit_code": 2,
+      "tested_source": "92e44b0c23a34be1b31037dc0561a4b22b04ef5a",
+      "scope": "Captured firmware CRLF lines initially triggered whitespace diagnostics. A serial-file-only cr-at-eol attribute recognises the existing format without changing captured bytes; final index verification remains separate.",
+      "raw_log": "logs/run-6ja8su9j.log.gz",
+      "raw_log_format": "gzip",
+      "raw_log_sha256": "688261cc8b6445548868da06efbfee73e6601a3f58aeb389406dd813e8c8acd4",
+      "archive_sha256": "74feae209d407731319f9558b56c3d64f5e0c93bd94ddde387ae1be7cce9d7a9"
+    }
+  ],
+  "not_verified": [
+    "Reconciliation with the eventual main after the documentation, UI and S09 integrations",
+    "All mandatory and applicable checks on the final combined main",
+    "Full local SMP contention suite; its interrupted attempt remains unsuccessful",
+    "Physical hardware, KVM, production update custody and human audit",
+    "Final independent review and merge eligibility; these remain lead-owned"
+  ],
+  "warnings_retained": [
+    "Selected kernel profiles report unnecessary unsafe around now-safe CPUID intrinsics and unused symbols/dependencies.",
+    "The protected vendored zune-jpeg crate reports a deprecated crate-level macro_use attribute.",
+    "No warning suppression, scanner exclusion, vendor modification or acceptance downgrade was introduced."
+  ]
+}

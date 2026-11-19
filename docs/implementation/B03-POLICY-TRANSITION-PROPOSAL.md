@@ -116,6 +116,37 @@ fixed-width fields; the backend specification must freeze their encoding.
 Identity means the full tuple or its domain-separated SHA-256 digest, not a
 policy number, slot number or disk header alone.
 
+### Frozen synthetic TEST encoding
+
+The bounded experiment uses the following 120-byte canonical anchor. This
+encoding is active only with `experimental-policy-test`; it does not select or
+claim a production persistence backend.
+
+| Offset | Bytes | Meaning |
+|---|---:|---|
+| 0 | 8 | Magic `B03ANC01`. |
+| 8 | 2 | Format version, exactly 1. |
+| 10 | 6 | Reserved, all zero. |
+| 16 | 16 | Exact target `B03-QEMU-TEST01\0`. |
+| 32 | 8 | Positive, non-wrapping revision. |
+| 40 | 8 | Positive committed policy version. |
+| 48 | 8 | Positive monotonic image floor. |
+| 56 | 32 | Committed policy-body digest. |
+| 88 | 32 | Last committed transition digest; zero only for revision 1. |
+
+The transition digest is SHA-256 over, in order: `B03TXN01`, the complete
+120-byte expected predecessor anchor, the 16-byte target, candidate policy
+version and body digest, candidate image version, manifest digest, image digest,
+image length and the one-byte destination slot (`0` for A, `1` for B). Integers
+use unsigned little-endian encoding. There are no optional or trailing fields.
+
+`update-core` supplies canonical encode/decode, successor construction, an exact
+predecessor compare-and-swap oracle and independent readback classification.
+The existing loader and update-service probe execute the same TEST-only oracle.
+These pure decisions do not provide storage, atomicity, durability or rollback
+resistance. A later native adapter must implement those properties and retain
+the cut/replay acceptance requirements below.
+
 - A new transition requires the exact current predecessor anchor, a higher
   policy version, the correct predecessor policy digest, and a verified image
   permitted by the candidate policy and version at least

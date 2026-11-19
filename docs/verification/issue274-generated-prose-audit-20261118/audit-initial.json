@@ -1,0 +1,508 @@
+{
+  "schema_version": 1,
+  "source_commit": "31ccacc2498e8d2a5d3cb763e859c7b49282728c",
+  "markdown_freeze_commit": "2073e4affd8a46a4bd0a1b95bcb06f7c2b0062c2",
+  "scope": [
+    {
+      "path": "tools/progress.py",
+      "sha256": "87dc5c0cb40966bfb252d69e32d9bffe1ed9e362e6de67e91adc1ba0dcc0e75e"
+    },
+    {
+      "path": "tools/agent_pipeline.py",
+      "sha256": "fa95e89967b0ad5a1d36be8560e6ad3f665fff05cffb9d029f40418cbb2b0a60"
+    },
+    {
+      "path": "tools/roadmap_runner.py",
+      "sha256": "50728abb0bfb8cade2eedf43ba5b2430a85db68d4ae934ae80f6d6367861b690"
+    },
+    {
+      "path": "tools/agent_gate.py",
+      "sha256": "b22242245b601b9bfd8f7594af942be3254ce2c032136c5e9e9c756bd0989da7"
+    },
+    {
+      "path": "tools/project_classification.py",
+      "sha256": "a61078d644bbb4aa0eff2a2f197568e0c603b1ce842a0baf16097caf8782b58e"
+    },
+    {
+      "path": "tools/tokenguard.py",
+      "sha256": "2e0ad096b7c6d4f4c6dc60a4271a15dbdc5f541e8f7c192052a6b67878366ad6"
+    },
+    {
+      "path": "docs/verification/issue274-language-coverage-20261118/check.py",
+      "sha256": "862654482859bd5ede0877adc81054cd29bf5eca172e23ef28e6b968b4a43d85"
+    },
+    {
+      "path": "README.md",
+      "sha256": "ee2fdeb7660c336285c0793ee271dd3a0261c8929e7ad5eacb91cc7abd12f2d0"
+    },
+    {
+      "path": "docs/PROGRESS.md",
+      "sha256": "1bec23cd592f94317765a9932261509c2270bb6e144545909abcdba0b6f41691"
+    },
+    {
+      "path": "docs/assets/progress.svg",
+      "sha256": "65d5cdc1ab831420cd2ce6f2e3996f741f4eab44657f34d0aa8564bc20641423"
+    },
+    {
+      "path": "docs/progress.json",
+      "sha256": "e71aab1c08cf3daf7f2a463e8efe80d1a9b5991404501774580741bd3236bcc1"
+    },
+    {
+      "path": "docs/roadmap-pipeline/ledger.json",
+      "sha256": "bb65215b521ff45225f733833813f859583fa517bf1d2b5052a866b1197c546c"
+    },
+    {
+      "path": ".github/DISCUSSION_TEMPLATE/architecture-and-design.yml",
+      "sha256": "8b061730ba7ab3a0e562d019fe87e3a7f7e17f1eeada261e93f8160698a04756"
+    },
+    {
+      "path": ".github/DISCUSSION_TEMPLATE/product-and-user-experience.yml",
+      "sha256": "b938a67652169757b04cd7a1b91d2a76591c002bcd526ed4087e7510e279d3f2"
+    },
+    {
+      "path": ".github/DISCUSSION_TEMPLATE/questions-and-help.yml",
+      "sha256": "f78bebd076d8a9e2e38bf17ea0fc6e878d4d3a84b5bad359b48025081bbc8a3b"
+    },
+    {
+      "path": ".github/DISCUSSION_TEMPLATE/test-results-and-demos.yml",
+      "sha256": "3b28c44425e82447a4501bf18b4b15c9332cc4e29c957761e62f76655829425d"
+    },
+    {
+      "path": ".github/ISSUE_TEMPLATE/bug_report.yml",
+      "sha256": "68190404b94be9aefb17736a72eb92dc48ff2c56e479fe15fcecd0ce7b1437f1"
+    },
+    {
+      "path": ".github/ISSUE_TEMPLATE/ci_test_failure.yml",
+      "sha256": "48824d5683bad37006e982fd1ddb1a2c68ff562d6f7ff5dd4c7ae8618684bde7"
+    },
+    {
+      "path": ".github/ISSUE_TEMPLATE/config.yml",
+      "sha256": "57329b295db205d8d67ebe75921d078af402a9355e5db70957176c84e06af9ab"
+    },
+    {
+      "path": ".github/ISSUE_TEMPLATE/documentation.yml",
+      "sha256": "b82c3ce7a477ba8a86d433fb0641565de1416b7d6b2d73a22cc2ac91cb025d0e"
+    },
+    {
+      "path": ".github/ISSUE_TEMPLATE/implementation_task.md",
+      "sha256": "e6e58491579543aab627f3e1d61e61060e53194c2d364a34202edfd61b457bd6"
+    },
+    {
+      "path": "tools/tests/test_agent_pipeline.py",
+      "sha256": "84c1de3c9561c5c73c7f81fa8729efc2faa9debfff5eb28bca893ed7ba7d1283"
+    },
+    {
+      "path": "tools/tests/test_roadmap_runner.py",
+      "sha256": "f7a2d3bb86dc9f018fdf045aa7b6eb8a656282c0afa7e1ac0a511db70350e97b"
+    },
+    {
+      "path": "tests/test_project_classification.py",
+      "sha256": "d8bc058f55cba42ee8f2733398b5ecc4fd406dc9301f43b2b16cde508acb327d"
+    }
+  ],
+  "scope_count": 24,
+  "producers": [
+    "tools/progress.py",
+    "tools/agent_pipeline.py",
+    "tools/roadmap_runner.py",
+    "tools/agent_gate.py",
+    "tools/project_classification.py",
+    "tools/tokenguard.py",
+    "docs/verification/issue274-language-coverage-20261118/check.py"
+  ],
+  "community_forms": [
+    ".github/DISCUSSION_TEMPLATE/architecture-and-design.yml",
+    ".github/DISCUSSION_TEMPLATE/product-and-user-experience.yml",
+    ".github/DISCUSSION_TEMPLATE/questions-and-help.yml",
+    ".github/DISCUSSION_TEMPLATE/test-results-and-demos.yml",
+    ".github/ISSUE_TEMPLATE/bug_report.yml",
+    ".github/ISSUE_TEMPLATE/ci_test_failure.yml",
+    ".github/ISSUE_TEMPLATE/config.yml",
+    ".github/ISSUE_TEMPLATE/documentation.yml",
+    ".github/ISSUE_TEMPLATE/implementation_task.md"
+  ],
+  "generated_asset_exact_byte_matches": {
+    "README.md": true,
+    "docs/PROGRESS.md": true,
+    "docs/assets/progress.svg": true
+  },
+  "svg_visible_and_accessible_text": [
+    {
+      "tag": "title",
+      "id": "title",
+      "text": "Baryon OS: 41% of the fixed product roadmap"
+    },
+    {
+      "tag": "desc",
+      "id": "description",
+      "text": "41 of 100 weighted acceptance points. Zero means not started; one hundred means a complete independent OS on supported hardware. Assessed on 2026-11-18. Not a time or security score."
+    },
+    {
+      "tag": "text",
+      "id": null,
+      "text": "BARYON OS \u00b7 INDEPENDENT KERNEL \u00b7 INDEPENDENT PRODUCT"
+    },
+    {
+      "tag": "text",
+      "id": null,
+      "text": "41%"
+    },
+    {
+      "tag": "text",
+      "id": null,
+      "text": "From independent kernel to daily-use OS"
+    },
+    {
+      "tag": "text",
+      "id": null,
+      "text": "41 / 100 acceptance points \u00b7 reassessed 2026-11-18"
+    },
+    {
+      "tag": "text",
+      "id": null,
+      "text": "0%"
+    },
+    {
+      "tag": "text",
+      "id": null,
+      "text": "25%"
+    },
+    {
+      "tag": "text",
+      "id": null,
+      "text": "50%"
+    },
+    {
+      "tag": "text",
+      "id": null,
+      "text": "75%"
+    },
+    {
+      "tag": "text",
+      "id": null,
+      "text": "100%"
+    },
+    {
+      "tag": "text",
+      "id": null,
+      "text": "Not started"
+    },
+    {
+      "tag": "text",
+      "id": null,
+      "text": "Complete independent OS"
+    }
+  ],
+  "svg_visual_pixel_render": "NOT VERIFIED; XML text and exact generated asset bytes audited",
+  "score_before_and_after": 41,
+  "criterion_ids_preserved": [
+    "K01",
+    "K02",
+    "K03",
+    "K04",
+    "K05",
+    "K06",
+    "K07",
+    "S01",
+    "S02",
+    "S03",
+    "S04",
+    "S05",
+    "S06",
+    "S07",
+    "S08",
+    "S09",
+    "H01",
+    "H02",
+    "H03",
+    "H04",
+    "H05",
+    "H06",
+    "U01",
+    "U02",
+    "U03",
+    "U04",
+    "U05",
+    "U06",
+    "N01",
+    "N02",
+    "N03",
+    "N04",
+    "B01",
+    "B02",
+    "B03",
+    "B04",
+    "B05",
+    "B06",
+    "A01",
+    "A02",
+    "A03",
+    "A04",
+    "P01",
+    "P02",
+    "P03",
+    "P04",
+    "L01",
+    "L02",
+    "R01",
+    "R02",
+    "R03"
+  ],
+  "literal_parser_keys_preserved": [
+    "Criterium:",
+    "Gate:",
+    "Afhankelijk van:"
+  ],
+  "default_template_fields": [
+    "Criterion:",
+    "Gate:",
+    "Depends on:"
+  ],
+  "generator_literal_hits": [
+    {
+      "path": "tools/progress.py",
+      "line": 101,
+      "text": "\n<a id=\"voortgang-naar-een-volwaardig-zelfstandig-os\"></a>\n## Progress toward a complete independent OS\n\n![Baryon OS: ",
+      "disposition": "Preserved parser alias or legacy bookmark anchor",
+      "allowed": true
+    },
+    {
+      "path": "tools/agent_pipeline.py",
+      "line": 122,
+      "text": "Criterium",
+      "disposition": "Preserved parser alias or legacy bookmark anchor",
+      "allowed": true
+    },
+    {
+      "path": "tools/agent_pipeline.py",
+      "line": 128,
+      "text": "Afhankelijk van",
+      "disposition": "Preserved parser alias or legacy bookmark anchor",
+      "allowed": true
+    },
+    {
+      "path": "docs/verification/issue274-language-coverage-20261118/check.py",
+      "line": 14,
+      "text": "\\b(?:het|een|zijn|wordt|worden|voor|geen|alleen|ook|deze|dit|moet|moeten|zonder|niet|gegevens|gebruiker|bestanden|veiligheid|mogelijk|beschikbaar|toestemming|verplicht|ondersteund|huidige|volgende|bewijs|onderzoek|ontwerp)\\b",
+      "disposition": "Review required",
+      "allowed": false
+    },
+    {
+      "path": "docs/verification/issue274-language-coverage-20261118/check.py",
+      "line": 104,
+      "text": "Dit is een buiten repository gegevensbestand.\n",
+      "disposition": "Review required",
+      "allowed": false
+    },
+    {
+      "path": "docs/verification/issue274-language-coverage-20261118/check.py",
+      "line": 149,
+      "text": "# Nieuwe tekst\n\nDit is een nieuw document.\n",
+      "disposition": "Review required",
+      "allowed": false
+    },
+    {
+      "path": "docs/verification/issue274-language-coverage-20261118/check.py",
+      "line": 143,
+      "text": "\nDit is een nieuwe Nederlandse zin.\n",
+      "disposition": "Review required",
+      "allowed": false
+    }
+  ],
+  "generator_input_hits": [],
+  "review": [
+    {
+      "producer": "tools/progress.py:88-149",
+      "result": "English generated README prose, rubric states/table labels and SVG title/description/visible text; all three tracked rendered outputs match current producer bytes."
+    },
+    {
+      "producer": "tools/agent_pipeline.py:112-130,225-254,378-383",
+      "result": "English task fields, prompt wrappers, errors and draft PR body; original Dutch aliases accepted alongside English, backed by existing alias/ambiguous-field tests. Issue bodies, task titles and L0 specs are quoted dynamic input and must not be translated automatically. Controller stays quarantined."
+    },
+    {
+      "producer": "tools/roadmap_runner.py:574-674,891-915",
+      "result": "English worker, verifier and initialization brief wrappers plus CLI. Task JSON and feedback are verbatim data; no model session was launched."
+    },
+    {
+      "producer": "tools/project_classification.py; tools/agent_gate.py; tools/tokenguard.py",
+      "result": "Selected CLI help and first-party diagnostics are English; identifiers, commands, workflow job names and protocol metadata remain unchanged."
+    },
+    {
+      "producer": "docs/verification/issue274-language-coverage-20261118/check.py",
+      "result": "Existing collector CLI/schema prose reviewed statically. The completed 398-Markdown collection was not rerun."
+    },
+    {
+      "producer": ".github/ISSUE_TEMPLATE and .github/DISCUSSION_TEMPLATE",
+      "result": "Finite current repository submission templates use English human-facing prose; stable URLs, parser fields, category slugs and named examples are preserved. Live Discussion category display settings are outside this source-only audit."
+    }
+  ],
+  "legitimate_exceptions": [
+    "Dutch parser aliases Criterium/Afhankelijk van",
+    "Legacy Dutch README anchor retained for external bookmarks",
+    "Verbatim issue/spec/feedback/task data and historical quotations",
+    "Identifiers, proper names, paths, commands, fixture/wire strings and third-party material"
+  ],
+  "graphify": {
+    "indexed_commit": "de9b99047138c4fd0015ffc3f874b273b3537484",
+    "matched_symbol": "tools_progress_readme_block",
+    "coverage": "Semantic query was partial; exact symbol lookup and targeted current-source reads supplied bounded follow-up."
+  },
+  "source_files_unchanged": true,
+  "checks": [
+    {
+      "argv": [
+        "python3",
+        "-B",
+        "tools/progress.py",
+        "--check"
+      ],
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "passed": true,
+      "log": "check-0.log",
+      "log_sha256": "14b305fe38d23ae7244745b59dcbbad1fa41b2ffd4a173070a72a8aca2f3aa5f"
+    },
+    {
+      "argv": [
+        "python3",
+        "-B",
+        "tools/progress.py",
+        "--help"
+      ],
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "passed": true,
+      "log": "check-1.log",
+      "log_sha256": "75a2e6e898442d18350a8e7948d3e66c0938d0a15977cddccaf2ccaeac6cd9f6"
+    },
+    {
+      "argv": [
+        "python3",
+        "-B",
+        "tools/agent_pipeline.py",
+        "--help"
+      ],
+      "exit_code": 0,
+      "expected_exit_code": 2,
+      "passed": false,
+      "log": "check-2.log",
+      "log_sha256": "fc62fa193ae54d054eefd6ed6bf09ab6cc701ed2032b030115e9a64d56f81952"
+    },
+    {
+      "argv": [
+        "python3",
+        "-B",
+        "tools/roadmap_runner.py",
+        "--help"
+      ],
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "passed": true,
+      "log": "check-3.log",
+      "log_sha256": "c6fe5de44c9530aaa932e4402e9036da9c9cc10edae34ee3cc37a31ed31e26fb"
+    },
+    {
+      "argv": [
+        "python3",
+        "-B",
+        "tools/agent_gate.py",
+        "--help"
+      ],
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "passed": true,
+      "log": "check-4.log",
+      "log_sha256": "6128e78710b36061ff96b2a4bb818490d0207ce3d45770ba26507c84cb64c2b8"
+    },
+    {
+      "argv": [
+        "python3",
+        "-B",
+        "tools/project_classification.py",
+        "--help"
+      ],
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "passed": true,
+      "log": "check-5.log",
+      "log_sha256": "777cb6ed48d6a115082b3cb56b29e531c17069388901f0ea4e7fc49410144729"
+    },
+    {
+      "argv": [
+        "python3",
+        "-B",
+        "tools/tokenguard.py",
+        "--help"
+      ],
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "passed": true,
+      "log": "check-6.log",
+      "log_sha256": "f7981f997205d42147398b1bb42ae2ab9a2d1021b3733d84ea885d09dcd86fd3"
+    },
+    {
+      "argv": [
+        "python3",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tools/tests",
+        "-p",
+        "test_agent_pipeline.py",
+        "-v"
+      ],
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "passed": true,
+      "log": "check-7.log",
+      "log_sha256": "7e780f34e2f19496a24fb51889997b4b49ae36d7767bd7a281506a58fe325e46"
+    },
+    {
+      "argv": [
+        "python3",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tools/tests",
+        "-p",
+        "test_roadmap_runner.py",
+        "-v"
+      ],
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "passed": true,
+      "log": "check-8.log",
+      "log_sha256": "3a73e0419095c62565e55df73fc79838f074cef34d7cd5b6bfdbca03d3d27b47"
+    },
+    {
+      "argv": [
+        "python3",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tests",
+        "-p",
+        "test_project_classification.py",
+        "-v"
+      ],
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "passed": true,
+      "log": "check-9.log",
+      "log_sha256": "866c3618560535c56e5ffc8056a62eb477c393f821049d0b6cea8d99e99b1a6e"
+    }
+  ],
+  "limitations": [
+    "Finite listed producers/assets/templates only; not a claim to audit every executable string or CLI in the repository.",
+    "Public UI/runtime strings and live Wiki/Discussion settings require their separate issue274 evidence.",
+    "SVG pixel rendering was not executed.",
+    "No archived Markdown, original research, protected fixtures or vendor prose rescanned."
+  ],
+  "result": "REVIEW_REQUIRED"
+}

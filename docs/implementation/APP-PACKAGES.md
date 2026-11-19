@@ -1,8 +1,8 @@
 # App package format — verification core (A02 sub-step)
 
-Status: implemented `no_std` verification core and connection to existing
-user-ELF policy; no installer, catalogue, dynamic app-image loading chain or
-native acceptance.
+Status: implemented `no_std` verification core, connection to existing
+user-ELF policy, and host-model installer/catalogue/journal composition;
+no native installer, dynamic app-image loading chain or native acceptance.
 
 `app-package-core` processes one package as a fixed manifest header of 3,584
 bytes followed by exactly one application image. The manifest is versionable,
@@ -187,6 +187,58 @@ and indeterminate commits, and a forged digest-valid slot with duplicate app
 ids. Not provided: a native storage adapter, power-cut or cold-boot trial,
 protection against replacing the whole medium with an older valid copy (needs
 a platform monotonic counter), or any change to A02 acceptance.
+
+#### Installer composition (host model, A02-T1)
+
+`installer::Installer<N>` owns a private catalogue, journal and streaming
+transaction. `open` reads an explicitly preformatted journal; it does not
+format, silently accept empty recovery or create a source registry.
+`stage` consumes an untrusted `InstallRequest`, verifies the complete package
+only through the caller-supplied `SourceRegistry::verify_executable`, derives
+`PackageIdentity` crate-internally from that result, checks the requested store
+descriptor against its image length/digest, and streams the exact verified
+image in at most 4 KiB chunks through `InstallTransaction` before store commit.
+There is no independently constructible verified installer token.
+
+`publish` binds the staged request to caller, request ID and service epoch.
+Immediately before catalogue `prepare`/`apply`, it checks the selected live
+registry's active/revoked state and exact source generation. The immutable
+registry borrow spans that check and publication, excluding safe Rust source
+mutation during publication. A rotate/revoke between `stage` and `publish`
+rejects publication without catalogue mutation. The adapter must supply the
+same live source authority: substituting an older registry is not recovery.
+The catalogue enforces version/source/update rules, then the journal persists
+the applied snapshot. `remove` uses the exact installed entry and does not
+require an active publisher. Installation adds no grants; source revocation
+leaves existing lookup available under the separate launch policy.
+
+The installer latches uncertainty on store `Unknown`, contradictory store
+acknowledgements/references, failed cancellation, or any journal commit error.
+Its lookup, generation and mutation entry points then fail closed; the private
+speculative catalogue is inaccessible. No outcome query, replay or automatic
+recommit occurs. Explicit `reconcile` requires a newer service epoch and
+reconstructs a fresh catalogue from the journal, retaining the request high
+watermark. Failed recovery retains the old blocked state. The adapter must
+provide epoch authority and authenticated/fresh media for production use;
+this checksum journal alone cannot supply them.
+
+Definitive streaming failures attempt cancellation. A rejected publication can
+leave a committed but unreferenced artifact. Neither failure nor removal
+automatically erases bytes or user data. A successful result exposes `released`
+only after journal commit; it remains a cleanup candidate, not delete authority.
+Request IDs increase globally within an installer instance, across callers.
+Only one staged operation is admitted at a time.
+
+Scope: `installer.rs`, its module export and private identity conversion in
+`lib.rs`, integration tests and this section. Invariant: only verified exact
+images under current source state enter the catalogue; storage uncertainty
+never authorizes replay or grants. Acceptance commands are the standalone
+app-management `test --locked`, `clippy --locked --all-targets -- -D warnings`
+and `fmt --all -- --check` with Rust 1.90.0. The integration tests use public
+signed fixtures and fake storage with length/digest checking and injected
+failures. This is host-model evidence only. Native install/update/remove,
+authenticated storage recovery, physical power cuts and human security review
+remain open; A02 is not accepted by this composition step.
 
 #### Targeted execution TASK-A02-CATALOG — 30 October 2026
 

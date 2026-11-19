@@ -5,6 +5,51 @@ This document distinguishes the decisions and authority of the project owner
 from those of the executing roles. Source quotations retain their original
 wording and speaker.
 
+## ADR-AGENT-GOVERNANCE-20261118 — Shared contracts and risk-based execution
+
+Status: accepted project-owner direction, 18 November 2026, fresh-session execution
+request. This supersedes earlier prerequisites requiring completed Phase 0/baseline B
+or zero open issues, PRs and findings before governance. Historical evidence remains
+unchanged. It does not declare baseline B complete or resolve security findings.
+
+**Decision:** root `AGENTS.md` is canonical policy; directory instructions refine
+subsystems. `.agents/skills/development-loop/SKILL.md` holds the common procedure;
+`.agents/roles/` holds the four common role contracts. Claude Code, Codex and Copilot
+adapters reference those contracts and retain surface-specific tool restrictions.
+Use `os_verifier` or `os_security_reviewer` where appropriate; no optional
+`agents/independent.md` is required. No active reference to that missing file was
+found during reconciliation, so no replacement role is invented.
+
+Default to one primary agent, with at most one additional reviewer when risk warrants
+it. Claim bounded write paths in existing task state and isolate writers by worktree.
+`docs/STATUS.md` is the compact current overview; `docs/PROJECT-STATE.md` keeps the
+single lead continuation checkpoint while independent workstreams retain their own
+handoffs. Do not create a second backlog. New sessions read current state, then only
+missing contracts, relevant decisions and changed source.
+
+Verification follows changed functionality and risk. Preserve meaningful negative
+security tests, mandatory hosted checks and merge protections. Reuse valid
+source-bound evidence with its applicability stated. Do not repeatedly run full native
+matrices for unchanged code, assemble large trivial-fix evidence packages, poll CI
+continuously or repeat optional reviews after quota failures. Manual squash is
+explicitly authorized for this assignment only when mandatory checks pass; auto-merge
+and protection bypass remain prohibited.
+
+**Rationale and alternatives:** a shared contract prevents duplicated client policy
+from drifting while allowing tool capabilities to differ. Separate client policies
+and a new orchestration framework add maintenance without requested functionality.
+Exhaustive repeated verification consumed excessive resources; targeted regression
+checks retain the security invariant without conflating development feedback with
+full product acceptance. Existing role definitions and checkpoints are reused.
+
+**Consequences and limits:** governance acceptance is distinct from client runtime
+parity, Daybreak acceptance, physical hardware and human audit. The #359 unconditional
+execution hold and #355 disabled manifest remain in force. Offline gate/model-client
+work and unfinished local WIP remain separately owned; this ADR grants no activation.
+The new canonical policy paths are protected from unattended pipeline edits. Validate
+adapter targets, retained tool restrictions and protected-path denial through host
+regressions. No OS criterion or acceptance weight changes.
+
 ## ADR-VERSION-POLICY-20261117 — Latest stable components with verified exceptions
 
 Status: accepted by the project owner on 17 November 2026. Authority and execution
@@ -260,6 +305,10 @@ Status: accepted by the project owner on 14 November 2026; recorded on
 15 November 2026. It decides D6 of
 [S09-BACKUP-DESTINATION-PROPOSAL.md](implementation/S09-BACKUP-DESTINATION-PROPOSAL.md)
 only. D1–D5 of that proposal remain undecided.
+Implementation status (15 November 2026): the name check and the test-only
+native stage `archive-ustar` are on draft PR #340; local gate run 14 passed
+([USTAR-NATIVE-20261115.md](verification/s09-archive/USTAR-NATIVE-20261115.md)).
+The decision is unchanged and S09 remains open.
 
 **Context:**
 - S09 requires that a user can create, verify, restore and export independent
@@ -3892,3 +3941,49 @@ The project owner approved D1–D5 in the direction below, on the condition that
 **Statistics, stated plainly.** Five timing failures in the three full matrices give 1.7 expected failures per matrix (exact 95 % interval 0.5–3.9), a pass probability of about 19 % (2–58 %) for the unchanged contract. A pass probability of 99 % for 3 550 guests needs a per-guest false-failure rate of at most 2.8 × 10⁻⁶; showing that at 95 % confidence takes about 1.06 million failure-free boots, roughly 300 clean matrices, so no available sample can demonstrate it. After D1–D3 the known mechanisms are removed by construction, but the incident history shows a new rare class in almost every full matrix: three classes were seen exactly once in about 9 800 guests, which puts the probability of yet another class at an order of one per matrix (pass probability about 35 %), while the optimistic assumption that the mechanism list is complete gives 85–90 %. The 250 clean hosted boots do not separate these estimates.
 
 **Risks and open items.** The liveness window, the cap, the receptive-span threshold and the host-loss bound are engineering limits, not proofs. TCG results do not transfer to KVM or hardware. The normative step texts live on branch `docs/k06-step-specs` and must receive the approved changes when that branch is integrated. A review by an AI is not an independent human audit.
+
+
+## ADR-B03K3 — Authorised synthetic policy-transition experiment
+
+**Date:** 14 November 2026. **Scope:** issue #41; TEST keys and disposable
+QEMU state only. The project owner authorised publication of the reviewed
+transition work and implementation of the explicitly bounded experiment after
+the proposal and its evidence limits were presented. PR #328 had already been
+squash-merged; missing work therefore continues on `feat/issue41-policy-test`.
+
+**Approved experimental design:** fixed, distinct root/release roles; the
+canonical policy and image-binding envelopes in
+[B03-POLICY-TRANSITION-PROPOSAL.md](implementation/B03-POLICY-TRANSITION-PROPOSAL.md);
+complete operation identity; monotonically enforced policy/image floors;
+permanent revoked-pair tombstones; eligible, policy-bound fallback; and
+fail-closed handling of uncertain durable state. The synthetic experiment may
+use deliberately public TEST seeds. Both signature algorithms remain required.
+
+**Execution order:** first implement and negatively test the bounded `no_std`
+codec with the existing reviewed crypto dependencies, behind an explicit
+`experimental-policy-test` feature. Then execute the same verifier on the
+project's own native path with TEST fixtures. Freeze the exact native ingress,
+anchor encoding, write/flush/readback semantics and fault oracle before wiring
+a persistent policy transition. Retain all 18 existing update acceptance stages
+and the missing-production-policy compiler guards. No new ordinary-app rights,
+implicit kernel policy parser or production-profile activation follows.
+
+**D1–D7 disposition:** the experiment's roles, format, transition rules, fixed
+root, release-version semantics and TEST-only activation scope are approved.
+Production custody/ceremony, a concrete rollback-resistant backend, production
+ingress, B04 enrolment/boot/root recovery, trusted freshness/calendar expiry
+and independent release-chain review remain unresolved. An emulator variable
+or host-controlled anchor can expose behaviour and counterexamples; it cannot
+prove physical persistence or whole-state rollback resistance.
+
+**Evidence:** the preceding 92-check symbolic model is a finite specification
+exercise, not native crypto/storage evidence. Each implementation checkpoint
+records its actual source and executed checks separately. No acceptance point
+is awarded by this approval. Real key generation, production signing, release
+publication and physical-device changes remain outside this authorisation.
+
+**Revision criteria:** reassess after native interruption/replay results, a
+concrete backend or ingress contract, a proposed production trust change, or
+independent review. Never reinterpret experimental success as production
+acceptance. Reverting the experimental feature and its fixtures leaves the
+existing TEST update path and missing-policy guards intact.

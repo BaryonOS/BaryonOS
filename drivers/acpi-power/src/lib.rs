@@ -1,6 +1,6 @@
 #![no_std]
 
-//! Pure, bounded extraction of the ACPI S5 sleep settings.
+//! Pure, bounded extraction of ACPI S3/S5 settings and FACS observations.
 //!
 //! This crate validates the supplied FADT and DSDT byte snapshots itself. It
 //! does not discover/map firmware tables, interpret AML methods, authorize a
@@ -50,6 +50,14 @@ pub enum Error {
     DuplicateS5Object,
     InvalidS5Package,
     SleepTypeOutOfRange,
+    MissingS3Object,
+    DuplicateS3Object,
+    InvalidS3Package,
+    MissingFacsAddress,
+    ConflictingFacsAddresses,
+    FacsAddressMismatch,
+    InvalidFacsAlignment,
+    UnsupportedFacsFields,
 }
 
 /// One PM1 control-register setting extracted from the validated tables.
@@ -101,6 +109,169 @@ impl S5Plan {
     }
 }
 
+/// Opaque S3 observations; this does not authorize sleep or a resume jump.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub struct S3Plan {
+    settings: S5Plan,
+    facs: FacsInfo,
+}
+
+impl S3Plan {
+    pub const fn pm1a(self) -> Pm1Setting {
+        self.settings.pm1a
+    }
+
+    pub const fn pm1b(self) -> Option<Pm1Setting> {
+        self.settings.pm1b
+    }
+
+    pub const fn facs(self) -> FacsInfo {
+        self.facs
+    }
+}
+
+/// Validated FACS fields, not a callable or authorized waking target.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub struct FacsInfo {
+    source_address: u64,
+    firmware_waking_vector: u32,
+    x_firmware_waking_vector: u64,
+    flags: u32,
+    ospm_flags: u32,
+}
+
+impl FacsInfo {
+    pub const fn source_address(self) -> u64 {
+        self.source_address
+    }
+
+    pub const fn firmware_waking_vector(self) -> u32 {
+        self.firmware_waking_vector
+    }
+
+    pub const fn x_firmware_waking_vector(self) -> u64 {
+        self.x_firmware_waking_vector
+    }
+
+    /// The extended vector supersedes the legacy vector when nonzero.
+    pub const fn waking_vector(self) -> u64 {
+        if self.x_firmware_waking_vector != 0 {
+            self.x_firmware_waking_vector
+        } else {
+            self.firmware_waking_vector as u64
+        }
+    }
+
+    pub const fn flags(self) -> u32 {
+        self.flags
+    }
+
+    pub const fn ospm_flags(self) -> u32 {
+        self.ospm_flags
+    }
+}
+
+/// Resolve a validated FADT's FACS pointer before taking its bounded snapshot.
+/// The returned address grants no memory access; the kernel must authorize it.
+pub fn fadt_facs_address(fadt: &[u8]) -> Result<u64, Error> {
+    validate_sdt(fadt, *b"FACP")?;
+    if fadt.len() < FADT_MIN_LEN {
+        return Err(Error::InvalidFadtLength);
+    }
+    let legacy = u64::from(read_u32(fadt, 36).ok_or(Error::InvalidFadtLength)?);
+    if fadt.len() > 132 && fadt.len() < 140 {
+        return Err(Error::InvalidFadtLength);
+    }
+    let extended = if fadt.len() >= 140 {
+        read_u64(fadt, 132).ok_or(Error::InvalidFadtLength)?
+    } else {
+        0
+    };
+    // This profile rejects contradictory pointers instead of preferring X_FIRMWARE_CTRL.
+    if legacy != 0 && extended != 0 && legacy != extended {
+        return Err(Error::ConflictingFacsAddresses);
+    }
+    let address = if extended != 0 { extended } else { legacy };
+    if address == 0 {
+        return Err(Error::MissingFacsAddress);
+    }
+    if address & 63 != 0 {
+        return Err(Error::InvalidFacsAlignment);
+    }
+    if address.checked_add(64).is_none() {
+        return Err(Error::InvalidTableSourceAddress);
+    }
+    Ok(address)
+}
+
+/// Validates S3 settings and an exact, FADT-bound FACS snapshot.
+/// All source metadata must come from the trusted kernel snapshot reader.
+/// No firmware code, I/O, table mutation or waking-vector jump is performed.
+pub fn parse_s3(tables: AcpiTableSnapshot<'_>, facs: TableSnapshot<'_>) -> Result<S3Plan, Error> {
+    let settings = parse_sleep(tables, b"_S3_").map_err(|error| match error {
+        Error::MissingS5Object => Error::MissingS3Object,
+        Error::DuplicateS5Object => Error::DuplicateS3Object,
+        Error::InvalidS5Package => Error::InvalidS3Package,
+        other => other,
+    })?;
+    for table in [tables.fadt, tables.dsdt, facs] {
+        if table.source_address == 0
+            || table
+                .source_address
+                .checked_add(table.bytes.len() as u64)
+                .is_none()
+        {
+            return Err(Error::InvalidTableSourceAddress);
+        }
+    }
+    let address = fadt_facs_address(tables.fadt.bytes)?;
+    if address != facs.source_address {
+        return Err(Error::FacsAddressMismatch);
+    }
+    let bytes = facs.bytes;
+    if bytes.len() < 64 {
+        return Err(Error::TableTooShort);
+    }
+    if bytes.len() > MAX_TABLE_LEN {
+        return Err(Error::TableTooLarge);
+    }
+    if bytes.get(..4) != Some(b"FACS") {
+        return Err(Error::InvalidSignature);
+    }
+    if read_u32(bytes, 4) != Some(bytes.len() as u32) {
+        return Err(Error::TableLengthMismatch);
+    }
+    // FACS is shared firmware state, not a checksum-bearing SDT.
+    let flags = read_u32(bytes, 20).ok_or(Error::TableTooShort)?;
+    let ospm_flags = read_u32(bytes, 36).ok_or(Error::TableTooShort)?;
+    let legacy_vector = read_u32(bytes, 12).ok_or(Error::TableTooShort)?;
+    let extended_vector = read_u64(bytes, 24).ok_or(Error::TableTooShort)?;
+    if !matches!(bytes[32], 2 | 3)
+        || flags & !3 != 0
+        || ospm_flags & !1 != 0
+        || (ospm_flags & 1 != 0 && flags & 2 == 0)
+        || (extended_vector == 0 && legacy_vector >= 0x10_0000)
+        || (extended_vector > u64::from(u32::MAX) && ospm_flags & 1 == 0)
+        || read_u32(bytes, 16).ok_or(Error::TableTooShort)? & !3 != 0
+        || bytes[33..36]
+            .iter()
+            .chain(bytes[40..].iter())
+            .any(|byte| *byte != 0)
+    {
+        return Err(Error::UnsupportedFacsFields);
+    }
+    Ok(S3Plan {
+        settings,
+        facs: FacsInfo {
+            source_address: address,
+            firmware_waking_vector: legacy_vector,
+            x_firmware_waking_vector: extended_vector,
+            flags,
+            ospm_flags,
+        },
+    })
+}
+
 /// One selected table from the bounded, kernel-owned ACPI snapshot.
 ///
 /// The metadata is not an authorization token: callers must obtain it from the
@@ -140,6 +311,10 @@ impl<'a> AcpiTableSnapshot<'a> {
 /// kernel snapshot handoff, not caller-chosen IPC fields. The table slices
 /// must contain exactly the respective SDT-declared lengths.
 pub fn parse_s5(tables: AcpiTableSnapshot<'_>) -> Result<S5Plan, Error> {
+    parse_sleep(tables, b"_S5_")
+}
+
+fn parse_sleep(tables: AcpiTableSnapshot<'_>, selected: &[u8; 4]) -> Result<S5Plan, Error> {
     let fadt = tables.fadt.bytes;
     let dsdt = tables.dsdt.bytes;
     validate_sdt(fadt, *b"FACP")?;
@@ -187,7 +362,7 @@ pub fn parse_s5(tables: AcpiTableSnapshot<'_>) -> Result<S5Plan, Error> {
         }
     }
 
-    let (sleep_type_a, sleep_type_b) = parse_aml_s5(&dsdt[SDT_HEADER_LEN..])?;
+    let (sleep_type_a, sleep_type_b) = parse_aml_sleep(&dsdt[SDT_HEADER_LEN..], selected)?;
     Ok(S5Plan {
         pm1a: Pm1Setting {
             address: pm1a_address,
@@ -316,7 +491,7 @@ fn read_u64(bytes: &[u8], offset: usize) -> Option<u64> {
     ]))
 }
 
-fn parse_aml_s5(aml: &[u8]) -> Result<(u8, u8), Error> {
+fn parse_aml_sleep(aml: &[u8], selected: &[u8; 4]) -> Result<(u8, u8), Error> {
     let mut cursor = 0usize;
     let mut terms = 0usize;
     let mut found = None;
@@ -340,9 +515,9 @@ fn parse_aml_s5(aml: &[u8]) -> Result<(u8, u8), Error> {
         match aml[cursor] {
             AML_NAME_OP => {
                 cursor += 1;
-                let (name, name_len, is_root_s5) = parse_name_string(&aml[cursor..])?;
+                let (name, name_len, is_root_segment) = parse_name_string(&aml[cursor..])?;
                 cursor = cursor.checked_add(name_len).ok_or(Error::MalformedAml)?;
-                if is_root_s5 {
+                if is_root_segment && name == selected {
                     if found.is_some() {
                         return Err(Error::DuplicateS5Object);
                     }
@@ -483,13 +658,12 @@ fn parse_name_string(bytes: &[u8]) -> Result<(&[u8], usize, bool), Error> {
     let names_len = count.checked_mul(4).ok_or(Error::MalformedAml)?;
     let end = cursor.checked_add(names_len).ok_or(Error::MalformedAml)?;
     let segments = bytes.get(cursor..end).ok_or(Error::MalformedAml)?;
-    for segment in segments.chunks_exact(4) {
+    for segment in segments.as_chunks::<4>().0 {
         if !valid_name_seg(segment) {
             return Err(Error::MalformedAml);
         }
     }
-    let one_root_segment =
-        count == 1 && parents == 0 && (root || prefix_end == 0) && segments == b"_S5_";
+    let one_root_segment = count == 1 && parents == 0 && (root || prefix_end == 0);
     Ok((segments, end, one_root_segment))
 }
 

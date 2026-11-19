@@ -1,8 +1,10 @@
-# Codex: short development loop that preserves evidence
+# Shared client workflow and evidence
 
 AGENTS.md takes precedence. This is an execution guide, not a second roadmap,
 security proof or guarantee about speed. Current project status and criteria
-remain in docs/PROJECT-STATE.md and docs/progress.json.
+remain in docs/STATUS.md, docs/PROJECT-STATE.md and docs/progress.json.
+The canonical task procedure is `.agents/skills/development-loop/SKILL.md`; this
+file supplies command examples and evidence details, not additional mandatory phases.
 
 ## 1. Resuming without starting over
 
@@ -42,11 +44,11 @@ shared crate, the relevant consumers must also be tested.
 
 ```sh
 # Example: a change in volume-core.
-cargo +1.90.0 test --locked -p volume-core
-cargo +1.90.0 clippy --locked -p volume-core --all-targets -- -D warnings
+cargo +1.100.0 test --locked -p volume-core
+cargo +1.100.0 clippy --locked -p volume-core --all-targets -- -D warnings
 
 # SDK: separate workspace.
-cargo +1.90.0 test --manifest-path sdk/Cargo.toml --locked
+cargo +1.100.0 test --manifest-path sdk/Cargo.toml --locked
 
 # Host harness for DocumentSession.
 python3 -m unittest discover -s tests -p 'test_document_session_*.py'
@@ -60,7 +62,9 @@ Check formatting early, before a costly integration run. For integration, use
 the current commands from `.github/workflows/` and the relevant native gate;
 do not copy an outdated test list from a chat. Keep negative capability,
 recovery and fault-injection tests intact. A host test does not prove native
-behaviour. Never skip a check because a cache was restored.
+behaviour. A cache hit is not evidence. Reuse valid source-bound results for unchanged code
+when inputs/profile/environment remain applicable; record why they still apply.
+Do not repeat full native matrices for documentation or adapter-only changes.
 
 ## 3. Working in parallel without losing locks or integration
 
@@ -123,7 +127,7 @@ A local Linux measurement can, for example, be taken like this, without a
 pipeline that hides a failure:
 
 ```sh
-/usr/bin/time -p cargo +1.90.0 test --locked -p volume-core
+/usr/bin/time -p cargo +1.100.0 test --locked -p volume-core
 ```
 
 Use the same session and valid environment for related follow-up work.
@@ -134,7 +138,9 @@ A cache that turns out to cost more than rebuilding can be removed again.
 
 ## 6. Handoff and recovery
 
-Update the existing PROJECT-STATE.md and progress assessment according to
+Keep docs/STATUS.md as the compact current overview, pointing to the single lead
+checkpoint and independent workstream handoffs. Update the existing PROJECT-STATE.md
+and progress assessment according to
 AGENTS.md. Use one compact `NEXT AGENT HANDOFF` there, for example:
 
 ```text

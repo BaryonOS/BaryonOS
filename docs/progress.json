@@ -3,7 +3,7 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-18",
-    "source_commit": "3a77b1d0d5c91f6844d9c7475f3e54a6f52dc6d1",
+    "source_commit": "90ade7cb7063691642de6a88c33bbbacc32fa5b1",
     "assessment_basis": "parent_commit",
     "branch": "codex/l01-model-format",
     "task": "L01-T2: VerifiedArtifact safetensors header/table parser with bounded no-escape JSON profile, duplicate/dtype/overflow checks and exact nonoverlapping coverage;14 host regressions pass. One bounded security review found no blocker.",

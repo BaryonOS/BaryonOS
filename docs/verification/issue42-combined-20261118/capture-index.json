@@ -1,0 +1,383 @@
+{
+  "source_commit": "2a08f4a33eff63b354821f6892e1be28f7602c9b",
+  "source_fingerprint_version": 3,
+  "source_sha256": "25dd6d69621f1d9d4c8ed353633b3db62818562fa6ce50efa4445207505adb44",
+  "raw_gate_exit_code": 0,
+  "native_cases": [
+    {
+      "case": "noop",
+      "raw_qemu_exit": 33,
+      "passed": true,
+      "timed_out": false,
+      "duration_s": 4.2216719959997135,
+      "artifact_binding_passed": true
+    },
+    {
+      "case": "fault",
+      "raw_qemu_exit": 33,
+      "passed": true,
+      "timed_out": false,
+      "duration_s": 2.4803458400001546,
+      "artifact_binding_passed": true
+    },
+    {
+      "case": "no-dmar",
+      "raw_qemu_exit": 33,
+      "passed": true,
+      "timed_out": false,
+      "duration_s": 2.3859205299995665,
+      "artifact_binding_passed": true
+    },
+    {
+      "case": "usb-reports",
+      "raw_qemu_exit": 33,
+      "passed": true,
+      "timed_out": false,
+      "duration_s": 2.726718969999638,
+      "artifact_binding_passed": true
+    },
+    {
+      "case": "usb-readonly",
+      "raw_qemu_exit": 33,
+      "passed": true,
+      "timed_out": false,
+      "duration_s": 2.812338281999473,
+      "artifact_binding_passed": true
+    },
+    {
+      "case": "hid-ipc",
+      "raw_qemu_exit": 33,
+      "passed": true,
+      "timed_out": false,
+      "duration_s": 3.262803237001208,
+      "artifact_binding_passed": true
+    }
+  ],
+  "loaded_artifacts_rehashed": 25,
+  "files": [
+    {
+      "path": "checks.json",
+      "sha256": "80d4952d7e569a8a45bfdaaff67127a2c36ae6f01f45b91137286cf7a5ea6835",
+      "raw_sha256": "80d4952d7e569a8a45bfdaaff67127a2c36ae6f01f45b91137286cf7a5ea6835",
+      "raw_bytes": 10148,
+      "format": "original bytes"
+    },
+    {
+      "path": "reproduce.py",
+      "sha256": "99eb399e3c96b54aad907dfed732d7da76ddf10c4053fab3b704d648ee155ed3",
+      "raw_sha256": "99eb399e3c96b54aad907dfed732d7da76ddf10c4053fab3b704d648ee155ed3",
+      "raw_bytes": 3118,
+      "format": "original bytes"
+    },
+    {
+      "path": "logs/noop-build.log.gz",
+      "sha256": "5dbfbb1e710e1346d957be4d2533f1e8558b64304f506127f0d73149d88a7922",
+      "raw_sha256": "8376b82817aeb036a6bead1f12b99a47649ba87e75575aef4705502b0bf234bd",
+      "raw_bytes": 2886,
+      "format": "gzip"
+    },
+    {
+      "path": "logs/noop-run.log.gz",
+      "sha256": "50d18f657376be13cb20b59eb47b488f17d1cb3329ae0e7ce09bb9aad67f2434",
+      "raw_sha256": "9b30be0008189b3efbb07045953b0231c1b54d86c08bf7f42908088ec73dfab0",
+      "raw_bytes": 1283,
+      "format": "gzip"
+    },
+    {
+      "path": "logs/fault-build.log.gz",
+      "sha256": "d870aa6ab8bec1b6d1a38ae9df31b65003688f09e427acb5bcbe5a113e632a4d",
+      "raw_sha256": "47d83df948face32f42f1c48f4b27cb88fb165e966e1ffe99b47b4eae765673c",
+      "raw_bytes": 1734,
+      "format": "gzip"
+    },
+    {
+      "path": "logs/fault-run.log.gz",
+      "sha256": "1b1157b2b3b1439c94e496df3a730aeccaacb9e08645101b47493b320b0ccce4",
+      "raw_sha256": "eb2839b13ca58a627d298ebcb844276cf6a9eed407c464b6b63f5cc6a25616a4",
+      "raw_bytes": 1655,
+      "format": "gzip"
+    },
+    {
+      "path": "logs/no-dmar-build.log.gz",
+      "sha256": "0952d530a4d9e44d471f03206963707654125a01e9af3c07d8a87ff77086466d",
+      "raw_sha256": "4ff2d31fc64ebdf6018537b0d619c8a67a3ba5d2da7e1b040831d68fc750af9e",
+      "raw_bytes": 1732,
+      "format": "gzip"
+    },
+    {
+      "path": "logs/no-dmar-run.log.gz",
+      "sha256": "a3ee525e0eead4666dd269f2fcdcd9f7d3eb820fa1f3ae3b3f8066eeb6a683d7",
+      "raw_sha256": "b06f028865268ef53a367ba446f452d114e2600d263639f9d6ae9cbed5547045",
+      "raw_bytes": 1176,
+      "format": "gzip"
+    },
+    {
+      "path": "logs/usb-reports-build.log.gz",
+      "sha256": "0d2ae4cb9b5d3a2355f258db317c45dfd9d13105ca83f0a7f4f2d1ec756eafd5",
+      "raw_sha256": "39acc829d963527f0417f4d2374e0db6fefd04629124b6a6f66439a1c0fb6d8a",
+      "raw_bytes": 1820,
+      "format": "gzip"
+    },
+    {
+      "path": "logs/usb-reports-run.log.gz",
+      "sha256": "bf8a34c3e1c7cf4ac134b71683986735ade9161a2aaa8a956ed72935655d6cb7",
+      "raw_sha256": "0e9d44e79bb7ca9d10f9939548066b4842a9ed7e7a522ee658599bfe68e728c4",
+      "raw_bytes": 1471,
+      "format": "gzip"
+    },
+    {
+      "path": "logs/usb-readonly-build.log.gz",
+      "sha256": "8525c3aa94447efbe6ac25fcc651b9864c4498f77939f5c3f70c1a59bc5c9708",
+      "raw_sha256": "e6242d44be170cf8f2a104a56317e9f295da198f1de41d8a07857eeeb33aad6e",
+      "raw_bytes": 1742,
+      "format": "gzip"
+    },
+    {
+      "path": "logs/usb-readonly-run.log.gz",
+      "sha256": "f68de127f345912b8e0b466a21e1386a773d9bf914813190f91feefa1e0aa636",
+      "raw_sha256": "62b15c6d812d643ab381bd3001a08af6de7359dac26ac0dc8d60563b404f62cd",
+      "raw_bytes": 1687,
+      "format": "gzip"
+    },
+    {
+      "path": "logs/hid-ipc-build.log.gz",
+      "sha256": "67af706e42238b3f0a35fde485f2d7d59815bd9e78a0bced75d8e93ea1c2225b",
+      "raw_sha256": "2dc6205ce525566baa636b40f880149f5ed9bbeab6df324d4ba37689bb369b27",
+      "raw_bytes": 17414,
+      "format": "gzip"
+    },
+    {
+      "path": "logs/hid-ipc-run.log.gz",
+      "sha256": "443ec1906d66ac273bdda5f39a74b95ef10c909565a20f66ed8365b08a521283",
+      "raw_sha256": "ac10598af0b91467aa36d6f67e6a46ef5e676c469eb3ba8b0eb019f822722cc5",
+      "raw_bytes": 1210,
+      "format": "gzip"
+    },
+    {
+      "path": "logs/run-ul0w9_o3.json",
+      "sha256": "d18cc7b77f455b69e9d09c98bc7d20dc42114567bf7cad7c6c760a462019bdb1",
+      "raw_sha256": "d18cc7b77f455b69e9d09c98bc7d20dc42114567bf7cad7c6c760a462019bdb1",
+      "raw_bytes": 462,
+      "format": "original bytes"
+    },
+    {
+      "path": "logs/run-ul0w9_o3.log.gz",
+      "sha256": "071aca1000f0302d42f4baba0baf6b7b70b7077c1fd7739dcd571ae9f74bda5a",
+      "raw_sha256": "bfb6ffad5ee22fdf0fcd8cac3f280fccef5f8a6285f6a1aa049bbf3799b22cf5",
+      "raw_bytes": 7982,
+      "format": "gzip"
+    },
+    {
+      "path": "reports/xhci-noop-report.json",
+      "sha256": "f2c8a2c96330a5e357e64006917a10b43b04f73bfdfaf98fe51405ac34b5e485",
+      "raw_sha256": "f2c8a2c96330a5e357e64006917a10b43b04f73bfdfaf98fe51405ac34b5e485",
+      "raw_bytes": 5213,
+      "format": "original bytes"
+    },
+    {
+      "path": "noop/manifest.json",
+      "sha256": "8bb7f66a6b4b20ecf9918c8222b885c8d56de66b001367a3f1504c11611fd1c7",
+      "raw_sha256": "8bb7f66a6b4b20ecf9918c8222b885c8d56de66b001367a3f1504c11611fd1c7",
+      "raw_bytes": 2078,
+      "format": "original bytes"
+    },
+    {
+      "path": "noop/result.json",
+      "sha256": "5396224f24ec49d56d9e750441a318f827bc951d42e8cbbae24585c9cacaf36b",
+      "raw_sha256": "5396224f24ec49d56d9e750441a318f827bc951d42e8cbbae24585c9cacaf36b",
+      "raw_bytes": 4311,
+      "format": "original bytes"
+    },
+    {
+      "path": "noop/serial.txt",
+      "sha256": "b09262f21ac72b5f50daa6908244125baf211c2b2add382678a7eb534005f86e",
+      "raw_sha256": "b09262f21ac72b5f50daa6908244125baf211c2b2add382678a7eb534005f86e",
+      "raw_bytes": 1128,
+      "format": "original bytes"
+    },
+    {
+      "path": "noop/stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "raw_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "raw_bytes": 0,
+      "format": "original bytes"
+    },
+    {
+      "path": "reports/xhci-fault-report.json",
+      "sha256": "a3f666e394cb8657c7d64becdbf48353e9d48219df3d8879067ad8cd753c735e",
+      "raw_sha256": "a3f666e394cb8657c7d64becdbf48353e9d48219df3d8879067ad8cd753c735e",
+      "raw_bytes": 5602,
+      "format": "original bytes"
+    },
+    {
+      "path": "fault/manifest.json",
+      "sha256": "147058e49b56e70dfa0af94f0799ba62990895d9128e6ecc38b82c0e8c75a98d",
+      "raw_sha256": "147058e49b56e70dfa0af94f0799ba62990895d9128e6ecc38b82c0e8c75a98d",
+      "raw_bytes": 2082,
+      "format": "original bytes"
+    },
+    {
+      "path": "fault/result.json",
+      "sha256": "ac7b67d497e97d53ca786eacffaf88e1abeaf5d1103621e3e62fa497424ec61d",
+      "raw_sha256": "ac7b67d497e97d53ca786eacffaf88e1abeaf5d1103621e3e62fa497424ec61d",
+      "raw_bytes": 4697,
+      "format": "original bytes"
+    },
+    {
+      "path": "fault/serial.txt",
+      "sha256": "563730d9fddc996d9c5fd66b7ccc174b6ca7def0e5b5f919a5e4ab6b7b9b265d",
+      "raw_sha256": "563730d9fddc996d9c5fd66b7ccc174b6ca7def0e5b5f919a5e4ab6b7b9b265d",
+      "raw_bytes": 1130,
+      "format": "original bytes"
+    },
+    {
+      "path": "fault/stderr.txt",
+      "sha256": "ee622698b5abddb0c60017f8e1556c68696d2f3db73040526b5f898eb0dbeb17",
+      "raw_sha256": "ee622698b5abddb0c60017f8e1556c68696d2f3db73040526b5f898eb0dbeb17",
+      "raw_bytes": 368,
+      "format": "original bytes"
+    },
+    {
+      "path": "reports/xhci-no-dmar-report.json",
+      "sha256": "8a4e1250bf891db253431c0b55225f7e8e54feacff1dd845203b609d90d2f259",
+      "raw_sha256": "8a4e1250bf891db253431c0b55225f7e8e54feacff1dd845203b609d90d2f259",
+      "raw_bytes": 4699,
+      "format": "original bytes"
+    },
+    {
+      "path": "no-dmar/manifest.json",
+      "sha256": "1ae1aa27ffda93f4462089467b5a4701a048c3b074bd74eb18cd3310d7ac61bb",
+      "raw_sha256": "1ae1aa27ffda93f4462089467b5a4701a048c3b074bd74eb18cd3310d7ac61bb",
+      "raw_bytes": 2078,
+      "format": "original bytes"
+    },
+    {
+      "path": "no-dmar/result.json",
+      "sha256": "9941d56de06e6144ef07afa05b60ffebcaf9990ef9b894a5dd3d2bcce8b135a0",
+      "raw_sha256": "9941d56de06e6144ef07afa05b60ffebcaf9990ef9b894a5dd3d2bcce8b135a0",
+      "raw_bytes": 3976,
+      "format": "original bytes"
+    },
+    {
+      "path": "no-dmar/serial.txt",
+      "sha256": "59a42a7fcbe145ad2e15cf5b5fed308a81142f814c3c5901a82b40cd8791300e",
+      "raw_sha256": "59a42a7fcbe145ad2e15cf5b5fed308a81142f814c3c5901a82b40cd8791300e",
+      "raw_bytes": 1015,
+      "format": "original bytes"
+    },
+    {
+      "path": "no-dmar/stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "raw_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "raw_bytes": 0,
+      "format": "original bytes"
+    },
+    {
+      "path": "reports/usb-hid-reports-report.json",
+      "sha256": "bea6817d4a6a13de6b32799356cd4b9cf5419248be7781d5a05940fcc70e3d68",
+      "raw_sha256": "bea6817d4a6a13de6b32799356cd4b9cf5419248be7781d5a05940fcc70e3d68",
+      "raw_bytes": 9793,
+      "format": "original bytes"
+    },
+    {
+      "path": "usb-reports/manifest.json",
+      "sha256": "3c6dc84d7dae3610df6711c24a3a5af76e97b385ac9e4997f9abb54ee0814d5d",
+      "raw_sha256": "3c6dc84d7dae3610df6711c24a3a5af76e97b385ac9e4997f9abb54ee0814d5d",
+      "raw_bytes": 2084,
+      "format": "original bytes"
+    },
+    {
+      "path": "usb-reports/result.json",
+      "sha256": "b5ed49db736d0dbdc372743b161d96fb74b83fef65f4a27dd0b7c4a3cbc1bbcb",
+      "raw_sha256": "b5ed49db736d0dbdc372743b161d96fb74b83fef65f4a27dd0b7c4a3cbc1bbcb",
+      "raw_bytes": 8229,
+      "format": "original bytes"
+    },
+    {
+      "path": "usb-reports/serial.txt",
+      "sha256": "05ade1d6f06d76e37ff9e3c1f05ff04c97e83278bfe8e4acaedd7076efdc8d71",
+      "raw_sha256": "05ade1d6f06d76e37ff9e3c1f05ff04c97e83278bfe8e4acaedd7076efdc8d71",
+      "raw_bytes": 1303,
+      "format": "original bytes"
+    },
+    {
+      "path": "usb-reports/stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "raw_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "raw_bytes": 0,
+      "format": "original bytes"
+    },
+    {
+      "path": "reports/usb-hid-readonly-report.json",
+      "sha256": "6efa67e04baec17fb08c240efaba903a534a11bb8c50b7e09671d45ee3d5144f",
+      "raw_sha256": "6efa67e04baec17fb08c240efaba903a534a11bb8c50b7e09671d45ee3d5144f",
+      "raw_bytes": 6225,
+      "format": "original bytes"
+    },
+    {
+      "path": "usb-readonly/manifest.json",
+      "sha256": "7d20653d68e47c1a3100cce845f4166f4fd17345bd80d8dad5762e48ed501cde",
+      "raw_sha256": "7d20653d68e47c1a3100cce845f4166f4fd17345bd80d8dad5762e48ed501cde",
+      "raw_bytes": 2098,
+      "format": "original bytes"
+    },
+    {
+      "path": "usb-readonly/result.json",
+      "sha256": "e4449e5901072e320b48a4cf2912a6bc2b5cd00454a7af8ac5bc4f076bd5101a",
+      "raw_sha256": "e4449e5901072e320b48a4cf2912a6bc2b5cd00454a7af8ac5bc4f076bd5101a",
+      "raw_bytes": 5225,
+      "format": "original bytes"
+    },
+    {
+      "path": "usb-readonly/serial.txt",
+      "sha256": "153503c1fc0e81227bbde1976fb6781d6bd576855eefda134e043be8dc32dc0a",
+      "raw_sha256": "153503c1fc0e81227bbde1976fb6781d6bd576855eefda134e043be8dc32dc0a",
+      "raw_bytes": 1141,
+      "format": "original bytes"
+    },
+    {
+      "path": "usb-readonly/stderr.txt",
+      "sha256": "fa3e0f41f776700dbc77483bdf9f206c7d11a8c9837d0df415a1cf9b1e05e337",
+      "raw_sha256": "fa3e0f41f776700dbc77483bdf9f206c7d11a8c9837d0df415a1cf9b1e05e337",
+      "raw_bytes": 376,
+      "format": "original bytes"
+    },
+    {
+      "path": "reports/hid-input-report.json",
+      "sha256": "a92fd88c72e9af6c34099326e79e8e25ffcb404418e78d1795bc3279d9a471fe",
+      "raw_sha256": "a92fd88c72e9af6c34099326e79e8e25ffcb404418e78d1795bc3279d9a471fe",
+      "raw_bytes": 7571,
+      "format": "original bytes"
+    },
+    {
+      "path": "hid-ipc/manifest.json",
+      "sha256": "ea7adaba3a60a129fc2f38e6f8847be14648156e1ff40d1e43aebb5599777174",
+      "raw_sha256": "ea7adaba3a60a129fc2f38e6f8847be14648156e1ff40d1e43aebb5599777174",
+      "raw_bytes": 15951,
+      "format": "original bytes"
+    },
+    {
+      "path": "hid-ipc/result.json",
+      "sha256": "d6a5d13ae4dd5014f0a837c1808934efb1f807ad6f2e71999b43b982a4b05391",
+      "raw_sha256": "d6a5d13ae4dd5014f0a837c1808934efb1f807ad6f2e71999b43b982a4b05391",
+      "raw_bytes": 5279,
+      "format": "original bytes"
+    },
+    {
+      "path": "hid-ipc/serial.txt",
+      "sha256": "67d82ce20f88f341941b98e0b6e7a172757eadcb509839ea84bc2d26ad55d494",
+      "raw_sha256": "67d82ce20f88f341941b98e0b6e7a172757eadcb509839ea84bc2d26ad55d494",
+      "raw_bytes": 932,
+      "format": "original bytes"
+    },
+    {
+      "path": "hid-ipc/stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "raw_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "raw_bytes": 0,
+      "format": "original bytes"
+    }
+  ],
+  "credential_check": "Known current credential values and common token/private-key patterns absent",
+  "limits": "Actual USB transport and separate synthetic HID IPC remain distinct proofs; no joined USB-to-UI, hardware, H02 points or issue closure"
+}

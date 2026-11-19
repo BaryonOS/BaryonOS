@@ -322,11 +322,10 @@ impl Host {
                                 return Err(());
                             }
                             *blits += 1;
-                            for (i, chunk) in bytes.chunks_exact(4).enumerate() {
+                            for (i, chunk) in bytes.as_chunks::<4>().0.iter().enumerate() {
                                 let x = rect.x + i as u32 % u32::from(rect.width);
                                 let y = rect.y + i as u32 / u32::from(rect.width);
-                                framebuffer[(y * 800 + x) as usize] =
-                                    u32::from_le_bytes(chunk.try_into().unwrap());
+                                framebuffer[(y * 800 + x) as usize] = u32::from_le_bytes(*chunk);
                             }
                             Ok(())
                         })

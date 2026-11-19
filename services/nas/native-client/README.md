@@ -28,7 +28,8 @@ Offline queueing makes no service calls. An in-memory `Checkpoint` contains
 no live Session/Upload. `restore` sets all unfinished edits to
 `NeedsReconcile`, even when the checkpoint was taken before the dispatch.
 `Unknown`, stale/revoke and conflicts produce no automatic replay.
-Caller-owned checkpoints are **not a persistent schema, durable-save ACK,
+`Checkpoint::encode`/`decode` provide a canonical versioned schema, described below.
+Caller-owned checkpoints are **not a durable-save ACK, authenticated storage,
 anti-rollback anchor or actual crash-resistant local storage**.
 Old server RAM tickets must be cleaned up by the existing
 server lifecycle on connection loss; the host recovery tests open a new core.
@@ -43,8 +44,42 @@ old AEAD bytes are not
 silently reused under a different revision. `cancel` cleans up a not-yet-published
 staging via the existing core, but retains the local edit.
 Lower revisions remain blocked. Cleanup errors are returned separately.
-The core does not yet have a guest `head/latest` API: automatic revision discovery
-is not replaced here with a new wire or an untrusted status.
+`reconcile_latest` discovers the committed revision through `Service::head` and
+reads it within the same authenticated session. It shares the existing reconciliation
+state machine: uncertain writes are observed, never automatically replayed. Both
+operations are synchronous within one exclusively borrowed local core; a future
+remote adapter must retain revision-checked reads to detect concurrent changes.
+No NASP wire opcode or transport is added.
+
+## Checkpoint format v1
+
+`CHECKPOINT_BYTES` is 8,464 bytes: a 16-byte header followed by four fixed
+2,112-byte slot records. Header magic is `NOSNCP01`, followed by little-endian
+u16 version 1 and six zero reserved bytes. An absent slot is entirely zero;
+holes retain their slot positions. All integers below are little-endian.
+
+| Slot offset | Field |
+|---|---|
+| 0, 1 | State 1 (NeedsReconcile), remote-present flag (0 or 1) |
+| 2–3, 4–7 | u16 object index, zero reserved |
+| 8–39, 40–47 | Namespace, u64 base revision |
+| 48–55 | u64 observed remote revision (zero when absent) |
+| 56–57, 58–59, 60–63 | u16 local/remote lengths, zero reserved |
+| 64–1087, 1088–2111 | Local/remote ciphertext with zero unused tails |
+
+Local revision is derived as base + 1 with checked overflow. Local ciphertext
+must be nonempty; a present remote revision is zero exactly when its length is
+zero (an observed unpublished object). Duplicate namespace/object pairs, invalid
+indices, lengths, states, flags, padding, versions and nonexact sizes reject with
+`Corrupt`. Encoding clears padding; decoding returns no partial checkpoint.
+
+Every encoded occupied slot restores as `NeedsReconcile`, including previously
+published/observed edits. No session, upload ticket or commit acknowledgement is
+serialized. Both local and observed remote bytes survive for conflict handling.
+The adapter must protect these bytes and provide authenticated, atomic and
+rollback-aware storage. The codec provides no checksum, MAC, freshness proof or
+disk I/O. Structurally valid modified or stale bytes remain untrusted; decoding
+does not grant permission to send them or replace newer data.
 
 ## Evidence and open dependencies
 
