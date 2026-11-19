@@ -84,6 +84,7 @@ updates:
       - /sdk/input-client
       - /sdk/keyring-client
       - /sdk/net-client
+      - /sdk/settings-core
       - /services/image-codec
       - /services/image-codec/diagnostics
       - /services/input-core
