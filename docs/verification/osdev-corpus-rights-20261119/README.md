@@ -55,6 +55,14 @@ earlier are the 637 in C plus 4 imported pages.
   class D are excluded too; no claim is made about the protectability of short
   texts.
 
+## Review of flagged records
+
+[FLAGGED-REVIEW.md](FLAGGED-REVIEW.md) records the individual review of the 149
+flagged class A–C records: 5 contain third-party text with unknown terms and are
+excluded; 5 carry third-party material under a verifiable licence with
+obligations and 12 contain short quotations, both escalated for an owner
+decision; 127 contain no identified third-party text.
+
 ## Residual risk in the public Git history
 
 The corpus is in the public repository since at least commit `500422c`
