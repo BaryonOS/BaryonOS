@@ -51,6 +51,11 @@ def commit(staged: dict[Path, bytes]) -> None:
     restoration fails. Copies of restored files are removed; copies of files
     that could not be restored are kept and named in the error.
     """
+    leftover = [str(backup_path(p)) for p in staged if backup_path(p).exists()]
+    if leftover:
+        # A copy left by an earlier failed run may hold the only original; never overwrite it.
+        raise OSError("recovery copies from an earlier failed run exist; restore or remove "
+                      "them before retrying: " + ", ".join(leftover))
     originals = {p: (p.read_bytes() if p.exists() else None) for p in staged}
     backups = []
     try:

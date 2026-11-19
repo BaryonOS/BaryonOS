@@ -248,3 +248,17 @@ class ExcludeScript(unittest.TestCase):
                 Path.write_bytes, Path.unlink = real_write, real_unlink
             self.assertEqual(str(ctx.exception.__cause__), "simulated write failure")
             self.assertEqual(corpus.read_bytes(), original)
+
+    def test_existing_recovery_copy_blocks_a_new_run(self):
+        import sys
+        with tempfile.TemporaryDirectory() as tmp:
+            root = self._copy(tmp)
+            target = self._target(root)
+            kept = root / "references/source-index.json.exclude-orig"
+            kept.write_bytes(b"original from an earlier failed run")
+            before = self._snapshot(root)
+            mod = self._module(root)
+            sys.argv = ["x", "--reason", "test", "--record", "none", target["source_id"]]
+            with self.assertRaisesRegex(OSError, "earlier failed run"):
+                mod.main()
+            self.assertEqual(self._snapshot(root), before)
