@@ -170,12 +170,12 @@
       "devices": ["acpi"],
       "image": {
         "kernel_feature": "native-acpi-s3",
-        "kernel_feature_present": false,
+        "kernel_feature_present": true,
         "physical_image": "missing"
       },
       "status": "blocked",
       "blocking_reasons": [
-        "No native S3 entry or resume path exists on this base: drivers/acpi-power parses S3 sleep types and a FACS snapshot on the host only (tests/s3_facs.rs); no kernel profile writes SLP_TYP for S3, installs a waking vector or restores state after resume. Any QEMU S3 profile developed elsewhere is QEMU-only and is not physical evidence.",
+        "Only a QEMU-native S3 path exists (kernel feature native-acpi-s3, docs/verification/h05-native-s3-20261119): its wake source is QMP system_wakeup, and on QEMU 8.2 + OVMF it arms a 32-bit extended waking vector under the QEMU/OVMF-specific Edk2Version0Extended policy (ADR-H05-S3-WAKE-20261119). The physical firmware path (FACS version, real-mode or extended vector, _PTS/_WAK needs) is unverified, and QEMU evidence is not physical evidence.",
         "A physical wake needs an owner-decided wake source (power button, RTC alarm through the ACPI fixed RTC event, or a keyboard/USB wake with _PRW/GPE setup); none is implemented (OD-HW-POWER).",
         "Completion must not rely on QEMU's isa-debug-exit port 0xF4, which is undefined on physical PCs; the post-resume terminal path must be a serial marker followed by a halt or by the validated S5 path.",
         "No physical boot image exists, and the HW-FR target, signer and capture route are undecided (OD-HW-TARGETS, OD-HW-SIGNERS, OD-HW-CAPTURE)."

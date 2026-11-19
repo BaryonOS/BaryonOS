@@ -187,7 +187,10 @@ class RepositoryStateTests(unittest.TestCase):
             return next(p for p in doc["protocols"] if p["id"] == ident)
 
         for mutate, reason in (
-                (lambda d: protocol(d, "H05-S3")["image"].update(kernel_feature_present=True), "disagrees"),
+                # Flip whatever the catalogue states; the real Cargo.toml decides which is drift.
+                (lambda d: protocol(d, "H05-S3")["image"].update(
+                    kernel_feature_present=not protocol(d, "H05-S3")["image"]["kernel_feature_present"]),
+                 "disagrees"),
                 (lambda d: protocol(d, "HW-INV").update(status="ready", blocking_reasons=[]), "ready requires"),
                 (lambda d: protocol(d, "H05-S3").update(blocking_reasons=[]), "blocking_reasons"),
                 (lambda d: protocol(d, "H02-USB")["forbidden_actions"].remove("no-bootorder-change"), "baseline"),
