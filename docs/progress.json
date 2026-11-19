@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-18",
-    "source_commit": "29b0f1d4e2bd6f74e8ecd7cdc2dd94bc497e181f",
+    "source_commit": "329d66603386d3b7c3b9b21427ff1ae840f03084",
     "assessment_basis": "parent_commit",
-    "branch": "codex/b05-review-scope",
-    "task": "B05-T1: PROPOSED external-review path inventory covers7 boundaries/37 source,test and evidence-contract references. Checker rejects missing/escaping paths, omitted boundaries and empty invariants. Two adversarial test groups, actual check and compileall pass; no audit commissioned or historical evidence reclassified.",
+    "branch": "codex/ci-power-lifecycle",
+    "task": "CI-L1: Existing standalone power-lifecycle-core added to current component matrix with unchanged pinned steps/permissions/concurrency. Rust1.100:7tests,Clippy,fmt,scalar freestanding build all0; actionlint1.7.12 and27workflow tests0. Missing actionlint installed only under ignored build after release-checksum/MIT verification.",
     "previous_score": 41,
-    "summary": "41/100 unchanged. PROPOSED external-review path inventory covers7 boundaries/37 source,test and evidence-contract references. Checker rejects missing/escaping paths, omitted boundaries and empty invariants. Two adversarial test groups, actual check and compileall pass; no audit commissioned or historical evidence reclassified. Host structural checker and proposed review scope only. No security acceptance, external review, native rerun or hardware claim. Current baselinefac5a864 includesRust1.100; earlier implementation evidence retains its original branch/toolchain bindings.41/100 unchanged; hold preserved. Integration/Claude ownership and execution hold preserved."
+    "summary": "41/100 unchanged. Existing standalone power-lifecycle-core added to current component matrix with unchanged pinned steps/permissions/concurrency. Rust1.100:7tests,Clippy,fmt,scalar freestanding build all0; actionlint1.7.12 and27workflow tests0. Missing actionlint installed only under ignored build after release-checksum/MIT verification. No OS source or native/hosted acceptance claim. Required hosted checks pending independently; noCIpolling. AbsentHDA/e1000 crates not scheduled. Future new crate gates must be added with their integration.41/100 unchanged; no global Rust default/PATH or security hold change. Integration/Claude ownership and execution hold preserved."
   },
   "tracks": [
     {
