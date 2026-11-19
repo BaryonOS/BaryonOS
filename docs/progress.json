@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-18",
-    "source_commit": "d1d06939bd64f786c14c5718a56e3f92c5f8dda2",
+    "source_commit": "881744fac6c0e4c7a247a2a05d7857331c46f433",
     "assessment_basis": "parent_commit",
-    "branch": "codex/b05-exhaustive-revocation",
-    "task": "B05-T2: Exhaustive host test over7^5 words,19607 nonempty prefixes, three processes: creation, restricted delegation, queued transfer, receive, close, revoke and amplification attempts. Independent lifetime/right/generation model; explicit regrant after revoke stays valid. Targeted test/Clippy/fmt exit0; isolated revoke-marking mutant fails101 at stale handle assertion.",
+    "branch": "codex/b02-native-tamper",
+    "task": "B02-T1 native refusal partial slice",
     "previous_score": 41,
-    "summary": "41/100 unchanged. Exhaustive host test over7^5 words,19607 nonempty prefixes, three processes: creation, restricted delegation, queued transfer, receive, close, revoke and amplification attempts. Independent lifetime/right/generation model; explicit regrant after revoke stays valid. Targeted test/Clippy/fmt exit0; isolated revoke-marking mutant fails101 at stale handle assertion. Bounded five-step host exploration only, not unbounded verification/native acceptance/external human audit. Production engine unchanged. N04-T1 draftPR380 remains BLOCKED on native throughput; optional unsupported IPC wait removed. Score41/100 unchanged. Integration/Claude ownership and execution hold preserved."
+    "summary": "41/100 unchanged. Native normal/recover/four refusal probes pass; true multi-chunk/replay task scope remains open. No criterion acceptance."
   },
   "tracks": [
     {

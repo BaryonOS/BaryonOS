@@ -684,6 +684,38 @@ fn main() -> ! {
         }
     }
     check(go, 9);
+    if recover && matches!(support::word(576), 2 | 3) {
+        let mut store = Client::new(
+            VolumeTransport {
+                send: SendEndpoint::from_handle(handle(80)),
+                receive: ReceiveEndpoint::from_handle(handle(72)),
+                peer: support::word(168),
+            },
+            1,
+            0x500,
+        );
+        let stat = store.stat(SEALED_OBJECT).unwrap_or_else(|_| fail(78));
+        check(stat.revision == 1 && stat.length == MAX_SEALED, 78);
+        let mut sealed = [0; MAX_SEALED];
+        let read = store
+            .read(SEALED_OBJECT, 1, MAX_SEALED, |offset, bytes| {
+                sealed[offset..offset + bytes.len()].copy_from_slice(bytes);
+            })
+            .unwrap_or_else(|_| fail(79));
+        check(
+            read == MAX_SEALED && stat.content_sum == checksum_update(FNV_OFFSET, &sealed),
+            79,
+        );
+        probe.record(
+            kw::UNSEAL_RECORD,
+            1,
+            sealed_context(),
+            &sealed,
+            KeyStatus::Auth,
+        );
+        support::put(584, 1);
+        native::exit(0);
+    }
     support::put(240, 15);
     let key = match keys.exchange(KeyOperation::Generate) {
         Ok(KeyReply::Generated(key)) => key,
