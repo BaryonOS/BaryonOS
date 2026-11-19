@@ -294,26 +294,31 @@ impl<const E: usize, const B: usize, const T: usize> Index<E, B, T> {
             }
             replacement.update(grant, *doc)?;
         }
-        if self.validate_domain(grant.domain).is_ok() {
-            for old in self.entries[grant.domain].iter().flatten() {
-                if let Some(doc) = snapshot.iter().find(|doc| doc.object == old.hit.object) {
-                    if doc.revision < old.hit.revision {
-                        return Err(Error::StaleRevision);
-                    }
-                    if !old.live && doc.revision == old.hit.revision {
-                        return Err(Error::StaleRevision);
-                    }
-                } else {
-                    let slot = replacement.entries[grant.domain]
-                        .iter_mut()
-                        .find(|e| e.is_none())
-                        .ok_or(Error::EntriesFull)?;
-                    let mut tombstone = *old;
-                    tombstone.live = false;
-                    tombstone.text = Text::EMPTY;
-                    tombstone.seal();
-                    *slot = Some(tombstone);
+        // Validate old entries individually: a corrupt record is replaced from
+        // the trusted snapshot, while every intact record keeps its revision
+        // floor or tombstone.
+        for old in self.entries[grant.domain]
+            .iter()
+            .flatten()
+            .filter(|old| old.validate().is_ok() && old.hit.domain == grant.domain)
+        {
+            if let Some(doc) = snapshot.iter().find(|doc| doc.object == old.hit.object) {
+                if doc.revision < old.hit.revision {
+                    return Err(Error::StaleRevision);
                 }
+                if !old.live && doc.revision == old.hit.revision {
+                    return Err(Error::StaleRevision);
+                }
+            } else {
+                let slot = replacement.entries[grant.domain]
+                    .iter_mut()
+                    .find(|e| e.is_none())
+                    .ok_or(Error::EntriesFull)?;
+                let mut tombstone = *old;
+                tombstone.live = false;
+                tombstone.text = Text::EMPTY;
+                tombstone.seal();
+                *slot = Some(tombstone);
             }
         }
         self.entries[grant.domain] = replacement.entries[grant.domain];

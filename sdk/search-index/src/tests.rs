@@ -247,6 +247,30 @@ fn corrupt_record_refuses_entire_query_and_recovers_from_catalogue() {
 }
 
 #[test]
+fn corruption_recovery_keeps_intact_tombstones_of_omitted_objects() {
+    let mut index = Cache::new();
+    let grant = index.grant(0, 1).unwrap();
+    index.update(grant, doc(0, 4, "secret")).unwrap();
+    index.delete(grant, 0, 5).unwrap();
+    index.update(grant, doc(1, 1, "other")).unwrap();
+    index.entries[0][1].as_mut().unwrap().text.bytes[0] ^= 1;
+    assert_eq!(index.query::<2>(&[grant], b"other"), Err(Error::Corrupt));
+    // The snapshot omits deleted object 0; only the corrupt record is replaced.
+    index.rebuild(grant, &[doc(1, 2, "other")]).unwrap();
+    assert_eq!(index.query::<2>(&[grant], b"other").unwrap().len(), 1);
+    assert_eq!(
+        index.update(grant, doc(0, 4, "secret")),
+        Err(Error::StaleRevision)
+    );
+    assert_eq!(
+        index.update(grant, doc(0, 5, "secret")),
+        Err(Error::StaleRevision)
+    );
+    assert!(index.query::<2>(&[grant], b"secret").unwrap().is_empty());
+    index.update(grant, doc(0, 6, "restored")).unwrap();
+}
+
+#[test]
 fn denied_domain_corruption_cannot_leak_or_break_allowed_results() {
     let mut index = Cache::new();
     let a = index.grant(0, 1).unwrap();
