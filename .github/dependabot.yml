@@ -51,6 +51,7 @@ updates:
       - /drivers/xhci
       - /experiments/ai/model-format
       - /experiments/ai/model-store-contract
+      - /experiments/ai/reference-forward
       - /experiments/quantum/job-protocol
       - /experiments/quantum/native
       - /experiments/quantum/native/job
