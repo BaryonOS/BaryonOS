@@ -3,6 +3,7 @@ import os
 from pathlib import Path
 import subprocess
 import sys
+import tempfile
 import time
 import unittest
 import unittest.mock
@@ -145,6 +146,55 @@ for event in sys.argv[1:]:
     else:
         emit({"event": event, "timestamp": {}})
 """
+
+
+FAKE_QEMU = """
+import json, sys, time
+args = sys.argv[1:]
+serial = args[args.index("-serial") + 1].removeprefix("file:")
+def out(line):
+    with open(serial, "a") as stream:
+        stream.write(line + "\\n")
+def emit(value):
+    sys.stdout.write(json.dumps(value) + "\\n")
+    sys.stdout.flush()
+emit({"QMP": {"version": {}}})
+out("POWER:S3:ENTER:CYCLE=1:SCI_EN=1")
+suspended = True
+for line in sys.stdin:
+    request = json.loads(line)
+    name, ident = request["execute"], request.get("id")
+    if name == "qmp_capabilities":
+        emit({"return": {}, "id": ident})
+        emit({"event": "SUSPEND"})
+    elif name == "query-status":
+        emit({"return": {"status": "suspended" if suspended else "running"}, "id": ident})
+    elif name == "system_wakeup":
+        suspended = False
+        emit({"return": {}, "id": ident})
+        # QEMU's main loop reports the wake only after the command reply.
+        time.sleep(0.05)
+        emit({"event": "WAKEUP"})
+        out("POWER:S3:WAKE:REJECTED:TOKEN:ARMED=1:PAGE=0x5a5a0001")
+        sys.exit(33)
+"""
+
+
+class ControllerLateWakeup(unittest.TestCase):
+    def test_wakeup_after_the_final_reply_reaches_the_controller(self):
+        with tempfile.TemporaryDirectory() as directory:
+            cwd = Path(directory)
+            run_dir = cwd / "run"
+            run_dir.mkdir()
+            args = [sys.executable, "-I", "-c", FAKE_QEMU, "-serial", "stdio"]
+            result = gate.controlled_guest(args, cwd=cwd, env=dict(os.environ), timeout=30,
+                                           run_dir=run_dir, case="stale-token")
+        self.assertIsNone(result["error"])
+        self.assertEqual(result["returncode"], 33)
+        self.assertEqual([e for e in result["events"] if e in ("SUSPEND", "WAKEUP")],
+                         ["SUSPEND", "WAKEUP"])
+        self.assertEqual(len(result["observations"]), 1)
+        self.assertIn(b"WAKE:REJECTED:TOKEN", result["stdout"])
 
 
 class EventDrain(unittest.TestCase):

@@ -10,7 +10,7 @@ import subprocess
 import sys
 import tempfile
 import unittest
-from unittest import mock
+import unittest.mock
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import hw_evidence
@@ -159,7 +159,7 @@ class RepositoryStateTests(unittest.TestCase):
         self.fixture.allow([f'{SIGNER} namespaces="{NAMESPACE}" ssh-ed25519 {fake_key()}'])
         name = self.fixture.record()
         (self.root / (name + ".sig")).write_text(fake_signature())
-        with mock.patch.object(hw_evidence, "ssh_keygen", return_value=None):
+        with unittest.mock.patch.object(hw_evidence, "ssh_keygen", return_value=None):
             with self.assertRaisesRegex(hw_evidence.EvidenceError, "ssh-keygen is unavailable"):
                 hw_evidence.validate_record(name, self.root)
 
