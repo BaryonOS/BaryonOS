@@ -103,7 +103,17 @@
       "evidence_gaps": [
         "contributor history not collected (query refused in session)",
         "wiki.jwo.cz intermediate copy not verified (unreachable)"
-      ]
+      ],
+      "attribution_source": {
+        "title": "Terms of Use",
+        "organisation": "Wikimedia Foundation",
+        "version": "effective 7 June 2023",
+        "provision": "section 7(g), attribution options for reused text pages (hyperlink or URL to the page; history page lists contributors)",
+        "url": "https://foundation.wikimedia.org/wiki/Policy:Terms_of_Use",
+        "fetched_url": "https://foundation.wikimedia.org/w/index.php?title=Policy:Terms_of_Use&action=raw",
+        "retrieved": "2026-11-19",
+        "sha256": "c96ef93b439ff9b8242dc3233f41ede57c0984ef9153fafa51aa5f8cf0678832"
+      }
     },
     "W004920": {
       "same_as": "W001545",

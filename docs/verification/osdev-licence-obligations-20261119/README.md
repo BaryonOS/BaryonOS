@@ -29,7 +29,7 @@ this environment, so the OSDev revisions themselves were not re-fetched.
 | W004323 *User:Janworks/Intel Ethernet i219-V* | Intel's Linux `e1000e` driver, used to "deduce the needed information" | `SPDX-License-Identifier: GPL-2.0`, Copyright 1999–2018 Intel (`drivers/net/ethernet/intel/e1000e/regs.h`) | 15 code blocks (18,835 characters). No `#define` line is copied. Six lines of at least 25 characters occur verbatim in nine `e1000e` source files: two code statements (`rctl &= ~E1000_RCTL_SZ_4096;`, `rctl &= ~E1000_RCTL_BSEX;`) and four comments. Register names and values are facts from Intel's hardware interface. | Overlap is small; the two copied buffer-size comments show partial derivation from GPL-2.0 code. Uncertain. |
 | W004744 *User:Isaccbarker/String Formatting* | HenipaOS; the record states the code "is thus licensed under SPDX: BSD-3-Clause-No-Nuclear-License" | The identifier exists in the SPDX License List (`BSD-3-Clause-No-Nuclear-License`, not OSI-approved). The HenipaOS source was not located (no public GitHub repository matched), so the stated licence could not be checked against the original. | Not measurable without the upstream source. | The licence adds a use restriction (no nuclear facilities) and requires the notice to be kept; it is incompatible with CC0 and with an unrestricted corpus. Uncertain. |
 | W002279 *Detecting Memory (x86)* | GNU EFI; the `EFI_MEMORY_DESCRIPTOR` structure is "taken from GNU EFI" | GNU EFI `README.efilib`: files in `lib` and `inc` derive from Intel's EFI Application Toolkit, Copyright 1998–2000 Intel, under a two-condition BSD-style licence (retain the copyright notice and conditions). `inc/efidef.h` carries `Copyright (c) 1998 Intel Corporation`. | One structure (six fields with comments). The field layout is fixed by the UEFI specification; the comments match `efidef.h`. | Notice obligation applies to the copied text; an independent description from the UEFI specification would avoid it. Uncertain. |
-| W001545 *Interrupt Descriptor Table* | A table "originally created for Wikipedia", Wikipedia template revision 1283313564, copied via `wiki.jwo.cz` | Wikipedia site licence: Creative Commons Attribution-ShareAlike 4.0 (MediaWiki `siteinfo`). Revision 1283313564 of *Template:X86 protected mode interrupts*: 31 March 2025, 5,418 bytes. | The table, as stated. | CC BY-SA 4.0 requires attribution and share-alike; incompatible with CC0 and with MPL-2.0 relicensing. Attribution may be given by linking the source page (Wikimedia Terms of Use, section 7, as cited in review; not re-fetched here), so a collected contributor list is not a prerequisite. Uncertain. |
+| W001545 *Interrupt Descriptor Table* | A table "originally created for Wikipedia", Wikipedia template revision 1283313564, copied via `wiki.jwo.cz` | Wikipedia site licence: Creative Commons Attribution-ShareAlike 4.0 (MediaWiki `siteinfo`). Revision 1283313564 of *Template:X86 protected mode interrupts*: 31 March 2025, 5,418 bytes. | The table, as stated. | CC BY-SA 4.0 requires attribution and share-alike; incompatible with CC0 and with MPL-2.0 relicensing. Wikimedia Foundation *Terms of Use* (effective 7 June 2023), section 7(g), allows attribution by hyperlink or URL to the reused page, whose history page lists the contributors (source recorded in `evidence.json`); a collected contributor list is therefore not a prerequisite. Uncertain. |
 | W004920 *Template:X86 protected mode interrupts* | Same table as W001545 | As W001545 | As W001545 | As W001545. Uncertain. |
 
 Evidence gaps, kept separate: (1) the Wikipedia contributor list up to revision
@@ -48,11 +48,14 @@ SHA-256 in `evidence.json`, but the immutable upstream commit was not recorded.
    statement. This requires a licence-compatibility decision for the corpus.
 3. **Replace** the copied fragment with an independently written description
    from the primary specification (Intel SDM, UEFI specification, Intel
-   datasheets), with references, and keep the rest of the page under the CC0
-   basis.
+   datasheets), with references. This removes only the named upstream
+   obligation: W002279 and W001545 are classified `B-mixed-history` in the
+   rights assessment, so the remaining page text keeps its unresolved pre-CC0
+   status and may be retained only after its own licence basis is verified,
+   or after independent replacement or exclusion.
 
 For W004323 and W002279 the copied fragment is small enough that option 3
-removes the obligation without losing technical content. For W004744 the
+removes the upstream obligation without losing technical content. For W004744 the
 licence's use restriction makes option 2 the least attractive. For W001545 and
 W004920 the table is the core of W004920; option 3 would mean rewriting the
 table from the Intel SDM.
