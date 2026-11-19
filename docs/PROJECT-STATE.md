@@ -1,5 +1,14 @@
 # Current project status
 
+## NEXT AGENT HANDOFF — P04-T2 delivery — 18 November 2026
+
+**Source:** `a73e41a7db7b8aa90fa47a299886feb6d607fd0c`, `codex/p04-native-quota`.
+**Delivered:** Native NAS Cancel14, full-quota rejection/reservation release/retry, full-quota adjustment and kernel-observed offline-guest revoke/evict delivered. Normal/recover QEMU33;0cold writes/flushes, exact2 tombstones/core11/volume21.78host tests and native gate exit0.
+**Checks:** targeted Rust tests, Clippy (-D warnings), formatting and freestanding
+library build exit0; [exact commands/raw-log hashes](roadmap-pipeline/receipts/P04-T2.json).
+Lead source/diff review completed; no duplicate matrix. Progress **41 → 41/100**.
+**Limits:** Local native QEMU/IPC only; no remote authenticated guest, product admin UI, hardware or full P04 acceptance. Existing token leak/replay checks retained; source fingerprint4af81525 matches the published code.
+
 ## NEXT AGENT HANDOFF — L01-T2 delivery — 18 November 2026
 
 **Source:** `3a77b1d0d5c91f6844d9c7475f3e54a6f52dc6d1`, `codex/l01-model-format`.
@@ -14,6 +23,8 @@ delivery branches and Claude S09/UI remain untouched. Unsafe unattended hold act
 slice from this ledger; no waiting for integration. Prior delivery checkpoints retained.
 
 ## Retained checkpoint — PR #350 conflict-only integration — 18 November 2026
+
+
 
 ## NEXT AGENT HANDOFF — issue #41 synthetic anchor contract — 18 November 2026
 

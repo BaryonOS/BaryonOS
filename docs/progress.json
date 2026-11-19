@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-18",
-    "source_commit": "90ade7cb7063691642de6a88c33bbbacc32fa5b1",
+    "source_commit": "5265eb2f3e39c5736a66ff2ea45cfabc1553a48f",
     "assessment_basis": "parent_commit",
-    "branch": "codex/l01-model-format",
-    "task": "L01-T2: VerifiedArtifact safetensors header/table parser with bounded no-escape JSON profile, duplicate/dtype/overflow checks and exact nonoverlapping coverage;14 host regressions pass. One bounded security review found no blocker.",
+    "branch": "codex/p04-native-quota",
+    "task": "P04-T2: Native NAS Cancel14, full-quota rejection/reservation release/retry, full-quota adjustment and kernel-observed offline-guest revoke/evict delivered. Normal/recover QEMU33;0cold writes/flushes, exact2 tombstones/core11/volume21.78host tests and native gate exit0.",
     "previous_score": 41,
-    "summary": "41/100 unchanged. VerifiedArtifact safetensors header/table parser with bounded no-escape JSON profile, duplicate/dtype/overflow checks and exact nonoverlapping coverage;14 host regressions pass. One bounded security review found no blocker. Host parser/build only; no real-model compatibility, inference, native/provenance acceptance. Existing pinned dependencies and soft SHA2 build profile reused. Integration/Claude ownership and execution hold preserved."
+    "summary": "41/100 unchanged. Native NAS Cancel14, full-quota rejection/reservation release/retry, full-quota adjustment and kernel-observed offline-guest revoke/evict delivered. Normal/recover QEMU33;0cold writes/flushes, exact2 tombstones/core11/volume21.78host tests and native gate exit0. Local native QEMU/IPC only; no remote authenticated guest, product admin UI, hardware or full P04 acceptance. Existing token leak/replay checks retained; source fingerprint4af81525 matches the published code. Integration/Claude ownership and execution hold preserved."
   },
   "tracks": [
     {
