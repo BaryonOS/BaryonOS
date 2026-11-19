@@ -13,8 +13,8 @@ from run_keyring import FEATURE, run_keyring
 
 TEST_INPUTS = "test_keyring_*.py"
 HOST = [
-    ["cargo", "+1.90.0", "test", "--locked", "-p", "capability-core", "-p", "virtio-rng-driver", "-p", "keyring-core"],
-    ["cargo", "+1.90.0", "test", "--locked", "--manifest-path", "sdk/Cargo.toml", "-p", "nieuw-os-sdk-runtime"],
+    ["cargo", "+1.100.0", "test", "--locked", "-p", "capability-core", "-p", "virtio-rng-driver", "-p", "keyring-core"],
+    ["cargo", "+1.100.0", "test", "--locked", "--manifest-path", "sdk/Cargo.toml", "-p", "nieuw-os-sdk-runtime"],
     [sys.executable, "-B", "-m", "unittest", "discover", "-s", "tests", "-p", TEST_INPUTS],
 ]
 PLAN = ("normal", "no-device", "stuck", "timeout", "restart")

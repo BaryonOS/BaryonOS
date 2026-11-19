@@ -1,0 +1,14 @@
+usage: agent_pipeline.py [-h] [--engines ENGINES] [--auto-merge-parallel]
+                         [--once] [--dry-run] [--idle-seconds IDLE_SECONDS]
+
+Autonomous agent pipeline: GitHub issue -> L0 spec -> executor -> gate -> PR.
+
+options:
+  -h, --help            show this help message and exit
+  --engines ENGINES     engine order for failover (comma separated)
+  --auto-merge-parallel
+                        mark parallel-task PRs ready with squash auto-merge
+  --once                one round, then stop
+  --dry-run             no push and no PR
+  --idle-seconds IDLE_SECONDS
+                        wait when no task is ready

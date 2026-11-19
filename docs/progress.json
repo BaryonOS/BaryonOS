@@ -3,7 +3,7 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-18",
-    "source_commit": "ace4f5a15ff6b771e7d14d9c416076a1ab65816d",
+    "source_commit": "263838a108c28e5f11928de031fb446ca22e54e5",
     "assessment_basis": "parent_commit",
     "branch": "codex/h06-hardware-matrix",
     "task": "H06-T1: Hardware matrix checker covers3 profiles/33 device rows, explicit driver absence and DMA posture, canonical existing references, target/device/source-bound H or native evidence for support, separate evidence for VT-d containment; xHCI stays pending. Four adversarial test groups, actual --check and compileall pass.",

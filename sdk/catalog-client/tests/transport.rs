@@ -169,12 +169,10 @@ impl Model {
         }
         if matches!(self.fault, Fault::Caps) {
             message.cap_count = 2;
-            for cap in &mut message.caps {
-                *cap = capability_core::Cap {
-                    handle: self.transferable,
-                    rights: SEND,
-                };
-            }
+            message.caps.fill(capability_core::Cap {
+                handle: self.transferable,
+                rights: SEND,
+            });
         }
         message
     }

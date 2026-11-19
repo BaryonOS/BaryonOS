@@ -34,7 +34,7 @@ def main() -> int:
     try:
         commands = [
             [sys.executable, "-B", "-m", "unittest", "discover", "-s", "tests", "-p", "test_system_*.py"],
-            ["cargo", "+1.90.0", "test", "--locked", "--manifest-path", "sdk/Cargo.toml", "-p", "nieuw-os-sdk-runtime"],
+            ["cargo", "+1.100.0", "test", "--locked", "--manifest-path", "sdk/Cargo.toml", "-p", "nieuw-os-sdk-runtime"],
         ]
         for number, command in enumerate(commands):
             result = subprocess.run(command, cwd=ROOT, env=environment(), capture_output=True, text=True)

@@ -540,6 +540,30 @@ class WorkflowContractTests(unittest.TestCase):
                         set(permissions.values()), {"read", "none"}
                     )
 
+    def test_codeql_uses_fast_pre_merge_and_extended_main_analysis(self):
+        """Keep all languages pre-merge while deferring only extra lower-precision queries."""
+        job = self.workflows[".github/workflows/codeql.yml"]["jobs"]["analyze"]
+        self.assertEqual(job["strategy"]["matrix"]["language"], [
+            "actions", "javascript-typescript", "python", "rust",
+        ])
+        init = [step for step in job["steps"]
+                if step.get("uses", "").startswith("github/codeql-action/init@")]
+        self.assertEqual(len(init), 2)
+        fast, extended = init
+        self.assertEqual(
+            fast["if"],
+            "github.event_name == 'pull_request' || github.event_name == 'merge_group'",
+        )
+        self.assertNotIn("queries", fast["with"])
+        self.assertEqual(
+            extended["if"],
+            "github.event_name != 'pull_request' && github.event_name != 'merge_group'",
+        )
+        self.assertEqual(extended["with"]["queries"], "security-extended")
+        for step in init:
+            self.assertEqual(step["with"]["build-mode"], "none")
+            self.assertEqual(step["with"]["languages"], "${{ matrix.language }}")
+
     def test_external_actions_are_pinned_to_full_commits(self):
         """All executable references are immutable or safe checkout-local paths."""
         references = list(self.uses_references())
@@ -936,7 +960,7 @@ cp -- "$ACTIONLINT_FIXTURE" "$output"
                         "CARGO_TARGET_X86_64_UNKNOWN_NONE_RUSTFLAGS"):
                 self.assertNotIn(key, env)
         args = shlex.split(step["run"])
-        self.assertEqual(args[:3], ["cargo", "+1.90.0", "build"])
+        self.assertEqual(args[:3], ["cargo", "+1.100.0", "build"])
         self.assertEqual(args.count("--config"), 1)
         additions = tomllib.loads(args[args.index("--config") + 1])
         self.assertEqual(additions, {"target": {"x86_64-unknown-none": {

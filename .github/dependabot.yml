@@ -49,6 +49,7 @@ updates:
       - /drivers/usb
       - /drivers/virtio-snd
       - /drivers/xhci
+      - /experiments/ai/model-format
       - /experiments/ai/model-store-contract
       - /experiments/quantum/job-protocol
       - /experiments/quantum/native
@@ -83,6 +84,8 @@ updates:
       - /sdk/input-client
       - /sdk/keyring-client
       - /sdk/net-client
+      - /sdk/search-index
+      - /sdk/settings-core
       - /services/image-codec
       - /services/image-codec/diagnostics
       - /services/input-core

@@ -1,0 +1,386 @@
+{
+  "checks": [
+    {
+      "command": [
+        "/usr/bin/python3",
+        "-B",
+        "tools/run_system.py",
+        "--case",
+        "normal"
+      ],
+      "cold_case": null,
+      "exit_code": 0,
+      "result_json": "build/native/run/system-normal-847ca9d7dd2f4d0d8821ec4c2ca52daa/result.json",
+      "raw_qemu_exit": 33,
+      "source_sha256": "b2ecf3c04ec5bfc3ba2ca09fd34b61e9706b363a4a9aaeb6c6f8fbf61c7f7fbc",
+      "before_sha256": "49c40c316234e2e4e4c8dd681a057b1b36611648896dcacba1794263b711c266",
+      "after_sha256": "072cbfb91373f652e9e4632c2fdb50d76f000358cc9ef55f6b4835d37542fd54",
+      "log": "build/tokenguard/run-6mgqllcq.log",
+      "kernel_sha256": "cc8d16b4f2b942c1381400a3a650f218d96f8392d8b113f72d6bced1549adc9d",
+      "evidence": {
+        "APP_READY": 2,
+        "APP_DOCS": 1,
+        "APP_DENIED": 3,
+        "APP_REVISION": 1,
+        "APP_BYTES": 4096,
+        "APP_CONTENT_SUM": 287428370566516885,
+        "CRYPTO_SEAL": 3,
+        "CRYPTO_UNSEAL": 2,
+        "CRYPTO_TAMPER_DENIED": 10,
+        "RECORD_SEAL": 1,
+        "RECORD_UNSEAL": 1,
+        "RECORD_CONTEXT_DENIED": 10,
+        "RECORD_REVOKED_DENIED": 2,
+        "CRYPTO_RESTORES": 1,
+        "KEYSTATE_EXPORTS": 1,
+        "KEYSTATE_RESTORES": 1,
+        "KEYSTATE_WRONG_SECRET_DENIED": 1,
+        "KEYSTATE_FLOOR_DENIED": 1,
+        "KEYSTATE_ADMIN_OP_DENIED": 1,
+        "KEYSTATE_BYTES": 120,
+        "KEYSTATE_GENERATION": 3,
+        "ADMIN_REQUESTS": 5,
+        "ADMIN_DENIED": 3,
+        "RECORD_PERSISTED": 1,
+        "RECORD_RESTORED_UNSEAL": 0,
+        "RECORD_RESTORED_REVOKED_DENIED": 0,
+        "RECORD_RESTORED_TAMPER_DENIED": 0,
+        "RECORD_ADMIN_DENIED": 2,
+        "RECORD_OBJECT_REVISION": 1,
+        "WORKER_SPAWNS": 2,
+        "WORKER_FAULTS": 1,
+        "WORKER_RESTARTS": 1,
+        "WORKER_KILLS": 1,
+        "ENTROPY_BYTES": 1024,
+        "DISK_READS": 2352,
+        "DISK_WRITES": 113,
+        "DISK_FLUSHES": 8,
+        "LIVE_PROCESSES_AFTER": 0,
+        "FRAMES_RECOVERED": 1
+      },
+      "serial": "build/native/run/system-normal-847ca9d7dd2f4d0d8821ec4c2ca52daa/serial.txt",
+      "report_sha256": "73d94ecf17a505f269b81b817eb6666b9b287ca0d29520ff2f64a9d53e914de3",
+      "log_sha256": "cd37e06cc04e48524e27ae44eae507a08fc09994acb029cdb587aa74700f3e2e"
+    },
+    {
+      "command": [
+        "/usr/bin/python3",
+        "-B",
+        "tools/build.py",
+        "--kernel-feature",
+        "test-system-recover"
+      ],
+      "cold_case": null,
+      "exit_code": 0,
+      "log": "build/tokenguard/run-dizsiw5n.log",
+      "log_sha256": "fd47c7bb4d0d1ab77eda130921b2d3693e5ac73b6989f7116b13f21618668abb"
+    },
+    {
+      "command": [
+        "/usr/bin/python3",
+        "-B",
+        "tools/run_system.py",
+        "--case",
+        "recover",
+        "--volume",
+        "build/native/run/system-image-337acc751e0e4d439e42e2f9e1efe76c"
+      ],
+      "cold_case": null,
+      "exit_code": 0,
+      "result_json": "build/native/run/system-recover-1cbf754b5f0f4b888b092e9c16e46ca9/result.json",
+      "raw_qemu_exit": 33,
+      "source_sha256": "b2ecf3c04ec5bfc3ba2ca09fd34b61e9706b363a4a9aaeb6c6f8fbf61c7f7fbc",
+      "before_sha256": "072cbfb91373f652e9e4632c2fdb50d76f000358cc9ef55f6b4835d37542fd54",
+      "after_sha256": "072cbfb91373f652e9e4632c2fdb50d76f000358cc9ef55f6b4835d37542fd54",
+      "log": "build/tokenguard/run-23vra8k8.log",
+      "kernel_sha256": "58fb8c1c31cae8e83eaebfaece822336c579357d2edf0c2bf0f9364687967def",
+      "evidence": {
+        "APP_READY": 2,
+        "APP_DOCS": 1,
+        "APP_DENIED": 3,
+        "APP_REVISION": 1,
+        "APP_BYTES": 4096,
+        "APP_CONTENT_SUM": 287428370566516885,
+        "CRYPTO_SEAL": 2,
+        "CRYPTO_UNSEAL": 3,
+        "CRYPTO_TAMPER_DENIED": 11,
+        "RECORD_SEAL": 1,
+        "RECORD_UNSEAL": 1,
+        "RECORD_CONTEXT_DENIED": 10,
+        "RECORD_REVOKED_DENIED": 2,
+        "CRYPTO_RESTORES": 1,
+        "KEYSTATE_EXPORTS": 0,
+        "KEYSTATE_RESTORES": 1,
+        "KEYSTATE_WRONG_SECRET_DENIED": 1,
+        "KEYSTATE_FLOOR_DENIED": 1,
+        "KEYSTATE_ADMIN_OP_DENIED": 1,
+        "KEYSTATE_BYTES": 120,
+        "KEYSTATE_GENERATION": 3,
+        "ADMIN_REQUESTS": 4,
+        "ADMIN_DENIED": 3,
+        "RECORD_PERSISTED": 0,
+        "RECORD_RESTORED_UNSEAL": 1,
+        "RECORD_RESTORED_REVOKED_DENIED": 1,
+        "RECORD_RESTORED_TAMPER_DENIED": 1,
+        "RECORD_ADMIN_DENIED": 2,
+        "RECORD_OBJECT_REVISION": 1,
+        "WORKER_SPAWNS": 2,
+        "WORKER_FAULTS": 1,
+        "WORKER_RESTARTS": 1,
+        "WORKER_KILLS": 1,
+        "ENTROPY_BYTES": 1024,
+        "DISK_READS": 720,
+        "DISK_WRITES": 0,
+        "DISK_FLUSHES": 0,
+        "LIVE_PROCESSES_AFTER": 0,
+        "FRAMES_RECOVERED": 1
+      },
+      "serial": "build/native/run/system-recover-1cbf754b5f0f4b888b092e9c16e46ca9/serial.txt",
+      "report_sha256": "44f9bbd768fa17ec67c576494e0ebf7a3678fa02bc0748d9fbcceaf344bba60d",
+      "log_sha256": "634664987f487369af99b41eaa25382c8529b69e728ccecc882dfb87d39c15d8"
+    },
+    {
+      "command": [
+        "/usr/bin/python3",
+        "-B",
+        "tools/build.py",
+        "--kernel-feature",
+        "test-system-recover"
+      ],
+      "cold_case": "keystate",
+      "exit_code": 0,
+      "log": "build/tokenguard/run-urew8q7z.log",
+      "log_sha256": "53a7282aae338ead83ed959a3c491ac3b3e4a9f564a3bc3690fdc703a8d50f96"
+    },
+    {
+      "command": [
+        "/usr/bin/python3",
+        "-B",
+        "tools/run_system.py",
+        "--case",
+        "recover",
+        "--cold-case",
+        "keystate",
+        "--volume",
+        "build/native/run/b02-normal-parent-final"
+      ],
+      "cold_case": "keystate",
+      "exit_code": 0,
+      "result_json": "build/native/run/system-recover-ee2146fdb47741ec97e928646736c89d/result.json",
+      "raw_qemu_exit": 33,
+      "source_sha256": "b2ecf3c04ec5bfc3ba2ca09fd34b61e9706b363a4a9aaeb6c6f8fbf61c7f7fbc",
+      "before_sha256": "0826b3a16f9380c608d387f40e24f4c974ce457dc66e1dbe3fb966e82b074598",
+      "after_sha256": "0826b3a16f9380c608d387f40e24f4c974ce457dc66e1dbe3fb966e82b074598",
+      "log": "build/tokenguard/run-ey9mxb3r.log",
+      "kernel_sha256": "93463107d500f6a6e90132f66f402002d3771fe4f4313dcf890b0034ecdcd9f7",
+      "evidence": {
+        "COLD_PLAINTEXT_REPLIES": 0,
+        "DISK_READS": 684,
+        "DISK_WRITES": 0,
+        "DISK_FLUSHES": 0
+      },
+      "serial": "build/native/run/system-recover-ee2146fdb47741ec97e928646736c89d/serial.txt",
+      "report_sha256": "c254512e706e91a4b8b480376c794cfa79811057d9ee74531282244948ba4be6",
+      "log_sha256": "7403a2d8fac331d08fa19da9c37fd081e7ba9273e9a7765a510570459dbd108d"
+    },
+    {
+      "command": [
+        "/usr/bin/python3",
+        "-B",
+        "tools/build.py",
+        "--kernel-feature",
+        "test-system-recover"
+      ],
+      "cold_case": "record-tag",
+      "exit_code": 0,
+      "log": "build/tokenguard/run-24ra64t5.log",
+      "log_sha256": "53a7282aae338ead83ed959a3c491ac3b3e4a9f564a3bc3690fdc703a8d50f96"
+    },
+    {
+      "command": [
+        "/usr/bin/python3",
+        "-B",
+        "tools/run_system.py",
+        "--case",
+        "recover",
+        "--cold-case",
+        "record-tag",
+        "--volume",
+        "build/native/run/b02-normal-parent-final"
+      ],
+      "cold_case": "record-tag",
+      "exit_code": 0,
+      "result_json": "build/native/run/system-recover-413379967ee94353988fde03ac23c0c0/result.json",
+      "raw_qemu_exit": 33,
+      "source_sha256": "b2ecf3c04ec5bfc3ba2ca09fd34b61e9706b363a4a9aaeb6c6f8fbf61c7f7fbc",
+      "before_sha256": "ada5cc0bcbc1f2feae485de9228e0e6367bbdbf9f6cb45d3ad3705d341202c52",
+      "after_sha256": "ada5cc0bcbc1f2feae485de9228e0e6367bbdbf9f6cb45d3ad3705d341202c52",
+      "log": "build/tokenguard/run-48areanb.log",
+      "kernel_sha256": "1c68b9aa0ba19272eb4c3c63c5fa305eca565aa39698731fd4288b76c0a21065",
+      "evidence": {
+        "COLD_PLAINTEXT_REPLIES": 0,
+        "DISK_READS": 688,
+        "DISK_WRITES": 0,
+        "DISK_FLUSHES": 0
+      },
+      "serial": "build/native/run/system-recover-413379967ee94353988fde03ac23c0c0/serial.txt",
+      "report_sha256": "f37d4420e7cc836a60e63aced5ba3c5a956ccc1ee1140b1acce723b23a3e84f1",
+      "log_sha256": "5d511acf27588cad77ab48a17912f6e2509557a6dcc640aed9df6abed08930b7"
+    },
+    {
+      "command": [
+        "/usr/bin/python3",
+        "-B",
+        "tools/build.py",
+        "--kernel-feature",
+        "test-system-recover"
+      ],
+      "cold_case": "swapped-blocks",
+      "exit_code": 0,
+      "log": "build/tokenguard/run-kjnhblj0.log",
+      "log_sha256": "53a7282aae338ead83ed959a3c491ac3b3e4a9f564a3bc3690fdc703a8d50f96"
+    },
+    {
+      "command": [
+        "/usr/bin/python3",
+        "-B",
+        "tools/run_system.py",
+        "--case",
+        "recover",
+        "--cold-case",
+        "swapped-blocks",
+        "--volume",
+        "build/native/run/b02-normal-parent-final"
+      ],
+      "cold_case": "swapped-blocks",
+      "exit_code": 0,
+      "result_json": "build/native/run/system-recover-fcfa6ec6cec2476799322534da96c9b3/result.json",
+      "raw_qemu_exit": 33,
+      "source_sha256": "b2ecf3c04ec5bfc3ba2ca09fd34b61e9706b363a4a9aaeb6c6f8fbf61c7f7fbc",
+      "before_sha256": "f3769d494444997a27b0575bc32117065814c7c2ed7ceba0d3bad3e72830a120",
+      "after_sha256": "f3769d494444997a27b0575bc32117065814c7c2ed7ceba0d3bad3e72830a120",
+      "log": "build/tokenguard/run-4_rjt3_0.log",
+      "kernel_sha256": "59be21e83b1fc9b558769a6f0d4d02753386ae6641bb2bc48ad33a9c8c7263d5",
+      "evidence": {
+        "COLD_PLAINTEXT_REPLIES": 0,
+        "DISK_READS": 688,
+        "DISK_WRITES": 0,
+        "DISK_FLUSHES": 0
+      },
+      "serial": "build/native/run/system-recover-fcfa6ec6cec2476799322534da96c9b3/serial.txt",
+      "report_sha256": "37fae6410602508293a162266083d437052d2d90d31c7be6aadd150752827e08",
+      "log_sha256": "c98ae8a9be0ee8f770cc792fe336cb4050b90c6465cd7f8b25f1aa350f6cbd3b"
+    },
+    {
+      "command": [
+        "/usr/bin/python3",
+        "-B",
+        "tools/build.py",
+        "--kernel-feature",
+        "test-system-recover"
+      ],
+      "cold_case": "withheld-secret",
+      "exit_code": 0,
+      "log": "build/tokenguard/run-707vgegg.log",
+      "log_sha256": "7b62fd42e9c296d8e13cf5410f4597a1e97a5e0f8f76c21873aef5f985eddac9"
+    },
+    {
+      "command": [
+        "/usr/bin/python3",
+        "-B",
+        "tools/run_system.py",
+        "--case",
+        "recover",
+        "--cold-case",
+        "withheld-secret",
+        "--volume",
+        "build/native/run/b02-normal-parent-final"
+      ],
+      "cold_case": "withheld-secret",
+      "exit_code": 0,
+      "result_json": "build/native/run/system-recover-271858171eca4a5d8ec79a16a18a8f4a/result.json",
+      "raw_qemu_exit": 33,
+      "source_sha256": "b2ecf3c04ec5bfc3ba2ca09fd34b61e9706b363a4a9aaeb6c6f8fbf61c7f7fbc",
+      "before_sha256": "072cbfb91373f652e9e4632c2fdb50d76f000358cc9ef55f6b4835d37542fd54",
+      "after_sha256": "072cbfb91373f652e9e4632c2fdb50d76f000358cc9ef55f6b4835d37542fd54",
+      "log": "build/tokenguard/run-o61upht9.log",
+      "kernel_sha256": "77832929214f470f6d8114f270e2d26d4adb5a8f853141b0d0e219709b753d05",
+      "evidence": {
+        "COLD_PLAINTEXT_REPLIES": 0,
+        "DISK_READS": 684,
+        "DISK_WRITES": 0,
+        "DISK_FLUSHES": 0
+      },
+      "serial": "build/native/run/system-recover-271858171eca4a5d8ec79a16a18a8f4a/serial.txt",
+      "report_sha256": "cd96725d4c2c4099c47ec980d897054fecb14769cd11d44aed4e6f6e12ac00da",
+      "log_sha256": "b64f886da77d73d36a2926a7cb49bfa3332ef4a5fa5c398355a759a037971e03"
+    }
+  ],
+  "task": "B02-T1",
+  "status": "PARTIAL",
+  "source_head": "c63da51e4e8a557460e17a1e4930372f2c85e5a1",
+  "source_sha256": "b2ecf3c04ec5bfc3ba2ca09fd34b61e9706b363a4a9aaeb6c6f8fbf61c7f7fbc",
+  "file_sha256": {
+    "tools/run_system.py": "cf816a8b4a2581ad9f0d45603691746e923e36abf7cae496bc528a3093b2b8ef",
+    "tests/test_system_harness.py": "77fcc5707313876fc5a447cd08cf876e4e2ebf14b0d9afbd7cf85a6f9166680c",
+    "sdk/examples/system/src/init.rs": "532bf6c599b823545ecf6634122efb8e6d168883e0671045de1a8224e5328a16",
+    "sdk/examples/system/src/app.rs": "90bf74c5a5cb43b1031757cb5a06ce17f8e2e34de7f566382fc7ac8a9fcb1d99",
+    "kernel/src/m2/m3/system.rs": "3ab8271513855a78174dabe077a39554a808b0a5447a436326a70b4861d1b734"
+  },
+  "environment": {
+    "PATH": "/snap/rustup/current/bin:$PATH",
+    "RUSTUP_TOOLCHAIN": "1.90.0",
+    "NOS_QEMU_MACHINE": "pc-q35-8.2",
+    "NOS_BUILD_DIR": "build/native",
+    "NOS_TARGET_DIR": "build/native-target",
+    "CARGO_TARGET_DIR": "build/cargo-target"
+  },
+  "lock": "flock -n /run/user/1000/baryonos-heavy-native.lock",
+  "host_checks": [
+    {
+      "command": "python3 -B -m unittest discover -s tests -p 'test_system_*.py'",
+      "exit_code": 0,
+      "tests": 55,
+      "log": "build/tokenguard/run-7y0184dg.log"
+    },
+    {
+      "command": "/home/simon/.rustup/toolchains/1.90.0-x86_64-unknown-linux-gnu/bin/rustfmt --check --edition 2021 sdk/examples/system/src/init.rs sdk/examples/system/src/app.rs kernel/src/m2/m3/system.rs",
+      "exit_code": 0
+    },
+    {
+      "command": "git diff --check",
+      "exit_code": 0
+    }
+  ],
+  "not_run": [
+    "True multi-record chunk-position swap: normal fixture has one168-byte sealed record in onevolume chunk; swapped-blocks exchanges two64-byte ciphertext halves only.",
+    "Old-generation native replay observation: NOT RUN; no trusted cold generation floor exists; antirollback UNPROTECTED.",
+    "Full OS/hosted CI matrix, hardware, human audit: outside bounded slice."
+  ],
+  "diagnostic_failure": {
+    "receipt": "build/task-checks/results-before-epoch-fix.json",
+    "case": "record-tag",
+    "runner_exit": 1,
+    "raw_qemu_exit": 35,
+    "cause": "New Client used epoch0; fixed to existing epoch1, final suite regenerated."
+  },
+  "risks": [
+    "Synthetic built-in recovery secret remains test fixture only. withheld-secret submits zeros instead of actual secret; no physical erasure claim.",
+    "Cold probes intentionally stop after kernel checked refusal before ordinary lifecycle cleanup.",
+    "Existing kernel dead_code warnings for lock methods and serial hex remain."
+  ],
+  "case_binding_negative_control": {
+    "command": "NOS_SYSTEM_COLD_CASE=keystate python3 -B tools/run_system.py --case recover --cold-case keystate --volume build/native/run/b02-normal-parent-final",
+    "artifact_case": "withheld-secret",
+    "requested_case": "keystate",
+    "exit_code": 1,
+    "raw_qemu_exit": 33,
+    "log": "build/task-checks/case-mismatch.log",
+    "result_json": "build/native/run/system-recover-1bde0d88f133455ab477399c46470a67/result.json",
+    "observation": "Wrong compiled case refused by exact marker comparison; no rebuild and no false pass."
+  },
+  "source_fingerprints_match": true,
+  "source_commit": "c8ae69094abf91e96e52a18510a430fa9d7312d9",
+  "level": "native-QEMU bounded partial task",
+  "review": "Lead complete source/diff review including corrected Client epoch; no duplicate native run or human audit."
+}

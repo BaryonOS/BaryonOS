@@ -221,7 +221,22 @@ fn restore_key_state() {
     );
     support::put(EV_KEYSTATE_BYTES, PERSISTENT_BLOB as u64);
     let mut keys = admin();
-    keys.negatives(&blob, u64::MAX);
+    let cold = support::word(576);
+    if cold == 1 || cold == 4 {
+        // Withholding means this recovery agent never submits the fixture secret;
+        // it submits a zero substitute, not a claim of physical key erasure.
+        let secret = if cold == 4 {
+            [0; SECRET_BYTES]
+        } else {
+            RECOVERY_SECRET
+        };
+        keys.restore(&secret, 0, &blob, KeyStatus::Auth);
+        support::put(584, 1);
+        native::exit(0);
+    }
+    if cold == 0 {
+        keys.negatives(&blob, u64::MAX);
+    }
     let info = keys
         .restore(&RECOVERY_SECRET, 0, &blob, KeyStatus::Ok)
         .unwrap_or_else(|| fail(26));
