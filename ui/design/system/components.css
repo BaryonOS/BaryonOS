@@ -440,8 +440,8 @@
 @keyframes ds-orbit { 33.333% { transform: rotate(360deg); } 66.667% { transform: rotate(720deg); } to { transform: rotate(1080deg); } } /* one keyframe per turn: the easing applies per turn, so each turn takes 1.4 s (one keyframe eased all three turns, the first in about 0.3 s) */
 @keyframes ds-rise { from { opacity: 0; transform: translateY(12px); } }
 /* Baseline (ds-1.1, matrix rows 24, 29, 31): every system loop is finite and ends within 5 s in its designed static form (WCAG 2.2.2;
-   ITU-R BT.1702-3 Guideline 1: no flashing sequence lasts longer than 5 s), every period is >= 1.4 s (under 3 flashes per second,
-   WCAG 2.3.1) and only small elements move. Reduced motion: durations are 0 ms (tokens) and every animation is removed; the static
+   the ITU-R BT.1702-3 Guideline 1 five-second remark is a design-review risk consideration, not a limit), every period is >= 1.4 s
+   (under 3 flashes per second, WCAG 2.3.1) and only small elements move. Reduced motion: durations are 0 ms (tokens) and every animation is removed; the static
    forms are the base styles. data-motion="full" is the user's deliberate override of the device preference (section 21.4). */
 @media (prefers-reduced-motion: reduce) {
   :is(.ds-node, .ds-spinner, .ds-progress-bar, .ds-empty-sat, .ds-menu, .ds-ask, .ds-dialog, .ds-toast):not([data-motion="full"] *), .ds-node:not([data-motion="full"] *)::before { animation: none !important; }

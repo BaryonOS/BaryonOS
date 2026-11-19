@@ -1197,9 +1197,15 @@ for `data-motion` and the Beweging group in §21.5.
 
 **Finite loops (ds-1.1, §21.1 B8).** No animation is infinite: spinner 3 ×
 1.4 s, halo 2 × 2.4 s, indeterminate sweep and empty-state orbit one run of
-4.2 s. Every loop ends within 5 s (WCAG 2.2.2; ITU-R BT.1702-3 Guideline 1)
-and no period is shorter than 1.4 s, so nothing approaches three flashes per
-second. The gallery `?measure=1` run sweeps every computed animation and
+4.2 s. Every loop ends within 5 s: this is the chosen way to meet WCAG 2.2.2
+(pause, stop, hide) without a pause control. Auto-starting moving content
+that lasts more than 5 s beside other content needs a pause, stop or hide
+mechanism (WCAG 2.2.2); other safe animation is not restricted. No
+period is shorter than 1.4 s, so nothing approaches three flashes per second
+(WCAG 2.3.1, a separate flash rule). The ITU-R BT.1702-3 Guideline 1 remark
+that a flashing sequence longer than 5 s might be a risk even when it complies
+is an additional risk consideration for design review, not a hard limit
+(ACCESSIBILITY-RESEARCH.md §3.5). The gallery `?measure=1` run sweeps every computed animation and
 reports any that ends after 5 s or repeats faster than once per second
 (35 animations, none flagged).
 
@@ -1681,7 +1687,7 @@ native yet.
 | O-A9 | Move the hand-written axis blocks into the token generator (O-P1) and store the UX-A11Y-DS evidence under `docs/verification/` (O-P2). |
 | O-A10 | User tests for every axis, the settings group and the reworked states, with people who use these adaptations; flash and pattern analysis of the wallpaper and the boot sequence (rows 24, 25). |
 | O-A11 | Compositor colour filter for third-party content (row 5, §21.8 E4): a colour-matrix stage after composition in the native compositor. |
-| O-A12 | Compositor flash filter (row 26, §21.8 E5): research on frame-to-frame luminance analysis first, then a compositor stage. |
+| O-A12 | Compositor flash filter (row 26, §21.8 E5): research on frame-to-frame luminance analysis first, then a compositor stage. Amendment A1 of ACCESSIBILITY-RESEARCH.md §3.5: it protects unsolicited content without a "show anyway" control or per-item reveal; the protection follows the unsolicited placement, so a start, open, enlarge, forward or hand-off action from it never lifts the protection before the item is assessed safe: it ends only the static-first hold where the guard runs for the item, and otherwise (for example DRM, HDR, live or own-pipeline rendering) the static or otherwise safe presentation stays (owner decision B of 19 November 2026); deliberately started games and media play normally, with the optional `flash-attenuation` axis (matrix row 93), separate from `motion`; no per-user record of hazardous media or viewing history. No claim that it detects or prevents every hazardous flash. |
 | O-A13 | Native assistive technology (§21.8 E6): screen reader with accessibility tree and trusted AT role, magnifier, read-aloud, captions, keyboard filters, switch, eye, head and voice control; one native subsystem and ADR each. |
 | O-A14 | Native mapping of the axes (§17, §21.8 E7): one `Palette` variant per colour-axis value in `ui/graphics/src/theme.rs`, a global duration scale, compositor output scaling for light intensity and layout minimums from the settings store. |
 | O-A15 | Dimmed light theme (row 19): uniform channel scaling greys the light theme; a deeper, slightly warmer dimmed light palette as a token family (AI design judgement; a tint is not a comfort claim, row 34) needs its own pair checks (part of E3). Raised again by the repair-2 verifier (the × 0.85 filter turns light surfaces a uniform mid-grey, AI design judgement); still open. |
@@ -1719,7 +1725,7 @@ an AI judgement is not user evidence. Nothing here is a medical claim.
 | B5 | Components tolerate the WCAG 1.4.12 spacing values; the wider-text axis applies exactly those values | `[data-text-spacing="wider"]`; wider row columns | 34 (partial, §14) |
 | B6 | Reading surfaces cap the measure at 80 characters and align to the start | `.ds-t-reading { max-width: 58ch; text-align: start }`: in Inter `1ch` is the width of "0", so the measure was counted per rendered line: 58ch holds 70–78 characters (80ch held 100–108) | 36 |
 | B7 | No stripe, grid or dot texture is used as a fill | the ds-1.0 reduced-motion stripes are removed | 21 |
-| B8 | Nothing flashes more than three times per second; every animation is finite and ends within 5 s; no flashing or looping sequence runs beyond 5 s (WCAG 2.2.2 and 2.3.1; ITU-R BT.1702-3 Guideline 1) | §12 durations and iteration counts; the gallery `?measure=1` loop sweep; the settings panel and its preview change at most once per 400 ms, so a held arrow key makes at most 3 changes, 1.5 flash pairs, in any second (measured with a held arrow key at 33 Hz: at most 3 panel-background transitions, one flash pair, in any 1-s window; this evidence covers the settings panel only). A held Enter or Space activates a control once per physical key press (§15, held key; run 2 measured 28 open/close changes per second on the delete dialog) | 24, 25, 31 |
+| B8 | Nothing flashes more than three times per second above the WCAG general and red flash thresholds (WCAG 2.3.1; ITU-R BT.1702-3 Guideline 1); every system loop is finite and ends within 5 s, the chosen way to meet WCAG 2.2.2 without a pause control (only auto-starting moving content that lasts more than 5 s beside other content needs a pause, stop or hide mechanism; other safe animation is not restricted); a compliant flashing sequence longer than 5 s is reviewed as an additional risk consideration (ITU-R BT.1702-3 Guideline 1 remark), not failed as a hard limit | §12 durations and iteration counts; the gallery `?measure=1` loop sweep; the settings panel and its preview change at most once per 400 ms, so a held arrow key makes at most 3 changes, 1.5 flash pairs, in any second (measured with a held arrow key at 33 Hz: at most 3 panel-background transitions, one flash pair, in any 1-s window; this evidence covers the settings panel only). A held Enter or Space activates a control once per physical key press (§15, held key; run 2 measured 28 open/close changes per second on the delete dialog) | 24, 25, 31 |
 | B9 | Every motion has a static form that carries the same information | §12 reduced motion | 32 |
 | B10 | Device preferences apply automatically: colour scheme, contrast, reduced transparency, reduced motion; forced colours keep place-node shapes | contrast, transparency, motion and forced colours: media blocks in `tokens.css` and `components.css`; colour scheme: script, because a theme is a whole token set (gallery `deviceTheme()` in `gallery.js`; natively the settings store) (§21.3) | 86 (partial) |
 | B11 | Colour never carries meaning alone: a place is colour, node shape, icon and label | §5, §10 place badge | 1 |
@@ -2280,7 +2286,8 @@ filter (26).
   `prefers-reduced-motion`, `prefers-reduced-transparency`, `forced-colors`.
 - W3C, CSS Conditional Rules Level 5 and CSS Containment Level 3: container
   queries.
-- ITU-R BT.1702-3, Guideline 1 (flashing sequences longer than 5 s).
+- ITU-R BT.1702-3, Guideline 1 (flash limits; its remark on flashing sequences
+  longer than 5 s is an additional risk consideration, not a hard limit).
 - G. M. Machado, M. M. Oliveira, L. A. F. Fernandes, "A physiologically-based
   model for simulation of color vision deficiency", IEEE TVCG 15(6), 2009.
 - Project: `docs/design/accessibility/ACCESSIBILITY-RESEARCH.md` (§7.2 token
