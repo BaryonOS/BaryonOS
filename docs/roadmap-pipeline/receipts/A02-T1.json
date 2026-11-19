@@ -1,0 +1,108 @@
+{
+  "task_id": "A02-T1",
+  "state": "verified",
+  "evidence_level": "host model + freestanding build; no native execution",
+  "source_commit": "d03ae904048a91defc74b9e4ba854d3526595580",
+  "base": "d292cea88902a9e0ba79b9d4a91747df0971f023",
+  "files_sha256": {
+    "sdk/app-management/src/installer.rs": "c4ab8da15c588f566e3b928fd65bef673a34c4616739c3f5bdeea072510df656",
+    "sdk/app-management/src/lib.rs": "ee7e48bbaae0e8cf3ca387e7ca663fce99b07f2e3ca70882f78ccd2623cc3896",
+    "sdk/app-management/tests/installer.rs": "d0b5b97a5b0e60102c64219dca1a8c2331632f1995db0f8ed2d4494334da1425",
+    "docs/implementation/APP-PACKAGES.md": "e8cf6a2399d1a7e3cb15ad386b5d1609802cb6271c90b7b3be4765e3b417a940"
+  },
+  "checks": [
+    {
+      "check": "host tests, 38 unit + 10 integration",
+      "exit_code": 0,
+      "log": "build/tokenguard/run-m7xjer82.log",
+      "log_sha256": "49c764f7053e4cdd9718f016a41a330ae645e133fd29427803cf8df597d3dbb5"
+    },
+    {
+      "check": "Clippy all targets -D warnings",
+      "exit_code": 0,
+      "log": "build/tokenguard/run-tmuhik4v.log",
+      "log_sha256": "f88846dc330781e15e3e234f0d59804a3254887f7b9b67cd6ca92e6f19de8230"
+    },
+    {
+      "check": "format --all --check",
+      "exit_code": 0,
+      "log": "build/tokenguard/run-w_dgircd.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "check": "freestanding release; existing CI serial/soft backends",
+      "exit_code": 0,
+      "log": "build/tokenguard/run-bnzifdj2.log",
+      "log_sha256": "ab5d6475ee23a01a615b0a6d872a5ea5dfc44a32af8b4b1977d6146e03b7f77e"
+    },
+    {
+      "check": "controller tests, 21",
+      "exit_code": 0,
+      "log": "build/tokenguard/run-lnsg1px_.log",
+      "log_sha256": "ee092db8946b567b25c5d37ae8c6a0a366d0b7302e1ae4e336b3587aefa2a67e"
+    },
+    {
+      "check": "complete tools suite, 520 tests / 15 skips",
+      "exit_code": 0,
+      "log": "build/tokenguard/run-4z35bg1o.log",
+      "log_sha256": "75cc9fc2522f962e97caaf428028c1f5351365a21611213650ffdf490ac1306b"
+    },
+    {
+      "check": "automatic run correctly refused",
+      "exit_code": 2,
+      "log": "build/tokenguard/run-ij_23cew.log",
+      "log_sha256": "a5df61f41f7753fdcb2a1386951b89fa90891a507cdf2bd613fa21b23d01c608"
+    },
+    {
+      "check": "second claim correctly refused during active task",
+      "exit_code": 2,
+      "log": "build/tokenguard/run-6euxnilf.log",
+      "log_sha256": "090c74101f3c111b58b4fb189e26197475ce5786e165a46cedf6eecdc0f1c5f6"
+    }
+  ],
+  "worker": {
+    "session_id": "01a1f029-f1fe-7a00-9cbb-c18f7c8a735f",
+    "brief_sha256": "955324ba5569f3d183192ede75247327059897c023d06433d42ce67b0b918731",
+    "dispatch": "build/roadmap-pipeline/manual/A02-T1-b3db287a0560474a964320e56ef99921/dispatch.json",
+    "process_cleanup": {
+      "exit_code": 0,
+      "process_group_stopped": true
+    }
+  },
+  "orchestration": {
+    "owner": "OpenAI Codex",
+    "mode": "lead-supervised fresh CLI fallback",
+    "automatic_continuation_proven": false,
+    "unattended_ready": false,
+    "execution_hold": "active; no override",
+    "init_session": "01a1f020-429b-7f80-bc3e-eee3dbfc123c",
+    "additional_distinct_sessions": [
+      "01a1f024-b05d-7643-824a-f0271ef8c924",
+      "01a1f026-8a57-79b1-9d54-cc83e2237341"
+    ],
+    "resolved_blockers": [
+      "Cortex routing false positive fixed in brief, hooks still enabled",
+      "Public dual-signed fixtures supplied from existing test helpers"
+    ]
+  },
+  "review": "One bounded read-only AI security review; no actionable host-model invariant violation; not a human audit",
+  "initial_failures": [
+    {
+      "exit_code": 46,
+      "reason": "worker Snap launcher; direct installed Rust 1.90 checks passed"
+    },
+    {
+      "exit_code": 101,
+      "log": "build/tokenguard/run-34j6djob.log",
+      "reason": "initial freestanding command omitted documented CI crypto backends; corrected existing CI command passed"
+    }
+  ],
+  "not_run": [
+    "native installer/service execution",
+    "authenticated durable registry or journal recovery",
+    "physical power cuts",
+    "hardware/human audit",
+    "safe unattended model/gate activation"
+  ],
+  "acceptance": "A02 remains open; no fixed score points awarded"
+}
