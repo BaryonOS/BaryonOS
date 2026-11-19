@@ -90,6 +90,16 @@ only: earlier commits, forks and clones keep the text. Removing it from history
 would need a history rewrite, which is not authorized. No project licence
 (MPL-2.0) is claimed for any wiki text.
 
-Issue #283 remains open until every one of the 1,298 uncertain records has a
-recorded disposition and the resulting measures are merged. The product score
-is unchanged.
+Issue #283 remains open until all of the following hold:
+
+1. W001473 is resolved under the project owner's decision of 19 November 2026:
+   it is excluded from the active corpus (PR #397) and the decision is recorded
+   as ADR-W001473-PROVENANCE-20261119 (PR #395). Without a verifiable original
+   grant, exclusion is the disposition; no reuse right is assumed.
+2. The 27 other imported records and the 5 third-party records are excluded
+   (PRs #399 and #400), or each has a recorded owner exception.
+3. Every one of the 1,298 uncertain records has a recorded disposition, and the
+   resulting measures are merged.
+
+`docs/PROJECT-STATE.md` is lead-owned and is aligned with this condition when
+these PRs are accepted. The product score is unchanged.
