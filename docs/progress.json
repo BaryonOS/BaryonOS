@@ -3,7 +3,7 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-18",
-    "source_commit": "5a3295b6093549f4b5ff6164ab2773ac4c264996",
+    "source_commit": "34a424ec2c20d9c8bde1a8cda8f75a3552603c88",
     "assessment_basis": "parent_commit",
     "branch": "codex/issue41-policy-anchor",
     "task": "Issue #41 synthetic anchor and transition identity",

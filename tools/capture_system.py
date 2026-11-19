@@ -192,13 +192,13 @@ def capture(destination: Path, *, network=False, tcp=False) -> Path:
     archive[gate_name] = gate_bytes
     host_commands = [
         [sys.executable, "-B", "-m", "unittest", "discover", "-s", "tests", "-p", "test_system_*.py"],
-        ["cargo", "+1.90.0", "test", "--locked", "--manifest-path", "sdk/Cargo.toml", "-p", "nieuw-os-sdk-runtime"],
+        ["cargo", "+1.100.0", "test", "--locked", "--manifest-path", "sdk/Cargo.toml", "-p", "nieuw-os-sdk-runtime"],
     ]
     if tcp:
         host_commands = tcp_host_commands()
     elif network:
         host_commands[0][-1] = "test_net_*.py"
-        host_commands.insert(1, ["cargo", "+1.90.0", "test", "--locked", "-p", "capability-core"])
+        host_commands.insert(1, ["cargo", "+1.100.0", "test", "--locked", "-p", "capability-core"])
     for index, host in enumerate(hosts):
         if (type(host.get("exit")) is not int or host["exit"] != 0
                 or host.get("command") != host_commands[index]):

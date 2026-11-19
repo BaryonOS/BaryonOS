@@ -1,0 +1,173 @@
+{
+  "source_commit": "2a08f4a33eff63b354821f6892e1be28f7602c9b",
+  "source_fingerprint_version": 3,
+  "source_sha256": "25dd6d69621f1d9d4c8ed353633b3db62818562fa6ce50efa4445207505adb44",
+  "host_quality_exit": 0,
+  "host_quality_steps": 18,
+  "native_volume_exit": 0,
+  "native_volume_stages": [
+    {
+      "case": "normal",
+      "raw_qemu_exit": 33,
+      "passed": true
+    },
+    {
+      "case": "recover",
+      "raw_qemu_exit": 33,
+      "passed": true
+    },
+    {
+      "case": "archive-export",
+      "raw_qemu_exit": 33,
+      "passed": true
+    },
+    {
+      "case": "archive-restore",
+      "raw_qemu_exit": 33,
+      "passed": true
+    },
+    {
+      "case": "archive-corrupt",
+      "raw_qemu_exit": 33,
+      "passed": true
+    },
+    {
+      "case": "archive-conflict",
+      "raw_qemu_exit": 33,
+      "passed": true
+    },
+    {
+      "case": "archive-full",
+      "raw_qemu_exit": 33,
+      "passed": true
+    },
+    {
+      "case": "archive-ustar",
+      "raw_qemu_exit": 33,
+      "passed": true
+    },
+    {
+      "case": "cut-data",
+      "raw_qemu_exit": -9,
+      "passed": true
+    },
+    {
+      "case": "recover-cut",
+      "raw_qemu_exit": 33,
+      "passed": true
+    },
+    {
+      "case": "cut-table",
+      "raw_qemu_exit": -9,
+      "passed": true
+    },
+    {
+      "case": "recover-cut",
+      "raw_qemu_exit": 33,
+      "passed": true
+    },
+    {
+      "case": "cut-txn",
+      "raw_qemu_exit": -9,
+      "passed": true
+    },
+    {
+      "case": "recover-cut",
+      "raw_qemu_exit": 33,
+      "passed": true
+    },
+    {
+      "case": "corrupt",
+      "raw_qemu_exit": 33,
+      "passed": true
+    }
+  ],
+  "native_document_session_exit": 0,
+  "native_document_session_vms": 2,
+  "copied_files": [
+    {
+      "path": "host-2a08f4a3.json",
+      "sha256": "701ef7eede83a8f4c8109a430f8627827cf84af7328b1602169be2d6fca4ee5a"
+    },
+    {
+      "path": "document-session-2a08f4a3/result.json",
+      "sha256": "1f4fbc36f7f9043452540ea20c8c98d40c923f7c3236da3beecb8d0a08f5f84b"
+    },
+    {
+      "path": "document-session-2a08f4a3/normal/result.json",
+      "sha256": "2053bd433db9947097bcbc763d656190e49286d1628838e76b7d909064c7e8d0"
+    },
+    {
+      "path": "document-session-2a08f4a3/normal/serial.txt",
+      "sha256": "f5d94f739f2dbdec381893fd0cfd0dc8777566ad9675c5acb9a11fb2acbc4cf4"
+    },
+    {
+      "path": "document-session-2a08f4a3/normal/stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "document-session-2a08f4a3/recover/result.json",
+      "sha256": "61f2a99a4458852df116e7428f2b85d9d27bc7fc8adbf0af79bd5839f7c44c4f"
+    },
+    {
+      "path": "document-session-2a08f4a3/recover/serial.txt",
+      "sha256": "0658513996f0488e79b6d88237b82d6c67a99c9a23a29ad7a1d8ce83830771c2"
+    },
+    {
+      "path": "document-session-2a08f4a3/recover/stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "lossless_logs": [
+    {
+      "original_path": "/workspace/baryon-combined-host-quality/build/tokenguard/run-mg4xp9fq.json",
+      "raw_sha256": "265ceeaf6cf012d71f3787700d9d61cb1cd49cc5d5b09e4eb4c83665da490152",
+      "path": "logs/2a08f4a3-host-run-mg4xp9fq.json.gz",
+      "archive_sha256": "574a5ccae80949e1403fb43840784e7c909f42072d3a4b9f825eb5325e5af294"
+    },
+    {
+      "original_path": "/workspace/baryon-combined-host-quality/build/tokenguard/run-mg4xp9fq.log",
+      "raw_sha256": "ed38c5e6c5e32967dedca16d460208db1263d3a8f1c6029dd87acdc06d7e3c7c",
+      "path": "logs/2a08f4a3-host-run-mg4xp9fq.log.gz",
+      "archive_sha256": "fb2dfbca0719c78ab105e75489103c7ae922ff79ea7548f0676bfe62b67ae197"
+    },
+    {
+      "original_path": "/workspace/baryon-combined-host-quality/build/combined-host-quality-cpuid.log",
+      "raw_sha256": "c56ecfeacbe3002378327a5066f88063cec4340987084074d2a01349efd47955",
+      "path": "logs/2a08f4a3-host-combined-host-quality-cpuid.log.gz",
+      "archive_sha256": "d57ded21d2fdc970554b32569b39f7c7902813787eaf0b4807befe10e98f6b4c"
+    },
+    {
+      "original_path": "/workspace/baryon-combined-host-quality/build/combined-host-quality-validation-cpuid/source-before.json",
+      "raw_sha256": "f85c22abb99bb6e97174889a21c66123c8844e9de0152b0dcef730f955320ada",
+      "path": "logs/2a08f4a3-host-source-before.json.gz",
+      "archive_sha256": "744899fbb1698f5fadc9a7884d438d2ec2d0c763362b385e23188d62accb3d9f"
+    },
+    {
+      "original_path": "/workspace/baryon-combined-native-validate/build/tokenguard/run-47gb_80f.json",
+      "raw_sha256": "bfe3e9c7cb3785b1caf6aa282d7cf3e5fdfebe2918835552f71ea546d8f11e8b",
+      "path": "logs/2a08f4a3-run-47gb_80f.json.gz",
+      "archive_sha256": "603101761f41cb024acf04f5775f30bdc83d7fe689ddc8c9e192c37b9213b4de"
+    },
+    {
+      "original_path": "/workspace/baryon-combined-native-validate/build/tokenguard/run-47gb_80f.log",
+      "raw_sha256": "74283fad6fc7ec8bebe0989eb5b029bfa23380c4f9bdfc3d188738036b8ce672",
+      "path": "logs/2a08f4a3-run-47gb_80f.log.gz",
+      "archive_sha256": "6fc8e4c6f21e3dbe55905d45cae1367987a8bf6b41ad7d2a23f8d4a988831ddd"
+    },
+    {
+      "original_path": "/workspace/baryon-combined-native-validate/build/tokenguard/run-m_znng8x.json",
+      "raw_sha256": "c3ca98d12601a28dd35ef0a65a86b9f112e811eeb5ffa7a608b950806841c7a4",
+      "path": "logs/2a08f4a3-run-m_znng8x.json.gz",
+      "archive_sha256": "2ab24a314ac2ae35736beba7ac4495975c3d50fb82dc82ede8021293ddc4cb32"
+    },
+    {
+      "original_path": "/workspace/baryon-combined-native-validate/build/tokenguard/run-m_znng8x.log",
+      "raw_sha256": "71deb8db6dab2af920388b3b65ef378370e89e90dc6fd12a412076479817cbb7",
+      "path": "logs/2a08f4a3-run-m_znng8x.log.gz",
+      "archive_sha256": "89a7d632a041f2d3d49faf0aa4cad5433abff10386f3d60d5fa8a38b3b72e72c"
+    }
+  ],
+  "credential_check": "Exact known credential values and standard token/private-key patterns absent from published artifacts; not a comprehensive secret-scanning service result.",
+  "limits": "Source-bound local evidence. Final current-head hosted CI, independent review and integrated-main verification remain separate."
+}

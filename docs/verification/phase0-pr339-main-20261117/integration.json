@@ -1,0 +1,78 @@
+{
+  "task": "P0-339 actual latest-Claude reconciliation",
+  "source_parent": "84b0198f64ba520d4b275ffb8d0f461f0762c89f",
+  "main_parent": "38d4cc17687156379677993be9945447591bd4c1",
+  "prior_authorized_claim_correction": "7bea10d96348b6d5990f9ed1fb53ab94940b3ae1",
+  "preserved_blobs": [
+    {
+      "path": "docs/design/DESIGN-SYSTEM.md",
+      "sha256": "43d443932873bc9609c21b4e510cbaa1556de18cac78709ee7ac74a35c1ff348"
+    },
+    {
+      "path": "docs/design/accessibility/ACCESSIBILITY-MATRIX.md",
+      "sha256": "e12d566f069a56e1066689e598f5bfbad7ac646c6347e14da2dc94b0a5a6e6b5"
+    },
+    {
+      "path": "docs/design/accessibility/ACCESSIBILITY-RESEARCH.md",
+      "sha256": "89ecc4ab70742dbc45e22bd9ee58885240b937366e783c1b8b2d4b6c706e8009"
+    },
+    {
+      "path": "docs/verification/a11y-research-20261115/README.md",
+      "sha256": "9477028ce0f6ece335996eb91bc7b28442d3704f720c4b70f2b9e1aa1b011938"
+    },
+    {
+      "path": "docs/verification/a11y-research-20261115/SHA256SUMS",
+      "sha256": "60cec698610e33381165b4c396416ea4c77c52c93ef95c7a39419d700b410f1b"
+    },
+    {
+      "path": "docs/verification/a11y-research-20261115/check-output.json",
+      "sha256": "f0094266d776b6c4dbe427f0745ea842f634e175c6fe1163ed34d5748caa57fb"
+    },
+    {
+      "path": "docs/verification/a11y-research-20261115/check.py",
+      "sha256": "cf1b65d170a385a0e4fde9724d326bbbe4f5d1cdbd7186073800f7b1bd251bab"
+    },
+    {
+      "path": "docs/verification/a11y-research-20261115/independent-check.json",
+      "sha256": "a7bb1bb73991c05ce106c52db14b66d3129d2184ab5115c51d902ff9fb7de07b"
+    },
+    {
+      "path": "docs/verification/ds-1.0-c1-20261115/SUPERSEDED.md",
+      "sha256": "4876a015e0341d2a790416e1ca57636b937d4be51ebddbac31e8a464a83f8172"
+    }
+  ],
+  "historical_assessments": {
+    "latest_claude": {
+      "date": "2026-11-17",
+      "source_commit": "4005ca674313e5637c8293a10627acdd286ab3e1",
+      "assessment_basis": "parent_commit",
+      "branch": "claude/baryon-os-design-pipeline-20261115",
+      "task": "Address CodeRabbit review of PR #339: correct two accessibility-matrix cells (rows 59 and 98) that contradicted the research document; UX-A11Y-DS run 2 stays queued",
+      "previous_score": 41,
+      "summary": "41/100 remains 41/100. The change corrects two documentation cells in the UX-A11Y-R accessibility matrix (stimulus versus transparency axis; EN 301 549 V4.1.1 clause 11.7) and accepts no criterion. The ds-1.1 design changes remain uncommitted and unaccepted, and UX-A11Y-R is an intermediate research checkpoint. GitHub Actions started no job for the parent head (account billing lock)."
+    },
+    "main": {
+      "date": "2026-11-17",
+      "source_commit": "c26b0903627fea59f5d286f8eff4c4887b017b9a",
+      "assessment_basis": "parent_commit",
+      "branch": "feat/issue41-policy-test",
+      "task": "Phase 0 PR336: align current review proposal wording with accepted TEST authority",
+      "previous_score": 41,
+      "summary": "41/100 unchanged. Review clarifies the existing8-entry bound and approved codec/probe order; completeADR content and established identifier/date retained. No runtime/fixture/test/criterion change. New-head hosted checks and independent editorial review remain required."
+    }
+  },
+  "matrix_archive_scope": "Original SHA256SUMS is preserved; PROJECT-STATE.md retained correction paragraph explicitly identifies4005 as the archived source (not the verification README). Latest84 changes only two matrix cells. The current matrix hash is separately bound in preserved_blobs. Archive mismatch is recorded, not hidden as a fresh all-green hash pass.",
+  "acceptance": "Intermediate only; systematic research/design/native/hardware/human acceptance not run or granted. Fresh required hosted checks remain mandatory.",
+  "ownership": "Claude UI/UX/S09 and all original WIP/runners unchanged",
+  "baseline": "Latest finite baseline refinement;41/100 unchanged",
+  "latest_claude_reconciliation": {
+    "source_parent": "1a2758368bf416205e6e4b2787d7304397ff4daa",
+    "prior_integration": "dd6630ec38b4d9dd3086547667d9c9f27f975926",
+    "decisions_sha256": "302259f06d5a02af20d72970b657fc48b7ee3cd230c70665d5adede87b7a131b",
+    "scope": "Preserve current Claude decisions byte-for-byte; resolve identical-register assessment metadata only",
+    "criteria_and_weights_equal": true,
+    "systematic_review": "OPEN",
+    "ownership": "UI/UX and ds-1.1 remain Claude-owned; only the authorized claim correction and Codex preintegration checkpoint are transferred",
+    "current_head_ci": "NOT RUN"
+  }
+}

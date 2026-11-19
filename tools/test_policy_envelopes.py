@@ -117,7 +117,7 @@ def run(*, timeout: int = run_update.MAX_TIMEOUT) -> dict:
         raise ValueError("invalid bounded native-probe timeout")
     frozen = source_hash()
     env = environment()
-    subprocess.run(["cargo", "+1.90.0", "run", "--offline", "--locked", "-q", "-p", "update-core",
+    subprocess.run(["cargo", "+1.100.0", "run", "--offline", "--locked", "-q", "-p", "update-core",
                     "--example", "policy_probe_fixtures", "--features",
                     "experimental-policy-test,test-signing-anchors", "--", "--check"],
                    cwd=ROOT, env=env, check=True)

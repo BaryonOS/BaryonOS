@@ -1,0 +1,1164 @@
+{
+  "schema_version": 1,
+  "source_commit": "31ccacc2498e8d2a5d3cb763e859c7b49282728c",
+  "markdown_freeze_commit": "2073e4affd8a46a4bd0a1b95bcb06f7c2b0062c2",
+  "scope": [
+    {
+      "path": "tools/progress.py",
+      "sha256": "87dc5c0cb40966bfb252d69e32d9bffe1ed9e362e6de67e91adc1ba0dcc0e75e"
+    },
+    {
+      "path": "tools/agent_pipeline.py",
+      "sha256": "fa95e89967b0ad5a1d36be8560e6ad3f665fff05cffb9d029f40418cbb2b0a60"
+    },
+    {
+      "path": "tools/roadmap_runner.py",
+      "sha256": "50728abb0bfb8cade2eedf43ba5b2430a85db68d4ae934ae80f6d6367861b690"
+    },
+    {
+      "path": "tools/agent_gate.py",
+      "sha256": "b22242245b601b9bfd8f7594af942be3254ce2c032136c5e9e9c756bd0989da7"
+    },
+    {
+      "path": "tools/project_classification.py",
+      "sha256": "a61078d644bbb4aa0eff2a2f197568e0c603b1ce842a0baf16097caf8782b58e"
+    },
+    {
+      "path": "tools/tokenguard.py",
+      "sha256": "2e0ad096b7c6d4f4c6dc60a4271a15dbdc5f541e8f7c192052a6b67878366ad6"
+    },
+    {
+      "path": "docs/verification/issue274-language-coverage-20261118/check.py",
+      "sha256": "862654482859bd5ede0877adc81054cd29bf5eca172e23ef28e6b968b4a43d85"
+    },
+    {
+      "path": "README.md",
+      "sha256": "ee2fdeb7660c336285c0793ee271dd3a0261c8929e7ad5eacb91cc7abd12f2d0"
+    },
+    {
+      "path": "docs/PROGRESS.md",
+      "sha256": "1bec23cd592f94317765a9932261509c2270bb6e144545909abcdba0b6f41691"
+    },
+    {
+      "path": "docs/assets/progress.svg",
+      "sha256": "65d5cdc1ab831420cd2ce6f2e3996f741f4eab44657f34d0aa8564bc20641423"
+    },
+    {
+      "path": "docs/progress.json",
+      "sha256": "e71aab1c08cf3daf7f2a463e8efe80d1a9b5991404501774580741bd3236bcc1"
+    },
+    {
+      "path": "docs/roadmap-pipeline/ledger.json",
+      "sha256": "bb65215b521ff45225f733833813f859583fa517bf1d2b5052a866b1197c546c"
+    },
+    {
+      "path": ".github/DISCUSSION_TEMPLATE/architecture-and-design.yml",
+      "sha256": "8b061730ba7ab3a0e562d019fe87e3a7f7e17f1eeada261e93f8160698a04756"
+    },
+    {
+      "path": ".github/DISCUSSION_TEMPLATE/product-and-user-experience.yml",
+      "sha256": "b938a67652169757b04cd7a1b91d2a76591c002bcd526ed4087e7510e279d3f2"
+    },
+    {
+      "path": ".github/DISCUSSION_TEMPLATE/questions-and-help.yml",
+      "sha256": "f78bebd076d8a9e2e38bf17ea0fc6e878d4d3a84b5bad359b48025081bbc8a3b"
+    },
+    {
+      "path": ".github/DISCUSSION_TEMPLATE/test-results-and-demos.yml",
+      "sha256": "3b28c44425e82447a4501bf18b4b15c9332cc4e29c957761e62f76655829425d"
+    },
+    {
+      "path": ".github/ISSUE_TEMPLATE/bug_report.yml",
+      "sha256": "68190404b94be9aefb17736a72eb92dc48ff2c56e479fe15fcecd0ce7b1437f1"
+    },
+    {
+      "path": ".github/ISSUE_TEMPLATE/ci_test_failure.yml",
+      "sha256": "48824d5683bad37006e982fd1ddb1a2c68ff562d6f7ff5dd4c7ae8618684bde7"
+    },
+    {
+      "path": ".github/ISSUE_TEMPLATE/config.yml",
+      "sha256": "57329b295db205d8d67ebe75921d078af402a9355e5db70957176c84e06af9ab"
+    },
+    {
+      "path": ".github/ISSUE_TEMPLATE/documentation.yml",
+      "sha256": "b82c3ce7a477ba8a86d433fb0641565de1416b7d6b2d73a22cc2ac91cb025d0e"
+    },
+    {
+      "path": ".github/ISSUE_TEMPLATE/implementation_task.md",
+      "sha256": "e6e58491579543aab627f3e1d61e61060e53194c2d364a34202edfd61b457bd6"
+    },
+    {
+      "path": "tools/tests/test_agent_pipeline.py",
+      "sha256": "84c1de3c9561c5c73c7f81fa8729efc2faa9debfff5eb28bca893ed7ba7d1283"
+    },
+    {
+      "path": "tools/tests/test_roadmap_runner.py",
+      "sha256": "f7a2d3bb86dc9f018fdf045aa7b6eb8a656282c0afa7e1ac0a511db70350e97b"
+    },
+    {
+      "path": "tests/test_project_classification.py",
+      "sha256": "d8bc058f55cba42ee8f2733398b5ecc4fd406dc9301f43b2b16cde508acb327d"
+    },
+    {
+      "path": "tools/tests/test_pipeline_quarantine.py",
+      "sha256": "21f3652d944b161a42c5a1d7f0eb08d1fe0d4d588ccf04a3ed807c25db124ab6"
+    }
+  ],
+  "scope_count": 25,
+  "producers": [
+    "tools/progress.py",
+    "tools/agent_pipeline.py",
+    "tools/roadmap_runner.py",
+    "tools/agent_gate.py",
+    "tools/project_classification.py",
+    "tools/tokenguard.py",
+    "docs/verification/issue274-language-coverage-20261118/check.py"
+  ],
+  "community_forms": [
+    ".github/DISCUSSION_TEMPLATE/architecture-and-design.yml",
+    ".github/DISCUSSION_TEMPLATE/product-and-user-experience.yml",
+    ".github/DISCUSSION_TEMPLATE/questions-and-help.yml",
+    ".github/DISCUSSION_TEMPLATE/test-results-and-demos.yml",
+    ".github/ISSUE_TEMPLATE/bug_report.yml",
+    ".github/ISSUE_TEMPLATE/ci_test_failure.yml",
+    ".github/ISSUE_TEMPLATE/config.yml",
+    ".github/ISSUE_TEMPLATE/documentation.yml",
+    ".github/ISSUE_TEMPLATE/implementation_task.md"
+  ],
+  "generated_asset_exact_byte_matches": {
+    "README.md": true,
+    "docs/PROGRESS.md": true,
+    "docs/assets/progress.svg": true
+  },
+  "svg_visible_and_accessible_text": [
+    {
+      "tag": "title",
+      "id": "title",
+      "text": "Baryon OS: 41% of the fixed product roadmap"
+    },
+    {
+      "tag": "desc",
+      "id": "description",
+      "text": "41 of 100 weighted acceptance points. Zero means not started; one hundred means a complete independent OS on supported hardware. Assessed on 2026-11-18. Not a time or security score."
+    },
+    {
+      "tag": "text",
+      "id": null,
+      "text": "BARYON OS \u00b7 INDEPENDENT KERNEL \u00b7 INDEPENDENT PRODUCT"
+    },
+    {
+      "tag": "text",
+      "id": null,
+      "text": "41%"
+    },
+    {
+      "tag": "text",
+      "id": null,
+      "text": "From independent kernel to daily-use OS"
+    },
+    {
+      "tag": "text",
+      "id": null,
+      "text": "41 / 100 acceptance points \u00b7 reassessed 2026-11-18"
+    },
+    {
+      "tag": "text",
+      "id": null,
+      "text": "0%"
+    },
+    {
+      "tag": "text",
+      "id": null,
+      "text": "25%"
+    },
+    {
+      "tag": "text",
+      "id": null,
+      "text": "50%"
+    },
+    {
+      "tag": "text",
+      "id": null,
+      "text": "75%"
+    },
+    {
+      "tag": "text",
+      "id": null,
+      "text": "100%"
+    },
+    {
+      "tag": "text",
+      "id": null,
+      "text": "Not started"
+    },
+    {
+      "tag": "text",
+      "id": null,
+      "text": "Complete independent OS"
+    }
+  ],
+  "svg_visual_pixel_render": "NOT VERIFIED; XML text and exact generated asset bytes audited",
+  "score_before_and_after": 41,
+  "criterion_ids_preserved": [
+    "K01",
+    "K02",
+    "K03",
+    "K04",
+    "K05",
+    "K06",
+    "K07",
+    "S01",
+    "S02",
+    "S03",
+    "S04",
+    "S05",
+    "S06",
+    "S07",
+    "S08",
+    "S09",
+    "H01",
+    "H02",
+    "H03",
+    "H04",
+    "H05",
+    "H06",
+    "U01",
+    "U02",
+    "U03",
+    "U04",
+    "U05",
+    "U06",
+    "N01",
+    "N02",
+    "N03",
+    "N04",
+    "B01",
+    "B02",
+    "B03",
+    "B04",
+    "B05",
+    "B06",
+    "A01",
+    "A02",
+    "A03",
+    "A04",
+    "P01",
+    "P02",
+    "P03",
+    "P04",
+    "L01",
+    "L02",
+    "R01",
+    "R02",
+    "R03"
+  ],
+  "literal_parser_keys_preserved": [
+    "Criterium:",
+    "Gate:",
+    "Afhankelijk van:"
+  ],
+  "default_template_fields": [
+    "Criterion:",
+    "Gate:",
+    "Depends on:"
+  ],
+  "generator_literal_hits": [
+    {
+      "path": "tools/progress.py",
+      "line": 101,
+      "text": "\n<a id=\"voortgang-naar-een-volwaardig-zelfstandig-os\"></a>\n## Progress toward a complete independent OS\n\n![Baryon OS: ",
+      "disposition": "Preserved parser alias or legacy bookmark anchor",
+      "allowed": true
+    },
+    {
+      "path": "tools/agent_pipeline.py",
+      "line": 122,
+      "text": "Criterium",
+      "disposition": "Preserved parser alias or legacy bookmark anchor",
+      "allowed": true
+    },
+    {
+      "path": "tools/agent_pipeline.py",
+      "line": 128,
+      "text": "Afhankelijk van",
+      "disposition": "Preserved parser alias or legacy bookmark anchor",
+      "allowed": true
+    },
+    {
+      "path": "docs/verification/issue274-language-coverage-20261118/check.py",
+      "line": 14,
+      "text": "\\b(?:het|een|zijn|wordt|worden|voor|geen|alleen|ook|deze|dit|moet|moeten|zonder|niet|gegevens|gebruiker|bestanden|veiligheid|mogelijk|beschikbaar|toestemming|verplicht|ondersteund|huidige|volgende|bewijs|onderzoek|ontwerp)\\b",
+      "disposition": "Language-detection regex or deliberately Dutch negative-control fixture in isolated temporary self-tests; not active published prose. Preserve unchanged.",
+      "allowed": true
+    },
+    {
+      "path": "docs/verification/issue274-language-coverage-20261118/check.py",
+      "line": 104,
+      "text": "Dit is een buiten repository gegevensbestand.\n",
+      "disposition": "Language-detection regex or deliberately Dutch negative-control fixture in isolated temporary self-tests; not active published prose. Preserve unchanged.",
+      "allowed": true
+    },
+    {
+      "path": "docs/verification/issue274-language-coverage-20261118/check.py",
+      "line": 149,
+      "text": "# Nieuwe tekst\n\nDit is een nieuw document.\n",
+      "disposition": "Language-detection regex or deliberately Dutch negative-control fixture in isolated temporary self-tests; not active published prose. Preserve unchanged.",
+      "allowed": true
+    },
+    {
+      "path": "docs/verification/issue274-language-coverage-20261118/check.py",
+      "line": 143,
+      "text": "\nDit is een nieuwe Nederlandse zin.\n",
+      "disposition": "Language-detection regex or deliberately Dutch negative-control fixture in isolated temporary self-tests; not active published prose. Preserve unchanged.",
+      "allowed": true
+    }
+  ],
+  "generator_input_hits": [],
+  "review": [
+    {
+      "producer": "tools/progress.py:88-149",
+      "result": "English generated README prose, rubric states/table labels and SVG title/description/visible text; all three tracked rendered outputs match current producer bytes."
+    },
+    {
+      "producer": "tools/agent_pipeline.py:112-130,225-254,378-383",
+      "result": "English task fields, prompt wrappers, errors and draft PR body; original Dutch aliases accepted alongside English, backed by existing alias/ambiguous-field tests. Issue bodies, task titles and L0 specs are quoted dynamic input and must not be translated automatically. Controller stays quarantined."
+    },
+    {
+      "producer": "tools/roadmap_runner.py:574-674,891-915",
+      "result": "English worker, verifier and initialization brief wrappers plus CLI. Task JSON and feedback are verbatim data; no model session was launched."
+    },
+    {
+      "producer": "tools/project_classification.py; tools/agent_gate.py; tools/tokenguard.py",
+      "result": "Selected CLI help and first-party diagnostics are English; identifiers, commands, workflow job names and protocol metadata remain unchanged."
+    },
+    {
+      "producer": "docs/verification/issue274-language-coverage-20261118/check.py",
+      "result": "Existing collector CLI/schema prose reviewed statically. The completed 398-Markdown collection was not rerun."
+    },
+    {
+      "producer": ".github/ISSUE_TEMPLATE and .github/DISCUSSION_TEMPLATE",
+      "result": "Finite current repository submission templates use English human-facing prose; stable URLs, parser fields, category slugs and named examples are preserved. Live Discussion category display settings are outside this source-only audit."
+    }
+  ],
+  "legitimate_exceptions": [
+    "Dutch parser aliases Criterium/Afhankelijk van",
+    "Legacy Dutch README anchor retained for external bookmarks",
+    "Verbatim issue/spec/feedback/task data and historical quotations",
+    "Identifiers, proper names, paths, commands, fixture/wire strings and third-party material",
+    "Dutch-language detector vocabulary and deliberate negative-control sentences inside isolated collector self-test fixtures"
+  ],
+  "graphify": {
+    "indexed_commit": "de9b99047138c4fd0015ffc3f874b273b3537484",
+    "matched_symbol": "tools_progress_readme_block",
+    "coverage": "Semantic query was partial; exact symbol lookup and targeted current-source reads supplied bounded follow-up."
+  },
+  "source_files_unchanged": true,
+  "checks": [
+    {
+      "argv": [
+        "python3",
+        "-B",
+        "tools/progress.py",
+        "--check"
+      ],
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "passed": true,
+      "log": "check-0.log",
+      "log_sha256": "14b305fe38d23ae7244745b59dcbbad1fa41b2ffd4a173070a72a8aca2f3aa5f"
+    },
+    {
+      "argv": [
+        "python3",
+        "-B",
+        "tools/progress.py",
+        "--help"
+      ],
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "passed": true,
+      "log": "check-1.log",
+      "log_sha256": "75a2e6e898442d18350a8e7948d3e66c0938d0a15977cddccaf2ccaeac6cd9f6"
+    },
+    {
+      "argv": [
+        "python3",
+        "-B",
+        "tools/agent_pipeline.py",
+        "--help"
+      ],
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "passed": true,
+      "log": "check-2.log",
+      "log_sha256": "fc62fa193ae54d054eefd6ed6bf09ab6cc701ed2032b030115e9a64d56f81952",
+      "interpretation": "Argparse help exits before the quarantined execution guard; English help is allowed and does not start work."
+    },
+    {
+      "argv": [
+        "python3",
+        "-B",
+        "tools/roadmap_runner.py",
+        "--help"
+      ],
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "passed": true,
+      "log": "check-3.log",
+      "log_sha256": "c6fe5de44c9530aaa932e4402e9036da9c9cc10edae34ee3cc37a31ed31e26fb"
+    },
+    {
+      "argv": [
+        "python3",
+        "-B",
+        "tools/agent_gate.py",
+        "--help"
+      ],
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "passed": true,
+      "log": "check-4.log",
+      "log_sha256": "6128e78710b36061ff96b2a4bb818490d0207ce3d45770ba26507c84cb64c2b8"
+    },
+    {
+      "argv": [
+        "python3",
+        "-B",
+        "tools/project_classification.py",
+        "--help"
+      ],
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "passed": true,
+      "log": "check-5.log",
+      "log_sha256": "777cb6ed48d6a115082b3cb56b29e531c17069388901f0ea4e7fc49410144729"
+    },
+    {
+      "argv": [
+        "python3",
+        "-B",
+        "tools/tokenguard.py",
+        "--help"
+      ],
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "passed": true,
+      "log": "check-6.log",
+      "log_sha256": "f7981f997205d42147398b1bb42ae2ab9a2d1021b3733d84ea885d09dcd86fd3"
+    },
+    {
+      "argv": [
+        "python3",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tools/tests",
+        "-p",
+        "test_agent_pipeline.py",
+        "-v"
+      ],
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "passed": true,
+      "log": "check-7.log",
+      "log_sha256": "7e780f34e2f19496a24fb51889997b4b49ae36d7767bd7a281506a58fe325e46"
+    },
+    {
+      "argv": [
+        "python3",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tools/tests",
+        "-p",
+        "test_roadmap_runner.py",
+        "-v"
+      ],
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "passed": true,
+      "log": "check-8.log",
+      "log_sha256": "3a73e0419095c62565e55df73fc79838f074cef34d7cd5b6bfdbca03d3d27b47"
+    },
+    {
+      "argv": [
+        "python3",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tests",
+        "-p",
+        "test_project_classification.py",
+        "-v"
+      ],
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "passed": true,
+      "log": "check-9.log",
+      "log_sha256": "866c3618560535c56e5ffc8056a62eb477c393f821049d0b6cea8d99e99b1a6e"
+    },
+    {
+      "argv": [
+        "python3",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tools/tests",
+        "-p",
+        "test_pipeline_quarantine.py",
+        "-v"
+      ],
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "passed": true,
+      "log": "check-10.log",
+      "log_sha256": "5e6735d62c0b70061d371fb1ff3d780089cb0892f6cfcb4ce9d7b8607518f104"
+    }
+  ],
+  "limitations": [
+    "Finite listed producers/assets/templates only; not a claim to audit every executable string or CLI in the repository.",
+    "Public UI/runtime strings and live Wiki/Discussion settings require their separate issue274 evidence.",
+    "SVG pixel rendering was not executed.",
+    "No archived Markdown, original research, protected fixtures or vendor prose rescanned."
+  ],
+  "result": "PASS_WITH_DECLARED_SCOPE",
+  "community_visible_fields": [
+    {
+      "path": ".github/DISCUSSION_TEMPLATE/architecture-and-design.yml",
+      "visible_fields": [
+        {
+          "pointer": "/title",
+          "text": "[Design] "
+        },
+        {
+          "pointer": "/body/0/attributes/value",
+          "text": "Discuss technical choices and proposals here before they become executable tasks. A proposal does not yet change a contract or acceptance criterion.\nStart with the relevant [project contracts](https://github.com/simonvanieperen/BaryonOS/blob/main/docs/COMMUNITY.md#leidende-projectbronnen). Share vulnerability details according to [SECURITY.md](https://github.com/simonvanieperen/BaryonOS/blob/main/SECURITY.md).\n"
+        },
+        {
+          "pointer": "/body/1/attributes/label",
+          "text": "Problem and current situation"
+        },
+        {
+          "pointer": "/body/1/attributes/description",
+          "text": "Which concrete question requires a design decision? Refer to the current interface, code or agreement and identify the source version where needed."
+        },
+        {
+          "pointer": "/body/2/attributes/label",
+          "text": "Proposal and alternatives"
+        },
+        {
+          "pointer": "/body/2/attributes/description",
+          "text": "Describe the recommended approach, a viable alternative and the main trade-offs. Also identify what falls outside this step."
+        },
+        {
+          "pointer": "/body/3/attributes/label",
+          "text": "Interfaces and trust boundaries"
+        },
+        {
+          "pointer": "/body/3/attributes/description",
+          "text": "Which components, permissions, data flows or dependencies change? Preserve the independent kernel, Security Floor and privacy contract; explain if no boundary changes."
+        },
+        {
+          "pointer": "/body/4/attributes/label",
+          "text": "Research and acceptance"
+        },
+        {
+          "pointer": "/body/4/attributes/description",
+          "text": "Which small experiment or check makes the choice testable? Distinguish host experiments, compilation, native QEMU, physical hardware and human review; identify open assumptions and relevant criterion IDs."
+        },
+        {
+          "pointer": "/body/5/attributes/label",
+          "text": "Related sources and work"
+        },
+        {
+          "pointer": "/body/5/attributes/description",
+          "text": "Links to existing issues, discussions, decisions, specifications and primary technical sources. Include the version or date for external specifications."
+        }
+      ],
+      "dutch_lexicon_hits": []
+    },
+    {
+      "path": ".github/DISCUSSION_TEMPLATE/product-and-user-experience.yml",
+      "visible_fields": [
+        {
+          "pointer": "/title",
+          "text": "[User experience] "
+        },
+        {
+          "pointer": "/body/0/attributes/value",
+          "text": "Discuss everyday tasks, desktop interaction, onboarding, accessibility and understandable permissions here. Programming knowledge is not required.\nThe [desktop direction](https://github.com/simonvanieperen/BaryonOS/blob/main/docs/implementation/DESKTOP-SHELL.md) and [privacy contract](https://github.com/simonvanieperen/BaryonOS/blob/main/docs/LOCAL-PRIVACY-CONTRACT.md) provide the starting point. Use examples without personal data.\n"
+        },
+        {
+          "pointer": "/body/1/attributes/label",
+          "text": "User and task"
+        },
+        {
+          "pointer": "/body/1/attributes/description",
+          "text": "Who wants to achieve what, and in which situation? Describe an ordinary action, such as finding a document, pairing a device or using the keyboard."
+        },
+        {
+          "pointer": "/body/2/attributes/label",
+          "text": "What is your contribution based on?"
+        },
+        {
+          "pointer": "/body/2/attributes/options/0",
+          "text": "Design or idea, not yet implemented"
+        },
+        {
+          "pointer": "/body/2/attributes/options/1",
+          "text": "Browser prototype"
+        },
+        {
+          "pointer": "/body/2/attributes/options/2",
+          "text": "Native Baryon OS in QEMU"
+        },
+        {
+          "pointer": "/body/2/attributes/options/3",
+          "text": "Existing experiment on physical hardware"
+        },
+        {
+          "pointer": "/body/2/attributes/options/4",
+          "text": "Not yet known"
+        },
+        {
+          "pointer": "/body/3/attributes/label",
+          "text": "Desired experience and current obstacles"
+        },
+        {
+          "pointer": "/body/3/attributes/description",
+          "text": "What is expected, what happens now and why does it obstruct the task? Include relevant keyboard, focus, scaling, language or recovery problems."
+        },
+        {
+          "pointer": "/body/4/attributes/label",
+          "text": "Proposal"
+        },
+        {
+          "pointer": "/body/4/attributes/description",
+          "text": "What change would help? Also describe how successful task completion would be recognised. A proposal is optional."
+        },
+        {
+          "pointer": "/body/5/attributes/label",
+          "text": "Examples and context"
+        },
+        {
+          "pointer": "/body/5/attributes/description",
+          "text": "Optionally share a screenshot, sketch, short steps, version/commit or related discussion. Label simulations; an image alone does not demonstrate a working native feature."
+        }
+      ],
+      "dutch_lexicon_hits": []
+    },
+    {
+      "path": ".github/DISCUSSION_TEMPLATE/questions-and-help.yml",
+      "visible_fields": [
+        {
+          "pointer": "/title",
+          "text": "[Question] "
+        },
+        {
+          "pointer": "/body/0/attributes/value",
+          "text": "Ask a question about Baryon OS or request help with building, testing or contributing. Reproducible defects can be reported through [Issues](https://github.com/simonvanieperen/BaryonOS/issues/new/choose).\nSee the [guide](https://github.com/simonvanieperen/BaryonOS/blob/main/docs/COMMUNITY.md). Do not share secrets, personal data or exploitable details; follow [SECURITY.md](https://github.com/simonvanieperen/BaryonOS/blob/main/SECURITY.md).\n"
+        },
+        {
+          "pointer": "/body/1/attributes/label",
+          "text": "Component"
+        },
+        {
+          "pointer": "/body/1/attributes/options/0",
+          "text": "Getting started or contributing"
+        },
+        {
+          "pointer": "/body/1/attributes/options/1",
+          "text": "Boot, kernel, processes and capabilities"
+        },
+        {
+          "pointer": "/body/1/attributes/options/2",
+          "text": "Drivers and hardware"
+        },
+        {
+          "pointer": "/body/1/attributes/options/3",
+          "text": "Storage and recovery"
+        },
+        {
+          "pointer": "/body/1/attributes/options/4",
+          "text": "Desktop, Materiaal and accessibility"
+        },
+        {
+          "pointer": "/body/1/attributes/options/5",
+          "text": "Networking, NAS and multiple devices"
+        },
+        {
+          "pointer": "/body/1/attributes/options/6",
+          "text": "Apps and SDK"
+        },
+        {
+          "pointer": "/body/1/attributes/options/7",
+          "text": "Privacy, key management and updates"
+        },
+        {
+          "pointer": "/body/1/attributes/options/8",
+          "text": "Local AI or quantum research"
+        },
+        {
+          "pointer": "/body/1/attributes/options/9",
+          "text": "Build, CI and test evidence"
+        },
+        {
+          "pointer": "/body/1/attributes/options/10",
+          "text": "Documentation or not yet known"
+        },
+        {
+          "pointer": "/body/2/attributes/label",
+          "text": "Your question"
+        },
+        {
+          "pointer": "/body/2/attributes/description",
+          "text": "What would you like to understand or achieve, and where are you stuck?"
+        },
+        {
+          "pointer": "/body/3/attributes/label",
+          "text": "Relevant context"
+        },
+        {
+          "pointer": "/body/3/attributes/description",
+          "text": "Where applicable, provide a source link or commit, host/VM, profile and commands used. State whether this concerns a host prototype, build or native execution."
+        },
+        {
+          "pointer": "/body/4/attributes/label",
+          "text": "Already read or tried"
+        },
+        {
+          "pointer": "/body/4/attributes/description",
+          "text": "Share relevant documentation, earlier discussions and the outcome of your own attempt. A short sanitised error message helps."
+        }
+      ],
+      "dutch_lexicon_hits": []
+    },
+    {
+      "path": ".github/DISCUSSION_TEMPLATE/test-results-and-demos.yml",
+      "visible_fields": [
+        {
+          "pointer": "/title",
+          "text": "[Test result] "
+        },
+        {
+          "pointer": "/body/0/attributes/value",
+          "text": "Share reproducible experiments, test results and demos, including failed or partial outcomes. Use synthetic data and sanitised logs.\nA discussion does not replace version-bound acceptance evidence in the repository. See the [test strategy](https://github.com/simonvanieperen/BaryonOS/blob/main/docs/TEST-STRATEGY.md) and [full test release](https://github.com/simonvanieperen/BaryonOS/blob/main/docs/FULL-TEST-RELEASE.md). Follow [SECURITY.md](https://github.com/simonvanieperen/BaryonOS/blob/main/SECURITY.md) for vulnerabilities.\n"
+        },
+        {
+          "pointer": "/body/1/attributes/label",
+          "text": "Evidence layer"
+        },
+        {
+          "pointer": "/body/1/attributes/description",
+          "text": "Select the layer where this result was actually observed."
+        },
+        {
+          "pointer": "/body/1/attributes/options/0",
+          "text": "Host test or host prototype"
+        },
+        {
+          "pointer": "/body/1/attributes/options/1",
+          "text": "Compilation or artifact inspection"
+        },
+        {
+          "pointer": "/body/1/attributes/options/2",
+          "text": "Native execution in QEMU"
+        },
+        {
+          "pointer": "/body/1/attributes/options/3",
+          "text": "Physical hardware"
+        },
+        {
+          "pointer": "/body/1/attributes/options/4",
+          "text": "Human user test or external review"
+        },
+        {
+          "pointer": "/body/1/attributes/options/5",
+          "text": "Design or simulation without native execution"
+        },
+        {
+          "pointer": "/body/2/attributes/label",
+          "text": "Source version and artifact"
+        },
+        {
+          "pointer": "/body/2/attributes/description",
+          "text": "Commit or exact tested source; add a branch, image ID or SHA-256 where relevant. Explicitly identify missing version information."
+        },
+        {
+          "pointer": "/body/3/attributes/label",
+          "text": "Setup and reproduction"
+        },
+        {
+          "pointer": "/body/3/attributes/description",
+          "text": "Exact commands or interaction steps, test inputs and relevant versions/profiles. For QEMU, include machine, CPU, accelerator, firmware and disk condition; an existing configuration report may provide these details."
+        },
+        {
+          "pointer": "/body/4/attributes/label",
+          "text": "Expected result, observation and evidence"
+        },
+        {
+          "pointer": "/body/4/attributes/description",
+          "text": "What was supposed to happen and what actually happened? Include exit status or error/timeout, successful and failed cases, and links to the CI run, report, log, screenshot or video. Share only relevant sanitised excerpts."
+        },
+        {
+          "pointer": "/body/5/attributes/label",
+          "text": "Evidence limits and next steps"
+        },
+        {
+          "pointer": "/body/5/attributes/description",
+          "text": "Which assumptions, unperformed checks or integration steps remain open? Refer to existing issues and FR/rubric IDs where possible; a partial experiment does not automatically satisfy a criterion."
+        }
+      ],
+      "dutch_lexicon_hits": []
+    },
+    {
+      "path": ".github/ISSUE_TEMPLATE/bug_report.yml",
+      "visible_fields": [
+        {
+          "pointer": "/name",
+          "text": "Report a bug"
+        },
+        {
+          "pointer": "/description",
+          "text": "A reproducible defect in the OS, an app or a prototype"
+        },
+        {
+          "pointer": "/title",
+          "text": "bug: "
+        },
+        {
+          "pointer": "/body/0/attributes/value",
+          "text": "Check the [existing issues](https://github.com/simonvanieperen/BaryonOS/issues) first.\nUse the CI form for build, workflow and test-evidence problems.\nDo not share secrets, keys or real user data. Follow\n[SECURITY.md](https://github.com/simonvanieperen/BaryonOS/blob/main/SECURITY.md)\nfor possible vulnerabilities; do not post exploitable details here.\n"
+        },
+        {
+          "pointer": "/body/1/attributes/label",
+          "text": "Component"
+        },
+        {
+          "pointer": "/body/1/attributes/options/0",
+          "text": "Boot, kernel, processes or IPC"
+        },
+        {
+          "pointer": "/body/1/attributes/options/1",
+          "text": "Storage, encryption or recovery"
+        },
+        {
+          "pointer": "/body/1/attributes/options/2",
+          "text": "Drivers, input or power management"
+        },
+        {
+          "pointer": "/body/1/attributes/options/3",
+          "text": "Desktop, Materiaal or accessibility"
+        },
+        {
+          "pointer": "/body/1/attributes/options/4",
+          "text": "Networking, NAS or synchronisation"
+        },
+        {
+          "pointer": "/body/1/attributes/options/5",
+          "text": "SDK, apps or package management"
+        },
+        {
+          "pointer": "/body/1/attributes/options/6",
+          "text": "Local AI or quantum runtime"
+        },
+        {
+          "pointer": "/body/1/attributes/options/7",
+          "text": "Host prototype"
+        },
+        {
+          "pointer": "/body/1/attributes/options/8",
+          "text": "Other or not yet known"
+        },
+        {
+          "pointer": "/body/2/attributes/label",
+          "text": "Where does it occur?"
+        },
+        {
+          "pointer": "/body/2/attributes/options/0",
+          "text": "Host test or host prototype"
+        },
+        {
+          "pointer": "/body/2/attributes/options/1",
+          "text": "Independent OS in QEMU"
+        },
+        {
+          "pointer": "/body/2/attributes/options/2",
+          "text": "Independent OS in another VM"
+        },
+        {
+          "pointer": "/body/2/attributes/options/3",
+          "text": "Independent OS on a physical device"
+        },
+        {
+          "pointer": "/body/2/attributes/options/4",
+          "text": "Not yet established"
+        },
+        {
+          "pointer": "/body/3/attributes/label",
+          "text": "Tested source or image"
+        },
+        {
+          "pointer": "/body/3/attributes/description",
+          "text": "Commit SHA, PR or download version; write unknown if this cannot be found."
+        },
+        {
+          "pointer": "/body/4/attributes/label",
+          "text": "What goes wrong?"
+        },
+        {
+          "pointer": "/body/4/attributes/description",
+          "text": "Describe the observed behaviour, its consequences and the expected result."
+        },
+        {
+          "pointer": "/body/5/attributes/label",
+          "text": "Steps to reproduce"
+        },
+        {
+          "pointer": "/body/5/attributes/description",
+          "text": "The shortest route with specific actions or commands, inputs and feature profile. State how often it occurs."
+        },
+        {
+          "pointer": "/body/6/attributes/label",
+          "text": "Environment"
+        },
+        {
+          "pointer": "/body/6/attributes/description",
+          "text": "Host OS and architecture. For a VM, include QEMU/firmware, accelerator, vCPUs and RAM; for builds, include tool versions. Identify unknown or irrelevant details as such."
+        },
+        {
+          "pointer": "/body/7/attributes/label",
+          "text": "Evidence and last working version"
+        },
+        {
+          "pointer": "/body/7/attributes/description",
+          "text": "Sanitised error message, exit status, relevant log lines, screenshot or accessible evidence link. Identify the last good commit for a regression; others cannot read a local log path alone."
+        },
+        {
+          "pointer": "/body/8/attributes/label",
+          "text": "Check"
+        },
+        {
+          "pointer": "/body/8/attributes/options/0/label",
+          "text": "I have checked the report and attachments for secrets, keys and real user data."
+        }
+      ],
+      "dutch_lexicon_hits": []
+    },
+    {
+      "path": ".github/ISSUE_TEMPLATE/ci_test_failure.yml",
+      "visible_fields": [
+        {
+          "pointer": "/name",
+          "text": "CI, build or test evidence"
+        },
+        {
+          "pointer": "/description",
+          "text": "Investigate a failed workflow, local build, test gate or missing evidence"
+        },
+        {
+          "pointer": "/title",
+          "text": "ci: "
+        },
+        {
+          "pointer": "/body/0/attributes/value",
+          "text": "Distinguish test failures, infrastructure problems and missing artifacts.\nAn upload failure does not mean the test itself failed; missing evidence is not successful acceptance.\nUse sanitised log lines and synthetic data. Follow\n[SECURITY.md](https://github.com/simonvanieperen/BaryonOS/blob/main/SECURITY.md) for vulnerabilities.\n"
+        },
+        {
+          "pointer": "/body/1/attributes/label",
+          "text": "Source commit and PR"
+        },
+        {
+          "pointer": "/body/1/attributes/description",
+          "text": "The SHA actually tested and any associated PR; not just the branch name."
+        },
+        {
+          "pointer": "/body/2/attributes/label",
+          "text": "Workflow, job and run"
+        },
+        {
+          "pointer": "/body/2/attributes/description",
+          "text": "Link to the run/job and name the failing step. For local work, give the exact command and feature profile."
+        },
+        {
+          "pointer": "/body/3/attributes/label",
+          "text": "Where does execution stop?"
+        },
+        {
+          "pointer": "/body/3/attributes/options/0",
+          "text": "Queue or runner startup"
+        },
+        {
+          "pointer": "/body/3/attributes/options/1",
+          "text": "Toolchain, dependencies or build"
+        },
+        {
+          "pointer": "/body/3/attributes/options/2",
+          "text": "Test or assertion"
+        },
+        {
+          "pointer": "/body/3/attributes/options/3",
+          "text": "Timeout or hang"
+        },
+        {
+          "pointer": "/body/3/attributes/options/4",
+          "text": "Artifact upload, storage or evidence retrieval"
+        },
+        {
+          "pointer": "/body/3/attributes/options/5",
+          "text": "Not yet known"
+        },
+        {
+          "pointer": "/body/4/attributes/label",
+          "text": "Actual result"
+        },
+        {
+          "pointer": "/body/4/attributes/description",
+          "text": "Exact error message and exit status. Which tests started, completed or were not run? Distinguish host tests, native VM tests and physical experiments."
+        },
+        {
+          "pointer": "/body/5/attributes/label",
+          "text": "Environment and reproduction"
+        },
+        {
+          "pointer": "/body/5/attributes/description",
+          "text": "Runner/host, relevant tool versions and, for QEMU, firmware, accelerator, vCPUs and RAM. Describe a repeat or local reproduction, or state not run. Preserve the same test boundaries."
+        },
+        {
+          "pointer": "/body/6/attributes/label",
+          "text": "Available or missing evidence"
+        },
+        {
+          "pointer": "/body/6/attributes/description",
+          "text": "Accessible sanitised logs/reports, artifact name and hashes where available. Identify missing evidence and any earlier successful run on the same source; do not remove failed results to make the report pass."
+        }
+      ],
+      "dutch_lexicon_hits": []
+    },
+    {
+      "path": ".github/ISSUE_TEMPLATE/config.yml",
+      "visible_fields": [
+        {
+          "pointer": "/contact_links/0/name",
+          "text": "Questions and help"
+        },
+        {
+          "pointer": "/contact_links/0/about",
+          "text": "Help with the source code, building, testing and understanding Baryon OS."
+        },
+        {
+          "pointer": "/contact_links/1/name",
+          "text": "Product and user experience"
+        },
+        {
+          "pointer": "/contact_links/1/about",
+          "text": "Discuss user problems, ideas, everyday tasks and accessibility."
+        },
+        {
+          "pointer": "/contact_links/2/name",
+          "text": "Architecture and design"
+        },
+        {
+          "pointer": "/contact_links/2/about",
+          "text": "Support technical proposals with evidence and discuss interfaces and evidence limits before implementation."
+        },
+        {
+          "pointer": "/contact_links/3/name",
+          "text": "Security issue"
+        },
+        {
+          "pointer": "/contact_links/3/about",
+          "text": "Read the current reporting policy; do not post secrets or exploitable details in a public issue."
+        }
+      ],
+      "dutch_lexicon_hits": []
+    },
+    {
+      "path": ".github/ISSUE_TEMPLATE/documentation.yml",
+      "visible_fields": [
+        {
+          "pointer": "/name",
+          "text": "Correct documentation"
+        },
+        {
+          "pointer": "/description",
+          "text": "Report an unclear explanation, outdated status or insufficiently supported claim"
+        },
+        {
+          "pointer": "/title",
+          "text": "docs: "
+        },
+        {
+          "pointer": "/body/0/attributes/value",
+          "text": "The current source and evidence limits are authoritative. An old test result does not automatically apply to new code.\nUse [Questions and help](https://github.com/simonvanieperen/BaryonOS/discussions/categories/questions-and-help)\nwhen primarily seeking an explanation. Do not share sensitive data or vulnerability details.\n"
+        },
+        {
+          "pointer": "/body/1/attributes/label",
+          "text": "File, page or link"
+        },
+        {
+          "pointer": "/body/1/attributes/description",
+          "text": "Identify the exact section and preferably a URL containing a commit or version."
+        },
+        {
+          "pointer": "/body/2/attributes/label",
+          "text": "What is incorrect or unclear?"
+        },
+        {
+          "pointer": "/body/2/attributes/description",
+          "text": "Quote only the relevant passage and describe its effect on reading, execution or assessment."
+        },
+        {
+          "pointer": "/body/3/attributes/label",
+          "text": "Proposed correction"
+        },
+        {
+          "pointer": "/body/3/attributes/description",
+          "text": "Which explanation is missing or which text needs changing? Precise replacement wording is welcome but not required."
+        },
+        {
+          "pointer": "/body/4/attributes/label",
+          "text": "Supporting evidence"
+        },
+        {
+          "pointer": "/body/4/attributes/description",
+          "text": "Relevant code, version-bound test results or a primary source with title, organisation, date/version and URL. Identify what cannot yet be verified."
+        }
+      ],
+      "dutch_lexicon_hits": []
+    }
+  ],
+  "review_corrections": [
+    "The first audit expected legacy --help to be quarantined; source inspection proved argparse handles help before require_pipeline_release. Actual raw help exit was0 throughout; no execution was enabled.",
+    "Collector Dutch regex/test sentences are detection fixtures, not generated active prose; classified after checking exact producer sites104/143/149."
+  ],
+  "source_fingerprint_version": 3,
+  "source_sha256": "42163e2d99138eecda0977feab534c5eebb9f77bc25a2e04abd5f2d28752be92",
+  "markdown_changes_freeze_to_source": [],
+  "markdown_check": {
+    "argv": [
+      "git",
+      "diff",
+      "--name-only",
+      "2073e4affd8a46a4bd0a1b95bcb06f7c2b0062c2",
+      "31ccacc2498e8d2a5d3cb763e859c7b49282728c",
+      "--",
+      "*.md"
+    ],
+    "exit_code": 0,
+    "log": "markdown-freeze.log",
+    "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "raw_outer_receipts": [
+    "collection-receipt.json",
+    "assembly-receipt.json"
+  ]
+}

@@ -80,11 +80,14 @@ fn copy_all_alignments_lengths_canaries_and_original_return_pointer() {
                 output.fill(0xa5);
                 let src = unsafe { source.as_ptr().add(8 + sa) };
                 let dst = unsafe { output.as_mut_ptr().add(8 + da) };
-                assert_eq!(unsafe { memory::memcpy(dst, src, n) }, dst);
+                assert_eq!(
+                    unsafe { memory::memcpy(dst.cast(), src.cast(), n).cast::<u8>() },
+                    dst
+                );
                 equal(src, dst, n);
                 assert!(output[..8 + da].iter().all(|&x| x == 0xa5));
                 assert!(output[8 + da + n..].iter().all(|&x| x == 0xa5));
-                assert_eq!(unsafe { memory::memcmp(src, dst, n) }, 0);
+                assert_eq!(unsafe { memory::memcmp(src.cast(), dst.cast(), n) }, 0);
             }
         }
     }
@@ -99,27 +102,33 @@ fn guard_pages_exact_ends_starts_empty_inaccessible_and_read_only_source() {
         let src = unsafe { a.end().sub(n) };
         let dst = unsafe { b.end().sub(n) };
         unsafe {
-            memory::memcpy(dst, src, n);
+            memory::memcpy(dst.cast(), src.cast(), n).cast::<u8>();
         }
         equal(src, dst, n);
-        assert_eq!(unsafe { memory::memcmp(src, dst, n) }, 0);
-        assert_eq!(unsafe { memory::memcmp(dst, src, n) }, 0);
+        assert_eq!(unsafe { memory::memcmp(src.cast(), dst.cast(), n) }, 0);
+        assert_eq!(unsafe { memory::memcmp(dst.cast(), src.cast(), n) }, 0);
         for alignment in 0..8 {
             let other = unsafe { b.start().add(alignment) };
             unsafe {
-                memory::memcpy(other, src, n);
+                memory::memcpy(other.cast(), src.cast(), n).cast::<u8>();
             }
             equal(src, other, n);
-            assert_eq!(unsafe { memory::memcmp(src, other, n) }, 0);
-            assert_eq!(unsafe { memory::memcmp(other, src, n) }, 0);
+            assert_eq!(unsafe { memory::memcmp(src.cast(), other.cast(), n) }, 0);
+            assert_eq!(unsafe { memory::memcmp(other.cast(), src.cast(), n) }, 0);
         }
     }
     // Both arguments are genuinely inaccessible. Zero-length must not load or
     // store, and can never form an unconditional full-word access.
-    assert_eq!(unsafe { memory::memcpy(b.end(), a.end(), 0) }, b.end());
-    assert_eq!(unsafe { memory::memcmp(a.end(), b.end(), 0) }, 0);
+    assert_eq!(
+        unsafe { memory::memcpy(b.end().cast(), a.end().cast(), 0).cast::<u8>() },
+        b.end()
+    );
+    assert_eq!(
+        unsafe { memory::memcmp(a.end().cast(), b.end().cast(), 0) },
+        0
+    );
     unsafe {
-        memory::memcpy(b.start(), a.start(), 1025);
+        memory::memcpy(b.start().cast(), a.start().cast(), 1025).cast::<u8>();
     }
     equal(a.start(), b.start(), 1025);
 }
@@ -141,8 +150,9 @@ fn comparison_first_byte_unsigned_lexicographic_and_word_tail_boundaries() {
                             b[ba + first + 1] = x;
                         }
                         let expected = oracle(&a[aa..aa + n], &b[ba..ba + n]);
-                        let got =
-                            unsafe { memory::memcmp(a.as_ptr().add(aa), b.as_ptr().add(ba), n) };
+                        let got = unsafe {
+                            memory::memcmp(a.as_ptr().add(aa).cast(), b.as_ptr().add(ba).cast(), n)
+                        };
                         assert_eq!(got, expected, "align {aa}/{ba} n={n} first={first}");
                     }
                 }
@@ -189,7 +199,12 @@ fn existing_memmove_overlap_behavior_is_preserved() {
                 let before = actual;
                 let (from, to) = if backwards { (0, gap) } else { (gap, 0) };
                 let returned = unsafe {
-                    memory::memmove(actual.as_mut_ptr().add(to), actual.as_ptr().add(from), n)
+                    memory::memmove(
+                        actual.as_mut_ptr().add(to).cast(),
+                        actual.as_ptr().add(from).cast(),
+                        n,
+                    )
+                    .cast::<u8>()
                 };
                 assert_eq!(returned, unsafe { actual.as_mut_ptr().add(to) });
                 for i in 0..actual.len() {

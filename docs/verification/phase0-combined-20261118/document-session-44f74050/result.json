@@ -1,0 +1,776 @@
+{
+  "schema_version": 1,
+  "status": "completed",
+  "passed": true,
+  "scope": "Two real native DocumentSession normal/cold-recovery cases; no GUI or full M6c suite",
+  "source_commit": "44f7405003977dbf7f33eb5bca77f8a8f82c6f1c",
+  "source_fingerprint_version": 3,
+  "source_sha256": "3e3ee0876817b21612410b537f925681349c65c01d7ea397226f20e9ccf5bb1e",
+  "started_utc": "2026-11-18T02:59:07.282193+00:00",
+  "gate_sha256": "c1545eaf70ad4bb744cfe56d9ffb0ea03300505b9e200be9b7c1b9a1a6d2d0b2",
+  "environment": {
+    "NOS_DOCUMENT_SESSION": "1",
+    "NOS_SDK_RUNTIME": "1",
+    "NOS_BUILD_DIR": "/workspace/baryon-combined-native-validate/build/combined-document-session",
+    "NOS_TARGET_DIR": "/workspace/baryon-combined-native-validate/target/combined-document-session",
+    "CARGO_TARGET_DIR": "/workspace/baryon-combined-native-validate/target/combined-document-session",
+    "CARGO_BUILD_JOBS": "2",
+    "NOS_QEMU_MACHINE": null
+  },
+  "freeze_checks": [
+    {
+      "stage": "before-normal-build",
+      "head": "44f7405003977dbf7f33eb5bca77f8a8f82c6f1c",
+      "source_sha256": "3e3ee0876817b21612410b537f925681349c65c01d7ea397226f20e9ccf5bb1e",
+      "passed": true
+    },
+    {
+      "stage": "after-normal-build",
+      "head": "44f7405003977dbf7f33eb5bca77f8a8f82c6f1c",
+      "source_sha256": "3e3ee0876817b21612410b537f925681349c65c01d7ea397226f20e9ccf5bb1e",
+      "passed": true
+    },
+    {
+      "stage": "before-normal-vm",
+      "head": "44f7405003977dbf7f33eb5bca77f8a8f82c6f1c",
+      "source_sha256": "3e3ee0876817b21612410b537f925681349c65c01d7ea397226f20e9ccf5bb1e",
+      "passed": true
+    },
+    {
+      "stage": "after-normal-vm",
+      "head": "44f7405003977dbf7f33eb5bca77f8a8f82c6f1c",
+      "source_sha256": "3e3ee0876817b21612410b537f925681349c65c01d7ea397226f20e9ccf5bb1e",
+      "passed": true
+    },
+    {
+      "stage": "before-recover-build",
+      "head": "44f7405003977dbf7f33eb5bca77f8a8f82c6f1c",
+      "source_sha256": "3e3ee0876817b21612410b537f925681349c65c01d7ea397226f20e9ccf5bb1e",
+      "passed": true
+    },
+    {
+      "stage": "after-recover-build",
+      "head": "44f7405003977dbf7f33eb5bca77f8a8f82c6f1c",
+      "source_sha256": "3e3ee0876817b21612410b537f925681349c65c01d7ea397226f20e9ccf5bb1e",
+      "passed": true
+    },
+    {
+      "stage": "before-recover-vm",
+      "head": "44f7405003977dbf7f33eb5bca77f8a8f82c6f1c",
+      "source_sha256": "3e3ee0876817b21612410b537f925681349c65c01d7ea397226f20e9ccf5bb1e",
+      "passed": true
+    },
+    {
+      "stage": "after-recover-vm",
+      "head": "44f7405003977dbf7f33eb5bca77f8a8f82c6f1c",
+      "source_sha256": "3e3ee0876817b21612410b537f925681349c65c01d7ea397226f20e9ccf5bb1e",
+      "passed": true
+    },
+    {
+      "stage": "after-complete-recheck",
+      "head": "44f7405003977dbf7f33eb5bca77f8a8f82c6f1c",
+      "source_sha256": "3e3ee0876817b21612410b537f925681349c65c01d7ea397226f20e9ccf5bb1e",
+      "passed": true
+    }
+  ],
+  "phases": [
+    {
+      "name": "build-normal",
+      "duration_s": 7.888368489000641,
+      "completed": true,
+      "error": null,
+      "logs_sha256": {
+        "build-normal.stdout.txt": "8f0e7f979b84c6b1d9ecdbfa04a4540fbd079260558158586b5d346f502997b7",
+        "build-normal.stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "name": "vm-normal",
+      "duration_s": 3.02417926400085,
+      "completed": true,
+      "error": null,
+      "logs_sha256": {
+        "vm-normal.stdout.txt": "3392eeb7f10990ac9fcf5736fac694f9eef435fceecea37fc8f246030b306887",
+        "vm-normal.stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "name": "build-recover",
+      "duration_s": 4.441732725999827,
+      "completed": true,
+      "error": null,
+      "logs_sha256": {
+        "build-recover.stdout.txt": "7695b708f2a640f9a1d765c682226ef6237ea40d129e5d1e29da30d76393a746",
+        "build-recover.stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "name": "vm-recover",
+      "duration_s": 2.977787552999871,
+      "completed": true,
+      "error": null,
+      "logs_sha256": {
+        "vm-recover.stdout.txt": "ac83db8d01e18383ab08b7948023c5e02688fc97c07cab2074f64bf4dbfd0db3",
+        "vm-recover.stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    }
+  ],
+  "runs": [
+    {
+      "label": "document-session-normal",
+      "case": "normal",
+      "started_utc": "2026-11-18T02:59:15.961080+00:00",
+      "duration_s": 2.77869712500069,
+      "timeout_s": 60,
+      "timed_out": false,
+      "raw_qemu_exit": 33,
+      "expected_exit": 33,
+      "required_markers": [
+        "BOOT:EBS_OK",
+        "KERNEL:ENTRY",
+        "BOOTINFO:OK",
+        "M6C:READY",
+        "M6C:CASE:NORMAL:PASS",
+        "M6C:SURVIVOR_PROGRESS:PASS",
+        "M6C:RESOURCES:PASS",
+        "M6C:PASS",
+        "M1:PASS"
+      ],
+      "forbidden_markers": [
+        "M1:FAIL",
+        "M2:FAIL",
+        "M3:FAIL",
+        "M4:FAIL",
+        "M5:FAIL",
+        "M6A:FAIL",
+        "M6B:FAIL",
+        "M6C:FAIL"
+      ],
+      "passed": true,
+      "command": [
+        "/workspace/.nieuw-os-env/bin/qemu-system-x86_64",
+        "-machine",
+        "pc-q35-10.0",
+        "-accel",
+        "tcg,thread=single",
+        "-cpu",
+        "qemu64",
+        "-smp",
+        "1",
+        "-m",
+        "256M",
+        "-nodefaults",
+        "-display",
+        "none",
+        "-monitor",
+        "none",
+        "-serial",
+        "stdio",
+        "-nic",
+        "none",
+        "-no-reboot",
+        "-drive",
+        "if=pflash,unit=0,format=raw,readonly=on,file=build/combined-document-session/run/m6c-document-session-normal-a58510abe3/OVMF_CODE.fd",
+        "-drive",
+        "if=pflash,unit=1,format=raw,file=build/combined-document-session/run/m6c-document-session-normal-a58510abe3/OVMF_VARS.fd",
+        "-drive",
+        "if=virtio,index=0,format=raw,readonly=on,file=fat:build/combined-document-session/run/m6c-document-session-normal-a58510abe3/esp",
+        "-device",
+        "isa-debug-exit,iobase=0xf4,iosize=0x04",
+        "-drive",
+        "if=none,id=m6c-test,format=raw,cache=writeback,readonly=off,file=build/combined-document-session/run/m6c-volume-document-session-normal-4e99b7aef2/test-disk.img",
+        "-device",
+        "virtio-blk-pci,drive=m6c-test,id=m6cblk,addr=0x5,disable-legacy=on,num-queues=1,queue-size=8,serial=NOS-M6C-TEST"
+      ],
+      "qemu_version": "QEMU emulator version 10.0.13 (Debian 1:10.0.13+ds-0+deb13u1)\nCopyright (c) 2003-2025 Fabrice Bellard and the QEMU Project developers",
+      "qemu_sha256": "1a0cd0b1d99d7df341bbc618a9a66368b8d9594c7644f0ea0cd3ca62b273930a",
+      "profile": "M6c pc-q35-10.0/qemu64/TCG/1CPU/256MiB; synthetic writeback raw volume",
+      "firmware_source": [
+        "/workspace/.nieuw-os-env/sysroot/usr/share/OVMF/OVMF_CODE_4M.fd",
+        "/workspace/.nieuw-os-env/sysroot/usr/share/OVMF/OVMF_VARS_4M.fd"
+      ],
+      "base_commit": "44f7405003977dbf7f33eb5bca77f8a8f82c6f1c",
+      "source_fingerprint_version": 3,
+      "source_sha256": "3e3ee0876817b21612410b537f925681349c65c01d7ea397226f20e9ccf5bb1e",
+      "observed_source_sha256": "3e3ee0876817b21612410b537f925681349c65c01d7ea397226f20e9ccf5bb1e",
+      "source_unchanged": true,
+      "artifact_sha256": {
+        "esp/kernel.elf": "69e55fc32e398cf4e8f393dd9723b81771ee728ddeae5966bbb8b8ff31411687",
+        "esp/EFI/BOOT/BOOTX64.EFI": "917ea7227bacefae870bf28ed3bb979f4a5f4b484d4ec7eb7682680538cea769",
+        "OVMF_CODE.fd": "624e06de18b4fa535e90db7160d00d3d07d206422b89999bf1e27d920264e4e0",
+        "OVMF_VARS.template.fd": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e",
+        "OVMF_VARS.fd": "2e055c7e290084acf57c1d9a4229423c96493db030a6c2e6bb2c29155c87bd70",
+        "test-disk.before.img": "ed25d2baddf0c435fee531c5c08f6ee00c91d220d308a493aa917ff7c78f7620",
+        "test-disk.after.img": "b5f0bfda3c7755dccd1a8b5243b7c448ad5a21e83ecf781f5c1429dd9d4843f1",
+        "build-manifest.json": "3660b2bdac59580e184c31e1faaef1227b0d3a28656a227979205b15da5629ad",
+        "volume-manifest.json": "e1ed54f3997137f31774db02f245a395f4f4733d4ccb257bff21a50e5c796bb0"
+      },
+      "volume_path": "/workspace/baryon-combined-native-validate/build/combined-document-session/run/m6c-volume-document-session-normal-4e99b7aef2/test-disk.img",
+      "disk_oracle": {
+        "scope": "independent Python v2 parser over actual synthetic 64KiB volume",
+        "identity": "4e99b7aef22f49b68677c22ebfb8aedc",
+        "seed": 359458576280427519,
+        "variant": "normal",
+        "sha256_initial": "ed25d2baddf0c435fee531c5c08f6ee00c91d220d308a493aa917ff7c78f7620",
+        "sha256_after": "b5f0bfda3c7755dccd1a8b5243b7c448ad5a21e83ecf781f5c1429dd9d4843f1",
+        "state": {
+          "sequence": 10,
+          "objects": [
+            {
+              "revision": 3,
+              "present": true,
+              "length": 128,
+              "digest": "b283dc2e26cecaa5",
+              "name_length": 16,
+              "name_digest": "8b2d238f15d9816a"
+            },
+            {
+              "revision": 2,
+              "present": false,
+              "length": 0,
+              "digest": "cbf29ce484222325",
+              "name_length": 0,
+              "name_digest": "cbf29ce484222325"
+            },
+            {
+              "revision": 3,
+              "present": true,
+              "length": 128,
+              "digest": "7a79c58355bc8925",
+              "name_length": 16,
+              "name_digest": "8b2d228f15d97fb7"
+            },
+            {
+              "revision": 2,
+              "present": false,
+              "length": 0,
+              "digest": "cbf29ce484222325",
+              "name_length": 0,
+              "name_digest": "cbf29ce484222325"
+            }
+          ]
+        },
+        "observed": {
+          "state": {
+            "sequence": 10,
+            "objects": [
+              {
+                "revision": 3,
+                "present": true,
+                "length": 128,
+                "digest": "b283dc2e26cecaa5",
+                "name_length": 16,
+                "name_digest": "8b2d238f15d9816a"
+              },
+              {
+                "revision": 2,
+                "present": false,
+                "length": 0,
+                "digest": "cbf29ce484222325",
+                "name_length": 0,
+                "name_digest": "cbf29ce484222325"
+              },
+              {
+                "revision": 3,
+                "present": true,
+                "length": 128,
+                "digest": "7a79c58355bc8925",
+                "name_length": 16,
+                "name_digest": "8b2d228f15d97fb7"
+              },
+              {
+                "revision": 2,
+                "present": false,
+                "length": 0,
+                "digest": "cbf29ce484222325",
+                "name_length": 0,
+                "name_digest": "cbf29ce484222325"
+              }
+            ]
+          },
+          "acks": 10,
+          "rejected": 6,
+          "domain_revisions": [
+            5,
+            5
+          ],
+          "catalog_replies": 10
+        },
+        "checks": {
+          "outside_journal_unchanged": true,
+          "case_matches_volume_variant": true,
+          "fresh_mutator_before_image": true,
+          "journal_valid_or_explicit_rejection_case": true,
+          "guest_matches_independent_disk_state": true,
+          "read_only_stage_unchanged": true,
+          "record_payloads_and_names_match_native_scenario": true,
+          "expected_final_state": true,
+          "exact_mutation_ack_count": true,
+          "exact_catalog_reply_count": true,
+          "domain_revisions_exclude_foreign_mutations": true,
+          "all_negative_requests_without_io": true
+        },
+        "passed": true
+      },
+      "host_crash": {
+        "requested_cut": null,
+        "cut_lines": [],
+        "kill_requested": false,
+        "process_id": 130569,
+        "was_running_before_kill": false,
+        "required_live_hold_s": 0.05,
+        "termination_code_expected": -9,
+        "real_process_returncode": 33
+      },
+      "serial_sha256": "89d4d4d7137f89da42ad055f32fbca69bade385f0205dc07d9edc7783ea0f174",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "previous_stage": null,
+      "outcome_marker_passed": true,
+      "fault_injection_scope": null,
+      "execution_error": null,
+      "oracle_error": null,
+      "run_directory": "/workspace/baryon-combined-native-validate/build/combined-document-session/run/m6c-document-session-normal-a58510abe3",
+      "stdout": "\u001b[2J\u001b[01;01H\u001b[=3h\u001b[2J\u001b[01;01H\u001b[2J\u001b[01;01H\u001b[=3h\u001b[2J\u001b[01;01HBdsDxe: loading Boot0001 \"UEFI Misc Device\" from PciRoot(0x0)/Pci(0x1,0x0)\r\nBdsDxe: starting Boot0001 \"UEFI Misc Device\" from PciRoot(0x0)/Pci(0x1,0x0)\r\nBOOT:EBS_OK\nKERNEL:ENTRY\nBOOTINFO:OK\nKS-01:PASS\nKS-02:PASS\nACPI:UNAVAILABLE:NO_DMAR\nDEVICE-EXECUTION:BLOCKED:ADAPTER_ABSENT\nKS-03:PASS\nM2:PASS\nM6C:READY\nM6C:SEQUENCE:10\nM6C:OBJECT0:REVISION:3\nM6C:OBJECT0:PRESENT:1\nM6C:OBJECT0:LENGTH:128\nM6C:OBJECT0:NAME_LENGTH:16\nM6C:OBJECT0:NAME_DIGEST:8b2d238f15d9816a\nM6C:OBJECT0:DIGEST:b283dc2e26cecaa5\nM6C:OBJECT1:REVISION:2\nM6C:OBJECT1:PRESENT:0\nM6C:OBJECT1:LENGTH:0\nM6C:OBJECT1:NAME_LENGTH:0\nM6C:OBJECT1:NAME_DIGEST:cbf29ce484222325\nM6C:OBJECT1:DIGEST:cbf29ce484222325\nM6C:OBJECT2:REVISION:3\nM6C:OBJECT2:PRESENT:1\nM6C:OBJECT2:LENGTH:128\nM6C:OBJECT2:NAME_LENGTH:16\nM6C:OBJECT2:NAME_DIGEST:8b2d228f15d97fb7\nM6C:OBJECT2:DIGEST:7a79c58355bc8925\nM6C:OBJECT3:REVISION:2\nM6C:OBJECT3:PRESENT:0\nM6C:OBJECT3:LENGTH:0\nM6C:OBJECT3:NAME_LENGTH:0\nM6C:OBJECT3:NAME_DIGEST:cbf29ce484222325\nM6C:OBJECT3:DIGEST:cbf29ce484222325\nM6C:ACKS:10\nM6C:REJECTED_NO_IO:6\nM6C:CATALOG_REPLIES:10\nM6C:DOMAIN0:REVISION:5\nM6C:DOMAIN1:REVISION:5\nM6C:CASE:NORMAL:PASS\nM6C:SURVIVOR_PROGRESS:PASS\nM6C:BROKER:MAX_COMPLETION_TICKS:0\nM6C:BROKER:TIMEOUTS:0\nM6C:RESOURCES:PASS\nM6C:PASS\nM1:PASS\n",
+      "stderr": ""
+    },
+    {
+      "label": "document-session-recover",
+      "case": "recover",
+      "started_utc": "2026-11-18T02:59:24.215954+00:00",
+      "duration_s": 2.7372510519999196,
+      "timeout_s": 60,
+      "timed_out": false,
+      "raw_qemu_exit": 33,
+      "expected_exit": 33,
+      "required_markers": [
+        "BOOT:EBS_OK",
+        "KERNEL:ENTRY",
+        "BOOTINFO:OK",
+        "M6C:READY",
+        "M6C:CASE:RECOVER:PASS",
+        "M6C:SURVIVOR_PROGRESS:PASS",
+        "M6C:RESOURCES:PASS",
+        "M6C:PASS",
+        "M1:PASS"
+      ],
+      "forbidden_markers": [
+        "M1:FAIL",
+        "M2:FAIL",
+        "M3:FAIL",
+        "M4:FAIL",
+        "M5:FAIL",
+        "M6A:FAIL",
+        "M6B:FAIL",
+        "M6C:FAIL"
+      ],
+      "passed": true,
+      "command": [
+        "/workspace/.nieuw-os-env/bin/qemu-system-x86_64",
+        "-machine",
+        "pc-q35-10.0",
+        "-accel",
+        "tcg,thread=single",
+        "-cpu",
+        "qemu64",
+        "-smp",
+        "1",
+        "-m",
+        "256M",
+        "-nodefaults",
+        "-display",
+        "none",
+        "-monitor",
+        "none",
+        "-serial",
+        "stdio",
+        "-nic",
+        "none",
+        "-no-reboot",
+        "-drive",
+        "if=pflash,unit=0,format=raw,readonly=on,file=build/combined-document-session/run/m6c-document-session-recover-8fb6769a79/OVMF_CODE.fd",
+        "-drive",
+        "if=pflash,unit=1,format=raw,file=build/combined-document-session/run/m6c-document-session-recover-8fb6769a79/OVMF_VARS.fd",
+        "-drive",
+        "if=virtio,index=0,format=raw,readonly=on,file=fat:build/combined-document-session/run/m6c-document-session-recover-8fb6769a79/esp",
+        "-device",
+        "isa-debug-exit,iobase=0xf4,iosize=0x04",
+        "-drive",
+        "if=none,id=m6c-test,format=raw,cache=writeback,readonly=on,file=build/combined-document-session/run/m6c-volume-document-session-normal-4e99b7aef2/test-disk.img",
+        "-device",
+        "virtio-blk-pci,drive=m6c-test,id=m6cblk,addr=0x5,disable-legacy=on,num-queues=1,queue-size=8,serial=NOS-M6C-TEST"
+      ],
+      "qemu_version": "QEMU emulator version 10.0.13 (Debian 1:10.0.13+ds-0+deb13u1)\nCopyright (c) 2003-2025 Fabrice Bellard and the QEMU Project developers",
+      "qemu_sha256": "1a0cd0b1d99d7df341bbc618a9a66368b8d9594c7644f0ea0cd3ca62b273930a",
+      "profile": "M6c pc-q35-10.0/qemu64/TCG/1CPU/256MiB; synthetic writeback raw volume",
+      "firmware_source": [
+        "/workspace/.nieuw-os-env/sysroot/usr/share/OVMF/OVMF_CODE_4M.fd",
+        "/workspace/.nieuw-os-env/sysroot/usr/share/OVMF/OVMF_VARS_4M.fd"
+      ],
+      "base_commit": "44f7405003977dbf7f33eb5bca77f8a8f82c6f1c",
+      "source_fingerprint_version": 3,
+      "source_sha256": "3e3ee0876817b21612410b537f925681349c65c01d7ea397226f20e9ccf5bb1e",
+      "observed_source_sha256": "3e3ee0876817b21612410b537f925681349c65c01d7ea397226f20e9ccf5bb1e",
+      "source_unchanged": true,
+      "artifact_sha256": {
+        "esp/kernel.elf": "07c2fdc6c8120128c146812f9ff75f94089ae97b90bfbe3052a6a81dad96a72c",
+        "esp/EFI/BOOT/BOOTX64.EFI": "917ea7227bacefae870bf28ed3bb979f4a5f4b484d4ec7eb7682680538cea769",
+        "OVMF_CODE.fd": "624e06de18b4fa535e90db7160d00d3d07d206422b89999bf1e27d920264e4e0",
+        "OVMF_VARS.template.fd": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e",
+        "OVMF_VARS.fd": "2e055c7e290084acf57c1d9a4229423c96493db030a6c2e6bb2c29155c87bd70",
+        "test-disk.before.img": "b5f0bfda3c7755dccd1a8b5243b7c448ad5a21e83ecf781f5c1429dd9d4843f1",
+        "test-disk.after.img": "b5f0bfda3c7755dccd1a8b5243b7c448ad5a21e83ecf781f5c1429dd9d4843f1",
+        "build-manifest.json": "d224658d5c4364ead8fc42e25b39cac2062552be75e42da5b2c484e6d2ffba85",
+        "volume-manifest.json": "e1ed54f3997137f31774db02f245a395f4f4733d4ccb257bff21a50e5c796bb0"
+      },
+      "volume_path": "/workspace/baryon-combined-native-validate/build/combined-document-session/run/m6c-volume-document-session-normal-4e99b7aef2/test-disk.img",
+      "disk_oracle": {
+        "scope": "independent Python v2 parser over actual synthetic 64KiB volume",
+        "identity": "4e99b7aef22f49b68677c22ebfb8aedc",
+        "seed": 359458576280427519,
+        "variant": "normal",
+        "sha256_initial": "ed25d2baddf0c435fee531c5c08f6ee00c91d220d308a493aa917ff7c78f7620",
+        "sha256_after": "b5f0bfda3c7755dccd1a8b5243b7c448ad5a21e83ecf781f5c1429dd9d4843f1",
+        "state": {
+          "sequence": 10,
+          "objects": [
+            {
+              "revision": 3,
+              "present": true,
+              "length": 128,
+              "digest": "b283dc2e26cecaa5",
+              "name_length": 16,
+              "name_digest": "8b2d238f15d9816a"
+            },
+            {
+              "revision": 2,
+              "present": false,
+              "length": 0,
+              "digest": "cbf29ce484222325",
+              "name_length": 0,
+              "name_digest": "cbf29ce484222325"
+            },
+            {
+              "revision": 3,
+              "present": true,
+              "length": 128,
+              "digest": "7a79c58355bc8925",
+              "name_length": 16,
+              "name_digest": "8b2d228f15d97fb7"
+            },
+            {
+              "revision": 2,
+              "present": false,
+              "length": 0,
+              "digest": "cbf29ce484222325",
+              "name_length": 0,
+              "name_digest": "cbf29ce484222325"
+            }
+          ]
+        },
+        "observed": {
+          "state": {
+            "sequence": 10,
+            "objects": [
+              {
+                "revision": 3,
+                "present": true,
+                "length": 128,
+                "digest": "b283dc2e26cecaa5",
+                "name_length": 16,
+                "name_digest": "8b2d238f15d9816a"
+              },
+              {
+                "revision": 2,
+                "present": false,
+                "length": 0,
+                "digest": "cbf29ce484222325",
+                "name_length": 0,
+                "name_digest": "cbf29ce484222325"
+              },
+              {
+                "revision": 3,
+                "present": true,
+                "length": 128,
+                "digest": "7a79c58355bc8925",
+                "name_length": 16,
+                "name_digest": "8b2d228f15d97fb7"
+              },
+              {
+                "revision": 2,
+                "present": false,
+                "length": 0,
+                "digest": "cbf29ce484222325",
+                "name_length": 0,
+                "name_digest": "cbf29ce484222325"
+              }
+            ]
+          },
+          "acks": 0,
+          "rejected": 2,
+          "domain_revisions": [
+            5,
+            5
+          ],
+          "catalog_replies": 2
+        },
+        "checks": {
+          "outside_journal_unchanged": true,
+          "case_matches_volume_variant": true,
+          "fresh_mutator_before_image": true,
+          "journal_valid_or_explicit_rejection_case": true,
+          "guest_matches_independent_disk_state": true,
+          "read_only_stage_unchanged": true,
+          "record_payloads_and_names_match_native_scenario": true,
+          "expected_final_state": true,
+          "exact_mutation_ack_count": true,
+          "exact_catalog_reply_count": true,
+          "domain_revisions_exclude_foreign_mutations": true
+        },
+        "passed": true
+      },
+      "host_crash": {
+        "requested_cut": null,
+        "cut_lines": [],
+        "kill_requested": false,
+        "process_id": 130953,
+        "was_running_before_kill": false,
+        "required_live_hold_s": 0.05,
+        "termination_code_expected": -9,
+        "real_process_returncode": 33
+      },
+      "serial_sha256": "91f99a30ea4bfe2a97c492b4c6fb536c57c73a468f2a527488dc3c1d63a60157",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "previous_stage": "/workspace/baryon-combined-native-validate/build/combined-document-session/run/m6c-document-session-normal-a58510abe3",
+      "outcome_marker_passed": true,
+      "fault_injection_scope": null,
+      "execution_error": null,
+      "oracle_error": null,
+      "run_directory": "/workspace/baryon-combined-native-validate/build/combined-document-session/run/m6c-document-session-recover-8fb6769a79",
+      "stdout": "\u001b[2J\u001b[01;01H\u001b[=3h\u001b[2J\u001b[01;01H\u001b[2J\u001b[01;01H\u001b[=3h\u001b[2J\u001b[01;01HBdsDxe: loading Boot0001 \"UEFI Misc Device\" from PciRoot(0x0)/Pci(0x1,0x0)\r\nBdsDxe: starting Boot0001 \"UEFI Misc Device\" from PciRoot(0x0)/Pci(0x1,0x0)\r\nBOOT:EBS_OK\nKERNEL:ENTRY\nBOOTINFO:OK\nKS-01:PASS\nKS-02:PASS\nACPI:UNAVAILABLE:NO_DMAR\nDEVICE-EXECUTION:BLOCKED:ADAPTER_ABSENT\nKS-03:PASS\nM2:PASS\nM6C:READY\nM6C:SEQUENCE:10\nM6C:OBJECT0:REVISION:3\nM6C:OBJECT0:PRESENT:1\nM6C:OBJECT0:LENGTH:128\nM6C:OBJECT0:NAME_LENGTH:16\nM6C:OBJECT0:NAME_DIGEST:8b2d238f15d9816a\nM6C:OBJECT0:DIGEST:b283dc2e26cecaa5\nM6C:OBJECT1:REVISION:2\nM6C:OBJECT1:PRESENT:0\nM6C:OBJECT1:LENGTH:0\nM6C:OBJECT1:NAME_LENGTH:0\nM6C:OBJECT1:NAME_DIGEST:cbf29ce484222325\nM6C:OBJECT1:DIGEST:cbf29ce484222325\nM6C:OBJECT2:REVISION:3\nM6C:OBJECT2:PRESENT:1\nM6C:OBJECT2:LENGTH:128\nM6C:OBJECT2:NAME_LENGTH:16\nM6C:OBJECT2:NAME_DIGEST:8b2d228f15d97fb7\nM6C:OBJECT2:DIGEST:7a79c58355bc8925\nM6C:OBJECT3:REVISION:2\nM6C:OBJECT3:PRESENT:0\nM6C:OBJECT3:LENGTH:0\nM6C:OBJECT3:NAME_LENGTH:0\nM6C:OBJECT3:NAME_DIGEST:cbf29ce484222325\nM6C:OBJECT3:DIGEST:cbf29ce484222325\nM6C:ACKS:0\nM6C:REJECTED_NO_IO:2\nM6C:CATALOG_REPLIES:2\nM6C:DOMAIN0:REVISION:5\nM6C:DOMAIN1:REVISION:5\nM6C:CASE:RECOVER:PASS\nM6C:SURVIVOR_PROGRESS:PASS\nM6C:BROKER:MAX_COMPLETION_TICKS:0\nM6C:BROKER:TIMEOUTS:0\nM6C:RESOURCES:PASS\nM6C:PASS\nM1:PASS\n",
+      "stderr": ""
+    }
+  ],
+  "bindings": [
+    {
+      "case": "normal",
+      "document_session": true,
+      "sdk_runtime": true,
+      "user_elf_sha256": "c804ab3fbd70c057486d058b9834b317df634ac0a251db78e42f7ed468eb4ab2",
+      "actual_user_elf_embedded": true,
+      "kernel_sha256": "69e55fc32e398cf4e8f393dd9723b81771ee728ddeae5966bbb8b8ff31411687",
+      "loader_sha256": "917ea7227bacefae870bf28ed3bb979f4a5f4b484d4ec7eb7682680538cea769",
+      "selected_source_sha256": {
+        "sdk/Cargo.lock": "a37ac75371db49b3c7cd794cdd48706b5d2ddf53d637f4b5ed9fd46ebc1cbd7f",
+        "sdk/Cargo.toml": "4fc1ffd1328d1e79d8a0d39535bf9c4db00e963067b3d3bac60903111b020db2",
+        "sdk/catalog-client/Cargo.toml": "37a0182bd118b59ab53e8004309f4d81c9ef16adce8dca58deb897cc7c02d887",
+        "sdk/catalog-client/src/lib.rs": "c5cfd350c59da895037337e751c885cb34a28ec3e4941ebdb392c22e7cd9aa54",
+        "sdk/document-session/Cargo.toml": "6b3237a13ab5f46aba9ed75f89712f613ff1d00a03d9fe1366df90b7ae028fc5",
+        "sdk/document-session/src/lib.rs": "3b09fccb0bd1f0feafc41f0a4497a271138270600f16168054fef2c095b98b8b",
+        "sdk/document-session/src/volume.rs": "5f590a9deb0dca7513a24cc5536354a48a60249f1fdc610dd06e674384eeb390",
+        "sdk/runtime/Cargo.toml": "c7a953b8406f5a321efa4171c2383dc7c222c2eb8aa49446d34f259814f5b4b9",
+        "sdk/runtime/src/block.rs": "3c3d92f178888e3ba6ba2b3da4c6810ec8c9b44f0c29296ad0ab474c91871a1c",
+        "sdk/runtime/src/clock.rs": "457ab4167692356490991ed3729da6ab405b847d5322154688f1f2c9ed5c7484",
+        "sdk/runtime/src/entropy.rs": "536d4db4bb00067b4697d46eb34da1fb680edcdf6d25569be01ab161c77e1e13",
+        "sdk/runtime/src/lib.rs": "cfbb938aedf95b7c5eff27263b692b3fecc70282116930e3a4c84996e54d0983",
+        "sdk/runtime/src/memory.rs": "0b88b9a77f6dd2f4bb4433d790320152848ef534ea5cd0329f8d9ea9dd629eb6",
+        "sdk/runtime/src/message.rs": "24dcc5f761b75a491f7fd86d18bcbd26333b0a1e481b1e83c74d95e5509cb922",
+        "sdk/runtime/src/native.rs": "e8083664af9effe4c4f5e8cc27e3ab197fd76de54f0a03a4a75ae341dc56e6b8",
+        "sdk/runtime/src/network.rs": "9679db5ad9bbf81164e84656650911ba8f508440460c5af2785ca3cf20fc310d",
+        "sdk/runtime/src/process.rs": "998867816fc0f0c88f790b37a12a37536f1d1c29109e7315706abe797f20e202",
+        "sdk/runtime/src/tls_time.rs": "f135b4b848ba41510662ac25c69e7cc0b1e3629825f36eb697a0b98c82285f79",
+        "services/catalog/Cargo.toml": "e692618da2bec1212b4b8ec1b08037cfbd9df2441b3283efc9ab1d5860a89804",
+        "services/catalog/src/client.rs": "1a1474e3a829a4c247046ee916019e5857a1603efd4620d95e0c4a50ea4f0878",
+        "services/catalog/src/journal.rs": "8fe06db4b455c8975831b7f246aa13948222cf22eb41f5e0adfad31a9b83d58f",
+        "services/catalog/src/lib.rs": "375921af0dc4e449ede38beae0ebcd5a6b465018a9448585af96119a86b407cd",
+        "services/catalog/src/user_service.rs": "25b13f461942b3ea0ff33ff8bed64a549ad10113ac9cf19adebc9629350c3e0e",
+        "services/catalog/src/wire.rs": "9f2a8e9da0608f535bb020effbde425132acd6ce5f1ec9560bcad7103065eb61",
+        "services/volume/Cargo.toml": "c089bb75a96bb78adb93693300db46f503f0bc2cc3476d9ec1c3f4b1ad1fa405",
+        "services/volume/src/archive.rs": "49ce84197214cd7687c0dcbba291b61e2823a5bae42806aaf96b9cece1622107",
+        "services/volume/src/client.rs": "9b5beed409e2005244e863bfaa5e77b07a0e326127806112f5e17e5a949399bd",
+        "services/volume/src/lib.rs": "3cb55fb0280c1db62d95c90a1c5a4af7bb19c0ac0f8eca7e87a0cfbd26590848",
+        "services/volume/src/service.rs": "59f7b07cf2a88dd4c633ef4e93569f451f4425bcd32010e1db5987271af0ea91",
+        "services/volume/src/table.rs": "e625206306e32b321075ba2bdbbca95960417efbdccf354f3f2daf3773dd6f72",
+        "services/volume/src/upload.rs": "98527d36046926f3370cf19e23a8c2c39250c2e5a944ff1c1b221a0d021a7fa1",
+        "services/volume/src/ustar.rs": "dd3ae91021369b6dd334f8ce016d877fece681ccff5ce807dfc4021d9db11716",
+        "services/volume/src/wire.rs": "50e407b18da4db2f76866a9214d199656639cea3867d4b8d894e0c2b4293f464",
+        "userspace/document_session_probe.rs": "12152c588b8c3730878d8c249cbc379ee9035cae1441a14a195796c9d13f6692",
+        "userspace/m6_runtime.rs": "d9d53fb22821eeeffaf17a1162089217abc17eff06d5b5cdf86962009da56be5",
+        "userspace/m6c_probe.rs": "5ecda84b213a0108f7ca1d3b7c84db8ddc1b2cfd6143ba5c7fad59917db9d34a",
+        "userspace/sdk_probe_runtime.rs": "b21c5e575fbf34589b1aca96afc8d128ac1f57e34d4a5e212b8c0aa27d1dcf76"
+      },
+      "library_sha256": {
+        "users/libnieuw_os_sdk_runtime.rlib": "b8f7b9a6248aba82d5057b1c55b840cd65b175aa898f37355b793ec3bb40ba9e",
+        "users/libzeroize.rlib": "f9d96c216cd6c1e6723c1b3f151c1388986f65acd35e736b522f96aa273775cd",
+        "users/libcatalog_core.rlib": "f759bf22785eb36e28570c53e119fe88b7c62d62b809728c8dc64fae8e62d7aa",
+        "users/libvolume_core.rlib": "ba02fa174a75ea1f1ff060e98ee80b909830fedf691cd24996210504c4c6e857",
+        "users/libnieuw_os_catalog_client.rlib": "2f6436e3c4b99f3dd6510abcad49266f724c586b83484be72e1e6897b4ae288d",
+        "users/libnieuw_os_document_session.rlib": "e5e6e6fea4b3f83026970c7b0f733bc3c23f657dd3b3b5d0c873d9c129ba027c"
+      },
+      "compiler_command_sha256": {
+        "build-sdk-zeroize": "b819a5320e0959f97ec1ec05a0845752efc4a3a614a04901d991741dd09234c0",
+        "build-sdk-runtime": "a835b8efcfc935638cb57b73e8e20a8e42738e64a51c56ef37beb7e93ca44d9f",
+        "build-document-library-catalog_core": "cfba4760ceab7414f2fc11d39efb8ac23421b9c4b946ab18fd0e55ca81b5601d",
+        "build-document-library-volume_core": "ee0024fd65f22a7ad10db4dc0137873be3d62922e37971b9edfc10f0e2feb18f",
+        "build-document-library-nieuw_os_catalog_client": "f602e93bb1efb0d3abca52304b7fadbab145bc7eeddca0de50a4fe306d346583",
+        "build-document-library-nieuw_os_document_session": "4cb9c98e1ae14608e89151ac659d528fc06b091b691caefe99cea58885e26c07",
+        "build-users-m6c_probe": "353d2190bf1b745e2789c0f25a756ed0556a3e12294b205d497166a98ae0d71a"
+      },
+      "requests_per_client_required_by_kernel_observer": 16,
+      "request_count_evidence": "Existing exact per-client observer assertion before M6C:PASS; not an additional serial counter",
+      "observer_source_sha256": "3801bd4ebbaca475d47a7312fdb23d0155a4ef0a191e5a1a356ee3023947cf34"
+    },
+    {
+      "case": "recover",
+      "document_session": true,
+      "sdk_runtime": true,
+      "user_elf_sha256": "c804ab3fbd70c057486d058b9834b317df634ac0a251db78e42f7ed468eb4ab2",
+      "actual_user_elf_embedded": true,
+      "kernel_sha256": "07c2fdc6c8120128c146812f9ff75f94089ae97b90bfbe3052a6a81dad96a72c",
+      "loader_sha256": "917ea7227bacefae870bf28ed3bb979f4a5f4b484d4ec7eb7682680538cea769",
+      "selected_source_sha256": {
+        "sdk/Cargo.lock": "a37ac75371db49b3c7cd794cdd48706b5d2ddf53d637f4b5ed9fd46ebc1cbd7f",
+        "sdk/Cargo.toml": "4fc1ffd1328d1e79d8a0d39535bf9c4db00e963067b3d3bac60903111b020db2",
+        "sdk/catalog-client/Cargo.toml": "37a0182bd118b59ab53e8004309f4d81c9ef16adce8dca58deb897cc7c02d887",
+        "sdk/catalog-client/src/lib.rs": "c5cfd350c59da895037337e751c885cb34a28ec3e4941ebdb392c22e7cd9aa54",
+        "sdk/document-session/Cargo.toml": "6b3237a13ab5f46aba9ed75f89712f613ff1d00a03d9fe1366df90b7ae028fc5",
+        "sdk/document-session/src/lib.rs": "3b09fccb0bd1f0feafc41f0a4497a271138270600f16168054fef2c095b98b8b",
+        "sdk/document-session/src/volume.rs": "5f590a9deb0dca7513a24cc5536354a48a60249f1fdc610dd06e674384eeb390",
+        "sdk/runtime/Cargo.toml": "c7a953b8406f5a321efa4171c2383dc7c222c2eb8aa49446d34f259814f5b4b9",
+        "sdk/runtime/src/block.rs": "3c3d92f178888e3ba6ba2b3da4c6810ec8c9b44f0c29296ad0ab474c91871a1c",
+        "sdk/runtime/src/clock.rs": "457ab4167692356490991ed3729da6ab405b847d5322154688f1f2c9ed5c7484",
+        "sdk/runtime/src/entropy.rs": "536d4db4bb00067b4697d46eb34da1fb680edcdf6d25569be01ab161c77e1e13",
+        "sdk/runtime/src/lib.rs": "cfbb938aedf95b7c5eff27263b692b3fecc70282116930e3a4c84996e54d0983",
+        "sdk/runtime/src/memory.rs": "0b88b9a77f6dd2f4bb4433d790320152848ef534ea5cd0329f8d9ea9dd629eb6",
+        "sdk/runtime/src/message.rs": "24dcc5f761b75a491f7fd86d18bcbd26333b0a1e481b1e83c74d95e5509cb922",
+        "sdk/runtime/src/native.rs": "e8083664af9effe4c4f5e8cc27e3ab197fd76de54f0a03a4a75ae341dc56e6b8",
+        "sdk/runtime/src/network.rs": "9679db5ad9bbf81164e84656650911ba8f508440460c5af2785ca3cf20fc310d",
+        "sdk/runtime/src/process.rs": "998867816fc0f0c88f790b37a12a37536f1d1c29109e7315706abe797f20e202",
+        "sdk/runtime/src/tls_time.rs": "f135b4b848ba41510662ac25c69e7cc0b1e3629825f36eb697a0b98c82285f79",
+        "services/catalog/Cargo.toml": "e692618da2bec1212b4b8ec1b08037cfbd9df2441b3283efc9ab1d5860a89804",
+        "services/catalog/src/client.rs": "1a1474e3a829a4c247046ee916019e5857a1603efd4620d95e0c4a50ea4f0878",
+        "services/catalog/src/journal.rs": "8fe06db4b455c8975831b7f246aa13948222cf22eb41f5e0adfad31a9b83d58f",
+        "services/catalog/src/lib.rs": "375921af0dc4e449ede38beae0ebcd5a6b465018a9448585af96119a86b407cd",
+        "services/catalog/src/user_service.rs": "25b13f461942b3ea0ff33ff8bed64a549ad10113ac9cf19adebc9629350c3e0e",
+        "services/catalog/src/wire.rs": "9f2a8e9da0608f535bb020effbde425132acd6ce5f1ec9560bcad7103065eb61",
+        "services/volume/Cargo.toml": "c089bb75a96bb78adb93693300db46f503f0bc2cc3476d9ec1c3f4b1ad1fa405",
+        "services/volume/src/archive.rs": "49ce84197214cd7687c0dcbba291b61e2823a5bae42806aaf96b9cece1622107",
+        "services/volume/src/client.rs": "9b5beed409e2005244e863bfaa5e77b07a0e326127806112f5e17e5a949399bd",
+        "services/volume/src/lib.rs": "3cb55fb0280c1db62d95c90a1c5a4af7bb19c0ac0f8eca7e87a0cfbd26590848",
+        "services/volume/src/service.rs": "59f7b07cf2a88dd4c633ef4e93569f451f4425bcd32010e1db5987271af0ea91",
+        "services/volume/src/table.rs": "e625206306e32b321075ba2bdbbca95960417efbdccf354f3f2daf3773dd6f72",
+        "services/volume/src/upload.rs": "98527d36046926f3370cf19e23a8c2c39250c2e5a944ff1c1b221a0d021a7fa1",
+        "services/volume/src/ustar.rs": "dd3ae91021369b6dd334f8ce016d877fece681ccff5ce807dfc4021d9db11716",
+        "services/volume/src/wire.rs": "50e407b18da4db2f76866a9214d199656639cea3867d4b8d894e0c2b4293f464",
+        "userspace/document_session_probe.rs": "12152c588b8c3730878d8c249cbc379ee9035cae1441a14a195796c9d13f6692",
+        "userspace/m6_runtime.rs": "d9d53fb22821eeeffaf17a1162089217abc17eff06d5b5cdf86962009da56be5",
+        "userspace/m6c_probe.rs": "5ecda84b213a0108f7ca1d3b7c84db8ddc1b2cfd6143ba5c7fad59917db9d34a",
+        "userspace/sdk_probe_runtime.rs": "b21c5e575fbf34589b1aca96afc8d128ac1f57e34d4a5e212b8c0aa27d1dcf76"
+      },
+      "library_sha256": {
+        "users/libnieuw_os_sdk_runtime.rlib": "b8f7b9a6248aba82d5057b1c55b840cd65b175aa898f37355b793ec3bb40ba9e",
+        "users/libzeroize.rlib": "f9d96c216cd6c1e6723c1b3f151c1388986f65acd35e736b522f96aa273775cd",
+        "users/libcatalog_core.rlib": "f759bf22785eb36e28570c53e119fe88b7c62d62b809728c8dc64fae8e62d7aa",
+        "users/libvolume_core.rlib": "ba02fa174a75ea1f1ff060e98ee80b909830fedf691cd24996210504c4c6e857",
+        "users/libnieuw_os_catalog_client.rlib": "2f6436e3c4b99f3dd6510abcad49266f724c586b83484be72e1e6897b4ae288d",
+        "users/libnieuw_os_document_session.rlib": "e5e6e6fea4b3f83026970c7b0f733bc3c23f657dd3b3b5d0c873d9c129ba027c"
+      },
+      "compiler_command_sha256": {
+        "build-sdk-zeroize": "520f0b964f053bc033f8ab86a06da2c4e3770c9c4c98f9fd5f0e720d7ac7731a",
+        "build-sdk-runtime": "46327e1555455ce4ffd8a1e2e4703d1ea103631b149bce997c0bc2f2eb7fb994",
+        "build-document-library-catalog_core": "88925c48d257a81eee07023564601b3ac308f52de3e875cf6db19735224c65b2",
+        "build-document-library-volume_core": "3e09f91c922ab06335896ffa59697384d11cd75f61c5ad462646567a152f20fe",
+        "build-document-library-nieuw_os_catalog_client": "487999e68ac7d1f7bf894930abcc9e907f296fe9305b4e25fd734c9aa8fec14e",
+        "build-document-library-nieuw_os_document_session": "a5e062f142929e230472a16976a19d1e921e685c2ff0fac8d0c80fee91174d6d",
+        "build-users-m6c_probe": "925b01ec5db1377aa86e8fe89439aed43836ba234cd102c1ab25d48749bbd790"
+      },
+      "requests_per_client_required_by_kernel_observer": 3,
+      "request_count_evidence": "Existing exact per-client observer assertion before M6C:PASS; not an additional serial counter",
+      "observer_source_sha256": "3801bd4ebbaca475d47a7312fdb23d0155a4ef0a191e5a1a356ee3023947cf34"
+    }
+  ],
+  "snapshots": [
+    {
+      "case": "normal",
+      "directory": "/workspace/baryon-combined-native-validate/build/combined-document-session/document-session-gate/artifacts/normal",
+      "files_sha256": {
+        "logs/build-document-library-catalog_core.json": "cfba4760ceab7414f2fc11d39efb8ac23421b9c4b946ab18fd0e55ca81b5601d",
+        "logs/build-document-library-catalog_core.stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "logs/build-document-library-catalog_core.stdout.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "logs/build-document-library-nieuw_os_catalog_client.json": "f602e93bb1efb0d3abca52304b7fadbab145bc7eeddca0de50a4fe306d346583",
+        "logs/build-document-library-nieuw_os_catalog_client.stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "logs/build-document-library-nieuw_os_catalog_client.stdout.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "logs/build-document-library-nieuw_os_document_session.json": "4cb9c98e1ae14608e89151ac659d528fc06b091b691caefe99cea58885e26c07",
+        "logs/build-document-library-nieuw_os_document_session.stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "logs/build-document-library-nieuw_os_document_session.stdout.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "logs/build-document-library-volume_core.json": "ee0024fd65f22a7ad10db4dc0137873be3d62922e37971b9edfc10f0e2feb18f",
+        "logs/build-document-library-volume_core.stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "logs/build-document-library-volume_core.stdout.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "logs/build-sdk-runtime.json": "a835b8efcfc935638cb57b73e8e20a8e42738e64a51c56ef37beb7e93ca44d9f",
+        "logs/build-sdk-runtime.stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "logs/build-sdk-runtime.stdout.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "logs/build-sdk-zeroize.json": "b819a5320e0959f97ec1ec05a0845752efc4a3a614a04901d991741dd09234c0",
+        "logs/build-sdk-zeroize.stderr.txt": "2586edf9a610ade07e572934385279ddf638b506a0d8fa3910f94af9476434bc",
+        "logs/build-sdk-zeroize.stdout.txt": "457a9c098e0fadc209465f33a297bb042d3ae3a9fcaa0351b39d553f9d047593",
+        "logs/build-users-m6c_probe.json": "353d2190bf1b745e2789c0f25a756ed0556a3e12294b205d497166a98ae0d71a",
+        "logs/build-users-m6c_probe.stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "logs/build-users-m6c_probe.stdout.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "manifest.json": "3660b2bdac59580e184c31e1faaef1227b0d3a28656a227979205b15da5629ad",
+        "users/libcatalog_core.rlib": "f759bf22785eb36e28570c53e119fe88b7c62d62b809728c8dc64fae8e62d7aa",
+        "users/libnieuw_os_catalog_client.rlib": "2f6436e3c4b99f3dd6510abcad49266f724c586b83484be72e1e6897b4ae288d",
+        "users/libnieuw_os_document_session.rlib": "e5e6e6fea4b3f83026970c7b0f733bc3c23f657dd3b3b5d0c873d9c129ba027c",
+        "users/libnieuw_os_sdk_runtime.rlib": "b8f7b9a6248aba82d5057b1c55b840cd65b175aa898f37355b793ec3bb40ba9e",
+        "users/libvolume_core.rlib": "ba02fa174a75ea1f1ff060e98ee80b909830fedf691cd24996210504c4c6e857",
+        "users/libzeroize.rlib": "f9d96c216cd6c1e6723c1b3f151c1388986f65acd35e736b522f96aa273775cd",
+        "users/m6c_probe.elf": "c804ab3fbd70c057486d058b9834b317df634ac0a251db78e42f7ed468eb4ab2",
+        "users/manifest-m6c.json": "e40b1b913c1f81148d0d4d6391e7408ff4345abed3a0521c99be4989169ca169"
+      }
+    },
+    {
+      "case": "recover",
+      "directory": "/workspace/baryon-combined-native-validate/build/combined-document-session/document-session-gate/artifacts/recover",
+      "files_sha256": {
+        "logs/build-document-library-catalog_core.json": "88925c48d257a81eee07023564601b3ac308f52de3e875cf6db19735224c65b2",
+        "logs/build-document-library-catalog_core.stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "logs/build-document-library-catalog_core.stdout.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "logs/build-document-library-nieuw_os_catalog_client.json": "487999e68ac7d1f7bf894930abcc9e907f296fe9305b4e25fd734c9aa8fec14e",
+        "logs/build-document-library-nieuw_os_catalog_client.stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "logs/build-document-library-nieuw_os_catalog_client.stdout.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "logs/build-document-library-nieuw_os_document_session.json": "a5e062f142929e230472a16976a19d1e921e685c2ff0fac8d0c80fee91174d6d",
+        "logs/build-document-library-nieuw_os_document_session.stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "logs/build-document-library-nieuw_os_document_session.stdout.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "logs/build-document-library-volume_core.json": "3e09f91c922ab06335896ffa59697384d11cd75f61c5ad462646567a152f20fe",
+        "logs/build-document-library-volume_core.stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "logs/build-document-library-volume_core.stdout.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "logs/build-sdk-runtime.json": "46327e1555455ce4ffd8a1e2e4703d1ea103631b149bce997c0bc2f2eb7fb994",
+        "logs/build-sdk-runtime.stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "logs/build-sdk-runtime.stdout.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "logs/build-sdk-zeroize.json": "520f0b964f053bc033f8ab86a06da2c4e3770c9c4c98f9fd5f0e720d7ac7731a",
+        "logs/build-sdk-zeroize.stderr.txt": "6bfa9e18ffdef821c711a542cfebd7db0982665615563e5a191285e489609c6f",
+        "logs/build-sdk-zeroize.stdout.txt": "7411092d4645ea7bf21e5c9167df3248887dfa00589e9938a3bc704f38180d75",
+        "logs/build-users-m6c_probe.json": "925b01ec5db1377aa86e8fe89439aed43836ba234cd102c1ab25d48749bbd790",
+        "logs/build-users-m6c_probe.stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "logs/build-users-m6c_probe.stdout.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "manifest.json": "d224658d5c4364ead8fc42e25b39cac2062552be75e42da5b2c484e6d2ffba85",
+        "users/libcatalog_core.rlib": "f759bf22785eb36e28570c53e119fe88b7c62d62b809728c8dc64fae8e62d7aa",
+        "users/libnieuw_os_catalog_client.rlib": "2f6436e3c4b99f3dd6510abcad49266f724c586b83484be72e1e6897b4ae288d",
+        "users/libnieuw_os_document_session.rlib": "e5e6e6fea4b3f83026970c7b0f733bc3c23f657dd3b3b5d0c873d9c129ba027c",
+        "users/libnieuw_os_sdk_runtime.rlib": "b8f7b9a6248aba82d5057b1c55b840cd65b175aa898f37355b793ec3bb40ba9e",
+        "users/libvolume_core.rlib": "ba02fa174a75ea1f1ff060e98ee80b909830fedf691cd24996210504c4c6e857",
+        "users/libzeroize.rlib": "f9d96c216cd6c1e6723c1b3f151c1388986f65acd35e736b522f96aa273775cd",
+        "users/m6c_probe.elf": "c804ab3fbd70c057486d058b9834b317df634ac0a251db78e42f7ed468eb4ab2",
+        "users/manifest-m6c.json": "e40b1b913c1f81148d0d4d6391e7408ff4345abed3a0521c99be4989169ca169"
+      }
+    }
+  ],
+  "real_vm_invocations": 2,
+  "same_user_and_library_artifacts": true,
+  "cold_link": {
+    "same_exact_saved_image": true,
+    "recovery_read_only": true,
+    "sequence": 10,
+    "normal_acks": 10,
+    "recovery_acks": 0,
+    "saved_image_sha256": "b5f0bfda3c7755dccd1a8b5243b7c448ad5a21e83ecf781f5c1429dd9d4843f1"
+  },
+  "finished_utc": "2026-11-18T02:59:27.473313+00:00"
+}

@@ -75,8 +75,7 @@ impl State {
             return Err(Error::Range);
         }
         let mut catalog = Catalog::empty();
-        for id in domain * 2..domain * 2 + 2 {
-            let object = self.objects[id];
+        for (id, object) in self.objects.iter().enumerate().skip(domain * 2).take(2) {
             catalog.generation += object.revision;
             if object.present {
                 catalog.entries[catalog.count] = CatalogEntry {

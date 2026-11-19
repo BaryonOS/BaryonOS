@@ -25,16 +25,28 @@ pub fn put(offset: u64, value: u64) {
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn memcpy(dst: *mut u8, src: *const u8, n: usize) -> *mut u8 {
+pub unsafe extern "C" fn memcpy(
+    dst: *mut core::ffi::c_void,
+    src: *const core::ffi::c_void,
+    n: usize,
+) -> *mut core::ffi::c_void {
+    let dst = dst.cast::<u8>();
+    let src = src.cast::<u8>();
     for i in 0..n {
         // SAFETY: The intrinsic caller supplies valid nonoverlapping ranges.
         unsafe { dst.add(i).write_volatile(src.add(i).read_volatile()) }
     }
-    dst
+    dst.cast()
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn memmove(dst: *mut u8, src: *const u8, n: usize) -> *mut u8 {
+pub unsafe extern "C" fn memmove(
+    dst: *mut core::ffi::c_void,
+    src: *const core::ffi::c_void,
+    n: usize,
+) -> *mut core::ffi::c_void {
+    let dst = dst.cast::<u8>();
+    let src = src.cast::<u8>();
     if dst as usize <= src as usize {
         for i in 0..n {
             // SAFETY: Caller supplies valid ranges; ascending order handles overlap.
@@ -46,20 +58,31 @@ pub unsafe extern "C" fn memmove(dst: *mut u8, src: *const u8, n: usize) -> *mut
             unsafe { dst.add(i).write_volatile(src.add(i).read_volatile()) }
         }
     }
-    dst
+    dst.cast()
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn memset(dst: *mut u8, value: i32, n: usize) -> *mut u8 {
+pub unsafe extern "C" fn memset(
+    dst: *mut core::ffi::c_void,
+    value: i32,
+    n: usize,
+) -> *mut core::ffi::c_void {
+    let dst = dst.cast::<u8>();
     for i in 0..n {
         // SAFETY: The intrinsic caller supplies n writable bytes.
         unsafe { dst.add(i).write_volatile(value as u8) }
     }
-    dst
+    dst.cast()
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn memcmp(a: *const u8, b: *const u8, n: usize) -> i32 {
+pub unsafe extern "C" fn memcmp(
+    a: *const core::ffi::c_void,
+    b: *const core::ffi::c_void,
+    n: usize,
+) -> i32 {
+    let a = a.cast::<u8>();
+    let b = b.cast::<u8>();
     for i in 0..n {
         // SAFETY: The intrinsic caller supplies n readable bytes in both ranges.
         let (x, y) = unsafe { (a.add(i).read_volatile(), b.add(i).read_volatile()) };
