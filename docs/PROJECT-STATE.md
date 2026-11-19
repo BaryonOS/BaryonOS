@@ -590,8 +590,8 @@ milestones never enter `docs/progress.json`; every BaryonOS capability is
 | UX-F | Visual verification, at most two polish passes | `docs/verification/` | Open |
 | UX-G | Native vertical slice, QEMU screenshots | `ui/native`, `ui/graphics` | Plan done; G0 measured; G1 (licence and packaging) next |
 | S0 | Suite requirements that shape ds-1.0 (colour scope, density, neutral surfaces, region names) | `docs/design/suite/WORKSPACE-REQUIREMENTS.md` Accepted (`b305fa7c`): D9 single-pointer selection routes added; independent AI recheck, 0 blockers or majors, 6 minors open ([record](verification/suite-s0-workspace-20261114/README.md)) |
-| S1 | Professional application capability matrix | `docs/design/suite/CAPABILITY-MATRIX.md` Accepted (`8e4abd8d`): 215 rows, 14 prototyped (host), 201 proposed, 0 native; independent AI verification, 0 blockers or majors, 5 minors open ([record](verification/suite-s1-capability-matrix-20261114/README.md)) |
-| S2 | Consumer-to-professional UX maturity model | `docs/design/suite/MATURITY-MODEL.md` | Open |
+| S1 | Professional application capability matrix | `docs/design/suite/CAPABILITY-MATRIX.md` Accepted (`8e4abd8d`): 216 rows, 14 prototyped (host), 202 proposed, 0 native; independent AI verification, 0 blockers or majors, 5 minors open ([record](verification/suite-s1-capability-matrix-20261114/README.md)) |
+| S2 | Consumer-to-professional UX maturity model | `docs/design/suite/MATURITY-MODEL.md` | Accepted (`4c6e1a22`): independent AI verification, 4 minors open ([record](verification/suite-s2-maturity-model-20261118/README.md)) |
 | S3 | Named file-format family, at least three naming systems, registry-checked extensions | `docs/design/suite/FILE-FORMATS.md` | Open |
 | S4 | Common native document/object architecture over the existing storage contracts | `docs/design/suite/OBJECT-ARCHITECTURE.md` | Open |
 | S5 | Interoperability and migration, feature-level compatibility matrix | `docs/design/suite/INTEROPERABILITY.md` | Open |

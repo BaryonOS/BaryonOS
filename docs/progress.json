@@ -6,9 +6,9 @@
     "source_commit": "2cb2dd85de4a86bd78c87a63157cf540cb40fdb1",
     "assessment_basis": "parent_commit",
     "branch": "claude/baryon-os-design-pipeline-20261118",
-    "task": "UX-A11Y-DS run 3 accepted and main merged into PR #360",
+    "task": "UX-A11Y-DS run 3 accepted, list-row review fix, main and suite S2 merged into PR #360",
     "previous_score": 41,
-    "summary": "41/100 unchanged. UX-A11Y-DS run 3 (held-key guard, caption reach, dimmed modal backdrop) was accepted by an independent verifier with no open findings; check.mjs, its self-test and the matrix checker exit 0. This is design-system prototype evidence only: it accepts no criterion and is not native accessibility acceptance or a human audit."
+    "summary": "41/100 unchanged. UX-A11Y-DS run 3 (held-key guard, caption reach, dimmed modal backdrop) was accepted by an independent verifier with no open findings; check.mjs, its self-test and the matrix checker exit 0. This is design-system prototype evidence only: it accepts no criterion and is not native accessibility acceptance or a human audit. Suite S2 (maturity model, 4c6e1a22) was merged as a design document with independent AI verification; it accepts no criterion."
   },
   "tracks": [
     {
