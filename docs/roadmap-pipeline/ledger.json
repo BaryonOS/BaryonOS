@@ -1881,21 +1881,50 @@
       "id": "H02-T3",
       "criterion": "H02",
       "milestone": "M9",
-      "executor": "worker",
-      "status": "blocked",
-      "title": "Native USB hotplug fixture (QMP device_del/add, unplug mid-transfer)",
-      "goal": "Native USB hotplug fixture (QMP device_del/add, unplug mid-transfer)",
+      "executor": "lead",
+      "status": "verified",
+      "title": "Native same-port USB keyboard reattach with stale-generation rejection (QEMU)",
+      "goal": "Wire the hotplug Ports generations into the native xHCI/USB-HID fixture; retire generation 1 (Disable Slot, DCBAA clear, canary), re-enumerate the same port as generation 2 with continued rings and a fresh Session, reject the replayed old event, token and ticket, unplug again and deny a budget-exceeding attach.",
       "deps": [],
-      "write_paths": [],
-      "checks": [],
-      "blocker": "PR333 is merged. Existing native QMP unplug mid-transfer is already terminal and safe; guest then shuts down controller/denies DMA and exits. Re-add requires a new native generation/ring/context coordinator plus pending PR372 core and explicit DMA/event-reuse contract; adding device_add alone is not implementation.",
+      "write_paths": [
+        "drivers/usb/src/hotplug.rs",
+        "drivers/usb/tests/hotplug.rs",
+        "kernel/src/m2/xhci/usb.rs",
+        "kernel/Cargo.toml",
+        "kernel/src/main.rs",
+        "tools/build.py",
+        "tools/run.py",
+        "tools/run_usb_hid.py",
+        "tools/tests/test_usb_hid_probe.py",
+        "docs/implementation/NATIVE-USB-HID.md",
+        "docs/verification/h02-native-reattach-20261119/"
+      ],
+      "checks": [
+        "cargo +1.100.0 test --locked --manifest-path drivers/usb/Cargo.toml",
+        "python3 -B -m unittest discover -s tools/tests -p 'test_usb_hid*.py' -v",
+        "python3 -B tools/build.py --kernel-feature native-usb-hid-reattach && python3 -B tools/run_usb_hid.py --case reattach",
+        "python3 -B tools/build.py --kernel-feature native-usb-hid-probe && python3 -B tools/run_usb_hid.py --case reports",
+        "python3 -B tools/build.py --kernel-feature test-usb-hid-readonly-fault && python3 -B tools/run_usb_hid.py --case readonly"
+      ],
       "history": [
         {
           "event": "blocked",
           "at": "2026-11-18",
           "reason": "PR333 is merged. Existing native QMP unplug mid-transfer is already terminal and safe; guest then shuts down controller/denies DMA and exits. Re-add requires a new native generation/ring/context coordinator plus pending PR372 core and explicit DMA/event-reuse contract; adding device_add alone is not implementation."
+        },
+        {
+          "event": "verified",
+          "at": "2026-11-19",
+          "reason": "Builder commit 8d0c570 integrated by the H-track lead as merge af9b0bc; reports/readonly/reattach rerun from the main checkout on source v3 1ae4ed7f (raw 33 each, reattach twice). Focused security review requested. No physical evidence."
         }
-      ]
+      ],
+      "lead_paths": [
+        ".github/workflows/native-xhci.yml"
+      ],
+      "evidence_level": "native QEMU/TCG",
+      "non_claimable": "Physical hotplug/reset, IRQs, hubs, mouse reattach, malformed devices, long-lived input-policy handoff and H02 acceptance stay open.",
+      "source_commit": "8d0c5701418e445060159a0e877a9bebc0f73030",
+      "next": "H02-T4: MSI/MSI-X with VT-d interrupt remapping (needs its own security design/ADR) or the long-lived input-policy handoff."
     },
     {
       "id": "H03-T3",

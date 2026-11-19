@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-19",
-    "source_commit": "9f66bf182ddb9385fc47bed2922d0af705939c84",
+    "source_commit": "af9b0bc6956a4382e4eb6e0df4fb2b4be2718e7d",
     "assessment_basis": "parent_commit",
     "branch": "ccr-38238c58-g8y1l6",
-    "task": "H05-T3 native S3 and H06-T4 physical test protocols with signed-evidence validation",
+    "task": "H05-T3 native S3, H06-T4 physical test protocols, H02-T3 native USB reattach",
     "previous_score": 41,
-    "summary": "41/100 unchanged. H05 gains native QEMU S3 evidence; H06 gains machine-checked physical test protocols, an OpenSSH-signed evidence validator and matrix schema 2 (no row supported, HW-FR target still an owner decision). No criterion accepted."
+    "summary": "41/100 unchanged. H05 gains native QEMU S3 evidence; H06 gains machine-checked physical test protocols and signed-evidence validation; H02 gains native QEMU same-port reattach with stale-generation rejection. Physical acceptance for H02-H06 remains open."
   },
   "tracks": [
     {
@@ -218,7 +218,8 @@
           "status": "open",
           "acceptance": "Common input and USB devices work on the documented reference profile; hotplug and invalid device responses remain bounded.",
           "evidence": [
-            "docs/verification/issue42-native-input-20261114/README.md"
+            "docs/verification/issue42-native-input-20261114/README.md",
+            "docs/verification/h02-native-reattach-20261119/README.md"
           ]
         },
         {

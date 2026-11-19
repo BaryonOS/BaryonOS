@@ -22,9 +22,15 @@ devices/services/SMP across sleep, thermal or battery. Score 41 → 41/100.
 physical protocols with safety constraints), `tools/hw_evidence.py` (OpenSSH-signed records bound
 to protocol/target/image/source/inventory; empty signer list fails closed), matrix schema 2 with
 nine open owner decisions; 25 tests with real ssh-keygen signatures (merge `839fb2c`, fix `9f66bf1`).
-**In flight (separate worktrees, integrated serially by the lead):** H02-T3 same-port USB
-reattach; H03-T3a kernel-only virtio-snd with exact WAV oracle; H04-T3 virtio-net link
-loss/reconnect (needs a lead ADR for its query syscall and error code). An independent AI review of the S3 diff
+**Integrated H02-T3 (verified, QEMU):** same-port USB keyboard reattach in the xHCI/USB-HID
+fixture: generation-2 re-enumeration with continued rings, replayed generation-1 event/token/ticket
+rejected, second unplug, budget-denied third attach (merge `af9b0bc`; reports/readonly/reattach
+raw 33 on source v3 `1ae4ed7f`; `native-xhci.yml` now runs `reattach`). Pitfall: a worktree nested
+in the checkout duplicates the kernel `rustflags` (linker script twice); run native gates from a
+non-nested checkout. A focused security review of the DMA/ring changes was requested.
+**In flight (separate worktrees, integrated serially by the lead):** H03-T3a kernel-only virtio-snd
+with exact WAV oracle; H04-T3 virtio-net link loss/reconnect (needs a lead ADR for its query
+syscall and error code). An independent AI review of the S3 diff
 found three low findings (all refuted for this profile, applied as hardening); hosted
 host-quality found two real defects (GS discipline, ledger protected path), both fixed.
 **Next:** integrate the builders one by one; then H05-T4 (S3 from the native-system

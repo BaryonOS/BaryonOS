@@ -85,10 +85,28 @@ The `reattach` case passed three consecutive runs (4.97 s, 4.53 s and
 | `python3 -B -m unittest discover -s tools/tests -p 'test_*.py'` | 1 | Not caused by this change; see below |
 
 The full tools suite has one failure and six errors, all present on the
-unmodified base `9c707c8`. `test_gs_discipline` fails because H05-T3 added
-GS writes in `kernel/src/m2/sleep.rs` and `arch.rs`; it passes on `035b44e`.
-The six `test_agent_isolation`/`test_agent_pipeline` errors come from this
-host's git controller environment.
+unmodified base `9c707c8`. `test_gs_discipline` failed there because H05-T3
+added GS writes in `kernel/src/m2/sleep.rs` and `arch.rs`; the integration
+branch fixed it in `c54b9e2` (shared `arch::load_tables`) and it passes on
+the merged tree. The six `test_agent_isolation`/`test_agent_pipeline` errors
+come from this host's git controller environment (older git without
+`--no-lazy-fetch`), not from this change.
+
+## Re-verification on the integrated tree
+
+The builder ran its native gates from an exact copy outside the checkout,
+because a worktree nested inside the main checkout makes Cargo merge both
+`.cargo/config.toml` files and pass the kernel linker script twice. After
+the lead merged the branch as `af9b0bc` on `ccr-38238c58-g8y1l6` (on top of
+the H05 S3 and H06 work), all three cases were rerun from the main checkout
+on source fingerprint v3
+`1ae4ed7f77917d6c1b4d8c560662923c1f659c146d884e7d71945f4936711658`
+(reports' `base_commit` `af9b0bc6956a`): `reports` raw 33 in 2.60 s,
+`readonly` raw 33 in 2.71 s, `reattach` raw 33 in 4.53 s and again on a
+second run; USB crate tests, root `fmt --all`, `test_usb_hid*.py` and
+`test_gs_discipline.py` exit 0. Those local reports stay in ignored
+`build/h02-*/`; the committed `native-report.json` remains the builder's
+fingerprint-bound record.
 
 ## Limits
 
@@ -100,5 +118,5 @@ host's git controller environment.
 - The replayed completion is a captured real event presented again by
   software, not a hardware-generated stale event.
 - No input-policy authority, long-lived owner or userspace handoff exists.
-- `.github/workflows/native-xhci.yml` does not yet run the `reattach` case.
-  Adding it is a lead-owned workflow change.
+- `.github/workflows/native-xhci.yml` runs the `reattach` case since the
+  lead's integration commit; hosted results are recorded on PR #409.
