@@ -112,7 +112,7 @@ Book: p. 23–31.
 
 Platform tables and firmware descriptions are grouped here: ACPI, AML, relevant tables, devicetree, discovery, shutdown and reboot. This wiki material extends the book; the book chapters do not provide a complete modern power-management or firmware framework.
 
-Source entry points: [W002946: Acpi]; [W003184: AML]; [W001440: RSDP]; [W002712: RSDT]; [W003319: XSDT]; [W002812: FADT]; [W003259: MADT]; [W004422: Devicetree]; [W001845: Shutdown]; [W001844: Reboot].
+Source entry points: [W002946: Acpi]; [W003184: AML]; [W001440: RSDP]; [W002712: RSDT]; [W003319: XSDT]; [W002812: FADT]; [W003259: MADT]; [W004422: Devicetree]; [W001844: Reboot].
 
 ## Block devices and disk structures
 
@@ -176,7 +176,7 @@ Book: p. 8–8, p. 16–17, p. 26–31.
 
 Non-x86 architectures remain fully represented, including ARM/AArch64, RISC-V, PowerPC, MIPS, SPARC and S390. Their manuals, interrupt models, memory management and bare-bones projects are not derived from the book’s 32-bit x86 code.
 
-Source entry points: [W002332: ARM Overview]; [W004267: AArch64]; [W004033: RISC-V]; [W003306: Raspberry Pi]; [W001834: PowerPC Overview]; [W001832: MIPS Overview]; [W003045: Sparc Hardware Docs]; [W005085: IBM Mainframe architecture].
+Source entry points: [W004267: AArch64]; [W004033: RISC-V]; [W003306: Raspberry Pi]; [W001834: PowerPC Overview]; [W001832: MIPS Overview]; [W003045: Sparc Hardware Docs]; [W005085: IBM Mainframe architecture].
 
 ## Reference material, tools, porting and community
 

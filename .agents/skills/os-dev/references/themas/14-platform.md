@@ -12,7 +12,6 @@ Platform tables and firmware descriptions are grouped here: ACPI, AML, relevant 
 - [FADT](../corpus/wiki-06.md#w002812) [W002812] · revision 30278 · 2026-03-16T17:57:33Z
 - [MADT](../corpus/wiki-08.md#w003259) [W003259] · revision 29938 · 2026-01-28T14:45:54Z
 - [Devicetree](../corpus/wiki-13.md#w004422) [W004422] · revision 30825 · 2026-06-29T19:22:14Z
-- [Shutdown](../corpus/wiki-03.md#w001845) [W001845] · revision 30327 · 2026-03-17T20:50:27Z
 - [Reboot](../corpus/wiki-03.md#w001844) [W001844] · revision 26084 · 2021-06-04T22:16:55Z
 
 ## Additional sources
@@ -37,7 +36,6 @@ The selection below was generated automatically from page titles and categories;
 - [Reboot](../corpus/wiki-03.md#w001844) [W001844]
 - [RSDP](../corpus/wiki-01.md#w001440) [W001440]
 - [RSDT](../corpus/wiki-06.md#w002712) [W002712]
-- [Shutdown](../corpus/wiki-03.md#w001845) [W001845]
 - [SRAT](../corpus/wiki-12.md#w004203) [W004203]
 - [SSDT](../corpus/wiki-07.md#w003108) [W003108]
 - [UACPI](../corpus/wiki-14.md#w004861) [W004861]

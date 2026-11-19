@@ -50,7 +50,6 @@ The selection below was generated automatically from page titles and categories;
 - [Ramfb](../corpus/wiki-14.md#w004853) [W004853]
 - [Scalable Screen Font](../corpus/wiki-13.md#w004388) [W004388]
 - [Simple Scalable Fonts](../corpus/wiki-05.md#w002439) [W002439]
-- [Text UI](../corpus/wiki-02.md#w001553) [W001553]
 - [TrueType Fonts](../corpus/wiki-07.md#w002909) [W002909]
 - [VESA BIOS Extension/Accelerator Functions](../corpus/wiki-07.md#w003101) [W003101]
 - [VESA Video Modes](../corpus/wiki-03.md#w001904) [W001904]
