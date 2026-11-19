@@ -31,12 +31,20 @@ non-nested checkout. The AI security review of the DMA/ring changes found no blo
 its low finding O1 (the native stale-ticket check was phase-based) is fixed by a generation-specific
 check while generation 2 is `Enumerating` (diagnostic 51), verified natively on source v3 `6ed7b9a2`
 with a mutation control; O2–O5 are informational and recorded in the H02 evidence README.
-**In flight (separate worktrees, integrated serially by the lead):** H03-T3a kernel-only virtio-snd
-with exact WAV oracle; H04-T3 virtio-net link loss/reconnect (needs a lead ADR for its query
-syscall and error code). An independent AI review of the S3 diff
+**Integrated H03-T3a (verified, QEMU):** kernel-only virtio-snd PCM output fixture
+(`native-virtio-snd-probe`, IF0 M2, fixture 00:08.0, `-icount`) with an exact WAV oracle: normal,
+no-device, access-platform, fence-reinit and quarantine raw 33 on merge `167c2bc` (source v3
+`aadc6b7b`; WAV hashes equal the builder runs), plus xHCI/USB/S3/smoke/M2 regressions;
+`native-xhci.yml` runs the five cases. Three QEMU 8.2.2 deviations are recorded in
+ADR-H03-SND-FIXTURE-20261119 (PCM_INFO used length checked in the QEMU source). No ring-3 audio
+path: owner decisions B1, B2 and B4 stay open. A focused security review is running.
+**In flight:** H04-T3 virtio-net link loss/reconnect (builder done, integration and ADR for
+syscall 0x74 / error -23 pending); H06-T4 CodeRabbit findings (verify/fix workflow); H05-T4 design
+is ready (synchronous S3 syscall 0x91 behind POWER and the storage gate; builder starts after
+H04-T3 integration). An independent AI review of the S3 diff
 found three low findings (all refuted for this profile, applied as hardening); hosted
 host-quality found two real defects (GS discipline, ledger protected path), both fixed.
-**Next:** integrate the builders one by one; then H05-T4 (S3 from the native-system
+**Next:** integrate H04-T3; then H05-T4 (S3 from the native-system
 profile via the POWER capability behind the storage gate, PIC/PIT re-init, resumed
 processes) on top of H04-T3's QMP hook; H06-T3 inventory image. Physical acceptance
 needs owner decisions H06-T2 and authorized hardware.

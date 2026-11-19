@@ -5,6 +5,63 @@ This document distinguishes the decisions and authority of the project owner
 from those of the executing roles. Source quotations retain their original
 wording and speaker.
 
+## ADR-H03-SND-FIXTURE-20261119 — Kernel-only virtio-snd PCM output fixture for the fixed QEMU 8.2 profile
+
+**Status:** technical decision of the executing hardware-track lead on
+19 November 2026, inside the H03 implementation mandate. It is not a
+project-owner approval. It grants no capability, syscall, IPC route or app
+path, and it accepts no criterion. Owner decisions B1 (AUDIO right), B2
+(syscall number) and B4 (reserved VM-FR device address) stay open.
+
+**Decision.** `native-virtio-snd-probe` is an IF0, single-CPU, polling M2
+bootstrap profile. It drives QEMU 8.2 `virtio-sound-pci` at the fixture
+address 00:08.0 as a kernel-only transport. The profile is exclusive with
+M3, framebuffer, SMP, RTC, ACPI S3/S5 and xHCI (`kernel/src/main.rs`).
+
+- **DMA:** only six pinned, identity-mapped RW/NX kernel pages, kept for the
+  whole boot, including after a fence or quarantine. PCM pages are
+  device-read-only by protocol. The device may write only used rings, the
+  control response, event buffers and TX status words.
+- **No DMA isolation:** there is no IOMMU and no DMA-isolation claim in this
+  profile.
+- **MMIO:** only the validated common, notify and device capability pages,
+  mapped UC/NX in the audited `0x3f200000` window. The window's cfg gates
+  move to the internal umbrella feature `if0-device-window`, shared with the
+  xHCI fixture.
+- **Refusals:** `ACCESS_PLATFORM` is refused. The capture queue is never
+  enabled. A second RELEASE is refused by the stream state machine.
+- **Timing and oracle:** the runner uses `-icount shift=0,sleep=off`, so the
+  guest TSC, PIT and QEMU's audio/WAV timer share one virtual clock. The
+  oracle is the frozen `drivers/virtio-snd/TRANSPORT.md` §7: exact frames,
+  with at most 4800 silent frames before and after.
+
+**Recorded QEMU 8.2.2 deviations.**
+
+1. *PCM_INFO used length.* QEMU 8.2.2 writes the PCM_INFO records but pushes
+   `sizeof(virtio_snd_hdr)` (4) as the used length for every control
+   response. The lead checked this in the release source,
+   `hw/audio/virtio-snd.c` lines 247-249 and 752.
+   - For PCM_INFO only, the driver accepts 4 as well as the exact
+     `4 + 32n`. Every other message keeps exact lengths.
+   - The response buffer is zeroed before publication and parsed strictly,
+     so a genuinely header-only answer fails (`channels_min` 0).
+   - The used length is a hint inside a device-writable page that the kernel
+     already treats as untrusted. Accepting it does not widen what the
+     device can write.
+2. *Drain before STOP.* QEMU disables the voice on STOP and drops buffered
+   samples. The driver drains while RUNNING with nothing outstanding, then
+   sends STOP, then requires a quiet window.
+3. *Quiescent fence for re-initialisation.* `virtio_snd_reset` keeps TX
+   elements it has already popped and replays them after re-initialisation.
+   The accepted `fence-reinit` case therefore fences with no TX outstanding.
+   An in-flight fence must quarantine (the `quarantine` case) and cannot be
+   recovered on this QEMU.
+
+**Consequences.** The evidence is QEMU/TCG emulator WAV output only. It is
+not H03 acceptance, audible output, latency, physical playback or an app
+audio path. The runner refuses QEMU versions outside 8.2. The ring-3 audio
+service, its capability and its syscall wait for B1, B2 and B4.
+
 ## ADR-H05-S3-WAKE-20261119 — Own-kernel ACPI S3 wake contract for the fixed QEMU/OVMF profile
 
 **Status:** technical decision of the executing hardware-track lead on

@@ -95,9 +95,39 @@ artifact hashes, guest SND lines and oracle values.
    reused slots. The accepted fence-reinit case therefore fences with no TX
    outstanding.
 
+## Integration re-verification by the lead
+
+The builder branch (`b033335`, base `9c707c8`) was merged into
+`ccr-38238c58-g8y1l6` as `167c2bc` (additive conflicts in
+`kernel/src/main.rs` and `tools/build.py`). The lead reran the native gates
+on that exact commit, from a detached worktree outside the main checkout.
+The source-v3 fingerprint was
+`aadc6b7b0d7eb50a…` (full value in the local reports), with
+`NOS_QEMU_MACHINE=pc-q35-8.2`. Every build exited 0, and every run exited 0
+with its oracle passing:
+
+- virtio-snd `normal`, `no-device` and `access-platform` (one
+  `native-virtio-snd-probe` build), `fence-reinit` and `quarantine`: raw
+  exit 33 each. The WAV SHA-256 values are byte-identical to the builder's
+  runs (`24c5e8d9…`, `146822cc…`, `104558fe…`), so the `-icount` oracle is
+  deterministic across the two source versions.
+- Regressions for the shared `if0-device-window` gates and the merged guards:
+  xHCI `noop`, USB HID `reports` and `reattach`, S3 `cycles`, the standard
+  smoke and the `milestone-m2` smoke.
+
+The lead also checked the PCM_INFO deviation against the pinned QEMU 8.2.2
+source. `hw/audio/virtio-snd.c` lines 247-249 write the PCM_INFO records
+after the header, and line 752 pushes `sizeof(virtio_snd_hdr)` as the used
+length for every control response. The deviation is recorded in
+ADR-H03-SND-FIXTURE-20261119.
+
+`native-xhci.yml` now runs the five cases, the crate tests and clippy, and
+`test_virtio_snd.py`, and preserves the five compact reports. The hosted run
+of that job is the authoritative CI result.
+
 ## Not run
 
-- Hosted CI (`.github/**` unchanged; no workflow job runs these cases yet).
+- Hosted CI at the builder's commit (the job was added at integration).
 - Physical hardware, audible output, latency, any other QEMU version.
 - F6 (control timeout with a blocked backend), F13-F16 (no broker), F3 in a
   guest (QEMU refuses `streams` outside 1..10).

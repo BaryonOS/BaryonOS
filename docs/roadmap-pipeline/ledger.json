@@ -1916,6 +1916,11 @@
           "event": "verified",
           "at": "2026-11-19",
           "reason": "Builder commit 8d0c570 integrated by the H-track lead as merge af9b0bc; reports/readonly/reattach rerun from the main checkout on source v3 1ae4ed7f (raw 33 each, reattach twice). Focused security review requested. No physical evidence."
+        },
+        {
+          "event": "review",
+          "at": "2026-11-19",
+          "reason": "AI security review: no blocking finding. O1 (native stale-ticket check was phase-based) fixed in b01fc2a with a generation-specific check while Enumerating and a mutation control; O2-O5 informational."
         }
       ],
       "lead_paths": [
@@ -1937,8 +1942,66 @@
       "deps": [],
       "write_paths": [],
       "checks": [],
-      "blocker": "Owner/release decisions B1, B2, B4 open; kernel wiring and tools/build.py owned by PR #333.",
-      "history": []
+      "blocker": "Owner/release decisions B1 (AUDIO right), B2 (syscall number) and B4 (reserved VM-FR device address) stay open for the full VM-SND-1 gate. PR #333 is merged, so it no longer owns the kernel wiring. The kernel-only transport slice H03-T3a is verified separately.",
+      "history": [
+        {
+          "event": "split",
+          "at": "2026-11-19",
+          "reason": "Kernel-only transport slice H03-T3a carved out (no capability, syscall or app path). The full ring-3 VM-SND-1 gate remains blocked on B1, B2 and B4."
+        }
+      ]
+    },
+    {
+      "id": "H03-T3a",
+      "criterion": "H03",
+      "milestone": "M9",
+      "executor": "lead",
+      "status": "verified",
+      "title": "Kernel-only virtio-snd PCM output fixture with exact WAV oracle (QEMU 8.2)",
+      "goal": "Drive QEMU 8.2 virtio-sound-pci from an IF0 M2 kernel profile: pinned six-page DMA pool, validated capability MMIO, PCM output of a fixed S16/48 kHz pattern, fence and re-initialisation, quarantine with TX in flight, ACCESS_PLATFORM refusal and device absence, judged by the frozen TRANSPORT.md section 7 WAV oracle.",
+      "deps": [],
+      "write_paths": [
+        "drivers/virtio-snd/src/queue.rs",
+        "drivers/virtio-snd/src/queue_tests.rs",
+        "drivers/virtio-snd/src/lib.rs",
+        "drivers/virtio-snd/README.md",
+        "drivers/virtio-snd/TRANSPORT.md",
+        "drivers/virtio-snd/verification/README.md",
+        "kernel/src/m2/snd.rs",
+        "kernel/src/m2.rs",
+        "kernel/src/m2/paging.rs",
+        "kernel/src/main.rs",
+        "kernel/Cargo.toml",
+        "Cargo.toml",
+        "Cargo.lock",
+        "tools/build.py",
+        "tools/run_virtio_snd.py",
+        "tools/tests/test_virtio_snd.py",
+        "docs/verification/h03-virtio-snd-20261119/"
+      ],
+      "lead_paths": [
+        ".github/workflows/native-xhci.yml",
+        "docs/DECISIONS.md"
+      ],
+      "checks": [
+        "cargo +1.100.0 test --locked --manifest-path drivers/virtio-snd/Cargo.toml",
+        "cargo +1.100.0 clippy --locked --manifest-path drivers/virtio-snd/Cargo.toml --all-targets -- -D warnings",
+        "python3 -B -m unittest discover -s tools/tests -p 'test_virtio_snd.py' -v",
+        "python3 -B tools/build.py --kernel-feature native-virtio-snd-probe && python3 -B tools/run_virtio_snd.py --case normal (also no-device, access-platform)",
+        "python3 -B tools/build.py --kernel-feature test-snd-fence-reinit && python3 -B tools/run_virtio_snd.py --case fence-reinit",
+        "python3 -B tools/build.py --kernel-feature test-snd-quarantine && python3 -B tools/run_virtio_snd.py --case quarantine"
+      ],
+      "history": [
+        {
+          "event": "verified",
+          "at": "2026-11-19",
+          "reason": "Builder commit b033335 merged by the H-track lead as 167c2bc. All five cases and the xHCI/USB/S3/smoke/M2 regressions were rerun on that commit (source v3 aadc6b7b), raw 33 per guest; the WAV hashes match the builder runs. PCM_INFO used-length deviation checked against the QEMU 8.2.2 source (ADR-H03-SND-FIXTURE-20261119). Focused security review requested."
+        }
+      ],
+      "evidence_level": "native QEMU/TCG (-icount)",
+      "non_claimable": "No ring-3 audio service, capability, syscall or app path; no IOMMU or DMA isolation; QEMU 8.2 only; no audible, latency or physical playback; H03 acceptance stays open.",
+      "source_commit": "b033335f67d5b8eb424c014fb1a763ec8837aebb",
+      "next": "H03-T3b: ring-3 audio broker and AUDIO capability once B1, B2 and B4 are decided by the project owner."
     },
     {
       "id": "H04-T3",

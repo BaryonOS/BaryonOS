@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-19",
-    "source_commit": "af9b0bc6956a4382e4eb6e0df4fb2b4be2718e7d",
+    "source_commit": "167c2bce2a7d51444c0101e3b1df23271deb81f7",
     "assessment_basis": "parent_commit",
     "branch": "ccr-38238c58-g8y1l6",
-    "task": "H05-T3 native S3, H06-T4 physical test protocols, H02-T3 native USB reattach",
+    "task": "H05-T3 native S3, H06-T4 physical test protocols, H02-T3 native USB reattach (with review fix O1), H03-T3a kernel-only virtio-snd fixture",
     "previous_score": 41,
-    "summary": "41/100 unchanged. H05 gains native QEMU S3 evidence; H06 gains machine-checked physical test protocols and signed-evidence validation; H02 gains native QEMU same-port reattach with stale-generation rejection. Physical acceptance for H02-H06 remains open."
+    "summary": "41/100 unchanged. H05 gains native QEMU S3 evidence; H06 gains machine-checked physical test protocols and signed-evidence validation; H02 gains native QEMU same-port reattach with generation-specific stale-ticket rejection; H03 gains a kernel-only QEMU virtio-snd PCM output fixture with an exact WAV oracle. No ring-3 audio path exists (owner decisions B1, B2, B4 open), and physical acceptance for H02-H06 remains open."
   },
   "tracks": [
     {
@@ -228,7 +228,9 @@
           "points": 3,
           "status": "open",
           "acceptance": "Native graphics output, required GPU functionality, and audio meet documented usability and latency budgets on physical reference hardware.",
-          "evidence": []
+          "evidence": [
+            "docs/verification/h03-virtio-snd-20261119/README.md"
+          ]
         },
         {
           "id": "H04",
