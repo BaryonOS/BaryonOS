@@ -1,0 +1,74 @@
+{
+  "date": "2026-11-19",
+  "issue": 283,
+  "scope": "FLAGGED-REVIEW.md category 2 (licence with obligations)",
+  "corpus_changed": false,
+  "disposition_decided": false,
+  "unreachable": [
+    "wiki.osdev.org",
+    "web.archive.org",
+    "wiki.jwo.cz"
+  ],
+  "records": {
+    "W004323": {
+      "upstream": "Linux drivers/net/ethernet/intel/e1000e",
+      "licence": "GPL-2.0 (SPDX header in regs.h)",
+      "fetched": {
+        "https://raw.githubusercontent.com/torvalds/linux/master/drivers/net/ethernet/intel/e1000e/regs.h": "d88b2d94c0e44ea791b01a9958788bd43993f39e41fa19a102313fef5420c45f"
+      },
+      "compared_files": [
+        "defines.h",
+        "ich8lan.h",
+        "ich8lan.c",
+        "hw.h",
+        "e1000.h",
+        "netdev.c",
+        "phy.c",
+        "mac.c",
+        "regs.h"
+      ],
+      "code_blocks": 15,
+      "code_chars": 18835,
+      "verbatim_lines_min25": 6,
+      "verbatim_lines": [
+        "rctl &= ~E1000_RCTL_SZ_4096;",
+        "rctl &= ~E1000_RCTL_BSEX;",
+        "/* Extended Device Control */",
+        "/* these buffer sizes are valid if E1000_RCTL_BSEX is 0 */",
+        "/* these buffer sizes are valid if E1000_RCTL_BSEX is 1 */",
+        "/* Interrupt Cause Read */"
+      ],
+      "status": "uncertain"
+    },
+    "W004744": {
+      "upstream": "HenipaOS (not located)",
+      "licence_stated": "BSD-3-Clause-No-Nuclear-License",
+      "spdx": {
+        "source": "https://raw.githubusercontent.com/spdx/license-list-data/main/json/licenses.json",
+        "listed": true,
+        "osi_approved": false
+      },
+      "status": "uncertain"
+    },
+    "W002279": {
+      "upstream": "GNU EFI inc/efidef.h",
+      "licence": "Intel EFI Application Toolkit BSD-style (README.efilib), Copyright 1998-2000 Intel",
+      "fetched": {
+        "https://sourceforge.net/p/gnu-efi/code/ci/master/tree/inc/efidef.h?format=raw": "ff107e7efdb0d8120bc222579dd32d2f3a23530c6ca40ceabc65c0c00b231503",
+        "https://sourceforge.net/p/gnu-efi/code/ci/master/tree/README.efilib?format=raw": "42d352e9c28dd446fd0209cd6f75588c8e41f0934540bb382bbd61c752360265"
+      },
+      "copied": "EFI_MEMORY_DESCRIPTOR structure",
+      "status": "uncertain"
+    },
+    "W001545": {
+      "upstream": "Wikipedia Template:X86 protected mode interrupts, oldid 1283313564 (2025-03-31T18:50:07Z, 5418 bytes), via wiki.jwo.cz",
+      "licence": "CC BY-SA 4.0 (en.wikipedia.org siteinfo rightsinfo)",
+      "contributor_history_collected": false,
+      "status": "uncertain"
+    },
+    "W004920": {
+      "same_as": "W001545",
+      "status": "uncertain"
+    }
+  }
+}
