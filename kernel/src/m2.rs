@@ -21,6 +21,8 @@ mod rtc;
 mod sleep;
 #[cfg(feature = "native-smp")]
 pub(crate) mod smp;
+#[cfg(feature = "native-virtio-snd-probe")]
+mod snd;
 #[cfg(feature = "native-xhci-probe")]
 mod xhci;
 use crate::serial;
@@ -153,7 +155,7 @@ extern "C" fn run() -> ! {
     #[cfg(any(
         feature = "milestone-m3",
         feature = "native-smp",
-        feature = "native-xhci-probe"
+        feature = "if0-device-window"
     ))]
     paging.map(frames, paging::SCRATCH, nx_probe(), true, false);
     #[cfg(feature = "framebuffer")]
@@ -164,8 +166,11 @@ extern "C" fn run() -> ! {
     // Same constraint as the SIPI page: written through the firmware identity map.
     #[cfg(feature = "native-acpi-s3")]
     let s3_prepared = sleep::prepare(frames, &mut paging, wake_page);
+    // Pinned DMA pages are mapped while new tables are still identity-accessible.
+    #[cfg(feature = "native-virtio-snd-probe")]
+    let snd_pool = snd::prepare(frames, &mut paging);
     paging.prepare_firmware_scratch(frames);
-    #[cfg(feature = "native-xhci-probe")]
+    #[cfg(feature = "if0-device-window")]
     paging.prepare_native_devices(frames);
     paging.map_tables(frames);
     arch::protection();
@@ -177,6 +182,12 @@ extern "C" fn run() -> ! {
         // before allocating native IOMMU tables under the new CR3.
         paging.begin_scratch(frames);
         xhci::run(_discovery, frames, &mut paging);
+    }
+    #[cfg(feature = "native-virtio-snd-probe")]
+    {
+        // Single BSP, IF=0: the same bounded scratch activation as above.
+        paging.begin_scratch(frames);
+        snd::run(frames, &mut paging, snd_pool);
     }
     paging.audit(frames);
     assert_eq!(paging.leaf(text_start()) & (2 | (1 << 63)), 0);

@@ -10,8 +10,17 @@ default = []
 test-panic = []
 test-hang = []
 milestone-m2 = []
+# Internal, never selected directly: the IF0 single-CPU fixture MMIO window
+# (0x3f200000) with its page-table audit and scratch, shared by the isolated
+# xHCI and virtio-snd fixtures.
+if0-device-window = []
 # H02: isolated single-CPU QEMU VT-d/xHCI DMA gate; no service/IRQ authority.
-native-xhci-probe = ["milestone-m2", "dep:pci-core", "dep:driver-core", "dep:nieuw-os-xhci"]
+native-xhci-probe = ["milestone-m2", "if0-device-window", "dep:pci-core", "dep:driver-core", "dep:nieuw-os-xhci"]
+# H03-T3a: kernel-only virtio-snd PCM output fixture (QEMU virtio-sound-pci at
+# 00:08.0, IF0, polling). No syscall, ring-3 path or capability.
+native-virtio-snd-probe = ["milestone-m2", "if0-device-window", "dep:pci-core", "dep:nieuw-os-virtio-snd"]
+test-snd-fence-reinit = ["native-virtio-snd-probe"]
+test-snd-quarantine = ["native-virtio-snd-probe"]
 native-usb-hid-probe = ["native-xhci-probe", "dep:nieuw-os-usb-core"]
 test-usb-hid-readonly-fault = ["native-usb-hid-probe"]
 test-xhci-dma-fault = ["native-xhci-probe"]
@@ -344,6 +353,7 @@ nieuw-os-xhci = { package = "nieuw-os-xhci-probe", path = "../drivers/xhci", opt
 nieuw-os-tpm-crb = { path = "../drivers/tpm-crb", optional = true }
 nieuw-os-rtc = { path = "../drivers/rtc", optional = true }
 nieuw-os-acpi-power = { path = "../drivers/acpi-power", optional = true }
+nieuw-os-virtio-snd = { path = "../drivers/virtio-snd", optional = true }
 nieuw-os-display-client = { path = "../sdk/display-client", default-features = false, optional = true }
 nieuw-os-ps2 = { path = "../drivers/ps2", optional = true }
 boot-protocol = { path = "../crates/boot-protocol" }

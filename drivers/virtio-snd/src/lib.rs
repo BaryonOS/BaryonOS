@@ -8,6 +8,7 @@
 //! selected. Callers pass exactly the device-written used-length bytes.
 
 pub mod pcm;
+pub mod queue;
 
 pub const VIRTIO_SND_DEVICE_ID: u16 = 25;
 pub const VIRTIO_SND_PCI_DEVICE_ID: u16 = 0x1040 + VIRTIO_SND_DEVICE_ID;
