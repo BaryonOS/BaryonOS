@@ -815,7 +815,7 @@
       "criterion": "H04",
       "milestone": "M9",
       "executor": "worker",
-      "status": "ready",
+      "status": "verified",
       "title": "virtio-net link-state transition tracker with flap budget (host)",
       "goal": "Add drivers/virtio-net/src/link.rs: generation-bound link up/down events derived from FEATURE_STATUS, a flap budget, rejection of a stale 'up' that would resurrect pre-down state, and a link event during reset returning an I/O error; wire only the pure tracker into lib.rs.",
       "why_now": "H04 needs disconnect/resume paths; the tracker is host-testable and feeds net-config later.",
@@ -848,7 +848,21 @@
       "evidence_level": "host",
       "rollback": "Revert the commit.",
       "next": "H04-T3 native link-loss run.",
-      "history": []
+      "history": [
+        {
+          "at": "2026-11-18T20:36:30.023943+00:00",
+          "event": "active",
+          "reason": "Independent Rust1.90 functional driver tracker; N02-T2 toolchain unavailable, P02-T3 protocol/network dependency blocked."
+        },
+        {
+          "at": "2026-11-18T20:38:02.717210+00:00",
+          "event": "verified",
+          "source_commit": "1249f015b32dfdf88d9d839dbacbfe95e8488001",
+          "reason": "22 driver host tests incl4 link regressions, Clippy, root fmt and freestanding build exit0. Pure tracker only; no native/H04 acceptance."
+        }
+      ],
+      "source_commit": "1249f015b32dfdf88d9d839dbacbfe95e8488001",
+      "receipt": "docs/roadmap-pipeline/receipts/H04-T2.json"
     },
     {
       "id": "U05-T2",
@@ -1204,7 +1218,7 @@
       "criterion": "N02",
       "milestone": "M8",
       "executor": "worker",
-      "status": "ready",
+      "status": "blocked",
       "title": "Host-integrate the net-config coordinator into network-service (DHCP replaces static config)",
       "goal": "Make DHCP-acquired address, route and DNS settings from services/net-config replace the static Config on the same Stack and PacketDevice in services/network-service; NAK, lease expiry and link-down withdraw them and later OpenTcp is refused; no default DNS when the option is absent; reconnect keeps no old sockets.",
       "why_now": "Prerequisite for any native DHCP case; reuses the reviewed coordinator.",
@@ -1236,7 +1250,8 @@
       "evidence_level": "host",
       "rollback": "Revert the commit.",
       "next": "N02-T3 native DHCP case after PR #333.",
-      "history": []
+      "history": [],
+      "blocker": "Required Rust1.91.1 is not installed (rustup toolchain list 18 November:1.90.0,1.100.0,stable,beta,nightly). No installation attempted in this bounded delivery pass; exact required tests NOT RUN. Resume with installed1.91.1; no source changed."
     },
     {
       "id": "P01-T1",
