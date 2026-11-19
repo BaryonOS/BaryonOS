@@ -48,16 +48,31 @@ def over_quota_parts():
             two = budget > 0
             budget -= two
             versions.append((30 - j, f"q{slot}{j}", bytes([slot + 1]) * (va.CHUNK + 1 if two else 1)))
-        objects.append(obj(slot, 30, versions))
-    return dict(collections=[], objects=objects)
+        objects.append(obj(slot, 30, versions, collection=1 if slot == 0 else 0))
+    return dict(collections=[GROOT], objects=objects)
 
 
-def full_parts():
+# A present collection in the refused capacity fixtures: creating it before the capacity checks
+# would make the domain used, which the Rust refusal tests detect.
+GROOT = dict(index=1, present=True, revision=5, name="Groot")
+
+
+def full_parts(two_chunks=True):
     """25 chunks under replay: one more than the volume keeps free once the other domain holds
-    its full quota (64 - 40); the two-chunk version is slot 7's current one, written last."""
-    return dict(collections=[], objects=[
-        obj(slot, 30, [(30 - j, f"f{slot}{j}", bytes([slot + 1]) * (va.CHUNK + 1 if slot == 7 and j == 0 else 1))
-                       for j in range(3)]) for slot in range(8)])
+    its full quota (64 - 40); the two-chunk version is slot 7's current one. Without it: exactly
+    24 chunks, the guaranteed free count."""
+    def length(slot, j):
+        return va.CHUNK + 1 if two_chunks and slot == 7 and j == 0 else 1
+    return dict(collections=[GROOT], objects=[
+        obj(slot, 30, [(30 - j, f"f{slot}{j}", bytes([slot + 1]) * length(slot, j)) for j in range(3)],
+            collection=1 if slot == 0 else 0) for slot in range(8)])
+
+
+def boundary_parts():
+    """Accepted boundaries: a version of exactly MAX_LENGTH, 32-byte object and collection names."""
+    return dict(collections=[dict(index=4, present=True, revision=2, name="c" * 32)],
+                objects=[obj(7, 3, [(3, "n" * 32, bytes(range(256)) * (va.MAX_LENGTH // 256))],
+                             collection=4, tags=1)])
 
 
 def s10_parts():
@@ -87,6 +102,8 @@ def fixtures() -> dict[str, tuple[bytes, str | None]]:
         "restore.bin": (encode(**restore_parts(), flags=ACCOUNTED, clock=1000), None),
         "over-quota.bin": (encode(**over_quota_parts(), flags=0, clock=30), None),
         "full.bin": (encode(**full_parts(), flags=0, clock=30), None),
+        "free-24.bin": (encode(**full_parts(two_chunks=False), flags=0, clock=30), None),
+        "boundary.bin": (encode(**boundary_parts(), flags=0, clock=3), None),
         "s1-version-revision-zero.bin": (encode(**first_object(
             versions=[(8, "a", b"1"), (6, "b", b"2"), (0, "c", b"3")])), "version revision is zero"),
         "s2-newest-version-above-object.bin": (encode(**first_object(versions=[(10, "a", b"1")])),
@@ -226,6 +243,14 @@ class Fixtures(unittest.TestCase):
         parsed = va.parse_v2(fixtures()["over-quota.bin"][0])
         need = sum(-(-v["length"] // va.CHUNK) for o in parsed["objects"] for v in o["versions"])
         self.assertEqual(need, va.QUOTA + 1)
+
+    def test_capacity_fixtures(self) -> None:
+        def need(name):
+            parsed = va.parse_v2(fixtures()[name][0])
+            self.assertTrue(parsed["collections"][1]["present"])
+            return sum(-(-v["length"] // va.CHUNK) for o in parsed["objects"] for v in o["versions"])
+        guaranteed = 64 - va.QUOTA  # CHUNKS - (DOMAINS - 1) * QUOTA, lib.rs:31-40
+        self.assertEqual((need("free-24.bin"), need("full.bin")), (guaranteed, guaranteed + 1))
 
     def test_v1_fixture_is_a_valid_v1_archive(self) -> None:
         self.assertEqual(len(va.parse(fixtures()["v1.bin"][0])["objects"]), 2)

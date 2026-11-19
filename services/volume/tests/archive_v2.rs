@@ -11,7 +11,7 @@ use volume_core::{
     client::{Client, Transport},
     service::Service,
     table::Table,
-    wire, Status, CHUNK, FNV_OFFSET, MAX_LENGTH, PER_DOMAIN,
+    upload, wire, Status, CHUNK, FNV_OFFSET, MAX_LENGTH, PER_DOMAIN,
 };
 
 const EPOCH: u64 = 6;
@@ -265,6 +265,8 @@ fn restore_native_replays_history_into_a_fresh_domain() {
     // Slots 1, 3 and 4 are present; slot 7 is a content-free record.
     assert_eq!(report.restored, 0b0001_1010);
     assert_eq!(report.writes, 6);
+    // Six WRITEs, two COLLECTIONs, two METAs.
+    assert_eq!(report.committed, 10);
     assert_eq!(c.transport.begins, 6);
 
     // Collections: present ones at their own index, the deleted one not replayed.
@@ -377,10 +379,13 @@ fn refused_without_writes(
     let mut c = client(&mut service, &mut disk, DOMAIN, None);
     prepare(&mut c);
     let begins = c.transport.begins;
+    let before = archive::never_used(&mut c, DOMAIN).unwrap();
     let (got, report) = restore(bytes, &mut c).unwrap_err();
     assert_eq!(got, status);
-    assert_eq!((report.writes, report.restored), (0, 0));
+    assert_eq!(report, NativeReport::default());
     assert_eq!(c.transport.begins, begins, "no write was started");
+    // A refusal leaves the domain exactly as it was.
+    assert_eq!(archive::never_used(&mut c, DOMAIN).unwrap(), before);
 }
 
 #[test]
@@ -410,9 +415,17 @@ fn restore_native_refuses_a_used_domain() {
 #[test]
 fn restore_native_refuses_tombstones_corruption_and_v1() {
     // R2: an archive with TOMBSTONES set is refused even into a fresh domain.
-    refused_without_writes(&fixture("tombstones.bin"), Status::Invalid, |_| {});
-    refused_without_writes(&fixture("s9-generation.bin"), Status::Corrupt, |_| {});
-    refused_without_writes(&fixture("v1.bin"), Status::Corrupt, |_| {});
+    for (name, status) in [
+        ("tombstones.bin", Status::Invalid),
+        ("s9-generation.bin", Status::Corrupt),
+        ("v1.bin", Status::Corrupt),
+        ("over-quota.bin", Status::Quota),
+        ("full.bin", Status::Full),
+    ] {
+        refused_without_writes(&fixture(name), status, |c| {
+            assert!(archive::never_used(c, DOMAIN).unwrap())
+        });
+    }
     // ACCOUNTED content-free records and deleted collections are accepted but not replayed.
     let mut disk = SimDisk::new();
     let mut service = Service::new(EPOCH, Table::EMPTY, false);
@@ -454,9 +467,10 @@ fn check_retry_refused(service: &mut Service, disk: &mut SimDisk, bytes: &[u8]) 
     assert!(!archive::never_used(&mut c, DOMAIN).unwrap());
     let (status, report) = restore(bytes, &mut c).unwrap_err();
     assert_eq!(
-        (status, report.writes, c.transport.begins),
+        (status, report.committed, c.transport.begins),
         (Status::Stale, 0, 0)
     );
+    assert!(!archive::never_used(&mut c, DOMAIN).unwrap());
 }
 
 #[test]
@@ -466,7 +480,10 @@ fn a_failed_replay_leaves_the_domain_used_and_a_retry_is_refused() {
     let mut service = Service::new(EPOCH, Table::EMPTY, false);
     let mut c = client(&mut service, &mut disk, DOMAIN, Some(3));
     let (status, report) = restore(&bytes, &mut c).unwrap_err();
-    assert_eq!((status, report.writes, report.restored), (Status::Io, 2, 0));
+    assert_eq!(
+        (status, report.writes, report.committed, report.restored),
+        (Status::Io, 2, 2, 0)
+    );
     check_retry_refused(&mut service, &mut disk, &bytes);
 }
 
@@ -526,5 +543,89 @@ fn replay_passes_must_match_the_verified_archive() {
         &mut ArchiveV2::default(),
     )
     .unwrap_err();
-    assert_eq!((status, report.writes), (Status::Corrupt, 0));
+    assert_eq!((status, report.committed), (Status::Corrupt, 0));
+    // The mismatch is found before the first BEGIN: the domain is untouched.
+    assert_eq!(archive::never_used(&mut c, DOMAIN), Ok(true));
+}
+
+#[test]
+fn a_staged_upload_in_the_destination_makes_the_first_begin_busy() {
+    // Scenario B: a token-bound upload staged (not committed) in the
+    // destination domain. The domain is still never used; the replay's first
+    // mutation is a BEGIN, refused with Busy, so nothing commits.
+    let bytes = fixture("present-only.bin");
+    let mut disk = SimDisk::new();
+    let mut service = Service::new(EPOCH, Table::EMPTY, false);
+    let mut begin = wire::Header::new(wire::BEGIN, 2, EPOCH, (DOMAIN * PER_DOMAIN + 3) as u64);
+    begin.length = 4;
+    begin.name_length = 4;
+    begin.aux = 10;
+    let response = service.handle_for(DOMAIN, 77, &upload::encode(&begin, b"Half", 0), &mut disk);
+    let reply = upload::validate_reply(&begin, 0, &response, EPOCH).unwrap();
+    assert_eq!(Status::from_code(i64::from(reply.status)), Status::Ok);
+    let mut c = client(&mut service, &mut disk, DOMAIN, None);
+    assert_eq!(archive::never_used(&mut c, DOMAIN), Ok(true));
+    let (status, report) = restore(&bytes, &mut c).unwrap_err();
+    assert_eq!((status, report), (Status::Busy, NativeReport::default()));
+    assert_eq!(archive::never_used(&mut c, DOMAIN), Ok(true));
+    // Once the staged upload is gone the same restore succeeds.
+    assert_eq!(service.detach(77), 1);
+    let mut c = client(&mut service, &mut disk, DOMAIN, None);
+    assert_eq!(restore(&bytes, &mut c).unwrap().0.restored, 0b0000_0101);
+}
+
+/// Fill the other domain to its quota: 40 committed chunks, or 32 committed
+/// plus 8 staged in an open upload session.
+fn fill_other_domain(service: &mut Service, disk: &mut SimDisk, staged: bool) {
+    let mut other = client(service, disk, 0, None);
+    other
+        .write(0, 0, b"Vol", MAX_LENGTH, |_, b| b.fill(3))
+        .unwrap();
+    other
+        .write(1, 0, b"Vol", MAX_LENGTH, |_, b| b.fill(3))
+        .unwrap();
+    if staged {
+        other
+            .write_partial(2, 0, b"Half", 8 * CHUNK, CHUNK, |_, b| b.fill(4))
+            .unwrap();
+        assert!(service.session(0).is_some());
+    } else {
+        other
+            .write(2, 0, b"Vol", 8 * CHUNK, |_, b| b.fill(3))
+            .unwrap();
+    }
+}
+
+#[test]
+fn exactly_the_guaranteed_free_chunks_restore_beside_a_full_domain() {
+    assert_eq!(archive::GUARANTEED_FREE, 24);
+    let bytes = fixture("free-24.bin");
+    for staged in [false, true] {
+        let mut disk = SimDisk::new();
+        let mut service = Service::new(EPOCH, Table::EMPTY, false);
+        fill_other_domain(&mut service, &mut disk, staged);
+        let mut c = client(&mut service, &mut disk, DOMAIN, None);
+        let (report, _) =
+            restore(&bytes, &mut c).unwrap_or_else(|e| panic!("staged={staged}: {e:?}"));
+        assert_eq!((report.restored, report.writes), (0xff, 24));
+        assert_eq!(
+            service.table().domain_chunks(DOMAIN),
+            archive::GUARANTEED_FREE
+        );
+    }
+}
+
+#[test]
+fn accepted_boundaries_restore() {
+    let bytes = fixture("boundary.bin");
+    let mut disk = SimDisk::new();
+    let mut service = Service::new(EPOCH, Table::EMPTY, false);
+    let mut c = client(&mut service, &mut disk, DOMAIN, None);
+    restore(&bytes, &mut c).unwrap();
+    let stat = c.stat((DOMAIN * PER_DOMAIN + 7) as u64).unwrap();
+    assert_eq!(
+        (stat.length, stat.name_length, stat.collection),
+        (MAX_LENGTH, 32, 4)
+    );
+    assert_eq!(c.collection_stat(DOMAIN, 4).unwrap().name_length, 32);
 }

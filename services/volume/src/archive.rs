@@ -944,13 +944,23 @@ pub fn verify_v2<S: Source>(
     walk_v2(source, scratch, |_, _, _| Ok(()))
 }
 
-/// Result of [`restore_native`].
+/// Chunks free for a never-used domain whatever the other domains hold:
+/// BEGIN keeps every domain's committed plus staged chunks within `QUOTA`.
+pub const GUARANTEED_FREE: usize = CHUNKS - (DOMAINS - 1) * QUOTA;
+const _: () = assert!(GUARANTEED_FREE > 0);
+
+/// Result of [`restore_native`]. Counts are a lower bound when the status is
+/// `Unknown`: that request may have committed without a reply.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub struct NativeReport {
     /// Bit `s`: archive slot `s` fully replayed (every version and its metadata).
     pub restored: u8,
-    /// Committed WRITEs; after a failure the domain is used and stays so.
+    /// Committed WRITEs.
     pub writes: usize,
+    /// Every commit that made the domain used (WRITE, COLLECTION, META).
+    /// Zero after an error means refused and untouched, so the domain is
+    /// still never used; otherwise it is used and a retry is refused.
+    pub committed: usize,
 }
 
 /// Is `domain` demonstrably never used (R3)? Every publish path raises at
@@ -986,9 +996,11 @@ pub fn never_used<T: Transport>(client: &mut Client<T>, domain: usize) -> Result
 /// allocates fresh chunks for every WRITE). Content-free records and deleted
 /// collections are never replayed. The volume-wide free chunk count is not
 /// observable through the protocol, so a replay needing more than
-/// `CHUNKS - QUOTA` chunks, the amount that is free whatever the other domain
-/// holds, is refused with `Full` before the first write. Any failure during
-/// the replay leaves the domain used, and a retry is then refused. The
+/// [`GUARANTEED_FREE`] chunks is refused with `Full` before the first write.
+/// The first mutation is always a BEGIN: every WRITE comes first, then the
+/// collections, then each object's META from the verified plan. A failure
+/// with `report.committed == 0` left the domain untouched; any later
+/// failure leaves it used, and a retry is then refused. The
 /// caller must be the only writer of the destination domain meanwhile: a
 /// concurrent write to a slot the archive does not use, after the
 /// never-used check, is not detected.
@@ -1028,24 +1040,15 @@ pub fn restore_native<S: Source, T: Transport>(
     if needed > QUOTA {
         return Err((Status::Quota, report));
     }
-    // The volume-wide free count is not observable, but BEGIN keeps every
-    // other domain at or below QUOTA, so CHUNKS - QUOTA chunks are always free
-    // for a never-used domain. shortcut: refuses replays of 25..=40 chunks
-    // that might fit; lift once a reviewed free-count read exists.
-    if needed > CHUNKS - QUOTA {
+    // The volume-wide free count is not observable. shortcut: refuses
+    // replays of 25..=40 chunks that might fit; lift once a reviewed
+    // free-count read exists.
+    if needed > GUARANTEED_FREE {
         return Err((Status::Full, report));
-    }
-    for collection in &plan.collections[..plan.collection_count] {
-        if collection.present {
-            client
-                .collection(domain, collection.index, 0, collection.name())
-                .map_err(|(status, _)| (status, report))?;
-        }
     }
     let mut revisions = [0u64; PER_DOMAIN];
     for depth in (0..=HISTORY).rev() {
         let mut writes = report.writes;
-        let mut restored = report.restored;
         let replayed = walk_v2(&mut open(), scratch, |object, index, content| {
             let Some(planned) = plan.object(object.slot) else {
                 return Err(Status::Corrupt);
@@ -1073,29 +1076,42 @@ pub fn restore_native<S: Source, T: Transport>(
             )?;
             writes += 1;
             revisions[object.slot] = revision;
-            if index == 0 {
-                if object.tags != 0 || object.kind != 0 || object.collection != 0 {
-                    revisions[object.slot] = client
-                        .meta(
-                            target,
-                            revision,
-                            object.tags,
-                            object.kind,
-                            object.collection,
-                        )
-                        .map_err(|(status, _)| status)?;
-                }
-                restored |= 1 << object.slot;
-            }
             Ok(())
         });
         report.writes = writes;
-        report.restored = restored;
+        report.committed = writes;
         match replayed {
             Ok(again) if again == plan => {}
             Ok(_) => return Err((Status::Corrupt, report)),
             Err(status) => return Err((status, report)),
         }
+    }
+    // Collections before META: META with a collection index needs it to exist.
+    for collection in &plan.collections[..plan.collection_count] {
+        if collection.present {
+            client
+                .collection(domain, collection.index, 0, collection.name())
+                .map_err(|(status, _)| (status, report))?;
+            report.committed += 1;
+        }
+    }
+    for object in plan.objects[..plan.object_count]
+        .iter()
+        .filter(|o| o.present)
+    {
+        if object.tags != 0 || object.kind != 0 || object.collection != 0 {
+            client
+                .meta(
+                    (domain * PER_DOMAIN + object.slot) as u64,
+                    revisions[object.slot],
+                    object.tags,
+                    object.kind,
+                    object.collection,
+                )
+                .map_err(|(status, _)| (status, report))?;
+            report.committed += 1;
+        }
+        report.restored |= 1 << object.slot;
     }
     Ok(report)
 }

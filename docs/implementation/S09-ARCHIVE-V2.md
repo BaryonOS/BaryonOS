@@ -175,6 +175,9 @@ collections exist only so that the generation check applies; (c) a
 content-free record carries the source `created`/`modified` stamps as
 historical data; (d) a purged slot and an excluded tombstone are not
 distinguished. A restore treats every content-free record as absent.
+For L1 the native restore (`restore_native`) refuses any archive with
+`TOMBSTONES` set, before its first write, rather than replaying tombstones;
+replaying them would recreate deleted content in the destination.
 
 **Source identity: decided by the project owner on 19 November 2026 — no
 source identifier is recorded.** The archive records no volume or domain
@@ -190,7 +193,10 @@ source identifier is recorded behind a feature flag either.
 **R3: decided by the project owner on 19 November 2026.** Native restore
 targets only a demonstrably never-used domain; existing domains are neither
 overwritten nor merged. This is restore policy, not archive state; the format
-has no field for it and needs none.
+has no field for it and needs none. The L1 host model proves "never used"
+with existing operations only: every slot's STAT reports `NotFound` with
+revision 0 and every collection's COLLECTION_STAT reports revision 0 (every
+publish path raises at least one such revision and none decreases).
 
 **R4: decided by the project owner on 19 November 2026.** A destination range
 for one archive is sized for the maximum archive of 494 416 bytes
@@ -256,9 +262,19 @@ clock bounds its own revisions and stamps (`table.rs:644-666`).
   content. L1 replay allocates fresh chunks for every WRITE
   (`service.rs:410-420`), so a source whose versions share chunks can still
   stop with `Quota` on replay and leave a partly restored slot that no
-  in-domain operation clears (fidelity analysis 3.2, "Interruption"). A future
-  `restore_native` must therefore check destination capacity for the full
-  replay before its first write; that is not an archive rule.
+  in-domain operation clears (fidelity analysis 3.2, "Interruption").
+  Capacity is therefore checked by `restore_native`, not by the reader:
+  before its first write it sums ⌈length / 4096⌉ over every version to be
+  replayed and refuses more than `QUOTA` (`Quota`; exact, because a
+  never-used domain holds no chunks and at most `HISTORY + 1` versions per
+  object all stay referenced) and more than
+  `GUARANTEED_FREE = CHUNKS − (DOMAINS − 1) × QUOTA = 24` (`Full`; the
+  volume-wide free count is not observable, but BEGIN keeps every other
+  domain's committed plus staged chunks within `QUOTA`). Its first mutation
+  is a BEGIN: all WRITEs come first, then COLLECTION creates, then META, so
+  a refusal or a failed first BEGIN leaves the domain never used, and its
+  report counts every commit (`committed`) so a caller can tell "refused,
+  untouched" from "failed, used".
 - `modified` versus the object revision: the table has no such relation.
 - Uniqueness of names: the volume does not enforce it (v1 likewise).
 
@@ -321,18 +337,18 @@ implies `CONTENT_V2`.
 
 | Field | L1 (history replay, client-side) | L2 (immutable provenance, table v3) |
 |---|---|---|
-| slot, state | target slot; tombstone ⇒ replay then DELETE | same |
+| slot, state | target slot; archives with `TOMBSTONES` refused (R2) | target slot; tombstone ⇒ install then DELETE only if a reviewed decision permits `TOMBSTONES` |
 | version records (oldest first: content, name, length) | one WRITE per version, in order | written by INSTALL |
 | version revision | reported as source value only | `origin_revision` per version |
 | object revision | reported as source value only | `origin_revision` per object |
 | created / modified | reported as source values only | `origin_created` / `origin_modified` |
-| tags, kind, collection | META after the last WRITE | same |
-| collection index, name, state | mapping and COLLECTION create | same |
+| tags, kind, collection | META after every WRITE of the archive and the COLLECTION creates | same |
+| collection index, name, state | COLLECTION create at the same index (present only) | same |
 | collection revision | reported as source value only | `origin_revision` per collection |
 | source clock | validation bound (S6–S8) | same; not installed as a live clock |
 | domain generation, `ACCOUNTED` | S9 consistency check; without `ACCOUNTED` reported as an unchecked recorded value | same |
 | content-free records, deleted collections | not replayed; S9 only | not installed; S9 only |
-| `TOMBSTONES` | permits tombstone replay | same |
+| `TOMBSTONES` | archive refused before the first write (R2) | permits tombstone install only after a separately reviewed decision |
 
 In both levels destination-assigned live revisions and clocks stay separate
 from the recorded source values; L2 stores the latter as immutable fields and
@@ -348,11 +364,8 @@ never feeds them into `touch` (`service.rs:603-618`).
   cannot observe how many commits another domain makes), but this needs
   review; and the proposed STAT history extension discloses the caller's own
   retained history after a DELETE, which R2 limits to content-free records and needs separate review.
-- `restore_native` checks capacity before its first write: the domain quota
-  (`Quota`) and, because the volume-wide free chunk count is not observable,
-  the `CHUNKS - QUOTA` = 24 chunks that are free whatever the other domain
-  holds (`Full`). Replays of 25 to 40 chunks are therefore refused even when
-  they would fit; lifting that needs a reviewed free-count read.
+- Replays of 25 to 40 chunks are refused with `Full` even when they would
+  fit (section 4.3); lifting that needs a reviewed free-count read.
 - Writer (`export` with a v2 selector), native reader dispatch in `walk`, a v2
   range adapter for `DiskSource`, native QEMU stage, and L2 (table v3, INSTALL, STAT extension, recovery and crash tests).
 - The destination range size of PR #396 has not been checked against
