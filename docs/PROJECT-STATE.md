@@ -1,5 +1,14 @@
 # Current project status
 
+## NEXT AGENT HANDOFF — B04-T2 delivery — 18 November 2026
+
+**Source:** `2b47d4ffb72f885686790885aec97f7a28c3c05c`, `codex/b04-repro-check`.
+**Delivered:** Repro checker runs two isolated default builds and verifies kernel/loader plus canonical ESP payload against manifests.8 unit tests pass. Real comparison exit1: kernel identical, loader/image_payload differ; tool reports red honestly.
+**Checks:** executed targeted commands and raw exit codes are in the
+[exact command/log receipt](roadmap-pipeline/receipts/B04-T2.json).
+Lead source/diff review completed; no duplicate matrix. Progress **41 → 41/100**.
+**Limits:** Same-host tooling only; actual build is NOT reproducible here and no B04 acceptance granted. ESP is a virtual-FAT payload directory, not a byte-identical disk image. No QEMU/hardware/independent environment run.
+
 ## NEXT AGENT HANDOFF — U05-T2 delivery — 18 November 2026
 
 **Source:** `9bb822db5e2e80c62ca85d7e508567995fb813a8`, `codex/u05-search-index`.
@@ -73,6 +82,8 @@ delivery branches and Claude S09/UI remain untouched. Unsafe unattended hold act
 slice from this ledger; no waiting for integration. Prior delivery checkpoints retained.
 
 ## Retained checkpoint — unified governance implementation — 18 November 2026
+
+
 
 ## Retained checkpoint — PR #350 conflict-only integration — 18 November 2026
 

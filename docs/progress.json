@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-18",
-    "source_commit": "d19136b2ced34f04aafebfefcc190f0bbbd890de",
+    "source_commit": "fd42891e40f17a50b8613d6be567d81c5249b947",
     "assessment_basis": "parent_commit",
-    "branch": "codex/u05-search-index",
-    "task": "U05-T2: Standalone bounded domain/object/revision search index with UTF8 tokens, update/delete tombstones, atomic catalogue rebuild, current grant epochs and accidental-corruption checks.11 host tests pass; bounds precede untrusted text scanning.",
+    "branch": "codex/b04-repro-check",
+    "task": "B04-T2: Repro checker runs two isolated default builds and verifies kernel/loader plus canonical ESP payload against manifests.8 unit tests pass. Real comparison exit1: kernel identical, loader/image_payload differ; tool reports red honestly.",
     "previous_score": 41,
-    "summary": "41/100 unchanged. Standalone bounded domain/object/revision search index with UTF8 tokens, update/delete tombstones, atomic catalogue rebuild, current grant epochs and accidental-corruption checks.11 host tests pass; bounds precede untrusted text scanning. Full U05-T2 remains BLOCKED on shared SDK membership owned by integration PR366. Host model only; trusted catalogue/service identity and grant authentication remain external, no native search/UI acceptance. Integration/Claude ownership and execution hold preserved."
+    "summary": "41/100 unchanged. Repro checker runs two isolated default builds and verifies kernel/loader plus canonical ESP payload against manifests.8 unit tests pass. Real comparison exit1: kernel identical, loader/image_payload differ; tool reports red honestly. Same-host tooling only; actual build is NOT reproducible here and no B04 acceptance granted. ESP is a virtual-FAT payload directory, not a byte-identical disk image. No QEMU/hardware/independent environment run. Integration/Claude ownership and execution hold preserved."
   },
   "tracks": [
     {
