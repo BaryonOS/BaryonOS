@@ -172,7 +172,9 @@
 /* after the base .ds-row rule: an @container rule has no extra specificity, so source order decides (ds-1.1, matrix row 7) */
 @container (max-width: 440px) { .ds-row { grid-template-columns: 20px minmax(0, 1fr); row-gap: 2px; padding-block: var(--space-1); white-space: normal; } .ds-row > :nth-child(n+3) { grid-column: 2; justify-self: start; text-align: start; } .ds-list .ds-row .ds-place { height: auto; min-height: var(--space-target-min); max-width: 100%; white-space: normal; overflow-wrap: anywhere; } .ds-list .ds-row > :nth-child(n+3) { max-width: 100%; white-space: normal; } } /* run 2: in the stacked form a place pill wraps inside its edge (compact density, wider text spacing, 320 px) */
 /* wider text spacing (§21): the fixed place, size and date columns grow with the added letter spacing; narrow lists keep the stacked form above */
-@container (min-width: 441px) { [data-text-spacing="wider"] .ds-row { grid-template-columns: 20px minmax(0, 1fr) 148px 72px 136px; } }
+/* the wider tracks need 376 px plus 48 px gaps plus 24 px padding before the name gets any width (PR #360 review): wider spacing stacks up to 568 px, so the name keeps at least 120 px */
+@container (max-width: 568px) { [data-text-spacing="wider"] .ds-row { grid-template-columns: 20px minmax(0, 1fr); row-gap: 2px; padding-block: var(--space-1); white-space: normal; } [data-text-spacing="wider"] .ds-row > :nth-child(n+3) { grid-column: 2; justify-self: start; text-align: start; max-width: 100%; white-space: normal; } [data-text-spacing="wider"] .ds-list .ds-row .ds-place { height: auto; min-height: var(--space-target-min); max-width: 100%; white-space: normal; overflow-wrap: anywhere; } }
+@container (min-width: 569px) { [data-text-spacing="wider"] .ds-row { grid-template-columns: 20px minmax(0, 1fr) 148px 72px 136px; } }
 [data-text-spacing="wider"] .ds-list-head { grid-template-columns: 20px minmax(0, 1fr) 148px 72px 136px; } /* run 2: "Vandaag 09:12" needed 6.8 px more than 128 px */
 .ds-row > .icon { width: 20px; height: 20px; color: var(--color-text-muted); }
 .ds-row-name { overflow: hidden; text-overflow: ellipsis; }
