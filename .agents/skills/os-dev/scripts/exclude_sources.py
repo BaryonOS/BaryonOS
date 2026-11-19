@@ -9,7 +9,7 @@ pages, updates the manifest counts and appends a provenance entry to
 Usage: exclude_sources.py --reason TEXT --record PATH SOURCE_ID [...]
 """
 from __future__ import annotations
-import argparse, json, re
+import argparse, hashlib, json, re
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -47,6 +47,8 @@ def main() -> int:
             body = data[r["start_byte"]:r["start_byte"] + r["length_bytes"]]
             if not (start <= r["start_byte"] and r["start_byte"] + r["length_bytes"] <= end):
                 raise SystemExit(f"{i}: source text outside its section")
+            if hashlib.sha256(body).hexdigest() != r["text_sha256"]:
+                raise SystemExit(f"{i}: source text does not match its recorded hash")
             cut.append((start, end, section.count(b"\n")))
             excluded.append(r)
         out, pos = bytearray(), 0
