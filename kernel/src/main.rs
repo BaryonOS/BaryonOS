@@ -21,7 +21,8 @@ mod serial;
         feature = "native-smp-legacy",
         feature = "framebuffer",
         feature = "native-rtc",
-        feature = "native-acpi-s5"
+        feature = "native-acpi-s5",
+        feature = "native-acpi-s3"
     )
 ))]
 compile_error!("native-xhci-probe exclusively owns the single-CPU IF0 DMA fixture");
@@ -49,6 +50,18 @@ compile_error!("native-rtc exclusively owns CMOS in the single-CPU IF0 bootstrap
     )
 ))]
 compile_error!("native-acpi-s5 ends the single-CPU IF0 bootstrap; no other subsystem may run");
+#[cfg(all(
+    feature = "native-acpi-s3",
+    any(
+        feature = "milestone-m3",
+        feature = "framebuffer",
+        feature = "native-smp",
+        feature = "native-rtc",
+        feature = "native-acpi-s5",
+        feature = "native-system-power"
+    )
+))]
+compile_error!("native-acpi-s3 resumes only the single-CPU IF0 bootstrap; no device, AP or service state survives sleep");
 #[cfg(all(
     feature = "native-system-power",
     any(

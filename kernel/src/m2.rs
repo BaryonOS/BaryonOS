@@ -9,10 +9,16 @@ pub(crate) mod lock;
 #[cfg(feature = "milestone-m3")]
 mod m3;
 pub(crate) mod paging;
-#[cfg(any(feature = "native-acpi-s5", feature = "native-system-power"))]
+#[cfg(any(
+    feature = "native-acpi-s5",
+    feature = "native-system-power",
+    feature = "native-acpi-s3"
+))]
 pub(crate) mod power;
 #[cfg(any(feature = "native-rtc", feature = "native-system-clock"))]
 mod rtc;
+#[cfg(feature = "native-acpi-s3")]
+mod sleep;
 #[cfg(feature = "native-smp")]
 pub(crate) mod smp;
 #[cfg(feature = "native-xhci-probe")]
@@ -117,6 +123,8 @@ extern "C" fn run() -> ! {
     // First-fit before any table allocation: the lowest free frame is the SIPI page.
     #[cfg(feature = "native-smp")]
     let trampoline = smp::reserve_trampoline(frames);
+    #[cfg(feature = "native-acpi-s3")]
+    let wake_page = sleep::reserve_wake_page(frames);
     let mut paging = paging::Paging::new(frames);
     let text_end = ptr::addr_of!(__text_end) as u64;
     let rodata_end = ptr::addr_of!(__rodata_end) as u64;
@@ -153,6 +161,9 @@ extern "C" fn run() -> ! {
     // Needs the firmware identity map: may zero a new PT and writes the SIPI page.
     #[cfg(feature = "native-smp")]
     let smp_prepared = smp::prepare(frames, &mut paging, trampoline);
+    // Same constraint as the SIPI page: written through the firmware identity map.
+    #[cfg(feature = "native-acpi-s3")]
+    let s3_prepared = sleep::prepare(frames, &mut paging, wake_page);
     paging.prepare_firmware_scratch(frames);
     #[cfg(feature = "native-xhci-probe")]
     paging.prepare_native_devices(frames);
@@ -233,6 +244,8 @@ extern "C" fn run() -> ! {
     #[cfg(all(not(feature = "milestone-m3"), not(feature = "graphics-g0")))]
     {
         serial::write(b"M2:PASS\nM1:PASS\n");
+        #[cfg(feature = "native-acpi-s3")]
+        sleep::run(frames, &mut paging, s3_prepared);
         #[cfg(feature = "native-acpi-s5")]
         power::off();
         serial::exit(0x10)

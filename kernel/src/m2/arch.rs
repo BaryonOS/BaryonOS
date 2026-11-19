@@ -205,6 +205,44 @@ pub fn install() {
     }
 }
 
+/// After an ACPI S3 wake the CPU comes out of reset: reload the unchanged
+/// kernel GDT/IDT/TR exactly as `install` left them. The only table write is
+/// clearing the TSS descriptor's busy bit that the boot-time `ltr` set, since
+/// `ltr` faults on a busy descriptor. Descriptor contents are otherwise
+/// untouched (no new gates, stacks or privileges).
+#[cfg(feature = "native-acpi-s3")]
+pub fn reload_after_resume() {
+    // SAFETY: Single BSP with IF=0 on the dedicated wake stack, before any
+    // other kernel code runs after the wake. GDT/IDT/TSS are the permanent
+    // statics initialized by `install`; entry 5 is the 64-bit TSS descriptor
+    // and only its type nibble changes from busy (0xb) back to available (0x9).
+    unsafe {
+        let tss = ptr::addr_of_mut!(GDT).cast::<u64>().add(5);
+        let descriptor = tss.read_volatile();
+        assert_eq!(
+            (descriptor >> 40) & 0xfd,
+            0x89,
+            "TSS descriptor type before resume reload"
+        );
+        tss.write_volatile(descriptor & !(0x2 << 40));
+        let gdtr = Pointer {
+            limit: 55,
+            base: ptr::addr_of!(GDT) as u64,
+        };
+        let idtr = Pointer {
+            limit: 4095,
+            base: ptr::addr_of!(IDT) as u64,
+        };
+        asm!("lgdt [{}]",in(reg) &gdtr,options(readonly,nostack));
+        asm!("push 8","lea rax, [rip + 2f]","push rax","retfq","2:","mov ax, 16","mov ds, ax","mov es, ax","mov ss, ax","xor eax,eax","mov fs, ax","mov gs, ax",out("rax") _);
+        asm!("ltr ax",in("ax") 0x28u16,options(nostack));
+        asm!("lidt [{}]",in(reg) &idtr,options(readonly,nostack));
+        for msr in [0xc0000100u32, 0xc0000101, 0xc0000102] {
+            asm!("wrmsr",in("ecx") msr,in("eax") 0u32,in("edx") 0u32,options(nostack));
+        }
+    }
+}
+
 /// One AP's private descriptor tables: a GDT with the kernel's code/data
 /// descriptors and this CPU's own TSS descriptor, plus that TSS. A busy TSS
 /// may be loaded by exactly one CPU, so every AP needs its own. 256-byte

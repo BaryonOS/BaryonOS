@@ -479,11 +479,60 @@ impl Paging {
         address: u64,
         output: &mut [u8],
     ) -> Result<(), kernel_core::Error> {
+        let length = output.len();
+        let destination = output.as_mut_ptr();
+        // SAFETY: The caller's contract covers the span; `destination` is the
+        // exclusive kernel slice of exactly that length.
+        unsafe {
+            self.firmware_span(address, length, false, |window, copied, chunk| {
+                ptr::copy_nonoverlapping(window as *const u8, destination.add(copied), chunk);
+            })
+        }
+    }
+
+    /// Store bytes into firmware-owned ACPI NVS through one temporary
+    /// supervisor RW/NX mapping, removed again before returning. Used only for
+    /// the FACS waking-vector fields of the validated S3 plan.
+    ///
+    /// # Safety
+    /// `address..address + input.len()` must lie entirely inside UEFI ACPI NVS
+    /// memory that the OS is specified to update (the FACS), never MMIO,
+    /// reclaimable table memory or RAM owned by the frame allocator.
+    #[cfg(feature = "native-acpi-s3")]
+    pub(super) unsafe fn write_firmware(
+        &mut self,
+        address: u64,
+        input: &[u8],
+    ) -> Result<(), kernel_core::Error> {
+        let source = input.as_ptr();
+        // SAFETY: As above; `source` is a readable kernel slice of that length.
+        unsafe {
+            self.firmware_span(address, input.len(), true, |window, copied, chunk| {
+                ptr::copy_nonoverlapping(source.add(copied), window, chunk);
+                core::sync::atomic::fence(Ordering::SeqCst);
+            })
+        }
+    }
+
+    /// Visits `address..address+length` one physical page at a time through
+    /// the single FIRMWARE_SCRATCH leaf (supervisor, NX, writable only when
+    /// asked), calling `access(window, offset_done, chunk_len)` per page.
+    ///
+    /// # Safety
+    /// The caller validated the span against the UEFI ACPI descriptors and
+    /// `access` touches at most `chunk_len` bytes at `window`.
+    unsafe fn firmware_span(
+        &mut self,
+        address: u64,
+        length: usize,
+        writable: bool,
+        mut access: impl FnMut(*mut u8, usize, usize),
+    ) -> Result<(), kernel_core::Error> {
         let end = address
-            .checked_add(output.len() as u64)
+            .checked_add(length as u64)
             .filter(|end| *end <= (1 << 52))
             .ok_or(kernel_core::Error::Range)?;
-        if output.is_empty() {
+        if length == 0 {
             return Ok(());
         }
         // CPUID is available in long mode and the leaf is checked before
@@ -502,7 +551,7 @@ impl Paging {
                 return Err(kernel_core::Error::Range);
             }
             let offset = (current - page) as usize;
-            let length = core::cmp::min(PAGE as usize - offset, output.len() - copied);
+            let chunk = core::cmp::min(PAGE as usize - offset, length - copied);
             let mut table = self.root;
             for shift in [39, 30, 21] {
                 let index = ((FIRMWARE_SCRATCH >> shift) & 511) as usize;
@@ -519,22 +568,17 @@ impl Paging {
             if read(table, index) != 0 {
                 return Err(kernel_core::Error::Overlap);
             }
-            write(table, index, page | PRESENT | NX);
+            let rights = if writable { WRITE } else { 0 };
+            write(table, index, page | PRESENT | rights | NX);
             invalidate(FIRMWARE_SCRATCH);
-            // SAFETY: The caller validated this ACPI memory span against the UEFI
-            // map. The temporary leaf is supervisor, read-only, NX, and removed
-            // before returning; output is a valid exclusive kernel slice.
-            unsafe {
-                ptr::copy_nonoverlapping(
-                    (FIRMWARE_SCRATCH + offset as u64) as *const u8,
-                    output.as_mut_ptr().add(copied),
-                    length,
-                );
-            }
+            // The caller validated this ACPI memory span against the UEFI map.
+            // The temporary leaf is supervisor, NX, writable only for the NVS
+            // store path, and removed before returning.
+            access((FIRMWARE_SCRATCH + offset as u64) as *mut u8, copied, chunk);
             write(table, index, 0);
             invalidate(FIRMWARE_SCRATCH);
-            copied += length;
-            current += length as u64;
+            copied += chunk;
+            current += chunk as u64;
         }
         Ok(())
     }

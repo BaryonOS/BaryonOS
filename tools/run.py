@@ -51,7 +51,7 @@ def run_guest(label="smoke", *, esp=None, timeout=60, required_markers=MARKERS,
               expected_kernel_sha256=None, expected_loader_sha256=None, memory_mib=256,
               rtc_base=None, tpm_socket=None, cpus=1, tcg_threads="single",
               acpi_tables=(), reboot_on_reset=False, xhci_case=None,
-              hid_input_probe=False, vga_rom=None, usb_hid_case=None):
+              hid_input_probe=False, vga_rom=None, usb_hid_case=None, s3_case=None):
     # Defaults keep every existing profile byte-identical (-smp 1, single TCG).
     if type(cpus) is not int or not 1 <= cpus <= 16:
         raise ValueError("cpus must be an explicit integer in [1,16]")
@@ -78,6 +78,13 @@ def run_guest(label="smoke", *, esp=None, timeout=60, required_markers=MARKERS,
             or rtc_base is not None or tpm_socket is not None or acpi_tables
             or reboot_on_reset or xhci_case is not None or hid_input_probe):
         raise ValueError("USB HID requires the isolated single-CPU xHCI fixture")
+    if s3_case is not None and (
+            s3_case not in ("cycles", "corrupt-facs", "stale-token") or cpus != 1
+            or tcg_threads != "single" or memory_mib != 256 or m5_case is not None
+            or rtc_base is not None or tpm_socket is not None or acpi_tables
+            or reboot_on_reset or xhci_case is not None or hid_input_probe
+            or usb_hid_case is not None):
+        raise ValueError("ACPI S3 requires the isolated single-CPU QMP fixture")
     rtc_arguments = []
     if rtc_base is not None:
         # A controlled UTC calendar, never a host wall-clock fallback.
@@ -184,8 +191,15 @@ def run_guest(label="smoke", *, esp=None, timeout=60, required_markers=MARKERS,
     started = datetime.now(timezone.utc).isoformat()
     timed_out = False
     usb_control = None
+    s3_control = None
     try:
-        if usb_hid_case is not None:
+        if s3_case is not None:
+            from run_sleep import controlled_guest as s3_guest
+            s3_control = s3_guest(args, cwd=ROOT, env=env, timeout=timeout,
+                                  run_dir=run_dir, case=s3_case)
+            rc, out, err = (s3_control["returncode"], s3_control["stdout"], s3_control["stderr"])
+            timed_out = s3_control["timed_out"]
+        elif usb_hid_case is not None:
             from run_usb_hid import controlled_guest
             usb_control = controlled_guest(args, cwd=ROOT, env=env, timeout=timeout,
                                            run_dir=run_dir, case=usb_hid_case)
@@ -222,6 +236,11 @@ def run_guest(label="smoke", *, esp=None, timeout=60, required_markers=MARKERS,
         report.update(usb_hid_case=usb_hid_case, usb_control=usb_control and {
             "trace": usb_control["trace"], "error": usb_control["error"]})
         report["passed"] = report["passed"] and usb_control is not None and usb_control["error"] is None
+    if s3_case is not None:
+        report.update(s3_case=s3_case, s3_control=s3_control and {
+            "trace": s3_control["trace"], "events": s3_control["events"],
+            "observations": s3_control["observations"], "error": s3_control["error"]})
+        report["passed"] = report["passed"] and s3_control is not None and s3_control["error"] is None
     report['passed'] = report['passed'] and artifact_binding_passed
     if disk_result is not None:
         report.update(m5_case=m5_case, disk_oracle=disk_result)

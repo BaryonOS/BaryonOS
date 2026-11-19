@@ -20,6 +20,11 @@ native-rtc = ["milestone-m2", "dep:nieuw-os-rtc"]
 # H05 step: IF0 M2 profile that ends in a validated ACPI S5 poweroff.
 native-acpi-s5 = ["milestone-m2", "dep:nieuw-os-acpi-power"]
 test-acpi-s5-corrupt-dsdt = ["native-acpi-s5"]
+# H05 step: IF0 M2 profile that suspends to RAM (ACPI S3) and resumes through
+# its own real-mode wake page, three validated cycles, then the normal exit.
+native-acpi-s3 = ["milestone-m2", "dep:nieuw-os-acpi-power"]
+test-acpi-s3-corrupt-facs = ["native-acpi-s3"]
+test-acpi-s3-stale-token = ["native-acpi-s3"]
 # K06 step 1: opt-in AP bring-up profile. APs run a bounded sync self-test and
 # park; no scheduler, allocator, paging or IPC state is shared with them.
 native-smp = ["milestone-m2"]

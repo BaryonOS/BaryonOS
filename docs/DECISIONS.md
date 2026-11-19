@@ -5,6 +5,74 @@ This document distinguishes the decisions and authority of the project owner
 from those of the executing roles. Source quotations retain their original
 wording and speaker.
 
+## ADR-H05-S3-WAKE-20261119 — Own-kernel ACPI S3 wake contract for the fixed QEMU/OVMF profile
+
+**Status:** technical decision of the executing hardware-track lead on
+19 November 2026, inside the H05 implementation mandate. It is not a
+project-owner approval, grants no new capability to any process and accepts
+no criterion. H05 stays open.
+
+**Context.** The H05 S3 slice (`native-acpi-s3`) puts the independent kernel
+to sleep through ACPI S3 and resumes it. Three facts were measured in this
+session on QEMU 8.2.2 `pc-q35-8.2` with Ubuntu `OVMF_CODE_4M.fd` under TCG:
+- QEMU builds an ACPI 1.0b FACS: version byte 0, length 64, every other byte
+  zero. The parser merged in #371 accepted only versions 2 and 3, so
+  `origin/main` rejects the real tables with `UnsupportedFacsFields`.
+- With only the ACPI 1.0b real-mode waking vector armed, edk2's own
+  `AsmTransferControl` far-returns into a 16-bit code segment and QEMU TCG
+  then truncates EIP to 16 bits. The firmware executes OS memory (at
+  `.0 & 0xffff`) and stops with `#BP` before reaching any OS code. This is a
+  firmware/emulator interaction, observed with the transfer stub located at
+  `0xf743ad5` and the fault at `0x93e1`.
+- edk2's `S3ResumeBootOs` reads `X_Firmware_Waking_Vector` (offset 24) for
+  every FACS version and, when it is nonzero without 64-bit wake, enters it
+  in 32-bit protected mode with paging disabled (`AsmDisablePaging64`).
+  OVMF also leaves `SCI_EN` clear after the wake.
+
+**Decision.**
+1. `parse_s3` accepts FACS versions 0 and 1 with exact per-version reserved
+   fields (version 0: offsets 24..64 zero; version 1: offsets 33..64 zero and
+   a 32-bit extended vector), alongside the existing versions 2 and 3.
+2. A `WakePlan` describes every FACS store: the 16-bit real-mode vector
+   always, offset 24 when the FACS version defines it, and OSPM flags with
+   64BIT_WAKE_F cleared for versions 2 and later. No firmware long-mode entry
+   is ever requested.
+3. `ExtendedVectorPolicy::Edk2Version0Extended`, used only by the fixed
+   QEMU/OVMF kernel profile, additionally stores the kernel's 32-bit entry
+   into offset 24 of a version-0 FACS. Discovery has proven those bytes zero,
+   and the disarm plan restores zero right after every wake. The default
+   policy `Specification` refuses a 32-bit entry for a version-0 FACS.
+4. Both entries converge on one 32-bit stage and one 64-bit token check: only
+   the armed generation resumes the saved context; any other wake is reported
+   and stops the VM.
+5. After a wake the kernel restores `SCI_EN` when it was set before sleep,
+   matching Linux's documented "bug compatibility" behaviour, and reports
+   whether it had to.
+
+**Alternatives considered.**
+- Real-mode vector only (strict ACPI 1.0b). It cannot resume under QEMU TCG,
+  the project's CI and cloud environment, because of the firmware transfer
+  stub. The real-mode stage stays armed for firmware that ignores offset 24.
+- Rewrite the FACS version byte. That changes firmware-owned structure
+  semantics; rejected.
+- Use KVM, where the stub runs. KVM is unavailable in the cloud environment
+  and the hosted runners; the TCG behaviour would remain untested.
+
+**Rationale.** Offset 24 is the same field ACPICA already writes (to zero)
+in a version-0 FACS longer than 32 bytes. Confining the nonzero store to an
+explicit, named policy, a zero-validated field and an immediate restore keeps
+the deviation bounded and visible in the serial plan line.
+
+**Consequences.** The S3 evidence is QEMU/OVMF/TCG evidence only. The
+real-mode entry path is armed but not natively exercised; it reuses the
+pattern of the natively verified SMP SIPI trampoline. Physical firmware may
+use a version-1+ FACS, where the 32-bit extended vector is the specified
+path. AML `_PTS`/`_WAK`, device and service lifecycle across sleep, other
+wake sources, SMP and physical hardware remain open under H05.
+
+**Rollback.** Revert the implementing commit; S5 profiles and their parser
+paths are unchanged (regression-tested in the same session).
+
 ## ADR-S09-DUALDISK-20261119 — Test-only second virtio-blk device for the S09 archive fixture
 
 **Status:** approved by the project owner on 19 November 2026 (verbatim: "Yes,
