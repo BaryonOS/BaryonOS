@@ -2235,8 +2235,10 @@ impl<'a, T: Transport> Controller<'a, T> {
                 if input.changed.left() && !input.buttons.left() {
                     self.dragging = false;
                     let pressed = self.pressed.take();
-                    if pressed.is_some() && pressed == self.hit(x, y) {
-                        self.activate(pressed.unwrap())?;
+                    if let Some(pressed) = pressed {
+                        if Some(pressed) == self.hit(x, y) {
+                            self.activate(pressed)?;
+                        }
                     }
                 }
                 self.invalidate()

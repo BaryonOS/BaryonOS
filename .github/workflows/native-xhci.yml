@@ -40,7 +40,7 @@ jobs:
         uses: ./.github/actions/setup-python
       - name: Pinned Rust toolchain
         run: >-
-          python3 -B tools/tokenguard.py run -- rustup toolchain install 1.90.0
+          python3 -B tools/tokenguard.py run -- rustup toolchain install 1.100.0
           --profile minimal --component rustfmt,clippy
           --target x86_64-unknown-none,x86_64-unknown-uefi
       - name: Pinned QEMU and OVMF
@@ -51,14 +51,14 @@ jobs:
           python3 -B tools/tokenguard.py run -- python3 -B tools/preflight.py --strict
           python3 -B tools/tokenguard.py run -- python3 -B -m unittest discover -s tools/tests -p test_xhci.py -v
           python3 -B tools/tokenguard.py run -- python3 -B -m unittest discover -s tools/tests -p test_usb_hid_probe.py -v
-          python3 -B tools/tokenguard.py run -- cargo +1.90.0 test --locked -p boot-protocol -p kernel-core
-          python3 -B tools/tokenguard.py run -- cargo +1.90.0 clippy --locked -p boot-protocol -p kernel-core --all-targets -- -D warnings
-          python3 -B tools/tokenguard.py run -- cargo +1.90.0 test --locked --manifest-path drivers/xhci/Cargo.toml
-          python3 -B tools/tokenguard.py run -- cargo +1.90.0 clippy --locked --manifest-path drivers/xhci/Cargo.toml --all-targets -- -D warnings
-          python3 -B tools/tokenguard.py run -- cargo +1.90.0 test --locked --manifest-path drivers/usb/Cargo.toml
-          python3 -B tools/tokenguard.py run -- cargo +1.90.0 clippy --locked --manifest-path drivers/usb/Cargo.toml --all-targets -- -D warnings
-          python3 -B tools/tokenguard.py run -- cargo +1.90.0 fmt --manifest-path drivers/usb/Cargo.toml -- --check
-          python3 -B tools/tokenguard.py run -- cargo +1.90.0 fmt --all -- --check
+          python3 -B tools/tokenguard.py run -- cargo +1.100.0 test --locked -p boot-protocol -p kernel-core
+          python3 -B tools/tokenguard.py run -- cargo +1.100.0 clippy --locked -p boot-protocol -p kernel-core --all-targets -- -D warnings
+          python3 -B tools/tokenguard.py run -- cargo +1.100.0 test --locked --manifest-path drivers/xhci/Cargo.toml
+          python3 -B tools/tokenguard.py run -- cargo +1.100.0 clippy --locked --manifest-path drivers/xhci/Cargo.toml --all-targets -- -D warnings
+          python3 -B tools/tokenguard.py run -- cargo +1.100.0 test --locked --manifest-path drivers/usb/Cargo.toml
+          python3 -B tools/tokenguard.py run -- cargo +1.100.0 clippy --locked --manifest-path drivers/usb/Cargo.toml --all-targets -- -D warnings
+          python3 -B tools/tokenguard.py run -- cargo +1.100.0 fmt --manifest-path drivers/usb/Cargo.toml -- --check
+          python3 -B tools/tokenguard.py run -- cargo +1.100.0 fmt --all -- --check
       - name: Real command, USB reports, detach and DMA rejection
         run: |
           set -euo pipefail

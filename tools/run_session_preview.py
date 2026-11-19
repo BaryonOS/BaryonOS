@@ -35,7 +35,7 @@ def generate_fixture(build: Path) -> Path:
     directory.mkdir(parents=True)
     frozen = source_hash()
     command = [
-        "cargo", "+1.90.0", "test", "--offline", "--locked", "--manifest-path",
+        "cargo", "+1.100.0", "test", "--offline", "--locked", "--manifest-path",
         str(ROOT / "ui/native/Cargo.toml"), "--test", "desktop_native_fixture",
         "--", "--nocapture",
     ]

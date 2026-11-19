@@ -3,7 +3,7 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-18",
-    "source_commit": "5a3295b6093549f4b5ff6164ab2773ac4c264996",
+    "source_commit": "c5464ebb90e62e9e072e852dfe658d7036af742b",
     "assessment_basis": "parent_commit",
     "branch": "codex/codeql-pr-fast-suite",
     "task": "CodeQL fast pre-merge/default and extended main analysis",

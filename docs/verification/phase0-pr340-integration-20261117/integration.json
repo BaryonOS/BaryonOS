@@ -1,0 +1,32 @@
+{
+  "original_head": "90816de39460b76e35cd626721d4dac9bde905e2",
+  "queued_predecessor": "de793ed7ec83e2c121bf3f02fd0873271f86fe58",
+  "actual_main": "e7169e43bf772307acf328590b4300fa52a4ad73",
+  "predecessor_merged": false,
+  "merge_order": [
+    336,
+    333,
+    340
+  ],
+  "conflicts": [
+    "docs/PROJECT-STATE.md: retain both complete historical conflict blocks",
+    "docs/progress.json: new assessment, unchanged fixed register and existing bounded H02 evidence pointer"
+  ],
+  "manual_runtime_edits": [],
+  "auto_merged_runtime_paths": [
+    "kernel/Cargo.toml",
+    "tools/build.py"
+  ],
+  "required_preservation": [
+    "S09 portallint uses is_multiple_of",
+    "Name-safety claim remains bounded",
+    "Existing portal-only size optimization retained",
+    "TEST probe linker-only fixed-slot repair retained",
+    "Original source/evidence and all independent handoffs",
+    "v1 recovery unchanged; D1\u2013D5 unresolved"
+  ],
+  "host_native_independent_checks": "PENDING",
+  "current_head_hosted": "PENDING",
+  "progress": 41,
+  "scope_limit": "Reconciliation only; no broader S09 design/workstream transfer"
+}

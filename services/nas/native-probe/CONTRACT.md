@@ -96,6 +96,11 @@ zero. The existing volume service uses its **own unmodified** layout.
 | 168 | guest PID | guest PID | admin PID |
 | 176 | own PID | own PID | own PID |
 | 184 | 0 | volume PID | 0 |
+| 200 | guest-exit observation | 0 | 0 |
+
+In the normal fixture, only kernel `observe_exit(GUEST)` sets admin word 200
+from 0 to 1 and emits `NAS:GUEST_OFFLINE:PASS`. The administrator never writes
+this word. A readiness message or a number of yields does not establish exit.
 
 The syscall set must include existing IPC, entropy and monotonic clock.
 No new syscall, general cap rights or trusted RTC claim.
@@ -116,7 +121,7 @@ NAS or volume authority.
 |---|---|
 | 0..4 | `NASP` |
 | 4..6 | version 1 |
-| 6..8 | opcode 1..13; only a reply sets bit `0x8000` |
+| 6..8 | opcode 1..14; only a reply sets bit `0x8000` |
 | 8..16 | non-zero request correlation, not a capability |
 | 16..20 | status: 0 or fixed negative error code; requests always 0 |
 | 20..22 | payload length 0..104 |
@@ -129,10 +134,13 @@ NAS or volume authority.
 | 152..256 | payload; all bytes after the length zero |
 
 Opcodes: 1 Invite, 2 Accept, 3 Open, 4 Stage, 5 Commit, 6 Read, 7 Usage,
-8 SetQuota, 9 Revoke, 10 Evict, 11 Shutdown, 12 UsageAt, 13 Close.
+8 SetQuota, 9 Revoke, 10 Evict, 11 Shutdown, 12 UsageAt, 13 Close, 14 Cancel.
 The parser also checks **unused fields per opcode**, token form,
 reply form and empty error replies. Session decoding grants no rights:
 the core re-checks caller, live handle, namespace and epoch.
+Cancel requires only the live session and upload fields; its namespace, revision,
+value and payload are zero. It delegates to the existing core cancellation with
+the same authenticated caller and returns an empty success or canonical error.
 No principal, key, mutable client buffer or capability in the wire.
 
 The 104-byte payload and one selected guest are visible probe limits,
@@ -151,14 +159,23 @@ or trusted time provider; RTC must not silently replace this.
 ## Normal and cold assertions
 
 Normal: admin offers 128 bytes; guest accepts and opens, stages/commits/reads
-96 synthetic bytes; reserves 32 replacement bytes. Admin sees used 96,
-reserved 32, rejects quota 127, revokes without guest consent. Guest gets
-`Stale` on old upload/read and `Denied` on reopening. Guest administration via
-guest ingress is rejected; receiving via its own SEND-only NAS ingress
-gives kernel `Access`. That checks concrete rights, not the incorrect
-assumption that a numeric handle is globally unique. Afterwards
-admin deletes the ciphertext, Usage shows
-`Evicted`/used 0/reserved 0; NAS shutdown only via admin.
+96 synthetic bytes and reserves 32 replacement bytes. An extra byte is refused
+with `Quota`. After the administrator observes used 96/reserved 32, the guest
+cancels; the administrator observes reserved 0 before allowing a 32-byte retry.
+At full quota again, reducing quota to 127 fails and increasing it to 256 succeeds.
+Usage must show quota 256 with the same used 96/reserved 32. Revocation then
+invalidates the live retry upload/session: old COMMIT/READ return `Stale` and
+reopening returns `Denied`. The original guest administration and SEND-only
+receive denials remain. The administrator evicts the first namespace.
+
+A second invitation creates a distinct namespace. The guest accepts, opens,
+stages 32 bytes and exits. After actual kernel exit observation, the administrator
+must still see Active/used 0/reserved 32, revoke to Revoked/reserved 0, and evict
+to Evicted/used 0/reserved 0. This models an offline local guest, not a remote
+account. Both tombstones persist with epoch 2 and quotas 256/128. Expected
+normal RPC successes/errors are admin 16/1, NAS 27/7 and guest 11/6.
+Eleven core publications produce volume generation 21 (one publication followed
+by ten replacement/history-purge pairs). Shutdown remains administrator-only.
 
 Cold: the service restores exclusively the existing canonical snapshot with fresh
 real entropy; admin enumerates `Evicted`, epoch 2, used/reserved 0; guest
