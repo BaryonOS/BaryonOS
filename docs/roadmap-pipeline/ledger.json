@@ -1149,7 +1149,7 @@
       "criterion": "P02",
       "milestone": "M8",
       "executor": "worker",
-      "status": "ready",
+      "status": "verified",
       "title": "Canonical versioned client checkpoint encoding with strict validation (host)",
       "goal": "Add services/nas/native-client/src/checkpoint.rs: canonical, versioned, fixed-length encoding of the client checkpoint with strict decode validation; a restored checkpoint yields only NeedsReconcile; no anti-rollback claim.",
       "why_now": "Durable offline edits are a P02 condition and the checkpoint is not yet a persistent schema.",
@@ -1183,7 +1183,21 @@
       "evidence_level": "host",
       "rollback": "Revert the commit.",
       "next": "P02-T3 native scenario.",
-      "history": []
+      "history": [
+        {
+          "at": "2026-11-18T20:31:37.717049+00:00",
+          "event": "active",
+          "reason": "Sequential lead-owned dependent slice stacked on PR367; no concurrent writer or unrelated Claude paths."
+        },
+        {
+          "at": "2026-11-18T20:33:51.585853+00:00",
+          "event": "verified",
+          "source_commit": "8536ec8581cd41e0094c1e61bf43491d31192e4f",
+          "reason": "21 host tests incl4 codec regressions, Clippy/fmt exit0. Stacked dependency PR367, no acceptance inferred."
+        }
+      ],
+      "source_commit": "8536ec8581cd41e0094c1e61bf43491d31192e4f",
+      "receipt": "docs/roadmap-pipeline/receipts/P02-T2.json"
     },
     {
       "id": "N02-T2",

@@ -4,6 +4,9 @@
 #![no_std]
 #![forbid(unsafe_code)]
 
+mod checkpoint;
+pub use checkpoint::CHECKPOINT_BYTES;
+
 use core::fmt;
 use nieuw_os_nas_core::{
     Error, Principal, Service, Session, Storage, Upload, MAX_CIPHERTEXT, OBJECTS,
@@ -92,7 +95,7 @@ impl fmt::Debug for Edit {
     }
 }
 
-/// An in-memory model, not an on-disk schema or a durable-save acknowledgement.
+/// A bounded queue snapshot with a canonical codec, not a durable-save ACK.
 /// It contains no Session or Upload. An adapter still needs authenticated,
 /// atomic, rollback-aware local persistence.
 #[derive(Clone)]
