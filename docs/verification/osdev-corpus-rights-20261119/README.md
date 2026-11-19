@@ -12,9 +12,14 @@ corpus file. Per-record results are in [classification.json](classification.json
 - **Revision history:** the repository's own export metadata
   (`.agents/skills/os-dev/assets/wiki-revision-metadata.jsonl.gz`), giving
   every revision's date, contributor and edit comment.
-- **Licence statements in the corpus:** W003005 (OSDev Wiki:Copyrights) licenses
-  content "added since June 6 of 2011" under CC0; W002031 (OSDev Wiki:License)
-  calls the wiki "of mixed licensing". Both are cited as written.
+- **Licence statements in the corpus:** OSDev Wiki contributors, "OSDev Wiki:Copyrights"
+  (W003005), revision 11734 of 7 July 2011,
+  <https://wiki.osdev.org/index.php?title=OSDev_Wiki%3ACopyrights&oldid=11734>,
+  licenses content "added since June 6 of 2011" under CC0. OSDev Wiki
+  contributors, "OSDev Wiki:License" (W002031), revision 11735 of 7 July 2011,
+  <https://wiki.osdev.org/index.php?title=OSDev_Wiki%3ALicense&oldid=11735>,
+  calls the wiki "of mixed licensing". Both are cited as written from the
+  export copy; the live revisions were not re-fetched.
 - **Text screening:** each record's text was matched for copyright notices,
   third-party licence names, copy markers ("copied from", "taken from",
   "from Wikipedia" and similar) and quotation blocks. A match is a reason for
@@ -45,10 +50,13 @@ earlier are the 637 in C plus 4 imported pages.
   (embedded third-party text may carry its own terms), all 574 class B records
   (a later edit does not license older text that may survive) and all 637 class C
   records. They are **not removed blindly**. Next step: individual review in
-  descending risk order — flagged records first, then non-redirect class C, then
-  non-redirect class B — keeping a record only on a verifiable licence, original
-  permission or an independently written replacement, and otherwise excluding
-  the affected text with `scripts/exclude_sources.py`.
+  descending risk order — flagged records first (149), then non-redirect class C
+  (442), then non-redirect class B (500), then the unflagged redirects of classes
+  B and C (193; for example W001387 and W001388) — keeping a record only on a
+  verifiable licence, original permission or an independently written
+  replacement, and otherwise excluding the affected text with
+  `scripts/exclude_sources.py`. The review is complete only when every one of the
+  1,284 records has a recorded disposition.
 - **Excluded or to be excluded (28 records):** W001473 (PR #397) and the other 27
   class D records (separate scoped PR), because an explicit import from an earlier
   wiki without established terms cannot be shown to be reusable. Redirect pages in
