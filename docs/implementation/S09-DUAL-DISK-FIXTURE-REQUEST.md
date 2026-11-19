@@ -2,9 +2,13 @@
 
 **Status: approved by the project owner on 19 November 2026 (bounds B1–B6
 and the write set below), in the S09 session, verbatim: "Yes, approve
-B1–B6". Implemented on branch `claude/s09-independent-recovery` (commits `ad12dfab`
-to `13674aac`); the local QEMU gate passed all 22 stages on 19 November 2026
+B1–B6". Implemented on branch `claude/s09-independent-recovery`; the local QEMU gate
+passed all 22 stages on 19 November 2026
 ([evidence](../verification/s09-archive/dual-disk-native-20261119/README.md)).
+Cold restore is proven for content, name, length, collection, tags and kind
+byte for byte, with the revision the restore rule assigns. Byte-exact source
+revisions, version history and timestamps after restore are NOT met: the
+restore spec reassigns them, and changing that needs an owner decision.
 The two workflow pins that must equal `len(PLAN)` (now 22) are lead-owned and
 not yet updated.**
 The approval covers a test fixture only. It grants no product capability and
@@ -74,7 +78,7 @@ released write set.
 | Stage | Required result |
 |---|---|
 | Export to disk 1 | Recovered volume on disk 0, mounted read-only; archive written from sector 0 of disk 1; disk 0 byte-identical before and after; `tools/volume_archive.py` parses disk 1 independently |
-| Cold restore | New VM with a blank disk 0 (source disk gone) and the disk-1 image alone, granted READ only; `verify`, then `restore`; content and metadata byte-exact against the oracle; disk 1 unchanged |
+| Cold restore | New VM with a blank disk 0 (source disk gone) and the disk-1 image alone, granted READ only; `verify`, then `restore`; content and metadata byte-exact against the oracle; disk 1 unchanged. **Result:** content, name, length, collection, tags and kind byte-exact; revision as the restore rule assigns it (1, or 2 after metadata), one version, new times; source revisions, history and timestamps NOT preserved (restore spec; owner decision needed to change) |
 | Disk 1 absent | Portal receives a device error; nothing is finalized; the volume is unchanged |
 | Disk 1 too small | `Full`; nothing past the scope is written; `verify` refuses the range |
 | Scope and escape | Portal past-the-end probe and any volume-service access to device 1 are refused and counted |
@@ -84,9 +88,15 @@ released write set.
 Two of the last three rows, "Power cut" and "Wrong device", already have a
 host model (next section). "Scope and escape" has no host test. All three
 need QEMU evidence: the native stages `archive-disk-export` (scope
-refusals and escape probes; the absent, small, restore and verify stages
-count them too), `archive-disk-cut` with `archive-disk-verify` (power cut) and
-`archive-disk-wrong` (wrong device) provide it; see
+refusals, counted in the absent, small, restore and verify stages too),
+`archive-disk-cut` with `archive-disk-verify` (power cut) and
+`archive-disk-wrong` (wrong device) provide it. The volume service makes no
+runtime attempt on device 1. The escape evidence is the manifest-time
+`ARCHIVE_ESCAPE` count (exactly one new handle, in the portal), a kernel probe
+of the portal's handle value in the service's and slot 2's tables, and the
+portal's rights, which lack DERIVE and TRANSFER, so the handle cannot be
+passed on. Known fixture limit: the two lanes share one Policy, so a failed
+device-1 reset fails closed for both lanes; no stage exercises it. See
 [docs/verification/s09-archive/dual-disk-native-20261119/](../verification/s09-archive/dual-disk-native-20261119/README.md).
 
 ## Already shown on the host (no decision needed)
