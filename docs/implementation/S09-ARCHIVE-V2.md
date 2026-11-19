@@ -147,7 +147,13 @@ simple; versions that share chunks in the source are stored twice.
   clear, and a deleted collection with `ACCOUNTED` clear are refused.
 - With `ACCOUNTED` set the writer must list **every** slot and every collection
   of the domain whose revision is non-zero; the reader cannot see an omission
-  directly, but an omitted non-zero revision makes the generation check fail.
+  directly. The generation check (S9) does not detect every omission: it is a
+  sum modulo 2^64 (as `table.rs:465-474`), so
+  omitted revisions whose sum is 0 modulo 2^64 (for example two revisions of
+  2^63) leave it unchanged. S9 is therefore a consistency check for
+  accidental omission by an honest writer, not proof that every non-zero
+  revision is present; like every rule here it gives no protection against a
+  deliberately resealed archive (section 6).
 - A content-free record carries `created`/`modified` and is checked under the
   same stamp rules as any object (the table requires both stamps non-zero for
   every entry with a non-zero revision, `table.rs:286-290`).
@@ -217,7 +223,7 @@ Each is a separate check with its own refusal message and its own test.
 | S6 | `modified ≤ source clock` | `table.rs:664` |
 | S7 | `object revision ≤ source clock` | `table.rs:664` |
 | S8 | `collection revision ≤ source clock` | `table.rs:657` |
-| S9 | with `ACCOUNTED`: (Σ object revisions + Σ collection revisions) mod 2^64 = header generation | `table.rs:465-474` (`wrapping_add`) |
+| S9 | with `ACCOUNTED`: (Σ object revisions + Σ collection revisions) mod 2^64 = header generation; detects accidental omission, not every omission (section 3) | `table.rs:465-474` (`wrapping_add`) |
 | S10 | chunk budget: Σ over objects of (largest version's ⌈length / 4096⌉) ≤ `QUOTA = 40` | `lib.rs:107`, `table.rs:117`, `table.rs:178-191`, `table.rs:316-329`, `table.rs:684` |
 
 S10 is derived from the table invariants, not from the fidelity analysis.
