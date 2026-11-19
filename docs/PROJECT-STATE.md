@@ -19,9 +19,12 @@ or throughput work. N04-T1 `receipt` is null on main until #380 lands.
 **Issues (all remain open):** #41 needs native policy storage/ingress and production
 custody decisions; #42 needs long-lived kernel/device-service handoff and physical
 hardware evidence; #43 tracks 20→50%; #274 English coverage remains large;
-#283 lists ~30 closed, unintegrated PRs that each need dependency-ordered triage.
-**Next action:** triage #283 oldest workstream first (Kernel/SMP: #154, #155, …),
-comparing each closed head against main before any reintegration; or repair #380.
+#283's 33 historical PRs were reconciled on 17 November (including merged #154 and
+#155); only the unestablished original licence grant for the W001473 historical
+source remains, which needs external rights evidence, not code.
+**Next action:** repair #380 (bounded sweep scheduling within the 180 s budget while
+keeping full-port coverage), or continue #41/#42 native slices; #283 waits on
+W001473 provenance evidence.
 
 ## NEXT AGENT HANDOFF — L01-T3 partial delivery — 18 November 2026
 
