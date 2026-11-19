@@ -8,8 +8,11 @@ initialisation are implemented for VirtIO block, network and RNG. All three
 select a function through `pci-core` and their own registry, with configuration
 space bound to the match. Block, network and RNG receive kernel-owned BAR grants
 before mapping; the existing transports retain their own I/O and DMA logic.
-Separate, unintegrated NVMe and xHCI probe crates also exist. They match PCI
-functions and inspect controller registers read-only. A shared heterogeneous
+A separate `drivers/xhci` crate matches the USB host-controller class and
+inspects controller registers; only the opt-in, QEMU-only `native-xhci-probe`
+and `native-usb-hid-probe` kernel profiles use it, for one fixture controller.
+No NVMe crate exists: earlier revisions of this document described an NVMe
+probe crate that is not present in the repository. A shared heterogeneous
 registry, interrupt broker and generic DMA/IOMMU resource broker are still
 absent.
 
@@ -36,15 +39,15 @@ type-0 endpoints to the caller. The scanner reads configuration space before
 offering the descriptor to the registry. The current scan does not support
 ECAM, segments other than 0, bridge topology or hotplug.
 
-M5 kernel profiles perform an additional read-only scan before device
-initialisation. Functions without a match among the drivers registered for that
-profile are reported on COM1 as `UNSUPPORTED:PCI`, with segment, bus/BDF,
-vendor/device, class/subclass/programming interface/revision and subsystem IDs
-where available. Non-type-0 functions are reported only as a count; an
-incomplete configuration scan is explicitly reported and produces no
-unsupported records. This is a diagnostic inventory of matches, not evidence
-that a matched driver has initialised successfully or that every profile
-registry includes all PCI driver families. The RNG driver is now also started
+**Correction (19 November 2026): no inventory of unmatched PCI functions is
+implemented.** Earlier revisions of this section stated that M5 kernel profiles
+report unmatched functions on COM1 as `UNSUPPORTED:PCI`. No code emits that
+marker; `git log -S'UNSUPPORTED:PCI'` finds documentation changes only. A
+separate read-only native inventory profile (`native-hw-inventory`, planned
+slice H06-T3) is specified as protocol `HW-INV` in
+[physical-protocols.json](physical-protocols.json), with its planned `HWINV:`
+markers. Until it exists, no PCI inventory is available on COM1, on QEMU or
+on physical hardware. The RNG driver is now also started
 through segment-0 enumeration and a registered factory; the current QEMU fixture
 uses BDF `00:06.0`, but the driver does not require that location.
 
@@ -62,26 +65,29 @@ with the concrete initialiser. No driver code is dynamically loaded, no heap
 object is created and no additional resource authority is created; resources
 remain kernel allocations.
 
-`drivers/nvme` and `drivers/xhci` each use a local single-entry PCI registry and
-a device-bound BAR grant for a limited probe with read-only controller MMIO.
+`drivers/xhci` uses a local single-entry PCI registry and a device-bound BAR
+grant for a limited probe with read-only controller MMIO.
 PCI BAR sizing temporarily writes the configuration BARs and attempts to restore
 their original values. A failed restoration write causes PCI-core to fail with
 `PciBarError::Restore` (the xHCI adapter returns `Error::InvalidBar` for this).
 PCI decoding and bus mastering remain disabled after a successful disable
 write; if an earlier command read/write fails, the original command state may
 still apply.
-The NVMe crate reads `CAP`/`VS` according to NVM Express Base Specification 2.4,
-§§3.1.1–3.1.2. The xHCI crate matches the USB host-controller class according to
-PCI-SIG PCI Code and ID Assignment Specification 1.10, §1.2, and checks the
-revision and register offsets according to the Intel xHCI Requirements
-Specification 1.2c, §§5.2–5.3. Neither is part of the kernel activation chain:
-they do not enable bus mastering or allocate DMA. Only the USB descriptor core
-matches interface class/subclass/protocol according to USB 2.0 Specification
-§9.6.5; this selection does not yet start a class driver either.
+The xHCI crate matches the USB host-controller class according to PCI-SIG PCI
+Code and ID Assignment Specification 1.10, §1.2, and checks the revision and
+register offsets according to the Intel xHCI Requirements Specification 1.2c,
+§§5.2–5.3. The crate itself enables no bus mastering and allocates no DMA. The
+opt-in kernel fixture in `kernel/src/m2/xhci.rs` accepts only QEMU's
+`qemu-xhci` controller (PCI `1b36:000d`) at the fixed fixture MMIO address
+`0x3f210000` and enables bus mastering only inside an established native VT-d
+domain. Physical xHCI controllers are therefore rejected; the
+[hardware matrix](hardware-matrix.json) keeps xHCI pending outside the QEMU
+profile. The USB descriptor core matches interface class/subclass/protocol
+according to USB 2.0 Specification §9.6.5; within that QEMU fixture it selects
+boot keyboard and mouse interfaces, and no general USB class-driver framework
+exists.
 
-Primary sources: NVM Express, *NVM Express Base Specification*, revision 2.4,
-31 July 2026, <https://nvmexpress.org/specification/nvm-express-base-specification/>;
-PCI-SIG, *PCI Code and ID Assignment Specification*, revision 1.10,
+Primary sources: PCI-SIG, *PCI Code and ID Assignment Specification*, revision 1.10,
 28 November 2017, <https://pcisig.com/PCIExpress/Specs/Base/CodeandIDAssignment_1.10>;
 Intel, *eXtensible Host Controller Interface for Universal Serial Bus (xHCI)
 Requirements Specification*, revision 1.2c, October 2025,
