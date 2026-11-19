@@ -362,5 +362,70 @@
     "revision_url": "https://wiki.osdev.org/index.php?title=Kernel_Debugging&oldid=28799",
     "reason": "History contains an explicit import from an earlier wiki (old OS Wiki/OSFAQ or pre-MediaWiki) whose author and terms are not established; rights not demonstrably sufficient (issue #283).",
     "record": "docs/verification/osdev-corpus-rights-20261119/README.md"
+  },
+  {
+    "source_id": "W001553",
+    "page_id": 1553,
+    "title": "Text UI",
+    "revision_id": 30318,
+    "timestamp": "2026-03-17T19:03:37Z",
+    "text_sha256": "d546a4fab0fea9b7162188288cb8f7dc56a080e5d69038233220283d0faf894a",
+    "length_bytes": 7443,
+    "source_url": "https://wiki.osdev.org/Text_UI",
+    "revision_url": "https://wiki.osdev.org/index.php?title=Text_UI&oldid=30318",
+    "reason": "Contains third-party text (tutorial code, forum or Usenet post, vendor datasheet table or an unlicensed external table) whose terms are not established (issue #283).",
+    "record": "docs/verification/osdev-corpus-rights-20261119/FLAGGED-REVIEW.md"
+  },
+  {
+    "source_id": "W001845",
+    "page_id": 1845,
+    "title": "Shutdown",
+    "revision_id": 30327,
+    "timestamp": "2026-03-17T20:50:27Z",
+    "text_sha256": "853c3373c49ac3270797a6aff2ec5e5c207b816e03c3459db804fa0bcd4484c2",
+    "length_bytes": 3621,
+    "source_url": "https://wiki.osdev.org/Shutdown",
+    "revision_url": "https://wiki.osdev.org/index.php?title=Shutdown&oldid=30327",
+    "reason": "Contains third-party text (tutorial code, forum or Usenet post, vendor datasheet table or an unlicensed external table) whose terms are not established (issue #283).",
+    "record": "docs/verification/osdev-corpus-rights-20261119/FLAGGED-REVIEW.md"
+  },
+  {
+    "source_id": "W002332",
+    "page_id": 2332,
+    "title": "ARM Overview",
+    "revision_id": 30546,
+    "timestamp": "2026-05-02T18:59:54Z",
+    "text_sha256": "4f6bc44e712586d34b7f17760ec73a3661597f81c2e8e54a28333c7e95e852e6",
+    "length_bytes": 38861,
+    "source_url": "https://wiki.osdev.org/ARM_Overview",
+    "revision_url": "https://wiki.osdev.org/index.php?title=ARM_Overview&oldid=30546",
+    "reason": "Contains third-party text (tutorial code, forum or Usenet post, vendor datasheet table or an unlicensed external table) whose terms are not established (issue #283).",
+    "record": "docs/verification/osdev-corpus-rights-20261119/FLAGGED-REVIEW.md"
+  },
+  {
+    "source_id": "W003703",
+    "page_id": 3703,
+    "title": "User:Combuster/Alloca",
+    "revision_id": 17367,
+    "timestamp": "2014-12-13T12:04:56Z",
+    "text_sha256": "451f1a9802e311262b23a4f92ae3e822fe43cd0dc7f3de970ae1b3f3d7377c81",
+    "length_bytes": 3458,
+    "source_url": "https://wiki.osdev.org/User:Combuster/Alloca",
+    "revision_url": "https://wiki.osdev.org/index.php?title=User%3ACombuster%2FAlloca&oldid=17367",
+    "reason": "Contains third-party text (tutorial code, forum or Usenet post, vendor datasheet table or an unlicensed external table) whose terms are not established (issue #283).",
+    "record": "docs/verification/osdev-corpus-rights-20261119/FLAGGED-REVIEW.md"
+  },
+  {
+    "source_id": "W003774",
+    "page_id": 3774,
+    "title": "CPU Registers x86-64",
+    "revision_id": 30266,
+    "timestamp": "2026-03-16T17:44:07Z",
+    "text_sha256": "a58629594f286a08f269dbc1fb9f238c6e6f5522a6ecb7d6121aca396a2dfd71",
+    "length_bytes": 10973,
+    "source_url": "https://wiki.osdev.org/CPU_Registers_x86-64",
+    "revision_url": "https://wiki.osdev.org/index.php?title=CPU_Registers_x86-64&oldid=30266",
+    "reason": "Contains third-party text (tutorial code, forum or Usenet post, vendor datasheet table or an unlicensed external table) whose terms are not established (issue #283).",
+    "record": "docs/verification/osdev-corpus-rights-20261119/FLAGGED-REVIEW.md"
   }
 ]

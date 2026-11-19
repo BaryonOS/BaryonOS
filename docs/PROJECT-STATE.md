@@ -10,17 +10,19 @@ architecture and route only; no criterion is accepted and no production signing,
 key generation, firmware change or physical-device work is authorized.
 **Next action:** pursue the #43 route (S09, N02, U05, H02/U03) within each
 workstream's ownership. For #283, follow the owner's follow-up decision recorded
-in ADR-W001473-PROVENANCE-20261119. Planned, not yet applied on main: exclude
-W001473, which has no verifiable grant (PR #397), and exclude the 27 other
-imported records and the 5 third-party records with unknown terms (#399, #400)
-unless a verifiable licence, original permission or independent replacement is
-documented. Records awaiting an owner decision (5 licences with notice or
-share-alike obligations, 12 quotations) stay in the corpus as uncertain until
-decided. The review of the pages that predate the CC0 statement and the screening
-for older copied text are recorded in PR #398; their 1,298 uncertain records
-(which include the pre-CC0 pages) each need a recorded disposition. #283 stays
-open until W001473 and the import and third-party exclusions are merged and every
-uncertain record has a disposition.
+in ADR-W001473-PROVENANCE-20261119. Applied on main: W001473, which has no
+verifiable grant (#397), and the 27 other imported records (#399) are excluded;
+this checkpoint's PR #400 excludes the 5 third-party records with unknown terms.
+The corpus then holds 3,099 records with 33 exclusions in
+`.agents/skills/os-dev/references/exclusions.json`. Records awaiting an owner
+decision (5 licences with notice or share-alike obligations, 12 quotations) stay
+in the corpus as uncertain until decided. The pre-CC0 review and the screening for
+older copied text are recorded in PR #398
+(`docs/verification/osdev-corpus-rights-20261119/`); each of its 1,298 uncertain
+records (including the pre-CC0 pages) still needs a recorded disposition. Open
+detail: the redirect records W002146 and W001978 point to excluded pages and are
+left in place pending a decision. #283 stays open until every uncertain record has
+a disposition.
 
 ## NEXT AGENT HANDOFF — PR integration pass — 19 November 2026
 
