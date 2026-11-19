@@ -56,7 +56,12 @@
   .gal-maxframe { border: 1px solid var(--color-line); border-radius: var(--radius-tile); overflow: hidden; }
   .gal-menu-card { min-height: 420px; }
   .gal-asks { display: flex; flex-wrap: wrap; gap: var(--space-6); align-items: start; }
-  .gal-asks > div { min-width: 0; max-width: 100%; }
+  .gal-asks > * { min-width: 0; max-width: 100%; }
+  .gal-spec { margin: 0; color: var(--material-kern-tx2); font-size: var(--type-caption-size); line-height: var(--type-caption-line); font-weight: var(--type-caption-weight); } /* specimen label, on the Kern itself so no caption sits in a shadow */
+  .gal-states { width: 100%; margin-top: var(--space-4); border-collapse: collapse; overflow-wrap: anywhere; }
+  .gal-states caption { text-align: left; padding-bottom: var(--space-2); font-weight: var(--type-body-strong-weight); }
+  .gal-states :is(th, td) { padding: var(--space-2); border-top: 1px solid var(--color-line); text-align: left; vertical-align: top; font-weight: var(--type-body-weight); }
+  .gal-states thead th { color: var(--color-text-muted); }
   .gal-orbit-wrap { display: flex; justify-content: center; padding: var(--space-6) 0 var(--space-2); border-radius: var(--radius-tile); background: var(--color-surface-panel); }
   /* run 3 (I2): no caption or note sits in a specimen's shadow. An elevated specimen keeps its shadow's reach free of gallery text:
      offset + spread + blur radius, past which the Gaussian is under 2.3 % of the shadow alpha. Reaches per theme and stimulus value
@@ -164,7 +169,7 @@
   <div>
     <p class="gal-disc"><i data-icon="warn"></i>Ontwerpartefact, geen werkend besturingssysteem. Alle gegevens zijn fictief.</p>
     <h1>BaryonOS ontwerpsysteem ds-1.1</h1>
-    <p>Componenten met al hun staten in drie thema's (donker, licht, hoog contrast), een strook op 200 % en de tokens van <code>tokens.css</code>. Kleur betekent alleen plaats: groen dit apparaat, blauw NAS, rood internet; plaats en staat zijn altijd vorm, pictogram en tekst. Gevormd door S0 (<code>docs/design/suite/WORKSPACE-REQUIREMENTS.md</code>): geen statuskleur, fout is een vierkant in tekstkleur.</p>
+    <p>Componenten met al hun staten in drie thema's (donker, licht, hoog contrast), een strook op 200 % en de tokens van <code>tokens.css</code>. Kleur betekent alleen plaats: groen dit apparaat, blauw NAS, rood internet; plaats en staat zijn altijd vorm, pictogram en tekst. Gevormd door S0 (<code>docs/design/suite/WORKSPACE-REQUIREMENTS.md</code>): geen statuskleur, fout is een vierkant in tekstkleur. De Kern-oppervlakken simuleren de beschermde shell-laag die native nog niet bestaat.</p>
   </div>
   <div class="gal-tools">
     <button class="ds-switch" role="switch" aria-checked="false" id="motion-toggle"><span class="ds-switch-track" aria-hidden="true"></span>Beweging beperken</button>
@@ -354,16 +359,35 @@
     <p class="gal-note">"Op dit apparaat" en "vraagt internet" volgen het v2-bord; "internet actief" is afgeleid (geen v2-bron): alle drie knooppunten aan, verbindingsbladen tussen aangrenzende actieve plaatsen.</p>
   </div>
 
-  <div class="gal-card w12"><h3>Toestemmingsvraag op Kern <code>.ds-ask role=alertdialog · data-kind ongoing: untilClose | always | deny · data-kind action: once | always | deny · tussentijdse presentatie, UX-C vervangt haar</code></h3>
-    <div class="gal-asks"><div data-ask="ongoing"></div><div data-ask="action"></div></div>
-    <p class="gal-note">Links een doorlopende appmachtiging, rechts een afzonderlijke handeling. Drie gelijkwaardige keuzes onder elkaar (zelfde variant en maat, geen hoofdknop). In de dialoog start de focus op de titel, niet op een keuze: Enter of spatie bij openen doet niets. Esc of sluiten is Weigeren voor dit verzoek en bewaart niets. Een verzoek dat al een geldige machtiging met dezelfde sleutel heeft, opent geen vraag.</p>
-    <div class="gal-row" style="margin-top: var(--space-4)"><button class="ds-btn" data-variant="secondary" data-open-ask="ongoing"><i data-icon="lock"></i>Doorlopende vraag openen</button><button class="ds-btn" data-variant="secondary" data-open-ask="action"><i data-icon="lock"></i>Vraag voor één handeling openen</button><button class="ds-btn" data-variant="quiet" data-close-app>Webvenster sluiten</button></div>
+<div class="gal-card w12"><h3>Toestemmingsvraag op Kern <code>.ds-ask in &lt;dialog&gt; showModal · Toestaan | Weigeren · input type=checkbox Keuze onthouden · data-compact · data-step=confirm · vervangt de C1-vraag met drie knoppen</code></h3>
+    <p class="gal-note">Prototype. Onthouden en tijdelijke keuzes bestaan alleen in deze pagina; BaryonOS dwingt ze nog niet af. De Kern-laag simuleert de beschermde shell-laag die alleen het systeem mag tekenen; die laag bestaat native nog niet (DESKTOP-SHELL.md §3), dus ‘getoond boven alle apps’ is hier gesimuleerd.</p>
+    <div class="gal-asks" data-ask-specs></div>
+    <div class="ds-ask-note" data-ask-covered inert><p></p></div>
+    <table class="gal-states"><caption>De acht beslisstaten, berekend door het model in contract.js</caption><thead><tr><th scope="col">Soort · antwoord · onthouden</th><th scope="col">Wat het antwoord zegt</th><th scope="col">Volgende identieke automatische vraag</th></tr></thead><tbody data-ask-states></tbody></table>
+    <div class="gal-row" style="margin-top: var(--space-4)"><button class="ds-btn" data-variant="secondary" data-open-ask="read"><i data-icon="lock"></i>Notities: Tuinplan lezen</button><button class="ds-btn" data-variant="secondary" data-open-ask="save"><i data-icon="lock"></i>Notities: kopie in Downloads</button><button class="ds-btn" data-variant="secondary" data-open-ask="send"><i data-icon="lock"></i>Webvenster: kopie versturen</button><button class="ds-btn" data-variant="secondary" data-open-ask="combo"><i data-icon="lock"></i>Webvenster: document en internet</button><button class="ds-btn" data-variant="secondary" data-open-ask="camera"><i data-icon="lock"></i>Foto's: camera</button></div>
+    <p class="gal-note" id="ask-sim-note">Simulatie, geen echte actie: deze knoppen spelen na wat een app of je sessie zou doen. Ze sluiten geen echte app, melden niemand af en wisselen niet van gebruiker; ze tonen alleen wat het prototype dan met je toestemmingen doet.</p>
+    <div class="gal-row" role="group" aria-label="Gesimuleerde app- en sessiegebeurtenissen" aria-describedby="ask-sim-note" style="margin-top: var(--space-3)"><button class="ds-btn" data-variant="quiet" data-auto-ask>App vraagt automatisch opnieuw</button><button class="ds-btn" data-variant="quiet" data-ask-end="windowHidden">Venster verbergen</button><button class="ds-btn" data-variant="quiet" data-ask-end="appClosed">App sluiten</button><button class="ds-btn" data-variant="quiet" data-ask-end="logout">Afmelden</button><button class="ds-btn" data-variant="quiet" data-ask-end="sessionSwitch">Andere gebruiker</button></div>
+    <div class="ds-ask-note" data-ask-note role="status"><p data-ask-note-text>Nog geen vraag gesteld.</p><button class="ds-btn" data-variant="secondary" data-choose hidden></button></div>
+    <table class="gal-states gal-feas"><caption>Wat dit prototype laat zien en hoe ver het is</caption><thead><tr><th scope="col">Onderdeel</th><th scope="col">Status</th></tr></thead><tbody>
+      <tr><th scope="row">Eén gewone vraag, pad van je gegevens (met ‘heeft het al’), tot drie feiten, vergelijking en ‘Waarom niet’</th><td>Werkt nu in dit prototype</td></tr>
+      <tr><th scope="row">Keuze onthouden als echt selectievakje, toestandszin en één uitkomstzin per antwoord</th><td>Werkt nu in dit prototype</td></tr>
+      <tr><th scope="row">Reden van de app, als platte tekst na de feiten van BaryonOS</th><td>Werkt nu in dit prototype</td></tr>
+      <tr><th scope="row">Extra bevestiging bij document en internet; geen onthouden Toestaan bij een onomkeerbare verzending</th><td>Werkt nu in dit prototype</td></tr>
+      <tr><th scope="row">Korte herhaalvraag na een eerdere tijdelijke toestemming met laag risico</th><td>Werkt nu in dit prototype</td></tr>
+      <tr><th scope="row">Stille melding met teller en ‘Zelf opnieuw kiezen’; onthouden keuzes in Appmachtigingen</th><td>Werkt nu in dit prototype; afdwingen door BaryonOS: technisch haalbaar, nog niet gebouwd</td></tr>
+      <tr><th scope="row">Beschermde shell-laag die alleen het systeem tekent (de band ‘getoond boven alle apps’)</th><td>Technisch haalbaar, nog niet gebouwd; hier gesimuleerd</td></tr>
+      <tr><th scope="row">Herkennen van een nieuwe, bewuste handeling van de gebruiker</th><td>Toekomstig onderzoek; hier is het de knop die je zelf indrukt</td></tr>
+      <tr><th scope="row">Knoppen ‘App vraagt automatisch opnieuw’, ‘Venster verbergen’, ‘App sluiten’, ‘Afmelden’ en ‘Andere gebruiker’</th><td>Gesimuleerd: ze spelen een gebeurtenis na, er gebeurt niets echt; wat het prototype daarna met je toestemmingen doet, werkt nu in dit prototype</td></tr>
+      <tr><th scope="row">Tijdelijke toestemming eindigt bij app sluiten, afmelden of andere gebruiker, niet bij verbergen</th><td>Werkt nu in dit prototype; afdwingen door BaryonOS en de precieze levenscyclus: voorgesteld, nog niet gebouwd</td></tr>
+      <tr><th scope="row">Stille weigering tot afmelden, ook na opnieuw openen van de app</th><td>Voorgesteld, nog niet gebouwd; nu geldt: tot de app sluit</td></tr>
+    </tbody></table>
+    <p class="gal-note">Gelijke keuze: Toestaan en Weigeren hebben dezelfde variant, maat en breedte, in één vaste volgorde voor het hele platform (Toestaan links). Bij openen staat de focus op de vraag, niet op een keuze, en niets is voorgeselecteerd; Enter of spatie op de vraag doet niets. Keuze onthouden staat bij elke vraag uit; spatie zet het aan of uit. Esc of sluiten annuleert: niets toegestaan, niets bewaard, ook niet als Keuze onthouden aan staat. Een verzoek dat al geldig is toegestaan of onthouden, opent geen vraag. Simulatie: niets blijft bewaard na herladen.</p>
   </div>
 
-  <div class="gal-card w12"><h3>Appmachtiging <code>.ds-grants · .ds-grant · Instellingen › Privacy en beveiliging › Appmachtigingen · Intrekken · role=status (beleefd)</code></h3>
+  <div class="gal-card w12"><h3>Appmachtigingen <code>.ds-grants · .ds-grant data-decision allow | deny · .ds-key Precies · Wijzigen · Vergeten · role=status (beleefd)</code></h3>
     <ul class="ds-grants" aria-label="Appmachtigingen" data-grants></ul>
     <p class="ds-live" role="status" data-grants-live></p>
-    <p class="gal-note">Eén rij per blijvende machtiging: app, bron, recht en reikwijdte, daaronder het bereik als plaatslabel (vorm + pictogram + tekst; bij versturen of verbinden de bestemming) en de duur als vormchip: gestippeld met klok = tot afsluiten, doorgetrokken met lus = tot je het intrekt (het slot blijft voor de systeemband). De knop Intrekken noemt app, bron, recht en reikwijdte. De machtiging voor zaadruil.example dekt de vraag voor tuinplanner.example niet: elke bestemming is een eigen sleutel. Toestemming voor één handeling vervalt direct en staat hier niet. Ontwerpvoorstel voor UX-E, dat het volledige scherm Appmachtigingen bouwt. Simulatie: niets blijft bewaard na herladen.</p>
+    <p class="gal-note">Eén rij per onthouden keuze, toegestaan én geweigerd, met ‘Precies:’ de vijf velden van de vraag (app, recht, gegevens, bestemming, bereik). Wijzigen volgt dezelfde regels als de vraag: een onomkeerbare verzending of een recht voor document en internet kan hier niet naar Toestaan. Wijzigen of vergeten stopt toekomstig gebruik, niet de kopieën die een app al heeft. Geen gebruiksgegevens: deze pagina houdt geen gebruikslog bij. Prototype, niet afgedwongen door BaryonOS.</p>
   </div>
 
   <div class="gal-card w4"><h3>Orbit-item <code>.ds-taskitem data-state running | active | attention</code></h3>
@@ -540,58 +564,6 @@
 </div>
 </template>
 
-<template id="tpl-ask-ongoing">
-<div class="ds-ask" data-theme="{k}" data-kind="ongoing" role="alertdialog" aria-labelledby="{p}-ao-t" aria-describedby="{p}-ao-w">
-  <div class="ds-ask-band"><i data-icon="lock"></i>Vraag van het systeem · getoond boven alle apps</div>
-  <div class="ds-ask-body">
-    <h3 class="ds-ask-title" id="{p}-ao-t" tabindex="-1" data-initial-focus>Webvenster wil internet gebruiken</h3>
-    <dl class="ds-ask-bond">
-      <div class="ds-ask-row"><span class="ds-ask-app" aria-hidden="true"><i data-icon="browser"></i></span><dt>App</dt><dd><strong>Webvenster</strong> · geïnstalleerd <span class="ds-num">12</span> nov. uit Haven</dd></div>
-      <div class="ds-ask-row"><span class="ds-ask-node" aria-hidden="true"><i data-icon="toegang"></i></span><dt>Wat</dt><dd>Verbinding maken, alleen met dit domein</dd></div>
-      <div class="ds-ask-row" data-place="internet"><span class="ds-ask-node" aria-hidden="true"><i data-icon="internet"></i></span><dt>Waarheen</dt><dd><strong>tuinplanner.example</strong><span class="ds-place" data-place="internet"><i class="ds-node" data-shape="internet" aria-hidden="true"></i><i data-icon="internet"></i>Internet</span></dd></div>
-      <div class="ds-ask-row ds-ask-dur"><span class="ds-ask-node" aria-hidden="true"><i data-icon="klok"></i></span><dt>Hoe lang</dt><dd>Jij kiest hieronder</dd></div>
-    </dl>
-    <div class="ds-ask-warn" id="{p}-ao-w"><i data-icon="warn"></i><span>Dit programma kan de toegestane inhoud naar een internetdienst sturen.</span></div>
-    <div class="ds-ask-choices" role="group" aria-label="Kies hoe lang">
-      <button class="ds-btn" data-variant="secondary" data-size="large" data-choice="untilClose" aria-describedby="{p}-ao-d0">Toestaan tot afsluiten</button>
-      <button class="ds-btn" data-variant="secondary" data-size="large" data-choice="always" aria-describedby="{p}-ao-d1">Altijd toestaan</button>
-      <button class="ds-btn" data-variant="secondary" data-size="large" data-choice="deny" aria-describedby="{p}-ao-d2">Weigeren</button>
-    </div>
-    <ul class="ds-ask-terms">
-      <li id="{p}-ao-d0"><strong>Toestaan tot afsluiten.</strong> Geldt tot je Webvenster sluit. Afmelden of opnieuw opstarten beëindigt het ook.</li>
-      <li id="{p}-ao-d1"><strong>Altijd toestaan.</strong> Geldt ook als je Webvenster opnieuw opent, tot je het intrekt in Instellingen › Privacy en beveiliging › Appmachtigingen.</li>
-      <li id="{p}-ao-d2"><strong>Weigeren.</strong> Geldt alleen voor dit verzoek. Er wordt niets bewaard; Webvenster kan het later opnieuw vragen.</li>
-    </ul>
-  </div>
-</div>
-</template>
-
-<template id="tpl-ask-action">
-<div class="ds-ask" data-theme="{k}" data-kind="action" role="alertdialog" aria-labelledby="{p}-aa-t" aria-describedby="{p}-aa-w">
-  <div class="ds-ask-band"><i data-icon="lock"></i>Vraag van het systeem · getoond boven alle apps</div>
-  <div class="ds-ask-body">
-    <h3 class="ds-ask-title" id="{p}-aa-t" tabindex="-1" data-initial-focus>Webvenster wil Tuinplan naar internet sturen</h3>
-    <dl class="ds-ask-bond">
-      <div class="ds-ask-row"><span class="ds-ask-app" aria-hidden="true"><i data-icon="browser"></i></span><dt>App</dt><dd><strong>Webvenster</strong> · geïnstalleerd <span class="ds-num">12</span> nov. uit Haven</dd></div>
-      <div class="ds-ask-row"><span class="ds-ask-node" aria-hidden="true"><i data-icon="notities"></i></span><dt>Wat</dt><dd>Een kopie van Tuinplan, alleen dit document</dd></div>
-      <div class="ds-ask-row" data-place="internet"><span class="ds-ask-node" aria-hidden="true"><i data-icon="internet"></i></span><dt>Waarheen</dt><dd><strong>tuinplanner.example</strong><span class="ds-place" data-place="internet"><i class="ds-node" data-shape="internet" aria-hidden="true"></i><i data-icon="internet"></i>Internet</span></dd></div>
-      <div class="ds-ask-row ds-ask-dur"><span class="ds-ask-node" aria-hidden="true"><i data-icon="klok"></i></span><dt>Hoe lang</dt><dd>Jij kiest hieronder</dd></div>
-    </dl>
-    <div class="ds-ask-warn" id="{p}-aa-w"><i data-icon="warn"></i><span>Dit programma kan de toegestane inhoud naar een internetdienst sturen.</span></div>
-    <div class="ds-ask-choices" role="group" aria-label="Kies hoe lang">
-      <button class="ds-btn" data-variant="secondary" data-size="large" data-choice="once" aria-describedby="{p}-aa-d0">Eenmalig toestaan</button>
-      <button class="ds-btn" data-variant="secondary" data-size="large" data-choice="always" aria-describedby="{p}-aa-d1">Altijd toestaan</button>
-      <button class="ds-btn" data-variant="secondary" data-size="large" data-choice="deny" aria-describedby="{p}-aa-d2">Weigeren</button>
-    </div>
-    <ul class="ds-ask-terms">
-      <li id="{p}-aa-d0"><strong>Eenmalig toestaan.</strong> Geldt alleen voor deze ene handeling en vervalt zodra die klaar, mislukt of geannuleerd is. Er wordt niets bewaard.</li>
-      <li id="{p}-aa-d1"><strong>Altijd toestaan.</strong> Geldt ook als je Webvenster opnieuw opent, tot je het intrekt in Instellingen › Privacy en beveiliging › Appmachtigingen.</li>
-      <li id="{p}-aa-d2"><strong>Weigeren.</strong> Geldt alleen voor dit verzoek. Er wordt niets bewaard; Webvenster kan het later opnieuw vragen.</li>
-    </ul>
-  </div>
-</div>
-</template>
-
 <template id="tpl-scale">
 <div class="gal-col">
   <div class="gal-row"><button class="ds-btn" data-variant="primary">Opslaan</button><button class="ds-btn" data-variant="secondary"><i data-icon="versies"></i>Versies</button><button class="ds-btn" data-variant="danger"><i data-icon="trash"></i>Verwijderen</button><button class="ds-switch" role="switch" aria-checked="true"><span class="ds-switch-track" aria-hidden="true"></span>Niet storen</button></div>
@@ -608,8 +580,7 @@
     </div>
     <div class="ds-privacy-text" aria-hidden="true"><span>Webvenster vraagt internet</span><span>Wacht op jouw keuze</span></div>
   </div>
-  <div data-ask="ongoing"></div>
-  <div data-ask="action"></div>
+  <div class="gal-asks" data-ask-spec></div>
   <ul class="ds-grants" aria-label="Appmachtigingen op 200 %" data-grants></ul>
   <p class="ds-live" role="status" data-grants-live></p>
   <div class="gal-windows"><section class="ds-empty" aria-labelledby="{p}-em-t"><div class="ds-empty-orbit" aria-hidden="true"><i data-icon="nas"></i><span class="ds-empty-sat" data-place="nas"><i class="ds-node" data-place="nas" data-shape="nas"></i></span></div><h4 class="ds-empty-title" id="{p}-em-t">Collectie Tuin is leeg</h4><p class="ds-empty-place">Staat op <span class="ds-place" data-place="nas"><i class="ds-node" data-shape="nas" aria-hidden="true"></i><i data-icon="nas"></i>Thuis-NAS</span></p><p class="ds-empty-hint">Sleep bestanden hierheen of kies Verplaatsen naar collectie; ze komen dan ook op Thuis-NAS.</p><div class="ds-empty-actions"><button class="ds-btn" data-variant="secondary"><i data-icon="coll"></i>Verplaatsen naar collectie</button></div></section><section class="ds-empty" data-state="busy" aria-labelledby="{p}-ld-t"><div class="ds-empty-orbit" aria-hidden="true"><i data-icon="nas"></i><span class="ds-empty-sat" data-place="nas"><i class="ds-node" data-place="nas" data-shape="nas"></i></span></div><h4 class="ds-empty-title" id="{p}-ld-t" role="status">Bestanden laden…</h4><p class="ds-empty-place">Van <span class="ds-place" data-place="nas"><i class="ds-node" data-shape="nas" aria-hidden="true"></i><i data-icon="nas"></i>Thuis-NAS</span></p><p class="ds-empty-tick ds-num" data-elapsed>Nog bezig · 0:00</p><div class="ds-skeleton" aria-hidden="true"><div class="ds-skeleton-row"><span class="ds-skeleton-line" data-shape="icon"></span><span class="ds-skeleton-line" style="width: 70%"></span><i class="ds-node" data-place="nas" data-shape="nas"></i><span class="ds-skeleton-line"></span></div><div class="ds-skeleton-row"><span class="ds-skeleton-line" data-shape="icon"></span><span class="ds-skeleton-line" style="width: 52%"></span><i class="ds-node" data-place="nas" data-shape="nas"></i><span class="ds-skeleton-line"></span></div><div class="ds-skeleton-row"><span class="ds-skeleton-line" data-shape="icon"></span><span class="ds-skeleton-line" style="width: 84%"></span><i class="ds-node" data-place="nas" data-shape="nas"></i><span class="ds-skeleton-line"></span></div></div></section><section class="ds-empty" data-tone="error" role="alert" aria-labelledby="{p}-er-t"><div class="ds-empty-orbit" aria-hidden="true"><i data-icon="nas"></i><span class="ds-empty-sat" data-place="nas"><i class="ds-node" data-place="nas" data-shape="nas" data-state="off"></i></span></div><h4 class="ds-empty-title" id="{p}-er-t"><span class="ds-status-marker" aria-hidden="true"></span>Thuis-NAS niet bereikbaar</h4><p class="ds-empty-place">Je werk staat veilig op <span class="ds-place" data-place="device"><i class="ds-node" data-shape="device" aria-hidden="true"></i><i data-icon="device"></i>Dit apparaat</span></p><p class="ds-empty-hint">Het wordt bijgewerkt zodra de NAS terug is.</p><div class="ds-empty-actions"><button class="ds-btn" data-variant="primary">Opnieuw proberen</button><button class="ds-btn" data-variant="quiet">Opslag en NAS openen</button></div></section></div>

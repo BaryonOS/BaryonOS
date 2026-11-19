@@ -577,7 +577,7 @@ and the digits rule below); the specification is
 | v2 artboard | 1440 × 900 | v2 `.ab` |
 | v2 window examples | 916 × 640, 960 × 690, 1240 × 724 | v2 `.win` inline styles |
 | v2 launcher | 860 × 608 | v2 `.launch` inline style |
-| Permission prompt | 560 px (`.ds-ask`); v2 shows 600 px | `components.css`; v2 `.kern` inline style |
+| Permission prompt | 600 px (`.ds-ask`, UX-C run 2); v2 shows 600 px | `components.css`; v2 `.kern` inline style |
 | Menu / toast / dialog | min 300 px / 440 px / 440 px | `components.css` |
 
 Radii: §3.3. Elevation: `--elev-*` in §3.2; every elevation is `none` in the
@@ -672,7 +672,7 @@ here; the state tables below use the root names.
 | List | `.ds-list` | `.ds-list-head` (caption column header, `aria-hidden`), `.ds-row`, `.ds-row-name`, `.ds-row-meta` (size, tabular), `.ds-row-date` |
 | Place | `.ds-place` | `.ds-node` (shape: dot, ring with dot, open ring) |
 | Privacy instrument | `.ds-privacy` | `.ds-privacy-track`, `.ds-privacy-col`, `.ds-privacy-lbl`, `.ds-privacy-text` |
-| Permission prompt | `.ds-ask` | `.ds-ask-band`, `.ds-ask-body`, `.ds-ask-title`, `.ds-ask-bond`, `.ds-ask-row`, `.ds-ask-app`, `.ds-ask-node`, `.ds-ask-dur`, `.ds-ask-warn`, `.ds-ask-choices` |
+| Permission prompt | `.ds-ask` | `.ds-ask-band`, `.ds-ask-main`, `.ds-ask-body`, `.ds-ask-proto`, `.ds-ask-title`, `.ds-ask-from`, `.ds-ask-app`, `.ds-ask-path`, `.ds-ask-stop`, `.ds-ask-link`, `.ds-ask-held`, `.ds-ask-holds`, `.ds-ask-facts`, `.ds-ask-again`, `.ds-ask-reason`, `.ds-ask-explain`, `.ds-ask-keybox`, `.ds-ask-more`, `.ds-ask-outcomes`, `.ds-ask-decide`, `.ds-ask-lifetime`, `.ds-ask-remember`, `.ds-ask-state`, `.ds-ask-choices`, `.ds-ask-confirm`, `.ds-ask-note`, `.ds-key` (UX-C run 2) |
 | Window | `.ds-window` | `.ds-window-bar`, `.ds-window-title`, `.ds-window-ctls`, `.ds-window-ctl`, `.ds-window-body` |
 | Orbit | `.ds-orbit` | `.ds-taskitem`, `.ds-taskitem-badge`, `.ds-orbit-sep` |
 | Menu | `.ds-menu-anchor`, `.ds-menu` | `.ds-menu-item`, `.ds-menu-sep`, `.ds-menu-sub`, `.ds-menu-why` (reason line of an unavailable item), `.ds-chev-down` (trigger chevron) |
@@ -773,27 +773,33 @@ achromatic except place colours (135 elements, 0 tinted; `build/design-evidence/
 | Column `data-state="lit"` / `"ask"` / `"off"` | Label weight 600 and `--color-text`, place-coloured particle / same plus the asking node / outline node in `--color-text-subtle` |
 | Hover, pressed, focus, disabled, error | — (not focusable, `role="status"`) |
 
-### Permission prompt `.ds-ask` (content and rules: §11)
+### Permission prompt `.ds-ask` (content and rules: §11.1; UX-C run 2, replaces the C1 three-choice prompt)
 
 | State | Treatment |
 |---|---|
-| Shown | Kern material in the opposite theme, rim via `padding-box`/`border-box` layers, `--elev-trusted`; rises over `--motion-duration-ask` (none under reduced motion or in contrast) |
-| Choices | Three `.ds-btn` `data-variant="secondary"` `data-size="large"`, full width, stacked; no primary choice (§11.1); hover, pressed, focus and disabled states are the button's. Duration lines `.ds-ask-terms` (caption) are each choice's `aria-describedby` |
-| Title | `tabindex="-1"`, initial focus in the dialog (§11.1); 2 px focus ring. The gallery sets `autofocus` on the title before `showModal()`, so the dialog's own focusing step lands on the title and not on the scrollable body (C1 repair-2) |
-| Modal copy | One `alertdialog`: the `<dialog>` carries `role="alertdialog"`, `aria-labelledby` (title) and `aria-describedby` (internet notice); the inner `.ds-ask` gets `role="none"` without its own name (repair-1; inline specimens keep `role="alertdialog"` on `.ds-ask`) |
-| Modal fit (C1 repair-2) | The `<dialog>` keeps the UA `max-height` and `overflow: visible` (the Kern shadow is not clipped) and is a flex column while `[open]`; `.ds-ask` is a flex column with `overflow: clip` (the scrollbar stays inside the rounded edge); `.ds-ask-body` scrolls (`overflow-y: auto`, `overscroll-behavior: contain`, `scroll-padding-block: var(--space-2)`, `scrollbar-color: var(--material-kern-tx2) var(--material-kern-bg)`) under the fixed band, so the "Vraag van het systeem" band stays in view while Tab scrolls a choice into view. Inline specimens are not scoped and keep their full height |
+| Shown | Kern material in the opposite theme, rim via `padding-box`/`border-box` layers, `--elev-trusted`, 600 px wide (`max-width: 100%`); rises once over `--motion-duration-ask` (240 ms; none under reduced motion or in contrast). No other motion: the path is static and nothing moves toward either answer before a decision |
+| Anatomy | `.ds-ask-band` (lock + "Vraag van BaryonOS · getoond boven alle apps (gesimuleerd)"), then `.ds-ask-main` = scrolling `.ds-ask-body` + fixed `.ds-ask-decide`. Body: `.ds-ask-proto` prototype line, `.ds-ask-title` question, `.ds-ask-from` app tile + provenance, `.ds-ask-facts` (at most three shell facts, each led by an `aria-hidden` `.ds-ask-fact-icon` naming its consequence class; the text stays the carrier), optional `.ds-ask-reason`, `.ds-ask-path` (a vertical route: `.ds-ask-stop` pills stacked top to bottom, joined by downward `.ds-ask-link` chevrons in the gap; `[data-held]` dashed = data the app already holds; `[data-place]` edge in the place colour), `.ds-ask-holds`, `.ds-ask-explain` ("Vergelijk:" + `<details>` "Waarom niet ‘…’?"), `<details class="ds-ask-keybox">` with the five-field `.ds-key`. Decide row: `.ds-ask-lifetime` (native checkbox `.ds-check.ds-ask-remember` "Keuze onthouden" + `.ds-ask-state[data-on]`), `.ds-ask-outcomes` (one sentence per answer), `.ds-ask-choices` |
+| Choices | Two `.ds-btn` `data-variant="secondary"` `data-size="large"`, equal width in a two-column grid, fixed order Toestaan then Weigeren; no primary, no preselection. Each choice's `aria-describedby` is its outcome sentence |
+| Remember | `<input type="checkbox">` inside a `<label>`: unchecked at every opening, Space toggles it natively, checked state exposed natively; `aria-describedby` = the state sentence, which the gallery rewrites on `change` together with both outcome sentences. Dashed state chip + `klok` = until the app closes; solid 2 px chip + `altijd` = remembered; 600 weight in the contrast theme |
+| Title | `tabindex="-1"`, initial focus (set as `autofocus` before `showModal()`); 2 px focus ring; Enter or Space on it does nothing. `.ds-ask` is an inline-size container (`ask`): when the Kern is at least 560 px wide and the viewport at least 40rem tall, the question takes the display role (48/56, `text-wrap: balance`), so the one question dominates as in concept b; a narrower Kern, a shorter viewport (200 % of a 1440 x 900 window) and `[data-scale="2"]` keep the title role (repair-1, `run2-repair-1/out/repair.json`) |
+| Modal | One `alertdialog`: the `<dialog>` carries `role="alertdialog"`, `aria-labelledby` (question) and `aria-describedby` (facts); the inner `.ds-ask` gets `role="none"`. `showModal()` makes the background inert. Escape (`cancel`) and closing without a choice cancel fail-closed (§11.1) |
+| Outcomes (repair-1) | `.ds-ask-outcomes` sits in `.ds-ask-decide` between the lifetime row and the choices, so each answer's lifetime and suppression is read next to the answer (MF-1); in a viewport of at most 40rem or with `[data-scale="2"]` the live prompt moves it to the end of the scrolling body (O-G16) |
+| Fit (UX-C run 2) | The `<dialog>` keeps the UA `max-height` and `overflow: visible`; `.ds-ask-main` is a flex column in which only `.ds-ask-body` scrolls (`overflow-y: auto`, `overscroll-behavior: contain`); `.ds-ask-decide` never scrolls, so the checkbox, the state sentence and both answers stay in view and a focused control is never covered (measured at 200 % in a 720 x 450 CSS-px viewport, with both tier-2 combinations and at 320 CSS px; build/design-evidence/uxc-run2/run2-writer/matrix-summary.txt) |
+| Confirm step `[data-step="confirm"]` | Only for a combined document-and-internet right with Toestaan + remember: `.ds-ask-confirm` replaces `.ds-ask-main` in the same dialog, focus on its heading; "Terug naar de vraag" and "Onthouden en toestaan" are equal secondary buttons |
+| Compact `[data-compact]` | MF-5 repeat form: question, provenance, "eerder in deze sessie toegestaan", the facts and the decide row stay; path, explanation and key move into one `<details class="ds-ask-more">` "Alle details" |
+| App reason `.ds-ask-reason` | Dashed frame after the facts: "<App> zegt:" + the app's plain text (inserted with `textContent`) + "Tekst van de app, niet van BaryonOS" |
+| Quiet note `.ds-ask-note` | `role="status"`, dashed edge, never takes focus, no timer: temporary denial with the retry count and "Zelf opnieuw kiezen voor <App>", covered requests, cancellations, a prompt that could not be shown. A static, inert covered-request specimen (`[data-ask-covered]`) shows the acknowledgement for the seeded remembered grant: no prompt, only the note |
+| One at a time | `contract.js` presents one prompt at a time: a distinct request that arrives while a prompt is open waits until that prompt is answered or cancelled; it never cancels the open prompt (OQ-4). Identical requests share the open prompt |
 
-### App grant row `.ds-grants`, `.ds-grant` (content and rules: §11.1)
+### App permissions `.ds-grants`, `.ds-grant`, `.ds-key` (content and rules: §11.1)
 
 | State | Treatment |
 |---|---|
-| Rest | `--color-surface-raised` fill, 1 px `--color-line` edge (2 px in contrast), app tile `.ds-grant-app`, name `.ds-grant-name` "<App> · <bron>" 15/22 600, meta `.ds-grant-meta` "<recht> · <reikwijdte>" 15/22 400 `--color-text-muted`; list at most 760 px wide so Intrekken stays near the row's content |
-| Reach (repair-1, design proposal for UX-E) | `.ds-grant-reach` line: a `.ds-place` badge for where the granted access reaches (node shape + icon + text): "Internet · <bestemming>" for a sending or connecting right, else one badge per place where the resource is kept (Dit apparaat, Thuis-NAS; a collection takes the places of its files) |
-| Duration (repair-1, design proposal for UX-E) | `.ds-grant-until[data-until]` chip, neutral colours: `close` = 1 px dashed `--color-line-strong` edge + `klok` + "Tot je <App> sluit"; `always` = 2 px solid `--color-line-strong` edge + `altijd` (closed loop; `lock` until C1 repair-2, now reserved for the Kern band) + "Altijd, tot je het intrekt". Shape + icon + text; text 14.3:1 (dark), 14.5:1 (light), 21:1 (contrast); edge 4.28:1, 3.74:1, 21:1 over the row |
-| Intrekken | Secondary `.ds-btn`; its hover, pressed and focus states are the button's; accessible name "Intrekken: <App>, <bron>, <recht>, <reikwijdte>" from all four key fields, <bron> with "naar <bestemming>" for a sending right (§11.1, C1 repair-2) |
-| Removed | Row leaves the list; focus moves to the next Intrekken, else the previous one, else `.ds-grant-empty` (`tabindex="-1"`, focus ring); `.ds-live` announces the removal |
-| Empty | `.ds-grant-empty`: "Geen blijvende machtigingen. Apps vragen het je wanneer ze iets nodig hebben." |
-| Loading, error, disabled | — (not designed; UX-E) |
+| Rest | One row per remembered decision, Toestaan and Weigeren alike (`data-decision="allow"` or `"deny"`): app tile, name "<App> · <what>", "Precies:" + the five-field `.ds-key` chips (the same markup as the prompt's key), reach as `.ds-place` badges, decision chip `.ds-grant-until[data-decision]` (solid 2 px for allow, double 3 px for deny, `altijd` icon, text "Toegestaan, onthouden" / "Geweigerd, onthouden"). Flex row that wraps, so the actions drop below at narrow widths |
+| Change | Secondary `.ds-btn` "Wijzigen naar Toestaan" or "Wijzigen naar Weigeren"; absent where the model refuses the change (an irreversible external send or a combined right cannot become Toestaan outside the prompt) |
+| Forget | Secondary `.ds-btn` "Vergeten"; accessible names list all five key fields; removal and change are announced in `.ds-live`; focus stays in the list |
+| Usage | No usage metadata: the page keeps no usage log, so none is shown (never invented) |
+| Empty | `.ds-grant-empty`: "Geen onthouden keuzes. Apps vragen het je wanneer ze iets nodig hebben." |
 | Contrast | 2 px white edge |
 
 ### Window `.ds-window`, `.ds-window-ctl`
@@ -901,8 +907,8 @@ edge, `--color-text-muted` text. Not focusable.
 |---|---|---|---|
 | Place badge | `.ds-place` | Node shape + icon + storage label (NAMING-AND-IA.md §6) | Static; inside trust surfaces and in file rows |
 | Privacy instrument | `.ds-privacy` (`.ds-privacy-track`, `-col`, `-lbl`, `-text`) | Three columns Dit apparaat, Thuis-NAS, Internet; each column `data-state` `lit`, `ask` or `off`; connectors are light blades between lit columns | `role="status"` with a full sentence `aria-label`. Root `data-state`: `local`, `ask` (internet-place edge `--place-internet-line`, a supplementary cue under 3:1 in dark and light, §10; halo on the internet node) and `internet` (all lit). Only `ask` has a root rule; `internet` is derived, v2 has no such state. |
-| Permission prompt | `.ds-ask` (`-band`, `-body`, `-title`, `-bond`, `-row`, `-app`, `-node`, `-dur`, `-warn`, `-choices`) | Band "Vraag van het systeem · getoond boven alle apps"; title "<App> wil <wat> <actie>"; bonded rows App, Wat, Waarheen, Hoe lang; internet notice "Dit programma kan de toegestane inhoud naar een internetdienst sturen." | `role="alertdialog"` (in the modal on the `<dialog>`, §10), `data-kind` `ongoing` or `action`; three equal choices per kind (§11.1); initial focus on the title; Escape answers deny; the result is reported in a toast |
-| App grant row | `.ds-grants`, `.ds-grant` (`-app`, `-name`, `-meta`, `-reach`, `-until`, `-empty`), `.ds-place`, `.ds-live` | App, resource, right, scope (with its destination), reach badge and duration chip; "Intrekken" | One revocable standing grant; removal announced in a polite `role="status"` region (§11.1) |
+| Permission prompt | `.ds-ask` (`-band`, `-main`, `-body`, `-proto`, `-title`, `-from`, `-path`, `-stop`, `-facts`, `-reason`, `-explain`, `-keybox`, `-outcomes`, `-decide`, `-lifetime`, `-state`, `-choices`, `-confirm`), `.ds-key` | Band "Vraag van BaryonOS · getoond boven alle apps (gesimuleerd)"; prototype line; one plain question; provenance; up to three shell facts; path; lifetime state sentence; one outcome sentence per answer | Native `<dialog>` via `showModal()`, `role="alertdialog"`; Toestaan and Weigeren plus the native checkbox "Keuze onthouden" (§11.1); initial focus on the question; Escape cancels fail-closed; the result is reported in a quiet `role="status"` note |
+| App permissions | `.ds-grants`, `.ds-grant` (`-app`, `-name`, `-key`, `-reach`, `-until`, `-actions`, `-empty`), `.ds-key`, `.ds-place`, `.ds-live` | One row per remembered decision (allow or deny): "Precies:" with the five key fields, reach, decision chip; "Wijzigen naar …", "Vergeten" | Changes and removals announced in a polite `role="status"` region (§11.1) |
 
 Rules and their sources:
 
@@ -916,253 +922,153 @@ Rules and their sources:
 The Kern band shows the `lock` icon where BRAND.md §5 places the compact mark
 (O-B1).
 
-### 11.1 Permission model (owner decision of 14 November 2026, task UX-D-C1)
+### 11.1 Permission model (owner decisions of 15 and 18-19 November 2026, task UX-C run 2)
 
-Source: three project-owner messages of 14 November 2026 (verbatim in the
-coordinator checkpoint `owner-decision-uxd-permissions-20261114.md`); message 3
-is the final rule for prompt labels. This is a UX decision. The prompts, the
-grant list and revocation below are design and browser simulation
-(`ui/design/prototype/contract.js`, the gallery); nothing here changes native
-code, the kernel, `docs/implementation/**` or `docs/LOCAL-PRIVACY-CONTRACT.md`.
+**Status.** Design and browser prototype only (`ui/design/prototype/contract.js`,
+the gallery). Remembered decisions, temporary grants, temporary denials, their
+storage, change and revocation are **not enforced by BaryonOS**; every prompt
+and specimen carries the line "Prototype: onthouden keuzes worden nog niet door
+BaryonOS afgedwongen." Native persistence needs an accepted ADR first (draft:
+`docs/verification/uxc-run2-20261119/PROPOSED-ADR.md`). The Kern surface simulates
+the shell-only protected layer, which is missing natively (DESKTOP-SHELL.md §3);
+the band claim "getoond boven alle apps" is marked "(gesimuleerd)". Nothing here
+changes native code, `docs/implementation/**` or `docs/LOCAL-PRIVACY-CONTRACT.md`.
 
-**Interim presentation.** Task UX-C (owner ambition on informed consent of
-14 November 2026) replaces the prompt's presentation. The `.ds-ask` dialog in
-ds-1.0 is a minimal, neutral carrier for the model, labels, contract, accessible
-names, interactions and revocation defined here; it is not the final consent
-design.
+**Superseded.** The 14 November model of task UX-D-C1 (three equal choices
+"Toestaan tot afsluiten" / "Eenmalig toestaan", "Altijd toestaan", "Weigeren";
+a four-field key) is superseded. Its verification record
+`docs/verification/ds-1.0-c1-20261115/` is not evidence for this model, and its
+contract test no longer matches `contract.js` (open item).
 
-**Superseded by the owner decision of 15 November 2026.** The project owner
-replaced the prompt choices below with two primary choices, "Toestaan" and
-"Weigeren", plus an optional remember control (owner wording "Keuze
-onthouden") that is off by default and applies to both choices. Without
-remembering, an ongoing permission lasts until the app closes and a single
-action is allowed for that action only; a denial without remembering records
-nothing lasting. With remembering, the allow or deny decision applies to
-future identical requests, keyed on app, right, data, destination and scope.
-Task UX-C researches and verifies this model before it replaces the
-description below. Until then the gallery and `contract.js` show the
-14 November model, and its verification record
-(`docs/verification/ds-1.0-c1-20261115/`) is not evidence for the new
-model. Native persistent grants and remembered denials require an ADR first.
+**Sources.** Owner decision of 15 November 2026 (O-G12, O-G4, O-G2, items 1-8),
+approved readings R2 and R3, owner decisions of 18 and 19 November 2026
+(OQ-1..OQ-6, MF-1..MF-6; verbatim in the coordinator checkpoint
+`owner-decision-uxc-continuation-20261118.md`), concept b "Eén vraag" of UX-C
+run 1 with grafts from concepts a and c.
 
-**Two prompt kinds, three visible choices each.**
+**The model.** Two answers, Toestaan and Weigeren, plus one native checkbox
+"Keuze onthouden" that applies to both and is unchecked at every opening (R3).
 
-| Kind | Meaning | Choices (`data-choice`, label) |
+| Answer | Remember off | Remember on |
 |---|---|---|
-| Ongoing app permission (`data-kind="ongoing"`) | Access that lasts while the app runs: internet, LAN, a named NAS dataset, a folder, camera, microphone | `untilClose` "Toestaan tot afsluiten" · `always` "Altijd toestaan" · `deny` "Weigeren" |
-| Single action (`data-kind="action"`) | One discrete operation whose permission lapses once carried out: exporting or sharing one file, one sensitive system operation | `once` "Eenmalig toestaan" · `always` "Altijd toestaan" · `deny` "Weigeren" |
+| Toestaan, ongoing right | Temporary grant until the logical app session ends (O-G12, OQ-5) | Remembered allow for the exact five-field key |
+| Toestaan, single action | This action only; nothing stored (O-G4) | Remembered allow, except for an irreversible external send (OQ-1) |
+| Weigeren | Temporary denial in volatile state until the app closes; automatic identical re-requests are refused without a prompt; a new deliberate gesture may ask again (R2) | Remembered deny for the exact key |
+| Escape or closing | Cancel: the same fail-closed outcome as a temporary denial; nothing granted, nothing stored, even with the checkbox checked (owner decision 1) | same |
 
-"Eenmalig toestaan" never appears on an ongoing prompt, and different
-authorisations are never merged into one choice. Labels and durations live
-once in `ui/design/prototype/strings.js` (`trusted.choices`,
-`trusted.duration`, `trusted.result`, `trusted.grant`); the gallery writes the
-button labels and duration lines from there.
+- **Key (OQ-4, MF-3).** Every decision is keyed on exactly app, right, data,
+  destination and scope. Data is one exact item, never a class or pattern
+  (`contract.js` rejects `*` and `?`). Changing any one field is a new question.
+  No per-app or per-right anti-nag throttling exists, so a distinct legitimate
+  request is never denied silently. Camera and microphone are separate rights.
+- **No repeat prompt (owner item 6).** A remembered decision and a running
+  temporary grant answer without a prompt. Identical concurrent requests share
+  one prompt and store one decision. Distinct concurrent requests are shown one
+  after another; a new request never cancels or silently denies an open one.
+- **Prompt that cannot be shown.** When the shell cannot draw a prompt (for
+  example a right without copy, or a render error), the request is denied for
+  that request only (`via: 'error'`): nothing is granted or stored, no
+  temporary denial is recorded and no R2 suppression follows, because the user
+  never saw a question. Every right in `RIGHTS` (`read`, `readWrite`,
+  `save-copy`, `connect`, `send-copy`, `read-connect`, `camera`, `microphone`,
+  `location`) has question, verb phrase, facts and comparison copy.
+- **OQ-1.** For an irreversible single-action external send, remembered Toestaan
+  is not offered: with the checkbox checked the state sentence says that only a
+  refusal can be remembered and Toestaan sends this once; the model never stores
+  it. A remembered Weigeren is keyed to the exact request. For a combined
+  document-and-internet right (`read-connect`), a remembered Toestaan needs a
+  named destination, one exact item, a bounded scope (`document` or `item`) and
+  the confirm step; otherwise only a temporary grant results. A remembered
+  Toestaan answers a later request only when remembering Toestaan is offered for
+  that request: an irreversible single-action external send is always asked,
+  even when a Toestaan is remembered for the same five fields, and kind and
+  irreversibility never become key fields. Because one decision is stored per
+  five-field key, a remembered Weigeren given on that prompt replaces the earlier
+  remembered Toestaan for the same five fields (access only narrows; owner
+  decision A of 19 Nov 2026).
+- **OQ-5 end events (prototype).** A temporary grant ends on app termination,
+  logout or a user-session switch; hiding or minimising a window ends nothing;
+  there is no timeout. Temporary denials end when the app closes.
+- **OQ-6.** An optional app reason is shown only when it is a string of 1-120
+  characters without control, format (bidirectional) or line-separator
+  characters; otherwise it is not shown at all, never truncated. Markup
+  characters are ordinary text: the gallery inserts the reason with
+  `textContent`, so `<b>` appears literally. It sits after the BaryonOS facts,
+  attributed ("<App> zegt:") and framed apart from system text.
+- **Change and revocation (owner item 7).** Appmachtigingen lists remembered
+  allows and remembered denials with "Precies:" and the five key fields; "Vergeten"
+  removes exactly the matching key; "Wijzigen" obeys the same OQ-1 rules.
+- **Per-request check.** A suppressed prompt never replaces the policy service's
+  capability, object-scope and authorisation check on every request.
 
-**Durations (each defined once).**
+**Equal choice (MF-4).** Equal visual weight (same component, variant, size,
+width and weight), clear wording, comparable pointer effort (adjacent equal
+targets), no preselected answer, initial focus on a neutral element (the
+question heading), Escape as a safe cancellation, and one fixed platform-wide
+order: Toestaan, then Weigeren. The order has a keyboard asymmetry that is
+stated, not hidden: Tab from the checkbox reaches Toestaan first, and Shift+Tab
+from the heading reaches Weigeren first. An extra confirmation for
+irreversible or combined cases is allowed and used only for the combined right.
 
-| Choice | Validity | Stored as |
+**Lifetime in words (MF-1).** The state sentence always names the current
+lifetime ("Niet onthouden: geldt tot je <App> sluit." for an ongoing right;
+"Niet onthouden: Toestaan geldt alleen voor deze handeling, Weigeren tot je
+<App> sluit." for a single action, so the sentence never claims that a
+single-action Toestaan lasts until the app closes (O-G4, R2); "Onthouden voor
+precies deze vraag, tot je het wijzigt in Appmachtigingen."), and one outcome
+sentence per answer states its real lifetime and suppression; both outcomes
+change when the checkbox toggles. A single-action Weigeren says that automatic
+identical re-requests are refused until the app closes, never "alleen deze keer".
+
+**Progressive disclosure and word budget (MF-6).** One question, up to three
+essential shell facts, the explicit lifetime statement, both outcomes and the
+everyday comparison line ("Vergelijk: ...", an explanation shown openly in the
+first layer for transparency) are visible at decision time; only "Waarom niet
+‘…’?" and the five-field key are in disclosures. Measured visible words at decision time (gallery live
+prompt, explanations on, remember off, no app reason): read 136, single action
+120, send 129, combined 133, camera with reason 142 (target about 120, review
+above 156; `run2-repair-1/out/words2.log`; the single-action state sentence grew
+by six words in repair-1). No material consequence was
+removed to meet the budget; the read case stays above the target because its
+three facts (later network risk, copies survive revocation, the NAS
+administrator can delete but not read) are each material.
+
+**Compact repeat prompt (MF-5).** Shown only when the request is identical in
+all five key fields to one the user temporarily allowed earlier in the session,
+with the same circumstance (`context`), and low risk: right `read` or
+`save-copy`, no destination, not irreversible, not combined. External sends,
+irreversible actions, any internet destination, camera, microphone, combined
+rights and any changed permission or circumstance always get the full prompt.
+The eligibility record is volatile prototype state, grants nothing and lasts
+until logout or a session switch (a design decision: it must outlive the app
+session, or an ongoing right could never reach the compact form). Any later
+answer other than a temporary Toestaan for that key (a Weigeren, a cancellation
+by Escape or closing, or a remembered decision), and any change or revocation
+of a remembered decision for that key, deletes the record: the user's latest
+answer is a changed circumstance, so the next identical request gets the full
+prompt. The compact
+form keeps the facts, the lifetime and both outcomes visible, puts the path,
+explanation and key behind one "Alle details" disclosure and keeps the checkbox
+unchecked.
+
+**Three evidence classes for the owner decisions of 18-19 November.**
+
+| Class | Items | Status |
 |---|---|---|
-| Toestaan tot afsluiten | Ends when the app closes, so also at logout and system restart (the owner's label; whether "afsluiten" reads as shutdown is open, O-G12) | Standing grant, `until: 'close'` |
-| Eenmalig toestaan | Ends when the single action completes, fails or is cancelled | Never stored |
-| Altijd toestaan | The same key is not asked again; survives closing and reopening the app and, as a future requirement, a system restart, until the user revokes it | Standing grant, `until: 'always'` |
-| Weigeren (also Escape or closing the prompt) | Denies this request only | Nothing stored; the app may ask again |
+| Approved UX behaviour, built as prototype | OQ-1, OQ-2 (Escape), OQ-4, OQ-6, MF-1..MF-6, OQ-5 end events | In `contract.js`, the gallery and `ui/design/prototype/tests/contract.test.mjs`; not enforced by BaryonOS |
+| ADR changes awaiting native implementation | OQ-3 (suppression of identical unsolicited re-prompts across relaunches until logout, volatile, with native gesture attribution), OQ-5 lifecycle and revocation semantics (security-context revalidation) | Proposed in `PROPOSED-ADR.md`; R2 (until the app closes) stays the built behaviour; the gallery labels the until-logout behaviour "Voorgesteld, nog niet gebouwd" |
+| Unverified research hypotheses | Comprehension of the question, path, facts and comparison; the ~120-word target; the compact form's effect on irritation and effort; detection of a "new deliberate user gesture" | [untested hypothesis] until the user study runs; gesture detection is "Toekomstig onderzoek" (the prototype treats a press of an opener as the gesture) |
 
-The prompt text for "Altijd toestaan" says "ook als je <app> opnieuw opent"
-and does not mention restart, because the prototype contract does not simulate
-a restart (a reload loses all state) and no native store exists. The string
-adds restart only when native persistence exists (O-G1).
+**Feasibility labels.** The gallery shows each element beyond the baseline with
+"Werkt nu in dit prototype", "Technisch haalbaar, nog niet gebouwd" or
+"Toekomstig onderzoek" as visible text in the prompt card's status table; the simulation controls that act out app and
+session events ("App vraagt automatisch opnieuw", "Venster verbergen", "App
+sluiten", "Afmelden", "Andere gebruiker") carry a visible "Simulatie, geen
+echte actie" note, a named group and their own status row.
 
-**Grant key, no repeated consent, no broadening.** A standing grant is keyed
-on four fields: app + resource + capability (right) + scope. The scope
-includes the destination of a right that moves data off the device: "een
-kopie sturen" (`send-copy`) of Tuinplan to tuinplanner.example and to
-andere-dienst.example are two keys, and `ask()` rejects a `send-copy` request
-without a destination (`to`). For "verbinding maken" (`connect`) the resource
-is the destination itself (the domain). `destination()` in `contract.js` is
-the one helper that names it for the key, the grant row and the texts. Treating
-the destination as part of the owner's "reikwijdte" is an interpretation for
-owner confirmation (O-G9); a verifier found that the earlier key without it let
-a grant for one destination cover every destination (repair-1). A request whose
-exact key holds a valid grant (until close while the app runs, or always)
-never prompts again (`ask()` resolves without calling the prompt). A request
-with another key (other resource, broader right, wider scope, other
-destination) prompts again;
-an existing grant never broadens. The prototype matches the exact key only
-(no ordering such as "lezen en wijzigen covers lezen"; O-G3).
-
-**Per-request check.** A grant suppresses the prompt only. The policy service
-still checks capability, object scope and authorisation on every request
-(`docs/implementation/KERNEL-AND-SECURITY-CONTRACT.md`, around line 220).
-Grounding: `docs/LOCAL-PRIVACY-CONTRACT.md` §4 (separate, visible, revocable
-permissions; around line 117) and `docs/DESIGN-AMBITION.md` line 22 (repeated
-granting is not the desired default).
-
-**Contract (`ui/design/prototype/contract.js`).** `ask(request)` takes
-`{ kind: 'ongoing' | 'action', app, resource, right, scope, to? }` (`to` is
-required for `send-copy`) and, when it prompts, resolves to
-`'untilClose' | 'always' | 'deny'` (ongoing) or `'once' | 'always' | 'deny'`
-(action); any other answer, including Escape, becomes `'deny'`. A covered
-request resolves without a prompt to the stored duration, `'untilClose'` or
-`'always'`, whatever its kind: kind is not part of the key, so an ongoing grant
-with the same key also covers an action request. Callers treat every result
-except `'deny'` as permission to proceed. `setPrompt(fn)`
-attaches the prompt UI. `grants.all()`, `grants.covering(request)`,
-`grants.revoke(key)` and `grants.appClosed(app)` work per four-field key;
-`appClosed` ends that app's `close` grants. Data seeds in
-`ui/design/prototype/data.js` (`{app, rights, until}` on a file) are
-normalised to the key on load. Contract test: 48 assertions pass
-(`build/design-evidence/ds-1.0/c1/repair-1/contract-test.mjs` and `.txt`;
-derived from the verifier's test, with destinations, revoking one of two
-destinations and the covered-by-kind result added). The verifier's original
-test (`verify-0/contract-test.mjs`) now stops at its `send-copy` request
-without a destination, which `ask()` rejects by design.
-
-**Initial focus (reviewable design choice).** On open, focus goes to the
-prompt title (`tabindex="-1"`, `data-initial-focus`), not to any choice.
-
-| Option | Stray Enter or Space at open | Screen reader on open | Nudging |
-|---|---|---|---|
-| Title (chosen) | Does nothing | Expected (no screen-reader test, §19): the title, then the bonded rows in order; `aria-describedby` adds the internet notice | No choice is marked as expected |
-| Weigeren | Denies the request the user may have wanted | Expected: the button name and its description only | Mild nudge to refuse; the ring marks one choice as the expected one |
-| First allow choice | Grants access: excluded by the invariants | Expected: button name only | Nudge to allow: excluded |
-
-Measured effort from the title (real keys): first choice Tab + Enter, "Altijd
-toestaan" Tab Tab + Enter, Weigeren Tab Tab Tab + Enter or Escape alone. The
-order follows the owner's list; effort is therefore not identical, and
-Weigeren stays the cheapest through Escape.
-
-Sources (accessed 14 November 2026): the WAI-ARIA APG Dialog (Modal) pattern,
-<https://www.w3.org/WAI/ARIA/apg/patterns/dialog-modal/>, says focus generally goes to
-the first focusable element, but advises focusing a static element at the
-start of the content (`tabindex="-1"`) when the content has structure that
-would be hard to follow "as a single unbroken string", and the least
-destructive action for steps that are not easily reversible. A prompt grant is
-reversible (revocable in Appmachtigingen), and the prompt is structured
-(rows App, Wat, Waarheen, Hoe lang), so the title fits better than Weigeren.
-The APG Alert and Message Dialogs pattern,
-<https://www.w3.org/WAI/ARIA/apg/patterns/alertdialog/>, refers to the modal
-dialog pattern for its keyboard interaction.
-
-Invariants (checked with real key presses, §15): no single keystroke at open
-grants a standing permission; "Altijd toestaan" is never preselected, never the
-emphasised choice and never triggered by Enter on open; Escape or closing the
-prompt equals Weigeren and stores nothing; Tab from the title reaches the
-choices in their visual order.
-
-**Equal weight.** The three choices use the same button variant
-(`secondary`), size (`large`) and full width, stacked in the owner's order
-(narrow grant, broad grant, deny). No choice is primary, Weigeren included.
-Each has a visible duration line, referenced by `aria-describedby`. Stacking
-keeps the long Dutch labels whole (measured on the inline specimens: 0
-clipped buttons, equal 510 x 44 px, 1018 x 88 px at 200 %). The modal prompt
-did not fit at 200 % until C1 repair-2 (verify-1 step 10: "Altijd toestaan"
-and Weigeren below the viewport); its body now scrolls under the fixed band.
-Measured with real Tab presses at `<html data-scale="2">` in 1440 x 1000 and
-960 x 667 windows, dark, light and contrast, ongoing prompt in all six and
-the action prompt at 960 x 667 in all three themes: every choice is inside
-the viewport after its Tab, the band stays in view, the last duration line is
-reachable at maximum scroll and no horizontal clipping
-(`c1/repair-2/kbd-real-keys.jsonl`; before the fix `kbd-pre-fix.txt`). With
-focus on the title, real ArrowDown, PageDown and End scroll the body to its
-maximum (960 x 667, dark page). At 100 % in the 1440 x 1000 window the body
-does not scroll and the Kern shadow is unchanged; other 100 % window sizes
-were not measured. Sources: the
-owner asks for "eenvoudig en gelijkwaardig" choices
-(`owner-ambition-informed-consent-20261114.md`). That emphasising one choice
-would nudge the decision is design judgement, not a sourced finding; user
-effect is unproven (§19).
-
-**Deviation from the v2 board.** The reviewed Orbitaal v2 board shows the
-buttons once / session / deny ("Eenmalig", "Deze sessie", "Weigeren") with
-Weigeren as primary. ds-1.0 deliberately deviates by this owner decision: two
-kinds, the labels above, no primary choice and title focus. The frozen boards
-under `ui/design/concepts/**` keep their labels.
-
-**Visibility and revocation.** Every standing grant ("Toestaan tot afsluiten"
-while the app runs, and "Altijd toestaan") is listed and revocable under
-Instellingen › Privacy en beveiliging › Appmachtigingen (NAMING-AND-IA.md §5).
-Single-action grants lapse at once and are not listed. ds-1.0 provides the
-grant row `.ds-grants` / `.ds-grant`: app tile, "<App> · <bron>", "<recht> ·
-<reikwijdte>", a reach line and an "Intrekken" button whose accessible name is
-"Intrekken: <App>, <bron>, <recht>, <reikwijdte>", where <bron> adds "naar
-<bestemming>" for a sending right (`trusted.grant.target`). The name carries
-all four key fields (C1 repair-2; before, only app and resource), so no two
-standing grants share a name: for example "Intrekken: Notities, Tuinplan,
-lezen, alleen dit document" and "Intrekken: Notities, Tuinplan, lezen en
-wijzigen, alleen dit document" (`c1/repair-2/revoke-names-test.txt`, 6/6
-pass; in the gallery the four seeded rows have four distinct names).
-Revoking removes the row, moves focus to the next
-row's Intrekken (else the previous one, else the empty message) and announces
-"Machtiging ingetrokken: <App>, <bron>, <recht>, <reikwijdte>. <App> moet het
-opnieuw vragen." in a
-polite `role="status"` region (`.ds-live`) that sits outside the rows. No undo:
-the next request simply prompts again. The full Appmachtigingen screen is
-task UX-E.
-
-The reach line (repair-1) answers the two questions a person judges a grant
-by: where the access can reach and for how long. Reach is the existing
-`.ds-place` badge (node shape + icon + text): "Internet · <bestemming>" for a
-sending or connecting right, otherwise every place where the resource is
-kept ("Dit apparaat", "Thuis-NAS" or both; for a collection, the places of
-its files). It states reach, not a
-promise that data stays local: an app with a read grant and an internet grant
-may combine them (LOCAL-PRIVACY-CONTRACT.md §4), which a later Appmachtigingen
-screen should show per app. Duration is a neutral chip whose shape follows
-`data-until`: a dashed edge with the clock for "Tot je <App> sluit", a solid
-2 px edge with the closed loop `altijd` for "Altijd, tot je het intrekt"
-(C1 repair-2: the lock commonly reads as "locked, cannot change", which works
-against a revocable grant, and it already marks the Kern band; the new glyph
-is a ds-1.0 addition, §8, O-G13). Evidence classes:
-contrast, clipping and names are measured (§19); that the row was too
-conventional, that place and duration chips make grants easier to scan and
-that the loop reads better than the lock are design judgement by an AI
-verifier and writer, not a user finding (U06). No token value of the v2 board
-changes; the chip uses existing neutral tokens.
-
-**Design proposal for UX-E (not built; future research, O-G14).** The ds-1.0
-list repeats the app on every row and gives no overview of where one app can
-reach as a whole (AI design judgement, verify-1). UX-E could group grants
-under one app header (tile and name once) and draw that app's combined reach
-as a compact Orbitaal privacy-instrument strip: the device, NAS and internet
-nodes lit by the union of its grants, built from the existing `.ds-privacy`
-and `.ds-place` (shape + icon + text, colour for place only). The strip would
-answer "where can this app reach" at a glance and display combined
-permissions as LOCAL-PRIVACY-CONTRACT.md §4 asks. It changes the row
-structure, the index-based `data-revoke` and the verified focus order after
-revocation, so it is left to UX-E and needs its own keyboard and
-screen-reader check. Feasibility: works now in the browser prototype;
-natively it depends on the Appmachtigingen screen (UX-E) and the policy
-service's grant list (O-G1).
-
-**Persistent denial (research only; open owner decision O-G2).** No fourth
-prompt choice is added.
-
-| Source (accessed 14 November 2026) | Behaviour |
-|---|---|
-| Android, Request runtime permissions, <https://developer.android.com/training/permissions/requesting> | If the user denies a permission more than once, the system dialog no longer appears; the action is treated as "don't ask again". Apps must accept the preference and not nag. "Only this time" is a one-time grant for location, microphone and camera. |
-| Apple HIG, Privacy, <https://developer.apple.com/design/human-interface-guidelines/privacy> | Not re-verified: the page renders client-side and its body was not retrieved in the verification run (repair-1). The writer's earlier reading (the system shows the request alert; people can update their choice in Settings) is unconfirmed, and no "ask only once" claim is cited (O-G7). |
-| Chromium Blog, Introducing quieter permission UI for notifications (January 2020), <https://blog.chromium.org/2020/01/introducing-quieter-permission-ui-for.html> | Not re-verified: only the publication date (7 January 2020) was confirmed; the post body was not retrieved in the verification run. The writer's earlier reading: Chrome switches to a quieter, non-interrupting notification prompt for users who usually block such requests and for sites with very low acceptance rates (O-G7). |
-| W3C Permissions, Working Draft 26 October 2026, <https://www.w3.org/TR/permissions/> | States `granted`, `denied`, `prompt`; a stored decision is reused until its lifetime ends or the user revokes it. |
-
-Options: (A) as now: Weigeren stores nothing, every new request prompts;
-simple, but a persistent app can nag. (B) Automatic quieting after repeated
-denials (Android, verified by verify-1; the Chrome behaviour is not cited as
-support until the Chromium post body is retrieved and quoted, O-G7): after
-two denials of the same key within the app's
-installation, further requests for that key do not interrupt; the app gets
-`deny` and a quiet, non-modal notice offers the prompt on the user's
-initiative; the denial is listed and clearable in Appmachtigingen. (C) An
-explicit "Altijd weigeren": rejected, because it adds a fourth choice.
-Recommendation: B, keyed on the same four fields, never on the app as a whole,
-cleared by revocation in Appmachtigingen, and visible there, so a denial is as
-inspectable as a grant. This needs an owner decision (O-G2) and, natively, the
-same ADR as persistent grants (O-G1).
-
-**Evidence limits.** Design and prototype simulation only. Persistence across
-a system restart and native enforcement are future implementation
-requirements; native capability and security contracts change only after a
-separate review, and a project ADR is required before native persistent grants
-(O-G1). The browser gallery enforces nothing: any page can draw `.ds-` classes.
+**Strings.** All prompt copy lives once in `ui/design/prototype/strings.js`
+(`trusted.*`); the gallery writes every specimen and the live prompt from one
+renderer, so no specimen text can drift from the live prompt.
 
 ## 12. Motion
 
@@ -1646,21 +1552,23 @@ native yet.
 | O-T1 | Tabular digits: `.ds-num` spans only in the browser versus every digit in TYPOGRAPHY.md §8.1 and §8.4. |
 | O-S1 | Missing states: pressed on row, tab, menu item, switch, checkbox and radio; disabled on row, tab, Orbit item and window control; loading only on the button and skeleton; checkbox indeterminate; checked menu items; error on switch, checkbox and radio; no dedicated warning-banner rule. |
 | O-S2 | S0 reserved names not implemented: regions (`.ds-workspace`, `.ds-menu-bar`, `.ds-toolbar`, `.ds-tool-rail`, `.ds-canvas`, `.ds-inspector`, `.ds-panel`, `.ds-panel-zone`, `.ds-timeline`, `.ds-data-grid`, `.ds-status-bar`, `.ds-document-tabs`, `.ds-command-palette`) and components (`.ds-panel-header`, `.ds-track`, `.ds-ruler`, `.ds-playhead`, `.ds-cell`, `.ds-number-field`, `.ds-layer-row`, `.ds-expander`, `.ds-export-dialog`, `.ds-object-chip`, `.ds-version-indicator`); S0 names `.ds-keycap` and `.ds-place-badge` where ds-1.0 has `.ds-kbd` and `.ds-place`. |
-| O-S3 | Attributes and hooks beyond the fixed naming list: `data-kind`, `data-until`, `data-initial-focus`, `data-revoke`, `.ds-live`, `.ds-ask-terms` (UX-D-C1), `data-size`, `data-shape`, `data-demo`, `data-choice`, `--ds-c`, `--ds-value`; sub-classes such as `.ds-status-marker`, `.ds-node`, `.ds-orbit`, `.ds-list`, `.ds-input`. |
+| O-S3 | Attributes and hooks beyond the fixed naming list: `data-kind`, `data-until`, `data-initial-focus`, `data-remember`, `data-forget`, `data-change`, `data-decision`, `data-held`, `data-compact`, `data-step`, `.ds-live`, `.ds-key` (UX-C run 2), `data-size`, `data-shape`, `data-demo`, `data-choice`, `--ds-c`, `--ds-value`; sub-classes such as `.ds-status-marker`, `.ds-node`, `.ds-orbit`, `.ds-list`, `.ds-input`. |
 | O-S4 | Submenus: `.ds-menu-sub` is a visual marker only; opening, ARIA (`aria-haspopup`, `aria-expanded`) and keys (ArrowRight opens, ArrowLeft and Escape close) are not specified. |
 | O-K1 | Launcher, search results, switcher, tray, notification centre, quick settings and window move, resize and snap are not designed as components. |
 | O-K2 | UX-D-C1 applied the base verifier's two one-line fixes (`.ds-taskitem::after` bottom 4 px and `.ds-menu` 5 px offset in the contrast theme); not re-profiled. Contrast theme, partly closed in repair round 2: tabs and the standard selected row now keep a 1 px gap between the inner ring and white marks (§13); the focused row's blade moves 3 px inward, a repair-2 derivation not in v2. Open: the compact place badge edge (258 junction pixels, lowest 1.06:1), the compact blade end (2 pixels) and compact tab descenders (12 pixels) touch the ring; the Orbit badge is not measured. Compact values are PROVISIONAL (S0 D2). |
 | O-K3 | `.ds-taskitem` shows app icons as bare glyphs; MF9 puts every app on the tile. |
 | O-N1 | "Kern" names the trusted-surface material in ds-1.0 and the Settings app in DESKTOP-SHELL.md §7; P-NAMES-1 awaits the project owner. |
-| O-N2 | Closed in UX-D-C1: prompt labels, durations and results now come from `strings.js` `trusted.*` and match NAMING-AND-IA.md §6 (§11.1). |
+| O-N2 | Since UX-C run 2 the prompt copy comes from `strings.js` `trusted.*` (§11.1); NAMING-AND-IA.md §6 still lists the C1 labels and needs an update outside this task. |
 | O-N3 | The NAS-unreachable sentence implies but does not state "paused" and "not forwarded elsewhere" (LOCAL-PRIVACY-CONTRACT.md §1); adding "en wordt niet naar een andere plek gestuurd" needs a copy decision. |
 | O-N4 | The gallery names the browser app "Webvenster" (v2 board), since C1 repair-2 from `strings.js` `apps.webvenster`; `strings.js` also keeps `apps.browser` "Browser", so the product name of the browser app is still undecided. The prompts' "what" and "done" fragments in `gallery.js` are marked gallery sample data, not `strings.js` copy (O-D1). |
-| O-G1 | A project ADR is required before native persistent grants; persistence of "Altijd toestaan" across a system restart and native enforcement are future implementation requirements. Native capability and security contracts change only after a separate review. When native persistence exists, the "Altijd toestaan" duration line adds restart. |
-| O-G2 | Persistent denial: owner decision on the §11.1 proposal (recommended option B, quieting after two denials of the same key, listed and clearable in Appmachtigingen). |
-| O-G3 | Grant matching is exact on the four-field key; whether a broader existing grant may cover a narrower request (for example read within read and write) needs a policy-service decision. |
-| O-G4 | Interpretation recorded for owner confirmation: message 3 fixes the ongoing labels and restricts "Eenmalig toestaan" to single actions; single actions therefore offer "Eenmalig toestaan", "Altijd toestaan", "Weigeren". |
-| O-G5 | UX-C replaces the prompt's presentation (informed consent); the initial-focus choice, the stacked equal choices and the duration lines are reviewable inputs to UX-C, and their user effect is untested. |
-| O-G6 | The UX-D-C1 writer renders (`build/design-evidence/ds-1.0/c1/writer/c1-*.png`) are stale for the grant rows. In repair-1 the writer viewed the dark and contrast grant cards (chrome-devtools screenshots); the renders `c1/repair-1/r1-gallery-*-top3300.png` and their crops were saved, not viewed (image reads are blocked in the writer session). Visual judgement of light and 200 % is pending. C1 repair-2: the writer viewed the 200 % modal prompt in all three themes, and the grant rows in light (100 % and 200 %), contrast (100 %) and dark (200 %, earlier glyph) in chrome-devtools screenshots (`c1/repair-2/r2-*.png`). The `c1/writer` and `c1/repair-1` renders themselves were not re-viewed, and no independent visual review has been made. |
+| O-G1 | A project ADR is required before native remembered decisions (allow and deny), their storage, change and revocation; draft `docs/verification/uxc-run2-20261119/PROPOSED-ADR.md` (Proposed). Native capability and security contracts are unchanged. |
+| O-G2 | Closed by the owner decisions of 15 and 19 November 2026: Weigeren can be remembered for the exact key; no per-app or per-right quieting (OQ-4). OQ-3 (suppression until logout across relaunches) is a proposed ADR change, not built. |
+| O-G3 | Matching stays exact on the five-field key (OQ-4); whether a broader remembered decision may cover a narrower request needs a policy-service decision in the ADR. |
+| O-G4 | Closed (owner decision 15 November 2026): no separate "Eenmalig toestaan"; a single action without remembering is allowed for that action only. |
+| O-G5 | UX-C run 2 built concept b in the design system; comprehension, the ~120-word target (read case measures 136 visible words), the compact form's effect and gesture detection are untested hypotheses until the user study runs. The old C1 contract test (`docs/verification/ds-1.0-c1-20261115/contract-test.mjs`) tests the superseded model and fails against the new `contract.js`; it stays as a historical record. |
+| O-G15 | A `readWrite` request on an item stored on the NAS has four material consequences (can change or erase the content; time-bounded network wording; revocation and copies; the NAS administrator line). All four stay visible, which exceeds the MF-6 limit of three essential facts; the owner decides whether one may move or the limit admits a fourth for this right (UX-C run 2 repair-1). |
+| O-G16 | Repair-1 placed the per-answer outcome sentences in the fixed decide row, directly above Toestaan and Weigeren, in viewports taller than 40rem (measured in view at open for all five cases at 1440 x 1000, 1440 x 900 and 1280 x 720; `run2-repair-1/out/outcomes.json`). In a viewport of at most 40rem (200 % zoom of a 1440 x 900 window, 320 x 640) or with `[data-scale="2"]` they move to the end of the scrolling body so that the question and all controls stay reachable; there they can be scrolled out of view while both answers stay visible (still linked by `aria-describedby`). Whether a shorter outcome form for short viewports is preferable is an open design question. |
+| O-G6 | The C1 renders (`build/design-evidence/ds-1.0/c1/`) show the superseded prompt; UX-C run 2 renders and measurements are in `build/design-evidence/uxc-run2/run2-writer/`. |
 | O-B1 | Kern band uses `lock`; BRAND.md §5 places the compact mark on trusted surfaces. Since C1 repair-2 `lock` appears only on the Kern band and the prompt openers in the gallery, not on grant chips. |
 | O-B2 | BRAND.md §5 describes red, green and blue as accents for highlights and app differentiation, and the mark's node colours differ from the place colours (BRAND.md §4); both sit against "colour means place" and need a project-owner decision. |
 | O-I1 | No info or restore icon: the info banner uses `dot` and "Vorige grootte" uses `window`. |

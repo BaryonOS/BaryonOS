@@ -130,51 +130,163 @@ export const T = {
     today: 'Vandaag',
   },
 
-  // Permission prompts: owner decision of 14 November 2026 (docs/design/DESIGN-SYSTEM.md §11). Two kinds,
-  // three equal choices each. Every duration is defined once in `duration` and reused by the prompt's
-  // descriptions, the results, the grant row and the documentation; no label promises another validity.
+  // Permission prompts (UX-C run 2): owner model of 15 November 2026, readings R2 and R3, owner decisions of 18-19 November
+  // 2026 (docs/design/DESIGN-SYSTEM.md §11.1). Two answers, Toestaan and Weigeren, plus the native checkbox "Keuze onthouden".
+  // Every sentence states the real lifetime (MF-1). Prototype: BaryonOS does not enforce remembered decisions yet.
   trusted: {
-    origin: 'Vraag van het systeem · getoond boven alle apps',
-    wants: (app, what) => `${app} wil ${what}`,
-    rows: { app: 'App', what: 'Wat', where: 'Waarheen', duration: 'Hoe lang' },
-    choicesLabel: 'Kies hoe lang',
-    choices: {
-      ongoing: { untilClose: 'Toestaan tot afsluiten', always: 'Altijd toestaan', deny: 'Weigeren' },
-      action: { once: 'Eenmalig toestaan', always: 'Altijd toestaan', deny: 'Weigeren' },
+    origin: 'Vraag van BaryonOS · getoond boven alle apps (gesimuleerd)',
+    prototype: 'Prototype: onthouden keuzes worden nog niet door BaryonOS afgedwongen.',
+    provenance: (when) => `geïnstalleerd ${when} uit Haven`,
+    // one plain question per right; `item` is one exact item, `dest` a named destination
+    question: {
+      read: (a, item) => `Mag ${a} ${item} lezen en er een eigen kopie van houden?`,
+      readWrite: (a, item) => `Mag ${a} ${item} lezen en wijzigen, en er een eigen kopie van houden?`,
+      connect: (a, item, dest) => `Mag ${a} verbinding maken met ${dest}?`,
+      'save-copy': (a, item) => `Mag ${a} een kopie van ${item} in Downloads zetten?`,
+      'send-copy': (a, item, dest) => `Mag ${a} een kopie van ${item} naar ${dest} sturen?`,
+      'read-connect': (a, item, dest) => `Mag ${a}, dat ${item} al heeft, verbinding maken met ${dest}?`,
+      camera: (a) => `Mag ${a} meekijken en opnemen met je camera?`,
+      microphone: (a) => `Mag ${a} meeluisteren en opnemen met je microfoon?`,
+      location: (a) => `Mag ${a} zien waar je bent?`,
     },
-    // untilClose: ends when the app closes (also logout and restart). once: ends when the single action
-    // completes, fails or is cancelled; never stored. always: same app, resource, right and scope (the scope
-    // includes the destination of a right that sends data, contract.js destination()) are not asked again,
-    // also after reopening the app, until revoked. deny: this request only; nothing stored.
-    duration: {
-      untilClose: (app) => `Geldt tot je ${app} sluit. Afmelden of opnieuw opstarten beëindigt het ook.`,
-      once: 'Geldt alleen voor deze ene handeling en vervalt zodra die klaar, mislukt of geannuleerd is. Er wordt niets bewaard.',
-      always: (app) => `Geldt ook als je ${app} opnieuw opent, tot je het intrekt in Instellingen › Privacy en beveiliging › Appmachtigingen.`,
-      deny: (app) => `Geldt alleen voor dit verzoek. Er wordt niets bewaard; ${app} kan het later opnieuw vragen.`,
+    // the same right as a verb phrase, for outcome sentences, acknowledgements and Appmachtigingen
+    what: {
+      read: (item) => `${item} lezen`,
+      readWrite: (item) => `${item} lezen en wijzigen`,
+      connect: (item, dest) => `verbinding maken met ${dest}`,
+      'save-copy': (item) => `een kopie van ${item} in Downloads zetten`,
+      'send-copy': (item, dest) => `een kopie van ${item} naar ${dest} sturen`,
+      'read-connect': (item, dest) => `${item} lezen en verbinding maken met ${dest}`,
+      camera: () => 'je camera gebruiken',
+      microphone: () => 'je microfoon gebruiken',
+      location: () => 'je locatie gebruiken',
+    },
+    path: { label: 'Waar je gegevens heen gaan', holds: (who) => `Daarna ook bij ${who}`, already: 'heeft het al', device: 'Dit apparaat', appData: (a) => `Wat ${a} al heeft` },
+    // up to three essential shell facts (MF-6); never shortened by hiding a material consequence
+    facts: {
+      read: (a, place, nas) => [
+        `${a} heeft nu geen internet. Krijgt het dat later, dan kan het bewaarde kopieën versturen.`,
+        'Intrekken stopt het lezen, niet de kopieën die er al zijn.',
+        nas ? `De beheerder van ${place} kan zijn kopie wel verwijderen, maar niet lezen.` : null,
+      ],
+      // a read-write right on a NAS item has four material consequences; all stay visible (never hidden for the budget)
+      readWrite: (a, place, nas) => [
+        `${a} kan de inhoud veranderen of wissen.`,
+        `${a} heeft nu geen internet. Krijgt het dat later, dan kan het bewaarde kopieën versturen.`,
+        'Intrekken stopt het lezen en wijzigen, niet de kopieën die er al zijn.',
+        nas ? `De beheerder van ${place} kan zijn kopie wel verwijderen, maar niet lezen.` : null,
+      ],
+      connect: (a, dest) => [
+        `${a} kan gegevens die het al heeft naar ${dest} sturen.`,
+        `${dest} bepaalt daarna zelf wat het ermee doet.`,
+        'Intrekken stopt de verbinding, niet wat al verstuurd is.',
+      ],
+      'save-copy': () => ['De kopie blijft op dit apparaat staan tot jij hem verwijdert.', 'Er gaat niets naar internet.'],
+      'send-copy': (a, dest) => ['Een verstuurde kopie kun je niet terughalen.', `${dest} bepaalt daarna zelf wat het met de kopie doet.`],
+      'read-connect': (a, item, dest) => [
+        `Samen betekent dit: ${a} kan ${item} naar ${dest} sturen.`,
+        'Een verstuurde kopie kun je niet terughalen.',
+        'Intrekken stopt de verbinding, niet wat al verstuurd is.',
+      ],
+      camera: (a) => [
+        `${a} heeft nu geen internet. Krijgt het dat later, dan kan het bewaarde opnamen versturen.`,
+        'Intrekken stopt de camera, niet de opnamen die er al zijn.',
+        'Je microfoon is een aparte vraag.',
+      ],
+      microphone: (a) => [
+        `${a} heeft nu geen internet. Krijgt het dat later, dan kan het bewaarde opnamen versturen.`,
+        'Intrekken stopt de microfoon, niet de opnamen die er al zijn.',
+        'Je camera is een aparte vraag.',
+      ],
+      location: (a) => [
+        `${a} heeft nu geen internet. Krijgt het dat later, dan kan het bewaarde locaties versturen.`,
+        'Intrekken stopt het gebruik van je locatie, niet de locaties die het al bewaard heeft.',
+      ],
+    },
+    // optional explanation layer: an everyday comparison and the misleading analogy it avoids
+    compare: {
+      read: { line: 'Vergelijk: je geeft iemand een kopie van je plan mee, niet alleen even inkijken.', why: 'Waarom niet ‘inkijken’?', whyText: 'Inkijken klinkt alsof alles bij jou blijft. Een app die mag lezen, kan een eigen kopie houden.' },
+      'save-copy': { line: 'Vergelijk: een fotokopie in je eigen la leggen.', why: null, whyText: null },
+      'send-copy': { line: 'Vergelijk: een brief op de post doen. Terughalen kan niet meer.', why: 'Waarom niet ‘delen’?', whyText: 'Delen klinkt als een link die je later weer intrekt. Hier gaat een kopie weg.' },
+      'read-connect': { line: 'Vergelijk: wie je plan al heeft en een brievenbus krijgt, kan het opsturen.', why: 'Waarom niet ‘internet aanzetten’?', whyText: 'Dat klinkt los van je documenten. Samen met wat de app al heeft, ontstaat een route naar buiten.' },
+      readWrite: { line: 'Vergelijk: je geeft iemand je plan mee met een pen erbij.', why: 'Waarom niet ‘inkijken’?', whyText: 'Inkijken klinkt alsof alles bij jou blijft. Een app die mag wijzigen, kan je document veranderen en een eigen kopie houden.' },
+      connect: { line: 'Vergelijk: de app krijgt een brievenbus naar één adres.', why: 'Waarom niet ‘internet aanzetten’?', whyText: 'Dat klinkt los van je gegevens. Met een verbinding kan de app versturen wat het al heeft.' },
+      microphone: { line: 'Vergelijk: iemand laten meeluisteren die ook kan opnemen.', why: 'Waarom niet ‘even meeluisteren’?', whyText: 'Meeluisteren klinkt alsof er niets overblijft. Opnamen kunnen bewaard blijven.' },
+      location: { line: 'Vergelijk: iemand vertellen waar je bent; die kan het onthouden.', why: null, whyText: null },
+      camera: { line: 'Vergelijk: iemand laten meekijken die ook kan filmen.', why: 'Waarom niet ‘even meekijken’?', whyText: 'Meekijken klinkt alsof er niets overblijft. Opnamen kunnen bewaard blijven.' },
+    },
+    reason: (a) => `${a} zegt:`, // OQ-6: followed by the app's plain text, after the BaryonOS facts
+    reasonTag: 'Tekst van de app, niet van BaryonOS',
+    choicesLabel: 'Jouw antwoord',
+    choices: { allow: 'Toestaan', deny: 'Weigeren' },
+    remember: 'Keuze onthouden',
+    // the always-visible state sentence: the current lifetime in words
+    state: {
+      off: (a) => `Niet onthouden: geldt tot je ${a} sluit.`,
+      // a single action: Toestaan covers this action only (O-G4); Weigeren also refuses automatic identical re-requests (R2)
+      offAction: (a) => `Niet onthouden: Toestaan geldt alleen voor deze handeling, Weigeren tot je ${a} sluit.`,
+      on: 'Onthouden voor precies deze vraag, tot je het wijzigt in Appmachtigingen.',
+      onDenyOnly: 'Voor deze verzending kan alleen een weigering onthouden worden. Toestaan stuurt alleen deze ene keer.',
+      onConfirm: 'Onthouden voor precies deze vraag. Bij Toestaan volgt eerst nog één bevestiging.',
+    },
+    // one outcome sentence per answer; both change with the checkbox
+    outcome: {
+      allow: {
+        ongoing: (a, what) => `Toestaan: ${a} mag ${what} tot je ${a} sluit.`,
+        action: (a, what) => `Toestaan: ${a} mag ${what}, alleen deze handeling. Daarna vraagt het opnieuw.`,
+        remembered: (a, what) => `Toestaan: ${a} mag ${what}, ook later, zonder het opnieuw te vragen.`,
+        denyOnly: (a, what) => `Toestaan: ${a} mag ${what}, alleen deze keer. Dit wordt niet onthouden.`,
+        confirm: (a, what) => `Toestaan: na een extra bevestiging mag ${a} ${what}, ook later.`,
+      },
+      deny: {
+        ongoing: (a) => `Weigeren: geen toegang. Tot je ${a} sluit, vraagt het niet opnieuw zonder jouw actie.`,
+        action: (a) => `Weigeren: er gebeurt niets. Vraagt ${a} het automatisch opnieuw, dan weigert BaryonOS dat tot je ${a} sluit.`,
+        remembered: (a) => `Weigeren: ${a} krijgt dit niet en vraagt het niet meer, tot je het wijzigt in Appmachtigingen.`,
+      },
+    },
+    key: { disclosure: 'Wat precies onthouden wordt', labels: { app: 'App', right: 'Recht', data: 'Gegevens', destination: 'Bestemming', scope: 'Bereik' }, none: 'geen, blijft op dit apparaat' },
+    confirm: {
+      title: 'Voortaan zonder vragen?',
+      text: (a, item, dest) => `${a} mag dan ${item} lezen en verbinding maken met ${dest}, zonder het opnieuw te vragen. Alleen dit document, alleen deze bestemming.`,
+      back: 'Terug naar de vraag',
+      ok: 'Onthouden en toestaan',
+    },
+    compact: { note: (a) => `Je stond dit eerder in deze sessie toe aan ${a}.`, details: 'Alle details' },
+    // quiet shell notes (no focus, no timer) and acknowledgements
+    quiet: {
+      tempDeny: (a, what, n) => `${a} vroeg opnieuw om ${what}. BaryonOS weigerde zonder vraag (${n} keer), tot je ${a} sluit.`,
+      choose: (a) => `Zelf opnieuw kiezen voor ${a}`,
+      covered: (a, what) => `${a} mag al ${what} (onthouden). Er is niets gevraagd.`,
+      deniedRemembered: (a, what) => `${a} vroeg om ${what}. Je weigerde dat eerder en liet het onthouden; er is niets gevraagd.`,
+      openSettings: 'Appmachtigingen openen',
     },
     result: {
-      untilClose: (app, what) => `${app} mag ${what} tot je ${app} sluit.`,
-      always: (app, what) => `${app} mag ${what}, ook na opnieuw openen. Intrekken kan in Appmachtigingen.`,
-      once: (app, done) => `${app} heeft ${done}. De toestemming is daarmee vervallen.`,
-      deny: (app) => `${app} kreeg geen toegang. Er is niets verstuurd en niets bewaard.`,
-      covered: (app, what) => `${app} mag al ${what}. Er is niets opnieuw gevraagd.`,
-      appClosed: (app) => `${app} is gesloten. Wat tot afsluiten was toegestaan, is vervallen.`,
+      allow: { 'app-session': (a, what) => `${a} mag ${what} tot je ${a} sluit.`, action: (a, what) => `${a} mocht ${what}, alleen deze keer. Er is niets bewaard.` },
+      deny: (a) => `${a} kreeg geen toegang. Er is niets bewaard; tot je ${a} sluit, vraagt het niet opnieuw zonder jouw actie.`,
+      cancel: (a) => `Vraag geannuleerd: ${a} kreeg geen toegang en er is niets bewaard. Tot je ${a} sluit, vraagt het niet opnieuw zonder jouw actie.`,
+      remembered: (a, what, d) => `Onthouden: ${a} · ${what} · ${d}. Wijzigen kan in Instellingen › Privacy en beveiliging › Appmachtigingen.`,
+      appClosed: (a) => `${a} is gesloten. Wat tot afsluiten gold, toestaan en weigeren, is vervallen.`,
+      logout: 'Afgemeld: alle tijdelijke toestemmingen en weigeringen zijn vervallen.',
+      sessionSwitch: 'Andere gebruiker: alle tijdelijke toestemmingen en weigeringen van deze sessie zijn vervallen.',
+      error: (a) => `De vraag van ${a} kon niet getoond worden. ${a} kreeg geen toegang en er is niets bewaard.`,
+      hidden: (a) => `${a} is verborgen, niet gesloten: tijdelijke toestemmingen blijven gelden.`,
     },
-    // standing grants as listed in Instellingen › Privacy en beveiliging › Appmachtigingen; also the source of
-    // the file inspector's rights, Intrekken and revocation texts (one vocabulary)
+    // remembered decisions as listed in Instellingen › Privacy en beveiliging › Appmachtigingen
     grant: {
-      until: { close: (app) => `Tot je ${app} sluit`, always: 'Altijd, tot je het intrekt' },
-      rights: { readWrite: 'lezen en wijzigen', read: 'lezen', connect: 'verbinding maken', 'send-copy': 'een kopie sturen' },
-      scopes: { document: 'alleen dit document', domain: 'alleen dit domein', collection: 'alleen deze collectie' },
-      revoke: 'Intrekken',
-      // a grant's resource as named in Intrekken and the revocation message; a destination keeps two grants apart
-      target: (resource, to) => (to ? `${resource} naar ${to}` : resource),
-      // named by all four key fields (app, resource with destination, right label, scope label), so two standing
-      // grants never share an accessible name (C1 repair-2)
-      revokeName: (app, target, right, scope) => `Intrekken: ${app}, ${target}, ${right}, ${scope}`,
-      revoked: (app, target, right, scope) => `Machtiging ingetrokken: ${app}, ${target}, ${right}, ${scope}. ${app} moet het opnieuw vragen.`,
-      empty: 'Geen blijvende machtigingen. Apps vragen het je wanneer ze iets nodig hebben.',
+      precise: 'Precies:',
+      decision: { allow: 'Toegestaan, onthouden', deny: 'Geweigerd, onthouden' },
+      rights: { readWrite: 'lezen en wijzigen', read: 'lezen', 'save-copy': 'kopie in Downloads', connect: 'verbinding maken', 'send-copy': 'een kopie sturen', 'read-connect': 'lezen en verbinding maken', camera: 'camera', microphone: 'microfoon', location: 'locatie' },
+      scopes: { document: 'alleen dit document', domain: 'alleen dit domein', collection: 'alleen deze collectie', 'while-open': 'zolang de app open is', item: 'alleen dit onderdeel' },
+      change: { allow: 'Wijzigen naar Toestaan', deny: 'Wijzigen naar Weigeren' },
+      changeName: (to, key) => `${to}: ${key}`,
+      forget: 'Vergeten',
+      forgetName: (key) => `Vergeten: ${key}`,
+      forgotten: (key) => `Vergeten: ${key}. De app moet het opnieuw vragen.`,
+      changed: (key, d) => `Gewijzigd: ${key} is nu ${d}.`,
+      copies: 'Wijzigen of vergeten stopt toekomstig gebruik, niet de kopieën die een app al heeft.',
+      empty: 'Geen onthouden keuzes. Apps vragen het je wanneer ze iets nodig hebben.',
     },
+    feasibility: { now: 'Werkt nu in dit prototype', feasible: 'Technisch haalbaar, nog niet gebouwd', research: 'Toekomstig onderzoek' },
     cancel: 'Annuleren',
   },
 
@@ -228,8 +340,7 @@ export const T = {
     added: 'Toegevoegd',
     removed: 'Verwijderd',
     accessNone: 'Geen enkele app heeft toegang tot dit bestand.',
-    // rights: T.trusted.grant.rights[right]; until: T.trusted.grant.until.close(app) or .always; Intrekken and
-    // the revocation message: T.trusted.grant.revoke / .revokeName(app, target, right, scope) / .revoked(app, target, right, scope) (one vocabulary for grants)
+    // rights: T.trusted.grant.rights[right] (one vocabulary for permissions)
     accessLine: (app, rights, until) => `${app} kan dit document ${rights} · ${until}`,
     storageLocal: 'Op dit apparaat',
     storageNas: 'Op Thuis-NAS · versleuteld',

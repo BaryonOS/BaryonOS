@@ -66,7 +66,6 @@
   transition: background-color var(--motion-duration-fast) var(--motion-ease-orbital-out), transform var(--motion-duration-fast) var(--motion-ease-orbital-out);
 }
 .ds-btn .icon { width: 18px; height: 18px; }
-.ds-ask .ds-btn { white-space: nowrap; } /* the .ds-ask actions (task UX-C) keep the ds-1.0 single line; their narrow form is that task's */
 .ds-btn[data-size="large"] { min-height: max(calc(var(--space-10) + var(--space-1)), var(--space-target-min)); padding: 0 var(--space-4); border-radius: var(--radius-control-large); }
 .ds-btn[data-shape="icon"] { width: var(--space-control-height); padding: 0; }
 .ds-btn[data-variant="primary"] { background: var(--color-button-primary-bg); color: var(--color-button-primary-text); }
@@ -157,7 +156,7 @@
 .ds-node[data-state="ask"]::before { content: ""; position: absolute; left: -6px; top: -6px; width: 24px; height: 24px; border-radius: var(--radius-round); box-shadow: inset 0 0 0 1.5px var(--ds-c); opacity: .55; animation: ds-halo var(--motion-duration-halo) var(--motion-ease-halo) 2; } /* 2 x 2.4 s: settles to the still double ring within 5 s (row 31) */
 .ds-place { display: inline-flex; align-items: center; gap: var(--space-2); height: var(--space-target-min); padding: 0 var(--space-3) 0 var(--space-2); border: 1px solid var(--color-line); border-radius: var(--radius-pill); background: var(--color-pill-bg); color: var(--color-text); white-space: nowrap; font-size: var(--type-body-dense-size); line-height: var(--type-body-dense-line); font-weight: var(--type-body-dense-weight); }
 .ds-place .icon { width: 16px; height: 16px; color: var(--color-text-muted); }
-:is(.ds-place, .ds-privacy-col[data-state="lit"], .ds-privacy-col[data-state="ask"], .ds-ask-row) .icon .pc { fill: var(--ds-c, currentColor); }
+:is(.ds-place, .ds-privacy-col[data-state="lit"], .ds-privacy-col[data-state="ask"], .ds-ask-stop) .icon .pc { fill: var(--ds-c, currentColor); }
 
 /* ---------- list row (file row) [v2 .row, .lrw, .sel] ---------- */
 .ds-list { display: grid; gap: 2px; padding: var(--space-1); margin: 0; list-style: none; container-type: inline-size; }
@@ -205,55 +204,110 @@
 .ds-privacy-text > :first-child { font-size: var(--type-body-strong-size); line-height: var(--type-body-strong-line); font-weight: var(--type-body-strong-weight); }
 .ds-privacy-text > :last-child { color: var(--color-text-muted); font-size: var(--type-caption-size); line-height: var(--type-caption-line); font-weight: var(--type-caption-weight); }
 
-/* ---------- permission prompt on the Kern trusted surface [v2 .kern, .kband, .kbond, .kw] ----------
-   The prompt carries the OPPOSITE theme on its own element (MF1); contrast keeps contrast. Opaque, never glass. */
-.ds-ask { position: relative; width: 560px; max-width: 100%; border: 1.5px solid transparent; border-radius: var(--radius-trusted); color: var(--material-kern-tx);
+/* ---------- permission prompt on the Kern trusted surface (UX-C run 2: concept b "Eén vraag", DESIGN-SYSTEM.md §11.1) ----------
+   The prompt carries the OPPOSITE theme on its own element (MF1); contrast keeps contrast. Opaque, never glass. Anatomy: band,
+   then .ds-ask-main = a scrolling .ds-ask-body (question, provenance, path, facts, app reason, explanation, key) and a fixed
+   .ds-ask-decide row (Keuze onthouden, state sentence, one outcome sentence per answer, Toestaan | Weigeren). The decide row
+   never scrolls, so the checkbox and both answers stay in view at 200 % (WCAG 1.4.10, 2.4.11). Nothing moves before a decision
+   except the Kern's own rise (--motion-duration-ask, once); no motion leans toward either answer. */
+.ds-ask { position: relative; width: 600px; max-width: 100%; border: 1.5px solid transparent; border-radius: var(--radius-trusted); color: var(--material-kern-tx);
   background: linear-gradient(var(--material-kern-bg), var(--material-kern-bg)) padding-box, var(--material-kern-rim) border-box; box-shadow: var(--elev-trusted);
   animation: ds-rise var(--motion-duration-ask) var(--motion-ease-orbital-out); }
 .ds-ask[data-theme="contrast"], [data-theme="contrast"] .ds-ask:not([data-theme]) { border-width: 2px; }
-.ds-ask-band { display: flex; align-items: center; gap: var(--space-2); height: 44px; padding: 0 var(--space-6); border-bottom: 1px solid var(--material-kern-line); color: var(--material-kern-tx2); font-size: var(--type-body-dense-size); line-height: var(--type-body-dense-line); font-weight: var(--type-body-dense-weight); }
-.ds-ask-band .icon { width: 20px; height: 20px; }
-.ds-ask-body { padding: var(--space-4) var(--space-6) var(--space-5); }
-.ds-ask-title { margin: 0; font-size: var(--type-title-size); line-height: var(--type-title-line); font-weight: var(--type-title-weight); color: var(--material-kern-tx); }
-.ds-ask-bond { margin: var(--space-3) 0 0; display: grid; }
-.ds-ask-row { display: grid; grid-template-columns: 32px 96px minmax(0, 1fr); column-gap: var(--space-4); align-items: center; min-height: 48px; }
-.ds-ask-row dt { color: var(--material-kern-tx2); font-size: var(--type-body-size); line-height: var(--type-body-line); font-weight: var(--type-body-weight); }
-.ds-ask-row dd { margin: 0; display: flex; align-items: center; gap: var(--space-2); flex-wrap: wrap; color: var(--material-kern-tx); font-size: var(--type-body-size); line-height: var(--type-body-line); font-weight: var(--type-body-weight); }
-.ds-ask-row dd strong { font-weight: var(--type-body-strong-weight); }
-.ds-ask-node { display: grid; place-items: center; width: 32px; height: 32px; border-radius: var(--radius-round); border: 1px solid var(--material-kern-line); color: var(--material-kern-tx); }
-.ds-ask-node .icon { width: 16px; height: 16px; }
-.ds-ask-row[data-place] .ds-ask-node { border: 1.5px solid var(--ds-c); }
-.ds-ask-app { display: grid; place-items: center; width: 32px; height: 32px; border-radius: var(--radius-tile-small); background: var(--material-tile-bg); box-shadow: var(--material-tile-rim); color: var(--material-tile-fg); }
-.ds-ask-app .icon { width: 20px; height: 20px; }
-.ds-ask-app .icon .pc { fill: var(--material-tile-pc); }
-.ds-ask-dur { border-top: 1px solid var(--material-kern-line); border-bottom: 1px solid var(--material-kern-line); margin: var(--space-2) 0 var(--space-4); }
-.ds-ask-warn { display: flex; gap: var(--space-3); align-items: flex-start; padding: var(--space-3) var(--space-4); border-radius: var(--radius-tile); background: var(--material-kern-warn-bg); border: 1px solid var(--material-kern-warn-line); color: var(--material-kern-tx); font-size: var(--type-body-size); line-height: var(--type-body-line); font-weight: var(--type-body-weight); }
-.ds-ask-warn .icon { width: 20px; height: 20px; margin-top: 1px; color: var(--material-kern-warn-ic); }
+.ds-ask-band { display: flex; align-items: center; gap: var(--space-2); min-height: 44px; padding: var(--space-1) var(--space-6); border-bottom: 1px solid var(--material-kern-line); color: var(--material-kern-tx2); font-size: var(--type-body-dense-size); line-height: var(--type-body-dense-line); font-weight: var(--type-body-dense-weight); }
+.ds-ask-band .icon { flex: none; width: 20px; height: 20px; }
+.ds-ask-body { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-3); padding: var(--space-4) var(--space-6); }
+.ds-ask-proto { display: flex; gap: var(--space-2); align-items: flex-start; margin: 0; color: var(--material-kern-tx2); font-size: var(--type-caption-size); line-height: var(--type-caption-line); font-weight: var(--type-caption-weight); }
+.ds-ask-proto .icon { flex: none; width: 16px; height: 16px; margin-top: 1px; }
+.ds-ask-title { margin: 0; font-size: var(--type-title-size); line-height: var(--type-title-line); font-weight: var(--type-title-weight); color: var(--material-kern-tx); overflow-wrap: anywhere; }
+/* concept b "Eén vraag": on a wide Kern in a tall viewport the question takes the display role and dominates; narrow Kern,
+   a short viewport (200 % zoom of a 1440 x 900 window) and the page-zoom setting keep the title role (reach, WCAG 1.4.10) */
+.ds-ask { container: ask / inline-size; }
+@media (min-height: 40rem) { @container ask (min-width: 560px) {
+  :root:not([data-scale="2"]) .ds-ask-title { font-size: var(--type-display-size); line-height: var(--type-display-line); font-weight: var(--type-display-weight); text-wrap: balance; }
+} }
 .ds-ask-title:focus { outline: none; }
 .ds-ask-title:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; border-radius: var(--radius-item); }
-/* owner decision 14 Nov 2026: three equal choices (same variant, size and width), stacked in the fixed order
-   narrow grant, broad grant, deny; stacking keeps long Dutch labels whole at any width and at 200 % */
-.ds-ask-choices { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-2); margin-top: var(--space-5); }
+.ds-ask-from { display: flex; align-items: center; gap: var(--space-3); margin: 0; color: var(--material-kern-tx2); font-size: var(--type-body-size); line-height: var(--type-body-line); font-weight: var(--type-body-weight); }
+.ds-ask-from strong { color: var(--material-kern-tx); font-weight: var(--type-body-strong-weight); }
+.ds-ask-app { flex: none; display: grid; place-items: center; width: 32px; height: 32px; border-radius: var(--radius-tile-small); background: var(--material-tile-bg); box-shadow: var(--material-tile-rim); color: var(--material-tile-fg); }
+.ds-ask-app .icon { width: 20px; height: 20px; }
+.ds-ask-app .icon .pc { fill: var(--material-tile-pc); }
+/* the path: where the data starts, the app, and (for a send) the destination; stops are pills joined by chevrons, so the
+   route reads as a route and not as a thin arrow. A dashed stop is data the app already holds. Static: no flow animation. */
+.ds-ask-path { display: flex; flex-direction: column; align-items: flex-start; gap: var(--space-6); margin: 0; padding: var(--space-3); list-style: none; border: 1px solid var(--material-kern-line); border-radius: var(--radius-tile); }
+.ds-ask-stop { position: relative; display: inline-flex; flex-wrap: wrap; align-items: center; gap: var(--space-2) var(--space-3); max-width: 100%; min-height: 40px; padding: var(--space-1) var(--space-3); border: 1.5px solid var(--material-kern-tx2); border-radius: var(--radius-pill); color: var(--material-kern-tx); font-size: var(--type-body-size); line-height: var(--type-body-line); font-weight: var(--type-body-weight); }
+.ds-ask-stop[data-held] { border-style: dashed; }
+.ds-ask-stop[data-place] { border-color: var(--ds-c); }
+.ds-ask-stop[data-stop="app"] { padding-inline-start: var(--space-1); }
+.ds-ask-stop-name { font-weight: var(--type-body-strong-weight); overflow-wrap: anywhere; }
+.ds-ask-held { color: var(--material-kern-tx2); font-size: var(--type-caption-size); line-height: var(--type-caption-line); font-weight: var(--type-caption-weight); }
+/* vertical route: each later stop hangs below the previous one, joined by a downward chevron in the gap */
+.ds-ask-link { position: absolute; inset-inline-start: var(--space-4); bottom: calc(100% + 1.5px); display: grid; place-items: center; height: var(--space-6); color: var(--material-kern-tx2); }
+.ds-ask-link .icon { width: 16px; height: 16px; rotate: 90deg; }
+.ds-ask-holds { margin: calc(-1 * var(--space-1)) 0 0; color: var(--material-kern-tx2); font-size: var(--type-caption-size); line-height: var(--type-caption-line); font-weight: var(--type-caption-weight); }
+.ds-ask-facts { display: grid; gap: var(--space-2); margin: 0; padding: 0; list-style: none; }
+.ds-ask-facts > li { display: flex; gap: var(--space-2); align-items: flex-start; padding-inline-start: var(--space-3); border-inline-start: 2px solid var(--material-kern-tx2); font-size: var(--type-body-size); line-height: var(--type-body-line); font-weight: var(--type-body-weight); }
+.ds-ask-fact-icon { flex: none; display: grid; place-items: center; height: var(--type-body-line); color: var(--material-kern-tx2); }
+.ds-ask-fact-icon .icon { width: 16px; height: 16px; }
+.ds-ask-again { margin: 0; color: var(--material-kern-tx2); font-size: var(--type-body-size); line-height: var(--type-body-line); font-weight: var(--type-body-weight); }
+/* OQ-6: the app's own text, attributed and visibly apart from system text: dashed frame, after the BaryonOS facts */
+.ds-ask-reason { margin: 0; padding: var(--space-2) var(--space-3); border: 2px dashed var(--material-kern-tx2); border-radius: var(--radius-tile); font-size: var(--type-body-size); line-height: var(--type-body-line); font-weight: var(--type-body-weight); overflow-wrap: anywhere; }
+.ds-ask-reason-who { font-weight: var(--type-body-strong-weight); }
+.ds-ask-reason-tag { display: block; color: var(--material-kern-tx2); font-size: var(--type-caption-size); line-height: var(--type-caption-line); font-weight: var(--type-caption-weight); }
+.ds-ask-explain { display: grid; gap: var(--space-1); }
+.ds-ask-explain > p { margin: 0; color: var(--material-kern-tx2); font-size: var(--type-body-size); line-height: var(--type-body-line); font-weight: var(--type-body-weight); }
+.ds-ask details > p { margin: var(--space-1) 0 0; color: var(--material-kern-tx2); font-size: var(--type-body-size); line-height: var(--type-body-line); font-weight: var(--type-body-weight); }
+.ds-ask summary { display: flex; align-items: center; width: fit-content; max-width: 100%; min-height: var(--space-target-min); color: var(--material-kern-tx); font-size: var(--type-body-size); line-height: var(--type-body-line); font-weight: var(--type-body-strong-weight); cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
+.ds-ask summary:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; border-radius: var(--radius-item); }
+.ds-ask-more > :not(summary) { margin-top: var(--space-3); }
+.ds-ask-more { display: grid; }
+/* the five-field key, the same chips in the prompt's disclosure and in Appmachtigingen ("Precies:") */
+.ds-key { display: flex; flex-wrap: wrap; gap: var(--space-2); margin: var(--space-2) 0 0; }
+.ds-key > div { display: inline-flex; flex-wrap: wrap; gap: var(--space-1); max-width: 100%; padding: 0 var(--space-2); border: 1px solid var(--ds-key-line, var(--color-line-strong)); border-radius: var(--radius-pill); font-size: var(--type-caption-size); line-height: var(--type-caption-line); font-weight: var(--type-caption-weight); }
+.ds-key dt { color: var(--ds-key-muted, var(--color-text-muted)); }
+.ds-key dd { margin: 0; overflow-wrap: anywhere; }
+.ds-ask .ds-key { --ds-key-line: var(--material-kern-tx2); --ds-key-muted: var(--material-kern-tx2); }
+.ds-ask-decide { flex: none; display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-2); padding: var(--space-3) var(--space-6) var(--space-4); border-top: 1px solid var(--material-kern-line); }
+.ds-ask .ds-check { color: var(--material-kern-tx); font-weight: var(--type-body-strong-weight); }
+.ds-ask .ds-check > input { border-color: var(--material-kern-tx2); }
+.ds-ask .ds-check > input:checked { background: var(--material-kern-tx); border-color: var(--material-kern-tx); }
+.ds-ask .ds-check > input:checked::after { border-color: var(--material-kern-bg); }
+.ds-ask-remember { width: fit-content; }
+.ds-ask-lifetime { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2) var(--space-4); } /* checkbox and state sentence share a row when they fit */
+/* the state sentence names the current lifetime in words; the dashed chip with klok = until the app closes, the solid one with
+   altijd = remembered (the .ds-grant-until shapes). Body weight 600 in the contrast theme keeps it from reading as a footnote. */
+.ds-ask-state { display: flex; align-items: center; gap: var(--space-2); width: fit-content; max-width: 100%; margin: 0; padding: var(--space-1) var(--space-3); border: 1px dashed var(--material-kern-tx2); border-radius: var(--radius-tile); color: var(--material-kern-tx); font-size: var(--type-body-size); line-height: var(--type-body-line); font-weight: var(--type-body-weight); }
+.ds-ask-state[data-on="true"] { border: 2px solid var(--material-kern-tx2); }
+.ds-ask-state .icon { flex: none; width: 16px; height: 16px; }
+:is(.ds-ask[data-theme="contrast"], [data-theme="contrast"] .ds-ask:not([data-theme])) .ds-ask-state { font-weight: var(--type-body-strong-weight); }
+.ds-ask-body > .ds-ask-outcomes { margin-top: var(--space-1); }
+.ds-ask-outcomes { display: grid; gap: var(--space-1); margin: 0; padding: 0; list-style: none; color: var(--material-kern-tx2); font-size: var(--type-caption-size); line-height: var(--type-caption-line); font-weight: var(--type-caption-weight); }
+/* MF-4 equal choice: Toestaan and Weigeren share variant, size and width, in one fixed platform-wide order (Toestaan first) */
+.ds-ask-choices { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-3); }
 .ds-ask-choices > .ds-btn { width: 100%; }
 .ds-ask .ds-btn { color: var(--material-kern-tx); }
-.ds-ask-terms { display: grid; gap: var(--space-1); margin: var(--space-3) 0 0; padding: 0; list-style: none; color: var(--material-kern-tx2); font-size: var(--type-caption-size); line-height: var(--type-caption-line); font-weight: var(--type-caption-weight); }
-.ds-ask-terms strong { color: var(--material-kern-tx); font-weight: var(--type-caption-weight); }
+.ds-ask-confirm-text { margin: 0; font-size: var(--type-body-size); line-height: var(--type-body-line); font-weight: var(--type-body-weight); }
+/* the quiet shell note (R2 temporary denial with the retry count, covered requests): never takes focus, no timer */
+.ds-ask-note { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-3); margin-top: var(--space-4); padding: var(--space-3) var(--space-4); border: 1px dashed var(--color-line-strong); border-radius: var(--radius-card); background: var(--color-surface-raised); color: var(--color-text); }
+.ds-ask-note > p { flex: 1 1 260px; margin: 0; }
 
-/* ---------- app grants (one revocable standing grant per row; Instellingen › Privacy en beveiliging › Appmachtigingen) ---------- */
-.ds-grants { display: grid; gap: var(--space-2); max-width: 760px; margin: 0; padding: 0; list-style: none; } /* a row is one reading unit: Intrekken stays near what it revokes */
-.ds-grant { display: grid; grid-template-columns: 32px minmax(0, 1fr) auto; column-gap: var(--space-4); align-items: center; min-height: 64px; padding: var(--space-3) var(--space-3) var(--space-3) var(--space-4); border: 1px solid var(--color-line); border-radius: var(--radius-card); background: var(--color-surface-raised); color: var(--color-text); }
-.ds-grant-app { display: grid; place-items: center; width: 32px; height: 32px; border-radius: var(--radius-tile-small); background: var(--material-tile-bg); box-shadow: var(--material-tile-rim); color: var(--material-tile-fg); }
+/* ---------- Appmachtigingen: one row per REMEMBERED decision, allow and deny (Instellingen › Privacy en beveiliging › Appmachtigingen) ---------- */
+.ds-grants { display: grid; gap: var(--space-2); max-width: 820px; margin: 0; padding: 0; list-style: none; }
+.ds-grant { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-3) var(--space-4); min-height: 64px; padding: var(--space-3) var(--space-3) var(--space-3) var(--space-4); border: 1px solid var(--color-line); border-radius: var(--radius-card); background: var(--color-surface-raised); color: var(--color-text); }
+.ds-grant > div:not(.ds-grant-actions) { flex: 1 1 280px; min-width: 0; }
+.ds-grant-actions { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+.ds-grant-app { flex: none; display: grid; place-items: center; width: 32px; height: 32px; border-radius: var(--radius-tile-small); background: var(--material-tile-bg); box-shadow: var(--material-tile-rim); color: var(--material-tile-fg); }
 .ds-grant-app .icon { width: 20px; height: 20px; }
 .ds-grant-app .icon .pc { fill: var(--material-tile-pc); }
 .ds-grant-name { margin: 0; font-size: var(--type-body-strong-size); line-height: var(--type-body-strong-line); font-weight: var(--type-body-strong-weight); overflow-wrap: anywhere; }
-.ds-grant-meta { margin: 0; color: var(--color-text-muted); font-size: var(--type-body-size); line-height: var(--type-body-line); font-weight: var(--type-body-weight); }
-/* UX-D-C1 repair-1 (design proposal for UX-E): reach and duration are shape + icon + text, never colour alone.
-   Reach reuses .ds-place; the duration chip is neutral: dashed edge + klok = ends when the app closes,
-   solid 2 px edge + altijd (closed loop, repair-2; the lock stays on the Kern band) = until revoked. */
+.ds-grant-key { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 var(--space-2); }
+.ds-grant-key > span { color: var(--color-text-muted); font-size: var(--type-caption-size); line-height: var(--type-caption-line); font-weight: var(--type-caption-weight); }
+/* reach and decision are shape + icon + text, never colour alone */
 .ds-grant-reach { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); margin: var(--space-2) 0 0; }
 .ds-grant-reach > * { max-width: 100%; height: auto; min-height: var(--space-target-min); white-space: normal; overflow-wrap: anywhere; }
-.ds-grant-until { display: inline-flex; align-items: center; gap: var(--space-2); padding: 0 var(--space-3) 0 var(--space-2); border: 1px dashed var(--color-line-strong); border-radius: var(--radius-pill); color: var(--color-text); font-size: var(--type-body-dense-size); line-height: var(--type-body-dense-line); font-weight: var(--type-body-dense-weight); }
-.ds-grant-until[data-until="always"] { border: 2px solid var(--color-line-strong); }
+.ds-grant-until { display: inline-flex; align-items: center; gap: var(--space-2); padding: 0 var(--space-3) 0 var(--space-2); border: 2px solid var(--color-line-strong); border-radius: var(--radius-pill); color: var(--color-text); font-size: var(--type-body-dense-size); line-height: var(--type-body-dense-line); font-weight: var(--type-body-dense-weight); }
+.ds-grant-until[data-decision="deny"] { border-style: double; border-width: 3px; }
 .ds-grant-until .icon { flex: none; width: 16px; height: 16px; color: var(--color-text-muted); }
 .ds-grant-empty { margin: 0; padding: var(--space-3) var(--space-4); color: var(--color-text-muted); }
 .ds-grant-empty:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; border-radius: var(--radius-item); }
@@ -352,6 +406,9 @@
 .ds-dialog[data-variant="ask"][open] { display: flex; flex-direction: column; }
 .ds-dialog[data-variant="ask"] > .ds-ask { display: flex; flex-direction: column; min-height: 0; overflow: clip; } /* the scrollbar stays inside the rounded edge; the shadow is outside the box */
 .ds-dialog[data-variant="ask"] .ds-ask-band { flex: none; }
+.ds-dialog[data-variant="ask"] :is(.ds-ask-main, .ds-ask-confirm):not([hidden]) { display: flex; flex-direction: column; min-height: 0; }
+/* UX-C run 2: only the body scrolls; the decide row (checkbox and both answers) stays fixed under it, so a focused answer is never
+   covered (2.4.11) and is reachable at 200 % in a 720 x 450 viewport without scrolling */
 .ds-dialog[data-variant="ask"] .ds-ask-body { min-height: 0; overflow-y: auto; overscroll-behavior: contain; scroll-padding-block: var(--space-2); scrollbar-color: var(--material-kern-tx2) var(--material-kern-bg); }
 .ds-dialog::backdrop { background: var(--color-scrim); }
 .ds-scrim { position: absolute; inset: 0; background: var(--color-scrim); }

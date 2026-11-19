@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-19",
-    "source_commit": "8210db5c29e1a78e82c18ff3ee9c8c43d0467634",
+    "source_commit": "a6afd1a2c6a87659bfb1471a0fd7aa166ef8981a",
     "assessment_basis": "parent_commit",
     "branch": "claude/baryon-os-design-pipeline-20261118",
-    "task": "UX-A11Y-A1 accepted after owner decision B; successor accessibility-matrix baseline contract",
+    "task": "UX-C accepted: informed-consent permission prompt in the design system (run 2, repair 2r, owner decision A correction)",
     "previous_score": 41,
-    "summary": "41/100 unchanged. UX-A11Y-A1 (flashing media and photosensitivity) was accepted by an independent AI verifier after owner decision B; the accessibility-matrix baseline contract was succeeded (53 baseline identities) and the matrix gate and its 15 tests exit 0. Research, documentation and checker evidence only: it accepts no criterion and is not native accessibility acceptance, a user test or a human audit."
+    "summary": "41/100 unchanged. UX-C (one-question permission prompt, native checkbox remember control, five-field key, OQ-1..6 and MF-1..6) was accepted by independent AI verification after targeted repair 2r and an owner-authorised lead correction; contract tests 29/29, check.mjs and the matrix checker exit 0. Design-system prototype evidence only: remembered decisions are not natively enforced, the ADR is Proposed, and no criterion, user test or human audit is accepted."
   },
   "tracks": [
     {
