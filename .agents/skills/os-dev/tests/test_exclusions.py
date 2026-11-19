@@ -15,14 +15,14 @@ def page(pid, title):
 
 class Exclusions(unittest.TestCase):
     def test_excluded_records_are_absent_from_the_active_index(self):
-        excluded = {e["source_id"] for e in json.loads((ROOT / "references/exclusions.json").read_text())}
-        rows = json.loads((ROOT / "references/source-index.json").read_text())
+        excluded = {e["source_id"] for e in json.loads((ROOT / "references/exclusions.json").read_text(encoding="utf-8"))}
+        rows = json.loads((ROOT / "references/source-index.json").read_text(encoding="utf-8"))
         self.assertTrue(excluded)
         self.assertFalse(excluded & {r["source_id"] for r in rows})
 
     @unittest.skipUnless(shutil.which("pdftotext") and shutil.which("pdfinfo"), "poppler missing")
     def test_rebuild_keeps_excluded_records_out(self):
-        excluded = sorted(e["source_id"] for e in json.loads((ROOT / "references/exclusions.json").read_text()))
+        excluded = sorted(e["source_id"] for e in json.loads((ROOT / "references/exclusions.json").read_text(encoding="utf-8")))
         pid = int(excluded[0][1:])
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
@@ -53,7 +53,7 @@ class ExcludeScript(unittest.TestCase):
         return mod
 
     def _target(self, root):
-        rows = json.loads((root / "references/source-index.json").read_text())
+        rows = json.loads((root / "references/source-index.json").read_text(encoding="utf-8"))
         return next(r for r in rows if r["kind"] == "wiki" and r["local_path"].endswith("wiki-02.md"))
 
     def test_exclusion_keeps_remaining_hashes_valid(self):
@@ -64,7 +64,7 @@ class ExcludeScript(unittest.TestCase):
             mod = self._module(root)
             sys.argv = ["x", "--reason", "test", "--record", "none", target["source_id"]]
             self.assertEqual(mod.main(), 0)
-            rows = json.loads((root / "references/source-index.json").read_text())
+            rows = json.loads((root / "references/source-index.json").read_text(encoding="utf-8"))
             self.assertNotIn(target["source_id"], {r["source_id"] for r in rows})
             for r in rows:
                 if r["local_path"].endswith("wiki-02.md"):
@@ -93,5 +93,23 @@ class ExcludeScript(unittest.TestCase):
                     mod.main()
             finally:
                 Path.write_bytes = real
+            after = {p: p.read_bytes() for p in (root / "references").rglob("*") if p.is_file()}
+            self.assertEqual(before, after)
+
+    def test_rejected_batch_leaves_every_file_unchanged(self):
+        import sys
+        with tempfile.TemporaryDirectory() as tmp:
+            root = self._copy(tmp)
+            index = root / "references/source-index.json"
+            rows = json.loads(index.read_text(encoding="utf-8"))
+            first = next(r for r in rows if r["kind"] == "wiki" and r["local_path"].endswith("wiki-02.md"))
+            second = next(r for r in rows if r["kind"] == "wiki" and r["local_path"].endswith("wiki-04.md"))
+            second["text_sha256"] = "0" * 64
+            index.write_text(json.dumps(rows, separators=(",", ":"), ensure_ascii=False) + "\n", encoding="utf-8")
+            before = {p: p.read_bytes() for p in (root / "references").rglob("*") if p.is_file()}
+            mod = self._module(root)
+            sys.argv = ["x", "--reason", "test", "--record", "none", first["source_id"], second["source_id"]]
+            with self.assertRaises(SystemExit):
+                mod.main()
             after = {p: p.read_bytes() for p in (root / "references").rglob("*") if p.is_file()}
             self.assertEqual(before, after)
