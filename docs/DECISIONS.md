@@ -29,6 +29,9 @@ Status: accepted by the project owner on 19 November 2026 (decisions R1–R4 and
   volume or domain identifier, also not behind a feature flag. Source
   revisions and logical timestamps are kept as separate historical values; no
   stable domain identity is invented.
+  Consequences: header bytes 40..56 of archive v2 stay reserved and zero and
+  a reader refuses any other value; the L2 `origin_*` fields carry no source
+  identity. Revisited only by a new owner decision.
 - **L2 as the long-term target, separately reviewed:** original source
   revisions and logical timestamps are kept as immutable provenance, separate
   from the destination-assigned live revisions and clocks. L2 begins only
