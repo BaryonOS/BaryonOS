@@ -81,12 +81,25 @@ def main() -> int:
         lines.append(line)
     page.write_text("\n".join(lines), encoding="utf-8")
 
-    pat = re.compile(r"^- .*\[(" + "|".join(sorted(ids)) + r")\]\s*$")
+    alt = "|".join(sorted(ids))
+    item = re.compile(r"^- .*\[(" + alt + r")\](?:\s*·.*)?\s*$")
     for theme in sorted((REF / "themas").glob("*.md")):
         text = theme.read_text(encoding="utf-8").split("\n")
-        kept = [l for l in text if not pat.match(l)]
+        kept = [l for l in text if not item.match(l)]
         if kept != text:
             theme.write_text("\n".join(kept), encoding="utf-8")
+    # Inline "[Wnnnnnn: Title]; " entry points in the knowledge guide.
+    inline = re.compile(r"\[(?:" + alt + r"): [^\]]*\](?:; |(?=\.))")
+    guide = REF / "kennisgids.md"
+    text = guide.read_text(encoding="utf-8")
+    new_text = inline.sub("", text).replace("; .", ".")
+    if new_text != text:
+        guide.write_text(new_text, encoding="utf-8")
+    media = ROOT / "assets/wiki-media-references.json"
+    refs = json.loads(media.read_text(encoding="utf-8"))
+    kept_refs = [m for m in refs if m["source_id"] not in ids]
+    if kept_refs != refs:
+        media.write_text(json.dumps(kept_refs, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
 
     mf = ROOT / "assets/source-manifest.json"
     m = json.loads(mf.read_text(encoding="utf-8"))
