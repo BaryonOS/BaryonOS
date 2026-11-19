@@ -30,6 +30,31 @@ under the request's bounds:
 - B5: no product authority;
 - B6: QEMU evidence only.
 
+**Alternatives considered.**
+- Keep the archive range on the volume's own disk (the current native slice).
+  That cannot show a restore after the source disk is lost.
+- Host model only (`services/volume/tests/archive.rs`, five dual-device
+  tests). That gives no native evidence of a second device.
+- A general multi-device virtio-blk driver that probes the bus. That is a
+  wider ownership change than the fixture needs, and it could claim the boot
+  ESP.
+- A second device in every profile. The fixture needs it in the volume
+  profile only.
+
+**Rationale.** A closed enum of two fixed functions keeps the driver's
+`unsafe` port-I/O justification bounded, because no caller can supply an
+arbitrary bus/device/function number. A dedicated test feature keeps every
+existing profile unchanged. A portal-only `BlockScope { device: 1, .. }`
+reuses the capability engine as it is; routing stays in the kernel broker.
+Source: the request's "Why a decision is needed" facts, read at main
+`8f970866`.
+
+**Migration and rollback.** There is no data or format migration.
+`discover()` keeps its `00:05.0` behaviour, so existing callers need no
+change. Rollback: revert the implementing commits and remove the
+second-device stages from `PLAN` in `tools/test_volume.py`. Profiles without
+the test feature keep refusing `device != 0`.
+
 **Consequences.** The released write set is listed in the request. D1–D5 of
 the destination proposal stay undecided. S09 stays open.
 
