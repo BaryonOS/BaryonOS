@@ -1,0 +1,71 @@
+{
+  "task": "H02-T2",
+  "source_commit": "75074d7f5e0da8c2ad968fe33c966184f88163cb",
+  "level": "host/build",
+  "checks": [
+    {
+      "argv": [
+        "cargo",
+        "test",
+        "--locked",
+        "--manifest-path",
+        "drivers/usb/Cargo.toml"
+      ],
+      "exit_code": 0,
+      "summary_log": "build/task-checks/1.log",
+      "raw_log": "build/tokenguard/run-t5kbtp6h.log",
+      "sha256": "718530db2817f601b8c6f6b1017dac70b7e02df492c4c071251015bd52d029f4"
+    },
+    {
+      "argv": [
+        "cargo",
+        "clippy",
+        "--locked",
+        "--manifest-path",
+        "drivers/usb/Cargo.toml",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit_code": 0,
+      "summary_log": "build/task-checks/2.log",
+      "raw_log": "build/tokenguard/run-wdibdvy8.log",
+      "sha256": "0ddfde21079c553422e212aced49bf92df0f1d756646756fafeb8261aa0d17d4"
+    },
+    {
+      "argv": [
+        "cargo",
+        "fmt",
+        "--manifest-path",
+        "drivers/usb/Cargo.toml",
+        "--",
+        "--check"
+      ],
+      "exit_code": 0,
+      "summary_log": "build/task-checks/3.log",
+      "raw_log": "build/tokenguard/run-mbdufu_n.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "argv": [
+        "cargo",
+        "build",
+        "--locked",
+        "--release",
+        "--lib",
+        "--target",
+        "x86_64-unknown-none",
+        "--manifest-path",
+        "drivers/usb/Cargo.toml"
+      ],
+      "exit_code": 0,
+      "summary_log": "build/task-checks/4.log",
+      "raw_log": "build/tokenguard/run-_gn0ygvw.log",
+      "sha256": "ec1f220bd5fa3706010d2d29579159c63de41f7534944301ca23ae3a7f7c220e"
+    }
+  ],
+  "limits": "Host state/build only; no transport/DMA quiescence, native hotplug or H02 acceptance.",
+  "review": "Lead source/diff review; no native/human acceptance.",
+  "score": "41 -> 41/100"
+}

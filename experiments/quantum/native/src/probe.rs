@@ -250,27 +250,32 @@ fn panic(_: &core::panic::PanicInfo) -> ! {
 
 // Compiler intrinsics: exact scalar byte ranges, no host libc or SIMD.
 #[no_mangle]
-unsafe extern "C" fn memcpy(dst: *mut u8, src: *const u8, size: usize) -> *mut u8 {
+unsafe extern "C" fn memcpy(dst: *mut core::ffi::c_void, src: *const core::ffi::c_void, size: usize) -> *mut core::ffi::c_void {
+    let dst = dst.cast::<u8>();
+    let src = src.cast::<u8>();
     // SAFETY: C caller provides readable/writable nonoverlapping `size` bytes.
     unsafe {
         asm!("cld", "rep movsb", inout("rdi") dst => _, inout("rsi") src => _,
             inout("rcx") size => _, options(nostack));
     }
-    dst
+    dst.cast()
 }
 
 #[no_mangle]
-unsafe extern "C" fn memset(dst: *mut u8, byte: i32, size: usize) -> *mut u8 {
+unsafe extern "C" fn memset(dst: *mut core::ffi::c_void, byte: i32, size: usize) -> *mut core::ffi::c_void {
+    let dst = dst.cast::<u8>();
     // SAFETY: C caller provides writable `size` bytes; no alignment assumption.
     unsafe {
         asm!("cld", "rep stosb", inout("rdi") dst => _, in("al") byte as u8,
             inout("rcx") size => _, options(nostack));
     }
-    dst
+    dst.cast()
 }
 
 #[no_mangle]
-unsafe extern "C" fn memmove(dst: *mut u8, src: *const u8, size: usize) -> *mut u8 {
+unsafe extern "C" fn memmove(dst: *mut core::ffi::c_void, src: *const core::ffi::c_void, size: usize) -> *mut core::ffi::c_void {
+    let dst = dst.cast::<u8>();
+    let src = src.cast::<u8>();
     if dst as usize <= src as usize {
         // SAFETY: Forward copying preserves overlapping ranges in this order.
         unsafe {
@@ -287,11 +292,13 @@ unsafe extern "C" fn memmove(dst: *mut u8, src: *const u8, size: usize) -> *mut 
             };
         }
     }
-    dst
+    dst.cast()
 }
 
 #[no_mangle]
-unsafe extern "C" fn memcmp(a: *const u8, b: *const u8, size: usize) -> i32 {
+unsafe extern "C" fn memcmp(a: *const core::ffi::c_void, b: *const core::ffi::c_void, size: usize) -> i32 {
+    let a = a.cast::<u8>();
+    let b = b.cast::<u8>();
     for offset in 0..size {
         // SAFETY: C caller provides both readable ranges. Volatile reads avoid
         // an optimizer rewrite into a recursively invoked memcmp intrinsic.

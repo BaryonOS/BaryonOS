@@ -40,7 +40,7 @@ jobs:
         uses: ./.github/actions/setup-python
       - name: Pinned Rust toolchain
         run: >-
-          python3 -B tools/tokenguard.py run -- rustup toolchain install 1.90.0
+          python3 -B tools/tokenguard.py run -- rustup toolchain install 1.100.0
           --profile minimal --component rustfmt,clippy
           --target x86_64-unknown-none,x86_64-unknown-uefi
       - name: Pinned QEMU and OVMF
@@ -49,19 +49,19 @@ jobs:
         run: |
           set -euo pipefail
           python3 -B tools/tokenguard.py run -- python3 -B tools/preflight.py --strict
-          python3 -B tools/tokenguard.py run -- cargo +1.90.0 fetch --locked
+          python3 -B tools/tokenguard.py run -- cargo +1.100.0 fetch --locked
           for manifest in sdk/Cargo.toml sdk/examples/{materiaal,input-service,window-session,calculator}/Cargo.toml ui/{graphics,native,surface-protocol}/Cargo.toml; do
-            python3 -B tools/tokenguard.py run -- cargo +1.90.0 fetch --locked --manifest-path "$manifest"
+            python3 -B tools/tokenguard.py run -- cargo +1.100.0 fetch --locked --manifest-path "$manifest"
           done
       - name: HID session, policy, publication and oracle regressions
         run: |
           set -euo pipefail
           for manifest in drivers/usb/Cargo.toml services/input-core/Cargo.toml sdk/examples/input-service/Cargo.toml; do
-            python3 -B tools/tokenguard.py run -- cargo +1.90.0 fmt --manifest-path "$manifest" -- --check
-            python3 -B tools/tokenguard.py run -- cargo +1.90.0 test --locked --offline --manifest-path "$manifest"
-            python3 -B tools/tokenguard.py run -- cargo +1.90.0 clippy --locked --offline --manifest-path "$manifest" --all-targets -- -D warnings
+            python3 -B tools/tokenguard.py run -- cargo +1.100.0 fmt --manifest-path "$manifest" -- --check
+            python3 -B tools/tokenguard.py run -- cargo +1.100.0 test --locked --offline --manifest-path "$manifest"
+            python3 -B tools/tokenguard.py run -- cargo +1.100.0 clippy --locked --offline --manifest-path "$manifest" --all-targets -- -D warnings
           done
-          python3 -B tools/tokenguard.py run -- cargo +1.90.0 fmt --manifest-path sdk/examples/window-session/Cargo.toml -- --check
+          python3 -B tools/tokenguard.py run -- cargo +1.100.0 fmt --manifest-path sdk/examples/window-session/Cargo.toml -- --check
           python3 -B tools/tokenguard.py run -- python3 -B -m unittest discover -s tools/tests -p test_hid_input_probe.py -v
       - name: Actual own-kernel IPC with synthetic HID completions
         run: |

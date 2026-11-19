@@ -723,8 +723,8 @@ fn process_elf(slot: usize) -> &'static [u8] {
 fn process_elf(slot: usize) -> &'static [u8] {
     match slot {
         0 | 1 => KEYRING_SERVICE_ELF,
-        2 => KEYRING_APP_ELF,
-        _ => panic!("native keyring profile has two services and one app"),
+        2 | 3 => KEYRING_APP_ELF,
+        _ => panic!("native keyring profile has two services, an app and optional management"),
     }
 }
 #[cfg(feature = "native-system")]
@@ -914,7 +914,16 @@ impl State {
             // The whole table is schedulable; only the supervisor boots now.
             MAX
         } else if cfg!(feature = "native-keyring") {
-            3
+            if cfg!(any(
+                feature = "test-keyring-no-device",
+                feature = "test-keyring-stuck",
+                feature = "test-keyring-timeout",
+                feature = "test-keyring-restart"
+            )) {
+                3
+            } else {
+                4
+            }
         } else if cfg!(feature = "native-update") {
             // One ring-3 update service; the loader and the host oracle are
             // the other two independent parties of the acceptance.

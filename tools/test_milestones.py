@@ -30,7 +30,7 @@ def test_m2():
 
     try:
         build(kernel_feature="milestone-m2", label="m2")
-        run_logged(["cargo", "+1.90.0", "test", "--locked", "-p", "kernel-core",
+        run_logged(["cargo", "+1.100.0", "test", "--locked", "-p", "kernel-core",
                     "-p", "boot-protocol", "-p", "elf-loader-core"], "m2-host-tests")
         record("frame-map-protocol-host-tests", True, str(BUILD / "logs/m2-host-tests.stdout.txt"),
                ["KS-01", "KS-02", "KS-03"])
@@ -85,7 +85,7 @@ def test_m3():
             raise RuntimeError(f"M3 gate failed: {name}")
 
     try:
-        run_logged(["cargo", "+1.90.0", "test", "--locked", "-p", "kernel-core"], "m3-host-tests")
+        run_logged(["cargo", "+1.100.0", "test", "--locked", "-p", "kernel-core"], "m3-host-tests")
         suite["results"].append({"name": "user-elf-frame-abi-host-tests", "passed": True,
                                  "requirements": ["KS-04", "USER_ELF", "RETURN_FLAGS"],
                                  "evidence": str(BUILD / "logs/m3-host-tests.stdout.txt")})
@@ -161,7 +161,7 @@ def test_m4():
             raise RuntimeError(f"M4 gate failed: {name}")
 
     try:
-        run_logged(["cargo", "+1.90.0", "test", "--locked", "-p", "capability-core",
+        run_logged(["cargo", "+1.100.0", "test", "--locked", "-p", "capability-core",
                     "-p", "kernel-core"], "m4-host-tests")
         record("capability-transaction-wire-generation-host-tests", True,
                str(BUILD / "logs/m4-host-tests.stdout.txt"), [r for _, r in M4_CASES])

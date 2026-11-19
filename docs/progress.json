@@ -3,7 +3,7 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-18",
-    "source_commit": "4517279e819314fc226ec8b34fec2e9d7a3a3890",
+    "source_commit": "d1d06939bd64f786c14c5718a56e3f92c5f8dda2",
     "assessment_basis": "parent_commit",
     "branch": "codex/b05-exhaustive-revocation",
     "task": "B05-T2: Exhaustive host test over7^5 words,19607 nonempty prefixes, three processes: creation, restricted delegation, queued transfer, receive, close, revoke and amplification attempts. Independent lifetime/right/generation model; explicit regrant after revoke stays valid. Targeted test/Clippy/fmt exit0; isolated revoke-marking mutant fails101 at stale handle assertion.",

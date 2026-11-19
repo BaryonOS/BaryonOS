@@ -564,7 +564,7 @@ fn host_preview_composes_actual_rust_app_rasters_with_the_actual_scene() {
             let window = scene.windows[index];
             let mut bytes =
                 Vec::with_capacity((window.body.width * window.body.height * 4) as usize);
-            for pixel in rgb.chunks_exact(3) {
+            for pixel in rgb.as_chunks::<3>().0 {
                 bytes.extend_from_slice(&[pixel[2], pixel[1], pixel[0], 0]);
             }
             scene

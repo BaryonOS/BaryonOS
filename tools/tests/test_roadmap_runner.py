@@ -15,6 +15,80 @@ def task(tid, status="ready", deps=(), writes=("services/x/",), checks=("true",)
 
 
 class Ledger(unittest.TestCase):
+    def test_codex_dispatch_is_fresh_and_preserves_configuration(self):
+        argv = rr.codex_argv(Path("/result.json"))
+        self.assertEqual(argv[:2], ["codex", "exec"])
+        self.assertEqual(argv[-1], "-")
+        self.assertIn("--ephemeral", argv)
+        self.assertIn("--strict-config", argv)
+        self.assertEqual(argv[argv.index("--sandbox") + 1], "workspace-write")
+        self.assertFalse(set(argv) & {"resume", "fork", "--ignore-user-config", "--ignore-rules",
+                                     "--dangerously-bypass-approvals-and-sandbox", "--full-auto"})
+
+    def test_automatic_ingresses_remain_held_before_commands_or_writes(self):
+        with tempfile.TemporaryDirectory() as tmp, \
+                unittest.mock.patch.object(rr.subprocess, "Popen") as child, \
+                unittest.mock.patch.object(rr.subprocess, "run") as command:
+            controller = rr.Controller(rr.Config(), Path(tmp))
+            calls = (
+                lambda: controller.session("worker", "A", Path(tmp), "brief", {}, [], "default", 10),
+                lambda: controller.run_checks(task("A"), Path(tmp)),
+                lambda: controller.run_task(task("A")),
+            )
+            for call in calls:
+                with self.subTest(call=call), self.assertRaises(rr.TaskError):
+                    call()
+            self.assertEqual(list(Path(tmp).iterdir()), [])
+            child.assert_not_called()
+            command.assert_not_called()
+
+    def test_manual_claim_is_durable_exclusive_and_requires_lock(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            ledger = root / "ledger.json"
+            rr.save_ledger({"tasks": [task("A"), task("B")]}, ledger)
+            controller = rr.Controller(rr.Config(), root / "state")
+            with unittest.mock.patch.object(rr, "LEDGER", ledger), \
+                    unittest.mock.patch.object(controller, "preflight", return_value="a" * 40):
+                with self.assertRaisesRegex(rr.Stop, "lock"):
+                    controller.prepare_manual()
+                controller.acquire()
+                try:
+                    first = controller.prepare_manual()
+                    self.assertEqual(first["task_id"], "A")
+                    self.assertEqual(first["brief_sha256"], rr.sha256(Path(first["stdin"]).read_text()))
+                    self.assertFalse(first["unattended_ready"])
+                    with self.assertRaisesRegex(rr.Stop, "already active"):
+                        controller.prepare_manual()
+                finally:
+                    controller.release()
+                self.assertEqual(rr.load_ledger(ledger)["tasks"][0]["status"], "active")
+                self.assertFalse((root / "state/lease.json").exists())
+                rr.update_task("A", path=ledger, status="verified")
+                controller.acquire()
+                try:
+                    second = controller.prepare_manual()
+                    self.assertEqual(second["task_id"], "B")
+                    self.assertNotEqual(first["stdin"], second["stdin"])
+                finally:
+                    controller.release()
+
+    def test_refused_controller_does_not_remove_foreign_lease(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            state = Path(tmp)
+            owner = rr.Controller(rr.Config(), state)
+            contender = rr.Controller(rr.Config(), state)
+            owner.acquire()
+            owner.heartbeat(task="A")
+            try:
+                with self.assertRaisesRegex(rr.Stop, "another controller"):
+                    contender.acquire()
+                contender.release()
+                self.assertTrue((state / "lease.json").exists())
+            finally:
+                owner.release()
+            self.assertFalse((state / "lease.json").exists())
+
     def test_selects_first_ready_task_with_verified_dependencies(self):
         ledger = {"tasks": [task("A", "blocked"), task("B", deps=["A"]), task("C"), task("D")]}
         self.assertEqual(rr.select_task(ledger)["id"], "C")
@@ -186,6 +260,7 @@ class Session(unittest.TestCase):
             controller = rr.Controller(rr.Config(), root / "state")
             checked = dict(task("A", checks=[]), gates=["ci.yml#host-quality"])
             with unittest.mock.patch.object(controller, "heartbeat"), \
+                    unittest.mock.patch.object(rr, "require_pipeline_release"), \
                     unittest.mock.patch.object(rr.subprocess, "call", return_value=0), \
                     unittest.mock.patch.object(rr, "resolve_gate", side_effect=ValueError("unsupported gate")):
                 passed, results, failure = controller.run_checks(checked, attempt)

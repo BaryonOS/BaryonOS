@@ -152,13 +152,31 @@ fn actual_core_volume_outcome_matches_independent_python_probe_oracle() {
     let session = nas.open(guest, &invite.namespace).unwrap();
     let upload = nas.stage(guest, session, 0, 0, &[0xA5; 96]).unwrap();
     nas.commit(guest, session, upload).unwrap();
+    // Mirrors services/nas/native-probe: quota refusal, cancellation and a
+    // quota increase, then a second guest namespace evicted with a held upload.
+    let pending = nas.stage(guest, session, 0, 1, &[0x55; 32]).unwrap();
+    assert!(matches!(
+        nas.stage(guest, session, 0, 1, &[0x55; 1]),
+        Err(Error::Quota)
+    ));
+    nas.cancel(guest, session, pending).unwrap();
     nas.stage(guest, session, 0, 1, &[0x55; 32]).unwrap();
     assert_eq!(
         nas.set_quota(admin, &invite.namespace, 127),
         Err(Error::Quota)
     );
+    nas.set_quota(admin, &invite.namespace, 256).unwrap();
     nas.revoke(admin, &invite.namespace).unwrap();
     nas.evict(admin, &invite.namespace).unwrap();
+    let second = nas
+        .invite(admin, guest, 128, 100, 6000, &mut entropy)
+        .unwrap();
+    assert_ne!(second.namespace, invite.namespace);
+    nas.accept(guest, &second, 100).unwrap();
+    let held = nas.open(guest, &second.namespace).unwrap();
+    nas.stage(guest, held, 0, 0, &[0x66; 32]).unwrap();
+    nas.revoke(admin, &second.namespace).unwrap();
+    nas.evict(admin, &second.namespace).unwrap();
     drop(nas);
     let image = local.image();
     let cold = Local::recover(image.clone());
