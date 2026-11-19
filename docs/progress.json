@@ -3,7 +3,7 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-18",
-    "source_commit": "526aca548c0ee22025f80401d017f779c8d59179",
+    "source_commit": "3b7db2dd5ea079d8e5fab4a1bfa08d6900c4a8a7",
     "assessment_basis": "parent_commit",
     "branch": "codex/n03-provider-evaluation",
     "task": "N03-T1: Bounded source/primary-source provider evaluation records fixed TLS profile, existing Rustls pins and random/time adapter limits. No provider selected; version-specific manifests/build scripts and maintenance evaluation incomplete after inaccessible primary endpoints. Local paths/symbol and progress checks pass.",

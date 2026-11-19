@@ -13,6 +13,8 @@ mod pci;
 pub use pci::discover;
 use pci::Hardware;
 
+pub mod link;
+
 pub const DEVICE_ID_NET: u16 = 0x1041;
 pub const QUEUE_SIZE: u16 = 8;
 pub const MAX_FRAME_BYTES: usize = 1514;
