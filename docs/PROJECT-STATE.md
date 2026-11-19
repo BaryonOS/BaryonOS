@@ -8,12 +8,240 @@
 [exact command/log receipt](roadmap-pipeline/receipts/L01-T1.json).
 Lead source/diff review completed; no duplicate matrix. Progress **41 → 41/100**.
 **Limits:** Design only. Task/quality/model provenance/engine port/budget and numeric profile require owner decision; pinned config lookup unavailable, no actual KV or quality/latency claim. Native inference/hardware/human review NOT RUN;41/100 unchanged.
+
+## NEXT AGENT HANDOFF — P03-T1 delivery — 18 November 2026
+
+**Source:** `590e1d4188688434cd4f9aa80bb67302b802f770`, `codex/p03-device-key-contract`.
+**Delivered:** PROPOSED two verified enrollment routes using existing maintained TLS port candidate, device-scope revocation/rotation/recovery and explicit owner decisions, mapped to EO10/12 and LP19/20. Six source paths/three declarations and progress checks pass; no authority or crypto adoption.
+**Checks:** executed targeted commands and raw exit codes are in the
+[exact command/log receipt](roadmap-pipeline/receipts/P03-T1.json).
+Lead source/diff review completed; no duplicate matrix. Progress **41 → 41/100**.
+**Limits:** Design only. Native TLS/provider, enrollment identity, rotation distribution, recovery authority and cold freshness remain decision/dependency boundaries. No new trust root/escrow/grant, native device lifecycle, hardware or human audit;41/100 unchanged.
+
+## NEXT AGENT HANDOFF — P01-T1 delivery — 18 November 2026
+
+**Source:** `91797da1ce5353465670402d273b4e4a88b660b6`, `codex/p01-seal-contract`.
+**Delivered:** PROPOSED NAS consumer contract maps existing RecordContext and opaque NAS interfaces,128/168-byte record vs104-byte wire bound, administrator/key separation, uncertainty/revocation/recovery and owned negative acceptance table. Seven source paths/11 declarations and progress checks pass.
+**Checks:** executed targeted commands and raw exit codes are in the
+[exact command/log receipt](roadmap-pipeline/receipts/P01-T1.json).
+Lead source/diff review completed; no duplicate matrix. Progress **41 → 41/100**.
+**Limits:** Design only; namespace-to-volume assignment, manifest publication and bounded transport format require owner/security decision. No consumer implementation/crypto or grant change, cold rollback/hardware/human audit acceptance.41/100 unchanged.
+
+## NEXT AGENT HANDOFF — N03-T1 delivery — 18 November 2026
+
+**Source:** `526aca548c0ee22025f80401d017f779c8d59179`, `codex/n03-provider-evaluation`.
+**Delivered:** Bounded source/primary-source provider evaluation records fixed TLS profile, existing Rustls pins and random/time adapter limits. No provider selected; version-specific manifests/build scripts and maintenance evaluation incomplete after inaccessible primary endpoints. Local paths/symbol and progress checks pass.
+**Checks:** executed targeted commands and raw exit codes are in the
+[exact command/log receipt](roadmap-pipeline/receipts/N03-T1.json).
+Lead source/diff review completed; no duplicate matrix. Progress **41 → 41/100**.
+**Limits:** Proposed design only; accepted native provider/RNG/platform, calendar/signing/bootstrap boundaries remain unresolved. No cryptographic dependency or trust root adopted; no native handshake/hardware/audit evidence. Task remains BLOCKED and41/100 unchanged.
+
+## NEXT AGENT HANDOFF — N04-T2 delivery — 18 November 2026
+
+**Source:** `8274efb32e885c9337a33eceb025c2ca5e806812`, `codex/n04-issuer-contract`.
+**Delivered:** Compact PROPOSED issuer/helper attenuation/regrant/durable denial contract tied to existing opaque contexts, broker operations and source-bound native helper evidence. Four cited paths/six source symbols and progress check pass; no production interface or authority adopted.
+**Checks:** executed targeted commands and raw exit codes are in the
+[exact command/log receipt](roadmap-pipeline/receipts/N04-T2.json).
+Lead source/diff review completed; no duplicate matrix. Progress **41 → 41/100**.
+**Limits:** Design only. Production issuer/storage ownership, durable acknowledgement and trusted cold freshness require explicit owner/security alignment before code. No native or hardware acceptance;41/100 unchanged. Existing fences and unattended hold retained.
+
+## NEXT AGENT HANDOFF — H06-T1 delivery — 18 November 2026
+
+**Source:** `ace4f5a15ff6b771e7d14d9c416076a1ab65816d`, `codex/h06-hardware-matrix`.
+**Delivered:** Hardware matrix checker covers3 profiles/33 device rows, explicit driver absence and DMA posture, canonical existing references, target/device/source-bound H or native evidence for support, separate evidence for VT-d containment; xHCI stays pending. Four adversarial test groups, actual --check and compileall pass.
+**Checks:** executed targeted commands and raw exit codes are in the
+[exact command/log receipt](roadmap-pipeline/receipts/H06-T1.json).
+Lead source/diff review completed; no duplicate matrix. Progress **41 → 41/100**.
+**Limits:** Inventory/reference validation only, not evidence authenticity/device acceptance. Physical target unselected; no row supported or VT-d contained. No hardware/native rerun for unchanged OS code; existing partial driver evidence preserved. Score41/100 unchanged.
+
+## NEXT AGENT HANDOFF — B06-T1 delivery — 18 November 2026
+
+**Source:** `f0b99f764c20f8c894259e78b63ceaa6e44da7b2`, `codex/b06-lp-matrix`.
+**Delivered:** Working31-ID LP reference checker and residual list; strict IDs/statuses, contained canonical paths, SHA256 and archived source-bound QEMU record checks for native tier. Four grouped adversarial tests and actual --check pass; verified bytes parsed once. No historic evidence audit or acceptance promotion.
+**Checks:** executed targeted commands and raw exit codes are in the
+[exact command/log receipt](roadmap-pipeline/receipts/B06-T1.json).
+Lead source/diff review completed; no duplicate matrix. Progress **41 → 41/100**.
+**Limits:** Structural mapping only, not evidence authenticity/privacy acceptance. All31 complete-scenario rows remain explicitly unmapped; existing partial evidence is not discarded. B02 partial native slice PR382 and N04 blocked prototype PR380 preserved. No OS code change/native rerun; score41/100 unchanged.
+
+## NEXT AGENT HANDOFF — B02-T1 native refusal slice — 18 November 2026
+
+**Source:** `c8ae69094abf91e96e52a18510a430fa9d7312d9`, `codex/b02-native-tamper`, fingerprint `b2ecf3c04ec5bfc3ba2ca09fd34b61e9706b363a4a9aaeb6c6f8fbf61c7f7fbc`.
+**Delivered:** object8 AEAD byte corruption, document1 tag corruption, two64-byte
+ciphertext-block swap and wrong-secret substitution produce exact kernel-checked
+refusal, zero plaintext replies, disk writes/flushes and unchanged cold disk hashes.
+Outer noncryptographic checksums repaired; no new rights/crypto/syscall.
+**Checks:**55 host tests exit0 (`build/tokenguard/run-7y0184dg.log`); normal, recover
+and four cold cases runner0/QEMU33. Deliberately wrong compiled case runner1 as
+expected. [Exact commands/artifacts/limits](roadmap-pipeline/receipts/B02-T1.json).
+Lead reviewed complete diff; corrected existing volume Client epoch0→1 before final
+source-frozen suite; earlier failure retained separately. No repeated native run.
+**Partial/blocked:** one168-byte record occupies one volume chunk, so the block
+swap does not prove multiple-record chunk ordering. True multi-chunk and native
+old-generation replay NOT RUN; cold antirollback unprotected. Secret substitution
+is a fixture refusal, not physical erasure. Hardware/human audit NOT RUN.
+**Ownership:** Integration Manager/Claude branches preserved; unsafe hold active.
+Score41→41/100. B05 draft381 delivered; N04 draft380 blocked on throughput.
+**Next:** B06-T1 checker is implemented in a separate worktree; publish and continue.
+
+## Retained checkpoint — unified governance implementation — 18 November 2026
+
+## NEXT AGENT HANDOFF — B05-T2 delivery — 18 November 2026
+
+**Source:** `4517279e819314fc226ec8b34fec2e9d7a3a3890`, `codex/b05-exhaustive-revocation`.
+**Delivered:** Exhaustive host test over7^5 words,19607 nonempty prefixes, three processes: creation, restricted delegation, queued transfer, receive, close, revoke and amplification attempts. Independent lifetime/right/generation model; explicit regrant after revoke stays valid. Targeted test/Clippy/fmt exit0; isolated revoke-marking mutant fails101 at stale handle assertion.
+**Checks:** executed targeted commands and raw exit codes are in the
+[exact command/log receipt](roadmap-pipeline/receipts/B05-T2.json).
+Lead source/diff review completed; no duplicate matrix. Progress **41 → 41/100**.
+**Limits:** Bounded five-step host exploration only, not unbounded verification/native acceptance/external human audit. Production engine unchanged. N04-T1 draftPR380 remains BLOCKED on native throughput; optional unsupported IPC wait removed. Score41/100 unchanged.
+
+## NEXT AGENT HANDOFF — B04-T2 delivery — 18 November 2026
+
+**Source:** `2b47d4ffb72f885686790885aec97f7a28c3c05c`, `codex/b04-repro-check`.
+**Delivered:** Repro checker runs two isolated default builds and verifies kernel/loader plus canonical ESP payload against manifests.8 unit tests pass. Real comparison exit1: kernel identical, loader/image_payload differ; tool reports red honestly.
+**Checks:** executed targeted commands and raw exit codes are in the
+[exact command/log receipt](roadmap-pipeline/receipts/B04-T2.json).
+Lead source/diff review completed; no duplicate matrix. Progress **41 → 41/100**.
+**Limits:** Same-host tooling only; actual build is NOT reproducible here and no B04 acceptance granted. ESP is a virtual-FAT payload directory, not a byte-identical disk image. No QEMU/hardware/independent environment run.
+
+## NEXT AGENT HANDOFF — U05-T2 delivery — 18 November 2026
+
+**Source:** `9bb822db5e2e80c62ca85d7e508567995fb813a8`, `codex/u05-search-index`.
+**Delivered:** Standalone bounded domain/object/revision search index with UTF8 tokens, update/delete tombstones, atomic catalogue rebuild, current grant epochs and accidental-corruption checks.11 host tests pass; bounds precede untrusted text scanning.
+**Checks:** targeted Rust tests, Clippy (-D warnings), formatting and freestanding
+library build exit0; [exact commands/raw-log hashes](roadmap-pipeline/receipts/U05-T2.json).
+Lead source/diff review completed; no duplicate matrix. Progress **41 → 41/100**.
+**Limits:** Full U05-T2 remains BLOCKED on shared SDK membership owned by integration PR366. Host model only; trusted catalogue/service identity and grant authentication remain external, no native search/UI acceptance.
+
+## NEXT AGENT HANDOFF — U05-T1 delivery — 18 November 2026
+
+**Source:** `1c3696d22d87fed1ef9e554febc690d443dbb568`, `codex/u05-settings-core`.
+**Delivered:** Standalone typed appearance/accessibility settings core, integrity-only A/B persistence, explicit recovery and persistent new-generation revert.14 host tests including every0..96 torn-write offset pass.
+**Checks:** targeted Rust tests, Clippy (-D warnings), formatting and freestanding
+library build exit0; [exact commands/raw-log hashes](roadmap-pipeline/receipts/U05-T1.json).
+Lead source/diff review completed; no duplicate matrix. Progress **41 → 41/100**.
+**Limits:** Full U05-T1 remains BLOCKED on shared SDK membership owned by integration PR366; no shared SDK files changed/matrix rerun. No native/UI/encryption/antirollback/hardware acceptance.
+
+## NEXT AGENT HANDOFF — CodeQL pre-merge latency — 18 November 2026
+
+**Claim/source:** Codex sole writer in `codex/codeql-pr-fast-suite`, based on main
+`5a3295b6093549f4b5ff6164ab2773ac4c264996`. No open PR owns `codeql.yml`.
+**Goal:** shorten the CodeQL critical path without changing the repository ruleset,
+required status checks, language coverage, security-event permissions or execution hold.
+
+**Measured baseline:** the active ruleset requires strict current-main
+`host-quality`, `qemu-smoke` and `merge-hold`, plus CodeQL code-scanning results at
+`high_or_higher`; coverage, Code Quality, CodeRabbit and other analysis jobs are not
+required status checks. Three successful PR CodeQL runs completed in 7:45–8:18.
+Their Rust jobs took 7:02–8:14 and dominated; one measured Rust analysis step took
+6:34, while setup, checkout, toolchain and init together took 23 seconds.
+
+**Change:** pull-request and merge-group runs keep all four languages and CodeQL's
+default high-precision security queries. Pushes to main, weekly schedule and manual
+runs keep `security-extended`, which includes the default suite plus additional
+lower-precision/severity queries. The high-or-higher merge rule is unchanged.
+
+**Checks:** all 27 workflow-contract tests pass, exit 0
+(`build/tokenguard/run-sokqmluq.log`). `actionlint -shellcheck= -pyflakes=` is NOT RUN:
+the executable is unavailable (exit 127, `run-npl6cyh_.log`). Hosted CodeQL/workflow
+checks must validate syntax and measure the actual duration. No local CodeQL scan,
+QEMU matrix, ruleset mutation or security-alert dismissal was performed.
+
+**Trade-off/evidence limit:** additional extended queries no longer block the PR;
+they run after merge on main and weekly. Default queries and the mandatory severity
+threshold remain pre-merge. A speedup is expected only in query evaluation and is
+not yet measured on this head. **Next:** publish one focused draft PR, compare its
+four CodeQL job durations with the 7:45–8:18 baseline, and merge only after the
+unchanged mandatory rules pass. Progress remains **41 → 41/100**.
+
+## NEXT AGENT HANDOFF — P04-T2 delivery — 18 November 2026
+
+**Source:** `a73e41a7db7b8aa90fa47a299886feb6d607fd0c`, `codex/p04-native-quota`.
+**Delivered:** Native NAS Cancel14, full-quota rejection/reservation release/retry, full-quota adjustment and kernel-observed offline-guest revoke/evict delivered. Normal/recover QEMU33;0cold writes/flushes, exact2 tombstones/core11/volume21.78host tests and native gate exit0.
+**Checks:** targeted Rust tests, Clippy (-D warnings), formatting and freestanding
+library build exit0; [exact commands/raw-log hashes](roadmap-pipeline/receipts/P04-T2.json).
+Lead source/diff review completed; no duplicate matrix. Progress **41 → 41/100**.
+**Limits:** Local native QEMU/IPC only; no remote authenticated guest, product admin UI, hardware or full P04 acceptance. Existing token leak/replay checks retained; source fingerprint4af81525 matches the published code.
+
+## NEXT AGENT HANDOFF — L01-T2 delivery — 18 November 2026
+
+**Source:** `3a77b1d0d5c91f6844d9c7475f3e54a6f52dc6d1`, `codex/l01-model-format`.
+**Delivered:** VerifiedArtifact safetensors header/table parser with bounded no-escape JSON profile, duplicate/dtype/overflow checks and exact nonoverlapping coverage;14 host regressions pass. One bounded security review found no blocker.
+**Checks:** targeted Rust tests, Clippy (-D warnings), formatting and freestanding
+library build exit0; [exact commands/raw-log hashes](roadmap-pipeline/receipts/L01-T2.json).
+Lead source/diff review completed; no duplicate matrix. Progress **41 → 41/100**.
+**Limits:** Host parser/build only; no real-model compatibility, inference, native/provenance acceptance. Existing pinned dependencies and soft SHA2 build profile reused.
 **Ownership:** Integration Manager owns PR integration/merges/closure. Earlier
 delivery branches and Claude S09/UI remain untouched. Unsafe unattended hold active.
 **Next:** publish new draft, immediately claim the next independent READY functional
 slice from this ledger; no waiting for integration. Prior delivery checkpoints retained.
 
 ## Retained checkpoint — unified governance implementation — 18 November 2026
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+## Retained checkpoint — PR #350 conflict-only integration — 18 November 2026
+
+
+
+
+
+## NEXT AGENT HANDOFF — issue #41 synthetic anchor contract — 18 November 2026
+
+**Claim/source:** Codex sole writer in `codex/issue41-policy-anchor`, based on actual
+main `5a3295b6093549f4b5ff6164ab2773ac4c264996`. No open PR owns the changed B03
+policy paths. Claude-owned S09/UI worktrees and H/U/N/B/A/P/L/R branches are untouched.
+
+**Goal:** implement the ADR-B03K3 TEST anchor encoding, complete transition identity
+and fail-closed compare/readback oracle, then execute the oracle in both existing
+native policy-probe consumers. **Invariant:** no production authority, persistent
+backend, app capability, slot-format reinterpretation or rollback-resistance claim.
+**Write set:** `crates/update-core` anchor/probe sources, their focused Rust/Python
+tests, the approved B03 transition specification and this lead-owned checkpoint.
+
+**Result:** the experimental feature now provides a canonical 120-byte anchor,
+monotonic successor construction, full-operation SHA-256 identity, exact-predecessor
+CAS decisions and independent predecessor/successor/conflict readback classification.
+Eight new cases extend the existing loader/service probe from 26 to 34 cases.
+Malformed, torn, stale, conflicting and floor-rollback states fail closed.
+
+**Checks:** `cargo +1.90.0 test --locked -p update-core --features
+experimental-policy-test,test-signing-anchors` passes 31 tests, exit 0
+(`build/tokenguard/run-qr8h9g0u.log`). Matching Clippy `-D warnings` passes, exit 0
+(`run-yqvwsz7e.log`). Policy-envelope Python oracle tests pass 8/8, exit 0
+(`run-w08fizsg.log`). Formatting and `git diff --check` pass, exit 0. An initial
+unit run exposed an invalid max-revision fixture (exit 101, `run-a3gj2nqm.log`);
+the corrected focused test and full suite pass (`run-y4ga34bz.log`).
+
+**Evidence limit/blocker:** local native QEMU was NOT RUN; hosted signed-update CI is
+the next native gate. The pure oracle does not supply durable atomic storage,
+rollback resistance, cut/replay evidence, production custody, B04 trust, physical
+hardware or human review. Issue #41 therefore remains open. **Next:** publish one
+focused draft PR and require exact-head hosted checks; then implement the bounded
+TEST backend/staging adapter without widening production authority. Progress remains
+**41 → 41/100** because no fixed criterion is fully accepted.
+
+**Integration note (19 November 2026):** review repair aligned the kernel
+policy-probe observer with the 34-case report (`kernel/src/m2/m3/update.rs`);
+`python3 -B tools/test_policy_envelopes.py` passed locally with raw exit 33 and
+`UPDATE:POLICY_PROBE:PASS`. This is source-bound host-QEMU evidence only.
+
+## NEXT AGENT HANDOFF — unified governance implementation — 18 November 2026
 
 **Claim:** GOV-1-6, sole writer Codex in `codex/unified-governance`, base
 `5a3295b6093549f4b5ff6164ab2773ac4c264996`. The project owner authorizes immediate
@@ -73,7 +301,7 @@ checks before manual squash. Then continue the released roadmap PR queue without
 changing the independently owned UI/UX or active S09 branches.
 Progress **41 → 41/100**, no accepted criterion/weight change.
 
-## NEXT AGENT HANDOFF — PR #350 conflict-only integration — 18 November 2026
+## Retained checkpoint — PR #350 conflict-only integration — 18 November 2026
 
 PR #350 head `aaf01bae291faba593567845dc8da4fe606a7959` is reconciled
 with actual main `2eac8ca39ce04753f4f6bef3b09ee9b3610c065f`.
@@ -86,7 +314,7 @@ by this reconciliation. Score remains 41/100. Required hosted checks on the new 
 must pass before a manual squash merge; local build/QEMU suites are not repeated
 for this conflict-only correction.
 
-## NEXT AGENT HANDOFF — PR #361 integration and final-read barrier — 18 November 2026
+## Retained checkpoint — PR #361 integration and final-read barrier — 18 November 2026
 
 **Claim/source:** Codex sole writer in `codex/block-order-integration`, PR #361 head
 `fc35563668ae2ba3dc2fc90e6e30575c38b6f578`, merging main `6f29b672`.

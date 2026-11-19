@@ -1,0 +1,70 @@
+{
+  "task": "B05-T2",
+  "source_commit": "4517279e819314fc226ec8b34fec2e9d7a3a3890",
+  "level": "host/build",
+  "checks": [
+    {
+      "argv": [
+        "cargo",
+        "test",
+        "--locked",
+        "-p",
+        "capability-core",
+        "--test",
+        "exhaustive_revocation"
+      ],
+      "exit_code": 0,
+      "raw_log": "build/tokenguard/run-dfrz095d.log",
+      "sha256": "3731bad1ca10b48abcb2a315715d8d1919c5d3da3d9cc89112caa9aa72cea14f"
+    },
+    {
+      "argv": [
+        "cargo",
+        "clippy",
+        "--locked",
+        "-p",
+        "capability-core",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit_code": 0,
+      "raw_log": "build/tokenguard/run-h3lpxswz.log",
+      "sha256": "378a79ede412717b613de808a6514e673d4ae282ff371f19e241bce204740f17"
+    },
+    {
+      "argv": [
+        "cargo",
+        "fmt",
+        "--all",
+        "--",
+        "--check"
+      ],
+      "exit_code": 0,
+      "raw_log": "build/tokenguard/run-pr7pq8l_.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "argv": [
+        "cargo",
+        "test",
+        "--offline",
+        "--manifest-path",
+        "build/b05-mutant/Cargo.toml",
+        "--test",
+        "exhaustive_revocation"
+      ],
+      "exit_code": 101,
+      "raw_log": "build/tokenguard/run-sem1b_1m.log",
+      "allowed_exit_codes": [
+        101
+      ],
+      "outcome": "EXPECTED NEGATIVE: isolated Engine::revoke marking true changed to false; stale-handle assertion fails at trace[0,0,0,1,5]. Published production code unchanged.",
+      "sha256": "75cb717588e715b8c37736b5ac3291372e5beee878d9346f0d373b6e719d1fe1"
+    }
+  ],
+  "limits": "Bounded five-step host exploration only, not unbounded verification/native acceptance/external human audit. Production engine unchanged. N04-T1 draftPR380 remains BLOCKED on native throughput; optional unsupported IPC wait removed. Score41/100 unchanged.",
+  "review": "Lead source/diff review; no native/human acceptance.",
+  "score": "41 -> 41/100"
+}

@@ -3,7 +3,7 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-18",
-    "source_commit": "b019a8d2b99dc4a7006a5db50cdb3efcd516cf71",
+    "source_commit": "02126bdbdb12d9c625ba6cac17de4a51a3b80eba",
     "assessment_basis": "parent_commit",
     "branch": "codex/l01-local-ai-contract",
     "task": "L01-T1: PROPOSED selected-text summarization/clarification trial preserves existing exact Qwen candidate pins; host-reference engine route,1024-token/128MiB-KV/2GiB-VM ceilings and LP04\u201307 native negative owners specified. Four local paths, VerifiedArtifact and unchanged pins checked; no model download or new runtime.",

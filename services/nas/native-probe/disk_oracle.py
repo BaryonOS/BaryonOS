@@ -18,9 +18,9 @@ import volume_disk
 
 SNAPSHOT_BYTES = 17216
 NS_BYTES = 4288
-CORE_GENERATION = 6
-# Six snapshot publications; all but the first also purge old volume history.
-VOLUME_GENERATION = 11
+CORE_GENERATION = 11
+# Eleven snapshot publications; all but the first also purge old volume history.
+VOLUME_GENERATION = 21
 
 
 def principal(pid: int) -> bytes:
@@ -35,21 +35,23 @@ def check_snapshot(snapshot: bytes, admin_pid: int, guest_pid: int) -> None:
         raise ValueError("admin and guest must be different local principals")
     if len(snapshot) != SNAPSHOT_BYTES:
         raise ValueError("NAS snapshot length")
-    namespace = snapshot[64:96]
-    if namespace == bytes(32):
-        raise ValueError("missing NAS namespace")
-    # This reconstructs only this fixed probe's exact final tombstone. It is
-    # deliberately not a second general-purpose NAS schema decoder.
+    namespaces = [snapshot[64 + i * NS_BYTES:96 + i * NS_BYTES] for i in range(2)]
+    if any(ns == bytes(32) for ns in namespaces) or namespaces[0] == namespaces[1]:
+        raise ValueError("missing or duplicate NAS namespace")
+    # Reconstruct both exact final tombstones, including all cleared bytes.
+    # This is deliberately not a second general-purpose NAS schema decoder.
     expected = bytearray(SNAPSHOT_BYTES)
     expected[:8] = b"NOSNAS01"
     struct.pack_into("<H", expected, 8, 1)
     struct.pack_into("<Q", expected, 16, CORE_GENERATION)
     expected[24:56] = admin
-    expected[64:96] = namespace
-    expected[96] = 4
-    struct.pack_into("<Q", expected, 104, 2)
-    struct.pack_into("<I", expected, 112, 128)
-    expected[120:152] = guest
+    for index, quota in enumerate((256, 128)):
+        at = 64 + index * NS_BYTES
+        expected[at:at + 32] = namespaces[index]
+        expected[at + 32] = 4
+        struct.pack_into("<Q", expected, at + 40, 2)
+        struct.pack_into("<I", expected, at + 48, quota)
+        expected[at + 56:at + 88] = guest
     if snapshot != expected:
         raise ValueError("NAS final tombstone, identity or cleared bytes mismatch")
 
@@ -102,7 +104,8 @@ def check_image(
         "core_generation": CORE_GENERATION,
         "status": "Evicted",
         "epoch": 2,
-        "quota": 128,
+        "quota": 256,
+        "namespace_count": 2,
         "stored_ciphertext_bytes": 0,
         "authority_history_versions": 0,
         "scope_canaries_valid": True,

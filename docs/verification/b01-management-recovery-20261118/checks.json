@@ -1,0 +1,82 @@
+{
+  "task_id": "B01-T1",
+  "source_commit": "3847e9f2166b71020aa7b78bb82c8f06ae787590",
+  "gate": {
+    "path": "build/keyring-gate.json",
+    "sha256": "f286724f7f154a228aab901461f173ce57d990bdf2984d73998bcca2918afec8",
+    "passed": true,
+    "source_sha256": "de5dc2359ea38ba936a41bc23c113cde9854517f9e8e119cde0d1bb98f90ee17",
+    "exit_code": 0,
+    "raw_log": "build/tokenguard/run-qx_vt1nl.log"
+  },
+  "native": [
+    {
+      "case": "no-device",
+      "passed": true,
+      "raw_qemu_exit": 33,
+      "result": "build/run/keyring-no-device-5683ebdd1a/result.json",
+      "result_sha256": "b904033dec36c89d7897de24c7b0bf35008a21efb961e1b48b67483b4c78bc03",
+      "source_sha256": "de5dc2359ea38ba936a41bc23c113cde9854517f9e8e119cde0d1bb98f90ee17"
+    },
+    {
+      "case": "normal",
+      "passed": true,
+      "raw_qemu_exit": 33,
+      "result": "build/run/keyring-normal-fbca293ddc/result.json",
+      "result_sha256": "78eeb1839628946eece31daad9bd50e38551e44c90ff0d4798520ed836eb1a2c",
+      "source_sha256": "de5dc2359ea38ba936a41bc23c113cde9854517f9e8e119cde0d1bb98f90ee17"
+    },
+    {
+      "case": "restart",
+      "passed": true,
+      "raw_qemu_exit": 33,
+      "result": "build/run/keyring-restart-434afdd58c/result.json",
+      "result_sha256": "7e3b11686cd777452eb6fcfcae856cafb3d52cc0c07c3e679bcc5bc1079e57c6",
+      "source_sha256": "de5dc2359ea38ba936a41bc23c113cde9854517f9e8e119cde0d1bb98f90ee17"
+    },
+    {
+      "case": "stuck",
+      "passed": true,
+      "raw_qemu_exit": 33,
+      "result": "build/run/keyring-stuck-6991acb428/result.json",
+      "result_sha256": "088715c69712fbb3a62d077f2ff36cdc20d32d8d13c0e2985a633a7af6f008dd",
+      "source_sha256": "de5dc2359ea38ba936a41bc23c113cde9854517f9e8e119cde0d1bb98f90ee17"
+    },
+    {
+      "case": "timeout",
+      "passed": true,
+      "raw_qemu_exit": 33,
+      "result": "build/run/keyring-timeout-bd28a9aede/result.json",
+      "result_sha256": "b79a67db36b20e14493ea4e890c45c5c7a87772f75f8257389805e036bc38255",
+      "source_sha256": "de5dc2359ea38ba936a41bc23c113cde9854517f9e8e119cde0d1bb98f90ee17"
+    }
+  ],
+  "host_group": {
+    "tests": 16,
+    "exit_code": 0,
+    "log": "build/tokenguard/run-uelmwlng.log"
+  },
+  "negative_control": {
+    "base_commit": "3847e9f2166b71020aa7b78bb82c8f06ae787590",
+    "file": "sdk/examples/keyring/src/service.rs",
+    "scope": "poll_admin only",
+    "from": "if message.sender() != ingress.caller {",
+    "to": "if message.sender() != ingress.caller && message.sender() != support::word(160) {",
+    "patched_file_sha256": "6e80b503139ec1768b3c7ecd3e3e090302b8e4adad289a6db240ac733c5768cb",
+    "source_sha256": "2f6879e24d497308ff77230286666b0bec7fda986daa532d4fd16e17c011d493",
+    "result_sha256": "e16514c7c5e99e08296f92b509df547d3c336e2dc9148a17bcde5842fd2a67e1",
+    "host_exit_code": 1,
+    "raw_qemu_exit": null,
+    "timeout_seconds": 20,
+    "passed": false,
+    "log": "b01-negative-control/build/tokenguard/run-2hsmlk6o.log"
+  },
+  "review": "One bounded read-only AI review found no blocking defect; not a human audit",
+  "limits": [
+    "QEMU fixture only",
+    "No physical RNG claim",
+    "No full B01 product acceptance",
+    "No unsafe pipeline activation",
+    "Current-head hosted CI not yet observed"
+  ]
+}

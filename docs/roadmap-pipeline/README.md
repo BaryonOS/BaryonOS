@@ -18,6 +18,34 @@ recorded only by the lead, with the required evidence level.
 | `receipts/<task>.json` | Compact, versioned receipt per verified task: base commit, file hashes, fresh session IDs, controller-run check exit codes and log hashes, verifier findings, and transcript checks. |
 | `build/roadmap-pipeline/` (ignored) | Runtime state: controller lock, lease with heartbeat, `STOP`/`PAUSE` files, worker briefs, raw session output, full check logs. |
 
+## Codex ownership and supervised continuation
+
+The project owner assigns this roadmap and controller to OpenAI Codex. Claude Code
+retains S09 and Orbitaal/UI/UX. Historical Claude launch details below are retained
+as implementation history, not current executor instructions.
+
+`python3 -B tools/roadmap_runner.py brief` takes the existing controller lock, checks
+STOP/PAUSE, branch cleanliness and live leases, selects the first eligible READY task,
+freezes its brief/dispatch plan and records an active manual claim in the existing
+ledger. It releases its process lock without marking the task verified. Another
+selection refuses while that task is active; the lead must validate results and checkpoint the
+claim before the next task. Interrupted manual work stays active for explicit recovery,
+never automatic cleanup or blind replay.
+
+The plan contains literal Codex argv and stdin/stdout/stderr paths. Codex 0.167.2
+supports `exec --ephemeral --strict-config --sandbox workspace-write --json
+--output-last-message ... -`. The lead launches the command with the brief on stdin,
+retaining existing user config, authentication, MCP and hooks. No resume/fork, Claude
+flag translation, permission bypass, config replacement or silent fallback is used.
+Do not pass task output as shell code. Full local events identify the fresh session.
+
+Automatic `run`, direct worker sessions, task transactions and controller-run checks
+remain blocked by the shared source hold. A prepared plan is **manual fallback**, not
+`AUTONOMOUS_RUNNER_READY`: authenticated offline editing/gate compatibility is still
+unaccepted. The lead runs permitted targeted checks directly in the trusted development
+session and verifies the actual diff/raw results before updating the ledger or PR.
+No generated-code execution with publication credentials is introduced.
+
 ## Controller
 
 ### Separate issue-driven controller: default-deny execution

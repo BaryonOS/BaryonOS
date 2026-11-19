@@ -28,6 +28,8 @@ not completed installations or new native acceptance evidence.
 
 These source-bound assessments retain their original observations and proposal status. Their English entrypoints do not establish current implementation, adopt a new roadmap or replace the current normative contracts and checkpoint.
 
+## Preserved 28 October studies
+
 This directory preserves the repository adaptation of two studies from 28 October 2026:
 
 - market research into gaps in the desktop OS market, European alternatives, design/performance trends, positioning and sustained switching;
