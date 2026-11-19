@@ -134,7 +134,7 @@ count ≥ 1 is a **tombstone**.
 Content is stored per version without deduplication, so the reader stays
 simple; versions that share chunks in the source are stored twice.
 
-## 3. Flags and the open owner decision R2
+## 3. Flags and the owner decisions R2–R4
 
 | `TOMBSTONES` | `ACCOUNTED` | Permitted beyond present objects and present collections | Generation check |
 |---|---|---|---|
@@ -160,13 +160,17 @@ simple; versions that share chunks in the source are stored twice.
 - A purged slot and a tombstone recorded without its content are
   indistinguishable in the archive: both are content-free records.
 
-**Design choices needing owner confirmation under R2:** (a) `TOMBSTONES` off by
-default (the analysis recommends off, so that a backup does not retain content
-the user deleted); (b) content-free records for deleted, purged and
-tombstoned-but-excluded slots and for deleted collections, so that the
-generation check is applicable (`ACCOUNTED`); (c) a content-free record carries
-the source `created`/`modified` stamps; (d) a purged slot and an excluded
-tombstone are not distinguished.
+**R2: decided by the project owner on 19 November 2026.** Tombstone content
+is excluded by default: a writer leaves `TOMBSTONES` clear unless a separately
+reviewed decision says otherwise. Content-free records (`ACCOUNTED`) are
+permitted only where they are demonstrably needed for the consistency check
+(S9); they carry no content and restore never recreates deleted content from
+them. Consequently: (a) `TOMBSTONES` is off by default; (b) content-free
+records for deleted, purged and tombstoned-but-excluded slots and for deleted
+collections exist only so that the generation check applies; (c) a
+content-free record carries the source `created`/`modified` stamps as
+historical data; (d) a purged slot and an excluded tombstone are not
+distinguished. A restore treats every content-free record as absent.
 
 **Source identity: decided by the project owner on 19 November 2026 — no
 source identifier is recorded.** The archive records no volume or domain
@@ -176,12 +180,19 @@ link all archives of one domain to each other, and L1/L2 as analysed need
 none. Recorded revisions and stamps are therefore meaningful relative to the
 source domain clock recorded in the same header, not to a named source. Header
 bytes 40..56 stay reserved and zero; a v2 reader refuses any non-zero value
-there and any unknown flag bit. Reversing this decision would need a new owner
-decision and a flag-gated extension with its own reader change.
+there and any unknown flag bit. This holds for archive v2 as a whole: no
+source identifier is recorded behind a feature flag either.
 
-**R3** (native restore only into a never-used domain) is a restore policy, not
-archive state; the format has no field for it and needs none. **R4**
-(destination range sizing) uses the bound in section 4.4.
+**R3: decided by the project owner on 19 November 2026.** Native restore
+targets only a demonstrably never-used domain; existing domains are neither
+overwritten nor merged. This is restore policy, not archive state; the format
+has no field for it and needs none.
+
+**R4: decided by the project owner on 19 November 2026.** A destination range
+for one archive is sized for the maximum archive of 494 416 bytes
+(`MAX_ARCHIVE_V2`, section 4.4). Destination metadata (catalog and entries of
+the destination service) has its own capacity and its own verification and is
+not counted in that bound.
 
 ## 4. Validation rules
 
@@ -332,13 +343,13 @@ never feeds them into `touch` (`service.rs:603-618`).
   contradict the cross-domain property in `service.rs:591-593` (a domain
   cannot observe how many commits another domain makes), but this needs
   review; and the proposed STAT history extension discloses the caller's own
-  retained history after a DELETE, which belongs to the R2 decision.
+  retained history after a DELETE, which R2 limits to content-free records and needs separate review.
 - `restore_native` must check destination capacity for the full replay
   before its first write (section 4.3).
 - Writer (`export` with a v2 selector), native reader dispatch in `walk`,
   `restore_native`, host property tests against the real service, native QEMU
   stage, and L2 (table v3, INSTALL, STAT extension, recovery and crash tests).
-- The destination range size of PR #396 (unmerged) has not been checked against
+- The destination range size of PR #396 has not been checked against
   966 sectors.
 
 ## 9. Evidence (host only)
