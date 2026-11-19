@@ -117,10 +117,14 @@ def write_block(path,header,body,anchor):
 def build(root,wiki_iter,book,source_mode,input_sha=None):
     refs=root/'references'; corpus=refs/'corpus'; assets=root/'assets'
     corpus.mkdir(parents=True,exist_ok=True); assets.mkdir(parents=True,exist_ok=True)
+    # Records excluded for unestablished reuse rights stay excluded on rebuild.
+    ex=refs/'exclusions.json'
+    excluded={e['source_id'] for e in json.loads(ex.read_text(encoding='utf-8'))} if ex.exists() else set()
     for p in corpus.glob('*.md'): p.unlink()
     rows=[]; newest=''; count=0
     for page in sorted(wiki_iter,key=lambda x:x['page_id']):
         title=page['title']; pid=page['page_id']; sid=f'W{pid:06d}'; anchor=sid.lower()
+        if sid in excluded: continue
         rel=f'references/corpus/wiki-{volume(pid):02d}.md'
         start,length,sl,el,h=write_block(root/rel,f'## {sid} — {title}',page['body'],anchor)
         quoted=urllib.parse.quote(title.replace(' ','_'),safe='')

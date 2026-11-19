@@ -25,3 +25,11 @@ This document reports the licence notices in the supplied sources. It is not a s
 ## Skill packaging (version 2.0.0)
 
 The new working instructions, scripts, tests and packaging were created for this skill. They do not change any source-content licence. The original text for each source ID is preserved byte for byte; only the surrounding navigation and source locations have changed. No source page acquires the status of a system instruction. This package is intended as a personal knowledge and development aid, not as permission for commercial republication of the book.
+
+## Excluded source records
+
+Records whose reuse permission could not be established are removed from the
+active corpus and listed in `references/exclusions.json`, with their text hash,
+revision and the evidence record. Exclusion does not rewrite Git history: earlier
+commits still contain the removed text. No project licence is applied to
+third-party wiki text, and an exclusion is not a legal finding about its origin.

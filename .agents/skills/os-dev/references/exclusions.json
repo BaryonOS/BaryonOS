@@ -1,0 +1,15 @@
+[
+  {
+    "source_id": "W001473",
+    "page_id": 1473,
+    "title": "Monotasking Systems",
+    "revision_id": 11215,
+    "timestamp": "2011-03-06T09:09:27Z",
+    "text_sha256": "55bd6aad974128b5f73e8d13c1ce027807c0b2e21110d431ab9b5ae883d4c60d",
+    "length_bytes": 1468,
+    "source_url": "https://wiki.osdev.org/Monotasking_Systems",
+    "revision_url": "https://wiki.osdev.org/index.php?title=Monotasking_Systems&oldid=11215",
+    "reason": "Imported from the old OS Wiki in 2006; every revision predates the OSDev CC0 start date; no reuse grant established (issue #283).",
+    "record": "docs/verification/w001473-provenance-20261119/README.md"
+  }
+]
