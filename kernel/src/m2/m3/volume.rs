@@ -533,6 +533,14 @@ fn prepare_archive_device(frames: &mut Frames<FRAME_COUNT>, kernel: &mut Paging)
     {
         return;
     }
+    // The window must be unmapped: never reuse a leaf another device left.
+    let mut va = DEVICE1_MMIO;
+    while va < DEVICE1_MMIO + DEVICE1_MMIO_SIZE {
+        if kernel.leaf(va) != 0 {
+            return;
+        }
+        va += PAGE;
+    }
     let mut mapped = [0u64; 6];
     mapped[index] = DEVICE1_MMIO;
     map_regions(frames, kernel, &info, &mapped);
@@ -992,7 +1000,9 @@ fn device_call(s: &mut State, slot: usize, n: u64, a: [u64; 6]) -> Result<u64, i
     Ok(request.ticket)
 }
 
-/// Reset the active lane only; the other device keeps running.
+/// Reset the active lane's device only. The Policy is shared: if this reset
+/// fails, the Policy stays quarantined and both lanes refuse further requests
+/// (fail closed; a known fixture limit that no stage exercises).
 fn reset(r: &mut Runtime, now: u64) {
     if r.lanes[r.active].quarantined {
         return;
