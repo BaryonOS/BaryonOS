@@ -4,13 +4,27 @@
 //! Only actual transfer completions enter the existing USB Session. The fixture
 //! grants no input-policy authority and publishes no userspace device capability.
 //! Rings never wrap, all waits are bounded, and every page remains pinned.
+//! Device lifetimes come from the bounded `hotplug::Ports` tracker. The opt-in
+//! `native-usb-hid-reattach` profile re-enumerates one same-port keyboard as a
+//! new generation and rejects generation-1 work after slot reuse.
 use super::*;
 use nieuw_os_usb_core::{
     boot_interface::{Protocol, Speed},
     boot_session::{Changes, CompletionStatus, Lifetime, Session, Token},
+    hotplug::{Ports, Ticket},
+};
+#[cfg(feature = "native-usb-hid-reattach")]
+use nieuw_os_usb_core::{
+    boot_session::Error as SessionError,
+    hotplug::{Error as PortError, Phase},
 };
 
+// Every grant exists before the fixed domain is established; none is added
+// later. The reattach profile uses the single spare page of the 16-page limit.
+#[cfg(not(feature = "native-usb-hid-reattach"))]
 const COUNT: usize = 15;
+#[cfg(feature = "native-usb-hid-reattach")]
+const COUNT: usize = 16;
 const COMMAND_RING: usize = 0;
 const EVENT_RING: usize = 1;
 const ERST: usize = 2;
@@ -22,6 +36,21 @@ const INPUT_RING: usize = 9;
 const DESCRIPTOR: usize = 11;
 const REPORT: usize = 12;
 const GUARD: usize = 14;
+/// Generation-2 keyboard page, readable and writable by the device: its output
+/// device context at offset 0 (1 KiB with the required 32-byte contexts) and
+/// its report buffer at `SPARE_REPORT`. It holds only zeroed, xHC-maintained
+/// context and report bytes.
+#[cfg(feature = "native-usb-hid-reattach")]
+const SPARE: usize = 15;
+#[cfg(feature = "native-usb-hid-reattach")]
+const SPARE_REPORT: usize = 0x800;
+/// Fill for retired generation-1 pages that stay mapped in the fixed domain.
+/// Comparing it at the end detects a stray device write; it cannot prevent one.
+#[cfg(feature = "native-usb-hid-reattach")]
+const RETIRED: u8 = 0x3c;
+#[cfg(feature = "native-usb-hid-reattach")]
+const QUIET_POLLS: usize = 3_000_000;
+const REPORT_BYTES: usize = 8;
 const INPUT_POLLS: usize = 30_000_000;
 const PORT_CHANGES: u32 = 0x7f << 17;
 
@@ -49,17 +78,57 @@ fn clear(pa: u64) {
     });
 }
 
-fn bytes<const N: usize>(pa: u64) -> [u8; N] {
-    assert!(N <= PAGE as usize);
+/// Clears only one report region; the rest of its page may be a live context.
+fn clear_bytes(pa: u64, offset: usize, length: usize) {
+    assert!(offset
+        .checked_add(length)
+        .is_some_and(|end| end <= PAGE as usize));
+    paging::physical(pa, |p| {
+        // SAFETY: Bounded range inside one pinned page. The caller has no
+        // outstanding device operation using this range; no reference is kept.
+        unsafe { core::ptr::write_bytes(p.add(offset), 0, length) };
+    });
+}
+
+fn bytes<const N: usize>(pa: u64, offset: usize) -> [u8; N] {
+    assert!(offset
+        .checked_add(N)
+        .is_some_and(|end| end <= PAGE as usize));
     paging::physical_read(pa, |p| {
         let mut result = [0; N];
         for (i, value) in result.iter_mut().enumerate() {
             // SAFETY: Bounded volatile reads of a pinned page after the matching
             // completion. No reference aliases the DMA-visible storage.
-            *value = unsafe { p.add(i).read_volatile() };
+            *value = unsafe { p.add(offset + i).read_volatile() };
         }
         result
     })
+}
+
+#[cfg(feature = "native-usb-hid-reattach")]
+fn fill(pa: u64, value: u8) {
+    paging::physical(pa, |p| {
+        // SAFETY: One pinned page whose device work is retired by a completed
+        // Disable Slot; exactly PAGE bytes, no reference retained.
+        unsafe { core::ptr::write_bytes(p, value, PAGE as usize) };
+    });
+}
+
+#[cfg(feature = "native-usb-hid-reattach")]
+fn filled(pa: u64, value: u8) -> bool {
+    paging::physical_read(pa, |p| {
+        // SAFETY: Retained pinned page, exactly one page of bounded volatile
+        // reads after controller halt, bus-master clear and domain denial.
+        (0..PAGE as usize).all(|i| unsafe { p.add(i).read_volatile() } == value)
+    })
+}
+
+/// A device-written report region: pinned page, byte offset and its IOVA.
+#[derive(Clone, Copy)]
+struct Buffer {
+    page: u64,
+    offset: usize,
+    io: u64,
 }
 
 #[derive(Clone, Copy)]
@@ -306,7 +375,22 @@ impl Engine<'_> {
         Err(bad(6))
     }
 
-    fn enumerate(&mut self, index: usize, port: u8, generation: u64) -> Result<Hid, Error> {
+    /// `lifetime` must be the identity of the current Ports ticket. `output`
+    /// is a zeroed output-context IOVA and `report` a buffer that no earlier
+    /// generation of this port used.
+    fn enumerate(
+        &mut self,
+        index: usize,
+        port: u8,
+        lifetime: Lifetime,
+        output: u64,
+        report: Buffer,
+    ) -> Result<Hid, Error> {
+        // A later generation continues each per-device ring. Old TRBs keep
+        // cycle=1 and must never become a new dequeue position.
+        if index >= 2 || self.control_next[index] >= 255 || self.input_next[index] >= 255 {
+            return Err(bad(37));
+        }
         let offset = self.port_offset(port)?;
         let state = self.controller.read(offset);
         if state & 1 == 0 {
@@ -326,7 +410,6 @@ impl Engine<'_> {
             return Err(bad(9));
         }
         let slot = self.command(9, 0, 0, 0)?; // Enable Slot
-        let output = self.io[OUTPUT_CONTEXT + index];
         write32(
             self.pages[DCBAA],
             usize::from(slot) * 2,
@@ -339,7 +422,7 @@ impl Engine<'_> {
             8,
             &[u32::from(speed_id) << 20 | 1 << 27, u32::from(port) << 16],
         );
-        let ep0 = self.io[CONTROL_RING + index];
+        let ep0 = self.io[CONTROL_RING + index] + self.control_next[index] as u64 * 16;
         write32(
             self.pages[INPUT_CONTEXT],
             17,
@@ -353,7 +436,7 @@ impl Engine<'_> {
         fence(Ordering::SeqCst);
         self.command(11, slot, self.io[INPUT_CONTEXT], 0)?; // Address Device performs SET_ADDRESS
         let actual = self.control(index, slot, [0x80, 6, 0, 1, 0, 0, 18, 0], 18)?;
-        let descriptor = bytes::<18>(self.pages[DESCRIPTOR]);
+        let descriptor = bytes::<18>(self.pages[DESCRIPTOR], 0);
         if actual != 18
             || descriptor[0] != 18
             || descriptor[1] != 1
@@ -365,7 +448,7 @@ impl Engine<'_> {
         if self.control(index, slot, [0x80, 6, 0, 2, 0, 0, 9, 0], 9)? != 9 {
             return Err(bad(11));
         }
-        let header = bytes::<9>(self.pages[DESCRIPTOR]);
+        let header = bytes::<9>(self.pages[DESCRIPTOR], 0);
         let total = u16::from_le_bytes([header[2], header[3]]) as usize;
         if header[0] != 9 || header[1] != 2 || !(9..=256).contains(&total) || header[4] != 1 {
             return Err(bad(12));
@@ -374,17 +457,9 @@ impl Engine<'_> {
         if self.control(index, slot, setup, total)? != total {
             return Err(bad(13));
         }
-        let configuration = bytes::<256>(self.pages[DESCRIPTOR]);
-        let mut session = Session::new(
-            Lifetime {
-                device: u64::from(port),
-                generation,
-            },
-            &configuration[..total],
-            0,
-            speed,
-        )
-        .map_err(|_| bad(14))?;
+        let configuration = bytes::<256>(self.pages[DESCRIPTOR], 0);
+        let mut session =
+            Session::new(lifetime, &configuration[..total], 0, speed).map_err(|_| bad(14))?;
         let binding = session.binding();
         if self.control(
             index,
@@ -411,7 +486,7 @@ impl Engine<'_> {
                 u32::from(port) << 16,
             ],
         );
-        let ring = self.io[INPUT_RING + index];
+        let ring = self.io[INPUT_RING + index] + self.input_next[index] as u64 * 16;
         let packet = u32::from(binding.max_packet_size);
         write32(
             self.pages[INPUT_CONTEXT],
@@ -431,10 +506,6 @@ impl Engine<'_> {
         session
             .complete_protocol(protocol.token, CompletionStatus::Success, actual)
             .map_err(|_| bad(18))?;
-        match binding.protocol {
-            Protocol::Keyboard => serial::write(b"USB:ENUM:KEYBOARD\n"),
-            Protocol::Mouse => serial::write(b"USB:ENUM:MOUSE\n"),
-        }
         Ok(Hid {
             index,
             port,
@@ -442,7 +513,28 @@ impl Engine<'_> {
             dci,
             session,
             pending: None,
+            report,
         })
+    }
+
+    /// One Ports-correlated attach. Only a real, matched enumeration result
+    /// completes the ticket; a failure is recorded before the error returns.
+    fn attach(
+        &mut self,
+        ports: &mut Ports<2>,
+        index: usize,
+        port: u8,
+        output: u64,
+        report: Buffer,
+    ) -> Result<(Hid, Ticket), Error> {
+        let ticket = ports.attach(index).map_err(|_| bad(38))?;
+        let result = self.enumerate(index, port, ticket.lifetime(), output, report);
+        let completed = ports.complete(ticket, result.is_ok());
+        let hid = result?;
+        if completed != Ok(Some(ticket.lifetime())) {
+            return Err(bad(39));
+        }
+        Ok((hid, ticket))
     }
 
     fn submit(&mut self, hid: &mut Hid) -> Result<(), Error> {
@@ -450,15 +542,16 @@ impl Engine<'_> {
             return Err(bad(19));
         }
         let submission = hid.session.begin_input().map_err(|_| bad(20))?;
-        if submission.endpoint != hid.session.binding().input_endpoint || submission.max_length > 8
+        if submission.endpoint != hid.session.binding().input_endpoint
+            || submission.max_length > REPORT_BYTES
         {
             return Err(bad(21));
         }
-        clear(self.pages[REPORT + hid.index]);
+        clear_bytes(hid.report.page, hid.report.offset, REPORT_BYTES);
         let pointer = self.trb(
             INPUT_RING + hid.index,
             self.input_next[hid.index],
-            self.io[REPORT + hid.index],
+            hid.report.io,
             submission.max_length as u32,
             1 << 10 | 1 << 5 | 1 << 2,
         )?;
@@ -476,23 +569,30 @@ impl Engine<'_> {
         Ok(())
     }
 
+    /// Exact correlation of a Transfer Event with this device's submitted TRB.
+    fn accepts(hid: &Hid, pending: Pending, event: Event) -> bool {
+        event.transfer(hid.slot, hid.dci, pending.pointer)
+            && [1, 13].contains(&event.code())
+            && event.remaining() <= pending.length
+    }
+
     fn complete(&mut self, hid: &mut Hid, event: Event) -> Result<Changes, Error> {
         let pending = hid.pending.ok_or_else(|| bad(22))?;
-        if !event.transfer(hid.slot, hid.dci, pending.pointer)
-            || ![1, 13].contains(&event.code())
-            || event.remaining() > pending.length
-        {
+        if !Self::accepts(hid, pending, event) {
             return Err(event.rejected());
         }
         hid.pending = None;
         let actual = pending.length - event.remaining();
-        let report = bytes::<8>(self.pages[REPORT + hid.index]);
+        let report = bytes::<REPORT_BYTES>(hid.report.page, hid.report.offset);
         hid.session
             .complete_input(pending.token, CompletionStatus::Success, &report[..actual])
             .map_err(|_| bad(23))
     }
 
-    fn disconnect(&mut self, hid: &mut Hid) -> Result<(), Error> {
+    /// After an observed disconnect: correlated Stop Endpoint, then Disable
+    /// Slot, then terminal Session detach releasing exactly `released`.
+    /// Returns the detached work so its token can be checked as stale.
+    fn disconnect(&mut self, hid: &mut Hid, released: &[u8]) -> Result<Pending, Error> {
         let offset = self.port_offset(hid.port)?;
         if self.controller.read(offset) & 1 != 0 {
             return Err(bad(24));
@@ -532,35 +632,39 @@ impl Engine<'_> {
         }
         self.command(10, hid.slot, 0, 0)?; // Disable Slot after endpoint quiescence
         let cleared = hid.session.detach();
-        if !matches!(cleared, Changes::Keyboard(changes) if changes.released() == [5]
+        if !matches!(cleared, Changes::Keyboard(changes) if changes.released() == released
             && changes.pressed().is_empty() && changes.modifiers_released == 0 && changes.modifiers_pressed == 0)
         {
             return Err(bad(27));
         }
-        serial::write(b"USB:UNPLUG_CLEAR:PASS\n");
+        Ok(pending)
+    }
+
+    /// The detached token cannot complete, and repeated detach releases nothing.
+    fn deny_stale(hid: &mut Hid, pending: Pending) -> Result<(), Error> {
         if hid
             .session
-            .complete_input(pending.token, CompletionStatus::Success, &[0; 8])
+            .complete_input(pending.token, CompletionStatus::Success, &[0; REPORT_BYTES])
             .is_ok()
             || !matches!(hid.session.detach(), Changes::Keyboard(changes) if changes == Default::default())
         {
             return Err(bad(28));
         }
         hid.pending = None;
-        serial::write(b"USB:STALE_TOKEN:DENIED\n");
         Ok(())
     }
 
-    fn reports(&mut self, mut keyboard: Hid, mut mouse: Hid) -> Result<(), Error> {
+    fn reports(&mut self, keyboard: &mut Hid, mouse: &mut Hid) -> Result<Retired, Error> {
         if keyboard.session.binding().protocol != Protocol::Keyboard
             || mouse.session.binding().protocol != Protocol::Mouse
         {
             return Err(bad(29));
         }
-        self.submit(&mut keyboard)?;
-        self.submit(&mut mouse)?;
+        self.submit(keyboard)?;
+        self.submit(mouse)?;
         serial::write(b"USB:READY\n");
         let mut phase = 0;
+        let mut captured = None;
         for _ in 0..INPUT_POLLS {
             let Some(event) = self.poll()? else {
                 core::hint::spin_loop();
@@ -573,14 +677,25 @@ impl Engine<'_> {
                     if phase != 5 || port != keyboard.port {
                         return Err(bad(30));
                     }
-                    self.disconnect(&mut keyboard)?;
+                    let pending = self.disconnect(keyboard, &[5])?;
+                    serial::write(b"USB:UNPLUG_CLEAR:PASS\n");
+                    Self::deny_stale(keyboard, pending)?;
+                    serial::write(b"USB:STALE_TOKEN:DENIED\n");
                     serial::write(b"USB:REPORTS:PASS\n");
-                    return Ok(());
+                    return Ok(Retired {
+                        pending,
+                        event: captured,
+                    });
+                }
+                if cfg!(feature = "native-usb-hid-reattach") {
+                    // This profile admits a connect only in its Detached wait.
+                    return Err(bad(40));
                 }
                 continue;
             }
             if event.slot() == keyboard.slot {
-                let changes = self.complete(&mut keyboard, event)?;
+                let changes = self.complete(keyboard, event)?;
+                captured = Some(event);
                 let Changes::Keyboard(keys) = changes else {
                     return Err(bad(31));
                 };
@@ -607,9 +722,9 @@ impl Engine<'_> {
                         _ => return Err(bad(33)),
                     }
                 }
-                self.submit(&mut keyboard)?;
+                self.submit(keyboard)?;
             } else if event.slot() == mouse.slot {
-                let changes = self.complete(&mut mouse, event)?;
+                let changes = self.complete(mouse, event)?;
                 let Changes::Mouse(mouse_change) = changes else {
                     return Err(bad(34));
                 };
@@ -634,16 +749,196 @@ impl Engine<'_> {
                         _ => return Err(bad(35)),
                     }
                 }
-                self.submit(&mut mouse)?;
+                self.submit(mouse)?;
             } else {
                 return Err(event.rejected());
             }
         }
         Err(Error::Timeout)
     }
+
+    /// Ports detach after the completed Disable Slot. The xHC no longer owns
+    /// the slot, so its DCBAA entry is cleared before any later Enable Slot.
+    #[cfg(feature = "native-usb-hid-reattach")]
+    fn retire(&mut self, ports: &mut Ports<2>, hid: &Hid) -> Result<(), Error> {
+        ports.detach(hid.index).map_err(|_| bad(41))?;
+        write32(self.pages[DCBAA], usize::from(hid.slot) * 2, &[0, 0]);
+        fence(Ordering::SeqCst);
+        Ok(())
+    }
+
+    /// While Detached, only a connect on `port` with PED=0 may start attach.
+    #[cfg(feature = "native-usb-hid-reattach")]
+    fn await_connect(&mut self, ports: &Ports<2>, port: u8) -> Result<(), Error> {
+        for _ in 0..INPUT_POLLS {
+            let Some(event) = self.poll()? else {
+                core::hint::spin_loop();
+                continue;
+            };
+            if event.kind() != 34 {
+                return Err(event.rejected());
+            }
+            let changed = self.port_event(event)?;
+            let state = self.controller.read(self.port_offset(changed)?);
+            if changed != port
+                || state & 1 == 0
+                || state & 2 != 0
+                || ports.phase(0) != Ok(Phase::Detached)
+            {
+                return Err(bad(42));
+            }
+            return Ok(());
+        }
+        Err(Error::Timeout)
+    }
+
+    /// Same-port keyboard reattach after the generation-1 unplug. `old` is the
+    /// detached generation-1 keyboard; `spare` is the (page, IOVA) pair of the
+    /// generation-2 page granted before domain establishment.
+    #[cfg(feature = "native-usb-hid-reattach")]
+    fn reattach(
+        &mut self,
+        ports: &mut Ports<2>,
+        old_ticket: Ticket,
+        old: &Hid,
+        retired: Retired,
+        spare: (u64, u64),
+    ) -> Result<(), Error> {
+        let captured = retired.event.ok_or_else(|| bad(43))?;
+        if old.index != 0 || old.session.binding().protocol != Protocol::Keyboard {
+            return Err(bad(43));
+        }
+        self.retire(ports, old)?;
+        fill(self.pages[OUTPUT_CONTEXT + old.index], RETIRED);
+        fill(old.report.page, RETIRED);
+        serial::write(b"USB:REATTACH:DETACHED\n");
+        self.await_connect(ports, old.port)?;
+        let (page, io) = spare;
+        let report = Buffer {
+            page,
+            offset: SPARE_REPORT,
+            io: io + SPARE_REPORT as u64,
+        };
+        let (mut keyboard, ticket) = self.attach(ports, old.index, old.port, io, report)?;
+        let (before, after) = (old_ticket.lifetime(), ticket.lifetime());
+        if keyboard.session.binding().protocol != Protocol::Keyboard
+            || after.device != before.device
+            || before.generation.checked_add(1) != Some(after.generation)
+        {
+            return Err(bad(44));
+        }
+        serial::write(b"USB:REATTACH:ENUM:KEYBOARD\n");
+        let reused = keyboard.slot == old.slot;
+        serial::write(if reused {
+            b"USB:REATTACH:SLOT_REUSED\n".as_slice()
+        } else {
+            b"USB:REATTACH:SLOT_NEW\n".as_slice()
+        });
+        self.submit(&mut keyboard)?;
+        let pending = keyboard.pending.ok_or_else(|| bad(45))?;
+        // Replayed captured completion, not a hardware-generated event: the
+        // last real generation-1 Transfer Event must not match generation-2
+        // work. With a reused slot only the never-reused TRB address differs.
+        // The generation-1 token and ticket are rejected without consuming the
+        // generation-2 pending transfer, which must later accept its real event.
+        if Self::accepts(&keyboard, pending, captured)
+            || (reused && (captured.slot() != keyboard.slot || captured.endpoint() != keyboard.dci))
+            || !matches!(
+                keyboard.session.complete_input(
+                    retired.pending.token,
+                    CompletionStatus::Success,
+                    &[0; REPORT_BYTES]
+                ),
+                Err(SessionError::UnexpectedCompletion)
+            )
+            || ports.complete(old_ticket, true) != Err(PortError::Stale)
+            || keyboard.pending != Some(pending)
+        {
+            return Err(bad(45));
+        }
+        serial::write(b"USB:REATTACH:STALE_DENIED\nUSB:REATTACH:READY\n");
+        let mut phase = 0;
+        for _ in 0..INPUT_POLLS {
+            let Some(event) = self.poll()? else {
+                core::hint::spin_loop();
+                continue;
+            };
+            if event.kind() == 34 {
+                let port = self.port_event(event)?;
+                let state = self.controller.read(self.port_offset(port)?);
+                match (phase, state & 1 != 0) {
+                    (2, false) if port == keyboard.port => {
+                        let detached = self.disconnect(&mut keyboard, &[])?;
+                        Self::deny_stale(&mut keyboard, detached)?;
+                        self.retire(ports, &keyboard)?;
+                        phase = 3;
+                        serial::write(b"USB:REATTACH:UNPLUG:PASS\n");
+                    }
+                    (3, true) if port == keyboard.port => {
+                        // The instance attach budget refuses a third identity:
+                        // no port reset, no Enable Slot, and the port stays PED=0.
+                        if ports.phase(0) != Ok(Phase::Detached)
+                            || ports.attach(0) != Err(PortError::Exhausted)
+                            || state & 2 != 0
+                        {
+                            return Err(bad(46));
+                        }
+                        // Bounded observation: no further event arrives and the
+                        // refused port stays connected but unenabled. It also
+                        // lets QEMU answer the device_add before the guest exits.
+                        for _ in 0..QUIET_POLLS {
+                            if let Some(event) = self.poll()? {
+                                return Err(event.rejected());
+                            }
+                            core::hint::spin_loop();
+                        }
+                        if self.controller.read(self.port_offset(port)?) & 3 != 1 {
+                            return Err(bad(46));
+                        }
+                        serial::write(b"USB:ATTACH:BUDGET_DENIED\n");
+                        return Ok(());
+                    }
+                    _ => return Err(bad(47)),
+                }
+                continue;
+            }
+            if phase >= 3 || event.slot() != keyboard.slot {
+                return Err(event.rejected());
+            }
+            let Changes::Keyboard(keys) = self.complete(&mut keyboard, event)? else {
+                return Err(bad(48));
+            };
+            if keys.status.is_some() || keys.modifiers_pressed != 0 || keys.modifiers_released != 0
+            {
+                return Err(bad(48));
+            }
+            if !keys.pressed().is_empty() || !keys.released().is_empty() {
+                match phase {
+                    0 if keys.pressed() == [6] && keys.released().is_empty() => {
+                        phase = 1;
+                        serial::write(b"USB:REATTACH:KEY_DOWN\n");
+                    }
+                    1 if keys.released() == [6] && keys.pressed().is_empty() => {
+                        phase = 2;
+                        serial::write(b"USB:REATTACH:KEY_UP\n");
+                    }
+                    _ => return Err(bad(49)),
+                }
+            }
+            self.submit(&mut keyboard)?;
+        }
+        Err(Error::Timeout)
+    }
 }
 
-#[derive(Clone, Copy)]
+fn announce(hid: &Hid) {
+    match hid.session.binding().protocol {
+        Protocol::Keyboard => serial::write(b"USB:ENUM:KEYBOARD\n"),
+        Protocol::Mouse => serial::write(b"USB:ENUM:MOUSE\n"),
+    }
+}
+
+#[derive(Clone, Copy, PartialEq)]
 struct Pending {
     pointer: u64,
     token: Token,
@@ -656,6 +951,17 @@ struct Hid {
     dci: u8,
     session: Session,
     pending: Option<Pending>,
+    report: Buffer,
+}
+
+/// Generation-1 keyboard evidence retained after its detach.
+#[cfg_attr(not(feature = "native-usb-hid-reattach"), allow(dead_code))]
+#[derive(Clone, Copy)]
+struct Retired {
+    /// Submitted work whose token belongs to the detached session.
+    pending: Pending,
+    /// The last real completion the controller published for that keyboard.
+    event: Option<Event>,
 }
 
 pub(super) fn execute(
@@ -688,6 +994,8 @@ pub(super) fn execute(
         let direction = match index {
             EVENT_RING | DESCRIPTOR | REPORT | 13 => device::DmaDirection::DeviceWrites,
             OUTPUT_CONTEXT | 6 => device::DmaDirection::DeviceReadsWrites,
+            #[cfg(feature = "native-usb-hid-reattach")]
+            SPARE => device::DmaDirection::DeviceReadsWrites,
             _ => device::DmaDirection::DeviceReads,
         };
         let grant = lease
@@ -760,10 +1068,31 @@ pub(super) fn execute(
             }
             return Err(Error::Timeout);
         }
-        let keyboard = engine.enumerate(0, 1, 1)?;
-        let mouse = engine.enumerate(1, 2, 2)?;
+        // Device identities are the two fixed root ports. Three attaches last
+        // for this whole instance; each attach gets one enumeration attempt.
+        let mut ports = Ports::<2>::new([1, 2], 3, 1).map_err(|_| bad(50))?;
+        let report = |index: usize| Buffer {
+            page: pages[REPORT + index],
+            offset: 0,
+            io: io[REPORT + index],
+        };
+        let (mut keyboard, keyboard_ticket) =
+            engine.attach(&mut ports, 0, 1, io[OUTPUT_CONTEXT], report(0))?;
+        announce(&keyboard);
+        let (mut mouse, _) = engine.attach(&mut ports, 1, 2, io[OUTPUT_CONTEXT + 1], report(1))?;
+        announce(&mouse);
         serial::write(b"USB:PROTOCOL:PASS\n");
-        engine.reports(keyboard, mouse)?;
+        let retired = engine.reports(&mut keyboard, &mut mouse)?;
+        #[cfg(feature = "native-usb-hid-reattach")]
+        engine.reattach(
+            &mut ports,
+            keyboard_ticket,
+            &keyboard,
+            retired,
+            (pages[SPARE], io[SPARE]),
+        )?;
+        #[cfg(not(feature = "native-usb-hid-reattach"))]
+        let _ = (keyboard_ticket, retired);
         if domain.fault().map_err(|_| Error::Isolation)?.is_some() {
             return Err(Error::Isolation);
         }
@@ -776,6 +1105,15 @@ pub(super) fn execute(
     outcome?;
     halted?;
     denied?;
+    // Detection only: the retired generation-1 output context and report pages
+    // stayed mapped in the fixed domain until bus mastering was cleared.
+    #[cfg(feature = "native-usb-hid-reattach")]
+    {
+        if !filled(pages[OUTPUT_CONTEXT], RETIRED) || !filled(pages[REPORT], RETIRED) {
+            return Err(Error::Guard);
+        }
+        serial::write(b"USB:RETIRED:UNCHANGED\n");
+    }
     if !guard_unchanged(pages[GUARD]) {
         return Err(Error::Guard);
     }
