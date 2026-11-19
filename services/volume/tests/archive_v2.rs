@@ -1,0 +1,711 @@
+//! Host-only S09 archive v2 tests: the Rust reader against the fixtures and
+//! manifest produced by the independent Python oracle
+//! (`tests/test_volume_archive_v2_fixtures.py`), and L1 `restore_native`
+//! through the real in-process volume service. No v2 encoder exists here.
+mod common;
+
+use common::{recover, Local, SimDisk};
+use volume_core::{
+    archive::{self, ArchiveV2, NativeReport, Source},
+    checksum_update,
+    client::{Client, Transport},
+    service::Service,
+    table::Table,
+    upload, wire, Status, CHUNK, FNV_OFFSET, MAX_LENGTH, PER_DOMAIN,
+};
+
+const EPOCH: u64 = 6;
+const DOMAIN: usize = 1;
+
+fn fixture(name: &str) -> Vec<u8> {
+    let path = format!(
+        "{}/tests/fixtures/archive-v2/{name}",
+        env!("CARGO_MANIFEST_DIR")
+    );
+    std::fs::read(&path).unwrap_or_else(|error| panic!("{path}: {error}"))
+}
+
+/// Serves the archive in uneven pieces to exercise reassembly.
+struct Reader<'a> {
+    bytes: &'a [u8],
+    at: usize,
+}
+impl Source for Reader<'_> {
+    fn get(&mut self, buffer: &mut [u8]) -> Result<usize, Status> {
+        let amount = buffer.len().min(self.bytes.len() - self.at).min(77);
+        buffer[..amount].copy_from_slice(&self.bytes[self.at..self.at + amount]);
+        self.at += amount;
+        Ok(amount)
+    }
+}
+fn reader(bytes: &[u8]) -> Reader<'_> {
+    Reader { bytes, at: 0 }
+}
+
+fn scratch() -> Box<[u8; MAX_LENGTH]> {
+    vec![0u8; MAX_LENGTH].into_boxed_slice().try_into().unwrap()
+}
+
+fn verify(bytes: &[u8]) -> Result<ArchiveV2, Status> {
+    archive::verify_v2(&mut reader(bytes), &mut scratch())
+}
+
+fn hex(bytes: &[u8]) -> String {
+    bytes.iter().map(|byte| format!("{byte:02x}")).collect()
+}
+
+/// The manifest lines the Python oracle wrote, rebuilt from the Rust reader.
+fn lines(name: &str, a: &ArchiveV2) -> Vec<String> {
+    let mut out = vec![format!(
+        "{name} archive {} {} {} {} {} {}",
+        u8::from(a.tombstones),
+        u8::from(a.accounted),
+        a.generation,
+        a.clock,
+        a.content_bytes,
+        fixture(name).len()
+    )];
+    for c in &a.collections[..a.collection_count] {
+        let name_hex = if c.name_length == 0 {
+            "-".into()
+        } else {
+            hex(c.name())
+        };
+        out.push(format!(
+            "{name} collection {} {} {} {name_hex}",
+            c.index,
+            u8::from(c.present),
+            c.revision
+        ));
+    }
+    for o in &a.objects[..a.object_count] {
+        out.push(format!(
+            "{name} object {} {} {} {} {} {} {} {} {}",
+            o.slot,
+            u8::from(o.present),
+            o.collection,
+            o.kind,
+            o.tags,
+            o.revision,
+            o.created,
+            o.modified,
+            o.version_count
+        ));
+        for (i, v) in o.versions[..o.version_count].iter().enumerate() {
+            out.push(format!(
+                "{name} version {} {i} {} {} {} {}",
+                o.slot,
+                v.revision,
+                v.length,
+                v.content_sum,
+                hex(v.name())
+            ));
+        }
+    }
+    out
+}
+
+#[test]
+fn reader_agrees_with_the_oracle_manifest() {
+    let manifest = String::from_utf8(fixture("manifest.txt")).unwrap();
+    let mut names: Vec<&str> = manifest
+        .lines()
+        .map(|l| l.split(' ').next().unwrap())
+        .collect();
+    names.dedup();
+    let mut refused = 0;
+    for name in names {
+        let expected: Vec<&str> = manifest
+            .lines()
+            .filter(|l| l.split(' ').next() == Some(name))
+            .collect();
+        let bytes = fixture(name);
+        if expected[0].starts_with(&format!("{name} refused ")) {
+            assert_eq!(verify(&bytes), Err(Status::Corrupt), "{name}");
+            refused += 1;
+            continue;
+        }
+        let parsed = verify(&bytes).unwrap_or_else(|s| panic!("{name}: {s:?}"));
+        assert_eq!(lines(name, &parsed), expected, "{name}");
+        // Content is handed out only after its checksum matched the record.
+        let mut seen = 0;
+        archive::walk_v2(&mut reader(&bytes), &mut scratch(), |o, i, content| {
+            assert_eq!(content.len(), o.versions[i].length);
+            assert_eq!(
+                checksum_update(FNV_OFFSET, content),
+                o.versions[i].content_sum
+            );
+            seen += 1;
+            Ok(())
+        })
+        .unwrap();
+        let versions: usize = parsed.objects[..parsed.object_count]
+            .iter()
+            .map(|o| o.version_count)
+            .sum();
+        assert_eq!(seen, versions, "{name}");
+    }
+    let listed = manifest.lines().filter(|l| l.contains(" refused ")).count();
+    assert_eq!(refused, listed);
+    assert!(refused >= 60, "{refused}");
+    // v1 stays v1: the v1 reader accepts it, the v2 reader refuses it, and
+    // the v1 reader refuses every v2 archive.
+    assert!(archive::verify(&mut reader(&fixture("v1.bin")), &mut scratch()).is_ok());
+    assert_eq!(
+        archive::verify(&mut reader(&fixture("tombstones.bin")), &mut scratch()),
+        Err(Status::Corrupt)
+    );
+}
+
+#[test]
+fn every_bit_flip_truncation_and_trailing_byte_is_refused() {
+    for name in ["tombstones.bin", "restore.bin"] {
+        let bytes = fixture(name);
+        for end in 0..bytes.len() {
+            assert!(verify(&bytes[..end]).is_err(), "{name} truncated at {end}");
+        }
+        let mut longer = bytes.clone();
+        longer.push(0);
+        assert_eq!(verify(&longer), Err(Status::Corrupt));
+    }
+    let bytes = fixture("tombstones.bin");
+    for at in 0..bytes.len() {
+        for bit in 0..8 {
+            let mut data = bytes.clone();
+            data[at] ^= 1 << bit;
+            assert!(verify(&data).is_err(), "flip at {at} bit {bit}");
+        }
+    }
+}
+
+/// Counts BEGINs (fresh writes) and can fail the n-th one like a dead link.
+struct Watch<T> {
+    inner: T,
+    begins: usize,
+    fail_begin: Option<usize>,
+}
+impl<T: Transport> Transport for Watch<T> {
+    fn call(&mut self, request: &[u8; wire::SIZE]) -> Result<[u8; wire::SIZE], Status> {
+        if wire::header(request).operation == wire::BEGIN {
+            self.begins += 1;
+            if self.fail_begin == Some(self.begins) {
+                return Err(Status::Io);
+            }
+        }
+        self.inner.call(request)
+    }
+}
+
+fn client<'a>(
+    service: &'a mut Service,
+    disk: &'a mut SimDisk,
+    domain: usize,
+    fail_begin: Option<usize>,
+) -> Client<Watch<Local<'a>>> {
+    Client::new(
+        Watch {
+            inner: Local {
+                service,
+                disk,
+                domain,
+            },
+            begins: 0,
+            fail_begin,
+        },
+        EPOCH,
+        100 + 1000 * domain as u64,
+    )
+}
+
+fn restore<T: Transport>(
+    bytes: &[u8],
+    c: &mut Client<T>,
+) -> Result<(NativeReport, ArchiveV2), (Status, NativeReport)> {
+    let mut source = ArchiveV2::default();
+    archive::restore_native(|| reader(bytes), &mut scratch(), c, DOMAIN, &mut source)
+        .map(|report| (report, source))
+}
+
+fn read_version<T: Transport>(
+    c: &mut Client<T>,
+    object: u64,
+    revision: u64,
+    selector: usize,
+    length: usize,
+) -> Vec<u8> {
+    let mut out = vec![0; length];
+    c.read_version(object, revision, selector, length, |offset, chunk| {
+        out[offset..offset + chunk.len()].copy_from_slice(chunk)
+    })
+    .unwrap();
+    out
+}
+
+/// Every version's content in archive order (current first), per slot.
+fn contents(bytes: &[u8]) -> Vec<Vec<Vec<u8>>> {
+    let mut out = vec![Vec::new(); PER_DOMAIN];
+    archive::walk_v2(&mut reader(bytes), &mut scratch(), |o, _, content| {
+        out[o.slot].push(content.to_vec());
+        Ok(())
+    })
+    .unwrap();
+    out
+}
+
+#[test]
+fn restore_native_replays_history_into_a_fresh_domain() {
+    let bytes = fixture("restore.bin");
+    let source = verify(&bytes).unwrap();
+    let content = contents(&bytes);
+    let mut disk = SimDisk::new();
+    let mut service = Service::new(EPOCH, Table::EMPTY, false);
+    let mut c = client(&mut service, &mut disk, DOMAIN, None);
+    let (report, recorded) = restore(&bytes, &mut c).unwrap();
+    assert_eq!(recorded, source);
+    // Slots 1, 3 and 4 are present; slot 7 is a content-free record.
+    assert_eq!(report.restored, 0b0001_1010);
+    assert_eq!(report.writes, 6);
+    // Six WRITEs, two COLLECTIONs, two METAs.
+    assert_eq!(report.committed, 10);
+    // Every chain in restore.bin is consecutive: the full history is replayed.
+    assert_eq!(report.skipped, 0);
+    assert_eq!(c.transport.begins, 6);
+
+    // Collections: present ones at their own index, the deleted one not replayed.
+    for collection in &source.collections[..source.collection_count] {
+        let info = c.collection_stat(DOMAIN, collection.index).unwrap();
+        assert_eq!(info.present, collection.present);
+        assert_eq!(info.name(), collection.name());
+        if collection.present {
+            assert_eq!(info.revision, 1, "fresh destination revision");
+            assert_ne!(info.revision, collection.revision);
+        } else {
+            assert_eq!(info.revision, 0, "deleted collection not replayed");
+        }
+    }
+    assert_eq!(c.collection_stat(DOMAIN, 1).unwrap().revision, 0);
+
+    for (slot, archived) in content.iter().enumerate() {
+        let object = (DOMAIN * PER_DOMAIN + slot) as u64;
+        let Some(o) = source.object(slot).filter(|o| o.present) else {
+            // Absent, never written: content-free records are not replayed.
+            assert_eq!(c.stat(object).unwrap_err(), (Status::NotFound, 0));
+            continue;
+        };
+        let stat = c.stat(object).unwrap();
+        let current = &o.versions[0];
+        assert_eq!(&stat.name[..stat.name_length], current.name());
+        assert_eq!(stat.length, current.length);
+        assert_eq!(stat.content_sum, current.content_sum);
+        assert_eq!(
+            (stat.tags, stat.kind, stat.collection),
+            (o.tags, o.kind, o.collection)
+        );
+        assert_eq!(stat.history_count, o.version_count - 1);
+        // One WRITE per version plus META when metadata is set: fresh values,
+        // never the recorded source revisions or stamps.
+        let meta = u64::from(o.tags != 0 || o.kind != 0 || o.collection != 0);
+        assert_eq!(stat.revision, o.version_count as u64 + meta);
+        assert_ne!(stat.revision, o.revision);
+        assert_ne!(stat.version_revision, current.revision);
+        assert!(stat.created < o.created && stat.modified < o.modified);
+        assert!(stat.modified <= 2 * report.writes as u64);
+        assert_eq!(
+            read_version(&mut c, object, stat.revision, 0, stat.length),
+            archived[0]
+        );
+        // History newest first, exactly the archive's order and content.
+        for (i, history) in stat.history[..stat.history_count].iter().enumerate() {
+            let recorded = &o.versions[i + 1];
+            assert_eq!(history.length, recorded.length);
+            assert_eq!(history.content_sum, recorded.content_sum);
+            assert_ne!(history.revision, recorded.revision);
+            assert_eq!(
+                read_version(&mut c, object, stat.revision, i + 1, history.length),
+                archived[i + 1]
+            );
+        }
+    }
+    // History names are not on the wire; the durable table carries them.
+    let table = recover(disk.settled()).unwrap();
+    for o in source.objects[..source.object_count]
+        .iter()
+        .filter(|o| o.present)
+    {
+        let entry = &table.entries[DOMAIN * PER_DOMAIN + o.slot];
+        let names: Vec<&[u8]> = core::iter::once(entry.current.name())
+            .chain(
+                entry.history[..entry.history_count]
+                    .iter()
+                    .map(|v| v.name()),
+            )
+            .collect();
+        let recorded: Vec<&[u8]> = o.versions[..o.version_count]
+            .iter()
+            .map(|v| v.name())
+            .collect();
+        assert_eq!(names, recorded);
+        assert!(entry.history[..entry.history_count]
+            .windows(2)
+            .all(|w| w[0].revision > w[1].revision));
+    }
+    // The domain is now used: a second restore is refused, nothing merged.
+    let mut c = client(&mut service, &mut disk, DOMAIN, None);
+    assert_eq!(restore(&bytes, &mut c).unwrap_err().0, Status::Stale);
+    assert_eq!(c.transport.begins, 0);
+}
+
+#[test]
+fn restore_native_leaves_the_other_domain_alone() {
+    let bytes = fixture("present-only.bin");
+    let mut disk = SimDisk::new();
+    let mut service = Service::new(EPOCH, Table::EMPTY, false);
+    let mut other = client(&mut service, &mut disk, 0, None);
+    let (revision, _) = other.write(0, 0, b"Eigen", 3, |_, b| b.fill(9)).unwrap();
+    let mut c = client(&mut service, &mut disk, DOMAIN, None);
+    // Usage of domain 0 does not make domain 1 used.
+    assert!(archive::never_used(&mut c, DOMAIN).unwrap());
+    restore(&bytes, &mut c).unwrap();
+    let mut other = client(&mut service, &mut disk, 0, None);
+    assert_eq!(other.stat(0).unwrap().revision, revision);
+    assert!(!archive::never_used(&mut other, 0).unwrap());
+}
+
+fn refused_without_writes(
+    bytes: &[u8],
+    status: Status,
+    prepare: impl FnOnce(&mut Client<Watch<Local<'_>>>),
+) {
+    let mut disk = SimDisk::new();
+    let mut service = Service::new(EPOCH, Table::EMPTY, false);
+    let mut c = client(&mut service, &mut disk, DOMAIN, None);
+    prepare(&mut c);
+    let begins = c.transport.begins;
+    let before = archive::never_used(&mut c, DOMAIN).unwrap();
+    let (got, report) = restore(bytes, &mut c).unwrap_err();
+    assert_eq!(got, status);
+    assert_eq!(report, NativeReport::default());
+    assert_eq!(c.transport.begins, begins, "no write was started");
+    // A refusal leaves the domain exactly as it was.
+    assert_eq!(archive::never_used(&mut c, DOMAIN).unwrap(), before);
+}
+
+#[test]
+fn restore_native_refuses_a_used_domain() {
+    let bytes = fixture("present-only.bin");
+    let object = (DOMAIN * PER_DOMAIN + 5) as u64;
+    // Written, deleted and purged: absent again, but not never-used.
+    refused_without_writes(&bytes, Status::Stale, |c| {
+        let (revision, _) = c.write(object, 0, b"Weg", 4, |_, b| b.fill(1)).unwrap();
+        let revision = c.delete(object, revision).unwrap();
+        c.purge(object, revision).unwrap();
+        assert_eq!(c.stat(object).unwrap_err().0, Status::NotFound);
+        assert_ne!(c.stat(object).unwrap_err().1, 0);
+    });
+    // A collection created and deleted again.
+    refused_without_writes(&bytes, Status::Stale, |c| {
+        let revision = c.collection(DOMAIN, 3, 0, b"Kort").unwrap();
+        c.collection(DOMAIN, 3, revision, b"").unwrap();
+        assert!(!c.collection_stat(DOMAIN, 3).unwrap().present);
+    });
+    // A present object.
+    refused_without_writes(&bytes, Status::Stale, |c| {
+        c.write(object, 0, b"Er", 1, |_, b| b.fill(1)).unwrap();
+    });
+}
+
+#[test]
+fn restore_native_refuses_tombstones_corruption_and_v1() {
+    // R2: an archive with TOMBSTONES set is refused even into a fresh domain.
+    for (name, status) in [
+        ("tombstones.bin", Status::Invalid),
+        ("s9-generation.bin", Status::Corrupt),
+        ("v1.bin", Status::Corrupt),
+        ("over-quota.bin", Status::Quota),
+        ("full.bin", Status::Full),
+    ] {
+        refused_without_writes(&fixture(name), status, |c| {
+            assert!(archive::never_used(c, DOMAIN).unwrap())
+        });
+    }
+    // ACCOUNTED content-free records and deleted collections are accepted but not replayed.
+    let mut disk = SimDisk::new();
+    let mut service = Service::new(EPOCH, Table::EMPTY, false);
+    let mut c = client(&mut service, &mut disk, DOMAIN, None);
+    let (report, recorded) = restore(&fixture("accounted.bin"), &mut c).unwrap();
+    assert_eq!(report.restored, 0b0000_0101);
+    assert!(recorded.accounted);
+    assert_eq!(
+        c.stat((DOMAIN * PER_DOMAIN + 6) as u64).unwrap_err(),
+        (Status::NotFound, 0)
+    );
+    assert_eq!(c.collection_stat(DOMAIN, 2).unwrap().revision, 0);
+}
+
+#[test]
+fn restore_native_checks_the_domain_quota_before_the_first_write() {
+    let bytes = fixture("over-quota.bin");
+    let source = verify(&bytes).unwrap();
+    let needed: usize = source.objects[..source.object_count]
+        .iter()
+        .flat_map(|o| o.versions[..o.version_count].iter())
+        .map(|v| v.length.div_ceil(CHUNK))
+        .sum();
+    assert_eq!(needed, volume_core::QUOTA + 1);
+    let mut disk = SimDisk::new();
+    let mut service = Service::new(EPOCH, Table::EMPTY, false);
+    let mut c = client(&mut service, &mut disk, DOMAIN, None);
+    let (status, report) = restore(&bytes, &mut c).unwrap_err();
+    assert_eq!(
+        (status, report.writes, c.transport.begins),
+        (Status::Quota, 0, 0)
+    );
+    // Nothing was committed, so the domain is still never used.
+    assert!(archive::never_used(&mut c, DOMAIN).unwrap());
+}
+
+fn check_retry_refused(service: &mut Service, disk: &mut SimDisk, bytes: &[u8]) {
+    let mut c = client(service, disk, DOMAIN, None);
+    assert!(!archive::never_used(&mut c, DOMAIN).unwrap());
+    let (status, report) = restore(bytes, &mut c).unwrap_err();
+    assert_eq!(
+        (status, report.committed, c.transport.begins),
+        (Status::Stale, 0, 0)
+    );
+    assert!(!archive::never_used(&mut c, DOMAIN).unwrap());
+}
+
+#[test]
+fn a_failed_replay_leaves_the_domain_used_and_a_retry_is_refused() {
+    let bytes = fixture("restore.bin");
+    let mut disk = SimDisk::new();
+    let mut service = Service::new(EPOCH, Table::EMPTY, false);
+    let mut c = client(&mut service, &mut disk, DOMAIN, Some(3));
+    let (status, report) = restore(&bytes, &mut c).unwrap_err();
+    assert_eq!(
+        (status, report.writes, report.committed, report.restored),
+        (Status::Io, 2, 2, 0)
+    );
+    check_retry_refused(&mut service, &mut disk, &bytes);
+}
+
+#[test]
+fn replay_beyond_the_guaranteed_free_chunks_is_refused_before_any_write() {
+    // The volume-wide free count is not observable; every other domain stays
+    // within QUOTA, so only CHUNKS - QUOTA = 24 chunks are guaranteed free.
+    // full.bin needs 25: refused with Full before the first BEGIN, even with
+    // the other domain empty, and the domain stays never used.
+    let bytes = fixture("full.bin");
+    let mut disk = SimDisk::new();
+    let mut service = Service::new(EPOCH, Table::EMPTY, false);
+    let mut c = client(&mut service, &mut disk, DOMAIN, None);
+    let (status, report) = restore(&bytes, &mut c).unwrap_err();
+    assert_eq!(
+        (status, report.writes, report.restored),
+        (Status::Full, 0, 0)
+    );
+    assert_eq!(archive::never_used(&mut c, DOMAIN), Ok(true));
+}
+
+#[test]
+fn replay_within_the_guaranteed_free_chunks_succeeds_beside_a_full_domain() {
+    // The other domain holds its whole quota (40 of 64 chunks).
+    let bytes = fixture("restore.bin");
+    let mut disk = SimDisk::new();
+    let mut service = Service::new(EPOCH, Table::EMPTY, false);
+    let mut other = client(&mut service, &mut disk, 0, None);
+    for (object, length) in [(0u64, MAX_LENGTH), (1, MAX_LENGTH), (2, 8 * CHUNK)] {
+        other
+            .write(object, 0, b"Vol", length, |_, b| b.fill(3))
+            .unwrap();
+    }
+    let mut c = client(&mut service, &mut disk, DOMAIN, None);
+    restore(&bytes, &mut c).unwrap();
+    assert_eq!(archive::never_used(&mut c, DOMAIN), Ok(false));
+}
+
+/// A source that changes between passes: the replay must not act on bytes
+/// the verify pass did not see.
+#[test]
+fn replay_passes_must_match_the_verified_archive() {
+    let good = fixture("present-only.bin");
+    let other = fixture("restore.bin");
+    let mut disk = SimDisk::new();
+    let mut service = Service::new(EPOCH, Table::EMPTY, false);
+    let mut c = client(&mut service, &mut disk, DOMAIN, None);
+    let mut opened = 0;
+    let (status, report) = archive::restore_native(
+        || {
+            opened += 1;
+            reader(if opened == 1 { &good } else { &other })
+        },
+        &mut scratch(),
+        &mut c,
+        DOMAIN,
+        &mut ArchiveV2::default(),
+    )
+    .unwrap_err();
+    assert_eq!((status, report.committed), (Status::Corrupt, 0));
+    // The mismatch is found before the first BEGIN: the domain is untouched.
+    assert_eq!(archive::never_used(&mut c, DOMAIN), Ok(true));
+}
+
+#[test]
+fn a_staged_upload_in_the_destination_makes_the_first_begin_busy() {
+    // Scenario B: a token-bound upload staged (not committed) in the
+    // destination domain. The domain is still never used; the replay's first
+    // mutation is a BEGIN, refused with Busy, so nothing commits.
+    let bytes = fixture("present-only.bin");
+    let mut disk = SimDisk::new();
+    let mut service = Service::new(EPOCH, Table::EMPTY, false);
+    let mut begin = wire::Header::new(wire::BEGIN, 2, EPOCH, (DOMAIN * PER_DOMAIN + 3) as u64);
+    begin.length = 4;
+    begin.name_length = 4;
+    begin.aux = 10;
+    let response = service.handle_for(DOMAIN, 77, &upload::encode(&begin, b"Half", 0), &mut disk);
+    let reply = upload::validate_reply(&begin, 0, &response, EPOCH).unwrap();
+    assert_eq!(Status::from_code(i64::from(reply.status)), Status::Ok);
+    let mut c = client(&mut service, &mut disk, DOMAIN, None);
+    assert_eq!(archive::never_used(&mut c, DOMAIN), Ok(true));
+    let (status, report) = restore(&bytes, &mut c).unwrap_err();
+    assert_eq!(
+        (status, report.writes, report.committed, report.restored),
+        (Status::Busy, 0, 0, 0)
+    );
+    assert_eq!(archive::never_used(&mut c, DOMAIN), Ok(true));
+    // Once the staged upload is gone the same restore succeeds.
+    assert_eq!(service.detach(77), 1);
+    let mut c = client(&mut service, &mut disk, DOMAIN, None);
+    assert_eq!(restore(&bytes, &mut c).unwrap().0.restored, 0b0000_0101);
+}
+
+/// Fill the other domain to its quota: 40 committed chunks, or 32 committed
+/// plus 8 staged in an open upload session.
+fn fill_other_domain(service: &mut Service, disk: &mut SimDisk, staged: bool) {
+    let mut other = client(service, disk, 0, None);
+    other
+        .write(0, 0, b"Vol", MAX_LENGTH, |_, b| b.fill(3))
+        .unwrap();
+    other
+        .write(1, 0, b"Vol", MAX_LENGTH, |_, b| b.fill(3))
+        .unwrap();
+    if staged {
+        other
+            .write_partial(2, 0, b"Half", 8 * CHUNK, CHUNK, |_, b| b.fill(4))
+            .unwrap();
+        assert!(service.session(0).is_some());
+    } else {
+        other
+            .write(2, 0, b"Vol", 8 * CHUNK, |_, b| b.fill(3))
+            .unwrap();
+    }
+}
+
+#[test]
+fn exactly_the_guaranteed_free_chunks_restore_beside_a_full_domain() {
+    assert_eq!(archive::GUARANTEED_FREE, 24);
+    let bytes = fixture("free-24.bin");
+    for staged in [false, true] {
+        let mut disk = SimDisk::new();
+        let mut service = Service::new(EPOCH, Table::EMPTY, false);
+        fill_other_domain(&mut service, &mut disk, staged);
+        let mut c = client(&mut service, &mut disk, DOMAIN, None);
+        let (report, _) =
+            restore(&bytes, &mut c).unwrap_or_else(|e| panic!("staged={staged}: {e:?}"));
+        assert_eq!((report.restored, report.writes), (0xff, 24));
+        assert_eq!(
+            service.table().domain_chunks(DOMAIN),
+            archive::GUARANTEED_FREE
+        );
+    }
+}
+
+#[test]
+fn accepted_boundaries_restore() {
+    let bytes = fixture("boundary.bin");
+    let mut disk = SimDisk::new();
+    let mut service = Service::new(EPOCH, Table::EMPTY, false);
+    let mut c = client(&mut service, &mut disk, DOMAIN, None);
+    restore(&bytes, &mut c).unwrap();
+    let stat = c.stat((DOMAIN * PER_DOMAIN + 7) as u64).unwrap();
+    assert_eq!(
+        (stat.length, stat.name_length, stat.collection),
+        (MAX_LENGTH, 32, 4)
+    );
+    assert_eq!(c.collection_stat(DOMAIN, 4).unwrap().name_length, 32);
+}
+
+#[test]
+fn versions_after_a_revision_gap_are_not_replayed() {
+    // Owner decision (19 November 2026): versions that may predate a DELETE
+    // are refused. Only the prefix with revision steps of exactly 1 replays.
+    let bytes = fixture("delete-gap.bin");
+    let source = verify(&bytes).unwrap();
+    let content = contents(&bytes);
+    let prefix = |slot| archive::replayable(source.object(slot).unwrap());
+    assert_eq!((prefix(0), prefix(2), prefix(4), prefix(7)), (1, 2, 1, 1));
+    assert_eq!(
+        archive::replayable(verify(&fixture("restore.bin")).unwrap().object(1).unwrap()),
+        3
+    );
+    // Counting the skipped versions would exceed the guaranteed free chunks.
+    let all: usize = source.objects[..source.object_count]
+        .iter()
+        .flat_map(|o| o.versions[..o.version_count].iter())
+        .map(|v| v.length.div_ceil(CHUNK))
+        .sum();
+    assert!(all > archive::GUARANTEED_FREE, "{all}");
+
+    let mut disk = SimDisk::new();
+    let mut service = Service::new(EPOCH, Table::EMPTY, false);
+    let mut c = client(&mut service, &mut disk, DOMAIN, None);
+    let (report, _) = restore(&bytes, &mut c).unwrap();
+    assert_eq!((report.writes, report.skipped), (7, 6));
+    assert_eq!(report.restored, 0b1111_0101);
+    // Seven one-chunk versions replayed; nothing of the skipped ones stored.
+    assert_eq!(service.table().domain_chunks(DOMAIN), 7);
+    let mut c = client(&mut service, &mut disk, DOMAIN, None);
+    let mut readable = Vec::new();
+    for (slot, archived) in content.iter().enumerate() {
+        let object = (DOMAIN * PER_DOMAIN + slot) as u64;
+        let Ok(stat) = c.stat(object) else { continue };
+        let o = source.object(slot).unwrap();
+        let replayed = archive::replayable(o);
+        assert_eq!(stat.history_count, replayed - 1, "slot {slot}");
+        for selector in 0..replayed {
+            let length = if selector == 0 {
+                stat.length
+            } else {
+                stat.history[selector - 1].length
+            };
+            let got = read_version(&mut c, object, stat.revision, selector, length);
+            assert_eq!(got, archived[selector], "slot {slot} version {selector}");
+            readable.push(got);
+        }
+    }
+    assert_eq!(readable.len(), 7);
+    for skipped in content
+        .iter()
+        .flat_map(|versions| versions.iter().filter(|v| v.len() > CHUNK))
+    {
+        assert!(!readable.contains(skipped));
+    }
+    // The durable table holds exactly the replayed prefixes, names included.
+    let table = recover(disk.settled()).unwrap();
+    for o in source.objects[..source.object_count].iter() {
+        let entry = &table.entries[DOMAIN * PER_DOMAIN + o.slot];
+        let names: Vec<&[u8]> = core::iter::once(entry.current.name())
+            .chain(
+                entry.history[..entry.history_count]
+                    .iter()
+                    .map(|v| v.name()),
+            )
+            .collect();
+        let recorded: Vec<&[u8]> = o.versions[..archive::replayable(o)]
+            .iter()
+            .map(|v| v.name())
+            .collect();
+        assert_eq!(names, recorded, "slot {}", o.slot);
+        assert!(entry.versions().all(|v| v.length <= CHUNK));
+    }
+}

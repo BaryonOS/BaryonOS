@@ -1,0 +1,232 @@
+absent-object-with-kind.bin refused invalid object record
+accounted.bin archive 0 1 23 20 44 892
+accounted.bin collection 1 1 3 5765726b
+accounted.bin collection 2 0 5 -
+accounted.bin object 0 1 0 0 0 4 1 4 1
+accounted.bin version 0 0 1 0 14695981039346656037 4c656567
+accounted.bin object 2 1 1 4 17 9 2 12 3
+accounted.bin version 2 0 8 40 14541262272191130397 4e6f746974696520e29c93
+accounted.bin version 2 1 6 3 1871152294624226095 4e6f7469746965
+accounted.bin version 2 2 2 1 12638187200555641996 4565727374
+accounted.bin object 6 0 0 0 0 2 5 6 0
+boundary.bin archive 0 0 5 3 65536 65872
+boundary.bin collection 4 1 2 6363636363636363636363636363636363636363636363636363636363636363
+boundary.bin object 7 1 4 0 1 3 1 3 1
+boundary.bin version 7 0 3 65536 2216012086724862757 6e6e6e6e6e6e6e6e6e6e6e6e6e6e6e6e6e6e6e6e6e6e6e6e6e6e6e6e6e6e6e6e
+content-free-unaccounted.bin refused content-free record without the accounted flag
+delete-gap.bin archive 0 0 6598 1000 73745 75489
+delete-gap.bin collection 1 1 900 4d6170
+delete-gap.bin object 0 1 1 0 0 961 901 961 2
+delete-gap.bin version 0 0 960 5 4404042428265064291 4e69657577
+delete-gap.bin version 0 1 958 12289 3864029781380402535 4f7564
+delete-gap.bin object 2 1 0 0 0 955 902 955 3
+delete-gap.bin version 2 0 955 1 12638136623020744290 44726965
+delete-gap.bin version 2 1 954 1 12638137722532372501 54776565
+delete-gap.bin version 2 2 950 12289 3864029781380402535 45656e
+delete-gap.bin object 4 1 0 0 0 944 903 944 2
+delete-gap.bin version 4 0 944 1 12638148717648654611 6b34
+delete-gap.bin version 4 1 934 12289 3864029781380402535 7834
+delete-gap.bin object 5 1 0 0 0 945 903 945 2
+delete-gap.bin version 5 0 945 1 12638147618137026400 6b35
+delete-gap.bin version 5 1 935 12289 3864029781380402535 7835
+delete-gap.bin object 6 1 0 0 0 946 903 946 2
+delete-gap.bin version 6 0 946 1 12638150916671911033 6b36
+delete-gap.bin version 6 1 936 12289 3864029781380402535 7836
+delete-gap.bin object 7 1 0 0 0 947 903 947 2
+delete-gap.bin version 7 0 947 1 12638149817160282822 6b37
+delete-gap.bin version 7 1 937 12289 3864029781380402535 7837
+deleted-collection-unaccounted.bin refused deleted collection without the accounted flag
+free-24.bin archive 0 0 245 30 24 2728
+free-24.bin collection 1 1 5 47726f6f74
+free-24.bin object 0 1 1 0 0 30 1 30 3
+free-24.bin version 0 0 30 1 12638152016183539244 663030
+free-24.bin version 0 1 29 1 12638152016183539244 663031
+free-24.bin version 0 2 28 1 12638152016183539244 663032
+free-24.bin object 1 1 0 0 0 30 1 30 3
+free-24.bin version 1 0 30 1 12638155314718423877 663130
+free-24.bin version 1 1 29 1 12638155314718423877 663131
+free-24.bin version 1 2 28 1 12638155314718423877 663132
+free-24.bin object 2 1 0 0 0 30 1 30 3
+free-24.bin version 2 0 30 1 12638154215206795666 663230
+free-24.bin version 2 1 29 1 12638154215206795666 663231
+free-24.bin version 2 2 28 1 12638154215206795666 663232
+free-24.bin object 3 1 0 0 0 30 1 30 3
+free-24.bin version 3 0 30 1 12638148717648654611 663330
+free-24.bin version 3 1 29 1 12638148717648654611 663331
+free-24.bin version 3 2 28 1 12638148717648654611 663332
+free-24.bin object 4 1 0 0 0 30 1 30 3
+free-24.bin version 4 0 30 1 12638147618137026400 663430
+free-24.bin version 4 1 29 1 12638147618137026400 663431
+free-24.bin version 4 2 28 1 12638147618137026400 663432
+free-24.bin object 5 1 0 0 0 30 1 30 3
+free-24.bin version 5 0 30 1 12638150916671911033 663530
+free-24.bin version 5 1 29 1 12638150916671911033 663531
+free-24.bin version 5 2 28 1 12638150916671911033 663532
+free-24.bin object 6 1 0 0 0 30 1 30 3
+free-24.bin version 6 0 30 1 12638149817160282822 663630
+free-24.bin version 6 1 29 1 12638149817160282822 663631
+free-24.bin version 6 2 28 1 12638149817160282822 663632
+free-24.bin object 7 1 0 0 0 30 1 30 3
+free-24.bin version 7 0 30 1 12638161911788193143 663730
+free-24.bin version 7 1 29 1 12638161911788193143 663731
+free-24.bin version 7 2 28 1 12638161911788193143 663732
+full.bin archive 0 0 245 30 4120 6824
+full.bin collection 1 1 5 47726f6f74
+full.bin object 0 1 1 0 0 30 1 30 3
+full.bin version 0 0 30 1 12638152016183539244 663030
+full.bin version 0 1 29 1 12638152016183539244 663031
+full.bin version 0 2 28 1 12638152016183539244 663032
+full.bin object 1 1 0 0 0 30 1 30 3
+full.bin version 1 0 30 1 12638155314718423877 663130
+full.bin version 1 1 29 1 12638155314718423877 663131
+full.bin version 1 2 28 1 12638155314718423877 663132
+full.bin object 2 1 0 0 0 30 1 30 3
+full.bin version 2 0 30 1 12638154215206795666 663230
+full.bin version 2 1 29 1 12638154215206795666 663231
+full.bin version 2 2 28 1 12638154215206795666 663232
+full.bin object 3 1 0 0 0 30 1 30 3
+full.bin version 3 0 30 1 12638148717648654611 663330
+full.bin version 3 1 29 1 12638148717648654611 663331
+full.bin version 3 2 28 1 12638148717648654611 663332
+full.bin object 4 1 0 0 0 30 1 30 3
+full.bin version 4 0 30 1 12638147618137026400 663430
+full.bin version 4 1 29 1 12638147618137026400 663431
+full.bin version 4 2 28 1 12638147618137026400 663432
+full.bin object 5 1 0 0 0 30 1 30 3
+full.bin version 5 0 30 1 12638150916671911033 663530
+full.bin version 5 1 29 1 12638150916671911033 663531
+full.bin version 5 2 28 1 12638150916671911033 663532
+full.bin object 6 1 0 0 0 30 1 30 3
+full.bin version 6 0 30 1 12638149817160282822 663630
+full.bin version 6 1 29 1 12638149817160282822 663631
+full.bin version 6 2 28 1 12638149817160282822 663632
+full.bin object 7 1 0 0 0 30 1 30 3
+full.bin version 7 0 30 4097 6092789959002785143 663730
+full.bin version 7 1 29 1 12638161911788193143 663731
+full.bin version 7 2 28 1 12638161911788193143 663732
+header-byte-11.bin refused invalid archive header
+header-byte-40.bin refused invalid archive header
+header-byte-55.bin refused invalid archive header
+header-content-above-records.bin refused invalid archive trailer
+header-unknown-flag.bin refused invalid archive header
+header-versions-above-records.bin refused invalid archive trailer
+object-in-deleted-collection.bin refused invalid object record
+object-reserved-byte.bin refused invalid object record
+over-quota.bin archive 0 0 245 30 69656 72360
+over-quota.bin collection 1 1 5 47726f6f74
+over-quota.bin object 0 1 1 0 0 30 1 30 3
+over-quota.bin version 0 0 30 4097 14777490154510788140 713030
+over-quota.bin version 0 1 29 4097 14777490154510788140 713031
+over-quota.bin version 0 2 28 4097 14777490154510788140 713032
+over-quota.bin object 1 1 0 0 0 30 1 30 3
+over-quota.bin version 1 0 30 4097 6631838780236872517 713130
+over-quota.bin version 1 1 29 4097 6631838780236872517 713131
+over-quota.bin version 1 2 28 4097 6631838780236872517 713132
+over-quota.bin object 2 1 0 0 0 30 1 30 3
+over-quota.bin version 2 0 30 4097 12770031812413041042 713230
+over-quota.bin version 2 1 29 4097 12770031812413041042 713231
+over-quota.bin version 2 2 28 4097 12770031812413041042 713232
+over-quota.bin object 3 1 0 0 0 30 1 30 3
+over-quota.bin version 3 0 30 4097 5277525086349177107 713330
+over-quota.bin version 3 1 29 4097 5277525086349177107 713331
+over-quota.bin version 3 2 28 4097 5277525086349177107 713332
+over-quota.bin object 4 1 0 0 0 30 1 30 3
+over-quota.bin version 4 0 30 4097 14399430948740898656 713430
+over-quota.bin version 4 1 29 4097 14399430948740898656 713431
+over-quota.bin version 4 2 28 4097 14399430948740898656 713432
+over-quota.bin object 5 1 0 0 0 30 1 30 3
+over-quota.bin version 5 0 30 4097 12411962763064276089 713530
+over-quota.bin version 5 1 29 4097 12411962763064276089 713531
+over-quota.bin version 5 2 28 1 12638150916671911033 713532
+over-quota.bin object 6 1 0 0 0 30 1 30 3
+over-quota.bin version 6 0 30 1 12638149817160282822 713630
+over-quota.bin version 6 1 29 1 12638149817160282822 713631
+over-quota.bin version 6 2 28 1 12638149817160282822 713632
+over-quota.bin object 7 1 0 0 0 30 1 30 3
+over-quota.bin version 7 0 30 1 12638161911788193143 713730
+over-quota.bin version 7 1 29 1 12638161911788193143 713731
+over-quota.bin version 7 2 28 1 12638161911788193143 713732
+present-only.bin archive 0 0 16 20 44 700
+present-only.bin collection 1 1 3 5765726b
+present-only.bin object 0 1 0 0 0 4 1 4 1
+present-only.bin version 0 0 1 0 14695981039346656037 4c656567
+present-only.bin object 2 1 1 4 17 9 2 12 3
+present-only.bin version 2 0 8 40 14541262272191130397 4e6f746974696520e29c93
+present-only.bin version 2 1 6 3 1871152294624226095 4e6f7469746965
+present-only.bin version 2 2 2 1 12638187200555641996 4565727374
+restore.bin archive 0 1 6498 1000 13090 14258
+restore.bin collection 2 1 901 41726368696566
+restore.bin collection 3 0 902 -
+restore.bin collection 4 1 903 466f746f2773
+restore.bin object 1 1 4 7 32769 950 910 960 3
+restore.bin version 1 0 950 8209 15155703102901063823 506c616e207633
+restore.bin version 1 1 949 4097 14746066253670546799 506c616e207632
+restore.bin version 1 2 948 1 12638205892253321583 506c616e
+restore.bin object 3 1 0 0 0 945 920 945 1
+restore.bin version 3 0 944 15 14641083508162807964 4b61616c
+restore.bin object 4 1 2 0 0 948 921 948 2
+restore.bin version 4 0 947 768 5707121841473674277 4c696a7374
+restore.bin version 4 1 946 0 14695981039346656037 4c696a7374
+restore.bin object 7 0 0 0 0 949 930 949 0
+s1-version-revision-zero.bin refused version revision is zero
+s10-chunk-budget.bin refused chunk usage exceeds the domain quota
+s2-newest-version-above-object.bin refused newest version revision exceeds
+s3-not-decreasing.bin refused not strictly decreasing
+s4-created-zero.bin refused created stamp is zero
+s5-created-after-modified.bin refused created stamp after modified
+s6-modified-above-clock.bin refused modified stamp exceeds
+s7-object-revision-above-clock.bin refused object revision exceeds
+s8-collection-revision-above-clock.bin refused collection revision exceeds
+s9-generation.bin refused differs from the domain generation
+struct-absent-object-with-collection.bin refused invalid object record
+struct-absent-object-with-tags.bin refused invalid object record
+struct-collection-deleted-with-name.bin refused invalid collection record
+struct-collection-index-0.bin refused invalid collection record
+struct-collection-index-5.bin refused invalid collection record
+struct-collection-index-not-ascending.bin refused invalid collection record
+struct-collection-invalid-name.bin refused invalid collection record
+struct-collection-name-length-33.bin refused invalid collection record
+struct-collection-name-padding.bin refused invalid collection record
+struct-collection-reserved-byte.bin refused invalid collection record
+struct-collection-revision-0.bin refused invalid collection record
+struct-collection-state-2.bin refused invalid collection record
+struct-collection-tail-byte.bin refused invalid collection record
+struct-header-collection-count-5.bin refused invalid archive header
+struct-header-content-above-versions.bin refused invalid archive header
+struct-header-content-below-records.bin refused exceed the header counts
+struct-header-object-count-9.bin refused invalid archive header
+struct-header-version-count-25.bin refused invalid archive header
+struct-header-versions-below-records.bin refused exceed the header counts
+struct-history-count-3.bin refused invalid object record
+struct-object-byte-12.bin refused invalid object record
+struct-object-byte-40.bin refused invalid object record
+struct-object-byte-6.bin refused invalid object record
+struct-object-collection-5.bin refused invalid object record
+struct-object-collection-not-archived.bin refused invalid object record
+struct-object-revision-0.bin refused invalid object record
+struct-object-slot-8.bin refused invalid object record
+struct-object-slot-not-ascending.bin refused invalid object record
+struct-object-state-2.bin refused invalid object record
+struct-version-content-checksum.bin refused content checksum
+struct-version-invalid-name.bin refused invalid version record
+struct-version-length-65537.bin refused invalid version record
+struct-version-name-length-0.bin refused invalid version record
+struct-version-name-length-33.bin refused invalid version record
+struct-version-name-padding.bin refused invalid version record
+tombstone-unflagged.bin refused tombstone without the tombstone flag
+tombstones.bin archive 1 1 30 20 56 1160
+tombstones.bin collection 1 1 3 5765726b
+tombstones.bin collection 2 0 5 -
+tombstones.bin object 0 1 0 0 0 4 1 4 1
+tombstones.bin version 0 0 1 0 14695981039346656037 4c656567
+tombstones.bin object 2 1 1 4 17 9 2 12 3
+tombstones.bin version 2 0 8 40 14541262272191130397 4e6f746974696520e29c93
+tombstones.bin version 2 1 6 3 1871152294624226095 4e6f7469746965
+tombstones.bin version 2 2 2 1 12638187200555641996 4565727374
+tombstones.bin object 5 0 0 0 0 7 4 7 2
+tombstones.bin version 5 0 7 10 3134335520915403029 576567
+tombstones.bin version 5 1 3 2 634738200219259176 576567
+tombstones.bin object 6 0 0 0 0 2 5 6 0
+trailing-byte.bin refused bytes after the archive trailer
+v1.bin refused invalid archive header
+version-reserved-byte.bin refused invalid version record
