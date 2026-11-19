@@ -9,6 +9,13 @@ use capability_core::{
     BlockScope, Engine, Message, BLOCK_FLUSH, BLOCK_READ, BLOCK_WRITE, RECV, SEND,
 };
 use virtio_blk_driver::{Device, Discovery, DmaPool};
+
+// The system harnesses put virtio-rng on 00:06.0, and power_gate and
+// broker_summary describe device 0 only.
+#[cfg(all(feature = "test-volume-archive-device", feature = "native-system"))]
+compile_error!(
+    "test-volume-archive-device is a volume-fixture feature, never part of native-system"
+);
 use virtio_core::{Binding, Completion, Operation, Phase, Policy};
 
 /// Completion budget in 100 Hz timer ticks; see the M6c broker for the
@@ -36,6 +43,20 @@ const _: () = assert!(FIRST_SECTOR + SECTORS <= ARCHIVE_FIRST_SECTOR);
 /// the exported fixture archive needs (180).
 const FULL_SECTORS: u64 = 100;
 const _: () = assert!(FULL_SECTORS < ARCHIVE_SECTORS);
+/// Test-only second disk (S09 archive device cases 13..=19): its one BAR is
+/// mapped compactly in the free MMIO window above the device-0 BAR windows
+/// (0x3f000000 + index * 64 KiB, at most 0x3f060000) and below the keyring
+/// rng windows (0x3f080000..). The portal's archive scope on that disk starts
+/// at sector 0 and must end below its capacity, so the past-the-end probe
+/// is refused by the scope, not the device.
+const DEVICE1_MMIO: u64 = 0x3f060000;
+const DEVICE1_MMIO_SIZE: u64 = 0x20000;
+const _: () = assert!(
+    0x3f000000 + 6 * 65536 <= DEVICE1_MMIO && DEVICE1_MMIO + DEVICE1_MMIO_SIZE <= 0x3f080000
+);
+/// Completed archive-device writes after which the power-cut case stops the
+/// guest: the header sector has landed, the archive (about 180 sectors) has not.
+const ARCHIVE_CUT_WRITES: u64 = 20;
 
 #[derive(Clone, Copy)]
 struct AppEvidence {
@@ -73,18 +94,41 @@ const NO_APP: AppEvidence = AppEvidence {
     ustar_bytes: 0,
 };
 
-struct Runtime {
+/// One virtio-blk device of the broker: lane 0 is 00:05.0 (every profile),
+/// lane 1 the test-only archive disk on 00:06.0.
+struct Lane {
     info: Option<Discovery>,
     mapped: [u64; 6],
     device: Option<Device>,
     pool: DmaPool,
+    offline: i64,
+    quarantined: bool,
+}
+const NO_LANE: Lane = Lane {
+    info: None,
+    mapped: [0; 6],
+    device: None,
+    pool: DmaPool {
+        descriptors: 0,
+        available: 0,
+        used: 0,
+        request: 0,
+        bounce: 0,
+    },
+    offline: 0,
+    quarantined: false,
+};
+
+struct Runtime {
+    lanes: [Lane; 2],
+    /// Lane of the single outstanding (or resetting) request: one global
+    /// Policy admits at most one request across both devices.
+    active: usize,
     policy: Policy,
     data: [u8; 512],
     error: Option<(virtio_core::Request, i64)>,
-    offline: i64,
     resetting: bool,
     reset_deadline: u64,
-    quarantined: bool,
     now: u64,
     roots: [u64; 2],
     replies: [u64; 2],
@@ -107,25 +151,24 @@ struct Runtime {
     /// Block object of the portal's archive range (archive fixtures only).
     archive_key: Option<u64>,
     archive_ops: [u64; 3],
+    /// Publications per lane and operation (READ, WRITE, FLUSH).
+    device_ops: [[u64; 3]; 2],
+    /// Completed lane-1 writes (power-cut case).
+    device1_writes: u64,
+    /// Manifest-time kernel probes of the portal's device-1 handle value in
+    /// the service and slot 2 that were refused (no such handle there).
+    device1_denials: u64,
+    /// Portal requests past the end of its archive scope, refused by the scope.
+    scope_refusals: u64,
 }
 static mut RUNTIME: Runtime = Runtime {
-    info: None,
-    mapped: [0; 6],
-    device: None,
-    pool: DmaPool {
-        descriptors: 0,
-        available: 0,
-        used: 0,
-        request: 0,
-        bounce: 0,
-    },
+    lanes: [NO_LANE, NO_LANE],
+    active: 0,
     policy: Policy::new(),
     data: [0; 512],
     error: None,
-    offline: 0,
     resetting: false,
     reset_deadline: 0,
-    quarantined: false,
     now: 0,
     roots: [0; 2],
     replies: [0; 2],
@@ -147,6 +190,10 @@ static mut RUNTIME: Runtime = Runtime {
     finish: false,
     archive_key: None,
     archive_ops: [0; 3],
+    device_ops: [[0; 3]; 2],
+    device1_writes: 0,
+    device1_denials: 0,
+    scope_refusals: 0,
 };
 fn runtime() -> &'static mut Runtime {
     // SAFETY: Entered with KERNEL held and IF0 on the permanent kernel stack.
@@ -214,7 +261,10 @@ pub(super) fn power_gate() -> Result<(), i64> {
     if r.resetting || r.policy.phase() == Phase::Published {
         return Err(-8);
     }
-    if r.offline != 0 || r.error.is_some() || power_track().dirty || r.publications != r.completions
+    if r.lanes[0].offline != 0
+        || r.error.is_some()
+        || power_track().dirty
+        || r.publications != r.completions
     {
         return Err(-16);
     }
@@ -246,6 +296,20 @@ fn case() -> u64 {
         11
     } else if cfg!(feature = "test-volume-archive-ustar") {
         12
+    } else if cfg!(feature = "test-volume-archive-disk-export") {
+        13
+    } else if cfg!(feature = "test-volume-archive-disk-restore") {
+        14
+    } else if cfg!(feature = "test-volume-archive-disk-absent") {
+        15
+    } else if cfg!(feature = "test-volume-archive-disk-small") {
+        16
+    } else if cfg!(feature = "test-volume-archive-disk-wrong") {
+        17
+    } else if cfg!(feature = "test-volume-archive-disk-cut") {
+        18
+    } else if cfg!(feature = "test-volume-archive-disk-verify") {
+        19
     } else {
         0
     }
@@ -258,7 +322,30 @@ fn read_only() -> bool {
 /// export) writes only the archive range: the device stays writable, but the
 /// volume service receives READ alone.
 fn service_read_only() -> bool {
-    read_only() || matches!(case(), 7 | 11 | 12)
+    read_only() || matches!(case(), 7 | 11 | 12 | 13 | 15 | 16)
+}
+/// Portal flow for word 112: the archive-device cases reuse the device-0
+/// flows (the portal addresses its scope relatively); absent (15) and the
+/// power cut (18) have flows of their own.
+fn flow() -> u64 {
+    match case() {
+        13 => 7,
+        14 => 8,
+        16 => 11,
+        17 | 19 => 9,
+        other => other,
+    }
+}
+/// Archive-device cases: the portal's grant is on device 1, except the
+/// wrong-device case (17), where device 1 holds the archive but the portal
+/// is granted the device-0 archive range.
+fn archive_device() -> bool {
+    matches!(case(), 13..=16 | 18 | 19)
+}
+/// Device 1 negotiates writes in the export, too-small and power-cut cases;
+/// restore, wrong-device and verify attach it read-only.
+fn device1_writable() -> bool {
+    matches!(case(), 13 | 15 | 16 | 18)
 }
 fn marker() -> &'static [u8] {
     match case() {
@@ -272,6 +359,12 @@ fn marker() -> &'static [u8] {
         10 => b"VOLUME:CASE:ARCHIVE_CONFLICT:PASS\n",
         11 => b"VOLUME:CASE:ARCHIVE_FULL:PASS\n",
         12 => b"VOLUME:CASE:ARCHIVE_USTAR:PASS\n",
+        13 => b"VOLUME:CASE:ARCHIVE_DISK_EXPORT:PASS\n",
+        14 => b"VOLUME:CASE:ARCHIVE_DISK_RESTORE:PASS\n",
+        15 => b"VOLUME:CASE:ARCHIVE_DISK_ABSENT:PASS\n",
+        16 => b"VOLUME:CASE:ARCHIVE_DISK_SMALL:PASS\n",
+        17 => b"VOLUME:CASE:ARCHIVE_DISK_WRONG:PASS\n",
+        19 => b"VOLUME:CASE:ARCHIVE_DISK_VERIFY:PASS\n",
         _ => b"VOLUME:FAIL:CUT_NOT_OBSERVED\n",
     }
 }
@@ -304,7 +397,7 @@ fn word(s: &State, slot: usize, offset: u64) -> u64 {
     read_word(s.processes[slot].physical(DATA + offset))
 }
 
-pub fn prepare(frames: &mut Frames<FRAME_COUNT>, kernel: &mut Paging) {
+fn dma_pool(frames: &mut Frames<FRAME_COUNT>, kernel: &mut Paging) -> DmaPool {
     let mut pages = [0; 5];
     for page in &mut pages {
         *page = frames
@@ -320,11 +413,54 @@ pub fn prepare(frames: &mut Frames<FRAME_COUNT>, kernel: &mut Paging) {
         bounce: pages[4],
     };
     pool.validate(PAGE * FRAME_COUNT as u64).unwrap();
-    runtime().pool = pool;
+    pool
+}
+fn pool_pages(pool: DmaPool) -> [u64; 5] {
+    [
+        pool.descriptors,
+        pool.available,
+        pool.used,
+        pool.request,
+        pool.bounce,
+    ]
+}
+/// Map the validated BAR subregions one page at a time, supervisor NX/UC.
+fn map_regions(
+    frames: &mut Frames<FRAME_COUNT>,
+    kernel: &mut Paging,
+    info: &Discovery,
+    mapped: &[u64; 6],
+) {
+    for region in [
+        info.regions.common,
+        info.regions.notify,
+        info.regions.isr,
+        info.regions.device,
+    ] {
+        let index = region.bar as usize;
+        let bar = info.bars[index];
+        let first = u64::from(region.offset) & !(PAGE - 1);
+        let end = (u64::from(region.offset) + u64::from(region.length) + PAGE - 1) & !(PAGE - 1);
+        for offset in (first..end).step_by(PAGE as usize) {
+            let va = mapped[index] + offset;
+            let pa = bar.base + offset;
+            if kernel.leaf(va) == 0 {
+                kernel.map_mmio(frames, va, pa).unwrap();
+            }
+            assert_eq!(kernel.leaf(va) & (4 | NX | 8 | 16), NX | 8 | 16);
+        }
+    }
+}
+
+pub fn prepare(frames: &mut Frames<FRAME_COUNT>, kernel: &mut Paging) {
+    let pool = dma_pool(frames, kernel);
+    runtime().lanes[0].pool = pool;
+    #[cfg(feature = "test-volume-archive-device")]
+    prepare_archive_device(frames, kernel);
     let info = match virtio_blk_driver::discover() {
         Ok(i) => i,
         Err(_) => {
-            runtime().offline = -14;
+            runtime().lanes[0].offline = -14;
             return;
         }
     };
@@ -339,32 +475,81 @@ pub fn prepare(frames: &mut Frames<FRAME_COUNT>, kernel: &mut Paging) {
         let bar = info.bars[index];
         assert!(bar.base >= 0x80000000 && bar.size <= 65536);
         mapped[index] = 0x3f000000 + index as u64 * 65536;
-        let first = u64::from(region.offset) & !(PAGE - 1);
-        let end = (u64::from(region.offset) + u64::from(region.length) + PAGE - 1) & !(PAGE - 1);
-        for offset in (first..end).step_by(PAGE as usize) {
-            let va = mapped[index] + offset;
-            let pa = bar.base + offset;
-            if kernel.leaf(va) == 0 {
-                kernel.map_mmio(frames, va, pa).unwrap();
-            }
-            assert_eq!(kernel.leaf(va) & (4 | NX | 8 | 16), NX | 8 | 16);
-        }
     }
+    map_regions(frames, kernel, &info, &mapped);
     // SAFETY: All validated BAR subregions have permanent supervisor UC/NX
     // mappings; five distinct owned kernel RAM pages remain pinned to reboot.
     let device = unsafe { Device::initialize_profile(info, mapped, pool, !read_only(), false) };
     let r = runtime();
-    r.info = Some(info);
-    r.mapped = mapped;
+    r.lanes[0].info = Some(info);
+    r.lanes[0].mapped = mapped;
     match device {
         Ok(d) => {
-            r.device = Some(d);
+            r.lanes[0].device = Some(d);
             r.policy.reset_completed(true).unwrap();
         }
         Err(_) => {
-            r.offline = -14;
-            r.quarantined = true;
+            r.lanes[0].offline = -14;
+            r.lanes[0].quarantined = true;
         }
+    }
+}
+
+/// Test-only archive disk on 00:06.0. Absence or any failure sets lane 1
+/// offline (-14) and never touches lane 0. The Policy's first
+/// reset_completed belongs to lane 0, which brings it up after this.
+#[cfg(feature = "test-volume-archive-device")]
+fn prepare_archive_device(frames: &mut Frames<FRAME_COUNT>, kernel: &mut Paging) {
+    let pool = dma_pool(frames, kernel);
+    let zero = runtime().lanes[0].pool;
+    for page in pool_pages(pool) {
+        assert!(
+            !pool_pages(zero).contains(&page),
+            "device DMA pools overlap"
+        );
+    }
+    let lane = &mut runtime().lanes[1];
+    lane.pool = pool;
+    lane.offline = -14;
+    let Ok(info) = virtio_blk_driver::discover_function(virtio_blk_driver::Function::Archive)
+    else {
+        return;
+    };
+    // One compact window: every needed region in a single BAR that fits it.
+    let index = info.regions.common.bar as usize;
+    let bar = info.bars[index];
+    let regions = [
+        info.regions.common,
+        info.regions.notify,
+        info.regions.isr,
+        info.regions.device,
+    ];
+    if bar.base < 0x80000000
+        || bar.size > DEVICE1_MMIO_SIZE
+        || regions.iter().any(|region| {
+            region.bar as usize != index
+                || u64::from(region.offset) + u64::from(region.length) > DEVICE1_MMIO_SIZE
+        })
+    {
+        return;
+    }
+    let mut mapped = [0u64; 6];
+    mapped[index] = DEVICE1_MMIO;
+    map_regions(frames, kernel, &info, &mapped);
+    // SAFETY: The single validated BAR's subregions have permanent supervisor
+    // UC/NX mappings in a window no other device uses; five distinct owned
+    // kernel RAM pages, disjoint from lane 0's pool, remain pinned to reboot.
+    let device =
+        unsafe { Device::initialize_profile(info, mapped, pool, device1_writable(), false) };
+    let lane = &mut runtime().lanes[1];
+    lane.info = Some(info);
+    lane.mapped = mapped;
+    match device {
+        Ok(d) => {
+            lane.device = Some(d);
+            lane.offline = 0;
+        }
+        Err(_) => lane.quarantined = true,
     }
 }
 
@@ -432,7 +617,7 @@ pub fn manifest(s: &mut State) {
             (0, slot as u64),
             (32, 1),
             (40, 0),
-            (112, case()),
+            (112, flow()),
             (160, clients[0]),
             (168, clients[1]),
             (176, service),
@@ -475,7 +660,7 @@ pub fn manifest(s: &mut State) {
     {
         fail(b"READONLY_RIGHTS");
     }
-    if matches!(case(), 7..=12) {
+    if matches!(case(), 7..=19) {
         archive_grant(s, e, service, clients, block);
     }
     if !e.check_invariants() {
@@ -493,17 +678,30 @@ pub fn manifest(s: &mut State) {
 /// full-target export READ|WRITE|FLUSH on the first FULL_SECTORS only; the
 /// ustar export READ|WRITE|FLUSH on the same range as export. The service and
 /// slot 2 keep exactly their earlier authority.
+///
+/// Archive-device cases (13..=19 except 17) grant a range of device 1 from
+/// sector 0 instead and never the device-0 archive range; the wrong-device
+/// case (17) grants the device-0 range while device 1 holds the archive.
 fn archive_grant(s: &mut State, e: &mut Engine, service: u64, clients: [u64; 2], block: u64) {
-    let writes = matches!(case(), 7 | 11 | 12);
+    let writes = matches!(case(), 7 | 11 | 12 | 13 | 15 | 16 | 18);
+    let device = u32::from(archive_device());
     let scope = BlockScope {
-        device: 0,
-        first_sector: ARCHIVE_FIRST_SECTOR,
-        sector_count: if case() == 11 {
+        device,
+        first_sector: if device == 1 { 0 } else { ARCHIVE_FIRST_SECTOR },
+        sector_count: if matches!(case(), 11 | 16) {
             FULL_SECTORS
         } else {
             ARCHIVE_SECTORS
         },
     };
+    // The scope must end below the disk so the portal's probe past it is a
+    // scope refusal. An absent device 1 has no capacity: its grant stays,
+    // so the portal meets the device error itself.
+    if let Some(d) = runtime().lanes[device as usize].device.as_ref() {
+        if scope.first_sector + scope.sector_count >= d.capacity {
+            fail(b"ARCHIVE_DEVICE_SCOPE");
+        }
+    }
     let rights = if writes {
         BLOCK_READ | BLOCK_WRITE | BLOCK_FLUSH
     } else {
@@ -541,9 +739,24 @@ fn archive_grant(s: &mut State, e: &mut Engine, service: u64, clients: [u64; 2],
         fail(b"ARCHIVE_READONLY_RIGHTS");
     }
     if e.check_block(service, block, 0)
-        .is_ok_and(|volume| volume.object_key() == auth.object_key())
+        .is_ok_and(|volume| volume.object_key() == auth.object_key() || volume.scope().device != 0)
     {
         fail(b"ARCHIVE_ESCAPE");
+    }
+    // The portal's handle value used by the service or slot 2 must not reach
+    // the archive object: handles are per process. Count the refusals.
+    if device == 1 {
+        for pid in [service, clients[1]] {
+            match e.check_block(pid, handle, 0) {
+                Ok(other)
+                    if other.object_key() == auth.object_key() || other.scope().device != 0 =>
+                {
+                    fail(b"ARCHIVE_ESCAPE")
+                }
+                Ok(_) => {}
+                Err(_) => runtime().device1_denials += 1,
+            }
+        }
     }
     runtime().archive_key = Some(auth.object_key());
     put(s, 1, 504, handle);
@@ -653,9 +866,11 @@ fn device_call(s: &mut State, slot: usize, n: u64, a: [u64; 6]) -> Result<u64, i
     let auth = m4::engine()
         .check_block(pid, a[0], rights)
         .map_err(|e| e.code())?;
-    if auth.scope().device != 0 {
-        return Err(-5);
-    }
+    let dev = match auth.scope().device {
+        0 => 0,
+        1 if cfg!(feature = "test-volume-archive-device") => 1,
+        _ => return Err(-5),
+    };
     let binding = Binding {
         pid,
         object_key: auth.object_key(),
@@ -712,6 +927,10 @@ fn device_call(s: &mut State, slot: usize, n: u64, a: [u64; 6]) -> Result<u64, i
             return Err(-1);
         }
         if a[1] >= auth.scope().sector_count {
+            let r = runtime();
+            if r.archive_key == Some(auth.object_key()) {
+                r.scope_refusals += 1;
+            }
             return Err(-5);
         }
         let sector = auth.sector(a[1]).map_err(|e| e.code())?;
@@ -731,22 +950,23 @@ fn device_call(s: &mut State, slot: usize, n: u64, a: [u64; 6]) -> Result<u64, i
         None
     };
     let r = runtime();
-    if r.offline != 0 {
-        return Err(r.offline);
+    if r.lanes[dev].offline != 0 {
+        return Err(r.lanes[dev].offline);
     }
     if r.resetting || r.error.is_some() || r.policy.phase() != Phase::Ready {
         return Err(-8);
     }
-    let capacity = r.device.as_ref().ok_or(-14)?.capacity;
+    let capacity = r.lanes[dev].device.as_ref().ok_or(-14)?.capacity;
     let request = r
         .policy
         .prepare(binding, op, capacity, s.ticks, TIMEOUT)
         .map_err(err)?;
-    if let Err(error) = r
-        .device
-        .as_mut()
-        .unwrap()
-        .prepare_operation(op, input.as_ref(), false)
+    if let Err(error) =
+        r.lanes[dev]
+            .device
+            .as_mut()
+            .unwrap()
+            .prepare_operation(op, input.as_ref(), false)
     {
         r.policy.reject_prepared(binding, request.ticket).unwrap();
         return Err(err(error));
@@ -756,12 +976,15 @@ fn device_call(s: &mut State, slot: usize, n: u64, a: [u64; 6]) -> Result<u64, i
     let suppress = power_published(op);
     #[cfg(not(feature = "native-system-power"))]
     let suppress = false;
-    r.device
+    r.active = dev;
+    r.lanes[dev]
+        .device
         .as_mut()
         .unwrap()
         .publish_prepared(suppress)
         .unwrap();
     r.publications[operation_index(op)] += 1;
+    r.device_ops[dev][operation_index(op)] += 1;
     if r.archive_key == Some(binding.object_key) {
         r.archive_ops[operation_index(op)] += 1;
     }
@@ -769,14 +992,15 @@ fn device_call(s: &mut State, slot: usize, n: u64, a: [u64; 6]) -> Result<u64, i
     Ok(request.ticket)
 }
 
+/// Reset the active lane only; the other device keeps running.
 fn reset(r: &mut Runtime, now: u64) {
-    if r.quarantined {
+    if r.lanes[r.active].quarantined {
         return;
     }
     r.policy.start_reset().unwrap();
     r.resetting = true;
     r.reset_deadline = now + RESET_TIMEOUT;
-    if let Some(device) = r.device.as_mut() {
+    if let Some(device) = r.lanes[r.active].device.as_mut() {
         device.begin_reset();
     }
 }
@@ -785,7 +1009,7 @@ pub fn detach(pid: u64) {
     if r.error.is_some_and(|(q, _)| q.binding.pid == pid) {
         r.error = None;
     }
-    if r.policy.exit(pid).is_some() && !r.quarantined {
+    if r.policy.exit(pid).is_some() && !r.lanes[r.active].quarantined {
         let now = r.now;
         reset(r, now);
     }
@@ -807,33 +1031,46 @@ fn advance(s: &State) {
     let now = s.ticks;
     r.now = now;
     if r.resetting {
-        if r.device.as_ref().is_some_and(Device::reset_acknowledged) {
+        let active = r.active;
+        let writable = if active == 0 {
+            !read_only()
+        } else {
+            device1_writable()
+        };
+        let lane = &mut r.lanes[active];
+        if lane.device.as_ref().is_some_and(Device::reset_acknowledged) {
             // SAFETY: Real reset acknowledgement permits reuse of the same
             // pinned owned RAM pages and permanent validated supervisor MMIO.
             match unsafe {
-                Device::initialize_profile(r.info.unwrap(), r.mapped, r.pool, !read_only(), false)
+                Device::initialize_profile(
+                    lane.info.unwrap(),
+                    lane.mapped,
+                    lane.pool,
+                    writable,
+                    false,
+                )
             } {
                 Ok(device) => {
-                    r.device = Some(device);
+                    lane.device = Some(device);
                     r.policy.reset_completed(true).unwrap();
                     r.resetting = false;
                 }
                 Err(_) => {
                     let _ = r.policy.reset_completed(false);
-                    r.offline = -14;
+                    lane.offline = -14;
                     r.resetting = false;
-                    r.quarantined = true;
+                    lane.quarantined = true;
                 }
             }
         } else if now >= r.reset_deadline {
             let _ = r.policy.reset_completed(false);
             r.resetting = false;
-            r.quarantined = true;
-            r.offline = -13;
+            lane.quarantined = true;
+            lane.offline = -13;
         }
         return;
     }
-    if r.offline != 0 || r.policy.phase() != Phase::Published {
+    if r.lanes[r.active].offline != 0 || r.policy.phase() != Phase::Published {
         return;
     }
     let request = r.policy.request().unwrap();
@@ -861,7 +1098,7 @@ fn advance(s: &State) {
     let injection = if power_track().io_error { 10 } else { 0 };
     #[cfg(not(feature = "native-system-power"))]
     let injection = 0;
-    let completion = r.device.as_mut().unwrap().poll(injection);
+    let completion = r.lanes[r.active].device.as_mut().unwrap().poll(injection);
     // The injection applies only to an observed used-ring advance.
     #[cfg(feature = "native-system-power")]
     if !matches!(&completion, Ok(None)) {
@@ -886,7 +1123,18 @@ fn advance(s: &State) {
                 .complete(request.epoch, request.ticket, Completion::Success)
                 .unwrap();
             if let Operation::Write { sector } = request.operation {
-                // Archive sectors are neither volume table nor content writes.
+                // Archive sectors are neither volume table nor content writes;
+                // device-1 sectors start at 0 and must never reach the
+                // FIRST_SECTOR subtraction below.
+                if r.active == 1 {
+                    r.device1_writes += 1;
+                    // Power cut: stop mid-export, after the new header landed
+                    // over the older archive but long before the new end.
+                    if case() == 18 && r.device1_writes >= ARCHIVE_CUT_WRITES {
+                        cut(b"VOLUME:CUT:ARCHIVE\n");
+                    }
+                    return;
+                }
                 if r.archive_key == Some(request.binding.object_key) {
                     return;
                 }
@@ -1097,7 +1345,7 @@ fn finish(s: &mut State) -> ! {
         // sectors, no flush, and at least one archive read (the portal's
         // verify reads the header and refuses it); the host compares the
         // written sectors byte for byte.
-        let a = r.archive_ops;
+        let (a, d) = (r.archive_ops, r.device_ops);
         let archive = match case() {
             7 => a[0] > 0 && a[1] > 0 && a[2] > 0 && r.publications[1..] == a[1..],
             8..=10 => a[0] > 0 && a[1..] == [0, 0],
@@ -1105,6 +1353,14 @@ fn finish(s: &mut State) -> ! {
             // ustar: the export's flush and the ustar stream's flush; the host
             // checks that the writes are exactly both streams' sectors.
             12 => a[0] > 0 && a[1] > 0 && a[2] == 2 && r.publications[1..] == a[1..],
+            // Archive device: every archive operation went to device 1 and
+            // nothing else did. Export and too-small leave device 0 without
+            // a write or flush; absent leaves device 1 untouched.
+            13 => a[0] > 0 && a[1] > 0 && a[2] > 0 && d[1] == a && d[0][1..] == [0, 0],
+            14 | 19 => a[0] > 0 && a[1..] == [0, 0] && d[1] == a,
+            15 => a == [0; 3] && d[1] == [0; 3] && d[0][1..] == [0, 0] && r.lanes[1].offline == -14,
+            16 => a[0] > 0 && a[1..] == [FULL_SECTORS, 0] && d[1] == a && d[0][1..] == [0, 0],
+            17 => a[0] > 0 && a[1..] == [0, 0] && d[1] == [0; 3],
             _ => a == [0; 3],
         };
         if !archive {
@@ -1179,10 +1435,28 @@ fn finish(s: &mut State) -> ! {
     print_number(b"VOLUME:BROKER:FLUSHES:", r.publications[2]);
     print_number(b"VOLUME:BROKER:TABLE_SECTOR_WRITES:", r.table_writes);
     print_number(b"VOLUME:BROKER:DATA_SECTOR_WRITES:", r.data_writes);
-    if matches!(case(), 7..=12) {
+    if matches!(case(), 7..=19) {
         print_number(b"VOLUME:ARCHIVE:READS:", r.archive_ops[0]);
         print_number(b"VOLUME:ARCHIVE:WRITES:", r.archive_ops[1]);
         print_number(b"VOLUME:ARCHIVE:FLUSHES:", r.archive_ops[2]);
+    }
+    if matches!(case(), 13..=19) {
+        print_number(b"VOLUME:ARCHIVE:DEVICE:", u64::from(archive_device()));
+        print_number(
+            b"VOLUME:ARCHIVE:DISK_FOUND:",
+            u64::from(r.lanes[1].info.is_some()),
+        );
+        print_number(b"VOLUME:ARCHIVE:SCOPE_REFUSALS:", r.scope_refusals);
+        print_number(
+            b"VOLUME:ARCHIVE:DISK_OFFLINE:",
+            r.lanes[1].offline.unsigned_abs(),
+        );
+        print_number(b"VOLUME:ARCHIVE:ESCAPE_DENIALS:", r.device1_denials);
+        print_number(b"VOLUME:BROKER:VOLUME_DISK_WRITES:", r.device_ops[0][1]);
+        print_number(b"VOLUME:BROKER:VOLUME_DISK_FLUSHES:", r.device_ops[0][2]);
+        print_number(b"VOLUME:BROKER:ARCHIVE_DISK_READS:", r.device_ops[1][0]);
+        print_number(b"VOLUME:BROKER:ARCHIVE_DISK_WRITES:", r.device_ops[1][1]);
+        print_number(b"VOLUME:BROKER:ARCHIVE_DISK_FLUSHES:", r.device_ops[1][2]);
     }
     if case() == 12 {
         print_number(b"VOLUME:ARCHIVE:USTAR_BYTES:", r.apps[0].ustar_bytes);
@@ -1199,15 +1473,17 @@ fn finish(s: &mut State) -> ! {
     if s.free_count().checked_add(released) != Some(s.free_baseline) {
         fail(b"FRAME_BASELINE_CHANGED");
     }
-    if !r.quarantined {
-        if let Some(device) = r.device.as_mut() {
-            device.begin_reset();
-            if !device.reset_acknowledged() {
-                fail(b"FINAL_RESET");
+    for lane in &mut r.lanes {
+        if !lane.quarantined {
+            if let Some(device) = lane.device.as_mut() {
+                device.begin_reset();
+                if !device.reset_acknowledged() {
+                    fail(b"FINAL_RESET");
+                }
             }
         }
     }
-    let pool = r.pool;
+    let pools = [r.lanes[0].pool, r.lanes[1].pool];
     s.processes[0].status = Status::Dying;
     s.cleanup(0);
     let stats = m4::engine().stats();
@@ -1223,13 +1499,12 @@ fn finish(s: &mut State) -> ! {
     {
         fail(b"CLEANUP");
     }
-    for page in [
-        pool.descriptors,
-        pool.available,
-        pool.used,
-        pool.request,
-        pool.bounce,
-    ] {
+    // Lane 1 has a pool only under the archive-device feature.
+    for page in pools
+        .into_iter()
+        .filter(|pool| pool.descriptors != 0)
+        .flat_map(pool_pages)
+    {
         if s.frames.owner(page) != Ok(Owner::Kernel) || s.kernel.leaf(page) & (4 | NX | 2) != NX | 2
         {
             fail(b"DMA_POOL");
@@ -1250,6 +1525,9 @@ pub(super) fn broker_summary() -> ([u64; 3], [u64; 3], bool) {
     (
         r.publications,
         r.completions,
-        r.offline == 0 && !r.resetting && r.error.is_none() && r.policy.phase() != Phase::Published,
+        r.lanes[0].offline == 0
+            && !r.resetting
+            && r.error.is_none()
+            && r.policy.phase() != Phase::Published,
     )
 }
