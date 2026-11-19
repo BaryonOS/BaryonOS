@@ -1975,14 +1975,30 @@
       "criterion": "L01",
       "milestone": "M8",
       "executor": "worker",
-      "status": "blocked",
+      "status": "active",
       "title": "no_std f32 reference forward pass",
       "goal": "no_std f32 reference forward pass",
       "deps": [],
-      "write_paths": [],
+      "write_paths": [
+        "experiments/ai/reference-forward/"
+      ],
       "checks": [],
-      "blocker": "Large; after L01-T2 and the L01-T1 proposal.",
-      "history": []
+      "blocker": null,
+      "history": [
+        {
+          "event": "active",
+          "at": "2026-11-18T22:53:51.745596+00:00",
+          "reason": "Parser and decision proposal delivered; size alone is not a blocker. Bounded first implementation: borrowed f32 dense/ReLU forward and exact little-endian tensor decode, no allocator/dependency/CPU profile or model adoption."
+        },
+        {
+          "event": "checkpoint",
+          "at": "2026-11-18T23:58:53.277824+01:00",
+          "source_commit": "4a9a44ac4046dcfd69df1abb73f428522e703f65",
+          "reason": "Delivered partial reference primitives: dense/ReLU, RMSNorm, SwiGLU, exact f32 decode;7hosttests and scalar compile pass. libm0.2.16 inspected/pinned. User explicitly requests session finish; no background worker. Full L01-T3 unfinished, next slice attention/RoPE/KV; preserve exclusive branch ownership until resume/integration handoff."
+        }
+      ],
+      "source_commit": "4a9a44ac4046dcfd69df1abb73f428522e703f65",
+      "receipt": "docs/roadmap-pipeline/receipts/L01-T3.json"
     },
     {
       "id": "L01-T4",

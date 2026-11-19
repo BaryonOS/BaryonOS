@@ -1,5 +1,28 @@
 # Current project status
 
+## NEXT AGENT HANDOFF — L01-T3 partial delivery — 18 November 2026
+
+**Source:** `4a9a44ac4046dcfd69df1abb73f428522e703f65`, `codex/l01-reference-forward`, base `fac5a864`.
+**Delivered:** allocator-free no_std f32 dense/ReLU, RMSNorm, SwiGLU and exact
+little-endian tensor decode. Shape/work/nonfinite checks; caller-owned scratch;
+output unchanged on error. Combined dense work capped at1,048,576 MACs.
+**Checks:**7 host tests (including75 shape combinations against an independent f64
+oracle), Clippy/fmt and scalar freestanding release library build, all exit0.
+[Exact receipt](roadmap-pipeline/receipts/L01-T3.json). libm0.2.16 MIT verified,
+locked with soft-float-only selection; build script inspected before use.
+**Limits:** no full transformer/model/tokenizer or native inference. Library
+compilation does not prove linkage or FP context preservation. Native/quality/
+hardware/human checks NOT RUN. Component CI must accompany integration; shared
+workflow is already owned by pending PR391. No CPU profile/grant changes.
+**Stop:** project owner explicitly requested finish/push/draft PR to end this
+session. No worker/background job remains. L01-T3 is partial, not accepted.
+**Resume:** continue bounded attention/RoPE/KV building blocks on this reference
+branch after checking write ownership; then real verified-artifact/model graph.
+Do not repeat unchanged matrices or duplicate the integration agent's work.
+Integration/ClaudeS09/UI/foreign WIP and unattended hold preserved. Score41→41/100.
+
+## Retained checkpoint — unified governance implementation — 18 November 2026
+
 ## NEXT AGENT HANDOFF — supervised delivery checkpoint —18November2026
 
 **Latest slice:** CI-L1 source `6db0ea9e`, `codex/ci-power-lifecycle`,
