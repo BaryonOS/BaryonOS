@@ -1,0 +1,5 @@
+native-volume*/** -text
+document-session*/** -text
+logs/** -text
+native-volume*/**/serial.txt whitespace=cr-at-eol
+document-session*/**/serial.txt whitespace=cr-at-eol

@@ -21,6 +21,8 @@ use nieuw_os_sdk_runtime::{
 use volume_core::{client::Client, client::Transport, wire, Status};
 
 const COORD: u64 = TAG + 1;
+// Written only by the fixture kernel after observing the normal guest exit.
+const GUEST_EXITED: u64 = 200;
 const LIMIT: usize = 500_000;
 const STACK_BASE: u64 = 0x7ffef000;
 const STACK_END: u64 = 0x7ffff000;
@@ -329,9 +331,25 @@ fn admin(recover: bool) -> ! {
                 && u32::from_le_bytes(usage.data[8..12].try_into().unwrap()) == 32,
             33,
         );
+        notify(4);
+        wait(5);
+        let usage = rpc.call(named(Op::Usage, namespace), None);
+        check(usage.data[4..12] == [96, 0, 0, 0, 0, 0, 0, 0], 35);
+        notify(6);
+        wait(7);
+        let usage = rpc.call(named(Op::Usage, namespace), None);
+        check(usage.data[4..12] == [96, 0, 0, 0, 32, 0, 0, 0], 36);
         let mut quota = named(Op::SetQuota, namespace);
         quota.value = 127;
         rpc.call(quota, Some(NasError::Quota));
+        let mut quota = named(Op::SetQuota, namespace);
+        quota.value = 256;
+        rpc.call(quota, None);
+        let usage = rpc.call(named(Op::Usage, namespace), None);
+        check(
+            usage.value == 256 && usage.data[4..12] == [96, 0, 0, 0, 32, 0, 0, 0],
+            37,
+        );
         rpc.call(named(Op::Revoke, namespace), None);
         notify(2);
     }
@@ -342,6 +360,49 @@ fn admin(recover: bool) -> ! {
         usage.data[0] == NamespaceStatus::Evicted as u8 && usage.data[4..12] == [0; 8],
         34,
     );
+    if !recover {
+        let mut create = Frame::new(Op::Invite, 1);
+        create.value = 128;
+        let invitation = rpc.call(create, None);
+        check(invitation.namespace != namespace, 38);
+        send(
+            SendEndpoint::from_handle(handle(72)),
+            COORD,
+            &invitation.encode(true).unwrap_or_else(|_| fail(31)),
+        )
+        .unwrap_or_else(|_| fail(32));
+        // Readiness is only coordination. Only the kernel exit observation
+        // permits the offline revoke/evict below; no yield count proves death.
+        wait(8);
+        let mut exited = false;
+        for _ in 0..LIMIT {
+            if support::word(GUEST_EXITED) == 1 {
+                exited = true;
+                break;
+            }
+            native::yield_now().unwrap_or_else(|_| fail(39));
+        }
+        check(exited, 39);
+        let namespace = invitation.namespace;
+        let usage = rpc.call(named(Op::Usage, namespace), None);
+        check(
+            usage.data[0] == NamespaceStatus::Active as u8
+                && usage.data[4..12] == [0, 0, 0, 0, 32, 0, 0, 0],
+            50,
+        );
+        rpc.call(named(Op::Revoke, namespace), None);
+        let usage = rpc.call(named(Op::Usage, namespace), None);
+        check(
+            usage.data[0] == NamespaceStatus::Revoked as u8 && usage.data[4..12] == [0; 8],
+            51,
+        );
+        rpc.call(named(Op::Evict, namespace), None);
+        let usage = rpc.call(named(Op::Usage, namespace), None);
+        check(
+            usage.data[0] == NamespaceStatus::Evicted as u8 && usage.data[4..12] == [0; 8],
+            52,
+        );
+    }
     rpc.call(Frame::new(Op::Shutdown, 1), None);
     finish()
 }
@@ -424,11 +485,31 @@ fn guest(recover: bool) -> ! {
         pending.length = 32;
         pending.data[..32].fill(0x55);
         let pending = rpc.call(pending, None).upload;
+        let mut extra = Frame::new(Op::Stage, 1);
+        extra.session = session;
+        extra.revision = 1;
+        extra.length = 1;
+        extra.data[0] = 0x55;
+        rpc.call(extra, Some(NasError::Quota));
+        notify(1);
+        wait(4);
+        let mut cancel = Frame::new(Op::Cancel, 1);
+        cancel.session = session;
+        cancel.upload = pending;
+        rpc.call(cancel, None);
+        notify(5);
+        wait(6);
+        let mut retry = Frame::new(Op::Stage, 1);
+        retry.session = session;
+        retry.revision = 1;
+        retry.length = 32;
+        retry.data[..32].fill(0x55);
+        let pending = rpc.call(retry, None).upload;
         // The exact Stage-reply pair of this boot, published for the private
         // handoff only after both handles were issued by the real NAS core.
         publish_replay_token(REPLAY_SESSION, &session);
         publish_replay_token(REPLAY_UPLOAD, &pending);
-        notify(1);
+        notify(7);
         wait(2);
         let mut old = Frame::new(Op::Commit, 1);
         old.session = session;
@@ -441,6 +522,33 @@ fn guest(recover: bool) -> ! {
         rpc.call(named(Op::Open, namespace), Some(NasError::Denied));
     }
     notify(3);
+    if !recover {
+        let bytes = receive(
+            ReceiveEndpoint::from_handle(handle(80)),
+            support::word(168),
+            COORD,
+        )
+        .unwrap_or_else(|_| fail(53));
+        let invitation = Frame::decode(&bytes, true).unwrap_or_else(|_| fail(54));
+        check(
+            invitation.op == Op::Invite && invitation.namespace != namespace,
+            55,
+        );
+        let mut accept = named(Op::Accept, invitation.namespace);
+        accept.value = invitation.value;
+        accept.length = 32;
+        accept.data[..32].copy_from_slice(&invitation.data[..32]);
+        rpc.call(accept, None);
+        let session = rpc
+            .call(named(Op::Open, invitation.namespace), None)
+            .session;
+        let mut held = Frame::new(Op::Stage, 1);
+        held.session = session;
+        held.length = 32;
+        held.data[..32].fill(0x66);
+        rpc.call(held, None);
+        notify(8);
+    }
     finish()
 }
 

@@ -3,7 +3,7 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-18",
-    "source_commit": "c8ae69094abf91e96e52a18510a430fa9d7312d9",
+    "source_commit": "881744fac6c0e4c7a247a2a05d7857331c46f433",
     "assessment_basis": "parent_commit",
     "branch": "codex/b02-native-tamper",
     "task": "B02-T1 native refusal partial slice",

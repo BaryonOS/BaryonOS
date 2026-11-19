@@ -41,7 +41,7 @@ class FakeQemu:
 
 def transcript(case):
     numbers = [("ADMIN_PID", 1), ("GUEST_PID", 4)]
-    counts = [(6, 1), (12, 6), (6, 5)] if case == "normal" else [(4, 0), (4, 5), (0, 5)]
+    counts = [(16, 1), (27, 7), (11, 6)] if case == "normal" else [(4, 0), (4, 5), (0, 5)]
     for slot, (ok, errors) in zip((0, 1, 3), counts):
         numbers.extend([("ROLE_SLOT", slot), ("RPC_OK", ok), ("RPC_ERRORS", errors),
                         ("RIGHTS_DENIED", int(slot == 3)), ("STACK_TOUCHED", 4096)])
@@ -50,7 +50,7 @@ def transcript(case):
                     ("DISK_FLUSHES", int(case == "normal"))])
     head = (["NAS:MANIFEST:PASS"] if case == "normal"
             else ["NAS:REPLAY_INPUT:PASS", "NAS:MANIFEST:PASS"])
-    export = ["NAS:REPLAY_EXPORT:PASS"] if case == "normal" else []
+    export = ["NAS:REPLAY_EXPORT:PASS", "NAS:GUEST_OFFLINE:PASS"] if case == "normal" else []
     return "\n".join([*runner.BOOT, *head,
                       *[f"NAS:{name}:{value:020d}" for name, value in numbers],
                       *export, "NAS:BROKERS:PASS", "NAS:CLEANUP:PASS",
@@ -106,12 +106,22 @@ class NasRunnerTests(unittest.TestCase):
                            "NAS:STACK_TOUCHED:00000000000000065537"),
             serial.replace("NAS:GUEST_PID:00000000000000000004",
                            "NAS:GUEST_PID:00000000000000000001"),
-            serial.replace("NAS:RPC_ERRORS:00000000000000000006",
-                           "NAS:RPC_ERRORS:00000000000000000005"),
+            serial.replace("NAS:RPC_ERRORS:00000000000000000007",
+                           "NAS:RPC_ERRORS:00000000000000000006"),
         ]
         for text in mutations:
             with self.assertRaises(ValueError):
                 runner.evaluate("normal", text, 33, False)
+
+    def test_actual_guest_exit_marker_is_required_only_in_normal_stage(self):
+        normal = transcript("normal")
+        marker = "NAS:GUEST_OFFLINE:PASS\n"
+        for text in [normal.replace(marker, ""), normal + marker,
+                     normal.replace(marker, "NAS:GUEST_OFFLINE:READY\n")]:
+            with self.subTest(text=text[-100:]), self.assertRaises(ValueError):
+                runner.evaluate("normal", text, 33, False)
+        with self.assertRaises(ValueError):
+            runner.evaluate("recover", transcript("recover") + marker, 33, False)
 
     def test_replay_markers_are_case_bound(self):
         normal, cold = transcript("normal"), transcript("recover")

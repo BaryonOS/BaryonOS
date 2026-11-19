@@ -1,0 +1,12 @@
+[
+  {
+    "path": "ui/prototype/broker.js",
+    "line": 11,
+    "text": "const needle = String(query).trim().toLocaleLowerCase('nl');"
+  },
+  {
+    "path": "ui/prototype/broker.js",
+    "line": 14,
+    "text": "&& (!needle || `${object.title} ${object.collectionId} ${object.mediaType === 'image' ? 'Afbeelding SVG' : 'Tekstdocument tekst'}`.toLocaleLowerCase('nl').includes(needle))));"
+  }
+]
