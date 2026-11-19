@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-18",
-    "source_commit": "263838a108c28e5f11928de031fb446ca22e54e5",
+    "source_commit": "524fde721fb69f1bc74ed8bc0e8db806b0d16d1b",
     "assessment_basis": "parent_commit",
-    "branch": "codex/h06-hardware-matrix",
-    "task": "H06-T1: Hardware matrix checker covers3 profiles/33 device rows, explicit driver absence and DMA posture, canonical existing references, target/device/source-bound H or native evidence for support, separate evidence for VT-d containment; xHCI stays pending. Four adversarial test groups, actual --check and compileall pass.",
+    "branch": "codex/n04-issuer-contract",
+    "task": "N04-T2: Compact PROPOSED issuer/helper attenuation/regrant/durable denial contract tied to existing opaque contexts, broker operations and source-bound native helper evidence. Four cited paths/six source symbols and progress check pass; no production interface or authority adopted.",
     "previous_score": 41,
-    "summary": "41/100 unchanged. Hardware matrix checker covers3 profiles/33 device rows, explicit driver absence and DMA posture, canonical existing references, target/device/source-bound H or native evidence for support, separate evidence for VT-d containment; xHCI stays pending. Four adversarial test groups, actual --check and compileall pass. Inventory/reference validation only, not evidence authenticity/device acceptance. Physical target unselected; no row supported or VT-d contained. No hardware/native rerun for unchanged OS code; existing partial driver evidence preserved. Score41/100 unchanged. Integration/Claude ownership and execution hold preserved."
+    "summary": "41/100 unchanged. Compact PROPOSED issuer/helper attenuation/regrant/durable denial contract tied to existing opaque contexts, broker operations and source-bound native helper evidence. Four cited paths/six source symbols and progress check pass; no production interface or authority adopted. Design only. Production issuer/storage ownership, durable acknowledgement and trusted cold freshness require explicit owner/security alignment before code. No native or hardware acceptance;41/100 unchanged. Existing fences and unattended hold retained. Integration/Claude ownership and execution hold preserved."
   },
   "tracks": [
     {

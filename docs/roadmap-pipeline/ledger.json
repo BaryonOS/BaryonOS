@@ -373,7 +373,7 @@
       "criterion": "N04",
       "milestone": "M8",
       "executor": "worker",
-      "status": "ready",
+      "status": "verified",
       "title": "Production issuer, delegated helper subgrants and durable revocation contract (design)",
       "goal": "Write docs/implementation/N04-ISSUER-DELEGATION.md: invariants, interfaces and negative tests for a production issuer and PolicyAuthority, attenuation-only helper subgrants, regrant generations and revocation that survives a service restart, before any code; no new trust root and no automatic regrant.",
       "why_now": "Implementation of the next step is blocked on an owner or review decision that needs an evidence-based basis first.",
@@ -399,7 +399,21 @@
       "size": "S",
       "evidence_level": "design",
       "rollback": "Revert the commit.",
-      "history": []
+      "history": [
+        {
+          "event": "active",
+          "at": "2026-11-18T22:20:01.063159+00:00",
+          "reason": "One proposed contract only; no production issuer/code/authority activation. Existing source and native helper evidence reused read-only."
+        },
+        {
+          "at": "2026-11-18T22:20:45.097301+00:00",
+          "event": "verified",
+          "source_commit": "8274efb32e885c9337a33eceb025c2ca5e806812",
+          "reason": "Compact PROPOSED issuer/helper attenuation/regrant/durable denial contract tied to existing opaque contexts, broker operations and source-bound native helper evidence. Four cited paths/six source symbols and progress check pass; no production interface or authority adopted. Design only. Production issuer/storage ownership, durable acknowledgement and trusted cold freshness require explicit owner/security alignment before code. No native or hardware acceptance;41/100 unchanged. Existing fences and unattended hold retained."
+        }
+      ],
+      "source_commit": "8274efb32e885c9337a33eceb025c2ca5e806812",
+      "receipt": "docs/roadmap-pipeline/receipts/N04-T2.json"
     },
     {
       "id": "A03-T1",
