@@ -466,3 +466,84 @@ fn generation_exhaustion_never_wraps_or_writes() {
         unknown(&mut store, &mut media);
     }
 }
+
+/// Separate volatile cache and durable image: writes reach only the cache and
+/// a successful flush copies the cache to the durable image.
+struct Cached {
+    cache: [[u8; SLOT_LEN]; 2],
+    durable: [[u8; SLOT_LEN]; 2],
+    fail_flush: bool,
+}
+
+impl Cached {
+    fn power_loss(&mut self) {
+        self.cache = self.durable;
+    }
+}
+
+impl SettingsMedia for Cached {
+    fn read(&mut self, slot: usize, output: &mut [u8; SLOT_LEN]) -> Result<(), MediaError> {
+        *output = self.cache[slot];
+        Ok(())
+    }
+    fn write(&mut self, slot: usize, data: &[u8; SLOT_LEN]) -> Result<(), MediaError> {
+        self.cache[slot] = *data;
+        Ok(())
+    }
+    fn flush(&mut self) -> Result<(), MediaError> {
+        if self.fail_flush {
+            return Err(MediaError::Io);
+        }
+        self.durable = self.cache;
+        Ok(())
+    }
+}
+
+#[test]
+fn recovery_requires_a_durability_barrier_before_publishing_a_cached_record() {
+    let mut media = Cached {
+        cache: [[0; SLOT_LEN]; 2],
+        durable: [[0; SLOT_LEN]; 2],
+        fail_flush: false,
+    };
+    let mut store = SettingsStore::new();
+    assert_eq!(store.initialize(&mut media, original()), Ok(1));
+    // Generation 2 reaches only the cache: readable, checksum-valid, not durable.
+    media.fail_flush = true;
+    assert_eq!(
+        store.set(&mut media, changed()),
+        Err(Error::Media(MediaError::Io))
+    );
+    let mut recovered = SettingsStore::new();
+    assert_eq!(
+        recovered.recover(&mut media),
+        Err(Error::Media(MediaError::Io))
+    );
+    assert_eq!(recovered.get(), Err(Error::RecoveryRequired));
+    assert_eq!(
+        recovered.set(&mut media, original()),
+        Err(Error::RecoveryRequired)
+    );
+    // Without the barrier the acknowledged generation 1 is still the durable copy.
+    let durable = media.durable;
+    media.power_loss();
+    assert_eq!(media.cache, durable);
+    assert_eq!(
+        recovered.recover(&mut media),
+        Err(Error::Media(MediaError::Io))
+    );
+    media.fail_flush = false;
+    assert_eq!(recovered.recover(&mut media), Ok(1));
+    assert_eq!(recovered.get(), Ok(original()));
+
+    // Successful-flush control: a cached generation becomes durable on recovery.
+    media.fail_flush = true;
+    assert!(recovered.set(&mut media, changed()).is_err());
+    media.fail_flush = false;
+    let mut control = SettingsStore::new();
+    assert_eq!(control.recover(&mut media), Ok(2));
+    media.power_loss();
+    let mut after = SettingsStore::new();
+    assert_eq!(after.recover(&mut media), Ok(2));
+    assert_eq!(after.get(), Ok(changed()));
+}

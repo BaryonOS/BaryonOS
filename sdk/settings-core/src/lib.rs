@@ -156,6 +156,7 @@ impl SettingsStore {
 
     /// Selects the highest valid generation; read errors and checksum-valid
     /// unknown versions abort instead of silently choosing an older slot.
+    /// The selected copy is published only after a successful flush.
     pub fn recover<M: SettingsMedia>(&mut self, media: &mut M) -> Result<u64, Error> {
         self.state = None;
         let first = probe(&read_slot(media, 0)?)?;
@@ -176,6 +177,14 @@ impl SettingsStore {
             (_, Probe::Good(b)) => (1, b),
             _ => return Err(Error::Corrupt),
         };
+        // A selected record may only be cached after an earlier failed flush.
+        // The next commit overwrites the other slot, so establish durability of
+        // the selected copy first; on failure stay retired.
+        let selected = read_slot(media, slot)?;
+        media.flush().map_err(Error::Media)?;
+        if read_slot(media, slot)? != selected {
+            return Err(Error::ReadbackMismatch);
+        }
         self.state = Some(State { slot, record });
         Ok(record.generation)
     }
