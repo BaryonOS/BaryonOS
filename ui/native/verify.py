@@ -34,12 +34,12 @@ def main():
     host_env = {"CARGO_TARGET_DIR": str(BUILD / "native-materiaal-target")}
     scalar_env = {"CARGO_TARGET_DIR": str(BUILD / "native-materiaal-none-target"), "RUSTFLAGS": "-C no-redzone=yes -C target-feature=-sse,-sse2,-sse3,-ssse3,-sse4.1,-sse4.2,-avx,-avx2"}
     commands = [
-        ("host", ["cargo", "+1.90.0", "test", "--offline", "--locked", "--manifest-path", "ui/native/Cargo.toml"], host_env),
-        ("clippy", ["cargo", "+1.90.0", "clippy", "--offline", "--locked", "--manifest-path", "ui/native/Cargo.toml", "--all-targets", "--", "-D", "warnings"], host_env),
-        ("fmt-check", ["cargo", "+1.90.0", "fmt", "--manifest-path", "ui/native/Cargo.toml", "--", "--check"], host_env),
-        ("features", ["cargo", "+1.90.0", "tree", "--offline", "--locked", "--manifest-path", "ui/native/Cargo.toml", "-e", "features"], host_env),
-        ("compiler", ["rustc", "+1.90.0", "-vV"], host_env),
-        ("scalar-build", ["cargo", "+1.90.0", "build", "--offline", "--locked", "--manifest-path", "ui/native/Cargo.toml", "--release", "--lib", "--target", "x86_64-unknown-none", "--message-format=json-render-diagnostics"], scalar_env),
+        ("host", ["cargo", "+1.100.0", "test", "--offline", "--locked", "--manifest-path", "ui/native/Cargo.toml"], host_env),
+        ("clippy", ["cargo", "+1.100.0", "clippy", "--offline", "--locked", "--manifest-path", "ui/native/Cargo.toml", "--all-targets", "--", "-D", "warnings"], host_env),
+        ("fmt-check", ["cargo", "+1.100.0", "fmt", "--manifest-path", "ui/native/Cargo.toml", "--", "--check"], host_env),
+        ("features", ["cargo", "+1.100.0", "tree", "--offline", "--locked", "--manifest-path", "ui/native/Cargo.toml", "-e", "features"], host_env),
+        ("compiler", ["rustc", "+1.100.0", "-vV"], host_env),
+        ("scalar-build", ["cargo", "+1.100.0", "build", "--offline", "--locked", "--manifest-path", "ui/native/Cargo.toml", "--release", "--lib", "--target", "x86_64-unknown-none", "--message-format=json-render-diagnostics"], scalar_env),
     ]
     results = {}
     for name, command, env in commands:

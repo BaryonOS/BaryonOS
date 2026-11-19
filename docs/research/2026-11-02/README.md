@@ -31,7 +31,7 @@ Research date: **2 November 2026**, Europe/Amsterdam. Status: recorded desk rese
 
 | Document | Content |
 |---|---|
-| [Repository baseline](repository-baseline.md) | Phase 1 recorded: main, newer development branch and prototype/native evidence limits |
+| [Repository baseline — English equivalent](repository-baseline-english.md) | Historical phase 1 record: main, newer development branch and prototype/native evidence limits; [archived Dutch original](repository-baseline.md) preserved unchanged |
 | [User needs and synthesis](os-user-needs.md) | Comparison, recurrence, impact, European relevance and technical possibilities |
 | [Windows and macOS](windows-macos-needs.md) | Aspects per OS, original user signals, current solutions and limitations |
 | [Linux and mobile](linux-mobile-needs.md) | GNOME/KDE/Ubuntu, Android and relevant iOS/ChromeOS comparisons |

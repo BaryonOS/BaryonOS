@@ -622,7 +622,7 @@ fn png<'a>(input: &'a [u8], limits: Limits, cancel: &Cancellation) -> Result<Ima
         let mut rgba = zeros::<u16>(pixels * 4)?;
         for (src, dst) in raw
             .chunks_exact(components * 2)
-            .zip(rgba.chunks_exact_mut(4))
+            .zip(rgba.as_chunks_mut::<4>().0.iter_mut())
         {
             let sample = |n: usize| u16::from_be_bytes([src[n * 2], src[n * 2 + 1]]);
             expand16(
@@ -637,7 +637,10 @@ fn png<'a>(input: &'a [u8], limits: Limits, cancel: &Cancellation) -> Result<Ima
         Pixels::Rgba16(rgba)
     } else {
         let mut rgba = zeros::<u8>(pixels * 4)?;
-        for (src, dst) in raw.chunks_exact(components).zip(rgba.chunks_exact_mut(4)) {
+        for (src, dst) in raw
+            .chunks_exact(components)
+            .zip(rgba.as_chunks_mut::<4>().0.iter_mut())
+        {
             match color {
                 ColorSpace::Luma => dst.copy_from_slice(&[src[0], src[0], src[0], 255]),
                 ColorSpace::LumaA => dst.copy_from_slice(&[src[0], src[0], src[0], src[1]]),

@@ -3,7 +3,7 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-18",
-    "source_commit": "a73e41a7db7b8aa90fa47a299886feb6d607fd0c",
+    "source_commit": "5265eb2f3e39c5736a66ff2ea45cfabc1553a48f",
     "assessment_basis": "parent_commit",
     "branch": "codex/p04-native-quota",
     "task": "P04-T2: Native NAS Cancel14, full-quota rejection/reservation release/retry, full-quota adjustment and kernel-observed offline-guest revoke/evict delivered. Normal/recover QEMU33;0cold writes/flushes, exact2 tombstones/core11/volume21.78host tests and native gate exit0.",

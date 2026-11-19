@@ -1,0 +1,776 @@
+{
+  "schema_version": 1,
+  "status": "completed",
+  "passed": true,
+  "scope": "Two real native DocumentSession normal/cold-recovery cases; no GUI or full M6c suite",
+  "source_commit": "92e44b0c23a34be1b31037dc0561a4b22b04ef5a",
+  "source_fingerprint_version": 3,
+  "source_sha256": "62ee135a73f76641d57dcda5870b0d6b5f19c4f76337154bea6fccb217e62ed7",
+  "started_utc": "2026-11-18T00:46:27.408332+00:00",
+  "gate_sha256": "c1545eaf70ad4bb744cfe56d9ffb0ea03300505b9e200be9b7c1b9a1a6d2d0b2",
+  "environment": {
+    "NOS_DOCUMENT_SESSION": "1",
+    "NOS_SDK_RUNTIME": "1",
+    "NOS_BUILD_DIR": "/workspace/baryon-rust/build/docsession-rust100-final2",
+    "NOS_TARGET_DIR": "/workspace/baryon-rust/target/docsession-rust100-r3",
+    "CARGO_TARGET_DIR": "/workspace/baryon-rust/target/docsession-rust100-r3",
+    "CARGO_BUILD_JOBS": null,
+    "NOS_QEMU_MACHINE": null
+  },
+  "freeze_checks": [
+    {
+      "stage": "before-normal-build",
+      "head": "92e44b0c23a34be1b31037dc0561a4b22b04ef5a",
+      "source_sha256": "62ee135a73f76641d57dcda5870b0d6b5f19c4f76337154bea6fccb217e62ed7",
+      "passed": true
+    },
+    {
+      "stage": "after-normal-build",
+      "head": "92e44b0c23a34be1b31037dc0561a4b22b04ef5a",
+      "source_sha256": "62ee135a73f76641d57dcda5870b0d6b5f19c4f76337154bea6fccb217e62ed7",
+      "passed": true
+    },
+    {
+      "stage": "before-normal-vm",
+      "head": "92e44b0c23a34be1b31037dc0561a4b22b04ef5a",
+      "source_sha256": "62ee135a73f76641d57dcda5870b0d6b5f19c4f76337154bea6fccb217e62ed7",
+      "passed": true
+    },
+    {
+      "stage": "after-normal-vm",
+      "head": "92e44b0c23a34be1b31037dc0561a4b22b04ef5a",
+      "source_sha256": "62ee135a73f76641d57dcda5870b0d6b5f19c4f76337154bea6fccb217e62ed7",
+      "passed": true
+    },
+    {
+      "stage": "before-recover-build",
+      "head": "92e44b0c23a34be1b31037dc0561a4b22b04ef5a",
+      "source_sha256": "62ee135a73f76641d57dcda5870b0d6b5f19c4f76337154bea6fccb217e62ed7",
+      "passed": true
+    },
+    {
+      "stage": "after-recover-build",
+      "head": "92e44b0c23a34be1b31037dc0561a4b22b04ef5a",
+      "source_sha256": "62ee135a73f76641d57dcda5870b0d6b5f19c4f76337154bea6fccb217e62ed7",
+      "passed": true
+    },
+    {
+      "stage": "before-recover-vm",
+      "head": "92e44b0c23a34be1b31037dc0561a4b22b04ef5a",
+      "source_sha256": "62ee135a73f76641d57dcda5870b0d6b5f19c4f76337154bea6fccb217e62ed7",
+      "passed": true
+    },
+    {
+      "stage": "after-recover-vm",
+      "head": "92e44b0c23a34be1b31037dc0561a4b22b04ef5a",
+      "source_sha256": "62ee135a73f76641d57dcda5870b0d6b5f19c4f76337154bea6fccb217e62ed7",
+      "passed": true
+    },
+    {
+      "stage": "after-complete-recheck",
+      "head": "92e44b0c23a34be1b31037dc0561a4b22b04ef5a",
+      "source_sha256": "62ee135a73f76641d57dcda5870b0d6b5f19c4f76337154bea6fccb217e62ed7",
+      "passed": true
+    }
+  ],
+  "phases": [
+    {
+      "name": "build-normal",
+      "duration_s": 5.750869689999945,
+      "completed": true,
+      "error": null,
+      "logs_sha256": {
+        "build-normal.stdout.txt": "93bd96854db667520ab9482bf092932153c2481f8514ab3cd45ac175667c4b3d",
+        "build-normal.stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "name": "vm-normal",
+      "duration_s": 4.333923678000019,
+      "completed": true,
+      "error": null,
+      "logs_sha256": {
+        "vm-normal.stdout.txt": "208bd12c2086e1cf561daa499bc51962f771dcc7808e78d99126920a3dea001d",
+        "vm-normal.stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "name": "build-recover",
+      "duration_s": 5.730445880000161,
+      "completed": true,
+      "error": null,
+      "logs_sha256": {
+        "build-recover.stdout.txt": "2f0f7126db1691d21e28377a98a06d9a5bc32f615166c28cb239def6452eaa06",
+        "build-recover.stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "name": "vm-recover",
+      "duration_s": 6.128428905999954,
+      "completed": true,
+      "error": null,
+      "logs_sha256": {
+        "vm-recover.stdout.txt": "15776629b136c9b2920fb629310677a3f447da0139db5c1a38eedffb5e1c3782",
+        "vm-recover.stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    }
+  ],
+  "runs": [
+    {
+      "label": "document-session-normal",
+      "case": "normal",
+      "started_utc": "2026-11-18T00:46:36.414530+00:00",
+      "duration_s": 3.4724701810000624,
+      "timeout_s": 60,
+      "timed_out": false,
+      "raw_qemu_exit": 33,
+      "expected_exit": 33,
+      "required_markers": [
+        "BOOT:EBS_OK",
+        "KERNEL:ENTRY",
+        "BOOTINFO:OK",
+        "M6C:READY",
+        "M6C:CASE:NORMAL:PASS",
+        "M6C:SURVIVOR_PROGRESS:PASS",
+        "M6C:RESOURCES:PASS",
+        "M6C:PASS",
+        "M1:PASS"
+      ],
+      "forbidden_markers": [
+        "M1:FAIL",
+        "M2:FAIL",
+        "M3:FAIL",
+        "M4:FAIL",
+        "M5:FAIL",
+        "M6A:FAIL",
+        "M6B:FAIL",
+        "M6C:FAIL"
+      ],
+      "passed": true,
+      "command": [
+        "/workspace/.nieuw-os-env/bin/qemu-system-x86_64",
+        "-machine",
+        "pc-q35-10.0",
+        "-accel",
+        "tcg,thread=single",
+        "-cpu",
+        "qemu64",
+        "-smp",
+        "1",
+        "-m",
+        "256M",
+        "-nodefaults",
+        "-display",
+        "none",
+        "-monitor",
+        "none",
+        "-serial",
+        "stdio",
+        "-nic",
+        "none",
+        "-no-reboot",
+        "-drive",
+        "if=pflash,unit=0,format=raw,readonly=on,file=build/docsession-rust100-final2/run/m6c-document-session-normal-e0cd5f60d0/OVMF_CODE.fd",
+        "-drive",
+        "if=pflash,unit=1,format=raw,file=build/docsession-rust100-final2/run/m6c-document-session-normal-e0cd5f60d0/OVMF_VARS.fd",
+        "-drive",
+        "if=virtio,index=0,format=raw,readonly=on,file=fat:build/docsession-rust100-final2/run/m6c-document-session-normal-e0cd5f60d0/esp",
+        "-device",
+        "isa-debug-exit,iobase=0xf4,iosize=0x04",
+        "-drive",
+        "if=none,id=m6c-test,format=raw,cache=writeback,readonly=off,file=build/docsession-rust100-final2/run/m6c-volume-document-session-normal-561d073a08/test-disk.img",
+        "-device",
+        "virtio-blk-pci,drive=m6c-test,id=m6cblk,addr=0x5,disable-legacy=on,num-queues=1,queue-size=8,serial=NOS-M6C-TEST"
+      ],
+      "qemu_version": "QEMU emulator version 10.0.13 (Debian 1:10.0.13+ds-0+deb13u1)\nCopyright (c) 2003-2025 Fabrice Bellard and the QEMU Project developers",
+      "qemu_sha256": "1a0cd0b1d99d7df341bbc618a9a66368b8d9594c7644f0ea0cd3ca62b273930a",
+      "profile": "M6c pc-q35-10.0/qemu64/TCG/1CPU/256MiB; synthetic writeback raw volume",
+      "firmware_source": [
+        "/workspace/.nieuw-os-env/sysroot/usr/share/OVMF/OVMF_CODE_4M.fd",
+        "/workspace/.nieuw-os-env/sysroot/usr/share/OVMF/OVMF_VARS_4M.fd"
+      ],
+      "base_commit": "92e44b0c23a34be1b31037dc0561a4b22b04ef5a",
+      "source_fingerprint_version": 3,
+      "source_sha256": "62ee135a73f76641d57dcda5870b0d6b5f19c4f76337154bea6fccb217e62ed7",
+      "observed_source_sha256": "62ee135a73f76641d57dcda5870b0d6b5f19c4f76337154bea6fccb217e62ed7",
+      "source_unchanged": true,
+      "artifact_sha256": {
+        "esp/kernel.elf": "15dba2c526a733f3a099c570148947ff8864a602b8ef370942c93538d187491e",
+        "esp/EFI/BOOT/BOOTX64.EFI": "cf617c1ac9d3134915329d1681e3945b3bebf75e6935ea0da23117ed34440d52",
+        "OVMF_CODE.fd": "624e06de18b4fa535e90db7160d00d3d07d206422b89999bf1e27d920264e4e0",
+        "OVMF_VARS.template.fd": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e",
+        "OVMF_VARS.fd": "2e055c7e290084acf57c1d9a4229423c96493db030a6c2e6bb2c29155c87bd70",
+        "test-disk.before.img": "33a4adf7a787015163a62403380b2489202ffad88cd5efe765c7cfcf394c7bea",
+        "test-disk.after.img": "a40bd3b7c19a895c3a5576ea11b25c6001297d47df6ee287d28a3e3ca1da80e9",
+        "build-manifest.json": "266df399eb35cc73245f3ea786627357039b917ae77a4782fe2bcd2d28991e63",
+        "volume-manifest.json": "229c3d9abeb1d0d6a1b4bfbc2d473a6b95759d962361cbe0ff12748a9c86ee32"
+      },
+      "volume_path": "/workspace/baryon-rust/build/docsession-rust100-final2/run/m6c-volume-document-session-normal-561d073a08/test-disk.img",
+      "disk_oracle": {
+        "scope": "independent Python v2 parser over actual synthetic 64KiB volume",
+        "identity": "561d073a08d4469a9d478720ecdca2ca",
+        "seed": 17904956816486292325,
+        "variant": "normal",
+        "sha256_initial": "33a4adf7a787015163a62403380b2489202ffad88cd5efe765c7cfcf394c7bea",
+        "sha256_after": "a40bd3b7c19a895c3a5576ea11b25c6001297d47df6ee287d28a3e3ca1da80e9",
+        "state": {
+          "sequence": 10,
+          "objects": [
+            {
+              "revision": 3,
+              "present": true,
+              "length": 128,
+              "digest": "b283dc2e26cecaa5",
+              "name_length": 16,
+              "name_digest": "8b2d238f15d9816a"
+            },
+            {
+              "revision": 2,
+              "present": false,
+              "length": 0,
+              "digest": "cbf29ce484222325",
+              "name_length": 0,
+              "name_digest": "cbf29ce484222325"
+            },
+            {
+              "revision": 3,
+              "present": true,
+              "length": 128,
+              "digest": "7a79c58355bc8925",
+              "name_length": 16,
+              "name_digest": "8b2d228f15d97fb7"
+            },
+            {
+              "revision": 2,
+              "present": false,
+              "length": 0,
+              "digest": "cbf29ce484222325",
+              "name_length": 0,
+              "name_digest": "cbf29ce484222325"
+            }
+          ]
+        },
+        "observed": {
+          "state": {
+            "sequence": 10,
+            "objects": [
+              {
+                "revision": 3,
+                "present": true,
+                "length": 128,
+                "digest": "b283dc2e26cecaa5",
+                "name_length": 16,
+                "name_digest": "8b2d238f15d9816a"
+              },
+              {
+                "revision": 2,
+                "present": false,
+                "length": 0,
+                "digest": "cbf29ce484222325",
+                "name_length": 0,
+                "name_digest": "cbf29ce484222325"
+              },
+              {
+                "revision": 3,
+                "present": true,
+                "length": 128,
+                "digest": "7a79c58355bc8925",
+                "name_length": 16,
+                "name_digest": "8b2d228f15d97fb7"
+              },
+              {
+                "revision": 2,
+                "present": false,
+                "length": 0,
+                "digest": "cbf29ce484222325",
+                "name_length": 0,
+                "name_digest": "cbf29ce484222325"
+              }
+            ]
+          },
+          "acks": 10,
+          "rejected": 6,
+          "domain_revisions": [
+            5,
+            5
+          ],
+          "catalog_replies": 10
+        },
+        "checks": {
+          "outside_journal_unchanged": true,
+          "case_matches_volume_variant": true,
+          "fresh_mutator_before_image": true,
+          "journal_valid_or_explicit_rejection_case": true,
+          "guest_matches_independent_disk_state": true,
+          "read_only_stage_unchanged": true,
+          "record_payloads_and_names_match_native_scenario": true,
+          "expected_final_state": true,
+          "exact_mutation_ack_count": true,
+          "exact_catalog_reply_count": true,
+          "domain_revisions_exclude_foreign_mutations": true,
+          "all_negative_requests_without_io": true
+        },
+        "passed": true
+      },
+      "host_crash": {
+        "requested_cut": null,
+        "cut_lines": [],
+        "kill_requested": false,
+        "process_id": 44362,
+        "was_running_before_kill": false,
+        "required_live_hold_s": 0.05,
+        "termination_code_expected": -9,
+        "real_process_returncode": 33
+      },
+      "serial_sha256": "f5d94f739f2dbdec381893fd0cfd0dc8777566ad9675c5acb9a11fb2acbc4cf4",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "previous_stage": null,
+      "outcome_marker_passed": true,
+      "fault_injection_scope": null,
+      "execution_error": null,
+      "oracle_error": null,
+      "run_directory": "/workspace/baryon-rust/build/docsession-rust100-final2/run/m6c-document-session-normal-e0cd5f60d0",
+      "stdout": "\u001b[2J\u001b[01;01H\u001b[=3h\u001b[2J\u001b[01;01H\u001b[2J\u001b[01;01H\u001b[=3h\u001b[2J\u001b[01;01HBdsDxe: loading Boot0001 \"UEFI Misc Device\" from PciRoot(0x0)/Pci(0x1,0x0)\r\nBdsDxe: starting Boot0001 \"UEFI Misc Device\" from PciRoot(0x0)/Pci(0x1,0x0)\r\nBOOT:EBS_OK\nKERNEL:ENTRY\nBOOTINFO:OK\nKS-01:PASS\nKS-02:PASS\nACPI:UNAVAILABLE:NO_DMAR\nDEVICE-EXECUTION:BLOCKED:ADAPTER_ABSENT\nKS-03:PASS\nM2:PASS\nM6C:READY\nM6C:SEQUENCE:10\nM6C:OBJECT0:REVISION:3\nM6C:OBJECT0:PRESENT:1\nM6C:OBJECT0:LENGTH:128\nM6C:OBJECT0:NAME_LENGTH:16\nM6C:OBJECT0:NAME_DIGEST:8b2d238f15d9816a\nM6C:OBJECT0:DIGEST:b283dc2e26cecaa5\nM6C:OBJECT1:REVISION:2\nM6C:OBJECT1:PRESENT:0\nM6C:OBJECT1:LENGTH:0\nM6C:OBJECT1:NAME_LENGTH:0\nM6C:OBJECT1:NAME_DIGEST:cbf29ce484222325\nM6C:OBJECT1:DIGEST:cbf29ce484222325\nM6C:OBJECT2:REVISION:3\nM6C:OBJECT2:PRESENT:1\nM6C:OBJECT2:LENGTH:128\nM6C:OBJECT2:NAME_LENGTH:16\nM6C:OBJECT2:NAME_DIGEST:8b2d228f15d97fb7\nM6C:OBJECT2:DIGEST:7a79c58355bc8925\nM6C:OBJECT3:REVISION:2\nM6C:OBJECT3:PRESENT:0\nM6C:OBJECT3:LENGTH:0\nM6C:OBJECT3:NAME_LENGTH:0\nM6C:OBJECT3:NAME_DIGEST:cbf29ce484222325\nM6C:OBJECT3:DIGEST:cbf29ce484222325\nM6C:ACKS:10\nM6C:REJECTED_NO_IO:6\nM6C:CATALOG_REPLIES:10\nM6C:DOMAIN0:REVISION:5\nM6C:DOMAIN1:REVISION:5\nM6C:CASE:NORMAL:PASS\nM6C:SURVIVOR_PROGRESS:PASS\nM6C:BROKER:MAX_COMPLETION_TICKS:1\nM6C:BROKER:TIMEOUTS:0\nM6C:RESOURCES:PASS\nM6C:PASS\nM1:PASS\n",
+      "stderr": ""
+    },
+    {
+      "label": "document-session-recover",
+      "case": "recover",
+      "started_utc": "2026-11-18T00:46:50.457698+00:00",
+      "duration_s": 5.190473936000217,
+      "timeout_s": 60,
+      "timed_out": false,
+      "raw_qemu_exit": 33,
+      "expected_exit": 33,
+      "required_markers": [
+        "BOOT:EBS_OK",
+        "KERNEL:ENTRY",
+        "BOOTINFO:OK",
+        "M6C:READY",
+        "M6C:CASE:RECOVER:PASS",
+        "M6C:SURVIVOR_PROGRESS:PASS",
+        "M6C:RESOURCES:PASS",
+        "M6C:PASS",
+        "M1:PASS"
+      ],
+      "forbidden_markers": [
+        "M1:FAIL",
+        "M2:FAIL",
+        "M3:FAIL",
+        "M4:FAIL",
+        "M5:FAIL",
+        "M6A:FAIL",
+        "M6B:FAIL",
+        "M6C:FAIL"
+      ],
+      "passed": true,
+      "command": [
+        "/workspace/.nieuw-os-env/bin/qemu-system-x86_64",
+        "-machine",
+        "pc-q35-10.0",
+        "-accel",
+        "tcg,thread=single",
+        "-cpu",
+        "qemu64",
+        "-smp",
+        "1",
+        "-m",
+        "256M",
+        "-nodefaults",
+        "-display",
+        "none",
+        "-monitor",
+        "none",
+        "-serial",
+        "stdio",
+        "-nic",
+        "none",
+        "-no-reboot",
+        "-drive",
+        "if=pflash,unit=0,format=raw,readonly=on,file=build/docsession-rust100-final2/run/m6c-document-session-recover-872fb20cc2/OVMF_CODE.fd",
+        "-drive",
+        "if=pflash,unit=1,format=raw,file=build/docsession-rust100-final2/run/m6c-document-session-recover-872fb20cc2/OVMF_VARS.fd",
+        "-drive",
+        "if=virtio,index=0,format=raw,readonly=on,file=fat:build/docsession-rust100-final2/run/m6c-document-session-recover-872fb20cc2/esp",
+        "-device",
+        "isa-debug-exit,iobase=0xf4,iosize=0x04",
+        "-drive",
+        "if=none,id=m6c-test,format=raw,cache=writeback,readonly=on,file=build/docsession-rust100-final2/run/m6c-volume-document-session-normal-561d073a08/test-disk.img",
+        "-device",
+        "virtio-blk-pci,drive=m6c-test,id=m6cblk,addr=0x5,disable-legacy=on,num-queues=1,queue-size=8,serial=NOS-M6C-TEST"
+      ],
+      "qemu_version": "QEMU emulator version 10.0.13 (Debian 1:10.0.13+ds-0+deb13u1)\nCopyright (c) 2003-2025 Fabrice Bellard and the QEMU Project developers",
+      "qemu_sha256": "1a0cd0b1d99d7df341bbc618a9a66368b8d9594c7644f0ea0cd3ca62b273930a",
+      "profile": "M6c pc-q35-10.0/qemu64/TCG/1CPU/256MiB; synthetic writeback raw volume",
+      "firmware_source": [
+        "/workspace/.nieuw-os-env/sysroot/usr/share/OVMF/OVMF_CODE_4M.fd",
+        "/workspace/.nieuw-os-env/sysroot/usr/share/OVMF/OVMF_VARS_4M.fd"
+      ],
+      "base_commit": "92e44b0c23a34be1b31037dc0561a4b22b04ef5a",
+      "source_fingerprint_version": 3,
+      "source_sha256": "62ee135a73f76641d57dcda5870b0d6b5f19c4f76337154bea6fccb217e62ed7",
+      "observed_source_sha256": "62ee135a73f76641d57dcda5870b0d6b5f19c4f76337154bea6fccb217e62ed7",
+      "source_unchanged": true,
+      "artifact_sha256": {
+        "esp/kernel.elf": "424322224eb720c36a88c940d481cd5638d66dd15e148f1908212f2ebb7171c9",
+        "esp/EFI/BOOT/BOOTX64.EFI": "cf617c1ac9d3134915329d1681e3945b3bebf75e6935ea0da23117ed34440d52",
+        "OVMF_CODE.fd": "624e06de18b4fa535e90db7160d00d3d07d206422b89999bf1e27d920264e4e0",
+        "OVMF_VARS.template.fd": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e",
+        "OVMF_VARS.fd": "2e055c7e290084acf57c1d9a4229423c96493db030a6c2e6bb2c29155c87bd70",
+        "test-disk.before.img": "a40bd3b7c19a895c3a5576ea11b25c6001297d47df6ee287d28a3e3ca1da80e9",
+        "test-disk.after.img": "a40bd3b7c19a895c3a5576ea11b25c6001297d47df6ee287d28a3e3ca1da80e9",
+        "build-manifest.json": "55230f57461a1896e28363c3bd475a05e3a725a00bf543356e38e6461489ad6f",
+        "volume-manifest.json": "229c3d9abeb1d0d6a1b4bfbc2d473a6b95759d962361cbe0ff12748a9c86ee32"
+      },
+      "volume_path": "/workspace/baryon-rust/build/docsession-rust100-final2/run/m6c-volume-document-session-normal-561d073a08/test-disk.img",
+      "disk_oracle": {
+        "scope": "independent Python v2 parser over actual synthetic 64KiB volume",
+        "identity": "561d073a08d4469a9d478720ecdca2ca",
+        "seed": 17904956816486292325,
+        "variant": "normal",
+        "sha256_initial": "33a4adf7a787015163a62403380b2489202ffad88cd5efe765c7cfcf394c7bea",
+        "sha256_after": "a40bd3b7c19a895c3a5576ea11b25c6001297d47df6ee287d28a3e3ca1da80e9",
+        "state": {
+          "sequence": 10,
+          "objects": [
+            {
+              "revision": 3,
+              "present": true,
+              "length": 128,
+              "digest": "b283dc2e26cecaa5",
+              "name_length": 16,
+              "name_digest": "8b2d238f15d9816a"
+            },
+            {
+              "revision": 2,
+              "present": false,
+              "length": 0,
+              "digest": "cbf29ce484222325",
+              "name_length": 0,
+              "name_digest": "cbf29ce484222325"
+            },
+            {
+              "revision": 3,
+              "present": true,
+              "length": 128,
+              "digest": "7a79c58355bc8925",
+              "name_length": 16,
+              "name_digest": "8b2d228f15d97fb7"
+            },
+            {
+              "revision": 2,
+              "present": false,
+              "length": 0,
+              "digest": "cbf29ce484222325",
+              "name_length": 0,
+              "name_digest": "cbf29ce484222325"
+            }
+          ]
+        },
+        "observed": {
+          "state": {
+            "sequence": 10,
+            "objects": [
+              {
+                "revision": 3,
+                "present": true,
+                "length": 128,
+                "digest": "b283dc2e26cecaa5",
+                "name_length": 16,
+                "name_digest": "8b2d238f15d9816a"
+              },
+              {
+                "revision": 2,
+                "present": false,
+                "length": 0,
+                "digest": "cbf29ce484222325",
+                "name_length": 0,
+                "name_digest": "cbf29ce484222325"
+              },
+              {
+                "revision": 3,
+                "present": true,
+                "length": 128,
+                "digest": "7a79c58355bc8925",
+                "name_length": 16,
+                "name_digest": "8b2d228f15d97fb7"
+              },
+              {
+                "revision": 2,
+                "present": false,
+                "length": 0,
+                "digest": "cbf29ce484222325",
+                "name_length": 0,
+                "name_digest": "cbf29ce484222325"
+              }
+            ]
+          },
+          "acks": 0,
+          "rejected": 2,
+          "domain_revisions": [
+            5,
+            5
+          ],
+          "catalog_replies": 2
+        },
+        "checks": {
+          "outside_journal_unchanged": true,
+          "case_matches_volume_variant": true,
+          "fresh_mutator_before_image": true,
+          "journal_valid_or_explicit_rejection_case": true,
+          "guest_matches_independent_disk_state": true,
+          "read_only_stage_unchanged": true,
+          "record_payloads_and_names_match_native_scenario": true,
+          "expected_final_state": true,
+          "exact_mutation_ack_count": true,
+          "exact_catalog_reply_count": true,
+          "domain_revisions_exclude_foreign_mutations": true
+        },
+        "passed": true
+      },
+      "host_crash": {
+        "requested_cut": null,
+        "cut_lines": [],
+        "kill_requested": false,
+        "process_id": 44761,
+        "was_running_before_kill": false,
+        "required_live_hold_s": 0.05,
+        "termination_code_expected": -9,
+        "real_process_returncode": 33
+      },
+      "serial_sha256": "0658513996f0488e79b6d88237b82d6c67a99c9a23a29ad7a1d8ce83830771c2",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "previous_stage": "/workspace/baryon-rust/build/docsession-rust100-final2/run/m6c-document-session-normal-e0cd5f60d0",
+      "outcome_marker_passed": true,
+      "fault_injection_scope": null,
+      "execution_error": null,
+      "oracle_error": null,
+      "run_directory": "/workspace/baryon-rust/build/docsession-rust100-final2/run/m6c-document-session-recover-872fb20cc2",
+      "stdout": "\u001b[2J\u001b[01;01H\u001b[=3h\u001b[2J\u001b[01;01H\u001b[2J\u001b[01;01H\u001b[=3h\u001b[2J\u001b[01;01HBdsDxe: loading Boot0001 \"UEFI Misc Device\" from PciRoot(0x0)/Pci(0x1,0x0)\r\nBdsDxe: starting Boot0001 \"UEFI Misc Device\" from PciRoot(0x0)/Pci(0x1,0x0)\r\nBOOT:EBS_OK\nKERNEL:ENTRY\nBOOTINFO:OK\nKS-01:PASS\nKS-02:PASS\nACPI:UNAVAILABLE:NO_DMAR\nDEVICE-EXECUTION:BLOCKED:ADAPTER_ABSENT\nKS-03:PASS\nM2:PASS\nM6C:READY\nM6C:SEQUENCE:10\nM6C:OBJECT0:REVISION:3\nM6C:OBJECT0:PRESENT:1\nM6C:OBJECT0:LENGTH:128\nM6C:OBJECT0:NAME_LENGTH:16\nM6C:OBJECT0:NAME_DIGEST:8b2d238f15d9816a\nM6C:OBJECT0:DIGEST:b283dc2e26cecaa5\nM6C:OBJECT1:REVISION:2\nM6C:OBJECT1:PRESENT:0\nM6C:OBJECT1:LENGTH:0\nM6C:OBJECT1:NAME_LENGTH:0\nM6C:OBJECT1:NAME_DIGEST:cbf29ce484222325\nM6C:OBJECT1:DIGEST:cbf29ce484222325\nM6C:OBJECT2:REVISION:3\nM6C:OBJECT2:PRESENT:1\nM6C:OBJECT2:LENGTH:128\nM6C:OBJECT2:NAME_LENGTH:16\nM6C:OBJECT2:NAME_DIGEST:8b2d228f15d97fb7\nM6C:OBJECT2:DIGEST:7a79c58355bc8925\nM6C:OBJECT3:REVISION:2\nM6C:OBJECT3:PRESENT:0\nM6C:OBJECT3:LENGTH:0\nM6C:OBJECT3:NAME_LENGTH:0\nM6C:OBJECT3:NAME_DIGEST:cbf29ce484222325\nM6C:OBJECT3:DIGEST:cbf29ce484222325\nM6C:ACKS:0\nM6C:REJECTED_NO_IO:2\nM6C:CATALOG_REPLIES:2\nM6C:DOMAIN0:REVISION:5\nM6C:DOMAIN1:REVISION:5\nM6C:CASE:RECOVER:PASS\nM6C:SURVIVOR_PROGRESS:PASS\nM6C:BROKER:MAX_COMPLETION_TICKS:1\nM6C:BROKER:TIMEOUTS:0\nM6C:RESOURCES:PASS\nM6C:PASS\nM1:PASS\n",
+      "stderr": ""
+    }
+  ],
+  "bindings": [
+    {
+      "case": "normal",
+      "document_session": true,
+      "sdk_runtime": true,
+      "user_elf_sha256": "8927a6ea9e822cc7dedfa125a3533f01d3d5e45ee6073aa7081c6a0838341fe9",
+      "actual_user_elf_embedded": true,
+      "kernel_sha256": "15dba2c526a733f3a099c570148947ff8864a602b8ef370942c93538d187491e",
+      "loader_sha256": "cf617c1ac9d3134915329d1681e3945b3bebf75e6935ea0da23117ed34440d52",
+      "selected_source_sha256": {
+        "sdk/Cargo.lock": "a37ac75371db49b3c7cd794cdd48706b5d2ddf53d637f4b5ed9fd46ebc1cbd7f",
+        "sdk/Cargo.toml": "4fc1ffd1328d1e79d8a0d39535bf9c4db00e963067b3d3bac60903111b020db2",
+        "sdk/catalog-client/Cargo.toml": "37a0182bd118b59ab53e8004309f4d81c9ef16adce8dca58deb897cc7c02d887",
+        "sdk/catalog-client/src/lib.rs": "c5cfd350c59da895037337e751c885cb34a28ec3e4941ebdb392c22e7cd9aa54",
+        "sdk/document-session/Cargo.toml": "6b3237a13ab5f46aba9ed75f89712f613ff1d00a03d9fe1366df90b7ae028fc5",
+        "sdk/document-session/src/lib.rs": "3b09fccb0bd1f0feafc41f0a4497a271138270600f16168054fef2c095b98b8b",
+        "sdk/document-session/src/volume.rs": "5f590a9deb0dca7513a24cc5536354a48a60249f1fdc610dd06e674384eeb390",
+        "sdk/runtime/Cargo.toml": "c7a953b8406f5a321efa4171c2383dc7c222c2eb8aa49446d34f259814f5b4b9",
+        "sdk/runtime/src/block.rs": "3c3d92f178888e3ba6ba2b3da4c6810ec8c9b44f0c29296ad0ab474c91871a1c",
+        "sdk/runtime/src/clock.rs": "457ab4167692356490991ed3729da6ab405b847d5322154688f1f2c9ed5c7484",
+        "sdk/runtime/src/entropy.rs": "536d4db4bb00067b4697d46eb34da1fb680edcdf6d25569be01ab161c77e1e13",
+        "sdk/runtime/src/lib.rs": "cfbb938aedf95b7c5eff27263b692b3fecc70282116930e3a4c84996e54d0983",
+        "sdk/runtime/src/memory.rs": "0b88b9a77f6dd2f4bb4433d790320152848ef534ea5cd0329f8d9ea9dd629eb6",
+        "sdk/runtime/src/message.rs": "24dcc5f761b75a491f7fd86d18bcbd26333b0a1e481b1e83c74d95e5509cb922",
+        "sdk/runtime/src/native.rs": "e8083664af9effe4c4f5e8cc27e3ab197fd76de54f0a03a4a75ae341dc56e6b8",
+        "sdk/runtime/src/network.rs": "9679db5ad9bbf81164e84656650911ba8f508440460c5af2785ca3cf20fc310d",
+        "sdk/runtime/src/process.rs": "998867816fc0f0c88f790b37a12a37536f1d1c29109e7315706abe797f20e202",
+        "sdk/runtime/src/tls_time.rs": "f135b4b848ba41510662ac25c69e7cc0b1e3629825f36eb697a0b98c82285f79",
+        "services/catalog/Cargo.toml": "e692618da2bec1212b4b8ec1b08037cfbd9df2441b3283efc9ab1d5860a89804",
+        "services/catalog/src/client.rs": "1a1474e3a829a4c247046ee916019e5857a1603efd4620d95e0c4a50ea4f0878",
+        "services/catalog/src/journal.rs": "8fe06db4b455c8975831b7f246aa13948222cf22eb41f5e0adfad31a9b83d58f",
+        "services/catalog/src/lib.rs": "375921af0dc4e449ede38beae0ebcd5a6b465018a9448585af96119a86b407cd",
+        "services/catalog/src/user_service.rs": "25b13f461942b3ea0ff33ff8bed64a549ad10113ac9cf19adebc9629350c3e0e",
+        "services/catalog/src/wire.rs": "9f2a8e9da0608f535bb020effbde425132acd6ce5f1ec9560bcad7103065eb61",
+        "services/volume/Cargo.toml": "c089bb75a96bb78adb93693300db46f503f0bc2cc3476d9ec1c3f4b1ad1fa405",
+        "services/volume/src/archive.rs": "49ce84197214cd7687c0dcbba291b61e2823a5bae42806aaf96b9cece1622107",
+        "services/volume/src/client.rs": "9b5beed409e2005244e863bfaa5e77b07a0e326127806112f5e17e5a949399bd",
+        "services/volume/src/lib.rs": "3cb55fb0280c1db62d95c90a1c5a4af7bb19c0ac0f8eca7e87a0cfbd26590848",
+        "services/volume/src/service.rs": "59f7b07cf2a88dd4c633ef4e93569f451f4425bcd32010e1db5987271af0ea91",
+        "services/volume/src/table.rs": "e625206306e32b321075ba2bdbbca95960417efbdccf354f3f2daf3773dd6f72",
+        "services/volume/src/upload.rs": "98527d36046926f3370cf19e23a8c2c39250c2e5a944ff1c1b221a0d021a7fa1",
+        "services/volume/src/ustar.rs": "dd3ae91021369b6dd334f8ce016d877fece681ccff5ce807dfc4021d9db11716",
+        "services/volume/src/wire.rs": "50e407b18da4db2f76866a9214d199656639cea3867d4b8d894e0c2b4293f464",
+        "userspace/document_session_probe.rs": "12152c588b8c3730878d8c249cbc379ee9035cae1441a14a195796c9d13f6692",
+        "userspace/m6_runtime.rs": "d9d53fb22821eeeffaf17a1162089217abc17eff06d5b5cdf86962009da56be5",
+        "userspace/m6c_probe.rs": "5ecda84b213a0108f7ca1d3b7c84db8ddc1b2cfd6143ba5c7fad59917db9d34a",
+        "userspace/sdk_probe_runtime.rs": "b21c5e575fbf34589b1aca96afc8d128ac1f57e34d4a5e212b8c0aa27d1dcf76"
+      },
+      "library_sha256": {
+        "users/libnieuw_os_sdk_runtime.rlib": "15adf61adea4d0b7fa6703bcc5e925f743951719a013f20ff3d30189dd2b0c50",
+        "users/libzeroize.rlib": "f9d96c216cd6c1e6723c1b3f151c1388986f65acd35e736b522f96aa273775cd",
+        "users/libcatalog_core.rlib": "b159f93006e2548ca9b276acf9e33b95c61e057053edf48a011d0de9ac9e86cd",
+        "users/libvolume_core.rlib": "c5459b8f1d9e8d8040e1d742e2ede8989ba0eecc6c5f784e782c4f886e6e30a2",
+        "users/libnieuw_os_catalog_client.rlib": "76a9371fc92fee1725ff56be17cdf9fca72f3ba2ae7c9e62cf6a416519fe1329",
+        "users/libnieuw_os_document_session.rlib": "ba7df6a355b78c56958ab84b9a4ab58518be9cc64a255d6991d43d8bfb58b1cc"
+      },
+      "compiler_command_sha256": {
+        "build-sdk-zeroize": "c54470126795071a9b449b75adddd1e6db33e5f335ba291c1087d3fb04e6df08",
+        "build-sdk-runtime": "10f57dc5d64bfc25c8543865fc7e45c8846abd0d90da2f135ffb9092d465c3fa",
+        "build-document-library-catalog_core": "8824662bf14dec31c30bb99eac8d49ce714a75c23639a526c856277bcdb4d086",
+        "build-document-library-volume_core": "4f138ea64fc532e558febdd7ded065495dbd2f74c0c54e642b078a7803d572d8",
+        "build-document-library-nieuw_os_catalog_client": "49f78479e64505f4a497b0a101032792e4d1573a500d4c7ecd2c5f3fa2a45a2c",
+        "build-document-library-nieuw_os_document_session": "9dce4e5546260c675d3020346144faef96fbbdfe222ae695f561d3a5670daed0",
+        "build-users-m6c_probe": "384433ddb4e5402685e57a3bc6dece3f3e4046b88974e902227128a820db935e"
+      },
+      "requests_per_client_required_by_kernel_observer": 16,
+      "request_count_evidence": "Existing exact per-client observer assertion before M6C:PASS; not an additional serial counter",
+      "observer_source_sha256": "3801bd4ebbaca475d47a7312fdb23d0155a4ef0a191e5a1a356ee3023947cf34"
+    },
+    {
+      "case": "recover",
+      "document_session": true,
+      "sdk_runtime": true,
+      "user_elf_sha256": "8927a6ea9e822cc7dedfa125a3533f01d3d5e45ee6073aa7081c6a0838341fe9",
+      "actual_user_elf_embedded": true,
+      "kernel_sha256": "424322224eb720c36a88c940d481cd5638d66dd15e148f1908212f2ebb7171c9",
+      "loader_sha256": "cf617c1ac9d3134915329d1681e3945b3bebf75e6935ea0da23117ed34440d52",
+      "selected_source_sha256": {
+        "sdk/Cargo.lock": "a37ac75371db49b3c7cd794cdd48706b5d2ddf53d637f4b5ed9fd46ebc1cbd7f",
+        "sdk/Cargo.toml": "4fc1ffd1328d1e79d8a0d39535bf9c4db00e963067b3d3bac60903111b020db2",
+        "sdk/catalog-client/Cargo.toml": "37a0182bd118b59ab53e8004309f4d81c9ef16adce8dca58deb897cc7c02d887",
+        "sdk/catalog-client/src/lib.rs": "c5cfd350c59da895037337e751c885cb34a28ec3e4941ebdb392c22e7cd9aa54",
+        "sdk/document-session/Cargo.toml": "6b3237a13ab5f46aba9ed75f89712f613ff1d00a03d9fe1366df90b7ae028fc5",
+        "sdk/document-session/src/lib.rs": "3b09fccb0bd1f0feafc41f0a4497a271138270600f16168054fef2c095b98b8b",
+        "sdk/document-session/src/volume.rs": "5f590a9deb0dca7513a24cc5536354a48a60249f1fdc610dd06e674384eeb390",
+        "sdk/runtime/Cargo.toml": "c7a953b8406f5a321efa4171c2383dc7c222c2eb8aa49446d34f259814f5b4b9",
+        "sdk/runtime/src/block.rs": "3c3d92f178888e3ba6ba2b3da4c6810ec8c9b44f0c29296ad0ab474c91871a1c",
+        "sdk/runtime/src/clock.rs": "457ab4167692356490991ed3729da6ab405b847d5322154688f1f2c9ed5c7484",
+        "sdk/runtime/src/entropy.rs": "536d4db4bb00067b4697d46eb34da1fb680edcdf6d25569be01ab161c77e1e13",
+        "sdk/runtime/src/lib.rs": "cfbb938aedf95b7c5eff27263b692b3fecc70282116930e3a4c84996e54d0983",
+        "sdk/runtime/src/memory.rs": "0b88b9a77f6dd2f4bb4433d790320152848ef534ea5cd0329f8d9ea9dd629eb6",
+        "sdk/runtime/src/message.rs": "24dcc5f761b75a491f7fd86d18bcbd26333b0a1e481b1e83c74d95e5509cb922",
+        "sdk/runtime/src/native.rs": "e8083664af9effe4c4f5e8cc27e3ab197fd76de54f0a03a4a75ae341dc56e6b8",
+        "sdk/runtime/src/network.rs": "9679db5ad9bbf81164e84656650911ba8f508440460c5af2785ca3cf20fc310d",
+        "sdk/runtime/src/process.rs": "998867816fc0f0c88f790b37a12a37536f1d1c29109e7315706abe797f20e202",
+        "sdk/runtime/src/tls_time.rs": "f135b4b848ba41510662ac25c69e7cc0b1e3629825f36eb697a0b98c82285f79",
+        "services/catalog/Cargo.toml": "e692618da2bec1212b4b8ec1b08037cfbd9df2441b3283efc9ab1d5860a89804",
+        "services/catalog/src/client.rs": "1a1474e3a829a4c247046ee916019e5857a1603efd4620d95e0c4a50ea4f0878",
+        "services/catalog/src/journal.rs": "8fe06db4b455c8975831b7f246aa13948222cf22eb41f5e0adfad31a9b83d58f",
+        "services/catalog/src/lib.rs": "375921af0dc4e449ede38beae0ebcd5a6b465018a9448585af96119a86b407cd",
+        "services/catalog/src/user_service.rs": "25b13f461942b3ea0ff33ff8bed64a549ad10113ac9cf19adebc9629350c3e0e",
+        "services/catalog/src/wire.rs": "9f2a8e9da0608f535bb020effbde425132acd6ce5f1ec9560bcad7103065eb61",
+        "services/volume/Cargo.toml": "c089bb75a96bb78adb93693300db46f503f0bc2cc3476d9ec1c3f4b1ad1fa405",
+        "services/volume/src/archive.rs": "49ce84197214cd7687c0dcbba291b61e2823a5bae42806aaf96b9cece1622107",
+        "services/volume/src/client.rs": "9b5beed409e2005244e863bfaa5e77b07a0e326127806112f5e17e5a949399bd",
+        "services/volume/src/lib.rs": "3cb55fb0280c1db62d95c90a1c5a4af7bb19c0ac0f8eca7e87a0cfbd26590848",
+        "services/volume/src/service.rs": "59f7b07cf2a88dd4c633ef4e93569f451f4425bcd32010e1db5987271af0ea91",
+        "services/volume/src/table.rs": "e625206306e32b321075ba2bdbbca95960417efbdccf354f3f2daf3773dd6f72",
+        "services/volume/src/upload.rs": "98527d36046926f3370cf19e23a8c2c39250c2e5a944ff1c1b221a0d021a7fa1",
+        "services/volume/src/ustar.rs": "dd3ae91021369b6dd334f8ce016d877fece681ccff5ce807dfc4021d9db11716",
+        "services/volume/src/wire.rs": "50e407b18da4db2f76866a9214d199656639cea3867d4b8d894e0c2b4293f464",
+        "userspace/document_session_probe.rs": "12152c588b8c3730878d8c249cbc379ee9035cae1441a14a195796c9d13f6692",
+        "userspace/m6_runtime.rs": "d9d53fb22821eeeffaf17a1162089217abc17eff06d5b5cdf86962009da56be5",
+        "userspace/m6c_probe.rs": "5ecda84b213a0108f7ca1d3b7c84db8ddc1b2cfd6143ba5c7fad59917db9d34a",
+        "userspace/sdk_probe_runtime.rs": "b21c5e575fbf34589b1aca96afc8d128ac1f57e34d4a5e212b8c0aa27d1dcf76"
+      },
+      "library_sha256": {
+        "users/libnieuw_os_sdk_runtime.rlib": "15adf61adea4d0b7fa6703bcc5e925f743951719a013f20ff3d30189dd2b0c50",
+        "users/libzeroize.rlib": "f9d96c216cd6c1e6723c1b3f151c1388986f65acd35e736b522f96aa273775cd",
+        "users/libcatalog_core.rlib": "b159f93006e2548ca9b276acf9e33b95c61e057053edf48a011d0de9ac9e86cd",
+        "users/libvolume_core.rlib": "c5459b8f1d9e8d8040e1d742e2ede8989ba0eecc6c5f784e782c4f886e6e30a2",
+        "users/libnieuw_os_catalog_client.rlib": "76a9371fc92fee1725ff56be17cdf9fca72f3ba2ae7c9e62cf6a416519fe1329",
+        "users/libnieuw_os_document_session.rlib": "ba7df6a355b78c56958ab84b9a4ab58518be9cc64a255d6991d43d8bfb58b1cc"
+      },
+      "compiler_command_sha256": {
+        "build-sdk-zeroize": "27c8daf7470f28a7e6e34f0abf86bc206f9563d7f4c9a145b3c1beab18b03364",
+        "build-sdk-runtime": "90aef908eabead83b60e77770c119f03148b351f749d2857336729d528c43066",
+        "build-document-library-catalog_core": "2ac1bb7c303b912d4f93e4a4454896b73882c5eb8373caeed8c1ace76d3d76fb",
+        "build-document-library-volume_core": "12ea0ac9974b3723ca08f54d262f1ed6b68ea45e49bf104ab207f1d2597aa77d",
+        "build-document-library-nieuw_os_catalog_client": "56ea98e4aac3470024c53fa76a801ab66d661ed95825c940fe155250c951b836",
+        "build-document-library-nieuw_os_document_session": "5f2b41a51c42021b2f765390b20c43e256248d1c2cf77d87bb514180bb00a9da",
+        "build-users-m6c_probe": "cfe8547dc1b08e7c8f7631f0f8be5fa956bbaec10b3d222429dd77901644d02d"
+      },
+      "requests_per_client_required_by_kernel_observer": 3,
+      "request_count_evidence": "Existing exact per-client observer assertion before M6C:PASS; not an additional serial counter",
+      "observer_source_sha256": "3801bd4ebbaca475d47a7312fdb23d0155a4ef0a191e5a1a356ee3023947cf34"
+    }
+  ],
+  "snapshots": [
+    {
+      "case": "normal",
+      "directory": "/workspace/baryon-rust/build/docsession-rust100-final2/document-session-gate/artifacts/normal",
+      "files_sha256": {
+        "logs/build-document-library-catalog_core.json": "8824662bf14dec31c30bb99eac8d49ce714a75c23639a526c856277bcdb4d086",
+        "logs/build-document-library-catalog_core.stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "logs/build-document-library-catalog_core.stdout.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "logs/build-document-library-nieuw_os_catalog_client.json": "49f78479e64505f4a497b0a101032792e4d1573a500d4c7ecd2c5f3fa2a45a2c",
+        "logs/build-document-library-nieuw_os_catalog_client.stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "logs/build-document-library-nieuw_os_catalog_client.stdout.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "logs/build-document-library-nieuw_os_document_session.json": "9dce4e5546260c675d3020346144faef96fbbdfe222ae695f561d3a5670daed0",
+        "logs/build-document-library-nieuw_os_document_session.stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "logs/build-document-library-nieuw_os_document_session.stdout.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "logs/build-document-library-volume_core.json": "4f138ea64fc532e558febdd7ded065495dbd2f74c0c54e642b078a7803d572d8",
+        "logs/build-document-library-volume_core.stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "logs/build-document-library-volume_core.stdout.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "logs/build-sdk-runtime.json": "10f57dc5d64bfc25c8543865fc7e45c8846abd0d90da2f135ffb9092d465c3fa",
+        "logs/build-sdk-runtime.stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "logs/build-sdk-runtime.stdout.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "logs/build-sdk-zeroize.json": "c54470126795071a9b449b75adddd1e6db33e5f335ba291c1087d3fb04e6df08",
+        "logs/build-sdk-zeroize.stderr.txt": "e31e8d1a8ec8496acb88a96e288f6210a44c0b0088c6d987728303f7fc3e7b49",
+        "logs/build-sdk-zeroize.stdout.txt": "16bdfe0882624763f938d57ecbd48933e48f75529fda34375b2976899e57ff61",
+        "logs/build-users-m6c_probe.json": "384433ddb4e5402685e57a3bc6dece3f3e4046b88974e902227128a820db935e",
+        "logs/build-users-m6c_probe.stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "logs/build-users-m6c_probe.stdout.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "manifest.json": "266df399eb35cc73245f3ea786627357039b917ae77a4782fe2bcd2d28991e63",
+        "users/libcatalog_core.rlib": "b159f93006e2548ca9b276acf9e33b95c61e057053edf48a011d0de9ac9e86cd",
+        "users/libnieuw_os_catalog_client.rlib": "76a9371fc92fee1725ff56be17cdf9fca72f3ba2ae7c9e62cf6a416519fe1329",
+        "users/libnieuw_os_document_session.rlib": "ba7df6a355b78c56958ab84b9a4ab58518be9cc64a255d6991d43d8bfb58b1cc",
+        "users/libnieuw_os_sdk_runtime.rlib": "15adf61adea4d0b7fa6703bcc5e925f743951719a013f20ff3d30189dd2b0c50",
+        "users/libvolume_core.rlib": "c5459b8f1d9e8d8040e1d742e2ede8989ba0eecc6c5f784e782c4f886e6e30a2",
+        "users/libzeroize.rlib": "f9d96c216cd6c1e6723c1b3f151c1388986f65acd35e736b522f96aa273775cd",
+        "users/m6c_probe.elf": "8927a6ea9e822cc7dedfa125a3533f01d3d5e45ee6073aa7081c6a0838341fe9",
+        "users/manifest-m6c.json": "4dfe28bbb34b598bab22533472830f7bb1259c6fe5b6640ce296f4dc63e9e657"
+      }
+    },
+    {
+      "case": "recover",
+      "directory": "/workspace/baryon-rust/build/docsession-rust100-final2/document-session-gate/artifacts/recover",
+      "files_sha256": {
+        "logs/build-document-library-catalog_core.json": "2ac1bb7c303b912d4f93e4a4454896b73882c5eb8373caeed8c1ace76d3d76fb",
+        "logs/build-document-library-catalog_core.stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "logs/build-document-library-catalog_core.stdout.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "logs/build-document-library-nieuw_os_catalog_client.json": "56ea98e4aac3470024c53fa76a801ab66d661ed95825c940fe155250c951b836",
+        "logs/build-document-library-nieuw_os_catalog_client.stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "logs/build-document-library-nieuw_os_catalog_client.stdout.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "logs/build-document-library-nieuw_os_document_session.json": "5f2b41a51c42021b2f765390b20c43e256248d1c2cf77d87bb514180bb00a9da",
+        "logs/build-document-library-nieuw_os_document_session.stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "logs/build-document-library-nieuw_os_document_session.stdout.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "logs/build-document-library-volume_core.json": "12ea0ac9974b3723ca08f54d262f1ed6b68ea45e49bf104ab207f1d2597aa77d",
+        "logs/build-document-library-volume_core.stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "logs/build-document-library-volume_core.stdout.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "logs/build-sdk-runtime.json": "90aef908eabead83b60e77770c119f03148b351f749d2857336729d528c43066",
+        "logs/build-sdk-runtime.stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "logs/build-sdk-runtime.stdout.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "logs/build-sdk-zeroize.json": "27c8daf7470f28a7e6e34f0abf86bc206f9563d7f4c9a145b3c1beab18b03364",
+        "logs/build-sdk-zeroize.stderr.txt": "222a02ed477d249a21359df8cae975864a62d848f4739cadc5b00b6190a963c6",
+        "logs/build-sdk-zeroize.stdout.txt": "52bbfb2c6e3e661237a76d40a694fed6e5bdce817e4a2aa85180534f3c29bb41",
+        "logs/build-users-m6c_probe.json": "cfe8547dc1b08e7c8f7631f0f8be5fa956bbaec10b3d222429dd77901644d02d",
+        "logs/build-users-m6c_probe.stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "logs/build-users-m6c_probe.stdout.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "manifest.json": "55230f57461a1896e28363c3bd475a05e3a725a00bf543356e38e6461489ad6f",
+        "users/libcatalog_core.rlib": "b159f93006e2548ca9b276acf9e33b95c61e057053edf48a011d0de9ac9e86cd",
+        "users/libnieuw_os_catalog_client.rlib": "76a9371fc92fee1725ff56be17cdf9fca72f3ba2ae7c9e62cf6a416519fe1329",
+        "users/libnieuw_os_document_session.rlib": "ba7df6a355b78c56958ab84b9a4ab58518be9cc64a255d6991d43d8bfb58b1cc",
+        "users/libnieuw_os_sdk_runtime.rlib": "15adf61adea4d0b7fa6703bcc5e925f743951719a013f20ff3d30189dd2b0c50",
+        "users/libvolume_core.rlib": "c5459b8f1d9e8d8040e1d742e2ede8989ba0eecc6c5f784e782c4f886e6e30a2",
+        "users/libzeroize.rlib": "f9d96c216cd6c1e6723c1b3f151c1388986f65acd35e736b522f96aa273775cd",
+        "users/m6c_probe.elf": "8927a6ea9e822cc7dedfa125a3533f01d3d5e45ee6073aa7081c6a0838341fe9",
+        "users/manifest-m6c.json": "4dfe28bbb34b598bab22533472830f7bb1259c6fe5b6640ce296f4dc63e9e657"
+      }
+    }
+  ],
+  "real_vm_invocations": 2,
+  "same_user_and_library_artifacts": true,
+  "cold_link": {
+    "same_exact_saved_image": true,
+    "recovery_read_only": true,
+    "sequence": 10,
+    "normal_acks": 10,
+    "recovery_acks": 0,
+    "saved_image_sha256": "a40bd3b7c19a895c3a5576ea11b25c6001297d47df6ee287d28a3e3ca1da80e9"
+  },
+  "finished_utc": "2026-11-18T00:46:57.453240+00:00"
+}

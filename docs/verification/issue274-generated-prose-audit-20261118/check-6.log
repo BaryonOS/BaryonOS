@@ -1,0 +1,26 @@
+usage: tokenguard.py [-h] [--root ROOT]
+                     {run,inspect,slice,log,stats,doctor,hook,mcp,init} ...
+
+Bound agent context while retaining command exit status and raw local
+evidence. This is a presentation helper, not a sandbox, test oracle or token
+accounting API. Only Python outlines use an AST. Other outlines are explicitly
+heuristic. Commands inherit stdin and environment; combined file capture is
+not a transparent TTY.
+
+positional arguments:
+  {run,inspect,slice,log,stats,doctor,hook,mcp,init}
+    run                 Run an argv command, preserve exit status and log
+                        bytes
+    inspect             Show bounded declarations and source fingerprint
+    slice               Read an exact source range
+    log                 Replay a bounded range from a raw log
+    stats               Report observed output bytes, not billing tokens
+    doctor              Report local prerequisites without changing
+                        configuration
+    hook                Conservatively adapt Claude build/test commands
+    mcp                 Serve bounded local tools over stdio MCP
+    init                Preview or apply non-destructive workspace MCP entries
+
+options:
+  -h, --help            show this help message and exit
+  --root ROOT

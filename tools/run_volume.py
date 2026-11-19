@@ -3,18 +3,21 @@
 read-only recovery of exactly the preserved image, checked by the host oracle.
 The S09 archive stages add an export into a disjoint archive range of the same
 disposable image, a restore, a damaged-archive refusal and a restore into a
-domain with conflicting names and collections on fresh images, and an export
-into a target too small for the archive that must fail without a usable archive."""
+domain with conflicting names and collections on fresh images, an export
+into a target too small for the archive that must fail without a usable archive,
+and the D6(a) user export of that archive to ustar, read back with Python tarfile."""
 from __future__ import annotations
 import argparse
 from datetime import datetime, timezone
 import hashlib
+import io
 import json
 from pathlib import Path
 import queue
 import re
 import shutil
 import subprocess
+import tarfile
 import threading
 import time
 import uuid
@@ -32,12 +35,14 @@ FEATURE = {"normal": "native-volume", "recover": "test-volume-recover",
            "archive-restore": "test-volume-archive-restore",
            "archive-corrupt": "test-volume-archive-corrupt",
            "archive-conflict": "test-volume-archive-conflict",
-           "archive-full": "test-volume-archive-full"}
+           "archive-full": "test-volume-archive-full",
+           "archive-ustar": "test-volume-archive-ustar"}
 CUT_MARKER = {"cut-data": "VOLUME:CUT:DATA", "cut-table": "VOLUME:CUT:TABLE", "cut-txn": "VOLUME:CUT:TXN"}
 CASE_MARKER = {"normal": "NORMAL", "recover": "RECOVER", "recover-cut": "RECOVER_CUT",
                "corrupt": "CORRUPT", "foreign": "CORRUPT", "archive-export": "ARCHIVE_EXPORT",
                "archive-restore": "ARCHIVE_RESTORE", "archive-corrupt": "ARCHIVE_CORRUPT",
-               "archive-conflict": "ARCHIVE_CONFLICT", "archive-full": "ARCHIVE_FULL"}
+               "archive-conflict": "ARCHIVE_CONFLICT", "archive-full": "ARCHIVE_FULL",
+               "archive-ustar": "ARCHIVE_USTAR"}
 READ_ONLY = ("recover", "recover-cut", "corrupt", "foreign")
 MAX_TIMEOUT = 600
 # S09 archive range; must equal ARCHIVE_FIRST_SECTOR/ARCHIVE_SECTORS in the
@@ -57,6 +62,10 @@ RESTORED = ("archive-restore", "archive-corrupt", "archive-conflict")
 FULL_SECTORS = 100
 assert FULL_SECTORS < ARCHIVE_SECTORS
 FULL_END = ARCHIVE_SPAN.start + FULL_SECTORS * SECTOR
+# archive-ustar: the portal exports into the lower half of the range and writes
+# the ustar conversion of that archive into the upper half (USTAR_FIRST in the portal app).
+USTAR_FIRST = ARCHIVE_SECTORS // 2
+USTAR_START = ARCHIVE_SPAN.start + USTAR_FIRST * SECTOR
 # Domain-0 state the portal writes before the archive-conflict restore (mirrors
 # portal() in sdk/examples/volume-docs/src/app.rs): object -> (name, length),
 # content = fixture(object, 1, length); collection index -> name.
@@ -189,13 +198,14 @@ def run_volume(case: str, volume_dir: Path | None = None, *, timeout=MAX_TIMEOUT
                                   ("recover-cut", "cut-table"), ("recover-cut", "cut-txn"),
                                   ("archive-export", "recover"), ("archive-restore", "archive-export"),
                                   ("archive-corrupt", "archive-export"), ("archive-conflict", "archive-export"),
-                                  ("archive-full", "archive-export")):
+                                  ("archive-full", "archive-export"), ("archive-ustar", "archive-export")):
             raise ValueError(f"{case} cannot follow {parent}")
     archive_flip = archive_reference = None
-    if case == "archive-full":
+    if case in ("archive-full", "archive-ustar"):
         # The export stage's input again: the recovered fixture whose archive
         # range holds its canaries and no archive. The export stage's archive
-        # is the reference for the bytes the too-small target may receive.
+        # is the reference for the bytes the too-small target may receive and
+        # for the archive the ustar stage exports again.
         exported = (volume_dir / "volume.img").read_bytes()
         archive_reference = stored_archive(exported)
         fresh = outside_archive(exported)
@@ -338,6 +348,29 @@ def check_archive(case: str, before: bytes, after: bytes, evidence, reference: b
                     raise
         oracle = volume_disk.analyse(outside_archive(after))
         check_state("recover", oracle, evidence)
+    elif case == "archive-ustar":
+        # The lower half holds the export stage's archive again, the upper half
+        # its ustar conversion. The guest first offers a refused name list: it
+        # must write nothing, so the stream starts at USTAR_START and the write
+        # count has no spare sector.
+        length = evidence["VOLUME:ARCHIVE:USTAR_BYTES:"]
+        data = stored_archive(after)
+        end = ARCHIVE_SPAN.start + -(-len(data) // SECTOR) * SECTOR
+        stop = USTAR_START + length
+        if reference is None or data != reference or end > USTAR_START or stop > ARCHIVE_SPAN.stop:
+            raise ValueError("lower half differs from the export stage's archive or the halves overlap")
+        if after[ARCHIVE_SPAN.start + len(data):end] != bytes(end - ARCHIVE_SPAN.start - len(data)):
+            raise ValueError("archive tail padding is not zero")
+        if any(after[part] != before[part] for part in (slice(ARCHIVE_SPAN.start), slice(end, USTAR_START),
+                                                        slice(stop, None))):
+            raise ValueError("ustar export changed sectors outside the archive and its stream")
+        if counts[0] == 0 or counts[1:] != [(end - ARCHIVE_SPAN.start + length) // SECTOR, 2]:
+            raise ValueError(f"archive I/O counts {counts}")
+        stream = after[USTAR_START:stop]
+        members = check_ustar(stream, volume_archive.parse(data))
+        oracle = volume_disk.analyse(outside_archive(after))
+        check_state("recover", oracle, evidence)
+        oracle["ustar"] = {"length": length, "sha256": hashlib.sha256(stream).hexdigest(), "members": members}
     elif case == "archive-export":
         if after[:ARCHIVE_SPAN.start] != before[:ARCHIVE_SPAN.start]:
             raise ValueError("export changed sectors outside the archive range")
@@ -427,6 +460,37 @@ def check_archive(case: str, before: bytes, after: bytes, evidence, reference: b
     if reference is not None:
         oracle["archive"]["reference_length"] = len(reference)
     return oracle
+
+
+def check_ustar(stream: bytes, archive: dict) -> list[str]:
+    """Read the guest's ustar stream with Python tarfile, independent of
+    services/volume/src/ustar.rs, against the parsed archive it came from.
+    tarfile accepts a missing end and stops quietly at damage, so the bytes are
+    accounted for too: members tile the stream, then exactly two zero blocks."""
+    want = [((archive["collections"][item["collection"]] + "/" if item["collection"] else "") + item["name"],
+             item["content"]) for item in archive["objects"]]
+    if not stream or len(stream) % SECTOR or stream[-2 * SECTOR:] != bytes(2 * SECTOR):
+        raise ValueError("ustar stream does not end in two zero blocks")
+    with tarfile.open(fileobj=io.BytesIO(stream), mode="r:", encoding="utf-8", errors="strict") as tar:
+        members = tar.getmembers()
+        if [member.name for member in members] != [path for path, _ in want]:
+            raise ValueError(f"ustar members {[member.name for member in members]}")
+        offset = 0
+        for member, (path, content) in zip(members, want):
+            header = stream[member.offset_data - SECTOR:member.offset_data]
+            # A pax 'x' header with only a path record precedes exactly the non-ASCII paths.
+            pax = member.offset != member.offset_data - SECTOR
+            if (member.offset != offset or header[156:157] != b"0" or header[257:265] != b"ustar\x0000"
+                    or pax == path.isascii() or member.pax_headers != ({"path": path} if pax else {})
+                    or (member.mode, member.uid, member.gid, member.mtime) != (0o644, 0, 0, 0)):
+                raise ValueError(f"ustar header of {path!r}")
+            offset = member.offset_data + -(-member.size // SECTOR) * SECTOR
+            if (tar.extractfile(member).read() != content
+                    or stream[member.offset_data + member.size:offset] != bytes(offset - member.offset_data - member.size)):
+                raise ValueError(f"ustar content of {path!r}")
+        if tar.offset != offset or offset != len(stream) - 2 * SECTOR:
+            raise ValueError("ustar stream has bytes between its last member and its end")
+    return [member.name for member in members]
 
 
 def current(item):

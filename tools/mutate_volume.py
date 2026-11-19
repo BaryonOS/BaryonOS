@@ -19,7 +19,7 @@ import tempfile
 from pathlib import Path
 from common import BUILD, ROOT, save_json, source_hash
 
-RUST = ["cargo", "+1.90.0", "test", "--locked", "--offline", "-p", "volume-core",
+RUST = ["cargo", "+1.100.0", "test", "--locked", "--offline", "-p", "volume-core",
         "--lib", "--test", "service", "--test", "history"]
 PYTHON = [sys.executable, "-B", "-m", "unittest", "discover", "-s", "tests", "-p", "test_volume_*.py"]
 TABLE = "services/volume/src/table.rs"
