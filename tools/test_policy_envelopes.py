@@ -29,9 +29,12 @@ CASE_NAMES = (
     "binding-manifest-digest", "binding-target", "binding-truncated", "image-digest",
     "image-floor", "signer-revoked", "signer-premature", "signer-expired",
     "policy-trailing", "policy-domain-confusion", "binding-domain-confusion",
+    "anchor-round-trip", "anchor-cas", "anchor-stale-predecessor",
+    "anchor-readback-predecessor", "anchor-readback-successor", "anchor-torn",
+    "anchor-conflict", "anchor-floor-rollback",
 )
-CASE_COUNT = 26
-EXPECTED_MASK = 67_108_863
+CASE_COUNT = 34
+EXPECTED_MASK = 17_179_869_183
 FIXTURES = ROOT / "crates/update-core/src/policy_envelope/probe-fixtures"
 LOADER_MARKERS = (
     f"BOOT:POLICY_PROBE:COUNT:{CASE_COUNT}",

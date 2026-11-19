@@ -1,0 +1,31 @@
+{
+  "task": "L01-T1",
+  "source_commit": "b019a8d2b99dc4a7006a5db50cdb3efcd516cf71",
+  "level": "proposed design/source-reference and unchanged-pin checks",
+  "checks": [
+    {
+      "argv": [
+        "python3",
+        "-B",
+        "build/task-checks/check-references.py"
+      ],
+      "exit_code": 0,
+      "raw_log": "build/tokenguard/run-fui6cszw.log",
+      "sha256": "684898dbdd973ac2a1b210d553bf7943f00c4d3e7e597b2b12215de87d4f7993"
+    },
+    {
+      "argv": [
+        "python3",
+        "-B",
+        "tools/progress.py",
+        "--check"
+      ],
+      "exit_code": 0,
+      "raw_log": "build/tokenguard/run-h625smd3.log",
+      "sha256": "14b305fe38d23ae7244745b59dcbbad1fa41b2ffd4a173070a72a8aca2f3aa5f"
+    }
+  ],
+  "limits": "Design only. Task/quality/model provenance/engine port/budget and numeric profile require owner decision; pinned config lookup unavailable, no actual KV or quality/latency claim. Native inference/hardware/human review NOT RUN;41/100 unchanged.",
+  "review": "Lead source/diff review; no native/human acceptance.",
+  "score": "41 -> 41/100"
+}

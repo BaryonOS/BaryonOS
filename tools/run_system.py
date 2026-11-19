@@ -9,6 +9,7 @@ from __future__ import annotations
 import argparse
 from datetime import datetime, timezone
 import json
+import os
 from pathlib import Path
 import re
 import shutil
@@ -59,6 +60,7 @@ def record_plaintext() -> bytes:
 RANDOM_FEATURE = {"raw":"native-system-random", "sdk":"test-system-random-sdk", "unknown":"test-system-random-unknown", "wrong-caller":"test-system-random-wrong-caller"}
 TCP_FEATURE = {"normal": "native-system-tcp", "recover": "test-system-tcp-recover"}
 BOOT = ("BOOT:EBS_OK", "KERNEL:ENTRY", "BOOTINFO:OK")
+COLD_CASES = ("keystate", "record-tag", "swapped-blocks", "withheld-secret")
 MAX_TIMEOUT = 180
 
 
@@ -267,12 +269,78 @@ def check_disk(oracle: dict) -> None:
         raise ValueError("unexpected volume generation, allocation or domain clock")
 
 
+def cold_image(raw: bytes, case: str) -> bytes:
+    """Mutate AEAD bytes while repairing the noncryptographic volume checksums.
+
+    The sole sealed record has one volume chunk. swapped-blocks exchanges its
+    two 64-byte ciphertext blocks; this does not prove multi-record ordering.
+    """
+    if case not in COLD_CASES:
+        raise ValueError("unknown cold case")
+    check_disk(volume_disk.analyse(raw, OPAQUE_OBJECTS))
+    if case == "withheld-secret":
+        return raw
+    disk = volume_disk
+    image = bytearray(raw)
+    volume = raw[disk.FIRST * disk.SECTOR:]
+    table = disk.choose(volume)
+    obj = KEYSTATE_OBJECT if case == "keystate" else SEALED_OBJECT
+    version = table["entries"][obj]["current"]
+    start = (disk.FIRST + disk.DATA_START + version["chunks"][0] * disk.CHUNK_SECTORS) * disk.SECTOR
+    length = version["length"]
+    if case == "swapped-blocks":
+        image[start + 24:start + 152] = image[start + 88:start + 152] + image[start + 24:start + 88]
+    else:
+        image[start + (56 if case == "keystate" else length - 1)] ^= 1
+    checksum = disk.fnv(image[start:start + length])
+    for slot in range(2):
+        sectors, _ = disk.slot_states(volume, slot)
+        current = disk.decode_table(slot, sectors)
+        entry = current["entries"][obj]
+        if entry["present"]:
+            entry["current"]["content_sum"] = checksum
+            entry["current"]["sums"] = [checksum]
+            for index, sector in enumerate(disk.encode_table(current["generation"], current["request_id"],
+                    current["entries"], current["collections"], current["clocks"])):
+                offset = (disk.FIRST + slot * disk.TABLE_SECTORS + index) * disk.SECTOR
+                image[offset:offset + disk.SECTOR] = sector
+    # Decode all content independently: a volume checksum error is not AEAD evidence.
+    disk.analyse(bytes(image), OPAQUE_OBJECTS)
+    return bytes(image)
+
+
+def evaluate_cold(case: str, stdout: str, raw_exit: int | None, timed_out: bool) -> dict:
+    if case not in COLD_CASES:
+        raise ValueError("unknown cold case")
+    lines = stdout.splitlines()
+    marker = f"SYSTEM:COLD:REFUSED:{case}"
+    controlled = [line for line in lines if line.startswith("SYSTEM:COLD:")]
+    if controlled != [marker] or raw_exit != 33 or timed_out:
+        raise ValueError("cold refusal case/exit mismatch")
+    if any("FAIL" in line or "PANIC" in line or "PLAINTEXT" in line and
+           line != "SYSTEM:COLD_PLAINTEXT_REPLIES:00000000000000000000" for line in lines):
+        raise ValueError("cold refusal exposed plaintext or failed")
+    found = {}
+    for key in ("COLD_PLAINTEXT_REPLIES", "DISK_READS", "DISK_WRITES", "DISK_FLUSHES"):
+        matches = [line for line in lines if line.startswith(f"SYSTEM:{key}:")]
+        if len(matches) != 1 or not re.fullmatch(rf"SYSTEM:{key}:[0-9]{{20}}", matches[0]):
+            raise ValueError(f"missing/duplicate cold evidence {key}")
+        found[key] = int(matches[0].rsplit(":", 1)[1])
+    if found["DISK_READS"] < 1 or any(found[k] for k in ("COLD_PLAINTEXT_REPLIES", "DISK_WRITES", "DISK_FLUSHES")):
+        raise ValueError("cold plaintext or disk mutation")
+    if [line for line in lines if line in BOOT] != list(BOOT) or lines.count("SYSTEM:MANIFEST:PASS") != 1:
+        raise ValueError("cold boot/manifest evidence missing")
+    return found
+
+
 def run_system(case: str, volume_dir: Path | None = None, *, timeout: int = MAX_TIMEOUT,
                kernel_feature: str | None = None, network_port: int | None = None,
-               rtc_base: str | None = None):
+               rtc_base: str | None = None, cold_case: str | None = None):
     cases = {**FEATURE, **POWER_FEATURE}
     if case not in cases or not 0 < timeout <= MAX_TIMEOUT:
         raise ValueError("unknown case or unbounded timeout")
+    if cold_case is not None and (case != "recover" or cold_case not in COLD_CASES or kernel_feature is not None):
+        raise ValueError("cold cases require the ordinary recover profile")
     selected = cases[case] if kernel_feature is None else kernel_feature
     network_feature = {"normal": "native-system-net", "recover": "test-system-net-recover"}.get(case)
     diagnostic = case == "normal" and selected in (
@@ -331,6 +399,11 @@ def run_system(case: str, volume_dir: Path | None = None, *, timeout: int = MAX_
         check_image(volume_dir / "volume.img")
         previous = json.loads((volume_dir / "last-system-stage.json").read_text())
         check_parent(previous, frozen, sha256(volume_dir / "volume.img"), network=use_network, tcp=use_tcp)
+    if cold_case is not None:
+        parent_dir = volume_dir
+        volume_dir = run_dir / "cold-image"
+        volume_dir.mkdir()
+        (volume_dir / "volume.img").write_bytes(cold_image((parent_dir / "volume.img").read_bytes(), cold_case))
     image = volume_dir / "volume.img"
     check_image(image)
     before = sha256(image)
@@ -378,11 +451,16 @@ def run_system(case: str, volume_dir: Path | None = None, *, timeout: int = MAX_
     if use_tcp:
         report["tcp_gate"] = False
     try:
-        report["evidence"] = evaluate(case, stdout, rc, timed_out)
+        report["cold_case"] = cold_case
+        report["fixture_environment"] = {"NOS_SYSTEM_COLD_CASE": os.environ.get("NOS_SYSTEM_COLD_CASE")}
+        report["cold_antirollback"] = "UNPROTECTED: no independently trusted cold generation floor"
+        report["evidence"] = (evaluate_cold(cold_case, stdout, rc, timed_out) if cold_case is not None
+                              else evaluate(case, stdout, rc, timed_out))
         if case == "recover" and before != after:
             raise ValueError("read-only cold recovery changed the disk")
         oracle = volume_disk.analyse(image.read_bytes(), OPAQUE_OBJECTS)
-        check_disk(oracle)
+        if cold_case is None:
+            check_disk(oracle)
         report["oracle"] = oracle
         if source_hash() != frozen:
             raise ValueError("source changed during guest run")
@@ -402,6 +480,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--case", choices=(*FEATURE, *POWER_FEATURE), required=True)
     parser.add_argument("--volume", type=Path)
+    parser.add_argument("--cold-case", choices=COLD_CASES)
     parser.add_argument("--timeout", type=int, default=MAX_TIMEOUT)
     options = parser.parse_args()
-    raise SystemExit(0 if run_system(options.case, options.volume, timeout=options.timeout)[0]["passed"] else 1)
+    raise SystemExit(0 if run_system(options.case, options.volume, timeout=options.timeout, cold_case=options.cold_case)[0]["passed"] else 1)

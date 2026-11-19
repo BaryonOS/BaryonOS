@@ -1,0 +1,238 @@
+{
+  "task": "P02-T1",
+  "source_commit": "c5c56f93d14a737c5c62dbec7ae237e34fe505fe",
+  "base": "6f29b6720b51aecad5714faa48b445afd6e2f5a9",
+  "level": "host",
+  "toolchain": "installed Rust 1.90.0 via PATH",
+  "checks": [
+    {
+      "command": [
+        "cargo",
+        "test",
+        "--locked",
+        "--manifest-path",
+        "services/nas/native-core/Cargo.toml"
+      ],
+      "exit_code": 0,
+      "summary_log": "build/p02-checks/00.log",
+      "raw_log": "build/tokenguard/run-4djwe4ak.log",
+      "sha256": "284ee00a14b16988f02a6fa069fd3c10bc8dc8fc955e7fdd7b35d32101559a3d"
+    },
+    {
+      "command": [
+        "cargo",
+        "clippy",
+        "--locked",
+        "--manifest-path",
+        "services/nas/native-core/Cargo.toml",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit_code": 0,
+      "summary_log": "build/p02-checks/01.log",
+      "raw_log": "build/tokenguard/run-aixfcubk.log",
+      "sha256": "6e243c757980dbad2e898a30fad0e9877c3aaa4fdcb36b0f0430020ac0b31553"
+    },
+    {
+      "command": [
+        "cargo",
+        "fmt",
+        "--manifest-path",
+        "services/nas/native-core/Cargo.toml",
+        "--",
+        "--check"
+      ],
+      "exit_code": 0,
+      "summary_log": "build/p02-checks/02.log",
+      "raw_log": "build/tokenguard/run-zs2iv565.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": [
+        "cargo",
+        "test",
+        "--locked",
+        "--manifest-path",
+        "services/nas/native-client/Cargo.toml"
+      ],
+      "exit_code": 101,
+      "summary_log": "build/p02-checks/03.log",
+      "raw_log": "build/tokenguard/run-xbmz125d.log",
+      "sha256": "13d7764370b2b86a593b163b0c49ec71ec44cfdec0b7605f611f1a7f76218247"
+    },
+    {
+      "command": [
+        "cargo",
+        "test",
+        "--locked",
+        "--manifest-path",
+        "services/nas/native-client/Cargo.toml"
+      ],
+      "exit_code": 101,
+      "summary_log": "build/p02-checks/04.log",
+      "raw_log": "build/tokenguard/run-svp10f17.log",
+      "sha256": "883d0662c455fb1cf354b8508edeefa15a0e05d6af8cdaa6e32ce1927317c86f"
+    },
+    {
+      "command": [
+        "cargo",
+        "test",
+        "--locked",
+        "--manifest-path",
+        "services/nas/native-client/Cargo.toml"
+      ],
+      "exit_code": 0,
+      "summary_log": "build/p02-checks/05.log",
+      "raw_log": "build/tokenguard/run-mvvtcx4a.log",
+      "sha256": "c23a3dd85d42170705b04962a3aa1a72f894810b28883ed0b429021dbeb3545f"
+    },
+    {
+      "command": [
+        "cargo",
+        "clippy",
+        "--locked",
+        "--manifest-path",
+        "services/nas/native-client/Cargo.toml",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit_code": 0,
+      "summary_log": "build/p02-checks/06.log",
+      "raw_log": "build/tokenguard/run-23t9c8bp.log",
+      "sha256": "ac3905b27b5e53bf15b719d70870d67419e13a48163feed3399f8c567f6a2d82"
+    },
+    {
+      "command": [
+        "cargo",
+        "fmt",
+        "--manifest-path",
+        "services/nas/native-client/Cargo.toml",
+        "--",
+        "--check"
+      ],
+      "exit_code": 0,
+      "summary_log": "build/p02-checks/07.log",
+      "raw_log": "build/tokenguard/run-iywp0d5j.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": [
+        "cargo",
+        "test",
+        "--locked",
+        "--manifest-path",
+        "services/nas/native-volume/Cargo.toml"
+      ],
+      "exit_code": 0,
+      "summary_log": "build/p02-checks/08.log",
+      "raw_log": "build/tokenguard/run-vtw8_xx4.log",
+      "sha256": "c5c839f22f136f61ac88b666752d15a048f62aff1911c98f80491243a7bd0ae8"
+    },
+    {
+      "command": [
+        "cargo",
+        "clippy",
+        "--locked",
+        "--manifest-path",
+        "services/nas/native-volume/Cargo.toml",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit_code": 0,
+      "summary_log": "build/p02-checks/09.log",
+      "raw_log": "build/tokenguard/run-kyoqs6vy.log",
+      "sha256": "9cb2a8ac73edf73f94b5c3ebc2990bb78d2c55c54640fcae8cd8bf339f7bdf27"
+    },
+    {
+      "command": [
+        "cargo",
+        "fmt",
+        "--manifest-path",
+        "services/nas/native-volume/Cargo.toml",
+        "--",
+        "--check"
+      ],
+      "exit_code": 0,
+      "summary_log": "build/p02-checks/10.log",
+      "raw_log": "build/tokenguard/run-e_q3hl2y.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": [
+        "cargo",
+        "test",
+        "--locked",
+        "--manifest-path",
+        "services/nas/native-probe/Cargo.toml"
+      ],
+      "exit_code": 0,
+      "summary_log": "build/p02-checks/11.log",
+      "raw_log": "build/tokenguard/run-lmt9fh9k.log",
+      "sha256": "15a41800661a2d6f607279f161829e2eaa198f51adec415aedd45545d8365f0c"
+    },
+    {
+      "command": [
+        "cargo",
+        "clippy",
+        "--locked",
+        "--manifest-path",
+        "services/nas/native-probe/Cargo.toml",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit_code": 0,
+      "summary_log": "build/p02-checks/12.log",
+      "raw_log": "build/tokenguard/run-w4bfilff.log",
+      "sha256": "df7d02ca75b4a563c5a5d03e7ecd3e5161ce7b62b5561fdeca6d11c6eaf99a41"
+    },
+    {
+      "command": [
+        "cargo",
+        "fmt",
+        "--manifest-path",
+        "services/nas/native-probe/Cargo.toml",
+        "--",
+        "--check"
+      ],
+      "exit_code": 0,
+      "summary_log": "build/p02-checks/13.log",
+      "raw_log": "build/tokenguard/run-sp6e_d6y.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": [
+        "python3",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "services/nas/native-probe/tests",
+        "-p",
+        "test_disk_oracle.py"
+      ],
+      "exit_code": 0,
+      "summary_log": "build/p02-checks/14.log",
+      "raw_log": "build/tokenguard/run-vpx0buqy.log",
+      "sha256": "2dbe2ca4b5d97e5e7591b4f4335c92ce9b2fd21f3fdef4f2d61b5c923231194c"
+    }
+  ],
+  "initial_failures": "Two test-setup assertions corrected: a wrong-caller failure requires explicit owner reconciliation before staging; successful empty-head observation is retained on subsequent rejection. No production logic or gate weakened.",
+  "review": "One bounded read-only AI review; no blocker; no tests duplicated.",
+  "not_run": [
+    "Native QEMU resume",
+    "NASP wire/real network",
+    "Hardware durability",
+    "Human audit"
+  ],
+  "score": "41 -> 41/100; P02 open",
+  "format": "NOSNAS01 and SNAPSHOT_BYTES source unchanged"
+}

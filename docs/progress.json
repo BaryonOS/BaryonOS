@@ -3,7 +3,7 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-18",
-    "source_commit": "6db0ea9e3803551500de630675cfead804b55274",
+    "source_commit": "329d66603386d3b7c3b9b21427ff1ae840f03084",
     "assessment_basis": "parent_commit",
     "branch": "codex/ci-power-lifecycle",
     "task": "CI-L1: Existing standalone power-lifecycle-core added to current component matrix with unchanged pinned steps/permissions/concurrency. Rust1.100:7tests,Clippy,fmt,scalar freestanding build all0; actionlint1.7.12 and27workflow tests0. Missing actionlint installed only under ignored build after release-checksum/MIT verification.",
