@@ -51,7 +51,11 @@ earlier are the 637 in C plus 4 imported pages.
 - **Reusable on a verifiable licence statement (1,728 records):** class A records
   without a screening flag and without a revision between 6 June and 2 July 2011. Their entire recorded history falls under the CC0
   statement in W003005. This relies on the site's own statement; individual
-  contributor grants were not verified separately.
+  contributor grants were not verified separately. Two further limits apply:
+  pattern screening is not exhaustive and can miss embedded third-party text
+  that a contributor could not license under CC0, and these records were not
+  read individually. The result is reuse on the stated licence basis, not a
+  cleared rights position.
 - **Uncertain, under review (1,298 records):** the 14 class A records in the
   6 June – 2 July 2011 window, the 73 flagged class A records
   (embedded third-party text may carry its own terms), all 574 class B records
@@ -86,5 +90,6 @@ only: earlier commits, forks and clones keep the text. Removing it from history
 would need a history rewrite, which is not authorized. No project licence
 (MPL-2.0) is claimed for any wiki text.
 
-Issue #283 remains open until the review of classes A-flagged, B and C is
-complete and the resulting measures are merged. The product score is unchanged.
+Issue #283 remains open until every one of the 1,298 uncertain records has a
+recorded disposition and the resulting measures are merged. The product score
+is unchanged.
