@@ -505,7 +505,7 @@ auto-merge without the project owner's explicit approval
   are documented in S09-BACKUP-ARCHIVE.md, section "User export to ustar".
 
 **Not decided and not authorised:**
-- D1–D5 remain undecided. This decision does not choose a destination, a
+- At the time of this decision, D1–D5 remained undecided; ADR-S09-DESTINATION-20261119 later decided them. This decision does not choose a destination, a
   grant path, per-operation rights, the component that holds the authority or
   the encrypted NAS/provider variant.
 - No new destination capability, trust boundary or encryption architecture is
