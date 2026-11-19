@@ -1,5 +1,14 @@
 # Current project status
 
+## NEXT AGENT HANDOFF — U05-T2 delivery — 18 November 2026
+
+**Source:** `9bb822db5e2e80c62ca85d7e508567995fb813a8`, `codex/u05-search-index`.
+**Delivered:** Standalone bounded domain/object/revision search index with UTF8 tokens, update/delete tombstones, atomic catalogue rebuild, current grant epochs and accidental-corruption checks.11 host tests pass; bounds precede untrusted text scanning.
+**Checks:** targeted Rust tests, Clippy (-D warnings), formatting and freestanding
+library build exit0; [exact commands/raw-log hashes](roadmap-pipeline/receipts/U05-T2.json).
+Lead source/diff review completed; no duplicate matrix. Progress **41 → 41/100**.
+**Limits:** Full U05-T2 remains BLOCKED on shared SDK membership owned by integration PR366. Host model only; trusted catalogue/service identity and grant authentication remain external, no native search/UI acceptance.
+
 ## NEXT AGENT HANDOFF — U05-T1 delivery — 18 November 2026
 
 **Source:** `1c3696d22d87fed1ef9e554febc690d443dbb568`, `codex/u05-settings-core`.
@@ -62,6 +71,8 @@ Lead source/diff review completed; no duplicate matrix. Progress **41 → 41/100
 delivery branches and Claude S09/UI remain untouched. Unsafe unattended hold active.
 **Next:** publish new draft, immediately claim the next independent READY functional
 slice from this ledger; no waiting for integration. Prior delivery checkpoints retained.
+
+## Retained checkpoint — unified governance implementation — 18 November 2026
 
 ## Retained checkpoint — PR #350 conflict-only integration — 18 November 2026
 
@@ -169,7 +180,7 @@ checks before manual squash. Then continue the released roadmap PR queue without
 changing the independently owned UI/UX or active S09 branches.
 Progress **41 → 41/100**, no accepted criterion/weight change.
 
-## NEXT AGENT HANDOFF — PR #350 conflict-only integration — 18 November 2026
+## Retained checkpoint — PR #350 conflict-only integration — 18 November 2026
 
 PR #350 head `aaf01bae291faba593567845dc8da4fe606a7959` is reconciled
 with actual main `2eac8ca39ce04753f4f6bef3b09ee9b3610c065f`.

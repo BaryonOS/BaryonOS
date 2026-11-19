@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-18",
-    "source_commit": "76ca134523d0429beb3c17d2551d60b9712ad82d",
+    "source_commit": "d19136b2ced34f04aafebfefcc190f0bbbd890de",
     "assessment_basis": "parent_commit",
-    "branch": "codex/u05-settings-core",
-    "task": "U05-T1: Standalone typed appearance/accessibility settings core, integrity-only A/B persistence, explicit recovery and persistent new-generation revert.14 host tests including every0..96 torn-write offset pass.",
+    "branch": "codex/u05-search-index",
+    "task": "U05-T2: Standalone bounded domain/object/revision search index with UTF8 tokens, update/delete tombstones, atomic catalogue rebuild, current grant epochs and accidental-corruption checks.11 host tests pass; bounds precede untrusted text scanning.",
     "previous_score": 41,
-    "summary": "41/100 unchanged. Standalone typed appearance/accessibility settings core, integrity-only A/B persistence, explicit recovery and persistent new-generation revert.14 host tests including every0..96 torn-write offset pass. Full U05-T1 remains BLOCKED on shared SDK membership owned by integration PR366; no shared SDK files changed/matrix rerun. No native/UI/encryption/antirollback/hardware acceptance. Integration/Claude ownership and execution hold preserved."
+    "summary": "41/100 unchanged. Standalone bounded domain/object/revision search index with UTF8 tokens, update/delete tombstones, atomic catalogue rebuild, current grant epochs and accidental-corruption checks.11 host tests pass; bounds precede untrusted text scanning. Full U05-T2 remains BLOCKED on shared SDK membership owned by integration PR366. Host model only; trusted catalogue/service identity and grant authentication remain external, no native search/UI acceptance. Integration/Claude ownership and execution hold preserved."
   },
   "tracks": [
     {
