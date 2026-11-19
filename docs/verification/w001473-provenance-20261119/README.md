@@ -58,7 +58,7 @@ owner**; it is escalated, not decided here.
    `references/corpus/wiki-01.md` and its entries in the index files, recompute
    the later offsets in `source-index.json`, and keep this record as the reason.
    The exclusion must persist: a corpus rebuild has to skip excluded records
-   (implemented in PR #397). Git history is not rewritten, so the text remains in
+   (planned in PR #397; not applied on main until that PR is merged). Git history is not rewritten, so the text remains in
    earlier commits; the exclusion only stops further distribution at HEAD.
 2. **Independently authored replacement.** Replace the excerpt with the text
    below, written for this project without reference to the wording of the

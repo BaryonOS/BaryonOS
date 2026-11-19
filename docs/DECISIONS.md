@@ -174,7 +174,8 @@ uncertain until decided. Legal clearance and acceptance of these ADRs remain
 separate steps. The product score is unchanged.
 *Review criterion:* #283 closes only when W001473, the 27 imports and the
 third-party records are excluded or retained on a documented verifiable basis,
-and every remaining uncertain record has a recorded disposition.
+the pre-CC0 review and older-text screening are recorded, and every remaining
+uncertain record (including the pre-CC0 pages) has a recorded disposition.
 
 ## ADR-AGENT-GOVERNANCE-20261118 — Shared contracts and risk-based execution
 
