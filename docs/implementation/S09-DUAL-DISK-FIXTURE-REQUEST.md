@@ -12,9 +12,11 @@ restore spec reassigns them, and changing that needs an owner decision.
 The two workflow pins that must equal `len(PLAN)` (now 22) are lead-owned and
 not yet updated.**
 The approval covers a test fixture only. It grants no product capability and
-changes no product security contract. It does not decide D1–D5 of
-[S09-BACKUP-DESTINATION-PROPOSAL.md](S09-BACKUP-DESTINATION-PROPOSAL.md),
-which stay open and unchanged.
+changes no product security contract. It did not decide D1–D5 of
+[S09-BACKUP-DESTINATION-PROPOSAL.md](S09-BACKUP-DESTINATION-PROPOSAL.md);
+those were decided separately by `ADR-S09-DESTINATION-20261119` (D1 (b), a
+dedicated destination service with append-only entries; D2 (a); D3; D4 (a);
+D5 (a)), which keeps this grant a fixture.
 
 ## Why a decision is needed
 
@@ -130,4 +132,5 @@ This is plaintext archive format v1 with an FNV-64 accidental-damage checksum
 only. It suits a user-owned local target only. QEMU's virtio-blk is trusted to
 follow the protocol; this is not a malicious-device or IOMMU model. A positive
 decision makes the fixture possible. It does not make S09 acceptable, which
-still needs D1–D5, a user task and the encrypted variant.
+still needs the destination service decided in `ADR-S09-DESTINATION-20261119`
+(D1–D5), a user task and the encrypted variant.

@@ -126,7 +126,9 @@ the scope), `archive-disk-restore` (blank disk 0, disk 1 read-only),
 `archive-disk-cut` followed by `archive-disk-verify` (kill after 20 archive
 writes over an older archive; the torn result is `Corrupt`). Evidence:
 [verification/s09-archive/dual-disk-native-20261119/](../verification/s09-archive/dual-disk-native-20261119/README.md).
-This is fixture evidence; D1–D5, the user task and the encrypted variant stay open.
+This is fixture evidence. D1–D5 are decided (`ADR-S09-DESTINATION-20261119`),
+but their destination service, the user task and the encrypted variant are
+not implemented.
 
 Open for S09/FR-O06: native backup portal with a target volume and capability
 chosen by the user (the native second-disk trial above is a fixture grant,
