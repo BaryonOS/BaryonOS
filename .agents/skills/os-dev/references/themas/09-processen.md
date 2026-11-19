@@ -33,7 +33,6 @@ The selection below was generated automatically from page titles and categories;
 - [IOAPIC](../corpus/wiki-05.md#w002434) [W002434]
 - [Kernel Multitasking](../corpus/wiki-13.md#w004503) [W004503]
 - [Loading a Process](../corpus/wiki-05.md#w002367) [W002367]
-- [Monotasking Systems](../corpus/wiki-01.md#w001473) [W001473]
 - [MP Specification](../corpus/wiki-10.md#w003591) [W003591]
 - [Multiprocessing](../corpus/wiki-06.md#w002671) [W002671]
 - [Multiprocessing Architecture](../corpus/wiki-11.md#w003858) [W003858]
