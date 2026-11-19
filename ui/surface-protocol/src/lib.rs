@@ -671,7 +671,7 @@ impl Receiver {
                 self.start_frame(header.frame);
                 let solid = header.operation == Operation::SolidBegin;
                 if solid {
-                    for pixel in self.pixels[..rectangle.bytes()].chunks_exact_mut(4) {
+                    for pixel in self.pixels[..rectangle.bytes()].as_chunks_mut::<4>().0 {
                         pixel.copy_from_slice(&bytes[56..60]);
                     }
                 }
@@ -714,7 +714,9 @@ impl Receiver {
                     return Err(Error::Length);
                 }
                 if self.pixels[..stage.length]
-                    .chunks_exact(4)
+                    .as_chunks::<4>()
+                    .0
+                    .iter()
                     .any(|pixel| pixel[3] != 0)
                 {
                     return Err(Error::Pixels);

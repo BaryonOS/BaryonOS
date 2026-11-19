@@ -363,12 +363,12 @@ impl Paging {
         va: u64,
         pa: u64,
     ) -> Result<(), kernel_core::Error> {
-        // SAFETY: CPUID queries integer CPU capabilities only. Do not install a
+        // CPUID queries integer CPU capabilities only. Do not install a
         // PTE whose physical bits exceed this CPU's MAXPHYADDR, even if PCI
         // metadata itself permits a wider BAR; missing/unknown widths fail closed.
-        // SAFETY: CPUID is available in long mode and the leaf is checked before
+        // CPUID is available in long mode and the leaf is checked before
         // querying the physical-address-width field.
-        let width = unsafe {
+        let width = {
             if core::arch::x86_64::__cpuid(0x80000000).eax < 0x80000008 {
                 return Err(kernel_core::Error::Range);
             }
@@ -486,9 +486,9 @@ impl Paging {
         if output.is_empty() {
             return Ok(());
         }
-        // SAFETY: CPUID is available in long mode and the leaf is checked before
+        // CPUID is available in long mode and the leaf is checked before
         // querying the physical-address-width field.
-        let width = unsafe {
+        let width = {
             if core::arch::x86_64::__cpuid(0x80000000).eax < 0x80000008 {
                 return Err(kernel_core::Error::Range);
             }

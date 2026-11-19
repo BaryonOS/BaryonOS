@@ -1,3 +1,12 @@
+## P04-T2 workload extension
+
+The current source adds native quota-full rejection, cancellation and retry,
+quota increase while full, and a second namespace revoked/evicted only after
+kernel-observed guest exit. The exact workload, counters and two-tombstone oracle
+are specified in `../CONTRACT.md`. Historical receipts below remain bound to
+their original source; they do not verify this extension. New source-bound
+results are recorded by the lead in the parent task receipt.
+
 # NAS-IPC-PROBE-1 / replace-Unknown / gerichte CI
 
 Datum: 30 oktober 2026, Europe/Amsterdam. Branch:

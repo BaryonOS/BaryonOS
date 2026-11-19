@@ -28,22 +28,22 @@ jobs:
           persist-credentials: false
       - name: Pinned Python
         uses: ./.github/actions/setup-python
-      - name: Rust 1.90.0 and freestanding target
+      - name: Rust 1.100.0 and freestanding target
         run: |
-          rustup toolchain install 1.90.0 --profile minimal
-          rustup component add --toolchain 1.90.0 rustfmt clippy
-          rustup target add --toolchain 1.90.0 x86_64-unknown-none
+          rustup toolchain install 1.100.0 --profile minimal
+          rustup component add --toolchain 1.100.0 rustfmt clippy
+          rustup target add --toolchain 1.100.0 x86_64-unknown-none
       - name: Existing package-core coverage
         run: |
-          cargo +1.90.0 test --locked -p app-package-core
-          cargo +1.90.0 clippy --locked -p app-package-core --all-targets -- -D warnings
-          cargo +1.90.0 fmt --manifest-path crates/app-package-core/Cargo.toml -- --check
+          cargo +1.100.0 test --locked -p app-package-core
+          cargo +1.100.0 clippy --locked -p app-package-core --all-targets -- -D warnings
+          cargo +1.100.0 fmt --manifest-path crates/app-package-core/Cargo.toml -- --check
           CARGO_ENCODED_RUSTFLAGS=$'--cfg\x1fcurve25519_dalek_backend="serial"\x1f--cfg\x1fsha2_backend="soft"' \
-            cargo +1.90.0 build --locked --release -p app-package-core --target x86_64-unknown-none
+            cargo +1.100.0 build --locked --release -p app-package-core --target x86_64-unknown-none
       - name: Standalone app-management contract
         run: |
-          cargo +1.90.0 test --locked --manifest-path sdk/app-management/Cargo.toml
-          cargo +1.90.0 clippy --locked --manifest-path sdk/app-management/Cargo.toml --all-targets -- -D warnings
-          cargo +1.90.0 fmt --manifest-path sdk/app-management/Cargo.toml --all -- --check
+          cargo +1.100.0 test --locked --manifest-path sdk/app-management/Cargo.toml
+          cargo +1.100.0 clippy --locked --manifest-path sdk/app-management/Cargo.toml --all-targets -- -D warnings
+          cargo +1.100.0 fmt --manifest-path sdk/app-management/Cargo.toml --all -- --check
           CARGO_ENCODED_RUSTFLAGS=$'--cfg\x1fcurve25519_dalek_backend="serial"\x1f--cfg\x1fsha2_backend="soft"' \
-            cargo +1.90.0 build --locked --release --manifest-path sdk/app-management/Cargo.toml --target x86_64-unknown-none
+            cargo +1.100.0 build --locked --release --manifest-path sdk/app-management/Cargo.toml --target x86_64-unknown-none

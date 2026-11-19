@@ -3,7 +3,7 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-18",
-    "source_commit": "2b47d4ffb72f885686790885aec97f7a28c3c05c",
+    "source_commit": "fd42891e40f17a50b8613d6be567d81c5249b947",
     "assessment_basis": "parent_commit",
     "branch": "codex/b04-repro-check",
     "task": "B04-T2: Repro checker runs two isolated default builds and verifies kernel/loader plus canonical ESP payload against manifests.8 unit tests pass. Real comparison exit1: kernel identical, loader/image_payload differ; tool reports red honestly.",

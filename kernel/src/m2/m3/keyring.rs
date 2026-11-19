@@ -1,7 +1,8 @@
 //! B01 native keyring profile (ADR-043). The kernel owns the virtio-rng
 //! device and brokers raw entropy bytes to holders of an `Entropy`
 //! capability; it performs no cryptography, no mixing and no caching. Two
-//! Key Service instances (slots 0 and 1) and one app (slot 2) run in ring 3;
+//! Key Service instances (slots 0 and 1), one app (slot 2), and a normal-case
+//! management instance of the app ELF (slot 3) run in ring 3;
 //! the app reports its observations through evidence words and the kernel
 //! verifies them together with its own counters. Single CPU, IF=0.
 use super::*;
@@ -15,6 +16,7 @@ const RESET_TIMEOUT: u64 = 10;
 const RUN_TICKS: u64 = 6000;
 const SERVICE_SLOTS: [usize; 2] = [0, 1];
 const APP_SLOT: usize = 2;
+const ADMIN_SLOT: usize = 3;
 
 const NORMAL: u64 = 0;
 const NO_DEVICE: u64 = 1;
@@ -25,8 +27,8 @@ const RESTART: u64 = 4;
 /// Service evidence words (startup page offsets), snapshotted at finish.
 const SERVICE_WORDS: [u64; 10] = [192, 200, 208, 216, 224, 232, 240, 248, 256, 264];
 /// App evidence words, snapshotted at app exit.
-const APP_WORDS: [u64; 16] = [
-    40, 240, 400, 408, 416, 424, 432, 440, 448, 456, 464, 472, 480, 488, 496, 504,
+const APP_WORDS: [u64; 17] = [
+    40, 240, 400, 408, 416, 424, 432, 440, 448, 456, 464, 472, 480, 488, 496, 504, 528,
 ];
 
 struct Runtime {
@@ -57,7 +59,9 @@ struct Runtime {
     restarted_bytes: u64,
     app_exited: bool,
     app_code: u64,
-    app: [u64; 16],
+    app: [u64; 17],
+    admin_exited: bool,
+    admin: [u64; 4],
     finish: u8,
 }
 static mut RUNTIME: Runtime = Runtime {
@@ -90,7 +94,9 @@ static mut RUNTIME: Runtime = Runtime {
     restarted_bytes: 0,
     app_exited: false,
     app_code: 0,
-    app: [0; 16],
+    app: [0; 17],
+    admin_exited: false,
+    admin: [0; 4],
     finish: 0,
 };
 fn runtime() -> &'static mut Runtime {
@@ -216,11 +222,12 @@ pub fn prepare(frames: &mut Frames<FRAME_COUNT>, kernel: &mut Paging) {
 }
 
 pub fn manifest(s: &mut State) {
-    if s.amount != 3 || s.fault || s.exited || s.unexpected {
+    let expected_processes = if case() == NORMAL { 4 } else { 3 };
+    if s.amount != expected_processes || s.fault || s.exited || s.unexpected {
         fail(b"MANIFEST_STATE");
     }
     let e = m4::engine();
-    for slot in 0..3 {
+    for slot in 0..s.amount {
         e.register(s.processes[slot].pid).unwrap();
     }
     let app = s.processes[APP_SLOT].pid;
@@ -302,6 +309,53 @@ pub fn manifest(s: &mut State) {
         (240, 0),
     ] {
         put(s, APP_SLOT, offset, value);
+    }
+    if case() == NORMAL {
+        let admin = s.processes[ADMIN_SLOT].pid;
+        let reply_root = e.create_endpoint(admin).unwrap();
+        let reply_recv = e.derive(admin, reply_root, RECV).unwrap();
+        put(s, ADMIN_SLOT, 56, reply_recv);
+        for (i, slot) in SERVICE_SLOTS.into_iter().enumerate() {
+            let service = s.processes[slot].pid;
+            let root = e.create_endpoint(service).unwrap();
+            let receive = e.derive(service, root, RECV).unwrap();
+            let send = e.bootstrap_delegate(service, root, admin, SEND).unwrap();
+            let reply = e
+                .bootstrap_delegate(admin, reply_root, service, SEND)
+                .unwrap();
+            for (offset, value) in [(96, receive), (104, reply), (168, admin)] {
+                put(s, slot, offset, value);
+            }
+            put(s, ADMIN_SLOT, 64 + i as u64 * 16, send);
+            // Test-only alias: SEND cannot forge the kernel-supplied sender PID.
+            if i == 1 {
+                let alias = e.bootstrap_delegate(service, root, app, SEND).unwrap();
+                put(s, APP_SLOT, 104, alias);
+            }
+            e.close(service, root).unwrap();
+        }
+        e.close(admin, reply_root).unwrap();
+        for (offset, value) in [
+            (0, 3),
+            (32, 1),
+            (160, s.processes[0].pid),
+            (168, s.processes[1].pid),
+            (176, admin),
+        ] {
+            put(s, ADMIN_SLOT, offset, value);
+        }
+        // Every live handle is accounted for, including the test-only alias.
+        require(
+            e.stats().handles == 21 && e.check_invariants(),
+            b"ADMIN_MANIFEST",
+        );
+        for (slot, handles) in [(0, 6), (1, 6), (APP_SLOT, 6), (ADMIN_SLOT, 3)] {
+            require(
+                e.available_slots(s.processes[slot].pid)
+                    == capability_core::MAX_SLOTS - 1 - handles,
+                b"ADMIN_HANDLE_EQUATION",
+            );
+        }
     }
     s.free_baseline = s
         .free_count()
@@ -472,6 +526,18 @@ pub fn detach(pid: u64) {
 }
 
 pub fn observe_exit(s: &mut State, slot: usize, _counter: u64) {
+    if case() == NORMAL && slot == ADMIN_SLOT {
+        require(
+            s.last_event.code == 0 && word(s, slot, 40) == 1,
+            b"ADMIN_RESULT",
+        );
+        let r = runtime();
+        for (i, offset) in [400, 408, 416, 424].into_iter().enumerate() {
+            r.admin[i] = word(s, slot, offset);
+        }
+        r.admin_exited = true;
+        return;
+    }
     if slot != APP_SLOT {
         fail(b"SERVICE_EXIT");
     }
@@ -506,6 +572,36 @@ pub fn poll(s: &mut State) -> Option<*const u64> {
         }
     }
     let r = runtime();
+    if case() == NORMAL && !r.app_exited {
+        if !r.admin_exited
+            && word(s, ADMIN_SLOT, 512) == 0
+            && word(s, APP_SLOT, 512) == 1
+            && word(s, 1, 416) == 1
+        {
+            // Start management only after the bad caller was rejected without
+            // a reply or any key-state change in the unused service B.
+            require(
+                word(s, 1, 208) == 0 && word(s, 1, 216) == 0,
+                b"BAD_CALLER_STATE",
+            );
+            require(
+                word(s, 1, 400) == 0 && word(s, 1, 408) == 0,
+                b"BAD_CALLER_DISPATCH",
+            );
+            require(
+                word(s, 1, 240) == 0 && word(s, 1, 256) == 0,
+                b"BAD_CALLER_COUNTERS",
+            );
+            require(
+                m4::engine().stats().queued_messages == 0,
+                b"BAD_CALLER_REPLY",
+            );
+            put(s, ADMIN_SLOT, 512, 1);
+        }
+        if r.admin_exited {
+            put(s, APP_SLOT, 520, 1);
+        }
+    }
     if !r.app_exited {
         return None;
     }
@@ -601,7 +697,7 @@ fn restart_fixture(s: &State) -> bool {
 fn finish(s: &mut State) -> ! {
     let r = runtime();
     let app = r.app;
-    let [status, step, generated, sealed, unsealed, tamper_denied, cross_denied, revoked_denied, quota_denied, recovery_export_denied, recovery_restore_denied, _, _, not_ready, entropy_denied, status_calls] =
+    let [status, step, generated, sealed, unsealed, tamper_denied, cross_denied, revoked_denied, quota_denied, recovery_export_denied, recovery_restore_denied, _, _, not_ready, entropy_denied, status_calls, b_unseal] =
         app;
     let mut services = [[0u64; 10]; 2];
     for (i, slot) in SERVICE_SLOTS.into_iter().enumerate() {
@@ -667,12 +763,11 @@ fn finish(s: &mut State) -> ! {
                 b"RIGHTS_NOT_DENIED",
             );
             require(
-                recovery_export_denied >= 1 && recovery_restore_denied >= 1,
+                recovery_export_denied == 1 && recovery_restore_denied == 1,
                 b"RECOVERY_AUTHORITY_NOT_RESTRICTED",
             );
-            // Ordinary app ingress cannot perform restore in service B.
             require(
-                services[0][4] >= 1 && services[1][8] == 0,
+                services[0][4] >= 1 && services[1][8] == u64::from(case() == NORMAL),
                 b"SERVICE_COUNTERS",
             );
             require(not_ready == 0, b"UNEXPECTED_NOT_READY");
@@ -733,6 +828,39 @@ fn finish(s: &mut State) -> ! {
                 b"KEYS_WITHOUT_ENTROPY",
             );
             require(services[0][2] == 0 && services[1][2] == 0, b"SERVICE_KEYS");
+        }
+    }
+    if case() == NORMAL {
+        require(
+            r.admin_exited && r.admin == [1, 1, 1, 1],
+            b"MANAGEMENT_RECOVERY",
+        );
+        require(b_unseal == 1, b"B_UNSEAL");
+        require(
+            word(s, 0, 392) == 1 && word(s, 0, 400) == 0,
+            b"ADMIN_EXPORT",
+        );
+        require(
+            word(s, 1, 392) == 0 && word(s, 1, 400) == 1,
+            b"ADMIN_RESTORE",
+        );
+        require(
+            word(s, 1, 408) == 2 && word(s, 1, 416) == 1,
+            b"ADMIN_NEGATIVES",
+        );
+        require(
+            word(s, 0, 384) == 1 && word(s, 1, 384) == 4,
+            b"ADMIN_NO_REPLY",
+        );
+        for (label, value) in [
+            (&b"KEYRING:MGMT_EXPORTS:"[..], r.admin[0]),
+            (b"KEYRING:MGMT_RESTORES:", r.admin[1]),
+            (b"KEYRING:MGMT_WRONG_SECRET_DENIED:", r.admin[2]),
+            (b"KEYRING:ADMIN_GENERATE_DENIED:", r.admin[3]),
+            (b"KEYRING:B_UNSEAL_OK:", b_unseal),
+            (b"KEYRING:ADMIN_BAD_CALLER:", word(s, 1, 416)),
+        ] {
+            print_number(label, value);
         }
     }
     serial::write(b"KEYRING:READY\n");

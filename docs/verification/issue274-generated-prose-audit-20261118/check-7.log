@@ -1,0 +1,26 @@
+test_build_dirs_come_from_the_checkout_not_the_caller (test_agent_pipeline.Gate.test_build_dirs_come_from_the_checkout_not_the_caller) ... ok
+test_condensed_without_rtk_returns_the_tail (test_agent_pipeline.Gate.test_condensed_without_rtk_returns_the_tail) ... ok
+test_failure_is_exit_two_and_stops (test_agent_pipeline.Gate.test_failure_is_exit_two_and_stops) ... ok
+test_keeps_only_check_steps_and_expands_workspace (test_agent_pipeline.Gate.test_keeps_only_check_steps_and_expands_workspace) ... ok
+test_pipefail_catches_a_failing_producer (test_agent_pipeline.Gate.test_pipefail_catches_a_failing_producer) ... ok
+test_real_ci_job_matches_the_workflow (test_agent_pipeline.Gate.test_real_ci_job_matches_the_workflow) ... ok
+test_refuses_unknown_context_and_bad_references (test_agent_pipeline.Gate.test_refuses_unknown_context_and_bad_references) ... ok
+test_fails_over_only_on_rate_limits (test_agent_pipeline.GitAndEngines.test_fails_over_only_on_rate_limits) ... ok
+test_snapshot_detects_a_changed_read_dependency (test_agent_pipeline.GitAndEngines.test_snapshot_detects_a_changed_read_dependency) ... ok
+test_duplicate_criterion_aliases_are_rejected (test_agent_pipeline.Planning.test_duplicate_criterion_aliases_are_rejected)
+Reject repeated criterion fields in either supported language. ... ok
+test_english_fields_match_existing_dutch_tasks (test_agent_pipeline.Planning.test_english_fields_match_existing_dutch_tasks)
+Accept the English fields without changing legacy task semantics. ... ok
+test_instruction_policy_is_protected_at_every_depth (test_agent_pipeline.Planning.test_instruction_policy_is_protected_at_every_depth) ... ok
+test_open_criteria_come_from_progress_json (test_agent_pipeline.Planning.test_open_criteria_come_from_progress_json) ... ok
+test_parallel_batches_have_disjoint_access_sets (test_agent_pipeline.Planning.test_parallel_batches_have_disjoint_access_sets) ... ok
+test_parses_a_valid_issue (test_agent_pipeline.Planning.test_parses_a_valid_issue) ... ok
+test_rejects_closed_criteria_bad_gates_and_label_mixes (test_agent_pipeline.Planning.test_rejects_closed_criteria_bad_gates_and_label_mixes) ... ok
+test_scope_allows_targets_and_lockfile_only (test_agent_pipeline.Planning.test_scope_allows_targets_and_lockfile_only) ... ok
+test_spec_block_is_validated (test_agent_pipeline.Planning.test_spec_block_is_validated) ... ok
+test_stale_reports_changed_and_removed_paths (test_agent_pipeline.Planning.test_stale_reports_changed_and_removed_paths) ... ok
+
+----------------------------------------------------------------------
+Ran 19 tests in 0.080s
+
+OK

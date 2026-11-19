@@ -1,0 +1,67 @@
+{
+  "task": "U05-T1",
+  "source_commit": "1c3696d22d87fed1ef9e554febc690d443dbb568",
+  "level": "host/build",
+  "checks": [
+    {
+      "argv": [
+        "cargo",
+        "test",
+        "--locked",
+        "--manifest-path",
+        "sdk/settings-core/Cargo.toml"
+      ],
+      "exit_code": 0,
+      "raw_log": "build/tokenguard/run-w32vel6o.log",
+      "sha256": "f42362a2e1ffdb670d25c2e3ea0f8677c90fbadf5e7c8b39dff4a8c2fc4ddb82"
+    },
+    {
+      "argv": [
+        "cargo",
+        "clippy",
+        "--locked",
+        "--manifest-path",
+        "sdk/settings-core/Cargo.toml",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit_code": 0,
+      "raw_log": "build/tokenguard/run-fuflbx4r.log",
+      "sha256": "ab7d8414e27112775fb165918e363144b48ed4221e8c3f5cc863294cac06335d"
+    },
+    {
+      "argv": [
+        "cargo",
+        "fmt",
+        "--manifest-path",
+        "sdk/settings-core/Cargo.toml",
+        "--",
+        "--check"
+      ],
+      "exit_code": 0,
+      "raw_log": "build/tokenguard/run-scxgnadf.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "argv": [
+        "cargo",
+        "build",
+        "--locked",
+        "--release",
+        "--lib",
+        "--target",
+        "x86_64-unknown-none",
+        "--manifest-path",
+        "sdk/settings-core/Cargo.toml"
+      ],
+      "exit_code": 0,
+      "raw_log": "build/tokenguard/run-6v3rujgc.log",
+      "sha256": "d50f8ce5502aaba916323873a9e8dcafb8df69792e5b15290997aab6cca80110"
+    }
+  ],
+  "limits": "Full U05-T1 remains BLOCKED on shared SDK membership owned by integration PR366; no shared SDK files changed/matrix rerun. No native/UI/encryption/antirollback/hardware acceptance.",
+  "review": "Lead source/diff review; no native/human acceptance.",
+  "score": "41 -> 41/100"
+}

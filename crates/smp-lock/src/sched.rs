@@ -5,7 +5,7 @@
 //! state word and one `queued` bit per thread. INV-3 ("one CPU per thread")
 //! rests on [`dispatch`]: only a `compare_exchange` READY -> RUNNING(cpu) may
 //! put a thread on a CPU. Every transition is a single atomic read-modify-write
-//! (a CAS, or `fetch_update` with a pure step function, which is one
+//! (a CAS, or `try_update` with a pure step function, which is one
 //! linearisable step), so the models in the tests use one step per call.
 //!
 //! Life cycle (BW-1, BW-3):
@@ -70,7 +70,7 @@ pub fn block_prepare(state: &AtomicU32, cpu: usize) -> Result<(), u32> {
 /// if a kill won; any other `Err` is a scheduler bug.
 pub fn block_commit(state: &AtomicU32) -> Result<bool, u32> {
     state
-        .fetch_update(Ordering::Release, Ordering::Acquire, |s| match s {
+        .try_update(Ordering::Release, Ordering::Acquire, |s| match s {
             BLOCKING => Some(BLOCKED),
             READY_PENDING => Some(READY),
             _ => None,
@@ -85,7 +85,7 @@ pub fn block_commit(state: &AtomicU32) -> Result<bool, u32> {
 /// running target checks its condition after [`block_prepare`].
 pub fn wake(state: &AtomicU32) -> Result<bool, u32> {
     state
-        .fetch_update(Ordering::SeqCst, Ordering::SeqCst, |s| match s {
+        .try_update(Ordering::SeqCst, Ordering::SeqCst, |s| match s {
             BLOCKED => Some(READY),
             BLOCKING => Some(READY_PENDING),
             _ => None,
@@ -99,7 +99,7 @@ pub fn wake(state: &AtomicU32) -> Result<bool, u32> {
 /// READY_PENDING: its CPU requeues it at the next switch. Then the caller sends
 /// 0xe8 and waits (bounded) for DEAD. `Err` if it is already dying or dead.
 pub fn kill_request(state: &AtomicU32) -> Result<u32, u32> {
-    state.fetch_update(Ordering::AcqRel, Ordering::Acquire, |s| match s {
+    state.try_update(Ordering::AcqRel, Ordering::Acquire, |s| match s {
         DEAD_PENDING | DEAD => None,
         _ => Some(DEAD_PENDING),
     })

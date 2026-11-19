@@ -46,9 +46,9 @@ run_step() {
 
 # The complete Python oracles run in the aggregate job with pinned PyYAML.
 # Keep Rust host checks here before the native regression sequence.
-run_step host-tests cargo +1.90.0 test --locked -p boot-protocol -p smp-lock
-run_step clippy cargo +1.90.0 clippy --locked -p boot-protocol -p smp-lock --all-targets -- -D warnings
-run_step fmt cargo +1.90.0 fmt --all -- --check
+run_step host-tests cargo +1.100.0 test --locked -p boot-protocol -p smp-lock
+run_step clippy cargo +1.100.0 clippy --locked -p boot-protocol -p smp-lock --all-targets -- -D warnings
+run_step fmt cargo +1.100.0 fmt --all -- --check
 
 # Existing runners retain their own guest watchdogs, quotas and fail-closed
 # verdicts. Separate build and target directories prevent profile/image mixing.

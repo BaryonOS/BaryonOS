@@ -127,7 +127,7 @@ rejected, so that an extended error code does not count as ordinary successful D
 
 These limits are an explicit initial codec profile, not lowered
 release requirements. DNS-over-TCP after TC, EDNS, DNSSEC validation, full resolver
-cache and IPv6 transport remain visibly open. Decoding an AAAA record
+service and IPv6 transport remain visibly open. Decoding an AAAA record
 does not prove a working IPv6 stack.
 
 ARP processes probes with source IP zero as recognizable requests, but does not yet perform
@@ -157,6 +157,72 @@ Specification basis: RFC 826 (ARP fields and opcodes), RFC 1035 §§3.1, 4.1 and
 4.1.4 (DNS questions, records and compression), RFC 2181 §8 (TTL). Local
 knowledge orientation: OSDev *Address Resolution Protocol*, W002539, revision 11170
 (5 februari 2011). No tutorial code taken over; no dependency added.
+
+## Bounded resolver core (N02-T1)
+
+Task contract: add a pure, allocation-free A/AAAA cache while preserving strict
+`dns::parse_response` behaviour and the existing network broker's authority.
+The write set is `src/resolver.rs`, the module export, shared DNS decoder,
+`tests/resolver.rs`, `tests/dns.rs` and this document. Acceptance commands are
+the standalone workspace's locked Rust 1.90 tests, Clippy with warnings denied,
+format check and release build for `x86_64-unknown-none`. These establish host
+behaviour and target compilation only; native DNS and authorized connections
+remain open.
+
+`resolver::Resolver::new(epoch, ticks_per_second)` creates 16 fixed cache slots;
+a zero tick rate is rejected. `accept(message, question, epoch, now)` validates
+the supported reply and returns a complete `dns::Resolution` or an explicit
+error. `lookup(name, kind, epoch, now)` returns a cached result or `None` on a
+miss/expiry. The caller supplies trusted nondecreasing monotonic ticks and the
+current configuration epoch on every call. An epoch change flushes all slots,
+including when the accompanying reply is invalid. Within an epoch, malformed
+replies and arithmetic overflow preserve all entries. A new valid zero-lifetime
+reply removes any previous entry for that key.
+
+Keys contain canonical `dns::Name` and `QueryType`; transaction IDs are checked
+on replies but are not cache keys. A and AAAA results remain separate. The core
+retains the decoder's eight-address/eight-alias bounds and minimum relevant TTL.
+Checked multiplication converts seconds to ticks, and checked addition sets
+the deadline. An entry expires exactly at `now >= deadline`; cache hits never
+extend it. Returned positive TTLs are remaining whole seconds (possibly zero
+in the last fractional second). Existing keys are replaced in place, empty or
+expired slots are reused first, and a full cache uses deterministic circular
+eviction. Each cache scan covers at most 16 slots.
+
+NXDOMAIN returns `resolver::Error::NxDomain`. An internal decoder route validates
+the entire message before using any negative result; public `parse_response`
+continues to reject nonzero response codes. Negative caching requires exactly
+one applicable IN SOA in the authority section. Its owner must be a complete
+label suffix of the terminal name. Both SOA names and all five 32-bit fields
+must fit exactly inside RDLENGTH. Lifetime is the minimum of SOA TTL, SOA MINIMUM,
+alias TTLs and the local 3,600-second negative cap. High-bit TTL/MINIMUM values
+are treated as zero. Missing SOA and zero lifetime yield an uncached NXDOMAIN;
+malformed, duplicate or unrelated authority yields an error. CNAME loops,
+excessive depth and contradictory terminal address records cannot populate a
+negative entry. Negatives are deliberately scoped to the exact name/type key;
+cross-type reuse and terminal-name sharing are not implemented.
+
+The supported negative profile accepts only IN A, AAAA, CNAME, NS and SOA
+records, validating all embedded names and supported RDATA lengths across all
+sections. Other negative types/classes are rejected rather than interpreting
+unvalidated opaque data. Unsolicited EDNS remains rejected. TC returns
+`Dns(TruncatedResponse)`, SERVFAIL returns `ServFail`, and ID/question mismatches
+retain their distinct DNS errors; none returns partial records or modifies the
+cache. Other response codes are explicit `Dns(ResponseCode(code))` errors.
+
+This core opens no socket and performs no retry, recursive lookup, TCP fallback,
+DNSSEC validation, NODATA caching or native service integration. The caller must
+bind incoming replies to the pending query's endpoint pair and deadline before
+calling `accept`; the existing positive-only `PendingQuery` is unchanged. DNS
+records do not authenticate peers or authorize name-to-IP destination expansion.
+The network broker's process/destination permissions remain unchanged.
+
+Specification basis: [RFC 1035 §3.3.13](https://www.rfc-editor.org/rfc/rfc1035.html#section-3.3.13)
+(SOA layout), [RFC 2181 §8](https://www.rfc-editor.org/rfc/rfc2181.html#section-8)
+(TTL range), and [RFC 2308 §5](https://www.rfc-editor.org/rfc/rfc2308.html#section-5)
+(negative lifetime, expiry and missing SOA). The per-type negative key is the
+explicit conservative subset described above, rather than full RFC 2308
+cross-type NXDOMAIN reuse.
 
 ## DHCPv4 — packet codec for future configuration service
 
