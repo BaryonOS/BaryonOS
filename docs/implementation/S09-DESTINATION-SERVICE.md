@@ -195,12 +195,22 @@ FNV-64 detects accidental damage only; a deliberately altered, swapped or
 rolled-back image is not detected (section 5.4).
 
 **Mount rule.** Read both copies. If exactly one is valid, use it. If both are
-valid, use the higher sequence (the read is preceded by a FLUSH, below); equal sequences with different bytes give
-`Corrupt`. If neither is valid and all sectors 0–15 are zero, the device is a
-*blank candidate*; zero in sectors 0–15 is only a heuristic and does not show
-that the rest of the scope holds no data. Otherwise the destination is
+valid, use the higher sequence (the read is preceded by a FLUSH, below);
+equal sequences with different bytes give `Corrupt`. If neither is valid and
+all sectors 0–15 are zero, the device is a *blank candidate*; zero in sectors
+0–15 is only a heuristic and does not show that the rest of the scope holds no
+data. Otherwise the destination is
 `Corrupt`: the service refuses every operation except INFO and never formats
-automatically. Every mount, including a remount (2.7), first issues a FLUSH
+automatically. `Corrupt` is terminal for the service instance: no request
+clears it and the service never repairs or formats, and a new instance that
+mounts the same bytes reaches `Corrupt` again. For a disposable test image the
+only recovery is external: its owner (for the gates, the harness that created
+it) re-zeroes the whole granted scope, not only sectors 0–15, because FORMAT
+refuses a scope with data at sector ≥ 16; a new instance then mounts a blank
+candidate and FORMAT is permitted (N25). How a product distinguishes a FORMAT
+interrupted before its first copy was durable from a damaged existing
+destination, and whether any in-product recovery is offered, is open
+(section 8, O10). Every mount, including a remount (2.7), first issues a FLUSH
 and reads the catalog only after it completes, so that the copies read are
 not merely held in a volatile write cache. **Failed mount FLUSH.** If a mount
 or remount FLUSH fails, the service writes nothing; INFO is answered and
@@ -214,10 +224,12 @@ quarantines the kernel `Policy` until reboot
 (`crates/virtio-core/src/lib.rs:560-569`, `kernel/src/m2/m3/volume.rs:1075-1079`
 *[main 8a7a3594]*). Normal operation resumes only in a new service instance
 whose own mount FLUSH completes: a service restart, or a reboot when the block
-lane is quarantined. Until then the replies above apply unchanged, and the
-portal reports the destination as unavailable and any pending export as not
-confirmed. Who initiates the restart, and through which mechanism, is not
-specified (section 8, O8). An export binding whose outcome is *unknown* stays
+lane is quarantined; after an `Unknown` on a destination write or flush, only
+a cold boot ends the read-only state of the 2.7 safe path. Until then the
+replies above apply unchanged, and the portal reports the destination as
+unavailable and any pending export as not confirmed. Who initiates the
+restart, and through which mechanism, is not specified (section 8, O8). An
+export binding whose outcome is *unknown* stays
 *unknown* for the life of the instance; it never resolves as *sealed* without a
 completed FLUSH. After the restart, bindings and provisional IDs are void; the
 entry is judged only from the catalog that the new instance reads after its
@@ -271,8 +283,9 @@ If step 4, barrier 2, step 5 or barrier 3 fails with `Io`, `Timeout` or
 service replies `Unknown`, discards its in-memory catalog and writing-entry
 state and remounts from the device before it accepts another request. Lane
 bindings, including the export binding's provisional entry ID, are kept across
-this remount; no CREATE is accepted on any lane until the outcome below is
-resolved, so that ID cannot be issued again in the meantime.
+this remount; no CREATE is accepted on any lane before the outcome below is
+resolved, nor, under the safe path below, for the rest of the boot, so that
+ID cannot be issued again in the meantime.
 
 A catalog read after a failed write or barrier can return bytes still held in
 the device's volatile write cache, which a power loss may discard. The
@@ -288,10 +301,11 @@ zero records; every other request `Io`). Bindings do not survive a service resta
 a later instance mounts only after its own mount FLUSH completes, and the
 export is then not confirmed to the portal.
 
-**Completion fence.** The remount FLUSH is issued, the export binding is
-resolved and CREATE is accepted again only after the request that failed is
-quiescent: completed and consumed, or ended by an acknowledged device reset.
-Until that fence the binding stays *unknown* and every CREATE is refused. On
+**Completion fence.** The remount FLUSH is issued and the export binding is
+resolved only after the request that failed is quiescent: completed and
+consumed, or ended by an acknowledged device reset. Until that fence the
+binding stays *unknown* and every CREATE is refused; after it, CREATE stays
+refused for the rest of the boot under the safe path below. On
 `main` the M3 volume broker implements this fence for its device *[main
 8a7a3594]*: one global `Policy` admits at most one request
 (`kernel/src/m2/m3/volume.rs:124-126`); a request past its deadline is answered
@@ -313,24 +327,42 @@ admits one request and barrier 1 has completed, the only request that can be
 outstanding at a failure in steps 4–5 is one catalog-sector write or one
 flush. The same fence follows a timed-out entry write during APPEND or SEAL
 step 3: the writing entry is discarded (2.5) and no request, and so no later
-CREATE that reuses its sectors, is admitted before the reset is acknowledged.
-The reset fences guest DMA and the used ring; whether a write the
+CREATE that reuses its sectors, is admitted before the reset is
+acknowledged; under the safe path below, no CREATE is admitted for the rest
+of the boot. The reset fences guest DMA and the used ring; whether a write the
 device accepted before the reset can still reach the backing medium after the
 reset, and so after the remount FLUSH, is not settled by the VIRTIO sections
 cited above (5.2.6.2 covers completed writes only) and is *[unproven]* for
 QEMU and its host storage stack (section 8, O9). The resolution above holds
 only under that assumption; N24 (section 6) states the expected outcome if it
-fails. **Safe path while O9 is unproven:** after any `Unknown` on a catalog
-write or flush, the destination accepts no further catalog or entry write for
-the rest of the boot (read-only: INFO, LIST, VERIFY, READ), so a late write
-cannot overwrite a newer catalog copy or a newly allocated extent. The
-in-boot resolution is reported to the portal only as "provisional"; the
-export counts as confirmed only after a cold boot, whose mount FLUSH and
-catalog read follow a device power cycle that no request of the previous
-boot survives *[design; QEMU process restart assumed equivalent, unproven]*,
-and after VERIFY of the entry. The portal
-treats `Unknown` as "not sealed" until the export lane's LIST returns the entry
-ID; it must not repeat the export blindly and must not report success. If the
+fails. **Safe path while O9 is unproven:** after any `Unknown` on a destination
+write or flush, catalog or entry (the latter widens the trigger to a timed-out
+entry write during APPEND or SEAL step 3), the destination accepts no further
+catalog or entry write for the rest of the boot (read-only: INFO, LIST,
+VERIFY, READ); CREATE, APPEND, SEAL and FORMAT on any lane return `Access` -5
+with no device write. These `Access` replies apply only while the instance's
+mount or remount FLUSH has completed and the catalog is not `Corrupt`: the
+failed-mount-FLUSH state (`Io` -12, INFO and the *unknown*-binding LIST
+excepted) and the `Corrupt` state (2.6) take precedence, and neither writes to
+the device. A late write therefore cannot overwrite a newer
+catalog copy or a newly allocated extent: no extent is reused in that
+boot. In particular, if the remount resolves E2 as *not sealed*, E2's sectors
+lie at or beyond the committed `next_free` and would be the next CREATE's
+extent, but no CREATE, and so no APPEND, is admitted in that boot, so a late
+E2 catalog write cannot make E2 listed over another entry's data. Across a
+cold boot the late write cannot occur only under the power-cycle assumption
+below; reuse of E2's sectors by an export in the next boot is safe only
+under that assumption, and O9 remains a blocking open assumption. The
+read-only state must also bind a restarted service instance in the same boot
+and survive any reboot that is not a cold boot; the mechanism that carries it
+is not specified (O8, O9), and until it is, recovery after such an `Unknown`
+is a cold boot. The in-boot resolution is reported to the portal only as
+"provisional"; the export counts as confirmed only after a cold boot, whose
+mount FLUSH and catalog read follow a device power cycle that no request of
+the previous boot survives *[design; QEMU process restart assumed
+equivalent, unproven]*, and after VERIFY of the entry. The portal treats
+`Unknown` as "not sealed" until the export lane's LIST returns the entry ID;
+it must not repeat the export blindly and must not report success. If the
 remount yields `Corrupt`, the service fails closed as in 2.6.
 
 **Append-only meaning.** No operation writes a sealed extent, and catalog
@@ -346,7 +378,9 @@ extent would lie at or beyond the older `next_free`, so a later export could
 overwrite it. Silent media decay is outside the crash model; the mirror is a
 mitigation subject to the R1 review. After a completed commit both copies are
 byte-identical, so decay of one copy loses no entry; decay of both gives
-`Corrupt` and fails closed (N8). A crash between barrier 2 and barrier 3 leaves
+`Corrupt` and fails closed, unless sectors 0–15 all read as zero, which the
+mount rule treats as a blank candidate that FORMAT still refuses while entry
+data remains (N8). A crash between barrier 2 and barrier 3 leaves
 one newer and one older valid copy, which the mount rule handles, and the next
 commit completes the mirror. The catalog write path accepts only the eight
 catalog sectors, in the order target slot, barrier, other slot, barrier.
@@ -427,7 +461,7 @@ only; `services/net-broker` binds grants with an instance, slot and generation
 
 | Operation | Destination service (service-enforced lane binding) | Kernel node held by the portal | Source volume |
 |---|---|---|---|
-| Export | INFO, CREATE once, APPEND, SEAL, ABORT on one new entry | SEND on one lane; no RECV, DERIVE, TRANSFER, REVOKE | domain-bound volume endpoint, read-only binding *[needs volume change, 4.2]* |
+| Export | INFO, CREATE once, APPEND, SEAL, ABORT on one new entry; LIST restricted to its own entry (zero records until sealed, 2.3; after an `Unknown` reply, the resolution of 2.7) | SEND on one lane; no RECV, DERIVE, TRANSFER, REVOKE | domain-bound volume endpoint, read-only binding *[needs volume change, 4.2]* |
 | Verify | INFO, LIST (bound entry), VERIFY on one sealed entry | SEND on one lane | none |
 | Restore | INFO, LIST (bound entry), READ on one sealed entry | SEND on one lane | domain-bound volume endpoint, create-only binding *[needs volume change, 4.2]* |
 | Selection (dialog) | INFO, LIST (all), ABORT, BIND, UNBIND, format of a blank scope | control lane SEND | none |
@@ -590,12 +624,12 @@ disposable images.
 | N5 | Revoked before operation | dialog revoked the lane | portal `send` | K: `Revoked` -10 (syscall return) | K | host + QEMU |
 | N6 | Revoked during export | 50 % appended | dialog sends UNBIND, then revokes | K: `Revoked` -10 on next send; S discards writing entry; LIST unchanged; earlier entries verify | K + S | host + QEMU |
 | N7 | Corrupted entry | one byte flipped in a sealed extent on the host image | VERIFY; restore flow | S: `Corrupt` -18; P: `archive::verify` `Corrupt`, nothing restored | S + P | host + QEMU |
-| N8 | Corrupted catalog | one copy damaged; then both | mount | one copy: the other, identical copy used, LIST unchanged; both: S `Corrupt`, only INFO answered, no write, no format | S | host + QEMU |
+| N8 | Corrupted catalog | one copy damaged; then both damaged; then both copies zeroed with sectors 8–15 zero and sealed entries at sector ≥ 16 | mount; control FORMAT | one copy: the other, identical copy used, LIST unchanged; both damaged (a non-zero sector in 0–15): S `Corrupt`, only INFO answered, no write, no format; both zeroed: blank candidate per the mount rule (INFO reports blank), no write, FORMAT `Access` -5 after the full-scope read finds the entry data (as N23) | S | host + QEMU |
 | N9 | Incomplete write | appended ≠ declared | SEAL | S: `Invalid` -1; nothing listed | S | host |
 | N10 | Non-archive bytes | appended bytes fail `verify` | SEAL | S: `Corrupt` -18; nothing listed; `next_free` unchanged after reboot | S | host + QEMU |
 | N11 | Power cut during APPEND | one sealed entry E1; export of E2 running | QEMU SIGKILL after k destination writes | after cold boot: LIST = {E1}; E1 verifies byte-identical | S (2.7) + H | host + QEMU |
 | N12 | Power cut during SEAL | cut after barrier 1, during the catalog write, after barrier 2 | SIGKILL at each point (host: every write prefix with cache loss) | LIST = {E1} or {E1, E2}; a listed E2 verifies; never a listed E2 that fails | S + H | host + QEMU |
-| N13 | `Unknown` at SEAL | catalog flush fails with `Timeout` or `Unknown` (broker timeout, 2.7) at barrier 2 or 3, with and without the new copy durable; then, after the 2.7 completion fence (N24), the remount FLUSH succeeds, or fails | SEAL, then LIST on the export lane; CREATE on another lane before resolution | S: `Unknown` -16, remount, binding kept; remount FLUSH succeeds: export-lane LIST returns E2's record if the remounted catalog lists E2 (P reports sealed), else zero records (P reports not sealed); remount FLUSH fails (2.6 failed-mount-FLUSH rule): LIST status `Unknown` -16 with zero records, INFO reports `Io`, every other request `Io` -12, no device write, no FLUSH retry, state unchanged until restart, binding never resolved as sealed (P reports not confirmed); after a restart the provisional ID is void and only the new instance's catalog decides; CREATE on any lane before resolution refused; further CREATE/APPEND/SEAL on that lane `Access` -5; no repeated export | S + P | host |
+| N13 | `Unknown` at SEAL | catalog flush fails with `Timeout` or `Unknown` (broker timeout, 2.7) at barrier 2 or 3, with and without the new copy durable; then, after the 2.7 completion fence (N24), the remount FLUSH succeeds, or fails | SEAL, then LIST on the export lane; CREATE on another lane before and after resolution | S: `Unknown` -16, remount, binding kept; remount FLUSH succeeds: export-lane LIST returns E2's record if the remounted catalog lists E2 (P reports provisionally sealed, confirmed only after cold boot and VERIFY, 2.7), else zero records (P reports not sealed); remount FLUSH fails (2.6 failed-mount-FLUSH rule): LIST status `Unknown` -16 with zero records, INFO reports `Io`, every other request `Io` -12, no device write, no FLUSH retry, state unchanged until restart, binding never resolved as sealed (P reports not confirmed); after a restart the provisional ID is void and only the new instance's catalog decides; remount FLUSH succeeds: CREATE on any lane before and after resolution refused for the rest of the boot (`Access` -5, 2.7 safe path), further CREATE/APPEND/SEAL on that lane `Access` -5; remount FLUSH fails: CREATE, APPEND and SEAL on any lane `Io` -12 (failed-mount-FLUSH state takes precedence, 2.7); no repeated export | S + P | host |
 | N14 | Wrong or foreign device | grant names ID X; device holds Y or a non-Baryon, non-blank layout | any lane op; format | S: `NoDevice` -14, no I/O; format not offered, control format `Access` -5 | S + D | host + QEMU |
 | N15 | Destination full | free space < archive | export | S: `Full` -17 at APPEND; nothing sealed; earlier entries intact; catalog sequence unchanged | S | host + QEMU |
 | N16 | Third-party raw access | app process in the profile | forged lane, control and block handles; IPC to service without a handle | K: `BadHandle` -4; counted; service receives nothing | K | QEMU |
@@ -606,7 +640,8 @@ disposable images.
 | N21 | Second writer | export lane writing | CREATE on another lane | S: `Busy` -21 | S | host |
 | N22 | Dialog uses a bound lane | lane bound to the portal | dialog sends INFO, APPEND or READ on that lane with its own root | S: `Access` -5 (`sender_pid` ≠ bound portal); no I/O | S | host + QEMU |
 | N23 | Data beyond the catalog area | catalog sectors 0–15 zero, non-zero data at sector ≥ 16 | control FORMAT | S: `Access` -5; no sector written | S | host |
-| N24 | Late-completing write (2.7 completion fence) | simulated disk that completes a timed-out catalog-sector write late: (a) before the fence (reset acknowledgement), (b) after the remount FLUSH | SEAL with the step-4 write timing out (`Unknown`); CREATE on another lane and LIST on the export lane before the fence; then remount and cold boot | (a) before the fence no remount FLUSH, no resolution, CREATE refused, export-lane LIST `Unknown` with zero records; after it the resolution matches the cold-boot catalog; (b) outside the assumed device model (O9), recorded, not a pass: no sealed extent written, never a listed entry that fails VERIFY, LIST after cold boot {E1} or {E1, E2} (E2 listed although P reported not sealed: safe direction) or S `Corrupt` fail closed with E1 byte-identical; mutation that issues the remount FLUSH or admits CREATE before the fence must fail (a) | S + K fence | host |
+| N24 | Late-completing write (2.7 completion fence) | simulated disk that completes a timed-out catalog-sector write late: (a) before the fence (reset acknowledgement), (b) after the remount FLUSH, (c) after a remount that resolved E2 as *not sealed*; (d) an entry-sector write during APPEND that times out (`Unknown`) and completes late | SEAL with the step-4 write timing out (`Unknown`); CREATE on another lane and LIST on the export lane before the fence; (c) CREATE and APPEND on another lane after the resolution, before the late write lands; (d) CREATE and APPEND on another lane after the acknowledged reset; then remount and cold boot | (a) before the fence no remount FLUSH, no resolution, CREATE refused, export-lane LIST `Unknown` with zero records; after it the resolution matches the cold-boot catalog; (b) outside the assumed device model (O9), recorded, not a pass: no sealed extent written, never a listed entry that fails VERIFY, LIST after cold boot {E1} or {E1, E2} (E2 listed although P reported not sealed: safe direction) or S `Corrupt` fail closed with E1 byte-identical; mutation that issues the remount FLUSH or admits CREATE before the fence must fail (a); (c) CREATE `Access` -5 and APPEND `Access` -5 in that boot, no device write, E2's sectors not allocated again, so the late E2 write lands on no other entry's data; mutation that admits CREATE after the resolution in the same boot must fail (c); (d) writing entry discarded, CREATE and APPEND `Access` -5 for the rest of the boot, the late entry write lands only in unallocated sectors; mutation that admits CREATE after the reset in the same boot must fail (d) | S + K fence | host |
+| N25 | Power cut during FORMAT | blank scope | FORMAT with a cut at every write prefix of copy A, with cache loss (host), before copy B | no non-zero sector of copy A durable (a zero-entry copy A is non-zero only in sectors 0 and 3, so a durable subset of sectors 1–2 alone counts here): blank candidate, FORMAT `Ok` again; some but not all non-zero sectors of copy A durable, or copy A otherwise invalid: S `Corrupt`, only INFO answered, no write, no format; after the owner re-zeroes the whole scope (2.6), a new instance mounts a blank candidate and FORMAT returns `Ok`; copy A valid (sectors 0 and 3 durable): mounted with one valid copy (sequence 1, zero entries) | S | host |
 
 Every row except N19, N20 and N24 needs only the destination service and
 existing primitives; N24 also needs a simulated disk with late completion and,
@@ -709,8 +744,16 @@ hosted gate runs. No human audit.
   outcome without counting it as a pass.
   Until both are shown, the 2.7 safe path applies (read-only for the rest of
   the boot after an `Unknown`; confirmation only after a cold boot and
-  VERIFY). N24 is a planned test, not evidence; the independent security
-  review (R1 of 8.2) also remains open before implementation.
+  VERIFY), including for a restarted service instance in the same boot and
+  across a reboot that is not a cold boot, by a mechanism not yet
+  specified; its trigger covers entry writes as well as catalog writes. N24 is
+  a planned test, not evidence; the independent security review (R1 of 8.2)
+  also remains open before implementation.
+- **O10** `Corrupt` after an interrupted FORMAT (2.6, N25): the policy by
+  which a product distinguishes a FORMAT interrupted before its first copy
+  was durable from a damaged existing destination, and whether any recovery
+  other than external re-zeroing of a disposable image is offered. Not
+  specified; until decided the service never formats a `Corrupt` scope.
 
 ### 8.2 Staged route
 
@@ -719,11 +762,11 @@ Each step is one reviewable draft PR; none activates a production boundary.
 | Step | Content | Acceptance check |
 |---|---|---|
 | R1 | This specification; independent security review of it | review findings recorded and resolved in this file |
-| R2 | Host crate for the service core: catalog codec, mount rule, state machine, wire codec, write path; simulated disk with cache loss | host tests for N3, N4, N8–N13, N15, N17, N21–N24 (simulated disk with late completion for N24), each with a killing mutation; Clippy, fmt, `cargo test --locked` per the CI workflow commands |
+| R2 | Host crate for the service core: catalog codec, mount rule, state machine, wire codec, write path; simulated disk with cache loss | host tests for N3, N4, N8–N13, N15, N17, N21–N25 (simulated disk with late completion for N24), each with a killing mutation; Clippy, fmt, `cargo test --locked` per the CI workflow commands |
 | R3 | `tools/destination_disk.py` independent oracle | Python unit tests: parses valid copies, refuses each invalid rule |
 | R4 | Volume service read-only and create-only endpoint bindings (separate spec) | N19, N20 host tests; existing volume and archive host tests unchanged |
-| R5 | After PR #396 merges and O4 approves K4/K5: per-device `Policy`, destination service binary in a test-only profile on disk 1 | native stages `dest-format`, `dest-export`, `dest-export-2`, `dest-restore`; N1, N2, N16, N18 counted; the per-device `Policy` admits no request between a timeout and the acknowledged reset (2.7 completion fence), shown by a native timeout fixture on disk 1 |
-| R6 | Lane binding, BIND/UNBIND and revocation through a scripted test-only dialog | N5, N6, N14, N17 native; crash stages N11, N12 |
+| R5 | After PR #396 merges and O4 approves K4/K5: per-device `Policy`, destination service binary in a test-only profile on disk 1, and a scripted test-only dialog driver for the control lane that sends FORMAT and BIND and transfers lane SEND to the portal (4.3) | native stages `dest-format`, `dest-export`, `dest-export-2`, `dest-restore`, each lane bound by BIND with the destination ID that INFO reports after `dest-format`; N1, N2, N16, N18 counted (the driver's handles as the dialog's in 5.1); the per-device `Policy` admits no request between a timeout and the acknowledged reset (2.7 completion fence), shown by a native timeout fixture on disk 1 |
+| R6 | UNBIND, revocation and rebinding through the scripted test-only dialog driver of R5 | N5, N6, N14, N17 native; crash stages N11, N12 |
 | R7 | Trusted dialog surface and remembered permission (after O1) | UI checks per `ui/AGENTS.md`; revocation of a remembered permission revokes live lanes |
 | R8 | Independent security review of the implementation, then an owner activation decision | all matrix rows pass natively where marked QEMU; review closed |
 

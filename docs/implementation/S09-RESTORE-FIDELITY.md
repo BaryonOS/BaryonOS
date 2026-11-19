@@ -130,7 +130,8 @@ decision point.
 
 - **Separate mode.** A new `restore_native` beside the unchanged `restore`.
   The existing v1 restore semantics, report and conflict rule stay as they are.
-- **Destination precondition.** Native mode runs only into a domain in which
+- **Destination precondition** (the R3 recommendation; R3 is open, section 4).
+  Native mode runs only into a domain in which
   every slot and collection has revision 0 (never used). Otherwise it refuses
   before any write, with a distinct status; it does not merge. Merging into a
   used domain remains the v1 restore.
@@ -231,10 +232,33 @@ decision point.
   the extension proposed under 3.3 for every slot, present or tombstone, since
   STAT on `main` returns no history names; for a tombstone slot all version
   fields come from that extension. The destination precondition is
-  checked per slot on resume, not per domain. A partly replayed L1 object (a
-  prefix of its version chain) is a conflict that no in-domain operation can
-  clear: DELETE leaves a tombstone and PURGE clears history but keeps the
-  slot's non-zero revision (`service.rs:684-696`), so the slot never returns
+  checked per slot and per collection on resume, not per domain.
+  **Collections on resume.** A collection created before the interruption has
+  a non-zero revision, so the domain-wide precondition would refuse the
+  rerun. On `main` the client chooses the collection index, the commit is a
+  compare-and-set on the current revision, and one commit sets presence and
+  name together and adds one to the revision (`service.rs:739-788`);
+  COLLECTION_STAT returns revision, presence and name (`service.rs:724-735`).
+  The rerun therefore compares, for each index 1..4, the destination state
+  read by COLLECTION_STAT with the archive: revision 0 and an archived present
+  collection at that index: create it (compare-and-set on revision 0);
+  revision 0 and no archived present collection: nothing to do; revision 1,
+  present, with the archived name (under L2 also the archived provenance,
+  through the COLLECTION_STAT extension of 3.3): reused as already restored,
+  no write. Reuse is permitted only under the ownership control above, since
+  an identical collection could have been created by another writer; without
+  a verified control it is a conflict. Every other state is a conflict: a
+  different name, a deleted collection, a revision above 1, or a non-zero
+  revision at an index with no archived present collection (archived deleted
+  collections are not replayed, so no restore commit produces it). A
+  collection conflict refuses the rerun before any further write, because
+  META of every slot that names that collection would place restored objects
+  in a collection the restore did not create; it is reported by index and
+  name, and recovery is a new native restore into a fresh domain. A partly
+  replayed L1 object (a prefix of its version chain) is a conflict that no
+  in-domain operation can clear: DELETE leaves a tombstone and PURGE clears
+  history but keeps the slot's non-zero revision (`service.rs:684-696`), so
+  the slot never returns
   to revision 0. The recovery path after an interrupted L1 replay that left
   such a slot is therefore a new native restore into a fresh (never-used)
   domain or a fresh volume; the partly restored domain stays as it is and is
@@ -253,7 +277,20 @@ decision point.
 
 ### 3.3 Archive format changes (v2)
 
-Indicative layout; sizes are proposals, not decided:
+The authoritative v2 byte layout, validation rules and field use are
+specified in `docs/implementation/S09-ARCHIVE-V2.md` (sections 2, 4 and 7),
+which is in open PR #404 (head `a468f589`, not merged); where it differs from
+the indicative list below, that specification applies. It does not settle
+the R2 decision: it defines flag gating for tombstones and content-free
+records, while their inclusion by default remains part of R2. L2 needs no
+archive change: v2 already records the source values that L2 stores as
+provenance (object revision, `created`, `modified`, per-version revision and
+collection revision; `S09-ARCHIVE-V2.md` section 7). The representation of
+the `origin_*` fields, the marking of installed objects and the v3 ordinal
+rule (3.2) are properties of the destination table v3 and belong to the L2
+review, not to the archive.
+
+Indicative layout (superseded by the specification above where they differ):
 
 - Header (64 B): magic, version 2, counts, **source domain clock** (new),
   domain generation, total content, flags (bit 0: tombstones included), seal.
@@ -341,9 +378,10 @@ Implement **L1** first, then a separately reviewed **L2** implementation, as
 selected by owner decision R1 below; L3 is not pursued. Reviewable steps,
 each with its own tests and without changing v1 behaviour:
 
-1. **Spec and oracle first:** v2 byte layout in `S09-BACKUP-ARCHIVE.md` and a
-   v2 parser in `tools/volume_archive.py`, independent of `volume-core`.
-2. **Wire read extensions** (volume service, review required): own domain
+1. **Spec and oracle first:** v2 byte layout (specified in
+   `S09-ARCHIVE-V2.md`, open PR #404; 3.3) and a v2 parser in
+   `tools/volume_archive.py`, independent of `volume-core`. 2. **Wire read
+   extensions** (volume service, review required): own domain
    clock and history version names. Read-only; no new authority.
 3. **Writer:** `export` with an explicit v2 selector; v1 export unchanged.
 4. **Reader:** version dispatch in `walk`, v2 validation and bounds.
@@ -421,6 +459,12 @@ fields equal the archive's.
 - partly replayed L1 object, then a rerun into the same domain: conflict for
   that slot, nothing overwritten; a rerun into a fresh domain completes;
   PURGE of the partial slot does not make it eligible (revision stays ≠ 0);
+- interruption after a collection was created, then a rerun: with the
+  ownership control of 3.2 the collection (revision 1, present, archived
+  name) is reused without a write; a collection renamed, deleted or with a
+  revision above 1, or a non-zero revision at an index without an archived
+  present collection: conflict, rerun refused before any further write;
+  without the control every non-zero collection revision is a conflict;
 - foreign writer in the same domain reproduces the matching versions with
   default metadata between the interruption and the rerun: conflict, no META
   or DELETE (unless the ownership control of 3.2 is in place and verified).
@@ -450,3 +494,6 @@ coordinated workflow pin update described in section 4.
   is specified, reviewed and tested, the exception is not applied.
 - No operation on `main` returns a collection's L2 `origin_revision`; the
   COLLECTION_STAT extension in 3.3 is a proposal only.
+- Reuse of a collection on resume (3.2) depends on the same ownership
+  control as the L1 resume exception; without it, an interruption after any
+  collection was created leaves recovery only through a fresh domain.

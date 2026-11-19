@@ -13,8 +13,10 @@ Status: accepted by the project owner on 19 November 2026 (decision R1 of
 **Decision:**
 
 - **L1 first:** native restore replays the retained versions, names and
-  metadata of each object into a never-used destination domain; source
-  identifiers are kept in the archive and in the restore report only.
+  metadata of each object into a destination domain; source identifiers are
+  kept in the archive and in the restore report only. Restricting native
+  restore to a never-used destination domain is the recommendation pending
+  owner decision R3, which remains open; this ADR does not decide it.
 - **L2 as the long-term target, separately reviewed:** original source
   revisions and logical timestamps are kept as immutable provenance, separate
   from the destination-assigned live revisions and clocks. L2 begins only
