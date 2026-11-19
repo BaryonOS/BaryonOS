@@ -2202,6 +2202,7 @@ fn event(source: *const u64) -> *const u64 {
         #[cfg(feature = "native-system")]
         let supervisor_call = matches!(number, 0x30 | 0x50..=0x52 | 0x60 | 0x61)
             || cfg!(feature = "native-system-net") && matches!(number, 0x70..=0x72)
+            || cfg!(feature = "test-system-net-link") && number == 0x74
             || cfg!(feature = "native-window-session") && number == 0x53;
         #[cfg(feature = "native-system-clock")]
         let supervisor_call = supervisor_call || number == 0x73;
@@ -2281,7 +2282,8 @@ fn event(source: *const u64) -> *const u64 {
             state.processes[current].context[12] = rdx;
         }
         #[cfg(feature = "native-system-net")]
-        if matches!(number, 0x70..=0x72) {
+        if matches!(number, 0x70..=0x72) || cfg!(feature = "test-system-net-link") && number == 0x74
+        {
             let (rax, rdx) = network::syscall(state, current, number, args);
             state.processes[current].context[14] = rax as u64;
             state.processes[current].context[12] = rdx;

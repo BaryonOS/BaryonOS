@@ -177,6 +177,11 @@ test-system-nas-recover = ["native-system-nas-probe", "test-system-recover"]
 # Real NIC integration; the base joint profile never probes or maps a NIC.
 native-system-net = ["native-system", "dep:virtio-net-driver"]
 test-system-net-recover = ["native-system-net", "test-system-recover"]
+# H04-T3 test profile: read-only link query 0x74, per-tick link polling and
+# fail-closed -23 refusal of TX/RX while down; QMP set_link in the runner.
+test-system-net-link = ["native-system-net"]
+# H04-T3: handshaked toggles exhaust the transition budget and latch a reset.
+test-system-net-link-storm = ["test-system-net-link"]
 # Bounded native TCP fixture; protocol processing stays in the ring-3 app.
 native-system-tcp = ["native-system-net", "monotonic-clock", "fpu-context"]
 # Reusable ring-3 network service and two IPC-only clients; separate manifest.

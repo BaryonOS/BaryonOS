@@ -142,7 +142,10 @@ def controlled(stdout: str) -> list[str]:
             if line in keep or line.startswith(("VOLUME:CASE:", "VOLUME:CUT:"))]
 
 
-def execute(args, env, *, cut_marker=None, timeout=MAX_TIMEOUT):
+def execute(args, env, *, cut_marker=None, timeout=MAX_TIMEOUT, on_line=None):
+    """Run QEMU with a hard deadline. `on_line(line, process)` (optional) sees
+    each complete serial line in order; an exception from it kills QEMU and is
+    re-raised after the pipes are drained, so a harness never continues blind."""
     process = subprocess.Popen(args, cwd=ROOT, env=env, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     out, err, lines = [], [], queue.Queue()
 
@@ -159,6 +162,7 @@ def execute(args, env, *, cut_marker=None, timeout=MAX_TIMEOUT):
         thread.start()
     deadline = time.monotonic() + timeout
     timed_out = killed = running_before_kill = False
+    hook_error = None
     while True:
         remaining = deadline - time.monotonic()
         if remaining <= 0:
@@ -171,6 +175,13 @@ def execute(args, env, *, cut_marker=None, timeout=MAX_TIMEOUT):
             if process.poll() is not None and lines.empty():
                 break
             continue
+        if on_line is not None:
+            try:
+                on_line(line, process)
+            except Exception as error:  # noqa: BLE001 - re-raised below
+                hook_error = error
+                process.kill()
+                break
         if cut_marker is not None and line == cut_marker:
             running_before_kill = process.poll() is None
             if running_before_kill:
@@ -181,6 +192,9 @@ def execute(args, env, *, cut_marker=None, timeout=MAX_TIMEOUT):
     for thread in threads:
         thread.join(timeout=10)
     stdout, stderr = b"".join(out), b"".join(err)
+    if hook_error is not None:
+        hook_error.partial_stdout = stdout.decode("utf-8", "replace")
+        raise hook_error
     return (process.returncode, stdout.decode("utf-8", "replace"),
             stderr.decode("utf-8", "replace"), timed_out, killed, running_before_kill)
 

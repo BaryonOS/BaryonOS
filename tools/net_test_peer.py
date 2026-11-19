@@ -186,14 +186,31 @@ def dns_reply(query: bytes, mode: str) -> bytes:
 
 
 class PeerMachine:
-    """Deterministic server fault schedule driven solely by actual requests."""
+    """Deterministic server fault schedule driven solely by actual requests.
 
-    def __init__(self):
+    H04-T3 optional schedule extensions (off by default, base unchanged):
+    `predown` accepts one more echo after the base schedule (its reply is meant
+    to stay undelivered across a link loss); `reconnect` additionally accepts
+    one fresh ARP request and then one more echo after that pre-down echo.
+    """
+
+    def __init__(self, *, predown: bool = False, reconnect: bool = False):
+        if type(predown) is not bool or type(reconnect) is not bool or (reconnect and not predown):
+            raise ValueError("reconnect schedule requires the pre-down echo")
         self.counts = dict(accepted_frames=0, arp_requests=0, arp_bad_sender_sent=0,
                            arp_wrong_target_sent=0, arp_valid_sent=0,
                            udp_echo_requests=0, udp_echo_replies=0, dns_requests=0,
                            dns_wrong_id_sent=0, dns_bad_name_sent=0, dns_answers_sent=0,
                            dns_timeouts=0, response_frames=0)
+        self.arp_events = ("arp_bad_sender_sent", "arp_wrong_target_sent", "arp_valid_sent")
+        self.echo_events = ("udp_echo_replies",)
+        if predown:
+            self.counts["udp_predown_replies"] = 0
+            self.echo_events += ("udp_predown_replies",)
+        if reconnect:
+            self.counts.update(arp_reconnect_sent=0, udp_reconnect_replies=0)
+            self.arp_events += ("arp_reconnect_sent",)
+            self.echo_events += ("udp_reconnect_replies",)
         self.events: list[dict] = []
 
     def handle(self, frame: bytes) -> list[bytes]:
@@ -210,9 +227,11 @@ class PeerMachine:
                     frame[32:38] != b"\0" * 6 or frame[38:42] != PEER_IP):
                 raise ProtocolError("invalid ARP fixture request")
             sequence = self.counts["arp_requests"]
-            if sequence >= 3:
+            if sequence >= len(self.arp_events):
                 raise ProtocolError("unexpected extra ARP request")
-            event = ("arp_bad_sender_sent", "arp_wrong_target_sent", "arp_valid_sent")[sequence]
+            event = self.arp_events[sequence]
+            if event == "arp_reconnect_sent" and self.counts["udp_predown_replies"] != 1:
+                raise ProtocolError("reconnect ARP before the pre-down echo")
             details = dict(requested_ipv4="192.0.2.1")
             responses = [arp_reply(bad_sender=sequence == 0, wrong_target=sequence == 1)]
             self.counts["arp_requests"] += 1
@@ -221,9 +240,14 @@ class PeerMachine:
             if packet["source_ip"] != CLIENT_IP or packet["target_mac"] != PEER_MAC:
                 raise ProtocolError("unexpected UDP client/next-hop")
             if packet["target_ip"] == PEER_IP and packet["target_port"] == 9000:
-                if self.counts["udp_echo_requests"] != 0 or not packet["payload"]:
+                sequence = self.counts["udp_echo_requests"]
+                if sequence >= len(self.echo_events) or not packet["payload"]:
                     raise ProtocolError("invalid/extra echo")
-                event = "udp_echo_replies"
+                event = self.echo_events[sequence]
+                if event == "udp_predown_replies" and self.counts["dns_timeouts"] != 1:
+                    raise ProtocolError("pre-down echo before the base schedule ended")
+                if event == "udp_reconnect_replies" and self.counts["arp_reconnect_sent"] != 1:
+                    raise ProtocolError("reconnect echo before a fresh ARP resolution")
                 details = dict(payload_sha256=hashlib.sha256(packet["payload"]).hexdigest())
                 self.counts["udp_echo_requests"] += 1
                 responses = [udp_frame(packet["payload"], PEER_IP, 9000, packet["source_port"])]
@@ -261,11 +285,11 @@ class PeerMachine:
 class EthernetPeer:
     """One localhost QEMU connection; bounded framing, bytes and lifetime."""
 
-    def __init__(self, timeout: float = 180):
+    def __init__(self, timeout: float = 180, *, predown: bool = False, reconnect: bool = False):
         if not 0 < timeout <= 180:
             raise ValueError("peer lifetime outside bound")
         self.timeout = timeout
-        self.machine = PeerMachine()
+        self.machine = PeerMachine(predown=predown, reconnect=reconnect)
         self.error: str | None = None
         self.rejected_frame: dict | None = None
         self.connected = False
