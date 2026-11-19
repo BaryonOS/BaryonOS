@@ -1,5 +1,14 @@
 # Current project status
 
+## NEXT AGENT HANDOFF — P01-T1 delivery — 18 November 2026
+
+**Source:** `91797da1ce5353465670402d273b4e4a88b660b6`, `codex/p01-seal-contract`.
+**Delivered:** PROPOSED NAS consumer contract maps existing RecordContext and opaque NAS interfaces,128/168-byte record vs104-byte wire bound, administrator/key separation, uncertainty/revocation/recovery and owned negative acceptance table. Seven source paths/11 declarations and progress checks pass.
+**Checks:** executed targeted commands and raw exit codes are in the
+[exact command/log receipt](roadmap-pipeline/receipts/P01-T1.json).
+Lead source/diff review completed; no duplicate matrix. Progress **41 → 41/100**.
+**Limits:** Design only; namespace-to-volume assignment, manifest publication and bounded transport format require owner/security decision. No consumer implementation/crypto or grant change, cold rollback/hardware/human audit acceptance.41/100 unchanged.
+
 ## NEXT AGENT HANDOFF — N03-T1 delivery — 18 November 2026
 
 **Source:** `526aca548c0ee22025f80401d017f779c8d59179`, `codex/n03-provider-evaluation`.
@@ -149,6 +158,8 @@ delivery branches and Claude S09/UI remain untouched. Unsafe unattended hold act
 slice from this ledger; no waiting for integration. Prior delivery checkpoints retained.
 
 ## Retained checkpoint — unified governance implementation — 18 November 2026
+
+
 
 
 

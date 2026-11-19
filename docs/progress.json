@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-18",
-    "source_commit": "3b7db2dd5ea079d8e5fab4a1bfa08d6900c4a8a7",
+    "source_commit": "d4b21966b572e909fb3a96ef0300305959f30be9",
     "assessment_basis": "parent_commit",
-    "branch": "codex/n03-provider-evaluation",
-    "task": "N03-T1: Bounded source/primary-source provider evaluation records fixed TLS profile, existing Rustls pins and random/time adapter limits. No provider selected; version-specific manifests/build scripts and maintenance evaluation incomplete after inaccessible primary endpoints. Local paths/symbol and progress checks pass.",
+    "branch": "codex/p01-seal-contract",
+    "task": "P01-T1: PROPOSED NAS consumer contract maps existing RecordContext and opaque NAS interfaces,128/168-byte record vs104-byte wire bound, administrator/key separation, uncertainty/revocation/recovery and owned negative acceptance table. Seven source paths/11 declarations and progress checks pass.",
     "previous_score": 41,
-    "summary": "41/100 unchanged. Bounded source/primary-source provider evaluation records fixed TLS profile, existing Rustls pins and random/time adapter limits. No provider selected; version-specific manifests/build scripts and maintenance evaluation incomplete after inaccessible primary endpoints. Local paths/symbol and progress checks pass. Proposed design only; accepted native provider/RNG/platform, calendar/signing/bootstrap boundaries remain unresolved. No cryptographic dependency or trust root adopted; no native handshake/hardware/audit evidence. Task remains BLOCKED and41/100 unchanged. Integration/Claude ownership and execution hold preserved."
+    "summary": "41/100 unchanged. PROPOSED NAS consumer contract maps existing RecordContext and opaque NAS interfaces,128/168-byte record vs104-byte wire bound, administrator/key separation, uncertainty/revocation/recovery and owned negative acceptance table. Seven source paths/11 declarations and progress checks pass. Design only; namespace-to-volume assignment, manifest publication and bounded transport format require owner/security decision. No consumer implementation/crypto or grant change, cold rollback/hardware/human audit acceptance.41/100 unchanged. Integration/Claude ownership and execution hold preserved."
   },
   "tracks": [
     {
