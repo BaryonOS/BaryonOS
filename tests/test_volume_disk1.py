@@ -1,10 +1,12 @@
 """Host tests for the S09 second-disk runner checks (tools/run_volume.py).
 
 Invariant: after a power cut during an export over an older archive, the
-archive disk counts as torn (only Corrupt is correct) exactly when the new
-header landed, nothing at or past the cut limit changed, and the reader
-refuses the result. An untouched older archive or a complete new one is not
-a torn disk.
+archive disk counts as torn (only Corrupt is correct) exactly when sector 0
+holds the expected new header and collection records, every changed sector
+is a prefix of the expected new archive and lies before the cut limit, and
+the reader refuses the result. An untouched older archive, a complete new
+one or a damaged sector 0 is not a torn disk. Disk 0 differs from its input
+only by the one new collection.
 """
 from __future__ import annotations
 import sys
@@ -26,13 +28,20 @@ def disk(archive: bytes, sectors: int = rv.DISK1_SECTORS) -> bytes:
     return bytes(image)
 
 
-def archive(generation: int, objects: int, size: int) -> bytes:
-    return encode([(1, b"Werk")], [(slot, f"Doc {slot}".encode(), 1, 0, 0, 1, bytes([slot]) * size)
-                                   for slot in range(objects)], generation)
+# Varied content, so the 48-byte shift between the two archives changes every sector.
+OBJECTS = [(slot, f"Doc {slot}".encode(), 1, 0, 0, 1, bytes((slot * 7 + i) % 251 for i in range(6000)))
+           for slot in range(3)]
+OLDER = encode([(1, b"Werk")], OBJECTS, 7)
+# The cut stage's new archive: the portal added collection 3 "Nieuw", so only
+# the header (one more collection, newer generation) and the records differ.
+NEWER = encode([(1, b"Werk"), (3, b"Nieuw")], OBJECTS, 9)
+ADDED = (3, "Nieuw")
 
 
-OLDER = archive(7, 3, 6000)
-NEWER = archive(9, 4, 6000)
+def torn(cut: int) -> bytes:
+    after = bytearray(disk(OLDER))
+    after[:cut * SECTOR] = NEWER[:cut * SECTOR]
+    return bytes(after)
 
 
 class ArchiveDiskTests(unittest.TestCase):
@@ -49,32 +58,64 @@ class ArchiveDiskTests(unittest.TestCase):
             rv.refused_disk(disk(OLDER), "valid archive")
 
     def test_new_header_over_older_body_is_torn(self):
-        before = disk(OLDER)
-        after = bytearray(before)
-        cut = 5
-        after[:cut * SECTOR] = NEWER[:cut * SECTOR]
-        result = rv.torn_archive(before, bytes(after), 20)
-        self.assertEqual(result["classification"], "corrupt")
-        self.assertEqual(result["last_changed"] < 20, True)
+        for cut in (1, 5, 20):
+            result = rv.torn_archive(disk(OLDER), torn(cut), 20, 9, ADDED)
+            self.assertEqual(result["classification"], "corrupt")
+            self.assertEqual(result["last_changed"], cut - 1)
+            self.assertEqual(result["new_length"], len(NEWER))
+
+    def test_corrupted_magic_alone_is_not_torn(self):
+        after = bytearray(disk(OLDER))
+        after[0] ^= 0xff
+        with self.assertRaisesRegex(ValueError, "new archive header"):
+            rv.torn_archive(disk(OLDER), bytes(after), 20, 9, ADDED)
+
+    def test_new_header_must_carry_the_domain_generation_and_collection(self):
+        with self.assertRaisesRegex(ValueError, "new archive header"):
+            rv.torn_archive(disk(OLDER), torn(5), 20, 8, ADDED)
+        with self.assertRaisesRegex(ValueError, "collection record 3"):
+            rv.torn_archive(disk(OLDER), torn(5), 20, 9, (3, "Ander"))
+
+    def test_changed_sectors_must_be_the_new_prefix(self):
+        after = bytearray(torn(5))
+        after[3 * SECTOR] ^= 1
+        with self.assertRaisesRegex(ValueError, "new archive prefix"):
+            rv.torn_archive(disk(OLDER), bytes(after), 20, 9, ADDED)
 
     def test_untouched_older_archive_is_not_torn(self):
         before = disk(OLDER)
         with self.assertRaisesRegex(ValueError, "torn new header"):
-            rv.torn_archive(before, before, 20)
+            rv.torn_archive(before, before, 20, 9, ADDED)
 
     def test_complete_new_archive_is_not_torn(self):
-        before = disk(OLDER)
-        after = disk(NEWER)
         with self.assertRaises(ValueError):
-            rv.torn_archive(before, after, 20)
+            rv.torn_archive(disk(OLDER), disk(NEWER), 20, 9, ADDED)
 
     def test_write_past_the_cut_limit_is_rejected(self):
-        before = disk(OLDER)
-        after = bytearray(before)
-        after[:SECTOR] = NEWER[:SECTOR]
+        after = bytearray(torn(1))
         after[20 * SECTOR] ^= 1
         with self.assertRaisesRegex(ValueError, "torn new header"):
-            rv.torn_archive(before, bytes(after), 20)
+            rv.torn_archive(disk(OLDER), bytes(after), 20, 9, ADDED)
+
+    def test_cut_stage_disk0_differs_only_by_the_new_collection(self):
+        def oracle(nieuw: bool, objects: int = 2) -> dict:
+            return {"generation": 10 + nieuw, "clocks": [5 + nieuw, 3], "chunks_used": 4,
+                    "digests": ["d0", "d1"],
+                    "objects": [{"object": o, "present": o < objects, "revision": 1} for o in range(16)],
+                    "collections": [{"domain": 0, "index": 1, "present": True, "revision": 1, "name": "Werk"},
+                                    {"domain": 0, "index": 3, "present": nieuw, "revision": int(nieuw),
+                                     "name": "Nieuw" if nieuw else ""}]}
+        rv.cut_volume(oracle(False), oracle(True))
+        with self.assertRaisesRegex(ValueError, "beyond one new collection"):
+            rv.cut_volume(oracle(False), oracle(True, objects=1))
+        changed = oracle(True)
+        changed["collections"][0]["name"] = "Anders"
+        with self.assertRaisesRegex(ValueError, "changed collection"):
+            rv.cut_volume(oracle(False), changed)
+        present = oracle(True)
+        present.update(generation=10, clocks=[5, 3])
+        with self.assertRaisesRegex(ValueError, "new collection is not"):
+            rv.cut_volume(present, oracle(True))
 
     def test_grant_on_the_wrong_device_is_rejected(self):
         evidence = {"VOLUME:ARCHIVE:READS:": 1, "VOLUME:ARCHIVE:WRITES:": 0, "VOLUME:ARCHIVE:FLUSHES:": 0,

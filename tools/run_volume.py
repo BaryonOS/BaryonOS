@@ -20,6 +20,7 @@ from pathlib import Path
 import queue
 import re
 import shutil
+import struct
 import subprocess
 import tarfile
 import threading
@@ -93,6 +94,10 @@ assert ARCHIVE_SECTORS < DISK1_SECTORS and 8 <= FULL_SECTORS < SMALL_DISK_SECTOR
 DISK1_SPAN = slice(0, ARCHIVE_SECTORS * SECTOR)
 # Completed device-1 writes before the power cut (ARCHIVE_CUT_WRITES in the kernel).
 ARCHIVE_CUT_WRITES = 20
+# The domain-0 collection the portal adds before that export (portal() in
+# sdk/examples/volume-docs/src/app.rs), so the new archive differs from sector 0.
+CUT_COLLECTION = (3, "Nieuw")
+CUT_COLLECTION_KEY = (0, CUT_COLLECTION[0])
 CONFLICT_COLLECTIONS = {1: "Werk", 2: "Anders"}
 
 # Expected final state of the normal fixture: object -> (revision, content
@@ -473,14 +478,17 @@ def check_archive(case: str, before: bytes, after: bytes, evidence, reference: b
     return oracle
 
 
+def domain_generation(oracle) -> int:
+    """The domain-0 generation an archive header carries, as LIST reports it:
+    the sum of the domain's object and collection revisions (not the global one)."""
+    return (sum(item["revision"] for item in oracle["objects"][:volume_disk.PER_DOMAIN])
+            + sum(c["revision"] for c in oracle["collections"] if c["domain"] == 0))
+
+
 def matches_volume(archive: dict, oracle) -> None:
     """The parsed archive equals domain 0 of the volume oracle: objects with
     their content and metadata, collections and the header generation."""
-    # The header carries the domain generation that LIST reports: the sum
-    # of the domain's object and collection revisions (not the global one).
-    domain = (sum(item["revision"] for item in oracle["objects"][:volume_disk.PER_DOMAIN])
-              + sum(c["revision"] for c in oracle["collections"] if c["domain"] == 0))
-    if archive["generation"] != domain:
+    if archive["generation"] != domain_generation(oracle):
         raise ValueError("archive generation differs from the domain generation")
     present = [item["object"] for item in oracle["objects"][:volume_disk.PER_DOMAIN] if item["present"]]
     if [item["slot"] for item in archive["objects"]] != present:
@@ -581,24 +589,70 @@ def refused_disk(disk: bytes, label: str) -> str:
     return refused(data, label)
 
 
-def torn_archive(before: bytes, after: bytes, limit: int) -> dict:
+def torn_archive(before: bytes, after: bytes, limit: int, generation: int, added: tuple[int, str]) -> dict:
     """Power cut over an older archive: classify the archive disk. The older
-    archive must parse; the cut must have changed sector 0 (the new header)
-    and nothing at or past sector `limit` (the kernel stopped the guest after
-    `limit` completed writes). Then the region is neither the older archive
-    nor a complete new one, and only Corrupt is a correct verdict."""
+    archive must parse. The expected new archive differs from it only by the
+    portal's added collection `added` = (index, name): a new header (one more
+    collection, domain generation `generation` from the disk-0 oracle, same
+    objects and content bytes), the collection records with `added` inserted,
+    and then the older object stream unchanged. The changed sectors must start
+    at sector 0, end before `limit` (the kernel stops the guest after `limit`
+    completed lane-1 writes) and, up to the last one, equal that expected
+    prefix. Then the region is neither the older archive nor a complete new
+    one, and only Corrupt is a correct verdict."""
     older = disk_archive(before)
-    volume_archive.parse(older)
+    old = volume_archive.parse(older)
+    if len(older) <= limit * SECTOR:
+        raise ValueError("the older archive ends before the cut: no torn mix is possible")
     changed = [index for index in range(len(after) // SECTOR)
                if after[index * SECTOR:(index + 1) * SECTOR] != before[index * SECTOR:(index + 1) * SECTOR]]
     if not changed or changed[0] != 0 or changed[-1] >= limit:
         raise ValueError(f"cut did not leave a torn new header within {limit} sectors: {changed[:4]}...")
-    if len(older) <= limit * SECTOR:
-        raise ValueError("the older archive ends before the cut: no torn mix is possible")
+    header = after[:volume_archive.HEADER]
+    count, collections = older[12], older[13]
+    if (header[:8] != volume_archive.MAGIC or header[8:12] != older[8:12] or not volume_archive._sealed(header)
+            or (header[12], header[13]) != (count, collections + 1) or header[24:32] != older[24:32]
+            or struct.unpack_from("<Q", header, 16)[0] != generation
+            or volume_archive.stored_length(header) != len(older) + volume_archive.COLLECTION_RECORD):
+        raise ValueError("sector 0 does not hold the expected new archive header")
+    names = {**old["collections"], added[0]: added[1]}
+    records = b""
+    for index in sorted(names):
+        start = volume_archive.HEADER + len(records)
+        record = after[start:start + volume_archive.COLLECTION_RECORD]
+        name = names[index].encode()
+        if (not volume_archive._sealed(record) or record[0] != index or record[1] != len(name)
+                or record[8:8 + len(name)] != name):
+            raise ValueError(f"new archive collection record {index} differs from the volume")
+        records += record
+    expected = header + records + older[volume_archive.HEADER + collections * volume_archive.COLLECTION_RECORD:]
+    landed = (changed[-1] + 1) * SECTOR
+    if after[:landed] != expected[:landed]:
+        raise ValueError("the changed sectors are not the expected new archive prefix")
     reason = refused_disk(after, "torn archive")
     return {"classification": "corrupt", "changed_sectors": len(changed), "last_changed": changed[-1],
             "older_length": len(older), "older_sha256": hashlib.sha256(older).hexdigest(),
-            "reason": f"new header over the older body; reader: {reason}"}
+            "new_length": len(older) + volume_archive.COLLECTION_RECORD,
+            "reason": f"new header and records over the older body; reader: {reason}"}
+
+
+def cut_volume(before, after) -> None:
+    """The power-cut stage's disk 0 differs from its input only by the
+    portal's one new domain-0 collection: same objects, content, revisions
+    and other collections, domain-1 state unchanged."""
+    if (after["objects"] != before["objects"] or after["chunks_used"] != before["chunks_used"]
+            or after["generation"] != before["generation"] + 1
+            or after["clocks"] != [before["clocks"][0] + 1, before["clocks"][1]]
+            or after["digests"][1] != before["digests"][1]):
+        raise ValueError("power-cut stage changed disk 0 beyond one new collection")
+    old = {(c["domain"], c["index"]): c for c in before["collections"]}
+    for item in after["collections"]:
+        key = (item["domain"], item["index"])
+        if key == CUT_COLLECTION_KEY:
+            if old[key]["present"] or (item["present"], item["revision"], item["name"]) != (True, 1, CUT_COLLECTION[1]):
+                raise ValueError(f"the new collection is not {CUT_COLLECTION}: {item}")
+        elif item != old[key]:
+            raise ValueError(f"power-cut stage changed collection {key}")
 
 
 def check_disk(case: str, before: bytes, after: bytes, disk1_before: bytes | None, disk1_after: bytes | None,
@@ -606,8 +660,11 @@ def check_disk(case: str, before: bytes, after: bytes, disk1_before: bytes | Non
     """Host acceptance of the second-disk stages: both disks byte for byte,
     the independent format reader and the volume oracle."""
     if case == "archive-disk-cut":
+        # The guest stops before its summary: no evidence lines, host bytes only.
         oracle = volume_disk.analyse(after)
-        oracle["archive_disk"] = torn_archive(disk1_before, disk1_after, ARCHIVE_CUT_WRITES)
+        cut_volume(volume_disk.analyse(before), oracle)
+        oracle["archive_disk"] = torn_archive(disk1_before, disk1_after, ARCHIVE_CUT_WRITES,
+                                              domain_generation(oracle), CUT_COLLECTION)
         return oracle
     counts = [evidence[f"VOLUME:ARCHIVE:{name}:"] for name in ("READS", "WRITES", "FLUSHES")]
     device = [evidence[f"VOLUME:BROKER:ARCHIVE_DISK_{name}:"] for name in ("READS", "WRITES", "FLUSHES")]
