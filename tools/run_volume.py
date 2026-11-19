@@ -611,7 +611,9 @@ def torn_archive(before: bytes, after: bytes, limit: int, generation: int, added
     header = after[:volume_archive.HEADER]
     count, collections = older[12], older[13]
     if (header[:8] != volume_archive.MAGIC or header[8:12] != older[8:12] or not volume_archive._sealed(header)
-            or (header[12], header[13]) != (count, collections + 1) or header[24:32] != older[24:32]
+            or (header[12], header[13]) != (count, collections + 1)
+            # Reserved [14:16] and [32:56] must stay zero as in the parsed older header.
+            or header[14:16] != older[14:16] or header[24:56] != older[24:56]
             or struct.unpack_from("<Q", header, 16)[0] != generation
             or volume_archive.stored_length(header) != len(older) + volume_archive.COLLECTION_RECORD):
         raise ValueError("sector 0 does not hold the expected new archive header")
@@ -622,7 +624,7 @@ def torn_archive(before: bytes, after: bytes, limit: int, generation: int, added
         record = after[start:start + volume_archive.COLLECTION_RECORD]
         name = names[index].encode()
         if (not volume_archive._sealed(record) or record[0] != index or record[1] != len(name)
-                or record[8:8 + len(name)] != name):
+                or record[8:8 + len(name)] != name or any(record[2:8]) or any(record[8 + len(name):40])):
             raise ValueError(f"new archive collection record {index} differs from the volume")
         records += record
     expected = header + records + older[volume_archive.HEADER + collections * volume_archive.COLLECTION_RECORD:]

@@ -70,6 +70,22 @@ class ArchiveDiskTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "new archive header"):
             rv.torn_archive(disk(OLDER), bytes(after), 20, 9, ADDED)
 
+    def test_resealed_nonzero_reserved_bytes_are_not_torn(self):
+        def reseal(at: int, size: int, offset: int) -> bytes:
+            after = bytearray(torn(5))
+            after[at + offset] = 1
+            body = bytes(after[at:at + size - 8])
+            after[at + size - 8:at + size] = va.fnv(body).to_bytes(8, "little")
+            self.assertTrue(va._sealed(bytes(after[at:at + size])))
+            return bytes(after)
+        for offset in (14, 15, 32, 55):
+            with self.assertRaisesRegex(ValueError, "new archive header"):
+                rv.torn_archive(disk(OLDER), reseal(0, va.HEADER, offset), 20, 9, ADDED)
+        second = va.HEADER + va.COLLECTION_RECORD
+        for offset in (2, 7, 8 + len("Nieuw"), 39):
+            with self.assertRaisesRegex(ValueError, "collection record 3"):
+                rv.torn_archive(disk(OLDER), reseal(second, va.COLLECTION_RECORD, offset), 20, 9, ADDED)
+
     def test_new_header_must_carry_the_domain_generation_and_collection(self):
         with self.assertRaisesRegex(ValueError, "new archive header"):
             rv.torn_archive(disk(OLDER), torn(5), 20, 8, ADDED)
