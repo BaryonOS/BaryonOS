@@ -1,6 +1,15 @@
-# BaryonOS design system ds-1.0
+# BaryonOS design system ds-1.1
 
-Status: **design (proposal)**, version `ds-1.0`, 14 November 2026, branch
+**ds-1.1 (15 November 2026, task UX-A11Y-DS).** Adds the two-tier
+accessibility model (§21): a baseline that holds in every theme with no
+setting, and independent, combinable axes with device mapping, a settings
+place (Instellingen › Toegankelijkheid), reset and undo. It also reworks the
+empty, loading and error states and the progress bar (§10), makes every loop
+finite (§12) and removes the stripe fill. No class, token or keyboard
+behaviour was removed or renamed (§18). The ds-1.0 text below stays valid
+where §21 does not change it.
+
+Status: **design (proposal)**, version `ds-1.1` (15 November 2026; `ds-1.0` of 14 November 2026), branch
 `claude/baryon-os-ui-ux-design-152adb`, baseline commit `573840e0`. ds-1.0 is
 derived from the Orbitaal v2 board
 (`ui/design/concepts/orbitaal-v2/index.html`). Simulation evidence (browser
@@ -106,7 +115,9 @@ are new and uncommitted on the branch.
 | `[data-theme="contrast"]` | High contrast |
 | `[data-surface="neutral"]` | Re-points 30 roles at the achromatic twins of the nearest theme (S0 D3, values PROVISIONAL) |
 | `[data-density="compact"]` | Compact sizes (S0 D2, PROVISIONAL) |
-| `@media (prefers-reduced-motion: reduce)`, `[data-motion="reduce"]` | Every `--motion-duration-*` = 0ms |
+| `@media (prefers-reduced-motion: reduce)` (unless `data-motion="full"`), `[data-motion="reduce"]` | Every `--motion-duration-*` = 0ms |
+| `data-contrast`, `data-light-intensity`, `data-transparency`, `data-colour-perception`, `data-motion`, `data-stimulus`, `data-text-spacing`, `data-line-length`, `data-targets` (ds-1.1) | Tier-2 accessibility axes; values, owners, device mapping and precedence in §21 |
+| `@media (prefers-contrast: more)`, `(prefers-reduced-transparency: reduce)`, `(forced-colors: active)` (ds-1.1) | Device mapping of the axes when no explicit value is set (§21.3) |
 
 Every theme block defines the same 88 themed names (87 before repair round 1
 added `--color-surface-surround`), so an element with its own
@@ -114,7 +125,9 @@ added `--color-surface-surround`), so an element with its own
 (`build/design-evidence/ds-1.0/checks.log`, check 3a; re-run in `build/design-evidence/ds-1.0/repair-1/check-report.txt`). The neutral rule
 resolves against the nearest theme; a nested `data-theme` panel inside a
 neutral region gets the plain theme values back, which keeps trust surfaces
-unchanged (S0 D3).
+unchanged (S0 D3). ds-1.1 adds no themed name: the axis blocks only re-point
+existing names, and `docs/verification/a11y-ds-20261115/check.mjs` checks that
+every axis value defines the names §21 promises for each theme.
 
 ### 3.2 Themed tokens
 
@@ -431,6 +444,35 @@ known (§19).
 | `--place-internet` | 3.0 | 5.28 (raised) | 4.20 (raised) | 9.19 (inset) |
 <!-- END contrast-tables -->
 
+#### Axis combinations (ds-1.1)
+
+The tier-2 colour axes (§21.2) re-point existing names in each theme:
+`data-contrast="increased"` (text and lines, dark and light),
+`data-transparency="opaque"` (glass, Orbit, launcher), `data-colour-perception`
+(three place colours and the Kern warning colours) and `data-stimulus` (blade
+glow and the window, Orbit, plate, launcher and inspector elevation);
+`data-light-intensity="dimmed"` multiplies the rendered sRGB channels by 0.85
+(about 30 % less luminance) and, per theme, strengthens `--color-text-subtle`,
+`--color-text-disabled`, `--color-line-strong` (and in dark
+`--color-text-muted` and `--place-internet`), because the filter alone breaks
+the floors on hover and selection stacks (repair 1). The increased-contrast and
+colour-perception values hold at × 0.85 themselves.
+`docs/verification/a11y-ds-20261115/check.mjs` evaluates every pair of this
+section on every surface alone and under `--color-hover`,
+`--color-hover-strong`, `--color-selection` and `--color-button-secondary-bg`
+(place colours also on `--color-pill-bg` over those), composited and quantised
+to 8 bits, at × 1 and × 0.85, for every combination of the five colour axes in
+the three themes, on the default and the neutral surface (`data-surface`), plus
+the device-preference cases at both light intensities (588 cases, 187 768
+pair evaluations; text 4.5:1, 7:1 under increased contrast
+and in the contrast theme; lines, focus, blade and places 3:1): 0 failures.
+Tightest margins as `check.mjs` prints them (3:1 required, all dimmed, the
+dark cases on the neutral surface): dark tritan `--place-nas` on raised +
+hover-strong + pill 3.01:1, dark `--place-internet` on the same stack 3.02:1,
+dark `--color-line-strong` on raised + hover-strong 3.03:1 and contrast protan
+`--place-internet` on bg + selection 3.03:1. In rendered pixels the run-1
+verifier measured the first stack at 3.44:1 and the line-strong case at 3.03:1. Record: `docs/verification/a11y-ds-20261115/README.md`.
+
 ### 4.1 S0 D3 enumeration and the repair-1 token change
 
 The enumeration in the S0 D3 form (bases panel, surface, raised, inset; at rest
@@ -626,6 +668,7 @@ here; the state tables below use the root names.
 | Field | `.ds-field` | `.ds-field-label`, `.ds-input`, `.ds-input-wrap` (positions the leading search icon), `.ds-field-hint`, `.ds-field-error` |
 | Switch | `.ds-switch` | `.ds-switch-track` (the 44 × 24 track; decorative, `aria-hidden`) |
 | Checkbox, radio | `.ds-check`, `.ds-radio` | `.ds-fieldset` (group with legend) |
+| Segmented choice (ds-1.1 repair 2) | `.ds-seg` (in a `.ds-fieldset`) | `.ds-radio` tiles with an optional static sample |
 | List | `.ds-list` | `.ds-list-head` (caption column header, `aria-hidden`), `.ds-row`, `.ds-row-name`, `.ds-row-meta` (size, tabular), `.ds-row-date` |
 | Place | `.ds-place` | `.ds-node` (shape: dot, ring with dot, open ring) |
 | Privacy instrument | `.ds-privacy` | `.ds-privacy-track`, `.ds-privacy-col`, `.ds-privacy-lbl`, `.ds-privacy-text` |
@@ -638,7 +681,7 @@ here; the state tables below use the root names.
 | Banner | `.ds-banner` | — |
 | Dialog | `.ds-dialog`, `.ds-scrim` | `.ds-dialog-body`, `.ds-dialog-title`, `.ds-dialog-text`, `.ds-dialog-actions` |
 | Progress | `.ds-progress-field` | `.ds-progress-label`, `.ds-progress`, `.ds-progress-bar` |
-| Empty, loading, error | `.ds-empty`, `.ds-skeleton` | `.ds-empty-title`, `.ds-empty-hint`, `.ds-empty-actions`; `.ds-skeleton-row`, `.ds-skeleton-line` |
+| Empty, loading, error | `.ds-empty`, `.ds-skeleton` | `.ds-empty-orbit`, `.ds-empty-sat`, `.ds-empty-title`, `.ds-empty-place`, `.ds-empty-hint`, `.ds-empty-actions` (orbit, satellite and place: ds-1.1); `.ds-skeleton-row`, `.ds-skeleton-line` |
 | Tooltip | `.ds-tip-anchor` | `.ds-tip` |
 | Keyboard key | `.ds-kbd` | `.ds-kbd-combo` |
 
@@ -662,6 +705,7 @@ achromatic except place colours (135 elements, 0 tinted; `build/design-evidence/
 | Focus-visible | Outer ring |
 | Disabled (`:disabled`, `aria-disabled="true"`) | Transparent, 1 px dashed `--color-line-strong`, `--color-text-disabled`; hover and pressed suppressed; no opacity |
 | Loading (`aria-busy="true"`) | Spinner arc shown, pointer events off; static arc under reduced motion |
+| Narrow (ds-1.1 run-2 repair 2) | A label wider than its row wraps between words, balanced and centred, in a button that grows (`min-height: max(--space-control-height, --space-target-min)` instead of a fixed `height`; `data-size="large"` likewise); one line keeps the control height, and a single word wider than the line breaks inside the word. The `.ds-ask` actions keep one line (task UX-C) |
 | Selected, error, empty | — |
 
 ### Text and search field `.ds-field`, `.ds-input`
@@ -695,6 +739,7 @@ achromatic except place colours (135 elements, 0 tinted; `build/design-evidence/
 | Hover | 4 px halo |
 | Focus-visible | Outer ring on the input |
 | Disabled | Dashed edge, `--color-text-disabled` label |
+| Segmented choice (ds-1.1 repair 2) | `<div class="ds-seg">` inside a `.ds-fieldset`: the same native radios (one Tab stop, arrow keys), each a transparent cover over its tile, so the whole tile is the hit area (at least `max(--space-control-height, --space-target-min)`); an optional static sample (`aria-hidden`) above the label; selected: a 2 px `--color-line-strong` inset edge, a `--color-blade` underline and body-strong text, so the state does not rest on colour; hover `--color-hover`; focus-visible: the 2 px `--color-focus` ring on the tile (`:has(> input:focus-visible)`); tiles wrap (`auto-fit`, at least 104 px) and grow with their text; under `forced-colors: active` the underline becomes a 2 px border in the system text colour (emulated in headless Chromium only) |
 | Indeterminate, pressed, error | — |
 
 ### List row `.ds-list`, `.ds-row` (`role="option"` in a listbox)
@@ -723,6 +768,7 @@ achromatic except place colours (135 elements, 0 tinted; `build/design-evidence/
 | State | Treatment |
 |---|---|
 | Root `data-state="local"` / `"internet"` | No root rule; expressed by the columns: only Dit apparaat lit / all three lit with lit connector blades |
+| Narrow container or wider text (ds-1.1 repair 2) | The frame wraps (`flex-wrap`, `min-height: 48px`, `max-width: 100%`): the text block moves below the track and keeps its own 48 px row; column labels wrap between words. The 3 × 120 px track itself does not reflow below about 400 px (O-A4) |
 | Root `data-state="ask"` | Edge `--place-internet-line`; internet column `ask` with node halo; 2 px edge in contrast. The edge is a supplementary cue: at 50 % alpha it reaches 2.11:1 to 2.35:1 against the adjacent fills in dark and light (below 3:1; contrast theme `#FF8A80` on black, 9.20:1). The text "Webvenster vraagt internet", the `role="status"` label and the haloed internet node are the required indicators; the edge must never be the only cue. |
 | Column `data-state="lit"` / `"ask"` / `"off"` | Label weight 600 and `--color-text`, place-coloured particle / same plus the asking node / outline node in `--color-text-subtle` |
 | Hover, pressed, focus, disabled, error | — (not focusable, `role="status"`) |
@@ -788,6 +834,7 @@ achromatic except place colours (135 elements, 0 tinted; `build/design-evidence/
 | Selected (`aria-selected="true"`) | Weight 600 + 2 px `--color-blade` underline (3 px in contrast) |
 | Focus-visible | Inner ring on the tab; outer ring on the panel |
 | Pressed, disabled | — |
+| Narrow box, 200 % or wider text spacing (ds-1.1 run 2) | The tab list wraps (`flex-wrap: wrap`) onto a next row instead of widening the page; `.ds-tabs` has one `minmax(0, 1fr)` column, so the panel keeps the box width. The selected tab keeps its blade underline, focus rings stay inset (−2 px; −5 px in contrast) and no overflow container clips them; arrow keys, Home and End are unchanged (`build/design-evidence/a11y-ds/run2-writer/tabs.json`) |
 
 ### Toast `.ds-toast`
 
@@ -795,6 +842,7 @@ achromatic except place colours (135 elements, 0 tinted; `build/design-evidence/
 |---|---|
 | Shown (`role="status"`) | Icon, title, body, time, actions ("Ongedaan maken" quiet, close icon); rises over `--motion-duration-base` |
 | Hidden | `hidden`; the gallery offers "Melding opnieuw tonen" and moves focus to it |
+| Narrow (ds-1.1 repair 2) | The actions wrap; in a toast of about 270 px the close button moves to its own line. Since run-2 repair 2 a button that is still wider than its line wraps its label; repair 2's `flex-shrink: 0` (keep the label width) was removed, because at 160 CSS px (`data-scale="2"` on 320 px) with wider spacing it pushed "Ongedaan maken" 13 px of the unzoomed viewport (6.5 CSS px at zoom 2) past the actions row; 0 since (`run2-repair-2/lbl2-before-none.json`, `lbl2-now-none.json`) |
 
 ### Banner `.ds-banner`
 
@@ -809,8 +857,9 @@ achromatic except place colours (135 elements, 0 tinted; `build/design-evidence/
 
 | State | Treatment |
 |---|---|
-| Open (native `<dialog>` `showModal()`) | `::backdrop` `--color-scrim`; focus starts on the safest action (Annuleren); rises over `--motion-duration-ask` |
+| Open (native `<dialog>` `showModal()`) | `::backdrop` `--color-scrim`; focus starts on the safest action (Annuleren); rises over `--motion-duration-ask`; a held Enter or Space opens it once and never closes it again through Annuleren (§15, held key) |
 | Static specimen | `.ds-scrim` over an inert stage |
+| Narrow (ds-1.1 repair 2) | A plain dialog is a size container; at most 320 px wide it stacks its actions at full width and a long label wraps inside its button (the `data-variant="ask"` shell is not a container) |
 | `data-variant="ask"` | Transparent shell hosting a `.ds-ask`; the body scrolls inside the viewport under a fixed band (Permission prompt, Modal fit) |
 
 ### Progress `.ds-progress-field`, `.ds-progress`, `.ds-progress-bar`
@@ -818,15 +867,18 @@ achromatic except place colours (135 elements, 0 tinted; `build/design-evidence/
 | State | Treatment |
 |---|---|
 | Determinate | `role="progressbar"`, `aria-valuenow`, width from `--ds-value`, tabular percentage |
-| Indeterminate (`data-state="indeterminate"`) | Sliding segment; under reduced motion a static full striped bar with the visible word "Bezig" |
+| Leading edge (ds-1.1) | The fill (`--color-text-muted`) ends in a 3 px light blade (`--color-blade`, glow `--color-blade-glow`), the active-window signature; the label carries the place node |
+| Indeterminate (`data-state="indeterminate"`) | A tapered blade segment sweeps three times (3 × `--motion-duration-loader` = 4.2 s) and rests in the centre; the visible word "Bezig" carries the state. Under reduced motion the segment rests in the centre from the start. No stripes (§21.1 B7) |
 
 ### Empty, loading and error `.ds-empty`, `.ds-skeleton`
 
 | State | Treatment |
 |---|---|
-| Empty | `nofiles` icon, `.ds-empty-title`, `.ds-empty-hint`, action |
-| Loading | `.ds-skeleton` `role="status"` `aria-busy="true"`, visually hidden text (`.ds-vh`); shimmer only when motion is allowed; dashed outlines in contrast |
-| Error (`data-tone="error"`, `role="alert"`) | 2 px `--color-danger` edge, square marker, retry (primary) and a quiet action |
+| Frame (ds-1.1) | `.ds-empty` is a grid of a 72 px orbit (`.ds-empty-orbit`: 2 px ring in `--color-line-strong` around the place icon, the place node on `.ds-empty-sat`, drawn 1.34 times its size and trailed by a tapered 3 px, 110° tail in its place colour (run-2 repair 1), `.ds-empty-sat::before`, so the node is the dominant mark; the arc travels with the node) and text (`.ds-empty-title`, `.ds-empty-place` with the place badge, `.ds-empty-hint` up to 60 characters, `.ds-empty-actions`), crowned by a light blade |
+| Empty | Title names the collection; `.ds-empty-place` says where it lives; hint and one action |
+| Loading (`data-state="busy"`; no `aria-busy`, so the status region is not suppressed) | Visible title with `role="status"` ("Bestanden laden…") and its source place; the node orbits three times (4.2 s) and rests at the top; a caption "Nog bezig · m:ss" (`.ds-empty-tick`, `data-elapsed`, every 5 s, not live) keeps it visibly alive afterwards; `.ds-skeleton` rows (solid `--color-hover-strong` lines, place node per row, `aria-hidden`); in contrast a solid 1 px `--color-line-strong` outline. No shimmer |
+| Error (`data-tone="error"`, `role="alert"`) | 2 px `--color-danger` edge, no crown, a 2 px ring broken once at the top (no dashed texture, row 21) with the hollow node (`data-state="off"`) in the gap, square marker in the title, where the work is safe, retry (primary) and a quiet action |
+| Narrow (container at most 320 px) | The orbit stacks above the text; place badges and buttons wrap between words with `height: auto`, a `min-height` and 4 px block padding (a word breaks only if it is wider than the line); skeleton rows take the stacked `.ds-row` form |
 
 ### Tooltip `.ds-tip-anchor`, `.ds-tip` (`role="tooltip"`)
 
@@ -835,6 +887,8 @@ achromatic except place colours (135 elements, 0 tinted; `build/design-evidence/
 | Hidden / shown | Shown on `:hover` and `:focus-within` of the anchor; inverted (`--color-text` fill, `--color-surface-inset` text); no fade in contrast |
 | Dismissed | Escape sets `data-dismissed` until focus or pointer leaves |
 | Static | `data-state="open"` |
+| Edge (`data-align="start"` or `"end"`, ds-1.1 run-2 repair 1) | A tip on the first or last control of a bar aligns with that control's outer edge (`left: 0` or `right: 0`, no centring transform). The gallery's Versies tip uses `start` and the Sluiten tip of the window bar `end`; centred, the Versies tip started at −31.4 CSS px at 1440 px and at −94.6 CSS px at 320 px with wider text spacing (ds-1.0 defect, run-2 verifier) |
+| Width | `max-content` up to 15rem, then the text wraps between words; a keycap does not break. The tip that is asked for (`:hover`, `:focus-within`) paints above a static one (`z-index` 31 over 30) |
 
 ### Keyboard key `.ds-kbd`, `.ds-kbd-combo`
 
@@ -1121,23 +1175,33 @@ separate review, and a project ADR is required before native persistent grants
 | `--motion-duration-focus` | 260 | Not used by a component (focus blade sweep) | B1 |
 | `--motion-duration-slow` | 320 | Active Orbit blade transform | B1 active blade |
 | `--motion-duration-boot` | 1400 | Not used by a component (boot convergence) | B1 |
-| `--motion-duration-loader` | 1400 | Spinner rotation; indeterminate progress slide | v2 `.ld` |
-| `--motion-duration-halo` | 2400 | Internet node halo while asking | B1 |
-| `--motion-duration-loader-pulse` | 2800 | Skeleton shimmer | v2 `.ld .bind` |
+| `--motion-duration-loader` | 1400 | Spinner rotation (3 turns); indeterminate sweep and empty-state orbit (3 × 1400 = 4.2 s, once) | v2 `.ld` |
+| `--motion-duration-halo` | 2400 | Internet node halo while asking (2 pulses, 4.8 s) | B1 |
+| `--motion-duration-loader-pulse` | 2800 | Not used since ds-1.1 (the skeleton shimmer was removed) | v2 `.ld .bind` |
 | `--motion-duration-stagger` | 80 | Not used by a component (boot blade stagger) | v2 `.bt-b2` |
 
 Easing: `--motion-ease-orbital-out` `cubic-bezier(.16, .84, .24, 1)` for every
 transition and rise; `--motion-ease-halo` `cubic-bezier(.2, .7, .2, 1)`;
-`--motion-ease-linear` (spinner, shimmer); `--motion-ease-in-out` (progress
-slide). Motion uses transform and opacity, plus background colour, border
+`--motion-ease-linear` (spinner); `--motion-ease-in-out` (progress
+sweep). Motion uses transform and opacity, plus background colour, border
 colour and width.
 
-**Reduced motion** (`prefers-reduced-motion: reduce` or `[data-motion="reduce"]`):
-all 11 durations become 0ms (`tokens.css`); halo, spinner, progress slide,
-skeleton shimmer and the rise of menu, toast, dialog and prompt are removed;
-the indeterminate bar becomes a static full striped bar with the word "Bezig";
-skeleton lines become a static `--color-hover-strong` fill; the spinner stays a
-static arc. The gallery exposes a switch for `data-motion`.
+**Reduced motion** (`prefers-reduced-motion: reduce` unless `data-motion="full"`,
+or `[data-motion="reduce"]`): all 11 durations become 0ms (`tokens.css`); halo,
+spinner, progress sweep, empty-state orbit and the rise of menu, toast, dialog
+and prompt are removed; the indeterminate segment rests in the centre with the
+word "Bezig"; the empty-state node rests at the top; the spinner stays a
+static arc. `data-motion="full"` is the user's deliberate override of the
+device preference and restores every duration. The gallery exposes a switch
+for `data-motion` and the Beweging group in §21.5.
+
+**Finite loops (ds-1.1, §21.1 B8).** No animation is infinite: spinner 3 ×
+1.4 s, halo 2 × 2.4 s, indeterminate sweep and empty-state orbit one run of
+4.2 s. Every loop ends within 5 s (WCAG 2.2.2; ITU-R BT.1702-3 Guideline 1)
+and no period is shorter than 1.4 s, so nothing approaches three flashes per
+second. The gallery `?measure=1` run sweeps every computed animation and
+reports any that ends after 5 s or repeats faster than once per second
+(35 animations, none flagged).
 
 ## 13. High contrast
 
@@ -1169,7 +1233,7 @@ Component overrides in contrast (`components.css`): Orbit and privacy edges
 underline; focused tab ring offset `-5px` and focused row blade at `left: 3px`
 (repair round 2); device node black and white halo; ask halo static; no entrance
 animation for menu, prompt, dialog and toast; no tooltip fade; skeleton lines
-dashed outlines; Kern edge 2 px.
+a solid 1 px `--color-line-strong` outline (dashed until ds-1.1); Kern edge 2 px.
 
 Thresholds and results: text ≥ 7:1 (lowest 11.28:1, `#F2F2F2` on
 `#333333`), UI ≥ 3:1 (lowest 5.53:1, `--place-internet` on `#333333`), no
@@ -1194,6 +1258,17 @@ evidence). v2 defines no contrast-theme focus offset or blade position
 unchanged by the fix), the compact blade's rounded end blends with the ring
 corner (2 pixels), a descender in a compact tab label (Toegang) touches the
 inset ring (12 pixels), and the Orbit badge was not measured.
+
+**Increased contrast and device mapping (ds-1.1, §21).** `data-contrast="increased"`
+is a contrast level inside dark and light: text #FFFFFF / #05080F, muted and
+subtle text at least 7:1, lines and rims at least 3:1, 2 px borders on
+secondary buttons, inputs, place badges, banners, toasts, windows, empty states
+and progress tracks. `prefers-contrast: more` applies the same values when no
+explicit value is set. The contrast theme stays the maximum level; there increased
+contrast only thickens those edges to 2 px, because its text and lines already
+exceed the increased values. `forced-colors: active` keeps the place node shapes
+(`forced-color-adjust: none` on `.ds-node`); everything else follows the user
+agent palette (O-A5).
 
 ## 14. Scaling
 
@@ -1223,6 +1298,30 @@ nothing clips horizontally (`c1/repair-2/kbd-real-keys.jsonl`). The page
 behind still scrolls horizontally at 200 % from pre-existing gallery
 elements (verify-1 step 13), not from the prompt or the grant rows.
 
+**Reflow and text spacing (ds-1.1, matrix rows 7 and 34).** A list narrower
+than 440 px stacks each row's cells under the name (container query on
+`.ds-list`; the rule follows the base `.ds-row` rule because an `@container`
+rule adds no specificity); menus are at most the viewport width minus 32 px.
+`data-text-spacing="wider"` applies the WCAG 1.4.12 values (letter 0.12 em,
+word 0.16 em, line height at least 1.5, paragraph 2 em) and widens the fixed
+row columns. Harness `build/design-evidence/a11y-ds/writer/reflow.html` (every
+gallery card at a given viewport): at 1024 px both spacings add no overflow
+beyond a tooltip anchored at the right edge; at 320 px the rows, states,
+progress, buttons, fields and menus reflow, but the privacy instrument (three
+120 px columns), the tab list, the list header, two long button labels and
+that tooltip still overflow, with and without wider spacing (O-A4). Run 2
+replaced that harness with a full-gallery sweep (§21.9,
+`build/design-evidence/a11y-ds/run2-writer/sweep.mjs`): the tab list now wraps,
+the gallery reflows through container queries (which, unlike media queries,
+also react to `[data-scale="2"]`), and the page no longer overflows at 1440,
+720 or 640 px or at `[data-scale="2"]` on 1440 px, with either spacing. At
+320 CSS px the list header, the 3 × 120 px privacy track and the `.ds-ask`
+and `.ds-grant` specimens (task UX-C) still overflow (§21.9). Since run-2
+repair 2 a `.ds-btn` label wraps instead of passing its button, and the
+gallery's two-column specimens stack below 480 px of grid width, so no other
+control label passes its box at 320 CSS px. The tooltips fit since run-2
+repair 1 (§10, §21.9).
+
 ## 15. Keyboard rules
 
 Default shortcuts (copied from DESKTOP-SHELL.md §2, "Default keyboard
@@ -1247,9 +1346,10 @@ not implement a keymap.
 | Rule | ds-1.0 |
 |---|---|
 | Focus order | DOM order; Tab and Shift+Tab move between components |
-| Groups, one tab stop each | Listbox rows and tabs use a roving `tabindex`; radios are native groups |
+| Groups, one tab stop each | Listbox rows and tabs use a roving `tabindex`; radios, including the segmented choice `.ds-seg`, are native groups |
 | Arrow keys (gallery simulation) | Listbox: ArrowUp, ArrowDown, Home, End move and select (Left and Right ignored), Space selects; tabs: ArrowLeft, ArrowRight (also Up and Down), Home, End select and focus (automatic activation); menu: ArrowDown or ArrowUp on the trigger opens on the first or last item, arrows and Home and End move; Right and Left act as Down and Up, since no item opens a submenu. Arrow movement wraps at the ends. |
 | Activation | Space and Enter on native buttons, switch and menu items |
+| Held key (ds-1.1 run 3, tier 1, B8) | One activation per physical key press: an auto-repeated Enter or Space (`KeyboardEvent.repeat`) never activates a button, switch, menu item, tab or `summary` again (gallery.js, the first check in the document `keydown` handler). Without it, holding Enter on the delete-dialog opener moved focus to Annuleren, the next repeat closed the dialog and the one after reopened it: 56 open/close changes in 2 s, 28 per second, over 43.8 % of a 1024 x 768 screen in light as measured by the run-2 verifier (WCAG 2.3.1 limits flashes to three per second). The menu trigger, the toast close/show pair and every switch flipped the same way at 33 per second. Measured with CDP auto-repeat every 30 ms in dark, light and contrast, standard and dimmed plus reduced motion: before 54 to 66 changes per 2 s hold, after exactly 1 for Enter and Space in all 76 cases; four separate presses still give four changes (`build/design-evidence/a11y-ds/run3-writer/i1-hold-*.json`, `i1-taps-after.log`; independently verified in UX-A11Y-DS run 3, 19 November 2026). Arrow-key repeat (listbox, tabs, menus, the settings radios, already throttled to one preview change per 400 ms) and typing in text fields are unchanged |
 | Escape | Closes the menu and returns focus to its trigger; closes dialogs and returns focus to the opener; answers a permission prompt with deny; hides a tooltip |
 | Modal focus | `showModal()` makes the page behind the dialog inert; Tab cycles through the dialog controls and the browser UI, never page content; Escape always closes it, so there is no keyboard trap. Tab out of an open menu closes it. |
 | Initial focus | Permission prompt: the title (`tabindex="-1"`); Enter and Space at open do nothing; Tab reaches the choices in visual order (§11.1; real key presses in `build/design-evidence/ds-1.0/c1/writer/kbd-real-keys.txt`). Delete dialog: Annuleren (the safe choice, NAMING-AND-IA.md §6) |
@@ -1272,6 +1372,17 @@ focus to Melding sluiten) and to the Versies tooltip (Tab shows it, Escape
 hides it with focus kept, leaving and re-entering shows it again;
 `build/design-evidence/ds-1.0/repair-2/flows.json`). The second verifier had already seen the light tooltip hide
 on Escape.
+
+**Settings group (ds-1.1).** Real key presses (CDP `Input.dispatchKeyEvent`) on
+`?only=a11y`: one Tab stop per axis group in reading order, then "Standaard
+herstellen"; Arrow Down and Up change the value at once and the preview
+follows; Space on "Standaard herstellen" resets every axis, fills the
+`role="status"` region and shows "Ongedaan maken"; Tab reaches it, Space
+restores the previous values, hides it and returns focus to "Standaard
+herstellen"; Shift+Tab walks back through every group. In the states card,
+Tab reaches "Verplaatsen naar collectie", "Opnieuw proberen" and "Opslag en
+NAS openen" with a 2 px solid focus ring
+(`build/design-evidence/a11y-ds/writer/kb.json`).
 
 ## 16. Asset and font licensing
 
@@ -1351,6 +1462,17 @@ token (no animation clock), the reading and dense type records, the mark and
 the wordmark (BRAND.md §4), and 125 % and 150 % scale (NATIVE-FEASIBILITY.md §1;
 TYPOGRAPHY.md §8.6).
 
+**Axes (ds-1.1).** Native code is not changed by ds-1.1. Planned mapping:
+
+| Axis | Native mechanism (plan) |
+|---|---|
+| Contrast, transparency, colour perception, stimulus | Additional `Palette` variants in `ui/graphics/src/theme.rs`, selected per axis value; same names, no new roles; an axis value applies to the surface that carries the theme, never to a part of it (placement, §21.3) |
+| Light intensity | Output scaling in the compositor after composition, applied last |
+| Motion | A global duration scale (0 or 1) read by every animation |
+| Text spacing, line length, text size | `text.rs` spacing and measure parameters; text size needs atlas records (TYPOGRAPHY.md §8.6, §9; O-A1) |
+| Target size | Layout minimum read from the settings store |
+| Device preferences | The settings store is the single source; a fresh install starts from the defaults |
+
 ## 18. Versioning and change rules
 
 | Change | Version step |
@@ -1361,6 +1483,39 @@ TYPOGRAPHY.md §8.6).
 
 Repairs made before the project owner accepts ds-1.0, such as repair rounds 1
 and 2, keep the version `ds-1.0`.
+
+**ds-1.1 (15 November 2026, task UX-A11Y-DS) is a minor step.** It adds axis
+attributes and values, the media-feature mappings, the sub-classes
+`.ds-empty-orbit`, `.ds-empty-sat`, `.ds-empty-place`,
+the `.ds-t-reading` measure and the settings group; it renames or removes no
+class, token, attribute value or keyboard behaviour and keeps every listed pair
+above its threshold. Repair 1 of ds-1.1 (same version, not yet released): the
+loading `.ds-empty` is marked `data-state="busy"` instead of `aria-busy`, adds
+`.ds-empty-tick`, stacks below 320 px of inline size; the light-intensity
+compensation tokens, the six stimulus elevation tokens, opaque contrast-theme
+warning lines and re-derived colour-perception palettes were added; the
+reading measure is 58ch and the short measure 37ch, both counted in
+characters; the settings preview applies at most once per 400 ms. Repair 2 of ds-1.1 (same version): adds the
+segmented choice `.ds-seg` and the place arc on `.ds-empty-sat`; the error ring breaks once instead of
+dashing; `.ds-empty` labels and `.ds-privacy` wrap; the settings group is grouped, follows the chosen
+theme and gets an Actief strip with a reset per axis; dialog and toast actions keep their button width
+and wrap, a narrow plain dialog stacks its actions, and `.ds-fieldset` takes `min-width: 0`; nothing is
+renamed or removed. Run-2 repair 1 (same version): `.ds-tip` gains the
+`data-align` values `start` and `end` and wraps at 15rem; the `.ds-empty` orbit
+ring is 2 px with a tapered 110° place tail; the gallery's combinations panel
+gives the reading text a full-width strip; nothing is renamed or removed. Removed were internal keyframes (`ds-shimmer`,
+`ds-slide`) and the reduced-motion stripe fill of the indeterminate bar,
+replaced by a centred blade segment with the same word and role;
+`--motion-duration-loader-pulse` stays defined but unused. Run-2 repair 2
+(same version): `.ds-btn` wraps a label that does not fit its row
+(`white-space: normal`, `min-height` instead of `height`, also for
+`data-size="large"`), `.ds-ask .ds-btn` keeps one line, and dialog and toast
+buttons no longer keep their label width (`flex-shrink: 0` removed); nothing is
+renamed or removed. The axis blocks in
+`tokens.css` were written by hand, like repair 1, and are verified by
+`docs/verification/a11y-ds-20261115/check.mjs` (exit 0 only when every check
+passes); the generator must take them over before the next value change (O-P1,
+O-A9).
 
 Rules: `tokens.css` is regenerated, not hand-edited
 (`build/design-evidence/ds-1.0/work/gen_tokens.py`, see O-P1). Exception:
@@ -1466,6 +1621,14 @@ rules.
 Evidence paths cited here under `build/design-evidence/ds-1.0/` are ignored by
 Git; the lead must move what is needed to `docs/verification/` (O-P2).
 
+**ds-1.1 (UX-A11Y-DS).** See §21.9. In short: no user has tested any axis or
+the reworked states; colour-perception palettes rest on simulation only; light
+intensity on an sRGB model only; forced colours only emulated; the wallpaper
+and the boot sequence were not analysed for flashes or patterns; reflow at
+320 px still fails for the list header and the privacy track (ds-1.0) and for
+the `.ds-ask` and `.ds-grant` specimens (task UX-C) (§14, §21.9); nothing is
+native yet.
+
 ## 20. Open items
 
 | ID | Item |
@@ -1507,3 +1670,619 @@ Git; the lead must move what is needed to `docs/verification/` (O-P2).
 | O-G13 | The `altijd` glyph (closed loop) is a ds-1.0 addition, not in the reviewed v2 sprite (§8); it replaces `lock` on the "Altijd" grant chip. Brand review and a user check of its reading are pending. The final form (particle r 2.1 on the top of the right lobe) was viewed at 16 px in light and contrast and at 32 px in light; at 16 px the particle reads as a small dot on the loop, slight but present (AI judgement). |
 | O-G14 | UX-E design proposal, not built: grants grouped per app with a combined-reach privacy strip (§11.1). Needs its own keyboard, focus-after-revoke and screen-reader design. |
 | O-G8 | `docs/verification/suite-s1-capability-matrix-20261114/` may hold a 215-row summary; the matrix now has 216 rows (XC09) and the stored summary was not regenerated (no write access). |
+| O-A1 | Text size 125 % and 150 % as an axis (matrix row 13): more atlas records against the 512 KiB read-only segment of `ui/native` (TYPOGRAPHY.md §8.6, §9); outside the UX-A11Y-DS write set (§21.8 E1). |
+| O-A2 | Motion middle level "reduced" with cross-fades kept (rows 30, 46): a third `data-motion` value, one token block and about ten component rules (§21.8 E2). |
+| O-A3 | Visual-intensity axis beyond glow (row 47): gradients, density and wallpaper under `data-stimulus="calm"`. |
+| O-A4 | Reflow at 320 px (row 7) and text spacing (row 34): since run 2 the tab list wraps and fits at 320 px with and without wider spacing, and place pills wrap in the stacked list form. At 320 CSS px the page still overflows by up to 147 px: list header 178.8 px, privacy track 128.8 px (3 × 120 px); `.ds-ask` and `.ds-grant` (UX-C) 137.1 and 38.9 px. The compact density text, the switch, radio and field labels and the asks openers were fixed in run-2 repair 2 (`.gal-2` stacking, `.ds-btn` wrapping; §21.9). Tooltips: fixed in run-2 repair 1 by edge alignment and a 15rem wrap; no open tip leaves the viewport at 320 CSS px or wider (§21.9; earlier classes in `build/design-evidence/a11y-ds/run2-writer/final-classes.txt`). |
+| O-A5 | A designed forced-colors mode beyond the place-node shapes (row 86), tested on a real platform. |
+| O-A6 | Deeper light-intensity steps (row 19): a per-theme dimmed token family (about 90 values per theme) because a uniform filter below 0.85 breaks the floors (§21.8 E3). |
+| O-A7 | Split the contrast theme bundle (no translucency, glow, halo or entrance rise) into the transparency, stimulus and motion axes (row 88). |
+| O-A8 | Nested axis reset inside a subtree via `@container style()` queries (§21.3). |
+| O-A9 | Move the hand-written axis blocks into the token generator (O-P1) and store the UX-A11Y-DS evidence under `docs/verification/` (O-P2). |
+| O-A10 | User tests for every axis, the settings group and the reworked states, with people who use these adaptations; flash and pattern analysis of the wallpaper and the boot sequence (rows 24, 25). |
+| O-A11 | Compositor colour filter for third-party content (row 5, §21.8 E4): a colour-matrix stage after composition in the native compositor. |
+| O-A12 | Compositor flash filter (row 26, §21.8 E5): research on frame-to-frame luminance analysis first, then a compositor stage. |
+| O-A13 | Native assistive technology (§21.8 E6): screen reader with accessibility tree and trusted AT role, magnifier, read-aloud, captions, keyboard filters, switch, eye, head and voice control; one native subsystem and ADR each. |
+| O-A14 | Native mapping of the axes (§17, §21.8 E7): one `Palette` variant per colour-axis value in `ui/graphics/src/theme.rs`, a global duration scale, compositor output scaling for light intensity and layout minimums from the settings store. |
+| O-A15 | Dimmed light theme (row 19): uniform channel scaling greys the light theme; a deeper, slightly warmer dimmed light palette as a token family (AI design judgement; a tint is not a comfort claim, row 34) needs its own pair checks (part of E3). Raised again by the repair-2 verifier (the × 0.85 filter turns light surfaces a uniform mid-grey, AI design judgement); still open. |
+| O-A16 | Settings presentation: done in repair 2 as grouped segmented tiles with a static sample per value and an Actief strip (§21.5). Open: a sample that shows the value combined with the other active axes, and the design of the Instellingen shell around the group (AI design judgement). |
+| O-A18 | Neutral surface under dimmed light or increased contrast: the axis blocks write tinted text and line roles over the neutral re-pointing; give each block neutral twins that win on `data-surface="neutral"` without raising specificity above the owner blocks. |
+| O-A17 | Gallery page overflow at 640 CSS px (200 % of 1280 px). Fixed in run 2: the gallery grid, columns, header, stage and 200 % strip reflow (container queries, so `data-scale="2"` also triggers them), and the tab list wraps; page overflow is 0 at 1440, 720 (DSF 2) and 640 px and at `data-scale="2"` on 1440 px in all 24 axis combinations and three themes (`build/design-evidence/a11y-ds/run2-writer/sweep.json`). The 320 CSS px case stays open under O-A4. |
+| O-A19 | A ds-1.0 `.ds-btn` shrinks below its label in a row that does not wrap: `min-width: var(--space-target-min)` replaces the automatic minimum size, so at 720 and 640 CSS px and at 200 % labels spilled sideways: 183 hits (one per label per configuration) in the stored repair-2 run `build/design-evidence/a11y-ds/repair-2/fit-3.txt`, 180 labels 2 to 66 px past their button and the Schaal fieldset 2 px past its card. Repair 2 cleared the gallery cases: the button-state matrix keeps its columns at their content width and scrolls inside its card (a two-dimensional layout, WCAG 1.4.10 exception), `.ds-toast-actions` wraps, buttons in `.ds-dialog-actions` and `.ds-toast-actions` keep their label width (`flex-shrink: 0`), a plain dialog of at most 320 px stacks its actions at full width with wrapping labels, and `.ds-fieldset` takes `min-width: 0`; the harness now reports 0 (`fit-final.txt`; an intermediate run with 18 hits was not kept). Run-2 repair 2 changed the `.ds-btn` rule itself: a label that does not fit its row wraps between words in a button that grows (`white-space: normal`, `min-height` instead of `height`), so `flex-shrink: 0` on dialog and toast buttons was removed. This followed the run-2 verifier's finding that the asks card's opener buttons spilled at 320 CSS px ("Vraag voor één handeling openen" 6.3 px, 39.0 px with wider spacing; "Doorlopende vraag openen" 6.8 px with wider spacing; also at 640 px with `data-scale="2"`), which no earlier record listed. Evidence: `run2-repair-2/lbl.mjs` (before `lbl-before.json`, after `lbl-after4.json`). Open: `.ds-ask .ds-btn` keeps one line (task UX-C); at 160 CSS px (`data-scale="2"` on 320 px) its "Toestaan tot afsluiten" passes its button with wider spacing by 16.3 px of the unzoomed viewport (about 8.2 CSS px at zoom 2; 17.3 and 8.7 in the contrast theme). |
+| O-A20 | `docs/verification/a11y-ds-20261115/README.md` still quotes the repair-1 hashes and the claim "0 clipped elements" for `.ds-empty`; it is outside this repair's write set. |
+| O-A21 | Design quality (AI opinion, run-2 verifier; not user evidence): Instellingen › Toegankelijkheid still reads close to an existing OS accessibility page (a preview pinned beside the edited group, or orbit and blade language in the Actief strip, were not attempted); the `.ds-empty` composition remains icon left, text right; run-2 repair 1 only strengthened the ring and tail, rendered at rest and in reduced motion, not mid-loop. Second run-2 verifier (AI opinion): the group is a stack of segmented controls with a generic "Aa" tile sample, and the preview changes only once a value is chosen. Proposed, not built (it would touch the 400 ms flash limiter and the stored keyboard evidence): while a segment is hovered (keyboard focus already selects), the preview shows that value through the same limiter and returns when the pointer leaves, never for Thema, which would restyle the panel under the pointer; the "Aa" samples become Orbitaal specimens (a place node, a list row, the ask band). Stimulus: in the dark theme "Rustig" and "Rijk" are hard to tell from "Standaard" in the preview (pixels differing by more than 8 per channel: dark 0.9 % calm and 6.0 % rich, light 6.2 % and 10.7 %; `run2-repair-2/stim.mjs`, `stim-diff.txt`), because shadows barely show on the dark base. The stimulus layer lives in the protected `tokens.css`; a proposed dark-rich halo (window and Orbit halo alpha 0.2 → 0.34 with a 4 to 6 px spread, injected for measurement only) raises dark rich to 12.6 %, and calm has no token-only lever that keeps the blade signature, so a stronger calm needs a design decision (for example no glow and a shorter blade on inactive surfaces). |
+| O-A22 | Row 21 (§21.6): the contrast-theme skeleton (six pairs on a vertical scan, up to nine along one placeholder row at 21:1), the stacked place-node column (nine pairs, every theme) and the `.ds-empty` orbit frame (nine vertical and six horizontal pairs, up to 8.5:1 dark and 21:1 contrast; run-2 verifier) pass only through the icon and component-structure clause. Accept, or reduce (for example outline only the outer frame, or fewer placeholder rows); a lead or project-owner decision. |
+| O-A23 | Tooltip placement is chosen by the author (`data-align`); there is no automatic flip near an edge, and §17 has no native placement rule yet. Recorded, not fixed: the compact-density "Vergelijken" label passes its button by 2.0 px at 320 px with wider spacing, and `.ds-row-name` truncates without a `title` (§21.9). |
+| O-A24 | Text inside specimens, not gallery captions or notes, that still sits in a neighbouring specimen's modelled shadow fringe (alpha 0.02 to 0.1; run 3, `build/design-evidence/a11y-ds/run3-writer/i2-shadow-after.json`): the Standaard, Rustig and Rijk labels beside the stimulus samples (their own `--elev-plate`), the menu trigger Bestand under its open menu, the swatch labels of the elevation and material reference (each tile's shadow reaches the next tile), the place labels of the 200 % strip beside its ask, and two settings-preview hints under rich. All pass the run-3 rendered contrast sweep (0 failures in 19 configurations); whether a specimen's own composition should also keep its shadow off neighbouring labels is a design decision, not a contrast defect. Run 3 repair 1 moved the elevation reference's effect on the next panel's heading, its subtitle and the swatch value captions out of this item. These are gallery text, and the reference now clips its own reach (§21.9). The tile-to-tile labels inside the reference remain here. |
+| O-A25 | The gallery's reach rules (run 3, repairs 1 and 2, gallery `<style>` in `index.html`) are px copies of the `--elev-*` geometry, and no automated check enforces them. The elevation reference clips its own reach, so a token change there can only crop it. The ask row, Orbit stage, settings preview, menu and window and toast rows have no such clip. A token change there could put a caption back in a shadow without failing any gate. Proposal for the lead: add a static check to `check.mjs`. For each theme block and stimulus block in `tokens.css`, it would parse the outer layers of each `--elev-*` value and compute the reach: up is blur plus spread minus the y offset, and down is the y offset plus spread plus blur. It would then assert that each reserved literal in the gallery `<style>` is at least the largest reach it covers. These literals are the `.gal-asks` margins (`--elev-trusted`), the Orbit stage padding at the bottom and the rich top (`--elev-orbit`), and `--gal-reach-up`, `--gal-reach-down` and `--gal-pop-down` per stimulus value (`--elev-window`, `--elev-window-inactive`; below a card less `--gal-air`). They also include the rich top padding of the settings preview (`--elev-window`) and `--gal-elev-up` and `--gal-elev-down` (all nine reference tiles). `build/design-evidence/a11y-ds/run3-repair-2/reachcheck.mjs` is a rendered reference for the same rule. Repair 2 closed the two class instances this item listed (the Menu card heading and the accessibility panel subtitle). It also closed three more: the Orbit-item heading, which the run-3 verifier reported, and two from its own wider sweep, the Banner heading at 720 px and the Melding met acties heading at 44 px targets. The clipped reach check finds 0 overlaps in 51 configurations. The run-3 verifier's unclipped geometry still counts the stage dialog over the Voortgang note under rich at 1000 to 1200 px; the stage clips that shadow (`overflow: hidden`), and the pixel delta there is 0 (§21.9). What stays open is only the missing automated check. |
+
+## 21. Accessibility: two tiers (ds-1.1)
+
+ds-1.1 (15 November 2026, task UX-A11Y-DS) turns the accessibility research
+(`docs/design/accessibility/ACCESSIBILITY-RESEARCH.md`, matrix
+`docs/design/accessibility/ACCESSIBILITY-MATRIX.md`) into two tiers. Tier 1 is
+the baseline: it holds in dark, light and contrast with no setting. Tier 2 is a
+set of independent axes, one data attribute per axis, defined for every theme
+and combinable with every other axis. Settings describe properties of the
+interface, never a diagnosis or a person (matrix row 88). Every statement below
+is design and browser-simulation evidence; no user has tested any axis, and
+an AI judgement is not user evidence. Nothing here is a medical claim.
+
+### 21.1 Tier 1: the baseline (no setting)
+
+| ID | Baseline guarantee | Implementation | Matrix row |
+|---|---|---|---|
+| B1 | Text at least 4.5:1, UI parts, focus and blade at least 3:1, in every theme and every axis combination, on every surface and under every hover, selection and button overlay, at full and dimmed light; 7:1 for text under increased contrast. Run 2 measured the gallery caption `p.gal-note` below the ask specimens at 3.47:1 in light, inside the ask card's shadow; run 3 and its repair 2 keep every specimen shadow's reach free of gallery captions and notes (clipped reach check: 0 overlaps in 51 configurations; the stage dialog's shadow, which an unclipped model counts at 1000 to 1200 px under rich, is clipped by its stage, pixel delta 0; §21.9) | `tokens.css` theme and axis blocks (dimmed compensation per theme); `docs/verification/a11y-ds-20261115/check.mjs` (6) evaluates every §4 pair on every overlay stack at sRGB × 1 and × 0.85 | 6 |
+| B2 | A 2 px focus ring that keeps 3:1 in every combination | `components.css` focus rules; `check.mjs` focus pairs | 61 |
+| B3 | Every hit area at least 24 × 24 CSS px, including rows, menu items, tabs and window controls | `max(<size>, var(--space-target-min))` in `components.css` | 57 |
+| B4 | Lists reflow: a list narrower than 440 px stacks each row's cells; menus fit a 320 px viewport | `@container (max-width: 440px)` on `.ds-list`; `.ds-menu` `min-width: min(300px, calc(100vw - 32px))` | 7 (partial, §14) |
+| B5 | Components tolerate the WCAG 1.4.12 spacing values; the wider-text axis applies exactly those values | `[data-text-spacing="wider"]`; wider row columns | 34 (partial, §14) |
+| B6 | Reading surfaces cap the measure at 80 characters and align to the start | `.ds-t-reading { max-width: 58ch; text-align: start }`: in Inter `1ch` is the width of "0", so the measure was counted per rendered line: 58ch holds 70–78 characters (80ch held 100–108) | 36 |
+| B7 | No stripe, grid or dot texture is used as a fill | the ds-1.0 reduced-motion stripes are removed | 21 |
+| B8 | Nothing flashes more than three times per second; every animation is finite and ends within 5 s; no flashing or looping sequence runs beyond 5 s (WCAG 2.2.2 and 2.3.1; ITU-R BT.1702-3 Guideline 1) | §12 durations and iteration counts; the gallery `?measure=1` loop sweep; the settings panel and its preview change at most once per 400 ms, so a held arrow key makes at most 3 changes, 1.5 flash pairs, in any second (measured with a held arrow key at 33 Hz: at most 3 panel-background transitions, one flash pair, in any 1-s window; this evidence covers the settings panel only). A held Enter or Space activates a control once per physical key press (§15, held key; run 2 measured 28 open/close changes per second on the delete dialog) | 24, 25, 31 |
+| B9 | Every motion has a static form that carries the same information | §12 reduced motion | 32 |
+| B10 | Device preferences apply automatically: colour scheme, contrast, reduced transparency, reduced motion; forced colours keep place-node shapes | contrast, transparency, motion and forced colours: media blocks in `tokens.css` and `components.css`; colour scheme: script, because a theme is a whole token set (gallery `deviceTheme()` in `gallery.js`; natively the settings store) (§21.3) | 86 (partial) |
+| B11 | Colour never carries meaning alone: a place is colour, node shape, icon and label | §5, §10 place badge | 1 |
+| B12 | Settings are independent axes with one place, a reset per axis, a reset for all and an undo | §21.5 | 88 (partial) |
+
+### 21.2 Tier 2: the axes
+
+Each axis is one attribute. Dutch labels describe what the user perceives ("Rood lijkt donker", "Rood en groen lijken op elkaar", "Blauw en geel lijken op elkaar"); the technical name (protan, deutan, tritan) is in the hint. An absent attribute means "follow the device, else
+the design default"; any explicit value is the user's deliberate choice and
+wins over the device. Values are defined in all three themes unless the
+"Owns" column says otherwise. One owner per token (research §7.2), with one
+documented exception: the light-intensity compensation block also writes
+text, line and internet-place roles that contrast and colour perception own.
+It precedes their blocks with the same specificity, so where both are set the
+owner's value wins, and that value holds the floors at × 0.85 itself
+(`check.mjs` (6) and self-test mutations R1 and R2).
+
+<!-- axes:start -->
+| Axis (Dutch label) | Attribute and non-default values | Default | Device preference | Owns | Matrix rows | Status |
+|---|---|---|---|---|---|---|
+| Theme, polarity (Thema) | `data-theme="dark"`, `data-theme="light"`, `data-theme="contrast"` | dark | `prefers-color-scheme` (gallery: `deviceTheme()` in `gallery.js`) | every themed token | 10 | works in the prototype |
+| Contrast (Contrast) | `data-contrast="increased"` | standard | `prefers-contrast: more` | text and line tokens: `--color-text*`, `--color-line*`, rim and glass lines, Kern secondary text and line, neutral twins | 9, 23 | works; in the contrast theme, which already meets it, it only thickens the edges to 2 px |
+| Light intensity (Lichtsterkte) | `data-light-intensity="dimmed"` | standard | none (no media feature exists) | an output filter `brightness(.85)` (about 30 % less luminance) on the element and on modal dialogs and their `::backdrop` (top layer), applied once and last; plus a compensation block per theme for `--color-text-subtle`, `--color-text-disabled`, `--color-line-strong` and, in dark, `--color-text-muted`, `--place-internet` and its line, placed before the contrast and colour-perception blocks so that those win where set | 19, 23 | partial: one step |
+| Transparency (Transparantie) | `data-transparency="opaque"` | translucent | `prefers-reduced-transparency: reduce` | `--material-glass`, `--material-orbit-bg`, `--material-launch`; Orbit backdrop blur | 11, 47 | works; no-op in the contrast theme |
+| Colour perception (Kleuren onderscheiden) | `data-colour-perception="protan"`, `data-colour-perception="deutan"`, `data-colour-perception="tritan"` | off | none | `--place-device`, `--place-nas`, `--place-internet`, `--place-internet-line`, Kern warning icon and line (opaque in the contrast theme) | 4 | partial: palettes only, verified by simulation; each option shows its palette as a static sample; no intensity control, no per-user storage |
+| Motion (Beweging) | `data-motion="reduce"`, `data-motion="full"` | full | `prefers-reduced-motion: reduce` | every `--motion-duration-*` | 30, 46 | partial: no middle level |
+| Stimulus (Prikkels) | `data-stimulus="calm"`, `data-stimulus="rich"` | standard | none | `--color-blade-glow`; in dark and light `--elev-window`, `--elev-window-inactive`, `--elev-orbit`, `--elev-plate`, `--elev-launcher`, `--elev-inspector` (calm: a short contact shadow; rich: deeper depth with a cool halo); never `--elev-trusted` | 47 | partial: glow and depth; no-op in the contrast theme |
+| Text spacing (Ruimere tekst) | `data-text-spacing="wider"` | standard | none | `--type-*-line` and letter, word and paragraph spacing | 35 | works |
+| Line length (Regellengte) | `data-line-length="short"` | standard (58ch, measured 70–78 characters) | none | `.ds-t-reading` measure (37ch, measured 44–50 characters) | 37 | works |
+| Target size (Klikvlakken) | `data-targets="32"`, `data-targets="44"` | 24 | none | `--space-target-min` | 58 | works |
+<!-- axes:end -->
+
+The explicit default values (`standard`, `translucent`, the theme the device
+would pick) are offered in the settings group so that a user can overrule a
+device preference; they need no CSS of their own because every device block is
+guarded by `:not([attr], [attr] *)`. Text size 125 % and 150 % is not an axis
+yet (§21.8, O-A1).
+
+### 21.3 Device mapping and precedence
+
+Precedence, highest first: (1) an explicit value on the axis, set on `<html>`
+or on the element that carries the `data-theme` (placement below); (2) the
+device preference; (3) the design default. Selector
+pattern: an axis rule is `theme:is([A="v"], [A="v"] *)`, so it applies to the
+element and to nested themed elements (a Kern surface in the opposite theme
+keeps the axis); a device rule is `@media (feature) { theme:not([A], [A] *) }`,
+whose value equals the attribute rule (checked by `check.mjs`). Exceptions:
+
+- The contrast theme already meets increased contrast and opaque materials:
+  opaque changes nothing there and increased contrast only thickens edges to
+  2 px. It still bundles, as in ds-1.0, the
+  removal of translucency, glow, the halo and the entrance rises; that bundle
+  is a documented exception to independent axes (O-A7).
+- `data-motion="full"` overrules `prefers-reduced-motion` and restores every
+  duration; `data-motion="reduce"` sets every duration to 0 ms (§12).
+- Light intensity is applied last, as an output filter over everything below
+  it, including Kern and modal dialogs, which render in the top layer and get
+  the filter once (pixel sample: 0.85 of the undimmed surface). The modal's
+  `::backdrop` is a separate top-layer box and gets the same rule (run 3; before
+  it, opening a modal under dimmed brightened the light page from 194,198,206 to
+  205,211,218; now the composited scrim is 192,197,204 against the expected
+  192,197,205, and the computed `::backdrop` filter is `brightness(0.85)` in all
+  three themes). The gallery has no popover; its menus, tooltips and toasts are
+  in flow and inherit the root filter. No dialog opener sits under a non-root
+  light-intensity scope (the settings preview and the combination specimens hold
+  none, run 3 probe `i3-scope.mjs`), so a modal follows the root value. Its token
+  compensation block precedes the contrast and colour-perception blocks with
+  the same specificity, so an explicit or device increased contrast and a
+  re-mapped palette keep their own (stronger) values under dimmed light.
+- In the contrast theme, Transparantie and Prikkels change nothing and
+  Contrast only thickens edges. The settings group then shows a note in each
+  of those groups
+  (`.gal-inert`, linked with `aria-describedby`), so no choice looks effective
+  while it is inert.
+- Nested limit: an axis set on an ancestor cannot be switched back to the
+  device or default value inside a subtree, because the ancestor rule also
+  matches descendants. The product sets axes once, on `<html>`; the gallery
+  sets them on specimens. Upgrade path: `@container style()` queries (O-A8).
+- Placement (run-2 repair 2): an axis attribute sits on `<html>` or on the
+  same element as a `data-theme`. The axis rules key on the themed element, so
+  an axis on an unthemed element below a themed ancestor is unreliable (run-2
+  verifier): on `<div data-theme="light"><div data-contrast="increased">` the
+  inner element keeps `--color-text-muted` #424B62, so the axis silently does
+  nothing, and an unthemed `data-light-intensity="dimmed"` inside a dark panel
+  applies the `brightness(.85)` filter without the compensation tokens
+  (`--color-text-subtle` #9BA2BC instead of #ACB2C7; ratios still 5.84, 5.38
+  and 5.00:1 on bg, surface and raised). The product sets axes on `<html>` and
+  the gallery sets them beside `data-theme`, so nothing renders wrong today.
+  `check.mjs` does not test nested placement; a check is proposed to the lead
+  (the file is protected).
+- `forced-colors: active`: the user agent's palette wins; `.ds-node` and its
+  ring keep their shapes (`forced-color-adjust: none`) so a place stays
+  distinguishable without colour. No full forced-colors design exists (O-A5).
+
+### 21.4 Combinations
+
+All axes combine. The gallery panel "Combinaties" renders a greedy pairwise
+covering array over the values listed in `AXES` in `gallery.js` (16 rows,
+213 pairs, 0 uncovered), each row in dark, light and contrast (48 specimens).
+Since run-2 repair 1 the reading text of each specimen sits in its own strip
+across the three specimen columns (`.gal-combo-read`, 48 strips, with the theme
+and attributes of their specimen): a specimen column is narrower than the 37ch
+short measure, so the line-length pairs rendered no difference there (run-2
+verifier: 42-43 characters per line with and without `data-line-length`).
+Characters per full line (`build/design-evidence/a11y-ds/run2-repair-1/ll.txt`):
+76 standard and 47-48 short at 1440 px and at 720 px (DSF 2); with
+`data-text-spacing="wider"` 54-57 and 31-37. At 320 px the strip is narrower
+than both measures (33-35 characters), so there the axis has no effect.
+`AXES` holds the empty default and every non-default value of the nine attribute
+axes. The explicit default values (`data-contrast="standard"`,
+`data-transparency="translucent"`, `data-motion="full"`) and the device
+preferences are not rows of this panel, so the panel does not cover their pairs. `check.mjs` evaluates the contrast pairs for every
+combination of the five colour axes in the three themes, plus the device-mapped
+cases. The gallery's `?measure=1` run reports the cascade check: the Kern
+surface inside a light specimen with increased contrast resolves to the dark
+theme with `--color-text` #FFFFFF.
+
+### 21.5 Settings place, reset and undo
+
+The settings group lives at **Instellingen › Toegankelijkheid**
+(`docs/design/NAMING-AND-IA.md`; gallery panel "Instellingen ›
+Toegankelijkheid", `#panel-a11y`). Repair 2 replaced the stack of radio rows:
+
+- **Grouped by what changes.** Four groups with a heading each: Zien (Thema,
+  Contrast, Lichtsterkte, Transparantie, Kleuren onderscheiden), Beweging en
+  prikkels (Beweging, Prikkels), Lezen (Ruimere tekst, Regellengte) and
+  Bedienen (Klikvlakken).
+- **One segmented choice per axis** (`.ds-seg`, §10): native radios, so each
+  axis stays one fieldset, one Tab stop and arrow-key selection. Every tile
+  carries a static sample of its own value, rendered with the real axis
+  attribute in the current theme (for example the blade with and without its
+  glow for Prikkels, a word in wider spacing for Ruimere tekst, the hit-area
+  outline for Klikvlakken, the three place nodes in each palette for Kleuren
+  onderscheiden). The samples are `aria-hidden` and do not move. Under each
+  choice one line says what it does and its status in the words of §21.7
+  ("Werkt in dit prototype." or "Deels in dit prototype: …").
+- **Actief.** A strip at the top lists one chip per axis that is not on its
+  first value ("Contrast: Verhoogd ×"); a chip returns that axis alone,
+  announces it in the `role="status"` region and moves focus to the next chip
+  (or to "Standaard herstellen" when none is left). With nothing changed the
+  strip says so in words.
+- **Standaard herstellen** returns every axis to its default (device
+  preferences apply again), announces this and shows "Ongedaan maken", which
+  restores the previous values, hides itself and returns focus to "Standaard
+  herstellen".
+- **The group follows the theme.** The chosen Thema applies to the settings
+  surface itself and to the preview; the other axes apply to the preview,
+  because an axis set on an ancestor would also override the samples (§21.3,
+  nested limit). `?theme=` preselects Thema.
+
+Keyboard: one Tab stop per group; arrow keys move the selection immediately,
+while the settings surface and preview follow at most once per 400 ms (B8: a
+held arrow key auto-repeats at about 33 Hz and would otherwise cycle dark,
+light and contrast at 7.4 flash pairs per second); Space and Enter activate
+chips, reset and undo. Checked with real key presses in dark, light and
+contrast: one stop per group, a 2 px ring on the focused tile, chips appear
+and leave with focus kept in the strip. "Volg apparaat" follows a change of
+`prefers-color-scheme` while the page is open. The preview is illustrative and
+`inert`. The group lists, in plain text, what is feasible natively but not in
+this prototype.
+
+### 21.6 Reworked states (carried major and minor)
+
+- **Empty, loading, error** (`.ds-empty`): one Orbitaal frame. The collection's
+  place is a node on a 2 px orbit ring around the place icon, drawn larger than
+  a list node and trailed by a tapered 110° tail (3 px) in its place colour (the
+  blade signature on the orbit), and the frame is crowned by a light blade. Ring
+  and tail were strengthened in run-2 repair 1 because the run-2 verifier found
+  them faint at 100 % (AI design judgement; the icon-left composition stays). Loading
+  (`data-state="busy"`): node and arc orbit three times (4.2 s) and rest at
+  the top; the title is visible, says what loads from where and is the
+  `role="status"` region, outside any `aria-busy` container so that it is not
+  suppressed. After the loop a caption "Nog bezig · m:ss" keeps a long
+  operation visibly alive in 5-s steps, in the moving and the static form
+  alike; it is text, not motion, and not a live region. Error: the ring breaks
+  once at the top (one gap, no dashed texture, row 21), the hollow node sits in
+  the gap, the title carries the square error marker and the text says where
+  the work is safe. The static form shows the same frame with the node at rest.
+  Below 320 px of inline size (container query) the orbit stacks above the
+  text, place badges and buttons wrap between words in boxes that grow with
+  them, and skeleton rows take the stacked `.ds-row` form.
+   In the contrast theme each skeleton line is a 1 px outline: a vertical scan
+   through the three rows crosses six light-dark pairs at 21:1, one more than
+   row 21 allows for a texture. The skeleton passes only through row 21's
+   clause that exempts component structure: the outlines stand in for the list
+   rows that will load, but they appear only in the loader, so counting them as
+   list-row structure is a design judgement (AI), not a measured result. In
+   every theme the column of the three stacked place nodes (one per placeholder
+   row) crosses six to nine pairs over about 8 CSS px, nine across its central
+   4 CSS px; it relies on the same clause. The dark and
+   light fills stay at 1.35:1 and 1.20:1, below the 1.5:1 bound, and the
+   progress tracks give three to four pairs (run-2 repair-1 recount at DSF 2,
+   rest and reduced motion alike: `run2-repair-1/tex.mjs`, `texcount.py`,
+   `tex-count.txt`). Exempt counts, recorded so that a later reviewer can see
+   why they pass (run-2 verifier, `run2-verify-1/tex.py` on its DSF-2
+   captures, rest and reduced motion alike; re-run unchanged in
+   `run2-repair-2/tex-verify1-rerun.txt`): the skeleton node column gives 9
+   vertical pairs in every theme (largest ratio 6.85:1 dark, 5.52:1 light,
+   11.58:1 contrast); the contrast-theme skeleton outlines give 6 pairs on a
+   vertical scan and up to 9 on a horizontal scan along one placeholder row
+   (21:1), the dark and light skeletons 3 horizontal pairs; the orbit frame
+   (ring, place icon and satellite node) gives 9 vertical and 6 horizontal
+   pairs, up to 8.53:1 dark, 8.47:1 light and 21:1 contrast, in the rest, busy
+   and error frames alike; the indeterminate progress gives 2 to 3 pairs. The
+   skeleton fills measure 1.35:1 dark, 1.26:1 dark dimmed and 1.20:1 light. The
+   node column, the outlines and the orbit frame are exempt as icon or
+   component structure, not as textures (none of them is a periodic fill);
+   whether that reading of the clause holds is settled under O-A22. Measured with Range
+  rects of every label against its box, on both axes: 0 labels outside their
+  box in the gallery's `[data-scale="2"]` strip (`?measure=1`,
+  `scaleTextFit`), and 0 in the states, privacy and settings specimens at 720
+  and 640 CSS px (device scale 2) and in a 680 px host with and without
+  `data-text-spacing="wider"`, in dark, light and contrast. A single word
+  wider than its line still breaks inside the word rather than spill; the
+  gallery grid now places these frames side by side only from 300 px each. Class names are kept
+  (`.ds-empty`, `.ds-skeleton`); sub-classes `.ds-empty-orbit`,
+  `.ds-empty-sat`, `.ds-empty-place` are new.
+- **Progress** (`.ds-progress`): the fill ends in the light blade, the
+  signature of the active window; the label carries the place node.
+  Indeterminate: a tapered blade segment sweeps three times (4.2 s) and rests
+  in the centre; the word "Bezig" carries the state and becomes "Nog bezig ·
+  m:ss" in 5-s steps (`data-elapsed`). No stripes. The track is
+  10 px; in the light theme the fill is `--color-text`, because the muted fill
+  read weakly on white (AI design judgement). Since run 2 that rule sits in
+  `@scope ([data-theme="light"]) to ([data-theme]:not([data-theme="light"]))`,
+  so a dark or contrast subtree inside a light one keeps the muted fill of its
+  own theme (rendered with a light root: dark #A9B2CB, light #111726, contrast
+  #FFFFFF). `@scope` needs Chromium 118 or Safari 17.4; a browser without it
+  shows the muted ds-1.0 fill in light too.
+
+These are design proposals; their effect on users has not been studied.
+
+### 21.7 Status per adaptation
+
+Consistent with the matrix "Prototype status" column. Works in the prototype:
+contrast levels (row 9), polarity following the device (10), opaque materials
+(11), finite loops (31),
+static motion forms (32), wider text (35), reading measure and line length
+(36, 37), target size axis (58), the combinable contrast and light axes (23),
+no texture fills (21; the contrast-theme skeleton relies on the structure
+clause, §21.6), upright Inter in weights 400 and 600 (40), 24 px minimum
+targets (57). Partial: colour-perception palettes (4, palettes only, simulation), light
+intensity (19, one step), graded motion (30, 46, no middle level), visual
+intensity (47, glow and depth), reflow (7) and
+text spacing (34), device following (86, forced colours only for nodes),
+independent settings (88, contrast-theme bundle), flash limits (24, 25; boot
+sequence and wallpaper not analysed), focus in every combination (61, focus
+obscuring untested), text size (13, only the 200 % page zoom of
+`[data-scale="2"]`). Not in the prototype: text size 125 % and 150 % (13),
+screen reader, magnifier, read-aloud, captions, keyboard filters, switch, eye,
+head and voice control, a line-focus ruler, numbers with visual aids,
+notification bundling, a compositor colour filter (5) and a compositor flash
+filter (26).
+
+### 21.8 Extensions recorded, with cost
+
+| ID | Extension | Why not in ds-1.1 | Cost estimate |
+|---|---|---|---|
+| E1 | Text size 125 % and 150 % (row 13) | Needs type-atlas records per role at two more scales; `docs/design/TYPOGRAPHY.md` is outside this task's write set | More atlas records against the 512 KiB read-only segment of `ui/native` (atlas size estimates in TYPOGRAPHY.md §9, settings in §8.6); a typography contract change |
+| E2 | Motion middle level "reduced" (cross-fades kept, rows 30 and 46) | Needs a third value and a cross-fade form per component | One token block, about ten component rules, checker update |
+| E3 | Deeper light-intensity steps (row 19) | A uniform filter below 0.85 breaks the contrast floors (0.8 already fails) | A per-theme dimmed token family: about 90 values per theme plus pair checks |
+| E4 | Compositor colour filter for third-party content (row 5) | Needs the native compositor | Native compositor work; no browser equivalent |
+| E5 | Compositor flash filter (row 26) | Research question | Research plus compositor work |
+| E6 | Native assistive technology: screen reader, magnifier, read-aloud, captions, keyboard filters, switch, eye, head and voice control | Native only | Per feature a native subsystem with its own ADR: an accessibility tree in the shell, toolkit and SDK plus a trusted AT role (screen reader); compositor scaling (magnifier); an on-device speech model and audio path (read-aloud, captions); filter stages in the input service (keyboard filters, switch scanning); on-device recognition (voice) |
+| E7 | Native mapping of the axes to `ui/graphics` palettes | Native code is outside this task | One palette variant per axis value (§17) |
+
+### 21.9 Not verified
+
+- Run 3 (owner-approved bounded run, 18 November 2026) fixed the three run-2
+  final-verifier defects, each as a class; the writer measured them, independent
+  verification is pending. Evidence, scripts and renders are in
+  `build/design-evidence/a11y-ds/run3-writer/`:
+  - B8, held key: a held Enter on the delete-dialog opener opened and closed the
+    modal 56 times in 2 s (28 per second; the run-2 verifier measured 43.8 % of a
+    1024 x 768 screen in light, not re-measured); the menu trigger, the toast close/show pair and every switch
+    flipped at 33 per second. Now one activation per physical key press (§15):
+    exactly 1 change per 2 s hold of Enter or Space on each of these openers
+    and on the motion switch, in dark, light and contrast, standard and dimmed
+    with reduced motion (76 cases, `i1-hold-before.json`, `i1-hold-after.json`),
+    and at 200 % in light (`i1i3-extra-after.json`); separate presses still act
+    every time (`i1-taps-after.log`); the settings chips and Standaard herstellen
+    change no more under a held Enter than under one press (the undo button,
+    shown only after a reset, was not held).
+  - B1, captions in a shadow: no gallery caption or note (`.gal-note`,
+    `.gal-card > h3`) sits inside a specimen's shadow. Each elevated specimen
+    keeps its shadow's reach free (offset + spread + blur radius, past which the
+    Gaussian is under 2.3 % of the shadow alpha; gallery `<style>` in
+    `index.html`): the ask row 30 px above and 98 px below, the Orbit stage
+    64 px of bottom padding, the window and toast rows 28 px above (10 calm,
+    64 rich). Modelled shadow alpha over every caption and note line: at most
+    0.013 in 15 configurations, 200 % (`data-scale="2"`) and a 720 px layout
+    included, against 0.39 before (`i2-shadow-*.json`). Rendered contrast of
+    every text in every panel, the method of the run-2 verifier with bands of at
+    most 4000 px: 0 failures in 19 configurations (axes, device increased
+    contrast, 200 %, 720 px); the caption that measured 3.47:1 (light panel),
+    3.09 (dimmed), 5.93 and 4.79 (increased, increased plus dimmed) now
+    measures, first and second line of the light-panel caption, 8.40 / 8.47,
+    7.07 / 7.13, 14.36 / 14.48 and 10.95 / 11.04; its dark-panel instance
+    measures 8.45, 7.58, 14.32 and 10.54 (re-measured after repair 2 with the
+    run-3 verifier's caption method, `run3-repair-2/cap-a.log`). The before sweep
+    (`i2-contrast-before.json`) took each panel as one tall clip; its 303 and 14
+    failures near 1.1:1 under 200 % plus increased plus dimmed and 720 px plus rich
+    plus increased plus dimmed are blank-capture artefacts, not defects. The
+    Orbit stage padding and the room above the window and toast rows go beyond
+    the reported caption; they follow the same measured rule and are reasoned
+    design judgement that the lead may trim.
+  - Repair 1 (writer-measured, not yet independently verified; evidence in
+    `build/design-evidence/a11y-ds/run3-repair-1/`): the run-3 verifier found
+    the same class at the elevation reference under rich. Its tiles' shadows
+    reached the next panel's heading and subtitle (`.gal-panel > h2`, its
+    `<small>`) and the swatch value captions above them (`.gal-sw figcaption`).
+    These count as gallery text. The reference (`.gal-elev`) now keeps its
+    tiles' reach inside its own padding and clips there (`overflow-y: clip`):
+    30 px above and 100 below, 64 and 128 under rich, no room in the contrast
+    theme. A later token change can therefore only crop the reference; it cannot
+    reach that text. Results:
+    - The geometric reach check (`reachcheck.mjs`, 12 configurations including
+      calm, neutral surface, wider text, compact, increased plus dimmed, 200 %
+      and 720 px) finds 0 gallery-text overlaps from the reference, and every
+      tile's reach fits its clip box.
+    - A repair-1 copy of the run-3 verifier's pixel shadow diff (change of at
+      least 3 channel levels, 8 configurations, `shadowdiff-final.log`) reports
+      only the tile labels (O-A24). The verifier's own run before the fix
+      reported 19 texts under rich (`run3-verify-0/sd-1.log`).
+    - The light subtitle measures 7.14:1 under rich (was 6.63) and 9.37 under
+      rich plus increased plus dimmed (was 8.70). The caster delta is now 0.
+    - The rendered caption contrast sweep gives 0 caption failures in the
+      verifier's 24 configurations (`cap-*.log`).
+    After repair 1 the class was not closed everywhere. Under rich, the modelled shadow alpha
+    (run-3 writer method, `i2-shadow-repair1.json`) is 0.044 over the dark Menu
+    card heading and 0.020 over the accessibility panel subtitle, against the
+    0.013 yardstick. The first comes from a window in the card above; the run-3
+    model wrongly counted it as covered. The second comes from the preview
+    window. Disabling the window shadows changes those line boxes by 1 to 2
+    channel levels. Contrast stays at 15.97:1 (dark Menu), 17.12:1 (light Menu,
+    17.42 without the shadow) and 9.38:1 (`reach-residual.log`). Not fixed in
+    repair 1; repair 2 closed them.
+  - Repair 2 (19 November 2026, writer-measured, not yet independently
+    verified; evidence in `build/design-evidence/a11y-ds/run3-repair-2/`):
+    the run-3 verifier's geometric test (reach = offset + spread + blur
+    against every caption line box) still found the class. The
+    writer's own wider baseline sweep found two more casters (`reachcheck-before.json`).
+    Before the fix, these instances were open:
+    - the window row in the Vensterrand card over the Menu card heading and its code
+      (3 px deep standard, 31 dark and 15 light rich);
+    - the settings preview window over the accessibility panel subtitle (rich);
+    - the Orbit over the Orbit-item heading and its code (rich, also at 200 % and 720 px);
+    - the toast over the Banner heading (rich, 720 px);
+    - the open menu over the Melding met acties heading at 44 px targets. Its box
+      also ended 14 px past its own card there.
+
+    Each of these specimens now keeps its own reach inside its own card, stage or preview (gallery
+    `<style>` in `index.html`):
+    - Below a card's last specimen, the reach first crosses at least 50 px of
+      gallery air (`--gal-air`: card padding of at least `--space-3` on both
+      cards, two 1 px borders, the `--space-6` grid gap). The window row keeps the
+      rest of its down-reach: 50 px standard, 0 calm, 78 rich. The toast and the
+      open menu keep the rest of theirs (`--elev-window-inactive`): 22, 0 and 38 px.
+    - In the gallery, the open menu is in flow under its button (like the
+      stage dialog), with the same 300 px width. A taller menu now grows its
+      card; at 44 px targets the card grows by 61 px. Closing that menu returns
+      the card to its 420 px minimum (`menunarrow-after.log`). At 320, 360 and
+      640 px with 200 %, the menu's right edge, the page's scroll width and the
+      button's position measure the same as before (`menunarrow-*.log`). The
+      run-2 minor on menu fit at 200 % stays open. The gallery's keyboard
+      self-test gives the same menu result before and after (`selftest.log`).
+    - The Orbit stage has 28 px of top padding under rich.
+    - The settings preview has 40 px of top padding under rich. The rule also
+      matches the preview itself, because the Prikkels choice sets
+      `data-stimulus` there.
+
+    Results:
+    - The writer's clipped reach check (`reachcheck.mjs`) finds 0
+      gallery-text overlaps in 51 configurations. These cover dark, light and
+      contrast roots; the standard, calm and rich stimulus values; 32 and 44 px
+      targets; wider text, short lines, increased plus dimmed, opaque, the
+      neutral surface and compact density; 200 %, also at 720 px; widths of 360
+      to 1440 px around both container breakpoints; and the settings form path
+      with the sticky preview scrolled beside the form.
+    - The verifier's unclipped test (`reachgeo.mjs`, same configurations)
+      finds 0 overlaps except under rich at widths of 1000 to 1200 px. There it
+      counts the stage dialog's reach over the neighbouring Voortgang note,
+      but the stage clips that shadow (`overflow: hidden`). The pixel delta
+      over that note is 0 at 1000, 1100 and 1200 px, before and after this
+      repair (`reachpx.log`, `reachpx-1200.log`).
+    - Disabling each former caster changes its former caption by 0 channel
+      levels, against 0 to 18 before (`reachpx.log`). Before the fix, the Orbit-item heading and its code, the Banner heading
+      at 720 px and the light Menu heading under standard were geometric
+      instances only (0 levels); the other instances changed by 1 to 18. The light Melding met
+      acties heading at 44 px targets plus rich measured 15.11:1 with the menu
+      shadow and 17.42 without; it now measures 17.42.
+    - The rendered caption sweep (the verifier's method, 16 runs including light
+      root, 200 % and 720 px) finds 0 caption failures (`cap-*.log`).
+  - Light intensity x top layer: the `::backdrop` rule (§21.3); composited
+    scrim in light dimmed 192,197,204 against the expected 192,197,205 (was
+    205,211,218, brighter than the closed page); dark and contrast unchanged
+    in pixels, computed `::backdrop` filter `brightness(0.85)` under dimmed in
+    all three themes and at 200 % (`i3-backdrop-*.json`, `i1i3-extra-after.json`).
+  Text inside specimens (not captions or notes) can still sit in a
+  neighbouring specimen's shadow fringe; it passes the rendered sweep (O-A24).
+- No user has tried any axis, the settings group or the reworked states.
+- Colour-perception palettes are verified by simulation only (Machado et al.
+  2009, severity 1.0, CIE76 ΔE at least 40 between the three places, at least
+  3:1 on every surface); no person with a colour-vision difference judged them.
+- Light intensity is modelled as sRGB channels × 0.85; display luminance and
+  comfort are not measured. Rendered pixels can differ from the quantised
+  model. The tightest computed margin that `check.mjs` prints is 3.01:1 (dark
+  `--place-nas`, neutral surface, tritan, dimmed); rendered, that stack
+  measured 3.44:1 and the tightest rendered case was 3.03:1 (run-1 verifier).
+- Under `data-surface="neutral"`, the dimmed and increased-contrast blocks
+  write tinted text and line values over the neutral twins (contrast holds;
+  the D3 achromatic rule does not) (O-A18).
+- The button spinner (`aria-busy` on `.ds-btn`) has no elapsed-time cue.
+- The flash measurement samples the preview background and its attributes per
+  frame in headless Chromium; the filter of Lichtsterkte is bounded by the
+  change count, not sampled in pixels.
+- Run-2 layout sweep (`build/design-evidence/a11y-ds/run2-writer/sweep.mjs`,
+  table `sweep.json`, classes `final-classes.txt`): every gallery panel forced
+  to dark, light and contrast × `data-text-spacing` default and wider ×
+  `data-targets` default, 32, 44 × `data-line-length` default and short ×
+  `data-contrast` default and increased (24 combinations) × scale 1 at 1440,
+  720 (DSF 2, 200 % of 1440), 640 and 320 px × `data-scale="2"` at 1440, 720,
+  640 and 320 px (576 configurations; reduced motion emulated over CDP so loops
+  are at rest; browser cache disabled). In the 288 configurations at scale 1
+  on 1440, 720 or 640 px and at `data-scale="2"` on 1440 px, wider text
+  spacing included, the page does not overflow and no element box or text
+  passes its parent, the viewport or a clipping container by more than 1 CSS
+  px; the run-1 major (`.ds-tabs`, +95 px and +48 px) is fixed. The pre-fix
+  baseline is a 96-configuration subset (`sweep-base-quick-summary.json`).
+- At 320 CSS px (scale 1 at 320 px, and `data-scale="2"` at 640 px) the page
+  still overflows by up to 147 CSS px in every configuration, and by up to
+  111 CSS px at 360 CSS px (`data-scale="2"` at 720 px). Worst horizontal
+  overflow per element at 320 CSS px: the list header 178.8 px (ds-1.0, fixed
+  132/64/112 px columns; the header is `aria-hidden` and the rows stack); the
+  privacy track 128.8 px (ds-1.0, three 120 px columns). Run 2 also left, in
+  the compact density specimen, the row date text 41.6 px and a place pill
+  text 34.2 px past their boxes, a switch label 29.3 px, a radio label 29.0 px,
+  the field 7.3 px and, with `data-text-spacing="wider"`, the button label
+  "Vergelijken" 2.0 px; the run-2 verifier added the asks card's opener
+  buttons (outside `.ds-ask`): "Vraag voor één handeling openen" 6.3 px (39.0
+  px wider spacing) and "Doorlopende vraag openen" 6.8 px (wider spacing) past
+  their 257 px box, the same at 640 px with `data-scale="2"`. Run-2 repair 2
+  removed both causes: the gallery rule that stacks `.gal-2` preceded the
+  `.gal-2` rule and never applied, so those specimens stayed two 117 px
+  columns at 320 px (it now follows it and stacks below 480 px of grid width),
+  and `.ds-btn` wraps a label that does not fit (Button, O-A19). After the
+  repair no control label passes its box at 320 CSS px outside the UX-C
+  specimens (`run2-repair-2/lbl.mjs`, `lbl-after4.json`; 30 configurations:
+  dark, light, contrast × both spacings × 1440, 720 at DSF 2, 640, 320 and
+  `data-scale="2"` on 640 px).
+  In the Instellingen preview at 640 px (scale 1), `.ds-row-name` cuts
+  "Vakantiefoto's Lissabon" (168 px in 86 px) and "Boodschappen" (106 in 86)
+  with an ellipsis and no `title`; this is the ds-1.0 truncation of the row
+  name in an inert illustrative preview, and the names wrap under wider
+  spacing (O-A4). `.ds-ask` (137.1 px) and
+  `.ds-grant` (38.9 px) belong to task UX-C and were not changed.
+  `data-scale="2"` at 320 px (160 CSS px, below the WCAG 1.4.10 width of
+  320 CSS px) overflows by up to 596 px of the unzoomed viewport, which is
+  298 CSS px at zoom 2 (the other figures here are CSS px), and is recorded in the sweep only
+  (O-A4, O-A17).
+- `forced-colors` was only emulated in headless Chromium; no Windows high
+  contrast mode or other platform was used.
+- The tab list wraps since run 2 and fits at 320 px in all three themes
+  (`run2-writer/tabs.json`, 18 cases).
+- Tooltips (run-2 repair 1, `build/design-evidence/a11y-ds/run2-repair-1/tips.mjs`,
+  `tips-base.json`, `tips-after.json`): every `.ds-tip` in the gallery forced
+  open (`data-state="open"`, the state hover and focus show), all panels in
+  dark, light and contrast, text spacing default and wider, at the sweep's
+  eight viewports (48 configurations, 9 tips each). Before: 207 tip boxes
+  outside the viewport, the Versies tip from −31.4 CSS px (1440 px) to −94.6
+  (320 px, wider) and the Sluiten tip up to 11.3 px past the right edge (320
+  px, wider). After: 0 of 378 tip boxes outside the viewport or a clipping
+  container at 320 CSS px or wider; the Versies tip starts at 31.4 CSS px at
+  320 px and wraps to two lines (240 px) under wider spacing. At
+  `data-scale="2"` on 320 px (160 CSS px) 36 of 54 tip boxes are outside, as
+  is the page (O-A17). Real hover was rendered at 1440 and 320 px
+  (`run2-repair-1/shots/after-tips-*-hover.png`).
+- The gallery's `?measure=1` focus block printed `fv=false none` for every
+  kind in headless runs, because a page without system focus never matches
+  `:focus-visible`; its `ring:base` figures were the text colour against the
+  base, not a ring. Since run-2 repair 1 it draws the ring through
+  `[data-demo~="focus"]` when `:focus-visible` does not match, measures inset
+  rings against the element's own fill and prints "no ring rendered" when no
+  outline is drawn: all 87 measured kind-and-host cases draw a ring, minimum
+  4.00:1 (light `.gal-canvas`), primary button 15.82, 17.42 and 16.35:1 in
+  dark, light and contrast (`run2-repair-1/gallery-measure.json`). These are
+  computed from styles, not pixel-sampled.
+- Re-sweep after run-2 repair 1 (`run2-repair-1/sweep.mjs`, unchanged copy of
+  the run-2 sweep; `sweep-final-r1-summary.json`, `classes-final-r1.txt`): 576
+  configurations; against the run-2 writer's `sweep-final4-summary.json` no hit
+  class is new and no worst value grew by more than 1 px; 6 classes are gone
+  (the old combination reading text at `data-scale="2"` on 320 px); page
+  overflow is unchanged (288 configurations, all at 360 CSS px or narrower).
+  In the 288 configurations at 1440, 720 and 640 px and at `data-scale="2"` on
+  1440 px there is no page overflow and no viewport, text or clipped-text hit.
+  The sweep, like the run-2 sweep, skips elements that are hidden until shown:
+  the tooltips now have their own probe, but closed menus, dialogs and toasts
+  were not opened at 320 px with wider spacing (not verified). Since run-2
+  repair 2 the delete dialog is opened by `run2-repair-2/lbl2.mjs` (see the
+  re-sweep below); menus remain not verified.
+- Re-sweep after run-2 repair 2 (`run2-repair-2/sweep.mjs`, an unchanged copy;
+  `sweep-final-r2-summary.json`, `classes-final-r2.txt`; plus an unchanged copy
+  of the run-2 verifier's probe, `vsweep.mjs`, `vsweep.txt`): 576
+  configurations; against `sweep-final-r1-summary.json` no hit class is new
+  and no worst value grew by more than 1 px; 69 hit class strings at 320 CSS px
+  or wider are gone. Those strings include coordinates: without them they are
+  51, and with the three themed panels merged 16 classes, one of which (the
+  compact row-date number box) was also gone at 360 CSS px; the others are at
+  320 CSS px (the switch, radio and check labels, the compact row dates, place
+  pills and names, the field, "Vergelijken" and both asks openers). Page overflow is
+  unchanged: 288 configurations, all at 360 CSS px or narrower, 99 and 147 CSS
+  px at 320 px. Button heights (`lbl.mjs`, `hdiff.py`): with standard spacing
+  none of the 281 `.ds-btn` changes height at 1440, 720 or 640 px; with wider
+  spacing the compact buttons measure 24.5 px instead of 24 px (a 22.5 px line
+  plus a 1 px edge; before, the line overflowed its box by 0.25 px) and
+  "Verplaatsen naar collectie" in the empty state wraps to two lines at 1440
+  px (its single line was about 0.5 px wider than the box); at 320 CSS px the
+  opener labels wrap (`run2-repair-2/shots/askrow-320-*.png`). A first
+  threshold of 600 px stacked `.gal-2` at 640 px too and left the compact list
+  a 460 px row with a 52 px name (4 px with wider spacing); it was rejected for
+  480 px, which keeps the two columns at 640 px and wider. Moving the 900 px
+  block also revived its `.gal-type > div` rule: below 900 px of grid width the
+  Typeschaal rows stack the token name above its sample (one 526 px column at
+  640 px, one 598 px column at 1440 px with `data-scale="2"`, no element
+  scrolling; `run2-repair-2/typeshot.mjs`, `shots/type-640.png`).
+- Follow-up probe after run-2 repair 2 (`run2-repair-2/lbl2.mjs`, `hagg.py`;
+  1440, 640, 360 and 320 px and `data-scale="2"` on 640 and 320 px; the before
+  run swaps in `components.before.css` after load, `index.html` is the current
+  one in both runs; axis attributes on `<html>` and on every `data-theme`
+  element). With `data-contrast="increased"` the compact secondary buttons
+  "Versies" and "Delen" measure 26 px instead of 24 px (a 22 px line plus two
+  2 px edges; before, the fixed height let the line pass its content box by
+  1 px at each edge) and 26.5 px with wider spacing. With `data-targets="44"`
+  only the wrapping labels change height. At 160 CSS px (`data-scale="2"` on
+  320 px) "Thema: Donker" and "Thema: Licht" in the settings group, "Standaard
+  herstellen" and, with wider spacing, the toast's "Ongedaan maken" wrap (the
+  theme chips 64 to 108 px of the unzoomed viewport, 32 to 54 CSS px). The
+  delete dialog, opened in each view with standard and wider spacing, has no
+  label past its button and no button past its actions row, before or after;
+  at 320 px with wider spacing its actions stack at full width and
+  "Definitief verwijderen" wraps to two lines
+  (`shots/dialog-now-none-320-wider.png`).
+- The wallpaper and the boot sequence were not analysed for flashes or
+  patterns.
+- The reset announcement, the chips and the settings group were not tried with
+  a screen reader; whether the tile samples help people choose is untested.
+- The Range-rect harness covers the theme panels, the states, privacy and
+  settings specimens and the 200 % strip; the `.ds-ask` actions (task UX-C)
+  keep a one-line label (`.ds-ask .ds-btn`) and can still pass their button
+  below 320 CSS px (O-A19).
+- Native code was not changed; nothing here holds natively yet.
+
+### 21.10 Sources
+
+- W3C, WCAG 2.2 (5 October 2023): SC 1.4.1, 1.4.3, 1.4.6, 1.4.10, 1.4.11,
+  1.4.12, 2.2.2, 2.3.1, 2.4.7, 2.5.5, 2.5.8.
+- W3C, Media Queries Level 5: `prefers-color-scheme`, `prefers-contrast`,
+  `prefers-reduced-motion`, `prefers-reduced-transparency`, `forced-colors`.
+- W3C, CSS Conditional Rules Level 5 and CSS Containment Level 3: container
+  queries.
+- ITU-R BT.1702-3, Guideline 1 (flashing sequences longer than 5 s).
+- G. M. Machado, M. M. Oliveira, L. A. F. Fernandes, "A physiologically-based
+  model for simulation of color vision deficiency", IEEE TVCG 15(6), 2009.
+- Project: `docs/design/accessibility/ACCESSIBILITY-RESEARCH.md` (§7.2 token
+  ownership), `docs/design/accessibility/ACCESSIBILITY-MATRIX.md`,
+  `docs/design/NAMING-AND-IA.md`.

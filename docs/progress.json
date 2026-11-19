@@ -2,13 +2,13 @@
   "schema_version": 1,
   "rubric_version": 1,
   "assessment": {
-    "date": "2026-11-18",
-    "source_commit": "cc90a352ba999c5bceb3b98d4c4ae3dc8ea454e5",
+    "date": "2026-11-19",
+    "source_commit": "2cb2dd85de4a86bd78c87a63157cf540cb40fdb1",
     "assessment_basis": "parent_commit",
-    "branch": "codex/phase0-english-coverage",
-    "task": "PR #358 reconciliation with main fac5a864 and review repairs",
+    "branch": "claude/baryon-os-design-pipeline-20261118",
+    "task": "UX-A11Y-DS run 3 accepted, list-row review fix, main and suite S2 merged into PR #360",
     "previous_score": 41,
-    "summary": "41/100 unchanged. The English documentation and Wiki evidence candidate is reconciled with main fac5a864. Rendered link, heading-anchor and fixture Git isolation regressions have focused controls, and the immutable coverage inventory is regenerated against an ancestor of this checkpoint; current main's hardened language and publication helpers are retained. This does not establish professional-language, native, hardware, human-audit or full issue #274 acceptance."
+    "summary": "41/100 unchanged. UX-A11Y-DS run 3 (held-key guard, caption reach, dimmed modal backdrop) was accepted by an independent verifier with no open findings; check.mjs, its self-test and the matrix checker exit 0. This is design-system prototype evidence only: it accepts no criterion and is not native accessibility acceptance or a human audit. Suite S2 (maturity model, 4c6e1a22) was merged as a design document with independent AI verification; it accepts no criterion."
   },
   "tracks": [
     {
