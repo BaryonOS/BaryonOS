@@ -1955,7 +1955,6 @@
         "tools/run.py",
         "tools/run_sleep.py",
         "tools/tests/test_sleep.py",
-        ".github/workflows/native-power.yml",
         "docs/verification/h05-native-s3-20261119/"
       ],
       "checks": [
@@ -1982,7 +1981,14 @@
       "evidence_level": "native QEMU/TCG",
       "non_claimable": "Physical firmware/hardware, other wake sources, AML _PTS/_WAK, devices/services/SMP across sleep, thermal/battery and H05 acceptance stay open.",
       "source_commit": "9c707c8db0f4a2d9ec8ce0a40f2b00eb210233bf",
-      "next": "H05-T4: S3 from the native-system profile via the POWER capability behind the storage gate, with PIC/PIT re-init and resumed processes; reuse the QMP hook from H04-T3."
+      "next": "H05-T4: S3 from the native-system profile via the POWER capability behind the storage gate, with PIC/PIT re-init and resumed processes; reuse the QMP hook from H04-T3.",
+      "lead_paths": [
+        ".github/workflows/native-power.yml",
+        "docs/DECISIONS.md",
+        "docs/PROJECT-STATE.md",
+        "docs/progress.json",
+        "docs/roadmap-pipeline/ledger.json"
+      ]
     },
     {
       "id": "H06-T2",

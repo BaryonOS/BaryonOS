@@ -149,18 +149,19 @@ global_asm!(
     "    movl {page32}, %esi",
     "    movl $2, %ebp",
     "nos_s3_entry32:",
+    // Known state for both entries: firmware defines neither EFLAGS nor CR4
+    // for the waking vector. No stack is trusted here, so only `cld` (IF is
+    // already 0); CR4 = PAE only until s3_wake restores the saved value.
+    "    cld",
     "    movw $0x10, %ax",
     "    movw %ax, %ds",
     "    movw %ax, %es",
     "    movw %ax, %ss",
-    "    xorl %eax, %eax",
-    "    movw %ax, %fs",
-    "    movw %ax, %gs",
+    // FS/GS are not used before `arch::load_tables` reloads every segment.
     "    movl %ebp, {path}",
     // The token is read while paging is off; the page is not executable later.
     "    movl 32(%esi), %edi",
-    "    movl %cr4, %eax",
-    "    orl $0x20, %eax",
+    "    movl $0x20, %eax",
     "    movl %eax, %cr4",
     "    movl 8(%esi), %eax",
     "    movl %eax, %cr3",
@@ -178,6 +179,9 @@ global_asm!(
     "    movl %edi, %edi",
     "    leaq {stack}(%rip), %rsp",
     "    addq ${stack_size}, %rsp",
+    // RFLAGS = 2 (IF=0, DF=0, no TF/AC/NT) on our own stack before Rust runs.
+    "    pushq $2",
+    "    popfq",
     "    call {wake}",
     "    movq %rax, %rsp",
     "    popq %r15",
@@ -539,8 +543,13 @@ pub fn run(frames: &Frames<FRAME_COUNT>, paging: &mut paging::Paging, prepared: 
         };
         set_token(prepared.page, page_token);
         if !store_facs(paging, facs.source_address(), length, wake, copy) {
+            // Never leave a partially armed vector behind.
             ARMED.store(0, Ordering::Release);
-            return serial::write(b"POWER:S3:REJECTED:FacsStore\n");
+            set_token(prepared.page, 0);
+            if store_facs(paging, facs.source_address(), length, disarm, copy) {
+                return serial::write(b"POWER:S3:REJECTED:FacsStore:DISARMED\n");
+            }
+            serial::fail(b"S3_FACS_DISARM");
         }
         // SAFETY: Single CPU; SAVED is read only by s3_wake after this point.
         unsafe {
@@ -572,7 +581,10 @@ pub fn run(frames: &Frames<FRAME_COUNT>, paging: &mut paging::Paging, prepared: 
         set_token(prepared.page, 0);
         let disarmed = store_facs(paging, facs.source_address(), length, disarm, copy);
         if resumed != 1 {
-            return serial::write(b"POWER:S3:NO_TRANSITION\n");
+            if disarmed {
+                return serial::write(b"POWER:S3:NO_TRANSITION:DISARMED\n");
+            }
+            serial::fail(b"S3_FACS_DISARM");
         }
         // SAFETY: Written by the wake stage of this CPU before s3_wake ran.
         let path = unsafe { ptr::addr_of!(NOS_S3_ENTRY_PATH).read_volatile() };
