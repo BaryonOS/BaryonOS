@@ -16,6 +16,23 @@ ROOT = Path(__file__).resolve().parents[1]
 REF = ROOT / "references"
 
 
+def commit(staged: dict[Path, bytes]) -> None:
+    """Write every staged file or none: restore the originals if any write fails."""
+    originals = {p: (p.read_bytes() if p.exists() else None) for p in staged}
+    written = []
+    try:
+        for path, data in staged.items():
+            path.write_bytes(data)
+            written.append(path)
+    except OSError:
+        for path in written:
+            if originals[path] is None:
+                path.unlink(missing_ok=True)
+            else:
+                path.write_bytes(originals[path])
+        raise
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--reason", required=True)
@@ -32,6 +49,7 @@ def main() -> int:
         raise SystemExit("only wiki records can be excluded")
 
     excluded = []
+    staged: dict[Path, bytes] = {}
     for path in sorted({by_id[i]["local_path"] for i in ids}):
         file = ROOT / path
         data = file.read_bytes()
@@ -56,7 +74,7 @@ def main() -> int:
             out += data[pos:s]
             pos = e
         out += data[pos:]
-        file.write_bytes(bytes(out))
+        staged[file] = bytes(out)
         for r in rows:
             if r["local_path"] != path or r["source_id"] in ids:
                 continue
@@ -66,8 +84,8 @@ def main() -> int:
             r["end_line"] -= sum(n for *_, n in gone)
 
     rows = [r for r in rows if r["source_id"] not in ids]
-    (REF / "source-index.json").write_text(
-        json.dumps(rows, separators=(",", ":"), ensure_ascii=False) + "\n", encoding="utf-8")
+    staged[REF / "source-index.json"] = (
+        json.dumps(rows, separators=(",", ":"), ensure_ascii=False) + "\n").encode()
 
     new = {r["source_id"]: r for r in rows}
     page = REF / "pagina-index.md"
@@ -81,7 +99,7 @@ def main() -> int:
             line = line.replace(f"source lines {m.group(2)}–{m.group(3)}",
                                 f"source lines {r['start_line']}–{r['end_line']}", 1)
         lines.append(line)
-    page.write_text("\n".join(lines), encoding="utf-8")
+    staged[page] = "\n".join(lines).encode()
 
     alt = "|".join(sorted(ids))
     item = re.compile(r"^- .*\[(" + alt + r")\](?:\s*·.*)?\s*$")
@@ -89,19 +107,19 @@ def main() -> int:
         text = theme.read_text(encoding="utf-8").split("\n")
         kept = [l for l in text if not item.match(l)]
         if kept != text:
-            theme.write_text("\n".join(kept), encoding="utf-8")
+            staged[theme] = "\n".join(kept).encode()
     # Inline "[Wnnnnnn: Title]; " entry points in the knowledge guide.
     inline = re.compile(r"\[(?:" + alt + r"): [^\]]*\](?:; |(?=\.))")
     guide = REF / "kennisgids.md"
     text = guide.read_text(encoding="utf-8")
     new_text = inline.sub("", text).replace("; .", ".")
     if new_text != text:
-        guide.write_text(new_text, encoding="utf-8")
+        staged[guide] = new_text.encode()
     media = ROOT / "assets/wiki-media-references.json"
     refs = json.loads(media.read_text(encoding="utf-8"))
     kept_refs = [m for m in refs if m["source_id"] not in ids]
     if kept_refs != refs:
-        media.write_text(json.dumps(kept_refs, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+        staged[media] = (json.dumps(kept_refs, indent=2, ensure_ascii=False) + "\n").encode()
 
     mf = ROOT / "assets/source-manifest.json"
     m = json.loads(mf.read_text(encoding="utf-8"))
@@ -113,7 +131,7 @@ def main() -> int:
             m["wiki_main_namespace_pages"] -= 1
             if not r["redirect"]:
                 m["wiki_main_articles_excluding_redirects"] -= 1
-    mf.write_text(json.dumps(m, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    staged[mf] = (json.dumps(m, indent=2, ensure_ascii=False) + "\n").encode()
 
     ex = REF / "exclusions.json"
     log = json.loads(ex.read_text(encoding="utf-8")) if ex.exists() else []
@@ -122,7 +140,8 @@ def main() -> int:
                                        "timestamp", "text_sha256", "length_bytes",
                                        "source_url", "revision_url")}
                    | {"reason": a.reason, "record": a.record})
-    ex.write_text(json.dumps(log, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    staged[ex] = (json.dumps(log, indent=2, ensure_ascii=False) + "\n").encode()
+    commit(staged)
     print(f"excluded {len(excluded)}: {', '.join(sorted(ids))}")
     return 0
 

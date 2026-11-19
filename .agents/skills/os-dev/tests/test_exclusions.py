@@ -38,3 +38,60 @@ class Exclusions(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class ExcludeScript(unittest.TestCase):
+    def _copy(self, tmp):
+        dst = Path(tmp) / "os-dev"
+        shutil.copytree(ROOT, dst, ignore=shutil.ignore_patterns("__pycache__", "book.pdf"))
+        return dst
+
+    def _module(self, root):
+        spec = importlib.util.spec_from_file_location("exclude_sources_copy", root / "scripts/exclude_sources.py")
+        mod = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(mod)
+        return mod
+
+    def _target(self, root):
+        rows = json.loads((root / "references/source-index.json").read_text())
+        return next(r for r in rows if r["kind"] == "wiki" and r["local_path"].endswith("wiki-02.md"))
+
+    def test_exclusion_keeps_remaining_hashes_valid(self):
+        import hashlib, sys
+        with tempfile.TemporaryDirectory() as tmp:
+            root = self._copy(tmp)
+            target = self._target(root)
+            mod = self._module(root)
+            sys.argv = ["x", "--reason", "test", "--record", "none", target["source_id"]]
+            self.assertEqual(mod.main(), 0)
+            rows = json.loads((root / "references/source-index.json").read_text())
+            self.assertNotIn(target["source_id"], {r["source_id"] for r in rows})
+            for r in rows:
+                if r["local_path"].endswith("wiki-02.md"):
+                    data = (root / r["local_path"]).read_bytes()
+                    block = data[r["start_byte"]:r["start_byte"] + r["length_bytes"]]
+                    self.assertEqual(hashlib.sha256(block).hexdigest(), r["text_sha256"])
+
+    def test_failed_write_restores_every_file(self):
+        import sys
+        with tempfile.TemporaryDirectory() as tmp:
+            root = self._copy(tmp)
+            target = self._target(root)
+            before = {p: p.read_bytes() for p in (root / "references").rglob("*") if p.is_file()}
+            mod = self._module(root)
+            real = Path.write_bytes
+
+            def failing(self, data):
+                if self.name == "source-manifest.json":
+                    raise OSError("simulated write failure")
+                return real(self, data)
+
+            sys.argv = ["x", "--reason", "test", "--record", "none", target["source_id"]]
+            Path.write_bytes = failing
+            try:
+                with self.assertRaises(OSError):
+                    mod.main()
+            finally:
+                Path.write_bytes = real
+            after = {p: p.read_bytes() for p in (root / "references").rglob("*") if p.is_file()}
+            self.assertEqual(before, after)
