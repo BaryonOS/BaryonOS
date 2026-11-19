@@ -1,5 +1,14 @@
 # Current project status
 
+## NEXT AGENT HANDOFF — B05-T2 delivery — 18 November 2026
+
+**Source:** `4517279e819314fc226ec8b34fec2e9d7a3a3890`, `codex/b05-exhaustive-revocation`.
+**Delivered:** Exhaustive host test over7^5 words,19607 nonempty prefixes, three processes: creation, restricted delegation, queued transfer, receive, close, revoke and amplification attempts. Independent lifetime/right/generation model; explicit regrant after revoke stays valid. Targeted test/Clippy/fmt exit0; isolated revoke-marking mutant fails101 at stale handle assertion.
+**Checks:** executed targeted commands and raw exit codes are in the
+[exact command/log receipt](roadmap-pipeline/receipts/B05-T2.json).
+Lead source/diff review completed; no duplicate matrix. Progress **41 → 41/100**.
+**Limits:** Bounded five-step host exploration only, not unbounded verification/native acceptance/external human audit. Production engine unchanged. N04-T1 draftPR380 remains BLOCKED on native throughput; optional unsupported IPC wait removed. Score41/100 unchanged.
+
 ## NEXT AGENT HANDOFF — B04-T2 delivery — 18 November 2026
 
 **Source:** `2b47d4ffb72f885686790885aec97f7a28c3c05c`, `codex/b04-repro-check`.
@@ -82,6 +91,8 @@ delivery branches and Claude S09/UI remain untouched. Unsafe unattended hold act
 slice from this ledger; no waiting for integration. Prior delivery checkpoints retained.
 
 ## Retained checkpoint — unified governance implementation — 18 November 2026
+
+
 
 
 

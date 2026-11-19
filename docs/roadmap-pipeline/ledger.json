@@ -470,7 +470,7 @@
       "criterion": "N04",
       "milestone": "M8",
       "executor": "worker",
-      "status": "ready",
+      "status": "blocked",
       "native": true,
       "title": "Native full TCP and bounded UDP listener sweep before and after revoke",
       "goal": "Extend the native network-service revoke case so the peer sweeps all 65,535 guest TCP ports and a documented bounded set of UDP ports before and after revocation; the guest must answer only with exact RSTs, never a SYN-ACK or UDP payload; bounded frame and time budget for the case.",
@@ -505,7 +505,22 @@
       "evidence_level": "native-QEMU (TCG)",
       "rollback": "Revert the commit.",
       "next": "N04-T2 issuer and delegation contract.",
-      "history": []
+      "history": [
+        {
+          "event": "active",
+          "at": "2026-11-18T21:50:07.067760+00:00",
+          "reason": "Bounded full native TCP/UDP refusal sweep; GraphQL open PR files show no overlap. Keep exact RST and zero payload negatives; no production issuer changes."
+        },
+        {
+          "event": "blocked",
+          "at": "2026-11-18T22:05:48.497612+00:00",
+          "source_commit": "5acd07961bd12d389987fc2251f4f7834faae97d",
+          "reason": "Full streaming sweep host prototype passes32 tests; native full sweep not demonstrated within finite budget. Unsupported optional IPC wait removed; no feature/rights activation. Continue B05-T2. Preserved in draft PR380."
+        }
+      ],
+      "source_commit": "5acd07961bd12d389987fc2251f4f7834faae97d",
+      "receipt": null,
+      "blocker": "Before optional timed-wait experiment, full sweep measured1540input frames over6.989656652s (median4.513ms per input, ~220RST/s), peer healthy; appB failed step32 at8.375s. This extrapolates to about591s for131070RSTs, beyond180s. Required native full-port acceptance remains open. Existing revoke feature lacks ipc-wait; optional wait experiment failed POLICYstep3 and has been fully removed without enabling new syscall/feature."
     },
     {
       "id": "B02-T1",
@@ -554,7 +569,7 @@
       "criterion": "B05",
       "milestone": "M8",
       "executor": "worker",
-      "status": "ready",
+      "status": "verified",
       "title": "Bounded exhaustive revocation model test over capability-core",
       "goal": "Add crates/capability-core/tests/exhaustive_revocation.rs: enumerate bounded sequences of create_endpoint, send/transfer, close and revoke across two or three processes; check no use of a stale handle after revoke, no rights amplification and monotonic generations.",
       "why_now": "B05 requires machine-checked invariants; this is offline and CI-covered.",
@@ -580,7 +595,21 @@
       "evidence_level": "host",
       "rollback": "Revert the commit.",
       "next": "B05-T1 review scope packet.",
-      "history": []
+      "history": [
+        {
+          "event": "active",
+          "at": "2026-11-18T22:03:02.510481+00:00",
+          "reason": "Sole Codex writer; new isolated worktree. One test file only; production authority engine unchanged. Exhaust all words of a fixed bounded action alphabet over three registered processes, independent stale/right/generation observations. Native acceptance and human audit not claimed."
+        },
+        {
+          "at": "2026-11-18T22:06:51.642281+00:00",
+          "event": "verified",
+          "source_commit": "4517279e819314fc226ec8b34fec2e9d7a3a3890",
+          "reason": "Exhaustive host test over7^5 words,19607 nonempty prefixes, three processes: creation, restricted delegation, queued transfer, receive, close, revoke and amplification attempts. Independent lifetime/right/generation model; explicit regrant after revoke stays valid. Targeted test/Clippy/fmt exit0; isolated revoke-marking mutant fails101 at stale handle assertion. Bounded five-step host exploration only, not unbounded verification/native acceptance/external human audit. Production engine unchanged. N04-T1 draftPR380 remains BLOCKED on native throughput; optional unsupported IPC wait removed. Score41/100 unchanged."
+        }
+      ],
+      "source_commit": "4517279e819314fc226ec8b34fec2e9d7a3a3890",
+      "receipt": "docs/roadmap-pipeline/receipts/B05-T2.json"
     },
     {
       "id": "U05-T1",
