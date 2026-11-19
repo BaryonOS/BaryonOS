@@ -2,7 +2,11 @@
 
 **Status: approved by the project owner on 19 November 2026 (bounds B1–B6
 and the write set below), in the S09 session, verbatim: "Yes, approve
-B1–B6". Implementation in progress on branch `claude/s09-independent-recovery`.**
+B1–B6". Implemented on branch `claude/s09-independent-recovery` (commits `ad12dfab`
+to `13674aac`); the local QEMU gate passed all 22 stages on 19 November 2026
+([evidence](../verification/s09-archive/dual-disk-native-20261119/README.md)).
+The two workflow pins that must equal `len(PLAN)` (now 22) are lead-owned and
+not yet updated.**
 The approval covers a test fixture only. It grants no product capability and
 changes no product security contract. It does not decide D1–D5 of
 [S09-BACKUP-DESTINATION-PROPOSAL.md](S09-BACKUP-DESTINATION-PROPOSAL.md),
@@ -19,8 +23,10 @@ slice"). A second disk is not a fixture-only change. At main `8f970866`:
 - `drivers/virtio-blk/src/lib.rs` drives exactly one PCI function, QEMU
   `00:05.0` (`const BDF: u32 = 5 << 11`). Its `unsafe` port-I/O blocks are
   justified by that fixed address ("exact fixed PCI BDF", "no access to the
-  boot ESP's BDF"). Six kernel profiles call `discover()`: `m5`, `m6`, `m6b`,
-  `update`, `volume` and the legacy `m6`.
+  boot ESP's BDF"). Six modules of the `kernel/src/m2/m3` tree call
+  `discover()`: `m5`, `m6`, `m6b`, `m6c`, `update` and `volume`. The
+  `kernel/src/m2_legacy/m3` tree has six callers of its own, in modules
+  with the same names.
 - `kernel/src/m2/m3/volume.rs` keeps one `Device` and one DMA pool, and
   `device_call` refuses every block capability whose `scope.device` is not 0
   (line 656).
@@ -75,8 +81,13 @@ released write set.
 | Power cut | QEMU killed during an export over an older archive; after a cold boot, `verify` accepts only the older or the complete new archive, otherwise `Corrupt` |
 | Wrong device | Portal granted a range of disk 0 instead: `verify` returns `Corrupt` |
 
-The last three rows already have a host model (next section). Native
-evidence still requires a QEMU run.
+Two of the last three rows, "Power cut" and "Wrong device", already have a
+host model (next section). "Scope and escape" has no host test. All three
+need QEMU evidence: the native stages `archive-disk-export` (scope
+refusals and escape probes, also counted in every other archive-disk
+stage), `archive-disk-cut` with `archive-disk-verify` (power cut) and
+`archive-disk-wrong` (wrong device) provide it; see
+[docs/verification/s09-archive/dual-disk-native-20261119/](../verification/s09-archive/dual-disk-native-20261119/README.md).
 
 ## Already shown on the host (no decision needed)
 

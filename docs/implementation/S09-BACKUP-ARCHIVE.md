@@ -115,6 +115,19 @@ The native step needs a second kernel-owned virtio-blk device. That is a
 device-ownership change and is requested in
 [S09-DUAL-DISK-FIXTURE-REQUEST.md](S09-DUAL-DISK-FIXTURE-REQUEST.md).
 
+**Native second disk (19 November 2026, local QEMU gate passed).** Under the
+approved bounds the fixture now has a test-only second virtio-blk disk at
+`00:06.0` (kernel feature `test-volume-archive-device`, driver enum
+`Function`). Seven stages run on it: `archive-disk-export` (disk 0
+byte-identical, disk 1 parsed independently and equal to the volume),
+`archive-disk-absent` (`NoDevice`), `archive-disk-small` (`Full`, nothing past
+the scope), `archive-disk-restore` (blank disk 0, disk 1 read-only),
+`archive-disk-wrong` (device-0 range granted: `Corrupt`), and
+`archive-disk-cut` followed by `archive-disk-verify` (kill after 20 archive
+writes over an older archive; the torn result is `Corrupt`). Evidence:
+[verification/s09-archive/dual-disk-native-20261119/](../verification/s09-archive/dual-disk-native-20261119/README.md).
+This is fixture evidence; D1–D5, the user task and the encrypted variant stay open.
+
 Open for S09/FR-O06: native backup portal with a target volume and capability
 chosen by the user, native QEMU trial with a second virtual disk,
 user export to common formats (e.g. plain text/image per
@@ -179,7 +192,7 @@ without this ordering (run 2) failed it with a Busy status instead of
 `Corrupt` (step 740).
 
 **Runner stages** (`tools/run_volume.py`, plan of `tools/test_volume.py`, now
-15 QEMU runs): `archive-export` on the image left by `recover` (volume mounted
+22 QEMU runs, including the seven second-disk stages below): `archive-export` on the image left by `recover` (volume mounted
 read-only, every byte outside the archive range unchanged, zero padding, no
 write past the archive, writes = ⌈length/512⌉); `archive-restore` and
 `archive-corrupt` on a fresh image that holds only the copied archive range
