@@ -21,6 +21,17 @@ close S09.
   `9302225a5d04564e57b1cacb80b479763acaf1398ce9738d3fb4555672a0f4ca`,
   22/22 passed, log `build/gate-dualdisk-7bd540bc.log`. All disk sha256
   values below were the same in all three runs.
+- Re-run after the reserved-byte check on the new header and collection
+  records at commit `b6bb2cab`: fingerprint
+  `552db03a6f78b5b10f5afea14209a6f36317d0d38e918494bc1e106cb3c49379`,
+  22/22 passed, exit 0, log `build/gate-dualdisk-reserved.log`; the cut
+  stage again classified the archive disk as `corrupt`.
+- Hosted: `volume-acceptance.yml` job `m6e-native-volume`, run
+  [44495342426](https://github.com/BaryonOS/BaryonOS/actions/runs/44495342426)
+  at `b6bb2cab`: `M6e gate passed=True stages=22`, all seven second-disk
+  stages passed, job time 6 min 21 s (timeout 40 min).
+- `host-quality` fails only on the stale workflow stage-count pins; see
+  [S09-WORKFLOW-PIN-INTEGRATION-REQUEST.md](../../../implementation/S09-WORKFLOW-PIN-INTEGRATION-REQUEST.md).
 - QEMU 10.2.1, machine `pc-q35-10.0`, `tcg,thread=single`, one CPU, 256 MiB.
 
 ## Commands and exit codes
@@ -30,7 +41,7 @@ close S09.
 | `python3 -B tools/test_volume.py` | 0 | `M6e gate passed=True stages=22`, `build/volume-gate.json` status `completed` |
 | (gate host step) `cargo +1.100.0 test --locked -p volume-core` | 0 | |
 | (gate host step) `cargo +1.100.0 test --locked --manifest-path sdk/Cargo.toml -p nieuw-os-sdk-runtime` | 0 | |
-| (gate host step) `python3 -B -m unittest discover -s tests -p 'test_volume_*.py'` | 0 | 65 tests, OK (12 in `tests/test_volume_disk1.py`; at `7bd540bc`) |
+| (gate host step) `python3 -B -m unittest discover -s tests -p 'test_volume_*.py'` | 0 | 66 tests, OK (13 in `tests/test_volume_disk1.py`; at `b6bb2cab`) |
 | `cargo +1.100.0 test --locked -p virtio-blk-driver` | 0 | 1 new test: only `5<<11` and `6<<11` are reachable |
 | `cargo +1.100.0 clippy --locked -p virtio-blk-driver --all-targets -- -D warnings` | 0 | |
 | `cargo +1.100.0 fmt --all -- --check`, same for `--manifest-path sdk/Cargo.toml` | 0 | re-run at the final code commit |
