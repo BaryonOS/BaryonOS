@@ -1,5 +1,12 @@
 # Changes
 
+## 2.0.3 — 19 November 2026
+
+- Excluded five records that embed third-party text with unknown terms
+  (W001553, W001845, W002332, W003703, W003774), following the individual
+  review in `docs/verification/osdev-corpus-rights-20261119/FLAGGED-REVIEW.md`.
+  3,099 source records remain.
+
 ## 2.0.2 — 19 November 2026
 
 - Excluded 27 further records whose revision history contains an explicit import
