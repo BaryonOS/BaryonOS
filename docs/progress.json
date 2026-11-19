@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-18",
-    "source_commit": "e3825e58dfd429f982f46386d71f9041d27ed113",
+    "source_commit": "263838a108c28e5f11928de031fb446ca22e54e5",
     "assessment_basis": "parent_commit",
-    "branch": "codex/b06-lp-matrix",
-    "task": "B06-T1: Working31-ID LP reference checker and residual list; strict IDs/statuses, contained canonical paths, SHA256 and archived source-bound QEMU record checks for native tier. Four grouped adversarial tests and actual --check pass; verified bytes parsed once. No historic evidence audit or acceptance promotion.",
+    "branch": "codex/h06-hardware-matrix",
+    "task": "H06-T1: Hardware matrix checker covers3 profiles/33 device rows, explicit driver absence and DMA posture, canonical existing references, target/device/source-bound H or native evidence for support, separate evidence for VT-d containment; xHCI stays pending. Four adversarial test groups, actual --check and compileall pass.",
     "previous_score": 41,
-    "summary": "41/100 unchanged. Working31-ID LP reference checker and residual list; strict IDs/statuses, contained canonical paths, SHA256 and archived source-bound QEMU record checks for native tier. Four grouped adversarial tests and actual --check pass; verified bytes parsed once. No historic evidence audit or acceptance promotion. Structural mapping only, not evidence authenticity/privacy acceptance. All31 complete-scenario rows remain explicitly unmapped; existing partial evidence is not discarded. B02 partial native slice PR382 and N04 blocked prototype PR380 preserved. No OS code change/native rerun; score41/100 unchanged. Integration/Claude ownership and execution hold preserved."
+    "summary": "41/100 unchanged. Hardware matrix checker covers3 profiles/33 device rows, explicit driver absence and DMA posture, canonical existing references, target/device/source-bound H or native evidence for support, separate evidence for VT-d containment; xHCI stays pending. Four adversarial test groups, actual --check and compileall pass. Inventory/reference validation only, not evidence authenticity/device acceptance. Physical target unselected; no row supported or VT-d contained. No hardware/native rerun for unchanged OS code; existing partial driver evidence preserved. Score41/100 unchanged. Integration/Claude ownership and execution hold preserved."
   },
   "tracks": [
     {

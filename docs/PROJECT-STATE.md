@@ -1,5 +1,14 @@
 # Current project status
 
+## NEXT AGENT HANDOFF — H06-T1 delivery — 18 November 2026
+
+**Source:** `ace4f5a15ff6b771e7d14d9c416076a1ab65816d`, `codex/h06-hardware-matrix`.
+**Delivered:** Hardware matrix checker covers3 profiles/33 device rows, explicit driver absence and DMA posture, canonical existing references, target/device/source-bound H or native evidence for support, separate evidence for VT-d containment; xHCI stays pending. Four adversarial test groups, actual --check and compileall pass.
+**Checks:** executed targeted commands and raw exit codes are in the
+[exact command/log receipt](roadmap-pipeline/receipts/H06-T1.json).
+Lead source/diff review completed; no duplicate matrix. Progress **41 → 41/100**.
+**Limits:** Inventory/reference validation only, not evidence authenticity/device acceptance. Physical target unselected; no row supported or VT-d contained. No hardware/native rerun for unchanged OS code; existing partial driver evidence preserved. Score41/100 unchanged.
+
 ## NEXT AGENT HANDOFF — B06-T1 delivery — 18 November 2026
 
 **Source:** `f0b99f764c20f8c894259e78b63ceaa6e44da7b2`, `codex/b06-lp-matrix`.
@@ -122,6 +131,8 @@ delivery branches and Claude S09/UI remain untouched. Unsafe unattended hold act
 slice from this ledger; no waiting for integration. Prior delivery checkpoints retained.
 
 ## Retained checkpoint — unified governance implementation — 18 November 2026
+
+
 
 
 

@@ -1,0 +1,257 @@
+{
+  "schema": 1,
+  "profiles": [
+    {
+      "id": "VM-FR",
+      "kind": "qemu",
+      "target": "pc-q35-8.2/OVMF",
+      "devices": [
+        {
+          "id": "gop",
+          "driver_path": "kernel/src/framebuffer.rs",
+          "dma_posture": "trusted kernel transport",
+          "status": "implemented",
+          "evidence": []
+        },
+        {
+          "id": "ps2",
+          "driver_path": "drivers/ps2/src/lib.rs",
+          "dma_posture": "trusted kernel transport",
+          "status": "implemented",
+          "evidence": []
+        },
+        {
+          "id": "xhci",
+          "driver_path": "drivers/xhci/src/lib.rs",
+          "dma_posture": "unsupported",
+          "status": "pending",
+          "evidence": []
+        },
+        {
+          "id": "nvme",
+          "driver_path": null,
+          "dma_posture": "unsupported",
+          "status": "unsupported",
+          "evidence": []
+        },
+        {
+          "id": "ahci",
+          "driver_path": null,
+          "dma_posture": "unsupported",
+          "status": "unsupported",
+          "evidence": []
+        },
+        {
+          "id": "e1000e",
+          "driver_path": null,
+          "dma_posture": "unsupported",
+          "status": "unsupported",
+          "evidence": []
+        },
+        {
+          "id": "hda",
+          "driver_path": null,
+          "dma_posture": "unsupported",
+          "status": "unsupported",
+          "evidence": []
+        },
+        {
+          "id": "acpi",
+          "driver_path": "drivers/acpi-power/src/lib.rs",
+          "dma_posture": "trusted kernel transport",
+          "status": "implemented",
+          "evidence": []
+        },
+        {
+          "id": "rng",
+          "driver_path": "drivers/virtio-rng/src/lib.rs",
+          "dma_posture": "trusted kernel transport",
+          "status": "implemented",
+          "evidence": []
+        },
+        {
+          "id": "vtd",
+          "driver_path": "kernel/src/m2/iommu.rs",
+          "dma_posture": "unsupported",
+          "status": "pending",
+          "evidence": []
+        },
+        {
+          "id": "virtio-blk",
+          "driver_path": "drivers/virtio-blk/src/lib.rs",
+          "dma_posture": "trusted kernel transport",
+          "status": "implemented",
+          "evidence": []
+        },
+        {
+          "id": "virtio-net",
+          "driver_path": "drivers/virtio-net/src/lib.rs",
+          "dma_posture": "trusted kernel transport",
+          "status": "implemented",
+          "evidence": []
+        },
+        {
+          "id": "virtio-snd",
+          "driver_path": "drivers/virtio-snd/src/lib.rs",
+          "dma_posture": "trusted kernel transport",
+          "status": "implemented",
+          "evidence": []
+        }
+      ]
+    },
+    {
+      "id": "VM-VMW",
+      "kind": "vmware",
+      "target": "VMware Workstation Pro17/UEFI trial",
+      "devices": [
+        {
+          "id": "gop",
+          "driver_path": "kernel/src/framebuffer.rs",
+          "dma_posture": "unsupported",
+          "status": "pending",
+          "evidence": []
+        },
+        {
+          "id": "ps2",
+          "driver_path": "drivers/ps2/src/lib.rs",
+          "dma_posture": "unsupported",
+          "status": "pending",
+          "evidence": []
+        },
+        {
+          "id": "xhci",
+          "driver_path": "drivers/xhci/src/lib.rs",
+          "dma_posture": "unsupported",
+          "status": "pending",
+          "evidence": []
+        },
+        {
+          "id": "nvme",
+          "driver_path": null,
+          "dma_posture": "unsupported",
+          "status": "unsupported",
+          "evidence": []
+        },
+        {
+          "id": "ahci",
+          "driver_path": null,
+          "dma_posture": "unsupported",
+          "status": "unsupported",
+          "evidence": []
+        },
+        {
+          "id": "e1000e",
+          "driver_path": null,
+          "dma_posture": "unsupported",
+          "status": "unsupported",
+          "evidence": []
+        },
+        {
+          "id": "hda",
+          "driver_path": null,
+          "dma_posture": "unsupported",
+          "status": "unsupported",
+          "evidence": []
+        },
+        {
+          "id": "acpi",
+          "driver_path": "drivers/acpi-power/src/lib.rs",
+          "dma_posture": "unsupported",
+          "status": "pending",
+          "evidence": []
+        },
+        {
+          "id": "rng",
+          "driver_path": "drivers/virtio-rng/src/lib.rs",
+          "dma_posture": "unsupported",
+          "status": "pending",
+          "evidence": []
+        },
+        {
+          "id": "vtd",
+          "driver_path": "kernel/src/m2/iommu.rs",
+          "dma_posture": "unsupported",
+          "status": "pending",
+          "evidence": []
+        }
+      ]
+    },
+    {
+      "id": "HW-FR",
+      "kind": "hardware",
+      "target": null,
+      "devices": [
+        {
+          "id": "gop",
+          "driver_path": "kernel/src/framebuffer.rs",
+          "dma_posture": "unsupported",
+          "status": "pending",
+          "evidence": []
+        },
+        {
+          "id": "ps2",
+          "driver_path": "drivers/ps2/src/lib.rs",
+          "dma_posture": "unsupported",
+          "status": "pending",
+          "evidence": []
+        },
+        {
+          "id": "xhci",
+          "driver_path": "drivers/xhci/src/lib.rs",
+          "dma_posture": "unsupported",
+          "status": "pending",
+          "evidence": []
+        },
+        {
+          "id": "nvme",
+          "driver_path": null,
+          "dma_posture": "unsupported",
+          "status": "unsupported",
+          "evidence": []
+        },
+        {
+          "id": "ahci",
+          "driver_path": null,
+          "dma_posture": "unsupported",
+          "status": "unsupported",
+          "evidence": []
+        },
+        {
+          "id": "e1000e",
+          "driver_path": null,
+          "dma_posture": "unsupported",
+          "status": "unsupported",
+          "evidence": []
+        },
+        {
+          "id": "hda",
+          "driver_path": null,
+          "dma_posture": "unsupported",
+          "status": "unsupported",
+          "evidence": []
+        },
+        {
+          "id": "acpi",
+          "driver_path": "drivers/acpi-power/src/lib.rs",
+          "dma_posture": "unsupported",
+          "status": "pending",
+          "evidence": []
+        },
+        {
+          "id": "rng",
+          "driver_path": "drivers/virtio-rng/src/lib.rs",
+          "dma_posture": "unsupported",
+          "status": "pending",
+          "evidence": []
+        },
+        {
+          "id": "vtd",
+          "driver_path": "kernel/src/m2/iommu.rs",
+          "dma_posture": "unsupported",
+          "status": "pending",
+          "evidence": []
+        }
+      ]
+    }
+  ]
+}
