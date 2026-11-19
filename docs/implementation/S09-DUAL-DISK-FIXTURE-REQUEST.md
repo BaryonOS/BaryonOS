@@ -81,7 +81,7 @@ released write set.
 | Cold restore | New VM with a blank disk 0 (source disk gone) and the disk-1 image alone, granted READ only; `verify`, then `restore`; content and metadata byte-exact against the oracle; disk 1 unchanged. **Result:** content, name, length, collection, tags and kind byte-exact; revision as the restore rule assigns it (1, or 2 after metadata), one version, new times; source revisions, history and timestamps NOT preserved (restore spec; owner decision needed to change) |
 | Disk 1 absent | Portal receives a device error; nothing is finalized; the volume is unchanged |
 | Disk 1 too small | `Full`; nothing past the scope is written; `verify` refuses the range |
-| Scope and escape | Portal past-the-end probe and any volume-service access to device 1 are refused and counted |
+| Scope and escape | Portal past-the-end probe and any volume-service access to device 1 are refused and counted. **Result:** the portal probe is refused and counted natively (`SCOPE_REFUSALS`). Volume-service access to device 1 refused and counted: NOT tested natively; the service makes no runtime attempt. Its evidence is the manifest-time `ARCHIVE_ESCAPE` count, the kernel handle probe (`ESCAPE_DENIALS`) and the portal rights without DERIVE/TRANSFER |
 | Power cut | QEMU killed during an export over an older archive; after a cold boot, `verify` accepts only the older or the complete new archive, otherwise `Corrupt` |
 | Wrong device | Portal granted a range of disk 0 instead: `verify` returns `Corrupt` |
 
@@ -91,7 +91,8 @@ need QEMU evidence: the native stages `archive-disk-export` (scope
 refusals, counted in the absent, small, restore and verify stages too),
 `archive-disk-cut` with `archive-disk-verify` (power cut) and
 `archive-disk-wrong` (wrong device) provide it. The volume service makes no
-runtime attempt on device 1. The escape evidence is the manifest-time
+runtime attempt on device 1, so its refusal is not tested natively. The
+escape evidence is the manifest-time
 `ARCHIVE_ESCAPE` count (exactly one new handle, in the portal), a kernel probe
 of the portal's handle value in the service's and slot 2's tables, and the
 portal's rights, which lack DERIVE and TRANSFER, so the handle cannot be

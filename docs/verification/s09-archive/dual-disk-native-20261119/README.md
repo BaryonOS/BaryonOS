@@ -15,8 +15,12 @@ close S09.
   source fingerprint (v3, `tools/common.py:source_hash`)
   `9bc2dff89a7221341d26a87a8fc620c64acedf1b5cccdc0ddab6f7b64275a5b1`,
   identical at start and end, 22/22 passed, log
-  `build/gate-dualdisk-e9fbfb57.log`. All disk sha256 values below were the
-  same in both runs.
+  `build/gate-dualdisk-e9fbfb57.log`. Re-run after the stricter power-cut
+  checks at commit `7bd540bc` (expected new header, records and prefix on
+  disk 1; disk-0 comparison): fingerprint
+  `9302225a5d04564e57b1cacb80b479763acaf1398ce9738d3fb4555672a0f4ca`,
+  22/22 passed, log `build/gate-dualdisk-7bd540bc.log`. All disk sha256
+  values below were the same in all three runs.
 - QEMU 10.2.1, machine `pc-q35-10.0`, `tcg,thread=single`, one CPU, 256 MiB.
 
 ## Commands and exit codes
@@ -26,7 +30,7 @@ close S09.
 | `python3 -B tools/test_volume.py` | 0 | `M6e gate passed=True stages=22`, `build/volume-gate.json` status `completed` |
 | (gate host step) `cargo +1.100.0 test --locked -p volume-core` | 0 | |
 | (gate host step) `cargo +1.100.0 test --locked --manifest-path sdk/Cargo.toml -p nieuw-os-sdk-runtime` | 0 | |
-| (gate host step) `python3 -B -m unittest discover -s tests -p 'test_volume_*.py'` | 0 | 61 tests, OK (8 new in `tests/test_volume_disk1.py`) |
+| (gate host step) `python3 -B -m unittest discover -s tests -p 'test_volume_*.py'` | 0 | 65 tests, OK (12 in `tests/test_volume_disk1.py`; at `7bd540bc`) |
 | `cargo +1.100.0 test --locked -p virtio-blk-driver` | 0 | 1 new test: only `5<<11` and `6<<11` are reachable |
 | `cargo +1.100.0 clippy --locked -p virtio-blk-driver --all-targets -- -D warnings` | 0 | |
 | `cargo +1.100.0 fmt --all -- --check`, same for `--manifest-path sdk/Cargo.toml` | 0 | re-run at the final code commit |
@@ -59,16 +63,27 @@ passing boot with disk 1 also shows that the auto-assigned ESP is not on
 **Power cut, which outcome and why.** The older archive is the guest-written
 export of `archive-disk-export` (sha256 `d75aa5c8…`, 180 sectors). Before the
 new export the portal adds collection 3, so the new header differs (collection
-count and generation). The host requires that sector 0 changed and that no
-sector at or past 20 changed; in this run exactly sectors 0..19 differed: the
-new header over the older body. The host reader refuses it
+count and generation). The host derives the expected new archive from the
+older one (new header, collection records with 3 "Nieuw" added, then the older
+object stream) and requires that sector 0 holds that well-formed v1 header
+(magic, version, seal, one more collection, same objects and content bytes, the
+domain-0 generation of disk 0, stored length +48) and sealed collection
+records, that the changed sectors start at sector 0 and end before sector 20,
+and that they equal the expected new prefix. In this run exactly sectors 0..19
+differed: the new header and records over the older body. Disk 0 is compared
+with its input: same objects, chunks, domain-1 digest and other collections;
+generation and domain-0 clock +1; only collection 3 "Nieuw" newly present at
+revision 1. No disk-0 write counters exist for this stage (the guest stops
+before its summary). The host reader refuses it
 ("content checksum of slot 3 differs"), so neither the older nor a complete new
 archive is present and `Corrupt` is the only correct verdict; the guest's
 verify returned exactly that. That `verify` accepts the other two outcomes
 (older unchanged, complete new) is shown by the Rust host model in
 `services/volume/tests/archive.rs`, not by this native run;
 `tests/test_volume_disk1.py` only shows that the host classifier does not call
-them torn.
+them torn, and that it rejects a corrupted magic alone, a wrong generation or
+collection, a changed sector that is not the new prefix, and a disk-0 change
+beyond the one collection.
 
 ## Evidence lines (kernel serial, per stage)
 
@@ -89,7 +104,11 @@ the stages with a negative verdict (absent, wrong, verify) rely on them.
 
 `ESCAPE_DENIALS` is a kernel probe at manifest time: the portal's handle value,
 looked up in the service's and in slot 2's handle tables, is refused. It is not
-an access the service itself attempted. The service and slot 2 hold no
+an access the service itself attempted: the acceptance row "volume-service
+access to device 1 refused and counted" is NOT tested natively, because the
+service makes no runtime attempt on device 1. Its evidence is this probe, the
+manifest-time count below and the portal's rights, which lack DERIVE and
+TRANSFER. The service and slot 2 hold no
 device-1 handle (counted by the existing `ARCHIVE_ESCAPE` check), and the slot-2
 app's own forged block calls are counted in `VOLUME:APP_DEVICE_DENIALS:`.
 
@@ -109,6 +128,8 @@ app's own forged block calls are counted in `VOLUME:APP_DEVICE_DENIALS:`.
 - One shared Policy for both lanes: a failed device-1 reset leaves it
   quarantined and both lanes refuse further requests (fail closed). No stage
   exercises a device reset.
+- No runtime volume-service access to device 1 is attempted, so its refusal
+  and count are not shown natively (see the escape paragraph above).
 - The wrong-device stage grants the device-0 archive range, as the acceptance
   table asks; this is the one exception to B3's "no device-0 archive range".
 - `archive-disk-cut` prints no counters (the guest stops before the
