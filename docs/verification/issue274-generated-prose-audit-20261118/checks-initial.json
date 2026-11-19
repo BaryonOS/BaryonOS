@@ -1,0 +1,150 @@
+[
+  {
+    "argv": [
+      "python3",
+      "-B",
+      "tools/progress.py",
+      "--check"
+    ],
+    "exit_code": 0,
+    "expected_exit_code": 0,
+    "passed": true,
+    "log": "check-0.log",
+    "log_sha256": "14b305fe38d23ae7244745b59dcbbad1fa41b2ffd4a173070a72a8aca2f3aa5f"
+  },
+  {
+    "argv": [
+      "python3",
+      "-B",
+      "tools/progress.py",
+      "--help"
+    ],
+    "exit_code": 0,
+    "expected_exit_code": 0,
+    "passed": true,
+    "log": "check-1.log",
+    "log_sha256": "75a2e6e898442d18350a8e7948d3e66c0938d0a15977cddccaf2ccaeac6cd9f6"
+  },
+  {
+    "argv": [
+      "python3",
+      "-B",
+      "tools/agent_pipeline.py",
+      "--help"
+    ],
+    "exit_code": 0,
+    "expected_exit_code": 2,
+    "passed": false,
+    "log": "check-2.log",
+    "log_sha256": "fc62fa193ae54d054eefd6ed6bf09ab6cc701ed2032b030115e9a64d56f81952"
+  },
+  {
+    "argv": [
+      "python3",
+      "-B",
+      "tools/roadmap_runner.py",
+      "--help"
+    ],
+    "exit_code": 0,
+    "expected_exit_code": 0,
+    "passed": true,
+    "log": "check-3.log",
+    "log_sha256": "c6fe5de44c9530aaa932e4402e9036da9c9cc10edae34ee3cc37a31ed31e26fb"
+  },
+  {
+    "argv": [
+      "python3",
+      "-B",
+      "tools/agent_gate.py",
+      "--help"
+    ],
+    "exit_code": 0,
+    "expected_exit_code": 0,
+    "passed": true,
+    "log": "check-4.log",
+    "log_sha256": "6128e78710b36061ff96b2a4bb818490d0207ce3d45770ba26507c84cb64c2b8"
+  },
+  {
+    "argv": [
+      "python3",
+      "-B",
+      "tools/project_classification.py",
+      "--help"
+    ],
+    "exit_code": 0,
+    "expected_exit_code": 0,
+    "passed": true,
+    "log": "check-5.log",
+    "log_sha256": "777cb6ed48d6a115082b3cb56b29e531c17069388901f0ea4e7fc49410144729"
+  },
+  {
+    "argv": [
+      "python3",
+      "-B",
+      "tools/tokenguard.py",
+      "--help"
+    ],
+    "exit_code": 0,
+    "expected_exit_code": 0,
+    "passed": true,
+    "log": "check-6.log",
+    "log_sha256": "f7981f997205d42147398b1bb42ae2ab9a2d1021b3733d84ea885d09dcd86fd3"
+  },
+  {
+    "argv": [
+      "python3",
+      "-B",
+      "-m",
+      "unittest",
+      "discover",
+      "-s",
+      "tools/tests",
+      "-p",
+      "test_agent_pipeline.py",
+      "-v"
+    ],
+    "exit_code": 0,
+    "expected_exit_code": 0,
+    "passed": true,
+    "log": "check-7.log",
+    "log_sha256": "7e780f34e2f19496a24fb51889997b4b49ae36d7767bd7a281506a58fe325e46"
+  },
+  {
+    "argv": [
+      "python3",
+      "-B",
+      "-m",
+      "unittest",
+      "discover",
+      "-s",
+      "tools/tests",
+      "-p",
+      "test_roadmap_runner.py",
+      "-v"
+    ],
+    "exit_code": 0,
+    "expected_exit_code": 0,
+    "passed": true,
+    "log": "check-8.log",
+    "log_sha256": "3a73e0419095c62565e55df73fc79838f074cef34d7cd5b6bfdbca03d3d27b47"
+  },
+  {
+    "argv": [
+      "python3",
+      "-B",
+      "-m",
+      "unittest",
+      "discover",
+      "-s",
+      "tests",
+      "-p",
+      "test_project_classification.py",
+      "-v"
+    ],
+    "exit_code": 0,
+    "expected_exit_code": 0,
+    "passed": true,
+    "log": "check-9.log",
+    "log_sha256": "866c3618560535c56e5ffc8056a62eb477c393f821049d0b6cea8d99e99b1a6e"
+  }
+]

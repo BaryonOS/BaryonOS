@@ -159,6 +159,17 @@ fn channel(e: &mut capability_core::Engine, owner: u64, sender: u64) -> (u64, u6
     (receive, send)
 }
 pub(super) fn manifest(s: &mut State) {
+    let cold = match option_env!("NOS_SYSTEM_COLD_CASE") {
+        None => 0,
+        Some("keystate") => 1,
+        Some("record-tag") => 2,
+        Some("swapped-blocks") => 3,
+        Some("withheld-secret") => 4,
+        Some(_) => fail(b"UNKNOWN_COLD_CASE"),
+    };
+    require(cold == 0 || RECOVER, b"COLD_REQUIRES_RECOVER");
+    put(s, INIT, 576, cold);
+    put(s, APP, 576, cold);
     let initial = if cfg!(any(
         feature = "native-system-net",
         feature = "native-system-random",
@@ -503,6 +514,39 @@ pub(super) fn observe_exit(s: &mut State, slot: usize, _counter: u64) {
         slot == INIT || slot == APP || is_net_probe(s, slot),
         b"UNEXPECTED_EXIT",
     );
+    let cold = word(s, slot, 576);
+    if RECOVER && cold != 0 {
+        require((1..=4).contains(&cold), b"COLD_CASE");
+        let expected_slot = if cold == 1 || cold == 4 { INIT } else { APP };
+        require(
+            slot == expected_slot && s.last_event.code == 0 && word(s, slot, 584) == 1,
+            b"COLD_REFUSAL",
+        );
+        let (published, completed, idle) = m5::broker_summary();
+        require(
+            idle && published == completed && published[0] > 0 && published[1..] == [0, 0],
+            b"COLD_DISK",
+        );
+        require(
+            word(s, KEY, 224) == 0
+                && word(s, KEY, 232) == 0
+                && word(s, KEY, 240) == 1
+                && word(s, KEY, 400) == u64::from(expected_slot == APP),
+            b"COLD_CRYPTO",
+        );
+        serial::write(match cold {
+            1 => b"SYSTEM:COLD:REFUSED:keystate\n",
+            2 => b"SYSTEM:COLD:REFUSED:record-tag\n",
+            3 => b"SYSTEM:COLD:REFUSED:swapped-blocks\n",
+            4 => b"SYSTEM:COLD:REFUSED:withheld-secret\n",
+            _ => unreachable!(),
+        });
+        print_number(b"SYSTEM:COLD_PLAINTEXT_REPLIES:", 0);
+        print_number(b"SYSTEM:DISK_READS:", published[0]);
+        print_number(b"SYSTEM:DISK_WRITES:", published[1]);
+        print_number(b"SYSTEM:DISK_FLUSHES:", published[2]);
+        serial::exit(0x10)
+    }
     let mut words = [0; 13];
     for (i, at) in WORDS.iter().enumerate() {
         words[i] = word(s, slot, *at);

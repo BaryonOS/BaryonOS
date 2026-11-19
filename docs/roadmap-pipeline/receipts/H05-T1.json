@@ -1,0 +1,88 @@
+{
+  "task": "H05-T1",
+  "source_commit": "7ca7e182cbda15c2d8525fa99c7a8d9f1052596b",
+  "base": "2eac8ca39ce04753f4f6bef3b09ee9b3610c065f",
+  "level": "host/build",
+  "toolchain": "installed Rust1.90.0 via PATH",
+  "environment": {
+    "CARGO_TARGET_DIR": "build/h05-target"
+  },
+  "checks": [
+    {
+      "argv": [
+        "cargo",
+        "test",
+        "--locked",
+        "--manifest-path",
+        "drivers/acpi-power/Cargo.toml"
+      ],
+      "exit_code": 0,
+      "summary_log": "build/h05-final/4.log",
+      "raw_log": "build/tokenguard/run-f8n5fpmp.log",
+      "sha256": "e81ff9ec0af7d6dc25f9b43bb5e556267f7b7f04611d2e24442d59c516d7c0a6"
+    },
+    {
+      "argv": [
+        "cargo",
+        "clippy",
+        "--locked",
+        "--manifest-path",
+        "drivers/acpi-power/Cargo.toml",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit_code": 0,
+      "summary_log": "build/h05-final/5.log",
+      "raw_log": "build/tokenguard/run-90gtle36.log",
+      "sha256": "d45aa440940685d3297478c4cd25e7bd5244c729ae63c4c1dc71363d0be48eec"
+    },
+    {
+      "argv": [
+        "cargo",
+        "fmt",
+        "--manifest-path",
+        "drivers/acpi-power/Cargo.toml",
+        "--",
+        "--check"
+      ],
+      "exit_code": 0,
+      "summary_log": "build/h05-final/6.log",
+      "raw_log": "build/tokenguard/run-e7gcevdo.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "argv": [
+        "cargo",
+        "build",
+        "--locked",
+        "--release",
+        "--lib",
+        "--target",
+        "x86_64-unknown-none",
+        "--manifest-path",
+        "drivers/acpi-power/Cargo.toml"
+      ],
+      "exit_code": 0,
+      "summary_log": "build/h05-final/7.log",
+      "raw_log": "build/tokenguard/run-xw6h1ho_.log",
+      "sha256": "1d1e07208cb47364ed0e8c967bcb2de5db8ccd54b5c57f255d1b2190062676e0"
+    }
+  ],
+  "tests": {
+    "passed": 36,
+    "ignored": 1,
+    "reason": "Existing external QEMU-table fixture needs NOS_ACPI_* source artifacts; unchanged test not rerun."
+  },
+  "review": "Fresh supervised os_builder and lead source/diff review. Existing S5 unit module byte-identical to base, existing register_mask.rs unchanged. Lead exposed shared validated FACS address resolver for bounded snapshot acquisition, added direct bounds/checksum tests; final checks cover resulting source. Initial builder Clippy identity_op corrected; no gate weakened.",
+  "profile": "FACS versions2/3 only, known reserved fields/flags, exact extents. Contradictory nonzero FADT pointers reject; extended waking vector supersedes legacy. Returned fields grant no sleep/jump/I/O authority.",
+  "not_run": [
+    "Native S3 entry or resume trampoline",
+    "Physical sleep/wake",
+    "External QEMU table fixture",
+    "Thermal/battery",
+    "Human acceptance"
+  ],
+  "score": "41 -> 41/100; H05 open"
+}

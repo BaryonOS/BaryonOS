@@ -649,7 +649,15 @@ fn finish(s: &mut State) -> ! {
         let mask = word(s, 0, 416);
         print_number(b"UPDATE:POLICY_PROBE:COUNT:", count);
         print_number(b"UPDATE:POLICY_PROBE:MASK:", mask);
-        if count != 26 || mask != 67_108_863 || result != 4 || writes != 0 || r.publications[2] != 0
+        // Mirrors update_core::policy_envelope::probe::{CASE_COUNT, EXPECTED_MASK};
+        // the kernel does not depend on update-core.
+        const POLICY_PROBE_CASES: u64 = 34;
+        const POLICY_PROBE_MASK: u64 = (1 << POLICY_PROBE_CASES) - 1;
+        if count != POLICY_PROBE_CASES
+            || mask != POLICY_PROBE_MASK
+            || result != 4
+            || writes != 0
+            || r.publications[2] != 0
         {
             fail(b"POLICY_PROBE");
         }

@@ -136,8 +136,8 @@ def main() -> None:
 
     try:
         report["rustc"] = run(["rustc", "--version"], "rustc").strip()
-        if not report["rustc"].startswith("rustc 1.90.0 "):
-            raise RuntimeError("I01 requires the project's pinned Rust 1.90.0")
+        if not report["rustc"].startswith("rustc 1.100.0 "):
+            raise RuntimeError("I01 requires the project's pinned Rust 1.100.0")
         run(["cargo", "build", "--manifest-path", str(HERE / "Cargo.toml"), "--locked", "--offline",
              "--release", "--features", "baremetal", "--target", "x86_64-unknown-none",
              "--bin", "qsim-native-probe"], "build")

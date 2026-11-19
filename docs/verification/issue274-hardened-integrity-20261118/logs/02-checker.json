@@ -1,0 +1,24 @@
+{
+  "command": [
+    "python3",
+    "-B",
+    "docs/verification/issue274-hardened-integrity-20261118/helpers/check.py",
+    "--root",
+    "/home/simon/projects/BaryonOS-worktrees/pr358-review-fixes",
+    "--ref",
+    "c99c872d2a93372f1a514495153deaba7517bbd7",
+    "--inventory",
+    "docs/verification/issue274-hardened-integrity-20261118/output/coverage.json",
+    "--review",
+    "docs/verification/issue274-hardened-integrity-20261118/inputs/review.json",
+    "--manifest",
+    "docs/verification/issue274-hardened-integrity-20261118/manifest.json",
+    "--wiki",
+    "/home/simon/projects/BaryonOS-worktrees/phase0-combined-local/build/issue274-wiki-readonly",
+    "--marked-node-path",
+    "/home/simon/projects/BaryonOS-worktrees/phase0-combined-local/build/sec356-helper-fix/node/node_modules"
+  ],
+  "exit_code": 0,
+  "stdout_utf8": "{\"community_forms\": 8, \"compatibility_anchors\": 221, \"documents\": 410, \"exit_code\": 0, \"full_issue274_acceptance\": false, \"manifest_files\": 12, \"source_commit\": \"c99c872d2a93372f1a514495153deaba7517bbd7\", \"source_tree\": \"35443a7ea0775de4a1658b43af8144f348af6a62\"}\n",
+  "stderr_utf8": ""
+}

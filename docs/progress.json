@@ -3,7 +3,7 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-18",
-    "source_commit": "f0b99f764c20f8c894259e78b63ceaa6e44da7b2",
+    "source_commit": "e3825e58dfd429f982f46386d71f9041d27ed113",
     "assessment_basis": "parent_commit",
     "branch": "codex/b06-lp-matrix",
     "task": "B06-T1: Working31-ID LP reference checker and residual list; strict IDs/statuses, contained canonical paths, SHA256 and archived source-bound QEMU record checks for native tier. Four grouped adversarial tests and actual --check pass; verified bytes parsed once. No historic evidence audit or acceptance promotion.",
