@@ -123,7 +123,7 @@ decision point.
 | Level | What is preserved | Volume change | Assessment |
 |---|---|---|---|
 | **L1 — history replay** | content, names and order of all retained versions, tags, kind, collections; source identifiers preserved **in the archive and in the restore report only** | none (client-side restore mode, existing WRITE/META/COLLECTION ops) | smallest; never relabels a destination value as a source value |
-| **L2 — recorded provenance** | L1 plus immutable `origin_revision`, `origin_created`, `origin_modified` per object, `origin_revision` per version and per collection, stored in the destination table and returned by STAT | table v3 (fields in currently reserved-zero bytes, e.g. head sector bytes 280..488, `table.rs:256-259`), a changed history-version invariant (3.2), STAT wire extension, new INSTALL operation | preserves source identifiers without touching live clocks; reviewable format and invariant change |
+| **L2 — recorded provenance** | L1 plus immutable `origin_revision`, `origin_created`, `origin_modified` per object, `origin_revision` per version and per collection, stored in the destination table and returned by STAT (objects, versions) and a proposed COLLECTION_STAT extension (collections, 3.3) | table v3 (fields in currently reserved-zero bytes, e.g. head sector bytes 280..488, `table.rs:256-259`), a changed history-version invariant (3.2), STAT wire extension, COLLECTION_STAT extension, new INSTALL operation | preserves source identifiers without touching live clocks; reviewable format and invariant change |
 | **L3 — live identity** | live destination revisions and stamps equal source values | per-domain clock base in the table header, changed clock-sum and recovery rules | **not recommended**: alters the crash-recovery invariant and the cross-domain stamp property tested by `stamps_do_not_reveal_other_domain_commits` (`tests/history.rs:391`) |
 
 ### 3.2 Restore contract changes (native mode, L1 then L2)
@@ -205,10 +205,27 @@ decision point.
   archived tombstone the final DELETE when the slot is still present with the
   archived versions and default metadata (DELETE resets metadata,
   `service.rs:684-692`, so a present slot with non-default metadata is a
-  conflict). This is safe because the versions prove that the slot holds
-  exactly the replayed content, and META or DELETE then moves it to the
-  archived state without touching content; any other metadata difference
-  was not produced by this restore and is a conflict. Under L2 the single
+  conflict). Under the ownership control below, the versions prove that the
+  slot holds exactly the replayed content, and META or DELETE then moves it to
+  the archived state without touching content; any other metadata difference
+  was not produced by this restore and is a conflict.
+  **Ownership control (required for the exception; conditional on R3, still
+  open).** Matching versions prove content, not owner: another writer in the
+  same domain could have produced identical versions with default metadata.
+  The exception therefore applies only if the domain stays exclusive to the
+  native restore from its start until it reports completion, including the
+  interval between an interruption and the rerun. One control suffices:
+  (a) the native restore holds the only write grant to that domain, which is
+  possible only under the R3 option "never-used domain" with a domain that no
+  other process can write until completion; or (b) a durable per-slot
+  restore-ownership record, written with the first replayed version and
+  verified before META or DELETE, which needs a table change. Neither control
+  exists on `main` and neither is specified here: how an exclusive write grant
+  is issued and kept across an interruption, or the record format, is an open
+  item (section 6). Without a verified control, and always under the R3 option
+  "conflict-free slots of a used domain", the exception does not apply: a
+  version match with a metadata difference is a conflict, and recovery is a
+  new native restore into a fresh domain. Under L2 the single
   INSTALL commit writes metadata with the versions, so a version match with a
   metadata difference is always a conflict. History names are compared through
   the extension proposed under 3.3 for every slot, present or tombstone, since
@@ -260,7 +277,15 @@ Indicative layout; sizes are proposals, not decided:
   STAT variant with a selector that, for the caller's own domain only,
   returns `present`, `history_count` and, per history version, revision,
   length, content checksum and name, for present and non-present slots
-  alike. The exporter uses it for the history names of present objects and for every
+  alike; under L2 it also returns, for present and non-present slots alike,
+  the object `origin_revision`, `origin_created` and `origin_modified` and,
+  per retained version, its `origin_revision`. A collection's L2
+  `origin_revision` is returned by no operation on `main`: COLLECTION_STAT
+  replies with revision, `request_id`, presence and name only
+  (`service.rs:724-735`, `client.rs:206-215` at `8a7a3594`). If the L2 resume
+  comparison includes collection provenance, a proposed COLLECTION_STAT
+  extension (own domain only, reviewed with the STAT variant) returns it. The
+  exporter uses the STAT variant for the history names of present objects and for every
   tombstone version, and the resume comparison under 3.2 uses it for the
   history names of every slot and for all version fields of a tombstone slot. It discloses only the
   caller's own retained history; whether that is acceptable after a DELETE
@@ -312,7 +337,8 @@ byte-identical at the same position, which `Entry::validate` already permits
 
 ## 4. Recommendation
 
-Implement **L1**, then decide on **L2**; do not pursue L3. Reviewable steps,
+Implement **L1** first, then a separately reviewed **L2** implementation, as
+selected by owner decision R1 below; L3 is not pursued. Reviewable steps,
 each with its own tests and without changing v1 behaviour:
 
 1. **Spec and oracle first:** v2 byte layout in `S09-BACKUP-ARCHIVE.md` and a
@@ -325,8 +351,13 @@ each with its own tests and without changing v1 behaviour:
    resume rule and a report that keeps source and destination identifiers in
    separate fields.
 6. **Host tests** (section 5), then **native stage** on the PR #396 harness.
-7. **L2 (separate decision):** table v3 provenance fields, INSTALL operation,
-   STAT extension, recovery and crash tests.
+7. **L2 (selected by R1; separately reviewed):** begins only after L1 is
+   completed and independently verified. Before implementation or
+   activation, an explicit review covers the table v3 format and invariants,
+   the crash-recovery invariants, compatibility with v1 and v2 archives and
+   v2 tables, the security boundaries of the new wire reads, and the negative
+   tests. Content: table v3 provenance fields, INSTALL operation, STAT and
+   COLLECTION_STAT extensions (3.3), recovery and crash tests.
 
 **Owner decisions (R1 decided; R2–R4 open):**
 
@@ -389,7 +420,10 @@ fields equal the archive's.
   conflict, never a mixed object;
 - partly replayed L1 object, then a rerun into the same domain: conflict for
   that slot, nothing overwritten; a rerun into a fresh domain completes;
-  PURGE of the partial slot does not make it eligible (revision stays ≠ 0).
+  PURGE of the partial slot does not make it eligible (revision stays ≠ 0);
+- foreign writer in the same domain reproduces the matching versions with
+  default metadata between the interruption and the rerun: conflict, no META
+  or DELETE (unless the ownership control of 3.2 is in place and verified).
 
 **Native QEMU (disposable images only),** reusing the PR #396 (unmerged)
 dual-disk harness, `test-volume-archive-*` kernel features and
@@ -409,3 +443,10 @@ coordinated workflow pin update described in section 4.
 - Whether the READ reply can carry a version name without a format change has
   not been checked; step 2 assumes a wire extension.
 - The PR #396 disk-1 range size is not verified against the derived bound.
+- The L1 resume exception (META or DELETE on a version match, 3.2) depends on
+  an ownership control that does not exist: an exclusive write grant to the
+  restore domain kept across an interruption, or a durable per-slot
+  restore-ownership record. It is conditional on R3 (open); until one control
+  is specified, reviewed and tested, the exception is not applied.
+- No operation on `main` returns a collection's L2 `origin_revision`; the
+  COLLECTION_STAT extension in 3.3 is a proposal only.
