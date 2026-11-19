@@ -3,7 +3,7 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-18",
-    "source_commit": "590e1d4188688434cd4f9aa80bb67302b802f770",
+    "source_commit": "d77421222eca3cff918fd2a80901169de32bb8ad",
     "assessment_basis": "parent_commit",
     "branch": "codex/p03-device-key-contract",
     "task": "P03-T1: PROPOSED two verified enrollment routes using existing maintained TLS port candidate, device-scope revocation/rotation/recovery and explicit owner decisions, mapped to EO10/12 and LP19/20. Six source paths/three declarations and progress checks pass; no authority or crypto adoption.",

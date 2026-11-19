@@ -46,6 +46,14 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0ca88d725a0a943b096803bd34e73a4437208b6077654cc4ecb2947a5f91618d"
 
 [[package]]
+name = "nieuw-os-net-config"
+version = "0.1.0"
+dependencies = [
+ "nieuw-os-net-protocol",
+ "nieuw-os-net-stack",
+]
+
+[[package]]
 name = "nieuw-os-net-protocol"
 version = "0.1.0"
 
@@ -64,6 +72,7 @@ version = "0.1.0"
 name = "nieuw-os-network-service"
 version = "0.1.0"
 dependencies = [
+ "nieuw-os-net-config",
  "nieuw-os-net-protocol",
  "nieuw-os-net-stack",
  "nieuw-os-network-protocol",

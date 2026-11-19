@@ -1,0 +1,55 @@
+{
+  "task": "B04-T2",
+  "source_commit": "2b47d4ffb72f885686790885aec97f7a28c3c05c",
+  "level": "host/build",
+  "checks": [
+    {
+      "argv": [
+        "python3",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tools/tests",
+        "-p",
+        "test_repro_check.py",
+        "-v"
+      ],
+      "exit_code": 0,
+      "raw_log": "build/tokenguard/run-bpbxxchc.log",
+      "sha256": "2e40b283f957d779f2c6a9d29de8b68619860a5724dd887e1727496fe8b95441"
+    },
+    {
+      "argv": [
+        "flock",
+        "-n",
+        "/run/user/1000/baryonos-heavy-native.lock",
+        "python3",
+        "-B",
+        "tools/repro_check.py"
+      ],
+      "exit_code": 1,
+      "allowed_exit_codes": [
+        0,
+        1
+      ],
+      "outcome": "Checker correctly reports differing loader/image_payload; build steps completed. Reproducible-build acceptance is NOT granted.",
+      "raw_log": "build/tokenguard/run-uy_lq6b8.log",
+      "report": "build/b04-real/repro-check/run-7zns7kb9/result.json",
+      "report_sha256": "e6aa83a795bd7aa4fe68d61b327c2919a55d94ad2a5b9fd0bfbd3974b7b4996c",
+      "environment": {
+        "NOS_BUILD_DIR": "build/b04-real",
+        "NOS_TARGET_DIR": "build/b04-bootstrap-target",
+        "CARGO_TARGET_DIR": "build/b04-bootstrap-target",
+        "RUSTUP_TOOLCHAIN": "1.90.0",
+        "PATH_prefix": "/snap/rustup/current/bin"
+      },
+      "source_sha256": "c269dc696ea2dea013c97ff946567268bcdd25f27555c617bd6319fcf49020b0",
+      "sha256": "bae41151d88900eb2bd01d24649bd4e4b56d5d63b73896cb3ed260452b660f21"
+    }
+  ],
+  "limits": "Same-host tooling only; actual build is NOT reproducible here and no B04 acceptance granted. ESP is a virtual-FAT payload directory, not a byte-identical disk image. No QEMU/hardware/independent environment run.",
+  "review": "Lead source/diff review; no native/human acceptance.",
+  "score": "41 -> 41/100"
+}

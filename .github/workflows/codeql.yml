@@ -54,7 +54,15 @@ jobs:
           rustc --version
           cargo --version
 
-      - name: Initialize CodeQL
+      - name: Initialize CodeQL for pre-merge analysis
+        if: github.event_name == 'pull_request' || github.event_name == 'merge_group'
+        uses: github/codeql-action/init@33d7b85da1a04171e211befe2c739303b9a4c066 # v4.39.3
+        with:
+          languages: ${{ matrix.language }}
+          build-mode: none
+
+      - name: Initialize CodeQL with extended queries
+        if: github.event_name != 'pull_request' && github.event_name != 'merge_group'
         uses: github/codeql-action/init@33d7b85da1a04171e211befe2c739303b9a4c066 # v4.39.3
         with:
           languages: ${{ matrix.language }}

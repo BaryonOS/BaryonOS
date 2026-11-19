@@ -1,0 +1,31 @@
+{
+  "task": "P01-T1",
+  "source_commit": "91797da1ce5353465670402d273b4e4a88b660b6",
+  "level": "proposed design/source-reference checks",
+  "checks": [
+    {
+      "argv": [
+        "python3",
+        "-B",
+        "build/task-checks/check-references.py"
+      ],
+      "exit_code": 0,
+      "raw_log": "build/tokenguard/run-nx_ljc8v.log",
+      "sha256": "e7d52f50ee8ccf574f04accf038c7b06dad5f65b663a5672970c46b0b935d8d5"
+    },
+    {
+      "argv": [
+        "python3",
+        "-B",
+        "tools/progress.py",
+        "--check"
+      ],
+      "exit_code": 0,
+      "raw_log": "build/tokenguard/run-j803mw_p.log",
+      "sha256": "14b305fe38d23ae7244745b59dcbbad1fa41b2ffd4a173070a72a8aca2f3aa5f"
+    }
+  ],
+  "limits": "Design only; namespace-to-volume assignment, manifest publication and bounded transport format require owner/security decision. No consumer implementation/crypto or grant change, cold rollback/hardware/human audit acceptance.41/100 unchanged.",
+  "review": "Lead source/diff review; no native/human acceptance.",
+  "score": "41 -> 41/100"
+}

@@ -147,7 +147,10 @@ fn concurrent_writers_preserve_both_sides_without_automatic_overwrite() {
         Error::Conflict
     );
     let writes = disk.0.borrow().writes;
-    assert_eq!(b.reconcile(y, &mut service, OWNER, 1), Ok(State::Conflict));
+    assert_eq!(
+        b.reconcile_latest(y, &mut service, OWNER),
+        Ok(State::Conflict)
+    );
     assert_eq!(b.edit(y).unwrap().local_ciphertext(), b"writer B");
     assert_eq!(
         b.edit(y).unwrap().remote_ciphertext(),
@@ -220,7 +223,7 @@ fn every_storage_error_before_and_after_commit_blocks_replay_until_reconcile() {
                 let mut recovered =
                     Service::recover(disk.clone(), &mut TestEntropy(100), &mut work).unwrap();
                 let observed = restored
-                    .reconcile(slot, &mut recovered, OWNER, u64::from(committed))
+                    .reconcile_latest(slot, &mut recovered, OWNER)
                     .unwrap();
                 assert_eq!(
                     observed,
@@ -656,4 +659,51 @@ fn optimized_maximum_queue_and_recovery_fit_a_64_kib_host_stack() {
         .unwrap()
         .join()
         .unwrap();
+}
+
+#[test]
+fn latest_discovery_rejects_foreign_and_retired_namespaces_without_losing_edits() {
+    for evict in [false, true] {
+        let mut work = Box::new(Workspace::new());
+        let (mut service, disk, ns) = fixture(&mut work, MAX_QUOTA);
+        let mut client = Client::new();
+        let slot = client.enqueue(ns, 0, 0, b"retained ciphertext").unwrap();
+        assert_eq!(
+            client
+                .reconcile_latest(slot, &mut service, WRONG)
+                .unwrap_err()
+                .operation,
+            Error::Denied
+        );
+        assert_eq!(client.edit(slot).unwrap().remote_ciphertext(), None);
+        assert_eq!(
+            client.reconcile_latest(slot, &mut service, OWNER),
+            Ok(State::Ready)
+        );
+        client.prepare(slot, &mut service, OWNER).unwrap();
+        assert_eq!(
+            client
+                .reconcile_latest(slot, &mut service, OWNER)
+                .unwrap_err()
+                .operation,
+            Error::ReopenRequired
+        );
+        client.cancel(slot, &mut service, OWNER).unwrap();
+        if evict {
+            service.evict(ADMIN, &ns).unwrap();
+        } else {
+            service.revoke(ADMIN, &ns).unwrap();
+        }
+        let writes = disk.0.borrow().writes;
+        assert!(client.reconcile_latest(slot, &mut service, OWNER).is_err());
+        assert_eq!(
+            client.edit(slot).unwrap().local_ciphertext(),
+            b"retained ciphertext"
+        );
+        assert_eq!(
+            client.edit(slot).unwrap().remote_ciphertext(),
+            Some((0, &[][..]))
+        );
+        assert_eq!(disk.0.borrow().writes, writes);
+    }
 }
