@@ -5,21 +5,21 @@ The long-lived part is this small deterministic controller, not a chat transcrip
 It owns the task ledger, an exclusive controller lock, a write lease with heartbeat,
 stop/pause files, logs and receipts. For each READY task it
 
-1. checks that the checkout is clean, on the expected branch, with no live worker;
-2. writes an immutable worker brief (task, bounded source pointers, rules, checks);
-3. starts a NEW `claude -p` process with a fresh `--session-id` (never --continue,
-   --resume or --fork-session), an allow-listed environment, `--permission-prompts
-   none`, file edits plus the task's own check commands only, and `--autocompact`;
-4. validates the result itself: changed files against the task's write set,
-   protected paths, the ledger's trusted check commands with raw exit codes, and the
-   progress register; the worker's self-reported JSON is recorded, never trusted;
-5. asks a second fresh, read-only session to verify the diff independently;
-6. commits verified work with a compact receipt, pushes the dedicated branch and
+1. verifies controller Git callbacks and a protected, pinned offline sandbox policy;
+2. stages reviewed regular files into a disposable Git-free source copy;
+3. starts a NEW `claude -p` process inside that sandbox with a fresh `--session-id`
+   (never --continue, --resume or --fork-session), a private home/network namespace,
+   `--permission-prompts none`, scoped file edits and `--autocompact`;
+4. runs every trusted check against the disposable copy with source mounted read-only;
+5. exports only validated regular-file changes in the frozen write set after checks
+   pass, then asks a fresh sandboxed read-only session to verify the candidate;
+6. commits verified bytes without executing them, writes a compact receipt, pushes and
    releases the lease before the next task starts in another fresh session.
 
-It reuses `agent_gate.run_gate` for CI-job gates and `agent_pipeline.is_protected`
-for the rule that agents never edit the files that judge them. It never merges,
-never enables auto-merge and never pushes to any branch but `--branch`.
+It reuses `agent_gate.resolve` for CI-job modelling, the shared `agent_sandbox`
+boundary and `agent_pipeline.is_protected` for the rule that agents never edit the
+files that judge them. It never merges, never enables auto-merge and never pushes
+to any branch but `--branch`.
 Runtime state lives in ignored build/roadmap-pipeline/; the task ledger and
 receipts are versioned under docs/roadmap-pipeline/ so a new container can resume.
 """
@@ -34,7 +34,6 @@ import json
 import os
 import re
 import shutil
-import signal
 import subprocess
 import sys
 import time
@@ -43,13 +42,18 @@ from dataclasses import dataclass
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from agent_gate import FAIL_EXIT as GATE_FAIL_EXIT, resolve as resolve_gate, run_gate  # noqa: E402
-from agent_pipeline import is_protected  # noqa: E402
+from agent_gate import FAIL_EXIT as GATE_FAIL_EXIT, resolve as resolve_gate  # noqa: E402
+from agent_pipeline import TaskError, is_protected, verify_controller  # noqa: E402
+from agent_sandbox import (Sandbox, SandboxError, SandboxResourceExceeded,  # noqa: E402
+                           resource_evidence)
+from common import (agent_source_paths, agent_source_selection_state, agent_source_state,  # noqa: E402
+                    import_agent_changes, stage_agent_source)
 
 ROOT = Path(__file__).resolve().parents[1]
 LEDGER = ROOT / "docs" / "roadmap-pipeline" / "ledger.json"
 RECEIPTS = ROOT / "docs" / "roadmap-pipeline" / "receipts"
 STATE = ROOT / "build" / "roadmap-pipeline"
+SANDBOX_POLICY = ROOT / ".github" / "agent-pipeline.json"
 DEFAULT_BRANCH = "claude/baryonos-autonomous-pipeline-81tujs"
 STATUSES = ("ready", "active", "verified", "blocked", "superseded")
 # Who may execute a task: fresh worker sessions, or only the lead / project owner
@@ -64,13 +68,6 @@ FORBIDDEN_FLAGS = ("--continue", "-c", "--resume", "-r", "--fork-session",
                    "--dangerously-skip-permissions", "--allow-dangerously-skip-permissions",
                    "--bare")
 RATE_LIMIT = re.compile(r"rate.?limit|usage limit|quota|too many requests|\b429\b|overloaded", re.I)
-# Only these variables reach a worker: no GitHub, cloud or session-ingress credentials.
-ENV_ALLOW = ("PATH", "HOME", "SHELL", "LANG", "LC_ALL", "TZ", "USER", "TMPDIR",
-             "HTTPS_PROXY", "https_proxy", "HTTP_PROXY", "http_proxy", "NO_PROXY", "no_proxy",
-             "SSL_CERT_FILE", "NODE_EXTRA_CA_CERTS", "NODE_OPTIONS", "REQUESTS_CA_BUNDLE",
-             "CURL_CA_BUNDLE", "CARGO_HTTP_CAINFO", "GIT_SSL_CAINFO", "PIP_CERT",
-             "RUSTUP_HOME", "CARGO_HOME", "OS_OVMF_CODE", "OS_OVMF_VARS", "MAX_THINKING_TOKENS",
-             "CLAUDE_CODE_AUTO_COMPACT_WINDOW")
 GRAPHIFY_READ = ("graphify_find", "graphify_callers", "graphify_impact", "graphify_tests_for",
                  "graphify_file_neighbors", "graphify_node", "graphify_rank_files",
                  "graphify_trace", "graphify_imports_exports", "query_graph", "recall",
@@ -88,6 +85,8 @@ INIT_ALLOWED_PROBE = "python3 -B tools/progress.py --check"
 INIT_DENY_PROBE = "build/roadmap-pipeline/DENY-PROBE"
 TRAILERS = ("Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>\n"
             "Claude-Session: https://claude.ai/code/session_01TJtT9VANihpE4RzPd4d8su\n")
+SANDBOX_OUTPUT_DIRS = ("build", "target")
+SANDBOX_HOST_KEYS = ("OS_OVMF_CODE", "OS_OVMF_VARS")
 
 WORKER_SCHEMA = {
     "type": "object",
@@ -155,7 +154,6 @@ class Config:
     # task (A02-T1) compacted 18 times in 34 minutes without a single edit. 300k stays a
     # session-scoped fail-safe; the normal end of a session is one completed task.
     autocompact: str = "300000"
-    max_compactions: int = 6
     worker_timeout: int = 90 * 60
     verifier_timeout: int = 30 * 60
     check_timeout: int = 90 * 60
@@ -233,10 +231,32 @@ def parse_porcelain(text: str) -> list[str]:
     return paths
 
 
-def worker_env(source: dict[str, str]) -> dict[str, str]:
-    env = {k: source[k] for k in ENV_ALLOW if k in source}
-    env.update({"DISABLE_AUTOUPDATER": "1", "TERM": "dumb", "NO_COLOR": "1"})
-    return env
+def load_sandbox(path: Path = SANDBOX_POLICY) -> Sandbox:
+    """Load only the protected, complete sandbox policy and verify its runtime."""
+    try:
+        policy = json.loads(path.read_text(encoding="utf-8"))
+        if policy.get("schema") != 2 or not isinstance(policy.get("sandbox"), dict):
+            raise ValueError("sandbox policy schema is not supported")
+        sandbox = Sandbox(policy["sandbox"])
+        sandbox.verify()
+        return sandbox
+    except (OSError, ValueError, json.JSONDecodeError, SandboxError) as error:
+        raise Stop("roadmap execution requires the reviewed isolated runtime: " + str(error)) from error
+
+
+def clear_sandbox_outputs(stage: Path) -> None:
+    """Remove disposable command output before validating the candidate source delta."""
+    for name in SANDBOX_OUTPUT_DIRS:
+        path = stage / name
+        if path.is_symlink() or path.is_file():
+            path.unlink()
+        elif path.exists():
+            shutil.rmtree(path)
+
+
+def staged_changes(before: dict[str, tuple[str, int]], stage: Path) -> list[str]:
+    after = agent_source_state(stage)
+    return sorted(path for path in before.keys() | after.keys() if before.get(path) != after.get(path))
 
 
 def allow_rules(task: dict | None, extra_tools: tuple[str, ...] = ()) -> list[str]:
@@ -341,15 +361,56 @@ def git(*args: str, check: bool = True) -> str:
 
 
 class Controller:
-    def __init__(self, cfg: Config, state: Path = STATE):
+    def __init__(self, cfg: Config, state: Path = STATE, sandbox: Sandbox | None = None):
         self.cfg = cfg
         self.state = state
+        self.sandbox = sandbox
+        self.sandbox_verified = False
         self.lock_file = None
         self.spent = 0.0
         self.run_id = dt.datetime.now().strftime("%Y%m%dT%H%M%S") + f"-{os.getpid()}"
 
+    def ensure_isolation(self) -> Sandbox:
+        """Fail before repository inspection if controller callbacks or isolation are unsafe."""
+        if self.sandbox_verified:
+            assert self.sandbox is not None
+            return self.sandbox
+        try:
+            verify_controller()
+            if self.sandbox is None:
+                self.sandbox = load_sandbox()
+            else:
+                self.sandbox.verify()
+        except (TaskError, ValueError, OSError, subprocess.SubprocessError, SandboxError) as error:
+            raise Stop("roadmap isolation preflight failed: " + str(error)) from error
+        self.sandbox_verified = True
+        return self.sandbox
+
+    @contextlib.contextmanager
+    def isolated_workspace(self):
+        sandbox = self.ensure_isolation()
+        try:
+            with sandbox.lease() as lease:
+                host_tree = self.tree_fingerprint()
+                paths = agent_source_paths(self.changed())
+                selected = agent_source_selection_state(ROOT, paths)
+                stage_agent_source(
+                    ROOT, lease.path, paths,
+                    max_bytes=sandbox.scratch["source_max_bytes"],
+                    max_files=sandbox.scratch["source_max_files"])
+                if (agent_source_selection_state(ROOT, paths) != selected
+                        or agent_source_selection_state(lease.path, paths) != selected
+                        or self.tree_fingerprint() != host_tree):
+                    raise Stop("controller source changed while staging an isolated workspace")
+                yield lease, agent_source_state(lease.path), host_tree
+        except Stop:
+            raise
+        except (OSError, ValueError, SandboxError) as error:
+            raise Stop("isolated workspace failed: " + str(error)) from error
+
     # --- locking and lifecycle ---
     def acquire(self) -> None:
+        self.ensure_isolation()
         self.state.mkdir(parents=True, exist_ok=True)
         self.lock_file = (self.state / "controller.lock").open("a+")
         try:
@@ -407,6 +468,7 @@ class Controller:
                 raise Stop("stop file present while paused")
 
     def preflight(self) -> str:
+        self.ensure_isolation()
         branch = git("branch", "--show-current").strip()
         if branch != self.cfg.branch:
             raise Stop(f"checkout is on {branch!r}, expected {self.cfg.branch!r}")
@@ -421,45 +483,58 @@ class Controller:
 
     # --- one fresh headless session ---
     def session(self, kind: str, task_id: str, attempt_dir: Path, prompt: str, schema: dict,
-                rules: list[str], mode: str, timeout: int, disallowed: str | None = None,
-                budget: float | None = None, effort: str | None = None) -> dict:
+                rules: list[str], mode: str, timeout: int, lease,
+                disallowed: str | None = None, budget: float | None = None,
+                effort: str | None = None, read_only: bool = False) -> dict:
         if self.spent >= self.cfg.total_budget_usd:
             raise Stop(f"cumulative estimated cost {self.spent:.2f} USD reached the cap")
+        sandbox = self.ensure_isolation()
         session_id = str(uuid.uuid4())
         settings = attempt_dir / f"{kind}-settings.json"
-        atomic_write(settings, json.dumps({"permissions": {"allow": rules, "deny": DENY}}, indent=2))
+        settings_text = json.dumps({"permissions": {"allow": rules, "deny": DENY}}, indent=2)
+        atomic_write(settings, settings_text)
         brief = attempt_dir / f"{kind}-brief.md"
         atomic_write(brief, prompt)
-        argv = claude_argv(self.cfg, f"{PROCESS_TAG}{kind}-{task_id}", session_id, settings, schema, mode,
-                           budget or self.cfg.session_budget_usd, disallowed, effort)
+        stage_settings = Path("build") / "roadmap-session" / f"{kind}-{session_id}-settings.json"
+        staged = lease.path / stage_settings
+        staged.parent.mkdir(parents=True, exist_ok=True)
+        staged.write_text(settings_text, encoding="utf-8")
+        sandbox_settings = Path("/workspace") / stage_settings
+        argv = claude_argv(self.cfg, f"{PROCESS_TAG}{kind}-{task_id}", session_id, sandbox_settings,
+                           schema, mode, budget or self.cfg.session_budget_usd, disallowed, effort)
         atomic_write(attempt_dir / f"{kind}-argv.json", json.dumps(argv[:1] + argv[1:], indent=1))
         out, err = attempt_dir / f"{kind}-result.json", attempt_dir / f"{kind}-stderr.log"
         started = time.monotonic()
-        with out.open("w") as stdout, err.open("w") as stderr, brief.open("rb") as stdin:
-            proc = subprocess.Popen(argv, cwd=ROOT, env=worker_env(dict(os.environ)), stdin=stdin,
-                                    stdout=stdout, stderr=stderr, start_new_session=True)
-            self.heartbeat(task=task_id, phase=kind, worker_pid=proc.pid, session_id=session_id)
-            code, stop_reason = None, None
-            deadline = time.monotonic() + timeout
-            while code is None:
-                try:
-                    code = proc.wait(timeout=60)
-                except subprocess.TimeoutExpired:
-                    live = self.transcript_check(session_id, prompt)
-                    self.heartbeat(compactions=live.get("compactions", 0))
-                    if live.get("compactions", 0) > self.cfg.max_compactions:
-                        stop_reason = f"compaction churn: {live['compactions']} compactions"
-                    elif time.monotonic() > deadline:
-                        stop_reason = f"timeout after {timeout}s"
-                    if stop_reason:
-                        os.killpg(proc.pid, signal.SIGTERM)
-                        with contextlib.suppress(subprocess.TimeoutExpired):
-                            proc.wait(timeout=30)
-                        code = -9
-            with contextlib.suppress(ProcessLookupError):
-                os.killpg(proc.pid, signal.SIGKILL)  # no orphan child may keep editing
-        self.heartbeat(worker_pid=None)
-        text = out.read_text(errors="replace")
+        self.heartbeat(task=task_id, phase=kind, worker_pid=None, session_id=session_id,
+                       isolation="sandbox")
+        stdout_bytes = stderr_bytes = b""
+        stop_reason = None
+        resource = {}
+        try:
+            done = sandbox.run([*argv, prompt], lease, profile="agent",
+                               timeout=min(timeout, sandbox.timeout), read_only=read_only)
+            code = done.returncode
+            stdout_bytes, stderr_bytes = done.stdout_bytes, done.stderr_bytes
+            resource = resource_evidence(done)
+        except subprocess.TimeoutExpired as error:
+            code = 124
+            stop_reason = f"timeout after {error.timeout}s"
+            stdout_bytes = getattr(error, "stdout_bytes", b"")
+            stderr_bytes = getattr(error, "stderr_bytes", b"")
+            resource = resource_evidence(error)
+        except SandboxResourceExceeded as error:
+            code = GATE_FAIL_EXIT
+            stop_reason = str(error)
+            stdout_bytes = getattr(error, "stdout_bytes", b"")
+            stderr_bytes = getattr(error, "stderr_bytes", b"")
+            resource = resource_evidence(error)
+        except SandboxError as error:
+            raise Stop(f"isolated {kind} session failed: {error}") from error
+        finally:
+            self.heartbeat(worker_pid=None)
+        out.write_bytes(stdout_bytes)
+        err.write_bytes(stderr_bytes)
+        text = stdout_bytes.decode("utf-8", "replace")
         try:
             result = json.loads(text)
         except json.JSONDecodeError:
@@ -472,46 +547,17 @@ class Controller:
             "duration_s": round(time.monotonic() - started, 1),
             "is_error": bool(result.get("is_error")), "subtype": result.get("subtype"),
             "num_turns": result.get("num_turns"), "est_cost_usd": cost, "usage": result.get("usage"),
-            "brief_sha256": sha256(prompt), "transcript": self.transcript_check(session_id, prompt),
+            "brief_sha256": sha256(prompt),
+            "transcript": {"host_transcript_retained": False, "fresh_session_id": session_id,
+                           "private_sandbox_home": True, "single_prompt_sha256": sha256(prompt)},
+            "resource": resource,
             "output": structured(result),
         }
         atomic_write(attempt_dir / f"{kind}-record.json", json.dumps(record, indent=2))
-        blob = text + err.read_text(errors="replace")
+        blob = text + stderr_bytes.decode("utf-8", "replace")
         if code != 0 and RATE_LIMIT.search(blob):
             raise Stop(f"{kind} session hit a rate or usage limit; see {err}")
         return record
-
-    @staticmethod
-    def transcript_check(session_id: str, prompt: str) -> dict:
-        """Prove the session started empty: one root user message equal to the brief."""
-        slug = re.sub(r"[^A-Za-z0-9]", "-", str(ROOT))
-        path = Path.home() / ".claude" / "projects" / slug / f"{session_id}.jsonl"
-        if not path.exists():
-            return {"found": False}
-        roots, users, foreign, compactions, output_tokens, peak_context = 0, 0, 0, 0, 0, 0
-        first = None
-        for line in path.read_text(errors="replace").splitlines():
-            with contextlib.suppress(json.JSONDecodeError):
-                item = json.loads(line)
-                if item.get("sessionId") not in (None, session_id):
-                    foreign += 1
-                if item.get("subtype") == "compact_boundary":
-                    compactions += 1
-                if item.get("type") == "assistant":
-                    usage = item.get("message", {}).get("usage") or {}
-                    output_tokens += usage.get("output_tokens", 0)
-                    peak_context = max(peak_context, usage.get("input_tokens", 0)
-                                       + usage.get("cache_read_input_tokens", 0)
-                                       + usage.get("cache_creation_input_tokens", 0))
-                if item.get("type") == "user":
-                    users += 1
-                    if item.get("parentUuid") is None:
-                        roots += 1
-                        first = first or item.get("message", {}).get("content")
-        return {"found": True, "root_user_messages": roots, "user_entries": users,
-                "foreign_session_entries": foreign, "compactions": compactions,
-                "output_tokens": output_tokens, "peak_context_tokens": peak_context,
-                "first_message_is_brief": isinstance(first, str) and first.strip() == prompt.strip()}
 
     # --- validation owned by the controller ---
     def tree_fingerprint(self) -> str:
@@ -531,7 +577,93 @@ class Controller:
                 if ROOT in target.parents and target.exists():
                     shutil.rmtree(target) if target.is_dir() else target.unlink()
 
-    def run_checks(self, task: dict, attempt_dir: Path) -> tuple[bool, list[dict], str]:
+    def sandbox_command(self, lease, script: str, *, env: dict[str, str] | None = None,
+                        timeout: int | None = None, output_limit: int | None = None,
+                        read_only: bool = True):
+        sandbox = self.ensure_isolation()
+        deadline = min(timeout or self.cfg.check_timeout, sandbox.timeout)
+        try:
+            done = sandbox.run(
+                ["/bin/bash", "--noprofile", "--norc", "-eo", "pipefail", "-c", script],
+                lease, profile="gate", env=env, timeout=deadline, read_only=read_only,
+                output_limit=output_limit)
+            return (done.returncode, done.stdout_bytes, done.stderr_bytes,
+                    resource_evidence(done), "")
+        except subprocess.TimeoutExpired as error:
+            return (124, getattr(error, "stdout_bytes", b""),
+                    getattr(error, "stderr_bytes", b""), resource_evidence(error),
+                    f"timeout after {error.timeout}s")
+        except SandboxResourceExceeded as error:
+            return (GATE_FAIL_EXIT, getattr(error, "stdout_bytes", b""),
+                    getattr(error, "stderr_bytes", b""), resource_evidence(error), str(error))
+        except (SandboxError, ValueError, OSError) as error:
+            return GATE_FAIL_EXIT, b"", b"", resource_evidence(error), f"sandbox blocked: {error}"
+
+    @staticmethod
+    def write_check_log(path: Path, stdout: bytes, stderr: bytes, detail: str = "") -> None:
+        payload = stdout
+        if stderr:
+            payload += (b"\n" if payload and not payload.endswith(b"\n") else b"") + stderr
+        if detail:
+            payload += (b"\n" if payload and not payload.endswith(b"\n") else b"")
+            payload += detail.encode("utf-8", "replace") + b"\n"
+        path.write_bytes(payload)
+
+    def run_gate_plan(self, plan, lease, log: Path) -> tuple[int, str, list[dict]]:
+        sandbox = self.ensure_isolation()
+        remaining_output = sandbox.profiles["gate"]["output_max_bytes"]
+        started = time.monotonic()
+        records: list[dict] = []
+        chunks: list[bytes] = []
+        host = {key: os.environ[key] for key in SANDBOX_HOST_KEYS if key in os.environ}
+
+        def execute(index: int, command, *, finalizer: bool, status: str) -> bool:
+            nonlocal remaining_output
+            name, script, step_env = command
+            values = {key: value.replace("${GITHUB_WORKSPACE}", "/workspace")
+                      for key, value in step_env.items()}
+            values.update(host)
+            if finalizer:
+                script = f"export CI_TEST_STATUS={status}\n{script}"
+            timeout = self.cfg.check_timeout
+            if plan.timeout_seconds is not None:
+                reserve = plan.finalizer_reserve_seconds if not finalizer else 0
+                available = plan.timeout_seconds - (time.monotonic() - started) - reserve
+                if available < 1:
+                    detail = f"total gate deadline exhausted before {name}"
+                    records.append({"name": name, "exit_code": 124, "detail": detail})
+                    chunks.append((detail + "\n").encode())
+                    return False
+                timeout = min(int(available), plan.finalizer_reserve_seconds) \
+                    if finalizer else int(available)
+            code, stdout, stderr, resource, detail = self.sandbox_command(
+                lease, script, env=values, timeout=timeout, output_limit=remaining_output)
+            retained = stdout + stderr
+            remaining_output = max(0, remaining_output - len(retained))
+            label = "finalizer" if finalizer else "step"
+            chunks.append(f"## {label}: {name}\n".encode() + retained)
+            if detail:
+                chunks.append(("\n## BLOCKED: " + detail + "\n").encode())
+            records.append({"name": name, "exit_code": code, "resource": resource})
+            return code == 0 and resource.get("Result") in (None, "success")
+
+        failed = False
+        for index, command in enumerate(plan.commands):
+            if not execute(index, command, finalizer=False, status="success"):
+                failed = True
+                break
+        primary_failed = failed
+        status = "failure" if primary_failed else "success"
+        for offset, command in enumerate(plan.finalizers, len(plan.commands)):
+            if not execute(offset, command, finalizer=True, status=status):
+                failed = True
+        log.write_bytes(b"".join(chunks))
+        if failed:
+            tail = "\n".join(log.read_text(errors="replace").splitlines()[-120:])
+            return GATE_FAIL_EXIT, tail, records
+        return 0, "", records
+
+    def run_checks(self, task: dict, attempt_dir: Path, lease) -> tuple[bool, list[dict], str]:
         results, failure = [], ""
         lock = (self.state / "qemu.lock").open("a+") if task.get("native") else None
         if lock:
@@ -543,16 +675,13 @@ class Controller:
                 self.heartbeat(phase=f"check:{name}")
                 log = attempt_dir / f"{name}.log"
                 started = time.monotonic()
-                with log.open("w") as out:
-                    try:
-                        code = subprocess.call(["bash", "--noprofile", "--norc", "-eo", "pipefail", "-c", command],
-                                               cwd=ROOT, stdout=out, stderr=subprocess.STDOUT,
-                                               timeout=self.cfg.check_timeout)
-                    except subprocess.TimeoutExpired:
-                        code = 124
+                env = {key: os.environ[key] for key in SANDBOX_HOST_KEYS if key in os.environ}
+                code, stdout, stderr, resource, detail = self.sandbox_command(
+                    lease, command, env=env)
+                self.write_check_log(log, stdout, stderr, detail)
                 results.append({"name": name, "command": command, "exit_code": code,
                                 "duration_s": round(time.monotonic() - started, 1),
-                                "log_sha256": sha256(log.read_bytes())})
+                                "log_sha256": sha256(log.read_bytes()), "resource": resource})
                 if code:
                     failure = f"{command} exited {code}:\n" + "\n".join(
                         log.read_text(errors="replace").splitlines()[-120:])
@@ -565,10 +694,11 @@ class Controller:
                     failure = f"gate blocked: {error}"
                     log.write_text(failure + "\n")
                     code = GATE_FAIL_EXIT
+                    gate_records = []
                 else:
-                    code = run_gate(commands, ROOT, log)
+                    code, failure, gate_records = self.run_gate_plan(commands, lease, log)
                 results.append({"name": "gates", "command": " ".join(task["gates"]), "exit_code": code,
-                                "log_sha256": sha256(log.read_bytes())})
+                                "log_sha256": sha256(log.read_bytes()), "steps": gate_records})
                 if code:
                     return False, results, failure or "\n".join(
                         log.read_text(errors="replace").splitlines()[-120:])
@@ -692,52 +822,84 @@ Return the structured result.
             self.check_controls()
             adir = task_dir / f"attempt-{attempt}"
             adir.mkdir(parents=True, exist_ok=True)
-            worker = self.session("worker", task["id"], adir, self.worker_prompt(task, head, feedback),
-                                  WORKER_SCHEMA, allow_rules(task, ("Edit", "Write", "MultiEdit")),
-                                  "acceptEdits", self.cfg.worker_timeout, effort=effort_for(self.cfg, task))
-            record = {"attempt": attempt, "worker": worker}
-            attempts.append(record)
-            changed = self.changed()
-            if bad := [p for p in changed if not in_write_set(p, task["write_paths"])]:
-                self.revert(bad)
-                record["reverted_out_of_scope"] = bad
-                changed = self.changed()
-            out = worker.get("output") or {}
-            if worker["exit_code"] != 0 or worker["is_error"]:
-                kind = "session"
-                detail = (f"worker session failed (exit {worker['exit_code']}, {worker['subtype']}, "
-                          f"{worker.get('stopped_by_controller') or 'no controller stop'})")
-            elif out.get("state") == "blocked":
-                self.revert(changed)
-                raise Blocked("worker reported blocked: " + "; ".join(out.get("blockers") or ["(no detail)"]))
-            elif not changed:
-                kind, detail = "no-change", "no in-scope file was changed"
-            else:
-                ok, checks, failure = self.run_checks(task, adir)
-                record["checks"] = checks
-                if not ok:
-                    kind, detail = "checks", failure
+            checkpoint_changed: list[str] | None = None
+            with self.isolated_workspace() as (lease, staged_before, host_tree):
+                worker = self.session(
+                    "worker", task["id"], adir, self.worker_prompt(task, head, feedback),
+                    WORKER_SCHEMA, allow_rules(task, ("Edit", "Write", "MultiEdit")),
+                    "acceptEdits", self.cfg.worker_timeout, lease,
+                    effort=effort_for(self.cfg, task))
+                clear_sandbox_outputs(lease.path)
+                worker_delta = staged_changes(staged_before, lease.path)
+                if self.tree_fingerprint() != host_tree:
+                    raise Stop("controller source changed while the isolated worker was active")
+                record = {"attempt": attempt, "worker": worker, "worker_delta": worker_delta}
+                attempts.append(record)
+                existing = self.changed()
+                bad = [path for path in worker_delta if not in_write_set(path, task["write_paths"])]
+                out = worker.get("output") or {}
+                if bad:
+                    record["discarded_out_of_scope"] = bad
+                    kind, detail = "scope", f"worker changed paths outside the frozen write set: {bad}"
+                elif worker["exit_code"] != 0 or worker["is_error"]:
+                    kind = "session"
+                    detail = (f"worker session failed (exit {worker['exit_code']}, {worker['subtype']}, "
+                              f"{worker.get('stopped_by_controller') or 'no controller stop'})")
+                elif out.get("state") == "blocked":
+                    self.revert(existing)
+                    raise Blocked("worker reported blocked: "
+                                  + "; ".join(out.get("blockers") or ["(no detail)"]))
+                elif not worker_delta and not existing:
+                    kind, detail = "no-change", "no in-scope file was changed"
                 else:
-                    diff = git("diff", "HEAD")
-                    untracked = [p for p in changed if p not in set(git("ls-files", "--", *changed).split())]
-                    before = self.tree_fingerprint()
-                    verifier = self.session("verifier", task["id"], adir,
-                                            self.verifier_prompt(task, head, diff[:60_000], untracked, checks),
-                                            VERIFIER_SCHEMA, allow_rules(None), "default",
-                                            self.cfg.verifier_timeout, disallowed=READ_ONLY_DISALLOWED,
-                                            budget=self.cfg.verifier_budget_usd,
-                                            effort=effort_for(self.cfg, task))
-                    record["verifier"] = verifier
-                    if self.tree_fingerprint() != before:
-                        raise Stop("the read-only verifier changed the working tree; stopping for review")
-                    verdict = verifier.get("output") or {}
-                    findings = verdict.get("findings") or []
-                    if verifier["exit_code"] == 0 and verdict.get("verdict") == "pass" and not blocking(findings):
-                        return self.checkpoint(task, head, changed, attempts)
-                    kind = "verifier"
-                    detail = json.dumps(blocking(findings) or findings or verdict or verifier.get("subtype"), indent=1)
-            if bad := record.get("reverted_out_of_scope"):
-                detail += f"\nOut-of-scope edits were reverted: {bad}"
+                    ok, checks, failure = self.run_checks(task, adir, lease)
+                    record["checks"] = checks
+                    clear_sandbox_outputs(lease.path)
+                    if staged_changes(staged_before, lease.path) != worker_delta:
+                        raise Stop("an isolated read-only check changed candidate source")
+                    if self.tree_fingerprint() != host_tree:
+                        raise Stop("controller source changed while isolated checks were active")
+                    if not ok:
+                        kind, detail = "checks", failure
+                    else:
+                        if worker_delta:
+                            imported = import_agent_changes(
+                                lease.path, ROOT, staged_before, worker_delta,
+                                max_bytes=self.sandbox.scratch["export_max_bytes"],
+                                max_files=self.sandbox.scratch["export_max_files"])
+                            if imported != worker_delta:
+                                raise Stop("validated worker delta changed during import")
+                        changed = self.changed()
+                        diff = git("diff", "HEAD")
+                        tracked = set(git("ls-files", "--", *changed).split())
+                        untracked = [path for path in changed if path not in tracked]
+                        before = self.tree_fingerprint()
+                        verifier = self.session(
+                            "verifier", task["id"], adir,
+                            self.verifier_prompt(task, head, diff[:60_000], untracked, checks),
+                            VERIFIER_SCHEMA, allow_rules(None), "default",
+                            self.cfg.verifier_timeout, lease,
+                            disallowed=READ_ONLY_DISALLOWED, budget=self.cfg.verifier_budget_usd,
+                            effort=effort_for(self.cfg, task), read_only=True)
+                        record["verifier"] = verifier
+                        clear_sandbox_outputs(lease.path)
+                        if staged_changes(staged_before, lease.path) != worker_delta:
+                            raise Stop("the isolated read-only verifier changed candidate source")
+                        if self.tree_fingerprint() != before:
+                            raise Stop("the read-only verifier changed controller source")
+                        verdict = verifier.get("output") or {}
+                        findings = verdict.get("findings") or []
+                        if (verifier["exit_code"] == 0 and verdict.get("verdict") == "pass"
+                                and not blocking(findings)):
+                            checkpoint_changed = changed
+                        else:
+                            kind = "verifier"
+                            detail = json.dumps(
+                                blocking(findings) or findings or verdict or verifier.get("subtype"), indent=1)
+            if checkpoint_changed is not None:
+                return self.checkpoint(task, head, checkpoint_changed, attempts)
+            if bad := record.get("discarded_out_of_scope"):
+                detail += f"\nOut-of-scope edits stayed inside the disposable workspace: {bad}"
             fp = failure_fingerprint(kind, detail)
             record["failure"] = {"kind": kind, "fingerprint": fp, "detail": detail[-4000:]}
             atomic_write(task_dir / "attempts.json", json.dumps(attempts, indent=2))
@@ -749,6 +911,12 @@ Return the structured result.
         raise Blocked(f"not verified after {self.cfg.max_repairs} repair rounds; last failure: {feedback[:600]}")
 
     def checkpoint(self, task: dict, head: str, changed: list[str], attempts: list[dict]) -> str:
+        try:
+            verify_controller()
+        except (TaskError, ValueError, OSError, subprocess.SubprocessError) as error:
+            raise Stop("controller publication preflight failed: " + str(error)) from error
+        if sorted(self.changed()) != sorted(changed):
+            raise Stop("controller source changed after isolated verification")
         receipt = {
             "task": task["id"], "criterion": task["criterion"], "run": self.run_id, "base": head,
             "branch": self.cfg.branch, "verified_at": now(), "files": sorted(changed),
@@ -798,12 +966,37 @@ Return the structured result.
         if json.dumps(data["tracks"], sort_keys=True) != before:
             raise Stop("assessment update would change criteria; refusing")
         atomic_write(path, json.dumps(data, indent=2, ensure_ascii=False) + "\n")
-        for mode in ("--write", "--check"):
-            done = subprocess.run([sys.executable, "-B", "tools/progress.py", mode], cwd=ROOT,
-                                  capture_output=True, text=True)
-            if done.returncode:
-                raise Stop(f"progress.py {mode} failed: {done.stdout[-400:]}{done.stderr[-400:]}")
         views = ["docs/progress.json", "README.md", "docs/PROGRESS.md", "docs/assets/progress.svg"]
+        generated = set(views[1:])
+        with self.isolated_workspace() as (lease, staged_before, host_tree):
+            code, stdout, stderr, _resource, detail = self.sandbox_command(
+                lease, "python3 -I -S -B tools/progress.py --write", read_only=False)
+            clear_sandbox_outputs(lease.path)
+            delta = staged_changes(staged_before, lease.path)
+            if code:
+                output = (stdout + stderr).decode("utf-8", "replace")
+                raise Stop(f"isolated progress.py --write failed ({code}): "
+                           + (detail or output[-800:]))
+            if set(delta) - generated:
+                raise Stop(f"progress renderer changed unexpected paths: {delta}")
+            if self.tree_fingerprint() != host_tree:
+                raise Stop("controller source changed while progress views were rendered")
+            code, stdout, stderr, _resource, detail = self.sandbox_command(
+                lease, "python3 -I -S -B tools/progress.py --check")
+            clear_sandbox_outputs(lease.path)
+            if staged_changes(staged_before, lease.path) != delta:
+                raise Stop("read-only progress validation changed rendered source")
+            if code:
+                output = (stdout + stderr).decode("utf-8", "replace")
+                raise Stop(f"isolated progress.py --check failed ({code}): "
+                           + (detail or output[-800:]))
+            if delta:
+                imported = import_agent_changes(
+                    lease.path, ROOT, staged_before, delta,
+                    max_bytes=self.sandbox.scratch["export_max_bytes"],
+                    max_files=self.sandbox.scratch["export_max_files"])
+                if imported != delta:
+                    raise Stop("rendered progress delta changed during import")
         git("add", "--", *views)
         if git("diff", "--cached", "--name-only").strip():
             git("commit", "-q", "-m", f"progress: assess roadmap task {task['id']} ({score}/100 unchanged)\n\n"
@@ -835,9 +1028,17 @@ Return the structured result.
         adir.mkdir(parents=True, exist_ok=True)
         probe = ROOT / INIT_DENY_PROBE
         probe.unlink(missing_ok=True)
-        record = self.session("init", "INIT-CHECK", adir, self.init_prompt(), INIT_SCHEMA,
-                              allow_rules(None) + [f"Bash({INIT_ALLOWED_PROBE}:*)"], "default", 15 * 60,
-                              disallowed=READ_ONLY_DISALLOWED, budget=self.cfg.verifier_budget_usd)
+        with self.isolated_workspace() as (lease, staged_before, host_tree):
+            record = self.session(
+                "init", "INIT-CHECK", adir, self.init_prompt(), INIT_SCHEMA,
+                allow_rules(None) + [f"Bash({INIT_ALLOWED_PROBE}:*)"], "default", 15 * 60, lease,
+                disallowed=READ_ONLY_DISALLOWED, budget=self.cfg.verifier_budget_usd,
+                read_only=True)
+            clear_sandbox_outputs(lease.path)
+            if staged_changes(staged_before, lease.path):
+                raise Stop("the isolated initialization check changed candidate source")
+            if self.tree_fingerprint() != host_tree:
+                raise Stop("controller source changed during the isolated initialization check")
         record["head_expected"] = head
         record["checkout_clean_after"] = not self.changed()
         record["deny_probe_file_absent"] = not probe.exists()  # controller-side oracle
@@ -930,9 +1131,6 @@ def main() -> int:
     cfg = Config(push=not args.no_push, total_budget_usd=args.total_budget_usd,
                  session_budget_usd=args.session_budget_usd, model=args.model, effort=args.effort,
                  routine_effort=args.routine_effort)
-    if not shutil.which(cfg.claude):
-        print("claude CLI not found; fall back to one manually started fresh session per task")
-        return 3
     controller = Controller(cfg)
     try:
         controller.acquire()

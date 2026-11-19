@@ -78,10 +78,10 @@ only in the trusted controller checkout after source and head verification.
 The offline fixture verifies boundary behavior, not authenticated Claude, Codex,
 Copilot, Graphify or native-client compatibility. Those environments require
 separate evidence and remain unverified until tested. No credential/network broker
-is introduced. The roadmap controller described below retains its own execution
-and ownership model: its direct worker/check commands have not been migrated or
-verified by this change. Its calls to the shared gate now fail closed without an
-approved isolated runtime. The two controllers are not interchangeable.
+is introduced. The roadmap controller described below retains its own ownership
+model but now uses the same sandbox contract for workers, checks and verification.
+Both controllers fail closed without the protected complete runtime configuration;
+their task sources, authorization records and publication flows remain distinct.
 
 **Enablement remains blocked.** The committed disabled policy must remain in place
 until real dedicated mounts with measured workload headroom, the complete resource
@@ -100,35 +100,41 @@ boundary checks do not establish that workflow's compatibility.
 is the controller process and the versioned ledger, not a growing chat. For each
 READY task whose dependencies are verified it:
 
-1. takes the exclusive controller lock and a write lease, and refuses to start when
-   the checkout is dirty, on another branch, or a previous worker is still alive;
+1. takes the exclusive controller lock and a write lease, rejects executable Git
+   callbacks, and refuses to start when the checkout is dirty, on another branch,
+   a previous worker is still alive or the protected sandbox is unavailable;
 2. writes an immutable brief containing only the task fields, the binding rules and
    the trusted check commands;
-3. starts a new headless `claude -p` process with a fresh `--session-id`, never
+3. copies reviewed regular source files into a disposable Git-free sandbox and starts
+   a new headless `claude -p` process there with a fresh `--session-id`, never
    `--continue`, `--resume` or `--fork-session`, and never `--bare`, bypass modes or
-   skipped permissions. The worker has an allow-listed environment without GitHub,
-   cloud or session-ingress credentials, `--permission-prompts none`, file edits
+   skipped permissions. The worker has a private home and network namespace without
+   host Git metadata, credentials or sockets, `--permission-prompts none`, file edits
    (`acceptEdits`), read-only git, and exactly the task's check commands.
    A session-scoped `--autocompact` window is the context fail-safe (see the
-   measured limit below), and `--max-budget-usd` sets a per-session cap on the
-   CLI's cost estimate. The controller polls the transcript every minute and stops
-   a session after more than six compactions or at its timeout;
-4. checks the result itself. Changed files must fall inside the task's write set;
-   anything else is reverted and reported. Protected files (workflows, the
+   measured limit below), `--max-budget-usd` sets a per-session cap on the
+   CLI's cost estimate, and the sandbox enforces the configured timeout and resource
+   profile for the complete process group;
+4. checks the result inside the same sandbox. Changed files must fall inside the
+   task's frozen write set; anything else remains in the disposable copy and is
+   discarded. Protected files (workflows, the
    pipeline, the progress register and its views, AGENTS.md/CLAUDE.md,
    PROJECT-STATE.md, DECISIONS.md) are never accepted from a worker. The ledger's
-   check commands and `tools/progress.py --check` are re-run with raw exit codes.
-   The worker's JSON report is recorded, never trusted;
-5. starts a second fresh, read-only session that verifies the diff against the task
+   check commands, modelled gates and `tools/progress.py --check` run with source
+   read-only and private build/target/tmp paths. Only a successful regular-file delta
+   is exported to the controller checkout. The worker's JSON report is recorded,
+   never trusted;
+5. starts a second fresh, sandboxed read-only session that verifies the candidate
    without seeing the writer's self-report. A blocker or major finding sends the task
    back to a new worker session with only those findings, for at most two repair
    rounds. Two identical failures without new evidence block the task;
 6. commits verified work with its receipt, pushes the dedicated branch, releases the
    lease and selects the next task for another fresh session.
 
-Each session's transcript is checked so that it contains exactly one root user
-message, equal to the brief, and no entries from another session. This is the
-evidence that no earlier conversation was inherited.
+Each session receives one prompt with a fresh session ID and an empty private sandbox
+home. The private home is destroyed with the command, so no host transcript or prior
+conversation can enter the next session; the receipt records the prompt hash and the
+controller-generated session ID instead of retaining sandbox-home transcript files.
 
 ### Controls
 
@@ -159,7 +165,7 @@ review; it never resets, cleans or stashes on its own.
   34 minutes, re-read the same files 87 times and made no edit; the lead stopped it
   through the STOP file. Workers therefore use a session-scoped 300k window, still
   as a fail-safe (one task per session remains the normal boundary), plus the
-  compaction-churn stop. Global or user settings are not changed.
+  sandbox timeout and resource profile. Host-global and user settings are not mounted.
 - **Reasoning effort and quota:** security and high-risk tasks and their verifiers run at
   `xhigh`; low- and medium-risk tasks run at `high`. The first runs reached the account's
   5-hour usage limit within about an hour (inventory plus workers); the controller stops on

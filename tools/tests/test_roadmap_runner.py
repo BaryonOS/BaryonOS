@@ -14,6 +14,12 @@ def task(tid, status="ready", deps=(), writes=("services/x/",), checks=("true",)
             "deps": list(deps), "write_paths": list(writes), "checks": list(checks)}
 
 
+def sandbox_result(stdout=b"", stderr=b"", code=0):
+    result = unittest.mock.Mock(returncode=code, stdout_bytes=stdout, stderr_bytes=stderr)
+    result.resource_status = {}
+    return result
+
+
 class Ledger(unittest.TestCase):
     def test_selects_first_ready_task_with_verified_dependencies(self):
         ledger = {"tasks": [task("A", "blocked"), task("B", deps=["A"]), task("C"), task("D")]}
@@ -95,18 +101,6 @@ class Scope(unittest.TestCase):
 
 
 class Session(unittest.TestCase):
-    def test_worker_environment_drops_credentials_and_parent_session(self):
-        source = {"PATH": "/bin", "HOME": "/root", "HTTPS_PROXY": "p", "GH_TOKEN": "x", "GITHUB_TOKEN": "x",
-                  "AWS_SECRET_ACCESS_KEY": "x", "CLAUDE_CODE_SESSION_ID": "parent", "CLAUDECODE": "1",
-                  "CLAUDE_CODE_REMOTE_SESSION_ID": "cse", "SESSION_INGRESS_URL": "u",
-                  "CLOUDSDK_AUTH_ACCESS_TOKEN": "x", "GIT_ASKPASS": "x"}
-        env = rr.worker_env(source)
-        self.assertEqual(env["PATH"], "/bin")
-        self.assertEqual(env["HTTPS_PROXY"], "p")
-        for key in source:
-            if key not in ("PATH", "HOME", "HTTPS_PROXY"):
-                self.assertNotIn(key, env)
-
     def test_argv_is_a_fresh_session_without_resume_or_bypass(self):
         cfg = rr.Config()
         argv = rr.claude_argv(cfg, "roadmap-pipeline-worker-T", "0000", Path("/s.json"), {}, "acceptEdits", 10.0)
@@ -155,44 +149,76 @@ class Session(unittest.TestCase):
         findings = [{"severity": "minor"}, {"severity": "major"}, {"severity": "blocker"}]
         self.assertEqual(len(rr.blocking(findings)), 2)
 
-    def test_transcript_check_counts_compactions_and_proves_a_fresh_start(self):
-        with tempfile.TemporaryDirectory() as tmp:
-            home = Path(tmp)
-            slug = __import__("re").sub(r"[^A-Za-z0-9]", "-", str(rr.ROOT))
-            folder = home / ".claude" / "projects" / slug
-            folder.mkdir(parents=True)
-            lines = [{"type": "user", "sessionId": "s1", "parentUuid": None, "message": {"content": "brief"}},
-                     {"type": "assistant", "sessionId": "s1", "message": {"usage": {"input_tokens": 5,
-                      "cache_read_input_tokens": 100, "output_tokens": 7}}},
-                     {"type": "system", "subtype": "compact_boundary", "sessionId": "s1"},
-                     {"type": "user", "sessionId": "s1", "parentUuid": "x", "message": {"content": "summary"}}]
-            (folder / "s1.jsonl").write_text("\n".join(json.dumps(l) for l in lines))
-            with unittest.mock.patch.object(rr.Path, "home", return_value=home):
-                check = rr.Controller.transcript_check("s1", "brief\n")
-            self.assertTrue(check["first_message_is_brief"])
-            self.assertEqual((check["root_user_messages"], check["compactions"], check["foreign_session_entries"]),
-                             (1, 1, 0))
-            self.assertEqual((check["output_tokens"], check["peak_context_tokens"]), (7, 105))
-
     def test_dead_pid_is_not_alive(self):
         self.assertTrue(rr.pid_alive(1) or True)
         self.assertFalse(rr.pid_alive(2 ** 22 + 12345))
+
+    def test_incomplete_protected_sandbox_policy_fails_closed(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            policy = Path(tmp) / "policy.json"
+            policy.write_text(json.dumps({"schema": 2, "sandbox": {}}))
+            with self.assertRaisesRegex(rr.Stop, "reviewed isolated runtime"):
+                rr.load_sandbox(policy)
+
+    def test_session_runs_inside_private_sandbox(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            attempt = root / "attempt"
+            stage = root / "stage"
+            attempt.mkdir()
+            stage.mkdir()
+            sandbox = unittest.mock.Mock(timeout=100)
+            sandbox.run.return_value = sandbox_result(
+                json.dumps({"structured_output": {"state": "implemented"}}).encode())
+            controller = rr.Controller(rr.Config(), root / "state", sandbox=sandbox)
+            controller.sandbox_verified = True
+            lease = unittest.mock.Mock(path=stage)
+            with unittest.mock.patch.object(controller, "heartbeat"):
+                record = controller.session(
+                    "worker", "A", attempt, "one bounded prompt", rr.WORKER_SCHEMA,
+                    rr.allow_rules(task("A"), ("Edit",)), "acceptEdits", 60, lease)
+            argv, used_lease = sandbox.run.call_args.args
+            self.assertIs(used_lease, lease)
+            self.assertEqual(argv[-1], "one bounded prompt")
+            self.assertEqual(sandbox.run.call_args.kwargs["profile"], "agent")
+            self.assertFalse(sandbox.run.call_args.kwargs["read_only"])
+            self.assertTrue(record["transcript"]["private_sandbox_home"])
+
+    def test_candidate_delta_excludes_disposable_outputs(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            stage = Path(tmp)
+            source = stage / "services" / "x" / "lib.rs"
+            source.parent.mkdir(parents=True)
+            source.write_text("before")
+            before = rr.agent_source_state(stage)
+            source.write_text("after")
+            (stage / "build").mkdir()
+            (stage / "build" / "payload").write_text("discard")
+            rr.clear_sandbox_outputs(stage)
+            self.assertEqual(rr.staged_changes(before, stage), ["services/x/lib.rs"])
 
     def test_gate_resolution_failure_is_a_recorded_check_failure(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             attempt = root / "attempt"
             attempt.mkdir()
-            controller = rr.Controller(rr.Config(), root / "state")
+            stage = root / "stage"
+            stage.mkdir()
+            sandbox = unittest.mock.Mock(timeout=100)
+            sandbox.profiles = {"gate": {"output_max_bytes": 1024}}
+            sandbox.run.return_value = sandbox_result()
+            controller = rr.Controller(rr.Config(), root / "state", sandbox=sandbox)
+            controller.sandbox_verified = True
             checked = dict(task("A", checks=[]), gates=["ci.yml#host-quality"])
             with unittest.mock.patch.object(controller, "heartbeat"), \
-                    unittest.mock.patch.object(rr.subprocess, "call", return_value=0), \
                     unittest.mock.patch.object(rr, "resolve_gate", side_effect=ValueError("unsupported gate")):
-                passed, results, failure = controller.run_checks(checked, attempt)
+                passed, results, failure = controller.run_checks(
+                    checked, attempt, unittest.mock.Mock(path=stage))
             self.assertFalse(passed)
             self.assertEqual(results[-1]["exit_code"], rr.GATE_FAIL_EXIT)
             self.assertEqual(failure, "gate blocked: unsupported gate")
             self.assertEqual((attempt / "gate.log").read_text(), failure + "\n")
+            self.assertTrue(all(call.kwargs["read_only"] for call in sandbox.run.call_args_list))
 
 
 if __name__ == "__main__":
