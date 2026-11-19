@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-18",
-    "source_commit": "34a424ec2c20d9c8bde1a8cda8f75a3552603c88",
+    "source_commit": "90ade7cb7063691642de6a88c33bbbacc32fa5b1",
     "assessment_basis": "parent_commit",
-    "branch": "codex/issue41-policy-anchor",
-    "task": "Issue #41 synthetic anchor and transition identity",
+    "branch": "codex/l01-model-format",
+    "task": "L01-T2: VerifiedArtifact safetensors header/table parser with bounded no-escape JSON profile, duplicate/dtype/overflow checks and exact nonoverlapping coverage;14 host regressions pass. One bounded security review found no blocker.",
     "previous_score": 41,
-    "summary": "41/100 unchanged. ADR-B03K3's canonical TEST anchor, complete transition identity and fail-closed compare/readback oracle are implemented and covered by Rust and host-oracle tests. The existing loader and update-service probe now executes eight additional cases, but current-head native QEMU, durable storage/CAS, cut/replay, rollback resistance, production custody, B04 trust, hardware and human review remain unaccepted. Issue #41 and B03's score therefore remain unchanged."
+    "summary": "41/100 unchanged. VerifiedArtifact safetensors header/table parser with bounded no-escape JSON profile, duplicate/dtype/overflow checks and exact nonoverlapping coverage;14 host regressions pass. One bounded security review found no blocker. Host parser/build only; no real-model compatibility, inference, native/provenance acceptance. Existing pinned dependencies and soft SHA2 build profile reused. Integration/Claude ownership and execution hold preserved."
   },
   "tracks": [
     {
