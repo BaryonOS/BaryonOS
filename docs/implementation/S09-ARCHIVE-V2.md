@@ -2,10 +2,14 @@
 
 **Status:** specification plus an independent host reader
 (`tools/volume_archive.py`: `parse_v2`, `parse_any`, `stored_length_v2`) and
-its host tests (`tests/test_volume_archive_v2.py`). There is **no writer**, no
-wire extension, no restore mode and nothing native. No v2 archive produced by
-`volume-core` has been parsed. This document makes **no claim of recovery
-fidelity**; it defines what a v2 archive records and what a reader must refuse.
+its host tests (`tests/test_volume_archive_v2.py`), a Rust reader
+(`walk_v2`/`verify_v2` in `services/volume/src/archive.rs`) checked against
+fixtures produced by the Python encoder
+(`services/volume/tests/fixtures/archive-v2/`), and an L1 `restore_native`
+host model tested against the real service (`services/volume/tests/archive_v2.rs`).
+There is **no writer**, no wire extension and nothing native. No v2 archive
+produced by `volume-core` has been parsed. This document makes **no claim of
+recovery fidelity**; it defines what a v2 archive records and what a reader must refuse.
 Format v1 ([S09-BACKUP-ARCHIVE.md](S09-BACKUP-ARCHIVE.md)) and its restore rule
 remain the only implemented recovery path and are unchanged.
 
@@ -344,11 +348,13 @@ never feeds them into `touch` (`service.rs:603-618`).
   cannot observe how many commits another domain makes), but this needs
   review; and the proposed STAT history extension discloses the caller's own
   retained history after a DELETE, which R2 limits to content-free records and needs separate review.
-- `restore_native` must check destination capacity for the full replay
-  before its first write (section 4.3).
-- Writer (`export` with a v2 selector), native reader dispatch in `walk`,
-  `restore_native`, host property tests against the real service, native QEMU
-  stage, and L2 (table v3, INSTALL, STAT extension, recovery and crash tests).
+- `restore_native` checks capacity before its first write: the domain quota
+  (`Quota`) and, because the volume-wide free chunk count is not observable,
+  the `CHUNKS - QUOTA` = 24 chunks that are free whatever the other domain
+  holds (`Full`). Replays of 25 to 40 chunks are therefore refused even when
+  they would fit; lifting that needs a reviewed free-count read.
+- Writer (`export` with a v2 selector), native reader dispatch in `walk`, a v2
+  range adapter for `DiskSource`, native QEMU stage, and L2 (table v3, INSTALL, STAT extension, recovery and crash tests).
 - The destination range size of PR #396 has not been checked against
   966 sectors.
 
