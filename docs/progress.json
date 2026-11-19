@@ -3,7 +3,7 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-18",
-    "source_commit": "685d2d50a90dbc00b1ba01c9cefbeb81d7a0117b",
+    "source_commit": "29b0f1d4e2bd6f74e8ecd7cdc2dd94bc497e181f",
     "assessment_basis": "parent_commit",
     "branch": "codex/b05-review-scope",
     "task": "B05-T1: PROPOSED external-review path inventory covers7 boundaries/37 source,test and evidence-contract references. Checker rejects missing/escaping paths, omitted boundaries and empty invariants. Two adversarial test groups, actual check and compileall pass; no audit commissioned or historical evidence reclassified.",

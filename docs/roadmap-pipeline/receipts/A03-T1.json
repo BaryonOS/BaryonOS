@@ -1,0 +1,52 @@
+{
+  "task_id": "A03-T1",
+  "source_commit": "e1cc7c1ce04942f0f46c91875eab751044c6b260",
+  "evidence_level": "host model and freestanding build",
+  "files_sha256": {
+    "sdk/task-grant-core/Cargo.toml": "caeac3aa33d7b8f115b2909efc6e2b52c3d13a526a285acce26a61e813d72f71",
+    "sdk/task-grant-core/README.md": "30b15250eac5c05dddb5f6e3414c371fc5b8a43c3e43051a6ce87bd46bed848a",
+    "sdk/task-grant-core/src/lib.rs": "281ea98893070beaa9fa7b5e26578d30be5aea549682d63b22a9d99735954e58",
+    "sdk/task-grant-core/src/tests.rs": "d12c5a847fd577ec06eb93b4125b6f7c758c4d9b416b6cdc338a56a72949935b",
+    "sdk/Cargo.toml": "00020904b17e924fa477172212bdd3b9a090335946b3bba1258f14a048358e6b",
+    "sdk/Cargo.lock": "ed025f9f9dcb6f3f04f0dbb61dda7bf0a1317cd063c96b1473ee58eb85a8c9c9"
+  },
+  "checks": {
+    "test": {
+      "command": "/bin/bash -lc '/home/simon/.rustup/toolchains/1.90.0-x86_64-unknown-linux-gnu/bin/rustfmt --edition 2021 sdk/task-grant-core/src/lib.rs sdk/task-grant-core/src/tests.rs\nPATH=/home/simon/.rustup/toolchains/1.90.0-x86_64-unknown-linux-gnu/bin:$PATH CARGO_NET_OFFLINE=true python3 -B tools/tokenguard.py run -- /home/simon/.rustup/toolchains/1.90.0-x86_64-unknown-linux-gnu/bin/cargo test --manifest-path sdk/Cargo.toml --locked'",
+      "exit_code": 0,
+      "log": "build/tokenguard/run-kjt6v8qt.log",
+      "log_sha256": "18633c78bea96c27b14ced8498c964f755cce5c1b209e94eeca20aa34b082aea"
+    },
+    "clippy": {
+      "command": "/bin/bash -lc 'PATH=/home/simon/.rustup/toolchains/1.90.0-x86_64-unknown-linux-gnu/bin:$PATH CARGO_NET_OFFLINE=true python3 -B tools/tokenguard.py run -- /home/simon/.rustup/toolchains/1.90.0-x86_64-unknown-linux-gnu/bin/cargo clippy --manifest-path sdk/Cargo.toml --locked --all-targets -- -D warnings'",
+      "exit_code": 0,
+      "log": "build/tokenguard/run-muagnbxq.log",
+      "log_sha256": "1449a91f2107e663994db96341dc9745af1c5271422b7fe1ee256c1918ac7611"
+    },
+    "fmt": {
+      "command": "/bin/bash -lc 'PATH=/home/simon/.rustup/toolchains/1.90.0-x86_64-unknown-linux-gnu/bin:$PATH CARGO_NET_OFFLINE=true python3 -B tools/tokenguard.py run -- /home/simon/.rustup/toolchains/1.90.0-x86_64-unknown-linux-gnu/bin/cargo fmt --manifest-path sdk/Cargo.toml --all -- --check'",
+      "exit_code": 0,
+      "log": "build/tokenguard/run-n4w558yk.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "build": {
+      "command": "/bin/bash -lc 'PATH=/home/simon/.rustup/toolchains/1.90.0-x86_64-unknown-linux-gnu/bin:$PATH CARGO_NET_OFFLINE=true python3 -B tools/tokenguard.py run -- /home/simon/.rustup/toolchains/1.90.0-x86_64-unknown-linux-gnu/bin/cargo build --manifest-path sdk/Cargo.toml --locked -p nieuw-os-task-grant-core --release --target x86_64-unknown-none'",
+      "exit_code": 0,
+      "log": "build/tokenguard/run-prrsh6k6.log",
+      "log_sha256": "ec21980d90dd96b0b422304d917dea6267831c8a7784b39c200d7a2635204424"
+    }
+  },
+  "host_tests": {
+    "SDK_total": 128,
+    "new_grant_tests": 12
+  },
+  "worker_session": "01a1f050-9e39-7711-8c17-9af7a99b1080",
+  "lockfile_invariant": "Only nieuw-os-task-grant-core0.1.0 local entry added; all prior packages/registry versions unchanged, compared to baseline",
+  "review": "One bounded read-only AI review found no blocking host-model defect; no human audit",
+  "limits": [
+    "Trusted adapter owns issuer, identities, session IDs, object revisions and check/use serialization",
+    "No native broker, IPC, UI, storage enforcement or end-to-end LP acceptance",
+    "No kernel capabilities/messages added",
+    "A03 remains open; score41 unchanged"
+  ]
+}
