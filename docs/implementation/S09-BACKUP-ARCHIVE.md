@@ -85,6 +85,36 @@ tested. Not covered by a test: omitting the revision comparison on
 list/stat on export (only relevant if another writer or the service itself
 deviates).
 
+Independent backup device, host model (19 November 2026, commit `c4ac9ec1`
+on branch `claude/s09-independent-recovery`). Five tests model the planned
+second virtual disk as its own `SimDisk`, with a volatile write cache, read and
+written through `DiskSink`/`DiskSource` from sector 0:
+1. Export to the device, then loss of the source service, volume and disk, then
+   cold restarts of the device and of the restored volume. Content, names,
+   tags, kind and collection are byte-exact. The archive records keep each
+   source revision and the source times. The destination assigns its own
+   revision (1, or 2 after metadata) and later times.
+2. A power cut before every write and before the final flush of an export over
+   an older archive, with the new archive both shorter and longer. Every kept
+   prefix, a torn sector and three reordered subsets are tried. `verify`
+   accepts only the unchanged older archive or the complete new one, and
+   otherwise returns `Corrupt`. The older copy is lost as soon as one differing
+   new sector lands.
+3. `Unknown` (landed or not) and `NoDevice` at every write and at the final
+   flush. `export` never reports success. Only a landed final flush leaves an
+   archive, and only `verify` accepts it.
+4. The device failing reads from sector 0, 1 or the last after `verify`
+   passed. Restore stops with `Io`. A second restore from the returned device
+   restores the rest and reports the earlier objects as conflicts, unchanged.
+5. The source volume's disk, and the backup device read one sector off, are
+   refused with `Corrupt`.
+
+Two mutations of `DiskSink::finish` were tried. Skipping the flush fails four
+tests. Ignoring a flush error fails two, both new: no earlier test caught it.
+The native step needs a second kernel-owned virtio-blk device. That is a
+device-ownership change and is requested in
+[S09-DUAL-DISK-FIXTURE-REQUEST.md](S09-DUAL-DISK-FIXTURE-REQUEST.md).
+
 Open for S09/FR-O06: native backup portal with a target volume and capability
 chosen by the user, native QEMU trial with a second virtual disk,
 user export to common formats (e.g. plain text/image per
