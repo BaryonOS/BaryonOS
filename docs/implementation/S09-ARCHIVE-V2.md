@@ -168,18 +168,16 @@ generation check is applicable (`ACCOUNTED`); (c) a content-free record carries
 the source `created`/`modified` stamps; (d) a purged slot and an excluded
 tombstone are not distinguished.
 
-**Open owner question next to R2: source identity.** The archive records no
-volume or domain identifier; `services/volume/src` defines none, so there is
-no source value to record and inventing one would be fabrication. Recorded
-revisions and stamps are therefore meaningful relative to the source domain
-clock recorded in the same header, not to a named source. The proposed
-default is to keep it so: a stable identifier would link all archives of one
-domain to each other, and L1/L2 as analysed need none. If the owner decides
-otherwise, the identifier is added as a flag-gated v2 extension (a new flag
-bit plus a field in header bytes 40..56). That is a reader change but no new
-layout: a v2 reader without the extension refuses such an archive
-fail-closed, because unknown flag bits and non-zero reserved bytes are
-refused.
+**Source identity: decided by the project owner on 19 November 2026 — no
+source identifier is recorded.** The archive records no volume or domain
+identifier; `services/volume/src` defines none, so there is no source value to
+record and inventing one would be fabrication. A stable identifier would also
+link all archives of one domain to each other, and L1/L2 as analysed need
+none. Recorded revisions and stamps are therefore meaningful relative to the
+source domain clock recorded in the same header, not to a named source. Header
+bytes 40..56 stay reserved and zero; a v2 reader refuses any non-zero value
+there and any unknown flag bit. Reversing this decision would need a new owner
+decision and a flag-gated extension with its own reader change.
 
 **R3** (native restore only into a never-used domain) is a restore policy, not
 archive state; the format has no field for it and needs none. **R4**
@@ -297,8 +295,8 @@ implies `CONTENT_V2`.
   token (`table.rs:131-133`); copying it would be wrong.
 - **Chunk numbers and chunk checksums:** destination allocation is local.
 - **The other domain's clock:** only the exporting domain's own clock.
-- **Source identity** (volume or domain): none exists in the source; see the
-  open owner question in section 3.
+- **Source identity** (volume or domain): none exists in the source, and the
+  owner decided on 19 November 2026 that none is recorded (section 3).
 - **Authenticity:** FNV-64 detects accidental damage only; a deliberately
   resealed archive with consistent invented values is accepted. "Never
   fabricated" holds relative to archive integrity; authenticity belongs to the
