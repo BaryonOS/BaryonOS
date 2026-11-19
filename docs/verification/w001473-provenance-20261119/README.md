@@ -55,9 +55,10 @@ owner**; it is escalated, not decided here.
 ## Disposition options prepared
 
 1. **Narrow exclusion.** Remove the W001473 excerpt (1,468 bytes) from
-   `references/corpus/wiki-01.md` and its entries in the index files, regenerate
-   `source-index.json` offsets with `scripts/build_corpus.py`, and keep this
-   record as the reason. Git history is not rewritten, so the text remains in
+   `references/corpus/wiki-01.md` and its entries in the index files, recompute
+   the later offsets in `source-index.json`, and keep this record as the reason.
+   The exclusion must persist: a corpus rebuild has to skip excluded records
+   (implemented in PR #397). Git history is not rewritten, so the text remains in
    earlier commits; the exclusion only stops further distribution at HEAD.
 2. **Independently authored replacement.** Replace the excerpt with the text
    below, written for this project without reference to the wording of the
@@ -66,7 +67,8 @@ owner**; it is escalated, not decided here.
 3. **Retain pending evidence.** Keep the excerpt unchanged while the original
    OSFAQ author and terms are sought by a person with browser access.
 
-Candidate replacement text (project-authored):
+Candidate replacement text (project-authored; unreviewed draft — its technical
+statements need primary-source references before it is used):
 
 > A monotasking (single-tasking) operating system runs one program at a time.
 > The running program effectively controls the machine; a small resident part of
