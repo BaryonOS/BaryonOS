@@ -129,8 +129,8 @@ writes over an older archive; the torn result is `Corrupt`). Evidence:
 This is fixture evidence; D1–D5, the user task and the encrypted variant stay open.
 
 Open for S09/FR-O06: native backup portal with a target volume and capability
-chosen by the user, native QEMU trial with a second virtual disk,
-user export to common formats (e.g. plain text/image per
+chosen by the user (the native second-disk trial above is a fixture grant,
+not a user choice), user export to common formats (e.g. plain text/image per
 document), encrypted variant for NAS/provider, and a user task.
 
 ## Native slice — local QEMU gate passes (13 November 2026, branch `feat/s09-native-archive`)

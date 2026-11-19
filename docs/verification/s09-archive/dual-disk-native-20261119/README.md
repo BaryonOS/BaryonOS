@@ -26,7 +26,9 @@ close S09.
 | (gate host step) `python3 -B -m unittest discover -s tests -p 'test_volume_*.py'` | 0 | 61 tests, OK (8 new in `tests/test_volume_disk1.py`) |
 | `cargo +1.100.0 test --locked -p virtio-blk-driver` | 0 | 1 new test: only `5<<11` and `6<<11` are reachable |
 | `cargo +1.100.0 clippy --locked -p virtio-blk-driver --all-targets -- -D warnings` | 0 | |
-| `cargo +1.100.0 fmt --all -- --check`, same for `--manifest-path sdk/Cargo.toml` | 0 | |
+| `cargo +1.100.0 fmt --all -- --check`, same for `--manifest-path sdk/Cargo.toml` | 0 | re-run at the final code commit |
+| `cargo +1.100.0 clippy --manifest-path sdk/Cargo.toml --locked --all-targets -- -D warnings` (ci.yml) | 0 | |
+| `cargo +1.100.0 clippy --offline --locked --release --target x86_64-unknown-none --manifest-path sdk/Cargo.toml -p nieuw-os-volume-docs-example --features native,archive-portal --bins -- -D warnings` | 0 | portal build |
 | `python3 -B tools/progress.py --check` | 0 | 41/100, consistent (not rewritten) |
 | `python3 -B -m unittest discover -s tests -p 'test_ci_workflows.py'` | 1 | only `test_volume_gate_stage_counts_match_plan`: the protected workflow pins say 15, `len(PLAN)` is 22 |
 
@@ -67,7 +69,8 @@ new) are covered by the host model in `services/volume/tests/archive.rs` and by
 `VOLUME:ARCHIVE:DEVICE:` (1, or 0 for the wrong-device grant),
 `VOLUME:ARCHIVE:DISK_FOUND:`, `VOLUME:ARCHIVE:DISK_OFFLINE:` (14 when absent),
 `VOLUME:ARCHIVE:SCOPE_REFUSALS:` (portal requests past its scope: 1, and 2 for
-the too-small disk), `VOLUME:ARCHIVE:ESCAPE_DENIALS:` (2),
+the too-small disk), `VOLUME:ARCHIVE:ESCAPE_DENIALS:` (2 with a device-1
+grant, 0 in the wrong-device stage, which has none),
 `VOLUME:BROKER:VOLUME_DISK_WRITES:`/`FLUSHES:` (0/0 for export, absent, small)
 and `VOLUME:BROKER:ARCHIVE_DISK_READS:`/`WRITES:`/`FLUSHES:`, which equal the
 portal's `VOLUME:ARCHIVE:*` counts (export 720/180/1, restore 1440/0/0, small
@@ -93,6 +96,12 @@ app's own forged block calls are counted in `VOLUME:APP_DEVICE_DENIALS:`.
   "What is deliberately not in v1"); timestamps are compared on export only.
 - The wrong-device stage grants the device-0 archive range, as the acceptance
   table asks; this is the one exception to B3's "no device-0 archive range".
+- `archive-disk-cut` prints no counters (the guest stops before the
+  summary); its evidence is the kill and the host comparison of both disks.
+- Not rebuilt or run: the other `discover()` profiles (m5, m6, m6b, m6c,
+  update); `discover()` is unchanged for them. Kernel clippy is not a CI step
+  and was not run. `tools/capture_volume.py` does not yet hash
+  `archive.after.img`.
 - Not run here: hosted CI, `actionlint`, the system/keyring harnesses (the
   feature cannot be combined with `native-system`; a compile check of that
   combination fails as intended with the `compile_error!`).

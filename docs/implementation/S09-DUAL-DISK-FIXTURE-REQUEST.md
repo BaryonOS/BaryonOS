@@ -84,8 +84,8 @@ released write set.
 Two of the last three rows, "Power cut" and "Wrong device", already have a
 host model (next section). "Scope and escape" has no host test. All three
 need QEMU evidence: the native stages `archive-disk-export` (scope
-refusals and escape probes, also counted in every other archive-disk
-stage), `archive-disk-cut` with `archive-disk-verify` (power cut) and
+refusals and escape probes; the absent, small, restore and verify stages
+count them too), `archive-disk-cut` with `archive-disk-verify` (power cut) and
 `archive-disk-wrong` (wrong device) provide it; see
 [docs/verification/s09-archive/dual-disk-native-20261119/](../verification/s09-archive/dual-disk-native-20261119/README.md).
 
