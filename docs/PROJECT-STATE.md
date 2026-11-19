@@ -1,5 +1,16 @@
 # Current project status
 
+## NEXT AGENT HANDOFF — owner decision package recorded — 19 November 2026
+
+**Source:** main `8f970866`. The project-owner decisions of 19 November 2026 are
+recorded in [DECISIONS.md](DECISIONS.md): ADR-S09-DESTINATION-20261119,
+ADR-B03-B04-TARGET-20261119, ADR-DESIGN-TOKENS-20261119, ADR-P-NAMES-1-20261119,
+ADR-PROGRESS-ROUTE-20261119 and ADR-W001473-PROVENANCE-20261119. They approve
+architecture and route only; no criterion is accepted and no production signing,
+key generation, firmware change or physical-device work is authorized.
+**Next action:** pursue the #43 route (S09, N02, U05, H02/U03) within each
+workstream's ownership; for #283, gather W001473 primary provenance evidence.
+
 ## NEXT AGENT HANDOFF — PR integration pass — 19 November 2026
 
 **Source:** main `ea628ef5d9ae523cc53aa0c2d1761bb7c0654463` after #393. Lead integration session; no criterion accepted.
