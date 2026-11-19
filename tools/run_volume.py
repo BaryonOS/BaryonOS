@@ -312,10 +312,11 @@ def run_volume(case: str, volume_dir: Path | None = None, *, timeout=MAX_TIMEOUT
         # Explicit slot 6: QEMU refuses an explicit addr that is already taken,
         # so a boot also shows the auto-assigned ESP is not on 00:06.0.
         readonly1 = "on" if case in DISK1_READ_ONLY else "off"
-        args += ["-drive", f"if=none,id=archive,format=raw,cache=writeback,readonly={readonly1},"
-                           f"file={archive_image.relative_to(ROOT).as_posix()}",
-                 "-device", "virtio-blk-pci,drive=archive,id=arcblk,addr=0x6,disable-legacy=on,num-queues=1,"
-                            "queue-size=8,serial=NOS-S09-ARCHIVE"]
+        archive_rel = archive_image.relative_to(ROOT).as_posix()
+        drive = f"if=none,id=archive,format=raw,cache=writeback,readonly={readonly1},file={archive_rel}"
+        device = ("virtio-blk-pci,drive=archive,id=arcblk,addr=0x6,disable-legacy=on,"
+                  + "num-queues=1,queue-size=8,serial=NOS-S09-ARCHIVE")
+        args += ["-drive", drive, "-device", device]
     started = datetime.now(timezone.utc).isoformat()
     start = time.monotonic()
     rc, out, err, timed_out, killed, running = execute(
