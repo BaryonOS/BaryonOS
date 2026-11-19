@@ -2012,7 +2012,57 @@
       "write_paths": [],
       "checks": [],
       "blocker": "Project owner decision and physical hardware.",
-      "history": []
+      "history": [
+        {
+          "event": "blocked",
+          "at": "2026-11-19",
+          "reason": "Still an owner decision: nine open decisions are now recorded machine-readably in docs/drivers/hardware-matrix.json (OD-HW-TARGETS, -BOOT, -DISKS, -CAPTURE, -SIGNERS, -FAMILIES, -PUBLISH, -INV-ROUTE, -POWER)."
+        }
+      ]
+    },
+    {
+      "id": "H06-T4",
+      "criterion": "H06",
+      "milestone": "M9",
+      "executor": "lead",
+      "status": "verified",
+      "title": "Physical test protocols and signed hardware-evidence validation (host)",
+      "goal": "Machine-checked physical test protocols per H criterion (safety constraints, steps, markers, evidence fields, explicit blockers), an OpenSSH-signed evidence validator bound to protocol, target, image, source and inventory hashes, and hardware-matrix schema 2 with explicit evidence levels; no physical support claim.",
+      "deps": [],
+      "write_paths": [
+        "docs/drivers/physical-protocols.json",
+        "docs/drivers/hardware-matrix.json",
+        "docs/drivers/hw-allowed-signers",
+        "docs/drivers/HARDWARE-TARGETS.md",
+        "docs/drivers/DRIVER-ARCHITECTURE.md",
+        "tools/hw_matrix.py",
+        "tools/hw_evidence.py",
+        "tools/tests/test_hw_matrix.py",
+        "tools/tests/test_hw_evidence.py"
+      ],
+      "checks": [
+        "python3 -B -m unittest discover -s tools/tests -p 'test_hw_*.py' -v",
+        "python3 -B tools/hw_matrix.py --check",
+        "python3 -B tools/hw_evidence.py --check",
+        "python3 -m compileall -q tools"
+      ],
+      "acceptance": [
+        "negative: unsigned, unknown signer, wrong namespace, modified record, hash/target/protocol mismatch, virtual capture, relabelled failure, missing ssh-keygen all rejected",
+        "no row supported; HW-FR target null; owner decisions recorded"
+      ],
+      "non_claimable": "Physical execution, owner signing key, reference-PC selection and H06 acceptance stay open.",
+      "risk": "medium",
+      "size": "M",
+      "evidence_level": "host",
+      "source_commit": "47abad3de92deddbabe6a7b28c2462c524677947",
+      "next": "H06-T3 native HW-INV inventory image (removable media, read-only PCI inventory, no port-0xF4 exit); owner decisions OD-HW-*.",
+      "history": [
+        {
+          "event": "verified",
+          "at": "2026-11-19",
+          "reason": "Builder worktree commit 47abad3 integrated by the H-track lead as merge 839fb2c with fix 9f66bf1 (H05-S3 protocol aligned with the QEMU-native S3 path). 25 host tests pass with real ssh-keygen 9.6p1 signatures; hw_matrix --check and hw_evidence --check exit 0. No physical evidence."
+        }
+      ]
     },
     {
       "id": "L01-T3",

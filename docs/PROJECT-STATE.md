@@ -18,10 +18,13 @@ source v3 `7710f46d…` (earlier rounds `ce3e3145…`, `e76b8fbf…`); S5 ×5 + 
 CI workflow/evidence tests. [Evidence](verification/h05-native-s3-20261119/README.md).
 **Limits:** QEMU/TCG only; no physical firmware, other wake sources, AML `_PTS`/`_WAK`,
 devices/services/SMP across sleep, thermal or battery. Score 41 → 41/100.
+**Integrated H06-T4 (verified, host):** `docs/drivers/physical-protocols.json` (seven blocked
+physical protocols with safety constraints), `tools/hw_evidence.py` (OpenSSH-signed records bound
+to protocol/target/image/source/inventory; empty signer list fails closed), matrix schema 2 with
+nine open owner decisions; 25 tests with real ssh-keygen signatures (merge `839fb2c`, fix `9f66bf1`).
 **In flight (separate worktrees, integrated serially by the lead):** H02-T3 same-port USB
 reattach; H03-T3a kernel-only virtio-snd with exact WAV oracle; H04-T3 virtio-net link
-loss/reconnect (needs a lead ADR for its query syscall and error code); H06-T4 physical
-test protocols and signed-evidence validator. An independent AI review of the S3 diff
+loss/reconnect (needs a lead ADR for its query syscall and error code). An independent AI review of the S3 diff
 found three low findings (all refuted for this profile, applied as hardening); hosted
 host-quality found two real defects (GS discipline, ledger protected path), both fixed.
 **Next:** integrate the builders one by one; then H05-T4 (S3 from the native-system

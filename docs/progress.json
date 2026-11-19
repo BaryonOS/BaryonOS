@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-19",
-    "source_commit": "887c446d8b530b17ba34a1e9798b6e3d012aedcc",
+    "source_commit": "9f66bf182ddb9385fc47bed2922d0af705939c84",
     "assessment_basis": "parent_commit",
     "branch": "ccr-38238c58-g8y1l6",
-    "task": "H05-T3: own-kernel ACPI S3 suspend/resume in the QEMU 8.2 q35/OVMF/TCG profile",
+    "task": "H05-T3 native S3 and H06-T4 physical test protocols with signed-evidence validation",
     "previous_score": 41,
-    "summary": "41/100 unchanged. H05 gains native QEMU S3 evidence (three own-kernel suspend/resume cycles, corrupt-FACS and stale-token refusals) and a FACS parser that accepts the real QEMU firmware; H05 still requires measured, recoverable sleep/wake, shutdown and thermal/battery behaviour on supported hardware."
+    "summary": "41/100 unchanged. H05 gains native QEMU S3 evidence; H06 gains machine-checked physical test protocols, an OpenSSH-signed evidence validator and matrix schema 2 (no row supported, HW-FR target still an owner decision). No criterion accepted."
   },
   "tracks": [
     {
