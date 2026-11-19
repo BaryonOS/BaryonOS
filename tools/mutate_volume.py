@@ -33,7 +33,7 @@ STAT_REQUEST = ("        COLLECTION_STAT => {\n            base && h.revision ==
 
 # (id, file, exact text, replacement, suite). Each text occurs exactly once.
 MUTANTS = [
-    ("choose-unrelated-generations", TABLE, "if a.max(b) == a.min(b) + 1 {", "if true {", "rust"),
+    ("choose-unrelated-generations", TABLE, "if a.min(b).checked_add(1) == Some(a.max(b)) {", "if true {", "rust"),
     ("collection-clock-bound", TABLE,
      ".any(|(index, collection)| collection.revision > self.clocks[index / COLLECTIONS])",
      ".any(|_| false)", "rust"),
