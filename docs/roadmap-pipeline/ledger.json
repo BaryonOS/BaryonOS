@@ -629,7 +629,7 @@
       "criterion": "P02",
       "milestone": "M8",
       "executor": "worker",
-      "status": "ready",
+      "status": "verified",
       "title": "Authority-checked guest head query in NAS native-core for resume discovery (host)",
       "goal": "Add to services/nas/native-core an authority-checked guest head query (latest committed revision per object within the caller's namespace and session) and use it in native-client so NeedsReconcile edits can discover the remote revision; snapshot format (NOSNAS01) and wire unchanged; output unchanged on every error.",
       "why_now": "The native-client README names remote head discovery as the missing piece for automatic resume (P02). It builds on verified CAS/authority code and needs no open PR path.",
@@ -677,7 +677,21 @@
       "evidence_level": "host",
       "rollback": "Revert the commit.",
       "next": "P02-T2 checkpoint encoding.",
-      "history": []
+      "history": [
+        {
+          "at": "2026-11-18T20:28:27.361178+00:00",
+          "event": "active",
+          "reason": "Lead supervised implementation; promote bounded existing-code NAS resume integration ahead of documentation-only proposals. Disjoint from S09 and UI; no unattended activation."
+        },
+        {
+          "at": "2026-11-18T20:30:43.706662+00:00",
+          "event": "verified",
+          "source_commit": "c5c56f93d14a737c5c62dbec7ae237e34fe505fe",
+          "reason": "57 Rust host tests, 8 disk-oracle tests, Clippy/fmt pass. One bounded source review no blocker. Not native/criterion acceptance."
+        }
+      ],
+      "source_commit": "c5c56f93d14a737c5c62dbec7ae237e34fe505fe",
+      "receipt": "docs/roadmap-pipeline/receipts/P02-T1.json"
     },
     {
       "id": "N03-T1",
