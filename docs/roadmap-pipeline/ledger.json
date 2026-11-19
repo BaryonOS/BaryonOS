@@ -152,6 +152,13 @@
           "source_commit": "d03ae904048a91defc74b9e4ba854d3526595580",
           "pr": 363,
           "reason": "Host/build task verified on separate preserved branch; no native A02 acceptance or main integration inferred."
+        },
+        {
+          "at": "2026-11-18T20:08:23+00:00",
+          "event": "source-bound-branch-reference",
+          "source_commit": "d03ae904048a91defc74b9e4ba854d3526595580",
+          "pr": 363,
+          "reason": "Verified task on preserved source branch; no full criterion acceptance or main integration inferred."
         }
       ]
     },
@@ -226,6 +233,13 @@
           "source_commit": "3847e9f2166b71020aa7b78bb82c8f06ae787590",
           "evidence": "docs/verification/b01-management-recovery-20261118/checks.json",
           "summary": "Five native cases guest33, required negative control red, host checks pass; no full B01 acceptance."
+        },
+        {
+          "at": "2026-11-18T20:08:23+00:00",
+          "event": "source-bound-branch-reference",
+          "source_commit": "3847e9f",
+          "pr": 364,
+          "reason": "Verified task on preserved source branch; no full criterion acceptance or main integration inferred."
         }
       ]
     },
@@ -234,7 +248,7 @@
       "criterion": "N02",
       "milestone": "M8",
       "executor": "worker",
-      "status": "ready",
+      "status": "verified",
       "title": "Bounded DNS resolver core with TTL, negative caching and epoch invalidation (host)",
       "goal": "Add services/net-protocol/src/resolver.rs: a pure, allocation-free resolver core with a bounded cache keyed by name and type, monotonic-tick TTL with exact expiry, negative caching of NXDOMAIN, CNAME depth limit, explicit TC/NXDOMAIN/SERVFAIL/ID-or-question-mismatch errors with no partial records, cache flush on configuration-epoch change, and bounded eviction.",
       "why_now": "N02 needs everyday name resolution and only single-query parsing exists. The crate has no dependencies, builds offline and is covered by ci.yml#host-quality.",
@@ -243,7 +257,9 @@
         "services/net-protocol/src/resolver.rs",
         "services/net-protocol/src/lib.rs",
         "services/net-protocol/tests/resolver.rs",
-        "services/net-protocol/README.md"
+        "services/net-protocol/README.md",
+        "services/net-protocol/src/dns.rs",
+        "services/net-protocol/tests/dns.rs"
       ],
       "read_paths": [
         "services/net-protocol/src/dns.rs",
@@ -261,7 +277,8 @@
         "NXDOMAIN negatively cached with a bound",
         "negative: TC bit, wrong ID or question, compression loop, TTL overflow, oversize name each give an error with no partial records",
         "epoch change drops the cache; a full cache evicts within its bound",
-        "no name-to-IP authorization is implied (broker scope unchanged)"
+        "no name-to-IP authorization is implied (broker scope unchanged)",
+        "Negative replies are fully validated before cache mutation; malformed NXDOMAIN cannot poison the cache; reuse the existing DNS decoder without changing strict positive parse_response behavior."
       ],
       "out_of_scope": [
         "native resolver service",
@@ -273,7 +290,22 @@
       "evidence_level": "host",
       "rollback": "Revert the commit.",
       "next": "N02-T2 net-config integration.",
-      "history": []
+      "history": [
+        {
+          "at": "2026-11-18T20:08:23+00:00",
+          "event": "supervised-claim",
+          "owner": "Codex",
+          "branch": "codex/n02-resolver-cache",
+          "base": "6f29b6720b51aecad5714faa48b445afd6e2f5a9"
+        },
+        {
+          "at": "2026-11-18T20:17:44+00:00",
+          "event": "verified",
+          "source_commit": "138d48de9f351836956db79f2d30dbd93814c59e",
+          "receipt": "docs/roadmap-pipeline/receipts/N02-T1.json",
+          "summary": "79 host tests and Clippy/fmt/freestanding build pass; no native resolver or N02 acceptance."
+        }
+      ]
     },
     {
       "id": "B02-T2",
@@ -328,6 +360,11 @@
           "at": "2026-11-18T20:06:13+00:00",
           "event": "ownership-block",
           "reason": "S09-NEXT ownership remains with Claude; owner decision pending."
+        },
+        {
+          "at": "2026-11-18T20:08:23+00:00",
+          "event": "ownership-block",
+          "reason": "S09-NEXT remains Claude-owned; owner decision pending."
         }
       ]
     },
@@ -406,7 +443,13 @@
       "evidence_level": "host",
       "rollback": "Revert the commit and the sdk workspace member line.",
       "next": "A03-T3 native broker after an ADR for per-object volume grants.",
-      "history": []
+      "history": [
+        {
+          "at": "2026-11-18T20:17:44+00:00",
+          "event": "implementation-priority",
+          "reason": "Owner prioritizes functional implementation; N04-T2 is a documentation-only proposal and remains ready for later."
+        }
+      ]
     },
     {
       "id": "N04-T1",
@@ -909,6 +952,11 @@
           "at": "2026-11-18T20:06:13+00:00",
           "event": "ownership-block",
           "reason": "S09-NEXT ownership remains with Claude; owner decision pending."
+        },
+        {
+          "at": "2026-11-18T20:08:23+00:00",
+          "event": "ownership-block",
+          "reason": "S09-NEXT remains Claude-owned; owner decision pending."
         }
       ]
     },
