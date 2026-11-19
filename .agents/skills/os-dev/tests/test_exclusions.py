@@ -88,7 +88,7 @@ class ExcludeScript(unittest.TestCase):
             real = Path.write_bytes
 
             def failing(self, data):
-                if self.name.startswith("source-manifest.json"):
+                if self.name == "source-manifest.json.exclude-tmp":
                     real(self, b"partial")
                     raise OSError("simulated partial write failure")
                 return real(self, data)
@@ -137,7 +137,7 @@ class ExcludeScript(unittest.TestCase):
 
             def failing(self, data):
                 calls[self.name] = calls.get(self.name, 0) + 1
-                if self.name.startswith("source-manifest.json"):
+                if self.name == "source-manifest.json.exclude-tmp":
                     raise OSError("simulated write failure")
                 if self.name == "source-index.json.exclude-tmp" and calls[self.name] > 1:
                     raise OSError("simulated restore failure")
@@ -159,3 +159,37 @@ class ExcludeScript(unittest.TestCase):
             self.assertEqual(kept.read_bytes(), index_before)
             self.assertIn(str(kept), str(ctx.exception))
             self.assertEqual(list(root.rglob("*.exclude-tmp")), [])
+
+    def test_unwritable_backup_aborts_before_any_change(self):
+        import sys
+        with tempfile.TemporaryDirectory() as tmp:
+            root = self._copy(tmp)
+            target = self._target(root)
+            before = self._snapshot(root)
+            mod = self._module(root)
+            real = Path.write_bytes
+
+            def failing(self, data):
+                if self.name == "source-manifest.json.exclude-orig":
+                    raise OSError("simulated full disk")
+                return real(self, data)
+
+            sys.argv = ["x", "--reason", "test", "--record", "none", target["source_id"]]
+            Path.write_bytes = failing
+            try:
+                with self.assertRaises(OSError):
+                    mod.main()
+            finally:
+                Path.write_bytes = real
+            self.assertEqual(self._snapshot(root), before)
+            self.assertEqual(list(root.rglob("*.exclude-orig")), [])
+
+    def test_successful_exclusion_leaves_no_backups(self):
+        import sys
+        with tempfile.TemporaryDirectory() as tmp:
+            root = self._copy(tmp)
+            target = self._target(root)
+            mod = self._module(root)
+            sys.argv = ["x", "--reason", "test", "--record", "none", target["source_id"]]
+            self.assertEqual(mod.main(), 0)
+            self.assertEqual(list(root.rglob("*.exclude-orig")), [])
