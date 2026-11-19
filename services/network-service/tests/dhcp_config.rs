@@ -492,3 +492,51 @@ fn udp_and_tx_entry_points_observe_expiry_without_a_poll() {
         s.complete_transmission_at(pending, 8100).unwrap();
     });
 }
+
+#[test]
+fn withheld_unsubmitted_frame_is_discarded_and_dhcp_resumes() {
+    with_service(|s| {
+        let now = acquire(s, 0, 0x1234, true);
+        assert_eq!(
+            rpc(s, 0, Operation::SendUdp, 1, 0, now).status(),
+            Status::Again
+        );
+        let pending = s.transmission_at(now).unwrap().unwrap().id;
+        // The adapter never submitted `pending`; link-down withdraws it.
+        let lost = 4100;
+        s.link_down(lost).unwrap();
+        assert!(s.transmission_at(lost).unwrap().is_none());
+        assert_eq!(s.withheld_transmission_at(lost).unwrap(), Some(pending));
+        // Without recovery the slot stalls DHCP.
+        s.link_up(lost).unwrap();
+        let mut rng = random(0xabcd);
+        assert_eq!(s.drive_dhcp(lost, &mut rng), Ok(DriveOutcome::Backpressure));
+        // A wrong identity is refused and changes nothing.
+        assert!(s
+            .discard_withheld_transmission_at(pending + 1, lost)
+            .is_err());
+        assert_eq!(s.withheld_transmission_at(lost).unwrap(), Some(pending));
+        s.discard_withheld_transmission_at(pending, lost).unwrap();
+        assert_eq!(s.withheld_transmission_at(lost).unwrap(), None);
+        // Not a completion: the discarded identity cannot also be completed.
+        assert!(s.complete_transmission_at(pending, lost).is_err());
+        assert!(s.discard_withheld_transmission_at(pending, lost).is_err());
+        let ready = acquire(s, lost, 0xabcd, false);
+        assert!(s.dhcp_configuration(ready).unwrap().is_some());
+    });
+}
+
+#[test]
+fn offered_frame_cannot_be_discarded() {
+    with_service(|s| {
+        let now = acquire(s, 0, 0x1234, true);
+        assert_eq!(
+            rpc(s, 0, Operation::SendUdp, 1, 0, now).status(),
+            Status::Again
+        );
+        let pending = s.transmission_at(now).unwrap().unwrap().id;
+        assert_eq!(s.withheld_transmission_at(now).unwrap(), None);
+        assert!(s.discard_withheld_transmission_at(pending, now).is_err());
+        assert_eq!(s.transmission_at(now).unwrap().unwrap().id, pending);
+    });
+}

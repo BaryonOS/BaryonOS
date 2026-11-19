@@ -381,6 +381,31 @@ impl<'a> Service<'a> {
         self.time(now)?;
         Ok(self.stack.transmission())
     }
+    /// Pending frame withdrawn by lease expiry or link-down while still queued.
+    pub fn withheld_transmission_at(&mut self, now: u64) -> Result<Option<u64>, Fault> {
+        self.time(now)?;
+        let result = match &mut self.stack {
+            Transport::Static(stack) => Ok(stack.withheld_transmission()),
+            Transport::Dhcp(service) => service.withheld_transmission(now).map_err(Fault::Dhcp),
+        };
+        self.time(now)?;
+        result
+    }
+    /// Adapter attests the withheld frame was never submitted to the broker.
+    /// A submitted frame keeps its slot until `complete_transmission_at`.
+    pub fn discard_withheld_transmission_at(&mut self, id: u64, now: u64) -> Result<(), Fault> {
+        self.time(now)?;
+        let result = match &mut self.stack {
+            Transport::Static(stack) => stack
+                .discard_withheld_transmission(id)
+                .map_err(|_| Fault::Transport),
+            Transport::Dhcp(service) => service
+                .discard_withheld_transmission(id, now)
+                .map_err(Fault::Dhcp),
+        };
+        self.time(now)?;
+        result
+    }
     pub fn poll(&mut self, now: u64) -> Result<(), Fault> {
         self.time(now)?;
         match &mut self.stack {

@@ -587,6 +587,29 @@ impl<'a> Service<'a> {
         Ok(self.stack.transmission())
     }
 
+    /// Identity of a frame a fence withdrew while still queued. The adapter must
+    /// decide from its own record whether it was ever handed to the broker.
+    pub fn withheld_transmission(&mut self, ticks: u64) -> Result<Option<u64>, Error> {
+        self.now(ticks)?;
+        Ok(self.stack.withheld_transmission())
+    }
+
+    /// Only for a withheld frame the adapter never submitted: no device can
+    /// reference it, so the slot is released without a fabricated completion.
+    /// A submitted frame must still await `complete_transmission`.
+    pub fn discard_withheld_transmission(&mut self, id: u64, ticks: u64) -> Result<(), Error> {
+        self.now(ticks)?;
+        self.stack.discard_withheld_transmission(id)?;
+        if self
+            .pending
+            .as_ref()
+            .is_some_and(|pending| pending.id == id)
+        {
+            self.pending = None;
+        }
+        Ok(())
+    }
+
     pub fn link_down(&mut self, ticks: u64) -> Result<(), Error> {
         let now = self.now(ticks)?;
         self.automatic = None;
