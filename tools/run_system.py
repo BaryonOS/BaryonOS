@@ -59,6 +59,8 @@ def record_plaintext() -> bytes:
     return bytes((11 + i * 17 + i // 97) & 0xFF for i in range(128))
 RANDOM_FEATURE = {"raw":"native-system-random", "sdk":"test-system-random-sdk", "unknown":"test-system-random-unknown", "wrong-caller":"test-system-random-wrong-caller"}
 TCP_FEATURE = {"normal": "native-system-tcp", "recover": "test-system-tcp-recover"}
+# H04-T3 link loss/reconnect profiles; driven by tools/run_net_link.py only.
+LINK_FEATURES = ("test-system-net-link", "test-system-net-link-storm")
 BOOT = ("BOOT:EBS_OK", "KERNEL:ENTRY", "BOOTINFO:OK")
 COLD_CASES = ("keystate", "record-tag", "swapped-blocks", "withheld-secret")
 MAX_TIMEOUT = 180
@@ -102,9 +104,11 @@ def check_image(image: Path) -> None:
         raise ValueError("test disk must be a regular single-link generated image of the exact geometry")
 
 
-def network_arguments(port: int) -> list[str]:
+def network_arguments(port: int, *, status: bool = True) -> list[str]:
     if type(port) is not int or not 1024 <= port <= 65535:
         raise ValueError("network test peer requires an ephemeral local port")
+    if type(status) is not bool:
+        raise ValueError("NIC status feature selection must be a boolean")
     # OVMF can transmit IPv6 during boot, before our driver exists. Disable its
     # network drivers via the documented EDK2 runtime policy, plus the NIC ROM.
     # The PCI NIC remains present for the real Nieuw OS driver and strict peer.
@@ -112,7 +116,8 @@ def network_arguments(port: int) -> list[str]:
             "-fw_cfg", "name=opt/org.tianocore/IPv4Support,string=no",
             "-fw_cfg", "name=opt/org.tianocore/IPv6Support,string=no",
             "-netdev", f"socket,id=net0,connect=127.0.0.1:{port}",
-            "-device", "virtio-net-pci,netdev=net0,id=net,addr=0x7,disable-legacy=on,mac=02:00:00:00:00:07,romfile="]
+            "-device", "virtio-net-pci,netdev=net0,id=net,addr=0x7,disable-legacy=on,mac=02:00:00:00:00:07,romfile="
+            + ("" if status else ",status=off")]
 
 
 def check_parent(previous: dict, frozen: str, image_sha256: str, *, network: bool, tcp=False) -> None:
@@ -335,7 +340,8 @@ def evaluate_cold(case: str, stdout: str, raw_exit: int | None, timed_out: bool)
 
 def run_system(case: str, volume_dir: Path | None = None, *, timeout: int = MAX_TIMEOUT,
                kernel_feature: str | None = None, network_port: int | None = None,
-               rtc_base: str | None = None, cold_case: str | None = None):
+               rtc_base: str | None = None, cold_case: str | None = None,
+               nic_status: bool = True, qmp_hook=None):
     cases = {**FEATURE, **POWER_FEATURE}
     if case not in cases or not 0 < timeout <= MAX_TIMEOUT:
         raise ValueError("unknown case or unbounded timeout")
@@ -345,10 +351,13 @@ def run_system(case: str, volume_dir: Path | None = None, *, timeout: int = MAX_
     network_feature = {"normal": "native-system-net", "recover": "test-system-net-recover"}.get(case)
     diagnostic = case == "normal" and selected in (
         *RANDOM_FEATURE.values(), "native-system-images", "native-system-clock")
-    if selected not in (cases[case], network_feature, TCP_FEATURE.get(case)) and not diagnostic:
+    link = case == "normal" and selected in LINK_FEATURES
+    if selected not in (cases[case], network_feature, TCP_FEATURE.get(case)) and not diagnostic and not link:
         raise ValueError("wrong native system feature for this case")
+    if (qmp_hook is not None or nic_status is not True) and not link:
+        raise ValueError("QMP link control and a STATUS-less NIC belong to the link profile only")
     use_tcp = selected == TCP_FEATURE.get(case)
-    use_network = selected == network_feature or use_tcp
+    use_network = selected == network_feature or use_tcp or link
     if use_network != (type(network_port) is int and 1024 <= network_port <= 65535):
         raise ValueError("network profile requires a dedicated local test peer port")
     if not use_network and network_port is not None:
@@ -428,10 +437,21 @@ def run_system(case: str, volume_dir: Path | None = None, *, timeout: int = MAX_
     if use_network:
         # An ephemeral port is supplied by the owned synthetic protocol peer.
         # No TAP, bridge, default user network, host share or public listener.
-        command += network_arguments(network_port)
+        command += network_arguments(network_port, status=nic_status)
+    if qmp_hook is not None:
+        # Private QMP socket inside this run directory (relative to QEMU's
+        # cwd). The link harness is its only client and permits nothing but
+        # qmp_capabilities and set_link; no HMP, TAP or other listener.
+        command += ["-qmp", f"unix:{rel}/qmp.sock,server=on,wait=off"]
     started = datetime.now(timezone.utc).isoformat()
     begin = time.monotonic()
-    rc, stdout, stderr, timed_out, _, _ = execute(command, env, timeout=timeout)
+    on_line = None if qmp_hook is None else (lambda line, process: qmp_hook(line, process, run_dir))
+    try:
+        rc, stdout, stderr, timed_out, _, _ = execute(command, env, timeout=timeout, on_line=on_line)
+    except Exception as error:
+        # A failed link-control hook killed QEMU: keep the partial serial log.
+        (run_dir / "serial.txt").write_text(getattr(error, "partial_stdout", ""))
+        raise
     duration = time.monotonic() - begin
     (run_dir / "serial.txt").write_text(stdout)
     (run_dir / "stderr.txt").write_text(stderr)
@@ -450,6 +470,9 @@ def run_system(case: str, volume_dir: Path | None = None, *, timeout: int = MAX_
         report["network_gate"] = False
     if use_tcp:
         report["tcp_gate"] = False
+    if link:
+        report["nic_status"] = nic_status
+        report["qmp_socket"] = "qmp.sock" if qmp_hook is not None else None
     try:
         report["cold_case"] = cold_case
         report["fixture_environment"] = {"NOS_SYSTEM_COLD_CASE": os.environ.get("NOS_SYSTEM_COLD_CASE")}

@@ -122,3 +122,37 @@ Baryon OS's own driver performs all native TX/RX. The peer continues to reject
 every unknown EtherType; no whitelist, simulated network or changed 8/7
 acceptance. This is only a bounded VM profile, not a claim that physical
 firmware on other devices cannot send preboot traffic.
+
+## H04-T3 link-loss and reconnect phase
+
+Kernel features `test-system-net-link` and `test-system-net-link-storm` build
+the same probe with cargo feature `link` (`build.py --link`). The base probe
+code is unchanged without that feature (identical `.text`; only panic-location
+line numbers in `.rodata` moved). The kernel writes mode word 592 (1 = link
+cycle, 2 = storm); the probe reports words 600–696 (supported, epochs,
+refusals, stale-frame check, fresh ARP/echo, raw denials, offline refusals,
+pre-down echo, last epoch), which the kernel compares with its own counters.
+
+Schedule after the unchanged 7-denial/ARP/UDP/DNS/timeout base:
+
+1. Raw 0x74 probes before the base: reserved argument (-1) and wrong
+   capability type (-6); after `close`: stale handle (-4). The probe waits
+   for the kernel's first link sample (`(1, up)`), or records Unsupported
+   (-15) when the NIC has no STATUS feature and then runs only the base.
+2. A pre-down UDP echo whose reply the probe deliberately never receives.
+   The runner turns the link off only after the kernel reports holding that
+   reply (`NETLINK:RX_HELD:8`).
+3. `normal`: wait for `(2, down)`; send and receive both return -23; the
+   runner turns the link on only after `NETLINK:DOWN_REFUSED:2`; wait for
+   `(3, up)`; receive returns Again (the held reply was destroyed); a new
+   neighbour slot resolves the next hop again with a fresh ARP request, and
+   a new echo with different bytes must come back exactly. `storm`: watch the
+   handshaked toggles until 0x74 returns -14, then send and receive also
+   return -14.
+
+`tools/run_net_link.py --case normal|nostatus|storm` runs the existing joint
+system gate plus a QMP controller on a private unix socket in the run
+directory (only `qmp_capabilities` and `set_link net0`). The synthetic peer
+accepts the extra frames only with its optional `predown`/`reconnect`
+schedules; its default schedule is unchanged. Results:
+[`h04-native-link-20261119`](../verification/h04-native-link-20261119/README.md).

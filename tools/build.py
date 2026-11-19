@@ -38,6 +38,8 @@ KEYRING_CASES = ("no-device", "stuck", "timeout", "restart")
 KEYRING_FEATURES = ("native-keyring", *(f"test-keyring-{case}" for case in KEYRING_CASES))
 UPDATE_FEATURES = ("native-update", "test-update-cut", "native-update-policy-probe")
 NETWORK_SYSTEM_FEATURES = ("native-system-net", "test-system-net-recover")
+# H04-T3 link loss/reconnect test profiles (normal/nostatus share the first build).
+NETWORK_LINK_FEATURES = ("test-system-net-link", "test-system-net-link-storm")
 TCP_SYSTEM_FEATURES = ("native-system-tcp", "test-system-tcp-recover")
 MEMORY_FEATURES = ("native-memory", "native-memory-nx", "native-memory-guard", "native-memory-peer", "native-memory-oom")
 WINDOW_FEATURES = ("native-window-session", "native-window-session-probe", "native-window-session-hidpi", "native-window-session-hidpi-probe", "native-session-route", "native-hid-input-probe")
@@ -47,7 +49,7 @@ RANDOM_FEATURES = ("native-system-random", "test-system-random-sdk", "test-syste
 IMAGE_FEATURES = ("native-system-images",)
 SYSTEM_CLOCK_FEATURES = ("native-system-clock",)
 POWER_SYSTEM_FEATURES = ("native-system-power", "test-system-power-flush-error", "test-system-power-flush-timeout")
-SYSTEM_FEATURES = ("native-net-service", "test-net-service-client-exit", "test-net-service-revoke", "test-net-service-helper", "test-net-service-device-reset", "test-net-service-exhaustion", "native-cap-digest-bench", "native-system", "test-system-recover", "native-system-display-input", *NETWORK_SYSTEM_FEATURES, *TCP_SYSTEM_FEATURES, *RANDOM_FEATURES, *IMAGE_FEATURES, *SYSTEM_CLOCK_FEATURES)
+SYSTEM_FEATURES = ("native-net-service", "test-net-service-client-exit", "test-net-service-revoke", "test-net-service-helper", "test-net-service-device-reset", "test-net-service-exhaustion", "native-cap-digest-bench", "native-system", "test-system-recover", "native-system-display-input", *NETWORK_SYSTEM_FEATURES, *NETWORK_LINK_FEATURES, *TCP_SYSTEM_FEATURES, *RANDOM_FEATURES, *IMAGE_FEATURES, *SYSTEM_CLOCK_FEATURES)
 SYSTEM_FEATURES += POWER_SYSTEM_FEATURES
 # PR 154 legacy SMP path (kernel/src/m2_legacy); every name enables native-smp-legacy and
 # needs the smp-handoff loader. K06 native-smp* profiles use the default loader.
@@ -277,10 +279,11 @@ def build(loader_feature=None, kernel_feature=None, label="normal", image_versio
             for name in names:
                 binary = component_target / f"x86_64-unknown-none/release/{component}-{name}"
                 binaries[f"{component}_{name}"] = binary
-        if kernel_feature in NETWORK_SYSTEM_FEATURES + TCP_SYSTEM_FEATURES:
+        if kernel_feature in NETWORK_SYSTEM_FEATURES + NETWORK_LINK_FEATURES + TCP_SYSTEM_FEATURES:
             probe = "tcp-probe" if kernel_feature in TCP_SYSTEM_FEATURES else "net-probe"
-            net_target = TARGET / f"system-{probe}"
-            run_logged([sys.executable, "-B", str(ROOT / f"sdk/examples/{probe}/build.py")],
+            link = kernel_feature in NETWORK_LINK_FEATURES
+            net_target = TARGET / f"system-{probe}{'-link' if link else ''}"
+            run_logged([sys.executable, "-B", str(ROOT / f"sdk/examples/{probe}/build.py"), *(["--link"] if link else [])],
                        "build-system-net-probe", extra_env={"CARGO_TARGET_DIR": str(net_target)})
             binaries["net_probe"] = net_target / f"x86_64-unknown-none/release/{probe}"
         if kernel_feature in ("native-net-service", "test-net-service-client-exit", "test-net-service-revoke", "test-net-service-helper", "test-net-service-device-reset", "test-net-service-exhaustion"):

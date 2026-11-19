@@ -124,6 +124,7 @@ struct Registers {
     status: u8,
     queue_count: u16,
     generation: u8,
+    generation_reads: usize,
     spinning_generation: bool,
     reject_features: bool,
     reject_driver_ok: bool,
@@ -163,6 +164,7 @@ impl Model {
             status: 0,
             queue_count: 2,
             generation: 0,
+            generation_reads: 0,
             spinning_generation: false,
             reject_features: false,
             reject_driver_ok: false,
@@ -218,6 +220,7 @@ impl Io for Model {
             return state.status;
         }
         if address == COMMON + 21 {
+            state.generation_reads += 1;
             if state.spinning_generation {
                 state.generation = state.generation.wrapping_add(1);
             }
@@ -796,5 +799,199 @@ fn stale_used_entry_while_idle_cannot_become_a_new_request_completion() {
         );
         assert!(engine.reset_acknowledged());
         assert!(model.0.borrow().notifications.is_empty());
+    }
+}
+
+#[test]
+fn link_status_is_a_bounded_read_only_coherent_sample() {
+    let (engine, model) = online();
+    assert_eq!(
+        engine.features,
+        VERSION_1 | FEATURE_MAC | FEATURE_STATUS,
+        "negotiated feature bits are fixed for the lifetime"
+    );
+    model.0.borrow_mut().generation = 7;
+    assert_eq!(engine.link_status(), Ok((7, true)));
+    model.0.borrow_mut().store(CONFIG + 6, 0, 2);
+    model.0.borrow_mut().generation = 8;
+    assert_eq!(engine.link_status(), Ok((8, false)));
+    // Other status bits (ANNOUNCE) never count as link.
+    model.0.borrow_mut().store(CONFIG + 6, 2, 2);
+    assert_eq!(engine.link_status(), Ok((8, false)));
+    let bytes = model.0.borrow().bytes.clone();
+    let notifications = model.0.borrow().notifications.len();
+    // A generation that never settles: exactly LINK_READ_ATTEMPTS bracketed
+    // attempts (two generation reads each), then Busy and never a sample.
+    model.0.borrow_mut().spinning_generation = true;
+    model.0.borrow_mut().generation_reads = 0;
+    assert_eq!(engine.link_status(), Err(Error::Busy));
+    assert_eq!(model.0.borrow().generation_reads, 2 * LINK_READ_ATTEMPTS);
+    // Read-only: no register/DMA byte, status or doorbell changed.
+    assert!(model.0.borrow().bytes == bytes);
+    assert_eq!(model.0.borrow().notifications.len(), notifications);
+    assert_eq!(model.0.borrow().status, 15);
+    assert!(model.bus_master_enabled());
+    model.0.borrow_mut().spinning_generation = false;
+    model.0.borrow_mut().status |= 64;
+    assert_eq!(engine.link_status(), Err(Error::Io));
+    assert_eq!(engine.link_up(), Err(Error::Io));
+}
+
+#[test]
+fn link_status_needs_negotiated_status_and_a_live_device() {
+    let model = Model::new();
+    model.0.borrow_mut().offered &= !FEATURE_STATUS;
+    let mut engine = new_engine(model);
+    assert_eq!(engine.link_status(), Err(Error::Offline));
+    engine.initialize().unwrap();
+    assert_eq!(engine.features & FEATURE_STATUS, 0);
+    assert_eq!(engine.link_status(), Err(Error::Unsupported));
+    assert!(matches!(
+        LinkMonitor::new(engine.features, 8),
+        Err(Error::Unsupported)
+    ));
+    let (mut engine, _) = online();
+    engine.begin_reset();
+    assert_eq!(engine.link_status(), Err(Error::Offline));
+}
+
+#[test]
+fn publications_count_every_descriptor_publication_and_doorbell() {
+    let (mut engine, model) = online();
+    let indices =
+        |engine: &Engine<Model>| (engine.queues[RX].available, engine.queues[TX].available);
+    assert_eq!(indices(&engine), (0, 0));
+    engine.post_rx().unwrap();
+    engine.send(&[0x33; 60], 0, 10).unwrap();
+    assert_eq!(indices(&engine), (1, 1));
+    assert_eq!(model.0.borrow().notifications.len(), 2);
+    // Refused publications change neither index nor doorbell.
+    assert_eq!(engine.send(&[0x33; 60], 0, 10), Err(Error::Busy));
+    assert_eq!(engine.post_rx(), Err(Error::Busy));
+    assert_eq!(indices(&engine), (1, 1));
+    assert_eq!(model.0.borrow().notifications.len(), 2);
+}
+
+fn up(epoch: u64) -> Option<LinkEvent> {
+    Some(LinkEvent {
+        epoch,
+        up: true,
+        synthetic: false,
+    })
+}
+fn down(epoch: u64) -> Option<LinkEvent> {
+    Some(LinkEvent {
+        epoch,
+        up: false,
+        synthetic: false,
+    })
+}
+
+#[test]
+fn link_monitor_numbers_real_transitions_with_kernel_epochs() {
+    let mut monitor = LinkMonitor::new(FEATURE_STATUS, 8).unwrap();
+    assert_eq!(monitor.state(), Ok(None));
+    assert_eq!(monitor.observe(3, true), Ok([up(1), None]));
+    // Stable samples cost no epoch and no budget, whatever their count.
+    for _ in 0..100 {
+        assert_eq!(monitor.observe(3, true), Ok([None, None]));
+    }
+    assert_eq!(monitor.state(), Ok(Some((1, true))));
+    assert_eq!(monitor.observe(4, false), Ok([down(2), None]));
+    assert_eq!(monitor.observe(4, false), Ok([None, None]));
+    assert_eq!(monitor.observe(5, true), Ok([up(3), None]));
+    assert_eq!(monitor.state(), Ok(Some((3, true))));
+    assert_eq!(monitor.observations(), 104);
+}
+
+#[test]
+fn generation_change_without_bit_change_is_one_synthetic_pair_never_a_count() {
+    for delta in [1u8, 2, 37, 255] {
+        let mut monitor = LinkMonitor::new(FEATURE_STATUS, 8).unwrap();
+        assert_eq!(monitor.observe(10, true), Ok([up(1), None]));
+        // The device went down and up again between two samples.
+        let hinted = 10u8.wrapping_add(delta);
+        assert_eq!(
+            monitor.observe(hinted, true),
+            Ok([
+                Some(LinkEvent {
+                    epoch: 2,
+                    up: false,
+                    synthetic: true
+                }),
+                up(3)
+            ]),
+            "delta {delta} is a hint, not a count"
+        );
+        assert_eq!(monitor.state(), Ok(Some((3, true))));
+        // Same while down: a synthetic up is immediately superseded by down.
+        assert_eq!(monitor.observe(hinted, false), Ok([down(4), None]));
+        assert_eq!(
+            monitor.observe(hinted.wrapping_add(1), false),
+            Ok([
+                Some(LinkEvent {
+                    epoch: 5,
+                    up: true,
+                    synthetic: true
+                }),
+                down(6)
+            ])
+        );
+        assert_eq!(monitor.state(), Ok(Some((6, false))));
+    }
+    // Exactly 256 changes leave an equal u8: undetectable, documented limit.
+    let mut monitor = LinkMonitor::new(FEATURE_STATUS, 8).unwrap();
+    monitor.observe(1, true).unwrap();
+    assert_eq!(monitor.observe(1, true), Ok([None, None]));
+}
+
+#[test]
+fn link_monitor_budget_exhaustion_latches_and_hides_every_state() {
+    let mut monitor = LinkMonitor::new(FEATURE_STATUS, 8).unwrap();
+    assert_eq!(monitor.observe(0, true), Ok([up(1), None]));
+    let mut generation = 0u8;
+    for epoch in 2..=9 {
+        generation += 1;
+        let event = Some(LinkEvent {
+            epoch,
+            up: epoch % 2 == 1,
+            synthetic: false,
+        });
+        assert_eq!(
+            monitor.observe(generation, epoch % 2 == 1),
+            Ok([event, None])
+        );
+    }
+    assert_eq!(monitor.state(), Ok(Some((9, true))));
+    assert_eq!(
+        monitor.observe(generation + 1, false),
+        Err(Error::Exhausted)
+    );
+    assert_eq!(monitor.state(), Err(Error::Exhausted));
+    // A later link-up (or any sample) never yields an event or a state again.
+    for (hint, bit) in [(generation + 2, true), (generation + 3, false), (0, true)] {
+        assert_eq!(monitor.observe(hint, bit), Err(Error::Exhausted));
+    }
+    assert_eq!(monitor.state(), Err(Error::Exhausted));
+    // A synthetic pair needs two budget units; one unit left still latches.
+    let mut monitor = LinkMonitor::new(FEATURE_STATUS, 1).unwrap();
+    monitor.observe(0, true).unwrap();
+    assert_eq!(monitor.observe(1, true), Err(Error::Exhausted));
+    assert_eq!(monitor.state(), Err(Error::Exhausted));
+}
+
+#[test]
+fn link_monitor_reset_latch_is_terminal() {
+    for sampled in [false, true] {
+        let mut monitor = LinkMonitor::new(FEATURE_STATUS, 8).unwrap();
+        if sampled {
+            monitor.observe(0, true).unwrap();
+        }
+        monitor.latch_reset();
+        monitor.latch_reset();
+        assert_eq!(monitor.state(), Err(Error::Io));
+        assert_eq!(monitor.observe(1, true), Err(Error::Io));
+        assert_eq!(monitor.observe(2, false), Err(Error::Io));
+        assert_eq!(monitor.state(), Err(Error::Io));
     }
 }

@@ -102,6 +102,8 @@ struct Evidence {
     net_pid: u64,
     #[cfg(feature = "native-system-tcp")]
     tcp: Option<([u64; 2], u64)>, // clock reads, blackhole ticks; actual exit tick
+    #[cfg(feature = "test-system-net-link")]
+    link: Option<[u64; 13]>,
 }
 static mut EVIDENCE: Evidence = Evidence {
     app: None,
@@ -117,6 +119,8 @@ static mut EVIDENCE: Evidence = Evidence {
     net_pid: 0,
     #[cfg(feature = "native-system-tcp")]
     tcp: None,
+    #[cfg(feature = "test-system-net-link")]
+    link: None,
 };
 fn evidence() -> &'static mut Evidence {
     // SAFETY: KERNEL held, IF=0. Each borrow ends before a syscall or scheduling.
@@ -213,6 +217,8 @@ pub(super) fn manifest(s: &mut State) {
         for (offset, value) in [(32, 1), (40, 0), (48, cap), (56, wrong_type), (176, pid)] {
             put(s, 4, offset, value);
         }
+        #[cfg(feature = "test-system-net-link")]
+        put(s, 4, network::link::MODE_WORD, network::link::MODE);
         network::bind(pid, cap, key);
     }
     #[cfg(feature = "native-system-random")]
@@ -586,6 +592,14 @@ pub(super) fn observe_exit(s: &mut State, slot: usize, _counter: u64) {
     #[cfg(feature = "native-system-net")]
     if is_net_probe(s, slot) {
         evidence().net = Some(words);
+        #[cfg(feature = "test-system-net-link")]
+        {
+            let mut link = [0; 13];
+            for (value, at) in link.iter_mut().zip(network::link::PROBE_WORDS) {
+                *value = word(s, slot, at);
+            }
+            evidence().link = Some(link);
+        }
         #[cfg(feature = "native-system-tcp")]
         {
             // Snapshot before process cleanup; these are observer inputs, not
@@ -921,6 +935,10 @@ fn finish(s: &mut State) -> ! {
             }
         }
         network::print_and_check(net[6], net[7]);
+        #[cfg(feature = "test-system-net-link")]
+        network::link::check_and_print(
+            evidence().link.unwrap_or_else(|| fail(b"NETLINK_SNAPSHOT")),
+        );
     }
     #[cfg(feature = "native-system-random")]
     random_fixture::check_and_print(s);
