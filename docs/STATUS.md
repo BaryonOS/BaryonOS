@@ -1,13 +1,10 @@
 # Current overview
 
-Updated 18 November 2026. Source baseline: main
-`6f29b6720b51aecad5714faa48b445afd6e2f5a9` (#355), preceded by #359 at `1c10cdb5`.
-Latest development checkpoint: `codex/b04-repro-check` (B04-T2 comparator delivered;
-real build comparison RED: loader/ESP differ). [Executable continuation](PROJECT-STATE.md).
-This implementation session delivered PR372 USB, PR374 model parser, PR375 native
-NAS quota/offline eviction, PR377 settings and PR378 scoped search. SDK-core membership
-remains with the integration owner; no native U05 acceptance. Overall41/100 unchanged.
-Integration/merge/closure remains owned by the separate Integration Manager.
+Updated 19 November 2026. Source baseline: main `ea628ef5` (#393).
+Integration pass of 19 November 2026 squash-merged PRs #365–#379 and #381–#393 in
+creation order, with review repairs where findings were valid. Open PRs: #360
+(Claude UI/UX, excluded) and #380 (blocked native full-port sweep). Overall 41/100
+unchanged. [Executable continuation](PROJECT-STATE.md).
 
 | Workstream | Current boundary | Next step |
 |---|---|---|
