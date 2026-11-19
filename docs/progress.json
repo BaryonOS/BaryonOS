@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-19",
-    "source_commit": "8f9708663a8c7b94db3d35613047bcbad3a308c3",
+    "source_commit": "9c707c8db0f4a2d9ec8ce0a40f2b00eb210233bf",
     "assessment_basis": "parent_commit",
-    "branch": "ccr-eb161a01-03937i",
-    "task": "Record the project-owner decision package of 19 November 2026",
+    "branch": "ccr-38238c58-g8y1l6",
+    "task": "H05-T3: own-kernel ACPI S3 suspend/resume in the QEMU 8.2 q35/OVMF/TCG profile",
     "previous_score": 41,
-    "summary": "41/100 unchanged. Architecture and priority decisions recorded as ADRs; no implementation or acceptance evidence changes any criterion."
+    "summary": "41/100 unchanged. H05 gains native QEMU S3 evidence (three own-kernel suspend/resume cycles, corrupt-FACS and stale-token refusals) and a FACS parser that accepts the real QEMU firmware; H05 still requires measured, recoverable sleep/wake, shutdown and thermal/battery behaviour on supported hardware."
   },
   "tracks": [
     {
@@ -243,7 +243,10 @@
           "points": 2,
           "status": "open",
           "acceptance": "ACPI/power management, sleep/wake, shutdown, and thermal/battery functions are measured and recoverable on supported hardware.",
-          "evidence": []
+          "evidence": [
+            "docs/verification/h05-acpi-s5/README.md",
+            "docs/verification/h05-native-s3-20261119/README.md"
+          ]
         },
         {
           "id": "H06",

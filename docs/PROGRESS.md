@@ -59,7 +59,7 @@ The machine-readable source of truth is [progress.json](progress.json). `tools/p
 | **H02 — Keyboard, mouse, and USB** | 3 | Open | Common input and USB devices work on the documented reference profile; hotplug and invalid device responses remain bounded. [evidence 1](../docs/verification/issue42-native-input-20261114/README.md) |
 | **H03 — Graphics output and audio** | 3 | Open | Native graphics output, required GPU functionality, and audio meet documented usability and latency budgets on physical reference hardware. |
 | **H04 — Network hardware and connections** | 2 | Open | Ethernet, Wi-Fi, and the agreed Bluetooth functions work on supported hardware, including disconnect, resume, and driver-failure paths. |
-| **H05 — Power management and sleep/wake** | 2 | Open | ACPI/power management, sleep/wake, shutdown, and thermal/battery functions are measured and recoverable on supported hardware. |
+| **H05 — Power management and sleep/wake** | 2 | Open | ACPI/power management, sleep/wake, shutdown, and thermal/battery functions are measured and recoverable on supported hardware. [evidence 1](../docs/verification/h05-acpi-s5/README.md) · [evidence 2](../docs/verification/h05-native-s3-20261119/README.md) |
 | **H06 — Physical support matrix** | 1 | Open | Several predefined representative PC configurations pass the documented hardware matrix; DMA/IOMMU boundaries and limitations are explicit. |
 
 ### U — Native Material and accessibility (4/15)
