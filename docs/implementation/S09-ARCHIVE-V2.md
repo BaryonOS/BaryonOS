@@ -184,8 +184,9 @@ there and any unknown flag bit. This holds for archive v2 as a whole: no
 source identifier is recorded behind a feature flag either. The decision, its
 consequences for the format and for the L2 `origin_*` provenance fields, and
 the condition for revisiting it (a new owner decision) are recorded in
-`ADR-S09-RESTORE-FIDELITY-20261119` in `docs/DECISIONS.md` (PR #403), together
-with R2–R4.
+`ADR-S09-RESTORE-FIDELITY-20261119`, together with R2–R4. That ADR is pending
+in draft [PR #403](https://github.com/BaryonOS/BaryonOS/pull/403) and is not
+yet in `docs/DECISIONS.md` on `main` or on this branch.
 
 **R3: decided by the project owner on 19 November 2026.** Native restore
 targets only a demonstrably never-used domain; existing domains are neither
