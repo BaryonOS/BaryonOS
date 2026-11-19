@@ -519,7 +519,7 @@
         }
       ],
       "source_commit": "5acd07961bd12d389987fc2251f4f7834faae97d",
-      "receipt": "docs/roadmap-pipeline/receipts/N04-T1.json",
+      "receipt": null,
       "blocker": "Before optional timed-wait experiment, full sweep measured1540input frames over6.989656652s (median4.513ms per input, ~220RST/s), peer healthy; appB failed step32 at8.375s. This extrapolates to about591s for131070RSTs, beyond180s. Required native full-port acceptance remains open. Existing revoke feature lacks ipc-wait; optional wait experiment failed POLICYstep3 and has been fully removed without enabling new syscall/feature."
     },
     {
