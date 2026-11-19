@@ -22,7 +22,8 @@ import re
 import subprocess
 import time
 
-from common import BUILD, save_json, sha256, source_hash, without_acpi_diagnostics
+from common import (BUILD, qemu_machine, save_json, sha256, source_hash,
+                    without_acpi_diagnostics)
 from run_graphics import QmpPipe
 
 FEATURES = {
@@ -31,6 +32,9 @@ FEATURES = {
     "stale-token": "test-acpi-s3-stale-token",
 }
 CYCLES = 3
+# The FACS layout, PM1 ports and firmware path below are measured on this
+# machine only; another machine type is a different, unverified profile.
+MACHINE = "pc-q35-8.2"
 BOOT = ("BOOT:EBS_OK", "KERNEL:ENTRY", "BOOTINFO:OK", "KS-01:PASS", "KS-02:PASS",
         "KS-03:PASS", "M2:PASS", "M1:PASS")
 PLAN = re.compile(r"POWER:S3:PLAN:PM1A=0x0604:SLP_TYP=1:PM1A_STS=0x0600:FACS_VERSION=0:"
@@ -55,6 +59,21 @@ class EventPipe(QmpPipe):
         if "event" in reply and isinstance(reply["event"], str):
             self.events.append(reply["event"])
         return reply
+
+    def drain(self):
+        """After QEMU exited: read every message it wrote before closing QMP.
+
+        QEMU emits WAKEUP from its main loop, so it can follow the last
+        `system_wakeup` reply. A clean end of stream finishes the drain; a
+        truncated final message or the shared deadline is an error.
+        """
+        while True:
+            try:
+                self.read()
+            except RuntimeError as error:
+                if "Missing or truncated" in str(error) and not self.pending:
+                    return
+                raise
 
 
 def expected_wakeups(case: str) -> int:
@@ -126,6 +145,7 @@ def controlled_guest(args: list[str], *, cwd, env, timeout, run_dir, case: str) 
                     continue
                 time.sleep(0.02)
             process.wait(timeout=max(0, deadline - time.monotonic()))
+            control.drain()
             if cycle != wakeups:
                 error = f"Expected {wakeups} wake requests, issued {cycle}"
         except (TimeoutError, subprocess.TimeoutExpired) as exc:
@@ -217,6 +237,8 @@ def run_case(case: str) -> dict:
                        "_PTS/_WAK, devices, services, SMP, interrupts or physical hardware"}
     save_json(destination, report)
     try:
+        if qemu_machine() != MACHINE:
+            raise ValueError(f"The S3 profile is pinned to {MACHINE}; set NOS_QEMU_MACHINE={MACHINE}")
         frozen = source_hash()
         manifest_path = BUILD / "manifest.json"
         manifest_hash = sha256(manifest_path)

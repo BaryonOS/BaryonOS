@@ -1,7 +1,12 @@
 """HOST_ONLY S3 verifier counterexamples; fixtures are not native evidence."""
+import json
+import os
 from pathlib import Path
+import subprocess
 import sys
+import time
 import unittest
+from unittest import mock
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import run_sleep as gate
@@ -125,6 +130,52 @@ class SleepVerifier(unittest.TestCase):
             gate.evaluate("stale-token", transcript(TAILS["stale-token"]), 33, False, [])
         with self.assertRaises(ValueError):
             gate.expected_wakeups("unknown")
+
+
+FAKE_QMP = """
+import json, sys
+emit = lambda value: print(json.dumps(value), flush=True)
+emit({"QMP": {"version": {}}})
+sys.stdin.readline()
+emit({"return": {}, "id": 1})
+for event in sys.argv[1:]:
+    emit({"event": event, "timestamp": {}})
+"""
+
+
+class EventDrain(unittest.TestCase):
+    def control(self, *events):
+        process = subprocess.Popen([sys.executable, "-I", "-c", FAKE_QMP, *events],
+                                   stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+        self.addCleanup(process.wait)
+        control = gate.EventPipe(process, time.monotonic() + 10)
+        self.addCleanup(control.close)
+        process.wait(timeout=10)
+        return control
+
+    def test_wakeup_after_the_final_reply_is_collected(self):
+        # QEMU emits WAKEUP from its main loop, after the system_wakeup reply.
+        control = self.control("SUSPEND", "WAKEUP")
+        control.drain()
+        self.assertEqual(control.events, ["SUSPEND", "WAKEUP"])
+
+    def test_clean_end_of_stream_without_events_drains_to_nothing(self):
+        control = self.control()
+        control.drain()
+        self.assertEqual(control.events, [])
+
+    def test_truncated_final_message_is_an_error(self):
+        control = self.control("SUSPEND")
+        control.pending.extend(b'{"event": "WAK')
+        with self.assertRaises(RuntimeError):
+            control.drain()
+
+
+class MachinePin(unittest.TestCase):
+    def test_other_machine_types_are_refused_before_launch(self):
+        with mock.patch.dict(os.environ, {"NOS_QEMU_MACHINE": "pc-q35-10.0"}):
+            with mock.patch.object(gate, "save_json"), self.assertRaisesRegex(ValueError, "pinned"):
+                gate.run_case("cycles")
 
 
 if __name__ == "__main__":

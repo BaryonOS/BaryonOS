@@ -63,6 +63,28 @@ in a version-0 FACS longer than 32 bytes. Confining the nonzero store to an
 explicit, named policy, a zero-validated field and an immediate restore keeps
 the deviation bounded and visible in the serial plan line.
 
+**Primary sources (read 19 November 2026).**
+- ACPICA, Intel Corporation, tag `R2025_04_04`,
+  `source/components/hardware/hwxfsleep.c`, `AcpiHwSetFirmwareWakingVector`:
+  sets `FirmwareWakingVector`; when `Length > 32` it sets
+  `XFirmwareWakingVector` for `Version >= 1` and clears it otherwise.
+  <https://github.com/acpica/acpica/blob/R2025_04_04/source/components/hardware/hwxfsleep.c>
+- TianoCore EDK II, tag `edk2-stable202402`,
+  `UefiCpuPkg/Universal/Acpi/S3Resume2Pei/S3Resume.c`, `S3ResumeBootOs`:
+  takes the extended path whenever `Facs->XFirmwareWakingVector != 0`
+  (without 64-bit wake: `AsmDisablePaging64` into 32-bit protected mode),
+  otherwise `AsmTransferControl` to the 16-bit vector; and
+  `MdeModulePkg/Universal/Acpi/BootScriptExecutorDxe/X64/S3Asm.nasm`,
+  `AsmTransferControl` (far return into a 16-bit code segment).
+  <https://github.com/tianocore/edk2/blob/edk2-stable202402/UefiCpuPkg/Universal/Acpi/S3Resume2Pei/S3Resume.c>
+- Linux, tag `v6.12`, `drivers/acpi/sleep.c`, `acpi_suspend_enter`: after the
+  low-level resume, "This violates the spec but is required for bug
+  compatibility." followed by setting `ACPI_BITREG_SCI_ENABLE`.
+  <https://github.com/torvalds/linux/blob/v6.12/drivers/acpi/sleep.c>
+- QEMU 8.2.2 behaviour (version-0 FACS, `SCI_EN` after wake, TCG transfer
+  fault) is measured in this session, not taken from a source reading; see
+  the evidence README.
+
 **Consequences.** The S3 evidence is QEMU/OVMF/TCG evidence only. The
 real-mode entry path is armed but not natively exercised; it reuses the
 pattern of the natively verified SMP SIPI trampoline. Physical firmware may

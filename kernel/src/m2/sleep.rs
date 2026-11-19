@@ -581,10 +581,14 @@ pub fn run(frames: &Frames<FRAME_COUNT>, paging: &mut paging::Paging, prepared: 
         set_token(prepared.page, 0);
         let disarmed = store_facs(paging, facs.source_address(), length, disarm, copy);
         if resumed != 1 {
-            if disarmed {
-                return serial::write(b"POWER:S3:NO_TRANSITION:DISARMED\n");
-            }
-            serial::fail(b"S3_FACS_DISARM");
+            // A requested sleep that never happened is a failure, not a
+            // handled rejection: report the disarm outcome, then fail closed.
+            serial::write(if disarmed {
+                b"POWER:S3:NO_TRANSITION:DISARMED\n"
+            } else {
+                b"POWER:S3:NO_TRANSITION:STORE_FAILED\n"
+            });
+            serial::fail(b"S3_NO_TRANSITION");
         }
         // SAFETY: Written by the wake stage of this CPU before s3_wake ran.
         let path = unsafe { ptr::addr_of!(NOS_S3_ENTRY_PATH).read_volatile() };
