@@ -1,5 +1,22 @@
 # Changes
 
+## 2.0.3 — 19 November 2026
+
+- Excluded five records that embed third-party text with unknown terms
+  (W001553, W001845, W002332, W003703, W003774), following the individual
+  review in `docs/verification/osdev-corpus-rights-20261119/FLAGGED-REVIEW.md`.
+  3,099 source records remain.
+
+## 2.0.2 — 19 November 2026
+
+- Excluded 27 further records whose revision history contains an explicit import
+  from an earlier wiki (old OS Wiki/OSFAQ or the pre-MediaWiki wiki) with no
+  established terms, under the owner's 19 November route for issue #283. Evidence:
+  `docs/verification/osdev-corpus-rights-20261119/`. They include frequently used
+  pages such as GCC Cross-Compiler, APIC, PE, Beginner Mistakes and Licensing;
+  replacements must be independently written or come from a source with a
+  verifiable licence. 3,104 source records remain.
+
 ## 2.0.1 — 19 November 2026
 
 - Excluded W001473 ("Monotasking Systems") from the active corpus under

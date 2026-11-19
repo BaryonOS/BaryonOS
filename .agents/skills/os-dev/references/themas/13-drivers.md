@@ -24,7 +24,6 @@ The selection below was generated automatically from page titles and categories;
 
 - [ADMA](../corpus/wiki-04.md#w002244) [W002244]
 - [Advanced Integrated Peripheral](../corpus/wiki-04.md#w002090) [W002090]
-- [AGP](../corpus/wiki-03.md#w001855) [W001855]
 - [AMD-Vi IOMMU](../corpus/wiki-14.md#w004987) [W004987]
 - [ARM TargetingMultipleDevices](../corpus/wiki-09.md#w003450) [W003450]
 - [ATA/ATAPI using DMA](../corpus/wiki-04.md#w002241) [W002241]

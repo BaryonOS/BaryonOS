@@ -14486,69 +14486,6 @@ If --stage1 only builds binutils for you, that'd be a crossdev bug... are you re
 : Silly me... [[User:Imate900|Imate900]] 12:57, 19 April 2009 (UTC)
 ````
 
-<a id="w003703"></a>
-
-## W003703 — User:Combuster/Alloca
-
-Bron-ID: W003703
-Namespace: User (2)
-Revisie: 17367 | Datum: 2014-12-13T12:04:56Z
-Bron: https://wiki.osdev.org/User:Combuster/Alloca
-Revisie-URL: https://wiki.osdev.org/index.php?title=User%3ACombuster%2FAlloca&oldid=17367
-
-````text
-{{Stub}}
-
-==__alloca, ___main==
-
-<tt>alloca()</tt> is a "semi-standard" C function (from BSD?, but supported by most C implementations) that is used to allocate memory from the stack. On Windows this function is also used for stack probing. As such, <tt>alloca()</tt> is referenced in PE binaries built, for example, by Cygwin GCC. You can use the Cygwin GCC argument <tt>-mno-stack-arg-probe</tt> to suppress those references.
-
-Another "specialty" of PE binaries is that, if you define <tt>int main()</tt>, a function <tt>void __main()</tt> is called first thing after entering <tt>main()</tt>. You can either define that function, or omit <tt>main()</tt> from your kernel code, using a different function as entry point.
-
-This explanation of <tt>alloca()</tt> comes from Chris Giese, posted to alt.os.dev:
-
-<blockquote>
->> I think _alloca() is for stack-probing, which is required by Windows.<br>
-> What is stack probing?<br>
-By default, Windows reserves 1 meg of virtual memory for the stack. No page of stack memory is actually allocated (committed) until the page is accessed. This is demand-allocation.
-
-The page beyond the top of the stack is the guard page. If this page is accessed, memory will be allocated for it, and the guard page moved downward by 4K (one page). Thus, the stack can grow beyond the initial 1MB.
-
-Windows will not, however, let you grow the stack by accessing discontiguous pages of memory. Going beyond the guard page causes an exception. Stack-probing code prevents this.
-</blockquote>
-
-Some more information about stack-probing:
-* http://groups.google.com/groups?&selm=702bki%24oki%241%40news.Eindhoven.NL.net
-* http://groups.google.com/groups?&selm=3381B63D.6E39%40austin.finnigan.com
-
-
-<tt>alloca()</tt> is not only used for stack-probing, but also as a sort of <tt>malloc()</tt>, to dynamically allocate memory for variables/buffers without the need to manually free the reserved memory (with <tt>free()</tt>, as you normally should).
-
-If you search the man pages for <tt>alloca</tt> on a UNIX OS you'll find something like this:
-
-<blockquote>
-The <tt>alloca()</tt> function allocates space in the stack frame of the caller, and returns a pointer to the allocated block. This temporary space is automatically freed when the function from which <tt>alloca()</tt> is called returns.
-</blockquote>
-
-On Windows:
-
-<blockquote>
-<tt>_alloca</tt> allocates size bytes from the program stack. The allocated space is automatically freed when the calling function exits (not when the allocation merely passes out of scope). Therefore, do not pass the pointer value returned by <tt>_alloca</tt> as an argument to free.
-</blockquote>
-
-Note that "a stack overflow exception is generated if the space cannot be allocated", so <tt>alloca()</tt> might cause the stack to grow.
-
-Unfortunately, there are all kinds of caveats with using <tt>alloca()</tt>. Notably, Turbo-C/C++ had the limitation that functions calling <tt>alloca()</tt> needed to have at least one local variable, and Linux man-page warns the following:
-
-<blockquote>
-The <tt>alloca</tt> function is machine and compiler dependent. On many systems its implementation is buggy. Its use is discouraged.
-</blockquote>
-
-<blockquote>
-On  many  systems <tt>alloca</tt> cannot be used inside the list of arguments of a function call, because the stack space reserved by <tt>alloca</tt> would appear  on the stack in the middle of the space for the function arguments.
-</blockquote>
-````
-
 <a id="w003704"></a>
 
 ## W003704 — File:Abbbab.png

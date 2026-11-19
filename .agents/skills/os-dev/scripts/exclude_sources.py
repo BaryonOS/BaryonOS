@@ -189,14 +189,19 @@ def main() -> int:
 
     mf = ROOT / "assets/source-manifest.json"
     m = json.loads(mf.read_text(encoding="utf-8"))
+    # build_corpus.py writes only source_records and wiki_pages; the curated
+    # manifest also carries the optional totals below, adjusted when present.
+    def dec(key: str, amount: int = 1) -> None:
+        if key in m:
+            m[key] -= amount
     for r in excluded:
         m["source_records"] -= 1
         m["wiki_pages"] -= 1
-        m["source_text_bytes"] -= r["length_bytes"]
+        dec("source_text_bytes", r["length_bytes"])
         if r["namespace"] == 0:
-            m["wiki_main_namespace_pages"] -= 1
+            dec("wiki_main_namespace_pages")
             if not r["redirect"]:
-                m["wiki_main_articles_excluding_redirects"] -= 1
+                dec("wiki_main_articles_excluding_redirects")
     staged[mf] = (json.dumps(m, indent=2, ensure_ascii=False) + "\n").encode()
 
     ex = REF / "exclusions.json"
