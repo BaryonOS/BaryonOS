@@ -181,7 +181,11 @@ none. Recorded revisions and stamps are therefore meaningful relative to the
 source domain clock recorded in the same header, not to a named source. Header
 bytes 40..56 stay reserved and zero; a v2 reader refuses any non-zero value
 there and any unknown flag bit. This holds for archive v2 as a whole: no
-source identifier is recorded behind a feature flag either.
+source identifier is recorded behind a feature flag either. The decision, its
+consequences for the format and for the L2 `origin_*` provenance fields, and
+the condition for revisiting it (a new owner decision) are recorded in
+`ADR-S09-RESTORE-FIDELITY-20261119` in `docs/DECISIONS.md` (PR #403), together
+with R2–R4.
 
 **R3: decided by the project owner on 19 November 2026.** Native restore
 targets only a demonstrably never-used domain; existing domains are neither
