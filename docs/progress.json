@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-18",
-    "source_commit": "d4b21966b572e909fb3a96ef0300305959f30be9",
+    "source_commit": "d77421222eca3cff918fd2a80901169de32bb8ad",
     "assessment_basis": "parent_commit",
-    "branch": "codex/p01-seal-contract",
-    "task": "P01-T1: PROPOSED NAS consumer contract maps existing RecordContext and opaque NAS interfaces,128/168-byte record vs104-byte wire bound, administrator/key separation, uncertainty/revocation/recovery and owned negative acceptance table. Seven source paths/11 declarations and progress checks pass.",
+    "branch": "codex/p03-device-key-contract",
+    "task": "P03-T1: PROPOSED two verified enrollment routes using existing maintained TLS port candidate, device-scope revocation/rotation/recovery and explicit owner decisions, mapped to EO10/12 and LP19/20. Six source paths/three declarations and progress checks pass; no authority or crypto adoption.",
     "previous_score": 41,
-    "summary": "41/100 unchanged. PROPOSED NAS consumer contract maps existing RecordContext and opaque NAS interfaces,128/168-byte record vs104-byte wire bound, administrator/key separation, uncertainty/revocation/recovery and owned negative acceptance table. Seven source paths/11 declarations and progress checks pass. Design only; namespace-to-volume assignment, manifest publication and bounded transport format require owner/security decision. No consumer implementation/crypto or grant change, cold rollback/hardware/human audit acceptance.41/100 unchanged. Integration/Claude ownership and execution hold preserved."
+    "summary": "41/100 unchanged. PROPOSED two verified enrollment routes using existing maintained TLS port candidate, device-scope revocation/rotation/recovery and explicit owner decisions, mapped to EO10/12 and LP19/20. Six source paths/three declarations and progress checks pass; no authority or crypto adoption. Design only. Native TLS/provider, enrollment identity, rotation distribution, recovery authority and cold freshness remain decision/dependency boundaries. No new trust root/escrow/grant, native device lifecycle, hardware or human audit;41/100 unchanged. Integration/Claude ownership and execution hold preserved."
   },
   "tracks": [
     {

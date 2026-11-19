@@ -1,5 +1,14 @@
 # Current project status
 
+## NEXT AGENT HANDOFF — P03-T1 delivery — 18 November 2026
+
+**Source:** `590e1d4188688434cd4f9aa80bb67302b802f770`, `codex/p03-device-key-contract`.
+**Delivered:** PROPOSED two verified enrollment routes using existing maintained TLS port candidate, device-scope revocation/rotation/recovery and explicit owner decisions, mapped to EO10/12 and LP19/20. Six source paths/three declarations and progress checks pass; no authority or crypto adoption.
+**Checks:** executed targeted commands and raw exit codes are in the
+[exact command/log receipt](roadmap-pipeline/receipts/P03-T1.json).
+Lead source/diff review completed; no duplicate matrix. Progress **41 → 41/100**.
+**Limits:** Design only. Native TLS/provider, enrollment identity, rotation distribution, recovery authority and cold freshness remain decision/dependency boundaries. No new trust root/escrow/grant, native device lifecycle, hardware or human audit;41/100 unchanged.
+
 ## NEXT AGENT HANDOFF — P01-T1 delivery — 18 November 2026
 
 **Source:** `91797da1ce5353465670402d273b4e4a88b660b6`, `codex/p01-seal-contract`.
@@ -158,6 +167,8 @@ delivery branches and Claude S09/UI remain untouched. Unsafe unattended hold act
 slice from this ledger; no waiting for integration. Prior delivery checkpoints retained.
 
 ## Retained checkpoint — unified governance implementation — 18 November 2026
+
+
 
 
 
