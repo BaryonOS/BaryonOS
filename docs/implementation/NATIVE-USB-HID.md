@@ -125,7 +125,17 @@ including after a failed or uncertain hardware transition.
      never-reused TRB address rejects it;
    - the generation-1 Session token, presented to the generation-2 Session,
      returns `UnexpectedCompletion`;
-   - the generation-1 attach ticket returns `Stale`.
+   - the generation-1 attach ticket returns `Stale`. This check is
+     phase-based: generation 2 is already `Ready`, so any ticket would be
+     refused here.
+   The generation-specific ticket check runs earlier, inside the generation-2
+   attach while that port is still `Enumerating`. The phase test then passes,
+   so only the generation-1 lifetime and attempt refuse the old ticket. The
+   port must stay `Enumerating`, and the generation-2 ticket is accepted in
+   that same phase after enumeration. A failure reports
+   `USB-DIAG:REJECT:0000000000000033` (code 51). The host test
+   `detach_during_enumeration_retires_old_completion_and_releases_port`
+   covers the same rule at library level.
    The generation-2 pending transfer remains unchanged and later accepts its
    real completion. `USB:REATTACH:STALE_DENIED` and `USB:REATTACH:READY`
    follow.

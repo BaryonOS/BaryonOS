@@ -27,7 +27,10 @@ fixture: generation-2 re-enumeration with continued rings, replayed generation-1
 rejected, second unplug, budget-denied third attach (merge `af9b0bc`; reports/readonly/reattach
 raw 33 on source v3 `1ae4ed7f`; `native-xhci.yml` now runs `reattach`). Pitfall: a worktree nested
 in the checkout duplicates the kernel `rustflags` (linker script twice); run native gates from a
-non-nested checkout. A focused security review of the DMA/ring changes was requested.
+non-nested checkout. The AI security review of the DMA/ring changes found no blocking issue;
+its low finding O1 (the native stale-ticket check was phase-based) is fixed by a generation-specific
+check while generation 2 is `Enumerating` (diagnostic 51), verified natively on source v3 `6ed7b9a2`
+with a mutation control; O2–O5 are informational and recorded in the H02 evidence README.
 **In flight (separate worktrees, integrated serially by the lead):** H03-T3a kernel-only virtio-snd
 with exact WAV oracle; H04-T3 virtio-net link loss/reconnect (needs a lead ADR for its query
 syscall and error code). An independent AI review of the S3 diff

@@ -108,6 +108,45 @@ second run; USB crate tests, root `fmt --all`, `test_usb_hid*.py` and
 `build/h02-*/`; the committed `native-report.json` remains the builder's
 fingerprint-bound record.
 
+## Security review and follow-up
+
+A read-only AI security review of the merged tree (`af9b0bc`) found no
+blocking issue. It checked DMA scope and direction, slot reuse and ring
+continuation, untrusted lengths, fail-closed teardown, profiles without the
+feature, and every new `unsafe` block. It reported one low finding and four
+informational observations:
+
+- **O1 (low, fixed).** The native `ports.complete(old_ticket) == Stale` check
+  ran after generation 2 was `Ready`, so it would have refused any ticket. It
+  showed phase-based, not generation-based, rejection. The follow-up commit
+  adds a second check inside the generation-2 attach while that port is still
+  `Enumerating`: the generation-1 ticket must return `Stale`, the port must
+  stay `Enumerating`, and the generation-2 ticket is then accepted in that
+  phase. A failure reports diagnostic code 51.
+- **O2–O5 (informational, not changed).** The new slot is not compared with
+  the live mouse slot (a conforming controller cannot return it with
+  `MaxSlotsEn=2`). The shared DESCRIPTOR and INPUT_CONTEXT pages are not
+  canaried, and the IOMMU cannot separate generations of one requester. The
+  mouse transfer stays armed during reattach, and any mouse report fails the
+  fixture closed. The report-page clear became an 8-byte clear in every
+  profile.
+
+Verification of the follow-up, from the main checkout on base `1f64575`,
+source fingerprint v3
+`6ed7b9a2b1e42b3c204100da579be5a81e9cf6f36697ca829f6173cac5757b62`:
+
+- `reattach`, `reports` and `readonly` each passed with raw exit 33 and
+  artifact binding (4.47 s, 2.66 s, 2.68 s). Root `fmt --all -- --check`
+  exited 0.
+- **Mutation control.** The lifetime and attempt comparison was temporarily
+  removed from `Ports::complete`, then restored. With that mutant, `reattach`
+  failed at the new check: `USB:REATTACH:DETACHED`, then
+  `USB-DIAG:REJECT:0000000000000033`, then `M1:FAIL:KERNEL_PANIC`, and the
+  harness rejected the run. So the native check discriminates by generation.
+
+The local reports stay in ignored `build/xhci-o1/`. An AI review is not an
+independent human audit.
+
 ## Limits
 
 - QEMU `device_add`/`device_del` are emulated hotplug. Physical hotplug,

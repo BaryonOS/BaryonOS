@@ -519,6 +519,7 @@ impl Engine<'_> {
 
     /// One Ports-correlated attach. Only a real, matched enumeration result
     /// completes the ticket; a failure is recorded before the error returns.
+    /// `retired` is the previous generation's ticket for this port, if any.
     fn attach(
         &mut self,
         ports: &mut Ports<2>,
@@ -526,8 +527,25 @@ impl Engine<'_> {
         port: u8,
         output: u64,
         report: Buffer,
+        retired: Option<Ticket>,
     ) -> Result<(Hid, Ticket), Error> {
         let ticket = ports.attach(index).map_err(|_| bad(38))?;
+        // While the new generation is Enumerating, the phase check passes, so
+        // only the lifetime and attempt can refuse the retired ticket. The
+        // new ticket is accepted below in the same phase.
+        #[cfg(feature = "native-usb-hid-reattach")]
+        {
+            if let Some(old) = retired {
+                if ports.complete(old, true) != Err(PortError::Stale)
+                    || ports.phase(index) != Ok(Phase::Enumerating)
+                {
+                    let _ = ports.complete(ticket, false);
+                    return Err(bad(51));
+                }
+            }
+        }
+        #[cfg(not(feature = "native-usb-hid-reattach"))]
+        let _ = retired;
         let result = self.enumerate(index, port, ticket.lifetime(), output, report);
         let completed = ports.complete(ticket, result.is_ok());
         let hid = result?;
@@ -819,7 +837,8 @@ impl Engine<'_> {
             offset: SPARE_REPORT,
             io: io + SPARE_REPORT as u64,
         };
-        let (mut keyboard, ticket) = self.attach(ports, old.index, old.port, io, report)?;
+        let (mut keyboard, ticket) =
+            self.attach(ports, old.index, old.port, io, report, Some(old_ticket))?;
         let (before, after) = (old_ticket.lifetime(), ticket.lifetime());
         if keyboard.session.binding().protocol != Protocol::Keyboard
             || after.device != before.device
@@ -1077,9 +1096,10 @@ pub(super) fn execute(
             io: io[REPORT + index],
         };
         let (mut keyboard, keyboard_ticket) =
-            engine.attach(&mut ports, 0, 1, io[OUTPUT_CONTEXT], report(0))?;
+            engine.attach(&mut ports, 0, 1, io[OUTPUT_CONTEXT], report(0), None)?;
         announce(&keyboard);
-        let (mut mouse, _) = engine.attach(&mut ports, 1, 2, io[OUTPUT_CONTEXT + 1], report(1))?;
+        let (mut mouse, _) =
+            engine.attach(&mut ports, 1, 2, io[OUTPUT_CONTEXT + 1], report(1), None)?;
         announce(&mouse);
         serial::write(b"USB:PROTOCOL:PASS\n");
         let retired = engine.reports(&mut keyboard, &mut mouse)?;
