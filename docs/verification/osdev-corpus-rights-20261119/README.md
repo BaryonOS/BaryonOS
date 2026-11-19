@@ -18,8 +18,14 @@ corpus file. Per-record results are in [classification.json](classification.json
   licenses content "added since June 6 of 2011" under CC0. OSDev Wiki
   contributors, "OSDev Wiki:License" (W002031), revision 11735 of 7 July 2011,
   <https://wiki.osdev.org/index.php?title=OSDev_Wiki%3ALicense&oldid=11735>,
-  calls the wiki "of mixed licensing". Both are cited as written from the
-  export copy; the live revisions were not re-fetched.
+  requires public-domain compatibility for new content "as from 03-07-2011",
+  states that authors of existing material are to be informed, and calls the
+  wiki "of mixed licensing". Both are cited as written from the export copy; the
+  live revisions were not re-fetched. **Assumption:** the CC0 statement governs
+  content from 6 June 2011; because W002031 names a later date, the 14 class A
+  records with a revision between 6 June and 2 July 2011 are treated as uncertain
+  rather than reusable (listed under `cc0_statement_window` in
+  classification.json).
 - **Text screening:** each record's text was matched for copyright notices,
   third-party licence names, copy markers ("copied from", "taken from",
   "from Wikipedia" and similar) and quotation blocks. A match is a reason for
@@ -42,21 +48,22 @@ earlier are the 637 in C plus 4 imported pages.
 
 ## Result
 
-- **Reusable on a verifiable licence statement (1,742 records):** class A records
-  without a screening flag. Their entire recorded history falls under the CC0
+- **Reusable on a verifiable licence statement (1,728 records):** class A records
+  without a screening flag and without a revision between 6 June and 2 July 2011. Their entire recorded history falls under the CC0
   statement in W003005. This relies on the site's own statement; individual
   contributor grants were not verified separately.
-- **Uncertain, under review (1,284 records):** the 73 flagged class A records
+- **Uncertain, under review (1,298 records):** the 14 class A records in the
+  6 June – 2 July 2011 window, the 73 flagged class A records
   (embedded third-party text may carry its own terms), all 574 class B records
   (a later edit does not license older text that may survive) and all 637 class C
   records. They are **not removed blindly**. Next step: individual review in
   descending risk order — flagged records first (149), then non-redirect class C
   (442), then non-redirect class B (500), then the unflagged redirects of classes
-  B and C (193; for example W001387 and W001388) — keeping a record only on a
+  B and C (193; for example W001387 and W001388), then the 14 window records — keeping a record only on a
   verifiable licence, original permission or an independently written
   replacement, and otherwise excluding the affected text with
   `scripts/exclude_sources.py`. The review is complete only when every one of the
-  1,284 records has a recorded disposition.
+  1,298 records has a recorded disposition.
 - **Excluded or to be excluded (28 records):** W001473 (PR #397) and the other 27
   class D records (separate scoped PR), because an explicit import from an earlier
   wiki without established terms cannot be shown to be reusable. Redirect pages in

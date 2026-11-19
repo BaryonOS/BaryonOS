@@ -3775,5 +3775,24 @@
    "W004615",
    "W004993"
   ]
+ },
+ "cc0_statement_window": {
+  "description": "class A records with a revision dated 2011-06-06 to 2011-07-02, between the W003005 CC0 date and the W002031 '03-07-2011' date; treated as uncertain",
+  "records": [
+   "W002989",
+   "W002990",
+   "W002991",
+   "W002992",
+   "W002993",
+   "W002994",
+   "W002995",
+   "W002997",
+   "W002998",
+   "W002999",
+   "W003000",
+   "W003001",
+   "W003002",
+   "W003003"
+  ]
  }
 }

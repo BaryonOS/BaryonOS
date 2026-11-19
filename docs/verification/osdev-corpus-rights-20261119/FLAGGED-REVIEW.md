@@ -22,15 +22,20 @@ These pages are excluded with `scripts/exclude_sources.py` in a separate scoped 
 
 | Record | Title | Material and licence |
 |---|---|---|
-| W004323 | User:Janworks/Intel Ethernet i219-V | Register definitions from the Linux e1000e driver (GPL-2.0) |
-| W004744 | User:Isaccbarker/String Formatting | Code from HenipaOS, stated as BSD-3-Clause variant |
-| W002279 | Detecting Memory (x86) | Structure definition from GNU EFI (BSD-style) |
-| W001545 | Interrupt Descriptor Table | Table copied from wiki.jwo.cz, itself citing a Wikipedia template (CC BY-SA) |
+| W004323 | User:Janworks/Intel Ethernet i219-V | Register definitions the page says were taken from the Linux e1000e driver (Linux is distributed under GPL-2.0) |
+| W004744 | User:Isaccbarker/String Formatting | Code the page says comes from HenipaOS, with a BSD-3-Clause variant SPDX identifier |
+| W002279 | Detecting Memory (x86) | Structure definition the page says is taken from GNU EFI |
+| W001545 | Interrupt Descriptor Table | Table the page says was copied from wiki.jwo.cz, which cites a Wikipedia template revision |
 | W004920 | Template:X86 protected mode interrupts | Same table as W001545 |
 
-Rights exist, but they carry notice, attribution or share-alike obligations that
-the CC0-based corpus statement does not meet. Option: keep with explicit
-attribution and licence notes, or exclude.
+Source of each determination: the statement in the record itself, at the
+revision recorded in `.agents/skills/os-dev/references/source-index.json`
+(`revision_url`). The upstream licences (Linux, HenipaOS, GNU EFI, wiki.jwo.cz,
+Wikipedia) were **not** fetched or verified from this environment; "verifiable"
+means the page names a licence or licensed source that can be checked, not that
+it was checked. If confirmed, the terms carry notice, attribution or share-alike
+obligations that the CC0-based corpus statement does not meet. Option: keep with
+explicit attribution and licence notes, or exclude.
 
 ## 3. Short quotations from specifications and manuals — owner decision (12)
 
@@ -46,12 +51,15 @@ The remaining flagged records only mention licences as subject matter (for
 example "released under the GPL"), contain the author's own code with their own
 copyright string, quote trivial program banners, describe images that are not in
 the corpus (`File:` pages; the image files themselves are not included), or
-discuss copyright on talk pages. No action beyond their class (A reusable, B/C
-uncertain).
+discuss copyright on talk pages. This covers only the passages read; the
+records keep their **uncertain** status, including the class A records among
+them, until their individual review is complete.
 
 ## Limits
 
-Unflagged records in classes B and C were not read individually; their risk is
-older wiki text under unclear terms rather than embedded third-party material.
-Establishing rights for them needs the contributors' grants or an independent
-replacement, which this environment cannot obtain.
+Unflagged records in classes B and C were not read individually. Two risks stay
+unresolved for them: older wiki text under unclear terms, and embedded
+third-party material that pattern screening cannot rule out. Their individual
+review must cover both. Establishing rights needs the contributors' grants, a
+verifiable licence for any third-party material, or an independent replacement,
+which this environment cannot obtain.
