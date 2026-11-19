@@ -9,28 +9,94 @@ pages, updates the manifest counts and appends a provenance entry to
 Usage: exclude_sources.py --reason TEXT --record PATH SOURCE_ID [...]
 """
 from __future__ import annotations
-import argparse, hashlib, json, re
+import argparse, hashlib, json, os, re
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 REF = ROOT / "references"
 
 
+def write_atomic(path: Path, data: bytes) -> None:
+    """Replace `path` in one step, so a failed write leaves the old contents."""
+    tmp = path.with_name(path.name + ".exclude-tmp")
+    try:
+        tmp.write_bytes(data)
+        os.replace(tmp, path)
+    finally:
+        tmp.unlink(missing_ok=True)
+
+
+def backup_path(path: Path) -> Path:
+    return path.with_name(path.name + ".exclude-orig")
+
+
+def remove_copies(copies) -> list[str]:
+    """Remove recovery copies; return the ones that could not be removed."""
+    stale = []
+    for copy in copies:
+        try:
+            copy.unlink(missing_ok=True)
+        except OSError:
+            stale.append(str(copy))
+    return stale
+
+
 def commit(staged: dict[Path, bytes]) -> None:
-    """Write every staged file or none: restore the originals if any write fails."""
+    """Write every staged file or none: restore the originals if any write fails.
+
+    Before anything is replaced, each existing file is copied beside itself as
+    <name>.exclude-orig; if a copy cannot be made, nothing is written. Each file
+    is then replaced atomically, so the file whose write failed keeps its
+    original contents. Rollback attempts every written file even when one
+    restoration fails. Copies of restored files are removed; copies of files
+    that could not be restored are kept and named in the error.
+    """
+    leftover = [str(backup_path(p)) for p in staged if backup_path(p).exists()]
+    if leftover:
+        # A copy left by an earlier failed run may hold the only original; never overwrite it.
+        raise OSError("recovery copies from an earlier failed run exist; restore or remove "
+                      "them before retrying: " + ", ".join(leftover))
     originals = {p: (p.read_bytes() if p.exists() else None) for p in staged}
+    backups = []
+    try:
+        for path, data in originals.items():
+            if data is not None:
+                # Track the copy before writing it, so a partial copy is removed too.
+                backups.append(backup_path(path))
+                backup_path(path).write_bytes(data)
+    except OSError:
+        remove_copies(backups)
+        raise
     written = []
     try:
         for path, data in staged.items():
-            path.write_bytes(data)
+            write_atomic(path, data)
             written.append(path)
-    except OSError:
+    except OSError as err:
+        unrestored = []
         for path in written:
-            if originals[path] is None:
-                path.unlink(missing_ok=True)
-            else:
-                path.write_bytes(originals[path])
+            try:
+                if originals[path] is None:
+                    path.unlink(missing_ok=True)
+                else:
+                    write_atomic(path, originals[path])
+            except OSError:
+                unrestored.append(path)
+        stale = remove_copies(
+            backup_path(p) for p, d in originals.items() if d is not None and p not in unrestored)
+        if unrestored or stale:
+            parts = []
+            if unrestored:
+                parts.append("rollback could not restore: " + "; ".join(
+                    f"{p} (original: {backup_path(p) if originals[p] is not None else 'file did not exist'})"
+                    for p in unrestored))
+            if stale:
+                parts.append("recovery copies left behind: " + "; ".join(stale))
+            raise OSError("write failed; " + "; ".join(parts)) from err
         raise
+    stale = remove_copies(backups)
+    if stale:
+        print("warning: recovery copies left behind: " + "; ".join(stale))
 
 
 def main() -> int:
@@ -123,14 +189,19 @@ def main() -> int:
 
     mf = ROOT / "assets/source-manifest.json"
     m = json.loads(mf.read_text(encoding="utf-8"))
+    # build_corpus.py writes only source_records and wiki_pages; the curated
+    # manifest also carries the optional totals below, adjusted when present.
+    def dec(key: str, amount: int = 1) -> None:
+        if key in m:
+            m[key] -= amount
     for r in excluded:
         m["source_records"] -= 1
         m["wiki_pages"] -= 1
-        m["source_text_bytes"] -= r["length_bytes"]
+        dec("source_text_bytes", r["length_bytes"])
         if r["namespace"] == 0:
-            m["wiki_main_namespace_pages"] -= 1
+            dec("wiki_main_namespace_pages")
             if not r["redirect"]:
-                m["wiki_main_articles_excluding_redirects"] -= 1
+                dec("wiki_main_articles_excluding_redirects")
     staged[mf] = (json.dumps(m, indent=2, ensure_ascii=False) + "\n").encode()
 
     ex = REF / "exclusions.json"
