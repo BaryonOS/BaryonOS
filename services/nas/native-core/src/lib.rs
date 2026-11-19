@@ -641,6 +641,17 @@ impl<'a, S: Storage> Service<'a, S> {
         Ok(revision)
     }
 
+    /// Latest committed revision in the authenticated session's namespace.
+    /// Zero denotes an object that has never been published; staging is invisible.
+    pub fn head(&self, caller: Principal, session: Session, object: usize) -> Result<u64, Error> {
+        let session = self.session(caller, session)?;
+        self.work.state.namespaces[session.namespace]
+            .as_ref()
+            .and_then(|n| n.objects.get(object))
+            .map(|object| object.revision)
+            .ok_or(Error::Invalid)
+    }
+
     /// Returns only opaque client ciphertext, never document plaintext.
     pub fn read(
         &self,
