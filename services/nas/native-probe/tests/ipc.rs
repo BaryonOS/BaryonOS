@@ -181,6 +181,38 @@ fn actual_sender_and_ingress_cannot_be_substituted_by_frame_contents() {
 }
 
 #[test]
+fn cancel_requires_exact_token_fields_and_canonical_empty_replies() {
+    let mut cancel = Frame::new(Op::Cancel, 1);
+    cancel.session = [7; 40];
+    cancel.upload = [8; 40];
+    let encoded = cancel.encode(false).unwrap();
+    assert_eq!(Frame::decode(&encoded, false).unwrap().op, Op::Cancel);
+    for offset in [24, 136, 144, 152, 255] {
+        let mut invalid = encoded;
+        invalid[offset] = 1;
+        assert!(matches!(
+            Frame::decode(&invalid, false),
+            Err(Error::Invalid)
+        ));
+    }
+    for range in [56..96, 96..136] {
+        let mut invalid = encoded;
+        invalid[range].fill(0);
+        assert!(matches!(
+            Frame::decode(&invalid, false),
+            Err(Error::Invalid)
+        ));
+    }
+    let reply = Frame::new(Op::Cancel, 1).encode(true).unwrap();
+    assert!(Frame::decode(&reply, true).is_ok());
+    for offset in [24, 56, 96, 136, 144, 152] {
+        let mut invalid = reply;
+        invalid[offset] = 1;
+        assert!(matches!(Frame::decode(&invalid, true), Err(Error::Invalid)));
+    }
+}
+
+#[test]
 fn native_probe_workload_preserves_policy_through_encoded_requests_and_recovery() {
     let mut work = Box::new(Workspace::new());
     let binding = LocalBinding::new(11, 12).unwrap();
@@ -234,6 +266,31 @@ fn native_probe_workload_preserves_policy_through_encoded_requests_and_recovery(
     request.length = 32;
     request.data[..32].fill(0x55);
     let pending = call(&mut service, &guest, request, None, &mut entropy).upload;
+    let mut extra = Frame::new(Op::Stage, 1);
+    extra.session = session;
+    extra.revision = 1;
+    extra.length = 1;
+    extra.data[0] = 0x55;
+    call(
+        &mut service,
+        &guest,
+        extra,
+        Some(Error::Quota),
+        &mut entropy,
+    );
+    let cancel = || {
+        let mut cancel = Frame::new(Op::Cancel, 1);
+        cancel.session = session;
+        cancel.upload = pending;
+        cancel
+    };
+    call(
+        &mut service,
+        &admin,
+        cancel(),
+        Some(Error::Stale),
+        &mut entropy,
+    );
     let usage = call(
         &mut service,
         &admin,
@@ -243,6 +300,28 @@ fn native_probe_workload_preserves_policy_through_encoded_requests_and_recovery(
     );
     assert_eq!(usage.namespace, namespace);
     assert_eq!(&usage.data[4..12], &[96, 0, 0, 0, 32, 0, 0, 0]);
+    call(&mut service, &guest, cancel(), None, &mut entropy);
+    call(
+        &mut service,
+        &guest,
+        cancel(),
+        Some(Error::Stale),
+        &mut entropy,
+    );
+    let usage = call(
+        &mut service,
+        &admin,
+        named(Op::Usage, namespace),
+        None,
+        &mut entropy,
+    );
+    assert_eq!(&usage.data[4..12], &[96, 0, 0, 0, 0, 0, 0, 0]);
+    let mut retry = Frame::new(Op::Stage, 1);
+    retry.session = session;
+    retry.revision = 1;
+    retry.length = 32;
+    retry.data[..32].fill(0x55);
+    let pending = call(&mut service, &guest, retry, None, &mut entropy).upload;
     let mut quota = named(Op::SetQuota, namespace);
     quota.value = 127;
     call(
@@ -252,6 +331,18 @@ fn native_probe_workload_preserves_policy_through_encoded_requests_and_recovery(
         Some(Error::Quota),
         &mut entropy,
     );
+    let mut quota = named(Op::SetQuota, namespace);
+    quota.value = 256;
+    call(&mut service, &admin, quota, None, &mut entropy);
+    let usage = call(
+        &mut service,
+        &admin,
+        named(Op::Usage, namespace),
+        None,
+        &mut entropy,
+    );
+    assert_eq!(usage.value, 256);
+    assert_eq!(&usage.data[4..12], &[96, 0, 0, 0, 32, 0, 0, 0]);
     call(
         &mut service,
         &guest,

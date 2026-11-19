@@ -260,6 +260,7 @@ pub struct Response<'a> {
     question: Question,
     records: [Option<Record<'a>>; MAX_RECORDS],
     count: usize,
+    negative_soa: Option<(Name, u32)>,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -293,6 +294,14 @@ impl<'a> Response<'a> {
     /// Additional-section glue and unrelated answers never enter the result.
     /// CNAMEs are followed independently of record order, with cycle/work bounds.
     pub fn resolve(&self) -> Result<Resolution, Error> {
+        let result = self.resolve_path()?;
+        if result.count == 0 {
+            return Err(Error::NoAddress);
+        }
+        Ok(result)
+    }
+
+    fn resolve_path(&self) -> Result<Resolution, Error> {
         let mut current = self.question.name;
         let mut seen = [Name::root(); MAX_CNAME_HOPS + 1];
         let mut path_ttl = MAX_CACHE_TTL;
@@ -353,13 +362,40 @@ impl<'a> Response<'a> {
                 }
                 current = target;
                 path_ttl = path_ttl.min(alias_ttl);
-            } else if result.count != 0 {
-                return Ok(result);
             } else {
-                return Err(Error::NoAddress);
+                return Ok(result);
             }
         }
         Err(Error::TooManyAliases)
+    }
+
+    pub(crate) fn negative_cache_ttl(&self) -> Result<u32, Error> {
+        let path = self.resolve_path()?;
+        if path.count != 0
+            || self.records().any(|record| {
+                record.section == Section::Answer
+                    && record.class == 1
+                    && matches!(record.data, RecordData::A(_) | RecordData::Aaaa(_))
+                    && record.owner.to_name() == Ok(path.canonical_name)
+            })
+        {
+            return Err(Error::ConflictingAnswers);
+        }
+        let Some((zone, ttl)) = self.negative_soa else {
+            return Ok(0);
+        };
+        // Match only complete label suffixes, including the root zone.
+        let name = path.canonical_name.wire();
+        let mut at = 0;
+        loop {
+            if name[at..] == *zone.wire() {
+                return Ok(ttl.min(path.cache_ttl));
+            }
+            if name[at] == 0 {
+                return Err(Error::InvalidRecord);
+            }
+            at += 1 + usize::from(name[at]);
+        }
     }
 }
 
@@ -367,6 +403,21 @@ impl<'a> Response<'a> {
 /// exposing any record. A truncated UDP reply needs a separate TCP retry; this
 /// module never accepts its partial answers or silently changes transport.
 pub fn parse_response(message: &[u8], expected: Question) -> Result<Response<'_>, Error> {
+    parse_reply(message, expected, false).map(|(response, _)| response)
+}
+
+pub(crate) fn parse_resolver_response(
+    message: &[u8],
+    expected: Question,
+) -> Result<(Response<'_>, u8), Error> {
+    parse_reply(message, expected, true)
+}
+
+fn parse_reply(
+    message: &[u8],
+    expected: Question,
+    allow_negative: bool,
+) -> Result<(Response<'_>, u8), Error> {
     if message.len() < HEADER {
         return Err(Error::Truncated);
     }
@@ -394,7 +445,7 @@ pub fn parse_response(message: &[u8], expected: Question) -> Result<Response<'_>
         return Err(Error::WrongQuestion);
     }
     let rcode = (flags & 15) as u8;
-    if rcode != 0 {
+    if rcode != 0 && !(allow_negative && rcode == 3) {
         return Err(Error::ResponseCode(rcode));
     }
     let answers = usize::from(word(message, 6)?);
@@ -408,6 +459,7 @@ pub fn parse_response(message: &[u8], expected: Question) -> Result<Response<'_>
         question: expected,
         records: [None; MAX_RECORDS],
         count,
+        negative_soa: None,
     };
     let mut cursor = question_end + 4;
     for (index, record) in response.records[..count].iter_mut().enumerate() {
@@ -420,6 +472,34 @@ pub fn parse_response(message: &[u8], expected: Question) -> Result<Response<'_>
         let data_start = header + 10;
         let data_end = data_start + size;
         let data = message.get(data_start..data_end).ok_or(Error::Truncated)?;
+        if allow_negative && rcode == 3 {
+            // Reject unimplemented negative RDATA rather than cache an
+            // assertion whose embedded names/structure were not validated.
+            if class != 1 || !matches!(kind, 1 | 2 | 5 | 6 | 28 | 41) {
+                return Err(Error::InvalidRecord);
+            }
+            if kind == 2 {
+                let (_, end) = decode_name(message, data_start, data_end)?;
+                if end != data_end {
+                    return Err(Error::InvalidRecord);
+                }
+            }
+        }
+        if allow_negative && rcode == 3 && class == 1 && kind == 6 {
+            let (_, rname) = decode_name(message, data_start, data_end)?;
+            let (_, fields) = decode_name(message, rname, data_end)?;
+            if fields + 20 != data_end {
+                return Err(Error::InvalidRecord);
+            }
+            let minimum = dword(message, fields + 16)?;
+            if index >= answers && index < answers + authority {
+                if response.negative_soa.is_some() {
+                    return Err(Error::InvalidRecord);
+                }
+                let (zone, _) = decode_name(message, start, header)?;
+                response.negative_soa = Some((zone, cache_ttl(ttl).min(cache_ttl(minimum))));
+            }
+        }
         let data = match (class, kind) {
             // No OPT was sent in build_query. Extended rcodes/options must not
             // be misinterpreted as an ordinary successful DNS response.
@@ -454,11 +534,7 @@ pub fn parse_response(message: &[u8], expected: Question) -> Result<Response<'_>
             },
             class,
             kind,
-            cache_ttl: if ttl & 0x8000_0000 == 0 {
-                ttl.min(MAX_CACHE_TTL)
-            } else {
-                0
-            },
+            cache_ttl: cache_ttl(ttl),
             data,
         });
         cursor = data_end;
@@ -466,7 +542,15 @@ pub fn parse_response(message: &[u8], expected: Question) -> Result<Response<'_>
     if cursor != message.len() {
         return Err(Error::TrailingBytes);
     }
-    Ok(response)
+    Ok((response, rcode))
+}
+
+fn cache_ttl(ttl: u32) -> u32 {
+    if ttl & 0x8000_0000 == 0 {
+        ttl.min(MAX_CACHE_TTL)
+    } else {
+        0
+    }
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]

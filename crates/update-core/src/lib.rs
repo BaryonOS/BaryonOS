@@ -16,6 +16,8 @@ use sha2::{Digest, Sha256};
 
 pub mod policy;
 #[cfg(feature = "experimental-policy-test")]
+pub mod policy_anchor;
+#[cfg(feature = "experimental-policy-test")]
 pub mod policy_envelope;
 #[cfg(feature = "test-signing-anchors")]
 pub mod test_policy;

@@ -3,7 +3,7 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-18",
-    "source_commit": "4a9a44ac4046dcfd69df1abb73f428522e703f65",
+    "source_commit": "9ab87d13aeb7c1fa2829782e81c6d9165e9e4fed",
     "assessment_basis": "parent_commit",
     "branch": "codex/l01-reference-forward",
     "task": "L01-T3 bounded numerical reference primitives",

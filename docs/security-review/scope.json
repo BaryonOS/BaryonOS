@@ -1,0 +1,126 @@
+{
+  "status": "PROPOSED",
+  "boundaries": [
+    {
+      "id": "syscalls-usercopy",
+      "files": [
+        "kernel/src/m2/m3.rs",
+        "kernel/src/m2/paging.rs"
+      ],
+      "tests": [
+        "tools/tests/test_kernel_memory.py"
+      ],
+      "evidence": [
+        "docs/implementation/KERNEL-AND-SECURITY-CONTRACT.md"
+      ],
+      "invariants": [
+        "Kernel validates pointers/lengths and serialized copy semantics before mutation; no untrusted pointer survives into a queue."
+      ]
+    },
+    {
+      "id": "ipc-lengths",
+      "files": [
+        "kernel/src/m2/m3.rs",
+        "crates/capability-core/src/lib.rs"
+      ],
+      "tests": [
+        "tools/tests/test_ipc_wait.py",
+        "crates/capability-core/src/lib.rs"
+      ],
+      "evidence": [
+        "docs/implementation/KERNEL-AND-SECURITY-CONTRACT.md"
+      ],
+      "invariants": [
+        "Exact message bounds, canonical fields and authentic envelope identity precede allocation/queue changes."
+      ]
+    },
+    {
+      "id": "capability-engine",
+      "files": [
+        "crates/capability-core/src/lib.rs"
+      ],
+      "tests": [
+        "crates/capability-core/src/lib.rs",
+        "crates/capability-core/tests/native_wait.rs"
+      ],
+      "evidence": [
+        "docs/verification/m2-m4/capability-core/report.json"
+      ],
+      "invariants": [
+        "No rights amplification, stale-handle resurrection or generation wrap; revoke/close/queued-transfer lifetimes remain distinct."
+      ]
+    },
+    {
+      "id": "virtio-dma",
+      "files": [
+        "drivers/virtio-blk/src/lib.rs",
+        "drivers/virtio-net/src/lib.rs",
+        "kernel/src/m2/m3/m5.rs"
+      ],
+      "tests": [
+        "tools/run.py",
+        "crates/virtio-core/src/lib.rs"
+      ],
+      "evidence": [
+        "docs/verification/m5/candidate.json"
+      ],
+      "invariants": [
+        "Trusted kernel DMA transport is not userspace IOMMU confinement; descriptors/completions/retained buffers require exact ownership and real device completion."
+      ]
+    },
+    {
+      "id": "network-parsers",
+      "files": [
+        "services/net-protocol/src/dhcp.rs",
+        "services/net-protocol/src/dns.rs",
+        "services/net-protocol/src/arp.rs"
+      ],
+      "tests": [
+        "services/net-protocol/tests/dhcp.rs",
+        "services/net-protocol/tests/dns.rs",
+        "services/net-protocol/tests/arp.rs"
+      ],
+      "evidence": [
+        "services/net-protocol/README.md"
+      ],
+      "invariants": [
+        "Bounded packet/header/option/compression parsing; malformed/truncated/foreign tuple or checksum cannot broaden destination authority."
+      ]
+    },
+    {
+      "id": "elf-loader",
+      "files": [
+        "crates/elf-loader-core/src/lib.rs",
+        "boot/loader/src/main.rs"
+      ],
+      "tests": [
+        "crates/elf-loader-core/src/lib.rs"
+      ],
+      "evidence": [
+        "docs/implementation/KERNEL-AND-SECURITY-CONTRACT.md"
+      ],
+      "invariants": [
+        "Checked ELF ranges/alignment/permissions before mapping; no overflow or writable executable segment accepted."
+      ]
+    },
+    {
+      "id": "keyring-recovery",
+      "files": [
+        "services/keyring/src/lib.rs",
+        "services/keyring/src/persistent.rs",
+        "services/keyring/src/records.rs"
+      ],
+      "tests": [
+        "services/keyring/tests/persistent_wire.rs",
+        "services/keyring/tests/secure_records.rs"
+      ],
+      "evidence": [
+        "docs/verification/b01/keyring-gate.json",
+        "docs/verification/full-release-b02-review-followup/system-gate.json"
+      ],
+      "invariants": [
+        "Wrong domain/context/secret or stale authority yields no plaintext; restore commits only after full authentication; cold rollback freshness remains explicitly unresolved."
+      ]
+    }
+  ]
+}

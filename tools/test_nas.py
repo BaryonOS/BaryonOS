@@ -158,13 +158,13 @@ def archive_output(run: Path, stdout: bytes, stderr: bytes,
 def safe_serial_evidence(serial: str) -> str:
     markers = set(BOOT) | {
         "M1:PASS", "NAS:MANIFEST:PASS", "NAS:REPLAY_EXPORT:PASS",
-        "NAS:REPLAY_INPUT:PASS", "NAS:BROKERS:PASS", "NAS:CLEANUP:PASS",
+        "NAS:REPLAY_INPUT:PASS", "NAS:GUEST_OFFLINE:PASS", "NAS:BROKERS:PASS", "NAS:CLEANUP:PASS",
         "NAS:CASE:NORMAL:PASS", "NAS:CASE:RECOVER:PASS",
     }
     failures = {
         "REPLAY_INPUT_ZERO", "REPLAY_INPUT", "REPLAY_INPUT_IN_NORMAL",
         "MANIFEST_ENGINE", "UNEXPECTED_EXIT", "ROLE_RESULT", "DUPLICATE_EXIT",
-        "PROCESS_FAULT", "UNEXPECTED_EVENT", "TIMEOUT", "NAS_READY",
+        "PROCESS_FAULT", "UNEXPECTED_EVENT", "TIMEOUT", "NAS_READY", "OFFLINE_FLAG",
     }
     number = re.compile(
         r"NAS:(?:ADMIN_PID|GUEST_PID|ROLE_SLOT|RPC_OK|RPC_ERRORS|RIGHTS_DENIED|"
@@ -220,7 +220,7 @@ def evaluate(case, serial, raw_exit, timed_out):
     if any(marker in serial for marker in ("FAIL", "PANIC")):
         raise ValueError("NAS guest failure, including post-success output")
     if case == "normal":
-        expected = (*BOOT, "NAS:MANIFEST:PASS", "NAS:REPLAY_EXPORT:PASS", "NAS:BROKERS:PASS",
+        expected = (*BOOT, "NAS:MANIFEST:PASS", "NAS:REPLAY_EXPORT:PASS", "NAS:GUEST_OFFLINE:PASS", "NAS:BROKERS:PASS",
                     "NAS:CLEANUP:PASS", "NAS:CASE:NORMAL:PASS", "M1:PASS")
     else:
         expected = (*BOOT, "NAS:REPLAY_INPUT:PASS", "NAS:MANIFEST:PASS", "NAS:BROKERS:PASS",
@@ -228,7 +228,7 @@ def evaluate(case, serial, raw_exit, timed_out):
     controlled = [line for line in serial.splitlines()
                   if line in BOOT or line == "M1:PASS"
                   or line.startswith(("NAS:MANIFEST:", "NAS:BROKERS:", "NAS:CLEANUP:", "NAS:CASE:",
-                                      "NAS:REPLAY_"))]
+                                      "NAS:REPLAY_", "NAS:GUEST_OFFLINE:"))]
     if controlled != list(expected):
         raise ValueError("NAS marker sequence differs")
     numbers = []
@@ -244,7 +244,7 @@ def evaluate(case, serial, raw_exit, timed_out):
     if not admin or not guest or admin == guest:
         raise ValueError("Invalid actual caller identities")
     # Cold: the exact-token COMMIT replay adds one Stale reply at NAS and guest.
-    counts = [(6, 1), (12, 6), (6, 5)] if case == "normal" else [(4, 0), (4, 5), (0, 5)]
+    counts = [(16, 1), (27, 7), (11, 6)] if case == "normal" else [(4, 0), (4, 5), (0, 5)]
     roles = []
     for index, (slot, (ok, errors)) in enumerate(zip((0, 1, 3), counts)):
         group = numbers[2 + index * 5:7 + index * 5]

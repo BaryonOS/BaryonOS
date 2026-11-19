@@ -10,7 +10,7 @@ import unittest
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "tools"))
 from run_system import (KEYSTATE_HEADER, KEYSTATE_NAME, KEYSTATE_OBJECT, OPAQUE_OBJECTS, PERSIST_EXACT,
                         SEALED_NAME, SEALED_OBJECT, check_disk, check_esp, check_image, check_parent,
-                        S5_TAIL, evaluate, expected_markers, record_plaintext)
+                        S5_TAIL, COLD_CASES, cold_image, evaluate_cold, evaluate, expected_markers, record_plaintext)
 import volume_disk
 
 
@@ -63,6 +63,52 @@ def system_image() -> bytes:
         start = (disk.FIRST + disk.TABLE_SECTORS + index) * disk.SECTOR
         raw[start:start + disk.SECTOR] = sector
     return bytes(raw)
+
+
+class ColdHarnessTests(unittest.TestCase):
+    def test_mutations_reach_aead_with_valid_outer_checksums(self):
+        raw = system_image()
+        original = volume_disk.analyse(raw, OPAQUE_OBJECTS)
+        for case in COLD_CASES:
+            with self.subTest(case=case):
+                changed = cold_image(raw, case)
+                oracle = volume_disk.analyse(changed, OPAQUE_OBJECTS)
+                self.assertEqual(oracle["generation"], original["generation"])
+                obj = KEYSTATE_OBJECT if case == "keystate" else SEALED_OBJECT
+                before = bytes.fromhex(original["objects"][obj]["versions"][0]["content_hex"])
+                after = bytes.fromhex(oracle["objects"][obj]["versions"][0]["content_hex"])
+                if case == "withheld-secret":
+                    self.assertEqual(changed, raw)
+                else:
+                    self.assertNotEqual(changed, raw)
+                    self.assertNotEqual(before, after)
+                    if case == "keystate":
+                        self.assertEqual(before[:56], after[:56])
+                        self.assertEqual(sum(a != b for a, b in zip(before, after)), 1)
+                    elif case == "record-tag":
+                        self.assertEqual(before[:-1], after[:-1])
+                    else:
+                        self.assertEqual(after, before[:24] + before[88:152] + before[24:88] + before[152:])
+        with self.assertRaises(ValueError):
+            cold_image(raw, "unknown")
+
+    def test_refusal_requires_exact_case_no_plaintext_and_no_writes(self):
+        for case in COLD_CASES:
+            log = "\n".join((*expected_markers("recover")[:4], f"SYSTEM:COLD:REFUSED:{case}",
+                "SYSTEM:COLD_PLAINTEXT_REPLIES:00000000000000000000",
+                "SYSTEM:DISK_READS:00000000000000000001", "SYSTEM:DISK_WRITES:00000000000000000000",
+                "SYSTEM:DISK_FLUSHES:00000000000000000000"))
+            self.assertEqual(evaluate_cold(case, log, 33, False)["DISK_WRITES"], 0)
+            bad_logs = [log + "\nSYSTEM:PLAINTEXT:PASS", log + f"\nSYSTEM:COLD:REFUSED:{case}",
+                        log.replace("DISK_WRITES:00000000000000000000", "DISK_WRITES:00000000000000000001"),
+                        log.replace(f"REFUSED:{case}", "REFUSED:other"),
+                        log.replace("SYSTEM:COLD_PLAINTEXT_REPLIES:00000000000000000000", "")]
+            for bad in bad_logs:
+                with self.assertRaises(ValueError):
+                    evaluate_cold(case, bad, 33, False)
+            for rc, timeout in ((0, False), (33, True), (35, False)):
+                with self.assertRaises(ValueError):
+                    evaluate_cold(case, log, rc, timeout)
 
 
 class SystemHarnessTests(unittest.TestCase):
