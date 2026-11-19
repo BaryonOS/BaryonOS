@@ -29,9 +29,12 @@ CASE_NAMES = (
     "binding-manifest-digest", "binding-target", "binding-truncated", "image-digest",
     "image-floor", "signer-revoked", "signer-premature", "signer-expired",
     "policy-trailing", "policy-domain-confusion", "binding-domain-confusion",
+    "anchor-round-trip", "anchor-cas", "anchor-stale-predecessor",
+    "anchor-readback-predecessor", "anchor-readback-successor", "anchor-torn",
+    "anchor-conflict", "anchor-floor-rollback",
 )
-CASE_COUNT = 26
-EXPECTED_MASK = 67_108_863
+CASE_COUNT = 34
+EXPECTED_MASK = 17_179_869_183
 FIXTURES = ROOT / "crates/update-core/src/policy_envelope/probe-fixtures"
 LOADER_MARKERS = (
     f"BOOT:POLICY_PROBE:COUNT:{CASE_COUNT}",
@@ -114,7 +117,7 @@ def run(*, timeout: int = run_update.MAX_TIMEOUT) -> dict:
         raise ValueError("invalid bounded native-probe timeout")
     frozen = source_hash()
     env = environment()
-    subprocess.run(["cargo", "+1.90.0", "run", "--offline", "--locked", "-q", "-p", "update-core",
+    subprocess.run(["cargo", "+1.100.0", "run", "--offline", "--locked", "-q", "-p", "update-core",
                     "--example", "policy_probe_fixtures", "--features",
                     "experimental-policy-test,test-signing-anchors", "--", "--check"],
                    cwd=ROOT, env=env, check=True)

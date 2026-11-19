@@ -1,0 +1,122 @@
+{
+  "schema_version": 1,
+  "source": "2073e4affd8a46a4bd0a1b95bcb06f7c2b0062c2",
+  "generated_at_utc": "2026-11-18T03:30:37.328525+00:00",
+  "source_evidence_scope": "Language/navigation and preserved source/English entrypoint checks only; not runtime/security/CI acceptance.",
+  "checks": [
+    {
+      "working_directory": "/workspace/baryon-language-freeze",
+      "command": "node docs/verification/issue274-language-coverage-20261118/collect.cjs --wiki /workspace/baryon-wiki",
+      "wrapper": "python3 -B tools/tokenguard.py --root <working_directory> run --output bounded -- <command>",
+      "raw_exit_code": 0,
+      "expected_exit_code": 0,
+      "purpose": "Exact frozen Git-tree/blob collector; no network fetch",
+      "raw_log": "/workspace/baryon-language-freeze/build/tokenguard/run-lpes_gr8.log",
+      "raw_log_sha256": "6c6a2296028576e4d1d0d5a225563a7e5587d058eab12cee3ad441cdb875c352",
+      "raw_log_utf8": "{\"counts\":{\"tracked_markdown\":854,\"firstparty_candidates\":398,\"protected_excluded\":456,\"normal_navigation_reachable\":179,\"exact_blob_reused_prior_named_audit\":0,\"documents_with_dutch_candidates\":56,\"dutch_candidate_lines\":3007,\"local_links\":7667,\"unresolved_local_targets\":1,\"legacy_url_occurrences\":68,\"unsupported_local_targets\":0},\"candidate_files\":[{\"path\":\"crates/ui-core/README.md\",\"reachable\":false,\"reused\":false,\"lines\":1},{\"path\":\"docs/DECISIONS.md\",\"reachable\":true,\"reused\":false,\"lines\":3},{\"path\":\"docs/FULL-TEST-RELEASE.md\",\"reachable\":true,\"reused\":false,\"lines\":116},{\"path\":\"docs/WORK-QUEUE.md\",\"reachable\":true,\"reused\":false,\"lines\":2},{\"path\":\"docs/audit/os-completeness/README.md\",\"reachable\":true,\"reused\":false,\"lines\":35},{\"path\":\"docs/audit/os-completeness/accessibility-gaps.md\",\"reachable\":true,\"reused\":false,\"lines\":10},{\"path\":\"docs/audit/os-completeness/compatibility-gaps.md\",\"reachable\":true,\"reused\":false,\"lines\":11},{\"path\":\"docs/audit/os-completeness/completeness-matrix.md\",\"reachable\":true,\"reused\":false,\"lines\":18},{\"path\":\"docs/audit/os-completeness/dependency-map.md\",\"reachable\":true,\"reused\":false,\"lines\":3},{\"path\":\"docs/audit/os-completeness/evidence-register.md\",\"reachable\":true,\"reused\":false,\"lines\":22},{\"path\":\"docs/audit/os-completeness/priorities.md\",\"reachable\":true,\"reused\":false,\"lines\":16},{\"path\":\"docs/audit/os-completeness/product-gaps.md\",\"reachable\":true,\"reused\":false,\"lines\":12},{\"path\":\"docs/audit/os-completeness/recommended-roadmap.md\",\"reachable\":true,\"reused\":false,\"lines\":13},{\"path\":\"docs/audit/os-completeness/release-criteria-map.md\",\"reachable\":true,\"reused\":false,\"lines\":17},{\"path\":\"docs/audit/os-completeness/release-profiles.md\",\"reachable\":true,\"reused\":false,\"lines\":9},{\"path\":\"docs/audit/os-completeness/risk-register.md\",\"reachable\":true,\"reused\":false,\"lines\":7},{\"path\":\"docs/audit/os-completeness/security-gaps.md\",\"reachable\":true,\"reused\":false,\"lines\":7},{\"path\":\"docs/audit/os-completeness/source-baseline.md\",\"reachable\":true,\"reused\":false,\"lines\":32},{\"path\":\"docs/audit/os-completeness/technical-gaps.md\",\"reachable\":true,\"reused\":false,\"lines\":8},{\"path\":\"docs/audit/os-completeness/visual-design-gaps.md\",\"reachable\":true,\"reused\":false,\"lines\":14},{\"path\":\"docs/audits/OS-MULTI-AGENT-AUDIT.md\",\"reachable\":true,\"reused\":false,\"lines\":142},{\"path\":\"docs/audits/subagents/01-architecture.md\",\"reachable\":true,\"reused\":false,\"lines\":233},{\"path\":\"docs/audits/subagents/02-build-status.md\",\"reachable\":true,\"reused\":false,\"lines\":132},{\"path\":\"docs/audits/subagents/03-verification.md\",\"reachable\":true,\"reused\":false,\"lines\":143},{\"path\":\"docs/audits/subagents/04-security.md\",\"reachable\":true,\"reused\":false,\"lines\":110},{\"path\":\"docs/audits/subagents/05-maturity.md\",\"reachable\":true,\"reused\":false,\"lines\":193},{\"path\":\"docs/audits/subagents/06-privacy.md\",\"reachable\":true,\"reused\":false,\"lines\":204},{\"path\":\"docs/audits/subagents/07-eu-compliance.md\",\"reachable\":true,\"reused\":false,\"lines\":138},{\"path\":\"docs/audits/subagents/08-release-supply-chain.md\",\"reachable\":true,\"reused\":false,\"lines\":108},{\"path\":\"docs/audits/subagents/09-hardware-drivers.md\",\"reachable\":true,\"reused\":false,\"lines\":129},{\"path\":\"docs/audits/subagents/10-ux-accessibility.md\",\"reachable\":true,\"reused\":false,\"lines\":169},{\"path\":\"docs/audits/subagents/11-reliability-recovery.md\",\"reachable\":true,\"reused\":false,\"lines\":161},{\"path\":\"docs/audits/subagents/12-app-platform-sdk.md\",\"reachable\":true,\"reused\":false,\"lines\":107},{\"path\":\"docs/audits/subagents/13-red-team.md\",\"reachable\":true,\"reused\":false,\"lines\":154},{\"path\":\"docs/audits/subagents/14-performance-energy.md\",\"reachable\":true,\"reused\":false,\"lines\":147},{\"path\":\"docs/audits/subagents/15-network-distributed.md\",\"reachable\":true,\"reused\":false,\"lines\":74},{\"path\":\"docs/audits/subagents/16-claims.md\",\"reachable\":true,\"reused\":false,\"lines\":138},{\"path\":\"docs/design/AUDIT-2026-11-13.md\",\"reachable\":true,\"reused\":false,\"lines\":1},{\"path\":\"docs/design/CONCEPTS.md\",\"reachable\":true,\"reused\":false,\"lines\":3},{\"path\":\"docs/design/DESIGN-SYSTEM.md\",\"reachable\":false,\"reused\":false,\"lines\":21}],\"report\":\"/workspace/baryon-language-freeze/build/english-coverage-20261118/coverage.json\"}\n"
+    },
+    {
+      "working_directory": "/workspace/baryon-english-followup",
+      "command": "python3 -B docs/verification/issue274-language-coverage-20261118/check.py --inventory docs/verification/issue274-combined-language-20261118/coverage.json --ref 2073e4affd8a46a4bd0a1b95bcb06f7c2b0062c2",
+      "wrapper": "python3 -B tools/tokenguard.py --root <working_directory> run --output bounded -- <command>",
+      "raw_exit_code": 0,
+      "expected_exit_code": 0,
+      "purpose": "New explicit frozen-source inventory; corrected reporting key",
+      "raw_log": "/workspace/baryon-english-followup/build/tokenguard/run-3htu6ou8.log",
+      "raw_log_sha256": "e58b632b295a167ffc3c06d5df6156fd9500df4a8d41398c844c3036846a227e",
+      "raw_log_utf8": "{\"inventory_result\": \"RECORDED SOURCE AND CANDIDATE DISPOSITIONS REPRODUCED\", \"first_party_documents\": 398, \"normal_navigation_documents\": 179, \"compatibility_anchors\": 11, \"historical_dutch_original_records_retained\": 33, \"historical_records_with_english_entrypoints\": 34, \"language_quality_proof\": false, \"full_issue274_acceptance\": \"NOT COMPLETE\", \"ui_localisation\": \"OPEN; fixed Dutch native menu/status strings remain\", \"exit_code\": 0}\n"
+    },
+    {
+      "working_directory": "/workspace/baryon-language-freeze",
+      "command": "python3 -B docs/verification/issue274-language-coverage-20261118/check.py --inventory build/combined-language-coverage.json",
+      "wrapper": "python3 -B tools/tokenguard.py --root <working_directory> run --output bounded -- <command>",
+      "raw_exit_code": 0,
+      "expected_exit_code": 0,
+      "purpose": "Working source of exact detached freeze; inventory bytes copied to ignored build path. Frozen checker still uses the old misleading result key; it is retained verbatim here and corrected in this publication.",
+      "raw_log": "/workspace/baryon-language-freeze/build/tokenguard/run-xen0_seb.log",
+      "raw_log_sha256": "3fad4ec79a063ef60e71be56fff068424443d181c50925ba034396a9ec62e8cd",
+      "raw_log_utf8": "{\"inventory_result\": \"RECORDED SOURCE AND CANDIDATE DISPOSITIONS REPRODUCED\", \"first_party_documents\": 398, \"normal_navigation_documents\": 179, \"compatibility_anchors\": 11, \"historical_dutch_records_without_equivalent\": 33, \"historical_records_with_english_entrypoints\": 34, \"language_quality_proof\": false, \"full_issue274_acceptance\": \"NOT COMPLETE\", \"ui_localisation\": \"OPEN; fixed Dutch native menu/status strings remain\", \"exit_code\": 0}\n"
+    },
+    {
+      "working_directory": "/workspace/baryon-english-followup",
+      "command": "python3 -B docs/verification/issue274-language-coverage-20261118/check.py --ref 68757cd2a2f313972609f9573f6cc10d45541b85",
+      "wrapper": "python3 -B tools/tokenguard.py --root <working_directory> run --output bounded -- <command>",
+      "raw_exit_code": 0,
+      "expected_exit_code": 0,
+      "purpose": "Original 392-document source snapshot remains reproducible and unchanged",
+      "raw_log": "/workspace/baryon-english-followup/build/tokenguard/run-vk70nrdw.log",
+      "raw_log_sha256": "44e9f77db238627620e721fb63b33bdec56b6f0e53f8a355d2b993779665caf3",
+      "raw_log_utf8": "{\"inventory_result\": \"RECORDED SOURCE AND CANDIDATE DISPOSITIONS REPRODUCED\", \"first_party_documents\": 392, \"normal_navigation_documents\": 140, \"compatibility_anchors\": 11, \"historical_dutch_original_records_retained\": 34, \"historical_records_with_english_entrypoints\": 0, \"language_quality_proof\": false, \"full_issue274_acceptance\": \"NOT COMPLETE\", \"ui_localisation\": \"OPEN; fixed Dutch native menu/status strings remain\", \"exit_code\": 0}\n"
+    },
+    {
+      "working_directory": "/workspace/baryon-english-followup",
+      "command": "python3 -B docs/verification/issue274-language-coverage-20261118/check.py --inventory docs/verification/issue274-archive-entrypoints-20261118/coverage.json --self-test",
+      "wrapper": "python3 -B tools/tokenguard.py --root <working_directory> run --output bounded -- <command>",
+      "raw_exit_code": 0,
+      "expected_exit_code": 0,
+      "purpose": "Meaningful changed-prose/new-file negatives, seven Unicode/special Git names in index and immutable tree, regular Git-blob collector, escaping-symlink refusal",
+      "raw_log": "/workspace/baryon-english-followup/build/tokenguard/run-srrf9b_g.log",
+      "raw_log_sha256": "0087fc226c24fab8b5f1aad6a2deb8aff5c6ef70e3766cc2f025c14259e1ede8",
+      "raw_log_utf8": "{\"self_test\": \"PASS\", \"raw_exits\": {\"unchanged_source\": 0, \"changed_prose\": 1, \"new_tracked_document\": 1}, \"expected_negative_exits\": 1, \"path_controls\": {\"special_names\": 7, \"index_unknown_paths_raw\": 1, \"tree_unknown_paths_raw\": 1, \"regular_git_blob_collector_raw\": 0, \"escaping_symlink_rejected\": true}}\n"
+    },
+    {
+      "working_directory": "/workspace/baryon-english-followup",
+      "command": "python3 -B docs/verification/issue274-language-coverage-20261118/check.py --inventory docs/verification/issue274-archive-entrypoints-20261118/coverage.json --ref 2073e4affd8a46a4bd0a1b95bcb06f7c2b0062c2",
+      "wrapper": "python3 -B tools/tokenguard.py --root <working_directory> run --output bounded -- <command>",
+      "raw_exit_code": 1,
+      "expected_exit_code": 1,
+      "purpose": "Expected failure: old scope rejects both new A11Y files",
+      "raw_log": "/workspace/baryon-english-followup/build/tokenguard/run-h6u8haaw.log",
+      "raw_log_sha256": "402955c7045f18e7160756441ff70da8be349b5bf0c91fb4fbaf89a52c67aa37",
+      "raw_log_utf8": "{\"inventory_result\": \"SCOPE REVIEW REQUIRED\", \"unclassified_paths\": [\"docs/design/accessibility/ACCESSIBILITY-MATRIX.md\", \"docs/design/accessibility/ACCESSIBILITY-RESEARCH.md\"], \"missing_paths\": []}\n"
+    },
+    {
+      "working_directory": "/workspace/baryon-english-followup",
+      "command": "python3 -B docs/verification/issue274-language-coverage-20261118/check.py --inventory build/english-coverage-20261118/scope-only-old-inventory.json --ref 2073e4affd8a46a4bd0a1b95bcb06f7c2b0062c2",
+      "wrapper": "python3 -B tools/tokenguard.py --root <working_directory> run --output bounded -- <command>",
+      "raw_exit_code": 1,
+      "expected_exit_code": 1,
+      "purpose": "Expected failure: after adding only the two explicit A11Y scope entries to an ignored copy, all 14 changed previous source hashes are rejected, including every one of the ten guidance files; original inventories remain untouched",
+      "raw_log": "/workspace/baryon-english-followup/build/tokenguard/run-rf9707zk.log",
+      "raw_log_sha256": "254a54b1e5b0c007a3e7518226db7e3c79436415ecee0816ca40bc623d3fbda7",
+      "raw_log_utf8": "{\"source_changes\": [\"AGENTS.md\", \"CODEX-WORKFLOW.md\", \"crates/AGENTS.md\", \"docs/DECISIONS.md\", \"docs/DEPENDENCIES.md\", \"docs/DEVELOPMENT.md\", \"docs/PROJECT-STATE.md\", \"docs/design/DESIGN-SYSTEM.md\", \"docs/implementation/S09-BACKUP-ARCHIVE.md\", \"drivers/AGENTS.md\", \"experiments/AGENTS.md\", \"kernel/AGENTS.md\", \"sdk/AGENTS.md\", \"services/AGENTS.md\"], \"lexical_changes\": [\"docs/DECISIONS.md\", \"docs/design/DESIGN-SYSTEM.md\"], \"inventory_result\": \"REVIEW REQUIRED\"}\n"
+    },
+    {
+      "working_directory": "/workspace/baryon-english-followup",
+      "command": "python3 -B docs/verification/issue274-wiki-publication-20261118/verify.py --wiki /workspace/baryon-wiki",
+      "wrapper": "python3 -B tools/tokenguard.py --root <working_directory> run --output bounded -- <command>",
+      "raw_exit_code": 0,
+      "expected_exit_code": 0,
+      "purpose": "All 15 reviewed sources, original 13 pages, 171 local targets and legacy anchor verified",
+      "raw_log": "/workspace/baryon-english-followup/build/tokenguard/run-klycfloe.log",
+      "raw_log_sha256": "65c9a547c4ed0bd2e39fa56d2cebfb59449152c4e6b72cfda1d5e53ba94c89ef",
+      "raw_log_utf8": "{\"source_pages\": 15, \"new_concept_pages\": 13, \"existing_pages_preserved_byte_identical\": 13, \"validated_local_targets\": 171, \"validated_fragments\": 1, \"exit_code\": 0}\n"
+    },
+    {
+      "working_directory": "/workspace/baryon-wiki",
+      "command": "git ls-remote origin refs/heads/master",
+      "wrapper": "python3 -B tools/tokenguard.py --root <working_directory> run --output bounded -- <command>",
+      "raw_exit_code": 0,
+      "expected_exit_code": 0,
+      "purpose": "Actual remote Wiki remains 4a01b8b2ad2695da509a512ea688007c964f56da",
+      "raw_log": "/workspace/baryon-wiki/build/tokenguard/run-zu4afs39.log",
+      "raw_log_sha256": "0613ced0a0ba43f3ea120195f50fc9538c65418359debc2db6352d3c7289ee71",
+      "raw_log_utf8": "4a01b8b2ad2695da509a512ea688007c964f56da\trefs/heads/master\n"
+    }
+  ],
+  "new_artifact_sha256": {
+    "coverage.json": "14ce4734419f7943dc7f548670664acf187eb8a13b04f7819ab5e2440e17bb81",
+    "review.json": "1eb6fa5bce46cdf2a20de9fa8b41db73b5ac90800df5e4e5767691dce355fb61",
+    "collector.json": "22564dd26c92f3249cf478eb4e0acde036fe0d6d9c20cfcc7045686b72ce4c17"
+  },
+  "frozen_collector_sha256": "f3140e738ded1f157e7ae0540184c33cd8658a3e8310eb18dfba8bf7d1434407",
+  "frozen_checker_sha256": "50ad2b1bdec170b664057e877e7aae2bd0fcda1ec5483349a3da4ee7a52e3700",
+  "published_checker_sha256": "862654482859bd5ede0877adc81054cd29bf5eca172e23ef28e6b968b4a43d85",
+  "checker_change": "Only the output key historical_dutch_records_without_equivalent is renamed to historical_dutch_original_records_retained. Inventory semantics and source/lexical/path guards are unchanged.",
+  "current_source_reproduction_command": "python3 -B docs/verification/issue274-language-coverage-20261118/check.py --inventory docs/verification/issue274-combined-language-20261118/coverage.json",
+  "immutable_source_reproduction_command": "python3 -B docs/verification/issue274-language-coverage-20261118/check.py --inventory docs/verification/issue274-combined-language-20261118/coverage.json --ref 2073e4affd8a46a4bd0a1b95bcb06f7c2b0062c2",
+  "integration_condition": "The live command is valid after integrating this publication into a source whose active Markdown/forms and historical entrypoint manifest are identical to the frozen source. It is not represented as passing against the older English-only branch. Run it on the actual integrated candidate. New or changed sources require another explicit review; do not weaken source guards.",
+  "issue274_acceptance": "NOT COMPLETE",
+  "score_before": 41,
+  "score_after": 41
+}

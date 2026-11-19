@@ -14,6 +14,97 @@ const POOL: NetPool = NetPool {
 };
 const MAC: [u8; 6] = [2, 0, 0, 0, 0, 7];
 
+#[test]
+fn link_tracker_requires_status_and_rejects_stale_up_after_down() {
+    assert!(matches!(
+        link::Tracker::new(FEATURE_MAC, 4),
+        Err(Error::Unsupported)
+    ));
+    let mut tracker = link::Tracker::new(FEATURE_STATUS, 4).unwrap();
+    assert_eq!(tracker.state(), Ok(None));
+    assert_eq!(tracker.observe(0, 1, false), Err(Error::StaleEpoch));
+    assert_eq!(
+        tracker.observe(1, 1, false),
+        Ok(Some(link::Event {
+            generation: 1,
+            up: true
+        }))
+    );
+    assert_eq!(
+        tracker.observe(2, 0, false),
+        Ok(Some(link::Event {
+            generation: 2,
+            up: false
+        }))
+    );
+    for generation in [0, 1, 2] {
+        assert_eq!(
+            tracker.observe(generation, 1, false),
+            Err(Error::StaleEpoch)
+        );
+        assert_eq!(
+            tracker.state(),
+            Ok(Some(link::Event {
+                generation: 2,
+                up: false
+            }))
+        );
+    }
+    assert_eq!(
+        tracker.observe(3, 1, false),
+        Ok(Some(link::Event {
+            generation: 3,
+            up: true
+        }))
+    );
+}
+
+#[test]
+fn link_tracker_budget_counts_only_transitions_and_latches_exhaustion() {
+    let mut tracker = link::Tracker::new(FEATURE_STATUS, 1).unwrap();
+    tracker.observe(1, 1, false).unwrap();
+    assert_eq!(tracker.observe(2, 1, false), Ok(None));
+    tracker.observe(3, 0, false).unwrap();
+    assert_eq!(tracker.observe(4, 0, false), Ok(None));
+    assert_eq!(tracker.observe(5, 1, false), Err(Error::Exhausted));
+    assert_eq!(tracker.state(), Err(Error::Exhausted));
+    assert_eq!(tracker.observe(6, 0, false), Err(Error::Exhausted));
+    let mut zero = link::Tracker::new(FEATURE_STATUS, 0).unwrap();
+    zero.observe(1, 0, false).unwrap();
+    assert_eq!(zero.observe(2, 0, false), Ok(None));
+    assert_eq!(zero.observe(3, 1, false), Err(Error::Exhausted));
+}
+
+#[test]
+fn link_tracker_reset_never_returns_an_old_up_or_recovers_implicitly() {
+    for initial in [None, Some(1)] {
+        let mut tracker = link::Tracker::new(FEATURE_STATUS, 10).unwrap();
+        if let Some(status) = initial {
+            tracker.observe(1, status, false).unwrap();
+        }
+        assert_eq!(tracker.observe(2, 1, true), Err(Error::Io));
+        assert_eq!(tracker.state(), Err(Error::Io));
+        assert_eq!(tracker.observe(3, 1, false), Err(Error::Io));
+    }
+}
+
+#[test]
+fn link_tracker_serials_never_wrap_and_status_uses_the_negotiated_link_bit() {
+    let mut tracker = link::Tracker::new(FEATURE_STATUS, 1).unwrap();
+    let down = link::Event {
+        generation: u64::MAX - 1,
+        up: false,
+    };
+    assert_eq!(tracker.observe(down.generation, 2, false), Ok(Some(down)));
+    let up = link::Event {
+        generation: u64::MAX,
+        up: true,
+    };
+    assert_eq!(tracker.observe(up.generation, 3, false), Ok(Some(up)));
+    assert_eq!(tracker.observe(1, 0, false), Err(Error::StaleEpoch));
+    assert_eq!(tracker.state(), Ok(Some(up)));
+}
+
 #[derive(Clone)]
 struct Model(Rc<RefCell<Registers>>);
 

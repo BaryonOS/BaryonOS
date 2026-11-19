@@ -1,0 +1,64 @@
+{
+  "source_commit": "2a08f4a33eff63b354821f6892e1be28f7602c9b",
+  "source_fingerprint_version": 3,
+  "source_sha256": "25dd6d69621f1d9d4c8ed353633b3db62818562fa6ce50efa4445207505adb44",
+  "final_git_status": "",
+  "gate_command": [
+    "python3",
+    "-B",
+    "tools/agent_gate.py",
+    "--job",
+    "ci.yml#host-quality",
+    "--log",
+    "build/combined-host-quality-cpuid.log"
+  ],
+  "exit_code": 0,
+  "duration_seconds": 303.39,
+  "steps": 18,
+  "token_guard_receipt": "build/tokenguard/run-mg4xp9fq.json",
+  "full_gate_log": "build/combined-host-quality-cpuid.log",
+  "artifacts": [
+    {
+      "path": "build/tokenguard/run-mg4xp9fq.json",
+      "sha256": "265ceeaf6cf012d71f3787700d9d61cb1cd49cc5d5b09e4eb4c83665da490152"
+    },
+    {
+      "path": "build/tokenguard/run-mg4xp9fq.log",
+      "sha256": "ed38c5e6c5e32967dedca16d460208db1263d3a8f1c6029dd87acdc06d7e3c7c"
+    },
+    {
+      "path": "build/combined-host-quality-cpuid.log",
+      "sha256": "c56ecfeacbe3002378327a5066f88063cec4340987084074d2a01349efd47955"
+    },
+    {
+      "path": "build/combined-host-quality-validation-cpuid/source-before.json",
+      "sha256": "f85c22abb99bb6e97174889a21c66123c8844e9de0152b0dcef730f955320ada"
+    }
+  ],
+  "preserved_original_artifacts": [
+    {
+      "path": "build/combined-host-quality-validation/result.json",
+      "sha256": "baaf80f53ebefbeca08c7bec558aef76f6a1bdc0ac8b64921521e48389ae56fe"
+    },
+    {
+      "path": "build/combined-host-quality.log",
+      "sha256": "9f5e08961c2bbcc65bd3292a196570c4528da4941364cbe70a174070a0022cc3"
+    }
+  ],
+  "unnecessary_unsafe_warning_count": 0,
+  "remaining_warning_headers": [
+    "warning: 2 warnings emitted",
+    "warning: `nieuw-os-calculator` (manifest) generated 1 warning",
+    "warning: `nieuw-os-supervisor-example` (manifest) generated 1 warning",
+    "warning: `os-kernel` (bin \"os-kernel\") generated 1 warning",
+    "warning: `os-kernel` (manifest) generated 2 warnings",
+    "warning: associated constant `EMPTY` is never used",
+    "warning: methods `level`, `owner`, and `lock_pair` are never used",
+    "warning: methods `rights` and `add_caps` are never used",
+    "warning: unused dependency `block-protocol`",
+    "warning: unused dependency `nieuw-os-sdk-runtime`",
+    "warning: unused dependency `noto-sans-mono-bitmap`",
+    "warning: unused dependency `object-core`"
+  ],
+  "limits": "Local executable host-quality steps only. Native runtime gates, hosted CI and integrated main verification remain separate."
+}

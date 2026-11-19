@@ -144,21 +144,26 @@ pub fn expect(result: (i64, u64), error: i64) {
 // Compiler memory intrinsics. Their C caller contracts provide valid ranges;
 // explicit assembly avoids optimizer-created recursive intrinsic calls.
 #[no_mangle]
-pub unsafe extern "C" fn memcpy(dst: *mut u8, src: *const u8, n: usize) -> *mut u8 {
+pub unsafe extern "C" fn memcpy(dst: *mut core::ffi::c_void, src: *const core::ffi::c_void, n: usize) -> *mut core::ffi::c_void {
+    let dst = dst.cast::<u8>();
+    let src = src.cast::<u8>();
     // SAFETY: Caller guarantees readable/writable nonoverlapping ranges of n
     // bytes. rep movsb touches exactly those bytes and needs no extra alignment.
     unsafe { asm!("cld", "rep movsb", inout("rdi") dst => _, inout("rsi") src => _, inout("rcx") n => _, options(nostack)); }
-    dst
+    dst.cast()
 }
 #[no_mangle]
-pub unsafe extern "C" fn memset(dst: *mut u8, value: i32, n: usize) -> *mut u8 {
+pub unsafe extern "C" fn memset(dst: *mut core::ffi::c_void, value: i32, n: usize) -> *mut core::ffi::c_void {
+    let dst = dst.cast::<u8>();
     // SAFETY: Caller guarantees n writable bytes; byte stores touch only them.
     unsafe { asm!("cld", "rep stosb", inout("rdi") dst => _, in("al") value as u8, inout("rcx") n => _, options(nostack)); }
-    dst
+    dst.cast()
 }
 #[no_mangle]
-pub unsafe extern "C" fn memmove(dst: *mut u8, src: *const u8, n: usize) -> *mut u8 {
-    if n == 0 { return dst; }
+pub unsafe extern "C" fn memmove(dst: *mut core::ffi::c_void, src: *const core::ffi::c_void, n: usize) -> *mut core::ffi::c_void {
+    let dst = dst.cast::<u8>();
+    let src = src.cast::<u8>();
+    if n == 0 { return dst.cast(); }
     if dst as usize <= src as usize {
         // SAFETY: Forward byte order preserves overlapping ranges when dst<=src.
         unsafe { asm!("cld", "rep movsb", inout("rdi") dst => _, inout("rsi") src => _, inout("rcx") n => _, options(nostack)); }
@@ -169,10 +174,12 @@ pub unsafe extern "C" fn memmove(dst: *mut u8, src: *const u8, n: usize) -> *mut
             unsafe { dst.add(i).write_volatile(src.add(i).read_volatile()); }
         }
     }
-    dst
+    dst.cast()
 }
 #[no_mangle]
-pub unsafe extern "C" fn memcmp(a: *const u8, b: *const u8, n: usize) -> i32 {
+pub unsafe extern "C" fn memcmp(a: *const core::ffi::c_void, b: *const core::ffi::c_void, n: usize) -> i32 {
+    let a = a.cast::<u8>();
+    let b = b.cast::<u8>();
     for i in 0..n {
         // SAFETY: Caller guarantees readable n-byte ranges; volatile reads avoid
         // the optimizer turning this implementation back into a memcmp call.

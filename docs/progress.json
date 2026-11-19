@@ -3,7 +3,7 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-18",
-    "source_commit": "9bb822db5e2e80c62ca85d7e508567995fb813a8",
+    "source_commit": "d19136b2ced34f04aafebfefcc190f0bbbd890de",
     "assessment_basis": "parent_commit",
     "branch": "codex/u05-search-index",
     "task": "U05-T2: Standalone bounded domain/object/revision search index with UTF8 tokens, update/delete tombstones, atomic catalogue rebuild, current grant epochs and accidental-corruption checks.11 host tests pass; bounds precede untrusted text scanning.",

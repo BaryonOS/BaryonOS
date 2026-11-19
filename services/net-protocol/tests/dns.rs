@@ -19,6 +19,17 @@ fn question() -> Question {
     }
 }
 
+#[test]
+fn positive_parser_still_rejects_nxdomain_before_record_decoding() {
+    let mut data = fixed_response();
+    data[3] = 0x83;
+    data.truncate(29);
+    assert_eq!(
+        dns::parse_response(&data, question()),
+        Err(Error::ResponseCode(3))
+    );
+}
+
 // Header, one IN/A question, compressed answer owner, 300-second A result.
 // These bytes are written independently of the query/frame implementation.
 fn fixed_response() -> Vec<u8> {
