@@ -267,6 +267,8 @@ fn restore_native_replays_history_into_a_fresh_domain() {
     assert_eq!(report.writes, 6);
     // Six WRITEs, two COLLECTIONs, two METAs.
     assert_eq!(report.committed, 10);
+    // Every chain in restore.bin is consecutive: the full history is replayed.
+    assert_eq!(report.skipped, 0);
     assert_eq!(c.transport.begins, 6);
 
     // Collections: present ones at their own index, the deleted one not replayed.
@@ -566,7 +568,10 @@ fn a_staged_upload_in_the_destination_makes_the_first_begin_busy() {
     let mut c = client(&mut service, &mut disk, DOMAIN, None);
     assert_eq!(archive::never_used(&mut c, DOMAIN), Ok(true));
     let (status, report) = restore(&bytes, &mut c).unwrap_err();
-    assert_eq!((status, report), (Status::Busy, NativeReport::default()));
+    assert_eq!(
+        (status, report.writes, report.committed, report.restored),
+        (Status::Busy, 0, 0, 0)
+    );
     assert_eq!(archive::never_used(&mut c, DOMAIN), Ok(true));
     // Once the staged upload is gone the same restore succeeds.
     assert_eq!(service.detach(77), 1);
@@ -628,4 +633,79 @@ fn accepted_boundaries_restore() {
         (MAX_LENGTH, 32, 4)
     );
     assert_eq!(c.collection_stat(DOMAIN, 4).unwrap().name_length, 32);
+}
+
+#[test]
+fn versions_after_a_revision_gap_are_not_replayed() {
+    // Owner decision (19 November 2026): versions that may predate a DELETE
+    // are refused. Only the prefix with revision steps of exactly 1 replays.
+    let bytes = fixture("delete-gap.bin");
+    let source = verify(&bytes).unwrap();
+    let content = contents(&bytes);
+    let prefix = |slot| archive::replayable(source.object(slot).unwrap());
+    assert_eq!((prefix(0), prefix(2), prefix(4), prefix(7)), (1, 2, 1, 1));
+    assert_eq!(
+        archive::replayable(verify(&fixture("restore.bin")).unwrap().object(1).unwrap()),
+        3
+    );
+    // Counting the skipped versions would exceed the guaranteed free chunks.
+    let all: usize = source.objects[..source.object_count]
+        .iter()
+        .flat_map(|o| o.versions[..o.version_count].iter())
+        .map(|v| v.length.div_ceil(CHUNK))
+        .sum();
+    assert!(all > archive::GUARANTEED_FREE, "{all}");
+
+    let mut disk = SimDisk::new();
+    let mut service = Service::new(EPOCH, Table::EMPTY, false);
+    let mut c = client(&mut service, &mut disk, DOMAIN, None);
+    let (report, _) = restore(&bytes, &mut c).unwrap();
+    assert_eq!((report.writes, report.skipped), (7, 6));
+    assert_eq!(report.restored, 0b1111_0101);
+    // Seven one-chunk versions replayed; nothing of the skipped ones stored.
+    assert_eq!(service.table().domain_chunks(DOMAIN), 7);
+    let mut c = client(&mut service, &mut disk, DOMAIN, None);
+    let mut readable = Vec::new();
+    for (slot, archived) in content.iter().enumerate() {
+        let object = (DOMAIN * PER_DOMAIN + slot) as u64;
+        let Ok(stat) = c.stat(object) else { continue };
+        let o = source.object(slot).unwrap();
+        let replayed = archive::replayable(o);
+        assert_eq!(stat.history_count, replayed - 1, "slot {slot}");
+        for selector in 0..replayed {
+            let length = if selector == 0 {
+                stat.length
+            } else {
+                stat.history[selector - 1].length
+            };
+            let got = read_version(&mut c, object, stat.revision, selector, length);
+            assert_eq!(got, archived[selector], "slot {slot} version {selector}");
+            readable.push(got);
+        }
+    }
+    assert_eq!(readable.len(), 7);
+    for skipped in content
+        .iter()
+        .flat_map(|versions| versions.iter().filter(|v| v.len() > CHUNK))
+    {
+        assert!(!readable.contains(skipped));
+    }
+    // The durable table holds exactly the replayed prefixes, names included.
+    let table = recover(disk.settled()).unwrap();
+    for o in source.objects[..source.object_count].iter() {
+        let entry = &table.entries[DOMAIN * PER_DOMAIN + o.slot];
+        let names: Vec<&[u8]> = core::iter::once(entry.current.name())
+            .chain(
+                entry.history[..entry.history_count]
+                    .iter()
+                    .map(|v| v.name()),
+            )
+            .collect();
+        let recorded: Vec<&[u8]> = o.versions[..archive::replayable(o)]
+            .iter()
+            .map(|v| v.name())
+            .collect();
+        assert_eq!(names, recorded, "slot {}", o.slot);
+        assert!(entry.versions().all(|v| v.length <= CHUNK));
+    }
 }

@@ -31,7 +31,7 @@ def restore_parts():
         collections=[dict(index=2, present=True, revision=901, name="Archief"),
                      dict(index=3, present=False, revision=902, name=""),
                      dict(index=4, present=True, revision=903, name="Foto's")],
-        objects=[obj(1, 950, [(950, "Plan v3", big), (940, "Plan v2", big[:va.CHUNK + 1]), (930, "Plan", b"p")],
+        objects=[obj(1, 950, [(950, "Plan v3", big), (949, "Plan v2", big[:va.CHUNK + 1]), (948, "Plan", b"p")],
                      collection=4, kind=7, tags=0x8001, created=910, modified=960),
                  obj(3, 945, [(944, "Kaal", b"zonder metadata")], created=920, modified=945),
                  obj(4, 948, [(947, "Lijst", bytes(range(256)) * 3), (946, "Lijst", b"")],
@@ -66,6 +66,19 @@ def full_parts(two_chunks=True):
     return dict(collections=[GROOT], objects=[
         obj(slot, 30, [(30 - j, f"f{slot}{j}", bytes([slot + 1]) * length(slot, j)) for j in range(3)],
             collection=1 if slot == 0 else 0) for slot in range(8)])
+
+
+def delete_gap_parts():
+    """Owner decision 19 Nov 2026: versions after a revision gap may predate a DELETE and are not
+    replayed. Slot 0: gap right after the current version; slot 2: consecutive, then a gap; slots
+    4..7: gap after the current version. Every skipped version is 4 chunks: 31 chunks in all, but
+    only 7 are replayed, so counting skipped versions would refuse it (> 24)."""
+    skipped = b"X" * (3 * va.CHUNK + 1)
+    return dict(collections=[dict(index=1, present=True, revision=900, name="Map")], objects=[
+        obj(0, 961, [(960, "Nieuw", b"nieuw"), (958, "Oud", skipped)], collection=1, created=901, modified=961),
+        obj(2, 955, [(955, "Drie", b"3"), (954, "Twee", b"2"), (950, "Een", skipped)], created=902, modified=955),
+        *[obj(s, 940 + s, [(940 + s, f"k{s}", bytes([s])), (930 + s, f"x{s}", skipped)], created=903, modified=940 + s)
+          for s in range(4, 8)]])
 
 
 def boundary_parts():
@@ -104,6 +117,7 @@ def fixtures() -> dict[str, tuple[bytes, str | None]]:
         "full.bin": (encode(**full_parts(), flags=0, clock=30), None),
         "free-24.bin": (encode(**full_parts(two_chunks=False), flags=0, clock=30), None),
         "boundary.bin": (encode(**boundary_parts(), flags=0, clock=3), None),
+        "delete-gap.bin": (encode(**delete_gap_parts(), flags=0, clock=1000), None),
         "s1-version-revision-zero.bin": (encode(**first_object(
             versions=[(8, "a", b"1"), (6, "b", b"2"), (0, "c", b"3")])), "version revision is zero"),
         "s2-newest-version-above-object.bin": (encode(**first_object(versions=[(10, "a", b"1")])),

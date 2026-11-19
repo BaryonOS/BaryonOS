@@ -14,6 +14,27 @@ boundary.bin collection 4 1 2 63636363636363636363636363636363636363636363636363
 boundary.bin object 7 1 4 0 1 3 1 3 1
 boundary.bin version 7 0 3 65536 2216012086724862757 6e6e6e6e6e6e6e6e6e6e6e6e6e6e6e6e6e6e6e6e6e6e6e6e6e6e6e6e6e6e6e6e
 content-free-unaccounted.bin refused content-free record without the accounted flag
+delete-gap.bin archive 0 0 6598 1000 73745 75489
+delete-gap.bin collection 1 1 900 4d6170
+delete-gap.bin object 0 1 1 0 0 961 901 961 2
+delete-gap.bin version 0 0 960 5 4404042428265064291 4e69657577
+delete-gap.bin version 0 1 958 12289 3864029781380402535 4f7564
+delete-gap.bin object 2 1 0 0 0 955 902 955 3
+delete-gap.bin version 2 0 955 1 12638136623020744290 44726965
+delete-gap.bin version 2 1 954 1 12638137722532372501 54776565
+delete-gap.bin version 2 2 950 12289 3864029781380402535 45656e
+delete-gap.bin object 4 1 0 0 0 944 903 944 2
+delete-gap.bin version 4 0 944 1 12638148717648654611 6b34
+delete-gap.bin version 4 1 934 12289 3864029781380402535 7834
+delete-gap.bin object 5 1 0 0 0 945 903 945 2
+delete-gap.bin version 5 0 945 1 12638147618137026400 6b35
+delete-gap.bin version 5 1 935 12289 3864029781380402535 7835
+delete-gap.bin object 6 1 0 0 0 946 903 946 2
+delete-gap.bin version 6 0 946 1 12638150916671911033 6b36
+delete-gap.bin version 6 1 936 12289 3864029781380402535 7836
+delete-gap.bin object 7 1 0 0 0 947 903 947 2
+delete-gap.bin version 7 0 947 1 12638149817160282822 6b37
+delete-gap.bin version 7 1 937 12289 3864029781380402535 7837
 deleted-collection-unaccounted.bin refused deleted collection without the accounted flag
 free-24.bin archive 0 0 245 30 24 2728
 free-24.bin collection 1 1 5 47726f6f74
@@ -139,8 +160,8 @@ restore.bin collection 3 0 902 -
 restore.bin collection 4 1 903 466f746f2773
 restore.bin object 1 1 4 7 32769 950 910 960 3
 restore.bin version 1 0 950 8209 15155703102901063823 506c616e207633
-restore.bin version 1 1 940 4097 14746066253670546799 506c616e207632
-restore.bin version 1 2 930 1 12638205892253321583 506c616e
+restore.bin version 1 1 949 4097 14746066253670546799 506c616e207632
+restore.bin version 1 2 948 1 12638205892253321583 506c616e
 restore.bin object 3 1 0 0 0 945 920 945 1
 restore.bin version 3 0 944 15 14641083508162807964 4b61616c
 restore.bin object 4 1 2 0 0 948 921 948 2

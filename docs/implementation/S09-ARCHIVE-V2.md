@@ -179,6 +179,24 @@ For L1 the native restore (`restore_native`) refuses any archive with
 `TOMBSTONES` set, before its first write, rather than replaying tombstones;
 replaying them would recreate deleted content in the destination.
 
+**Versions from before a delete: decided by the project owner on
+19 November 2026 — refused** (answer to "may `restore_native` replay
+versions from before a delete?": "Nee, weigeren"). A DELETE moves the current
+version into history and raises the entry revision; a later COMMIT on the
+absent entry does not push history (`push_history` is a no-op while absent,
+`table.rs:199`), so pre-delete versions become history of the rewritten
+object, and nothing in the archive or on the wire marks the delete. A
+committed version's revision equals the entry revision after that commit,
+and DELETE, RENAME, META, RESTORE and TRANSACT each raise the entry revision
+without a new version. L1 therefore replays, per present object, only the
+longest prefix of its versions (current first, history newest first) whose
+consecutive revisions differ by exactly 1; every version after the first gap
+is not replayed and is counted in `NativeReport.skipped`, and the capacity
+checks count replayed versions only. L1 cannot distinguish a DELETE gap from
+a META or RENAME gap, so a gap caused only by metadata also drops the older
+versions (conservative). The reader still verifies every version; only the
+replay is limited.
+
 **Source identity: decided by the project owner on 19 November 2026 — no
 source identifier is recorded.** The archive records no volume or domain
 identifier; `services/volume/src` defines none, so there is no source value to
@@ -338,7 +356,7 @@ implies `CONTENT_V2`.
 | Field | L1 (history replay, client-side) | L2 (immutable provenance, table v3) |
 |---|---|---|
 | slot, state | target slot; archives with `TOMBSTONES` refused (R2) | target slot; tombstone ⇒ install then DELETE only if a reviewed decision permits `TOMBSTONES` |
-| version records (oldest first: content, name, length) | one WRITE per version, in order | written by INSTALL |
+| version records (oldest first: content, name, length) | one WRITE per version, in order, for the consecutive-revision prefix only; versions after the first revision gap may predate a DELETE and are skipped (owner decision, section 3) | written by INSTALL |
 | version revision | reported as source value only | `origin_revision` per version |
 | object revision | reported as source value only | `origin_revision` per object |
 | created / modified | reported as source values only | `origin_created` / `origin_modified` |

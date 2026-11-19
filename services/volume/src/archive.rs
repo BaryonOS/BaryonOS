@@ -953,7 +953,8 @@ const _: () = assert!(GUARANTEED_FREE > 0);
 /// `Unknown`: that request may have committed without a reply.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub struct NativeReport {
-    /// Bit `s`: archive slot `s` fully replayed (every version and its metadata).
+    /// Bit `s`: archive slot `s` fully replayed (its replayable versions,
+    /// see [`replayable`], and its metadata).
     pub restored: u8,
     /// Committed WRITEs.
     pub writes: usize,
@@ -961,6 +962,29 @@ pub struct NativeReport {
     /// Zero after an error means refused and untouched, so the domain is
     /// still never used; otherwise it is used and a retry is refused.
     pub committed: usize,
+    /// Versions of present objects not replayed because they follow a
+    /// revision gap and may predate a DELETE (owner decision, 19 November
+    /// 2026). Content-free records are excluded separately and not counted.
+    pub skipped: usize,
+}
+
+/// Number of `object`'s versions (current first, then history newest first)
+/// that L1 replays: the longest prefix whose consecutive revisions differ by
+/// exactly 1. A committed version's revision equals the entry revision after
+/// that commit, and DELETE, RENAME, META, RESTORE and TRANSACT each raise the
+/// entry revision without a version, so only a step of 1 proves nothing,
+/// in particular no DELETE, happened between two versions. The archive
+/// cannot tell a DELETE gap from a META or RENAME gap; both stop the prefix
+/// (conservative). Absent objects replay nothing.
+pub fn replayable(object: &ObjectV2) -> usize {
+    if !object.present {
+        return 0;
+    }
+    let versions = &object.versions[..object.version_count];
+    1 + versions
+        .windows(2)
+        .take_while(|pair| pair[1].revision.checked_add(1) == Some(pair[0].revision))
+        .count()
 }
 
 /// Is `domain` demonstrably never used (R3)? Every publish path raises at
@@ -994,7 +1018,9 @@ pub fn never_used<T: Transport>(client: &mut Client<T>, domain: usize) -> Result
 /// archive with `TOMBSTONES` set (`Invalid`, R2), a domain that was ever used
 /// (`Stale`, R3) and a replay that exceeds the domain quota (`Quota`; L1
 /// allocates fresh chunks for every WRITE). Content-free records and deleted
-/// collections are never replayed. The volume-wide free chunk count is not
+/// collections are never replayed, nor are versions after the first
+/// revision gap of an object ([`replayable`], counted in `skipped`); the
+/// capacity checks count replayed versions only. The volume-wide free chunk count is not
 /// observable through the protocol, so a replay needing more than
 /// [`GUARANTEED_FREE`] chunks is refused with `Full` before the first write.
 /// The first mutation is always a BEGIN: every WRITE comes first, then the
@@ -1033,8 +1059,7 @@ pub fn restore_native<S: Source, T: Transport>(
     // per object means every replayed version stays referenced.
     let needed: usize = plan.objects[..plan.object_count]
         .iter()
-        .filter(|object| object.present)
-        .flat_map(|object| object.versions[..object.version_count].iter())
+        .flat_map(|object| object.versions[..replayable(object)].iter())
         .map(|version| chunks_for(version.length))
         .sum();
     if needed > QUOTA {
@@ -1046,6 +1071,11 @@ pub fn restore_native<S: Source, T: Transport>(
     if needed > GUARANTEED_FREE {
         return Err((Status::Full, report));
     }
+    report.skipped = plan.objects[..plan.object_count]
+        .iter()
+        .filter(|object| object.present)
+        .map(|object| object.version_count - replayable(object))
+        .sum();
     let mut revisions = [0u64; PER_DOMAIN];
     for depth in (0..=HISTORY).rev() {
         let mut writes = report.writes;
@@ -1062,7 +1092,7 @@ pub fn restore_native<S: Source, T: Transport>(
             if !same {
                 return Err(Status::Corrupt);
             }
-            if !object.present || index != depth {
+            if index != depth || index >= replayable(planned) {
                 return Ok(());
             }
             let version = &object.versions[index];
