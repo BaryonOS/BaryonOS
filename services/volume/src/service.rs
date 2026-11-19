@@ -291,7 +291,12 @@ impl Service {
         }
         let mutating = !matches!(
             request.operation,
-            wire::STAT | wire::READ | wire::LIST | wire::COLLECTION_STAT
+            wire::STAT
+                | wire::READ
+                | wire::LIST
+                | wire::COLLECTION_STAT
+                | wire::DOMAIN_STAT
+                | wire::VERSION_STAT
         );
         let result = if mutating && self.read_only {
             Err((Status::Access, 0))
@@ -308,6 +313,8 @@ impl Service {
                 wire::TRANSACT => self.transact(domain, &request, body, disk),
                 wire::COLLECTION => self.collection(domain, &request, body, disk),
                 wire::SHUTDOWN => self.shutdown(&request, disk),
+                wire::DOMAIN_STAT => Ok(self.domain_stat(domain, &request)),
+                wire::VERSION_STAT => self.version_stat(&request),
                 _ => self.object_operation(domain, &request, body, disk),
             }
         };
@@ -733,6 +740,73 @@ impl Service {
         );
         body[48..52].copy_from_slice(&(collection.name_length as u32).to_le_bytes());
         body
+    }
+
+    /// The caller's own clock and generation only: never `table.generation`,
+    /// the global sum of all clocks, which would reveal other domains' commits.
+    fn domain_stat(&self, domain: usize, request: &Header) -> [u8; SIZE] {
+        let generation = self.table.domain_generation(domain);
+        reply(
+            request,
+            self.epoch,
+            generation,
+            self.table.clocks[domain],
+            0,
+            &[],
+        )
+    }
+
+    /// Selector 0: the stamps of any own slot (present or not). Selector
+    /// `s >= 1`: the name of history version `s` of a present object, only if
+    /// current, history[0], .., history[s - 1] have consecutive revisions. A
+    /// gap may hide a DELETE (S09-ARCHIVE-V2 section 3), so versions behind it,
+    /// and every version of an absent slot, stay unnamed (R2).
+    fn version_stat(&self, request: &Header) -> Outcome {
+        let entry = &self.table.entries[request.object as usize];
+        if entry.revision != request.revision {
+            return if entry.revision == 0 {
+                Err((Status::NotFound, 0))
+            } else {
+                Err((Status::Stale, 0))
+            };
+        }
+        let selector = request.name_length as usize;
+        if selector == 0 {
+            let mut data = [0; 16];
+            data[..8].copy_from_slice(&entry.created.to_le_bytes());
+            data[8..].copy_from_slice(&entry.modified.to_le_bytes());
+            let present = u32::from(entry.present);
+            return Ok(reply(
+                request,
+                self.epoch,
+                entry.revision,
+                0,
+                present,
+                &data,
+            ));
+        }
+        let mut newer = entry.current.revision;
+        let prefix = entry.history[..entry.history_count.min(selector)]
+            .iter()
+            .all(|version| {
+                let step = version.revision.checked_add(1) == Some(newer);
+                newer = version.revision;
+                step
+            });
+        if !entry.present || selector > entry.history_count || !prefix {
+            return Err((Status::NotFound, entry.revision));
+        }
+        let version = &entry.history[selector - 1];
+        let mut body = reply(
+            request,
+            self.epoch,
+            entry.revision,
+            version.revision,
+            0,
+            version.name(),
+        );
+        body[48..52].copy_from_slice(&(version.name_length as u32).to_le_bytes());
+        Ok(body)
     }
 
     /// Create, rename or delete (empty name) one collection of `domain`.

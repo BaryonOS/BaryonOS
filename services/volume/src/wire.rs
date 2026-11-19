@@ -7,7 +7,9 @@
 //! and an extended STAT. The generic header field at offset 48 is a
 //! per-operation parameter: the name length for BEGIN/RENAME/COLLECTION and
 //! the version selector for READ (0 = current, 1..=HISTORY = history slot).
-//! SHUTDOWN is additive within v6: older peers never send it.
+//! SHUTDOWN, DOMAIN_STAT and VERSION_STAT are additive within v6: older
+//! peers never send them and refuse them with NoSys. VERSION_STAT also uses
+//! the field at offset 48 as its version selector.
 use crate::{
     domain_of, get32, get64, put32, put64, valid_name, Status, COLLECTIONS, HISTORY, MAX_LENGTH,
     NAME, OBJECTS, PER_DOMAIN, TRANSACT_MAX,
@@ -42,6 +44,11 @@ pub const TRANSACT: u16 = 14;
 pub const COLLECTION_STAT: u16 = 15;
 /// Final flush, then the instance refuses every later mutation.
 pub const SHUTDOWN: u16 = 16;
+/// Read-only: the caller's own domain clock (`aux`) and generation (`revision`).
+pub const DOMAIN_STAT: u16 = 17;
+/// Read-only: stamps of any own slot (selector 0) or the name of a history
+/// version in the consecutive-revision prefix of a present object.
+pub const VERSION_STAT: u16 = 18;
 
 /// TRANSACT sub-operations.
 pub const SUB_META: u8 = 1;
@@ -57,7 +64,7 @@ pub struct Header {
     pub revision: u64,
     pub length: u32,
     pub status: i32,
-    /// Name length (BEGIN/RENAME/COLLECTION/STAT reply) or READ selector.
+    /// Name length (BEGIN/RENAME/COLLECTION/STAT reply) or READ/VERSION_STAT selector.
     pub name_length: u32,
     pub count: u32,
     pub aux: u64,
@@ -183,7 +190,7 @@ pub fn validate_request(body: &[u8; SIZE], epoch: u64, domain: usize) -> Result<
     if u16::from_le_bytes([body[0], body[1]]) != VERSION || body[4..8] != [0; 4] {
         return Err(Status::Invalid);
     }
-    if !(STAT..=SHUTDOWN).contains(&h.operation) {
+    if !(STAT..=VERSION_STAT).contains(&h.operation) {
         return Err(Status::NoSys);
     }
     if h.epoch != epoch || h.status != 0 || h.request_id == 0 {
@@ -263,6 +270,20 @@ pub fn validate_request(body: &[u8; SIZE], epoch: u64, domain: usize) -> Result<
                         (0..index).all(|other| body[64 + other * SUBOP] != sub.index)
                     })
                 })
+        }
+        DOMAIN_STAT => {
+            base && h.revision == 0
+                && length == 0
+                && h.name_length == 0
+                && h.count == 0
+                && h.aux == 0
+        }
+        VERSION_STAT => {
+            h.revision != 0
+                && length == 0
+                && h.count == 0
+                && h.aux == 0
+                && h.name_length as usize <= HISTORY
         }
         _ => false,
     };
