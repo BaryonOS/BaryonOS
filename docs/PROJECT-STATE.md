@@ -14,12 +14,15 @@ in ADR-W001473-PROVENANCE-20261119. Applied on main: W001473, which has no
 verifiable grant (#397), and the 27 other imported records (#399) are excluded;
 this checkpoint's PR #400 excludes the 5 third-party records with unknown terms.
 The corpus then holds 3,099 records with 33 exclusions in
-`.agents/skills/os-dev/references/exclusions.json`. Records awaiting an owner
-decision (5 licences with notice or share-alike obligations, 12 quotations) stay
-in the corpus as uncertain until decided. The pre-CC0 review and the screening for
-older copied text are recorded in PR #398
-(`docs/verification/osdev-corpus-rights-20261119/`); each of its 1,298 uncertain
-records (including the pre-CC0 pages) still needs a recorded disposition. Open
+`.agents/skills/os-dev/references/exclusions.json`. Five records may carry notice
+or share-alike obligations from a named upstream licence; the upstream evidence is
+recorded in `docs/verification/osdev-licence-obligations-20261119/` and their
+disposition is an owner decision. The 12 quotations are a separate owner decision.
+These records stay in the corpus as uncertain until decided. The pre-CC0 review and
+the screening for older copied text are recorded in PR #398
+(`docs/verification/osdev-corpus-rights-20261119/`): of its 1,298 uncertain records
+(including the pre-CC0 pages), the five third-party records excluded in #400 have a
+disposition and 1,293 still need one. Open
 detail: the redirect records W002146 and W001978 point to excluded pages and are
 left in place pending a decision. #283 stays open until every uncertain record has
 a disposition.
