@@ -154,6 +154,24 @@ comparison.
   same pinned RX page is handed back to the device; RX completions observed
   while the link is down or unknown are dropped the same way. No DMA page is
   freed or reused for another purpose.
+- A completion that is already in the RX used ring at a link edge, down or
+  up, is taken into the empty broker buffer at that edge and dropped with
+  it. The broker polls RX only after the link sample, so without this step:
+  - a generation-only sample (synthetic down, then up, applied back to back)
+    would let a frame that completed before the down edge be delivered in
+    the new epoch;
+  - a real up edge seen from a down epoch would do the same. QEMU accepts
+    RX while its own link is up, so `set_link` on, a peer frame, `set_link`
+    off and on again between two samples collapse into one real up edge.
+    The bit changed, so there is no synthetic pair, and the frame from the
+    hidden session is still in the used ring.
+
+  Every completion present at an up edge arrived while the kernel epoch was
+  down or unknown. The cost is at most one legitimate frame per up edge,
+  because there is a single RX buffer. A failed RX poll there stops the
+  broker. At a down edge the take, the drop and the repost happen before
+  the down window opens; at an up edge they happen after the window has
+  closed. Neither repost is counted as a down-window publication.
 - An in-flight TX is not terminalized at a down edge. QEMU drops queued TX
   data while the link is down and completes the descriptor with `used.len`
   0 (`virtio_net_drop_tx_queue_data`), which `validate_used` already accepts
@@ -162,17 +180,24 @@ comparison.
 - Exhaustion or any broker reset latches the monitor; the kernel runs the
   existing `stop()` (reset request, bus mastering off, pinned pages kept,
   reset acknowledgement awaited, no reinitialization). Later link changes
-  produce no event; 0x70/0x72/0x74 return Offline (-14).
+  produce no event. 0x74 returns Offline (-14) after any stop, quarantine or
+  monitor latch, whatever the cause of the stop. 0x70/0x72 keep the
+  broker's existing offline code: -14 after exhaustion or owner exit, and
+  the mapped stop cause otherwise (for example -12 after a device-status
+  error).
 - Without `VIRTIO_NET_F_STATUS` the link is assumed active (virtio 1.2
   §5.1.4.2, "Driver Requirements: Device configuration layout"), no sample
   is taken and 0x74 returns -15 (the broker's existing mapping of the driver's
-  `Unsupported`).
+  `Unsupported`). For 0x74, -15 has no other meaning: a stopped or
+  quarantined broker returns -14 even when its stop cause maps to -15.
 
 ### Test-only ABI
 
 `0x74(handle, 0, 0, 0, 0, 0)`: the same NetworkSource capability and object
 generation key as 0x70–0x72 (`authorize`); every reserved argument must be 0
-(-1). The result encodes only `epoch << 1 | up`; unknown state returns -8.
+(-1). The result encodes only `epoch << 1 | up`; unknown state returns -8,
+a device without `VIRTIO_NET_F_STATUS` -15, and a stopped, quarantined or
+latched broker -14.
 No registers, MAC, generation value or rights are returned. The syscall
 exists only with `test-system-net-link`; other kernels return NoSys. It is
 not part of a published ABI version (`abi_info` stays 1.5); a product link

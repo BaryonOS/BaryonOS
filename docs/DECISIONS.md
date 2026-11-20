@@ -32,8 +32,11 @@ accepts no criterion.
    - The check runs after the argument, capability and offline checks.
    - It runs before any descriptor publication, bounce-page (DMA) write,
      doorbell or copy-out.
-   - Precedence: argument errors, then capability errors, then -14, then
-     -23, then -8.
+   - Precedence: argument errors, then capability errors, then the
+     broker's existing offline code, then -23, then -8. The offline code is
+     -14 after budget exhaustion or owner exit and otherwise the mapped stop
+     cause (for example -12 after an I/O stop). That path is shared with
+     feature-off builds and is deliberately unchanged.
    - -23 was the first free value: -1 to -22 are in use, -22 for invalid
      clock arguments.
 3. **Kernel-owned link state.** The kernel owns a strictly increasing
@@ -44,9 +47,13 @@ accepts no criterion.
    - The budget is eight transitions per device lifetime. Exhausting it, or
      any device reset, latches through the existing `stop()` and reset
      acknowledgement. There is no reinitialisation.
-4. **Epoch isolation.** A received frame held across a down edge is dropped
-   and its pinned RX page is reposted. No frame from an earlier epoch is
-   delivered after reconnect.
+4. **Epoch isolation.** At every observed edge, down or up, real or
+   synthetic, the kernel first takes a completion that is already in the RX
+   used ring, then drops it and reposts its pinned page. No frame observed
+   before an edge is delivered after it. `0x74` returns -14 after any stop
+   or latch, so -15 means only that `VIRTIO_NET_F_STATUS` is absent. (Added
+   20 November 2026 after an AI security review; see
+   `docs/verification/h04-link-review-20261120/`.)
 5. **Without `VIRTIO_NET_F_STATUS`** the link is treated as active
    (virtio 1.2 §5.1.4.2).
 
@@ -63,6 +70,13 @@ accepts no criterion.
   - a stale RX frame crosses an epoch.
 - Evidence is QEMU 8.2.2/TCG only. There is no physical NIC, and QEMU has no
   802.11 or Bluetooth model.
+- Link state is sampled once per PIT tick. A frame that completes during
+  a hidden down window, which opens and closes between two samples, is
+  first seen in the current epoch. The u8 configuration generation narrows
+  but cannot remove this sampling limit. Exactly 256 changes between two
+  samples are undetectable. The edge harvests are covered by host model
+  tests and source inspection; no native case drives two or three
+  `set_link` changes within one tick.
 
 ## ADR-H03-SND-FIXTURE-20261119 — Kernel-only virtio-snd PCM output fixture for the fixed QEMU 8.2 profile
 
