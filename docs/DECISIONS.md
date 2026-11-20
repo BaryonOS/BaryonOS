@@ -5,6 +5,231 @@ This document distinguishes the decisions and authority of the project owner
 from those of the executing roles. Source quotations retain their original
 wording and speaker.
 
+## ADR-H04-LINK-20261119 — Test-profile NIC link query 0x74 and link-down refusal -23
+
+**Status:** technical decision of the executing hardware-track lead on
+19 November 2026, inside the H04 implementation mandate. It is not a
+project-owner approval and not a product network API. It exists only behind
+the kernel features `test-system-net-link` and `test-system-net-link-storm`.
+`abi_info` stays 1.5, and applications must not rely on either number. It
+accepts no criterion.
+
+**Decision.**
+
+1. **Syscall `0x74(handle, 0, 0, 0, 0, 0)`.** A read-only link query for the
+   owner of the NetworkSource capability.
+   - Authorisation uses the same `authorize` path as `0x70`–`0x72`:
+     capability type plus object generation key.
+   - Any nonzero argument 1–5 returns -1.
+   - On success it returns only `epoch << 1 | up`.
+   - It returns -8 before the first kernel sample, -15 when the device did
+     not negotiate `VIRTIO_NET_F_STATUS`, and the broker's offline code -14
+     after any stop or latch.
+   - `0x74` is the next number after `0x73` (RTC read). It was unused in
+     `kernel/src` and `sdk/runtime` at the merge.
+2. **Error -23 `LINK_DOWN`.** `0x70` and `0x72` return -23 while the link is
+   down or not yet observed.
+   - The check runs after the argument, capability and offline checks.
+   - It runs before any descriptor publication, bounce-page (DMA) write,
+     doorbell or copy-out.
+   - Precedence: argument errors, then capability errors, then the
+     broker's existing offline code, then -23, then -8. The offline code is
+     -14 after budget exhaustion or owner exit and otherwise the mapped stop
+     cause (for example -12 after an I/O stop). That path is shared with
+     feature-off builds and is deliberately unchanged.
+   - -23 was the first free value: -1 to -22 are in use, -22 for invalid
+     clock arguments.
+3. **Kernel-owned link state.** The kernel owns a strictly increasing
+   observation serial and link epoch.
+   - It takes one coherent sample per PIT tick, with at most 16 reads.
+   - The device's u8 configuration generation is only a change hint. It
+     yields at most one conservative synthetic down/up pair (epoch + 2).
+   - The budget is eight transitions per device lifetime. Exhausting it, or
+     any device reset, latches through the existing `stop()` and reset
+     acknowledgement. There is no reinitialisation.
+4. **Epoch isolation.** At every observed edge, down or up, real or
+   synthetic, the kernel first takes a completion that is already in the RX
+   used ring, then drops it and reposts its pinned page. No frame observed
+   before an edge is delivered after it. `0x74` returns -14 after any stop
+   or latch, so -15 means only that `VIRTIO_NET_F_STATUS` is absent. (Added
+   20 November 2026 after an AI security review; see
+   `docs/verification/h04-link-review-20261120/`.)
+5. **Without `VIRTIO_NET_F_STATUS`** the link is treated as active
+   (virtio 1.2 §5.1.4.2).
+
+**Consequences.**
+
+- A product link API, its capability shape, Wi-Fi and Bluetooth need a
+  separate decision.
+- The QEMU harness drives link state only through `set_link` on a private
+  QMP socket.
+- Revisit this decision if any of these occur:
+  - a feature-off build changes `.text` or `.data`;
+  - any broker or device counter changes during a down window;
+  - an event appears after a latch;
+  - a stale RX frame crosses an epoch.
+- Evidence is QEMU 8.2.2/TCG only. There is no physical NIC, and QEMU has no
+  802.11 or Bluetooth model.
+- Link state is sampled once per PIT tick. A frame that completes during
+  a hidden down window, which opens and closes between two samples, is
+  first seen in the current epoch. The u8 configuration generation narrows
+  but cannot remove this sampling limit. Exactly 256 changes between two
+  samples are undetectable. The edge harvests are covered by host model
+  tests and source inspection; no native case drives two or three
+  `set_link` changes within one tick.
+
+## ADR-H03-SND-FIXTURE-20261119 — Kernel-only virtio-snd PCM output fixture for the fixed QEMU 8.2 profile
+
+**Status:** technical decision of the executing hardware-track lead on
+19 November 2026, inside the H03 implementation mandate. It is not a
+project-owner approval. It grants no capability, syscall, IPC route or app
+path, and it accepts no criterion. Owner decisions B1 (AUDIO right), B2
+(syscall number) and B4 (reserved VM-FR device address) stay open.
+
+**Decision.** `native-virtio-snd-probe` is an IF0, single-CPU, polling M2
+bootstrap profile. It drives QEMU 8.2 `virtio-sound-pci` at the fixture
+address 00:08.0 as a kernel-only transport. The profile is exclusive with
+M3, framebuffer, SMP, RTC, ACPI S3/S5 and xHCI (`kernel/src/main.rs`).
+
+- **DMA:** only six pinned, identity-mapped RW/NX kernel pages, kept for the
+  whole boot, including after a fence or quarantine. PCM pages are
+  device-read-only by protocol. The device may write only used rings, the
+  control response, event buffers and TX status words.
+- **No DMA isolation:** there is no IOMMU and no DMA-isolation claim in this
+  profile.
+- **MMIO:** only the validated common, notify and device capability pages,
+  mapped UC/NX in the audited `0x3f200000` window. The window's cfg gates
+  move to the internal umbrella feature `if0-device-window`, shared with the
+  xHCI fixture.
+- **Refusals:** `ACCESS_PLATFORM` is refused. The capture queue is never
+  enabled. A second RELEASE is refused by the stream state machine.
+- **Timing and oracle:** the runner uses `-icount shift=0,sleep=off`, so the
+  guest TSC, PIT and QEMU's audio/WAV timer share one virtual clock. The
+  oracle is the frozen `drivers/virtio-snd/TRANSPORT.md` §7: exact frames,
+  with at most 4800 silent frames before and after.
+
+**Recorded QEMU 8.2.2 deviations.**
+
+1. *PCM_INFO used length.* QEMU 8.2.2 writes the PCM_INFO records but pushes
+   `sizeof(virtio_snd_hdr)` (4) as the used length for every control
+   response. The lead checked this in QEMU tag `v8.2.2`,
+   `hw/audio/virtio-snd.c`
+   (<https://gitlab.com/qemu-project/qemu/-/blob/v8.2.2/hw/audio/virtio-snd.c>,
+   SHA-256 `99a13ef25d0729dd46e9947dea12986598b5b9242422a052fb05214f22e7794d`,
+   identical in the release tarball): `virtio_snd_handle_pcm_info` copies
+   the records after the header (lines 247-251), and `process_cmd` pushes
+   used length `sizeof(virtio_snd_hdr)` (line 752).
+   - For PCM_INFO only, the driver accepts 4 as well as the exact
+     `4 + 32n`. Every other message keeps exact lengths.
+   - The response buffer is zeroed before publication and parsed strictly,
+     so a genuinely header-only answer fails (`channels_min` 0).
+   - The used length is a hint inside a device-writable page that the kernel
+     already treats as untrusted. Accepting it does not widen what the
+     device can write.
+2. *Drain before STOP.* QEMU disables the voice on STOP and drops buffered
+   samples. The driver drains while RUNNING with nothing outstanding, then
+   sends STOP, then requires a quiet window.
+3. *Quiescent fence for re-initialisation.* `virtio_snd_reset` keeps TX
+   elements it has already popped and replays them after re-initialisation.
+   The accepted `fence-reinit` case therefore fences with no TX outstanding.
+   An in-flight fence must quarantine (the `quarantine` case) and cannot be
+   recovered on this QEMU.
+
+**Consequences.** The evidence is QEMU/TCG emulator WAV output only. It is
+not H03 acceptance, audible output, latency, physical playback or an app
+audio path. The runner refuses QEMU versions outside 8.2. The ring-3 audio
+service, its capability and its syscall wait for B1, B2 and B4.
+
+## ADR-H05-S3-WAKE-20261119 — Own-kernel ACPI S3 wake contract for the fixed QEMU/OVMF profile
+
+**Status:** technical decision of the executing hardware-track lead on
+19 November 2026, inside the H05 implementation mandate. It is not a
+project-owner approval, grants no new capability to any process and accepts
+no criterion. H05 stays open.
+
+**Context.** The H05 S3 slice (`native-acpi-s3`) puts the independent kernel
+to sleep through ACPI S3 and resumes it. Three facts were measured in this
+session on QEMU 8.2.2 `pc-q35-8.2` with Ubuntu `OVMF_CODE_4M.fd` under TCG:
+- QEMU builds an ACPI 1.0b FACS: version byte 0, length 64, every other byte
+  zero. The parser merged in #371 accepted only versions 2 and 3, so
+  `origin/main` rejects the real tables with `UnsupportedFacsFields`.
+- With only the ACPI 1.0b real-mode waking vector armed, edk2's own
+  `AsmTransferControl` far-returns into a 16-bit code segment and QEMU TCG
+  then truncates EIP to 16 bits. The firmware executes OS memory (at
+  `.0 & 0xffff`) and stops with `#BP` before reaching any OS code. This is a
+  firmware/emulator interaction, observed with the transfer stub located at
+  `0xf743ad5` and the fault at `0x93e1`.
+- edk2's `S3ResumeBootOs` reads `X_Firmware_Waking_Vector` (offset 24) for
+  every FACS version and, when it is nonzero without 64-bit wake, enters it
+  in 32-bit protected mode with paging disabled (`AsmDisablePaging64`).
+  OVMF also leaves `SCI_EN` clear after the wake.
+
+**Decision.**
+1. `parse_s3` accepts FACS versions 0 and 1 with exact per-version reserved
+   fields (version 0: offsets 24..64 zero; version 1: offsets 33..64 zero and
+   a 32-bit extended vector), alongside the existing versions 2 and 3.
+2. A `WakePlan` describes every FACS store: the 16-bit real-mode vector
+   always, offset 24 when the FACS version defines it, and OSPM flags with
+   64BIT_WAKE_F cleared for versions 2 and later. No firmware long-mode entry
+   is ever requested.
+3. `ExtendedVectorPolicy::Edk2Version0Extended`, used only by the fixed
+   QEMU/OVMF kernel profile, additionally stores the kernel's 32-bit entry
+   into offset 24 of a version-0 FACS. Discovery has proven those bytes zero,
+   and the disarm plan restores zero right after every wake. The default
+   policy `Specification` refuses a 32-bit entry for a version-0 FACS.
+4. Both entries converge on one 32-bit stage and one 64-bit token check: only
+   the armed generation resumes the saved context; any other wake is reported
+   and stops the VM.
+5. After a wake the kernel restores `SCI_EN` when it was set before sleep,
+   matching Linux's documented "bug compatibility" behaviour, and reports
+   whether it had to.
+
+**Alternatives considered.**
+- Real-mode vector only (strict ACPI 1.0b). It cannot resume under QEMU TCG,
+  the project's CI and cloud environment, because of the firmware transfer
+  stub. The real-mode stage stays armed for firmware that ignores offset 24.
+- Rewrite the FACS version byte. That changes firmware-owned structure
+  semantics; rejected.
+- Use KVM, where the stub runs. KVM is unavailable in the cloud environment
+  and the hosted runners; the TCG behaviour would remain untested.
+
+**Rationale.** Offset 24 is the same field ACPICA already writes (to zero)
+in a version-0 FACS longer than 32 bytes. Confining the nonzero store to an
+explicit, named policy, a zero-validated field and an immediate restore keeps
+the deviation bounded and visible in the serial plan line.
+
+**Primary sources (read 19 November 2026).**
+- ACPICA, Intel Corporation, tag `R2025_04_04`,
+  `source/components/hardware/hwxfsleep.c`, `AcpiHwSetFirmwareWakingVector`:
+  sets `FirmwareWakingVector`; when `Length > 32` it sets
+  `XFirmwareWakingVector` for `Version >= 1` and clears it otherwise.
+  <https://github.com/acpica/acpica/blob/R2025_04_04/source/components/hardware/hwxfsleep.c>
+- TianoCore EDK II, tag `edk2-stable202402`,
+  `UefiCpuPkg/Universal/Acpi/S3Resume2Pei/S3Resume.c`, `S3ResumeBootOs`:
+  takes the extended path whenever `Facs->XFirmwareWakingVector != 0`
+  (without 64-bit wake: `AsmDisablePaging64` into 32-bit protected mode),
+  otherwise `AsmTransferControl` to the 16-bit vector; and
+  `MdeModulePkg/Universal/Acpi/BootScriptExecutorDxe/X64/S3Asm.nasm`,
+  `AsmTransferControl` (far return into a 16-bit code segment).
+  <https://github.com/tianocore/edk2/blob/edk2-stable202402/UefiCpuPkg/Universal/Acpi/S3Resume2Pei/S3Resume.c>
+- Linux, tag `v6.12`, `drivers/acpi/sleep.c`, `acpi_suspend_enter`: after the
+  low-level resume, "This violates the spec but is required for bug
+  compatibility." followed by setting `ACPI_BITREG_SCI_ENABLE`.
+  <https://github.com/torvalds/linux/blob/v6.12/drivers/acpi/sleep.c>
+- QEMU 8.2.2 behaviour (version-0 FACS, `SCI_EN` after wake, TCG transfer
+  fault) is measured in this session, not taken from a source reading; see
+  the evidence README.
+
+**Consequences.** The S3 evidence is QEMU/OVMF/TCG evidence only. The
+real-mode entry path is armed but not natively exercised; it reuses the
+pattern of the natively verified SMP SIPI trampoline. Physical firmware may
+use a version-1+ FACS, where the 32-bit extended vector is the specified
+path. AML `_PTS`/`_WAK`, device and service lifecycle across sleep, other
+wake sources, SMP and physical hardware remain open under H05.
+
+**Rollback.** Revert the implementing commit; S5 profiles and their parser
+paths are unchanged (regression-tested in the same session).
+
 ## ADR-S09-DUALDISK-20261119 — Test-only second virtio-blk device for the S09 archive fixture
 
 **Status:** approved by the project owner on 19 November 2026 (verbatim: "Yes,

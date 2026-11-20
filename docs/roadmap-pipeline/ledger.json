@@ -1881,21 +1881,55 @@
       "id": "H02-T3",
       "criterion": "H02",
       "milestone": "M9",
-      "executor": "worker",
-      "status": "blocked",
-      "title": "Native USB hotplug fixture (QMP device_del/add, unplug mid-transfer)",
-      "goal": "Native USB hotplug fixture (QMP device_del/add, unplug mid-transfer)",
+      "executor": "lead",
+      "status": "verified",
+      "title": "Native same-port USB keyboard reattach with stale-generation rejection (QEMU)",
+      "goal": "Wire the hotplug Ports generations into the native xHCI/USB-HID fixture; retire generation 1 (Disable Slot, DCBAA clear, canary), re-enumerate the same port as generation 2 with continued rings and a fresh Session, reject the replayed old event, token and ticket, unplug again and deny a budget-exceeding attach.",
       "deps": [],
-      "write_paths": [],
-      "checks": [],
-      "blocker": "PR333 is merged. Existing native QMP unplug mid-transfer is already terminal and safe; guest then shuts down controller/denies DMA and exits. Re-add requires a new native generation/ring/context coordinator plus pending PR372 core and explicit DMA/event-reuse contract; adding device_add alone is not implementation.",
+      "write_paths": [
+        "drivers/usb/src/hotplug.rs",
+        "drivers/usb/tests/hotplug.rs",
+        "kernel/src/m2/xhci/usb.rs",
+        "kernel/Cargo.toml",
+        "kernel/src/main.rs",
+        "tools/build.py",
+        "tools/run.py",
+        "tools/run_usb_hid.py",
+        "tools/tests/test_usb_hid_probe.py",
+        "docs/implementation/NATIVE-USB-HID.md",
+        "docs/verification/h02-native-reattach-20261119/"
+      ],
+      "checks": [
+        "cargo +1.100.0 test --locked --manifest-path drivers/usb/Cargo.toml",
+        "python3 -B -m unittest discover -s tools/tests -p 'test_usb_hid*.py' -v",
+        "python3 -B tools/build.py --kernel-feature native-usb-hid-reattach && python3 -B tools/run_usb_hid.py --case reattach",
+        "python3 -B tools/build.py --kernel-feature native-usb-hid-probe && python3 -B tools/run_usb_hid.py --case reports",
+        "python3 -B tools/build.py --kernel-feature test-usb-hid-readonly-fault && python3 -B tools/run_usb_hid.py --case readonly"
+      ],
       "history": [
         {
           "event": "blocked",
           "at": "2026-11-18",
           "reason": "PR333 is merged. Existing native QMP unplug mid-transfer is already terminal and safe; guest then shuts down controller/denies DMA and exits. Re-add requires a new native generation/ring/context coordinator plus pending PR372 core and explicit DMA/event-reuse contract; adding device_add alone is not implementation."
+        },
+        {
+          "event": "verified",
+          "at": "2026-11-19",
+          "reason": "Builder commit 8d0c570 integrated by the H-track lead as merge af9b0bc; reports/readonly/reattach rerun from the main checkout on source v3 1ae4ed7f (raw 33 each, reattach twice). Focused security review requested. No physical evidence."
+        },
+        {
+          "event": "review",
+          "at": "2026-11-19",
+          "reason": "AI security review: no blocking finding. O1 (native stale-ticket check was phase-based) fixed in b01fc2a with a generation-specific check while Enumerating and a mutation control; O2-O5 informational."
         }
-      ]
+      ],
+      "lead_paths": [
+        ".github/workflows/native-xhci.yml"
+      ],
+      "evidence_level": "native QEMU/TCG",
+      "non_claimable": "Physical hotplug/reset, IRQs, hubs, mouse reattach, malformed devices, long-lived input-policy handoff and H02 acceptance stay open.",
+      "source_commit": "8d0c5701418e445060159a0e877a9bebc0f73030",
+      "next": "H02-T4: MSI/MSI-X with VT-d interrupt remapping (needs its own security design/ADR) or the long-lived input-policy handoff."
     },
     {
       "id": "H03-T3",
@@ -1908,21 +1942,104 @@
       "deps": [],
       "write_paths": [],
       "checks": [],
-      "blocker": "Owner/release decisions B1, B2, B4 open; kernel wiring and tools/build.py owned by PR #333.",
-      "history": []
+      "blocker": "Owner/release decisions B1 (AUDIO right), B2 (syscall number) and B4 (reserved VM-FR device address) stay open for the full VM-SND-1 gate. PR #333 is merged, so it no longer owns the kernel wiring. The kernel-only transport slice H03-T3a is verified separately.",
+      "history": [
+        {
+          "event": "split",
+          "at": "2026-11-19",
+          "reason": "Kernel-only transport slice H03-T3a carved out (no capability, syscall or app path). The full ring-3 VM-SND-1 gate remains blocked on B1, B2 and B4."
+        }
+      ]
+    },
+    {
+      "id": "H03-T3a",
+      "criterion": "H03",
+      "milestone": "M9",
+      "executor": "lead",
+      "status": "verified",
+      "title": "Kernel-only virtio-snd PCM output fixture with exact WAV oracle (QEMU 8.2)",
+      "goal": "Drive QEMU 8.2 virtio-sound-pci from an IF0 M2 kernel profile: pinned six-page DMA pool, validated capability MMIO, PCM output of a fixed S16/48 kHz pattern, fence and re-initialisation, quarantine with TX in flight, ACCESS_PLATFORM refusal and device absence, judged by the frozen TRANSPORT.md section 7 WAV oracle.",
+      "deps": [],
+      "write_paths": [
+        "drivers/virtio-snd/src/queue.rs",
+        "drivers/virtio-snd/src/queue_tests.rs",
+        "drivers/virtio-snd/src/lib.rs",
+        "drivers/virtio-snd/README.md",
+        "drivers/virtio-snd/TRANSPORT.md",
+        "drivers/virtio-snd/verification/README.md",
+        "kernel/src/m2/snd.rs",
+        "kernel/src/m2.rs",
+        "kernel/src/m2/paging.rs",
+        "kernel/src/main.rs",
+        "kernel/Cargo.toml",
+        "Cargo.toml",
+        "Cargo.lock",
+        "tools/build.py",
+        "tools/run_virtio_snd.py",
+        "tools/tests/test_virtio_snd.py",
+        "docs/verification/h03-virtio-snd-20261119/"
+      ],
+      "lead_paths": [
+        ".github/workflows/native-xhci.yml",
+        "docs/DECISIONS.md"
+      ],
+      "checks": [
+        "cargo +1.100.0 test --locked --manifest-path drivers/virtio-snd/Cargo.toml",
+        "cargo +1.100.0 clippy --locked --manifest-path drivers/virtio-snd/Cargo.toml --all-targets -- -D warnings",
+        "python3 -B -m unittest discover -s tools/tests -p 'test_virtio_snd.py' -v",
+        "python3 -B tools/build.py --kernel-feature native-virtio-snd-probe && python3 -B tools/run_virtio_snd.py --case normal && python3 -B tools/run_virtio_snd.py --case no-device && python3 -B tools/run_virtio_snd.py --case access-platform",
+        "python3 -B tools/build.py --kernel-feature test-snd-fence-reinit && python3 -B tools/run_virtio_snd.py --case fence-reinit",
+        "python3 -B tools/build.py --kernel-feature test-snd-quarantine && python3 -B tools/run_virtio_snd.py --case quarantine"
+      ],
+      "history": [
+        {
+          "event": "verified",
+          "at": "2026-11-19",
+          "reason": "Builder commit b033335 merged by the H-track lead as 167c2bc. All five cases and the xHCI/USB/S3/smoke/M2 regressions were rerun on that commit (source v3 aadc6b7b), raw 33 per guest; the WAV hashes match the builder runs. PCM_INFO used-length deviation checked against the QEMU 8.2.2 source (ADR-H03-SND-FIXTURE-20261119). Focused security review requested."
+        }
+      ],
+      "evidence_level": "native QEMU/TCG (-icount)",
+      "non_claimable": "No ring-3 audio service, capability, syscall or app path; no IOMMU or DMA isolation; QEMU 8.2 only; no audible, latency or physical playback; H03 acceptance stays open.",
+      "source_commit": "b033335f67d5b8eb424c014fb1a763ec8837aebb",
+      "next": "H03-T3b: ring-3 audio broker and AUDIO capability once B1, B2 and B4 are decided by the project owner."
     },
     {
       "id": "H04-T3",
       "criterion": "H04",
       "milestone": "M9",
-      "executor": "worker",
-      "status": "blocked",
-      "title": "Native link-loss/reconnect run",
-      "goal": "Native link-loss/reconnect run",
+      "executor": "lead",
+      "status": "verified",
+      "title": "Native virtio-net link loss and reconnect with fail-closed broker (QEMU, test profile)",
+      "goal": "Observe virtio-net link state from the kernel with a kernel-owned epoch, refuse TX/RX with -23 while down before any descriptor publication or DMA, drop RX held across an epoch, expose a capability-checked test-profile link query 0x74, and latch the broker after a bounded transition budget; driven by QMP set_link.",
       "deps": [],
-      "write_paths": [],
-      "checks": [],
-      "blocker": "PR333 is merged. Current driver exposes link_up, but no native service link-event/reconnect seam exists; PR369 owns tracker integration. A limited independent linkstatus/QMP probe would require shared harness paths currently held by draftPR380. No full reconnect claim.",
+      "write_paths": [
+        "drivers/virtio-net/src/lib.rs",
+        "drivers/virtio-net/src/tests.rs",
+        "kernel/src/m2/m3/network.rs",
+        "kernel/src/m2/m3.rs",
+        "kernel/src/m2/m3/system.rs",
+        "kernel/Cargo.toml",
+        "sdk/runtime/src/native.rs",
+        "sdk/examples/net-probe/",
+        "tools/build.py",
+        "tools/run_system.py",
+        "tools/run_volume.py",
+        "tools/net_test_peer.py",
+        "tools/run_net_link.py",
+        "tools/tests/test_net_link.py",
+        "docs/implementation/VIRTIO-NET.md",
+        "docs/implementation/NATIVE-NET-PROBE.md",
+        "docs/verification/h04-native-link-20261119/",
+        "docs/verification/h04-link-review-20261120/"
+      ],
+      "checks": [
+        "cargo +1.100.0 test --locked -p virtio-net-driver",
+        "cargo +1.100.0 clippy --locked -p virtio-net-driver --all-targets -- -D warnings",
+        "python3 -B -m unittest tools.tests.test_net_link",
+        "python3 -B tools/build.py --kernel-feature test-system-net-link && python3 -B tools/run_net_link.py --case normal && python3 -B tools/run_net_link.py --case nostatus",
+        "python3 -B tools/build.py --kernel-feature test-system-net-link-storm && python3 -B tools/run_net_link.py --case storm",
+        "python3 -B tools/build.py --kernel-feature native-system-net && python3 -B tools/run_net_system.py --case normal"
+      ],
       "history": [
         {
           "event": "blocked",
@@ -1933,27 +2050,89 @@
           "event": "blocked",
           "at": "2026-11-18",
           "reason": "PR333 is merged. Current driver exposes link_up, but no native service link-event/reconnect seam exists; PR369 owns tracker integration. A limited independent linkstatus/QMP probe would require shared harness paths currently held by draftPR380. No full reconnect claim."
+        },
+        {
+          "event": "verified",
+          "at": "2026-11-20",
+          "reason": "Builder commit 0bea209 merged by the H-track lead as 5bef53f (no conflicts; PR369 merged, no file overlap with open PR380). Rerun on that commit from a detached worktree outside the checkout: link normal/nostatus/storm, native-system-net, network-service normal/device-reset and the three-case POWER/cold-recovery gate all exit 0. ADR-H04-LINK-20261119 records 0x74 and -23."
+        },
+        {
+          "event": "review",
+          "at": "2026-11-20",
+          "reason": "AI security review confirmed F1 (old-epoch RX after a synthetic down/up pair) and F2 (0x74 forwarded the stop cause); fixed in f0d36a0 and, after a second review found the up-edge variant, 31b6c31 (harvest pending RX at every edge). Link normal/nostatus/storm and native-system-net pass on source v3 55a612aa; feature-off kernel byte-identical at the same build path. ADR-H04-LINK-20261119 amended (precedence wording, epoch isolation, sampling limit)."
         }
-      ]
+      ],
+      "lead_paths": [
+        ".github/workflows/native-system.yml",
+        "docs/DECISIONS.md"
+      ],
+      "evidence_level": "native QEMU/TCG",
+      "non_claimable": "Test-profile syscall only (no product link API); no physical NIC, Wi-Fi or Bluetooth (QEMU has no 802.11/Bluetooth model); in-flight TX at a down edge not exercised natively; H04 acceptance stays open.",
+      "source_commit": "0bea209abfcc377083b24aedbe611ead0b61531c",
+      "next": "H04-T4: product link API and capability decision, or an in-flight-TX down-edge fixture; physical NIC needs owner decisions OD-HW-*."
     },
     {
       "id": "H05-T3",
       "criterion": "H05",
       "milestone": "M9",
-      "executor": "worker",
-      "status": "blocked",
-      "title": "Native S3 in QEMU",
-      "goal": "Native S3 in QEMU",
+      "executor": "lead",
+      "status": "verified",
+      "title": "Native ACPI S3 suspend/resume in QEMU (IF0 M2 profile)",
+      "goal": "Own-kernel S3 entry and resume through an own wake path in the fixed QEMU 8.2 q35/OVMF/TCG profile, with FACS arm/disarm, WAK_STS, canary, audit and negative fixtures.",
       "deps": [],
-      "write_paths": [],
-      "checks": [],
-      "blocker": "Historical PR333 hold released. New S3/FACS parser implementation is pending integration-owned PR371; OVMF S3 remains unverified. Do not duplicate parser or claim actual suspend.",
+      "write_paths": [
+        "drivers/acpi-power/",
+        "kernel/Cargo.toml",
+        "kernel/src/main.rs",
+        "kernel/src/m2.rs",
+        "kernel/src/m2/{acpi,arch,paging,power,sleep}.rs",
+        "tools/build.py",
+        "tools/run.py",
+        "tools/run_sleep.py",
+        "tools/tests/test_sleep.py",
+        "docs/verification/h05-native-s3-20261119/"
+      ],
+      "checks": [
+        "cargo +1.100.0 test --locked --manifest-path drivers/acpi-power/Cargo.toml",
+        "cargo +1.100.0 clippy --locked --manifest-path drivers/acpi-power/Cargo.toml --all-targets -- -D warnings",
+        "cargo +1.100.0 fmt --all -- --check",
+        "python3 -B -m unittest discover -s tools/tests -p test_sleep.py -v",
+        "python3 -B tools/build.py --kernel-feature native-acpi-s3 && python3 -B tools/run_sleep.py --case cycles",
+        "python3 -B tools/build.py --kernel-feature test-acpi-s3-corrupt-facs && python3 -B tools/run_sleep.py --case corrupt-facs",
+        "python3 -B tools/build.py --kernel-feature test-acpi-s3-stale-token && python3 -B tools/run_sleep.py --case stale-token"
+      ],
       "history": [
         {
           "event": "blocked",
           "at": "2026-11-18",
           "reason": "Historical PR333 hold released. New S3/FACS parser implementation is pending integration-owned PR371; OVMF S3 remains unverified. Do not duplicate parser or claim actual suspend."
+        },
+        {
+          "event": "verified",
+          "at": "2026-11-19",
+          "reason": "Claimed by the Claude H-track lead under the project owner's H-track instruction of 19 Nov 2026 (PR371 merged). Three native S3 cycles, corrupt-FACS and stale-token cases pass on 9c707c8 (source v3 e76b8fbf); S5/M2/M3/standard regressions pass. Evidence: docs/verification/h05-native-s3-20261119/. No acceptance."
+        },
+        {
+          "event": "verified",
+          "at": "2026-11-19",
+          "reason": "Re-verified on c54b9e25b43e (source v3 ce3e3145) after the hosted host-quality fixes (shared arch::load_tables for GS discipline; protected workflow moved to lead_paths) and review hardening; all three S3 cases pass."
+        },
+        {
+          "event": "verified",
+          "at": "2026-11-19",
+          "reason": "CodeRabbit review fixes on 887c446d8b53 (source v3 7710f46d): QMP event drain, pc-q35-8.2 pin, NO_TRANSITION fail-closed, ADR sources; S3 cases rerun and pass."
         }
+      ],
+      "evidence_level": "native QEMU/TCG",
+      "non_claimable": "Physical firmware/hardware, other wake sources, AML _PTS/_WAK, devices/services/SMP across sleep, thermal/battery and H05 acceptance stay open.",
+      "source_commit": "887c446d8b530b17ba34a1e9798b6e3d012aedcc",
+      "next": "H05-T4: S3 from the native-system profile via the POWER capability behind the storage gate, with PIC/PIT re-init and resumed processes; reuse the QMP hook from H04-T3.",
+      "lead_paths": [
+        ".github/workflows/native-power.yml",
+        "docs/DECISIONS.md",
+        "docs/PROJECT-STATE.md",
+        "docs/progress.json",
+        "docs/roadmap-pipeline/ledger.json"
       ]
     },
     {
@@ -1968,7 +2147,57 @@
       "write_paths": [],
       "checks": [],
       "blocker": "Project owner decision and physical hardware.",
-      "history": []
+      "history": [
+        {
+          "event": "blocked",
+          "at": "2026-11-19",
+          "reason": "Still an owner decision: nine open decisions are now recorded machine-readably in docs/drivers/hardware-matrix.json (OD-HW-TARGETS, -BOOT, -DISKS, -CAPTURE, -SIGNERS, -FAMILIES, -PUBLISH, -INV-ROUTE, -POWER)."
+        }
+      ]
+    },
+    {
+      "id": "H06-T4",
+      "criterion": "H06",
+      "milestone": "M9",
+      "executor": "lead",
+      "status": "verified",
+      "title": "Physical test protocols and signed hardware-evidence validation (host)",
+      "goal": "Machine-checked physical test protocols per H criterion (safety constraints, steps, markers, evidence fields, explicit blockers), an OpenSSH-signed evidence validator bound to protocol, target, image, source and inventory hashes, and hardware-matrix schema 2 with explicit evidence levels; no physical support claim.",
+      "deps": [],
+      "write_paths": [
+        "docs/drivers/physical-protocols.json",
+        "docs/drivers/hardware-matrix.json",
+        "docs/drivers/hw-allowed-signers",
+        "docs/drivers/HARDWARE-TARGETS.md",
+        "docs/drivers/DRIVER-ARCHITECTURE.md",
+        "tools/hw_matrix.py",
+        "tools/hw_evidence.py",
+        "tools/tests/test_hw_matrix.py",
+        "tools/tests/test_hw_evidence.py"
+      ],
+      "checks": [
+        "python3 -B -m unittest discover -s tools/tests -p 'test_hw_*.py' -v",
+        "python3 -B tools/hw_matrix.py --check",
+        "python3 -B tools/hw_evidence.py --check",
+        "python3 -m compileall -q tools"
+      ],
+      "acceptance": [
+        "negative: unsigned, unknown signer, wrong namespace, modified record, hash/target/protocol mismatch, virtual capture, relabelled failure, missing ssh-keygen all rejected",
+        "no row supported; HW-FR target null; owner decisions recorded"
+      ],
+      "non_claimable": "Physical execution, owner signing key, reference-PC selection and H06 acceptance stay open.",
+      "risk": "medium",
+      "size": "M",
+      "evidence_level": "host",
+      "source_commit": "47abad3de92deddbabe6a7b28c2462c524677947",
+      "next": "H06-T3 native HW-INV inventory image (removable media, read-only PCI inventory, no port-0xF4 exit); owner decisions OD-HW-*.",
+      "history": [
+        {
+          "event": "verified",
+          "at": "2026-11-19",
+          "reason": "Builder worktree commit 47abad3 integrated by the H-track lead as merge 839fb2c with fix 9f66bf1 (H05-S3 protocol aligned with the QEMU-native S3 path). 25 host tests pass with real ssh-keygen 9.6p1 signatures; hw_matrix --check and hw_evidence --check exit 0. No physical evidence."
+        }
+      ]
     },
     {
       "id": "L01-T3",

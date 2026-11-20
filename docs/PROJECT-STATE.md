@@ -1,5 +1,58 @@
 # Current project status
 
+## NEXT AGENT HANDOFF — H-track lead: native ACPI S3 (H05-T3) — 19 November 2026
+
+**Mandate:** project-owner instruction of 19 November 2026 assigns the whole H track
+(H01–H06) to a Claude hardware-track lead on branch `ccr-38238c58-g8y1l6` (one draft PR).
+**Source:** `887c446d8b530b17ba34a1e9798b6e3d012aedcc` on base main `035b44e` (first slice `9c707c8`, then CI and review fixes).
+**Delivered (H05-T3, verified, not accepted):** the independent kernel suspends to RAM
+and resumes three times per boot through its own wake path (`native-acpi-s3`), with
+negative profiles `test-acpi-s3-corrupt-facs` and `test-acpi-s3-stale-token`.
+`parse_s3` now accepts the ACPI 1.0b FACS that QEMU 8.2.2/OVMF really builds (main
+rejected it). OVMF's real-mode S3 transfer stub cannot run under QEMU TCG (16-bit EIP
+truncation); the profile arms a 32-bit entry under the explicit `Edk2Version0Extended`
+policy and restores `SCI_EN`, which OVMF leaves clear (ADR-H05-S3-WAKE-20261119).
+**Checks (exit 0):** acpi-power test/clippy/fmt/freestanding build; root `fmt --all`;
+`test_sleep.py` 6 host counterexamples; `run_sleep.py` cycles/corrupt-facs/stale-token on
+source v3 `7710f46d…` (earlier rounds `ce3e3145…`, `e76b8fbf…`); S5 ×5 + corrupt-DSDT ×2, standard, M2 and M3 smokes; actionlint and
+CI workflow/evidence tests. [Evidence](verification/h05-native-s3-20261119/README.md).
+**Limits:** QEMU/TCG only; no physical firmware, other wake sources, AML `_PTS`/`_WAK`,
+devices/services/SMP across sleep, thermal or battery. Score 41 → 41/100.
+**Integrated H06-T4 (verified, host):** `docs/drivers/physical-protocols.json` (seven blocked
+physical protocols with safety constraints), `tools/hw_evidence.py` (OpenSSH-signed records bound
+to protocol/target/image/source/inventory; empty signer list fails closed), matrix schema 2 with
+nine open owner decisions; 25 tests with real ssh-keygen signatures (merge `839fb2c`, fix `9f66bf1`).
+**Integrated H02-T3 (verified, QEMU):** same-port USB keyboard reattach in the xHCI/USB-HID
+fixture: generation-2 re-enumeration with continued rings, replayed generation-1 event/token/ticket
+rejected, second unplug, budget-denied third attach (merge `af9b0bc`; reports/readonly/reattach
+raw 33 on source v3 `1ae4ed7f`; `native-xhci.yml` now runs `reattach`). Pitfall: a worktree nested
+in the checkout duplicates the kernel `rustflags` (linker script twice); run native gates from a
+non-nested checkout. The AI security review of the DMA/ring changes found no blocking issue;
+its low finding O1 (the native stale-ticket check was phase-based) is fixed by a generation-specific
+check while generation 2 is `Enumerating` (diagnostic 51), verified natively on source v3 `6ed7b9a2`
+with a mutation control; O2–O5 are informational and recorded in the H02 evidence README.
+**Integrated H03-T3a (verified, QEMU):** kernel-only virtio-snd PCM output fixture
+(`native-virtio-snd-probe`, IF0 M2, fixture 00:08.0, `-icount`) with an exact WAV oracle: normal,
+no-device, access-platform, fence-reinit and quarantine raw 33 on merge `167c2bc` (source v3
+`aadc6b7b`; WAV hashes equal the builder runs), plus xHCI/USB/S3/smoke/M2 regressions;
+`native-xhci.yml` runs the five cases. Three QEMU 8.2.2 deviations are recorded in
+ADR-H03-SND-FIXTURE-20261119 (PCM_INFO used length checked in the QEMU source). No ring-3 audio
+path: owner decisions B1, B2 and B4 stay open. A focused security review is running.
+**Integrated H04-T3 (verified, QEMU):** virtio-net link loss and reconnect with a fail-closed
+broker behind the test-profile link query 0x74 and refusal -23 (ADR-H04-LINK-20261119): link
+normal/nostatus/storm, native-system-net, network-service normal/device-reset and the POWER gate pass
+on merge `5bef53f`; `native-system.yml` runs the link cases. No product link API, Wi-Fi or Bluetooth.
+**In flight:** H06-T4 CodeRabbit findings (13 verified verdicts; implementation resumes); CodeRabbit
+review of `920b909` (snd used-ring and fence findings, runner machine default); focused security
+reviews of H03-T3a and H04-T3 (first attempts hit the usage limit). H05-T4 design is ready
+(synchronous S3 syscall 0x91 behind POWER and the storage gate). An independent AI review of the S3 diff
+found three low findings (all refuted for this profile, applied as hardening); hosted
+host-quality found two real defects (GS discipline, ledger protected path), both fixed.
+**Next:** H05-T4 (S3 from the native-system
+profile via the POWER capability behind the storage gate, PIC/PIT re-init, resumed
+processes) on top of H04-T3's QMP hook; H06-T3 inventory image. Physical acceptance
+needs owner decisions H06-T2 and authorized hardware.
+
 ## NEXT AGENT HANDOFF — owner decision package recorded — 19 November 2026
 
 **Source:** main `8f970866`. The project-owner decisions of 19 November 2026 are

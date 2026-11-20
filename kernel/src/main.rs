@@ -21,7 +21,8 @@ mod serial;
         feature = "native-smp-legacy",
         feature = "framebuffer",
         feature = "native-rtc",
-        feature = "native-acpi-s5"
+        feature = "native-acpi-s5",
+        feature = "native-acpi-s3"
     )
 ))]
 compile_error!("native-xhci-probe exclusively owns the single-CPU IF0 DMA fixture");
@@ -32,6 +33,26 @@ compile_error!("xHCI negative cases require separate boots");
     any(feature = "test-xhci-dma-fault", feature = "test-xhci-no-dmar")
 ))]
 compile_error!("USB HID and legacy xHCI negative cases require separate boots");
+#[cfg(all(
+    feature = "native-usb-hid-reattach",
+    feature = "test-usb-hid-readonly-fault"
+))]
+compile_error!("USB reattach and the read-only DMA fault require separate boots");
+#[cfg(all(
+    feature = "native-virtio-snd-probe",
+    any(
+        feature = "milestone-m3",
+        feature = "framebuffer",
+        feature = "native-smp",
+        feature = "native-rtc",
+        feature = "native-acpi-s5",
+        feature = "native-acpi-s3",
+        feature = "native-xhci-probe"
+    )
+))]
+compile_error!("native-virtio-snd-probe exclusively owns the single-CPU IF0 audio DMA fixture");
+#[cfg(all(feature = "test-snd-fence-reinit", feature = "test-snd-quarantine"))]
+compile_error!("virtio-snd fence cases require separate boots");
 #[cfg(all(feature = "graphics-g0", feature = "milestone-m3"))]
 compile_error!("graphics-g0 is an IF0 bootstrap, not a ring-3/compositor profile");
 #[cfg(all(
@@ -49,6 +70,18 @@ compile_error!("native-rtc exclusively owns CMOS in the single-CPU IF0 bootstrap
     )
 ))]
 compile_error!("native-acpi-s5 ends the single-CPU IF0 bootstrap; no other subsystem may run");
+#[cfg(all(
+    feature = "native-acpi-s3",
+    any(
+        feature = "milestone-m3",
+        feature = "framebuffer",
+        feature = "native-smp",
+        feature = "native-rtc",
+        feature = "native-acpi-s5",
+        feature = "native-system-power"
+    )
+))]
+compile_error!("native-acpi-s3 resumes only the single-CPU IF0 bootstrap; no device, AP or service state survives sleep");
 #[cfg(all(
     feature = "native-system-power",
     any(

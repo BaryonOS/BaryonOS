@@ -2,13 +2,13 @@
   "schema_version": 1,
   "rubric_version": 1,
   "assessment": {
-    "date": "2026-11-19",
-    "source_commit": "8f9708663a8c7b94db3d35613047bcbad3a308c3",
+    "date": "2026-11-20",
+    "source_commit": "5bef53f4bb30ee70441e8256de362236afa76b0d",
     "assessment_basis": "parent_commit",
-    "branch": "ccr-eb161a01-03937i",
-    "task": "Record the project-owner decision package of 19 November 2026",
+    "branch": "ccr-38238c58-g8y1l6",
+    "task": "H05-T3 native S3, H06-T4 physical test protocols, H02-T3 native USB reattach (with review fix O1), H03-T3a kernel-only virtio-snd fixture, H04-T3 native virtio-net link loss/reconnect",
     "previous_score": 41,
-    "summary": "41/100 unchanged. Architecture and priority decisions recorded as ADRs; no implementation or acceptance evidence changes any criterion."
+    "summary": "41/100 unchanged. H05 gains native QEMU S3 evidence; H06 gains machine-checked physical test protocols and signed-evidence validation; H02 gains native QEMU same-port reattach with generation-specific stale-ticket rejection; H03 gains a kernel-only QEMU virtio-snd PCM output fixture with an exact WAV oracle; H04 gains native QEMU link loss/reconnect with a fail-closed broker behind a test-profile syscall. No ring-3 audio path or product link API exists, Wi-Fi and Bluetooth are not covered, and physical acceptance for H02-H06 remains open."
   },
   "tracks": [
     {
@@ -218,7 +218,8 @@
           "status": "open",
           "acceptance": "Common input and USB devices work on the documented reference profile; hotplug and invalid device responses remain bounded.",
           "evidence": [
-            "docs/verification/issue42-native-input-20261114/README.md"
+            "docs/verification/issue42-native-input-20261114/README.md",
+            "docs/verification/h02-native-reattach-20261119/README.md"
           ]
         },
         {
@@ -227,7 +228,9 @@
           "points": 3,
           "status": "open",
           "acceptance": "Native graphics output, required GPU functionality, and audio meet documented usability and latency budgets on physical reference hardware.",
-          "evidence": []
+          "evidence": [
+            "docs/verification/h03-virtio-snd-20261119/README.md"
+          ]
         },
         {
           "id": "H04",
@@ -235,7 +238,9 @@
           "points": 2,
           "status": "open",
           "acceptance": "Ethernet, Wi-Fi, and the agreed Bluetooth functions work on supported hardware, including disconnect, resume, and driver-failure paths.",
-          "evidence": []
+          "evidence": [
+            "docs/verification/h04-native-link-20261119/README.md"
+          ]
         },
         {
           "id": "H05",
@@ -243,7 +248,10 @@
           "points": 2,
           "status": "open",
           "acceptance": "ACPI/power management, sleep/wake, shutdown, and thermal/battery functions are measured and recoverable on supported hardware.",
-          "evidence": []
+          "evidence": [
+            "docs/verification/h05-acpi-s5/README.md",
+            "docs/verification/h05-native-s3-20261119/README.md"
+          ]
         },
         {
           "id": "H06",

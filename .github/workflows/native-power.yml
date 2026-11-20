@@ -54,6 +54,7 @@ jobs:
         run: |
           python3 -B tools/preflight.py --strict > "$NOS_BUILD_DIR/logs/preflight.json"
           python3 -B -m unittest discover -s tools/tests -p test_power.py -v
+          python3 -B -m unittest discover -s tools/tests -p test_sleep.py -v
           cargo +1.100.0 test --locked --manifest-path drivers/acpi-power/Cargo.toml
           cargo +1.100.0 clippy --locked --manifest-path drivers/acpi-power/Cargo.toml --all-targets -- -D warnings
           cargo +1.100.0 test --locked -p boot-protocol
@@ -70,6 +71,30 @@ jobs:
           mkdir -p "$NOS_BUILD_DIR"
           python3 -B tools/build.py --kernel-feature test-acpi-s5-corrupt-dsdt
           python3 -B tools/run_power.py --repeat 2
+      - name: Three real S3 suspend/resume cycles woken over QMP
+        env:
+          NOS_BUILD_DIR: ${{ github.workspace }}/build/power-native/s3-cycles
+          NOS_TARGET_DIR: ${{ github.workspace }}/target/power-native-s3
+        run: |
+          mkdir -p "$NOS_BUILD_DIR"
+          python3 -B tools/build.py --kernel-feature native-acpi-s3
+          python3 -B tools/run_sleep.py --case cycles
+      - name: Corrupted FACS copy is rejected before any sleep
+        env:
+          NOS_BUILD_DIR: ${{ github.workspace }}/build/power-native/s3-corrupt-facs
+          NOS_TARGET_DIR: ${{ github.workspace }}/target/power-native-s3
+        run: |
+          mkdir -p "$NOS_BUILD_DIR"
+          python3 -B tools/build.py --kernel-feature test-acpi-s3-corrupt-facs
+          python3 -B tools/run_sleep.py --case corrupt-facs
+      - name: Stale wake token is refused after a real wake
+        env:
+          NOS_BUILD_DIR: ${{ github.workspace }}/build/power-native/s3-stale-token
+          NOS_TARGET_DIR: ${{ github.workspace }}/target/power-native-s3
+        run: |
+          mkdir -p "$NOS_BUILD_DIR"
+          python3 -B tools/build.py --kernel-feature test-acpi-s3-stale-token
+          python3 -B tools/run_sleep.py --case stale-token
       - name: Preserve compact evidence and report archive availability
         if: ${{ always() }}
         uses: ./.github/actions/preserve-evidence

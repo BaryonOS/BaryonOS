@@ -410,6 +410,24 @@ pub fn net_receive(source: NetworkSource, out: &mut [u8]) -> Result<usize, Error
     }
 }
 
+/// Test-profile refusal (kernel feature `test-system-net-link`, H04-T3): the
+/// NIC link is down or not yet observed. Distinct from Offline (-14), which
+/// means the device itself is unusable, and from Again (-8).
+pub const NET_LINK_DOWN: i64 = -23;
+
+/// H04-T3 test profile only (syscall 0x74): the kernel-owned `(epoch, up)` of
+/// the NIC link for the NetworkSource owner. Read-only; it returns no device
+/// registers, MAC or rights. Kernels without the profile return NoSys; a
+/// device without VIRTIO_NET_F_STATUS returns -15 (link assumed active).
+pub fn net_link(source: NetworkSource) -> Result<(u64, bool), Error> {
+    let value = call(0x74, [source.handle().raw(), 0, 0, 0, 0, 0])?;
+    // The kernel encodes `epoch << 1 | up`; epoch 0 is never handed out.
+    match value >> 1 {
+        0 => Err(Error::InvalidReturn),
+        epoch => Ok((epoch, value & 1 != 0)),
+    }
+}
+
 /// ABI1.8: public geometry only; a Handle value never grants display authority.
 pub fn display_info(source: Handle, out: &mut [u8; 32]) -> Result<u64, Error> {
     let count = call(0x80, [source.raw(), out.as_mut_ptr() as u64, 32, 0, 0, 0])?;

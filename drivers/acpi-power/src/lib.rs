@@ -19,6 +19,14 @@ const FADT_PM1A_CNT_OFFSET: usize = 64;
 const FADT_PM1B_CNT_OFFSET: usize = 68;
 const FADT_X_PM1A_CNT_OFFSET: usize = 172;
 const FADT_X_PM1B_CNT_OFFSET: usize = 184;
+const FADT_PM1A_EVT_OFFSET: usize = 56;
+const FADT_PM1B_EVT_OFFSET: usize = 60;
+const PM1_EVT_LEN_OFFSET: usize = 88;
+const FADT_X_PM1A_EVT_OFFSET: usize = 148;
+const FADT_X_PM1B_EVT_OFFSET: usize = 160;
+/// Real-mode wake entries must lie in conventional memory below the
+/// legacy video/BIOS window and be 16-byte aligned (CS:IP = entry>>4:0).
+const REAL_MODE_WAKE_LIMIT: u64 = 0xa_0000;
 const FADT_HW_REDUCED_ACPI: u32 = 1 << 20;
 const AML_NAME_OP: u8 = 0x08;
 const AML_SCOPE_OP: u8 = 0x10;
@@ -58,6 +66,10 @@ pub enum Error {
     FacsAddressMismatch,
     InvalidFacsAlignment,
     UnsupportedFacsFields,
+    InvalidPm1EventLength,
+    MissingPm1aEventBlock,
+    InvalidWakeEntry,
+    ExtendedVectorUndefined,
 }
 
 /// One PM1 control-register setting extracted from the validated tables.
@@ -113,6 +125,8 @@ impl S5Plan {
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct S3Plan {
     settings: S5Plan,
+    pm1a_event: Pm1Event,
+    pm1b_event: Option<Pm1Event>,
     facs: FacsInfo,
 }
 
@@ -125,8 +139,90 @@ impl S3Plan {
         self.settings.pm1b
     }
 
+    pub const fn pm1a_event(self) -> Pm1Event {
+        self.pm1a_event
+    }
+
+    pub const fn pm1b_event(self) -> Option<Pm1Event> {
+        self.pm1b_event
+    }
+
     pub const fn facs(self) -> FacsInfo {
         self.facs
+    }
+}
+
+/// One validated legacy PM1 event block: status register first, enable
+/// register at `status + length / 2` (ACPI FADT `PM1_EVT_LEN`). Parsed data
+/// only; it grants no port access.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub struct Pm1Event {
+    status: u16,
+    block_length: u8,
+}
+
+impl Pm1Event {
+    /// WAK_STS in the PM1 status register (write-one-to-clear).
+    pub const WAKE_STATUS: u16 = 1 << 15;
+
+    pub const fn status(self) -> u16 {
+        self.status
+    }
+
+    pub const fn enable(self) -> u16 {
+        self.status + (self.block_length / 2) as u16
+    }
+
+    pub const fn block_length(self) -> u8 {
+        self.block_length
+    }
+}
+
+/// How a FACS that defines no X_Firmware_Waking_Vector (ACPI 1.0b, version
+/// 0) is treated when the caller also offers a 32-bit protected-mode entry.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum ExtendedVectorPolicy {
+    /// Specification only: a version-0 FACS receives the real-mode vector
+    /// alone, and offering a 32-bit entry for it is an error.
+    Specification,
+    /// Fixed QEMU 8.2 q35 + edk2/OVMF profile: QEMU builds a version-0 FACS,
+    /// edk2's S3 resume reads offset 24 of every FACS as the extended vector,
+    /// and edk2's own 16-bit transfer stub cannot run under QEMU TCG. The
+    /// kernel therefore stores its 32-bit entry into that reserved field,
+    /// which discovery validated as zero, and the disarm plan restores zero.
+    Edk2Version0Extended,
+}
+
+/// The FACS stores that arm (or disarm) the OSPM waking vectors.
+///
+/// Pure data: the kernel performs the stores into the validated, NVS-backed
+/// FACS itself and reads them back. `extended_vector` is `Some(value)` when
+/// offset 24 is written (0 clears it), and `ospm_flags` when offset 36 is.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub struct WakePlan {
+    legacy: u32,
+    extended: Option<u64>,
+    ospm_flags: Option<u32>,
+}
+
+impl WakePlan {
+    pub const LEGACY_VECTOR_OFFSET: usize = 12;
+    pub const EXTENDED_VECTOR_OFFSET: usize = 24;
+    pub const OSPM_FLAGS_OFFSET: usize = 36;
+
+    /// 16-bit real-mode entry (0 = disarmed).
+    pub const fn legacy_vector(self) -> u32 {
+        self.legacy
+    }
+
+    /// Value stored at offset 24, if this plan writes it.
+    pub const fn extended_vector(self) -> Option<u64> {
+        self.extended
+    }
+
+    /// OSPM flags with 64BIT_WAKE_F cleared, for FACS versions >= 2.
+    pub const fn ospm_flags(self) -> Option<u32> {
+        self.ospm_flags
     }
 }
 
@@ -134,6 +230,8 @@ impl S3Plan {
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct FacsInfo {
     source_address: u64,
+    version: u8,
+    hardware_signature: u32,
     firmware_waking_vector: u32,
     x_firmware_waking_vector: u64,
     flags: u32,
@@ -143,6 +241,67 @@ pub struct FacsInfo {
 impl FacsInfo {
     pub const fn source_address(self) -> u64 {
         self.source_address
+    }
+
+    /// 0 for an ACPI 1.0b FACS (no version field), otherwise the field value.
+    pub const fn version(self) -> u8 {
+        self.version
+    }
+
+    /// Firmware hardware signature; a change across a wake means the
+    /// platform configuration changed and resume must not be trusted.
+    pub const fn hardware_signature(self) -> u32 {
+        self.hardware_signature
+    }
+
+    /// Plans arming a 16-bit real-mode entry (nonzero, 16-byte aligned,
+    /// below 0xA0000) and optionally a 32-bit protected-mode entry (nonzero,
+    /// 16-byte aligned, below 4 GiB; firmware enters it with paging off).
+    /// 64BIT_WAKE_F is always cleared, so no firmware long-mode entry exists.
+    pub fn wake_plan(
+        self,
+        real_mode_entry: u64,
+        protected_entry: Option<u64>,
+        policy: ExtendedVectorPolicy,
+    ) -> Result<WakePlan, Error> {
+        if real_mode_entry == 0
+            || !real_mode_entry.is_multiple_of(16)
+            || real_mode_entry >= REAL_MODE_WAKE_LIMIT
+        {
+            return Err(Error::InvalidWakeEntry);
+        }
+        if let Some(entry) = protected_entry {
+            if entry == 0 || !entry.is_multiple_of(16) || entry > u64::from(u32::MAX) {
+                return Err(Error::InvalidWakeEntry);
+            }
+        }
+        let extended = match (self.defines_extended(policy), protected_entry) {
+            (true, entry) => Some(entry.unwrap_or(0)),
+            (false, None) => None,
+            (false, Some(_)) => return Err(Error::ExtendedVectorUndefined),
+        };
+        Ok(WakePlan {
+            legacy: real_mode_entry as u32,
+            extended,
+            ospm_flags: self.cleared_ospm_flags(),
+        })
+    }
+
+    /// Plans clearing every waking vector that arming under `policy` may set.
+    pub fn disarmed_plan(self, policy: ExtendedVectorPolicy) -> WakePlan {
+        WakePlan {
+            legacy: 0,
+            extended: self.defines_extended(policy).then_some(0),
+            ospm_flags: self.cleared_ospm_flags(),
+        }
+    }
+
+    fn defines_extended(self, policy: ExtendedVectorPolicy) -> bool {
+        self.version >= 1 || policy == ExtendedVectorPolicy::Edk2Version0Extended
+    }
+
+    fn cleared_ospm_flags(self) -> Option<u32> {
+        (self.version >= 2).then_some(self.ospm_flags & !1)
     }
 
     pub const fn firmware_waking_vector(self) -> u32 {
@@ -214,6 +373,7 @@ pub fn parse_s3(tables: AcpiTableSnapshot<'_>, facs: TableSnapshot<'_>) -> Resul
         Error::InvalidS5Package => Error::InvalidS3Package,
         other => other,
     })?;
+    let (pm1a_event, pm1b_event) = parse_pm1_events(tables.fadt.bytes, settings)?;
     for table in [tables.fadt, tables.dsdt, facs] {
         if table.source_address == 0
             || table
@@ -242,28 +402,44 @@ pub fn parse_s3(tables: AcpiTableSnapshot<'_>, facs: TableSnapshot<'_>) -> Resul
         return Err(Error::TableLengthMismatch);
     }
     // FACS is shared firmware state, not a checksum-bearing SDT.
+    let hardware_signature = read_u32(bytes, 8).ok_or(Error::TableTooShort)?;
     let flags = read_u32(bytes, 20).ok_or(Error::TableTooShort)?;
     let ospm_flags = read_u32(bytes, 36).ok_or(Error::TableTooShort)?;
     let legacy_vector = read_u32(bytes, 12).ok_or(Error::TableTooShort)?;
     let extended_vector = read_u64(bytes, 24).ok_or(Error::TableTooShort)?;
-    if !matches!(bytes[32], 2 | 3)
-        || flags & !3 != 0
-        || ospm_flags & !1 != 0
-        || (ospm_flags & 1 != 0 && flags & 2 == 0)
+    let version = bytes[32];
+    let zero_from = |start: usize| bytes[start..].iter().all(|byte| *byte == 0);
+    let fields_valid = match version {
+        // ACPI 1.0b (QEMU 8.2 + OVMF): offsets 24..64 are reserved, so the
+        // extended vector, version and OSPM flags must all read as zero.
+        0 => flags & !1 == 0 && zero_from(24),
+        // ACPI 2.0/3.0: X_Firmware_Waking_Vector exists but no OSPM flags and
+        // no 64-bit wake, so a nonzero extended vector is a 32-bit entry.
+        1 => flags & !1 == 0 && zero_from(33) && extended_vector <= u64::from(u32::MAX),
+        2 | 3 => {
+            flags & !3 == 0
+                && ospm_flags & !1 == 0
+                && (ospm_flags & 1 == 0 || flags & 2 != 0)
+                && (extended_vector <= u64::from(u32::MAX) || ospm_flags & 1 != 0)
+                && bytes[33..36].iter().all(|byte| *byte == 0)
+                && zero_from(40)
+        }
+        _ => false,
+    };
+    if !fields_valid
         || (extended_vector == 0 && legacy_vector >= 0x10_0000)
-        || (extended_vector > u64::from(u32::MAX) && ospm_flags & 1 == 0)
         || read_u32(bytes, 16).ok_or(Error::TableTooShort)? & !3 != 0
-        || bytes[33..36]
-            .iter()
-            .chain(bytes[40..].iter())
-            .any(|byte| *byte != 0)
     {
         return Err(Error::UnsupportedFacsFields);
     }
     Ok(S3Plan {
         settings,
+        pm1a_event,
+        pm1b_event,
         facs: FacsInfo {
             source_address: address,
+            version,
+            hardware_signature,
             firmware_waking_vector: legacy_vector,
             x_firmware_waking_vector: extended_vector,
             flags,
@@ -442,6 +618,77 @@ fn pm1_register_address(
         return Ok(None);
     }
     validate_pm1_address(address, block_length).map(Some)
+}
+
+/// Extracts the PM1a/PM1b event blocks for the S3 route. The blocks must be
+/// 16-bit System-I/O ranges of `PM1_EVT_LEN` (even, >= 4) bytes that alias
+/// neither each other nor a PM1 control register.
+fn parse_pm1_events(fadt: &[u8], controls: S5Plan) -> Result<(Pm1Event, Option<Pm1Event>), Error> {
+    let length = *fadt
+        .get(PM1_EVT_LEN_OFFSET)
+        .ok_or(Error::InvalidFadtLength)?;
+    if length < 4 || !length.is_multiple_of(2) {
+        return Err(Error::InvalidPm1EventLength);
+    }
+    let block = |legacy_offset: usize, gas_offset: usize| -> Result<Option<Pm1Event>, Error> {
+        if fadt.len() > gas_offset && fadt.len() < gas_offset + 12 {
+            return Err(Error::InvalidFadtLength);
+        }
+        let legacy = read_u32(fadt, legacy_offset).ok_or(Error::InvalidFadtLength)?;
+        let mut address = u64::from(legacy);
+        if fadt.len() >= gas_offset + 12 {
+            let gas = &fadt[gas_offset..gas_offset + 12];
+            let extended = read_u64(gas, 4).ok_or(Error::InvalidGas)?;
+            if extended != 0 {
+                if gas[0] != 1
+                    || u16::from(gas[1]) != u16::from(length) * 8
+                    || gas[2] != 0
+                    || !(gas[3] == 0 || gas[3] == 2)
+                {
+                    return Err(Error::InvalidGas);
+                }
+                address = extended;
+            }
+        }
+        if address == 0 {
+            return Ok(None);
+        }
+        let last = address
+            .checked_add(u64::from(length) - 1)
+            .ok_or(Error::InvalidRegisterAddress)?;
+        if last > u64::from(u16::MAX) {
+            return Err(Error::InvalidRegisterAddress);
+        }
+        Ok(Some(Pm1Event {
+            status: address as u16,
+            block_length: length,
+        }))
+    };
+    let a =
+        block(FADT_PM1A_EVT_OFFSET, FADT_X_PM1A_EVT_OFFSET)?.ok_or(Error::MissingPm1aEventBlock)?;
+    let b = block(FADT_PM1B_EVT_OFFSET, FADT_X_PM1B_EVT_OFFSET)?;
+    let overlaps = |event: Pm1Event, start: u16, len: u32| {
+        let event_start = u32::from(event.status);
+        let other = u32::from(start);
+        event_start < other + len && other < event_start + u32::from(length)
+    };
+    let controls_list = [
+        Some(controls.pm1a.address),
+        controls.pm1b.map(|c| c.address),
+    ];
+    for event in [Some(a), b].into_iter().flatten() {
+        for control in controls_list.iter().flatten() {
+            if overlaps(event, *control, 2) {
+                return Err(Error::AliasedRegisters);
+            }
+        }
+    }
+    if let Some(b) = b {
+        if overlaps(a, b.status, u32::from(length)) {
+            return Err(Error::AliasedRegisters);
+        }
+    }
+    Ok((a, b))
 }
 
 fn validate_pm1_gas(gas: &[u8], block_length: u8) -> Result<(), Error> {
@@ -854,7 +1101,9 @@ extern crate std;
 
 #[cfg(test)]
 mod tests {
-    use super::{parse_s5, AcpiTableSnapshot, Error, S5Plan, TableSnapshot};
+    use super::{
+        fadt_facs_address, parse_s3, parse_s5, AcpiTableSnapshot, Error, S5Plan, TableSnapshot,
+    };
     use std::vec;
     use std::vec::Vec;
 
@@ -1003,6 +1252,41 @@ mod tests {
                 Err(expected)
             );
         }
+
+        // Optional S3 extension: the FACS captured from the same guest.
+        let Ok(facs_path) = std::env::var("NOS_ACPI_FACS") else {
+            return;
+        };
+        let facs = std::fs::read(facs_path).expect("read external FACS");
+        let facs_address = fadt_facs_address(&fadt).expect("FADT FACS pointer");
+        let s3 = |facs_bytes: &[u8], address: u64| {
+            parse_s3(
+                AcpiTableSnapshot::new(
+                    TableSnapshot::new(&fadt, fadt_address),
+                    TableSnapshot::new(&dsdt, dsdt_address),
+                ),
+                TableSnapshot::new(facs_bytes, address),
+            )
+        };
+        let plan = s3(&facs, facs_address).expect("complete QEMU S3 tables");
+        assert_eq!(plan.pm1a().address(), 0x604);
+        assert_eq!(plan.pm1a().sleep_type(), 1);
+        assert_eq!(plan.pm1a_event().status(), 0x600);
+        assert_eq!(plan.facs().version(), 0);
+        assert!(plan
+            .facs()
+            .wake_plan(0x8000, None, super::ExtendedVectorPolicy::Specification)
+            .is_ok());
+        assert_eq!(
+            s3(&facs, facs_address + 64),
+            Err(Error::FacsAddressMismatch)
+        );
+        for prefix in 0..facs.len() {
+            assert!(s3(&facs[..prefix], facs_address).is_err());
+        }
+        let mut bad = facs.clone();
+        bad[0] = b'?';
+        assert_eq!(s3(&bad, facs_address), Err(Error::InvalidSignature));
     }
 
     #[test]

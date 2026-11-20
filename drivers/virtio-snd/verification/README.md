@@ -101,3 +101,25 @@ python3 verification/model-mutants.py
 Evidence boundary: host unit tests and a no_std crosscompile only. No QEMU
 guest, no audio, no transport, no control time-out, no physical hardware, no
 human audit. H03 stays open; this closes no FR row and earns no points.
+
+## H03-T3a kernel-only QEMU fixture (19 November 2026)
+
+`src/queue.rs` + `src/queue_tests.rs` (production, `no_std`,
+`forbid(unsafe_code)`, no heap, no dependency; `src/lib.rs` only gains
+`pub mod queue`) and the kernel fixture `kernel/src/m2/snd.rs`. Gates use the
+pinned Rust 1.100.0 toolchain of the root `rust-toolchain.toml`:
+
+```sh
+cargo +1.100.0 test --locked --manifest-path drivers/virtio-snd/Cargo.toml
+cargo +1.100.0 clippy --locked --manifest-path drivers/virtio-snd/Cargo.toml --all-targets -- -D warnings
+cargo +1.100.0 fmt --manifest-path drivers/virtio-snd/Cargo.toml -- --check
+cargo +1.100.0 build --locked --release --manifest-path drivers/virtio-snd/Cargo.toml --target x86_64-unknown-none
+```
+
+Commands, exit codes, native QEMU cases and their WAV hashes are recorded in
+`docs/verification/h03-virtio-snd-20261119/`. `SHA256SUMS` above still binds
+the earlier basis: at this basis `sha256sum -c` reports `README.md`,
+`TRANSPORT.md` and `src/lib.rs` as changed, which is expected. Evidence
+boundary: QEMU 8.2.2/TCG emulator output of a kernel-only fixture; no broker,
+capability, syscall, audible or physical playback, latency or DMA-isolation
+claim. H03 stays open.

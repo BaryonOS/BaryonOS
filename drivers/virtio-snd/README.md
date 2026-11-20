@@ -1,16 +1,23 @@
 # virtio-snd control codec (TASK-H03-VIRTIO-SND-CODEC)
 
-Status: **hosttests + no_std crosscompile only**. No audio is played, no
-device is driven, and nothing is integrated in kernel, loader, profile or
-image. Rubric H03/A04; FR-H02/A06/A07 stay open.
+Status: host tests, no_std cross-compile and, since H03-T3a, one
+**kernel-only QEMU fixture** (kernel feature `native-virtio-snd-probe`,
+`tools/run_virtio_snd.py`, `TRANSPORT.md` §10). That fixture plays a pattern
+the kernel generates itself; there is no syscall, ring-3 broker, capability or
+app path. Rubric H03/A04; FR-H02/A06/A07 stay open.
 
 `src/lib.rs` holds feature/config/PCM_INFO; `src/pcm.rs` adds the bounded
 PCM lifecycle (SET_PARAMS/PREPARE/START/STOP/RELEASE), TX framing and event
 codec with a per-stream state machine. Both are pure byte codecs.
+`src/queue.rs` adds the pure transport bookkeeping the kernel fixture uses:
+pinned DMA pool layout, descriptor chains, split-ring used-element validation,
+fence/epoch lifecycle and the fixture PCM patterns. All three stay
+`forbid(unsafe_code)`; every volatile MMIO/DMA access is in
+`kernel/src/m2/snd.rs`.
 
-Norm: OASIS virtio 1.3, section 5.14 (sound device). QEMU 10.2.1
-`virtio-sound-pci` was only *detected* (PCI `1af4:1059`, streams 2, jacks 0,
-chmaps 0); device-ID detection is not audio playback.
+Norm: OASIS virtio 1.3, section 5.14 (sound device). Executed against QEMU
+8.2.2 `virtio-sound-pci` (`1af4:1059` at 00:08.0, streams 1, jacks 0,
+chmaps 0) with a WAV audiodev; that is emulator output, not audible playback.
 
 ## Contract
 
@@ -29,15 +36,17 @@ chmaps 0); device-ID detection is not audio playback.
 | TX message | Header `stream_id` (4 bytes) only while `Prepared` or `Running` and not faulted; payload 1..=period_bytes in whole frames. Status exactly 8 bytes: `OK`/`IO_ERR` with `latency_bytes` passed through unvalidated; `IO_ERR` refuses further TX until a device-confirmed STOP (F9); any other status/length requires a fence; a completion after RELEASE is `LateCompletion` (fence). |
 | Events | Exactly 8 bytes. Jack ids `< jacks`, PCM stream ids `< streams`, `CTL_NOTIFY` is `Unsupported` (CTLS never negotiated), unknown codes `InvalidEvent`. `EventBudget` ignores at most 8 invalid events, then `EventStorm` (fence, F17). PCM events count only for the own stream while `Running`; `EVT_XRUNS` only when SET_PARAMS selected it. After a device-confirmed STOP at most `periods + 1` own-stream PCM events are `Stale` (ignored, not counted in `EventBudget`, no fence); beyond that they are `InvalidEvent`. START resets that bound. |
 
+| Transport (`queue`) | Six pinned pages (rings, used rings, requests, responses, two PCM pages); descriptors only from them. Device-writable: used rings, the control response, 4 x 8-byte event buffers and 4 x 8-byte TX status words; PCM is device-readable. Queue size 8, rxq never enabled. A used element must name an outstanding head with its exact used length; the used index may move by at most the outstanding requests (also while idle). PCM_INFO alone also accepts the 4-byte header-only used length QEMU 8.2.2 reports (records zeroed before and parsed strictly). Fence = status 0 and BME off read back before a deadline, then an unchanged used-ring snapshot; epoch `checked_add`; every miss or overflow quarantines. |
+
 ## Not provided (separate contract and review with security/release)
 
-Transport and queues, buffer posting and used-ring validation, DMA/MMIO,
-reset/ACK/quarantine/epoch handling, slot ownership, broker or capability,
-app grant, microphone/capture rights, control time-outs, and the kernel/root
-wiring. `pcm::Error::requires_fence` only names the device violations the
-transport must fence; the fence itself is the transport's. An advertised PCM
-capability grants no app permission; output is not a mic right. No DMA- or
-IOMMU-isolation claim follows from these bounded codecs.
+Broker or capability, syscall/ABI, app grant, microphone/capture rights,
+revocation by a process, slot leases for ring 3, IRQ delivery, and any
+product wiring beyond the IF0 fixture. `pcm::Error::requires_fence` and
+`queue::Error::requires_fence` only name the device violations the transport
+must fence; the fence itself is the kernel's. An advertised PCM capability
+grants no app permission; output is not a mic right. No DMA- or
+IOMMU-isolation claim follows: the QEMU transport is trusted (`TRANSPORT.md` §2).
 
 ## Gates
 
