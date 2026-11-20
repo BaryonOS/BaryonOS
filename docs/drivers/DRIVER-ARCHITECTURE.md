@@ -46,8 +46,10 @@ marker; `git log -S'UNSUPPORTED:PCI'` finds documentation changes only. A
 separate read-only native inventory profile (`native-hw-inventory`, planned
 slice H06-T3) is specified as protocol `HW-INV` in
 [physical-protocols.json](physical-protocols.json), with its planned `HWINV:`
-markers. Until it exists, no PCI inventory is available on COM1, on QEMU or
-on physical hardware. The RNG driver is now also started
+markers, including a read-only ACPI DMAR table observation
+(`HWINV:ACPI:DMAR=...`) that records table presence only and is not evidence of
+VT-d containment. Until it exists, no PCI inventory is available on COM1, on
+QEMU or on physical hardware. The RNG driver is now also started
 through segment-0 enumeration and a registered factory; the current QEMU fixture
 uses BDF `00:06.0`, but the driver does not require that location.
 

@@ -73,7 +73,7 @@
     },
     {
       "id": "OD-HW-FAMILIES",
-      "decision": "Required device families on the reference PC(s), including whether Wi-Fi, Bluetooth and GPU acceleration are in scope.",
+      "decision": "Required device families on the reference PC(s), including whether Wi-Fi, Bluetooth and GPU acceleration are in scope, and which install-target transport R03-INSTALL must exercise (USB mass storage, a removable SATA/eSATA bay for AHCI, an external NVMe enclosure, or none, so that it proves only the install procedure).",
       "status": "open",
       "blocks": [
         "H02-USB",
@@ -187,9 +187,11 @@
           "evidence_level": "native-qemu",
           "evidence": [
             "docs/verification/h05-acpi-s5/README.md",
-            "docs/verification/h05-acpi-s5/native-report.json"
+            "docs/verification/h05-acpi-s5/native-report.json",
+            "docs/verification/h05-native-s3-20261119/README.md",
+            "docs/verification/h05-native-s3-20261119/native-report.json"
           ],
-          "note": "Native QEMU S5 power-off (native-acpi-s5); S3 is host-parsed only and no physical evidence exists."
+          "note": "Native QEMU S5 power-off (native-acpi-s5) and native QEMU S3 suspend/resume woken only by QMP system_wakeup under the QEMU/OVMF extended-vector policy (native-acpi-s3); native-verified binds to the S5 report. No physical evidence exists."
         },
         {
           "id": "rng",
