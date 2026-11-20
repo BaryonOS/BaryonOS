@@ -795,6 +795,14 @@ fn main() -> ! {
             native::power_off(registry.handle()) == Error::Kernel(-6),
             61,
         );
+        // H05-T4: neither number is a POWER capability of the app.
+        if support::word(128) == 1 {
+            check(matches!(native::suspend(forged), Err(Error::Kernel(_))), 85);
+            check(
+                native::suspend(registry.handle()) == Err(Error::Kernel(-6)),
+                86,
+            );
+        }
     }
     send(registry, DONE);
     native::exit(0)

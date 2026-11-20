@@ -1,24 +1,32 @@
 #!/usr/bin/env python3
-"""H05 step 2 (ADR-076) on one frozen source: each power case on a fresh disk,
-then a read-only cold recovery of exactly that image (data survived S5 or the
-refused poweroff)."""
+"""H05 step 2 (ADR-076) and H05-T4 on one frozen source: each power or S3
+case on a fresh disk, then a read-only cold recovery of exactly that image
+(data survived S5, the S3 cycle, the rejected wake or the refused poweroff).
+
+Without arguments every case runs; `--case` selects some (repeatable)."""
 from __future__ import annotations
 
+import argparse
 import sys
 
 from build import build
 from common import BUILD, save_json, source_hash
-from run_system import FEATURE, POWER_FEATURE, run_system
+from run_system import FEATURE, POWER_FEATURE, S3_FEATURE, run_system
+
+CASES = {**POWER_FEATURE, **S3_FEATURE}
 
 
-def main() -> int:
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--case", action="append", choices=tuple(CASES))
+    selected = parser.parse_args(argv).case or list(CASES)
     frozen = source_hash()
     summary = dict(schema_version=1, source_fingerprint_version=3, source_sha256=frozen,
-                   status="running", passed=False, stages=[])
+                   status="running", passed=False, cases=list(dict.fromkeys(selected)), stages=[])
     path = BUILD / "power-system-gate.json"
     save_json(path, summary)
     try:
-        for case, feature in POWER_FEATURE.items():
+        for case, feature in ((case, CASES[case]) for case in summary["cases"]):
             image = None
             for stage, stage_feature in ((case, feature), ("recover", FEATURE["recover"])):
                 build(None, stage_feature, stage_feature)

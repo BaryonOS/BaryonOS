@@ -197,6 +197,47 @@ class ControllerLateWakeup(unittest.TestCase):
         self.assertIn(b"WAKE:REJECTED:TOKEN", result["stdout"])
 
 
+class ControllerSelection(unittest.TestCase):
+    """H05-T4: the ring-3 S3 system cases select a wake count, not a fixture case."""
+
+    def run_fake(self, **selection):
+        with tempfile.TemporaryDirectory() as directory:
+            cwd = Path(directory)
+            run_dir = cwd / "run"
+            run_dir.mkdir()
+            args = [sys.executable, "-I", "-c", FAKE_QEMU, "-serial", "stdio"]
+            return gate.controlled_guest(args, cwd=cwd, env=dict(os.environ), timeout=30,
+                                         run_dir=run_dir, **selection)
+
+    def test_wake_count_without_a_fixture_case_wakes_exactly_once(self):
+        result = self.run_fake(wakeups=1)
+        self.assertIsNone(result["error"])
+        self.assertEqual(len(result["observations"]), 1)
+
+    def test_a_guest_that_suspends_unexpectedly_is_never_woken(self):
+        # Zero expected wakeups: the harness must not wake the fake guest,
+        # which then stays suspended until the shared deadline.
+        with tempfile.TemporaryDirectory() as directory:
+            cwd = Path(directory)
+            run_dir = cwd / "run"
+            run_dir.mkdir()
+            args = [sys.executable, "-I", "-c", FAKE_QEMU, "-serial", "stdio"]
+            result = gate.controlled_guest(args, cwd=cwd, env=dict(os.environ), timeout=2,
+                                           run_dir=run_dir, wakeups=0)
+        self.assertTrue(result["timed_out"])
+        self.assertIsNotNone(result["error"])
+        self.assertEqual(result["observations"], [])
+        self.assertNotIn("WAKEUP", result["events"])
+
+    def test_selection_and_marker_are_validated_before_launch(self):
+        for selection in ({}, {"case": "cycles", "wakeups": 3}, {"wakeups": 4},
+                          {"wakeups": -1}, {"wakeups": True}, {"wakeups": 1, "enter": "SYSTEM:{}"},
+                          {"wakeups": 1, "enter": "POWER:S3:ENTER:CYCLE=1"}):
+            with self.subTest(selection=selection), self.assertRaises(ValueError):
+                gate.controlled_guest(["qemu", "-serial", "stdio"], cwd=".", env={}, timeout=1,
+                                      run_dir=".", **selection)
+
+
 class EventDrain(unittest.TestCase):
     def control(self, *events):
         process = subprocess.Popen([sys.executable, "-I", "-c", FAKE_QMP, *events],

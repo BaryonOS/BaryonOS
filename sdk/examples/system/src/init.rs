@@ -246,8 +246,10 @@ fn restore_key_state() {
 
 /// H05 (ADR-076): orderly poweroff with init's non-delegable POWER handle.
 /// The kernel logs each refusal itself and decides; init only sequences.
+/// H05-T4: with `sleep` the same handle first requests one S3 cycle under
+/// the same storage gate; S5 follows after the wake (or after -16).
 #[inline(never)]
-fn power_off_sequence(power: Handle, image: LaunchImage) -> ! {
+fn power_off_sequence(power: Handle, image: LaunchImage, sleep: bool) -> ! {
     // Delegation is refused by type before any effect.
     let grant = Capability {
         handle: power,
@@ -257,6 +259,9 @@ fn power_off_sequence(power: Handle, image: LaunchImage) -> ! {
     check(native::derive(power, Rights::POWER).is_err(), 51);
     // The volume still holds BLOCK authority: refused, nothing happens.
     check(native::power_off(power) == Error::Kernel(-8), 52);
+    if sleep {
+        check(native::suspend(power) == Err(Error::Kernel(-8)), 57);
+    }
     // Final flush; on Ok the volume closes its block capability. A refused
     // flush (Unknown) leaves the decision to the kernel gate below.
     let _ = volume().shutdown(volume_core::PER_DOMAIN as u64);
@@ -264,6 +269,14 @@ fn power_off_sequence(power: Handle, image: LaunchImage) -> ! {
     check(native::power_off(image.handle()) == Error::Kernel(-6), 53);
     let forged = Handle::from_raw(power.raw() + (1 << 32)).unwrap_or_else(|_| fail(54));
     check(native::power_off(forged) == Error::Kernel(-4), 54);
+    if sleep {
+        check(
+            native::suspend(image.handle()) == Err(Error::Kernel(-6)),
+            58,
+        );
+        check(native::suspend(forged) == Err(Error::Kernel(-4)), 59);
+        suspend_once(power);
+    }
     for _ in 0..LIMIT * 8 {
         match native::power_off(power) {
             Error::Kernel(-8) => {
@@ -275,6 +288,21 @@ fn power_off_sequence(power: Handle, image: LaunchImage) -> ! {
         }
     }
     fail(56)
+}
+
+/// One S3 cycle once the storage gate holds: -8 retries, -16 (not durable)
+/// leaves the decision to the POWER_OFF loop, generation 1 resumes here.
+fn suspend_once(power: Handle) {
+    for _ in 0..LIMIT * 8 {
+        match native::suspend(power) {
+            Err(Error::Kernel(-8)) => {
+                let _ = native::yield_now();
+            }
+            Err(Error::Kernel(-16)) | Ok(1) => return,
+            _ => fail(60),
+        }
+    }
+    fail(61)
 }
 
 #[no_mangle]
@@ -374,7 +402,7 @@ fn main() -> ! {
         support::put(at, value);
     }
     if support::word(48) != 0 {
-        power_off_sequence(handle(48), image);
+        power_off_sequence(handle(48), image, support::word(128) == 1);
     }
     native::exit(0)
 }

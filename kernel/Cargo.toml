@@ -30,9 +30,12 @@ native-rtc = ["milestone-m2", "dep:nieuw-os-rtc"]
 # H05 step: IF0 M2 profile that ends in a validated ACPI S5 poweroff.
 native-acpi-s5 = ["milestone-m2", "dep:nieuw-os-acpi-power"]
 test-acpi-s5-corrupt-dsdt = ["native-acpi-s5"]
+# H05: internal S3 mechanism (wake page, FACS arming, own trampoline) shared
+# by the profiles below; never selected alone (main.rs compile_error).
+acpi-s3 = ["dep:nieuw-os-acpi-power"]
 # H05 step: IF0 M2 profile that suspends to RAM (ACPI S3) and resumes through
 # its own real-mode wake page, three validated cycles, then the normal exit.
-native-acpi-s3 = ["milestone-m2", "dep:nieuw-os-acpi-power"]
+native-acpi-s3 = ["milestone-m2", "acpi-s3"]
 test-acpi-s3-corrupt-facs = ["native-acpi-s3"]
 test-acpi-s3-stale-token = ["native-acpi-s3"]
 # K06 step 1: opt-in AP bring-up profile. APs run a bounded sync self-test and
@@ -182,6 +185,11 @@ test-system-recover = ["native-system"]
 native-system-power = ["native-system", "dep:nieuw-os-acpi-power"]
 test-system-power-flush-error = ["native-system-power"]
 test-system-power-flush-timeout = ["native-system-power"]
+# H05-T4: init's POWER capability also requests one synchronous S3 cycle
+# (syscall 0x91) behind the same storage gate; S5 follows after the wake.
+native-system-s3 = ["native-system-power", "acpi-s3"]
+test-system-s3-stale-token = ["native-system-s3"]
+test-system-s3-not-durable = ["native-system-s3", "test-system-power-flush-error"]
 native-system-nas-probe = ["native-system", "monotonic-clock", "ipc-wait"]
 test-system-nas-recover = ["native-system-nas-probe", "test-system-recover"]
 # Real NIC integration; the base joint profile never probes or maps a NIC.

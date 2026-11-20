@@ -467,6 +467,13 @@ fn call(s: &mut State, slot: usize, n: u64, a: [u64; 6]) -> Result<u64, i64> {
             if a[1] == 0 || a[1] > u64::from(MAX_REQUEST) {
                 return Err(-11);
             }
+            // H05-T4: after an S3 wake the virtio-rng device was reset and is
+            // never reinitialized; refuse before any broker or device state.
+            #[cfg(feature = "native-system-s3")]
+            if super::system::devices_lost() {
+                super::system::device_refused();
+                return Err(-14);
+            }
             reclaim_completed(s.ticks);
             let r = runtime();
             r.requests += 1;

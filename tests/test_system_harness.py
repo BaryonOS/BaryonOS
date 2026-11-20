@@ -10,7 +10,9 @@ import unittest
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "tools"))
 from run_system import (KEYSTATE_HEADER, KEYSTATE_NAME, KEYSTATE_OBJECT, OPAQUE_OBJECTS, PERSIST_EXACT,
                         SEALED_NAME, SEALED_OBJECT, check_disk, check_esp, check_image, check_parent,
-                        S5_TAIL, COLD_CASES, cold_image, evaluate_cold, evaluate, expected_markers, record_plaintext)
+                        S5_TAIL, COLD_CASES, cold_image, evaluate_cold, evaluate, expected_markers, record_plaintext,
+                        S3_FEATURE, SLEEP_TAIL)
+import run_sleep
 import volume_disk
 
 
@@ -392,6 +394,133 @@ class PowerHarnessTests(unittest.TestCase):
                 check_parent({**previous, **change}, "source", "disk", network=False)
         with self.assertRaises(ValueError):
             check_parent({**previous, "network_gate": True}, "source", "disk", network=True)
+
+
+S3_PLAN = ("POWER:S3:PLAN:PM1A=0x0604:SLP_TYP=1:PM1A_STS=0x0600:FACS_VERSION=0:"
+           "REAL=0x1000:PM32=0x2000510:POLICY=Edk2Version0Extended")
+S3_RESUMED = ("POWER:S3:RESUMED:CYCLE=1:ENTRY=PM32:PM1_STS=0x8101:WAK_STS=1:SCI_EN=RESTORED:"
+              "HWSIG=SAME:FACS=DISARMED:CANARY=PASS:CR3=SAME")
+S3_LINES = [S3_PLAN, run_sleep.ENTER.format(1), S3_RESUMED, *SLEEP_TAIL]
+S3_EVENTS = {"s3": ["RTC_CHANGE", "SUSPEND", "WAKEUP", "SHUTDOWN"],
+             "s3-stale-token": ["RTC_CHANGE", "SUSPEND", "WAKEUP"],
+             "s3-not-durable": ["RTC_CHANGE"]}
+S3_EXIT = {"s3": 0, "s3-stale-token": 33, "s3-not-durable": 33}
+
+
+def s3_transcript(case="s3", sleep=None, tail=None, **changes):
+    """H05-T4 run: the power flow with init's S3 cycle inside the broker phase."""
+    if case == "s3-stale-token":
+        lines = [*expected_markers(case), S3_PLAN, run_sleep.ENTER.format(1), run_sleep.STALE]
+        return "\n".join(lines if sleep is None else [*expected_markers(case), *sleep]) + "\n"
+    durable = case == "s3"
+    values = dict(SLEEP_INIT_REFUSALS=3 if durable else 4, SLEEP_APP_REFUSALS=2,
+                  SLEEP_GENERATION=int(durable), SLEEP_TIMER_IRQS=2 if durable else 0,
+                  SLEEP_DEVICE_IO_AFTER_WAKE=0, SLEEP_DEVICE_REFUSALS=0)
+    values.update(changes)
+    marker = expected_markers(case)[-2]
+    if tail is None:
+        tail = (["SYSTEM:POWER:GATE:PASS", marker, "M1:PASS", *S5_TAIL] if durable else
+                ["SYSTEM:FAULT_INJECTED:FLUSH_ERROR", "SYSTEM:POWER:REFUSED:NOT_DURABLE", marker, "M1:PASS"])
+    text = power_transcript("power" if durable else "power-flush-error", tail=tail, **values)
+    lines = (S3_LINES if durable else []) if sleep is None else sleep
+    return text.replace("SYSTEM:MANIFEST:PASS\n", "\n".join(["SYSTEM:MANIFEST:PASS", *lines]) + "\n", 1)
+
+
+class SleepHarnessTests(unittest.TestCase):
+    def test_s3_cases_pass_only_with_their_exit_and_qmp_events(self):
+        for case in S3_FEATURE:
+            with self.subTest(case=case):
+                found = evaluate(case, s3_transcript(case), S3_EXIT[case], False, S3_EVENTS[case])
+                self.assertEqual(found["sleep"]["qmp_sleep_events"],
+                                 ["SUSPEND", "WAKEUP"] if case != "s3-not-durable" else [])
+        bad = [("s3", 33, S3_EVENTS["s3"]), ("s3", 0, None), ("s3", 0, ["SUSPEND", "WAKEUP"]),
+               ("s3", 0, ["SUSPEND", "WAKEUP", "SHUTDOWN", "SHUTDOWN"]),
+               ("s3", 0, ["SHUTDOWN", "SUSPEND", "WAKEUP"]),
+               ("s3", 0, ["SUSPEND", "WAKEUP", "SUSPEND", "WAKEUP", "SHUTDOWN"]),
+               ("s3-not-durable", 33, ["SUSPEND", "WAKEUP"]), ("s3-not-durable", 0, ["RTC_CHANGE"]),
+               ("s3-not-durable", 33, ["SHUTDOWN"]), ("s3-stale-token", 0, S3_EVENTS["s3-stale-token"]),
+               ("s3-stale-token", 33, ["SUSPEND"]), ("s3-stale-token", 33, S3_EVENTS["s3"])]
+        for case, raw, events in bad:
+            with self.subTest(case=case, raw=raw, events=events), self.assertRaises(ValueError):
+                evaluate(case, s3_transcript(case), raw, False, events)
+
+    def test_s3_sequence_is_exact_and_inside_the_broker_phase(self):
+        swapped = [S3_PLAN, run_sleep.ENTER.format(1), S3_RESUMED, *reversed(SLEEP_TAIL)]
+        gap = [S3_PLAN, run_sleep.ENTER.format(1), "SYSTEM:SLEEP:TIMER:WAIT", S3_RESUMED, SLEEP_TAIL[1]]
+        # Any line between ENTER and the wake report breaks "directly followed".
+        noise = [S3_PLAN, run_sleep.ENTER.format(1), "KEYRING:NOISE", S3_RESUMED, *SLEEP_TAIL]
+        variants = [[], S3_LINES[1:], S3_LINES[:-1], swapped, gap, noise, S3_LINES + [run_sleep.ENTER.format(2)],
+                    [S3_LINES[0], run_sleep.ENTER.format(1), S3_RESUMED.replace("CYCLE=1", "CYCLE=2"),
+                     *SLEEP_TAIL],
+                    [S3_LINES[0], run_sleep.ENTER.format(1), S3_RESUMED.replace("0x8101", "0x0101"),
+                     *SLEEP_TAIL],
+                    [S3_LINES[0], run_sleep.ENTER.format(1), S3_RESUMED.replace("ENTRY=PM32", "ENTRY=UNKNOWN"),
+                     *SLEEP_TAIL],
+                    [S3_PLAN.replace("REAL=0x1000", "REAL=0xa0000"), *S3_LINES[1:]]]
+        for sleep in variants:
+            with self.subTest(sleep=sleep), self.assertRaises(ValueError):
+                evaluate("s3", s3_transcript(sleep=sleep), 0, False, S3_EVENTS["s3"])
+        text = s3_transcript(sleep=[])
+        moved = text.replace("SYSTEM:BROKERS:PASS\n", "SYSTEM:BROKERS:PASS\n" + "\n".join(S3_LINES) + "\n")
+        early = text.replace("SYSTEM:MANIFEST:PASS\n", "\n".join(S3_LINES) + "\nSYSTEM:MANIFEST:PASS\n")
+        for stdout in (moved, early):
+            with self.subTest(stdout=stdout[:40]), self.assertRaises(ValueError):
+                evaluate("s3", stdout, 0, False, S3_EVENTS["s3"])
+
+    def test_kernel_sleep_counters_are_exact(self):
+        for change in (dict(SLEEP_INIT_REFUSALS=4), dict(SLEEP_APP_REFUSALS=1), dict(SLEEP_GENERATION=2),
+                       dict(SLEEP_TIMER_IRQS=1), dict(SLEEP_DEVICE_IO_AFTER_WAKE=1),
+                       dict(SLEEP_DEVICE_REFUSALS=1), dict(POWER_INIT_REFUSALS=4), dict(DISK_FLUSHES=3)):
+            with self.subTest(change=change), self.assertRaises(ValueError):
+                evaluate("s3", s3_transcript(**change), 0, False, S3_EVENTS["s3"])
+        for change in (dict(SLEEP_INIT_REFUSALS=3), dict(SLEEP_GENERATION=1), dict(SLEEP_TIMER_IRQS=2),
+                       dict(POWER_NOT_DURABLE=0)):
+            with self.subTest(change=change), self.assertRaises(ValueError):
+                evaluate("s3-not-durable", s3_transcript("s3-not-durable", **change), 33, False,
+                         S3_EVENTS["s3-not-durable"])
+        text = s3_transcript()
+        missing = "\n".join(line for line in text.splitlines() if "SLEEP_TIMER_IRQS" not in line) + "\n"
+        with self.assertRaises(ValueError):
+            evaluate("s3", missing, 0, False, S3_EVENTS["s3"])
+
+    def test_refused_sleep_never_reaches_the_s3_path(self):
+        with self.assertRaises(ValueError):
+            evaluate("s3-not-durable", s3_transcript("s3-not-durable", sleep=S3_LINES), 33, False,
+                     S3_EVENTS["s3-not-durable"])
+        with self.assertRaises(ValueError):
+            evaluate("s3-not-durable", s3_transcript("s3-not-durable", sleep=[S3_PLAN]), 33, False,
+                     S3_EVENTS["s3-not-durable"])
+
+    def test_stale_token_must_end_at_the_rejected_wake(self):
+        stale = [S3_PLAN, run_sleep.ENTER.format(1), run_sleep.STALE]
+        for sleep in ([S3_PLAN, run_sleep.ENTER.format(1), S3_RESUMED],
+                      [S3_PLAN, run_sleep.ENTER.format(1), run_sleep.STALE, "SYSTEM:BROKERS:PASS"],
+                      [S3_PLAN, run_sleep.ENTER.format(1), "SYSTEM:SLEEP:TIMER:WAIT", run_sleep.STALE],
+                      [*stale, "SYSTEM:DISK_READS:00000000000000000001"],
+                      [run_sleep.ENTER.format(1), run_sleep.STALE]):
+            with self.subTest(sleep=sleep), self.assertRaises(ValueError):
+                evaluate("s3-stale-token", s3_transcript("s3-stale-token", sleep=sleep), 33, False,
+                         S3_EVENTS["s3-stale-token"])
+        self.assertEqual(expected_markers("s3-stale-token")[-1], "SYSTEM:MANIFEST:PASS")
+
+    def test_profiles_without_s3_reject_sleep_evidence_and_events(self):
+        with self.assertRaises(ValueError):
+            evaluate("power", power_transcript(SLEEP_GENERATION=0), 0, False)
+        with self.assertRaises(ValueError):
+            evaluate("power", power_transcript(), 0, False, ["SUSPEND", "WAKEUP"])
+        with self.assertRaises(ValueError):
+            evaluate("normal", transcript(), 33, False, [])
+
+    def test_only_a_passing_s3_image_of_the_same_source_may_recover(self):
+        for case, feature in S3_FEATURE.items():
+            previous = dict(case=case, passed=True, kernel_feature=feature,
+                            source_sha256="source", after_sha256="disk")
+            with self.subTest(case=case):
+                check_parent(previous, "source", "disk", network=False)
+                for change in (dict(kernel_feature="native-system-power"), dict(passed=False),
+                               dict(after_sha256="other")):
+                    with self.assertRaises(ValueError):
+                        check_parent({**previous, **change}, "source", "disk", network=False)
 
 
 if __name__ == "__main__":

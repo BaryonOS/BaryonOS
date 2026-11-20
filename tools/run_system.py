@@ -27,8 +27,24 @@ FEATURE = {"normal": "native-system", "recover": "test-system-recover"}
 # stay out of FEATURE, which capture/gate drivers iterate as the FR-I01 cases.
 POWER_FEATURE = {"power": "native-system-power", "power-flush-error": "test-system-power-flush-error",
                  "power-flush-timeout": "test-system-power-flush-timeout"}
-POWER_CASES = tuple(POWER_FEATURE)
+# H05-T4: the same flow, but init first requests one synchronous ACPI S3 cycle
+# (syscall 0x91) behind the same storage gate. The harness alone wakes the
+# guest over QMP; stale-token stops at the rejected wake, not-durable never
+# sleeps. Separate from POWER_FEATURE so the H05 POWER cases stay unchanged.
+S3_FEATURE = {"s3": "native-system-s3", "s3-stale-token": "test-system-s3-stale-token",
+              "s3-not-durable": "test-system-s3-not-durable"}
+S3_WAKEUPS = {"s3": 1, "s3-stale-token": 1, "s3-not-durable": 0}
+POWER_CASES = (*POWER_FEATURE, *S3_FEATURE)
 S5_TAIL = ("POWER:S5:PM1A=0x0604:SLP_TYP=0:SCI_EN=1", "POWER:S5:WRITE")
+# Kernel-observed S3 evidence (system.rs SLEEP_*): exact values and minimums.
+SLEEP_EXACT = {
+    "s3": {"SLEEP_INIT_REFUSALS": 3, "SLEEP_APP_REFUSALS": 2, "SLEEP_GENERATION": 1,
+           "SLEEP_DEVICE_IO_AFTER_WAKE": 0, "SLEEP_DEVICE_REFUSALS": 0},
+    "s3-not-durable": {"SLEEP_APP_REFUSALS": 2, "SLEEP_GENERATION": 0, "SLEEP_TIMER_IRQS": 0,
+                       "SLEEP_DEVICE_IO_AFTER_WAKE": 0, "SLEEP_DEVICE_REFUSALS": 0},
+}
+SLEEP_MINIMUM = {"s3": {"SLEEP_TIMER_IRQS": 2}, "s3-not-durable": {"SLEEP_INIT_REFUSALS": 4}}
+SLEEP_TAIL = ("SYSTEM:SLEEP:TIMER:WAIT", "SYSTEM:SLEEP:RESUMED:PASS")
 # B02 persistence objects: the app's sealed record (domain 0) and init's
 # encrypted key-state snapshot (domain 1). Both are ciphertext, never fixtures.
 SEALED_OBJECT, SEALED_LENGTH, SEALED_NAME = 1, 168, "verzegeld"
@@ -127,7 +143,7 @@ def check_parent(previous: dict, frozen: str, image_sha256: str, *, network: boo
     # A powered-off (or power-refused) image must recover exactly like a normal one.
     parent_case = previous.get("case")
     if not network and parent_case in POWER_CASES:
-        parent_feature = POWER_FEATURE[parent_case]
+        parent_feature = {**POWER_FEATURE, **S3_FEATURE}[parent_case]
     else:
         parent_case = "normal" if parent_case == "normal" else None
     if not (parent_case is not None and previous.get("passed") is True
@@ -144,8 +160,11 @@ def check_parent(previous: dict, frozen: str, image_sha256: str, *, network: boo
 
 
 def expected_markers(case: str) -> tuple[str, ...]:
-    if case not in FEATURE and case not in POWER_FEATURE:
+    if case not in FEATURE and case not in POWER_CASES:
         raise ValueError("unknown system case")
+    if case == "s3-stale-token":
+        # The kernel stops at the rejected wake; nothing after the manifest.
+        return BOOT + ("SYSTEM:MANIFEST:PASS",)
     return BOOT + ("SYSTEM:MANIFEST:PASS", "SYSTEM:BROKERS:PASS",
                    "SYSTEM:CLEANUP:PASS", f"SYSTEM:CASE:{case.upper().replace('-', '_')}:PASS", "M1:PASS")
 
@@ -153,12 +172,12 @@ def expected_markers(case: str) -> tuple[str, ...]:
 def check_power(case: str, stdout: str, found: dict) -> None:
     """Exact S5 tail after M1:PASS, or a refusal without any PM1 write."""
     lines = stdout.splitlines()
-    if case == "power":
+    if case in ("power", "s3"):
         if tuple(lines[-3:]) != ("M1:PASS", *S5_TAIL) or "SYSTEM:POWER:GATE:PASS" not in lines:
             raise ValueError("power case did not end with the gated S5 write")
         expected = {"POWER_INIT_REFUSALS": 3, "POWER_APP_REFUSALS": 2, "POWER_NOT_DURABLE": 0}
     else:
-        fault = "FLUSH_ERROR" if case == "power-flush-error" else "FLUSH_TIMEOUT"
+        fault = "FLUSH_TIMEOUT" if case == "power-flush-timeout" else "FLUSH_ERROR"
         if (any(line.startswith("POWER:") for line in lines)
                 or lines.count(f"SYSTEM:FAULT_INJECTED:{fault}") != 1
                 or "SYSTEM:POWER:REFUSED:NOT_DURABLE" not in lines):
@@ -171,7 +190,70 @@ def check_power(case: str, stdout: str, found: dict) -> None:
             raise ValueError(f"{key}: expected {value}, found {found.get(key)}")
 
 
-def evaluate(case: str, stdout: str, raw_exit: int | None, timed_out: bool) -> dict[str, int]:
+def check_sleep(case: str, stdout: str, events: list[str] | None) -> dict:
+    """Exact S3 sub-sequence of a ring-3 S3 case plus the independent QMP events.
+
+    `s3`: after the manifest and before BROKERS exactly PLAN, ENTER (cycle 1),
+    RESUMED (directly after ENTER), the timer wait and RESUMED:PASS.
+    `s3-stale-token`: PLAN, ENTER, then the token rejection ends the guest.
+    `s3-not-durable`: no S3 line and no QMP SUSPEND at all.
+    """
+    from run_sleep import ENTER, PLAN, RESUMED, STALE
+    if case not in S3_FEATURE:
+        raise ValueError("not an S3 system case")
+    if events is None or any(type(event) is not str for event in events):
+        raise ValueError("S3 system case needs its recorded QMP events")
+    sleep_events = [event for event in events if event in ("SUSPEND", "WAKEUP")]
+    if sleep_events != ["SUSPEND", "WAKEUP"] * S3_WAKEUPS[case]:
+        raise ValueError(f"unexpected QMP sleep events: {sleep_events}")
+    # The guest's S5 after the wake is a QMP SHUTDOWN (measured on QEMU 8.2):
+    # exactly one, after WAKEUP, and only in the case that powers off.
+    shutdown = [event for event in events if event == "SHUTDOWN"]
+    if case == "s3":
+        if shutdown != ["SHUTDOWN"] or events.index("SHUTDOWN") < events.index("WAKEUP"):
+            raise ValueError(f"missing or misplaced QMP SHUTDOWN after the wake: {events}")
+    elif shutdown:
+        raise ValueError("QMP SHUTDOWN in a case that must not power off")
+    lines = stdout.splitlines()
+    manifest = lines.index("SYSTEM:MANIFEST:PASS")
+    found = [(index, line) for index, line in enumerate(lines)
+             if line.startswith(("POWER:S3:", "SYSTEM:SLEEP:"))]
+    texts = [line for _, line in found]
+    observed = {"qmp_sleep_events": sleep_events, "qmp_shutdown_events": len(shutdown)}
+    if case == "s3-not-durable":
+        if texts:
+            raise ValueError("not-durable case reached the S3 path")
+        return observed
+    if any(index < manifest for index, _ in found):
+        raise ValueError("S3 marker before the system manifest")
+    if len(texts) < 3 or not (plan := PLAN.fullmatch(texts[0])) or texts[1] != ENTER.format(1):
+        raise ValueError(f"missing S3 plan/entry: {texts[:2]}")
+    real, pm32 = (int(value, 16) for value in plan.groups())
+    if not (0x1000 <= real < 0xa0000 and real % 0x1000 == 0 and 0 < pm32 < 1 << 32 and pm32 % 16 == 0):
+        raise ValueError("wake entries outside the real-mode page / 32-bit image bounds")
+    if found[2][0] != found[1][0] + 1:
+        raise ValueError("S3 entry not directly followed by the wake report")
+    observed.update(real_mode_entry=hex(real), protected_entry=hex(pm32))
+    if case == "s3-stale-token":
+        if texts[2:] != [STALE] or [line for line in lines if line][-1] != STALE:
+            raise ValueError(f"stale token did not end the guest at the rejected wake: {texts[2:]}")
+        if any(re.fullmatch(r"SYSTEM:[A-Z_]+:[0-9]{20}", line) for line in lines):
+            raise ValueError("stale-token guest reported system evidence after the wake")
+        observed["rejection"] = STALE
+        return observed
+    resumed = RESUMED.fullmatch(texts[2])
+    if not resumed or resumed.group(1) != "1" or not int(resumed.group(2), 16) & 0x8000:
+        raise ValueError(f"unexpected S3 wake report: {texts[2]}")
+    if tuple(texts[3:]) != SLEEP_TAIL:
+        raise ValueError(f"unexpected post-wake sequence: {texts[3:]}")
+    if found[-1][0] > lines.index("SYSTEM:BROKERS:PASS"):
+        raise ValueError("S3 sequence after the broker check")
+    observed.update(pm1_status=resumed.group(2), sci_en=resumed.group(3))
+    return observed
+
+
+def evaluate(case: str, stdout: str, raw_exit: int | None, timed_out: bool,
+             events: list[str] | None = None) -> dict[str, int]:
     expected = expected_markers(case)
     controlled = [line for line in stdout.splitlines()
                   if line in BOOT or line == "M1:PASS" or
@@ -180,10 +262,17 @@ def evaluate(case: str, stdout: str, raw_exit: int | None, timed_out: bool) -> d
     if controlled != list(expected):
         raise ValueError(f"system marker sequence mismatch: {controlled}")
     # Only a guest poweroff exits 0: the power runs override -no-reboot.
-    if timed_out or raw_exit != (0 if case == "power" else 33):
+    if timed_out or raw_exit != (0 if case in ("power", "s3") else 33):
         raise ValueError(f"raw exit {raw_exit}, timed_out {timed_out}")
     if any("PANIC" in line or "FAIL" in line for line in stdout.splitlines()):
         raise ValueError("guest failure marker")
+    if case in S3_FEATURE:
+        sleep = check_sleep(case, stdout, events)
+        if case == "s3-stale-token":
+            # The guest stopped at the rejected wake: no kernel evidence follows.
+            return {"sleep": sleep}
+    elif events is not None:
+        raise ValueError("QMP events belong to the S3 system cases only")
     found = {}
     for line in stdout.splitlines():
         match = re.fullmatch(r"SYSTEM:([A-Z_]+):([0-9]{20})", line)
@@ -219,9 +308,20 @@ def evaluate(case: str, stdout: str, raw_exit: int | None, timed_out: bool) -> d
         raise ValueError("wrong durability/readonly flush evidence")
     if case in POWER_CASES:
         check_power(case, stdout, found)
+    if case in S3_FEATURE:
+        for key, value in SLEEP_EXACT[case].items():
+            if found.get(key) != value:
+                raise ValueError(f"{key}: expected {value}, found {found.get(key)}")
+        for key, value in SLEEP_MINIMUM[case].items():
+            if found.get(key, -1) < value:
+                raise ValueError(f"{key}: expected at least {value}, found {found.get(key)}")
+    elif any(key.startswith("SLEEP_") for key in found):
+        raise ValueError("S3 evidence in a profile without S3")
     expected_sum = volume_disk.fnv(volume_disk.fixture(0, 1, 4096))
     if found.get("APP_CONTENT_SUM") != expected_sum:
         raise ValueError("guest read content differs from the independent fixture")
+    if case in S3_FEATURE:
+        return {**found, "sleep": sleep}
     return found
 
 
@@ -342,9 +442,13 @@ def run_system(case: str, volume_dir: Path | None = None, *, timeout: int = MAX_
                kernel_feature: str | None = None, network_port: int | None = None,
                rtc_base: str | None = None, cold_case: str | None = None,
                nic_status: bool = True, qmp_hook=None):
-    cases = {**FEATURE, **POWER_FEATURE}
+    cases = {**FEATURE, **POWER_FEATURE, **S3_FEATURE}
     if case not in cases or not 0 < timeout <= MAX_TIMEOUT:
         raise ValueError("unknown case or unbounded timeout")
+    if case in S3_FEATURE:
+        from run_sleep import MACHINE
+        if qemu_machine() != MACHINE:
+            raise ValueError(f"S3 system cases are pinned to {MACHINE}; set NOS_QEMU_MACHINE={MACHINE}")
     if cold_case is not None and (case != "recover" or cold_case not in COLD_CASES or kernel_feature is not None):
         raise ValueError("cold cases require the ordinary recover profile")
     selected = cases[case] if kernel_feature is None else kernel_feature
@@ -446,12 +550,23 @@ def run_system(case: str, volume_dir: Path | None = None, *, timeout: int = MAX_
     started = datetime.now(timezone.utc).isoformat()
     begin = time.monotonic()
     on_line = None if qmp_hook is None else (lambda line, process: qmp_hook(line, process, run_dir))
-    try:
-        rc, stdout, stderr, timed_out, _, _ = execute(command, env, timeout=timeout, on_line=on_line)
-    except Exception as error:
-        # A failed link-control hook killed QEMU: keep the partial serial log.
-        (run_dir / "serial.txt").write_text(getattr(error, "partial_stdout", ""))
-        raise
+    s3_control = None
+    if case in S3_FEATURE:
+        # The S3 controller replaces `-serial stdio` with a file in run_dir and
+        # owns a private `-qmp stdio`: query-status, system_wakeup, events.
+        from run_sleep import controlled_guest
+        s3_control = controlled_guest(command, cwd=ROOT, env=env, timeout=timeout, run_dir=run_dir,
+                                      wakeups=S3_WAKEUPS[case])
+        rc, timed_out = s3_control["returncode"], s3_control["timed_out"]
+        stdout = s3_control["stdout"].decode("utf-8", errors="replace")
+        stderr = s3_control["stderr"].decode("utf-8", errors="replace")
+    else:
+        try:
+            rc, stdout, stderr, timed_out, _, _ = execute(command, env, timeout=timeout, on_line=on_line)
+        except Exception as error:
+            # A failed link-control hook killed QEMU: keep the partial serial log.
+            (run_dir / "serial.txt").write_text(getattr(error, "partial_stdout", ""))
+            raise
     duration = time.monotonic() - begin
     (run_dir / "serial.txt").write_text(stdout)
     (run_dir / "stderr.txt").write_text(stderr)
@@ -473,12 +588,17 @@ def run_system(case: str, volume_dir: Path | None = None, *, timeout: int = MAX_
     if link:
         report["nic_status"] = nic_status
         report["qmp_socket"] = "qmp.sock" if qmp_hook is not None else None
+    if s3_control is not None:
+        report["s3_control"] = {key: s3_control[key] for key in ("trace", "events", "observations", "error")}
     try:
+        if s3_control is not None and s3_control["error"] is not None:
+            raise RuntimeError(f"S3 controller: {s3_control['error']}")
         report["cold_case"] = cold_case
         report["fixture_environment"] = {"NOS_SYSTEM_COLD_CASE": os.environ.get("NOS_SYSTEM_COLD_CASE")}
         report["cold_antirollback"] = "UNPROTECTED: no independently trusted cold generation floor"
         report["evidence"] = (evaluate_cold(cold_case, stdout, rc, timed_out) if cold_case is not None
-                              else evaluate(case, stdout, rc, timed_out))
+                              else evaluate(case, stdout, rc, timed_out,
+                                            None if s3_control is None else s3_control["events"]))
         if case == "recover" and before != after:
             raise ValueError("read-only cold recovery changed the disk")
         oracle = volume_disk.analyse(image.read_bytes(), OPAQUE_OBJECTS)
@@ -501,7 +621,7 @@ def run_system(case: str, volume_dir: Path | None = None, *, timeout: int = MAX_
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--case", choices=(*FEATURE, *POWER_FEATURE), required=True)
+    parser.add_argument("--case", choices=(*FEATURE, *POWER_FEATURE, *S3_FEATURE), required=True)
     parser.add_argument("--volume", type=Path)
     parser.add_argument("--cold-case", choices=COLD_CASES)
     parser.add_argument("--timeout", type=int, default=MAX_TIMEOUT)

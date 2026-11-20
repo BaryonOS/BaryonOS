@@ -15,7 +15,7 @@ use core::{arch::asm, ptr};
 use nieuw_os_acpi_power::{
     fadt_dsdt_address, parse_s5, AcpiTableSnapshot, Error, S5Plan, TableSnapshot,
 };
-#[cfg(feature = "native-acpi-s3")]
+#[cfg(feature = "acpi-s3")]
 use nieuw_os_acpi_power::{fadt_facs_address, parse_s3, S3Plan};
 
 const HEADER: usize = 36;
@@ -23,7 +23,7 @@ const FADT_MAX: usize = 4096;
 // shortcut: the QEMU q35 DSDT is ~8 KiB; raise when a profile ships a larger one.
 const DSDT_MAX: usize = 64 * 1024;
 /// The QEMU/OVMF FACS is 64 bytes; one page bounds any FACS this profile reads.
-#[cfg(feature = "native-acpi-s3")]
+#[cfg(feature = "acpi-s3")]
 const FACS_MAX: usize = 4096;
 
 // The S3-only profile computes the S5 plan without a power-off caller.
@@ -46,7 +46,7 @@ static mut STATE: State = State::Unavailable;
 /// S3 observations from the same once-only discovery. `Ready` additionally
 /// records that the whole FACS extent is UEFI ACPI NVS (type 10), the only
 /// condition under which `sleep` may store its waking vector.
-#[cfg(feature = "native-acpi-s3")]
+#[cfg(feature = "acpi-s3")]
 #[derive(Clone, Copy)]
 pub(crate) enum S3State {
     Unavailable,
@@ -55,9 +55,9 @@ pub(crate) enum S3State {
     NotNvs,
     Ready(S3Plan),
 }
-#[cfg(feature = "native-acpi-s3")]
+#[cfg(feature = "acpi-s3")]
 static mut FACS: [u8; FACS_MAX] = [0; FACS_MAX];
-#[cfg(feature = "native-acpi-s3")]
+#[cfg(feature = "acpi-s3")]
 static mut S3: S3State = S3State::Unavailable;
 
 /// Called once from ACPI discovery with the firmware-map-checked reader and
@@ -81,7 +81,7 @@ pub(super) fn snapshot(
     } else {
         extract(reader, fadt_address, fadt, dsdt)
     };
-    #[cfg(feature = "native-acpi-s3")]
+    #[cfg(feature = "acpi-s3")]
     {
         // SAFETY: Same once-guarded single-BSP discovery as above; nothing
         // else references FACS/S3 before `s3()` reads the final state.
@@ -96,7 +96,7 @@ pub(super) fn snapshot(
 
 /// Re-reads the bounded FADT/DSDT copies (already validated or rejected by
 /// the S5 path) together with the FADT-designated FACS.
-#[cfg(feature = "native-acpi-s3")]
+#[cfg(feature = "acpi-s3")]
 fn extract_s3(
     reader: &mut impl PhysicalRead,
     fadt_address: u64,
@@ -166,14 +166,14 @@ fn extract_s3(
 }
 
 /// The S3 discovery result; read-only after discovery.
-#[cfg(feature = "native-acpi-s3")]
+#[cfg(feature = "acpi-s3")]
 pub(crate) fn s3() -> S3State {
     // SAFETY: Written once during discovery on this CPU; read-only from here.
     unsafe { *ptr::addr_of!(S3) }
 }
 
 /// Re-reads the FACS hardware signature (offset 8) for the post-wake check.
-#[cfg(feature = "native-acpi-s3")]
+#[cfg(feature = "acpi-s3")]
 pub(crate) fn facs_bytes() -> &'static [u8] {
     // SAFETY: The FACS copy is written only during discovery; afterwards it
     // is a read-only snapshot of the pre-sleep firmware state.

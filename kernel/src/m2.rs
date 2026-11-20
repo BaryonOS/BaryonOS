@@ -17,7 +17,7 @@ pub(crate) mod paging;
 pub(crate) mod power;
 #[cfg(any(feature = "native-rtc", feature = "native-system-clock"))]
 mod rtc;
-#[cfg(feature = "native-acpi-s3")]
+#[cfg(feature = "acpi-s3")]
 mod sleep;
 #[cfg(feature = "native-smp")]
 pub(crate) mod smp;
@@ -125,7 +125,7 @@ extern "C" fn run() -> ! {
     // First-fit before any table allocation: the lowest free frame is the SIPI page.
     #[cfg(feature = "native-smp")]
     let trampoline = smp::reserve_trampoline(frames);
-    #[cfg(feature = "native-acpi-s3")]
+    #[cfg(feature = "acpi-s3")]
     let wake_page = sleep::reserve_wake_page(frames);
     let mut paging = paging::Paging::new(frames);
     let text_end = ptr::addr_of!(__text_end) as u64;
@@ -164,8 +164,8 @@ extern "C" fn run() -> ! {
     #[cfg(feature = "native-smp")]
     let smp_prepared = smp::prepare(frames, &mut paging, trampoline);
     // Same constraint as the SIPI page: written through the firmware identity map.
-    #[cfg(feature = "native-acpi-s3")]
-    let s3_prepared = sleep::prepare(frames, &mut paging, wake_page);
+    #[cfg(feature = "acpi-s3")]
+    sleep::prepare(frames, &mut paging, wake_page);
     // Pinned DMA pages are mapped while new tables are still identity-accessible.
     #[cfg(feature = "native-virtio-snd-probe")]
     let snd_pool = snd::prepare(frames, &mut paging);
@@ -256,7 +256,7 @@ extern "C" fn run() -> ! {
     {
         serial::write(b"M2:PASS\nM1:PASS\n");
         #[cfg(feature = "native-acpi-s3")]
-        sleep::run(frames, &mut paging, s3_prepared);
+        sleep::run(frames, &mut paging);
         #[cfg(feature = "native-acpi-s5")]
         power::off();
         serial::exit(0x10)

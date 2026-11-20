@@ -2208,6 +2208,10 @@ fn event(source: *const u64) -> *const u64 {
         let supervisor_call = supervisor_call || number == 0x73;
         #[cfg(feature = "native-system-power")]
         let supervisor_call = supervisor_call || number == 0x90;
+        // H05-T4: SUSPEND exists only in the S3 profile; elsewhere it stays
+        // an unknown number and m4 answers ENOSYS.
+        #[cfg(feature = "native-system-s3")]
+        let supervisor_call = supervisor_call || number == 0x91;
         #[cfg(not(any(feature = "native-supervisor", feature = "native-keyring")))]
         #[allow(unused_variables)]
         let supervisor_call = false;
@@ -2264,6 +2268,14 @@ fn event(source: *const u64) -> *const u64 {
                     state.processes[current].context[12] = 0;
                 }
             }
+        }
+        // Synchronous S3: on success the caller resumes here after the wake
+        // with rax=0, rdx=generation; every refusal happens before any I/O.
+        #[cfg(feature = "native-system-s3")]
+        if number == 0x91 {
+            let (rax, rdx) = system::suspend(state, current, args);
+            state.processes[current].context[14] = rax as u64;
+            state.processes[current].context[12] = rdx;
         }
         #[cfg(feature = "native-keyring")]
         if matches!(number, 0x60 | 0x61) {
@@ -2622,6 +2634,15 @@ fn out8(port: u16, value: u8) {
     unsafe {
         asm!("out dx,al",in("dx") port,in("al") value,options(nomem,nostack,preserves_flags));
     }
+}
+#[cfg(feature = "native-system-s3")]
+fn in8(port: u16) -> u8 {
+    let value: u8;
+    // SAFETY: Read of the fixed QEMU PIC IMR ports only, CPL0, IF=0.
+    unsafe {
+        asm!("in al,dx",in("dx") port,out("al") value,options(nomem,nostack,preserves_flags));
+    }
+    value
 }
 fn timer_init() {
     out8(0x20, 0x11);

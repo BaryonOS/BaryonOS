@@ -95,13 +95,24 @@ def _status(control) -> str:
     return status["status"]
 
 
-def controlled_guest(args: list[str], *, cwd, env, timeout, run_dir, case: str) -> dict:
-    """Run the run.py-prepared command; wake each S3 entry exactly once.
+def controlled_guest(args: list[str], *, cwd, env, timeout, run_dir, case: str | None = None,
+                     wakeups: int | None = None, enter: str = ENTER) -> dict:
+    """Run a prepared QEMU command; wake each S3 entry exactly once.
 
-    All process exits are reaped; errors and timeout cannot leave a private
-    emulator alive. There is no fresh timeout for an individual phase.
+    `case` selects a native-acpi-s3 fixture (as run.py does); other callers
+    (the ring-3 S3 system cases in run_system.py) pass the exact number of
+    `wakeups` and the `enter` marker format instead. All process exits are
+    reaped; errors and timeout cannot leave a private emulator alive. There
+    is no fresh timeout for an individual phase.
     """
-    wakeups = expected_wakeups(case)
+    if (case is None) == (wakeups is None):
+        raise ValueError("Select exactly one of an S3 fixture case or a wake count")
+    if case is not None:
+        wakeups = expected_wakeups(case)
+    if type(wakeups) is not int or not 0 <= wakeups <= CYCLES:
+        raise ValueError("S3 wake count outside the fixture bound")
+    if not isinstance(enter, str) or "{}" not in enter or not enter.startswith("POWER:S3:ENTER:"):
+        raise ValueError("Unexpected S3 entry marker format")
     if timeout <= 0:
         raise ValueError("S3 fixture timeout must be positive")
     run_dir = Path(run_dir)
@@ -127,7 +138,7 @@ def controlled_guest(args: list[str], *, cwd, env, timeout, run_dir, case: str) 
                 text = _serial(serial_path)
                 if "FAIL" in text or "PANIC" in text:
                     break
-                if cycle < wakeups and ENTER.format(cycle + 1) in text.splitlines():
+                if cycle < wakeups and enter.format(cycle + 1) in text.splitlines():
                     while _status(control) != "suspended":
                         if process.poll() is not None or time.monotonic() >= deadline:
                             raise RuntimeError(f"Guest never suspended after cycle {cycle + 1}")

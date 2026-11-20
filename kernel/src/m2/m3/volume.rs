@@ -957,6 +957,14 @@ fn device_call(s: &mut State, slot: usize, n: u64, a: [u64; 6]) -> Result<u64, i
     } else {
         None
     };
+    // H05-T4: after an S3 wake the virtio-blk device was reset and is never
+    // reinitialized; refuse before any broker or device state. `offline`
+    // stays untouched so the power gate keeps its -16 meaning.
+    #[cfg(feature = "native-system-s3")]
+    if super::system::devices_lost() {
+        super::system::device_refused();
+        return Err(-14);
+    }
     let r = runtime();
     if r.lanes[dev].offline != 0 {
         return Err(r.lanes[dev].offline);

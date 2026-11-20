@@ -99,6 +99,35 @@ compile_error!("native-acpi-s3 resumes only the single-CPU IF0 bootstrap; no dev
 ))]
 compile_error!("native-system-power gates S5 on exactly the base native-system brokers");
 #[cfg(all(
+    feature = "acpi-s3",
+    not(any(feature = "native-acpi-s3", feature = "native-system-s3"))
+))]
+compile_error!("acpi-s3 is the shared S3 mechanism; select native-acpi-s3 or native-system-s3");
+#[cfg(all(
+    feature = "native-system-s3",
+    any(
+        feature = "native-acpi-s3",
+        feature = "native-smp",
+        feature = "fpu-context",
+        feature = "ipc-wait",
+        feature = "monotonic-clock",
+        feature = "display-input",
+        feature = "process-memory",
+        feature = "native-system-net",
+        feature = "native-system-random",
+        feature = "native-system-images",
+        feature = "native-system-clock",
+        feature = "test-system-recover",
+        feature = "test-system-power-flush-timeout"
+    )
+))]
+compile_error!("native-system-s3 suspends exactly the base native-system-power profile on one CPU");
+#[cfg(all(
+    feature = "test-system-s3-stale-token",
+    feature = "test-system-s3-not-durable"
+))]
+compile_error!("the S3 system negative cases require separate boots");
+#[cfg(all(
     feature = "native-smp",
     not(feature = "native-smp-legacy"),
     any(
