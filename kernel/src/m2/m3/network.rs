@@ -601,12 +601,14 @@ pub(super) fn print_and_check(tx: u64, rx: u64) {
 /// refused while the link is down or not yet observed, before any copy-out,
 /// descriptor publication, bounce-page (DMA) write or doorbell; undelivered RX
 /// bytes, including a completion still in the RX used ring, are destroyed at
-/// every down edge and completions arriving while down are discarded. 0x74
-/// exposes only `(epoch, up)`: no registers, MAC or rights. Without
-/// VIRTIO_NET_F_STATUS the link is assumed active (virtio 1.2, 5.1.4.2) and
-/// 0x74 reports Unsupported (-15), its only meaning. Exhaustion or any reset
-/// latches: stop() keeps the pinned DMA pages and waits for the reset ACK;
-/// 0x74 then reports Offline (-14), whatever the stop cause.
+/// every down and every up edge, so a completion that arrived while the kernel
+/// epoch was down or unknown is discarded, also when hidden changes collapse
+/// into one up edge. 0x74 exposes only `(epoch, up)`: no registers, MAC or
+/// rights. Without VIRTIO_NET_F_STATUS the link is assumed active (virtio
+/// 1.2, 5.1.4.2) and 0x74 reports Unsupported (-15), its only meaning.
+/// Exhaustion or any reset latches: stop() keeps the pinned DMA pages and
+/// waits for the reset ACK; 0x74 then reports Offline (-14), whatever the
+/// stop cause.
 #[cfg(feature = "test-system-net-link")]
 pub(super) mod link {
     use super::*;
@@ -786,7 +788,7 @@ pub(super) mod link {
 
     /// Copy a completion already in the RX used ring into the empty broker
     /// buffer, so that the following drop_rx destroys it and reposts the
-    /// page. Returns true when the broker stopped.
+    /// page. Used at every link edge. Returns true when the broker stopped.
     fn harvest(r: &mut Runtime, now: u64) -> bool {
         // While a copy is held the RX descriptor is not posted: nothing to take.
         if r.rx_length != 0 {
@@ -834,6 +836,16 @@ pub(super) mod link {
                     b"NETLINK:WINDOW_CLOSE_PUBLISHED:",
                     u64::from(published.0) << 16 | u64::from(published.1),
                 );
+            }
+            // A completion already in the used ring arrived while the kernel
+            // epoch was down or unknown. Hidden changes inside one tick (up,
+            // frame, down, up, seen from a down epoch) collapse into this one
+            // real up edge, and broker_tick polls RX only after the sample, so
+            // destroy it here and repost the page. This runs after the window
+            // closed: the repost is not a down-window publication. Cost: at
+            // most one legitimate frame (the single RX buffer) per up edge.
+            if harvest(r, now) || drop_rx(r, now) {
+                return true;
             }
             print_number(
                 if event.synthetic {

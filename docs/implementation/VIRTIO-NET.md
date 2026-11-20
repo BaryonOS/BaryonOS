@@ -154,14 +154,24 @@ comparison.
   same pinned RX page is handed back to the device; RX completions observed
   while the link is down or unknown are dropped the same way. No DMA page is
   freed or reused for another purpose.
-- A completion that is already in the RX used ring at a down edge is taken
-  into the empty broker buffer at that edge and dropped with it. The broker
-  polls RX only after the link sample, so without this step a
-  generation-only sample (synthetic down, then up, applied back to back)
-  would let a frame that completed before the down edge be delivered in the
-  new epoch. A failed RX poll there stops the broker. The take, the drop and
-  the repost all happen before the down window opens, so the repost is not
-  counted as a down-window publication.
+- A completion that is already in the RX used ring at a link edge, down or
+  up, is taken into the empty broker buffer at that edge and dropped with
+  it. The broker polls RX only after the link sample, so without this step:
+  - a generation-only sample (synthetic down, then up, applied back to back)
+    would let a frame that completed before the down edge be delivered in
+    the new epoch;
+  - a real up edge seen from a down epoch would do the same. QEMU accepts
+    RX while its own link is up, so `set_link` on, a peer frame, `set_link`
+    off and on again between two samples collapse into one real up edge.
+    The bit changed, so there is no synthetic pair, and the frame from the
+    hidden session is still in the used ring.
+
+  Every completion present at an up edge arrived while the kernel epoch was
+  down or unknown. The cost is at most one legitimate frame per up edge,
+  because there is a single RX buffer. A failed RX poll there stops the
+  broker. At a down edge the take, the drop and the repost happen before
+  the down window opens; at an up edge they happen after the window has
+  closed. Neither repost is counted as a down-window publication.
 - An in-flight TX is not terminalized at a down edge. QEMU drops queued TX
   data while the link is down and completes the descriptor with `used.len`
   0 (`virtio_net_drop_tx_queue_data`), which `validate_used` already accepts
