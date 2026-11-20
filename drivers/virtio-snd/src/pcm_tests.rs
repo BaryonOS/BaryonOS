@@ -130,7 +130,8 @@ fn constants_match_the_specification_header() {
         (CHANNELS, FORMAT_S16, RATE_48000, FRAME_BYTES),
         (2, 5, 7, 4)
     );
-    assert_eq!(MAX_BUFFER_BYTES, 8192);
+    // One 2048-byte TX slot minus the 4-byte xfer header (`queue`).
+    assert_eq!((MAX_PERIOD_BYTES, MAX_BUFFER_BYTES), (2044, 8176));
 }
 
 #[test]
@@ -238,6 +239,10 @@ fn set_params_bounds_are_enforced_before_encoding() {
         (1, 1919),
         (1, 2),
         (4, 2052),
+        // A period that would not fit one TX slot behind its xfer header.
+        (1, 2048),
+        (4, 2048),
+        (1, MAX_PERIOD_BYTES + FRAME_BYTES),
     ] {
         let mut s = stream();
         assert_eq!(
@@ -250,7 +255,8 @@ fn set_params_bounds_are_enforced_before_encoding() {
     }
     let mut s = stream();
     let request = s.set_params(MAX_PERIODS, MAX_PERIOD_BYTES).unwrap();
-    assert_eq!(u32_at(request.as_bytes(), 8), Ok(MAX_BUFFER_BYTES));
+    assert_eq!(u32_at(request.as_bytes(), 8), Ok(8176));
+    assert_eq!(u32_at(request.as_bytes(), 12), Ok(2044));
     assert_eq!(s.set_params(1, 4), Err(Error::Busy));
 }
 
@@ -590,4 +596,89 @@ fn fence_policy_only_for_device_violations() {
 fn readers_never_panic_on_bad_offsets() {
     assert_eq!(u32_at(&[0; 3], 0), Err(Error::Length));
     assert_eq!(u32_at(&[0; 4], usize::MAX), Err(Error::Overflow));
+}
+
+/// Stream 1 of a two-stream, jackless device, running.
+fn running_stream() -> (Config, Stream) {
+    (config(0, 2), running())
+}
+
+#[test]
+fn f17_short_event_answers_are_counted_not_decoded() {
+    let (cfg, mut s) = running_stream();
+    let mut budget = EventBudget::new();
+    // Valid-looking bytes behind a short used length are not routed.
+    let elapsed = event_bytes(EVT_PCM_PERIOD_ELAPSED, 1);
+    for used_len in [0, 4, 7, 0, 1, 2, 3, 6] {
+        assert_eq!(
+            handle_event(cfg, Some(&mut s), used_len, &elapsed, &mut budget),
+            Ok(()),
+            "{used_len}"
+        );
+    }
+    assert_eq!(budget.invalid(), MAX_INVALID_EVENTS);
+    assert_eq!(s.periods_elapsed(), 0);
+    let storm = handle_event(cfg, Some(&mut s), 4, &elapsed, &mut budget);
+    assert_eq!(storm, Err(Error::EventStorm));
+    assert!(storm.unwrap_err().requires_fence());
+    // Longer than the 8-byte buffer: a violation, not a counted event.
+    let mut fresh = EventBudget::new();
+    for used_len in [9, 16, u32::MAX] {
+        let long = handle_event(cfg, Some(&mut s), used_len, &elapsed, &mut fresh);
+        assert_eq!(long, Err(Error::Length));
+        assert!(long.unwrap_err().requires_fence());
+    }
+    assert_eq!(fresh.invalid(), 0);
+}
+
+#[test]
+fn f17_full_events_route_and_share_one_budget_with_short_ones() {
+    let (cfg, mut s) = running_stream();
+    let mut budget = EventBudget::new();
+    let elapsed = event_bytes(EVT_PCM_PERIOD_ELAPSED, 1);
+    assert_eq!(
+        handle_event(cfg, Some(&mut s), 8, &elapsed, &mut budget),
+        Ok(())
+    );
+    assert_eq!((s.periods_elapsed(), budget.invalid()), (1, 0));
+    // Short answers, an unknown stream and CTL_NOTIFY count against one bound.
+    let invalid = [
+        event_bytes(EVT_PCM_PERIOD_ELAPSED, 2),
+        event_bytes(EVT_CTL_NOTIFY, 0),
+        event_bytes(0x1234, 0),
+        event_bytes(EVT_PCM_PERIOD_ELAPSED, 0),
+    ];
+    for bytes in invalid {
+        assert_eq!(
+            handle_event(cfg, Some(&mut s), 8, &bytes, &mut budget),
+            Ok(())
+        );
+        assert_eq!(
+            handle_event(cfg, Some(&mut s), 3, &bytes, &mut budget),
+            Ok(())
+        );
+    }
+    assert_eq!(budget.invalid(), MAX_INVALID_EVENTS);
+    assert_eq!(
+        handle_event(cfg, Some(&mut s), 8, &invalid[1], &mut budget),
+        Err(Error::EventStorm)
+    );
+    // Without a stream every decoded event is invalid; Stale is not counted.
+    let mut none = EventBudget::new();
+    assert_eq!(handle_event(cfg, None, 8, &elapsed, &mut none), Ok(()));
+    assert_eq!(none.invalid(), 1);
+    let mut late = stopped();
+    let mut stale = EventBudget::new();
+    for _ in 0..=4 {
+        assert_eq!(
+            handle_event(cfg, Some(&mut late), 8, &elapsed, &mut stale),
+            Ok(())
+        );
+    }
+    assert_eq!(stale.invalid(), 0);
+    assert_eq!(
+        handle_event(cfg, Some(&mut late), 8, &elapsed, &mut stale),
+        Ok(())
+    );
+    assert_eq!(stale.invalid(), 1, "beyond the stale bound it counts");
 }

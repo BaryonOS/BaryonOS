@@ -9,7 +9,8 @@
 //! pinned kernel pages are not DMA isolation.
 
 use crate::pcm::{
-    CONTROL_STATUS_BYTES, EVENT_BYTES, FRAME_BYTES, SET_PARAMS_BYTES, TX_STATUS_BYTES, XFER_BYTES,
+    CONTROL_STATUS_BYTES, EVENT_BYTES, FRAME_BYTES, MAX_PERIOD_BYTES, SET_PARAMS_BYTES,
+    TX_STATUS_BYTES, XFER_BYTES,
 };
 use crate::MAX_RESPONSE_BYTES;
 
@@ -27,6 +28,10 @@ pub const QUEUES: u16 = 4;
 pub const ACTIVE: [u16; 3] = [CONTROLQ, EVENTQ, TXQ];
 /// Empty 8-byte event buffers posted before DRIVER_OK (§5.14.5).
 pub const EVENT_BUFFERS: u16 = 4;
+/// Event completions handled per poll. A device that keeps completing the
+/// re-posted event buffers must not hold the single-CPU IF0 kernel in one
+/// loop past its TX-progress and drain deadlines.
+pub const EVENTS_PER_POLL: u16 = EVENT_BUFFERS;
 /// Four TX bounce slots of 2048 bytes: header plus one period each (§4).
 pub const TX_SLOTS: u16 = 4;
 pub const SLOT_BYTES: u32 = 2048;
@@ -78,6 +83,9 @@ const _: () = assert!(TX_STATUS_OFFSET + TX_SLOTS as u64 * TX_STATUS_BYTES as u6
 const _: () = assert!(EVENT_BUFFERS <= QUEUE_SIZE && 2 * TX_SLOTS <= QUEUE_SIZE);
 const _: () = assert!(TX_SLOTS.is_multiple_of(SLOTS_PER_PAGE) && PCM_PAGES == 2);
 const _: () = assert!(FIXTURE_PERIOD_BYTES <= MAX_SLOT_PCM);
+// One full period must always fit one TX slot behind its xfer header, so a
+// period that `pcm::Stream::set_params` accepts can always be sent whole.
+const _: () = assert!(MAX_PERIOD_BYTES == MAX_SLOT_PCM);
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum Error {
@@ -245,6 +253,10 @@ pub struct Chain<const N: usize> {
     pub used_len: u32,
     /// A second accepted used length, 0 when `used_len` is the only one.
     pub alternate_used_len: u32,
+    /// F17: a used length below `used_len` still completes this head, as an
+    /// invalid (short) answer the caller must count against its event budget.
+    /// Only event buffers set it; a longer used length is always `Length`.
+    pub accept_short: bool,
     pub entries: [(u16, Descriptor); N],
 }
 
@@ -267,6 +279,7 @@ pub fn control_chain(
         head: 0,
         used_len: response_len,
         alternate_used_len: 0,
+        accept_short: false,
         entries: [
             (
                 0,
@@ -309,12 +322,15 @@ pub fn pcm_info_chain(
     Ok(chain)
 }
 
-/// One empty, device-writable 8-byte event buffer; its head is `buffer`.
+/// One empty, device-writable 8-byte event buffer; its head is `buffer`. A
+/// used length below 8 completes it as an invalid event (F17: ignored and
+/// counted by the caller); a used length above 8 is a used-ring violation.
 pub fn event_chain(pool: &Pool, buffer: u16) -> Result<Chain<1>, Error> {
     Ok(Chain {
         head: buffer,
         used_len: EVENT_BYTES as u32,
         alternate_used_len: 0,
+        accept_short: true,
         entries: [(
             buffer,
             Descriptor {
@@ -341,6 +357,7 @@ pub fn tx_chain(pool: &Pool, slot: u16, pcm_len: usize) -> Result<Chain<2>, Erro
         head,
         used_len: TX_STATUS_BYTES as u32,
         alternate_used_len: 0,
+        accept_short: false,
         entries: [
             (
                 head,
@@ -373,12 +390,14 @@ pub struct Publication {
 
 /// Driver-side state of one split virtqueue. Each outstanding head carries
 /// the exact used length it may complete with (plus at most one explicitly
-/// published alternate); nothing else is accepted.
+/// published alternate, and for event buffers only a shorter, counted
+/// answer); nothing else is accepted.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct Ring {
     next_available: u16,
     last_used: u16,
     expected: [(u32, u32); QUEUE_SIZE as usize],
+    short: [bool; QUEUE_SIZE as usize],
     outstanding: u16,
 }
 
@@ -394,6 +413,7 @@ impl Ring {
             next_available: 0,
             last_used: 0,
             expected: [(0, 0); QUEUE_SIZE as usize],
+            short: [false; QUEUE_SIZE as usize],
             outstanding: 0,
         }
     }
@@ -422,24 +442,58 @@ impl Ring {
         self.publish_chain(head, used_len, 0)
     }
 
-    /// As [`Ring::publish`], with one alternate used length (0 = none).
+    /// As [`Ring::publish`], with one alternate used length (0 = none). Never
+    /// accepts a short answer.
     pub fn publish_chain(
         &mut self,
         head: u16,
         used_len: u32,
         alternate: u32,
     ) -> Result<Publication, Error> {
-        let slot = self
-            .expected
-            .get_mut(usize::from(head))
-            .ok_or(Error::Range)?;
+        self.record(head, used_len, alternate, false)
+    }
+
+    /// The kernel's only publication path. F8 before publication:
+    /// `device_index`, read from the used ring right before this call, is
+    /// checked against the requests outstanding **before** this one, so a used
+    /// index that moved while the queue was idle, or by more than what is
+    /// already outstanding, is `UsedOverrun` and the ring stays unchanged.
+    /// Only then is `chain` recorded with its used lengths and short policy.
+    pub fn publish_checked<const N: usize>(
+        &mut self,
+        device_index: u16,
+        chain: &Chain<N>,
+    ) -> Result<Publication, Error> {
+        self.pending(device_index)?;
+        self.record(
+            chain.head,
+            chain.used_len,
+            chain.alternate_used_len,
+            chain.accept_short,
+        )
+    }
+
+    fn record(
+        &mut self,
+        head: u16,
+        used_len: u32,
+        alternate: u32,
+        short: bool,
+    ) -> Result<Publication, Error> {
+        let index = usize::from(head);
+        let (Some(slot), Some(short_slot)) =
+            (self.expected.get(index).copied(), self.short.get_mut(index))
+        else {
+            return Err(Error::Range);
+        };
         if used_len == 0 || alternate == used_len {
             return Err(Error::Range);
         }
         if slot.0 != 0 || self.outstanding >= QUEUE_SIZE {
             return Err(Error::Busy);
         }
-        *slot = (used_len, alternate);
+        *short_slot = short;
+        self.expected[index] = (used_len, alternate);
         self.outstanding += 1;
         let entry = self.next_available % QUEUE_SIZE;
         self.next_available = self.next_available.wrapping_add(1);
@@ -459,20 +513,28 @@ impl Ring {
         Ok(delta)
     }
 
-    /// Consumes one used element; returns its validated head.
+    /// Consumes one used element; returns its validated head. A head
+    /// published with `accept_short` also completes with a used length below
+    /// its expected one; the caller compares the length and counts it (F17).
+    /// On any error the ring is unchanged.
     pub fn complete(&mut self, id: u32, used_len: u32) -> Result<u16, Error> {
         let head = u16::try_from(id).map_err(|_| Error::UnknownId)?;
-        let slot = self
-            .expected
-            .get_mut(usize::from(head))
-            .ok_or(Error::UnknownId)?;
+        let index = usize::from(head);
+        let (Some(slot), Some(short_slot)) =
+            (self.expected.get_mut(index), self.short.get_mut(index))
+        else {
+            return Err(Error::UnknownId);
+        };
         if slot.0 == 0 {
             return Err(Error::UnknownId);
         }
-        if slot.0 != used_len && (slot.1 == 0 || slot.1 != used_len) {
+        let exact = slot.0 == used_len || (slot.1 != 0 && slot.1 == used_len);
+        let short = *short_slot && used_len < slot.0;
+        if !exact && !short {
             return Err(Error::Length);
         }
         *slot = (0, 0);
+        *short_slot = false;
         self.outstanding -= 1;
         self.last_used = self.last_used.wrapping_add(1);
         Ok(head)
@@ -499,8 +561,10 @@ pub enum FenceStep {
 }
 
 /// Device lifecycle: publication only while `Live`; a fence is status 0 read
-/// back **and** bus mastering off read back before a deadline, followed by a
-/// stable used-ring snapshot. Only then does the epoch advance (checked).
+/// back **and** bus mastering off read back before a deadline, a used-ring
+/// baseline bracketed around that acknowledging read-back, and a stability
+/// window ended by a final matching observation. Only then does the epoch
+/// advance (checked).
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct Lifecycle {
     phase: Phase,
@@ -603,11 +667,15 @@ impl Lifecycle {
         FenceStep::Pending
     }
 
-    /// First used-index snapshot after both acknowledgements.
-    pub fn record_snapshot(&mut self, used: [u16; 3]) -> Result<(), Error> {
+    /// Baseline after both acknowledgements. `before` is sampled before the
+    /// status/BME read-back that acknowledged and `after` right after it, so
+    /// the baseline cannot absorb a completion that raced the acknowledgement:
+    /// any difference is a completion after acknowledgement (F11) and
+    /// quarantines, as does a wrong phase or a second baseline.
+    pub fn record_snapshot(&mut self, before: [u16; 3], after: [u16; 3]) -> Result<(), Error> {
         match (self.phase, self.snapshot) {
-            (Phase::Acknowledged, None) => {
-                self.snapshot = Some(used);
+            (Phase::Acknowledged, None) if before == after => {
+                self.snapshot = Some(before);
                 Ok(())
             }
             (Phase::Quarantined, _) => Err(Error::Quarantined),
@@ -639,13 +707,16 @@ impl Lifecycle {
     }
 
     /// Ends a stable fence: epoch + 1 (overflow quarantines), back to Offline.
-    pub fn finish_fence(&mut self) -> Result<u64, Error> {
-        if self.phase != Phase::Acknowledged || self.snapshot.is_none() {
-            if self.phase != Phase::Quarantined {
-                self.phase = Phase::Quarantined;
-            }
-            return Err(Error::Quarantined);
-        }
+    /// The epoch advances only when a final observation, taken after the
+    /// stability window, still equals the baseline with status 0 and BME off;
+    /// otherwise, or without a baseline, the device is quarantined.
+    pub fn finish_fence(
+        &mut self,
+        used: [u16; 3],
+        status: u8,
+        bus_master: bool,
+    ) -> Result<u64, Error> {
+        self.check_snapshot(used, status, bus_master)?;
         match self.epoch.checked_add(1) {
             Some(epoch) => {
                 self.epoch = epoch;
@@ -663,6 +734,17 @@ impl Lifecycle {
     pub fn quarantine(&mut self) {
         self.phase = Phase::Quarantined;
     }
+}
+
+/// Calls `step` until it reports that nothing more is pending, at most `limit`
+/// times, and returns how many elements it handled. Anything left is handled
+/// by the next poll, after the caller's own deadline checks.
+pub fn bounded_poll<E>(limit: u16, mut step: impl FnMut() -> Result<bool, E>) -> Result<u16, E> {
+    let mut handled = 0;
+    while handled < limit && step()? {
+        handled += 1;
+    }
+    Ok(handled)
 }
 
 /// Generation-stable config read (§4.1.4.3.1): `read` returns the generation

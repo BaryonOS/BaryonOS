@@ -1,12 +1,19 @@
 """HOST_ONLY H03-T3a oracle counterexamples; fixtures are not native evidence."""
+import hashlib
+import json
+import os
 from pathlib import Path
 import struct
+import subprocess
 import sys
 import tempfile
 import unittest
+from unittest import mock
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import run_virtio_snd as gate
+
+REPOSITORY = Path(__file__).resolve().parents[2]
 
 FEATURES = "SND:FEATURES:0000010179000000"
 FEATURES_AP = "SND:FEATURES:0000010379000000"
@@ -170,25 +177,225 @@ class Serial(unittest.TestCase):
                 gate.evaluate_serial("normal", transcript("normal", mutated), 33, False)
         with self.assertRaises(ValueError):
             gate.evaluate_serial("access-platform", transcript("access-platform", snd_lines("normal")), 33, False)
-        with self.assertRaises(ValueError):
-            gate.evaluate_serial("quarantine", transcript("quarantine", snd_lines("quarantine", 4320)), 33, False)
-        with self.assertRaises(ValueError):
-            gate.evaluate_serial("quarantine", transcript("quarantine", snd_lines("quarantine", 6000)), 33, False)
+        # Submitted minus the exact 4800 completed frames is what was still
+        # driver-outstanding at the fence: 0 (4800) and 4 periods (6720) fail.
+        for submitted in (4320, 4800, 6000, 6720):
+            with self.subTest(submitted), self.assertRaises(ValueError):
+                gate.evaluate_serial("quarantine", transcript("quarantine", snd_lines("quarantine", submitted)),
+                                     33, False)
+        for submitted in (5280, 5760, 6240):
+            with self.subTest(submitted):
+                values = gate.evaluate_serial("quarantine", transcript("quarantine", snd_lines("quarantine", submitted)),
+                                              33, False)
+                self.assertEqual(gate.submitted_a("quarantine", values), submitted)
 
+    def test_output_beyond_the_bound_fails_the_run(self):
+        bound = gate.MAX_OUTPUT
+        gate.check_output_bound(b"x" * bound, b"y" * bound)
+        for stdout, stderr in ((b"x" * (bound + 1), b""), (b"", b"y" * (bound + 1))):
+            with self.assertRaises(ValueError):
+                gate.check_output_bound(stdout, stderr)
+        good = transcript("normal").encode()
+        for tail in (b"PANIC\nBOOT:EBS_OK\nM1:FAIL:X\n", b"SND:PASS\n"):
+            with self.subTest(tail):
+                # Harmless pre-handoff output sized so the bound ends right after M1:PASS.
+                padded = b"#" * (bound - len(good) - 1) + b"\n" + good
+                self.assertEqual(len(padded), bound)
+                out = padded + tail
+                # The bounded prefix alone hides the tail: why the bound check exists.
+                gate.evaluate_serial("normal", gate.bounded(out), 33, False)
+                with self.assertRaises(ValueError):
+                    gate.check_output_bound(out, b"")
+                    gate.evaluate_serial("normal", gate.bounded(out), 33, False)
+
+
+class Command(unittest.TestCase):
     def test_qemu_command_per_case(self):
         rel = "build/run/x"
-        base = gate.qemu_arguments("no-device", "qemu", rel)
+        base = gate.qemu_arguments("no-device", "qemu", rel, gate.MACHINE)
+        self.assertEqual(base[base.index("-machine") + 1], "pc-q35-8.2")
         self.assertIn("-icount", base)
         self.assertEqual(base[base.index("-icount") + 1], "shift=0,sleep=off")
         self.assertIn(f"wav,id=snd0,path={rel}/out.wav,out.frequency=48000,out.channels=2,out.format=s16", base)
         self.assertFalse(any("virtio-sound-pci" in item for item in base))
-        normal = gate.qemu_arguments("normal", "qemu", rel)
+        normal = gate.qemu_arguments("normal", "qemu", rel, gate.MACHINE)
         self.assertEqual(normal[-2:], ["-device", "virtio-sound-pci,addr=08.0,audiodev=snd0,streams=1"])
-        self.assertTrue(gate.qemu_arguments("access-platform", "qemu", rel)[-1].endswith(",iommu_platform=on"))
+        self.assertTrue(gate.qemu_arguments("access-platform", "qemu", rel, gate.MACHINE)[-1]
+                        .endswith(",iommu_platform=on"))
         for case in ("fence-reinit", "quarantine"):
-            self.assertEqual(gate.qemu_arguments(case, "qemu", rel)[-2:], normal[-2:])
+            self.assertEqual(gate.qemu_arguments(case, "qemu", rel, gate.MACHINE)[-2:], normal[-2:])
         with self.assertRaises(ValueError):
-            gate.qemu_arguments("unknown", "qemu", rel)
+            gate.qemu_arguments("unknown", "qemu", rel, gate.MACHINE)
+
+    def test_machine_is_pinned_to_the_fixture_profile(self):
+        with mock.patch.dict(os.environ):
+            os.environ.pop("NOS_QEMU_MACHINE", None)
+            self.assertEqual(gate.fixture_machine(), "pc-q35-8.2")
+            args = gate.qemu_arguments("normal", "qemu", "build/run/x", gate.fixture_machine())
+            self.assertEqual(args[args.index("-machine") + 1], "pc-q35-8.2")
+            os.environ["NOS_QEMU_MACHINE"] = "pc-q35-8.2"
+            self.assertEqual(gate.fixture_machine(), "pc-q35-8.2")
+            for value in ("pc-q35-10.0", "pc-q35-7.2", "", "pc-q35-9.0", "q35"):
+                os.environ["NOS_QEMU_MACHINE"] = value
+                with self.subTest(value), self.assertRaises(ValueError):
+                    gate.fixture_machine()
+        for machine in ("pc-q35-10.0", "pc-q35-7.2", "", "q35"):
+            with self.subTest(machine), self.assertRaises(ValueError):
+                gate.qemu_arguments("normal", "qemu", "build/run/x", machine)
+
+    def test_qemu_option_paths_are_refused_unless_literal(self):
+        self.assertEqual(gate.qemu_path("build/xhci-native/snd/run/snd-normal-0123456789"),
+                         "build/xhci-native/snd/run/snd-normal-0123456789")
+        for rel in ("build,x/run/x", "build,,x/run/x", "c:d/run/x", "build x/run/x", "/abs/run/x",
+                    "build=x/run/x", "../build/run/x", "build/\nrun", ""):
+            for case in gate.FEATURE:
+                with self.subTest(rel=rel, case=case), self.assertRaises(ValueError):
+                    gate.qemu_arguments(case, "qemu", rel, gate.MACHINE)
+
+    def test_refused_inputs_create_nothing_and_launch_nothing(self):
+        refuse = mock.Mock(side_effect=AssertionError("must not be reached"))
+        with tempfile.TemporaryDirectory() as directory, mock.patch.dict(os.environ), \
+                mock.patch.object(gate, "source_hash", refuse), \
+                mock.patch.object(gate.subprocess, "run", refuse), mock.patch.object(gate.shutil, "which", refuse):
+            root = Path(directory).resolve()
+            os.environ["NOS_QEMU_MACHINE"] = "pc-q35-10.0"
+            with mock.patch.object(gate, "ROOT", root), mock.patch.object(gate, "BUILD", root / "build"):
+                with self.assertRaises(ValueError):
+                    gate.run_case("normal")
+            os.environ.pop("NOS_QEMU_MACHINE")
+            with mock.patch.object(gate, "ROOT", root), mock.patch.object(gate, "BUILD", root / "build,x"):
+                with self.assertRaises(ValueError):
+                    gate.run_case("normal")
+            self.assertEqual(list(root.iterdir()), [])
+        refuse.assert_not_called()
+
+
+def digest(data: bytes) -> str:
+    return hashlib.sha256(data).hexdigest()
+
+
+class FakeRun:
+    """A checkout with a matching build and a scripted QEMU; no guest runs."""
+
+    def __init__(self, root: Path, *, tamper=None, stdout: bytes | None = None):
+        self.root, self.build, self.tamper = root, root / "build", tamper
+        self.stdout = transcript("normal").encode() if stdout is None else stdout
+        (self.build / "esp/EFI/BOOT").mkdir(parents=True)
+        (self.build / "esp/kernel.elf").write_bytes(b"kernel")
+        (self.build / "esp/EFI/BOOT/BOOTX64.EFI").write_bytes(b"loader")
+        manifest = {"kernel_feature": "native-virtio-snd-probe", "loader_feature": None,
+                    "source_fingerprint_version": 3, "source_sha256": "f" * 64,
+                    "kernel": {"sha256": digest(b"kernel")}, "loader": {"sha256": digest(b"loader")}}
+        (self.build / "manifest.json").write_text(json.dumps(manifest), encoding="utf-8")
+        self.code, self.variables = root / "fw/CODE.fd", root / "fw/VARS.fd"
+        self.code.parent.mkdir()
+        self.code.write_bytes(b"code" * 64)
+        self.variables.write_bytes(b"vars" * 64)
+
+    def qemu(self, args, **kwargs):
+        if args[1:] == ["--version"]:
+            return subprocess.CompletedProcess(args, 0, stdout="QEMU emulator version 8.2.2 (fake)\n")
+        run = self.root / next(item for item in args if item.startswith("if=pflash,unit=1")) \
+            .split("file=")[1].rsplit("/", 1)[0]
+        (run / "OVMF_VARS.fd").write_bytes(b"nvram written by the firmware")
+        (run / "out.wav").write_bytes(wav(gate.PATTERN_A))
+        if self.tamper:
+            (run / self.tamper).write_bytes(b"changed")
+        return subprocess.CompletedProcess(args, 33, stdout=self.stdout, stderr=b"")
+
+    def run(self) -> dict:
+        with mock.patch.dict(os.environ), mock.patch.object(gate, "ROOT", self.root), \
+                mock.patch.object(gate, "BUILD", self.build), \
+                mock.patch.object(gate, "source_hash", return_value="f" * 64), \
+                mock.patch.object(gate, "environment", return_value={"PATH": "/fake"}), \
+                mock.patch.object(gate, "firmware", return_value=(self.code, self.variables)), \
+                mock.patch.object(gate.shutil, "which", return_value="/fake/qemu-system-x86_64"), \
+                mock.patch.object(gate.subprocess, "run", side_effect=self.qemu), \
+                mock.patch("builtins.print"):
+            os.environ.pop("NOS_QEMU_MACHINE", None)
+            return gate.run_case("normal")
+
+
+class Report(unittest.TestCase):
+    def test_firmware_inputs_are_hashed_before_launch_and_final_nvram_separately(self):
+        with tempfile.TemporaryDirectory() as directory:
+            fake = FakeRun(Path(directory).resolve())
+            report = fake.run()
+            self.assertTrue(report["passed"], report.get("error"))
+            self.assertEqual(report["schema_version"], 2)
+            self.assertEqual(report["qemu_machine"], "pc-q35-8.2")
+            self.assertEqual(report["command"][report["command"].index("-machine") + 1], "pc-q35-8.2")
+            self.assertEqual(report["ovmf_code_sha256"], digest(b"code" * 64))
+            self.assertEqual(report["ovmf_vars_template_sha256"], digest(b"vars" * 64))
+            self.assertEqual(report["ovmf_vars_final_sha256"], digest(b"nvram written by the firmware"))
+            self.assertNotIn("ovmf_vars_sha256", report)
+            self.assertEqual((report["stdout_bytes"], report["output_truncated"]),
+                             (len(fake.stdout), False))
+
+    def test_changed_firmware_inputs_or_oversized_output_fail_the_run(self):
+        for tamper in ("OVMF_CODE.fd", "OVMF_VARS.template.fd"):
+            with self.subTest(tamper), tempfile.TemporaryDirectory() as directory:
+                report = FakeRun(Path(directory).resolve(), tamper=tamper).run()
+                self.assertFalse(report["passed"])
+                self.assertIn("OVMF", report["error"])
+        with tempfile.TemporaryDirectory() as directory:
+            good = transcript("normal").encode()
+            report = FakeRun(Path(directory).resolve(),
+                             stdout=b"#" * (gate.MAX_OUTPUT - len(good)) + good + b"SND:PASS\n").run()
+            self.assertFalse(report["passed"])
+            self.assertTrue(report["output_truncated"])
+            self.assertIn("bound", report["error"])
+
+    def test_a_staged_copy_that_differs_from_its_source_is_refused_before_launch(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory).resolve()
+            code, variables = root / "CODE.fd", root / "VARS.fd"
+            code.write_bytes(b"code")
+            variables.write_bytes(b"vars")
+            original = gate.shutil.copy2
+
+            def corrupting(source, target):
+                original(source, target)
+                if Path(target).name == "OVMF_VARS.fd":
+                    Path(target).write_bytes(b"corrupt")
+
+            run = root / "run"
+            run.mkdir()
+            with mock.patch.object(gate.shutil, "copy2", side_effect=corrupting):
+                with self.assertRaises(ValueError):
+                    gate.stage_firmware(run, code, variables)
+            hashes = gate.stage_firmware(run, code, variables)
+            self.assertEqual(hashes, {"ovmf_code_sha256": digest(b"code"),
+                                      "ovmf_vars_template_sha256": digest(b"vars")})
+
+
+class HistoricalChecksums(unittest.TestCase):
+    """drivers/virtio-snd/verification/SHA256SUMS is historical evidence of an
+    earlier basis; its documented drift must match the tree exactly."""
+
+    RLIB = "target/x86_64-unknown-none/release/libnieuw_os_virtio_snd.rlib"
+    CHANGED = {"README.md", "TRANSPORT.md", "src/lib.rs", "src/pcm.rs", "src/pcm_tests.rs",
+               "verification/README.md"}
+
+    def test_documented_drift_is_exactly_the_observed_drift(self):
+        crate = REPOSITORY / "drivers/virtio-snd"
+        entries = [line.split(maxsplit=1) for line in
+                   (crate / "verification/SHA256SUMS").read_text(encoding="utf-8").splitlines()]
+        self.assertEqual(len(entries), 31)
+        missing, changed = set(), set()
+        for expected, name in entries:
+            path = crate / name
+            if not path.is_file():
+                missing.add(name)
+            elif hashlib.sha256(path.read_bytes()).hexdigest() != expected:
+                changed.add(name)
+        # The ignored release rlib is the only entry that may be absent or differ.
+        self.assertLessEqual(missing, {self.RLIB})
+        self.assertEqual(changed - {self.RLIB}, self.CHANGED)
+        readme = (crate / "verification/README.md").read_text(encoding="utf-8")
+        self.assertIn("sha256sum -c verification/SHA256SUMS", readme)
+        for name in sorted(self.CHANGED) + [self.RLIB]:
+            self.assertIn(f"`{name}`", readme)
 
 
 if __name__ == "__main__":
