@@ -98,8 +98,13 @@ M3, framebuffer, SMP, RTC, ACPI S3/S5 and xHCI (`kernel/src/main.rs`).
 
 1. *PCM_INFO used length.* QEMU 8.2.2 writes the PCM_INFO records but pushes
    `sizeof(virtio_snd_hdr)` (4) as the used length for every control
-   response. The lead checked this in the release source,
-   `hw/audio/virtio-snd.c` lines 247-249 and 752.
+   response. The lead checked this in QEMU tag `v8.2.2`,
+   `hw/audio/virtio-snd.c`
+   (<https://gitlab.com/qemu-project/qemu/-/blob/v8.2.2/hw/audio/virtio-snd.c>,
+   SHA-256 `99a13ef25d0729dd46e9947dea12986598b5b9242422a052fb05214f22e7794d`,
+   identical in the release tarball): `virtio_snd_handle_pcm_info` copies
+   the records after the header (lines 247-251), and `process_cmd` pushes
+   used length `sizeof(virtio_snd_hdr)` (line 752).
    - For PCM_INFO only, the driver accepts 4 as well as the exact
      `4 + 32n`. Every other message keeps exact lengths.
    - The response buffer is zeroed before publication and parsed strictly,
