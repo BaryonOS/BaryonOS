@@ -2,13 +2,13 @@
   "schema_version": 1,
   "rubric_version": 1,
   "assessment": {
-    "date": "2026-11-19",
-    "source_commit": "167c2bce2a7d51444c0101e3b1df23271deb81f7",
+    "date": "2026-11-20",
+    "source_commit": "5bef53f4bb30ee70441e8256de362236afa76b0d",
     "assessment_basis": "parent_commit",
     "branch": "ccr-38238c58-g8y1l6",
-    "task": "H05-T3 native S3, H06-T4 physical test protocols, H02-T3 native USB reattach (with review fix O1), H03-T3a kernel-only virtio-snd fixture",
+    "task": "H05-T3 native S3, H06-T4 physical test protocols, H02-T3 native USB reattach (with review fix O1), H03-T3a kernel-only virtio-snd fixture, H04-T3 native virtio-net link loss/reconnect",
     "previous_score": 41,
-    "summary": "41/100 unchanged. H05 gains native QEMU S3 evidence; H06 gains machine-checked physical test protocols and signed-evidence validation; H02 gains native QEMU same-port reattach with generation-specific stale-ticket rejection; H03 gains a kernel-only QEMU virtio-snd PCM output fixture with an exact WAV oracle. No ring-3 audio path exists (owner decisions B1, B2, B4 open), and physical acceptance for H02-H06 remains open."
+    "summary": "41/100 unchanged. H05 gains native QEMU S3 evidence; H06 gains machine-checked physical test protocols and signed-evidence validation; H02 gains native QEMU same-port reattach with generation-specific stale-ticket rejection; H03 gains a kernel-only QEMU virtio-snd PCM output fixture with an exact WAV oracle; H04 gains native QEMU link loss/reconnect with a fail-closed broker behind a test-profile syscall. No ring-3 audio path or product link API exists, Wi-Fi and Bluetooth are not covered, and physical acceptance for H02-H06 remains open."
   },
   "tracks": [
     {
@@ -238,7 +238,9 @@
           "points": 2,
           "status": "open",
           "acceptance": "Ethernet, Wi-Fi, and the agreed Bluetooth functions work on supported hardware, including disconnect, resume, and driver-failure paths.",
-          "evidence": []
+          "evidence": [
+            "docs/verification/h04-native-link-20261119/README.md"
+          ]
         },
         {
           "id": "H05",

@@ -136,6 +136,28 @@ configured target flags once through `CARGO_ENCODED_RUSTFLAGS`; no repository
 file was changed for it. The rerun baseline passed. This is an environment
 artifact, not a product defect.
 
+## Integration re-verification by the lead
+
+The builder branch (`0bea209`, base `9c707c8`) was merged into
+`ccr-38238c58-g8y1l6` as `5bef53f` without conflicts. PR #369 is merged, and
+open PR #380 shares no file with this change. The lead reran the gates on
+`5bef53f` from a detached worktree outside the main checkout (no nested
+`.cargo/config.toml`, no cargo shim), with `NOS_QEMU_MACHINE=pc-q35-8.2`.
+Every build and every run exited 0:
+
+- `test-system-net-link`: `run_net_link.py --case normal` and `--case nostatus`;
+- `test-system-net-link-storm`: `--case storm`;
+- `native-system-net`: `run_net_system.py --case normal`;
+- `native-net-service` and `test-net-service-device-reset`:
+  `run_network_service.py --case normal` and `--case device-reset`;
+- `tools/test_power_system.py`, the three POWER cases plus cold recovery,
+  because `run_system.py` and `run_volume.py` gained hooks.
+
+The `test_gs_discipline` failure that the builder saw on `9c707c8` was
+already fixed on this branch (`c54b9e2`) and passes on the merged tree.
+ADR-H04-LINK-20261119 records the syscall and the error code.
+`native-system.yml` now runs the three link cases.
+
 ## Not covered
 
 - Physical NIC, cable, link partner or driver on real hardware (H).

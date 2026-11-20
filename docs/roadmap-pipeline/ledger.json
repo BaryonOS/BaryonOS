@@ -1987,7 +1987,7 @@
         "cargo +1.100.0 test --locked --manifest-path drivers/virtio-snd/Cargo.toml",
         "cargo +1.100.0 clippy --locked --manifest-path drivers/virtio-snd/Cargo.toml --all-targets -- -D warnings",
         "python3 -B -m unittest discover -s tools/tests -p 'test_virtio_snd.py' -v",
-        "python3 -B tools/build.py --kernel-feature native-virtio-snd-probe && python3 -B tools/run_virtio_snd.py --case normal (also no-device, access-platform)",
+        "python3 -B tools/build.py --kernel-feature native-virtio-snd-probe && python3 -B tools/run_virtio_snd.py --case normal && python3 -B tools/run_virtio_snd.py --case no-device && python3 -B tools/run_virtio_snd.py --case access-platform",
         "python3 -B tools/build.py --kernel-feature test-snd-fence-reinit && python3 -B tools/run_virtio_snd.py --case fence-reinit",
         "python3 -B tools/build.py --kernel-feature test-snd-quarantine && python3 -B tools/run_virtio_snd.py --case quarantine"
       ],
@@ -2007,14 +2007,38 @@
       "id": "H04-T3",
       "criterion": "H04",
       "milestone": "M9",
-      "executor": "worker",
-      "status": "blocked",
-      "title": "Native link-loss/reconnect run",
-      "goal": "Native link-loss/reconnect run",
+      "executor": "lead",
+      "status": "verified",
+      "title": "Native virtio-net link loss and reconnect with fail-closed broker (QEMU, test profile)",
+      "goal": "Observe virtio-net link state from the kernel with a kernel-owned epoch, refuse TX/RX with -23 while down before any descriptor publication or DMA, drop RX held across an epoch, expose a capability-checked test-profile link query 0x74, and latch the broker after a bounded transition budget; driven by QMP set_link.",
       "deps": [],
-      "write_paths": [],
-      "checks": [],
-      "blocker": "PR333 is merged. Current driver exposes link_up, but no native service link-event/reconnect seam exists; PR369 owns tracker integration. A limited independent linkstatus/QMP probe would require shared harness paths currently held by draftPR380. No full reconnect claim.",
+      "write_paths": [
+        "drivers/virtio-net/src/lib.rs",
+        "drivers/virtio-net/src/tests.rs",
+        "kernel/src/m2/m3/network.rs",
+        "kernel/src/m2/m3.rs",
+        "kernel/src/m2/m3/system.rs",
+        "kernel/Cargo.toml",
+        "sdk/runtime/src/native.rs",
+        "sdk/examples/net-probe/",
+        "tools/build.py",
+        "tools/run_system.py",
+        "tools/run_volume.py",
+        "tools/net_test_peer.py",
+        "tools/run_net_link.py",
+        "tools/tests/test_net_link.py",
+        "docs/implementation/VIRTIO-NET.md",
+        "docs/implementation/NATIVE-NET-PROBE.md",
+        "docs/verification/h04-native-link-20261119/"
+      ],
+      "checks": [
+        "cargo +1.100.0 test --locked -p virtio-net-driver",
+        "cargo +1.100.0 clippy --locked -p virtio-net-driver --all-targets -- -D warnings",
+        "python3 -B -m unittest tools.tests.test_net_link",
+        "python3 -B tools/build.py --kernel-feature test-system-net-link && python3 -B tools/run_net_link.py --case normal && python3 -B tools/run_net_link.py --case nostatus",
+        "python3 -B tools/build.py --kernel-feature test-system-net-link-storm && python3 -B tools/run_net_link.py --case storm",
+        "python3 -B tools/build.py --kernel-feature native-system-net && python3 -B tools/run_net_system.py --case normal"
+      ],
       "history": [
         {
           "event": "blocked",
@@ -2025,8 +2049,21 @@
           "event": "blocked",
           "at": "2026-11-18",
           "reason": "PR333 is merged. Current driver exposes link_up, but no native service link-event/reconnect seam exists; PR369 owns tracker integration. A limited independent linkstatus/QMP probe would require shared harness paths currently held by draftPR380. No full reconnect claim."
+        },
+        {
+          "event": "verified",
+          "at": "2026-11-20",
+          "reason": "Builder commit 0bea209 merged by the H-track lead as 5bef53f (no conflicts; PR369 merged, no file overlap with open PR380). Rerun on that commit from a detached worktree outside the checkout: link normal/nostatus/storm, native-system-net, network-service normal/device-reset and the three-case POWER/cold-recovery gate all exit 0. ADR-H04-LINK-20261119 records 0x74 and -23."
         }
-      ]
+      ],
+      "lead_paths": [
+        ".github/workflows/native-system.yml",
+        "docs/DECISIONS.md"
+      ],
+      "evidence_level": "native QEMU/TCG",
+      "non_claimable": "Test-profile syscall only (no product link API); no physical NIC, Wi-Fi or Bluetooth (QEMU has no 802.11/Bluetooth model); in-flight TX at a down edge not exercised natively; H04 acceptance stays open.",
+      "source_commit": "0bea209abfcc377083b24aedbe611ead0b61531c",
+      "next": "H04-T4: product link API and capability decision, or an in-flight-TX down-edge fixture; physical NIC needs owner decisions OD-HW-*."
     },
     {
       "id": "H05-T3",

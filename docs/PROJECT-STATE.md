@@ -38,13 +38,17 @@ no-device, access-platform, fence-reinit and quarantine raw 33 on merge `167c2bc
 `native-xhci.yml` runs the five cases. Three QEMU 8.2.2 deviations are recorded in
 ADR-H03-SND-FIXTURE-20261119 (PCM_INFO used length checked in the QEMU source). No ring-3 audio
 path: owner decisions B1, B2 and B4 stay open. A focused security review is running.
-**In flight:** H04-T3 virtio-net link loss/reconnect (builder done, integration and ADR for
-syscall 0x74 / error -23 pending); H06-T4 CodeRabbit findings (verify/fix workflow); H05-T4 design
-is ready (synchronous S3 syscall 0x91 behind POWER and the storage gate; builder starts after
-H04-T3 integration). An independent AI review of the S3 diff
+**Integrated H04-T3 (verified, QEMU):** virtio-net link loss and reconnect with a fail-closed
+broker behind the test-profile link query 0x74 and refusal -23 (ADR-H04-LINK-20261119): link
+normal/nostatus/storm, native-system-net, network-service normal/device-reset and the POWER gate pass
+on merge `5bef53f`; `native-system.yml` runs the link cases. No product link API, Wi-Fi or Bluetooth.
+**In flight:** H06-T4 CodeRabbit findings (13 verified verdicts; implementation resumes); CodeRabbit
+review of `920b909` (snd used-ring and fence findings, runner machine default); focused security
+reviews of H03-T3a and H04-T3 (first attempts hit the usage limit). H05-T4 design is ready
+(synchronous S3 syscall 0x91 behind POWER and the storage gate). An independent AI review of the S3 diff
 found three low findings (all refuted for this profile, applied as hardening); hosted
 host-quality found two real defects (GS discipline, ledger protected path), both fixed.
-**Next:** integrate H04-T3; then H05-T4 (S3 from the native-system
+**Next:** H05-T4 (S3 from the native-system
 profile via the POWER capability behind the storage gate, PIC/PIT re-init, resumed
 processes) on top of H04-T3's QMP hook; H06-T3 inventory image. Physical acceptance
 needs owner decisions H06-T2 and authorized hardware.

@@ -5,6 +5,65 @@ This document distinguishes the decisions and authority of the project owner
 from those of the executing roles. Source quotations retain their original
 wording and speaker.
 
+## ADR-H04-LINK-20261119 — Test-profile NIC link query 0x74 and link-down refusal -23
+
+**Status:** technical decision of the executing hardware-track lead on
+19 November 2026, inside the H04 implementation mandate. It is not a
+project-owner approval and not a product network API. It exists only behind
+the kernel features `test-system-net-link` and `test-system-net-link-storm`.
+`abi_info` stays 1.5, and applications must not rely on either number. It
+accepts no criterion.
+
+**Decision.**
+
+1. **Syscall `0x74(handle, 0, 0, 0, 0, 0)`.** A read-only link query for the
+   owner of the NetworkSource capability.
+   - Authorisation uses the same `authorize` path as `0x70`–`0x72`:
+     capability type plus object generation key.
+   - Any nonzero argument 1–5 returns -1.
+   - On success it returns only `epoch << 1 | up`.
+   - It returns -8 before the first kernel sample, -15 when the device did
+     not negotiate `VIRTIO_NET_F_STATUS`, and the broker's offline code -14
+     after any stop or latch.
+   - `0x74` is the next number after `0x73` (RTC read). It was unused in
+     `kernel/src` and `sdk/runtime` at the merge.
+2. **Error -23 `LINK_DOWN`.** `0x70` and `0x72` return -23 while the link is
+   down or not yet observed.
+   - The check runs after the argument, capability and offline checks.
+   - It runs before any descriptor publication, bounce-page (DMA) write,
+     doorbell or copy-out.
+   - Precedence: argument errors, then capability errors, then -14, then
+     -23, then -8.
+   - -23 was the first free value: -1 to -22 are in use, -22 for invalid
+     clock arguments.
+3. **Kernel-owned link state.** The kernel owns a strictly increasing
+   observation serial and link epoch.
+   - It takes one coherent sample per PIT tick, with at most 16 reads.
+   - The device's u8 configuration generation is only a change hint. It
+     yields at most one conservative synthetic down/up pair (epoch + 2).
+   - The budget is eight transitions per device lifetime. Exhausting it, or
+     any device reset, latches through the existing `stop()` and reset
+     acknowledgement. There is no reinitialisation.
+4. **Epoch isolation.** A received frame held across a down edge is dropped
+   and its pinned RX page is reposted. No frame from an earlier epoch is
+   delivered after reconnect.
+5. **Without `VIRTIO_NET_F_STATUS`** the link is treated as active
+   (virtio 1.2 §5.1.4.2).
+
+**Consequences.**
+
+- A product link API, its capability shape, Wi-Fi and Bluetooth need a
+  separate decision.
+- The QEMU harness drives link state only through `set_link` on a private
+  QMP socket.
+- Revisit this decision if any of these occur:
+  - a feature-off build changes `.text` or `.data`;
+  - any broker or device counter changes during a down window;
+  - an event appears after a latch;
+  - a stale RX frame crosses an epoch.
+- Evidence is QEMU 8.2.2/TCG only. There is no physical NIC, and QEMU has no
+  802.11 or Bluetooth model.
+
 ## ADR-H03-SND-FIXTURE-20261119 — Kernel-only virtio-snd PCM output fixture for the fixed QEMU 8.2 profile
 
 **Status:** technical decision of the executing hardware-track lead on
