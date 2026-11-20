@@ -600,11 +600,13 @@ pub(super) fn print_and_check(tx: u64, rx: u64) {
 /// with kernel epochs (`virtio_net_driver::LinkMonitor`); 0x70/0x72 are
 /// refused while the link is down or not yet observed, before any copy-out,
 /// descriptor publication, bounce-page (DMA) write or doorbell; undelivered RX
-/// bytes are destroyed at every down edge and completions arriving while down
-/// are discarded. 0x74 exposes only `(epoch, up)`: no registers, MAC or rights.
-/// Without VIRTIO_NET_F_STATUS the link is assumed active (virtio 1.2,
-/// 5.1.4.2) and 0x74 reports Unsupported (-15). Exhaustion or any reset
-/// latches: stop() keeps the pinned DMA pages and waits for the reset ACK.
+/// bytes, including a completion still in the RX used ring, are destroyed at
+/// every down edge and completions arriving while down are discarded. 0x74
+/// exposes only `(epoch, up)`: no registers, MAC or rights. Without
+/// VIRTIO_NET_F_STATUS the link is assumed active (virtio 1.2, 5.1.4.2) and
+/// 0x74 reports Unsupported (-15), its only meaning. Exhaustion or any reset
+/// latches: stop() keeps the pinned DMA pages and waits for the reset ACK;
+/// 0x74 then reports Offline (-14), whatever the stop cause.
 #[cfg(feature = "test-system-net-link")]
 pub(super) mod link {
     use super::*;
@@ -721,8 +723,16 @@ pub(super) mod link {
     }
 
     pub(super) fn query(r: &mut Runtime) -> Result<u64, i64> {
-        if r.offline != 0 {
-            return Err(r.offline);
+        // Any stop, quarantine or latched monitor is Offline (-14), never the
+        // stop cause (an Io or Protocol stop maps to -12 or -15), so that -15
+        // below means only "no VIRTIO_NET_F_STATUS".
+        let latched = r
+            .link
+            .monitor
+            .as_ref()
+            .is_some_and(|monitor| monitor.state().is_err());
+        if r.offline != 0 || r.quarantined || latched {
+            return Err(error(virtio_core::Error::Offline));
         }
         if !r.link.supported {
             return Err(error(virtio_core::Error::Unsupported));
@@ -774,6 +784,28 @@ pub(super) mod link {
         false
     }
 
+    /// Copy a completion already in the RX used ring into the empty broker
+    /// buffer, so that the following drop_rx destroys it and reposts the
+    /// page. Returns true when the broker stopped.
+    fn harvest(r: &mut Runtime, now: u64) -> bool {
+        // While a copy is held the RX descriptor is not posted: nothing to take.
+        if r.rx_length != 0 {
+            return false;
+        }
+        match r.device.as_mut().unwrap().poll_rx(&mut r.rx) {
+            Ok(Some(length)) => {
+                r.rx_length = length;
+                r.rx_completed += 1;
+                false
+            }
+            Ok(None) => false,
+            Err(e) => {
+                stop(r, now, error(e));
+                true
+            }
+        }
+    }
+
     /// After an RX completion was copied into the broker buffer.
     pub(super) fn received(r: &mut Runtime, now: u64) {
         if !usable(r) {
@@ -816,7 +848,12 @@ pub(super) mod link {
         r.link.counters.downs += 1;
         // Epoch isolation: in-flight TX is not terminalized (QEMU drops it and
         // completes the descriptor with used.len 0, which is ordinary TX).
-        if drop_rx(r, now) {
+        // A completion still in the used ring may predate this edge. broker_tick
+        // polls RX only after the link sample, so after a generation-only
+        // sample (this synthetic down, then up) it would be delivered in the
+        // new epoch: take it now and destroy it with any held copy. Both happen
+        // before the window opens, so a repost is not a down-window publication.
+        if harvest(r, now) || drop_rx(r, now) {
             return true;
         }
         let published = r.device.as_ref().unwrap().publications();

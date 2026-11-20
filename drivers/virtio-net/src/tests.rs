@@ -995,3 +995,44 @@ fn link_monitor_reset_latch_is_terminal() {
         assert_eq!(monitor.state(), Err(Error::Io));
     }
 }
+
+/// H04 security review F1, driver half. A frame completed in epoch 1 and not
+/// yet polled survives a generation-only sample (synthetic down, then up):
+/// the descriptor stays posted and the next poll_rx still returns it. The
+/// broker therefore harvests it at the down edge; after that harvest and the
+/// repost no epoch-1 byte is left for the new epoch.
+#[test]
+fn rx_completion_pending_at_a_synthetic_down_edge_is_harvested_there() {
+    let (mut engine, model) = online();
+    engine.post_rx().unwrap();
+    let mut monitor = LinkMonitor::new(engine.features, 8).unwrap();
+    let (generation, bit) = engine.link_status().unwrap();
+    assert_eq!(monitor.observe(generation, bit), Ok([up(1), None]));
+    model.receive(&engine, &[0x51; 60]);
+    // The device goes down and up again between two samples.
+    model.0.borrow_mut().generation = generation.wrapping_add(2);
+    let (generation, bit) = engine.link_status().unwrap();
+    let [Some(edge), Some(now)] = monitor.observe(generation, bit).unwrap() else {
+        panic!("a generation-only change must yield a synthetic pair");
+    };
+    assert!(edge.synthetic && !edge.up && edge.epoch == 2);
+    assert!(!now.synthetic && now.up && now.epoch == 3);
+    // Not harvested yet: still posted, so a plain repost is refused.
+    assert_eq!(engine.post_rx(), Err(Error::Busy));
+    // Down edge: take the old completion, destroy it, repost the same page.
+    let mut held = [0u8; MAX_FRAME_BYTES];
+    assert_eq!(engine.poll_rx(&mut held), Ok(Some(60)));
+    assert_eq!(held[..60], [0x51; 60]);
+    held.fill(0);
+    let published = engine.queues[RX].available;
+    engine.post_rx().unwrap();
+    assert_eq!(engine.queues[RX].available, published.wrapping_add(1));
+    assert_eq!(
+        model.read_bytes(POOL.rx_bounce, BUFFER_BYTES),
+        vec![0; BUFFER_BYTES]
+    );
+    // Up edge (epoch 3): nothing from epoch 1 can be delivered.
+    assert_eq!(engine.poll_rx(&mut held), Ok(None));
+    assert_eq!(held, [0; MAX_FRAME_BYTES]);
+    assert!(engine.queues[RX].posted);
+}
