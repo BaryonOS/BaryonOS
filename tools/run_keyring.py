@@ -91,6 +91,9 @@ AT_LEAST["normal"]["ADMIN_BAD_CALLER"] = 1
 EXPECT["normal"].update({"LEASE_RECLAIMS": 2, "AUTHORITY_QUARANTINE": 1})
 
 
+DRAIN_SECONDS = 1.0  # must stay below the 2 s worker join in SilentEgd.__exit__
+
+
 class SilentEgd:
     """Local EGD backend that withholds entropy after the real kernel manifest.
 
@@ -131,10 +134,17 @@ class SilentEgd:
             with self._connection as connection:
                 connection.settimeout(0.1)
                 pending = b""
-                while not self._stop.is_set():
+                drain_until = None
+                while True:
+                    # QEMU writes 255 and 1 separately; after stop, keep reading
+                    # to EOF (bounded below the 2 s join) so a pair is never cut.
+                    if drain_until is None and self._stop.is_set():
+                        drain_until = time.monotonic() + DRAIN_SECONDS
                     try:
                         data = connection.recv(256)
                     except socket.timeout:
+                        if drain_until is not None and time.monotonic() >= drain_until:
+                            break
                         continue
                     if not data:
                         break

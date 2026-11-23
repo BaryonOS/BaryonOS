@@ -118,6 +118,42 @@ class Fixture(unittest.TestCase):
                 rs.check_fixture(case, fixture([255, 1], response_bytes=256))
 
 
+class SilentBackend(unittest.TestCase):
+    """Real AF_UNIX socket, no emulator: QEMU writes 255 and 1 separately."""
+
+    def test_pair_split_across_stop_is_drained_not_cut(self):
+        import socket
+        import time
+        with rs.SilentEgd() as egd:
+            peer = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+            peer.connect(str(egd.path))
+            peer.sendall(bytes([2, 255]))
+            self.assertTrue(egd.observed.wait(2))
+            egd._stop.set()
+            time.sleep(0.3)  # the worker has seen stop before the second command
+            try:
+                peer.sendall(bytes([2, 1]))
+            except BrokenPipeError:
+                pass  # a worker that stops on stop has already closed: the pair is cut
+            peer.close()
+        self.assertEqual(egd.requests, [255, 1])
+        self.assertIsNone(egd.error)
+        rs.check_fixture("timeout", egd.evidence())
+
+    def test_drain_is_bounded_and_an_odd_tail_still_fails_closed(self):
+        import socket
+        self.assertLess(rs.DRAIN_SECONDS, 2)
+        with rs.SilentEgd() as egd:
+            peer = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+            peer.connect(str(egd.path))
+            peer.sendall(bytes([2, 255, 2]))
+            self.assertTrue(egd.observed.wait(2))
+            peer.close()
+        self.assertIn("truncated", egd.error or "")
+        with self.assertRaises(ValueError):
+            rs.check_fixture("timeout", egd.evidence())
+
+
 class Consistency(unittest.TestCase):
     def test_cases_are_registered_everywhere(self):
         for case in NEW:
