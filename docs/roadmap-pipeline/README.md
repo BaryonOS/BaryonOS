@@ -176,7 +176,8 @@ session that changed them it writes the `STOP` file and stops, so a later run
 cannot adopt the change as its baseline. The baseline is persisted before each
 session and compared in a `finally` block, also when the session is interrupted;
 if the controller itself dies, the next run compares against the persisted
-baseline right after taking the controller lock, before lease recovery or any other
+baseline right after taking the controller lock and confirming that no worker process
+is alive, before lease recovery or any other
 Git command that can run a hook or filter, and retires it only at preflight, once no
 worker process is alive. Workers may not edit
 `build/roadmap-pipeline/**`, which holds that baseline, `STOP` and the logs.

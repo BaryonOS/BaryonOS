@@ -455,6 +455,7 @@ class Controller:
         self.lock_file.truncate()
         self.lock_file.write(json.dumps({"pid": os.getpid(), "run": self.run_id, "started": now()}))
         self.lock_file.flush()
+        self.refuse_live_workers()  # a live worker could still change the callbacks
         self.check_saved_baseline(retire=False)  # recover() runs git status, which can run a filter
         self.recover()
 
@@ -507,11 +508,14 @@ class Controller:
             if (self.state / "STOP").exists():
                 raise Stop("stop file present while paused")
 
-    def preflight(self) -> str:
+    def refuse_live_workers(self) -> None:
         alive = subprocess.run(["pgrep", "-f", f"--name {PROCESS_TAG}"],
                                capture_output=True, text=True).stdout.split()
         if [p for p in alive if int(p) != os.getpid()]:
             raise Stop(f"a previous worker process is still alive: {alive}")
+
+    def preflight(self) -> str:
+        self.refuse_live_workers()
         self.check_saved_baseline(retire=True)  # no worker is alive any more
         self.callbacks = git_callbacks()
         branch = git("branch", "--show-current").strip()

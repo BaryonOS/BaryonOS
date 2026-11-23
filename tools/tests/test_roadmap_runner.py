@@ -564,6 +564,42 @@ class Session(unittest.TestCase):
                 self.assertEqual((state / "STOP").exists(), stops)
                 self.assertTrue(marker.exists())  # retired only by preflight, once no worker lives
 
+    def test_acquire_refuses_a_live_worker_before_comparing_the_baseline(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            state = Path(tmp) / "state"
+            state.mkdir()
+            marker = state / rr.CALLBACKS_MARKER
+            marker.write_text(json.dumps({"baseline": "before", "session": "s"}))
+            (state / "lease.json").write_text(json.dumps({"task": "A"}))
+            controller = rr.Controller(rr.Config(), state)
+            live = rr.subprocess.CompletedProcess([], 0, "424242\n", "")
+            try:
+                with unittest.mock.patch.object(rr.subprocess, "run", return_value=live), \
+                        unittest.mock.patch.object(rr, "git_callbacks") as callbacks, \
+                        unittest.mock.patch.object(rr, "git") as git:
+                    with self.assertRaisesRegex(rr.Stop, "still alive"):
+                        controller.acquire()
+            finally:
+                controller.release()
+            callbacks.assert_not_called()  # nothing compared while the worker can still change it
+            git.assert_not_called()
+            self.assertTrue(marker.exists())
+
+    def test_preflight_refuses_a_live_worker_before_retiring_the_baseline(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            state = Path(tmp)
+            marker = state / rr.CALLBACKS_MARKER
+            marker.write_text(json.dumps({"baseline": "before", "session": "s"}))
+            live = rr.subprocess.CompletedProcess([], 0, "424242\n", "")
+            with unittest.mock.patch.object(rr.subprocess, "run", return_value=live), \
+                    unittest.mock.patch.object(rr, "git_callbacks", return_value="before") as callbacks, \
+                    unittest.mock.patch.object(rr, "git") as git:
+                with self.assertRaisesRegex(rr.Stop, "still alive"):
+                    rr.Controller(rr.Config(), state).preflight()
+            callbacks.assert_not_called()
+            git.assert_not_called()
+            self.assertTrue(marker.exists())
+
     def test_push_ignores_inherited_repository_location(self):
         with tempfile.TemporaryDirectory() as tmp:
             controller = rr.Controller(rr.Config(push=True), Path(tmp))
