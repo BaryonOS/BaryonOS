@@ -36,6 +36,9 @@ def load(path: Path) -> tuple[dict, str]:
         raise ValueError(f"{path}: report did not pass (passed/raw exit 33/error)")
     if type(report.get("phases")) is not dict or not report["phases"]:
         raise ValueError(f"{path}: report has no verified phases")
+    duration = report.get("duration_s")
+    if type(duration) not in (int, float) or not 0 <= duration < 86400:
+        raise ValueError(f"{path}: invalid duration_s")
     command = report.get("command")
     if type(command) is not list or not report.get("source_fingerprint_version"):
         raise ValueError(f"{path}: report lacks its command or source fingerprint version")
@@ -116,7 +119,7 @@ def main(argv=None) -> int:
         print("window_latency_baseline: " + str(error), file=sys.stderr)
         return 1
     if args.output:
-        args.output.write_text(json.dumps(summary, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+        args.output.write_text(json.dumps(summary, indent=2, sort_keys=True, allow_nan=False) + "\n", encoding="utf-8")
     print(text(summary))
     return 0
 

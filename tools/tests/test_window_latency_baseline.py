@@ -100,6 +100,11 @@ class BaselineTests(unittest.TestCase):
             baseline.summarise(self.write(report(0, {"editor": 0.1}),
                                           report(1, {"editor": 0.1}, source_fingerprint_version=4)))
 
+    def test_rejects_non_finite_or_missing_duration(self):
+        for duration in (float("nan"), float("inf"), -1.0, None, "10"):
+            with self.subTest(duration=duration), self.assertRaisesRegex(ValueError, "duration_s"):
+                baseline.summarise(self.write(report(0, {"editor": 0.1}, duration_s=duration)))
+
     def test_records_report_base_names_only(self):
         summary = baseline.summarise(self.write(*(report(run, {"editor": 0.1}) for run in range(2))))
         self.assertEqual([run["report"] for run in summary["runs"]], ["report-0.json", "report-1.json"])
