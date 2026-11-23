@@ -6,7 +6,7 @@ import subprocess
 import sys
 import tempfile
 import unittest
-from unittest import mock
+import unittest.mock
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import check_english_docs as checker
@@ -82,7 +82,7 @@ class Scanner(unittest.TestCase):
             subprocess.run(["git", "-C", str(root), "add", "--", *tracked], check=True, env=checker.git_env())
             self.assertEqual(checker.find_dutch(root), ["docs/ACTIVE.md"])
             # An inherited GIT_DIR naming another repository must not redirect the scan.
-            with mock.patch.dict(os.environ, {"GIT_DIR": str(checker.ROOT / ".git")}):
+            with unittest.mock.patch.dict(os.environ, {"GIT_DIR": str(checker.ROOT / ".git")}):
                 self.assertEqual(checker.find_dutch(root), ["docs/ACTIVE.md"])
 
 
