@@ -718,9 +718,15 @@ class Controller:
         self.marker().unlink(missing_ok=True)
         (self.marker().parent / REVIEW_NONCE).unlink(missing_ok=True)
 
-    def baseline_review(self) -> dict | None:
+    def read_checkout(self) -> tuple[str, dict[str, list[int]]]:
+        """One read of what the saved baseline covers. `resume` reviews, binds and saves this same
+        read, so a change after it stays a change for the next review or preflight."""
+        return git_callbacks(), self.ignored_files()
+
+    def baseline_review(self, read: tuple[str, dict[str, list[int]]]) -> dict | None:
         """What retiring the saved baseline would adopt: the change since it was taken. With no
         trusted baseline there is no delta to show: the lead reviews the checkout as a whole."""
+        callbacks, ignored_now = read
         marker, legacy = self.marker(), self.legacy_marker()
         if not marker.exists():
             if legacy is None and self.trusted():
@@ -728,15 +734,17 @@ class Controller:
             return {"no_trusted_baseline": True, "legacy_marker_in_checkout": legacy is not None}
         saved = self.saved_baseline(marker)
         ignored = saved.get("ignored")
-        created, changed = self.ignored_delta(ignored) if isinstance(ignored, dict) else (["unreadable baseline"], [])
+        created, changed = (self.ignored_delta(ignored, ignored_now) if isinstance(ignored, dict)
+                            else (["unreadable baseline"], []))
         return {"manual_claim": self.manual_claim(), "legacy_marker_in_checkout": legacy is not None,
-                "callbacks_changed": git_callbacks() != saved.get("baseline"),
+                "callbacks_changed": callbacks != saved.get("baseline"),
                 "created": created, "changed_or_removed": changed}
 
-    def review_digest(self, review: dict) -> str:
-        """Binds the acknowledgement to the exact state the lead reviewed: the Git callbacks, every
-        ignored file's identity (ctime and inode change on any later write), the changed files'
-        content and both markers. A later, different change gives a different digest."""
+    def review_digest(self, review: dict, read: tuple[str, dict[str, list[int]]]) -> str:
+        """Binds the acknowledgement to the exact state the lead reviewed: HEAD, the whole tree
+        fingerprint (status, tracked and untracked content), the Git callbacks, every ignored
+        file's identity (ctime and inode change on any later write), the changed files' content
+        and both markers. A later, different change gives a different digest."""
         def content(path: Path) -> str | None:
             try:
                 return os.readlink(path) if path.is_symlink() else sha256(path.read_bytes()) if path.is_file() else None
@@ -747,7 +755,8 @@ class Controller:
         nonce = self.marker().parent / REVIEW_NONCE
         if not nonce.exists():
             atomic_write(nonce, uuid.uuid4().hex)
-        bound = {"nonce": nonce.read_text(), "review": review, "callbacks": git_callbacks(), "ignored": self.ignored_files(),
+        bound = {"nonce": nonce.read_text(), "review": review, "head": git("rev-parse", "HEAD").strip(),
+                 "tree": self.tree_fingerprint(), "callbacks": read[0], "ignored": read[1],
                  "hidden": hidden_tracked(), "content": {p: content(ROOT / p) for p in changed},
                  "markers": [content(m) if os.path.lexists(m) else None for m in markers]}
         return sha256(json.dumps(bound, sort_keys=True))[:16]
@@ -769,12 +778,13 @@ class Controller:
         if active := [t["id"] for t in load_ledger(LEDGER)["tasks"] if t["status"] == "active"]:
             return (f"stop/pause cleared; manual task {active} is active, so the saved session baseline "
                     "is kept until it is validated")
-        review = self.baseline_review()
+        read = self.read_checkout()
+        review = self.baseline_review(read)
         if review is None:
             return "stop/pause cleared; no saved session baseline"
         # Before any digest: the review cannot show what lies inside a nested repository.
         self.refuse_invisible_changes()
-        digest = self.review_digest(review)
+        digest = self.review_digest(review, read)
         # A manual claim always needs the lead's word: its session may still be running and plant
         # something after an empty delta was shown.
         if any(review.values()) and accept != digest:
@@ -788,7 +798,7 @@ class Controller:
                     f"`resume --accept {digest}`")
         # The acknowledged state becomes the baseline, so a change made after it (a detached child of
         # the session, say) is still compared by the next preflight, which retires it only last.
-        snapshot = {"baseline": git_callbacks(), "session": f"accepted {now()}", "ignored": self.ignored_files()}
+        snapshot = {"baseline": read[0], "session": f"accepted {now()}", "ignored": read[1]}  # the reviewed read
         self.retire_baseline()  # writes the trust record and drops the nonce
         atomic_write(self.marker(), json.dumps(snapshot))
         (self.state / CALLBACKS_MARKER).unlink(missing_ok=True)  # a legacy in-checkout baseline
@@ -950,9 +960,10 @@ class Controller:
                 snapshot[path] = [info.st_mode, info.st_size, info.st_mtime_ns, info.st_ctime_ns, info.st_ino]
         return snapshot
 
-    def ignored_delta(self, before: dict[str, list[int]]) -> tuple[list[str], list[str]]:
+    def ignored_delta(self, before: dict[str, list[int]],
+                      after: dict[str, list[int]] | None = None) -> tuple[list[str], list[str]]:
         """(created, changed or removed) ignored files since the snapshot `before`."""
-        after = self.ignored_files()
+        after = self.ignored_files() if after is None else after
         return sorted(set(after) - set(before)), sorted(p for p in before if after.get(p) != before[p])
 
     def new_ignored(self, before: dict[str, list[int]]) -> list[str]:

@@ -95,6 +95,17 @@ class Ledger(unittest.TestCase):
                 rr.update_task("A", path=ledger, status="verified")
                 controller.acquire()
                 try:
+                    # The real preflight: a ledger the session can rewrite does not end the claim.
+                    with unittest.mock.patch.object(controller, "preflight",
+                                                    side_effect=lambda: rr.Controller.preflight(controller)), \
+                            unittest.mock.patch.object(rr.Controller, "refuse_live_workers"), \
+                            self.assertRaisesRegex(rr.Stop, "manual task A holds the session baseline"):
+                        controller.prepare_manual()
+                    self.assertEqual(controller.manual_claim(), "A")
+                    # What `resume --accept` does once the digest matches (that path:
+                    # test_a_manual_claim_outlives_a_ledger_the_session_rewrote); the claim ends.
+                    controller.retire_baseline()
+                    self.assertIsNone(controller.manual_claim())
                     second = controller.prepare_manual()
                     self.assertEqual(second["task_id"], "B")
                     self.assertNotEqual(first["stdin"], second["stdin"])
@@ -1405,7 +1416,7 @@ class RunnerResiduals(unittest.TestCase):
 
     def test_accept_digest_binds_the_reviewed_content(self):
         # 3a24e2c4 hashed only the path lists: a reviewed digest also accepted a later, different change.
-        for swap in ("content", "hooks"):
+        for swap in ("content", "hooks", "tracked edit", "HEAD moved"):
             with self.subTest(swap=swap), tempfile.TemporaryDirectory() as tmp, \
                     self.live_state(tmp) as (repo, state, controller), \
                     unittest.mock.patch.object(rr, "git_callbacks", side_effect=REAL_GIT_CALLBACKS), \
@@ -1419,11 +1430,52 @@ class RunnerResiduals(unittest.TestCase):
                 reviewed = re.search(r"resume --accept ([0-9a-f]+)", self.resume()[1]).group(1)
                 if swap == "content":
                     (repo / "build" / "tool.py").write_text("print('swapped')\n")
-                else:
+                elif swap == "hooks":
                     rr.git("config", "core.hooksPath", str(repo / "build"))
+                elif swap == "tracked edit":  # the delta shows ignored files only; the digest binds the tree
+                    (repo / ".gitignore").write_text("build/\n# edited after the review\n")
+                else:  # an unchanged worktree on another commit
+                    rr.git("commit", "-q", "--allow-empty", "--no-verify", "-m", "moved")
                 code, message = self.resume("--accept", reviewed)
                 self.assertIn("is kept", message)
                 self.assertTrue(controller.marker().exists())
+
+    def test_a_change_after_the_reviewed_read_is_never_adopted_unseen(self):
+        # 626b5b76 read the checkout again for the digest and the snapshot: a plant between the
+        # reads was saved as reviewed, and a listed file rewritten after the digest was accepted.
+        for window in ("before the digest", "after the digest", "accepted file rewritten"):
+            with self.subTest(window=window), tempfile.TemporaryDirectory() as tmp, \
+                    self.live_state(tmp) as (repo, state, controller), \
+                    unittest.mock.patch.object(rr.Controller, "refuse_live_workers"):
+                rr.atomic_write(controller.marker(), json.dumps(
+                    {"baseline": "cb", "session": "worker", "ignored": controller.ignored_files()}))
+                late = repo / "build" / ("tool.py" if window == "accepted file rewritten" else "late.py")
+                if window == "accepted file rewritten":
+                    late.write_text("print('reviewed')\n")
+                real_digest, real_retire = rr.Controller.review_digest, rr.Controller.retire_baseline
+
+                def digest(self, review, read):
+                    if window == "before the digest":
+                        late.write_text("planted before the digest")
+                    value = real_digest(self, review, read)
+                    if window == "accepted file rewritten" and review.get("created"):
+                        late.write_text("print('swapped')\n")
+                    return value
+
+                def retire(self):
+                    if window == "after the digest":
+                        late.write_text("planted after the digest")
+                    real_retire(self)
+                if window == "accepted file rewritten":
+                    reviewed = re.search(r"resume --accept ([0-9a-f]+)", self.resume()[1]).group(1)
+                with unittest.mock.patch.object(rr.Controller, "review_digest", digest), \
+                        unittest.mock.patch.object(rr.Controller, "retire_baseline", retire):
+                    extra = ("--accept", reviewed) if window == "accepted file rewritten" else ()
+                    self.assertIn("is now the saved session baseline", self.resume(*extra)[1])
+                saved = json.loads(controller.marker().read_text())["ignored"]
+                self.assertNotEqual(saved.get(late.relative_to(repo).as_posix()), controller.ignored_files()[
+                    late.relative_to(repo).as_posix()])
+                self.assertIn(late.relative_to(repo).as_posix(), self.resume()[1])  # shown, not adopted
 
     def test_digest_exists_only_after_the_lead_ran_resume(self):
         with tempfile.TemporaryDirectory() as tmp, self.live_state(tmp) as (repo, state, controller), \
