@@ -2300,6 +2300,44 @@
       "next": "H05-T5b: virtio-rng re-initialisation after the wake in a new test-system-s3-reinit profile (fail closed if the BDF, IDs or BARs differ)."
     },
     {
+      "id": "H05-T6",
+      "criterion": "H05",
+      "milestone": "M9",
+      "executor": "builder+lead",
+      "status": "verified",
+      "title": "S3 hardening from the #409 integration review: token-first wake, dedicated reject exit, FACS store extent, post-wake network refusal",
+      "goal": "Close items 1-4 of the #409 integration review (comment 7103166479) without changing successful S3 behaviour.",
+      "deps": [
+        "H05-T4"
+      ],
+      "write_paths": [
+        "kernel/src/main.rs",
+        "kernel/src/m2/sleep.rs",
+        "kernel/src/m2/paging.rs",
+        "kernel/src/m2/m3/network.rs",
+        "drivers/acpi-power/",
+        "tools/run_sleep.py",
+        "tools/tests/test_sleep.py",
+        "docs/verification/h05-hardening-20261123/"
+      ],
+      "checks": [
+        "python3 -B tools/run_sleep.py --case cycles|stale-token|corrupt-facs (raw 33/37/33)",
+        "python3 -B tools/test_power_system.py (8/8)",
+        "cargo test and clippy for drivers/acpi-power"
+      ],
+      "evidence_level": "native QEMU/TCG (local QEMU 10.2.1, pc-q35-8.2); hosted native-power pending",
+      "non_claimable": "Plan rejections in native-acpi-s3 still exit 0x10; the unarmed-wake and out-of-extent paths have no native fixture; the network refusal is not compiled by any gate; the 32-bit wake stage loads CR3 from the wake page (follow-up H05-T6b).",
+      "source_commit": "7c5201b6",
+      "history": [
+        {
+          "event": "verified",
+          "at": "2026-11-23",
+          "reason": "builder b00f9b21/a99b56ed; independent AI review approve-with-minors; lead fix 7c5201b6 (extent load order); run_sleep cycles 33, stale-token 37, corrupt-facs 33; power gate 8/8 on the merged tree."
+        }
+      ],
+      "next": "H05-T6b: dedicated plan-rejection exit, unarmed-wake and out-of-extent fixtures, CR3 from a static."
+    },
+    {
       "id": "H06-T2",
       "criterion": "H06",
       "milestone": "M9",

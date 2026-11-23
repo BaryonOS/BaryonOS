@@ -60,10 +60,15 @@ write after the wake), the kernel markers in order (plan at bootstrap, one
 `ENTER`/`RESUMED` pair after `SYSTEM:MANIFEST:PASS` and before
 `SYSTEM:BROKERS:PASS`), the kernel's exact SUSPEND result log
 `[-8, -6, -4, -1, 0, -14]`, a timer interrupt after the wake, and the
-harness's QMP `SUSPEND`/`WAKEUP` events. A rejected wake token exits 0x11 in
-this profile and can never satisfy that oracle. The amendment of
+harness's QMP `SUSPEND`/`WAKEUP` events. A rejected wake token exits 0x12
+(raw 37) in every S3 profile and can never satisfy that oracle. The amendment of
 23 November 2026 aligns the CR3, device-refusal and exit wording with the
-implementation (H05-T4).
+implementation (H05-T4). Amendment H05-T6 (23 November 2026): the wake path
+validates the ARMED token before it reads `SAVED` or restores any register, a
+rejected wake exits the dedicated code 0x12 instead of 0x11 (or 0x10 in
+`native-acpi-s3`), and FACS stores outside the extent recorded from the
+validated plan are refused with `Permission` before any mapping
+(docs/verification/h05-hardening-20261123/).
 
 ## ADR-H04-LINK-20261119 — Test-profile NIC link query 0x74 and link-down refusal -23
 

@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-23",
-    "source_commit": "60926c1602e315666cc5dab647c64cce2d4da4e9",
+    "source_commit": "9d14f325404097f990b418ed4ded06013751252d",
     "assessment_basis": "parent_commit",
     "branch": "claude/h-track-20261123",
-    "task": "H03-T3c virtio-snd hardening (merged into claude/h-track-20261123)",
+    "task": "H05-T6 S3 hardening (merged into claude/h-track-20261123)",
     "previous_score": 41,
-    "summary": "41/100 unchanged. H03-T3c hardens the virtio-snd driver (stale-event tally, re-initialisation guard, visible used-element check, fence marker order) with host tests and kernel builds; native behaviour awaits hosted native-xhci.yml. No criterion changes."
+    "summary": "41/100 unchanged. H05-T6 validates the wake token before any restore, gives rejected wakes the dedicated exit 0x12, bounds FACS stores to the validated extent and refuses post-wake network calls; power gate 8/8 locally. H05 needs device re-initialisation and physical acceptance; no criterion changes."
   },
   "tracks": [
     {
