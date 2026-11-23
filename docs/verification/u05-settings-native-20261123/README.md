@@ -14,6 +14,8 @@ the settings records detects accidental damage only; it is not authentication.
 - QEMU `pc-q35-8.2`, TCG, 1 vCPU. The exact command and version are in each `result.json`.
 - Kernel SHA-256 of the `test-volume-settings` build:
   `57cde59c6d2571273025e601e5dfdf13a9a409f8efe0bd39d5a09d84004e6fbe`.
+  The `test-volume-settings-recover` build (steps 2 and 4–6):
+  `5894d6d9c60a5b22562c8915abc37f614af3316a0cd1c80c8603d0e4a952bbe5`.
 - `settings-app` ELF SHA-256: `3dccc51957ddd43cd5355f992f7a7d3122a0cb2e670935667671f70661eb067d`.
   Sizes: .text 27717 B (bound 0x10000), .data 1088 B, .rodata 1664 B.
 - volume-service ELF SHA-256 (unchanged volume-docs build):
@@ -62,6 +64,22 @@ Both passed with raw exit 33 (`regression/`).
 - `fmt --check`: exit 0, on `sdk/examples/settings-volume`.
 - `rustfmt +1.90.0 --check kernel/src/m2/m3/volume.rs`: exit 0.
 - `python3 -B -m unittest tests/test_settings_oracle.py`: 9 tests, exit 0.
+
+## Known failure and checks not run
+
+- **Fails:** `tests/test_ci_workflows.py::DependabotContractTests::test_each_owned_cargo_workspace_is_covered_once`.
+  The new standalone workspace `/sdk/examples/settings-volume` needs an entry in
+  the protected `.github/dependabot.yml`. That entry is an integration request.
+  This PR does not exempt the workspace from the assertion.
+- **Not run:** hosted CI, `qemu-smoke` and the full `tools/test_volume.py` gate.
+  The two regression boots above are `tools/run_volume.py` runs, not that gate.
+- **Not CI-gated:** `tools/run_settings.py`, `tests/test_settings_oracle.py` and
+  the `sdk/examples/settings-volume` workspace are not wired into any workflow.
+  Cases 23 and 24 rest on the logs committed here.
+- Runner changes after these runs (head commits after the one that adds this
+  directory) bound the QEMU version probe, escape commas in `-drive` paths and
+  check the copied `kernel.elf` against `manifest.json`. They do not change the
+  argv for these paths, and QEMU was not re-run.
 
 `SHA256SUMS` covers every file here. `.gitattributes` keeps the raw serial
 logs byte-exact.

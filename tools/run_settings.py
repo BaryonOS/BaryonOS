@@ -243,17 +243,24 @@ def check_build(build_dir: Path, case: str, frozen: str) -> dict:
     return manifest
 
 
-def boot(build_dir: Path, run_dir: Path, image: Path, readonly: bool, timeout: int):
+def drive_path(path: str) -> str:
+    """QEMU splits -drive values on commas; a literal comma is written as two."""
+    return path.replace(",", ",,")
+
+
+def boot(build_dir: Path, run_dir: Path, image: Path, readonly: bool, timeout: int, kernel_sha256: str):
     env = environment()
     qemu = shutil.which("qemu-system-x86_64", path=env["PATH"])
     if not qemu:
         raise RuntimeError("qemu-system-x86_64 not found")
     code, variables = firmware()
     shutil.copytree(build_dir / "esp", run_dir / "esp")
+    if sha256(run_dir / "esp/kernel.elf") != kernel_sha256:
+        raise SystemExit(f"run_settings: {build_dir}/esp/kernel.elf does not match manifest.json; rebuild")
     shutil.copy2(variables, run_dir / "OVMF_VARS.fd")
     shutil.copy2(code, run_dir / "OVMF_CODE.fd")
-    rel = Path(os.path.relpath(run_dir, ROOT)).as_posix()
-    image_rel = Path(os.path.relpath(image, ROOT)).as_posix()
+    rel = drive_path(Path(os.path.relpath(run_dir, ROOT)).as_posix())
+    image_rel = drive_path(Path(os.path.relpath(image, ROOT)).as_posix())
     args = [qemu, "-machine", qemu_machine(), "-accel", qemu_accel(), "-cpu", "qemu64",
             "-smp", "1", "-m", "256M", "-nodefaults", "-display", "none", "-monitor", "none",
             "-serial", "stdio", "-nic", "none", "-no-reboot",
@@ -266,7 +273,11 @@ def boot(build_dir: Path, run_dir: Path, image: Path, readonly: bool, timeout: i
             "-device", "virtio-blk-pci,drive=volume,id=volblk,addr=0x5,disable-legacy=on,num-queues=1,"
                        + "queue-size=8,serial=NOS-M6E-TEST"]
     rc, out, err, timed_out, _, _ = execute(args, env, timeout=timeout)
-    version = subprocess.check_output([qemu, "--version"], text=True).strip()
+    try:  # A failing version probe must not hide the boot result already captured.
+        version = subprocess.run([qemu, "--version"], capture_output=True, text=True,
+                                 timeout=30, check=True).stdout.strip()
+    except (OSError, subprocess.SubprocessError) as error:
+        version = f"unavailable: {type(error).__name__}"
     return args, version, rc, out, err, timed_out
 
 
@@ -318,7 +329,8 @@ def run_step(step: int, build_dir: Path, chain: Path, previous: Path | None, fro
     started = datetime.now(timezone.utc).isoformat()
     start = time.monotonic()
     readonly = case == "settings-recover"
-    args, version, rc, out, err, timed_out = boot(build_dir, run_dir, image, readonly, timeout)
+    args, version, rc, out, err, timed_out = boot(build_dir, run_dir, image, readonly, timeout,
+                                                   manifest["kernel"]["sha256"])
     duration = time.monotonic() - start
     (run_dir / "serial.txt").write_text(out, encoding="utf-8")
     (run_dir / "stderr.txt").write_text(err, encoding="utf-8")
