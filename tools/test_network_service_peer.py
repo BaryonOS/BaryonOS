@@ -800,6 +800,9 @@ else:
         self.assertEqual(ceiling + 1, kernel)
         # 100 Hz guest ticks: the kernel deadline must fail the run before the host kills QEMU.
         self.assertGreaterEqual(watchdog, kernel // 100 + 30)
+        # The peer (lifetime and transcript clock) must accept the runner's default watchdog.
+        with tempfile.TemporaryDirectory() as directory:
+            Peer(watchdog, case="port-sweep", raw_path=Path(directory) / "sweep.jsonl")
 
     def test_port_sweep_serial_requires_quiescent_phase_order(self):
         self.assertEqual(native_limits("port-sweep"), (31_999, 360))
