@@ -296,14 +296,16 @@ fn check_dhcp(service: &[u64; 29]) {
         b"DHCP_APP_B_EVIDENCE",
     );
     // Held connection live, then lease withdrawn, then the app observing its
-    // stale token, then the second lease, then the fresh exchange finishing.
+    // stale token, then the second lease, then the fresh exchange finishing
+    // no later than app A's recorded exit.
     let (held, withdrawn, stale, rebound, fresh) = (a[15], service[25], a[20], service[28], a[16]);
     require(
         held != 0
             && held <= withdrawn
             && withdrawn <= stale
             && stale <= rebound
-            && rebound <= fresh,
+            && rebound <= fresh
+            && fresh <= evidence().exits[1],
         b"DHCP_ORDER",
     );
 }

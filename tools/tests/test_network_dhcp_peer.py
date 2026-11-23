@@ -1,10 +1,15 @@
 #!/usr/bin/env python3
-"""Host tests for the strict N02 DHCP peer; no QEMU or native evidence."""
+"""Host tests for the strict N02 DHCP peer, runner summary and build fingerprint; no QEMU or native evidence."""
 from __future__ import annotations
+import json
+import shutil
 import struct
+import subprocess
 import sys
+import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
@@ -251,6 +256,116 @@ class DhcpPeerTest(unittest.TestCase):
         self.assertFalse(step.evidence()["complete"])
         with self.assertRaises(ProtocolError):
             validate_transcript(dict(step.evidence(), case="dhcp"))
+
+
+class DhcpRunnerSummaryTest(unittest.TestCase):
+    """F8/F11: a newer attempt always replaces an earlier passing stable summary."""
+    def setUp(self):
+        import build as builder
+        import run_network_dhcp as runner
+        self.builder, self.runner = builder, runner
+        (runner.ROOT / "build").mkdir(exist_ok=True)
+        # Under the checkout (private_path) but never the real BUILD that holds native evidence.
+        self.build = Path(tempfile.mkdtemp(prefix="test-dhcp-summary-", dir=runner.ROOT / "build"))
+        self.addCleanup(shutil.rmtree, self.build)
+        self.summary = self.build / "network-dhcp-report.json"
+        self.summary.write_text(json.dumps({"passed": True, "network_dhcp_gate": True}))
+
+    def summary_json(self):
+        return json.loads(self.summary.read_text())
+
+    def test_stale_no_build_failure_replaces_earlier_pass(self):
+        with patch.object(self.runner, "BUILD", self.build), \
+                patch.object(self.runner, "source_hash", return_value="a" * 64):
+            with self.assertRaises(ValueError):
+                self.runner.main(["--no-build"])  # no source-matching manifest in this BUILD
+        summary = self.summary_json()
+        self.assertIs(summary["passed"], False)
+        self.assertIs(summary["network_dhcp_gate"], False)
+        self.assertIn("ValueError", summary["error"])
+
+    def test_build_failure_is_published_and_summary_invalidated_first(self):
+        seen = []
+        def failing_build(*_):
+            seen.append(self.summary_json()["passed"])
+            raise subprocess.CalledProcessError(101, ["cargo", "build"])
+        with patch.object(self.runner, "BUILD", self.build), \
+                patch.object(self.runner, "source_hash", return_value="a" * 64), \
+                patch.object(self.builder, "build", side_effect=failing_build), \
+                patch.object(self.runner, "run_network_dhcp") as run:
+            with self.assertRaises(subprocess.CalledProcessError):
+                self.runner.main([])
+        self.assertEqual(seen, [False])
+        run.assert_not_called()
+        summary = self.summary_json()
+        self.assertIs(summary["passed"], False)
+        self.assertIn("CalledProcessError", summary["error"])
+
+    def test_source_is_frozen_before_build_and_success_publishes_normally(self):
+        order = []
+        def fingerprint():
+            order.append("hash")
+            return "f" * 64
+        def run(*, timeout, frozen):
+            order.append(("run", frozen))
+            self.runner.publish_json(self.summary, {"passed": True})
+            return {"passed": True}
+        with patch.object(self.runner, "BUILD", self.build), \
+                patch.object(self.runner, "source_hash", side_effect=fingerprint), \
+                patch.object(self.builder, "build", side_effect=lambda *_: order.append("build")), \
+                patch.object(self.runner, "run_network_dhcp", side_effect=run):
+            self.assertEqual(self.runner.main([]), 0)
+        self.assertEqual(order, ["hash", "build", ("run", "f" * 64)])
+        self.assertIs(self.summary_json()["passed"], True)
+
+
+class BuildSourceFingerprintTest(unittest.TestCase):
+    """F11: build() binds artifacts to the source fingerprint taken before the first compile."""
+    def setUp(self):
+        import build as builder
+        self.builder, self.calls = builder, []
+        (builder.ROOT / "build").mkdir(exist_ok=True)
+
+    def assert_fingerprint_brackets_compiles(self):
+        # First fingerprint before any compile, second after the last one.
+        self.assertEqual((self.calls[0], self.calls[-1], self.calls.count("hash")), ("hash", "hash", 2))
+        self.assertGreaterEqual(self.calls.count("compile"), 2)
+
+    def fingerprints(self, *values):
+        values = iter(values)
+        def fingerprint():
+            self.calls.append("hash")
+            return next(values)
+        return fingerprint
+
+    def test_source_change_during_build_fails_before_manifest(self):
+        with patch.object(self.builder, "source_hash", side_effect=self.fingerprints("a" * 64, "b" * 64)), \
+                patch.object(self.builder, "run_logged", side_effect=lambda *_, **__: self.calls.append("compile")), \
+                patch.object(self.builder, "inspect_pe") as pe, \
+                patch.object(self.builder.shutil, "copy2") as copy, \
+                patch.object(self.builder, "save_json") as save:
+            with self.assertRaisesRegex(ValueError, "Source changed during the build"):
+                self.builder.build()
+        self.assert_fingerprint_brackets_compiles()
+        pe.assert_not_called()
+        copy.assert_not_called()
+        save.assert_not_called()
+
+    def test_unchanged_source_records_build_start_fingerprint(self):
+        build = Path(tempfile.mkdtemp(prefix="test-build-fingerprint-", dir=self.builder.ROOT / "build"))
+        self.addCleanup(shutil.rmtree, build)
+        with patch.object(self.builder, "source_hash", side_effect=self.fingerprints("a" * 64, "a" * 64)), \
+                patch.object(self.builder, "run_logged", side_effect=lambda *_, **__: self.calls.append("compile")), \
+                patch.object(self.builder, "BUILD", build), \
+                patch.object(self.builder, "sha256", return_value="0" * 64), \
+                patch.object(self.builder, "inspect_pe", return_value={}), \
+                patch.object(self.builder, "inspect_elf", return_value={"segments": []}), \
+                patch.object(self.builder.shutil, "copy2"), \
+                patch.object(self.builder, "save_json") as save:
+            manifest = self.builder.build()
+        self.assert_fingerprint_brackets_compiles()
+        self.assertEqual(manifest["source_sha256"], "a" * 64)
+        self.assertEqual(save.call_args_list[0].args[1]["source_sha256"], "a" * 64)
 
 
 if __name__ == "__main__":
