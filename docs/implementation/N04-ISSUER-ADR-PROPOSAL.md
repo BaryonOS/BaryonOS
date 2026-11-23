@@ -230,26 +230,30 @@ reported separately:
 3. **`Durable`.** Three steps have all completed, in this order:
    - the tombstone write succeeded;
    - exact readback matched;
-   - the surviving component has recorded the tombstone's store generation
-     as the highest generation committed in this boot.
+   - the surviving component has recorded the identity of the committed
+     tombstone snapshot (its store generation and a binding to the exact
+     bytes that were read back) as the latest snapshot committed in this
+     boot.
 
    Only then is the denial entry released. Only this state may be shown as
    "revocation survives restart".
 4. **`DurabilityUnknown`.** The write failed, timed out or read back
-   differently, or the generation record could not be updated. Live denial
+   differently, or the snapshot identity record could not be updated. Live denial
    stays in place. The state is reported as unknown, never as success. Retry
    is allowed, and a later `Durable` requires a fresh readback and a fresh
-   generation record. Until then, the denial entry from state 1 keeps the
+   snapshot identity record. Until then, the denial entry from state 1 keeps the
    grant denied for the rest of the boot. That holds across a restart of the
    policy process or the network service, even if storage still holds a
    valid allow record for the grant.
 
 **Store generation rule.** Each committed store snapshot receives a store
 generation strictly higher than that of every earlier committed snapshot,
-and every tombstone write advances it. An equal generation therefore
-identifies the same snapshot, so a snapshot written before a tombstone
-always has a lower generation than that tombstone. The reload check below
-relies on this rule.
+and every tombstone write advances it. Within one unbroken store lineage, a
+snapshot written before a tombstone therefore has a lower generation than
+that tombstone. Across a cold rollback the lineage breaks (Decision 3), so
+generations can repeat. An equal generation alone therefore never proves
+that a reloaded snapshot is the committed one; the reload check below binds
+identity, not just the number.
 
 **Restart semantics** (warm restart within the same boot):
 
@@ -268,11 +272,16 @@ relies on this rule.
   tombstone. A reload must not return an older authentic snapshot written
   before that tombstone, so the reload is subject to a freshness check. The
   component that holds the boot-lifetime denial entries (open question 7)
-  also records the highest store generation committed in this boot. Under
-  the store generation rule, a reloaded store whose generation is lower
-  than that record predates the latest committed tombstone. Such a store is
-  treated as replayed, and so is any reload for which that record is unavailable.
-  Either case yields no grants. This check is the within-boot counterpart
+  also records the identity of the latest snapshot committed in this boot:
+  its store generation plus a binding to the exact committed bytes. The
+  record is held in memory, not stored beside the snapshot on the same disk.
+  A reload is accepted only if it is that exact snapshot. Any other
+  reloaded store is treated as replayed, including a lower generation, an
+  equal generation with different contents from an earlier lineage, or a
+  reload for which the record is unavailable. Any such case yields no
+  grants. The required outcome is that a revoked grant stays denied after
+  any policy reload. How the binding is computed and held is open with
+  question 7. This check is the within-boot counterpart
   of Decision 5, which covers the cold-boot case. Missing, corrupt,
   unauthenticated, version-unknown or not-provably-current state yields
   **no grants** (fail-closed) and a visible "network permissions could not
@@ -342,10 +351,11 @@ clause, which remains separate evidence.
   Readback mismatch reported as `DurabilityUnknown`.
   - A policy-process crash in `DurablePending` followed by a restart must
     leave the grant denied.
-  - A failed generation-record update must leave the revocation
+  - A failed snapshot-identity-record update must leave the revocation
     `DurabilityUnknown` and the grant denied.
   - Reload of a pre-tombstone snapshot within the same boot must be refused,
-    with no grants.
+    with no grants, as must reload of a different snapshot that carries the
+    recorded generation (a broken lineage).
 - **Cold boot.** Replay of an older authentic store under 5A.
 - **Mutation controls.** A mutant that skips each check must fail the
   corresponding test.
@@ -392,9 +402,9 @@ These three are the options with Security Floor impact.
    native enforcement, revocation and helper routes within one boot?
 7. Which component, outliving both a policy-process and a network-service
    restart within one boot, holds the boot-lifetime denial entries of
-   Decision 4 (from `LiveDenied` until `Durable`) and the highest store
-   generation committed in this boot, which the warm-restart freshness check
-   uses?
+   Decision 4 (from `LiveDenied` until `Durable`) and the identity record of
+   the latest snapshot committed in this boot, which the warm-restart
+   freshness check uses? How is that identity bound to the committed bytes?
 
 ## Sources
 
