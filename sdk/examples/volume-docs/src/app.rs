@@ -1059,7 +1059,7 @@ fn verified_restore(
     scratch: &mut [u8; MAX_LENGTH],
     app: &mut App,
 ) -> Result<Report, (Status, Report)> {
-    archive::verify(&mut DiskSource::new(disk, ARCHIVE_SECTORS), scratch)
+    archive::verify(&mut DiskSource::new(&mut *disk, ARCHIVE_SECTORS), scratch)
         .map_err(|status| (status, Report::default()))?;
     archive::restore(
         &mut DiskSource::new(disk, ARCHIVE_SECTORS),

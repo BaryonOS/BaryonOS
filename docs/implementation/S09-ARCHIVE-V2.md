@@ -402,8 +402,7 @@ volume-docs service is built with the L2 operations at opt-level "s"; the NAS
   and crash tests): **done on host**, implementation review open
   (S09-L2-PROVENANCE section 11). A re-exported installed domain records
   live values; no provenance-carrying archive is decided.
-- Native writer and reader dispatch in `walk`, a v2 range adapter for
-  `DiskSource`, the native QEMU stage, and a native L2 INSTALL stage (the
+- Native writer and reader dispatch in `walk`, the native QEMU stage, and a native L2 INSTALL stage (the
   native volume-docs service links the L2 operations at opt-level "s"; a
   new stage needs an integration request for the protected stage pin).
 - The destination range size of PR #396 has not been checked against

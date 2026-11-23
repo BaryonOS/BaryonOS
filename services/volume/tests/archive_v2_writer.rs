@@ -13,7 +13,7 @@ mod common;
 
 use common::{fill, Local, SimDisk};
 use volume_core::{
-    archive::{self, ArchiveV2, ExportV2, Sink, Source},
+    archive::{self, ArchiveV2, DiskSink, DiskSource, ExportV2, Sink, Source},
     client::{Client, Transport},
     service::Service,
     table::{Entry, Table},
@@ -421,4 +421,53 @@ fn a_concurrent_own_commit_discards_the_export() {
             assert!(archive::verify_v2(&mut reader(&sink.0), &mut scratch()).is_err());
         }
     }
+}
+
+/// v1 and v2 archives of one domain, each written by `DiskSink` to its own
+/// range, read back through the same `DiskSource` type: owned or borrowed,
+/// every stored byte and nothing behind it.
+#[test]
+fn disk_source_reads_v1_and_v2_archives_of_one_domain() {
+    let (mut service, mut disk) = scenario();
+    let (v2, v2_bytes) = export(&mut service, &mut disk, 1);
+    let mut v1_sink = Bytes(Vec::new());
+    let v1 = archive::export(&mut client(&mut service, &mut disk, 1), 1, &mut v1_sink).unwrap();
+    let v1_bytes = v1_sink.0;
+    assert_eq!(v1_bytes[8], 1);
+    assert_eq!(v2_bytes[8], 2);
+    for bytes in [&v1_bytes, &v2_bytes] {
+        let mut range = common::SimDisk::new();
+        let capacity = (bytes.len() / volume_core::SECTOR + 3) as u64;
+        let mut sink = DiskSink::new(&mut range, capacity);
+        sink.put(bytes).unwrap();
+        assert_eq!(sink.finish(), Ok(bytes.len() as u64));
+        let mut read = Vec::new();
+        let mut source = DiskSource::new(&mut range, capacity);
+        let mut piece = [0; 333];
+        loop {
+            match source.get(&mut piece).unwrap() {
+                0 => break,
+                amount => read.extend_from_slice(&piece[..amount]),
+            }
+        }
+        assert_eq!(&read, bytes);
+    }
+    let mut range = common::SimDisk::new();
+    let capacity = (v1_bytes.len() / volume_core::SECTOR + 1) as u64;
+    let mut sink = DiskSink::new(&mut range, capacity);
+    sink.put(&v1_bytes).unwrap();
+    sink.finish().unwrap();
+    assert_eq!(
+        archive::verify(&mut DiskSource::new(range, capacity), &mut scratch()),
+        Ok(v1)
+    );
+    let mut range = common::SimDisk::new();
+    let capacity = (v2_bytes.len() / volume_core::SECTOR + 1) as u64;
+    let mut sink = DiskSink::new(&mut range, capacity);
+    sink.put(&v2_bytes).unwrap();
+    sink.finish().unwrap();
+    assert_eq!(
+        archive::verify_v2(&mut DiskSource::new(range, capacity), &mut scratch()),
+        Ok(v2.archive)
+    );
 }

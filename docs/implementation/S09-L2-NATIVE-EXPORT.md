@@ -202,7 +202,10 @@ Change:
 - For version 1 the computation is unchanged.
 - For version 2 the stored length is
   `HEADER_V2 + 64·collections + 128·objects + 64·versions + TRAILER + content`.
-  It is bounded by `MAX_ARCHIVE_V2` and by the range.
+  It is bounded by the range and by `MAX_ARCHIVE_V2`, as the range-adapter
+  rule of `S09-ARCHIVE-V2.md` section 4.4 requires. Through `walk_v2` that
+  bound is redundant (its header checks refuse such counts first); a raw
+  `Source::get` caller sees it, and a host test pins it there.
 - Any other version is `Corrupt`.
 
 Effect on v1 callers (review item 6):
@@ -217,7 +220,9 @@ Effect on v1 callers (review item 6):
 `restore_native_l2` calls `open()` twice and needs a fresh reader each time.
 `DiskSource` borrows `&mut D`, so a closure cannot return one. The change
 makes `DiskSource` own its `D` and adds `impl<D: Disk> Disk for &mut D`. That
-keeps existing callers (`DiskSource::new(&mut disk, …)`) compiling unchanged.
+keeps existing callers (`DiskSource::new(&mut disk, …)`) compiling unchanged,
+except where a `&mut` parameter is passed by value twice: slice A found one
+such call in the v1 portal (`verified_restore`), which now reborrows it.
 The portal builds each reader from a new `NativeDisk { device }`;
 `BlockDevice` is `Copy`.
 
