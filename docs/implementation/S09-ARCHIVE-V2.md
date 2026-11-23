@@ -187,8 +187,11 @@ absent entry does not push history (`push_history` is a no-op while absent,
 `table.rs:199`), so pre-delete versions become history of the rewritten
 object, and nothing in the archive or on the wire marks the delete. A
 committed version's revision equals the entry revision after that commit,
-and DELETE, RENAME, META, RESTORE and TRANSACT each raise the entry revision
-without a new version. L1 therefore replays, per present object, only the
+and DELETE, RENAME, META and TRANSACT each raise the entry revision without
+a new version; RESTORE creates a current version at the next revision. A
+step of exactly 1 therefore excludes an intervening DELETE, but does not
+prove that no operation occurred (the newer version may come from a
+RESTORE). L1 therefore replays, per present object, only the
 longest prefix of its versions (current first, history newest first) whose
 consecutive revisions differ by exactly 1; every version after the first gap
 is not replayed and is counted in `NativeReport.skipped`, and the capacity
@@ -295,7 +298,7 @@ clock bounds its own revisions and stamps (`table.rs:644-666`).
   volume-wide free count is not observable, but BEGIN keeps every other
   domain's committed plus staged chunks within `QUOTA`). All WRITEs come
   first, then COLLECTION creates, then META, so a refusal or a failed first
-  BEGIN changes nothing in the domain, and its report counts every commit
+  BEGIN commits nothing in the domain, and its report counts every commit
   of this restore that it confirmed (`committed`) so a caller can tell
   "refused, unchanged by this restore" from "failed, used". The count is a
   lower bound after `Unknown` (a lost reply that read-back could not
@@ -303,6 +306,10 @@ clock bounds its own revisions and stamps (`table.rs:644-666`).
   committed even at `committed == 0`, so the domain must then be treated as
   possibly used, and `never_used` decides on a retry. `committed == 0` does not mean the
   domain is never used: `Stale` reports an already used domain with zero.
+  The zero count covers committed state only. If a BEGIN reaches the
+  service but its reply is lost, or an upload is interrupted before its
+  COMMIT, a staged upload may remain and reserve chunks until it is
+  replaced; `never_used` observes committed revisions, not staged uploads.
   The first mutation is a BEGIN only when a version is replayed; a
   token-bound upload staged in the domain then makes it `Busy` before any
   commit, while a legacy (token 0) staged upload is replaced by that BEGIN,

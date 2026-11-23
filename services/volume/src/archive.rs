@@ -956,14 +956,20 @@ const _: () = assert!(GUARANTEED_FREE > 0);
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub struct NativeReport {
     /// Bit `s`: archive slot `s` fully replayed (its replayable versions,
-    /// see [`replayable`], and its metadata).
+    /// see [`replayable`], and its metadata). Set once the last needed
+    /// commit is confirmed: after the WRITEs for a slot without metadata,
+    /// after its META otherwise, so a later failure keeps completed slots.
     pub restored: u8,
     /// Committed WRITEs.
     pub writes: usize,
     /// Every commit this restore made (WRITE, COLLECTION, META). Zero after
-    /// an error other than `Unknown` or `Protocol` means this restore changed
-    /// nothing: the domain is as it was, never used only if it was before
-    /// (not after `Stale`, which reports an already used domain). Non-zero
+    /// an error other than `Unknown` or `Protocol` means this restore
+    /// committed nothing: the domain's committed state is as it was, never
+    /// used only if it was before (not after `Stale`, which reports an
+    /// already used domain). A failed BEGIN whose reply was lost, or an
+    /// upload interrupted before its COMMIT, may still leave a staged upload
+    /// that reserves chunks until it is replaced; [`never_used`] observes
+    /// committed revisions only, not staged uploads. Non-zero
     /// means this restore made the domain used and a retry is refused. After
     /// an unresolved `Unknown`, or a malformed reply (`Protocol`), this
     /// restore may have committed even at zero: [`never_used`] decides on
@@ -978,9 +984,11 @@ pub struct NativeReport {
 /// Number of `object`'s versions (current first, then history newest first)
 /// that L1 replays: the longest prefix whose consecutive revisions differ by
 /// exactly 1. A committed version's revision equals the entry revision after
-/// that commit, and DELETE, RENAME, META, RESTORE and TRANSACT each raise the
-/// entry revision without a version, so only a step of 1 proves nothing,
-/// in particular no DELETE, happened between two versions. The archive
+/// that commit; DELETE, RENAME, META and TRANSACT raise the entry revision
+/// without a version, while RESTORE creates a current version at the next
+/// revision. A step of 1 therefore excludes an intervening DELETE (or any
+/// other revision-only operation); it does not prove that no operation
+/// occurred, since the newer version may come from a RESTORE. The archive
 /// cannot tell a DELETE gap from a META or RENAME gap; both stop the prefix
 /// (conservative). Absent objects replay nothing.
 pub fn replayable(object: &ObjectV2) -> usize {
@@ -1042,8 +1050,9 @@ pub fn never_used<T: Transport>(client: &mut Client<T>, domain: usize) -> Result
 /// reply (`Unknown`) is resolved by STAT or COLLECTION_STAT and accepted only
 /// when the state is exactly what was sent. A failure with
 /// `report.committed == 0` and a status other than `Unknown` or `Protocol`
-/// means this restore changed nothing (after `Stale` the domain was already
-/// used); an unresolved `Unknown` or a malformed reply (`Protocol`) may have
+/// means this restore committed nothing (after `Stale` the domain was
+/// already used), although a failed or interrupted upload may leave a staged
+/// upload that reserves chunks until it is replaced; an unresolved `Unknown` or a malformed reply (`Protocol`) may have
 /// committed, so the domain must then be treated as used ([`never_used`]
 /// decides on retry). Any other later failure leaves it used, and a retry is
 /// then refused. The caller must be the only writer of the destination
@@ -1152,6 +1161,14 @@ pub fn restore_native<S: Source, T: Transport>(
             Err(status) => return Err((status, report)),
         }
     }
+    let needs_meta = |o: &&ObjectV2| o.tags != 0 || o.kind != 0 || o.collection != 0;
+    // Every replayable version is now confirmed: a slot without metadata is complete.
+    for object in plan.objects[..plan.object_count]
+        .iter()
+        .filter(|o| o.present && !needs_meta(o))
+    {
+        report.restored |= 1 << object.slot;
+    }
     // Collections before META: META with a collection index needs it to exist.
     for collection in &plan.collections[..plan.collection_count] {
         if collection.present {
@@ -1173,24 +1190,22 @@ pub fn restore_native<S: Source, T: Transport>(
     }
     for object in plan.objects[..plan.object_count]
         .iter()
-        .filter(|o| o.present)
+        .filter(|o| o.present && needs_meta(o))
     {
-        if object.tags != 0 || object.kind != 0 || object.collection != 0 {
-            let target = (domain * PER_DOMAIN + object.slot) as u64;
-            let expected = revisions[object.slot];
-            let meta = (object.tags, object.kind, object.collection);
-            match client.meta(target, expected, meta.0, meta.1, meta.2) {
-                Ok(_) => {}
-                Err((Status::Unknown, _)) => match client.stat(target) {
-                    Ok(stat)
-                        if Some(stat.revision) == expected.checked_add(1)
-                            && (stat.tags, stat.kind, stat.collection) == meta => {}
-                    _ => return Err((Status::Unknown, report)),
-                },
-                Err((status, _)) => return Err((status, report)),
-            }
-            report.committed += 1;
+        let target = (domain * PER_DOMAIN + object.slot) as u64;
+        let expected = revisions[object.slot];
+        let meta = (object.tags, object.kind, object.collection);
+        match client.meta(target, expected, meta.0, meta.1, meta.2) {
+            Ok(_) => {}
+            Err((Status::Unknown, _)) => match client.stat(target) {
+                Ok(stat)
+                    if Some(stat.revision) == expected.checked_add(1)
+                        && (stat.tags, stat.kind, stat.collection) == meta => {}
+                _ => return Err((Status::Unknown, report)),
+            },
+            Err((status, _)) => return Err((status, report)),
         }
+        report.committed += 1;
         report.restored |= 1 << object.slot;
     }
     Ok(report)

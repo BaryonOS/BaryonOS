@@ -178,15 +178,39 @@ fn every_bit_flip_truncation_and_trailing_byte_is_refused() {
     }
 }
 
-/// Counts BEGINs (fresh writes) and can fail the n-th one like a dead link.
+/// Counts BEGINs (fresh writes) and all mutating requests, and can fail the
+/// n-th BEGIN, or every COLLECTION, like a dead link.
 struct Watch<T> {
     inner: T,
     begins: usize,
+    mutations: usize,
     fail_begin: Option<usize>,
+    fail_collection: bool,
 }
 impl<T: Transport> Transport for Watch<T> {
     fn call(&mut self, request: &[u8; wire::SIZE]) -> Result<[u8; wire::SIZE], Status> {
-        if wire::header(request).operation == wire::BEGIN {
+        let operation = wire::header(request).operation;
+        if [
+            wire::BEGIN,
+            wire::APPEND,
+            wire::COMMIT,
+            wire::ABORT,
+            wire::DELETE,
+            wire::RENAME,
+            wire::RESTORE,
+            wire::PURGE,
+            wire::META,
+            wire::COLLECTION,
+            wire::TRANSACT,
+        ]
+        .contains(&operation)
+        {
+            self.mutations += 1;
+        }
+        if operation == wire::COLLECTION && self.fail_collection {
+            return Err(Status::Io);
+        }
+        if operation == wire::BEGIN {
             self.begins += 1;
             if self.fail_begin == Some(self.begins) {
                 return Err(Status::Io);
@@ -210,7 +234,9 @@ fn client<'a>(
                 domain,
             },
             begins: 0,
+            mutations: 0,
             fail_begin,
+            fail_collection: false,
         },
         EPOCH,
         100 + 1000 * domain as u64,
@@ -380,12 +406,16 @@ fn refused_without_writes(
     let mut service = Service::new(EPOCH, Table::EMPTY, false);
     let mut c = client(&mut service, &mut disk, DOMAIN, None);
     prepare(&mut c);
-    let begins = c.transport.begins;
+    // Baseline after `prepare`: its deliberate writes are not the restore's.
+    let mutations = c.transport.mutations;
     let before = archive::never_used(&mut c, DOMAIN).unwrap();
     let (got, report) = restore(bytes, &mut c).unwrap_err();
     assert_eq!(got, status);
     assert_eq!(report, NativeReport::default());
-    assert_eq!(c.transport.begins, begins, "no write was started");
+    assert_eq!(
+        c.transport.mutations, mutations,
+        "no mutating request (BEGIN, COLLECTION, META, ...) was sent"
+    );
     // A refusal leaves the domain exactly as it was.
     assert_eq!(archive::never_used(&mut c, DOMAIN).unwrap(), before);
 }
@@ -487,6 +517,21 @@ fn a_failed_replay_leaves_the_domain_used_and_a_retry_is_refused() {
         (Status::Io, 2, 2, 0)
     );
     check_retry_refused(&mut service, &mut disk, &bytes);
+}
+
+#[test]
+fn a_slot_without_metadata_is_reported_restored_when_a_collection_fails() {
+    // restore.bin: slot 3 needs one WRITE and no META; slots 1 and 4 need META.
+    let bytes = fixture("restore.bin");
+    let mut disk = SimDisk::new();
+    let mut service = Service::new(EPOCH, Table::EMPTY, false);
+    let mut c = client(&mut service, &mut disk, DOMAIN, None);
+    c.transport.fail_collection = true;
+    let (status, report) = restore(&bytes, &mut c).unwrap_err();
+    assert_eq!(
+        (status, report.writes, report.committed, report.restored),
+        (Status::Io, 6, 6, 1 << 3)
+    );
 }
 
 #[test]
