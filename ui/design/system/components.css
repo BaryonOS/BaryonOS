@@ -1,5 +1,5 @@
-/* BaryonOS design system ds-1.0: components
-   14 November 2026. DESIGN ARTEFACT, not a working OS and not product code.
+/* BaryonOS design system ds-1.1: components
+   14 November 2026; ds-1.1 accessibility axes and place-aware states 15 November 2026 (DESIGN-SYSTEM.md section 21). DESIGN ARTEFACT, not a working OS and not product code.
    Requires tokens.css (load it first). Every colour, type, radius, motion and elevation value is a var(--...)
    token from tokens.css; the only other colour keywords are transparent and currentColor. Component-local
    custom properties (--ds-*) only re-point tokens. Layout sizes (icon boxes, widths) are px on the 4 px grid.
@@ -12,6 +12,17 @@
 /* ---------- base ---------- */
 [data-theme] { color: var(--color-text); }
 [data-scale="2"] { zoom: 2; }
+/* light-intensity (ds-1.1): an output white level applied last (research 7.2 pipeline): sRGB channels x 0.85, about 30 % less
+   luminance. The filter alone breaks floors on hover and selection stacks; tokens.css therefore strengthens text-subtle, disabled,
+   line-strong and the dark internet place under dimmed, and check.mjs (6) evaluates every pair, overlay stacks included, at x 1 and
+   x 0.85. A top-layer dialog and its ::backdrop are outside their opener's box, so both get the same filter (run 3: the scrim
+   had stayed undimmed, so opening a modal brightened the page). The gallery has no popover; its menus and toasts are in flow
+   and inherit the filter. Deeper steps: open item O-A6. */
+[data-light-intensity="dimmed"], [data-light-intensity="dimmed"] dialog:modal, [data-light-intensity="dimmed"] dialog:modal::backdrop { filter: brightness(.85); } /* a modal dialog and its backdrop render in the top layer, outside the filtered ancestor; a non-modal one inherits the filter once */
+/* text-spacing wider: WCAG 1.4.12 letter 0.12 em, word 0.16 em, paragraph 2 em (line heights are tokens) */
+[data-text-spacing="wider"], [data-text-spacing="wider"] * { letter-spacing: .12em; word-spacing: .16em; }
+[data-text-spacing="wider"] p:not(:last-child) { margin-block-end: 2em; }
+[data-text-spacing="wider"] .ds-row-name { white-space: normal; overflow-wrap: anywhere; } /* wrap rather than truncate (repair-1) */
 [hidden] { display: none !important; } /* every .ds- class that sets display would otherwise override the UA [hidden] rule */
 :where([class^="ds-"], [class*=" ds-"]) { font-family: var(--font-family-ui); font-feature-settings: var(--font-features-ui); box-sizing: border-box; }
 :where([class^="ds-"], [class*=" ds-"]) *, :where([class^="ds-"], [class*=" ds-"]) *::before, :where([class^="ds-"], [class*=" ds-"]) *::after { box-sizing: border-box; }
@@ -26,7 +37,8 @@
 .ds-t-body { font-size: var(--type-body-size); line-height: var(--type-body-line); font-weight: var(--type-body-weight); }
 .ds-t-body-dense { font-size: var(--type-body-dense-size); line-height: var(--type-body-dense-line); font-weight: var(--type-body-dense-weight); }
 .ds-t-body-strong { font-size: var(--type-body-strong-size); line-height: var(--type-body-strong-line); font-weight: var(--type-body-strong-weight); }
-.ds-t-reading { font-size: var(--type-reading-size); line-height: var(--type-reading-line); font-weight: var(--type-reading-weight); }
+.ds-t-reading { max-width: 58ch; text-align: start; font-size: var(--type-reading-size); line-height: var(--type-reading-line); font-weight: var(--type-reading-weight); } /* baseline: measure <= 80 characters, ragged-right; Inter 1ch is a "0", wider than the average glyph: 58ch measured 70-78 characters per line (repair-1/measure-ll.txt) */
+[data-line-length="short"] .ds-t-reading { max-width: 37ch; } /* measured 44-50 characters per line */
 .ds-t-title { font-size: var(--type-title-size); line-height: var(--type-title-line); font-weight: var(--type-title-weight); }
 .ds-t-display { font-size: var(--type-display-size); line-height: var(--type-display-line); font-weight: var(--type-display-weight); }
 .ds-num { font-variant-numeric: var(--font-numeric-digits); }
@@ -46,14 +58,15 @@
 /* ---------- button [v2 .btn] ---------- */
 .ds-btn {
   position: relative; display: inline-flex; align-items: center; justify-content: center; gap: var(--space-2);
-  min-width: var(--space-target-min); min-height: var(--space-target-min); height: var(--space-control-height);
+  min-width: var(--space-target-min); min-height: max(var(--space-control-height), var(--space-target-min));
   padding: 0 var(--space-3); border: 1px solid transparent; border-radius: var(--radius-control);
-  background: transparent; color: var(--color-text); cursor: default; white-space: nowrap; text-decoration: none;
+  background: transparent; color: var(--color-text); cursor: default; text-decoration: none;
+  white-space: normal; overflow-wrap: break-word; text-wrap: balance; text-align: center; /* run-2 repair 2 (O-A19): a label wider than its row wraps in a button that grows; one line keeps the control height */
   font-size: var(--type-body-strong-size); line-height: var(--type-body-strong-line); font-weight: var(--type-body-strong-weight);
   transition: background-color var(--motion-duration-fast) var(--motion-ease-orbital-out), transform var(--motion-duration-fast) var(--motion-ease-orbital-out);
 }
 .ds-btn .icon { width: 18px; height: 18px; }
-.ds-btn[data-size="large"] { height: calc(var(--space-10) + var(--space-1)); padding: 0 var(--space-4); border-radius: var(--radius-control-large); }
+.ds-btn[data-size="large"] { min-height: max(calc(var(--space-10) + var(--space-1)), var(--space-target-min)); padding: 0 var(--space-4); border-radius: var(--radius-control-large); }
 .ds-btn[data-shape="icon"] { width: var(--space-control-height); padding: 0; }
 .ds-btn[data-variant="primary"] { background: var(--color-button-primary-bg); color: var(--color-button-primary-text); }
 .ds-btn[data-variant="primary"]:not(:disabled, [aria-disabled="true"]):is(:hover, [data-demo~="hover"]) { background: var(--color-button-primary-bg-hover); }
@@ -67,7 +80,7 @@
 .ds-btn:is(:disabled, [aria-disabled="true"]) { background: transparent; border: 1px dashed var(--color-line-strong); color: var(--color-text-disabled); box-shadow: none; transform: none; cursor: not-allowed; }
 /* loading: aria-busy shows the spinner arc; the label stays */
 .ds-btn[aria-busy="true"] { pointer-events: none; }
-.ds-spinner { display: none; flex: none; width: 16px; height: 16px; border-radius: var(--radius-round); border: 2px solid currentColor; border-right-color: transparent; animation: ds-spin var(--motion-duration-loader) var(--motion-ease-linear) infinite; }
+.ds-spinner { display: none; flex: none; width: 16px; height: 16px; border-radius: var(--radius-round); border: 2px solid currentColor; border-right-color: transparent; animation: ds-spin var(--motion-duration-loader) var(--motion-ease-linear) 3; } /* 3 x 1.4 s: rests as a still arc within 5 s (row 31) */
 [aria-busy="true"] > .ds-spinner { display: inline-block; }
 
 /* ---------- text and search field [v2 .inp] ---------- */
@@ -113,8 +126,20 @@
 .ds-radio > input:checked { border-color: var(--color-text); background: radial-gradient(circle, var(--color-surface-inset) 0 3px, var(--color-text) 3.5px); }
 :is(.ds-check, .ds-radio):has(> input:disabled) { color: var(--color-text-disabled); }
 :is(.ds-check, .ds-radio) > input:disabled { border-style: dashed; border-color: var(--color-line-strong); background: transparent; }
-.ds-fieldset { margin: 0; padding: 0; border: 0; display: grid; gap: var(--space-1); }
+.ds-fieldset { min-width: 0; margin: 0; padding: 0; border: 0; display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-1); } /* min-width: 0 overrides the fieldset min-content default so a group follows its container (repair-2) */
 .ds-fieldset > legend { padding: 0; margin-bottom: var(--space-1); font-size: var(--type-body-strong-size); line-height: var(--type-body-strong-line); font-weight: var(--type-body-strong-weight); }
+/* segmented choice (ds-1.1 repair-2): <div class="ds-seg"> of .ds-radio tiles inside a .ds-fieldset. Native radios keep one Tab
+   stop and arrow-key selection; the radio itself is a transparent cover over its tile, so the whole tile is the hit area and the
+   focus ring is drawn on the tile. An optional static sample (aria-hidden) sits above the label. Selected: a 2 px line-strong edge,
+   the light-blade underline and strong text, so the state never rests on colour. Tiles wrap and grow with their text. */
+.ds-seg { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 104px), 1fr)); gap: var(--space-1); padding: var(--space-1); border: 1px solid var(--color-line); border-radius: var(--radius-tile); background: var(--color-surface-inset); }
+.ds-seg > .ds-radio { position: relative; flex-direction: column; justify-content: center; gap: var(--space-1); min-height: max(var(--space-control-height), var(--space-target-min)); padding: var(--space-2) var(--space-2) var(--space-3); border-radius: var(--radius-tile-small); color: var(--color-text-muted); text-align: center; overflow-wrap: break-word; }
+.ds-seg > .ds-radio > input { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; border-radius: inherit; opacity: 0; }
+.ds-seg > .ds-radio > input:not(:disabled):is(:hover, [data-demo~="hover"]) { box-shadow: none; }
+.ds-seg > .ds-radio:is(:hover, [data-demo~="hover"]):not(:has(> input:checked)) { background: var(--color-hover); color: var(--color-text); }
+.ds-seg > .ds-radio:has(> input:checked) { background: var(--color-surface); color: var(--color-text); box-shadow: inset 0 0 0 2px var(--color-line-strong); font-weight: var(--type-body-strong-weight); }
+.ds-seg > .ds-radio:has(> input:checked)::after { content: ""; position: absolute; left: 28%; right: 28%; bottom: 4px; height: 2px; border-radius: var(--radius-mark); background: var(--color-blade); }
+.ds-seg > .ds-radio:is(:has(> input:focus-visible), [data-demo~="focus"]) { outline: 2px solid var(--color-focus); outline-offset: 1px; }
 
 /* ---------- place badge and shape code [v2 .pill, .ptag, .node] ---------- */
 [data-place="device"] { --ds-c: var(--place-device); }
@@ -128,20 +153,28 @@
 .ds-node[data-shape="device"][data-state="off"] { background: none; box-shadow: inset 0 0 0 1.5px var(--ds-c); }
 .ds-node[data-state="ask"] { box-shadow: inset 0 0 0 2px var(--ds-c); }
 /* ask halo [v2 .node.ask::before]: static second ring at rest; it pulses only when motion is allowed */
-.ds-node[data-state="ask"]::before { content: ""; position: absolute; left: -6px; top: -6px; width: 24px; height: 24px; border-radius: var(--radius-round); box-shadow: inset 0 0 0 1.5px var(--ds-c); opacity: .55; animation: ds-halo var(--motion-duration-halo) var(--motion-ease-halo) infinite; }
+.ds-node[data-state="ask"]::before { content: ""; position: absolute; left: -6px; top: -6px; width: 24px; height: 24px; border-radius: var(--radius-round); box-shadow: inset 0 0 0 1.5px var(--ds-c); opacity: .55; animation: ds-halo var(--motion-duration-halo) var(--motion-ease-halo) 2; } /* 2 x 2.4 s: settles to the still double ring within 5 s (row 31) */
 .ds-place { display: inline-flex; align-items: center; gap: var(--space-2); height: var(--space-target-min); padding: 0 var(--space-3) 0 var(--space-2); border: 1px solid var(--color-line); border-radius: var(--radius-pill); background: var(--color-pill-bg); color: var(--color-text); white-space: nowrap; font-size: var(--type-body-dense-size); line-height: var(--type-body-dense-line); font-weight: var(--type-body-dense-weight); }
 .ds-place .icon { width: 16px; height: 16px; color: var(--color-text-muted); }
-:is(.ds-place, .ds-privacy-col[data-state="lit"], .ds-privacy-col[data-state="ask"], .ds-ask-row) .icon .pc { fill: var(--ds-c, currentColor); }
+:is(.ds-place, .ds-privacy-col[data-state="lit"], .ds-privacy-col[data-state="ask"], .ds-ask-stop) .icon .pc { fill: var(--ds-c, currentColor); }
 
 /* ---------- list row (file row) [v2 .row, .lrw, .sel] ---------- */
-.ds-list { display: grid; gap: 2px; padding: var(--space-1); margin: 0; list-style: none; }
+.ds-list { display: grid; gap: 2px; padding: var(--space-1); margin: 0; list-style: none; container-type: inline-size; }
+/* reflow (WCAG 1.4.10, baseline row 7): below 440 px the row stacks place, size and date under the name; nothing is hidden */
 .ds-list-head { display: grid; grid-template-columns: 20px minmax(0, 1fr) 132px 64px 112px; column-gap: var(--space-3); padding: 0 var(--space-3) var(--space-1); color: var(--color-text-muted); font-size: var(--type-caption-size); line-height: var(--type-caption-line); font-weight: var(--type-caption-weight); }
 .ds-row {
   position: relative; display: grid; grid-template-columns: 20px minmax(0, 1fr) 132px 64px 112px; column-gap: var(--space-3); align-items: center;
-  min-height: var(--space-control-height); padding: 0 var(--space-3); border-radius: var(--radius-row); color: var(--color-text); cursor: default; white-space: nowrap;
+  min-height: max(var(--space-control-height), var(--space-target-min)); padding: 0 var(--space-3); border-radius: var(--radius-row); color: var(--color-text); cursor: default; white-space: nowrap;
   font-size: var(--type-body-size); line-height: var(--type-body-dense-line); font-weight: var(--type-body-weight);
   transition: background-color var(--motion-duration-fast) var(--motion-ease-orbital-out);
 }
+/* after the base .ds-row rule: an @container rule has no extra specificity, so source order decides (ds-1.1, matrix row 7) */
+@container (max-width: 440px) { .ds-row { grid-template-columns: 20px minmax(0, 1fr); row-gap: 2px; padding-block: var(--space-1); white-space: normal; } .ds-row > :nth-child(n+3) { grid-column: 2; justify-self: start; text-align: start; } .ds-list .ds-row .ds-place { height: auto; min-height: var(--space-target-min); max-width: 100%; white-space: normal; overflow-wrap: anywhere; } .ds-list .ds-row > :nth-child(n+3) { max-width: 100%; white-space: normal; } } /* run 2: in the stacked form a place pill wraps inside its edge (compact density, wider text spacing, 320 px) */
+/* wider text spacing (§21): the fixed place, size and date columns grow with the added letter spacing; narrow lists keep the stacked form above */
+/* the wider tracks need 376 px plus 48 px gaps plus 24 px padding before the name gets any width (PR #360 review): wider spacing stacks up to 568 px, so the name keeps at least 120 px */
+@container (max-width: 568px) { [data-text-spacing="wider"] .ds-row { grid-template-columns: 20px minmax(0, 1fr); row-gap: 2px; padding-block: var(--space-1); white-space: normal; } [data-text-spacing="wider"] .ds-row > :nth-child(n+3) { grid-column: 2; justify-self: start; text-align: start; max-width: 100%; white-space: normal; } [data-text-spacing="wider"] .ds-list .ds-row .ds-place { height: auto; min-height: var(--space-target-min); max-width: 100%; white-space: normal; overflow-wrap: anywhere; } }
+@container (min-width: 569px) { [data-text-spacing="wider"] .ds-row { grid-template-columns: 20px minmax(0, 1fr) 148px 72px 136px; } }
+[data-text-spacing="wider"] .ds-list-head { grid-template-columns: 20px minmax(0, 1fr) 148px 72px 136px; } /* run 2: "Vandaag 09:12" needed 6.8 px more than 128 px */
 .ds-row > .icon { width: 20px; height: 20px; color: var(--color-text-muted); }
 .ds-row-name { overflow: hidden; text-overflow: ellipsis; }
 .ds-row-meta { color: var(--color-text-muted); text-align: right; font-variant-numeric: var(--font-numeric-digits); }
@@ -156,68 +189,125 @@
 [data-density="compact"] .ds-place { height: 20px; }
 
 /* ---------- privacy instrument [v2 .tri] ---------- */
-.ds-privacy { position: relative; display: inline-flex; align-items: center; gap: var(--space-4); height: 48px; padding: 0 var(--space-3) 0 var(--space-4); border-radius: var(--radius-tile); background: var(--color-well); border: 1px solid var(--color-line); white-space: nowrap; color: var(--color-text); }
+/* repair-2: the frame wraps (text below the track) and labels wrap between words, so wider text and narrow containers stay inside (rows 34, 35) */
+.ds-privacy { --ds-pb: 1px; position: relative; display: inline-flex; flex-wrap: wrap; max-width: 100%; align-items: center; column-gap: var(--space-4); row-gap: 0; min-height: 48px; padding: 0 var(--space-3) 0 var(--space-4); border-radius: var(--radius-tile); background: var(--color-well); border: var(--ds-pb) solid var(--color-line); white-space: nowrap; color: var(--color-text); }
 .ds-privacy[data-state="ask"] { border-color: var(--place-internet-line); }
-.ds-privacy-track { position: relative; display: flex; gap: var(--space-1); height: 48px; }
+/* the 48 px track overhangs the frame border as in ds-1.0, so the resting frame stays 48 px tall (--ds-pb = its border width) */
+.ds-privacy-track { position: relative; display: flex; gap: var(--space-1); min-height: 48px; margin-block: calc(-1 * var(--ds-pb)); }
 .ds-privacy-col { position: relative; width: 120px; display: flex; flex-direction: column; align-items: center; gap: var(--space-1); padding-top: var(--space-2); }
-.ds-privacy-lbl { display: flex; align-items: center; gap: var(--space-1); color: var(--color-text-muted); font-size: var(--type-body-size); line-height: var(--type-body-line); font-weight: var(--type-body-weight); } /* body, so the lit state is body-strong on the same 22 px line */
+.ds-privacy-lbl { display: flex; align-items: center; gap: var(--space-1); white-space: normal; text-align: center; color: var(--color-text-muted); font-size: var(--type-body-size); line-height: var(--type-body-line); font-weight: var(--type-body-weight); } /* body, so the lit state is body-strong on the same 22 px line */
 .ds-privacy-lbl .icon { width: 16px; height: 16px; }
 .ds-privacy-col:is([data-state="lit"], [data-state="ask"]) .ds-privacy-lbl { color: var(--color-text); font-weight: var(--type-body-strong-weight); }
 .ds-privacy-col + .ds-privacy-col::before { content: ""; position: absolute; top: 13.5px; left: -54px; width: 104px; height: 1px; background: linear-gradient(90deg, transparent, var(--color-line-strong) 15%, var(--color-line-strong) 85%, transparent); }
 .ds-privacy-col[data-state="lit"] + .ds-privacy-col[data-state="lit"]::before { top: 13px; height: 2px; border-radius: var(--radius-mark); background: linear-gradient(90deg, transparent, var(--color-blade) 18%, var(--color-blade) 82%, transparent); box-shadow: 0 0 6px var(--color-blade-glow); }
-.ds-privacy-text { display: flex; flex-direction: column; justify-content: center; }
+.ds-privacy-text { display: flex; flex-direction: column; justify-content: center; min-width: 0; min-height: calc(48px - 2 * var(--ds-pb)); white-space: normal; }
 .ds-privacy-text > :first-child { font-size: var(--type-body-strong-size); line-height: var(--type-body-strong-line); font-weight: var(--type-body-strong-weight); }
 .ds-privacy-text > :last-child { color: var(--color-text-muted); font-size: var(--type-caption-size); line-height: var(--type-caption-line); font-weight: var(--type-caption-weight); }
 
-/* ---------- permission prompt on the Kern trusted surface [v2 .kern, .kband, .kbond, .kw] ----------
-   The prompt carries the OPPOSITE theme on its own element (MF1); contrast keeps contrast. Opaque, never glass. */
-.ds-ask { position: relative; width: 560px; max-width: 100%; border: 1.5px solid transparent; border-radius: var(--radius-trusted); color: var(--material-kern-tx);
+/* ---------- permission prompt on the Kern trusted surface (UX-C run 2: concept b "Eén vraag", DESIGN-SYSTEM.md §11.1) ----------
+   The prompt carries the OPPOSITE theme on its own element (MF1); contrast keeps contrast. Opaque, never glass. Anatomy: band,
+   then .ds-ask-main = a scrolling .ds-ask-body (question, provenance, path, facts, app reason, explanation, key) and a fixed
+   .ds-ask-decide row (Keuze onthouden, state sentence, one outcome sentence per answer, Toestaan | Weigeren). The decide row
+   never scrolls, so the checkbox and both answers stay in view at 200 % (WCAG 1.4.10, 2.4.11). Nothing moves before a decision
+   except the Kern's own rise (--motion-duration-ask, once); no motion leans toward either answer. */
+.ds-ask { position: relative; width: 600px; max-width: 100%; border: 1.5px solid transparent; border-radius: var(--radius-trusted); color: var(--material-kern-tx);
   background: linear-gradient(var(--material-kern-bg), var(--material-kern-bg)) padding-box, var(--material-kern-rim) border-box; box-shadow: var(--elev-trusted);
   animation: ds-rise var(--motion-duration-ask) var(--motion-ease-orbital-out); }
 .ds-ask[data-theme="contrast"], [data-theme="contrast"] .ds-ask:not([data-theme]) { border-width: 2px; }
-.ds-ask-band { display: flex; align-items: center; gap: var(--space-2); height: 44px; padding: 0 var(--space-6); border-bottom: 1px solid var(--material-kern-line); color: var(--material-kern-tx2); font-size: var(--type-body-dense-size); line-height: var(--type-body-dense-line); font-weight: var(--type-body-dense-weight); }
-.ds-ask-band .icon { width: 20px; height: 20px; }
-.ds-ask-body { padding: var(--space-4) var(--space-6) var(--space-5); }
-.ds-ask-title { margin: 0; font-size: var(--type-title-size); line-height: var(--type-title-line); font-weight: var(--type-title-weight); color: var(--material-kern-tx); }
-.ds-ask-bond { margin: var(--space-3) 0 0; display: grid; }
-.ds-ask-row { display: grid; grid-template-columns: 32px 96px minmax(0, 1fr); column-gap: var(--space-4); align-items: center; min-height: 48px; }
-.ds-ask-row dt { color: var(--material-kern-tx2); font-size: var(--type-body-size); line-height: var(--type-body-line); font-weight: var(--type-body-weight); }
-.ds-ask-row dd { margin: 0; display: flex; align-items: center; gap: var(--space-2); flex-wrap: wrap; color: var(--material-kern-tx); font-size: var(--type-body-size); line-height: var(--type-body-line); font-weight: var(--type-body-weight); }
-.ds-ask-row dd strong { font-weight: var(--type-body-strong-weight); }
-.ds-ask-node { display: grid; place-items: center; width: 32px; height: 32px; border-radius: var(--radius-round); border: 1px solid var(--material-kern-line); color: var(--material-kern-tx); }
-.ds-ask-node .icon { width: 16px; height: 16px; }
-.ds-ask-row[data-place] .ds-ask-node { border: 1.5px solid var(--ds-c); }
-.ds-ask-app { display: grid; place-items: center; width: 32px; height: 32px; border-radius: var(--radius-tile-small); background: var(--material-tile-bg); box-shadow: var(--material-tile-rim); color: var(--material-tile-fg); }
-.ds-ask-app .icon { width: 20px; height: 20px; }
-.ds-ask-app .icon .pc { fill: var(--material-tile-pc); }
-.ds-ask-dur { border-top: 1px solid var(--material-kern-line); border-bottom: 1px solid var(--material-kern-line); margin: var(--space-2) 0 var(--space-4); }
-.ds-ask-warn { display: flex; gap: var(--space-3); align-items: flex-start; padding: var(--space-3) var(--space-4); border-radius: var(--radius-tile); background: var(--material-kern-warn-bg); border: 1px solid var(--material-kern-warn-line); color: var(--material-kern-tx); font-size: var(--type-body-size); line-height: var(--type-body-line); font-weight: var(--type-body-weight); }
-.ds-ask-warn .icon { width: 20px; height: 20px; margin-top: 1px; color: var(--material-kern-warn-ic); }
+.ds-ask-band { display: flex; align-items: center; gap: var(--space-2); min-height: 44px; padding: var(--space-1) var(--space-6); border-bottom: 1px solid var(--material-kern-line); color: var(--material-kern-tx2); font-size: var(--type-body-dense-size); line-height: var(--type-body-dense-line); font-weight: var(--type-body-dense-weight); }
+.ds-ask-band .icon { flex: none; width: 20px; height: 20px; }
+.ds-ask-body { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-3); padding: var(--space-4) var(--space-6); }
+.ds-ask-proto { display: flex; gap: var(--space-2); align-items: flex-start; margin: 0; color: var(--material-kern-tx2); font-size: var(--type-caption-size); line-height: var(--type-caption-line); font-weight: var(--type-caption-weight); }
+.ds-ask-proto .icon { flex: none; width: 16px; height: 16px; margin-top: 1px; }
+.ds-ask-title { margin: 0; font-size: var(--type-title-size); line-height: var(--type-title-line); font-weight: var(--type-title-weight); color: var(--material-kern-tx); overflow-wrap: anywhere; }
+/* concept b "Eén vraag": on a wide Kern in a tall viewport the question takes the display role and dominates; narrow Kern,
+   a short viewport (200 % zoom of a 1440 x 900 window) and the page-zoom setting keep the title role (reach, WCAG 1.4.10) */
+.ds-ask { container: ask / inline-size; }
+@media (min-height: 40rem) { @container ask (min-width: 560px) {
+  :root:not([data-scale="2"]) .ds-ask-title { font-size: var(--type-display-size); line-height: var(--type-display-line); font-weight: var(--type-display-weight); text-wrap: balance; }
+} }
 .ds-ask-title:focus { outline: none; }
 .ds-ask-title:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; border-radius: var(--radius-item); }
-/* owner decision 14 Nov 2026: three equal choices (same variant, size and width), stacked in the fixed order
-   narrow grant, broad grant, deny; stacking keeps long Dutch labels whole at any width and at 200 % */
-.ds-ask-choices { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-2); margin-top: var(--space-5); }
+.ds-ask-from { display: flex; align-items: center; gap: var(--space-3); margin: 0; color: var(--material-kern-tx2); font-size: var(--type-body-size); line-height: var(--type-body-line); font-weight: var(--type-body-weight); }
+.ds-ask-from strong { color: var(--material-kern-tx); font-weight: var(--type-body-strong-weight); }
+.ds-ask-app { flex: none; display: grid; place-items: center; width: 32px; height: 32px; border-radius: var(--radius-tile-small); background: var(--material-tile-bg); box-shadow: var(--material-tile-rim); color: var(--material-tile-fg); }
+.ds-ask-app .icon { width: 20px; height: 20px; }
+.ds-ask-app .icon .pc { fill: var(--material-tile-pc); }
+/* the path: where the data starts, the app, and (for a send) the destination; stops are pills joined by chevrons, so the
+   route reads as a route and not as a thin arrow. A dashed stop is data the app already holds. Static: no flow animation. */
+.ds-ask-path { display: flex; flex-direction: column; align-items: flex-start; gap: var(--space-6); margin: 0; padding: var(--space-3); list-style: none; border: 1px solid var(--material-kern-line); border-radius: var(--radius-tile); }
+.ds-ask-stop { position: relative; display: inline-flex; flex-wrap: wrap; align-items: center; gap: var(--space-2) var(--space-3); max-width: 100%; min-height: 40px; padding: var(--space-1) var(--space-3); border: 1.5px solid var(--material-kern-tx2); border-radius: var(--radius-pill); color: var(--material-kern-tx); font-size: var(--type-body-size); line-height: var(--type-body-line); font-weight: var(--type-body-weight); }
+.ds-ask-stop[data-held] { border-style: dashed; }
+.ds-ask-stop[data-place] { border-color: var(--ds-c); }
+.ds-ask-stop[data-stop="app"] { padding-inline-start: var(--space-1); }
+.ds-ask-stop-name { font-weight: var(--type-body-strong-weight); overflow-wrap: anywhere; }
+.ds-ask-held { color: var(--material-kern-tx2); font-size: var(--type-caption-size); line-height: var(--type-caption-line); font-weight: var(--type-caption-weight); }
+/* vertical route: each later stop hangs below the previous one, joined by a downward chevron in the gap */
+.ds-ask-link { position: absolute; inset-inline-start: var(--space-4); bottom: calc(100% + 1.5px); display: grid; place-items: center; height: var(--space-6); color: var(--material-kern-tx2); }
+.ds-ask-link .icon { width: 16px; height: 16px; rotate: 90deg; }
+.ds-ask-holds { margin: calc(-1 * var(--space-1)) 0 0; color: var(--material-kern-tx2); font-size: var(--type-caption-size); line-height: var(--type-caption-line); font-weight: var(--type-caption-weight); }
+.ds-ask-facts { display: grid; gap: var(--space-2); margin: 0; padding: 0; list-style: none; }
+.ds-ask-facts > li { display: flex; gap: var(--space-2); align-items: flex-start; padding-inline-start: var(--space-3); border-inline-start: 2px solid var(--material-kern-tx2); font-size: var(--type-body-size); line-height: var(--type-body-line); font-weight: var(--type-body-weight); }
+.ds-ask-fact-icon { flex: none; display: grid; place-items: center; height: var(--type-body-line); color: var(--material-kern-tx2); }
+.ds-ask-fact-icon .icon { width: 16px; height: 16px; }
+.ds-ask-again { margin: 0; color: var(--material-kern-tx2); font-size: var(--type-body-size); line-height: var(--type-body-line); font-weight: var(--type-body-weight); }
+/* OQ-6: the app's own text, attributed and visibly apart from system text: dashed frame, after the BaryonOS facts */
+.ds-ask-reason { margin: 0; padding: var(--space-2) var(--space-3); border: 2px dashed var(--material-kern-tx2); border-radius: var(--radius-tile); font-size: var(--type-body-size); line-height: var(--type-body-line); font-weight: var(--type-body-weight); overflow-wrap: anywhere; }
+.ds-ask-reason-who { font-weight: var(--type-body-strong-weight); }
+.ds-ask-reason-tag { display: block; color: var(--material-kern-tx2); font-size: var(--type-caption-size); line-height: var(--type-caption-line); font-weight: var(--type-caption-weight); }
+.ds-ask-explain { display: grid; gap: var(--space-1); }
+.ds-ask-explain > p { margin: 0; color: var(--material-kern-tx2); font-size: var(--type-body-size); line-height: var(--type-body-line); font-weight: var(--type-body-weight); }
+.ds-ask details > p { margin: var(--space-1) 0 0; color: var(--material-kern-tx2); font-size: var(--type-body-size); line-height: var(--type-body-line); font-weight: var(--type-body-weight); }
+.ds-ask summary { display: flex; align-items: center; width: fit-content; max-width: 100%; min-height: var(--space-target-min); color: var(--material-kern-tx); font-size: var(--type-body-size); line-height: var(--type-body-line); font-weight: var(--type-body-strong-weight); cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
+.ds-ask summary:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; border-radius: var(--radius-item); }
+.ds-ask-more > :not(summary) { margin-top: var(--space-3); }
+.ds-ask-more { display: grid; }
+/* the five-field key, the same chips in the prompt's disclosure and in Appmachtigingen ("Precies:") */
+.ds-key { display: flex; flex-wrap: wrap; gap: var(--space-2); margin: var(--space-2) 0 0; }
+.ds-key > div { display: inline-flex; flex-wrap: wrap; gap: var(--space-1); max-width: 100%; padding: 0 var(--space-2); border: 1px solid var(--ds-key-line, var(--color-line-strong)); border-radius: var(--radius-pill); font-size: var(--type-caption-size); line-height: var(--type-caption-line); font-weight: var(--type-caption-weight); }
+.ds-key dt { color: var(--ds-key-muted, var(--color-text-muted)); }
+.ds-key dd { margin: 0; overflow-wrap: anywhere; }
+.ds-ask .ds-key { --ds-key-line: var(--material-kern-tx2); --ds-key-muted: var(--material-kern-tx2); }
+.ds-ask-decide { flex: none; display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-2); padding: var(--space-3) var(--space-6) var(--space-4); border-top: 1px solid var(--material-kern-line); }
+.ds-ask .ds-check { color: var(--material-kern-tx); font-weight: var(--type-body-strong-weight); }
+.ds-ask .ds-check > input { border-color: var(--material-kern-tx2); }
+.ds-ask .ds-check > input:checked { background: var(--material-kern-tx); border-color: var(--material-kern-tx); }
+.ds-ask .ds-check > input:checked::after { border-color: var(--material-kern-bg); }
+.ds-ask-remember { width: fit-content; }
+.ds-ask-lifetime { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2) var(--space-4); } /* checkbox and state sentence share a row when they fit */
+/* the state sentence names the current lifetime in words; the dashed chip with klok = until the app closes, the solid one with
+   altijd = remembered (the .ds-grant-until shapes). Body weight 600 in the contrast theme keeps it from reading as a footnote. */
+.ds-ask-state { display: flex; align-items: center; gap: var(--space-2); width: fit-content; max-width: 100%; margin: 0; padding: var(--space-1) var(--space-3); border: 1px dashed var(--material-kern-tx2); border-radius: var(--radius-tile); color: var(--material-kern-tx); font-size: var(--type-body-size); line-height: var(--type-body-line); font-weight: var(--type-body-weight); }
+.ds-ask-state[data-on="true"] { border: 2px solid var(--material-kern-tx2); }
+.ds-ask-state .icon { flex: none; width: 16px; height: 16px; }
+:is(.ds-ask[data-theme="contrast"], [data-theme="contrast"] .ds-ask:not([data-theme])) .ds-ask-state { font-weight: var(--type-body-strong-weight); }
+.ds-ask-body > .ds-ask-outcomes { margin-top: var(--space-1); }
+.ds-ask-outcomes { display: grid; gap: var(--space-1); margin: 0; padding: 0; list-style: none; color: var(--material-kern-tx2); font-size: var(--type-caption-size); line-height: var(--type-caption-line); font-weight: var(--type-caption-weight); }
+/* MF-4 equal choice: Toestaan and Weigeren share variant, size and width, in one fixed platform-wide order (Toestaan first) */
+.ds-ask-choices { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-3); }
 .ds-ask-choices > .ds-btn { width: 100%; }
 .ds-ask .ds-btn { color: var(--material-kern-tx); }
-.ds-ask-terms { display: grid; gap: var(--space-1); margin: var(--space-3) 0 0; padding: 0; list-style: none; color: var(--material-kern-tx2); font-size: var(--type-caption-size); line-height: var(--type-caption-line); font-weight: var(--type-caption-weight); }
-.ds-ask-terms strong { color: var(--material-kern-tx); font-weight: var(--type-caption-weight); }
+.ds-ask-confirm-text { margin: 0; font-size: var(--type-body-size); line-height: var(--type-body-line); font-weight: var(--type-body-weight); }
+/* the quiet shell note (R2 temporary denial with the retry count, covered requests): never takes focus, no timer */
+.ds-ask-note { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-3); margin-top: var(--space-4); padding: var(--space-3) var(--space-4); border: 1px dashed var(--color-line-strong); border-radius: var(--radius-card); background: var(--color-surface-raised); color: var(--color-text); }
+.ds-ask-note > p { flex: 1 1 260px; margin: 0; }
 
-/* ---------- app grants (one revocable standing grant per row; Instellingen › Privacy en beveiliging › Appmachtigingen) ---------- */
-.ds-grants { display: grid; gap: var(--space-2); max-width: 760px; margin: 0; padding: 0; list-style: none; } /* a row is one reading unit: Intrekken stays near what it revokes */
-.ds-grant { display: grid; grid-template-columns: 32px minmax(0, 1fr) auto; column-gap: var(--space-4); align-items: center; min-height: 64px; padding: var(--space-3) var(--space-3) var(--space-3) var(--space-4); border: 1px solid var(--color-line); border-radius: var(--radius-card); background: var(--color-surface-raised); color: var(--color-text); }
-.ds-grant-app { display: grid; place-items: center; width: 32px; height: 32px; border-radius: var(--radius-tile-small); background: var(--material-tile-bg); box-shadow: var(--material-tile-rim); color: var(--material-tile-fg); }
+/* ---------- Appmachtigingen: one row per REMEMBERED decision, allow and deny (Instellingen › Privacy en beveiliging › Appmachtigingen) ---------- */
+.ds-grants { display: grid; gap: var(--space-2); max-width: 820px; margin: 0; padding: 0; list-style: none; }
+.ds-grant { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-3) var(--space-4); min-height: 64px; padding: var(--space-3) var(--space-3) var(--space-3) var(--space-4); border: 1px solid var(--color-line); border-radius: var(--radius-card); background: var(--color-surface-raised); color: var(--color-text); }
+.ds-grant > div:not(.ds-grant-actions) { flex: 1 1 280px; min-width: 0; }
+.ds-grant-actions { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+.ds-grant-app { flex: none; display: grid; place-items: center; width: 32px; height: 32px; border-radius: var(--radius-tile-small); background: var(--material-tile-bg); box-shadow: var(--material-tile-rim); color: var(--material-tile-fg); }
 .ds-grant-app .icon { width: 20px; height: 20px; }
 .ds-grant-app .icon .pc { fill: var(--material-tile-pc); }
 .ds-grant-name { margin: 0; font-size: var(--type-body-strong-size); line-height: var(--type-body-strong-line); font-weight: var(--type-body-strong-weight); overflow-wrap: anywhere; }
-.ds-grant-meta { margin: 0; color: var(--color-text-muted); font-size: var(--type-body-size); line-height: var(--type-body-line); font-weight: var(--type-body-weight); }
-/* UX-D-C1 repair-1 (design proposal for UX-E): reach and duration are shape + icon + text, never colour alone.
-   Reach reuses .ds-place; the duration chip is neutral: dashed edge + klok = ends when the app closes,
-   solid 2 px edge + altijd (closed loop, repair-2; the lock stays on the Kern band) = until revoked. */
+.ds-grant-key { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 var(--space-2); }
+.ds-grant-key > span { color: var(--color-text-muted); font-size: var(--type-caption-size); line-height: var(--type-caption-line); font-weight: var(--type-caption-weight); }
+/* reach and decision are shape + icon + text, never colour alone */
 .ds-grant-reach { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); margin: var(--space-2) 0 0; }
 .ds-grant-reach > * { max-width: 100%; height: auto; min-height: var(--space-target-min); white-space: normal; overflow-wrap: anywhere; }
-.ds-grant-until { display: inline-flex; align-items: center; gap: var(--space-2); padding: 0 var(--space-3) 0 var(--space-2); border: 1px dashed var(--color-line-strong); border-radius: var(--radius-pill); color: var(--color-text); font-size: var(--type-body-dense-size); line-height: var(--type-body-dense-line); font-weight: var(--type-body-dense-weight); }
-.ds-grant-until[data-until="always"] { border: 2px solid var(--color-line-strong); }
+.ds-grant-until { display: inline-flex; align-items: center; gap: var(--space-2); padding: 0 var(--space-3) 0 var(--space-2); border: 2px solid var(--color-line-strong); border-radius: var(--radius-pill); color: var(--color-text); font-size: var(--type-body-dense-size); line-height: var(--type-body-dense-line); font-weight: var(--type-body-dense-weight); }
+.ds-grant-until[data-decision="deny"] { border-style: double; border-width: 3px; }
 .ds-grant-until .icon { flex: none; width: 16px; height: 16px; color: var(--color-text-muted); }
 .ds-grant-empty { margin: 0; padding: var(--space-3) var(--space-4); color: var(--color-text-muted); }
 .ds-grant-empty:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; border-radius: var(--radius-item); }
@@ -230,7 +320,7 @@
 .ds-window-bar > .icon { width: 20px; height: 20px; color: var(--color-text-muted); }
 .ds-window-title { margin: 0; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: var(--type-body-strong-size); line-height: var(--type-body-strong-line); font-weight: var(--type-body-strong-weight); }
 .ds-window-ctls { display: flex; gap: 2px; flex: none; }
-.ds-window-ctl { display: grid; place-items: center; width: 40px; height: 32px; padding: 0; border: 0; border-radius: var(--radius-row); background: transparent; color: var(--color-text-muted); cursor: default; transition: background-color var(--motion-duration-fast) var(--motion-ease-orbital-out); }
+.ds-window-ctl { display: grid; place-items: center; width: max(40px, var(--space-target-min)); height: max(32px, var(--space-target-min)); padding: 0; border: 0; border-radius: var(--radius-row); background: transparent; color: var(--color-text-muted); cursor: default; transition: background-color var(--motion-duration-fast) var(--motion-ease-orbital-out); }
 .ds-window-ctl .icon { width: 16px; height: 16px; }
 .ds-window-ctl:is(:hover, [data-demo~="hover"]) { background: var(--color-hover-strong); color: var(--color-text); }
 .ds-window-ctl:is(:active, [data-demo~="pressed"]) { background: var(--color-selection); }
@@ -245,6 +335,9 @@
 /* ---------- taskbar item in Orbit [v2 .orbit, .ob, .ob.run, .ob.act] ---------- */
 .ds-orbit { position: relative; display: inline-flex; align-items: center; gap: var(--space-1); height: 64px; padding: var(--space-2); border-radius: var(--radius-orbit); border: 1px solid var(--color-rim-c); background: var(--material-orbit-bg); box-shadow: var(--elev-orbit); backdrop-filter: blur(24px) saturate(1.4); }
 [data-theme="contrast"] .ds-orbit { border-width: 2px; backdrop-filter: none; }
+/* transparency opaque (ds-1.1): no blur behind Orbit; device preference only while no element sets the axis */
+[data-transparency="opaque"] .ds-orbit, [data-transparency="opaque"].ds-orbit { backdrop-filter: none; }
+@media (prefers-reduced-transparency: reduce) { .ds-orbit:not([data-transparency] *, [data-transparency]) { backdrop-filter: none; } }
 .ds-orbit-sep { flex: none; width: 1px; height: 28px; margin: 0 var(--space-1); background: var(--color-line-strong); }
 .ds-taskitem { position: relative; display: grid; place-items: center; width: 48px; height: 48px; padding: 0; border: 0; border-radius: var(--radius-card); background: transparent; color: var(--color-text); cursor: default; transition: background-color var(--motion-duration-fast) var(--motion-ease-orbital-out); }
 .ds-taskitem .icon { width: 24px; height: 24px; }
@@ -258,8 +351,8 @@
 
 /* ---------- menu ---------- */
 .ds-menu-anchor { position: relative; display: inline-block; }
-.ds-menu { position: absolute; z-index: 20; left: 0; top: calc(100% + var(--space-1)); display: grid; gap: 2px; min-width: 300px; margin: 0; padding: var(--space-1); border: 1px solid var(--color-line); border-radius: var(--radius-card); background: var(--color-surface-raised); box-shadow: var(--elev-window-inactive); animation: ds-rise var(--motion-duration-base) var(--motion-ease-orbital-out); }
-.ds-menu-item { display: grid; grid-template-columns: 20px minmax(0, 1fr) auto; column-gap: var(--space-3); align-items: center; width: 100%; min-height: var(--space-control-height); padding: var(--space-1) var(--space-2) var(--space-1) var(--space-3); border: 0; border-radius: var(--radius-item); background: transparent; color: var(--color-text); text-align: left; cursor: default; font-size: var(--type-body-size); line-height: var(--type-body-dense-line); font-weight: var(--type-body-weight); }
+.ds-menu { position: absolute; z-index: 20; left: 0; top: calc(100% + var(--space-1)); display: grid; gap: 2px; min-width: min(300px, calc(100vw - var(--space-8))); margin: 0; padding: var(--space-1); border: 1px solid var(--color-line); border-radius: var(--radius-card); background: var(--color-surface-raised); box-shadow: var(--elev-window-inactive); animation: ds-rise var(--motion-duration-base) var(--motion-ease-orbital-out); }
+.ds-menu-item { display: grid; grid-template-columns: 20px minmax(0, 1fr) auto; column-gap: var(--space-3); align-items: center; width: 100%; min-height: max(var(--space-control-height), var(--space-target-min)); padding: var(--space-1) var(--space-2) var(--space-1) var(--space-3); border: 0; border-radius: var(--radius-item); background: transparent; color: var(--color-text); text-align: left; cursor: default; font-size: var(--type-body-size); line-height: var(--type-body-dense-line); font-weight: var(--type-body-weight); }
 .ds-menu-item > .icon { width: 18px; height: 18px; color: var(--color-text-muted); }
 .ds-menu-item:not([aria-disabled="true"]):is(:hover, [data-demo~="hover"]), .ds-menu-item:is(:focus-visible, [data-demo~="focus"]) { background: var(--color-hover-strong); }
 .ds-menu-item[aria-disabled="true"] { color: var(--color-text-disabled); cursor: not-allowed; }
@@ -274,21 +367,21 @@
 .ds-kbd-combo { display: inline-flex; align-items: center; gap: var(--space-1); color: var(--color-text-muted); font-size: var(--type-caption-size); line-height: var(--type-caption-line); }
 
 /* ---------- tabs ---------- */
-.ds-tablist { display: flex; gap: var(--space-1); border-bottom: 1px solid var(--color-line); }
-.ds-tab { position: relative; min-height: var(--space-control-height); padding: 0 var(--space-3); border: 0; border-radius: var(--radius-item) var(--radius-item) 0 0; background: transparent; color: var(--color-text-muted); cursor: default; font-size: var(--type-body-size); line-height: var(--type-body-dense-line); font-weight: var(--type-body-weight); }
+.ds-tablist { display: flex; flex-wrap: wrap; gap: var(--space-1); border-bottom: 1px solid var(--color-line); } /* ds-1.1 run 2: tabs wrap to a next row when the box is narrow (200 %, wider text spacing, 320 px); WCAG 1.4.10 and 1.4.12 */
+.ds-tab { position: relative; min-height: max(var(--space-control-height), var(--space-target-min)); padding: 0 var(--space-3); border: 0; border-radius: var(--radius-item) var(--radius-item) 0 0; background: transparent; color: var(--color-text-muted); cursor: default; font-size: var(--type-body-size); line-height: var(--type-body-dense-line); font-weight: var(--type-body-weight); }
 .ds-tab:is(:hover, [data-demo~="hover"]) { background: var(--color-hover); color: var(--color-text); }
 .ds-tab[aria-selected="true"] { color: var(--color-text); line-height: var(--type-body-strong-line); font-weight: var(--type-body-strong-weight); }
 .ds-tab[aria-selected="true"]::after { content: ""; position: absolute; left: var(--space-3); right: var(--space-3); bottom: -1px; height: 2px; border-radius: var(--radius-mark); background: var(--color-blade); }
 .ds-tabpanel { padding: var(--space-4) var(--space-1) 0; border-radius: var(--radius-item); color: var(--color-text); font-size: var(--type-body-size); line-height: var(--type-body-line); }
 
-.ds-tabs { display: grid; min-width: 0; }
+.ds-tabs { display: grid; grid-template-columns: minmax(0, 1fr); min-width: 0; }
 
 /* ---------- toast / notification ---------- */
 .ds-toast { display: grid; grid-template-columns: 20px minmax(0, 1fr) auto; column-gap: var(--space-3); row-gap: var(--space-2); align-items: start; width: 440px; max-width: 100%; padding: var(--space-3) var(--space-3) var(--space-3) var(--space-4); border: 1px solid var(--color-line); border-radius: var(--radius-card); background: var(--color-surface-raised); box-shadow: var(--elev-window-inactive); color: var(--color-text); animation: ds-rise var(--motion-duration-base) var(--motion-ease-orbital-out); }
 .ds-toast > .icon { width: 20px; height: 20px; margin-top: 2px; color: var(--color-text-muted); }
 .ds-toast-title { margin: 0; font-size: var(--type-body-strong-size); line-height: var(--type-body-strong-line); font-weight: var(--type-body-strong-weight); }
 .ds-toast-body { margin: 0; color: var(--color-text-muted); font-size: var(--type-body-size); line-height: var(--type-body-line); font-weight: var(--type-body-weight); }
-.ds-toast-actions { grid-column: 2 / 4; display: flex; gap: var(--space-2); justify-content: flex-end; }
+.ds-toast-actions { grid-column: 2 / 4; display: flex; flex-wrap: wrap; gap: var(--space-2); justify-content: flex-end; }
 .ds-toast-time { color: var(--color-text-muted); font-size: var(--type-caption-size); line-height: var(--type-caption-line); font-variant-numeric: var(--font-numeric-digits); }
 
 /* ---------- banner: tone by icon, words and edge; no status hue (S0 D1) ---------- */
@@ -303,6 +396,8 @@
 
 /* ---------- dialog with scrim [v2 .scrim] ---------- */
 .ds-dialog { width: 440px; max-width: calc(100% - var(--space-8)); padding: 0; border: 1px solid var(--color-line); border-radius: var(--radius-window); background: var(--color-surface); color: var(--color-text); box-shadow: var(--elev-window); animation: ds-rise var(--motion-duration-ask) var(--motion-ease-orbital-out); }
+/* the plain dialog is a size container for its narrow actions; the ask shell is not, because inline-size containment would collapse its fit-content width */
+.ds-dialog:not([data-variant="ask"]) { container-type: inline-size; }
 .ds-dialog[data-variant="ask"] { width: fit-content; border: 0; background: transparent; box-shadow: none; overflow: visible; }
 /* C1 repair-2: the modal prompt fits the viewport at 200 % (measured in 1440 x 1000 and 960 x 667 windows; WCAG 1.4.4, 1.4.10). The dialog keeps the
    UA max-height and overflow: visible (the Kern shadow is not clipped); the body scrolls under the fixed band, so the
@@ -311,6 +406,9 @@
 .ds-dialog[data-variant="ask"][open] { display: flex; flex-direction: column; }
 .ds-dialog[data-variant="ask"] > .ds-ask { display: flex; flex-direction: column; min-height: 0; overflow: clip; } /* the scrollbar stays inside the rounded edge; the shadow is outside the box */
 .ds-dialog[data-variant="ask"] .ds-ask-band { flex: none; }
+.ds-dialog[data-variant="ask"] :is(.ds-ask-main, .ds-ask-confirm):not([hidden]) { display: flex; flex-direction: column; min-height: 0; }
+/* UX-C run 2: only the body scrolls; the decide row (checkbox and both answers) stays fixed under it, so a focused answer is never
+   covered (2.4.11) and is reachable at 200 % in a 720 x 450 viewport without scrolling */
 .ds-dialog[data-variant="ask"] .ds-ask-body { min-height: 0; overflow-y: auto; overscroll-behavior: contain; scroll-padding-block: var(--space-2); scrollbar-color: var(--material-kern-tx2) var(--material-kern-bg); }
 .ds-dialog::backdrop { background: var(--color-scrim); }
 .ds-scrim { position: absolute; inset: 0; background: var(--color-scrim); }
@@ -319,55 +417,106 @@
 .ds-dialog-text { margin: 0; color: var(--color-text-muted); font-size: var(--type-body-size); line-height: var(--type-body-line); font-weight: var(--type-body-weight); }
 .ds-dialog-actions { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: var(--space-3); padding: 0 var(--space-6) var(--space-6); }
 
-/* ---------- progress ---------- */
+/* ---------- progress (ds-1.1): a muted fill led by the light-blade, the active-window signature ---------- */
 .ds-progress-field { display: grid; gap: var(--space-2); }
-.ds-progress-label { display: flex; justify-content: space-between; gap: var(--space-3); font-size: var(--type-body-size); line-height: var(--type-body-dense-line); font-weight: var(--type-body-weight); }
+.ds-progress-label { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: var(--space-1) var(--space-3); font-size: var(--type-body-size); line-height: var(--type-body-dense-line); font-weight: var(--type-body-weight); }
+.ds-progress-label > :first-child { display: inline-flex; align-items: center; gap: var(--space-2); }
 .ds-progress-label > :last-child { color: var(--color-text-muted); }
-.ds-progress { position: relative; height: 8px; overflow: hidden; border-radius: var(--radius-pill); border: 1px solid var(--color-line-strong); background: var(--color-surface-inset); }
-.ds-progress-bar { position: absolute; left: 0; top: 0; bottom: 0; width: var(--ds-value, 0%); border-radius: var(--radius-pill); background: var(--color-text); transition: width var(--motion-duration-base) var(--motion-ease-orbital-out); }
-.ds-progress[data-state="indeterminate"] .ds-progress-bar { width: 32%; animation: ds-slide var(--motion-duration-loader) var(--motion-ease-in-out) infinite; }
+.ds-progress { position: relative; height: 10px; overflow: hidden; border-radius: var(--radius-pill); border: 1px solid var(--color-line-strong); background: var(--color-surface-inset); }
+.ds-progress-bar { position: absolute; left: 0; top: 0; bottom: 0; width: var(--ds-value, 0%); border-radius: var(--radius-pill); background: var(--color-text-muted); transition: width var(--motion-duration-base) var(--motion-ease-orbital-out); }
+@scope ([data-theme="light"]) to ([data-theme]:not([data-theme="light"])) { .ds-progress-bar { background: var(--color-text); } } /* the muted grey read weakly on white (repair-1); scoped so a dark or contrast subtree inside a light one keeps its own fill (run 2) */
+.ds-progress-bar::after { content: ""; position: absolute; right: 0; top: 0; bottom: 0; width: 3px; border-radius: var(--radius-mark); background: var(--color-blade); box-shadow: 0 0 8px 1px var(--color-blade-glow); }
+/* indeterminate: a tapered blade segment sweeps three times (3 x --motion-duration-loader = 4.2 s) and rests at the centre; the rest
+   position is the designed static form (no stripe texture, row 21) and the label carries the word "Bezig" */
+.ds-progress[data-state="indeterminate"] .ds-progress-bar { left: 36%; width: 28%; background: linear-gradient(90deg, transparent, var(--color-blade) 30%, var(--color-blade) 70%, transparent); animation: ds-sweep calc(var(--motion-duration-loader) * 3) var(--motion-ease-in-out) 1; }
+.ds-progress[data-state="indeterminate"] .ds-progress-bar::after { content: none; }
 
-/* ---------- empty, skeleton and error states ---------- */
-.ds-empty { display: grid; justify-items: center; gap: var(--space-2); padding: var(--space-8) var(--space-6); text-align: center; color: var(--color-text); }
-.ds-empty > .icon { width: 48px; height: 48px; stroke-width: 1.2; color: var(--color-text-muted); }
-.ds-empty-title { margin: 0; display: inline-flex; align-items: center; gap: var(--space-2); font-size: var(--type-body-strong-size); line-height: var(--type-body-strong-line); font-weight: var(--type-body-strong-weight); }
-.ds-empty-hint { margin: 0; max-width: 420px; color: var(--color-text-muted); font-size: var(--type-body-size); line-height: var(--type-body-line); font-weight: var(--type-body-weight); }
-.ds-empty-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: var(--space-2); margin-top: var(--space-2); }
-.ds-empty[data-tone="error"] { border: 2px solid var(--color-danger); border-radius: var(--radius-card); }
-.ds-skeleton { display: grid; gap: var(--space-3); padding: var(--space-2) var(--space-3); }
-.ds-skeleton-row { display: grid; grid-template-columns: 20px minmax(0, 1fr) 96px; gap: var(--space-3); align-items: center; height: var(--space-control-height); }
-.ds-skeleton-line { display: block; height: 12px; border-radius: var(--radius-pill); background: linear-gradient(90deg, var(--color-hover) 0%, var(--color-hover-strong) 50%, var(--color-hover) 100%); background-size: 200% 100%; animation: ds-shimmer var(--motion-duration-loader-pulse) var(--motion-ease-linear) infinite; }
+/* ---------- empty, loading and error states (ds-1.1): place-aware Orbitaal states ----------
+   One frame for all three: the collection's place is its node on an orbit ring around the place icon (shape + icon + text; colour
+   means place only), a light-blade crowns the frame and the words sit left-aligned beside the orbit. Loading (data-state="busy"; the title is the status region, outside any aria-busy container): the node
+   travels the ring three times in 4.2 s and rests at the top, trailing a tapered place-coloured arc (the blade signature on the
+   orbit); the visible label says what loads from where; skeleton rows have the shape of .ds-row with the place node in its slot.
+   Error: the ring breaks (one open arc at the top, repair-2: a single break, no dashed texture), the node goes hollow and sits in
+   the gap, and the title carries the square error marker. Each still form carries the same information as the moving one. */
+.ds-empty { position: relative; container-type: inline-size; display: grid; grid-template-columns: 72px minmax(0, 1fr); gap: var(--space-1) var(--space-5); align-content: start; padding: var(--space-6); border: 1px solid var(--color-line); border-radius: var(--radius-card); background: var(--color-surface); color: var(--color-text); }
+.ds-empty::before { content: ""; position: absolute; top: -1px; left: var(--space-6); width: min(260px, 56%); height: 2px; border-radius: var(--radius-round); background: linear-gradient(90deg, transparent, var(--color-blade) 16%, var(--color-blade) 70%, transparent); box-shadow: 0 0 10px 1px var(--color-blade-glow); pointer-events: none; }
+.ds-empty-orbit { position: relative; grid-row: 1 / span 4; display: grid; place-items: center; width: 72px; height: 72px; border: 2px solid var(--color-line-strong); border-radius: var(--radius-round); color: var(--color-text-muted); } /* 2 px since run-2 repair 1: the orbit is the instrument, not an icon disc */
+.ds-empty-orbit > .icon { width: 28px; height: 28px; }
+.ds-empty-sat { position: absolute; inset: -2px; border-radius: var(--radius-round); pointer-events: none; }
+.ds-empty-sat > .ds-node { position: absolute; left: 50%; top: 0; margin: -6px 0 0 -6px; outline: 3px solid var(--color-surface); transform: scale(1.34); }
+/* the node's place as a tapered arc on the ring (repair-2: the node is the dominant mark); it travels with the node while loading */
+.ds-empty-sat::before { content: ""; position: absolute; inset: 0; border-radius: inherit; border: 3px solid var(--ds-c); mask: conic-gradient(from -110deg, transparent, var(--color-text) 100deg 110deg, transparent 111deg); } /* a tapered tail behind the node (blade signature), run-2 repair 1 */
+.ds-empty[data-state="busy"] .ds-empty-sat { animation: ds-orbit calc(var(--motion-duration-loader) * 3) var(--motion-ease-orbital-out) 1; }
+.ds-empty-title { margin: 0; display: flex; align-items: center; gap: var(--space-2); font-size: var(--type-body-strong-size); line-height: var(--type-body-strong-line); font-weight: var(--type-body-strong-weight); }
+.ds-empty-place { margin: 0; display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); color: var(--color-text-muted); font-size: var(--type-body-dense-size); line-height: var(--type-body-dense-line); font-weight: var(--type-body-dense-weight); }
+.ds-empty-hint { margin: 0; max-width: 60ch; color: var(--color-text-muted); font-size: var(--type-body-size); line-height: var(--type-body-line); font-weight: var(--type-body-weight); }
+.ds-empty-actions { display: flex; flex-wrap: wrap; gap: var(--space-2); margin-top: var(--space-2); }
+.ds-empty > :not(.ds-empty-orbit) { min-width: 0; overflow-wrap: break-word; } /* words break only when one word is wider than the line (repair-2) */
+/* liveness after the finite loops end (repair-1): elapsed time as text, updated every 5 s, the same in the static form; not a live region */
+.ds-empty-tick { margin: 0; color: var(--color-text-muted); font-size: var(--type-caption-size); line-height: var(--type-caption-line); font-weight: var(--type-caption-weight); }
+/* reflow (WCAG 1.4.4, 1.4.10): below 320 px of inline size the orbit stacks above the text; a container query cannot restyle its own
+   container, so the children leave the two-column grid */
+@container (max-width: 320px) {
+  .ds-empty > * { grid-column: 1 / -1; }
+  .ds-empty-orbit { grid-row: auto; justify-self: start; }
+  /* labels wrap between words inside boxes that grow with them (repair-2: a fixed height let wrapped text spill, WCAG 1.4.4) */
+  .ds-empty :is(.ds-place, .ds-btn) { max-width: 100%; height: auto; min-height: var(--space-target-min); padding-block: var(--space-1); white-space: normal; text-align: start; }
+  .ds-empty .ds-btn { min-height: max(var(--space-control-height), var(--space-target-min)); }
+  /* the skeleton follows the stacked .ds-row: icon and name, then place and size under the name */
+  .ds-skeleton-row { grid-template-columns: 20px minmax(0, 1fr); row-gap: 2px; padding-block: var(--space-1); }
+  .ds-skeleton-row > :nth-child(n+3) { grid-column: 2; justify-self: start; }
+  .ds-skeleton-row > :nth-child(4) { width: 64px; }
+  /* a dialog this narrow stacks its actions at full width and lets a long label wrap inside its button (repair-2, O-A19) */
+  .ds-dialog-actions > .ds-btn { flex: 1 1 100%; height: auto; min-height: max(var(--space-control-height), var(--space-target-min)); padding-block: var(--space-1); white-space: normal; }
+}
+.ds-empty[data-tone="error"] { border: 2px solid var(--color-danger); }
+.ds-empty[data-tone="error"]::before { content: none; } /* the 2 px edge carries the state; no crown */
+.ds-empty[data-tone="error"] .ds-empty-orbit { border: 2px solid var(--color-line-strong); border-top-color: transparent; } /* one break, not a dashed texture (row 21) */
+.ds-empty[data-tone="error"] .ds-empty-sat::before { content: none; }
+.ds-skeleton { grid-column: 1 / -1; display: grid; gap: 2px; margin-top: var(--space-3); }
+.ds-skeleton-row { display: grid; grid-template-columns: 20px minmax(0, 1fr) 12px 64px; gap: var(--space-3); align-items: center; min-height: var(--space-control-height); padding: 0 var(--space-3); }
+.ds-skeleton-line { display: block; height: 10px; border-radius: var(--radius-pill); background: var(--color-hover-strong); }
 .ds-skeleton-line[data-shape="icon"] { height: 20px; border-radius: var(--radius-item); }
-[data-theme="contrast"] .ds-skeleton-line { background: transparent; border: 1px dashed var(--color-line-strong); }
+[data-theme="contrast"] .ds-skeleton-line { background: transparent; border: 1px solid var(--color-line-strong); } /* solid, not dashed: no periodic loader texture (row 21) */
 
 /* ---------- tooltip ---------- */
 .ds-tip-anchor { position: relative; display: inline-flex; }
-.ds-tip { position: absolute; z-index: 30; left: 50%; bottom: calc(100% + var(--space-2)); transform: translateX(-50%); display: inline-flex; align-items: center; gap: var(--space-2); padding: var(--space-1) var(--space-2); border-radius: var(--radius-tile-small); background: var(--color-text); color: var(--color-surface-inset); white-space: nowrap; pointer-events: none; visibility: hidden; opacity: 0; font-size: var(--type-caption-size); line-height: var(--type-caption-line); font-weight: var(--type-caption-weight); transition: opacity var(--motion-duration-fast) var(--motion-ease-orbital-out); }
+.ds-tip { position: absolute; z-index: 30; left: 50%; bottom: calc(100% + var(--space-2)); transform: translateX(-50%); display: inline-flex; align-items: center; gap: var(--space-2); padding: var(--space-1) var(--space-2); border-radius: var(--radius-tile-small); background: var(--color-text); color: var(--color-surface-inset); width: max-content; max-width: 15rem; white-space: normal; pointer-events: none; visibility: hidden; opacity: 0; font-size: var(--type-caption-size); line-height: var(--type-caption-line); font-weight: var(--type-caption-weight); transition: opacity var(--motion-duration-fast) var(--motion-ease-orbital-out); }
 .ds-tip-anchor:is(:hover, :focus-within):not([data-dismissed]) > .ds-tip, .ds-tip[data-state="open"] { visibility: visible; opacity: 1; }
-.ds-tip .ds-kbd { min-height: 18px; color: inherit; box-shadow: inset 0 0 0 1px currentColor; }
+/* edge variants (run-2 repair 1): a tip on the first or last control of a bar aligns with that control's outer edge instead of
+   centring past the viewport; text wraps at 15rem, so a tip stays inside 320 CSS px with wider text spacing (WCAG 1.4.10, 1.4.12) */
+.ds-tip[data-align="start"] { left: 0; transform: none; }
+.ds-tip[data-align="end"] { left: auto; right: 0; transform: none; }
+.ds-tip-anchor:is(:hover, :focus-within):not([data-dismissed]) > .ds-tip { z-index: 31; } /* the tip being asked for paints above a static one */
+.ds-tip .ds-kbd { white-space: nowrap; min-height: 18px; color: inherit; box-shadow: inset 0 0 0 1px currentColor; }
 
 /* ---------- motion ---------- */
 @keyframes ds-halo { 0% { transform: scale(.55); opacity: .7; } 70%, 100% { transform: scale(1.15); opacity: 0; } }
 @keyframes ds-spin { to { transform: rotate(360deg); } }
-@keyframes ds-slide { from { transform: translateX(-100%); } to { transform: translateX(312%); } }
-@keyframes ds-shimmer { from { background-position: 100% 0; } to { background-position: -100% 0; } }
+@keyframes ds-sweep { 0% { transform: translateX(-240%); } 33% { transform: translateX(240%); } 33.01% { transform: translateX(-240%); } 66% { transform: translateX(240%); } 66.01% { transform: translateX(-240%); } 100% { transform: translateX(0); } }
+@keyframes ds-orbit { 33.333% { transform: rotate(360deg); } 66.667% { transform: rotate(720deg); } to { transform: rotate(1080deg); } } /* one keyframe per turn: the easing applies per turn, so each turn takes 1.4 s (one keyframe eased all three turns, the first in about 0.3 s) */
 @keyframes ds-rise { from { opacity: 0; transform: translateY(12px); } }
-/* Reduced motion: durations are already 0 ms (tokens); infinite and entrance animations are removed explicitly and
-   the static form is designed: halo = still double ring, spinner = still arc, indeterminate = full striped track. */
+/* Baseline (ds-1.1, matrix rows 24, 29, 31): every system loop is finite and ends within 5 s in its designed static form (WCAG 2.2.2;
+   the ITU-R BT.1702-3 Guideline 1 five-second remark is a design-review risk consideration, not a limit), every period is >= 1.4 s
+   (under 3 flashes per second, WCAG 2.3.1) and only small elements move. Reduced motion: durations are 0 ms (tokens) and every animation is removed; the static
+   forms are the base styles. data-motion="full" is the user's deliberate override of the device preference (section 21.4). */
 @media (prefers-reduced-motion: reduce) {
-  :is(.ds-node, .ds-spinner, .ds-progress-bar, .ds-skeleton-line, .ds-menu, .ds-ask, .ds-dialog, .ds-toast), .ds-node::before { animation: none !important; }
-  .ds-progress[data-state="indeterminate"] .ds-progress-bar { width: 100%; transform: none; background: repeating-linear-gradient(90deg, var(--color-text) 0 8px, transparent 8px 16px); }
-  .ds-skeleton-line { background: var(--color-hover-strong); }
+  :is(.ds-node, .ds-spinner, .ds-progress-bar, .ds-empty-sat, .ds-menu, .ds-ask, .ds-dialog, .ds-toast):not([data-motion="full"] *), .ds-node:not([data-motion="full"] *)::before { animation: none !important; }
 }
-[data-motion="reduce"] :is(.ds-node, .ds-spinner, .ds-progress-bar, .ds-skeleton-line, .ds-menu, .ds-ask, .ds-dialog, .ds-toast), [data-motion="reduce"] .ds-node::before { animation: none !important; }
-[data-motion="reduce"] .ds-progress[data-state="indeterminate"] .ds-progress-bar { width: 100%; transform: none; background: repeating-linear-gradient(90deg, var(--color-text) 0 8px, transparent 8px 16px); }
-[data-motion="reduce"] .ds-skeleton-line { background: var(--color-hover-strong); }
-[data-theme="contrast"] .ds-skeleton-line { background: transparent; }
+[data-motion="reduce"] :is(.ds-node, .ds-spinner, .ds-progress-bar, .ds-empty-sat, .ds-menu, .ds-ask, .ds-dialog, .ds-toast), [data-motion="reduce"] .ds-node::before { animation: none !important; }
+
+/* ---------- contrast increased (ds-1.1): 2 px edges on bordered controls and frames (tokens raise text and lines) ---------- */
+:is([data-contrast="increased"], [data-contrast="increased"] *):is(.ds-btn[data-variant="secondary"], .ds-input, .ds-place, .ds-banner, .ds-toast, .ds-window, .ds-empty, .ds-progress) { border-width: 2px; }
+@media (prefers-contrast: more) { :is(.ds-btn[data-variant="secondary"], .ds-input, .ds-place, .ds-banner, .ds-toast, .ds-window, .ds-empty, .ds-progress):not([data-contrast], [data-contrast] *) { border-width: 2px; } }
+/* forced colours: box-shadow is dropped, so the place nodes keep their author rendering (shape is the non-colour place cue) */
+@media (forced-colors: active) { .ds-node, .ds-node::before { forced-color-adjust: none; } }
+/* forced colours drop the selected tile's inset edge and fill: its blade underline becomes a border, which the user agent draws in the system text colour (repair-2) */
+@media (forced-colors: active) { .ds-seg > .ds-radio:has(> input:checked)::after { height: 0; border-top: 2px solid; } }
 
 /* ---------- high contrast: no translucency, edges carry every boundary ---------- */
 [data-theme="contrast"] .ds-row[aria-selected="true"] { box-shadow: inset 0 0 0 2px var(--color-line-strong); }
 [data-theme="contrast"] .ds-node[data-shape="device"]:not([data-state="off"]) { box-shadow: 0 0 0 2px var(--color-bg), 0 0 0 3.5px var(--color-text); }
-[data-theme="contrast"] .ds-privacy { border-width: 2px; }
+[data-theme="contrast"] .ds-privacy { --ds-pb: 2px; }
 [data-theme="contrast"] .ds-tab[aria-selected="true"]::after { height: 3px; }
 /* the ring is #FFE34D (1.28:1 against white): keep a 1 px black or #333333 gap between it and the white underline, tab-list line and row blade */
 [data-theme="contrast"] .ds-tab:is(:focus-visible, [data-demo~="focus"]) { outline-offset: -5px; }

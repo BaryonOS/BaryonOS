@@ -14,12 +14,15 @@ in ADR-W001473-PROVENANCE-20261119. Applied on main: W001473, which has no
 verifiable grant (#397), and the 27 other imported records (#399) are excluded;
 this checkpoint's PR #400 excludes the 5 third-party records with unknown terms.
 The corpus then holds 3,099 records with 33 exclusions in
-`.agents/skills/os-dev/references/exclusions.json`. Records awaiting an owner
-decision (5 licences with notice or share-alike obligations, 12 quotations) stay
-in the corpus as uncertain until decided. The pre-CC0 review and the screening for
-older copied text are recorded in PR #398
-(`docs/verification/osdev-corpus-rights-20261119/`); each of its 1,298 uncertain
-records (including the pre-CC0 pages) still needs a recorded disposition. Open
+`.agents/skills/os-dev/references/exclusions.json`. Five records may carry notice
+or share-alike obligations from a named upstream licence; the upstream evidence is
+recorded in `docs/verification/osdev-licence-obligations-20261119/` and their
+disposition is an owner decision. The 12 quotations are a separate owner decision.
+These records stay in the corpus as uncertain until decided. The pre-CC0 review and
+the screening for older copied text are recorded in PR #398
+(`docs/verification/osdev-corpus-rights-20261119/`): of its 1,298 uncertain records
+(including the pre-CC0 pages), the five third-party records excluded in #400 have a
+disposition and 1,293 still need one. Open
 detail: the redirect records W002146 and W001978 point to excluded pages and are
 left in place pending a decision. #283 stays open until every uncertain record has
 a disposition.
@@ -982,15 +985,15 @@ milestones never enter `docs/progress.json`; every BaryonOS capability is
 | UX-v2 | Orbitaal v2 board, CONCEPTS.md v2 section | `ui/design/concepts/orbitaal-v2/` Accepted (`ea4e033d`): independent rendered AI recheck, 21/21 planner items resolved, 0 blockers or majors, 6 minors open ([record](verification/orbitaal-v2-20261114/README.md)) |
 | UX-D | Design system ds-1.0 (tokens, icons, components, gallery) | `docs/design/DESIGN-SYSTEM.md`, `ui/design/system/` | Intermediate, **not Accepted**: base `46957bac` ([record](verification/ds-1.0-base-20261114/README.md)); correction UX-D-C1 (owner permission model) committed after run `wf_72e6bcf3-50d` ended `blocked_after_2_repairs` with 0 blockers, 1 major (design quality, AI opinion: generic empty, loading and error states) and 7 minors; owner conformance met, contract test 48 assertions passed ([record](verification/ds-1.0-c1-20261115/README.md)). The major is a must-fix of UX-A11Y-DS. The owner decision of 15 Nov replaced the permission model, so prompt conformance moves to UX-C; UX-D closes when the UX-A11Y-DS verifier passes, including the carried major |
 | UX-A11Y-R | Systematic accessibility literature review and checkable accessibility matrix (owner decision, 15 Nov) | `docs/design/accessibility/`, `docs/verification/a11y-research-20261115/` | Intermediate checkpoint (`8cca1167`); the systematic-review requirement remains open. Research document and matrix (92 rows, 110 sources; 51 baseline, 41 setting, 11 safety rows all baseline; grades strong 2, moderate 1, limited 51, insufficient 37, contradicted 1). Run 1 `wf_4f6a5638-e4a` ended `blocked_after_2_repairs`; run 2 `wf_baf4e604-27b` repaired the files in place and its independent AI verifier accepted them after one repair: 0 blockers, 0 majors, 10 minors open (row 26 reveal needs an owner decision before it may be offered). Literature, standards and AI review only; no user test or human audit ([record](verification/a11y-research-20261115/README.md)) |
-| UX-A11Y-DS | Two-tier accessibility system in ds-1.x: baseline in every regular theme, combinable setting axes as variants of the same identity, coherence across themes and combinations, automatic and manual checks; carries the UX-D design-quality major | `ui/design/system/`, `docs/design/DESIGN-SYSTEM.md` | **Not accepted.** Run 1 (`wf_f9909b01-8a7`, 15 Nov 14:45–20:31 CET) built ds-1.1 (two tiers, nine setting axes, place-aware empty, loading and error states, an accessibility settings group, `check.mjs`) and ended `blocked_after_2_repairs`: the independent verifier rounds found 5, 2 and 0 blockers and 6, 4 and 1 majors. The remaining major is a combination defect (`.ds-tabs` widens the page with wider text spacing at 200 %), with 9 minors; the final round judged the carried C1 design-quality major resolved (AI opinion). The deliverables stay uncommitted in the worktree until a verified run accepts them (snapshot and hashes in the ignored checkpoint). Run 2 (`runs-20261115/uxa11y-ds-run2.js`) repairs in place after a systematic overflow sweep; a further block becomes an owner blocker. Carries UX-A11Y-R minor 1; minor 6 (five-second clause) is superseded by the owner correction of 15 Nov and moves to UX-A11Y-A1 |
-| UX-A11Y-A1 | Amendment of the UX-A11Y-R research checkpoint, matrix and design criteria for the owner decisions of 15 Nov on flashing media and photosensitivity: system interface, unsolicited content, and deliberately started games and media as three contexts with their own rules | `docs/design/accessibility/`, `docs/design/DESIGN-SYSTEM.md` | Open; after UX-A11Y-DS (draft `runs-20261115/uxa11y-r-a1-flash-draft.js`) |
-| UX-C | Informed-consent experience for permission requests (owner ambition, 14 Nov; simplified permission model of 15 Nov: "Toestaan" / "Weigeren" plus an optional remember control, to be researched and verified before adoption; ADR before native persistent grants and remembered denials) | research and concepts in ignored `build/design-evidence/uxc/`, then `ui/design/system/`, `docs/design/DESIGN-SYSTEM.md` | Open; after UX-A11Y-DS, blocks UX-E |
-| UX-E | Connected prototype journey (simulation) | `ui/design/prototype/` | Open |
+| UX-A11Y-DS | Two-tier accessibility system in ds-1.x: baseline in every regular theme, combinable setting axes as variants of the same identity, coherence across themes and combinations, automatic and manual checks; carries the UX-D design-quality major | `ui/design/system/`, `docs/design/DESIGN-SYSTEM.md` | **Not accepted.** Run 1 (`wf_f9909b01-8a7`, 15 Nov 14:45–20:31 CET) built ds-1.1 (two tiers, nine setting axes, place-aware empty, loading and error states, an accessibility settings group, `check.mjs`) and ended `blocked_after_2_repairs`: the independent verifier rounds found 5, 2 and 0 blockers and 6, 4 and 1 majors. The remaining major is a combination defect (`.ds-tabs` widens the page with wider text spacing at 200 %), with 9 minors; the final round judged the carried C1 design-quality major resolved (AI opinion). The deliverables are committed to PR #360 for review only (`626d5cdf`); committing does not accept them (run-1 snapshot and hashes in the ignored checkpoint). Run 2 (`wf_dd7b8287-0d8`, 18 Nov 11:33–15:30 CET, workers-frozen) repaired in place after a systematic overflow sweep. It ended `blocked_after_2_repairs` (verifier rounds 0/2, 0/1, 2/1 blockers/majors): a ds-1.0 delete-dialog flash loop on a held Enter key (B8), a gallery caption at 3.47:1, and an undimmed modal backdrop. All three are fixable in the authorised files. `tokens.css` and `check.mjs` are unchanged. This is now an owner blocker. Carries UX-A11Y-R minor 1; minor 6 (five-second clause) is superseded by the owner correction of 15 Nov and moves to UX-A11Y-A1 |
+| UX-A11Y-A1 | Amendment of the UX-A11Y-R research checkpoint, matrix and design criteria for the owner decisions of 15 Nov on flashing media and photosensitivity: system interface, unsolicited content, and deliberately started games and media as three contexts with their own rules | `docs/design/accessibility/`, `docs/design/DESIGN-SYSTEM.md` | Accepted (19 Nov, AI verification only): run `wf_eaf3a45e-416` ended `blocked_after_2_repairs` on one owner question; the owner chose decision B on 19 Nov (protection follows the unsolicited placement; a direct open, enlarge or forward never lifts it; no per-user hazard record; warnings are no guarantee; reduced motion and flash attenuation stay separate). Repair run `wf_bc36fa86-cf9` was accepted by an independent verifier after one repair: 0 blockers, 0 majors, 5 minors open, 17 citations re-resolved with 0 mismatches. Matrix now 96 rows, 121 sources, 53 baseline; successor baseline contract and pin ([record](verification/a11y-checker-20261119/README.md)); matrix gate and 15 unit tests exit 0. No user test or human audit |
+| UX-C | Informed-consent experience for permission requests (owner ambition, 14 Nov; simplified permission model of 15 Nov: "Toestaan" / "Weigeren" plus an optional remember control, to be researched and verified before adoption; ADR before native persistent grants and remembered denials) | research and concepts in ignored `build/design-evidence/uxc/`, then `ui/design/system/`, `docs/design/DESIGN-SYSTEM.md` | Accepted (19 Nov, AI verification only; [record](verification/uxc-run2-20261119/README.md)): run 2 `wf_ff2800a7-fd9` ended `blocked_after_2_repairs` on one OQ-1 blocker; targeted repair run 2r `wf_043dc049-a87` fixed it (29/29 contract tests, mutation probes killed) and left two documentation and label majors (U7, U9); owner decision A (19 Nov) authorised a lead correction, which a fresh verifier `wf_70100a30-fbb` accepted with no regressions and no WCAG failure among the three reviewed minors. Prototype behaviour only; native remembered decisions need the Proposed ADR `ADR-PERMISSION-PERSISTENCE-20261119` accepted first |
+| UX-E | Connected prototype journey (simulation) | `ui/design/prototype/` | In progress: slice A (stations 1–4: sign-in, desktop and Orbit, windows, search) accepted 23 Nov on AI verification only, run `wf_0760de51-dca` after two repairs, 7 minors open ([record](verification/uxe-sliceA-20261123/README.md)). Slice B (files, versions, consent in context) needs owner confirmation of the file-open rule before acceptance; slice C needs suite task S7 |
 | UX-F | Visual verification, at most two polish passes | `docs/verification/` | Open |
 | UX-G | Native vertical slice, QEMU screenshots | `ui/native`, `ui/graphics` | Plan done; G0 measured; G1 (licence and packaging) next |
 | S0 | Suite requirements that shape ds-1.0 (colour scope, density, neutral surfaces, region names) | `docs/design/suite/WORKSPACE-REQUIREMENTS.md` Accepted (`b305fa7c`): D9 single-pointer selection routes added; independent AI recheck, 0 blockers or majors, 6 minors open ([record](verification/suite-s0-workspace-20261114/README.md)) |
-| S1 | Professional application capability matrix | `docs/design/suite/CAPABILITY-MATRIX.md` Accepted (`8e4abd8d`): 215 rows, 14 prototyped (host), 201 proposed, 0 native; independent AI verification, 0 blockers or majors, 5 minors open ([record](verification/suite-s1-capability-matrix-20261114/README.md)) |
-| S2 | Consumer-to-professional UX maturity model | `docs/design/suite/MATURITY-MODEL.md` | Open |
+| S1 | Professional application capability matrix | `docs/design/suite/CAPABILITY-MATRIX.md` Accepted (`8e4abd8d`): 216 rows, 14 prototyped (host), 202 proposed, 0 native; independent AI verification, 0 blockers or majors, 5 minors open ([record](verification/suite-s1-capability-matrix-20261114/README.md)) |
+| S2 | Consumer-to-professional UX maturity model | `docs/design/suite/MATURITY-MODEL.md` | Accepted (`4c6e1a22`): independent AI verification, 4 minors open ([record](verification/suite-s2-maturity-model-20261118/README.md)) |
 | S3 | Named file-format family, at least three naming systems, registry-checked extensions | `docs/design/suite/FILE-FORMATS.md` | Open |
 | S4 | Common native document/object architecture over the existing storage contracts | `docs/design/suite/OBJECT-ARCHITECTURE.md` | Open |
 | S5 | Interoperability and migration, feature-level compatibility matrix | `docs/design/suite/INTEROPERABILITY.md` | Open |
@@ -1055,24 +1058,47 @@ the superseded 14 November model only
 ([SUPERSEDED.md](verification/ds-1.0-c1-20261115/SUPERSEDED.md)).
 
 **Next:** in a fresh session, first reconcile Git, lock and process state
-(checkpoint section 14, last entry). The continuation branch
-`claude/baryon-os-design-pipeline-20261115` (draft PR #339, no auto-merge)
-carries the shutdown commits cherry-picked unchanged onto main `d572052b`.
+(checkpoint section 14, last entry). PR #339 was squash-merged as main
+`de9b9904`. The design work continues on branch
+`claude/baryon-os-design-pipeline-20261118`, cut from that commit.
 UX-A11Y-R is an intermediate research checkpoint (`8cca1167`, run 2
-`wf_baf4e604-27b`); the systematic-review requirement remains open. UX-A11Y-DS run 1
-ended `blocked_after_2_repairs` and is not accepted; its deliverables are the
-uncommitted changes in the worktree. Next: UX-A11Y-DS run 2
-(`runs-20261115/uxa11y-ds-run2.js`, arguments in `uxa11y-ds-run2-args.json`):
-a repair writer first sweeps every gallery panel for overflow across themes,
-text spacing, scale and widths, fixes the remaining major and the mechanical
-minors, then a fresh verifier runs the ten checks, at most two repairs;
-acceptance is no blocker or major and stored screenshots, and it also closes
-UX-D. If run 2 ends blocked, the residual becomes a concrete owner blocker.
-Run 2 is queued, not started: the plan's weekly usage limit stood at 94 % on
-15 November at 20:40 CET (run 1 used about 1.94 M subagent tokens), and it
-resets on 18 November 2026 at 07:00 CET.
-Then UX-A11Y-A1, UX-C run 1 (`runs-20261115/uxc-run1.js`), UX-C run 2, UX-E,
-UX-F, UX-G and G1.
+`wf_baf4e604-27b`); the systematic-review requirement remains open.
+
+UX-A11Y-DS run 2 (`wf_dd7b8287-0d8`, 18 November 2026, workers-frozen
+variant on the owner decision "Nee, bevroren") also ended
+`blocked_after_2_repairs`. It is not accepted. Its verifier rounds found:
+
+| Round | Blockers | Majors |
+|---|---|---|
+| 1 | 0 | 2 |
+| 2 | 0 | 1 |
+| 3 | 2 | 1 |
+
+The repairs fixed every earlier major. The final round found three new
+items, each fixable in the authorised write set:
+
+- **Blocker, flash safety.** Holding Enter on the ds-1.0 delete dialog makes
+  it open and close about 28 times per second over 44–47 % of the screen in
+  light themes. This breaks baseline item B8, and matrix row 36 does not
+  cover it.
+- **Blocker, contrast.** A gallery caption inside a card shadow reaches
+  3.47:1.
+- **Major, dimmed display.** Under dimmed light intensity the modal
+  backdrop is not dimmed.
+
+The verifier reports both blockers as present at base `de9b9904`.
+`tokens.css` and `check.mjs` stayed frozen at their verified hashes. Because
+this is the second blocked run, the residual is a concrete owner blocker
+(`owner-blocker-ds-run2-20261118.md` in the ignored checkpoint): authorise a
+bounded run 3 for the named items, or route the flash item to UX-A11Y-A1.
+The deliverables are committed for review only; committing does not accept
+them.
+
+UX-A11Y-A1 was accepted on 19 November 2026 (owner decision B). UX-C was accepted on 19 November 2026
+(owner decision A; AI verification only). **Next action:** UX-E (connected prototype journey), then UX-F,
+UX-G and G1.
+Separately, O-P1 moves the `tokens.css` generator into the repository so
+the file is reproducible.
 
 **Review correction (17 November 2026):** after CodeRabbit review of
 `4005ca67`, two matrix cells that contradicted the research document were
