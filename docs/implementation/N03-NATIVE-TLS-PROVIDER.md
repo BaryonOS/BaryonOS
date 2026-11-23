@@ -80,7 +80,13 @@ and specifies, in its raw text:
   encapsulation-key check, the client checks the ciphertext length (both abort
   with `illegal_parameter`), any other ML-KEM decapsulation failure aborts with
   `internal_error`, and the X25519 part receives all validity checks of
-  RFC 9846 section 4.3.8.2.
+  RFC 9846 section 4.3.8.2;
+- X25519 all-zero shared-secret check: both client and server compute the
+  X25519 part as described in RFC 9846 section 7.4.2, which requires a check
+  whether the computed shared secret is the all-zero value (RFC 7748
+  section 6), and abort with `illegal_parameter` if it is (RFC 10024
+  section 4.3; [RFC 9846](https://www.rfc-editor.org/rfc/rfc9846.txt)
+  accessed 23 November 2026).
 
 The rustls 0.23.46 and 0.24.0-dev.3 source comments still link the draft URL;
 this is a documentation lag, not a different construction.
@@ -115,7 +121,7 @@ of each crate, including the crate itself.
 | [aes-gcm](https://github.com/RustCrypto/AEADs) | 0.11.1 (2026-08-21) | Apache-2.0 OR MIT | `#![no_std]` | none | optional `getrandom`/`rand_core` (nonce generation only) | aes 0.9 and polyval 0.7 use `cpufeatures` runtime detection; `aes_backend="soft"` and `polyval_backend="soft"` force software |
 | [sha2](https://github.com/RustCrypto/hashes) | 0.11.1 (2026-10-12) | MIT OR Apache-2.0 | `#![no_std]` | none | none | `cpufeatures` detection of SHA-NI/AVX2; `sha2_backend` cfg |
 | [hkdf](https://github.com/RustCrypto/KDFs) | 0.13.0 (2026-03-30) | MIT OR Apache-2.0 | `#![no_std]` | none | none | through hmac/sha2 |
-| [rustls-webpki](https://github.com/rustls/webpki) | 0.103.17 (2026-11-12) | ISC | `#![no_std]` | none (default features off) | none | through provider |
+| [rustls-webpki](https://github.com/rustls/webpki) | 0.103.17 (2026-11-12); 0.104.0-alpha.8 pre (2026-10-20) | ISC | `#![no_std]` | none (default features off) | none | through provider |
 | [rustls-pki-types](https://github.com/rustls/pki-types) | 1.16.0 (2026-11-10) | MIT OR Apache-2.0 | `no_std` unless `std` | none | none | none |
 | [aws-lc-rs](https://github.com/aws/aws-lc-rs) (reference) | 1.19.0 (2026-10-28); aws-lc-sys 0.47.0 (2026-10-28) | ISC AND (Apache-2.0 OR ISC); aws-lc-sys adds Apache-2.0, MIT, BSD-3-Clause and combinations | none; crate documentation states that the implementation requires `std` | aws-lc-rs and aws-lc-sys (CMake/cc C build, optional bindgen, `links` keys) | AWS-LC `RAND_bytes` | assembly unless the builder's no-asm mode is selected |
 
