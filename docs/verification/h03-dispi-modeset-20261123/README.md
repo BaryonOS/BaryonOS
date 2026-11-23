@@ -59,6 +59,10 @@ BAR0, ID, READBACK or MODE line, i.e. before any 0x1CE/0x1CF access.
 
 ## Regression and host checks
 
+Text files are stored with LF line endings (the repository normalises
+`.txt`); `SHA256SUMS` covers the committed bytes. The SHA-256 of each raw
+CRLF `serial.txt` as written by QEMU is in the run's `result.json` `artifacts`.
+
 `checks/exit-codes.txt` lists every command with its raw exit code; each log
 is beside it. All ran sequentially on the source commit.
 
