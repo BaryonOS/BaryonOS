@@ -1,12 +1,16 @@
 #!/usr/bin/env python3
-"""Bounded synthetic DHCPv4 + HTTP server for the N02 native DHCP case.
+"""Bounded synthetic DHCPv4 + DNS + HTTP server for the N02 native DHCP case.
 
 The peer is the sole Ethernet neighbour of the guest NIC. It leases
-192.0.2.66/24 (router 192.0.2.1, no DNS option), serves one HTTP exchange per
+192.0.2.66/24 (router and DNS server 192.0.2.1), answers app A's A queries
+strictly (service.test -> 192.0.2.1, missing.test -> NXDOMAIN with SOA, each at
+most once per lease, every real reply preceded by one spoof the guest must
+drop: wrong DNS ID or wrong source port), serves one HTTP exchange per
 app on that lease, answers the first renewal REQUEST after app A holds an idle
 connection with a DHCPNAK, then refuses (fails the run on) any frame still
 sourced from the withdrawn address. A fresh DISCOVER receives 192.0.2.67 and
-app A repeats its exchange there. RFC 5227 probes and announcements are
+app A resolves service.test again (a new query: its cache was flushed) and
+repeats its exchange there. RFC 5227 probes and announcements are
 accepted only in their exact form and count. Every recorded reply is replayed
 against the actual triggering guest bytes. This is a test server, never an
 OS client, and it is not a general DHCP implementation.
@@ -39,6 +43,14 @@ DISCOVER, OFFER, REQUEST, ACK_TYPE, NAK = 1, 2, 3, 5, 6
 EXCHANGES = {8080: (0, 0, 40000), 8090: (1, 0, 40001), 8082: (0, 1, 40004)}
 HELD = {8081: (0, 0, 40002)}
 MAX_ACTIONS = 512
+# (lease index, name) -> answer, in the order the guest must ask; any other
+# query, or a repeat, fails the run, and another order leaves it incomplete.
+DNS_QUERIES = {(0, "service.test"): "a", (0, "missing.test"): "nxdomain", (1, "service.test"): "a"}
+DNS_TTL, NEGATIVE_TTL = 300, 60
+DNS_PORT_FIRST = 49152
+# Spoofs carry a different positive answer, so accepting one would change
+# the app's result instead of hiding behind the identical real reply.
+SPOOF_IP = bytes((192, 0, 2, 99))
 
 
 def ipv4_header(source, target, protocol, payload_length, identification):
@@ -117,6 +129,45 @@ def parse_dhcp(frame):
     return message
 
 
+def dns_query(frame, client_ip):
+    """Strict guest A query as built by services/net-protocol dns.rs build_query,
+    from slot 0's random DNS port (low bit 0) on the current lease to port 53."""
+    if not 14 + 20 + 8 + 12 <= len(frame) <= MAX_FRAME or frame[:6] != PEER_MAC or frame[6:12] != CLIENT_MAC:
+        raise ProtocolError("DNS frame bound or Ethernet identity")
+    ip = frame[14:]
+    total = struct.unpack_from("!H", ip, 2)[0]
+    if (ip[0] != 0x45 or not ip[8] or ip[9] != 17 or checksum(ip[:20]) or not 20 + 8 + 12 <= total <= len(ip)
+            or struct.unpack_from("!H", ip, 6)[0] & 0xbfff or ip[12:16] != client_ip
+            or ip[16:20] != PEER_IP or len(frame) not in (14 + total, max(60, 14 + total))):
+        raise ProtocolError("DNS IPv4 tuple, checksum, fragmentation or length")
+    udp = ip[20:total]
+    source, target, size, value = struct.unpack_from("!HHHH", udp)
+    if (target != 53 or source < DNS_PORT_FIRST or source & 1 or size != len(udp) or not value
+            or checksum(client_ip + PEER_IP + struct.pack("!BBH", 0, 17, size) + udp)):
+        raise ProtocolError("DNS UDP ports, length or checksum")
+    message = udp[8:]
+    ident, flags, qd, an, ns, ar = struct.unpack_from("!HHHHHH", message)
+    if (flags, qd, an, ns, ar) != (0x0100, 1, 0, 0, 0):
+        raise ProtocolError("DNS query header")
+    labels, at = [], 12
+    while True:
+        if at >= len(message) or message[at] > 63:
+            raise ProtocolError("DNS query name")
+        length = message[at]
+        if not length:
+            break
+        labels.append(message[at + 1:at + 1 + length].decode("ascii", "replace"))
+        at += 1 + length
+    if message[at + 1:] != b"\0\x01\0\x01":
+        raise ProtocolError("DNS query is not exactly one IN A question")
+    return source, ident, ".".join(labels), message[12:]
+
+
+def encode_question(name):
+    """Exact IN A question bytes for a fixture name, as build_query writes them."""
+    return b"".join(bytes((len(label),)) + label.encode("ascii") for label in name.split(".")) + b"\0\0\x01\0\x01"
+
+
 def tcp_segment(frame, client_ip):
     """Strict guest TCP segment from the current lease to the peer."""
     if not 54 <= len(frame) <= MAX_FRAME or frame[:6] != PEER_MAC or frame[6:12] != CLIENT_MAC:
@@ -190,10 +241,12 @@ class DhcpMachine:
         self.connections = {}
         self.events = []
         self.ip_id = 1
+        self.dns_seen = []
         names = ("client_frames", "server_frames", "discovers", "offers", "selects", "acks",
                  "renewals", "renewal_acks", "early_renewal_acks", "naks", "retransmissions", "arp_probes",
                  "arp_announcements", "arp_requests", "arp_replies", "syns", "syn_acks",
-                 "http_requests", "valid_data_sent", "fins_sent", "client_fins_acked", "held")
+                 "http_requests", "valid_data_sent", "fins_sent", "client_fins_acked", "held",
+                 "dns_queries", "dns_answers", "dns_nxdomains", "dns_spoofs")
         self.counts = dict.fromkeys(names, 0)
 
     @property
@@ -224,7 +277,9 @@ class DhcpMachine:
         if not nak:
             t1, t2 = TIMES[lease]
             options += (bytes((51, 4)) + struct.pack("!I", LEASE_SECONDS) + bytes((58, 4)) + struct.pack("!I", t1)
-                        + bytes((59, 4)) + struct.pack("!I", t2) + bytes((1, 4)) + SUBNET_MASK + bytes((3, 4)) + PEER_IP)
+                        + bytes((59, 4)) + struct.pack("!I", t2) + bytes((1, 4)) + SUBNET_MASK + bytes((3, 4)) + PEER_IP
+                        # Every OFFER/ACK (renewals too) names the peer as DNS server.
+                        + bytes((6, 4)) + PEER_IP)
         bootp = (bootp + options + b"\xff").ljust(BOOTP_BYTES, b"\0")
         target_ip = BROADCAST_IP if broadcast else LEASES[lease]
         udp = struct.pack("!HHHH", 67, 68, 8 + len(bootp), 0) + bootp
@@ -321,6 +376,52 @@ class DhcpMachine:
         self.counts["arp_replies"] += 1
         self.event("tx", "arp-reply", packet)
         return [packet]
+
+    def dns_reply(self, port, message, label, *, source=53):
+        udp = struct.pack("!HHHH", source, port, 8 + len(message), 0) + message
+        value = checksum(PEER_IP + self.address + struct.pack("!BBH", 0, 17, len(udp)) + udp) or 0xffff
+        udp = udp[:6] + struct.pack("!H", value) + udp[8:]
+        packet = self.ipv4(CLIENT_MAC, self.address, 17, udp)
+        self.event("tx", label, packet, port=port, source_port=source, dns_id=struct.unpack_from("!H", message)[0])
+        return packet
+
+    def dns(self, frame):
+        if self.phase != "bound":
+            raise ProtocolError("DNS outside a bound lease")
+        port, ident, name, question = dns_query(frame, self.address)
+        key = (self.lease, name)
+        # The joined name is for reporting only: the raw question must be the
+        # exact label encoding, so a single label "service.test" never matches.
+        if key not in DNS_QUERIES or key in self.dns_seen or question != encode_question(name):
+            raise ProtocolError("unexpected or repeated DNS query")
+        self.dns_seen.append(key)
+        self.counts["dns_queries"] += 1
+        self.event("rx", "dns-query", frame, port=port, dns_id=ident, name=name, lease=self.lease)
+        def positive(dns_id, address):
+            return (struct.pack("!HHHHHH", dns_id, 0x8180, 1, 1, 0, 0) + question
+                    + b"\xc0\x0c" + struct.pack("!HHIH", 1, 1, DNS_TTL, 4) + address)
+        if DNS_QUERIES[key] == "a":
+            reply = positive(ident, PEER_IP)
+            self.counts["dns_answers"] += 1
+            label = "dns-answer"
+        else:
+            soa = b"\xc0\x0c\xc0\x0c" + struct.pack("!IIIII", 1, 3600, 600, 86400, NEGATIVE_TTL)
+            reply = (struct.pack("!HHHHHH", ident, 0x8183, 1, 0, 1, 0) + question
+                     + b"\xc0\x0c" + struct.pack("!HHIH", 6, 1, 600, len(soa)) + soa)
+            self.counts["dns_nxdomains"] += 1
+            label = "dns-nxdomain"
+        packets = []
+        if self.lease == 0:
+            # One deterministic poisoned spoof first: wrong ID for the answer,
+            # wrong source port for the NXDOMAIN, each claiming SPOOF_IP. The
+            # guest must drop and count it.
+            if DNS_QUERIES[key] == "a":
+                packets.append(self.dns_reply(port, positive(ident ^ 1, SPOOF_IP), "dns-spoof-id"))
+            else:
+                packets.append(self.dns_reply(port, positive(ident, SPOOF_IP), "dns-spoof-port", source=54))
+            self.counts["dns_spoofs"] += 1
+        packets.append(self.dns_reply(port, reply, label))
+        return packets
 
     def tcp(self, c, flags, *, seq, ack, label, payload=b"", options=b""):
         tcp = struct.pack("!HHIIBBHHH", c.port, c.source, seq & MASK, ack & MASK,
@@ -427,6 +528,8 @@ class DhcpMachine:
             raise ProtocolError("unexpected EtherType")
         if frame[26:30] in self.withdrawn:
             raise ProtocolError("IPv4 frame from the withdrawn address")
+        if frame[23] == 17 and frame[14] == 0x45 and frame[36:38] == b"\0\x35":
+            return self.dns(frame)
         if frame[23] == 17:
             return self.dhcp(frame)
         if frame[23] == 6:
@@ -451,8 +554,10 @@ class DhcpMachine:
                     # The service may retire and exit before the second
                     # announcement of the final lease; the first makes it usable.
                     and self.announcements[1] in (1, 2)
-                    and self.counts["client_fins_acked"] == 3 and self.counts["held"] == 1)
+                    and self.counts["client_fins_acked"] == 3 and self.counts["held"] == 1
+                    and self.dns_seen == list(DNS_QUERIES) and self.counts["dns_spoofs"] == 2)
         return dict(case="dhcp", complete=complete, counts=dict(self.counts), cases=cases,
+                    dns_queries=[[lease, name] for lease, name in self.dns_seen],
                     leases=[".".join(map(str, lease)) for lease in LEASES[:self.lease + 1]],
                     withdrawn=sorted(".".join(map(str, a)) for a in self.withdrawn),
                     xids=len(self.xids), events=list(self.events))

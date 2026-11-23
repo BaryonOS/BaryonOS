@@ -5,7 +5,9 @@
 #[path = "../../system/src/support.rs"]
 mod support;
 use nieuw_os_catalog_client::NativeTransport;
-use nieuw_os_net_client::{Connection, ConnectionState, Error, Read, Session, Status, DATA};
+use nieuw_os_net_client::{
+    Connection, ConnectionState, Error, Read, Session, Status, DATA, MAX_RESOLVED,
+};
 use nieuw_os_network_service::wire::{self, HeaderFields, Operation, Packet};
 use nieuw_os_sdk_runtime::{
     native, Error as RuntimeError, Handle, NetworkSource, Outgoing, ReceiveEndpoint, Received,
@@ -95,6 +97,7 @@ enum Case {
 fn exercise(
     session: &mut Session<NativeTransport>,
     slot: usize,
+    address: [u8; 4],
     port: u16,
     case: Case,
     previous: Option<Connection>,
@@ -104,7 +107,7 @@ fn exercise(
     let timeout = if case == Case::Timeout { 300 } else { 700 };
     let connection = loop {
         check(tick() - begin < timeout + 300 + grace, 20);
-        match session.open([192, 0, 2, 1], port, timeout as u32) {
+        match session.open(address, port, timeout as u32) {
             Ok(c) => break c,
             Err(e) if again(e) => yield_now(),
             Err(_) => fail(21),
@@ -669,12 +672,56 @@ fn revoked(session: &mut Session<NativeTransport>) -> ! {
     support::put(528, 1);
     native::exit(0)
 }
-/// N02: one exchange on the first lease. App A then holds an idle connection
-/// until the DHCPNAK withdraws its token, proves OpenTcp is refused while
-/// unconfigured, and repeats the exchange with a fresh token on the new lease.
+/// Resolve `name` through the lease DNS server, waiting out `Again` (no
+/// lease yet, ARP or the upstream query pending) for at most `budget` ticks.
+fn resolve(
+    session: &mut Session<NativeTransport>,
+    name: &str,
+    budget: u64,
+) -> Result<[u8; 4], Error> {
+    let start = tick();
+    let mut out = [[0; 4]; MAX_RESOLVED];
+    loop {
+        check(tick() - start < budget, 150);
+        match session.resolve(name, &mut out) {
+            Ok(1) => return Ok(out[0]),
+            Ok(_) => fail(151),
+            Err(Error::Service(Status::Again)) => yield_now(),
+            Err(e) => return Err(e),
+        }
+    }
+}
+/// N02: app A resolves service.test through the lease DNS server (UDP/53
+/// grant) and exchanges with the resolved address; app B, without a UDP/53
+/// grant, is refused. App A then holds an idle connection until the DHCPNAK
+/// withdraws its token, proves OpenTcp and Resolve wait while unconfigured,
+/// and repeats resolution (a new upstream query: the cache was flushed) and
+/// the exchange with a fresh token on the new lease.
 fn dhcp(session: &mut Session<NativeTransport>, slot: usize, first: u16) -> ! {
     let lease_wait = 3000;
-    let exchanged = exercise(session, slot, first, Case::Http, None, lease_wait);
+    let address = if slot == 0 {
+        let address = resolve(session, "service.test", lease_wait).unwrap_or_else(|_| fail(152));
+        check(address == [192, 0, 2, 1], 153);
+        support::put(624, tick());
+        // NXDOMAIN is final and cached: the repeat sends no second query.
+        for _ in 0..2 {
+            check(
+                resolve(session, "missing.test", 700) == Err(Error::Service(Status::NotFound)),
+                154,
+            );
+            bump(632);
+        }
+        address
+    } else {
+        // Again until the lease exists, then refused: no UDP/53 grant.
+        check(
+            resolve(session, "service.test", lease_wait) == Err(Error::Service(Status::Access)),
+            155,
+        );
+        bump(624);
+        [192, 0, 2, 1]
+    };
+    let exchanged = exercise(session, slot, address, first, Case::Http, None, lease_wait);
     if slot == 0 {
         let start = tick();
         let held = loop {
@@ -711,7 +758,30 @@ fn dhcp(session: &mut Session<NativeTransport>, slot: usize, first: u16) -> ! {
             76,
         );
         bump(504);
-        let fresh = exercise(session, slot, first + 2, Case::Http, Some(held), lease_wait);
+        // The lease-none gate: Again before any cache lookup or query. A
+        // leased first Resolve also answers Again (it starts a query), so the
+        // kernel's DHCP_ORDER requires the tick recorded at 640 below to be
+        // strictly before the service's new-lease tick (616); this also binds
+        // the OpenTcp check above. The cache flush itself is proven by the
+        // peer, which then requires a fresh (lease 1, service.test) query.
+        let mut out = [[0; 4]; MAX_RESOLVED];
+        check(
+            session.resolve("service.test", &mut out) == Err(Error::Service(Status::Again)),
+            156,
+        );
+        support::put(640, tick());
+        let address = resolve(session, "service.test", lease_wait).unwrap_or_else(|_| fail(157));
+        check(address == [192, 0, 2, 1], 158);
+        support::put(648, tick());
+        let fresh = exercise(
+            session,
+            slot,
+            address,
+            first + 2,
+            Case::Http,
+            Some(held),
+            lease_wait,
+        );
         check(fresh.id() != held.id() && fresh.id() != exchanged.id(), 77);
         support::put(520, tick());
     }
@@ -855,6 +925,7 @@ fn run() -> ! {
         previous = Some(exercise(
             &mut session,
             slot,
+            [192, 0, 2, 1],
             first + offset as u16,
             case,
             previous,

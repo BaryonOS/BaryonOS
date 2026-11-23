@@ -14,7 +14,7 @@ from unittest.mock import patch
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from network_dhcp_peer import (BROADCAST_IP, BROADCAST_MAC, CLIENT_MAC, LEASES, PEER_IP, PEER_MAC,
-                               ZERO_IP, DhcpMachine, ProtocolError, checksum, ipv4_header,
+                               SPOOF_IP, ZERO_IP, DhcpMachine, ProtocolError, checksum, ipv4_header,
                                validate_transcript)
 from network_service_peer import ACK, FIN, PSH, REQUESTS, RESPONSES, SYN, MASK
 
@@ -52,6 +52,36 @@ def tcp(address, source, target, seq, ack, flags, payload=b"", tcp_opts=b""):
     segment = segment[:16] + struct.pack("!H", value) + segment[18:]
     ip = ipv4_header(address, PEER_IP, 6, len(segment), 7)
     return (PEER_MAC + CLIENT_MAC + b"\x08\x00" + ip + segment).ljust(60, b"\0")
+
+
+def query(address, port, ident, name, *, flags=0x0100, kind=1, valid_checksum=True, labels=None):
+    """Guest A query in the exact layout of services/net-protocol dns.rs."""
+    labels = name.split(".") if labels is None else labels
+    qname = b"".join(bytes((len(label),)) + label.encode() for label in labels) + b"\0"
+    message = struct.pack("!HHHHHH", ident, flags, 1, 0, 0, 0) + qname + struct.pack("!HH", kind, 1)
+    udp = struct.pack("!HHHH", port, 53, 8 + len(message), 0) + message
+    value = checksum(address + PEER_IP + struct.pack("!BBH", 0, 17, len(udp)) + udp) or 0xffff
+    if not valid_checksum:
+        value ^= 0x0101
+    udp = udp[:6] + struct.pack("!H", value) + udp[8:]
+    return (PEER_MAC + CLIENT_MAC + b"\x08\x00" + ipv4_header(address, PEER_IP, 17, len(udp), 3) + udp).ljust(60, b"\0")
+
+
+def answer(reply):
+    """(destination port, source port, DNS message) with both checksums verified."""
+    assert checksum(reply[14:34]) == 0
+    total = struct.unpack_from("!H", reply, 16)[0]
+    udp = reply[34:14 + total]
+    assert checksum(reply[26:30] + reply[30:34] + struct.pack("!BBH", 0, 17, len(udp)) + udp) == 0
+    source, target = struct.unpack_from("!HH", udp)
+    return target, source, udp[8:]
+
+
+def resolve_all(step, lease):
+    """App A's queries on `lease`; returns the reply frames per name."""
+    names = ("service.test", "missing.test") if lease == 0 else ("service.test",)
+    return {name: step(query(LEASES[lease], 50000 + 2 * i, 0x1200 + i + 16 * lease, name))
+            for i, name in enumerate(names)}
 
 
 def options(reply):
@@ -111,6 +141,7 @@ def exchange(step, address, source, port, slot):
 
 def first_lease(step):
     acquire(step, 0, 0x11111111, announcements=2)
+    resolve_all(step, 0)
     exchange(step, LEASES[0], 40000, 8080, 0)
     exchange(step, LEASES[0], 40001, 8090, 1)
     server = (0x6e303200 + 8081 * 0x100 + 1) & MASK
@@ -124,8 +155,23 @@ class DhcpPeerTest(unittest.TestCase):
         offer, ack = acquire(step, 0, 0x11111111, announcements=2)
         for reply in (offer, ack):
             found = options(reply)
-            self.assertNotIn(6, found)  # no DNS option is ever offered
-            self.assertEqual((found[1], found[3], found[54]), (bytes((255, 255, 255, 0)), PEER_IP, PEER_IP))
+            self.assertEqual((found[1], found[3], found[6], found[54]),
+                             (bytes((255, 255, 255, 0)), PEER_IP, PEER_IP, PEER_IP))
+        replies = resolve_all(step, 0)
+        spoof, real = replies["service.test"]
+        self.assertEqual(answer(spoof)[:2], (50000, 53))
+        self.assertEqual(struct.unpack_from("!H", answer(spoof)[2])[0], 0x1200 ^ 1)
+        self.assertEqual(answer(spoof)[2][-4:], SPOOF_IP)
+        port, source, message = answer(real)
+        self.assertEqual((port, source), (50000, 53))
+        self.assertEqual(struct.unpack_from("!HHHHHH", message), (0x1200, 0x8180, 1, 1, 0, 0))
+        self.assertEqual(message[-4:], PEER_IP)
+        self.assertEqual(message[12:12 + 18], query(LEASES[0], 50000, 0x1200, "service.test")[54:72])
+        spoof, real = replies["missing.test"]
+        self.assertEqual(answer(spoof)[:2], (50002, 54))
+        self.assertEqual(struct.unpack_from("!HH", answer(spoof)[2]), (0x1201, 0x8180))
+        self.assertEqual(answer(spoof)[2][-4:], SPOOF_IP)
+        self.assertEqual(struct.unpack_from("!HHHHHH", answer(real)[2]), (0x1201, 0x8183, 1, 0, 1, 0))
         exchange(step, LEASES[0], 40000, 8080, 0)
         exchange(step, LEASES[0], 40001, 8090, 1)
         server = (0x6e303200 + 8081 * 0x100 + 1) & MASK
@@ -135,8 +181,12 @@ class DhcpPeerTest(unittest.TestCase):
         self.assertEqual((nak[:6], nak[30:34], nak[42 + 16:42 + 20]), (BROADCAST_MAC, BROADCAST_IP, ZERO_IP))
         self.assertEqual(options(nak)[53], bytes((6,)))
         acquire(step, 1, 0x33333333)
+        real, = resolve_all(step, 1)["service.test"]
+        self.assertEqual(answer(real)[2][-4:], PEER_IP)
         exchange(step, LEASES[1], 40004, 8082, 0)
         evidence = step.evidence()
+        self.assertEqual(evidence["counts"]["dns_queries"], 3)
+        self.assertEqual(evidence["counts"]["dns_spoofs"], 2)
         self.assertTrue(evidence["complete"])
         self.assertEqual(evidence["withdrawn"], ["192.0.2.66"])
         self.assertEqual(validate_transcript(dict(evidence, case="dhcp"))["counts"]["naks"], 1)
@@ -156,6 +206,7 @@ class DhcpPeerTest(unittest.TestCase):
     def test_renewal_before_second_announcement_is_acked_not_nakked(self):
         step = Recorder()
         acquire(step, 0, 0x11111111)
+        resolve_all(step, 0)
         exchange(step, LEASES[0], 40000, 8080, 0)
         exchange(step, LEASES[0], 40001, 8090, 1)
         server = (0x6e303200 + 8081 * 0x100 + 1) & MASK
@@ -169,6 +220,7 @@ class DhcpPeerTest(unittest.TestCase):
         self.assertEqual(options(nak)[53], bytes((6,)))
         self.assertEqual(step.machine.counts["naks"], 1)
         acquire(step, 1, 0x33333333)
+        resolve_all(step, 1)
         exchange(step, LEASES[1], 40004, 8082, 0)
         # An ACKed early renewal means the NAK was not tested on the first renewal.
         self.assertEqual(step.machine.counts["early_renewal_acks"], 1)
@@ -249,6 +301,63 @@ class DhcpPeerTest(unittest.TestCase):
         step(arp(LEASES[0], LEASES[0]))
         with self.assertRaisesRegex(ProtocolError, "selected lease"):
             step(tcp(LEASES[0], 40004, 8082, 1, 0, SYN))
+
+    def test_dns_queries_are_strict_and_never_repeated(self):
+        cases = {
+            "repeat": query(LEASES[0], 50004, 9, "missing.test"),
+            "unknown name": query(LEASES[0], 50004, 9, "other.test"),
+            "app B port": query(LEASES[0], 50005, 9, "service.test"),
+            "fixed port": query(LEASES[0], 45000, 9, "service.test"),
+            "checksum": query(LEASES[0], 50004, 9, "service.test", valid_checksum=False),
+            "flags": query(LEASES[0], 50004, 9, "service.test", flags=0),
+            "AAAA": query(LEASES[0], 50004, 9, "service.test", kind=28),
+            "wrong source": query(LEASES[1], 50004, 9, "service.test"),
+        }
+        for name, frame in cases.items():
+            with self.subTest(name):
+                step = Recorder()
+                acquire(step, 0, 1)
+                step(query(LEASES[0], 50002, 8, "missing.test"))
+                with self.assertRaises(ProtocolError):
+                    step(frame)
+        step = Recorder()
+        with self.assertRaisesRegex(ProtocolError, "DNS outside a bound lease"):
+            step(query(LEASES[0], 50000, 1, "service.test"))
+        step = Recorder()
+        first_lease(step)
+        step(dhcp(3, 0x22222222, ciaddr=LEASES[0]))
+        with self.assertRaisesRegex(ProtocolError, "withdrawn"):
+            step(query(LEASES[0], 50000, 1, "service.test"))
+
+    def test_single_label_with_a_dot_is_not_the_fixture_name(self):
+        step = Recorder()
+        acquire(step, 0, 1)
+        with self.assertRaisesRegex(ProtocolError, "unexpected or repeated DNS query"):
+            step(query(LEASES[0], 50000, 1, "service.test", labels=["service.test"]))
+        self.assertEqual(step.machine.dns_seen, [])
+        self.assertEqual(len(step(query(LEASES[0], 50000, 1, "service.test"))), 2)
+
+    def test_dns_queries_out_of_order_leave_the_run_incomplete(self):
+        def run(names):
+            step = Recorder()
+            acquire(step, 0, 0x11111111, announcements=2)
+            for i, name in enumerate(names):
+                step(query(LEASES[0], 50000 + 2 * i, 0x1200 + i, name))
+            exchange(step, LEASES[0], 40000, 8080, 0)
+            exchange(step, LEASES[0], 40001, 8090, 1)
+            server = (0x6e303200 + 8081 * 0x100 + 1) & MASK
+            step(tcp(LEASES[0], 40002, 8081, 5, 0, SYN))
+            step(tcp(LEASES[0], 40002, 8081, 6, server, ACK))
+            step(dhcp(3, 0x22222222, ciaddr=LEASES[0]))
+            acquire(step, 1, 0x33333333)
+            resolve_all(step, 1)
+            exchange(step, LEASES[1], 40004, 8082, 0)
+            return step.evidence()
+        self.assertTrue(run(("service.test", "missing.test"))["complete"])
+        reversed_run = run(("missing.test", "service.test"))
+        self.assertEqual(reversed_run["counts"]["dns_queries"], 3)
+        self.assertEqual(reversed_run["counts"]["dns_spoofs"], 2)
+        self.assertFalse(reversed_run["complete"])
 
     def test_incomplete_run_is_not_complete(self):
         step = Recorder()

@@ -5,16 +5,23 @@
 //! authenticate each owner; NET1 never accepts a caller-supplied reply handle.
 #[path = "../../system/src/support.rs"]
 mod support;
+use core::ptr;
 use nieuw_os_net_stack::{Config, LinkConfig, SocketStorage};
 use nieuw_os_network_service::{
-    wire, Buffers, Configuration, Destination, DhcpConfiguration, Fault, ProbeTiming, RandomSource,
-    Service,
+    wire, Buffers, Configuration, Destination, DhcpConfiguration, DnsCache, DnsDriveError, Fault,
+    ProbeTiming, RandomSource, Service,
 };
 use nieuw_os_sdk_runtime::{
     native, EntropySource, Handle, NetworkSource, Outgoing, ReceiveEndpoint, SendEndpoint,
 };
 const MAGIC: u64 = u64::from_le_bytes(*b"NETSVC01");
 const CONTROL: u64 = u64::from_le_bytes(*b"NETCTL01");
+/// Per-slot resolver caches (~22 KiB) are const-initialised in the image's
+/// data segment, never built on the 64 KiB stack.
+static mut DNS: DnsCache = match DnsCache::new() {
+    Ok(cache) => cache,
+    Err(_) => panic!("DNS cache configuration"),
+};
 fn fail(code: u64) -> ! {
     support::put(240, code);
     support::put(504, code);
@@ -43,8 +50,11 @@ struct Pending {
     ticket: u64,
     length: usize,
 }
-/// DHCP XIDs and retry jitter come only from the entropy grant this service
-/// already holds; a failed read is an error, never a constant fallback.
+/// DHCP XIDs, retry jitter and DNS IDs/ports come only from the entropy grant
+/// this service already holds; a failed read is an error, never a constant
+/// fallback. One draw waits for at most 100,000 yielding polls or until the
+/// keyring's 64-tick device timeout, whichever ends first. After that timeout
+/// the keyring broker stays offline for every grant for the rest of the boot.
 struct Entropy {
     source: EntropySource,
     draws: u64,
@@ -108,6 +118,17 @@ impl Bridge {
             service
                 .drive_dhcp(tick, random)
                 .unwrap_or_else(|_| fail(33));
+            // Recorded Resolve queries leave only with fresh IDs/ports drawn
+            // from the same entropy grant; no entropy, no query. A failed draw
+            // skips DNS for this iteration so queued frames still drain. Later
+            // iterations draw again only until the query's deadline: a busy or
+            // short keyring answer can clear, but an offline broker cannot, and
+            // the unsent query then ends as `Status::Timeout` for its caller.
+            // The next DHCP draw on an offline broker stops the service (33).
+            match service.drive_dns(tick, random) {
+                Ok(_) | Err(DnsDriveError::Random(())) => {}
+                Err(DnsDriveError::Service(_)) => fail(40),
+            }
         }
         service.poll(tick).unwrap_or_else(|_| fail(16));
         if self.pending.is_none() {
@@ -310,7 +331,7 @@ fn run() -> ! {
         tx_sockets: [&mut ta, &mut tb],
     };
     let mut service = if dhcp {
-        // DHCP supplies address and router only; the destination grants
+        // DHCP supplies address, router and DNS servers; the destination grants
         // stay the trusted startup values above.
         Service::new_dhcp(
             DhcpConfiguration {
@@ -321,6 +342,9 @@ fn run() -> ! {
             },
             buffers,
             ProbeTiming::new(0, 100, 100).unwrap_or_else(|_| fail(9)),
+            // SAFETY: DNS is const-initialised; this is the only reference
+            // ever taken, kept for the process lifetime, one thread.
+            unsafe { &mut *ptr::addr_of_mut!(DNS) },
             now(),
         )
     } else {
