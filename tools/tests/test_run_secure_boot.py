@@ -45,6 +45,33 @@ class RefusalTests(unittest.TestCase):
     def test_smoke_exit_is_not_refusal(self):
         self.assertTrue(sb.classify_refusal(DENIED, 33, False))
 
+    def test_early_exit_after_denial_is_not_refusal(self):
+        # Only a refusal that lasts until the host timeout can serve as Secure Boot proof.
+        for rc in (0, 1, None, -11):
+            problems = sb.classify_refusal(DENIED, rc, False)
+            self.assertEqual(len(problems), 1, rc)
+            self.assertIn("did not reach the host timeout", problems[0])
+
+
+class JudgeTests(unittest.TestCase):
+    def refused(self, problems):
+        return {"case": "unsigned", "expected": "refused", "store_stage": "install",
+                "passed": False, "problems": list(problems)}
+
+    def test_clean_refusal_passes(self):
+        report = self.refused([])
+        with unittest.mock.patch.object(sb, "source_hash", return_value="f"):
+            sb.judge(report, DENIED, -9, True, b"s", b"s", {}, "f")
+        self.assertEqual(report["problems"], [])
+        self.assertTrue(report["passed"])
+
+    def test_pin_problem_survives_clean_refusal(self):
+        report = self.refused(["secboot CODE sha256 x is not the pinned build"])
+        with unittest.mock.patch.object(sb, "source_hash", return_value="f"):
+            sb.judge(report, DENIED, -9, True, b"s", b"s", {}, "f")
+        self.assertEqual(report["problems"], ["secboot CODE sha256 x is not the pinned build"])
+        self.assertFalse(report["passed"])
+
 
 class ArgumentTests(unittest.TestCase):
     BASE = ["qemu", "-machine", "pc-q35-10.0", "-accel", "tcg,thread=single", "-drive", "x"]
@@ -122,6 +149,28 @@ class KeyCleanupTests(unittest.TestCase):
                         sb.make_loader(case, loader, work, {})
                 self.assertEqual(run.call_args.args[0][0], "sbsign")
                 self.assertFalse((work / "signing-key.pem").exists(), case)
+
+    def test_wrong_key_must_verify_against_its_own_cert(self):
+        # Wrong-key proves refusal only of a validly signed foreign-key image.
+        with tempfile.TemporaryDirectory() as temp:
+            work = Path(temp)
+            loader = work / "loader.efi"
+            loader.write_bytes(b"MZ")
+
+            def fake_run(command, **kwargs):
+                if command[0] == "openssl":
+                    Path(command[command.index("-keyout") + 1]).write_text("TEST KEY")
+                    Path(command[command.index("-out") + 1]).write_text("TEST CERT")
+                elif command[0] == "sbsign":
+                    Path(command[command.index("--output") + 1]).write_bytes(b"MZ signed")
+                return subprocess.CompletedProcess(command, 0)
+
+            with unittest.mock.patch.object(sb.subprocess, "run", side_effect=fake_run), \
+                    unittest.mock.patch.object(sb, "sbverify", return_value=False):
+                with self.assertRaisesRegex(ValueError, "own ephemeral cert"):
+                    sb.make_loader("wrong-key", loader, work, {})
+            self.assertFalse((work / "signing-key.pem").exists())
+            self.assertFalse((work / "ephemeral-cert.pem").exists())
 
 
 def parameters(function):
@@ -204,6 +253,47 @@ class SecureBootProofTests(unittest.TestCase):
         with unittest.mock.patch.object(sb, "sha256", return_value="0" * 64), \
                 unittest.mock.patch.object(sb, "prepare", side_effect=AssertionError("must not build")):
             self.assertEqual(sb.main(["--case", "signed"]), 1)
+
+
+class EvidenceDestinationTests(unittest.TestCase):
+    """--evidence must claim a new direct child of docs/verification before anything is built."""
+
+    def setUp(self):
+        temp = tempfile.TemporaryDirectory()
+        self.addCleanup(temp.cleanup)
+        self.root = Path(temp.name) / "docs" / "verification"
+        self.root.mkdir(parents=True)
+        for name, value in (("EVIDENCE_ROOT", self.root),
+                            ("firmware_pin_problems", lambda *_: []),
+                            ("sha256", lambda *_: "0" * 64),
+                            ("prepare", unittest.mock.Mock(side_effect=AssertionError("must not build")))):
+            patcher = unittest.mock.patch.object(sb, name, value)
+            patcher.start()
+            self.addCleanup(patcher.stop)
+
+    def test_existing_destination_rejected_and_unchanged(self):
+        earlier = self.root / "earlier-capture"
+        (earlier / "signed").mkdir(parents=True)
+        (earlier / "signed" / "result.json").write_text("original")
+        self.assertEqual(sb.main(["--case", "all", "--evidence", str(earlier)]), 1)
+        self.assertEqual(sorted(p.relative_to(earlier).as_posix() for p in earlier.rglob("*")),
+                         ["signed", "signed/result.json"])
+        self.assertEqual((earlier / "signed" / "result.json").read_text(), "original")
+        sb.prepare.assert_not_called()
+
+    def test_outside_verification_rejected(self):
+        outside = self.root.parent / "elsewhere"
+        for path in (outside, self.root, self.root / "a" / "nested", self.root / ".." / "escape"):
+            self.assertEqual(sb.main(["--case", "all", "--evidence", str(path)]), 1, path)
+            self.assertFalse(path.resolve().exists() and path.resolve() != self.root, path)
+        sb.prepare.assert_not_called()
+
+    def test_new_child_is_reserved_before_building(self):
+        target = self.root / "new-capture"
+        with self.assertRaisesRegex(AssertionError, "must not build"):
+            sb.main(["--case", "all", "--evidence", str(target)])
+        self.assertTrue(target.is_dir())
+        self.assertEqual(list(target.iterdir()), [])
 
 
 if __name__ == "__main__":

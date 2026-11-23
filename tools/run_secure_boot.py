@@ -18,8 +18,11 @@ import subprocess
 import time
 import uuid
 
-from common import BUILD, environment, qemu_machine, save_json, sha256, source_hash
+from common import BUILD, ROOT, environment, qemu_machine, save_json, sha256, source_hash
 import run_update
+
+# Capture tools write only to a NEW direct child of this directory.
+EVIDENCE_ROOT = ROOT / "docs" / "verification"
 
 SECBOOT_CODE = Path("/usr/share/OVMF/OVMF_CODE_4M.secboot.fd")
 SNAKEOIL_VARS = Path("/usr/share/OVMF/OVMF_VARS_4M.snakeoil.fd")
@@ -101,8 +104,9 @@ def classify_refusal(stdout: str, rc, timed_out: bool) -> list[str]:
         problems.append("no firmware denial line observed")
     if rc == 33:
         problems.append("guest reached the smoke exit code")
-    if not timed_out and rc not in (None, 0, 1):
-        problems.append(f"unexpected raw exit {rc}")
+    if not timed_out:
+        # An early exit, even after the denial line, is not proof that nothing else ran.
+        problems.append(f"refusal did not reach the host timeout; raw exit {rc}")
     return problems
 
 
@@ -180,6 +184,8 @@ def make_loader(case: str, loader: Path, work: Path, env) -> dict:
         info["sbverify_own_cert"] = sbverify(env, out, cert)
         info["ephemeral_cert_sha256"] = sha256(cert)
         cert.unlink()
+        if not info["sbverify_own_cert"]:
+            raise ValueError(f"wrong-key loader does not verify against its own ephemeral cert: {info}")
     if tampered:
         info["tamper_offset"] = timestamp_offset(out.read_bytes())
     expected_ok = signer == "snakeoil" and not tampered
@@ -254,20 +260,37 @@ def run_case(case: str, images: dict, loader: Path, frozen: str) -> dict:
                   store_before_sha256=run_update.disk.sha256(before),
                   store_after_sha256=run_update.disk.sha256(after),
                   run_directory=str(run_dir), passed=False, problems=list(pin_problems))
+    judge(report, out, rc, timed_out, before, after, images, frozen)
+    save_json(run_dir / "result.json", report)
+    return report
+
+
+def judge(report: dict, out: str, rc, timed_out: bool, before: bytes, after: bytes,
+          images: dict, frozen: str) -> None:
+    """Add case verdict problems to those already recorded (e.g. firmware pins); never replace them."""
+    stage = report["store_stage"]
     try:
-        if expected == "boot":
+        if report["expected"] == "boot":
             report["evidence"] = run_update.evaluate(stage, out, rc, timed_out, False, False)
             run_update.check_store(stage, before, after, images)
         else:
-            report["problems"] = classify_refusal(out, rc, timed_out)
+            report["problems"].extend(classify_refusal(out, rc, timed_out))
             if after != before:
                 report["problems"].append("store changed although the loader never ran")
         report["passed"] = not report["problems"] and source_hash() == frozen
     except Exception as error:
         report["problems"].append(f"{type(error).__name__}: {error}")
     report["passed"] = report["passed"] and not report["problems"]
-    save_json(run_dir / "result.json", report)
-    return report
+
+
+def reserve_evidence(path: Path) -> Path:
+    """Create a NEW direct child of EVIDENCE_ROOT; refuse anything else without touching it."""
+    root = EVIDENCE_ROOT.resolve()
+    target = Path(path).resolve()
+    if target.parent != root:
+        raise ValueError(f"--evidence must be a new direct child of {root}, not {target}")
+    target.mkdir()  # FileExistsError for an earlier capture; it is left unchanged
+    return target
 
 
 def publish(report: dict, evidence: Path | None) -> None:
@@ -275,7 +298,7 @@ def publish(report: dict, evidence: Path | None) -> None:
     save_json(run_dir / "result.json", report)
     if evidence is not None:
         target = evidence / report["case"]
-        target.mkdir(parents=True, exist_ok=True)
+        target.mkdir()
         save_json(target / "result.json", report)
         shutil.copy2(run_dir / "serial.txt", target / "serial.txt")
     print(f"B04 secure-boot {report['case']}: expected={report['expected']} passed={report['passed']} "
@@ -287,18 +310,26 @@ def publish(report: dict, evidence: Path | None) -> None:
 def main(argv=None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--case", choices=ORDER + ("all",), required=True)
-    parser.add_argument("--evidence", type=Path, help="copy per-case result.json and serial.txt here")
+    parser.add_argument("--evidence", type=Path,
+                        help="NEW direct child of docs/verification/ for per-case result.json and serial.txt")
     args = parser.parse_args(argv)
     pins = firmware_pin_problems(sha256(SECBOOT_CODE), sha256(SNAKEOIL_VARS))
     if pins:
         print("\n".join(pins))
         return 1
+    evidence = None
+    if args.evidence is not None:
+        try:
+            evidence = reserve_evidence(args.evidence)
+        except (ValueError, FileExistsError, FileNotFoundError) as error:
+            print(f"refusing --evidence: {error}")
+            return 1
     images, loader, frozen = prepare()
     cases = ORDER if args.case == "all" else (args.case,)
     reports = [run_case(case, images, loader, frozen) for case in cases]
     require_refusal_proof(reports)
     for report in reports:
-        publish(report, args.evidence)
+        publish(report, evidence)
     passed = all(report["passed"] for report in reports)
     print(f"B04 secure-boot TEST chain: {sum(r['passed'] for r in reports)}/{len(reports)} as expected")
     return 0 if passed else 1

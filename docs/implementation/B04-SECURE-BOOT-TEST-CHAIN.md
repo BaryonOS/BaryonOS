@@ -8,7 +8,13 @@ firmware-to-loader link and does not accept criterion B04.
 
 With UEFI Secure Boot enforcing and only the TEST certificate in `db`, the
 firmware starts the BaryonOS loader only when the loader's Authenticode
-signature chains to that certificate and covers the exact image bytes.
+signature chains to that certificate and its image digest matches the
+loader. The Authenticode PE image hash does not cover every image byte: it
+excludes the optional-header `CheckSum` field, the Certificate Table
+data-directory entry and the attribute certificate table itself (Microsoft PE
+format, Appendix A, "Process for Generating the Authenticode PE Image Hash",
+https://learn.microsoft.com/windows/win32/debug/pe-format#appendix-a-calculating-authenticode-pe-image-hash).
+The runner does not exercise modifications in excluded ranges.
 After a firmware-verified start, the loader's existing B03 TEST manifest
 verification of the kernel slot store still decides which kernel runs.
 
@@ -52,11 +58,16 @@ also contains a passing refusal case with identical CODE, VARS template and
 per-run VARS hashes; otherwise it is reported as unproven and fails. Running
 `--case signed` alone therefore exits non-zero by design.
 
-The tamper offset lies inside the Authenticode digest but is never executed,
-so a refusal cannot come from a loader crash. Host `sbverify` must agree with
-each construction before QEMU starts. A refusal requires the observed BdsDxe
+The tamper offset (COFF `TimeDateStamp`, file offset 128 in this loader) lies
+inside the Authenticode image hash but is never executed, so a refusal cannot
+come from a loader crash. Host `sbverify` must agree with each construction
+before QEMU starts; for `wrong-key` the image must also verify against its own
+ephemeral certificate, so the case shows refusal of a validly signed image
+from a key outside `db`. A refusal requires the observed BdsDxe
 line containing `Access Denied` and `rejected probably by Secure Boot`;
-silence or a hang alone does not count. The line must also name the ESP boot
+silence or a hang alone does not count. QEMU must also still be running at
+the host timeout: an earlier exit, even after the denial line, fails the case
+and cannot serve as Secure Boot proof. The line must also name the ESP boot
 option, `Boot0002 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)` (virtio
 FAT drive, index 0), so a denial of another image does not satisfy the oracle. The machine is the shared B03 machine
 (`run_update.qemu_command`) plus `smm=on` and secure pflash, which the
@@ -66,9 +77,24 @@ secboot firmware build requires.
 
 ```
 export NOS_BUILD_DIR=$PWD/build NOS_TARGET_DIR=$PWD/target CARGO_TARGET_DIR=$PWD/target
-python3 -B tools/run_secure_boot.py --case all [--evidence <dir>]
+python3 -B tools/run_secure_boot.py --case all
 python3 -B -m unittest discover -s tools/tests -p 'test_run_secure_boot.py' -v
 ```
+
+Every run writes `result.json`, `serial.txt` and `stderr.txt` to
+`$NOS_BUILD_DIR/run/secure-boot-<case>-<id>/`. To also capture repository
+evidence, add `--evidence docs/verification/<new-directory>`, for example:
+
+```
+python3 -B tools/run_secure_boot.py --case all --evidence docs/verification/b04-secure-boot-YYYYMMDD
+```
+
+The `--evidence` path must resolve to a direct child of `docs/verification/`
+that does not exist yet. The runner creates it before building anything and
+copies each case's `result.json` and `serial.txt` into it. An existing
+directory or any other path is refused with exit 1 and left unchanged. A run
+that fails after this point leaves the new directory behind; remove it before
+retrying.
 
 The runner rebuilds and re-signs the B03 TEST images (`test_update.prepare_images`)
 when the source fingerprint changed. Such a rebuild rewrites `$NOS_BUILD_DIR/esp`
