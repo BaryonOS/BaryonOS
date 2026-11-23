@@ -5,16 +5,20 @@
 //! authenticate each owner; NET1 never accepts a caller-supplied reply handle.
 #[path = "../../system/src/support.rs"]
 mod support;
+use core::mem::MaybeUninit;
+use core::ptr;
 use nieuw_os_net_stack::{Config, LinkConfig, SocketStorage};
 use nieuw_os_network_service::{
-    wire, Buffers, Configuration, Destination, DhcpConfiguration, Fault, ProbeTiming, RandomSource,
-    Service,
+    wire, Buffers, Configuration, Destination, DhcpConfiguration, DnsCache, Fault, ProbeTiming,
+    RandomSource, Service,
 };
 use nieuw_os_sdk_runtime::{
     native, EntropySource, Handle, NetworkSource, Outgoing, ReceiveEndpoint, SendEndpoint,
 };
 const MAGIC: u64 = u64::from_le_bytes(*b"NETSVC01");
 const CONTROL: u64 = u64::from_le_bytes(*b"NETCTL01");
+/// Per-slot resolver caches (~22 KiB) live in .bss, not on the 64 KiB stack.
+static mut DNS: MaybeUninit<DnsCache> = MaybeUninit::uninit();
 fn fail(code: u64) -> ! {
     support::put(240, code);
     support::put(504, code);
@@ -108,6 +112,9 @@ impl Bridge {
             service
                 .drive_dhcp(tick, random)
                 .unwrap_or_else(|_| fail(33));
+            // Recorded Resolve queries leave only with fresh IDs/ports drawn
+            // from the same entropy grant; no entropy, no query.
+            service.drive_dns(tick, random).unwrap_or_else(|_| fail(40));
         }
         service.poll(tick).unwrap_or_else(|_| fail(16));
         if self.pending.is_none() {
@@ -218,7 +225,16 @@ impl Bridge {
 #[no_mangle]
 #[link_section = ".text.entry"]
 pub extern "C" fn _start() -> ! {
+    init_dns();
     run()
+}
+/// Separate frame so the cache temporary is gone before `run` takes its stack.
+#[inline(never)]
+fn init_dns() {
+    let cache = DnsCache::new().unwrap_or_else(|_| fail(9));
+    // SAFETY: called once from `_start` on this single-threaded process before
+    // `run`, so no reference to DNS exists yet; the write initializes it.
+    unsafe { (*ptr::addr_of_mut!(DNS)).write(cache) };
 }
 #[inline(never)]
 fn run() -> ! {
@@ -310,7 +326,7 @@ fn run() -> ! {
         tx_sockets: [&mut ta, &mut tb],
     };
     let mut service = if dhcp {
-        // DHCP supplies address and router only; the destination grants
+        // DHCP supplies address, router and DNS servers; the destination grants
         // stay the trusted startup values above.
         Service::new_dhcp(
             DhcpConfiguration {
@@ -321,6 +337,9 @@ fn run() -> ! {
             },
             buffers,
             ProbeTiming::new(0, 100, 100).unwrap_or_else(|_| fail(9)),
+            // SAFETY: init_dns initialized DNS before run; this is the only
+            // reference ever taken, kept for the process lifetime, one thread.
+            unsafe { (*ptr::addr_of_mut!(DNS)).assume_init_mut() },
             now(),
         )
     } else {
