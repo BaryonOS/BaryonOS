@@ -5,7 +5,6 @@
 //! authenticate each owner; NET1 never accepts a caller-supplied reply handle.
 #[path = "../../system/src/support.rs"]
 mod support;
-use core::mem::MaybeUninit;
 use core::ptr;
 use nieuw_os_net_stack::{Config, LinkConfig, SocketStorage};
 use nieuw_os_network_service::{
@@ -17,8 +16,12 @@ use nieuw_os_sdk_runtime::{
 };
 const MAGIC: u64 = u64::from_le_bytes(*b"NETSVC01");
 const CONTROL: u64 = u64::from_le_bytes(*b"NETCTL01");
-/// Per-slot resolver caches (~22 KiB) live in .bss, not on the 64 KiB stack.
-static mut DNS: MaybeUninit<DnsCache> = MaybeUninit::uninit();
+/// Per-slot resolver caches (~22 KiB) are const-initialised in the image's
+/// data segment, never built on the 64 KiB stack.
+static mut DNS: DnsCache = match DnsCache::new() {
+    Ok(cache) => cache,
+    Err(_) => panic!("DNS cache configuration"),
+};
 fn fail(code: u64) -> ! {
     support::put(240, code);
     support::put(504, code);
@@ -225,19 +228,7 @@ impl Bridge {
 #[no_mangle]
 #[link_section = ".text.entry"]
 pub extern "C" fn _start() -> ! {
-    init_dns();
     run()
-}
-/// Separate frame so the cache temporary is gone before `run` takes its stack.
-#[inline(never)]
-fn init_dns() {
-    // Writing the constructor result directly avoids a second 22 KiB copy.
-    match DnsCache::new() {
-        // SAFETY: called once from `_start` on this single-threaded process
-        // before `run`, so no reference to DNS exists yet; this initializes it.
-        Ok(cache) => unsafe { ptr::addr_of_mut!(DNS).cast::<DnsCache>().write(cache) },
-        Err(_) => fail(9),
-    }
 }
 #[inline(never)]
 fn run() -> ! {
@@ -340,9 +331,9 @@ fn run() -> ! {
             },
             buffers,
             ProbeTiming::new(0, 100, 100).unwrap_or_else(|_| fail(9)),
-            // SAFETY: init_dns initialized DNS before run; this is the only
-            // reference ever taken, kept for the process lifetime, one thread.
-            unsafe { (*ptr::addr_of_mut!(DNS)).assume_init_mut() },
+            // SAFETY: DNS is const-initialised; this is the only reference
+            // ever taken, kept for the process lifetime, one thread.
+            unsafe { &mut *ptr::addr_of_mut!(DNS) },
             now(),
         )
     } else {

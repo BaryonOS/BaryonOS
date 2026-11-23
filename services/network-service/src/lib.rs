@@ -131,13 +131,22 @@ pub struct DnsCache {
     epoch: u64,
 }
 impl DnsCache {
-    pub fn new() -> Result<Self, Fault> {
-        let resolver =
-            || Resolver::new(1, nieuw_os_net_stack::MONOTONIC_HZ).map_err(|_| Fault::Configuration);
-        Ok(Self {
-            resolvers: [resolver()?, resolver()?],
-            epoch: 1,
-        })
+    /// `const` so a native service can const-initialise its static cache; a
+    /// runtime call would return ~22 KiB by value on the caller's stack.
+    pub const fn new() -> Result<Self, Fault> {
+        const fn resolver() -> Result<Resolver, Fault> {
+            match Resolver::new(1, nieuw_os_net_stack::MONOTONIC_HZ) {
+                Ok(resolver) => Ok(resolver),
+                Err(_) => Err(Fault::Configuration),
+            }
+        }
+        match (resolver(), resolver()) {
+            (Ok(first), Ok(second)) => Ok(Self {
+                resolvers: [first, second],
+                epoch: 1,
+            }),
+            _ => Err(Fault::Configuration),
+        }
     }
     fn flush(&mut self) -> Result<(), Fault> {
         self.epoch = self.epoch.checked_add(1).ok_or(Fault::Exhausted)?;

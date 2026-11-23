@@ -619,6 +619,19 @@ fn static_configuration_has_no_resolver() {
     assert_eq!(s.drive_dns(0, &mut dns_random()), Ok(0));
 }
 
+/// Mirrors the native service static: a runtime call
+/// would return ~22 KiB by value on its 64 KiB stack. Fails to compile if
+/// `DnsCache::new` or `Resolver::new` stops being `const`.
+static STATIC_CACHE: Option<DnsCache> = match DnsCache::new() {
+    Ok(cache) => Some(cache),
+    Err(_) => None,
+};
+
+#[test]
+fn dns_cache_constructs_in_const_context() {
+    assert!(STATIC_CACHE.is_some());
+}
+
 /// End-to-end: no answer crosses into a new service on reused storage. Every
 /// Resolve needs a lease and the first lease always bumps the cache epoch, so
 /// this observes that lease-acquisition flush; the extra flush in `new_inner`
