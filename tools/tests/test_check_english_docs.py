@@ -1,10 +1,12 @@
 # SPDX-License-Identifier: MPL-2.0
 """Regression gate for issue #274: active Markdown stays English."""
 from pathlib import Path
+import os
 import subprocess
 import sys
 import tempfile
 import unittest
+from unittest import mock
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import check_english_docs as checker
@@ -35,7 +37,19 @@ class Classifier(unittest.TestCase):
         self.assertFalse(checker.is_dutch(ENGLISH_TEXT + "Afhankelijk van: #1\nCriterium: X\n"))
 
     def test_code_fences_are_ignored(self):
-        self.assertFalse(checker.is_dutch(ENGLISH_TEXT + "```\n" + DUTCH_TEXT + "\n```\n"))
+        self.assertFalse(checker.is_dutch(ENGLISH_TEXT + "\n```\n" + DUTCH_TEXT + "\n```\n"))
+
+    def test_tilde_fences_are_ignored(self):
+        self.assertFalse(checker.is_dutch(ENGLISH_TEXT + "\n~~~text\n" + DUTCH_TEXT + "\n~~~\n"))
+
+    def test_longer_fence_does_not_hide_prose(self):
+        # A ``` line inside a ```` block neither closes it nor hides the prose after it.
+        text = "````md\n```\n````\n\n" + DUTCH_TEXT + "\n```text\nx\n```\n"
+        self.assertTrue(checker.is_dutch(text))
+
+    def test_mismatched_closing_fence_keeps_block_open(self):
+        text = ENGLISH_TEXT + "\n~~~\n" + DUTCH_TEXT + "\n```\nmore\n~~~\n"
+        self.assertFalse(checker.is_dutch(text))
 
     def test_evidence_and_third_party_paths_are_excluded(self):
         for path in (
@@ -53,7 +67,7 @@ class Scanner(unittest.TestCase):
     def test_scanner_reports_only_active_dutch_files(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
-            subprocess.run(["git", "init", "-q", str(root)], check=True)
+            subprocess.run(["git", "init", "-q", str(root)], check=True, env=checker.git_env())
             files = {
                 "docs/ACTIVE.md": DUTCH_TEXT,
                 "docs/ENGLISH.md": ENGLISH_TEXT,
@@ -65,8 +79,11 @@ class Scanner(unittest.TestCase):
                 (root / rel).parent.mkdir(parents=True, exist_ok=True)
                 (root / rel).write_text(text, encoding="utf-8")
             tracked = [rel for rel in files if rel != "docs/untracked.md"]
-            subprocess.run(["git", "-C", str(root), "add", "--", *tracked], check=True)
+            subprocess.run(["git", "-C", str(root), "add", "--", *tracked], check=True, env=checker.git_env())
             self.assertEqual(checker.find_dutch(root), ["docs/ACTIVE.md"])
+            # An inherited GIT_DIR naming another repository must not redirect the scan.
+            with mock.patch.dict(os.environ, {"GIT_DIR": str(checker.ROOT / ".git")}):
+                self.assertEqual(checker.find_dutch(root), ["docs/ACTIVE.md"])
 
 
 class Repository(unittest.TestCase):

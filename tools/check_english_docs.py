@@ -13,9 +13,9 @@ localisation or completion of #274.
 """
 from __future__ import annotations
 
+import os
 import re
 import subprocess
-import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -46,7 +46,8 @@ EXCLUDED_PREFIXES = (
 # Component evidence directories, for example drivers/usb/verification/.
 EXCLUDED_SEGMENT = "/verification/"
 
-_FENCE = re.compile(r"```.*?```", re.S)
+# CommonMark fence line: up to three spaces, then three or more ` or ~.
+_FENCE = re.compile(r" {0,3}(`{3,}|~{3,})(.*)$")
 _WORD = re.compile(r"[a-z]+")
 
 
@@ -54,8 +55,25 @@ def is_excluded(path: str) -> bool:
     return path.startswith(EXCLUDED_PREFIXES) or EXCLUDED_SEGMENT in f"/{path}"
 
 
+def prose(text: str) -> str:
+    """Drop fenced code blocks; a closing fence must use the opening character,
+    be at least as long and carry nothing but whitespace."""
+    kept, fence = [], None
+    for line in text.splitlines():
+        match = _FENCE.match(line)
+        if fence is None:
+            # A backtick fence whose info string holds a backtick is not a fence.
+            if match and not (match[1][0] == "`" and "`" in match[2]):
+                fence = match[1]
+            else:
+                kept.append(line)
+        elif match and match[1][0] == fence[0] and len(match[1]) >= len(fence) and not match[2].strip():
+            fence = None
+    return "\n".join(kept)
+
+
 def counts(text: str) -> tuple[int, int]:
-    words = _WORD.findall(_FENCE.sub("", text).lower())
+    words = _WORD.findall(prose(text).lower())
     return sum(w in DUTCH for w in words), sum(w in ENGLISH for w in words)
 
 
@@ -64,11 +82,18 @@ def is_dutch(text: str) -> bool:
     return dutch > MIN_DUTCH and dutch > 0.5 * english
 
 
+def git_env() -> dict[str, str]:
+    """Environment without inherited GIT_* variables such as GIT_DIR, so `-C`
+    alone selects the repository."""
+    return {k: v for k, v in os.environ.items() if not k.startswith("GIT_")}
+
+
 def tracked_markdown(root: Path = ROOT) -> list[str]:
     out = subprocess.run(
         ["git", "-C", str(root), "ls-files", "-z", "--", "*.md"],
         check=True,
         capture_output=True,
+        env=git_env(),
     ).stdout
     return sorted(p for p in out.decode("utf-8").split("\0") if p)
 
@@ -85,14 +110,3 @@ def find_dutch(root: Path = ROOT) -> list[str]:
             found.append(path)
     return found
 
-
-def main() -> int:
-    found = find_dutch()
-    for path in found:
-        print(f"DUTCH {path}")
-    print(f"english-docs: {len(found)} active Markdown file(s) classified Dutch")
-    return 1 if found else 0
-
-
-if __name__ == "__main__":
-    sys.exit(main())
