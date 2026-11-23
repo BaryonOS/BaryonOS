@@ -30,9 +30,10 @@ use rustls::crypto::aws_lc_rs::{cipher_suite, default_provider, kx_group};
 use rustls::crypto::{
     verify_tls13_signature, CryptoProvider, SupportedKxGroup, WebPkiSupportedAlgorithms,
 };
-use rustls::pki_types::{CertificateDer, PrivateKeyDer, PrivatePkcs8KeyDer, ServerName, UnixTime};
+use rustls::pki_types::{CertificateDer, PrivatePkcs8KeyDer, ServerName, UnixTime};
 use rustls::server::danger::{ClientCertVerified, ClientCertVerifier};
 use rustls::server::NoServerSessionStorage;
+use rustls::sign::{CertifiedKey, SingleCertAndKey};
 use rustls::time_provider::TimeProvider;
 use rustls::{
     AlertDescription, CertificateError, ClientConfig, ClientConnection, Connection,
@@ -143,6 +144,8 @@ struct Identity {
     cert: CertificateDer<'static>,
     spki: Vec<u8>,
     key: Vec<u8>,
+    /// Extra chain certificates presented after `cert` (negatives only).
+    extra: Vec<CertificateDer<'static>>,
 }
 
 impl Identity {
@@ -157,10 +160,38 @@ impl Identity {
             cert: cert.der().clone(),
             spki: key.subject_public_key_info(),
             key: key.serialize_der(),
+            extra: Vec::new(),
         }
     }
-    fn private_key(&self) -> PrivateKeyDer<'static> {
-        PrivatePkcs8KeyDer::from(self.key.clone()).into()
+    /// Presents `pinned`'s exact certificate but holds an unrelated private key.
+    fn forged(pinned: &Identity) -> Self {
+        Self {
+            cert: pinned.cert.clone(),
+            spki: pinned.spki.clone(),
+            ..Self::generate()
+        }
+    }
+    /// Presents the genuine certificate and key plus an extra chain certificate.
+    fn with_intermediate(genuine: &Identity) -> Self {
+        Self {
+            cert: genuine.cert.clone(),
+            spki: genuine.spki.clone(),
+            key: genuine.key.clone(),
+            extra: vec![Identity::generate().cert],
+        }
+    }
+    /// Resolver input; unlike `with_single_cert` it does not check that the key
+    /// matches the certificate, so forged identities reach the peer verifier.
+    fn certified(&self) -> Arc<SingleCertAndKey> {
+        let key = PrivatePkcs8KeyDer::from(self.key.clone()).into();
+        let key = default_provider()
+            .key_provider
+            .load_private_key(key)
+            .unwrap();
+        let chain = core::iter::once(self.cert.clone())
+            .chain(self.extra.iter().cloned())
+            .collect();
+        Arc::new(CertifiedKey::new(chain, key).into())
     }
 }
 
@@ -334,7 +365,7 @@ fn client_config(
         .dangerous()
         .with_custom_certificate_verifier(server_pin);
     let mut config = match identity {
-        Some(id) => builder.with_client_auth_cert(vec![id.cert.clone()], id.private_key())?,
+        Some(id) => builder.with_client_cert_resolver(id.certified()),
         None => builder.with_no_client_auth(),
     };
     config.alpn_protocols = side.alpn.iter().map(|p| p.to_vec()).collect();
@@ -351,7 +382,7 @@ fn server_config(
     let mut config = ServerConfig::builder_with_details(side.provider(), side.time.clone())
         .with_protocol_versions(side.versions)?
         .with_client_cert_verifier(client_pin)
-        .with_single_cert(vec![identity.cert.clone()], identity.private_key())?;
+        .with_cert_resolver(identity.certified());
     config.alpn_protocols = side.alpn.iter().map(|p| p.to_vec()).collect();
     config.session_storage = Arc::new(NoServerSessionStorage {});
     config.send_tls13_tickets = 0;
@@ -834,5 +865,71 @@ fn unavailable_certificate_time_fails_closed() {
     let server = server_config(&Side::peer(), client_pin.clone(), &peers.server).unwrap();
     let mut o = handshake(client, server);
     assert_eq!(o.client_error, Some(Error::FailedToGetCurrentTime));
+    assert_refused(&mut o, &server_pin, &client_pin, Err("handshaking"));
+}
+
+#[test]
+fn server_with_pinned_certificate_but_impostor_key_is_refused() {
+    // Proves CertificateVerify is checked: the pin alone authenticates nothing.
+    let peers = Peers::new();
+    let (server_pin, client_pin) = (Pin::of(&peers.server), Pin::of(&peers.client));
+    let client = client_config(
+        &Side::profile(key_service_random(false).0),
+        server_pin.clone(),
+        Some(&peers.client),
+    )
+    .unwrap();
+    let forged = Identity::forged(&peers.server);
+    let server = server_config(&Side::peer(), client_pin.clone(), &forged).unwrap();
+    let mut o = handshake(client, server);
+    assert_eq!(
+        o.client_error,
+        Some(Error::InvalidCertificate(CertificateError::BadSignature))
+    );
+    assert_eq!(alert(&o.server_error), Some(AlertDescription::DecryptError));
+    assert_refused(&mut o, &server_pin, &client_pin, Err("handshaking"));
+}
+
+#[test]
+fn client_with_pinned_certificate_but_impostor_key_is_refused() {
+    let peers = Peers::new();
+    let (server_pin, client_pin) = (Pin::of(&peers.server), Pin::of(&peers.client));
+    let forged = Identity::forged(&peers.client);
+    let client = client_config(&Side::peer(), server_pin.clone(), Some(&forged)).unwrap();
+    let server = server_config(
+        &Side::profile(key_service_random(false).0),
+        client_pin.clone(),
+        &peers.server,
+    )
+    .unwrap();
+    let mut o = handshake(client, server);
+    assert_eq!(
+        o.server_error,
+        Some(Error::InvalidCertificate(CertificateError::BadSignature))
+    );
+    assert_eq!(alert(&o.client_error), Some(AlertDescription::DecryptError));
+    // TLS 1.3 client completes before the server checks its CertificateVerify.
+    assert_refused(&mut o, &server_pin, &client_pin, Ok(()));
+}
+
+#[test]
+fn pinned_server_certificate_with_an_intermediate_is_refused() {
+    let peers = Peers::new();
+    let (server_pin, client_pin) = (Pin::of(&peers.server), Pin::of(&peers.client));
+    let client = client_config(
+        &Side::profile(key_service_random(false).0),
+        server_pin.clone(),
+        Some(&peers.client),
+    )
+    .unwrap();
+    let chained = Identity::with_intermediate(&peers.server);
+    let server = server_config(&Side::peer(), client_pin.clone(), &chained).unwrap();
+    let mut o = handshake(client, server);
+    assert_eq!(
+        o.client_error,
+        Some(Error::InvalidCertificate(
+            CertificateError::ApplicationVerificationFailure
+        ))
+    );
     assert_refused(&mut o, &server_pin, &client_pin, Err("handshaking"));
 }

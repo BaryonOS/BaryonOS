@@ -103,7 +103,10 @@ The profile and pin verifier are test code because `src/` provides neither yet.
 
 Negative cases, each with an asserted specific error: X25519-only server and
 client (no fallback), other TLS 1.3 suite, TLS 1.2-only server and client, wrong
-server pin, wrong client pin, missing client certificate, wrong client ALPN,
+server pin, wrong client pin, missing client certificate, server and client
+presenting the pinned certificate with an impostor private key (CertificateVerify
+fails: `BadSignature`; a mutant that skips the signature check fails these two
+tests), pinned server certificate plus an extra chain certificate, wrong client ALPN,
 Key-Service RNG denial (`FailedToGetRandomBytes`, exactly one request, no retry)
 and unavailable certificate time (`FailedToGetCurrentTime`). In every handshake
 negative the client queues application data before the handshake; the server
