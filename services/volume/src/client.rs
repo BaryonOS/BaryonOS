@@ -5,7 +5,7 @@ use crate::{
     get32, get64, valid_name, wire, Status, CHUNK, COLLECTIONS, HISTORY, MAX_LENGTH, NAME, OBJECTS,
     PER_DOMAIN, TRANSACT_MAX,
 };
-use wire::{Header, SubOp, DATA, SIZE};
+use wire::{Header, Manifest, SubOp, DATA, INSTALL_MAX, SIZE};
 
 /// One synchronous request/response exchange with the volume service.
 pub trait Transport {
@@ -153,6 +153,46 @@ pub fn validate_reply(request: &Header, body: &[u8; SIZE], epoch: u64) -> Result
                 && h.name_length == 0
                 && h.count == 0
         }
+        // Exact Σ lengths and Σ chunks need the manifest, which the header
+        // does not carry: `Client::install` checks them (`install_begun`).
+        wire::INSTALL_BEGIN => {
+            h.revision == 0
+                && bare
+                && h.aux <= (INSTALL_MAX * MAX_LENGTH) as u64
+                && h.count as usize <= INSTALL_MAX * crate::MAX_CHUNKS
+        }
+        wire::INSTALL_APPEND => {
+            h.revision == 0
+                && bare
+                && h.count == request.count
+                && h.aux == request.aux + u64::from(request.length)
+        }
+        wire::INSTALL_COMMIT => {
+            h.revision == u64::from(request.count) && h.aux == request.aux && h.count == 0 && bare
+        }
+        wire::INSTALL_COLLECTION => h.revision == 1 && h.aux == request.aux && h.count == 0 && bare,
+        wire::PROVENANCE_STAT if request.count == 1 => {
+            h.revision == request.revision && bare && h.count <= 1 && (h.count == 1) == (h.aux != 0)
+        }
+        wire::PROVENANCE_STAT => {
+            let versions = h.name_length as usize;
+            let (revision, created, modified) = (get64(body, 64), get64(body, 72), get64(body, 80));
+            h.revision == request.revision
+                && h.aux == 0
+                && h.count as usize <= INSTALL_MAX
+                && if h.count == 0 {
+                    bare
+                } else {
+                    versions <= INSTALL_MAX
+                        && length == 24 + 8 * versions
+                        && (revision == 0) == (created == 0)
+                        && if revision == 0 {
+                            modified == 0
+                        } else {
+                            created <= modified
+                        }
+                }
+        }
         wire::LIST => {
             let count = h.count as usize;
             let mut ok = count <= wire::LIST_MAX
@@ -240,6 +280,27 @@ impl VersionStat {
     pub fn name(&self) -> &[u8] {
         &self.name[..self.name_length]
     }
+}
+
+/// PROVENANCE_STAT of an object: what the own domain installed. Zero
+/// origins mean none (never installed, or the incarnation ended).
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub struct Provenance {
+    pub revision: u64,
+    /// Versions the creating INSTALL wrote (0 = never installed).
+    pub installed: usize,
+    pub origin_revision: u64,
+    pub origin_created: u64,
+    pub origin_modified: u64,
+    /// Origins of the versions in the consecutive-revision prefix, current
+    /// first (present objects only; 0 = no origin).
+    pub version_count: usize,
+    pub versions: [u64; INSTALL_MAX],
+}
+
+/// Exact INSTALL_BEGIN reply check against the manifest that was sent.
+pub fn install_begun(manifest: &Manifest, reply: &Header) -> bool {
+    manifest.total() == Some(reply.aux as usize) && manifest.chunks() == reply.count as usize
 }
 
 /// One collection of the caller's domain as reported by COLLECTION_STAT.
@@ -614,6 +675,171 @@ impl<T: Transport> Client<T> {
             out.name[..out.name_length].copy_from_slice(wire::data(&body, out.name_length));
         }
         Ok(out)
+    }
+
+    /// L2 INSTALL of `manifest` into the never-used own slot `object` in one
+    /// commit. `fill(version, offset, buffer)` supplies content. On any
+    /// error except `Unknown` nothing was committed; a staged session is
+    /// aborted on a best-effort basis. Returns `(revision, request ID)`.
+    pub fn install(
+        &mut self,
+        object: u64,
+        manifest: &Manifest,
+        meta: (u32, u16, u8),
+        mut fill: impl FnMut(usize, usize, &mut [u8]),
+    ) -> Result<(u64, u64), Status> {
+        let id = self.install_begin(object, manifest, meta)?;
+        let result = (|| {
+            self.install_stream(object, id, manifest, 0..manifest.count, &mut fill)?;
+            Ok((self.install_commit(object, id, manifest)?, id))
+        })();
+        if matches!(result, Err(status) if status != Status::Unknown) {
+            let _ = self.abort(object, 0, id);
+        }
+        result
+    }
+
+    /// INSTALL_BEGIN only; returns the request ID of the staged session.
+    pub fn install_begin(
+        &mut self,
+        object: u64,
+        manifest: &Manifest,
+        (tags, kind, collection): (u32, u16, u8),
+    ) -> Result<u64, Status> {
+        if !manifest.valid() {
+            return Err(Status::Invalid);
+        }
+        let id = self.fresh();
+        let mut begin = Header::new(wire::INSTALL_BEGIN, id, self.epoch, object);
+        begin.count = manifest.count as u32;
+        begin.aux = wire::meta(tags, kind, collection);
+        begin.length = manifest.bytes() as u32;
+        let mut data = [0; DATA];
+        manifest.encode(&mut data);
+        let (reply, _) = self.exchange(&begin, &data[..manifest.bytes()])?;
+        Self::status(&reply)?;
+        if !install_begun(manifest, &reply) {
+            return Err(Status::Protocol);
+        }
+        Ok(id)
+    }
+
+    /// INSTALL_COMMIT of a completely streamed install; returns revision `n`.
+    pub fn install_commit(
+        &mut self,
+        object: u64,
+        id: u64,
+        manifest: &Manifest,
+    ) -> Result<u64, Status> {
+        let mut commit = Header::new(wire::INSTALL_COMMIT, id, self.epoch, object);
+        commit.count = manifest.count as u32;
+        commit.aux = manifest.total().ok_or(Status::Invalid)? as u64;
+        let (reply, _) = self.exchange(&commit, &[])?;
+        Self::status(&reply)?;
+        Ok(reply.revision)
+    }
+
+    /// Stream `versions` of a staged install, in order (the service accepts
+    /// only the lowest-index incomplete version).
+    pub fn install_stream(
+        &mut self,
+        object: u64,
+        id: u64,
+        manifest: &Manifest,
+        versions: core::ops::Range<usize>,
+        fill: &mut impl FnMut(usize, usize, &mut [u8]),
+    ) -> Result<(), Status> {
+        let mut buffer = [0; DATA];
+        let versions = versions.start.min(manifest.count)..versions.end.min(manifest.count);
+        for index in versions {
+            let version = &manifest.versions[index];
+            let mut offset = 0;
+            while offset < version.length {
+                let amount = core::cmp::min(DATA, version.length - offset);
+                fill(index, offset, &mut buffer[..amount]);
+                let mut append = Header::new(wire::INSTALL_APPEND, id, self.epoch, object);
+                append.count = index as u32;
+                append.aux = offset as u64;
+                append.length = amount as u32;
+                let (reply, _) = self.exchange(&append, &buffer[..amount])?;
+                Self::status(&reply)?;
+                offset += amount;
+            }
+        }
+        Ok(())
+    }
+
+    /// Create never-used collection `index` of `domain` with a recorded
+    /// source revision `origin` (≠ 0). Returns the new revision (1).
+    pub fn install_collection(
+        &mut self,
+        domain: usize,
+        index: usize,
+        name: &[u8],
+        origin: u64,
+    ) -> Result<u64, (Status, u64)> {
+        if name.is_empty() || name.len() > NAME {
+            return Err((Status::Invalid, 0));
+        }
+        let mut header = Header::new(
+            wire::INSTALL_COLLECTION,
+            self.fresh(),
+            self.epoch,
+            (domain * PER_DOMAIN) as u64,
+        );
+        header.aux = index as u64;
+        header.name_length = name.len() as u32;
+        header.length = name.len() as u32 + 8;
+        let mut data = [0; NAME + 8];
+        data[..name.len()].copy_from_slice(name);
+        data[name.len()..name.len() + 8].copy_from_slice(&origin.to_le_bytes());
+        self.simple(&header, &data[..name.len() + 8])
+    }
+
+    /// PROVENANCE_STAT of `object` at live `revision`. `Err((NotFound, r))`
+    /// like STAT; an older service answers `NoSys`.
+    pub fn provenance(&mut self, object: u64, revision: u64) -> Result<Provenance, (Status, u64)> {
+        let mut header = Header::new(wire::PROVENANCE_STAT, self.fresh(), self.epoch, object);
+        header.revision = revision;
+        let (reply, body) = self.exchange(&header, &[]).map_err(|status| (status, 0))?;
+        Self::status(&reply).map_err(|status| (status, reply.revision))?;
+        let mut out = Provenance {
+            revision: reply.revision,
+            installed: reply.count as usize,
+            ..Provenance::default()
+        };
+        if reply.count != 0 {
+            out.origin_revision = get64(&body, 64);
+            out.origin_created = get64(&body, 72);
+            out.origin_modified = get64(&body, 80);
+            out.version_count = reply.name_length as usize;
+            for (index, origin) in out.versions[..out.version_count].iter_mut().enumerate() {
+                *origin = get64(&body, 88 + 8 * index);
+            }
+        }
+        Ok(out)
+    }
+
+    /// Recorded source revision of collection `index` of `domain` at live
+    /// `revision` (0 = none).
+    pub fn collection_provenance(
+        &mut self,
+        domain: usize,
+        index: usize,
+        revision: u64,
+    ) -> Result<u64, (Status, u64)> {
+        let mut header = Header::new(
+            wire::PROVENANCE_STAT,
+            self.fresh(),
+            self.epoch,
+            (domain * PER_DOMAIN) as u64,
+        );
+        header.revision = revision;
+        header.count = 1;
+        header.aux = index as u64;
+        let (reply, _) = self.exchange(&header, &[]).map_err(|status| (status, 0))?;
+        Self::status(&reply).map_err(|status| (status, reply.revision))?;
+        Ok(reply.aux)
     }
 
     /// Apply up to four sub-operations atomically. Returns the domain change

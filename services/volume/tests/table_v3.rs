@@ -501,6 +501,71 @@ fn table_validate_bounds_the_revision_by_the_domain_clock_plus_excess() {
     assert_eq!(recover(image(&[plain(), table(4)])), Err(Status::Corrupt));
 }
 
+/// `installed()` at `generation` = clock 0 with object 0 at `revision`.
+fn high(generation: u64, revision: u64) -> Table {
+    let mut t = installed();
+    t.generation = generation;
+    t.clocks[0] = generation;
+    let entry = &mut t.entries[0];
+    entry.revision = revision;
+    entry.current = version(revision, 10);
+    entry.history = [version(revision - 1, 9), version(revision - 2, 8)];
+    t
+}
+
+#[test]
+fn rule_r_bound_is_computed_without_overflow_near_u64_max() {
+    // clock + excess = u64::MAX - 1 + 2 overflows; in true integers it lies
+    // above every u64 revision, so revision u64::MAX is legitimate here.
+    let top = high(u64::MAX - 1, u64::MAX);
+    let below = high(u64::MAX - 2, u64::MAX - 1);
+    assert_eq!(recover(image(&[below, top])), Ok(top));
+    // One generation lower the bound is u64::MAX - 1 and still applies.
+    let over = high(u64::MAX - 3, u64::MAX);
+    assert_eq!(
+        recover(image(&[high(u64::MAX - 4, u64::MAX - 2), over])),
+        Err(Status::Corrupt)
+    );
+}
+
+#[test]
+fn revision_u64_max_on_a_crafted_image_is_full_without_a_write() {
+    // Rule R lets revision u64::MAX coexist with generation < u64::MAX.
+    let crafted = high(u64::MAX - 2, u64::MAX);
+    let mut d = SimDisk::from_image(image(&[high(u64::MAX - 3, u64::MAX - 1), crafted]));
+    let mut s = Service::recover(EPOCH, false, &mut d).unwrap();
+    let mut c = client(&mut s, &mut d, 0, 100);
+    assert_eq!(
+        c.write(0, u64::MAX, b"x", 1, |_, b| b.fill(1)),
+        Err(Status::Full)
+    );
+    assert_eq!(c.restore(0, u64::MAX, 1), Err((Status::Full, 0)));
+    assert_eq!(*s.table(), crafted);
+    // A collection revision may reach u64::MAX when clock = generation.
+    let mut t = high(u64::MAX, u64::MAX);
+    t.collections[0].revision = u64::MAX;
+    let mut d = SimDisk::from_image(image(&[high(u64::MAX - 1, u64::MAX - 1), t]));
+    let mut s = Service::recover(EPOCH, false, &mut d).unwrap();
+    let mut c = client(&mut s, &mut d, 0, 100);
+    assert_eq!(c.collection(0, 1, u64::MAX, b"Neu"), Err((Status::Full, 0)));
+    assert_eq!(*s.table(), t);
+    assert_eq!(recover(d.settled()), Ok(t));
+}
+
+#[test]
+fn unknown_table_versions_are_refused_on_a_plain_copy() {
+    let mut control = plain();
+    assert_eq!(mount(control), Ok(control));
+    // Format 3 with all provenance zero is a valid v3 copy (2.2, 3).
+    control.format = VERSION_V3;
+    assert_eq!(mount(control), Ok(control));
+    for format in [0, 1, 4, u16::MAX] {
+        let mut t = plain();
+        t.format = format;
+        assert_eq!(mount(t), Err(Status::Corrupt), "format {format}");
+    }
+}
+
 /// Object 0 of `installed()` reduced to one installed version (n = 1).
 fn one_version(t: &mut Table) {
     let entry = &mut t.entries[0];
@@ -526,8 +591,12 @@ fn not_installed(t: &mut Table) {
 #[test]
 fn corrupt_provenance_fields_are_refused_on_mount() {
     type Edit = fn(&mut Table);
-    let controls: [(&str, Edit); 8] = [
+    let controls: [(&str, Edit); 9] = [
         ("installed n = 3", |_| {}),
+        ("v3 copy with all provenance zero", |t| {
+            t.entries[0] = plain().entries[0];
+            t.collections[0].origin_revision = 0;
+        }),
         ("installed n = 1", one_version),
         (
             "re-created: object origins zero, version origins kept",

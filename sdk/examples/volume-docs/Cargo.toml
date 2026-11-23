@@ -11,7 +11,7 @@ archive-portal = []
 
 [dependencies]
 nieuw-os-sdk-runtime = { path = "../../runtime" }
-volume-core = { path = "../../../services/volume" }
+volume-core = { path = "../../../services/volume", default-features = false }
 
 [[bin]]
 name = "volume-service"

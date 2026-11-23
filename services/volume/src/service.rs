@@ -13,7 +13,9 @@ use crate::{
     QUOTA, SECTOR, TABLE_SECTORS, TRANSACT_MAX,
 };
 use table::{Collection, Entry, Next, Table, Version};
-use wire::{Header, SIZE};
+#[cfg(feature = "l2-install")]
+use wire::Manifest;
+use wire::{Header, INSTALL_MAX, SIZE};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct Session {
@@ -33,6 +35,98 @@ pub struct Session {
     pub sums: [u64; MAX_CHUNKS],
     pub content_sum: u64,
     sector: [u8; SECTOR],
+}
+
+/// One version of a staged install: its chunks are
+/// `InstallSession::chunks[chunk_start..chunk_start + chunk_count]`.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct InstallVersion {
+    pub origin: u64,
+    pub length: usize,
+    pub received: usize,
+    pub name: [u8; NAME],
+    pub name_length: usize,
+    pub content_sum: u64,
+    pub chunk_start: usize,
+    pub chunk_count: usize,
+}
+
+/// L2 install staging (S09-L2-PROVENANCE 4.2). Never ACKed until one commit.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct InstallSession {
+    pub principal: u64,
+    pub upload_token: u32,
+    pub object: usize,
+    pub request_id: u64,
+    pub n: usize,
+    pub tags: u32,
+    pub kind: u16,
+    pub collection: u8,
+    pub origin_revision: u64,
+    pub origin_created: u64,
+    pub origin_modified: u64,
+    pub versions: [InstallVersion; INSTALL_MAX],
+    pub chunks: [u16; INSTALL_MAX * MAX_CHUNKS],
+    pub sums: [u64; INSTALL_MAX * MAX_CHUNKS],
+    pub chunk_count: usize,
+    /// One buffer: the APPEND that completes a version writes its last
+    /// partial sector before it replies.
+    sector: [u8; SECTOR],
+}
+
+#[cfg(feature = "l2-install")]
+impl InstallSession {
+    fn total(&self) -> usize {
+        self.versions[..self.n].iter().map(|v| v.length).sum()
+    }
+    /// Lowest-index incomplete version (zero-length ones are complete).
+    fn target(&self) -> Option<usize> {
+        self.versions[..self.n]
+            .iter()
+            .position(|v| v.received < v.length)
+    }
+}
+
+/// At most one staged session per domain (session matrix, 4.1).
+// Both variants live inline in `Service` (no allocator); the size is pinned
+// by a test against the native stack budget.
+#[allow(clippy::large_enum_variant)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum Staged {
+    Upload(Session),
+    #[cfg(feature = "l2-install")]
+    Install(InstallSession),
+}
+
+impl Staged {
+    pub fn principal(&self) -> u64 {
+        match self {
+            Self::Upload(s) => s.principal,
+            #[cfg(feature = "l2-install")]
+            Self::Install(s) => s.principal,
+        }
+    }
+    pub fn upload_token(&self) -> u32 {
+        match self {
+            Self::Upload(s) => s.upload_token,
+            #[cfg(feature = "l2-install")]
+            Self::Install(s) => s.upload_token,
+        }
+    }
+    fn bind(&mut self, principal: u64, token: u32) {
+        match self {
+            Self::Upload(s) => (s.principal, s.upload_token) = (principal, token),
+            #[cfg(feature = "l2-install")]
+            Self::Install(s) => (s.principal, s.upload_token) = (principal, token),
+        }
+    }
+    fn chunks(&self) -> &[u16] {
+        match self {
+            Self::Upload(s) => &s.chunks[..s.chunk_count],
+            #[cfg(feature = "l2-install")]
+            Self::Install(s) => &s.chunks[..s.chunk_count],
+        }
+    }
 }
 
 struct Cache {
@@ -91,7 +185,7 @@ impl Patch {
 pub struct Service {
     epoch: u64,
     table: Table,
-    sessions: [Option<Session>; DOMAINS],
+    sessions: [Option<Staged>; DOMAINS],
     cache: Cache,
     read_only: bool,
     format_initialized: bool,
@@ -168,7 +262,14 @@ impl Service {
     pub fn uncertain(&self) -> bool {
         self.uncertain
     }
+    /// The staged upload of `domain` (None while an install is staged).
     pub fn session(&self, domain: usize) -> Option<&Session> {
+        match &self.sessions[domain] {
+            Some(Staged::Upload(session)) => Some(session),
+            _ => None,
+        }
+    }
+    pub fn staged(&self, domain: usize) -> Option<&Staged> {
         self.sessions[domain].as_ref()
     }
 
@@ -181,9 +282,17 @@ impl Service {
         if let Ok(request) = wire::validate_request(body, self.epoch, domain) {
             if matches!(
                 request.operation,
-                wire::BEGIN | wire::APPEND | wire::COMMIT | wire::ABORT
+                wire::BEGIN
+                    | wire::APPEND
+                    | wire::COMMIT
+                    | wire::ABORT
+                    | wire::INSTALL_BEGIN
+                    | wire::INSTALL_APPEND
+                    | wire::INSTALL_COMMIT
             ) && !self.uncertain
-                && self.sessions[domain].is_some_and(|s| s.upload_token != 0)
+                && self.sessions[domain]
+                    .as_ref()
+                    .is_some_and(|s| s.upload_token() != 0)
             {
                 self.counters.rejected += 1;
                 return wire::error_reply(&request, self.epoch, Status::Busy, 0);
@@ -224,7 +333,7 @@ impl Service {
         if self.uncertain {
             return rejected(Status::Unknown);
         }
-        if request.operation == wire::BEGIN {
+        if matches!(request.operation, wire::BEGIN | wire::INSTALL_BEGIN) {
             if self.sessions[domain].is_some() {
                 self.counters.rejected += 1;
                 return rejected(Status::Busy);
@@ -239,16 +348,18 @@ impl Service {
             }
             let issued = self.next_upload_token[domain];
             self.next_upload_token[domain] = next;
-            let staged = self.sessions[domain]
+            self.sessions[domain]
                 .as_mut()
-                .expect("successful BEGIN stages upload");
-            staged.principal = principal;
-            staged.upload_token = issued;
+                .expect("successful BEGIN stages a session")
+                .bind(principal, issued);
             return upload::wrap(response, issued);
         }
-        if matches!(request.operation, wire::APPEND | wire::COMMIT | wire::ABORT)
-            && !self.sessions[domain]
-                .is_some_and(|s| s.principal == principal && s.upload_token == token)
+        if matches!(
+            request.operation,
+            wire::APPEND | wire::COMMIT | wire::ABORT | wire::INSTALL_APPEND | wire::INSTALL_COMMIT
+        ) && !self.sessions[domain]
+            .as_ref()
+            .is_some_and(|s| s.principal() == principal && s.upload_token() == token)
         {
             self.counters.rejected += 1;
             return rejected(Status::Access);
@@ -265,7 +376,10 @@ impl Service {
     pub fn detach(&mut self, principal: u64) -> usize {
         let mut detached = 0;
         for staged in &mut self.sessions {
-            if staged.is_some_and(|s| s.upload_token != 0 && s.principal == principal) {
+            if staged
+                .as_ref()
+                .is_some_and(|s| s.upload_token() != 0 && s.principal() == principal)
+            {
                 *staged = None;
                 self.counters.aborted_sessions += 1;
                 detached += 1;
@@ -300,6 +414,7 @@ impl Service {
                 | wire::COLLECTION_STAT
                 | wire::DOMAIN_STAT
                 | wire::VERSION_STAT
+                | wire::PROVENANCE_STAT
         );
         let result = if mutating && self.read_only {
             Err((Status::Access, 0))
@@ -318,6 +433,16 @@ impl Service {
                 wire::SHUTDOWN => self.shutdown(&request, disk),
                 wire::DOMAIN_STAT => Ok(self.domain_stat(domain, &request)),
                 wire::VERSION_STAT => self.version_stat(&request),
+                #[cfg(feature = "l2-install")]
+                wire::INSTALL_BEGIN => self.install_begin(domain, &request, body, disk),
+                #[cfg(feature = "l2-install")]
+                wire::INSTALL_APPEND => self.install_append(domain, &request, body, disk),
+                #[cfg(feature = "l2-install")]
+                wire::INSTALL_COMMIT => self.install_commit(domain, &request, disk),
+                #[cfg(feature = "l2-install")]
+                wire::INSTALL_COLLECTION => self.install_collection(domain, &request, body, disk),
+                #[cfg(feature = "l2-install")]
+                wire::PROVENANCE_STAT => self.provenance_stat(domain, &request),
                 _ => self.object_operation(domain, &request, body, disk),
             }
         };
@@ -372,7 +497,7 @@ impl Service {
         self.sessions
             .iter()
             .flatten()
-            .any(|session| session.chunks[..session.chunk_count].contains(&chunk))
+            .any(|session| session.chunks().contains(&chunk))
     }
 
     fn begin(
@@ -384,7 +509,11 @@ impl Service {
     ) -> Outcome {
         // One upload per domain. A new BEGIN from the same kernel-bound domain
         // replaces an abandoned one (e.g. after an app restart); no other
-        // domain can influence this session.
+        // domain can influence this session. A staged install is never
+        // replaced: the kind is checked before anything is taken (4.1).
+        if self.installing(domain) {
+            return Err((Status::Busy, 0));
+        }
         if self.sessions[domain].take().is_some() {
             self.counters.aborted_sessions += 1;
         }
@@ -434,7 +563,7 @@ impl Service {
         }
         self.ensure_format_initialized(disk)?;
         self.counters.chunk_allocations += needed as u64;
-        self.sessions[domain] = Some(session);
+        self.sessions[domain] = Some(Staged::Upload(session));
         Ok(reply(
             request,
             self.epoch,
@@ -445,9 +574,20 @@ impl Service {
         ))
     }
 
+    /// Is an install staged in `domain` (session matrix, 4.1)?
+    fn installing(&self, domain: usize) -> bool {
+        #[cfg(feature = "l2-install")]
+        return matches!(self.sessions[domain], Some(Staged::Install(_)));
+        #[cfg(not(feature = "l2-install"))]
+        {
+            let _ = domain;
+            false
+        }
+    }
+
     fn matching(&self, domain: usize, request: &Header) -> Result<Session, (Status, u64)> {
         match self.sessions[domain] {
-            Some(session)
+            Some(Staged::Upload(session))
                 if session.object == request.object as usize
                     && session.request_id == request.request_id
                     && session.expected == request.revision =>
@@ -498,7 +638,7 @@ impl Service {
             }
         }
         let received = session.received as u64;
-        self.sessions[domain] = Some(session);
+        self.sessions[domain] = Some(Staged::Upload(session));
         Ok(reply(
             request,
             self.epoch,
@@ -510,6 +650,13 @@ impl Service {
     }
 
     fn abort(&mut self, domain: usize, request: &Header) -> Outcome {
+        #[cfg(feature = "l2-install")]
+        if self.installing(domain) {
+            self.matching_install(domain, request)?;
+        } else {
+            self.matching(domain, request)?;
+        }
+        #[cfg(not(feature = "l2-install"))]
         self.matching(domain, request)?;
         self.sessions[domain] = None;
         self.counters.aborted_sessions += 1;
@@ -519,6 +666,7 @@ impl Service {
     /// Staged uploads were never ACKed, so dropping them loses nothing durable.
     fn shutdown(&mut self, request: &Header, disk: &mut impl Disk) -> Outcome {
         for staged in &mut self.sessions {
+            // Uploads and installs alike: never ACKed, nothing durable lost.
             if staged.take().is_some() {
                 self.counters.aborted_sessions += 1;
             }
@@ -560,9 +708,14 @@ impl Service {
         }
         let clock = self.next_clock(domain)?;
         let mut entry = current;
+        if !entry.present {
+            // A re-created object never inherits the old incarnation's origin.
+            entry.end_incarnation();
+        }
         entry.push_history();
         entry.current = Version {
-            revision: current.revision + 1,
+            // Rule R admits revision u64::MAX on a crafted image: fail closed.
+            revision: current.revision.checked_add(1).ok_or((Status::Full, 0))?,
             length: session.length,
             chunk_count: session.chunk_count,
             name_length: session.name_length,
@@ -670,7 +823,7 @@ impl Service {
                 let restored = entry.take_history(slot);
                 entry.push_history();
                 entry.current = Version {
-                    revision: current.revision + 1,
+                    revision: current.revision.checked_add(1).ok_or((Status::Full, 0))?,
                     ..restored
                 };
                 entry.present = true;
@@ -704,6 +857,10 @@ impl Service {
     fn purge(entry: &mut Entry) {
         entry.history = [Version::EMPTY; HISTORY];
         entry.history_count = 0;
+        if !entry.present {
+            // Nothing of the installed incarnation is left (2.2).
+            entry.end_incarnation();
+        }
     }
 
     fn apply_meta(
@@ -789,15 +946,7 @@ impl Service {
                 &data,
             ));
         }
-        let mut newer = entry.current.revision;
-        let prefix = entry.history[..entry.history_count.min(selector)]
-            .iter()
-            .all(|version| {
-                let step = version.revision.checked_add(1) == Some(newer);
-                newer = version.revision;
-                step
-            });
-        if !entry.present || selector > entry.history_count || !prefix {
+        if !entry.present || selector > Self::prefix(entry) {
             return Err((Status::NotFound, entry.revision));
         }
         let version = &entry.history[selector - 1];
@@ -811,6 +960,20 @@ impl Service {
         );
         body[48..52].copy_from_slice(&(version.name_length as u32).to_le_bytes());
         Ok(body)
+    }
+
+    /// History versions of a present `entry` that follow the current version
+    /// with consecutive revisions (VERSION_STAT's R2 rule).
+    fn prefix(entry: &Entry) -> usize {
+        let mut newer = entry.current.revision;
+        entry.history[..entry.history_count]
+            .iter()
+            .take_while(|version| {
+                let step = version.revision.checked_add(1) == Some(newer);
+                newer = version.revision;
+                step
+            })
+            .count()
     }
 
     /// Create, rename or delete (empty name) one collection of `domain`.
@@ -842,13 +1005,15 @@ impl Service {
             next.present = false;
             next.name = [0; NAME];
             next.name_length = 0;
+            next.origin_revision = 0;
         } else {
             next.present = true;
             next.name = [0; NAME];
             next.name[..length].copy_from_slice(wire::data(body, length));
             next.name_length = length;
         }
-        next.revision += 1;
+        // A crafted image may hold revision u64::MAX (clock = generation).
+        next.revision = next.revision.checked_add(1).ok_or((Status::Full, 0))?;
         next.request_id = request.request_id;
         let mut collections = self.table.collections;
         collections[slot] = next;
@@ -1124,6 +1289,341 @@ impl Service {
     }
 }
 
+/// L2 install and provenance reads (S09-L2-PROVENANCE section 4). Without
+/// the `l2-install` feature the operations stay NoSys (`wire::LAST`); the
+/// native volume-docs service is built that way until its text budget and
+/// an integration request allow the native stage.
+#[cfg(feature = "l2-install")]
+impl Service {
+    fn matching_install(
+        &self,
+        domain: usize,
+        request: &Header,
+    ) -> Result<InstallSession, (Status, u64)> {
+        match self.sessions[domain] {
+            Some(Staged::Install(session))
+                if session.object == request.object as usize
+                    && session.request_id == request.request_id
+                    && request.revision == 0 =>
+            {
+                Ok(session)
+            }
+            _ => Err((Status::Invalid, 0)),
+        }
+    }
+
+    fn collection_ok(&self, domain: usize, collection: u8) -> bool {
+        collection == 0
+            || self
+                .table
+                .collection(domain, usize::from(collection))
+                .present
+    }
+
+    /// INSTALL_BEGIN (4.3): stage fresh chunks for every manifest version of
+    /// a never-used own slot. Provenance is stored as asserted; it feeds no
+    /// check below except its own shape (validated in `wire`).
+    fn install_begin(
+        &mut self,
+        domain: usize,
+        request: &Header,
+        body: &[u8; SIZE],
+        disk: &mut impl Disk,
+    ) -> Outcome {
+        if self.sessions[domain].is_some() {
+            return Err((Status::Busy, 0));
+        }
+        let manifest = Manifest::decode(
+            wire::data(body, request.length as usize),
+            request.count as usize,
+        )
+        .ok_or((Status::Invalid, 0))?;
+        let object = request.object as usize;
+        if self.table.entries[object].revision != 0 {
+            return Err((Status::Stale, 0));
+        }
+        let (tags, kind, collection, _) = wire::unmeta(request.aux);
+        if !self.collection_ok(domain, collection) {
+            return Err((Status::Range, 0));
+        }
+        let needed = manifest.chunks();
+        if self.table.domain_chunks(domain) + needed > QUOTA {
+            return Err((Status::Quota, 0));
+        }
+        let mut session = InstallSession {
+            principal: 0,
+            upload_token: 0,
+            object,
+            request_id: request.request_id,
+            n: manifest.count,
+            tags,
+            kind,
+            collection,
+            origin_revision: manifest.origin_revision,
+            origin_created: manifest.origin_created,
+            origin_modified: manifest.origin_modified,
+            versions: [InstallVersion {
+                origin: 0,
+                length: 0,
+                received: 0,
+                name: [0; NAME],
+                name_length: 0,
+                content_sum: FNV_OFFSET,
+                chunk_start: 0,
+                chunk_count: 0,
+            }; INSTALL_MAX],
+            chunks: [NO_CHUNK; INSTALL_MAX * MAX_CHUNKS],
+            sums: [0; INSTALL_MAX * MAX_CHUNKS],
+            chunk_count: 0,
+            sector: [0; SECTOR],
+        };
+        let mut start = 0;
+        for (staged, source) in session
+            .versions
+            .iter_mut()
+            .zip(&manifest.versions[..manifest.count])
+        {
+            staged.origin = source.origin;
+            staged.length = source.length;
+            staged.name = source.name;
+            staged.name_length = source.name_length;
+            staged.chunk_start = start;
+            staged.chunk_count = chunks_for(source.length);
+            start += staged.chunk_count;
+        }
+        // Fresh chunks only (never deduplicated), lowest index first; staged
+        // chunks of any domain are never handed out twice.
+        for chunk in 0..CHUNKS as u16 {
+            if session.chunk_count == needed {
+                break;
+            }
+            if !self.table.references(chunk) && !self.reserved(chunk) {
+                session.chunks[session.chunk_count] = chunk;
+                session.sums[session.chunk_count] = FNV_OFFSET;
+                session.chunk_count += 1;
+            }
+        }
+        if session.chunk_count != needed {
+            return Err((Status::Full, 0));
+        }
+        self.ensure_format_initialized(disk)?;
+        self.counters.chunk_allocations += needed as u64;
+        let total = session.total() as u64;
+        self.sessions[domain] = Some(Staged::Install(session));
+        Ok(reply(request, self.epoch, 0, total, needed as u32, &[]))
+    }
+
+    fn install_append(
+        &mut self,
+        domain: usize,
+        request: &Header,
+        body: &[u8; SIZE],
+        disk: &mut impl Disk,
+    ) -> Outcome {
+        let mut session = self.matching_install(domain, request)?;
+        let index = request.count as usize;
+        let bytes = wire::data(body, request.length as usize);
+        let Some(target) = session.target() else {
+            return Err((Status::Range, 0));
+        };
+        let version = session.versions[target];
+        if index != target
+            || request.aux as usize != version.received
+            || version.received + bytes.len() > version.length
+        {
+            return Err((Status::Range, 0));
+        }
+        let sector_of = |s: &InstallSession, offset: usize| {
+            let chunk = u64::from(s.chunks[version.chunk_start + offset / CHUNK]);
+            DATA_START + chunk * CHUNK_SECTORS + (offset / SECTOR) as u64 % CHUNK_SECTORS
+        };
+        for byte in bytes {
+            let offset = session.versions[target].received;
+            session.sector[offset % SECTOR] = *byte;
+            let chunk = version.chunk_start + offset / CHUNK;
+            session.sums[chunk] = checksum_update(session.sums[chunk], &[*byte]);
+            let v = &mut session.versions[target];
+            v.content_sum = checksum_update(v.content_sum, &[*byte]);
+            v.received += 1;
+            let (received, complete) = (v.received, v.received == v.length);
+            // Full sectors as they fill; the last partial one when this APPEND
+            // completes the version (zero padded), so one buffer suffices.
+            if received % SECTOR == 0 || complete {
+                let sector = sector_of(&session, offset);
+                if disk.write(sector, &session.sector).is_err() {
+                    // Only unreferenced reserved chunks: a certain abort.
+                    self.sessions[domain] = None;
+                    self.counters.aborted_sessions += 1;
+                    return Err((Status::Io, 0));
+                }
+                self.counters.data_sectors += 1;
+                session.sector = [0; SECTOR];
+            }
+        }
+        let received = session.versions[target].received as u64;
+        self.sessions[domain] = Some(Staged::Install(session));
+        Ok(reply(request, self.epoch, 0, received, request.count, &[]))
+    }
+
+    /// One commit for the whole object (rule R): revision `n`, versions
+    /// `n..1`, the clock raised by exactly one, `installed = n`. No `touch`.
+    fn install_commit(&mut self, domain: usize, request: &Header, disk: &mut impl Disk) -> Outcome {
+        let session = self.matching_install(domain, request)?;
+        if request.count as usize != session.n || request.aux as usize != session.total() {
+            return Err((Status::Invalid, 0));
+        }
+        if session.target().is_some() {
+            return Err((Status::Range, 0));
+        }
+        self.sessions[domain] = None;
+        if self.table.entries[session.object].revision != 0 {
+            self.counters.aborted_sessions += 1;
+            return Err((Status::Stale, 0));
+        }
+        if !self.collection_ok(domain, session.collection) {
+            self.counters.aborted_sessions += 1;
+            return Err((Status::Range, 0));
+        }
+        if disk.flush().is_err() {
+            self.counters.aborted_sessions += 1;
+            return Err((Status::Io, 0));
+        }
+        self.counters.flushes += 1;
+        let clock = self.next_clock(domain)?;
+        let n = session.n;
+        let mut versions = [Version::EMPTY; INSTALL_MAX];
+        for (index, (version, staged)) in
+            versions.iter_mut().zip(&session.versions[..n]).enumerate()
+        {
+            let chunks = staged.chunk_start..staged.chunk_start + staged.chunk_count;
+            *version = Version {
+                revision: (n - index) as u64,
+                length: staged.length,
+                chunk_count: staged.chunk_count,
+                name_length: staged.name_length,
+                name: staged.name,
+                content_sum: staged.content_sum,
+                origin: staged.origin,
+                ..Version::EMPTY
+            };
+            version.chunks[..staged.chunk_count].copy_from_slice(&session.chunks[chunks.clone()]);
+            version.sums[..staged.chunk_count].copy_from_slice(&session.sums[chunks]);
+        }
+        let mut entry = Entry {
+            revision: n as u64,
+            request_id: request.request_id,
+            created: clock,
+            modified: clock,
+            tags: session.tags,
+            kind: session.kind,
+            present: true,
+            collection: session.collection,
+            history_count: n - 1,
+            current: versions[0],
+            installed: n as u8,
+            origin_revision: session.origin_revision,
+            origin_created: session.origin_created,
+            origin_modified: session.origin_modified,
+            ..Entry::EMPTY
+        };
+        entry.history[..n - 1].copy_from_slice(&versions[1..n]);
+        let mut patch = Patch::one(session.object, entry);
+        patch.format = table::VERSION_V3;
+        self.publish(domain, &patch, request.request_id, disk)?;
+        Ok(reply(request, self.epoch, n as u64, request.aux, 0, &[]))
+    }
+
+    /// Create never-used collection `aux` with a recorded source revision.
+    fn install_collection(
+        &mut self,
+        domain: usize,
+        request: &Header,
+        body: &[u8; SIZE],
+        disk: &mut impl Disk,
+    ) -> Outcome {
+        let index = request.aux as usize;
+        let slot = domain * COLLECTIONS + index - 1;
+        if self.table.collections[slot].revision != 0 {
+            return Err((Status::Stale, 0));
+        }
+        let length = request.name_length as usize;
+        let mut next = Collection {
+            revision: 1,
+            request_id: request.request_id,
+            present: true,
+            name_length: length,
+            origin_revision: crate::get64(body, 64 + length),
+            ..Collection::EMPTY
+        };
+        next.name[..length].copy_from_slice(wire::data(body, length));
+        let mut collections = self.table.collections;
+        collections[slot] = next;
+        let mut patch = Patch::new();
+        patch.collections = Some(collections);
+        patch.format = table::VERSION_V3;
+        self.publish(domain, &patch, request.request_id, disk)?;
+        Ok(reply(request, self.epoch, 1, index as u64, 0, &[]))
+    }
+
+    /// Provenance the own domain installed (4.4), under VERSION_STAT's
+    /// presence and prefix rule: an absent slot reveals no version origin.
+    fn provenance_stat(&self, domain: usize, request: &Header) -> Outcome {
+        let stale = |revision: u64| {
+            if revision == 0 {
+                (Status::NotFound, 0)
+            } else {
+                (Status::Stale, 0)
+            }
+        };
+        if request.count == 1 {
+            let collection = self.table.collection(domain, request.aux as usize);
+            if collection.revision != request.revision {
+                return Err(stale(collection.revision));
+            }
+            let origin = collection.origin_revision;
+            return Ok(reply(
+                request,
+                self.epoch,
+                collection.revision,
+                origin,
+                u32::from(origin != 0),
+                &[],
+            ));
+        }
+        let entry = &self.table.entries[request.object as usize];
+        if entry.revision != request.revision {
+            return Err(stale(entry.revision));
+        }
+        let mut data = [0u8; 24 + 8 * INSTALL_MAX];
+        let mut length = 0;
+        let mut versions = 0;
+        if entry.installed != 0 {
+            crate::put64(&mut data, 0, entry.origin_revision);
+            crate::put64(&mut data, 8, entry.origin_created);
+            crate::put64(&mut data, 16, entry.origin_modified);
+            length = 24;
+            if entry.present {
+                versions = 1 + Self::prefix(entry);
+                let origins = core::iter::once(&entry.current).chain(&entry.history);
+                for (index, version) in origins.take(versions).enumerate() {
+                    crate::put64(&mut data, 24 + 8 * index, version.origin);
+                }
+                length += 8 * versions;
+            }
+        }
+        let mut body = reply(
+            request,
+            self.epoch,
+            entry.revision,
+            0,
+            u32::from(entry.installed),
+            &data[..length],
+        );
+        body[48..52].copy_from_slice(&(versions as u32).to_le_bytes());
+        Ok(body)
+    }
+}
+
 #[cfg(test)]
 mod upload_token_tests {
     use super::*;
@@ -1155,5 +1655,56 @@ mod upload_token_tests {
             assert!(service.session(0).is_none());
             assert_eq!(service.next_upload_token[0], u32::MAX);
         }
+    }
+}
+
+#[cfg(all(test, feature = "l2-install"))]
+mod install_commit_tests {
+    use super::*;
+    /// Accepts every write and reads zeros; nothing here reaches a table write.
+    struct Sink;
+    impl Disk for Sink {
+        fn read(&mut self, _: u64, sector: &mut [u8; SECTOR]) -> Result<(), Status> {
+            *sector = [0; SECTOR];
+            Ok(())
+        }
+        fn write(&mut self, _: u64, _: &[u8; SECTOR]) -> Result<(), Status> {
+            Ok(())
+        }
+        fn flush(&mut self) -> Result<(), Status> {
+            Ok(())
+        }
+    }
+
+    /// Defence in depth: no wire operation can make the slot used while an
+    /// install is staged, so the INSTALL_COMMIT re-check is driven directly.
+    #[test]
+    fn commit_rechecks_that_the_slot_is_still_never_used() {
+        let mut service = Service::new(7, Table::EMPTY, false);
+        let mut manifest = Manifest {
+            origin_revision: 5,
+            origin_created: 1,
+            origin_modified: 2,
+            count: 1,
+            ..Manifest::default()
+        };
+        manifest.versions[0].origin = 4;
+        manifest.versions[0].name_length = 1;
+        manifest.versions[0].name[0] = b'v';
+        let mut data = [0; wire::DATA];
+        manifest.encode(&mut data);
+        let mut h = Header::new(wire::INSTALL_BEGIN, 3, 7, 1);
+        h.count = 1;
+        h.length = manifest.bytes() as u32;
+        let begin = wire::encode(&h, &data[..manifest.bytes()]);
+        let reply = wire::header(&service.handle(0, &begin, &mut Sink));
+        assert_eq!(reply.status, Status::Ok as i32);
+        service.table.entries[1].revision = 1;
+        let mut commit = Header::new(wire::INSTALL_COMMIT, 3, 7, 1);
+        commit.count = 1;
+        let reply = wire::header(&service.handle(0, &wire::encode(&commit, &[]), &mut Sink));
+        assert_eq!(reply.status, Status::Stale as i32);
+        assert!(service.sessions[0].is_none());
+        assert_eq!(service.counters.table_writes, 0);
     }
 }

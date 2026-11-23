@@ -378,6 +378,13 @@ In both levels destination-assigned live revisions and clocks stay separate
 from the recorded source values; L2 stores the latter as immutable fields and
 never feeds them into `touch` (`service.rs:603-618`).
 
+**Status.** L1 is `archive::restore_native`. L2 is implemented on host as
+`archive::restore_native_l2` over table v3 (S09-L2-PROVENANCE section 11):
+the `TOMBSTONES` row stays a refusal (`Invalid`), no reviewed decision
+permits tombstone install, and no source identifier is recorded. The native
+volume service is built without the L2 operations and answers them with
+`NoSys`.
+
 ## 8. Not done here (later steps)
 
 - Wire extensions (step 2): **done on host.** DOMAIN_STAT returns the
@@ -391,8 +398,14 @@ never feeds them into `touch` (`service.rs:603-618`).
   consecutive-revision prefix of each present object.
 - Replays of 25 to 40 chunks are refused with `Full` even when they would
   fit (section 4.3); lifting that needs a reviewed free-count read.
-- Native writer and reader dispatch in `walk`, a v2
-  range adapter for `DiskSource`, native QEMU stage, and L2 (table v3, INSTALL, STAT extension, recovery and crash tests).
+- L2 (table v3, INSTALL, INSTALL_COLLECTION, PROVENANCE_STAT, recovery
+  and crash tests): **done on host**, implementation review open
+  (S09-L2-PROVENANCE section 11). A re-exported installed domain records
+  live values; no provenance-carrying archive is decided.
+- Native writer and reader dispatch in `walk`, a v2 range adapter for
+  `DiskSource`, the native QEMU stage, and native L2 (the native service is
+  built without the L2 operations; enabling them needs the 64 KiB text
+  bound resolved and an integration request for the protected stage pin).
 - The destination range size of PR #396 has not been checked against
   966 sectors.
 

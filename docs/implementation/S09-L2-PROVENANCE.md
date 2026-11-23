@@ -8,6 +8,9 @@ review read revision 0 (sha256 `6b8d4fbd…8978`) at commit `837619ef`. The
 resolutions below have not been reviewed again yet. The implementation
 review checks them.
 
+**Implementation: on host, unreviewed (section 11).** The native service is
+built without the L2 operations; that choice needs an owner decision.
+
 R1 requires review of table v3, crash recovery, compatibility, security and
 negative tests before implementation.
 
@@ -132,8 +135,13 @@ Every decode checks these; any failure is `Corrupt` (fail closed).
 6. A collection `origin_revision ≠ 0` implies that the collection revision
    is ≠ 0 **and** the collection is present.
 
-Provenance feeds no other invariant, CAS, quota or stamp. All bounds use
-`checked_add`.
+Provenance feeds no other invariant, CAS, quota or stamp. All bounds are
+computed without overflow: `clock + excess` saturates at `u64::MAX`, which
+equals the comparison in wide arithmetic (an overflowing bound lies above
+every u64 revision), so it neither refuses a legitimate table nor accepts
+one it should refuse. A v3 copy, or a v3 entry, with every provenance field
+zero is valid; `installed ≥ 1` with zero origins is the normal state after
+an incarnation ends (section 2.2).
 
 ### 2.2 Provenance lifecycle per operation
 
@@ -312,8 +320,10 @@ APPEND targets it, because the target is always the lowest-index incomplete
 version.
 
 Size: the tagged enum grows `Service` by about 1.1 KiB per domain.
-`size_of::<Staged>()` is pinned by a test, and the native volume service's
-stack and static budget is checked against it in the build.
+`size_of::<Staged>()` (≤ 1600 B) and `size_of::<Service>()` (≤ 24 KiB) are
+pinned by a host test (`staged_session_size_is_pinned`). The native build has
+no `Staged::Install` (deviation 1 in section 11), so no native build check
+applies to it yet.
 
 ### 4.3 INSTALL_BEGIN, INSTALL_APPEND and INSTALL_COMMIT
 
@@ -390,6 +400,11 @@ Reply: `revision = 1`, `aux` = the index.
 `length = 0`.
 
 Errors are as for VERSION_STAT (`NotFound`, `Stale`).
+
+Disclosure note (R2): `count` = `installed` keeps reporting the version count
+of the original INSTALL after that incarnation has ended (re-create or
+PURGE), while the object origins are zero. This is own-domain metadata, not
+content, and reveals no deleted content or version origin.
 
 STAT, VERSION_STAT and COLLECTION_STAT replies are **unchanged**. Existing
 clients validate their lengths strictly (`client.rs:58-80`), so extending
@@ -652,3 +667,153 @@ in meaning stated (section 1); `revision ≥ installed` is checked
 (invariant 2); R3 is enforced only by the client (section 5); the downgrade
 consequence (section 3); `SlotScan.format` and the admission check
 (section 3).
+
+## 11. Implementation status and deviations
+
+**Status: implemented on host** on `claude/s09-l2-provenance` (uncommitted
+at the time of writing). Not yet reviewed against this specification; the
+implementation review is open. A host test, a passing mutant run and an AI
+review are not native acceptance and not a human audit.
+
+Implemented:
+- table v3 decode, encode, sticky format, mixed-pair choice and admission
+  (`table.rs`, `tests/table_v3.rs`);
+- operations 19–23 (`wire.rs`, `upload.rs`, `service.rs`) with the session
+  matrix of 4.1 and the shared v7 token counter;
+- client methods `install`, `install_begin`, `install_stream`,
+  `install_commit`, `install_collection`, `provenance` and
+  `collection_provenance` with the reply arms of 4.5 (`client.rs`);
+- `export_v2` with the bounded `Range` rule and `restore_native_l2`
+  (`archive.rs`);
+- the independent v3 decoder and the frozen v2 reader in
+  `tools/volume_disk.py` (`allow_v3=False` by default);
+- killing mutants in `tools/mutate_volume.py`.
+
+Test map (section 8):
+
+| Test | Location |
+|---|---|
+| 1 | `tests/install.rs::install_requests_are_validated_field_by_field`, `provenance_reply_validation` |
+| 2 | `session_matrix_every_cell`, `install_tokens_share_the_upload_counter_and_are_required_in_v7`, `read_only_refuses_install_operations_and_allows_provenance_stat`, `first_commit_installs_three_versions_exactly_on_the_rule_r_bound`, `staged_session_size_is_pinned`; mutants `excess-n`, `excess-without-install` |
+| 3 | `install_begin_refuses_used_slots_absent_collections_and_capacity`, `service.rs::install_commit_tests` (INSTALL_COMMIT `Stale` re-check), `staged_chunks_of_another_domain_are_never_handed_out`, `continuation_refusals_and_zero_length_versions`, `absent_collection_at_commit_is_range_without_a_table_write` |
+| 4 | `normal_use_after_install_and_provenance_travel_with_versions` |
+| 5 | `lifecycle_*`, `collection_install_provenance_and_delete` |
+| 6 | `installs_leave_the_other_domain_unobservable_and_foreign_selectors_are_refused`, `tests/l2_restore.rs::restore_leaves_the_other_domain_alone` |
+| 7 | `tests/crash.rs::every_install_crash_point_recovers_to_before_or_after` (INSTALL, INSTALL_COLLECTION, INSTALL then WRITE, INSTALL then RESTORE; every mutating operation cut, torn and reordered images, fresh-instance mount); `io_during_install_is_a_certain_abort_and_releases_the_chunks`; `shutdown_and_detach_drop_staged_installs` |
+| 8 | `tests/table_v3.rs` (v2 golden bytes, first v3 copy, later copies stay v3); the existing v2 suites |
+| 9 | `tests/table_v3.rs` (Rust mixed pairs); `tests/test_volume_disk_v3.py` (Python v3 decoder and frozen v2 reader) |
+| 10 | `tests/table_v3.rs::corrupt_provenance_fields_are_refused_on_mount`, `nonzero_reserved_and_v2_provenance_bytes_are_refused`; `tests/test_volume_disk_v3.py::CorruptProvenance` |
+| 11 | `tests/l2_restore.rs`; the streamed mismatch flips a byte inside a history version's content (`a_content_mismatch_on_the_second_read_aborts_and_stops`, one ABORT observed), and `a_different_archive_on_the_second_read_installs_nothing` serves another valid archive on the second read |
+| 2.1 boundary | `tests/table_v3.rs::rule_r_bound_is_computed_without_overflow_near_u64_max`, `revision_u64_max_on_a_crafted_image_is_full_without_a_write`, `unknown_table_versions_are_refused_on_a_plain_copy` (also the zero-provenance v3 mount control) |
+| 12 | `export_v2_refuses_with_range_inside_the_excess_window_then_exports_live_values`, `v1_export_of_an_installed_domain`; v1 restore and ustar suites unchanged; re-anchored mutants `revision-clock-bound`, `modified-clock-bound`, `version-stat-prefix`, `oracle-revision-clock-bound` (`choose-unrelated-generations` kept its anchor) |
+
+Deviations and additions (for the implementation review):
+1. **Native service builds without L2 (owner decision needed).** With the
+   L2 operations, the native volume-docs service exceeds its 64 KiB `.text`
+   bound. `volume-core` therefore has a default cargo feature `l2-install`
+   that gates operations 19–23, `Staged::Install` and their wire arms.
+   `sdk/examples/volume-docs` uses `default-features = false`, so the native
+   service answers 19–23 with `NoSys` (`wire::LAST` follows the feature) and
+   writes v2 tables only. Host tests, the client and `restore_native_l2`
+   use the default. Alternatives for the owner: a size-optimised profile for
+   the service, or a raised bound together with the native INSTALL stage
+   (protected 22-stage pin, integration request).
+2. **INSTALL_BEGIN reply.** `client::validate_reply` sees only the request
+   header, not the manifest, so it checks the reply structurally
+   (`revision 0`, no data, `aux ≤ 3·MAX_LENGTH`, `count ≤ 48`). The exact
+   Σ length and Σ chunks are checked by `client::install_begun(manifest,
+   reply)`, which `Client::install_begin` calls.
+3. **Report.** `restore_native_l2` returns `L2Report { restored,
+   collections, committed, skipped, revisions }`; `revisions` holds the live
+   revision per slot, separate from the archive values in the verified plan.
+4. **No-feature test targets.** `tests/install.rs` and `tests/l2_restore.rs`
+   require the `l2-install` feature, and the L2 crash scenario is compiled
+   only with it.
+5. **Python v3 decoder.** It records provenance in extra dictionary keys
+   (`installed`, `origin`, `origins`; collection `origin`; table `format`)
+   only for v3 copies, so existing v2 callers see unchanged structures.
+   There is no cross-implementation fixture yet: the Python v3 decoder is
+   tested against its own encoder, the Rust decoder against the Rust
+   encoder, and both against the byte offsets of section 2.
+6. **Mutants without a mutant of their own.** `v.origin != 0` in the
+   manifest rule is implied by the consecutive rule together with
+   `first ≥ n`, so its mutant is equivalent and was removed. The
+   per-version FNV-64 comparison in `restore_native_l2` repeats the check
+   `walk_v2` makes of every version against its record before the callback;
+   the plan comparison binds the record. Removing the checksum alone is
+   therefore equivalent, and mutant `l2-restore-second-read` removes both.
+   The INSTALL_COMMIT `Stale` re-check is unreachable through the wire (no
+   operation can use the slot while an install is staged) and is killed by
+   a unit test in `service.rs`. Further equivalent mutants found by the
+   implementation review (no mutant of their own):
+   - the v2 history reserved-origin check in `table.rs` decode: in a v2 copy
+     `installed = 0`, so `validate_provenance` already refuses any nonzero
+     origin, and empty versions are compared with `Version::EMPTY` in full;
+   - `first ≥ n` in the manifest rule: the dual of the `v.origin ≠ 0` case
+     above. Consecutive origins with `origin ≠ 0` imply `first ≥ n` and the
+     reverse, so the two checks are redundant with each other and only one
+     can carry a killing mutant;
+   - the `Manifest::valid` precheck in `restore_native_l2`: the `walk_v2`
+     record rules (created ≥ 1, created ≤ modified, valid names,
+     length ≤ MAX_LENGTH, a strictly decreasing chain, first version ≤ the
+     object revision) already imply it;
+   - `<` → `<=` on the `export_v2` excess window: the boundary
+     `revision = clock + installed` breaks the table bound, so an honest
+     service cannot produce it;
+   - the `decode_head` bound `revision ≤ generation + excess` loosened (for
+     example `excess = n`, review mutant M7b): `Table::validate` always runs
+     after decode and checks `revision ≤ clock + excess`, and the clocks sum
+     to the generation without overflow, so each clock ≤ generation and the
+     clock bound is at least as strict. The decode bound is kept as defence
+     in depth; its overflow semantics are pinned by `head-bound-fails-closed`
+     and `head-bound-wraps` (both killed by the u64::MAX boundary test). The
+     v2 history reserved-origin check above is review mutant M4.
+7. **Mutant run history.** The first run (66 mutants) reported 6
+   survivors and exit 1: `install-begin-stale` (the test only used the
+   client, whose commit re-check also answers `Stale`; it now checks the raw
+   INSTALL_BEGIN), `install-commit-stale` (unit test added),
+   `manifest-origin-nonzero` (equivalent, removed), `l2-restore-checksum`
+   (equivalent, replaced as above), `oracle-installed-max` (the case also
+   broke `revision ≥ installed`; fixed) and `oracle-excess-n` (the
+   generation bound is implied by the domain clock bound; both now share one
+   `excess()` helper). A second run failed its baseline because
+   `tests/l2_restore.rs` resolved fixtures through `CARGO_MANIFEST_DIR`,
+   which a reused target directory baked to an earlier scratch copy; the
+   fixtures are now read relative to the package directory.
+   The implementation review then found four non-equivalent survivors and
+   they gained tests and mutants: `provenance-object-stale`
+   (`object_provenance_refuses_a_wrong_revision_and_a_never_used_slot`),
+   `provenance-reply-versions` and `provenance-reply-origin-shape` (forged
+   replies in `provenance_reply_validation`), and `install-append-received`
+   (a misreported received offset in the same test).
+8. **Slice A review fold-in (F1–F6).** F1: the 2.2 lifecycle sites
+   (COLLECTION delete zeroes the collection origin; COMMIT re-creating an
+   absent entry and PURGE or TRANSACT PURGE of an absent entry call
+   `end_incarnation`) are covered by `lifecycle_*` and
+   `collection_install_provenance_and_delete` (which remounts the v3 copy
+   after the delete), with mutants `collection-delete-keeps-origin`,
+   `recreate-keeps-origin` and `purge-keeps-origin`. F2: every new
+   `table.rs` check has a mutant (`table-unknown-version-as-v2/-v3`,
+   `table-v2/-v3-header-reserved`, `table-v2/-v3-head-reserved`,
+   `table-head-installed-padding`, `table-v3-history-reserved`,
+   `choose-format-sticky`, `provenance-*` for invariants 2–4,
+   `collection-origin-present` for invariant 6, `collection-origin-carry`
+   for the sector-1 carry). F3: format 0, 1, 4 and `u16::MAX` on a copy
+   without provenance are refused. F4: WRITE commit, RESTORE and
+   COLLECTION compute the next revision with `checked_add` and answer
+   `Full` (what `touch` and `next_generation` answer for exhausted
+   counters) before anything is published; a crafted v3 image with
+   revision `u64::MAX` (rule R) panicked the dev profile before. The
+   COLLECTION site is a pre-existing v2 case (collection revision ≤ clock =
+   generation = `u64::MAX`) fixed with it. Mutants
+   `commit-/restore-/collection-revision-overflow`. F5: the bounds keep
+   `saturating_add` (2.1 amended); mutants `rule-r-bound-fails-closed`,
+   `rule-r-bound-wraps`, `head-bound-fails-closed`, `head-bound-wraps`.
+   F6: the service upgrade through `Patch.format = 3` is covered by the
+   INSTALL and INSTALL_COLLECTION tests (`install-commit-v2`,
+   `install-collection-v2`, `format-not-adopted`); a v3 copy with zero
+   provenance mounts (table control and the collection delete test). The
+   crash suite gained `install_collection_upgrade_crash_points_recover_to_before_or_after`,
+   where INSTALL_COLLECTION is the v2 to v3 upgrade commit (outside the
+   mutant targets). The native volume-service `.text` grew from 63973 to
+   64021 bytes (bound 65536).

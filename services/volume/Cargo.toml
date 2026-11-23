@@ -7,5 +7,21 @@ publish = false
 [lib]
 path = "src/lib.rs"
 
+[features]
+default = ["l2-install"]
+# S09 L2 INSTALL/PROVENANCE_STAT service operations. Off in the native
+# volume-docs service (64 KiB text bound; native stage needs an integration
+# request), so those operations answer NoSys there.
+l2-install = []
+
 [dependencies]
 catalog-core = { path = "../catalog" }
+
+# Tests of the L2 operations; skipped when the service is built without them.
+[[test]]
+name = "install"
+required-features = ["l2-install"]
+
+[[test]]
+name = "l2_restore"
+required-features = ["l2-install"]

@@ -839,10 +839,7 @@ fn malformed_shutdown_requests_are_rejected_without_io() {
     let mut h = shutdown(0);
     h.aux = 1;
     cases.push((h, Status::Invalid));
-    cases.push((
-        Header::new(wire::VERSION_STAT + 1, 5, EPOCH, 0),
-        Status::NoSys,
-    ));
+    cases.push((Header::new(wire::LAST + 1, 5, EPOCH, 0), Status::NoSys));
     for (header, status) in &cases {
         let reply = service.handle(0, &wire::encode(header, &[]), &mut disk);
         assert_eq!(wire::header(&reply).status, *status as i32, "{header:?}");
@@ -1078,10 +1075,7 @@ fn malformed_own_reads_are_rejected_before_any_state_or_io() {
             Status::Access,
         ),
         (version_stat_header(OBJECTS as u64, 1, 0), Status::Range),
-        (
-            Header::new(wire::VERSION_STAT + 1, 9, EPOCH, 0),
-            Status::NoSys,
-        ),
+        (Header::new(wire::LAST + 1, 9, EPOCH, 0), Status::NoSys),
     ];
     for field in 0..4 {
         let mut h = domain_stat_header(0);
