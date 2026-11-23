@@ -21,7 +21,7 @@ from common import BUILD, ROOT, save_json, source_hash
 
 RUST = ["cargo", "+1.100.0", "test", "--locked", "--offline", "-p", "volume-core",
         "--lib", "--test", "service", "--test", "history", "--test", "table_v3", "--test", "install",
-        "--test", "l2_restore"]
+        "--test", "l2_restore", "--test", "archive_v2"]
 PYTHON = [sys.executable, "-B", "-m", "unittest", "discover", "-s", "tests", "-p", "test_volume_*.py"]
 TABLE = "services/volume/src/table.rs"
 CLIENT = "services/volume/src/client.rs"
@@ -43,6 +43,12 @@ L2_GUARD = ("    if plan.tombstones {\n        return Err((Status::Invalid, repo
 
 # (id, file, exact text, replacement, suite). Each text occurs exactly once.
 MUTANTS = [
+    ("disk-source-v2-version-records", ARCHIVE,
+     "OBJECT_RECORD_V2 as u64\n                            + u64::from(get16(header, 14)) * VERSION_RECORD_V2 as u64,",
+     "OBJECT_RECORD_V2 as u64,", "rust"),
+    ("disk-source-v2-as-unknown", ARCHIVE, "                    VERSION_V2 => (", "                    0xFFFF => (",
+     "rust"),
+    ("disk-source-v2-bound", ARCHIVE, "                    .filter(|length| *length <= limit)\n", "", "rust"),
     ("choose-unrelated-generations", TABLE, "if a.min(b).checked_add(1) == Some(a.max(b)) {", "if true {", "rust"),
     ("collection-clock-bound", TABLE,
      ".any(|(index, collection)| collection.revision > self.clocks[index / COLLECTIONS])",

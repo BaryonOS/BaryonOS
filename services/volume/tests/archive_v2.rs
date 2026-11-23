@@ -6,12 +6,12 @@ mod common;
 
 use common::{recover, Local, SimDisk};
 use volume_core::{
-    archive::{self, ArchiveV2, NativeReport, Source},
+    archive::{self, ArchiveV2, DiskSource, NativeReport, Source, MAX_ARCHIVE_V2},
     checksum_update,
     client::{Client, Transport},
     service::Service,
     table::Table,
-    upload, wire, Status, CHUNK, FNV_OFFSET, MAX_LENGTH, PER_DOMAIN,
+    upload, wire, Disk, Status, CHUNK, FNV_OFFSET, MAX_LENGTH, PER_DOMAIN, SECTOR,
 };
 
 const EPOCH: u64 = 6;
@@ -1077,4 +1077,173 @@ fn a_landed_commit_that_stat_shows_differently_is_not_claimed() {
             (Status::Unknown, 8, 1 << 3)
         );
     }
+}
+
+/// An archive range on a disk: the bytes from sector 0, the rest of the last
+/// sector and `spare` further sectors filled with 0xA5. Reads are counted, and
+/// a read outside the range panics.
+#[derive(Clone)]
+struct Range {
+    sectors: Vec<[u8; SECTOR]>,
+    reads: usize,
+}
+impl Range {
+    fn new(bytes: &[u8], spare: usize) -> Self {
+        let mut sectors = vec![[0xA5; SECTOR]; bytes.len().div_ceil(SECTOR) + spare];
+        for (at, byte) in bytes.iter().enumerate() {
+            sectors[at / SECTOR][at % SECTOR] = *byte;
+        }
+        Self { sectors, reads: 0 }
+    }
+    fn capacity(&self) -> u64 {
+        self.sectors.len() as u64
+    }
+}
+impl Disk for Range {
+    fn read(&mut self, sector: u64, buffer: &mut [u8; SECTOR]) -> Result<(), Status> {
+        self.reads += 1;
+        *buffer = self.sectors[sector as usize];
+        Ok(())
+    }
+    fn write(&mut self, _: u64, _: &[u8; SECTOR]) -> Result<(), Status> {
+        unreachable!("a source never writes")
+    }
+    fn flush(&mut self) -> Result<(), Status> {
+        unreachable!("a source never flushes")
+    }
+}
+
+/// Every byte `source` yields, read in uneven pieces.
+fn drain(source: &mut impl Source) -> Result<Vec<u8>, Status> {
+    let mut out = Vec::new();
+    let mut piece = [0; 77];
+    loop {
+        match source.get(&mut piece)? {
+            0 => return Ok(out),
+            amount => out.extend_from_slice(&piece[..amount]),
+        }
+    }
+}
+
+#[test]
+fn disk_source_reads_every_v2_fixture_exactly_as_stored() {
+    let mut names: Vec<String> = std::fs::read_dir(format!(
+        "{}/tests/fixtures/archive-v2",
+        env!("CARGO_MANIFEST_DIR")
+    ))
+    .unwrap()
+    .map(|entry| entry.unwrap().file_name().into_string().unwrap())
+    .filter(|name| name.ends_with(".bin"))
+    .collect();
+    names.sort();
+    assert!(names.len() > 60, "fixtures missing: {}", names.len());
+    let mut valid = 0;
+    for name in &names {
+        let mut bytes = fixture(name);
+        if name == "trailing-byte.bin" {
+            // A stream refuses a byte behind the trailer; on a disk that byte
+            // lies behind the stored length and is padding, as in format v1.
+            assert_eq!(verify(&bytes), Err(Status::Corrupt));
+            bytes.pop();
+        }
+        let expected = verify(&bytes);
+        // Exactly the archive's sectors, and with spare 0xA5 sectors behind it.
+        for spare in [0, 2] {
+            let mut range = Range::new(&bytes, spare);
+            let capacity = range.capacity();
+            let got =
+                archive::verify_v2(&mut DiskSource::new(&mut range, capacity), &mut scratch());
+            assert_eq!(got, expected, "{name}, {spare} spare sectors");
+            if expected.is_ok() {
+                // The computed length is the archive's: no padding byte leaks.
+                let read = drain(&mut DiskSource::new(&mut range, capacity)).unwrap();
+                assert_eq!(read, bytes, "{name}");
+            }
+        }
+        valid += usize::from(expected.is_ok());
+    }
+    assert!(valid >= 5, "too few valid fixtures: {valid}");
+}
+
+#[test]
+fn disk_source_refuses_a_short_range_and_an_unknown_version_after_one_read() {
+    let bytes = fixture("restore.bin");
+    assert!(verify(&bytes).is_ok());
+    // One sector short of the stored length.
+    let mut range = Range::new(&bytes, 0);
+    let short = range.capacity() - 1;
+    assert_eq!(
+        drain(&mut DiskSource::new(&mut range, short)),
+        Err(Status::Corrupt)
+    );
+    assert_eq!(range.reads, 1);
+    // Format versions other than 1 and 2 are refused on the header sector alone.
+    for version in [0u16, 3, 0xFFFF] {
+        let mut forged = bytes.clone();
+        forged[8..10].copy_from_slice(&version.to_le_bytes());
+        let mut range = Range::new(&forged, 0);
+        let capacity = range.capacity();
+        assert_eq!(
+            drain(&mut DiskSource::new(&mut range, capacity)),
+            Err(Status::Corrupt),
+            "version {version}"
+        );
+        assert_eq!(range.reads, 1, "version {version}");
+    }
+    // A v2 header claiming more than the largest v2 archive is refused on the
+    // header sector, even on a range that could hold it (the walkers' own
+    // header checks would refuse it too; a raw reader sees this bound alone).
+    let mut forged = bytes.clone();
+    forged[24..32].copy_from_slice(&MAX_ARCHIVE_V2.to_le_bytes());
+    let mut range = Range::new(&forged, 0);
+    let capacity = MAX_ARCHIVE_V2.div_ceil(SECTOR as u64) * 2;
+    assert_eq!(
+        drain(&mut DiskSource::new(&mut range, capacity)),
+        Err(Status::Corrupt)
+    );
+    assert_eq!(range.reads, 1);
+}
+
+/// `restore_native_l2` opens the archive twice; an owning `DiskSource` over a
+/// fresh handle per open gives the same result as the in-memory reader.
+#[test]
+fn restore_native_l2_reads_an_archive_range_through_owned_sources() {
+    let bytes = fixture("restore.bin");
+    let range = Range::new(&bytes, 1);
+    let capacity = range.capacity();
+    let mut results = Vec::new();
+    for from_disk in [false, true] {
+        let mut disk = SimDisk::new();
+        let mut service = Service::new(EPOCH, Table::EMPTY, false);
+        let mut c = client(&mut service, &mut disk, DOMAIN, None);
+        let mut recorded = ArchiveV2::default();
+        let mut opens = 0;
+        let report = if from_disk {
+            archive::restore_native_l2(
+                || {
+                    opens += 1;
+                    DiskSource::new(range.clone(), capacity)
+                },
+                &mut scratch(),
+                &mut c,
+                DOMAIN,
+                &mut recorded,
+            )
+        } else {
+            archive::restore_native_l2(
+                || reader(&bytes),
+                &mut scratch(),
+                &mut c,
+                DOMAIN,
+                &mut recorded,
+            )
+        }
+        .unwrap();
+        if from_disk {
+            assert_eq!(opens, 2);
+        }
+        results.push((report, recorded));
+    }
+    assert_eq!(results[0], results[1]);
+    assert_ne!(results[1].0.committed, 0);
 }

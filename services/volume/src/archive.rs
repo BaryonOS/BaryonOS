@@ -561,11 +561,14 @@ impl<D: Disk> Sink for DiskSink<'_, D> {
     }
 }
 
-/// Reads an archive written by `DiskSink`. The range is untrusted: a header
-/// whose counts imply more bytes than the range holds is `Corrupt`; any other
-/// deviation is left to `walk`.
-pub struct DiskSource<'a, D: Disk> {
-    disk: &'a mut D,
+/// Reads an archive (format v1 or v2) written by `DiskSink`. The range is
+/// untrusted: a header with another format version, or whose counts imply more
+/// bytes than the range (or a v2 archive) can hold, is `Corrupt`; any other
+/// deviation is left to `walk` / `walk_v2`. It owns its disk, so a caller
+/// that needs a fresh reader per pass (`restore_native_l2`) can build one from
+/// a copyable handle; pass `&mut disk` to borrow instead.
+pub struct DiskSource<D: Disk> {
+    disk: D,
     sectors: u64,
     length: Option<u64>,
     position: u64,
@@ -573,8 +576,8 @@ pub struct DiskSource<'a, D: Disk> {
     loaded: Option<u64>,
 }
 
-impl<'a, D: Disk> DiskSource<'a, D> {
-    pub fn new(disk: &'a mut D, sectors: u64) -> Self {
+impl<D: Disk> DiskSource<D> {
+    pub fn new(disk: D, sectors: u64) -> Self {
         Self {
             disk,
             sectors,
@@ -595,7 +598,7 @@ impl<'a, D: Disk> DiskSource<'a, D> {
     }
 }
 
-impl<D: Disk> Source for DiskSource<'_, D> {
+impl<D: Disk> Source for DiskSource<D> {
     fn get(&mut self, out: &mut [u8]) -> Result<usize, Status> {
         let length = match self.length {
             Some(length) => length,
@@ -605,10 +608,26 @@ impl<D: Disk> Source for DiskSource<'_, D> {
                 }
                 self.load(0)?;
                 let header = &self.buffer;
-                let records = u64::from(header[13]) * COLLECTION_RECORD as u64
-                    + u64::from(header[12]) * OBJECT_RECORD as u64;
-                let length = ((HEADER + TRAILER) as u64 + records)
+                // v2: the range adapter bound of S09-ARCHIVE-V2 section 4.4 (R4).
+                let (fixed, limit) = match get16(header, 8) {
+                    VERSION => (
+                        (HEADER + TRAILER) as u64
+                            + u64::from(header[13]) * COLLECTION_RECORD as u64
+                            + u64::from(header[12]) * OBJECT_RECORD as u64,
+                        u64::MAX,
+                    ),
+                    VERSION_V2 => (
+                        (HEADER_V2 + TRAILER) as u64
+                            + u64::from(header[13]) * COLLECTION_RECORD_V2 as u64
+                            + u64::from(header[12]) * OBJECT_RECORD_V2 as u64
+                            + u64::from(get16(header, 14)) * VERSION_RECORD_V2 as u64,
+                        MAX_ARCHIVE_V2,
+                    ),
+                    _ => return Err(Status::Corrupt),
+                };
+                let length = fixed
                     .checked_add(get64(header, 24))
+                    .filter(|length| *length <= limit)
                     .filter(|length| *length <= self.sectors.saturating_mul(SECTOR as u64))
                     .ok_or(Status::Corrupt)?;
                 self.length = Some(length);
