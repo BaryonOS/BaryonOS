@@ -28,7 +28,7 @@ class MatrixContract(unittest.TestCase):
         before = checker.ARCHIVE.read_bytes()
         result = checker.check(checker.ROOT)
         self.assertTrue(result["ok"], result["errors"])
-        self.assertEqual(result["tiers"]["baseline"], 51)
+        self.assertEqual(result["tiers"]["baseline"], 53)
         self.assertEqual(hashlib.sha256(before).hexdigest(),
                          "cf1b65d170a385a0e4fde9724d326bbbe4f5d1cdbd7186073800f7b1bd251bab")
         self.assertEqual(checker.ARCHIVE.read_bytes(), before)

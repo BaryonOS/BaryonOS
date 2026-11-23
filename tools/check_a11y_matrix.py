@@ -17,8 +17,8 @@ import types
 ROOT = Path(__file__).resolve().parents[1]
 ARCHIVE = ROOT / "docs/verification/a11y-research-20261115/check.py"
 ARCHIVE_SHA256 = "cf1b65d170a385a0e4fde9724d326bbbe4f5d1cdbd7186073800f7b1bd251bab"
-BASELINES = ROOT / "docs/verification/a11y-checker-20261118/baseline-contract.json"
-BASELINES_SHA256 = "c14d155d0cb4573bbd816cff13b60e557eab73e1af192d98fb482b45b2b42a5f"
+BASELINES = ROOT / "docs/verification/a11y-checker-20261119/baseline-contract.json"
+BASELINES_SHA256 = "9bdab7b19ac0c10c5e6c1d45e2bd513ce8c7868cf01bd98bc9ce07e5992a00c9"
 MATRIX = Path("docs/design/accessibility/ACCESSIBILITY-MATRIX.md")
 FILE_SUFFIX = re.compile(r"\.(?:css|html|js|rs|md|py|json|toml)\b")
 QUOTED = re.compile(r"(`[^`]*`)")
