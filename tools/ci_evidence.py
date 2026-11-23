@@ -35,6 +35,7 @@ MAX_CONSOLE_BYTES = 256 * 1024
 MAX_PREVIEW_BYTES = 16 * 1024
 TEXT_SUFFIXES = {".json", ".txt", ".log", ".md", ".sha256", ".xml", ".csv"}
 STATUSES = {"success", "failure", "cancelled", "skipped", "unknown"}
+ALREADY_FAILED = {"failure", "cancelled"}
 SENSITIVE_NAME = re.compile(
     r"(?:^|[-_.])(secrets?|credentials?|passwords?|tokens?|private[-_]key)"
     r"(?:$|[-_.])",
@@ -351,7 +352,10 @@ def _summary(receipt: dict) -> str:
     ]
     if not receipt["retained"]:
         lines += ["", "**WARNING: No eligible test evidence was found. The receipt is metadata only.**"]
-    if receipt["unretained_required_paths"]:
+    if receipt["unretained_required_paths"] and receipt["job_status_before_archive"] in ALREADY_FAILED:
+        lines += ["", "**ERROR: Required evidence was not retained. The job has already failed, "
+                  "so the reports that exist are kept for diagnosis.**"]
+    elif receipt["unretained_required_paths"]:
         lines += ["", "**ERROR: Required evidence was not retained; this collection must fail.**"]
     if receipt["omitted_list_truncated_count"]:
         lines += ["", f"Omitted-path listing truncated by {receipt['omitted_list_truncated_count']} entries; reason counts remain complete."]
@@ -507,7 +511,9 @@ def collect(
                 f"has-files={'true' if retained else 'false'}\n"
                 f"required-files={'false' if unretained_required else 'true'}\n"
             )
-    if unretained_required:
+    # A job that already failed or was cancelled keeps failing; refusing collection there
+    # would only drop the diagnostics that do exist. Any other status stays fail-closed.
+    if unretained_required and status not in ALREADY_FAILED:
         raise EvidenceError(
             "Required evidence path was not retained: "
             + ", ".join(_path_label(path) for path in unretained_required)
