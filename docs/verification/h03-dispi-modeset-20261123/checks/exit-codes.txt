@@ -18,3 +18,8 @@ build-default2 rc=0 :: NOS_BUILD_DIR=build/h03t4 python3 -B tools/build.py
 smoke2 rc=0 :: NOS_BUILD_DIR=build/h03t4 python3 -B tools/run.py --smoke
 build-display-probe2 rc=0 :: NOS_BUILD_DIR=build/h03t4 python3 -B -u tools/build.py --kernel-feature native-display-probe
 run-display-probe2 rc=0 :: NOS_BUILD_DIR=build/h03t4 python3 -B -u tools/run_display_probe.py --qmp-transport pipe --vga-rom /usr/share/seabios/vgabios-stdvga.bin
+host-tools-all-no-giteditor rc=0 :: env -u GIT_EDITOR python3 -B -m unittest discover -s tools/tests -p test_*.py
+host-tests-all-no-giteditor rc=1 :: env -u GIT_EDITOR python3 -B -m unittest discover -s tests -p test_*.py
+host-test_document_session_selection rc=0 :: python3 -B -m unittest discover -s tests -p test_document_session_selection.py
+host-test_document_session_harness rc=0 :: python3 -B -m unittest discover -s tests -p test_document_session_harness.py
+host-test_qsim_harness rc=0 :: python3 -B -m unittest discover -s tests -p test_qsim_harness.py

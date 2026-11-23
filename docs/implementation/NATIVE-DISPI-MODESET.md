@@ -43,7 +43,8 @@ GOP descriptor and mapping are unchanged.
 - Modes come only from the const allowlist 640×480, 800×600, 1024×768,
   1280×720 (in that order, so the first mode differs from the GOP mode).
 - Mode set: ENABLE=0, XRES, YRES, BPP=32, VIRT_WIDTH=XRES, X/Y offset 0,
-  ENABLE=0x41 (enabled + linear framebuffer; the device clears VRAM). Every
+  ENABLE=0x41 (enabled + linear framebuffer; NOCLEARMEM is not requested, so
+  QEMU is expected to clear VRAM, which this fixture does not measure). Every
   written register is read back; any mismatch, or VIRT_HEIGHT below YRES,
   ends with `M1:FAIL:DISPI_READBACK` (exit 0x11). VIRT_HEIGHT is derived by
   the device (VRAM / line length) and is checked only as a lower bound.
@@ -77,7 +78,8 @@ with 0x10 (raw QEMU exit 33).
 ## Negative case
 
 `--case negative` boots the same images with `-device bochs-display`
-(1234:1111 with class 0x0380 and no VGA I/O ports). OVMF still provides the
+(1234:1111; QMP `query-pci` measured class 0x0380 and memory BARs only; it is
+not a VGA device, so the legacy 0x1CE/0x1CF ports are not expected to decode). OVMF still provides the
 1280×720 GOP. The runner requires the exact sequence `KS-03:PASS`, the GOP
 lines, `DISPI:REFUSED:DEVICE`, `M1:FAIL:DISPI_REFUSED`, no READBACK or MODE
 line, and raw exit 35.
