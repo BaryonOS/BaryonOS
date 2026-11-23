@@ -14,6 +14,8 @@
 //! - A mutation the service applied but the index did not follow leaves the
 //!   index dirty: queries are refused until a rebuild succeeds. Only a
 //!   rebuild clears it. A refused mutation changed nothing and keeps the index.
+//!   A `Protocol` mutation reply is uncertain (the service may have applied
+//!   it), so it also leaves the index dirty.
 //! - `Unknown`/`Timeout` revokes the grant. The epoch is the volume epoch,
 //!   fixed for the boot, so a revoke is terminal until a reboot. After a
 //!   revoke no further request is sent.
@@ -137,6 +139,15 @@ impl<T: Transport> Search<T> {
         Error::Volume(status)
     }
 
+    /// For mutation replies: `Protocol` may follow an applied change, so the
+    /// index waits for a rebuild; otherwise as `fail`.
+    fn uncertain(&mut self, status: Status) -> Error {
+        if status == Status::Protocol {
+            self.dirty = true;
+        }
+        self.fail(status)
+    }
+
     /// Refuses every operation after a revoke, before any request is sent.
     fn live(&self) -> Result<(), Error> {
         if self.revoked {
@@ -191,6 +202,7 @@ impl<T: Transport> Search<T> {
             content: b"",
         }; PER_DOMAIN];
         for (document, entry) in documents.iter_mut().zip(&entries[..count]) {
+            // Defence in depth only: `Client::validate_reply` already refused these.
             let slot = check_entry(self.domain, entry)?;
             collection_of[slot] = entry.collection;
             *document = Document {
@@ -216,7 +228,7 @@ impl<T: Transport> Search<T> {
         mutation: impl FnOnce(&mut Client<T>) -> Result<R, Status>,
     ) -> Result<R, Error> {
         self.live()?;
-        let value = mutation(&mut self.client).map_err(|status| self.fail(status))?;
+        let value = mutation(&mut self.client).map_err(|status| self.uncertain(status))?;
         self.dirty = true;
         self.rebuild()?;
         Ok(value)
@@ -270,7 +282,7 @@ impl<T: Transport> Search<T> {
     pub fn rename(&mut self, object: u64, expected: u64, name: &[u8]) -> Result<u64, Error> {
         let slot = self.own(object)?;
         let revision = self.client.rename(object, expected, name);
-        let revision = revision.map_err(|status| self.fail(status))?;
+        let revision = revision.map_err(|status| self.uncertain(status))?;
         let document = Document {
             object,
             revision,
@@ -288,7 +300,7 @@ impl<T: Transport> Search<T> {
     pub fn delete(&mut self, object: u64, expected: u64) -> Result<u64, Error> {
         let slot = self.own(object)?;
         let revision = self.client.delete(object, expected);
-        let revision = revision.map_err(|(status, _)| self.fail(status))?;
+        let revision = revision.map_err(|(status, _)| self.uncertain(status))?;
         let applied = self.index.delete(self.grant, object, revision);
         self.applied(applied)?;
         self.collection_of[slot] = 0;
@@ -318,10 +330,15 @@ impl<T: Transport> Search<T> {
 /// `(object, revision)`; chain calls to digest a fixed query set.
 /// tests/test_search_oracle.py implements the same function.
 pub fn digest(value: u64, hits: &Hits) -> u64 {
+    digest_pairs(value, hits.iter().map(|hit| (hit.object, hit.revision)))
+}
+
+/// At most `RESULTS` pairs.
+fn digest_pairs(value: u64, pairs: impl Iterator<Item = (u64, u64)>) -> u64 {
     let mut sorted = [(0u64, 0u64); RESULTS];
     let mut count = 0;
-    for hit in hits.iter() {
-        sorted[count] = (hit.object, hit.revision);
+    for pair in pairs {
+        sorted[count] = pair;
         count += 1;
     }
     sorted[..count].sort_unstable();

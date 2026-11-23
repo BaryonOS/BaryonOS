@@ -28,6 +28,8 @@ impl Disk for Memory {
     }
 }
 
+type Tamper = fn(&mut [u8; wire::SIZE]);
+
 /// The service as seen from one kernel-bound domain, with fault injection.
 struct Local {
     service: Service,
@@ -36,8 +38,19 @@ struct Local {
     calls: usize,
     /// Fail the request with this call number (0-based) without sending it.
     fail_at: Option<(usize, Status)>,
-    /// Rewrite every LIST reply after the service produced it.
-    tamper: Option<fn(&mut [u8; wire::SIZE])>,
+    /// Rewrite every reply to this operation after the service produced it.
+    tamper: Option<(u16, Tamper)>,
+    /// Before this call (0-based), rename collection 1 to "Home" directly.
+    relabel_at: Option<usize>,
+}
+
+/// The service without fault injection, for changes made behind the adapter.
+struct Direct<'a>(&'a mut Service, &'a mut Memory, usize);
+
+impl Transport for Direct<'_> {
+    fn call(&mut self, request: &[u8; wire::SIZE]) -> Result<[u8; wire::SIZE], Status> {
+        Ok(self.0.handle(self.2, request, self.1))
+    }
 }
 
 impl Transport for Local {
@@ -49,9 +62,14 @@ impl Transport for Local {
                 return Err(status);
             }
         }
+        if self.relabel_at == Some(call) {
+            let direct = Direct(&mut self.service, &mut self.disk, self.domain);
+            let mut client = Client::new(direct, EPOCH, 50_000);
+            assert!(client.collection(self.domain, 1, 1, b"Home").is_ok());
+        }
         let mut reply = self.service.handle(self.domain, request, &mut self.disk);
-        if let Some(tamper) = self.tamper {
-            if wire::header(request).operation == wire::LIST {
+        if let Some((operation, tamper)) = self.tamper {
+            if wire::header(request).operation == operation {
                 tamper(&mut reply);
             }
         }
@@ -67,6 +85,7 @@ fn local(domain: usize) -> Local {
         calls: 0,
         fail_at: None,
         tamper: None,
+        relabel_at: None,
     }
 }
 
@@ -286,7 +305,7 @@ fn n1_to_n4_malformed_list_replies_are_protocol_and_publish_nothing() {
         let mut search = fixture();
         let before = find(&search, "meeting");
         search.rename(4, 1, b"after").unwrap();
-        search.client.transport.tamper = Some(tamper);
+        search.client.transport.tamper = Some((wire::LIST, tamper));
         assert_eq!(
             search.rebuild(),
             Err(Error::Volume(Status::Protocol)),
@@ -538,4 +557,60 @@ fn digest_is_order_independent_and_revision_bound() {
     assert_ne!(digest(DIGEST_START, &all), DIGEST_START);
     let none = search.query(b"nothing").unwrap();
     assert_eq!(digest(DIGEST_START, &none), DIGEST_START);
+    let pairs = |p: &[(u64, u64)]| digest_pairs(DIGEST_START, p.iter().copied());
+    assert_eq!(pairs(&[(0, 2), (4, 1)]), pairs(&[(4, 1), (0, 2)]));
+    assert_ne!(pairs(&[(0, 2), (4, 1)]), pairs(&[(0, 2), (4, 2)]));
+}
+
+/// A malformed RENAME, DELETE or COLLECTION reply may follow an applied
+/// change, so queries wait for a rebuild instead of answering stale data.
+#[test]
+fn malformed_mutation_reply_requires_a_rebuild() {
+    let reserved = |r: &mut [u8; wire::SIZE]| r[4] = 1;
+    let protocol = Err(Error::Volume(Status::Protocol));
+    let rebuild = Err(Error::RebuildRequired);
+
+    let mut search = fixture();
+    search.client.transport.tamper = Some((wire::RENAME, reserved));
+    assert_eq!(search.rename(0, 2, b"renamed"), protocol);
+    assert_eq!(search.query(b"meeting").map(|_| ()), rebuild);
+    search.client.transport.tamper = None;
+    search.rebuild().unwrap();
+    assert_eq!(find(&search, "meeting"), vec![]);
+    assert_eq!(find(&search, "renamed"), vec![(0, 3)]);
+
+    let mut search = fixture();
+    search.client.transport.tamper = Some((wire::DELETE, reserved));
+    assert_eq!(search.delete(1, 1), protocol);
+    assert_eq!(search.query(b"budget").map(|_| ()), rebuild);
+    search.client.transport.tamper = None;
+    search.rebuild().unwrap();
+    assert_eq!(find(&search, "budget"), vec![]);
+
+    let mut search = fixture();
+    search.client.transport.tamper = Some((wire::COLLECTION, reserved));
+    assert_eq!(search.collection(1, 1, b"Home"), protocol);
+    assert_eq!(search.query(b"work").map(|_| ()), rebuild);
+    search.client.transport.tamper = None;
+    search.rebuild().unwrap();
+    assert_eq!(find(&search, "work"), vec![]);
+    assert_eq!(find(&search, "home meeting"), vec![(0, 2)]);
+}
+
+/// A collection change between the two LISTs changes the domain generation,
+/// so the labels are not bound to the listing and nothing is published.
+#[test]
+fn label_change_between_lists_is_stale_and_publishes_nothing() {
+    let mut search = fixture();
+    search.rename(0, 2, b"zulu").unwrap();
+    let last = search.generation;
+    // LIST, then COLLECTIONS STATs; relabel just before the second LIST.
+    let at = search.client.transport.calls + 1 + COLLECTIONS;
+    search.client.transport.relabel_at = Some(at);
+    assert_eq!(search.rebuild(), Err(Error::Volume(Status::Stale)));
+    assert_eq!(search.generation, last);
+    assert_eq!(find(&search, "work zulu"), vec![(0, 3)]);
+    assert_eq!(find(&search, "home"), vec![]);
+    search.rebuild().unwrap();
+    assert_eq!(find(&search, "home zulu"), vec![(0, 3)]);
 }

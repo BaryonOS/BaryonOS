@@ -30,8 +30,9 @@ The lead decisions B1–B4 define this contract.
 - RENAME and DELETE update the index with the revision that the service
   returned. WRITE, COLLECTION and META force a full rebuild.
 - If the service applied a mutation but the index did not follow it, queries
-  return `RebuildRequired` until a rebuild succeeds. A mutation that the
-  service refused changes nothing in the index.
+  return `RebuildRequired` until a rebuild succeeds. A mutation reply that
+  fails validation (`Protocol`) counts as possibly applied and has the same
+  effect. A mutation that the service refused changes nothing in the index.
 - A `Unknown` or `Timeout` result revokes the grant. The epoch is the volume
   epoch and is fixed for the boot, so a re-grant returns `Denied`. After a
   revoke, the adapter sends no further request.
