@@ -49,8 +49,10 @@ class SleepVerifier(unittest.TestCase):
     def test_every_case_passes_with_its_exact_tail_exit_and_events(self):
         for case, tail in TAILS.items():
             with self.subTest(case=case):
-                observed = gate.evaluate(case, transcript(tail), 33, False, events(case))
+                observed = gate.evaluate(case, transcript(tail), gate.EXIT[case], False,
+                                         events(case))
                 self.assertEqual(observed["case"], case)
+        self.assertEqual(gate.EXIT, {"cycles": 33, "corrupt-facs": 33, "stale-token": 37})
         observed = gate.evaluate("cycles", transcript(TAILS["cycles"]), 33, False,
                                  events("cycles"))
         self.assertEqual(len(observed["cycles"]), gate.CYCLES)
@@ -124,10 +126,22 @@ class SleepVerifier(unittest.TestCase):
             gate.evaluate("corrupt-facs", transcript(cycles_tail()), 33, False, [])
         # A stale token must never reach RESUMED, and must have slept once.
         stale = [PLAN, gate.ENTER.format(1), resumed(1)]
+        for code in (33, 37):
+            with self.assertRaises(ValueError):
+                gate.evaluate("stale-token", transcript(stale), code, False, events("stale-token"))
         with self.assertRaises(ValueError):
-            gate.evaluate("stale-token", transcript(stale), 33, False, events("stale-token"))
-        with self.assertRaises(ValueError):
-            gate.evaluate("stale-token", transcript(TAILS["stale-token"]), 33, False, [])
+            gate.evaluate("stale-token", transcript(TAILS["stale-token"]), 37, False, [])
+
+    def test_a_rejected_wake_and_a_pass_never_share_an_exit(self):
+        # The exact rejection tail with the pass exit, the generic failure exit
+        # or no exit fails; so does any other case ending with the rejection exit.
+        for code, timed_out in [(33, False), (35, False), (0, False), (None, True)]:
+            with self.subTest(code=code), self.assertRaises(ValueError):
+                gate.evaluate("stale-token", transcript(TAILS["stale-token"]), code, timed_out,
+                              events("stale-token"))
+        for case in ("cycles", "corrupt-facs"):
+            with self.subTest(case=case), self.assertRaises(ValueError):
+                gate.evaluate(case, transcript(TAILS[case]), 37, False, events(case))
         with self.assertRaises(ValueError):
             gate.expected_wakeups("unknown")
 
@@ -176,7 +190,7 @@ for line in sys.stdin:
         time.sleep(0.05)
         emit({"event": "WAKEUP"})
         out("POWER:S3:WAKE:REJECTED:TOKEN:ARMED=1:PAGE=0x5a5a0001")
-        sys.exit(33)
+        sys.exit(37)
 """
 
 
@@ -190,7 +204,7 @@ class ControllerLateWakeup(unittest.TestCase):
             result = gate.controlled_guest(args, cwd=cwd, env=dict(os.environ), timeout=30,
                                            run_dir=run_dir, case="stale-token")
         self.assertIsNone(result["error"])
-        self.assertEqual(result["returncode"], 33)
+        self.assertEqual(result["returncode"], 37)
         self.assertEqual([e for e in result["events"] if e in ("SUSPEND", "WAKEUP")],
                          ["SUSPEND", "WAKEUP"])
         self.assertEqual(len(result["observations"]), 1)

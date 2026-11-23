@@ -25,6 +25,28 @@ const _: () = assert!(
 /// PTE address of each CPU's slot, written once by `begin_scratch` before any
 /// AP starts (published by the AP start protocol), then read-only.
 static SCRATCH_ENTRY: [AtomicU64; MAX_CPUS] = [const { AtomicU64::new(0) }; MAX_CPUS];
+/// The FACS extent (address, length) whose ACPI NVS type-10 proof S3
+/// discovery returned; `write_firmware` refuses every store outside it.
+/// Recorded once on the single BSP before the first store; 0 length = none.
+#[cfg(feature = "acpi-s3-core")]
+static FIRMWARE_WRITE_EXTENT: [AtomicU64; 2] = [const { AtomicU64::new(0) }; 2];
+
+/// Records the proven FACS extent once. Returns false (recording nothing new)
+/// for an empty extent or a second, different extent.
+#[cfg(feature = "acpi-s3-core")]
+pub(super) fn record_firmware_write_extent(address: u64, length: usize) -> bool {
+    let [start, len] = &FIRMWARE_WRITE_EXTENT;
+    match len.load(Ordering::Acquire) {
+        0 if length != 0 => {
+            start.store(address, Ordering::Relaxed);
+            len.store(length as u64, Ordering::Release);
+            true
+        }
+        recorded => {
+            recorded != 0 && recorded == length as u64 && start.load(Ordering::Relaxed) == address
+        }
+    }
+}
 static mut EXECUTABLE: [bool; FRAME_COUNT] = [false; FRAME_COUNT];
 static mut OBSERVED: [Alias; FRAME_COUNT] = [Alias {
     writable: 0,
@@ -494,6 +516,9 @@ impl Paging {
     /// supervisor RW/NX mapping, removed again before returning. Used only for
     /// the FACS waking-vector fields of the validated S3 plan.
     ///
+    /// Fails closed (`Permission`, nothing mapped or written) unless the whole
+    /// span lies inside the extent `record_firmware_write_extent` recorded.
+    ///
     /// # Safety
     /// `address..address + input.len()` must lie entirely inside UEFI ACPI NVS
     /// memory that the OS is specified to update (the FACS), never MMIO,
@@ -504,6 +529,15 @@ impl Paging {
         address: u64,
         input: &[u8],
     ) -> Result<(), kernel_core::Error> {
+        let [start, length] = &FIRMWARE_WRITE_EXTENT;
+        if !nieuw_os_acpi_power::store_within_extent(
+            start.load(Ordering::Acquire),
+            length.load(Ordering::Acquire) as usize,
+            address,
+            input.len(),
+        ) {
+            return Err(kernel_core::Error::Permission);
+        }
         let source = input.as_ptr();
         // SAFETY: As above; `source` is a readable kernel slice of that length.
         unsafe {

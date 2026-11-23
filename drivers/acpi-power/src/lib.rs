@@ -226,6 +226,24 @@ impl WakePlan {
     }
 }
 
+/// Whether the store `address..address + length` lies entirely inside the
+/// FACS extent `extent_address..extent_address + extent_length` that discovery
+/// proved to be ACPI NVS. An empty extent or any address overflow is outside.
+pub fn store_within_extent(
+    extent_address: u64,
+    extent_length: usize,
+    address: u64,
+    length: usize,
+) -> bool {
+    let (Some(extent_end), Some(end)) = (
+        extent_address.checked_add(extent_length as u64),
+        address.checked_add(length as u64),
+    ) else {
+        return false;
+    };
+    extent_length != 0 && address >= extent_address && end <= extent_end
+}
+
 /// Validated FACS fields, not a callable or authorized waking target.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct FacsInfo {

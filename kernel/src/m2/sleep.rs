@@ -12,7 +12,8 @@
 //! - The 32/64-bit stages, their GDT and the wake stack live in the
 //!   identity-mapped kernel image, as in `smp`.
 //! - The FACS waking vector is stored only into the FACS extent that
-//!   discovery validated (`parse_s3`) and proved to be UEFI ACPI NVS. It is
+//!   discovery validated (`parse_s3`) and proved to be UEFI ACPI NVS;
+//!   `paging::write_firmware` refuses every store outside that extent. It is
 //!   armed immediately before SLP_EN and cleared right after a validated wake,
 //!   and both stores are read back before the kernel relies on them.
 //! - Resume authority: the 32-bit stage carries the page token into long mode
@@ -83,6 +84,10 @@ static mut SAVED: Saved = Saved {
 };
 /// The armed generation; 0 means no wake is authorized.
 static ARMED: AtomicU32 = AtomicU32::new(0);
+/// isa-debug-exit value of a rejected wake (raw QEMU exit 37), in every S3
+/// profile; no other kernel or loader path writes it, so it is neither the
+/// pass (0x10, raw 33) nor a generic failure (0x11, raw 35).
+const WAKE_REJECTED_EXIT: u32 = 0x12;
 
 // Wake page layout (offsets inside the copied page):
 //   0  cli; short jmp to code      8  CR3 (patched once)
@@ -263,7 +268,22 @@ extern "C" {
 /// Runs on the wake stack with the trampoline GDT, the firmware IDT and the
 /// kernel CR3. Returns the saved suspend stack only for the armed generation.
 extern "C" fn s3_wake(token: u64) -> u64 {
-    // SAFETY: SAVED was written by this CPU before SLP_EN and is read-only now.
+    // Authority before any restore: the check reads only the token register
+    // and ARMED (kernel .bss, mapped by the kernel CR3 the 32-bit stage
+    // loaded), never SAVED, so an unarmed wake is reported, not faulted on.
+    // The reject path needs only port I/O and the soft-float kernel's integer
+    // code, which the stage's CR0 (PG|WP|PE), CR4.PAE and EFER (LME|NXE) run.
+    let armed = ARMED.load(Ordering::Acquire);
+    if armed == 0 || token != u64::from(armed) {
+        serial::init();
+        let _ = writeln!(
+            Serial,
+            "POWER:S3:WAKE:REJECTED:TOKEN:ARMED={armed}:PAGE={token:#x}"
+        );
+        serial::exit(WAKE_REJECTED_EXIT);
+    }
+    // SAFETY: `cycle` writes SAVED on this CPU before it arms a generation,
+    // and a matching token exists only for an armed one; read-only now.
     let saved = unsafe { *ptr::addr_of!(SAVED) };
     // SAFETY: CPL0, IF=0. CR4/CR0/EFER/PAT are restored to the exact values
     // read just before sleep; PAE, PG and LME are already set identically.
@@ -274,19 +294,6 @@ extern "C" fn s3_wake(token: u64) -> u64 {
     wrmsr(MSR_EFER, saved.efer);
     wrmsr(MSR_PAT, saved.pat);
     serial::init();
-    let armed = ARMED.load(Ordering::Acquire);
-    if armed == 0 || token != u64::from(armed) {
-        let _ = writeln!(
-            Serial,
-            "POWER:S3:WAKE:REJECTED:TOKEN:ARMED={armed}:PAGE={token:#x}"
-        );
-        // A rejected wake must never look like the system profile's pass.
-        serial::exit(if cfg!(feature = "test-system-s3") {
-            0x11
-        } else {
-            0x10
-        });
-    }
     arch::reload_after_resume();
     // SAFETY: Written by nos_s3_suspend on this CPU for this armed generation.
     unsafe { *ptr::addr_of!(NOS_S3_SAVED_RSP) }
@@ -464,6 +471,7 @@ fn store_facs(
         // SAFETY: `facs..facs+length` is the FACS extent discovery validated
         // with parse_s3 and proved to be UEFI ACPI NVS; the offsets are the
         // OSPM-owned waking-vector fields of the plan for this FACS version.
+        // write_firmware refuses any store outside that recorded extent.
         if unsafe { paging.write_firmware(facs + *offset as u64, &bytes[..*len]) }.is_err() {
             return false;
         }
@@ -531,6 +539,14 @@ fn resolve(prepared: Preparation) -> Option<Ctx> {
         }
     };
     let facs = plan.facs();
+    // `Ready` is discovery's proof that this whole extent is ACPI NVS
+    // (type 10); parse_s3 bound the snapshot's length field to that extent.
+    let snapshot = power::facs_bytes();
+    let length = u32::from_le_bytes([snapshot[4], snapshot[5], snapshot[6], snapshot[7]]) as usize;
+    if !paging::record_firmware_write_extent(facs.source_address(), length) {
+        serial::write(b"POWER:S3:REJECTED:FacsExtent\n");
+        return None;
+    }
     let entry32 = nos_s3_entry32_direct as unsafe extern "C" fn() as usize as u64;
     let wake = match facs.wake_plan(prepared.page, Some(entry32), POLICY) {
         Ok(wake) => wake,
@@ -541,7 +557,6 @@ fn resolve(prepared: Preparation) -> Option<Ctx> {
     };
     let pm1a = plan.pm1a();
     let event = plan.pm1a_event();
-    let snapshot = power::facs_bytes();
     let _ = writeln!(
         Serial,
         "POWER:S3:PLAN:PM1A={:#06x}:SLP_TYP={}:PM1A_STS={:#06x}:FACS_VERSION={}:REAL={:#x}:PM32={:#x}:POLICY={:?}",
@@ -562,7 +577,7 @@ fn resolve(prepared: Preparation) -> Option<Ctx> {
         page: prepared.page,
         canary: prepared.canary,
         facs: facs.source_address(),
-        length: u32::from_le_bytes([snapshot[4], snapshot[5], snapshot[6], snapshot[7]]) as usize,
+        length,
         wake,
         disarm: facs.disarmed_plan(POLICY),
         pm1a,
@@ -587,6 +602,16 @@ fn cycle(
     // Pre-sleep: clear WAK_STS, fill the canary, arm token and FACS.
     clear_status(event, Pm1Event::WAKE_STATUS);
     canary(&ctx.canary, cycle, true);
+    // SAFETY: Single CPU; SAVED is written before the generation is armed,
+    // so s3_wake reads it only for a token this cycle authorized.
+    unsafe {
+        ptr::addr_of_mut!(SAVED).write(Saved {
+            cr0: cr(false),
+            cr4: cr(true),
+            efer: rdmsr(MSR_EFER),
+            pat: rdmsr(MSR_PAT),
+        });
+    }
     ARMED.store(cycle, Ordering::Release);
     let page_token = if cfg!(feature = "test-acpi-s3-stale-token") {
         // Negative fixture: the page carries another generation's token.
@@ -603,15 +628,6 @@ fn cycle(
             return false;
         }
         serial::fail(b"S3_FACS_DISARM");
-    }
-    // SAFETY: Single CPU; SAVED is read only by s3_wake after this point.
-    unsafe {
-        ptr::addr_of_mut!(SAVED).write(Saved {
-            cr0: cr(false),
-            cr4: cr(true),
-            efer: rdmsr(MSR_EFER),
-            pat: rdmsr(MSR_PAT),
-        });
     }
     // SAFETY: Single CPU; only the wake stages write this before s3_wake.
     unsafe { ptr::addr_of_mut!(NOS_S3_ENTRY_PATH).write_volatile(0) };

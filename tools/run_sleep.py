@@ -33,6 +33,11 @@ FEATURES = {
     "stale-token": "test-acpi-s3-stale-token",
 }
 CYCLES = 3
+# Raw QEMU exit per case: (isa-debug value << 1) | 1. A pass and the
+# corrupt-FACS plan rejection (no PM1 write, returns to the M2 exit) end with
+# 0x10 (33); a rejected wake ends with the kernel's WAKE_REJECTED_EXIT 0x12
+# (37), which no other kernel or loader path uses.
+EXIT = {"cycles": 33, "corrupt-facs": 33, "stale-token": 37}
 # The FACS layout, PM1 ports and firmware path below are measured on this
 # machine only; another machine type is a different, unverified profile.
 MACHINE = "pc-q35-8.2"
@@ -264,8 +269,8 @@ def evaluate(case: str, stdout: str, raw_exit: int | None, timed_out: bool,
              events: list[str]) -> dict:
     """Checks the exact serial tail, exit, single boot and QMP event order."""
     wakeups = expected_wakeups(case)
-    if timed_out or raw_exit != 33:
-        raise ValueError(f"QEMU exit {raw_exit} (timed_out={timed_out}), expected 33")
+    if timed_out or raw_exit != EXIT[case]:
+        raise ValueError(f"QEMU exit {raw_exit} (timed_out={timed_out}), expected {EXIT[case]}")
     lines = without_acpi_diagnostics(stdout).splitlines()
     if lines.count(BOOT[0]) != 1:
         raise ValueError("Missing or repeated EBS handoff (reset or reboot)")
@@ -337,7 +342,7 @@ def run_case(case: str) -> dict:
         report.update(source_sha256=frozen, source_fingerprint_version=3,
                       manifest_sha256=manifest_hash)
         guest = run_guest("sleep-" + case, timeout=180, required_markers=BOOT,
-                          s3_case=case, expected_kernel_sha256=manifest["kernel"]["sha256"],
+                          expected_exit=EXIT[case], s3_case=case, expected_kernel_sha256=manifest["kernel"]["sha256"],
                           expected_loader_sha256=manifest["loader"]["sha256"])
         report["guest"] = guest
         save_json(destination, report)

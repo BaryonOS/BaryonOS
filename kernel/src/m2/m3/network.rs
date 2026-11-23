@@ -249,6 +249,11 @@ pub(super) fn syscall(s: &mut State, slot: usize, number: u64, args: [u64; 6]) -
     match call(s, slot, number, args) {
         Ok(v) => (0, v),
         Err(code) => {
+            // The post-wake refusal in `call` updates no counter either.
+            #[cfg(feature = "test-system-s3")]
+            if code == -14 && matches!(number, 0x70..=0x72) && super::system::resumed() {
+                return (code, 0);
+            }
             if code != -8 {
                 runtime().denied += 1;
             }
@@ -271,6 +276,14 @@ fn call(s: &mut State, slot: usize, n: u64, a: [u64; 6]) -> Result<u64, i64> {
         || cfg!(feature = "test-system-net-link") && n == 0x74 && a[1..4].iter().any(|x| *x != 0)
     {
         return Err(-1);
+    }
+    // ADR-H05-S3-SYSTEM-20261123: the wake reset the NIC. As for keyring and
+    // volume, refused after the shape checks and before authority, plans,
+    // copies, ring or device access. (main.rs currently forbids this profile
+    // combination, so this is defence in depth, never built by a gate.)
+    #[cfg(feature = "test-system-s3")]
+    if matches!(n, 0x70..=0x72) && super::system::resumed() {
+        return Err(-14);
     }
     let pid = s.processes[slot].pid;
     let key = authorize(pid, a[0])?;

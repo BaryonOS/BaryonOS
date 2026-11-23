@@ -1,6 +1,6 @@
 use nieuw_os_acpi_power::{
-    fadt_facs_address, parse_s3, parse_s5, AcpiTableSnapshot, Error, ExtendedVectorPolicy,
-    Pm1Event, S3Plan, TableSnapshot, WakePlan,
+    fadt_facs_address, parse_s3, parse_s5, store_within_extent, AcpiTableSnapshot, Error,
+    ExtendedVectorPolicy, Pm1Event, S3Plan, TableSnapshot, WakePlan,
 };
 
 const FADT: u64 = 0x1000;
@@ -596,4 +596,38 @@ fn wake_plans_follow_the_facs_version_and_explicit_policy() {
     assert_eq!(WakePlan::LEGACY_VECTOR_OFFSET, 12);
     assert_eq!(WakePlan::EXTENDED_VECTOR_OFFSET, 24);
     assert_eq!(WakePlan::OSPM_FLAGS_OFFSET, 36);
+}
+
+#[test]
+fn waking_vector_stores_stay_inside_the_proven_facs_extent() {
+    // Every planned field of a 64-byte FACS is inside it.
+    for (offset, len) in [
+        (WakePlan::LEGACY_VECTOR_OFFSET, 4),
+        (WakePlan::EXTENDED_VECTOR_OFFSET, 8),
+        (WakePlan::OSPM_FLAGS_OFFSET, 4),
+        (0, 64),
+        (64, 0),
+    ] {
+        assert!(
+            store_within_extent(FACS, 64, FACS + offset as u64, len),
+            "{offset}+{len}"
+        );
+    }
+    // Below, straddling either edge, past the end, no extent, or overflowing.
+    for (extent, extent_len, address, len) in [
+        (FACS, 64, FACS - 1, 1),
+        (FACS, 64, FACS - 1, 4),
+        (FACS, 64, FACS + 60, 8),
+        (FACS, 64, FACS + 64, 1),
+        (FACS, 0, FACS, 0),
+        (FACS, 0, FACS, 4),
+        (0, 0, 0, 1),
+        (FACS, 64, u64::MAX - 2, 4),
+        (u64::MAX - 8, 64, u64::MAX - 4, 4),
+    ] {
+        assert!(
+            !store_within_extent(extent, extent_len, address, len),
+            "{extent:#x}+{extent_len} {address:#x}+{len}"
+        );
+    }
 }
