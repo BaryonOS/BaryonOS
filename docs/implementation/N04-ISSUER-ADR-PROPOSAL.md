@@ -192,6 +192,22 @@ instance.
   never as a global identifier, and no persistent reference may use a
   generation without the boot incarnation. A trusted cross-boot lower bound
   needs a freshness anchor, which is option 5B.
+- **Boot incarnation freshness.** The argument above holds only if a service
+  incarnation can never repeat across cold boots. A per-boot counter or a
+  value read from storage could repeat after a power cycle or a store
+  replay, so neither is enough. The required property is that the
+  incarnation includes a per-boot value of at least 128 bits drawn at boot
+  from the platform's approved entropy source, the one already used for key
+  material, and that the value is never persisted.
+  - Failure behaviour: if that entropy cannot be obtained, the network
+    service starts with no incarnation, delivers no grants and shows a
+    visible "network permissions unavailable" status. It never falls back
+    to a constant or a counter.
+  - Tokens are not meant to be persisted, but enforcement does not rely on
+    that: a token value that an app stored and replays after a cold boot
+    carries the old per-boot value and is refused as `Stale`, even when its
+    generation number equals one issued in the new boot.
+  - Which component draws and holds the per-boot value is open question 8.
 - **Old authority.** Tokens, connections, queued requests and late completions
   that carry an older generation or an older service incarnation are refused.
   - Generation or incarnation mismatch: `Stale` (wire) or `StaleGrant`/
@@ -356,7 +372,10 @@ clause, which remains separate evidence.
   - Reload of a pre-tombstone snapshot within the same boot must be refused,
     with no grants, as must reload of a different snapshot that carries the
     recorded generation (a broken lineage).
-- **Cold boot.** Replay of an older authentic store under 5A.
+- **Cold boot.** Replay of an older authentic store under 5A. Replay of a
+  token captured in an earlier boot, after a cold boot in which re-confirmation
+  issued the same generation number, must be refused as `Stale`. Boot with
+  the entropy source unavailable must deliver no grants.
 - **Mutation controls.** A mutant that skips each check must fail the
   corresponding test.
 
@@ -405,6 +424,9 @@ These three are the options with Security Floor impact.
    Decision 4 (from `LiveDenied` until `Durable`) and the identity record of
    the latest snapshot committed in this boot, which the warm-restart
    freshness check uses? How is that identity bound to the committed bytes?
+8. Which component draws the per-boot value of the service incarnation at
+   boot, from which approved entropy source, and how is it delivered to the
+   network service without being persisted?
 
 ## Sources
 
