@@ -629,9 +629,11 @@ services/net-stack/tests/hostile_ingress.rs
 services/net-stack/tests/withheld_transmission.rs
 services/net-tls/Cargo.toml
 services/net-tls/src/lib.rs
+services/net-tls/src/profile.rs
 services/net-tls/src/random.rs
 services/net-tls/src/time.rs
 services/net-tls/tests/loopback.rs
+services/net-tls/tests/profile.rs
 services/net-tls/tests/random.rs
 services/net-tls/tests/time.rs
 services/network-service/Cargo.toml
