@@ -97,7 +97,11 @@ mod supervisor;
 #[cfg(feature = "native-system")]
 #[cfg_attr(feature = "native-system-materiaal", allow(dead_code))]
 #[cfg_attr(feature = "native-system-nas-probe", path = "m3/nas.rs")]
-#[cfg_attr(feature = "native-net-service", path = "m3/network_service.rs")]
+#[cfg_attr(
+    all(feature = "native-net-service", not(feature = "test-net-service-dhcp")),
+    path = "m3/network_service.rs"
+)]
+#[cfg_attr(feature = "test-net-service-dhcp", path = "m3/network_dhcp.rs")]
 mod system;
 #[cfg(feature = "native-window-session")]
 mod window_session;
