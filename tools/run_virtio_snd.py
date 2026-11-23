@@ -376,10 +376,10 @@ def run_bounded(args: list[str], env: dict, *, timeout: float) -> tuple[int | No
             pipe.close()
     threads = [threading.Thread(target=drain, args=(index, pipe, kept), daemon=True)
                for index, (pipe, kept) in enumerate(zip((process.stdout, process.stderr), buffers))]
-    for thread in threads:
-        thread.start()
     deadline, timed_out, overflowed, killed = time.monotonic() + timeout, False, False, False
     try:
+        for thread in threads:  # inside the try: a failed start still kills QEMU
+            thread.start()
         while process.poll() is None:
             remaining = deadline - time.monotonic()
             if remaining <= 0 or overflow.is_set() or errors:
@@ -395,7 +395,8 @@ def run_bounded(args: list[str], env: dict, *, timeout: float) -> tuple[int | No
             killed = True
         process.wait()
         for thread in threads:
-            thread.join(timeout=10)
+            if thread.ident is not None:  # join() raises for a thread whose start() failed
+                thread.join(timeout=10)
     if errors:
         raise errors[0]
     if any(thread.is_alive() for thread in threads):

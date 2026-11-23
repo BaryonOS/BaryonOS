@@ -250,10 +250,36 @@ class Serial(unittest.TestCase):
 
     def test_a_failed_drain_raises_instead_of_returning_partial_output(self):
         fake = FakeProcess(stdout=[b"partial", OSError("pipe read failed")])
+        start = time.monotonic()
         with mock.patch.object(gate.subprocess, "Popen", return_value=fake):
             with self.assertRaisesRegex(OSError, "pipe read failed"):
-                gate.run_bounded(["qemu"], {}, timeout=5)
+                gate.run_bounded(["qemu"], {}, timeout=30)
+        # The drain error itself stops the wait; the deadline must not be what ends it.
+        self.assertLess(time.monotonic() - start, 2)
         self.assertTrue(fake.killed)
+
+    def test_overflow_of_a_process_that_exits_by_itself_is_counted_but_not_a_kill(self):
+        """Several chunks cross the bound, then QEMU exits before the harness can kill it."""
+        fake = SelfExitingProcess(stdout=[b"x" * gate.MAX_OUTPUT, b"y" * 10, b"z" * 10, b"w" * 10])
+        with mock.patch.object(gate.subprocess, "Popen", return_value=fake):
+            rc, out, err, timed_out, stats = gate.run_bounded(["qemu"], {}, timeout=30)
+        self.assertEqual((rc, len(out), err, timed_out, fake.killed), (0, gate.MAX_OUTPUT + 1, b"", False, False))
+        self.assertEqual(stats, dict(stdout_drained_bytes=gate.MAX_OUTPUT + 30, stderr_drained_bytes=0,
+                                     output_overflow_killed=False))
+
+    def test_qemu_is_killed_when_a_reader_thread_cannot_start(self):
+        started, popen = [], subprocess.Popen
+
+        def spawn(*args, **kwargs):
+            started.append(popen(*args, **kwargs))
+            return started[-1]
+        with mock.patch.object(gate.subprocess, "Popen", side_effect=spawn), \
+                mock.patch.object(gate.threading.Thread, "start", side_effect=RuntimeError("can't start new thread")):
+            with self.assertRaisesRegex(RuntimeError, "can't start new thread"):
+                gate.run_bounded([sys.executable, "-c", "import time; time.sleep(60)"], dict(os.environ), timeout=30)
+        process = started[0]
+        self.addCleanup(lambda: (process.kill(), process.wait(), process.stdout.close(), process.stderr.close()))
+        self.assertIsNotNone(process.poll(), "QEMU stand-in left running after Thread.start failed")
 
 
 class FakePipe:
@@ -297,6 +323,23 @@ class FakeProcess:
     def kill(self):
         self.killed, self.returncode = True, -9
         self.dead.set()
+
+
+class SelfExitingProcess(FakeProcess):
+    """Running when first polled (after stdout delivered its chunks); exits with 0 by itself at the next poll."""
+
+    def __init__(self, stdout):
+        super().__init__(stdout)
+        self.polls = 0
+
+    def poll(self):
+        self.polls += 1
+        if self.polls == 1:
+            return super().poll()
+        if self.returncode is None:
+            self.returncode = 0
+            self.dead.set()
+        return self.returncode
 
 
 class Command(unittest.TestCase):
