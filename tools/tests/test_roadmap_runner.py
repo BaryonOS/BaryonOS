@@ -1553,6 +1553,33 @@ class RunnerResiduals(unittest.TestCase):
             self.assertEqual(json.loads((home / rr.MANUAL_RECORD).read_text())["exit"], 143)
 
     @unittest.skipUnless(sys.platform == "linux", "PR_SET_CHILD_SUBREAPER and /proc are Linux-only")
+    def test_an_inherited_ignored_signal_stays_ignored_and_is_not_forwarded(self):
+        # `nohup manual-run ... &`: the session must keep its SIGHUP (and SIGINT) immunity.
+        def ignore():
+            for sig in (signal.SIGHUP, signal.SIGINT):
+                signal.signal(sig, signal.SIG_IGN)
+        with tempfile.TemporaryDirectory() as tmp, self.live_state(tmp) as (repo, state, controller):
+            run, home = Path(tmp), controller.marker().parent
+            argv = self.bounded_loop(run)
+            self.launcher_marker(controller, argv)
+            launcher, child = self.launch(controller, argv, prepare=ignore), None
+            try:
+                child = self.child_pid(run)
+                ignored = int(re.search(r"^SigIgn:\s*([0-9a-f]+)$", Path(f"/proc/{child}/status").read_text(),
+                                        re.M).group(1), 16)
+                for sig in (signal.SIGHUP, signal.SIGINT):
+                    self.assertTrue(ignored >> (sig - 1) & 1, f"the session lost its ignored {sig.name}")
+                os.kill(launcher, signal.SIGHUP)
+                time.sleep(0.3)
+                self.assertNotIn(self.proc_state(child), ("Z", "X"))
+                self.assertEqual(os.waitpid(launcher, os.WNOHANG), (0, 0))
+                (run / "GO").touch()
+                self.assertEqual(self.reap(launcher), 0)
+                self.assertEqual(json.loads((home / rr.MANUAL_RECORD).read_text())["exit"], 0)
+            finally:
+                self.end(run, child, launcher)
+
+    @unittest.skipUnless(sys.platform == "linux", "PR_SET_CHILD_SUBREAPER and /proc are Linux-only")
     def test_a_launcher_that_died_keeps_its_claim_until_the_lead_acknowledges(self):
         # SIGKILL leaves the start record without "exit" and orphans the session (reparented elsewhere).
         with tempfile.TemporaryDirectory() as tmp, self.live_state(tmp) as (repo, state, controller):
@@ -1797,6 +1824,26 @@ class RunnerResiduals(unittest.TestCase):
                 rr.subprocess.Popen = popen  # only in the forked launcher
             self.assertEqual(self.reap(self.launch(controller, argv, prepare=early_signal)), 143)
             self.assertEqual(json.loads((home / rr.MANUAL_RECORD).read_text())["exit"], 143)
+
+    @unittest.skipUnless(sys.platform == "linux", "PR_SET_CHILD_SUBREAPER is Linux-only")
+    def test_a_signal_after_the_session_ended_still_leaves_its_completion(self):
+        # The completion is written while the relay handlers are still installed: a late Ctrl-C after
+        # ECHILD must not interrupt it and leave a sticky start-only record.
+        with tempfile.TemporaryDirectory() as tmp, self.live_state(tmp) as (repo, state, controller):
+            home = controller.marker().parent
+            argv = ["/bin/sh", "-c", "exit 3"]
+            self.launcher_marker(controller, argv)
+
+            def late_signal():
+                real = rr.atomic_write
+
+                def write(path, text):
+                    if '"exit"' in text:
+                        os.kill(os.getpid(), signal.SIGINT)  # arrives during the completion write
+                    return real(path, text)
+                rr.atomic_write = write  # only in the forked launcher
+            self.assertEqual(self.reap(self.launch(controller, argv, prepare=late_signal)), 3)
+            self.assertEqual(json.loads((home / rr.MANUAL_RECORD).read_text())["exit"], 3)
 
     @unittest.skipUnless(sys.platform == "linux", "PR_SET_CHILD_SUBREAPER and ptys are Linux-only here")
     def test_a_session_on_a_terminal_reads_it_in_the_foreground(self):

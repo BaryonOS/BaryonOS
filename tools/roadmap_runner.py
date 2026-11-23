@@ -932,7 +932,10 @@ class Controller:
                            + orphan_hint(previous_record))
             started = {"claim": claim, "started": now(), "launcher_pid": os.getpid()}
             child, code = None, 127
-            relayed = (signal.SIGINT, signal.SIGTERM, signal.SIGHUP, signal.SIGQUIT)
+            # An inherited SIG_IGN (`nohup`, a background job of a non-interactive shell) stays ignored and is
+            # not forwarded: a caught handler would reset to SIG_DFL at exec and end the session's immunity.
+            relayed = tuple(sig for sig in (signal.SIGINT, signal.SIGTERM, signal.SIGHUP, signal.SIGQUIT)
+                            if signal.getsignal(sig) is not signal.SIG_IGN)
             # Held pending from before the start record until Popen returned, then forwarded to the
             # session's group instead of dropped. SIGTTOU: the child may take the terminal before its exec.
             unblocked = signal.pthread_sigmask(signal.SIG_BLOCK, (*relayed, signal.SIGTTOU))
@@ -985,9 +988,13 @@ class Controller:
                         pid, status = os.wait()
                     except ChildProcessError:
                         break
-                    if pid == child.pid:
+                    if pid == child.pid and child.returncode is None:  # a reused pid is not the session
                         code = os.waitstatus_to_exitcode(status)
                         child.returncode = code
+                child = None  # ECHILD: nothing is left to forward to, and its pid may be reused
+                code = 128 - code if code < 0 else code
+                # Before the handlers are restored: a late Ctrl-C must not leave a start-only record.
+                atomic_write(record, json.dumps({**started, "completed": now(), "exit": code}))
             finally:
                 signal.pthread_sigmask(signal.SIG_SETMASK, unblocked)
                 if terminal:  # back to the launcher's group, which is in the background now
@@ -999,8 +1006,6 @@ class Controller:
                     os.close(tty)
                 for sig, handler in previous.items():
                     signal.signal(sig, handler)
-            code = 128 - code if code < 0 else code
-            atomic_write(record, json.dumps({**started, "completed": now(), "exit": code}))
             return code
         finally:
             lock.close()
