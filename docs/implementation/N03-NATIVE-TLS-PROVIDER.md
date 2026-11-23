@@ -105,11 +105,20 @@ this is a documentation lag, not a different construction.
 
 Dates are crates.io publication dates; "pre" marks a pre-release. Build
 scripts are listed for the isolated `x86_64-unknown-none` normal+build graph
-of each crate, including the crate itself.
+of each crate, including the crate itself. Each graph is a scratch crate with
+one exact-version dependency (the "Latest" release, or the stated pre-release),
+resolved with
+`cargo +1.100.0 tree -e normal,build --target x86_64-unknown-none --prefix none`;
+the build-script crates are the resolved packages whose `cargo metadata` target
+list contains a `custom-build` target. Every probe uses the crate's default
+features unless its row states otherwise. The rustls, aes-gcm, rustls-webpki
+and rustls-pki-types probes use `default-features = false`, matching how a
+native provider would depend on them; their rows state what the default
+features add. Rechecked on 23 November 2026.
 
 | Crate | Latest (date) | Licence (crates.io) | `no_std` attribute | Build scripts in isolated graph | Random source | SIMD/backend selection |
 |---|---|---|---|---|---|---|
-| [rustls](https://github.com/rustls/rustls) | 0.23.46 (2026-10-14); 0.24.0-dev.3 pre (2026-11-12) | Apache-2.0 OR ISC OR MIT | `#![no_std]` | rustls only (nightly `read_buf` cfg; inert without that feature) | provider `SecureRandom` | none in core |
+| [rustls](https://github.com/rustls/rustls) | 0.23.46 (2026-10-14); 0.24.0-dev.3 pre (2026-11-12) | Apache-2.0 OR ISC OR MIT | `#![no_std]` | `default-features = false`: rustls only (nightly `read_buf` cfg; inert without that feature). Default features enable `aws_lc_rs` and add aws-lc-rs 1.19.0 and aws-lc-sys 0.47.0 (C build through cc and cmake) | provider `SecureRandom` | none in core |
 | [rustls-rustcrypto](https://github.com/RustCrypto/rustls-rustcrypto) | 0.1.0-pre.0 pre (2026-11-09); last default-branch commit 2026-11-09 | MIT OR Apache-2.0 | `#![no_std]` attribute, but the README states that `std` is currently required; default features `std`, `tls12`, `zeroize` | curve25519-dalek, getrandom, num-traits, paste, proc-macro2, quote, rustls (73 nodes) | hard-wired `getrandom::SysRng` in `SecureRandom`, key exchange and signing | inherited from primitives |
 | [rustls-post-quantum](https://github.com/rustls/rustls) | 0.2.4 (2025-09-23); 0.3.0-dev.2 pre (2026-07-27) | Apache-2.0 OR ISC OR MIT | none | aws-lc-rs, aws-lc-sys, libc, rustls | AWS-LC `RAND_bytes` | AWS-LC assembly |
 | [rustls-graviola](https://github.com/ctz/graviola) | 0.4.0 (2026-06-17) | Apache-2.0 OR ISC OR MIT-0 | none (std crate) | getrandom, rustls | `getrandom::fill` inside graviola | graviola README requires x86_64 `aes`, `ssse3`, `avx`, `avx2`, `adx`, `bmi2` and `pclmulqdq`; `vzeroall` assumes AVX |
@@ -118,7 +127,7 @@ of each crate, including the crate itself.
 | [libcrux-ml-kem](https://github.com/cryspen/libcrux) | 0.0.12 (2026-11-19) | Apache-2.0 | `#![no_std]` | libc, libcrux-intrinsics, libcrux-ml-kem, libcrux-sha3 | caller-supplied `randomness: [u8; N]` arrays or `TryCryptoRng` | build scripts enable `simd256` on every x86_64 build unless `LIBCRUX_DISABLE_SIMD256` is set; hax/F* verification annotations present |
 | [x25519-dalek](https://github.com/dalek-cryptography/curve25519-dalek) | 3.0.0 (2026-07-06) | BSD-3-Clause | `#![no_std]` | curve25519-dalek, proc-macro2, quote | `random_from_rng(CryptoRng)`; optional `getrandom` feature (`random()` panics on failure); `StaticSecret: From<[u8; 32]>` behind `static_secrets` | curve25519-dalek build script selects `serial`/`fiat`/`simd`/`avx512` through `curve25519_dalek_backend` |
 | [ed25519-dalek](https://github.com/dalek-cryptography/curve25519-dalek) | 3.0.0 (2026-07-06) | BSD-3-Clause | `#![no_std]` | curve25519-dalek, proc-macro2, quote | signing is deterministic (RFC 8032); key generation through optional `rand_core` | through curve25519-dalek backend selection |
-| [aes-gcm](https://github.com/RustCrypto/AEADs) | 0.11.1 (2026-08-21) | Apache-2.0 OR MIT | `#![no_std]` | none | optional `getrandom`/`rand_core` (nonce generation only) | aes 0.9 and polyval 0.7 use `cpufeatures` runtime detection; `aes_backend="soft"` and `polyval_backend="soft"` force software |
+| [aes-gcm](https://github.com/RustCrypto/AEADs) | 0.11.1 (2026-08-21) | Apache-2.0 OR MIT | `#![no_std]` | `default-features = false`: none. Default features add getrandom | optional `getrandom`/`rand_core` (nonce generation only) | aes 0.9 and polyval 0.7 use `cpufeatures` runtime detection; `aes_backend="soft"` and `polyval_backend="soft"` force software |
 | [sha2](https://github.com/RustCrypto/hashes) | 0.11.1 (2026-10-12) | MIT OR Apache-2.0 | `#![no_std]` | none | none | `cpufeatures` detection of SHA-NI/AVX2; `sha2_backend` cfg |
 | [hkdf](https://github.com/RustCrypto/KDFs) | 0.13.0 (2026-03-30) | MIT OR Apache-2.0 | `#![no_std]` | none | none | through hmac/sha2 |
 | [rustls-webpki](https://github.com/rustls/webpki) | 0.103.17 (2026-11-12); 0.104.0-alpha.8 pre (2026-10-20) | ISC | `#![no_std]` | none (default features off) | none | through provider |

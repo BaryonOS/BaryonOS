@@ -8,6 +8,15 @@ it relies on is the 23 November refresh in
 [N03-NATIVE-TLS-PROVIDER.md](N03-NATIVE-TLS-PROVIDER.md); claims below that
 are not in that refresh are marked as unverified.
 
+**Reported decision (P2 host oracle only).** In the interactive N-track session
+of 23 November 2026, the project owner chose "Host oracle first": aws-lc-rs may
+be a host-only test dependency for the N03-T2 loopback handshake, and the native
+provider choice stays open. This choice is reported here from that session and
+from [PR #426](https://github.com/BaryonOS/BaryonOS/pull/426), which implements
+it. This memo does not establish its formal approval status; no ADR records it
+yet. The native provider route (P1), the test-peer model (P3), the
+certificate-time policy (P4) and the random route (P5) remain open.
+
 ## Why a decision is needed
 
 Criterion N03 requires that "maintained cryptography/TLS with the documented
@@ -43,8 +52,8 @@ that the project owner or security authority must make.
 - Every random byte used for key generation, encapsulation, TLS randoms and
   signing reaches the authenticated Key-Service session; no host getrandom,
   CPU RNG, cached seed or network fallback.
-- The certificate clock fails closed; monotonic uptime, host/build time or an
-  untrusted RTC never becomes calendar time.
+- Monotonic uptime, host/build time or an untrusted RTC never becomes calendar
+  time.
 - A classical-only peer is refused; there is no second group in the offer.
 - Host results are labelled host evidence; they never count as native
   acceptance.
@@ -72,8 +81,11 @@ key-establishment path. Whether such RFC-specified glue is a "custom combiner"
 within the meaning of ADR-028 is an interpretation that only the project owner
 or security authority can give. Under B2 the concatenation lives in rustls and
 the question reduces to whether trait adapters over audited primitives count as
-"record crypto"; they perform no record protection themselves, which remains in
-rustls. Whether ml-kem's `EncapsulationKey` decoding performs the full
+"record crypto". Under B2, the AEAD adapters perform the encryption and
+decryption of TLS records that rustls invokes through its provider interfaces,
+while rustls keeps the TLS protocol logic that calls them. Whether that boundary
+is compatible with ADR-028 is for the project owner and security authority to
+decide. Whether ml-kem's `EncapsulationKey` decoding performs the full
 FIPS 203 section 7.2 check is **unverified** and must be tested before B is
 accepted.
 
@@ -106,9 +118,9 @@ image and never supplies native acceptance evidence.
 
 | Option | Description | FR-N03 effect |
 |---|---|---|
-| T1 — trusted calendar authority | Validity periods are checked against a trusted calendar source through the existing CORE time port used by [net-tls](../../services/net-tls/README.md) (`CertificateClock`, which returns no time when unavailable, so validation fails closed). The CMOS RTC is not such a source: [RTC-WALLTIME.md](RTC-WALLTIME.md) labels it `UnauthenticatedRtc` and states that trusted certificate time is not provided. | Allows the "expired certificate" negative at level N; requires a trusted time source that does not exist natively yet. |
-| T2 — explicitly scoped pin-only acceptance | For pinned test peers only, validity periods are not evaluated; acceptance rests on CA chain shape, SPKI pin and pin generation. The scope is recorded in the peer record and never applies to non-pinned peers. | Unblocks a native handshake without calendar time, but leaves the "expired certificate" clause unmet and must not be reported as full peer verification. |
-| T3 — T2 now, T1 required for acceptance | T2 for development probes; N03 acceptance requires T1. | Separates progress from acceptance; needs explicit labelling in every evidence record. |
+| T1 — trusted calendar authority | Validity periods are checked against a trusted calendar source through the existing CORE time port used by [net-tls](../../services/net-tls/README.md) (`CertificateClock`, which returns no time when unavailable, so validation fails closed). T1 keeps the fail-closed certificate clock. The CMOS RTC is not such a source: [RTC-WALLTIME.md](RTC-WALLTIME.md) labels it `UnauthenticatedRtc` and states that trusted certificate time is not provided. | Allows the "expired certificate" negative at level N; requires a trusted time source that does not exist natively yet. |
+| T2 — explicitly scoped pin-only acceptance | **Proposed test-scoped exception that requires an owner decision:** it waives the fail-closed certificate clock. For pinned test peers only, validity periods are not evaluated; acceptance rests on CA chain shape, SPKI pin and pin generation. The scope is recorded in the peer record and never applies to non-pinned peers. | Unblocks a native handshake without calendar time, but leaves the "expired certificate" clause unmet and must not be reported as full peer verification. |
+| T3 — T2 now, T1 required for acceptance | T2 for development probes, with the same proposed waiver for pinned test peers only; N03 acceptance requires T1. | Separates progress from acceptance; needs explicit labelling in every evidence record. |
 
 ### P5 — RNG route through the Key-Service
 
@@ -143,10 +155,10 @@ audit. The N03 score contribution stays at zero, and the overall score stays
 2. Does RFC 10024-specified concatenation/split code written in the project,
    mirroring upstream rustls code, fall within ADR-028's "no custom combiner"
    prohibition?
-3. Is a host-only aws-lc-rs test dependency acceptable for the rustls end of
-   the host loopback (needed under every P2 option until an option B provider
-   exists), and should the peer be rustls (H1), the existing Node.js/OpenSSL
-   peer (H2) or both (H3)?
+3. Do you confirm or reject the reported choice of a host-only aws-lc-rs test
+   dependency for the rustls end of the host loopback (needed under every P2
+   option until an option B provider exists), and should the peer be rustls
+   (H1), the existing Node.js/OpenSSL peer (H2) or both (H3)?
 4. Is a repository-public test CA with exact SPKI pins and Ed25519 leaf
    certificates acceptable for QEMU and host tests (P3)?
 5. Which certificate-time policy applies: T1, T2 or T3?
