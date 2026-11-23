@@ -678,8 +678,10 @@ def following(body, marker):
     (comments, blank lines and attributes skipped)."""
     code = [line.split("//")[0].strip() for _, line in body]
     code = [line for line in code if line and not line.startswith("#[")]
-    index = next(i for i, line in enumerate(code) if marker in line)
-    return code[index + 1:]
+    found = [i for i, line in enumerate(code) if marker in line]
+    if not found:
+        raise AssertionError(f"guard statement missing: {marker}")
+    return code[found[0] + 1:]
 
 
 class PostWakeLatchStructure(unittest.TestCase):
