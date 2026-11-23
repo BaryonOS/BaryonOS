@@ -1452,24 +1452,20 @@ class RunnerResiduals(unittest.TestCase):
                 late = repo / "build" / ("tool.py" if window == "accepted file rewritten" else "late.py")
                 if window == "accepted file rewritten":
                     late.write_text("print('reviewed')\n")
-                real_digest, real_retire = rr.Controller.review_digest, rr.Controller.retire_baseline
+                real_digest = rr.Controller.review_digest
 
                 def digest(self, review, read):
                     if window == "before the digest":
                         late.write_text("planted before the digest")
                     value = real_digest(self, review, read)
+                    if window == "after the digest":  # before the snapshot is built, unlike retire_baseline
+                        late.write_text("planted after the digest")
                     if window == "accepted file rewritten" and review.get("created"):
                         late.write_text("print('swapped')\n")
                     return value
-
-                def retire(self):
-                    if window == "after the digest":
-                        late.write_text("planted after the digest")
-                    real_retire(self)
                 if window == "accepted file rewritten":
                     reviewed = re.search(r"resume --accept ([0-9a-f]+)", self.resume()[1]).group(1)
-                with unittest.mock.patch.object(rr.Controller, "review_digest", digest), \
-                        unittest.mock.patch.object(rr.Controller, "retire_baseline", retire):
+                with unittest.mock.patch.object(rr.Controller, "review_digest", digest):
                     extra = ("--accept", reviewed) if window == "accepted file rewritten" else ()
                     self.assertIn("is now the saved session baseline", self.resume(*extra)[1])
                 saved = json.loads(controller.marker().read_text())["ignored"]
