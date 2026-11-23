@@ -1,17 +1,19 @@
 //! N02 acceptance manifest: the unchanged N01 grants (one raw NIC for the
 //! ring-3 network service, IPC-only apps), but the service acquires its
-//! address by DHCP on the wire and must withdraw it on DHCPNAK.
+//! address by DHCP on the wire and must withdraw it on DHCPNAK. App A holds a
+//! UDP/53 grant to the lease DNS server and resolves names natively; app B
+//! does not and is refused.
 use super::*;
 use capability_core::{PROCESS_EXITED, RECV, SEND};
 
 const EPOCH: u64 = 1;
-const OFFSETS: [u64; 29] = [
+const OFFSETS: [u64; 33] = [
     240, 400, 408, 416, 424, 432, 440, 448, 456, 464, 472, 480, 488, 496, 504, 512, 520, 528, 536,
-    544, 552, 560, 568, 576, 584, 592, 600, 608, 616,
+    544, 552, 560, 568, 576, 584, 592, 600, 608, 616, 624, 632, 640, 648,
 ];
 pub(super) const PROCESSES: usize = 3;
 struct Evidence {
-    snapshots: [Option<[u64; 29]>; 3],
+    snapshots: [Option<[u64; 33]>; 3],
     kernel_tables: usize,
     exits: [u64; 3],
 }
@@ -90,7 +92,9 @@ pub(super) fn manifest(s: &mut State) {
         (112, service),
         (120, 8080),
         (128, 8090),
-        (136, 9000),
+        // App A's UDP grant is DNS to the peer, which the lease names as its
+        // DNS server; app B keeps a non-DNS port and must be refused.
+        (136, 53),
         (144, 9001),
         (176, 1),
     ] {
@@ -113,7 +117,7 @@ pub(super) fn manifest(s: &mut State) {
             (72, index as u64),
             (80, app),
             (88, 8080 + index as u64 * 10),
-            (96, 9000 + index as u64),
+            (96, if index == 0 { 53 } else { 9001 }),
             (104, 6),
         ] {
             put(s, slot, offset, value);
@@ -147,7 +151,7 @@ pub(super) fn observe_exit(s: &mut State, slot: usize, _: u64) {
         slot < PROCESSES && evidence().snapshots[slot].is_none(),
         b"EXIT_SLOT",
     );
-    let mut values = [0; 29];
+    let mut values = [0; 33];
     for (i, at) in OFFSETS.iter().enumerate() {
         values[i] = word(s, slot, *at);
     }
@@ -244,15 +248,20 @@ fn subnet_host(address: u64) -> bool {
 }
 /// Two leases, exactly one NAK withdrawal, no app traffic outside a lease and
 /// a fresh token after re-acquisition, ordered on one boot-monotonic clock.
-fn check_dhcp(service: &[u64; 29]) {
+fn check_dhcp(service: &[u64; 33]) {
     let [_, a, b] = evidence().snapshots.map(Option::unwrap);
+    // UDP is DNS only: service.test on each lease and missing.test once (the
+    // cached NXDOMAIN is not re-queried); the two peer spoofs are malformed.
+    // Rejections are deterministic request refusals of both apps, including
+    // app B's one refused Resolve (observed 12 in two runs).
     require(
-        service[7] == 0
+        service[6] == 12
+            && service[7] == 3
             && service[8] == 0
             && service[9] == 4
             && service[13] == 3
             && service[14] == 0
-            && service[15] == 0
+            && service[15] == 2
             && service[16] == 0
             && service[18] == 0
             && service[19] == 0
@@ -279,7 +288,8 @@ fn check_dhcp(service: &[u64; 29]) {
             && a[10] == 1
             && a[11] == 1
             && a[14] == 1
-            && a[19] == 1,
+            && a[19] == 1
+            && a[30] == 2,
         b"DHCP_APP_A_EVIDENCE",
     );
     require(
@@ -292,18 +302,25 @@ fn check_dhcp(service: &[u64; 29]) {
             && b[10] == 0
             && b[11] == 1
             && b[14] == 0
-            && b[19] == 0,
+            && b[19] == 0
+            && b[29] == 1
+            && b[30..] == [0; 3],
         b"DHCP_APP_B_EVIDENCE",
     );
-    // Held connection live, then lease withdrawn, then the app observing its
-    // stale token, then the second lease, then the fresh exchange finishing.
+    // First resolution, held connection live, then lease withdrawn, then the
+    // app observing its stale token and Resolve waiting, then the second
+    // lease, the second resolution and the fresh exchange finishing.
     let (held, withdrawn, stale, rebound, fresh) = (a[15], service[25], a[20], service[28], a[16]);
+    let (resolved, waiting, reresolved) = (a[29], a[31], a[32]);
     require(
-        held != 0
+        resolved != 0
+            && resolved <= held
             && held <= withdrawn
             && withdrawn <= stale
-            && stale <= rebound
-            && rebound <= fresh,
+            && stale <= waiting
+            && waiting <= rebound
+            && rebound <= reresolved
+            && reresolved <= fresh,
         b"DHCP_ORDER",
     );
 }

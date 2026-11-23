@@ -4,7 +4,10 @@
 Same isolation, grants and causal localhost Ethernet peer as N01, but the
 service starts unconfigured, acquires 192.0.2.66/24 by DHCP, withdraws it on a
 DHCPNAK (app A's held token goes stale and OpenTcp is refused) and re-acquires
-192.0.2.67 for a fresh exchange. Link control and lease expiry are out of scope.
+192.0.2.67 for a fresh exchange. App A resolves service.test through the
+lease DNS server under its UDP/53 grant (NXDOMAIN cached, spoofs dropped and
+counted, cache flushed by the withdrawal); app B has no such grant and is
+refused. Link control and lease expiry are out of scope.
 Images, user ELFs, firmware and serial bytes are bound to one unchanged source.
 """
 from __future__ import annotations
@@ -30,7 +33,7 @@ from network_dhcp_peer import LEASES, Peer, validate_transcript
 FEATURE = "test-net-service-dhcp"
 LAST_TICK = 6000
 OFFSETS = (240, 400, 408, 416, 424, 432, 440, 448, 456, 464, 472, 480, 488, 496, 504, 512, 520, 528,
-           536, 544, 552, 560, 568, 576, 584, 592, 600, 608, 616)
+           536, 544, 552, 560, 568, 576, 584, 592, 600, 608, 616, 624, 632, 640, 648)
 ROLES = ("SERVICE", "APP_A", "APP_B")
 NETWORK = ("NET_TX_SUBMITTED", "NET_TX_COMPLETED", "NET_RX_COMPLETED", "NET_RX_DELIVERED",
            "NET_DENIED", "NET_TX_TIMEOUTS", "NET_RESETS", "NET_RESET_ACKS")
@@ -119,6 +122,9 @@ def evaluate(report, peer):
         raise ValueError("Actual wire transcript contradicts broker TX/RX counts")
     if [service["576"], service["584"]] != [int.from_bytes(lease, "big") for lease in LEASES]:
         raise ValueError("Native leased addresses differ from the peer's leases")
+    # DNS is the only guest UDP; each peer spoof must be a native malformed drop.
+    if service["448"] != counts["dns_queries"] or service["512"] != counts["dns_spoofs"]:
+        raise ValueError("Native DNS query/spoof counters contradict the peer transcript")
     return observed
 
 
@@ -159,7 +165,7 @@ def run_network_dhcp(*, timeout=90):
     if (Path(qemu).parent / "share").is_dir():
         command += ["-L", str(Path(qemu).parent / "share")]
     report = dict(schema_version=1, passed=False, case="dhcp", kernel_feature=FEATURE,
-                  scope="three actual isolated ring-3 processes; DHCPv4 acquire/NAK withdrawal/re-acquire on synthetic localhost Ethernet; no link control, lease expiry, DNS, TLS or physical hardware claim",
+                  scope="three actual isolated ring-3 processes; DHCPv4 acquire/NAK withdrawal/re-acquire on synthetic localhost Ethernet; A-record DNS through the lease server with one synthetic responder; no link control, lease expiry, TCP DNS, DNSSEC, TLS or physical hardware claim",
                   source_commit=subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip(),
                   source_fingerprint_version=3, source_sha256=frozen, manifest=manifest,
                   run_directory=str(directory), timeout_s=timeout, started_utc=datetime.now(timezone.utc).isoformat(),
