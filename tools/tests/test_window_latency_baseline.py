@@ -91,6 +91,21 @@ class BaselineTests(unittest.TestCase):
                     baseline.summarise(path)
                 self.assertEqual(baseline.main([str(path[0])]), 1)
 
+    def test_rejects_non_string_input_kind_or_run_directory_cleanly(self):
+        for bad in (["key"], {"a": 1}, 1, ""):
+            data = report(0, {"editor": 0.1})
+            data["phases"]["editor"]["last_input_kind"] = bad
+            path = self.write(data)
+            with self.subTest(field="last_input_kind", bad=bad), self.assertRaisesRegex(ValueError, "last_input_kind"):
+                baseline.summarise(path)
+            self.assertEqual(baseline.main([str(path[0])]), 1)
+            data = report(0, {"editor": 0.1})
+            data["run_directory"] = bad
+            path = self.write(data)
+            with self.subTest(field="run_directory", bad=bad), self.assertRaisesRegex(ValueError, "run_directory"):
+                baseline.summarise(path)
+            self.assertEqual(baseline.main([str(path[0])]), 1)
+
     def test_rejects_reused_run_or_duplicate_report(self):
         with self.assertRaisesRegex(ValueError, "Duplicate"):
             baseline.summarise(self.write(report(0, {"editor": 0.1}), report(0, {"editor": 0.2})))

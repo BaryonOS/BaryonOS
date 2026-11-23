@@ -39,6 +39,8 @@ def load(path: Path) -> tuple[dict, str]:
     for name, phase in report["phases"].items():
         if type(phase) is not dict:
             raise ValueError(f"{path}: phase {name} is not a JSON object")
+    if type(report.get("run_directory")) is not str or not report["run_directory"]:
+        raise ValueError(f"{path}: report lacks a run_directory string")
     duration = report.get("duration_s")
     if type(duration) not in (int, float) or not 0 <= duration < 86400:
         raise ValueError(f"{path}: invalid duration_s")
@@ -86,8 +88,11 @@ def summarise(paths: list[Path]) -> dict:
             value = phase[FIELD]
             if type(value) not in (int, float) or not 0 <= value < 86400:
                 raise ValueError(f"{path}: invalid {FIELD} for {name}")
+            kind = phase.get("last_input_kind", "unrecorded")
+            if type(kind) is not str or not kind:
+                raise ValueError(f"{path}: invalid last_input_kind for {name}")
             samples.setdefault(name, []).append(value)
-            kinds.setdefault(name, set()).add(phase.get("last_input_kind", "unrecorded"))
+            kinds.setdefault(name, set()).add(kind)
     if not samples:
         raise ValueError("No phase carries " + FIELD)
     phases = {}
