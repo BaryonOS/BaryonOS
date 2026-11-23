@@ -42,6 +42,19 @@ Only the two output contexts need the new `DeviceReadsWrites` direction. The
 existing read-only and write-only mappings retain their permissions. Generic
 frame release, reallocation, executable aliases and user aliases remain denied.
 
+The opt-in `native-usb-hid-reattach` profile adds exactly one sixteenth page,
+the limit of both the VT-d fixture and the device-execution model. It is
+granted before the domain is established; no grant is ever added afterwards.
+
+| Allocation (reattach profile only) | Pages | Device permission |
+|---|---:|---|
+| Generation-2 keyboard: output context at offset 0, report buffer at `0x800` | 1 | Read and write |
+
+This page holds only zeroed memory, xHC-maintained context and report bytes.
+The 1 KiB output context requires the 32-byte context size, which the fixture
+already enforces (`HCCPARAMS1.CSZ=0`). Report submission clears only the
+eight-byte report region, never the live context in the same page.
+
 ## Transfer and unplug behavior
 
 Enumeration performs port reset, Enable Slot, Address Device, bounded device
@@ -63,6 +76,14 @@ disconnect is followed by correlated Stop Endpoint and Disable Slot completions.
 Session detach then releases B once, rejects the old token and produces no
 second release on repeated detach.
 
+Device lifetimes come from the existing `hotplug::Ports` tracker: device IDs
+1 and 2 are the two root ports, the instance attach budget is three and each
+attach permits one enumeration attempt. Each Session uses the lifetime of its
+attach ticket, and only a real, matched enumeration result completes the
+ticket. In every profile both boot-time devices therefore use generation 1.
+The earlier literal generation 2 for the mouse was internal only; markers,
+QMP actions and exit status are unchanged.
+
 Polling, descriptor storage, transfer rings and host output are bounded. The
 host controller uses a shared deadline and QMP pipes, records its actual control
 actions, rejects control errors and reaps the process on every outcome.
@@ -76,6 +97,86 @@ failure. Success requires completed halt/invalidation and an unchanged guard.
 All DMA and translation-table pages remain retained until the VM exits,
 including after a failed or uncertain hardware transition.
 
+## Same-port keyboard reattach
+
+`native-usb-hid-reattach` extends the positive sequence after
+`USB:STALE_TOKEN:DENIED`. It is exclusive with the read-only fault profile.
+
+1. **Retire generation 1.** Disable Slot has already completed. `Ports` then
+   detaches port 1, and the slot's DCBAA entry is cleared. The generation-1
+   output context and report pages stay mapped in the fixed domain. They are
+   filled with a canary. The final comparison *detects* a later stray device
+   write; it does not prevent one. `USB:REATTACH:DETACHED` follows.
+2. **Wait for a connect.** Only a port-status event for port 1 with CCS=1,
+   PED=0 and `Ports` phase `Detached` is accepted. Any other event fails closed.
+3. **Enumerate generation 2.** `Ports::attach` issues a generation-2 ticket.
+   Port reset, Enable Slot, Address Device, descriptors, SET_CONFIGURATION,
+   Configure Endpoint and SET_PROTOCOL run again with a fresh Session. The
+   endpoint-zero and interrupt rings continue: each new dequeue pointer is the
+   ring base plus the next unused TRB index, with DCS=1. Generation-1 TRBs keep
+   cycle=1 and are never reused or wrapped onto.
+4. **Reject generation-1 work after slot reuse.** QEMU 8.2.2 reuses the
+   disabled slot (`USB:REATTACH:SLOT_REUSED`; `SLOT_NEW` would be reported
+   otherwise and is not accepted by the oracle). With generation-2 input
+   pending, three checks must fail:
+   - a *replayed captured completion*: the last real generation-1 Transfer
+     Event is presented again to the generation-2 correlation. It is not a
+     hardware-generated event. Slot and endpoint match, so only the
+     never-reused TRB address rejects it;
+   - the generation-1 Session token, presented to the generation-2 Session,
+     returns `UnexpectedCompletion`;
+   - the generation-1 attach ticket returns `Stale`. This check is
+     phase-based: generation 2 is already `Ready`, so any ticket would be
+     refused here.
+   The generation-specific ticket check runs earlier, inside the generation-2
+   attach while that port is still `Enumerating`. The phase test then passes,
+   so only the generation-1 lifetime and attempt refuse the old ticket. The
+   port must stay `Enumerating`, and the generation-2 ticket is accepted in
+   that same phase after enumeration. A failure reports
+   `USB-DIAG:REJECT:0000000000000033` (code 51). The host test
+   `detach_during_enumeration_retires_old_completion_and_releases_port`
+   covers the same rule at library level.
+   The generation-2 pending transfer remains unchanged and later accepts its
+   real completion. `USB:REATTACH:STALE_DENIED` and `USB:REATTACH:READY`
+   follow.
+5. **Use and unplug generation 2.** The C press and release produce
+   `USB:REATTACH:KEY_DOWN` and `USB:REATTACH:KEY_UP`. Removal uses the same
+   correlated Stop Endpoint and Disable Slot sequence, an empty expected
+   release set, stale-token rejection, `Ports` detach and DCBAA clearing.
+6. **Refuse a third identity.** A further connect on port 1 must fail with the
+   attach budget error `Exhausted`. The port is never reset, no slot is
+   enabled and PORTSC must read CCS=1 and PED=0. A bounded quiet window then
+   requires no further event and an unchanged CCS=1/PED=0 state. This window
+   also lets QEMU answer `device_add` before the guest exits; without it, the
+   reply was lost in the first local run.
+7. **End.** The controller halts, bus mastering is cleared and the domain is
+   denied. The two retired canaries (`USB:RETIRED:UNCHANGED`) and the guard
+   must be unchanged. All pages remain retained until the VM exits.
+
+**Fixture-only pattern.** The retired generation-1 read/write pages stay
+mapped in the VT-d domain until the VM exits. The canaries show only that
+their bytes were unchanged at the final check; a write that leaves or restores
+the canary bytes would pass, so the fixture does not prove that no write
+occurred after retirement. This is acceptable for this fixture, not as
+a production reattach pattern: a product driver must unmap or reassign retired
+DMA pages and invalidate the IOTLB before reuse (integration review of #409,
+23 November 2026).
+
+Every PORTSC write preserves PP and writes only write-1-to-clear change bits
+or PR; PED=1 is never written. Interrupts remain masked. A connect event
+during the report phase fails closed in this profile, whereas the earlier
+profile still ignores one. The event ring remains a single non-wrapping
+256-entry segment; the complete reattach sequence stays well below it.
+
+The harness drives QEMU as follows: release B after
+`USB:STALE_TOKEN:DENIED`; after `USB:REATTACH:DETACHED`, issue `device_add`
+for `usb-kbd` `hid-kbd-g2` on `xhci.0` port `1` with `usb_version=1`; press and
+release C; `device_del hid-kbd-g2`; and after `USB:REATTACH:UNPLUG:PASS`,
+`device_add hid-kbd-g3`, which the guest must refuse. Every command reply is
+required, held keys are released on every error path and the process is
+always reaped. QEMU device addition and removal are emulated hotplug, not
+physical hotplug.
+
 ## Separate evidence cases
 
 `tools/run_usb_hid.py --case reports` requires the exact ordered native USB
@@ -84,7 +185,11 @@ markers, QMP actions, successful artifact/source binding and raw QEMU exit 33.
 to the mapped read-only guard. The oracle requires the correct requester,
 address, write direction and VT-d permission-fault reason 5. All 4,096 guard
 bytes must remain unchanged. The original No-Op, unmapped-write and missing-DMAR
-cases remain separate boots in `tools/run_xhci.py`.
+cases remain separate boots in `tools/run_xhci.py`. `--case reattach` runs
+`native-usb-hid-reattach` and requires the complete `reports` marker sequence,
+then the reattach markers above in exact order, every QMP reply and raw exit 33.
+Its source-bound results are in
+[the H02-T3 evidence](../verification/h02-native-reattach-20261119/README.md).
 
 The actual input-policy IPC experiment is documented in
 [HID-INPUT.md](../../sdk/examples/input-service/HID-INPUT.md). It uses real
@@ -95,8 +200,10 @@ combination is not evidence of an operational USB-to-UI broker.
 
 The next integration requires a bounded kernel/device-service completion
 handoff, a long-lived requester lifecycle and an explicit coexistence contract
-for other DMA consumers. Real IRQ delivery, hardware reset/reattach, general
-hotplug, the physical reference matrix and human acceptance remain open.
+for other DMA consumers. A QEMU same-port keyboard reattach now exists as a
+separate profile. Real IRQ delivery, physical reset/reattach, general hotplug
+(other ports, hubs, mouse reattach, retries), the physical reference matrix and
+human acceptance remain open.
 Source-bound results and the standard gates are recorded in
 [the checkpoint evidence](../verification/issue42-native-input-20261114/README.md).
 H02 and the 41/100 assessment remain unchanged.

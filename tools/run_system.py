@@ -26,8 +26,19 @@ FEATURE = {"normal": "native-system", "recover": "test-system-recover"}
 # H05 (ADR-076): power cases run the normal flow, then init's POWER_OFF. They
 # stay out of FEATURE, which capture/gate drivers iterate as the FR-I01 cases.
 POWER_FEATURE = {"power": "native-system-power", "power-flush-error": "test-system-power-flush-error",
-                 "power-flush-timeout": "test-system-power-flush-timeout"}
+                 "power-flush-timeout": "test-system-power-flush-timeout",
+                 # H05-T4 (ADR-H05-S3-SYSTEM-20261123): one granted S3 cycle, then S5.
+                 "power-s3": "test-system-s3",
+                 # H05-T5b: the same cycle, then virtio-rng re-initialised after the wake.
+                 "power-s3-reinit": "test-system-s3-reinit",
+                 # Review R1: SUSPEND refuses a held completion (-8); one labelled
+                 # gate-defect injection then sleeps, and only the post-wake latch
+                 # keeps the held request's teardown reset off the device.
+                 "power-s3-held-completion": "test-system-s3-held-completion"}
 POWER_CASES = tuple(POWER_FEATURE)
+S3_CASES = ("power-s3", "power-s3-reinit", "power-s3-held-completion")
+# The single re-init marker; CI's QEMU 8.2.2 may keep the BARs that 10.2.1 clears.
+REINIT = re.compile(r"KEYRING:S3:REINIT:BARS=(KEPT|RESTORED):STATUS=15:SELFTEST=32")
 S5_TAIL = ("POWER:S5:PM1A=0x0604:SLP_TYP=0:SCI_EN=1", "POWER:S5:WRITE")
 # B02 persistence objects: the app's sealed record (domain 0) and init's
 # encrypted key-state snapshot (domain 1). Both are ciphertext, never fixtures.
@@ -59,6 +70,8 @@ def record_plaintext() -> bytes:
     return bytes((11 + i * 17 + i // 97) & 0xFF for i in range(128))
 RANDOM_FEATURE = {"raw":"native-system-random", "sdk":"test-system-random-sdk", "unknown":"test-system-random-unknown", "wrong-caller":"test-system-random-wrong-caller"}
 TCP_FEATURE = {"normal": "native-system-tcp", "recover": "test-system-tcp-recover"}
+# H04-T3 link loss/reconnect profiles; driven by tools/run_net_link.py only.
+LINK_FEATURES = ("test-system-net-link", "test-system-net-link-storm")
 BOOT = ("BOOT:EBS_OK", "KERNEL:ENTRY", "BOOTINFO:OK")
 COLD_CASES = ("keystate", "record-tag", "swapped-blocks", "withheld-secret")
 MAX_TIMEOUT = 180
@@ -102,9 +115,11 @@ def check_image(image: Path) -> None:
         raise ValueError("test disk must be a regular single-link generated image of the exact geometry")
 
 
-def network_arguments(port: int) -> list[str]:
+def network_arguments(port: int, *, status: bool = True) -> list[str]:
     if type(port) is not int or not 1024 <= port <= 65535:
         raise ValueError("network test peer requires an ephemeral local port")
+    if type(status) is not bool:
+        raise ValueError("NIC status feature selection must be a boolean")
     # OVMF can transmit IPv6 during boot, before our driver exists. Disable its
     # network drivers via the documented EDK2 runtime policy, plus the NIC ROM.
     # The PCI NIC remains present for the real Nieuw OS driver and strict peer.
@@ -112,7 +127,8 @@ def network_arguments(port: int) -> list[str]:
             "-fw_cfg", "name=opt/org.tianocore/IPv4Support,string=no",
             "-fw_cfg", "name=opt/org.tianocore/IPv6Support,string=no",
             "-netdev", f"socket,id=net0,connect=127.0.0.1:{port}",
-            "-device", "virtio-net-pci,netdev=net0,id=net,addr=0x7,disable-legacy=on,mac=02:00:00:00:00:07,romfile="]
+            "-device", "virtio-net-pci,netdev=net0,id=net,addr=0x7,disable-legacy=on,mac=02:00:00:00:00:07,romfile="
+            + ("" if status else ",status=off")]
 
 
 def check_parent(previous: dict, frozen: str, image_sha256: str, *, network: bool, tcp=False) -> None:
@@ -145,13 +161,97 @@ def expected_markers(case: str) -> tuple[str, ...]:
                    "SYSTEM:CLEANUP:PASS", f"SYSTEM:CASE:{case.upper().replace('-', '_')}:PASS", "M1:PASS")
 
 
+def s3_machine() -> str:
+    """power-s3's evidence boundary: the measured QEMU 8.2 q35/OVMF profile
+    under single-thread TCG. An unset machine selects it; any other explicit
+    machine or KVM is refused before anything is built or launched."""
+    from run_sleep import MACHINE  # lazy, see run_system
+    if os.environ.get("NOS_QEMU_MACHINE") not in (None, MACHINE) or qemu_accel() != "tcg,thread=single":
+        raise ValueError(f"power-s3 runs only on {MACHINE} under single-thread TCG")
+    return MACHINE
+
+
+def check_suspend(lines: list[str], reinit: bool = False) -> None:
+    """One resolved plan at bootstrap, then exactly one ENTER/RESUMED pair
+    inside init's run: after the manifest, before the broker evidence. With
+    re-init, exactly one re-init marker between RESUMED and the brokers."""
+    from run_sleep import ENTER, PLAN, RESUMED  # lazy, see run_system
+    s3 = [line for line in lines if line.startswith("POWER:S3:")]
+    if (len(s3) != 3 or not PLAN.fullmatch(s3[0]) or s3[1] != ENTER.format(1)
+            or not RESUMED.fullmatch(s3[2]) or RESUMED.fullmatch(s3[2]).group(1) != "1"):
+        raise ValueError(f"power-s3 lacks exactly one planned, entered and resumed cycle: {s3}")
+    order = ["SYSTEM:MANIFEST:PASS", s3[1], s3[2], "SYSTEM:BROKERS:PASS"]
+    if reinit:
+        marker = [line for line in lines if line.startswith("KEYRING:S3:")]
+        if len(marker) != 1 or not REINIT.fullmatch(marker[0]):
+            raise ValueError(f"power-s3-reinit lacks exactly one re-init marker: {marker}")
+        order.insert(3, marker[0])
+    positions = [lines.index(marker) for marker in order]
+    if positions != sorted(positions) or lines.index(s3[0]) > positions[0]:
+        raise ValueError("power-s3 S3 markers are out of order")
+
+
+def refuse_stray_suspend(case: str, stdout: str) -> None:
+    """Only the S3 cases carry SYSTEM:SUSPEND* evidence, only re-init KEYRING:S3:."""
+    lines = stdout.splitlines()
+    if case not in S3_CASES and any(line.startswith("SYSTEM:SUSPEND") for line in lines):
+        raise ValueError("suspend evidence outside the power-s3 profile")
+    if case != "power-s3-reinit" and any(line.startswith("KEYRING:S3:") for line in lines):
+        raise ValueError("re-init evidence outside the power-s3-reinit profile")
+
+
+# Review R3: after CLEANUP, each broker's device accesses at the wake (live
+# counters, > 0), the post-wake accesses outside the accounted re-init path
+# and the teardown resets the latch suppressed.
+LIVE_AT_WAKE = ("DEVICE_IO_AT_WAKE_KEYRING", "DEVICE_IO_AT_WAKE_VOLUME")
+DEVICE_ORDER = (*LIVE_AT_WAKE, "DEVICE_IO_AFTER_WAKE", "DEVICE_SUPPRESSED")
+SUSPEND_ORDER = ("REFUSALS", "GRANTED", "TICK_AFTER_WAKE", "HELD_REFUSALS", "LOST_ENTROPY",
+                 "LOST_BLOCK", *DEVICE_ORDER)
+# Re-init: one 32-byte post-wake delivery, the pre-sleep ticket refused (-1),
+# init's POWER handle refused by authority (-6), block still lost (-14).
+REINIT_ORDER = ("REFUSALS", "GRANTED", "TICK_AFTER_WAKE", "HELD_REFUSALS", "REINIT_ENTROPY",
+                "REINIT_STALE_TICKET", "REINIT_ENTROPY_AUTH", "LOST_BLOCK", *DEVICE_ORDER)
+
+
 def check_power(case: str, stdout: str, found: dict) -> None:
     """Exact S5 tail after M1:PASS, or a refusal without any PM1 write."""
     lines = stdout.splitlines()
-    if case == "power":
+    if case in ("power", *S3_CASES):
         if tuple(lines[-3:]) != ("M1:PASS", *S5_TAIL) or "SYSTEM:POWER:GATE:PASS" not in lines:
             raise ValueError("power case did not end with the gated S5 write")
         expected = {"POWER_INIT_REFUSALS": 3, "POWER_APP_REFUSALS": 2, "POWER_NOT_DURABLE": 0}
+        if case in S3_CASES:
+            reinit = case == "power-s3-reinit"
+            held = int(case == "power-s3-held-completion")
+            check_suspend(lines, reinit)
+            # -8 before SHUTDOWN, -6, -4, -1, [the held-completion -8,] then the
+            # grant and the one-shot -14; after the wake init's entropy and block
+            # requests each return -14. No broker device access after the wake
+            # outside the accounted re-init; the latch suppressed exactly the held
+            # request's teardown reset.
+            expected.update(SUSPEND_REFUSALS=5 + held, SUSPEND_GRANTED=1, SUSPEND_TICK_AFTER_WAKE=1,
+                            SUSPEND_HELD_REFUSALS=held, SUSPEND_LOST_BLOCK=14,
+                            SUSPEND_DEVICE_IO_AFTER_WAKE=0, SUSPEND_DEVICE_SUPPRESSED=held)
+            if reinit:
+                expected.update(SUSPEND_REINIT_ENTROPY=32, SUSPEND_REINIT_STALE_TICKET=1,
+                                SUSPEND_REINIT_ENTROPY_AUTH=6)
+            else:
+                expected.update(SUSPEND_LOST_ENTROPY=14)
+            suspend = [line.split(":")[1] for line in lines if line.startswith("SYSTEM:SUSPEND")]
+            if suspend != [f"SUSPEND_{key}" for key in (REINIT_ORDER if reinit else SUSPEND_ORDER)]:
+                raise ValueError(f"{case} suspend evidence out of order: {suspend}")
+            # The kernel's real order: the wake evidence (ending in LOST_BLOCK)
+            # before CLEANUP, the device evidence after every owner's teardown
+            # and before the case marker.
+            at = {line.split(":")[1]: index for index, line in enumerate(lines)
+                  if line.startswith("SYSTEM:SUSPEND_")}
+            if not (at["SUSPEND_LOST_BLOCK"] < lines.index("SYSTEM:CLEANUP:PASS")
+                    < at[f"SUSPEND_{DEVICE_ORDER[0]}"]
+                    and at[f"SUSPEND_{DEVICE_ORDER[-1]}"] < lines.index(expected_markers(case)[-2])):
+                raise ValueError(f"{case} suspend evidence out of order around CLEANUP")
+            for key in LIVE_AT_WAKE:
+                if found.get(f"SUSPEND_{key}", 0) < 1:
+                    raise ValueError(f"SUSPEND_{key}: expected a live counter (> 0), found {found.get(f'SUSPEND_{key}')}")
     else:
         fault = "FLUSH_ERROR" if case == "power-flush-error" else "FLUSH_TIMEOUT"
         if (any(line.startswith("POWER:") for line in lines)
@@ -164,6 +264,9 @@ def check_power(case: str, stdout: str, found: dict) -> None:
     for key, value in expected.items():
         if found.get(key) != value:
             raise ValueError(f"{key}: expected {value}, found {found.get(key)}")
+    # The kernel fixture's 32 post-wake bytes cannot pad the pre-sleep bound.
+    if case == "power-s3-reinit" and found["ENTROPY_BYTES"] - found["SUSPEND_REINIT_ENTROPY"] < 256:
+        raise ValueError("ENTROPY_BYTES: fewer than 256 bytes delivered before the sleep")
 
 
 def evaluate(case: str, stdout: str, raw_exit: int | None, timed_out: bool) -> dict[str, int]:
@@ -175,10 +278,11 @@ def evaluate(case: str, stdout: str, raw_exit: int | None, timed_out: bool) -> d
     if controlled != list(expected):
         raise ValueError(f"system marker sequence mismatch: {controlled}")
     # Only a guest poweroff exits 0: the power runs override -no-reboot.
-    if timed_out or raw_exit != (0 if case == "power" else 33):
+    if timed_out or raw_exit != (0 if case in ("power", *S3_CASES) else 33):
         raise ValueError(f"raw exit {raw_exit}, timed_out {timed_out}")
     if any("PANIC" in line or "FAIL" in line for line in stdout.splitlines()):
         raise ValueError("guest failure marker")
+    refuse_stray_suspend(case, stdout)
     found = {}
     for line in stdout.splitlines():
         match = re.fullmatch(r"SYSTEM:([A-Z_]+):([0-9]{20})", line)
@@ -312,6 +416,7 @@ def cold_image(raw: bytes, case: str) -> bytes:
 def evaluate_cold(case: str, stdout: str, raw_exit: int | None, timed_out: bool) -> dict:
     if case not in COLD_CASES:
         raise ValueError("unknown cold case")
+    refuse_stray_suspend(case, stdout)
     lines = stdout.splitlines()
     marker = f"SYSTEM:COLD:REFUSED:{case}"
     controlled = [line for line in lines if line.startswith("SYSTEM:COLD:")]
@@ -335,7 +440,8 @@ def evaluate_cold(case: str, stdout: str, raw_exit: int | None, timed_out: bool)
 
 def run_system(case: str, volume_dir: Path | None = None, *, timeout: int = MAX_TIMEOUT,
                kernel_feature: str | None = None, network_port: int | None = None,
-               rtc_base: str | None = None, cold_case: str | None = None):
+               rtc_base: str | None = None, cold_case: str | None = None,
+               nic_status: bool = True, qmp_hook=None):
     cases = {**FEATURE, **POWER_FEATURE}
     if case not in cases or not 0 < timeout <= MAX_TIMEOUT:
         raise ValueError("unknown case or unbounded timeout")
@@ -345,10 +451,19 @@ def run_system(case: str, volume_dir: Path | None = None, *, timeout: int = MAX_
     network_feature = {"normal": "native-system-net", "recover": "test-system-net-recover"}.get(case)
     diagnostic = case == "normal" and selected in (
         *RANDOM_FEATURE.values(), "native-system-images", "native-system-clock")
-    if selected not in (cases[case], network_feature, TCP_FEATURE.get(case)) and not diagnostic:
+    link = case == "normal" and selected in LINK_FEATURES
+    if selected not in (cases[case], network_feature, TCP_FEATURE.get(case)) and not diagnostic and not link:
         raise ValueError("wrong native system feature for this case")
+    if (qmp_hook is not None or nic_status is not True) and not link:
+        raise ValueError("QMP link control and a STATUS-less NIC belong to the link profile only")
+    wake, machine = None, None
+    if case in S3_CASES:
+        from run_sleep import SystemWake  # lazy: run_sleep's wake hook reuses run_net_link, which imports this module
+        # The S3 evidence boundary: the measured QEMU 8.2 q35/OVMF profile under TCG only.
+        machine = s3_machine()
+        wake = SystemWake(time.monotonic() + timeout)
     use_tcp = selected == TCP_FEATURE.get(case)
-    use_network = selected == network_feature or use_tcp
+    use_network = selected == network_feature or use_tcp or link
     if use_network != (type(network_port) is int and 1024 <= network_port <= 65535):
         raise ValueError("network profile requires a dedicated local test peer port")
     if not use_network and network_port is not None:
@@ -410,7 +525,7 @@ def run_system(case: str, volume_dir: Path | None = None, *, timeout: int = MAX_
     rel = run_dir.relative_to(ROOT).as_posix()
     disk_rel = image.relative_to(ROOT).as_posix()
     readonly = "on" if case == "recover" else "off"
-    command = [qemu, "-machine", qemu_machine(), "-accel", qemu_accel(), "-cpu", "qemu64",
+    command = [qemu, "-machine", machine or qemu_machine(), "-accel", qemu_accel(), "-cpu", "qemu64",
                "-smp", "1", "-m", "256M", "-nodefaults", "-display", "none", "-monitor", "none",
                "-serial", "stdio", "-nic", "none", "-no-reboot",
                "-drive", f"if=pflash,unit=0,format=raw,readonly=on,file={rel}/OVMF_CODE.fd",
@@ -428,10 +543,32 @@ def run_system(case: str, volume_dir: Path | None = None, *, timeout: int = MAX_
     if use_network:
         # An ephemeral port is supplied by the owned synthetic protocol peer.
         # No TAP, bridge, default user network, host share or public listener.
-        command += network_arguments(network_port)
+        command += network_arguments(network_port, status=nic_status)
+    if wake is not None:
+        qmp_hook = wake
+    if qmp_hook is not None:
+        # Private QMP socket inside this run directory (relative to QEMU's
+        # cwd). The link harness is its only client and permits nothing but
+        # qmp_capabilities and set_link; no HMP, TAP or other listener.
+        command += ["-qmp", f"unix:{rel}/qmp.sock,server=on,wait=off"]
     started = datetime.now(timezone.utc).isoformat()
     begin = time.monotonic()
-    rc, stdout, stderr, timed_out, _, _ = execute(command, env, timeout=timeout)
+    on_line = None if qmp_hook is None else (lambda line, process: qmp_hook(line, process, run_dir))
+    try:
+        rc, stdout, stderr, timed_out, _, _ = execute(command, env, timeout=timeout, on_line=on_line)
+    except Exception as error:
+        # A failed link-control hook killed QEMU: keep the partial serial log.
+        (run_dir / "serial.txt").write_text(getattr(error, "partial_stdout", ""))
+        if wake is not None:
+            (run_dir / "stderr.txt").write_text(getattr(error, "partial_stderr", ""))
+            save_json(run_dir / "result.json", dict(case=case, passed=False, s3_control=wake.evidence(),
+                                                    run_directory=str(run_dir),
+                                                    error=f"{type(error).__name__}: {error}"))
+            raise RuntimeError(f"{case} control failed ({run_dir}): {error}") from error
+        raise
+    finally:
+        if wake is not None:
+            wake.close()
     duration = time.monotonic() - begin
     (run_dir / "serial.txt").write_text(stdout)
     (run_dir / "stderr.txt").write_text(stderr)
@@ -446,16 +583,24 @@ def run_system(case: str, volume_dir: Path | None = None, *, timeout: int = MAX_
         firmware_sha256={"code": sha256(code), "vars_template": sha256(variables)},
         esp_sha256={p.relative_to(run_dir).as_posix(): sha256(p)
                     for p in (run_dir / "esp").rglob("*") if p.is_file()}, passed=False)
+    if wake is not None:
+        # Recorded before any verdict so a failed run keeps its QMP evidence.
+        report["s3_control"] = wake.evidence()
     if use_network:
         report["network_gate"] = False
     if use_tcp:
         report["tcp_gate"] = False
+    if link:
+        report["nic_status"] = nic_status
+        report["qmp_socket"] = "qmp.sock" if qmp_hook is not None else None
     try:
         report["cold_case"] = cold_case
         report["fixture_environment"] = {"NOS_SYSTEM_COLD_CASE": os.environ.get("NOS_SYSTEM_COLD_CASE")}
         report["cold_antirollback"] = "UNPROTECTED: no independently trusted cold generation floor"
         report["evidence"] = (evaluate_cold(cold_case, stdout, rc, timed_out) if cold_case is not None
                               else evaluate(case, stdout, rc, timed_out))
+        if wake is not None:
+            wake.check()
         if case == "recover" and before != after:
             raise ValueError("read-only cold recovery changed the disk")
         oracle = volume_disk.analyse(image.read_bytes(), OPAQUE_OBJECTS)

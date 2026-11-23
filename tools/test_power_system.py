@@ -8,7 +8,7 @@ import sys
 
 from build import build
 from common import BUILD, save_json, source_hash
-from run_system import FEATURE, POWER_FEATURE, run_system
+from run_system import FEATURE, POWER_FEATURE, run_system, s3_machine
 
 
 def main() -> int:
@@ -18,6 +18,7 @@ def main() -> int:
     path = BUILD / "power-system-gate.json"
     save_json(path, summary)
     try:
+        s3_machine()  # refuse an unsupported S3 profile before any native stage runs
         for case, feature in POWER_FEATURE.items():
             image = None
             for stage, stage_feature in ((case, feature), ("recover", FEATURE["recover"])):

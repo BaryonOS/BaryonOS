@@ -88,6 +88,181 @@ fn storage_closed() -> Result<(), i64> {
     }
     Ok(())
 }
+/// H05-T4 (ADR-H05-S3-SYSTEM-20261123): every SUSPEND result per call, in
+/// order, as the kernel returned it, kept apart from the POWER_OFF log.
+#[cfg(feature = "test-system-s3")]
+struct Suspend {
+    log: [i64; 8],
+    count: usize,
+    other: usize,
+    granted: bool,
+    resumed: bool,
+    irqs_at_wake: u64,
+    ticked: bool,
+    /// Init's entropy/block syscalls after the wake: (number, result).
+    lost: [(u64, i64); 4],
+    lost_count: usize,
+    /// Kernel copy of the Key Service's Entropy handle, taken at manifest
+    /// time; ring 3 can rewrite its startup page, never this.
+    #[cfg(feature = "test-system-s3-reinit")]
+    key_entropy: u64,
+    /// Broker (delivered bytes, denied) at the wake, before any post-wake
+    /// request, so post-wake activity cannot pad the pre-sleep evidence.
+    #[cfg(feature = "test-system-s3-reinit")]
+    broker_at_wake: (u64, u64),
+    /// Device accesses of both brokers (`device_io`) at the wake (review R3).
+    io_at_wake: (u64, u64, u64),
+    /// SUSPEND refusals (-8) because the volume broker still held a request.
+    held_refusals: u64,
+    /// Teardown resets the post-wake latch kept away from a device.
+    suppressed: u64,
+}
+#[cfg(feature = "test-system-s3")]
+static mut SUSPEND: Suspend = Suspend {
+    log: [0; 8],
+    count: 0,
+    other: 0,
+    granted: false,
+    resumed: false,
+    irqs_at_wake: 0,
+    ticked: false,
+    lost: [(0, 0); 4],
+    lost_count: 0,
+    #[cfg(feature = "test-system-s3-reinit")]
+    key_entropy: 0,
+    #[cfg(feature = "test-system-s3-reinit")]
+    broker_at_wake: (0, 0),
+    io_at_wake: (0, 0, 0),
+    held_refusals: 0,
+    suppressed: 0,
+};
+#[cfg(feature = "test-system-s3")]
+fn suspend_state() -> &'static mut Suspend {
+    // SAFETY: One CPU, IF=0, KERNEL held. Each borrow ends before a syscall,
+    // scheduling or the sleep itself.
+    unsafe { &mut *ptr::addr_of_mut!(SUSPEND) }
+}
+/// Every device access of both brokers (review R3): entropy requests reaching
+/// the driver, block descriptor preparations and publications, polls, resets,
+/// reset acknowledgement reads and re-initialisations, each counted at its
+/// call site. (keyring, volume, accounted keyring re-init subset; the last
+/// is 0 outside test-system-s3-reinit).
+#[cfg(feature = "test-system-s3")]
+fn device_io() -> (u64, u64, u64) {
+    let (keyring, accounted) = keyring::device_accesses();
+    (keyring, m5::device_accesses(), accounted)
+}
+#[cfg(feature = "test-system-s3")]
+pub(super) fn device_access_suppressed() {
+    let p = suspend_state();
+    p.suppressed = p.suppressed.saturating_add(1);
+}
+/// test-system-s3-held-completion only: once the quiescence check has refused
+/// (-8), skip it on every later SUSPEND until the grant (a labelled gate-defect
+/// injection) so that the post-wake latch alone must keep the held request's
+/// teardown reset away from the device.
+#[cfg(feature = "test-system-s3-held-completion")]
+fn held_check_skipped() -> bool {
+    let p = suspend_state();
+    p.held_refusals > 0 && !p.granted
+}
+/// Every other S3 profile: the quiescence check is never skipped.
+#[cfg(all(
+    feature = "test-system-s3",
+    not(feature = "test-system-s3-held-completion")
+))]
+fn held_check_skipped() -> bool {
+    false
+}
+/// Syscall 0x91 SUSPEND(power handle, 0, 0, 0, 0, 0), same validation order
+/// as POWER_OFF, then volume broker quiescence (-8: it still holds a request,
+/// e.g. a completed one its owner never consumed, whose teardown would reset
+/// the device after the wake; review R1). One grant per boot (-14
+/// afterwards). 0 = validated wake. Every refusal precedes any I/O.
+#[cfg(feature = "test-system-s3")]
+pub(super) fn suspend(s: &mut State, slot: usize, a: [u64; 6]) -> i64 {
+    let code = if a[1..].iter().any(|value| *value != 0) {
+        -1
+    } else if let Err(error) = m4::engine().check_power(s.processes[slot].pid, a[0]) {
+        error.code()
+    } else if !crate::m2::sleep::ready() {
+        -14
+    } else if let Err(code) = storage_closed() {
+        code
+    } else if !m5::sleep_quiescent() && !held_check_skipped() {
+        let p = suspend_state();
+        p.held_refusals = p.held_refusals.saturating_add(1);
+        -8
+    } else {
+        0
+    };
+    let p = suspend_state();
+    if slot != INIT {
+        p.other = p.other.saturating_add(1);
+    } else if p.count < p.log.len() {
+        p.log[p.count] = code;
+        p.count += 1;
+    } else {
+        // A lost record can never satisfy the exact log `finish` requires.
+        p.other = p.other.saturating_add(1);
+    }
+    if code != 0 {
+        return code;
+    }
+    p.granted = true;
+    crate::m2::sleep::suspend(&mut s.kernel);
+    // Validated wake. Latch first: from here no broker path touches a device
+    // (test-system-s3-reinit: until the validated re-init, which is accounted).
+    let io = device_io();
+    let p = suspend_state();
+    p.resumed = true;
+    p.io_at_wake = io;
+    p.irqs_at_wake = s.timer_interrupts;
+    #[cfg(feature = "test-system-s3-reinit")]
+    {
+        let (delivered, denied, _) = keyring::broker_summary();
+        p.broker_at_wake = (delivered, denied);
+    }
+    0
+}
+/// After a validated wake every device is reset by the platform. Submission
+/// paths (keyring 0x60, volume 0x40-0x43) refuse with -14; broker progress
+/// (`advance`) and owner teardown (keyring `quarantine_pending`, volume
+/// `reset`) skip every device MMIO and PCI config access (review R1). Only
+/// test-system-s3-reinit lifts the keyring latch, after its validated re-init.
+#[cfg(feature = "test-system-s3")]
+pub(super) fn resumed() -> bool {
+    suspend_state().resumed
+}
+/// Every entropy (0x60) and block (0x40..=0x43) result after the wake, as
+/// returned. Another caller or an overflow counts in `other`: fail closed.
+#[cfg(feature = "test-system-s3")]
+pub(super) fn after_wake(slot: usize, number: u64, code: i64) {
+    let p = suspend_state();
+    if !p.resumed {
+        return;
+    }
+    if slot == INIT && p.lost_count < p.lost.len() {
+        p.lost[p.lost_count] = (number, code);
+        p.lost_count += 1;
+    } else {
+        p.other = p.other.saturating_add(1);
+    }
+}
+/// First timer interrupt after the wake: tell init it may continue. With
+/// test-system-s3-reinit only once virtio-rng is re-initialised (H05-T5b).
+#[cfg(feature = "test-system-s3")]
+pub(super) fn tick_after_wake(s: &State) {
+    #[cfg(feature = "test-system-s3-reinit")]
+    if !keyring::reinit_done() {
+        return;
+    }
+    let p = suspend_state();
+    if p.resumed && !p.ticked && s.processes[INIT].status != Status::Dead {
+        p.ticked = true;
+        put(s, INIT, 616, 1);
+    }
+}
 struct Evidence {
     app: Option<[u64; 13]>,
     persist: Option<[u64; 6]>,
@@ -102,6 +277,8 @@ struct Evidence {
     net_pid: u64,
     #[cfg(feature = "native-system-tcp")]
     tcp: Option<([u64; 2], u64)>, // clock reads, blackhole ticks; actual exit tick
+    #[cfg(feature = "test-system-net-link")]
+    link: Option<[u64; 13]>,
 }
 static mut EVIDENCE: Evidence = Evidence {
     app: None,
@@ -117,6 +294,8 @@ static mut EVIDENCE: Evidence = Evidence {
     net_pid: 0,
     #[cfg(feature = "native-system-tcp")]
     tcp: None,
+    #[cfg(feature = "test-system-net-link")]
+    link: None,
 };
 fn evidence() -> &'static mut Evidence {
     // SAFETY: KERNEL held, IF=0. Each borrow ends before a syscall or scheduling.
@@ -213,6 +392,8 @@ pub(super) fn manifest(s: &mut State) {
         for (offset, value) in [(32, 1), (40, 0), (48, cap), (56, wrong_type), (176, pid)] {
             put(s, 4, offset, value);
         }
+        #[cfg(feature = "test-system-net-link")]
+        put(s, 4, network::link::MODE_WORD, network::link::MODE);
         network::bind(pid, cap, key);
     }
     #[cfg(feature = "native-system-random")]
@@ -297,6 +478,22 @@ pub(super) fn manifest(s: &mut State) {
         );
         // The app learns init's raw handle value only: a number, not authority.
         put(s, INIT, 48, power);
+        // 1 = SUSPEND sequence; 2 = it also expects one quiescence -8 first.
+        #[cfg(feature = "test-system-s3")]
+        put(
+            s,
+            INIT,
+            592,
+            if cfg!(feature = "test-system-s3-held-completion") {
+                2
+            } else {
+                1
+            },
+        );
+        // H05-T5b: entropy is served again after the wake; init's POWER handle
+        // then reaches the authority check (-6) instead of the -14 refusal.
+        #[cfg(feature = "test-system-s3-reinit")]
+        put(s, INIT, 624, 1);
         put(s, APP, 104, power);
         // SHUTDOWN is accepted only on domain 1, init's volume ingress.
         put(s, VOLUME, 104, 2);
@@ -317,6 +514,10 @@ pub(super) fn manifest(s: &mut State) {
     let (key_admin_ingress, init_key_admin) = channel(e, key, init);
     let (init_key_reply, key_admin_reply) = channel(e, init, key);
     let entropy = e.create_entropy(key).unwrap();
+    #[cfg(feature = "test-system-s3-reinit")]
+    {
+        suspend_state().key_entropy = entropy;
+    }
     let (volume_reply, volume_send_reply) = channel(e, app, volume);
     let (volume_ingress, app_volume) = channel(e, volume, app);
     // The second volume domain belongs to init (key-state snapshot), never the app.
@@ -586,6 +787,14 @@ pub(super) fn observe_exit(s: &mut State, slot: usize, _counter: u64) {
     #[cfg(feature = "native-system-net")]
     if is_net_probe(s, slot) {
         evidence().net = Some(words);
+        #[cfg(feature = "test-system-net-link")]
+        {
+            let mut link = [0; 13];
+            for (value, at) in link.iter_mut().zip(network::link::PROBE_WORDS) {
+                *value = word(s, slot, at);
+            }
+            evidence().link = Some(link);
+        }
         #[cfg(feature = "native-system-tcp")]
         {
             // Snapshot before process cleanup; these are observer inputs, not
@@ -621,6 +830,11 @@ pub(super) fn observe_fault(s: &mut State, slot: usize, context: &[u64; 22], _co
 pub(super) fn poll(s: &mut State) -> Option<*const u64> {
     #[cfg(feature = "native-system-random")]
     random_fixture::poll(s);
+    #[cfg(feature = "test-system-s3-reinit")]
+    if resumed() {
+        let handle = suspend_state().key_entropy;
+        keyring::reinit_poll(s, KEY, handle);
+    }
     keyring::broker_tick(s);
     m5::broker_tick(s);
     #[cfg(feature = "native-system-net")]
@@ -725,6 +939,20 @@ fn finish(s: &mut State) -> ! {
         serial::write(b"SYSTEM:CLOCK:INVALID_ARGS:PASS\n");
     }
     let (entropy, denied, entropy_idle) = keyring::broker_summary();
+    // H05-T5b: judge the pre-sleep values against the bounds below, and the
+    // post-wake increments exactly: the kernel's 32-byte delivery, init's -6.
+    #[cfg(feature = "test-system-s3-reinit")]
+    let (entropy_before, denied_before) = {
+        let (delivered_before, denied_before) = suspend_state().broker_at_wake;
+        require(
+            entropy.checked_sub(delivered_before) == Some(32)
+                && denied.checked_sub(denied_before) == Some(1),
+            b"S3_REINIT_BROKER_DELTA",
+        );
+        (delivered_before, denied_before)
+    };
+    #[cfg(not(feature = "test-system-s3-reinit"))]
+    let (entropy_before, denied_before) = (entropy, denied);
     let (published, completed, block_idle) = m5::broker_summary();
     // Power fault fixtures: exactly the injected SHUTDOWN flush never completed.
     let refused = cfg!(any(
@@ -737,7 +965,11 @@ fn finish(s: &mut State) -> ! {
         block_idle && published == completed
     };
     require(
-        entropy >= 1024 && denied >= 1 && entropy_idle && block_state && published[0] > 0,
+        entropy_before >= 1024
+            && denied_before >= 1
+            && entropy_idle
+            && block_state
+            && published[0] > 0,
         b"BROKER_STATE",
     );
     if cfg!(feature = "test-system-recover") {
@@ -800,6 +1032,56 @@ fn finish(s: &mut State) -> ! {
         print_number(b"SYSTEM:POWER_INIT_REFUSALS:", init.len() as u64);
         print_number(b"SYSTEM:POWER_APP_REFUSALS:", p.count[APP] as u64);
         print_number(b"SYSTEM:POWER_NOT_DURABLE:", u64::from(refused));
+    }
+    #[cfg(feature = "test-system-s3")]
+    {
+        let p = suspend_state();
+        // H05-T5b: after re-init init's entropy request reaches the authority
+        // check with its POWER handle (-6); block requests stay lost (-14).
+        let entropy = if cfg!(feature = "test-system-s3-reinit") {
+            -6
+        } else {
+            -14
+        };
+        let ok = p.granted
+            && p.resumed
+            && p.ticked
+            && s.timer_interrupts > p.irqs_at_wake
+            && if cfg!(feature = "test-system-s3-held-completion") {
+                p.log[..p.count] == [-8, -6, -4, -1, -8, 0, -14] && p.held_refusals == 1
+            } else {
+                p.log[..p.count] == [-8, -6, -4, -1, 0, -14] && p.held_refusals == 0
+            }
+            && p.lost[..p.lost_count] == [(0x60, entropy), (0x40, -14)]
+            && p.other == 0;
+        if !ok {
+            for code in &p.log[..p.count] {
+                print_number(b"SYSTEM:SUSPEND:LOG_RESULT:", code.unsigned_abs());
+            }
+            for (number, code) in &p.lost[..p.lost_count] {
+                print_number(b"SYSTEM:SUSPEND:LOST_CALL:", *number);
+                print_number(b"SYSTEM:SUSPEND:LOST_RESULT:", code.unsigned_abs());
+            }
+            fail(b"SUSPEND_EVIDENCE");
+        }
+        print_number(b"SYSTEM:SUSPEND_REFUSALS:", (p.count - 1) as u64);
+        print_number(b"SYSTEM:SUSPEND_GRANTED:", 1);
+        print_number(b"SYSTEM:SUSPEND_TICK_AFTER_WAKE:", 1);
+        print_number(b"SYSTEM:SUSPEND_HELD_REFUSALS:", p.held_refusals);
+        #[cfg(feature = "test-system-s3-reinit")]
+        {
+            let (served, stale) = keyring::reinit_evidence().unwrap_or_else(|| fail(b"S3_REINIT"));
+            print_number(b"SYSTEM:SUSPEND_REINIT_ENTROPY:", served);
+            print_number(b"SYSTEM:SUSPEND_REINIT_STALE_TICKET:", stale.unsigned_abs());
+            print_number(
+                b"SYSTEM:SUSPEND_REINIT_ENTROPY_AUTH:",
+                p.lost[0].1.unsigned_abs(),
+            );
+        }
+        // The logged magnitudes, so a host oracle can tell -14 from 0.
+        #[cfg(not(feature = "test-system-s3-reinit"))]
+        print_number(b"SYSTEM:SUSPEND_LOST_ENTROPY:", p.lost[0].1.unsigned_abs());
+        print_number(b"SYSTEM:SUSPEND_LOST_BLOCK:", p.lost[1].1.unsigned_abs());
     }
     // Seals: legacy 1 + record 1 (+ persisted record in the normal run).
     // Unseals: legacy 1 + record 1 (+ restored record after the cold start).
@@ -921,6 +1203,10 @@ fn finish(s: &mut State) -> ! {
             }
         }
         network::print_and_check(net[6], net[7]);
+        #[cfg(feature = "test-system-net-link")]
+        network::link::check_and_print(
+            evidence().link.unwrap_or_else(|| fail(b"NETLINK_SNAPSHOT")),
+        );
     }
     #[cfg(feature = "native-system-random")]
     random_fixture::check_and_print(s);
@@ -959,6 +1245,42 @@ fn finish(s: &mut State) -> ! {
     print_number(b"SYSTEM:LIVE_PROCESSES_AFTER:", stats.processes as u64);
     print_number(b"SYSTEM:FRAMES_RECOVERED:", 1);
     serial::write(b"SYSTEM:CLEANUP:PASS\n");
+    // Review R1/R3, after every owner's teardown: no broker touched a device
+    // after the wake outside the accounted re-init path, and the latch
+    // suppressed exactly the one teardown reset the held-completion fixture
+    // provokes (none otherwise).
+    #[cfg(feature = "test-system-s3")]
+    {
+        let p = suspend_state();
+        let (keyring, volume, accounted) = device_io();
+        let (keyring_at_wake, volume_at_wake, accounted_at_wake) = p.io_at_wake;
+        let accounted = accounted.saturating_sub(accounted_at_wake);
+        let io_after = keyring
+            .saturating_add(volume)
+            .saturating_sub(keyring_at_wake.saturating_add(volume_at_wake))
+            .saturating_sub(accounted);
+        let suppressed = u64::from(cfg!(feature = "test-system-s3-held-completion"));
+        // Counter liveness: init's pre-sleep block I/O and the services'
+        // startup entropy seeds were counted, so a dead counter cannot pass.
+        print_number(
+            b"SYSTEM:SUSPEND_DEVICE_IO_AT_WAKE_KEYRING:",
+            keyring_at_wake,
+        );
+        print_number(b"SYSTEM:SUSPEND_DEVICE_IO_AT_WAKE_VOLUME:", volume_at_wake);
+        print_number(b"SYSTEM:SUSPEND_DEVICE_IO_AFTER_WAKE:", io_after);
+        print_number(b"SYSTEM:SUSPEND_DEVICE_SUPPRESSED:", p.suppressed);
+        // The re-init profile must have used its accounted path; no other may.
+        let reinit = cfg!(feature = "test-system-s3-reinit");
+        require(
+            p.resumed
+                && keyring_at_wake > 0
+                && volume_at_wake > 0
+                && io_after == 0
+                && p.suppressed == suppressed
+                && (accounted > 0) == reinit,
+            b"SUSPEND_DEVICE_EVIDENCE",
+        );
+    }
     #[cfg(feature = "native-system-power")]
     if power_state().granted {
         // Every process is gone; re-check the gate on the final broker state.
@@ -966,7 +1288,15 @@ fn finish(s: &mut State) -> ! {
             print_number(b"SYSTEM:POWER:GATE_LOST:", code as u64);
             fail(b"POWER_GATE");
         }
-        serial::write(b"SYSTEM:POWER:GATE:PASS\nSYSTEM:CASE:POWER:PASS\nM1:PASS\n");
+        serial::write(if cfg!(feature = "test-system-s3-held-completion") {
+            &b"SYSTEM:POWER:GATE:PASS\nSYSTEM:CASE:POWER_S3_HELD_COMPLETION:PASS\nM1:PASS\n"[..]
+        } else if cfg!(feature = "test-system-s3-reinit") {
+            &b"SYSTEM:POWER:GATE:PASS\nSYSTEM:CASE:POWER_S3_REINIT:PASS\nM1:PASS\n"[..]
+        } else if cfg!(feature = "test-system-s3") {
+            &b"SYSTEM:POWER:GATE:PASS\nSYSTEM:CASE:POWER_S3:PASS\nM1:PASS\n"[..]
+        } else {
+            b"SYSTEM:POWER:GATE:PASS\nSYSTEM:CASE:POWER:PASS\nM1:PASS\n"
+        });
         crate::m2::power::off();
         fail(b"POWER_RETURNED");
     } else {
