@@ -5,8 +5,11 @@
 //! authenticate each owner; NET1 never accepts a caller-supplied reply handle.
 #[path = "../../system/src/support.rs"]
 mod support;
-use nieuw_os_net_stack::{Config, SocketStorage};
-use nieuw_os_network_service::{wire, Buffers, Configuration, Destination, Service};
+use nieuw_os_net_stack::{Config, LinkConfig, SocketStorage};
+use nieuw_os_network_service::{
+    wire, Buffers, Configuration, Destination, DhcpConfiguration, Fault, ProbeTiming, RandomSource,
+    Service,
+};
 use nieuw_os_sdk_runtime::{
     native, EntropySource, Handle, NetworkSource, Outgoing, ReceiveEndpoint, SendEndpoint,
 };
@@ -40,13 +43,103 @@ struct Pending {
     ticket: u64,
     length: usize,
 }
+/// DHCP XIDs and retry jitter come only from the entropy grant this service
+/// already holds; a failed read is an error, never a constant fallback.
+struct Entropy {
+    source: EntropySource,
+    draws: u64,
+}
+impl RandomSource for Entropy {
+    type Error = ();
+    fn random_u32(&mut self) -> Result<u32, ()> {
+        let ticket = native::entropy_request(self.source, 4).map_err(|_| ())?;
+        let mut bytes = [0; 4];
+        native::entropy_wait(self.source, ticket, &mut bytes, 100_000).map_err(|_| ())?;
+        self.draws += 1;
+        Ok(u32::from_le_bytes(bytes))
+    }
+}
 struct Bridge {
     source: NetworkSource,
     pending: Option<Pending>,
     rx: [u8; 1514],
+    /// Present only in the DHCP profile selected by the trusted manifest.
+    dhcp: Option<Entropy>,
 }
 impl Bridge {
+    /// DHCP mode uses only the timestamped TX API; the legacy static calls
+    /// below deliberately return nothing/refuse in that mode.
+    fn step_dhcp(&mut self, service: &mut Service<'_>, tick: u64) {
+        if let Some(p) = &self.pending {
+            match native::net_poll_tx(self.source, p.ticket) {
+                Ok(n) => {
+                    if n != p.length.max(60) {
+                        fail(10)
+                    }
+                    service
+                        .complete_transmission_at(p.id, tick)
+                        .unwrap_or_else(|_| fail(11));
+                    self.pending = None;
+                    bump(416)
+                }
+                Err(e) if e.is_again() => {}
+                Err(_) => fail(12),
+            }
+        }
+        if service.can_receive_frame() {
+            match native::net_receive(self.source, &mut self.rx) {
+                Ok(n) => {
+                    match service.ingress(&self.rx[..n], tick) {
+                        Ok(()) => {}
+                        // A foreign or stale DHCP/ARP frame is refused and
+                        // counted; it must not take the shared service down.
+                        Err(Fault::Dhcp(_)) => bump(608),
+                        Err(_) => fail(14),
+                    }
+                    bump(424)
+                }
+                Err(e) if e.is_again() => {}
+                Err(_) => fail(15),
+            }
+        }
+        // Once both owners retired no configuration is needed any more.
+        if service.retired_mask() != 3 {
+            let random = self.dhcp.as_mut().unwrap_or_else(|| fail(33));
+            service
+                .drive_dhcp(tick, random)
+                .unwrap_or_else(|_| fail(33));
+        }
+        service.poll(tick).unwrap_or_else(|_| fail(16));
+        if self.pending.is_none() {
+            // Nothing is outstanding at the broker, so a frame withheld by a
+            // lease withdrawal was never submitted and may be released.
+            if let Some(id) = service
+                .withheld_transmission_at(tick)
+                .unwrap_or_else(|_| fail(34))
+            {
+                service
+                    .discard_withheld_transmission_at(id, tick)
+                    .unwrap_or_else(|_| fail(35));
+            }
+            if let Some(frame) = service.transmission_at(tick).unwrap_or_else(|_| fail(36)) {
+                match native::net_send(self.source, frame.bytes, 100) {
+                    Ok(ticket) => {
+                        self.pending = Some(Pending {
+                            id: frame.id,
+                            ticket,
+                            length: frame.bytes.len(),
+                        })
+                    }
+                    Err(e) if e.is_again() => {}
+                    Err(_) => fail(13),
+                }
+            }
+        }
+    }
     fn step(&mut self, service: &mut Service<'_>, tick: u64) {
+        if self.dhcp.is_some() {
+            return self.step_dhcp(service, tick);
+        }
         if let Some(p) = &self.pending {
             match native::net_poll_tx(self.source, p.ticket) {
                 Ok(n) => {
@@ -174,6 +267,12 @@ fn run() -> ! {
         }
         _ => fail(5),
     };
+    // The trusted manifest selects the N02 DHCP profile; no app input can.
+    let dhcp = match support::word(176) {
+        0 => false,
+        1 => true,
+        _ => fail(37),
+    };
     let ticket = native::entropy_request(entropy, 8).unwrap_or_else(|_| fail(6));
     let mut seed = [0; 8];
     native::entropy_wait(entropy, ticket, &mut seed, 100_000).unwrap_or_else(|_| fail(7));
@@ -188,46 +287,74 @@ fn run() -> ! {
             .filter(|p| *p != 0)
             .unwrap_or_else(|| fail(8))
     };
-    let mut service = Service::new(
-        Configuration {
-            epoch,
-            pids,
-            link: Config {
-                mac: [2, 0, 0, 0, 0, 7],
-                ipv4: [192, 0, 2, 2],
-                prefix_len: 24,
-                random_seed,
+    let mac = [2, 0, 0, 0, 0, 7];
+    let destinations = [
+        Destination {
+            ipv4: [192, 0, 2, 1],
+            tcp_first: port(120),
+            tcp_count: 5,
+            udp_port: port(136),
+        },
+        Destination {
+            ipv4: [192, 0, 2, 1],
+            tcp_first: port(128),
+            tcp_count: 5,
+            udp_port: port(144),
+        },
+    ];
+    let buffers = Buffers {
+        storage: &mut storage,
+        rx_frame: &mut rx,
+        tx_frame: &mut tx,
+        rx_sockets: [&mut ra, &mut rb],
+        tx_sockets: [&mut ta, &mut tb],
+    };
+    let mut service = if dhcp {
+        // DHCP supplies address and router only; the destination grants
+        // stay the trusted startup values above.
+        Service::new_dhcp(
+            DhcpConfiguration {
+                epoch,
+                pids,
+                link: LinkConfig { mac, random_seed },
+                destinations,
             },
-            destinations: [
-                Destination {
-                    ipv4: [192, 0, 2, 1],
-                    tcp_first: port(120),
-                    tcp_count: 5,
-                    udp_port: port(136),
+            buffers,
+            ProbeTiming::new(0, 100, 100).unwrap_or_else(|_| fail(9)),
+            now(),
+        )
+    } else {
+        Service::new(
+            Configuration {
+                epoch,
+                pids,
+                link: Config {
+                    mac,
+                    ipv4: [192, 0, 2, 2],
+                    prefix_len: 24,
+                    random_seed,
                 },
-                Destination {
-                    ipv4: [192, 0, 2, 1],
-                    tcp_first: port(128),
-                    tcp_count: 5,
-                    udp_port: port(144),
-                },
-            ],
-        },
-        Buffers {
-            storage: &mut storage,
-            rx_frame: &mut rx,
-            tx_frame: &mut tx,
-            rx_sockets: [&mut ra, &mut rb],
-            tx_sockets: [&mut ta, &mut tb],
-        },
-        now(),
-    )
+                destinations,
+            },
+            buffers,
+            now(),
+        )
+    }
     .unwrap_or_else(|_| fail(9));
+    if dhcp {
+        // Startup link notification only; link control is out of this profile.
+        service.link_up(now()).unwrap_or_else(|_| fail(38));
+    }
     let mut bridge = Bridge {
         source,
         pending: None,
         rx: [0; 1514],
+        dhcp: dhcp.then_some(Entropy {
+            source: entropy,
+            draws: 0,
+        }),
     };
+    let mut leased: Option<u64> = None;
     let mut pending: [Option<wire::Packet>; 2] = [None, None];
     let mut disabled = [false; 2];
     let mut drain = false;
@@ -237,6 +364,27 @@ fn run() -> ! {
         let tick = now();
         bridge.step(&mut service, tick);
         bump(408);
+        if dhcp {
+            let address = service
+                .dhcp_configuration(tick)
+                .unwrap_or_else(|_| fail(39))
+                .map(|lease| u64::from(u32::from_be_bytes(lease.address)));
+            if address != leased {
+                if let Some(address) = address {
+                    bump(560);
+                    if support::word(576) == 0 {
+                        support::put(576, address);
+                    }
+                    support::put(584, address);
+                    support::put(616, tick);
+                } else {
+                    bump(568);
+                    support::put(592, tick);
+                }
+                leased = address;
+            }
+            support::put(600, bridge.dhcp.as_ref().map_or(0, |e| e.draws));
+        }
         if let Some((endpoint, pid)) = control {
             match native::receive(endpoint) {
                 Ok(message) => {

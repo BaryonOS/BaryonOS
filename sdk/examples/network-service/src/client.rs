@@ -98,17 +98,21 @@ fn exercise(
     port: u16,
     case: Case,
     previous: Option<Connection>,
+    grace: u64,
 ) -> Connection {
-    let start = tick();
+    let begin = tick();
     let timeout = if case == Case::Timeout { 300 } else { 700 };
     let connection = loop {
-        check(tick() - start < timeout + 300, 20);
+        check(tick() - begin < timeout + 300 + grace, 20);
         match session.open([192, 0, 2, 1], port, timeout as u32) {
             Ok(c) => break c,
             Err(e) if again(e) => yield_now(),
             Err(_) => fail(21),
         }
     };
+    // `grace` only bounds waiting for a DHCP lease (OpenTcp answers Again);
+    // the exchange itself keeps the unchanged per-case budget.
+    let start = if grace == 0 { begin } else { tick() };
     if let Some(old) = previous {
         check(session.state(old) == Err(Error::Service(Status::Stale)), 22);
         bump(432);
@@ -665,6 +669,57 @@ fn revoked(session: &mut Session<NativeTransport>) -> ! {
     support::put(528, 1);
     native::exit(0)
 }
+/// N02: one exchange on the first lease. App A then holds an idle connection
+/// until the DHCPNAK withdraws its token, proves OpenTcp is refused while
+/// unconfigured, and repeats the exchange with a fresh token on the new lease.
+fn dhcp(session: &mut Session<NativeTransport>, slot: usize, first: u16) -> ! {
+    let lease_wait = 3000;
+    let exchanged = exercise(session, slot, first, Case::Http, None, lease_wait);
+    if slot == 0 {
+        let start = tick();
+        let held = loop {
+            check(tick() - start < 300, 70);
+            match session.open([192, 0, 2, 1], first + 1, 3000) {
+                Ok(c) => break c,
+                Err(e) if again(e) => yield_now(),
+                Err(_) => fail(71),
+            }
+        };
+        loop {
+            check(tick() - start < 300, 72);
+            match session.state(held) {
+                Ok(ConnectionState::Established) => break,
+                Ok(ConnectionState::Connecting) => yield_now(),
+                _ => fail(73),
+            }
+        }
+        support::put(512, tick());
+        // Idle until the service withdraws the lease: the token goes stale.
+        loop {
+            check(tick() - start < 3000, 74);
+            match session.state(held) {
+                Ok(ConnectionState::Established) => yield_now(),
+                Err(Error::Service(Status::Stale)) => break,
+                _ => fail(75),
+            }
+        }
+        support::put(544, 1);
+        support::put(552, tick());
+        // Unconfigured: a new connection is refused, not queued or granted.
+        check(
+            session.open([192, 0, 2, 1], first + 2, 700) == Err(Error::Service(Status::Again)),
+            76,
+        );
+        bump(504);
+        let fresh = exercise(session, slot, first + 2, Case::Http, Some(held), lease_wait);
+        check(fresh.id() != held.id() && fresh.id() != exchanged.id(), 77);
+        support::put(520, tick());
+    }
+    session.retire().unwrap_or_else(|_| fail(46));
+    check(session.is_closed(), 47);
+    support::put(528, 1);
+    native::exit(0)
+}
 #[no_mangle]
 #[link_section = ".text.entry"]
 pub extern "C" fn _start() -> ! {
@@ -720,6 +775,9 @@ fn run() -> ! {
     bump(424);
     if support::word(104) == 3 {
         device_reset(&mut session, send, receive, epoch, slot)
+    }
+    if support::word(104) == 6 {
+        dhcp(&mut session, slot, first)
     }
     if support::word(104) == 2 {
         check(slot == 0, 60);
@@ -800,6 +858,7 @@ fn run() -> ! {
             first + offset as u16,
             case,
             previous,
+            0,
         ));
     }
     let payload = if slot == 0 {

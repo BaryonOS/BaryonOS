@@ -2,11 +2,11 @@
 #![forbid(unsafe_code)]
 //! A reusable userspace network service. Trusted startup binds two ingress
 //! peers to fixed destination ranges; packet fields and app bodies grant nothing.
+/// Native callers configure the DHCP mode without a direct net-config edge.
+pub use nieuw_os_net_config::service::{ProbeTiming, RandomSource};
 use nieuw_os_net_config::{
     dhcp_client::Lease,
-    service::{
-        DriveError, DriveOutcome, Error as DhcpError, ProbeTiming, RandomSource, Service as Dhcp,
-    },
+    service::{DriveError, DriveOutcome, Error as DhcpError, Service as Dhcp},
 };
 use nieuw_os_net_protocol::{
     arp::{Interface, NeighborSlot},
