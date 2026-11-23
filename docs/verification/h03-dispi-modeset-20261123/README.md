@@ -97,7 +97,10 @@ Natively, only the DEVICE refusal ran. The refusal paths `GOP`, `PCI_SCAN`,
 `DEVICE` sub-case of more than one class-0x03 function; the
 `DISPI_PIXEL_BOUND`, `DISPI_BOUND_SELFTEST` and `DISPI_READBACK` failures; and
 any multi-display configuration were not exercised in QEMU. The host tests
-cover the runner's parsing of these markers only. `pci_core::enumerate`
+feed the runner the refusal codes `DEVICE`, `DECODE`, `BAR0` and an unknown
+code, plus wrong `DISPI:READBACK:` values; they do not feed the
+`M1:FAIL:DISPI_PIXEL_BOUND`, `M1:FAIL:DISPI_BOUND_SELFTEST` or
+`M1:FAIL:DISPI_READBACK` failures, which remain untested. `pci_core::enumerate`
 reports only present type-0 endpoint headers, so the display count ignores
 bridges and other header types. Whether ENABLE=0x41 clears VRAM was not
 measured (the fixture overwrites every visible pixel). Whole-directory
@@ -109,3 +112,13 @@ on QEMU 8.2; byte-for-byte comparison of other profiles' kernel ELFs against
 the base commit (only their native gates were rerun); 1920×1080; mode changes
 requested by a ring-3 display service; EDID and monitor timing. A QEMU pass is
 not H03 hardware acceptance.
+
+## Review follow-up (CodeRabbit review 6023135406)
+
+`framebuffer::mode_extent` now uses checked multiplication. An unrepresentable extent
+is refused instead of wrapping. The four allowlisted modes are unaffected. After this
+change, the paired `native-dispi-probe` build was rerun locally on QEMU 10.2.1 with
+`-M pc-q35-8.2` and TCG: positive raw 33 with `DISPI:PASS`, negative raw 35 with
+`DISPI:REFUSED:DEVICE`, and `tools.tests.test_dispi` OK. The committed artifacts above
+remain bound to `91bd4135`. The hosted `native-display-input.yml` run on the PR head is
+the acceptance evidence.

@@ -100,6 +100,17 @@ run this fixture. Not exercised: physical hardware, other display adapters,
 EDID or monitor timing, mode switching by ring-3 services, the compositor and
 1920×1080.
 
+## Primary sources
+
+- QEMU project, `hw/display/vga.c` and `include/hw/display/bochs-vbe.h`, version
+  v8.2.2: the DISPI index/data ports, the ID range 0xB0C0–0xB0C5, the VRAM
+  register (64 KiB units), `VBE_DISPI_ENABLED`/`VBE_DISPI_LFB_ENABLED` and the
+  derived VIRT_HEIGHT. <https://gitlab.com/qemu-project/qemu/-/blob/v8.2.2/hw/display/vga.c>,
+  <https://gitlab.com/qemu-project/qemu/-/blob/v8.2.2/include/hw/display/bochs-vbe.h>.
+
+These sources describe the emulated device; they are not execution evidence.
+Local and hosted execution evidence is listed under the evidence boundary.
+
 ## Refusal grammar
 
 A refusal is exactly one line `DISPI:REFUSED:<TOKEN>` followed by

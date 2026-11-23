@@ -121,8 +121,10 @@ pub(crate) fn mode_extent(f: &FramebufferInfo, width: u32, height: u32) -> Resul
     if width == 0 || height == 0 {
         return Err(());
     }
-    // Two u32 factors times 4 cannot overflow u64.
-    let extent = u64::from(width) * u64::from(height) * 4;
+    let extent = u64::from(width)
+        .checked_mul(u64::from(height))
+        .and_then(|pixels| pixels.checked_mul(4))
+        .ok_or(())?;
     if extent > mapped || extent > f.byte_len {
         return Err(());
     }
