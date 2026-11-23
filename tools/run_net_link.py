@@ -280,6 +280,11 @@ def check_markers(case: str, stdout: str, want: dict) -> dict:
             up = next((index for index in ups if index > down), None)
             if up is None or not previous < opened < down < closed < up:
                 raise ValueError(f"{kind} down-window does not bracket the down interval at line {down}")
+            # apply() prints both closes immediately before the up edge, so a close must follow every marker of
+            # its interval (QUERY:DOWN, DOWN_REFUSED, ...). An RX_DROPPED from the up-edge harvest would also land
+            # here; it is not admitted, and the exact RX_DROPPED pin rejects such a run anyway.
+            if not all(line.startswith("NETLINK:WINDOW_CLOSE_") for line in lines[closed + 1:up]):
+                raise ValueError(f"{kind} down-window closed before the end of the down interval at line {down}")
             previous = up
     if case == "normal":
         order = [lines.index(item) for item in (

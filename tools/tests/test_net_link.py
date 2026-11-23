@@ -305,6 +305,21 @@ class VerifierTests(unittest.TestCase):
         with self.subTest(case="storm_last_late"):
             self.assert_rejected("storm", storm_last_late, "last storm window closed after the up edge")
 
+        def closed_right_after_down(_report, stdout, *_):  # closes before QUERY:DOWN:2 and DOWN_REFUSED:2
+            return stdout.replace(close, "").replace(down, down + close)
+        with self.subTest(case="closed_right_after_down"):
+            self.assert_rejected("normal", closed_right_after_down, "window closed inside the down interval")
+
+        def next_open_before_up(_report, stdout, *_):  # window 2 opens right after window 1 opens, before UP:3
+            lines = stdout.splitlines()
+            first = lines.index(window[1]) + 1
+            second = next(i for i in range(first, len(lines)) if lines[i] == window[0])
+            moved = lines[second:second + 2]
+            lines = lines[:second] + lines[second + 2:]
+            return "\n".join(lines[:first] + moved + lines[first:]) + "\n"
+        with self.subTest(case="next_open_before_up"):
+            self.assert_rejected("storm", next_open_before_up, "window k+1 opened before up edge k")
+
     def test_final_evidence_counterexamples(self):
         for case, key, value in (("normal", "NETLINK_WINDOW_DELTA", 1), ("normal", "NETLINK_TX_REFUSED", 0),
                                  ("normal", "NET_TX_SUBMITTED", 12), ("normal", "NETLINK_PROBE_STALE_ABSENT", 0),
