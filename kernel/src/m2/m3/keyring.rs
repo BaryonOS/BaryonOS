@@ -25,6 +25,13 @@ const NO_DEVICE: u64 = 1;
 const STUCK: u64 = 2;
 const NONRESPONSIVE: u64 = 3;
 const RESTART: u64 = 4;
+const REQUESTER_CRASH: u64 = 5;
+const NO_RESET_ACK: u64 = 6;
+/// Requester-crash startup words of both services: the designated crasher
+/// (service B) and the gate that holds service A until the quarantine.
+const CRASH_ROLE: u64 = 424;
+const RELEASE: u64 = 432;
+const CRASH_SLOT: usize = 1;
 
 /// Service evidence words (startup page offsets), snapshotted at finish.
 const SERVICE_WORDS: [u64; 10] = [192, 200, 208, 216, 224, 232, 240, 248, 256, 264];
@@ -95,6 +102,12 @@ struct Runtime {
     admin_exited: bool,
     admin: [u64; 4],
     finish: u8,
+    /// Requester crash (labelled fault injection): accepted crashes, the dead
+    /// holder's ticket, whether service A was released, B's evidence words.
+    crashes: u64,
+    crash_ticket: u64,
+    crash_released: bool,
+    crashed: [u64; 10],
 }
 static mut RUNTIME: Runtime = Runtime {
     info: None,
@@ -134,6 +147,10 @@ static mut RUNTIME: Runtime = Runtime {
     admin_exited: false,
     admin: [0; 4],
     finish: 0,
+    crashes: 0,
+    crash_ticket: 0,
+    crash_released: false,
+    crashed: [0; 10],
 };
 fn runtime() -> &'static mut Runtime {
     // SAFETY: KERNEL held, IF=0; each borrow ends before scheduling or cleanup.
@@ -238,7 +255,12 @@ fn quarantine_pending() {
 }
 
 fn case() -> u64 {
-    if cfg!(feature = "test-keyring-no-device") {
+    // Both B01-T2 features imply test-keyring-timeout (slot count only).
+    if cfg!(feature = "test-keyring-requester-crash") {
+        REQUESTER_CRASH
+    } else if cfg!(feature = "test-keyring-no-reset-ack") {
+        NO_RESET_ACK
+    } else if cfg!(feature = "test-keyring-no-device") {
         NO_DEVICE
     } else if cfg!(feature = "test-keyring-stuck") {
         STUCK
@@ -256,6 +278,8 @@ fn marker() -> &'static [u8] {
         NO_DEVICE => b"KEYRING:CASE:NO_DEVICE:PASS\n",
         STUCK => b"KEYRING:CASE:STUCK:PASS\n",
         NONRESPONSIVE => b"KEYRING:CASE:TIMEOUT:PASS\n",
+        REQUESTER_CRASH => b"KEYRING:CASE:REQUESTER_CRASH:PASS\n",
+        NO_RESET_ACK => b"KEYRING:CASE:NO_RESET_ACK:PASS\n",
         _ => b"KEYRING:CASE:RESTART:PASS\n",
     }
 }
@@ -424,6 +448,10 @@ pub fn manifest(s: &mut State) {
             (200, 0),
         ] {
             put(s, slot, offset, value);
+        }
+        if case() == REQUESTER_CRASH {
+            put(s, slot, CRASH_ROLE, u64::from(slot == CRASH_SLOT));
+            put(s, slot, RELEASE, 0);
         }
     }
     for (offset, value) in [
@@ -619,7 +647,12 @@ fn advance(s: &State) {
         if r.device.is_some() {
             device_access();
         }
-        if r.device.as_ref().is_some_and(Device::reset_acknowledged) {
+        // Labelled fixture (no-reset-ack only): the acknowledgement is treated
+        // as never seen. QEMU virtio-pci acknowledges a status-0 reset, so this
+        // proves only the broker's deadline/quarantine branch, not a device.
+        let acked =
+            case() != NO_RESET_ACK && r.device.as_ref().is_some_and(Device::reset_acknowledged);
+        if acked {
             r.resetting = false;
             r.reset_acks += 1;
         } else if s.ticks >= r.reset_deadline {
@@ -752,26 +785,81 @@ pub fn observe_exit(s: &mut State, slot: usize, _counter: u64) {
         r.app[i] = word(s, slot, *offset);
     }
 }
-pub fn observe_fault(_s: &mut State, slot: usize, context: &[u64; 22], _counter: u64) {
+pub fn observe_fault(s: &mut State, slot: usize, context: &[u64; 22], _counter: u64) {
+    let r = runtime();
+    // Labelled B01 fault injection: service B executes ud2 (#UD) while its own
+    // entropy request is pending. Only that exact first crash is accepted; the
+    // generic path then retires its authority and detach() quarantines.
+    if case() == REQUESTER_CRASH
+        && slot == CRASH_SLOT
+        && context[15] == 6
+        && r.crashes == 0
+        && r.completed.is_none()
+        && r.pending
+            .is_some_and(|pending| pending.binding.pid == s.processes[slot].pid)
+    {
+        for (j, offset) in SERVICE_WORDS.iter().enumerate() {
+            r.crashed[j] = word(s, slot, *offset);
+        }
+        r.crash_ticket = r.pending.map_or(0, |pending| pending.ticket);
+        r.crashes = 1;
+        return;
+    }
     print_number(b"KEYRING:FAULT_SLOT:", slot as u64);
     print_number(b"KEYRING:FAULT_VECTOR:", context[15]);
     fail(b"UNEXPECTED_FAULT");
 }
 
+fn crashed(slot: usize) -> bool {
+    case() == REQUESTER_CRASH && slot == CRASH_SLOT && runtime().crashes == 1
+}
+
+/// Requester crash: before advance(), whose authority-liveness backstop would
+/// otherwise mask a missing quarantine on the synchronous cleanup path.
+fn crash_gate(s: &State) {
+    let r = runtime();
+    if r.crashes == 0 {
+        // The app cannot finish before service A, which waits for the crash.
+        require(!r.app_exited, b"CRASH_NOT_OBSERVED");
+        return;
+    }
+    if r.crash_released {
+        return;
+    }
+    require(
+        s.processes[CRASH_SLOT].status == Status::Dead
+            && r.quarantined
+            && r.offline == -14
+            && r.pending.is_none()
+            && r.completed.is_none()
+            && r.bytes.iter().all(|byte| *byte == 0)
+            && m4::engine().stats().entropy_objects == 1,
+        b"CRASH_NOT_QUARANTINED",
+    );
+    for page in [r.pool.rings, r.pool.used, r.pool.bounce] {
+        require(s.frames.owner(page) == Ok(Owner::Kernel), b"CRASH_POOL");
+    }
+    put(s, 0, RELEASE, 1);
+    r.crash_released = true;
+}
+
 pub fn poll(s: &mut State) -> Option<*const u64> {
+    if case() == REQUESTER_CRASH {
+        crash_gate(s);
+    }
     advance(s);
-    if s.unexpected || s.fault {
+    if s.unexpected || (s.fault && !crashed(CRASH_SLOT)) {
         fail(b"USER_OR_PROTOCOL");
     }
     if s.ticks >= RUN_TICKS {
-        for slot in SERVICE_SLOTS {
+        for slot in SERVICE_SLOTS.into_iter().filter(|slot| !crashed(*slot)) {
             print_number(b"KEYRING:SERVICE_STATE:", word(s, slot, 192));
         }
         print_number(b"KEYRING:APP_STEP:", word(s, APP_SLOT, 240));
         fail(b"TIMEOUT");
     }
     for slot in SERVICE_SLOTS {
-        if s.processes[slot].status == Status::Dead {
+        if s.processes[slot].status == Status::Dead && !crashed(slot) {
             fail(b"SERVICE_GONE");
         }
     }
@@ -1018,6 +1106,48 @@ fn authority_loss_fixture(s: &mut State) {
     print_number(b"KEYRING:AUTHORITY_QUARANTINE:", 1);
 }
 
+/// Labelled kernel-driven probes (B01-T2) through the real handler on the
+/// surviving service A, as the lease and authority-loss fixtures: the dead
+/// holder's ticket is never redeemed, and the broker refuses two fresh
+/// requests without a new device submission, ticket or delivered byte.
+fn refusal_probe(s: &mut State) {
+    let a = entropy_handle(s, 0);
+    let (delivered, next_ticket, offline) = {
+        let r = runtime();
+        (r.delivered_bytes, r.next_ticket, r.offline)
+    };
+    require(offline != 0, b"PROBE_ONLINE");
+    if case() == REQUESTER_CRASH {
+        let dead = runtime().crash_ticket;
+        require(
+            dead != 0 && call(s, 0, 0x61, [a, dead, 0, 256, 0, 0]) == Err(-1),
+            b"CRASH_TICKET_REDEEMED",
+        );
+        print_number(b"KEYRING:REQUESTER_CRASHES:", runtime().crashes);
+        print_number(b"KEYRING:CRASH_TICKET_REFUSED:", 1);
+    }
+    let mut refused = 0;
+    for _ in 0..2 {
+        require(
+            call(s, 0, 0x60, [a, 256, 0, 0, 0, 0]) == Err(offline),
+            b"REPEAT_ADMITTED",
+        );
+        refused += 1;
+    }
+    let r = runtime();
+    require(
+        r.delivered_bytes == delivered
+            && r.next_ticket == next_ticket
+            && r.pending.is_none()
+            && r.completed.is_none()
+            && r.bytes.iter().all(|byte| *byte == 0),
+        b"REPEAT_STATE",
+    );
+    print_number(b"KEYRING:REPEAT_REFUSED:", refused);
+    // Accepted device submissions over the whole run (tickets start at 1).
+    print_number(b"KEYRING:DEVICE_SUBMISSIONS:", r.next_ticket - 1);
+}
+
 fn finish(s: &mut State) -> ! {
     let r = runtime();
     let app = r.app;
@@ -1025,6 +1155,11 @@ fn finish(s: &mut State) -> ! {
         app;
     let mut services = [[0u64; 10]; 2];
     for (i, slot) in SERVICE_SLOTS.into_iter().enumerate() {
+        if crashed(slot) {
+            // The crashed slot is gone; its words were snapshotted at the fault.
+            services[i] = r.crashed;
+            continue;
+        }
         for (j, offset) in SERVICE_WORDS.iter().enumerate() {
             services[i][j] = word(s, slot, *offset);
         }
@@ -1054,7 +1189,7 @@ fn finish(s: &mut State) -> ! {
     require(status_calls >= 2, b"STATUS_CALLS");
     require(r.io_errors == 0, b"BROKER_ERRORS");
     require(
-        r.timeouts == u64::from(case() == NONRESPONSIVE),
+        r.timeouts == u64::from(matches!(case(), NONRESPONSIVE | NO_RESET_ACK)),
         b"TIMEOUT_COUNT",
     );
     match case() {
@@ -1116,13 +1251,22 @@ fn finish(s: &mut State) -> ! {
             );
             require(services[0][2] == 0 && services[1][2] == 0, b"SERVICE_KEYS");
         }
-        NONRESPONSIVE => {
+        NONRESPONSIVE | NO_RESET_ACK => {
             require(
                 r.offline == -13 && r.offline_errors >= 1,
                 b"TIMEOUT_NOT_OBSERVED",
             );
             require(r.delivered_bytes == 0 && r.timeouts == 1, b"TIMEOUT_BYTES");
-            require(r.reset_acks == 1 && !r.quarantined, b"TIMEOUT_RESET_ACK");
+            if case() == NONRESPONSIVE {
+                require(r.reset_acks == 1 && !r.quarantined, b"TIMEOUT_RESET_ACK");
+            } else {
+                // No acknowledgement before the deadline: quarantine, never
+                // re-initialise; the pool stays pinned (checked below).
+                require(
+                    r.reset_acks == 0 && r.quarantined && !r.resetting && r.restart_stage == 0,
+                    b"NO_RESET_ACK_NOT_QUARANTINED",
+                );
+            }
             require(r.bytes.iter().all(|b| *b == 0), b"TIMEOUT_OUTPUT");
             require(
                 services.iter().all(|v| v[0] == 2 && v[1] == 1),
@@ -1135,6 +1279,33 @@ fn finish(s: &mut State) -> ! {
             require(
                 services.iter().all(|v| v[2] == 0 && v[3] == 0 && v[9] == 0),
                 b"SERVICE_KEYS",
+            );
+        }
+        REQUESTER_CRASH => {
+            require(
+                r.crashes == 1 && r.quarantined && r.offline == -14 && r.offline_errors >= 1,
+                b"CRASH_NOT_QUARANTINED",
+            );
+            require(
+                r.delivered_bytes == 0
+                    && r.reset_acks == 0
+                    && r.lease_reclaims == 0
+                    && r.restarted_bytes == 0
+                    && r.restart_stage == 0,
+                b"CRASH_BYTES",
+            );
+            require(
+                services[0][0] == 2 && services[0][1] == 1,
+                b"SERVICE_A_NOT_BLOCKED",
+            );
+            require(services[1][0] == 0, b"CRASHED_SERVICE_STATE");
+            require(
+                services.iter().all(|v| v[2] == 0 && v[3] == 0 && v[9] == 0),
+                b"SERVICE_KEYS",
+            );
+            require(
+                not_ready >= 2 && generated == 0 && sealed == 0,
+                b"KEYS_WITHOUT_ENTROPY",
             );
         }
         _ => {
@@ -1231,11 +1402,14 @@ fn finish(s: &mut State) -> ! {
     if case() == NORMAL {
         authority_loss_fixture(s);
     }
+    if matches!(case(), REQUESTER_CRASH | NO_RESET_ACK) {
+        refusal_probe(s);
+    }
     let r = runtime();
     serial::write(marker());
     // Resource accounting: release both live services, then require the exact
     // frame baseline and an empty engine. The DMA pool stays kernel-owned.
-    for slot in SERVICE_SLOTS {
+    for slot in SERVICE_SLOTS.into_iter().filter(|slot| !crashed(*slot)) {
         s.audit_process(slot);
     }
     let released = releasable_frames(s);
@@ -1244,12 +1418,13 @@ fn finish(s: &mut State) -> ! {
     }
     if let Some(device) = r.device.as_mut() {
         device.begin_reset();
-        if !device.reset_acknowledged() {
+        // no-reset-ack: the labelled fixture never sees an acknowledgement.
+        if case() != NO_RESET_ACK && !device.reset_acknowledged() {
             fail(b"FINAL_RESET");
         }
     }
     let pool = r.pool;
-    for slot in SERVICE_SLOTS {
+    for slot in SERVICE_SLOTS.into_iter().filter(|slot| !crashed(*slot)) {
         s.processes[slot].status = Status::Dying;
         s.cleanup(slot);
     }

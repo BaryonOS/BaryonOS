@@ -15,6 +15,15 @@ mod m2;
 #[cfg(feature = "native-smp-legacy")]
 #[path = "m2_legacy/mod.rs"]
 mod m2;
+// The legacy keyring has no B01-T2 cases; it would silently run another case.
+#[cfg(all(
+    feature = "native-smp-legacy",
+    any(
+        feature = "test-keyring-requester-crash",
+        feature = "test-keyring-no-reset-ack"
+    )
+))]
+compile_error!("B01-T2 keyring cases exist only in the current m2 kernel");
 mod memory;
 mod serial;
 #[cfg(all(

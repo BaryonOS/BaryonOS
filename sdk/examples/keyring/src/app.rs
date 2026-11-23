@@ -23,6 +23,7 @@ use nieuw_os_sdk_runtime::{
 const LIMIT: usize = 400_000;
 const CASE_NORMAL: u64 = 0;
 const CASE_RESTART: u64 = 4;
+const CASE_REQUESTER_CRASH: u64 = 5;
 
 // Evidence words (kernel keyring.rs APP_WORDS).
 const EV_GENERATED: u64 = 400;
@@ -478,8 +479,11 @@ fn main() -> ! {
     }
     if matches!(case, CASE_NORMAL | CASE_RESTART) {
         run_normal(&mut client, &a0, &a1, &b0);
+    } else if case == CASE_REQUESTER_CRASH {
+        // Service B crashed with its request pending: address survivor A only.
+        run_blocked(&mut client, &a0, &a0, 1);
     } else {
-        // no-device and timeout: Source (1); stuck: Repetition (2).
+        // no-device, timeout and no-reset-ack: Source (1); stuck: Repetition (2).
         run_blocked(&mut client, &a0, &b0, if case == 2 { 2 } else { 1 });
     }
     support::put(40, 1);
