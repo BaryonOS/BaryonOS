@@ -421,10 +421,12 @@ class DhcpRunnerSummaryTest(unittest.TestCase):
             return {"passed": True}
         with patch.object(self.runner, "BUILD", self.build), \
                 patch.object(self.runner, "source_hash", side_effect=fingerprint), \
+                patch.object(self.builder, "ensure_lockfile", side_effect=lambda: order.append("lock")), \
                 patch.object(self.builder, "build", side_effect=lambda *_: order.append("build")), \
                 patch.object(self.runner, "run_network_dhcp", side_effect=run):
             self.assertEqual(self.runner.main([]), 0)
-        self.assertEqual(order, ["hash", "build", ("run", "f" * 64)])
+        # Cargo.lock exists before the freeze, so a first build cannot change the fingerprint.
+        self.assertEqual(order, ["lock", "hash", "build", ("run", "f" * 64)])
         self.assertIs(self.summary_json()["passed"], True)
 
 

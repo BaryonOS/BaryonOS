@@ -229,10 +229,12 @@ def main(argv=None):
                    error="N02 build/run did not complete")
     publish_json(summary, failure)
     try:
+        if not args.no_build:
+            from build import build, ensure_lockfile
+            ensure_lockfile()
         # Fingerprint before the build, so the post-run check compares against the build-start source.
         frozen = source_hash()
         if not args.no_build:
-            from build import build
             build(None, FEATURE, FEATURE)
         return 0 if run_network_dhcp(timeout=args.timeout, frozen=frozen)["passed"] else 1
     except BaseException as error:
