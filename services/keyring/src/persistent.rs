@@ -284,6 +284,9 @@ impl Service {
         store: &mut impl KeyStateStore,
         source: &mut impl EntropySource,
     ) -> Result<SnapshotInfo, WriteAheadError> {
+        // Write-ahead state already refers to `volume` (checked by check_write_ahead):
+        // bind before sealing so a failed seal cannot leave it unbound.
+        self.persistent_volume = Some(*volume);
         let mut blob = [0u8; PERSISTENT_BLOB];
         let info = self
             .seal_snapshot(volume, secret, source, &mut blob)
