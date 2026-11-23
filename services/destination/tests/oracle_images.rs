@@ -137,7 +137,7 @@ fn oracle_images() {
     // copies: after barrier 2, before barrier 3 (found, not hardcoded).
     let k = (0..16)
         .find(|&k| {
-            let image = seal_cut(k).disk.durable;
+            let image = seal_cut(k).disk.durable.clone();
             match (
                 catalog_of(&image, 0, SECTORS),
                 catalog_of(&image, 1, SECTORS),
@@ -147,7 +147,7 @@ fn oracle_images() {
             }
         })
         .expect("a cut between barriers 2 and 3");
-    emit(dir, "between_barriers", seal_cut(k).disk.durable);
+    emit(dir, "between_barriers", seal_cut(k).disk.durable.clone());
 
     // Two mirror writes land, the rest is lost: one valid copy, one torn.
     let image = seal_cut(k + 2).disk.crash_subset(|_| true);

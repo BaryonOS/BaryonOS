@@ -10,8 +10,8 @@ mod common;
 use common::*;
 use destination_core::{
     catalog::Record,
-    device::{POLL_BOUND, RESET_TIMEOUT, SUBMIT_BOUND, TIMEOUT},
-    service::{Export, Outcome, State},
+    device::{Broker, Request, POLL_BOUND, RESET_TIMEOUT, SUBMIT_BOUND, TIMEOUT},
+    service::{Export, Outcome, Service, State},
     wire, Status, DATA_START, SECTOR,
 };
 
@@ -154,6 +154,8 @@ fn n26d_legitimate_waits_complete() {
 fn n26e_poll_beyond_bound_is_unknown() {
     both_reset_models(|_| {
         let mut h = H::formatted();
+        // Breaks property 4 of 2.7 on purpose (2.7, host models).
+        h.disk.deadline = Deadline::Unchecked;
         assert_eq!(h.bind(1, wire::BIND_EXPORT, 0), Status::Ok);
         let entry = wire::header(&h.create(1, b"x").reply.unwrap()).entry;
         h.disk.fault(|op, _| {
@@ -219,6 +221,8 @@ fn n26f_remount_after_expired_poll_bound() {
         assert_eq!(h.bind(1, wire::BIND_EXPORT, 0), Status::Ok);
         let bytes = archive(1, 1, 300, 1);
         let entry = h.write_all(1, &bytes);
+        // Breaks property 4 of 2.7 on purpose (2.7, host models).
+        h.disk.deadline = Deadline::Unchecked;
         h.disk.arm();
         h.disk.fault(|op, c| {
             (op == Op::Flush && c.flushes == 1).then_some(Fault {
@@ -239,6 +243,38 @@ fn n26f_remount_after_expired_poll_bound() {
         // F2: no reset that drops the cache is reached, so both models agree.
         assert_eq!(h.disk.dropped, 0);
     });
+}
+
+/// Q6 (2.7 poll rule): the stray-poll counter, which every service-driven
+/// test asserts zero when its `SimDisk` is dropped, catches a service loop
+/// that polls once more after a delivered result. The core is not edited for
+/// this: a broker view adds that extra poll after every result, and a boot
+/// (mount of a formatted image) over it leaves a non-zero count.
+#[test]
+fn q6_extra_poll_after_result_is_counted() {
+    struct PollTwice<'a>(&'a mut SimDisk);
+    impl Broker for PollTwice<'_> {
+        fn submit(&mut self, request: Request<'_>) -> i64 {
+            self.0.submit(request)
+        }
+        fn poll(&mut self, buffer: &mut [u8; SECTOR]) -> i64 {
+            let code = self.0.poll(buffer);
+            if code != -8 {
+                self.0.poll(&mut [0; SECTOR]);
+            }
+            code
+        }
+        fn now(&mut self) -> u64 {
+            self.0.now()
+        }
+    }
+    let image = H::formatted().disk.durable.clone();
+    let mut disk = SimDisk::from_image(image);
+    let svc = Service::boot(disk.sectors(), PORTAL, &mut PollTwice(&mut disk));
+    assert_eq!(svc.state(), State::Mounted);
+    assert!(disk.stray_polls > 0, "extra polls counted");
+    // Observed above; without this the drop fails the test.
+    disk.stray_polls_allowed = true;
 }
 
 /// The broker results of N33: (name, fault). Submission -13, -14 and another
@@ -509,16 +545,21 @@ fn listed_entries_verify(h: &mut H) {
 /// readback by accident. Cache kept: SEAL `Ok` and the entry verifies. Cache
 /// dropped: SEAL `Corrupt` -18 at the step-3 readback, nothing listed, no
 /// catalog write. Both: never a listed entry that fails VERIFY.
+/// Variant (ii) (optional in N33): the free sectors held zero bytes, as on a
+/// freshly formatted image; the outcome is the same.
 /// Kills: a SEAL that seals without the step-3 readback (the dropping model
 /// lists an entry that fails VERIFY).
 #[test]
 fn n33_read_timeout_with_unflushed_append() {
     both_reset_models(|drops| {
-        for verify in [false, true] {
-            let context = format!("drops {drops} verify {verify}");
+        for (verify, zero) in [(false, false), (true, false), (false, true), (true, true)] {
+            let context = format!("drops {drops} verify {verify} zero {zero}");
             let bytes = archive(2, 1, 1020, 5);
             let mut stale = bytes.clone();
             stale[100] ^= 0x5a;
+            if zero {
+                stale.fill(0);
+            }
             let (mut h, e1, first) = with_stale(&stale);
             assert_ne!(h.disk.durable[first as usize][..], bytes[..SECTOR]);
             let sealed = seal_after_read_timeout(&mut h, e1, &bytes, verify);

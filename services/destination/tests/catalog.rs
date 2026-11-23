@@ -605,6 +605,17 @@ fn n34_record_and_copy_validity() {
             "{label:?} is valid"
         );
     }
+    // The C1 range ends at U+009F (refused); U+00A0 just after it is valid.
+    // Rust core only: the oracle (`tools/destination_disk.py`) and its
+    // suite are outside this change and do not yet run these two cases.
+    cases.push((
+        "label U+009F",
+        with(&|r| r.records[1].3 = "a\u{9f}b".as_bytes()),
+    ));
+    assert!(
+        valid(&with(&|r| r.records[1].3 = "a\u{a0}b".as_bytes())),
+        "U+00A0 is valid"
+    );
     let mut b = valid_copy;
     at(&mut b, 64 + 80 + 16, 79);
     cases.push(("length 79", b));

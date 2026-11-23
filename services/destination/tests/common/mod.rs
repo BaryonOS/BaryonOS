@@ -12,6 +12,28 @@
 //! submission while one is pending is answered -8, as the K5 broker does.
 //! `tests/sim_contract.rs` checks it against the broker contract of 2.7 (P12).
 //!
+//! Broker deadline (property 4 of 2.7, revision 5 Q4): with
+//! [`Deadline::Enforced`] (opt-in) a request whose device result is ready
+//! only after admission + `TIMEOUT` is answered -16 (WRITE, FLUSH) or -13
+//! (READ) by the model itself and resets the device, however late the first
+//! poll after the deadline comes. The deadline is evaluated lazily at that
+//! poll, so the reset starts at the poll that consumes that result. The default,
+//! [`Deadline::Tripwire`], panics instead (review 9, OPT9-7): only N26 (e),
+//! N26 (f) and the "given up on" case of P12 property 2 opt out with
+//! [`Deadline::Unchecked`], because they break property 4 on purpose.
+//! Quarantine and offline (property 5) are device state: a broker reset
+//! (after a -16 or -13 result) that ends per [`ResetEnd::Timeout`] or
+//! [`ResetEnd::ReinitFails`], or a submission answered -13 or -14 by an
+//! injected fault, leaves every later submission refused with that code
+//! until a simulated reboot (a new `SimDisk` on the durable image). The
+//! state is entered lazily, at the first submission at or after the end of
+//! the reset interval. The device's own reset injected with `Fault::again`
+//! (N26 (d)) always ends ready; `reset_end` does not apply to it.
+//! Stray polls (2.7 poll rule, Q6): a poll with no request pending is
+//! answered -1 and counted; dropping a `SimDisk` with a non-zero count fails
+//! the test unless the test sets `stray_polls_allowed` (the P12 tests that
+//! poll so on purpose, and the Q6 kill test in `broker.rs`).
+//!
 //! Whether a device reset keeps or drops the volatile cache is not known for
 //! QEMU (O9), so the reset has two models (section 6, revision 3): the cache
 //! kept across the reset (default), or dropped at it. Rows whose outcome
@@ -22,7 +44,7 @@
 //! 16-byte trailer with end magic and FNV-64); it is not the v1 format.
 use destination_core::{
     catalog::{self, Catalog, Record},
-    device::{Broker, Request, RESET_TIMEOUT},
+    device::{Broker, Request, RESET_TIMEOUT, TIMEOUT},
     fnv64, get64,
     service::{Entropy, Env, Meta, Outcome, Service, Source, Summary, Verifier},
     wire::{self, Header},
@@ -95,9 +117,53 @@ pub enum Late {
     Manual,
 }
 
+/// Broker deadline of property 4 (2.7) for a request whose device result is
+/// ready only after admission + `TIMEOUT`, decided at the first poll at or
+/// after the deadline whether or not that result is ready by then.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub enum Deadline {
+    /// Default: such a request is a test defect and panics (OPT9-7).
+    #[default]
+    Tripwire,
+    /// Opt-in: the model answers it -16 (mutating) or -13 (read) and resets.
+    Enforced,
+    /// Opt-out for N26 (e), N26 (f) and the P12 property-2 "given up on"
+    /// case, which keep a request pending past the deadline on purpose.
+    Unchecked,
+}
+
+/// How a device reset ends (property 5 of 2.7).
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub enum ResetEnd {
+    /// Acknowledged after `RESET_TIMEOUT`; the device is ready again.
+    #[default]
+    Ready,
+    /// Not acknowledged: quarantined, every submission -13 until reboot.
+    Timeout,
+    /// Acknowledged, but re-initialisation fails: offline, -14 until reboot.
+    ReinitFails,
+}
+
+/// (request, fault, written data, tick its result is ready, admission tick).
+type Inflight = (Op, Fault, [u8; SECTOR], u64, u64);
+
+/// Broker state besides the medium (P12 snapshots): the admitted request,
+/// the request being submitted, the end of the reset and of an own-reset
+/// refusal, refusal forever, a late write, and quarantine or offline.
+pub type BrokerState = (
+    Option<Inflight>,
+    Option<(Op, Fault, [u8; SECTOR])>,
+    Option<u64>,
+    Option<u64>,
+    bool,
+    Option<(u64, [u8; SECTOR], Late)>,
+    Option<i64>,
+);
+
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub struct Fault {
-    /// Kernel error on submission (-14 absent/offline, -13 quarantined).
+    /// Kernel error on submission (-14 absent/offline, -13 quarantined);
+    /// -13 and -14 are then held as device state until a simulated reboot.
     pub submit: i64,
     /// -8 on submission: `Some(None)` forever for this and every later
     /// request, `Some(Some(t))` for `t` ticks, which models the device's own
@@ -154,13 +220,37 @@ pub struct SimDisk {
     pub reset_drops_cache: bool,
     /// Cached writes lost at resets under the dropping model (non-vacuity).
     pub dropped: usize,
+    /// Property 4 (2.7): see [`Deadline`].
+    pub deadline: Deadline,
+    /// Property 5 (2.7): how every later broker reset ends (after a -16 or
+    /// -13 result); not the own reset injected with `Fault::again`.
+    pub reset_end: ResetEnd,
+    /// Polls with no request pending (2.7 poll rule).
+    pub stray_polls: usize,
+    /// Set only by tests that poll with nothing pending on purpose (P12) or
+    /// that inject such polls to show the counter works (Q6 kill test).
+    pub stray_polls_allowed: bool,
     current: Option<(Op, Fault, [u8; SECTOR])>,
     again_until: Option<u64>,
     again_forever: bool,
-    inflight: Option<(Op, Fault, [u8; SECTOR], u64)>,
+    inflight: Option<Inflight>,
     resetting_until: Option<u64>,
     late: Option<(u64, [u8; SECTOR], Late)>,
+    /// Quarantined (-13) or offline (-14) until a simulated reboot.
+    down: Option<i64>,
     calls: u64,
+}
+
+impl Drop for SimDisk {
+    fn drop(&mut self) {
+        // The 2.7 poll rule, asserted for every service-driven host test.
+        if !std::thread::panicking() && !self.stray_polls_allowed {
+            assert_eq!(
+                self.stray_polls, 0,
+                "stray poll: polled with no request pending (2.7 poll rule)"
+            );
+        }
+    }
 }
 
 impl SimDisk {
@@ -181,14 +271,39 @@ impl SimDisk {
             crashed: false,
             reset_drops_cache: RESET_DROPS_CACHE.with(|model| model.get()),
             dropped: 0,
+            deadline: Deadline::default(),
+            reset_end: ResetEnd::default(),
+            stray_polls: 0,
+            stray_polls_allowed: false,
             current: None,
             again_until: None,
             again_forever: false,
             inflight: None,
             resetting_until: None,
             late: None,
+            down: None,
             calls: 0,
         }
+    }
+    /// Simulated reboot: a power cycle that keeps the durable image and
+    /// loses the cache and every broker state, quarantine and offline too.
+    pub fn rebooted(&self) -> Self {
+        Self::from_image(self.durable.clone())
+    }
+    /// Quarantined (-13) or offline (-14), held until a simulated reboot.
+    pub fn down(&self) -> Option<i64> {
+        self.down
+    }
+    pub fn broker_state(&self) -> BrokerState {
+        (
+            self.inflight,
+            self.current,
+            self.resetting_until,
+            self.again_until,
+            self.again_forever,
+            self.late,
+            self.down,
+        )
     }
     pub fn sectors(&self) -> u64 {
         self.durable.len() as u64
@@ -295,10 +410,20 @@ impl Broker for SimDisk {
             if self.tick < until {
                 return self.refuse(op);
             }
+            // Property 5: the reset ends at the first submission after it.
             self.resetting_until = None;
-            self.log.push(Event::ResetAck);
-            if matches!(self.late, Some((_, _, Late::AtResetAck))) {
-                self.land_late();
+            match self.reset_end {
+                ResetEnd::Timeout => self.down = Some(-13),
+                ResetEnd::ReinitFails => {
+                    self.log.push(Event::ResetAck);
+                    self.down = Some(-14);
+                }
+                ResetEnd::Ready => {
+                    self.log.push(Event::ResetAck);
+                    if matches!(self.late, Some((_, _, Late::AtResetAck))) {
+                        self.land_late();
+                    }
+                }
             }
         }
         if self.current.map(|(o, _, _)| o) != Some(op) {
@@ -346,7 +471,8 @@ impl Broker for SimDisk {
                 Some(hook) => hook(op, &before).unwrap_or_default(),
                 None => Fault::default(),
             };
-            match fault.again {
+            // A device that is down refuses before its own reset could start.
+            match fault.again.filter(|_| self.down.is_none()) {
                 Some(None) => self.again_forever = true,
                 Some(Some(ticks)) => {
                     self.again_until = Some(self.tick + ticks);
@@ -356,12 +482,21 @@ impl Broker for SimDisk {
             }
             self.current = Some((op, fault, data));
         }
+        // Counted above like any refused attempt, so count assertions still
+        // see a request the service tries on a quarantined or offline device.
+        if let Some(code) = self.down {
+            self.current = None;
+            return code;
+        }
         if self.again_forever || self.again_until.is_some_and(|until| self.tick < until) {
             return self.refuse(op);
         }
         self.again_until = None;
         let (op, fault, data) = self.current.take().expect("current request");
         if fault.submit != 0 {
+            if matches!(fault.submit, -13 | -14) {
+                self.down = Some(fault.submit);
+            }
             return fault.submit;
         }
         self.log.push(Event::Submit(op));
@@ -370,7 +505,7 @@ impl Broker for SimDisk {
             Op::Flush => self.flushes += 1,
             Op::Read(_) => {}
         }
-        self.inflight = Some((op, fault, data, self.tick + fault.pending));
+        self.inflight = Some((op, fault, data, self.tick + fault.pending, self.tick));
         0
     }
 
@@ -379,10 +514,34 @@ impl Broker for SimDisk {
         self.tick += 1;
         // Property 3 (2.7): a delivered result is not delivered again. With
         // no request outstanding the M3 broker answers `WrongTicket` -1.
-        let Some((op, fault, data, ready)) = self.inflight else {
+        let Some((op, mut fault, data, ready, admitted)) = self.inflight else {
+            self.stray_polls += 1;
             return -1;
         };
-        if self.tick < ready {
+        // Property 4 (2.7): the deadline runs from admission. It is decided by
+        // the ready time, not the poll tick, so a sparse poll cannot skip it.
+        let past_deadline = self.tick >= admitted + TIMEOUT && ready > admitted + TIMEOUT;
+        if past_deadline {
+            match self.deadline {
+                Deadline::Tripwire => panic!(
+                    "{op:?} pending past TIMEOUT from admission at tick {admitted} \
+                     without an explicit Deadline opt-out (property 4, 2.7)"
+                ),
+                // Answered by the broker, not the device. Model choice, not
+                // property 4: the request's own `lands` and `late` are
+                // dropped, so nothing it carried reaches the cache.
+                Deadline::Enforced => {
+                    fault = Fault {
+                        code: if op.mutating() { -16 } else { -13 },
+                        lands: false,
+                        late: None,
+                        ..fault
+                    };
+                }
+                Deadline::Unchecked => {}
+            }
+        }
+        if self.tick < ready && !(past_deadline && self.deadline == Deadline::Enforced) {
             return -8;
         }
         self.inflight = None;

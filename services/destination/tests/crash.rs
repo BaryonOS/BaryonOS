@@ -874,3 +874,55 @@ fn n35_remount_contradicting_committed_catalog() {
         assert_eq!(h.svc.binding(1).unwrap().export, Export::Unknown, "{name}");
     }
 }
+
+/// N35 optional sub-case (Q5; CODE-DELTA (revision 5)): the *sealed*
+/// resolution compares with the decoded, checked step-4 copy. Under the
+/// test-only N29 tamper hook the encoded copy differs from the catalog the
+/// service built: the hook flips the new record's archive trailer, which
+/// passes the step-4 checks. The first step-4 write fails and the remount
+/// reads the tampered copy, the one the service tried to write: SEAL answers
+/// `Unknown`, the instance stays mounted and the binding resolves *sealed*.
+/// Kills: M7 (comparing with the catalog as built, before its step-4 encode
+/// and decode), which takes this copy for another catalog (failed mount).
+#[test]
+fn n35_sealed_resolution_uses_checked_copy() {
+    let (mut ok, _, entry, length) = n35_setup();
+    assert_eq!(ok.seal(1, entry, length).status, Status::Ok);
+    let mut tampered = *ok.svc.catalog();
+    let new = tampered.count - 1;
+    tampered.records[new].trailer ^= 1;
+    let bytes = tampered.encode();
+    assert!(
+        catalog::decode(&bytes, SECTORS).is_some(),
+        "tampered copy valid"
+    );
+    let mut area = vec![[0; SECTOR]; 16];
+    put_copy(&mut area, 0, &bytes);
+    put_copy(&mut area, 1, &bytes);
+
+    let (mut h, _, entry, length) = n35_setup();
+    h.svc.tamper = Some(|c| {
+        let mut copy = catalog::decode(c, SECTORS).expect("encoded copy valid");
+        copy.records[copy.count - 1].trailer ^= 1;
+        *c = copy.encode();
+    });
+    h.disk.arm();
+    h.disk.fault(|op, c| {
+        (matches!(op, Op::Write(sector) if sector < 8) && c.catalog_writes == 0)
+            .then(|| Fault::code(-12))
+    });
+    let mut swapped = false;
+    let mut seal = req(wire::SEAL);
+    seal.entry = entry;
+    seal.offset = length;
+    assert_eq!(
+        via(&mut h, &area, &mut swapped, 1, PORTAL, seal).status,
+        Status::Unknown
+    );
+    h.svc.tamper = None;
+    h.disk.fault = None;
+    assert!(swapped, "the step-4 write failed");
+    assert_eq!(h.svc.state(), State::Mounted);
+    assert_eq!(h.svc.binding(1).unwrap().export, Export::Sealed(entry));
+    assert_eq!(h.svc.catalog().encode(), bytes);
+}
