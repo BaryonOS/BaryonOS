@@ -51,6 +51,28 @@ decided, and the other items of 8.1 remain open as stated there. The project
 owner accepted the proposals of O14, O15 and O16 on 23 November 2026; those
 rules are marked *[owner decision Oxx, 23 November 2026]*.
 
+**Revision 4 (23 November 2026).** Revision 4 answers the 13 items (P1–P13)
+that the code changes of R2 and R3 for revision 3 and for the owner decisions
+O14 and O16 (draft PR #413, commits `4f1edb9c` and `e52cb865`) and their
+independent AI code reviews found in revision 3. It states that a sealed entry
+can today hold a different valid archive after a device fault, and proposes a
+SEAL content digest for that case (owner question O17); it proposes that a
+remount resolve *sealed* only on the exact catalog copy encoded for the SEAL
+(owner question O18, stricter than the decided O16 wording, which is
+unchanged); it names the control-character set of `valid_name`; it removes the
+conditional wording that the decisions of 23 November 2026 settled; it
+corrects the reachability statements and kill claims of N26, N29, N33, N34 and
+N35 and lists their equivalent mutants; it adds negative test N37
+(conditional on O17); and it adds verification-plan items to R2 and R3.
+Section 9 records each item ("Revision 4 record") and the changes that the
+text requires in the PR #413 code ("CODE-DELTA"). O14, O15 and O16 are decided
+and their decided rules are unchanged. Review 6 (SPEC-REVIEW-6) approved
+revision 4 with no required finding, confirmed the review-5 answers RQ5-1 and
+RQ5-2 (P13), and made nine optional findings, which the lead applied (section
+9, "Review 6"; checked by one read-only verifier, whose two wording
+corrections were applied and not re-reviewed). An AI review is not a
+human audit.
+
 **Evidence labels used below.** *[main]* means present on `main` at `035b44e5`.
 Most such claims were checked by review 1 or by the verification of it for this
 revision; the `sdk/task-grant-core` and `services/net-broker` claims of 3.3 and
@@ -64,7 +86,8 @@ and `docs/verification/s09-archive/dual-disk-native-20261119/`) is merged as
 `8a7a3594`, an ancestor of `035b44e5`, and its content is labelled *[main]*.
 Kernel PCI discovery at a slot other than `00:06.0` remains unchecked (section
 7). *[PR #413]* (new in revision 3) means present on draft PR #413 at
-`37b7bd0c` (host code and tests only, not on `main`); `services/destination`
+`37b7bd0c`, or, for a claim made in revision 4, at `e52cb865` (host code and
+tests only, not on `main`); `services/destination`
 and `tools/destination_disk.py` are never *[main]*. *[design]* means specified
 here and not implemented natively. *[proposed]* means a
 design rule that awaits a project-owner decision. *[unproven]* means an
@@ -229,9 +252,9 @@ no state change follows, except the high-water rule below:
    `Busy`, `Full`, or `Access` in the safe path) allocates nothing and leaves
    the binding's CREATE unused. The binding authorizes one new entry; a refused
    CREATE creates none, so a retry on the same binding cannot create a second
-   entry, and a transient refusal (`Busy`) needs no new BIND. The alternative
-   for the owner is that every CREATE that passes checks 1–6 uses the
-   binding's CREATE.
+   entry, and a transient refusal (`Busy`) needs no new BIND. The owner
+   declined the alternative, under which every CREATE that passes checks 1–6
+   would use the binding's CREATE.
 7. **State gates.** The mount state of the instance (2.6, 2.7) decides the
    reply to a request that passed checks 1–6, by the table below. The
    operation itself runs only where the table says so.
@@ -243,7 +266,7 @@ no state change follows, except the high-water rule below:
 | remount pending | a device failure in SEAL steps 4–5 (2.7) | not received | no request is received; requests queued meanwhile are answered afterwards under the resulting state |
 | failed mount | failed mount or remount FLUSH, or a failed mount or remount read of sectors 0–15 (not the FORMAT scan, which leaves a blank candidate) (2.6); a FORMAT write or flush failure (2.6); *[owner decision O16, 23 November 2026]* a remount whose reads would give a blank candidate, or a valid catalog other than the committed copy or that copy plus exactly the provisional record (2.7) | answered, status `NoDevice` -14 if the broker returned -14, else `Io` -12 | LIST on an export lane whose outcome is *unknown*: `Unknown` -16 with zero records; all others `Io` -12 |
 | `Corrupt` | the mount rule (2.6) | answered, status `Corrupt` -18 | `Corrupt` -18 |
-| blank candidate | the mount rule (2.6) | answered, status `NotFound` -19 | FORMAT and UNBIND run; all others `NotFound` -19 |
+| blank candidate | the mount rule (2.6) | answered, status `NotFound` -19 | FORMAT and UNBIND run (FORMAT `Access` -5 if the safe-path latch is set; unreachable since O16, see the defensive rule below); all others `NotFound` -19 |
 
 In every state other than "mounted" and "mounted, safe path", INFO's reply
 has `aux` 0, `count` 0 and 48 data bytes with destination ID and formatted
@@ -253,6 +276,16 @@ mounted instance, a FORMAT failure leads to the failed-mount state, and
 *[owner decision O16, 23 November 2026]* a remount never ends as a blank candidate
 (2.7). The service receives no request before its boot mount has
 ended in one of these states.
+
+**Defensive rule, unreachable since O16** (revision 4). The safe-path rule of
+2.7 forbids every catalog and entry write for the rest of the boot, in every
+mount state. Should an instance ever be a blank candidate with the safe-path
+latch set, FORMAT therefore returns `Access` -5 and writes nothing, instead of
+running as the blank-candidate row says. Under the decided O16 rule this
+combination cannot arise, as stated above, so no test can reach the rule and a
+mutant that removes it is equivalent (N35). It is kept as defence in depth: it
+costs one condition, and a later change to the remount rule would otherwise
+reopen a write path in a boot in which the safe path forbids writes.
 
 A request refused by checks 1–6 leaves the lane's `request_id` high-water mark
 unchanged; a request that passes checks 1–6 advances it, including one refused
@@ -294,11 +327,21 @@ LIST accept only sealed IDs. Labels follow
 limit of 32 bytes: valid UTF-8 of 1–32 bytes, not `.` or `..`, and no control
 character, `/`, `\`, or bidirectional override or isolate (U+202A–U+202E,
 U+2066–U+2069). (Revision 2 named only the first two rules; the full rule
-matters because the trusted dialog displays labels, 3.2.) Labels need not be
+matters because the trusted dialog displays labels, 3.2.) A **control
+character** is a code point of Unicode General_Category Cc: U+0000–U+001F and
+U+007F–U+009F (revision 4). This is the set that the referenced
+`catalog_core::wire::valid_name` refuses (`char::is_control`,
+`services/catalog/src/wire.rs:134-149` *[main]*), and it includes the C1
+controls, which are as unsuitable on the trusted display surface as the C0
+controls; naming the set lets an independent implementation such as the R3
+oracle apply the rule without reading the Rust code. Other format characters
+(General_Category Cf outside the two bidirectional ranges, for example U+200E,
+U+200F or U+061C) are not refused; the dialog must not rely on a label in any
+case (2.6, 5.4). Labels need not be
 unique, because the entry ID identifies the entry. Check 2 checks only the
 label length (`name_length` 1..=32 and = `length`); the content rules are
-checked by CREATE (order below), and whether they also apply at mount is
-O14 (2.6).
+checked by CREATE (order below) and, under the decided O14, also at mount
+(2.6).
 
 | Op | Name | Request | Reply | Permitted on |
 |---|---|---|---|---|
@@ -403,7 +446,9 @@ that "Device results" below gives for a write or flush (`Io` -12 or `Unknown`
 -16; revision 2 also allowed `Timeout` -13 here, which revision 3 removes); a
 failed step-3 readback replies `Timeout`
 -13 (a read past its deadline, which the broker reports as -13) or `Io` -12;
-an extent that fails `archive::verify` or a catalog copy that fails the
+an extent that fails `archive::verify`, an extent whose content digest differs
+from that of the appended bytes (*[proposed; owner decision O17 (a)]*, 2.7 step 3)
+or a catalog copy that fails the
 pre-write check of step 4 replies `Corrupt` -18; a failure in steps 4–5 replies
 `Unknown` -16 (2.7). Every device error on a destination write or flush of an
 export (APPEND, SEAL) starts the read-only safe path of 2.7; a failed mount or
@@ -533,10 +578,15 @@ in a label; and the trusted dialog displays labels (3.2), so a label with
 control characters or bidirectional overrides from a damaged or crafted image
 would otherwise reach a trusted surface. Cost: one bad label makes the whole
 destination `Corrupt`, with no read-only fallback for the other entries. The
-alternative for the owner is the length and padding rules only, with the
-dialog rendering every label as untrusted text. Under either answer the
-dialog must not rely on a label: a crafted image can carry any valid label
-(5.4).
+owner declined the alternative, the length and padding rules only with the
+dialog rendering every label as untrusted text. The dialog must still not
+rely on a label: a crafted image can carry any valid label (5.4). Under this
+rule the label-length rule "1..=32" of the validity list is partly implied:
+`valid_name` refuses an empty label, so a validator that omits only the
+"≥ 1" bound reaches the same mount state for every copy (equivalent mutant,
+N34). The bound is kept as a stated rule, because it is the length rule of
+2.3 and does not depend on the order in which an implementation applies the
+two rules (revision 4).
 
 The destination ID is 16 bytes drawn once at format time from the existing
 entropy capability (an `Entropy` object and handle held by the destination
@@ -610,10 +660,13 @@ The export binding then stays *unknown*, because a read that contradicts the
 catalog mounted earlier is no evidence about its entry, bound verify and
 restore lanes keep entry IDs that the other catalog may give to other
 entries, and FORMAT is refused with `Io` -12 like every other request. The
-alternative for the owner is the state that the mount rule gives: a blank
-candidate with the safe-path latch kept, in which FORMAT returns `Access` -5
-(2.2 check 7 would then need that cell), or mounted with that catalog and
-the safe-path latch kept. In the failed-mount state the service writes nothing and issues no further device request. INFO is
+owner declined the alternative, the state that the mount rule gives (a blank
+candidate with the safe-path latch kept, or mounted with that catalog and the
+latch kept). The FORMAT refusal with `Access` -5 in a blank candidate with the
+latch set, which that alternative needed, is kept as the defensive rule of
+2.2 and is unreachable under this rule. Revision 4 proposes that the *sealed*
+resolution require the exact copy encoded for the SEAL (2.7,
+*[proposed; owner decision O18]*). In the failed-mount state the service writes nothing and issues no further device request. INFO is
 answered and reports `NoDevice` -14 in its status field if the broker returned
 -14, otherwise `Io` -12; LIST on an export lane whose binding is still
 *unknown* (2.7) returns status `Unknown` -16 with zero records; every other
@@ -684,6 +737,19 @@ is *[unproven]* and not tested here.
 3. SEAL: write the padded last sector; **flush (barrier 1)**; read the extent
    back and run `archive::verify` on its first `length` bytes (2.3, "Archive
    verifier"); on failure reply `Corrupt` and discard.
+   *[proposed; owner decision O17 (a)]* Content digest: the service also keeps,
+   for the writing entry, the FNV-64 (2.6) of the bytes of every APPEND
+   answered `Ok`, in append order, and compares it with the FNV-64 of the
+   first `length` readback bytes; on a mismatch it replies `Corrupt` -18 and
+   discards, as for a failed `archive::verify`. An equivalent form compares
+   the readback's trailer FNV-64 (its last 8 bytes, which `archive::verify`
+   requires to equal the FNV-64 of every byte before the 16-byte trailer)
+   with the last 8 bytes of the concatenated APPENDs answered `Ok`; for a
+   portal archive that is itself a valid v1 archive, this is at least as
+   strong against accidental faults as the running digest (review 6
+   OPT6-9). `archive::verify` and the content check, in either form, must
+   both pass; both failures reply `Corrupt`, so their order is not
+   observable.
 4. Encode the new catalog copy (sequence + 1, the entry appended with its
    sealing sequence equal to the new sequence, `next_free` advanced past the
    extent, next entry ID + 1). Sequence + 1 and next entry ID + 1 use checked
@@ -696,7 +762,17 @@ is *[unproven]* and not tested here.
    mount validator of 2.6 on the encoded copy and check that it extends the
    committed copy: the same records plus exactly one, sequence + 1, `next_free`
    not lower, and the new record's sealing sequence equal to the new sequence
-   (review 4 OP-3: the validity rules alone do not force that value, 2.6). If
+   (review 4 OP-3: the validity rules alone do not force that value, 2.6).
+   For an encoded copy that passes the validator, the sealing-sequence clause
+   already implies "exactly one": with no new record the clause has no
+   record to hold for, and a second new record would need a sealing
+   sequence above the new copy's sequence, which the validity rules refuse.
+   The record-count clause is kept as a defensive check, and a mutant that
+   drops it is equivalent (N29, N35; revision 4). The equivalence relies on
+   the 16-entry bound: CREATE refuses with `Full` when 16 entries are sealed
+   (2.3), so step 4 never starts from a committed copy with 16 records; in an
+   implementation the clause also keeps the index of the new record in range
+   (review 6 OPT6-8). If
    either check fails, reply `Corrupt` -18, discard the writing
    entry and write nothing; this guards against an encoder defect and does not
    enter the `Corrupt` mount state. Then write the copy into the *target*
@@ -708,12 +784,49 @@ is *[unproven]* and not tested here.
 5. Mirror the identical copy into the other slot; **flush (barrier 3)**. Reply
    `Ok` only after barrier 3 completes.
 
+**Stale valid content at the readback** (revision 4). The step-3 readback with
+`archive::verify` shows that the extent holds *a* valid archive, not that it
+holds the archive the portal appended. Free space may hold stale bytes of a
+discarded write (2.6 layout). If a device fault loses completed, unflushed
+APPEND writes before barrier 1 (for example a device reset that drops the
+volatile write cache, N33, or the device's own reset during the barrier-1
+submission, which drops every unflushed write of the entry, N26 (d)) or
+silently fails to store a write, and the extent
+then holds a stale valid archive of the same length, step 3 accepts it and
+SEAL commits an entry with another backup's content; only the SEAL reply's
+`aux` (the stored trailer FNV-64) differs from the portal's own trailer, and
+the portal's restore-time `archive::verify` accepts that content. A sealed
+entry is immutable and v1 cannot delete it (O3), so it keeps its slot and its
+new label. Without O17 (a) the commit itself is a stated limit of the design;
+O17 (b) alone keeps only the portal from reporting it as a success.
+*[proposed; owner decision O17 (a)]* The content digest of step 3 refuses such
+an extent before the commit. *[proposed; owner decision O17 (b)]* The portal
+compares the trailer FNV-64 that the service reports to it with the trailer
+of the archive it exported, and reports the export as failed, never as
+sealed or confirmed, on a mismatch (below). **Threat model:** both checks detect
+an accidental mismatch caused by a device or cache fault, not a hostile
+device. FNV-64 is not collision-resistant, and a device that misbehaves on
+purpose can return the appended bytes on the readback and store others; a
+malicious device stays out of scope (5.4). A defence against a hostile device
+would need a maintained standard cryptographic hash and is a separate
+decision, which this document does not make. A digest mismatch does not start
+the safe path: no write or flush is outstanding after barrier 1, the extent
+lies at or beyond the committed `next_free` and is not allocated, and the
+mismatch is evidence about this entry only, as a failed `archive::verify` at
+step 3 is (2.5). This follows the revision-3 rule for a failed step-3
+readback and depends on O9: the mismatch itself shows that the device did not
+keep writes it reported as completed, and if such writes could land late, the
+next CREATE of the same boot would reuse that extent. Whether a digest
+mismatch, or any device reset while unflushed entry writes exist, must also
+start the safe path is therefore part of O17 (review 6 OPT6-1).
+
 If the write of step 4, barrier 2, the write of step 5 or barrier 3 gives any
 device result other than success (`Io`, `Timeout` or `Unknown`; the broker
 pattern below reports a timed-out write or flush as `Unknown` -16), the
 service replies `Unknown`, discards its in-memory writing-entry state and its
-in-memory catalog as the source of truth, keeping the committed copy only to
-judge the remount (O16 below), and remounts from the device before
+in-memory catalog as the source of truth, keeping the committed copy (and,
+under O18, the copy encoded in step 4) only to judge the remount (O16 below),
+and remounts from the device before
 it receives another request (state
 "remount pending" of 2.2 check 7; this interval includes the completion fence
 below and is limited by the -8 and poll bounds of "Time source" below). Lane
@@ -739,6 +852,25 @@ the committed copy nor that copy plus exactly the provisional record, does
 not resolve the binding:
 the instance enters the failed-mount state (2.6) and the outcome stays
 *unknown*.
+
+Equality with the committed copy is equality of its 2048 bytes; for valid
+copies this is the same as equality of every field, because the validity
+rules fix every padding byte and the checksum (2.6; clarification, revision
+4). *[proposed; owner decision O18]* "That copy plus exactly the provisional
+record" is met only by a remounted catalog whose 2048 bytes equal the copy
+that the service encoded and checked in step 4 of this SEAL, which it still
+holds at the remount. That copy passed the step-4 extension check, so this
+rule implies the O16 definition above and refuses, in addition, a catalog
+with the provisional entry ID whose new record differs in length, archive
+trailer FNV-64 or label, or whose next entry ID differs; such a remount enters the failed-mount state with the
+outcome *unknown*. Reason: the writes of this boot can leave at a remount only
+the committed copy or the encoded copy in either slot (2.6 failed-mount
+state), so any other catalog that names the provisional ID shows a changed or
+misbehaving device, which O16 already refuses to resolve from; and a record
+whose content differs from the encoded one would make the export lane's LIST
+report a record that the service never wrote. If O18 is declined, the decided
+O16 definition above applies unchanged.
+
 The lane accepts only INFO and LIST (check 6 of 2.2, from the `Unknown`
 reply on); its LIST returns the entry record if the outcome is *sealed* and
 zero records otherwise. If the remount's FLUSH or
@@ -874,7 +1006,8 @@ catalog or entry write for the rest of the boot (read-only: INFO, LIST,
 VERIFY, READ); CREATE, APPEND, SEAL and FORMAT on any lane return `Access` -5
 with no device write. These `Access` replies are the state "mounted, safe
 path" of the table of 2.2 check 7: they come after checks 1–6, and they apply
-only in a mounted instance; while a remount is pending no request is received,
+only in a mounted instance (for a blank candidate with the latch set, the
+defensive rule of 2.2 applies); while a remount is pending no request is received,
 and if the remount ends in the failed-mount or `Corrupt` state, that state's
 row applies. None of these states writes to the device. A late write therefore cannot overwrite a newer
 catalog copy or a newly allocated extent: no extent is reused in that
@@ -910,6 +1043,15 @@ new QEMU process assumed equivalent, unproven]*, and after VERIFY of the
 entry. The portal treats `Unknown` as "not sealed" until the export lane's LIST
 returns the entry ID; it must not repeat the export blindly and must not report
 success. If the remount yields `Corrupt`, the service fails closed as in 2.6.
+*[proposed; owner decision O17 (b)]* Before the portal reports an export as
+sealed in the same boot, provisionally or not, it also compares the trailer
+FNV-64 that the service reports on its own lanes (SEAL `aux`, or the record
+that the export lane's LIST returns) with the trailer of the archive it
+exported, and treats a mismatch as a failed export ("Stale valid content",
+above). The portal holds no control lane (4.1). For a confirmation after a
+cold boot the same comparison uses the record of a LIST on a verify lane
+bound to that entry; it needs the portal to keep the exported trailer across
+the reboot, which is a detail of R7.
 
 **Append-only meaning.** No operation writes a sealed extent, and catalog
 copies are written only in the order above. An interrupted new export therefore cannot damage
@@ -1244,7 +1386,9 @@ bound.
 No IOMMU model: QEMU's virtio-blk device is trusted to follow the protocol and
 DMA only into granted pages. A malicious device is out of scope. The destination
 ID and FNV-64 are not authentication: an attacker with physical access can swap
-or roll back the image undetected. v1 archives are plaintext personal data and
+or roll back the image undetected. The step-3 content digest and the portal's
+trailer comparison (2.7, *[proposed; owner decision O17 (a), (b)]*) detect accidental
+stale content only, not a device that misbehaves on purpose. v1 archives are plaintext personal data and
 belong only on the user's own local device (D5 (a)).
 
 ## 6. Negative test matrix
@@ -1261,16 +1405,24 @@ Flush-order and cache-loss acceptance is therefore host-only (`SimDisk`, R2);
 the native cut stages check recovery and the recorded flush order (section 7).
 Whether a device reset keeps or drops the volatile write cache is not known
 for QEMU (O9), so the host model must not fix one answer (revision 3): rows
-whose outcome passes through a device reset (N13, N24, N26, and the N33 case
-of a read timeout while another lane holds unflushed APPEND writes) run under
+whose outcome passes through a device reset (N13, N24, N26, the N33 case
+of a read timeout while another lane holds unflushed APPEND writes, and,
+under O17 (a), N37 (a)) run under
 both reset models, the volatile cache kept across the reset and the volatile
 cache dropped at the reset, and the expected outcome holds under both (where
 a row states one outcome per model, the invariant it names holds under both). The
 host simulated disk must also meet the broker contract of 2.7 (K5).
-Rows added or changed in revisions 1–3 name, after "Kills:", the mutation
+Rows added or changed in revisions 1–4 name, after "Kills:", the mutation
 that must make the test fail and how it is observed. In host tests the status
 of a request is the value returned by the service's request handler, also
-where 2.2 sends no reply.
+where 2.2 sends no reply. Equivalent mutants, which change no observable
+outcome, are listed in their row and not tested. The equivalences added in
+revision 4 come from the O14/O16 code round on PR #413: R14 and X6 survived as
+equivalent mutants in its code reviews; B6 rests on this text's reading of
+the call sites of `mount` and of the function that sets the safe-path latch at
+`e52cb865` (2.2, confirmed by review 6); A10 and A11 are reported by the
+round's implementer and reasoned in this text. An equivalence stated for behaviour that is only
+proposed (O17, O18) is expected, not run.
 
 | # | Case | Precondition | Action | Expected (layer: code) | Enforced by | Level |
 |---|---|---|---|---|---|---|
@@ -1299,24 +1451,28 @@ where 2.2 sends no reply.
 | N23 | Data beyond the catalog area | catalog sectors 0–15 zero, non-zero data at sector ≥ 16 | control FORMAT | S: `Access` -5; no sector written | S | host |
 | N24 | Late-completing write (2.7 completion fence) | simulated disk that completes a timed-out catalog-sector write late: (a) before the fence (reset acknowledgement), (b) after the remount FLUSH, (c) after a remount that resolved E2 as *not sealed*; (d) an entry-sector write during APPEND that times out (`Unknown`) and completes late, and separately one that fails with a device `Io` while its data still reaches the medium | SEAL with the step-4 write timing out (`Unknown`); CREATE on another lane and LIST on the export lane sent before the fence; (c) CREATE and APPEND on another lane after the resolution, before the late write lands; (d) CREATE and APPEND on another lane after the acknowledged reset; then remount and cold boot | (a) before the fence no remount FLUSH, no resolution, and neither request is received (remount pending, 2.2 check 7); after the remount CREATE `Access` -5 (safe path) and the export-lane LIST follows the resolution, which matches the cold-boot catalog; (b) outside the assumed device model (O9), recorded, not a pass: no sealed extent written, never a listed entry that fails VERIFY, LIST after cold boot {E1} or {E1, E2} (E2 listed although P reported not sealed: safe direction) or S `Corrupt` fail closed with E1 byte-identical; mutation that issues the remount FLUSH or receives a request before the fence must fail (a) (observed in the simulated disk's event order: remount FLUSH or a reply before the late completion); (c) CREATE `Access` -5 and APPEND `Access` -5 in that boot, no device write, E2's sectors not allocated again, so the late E2 write lands on no other entry's data; mutation that admits CREATE after the resolution in the same boot must fail (c); (d) writing entry discarded (APPEND replies `Unknown` -16, respectively `Io` -12), CREATE and APPEND `Access` -5 for the rest of the boot, the late entry write lands only in unallocated sectors; mutation that admits CREATE after the reset in the same boot must fail (d); Kills (revision 1): a safe-path trigger that ignores a device `Io` on an entry write | S + K fence | host |
 | N25 | Power cut during FORMAT | blank scope | FORMAT with a cut at every write prefix of copy A, with cache loss (host), before copy B | no non-zero sector of copy A durable (a zero-entry copy A is non-zero only in sectors 0 and 3, so a durable subset of sectors 1–2 alone counts here): blank candidate, FORMAT `Ok` again; some but not all non-zero sectors of copy A durable, or copy A otherwise invalid: S `Corrupt`, INFO reports `Corrupt`, every other request `Corrupt` -18, no write, no format; after the owner re-zeroes the whole scope (2.6), the next boot's instance mounts a blank candidate and FORMAT returns `Ok`; copy A valid (sectors 0 and 3 durable): mounted with one valid copy (sequence 1, zero entries); (revision 2) separately, the simulated disk fails a FORMAT write or flush with `Io` and, in a second run, `Unknown`: FORMAT replies that code, the instance enters the failed-mount state (INFO reports `Io`, a repeated FORMAT `Io` -12), and no further device request follows. Kills (revision 2): a FORMAT failure that leaves the instance a blank candidate, so that a repeated FORMAT writes again (observed by the simulated disk's write counter) | S | host |
-| N26 | Kernel -8 (2.7) | broker stub that returns kernel -8 on submission forever: (a) to the mount FLUSH; (b) to the barrier-2 flush and every later request; (c) to an APPEND write; separately (d) -8 on submission for `RESET_TIMEOUT` ticks (disk 1's own reset under K5) and then success, and a completion poll that returns -8 (pending) for `TIMEOUT` − 1 ticks and then success; (e) a completion poll that returns -8 for longer than `TIMEOUT` + 2 × `RESET_TIMEOUT` on a write | mount; SEAL; APPEND; UNBIND on the control lane during the wait | (a) after one bound (2 × `RESET_TIMEOUT`): failed-mount state, INFO reports `Io`; (b) after one bound SEAL `Unknown` -16, then the remount FLUSH also exceeds the bound, failed-mount state; (c) after one bound APPEND `Io` -12, writing entry discarded, safe path (CREATE `Access` -5 for the boot); (d) both requests complete normally, no `Io`, no safe path; (e) the write counts as `Unknown` -16 and starts the safe path. UNBIND is answered after at most one bound in (a) and (c) and at most two bounds in (b) (the stub admits no request, so no poll occurs; with real polls the limit of 2.7 "Time source" applies), `Io` -12 in (a) and (b) (failed-mount state) and `Ok` in (c), and no device write follows. Kills: a resubmission loop without the bound (the test times out and UNBIND is never served); (revision 2) a bound shorter than one legitimate reset, or the submission bound applied to the pending poll ((d) reports `Io`); a poll loop without a bound ((e) never ends) | S | host |
+| N26 | Kernel -8 (2.7) | broker stub that returns kernel -8 on submission forever: (a) to the mount FLUSH; (b) to the barrier-2 flush and every later request; (c) to an APPEND write; separately (d) -8 on submission for `RESET_TIMEOUT` ticks (disk 1's own reset under K5) and then success, and a completion poll that returns -8 (pending) for `TIMEOUT` − 1 ticks and then success; (e) a completion poll that returns -8 for longer than `TIMEOUT` + 2 × `RESET_TIMEOUT` on a write | mount; SEAL; APPEND; UNBIND on the control lane during the wait | (a) after one bound (2 × `RESET_TIMEOUT`): failed-mount state, INFO reports `Io`; (b) after one bound SEAL `Unknown` -16, then the remount FLUSH also exceeds the bound, failed-mount state; (c) after one bound APPEND `Io` -12, writing entry discarded, safe path (CREATE `Access` -5 for the boot); (d) both requests complete normally, no `Io`, no safe path; per reset model (revision 4), where the -8 interval is disk 1's own reset during the barrier-1 submission of a SEAL: cache kept, SEAL `Ok`; cache dropped, the reset loses every completed, unflushed write of the entry, so SEAL replies `Corrupt` -18 at the step-3 readback, nothing listed, no catalog write, provided the free sectors at the extent do not hold a valid archive of the same length (a freshly formatted image; with such a stale archive the case is the 2.7 limit "Stale valid content", N37 (a)); under both, never a listed entry that fails VERIFY; (e) the write counts as `Unknown` -16 and starts the safe path. UNBIND is answered after at most one bound in (a) and (c) and at most two bounds in (b) (the stub admits no request, so no poll occurs; with real polls the limit of 2.7 "Time source" applies), `Io` -12 in (a) and (b) (failed-mount state) and `Ok` in (c), and no device write follows. Kills: a resubmission loop without the bound (the test times out and UNBIND is never served); (revision 2) a bound shorter than one legitimate reset, or the submission bound applied to the pending poll ((d) reports `Io`); a poll loop without a bound ((e) never ends) | S | host |
 | N27 | Transferred capability on a request (2.2 check 1) | dialog double sends one request with one transferred handle on the control lane, and one on a bound operation lane | any request with `cap_count` 1 | S: handler status `Invalid` -1 (control lane: replied to the dialog; operation lane: no reply, because the sender is not the portal, 2.2 Replies); the service's handle count after the request equals the count before; no state change; `request_id` high-water mark unchanged. Kills: a service that keeps the received handle (count grows) or parses the request before closing it | S + K | host (capability-core `Engine`) + QEMU (`DEST:HANDLES=`) |
 | N28 | Check order (2.2) | requests that violate two checks of 2.2 at once, for every pair of checks 1–7 (table-driven) | send each request | S: the handler status of the earlier check; no state change; no device I/O; high-water mark unchanged. Kills (narrowed in revision 2): a swap of two checks whose outcomes differ in status, reply, handle count or high-water mark: check 1 with any later check (handle count, and the status for checks 3–7), check 2 with checks 3–7 (`Invalid` against `Access`, `Stale` or a state code), check 5 with checks 3, 4, 6 and 7 (`Stale` against `Access` or a state code), and check 6 with check 7 in the failed-mount, `Corrupt` and blank states (as in N13). Equivalent mutants, which no test can detect and which are listed rather than tested: swaps among checks 3, 4 and 6 and the safe-path row of check 7, which all return `Access` -5 with no state change (checks 3 and 4 cannot fail together, because an unbound lane has no bound sender) | S | host |
-| N29 | Pre-write catalog check (2.7 step 4) | test-only hook that alters the encoded copy, present only under a test-only build feature (8.2, R5 precondition): wrong checksum; `next_free` lower (refused by the validator's contiguity rule, 2.6); sequence + 2; one record dropped; (revision 3) a wrong sealing sequence on the new record, including one that the 2.6 validity rules accept (committed copy with sealing sequences 2 and 5 under sequence 9, new record sealed at 7); separately, without the hook, a committed catalog with sequence or next entry ID at the u64 maximum (checked arithmetic, 2.7 step 4) | SEAL; for the u64-maximum case, SEAL repeated with a second export on a new export binding (the first binding's CREATE was answered `Ok` and is used up) | hook cases: S: `Corrupt` -18 for that SEAL; no catalog sector written (write counter unchanged after barrier 1); writing entry discarded; service not in the `Corrupt` mount state (INFO without `Corrupt`, LIST unchanged, a later export seals). u64-maximum case (review 4 RQ-2): every SEAL `Corrupt` -18; no catalog sector written; each writing entry discarded; service not in the `Corrupt` mount state; INFO and LIST unchanged; no later export seals. Kills: a step 4 that writes without running the validator and the extension check; an extension check without the sealing-sequence clause (the wrong-sealing-sequence case, with a crafted committed copy whose last sealing sequence is below its sequence, writes); an increment that wraps or panics | S | host |
+| N29 | Pre-write catalog check (2.7 step 4) | test-only hook that alters the encoded copy, present only under a test-only build feature (8.2, R5 precondition): wrong checksum; `next_free` lower (refused by the validator's contiguity rule, 2.6); sequence + 2; one record dropped; (revision 3) a wrong sealing sequence on the new record, including one that the 2.6 validity rules accept (committed copy with sealing sequences 2 and 5 under sequence 9, new record sealed at 7); separately, without the hook, a committed catalog with sequence or next entry ID at the u64 maximum (checked arithmetic, 2.7 step 4) | SEAL; for the u64-maximum case, SEAL repeated with a second export on a new export binding (the first binding's CREATE was answered `Ok` and is used up) | hook cases: S: `Corrupt` -18 for that SEAL; no catalog sector written (write counter unchanged after barrier 1); writing entry discarded; service not in the `Corrupt` mount state (INFO without `Corrupt`, LIST unchanged, a later export seals). u64-maximum case (review 4 RQ-2): every SEAL `Corrupt` -18; no catalog sector written; each writing entry discarded; service not in the `Corrupt` mount state; INFO and LIST unchanged; no later export seals. Kills: a step 4 that writes without running the validator and the extension check; an extension check without the sealing-sequence clause (the wrong-sealing-sequence case, with a crafted committed copy whose last sealing sequence is below its sequence, writes); an increment that wraps or panics. Equivalent mutant (revision 4; B4 in the O14/O16 code round, R14 in its code review, where it survived as equivalent), listed, not tested: an extension check without its record-count clause ("exactly one"), which the sealing-sequence clause implies for every copy that passes the validator (2.7 step 4) | S | host |
 | N30 | Mixed catalog copies (2.6) | two valid copies with different sequences where the higher does not extend the lower: a record missing; a record changed; next entry ID lower (revision 3: replaces "`next_free` lower", which two valid copies with a common record prefix cannot show, 2.6); another destination ID; separately the legitimate case (higher one record ahead); and two valid copies with equal sequences, one a record ahead of the other (`Corrupt`) | mount; INFO | non-extending pair: S `Corrupt`, INFO reports `Corrupt`, no write; legitimate pair: the higher copy is used. Kills: a mount that takes the higher sequence without the extension check | S | host |
 | N31 | Operation × lane table (2.3) | control lane; unbound lane; export, verify and restore lanes bound | every operation 1..=11 on every lane kind, table-driven from the "Permitted on" column; a second CREATE on the same export binding after SEAL and after ABORT; LIST on each lane before and after a seal; VERIFY, READ, APPEND, SEAL and ABORT naming an entry other than the binding's; control ABORT naming an entry that is not writing | permitted operations pass check 6, all others `Access` -5; second CREATE `Access` -5; LIST scoping as in 2.3 (export lane: zero records until its entry is sealed, then that entry only; verify and restore lanes: the bound entry only; control: all); a wrong entry on an operation lane `Access` -5 (check 6, also in the failed-mount state); control ABORT of a non-writing entry `NotFound` -19. Kills: a permission table with any entry flipped; CREATE permitted twice per binding; a LIST that returns an entry outside the lane's scope; (revision 2) an entry check placed after check 7 (a wrong-entry READ in the failed-mount state returns `Io` -12) | S | host |
 | N32 | Once-per-boot destination grant (2.1, O13) | R5 profile; a test feature makes the destination service exit (syscall 2) after its mount, and the profile then runs for at least as many kernel poll rounds as the M5 restart path needs (`m5.rs:784-794`) | kernel counts from the `Engine`'s object, node and handle tables before and after the exit: block objects whose scope intersects the destination scope, their nodes and their handles in every process, emitted by the kernel as `DEST:GRANT:OBJECTS=`, `DEST:GRANT:NODES=`, `DEST:GRANT:HANDLES=` | K: after the exit all three counts are 0 (`Engine::exit` reclaims the exited service's node and then the object, lib.rs:2003-2012) and stay 0 at every poll round until the profile ends; no process holds a handle on such an object; no process is started with one. Kills: a profile that re-creates the destination grant on a kernel-driven restart in the M5 pattern (`m5.rs:260-279`), observed as `DEST:GRANT:OBJECTS=` or `DEST:GRANT:HANDLES=` above 0 after the exit | K profile | QEMU (R5); no host model, because the rule is about kernel profile code |
-| N33 | Device results (2.5, revision 3) | mounted instance; a broker stub that returns, per request kind (read for READ, VERIFY and the FORMAT scan on a blank instance; write and flush for APPEND and SEAL step 3): submission -13, submission -14, another submission error, completion -12, completion -13, completion -16, completion -14; separately (review 4 OP-6), a READ or VERIFY on a bound lane whose completion -13 resets the device while an export lane holds completed, unflushed APPEND writes in sectors that were zero before, under both reset models | each request once per result; in the separate case, then SEAL on the export lane | read: `Io` -12 except completion -13 `Timeout` -13, no safe path, VERIFY never `Corrupt`; write or flush: `Io` -12 for the submission results and completion -12, `Unknown` -16 for completion -13, -16 and -14, safe path in every case; `NoDevice` -14 from none of these requests; with -14 to the mount FLUSH, INFO still reports `NoDevice` -14 (as N14). Separate case: cache kept, SEAL `Ok` and the entry verifies; cache dropped, SEAL `Corrupt` -18 at the step-3 readback, nothing listed, no catalog write; under both, never a listed entry that fails VERIFY. Kills: a write whose completion -13 replies `Timeout`; a SEAL that seals without the step-3 readback (cache-dropped model lists an entry that fails VERIFY); a -14 that replies `NoDevice` from a request other than BIND; a read failure that starts the safe path or that VERIFY answers `Corrupt` | S | host (R2) |
-| N34 | Record and copy validity (2.6, revision 3) | crafted copies, each valid except for one rule: a zero-record copy with copy sequence 0 (review 4 RQ-3; with records, the sealing-sequence rule would already refuse it); entry ID 0; label length 0, and 33; length 79, and 525 329; sealing sequence 1, sealing sequence above the copy's sequence, and two records with equal sealing sequences; under O14, if accepted, a label with a control character, and one with U+202E; separately, a valid copy beside non-zero sectors 8–15 | mount in the Rust core and in the oracle | each crafted copy invalid in both, with the same mount state (one copy invalid beside a valid one: the valid one is used; both: `Corrupt`); the valid copy beside non-zero sectors 8–15 mounts in both. Kills: a validator that drops any one of these rules, in either implementation; a sectors 8–15 rule added to either | S + H | host (R2, R3; reverse differential, 8.2) |
-| N35 | Remount contradicting the committed catalog (2.6, 2.7; O16) | SEAL step-4 write fails; the device then reads at the remount: (a) all zero in sectors 0–15; (b) a valid catalog with another destination ID that lists the provisional entry ID; (c) a valid catalog with the same ID whose records differ from the committed ones; (d) a non-blank layout that is not a valid catalog (`Corrupt`); a verify lane bound to a sealed entry | SEAL; then INFO, export-lane LIST, control FORMAT, VERIFY on the verify lane | (a)–(c) under the O16 rule: failed-mount state, INFO reports `Io`, export-lane LIST `Unknown` -16 with zero records, VERIFY and FORMAT `Io` -12, no device write, binding never resolved as *sealed*; under the alternative: the state of the mount rule ((a) blank candidate, FORMAT `Access` -5; (b), (c) mounted, safe path), no device write; (d) `Corrupt` state, INFO reports `Corrupt`, export-lane LIST and every other request `Corrupt` -18, never a record, no device write (whether the binding is held *unknown* or *not sealed* is not observable by any request in this state, so a mutant between the two is equivalent and listed, not tested). Kills: a remount that ends blank with FORMAT permitted (a device write follows); under O16, a remount that resolves (b) as *sealed* (export-lane LIST returns a record) | S | host (R2) |
-| N36 | CREATE and APPEND refusal order (2.3, revision 3) | export lane bound; (a1) another lane writing; (a2) nothing writing, and no sector free, and separately 16 entries sealed (`Busy` and `Full` cannot apply together, 2.3); (b) an entry with 525 280 bytes appended; (c) under the O15 rule, a CREATE refused with `Busy` | (a1), (a2) CREATE with an invalid label, then with a valid label; (b) APPEND of 160 bytes with the right offset, then with a wrong offset; (c) after the other entry is sealed, CREATE again on the same binding | (a1) `Invalid` -1, then `Busy` -21; (a2) `Invalid` -1, then `Full` -17 ((a1) and (a2) under the O15 rule; under the alternative the second CREATE gets `Access` -5 at check 6); (b) `Range` -3 with nothing appended and the entry still `writing`, then `Stale` -10; (c) CREATE `Ok` under O15 (under the alternative `Access` -5). Kills: `Full` instead of `Range` for the archive bound; a CREATE order that reports `Busy` or `Full` before a bad label; under O15, a refused CREATE that uses up the binding | S | host (R2) |
+| N33 | Device results (2.5, revision 3) | mounted instance; a broker stub that returns, per request kind (read for READ, VERIFY and the FORMAT scan on a blank instance; write and flush for APPEND and SEAL step 3): submission -13, submission -14, another submission error, completion -12, completion -13, completion -16, completion -14; separately (review 4 OP-6), a READ or VERIFY on a bound lane whose completion -13 resets the device while an export lane holds completed, unflushed APPEND writes in sectors that held stale bytes before (revision 4): (i) non-zero bytes that fail `archive::verify` (required), (ii) zero bytes (optional; a special case of (i)), and (iii) a valid archive of the same sector-aligned length (the N37 (a) case), under both reset models | each request once per result; in the separate case, then SEAL on the export lane | read: `Io` -12 except completion -13 `Timeout` -13, no safe path, VERIFY never `Corrupt`; write or flush: `Io` -12 for the submission results and completion -12, `Unknown` -16 for completion -13, -16 and -14, safe path in every case; `NoDevice` -14 from none of these requests; with -14 to the mount FLUSH, INFO still reports `NoDevice` -14 (as N14). Separate case, (i) and (ii): cache kept, SEAL `Ok` and the entry verifies; cache dropped, SEAL `Corrupt` -18 at the step-3 readback, nothing listed, no catalog write; under both, never a listed entry that fails VERIFY. Variant (i) is required because non-zero stale bytes also defeat a readback check that refuses only zero sectors. (iii): under O17 (a), as N37 (a); if O17 (a) is declined, cache dropped gives SEAL `Ok` over the stale archive with an `aux` other than the sent trailer, which is recorded as the stated limit of 2.7 ("Stale valid content"), not counted as a pass. Kills: a write whose completion -13 replies `Timeout`; a SEAL that seals without the step-3 readback (cache-dropped model lists an entry that fails VERIFY); a -14 that replies `NoDevice` from a request other than BIND; a read failure that starts the safe path or that VERIFY answers `Corrupt` | S | host (R2) |
+| N34 | Record and copy validity (2.6, revision 3) | crafted copies, each valid except for one rule: a zero-record copy with copy sequence 0 (review 4 RQ-3; with records, the sealing-sequence rule would already refuse it); entry ID 0; label length 0, and 33; length 79, and 525 329; sealing sequence 1, sealing sequence above the copy's sequence, and two records with equal sealing sequences; under the decided O14, labels that fail only the content rules of `valid_name` (2.3): `.`, `..`, invalid UTF-8 (including an encoded UTF-16 surrogate), a C0 control character, U+007F, a C1 control character (U+0085), `/`, `\`, and each end of both bidirectional ranges (U+202A, U+202E, U+2066, U+2069), and, as valid, the code points just outside those ranges (U+2029, U+202F, U+2065, U+206A); separately, a valid copy beside non-zero sectors 8–15 | mount in the Rust core and in the oracle | each crafted copy invalid in both, with the same mount state (one copy invalid beside a valid one: the valid one is used; both: `Corrupt`); the valid copy beside non-zero sectors 8–15 mounts in both. Kills: a validator that drops any one of these rules, in either implementation, except the equivalent mutants below; a label-content check that narrows or widens either bidirectional range; a sectors 8–15 rule added to either. Equivalent mutants at the level of the mount state (revision 4; A10 and A11 from the O14/O16 code round, A11 also as X6, which survived as equivalent in its second code review), listed, not tested: in either implementation, a validator without the label-length bound "≥ 1", because under O14 `valid_name` refuses an empty label (2.6; A10 in the Rust core; in the oracle the case is told apart only by its refusal reason, which is no mount-state difference, section 7); in the oracle, the length bound inside its label-content check, because its record check refuses lengths outside 1..=32 first (A11/X6). Each crafted copy breaks exactly one stated rule, so every other rule is killed by a mount-state difference in each implementation's own tests | S + H | host (R2, R3; reverse differential, 8.2) |
+| N35 | Remount contradicting the committed catalog (2.6, 2.7; O16; revision 4: O18) | SEAL step-4 write fails; the device then reads at the remount: (a) all zero in sectors 0–15; (b) a valid catalog with another destination ID that lists the provisional entry ID; (c) a valid catalog with the same ID whose records differ from the committed ones, and (revision 4) the committed records under another destination ID, and the committed records at copy sequence + 1; (d) a non-blank layout that is not a valid catalog (`Corrupt`); (e) *[proposed; owner decision O18]* a valid catalog that passes the step-4 extension check against the committed copy and carries the provisional entry ID, but differs from the copy encoded in step 4 in the new record's length, archive trailer FNV-64 or label, or in next entry ID; a verify lane bound to a sealed entry | SEAL; then INFO, export-lane LIST, control FORMAT, VERIFY on the verify lane | (a)–(c): failed-mount state (O16), INFO reports `Io`, export-lane LIST `Unknown` -16 with zero records, VERIFY and FORMAT `Io` -12, no device write, binding never resolved as *sealed*; (d) `Corrupt` state, INFO reports `Corrupt`, export-lane LIST and every other request `Corrupt` -18, never a record, no device write; (e) under O18, as (a)–(c); if O18 is declined, (e) is not a case of this row, because the decided O16 definition resolves it *sealed*. Kills: a remount that ends as a blank candidate (INFO reports `NotFound` -19 instead of `Io`); a remount that resolves (b) as *sealed* (export-lane LIST returns a record); (revision 4) a *not sealed* resolution that compares only the records with the committed copy, or ignores its destination ID or copy sequence (the added (c) cases); under O18, a *sealed* resolution that accepts any catalog that passes the extension check ((e) resolves *sealed*). Equivalent mutants, listed, not tested: in (d), holding the binding *not sealed* instead of *unknown*, which no request in the `Corrupt` state can observe; (revision 4, from the O14/O16 code round) the *sealed* resolution's extension check without its record-count clause (2.7 step 4; B4/R14, which survived as equivalent in its code review), and the removal of the defensive FORMAT refusal in a blank candidate with the safe-path latch set, which O16 makes unreachable (2.2; B6, unreachable by this text's reading of the call sites, which review 6 confirmed); (expected, not run) under O18, the extension check of the *sealed* resolution, which byte equality with the encoded copy implies | S | host (R2) |
+| N36 | CREATE and APPEND refusal order (2.3, revision 3; O15) | export lane bound; (a1) another lane writing; (a2) nothing writing, and no sector free, and separately 16 entries sealed (`Busy` and `Full` cannot apply together, 2.3); (b) an entry with 525 280 bytes appended; (c) a CREATE refused with `Busy` | (a1), (a2) CREATE with an invalid label, then with a valid label; (b) APPEND of 160 bytes with the right offset, then with a wrong offset; (c) after the other entry is sealed, CREATE again on the same binding | (a1) `Invalid` -1, then `Busy` -21; (a2) `Invalid` -1, then `Full` -17 (the second CREATE reaches the operation because the refused first one left the binding's CREATE unused, O15); (b) `Range` -3 with nothing appended and the entry still `writing`, then `Stale` -10; (c) CREATE `Ok` (O15). Kills: `Full` instead of `Range` for the archive bound; a CREATE order that reports `Busy` or `Full` before a bad label; a refused CREATE that uses up the binding (the second CREATE of (a1) or (a2), or the CREATE of (c), returns `Access` -5) | S | host (R2) |
+| N37 | SEAL content digest and portal trailer check (2.7 step 3 and "Stale valid content"; *[proposed; owner decision O17]*: (a), (b) under O17 (a), (c) under O17 (b); revision 4) | one sealed entry E1; export of E2 on lane X; the free sectors at E2's extent hold a valid v1 archive of exactly E2's sector-aligned length that differs from E2 (for the barrier-1 variant of (a), where every unflushed write is lost, a stale archive of the same length need not be sector-aligned): (a) a READ or VERIFY on another lane whose completion -13 resets the device while X holds completed, unflushed APPEND writes (as N33), and separately the device's own reset during the barrier-1 submission (as N26 (d)), under both reset models; (b) without a reset, a simulated disk that reports success for every write of the entry and for barrier 1 but stores none of them, so that the stale valid archive stays whole; (c) portal code against a service stub whose SEAL reply `aux`, and separately whose LIST record trailer FNV-64, differs from the trailer of the exported archive | (a), (b) SEAL on X; then control LIST, INFO; (c) the portal's export flow | under O17 (a): (a) cache dropped and (b): S `Corrupt` -18, nothing listed, no catalog write, writing entry discarded, no safe path (a later CREATE on a new binding runs) if the safe-path sub-question of O17 is answered "no latch", as recommended; if it is answered "latch", safe path set (a later CREATE `Access` -5); (a) cache kept: SEAL `Ok`, `aux` equals the sent trailer, the entry verifies; under O17 (b): (c) P reports the export as failed, never as sealed or confirmed, and does not repeat it blindly. Cases (a), (b) lapse if O17 (a) is declined, and N33 (iii) then records the limit; case (c) lapses if O17 (b) is declined. "No safe path" follows the O17 recommendation and the revision-3 readback rule; until O17 decides the safe-path question (2.7, O9), a latching implementation is not counted as a defect (review 6 OPT6-1). Kills: a SEAL without the digest comparison ((a) cache dropped and (b) list the stale archive); a portal that does not compare the reported trailer ((c) reports sealed) | S + P | host (R2) for (a), (b); (c) with the portal (R7) |
 
 Every row except N19, N20, N24, N26 and N32 needs only the destination service and
 existing primitives; N24 also needs a simulated disk with late completion and,
 natively, the K4/K5 fence of 2.7; N26 needs a broker stub; N32 needs the R5
 profile with a test feature that ends the service and kernel-emitted counts.
 N33 needs a broker stub; N34 needs the oracle of R3 and the reverse
-differential of 8.2; N33–N36 are host rows of R2 (N34 also of R3). Each host test is
+differential of 8.2; N33–N36 are host rows of R2 (N34 also of R3). N37
+(revision 4) exists only if the owner accepts O17: its cases (a) and (b),
+under O17 (a), are host rows of R2 with the simulated disk, and its case (c),
+under O17 (b), needs portal code and belongs to R7. Each host test is
 paired with a mutation that disables its check and must make the test fail, as for the archive and name-check tests *[main
 practice]*.
 
@@ -1375,6 +1531,16 @@ Revision 3 fixes what the oracle decides:
   native stage that asserts that an entry verifies also parses the entry's
   first `length` bytes with `tools/volume_archive.py`, the independent v1
   reader, as `dest-export` already requires.
+- **Cross-check limit** (revision 4). The cross-check between the R2 core and
+  the oracle, in both directions (8.2 R3), compares the mount state and, for a
+  mounted copy, the header and the records. It does not compare which rule
+  refused a copy, and this is its stated limit: the interface of 2.2–2.6
+  reports mount states and reply statuses, never a refusal reason, so
+  requiring the core to report one would add an interface that only tests
+  use. Each rule is instead killed in each implementation's own tests by a
+  crafted copy that breaks that rule alone (N34). A mutant that changes the
+  refusing rule but no mount state is equivalent at this level and is listed
+  in N34; the oracle's own tests may also assert its refusal reasons.
 
 **New stages (proposed; names indicative).**
 
@@ -1597,6 +1763,8 @@ hosted gate runs. No human audit.
   the proposal is accepted** (`valid_name` in full at mount). R7 (label
   display) and the R8 activation no longer wait on O14; R5 and R6 do not
   depend on it. The R2 core and the R3 oracle must apply the rule (section 9).
+  Status (revision 4): both apply it at `e52cb865` *[PR #413]*, with the
+  N34 label cases; the control-character set is named in 2.3 (P3).
 - **O15** (new in revision 3) **Owner question:** does a CREATE refused by
   check 7 or by the operation use up the export binding's one CREATE (2.2
   check 6)? Proposed: no, only a CREATE answered `Ok` counts, because a
@@ -1619,12 +1787,74 @@ hosted gate runs. No human audit.
   keeps bound verify and restore lanes from naming another catalog's entries;
   it requires the service to keep the committed copy across the remount for
   the comparison. A remount that ends `Corrupt` leaves the binding *unknown*
-  under either answer (2.7). The R2 core implements the alternative
-  *[PR #413]*. **Decided by the project owner on 23 November 2026: the
+  under either answer (2.7). At `37b7bd0c` the R2 core implemented the
+  alternative *[PR #413]*. **Decided by the project owner on 23 November 2026: the
   proposal is accepted** (failed-mount state, binding *unknown*). The R2 core
   must change from the alternative to this rule, and N35 asserts the
   failed-mount state as well as the absence of any device write (section 9).
-  The R8 activation no longer waits on O16.
+  The R8 activation no longer waits on O16. Status (revision 4): the R2 core
+  follows this rule at `e52cb865` and N35 asserts it *[PR #413]*. Revision 4
+  proposes a stricter reading of "that copy plus exactly the provisional
+  record" as O18; the decided rule stands unless the owner accepts O18.
+- **O17** (new in revision 4) **Owner question:** must a SEAL refuse an
+  extent that passes `archive::verify` but does not hold the bytes that were
+  appended (2.7, "Stale valid content")? Today a device fault that loses
+  completed, unflushed APPEND writes, or silently fails to store one, can
+  leave a stale valid archive of the same length in the extent; SEAL then
+  commits another backup's content under the new label, the entry stays for
+  good (no deletion in v1, O3), and a restore accepts it. Options: (a) the
+  service keeps an FNV-64 digest of the appended bytes and compares it with
+  the readback at step 3 (or uses the equivalent trailer comparison of 2.7
+  step 3), replying `Corrupt` -18 before any catalog write;
+  (b) the portal compares the trailer FNV-64 that the service reports (SEAL
+  `aux`, LIST record) with its own archive's trailer before it reports the
+  export as sealed or confirmed; (c) both. Trade-offs: (a) stops the wrong
+  entry before the commit, so nothing permanent is written, at the cost of
+  8 bytes of state per writing entry, one digest pass over the readback that
+  step 3 already reads, and a failed export (to be retried) in the fault
+  case; (b) needs no service change, but the wrong entry is already
+  committed, keeps one of the 16 slots and appears in the dialog's restore
+  list with the new label; it relies on portal code alone. **Threat model:**
+  both detect an accidental mismatch from a device or cache fault. FNV-64 is
+  not collision-resistant and a device that misbehaves on purpose can return
+  the appended bytes on the readback; a defence against a hostile device
+  would need a maintained standard cryptographic hash, is out of scope under
+  5.4 and would be a separate decision. **Recommendation: (c)**, with (a) as
+  the normative service rule and (b) as a cheap second check in the portal
+  against a service defect; a mismatch replies `Corrupt` and does not start
+  the safe path (2.7). Sub-question (review 6 OPT6-1): whether a digest
+  mismatch, or any device reset while unflushed entry writes exist, starts
+  the safe path instead. Not latching follows the revision-3 readback rule
+  and is recommended until O9 shows whether late writes can land; latching
+  costs the rest of the boot's exports after a single fault. If latching is
+  chosen, N26 (d), N33 (the separate case and its read-failure kill) and
+  N37 change accordingly. The service rule of 2.5 and 2.7 step 3 and rows
+  N33 (iii) and N37 (a), (b) are marked O17 (a); the portal rule of 2.7 and
+  row N37 (c) are marked O17 (b); 5.4 names both. Each part lapses if the
+  owner declines it; if both are declined, the case stays the stated limit
+  of 2.7. R7 and the R8 activation wait on O17.
+- **O18** (new in revision 4) **Owner question:** after the 2.7 trigger, does
+  a remount resolve the export binding as *sealed* only if the remounted
+  catalog equals, byte for byte, the copy that the service encoded and
+  checked in step 4 of that SEAL (proposed, 2.7), rather than any catalog
+  that passes the step-4 extension check and carries the provisional entry
+  ID (the decided O16 definition)? The proposal is stricter: a remount that
+  lists the provisional ID with another length, trailer FNV-64 or label, or
+  another next entry ID, enters the failed-mount state with the binding
+  *unknown* instead of resolving *sealed*; it adds no write and no new state.
+  Reason: this boot's writes can leave only the committed or the encoded copy
+  at a remount, so any other catalog shows a changed or misbehaving device,
+  which O16 already refuses to resolve from, and a resolved record that
+  differs from the encoded one would let the export lane's LIST report a
+  record the service never wrote. Cost: the service keeps the encoded copy
+  (2048 bytes) across the remount, as it already keeps the committed copy;
+  a device fault in that window leaves the export *unknown* rather than
+  *sealed*, which is the safe direction. It answers review finding O-2 of the
+  PR #413 code review and review 5 OPT-2. **Recommendation: accept.** If O18
+  is declined, the decided O16 text applies unchanged and N35 (e) lapses.
+  O18 is independent of O17: O17 compares the extent with the appended
+  bytes, O18 the remounted catalog with the encoded one. The R8 activation
+  waits on O18.
 
 ### 8.2 Staged route
 
@@ -1632,14 +1862,14 @@ Each step is one reviewable draft PR; none activates a production boundary.
 
 | Step | Content | Acceptance check |
 |---|---|---|
-| R1 | This specification; independent security review of it | review findings recorded and resolved in this file (reviews 1–3 and the revision-3 ledger: section 9). **Status (revision 3):** review 3 approved revision 2; review 4 (SPEC-REVIEW-4) returned REQUEST_CHANGES on revision 3; review 5 (SPEC-REVIEW-5) found its findings resolved and returned REQUEST_CHANGES with two required findings, answered in this text (section 9) and not re-reviewed; owner items O4 (b), O4 (c) and O11–O16 open |
-| R2 | Host crate for the service core: catalog codec, mount rule, state machine, wire codec, write path; simulated disk with cache loss | host tests for N3–N15, N17 and N21–N31 (simulated disk with late completion for N24, broker stub for N26; N5 and N6 with the capability-core `Engine`), each with a killing mutation; flush-order and cache-loss acceptance for N11, N12 and N25 is established here, not natively; Clippy, fmt, `cargo test --locked` per the CI workflow commands. Revision 3 adds: N33–N36; the reset-dependent rows under both reset models (section 6); a simulated disk that meets the K5 broker contract (2.7). **Status (revision 3):** implemented on draft PR #413, unmerged *[PR #413]* (host only; AI-reviewed, not human-audited). Open against this revision: the archive verifier is a test stand-in, so N7, N10, N11 and N12 are partial; N24 (b) is recorded, not a pass; the revision-3 rows and the code changes they imply (section 9) are not yet made |
-| R3 | `tools/destination_disk.py` independent oracle | Python unit tests: parses valid copies, refuses each invalid rule; a test-only encoder for crafted images (N14's second destination ID, N4, N30), whose output the oracle's own parser accepts or refuses as intended. Revision 3 adds: the oracle decisions of section 7 (scope, image read errors, extents); the record rules of 2.6 (N34); a cross-check of images written by the R2 core, run by a hosted gate (a lead-owned workflow change); and a reverse differential, in which the oracle's crafted invalid images are mounted by the R2 core and the two verdicts compared; both are required before R5. **Status (revision 3):** implemented on draft PR #413, unmerged *[PR #413]* (host only; AI-reviewed, not human-audited); the cross-check has run only locally (7 images, agreement) and is skipped in hosted CI; the reverse differential does not exist |
+| R1 | This specification; independent security review of it | review findings recorded and resolved in this file (reviews 1–3 and the revision-3 ledger: section 9). **Status (revision 3):** review 3 approved revision 2; review 4 (SPEC-REVIEW-4) returned REQUEST_CHANGES on revision 3; review 5 (SPEC-REVIEW-5) found its findings resolved and returned REQUEST_CHANGES with two required findings, answered in this text (section 9) and not re-reviewed. **Status (revision 4):** owner items O14, O15 and O16 decided on 23 November 2026; O4 (b), O4 (c) and O11–O13 open; O17 and O18 proposed in revision 4 and open; review 6 (SPEC-REVIEW-6) approved revision 4 (P1–P13, section 9) with no required finding and confirmed RQ5-1 and RQ5-2 (P13); its nine optional findings were applied by the lead and checked by one read-only verifier, whose two wording corrections were applied and not re-reviewed |
+| R2 | Host crate for the service core: catalog codec, mount rule, state machine, wire codec, write path; simulated disk with cache loss | host tests for N3–N15, N17 and N21–N31 (simulated disk with late completion for N24, broker stub for N26; N5 and N6 with the capability-core `Engine`), each with a killing mutation; flush-order and cache-loss acceptance for N11, N12 and N25 is established here, not natively; Clippy, fmt, `cargo test --locked` per the CI workflow commands. Revision 3 adds: N33–N36; the reset-dependent rows under both reset models (section 6); a simulated disk that meets the K5 broker contract (2.7). **Status (revision 3):** implemented on draft PR #413, unmerged *[PR #413]* (host only; AI-reviewed, not human-audited). Open against this revision: the archive verifier is a test stand-in, so N7, N10, N11 and N12 are partial; N24 (b) is recorded, not a pass; at `37b7bd0c` the revision-3 rows and the code changes they imply (section 9) were not yet made. Revision 4 adds: Clippy with `-D warnings` on the library as built without any test-only feature, for `x86_64-unknown-none`, run by the hosted gate (a lead-owned workflow change), because that is the build a native profile links and so far it is only type-checked (P10); and a host test of the simulated disk alone, under both reset models, for each property of the broker contract of 2.7, including for property 3 that a result already returned is not returned by a further poll, also for a request ended by a reset (P12); under O17 (a), N37 (a) and (b) (P1). **Status (revision 4):** the revision-3 rows and the O14 and O16 changes are implemented on draft PR #413 (`4f1edb9c`, `e52cb865`), unmerged, host only, AI-reviewed, not human-audited. Still open: the archive verifier is a test stand-in, so N7, N10, N11 and N12 are partial; N24 (b) is recorded, not a pass; the CODE-DELTA of section 9 (revision 4); the two items above |
+| R3 | `tools/destination_disk.py` independent oracle | Python unit tests: parses valid copies, refuses each invalid rule; a test-only encoder for crafted images (N14's second destination ID, N4, N30), whose output the oracle's own parser accepts or refuses as intended. Revision 3 adds: the oracle decisions of section 7 (scope, image read errors, extents); the record rules of 2.6 (N34); a cross-check of images written by the R2 core, run by a hosted gate (a lead-owned workflow change); and a reverse differential, in which the oracle's crafted invalid images are mounted by the R2 core and the two verdicts compared; both are required before R5. **Status (revision 3):** implemented on draft PR #413, unmerged *[PR #413]* (host only; AI-reviewed, not human-audited); at `37b7bd0c` the cross-check had run only locally (7 images, agreement) and was skipped in hosted CI, and the reverse differential did not exist. Revision 4 states the limit of both comparisons: mount state, header and records, not the refusing rule (section 7, "Cross-check limit"; P11). **Status (revision 4):** at `e52cb865` *[PR #413]* the cross-check agrees on 30 images, locally only; it is still not run in hosted CI; the reverse differential still does not exist |
 | R4 | Volume service read-only and create-only endpoint bindings (separate spec) | N19, N20 host tests; existing volume and archive host tests unchanged |
 | R5 | Preconditions: O4 (a) approves K5 as per-device broker state (K4 is not needed for R5); the owner amends ADR-S09-DUALDISK-20261119 B3 and B5 (O4 (b)); O4 (c) is decided and its option is in place (section 7); the test profile enables `monotonic-clock` for the -8 bound (2.7; feature combination unchecked); (revision 3) the service links `volume_core::archive::verify` (2.3, "Archive verifier"); test hooks such as N29's exist only behind a test-only build feature that no native or product profile enables; the R3 reverse differential exists and the R3 cross-check runs in a hosted gate (review 4 OP-7); the per-device broker meets the broker contract of 2.7. Content: per-device broker state, destination service binary in a test-only profile on disk 1 that follows the once-per-boot grant rule (2.1), and a scripted test-only dialog driver for the control lane that sends FORMAT and BIND and transfers lane SEND to the portal (4.3) | native stages `dest-format`, `dest-export`, `dest-export-2`, `dest-restore` and `dest-grant-once`, each lane bound by BIND with the destination ID that INFO reports after `dest-format`; N1, N2, N16, N18 counted and rights-probed (the driver's handles, including its control-reply RECV, as the dialog's in 5.1); N27 natively with `DEST:HANDLES=`; N32 natively with `DEST:GRANT:*`; at run time each lane handle transferred to the portal is SEND only (`check_endpoint`); every runner with `-no-reboot`; `dest-restore` is test-only and does not wait for R4; the per-device broker admits no disk-1 request between a disk-1 timeout and the acknowledged reset (2.7 completion fence), and a disk-1 submission is admitted while a disk-0 request is in flight, both shown by native timeout fixtures |
 | R6 | UNBIND, revocation and rebinding through the scripted test-only dialog driver of R5 | QEMU levels of N3, N5, N6, N7, N8, N10, N14, N15, N17 and N22 with stages `dest-revoke`, `dest-foreign`, `dest-full`, `dest-replay`, `dest-corrupt`, `dest-scope`, `dest-sender` and `dest-nonarchive`; crash stages `dest-cut-append`, `dest-cut-seal`, `dest-cut-mirror` and `dest-after-cut` (N11, N12) at QEMU level as process kills without cache loss, with the kernel-counted flush count and order asserted at each cut marker (section 7) |
-| R7 | Trusted dialog surface and remembered permission (after O1, O12, O14 and O15) | UI checks per `ui/AGENTS.md`; revocation of a remembered permission revokes live lanes and their volume-side bindings |
-| R8 | After R4 and O11–O16: independent security review of the implementation, then an owner activation decision | all matrix rows pass natively where marked QEMU; N19 and N20 pass natively, not only on the host; FORMAT's entropy draw has native evidence (section 7); under O13, either the once-per-boot rule (N32) is accepted or the kernel latch passes its own native test; review closed |
+| R7 | Trusted dialog surface and remembered permission (after O1, O12 and O17; O14 and O15 decided on 23 November 2026) | UI checks per `ui/AGENTS.md`; revocation of a remembered permission revokes live lanes and their volume-side bindings; under O17 (b), the portal's trailer comparison, including how it keeps the exported trailer across a reboot (2.7; N37 (c)); every label rendered in an isolated bidirectional context (first-strong isolate) and visibly delimited from trusted text, because 2.3 allows format characters such as U+200E, U+200F and U+061C (review 6 OPT6-2) |
+| R8 | After R4, O11–O13, O17 and O18 (O14–O16 decided on 23 November 2026): independent security review of the implementation, then an owner activation decision | all matrix rows pass natively where marked QEMU; N19 and N20 pass natively, not only on the host; FORMAT's entropy draw has native evidence (section 7); under O13, either the once-per-boot rule (N32) is accepted or the kernel latch passes its own native test; review closed |
 
 Until R8, every grant remains test-only and S09 remains open; this document
 changes no score.
@@ -1811,7 +2041,7 @@ changes below and found each finding resolved.
 | OP-2 | Fixed: the meaning of `NoDevice` restated as "a mount, remount or FORMAT met kernel -14" (INFO in the failed-mount state) or BIND; behaviour unchanged | 2.5 "Reasons" |
 | OP-3 | Fixed: the step-4 pre-write check also requires the new record's sealing sequence to equal the new sequence; not added to the mount rule, where it would refuse valid copies after an O3 deletion; the 2.6 claim corrected; N29 case uses a fixture that the validity rules accept | 2.6; 2.7 step 4; N29 |
 | OP-4 | Fixed: the O14 parenthetical states what the oracle does at `37b7bd0c`. The test encoder's default sealing sequence of 1 (`tools/destination_disk.py:219`) must change with the R3 code change, since every crafted copy with records is otherwise invalid under revision 3 | 8.1 O14 |
-| OP-5 | Fixed: a remount ending `Corrupt` leaves the binding *unknown* (normative; matches the R2 code); a remount that reads another valid catalog than the committed copy or that copy plus exactly the provisional record is folded into the O16 rule (failed-mount state, binding *unknown*), which requires keeping the committed copy for the comparison; N35 extended with (b)–(d). O16 stays undecided | 2.2 check 7 table; 2.6 failed-mount state; 2.7; 8.1 O16; N35 |
+| OP-5 | Fixed: a remount ending `Corrupt` leaves the binding *unknown* (normative; matches the R2 code); a remount that reads another valid catalog than the committed copy or that copy plus exactly the provisional record is folded into the O16 rule (failed-mount state, binding *unknown*), which requires keeping the committed copy for the comparison; N35 extended with (b)–(d). O16 stays undecided (later decided on 23 November 2026, 8.1) | 2.2 check 7 table; 2.6 failed-mount state; 2.7; 8.1 O16; N35 |
 | OP-6 | Fixed: the N33 case of a read timeout while another lane holds unflushed APPEND writes is added and run under both reset models; the outcome differs per model (SEAL `Ok`, or `Corrupt` -18 at the readback), the invariant "never a listed entry that fails VERIFY" holds under both | 6 preamble; N33 |
 | OP-7 | Fixed: the hosted cross-check is an R5 precondition, beside the reverse differential | 8.2 R3, R5 |
 | OP-8 | Fixed: the -14 → `Io` mapping is to be decided again if K1 is approved | 2.5 "Reasons" |
@@ -1829,10 +2059,94 @@ re-reviewed.
 
 | Finding | Disposition | Sections |
 |---|---|---|
-| RQ5-1 | Fixed: N36 (a1) and (a2) are marked as holding under the O15 rule, with the alternative's result for the second CREATE (`Access` -5 at check 6), as case (c) already did | N36 |
+| RQ5-1 | Fixed: N36 (a1) and (a2) are marked as holding under the O15 rule, with the alternative's result for the second CREATE (`Access` -5 at check 6), as case (c) already did. Superseded in revision 4 (P4): N36 states the O15 outcomes only | N36 |
 | RQ5-2 | Fixed: 5.3 and the 2.5 "Reasons" paragraph now apply `Io` to a submission refused with kernel -14 or -13 after the boot mount, and say that a completion result follows the "Device results" table | 2.5; 5.3 |
 | OPT-1 | Fixed: the 2.6 sentence now reads "the committed copy's highest sealing sequence (1 if it has no record)" | 2.6 |
 | OPT-7 | Fixed: the section 6 preamble covers revisions 1–3 | 6 |
 | Lead check | A read-only verification of the RQ5-1 and RQ5-2 answers found both resolved and four low optional follow-ups (the L2 and R3-5 rows, the 2.5 "Reasons" sentence order, the FORMAT exception in 5.3); all four are applied | 2.5; 5.3; 9 |
 | OPT-8 | Partly fixed: reviews 4 and 5 are stored and linked; the N36 (b) scope remains implicit | 9 |
-| OPT-2, OPT-3, OPT-4, OPT-5, OPT-6 | Not taken in revision 3: OPT-2 (byte comparison for the O16 match) concerns a misbehaving device, out of scope by 5.4, and goes with the O16 decision; OPT-3 is harmless because the operative condition is "any result other than success"; OPT-4 is covered by the general rule that the code follows the table, and N33 detects each difference; OPT-5 is recorded by the review-4 table; OPT-6 (refusing CREATE at the u64 maximum) is a design option that fails closed either way and is left to the R2 code change | 2.5; 2.6; 2.7; N29 |
+| OPT-2, OPT-3, OPT-4, OPT-5, OPT-6 | Not taken in revision 3: OPT-2 (byte comparison for the O16 match) concerns a misbehaving device, out of scope by 5.4, and goes with the O16 decision (superseded in revision 4, P2: proposed as O18); OPT-3 is harmless because the operative condition is "any result other than success"; OPT-4 is covered by the general rule that the code follows the table, and N33 detects each difference; OPT-5 is recorded by the review-4 table; OPT-6 (refusing CREATE at the u64 maximum) is a design option that fails closed either way and is left to the R2 code change | 2.5; 2.6; 2.7; N29 |
+
+**Revision 4 record.** The inputs are the code changes of R2 and R3 for
+revision 3 and for the owner decisions O14 and O16 on draft PR #413
+(`4f1edb9c`, `e52cb865`; host only, unmerged) and their independent AI code
+reviews: the review of the revision-3 code delta (findings F1–F7) and the two
+reviews of the O14/O16 change (findings R-1, O-1, O-2, N-1), stored on PR #413
+under `docs/verification/s09-destination-core-20261123/` as
+`CODE-REVIEW-REV3.md`, `CODE-REVIEW-O14-O16-1.md` and
+`CODE-REVIEW-O14-O16-2.md`. Their open points were deduplicated into P1–P13.
+Mutant names in the table are those of the O14/O16 code round on PR #413 (B4,
+B6, A10, A11, named in its ledger) and of its code reviews (R14, X6, which
+survived there as equivalent mutants); they are not items of this document. As in revision 3, each choice is
+reasoned from the design, the threat model or a fail-closed argument, not
+taken from the code; where the PR #413 code differs from the chosen text, the
+difference is listed in the CODE-DELTA table below. No resolution widens a
+capability, weakens the check order or adds trust in disk bytes; the decided
+text of O14, O15 and O16 is unchanged. These resolutions are an AI revision,
+not a human audit, and are not yet reviewed.
+
+| ID | Resolution type | Section changed | Reason |
+|---|---|---|---|
+| P1 | proposed owner decision | 2.5 (reply codes); 2.7 step 3, "Stale valid content" and the portal paragraph; 5.4; 6 (N33 (iii), new N37); 8.1 O17; 8.2 R7, R8 | A SEAL can commit a stale valid archive after a device fault (review F1). Integrity of a sealed entry is a security property, but where it is checked, in the service before the commit or in the portal after it, trades permanence of a wrong entry against a service change, so it is a policy choice. The limit is stated unconditionally; the fix, its reply code (`Corrupt`, no safe path, because nothing is outstanding and the extent is unallocated) and the N rows are conditional on O17. Threat model stated: accidental faults only; FNV-64 is not collision-resistant; a hostile-device defence needs a maintained standard hash and a separate decision |
+| P2 | proposed owner decision | 2.6 failed-mount state (cross-reference); 2.7 (committed-copy equality clarified; O18 text); 6 (N35 (e)); 8.1 O16 status, O18; 8.2 R8 | Byte equality with the encoded copy changes which remounts resolve *sealed* under the decided O16, so it is proposed as O18 although stricter, with the decided text left unchanged. The committed-copy arm needs no decision: equality of a 2048-byte copy is byte equality, which for valid copies equals field equality. Answers code-review O-2 and review 5 OPT-2. Related to P1 only by subject: O17 compares extent bytes, O18 catalog bytes; each is consistent if the other is declined |
+| P3 | clarification | 2.3; 6 (N34); 8.1 O14 status | "Control character" is the set of the referenced `catalog_core::wire::valid_name` *[main]*: General_Category Cc, U+0000–U+001F and U+007F–U+009F. The C1 controls are as unsuitable on the trusted display surface as the C0 controls, and naming the set lets the independent oracle apply it. Other Cf characters stay allowed; the dialog does not rely on labels (2.6, 5.4) |
+| P4 | clarification | header; evidence labels; 2.2 check 6; 2.3; 2.6 (label content, failed-mount state); 6 (N34, N35, N36); 8.1 O14, O16 status; 8.2 R1, R2, R3, R7, R8 | The decisions of 23 November 2026 settled O14–O16; conditional "if accepted" and "under the alternative" wording is removed, the declined alternatives are named as declined, unconditional rules in those sentences are kept (the dialog does not rely on a label; a `Corrupt` remount leaves the binding *unknown*; the blank-plus-latch FORMAT refusal, P6), and the route status is brought to `e52cb865` (30 images locally; no hosted cross-check; no reverse differential; verifier stand-in) |
+| P5 | clarification | 2.7 step 4; 6 (N29, N35) | For a copy that passes the validator, the sealing-sequence clause implies "exactly one new record"; the count clause stays as a defensive check and its removal is an equivalent mutant (B4/R14), listed in N29 and N35 |
+| P6 | clarification | 2.2 (defensive rule); 2.6 failed-mount state; 6 (N35) | The rule is kept: it follows from the 2.7 rule that no write follows the trigger in that boot, costs one condition and keeps a later remount change from reopening a write path. Only its reachability is corrected: unreachable since O16; its removal is an equivalent mutant (B6), listed in N35 |
+| P7 | clarification | 2.6 (label content); 6 (N34) | Under O14 `valid_name` refuses an empty label, so the "≥ 1" length bound is implied at the mount-state level (A10), and the oracle's length bound inside its content check is shadowed by its record check (A11/X6). Both bounds are kept; N34's kill claim excludes them and lists them as equivalent, consistent with the cross-check limit of P11 |
+| P8 | clarification | 6 (N26 (d)) | The cache-dropping reset during the barrier-1 submission loses the tail write and SEAL replies `Corrupt` -18 at the readback, as N33 states for the same mechanism; the row now gives the outcome per reset model with the invariant that holds under both (review F5) |
+| P9 | route or verification-plan item | 6 (N33) | Non-zero stale bytes that fail `archive::verify` are required, because they also defeat a readback check that refuses only zero sectors; zero bytes are an optional special case; a stale valid archive is the O17 case (N37 (a)) and stays a recorded limit if O17 is declined (review F4) |
+| P10 | route or verification-plan item | 8.2 R2 | The library as built without test-only features is what a native profile links (L21) and was only type-checked; R2 acceptance adds Clippy `-D warnings` on that build for `x86_64-unknown-none` in a hosted gate, a lead-owned workflow change, not a core code change (review F7) |
+| P11 | route or verification-plan item | 7 ("Cross-check limit"); 8.2 R3; 6 (N34) | Mount state, header and records are what the interface defines; refusal reasons are reported by no request, so the core is not required to expose one. State agreement is the stated limit of both comparisons; per-rule kills come from single-rule crafted copies in each implementation's own tests, with the equivalent mutants of P7 listed |
+| P12 | route or verification-plan item | 8.2 R2 | The host model must meet the broker contract of 2.7 (L18), and that was checked by reading only. R2 acceptance adds a host test of the simulated disk alone for each property, under both reset models; the native broker stays an R5 precondition |
+| P13 | route or verification-plan item | header; 8.2 R1; 9 | The review-5 answers RQ5-1 (N36 under O15) and RQ5-2 (`Io` for a refused submission with -14 or -13 after the boot mount; completions per the 2.5 table) were checked read-only by the lead only. The review of revision 4 must confirm 2.5, 5.3 and N36 against the decided O15; N36 now states the O15 outcome only (P4) |
+
+**CODE-DELTA (revision 4).** Changes that this text requires on PR #413
+relative to `e52cb865`. "Gated" means that the change applies only if the
+owner accepts the named proposal; ungated rows apply now. No row changes the
+check order, a capability or the treatment of disk bytes as untrusted.
+
+| Spec clause | Rust core (`services/destination`) | Oracle (`tools/destination_disk.py`) | Tests | Gated |
+|---|---|---|---|---|
+| 2.3 control-character set (P3) | none | none | none required (at `e52cb865` the Rust and Python suites each have the 13 content cases of N34, including U+007F, U+0085 and the surrogate); optional: U+009F refused and U+00A0 accepted, to pin the upper C1 bound in both | no |
+| 2.2 defensive FORMAT refusal (P6) | none (the guard is kept, with its comment) | none | none; the mutant is listed as equivalent in N35 | no |
+| 2.7 step 4 count clause (P5) | none | none | none; equivalent mutant listed in N29 and N35 (test comments already note it) | no |
+| 6 N26 (d) per-model outcome (P8) | none | none | at `e52cb865` `n26d_legitimate_waits_complete` asserts SEAL `Ok` and the entry listed (cache kept), SEAL `Corrupt` with nothing listed and a non-zero dropped count (cache dropped), and no safe path; add an assertion that no catalog sector is written in the cache-dropped model | no |
+| 6 N33 stale-bytes variants (P9) | none | none | (i) is `n33_read_timeout_with_unflushed_append` (non-zero stale bytes); (ii) zero variant optional; (iii) `n33_read_timeout_over_stale_valid_archive_recorded` stays a recorded case, not a pass, unless O17 (a) is accepted | (iii) only: O17 (a) |
+| 6 N34 label cases and kill claim (P3, P7) | none | none | none; the A10 and A11/X6 equivalents are listed in N34 | no |
+| 2.7 step 3 content digest (P1, O17 (a)) | keep, per writing entry, the FNV-64 of the bytes of every APPEND answered `Ok`, in order (or use the equivalent trailer comparison of 2.7 step 3); at step 3, after the readback, compare it with the FNV-64 of the first `length` bytes (running form) or compare the readback trailer with the last 8 appended bytes (trailer form); on a mismatch reply `Corrupt` -18, discard the writing entry, write no catalog sector, do not set the safe-path latch (per the O17 recommendation; follows the answer to its safe-path sub-question) | none (it judges images, not the SEAL protocol) | N37 (a), with both the read-timeout reset and the device's own reset during the barrier-1 submission, under both reset models (the recorded N33 (iii) test becomes a negative test); N37 (b) with a simulated-disk mode that reports success for every write of the entry and for barrier 1 and stores none; kill: comparison removed | O17 (a) |
+| 2.7 portal trailer comparison (P1, O17 (b)) | none (no portal on PR #413) | none | N37 (c) with the portal, at R7 | O17 (b) |
+| 2.7 *sealed* resolution by byte equality (P2, O18) | after the trigger, resolve *sealed* only if the remounted catalog equals the copy encoded and checked in step 4 (byte or full-field equality, equivalent for valid copies, 2.6), instead of the extension check plus the provisional entry ID; otherwise the failed-mount state with the binding *unknown* | none | N35 (e): extension-passing catalogs with the provisional ID and another length, trailer FNV-64, label or next entry ID give the failed-mount state; kill: the current extension-based resolution | O18 |
+| 2.7 committed-copy equality (P2 clarification) | none (full `Catalog` equality is byte equality for valid copies) | none | none (N35 (c) committed-copy cases added in the O14/O16 fix pass) | no |
+| 7 cross-check limit (P11) | none (no refusal reason exposed) | none | none | no |
+| 8.2 R2 lint of the non-test build (P10) | none | none | hosted gate, command indicative and not run: `cargo +1.90.0 clippy --locked -p destination-core --lib --target x86_64-unknown-none -- -D warnings`, without test-only features; lead-owned workflow change, not part of the PR #413 code | no |
+| 8.2 R2 broker-contract test (P12) | none | none | a host test per property 1–5 of the 2.7 broker contract for the simulated disk alone, under both reset models, including a second poll after a delivered result and a request ended by a reset | no |
+| 6 N36 under O15 (P4, P13) | none | none | none (the tests already assert the O15 outcomes) | no |
+
+**Review 6.** SPEC-REVIEW-6 is an independent AI security review of
+revision 4 together with the owner-decision commit `1735ab06`, which no
+earlier review covered (diff base `dd2bb19d`, implementation compared at
+`e52cb865`), stored verbatim as
+`docs/verification/s09-destination-service-20261123/SPEC-REVIEW-6.md`. It
+found one resolution row per P1–P13, the decided meaning of O14–O16
+unchanged, both stricter changes written as proposed owner items (O17, O18),
+the review-5 answers RQ5-1 and RQ5-2 confirmed, and the security floor
+intact. It returned APPROVE with no required finding and nine optional
+findings. The lead applied them by hand as below. One read-only AI verifier then
+checked these edits: it found the decided meaning of O14–O16, the security
+floor and the IDs intact, and two wording faults in the edits (N37 asserted
+"no safe path" although its note left latching open; the trailer form of 2.7
+step 3 needed its precondition), which the lead corrected with the
+verifier's optional wording points. The corrections were not re-reviewed.
+
+| Finding | Disposition | Sections |
+|---|---|---|
+| OPT6-1 | Applied: not latching after a digest mismatch is stated as following the revision-3 readback rule, with its O9 dependency; the latching question is an O17 sub-question; N37 no longer lists a latching implementation as a killed mutant | 2.7 "Stale valid content"; 8.1 O17; N37 |
+| OPT6-2 | Applied: R7 requires every label to be rendered in an isolated bidirectional context and visibly delimited from trusted text | 8.2 R7 |
+| OPT6-3 | Applied: the B6 unreachability is attributed to this text's reading of the call sites, which review 6 confirmed | 6 preamble; N35 |
+| OPT6-4 | Applied: N26 (d) states the free-space precondition and that every unflushed write of the entry is lost; the barrier-1 reset is named in "Stale valid content" and added to N37 (a) | 2.7; N26; N37; CODE-DELTA |
+| OPT6-5 | Applied: under O18 the encoded copy is kept with the committed copy to judge the remount | 2.7 failure paragraph |
+| OPT6-6 | Applied: the blank-candidate row of the check-7 table names the defensive FORMAT refusal | 2.2 |
+| OPT6-7 | Applied: the review-4 OP-5 row notes the later O16 decision; the review-5 RQ5-1 and OPT-2 rows are marked superseded in revision 4 (P4, P2) | 9 |
+| OPT6-8 | Applied: the count-clause equivalence is stated to rely on the 16-entry bound | 2.7 step 4 |
+| OPT6-9 | Applied: "bytes appended so far" means every APPEND answered `Ok`; the equivalent trailer comparison is allowed | 2.7 step 3; CODE-DELTA |
