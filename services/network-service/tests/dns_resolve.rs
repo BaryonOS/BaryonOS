@@ -1,6 +1,6 @@
 //! Host model: real DHCP/ARP/UDP/DNS bytes, modeled NIC completions, no native evidence.
 use nieuw_os_net_config::service::{DriveOutcome, ProbeTiming, RandomSource};
-use nieuw_os_net_protocol::{arp, build_udp_ipv4, parse, UdpIpv4Tx};
+use nieuw_os_net_protocol::{arp, build_udp_ipv4, parse, UdpChecksum, UdpIpv4Tx};
 use nieuw_os_net_stack::{LinkConfig, SocketStorage, FRAME_BYTES};
 use nieuw_os_network_service::{
     wire::{HeaderFields, Operation, Packet, Status},
@@ -619,8 +619,12 @@ fn static_configuration_has_no_resolver() {
     assert_eq!(s.drive_dns(0, &mut dns_random()), Ok(0));
 }
 
+/// End-to-end: no answer crosses into a new service on reused storage. Every
+/// Resolve needs a lease and the first lease always bumps the cache epoch, so
+/// this observes that lease-acquisition flush; the extra flush in `new_inner`
+/// is defence in depth with no path observable through the public API.
 #[test]
-fn reused_cache_storage_is_flushed_for_a_new_service() {
+fn reused_cache_storage_serves_no_answer_to_a_new_service() {
     let mut dns = DnsCache::new().unwrap();
     for round in 0..2 {
         with_cache(&mut dns, [grant(DNS, 53), grant(DNS, 53)], |s| {
@@ -708,4 +712,57 @@ fn abandoned_query_does_not_block_cache_hits_or_later_names() {
         assert_eq!(resolve(s, 0, 6, "b.org", later).status(), Status::Again);
         assert_eq!(resolve(s, 0, 7, "a.org", later).status(), Status::Busy);
     });
+}
+
+#[test]
+fn reply_without_udp_checksum_is_dropped_and_not_cached() {
+    with_service([grant(DNS, 53), grant(DNS, 53)], |s| {
+        let now = acquire(s, 0, 0x1234, true);
+        let mut rng = dns_random();
+        assert_eq!(resolve(s, 0, 1, "example.org", now).status(), Status::Again);
+        arp_dns(s, &mut rng, now);
+        let (id, port, _) = sent_query(s, &mut rng, now);
+        // Otherwise exact reply, but the UDP checksum field (frame[40..42]) is 0.
+        let mut frame = from_dns(port, &positive(id, "example.org", [6, 6, 6, 6]));
+        frame[40..42].fill(0);
+        assert_eq!(parse(&frame).unwrap().checksum(), UdpChecksum::Absent);
+        let malformed = s.counters().malformed_frames;
+        s.ingress(&frame, now).unwrap();
+        assert_eq!(s.counters().malformed_frames, malformed + 1);
+        assert_eq!(resolve(s, 0, 2, "example.org", now).status(), Status::Again);
+        // The checksummed reply still completes; the dropped one was never cached.
+        s.ingress(&from_dns(port, &positive(id, "example.org", RESOLVED)), now)
+            .unwrap();
+        assert_eq!(resolve(s, 0, 3, "example.org", now).data(), &RESOLVED);
+        assert_eq!(resolve(s, 0, 4, "example.org", now).data(), &RESOLVED);
+    });
+}
+
+#[test]
+fn reply_at_or_after_the_deadline_is_dropped_and_not_cached() {
+    for late in [0, 1] {
+        with_service([grant(DNS, 53), grant(DNS, 53)], |s| {
+            let now = acquire(s, 0, 0x1234, true);
+            let mut rng = dns_random();
+            assert_eq!(resolve(s, 0, 1, "example.org", now).status(), Status::Again);
+            arp_dns(s, &mut rng, now);
+            let (id, port, _) = sent_query(s, &mut rng, now);
+            let at = now + DNS_TIMEOUT_TICKS + late;
+            let malformed = s.counters().malformed_frames;
+            s.ingress(&from_dns(port, &positive(id, "example.org", RESOLVED)), at)
+                .unwrap();
+            assert_eq!(s.counters().malformed_frames, malformed + 1, "late {late}");
+            assert_eq!(
+                resolve(s, 0, 2, "example.org", at).status(),
+                Status::Timeout,
+                "late {late}"
+            );
+            // Not cached: the next Resolve starts a fresh query.
+            assert_eq!(
+                resolve(s, 0, 3, "example.org", at).status(),
+                Status::Again,
+                "late {late}"
+            );
+        });
+    }
 }
