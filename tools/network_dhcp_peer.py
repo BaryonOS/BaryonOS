@@ -171,7 +171,7 @@ class DhcpMachine:
         self.events = []
         self.ip_id = 1
         names = ("client_frames", "server_frames", "discovers", "offers", "selects", "acks",
-                 "renewals", "renewal_acks", "naks", "retransmissions", "arp_probes",
+                 "renewals", "renewal_acks", "early_renewal_acks", "naks", "retransmissions", "arp_probes",
                  "arp_announcements", "arp_requests", "arp_replies", "syns", "syn_acks",
                  "http_requests", "valid_data_sent", "fins_sent", "client_fins_acked", "held")
         self.counts = dict.fromkeys(names, 0)
@@ -261,6 +261,8 @@ class DhcpMachine:
             self.counts["naks"] += 1
             return [self.dhcp_reply(NAK, m, broadcast=True)]
         self.counts["renewal_acks"] += 1
+        if self.lease == 0:
+            self.counts["early_renewal_acks"] += 1
         self.counts["acks"] += 1
         return [self.dhcp_reply(ACK_TYPE, m, broadcast=False)]
 
@@ -424,7 +426,8 @@ class DhcpMachine:
         complete = (exchanged and set(c) == set(EXCHANGES) | set(HELD) and c[8081].phase == "held"
                     and self.lease == 1 and self.phase == "bound" and self.withdrawn == {LEASES[0]}
                     and self.counts["discovers"] == 2 and self.counts["selects"] >= 2
-                    and self.counts["naks"] == 1 and self.probes == [3, 3] and self.announcements[0] == 2
+                    # The first renewal of the first lease must be the NAK case.
+                    and self.counts["naks"] == 1 and self.counts["early_renewal_acks"] == 0 and self.probes == [3, 3] and self.announcements[0] == 2
                     # The service may retire and exit before the second
                     # announcement of the final lease; the first makes it usable.
                     and self.announcements[1] in (1, 2)

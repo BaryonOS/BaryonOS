@@ -161,6 +161,11 @@ class DhcpPeerTest(unittest.TestCase):
         nak, = step(dhcp(3, 0x22222223, ciaddr=LEASES[0]))
         self.assertEqual(options(nak)[53], bytes((6,)))
         self.assertEqual(step.machine.counts["naks"], 1)
+        acquire(step, 1, 0x33333333)
+        exchange(step, LEASES[1], 40004, 8082, 0)
+        # An ACKed early renewal means the NAK was not tested on the first renewal.
+        self.assertEqual(step.machine.counts["early_renewal_acks"], 1)
+        self.assertFalse(step.evidence()["complete"])
 
     def test_frames_from_withdrawn_address_are_refused(self):
         for late in (tcp(LEASES[0], 40002, 8081, 6, 0, ACK), arp(LEASES[0], PEER_IP),
