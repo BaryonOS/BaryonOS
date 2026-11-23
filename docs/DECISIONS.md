@@ -5,6 +5,59 @@ This document distinguishes the decisions and authority of the project owner
 from those of the executing roles. Source quotations retain their original
 wording and speaker.
 
+## ADR-MERGE-DELEGATION-20261123 — Workstreams handle their own pull requests end to end
+
+**Status:** decided by the project owner on 23 November 2026. It supersedes the
+merge-approval part of the decision of 13 November 2026 for the six named
+workstream sessions only. `ADR-MERGE-HOLD-20261113` stays in force.
+
+**Context:** routine repair and merging of every pull request ran through one
+integration coordinator. That made the coordinator an approval bottleneck and
+produced conflicting writers on the same branches.
+
+**Decision:** the six workstream sessions (S09, U, N, UI/UX design, B and H)
+handle their own pull requests end to end, including pull requests that were
+already open, without further approval. Each may:
+
+- address review feedback;
+- resolve merge conflicts and failing checks;
+- verify, commit and push;
+- squash-merge;
+- confirm the merge result and update its own progress assessment.
+
+A workstream may merge only when all of these hold:
+
+- The required checks and every other applicable check are complete and green
+  on the exact current head.
+- Review threads were resolved only after their feedback was handled.
+- No high or critical code-scanning alert is open.
+- Dependent and stacked base pull requests are merged.
+- Any acceptance hold was released because its acceptance demonstrably passed
+  on that head.
+
+Before every push or merge, the workstream re-checks the head, the base and
+ownership, then merges with
+`gh pr merge <N> --squash --match-head-commit <sha>`.
+
+Auto-merge may be enabled only after every non-required check on that head is
+green. An enabled auto-merge is not a completed merge; the owning workstream
+remains responsible for the outcome.
+
+**Limits:**
+
+- One active writer per branch or worktree, with explicit handover before a
+  different writer starts.
+- No direct push to `main`, no force-push, no `--admin`, no bypass of
+  protections, and no weakening of tests or evidence to make a pull request
+  pass.
+- Protected policy and evaluator files still change only through a
+  lead-scoped, reviewed pull request.
+- Pipeline workers and other sessions keep the draft-only rule.
+
+**Coordinator role:** the integration coordinator handles only cross-stream
+dependencies, ownership conflicts, orphaned pull requests and escalations that
+a workstream cannot resolve itself. It is not an approval step.
+
 ## ADR-S09-DUALDISK-20261119 — Test-only second virtio-blk device for the S09 archive fixture
 
 **Status:** approved by the project owner on 19 November 2026 (verbatim: "Yes,

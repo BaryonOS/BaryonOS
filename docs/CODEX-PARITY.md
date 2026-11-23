@@ -42,4 +42,4 @@ Run only in a clean checkout and **do not allow source writes** during the canar
 
 ## Safe continuation
 
-Merge requires current-head host checks, the applicable acceptance hold and the project owner's explicit approval. The project owner may authorize a specific PR merge, but that does not authorize a general auto-merge policy. If the canary cannot run, leave parity open, record the exact boundary and continue independent code work without inventing results.
+Merge requires current-head host checks, the applicable acceptance hold and the project owner's explicit approval. The project owner may authorize a specific PR merge, but that does not authorize a general auto-merge policy. The standing exception is `ADR-MERGE-DELEGATION-20261123`: the six workstream sessions may squash-merge their own PRs when its conditions hold. If the canary cannot run, leave parity open, record the exact boundary and continue independent code work without inventing results.

@@ -75,8 +75,10 @@ Coverage output is written under `build/coverage-raw/`, which is already ignored
 
 ### Holding a pull request for native acceptance
 
-Merging requires the project owner's explicit approval. Auto-merge is not
-enabled by sessions (owner decision of 13 November 2026). The `merge-hold`
+Merging requires the project owner's explicit approval, except that the six
+workstream sessions (S09, U, N, UI/UX design, B and H) may squash-merge their
+own pull requests once the conditions of `ADR-MERGE-DELEGATION-20261123` hold.
+Other sessions do not enable auto-merge (owner decision of 13 November 2026). The `merge-hold`
 check enforces the remaining case: a pull request whose merge condition
 includes acceptance outside the required checks, for example a dispatch-only
 native matrix, soak or final gate. A job skipped by its `if` condition reports
