@@ -13,7 +13,12 @@ hosted CI and not acceptance of B04.
   `tools/tests/test_run_secure_boot.py` that is committed together with this
   capture.
 - Source fingerprint v3 (`common.source_hash`): `5a75dd9e522ba9c63156a5d512b18efc768871476f458260ee439ff6f33ba2b8`
-  (equal to `source_sha256` in every `result.json`).
+  (equal to `source_sha256` in every `result.json`). It is the fingerprint
+  of the source tree of commit `1a07a5215bed701438203ce6dec3de509de4b529`,
+  which recorded this capture. Later commits on the branch merge `main` and
+  make the new unit test hermetic (it stubs the snakeoil certificate path);
+  they leave `tools/run_secure_boot.py` byte-identical, but they change the
+  fingerprint, so this capture is bound to `1a07a521`, not to the branch head.
 - QEMU: `QEMU emulator version 10.2.1 (Debian 1:10.2.1+ds-1ubuntu3.3)`, machine `pc-q35-10.0,smm=on`, TCG single-thread, secure pflash.
 - Firmware package: Ubuntu `ovmf 2025.11-3ubuntu7.3`
   - `OVMF_CODE_4M.secboot.fd` sha256 `33c413a04e9edf512c504e9b0accbcec4d009d406bca761cc0b8eacc93da60b6`

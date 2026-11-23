@@ -287,6 +287,7 @@ class RunCaseVerdictTests(unittest.TestCase):
 
             patches = [unittest.mock.patch.object(sb, name, value) for name, value in (
                 ("BUILD", build), ("SECBOOT_CODE", firmware), ("SNAKEOIL_VARS", firmware),
+                ("SNAKEOIL_CERT", firmware),
                 ("environment", lambda: {"PATH": ""}), ("make_loader", fake_loader),
                 ("qemu_machine", lambda: "m"), ("secure_boot_args", lambda args, _: args),
                 ("firmware_pin_problems", lambda *_: []),
