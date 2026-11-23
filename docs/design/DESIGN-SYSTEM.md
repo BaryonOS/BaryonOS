@@ -1426,14 +1426,20 @@ buttons no longer keep their label width (`flex-shrink: 0` removed); nothing is
 renamed or removed. The axis blocks in
 `tokens.css` were written by hand, like repair 1, and are verified by
 `docs/verification/a11y-ds-20261115/check.mjs` (exit 0 only when every check
-passes); the generator must take them over before the next value change (O-P1,
-O-A9).
+passes). The axis blocks are now generated (O-P1 resolved, see below).
 
-Rules: `tokens.css` is regenerated, not hand-edited
-(`build/design-evidence/ds-1.0/work/gen_tokens.py`, see O-P1). Exception:
-repair round 1 edited it by hand because it could write only `ui/design/system/`
-and its evidence folder; the generator must take over the repair-1 values before
-the next value change (O-P1). Every value keeps
+Rules: `tokens.css` is regenerated, not hand-edited. The tracked generator is
+`tools/gen_design_tokens.py` with source `ui/design/system/tokens.source.json`;
+`python3 -B tools/gen_design_tokens.py --write` regenerates the file and
+`--check` (exit 0 only when the output is byte-identical) is covered by
+`tools/tests/test_design_tokens.py`. The original ds-1.0 generator lived under
+ignored `build/` and could not be recovered, so the source was bootstrapped once
+from the verified `tokens.css`: the base theme blocks are carried as validated
+lines (identical token sets across the three themes, well-formed names and
+values), while the accessibility axis blocks, their device-media mirrors and the
+reduced-motion and `data-motion="full"` values are structured data from which the
+mirrors and motion blocks are derived. The file header still names the ds-1.0
+path because `check.mjs` pins the file hash. Every value keeps
 its v2 source or a recorded derivation; the contrast script in §4 is re-run on
 every colour change; `ui/prototype/tokens.css` is never touched. Architecture
 changes are recorded in `docs/DECISIONS.md`. The project owner can redirect any
@@ -1572,7 +1578,7 @@ native yet.
 | O-B1 | Kern band uses `lock`; BRAND.md §5 places the compact mark on trusted surfaces. Since C1 repair-2 `lock` appears only on the Kern band and the prompt openers in the gallery, not on grant chips. |
 | O-B2 | BRAND.md §5 describes red, green and blue as accents for highlights and app differentiation, and the mark's node colours differ from the place colours (BRAND.md §4); both sit against "colour means place" and need a project-owner decision. |
 | O-I1 | No info or restore icon: the info banner uses `dot` and "Vorige grootte" uses `window`. |
-| O-P1 | `tokens.css` names its generator under ignored `build/`; the generator and mapping must move into the repository for the file to be reproducible. `work/gen_tokens.py` and `work/mapping.tsv` predate repair-1, which edited `tokens.css` by hand; the current mapping is `build/design-evidence/ds-1.0/repair-1/tools/mapping.tsv`. |
+| O-P1 | Resolved: `tools/gen_design_tokens.py` regenerates `tokens.css` byte-identically from tracked `ui/design/system/tokens.source.json` (bootstrapped from the verified file because the ds-1.0 generator under ignored `build/` was unrecoverable); `tools/tests/test_design_tokens.py` checks the round-trip and rejects invalid sources. |
 | O-P2 | Move the tokens, components and §4 contrast evidence from `build/design-evidence/ds-1.0/` to `docs/verification/`. |
 | O-P3 | DESKTOP-SHELL.md §7 still describes a mint "Lokaal" privacy light; CONCEPTS.md MF2 removes the mint tint, and ds-1.0 uses the three-node instrument. |
 | O-D1 | Gallery sample data not in `ui/design/prototype/data.js` (file sizes, "Vakantiefoto's Lissabon"; the seeded "Altijd" grant Notities · collectie Tuin, created through `ask()` at gallery load; the two prompts' "what" and "done" fragments in `gallery.js`). |
@@ -1592,7 +1598,7 @@ native yet.
 | O-A6 | Deeper light-intensity steps (row 19): a per-theme dimmed token family (about 90 values per theme) because a uniform filter below 0.85 breaks the floors (§21.8 E3). |
 | O-A7 | Split the contrast theme bundle (no translucency, glow, halo or entrance rise) into the transparency, stimulus and motion axes (row 88). |
 | O-A8 | Nested axis reset inside a subtree via `@container style()` queries (§21.3). |
-| O-A9 | Move the hand-written axis blocks into the token generator (O-P1) and store the UX-A11Y-DS evidence under `docs/verification/` (O-P2). |
+| O-A9 | The hand-written axis blocks are now generated (O-P1 resolved); storing the UX-A11Y-DS evidence under `docs/verification/` (O-P2) remains open. |
 | O-A10 | User tests for every axis, the settings group and the reworked states, with people who use these adaptations; flash and pattern analysis of the wallpaper and the boot sequence (rows 24, 25). |
 | O-A11 | Compositor colour filter for third-party content (row 5, §21.8 E4): a colour-matrix stage after composition in the native compositor. |
 | O-A12 | Compositor flash filter (row 26, §21.8 E5): research on frame-to-frame luminance analysis first, then a compositor stage. Amendment A1 of ACCESSIBILITY-RESEARCH.md §3.5: it protects unsolicited content without a "show anyway" control or per-item reveal; the protection follows the unsolicited placement, so a start, open, enlarge, forward or hand-off action from it never lifts the protection before the item is assessed safe: it ends only the static-first hold where the guard runs for the item, and otherwise (for example DRM, HDR, live or own-pipeline rendering) the static or otherwise safe presentation stays (owner decision B of 19 November 2026); deliberately started games and media play normally, with the optional `flash-attenuation` axis (matrix row 93), separate from `motion`; no per-user record of hazardous media or viewing history. No claim that it detects or prevents every hazardous flash. |
