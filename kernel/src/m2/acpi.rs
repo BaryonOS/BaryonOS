@@ -96,8 +96,21 @@ fn discover_tables(
     };
     let mut reader = FirmwareReader { paging, map };
     acpi::discover_into(&handoff, &mut reader, scratch, result);
-    #[cfg(any(feature = "native-acpi-s5", feature = "native-system-power"))]
-    super::power::snapshot(&mut reader, result.fadt);
+    #[cfg(any(
+        feature = "native-acpi-s5",
+        feature = "native-system-power",
+        feature = "native-acpi-s3"
+    ))]
+    {
+        // A second read-only view of the same copied map: the reader keeps its own.
+        let Ok(nvs_map) = MemoryMap::new(map_bytes, info.descriptor_size, info.descriptor_version)
+        else {
+            return;
+        };
+        super::power::snapshot(&mut reader, result.fadt, |start, end| {
+            covers_types(&nvs_map, start, end, &[10])
+        });
+    }
 }
 
 /// A rejected handoff validates to an error: RejectedHandoff, no reads.
@@ -114,6 +127,12 @@ impl PhysicalRead for NoRead {
 }
 
 fn covers_acpi(map: &MemoryMap<'_>, start: u64, end: u64) -> bool {
+    covers_types(map, start, end, &[9, 10])
+}
+
+/// True when every byte of `start..end` lies in UEFI descriptors of `types`
+/// (9 = ACPI reclaim, 10 = ACPI NVS).
+fn covers_types(map: &MemoryMap<'_>, start: u64, end: u64, types: &[u32]) -> bool {
     let mut cursor = start;
     while cursor < end {
         let mut next = cursor;
@@ -121,7 +140,7 @@ fn covers_acpi(map: &MemoryMap<'_>, start: u64, end: u64) -> bool {
             let Some(descriptor) = map.descriptor(index) else {
                 return false;
             };
-            if !matches!(descriptor.memory_type, 9 | 10) {
+            if !types.contains(&descriptor.memory_type) {
                 continue;
             }
             let Some(range) =
