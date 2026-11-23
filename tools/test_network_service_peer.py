@@ -1,17 +1,24 @@
 #!/usr/bin/env python3
 """Host adversarial checks of N01 peer/harness; no native success claim."""
 from __future__ import annotations
+import hashlib
+import json
 import os
+import re
 from pathlib import Path
+import socket
 import struct
 import subprocess
 import sys
+import shutil
 import tempfile
 import unittest
+from unittest import mock
 from network_service_peer import (ACK, FIN, PSH, RST, SYN, CLIENT_IP, CLIENT_MAC, PROBES, PROBE_ISN,
                                   PEER_IP, PEER_MAC, REQUESTS, RESPONSES, RESET_PROBE, UDP_PAYLOADS,
                                   FrameDecoder, Machine, DiscardMachine, Peer, ProtocolError, checksum,
-                                  framed, validate_transcript)
+                                  framed, validate_transcript, SWEEP_PEERS, SWEEP_PORTS, UDP_PROBE_PORTS,
+                                  MAX_SWEEP_FRAMES)
 from run_network_service import (BOOT, HELPER_FENCE, HELPER_ROLES, OFFSETS, REVOKE_ROLES, ROLES, ROOT, evaluate, execute_native,
                                  native_limits, record_streams, sequence)
 
@@ -107,6 +114,99 @@ def transcript(case="normal"):
     result.update(actions=actions, wire_frames_sent=result["counts"]["server_frames"],
                   connected=True, error=None, rejected_frame=None, passed=True)
     return result
+
+
+_CAPTURES = tempfile.TemporaryDirectory(prefix="nieuw-os-sweep-host-")
+
+
+def guest_arp_reply():
+    return (PEER_MAC + CLIENT_MAC + b"\x08\x06" + struct.pack("!HHBBH", 1, 0x800, 6, 4, 2)
+            + CLIENT_MAC + CLIENT_IP + PEER_MAC + PEER_IP).ljust(60, b"\0")
+
+
+def sweep_transcript(stop=None, primes=2, replies=2):
+    """Stream a legal synthetic port-sweep run: ARP prime, pre sweep, app
+    traffic, revocation, post sweep. `stop` ends early at a named point;
+    `primes` ARP requests are sent before `replies` guest answers arrive."""
+    machine, now = Machine("port-sweep"), 0.0
+    capture = tempfile.NamedTemporaryFile(dir=_CAPTURES.name, delete=False)
+    digest, count, size = hashlib.sha256(), 0, 0
+    def record(action):
+        nonlocal count, size
+        raw = (json.dumps(action, separators=(",", ":")) + "\n").encode()
+        capture.write(raw)
+        digest.update(raw)
+        count, size = count + 1, size + len(raw)
+    def feed(packet):
+        nonlocal now
+        now += 0.001
+        output = machine.handle(packet, now)
+        record(dict(kind="input", at=now, input=packet.hex(), output=[p.hex() for p in output]))
+        return output
+    def poll(step):
+        nonlocal now
+        now += step
+        output = machine.poll(now)
+        if output:
+            record(dict(kind="poll", at=now, output=[p.hex() for p in output]))
+        return output
+    def sweep():
+        while machine.probes:
+            guest, isn = next(iter(machine.probes.items()))
+            feed(client_tcp(SWEEP_PEERS[int(machine.sweep_phase == "post")], guest, 0, isn + 1, RST | ACK))
+        # Bounded: a regression that sends fewer UDP probes fails fast, not hangs.
+        for _ in range(len(UDP_PROBE_PORTS)):
+            if machine.sweep_phase not in ("pre", "post"):
+                break
+            poll(0.02)
+        if machine.sweep_phase in ("pre", "post"):
+            raise AssertionError("sweep phase did not finish within the UDP probe bound")
+    def finish(port):
+        c = machine.connections[port]
+        if port - 8090 in (1, 4):
+            return
+        if port == 8093:
+            feed(client_tcp(port, c.source, c.isn))
+        feed(client_tcp(port, c.source, c.client_next, c.server_start, ACK))
+        feed(client_tcp(port, c.source, c.client_next, c.server_start, ACK | PSH, REQUESTS[1]))
+        if port == 8092:
+            return
+        if port == 8090:
+            feed(client_tcp(port, c.source, c.client_next, c.server_start, ACK))
+            poll(0.251)
+        feed(client_tcp(port, c.source, c.client_next, c.data_end, ACK))
+        feed(client_tcp(port, c.source, c.client_next, c.data_end + 1, ACK))
+        feed(client_tcp(port, c.source, c.client_next, c.data_end + 1, FIN | ACK))
+    poll(0.0)
+    for _ in range(primes - 1):
+        poll(0.6)  # The booting guest missed the earlier request.
+    for _ in range(replies):
+        feed(guest_arp_reply())  # Later answers belong to repeated requests.
+    if stop != "pre":
+        sweep()
+    if stop not in ("pre", "pre-done"):
+        feed(client_tcp(8080, 40000, 100))
+        c = machine.connections[8080]
+        feed(client_tcp(8080, 40000, c.client_next, c.server_start, ACK))
+        feed(client_tcp(8080, 40000, c.client_next, c.server_start, ACK | PSH, REQUESTS[0]))
+        feed(client_tcp(8080, 40000, c.client_next, c.server_start, RST | ACK))
+        feed(client_tcp(8080, 40000, c.client_next, 0, RST))
+        feed(client_tcp(8090, 40001, 200))
+        finish(8090)
+        for offset in range(1, 5):
+            port, source = 8090 + offset, 40001 + offset * 2
+            feed(client_tcp(port, source, 1000 + source))
+            finish(port)
+        feed(client_udp(1))
+        if stop != "armed":
+            poll(2.0)
+            sweep()
+    capture.close()
+    result = machine.summary()
+    result.update(actions=[], wire_frames_sent=result["counts"]["server_frames"], connected=True,
+                  error=None, rejected_frame=None, passed=True, raw_path=capture.name,
+                  capture=dict(actions=count, bytes=size, sha256=digest.hexdigest()))
+    return machine, result
 
 
 def reset_transcript(published=True):
@@ -528,6 +628,212 @@ else:
             machine, c = held()
             with self.subTest(name=name), self.assertRaises(ProtocolError):
                 attempt(machine, c)
+
+    def test_port_sweep_streams_every_port_at_both_quiescent_points(self):
+        _, value = sweep_transcript()
+        summary = validate_transcript(value, case="port-sweep")
+        self.assertTrue(summary["complete"])
+        self.assertEqual(summary["sweeps"], {
+            phase: dict(syns=SWEEP_PORTS, rsts=SWEEP_PORTS, udp=len(UDP_PROBE_PORTS)) for phase in ("pre", "post")})
+        counts = summary["counts"]
+        self.assertEqual((counts["probe_rsts"], counts["probe_udp_sent"], counts["probe_syn_acks"],
+                          counts["probe_udp_replies"]), (2 * SWEEP_PORTS, 2 * len(UDP_PROBE_PORTS), 0, 0))
+        self.assertEqual((counts["sweep_arp_requests"], counts["sweep_arp_replies"]), (2, 2))
+        self.assertEqual(summary["cases"]["8080"]["phase"], "revoked")
+        for wrong in ("revoke", "normal"):
+            with self.assertRaises(ProtocolError):
+                validate_transcript(value, case=wrong)
+        # The digest binds every streamed action; a changed byte cannot pass.
+        with open(value["raw_path"], "r+b") as stream:
+            stream.seek(-3, os.SEEK_END)
+            stream.write(b"0")
+        with self.assertRaises(ProtocolError):
+            validate_transcript(value, case="port-sweep")
+
+    def test_port_sweep_incomplete_phases_never_pass(self):
+        for stop in ("pre", "pre-done", "armed"):
+            machine, value = sweep_transcript(stop)
+            with self.subTest(stop=stop):
+                self.assertFalse(value["complete"])
+                with self.assertRaises(ProtocolError):
+                    validate_transcript(value, case="port-sweep")
+        # Without the revocation and app B's UDP exchange the post sweep never starts.
+        machine, _ = sweep_transcript("pre-done")
+        self.assertEqual(machine.poll(299), [])
+        self.assertEqual(machine.sweep_phase, "pre-done")
+
+    def test_port_sweep_rejects_listeners_replies_and_traffic_during_sweeps(self):
+        def pre():
+            machine = Machine("port-sweep")
+            machine.poll(0.0)
+            machine.handle(guest_arp_reply())
+            return machine
+        attempts = {
+            "syn-ack": lambda m: m.handle(client_tcp(50000, 1, 0, PROBE_ISN + 2, SYN | ACK)),
+            "wrong-ack": lambda m: m.handle(client_tcp(50000, 1, 0, PROBE_ISN + 1, RST | ACK)),
+            "bare-rst": lambda m: m.handle(client_tcp(50000, 1, PROBE_ISN + 1, 0, RST)),
+            # Tuple, seq and ack exact; only the flags differ from one RST|ACK.
+            "ack-only": lambda m: m.handle(client_tcp(50000, 1, 0, PROBE_ISN + 2, ACK)),
+            "rst-ack-fin": lambda m: m.handle(client_tcp(50000, 1, 0, PROBE_ISN + 2, RST | ACK | FIN)),
+            "rst-without-ack": lambda m: m.handle(client_tcp(50000, 1, 0, PROBE_ISN + 2, RST)),
+            "post-peer": lambda m: m.handle(client_tcp(50001, 1, 0, PROBE_ISN + 2, RST | ACK)),
+            "unsent-port": lambda m: m.handle(client_tcp(50000, 9, 0, PROBE_ISN + 10, RST | ACK)),
+            "twice": lambda m: [m.handle(client_tcp(50000, 1, 0, PROBE_ISN + 2, RST | ACK)) for _ in range(2)],
+            "app-syn": lambda m: m.handle(client_tcp(8080, 40000, 100)),
+            "guest-arp-request": lambda m: m.handle((b"\xff" * 6 + CLIENT_MAC + b"\x08\x06" + struct.pack("!HHBBH", 1, 0x800, 6, 4, 1)
+                                                    + CLIENT_MAC + CLIENT_IP + b"\0" * 6 + PEER_IP).ljust(60, b"\0")),
+            "unrequested-arp-reply": lambda m: m.handle(guest_arp_reply()),
+            "udp-reply": lambda m: m.handle(client_ip(struct.pack("!HHHH", 1, 53000, 8, 0), 17)),
+            "app-udp": lambda m: m.handle(client_udp(1)),
+        }
+        for name, attempt in attempts.items():
+            with self.subTest(name=name), self.assertRaises(ProtocolError):
+                attempt(pre())
+        # Positive control: the same fields with exactly RST|ACK are accepted.
+        machine = pre()
+        machine.handle(client_tcp(50000, 1, 0, PROBE_ISN + 2, RST | ACK))
+        self.assertEqual(machine.counts["probe_rsts"], 1)
+        # Before the guest answers the ARP prime, no traffic is accepted at all.
+        with self.assertRaises(ProtocolError):
+            Machine("port-sweep").handle(client_tcp(8080, 40000, 100))
+        # A missing reply stalls the finite four-frame window, never a pass.
+        machine = pre()
+        self.assertEqual((len(machine.probes), machine.poll(299), machine.counts["probe_syns"]), (4, [], 4))
+        self.assertFalse(machine.summary()["complete"])
+        # The prime is bounded while the guest stays silent.
+        machine = Machine("port-sweep")
+        with self.assertRaises(ProtocolError):
+            for tick in range(1000):
+                machine.poll(tick * 0.5)
+
+    def test_port_sweep_aggregate_frame_budget_and_lifetime(self):
+        machine = Machine("port-sweep")
+        machine.counts["client_frames"] = MAX_SWEEP_FRAMES
+        with self.assertRaisesRegex(ProtocolError, "input frame budget"):
+            machine.handle(guest_arp_reply())
+        for case in ("revoke", "normal"):
+            with self.assertRaises(ValueError):
+                Peer(181, case=case)
+        with tempfile.TemporaryDirectory() as directory:
+            Peer(360, case="port-sweep", raw_path=Path(directory) / "sweep.jsonl")
+            with self.assertRaises(ValueError):
+                Peer(361, case="port-sweep", raw_path=Path(directory) / "sweep.jsonl")
+            with self.assertRaises(ValueError):
+                Peer(360, case="port-sweep")
+
+    def test_live_sweep_decoder_crosses_old_256_frame_budget_with_bounded_window(self):
+        with tempfile.TemporaryDirectory() as directory:
+            with Peer(case="port-sweep", raw_path=Path(directory) / "sweep.jsonl") as peer:
+                with socket.create_connection(("127.0.0.1", peer.port), timeout=2) as connection:
+                    decoder, replied = FrameDecoder(), 0
+                    while replied < 300:
+                        # Host fixture decodes only one finite four-frame batch.
+                        decoder.count = 0
+                        chunk = connection.recv(4096)
+                        if not chunk:
+                            # Repeated EOF reads are not bounded by the socket timeout.
+                            self.fail("peer closed before all replies")
+                        for frame in decoder.feed(chunk):
+                            if frame[12:14] == b"\x08\x06":
+                                connection.sendall(framed(guest_arp_reply()))
+                                continue
+                            guest = struct.unpack_from("!H", frame, 36)[0]
+                            isn = struct.unpack_from("!I", frame, 38)[0]
+                            connection.sendall(framed(client_tcp(50000, guest, 0, isn + 1, RST | ACK)))
+                            replied += 1
+                    connection.shutdown(socket.SHUT_WR)
+                    while connection.recv(4096):
+                        pass
+                result = peer.finish()
+                self.assertIsNone(result["error"])
+                self.assertGreaterEqual(result["counts"]["probe_rsts"], 300)
+                self.assertLessEqual(len(peer.machine.probes), 4)
+                self.assertEqual(result["actions"], [])
+                self.assertFalse(result["complete"])
+                self.assertEqual(result["capture"]["actions"], len(Path(result["raw_path"]).read_bytes().splitlines()))
+
+    def test_port_sweep_evaluation_subtracts_exactly_the_unanswered_arp_primes(self):
+        # Three primes, one answer: requests, answers, gap and zero all differ.
+        _, peer = sweep_transcript(primes=3, replies=1)
+        counts = peer["counts"]
+        self.assertEqual((counts["sweep_arp_requests"], counts["sweep_arp_replies"]), (3, 1))
+        (ROOT / "build").mkdir(exist_ok=True)
+        with tempfile.TemporaryDirectory(dir=ROOT / "build", prefix="sweep-evaluate-") as directory:
+            raw = Path(directory) / "network-sweep.jsonl"
+            shutil.move(peer["raw_path"], raw)
+            peer["raw_path"] = str(raw)
+            revoke = "NETSVC:REVOKE_TICKS:00000000000000000008\n"
+            base = native_serial("revoke").replace(revoke, (
+                "NETSVC:SWEEP_PRE_RELEASE_TICKS:00000000000000000005\n" + revoke
+                + "NETSVC:SWEEP_POST_BASE_TICKS:00000000000000000020\n"
+                + "NETSVC:SWEEP_POST_RELEASE_TICKS:00000000000000000025\n"))
+            def report(rx, tx=counts["client_frames"]):
+                serial = base
+                for key, old, value in (("NETSVC:SERVICE:416", 66, tx), ("NETSVC:SERVICE:424", 65, rx),
+                                        ("SYSTEM:NET_TX_SUBMITTED", 66, tx), ("SYSTEM:NET_TX_COMPLETED", 66, tx),
+                                        ("SYSTEM:NET_RX_COMPLETED", 65, rx), ("SYSTEM:NET_RX_DELIVERED", 65, rx)):
+                    serial = serial.replace(f"{key}:{old:020d}", f"{key}:{value:020d}")
+                return dict(case="port-sweep", raw_qemu_exit=33, timed_out=False,
+                            kernel_feature="test-net-service-port-sweep",
+                            qemu_version="QEMU emulator version host-unit-fixture", duration_s=1,
+                            timeout_s=300, stdout=serial, run_directory=directory)
+            server = counts["server_frames"]
+            observed = evaluate(report(server - 2), peer, case="port-sweep")
+            self.assertEqual(observed["sweep_ticks"]["POST_RELEASE"], 25)
+            # Over-subtracting every prime, or forgetting the undelivered ones, is refused.
+            for rx in (server - 3, server - 1, server):
+                with self.subTest(rx=server - rx), self.assertRaisesRegex(ValueError, "wire/service/broker"):
+                    evaluate(report(rx), peer, case="port-sweep")
+            # The exact-gap premise must hold: replay cannot yield these, so doctor
+            # the replay with otherwise consistent arithmetic.
+            replay = validate_transcript(peer, case="port-sweep")
+            # bool passes the arithmetic but is not an exact int count.
+            for requests, replies in ((3, 4), (3, 0), (0, 0), (3, True), (True, True)):
+                doctored = dict(replay, counts=dict(replay["counts"], sweep_arp_requests=requests,
+                                                    sweep_arp_replies=replies))
+                with (self.subTest(requests=requests, replies=replies),
+                      mock.patch("run_network_service.validate_transcript", return_value=doctored),
+                      self.assertRaisesRegex(ValueError, "ARP prime accounting")):
+                    evaluate(report(server - (requests - replies)), peer, case="port-sweep")
+
+    def test_port_sweep_budget_matches_the_kernel_and_the_watchdog_outlasts_it(self):
+        source = (ROOT / "kernel/src/m2/m3/network_service.rs").read_text()
+        match = re.search(r"const PORT_SWEEP_TICK_DEADLINE: u64 = ([0-9_]+);", source)
+        kernel = int(match[1].replace("_", ""))
+        ceiling, watchdog = native_limits("port-sweep")
+        self.assertEqual(ceiling + 1, kernel)
+        # 100 Hz guest ticks: the kernel deadline must fail the run before the host kills QEMU.
+        self.assertGreaterEqual(watchdog, kernel // 100 + 30)
+        # The peer (lifetime and transcript clock) must accept the runner's default watchdog.
+        with tempfile.TemporaryDirectory() as directory:
+            Peer(watchdog, case="port-sweep", raw_path=Path(directory) / "sweep.jsonl")
+
+    def test_port_sweep_serial_requires_quiescent_phase_order(self):
+        self.assertEqual(native_limits("port-sweep"), (31_999, 360))
+        revoke = "NETSVC:REVOKE_TICKS:00000000000000000008\n"
+        def serial(pre=5, base=20, post=25):
+            return native_serial("revoke").replace(revoke, (
+                f"NETSVC:SWEEP_PRE_RELEASE_TICKS:{pre:020d}\n" + revoke
+                + f"NETSVC:SWEEP_POST_BASE_TICKS:{base:020d}\n"
+                + f"NETSVC:SWEEP_POST_RELEASE_TICKS:{post:020d}\n"))
+        observed = sequence(serial(), "port-sweep")
+        self.assertEqual(observed["sweep_ticks"], {"PRE_RELEASE": 5, "POST_BASE": 20, "POST_RELEASE": 25})
+        for case in ("revoke", "normal"):
+            with self.assertRaises(ValueError):
+                sequence(serial(), case)
+        bad = {
+            "no-sweep": native_serial("revoke"),
+            "pre-after-revoke": serial(pre=9),
+            "post-after-exit": serial(post=31),
+            "base-before-revoke": serial(base=7),
+            "missing-post": serial().replace("NETSVC:SWEEP_POST_RELEASE_TICKS:00000000000000000025\n", ""),
+            "duplicate": serial().replace(revoke, revoke + "NETSVC:SWEEP_PRE_RELEASE_TICKS:00000000000000000009\n"),
+            "reordered": serial().replace("NETSVC:SWEEP_POST_BASE_TICKS:00000000000000000020\nNETSVC:SWEEP_POST_RELEASE_TICKS:00000000000000000025\n",
+                                          "NETSVC:SWEEP_POST_RELEASE_TICKS:00000000000000000025\nNETSVC:SWEEP_POST_BASE_TICKS:00000000000000000020\n"),
+        }
+        for name, text in bad.items():
+            with self.subTest(name=name), self.assertRaises(ValueError):
+                sequence(text, "port-sweep")
 
     def test_revoke_native_serial_binds_policy_latency_and_denials(self):
         good = native_serial("revoke")

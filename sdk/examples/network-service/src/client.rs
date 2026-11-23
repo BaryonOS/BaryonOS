@@ -39,6 +39,34 @@ fn tick() -> u64 {
 fn yield_now() {
     native::yield_now().unwrap_or_else(|_| fail(3))
 }
+/// Port-sweep profile only (word 128 holds its aggregate tick deadline): an
+/// idle process blocks in the existing bounded timed IPC wait until the kernel
+/// fixture advances `offset` to `value`, instead of competing with the service
+/// while the peer sweeps every port. Other profiles never reach this path.
+fn sweep_idle(offset: u64, value: u64) {
+    let deadline = support::word(128);
+    check(
+        nieuw_os_sdk_runtime::supports_ipc_wait(native::abi_info().unwrap_or_else(|_| fail(150))),
+        151,
+    );
+    while support::word(offset) < value {
+        let now = tick();
+        check(now < deadline, 152);
+        check(
+            native::ipc_wait(&[], (now + 50).min(deadline)) == Ok(0),
+            153,
+        );
+    }
+    check(support::word(offset) == value, 154);
+}
+/// Port-sweep profile: report that every app check is complete, then keep the
+/// session (and so the service) alive until the post-revocation sweep ends.
+fn sweep_hold() {
+    if support::word(128) != 0 {
+        support::put(136, 1);
+        sweep_idle(112, 2);
+    }
+}
 fn h(offset: u64) -> Handle {
     Handle::from_raw(support::word(offset)).unwrap_or_else(|_| fail(4))
 }
@@ -329,7 +357,12 @@ fn policy() -> ! {
         81,
     );
     support::put(400, 1);
-    let start = tick();
+    let mut start = tick();
+    if support::word(128) != 0 {
+        // The pre sweep precedes app A's live connection: re-base after it.
+        sweep_idle(104, 1);
+        start = tick();
+    }
     while support::word(104) == 0 {
         check(tick() - start < 3000, 82);
         yield_now();
@@ -667,6 +700,7 @@ fn revoked(session: &mut Session<NativeTransport>) -> ! {
     }
     session.close(connection).unwrap_or_else(|_| fail(74));
     support::put(544, 2);
+    sweep_hold();
     session.retire().unwrap_or_else(|_| fail(75));
     check(session.is_closed(), 76);
     support::put(528, 1);
@@ -817,6 +851,10 @@ fn run() -> ! {
         epoch != 0 && peer != 0 && own != 0 && peer != own && slot < 2 && first != 0 && udp != 0,
         9,
     );
+    if support::word(128) != 0 {
+        // Port-sweep profile: no app traffic before the quiescent pre sweep.
+        sweep_idle(112, 1);
+    }
     if support::word(104) == 5 {
         let start = tick();
         while support::word(112) == 0 {
@@ -968,6 +1006,7 @@ fn run() -> ! {
             Err(_) => fail(45),
         }
     }
+    sweep_hold();
     session.retire().unwrap_or_else(|_| fail(46));
     check(session.is_closed(), 47);
     support::put(528, 1);

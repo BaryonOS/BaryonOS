@@ -24,15 +24,24 @@ from build_users import inspect_user
 from run_fpu import private_path, publish, publish_json, load_json
 from run_system import check_esp, network_arguments
 from network_service_peer import (Peer, validate_transcript, REQUESTS, RESPONSES, RESET_PROBE,
-                                  MAX_FRAMES, PORT_BUDGET, MAX_EXHAUSTION_FRAMES)
+                                  MAX_FRAMES, PORT_BUDGET, MAX_EXHAUSTION_FRAMES, MAX_SWEEP_FRAMES,
+                                  SWEEP_LIFETIME)
 
 FEATURE = "native-net-service"
 FEATURES = {"normal": FEATURE, "client-exit": "test-net-service-client-exit", "revoke": "test-net-service-revoke",
             "device-reset": "test-net-service-device-reset", "exhaustion": "test-net-service-exhaustion",
-            "helper": "test-net-service-helper"}
+            "helper": "test-net-service-helper", "port-sweep": "test-net-service-port-sweep"}
 # Exhaustion must finish before tick 12,000; the other native cases retain
 # their existing inclusive 6,000-tick boundary and 90-second host default.
 EXHAUSTION_TICK_DEADLINE = 12_000
+# Port sweep: two full 65,535-port TCP sweeps plus the app checks within the
+# 320-second budget (32,000 ticks at 100 Hz, also enforced by the kernel fixture).
+# Local TCG runs: kernel PASS at ticks 24,817 (249.6 s) and 23,455 (236.0 s), so
+# the budget leaves 28.9% over the slower run. Wall time tracked ticks / 100 plus
+# about 1.4 s, so the host watchdog stays 40 s above the guest budget and the
+# kernel's own deadline fails the run first.
+PORT_SWEEP_TICK_DEADLINE = 32_000
+PORT_SWEEP_TIMEOUT = SWEEP_LIFETIME
 BOOT = ("BOOT:EBS_OK", "KERNEL:ENTRY", "BOOTINFO:OK", "KS-01:PASS", "KS-02:PASS", "KS-03:PASS", "M2:PASS")
 OFFSETS = (240, 400, 408, 416, 424, 432, 440, 448, 456, 464, 472, 480, 488, 496, 504, 512, 520, 528, 536, 544, 552)
 ROLES = ("SERVICE", "APP_A", "APP_B")
@@ -55,7 +64,7 @@ def execute_native(command, env, *, timeout, limit=128 * 1024, on_poll=None):
     most limit bytes per pipe and signal overflow so the owner kills QEMU.
     They drain/discard only until that termination unblocks both pipes.
     """
-    if type(timeout) not in (int, float) or not 0 < timeout <= 180 or type(limit) is not int or not 1 <= limit <= 128 * 1024:
+    if type(timeout) not in (int, float) or not 0 < timeout <= SWEEP_LIFETIME or type(limit) is not int or not 1 <= limit <= 128 * 1024:
         raise ValueError("Bounded native process lifetime/output required")
     process = subprocess.Popen(command, cwd=ROOT, env=env, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     buffers = [bytearray(), bytearray()]
@@ -126,6 +135,8 @@ def native_limits(case):
     """Inclusive observation tick ceiling and default host timeout in seconds."""
     if case not in FEATURES:
         raise ValueError("Unknown native service case")
+    if case == "port-sweep":
+        return (PORT_SWEEP_TICK_DEADLINE - 1, PORT_SWEEP_TIMEOUT)
     return (EXHAUSTION_TICK_DEADLINE - 1, 150) if case == "exhaustion" else (6000, 90)
 
 
@@ -239,11 +250,12 @@ def sequence(stdout, case="normal"):
         raise ValueError("Native manifest order differs")
     if lines[-3:] != ["NETSVC:CLEANUP:PASS", "NETSVC:PASS", "M1:PASS"]:
         raise ValueError("Native clean ending missing")
-    revoke, helper = case == "revoke", case == "helper"
+    revoke, helper, sweep = case in ("revoke", "port-sweep"), case == "helper", case == "port-sweep"
     roles = HELPER_ROLES if helper else REVOKE_ROLES if revoke else ROLES
     found, network = {r: {} for r in roles}, {}
     numeric = re.compile(r"NETSVC:(SERVICE|APP_A|APP_B|POLICY|HELPER):([0-9]+):([0-9]{20})")
     revoke_ticks, exhaustion_ticks, helper_ticks = None, None, None
+    sweep_ticks = {}
     helper_fence = {}
     net_numeric = re.compile(r"SYSTEM:(NET_[A-Z_]+):([0-9]{20})")
     entropy, exit_ticks = None, {}
@@ -259,7 +271,17 @@ def sequence(stdout, case="normal"):
         if revoke_match:
             if revoke_ticks is not None or exit_ticks:
                 raise ValueError("Duplicate or late revocation request")
-            revoke_ticks = integer(int(revoke_match.group(1)), 1, 6000)
+            revoke_ticks = integer(int(revoke_match.group(1)), 1, last_tick if sweep else 6000)
+            continue
+        sweep_match = re.fullmatch(r"NETSVC:SWEEP_(PRE_RELEASE|POST_BASE|POST_RELEASE)_TICKS:([0-9]{20})", line) if sweep else None
+        if sweep_match:
+            name, value = sweep_match.groups()
+            # Pre release precedes the revocation; the post phase follows it.
+            order = ("PRE_RELEASE", "POST_BASE", "POST_RELEASE")
+            if (exit_ticks or len(sweep_ticks) >= 3 or name != order[len(sweep_ticks)]
+                    or (name == "PRE_RELEASE") != (revoke_ticks is None)):
+                raise ValueError("Duplicate or reordered port-sweep phase")
+            sweep_ticks[name] = integer(int(value), 1, last_tick)
             continue
         exhaustion_match = re.fullmatch(r"NETSVC:EXHAUSTION_RELEASE_TICKS:([0-9]{20})", line) if case == "exhaustion" else None
         if exhaustion_match:
@@ -308,6 +330,9 @@ def sequence(stdout, case="normal"):
         raise ValueError("Missing actual exit ticks or peer did not survive first app")
     if revoke and (revoke_ticks is None or revoke_ticks >= exit_ticks["APP_A"]):
         raise ValueError("Revocation was not requested while app A was live")
+    if sweep and (len(sweep_ticks) != 3 or not sweep_ticks["PRE_RELEASE"] <= revoke_ticks
+                  <= sweep_ticks["POST_BASE"] <= sweep_ticks["POST_RELEASE"] <= min(exit_ticks.values())):
+        raise ValueError("Port sweeps are not at the quiescent points")
     if entropy != 8:
         raise ValueError("Actual service entropy acquisition missing")
     if any(set(values) != set(OFFSETS) for values in found.values()):
@@ -383,9 +408,12 @@ def sequence(stdout, case="normal"):
             or network["NET_DENIED"] != 2 + revoke + helper or network["NET_TX_TIMEOUTS"] != 0
             or network["NET_RESETS"] != 1 or network["NET_RESET_ACKS"] != 1):
         raise ValueError("Native NIC completion/denial/reset evidence differs")
-    integer(service[416], 1, MAX_FRAMES)
-    integer(service[424], 1, MAX_FRAMES)
+    bound = MAX_SWEEP_FRAMES if sweep else MAX_FRAMES
+    integer(service[416], 1, bound)
+    integer(service[424], 1, bound)
     result = {"processes": {r: {str(k): v for k, v in values.items()} for r, values in found.items()}, "network": network, "entropy_bytes": entropy, "exit_ticks": exit_ticks, "revoke_ticks": revoke_ticks}
+    if sweep:
+        result.update(sweep_ticks=sweep_ticks)
     if helper:
         result.update(helper_release_tick=helper_ticks, helper_fence={str(k): v for k, v in helper_fence.items()})
     return result
@@ -424,8 +452,9 @@ def evaluate(report, peer, *, case="normal"):
     if (peer.get("passed") is not True or peer.get("connected") is not True
             or peer.get("error") is not None or peer.get("rejected_frame") is not None):
         raise ValueError("Actual synthetic packet peer failed: " + str(peer.get("error")))
-    if case == "exhaustion":
-        raw_path = private_path(Path(report["run_directory"]) / "network-discard.bin", regular=True)
+    if case in ("exhaustion", "port-sweep"):
+        name = "network-discard.bin" if case == "exhaustion" else "network-sweep.jsonl"
+        raw_path = private_path(Path(report["run_directory"]) / name, regular=True)
         if peer.get("raw_path") != str(raw_path):
             raise ValueError("Discard stream is not bound to the actual run directory")
     replay = validate_transcript(peer, case=case)
@@ -442,8 +471,17 @@ def evaluate(report, peer, *, case="normal"):
                 or net["NET_RX_DELIVERED"] != counts["server_frames"]):
             raise ValueError("Reset wire transcript contradicts completed and uncertain publications")
         return observed
+    # Port sweep: ARP primes sent while the guest still boots may never reach
+    # the service; every delivered prime is answered, so the gap is exact.
+    undelivered = 0
+    if case == "port-sweep":
+        requests, replies = counts["sweep_arp_requests"], counts["sweep_arp_replies"]
+        # The exact-gap premise fails closed: no answered prime, or more answers than primes.
+        if type(requests) is not int or type(replies) is not int or not 1 <= replies <= requests:
+            raise ValueError("Sweep ARP prime accounting cannot be exact")
+        undelivered = requests - replies
     if (net["NET_TX_COMPLETED"] != counts["client_frames"]
-            or net["NET_RX_DELIVERED"] != counts["server_frames"]
+            or net["NET_RX_DELIVERED"] != counts["server_frames"] - undelivered
             or counts["udp_requests"] != (2 if case in ("normal", "helper") else 1)
             or any(counts[name] != (2 if case in ("normal", "helper") else 1) for name in ("udp_corrupt_sent", "udp_wrong_scope_sent", "udp_echo_sent", "udp_overflow_sent"))):
         raise ValueError("Actual wire/service/broker counts do not agree")
@@ -455,8 +493,9 @@ def run_network_service(*, case="normal", timeout=None):
         raise ValueError("Unknown native service run case")
     if timeout is None:
         _, timeout = native_limits(case)
-    if type(timeout) is not int or not 1 <= timeout <= 180:
-        raise ValueError("Native timeout must be bounded 1..180 seconds")
+    limit = PORT_SWEEP_TIMEOUT if case == "port-sweep" else 180
+    if type(timeout) is not int or not 1 <= timeout <= limit:
+        raise ValueError(f"Native timeout must be bounded 1..{limit} seconds")
     private_path(BUILD)
     frozen = source_hash()
     manifest = validate_build(frozen, case)
@@ -491,13 +530,14 @@ def run_network_service(*, case="normal", timeout=None):
     if (Path(qemu).parent / "share").is_dir():
         command += ["-L", str(Path(qemu).parent / "share")]
     report = dict(schema_version=1, passed=False, case=case, kernel_feature=FEATURES[case],
-                  scope=("four" if case in ("revoke", "helper") else "three") + " actual isolated ring-3 processes; bounded IPC TCP/UDP; synthetic localhost Ethernet; no TLS or physical hardware claim",
+                  scope=("four" if case in ("revoke", "helper", "port-sweep") else "three") + " actual isolated ring-3 processes; bounded IPC TCP/UDP; synthetic localhost Ethernet; no TLS or physical hardware claim",
                   source_commit=subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip(),
                   source_fingerprint_version=3, source_sha256=frozen, manifest=manifest,
                   run_directory=str(directory), timeout_s=timeout, started_utc=datetime.now(timezone.utc).isoformat(),
                   qemu_sha256=qemu_hash, firmware_sha256=original_firmware, snapshot_sha256=snapshots,
                   qemu_version=subprocess.check_output([qemu, "--version"], env=env, text=True, timeout=10).strip())
-    raw_path = private_path(directory / "network-discard.bin") if case == "exhaustion" else None
+    raw_name = {"exhaustion": "network-discard.bin", "port-sweep": "network-sweep.jsonl"}.get(case)
+    raw_path = private_path(directory / raw_name) if raw_name else None
     with Peer(timeout=timeout, case=case, raw_path=raw_path) as peer:
         command += network_arguments(peer.port)
         begin = time.monotonic()
@@ -544,7 +584,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--case", choices=tuple(FEATURES), default="normal")
     parser.add_argument("--timeout", type=int,
-                        help="host timeout seconds (default: exhaustion 150, other cases 90)")
+                        help="host timeout seconds (default: port-sweep 360, exhaustion 150, other cases 90)")
     parser.add_argument("--no-build", action="store_true", help="require an existing source-matching build")
     args = parser.parse_args()
     if not args.no_build:
