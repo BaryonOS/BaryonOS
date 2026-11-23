@@ -859,11 +859,27 @@ cp -- "$ACTIONLINT_FIXTURE" "$output"
         self.assertEqual(job["name"], "merge-hold")
         self.assertEqual(
             job["permissions"],
-            {"contents": "read", "issues": "read", "pull-requests": "read"},
+            {"checks": "read", "contents": "read", "issues": "read", "pull-requests": "read"},
         )
         for key in ("if", "needs", "continue-on-error", "strategy", "defaults",
                     "container", "services"):
             self.assertNotIn(key, job)
+        # On merge_group the hold waits for these ci.yml checks, then decides.
+        # A rename would make every queue group time out, so pin the names.
+        source = (ROOT / "tools/merge_hold.py").read_text(encoding="utf-8")
+        waited = ast.literal_eval(re.search(r"^WAIT_CHECKS = (.+)$", source, re.M).group(1))
+        minutes = re.search(r"^WAIT_SECONDS = ([0-9]+) \* 60$", source, re.M)
+        wait_seconds = int(minutes.group(1)) * 60
+        ci = self.workflows[".github/workflows/ci.yml"]
+        self.assertEqual(set(waited), {"host-quality", "qemu-smoke"})
+        for name in waited:
+            with self.subTest(waited=name):
+                self.assertEqual(ci["jobs"][name].get("name", name), name)
+                self.assertNotIn("if", ci["jobs"][name])
+                # The wait budget outlasts each waited job and stays below our own timeout.
+                self.assertGreater(wait_seconds, int(ci["jobs"][name]["timeout-minutes"]) * 60)
+        self.assertLess(wait_seconds, int(job["timeout-minutes"]) * 60)
+        self.assertLess(int(job["timeout-minutes"]), 60)
         checkout, decide = job["steps"]
         self.assertTrue(checkout["uses"].startswith("actions/checkout@"))
         self.assertEqual(checkout["with"], {"persist-credentials": "false"})

@@ -2,8 +2,10 @@
 # While the `acceptance-pending` label is set, this check fails unless a trusted
 # participant commented `acceptance-released: <head SHA>` for the current head
 # commit. A new push changes the SHA and re-arms the hold. Labels and comments
-# are read live (tools/merge_hold.py). On merge_group it checks every pull
-# request in the queue commit and fails closed if they cannot be identified.
+# are read live (tools/merge_hold.py). On merge_group it first waits for
+# host-quality and qemu-smoke to complete on the queue commit, so a hold added
+# while the group is still testing is seen, then checks every pull request in
+# the queue commit and fails closed if they cannot be identified.
 # See ADR-MERGE-HOLD-20261113.
 name: Merge hold
 
@@ -25,8 +27,11 @@ jobs:
   merge-hold:
     name: merge-hold
     runs-on: ubuntu-24.04
-    timeout-minutes: 3
+    # Above the 30-minute host-quality and qemu-smoke budgets plus queueing,
+    # below the planned 60-minute merge-queue check timeout.
+    timeout-minutes: 50
     permissions:
+      checks: read
       contents: read
       issues: read
       pull-requests: read
