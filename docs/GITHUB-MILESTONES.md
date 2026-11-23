@@ -33,8 +33,8 @@ corruption handling, rollback/downgrade tests, independent disk checks
 **Decision gate:** Daily-use claims remain blocked without recovery and
 independent review
 
-**Canonical sources:** [Roadmap](https://github.com/BaryonOS/BaryonOS/blob/main/docs/ROADMAP.md#technical-milestones)
-and [criteria and evidence](https://github.com/BaryonOS/BaryonOS/blob/main/docs/PROGRESS.md).
+**Canonical sources:** [Roadmap](https://github.com/simonvanieperen/BaryonOS/blob/main/docs/ROADMAP.md#technical-milestones)
+and [criteria and evidence](https://github.com/simonvanieperen/BaryonOS/blob/main/docs/PROGRESS.md).
 
 ## M7 — Native Product Integration
 
@@ -49,8 +49,8 @@ interaction budgets
 **Decision gate:** Product direction follows user/task evidence; do not scale
 the app ecosystem before the core experience is usable
 
-**Canonical sources:** [Roadmap](https://github.com/BaryonOS/BaryonOS/blob/main/docs/ROADMAP.md#technical-milestones)
-and [criteria and evidence](https://github.com/BaryonOS/BaryonOS/blob/main/docs/PROGRESS.md).
+**Canonical sources:** [Roadmap](https://github.com/simonvanieperen/BaryonOS/blob/main/docs/ROADMAP.md#technical-milestones)
+and [criteria and evidence](https://github.com/simonvanieperen/BaryonOS/blob/main/docs/PROGRESS.md).
 
 ## M8 — Networking and Security Hardening
 
@@ -65,8 +65,8 @@ findings resolved
 **Decision gate:** No sensitive-data safety claim without scoped audit and
 published residual risks
 
-**Canonical sources:** [Roadmap](https://github.com/BaryonOS/BaryonOS/blob/main/docs/ROADMAP.md#technical-milestones)
-and [criteria and evidence](https://github.com/BaryonOS/BaryonOS/blob/main/docs/PROGRESS.md).
+**Canonical sources:** [Roadmap](https://github.com/simonvanieperen/BaryonOS/blob/main/docs/ROADMAP.md#technical-milestones)
+and [criteria and evidence](https://github.com/simonvanieperen/BaryonOS/blob/main/docs/PROGRESS.md).
 
 ## M9 — First Reference PC
 
@@ -80,8 +80,8 @@ hardware
 **Decision gate:** Support matrix must state exactly what is and is not
 supported
 
-**Canonical sources:** [Roadmap](https://github.com/BaryonOS/BaryonOS/blob/main/docs/ROADMAP.md#technical-milestones)
-and [criteria and evidence](https://github.com/BaryonOS/BaryonOS/blob/main/docs/PROGRESS.md).
+**Canonical sources:** [Roadmap](https://github.com/simonvanieperen/BaryonOS/blob/main/docs/ROADMAP.md#technical-milestones)
+and [criteria and evidence](https://github.com/simonvanieperen/BaryonOS/blob/main/docs/PROGRESS.md).
 
 ## M10 — Second Architecture
 
@@ -94,8 +94,8 @@ architecture-specific differences documented
 **Decision gate:** Generalize abstractions only after real architecture
 differences are observed
 
-**Canonical sources:** [Roadmap](https://github.com/BaryonOS/BaryonOS/blob/main/docs/ROADMAP.md#technical-milestones)
-and [criteria and evidence](https://github.com/BaryonOS/BaryonOS/blob/main/docs/PROGRESS.md).
+**Canonical sources:** [Roadmap](https://github.com/simonvanieperen/BaryonOS/blob/main/docs/ROADMAP.md#technical-milestones)
+and [criteria and evidence](https://github.com/simonvanieperen/BaryonOS/blob/main/docs/PROGRESS.md).
 
 ## M11 — Experimental Community Release
 
@@ -110,8 +110,8 @@ process
 **Decision gate:** Production classification follows evidence, not project
 ambition
 
-**Canonical sources:** [Roadmap](https://github.com/BaryonOS/BaryonOS/blob/main/docs/ROADMAP.md#technical-milestones)
-and [criteria and evidence](https://github.com/BaryonOS/BaryonOS/blob/main/docs/PROGRESS.md).
+**Canonical sources:** [Roadmap](https://github.com/simonvanieperen/BaryonOS/blob/main/docs/ROADMAP.md#technical-milestones)
+and [criteria and evidence](https://github.com/simonvanieperen/BaryonOS/blob/main/docs/PROGRESS.md).
 
 ## Migration of the existing rubric milestones
 
