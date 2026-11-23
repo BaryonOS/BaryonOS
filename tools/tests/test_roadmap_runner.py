@@ -2,6 +2,7 @@ import contextlib
 import io
 import os
 import re
+import hashlib
 import json
 import shutil
 import sys
@@ -34,6 +35,7 @@ class Ledger(unittest.TestCase):
         # User MCP servers, plugins and apps run outside the shell sandbox, so they could reach the
         # baseline home; auth stays (Codex reads it from CODEX_HOME, not config.toml).
         self.assertIn("--ignore-user-config", argv)
+        self.assertEqual(argv[argv.index("--cd") + 1], str(rr.ROOT))  # workspace-write covers the cwd
         disabled = {argv[i + 1] for i, a in enumerate(argv) if a == "--disable"}
         self.assertLessEqual({"plugins", "apps"}, disabled)
 
@@ -78,6 +80,9 @@ class Ledger(unittest.TestCase):
                     self.assertIn("the lead runs the task's checks and gates", brief)
                     self.assertNotIn("the controller runs the task's checks", brief)
                     self.assertFalse(first["unattended_ready"])
+                    # Pinned, or a launch from ~/.local/state would make the trusted home writable.
+                    self.assertEqual(first["cwd"], str(rr.ROOT))
+                    self.assertEqual(first["argv"][first["argv"].index("--cd") + 1], str(rr.ROOT))
                     marker = json.loads((root / "state" / rr.CALLBACKS_MARKER).read_text())
                     self.assertEqual(marker["baseline"], "cb")  # the next preflight compares, never adopts
                     self.assertEqual(marker["manual"], "A")  # the claim the in-checkout ledger cannot end
@@ -1064,17 +1069,17 @@ class RunnerResiduals(unittest.TestCase):
                     self.live_state(tmp) as (repo, state, controller):
                 rr.atomic_write(controller.marker(), json.dumps(
                     {"baseline": "cb", "session": session, "ignored": controller.ignored_files()}))
-                controller.check_saved_baseline(retire=False)  # unchanged: passes
+                controller.check_saved_baseline()  # unchanged: passes
                 (repo / "build" / "dropped.py").write_text("")
                 with self.assertRaisesRegex(rr.Stop, "ignored files changed"):
-                    controller.check_saved_baseline(retire=False)
+                    controller.check_saved_baseline()
                 self.assertTrue((state / "STOP").exists())
                 self.assertEqual(self.resume()[0], 0)
                 self.assertFalse((state / "STOP").exists())
                 self.assertTrue(controller.marker().exists())  # not retired over an unreviewed change
                 self.assertEqual(self.accept()[0], 0)
-                self.assertFalse(controller.marker().exists())  # reviewed: not re-fired
-                controller.check_saved_baseline(retire=False)
+                self.assertNotIn("manual", json.loads(controller.marker().read_text()))  # the reviewed state
+                controller.check_saved_baseline()  # is the new baseline: not re-fired
 
     def test_session_baseline_lies_outside_every_session_writable_root(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -1107,7 +1112,7 @@ class RunnerResiduals(unittest.TestCase):
                     rr.atomic_write(state / rr.CALLBACKS_MARKER, json.dumps(
                         {"baseline": "cb", "session": "manual A", "ignored": controller.ignored_files()}))
                 with self.assertRaisesRegex(rr.Stop, "ignored files changed|lies inside the checkout"):
-                    rr.Controller(rr.Config(), state).check_saved_baseline(retire=True)
+                    rr.Controller(rr.Config(), state).check_saved_baseline()
                 self.assertTrue((state / "STOP").exists())
 
     def test_resume_keeps_the_baseline_while_a_session_may_still_run(self):
@@ -1129,7 +1134,7 @@ class RunnerResiduals(unittest.TestCase):
                 self.assertTrue(controller.marker().exists())
                 (repo / "build" / "post-resume.sh").write_text("")  # the session keeps running
                 with self.assertRaisesRegex(rr.Stop, "ignored files changed"):
-                    controller.check_saved_baseline(retire=True)
+                    controller.check_saved_baseline()
 
     def test_session_keeps_its_baseline_until_the_caller_validated_it(self):
         for outcome in ("returns", "rate limit"):
@@ -1239,7 +1244,7 @@ class RunnerResiduals(unittest.TestCase):
                     rr.atomic_write(state / rr.CALLBACKS_MARKER, json.dumps(
                         {"baseline": "cb", "session": "x", "ignored": controller.ignored_files()}))
                     with self.assertRaisesRegex(rr.Stop, "planted.sh"):  # the trusted delta is reported first
-                        controller.check_saved_baseline(retire=False)
+                        controller.check_saved_baseline()
                 if case == "forged STOP":
                     (state / "STOP").write_text("x")
                 code, message = self.resume("--accept", "0" * 16) if case == "wrong digest" else self.resume()
@@ -1247,20 +1252,20 @@ class RunnerResiduals(unittest.TestCase):
                 self.assertIn("planted.sh", message)
                 self.assertTrue(controller.marker().exists())
                 with self.assertRaisesRegex(rr.Stop, "ignored files changed"):
-                    rr.Controller(rr.Config(), state).check_saved_baseline(retire=True)
+                    rr.Controller(rr.Config(), state).check_saved_baseline()
 
     def test_resume_retires_an_untrusted_legacy_baseline_only_on_acknowledgement(self):
         with tempfile.TemporaryDirectory() as tmp, self.live_state(tmp) as (repo, state, controller):
             rr.atomic_write(state / rr.CALLBACKS_MARKER, json.dumps(
                 {"baseline": "cb", "session": "manual A", "ignored": controller.ignored_files()}))
             with self.assertRaisesRegex(rr.Stop, "lies inside the checkout"):
-                controller.check_saved_baseline(retire=True)
+                controller.check_saved_baseline()
             self.assertTrue((state / "STOP").exists())
             self.assertIn('"no_trusted_baseline": true', self.resume()[1])  # no delta from session data
             self.assertTrue((state / rr.CALLBACKS_MARKER).exists())
             self.assertEqual(self.accept()[0], 0)
             self.assertFalse((state / rr.CALLBACKS_MARKER).exists())
-            controller.check_saved_baseline(retire=True)  # no longer re-fires
+            controller.check_saved_baseline()  # no longer re-fires
 
     def test_resume_refuses_while_a_tagged_worker_is_alive(self):
         with tempfile.TemporaryDirectory() as tmp, self.live_state(tmp) as (repo, state, controller):
@@ -1345,8 +1350,9 @@ class RunnerResiduals(unittest.TestCase):
             self.assertTrue(controller.marker().exists())
             with unittest.mock.patch.object(rr.Controller, "refuse_live_workers"):
                 self.assertEqual(self.accept()[0], 0)
-            self.assertFalse(controller.marker().exists())
+            self.assertIsNone(controller.manual_claim())  # the acknowledgement ended the claim
             self.assertEqual(self.preflight(repo, controller), rr.git("rev-parse", "HEAD").strip())
+            self.assertFalse(controller.marker().exists())  # retired by the preflight that passed
 
     def test_preflight_keeps_the_baseline_until_every_check_passed(self):
         # 3a24e2c4 retired before the nested .git check: the lead removes sub/.git as told, and the
@@ -1486,6 +1492,111 @@ class RunnerResiduals(unittest.TestCase):
                     unittest.mock.patch.dict("os.environ", {"XDG_STATE_HOME": str(state)}):
                 with self.assertRaisesRegex(rr.Stop, f"session-writable {re.escape(str(repo.resolve()))};"):
                     rr.baseline_home()  # named as the checkout, not just as part of /tmp
+
+    def test_a_planted_symlink_cannot_make_the_controller_write_the_trusted_home(self):
+        # ba9eab6a: `resume` opened build/roadmap-pipeline/controller.lock with open('a+'), so a link
+        # to <home>/trusted-checkout.json created the trust record without any --accept.
+        for planted in ("controller.lock", "hardlinked controller.lock", "fifo controller.lock", "STOP via `stop`",
+                        "atomic tmp"):
+            with self.subTest(planted=planted), tempfile.TemporaryDirectory() as tmp, \
+                    self.live_state(tmp) as (repo, state, controller), \
+                    unittest.mock.patch.object(rr.Controller, "refuse_live_workers"):
+                home = controller.marker().parent
+                home.mkdir(parents=True)
+                record = home / rr.TRUSTED_RECORD
+                if planted == "controller.lock":
+                    (state / "controller.lock").symlink_to(record)
+                    self.assertEqual(self.resume()[0], 2)
+                elif planted == "hardlinked controller.lock":
+                    rr.atomic_write(controller.marker(), json.dumps({"manual": "A"}))
+                    os.link(controller.marker(), state / "controller.lock")
+                    self.assertEqual(self.resume()[0], 2)
+                    self.assertEqual(controller.manual_claim(), "A")  # not truncated
+                elif planted == "fifo controller.lock":
+                    os.mkfifo(state / "controller.lock")
+                    self.assertEqual(self.resume()[0], 2)
+                elif planted == "STOP via `stop`":
+                    (state / "STOP").symlink_to(record)
+                    with unittest.mock.patch.object(rr, "isolate_imports"), \
+                            unittest.mock.patch.object(rr.sys, "argv", ["roadmap_runner.py", "stop"]), \
+                            contextlib.redirect_stdout(io.StringIO()):
+                        rr.main()
+                    self.assertFalse((state / "STOP").is_symlink())  # replaced, not followed
+                else:
+                    target = state / "x.json"
+                    target.with_suffix(f".json.tmp{os.getpid()}").symlink_to(record)
+                    with self.assertRaisesRegex(rr.Stop, "planted symlink"):
+                        rr.atomic_write(target, "{}")
+                self.assertFalse(record.exists())
+                self.assertFalse(controller.trusted() and planted != "hardlinked controller.lock")
+
+    def test_the_accepted_state_stays_the_baseline_until_a_preflight_passes(self):
+        # ba9eab6a retired the baseline on --accept: a plant made after it was adopted unseen.
+        with tempfile.TemporaryDirectory() as tmp, self.live_state(tmp) as (repo, state, controller), \
+                unittest.mock.patch.object(rr.Controller, "refuse_live_workers"):
+            self.manual_marker(controller)
+            self.assertEqual(self.accept()[0], 0)
+            (repo / "build" / "late.py").write_text("planted after the acknowledgement")
+            with self.assertRaisesRegex(rr.Stop, "build/late.py"):
+                self.preflight(repo, controller)
+            self.assertTrue(controller.marker().exists())
+
+    @staticmethod
+    def forge_index_stat(repo, name):
+        """What write access to .git/index allows: record the edited file's stat for its old blob,
+        so Git's stat cache calls a same-size edit clean (index v2, trailing SHA-1 recomputed)."""
+        index = repo / ".git" / "index"
+        data = bytearray(index.read_bytes()[:-20])
+        assert data[:4] == b"DIRC" and int.from_bytes(data[4:8], "big") == 2
+        offset = 12
+        for _ in range(int.from_bytes(data[8:12], "big")):
+            length = int.from_bytes(data[offset + 60:offset + 62], "big") & 0xFFF
+            if data[offset + 62:offset + 62 + length].decode() == name:
+                path = repo / name
+                os.utime(path, ns=(path.stat().st_atime_ns, path.stat().st_mtime_ns - 10 * 10**9))  # not racy
+                info = path.stat()
+                fields = (info.st_ctime_ns // 10**9, info.st_ctime_ns % 10**9, info.st_mtime_ns // 10**9,
+                          info.st_mtime_ns % 10**9, info.st_dev, info.st_ino)
+                for i, value in enumerate(fields):
+                    data[offset + 4 * i:offset + 4 * i + 4] = (value & 0xFFFFFFFF).to_bytes(4, "big")
+                data[offset + 36:offset + 40] = info.st_size.to_bytes(4, "big")
+            offset += (62 + length + 8) // 8 * 8
+        index.write_bytes(bytes(data) + hashlib.sha1(bytes(data)).digest())
+
+    def test_a_forged_index_stat_cache_cannot_hide_a_tracked_edit(self):
+        with tempfile.TemporaryDirectory() as tmp, self.live_state(tmp) as (repo, state, controller):
+            rr.atomic_write(controller.marker().parent / rr.TRUSTED_RECORD, "{}")
+            (repo / "gate.py").write_text("ok\n")
+            rr.git("add", "gate.py")
+            rr.git("commit", "-q", "--no-verify", "-m", "gate")
+            before = controller.tree_fingerprint()
+            (repo / "gate.py").write_text("ev\n")  # same size
+            self.forge_index_stat(repo, "gate.py")
+            self.assertEqual(rr.git("status", "--porcelain"), "")  # the forgery works on Git itself
+            self.assertEqual(rr.git("diff", "HEAD", "--name-only"), "")
+            self.assertEqual(rr.hidden_tracked(), [])  # no flag involved
+            self.assertIn("gate.py", controller.changed())
+            self.assertNotEqual(controller.tree_fingerprint(), before)
+            with self.assertRaisesRegex(rr.Stop, "differ from HEAD.*gate.py"):
+                self.preflight(repo, controller)
+
+    def test_a_relative_xdg_state_home_is_ignored(self):
+        # Resolved against the cwd (here the checkout), a relative value would put the baseline in
+        # the checkout. Ignored, the home falls back to ~/.local/state: the containment check then
+        # names /tmp (this test's HOME lies there), never the checkout, which it checks first.
+        with tempfile.TemporaryDirectory() as tmp:
+            repo, cwd = Path(tmp) / "repo", os.getcwd()
+            repo.mkdir()
+            os.chdir(repo)
+            try:
+                with unittest.mock.patch.dict("os.environ", {"XDG_STATE_HOME": "state", "HOME": str(Path(tmp) / "h")}), \
+                        unittest.mock.patch.object(rr, "ROOT", repo):
+                    with self.assertRaises(rr.Stop) as stopped:
+                        rr.baseline_home()
+            finally:
+                os.chdir(cwd)
+            self.assertNotIn(f"session-writable {repo.resolve()};", str(stopped.exception))
+            self.assertIn(str(Path(tmp).resolve() / "h" / ".local" / "state"), str(stopped.exception))
 
     def test_worker_settings_deny_edits_to_the_baseline_home(self):
         with tempfile.TemporaryDirectory() as tmp:

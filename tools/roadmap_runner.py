@@ -34,6 +34,7 @@ import json
 import re
 import shutil
 import signal
+import stat
 import subprocess
 import tempfile
 import time
@@ -339,7 +340,7 @@ def codex_argv(result: Path) -> list[str]:
     """Installed Codex 0.167.2 interface. Auth stays; the user config, plugins and apps do not, so
     the session gets no MCP server that could write outside the shell sandbox (the baseline home)."""
     return ["codex", "exec", "--ephemeral", "--strict-config", "--ignore-user-config", "--disable", "plugins",
-            "--disable", "apps", "--sandbox", "workspace-write",
+            "--disable", "apps", "--cd", str(ROOT), "--sandbox", "workspace-write",
             "--json", "--output-last-message", str(result), "-"]
 
 
@@ -368,10 +369,30 @@ def blocking(findings: list[dict]) -> list[dict]:
 
 # ---------- state ----------
 
+def open_private(path: Path, mode: str = "a+"):
+    """Open a controller file without following a planted entry. Controller state lies in the
+    session-writable checkout: a symlink there could make the controller create or truncate a
+    file in the trusted state home (the trust record, the marker). Hard links and FIFOs are
+    refused too; truncation happens only after the checks."""
+    flags = {"a+": os.O_RDWR | os.O_APPEND, "a": os.O_WRONLY | os.O_APPEND, "w": os.O_WRONLY}[mode]
+    try:
+        fd = os.open(path, flags | os.O_CREAT | os.O_NOFOLLOW | os.O_NONBLOCK | os.O_CLOEXEC, 0o600)
+    except OSError as error:
+        raise Stop(f"refusing to open {path}: {error.strerror} (a planted symlink?)") from error
+    info = os.fstat(fd)
+    if not stat.S_ISREG(info.st_mode) or info.st_nlink != 1:
+        os.close(fd)
+        raise Stop(f"refusing to open {path}: not a private regular file")
+    if mode == "w":
+        os.ftruncate(fd, 0)
+    return os.fdopen(fd, mode)
+
+
 def atomic_write(path: Path, data: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     tmp = path.with_suffix(path.suffix + f".tmp{os.getpid()}")
-    tmp.write_text(data, encoding="utf-8")
+    with open_private(tmp, "w") as out:
+        out.write(data)
     os.replace(tmp, path)
 
 
@@ -462,6 +483,25 @@ def hidden_tracked() -> list[str]:
                   if entry and (entry[0].islower() or entry[0] == "S"))
 
 
+def tracked_changes() -> list[str]:
+    """Tracked paths whose content differs from HEAD, read through a throwaway index. The real
+    .git/index carries a stat cache a session could forge (a same-size edit then looks clean) and
+    assume-unchanged/skip-worktree flags; a fresh index has neither, so Git compares content.
+    Called only while no session runs, so the private temporary directory is not raced."""
+    with tempfile.TemporaryDirectory(prefix="roadmap-index-") as tmp:
+        env = dict(git_env(), GIT_INDEX_FILE=os.path.join(tmp, "index"))
+
+        def run(*args: str, check: bool = True) -> str:
+            done = subprocess.run(["git", *CONTROLLER_GIT_CONFIG, *args], cwd=ROOT, capture_output=True,
+                                  text=True, env=env)
+            if check and done.returncode:
+                raise Stop(f"git {args[0]} on a fresh index failed ({done.returncode}): {done.stderr.strip()[-400:]}")
+            return done.stdout
+        run("read-tree", "HEAD")
+        run("update-index", "-q", "--refresh", check=False)  # exits 1 when something differs
+        return sorted(filter(None, run("diff-files", "--name-only", "-z").split("\0")))
+
+
 def git(*args: str, check: bool = True) -> str:
     done = subprocess.run(["git", *CONTROLLER_GIT_CONFIG, *args], cwd=ROOT, capture_output=True, text=True,
                           env=git_env())
@@ -474,7 +514,9 @@ def baseline_home() -> Path:
     """Where the saved session baseline lives: outside every root a session may write. A manual
     Codex `workspace-write` session writes the checkout, /tmp and $TMPDIR, so it could delete or
     forge a baseline kept in build/."""
-    base = Path(os.environ.get("XDG_STATE_HOME") or Path.home() / ".local" / "state").resolve()
+    xdg = os.environ.get("XDG_STATE_HOME", "")
+    # The XDG spec ignores a relative value; resolving it against the cwd would move the baseline.
+    base = Path(xdg if os.path.isabs(xdg) else Path.home() / ".local" / "state").resolve()
     # Resolved whole: a symlinked component must not lead the checks past the real location.
     home = (base / "baryonos-roadmap-pipeline" / sha256(str(ROOT.resolve()))[:16]).resolve()
     for writable in dict.fromkeys([ROOT.resolve(), Path(tempfile.gettempdir()).resolve(), Path("/tmp").resolve()]):
@@ -502,7 +544,7 @@ class Controller:
         self.state.mkdir(parents=True, exist_ok=True)
         if (self.state / "STOP").exists():  # before recover() can run git status
             raise Stop("stop file present (build/roadmap-pipeline/STOP)")
-        self.lock_file = (self.state / "controller.lock").open("a+")
+        self.lock_file = open_private(self.state / "controller.lock")
         try:
             fcntl.flock(self.lock_file, fcntl.LOCK_EX | fcntl.LOCK_NB)
         except BlockingIOError as error:
@@ -513,7 +555,7 @@ class Controller:
         self.lock_file.write(json.dumps({"pid": os.getpid(), "run": self.run_id, "started": now()}))
         self.lock_file.flush()
         self.refuse_live_workers()  # a live worker could still change the callbacks
-        self.check_saved_baseline(retire=False)  # recover() runs git status, which can run a filter
+        self.check_saved_baseline()  # recover() runs git status, which can run a filter
         self.recover()
 
     def release(self) -> None:
@@ -587,7 +629,7 @@ class Controller:
         # counts is the one in the trusted marker, which only `resume --accept` ends.
         if claim := self.manual_claim():
             raise Stop(f"manual task {claim} holds the session baseline; validate its result, then run `resume`")
-        self.check_saved_baseline(retire=False)
+        self.check_saved_baseline()
         if not self.trusted():
             raise Stop("this checkout has no trusted session baseline yet (an older controller may have kept "
                        "it inside the checkout); review the checkout, then run `resume`")
@@ -599,6 +641,8 @@ class Controller:
         dirty = git("status", "--porcelain", "--untracked-files=all").strip()
         if dirty:
             raise Stop(f"checkout is not clean; refusing to start a writer:\n{dirty[:2000]}")
+        if forged := tracked_changes():  # clean only according to the index's stat cache
+            raise Stop(f"tracked files differ from HEAD although the index calls them clean: {brief(forged)}")
         head = git("rev-parse", "HEAD").strip()
         # Last: a Stop above keeps the baseline, so what the lead removes next is still compared.
         self.retire_baseline()
@@ -616,7 +660,7 @@ class Controller:
         if hidden := hidden_tracked():
             raise Stop(f"tracked paths hide worktree edits (assume-unchanged or skip-worktree): {brief(hidden)}")
 
-    def check_saved_baseline(self, *, retire: bool) -> None:
+    def check_saved_baseline(self) -> None:
         """Before any Git command that can run a hook or filter. A session that never reached its
         own check (interrupt, crash, kill, Stop) left its baseline behind: compare with it, never
         adopt a change. Retire it only once no worker can still change the callbacks."""
@@ -637,8 +681,6 @@ class Controller:
             atomic_write(self.state / "STOP", "a session baseline inside the checkout cannot be trusted\n")
             raise Stop(f"{legacy} lies inside the checkout, where a session could forge it; review the "
                        "ignored files and Git callbacks, then run `resume`")
-        if retire and marker.exists():
-            marker.unlink()
 
     @staticmethod
     def saved_baseline(path: Path) -> dict:
@@ -717,7 +759,7 @@ class Controller:
         for name in ("STOP", "PAUSE"):
             (self.state / name).unlink(missing_ok=True)
         self.state.mkdir(parents=True, exist_ok=True)
-        self.lock_file = (self.state / "controller.lock").open("a+")
+        self.lock_file = open_private(self.state / "controller.lock")
         try:
             fcntl.flock(self.lock_file, fcntl.LOCK_EX | fcntl.LOCK_NB)
         except BlockingIOError:
@@ -744,9 +786,14 @@ class Controller:
             return ("stop/pause cleared; the saved session baseline is kept because retiring it would adopt "
                     f"this change: {json.dumps(shown)}.{note} Review it (Git callbacks included), then run "
                     f"`resume --accept {digest}`")
-        self.retire_baseline()
+        # The acknowledged state becomes the baseline, so a change made after it (a detached child of
+        # the session, say) is still compared by the next preflight, which retires it only last.
+        snapshot = {"baseline": git_callbacks(), "session": f"accepted {now()}", "ignored": self.ignored_files()}
+        self.retire_baseline()  # writes the trust record and drops the nonce
+        atomic_write(self.marker(), json.dumps(snapshot))
         (self.state / CALLBACKS_MARKER).unlink(missing_ok=True)  # a legacy in-checkout baseline
-        return "stop/pause cleared; the saved session baseline is retired (the next preflight takes a fresh one)"
+        return ("stop/pause cleared; the reviewed state is now the saved session baseline (the next preflight "
+                "compares against it and retires it)")
 
     def check_callbacks(self, where: str) -> None:
         if git_callbacks() != self.callbacks:
@@ -780,7 +827,7 @@ class Controller:
                                                 "ignored": self.ignored_files()}))
         proc = None
         try:
-            with out.open("w") as stdout, err.open("w") as stderr, brief.open("rb") as stdin:
+            with open_private(out, "w") as stdout, open_private(err, "w") as stderr, brief.open("rb") as stdin:
                 proc = subprocess.Popen(argv, cwd=ROOT, env=worker_env(dict(os.environ)), stdin=stdin,
                                         stdout=stdout, stderr=stderr, start_new_session=True)
                 self.heartbeat(task=task_id, phase=kind, worker_pid=proc.pid, session_id=session_id)
@@ -872,12 +919,19 @@ class Controller:
             with contextlib.suppress(FileNotFoundError):
                 untracked[path] = [target.lstat().st_mode, os.readlink(target) if target.is_symlink()
                                    else sha256(target.read_bytes()) if target.is_file() else "other"]
+        # The index can call a tracked edit clean (flags, forged stat): hash what a fresh index sees.
+        tracked = {}
+        for path in tracked_changes():
+            target = ROOT / path
+            tracked[path] = (os.readlink(target) if target.is_symlink() else sha256(target.read_bytes())
+                             if target.is_file() else "missing" if not os.path.lexists(target) else "other")
         return sha256(git("status", "--porcelain", "--untracked-files=all") + git(*DIFF_HEAD)
-                      + json.dumps([self.ignored_files(), nested_git(ROOT), hidden_tracked(), untracked],
+                      + json.dumps([self.ignored_files(), nested_git(ROOT), hidden_tracked(), untracked, tracked],
                                    sort_keys=True))
 
     def changed(self) -> list[str]:
-        return parse_porcelain(git("status", "--porcelain", "--untracked-files=all"))
+        return sorted(set(parse_porcelain(git("status", "--porcelain", "--untracked-files=all")))
+                      | set(tracked_changes()))
 
     def ignored_files(self) -> dict[str, list[int]]:
         """Ignored files outside the controller's own state, which `git status` never reports.
@@ -924,7 +978,7 @@ class Controller:
     def run_checks(self, task: dict, attempt_dir: Path) -> tuple[bool, list[dict], str]:
         require_pipeline_release()
         results, failure = [], ""
-        lock = (self.state / "qemu.lock").open("a+") if task.get("native") else None
+        lock = open_private(self.state / "qemu.lock") if task.get("native") else None
         if lock:
             fcntl.flock(lock, fcntl.LOCK_EX)
         try:
@@ -944,7 +998,7 @@ class Controller:
                 sources = agent_source_paths(self.changed())
             except (KeyError, ValueError, ImportError, OSError, subprocess.SubprocessError) as error:
                 failure = f"gate blocked: {error}"
-                log.write_text(failure + "\n")
+                atomic_write(log, failure + "\n")
                 code = GATE_FAIL_EXIT
             else:
                 code = run_gate(plan, ROOT, log, os.environ.copy(), source_paths=sources)
@@ -1041,7 +1095,7 @@ Rules (binding, in addition to AGENTS.md):
         atomic_write(directory / "brief.md", prompt)
         plan = {"task_id": task["id"], "base": head, "branch": self.cfg.branch,
                 "brief_sha256": sha256(prompt), "stdin": str(directory / "brief.md"),
-                "argv": codex_argv(directory / "final.json"),
+                "argv": codex_argv(directory / "final.json"), "cwd": str(ROOT),
                 "stdout": str(directory / "events.jsonl"), "stderr": str(directory / "stderr.log"),
                 "manual_required": True, "unattended_ready": False}
         atomic_write(directory / "dispatch.json", json.dumps(plan, indent=2))
@@ -1298,7 +1352,7 @@ Return the structured result.
         log.parent.mkdir(parents=True, exist_ok=True)
 
         def event(**fields):
-            with log.open("a") as out:
+            with open_private(log, "a") as out:
                 out.write(json.dumps({"at": now(), **fields}) + "\n")
             print(json.dumps({"at": now(), **fields}), flush=True)
 
@@ -1388,7 +1442,7 @@ def main() -> int:
         print("ledger ok")
         return 0
     if args.cmd in ("stop", "pause"):
-        (STATE / args.cmd.upper()).write_text(now())
+        atomic_write(STATE / args.cmd.upper(), now())
         print(f"{args.cmd} requested; the controller honours it before the next session")
         return 0
     if args.cmd == "resume":
