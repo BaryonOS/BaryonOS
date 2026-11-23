@@ -237,3 +237,24 @@ not run here. H03 stays open.
 - `native-xhci.yml` runs all three xHCI cases and all three USB HID cases, and
   `native-power.yml` runs all three S3 cases. No hosted result for these is
   recorded here.
+
+## Focused security review (23 November 2026)
+
+An independent, read-only AI security review of `kernel/src/m2/snd.rs`,
+`drivers/virtio-snd/src/queue.rs`, the codec and the paging helpers ran on
+`a616980f`. It found no blocking (high) issue. Findings and handling:
+
+| # | Severity | Finding | Handling |
+| --- | --- | --- | --- |
+| 1 | medium-low | `poll_events` re-posted valid events without a bound; a device completing every buffer at once could keep `play`/`idle` from their status, used-index and deadline checks | fixed: at most `EVENTS_PER_POLL` completions per call (`queue::bounded_poll`, host-tested) |
+| 2 | low | a `begin_fence` quarantine returned before the reset and bus-master-off writes | fixed: both writes precede the bookkeeping |
+| 3 | low | the bus-master-off write was issued once | fixed: retried while the fence is pending |
+| 4 | info | an early (false) completion of an outstanding head cannot be detected | accepted: trusted-transport, no-IOMMU model (TRANSPORT.md §2, B3/B9) |
+| 5 | info | `nomem` port I/O and unserialised `rdtsc` | accepted: timing only |
+
+The CodeRabbit F8/F11 findings were fixed in `cc173d8e` (parallel session) and
+more completely in `7096c4a` (lead session); the merge `7468eef` keeps the
+`7096c4a` versions and was run natively below. Findings 2 and 3 (`d83c586`)
+were merged on top; the hosted `native-xhci.yml` run on the resulting head is
+their native evidence. An AI review is not an
+independent human audit.

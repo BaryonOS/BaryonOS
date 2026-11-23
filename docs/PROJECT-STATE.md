@@ -1,5 +1,33 @@
 # Current project status
 
+## NEXT AGENT HANDOFF — H-track lead resumed — 23 November 2026
+
+**Mandate:** project-owner H-track instruction, renewed on 23 November 2026, on
+branch `ccr-38238c58-g8y1l6` (draft PR #409). No merge or auto-merge.
+**Recovery:** the 19 November session ended on its usage limit after pushing
+`1dbf597c`; nothing else was found unpushed. The Codex H branches (#369, #371,
+#372, #384) were already merged into main. The main checkout holds about 920 staged
+files from another writer; they were left untouched.
+**Done this session (verified, not accepted):** CodeRabbit F8/F11 and the runner
+machine pin (`cc173d8e`); an unused import (`a616980f`); an independent focused
+security review of the snd fixture: no blocking finding, findings 1–3 fixed
+(the event loop is bounded per call, reset and BME-off happen before the fence
+bookkeeping, and BME-off is retried). Host checks pass. Local native snd is NOT RUN
+(QEMU 10.2.1 locally, the runner pins the 8.2 series); hosted `native-xhci.yml` is
+the native evidence. A local S3 baseline (`run_sleep.py --case cycles`,
+`pc-q35-8.2`, QEMU 10.2.1, OVMF 2025.11) gives raw 33 with 3 cycles.
+**Decided:** ADR-H05-S3-SYSTEM-20261123 (H05-T4 design: test-profile syscall 0x91
+SUSPEND behind POWER and the storage gate, a synchronous sleep, devices lost after
+a wake, then POWER_OFF).
+**Next:** implement H05-T4 under that ADR (`test-system-s3`: sleep.rs cycle
+refactor, 0x91 in m3/system.rs, an SDK wrapper, init calling suspend before
+power_off, a QMP wake in the system runner, then a `native-power.yml` case).
+Small QEMU follow-ups from read-only scoping: H04 `flap`/`reset` link cases, H02
+mouse reattach (16-page DMA budget), and an H03 bochs DISPI mode-set fixture
+with a screendump oracle. Not feasible in QEMU: Wi-Fi and Bluetooth.
+**Score:** 41 → 41/100. Every open H gate (H02–H06) requires physical reference
+hardware and the owner decisions OD-HW-*; nothing here is accepted.
+
 ## NEXT AGENT HANDOFF — H-track lead: native ACPI S3 (H05-T3) — 19 November 2026
 
 **Mandate:** project-owner instruction of 19 November 2026 assigns the whole H track

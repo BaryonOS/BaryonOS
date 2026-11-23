@@ -1179,13 +1179,15 @@ impl Device {
     /// quarantines.
     fn fence(&mut self, budget_ms: u64, acknowledged: &[u8]) -> Result<u64, Fault> {
         let budget = budget_ms.saturating_mul(self.clock.per_ms);
+        // Reset and bus mastering off before any bookkeeping, so even a
+        // quarantine from `begin_fence` leaves the device stopped. Raw write:
+        // the acknowledgement below reads it back (and retries it).
+        self.common.w8(DEVICE_STATUS, 0);
+        let _ = self.pci.0.write_u16(FIXTURE, 4, MEMORY | INT_DISABLE);
         if self.life.begin_fence(rdtsc(), budget).is_err() {
             self.life.quarantine();
             return Err(Fault::Quarantined);
         }
-        self.common.w8(DEVICE_STATUS, 0);
-        // Raw write: the acknowledgement below reads it back.
-        let _ = self.pci.0.write_u16(FIXTURE, 4, MEMORY | INT_DISABLE);
         loop {
             // Only after `poll_fence` is it known which read-back acknowledged,
             // so every iteration samples first.
@@ -1193,7 +1195,12 @@ impl Device {
             let status = self.status();
             let bus_master = self.pci.bus_master();
             match self.life.poll_fence(rdtsc(), status, bus_master) {
-                FenceStep::Pending => spin_loop(),
+                FenceStep::Pending => {
+                    if bus_master {
+                        let _ = self.pci.0.write_u16(FIXTURE, 4, MEMORY | INT_DISABLE);
+                    }
+                    spin_loop();
+                }
                 FenceStep::Acknowledged => {
                     let after = self.used_snapshot();
                     if self.life.record_snapshot(before, after).is_err() {
