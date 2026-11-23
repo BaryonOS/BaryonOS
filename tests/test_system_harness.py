@@ -404,7 +404,8 @@ class PowerS3HarnessTests(unittest.TestCase):
             with self.subTest(env=env), unittest.mock.patch.dict(os.environ, env), \
                     self.assertRaisesRegex(ValueError, "power-s3 runs only"):
                 runner.run_system("power-s3")
-        with unittest.mock.patch.object(runner, "qemu_accel", return_value="kvm"), \
+        with unittest.mock.patch.dict(os.environ, {"NOS_QEMU_MACHINE": "pc-q35-8.2"}), \
+                unittest.mock.patch.object(runner, "qemu_accel", return_value="kvm"), \
                 self.assertRaisesRegex(ValueError, "power-s3 runs only"):
             runner.run_system("power-s3")
 

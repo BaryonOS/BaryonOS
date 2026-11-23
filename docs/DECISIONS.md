@@ -30,24 +30,36 @@ PIT ticks; the TSC is used only for saturating diagnostics.
    object, entropy broker idle; -8 retry, -16 never). One granted suspend per
    boot; a second request returns -14.
 2. **Synchronous sleep in the caller's syscall.** IF stays 0. The kernel reuses
-   the H05-T3 wake page, token, FACS arm/disarm, canary and post-wake checks,
-   additionally saves and restores the caller's CR3, reloads the GDT/IDT/TR
-   through the shared loader and reprograms the PIC and PIT exactly as at
-   boot. Only after every check passes does the syscall return 0 to the
+   the H05-T3 wake page, token, FACS arm/disarm, canary and post-wake checks.
+   The handler runs under the kernel root CR3 (the one the wake page holds);
+   the wake path verifies that root, and the normal scheduler path reloads
+   the caller's process CR3 on return. It reloads the GDT/IDT/TR through the
+   shared loader, reprograms the PIC and PIT exactly as at boot and audits
+   every live process address space. Only after every check passes does the syscall return 0 to the
    caller; any failed check stops the VM (fail closed, no partial resume).
 3. **Devices are lost, not resumed.** Because the storage gate already closed
    every block authority and the entropy broker is idle, no DMA can be in
    flight. After a wake the kernel marks the system as resumed: every later
-   device-backed request (block, entropy, network) is refused, and the only
-   way forward that the profile exercises is POWER_OFF (S5), which re-runs the
-   storage gate. Device re-initialisation after a wake is a separate slice.
+   block or entropy request returns -14 before any ring, doorbell or counter
+   update (the profile has no network device). This refusal is enforced in
+   code and covered by review; no ring-3 process issues such a request after
+   the wake, so it is not exercised natively. The only way forward that the
+   profile exercises is POWER_OFF (S5), which re-runs the storage gate.
+   Device re-initialisation after a wake is a separate slice.
 4. **Time.** Sleep time does not advance the tick clock; deadlines therefore
    pause across S3. This is recorded, not hidden.
 
 **Evidence boundary.** QEMU `pc-q35-8.2`/OVMF/TCG only, wake only through QMP
 `system_wakeup`; no AML `_PTS`/`_WAK`, no SMP, no device survival, no
-physical firmware. Exit 33 plus the kernel markers and the harness's QMP
-`SUSPEND`/`WAKEUP` events are the oracle.
+physical firmware. The oracle is raw QEMU exit 0 (the guest's own S5
+write after the wake), the kernel markers in order (plan at bootstrap, one
+`ENTER`/`RESUMED` pair after `SYSTEM:MANIFEST:PASS` and before
+`SYSTEM:BROKERS:PASS`), the kernel's exact SUSPEND result log
+`[-8, -6, -4, -1, 0, -14]`, a timer interrupt after the wake, and the
+harness's QMP `SUSPEND`/`WAKEUP` events. A rejected wake token exits 0x11 in
+this profile and can never satisfy that oracle. The amendment of
+23 November 2026 aligns the CR3, device-refusal and exit wording with the
+implementation (H05-T4).
 
 ## ADR-H04-LINK-20261119 — Test-profile NIC link query 0x74 and link-down refusal -23
 

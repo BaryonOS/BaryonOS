@@ -194,6 +194,7 @@ def execute(args, env, *, cut_marker=None, timeout=MAX_TIMEOUT, on_line=None):
     stdout, stderr = b"".join(out), b"".join(err)
     if hook_error is not None:
         hook_error.partial_stdout = stdout.decode("utf-8", "replace")
+        hook_error.partial_stderr = stderr.decode("utf-8", "replace")
         raise hook_error
     return (process.returncode, stdout.decode("utf-8", "replace"),
             stderr.decode("utf-8", "replace"), timed_out, killed, running_before_kill)

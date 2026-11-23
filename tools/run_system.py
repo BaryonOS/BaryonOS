@@ -152,6 +152,16 @@ def expected_markers(case: str) -> tuple[str, ...]:
                    "SYSTEM:CLEANUP:PASS", f"SYSTEM:CASE:{case.upper().replace('-', '_')}:PASS", "M1:PASS")
 
 
+def s3_machine() -> str:
+    """power-s3's evidence boundary: the measured QEMU 8.2 q35/OVMF profile
+    under single-thread TCG. An unset machine selects it; any other explicit
+    machine or KVM is refused before anything is built or launched."""
+    from run_sleep import MACHINE  # lazy, see run_system
+    if os.environ.get("NOS_QEMU_MACHINE") not in (None, MACHINE) or qemu_accel() != "tcg,thread=single":
+        raise ValueError(f"power-s3 runs only on {MACHINE} under single-thread TCG")
+    return MACHINE
+
+
 def check_suspend(lines: list[str]) -> None:
     """One resolved plan at bootstrap, then exactly one ENTER/RESUMED pair
     inside init's run: after the manifest, before the broker evidence."""
@@ -380,11 +390,7 @@ def run_system(case: str, volume_dir: Path | None = None, *, timeout: int = MAX_
     if case == "power-s3":
         import run_sleep  # lazy: run_sleep's wake hook reuses run_net_link, which imports this module
         # The S3 evidence boundary: the measured QEMU 8.2 q35/OVMF profile under TCG only.
-        # An unset machine selects the pinned profile; any other explicit one is refused.
-        if (os.environ.get("NOS_QEMU_MACHINE") not in (None, run_sleep.MACHINE)
-                or qemu_accel() != "tcg,thread=single"):
-            raise ValueError(f"power-s3 runs only on {run_sleep.MACHINE} under single-thread TCG")
-        machine = run_sleep.MACHINE
+        machine = s3_machine()
         wake = run_sleep.SystemWake(time.monotonic() + timeout)
     use_tcp = selected == TCP_FEATURE.get(case)
     use_network = selected == network_feature or use_tcp or link
@@ -484,8 +490,11 @@ def run_system(case: str, volume_dir: Path | None = None, *, timeout: int = MAX_
         # A failed link-control hook killed QEMU: keep the partial serial log.
         (run_dir / "serial.txt").write_text(getattr(error, "partial_stdout", ""))
         if wake is not None:
+            (run_dir / "stderr.txt").write_text(getattr(error, "partial_stderr", ""))
             save_json(run_dir / "result.json", dict(case=case, passed=False, s3_control=wake.evidence(),
+                                                    run_directory=str(run_dir),
                                                     error=f"{type(error).__name__}: {error}"))
+            raise RuntimeError(f"power-s3 control failed ({run_dir}): {error}") from error
         raise
     finally:
         if wake is not None:
@@ -504,6 +513,9 @@ def run_system(case: str, volume_dir: Path | None = None, *, timeout: int = MAX_
         firmware_sha256={"code": sha256(code), "vars_template": sha256(variables)},
         esp_sha256={p.relative_to(run_dir).as_posix(): sha256(p)
                     for p in (run_dir / "esp").rglob("*") if p.is_file()}, passed=False)
+    if wake is not None:
+        # Recorded before any verdict so a failed run keeps its QMP evidence.
+        report["s3_control"] = wake.evidence()
     if use_network:
         report["network_gate"] = False
     if use_tcp:
@@ -518,7 +530,6 @@ def run_system(case: str, volume_dir: Path | None = None, *, timeout: int = MAX_
         report["evidence"] = (evaluate_cold(cold_case, stdout, rc, timed_out) if cold_case is not None
                               else evaluate(case, stdout, rc, timed_out))
         if wake is not None:
-            report["s3_control"] = wake.evidence()
             wake.check()
         if case == "recover" and before != after:
             raise ValueError("read-only cold recovery changed the disk")
