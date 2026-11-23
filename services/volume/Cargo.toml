@@ -9,9 +9,9 @@ path = "src/lib.rs"
 
 [features]
 default = ["l2-install"]
-# S09 L2 INSTALL/PROVENANCE_STAT service operations. Off in the native
-# volume-docs service (64 KiB text bound; native stage needs an integration
-# request), so those operations answer NoSys there.
+# S09 L2 INSTALL/PROVENANCE_STAT service operations. On in the native
+# volume-docs service (built at opt-level "s" for the 64 KiB text bound);
+# off in the NAS native crates, where those operations answer NoSys.
 l2-install = []
 
 [dependencies]

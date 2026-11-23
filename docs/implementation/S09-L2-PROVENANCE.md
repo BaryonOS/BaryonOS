@@ -8,8 +8,9 @@ review read revision 0 (sha256 `6b8d4fbd…8978`) at commit `837619ef`. The
 resolutions below have not been reviewed again yet. The implementation
 review checks them.
 
-**Implementation: on host, unreviewed (section 11).** The native service is
-built without the L2 operations; that choice needs an owner decision.
+**Implementation: on host, with the native volume-docs service built with
+the L2 operations at opt-level "s" (section 11, deviation 1).** No native
+INSTALL stage exists yet.
 
 R1 requires review of table v3, crash recovery, compatibility, security and
 negative tests before implementation.
@@ -321,9 +322,12 @@ version.
 
 Size: the tagged enum grows `Service` by about 1.1 KiB per domain.
 `size_of::<Staged>()` (≤ 1600 B) and `size_of::<Service>()` (≤ 24 KiB) are
-pinned by a host test (`staged_session_size_is_pinned`). The native build has
-no `Staged::Install` (deviation 1 in section 11), so no native build check
-applies to it yet.
+pinned by a host test (`staged_session_size_is_pinned`). The native
+volume-docs service includes `Staged::Install` (deviation 1 in section 11).
+The native service keeps one `Service` on its 64 KiB private stack: recovery
+runs in its own non-inlined frame, `_start` borrows the service inside the
+recovery `Result` instead of moving it out, and the serving loop has its own
+frame. There is no separate static-size check.
 
 ### 4.3 INSTALL_BEGIN, INSTALL_APPEND and INSTALL_COMMIT
 
@@ -708,16 +712,28 @@ Test map (section 8):
 | 12 | `export_v2_refuses_with_range_inside_the_excess_window_then_exports_live_values`, `v1_export_of_an_installed_domain`; v1 restore and ustar suites unchanged; re-anchored mutants `revision-clock-bound`, `modified-clock-bound`, `version-stat-prefix`, `oracle-revision-clock-bound` (`choose-unrelated-generations` kept its anchor) |
 
 Deviations and additions (for the implementation review):
-1. **Native service builds without L2 (owner decision needed).** With the
-   L2 operations, the native volume-docs service exceeds its 64 KiB `.text`
-   bound. `volume-core` therefore has a default cargo feature `l2-install`
-   that gates operations 19–23, `Staged::Install` and their wire arms.
-   `sdk/examples/volume-docs` uses `default-features = false`, so the native
-   service answers 19–23 with `NoSys` (`wire::LAST` follows the feature) and
-   writes v2 tables only. Host tests, the client and `restore_native_l2`
-   use the default. Alternatives for the owner: a size-optimised profile for
-   the service, or a raised bound together with the native INSTALL stage
-   (protected 22-stage pin, integration request).
+1. **Native service builds with L2 at opt-level "s" (owner decision,
+   23 November 2026).** With the L2 operations linked in at opt-level 3, the
+   native volume-docs service exceeds its 64 KiB `.text` bound (link error
+   "app text exceeds startup boundary"). The project owner chose a
+   size-optimised build over leaving L2 out natively.
+   `sdk/examples/volume-docs/build.py` therefore defaults
+   `CARGO_PROFILE_RELEASE_OPT_LEVEL` to `s` for every volume-docs build
+   (service and app), and volume-docs uses the volume-core default features,
+   including `l2-install`. Measured volume-service `.text`: 49 701 bytes with
+   L2 at `s`; 64 021 bytes without L2 at opt-level 3; L2 at opt-level 3 does
+   not link. The `l2-install` feature remains: the NAS native crates
+   (`services/nas/native-probe`, `services/nas/native-volume`) build
+   volume-core with `default-features = false`, so their `nas-volume`
+   binary answers 19–23 with `NoSys` and writes v2 tables only.
+   Stack: with L2 linked in, the native `archive-restore` stage first
+   faulted in the service (`VOLUME:FAIL:UNEXPECTED_FAULT`, slot 0), while
+   the same stage passed without L2 at opt-level 3 and at `s`. The `_start`
+   frame held two copies of `Service` (about 42 KiB of the 64 KiB stack),
+   and `Staged::Install` adds about 1.1 KiB per domain. The service binary
+   (`sdk/examples/volume-docs/src/service.rs`, shared with the NAS
+   `nas-volume` binary) now keeps a single copy, which reduces the `_start`
+   frame to about 20.5 KiB.
 2. **INSTALL_BEGIN reply.** `client::validate_reply` sees only the request
    header, not the manifest, so it checks the reply structurally
    (`revision 0`, no data, `aux ≤ 3·MAX_LENGTH`, `count ≤ 48`). The exact

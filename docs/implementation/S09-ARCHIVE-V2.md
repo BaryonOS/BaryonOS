@@ -382,8 +382,8 @@ never feeds them into `touch` (`service.rs:603-618`).
 `archive::restore_native_l2` over table v3 (S09-L2-PROVENANCE section 11):
 the `TOMBSTONES` row stays a refusal (`Invalid`), no reviewed decision
 permits tombstone install, and no source identifier is recorded. The native
-volume service is built without the L2 operations and answers them with
-`NoSys`.
+volume-docs service is built with the L2 operations at opt-level "s"; the NAS
+`nas-volume` binary is built without them and answers with `NoSys`.
 
 ## 8. Not done here (later steps)
 
@@ -403,9 +403,9 @@ volume service is built without the L2 operations and answers them with
   (S09-L2-PROVENANCE section 11). A re-exported installed domain records
   live values; no provenance-carrying archive is decided.
 - Native writer and reader dispatch in `walk`, a v2 range adapter for
-  `DiskSource`, the native QEMU stage, and native L2 (the native service is
-  built without the L2 operations; enabling them needs the 64 KiB text
-  bound resolved and an integration request for the protected stage pin).
+  `DiskSource`, the native QEMU stage, and a native L2 INSTALL stage (the
+  native volume-docs service links the L2 operations at opt-level "s"; a
+  new stage needs an integration request for the protected stage pin).
 - The destination range size of PR #396 has not been checked against
   966 sectors.
 
