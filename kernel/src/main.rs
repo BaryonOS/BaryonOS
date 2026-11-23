@@ -48,6 +48,14 @@ compile_error!("USB reattach and the read-only DMA fault require separate boots"
 ))]
 compile_error!("USB keyboard and mouse reattach require separate boots");
 #[cfg(all(
+    feature = "usb-hid-reattach-core",
+    not(any(
+        feature = "native-usb-hid-reattach",
+        feature = "native-usb-hid-mouse-reattach"
+    ))
+))]
+compile_error!("usb-hid-reattach-core is internal; select a reattach profile");
+#[cfg(all(
     feature = "native-virtio-snd-probe",
     any(
         feature = "milestone-m3",

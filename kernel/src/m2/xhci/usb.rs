@@ -958,14 +958,23 @@ impl Engine<'_> {
         let pending = hid.pending.ok_or_else(|| bad(45))?;
         // Replayed captured completions, not hardware-generated events: each
         // real generation-1 Transfer Event must not match generation-2 work.
-        // The source whose slot was reused must also match the endpoint, so
-        // only the never-reused TRB address rejects it. Generation-1 tokens and
-        // the ticket are rejected without consuming the generation-2 pending
-        // transfer, which must later accept its real event.
+        // The source whose slot was reused must pass every other accepts()
+        // field once its TRB address is substituted, so only the never-reused
+        // TRB address rejects it. Generation-1 tokens and the ticket are
+        // rejected without consuming the generation-2 pending transfer, which
+        // must later accept its real event.
         let replayed = replay.iter().all(|&(event, source)| {
             event.slot() == source
                 && !Self::accepts(&hid, pending, event)
-                && (source != hid.slot || event.endpoint() == hid.dci)
+                && (source != hid.slot
+                    || Self::accepts(
+                        &hid,
+                        Pending {
+                            pointer: event.parameter,
+                            ..pending
+                        },
+                        event,
+                    ))
         });
         let refused = core::iter::once(&retired.pending.token)
             .chain(stale)

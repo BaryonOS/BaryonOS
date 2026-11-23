@@ -356,6 +356,9 @@ class LifecycleTests(unittest.TestCase):
                 result, _, requests = self._reattach(process, FakeQmp, fail, case="reattach-mouse")
                 self.assertIn("Guest rejected", result["error"])
                 self.assertEqual(requests[-1], cleanup)
+                if fail == "USB:REPORTS:PASS":
+                    # Only the sequence's own release: no extra cleanup input.
+                    self.assertEqual(requests.count(released_b), 1)
                 self.assertTrue(process.killed and process.reaped)
 
     def test_failed_manifest_leaves_failed_report(self):

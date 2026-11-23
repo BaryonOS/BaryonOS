@@ -127,8 +127,10 @@ including after a failed or uncertain hardware transition.
    pending, three checks must fail:
    - a *replayed captured completion*: the last real generation-1 Transfer
      Event is presented again to the generation-2 correlation. It is not a
-     hardware-generated event. Slot and endpoint match, so only the
-     never-reused TRB address rejects it;
+     hardware-generated event. The guest requires that `accepts()` passes
+     for it once its TRB address is substituted (slot, DCI, completion code,
+     remaining length and control flags), so only the never-reused TRB
+     address rejects it;
    - the generation-1 Session token, presented to the generation-2 Session,
      returns `UnexpectedCompletion`;
    - the generation-1 attach ticket returns `Stale`. This check is
@@ -217,9 +219,12 @@ then re-enumerates the mouse on root port 2 instead of the keyboard.
    oracle refuses both.
 5. **Reject generation-1 work by named source.** Both real generation-1
    completions are replayed against the generation-2 pending transfer:
-   the keyboard's last completion (its source slot is the reused slot, so
-   slot and endpoint must match and only the never-reused TRB address, input
-   ring page 9 versus page 10, rejects it) and the mouse's last completion
+   the keyboard's last completion (its source slot is the reused slot; the
+   guest requires that `accepts()` passes for it once its TRB address is
+   substituted, so slot, DCI, completion code, remaining length against the
+   four-byte mouse transfer and control flags all match, and only the
+   never-reused TRB address, input ring page 9 versus page 10, rejects it)
+   and the mouse's last completion
    (refused by slot). Each event must carry its recorded source slot (code 45).
    The generation-1 mouse token and the generation-1 keyboard token must each
    return exactly `UnexpectedCompletion`, the old mouse ticket `Stale`, and the
@@ -243,7 +248,12 @@ sequence number than the generation-2 pending token, so they would be refused
 even without it. Lifetime isolation is covered by the `drivers/usb` host
 tests; only the in-attach ticket check (code 51) is generation-specific.
 The QEMU usb-mouse boot report is at most four bytes; wheel bytes are not
-exercised. The canary pattern is fixture-only, as described above.
+exercised. The strict connect admission (codes 40, 42 and 52) applies only
+inside the explicit wait loops. `Engine::next()`, used for command waits
+(enumeration, Stop Endpoint, Disable Slot), acknowledges and drops every
+port-status event; a port-1 connect during those waits in the mouse profile,
+while port 1 is `Detached`, would be ignored rather than refused. No attach
+follows, so no authority is widened. The canary pattern is fixture-only, as described above.
 
 The harness sequence is: release B after `USB:STALE_TOKEN:DENIED`; press left
 after `USB:REPORTS:PASS`; `device_del hid-mouse` after
