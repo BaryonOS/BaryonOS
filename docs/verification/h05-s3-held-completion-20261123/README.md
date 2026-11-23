@@ -38,12 +38,12 @@ including a completed result its owner has not consumed.
 - **Fixture.** `test-system-s3-held-completion`: the 0x41 consume of init's
   SHUTDOWN flush answers success but leaves the completed request in the
   Policy. Init (word 592 = 2) expects one -8 (step 80) before the grant. A
-  labelled gate-defect injection (`held_check_skipped`, compiled into every
-  `test-system-s3` build but constant-false outside this profile via `cfg!`)
-  then skips the quiescence check on every later SUSPEND until the grant, so
-  the sleep happens with the held
-  request and only the latch keeps the volume service's exit reset off the
-  device. `Policy::exit` leaves a completed request Ready, so the final S5
+  labelled gate-defect injection (`held_check_skipped`; at `8343d2fa`
+  compiled into every `test-system-s3` build and constant-false outside this
+  profile via `cfg!`, since follow-up C `#[cfg]`-gated) then skips the
+  quiescence check on every later SUSPEND until the grant, so the sleep
+  happens with the held request and only the latch keeps the volume
+  service's exit reset off the device. `Policy::exit` leaves a completed request Ready, so the final S5
   gate re-check passes. Exact log `[-8,-6,-4,-1,-8,0,-14]`. The fixture and
   `test-system-s3-reinit` are mutually exclusive (`compile_error!`).
 - **Host.** `tools/run_system.py` case `power-s3-held-completion` with exact
