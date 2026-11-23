@@ -287,6 +287,8 @@ impl<'a> Stack<'a> {
         self.last_ticks = ticks;
         self.configuration = Some(configuration);
         self.withheld_transmission = false;
+        // A new configuration starts a fresh fairness turn.
+        self.ingress_took_tx = false;
         Ok(())
     }
 
@@ -297,6 +299,7 @@ impl<'a> Stack<'a> {
         let now = self.check_ticks(ticks);
         self.configuration = None;
         self.withheld_transmission = self.device.transmission().is_some();
+        self.ingress_took_tx = false;
         for (_, smoltcp::socket::Socket::Tcp(socket)) in self.sockets.iter_mut() {
             socket.abort();
         }
