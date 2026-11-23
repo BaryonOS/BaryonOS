@@ -526,9 +526,34 @@ def baseline_home() -> Path:
     return home
 
 
+def expected_state(state: Path) -> Path | None:
+    """The resolved path an in-checkout state directory must have; None for one outside the
+    checkout (a test layout), which no session can relink."""
+    try:
+        return ROOT.resolve() / state.relative_to(ROOT)
+    except ValueError:
+        return None
+
+
+def pin_state(state: Path) -> None:
+    """The state directory lies in the checkout: a session can make it (or a component such as
+    build/) a link into any checkout's trusted home, and every controller write, mkdir and unlink
+    there would follow. Its resolved path must be exactly the in-checkout one, before and after mkdir."""
+    if (expected := expected_state(state)) is None:
+        state.mkdir(parents=True, exist_ok=True)
+        return
+    for create in (False, True):
+        if create:
+            state.mkdir(parents=True, exist_ok=True)
+        if (resolved := state.resolve()) != expected:
+            raise Stop(f"the state directory {state} resolves to {resolved}, not {expected}; "
+                       "remove the planted link")
+
+
 class Controller:
-    def __init__(self, cfg: Config, state: Path = STATE, baseline: Path | None = None):
+    def __init__(self, cfg: Config, state: Path | None = None, baseline: Path | None = None):
         self.cfg = cfg
+        state = STATE if state is None else state  # read at call time, not bound at class creation
         self.state = state
         # A test state directory already lies outside the checkout; the real one does not.
         self.baseline = baseline if baseline is not None else (None if state == STATE else state)
@@ -541,19 +566,36 @@ class Controller:
 
     # --- locking and lifecycle ---
     def own_state(self) -> None:
-        """The state directory lies in the checkout: a session can make it (or a component) a link
-        into any checkout's trusted home, and every controller write and unlink there would follow.
-        Its resolved path must be exactly the in-checkout one; checked before and after mkdir."""
         if self.baseline is not None:  # a test layout: the state directory is its own baseline home
             self.state.mkdir(parents=True, exist_ok=True)
             return
-        expected = ROOT.resolve() / STATE.relative_to(ROOT)
-        for create in (False, True):
-            if create:
-                self.state.mkdir(parents=True, exist_ok=True)
-            if (resolved := self.state.resolve()) != expected:
-                raise Stop(f"the state directory {self.state} resolves to {resolved}, not {expected}; "
+        pin_state(self.state)
+
+    def unlink_in_state(self, *names: str) -> None:
+        """Unlinks through one descriptor of the verified state directory: a link swapped in after
+        own_state() cannot carry the unlink into another checkout's home."""
+        if self.baseline is not None or (pinned := expected_state(self.state)) is None:
+            for name in names:
+                (self.state / name).unlink(missing_ok=True)
+            return
+        expected = str(pinned)
+        try:
+            fd = os.open(self.state, os.O_RDONLY | os.O_DIRECTORY | os.O_CLOEXEC)  # verified below
+        except OSError as error:
+            raise Stop(f"refusing the state directory {self.state}: {error.strerror} (a planted link?)") from error
+        try:
+            try:
+                opened = os.readlink(f"/proc/self/fd/{fd}")
+            except OSError as error:  # no /proc: the opened directory cannot be verified
+                raise Stop(f"cannot verify the state directory {self.state}: {error.strerror}") from error
+            if opened != expected:
+                raise Stop(f"the state directory {self.state} opened as {opened}, not {expected}; "
                            "remove the planted link")
+            for name in names:
+                with contextlib.suppress(FileNotFoundError):
+                    os.unlink(name, dir_fd=fd)
+        finally:
+            os.close(fd)
 
     def acquire(self) -> None:
         self.own_state()
@@ -787,9 +829,8 @@ class Controller:
         """Clear STOP and PAUSE. The saved baseline stays while anything may still change the
         checkout (a running controller or worker, an active manual claim), and it is never
         retired over a change the lead has not acknowledged by its digest."""
-        self.own_state()  # before the unlinks below follow a planted link into the trusted home
-        for name in ("STOP", "PAUSE"):
-            (self.state / name).unlink(missing_ok=True)
+        self.own_state()  # before any write or unlink can follow a planted link into a trusted home
+        self.unlink_in_state("STOP", "PAUSE")
         self.lock_file = open_private(self.state / "controller.lock")
         try:
             fcntl.flock(self.lock_file, fcntl.LOCK_EX | fcntl.LOCK_NB)
@@ -822,7 +863,7 @@ class Controller:
         # the session, say) is still compared by the next preflight, which retires it only last.
         snapshot = {"baseline": read[0], "session": f"accepted {now()}", "ignored": read[1]}  # the reviewed read
         self.own_state()  # again, before anything is retired: a link swapped in since would carry the unlink
-        (self.state / CALLBACKS_MARKER).unlink(missing_ok=True)  # a legacy in-checkout baseline
+        self.unlink_in_state(CALLBACKS_MARKER)  # a legacy in-checkout baseline
         self.retire_baseline()  # writes the trust record and drops the nonce
         atomic_write(self.marker(), json.dumps(snapshot))
         return ("stop/pause cleared; the reviewed state is now the saved session baseline (the next preflight "
@@ -1468,7 +1509,11 @@ def main() -> int:
     sub.add_parser("resume").add_argument(
         "--accept", metavar="DIGEST", help="retire a saved baseline over the change `resume` reported")
     args = parser.parse_args()
-    STATE.mkdir(parents=True, exist_ok=True)
+    try:
+        pin_state(STATE)  # before this mkdir or the stop/pause write could follow a planted link
+    except Stop as error:
+        print(error)
+        return 2
     if args.cmd == "status":
         return status()
     if args.cmd == "validate":

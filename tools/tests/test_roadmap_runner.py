@@ -685,7 +685,10 @@ class Session(unittest.TestCase):
             worker.kill()
             worker.wait()
         with tempfile.TemporaryDirectory() as tmp:
-            rr.Controller(rr.Config(), Path(tmp)).refuse_live_workers()  # exit 1: none left
+            try:  # other tagged processes on the host (a concurrent run) may remain; this one may not
+                rr.Controller(rr.Config(), Path(tmp)).refuse_live_workers()
+            except rr.Stop as error:
+                self.assertNotIn(f"'{worker.pid}'", str(error))
 
     def test_interrupted_session_leaves_its_baseline_for_the_next_preflight(self):
         for later, stops in (("after", True), ("before", False)):
@@ -1058,7 +1061,10 @@ class RunnerResiduals(unittest.TestCase):
                 unittest.mock.patch.object(rr, "load_ledger", return_value=ledger), \
                 unittest.mock.patch.dict("os.environ", env, clear=True), \
                 unittest.mock.patch.object(rr, "planted_modules", return_value=[]), \
+                unittest.mock.patch.object(rr.Controller, "refuse_live_workers"), \
                 unittest.mock.patch.object(rr, "git_callbacks", return_value="cb"):
+            # refuse_live_workers patched: pgrep also sees tagged processes of a concurrent run on
+            # the host. Tests of the probe itself patch it again with their own outcome.
             yield repo, state, rr.Controller(rr.Config(), state)
 
     def resume(self, *extra):
@@ -1625,6 +1631,50 @@ class RunnerResiduals(unittest.TestCase):
             with self.assertRaisesRegex(rr.Stop, "remove the planted link"):
                 controller.acquire()
             self.assertEqual(os.listdir(sibling), [])  # checked before mkdir followed the link
+            # 213797e9: main() made the state directory first, and stop/pause wrote through the link.
+            for command in ("resume", "stop", "pause", "status", "brief", "validate"):
+                with unittest.mock.patch.object(rr, "isolate_imports"), \
+                        unittest.mock.patch.object(rr.sys, "argv", ["roadmap_runner.py", command]), \
+                        contextlib.redirect_stdout(io.StringIO()) as out:
+                    self.assertEqual(rr.main(), 2, command)
+                self.assertIn("remove the planted link", out.getvalue())
+                self.assertEqual(os.listdir(sibling), [], command)
+
+    def test_stop_and_pause_do_not_write_through_a_linked_state_directory(self):
+        with tempfile.TemporaryDirectory() as tmp, self.live_state(tmp) as (repo, state, controller):
+            sibling = controller.marker().parent.parent / ("0" * 16)
+            sibling.mkdir(parents=True)
+            state.rmdir()
+            state.symlink_to(sibling, target_is_directory=True)
+            for command in ("stop", "pause"):
+                with unittest.mock.patch.object(rr, "isolate_imports"), \
+                        unittest.mock.patch.object(rr.sys, "argv", ["roadmap_runner.py", command]), \
+                        contextlib.redirect_stdout(io.StringIO()):
+                    self.assertEqual(rr.main(), 2, command)
+            self.assertEqual(os.listdir(sibling), [])
+
+    def test_a_link_swapped_in_after_the_descriptor_check_carries_no_unlink(self):
+        # The unlink itself goes through the verified descriptor, not the path walked again.
+        with tempfile.TemporaryDirectory() as tmp, self.live_state(tmp) as (repo, state, controller):
+            self.manual_marker(controller)
+            sibling = controller.marker().parent.parent / ("0" * 16)
+            sibling.mkdir()
+            rr.atomic_write(sibling / rr.CALLBACKS_MARKER, json.dumps({"manual": "S", "ignored": {}}))
+            digest = re.search(r"resume --accept ([0-9a-f]+)", self.resume()[1]).group(1)
+            real_readlink, calls = os.readlink, []
+
+            def readlink_then_swap(path, *args, **kwargs):
+                value = real_readlink(path, *args, **kwargs)
+                if str(path).startswith("/proc/self/fd/"):
+                    calls.append(1)
+                    if len(calls) == 2:  # verified for the legacy unlink; swap before it runs
+                        os.rename(state, Path(tmp) / "state-moved")
+                        state.symlink_to(sibling, target_is_directory=True)
+                return value
+            with unittest.mock.patch.object(rr.os, "readlink", readlink_then_swap):
+                self.assertEqual(self.resume("--accept", digest)[0], 0)
+            self.assertEqual(len(calls), 2)
+            self.assertTrue((sibling / rr.CALLBACKS_MARKER).exists())
 
     def test_a_linked_legacy_marker_outside_the_checkout_is_refused(self):
         with tempfile.TemporaryDirectory() as tmp, self.live_state(tmp) as (repo, state, controller), \
@@ -1661,6 +1711,35 @@ class RunnerResiduals(unittest.TestCase):
             self.assertTrue((sibling / rr.CALLBACKS_MARKER).exists())
             self.assertEqual(controller.manual_claim(), "L01-T3")  # refused before anything was retired
 
+    def test_a_link_swapped_in_after_the_last_check_carries_no_unlink(self):
+        # 213797e9 walked the path again for the unlink after own_state() passed.
+        for component in ("state directory", "build"):
+            with self.subTest(component=component), tempfile.TemporaryDirectory() as tmp, \
+                    self.live_state(tmp) as (repo, state, controller):
+                self.manual_marker(controller)
+                sibling = controller.marker().parent.parent / ("0" * 16)
+                (sibling / "roadmap-pipeline").mkdir(parents=True)
+                for target in (sibling, sibling / "roadmap-pipeline"):
+                    rr.atomic_write(target / rr.CALLBACKS_MARKER, json.dumps({"manual": "S", "ignored": {}}))
+                digest = re.search(r"resume --accept ([0-9a-f]+)", self.resume()[1]).group(1)
+                real_own, calls = rr.Controller.own_state, []
+
+                def own_then_swap(self):
+                    real_own(self)
+                    calls.append(1)
+                    if len(calls) == 2:  # the check right before the legacy unlink
+                        os.rename(repo / "build", Path(tmp) / "build-moved")
+                        if component == "build":
+                            (repo / "build").symlink_to(sibling, target_is_directory=True)
+                        else:
+                            (repo / "build").mkdir()
+                            (repo / "build" / "roadmap-pipeline").symlink_to(sibling, target_is_directory=True)
+                with unittest.mock.patch.object(rr.Controller, "own_state", own_then_swap):
+                    self.assertEqual(self.resume("--accept", digest)[0], 2)
+                self.assertTrue((sibling / rr.CALLBACKS_MARKER).exists())
+                self.assertTrue((sibling / "roadmap-pipeline" / rr.CALLBACKS_MARKER).exists())
+                self.assertEqual(controller.manual_claim(), "L01-T3")
+
     def test_a_refused_resume_does_not_claim_it_cleared_stop(self):
         with tempfile.TemporaryDirectory() as tmp, self.live_state(tmp) as (repo, state, controller):
             elsewhere = Path(tmp) / "elsewhere"
@@ -1673,17 +1752,18 @@ class RunnerResiduals(unittest.TestCase):
             self.assertNotIn("stop/pause cleared", message)
             self.assertTrue((elsewhere / "STOP").exists())
 
-    def test_the_accepted_snapshot_outlives_a_legacy_marker_that_is_the_marker(self):
-        # Second layer under own_state(): the legacy unlink runs before the snapshot is written.
+    def test_the_state_descriptor_holds_when_own_state_is_bypassed(self):
+        # Second layer under own_state(): unlinks go through a verified descriptor of the directory.
         with tempfile.TemporaryDirectory() as tmp, self.live_state(tmp) as (repo, state, controller), \
-                unittest.mock.patch.object(rr.Controller, "refuse_live_workers"), \
                 unittest.mock.patch.object(rr.Controller, "own_state"):
             home = controller.marker().parent
             self.manual_marker(controller)
             state.rmdir()
             state.symlink_to(home, target_is_directory=True)
-            self.assertEqual(self.accept()[0], 0)
-            self.assertTrue(json.loads(controller.marker().read_text())["session"].startswith("accepted"))
+            code, message = self.resume()
+            self.assertEqual(code, 2, message)
+            self.assertIn("planted link", message)
+            self.assertEqual(controller.manual_claim(), "L01-T3")
 
     def test_acquire_does_not_follow_a_planted_controller_lock(self):
         with tempfile.TemporaryDirectory() as tmp, self.live_state(tmp) as (repo, state, controller):
