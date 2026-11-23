@@ -1,7 +1,6 @@
 """Synthetic matrix fixtures; no hardware execution or acceptance."""
 import copy
 import json
-import os
 from pathlib import Path
 import shutil
 import sys
