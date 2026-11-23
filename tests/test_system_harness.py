@@ -6,6 +6,7 @@ from pathlib import Path
 import sys
 import tempfile
 import unittest
+import unittest.mock
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "tools"))
 from run_system import (KEYSTATE_HEADER, KEYSTATE_NAME, KEYSTATE_OBJECT, OPAQUE_OBJECTS, PERSIST_EXACT,
@@ -327,18 +328,89 @@ class SystemHarnessTests(unittest.TestCase):
 
 def power_transcript(case="power", tail=None, **changes):
     """H05 power run: the normal flow plus refusal counters, then the S5 tail."""
-    values = dict(POWER_INIT_REFUSALS=3 if case == "power" else 4, POWER_APP_REFUSALS=2,
-                  POWER_NOT_DURABLE=0 if case == "power" else 1, DISK_FLUSHES=4)
+    ok = case in ("power", "power-s3")
+    values = dict(POWER_INIT_REFUSALS=3 if ok else 4, POWER_APP_REFUSALS=2,
+                  POWER_NOT_DURABLE=0 if ok else 1, DISK_FLUSHES=4)
+    if case == "power-s3":
+        values.update(SUSPEND_REFUSALS=5, SUSPEND_GRANTED=1, SUSPEND_TICK_AFTER_WAKE=1)
     values.update(changes)
     body = transcript("normal", **values).replace("SYSTEM:CASE:NORMAL:PASS\nM1:PASS\n", "")
     marker = expected_markers(case)[-2]
-    if case == "power":
+    if ok:
         end = ["SYSTEM:POWER:GATE:PASS", marker, "M1:PASS", *S5_TAIL] if tail is None else tail
     else:
         fault = "FLUSH_ERROR" if case == "power-flush-error" else "FLUSH_TIMEOUT"
         end = [f"SYSTEM:FAULT_INJECTED:{fault}", "SYSTEM:POWER:REFUSED:NOT_DURABLE", marker,
                "M1:PASS"] if tail is None else tail
     return body + "\n".join(end) + "\n"
+
+
+S3_PLAN = ("POWER:S3:PLAN:PM1A=0x0604:SLP_TYP=1:PM1A_STS=0x0600:FACS_VERSION=0:"
+           "REAL=0x1000:PM32=0x2000510:POLICY=Edk2Version0Extended")
+S3_ENTER = "POWER:S3:ENTER:CYCLE=1:SCI_EN=1"
+S3_RESUMED = ("POWER:S3:RESUMED:CYCLE=1:ENTRY=PM32:PM1_STS=0x8101:WAK_STS=1:SCI_EN=RESTORED:"
+              "HWSIG=SAME:FACS=DISARMED:CANARY=PASS:CR3=SAME")
+
+
+def s3_transcript(s3=(S3_ENTER, S3_RESUMED), plan=S3_PLAN, **changes):
+    """H05-T4 power-s3 in the kernel's real order: plan at bootstrap, the one
+    cycle inside init's run (after MANIFEST, before the broker evidence)."""
+    text = power_transcript("power-s3", **changes)
+    before = (plan + "\n") if plan else ""
+    return text.replace("SYSTEM:MANIFEST:PASS\n",
+                        before + "SYSTEM:MANIFEST:PASS\n" + "".join(line + "\n" for line in s3), 1)
+
+
+class PowerS3HarnessTests(unittest.TestCase):
+    def test_passes_only_with_raw_exit_zero_and_parses_every_suspend_counter(self):
+        found = evaluate("power-s3", s3_transcript(), 0, False)
+        self.assertEqual((found["SUSPEND_REFUSALS"], found["SUSPEND_GRANTED"],
+                          found["SUSPEND_TICK_AFTER_WAKE"]), (5, 1, 1))
+        for raw, timed_out in ((33, False), (35, False), (None, True), (0, True)):
+            with self.subTest(raw=raw, timed_out=timed_out), self.assertRaises(ValueError):
+                evaluate("power-s3", s3_transcript(), raw, timed_out)
+
+    def test_exactly_one_planned_entered_resumed_cycle_in_order(self):
+        bad_resumes = [S3_RESUMED.replace(old, new) for old, new in (
+            ("CR3=SAME", "CR3=CHANGED"), ("CANARY=PASS", "CANARY=FAIL"), ("CYCLE=1", "CYCLE=2"),
+            ("FACS=DISARMED", "FACS=STORE_FAILED"), ("WAK_STS=1", "WAK_STS=0"),
+            ("ENTRY=PM32", "ENTRY=REAL"), ("HWSIG=SAME", "HWSIG=CHANGED"))]
+        cases = [dict(s3=(S3_ENTER,)), dict(s3=(S3_RESUMED,)), dict(s3=(S3_RESUMED, S3_ENTER)),
+                 dict(s3=(S3_ENTER, S3_ENTER, S3_RESUMED)), dict(s3=(S3_ENTER, S3_RESUMED, S3_RESUMED)),
+                 dict(plan=None), dict(s3=(S3_ENTER, S3_RESUMED, "POWER:S3:NO_TRANSITION:DISARMED")),
+                 *[dict(s3=(S3_ENTER, line)) for line in bad_resumes]]
+        for case in cases:
+            with self.subTest(case=case), self.assertRaises(ValueError):
+                evaluate("power-s3", s3_transcript(**case), 0, False)
+
+    def test_s3_lines_after_the_broker_evidence_are_refused(self):
+        text = s3_transcript(s3=()).replace("SYSTEM:BROKERS:PASS\n",
+                                            f"SYSTEM:BROKERS:PASS\n{S3_ENTER}\n{S3_RESUMED}\n")
+        with self.assertRaisesRegex(ValueError, "order"):
+            evaluate("power-s3", text, 0, False)
+
+    def test_suspend_and_power_counters_are_exact(self):
+        for change in (dict(SUSPEND_GRANTED=0), dict(SUSPEND_REFUSALS=4), dict(SUSPEND_TICK_AFTER_WAKE=0),
+                       dict(POWER_INIT_REFUSALS=4)):
+            with self.subTest(change=change), self.assertRaises(ValueError):
+                evaluate("power-s3", s3_transcript(**change), 0, False)
+        plain = s3_transcript().replace("SYSTEM:CASE:POWER_S3:PASS", "SYSTEM:CASE:POWER:PASS")
+        with self.assertRaises(ValueError):
+            evaluate("power-s3", plain, 0, False)
+
+    def test_wrong_machine_or_accelerator_is_refused_before_launch(self):
+        import run_system as runner
+        for env in ({"NOS_QEMU_MACHINE": "pc-q35-10.0"},):
+            with self.subTest(env=env), unittest.mock.patch.dict(os.environ, env), \
+                    self.assertRaisesRegex(ValueError, "power-s3 runs only"):
+                runner.run_system("power-s3")
+        with unittest.mock.patch.object(runner, "qemu_accel", return_value="kvm"), \
+                self.assertRaisesRegex(ValueError, "power-s3 runs only"):
+            runner.run_system("power-s3")
+
+    def test_a_passing_s3_image_of_the_same_source_may_recover(self):
+        check_parent(dict(case="power-s3", passed=True, kernel_feature="test-system-s3",
+                          source_sha256="source", after_sha256="disk"), "source", "disk", network=False)
 
 
 class PowerHarnessTests(unittest.TestCase):

@@ -467,6 +467,12 @@ fn call(s: &mut State, slot: usize, n: u64, a: [u64; 6]) -> Result<u64, i64> {
             if a[1] == 0 || a[1] > u64::from(MAX_REQUEST) {
                 return Err(-11);
             }
+            // ADR-H05-S3-SYSTEM-20261123: the wake reset the device; no ring
+            // or counter is touched for it again on this boot.
+            #[cfg(feature = "test-system-s3")]
+            if super::system::resumed() {
+                return Err(-14);
+            }
             reclaim_completed(s.ticks);
             let r = runtime();
             r.requests += 1;

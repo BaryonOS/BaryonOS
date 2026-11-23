@@ -502,3 +502,10 @@ pub fn power_off(power: Handle) -> Error {
         Err(error) => error,
     }
 }
+
+/// H05-T4 test-system-s3 only (ADR-H05-S3-SYSTEM-20261123), not a published
+/// ABI: one S3 suspend with the POWER handle. `Ok` means a validated wake;
+/// other profiles answer ENOSYS (-2).
+pub fn suspend(power: Handle) -> Result<(), Error> {
+    zero_return(call(0x91, [power.raw(), 0, 0, 0, 0, 0]))
+}

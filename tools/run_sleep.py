@@ -17,6 +17,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 from pathlib import Path
 import re
 import subprocess
@@ -74,6 +75,91 @@ class EventPipe(QmpPipe):
                 if "Missing or truncated" in str(error) and not self.pending:
                     return
                 raise
+
+
+class SystemWake:
+    """H05-T4 power-s3: wake the one granted system-profile suspend.
+
+    A run_system QMP hook over the run's private socket. It permits only
+    qmp_capabilities, query-status and system_wakeup, requires `suspended`
+    before and after the dwell, wakes exactly once, and records the ordered
+    QMP SUSPEND/WAKEUP events up to the guest's return to `running`.
+    """
+    ALLOWED = frozenset({"query-status", "system_wakeup"})
+
+    def __init__(self, deadline: float, connect=None):
+        self.deadline = deadline
+        self.connect = connect
+        self.qmp = None
+        self.directory = None
+        self.woken = False
+        self.trace: list[str] = []
+        self.observations: list[dict] = []
+
+    def command(self, name: str):
+        if name not in self.ALLOWED:
+            raise ValueError(f"QMP command outside the allowlist: {name}")
+        self.trace.append(name)
+        return self.qmp.command(name)
+
+    def status(self) -> str:
+        return _status(self)
+
+    def __call__(self, line: str, process, run_dir: Path) -> None:
+        if self.qmp is None:
+            # Connect on the first serial line, long before any suspend.
+            connect = self.connect
+            if connect is None:
+                from run_graphics import Qmp  # lazy: run_net_link imports run_system
+                from run_net_link import LinkControl
+
+                class EventQmp(Qmp):
+                    def read(inner):
+                        reply = super().read()
+                        if isinstance(reply.get("event"), str):
+                            self.events.append(reply["event"])
+                        return reply
+                connect = lambda d, p, t: LinkControl._connect(d, p, t, client=EventQmp)
+            self.events: list[str] = []
+            self.qmp, self.directory = connect(Path(run_dir), process, self.deadline)
+        if line == ENTER.format(1):
+            if self.woken:
+                raise RuntimeError("second S3 entry in the system profile")
+            while self.status() != "suspended":
+                if process.poll() is not None or time.monotonic() >= self.deadline:
+                    raise RuntimeError("guest never suspended after ENTER")
+                time.sleep(0.01)
+            time.sleep(DWELL_S)
+            if self.status() != "suspended":
+                raise RuntimeError("guest left S3 without a wake request")
+            self.command("system_wakeup")
+            self.woken = True
+            while self.status() != "running":
+                if process.poll() is not None or time.monotonic() >= self.deadline:
+                    raise RuntimeError("guest did not run again after system_wakeup")
+                time.sleep(0.01)
+            self.observations.append({"cycle": 1, "suspended": True, "dwell_s": DWELL_S,
+                                      "running_after_wakeup": True})
+        elif RESUMED.fullmatch(line) and not self.woken:
+            raise RuntimeError("RESUMED without a harness wake request")
+
+    def evidence(self) -> dict:
+        sleep_events = [event for event in getattr(self, "events", []) if event in ("SUSPEND", "WAKEUP")]
+        return {"trace": list(self.trace), "events": sleep_events,
+                "observations": list(self.observations), "woken": self.woken}
+
+    def check(self) -> None:
+        ev = self.evidence()
+        if not self.woken or ev["trace"].count("system_wakeup") != 1 or ev["events"] != ["SUSPEND", "WAKEUP"]:
+            raise ValueError(f"S3 control evidence mismatch: {ev}")
+
+    def close(self) -> None:
+        if self.qmp is not None:
+            self.qmp.close()
+            self.qmp = None
+        if self.directory is not None:
+            os.close(self.directory)
+            self.directory = None
 
 
 def expected_wakeups(case: str) -> int:

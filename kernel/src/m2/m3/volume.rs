@@ -958,6 +958,11 @@ fn device_call(s: &mut State, slot: usize, n: u64, a: [u64; 6]) -> Result<u64, i
         None
     };
     let r = runtime();
+    // ADR-H05-S3-SYSTEM-20261123: the wake reset the device.
+    #[cfg(feature = "test-system-s3")]
+    if super::system::resumed() {
+        return Err(-14);
+    }
     if r.lanes[dev].offline != 0 {
         return Err(r.lanes[dev].offline);
     }

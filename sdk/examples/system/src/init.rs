@@ -257,6 +257,11 @@ fn power_off_sequence(power: Handle, image: LaunchImage) -> ! {
     check(native::derive(power, Rights::POWER).is_err(), 51);
     // The volume still holds BLOCK authority: refused, nothing happens.
     check(native::power_off(power) == Error::Kernel(-8), 52);
+    // test-system-s3 kernels set word 592; every other profile skips SUSPEND.
+    let s3 = support::word(592) == 1;
+    if s3 {
+        check(native::suspend(power) == Err(Error::Kernel(-8)), 70);
+    }
     // Final flush; on Ok the volume closes its block capability. A refused
     // flush (Unknown) leaves the decision to the kernel gate below.
     let _ = volume().shutdown(volume_core::PER_DOMAIN as u64);
@@ -264,6 +269,9 @@ fn power_off_sequence(power: Handle, image: LaunchImage) -> ! {
     check(native::power_off(image.handle()) == Error::Kernel(-6), 53);
     let forged = Handle::from_raw(power.raw() + (1 << 32)).unwrap_or_else(|_| fail(54));
     check(native::power_off(forged) == Error::Kernel(-4), 54);
+    if s3 {
+        suspend_sequence(power, image, forged);
+    }
     for _ in 0..LIMIT * 8 {
         match native::power_off(power) {
             Error::Kernel(-8) => {
@@ -275,6 +283,60 @@ fn power_off_sequence(power: Handle, image: LaunchImage) -> ! {
         }
     }
     fail(56)
+}
+
+/// H05-T4 (ADR-H05-S3-SYSTEM-20261123): authority refusals, then the one
+/// granted suspend, proof of ticks after the wake, then the one-shot refusal.
+/// The kernel logs each SUSPEND result itself; init only sequences.
+#[inline(never)]
+fn suspend_sequence(power: Handle, image: LaunchImage, forged: Handle) {
+    check(
+        native::suspend(image.handle()) == Err(Error::Kernel(-6)),
+        71,
+    );
+    check(native::suspend(forged) == Err(Error::Kernel(-4)), 72);
+    let (mut number, mut secondary) = (0x91u64, 7u64);
+    // SAFETY: Scalar-only negative probe: a nonzero second argument with the
+    // documented int80 registers; no pointer reaches the kernel.
+    unsafe {
+        core::arch::asm!(
+            "int 0x80",
+            inout("rax") number,
+            in("rdi") power.raw(),
+            in("rsi") 1u64,
+            inout("rdx") secondary,
+            in("r10") 0u64,
+            in("r8") 0u64,
+            in("r9") 0u64,
+            options(nostack),
+        );
+    }
+    check(number as i64 == -1 && secondary == 0, 73);
+    // Ring-3 stack memory must survive the sleep unchanged.
+    let mut pattern = [0u64; 8];
+    for (index, slot) in pattern.iter_mut().enumerate() {
+        let value = (slot as *mut u64 as u64) ^ 0x5a5a_5a5a_0000_0000 ^ index as u64;
+        // SAFETY: Aligned write into this frame's own live local array.
+        unsafe { core::ptr::write_volatile(slot, value) };
+    }
+    // Storage is closed after SHUTDOWN Ok, so the first request is granted.
+    check(native::suspend(power) == Ok(()), 74);
+    for (index, slot) in pattern.iter_mut().enumerate() {
+        let expected = (slot as *mut u64 as u64) ^ 0x5a5a_5a5a_0000_0000 ^ index as u64;
+        // SAFETY: Aligned read of the same live local array.
+        check(unsafe { core::ptr::read_volatile(slot) } == expected, 75);
+    }
+    // The kernel sets word 616 on the first timer interrupt after the wake.
+    let mut ticked = false;
+    for _ in 0..LIMIT {
+        if support::word(616) == 1 {
+            ticked = true;
+            break;
+        }
+        let _ = native::yield_now();
+    }
+    check(ticked, 76);
+    check(native::suspend(power) == Err(Error::Kernel(-14)), 77);
 }
 
 #[no_mangle]

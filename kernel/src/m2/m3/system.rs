@@ -88,6 +88,83 @@ fn storage_closed() -> Result<(), i64> {
     }
     Ok(())
 }
+/// H05-T4 (ADR-H05-S3-SYSTEM-20261123): every SUSPEND result per call, in
+/// order, as the kernel returned it, kept apart from the POWER_OFF log.
+#[cfg(feature = "test-system-s3")]
+struct Suspend {
+    log: [i64; 8],
+    count: usize,
+    other: usize,
+    granted: bool,
+    resumed: bool,
+    irqs_at_wake: u64,
+    ticked: bool,
+}
+#[cfg(feature = "test-system-s3")]
+static mut SUSPEND: Suspend = Suspend {
+    log: [0; 8],
+    count: 0,
+    other: 0,
+    granted: false,
+    resumed: false,
+    irqs_at_wake: 0,
+    ticked: false,
+};
+#[cfg(feature = "test-system-s3")]
+fn suspend_state() -> &'static mut Suspend {
+    // SAFETY: One CPU, IF=0, KERNEL held. Each borrow ends before a syscall,
+    // scheduling or the sleep itself.
+    unsafe { &mut *ptr::addr_of_mut!(SUSPEND) }
+}
+/// Syscall 0x91 SUSPEND(power handle, 0, 0, 0, 0, 0), same validation order
+/// as POWER_OFF; one grant per boot (-14 afterwards). 0 = validated wake.
+#[cfg(feature = "test-system-s3")]
+pub(super) fn suspend(s: &mut State, slot: usize, a: [u64; 6]) -> i64 {
+    let code = if a[1..].iter().any(|value| *value != 0) {
+        -1
+    } else if let Err(error) = m4::engine().check_power(s.processes[slot].pid, a[0]) {
+        error.code()
+    } else if !crate::m2::sleep::ready() {
+        -14
+    } else if let Err(code) = storage_closed() {
+        code
+    } else {
+        0
+    };
+    let p = suspend_state();
+    if slot != INIT {
+        p.other = p.other.saturating_add(1);
+    } else if p.count < p.log.len() {
+        p.log[p.count] = code;
+        p.count += 1;
+    } else {
+        // A lost record can never satisfy the exact log `finish` requires.
+        p.other = p.other.saturating_add(1);
+    }
+    if code != 0 {
+        return code;
+    }
+    p.granted = true;
+    crate::m2::sleep::suspend(&mut s.kernel);
+    let p = suspend_state();
+    p.resumed = true;
+    p.irqs_at_wake = s.timer_interrupts;
+    0
+}
+/// After a validated wake every device is reset by the platform.
+#[cfg(feature = "test-system-s3")]
+pub(super) fn resumed() -> bool {
+    suspend_state().resumed
+}
+/// First timer interrupt after the wake: tell init it may continue.
+#[cfg(feature = "test-system-s3")]
+pub(super) fn tick_after_wake(s: &State) {
+    let p = suspend_state();
+    if p.resumed && !p.ticked && s.processes[INIT].status != Status::Dead {
+        p.ticked = true;
+        put(s, INIT, 616, 1);
+    }
+}
 struct Evidence {
     app: Option<[u64; 13]>,
     persist: Option<[u64; 6]>,
@@ -303,6 +380,8 @@ pub(super) fn manifest(s: &mut State) {
         );
         // The app learns init's raw handle value only: a number, not authority.
         put(s, INIT, 48, power);
+        #[cfg(feature = "test-system-s3")]
+        put(s, INIT, 592, 1);
         put(s, APP, 104, power);
         // SHUTDOWN is accepted only on domain 1, init's volume ingress.
         put(s, VOLUME, 104, 2);
@@ -815,6 +894,25 @@ fn finish(s: &mut State) -> ! {
         print_number(b"SYSTEM:POWER_APP_REFUSALS:", p.count[APP] as u64);
         print_number(b"SYSTEM:POWER_NOT_DURABLE:", u64::from(refused));
     }
+    #[cfg(feature = "test-system-s3")]
+    {
+        let p = suspend_state();
+        let ok = p.granted
+            && p.resumed
+            && p.ticked
+            && s.timer_interrupts > p.irqs_at_wake
+            && p.log[..p.count] == [-8, -6, -4, -1, 0, -14]
+            && p.other == 0;
+        if !ok {
+            for code in &p.log[..p.count] {
+                print_number(b"SYSTEM:SUSPEND:LOG_RESULT:", code.unsigned_abs());
+            }
+            fail(b"SUSPEND_EVIDENCE");
+        }
+        print_number(b"SYSTEM:SUSPEND_REFUSALS:", (p.count - 1) as u64);
+        print_number(b"SYSTEM:SUSPEND_GRANTED:", 1);
+        print_number(b"SYSTEM:SUSPEND_TICK_AFTER_WAKE:", 1);
+    }
     // Seals: legacy 1 + record 1 (+ persisted record in the normal run).
     // Unseals: legacy 1 + record 1 (+ restored record after the cold start).
     // Authentication failures: 9 record/legacy tampers + wrong recovery
@@ -984,7 +1082,11 @@ fn finish(s: &mut State) -> ! {
             print_number(b"SYSTEM:POWER:GATE_LOST:", code as u64);
             fail(b"POWER_GATE");
         }
-        serial::write(b"SYSTEM:POWER:GATE:PASS\nSYSTEM:CASE:POWER:PASS\nM1:PASS\n");
+        serial::write(if cfg!(feature = "test-system-s3") {
+            &b"SYSTEM:POWER:GATE:PASS\nSYSTEM:CASE:POWER_S3:PASS\nM1:PASS\n"[..]
+        } else {
+            b"SYSTEM:POWER:GATE:PASS\nSYSTEM:CASE:POWER:PASS\nM1:PASS\n"
+        });
         crate::m2::power::off();
         fail(b"POWER_RETURNED");
     } else {

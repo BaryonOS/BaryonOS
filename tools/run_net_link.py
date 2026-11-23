@@ -71,8 +71,9 @@ class LinkControl:
         self.timeline: list[tuple[float, str]] = []
 
     @staticmethod
-    def _connect(run_dir: Path, process, deadline: float):
+    def _connect(run_dir: Path, process, deadline: float, client=None):
         from run_graphics import Qmp  # existing bounded QMP client
+        Qmp = client or Qmp
         path = run_dir / "qmp.sock"
         directory = os.open(run_dir, os.O_PATH | os.O_DIRECTORY | os.O_NOFOLLOW)
         try:

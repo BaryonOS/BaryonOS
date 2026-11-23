@@ -233,5 +233,104 @@ class MachinePin(unittest.TestCase):
                 gate.run_case("cycles")
 
 
+class FakeSystemQmp:
+    """Scripted query-status answers; QEMU events are appended as they would arrive."""
+
+    def __init__(self, wake, statuses, events=("SUSPEND", "WAKEUP")):
+        self.wake, self.statuses, self.events, self.sent = wake, list(statuses), list(events), []
+
+    def command(self, name, arguments=None):
+        self.sent.append(name)
+        if name == "system_wakeup":
+            return {}
+        status = self.statuses.pop(0)
+        if status == "suspended" and "SUSPEND" in self.events:
+            self.wake.events.append(self.events.pop(self.events.index("SUSPEND")))
+        if status == "running" and "system_wakeup" in self.sent and "WAKEUP" in self.events:
+            self.wake.events.append(self.events.pop(self.events.index("WAKEUP")))
+        return {"status": status}
+
+    def close(self):
+        pass
+
+
+class Alive:
+    @staticmethod
+    def poll():
+        return None
+
+
+class SystemWakeControl(unittest.TestCase):
+    """H05-T4 power-s3 hook; HOST_ONLY, the native run is the evidence."""
+
+    def wake(self, statuses, **options):
+        holder = {}
+
+        def connect(run_dir, process, deadline):
+            holder["qmp"] = FakeSystemQmp(control, statuses, **options)
+            return holder["qmp"], None
+        control = gate.SystemWake(time.monotonic() + 30, connect=connect)
+        return control, holder
+
+    def test_connects_early_wakes_once_and_records_the_event_order(self):
+        control, holder = self.wake(["running", "suspended", "suspended", "running"])
+        with unittest.mock.patch.object(gate, "DWELL_S", 0):
+            control("BOOT:EBS_OK", Alive, Path("."))
+            self.assertIn("qmp", holder)  # connected on the first line, not on ENTER
+            control("SYSTEM:MANIFEST:PASS", Alive, Path("."))
+            control(gate.ENTER.format(1), Alive, Path("."))
+            control(resumed(1), Alive, Path("."))
+        control.check()
+        self.assertEqual(control.evidence()["trace"],
+                         ["query-status", "query-status", "query-status", "system_wakeup", "query-status"])
+        self.assertEqual(control.evidence()["events"], ["SUSPEND", "WAKEUP"])
+
+    def test_leaving_s3_during_the_dwell_is_refused(self):
+        control, _ = self.wake(["suspended", "running"])
+        with unittest.mock.patch.object(gate, "DWELL_S", 0), self.assertRaisesRegex(RuntimeError, "left S3"):
+            control(gate.ENTER.format(1), Alive, Path("."))
+
+    def test_a_second_entry_or_an_unrequested_resume_is_refused(self):
+        control, _ = self.wake(["suspended", "suspended", "running"])
+        with self.assertRaisesRegex(RuntimeError, "without a harness wake"):
+            control(resumed(1), Alive, Path("."))
+        with unittest.mock.patch.object(gate, "DWELL_S", 0):
+            control(gate.ENTER.format(1), Alive, Path("."))
+            with self.assertRaisesRegex(RuntimeError, "second S3 entry"):
+                control(gate.ENTER.format(1), Alive, Path("."))
+
+    def test_a_guest_that_never_suspends_before_exit_fails(self):
+        class Exited:
+            @staticmethod
+            def poll():
+                return 0
+        control, _ = self.wake(["running"] * 4)
+        with self.assertRaisesRegex(RuntimeError, "never suspended"):
+            control(gate.ENTER.format(1), Exited, Path("."))
+
+    def test_missing_events_or_wake_fail_the_check_and_the_allowlist_holds(self):
+        control, _ = self.wake(["suspended", "suspended", "running"], events=("SUSPEND",))
+        with unittest.mock.patch.object(gate, "DWELL_S", 0):
+            control(gate.ENTER.format(1), Alive, Path("."))
+        with self.assertRaisesRegex(ValueError, "S3 control evidence"):
+            control.check()
+        idle, _ = self.wake([])
+        idle("BOOT:EBS_OK", Alive, Path("."))
+        with self.assertRaisesRegex(ValueError, "S3 control evidence"):
+            idle.check()
+        with self.assertRaisesRegex(ValueError, "allowlist"):
+            idle.command("quit")
+
+
+class RunnerImportOrder(unittest.TestCase):
+    def test_runner_modules_import_in_every_order(self):
+        import itertools
+        tools = Path(__file__).resolve().parents[1]
+        for order in itertools.permutations(("run_sleep", "run_system", "run_net_link")):
+            with self.subTest(order=order):
+                subprocess.run([sys.executable, "-B", "-c", "; ".join(f"import {name}" for name in order)],
+                               cwd=tools, check=True, capture_output=True)
+
+
 if __name__ == "__main__":
     unittest.main()

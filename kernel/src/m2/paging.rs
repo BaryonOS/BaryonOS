@@ -498,7 +498,7 @@ impl Paging {
     /// `address..address + input.len()` must lie entirely inside UEFI ACPI NVS
     /// memory that the OS is specified to update (the FACS), never MMIO,
     /// reclaimable table memory or RAM owned by the frame allocator.
-    #[cfg(feature = "native-acpi-s3")]
+    #[cfg(feature = "acpi-s3-core")]
     pub(super) unsafe fn write_firmware(
         &mut self,
         address: u64,

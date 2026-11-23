@@ -1,4 +1,6 @@
-//! H05 step: QEMU-profile ACPI S3 suspend-to-RAM and resume (`native-acpi-s3`).
+//! H05 step: QEMU-profile ACPI S3 suspend-to-RAM and resume (`native-acpi-s3`,
+//! three cycles in the IF0 bootstrap; `test-system-s3`, one cycle granted to
+//! init's POWER capability through syscall 0x91, ADR-H05-S3-SYSTEM-20261123).
 //!
 //! Ownership and trust model (single BSP, IF=0, no APs, no device but COM1):
 //! - The wake page below 1 MiB is a Kernel-owned ConventionalMemory frame,
@@ -34,9 +36,10 @@ use core::{
     sync::atomic::{AtomicU32, Ordering},
 };
 use kernel_core::{Frames, Owner, PAGE};
-use nieuw_os_acpi_power::{ExtendedVectorPolicy, Pm1Event, WakePlan};
+use nieuw_os_acpi_power::{ExtendedVectorPolicy, Pm1Event, Pm1Setting, WakePlan};
 
 /// Suspend/resume cycles per boot; each uses a fresh nonzero generation.
+#[cfg(feature = "native-acpi-s3")]
 const CYCLES: u32 = 3;
 /// Canary frames rechecked after every wake (256 KiB of the lowest free RAM).
 const CANARY_FRAMES: usize = 64;
@@ -277,7 +280,12 @@ extern "C" fn s3_wake(token: u64) -> u64 {
             Serial,
             "POWER:S3:WAKE:REJECTED:TOKEN:ARMED={armed}:PAGE={token:#x}"
         );
-        serial::exit(0x10);
+        // A rejected wake must never look like the system profile's pass.
+        serial::exit(if cfg!(feature = "test-system-s3") {
+            0x11
+        } else {
+            0x10
+        });
     }
     arch::reload_after_resume();
     // SAFETY: Written by nos_s3_suspend on this CPU for this armed generation.
@@ -477,25 +485,49 @@ fn clear_status(event: Pm1Event, bits: u16) {
     }
 }
 
-/// Runs the bounded S3 cycles after M2 passed; returns only after the last
-/// validated wake or after a reported rejection that performed no PM1 write.
-pub fn run(frames: &Frames<FRAME_COUNT>, paging: &mut paging::Paging, prepared: Preparation) {
+/// Everything one suspend cycle needs, resolved once from discovery.
+struct Ctx {
+    page: u64,
+    canary: [u64; CANARY_FRAMES],
+    facs: u64,
+    length: usize,
+    wake: WakePlan,
+    disarm: WakePlan,
+    pm1a: Pm1Setting,
+    event: Pm1Event,
+    signature: u32,
+}
+
+/// Resolves the S3 plan and prints exactly the markers `run` always printed:
+/// the unavailability or rejection reason, or the PLAN line (and a PM1b
+/// rejection after it). `None` means no PM1 write may follow.
+fn resolve(prepared: Preparation) -> Option<Ctx> {
     let prepared = match prepared {
         Ok(prepared) => prepared,
         Err(reason) => {
             serial::write(b"POWER:S3:UNAVAILABLE:");
             serial::write(reason);
-            return serial::write(b"\n");
+            serial::write(b"\n");
+            return None;
         }
     };
     let plan = match power::s3() {
         power::S3State::Ready(plan) => plan,
-        power::S3State::Unavailable => return serial::write(b"POWER:S3:UNAVAILABLE\n"),
-        power::S3State::Unreadable => return serial::write(b"POWER:S3:UNREADABLE\n"),
-        power::S3State::NotNvs => return serial::write(b"POWER:S3:REJECTED:FacsNotNvs\n"),
+        power::S3State::Unavailable => {
+            serial::write(b"POWER:S3:UNAVAILABLE\n");
+            return None;
+        }
+        power::S3State::Unreadable => {
+            serial::write(b"POWER:S3:UNREADABLE\n");
+            return None;
+        }
+        power::S3State::NotNvs => {
+            serial::write(b"POWER:S3:REJECTED:FacsNotNvs\n");
+            return None;
+        }
         power::S3State::Rejected(error) => {
             let _ = writeln!(Serial, "POWER:S3:REJECTED:{error:?}");
-            return;
+            return None;
         }
     };
     let facs = plan.facs();
@@ -504,15 +536,12 @@ pub fn run(frames: &Frames<FRAME_COUNT>, paging: &mut paging::Paging, prepared: 
         Ok(wake) => wake,
         Err(error) => {
             let _ = writeln!(Serial, "POWER:S3:REJECTED:{error:?}");
-            return;
+            return None;
         }
     };
-    let disarm = facs.disarmed_plan(POLICY);
     let pm1a = plan.pm1a();
     let event = plan.pm1a_event();
     let snapshot = power::facs_bytes();
-    let length = u32::from_le_bytes([snapshot[4], snapshot[5], snapshot[6], snapshot[7]]) as usize;
-    let signature = facs.hardware_signature();
     let _ = writeln!(
         Serial,
         "POWER:S3:PLAN:PM1A={:#06x}:SLP_TYP={}:PM1A_STS={:#06x}:FACS_VERSION={}:REAL={:#x}:PM32={:#x}:POLICY={:?}",
@@ -526,120 +555,200 @@ pub fn run(frames: &Frames<FRAME_COUNT>, paging: &mut paging::Paging, prepared: 
     );
     if plan.pm1b().is_some() || plan.pm1b_event().is_some() {
         // The QEMU q35 profile has neither; PM1b paths are parser-tested only.
-        return serial::write(b"POWER:S3:REJECTED:Pm1bUnsupported\n");
+        serial::write(b"POWER:S3:REJECTED:Pm1bUnsupported\n");
+        return None;
     }
+    Some(Ctx {
+        page: prepared.page,
+        canary: prepared.canary,
+        facs: facs.source_address(),
+        length: u32::from_le_bytes([snapshot[4], snapshot[5], snapshot[6], snapshot[7]]) as usize,
+        wake,
+        disarm: facs.disarmed_plan(POLICY),
+        pm1a,
+        event,
+        signature: facs.hardware_signature(),
+    })
+}
+
+/// One armed suspend and validated wake. Returns false only for a FACS store
+/// failure that was disarmed cleanly before any PM1 write; every failure
+/// after SLP_EN fails closed. `frames` is None under M3, whose user mappings
+/// the kernel-root alias audit cannot see; the caller audits instead.
+fn cycle(
+    frames: Option<&Frames<FRAME_COUNT>>,
+    paging: &mut paging::Paging,
+    ctx: &Ctx,
+    cycle: u32,
+) -> bool {
     // SAFETY: Exclusive static scratch for FACS read-back, single BSP, IF=0.
     let copy = unsafe { &mut *ptr::addr_of_mut!(FACS_COPY) };
-    for cycle in 1..=CYCLES {
-        // Pre-sleep: clear WAK_STS, fill the canary, arm token and FACS.
-        clear_status(event, Pm1Event::WAKE_STATUS);
-        canary(&prepared.canary, cycle, true);
-        ARMED.store(cycle, Ordering::Release);
-        let page_token = if cfg!(feature = "test-acpi-s3-stale-token") {
-            // Negative fixture: the page carries another generation's token.
-            cycle ^ 0x5a5a_0000
-        } else {
-            cycle
-        };
-        set_token(prepared.page, page_token);
-        if !store_facs(paging, facs.source_address(), length, wake, copy) {
-            // Never leave a partially armed vector behind.
-            ARMED.store(0, Ordering::Release);
-            set_token(prepared.page, 0);
-            if store_facs(paging, facs.source_address(), length, disarm, copy) {
-                return serial::write(b"POWER:S3:REJECTED:FacsStore:DISARMED\n");
-            }
-            serial::fail(b"S3_FACS_DISARM");
-        }
-        // SAFETY: Single CPU; SAVED is read only by s3_wake after this point.
-        unsafe {
-            ptr::addr_of_mut!(SAVED).write(Saved {
-                cr0: cr(false),
-                cr4: cr(true),
-                efer: rdmsr(MSR_EFER),
-                pat: rdmsr(MSR_PAT),
-            });
-        }
-        // SAFETY: Single CPU; only the wake stages write this before s3_wake.
-        unsafe { ptr::addr_of_mut!(NOS_S3_ENTRY_PATH).write_volatile(0) };
-        let current = power::in16(pm1a.address());
-        let sci_before = current & 1;
-        let _ = writeln!(Serial, "POWER:S3:ENTER:CYCLE={cycle}:SCI_EN={sci_before}");
-        // SAFETY: The PM1a port and value come from the validated S3 plan;
-        // the suspend routine saves the callee-saved registers and stack and
-        // returns 1 only through s3_wake's armed-generation check.
-        let resumed = unsafe {
-            nos_s3_suspend(
-                u64::from(pm1a.address()),
-                u64::from(pm1a.apply_to(current)),
-                0,
-                0,
-            )
-        };
-        // Post-wake (or failed transition): disarm before anything else.
+    let (facs, length, event, pm1a) = (ctx.facs, ctx.length, ctx.event, ctx.pm1a);
+    // Pre-sleep: clear WAK_STS, fill the canary, arm token and FACS.
+    clear_status(event, Pm1Event::WAKE_STATUS);
+    canary(&ctx.canary, cycle, true);
+    ARMED.store(cycle, Ordering::Release);
+    let page_token = if cfg!(feature = "test-acpi-s3-stale-token") {
+        // Negative fixture: the page carries another generation's token.
+        cycle ^ 0x5a5a_0000
+    } else {
+        cycle
+    };
+    set_token(ctx.page, page_token);
+    if !store_facs(paging, facs, length, ctx.wake, copy) {
+        // Never leave a partially armed vector behind.
         ARMED.store(0, Ordering::Release);
-        set_token(prepared.page, 0);
-        let disarmed = store_facs(paging, facs.source_address(), length, disarm, copy);
-        if resumed != 1 {
-            // A requested sleep that never happened is a failure, not a
-            // handled rejection: report the disarm outcome, then fail closed.
-            serial::write(if disarmed {
-                b"POWER:S3:NO_TRANSITION:DISARMED\n"
-            } else {
-                b"POWER:S3:NO_TRANSITION:STORE_FAILED\n"
-            });
-            serial::fail(b"S3_NO_TRANSITION");
+        set_token(ctx.page, 0);
+        if store_facs(paging, facs, length, ctx.disarm, copy) {
+            return false;
         }
-        // SAFETY: Written by the wake stage of this CPU before s3_wake ran.
-        let path = unsafe { ptr::addr_of!(NOS_S3_ENTRY_PATH).read_volatile() };
-        let status = power::in16(event.status());
-        clear_status(event, status);
-        // Firmware should restore SCI_EN; edk2/OVMF does not. Like Linux
-        // ("bug compatibility"), restore the pre-sleep ACPI mode ourselves.
-        let control = power::in16(pm1a.address());
-        let sci = match (sci_before, control & 1) {
-            (_, 1) => "KEPT",
-            (1, _) => {
-                power::out16(pm1a.address(), (control | 1) & !(1 << 13));
-                if power::in16(pm1a.address()) & 1 == 1 {
-                    "RESTORED"
-                } else {
-                    "LOST"
-                }
+        serial::fail(b"S3_FACS_DISARM");
+    }
+    // SAFETY: Single CPU; SAVED is read only by s3_wake after this point.
+    unsafe {
+        ptr::addr_of_mut!(SAVED).write(Saved {
+            cr0: cr(false),
+            cr4: cr(true),
+            efer: rdmsr(MSR_EFER),
+            pat: rdmsr(MSR_PAT),
+        });
+    }
+    // SAFETY: Single CPU; only the wake stages write this before s3_wake.
+    unsafe { ptr::addr_of_mut!(NOS_S3_ENTRY_PATH).write_volatile(0) };
+    let current = power::in16(pm1a.address());
+    let sci_before = current & 1;
+    let _ = writeln!(Serial, "POWER:S3:ENTER:CYCLE={cycle}:SCI_EN={sci_before}");
+    // SAFETY: The PM1a port and value come from the validated S3 plan;
+    // the suspend routine saves the callee-saved registers and stack and
+    // returns 1 only through s3_wake's armed-generation check.
+    let resumed = unsafe {
+        nos_s3_suspend(
+            u64::from(pm1a.address()),
+            u64::from(pm1a.apply_to(current)),
+            0,
+            0,
+        )
+    };
+    // Post-wake (or failed transition): disarm before anything else.
+    ARMED.store(0, Ordering::Release);
+    set_token(ctx.page, 0);
+    let disarmed = store_facs(paging, facs, length, ctx.disarm, copy);
+    if resumed != 1 {
+        // A requested sleep that never happened is a failure, not a
+        // handled rejection: report the disarm outcome, then fail closed.
+        serial::write(if disarmed {
+            b"POWER:S3:NO_TRANSITION:DISARMED\n"
+        } else {
+            b"POWER:S3:NO_TRANSITION:STORE_FAILED\n"
+        });
+        serial::fail(b"S3_NO_TRANSITION");
+    }
+    // SAFETY: Written by the wake stage of this CPU before s3_wake ran.
+    let path = unsafe { ptr::addr_of!(NOS_S3_ENTRY_PATH).read_volatile() };
+    let status = power::in16(event.status());
+    clear_status(event, status);
+    // Firmware should restore SCI_EN; edk2/OVMF does not. Like Linux
+    // ("bug compatibility"), restore the pre-sleep ACPI mode ourselves.
+    let control = power::in16(pm1a.address());
+    let sci = match (sci_before, control & 1) {
+        (_, 1) => "KEPT",
+        (1, _) => {
+            power::out16(pm1a.address(), (control | 1) & !(1 << 13));
+            if power::in16(pm1a.address()) & 1 == 1 {
+                "RESTORED"
+            } else {
+                "LOST"
             }
-            _ => "OFF",
-        };
-        let signature_same =
-            u32::from_le_bytes([copy[8], copy[9], copy[10], copy[11]]) == signature;
-        let intact = canary(&prepared.canary, cycle, false);
-        let cr3_same = cr3() == paging.root;
+        }
+        _ => "OFF",
+    };
+    let signature_same =
+        u32::from_le_bytes([copy[8], copy[9], copy[10], copy[11]]) == ctx.signature;
+    let intact = canary(&ctx.canary, cycle, false);
+    let cr3_same = cr3() == paging.root;
+    if let Some(frames) = frames {
         paging.audit(frames);
-        let _ = writeln!(
-            Serial,
-            "POWER:S3:RESUMED:CYCLE={cycle}:ENTRY={}:PM1_STS={status:#06x}:WAK_STS={}:SCI_EN={sci}:HWSIG={}:FACS={}:CANARY={}:CR3={}",
-            match path {
-                1 => "REAL",
-                2 => "PM32",
-                _ => "UNKNOWN",
-            },
-            u8::from(status & Pm1Event::WAKE_STATUS != 0),
-            if signature_same { "SAME" } else { "CHANGED" },
-            if disarmed { "DISARMED" } else { "STORE_FAILED" },
-            if intact { "PASS" } else { "FAIL" },
-            if cr3_same { "SAME" } else { "CHANGED" },
-        );
-        if status & Pm1Event::WAKE_STATUS == 0
-            || !(1..=2).contains(&path)
-            || sci == "LOST"
-            || !signature_same
-            || !disarmed
-            || !intact
-            || !cr3_same
-        {
-            serial::fail(b"S3_RESUME_CHECK");
+    }
+    let _ = writeln!(
+        Serial,
+        "POWER:S3:RESUMED:CYCLE={cycle}:ENTRY={}:PM1_STS={status:#06x}:WAK_STS={}:SCI_EN={sci}:HWSIG={}:FACS={}:CANARY={}:CR3={}",
+        match path {
+            1 => "REAL",
+            2 => "PM32",
+            _ => "UNKNOWN",
+        },
+        u8::from(status & Pm1Event::WAKE_STATUS != 0),
+        if signature_same { "SAME" } else { "CHANGED" },
+        if disarmed { "DISARMED" } else { "STORE_FAILED" },
+        if intact { "PASS" } else { "FAIL" },
+        if cr3_same { "SAME" } else { "CHANGED" },
+    );
+    if status & Pm1Event::WAKE_STATUS == 0
+        || !(1..=2).contains(&path)
+        || sci == "LOST"
+        || !signature_same
+        || !disarmed
+        || !intact
+        || !cr3_same
+    {
+        serial::fail(b"S3_RESUME_CHECK");
+    }
+    true
+}
+
+/// Runs the bounded S3 cycles after M2 passed; returns only after the last
+/// validated wake or after a reported rejection that performed no PM1 write.
+#[cfg(feature = "native-acpi-s3")]
+pub fn run(frames: &Frames<FRAME_COUNT>, paging: &mut paging::Paging, prepared: Preparation) {
+    let Some(ctx) = resolve(prepared) else {
+        return;
+    };
+    for generation in 1..=CYCLES {
+        if !cycle(Some(frames), paging, &ctx, generation) {
+            return serial::write(b"POWER:S3:REJECTED:FacsStore:DISARMED\n");
         }
     }
     serial::write(b"POWER:S3:PASS\n");
+}
+
+/// test-system-s3: the plan resolved once at bootstrap (markers printed
+/// then) and whether the single permitted suspend of this boot was used.
+#[cfg(feature = "test-system-s3")]
+static mut SYSTEM_CTX: Option<Ctx> = None;
+#[cfg(feature = "test-system-s3")]
+static mut SYSTEM_USED: bool = false;
+
+/// Bootstrap only, before M3 starts: resolve the plan for the system profile.
+#[cfg(feature = "test-system-s3")]
+pub fn stash(prepared: Preparation) {
+    let ctx = resolve(prepared);
+    // SAFETY: Single BSP, IF=0, before any process exists; written once here
+    // and afterwards read only by the 0x91 handler under the KERNEL lock.
+    unsafe { ptr::addr_of_mut!(SYSTEM_CTX).write(ctx) };
+}
+
+/// Whether a SUSPEND may still be granted on this boot.
+#[cfg(feature = "test-system-s3")]
+pub fn ready() -> bool {
+    // SAFETY: See `stash`; read under the KERNEL lock with IF=0.
+    unsafe { !*ptr::addr_of!(SYSTEM_USED) && (*ptr::addr_of!(SYSTEM_CTX)).is_some() }
+}
+
+/// The one granted suspend of this boot. Returns only after a validated
+/// wake; every failure after the grant stops the VM (ADR item 2).
+#[cfg(feature = "test-system-s3")]
+pub fn suspend(paging: &mut paging::Paging) {
+    // SAFETY: See `stash`; the flag is set before arming so no path can retry.
+    let ctx = unsafe {
+        ptr::addr_of_mut!(SYSTEM_USED).write(true);
+        (*ptr::addr_of!(SYSTEM_CTX)).as_ref()
+    };
+    let Some(ctx) = ctx else {
+        serial::fail(b"S3_PLAN_LOST")
+    };
+    if !cycle(None, paging, ctx, 1) {
+        serial::fail(b"S3_FACS_STORE");
+    }
 }
 
 static mut FACS_COPY: [u8; 4096] = [0; 4096];

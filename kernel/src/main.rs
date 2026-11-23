@@ -99,6 +99,17 @@ compile_error!("native-acpi-s3 resumes only the single-CPU IF0 bootstrap; no dev
 ))]
 compile_error!("native-system-power gates S5 on exactly the base native-system brokers");
 #[cfg(all(
+    feature = "test-system-s3",
+    any(
+        feature = "test-system-power-flush-error",
+        feature = "test-system-power-flush-timeout",
+        feature = "fpu-context",
+        feature = "native-smp-m3",
+        feature = "native-acpi-s3"
+    )
+))]
+compile_error!("test-system-s3 suspends only the granted base native-system-power profile: no fault fixture, live FPU state or GS anchor survives the wake");
+#[cfg(all(
     feature = "native-smp",
     not(feature = "native-smp-legacy"),
     any(

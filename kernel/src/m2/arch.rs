@@ -222,7 +222,7 @@ fn load_tables() {
 /// clearing the TSS descriptor's busy bit that the boot-time `ltr` set, since
 /// `ltr` faults on a busy descriptor. Descriptor contents are otherwise
 /// untouched (no new gates, stacks or privileges).
-#[cfg(feature = "native-acpi-s3")]
+#[cfg(feature = "acpi-s3-core")]
 pub fn reload_after_resume() {
     // SAFETY: Single BSP with IF=0 on the dedicated wake stack, before any
     // other kernel code runs after the wake. GDT/IDT/TSS are the permanent
