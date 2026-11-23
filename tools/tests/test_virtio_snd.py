@@ -7,6 +7,7 @@ import struct
 import subprocess
 import sys
 import tempfile
+import time
 import unittest
 from unittest import mock
 
@@ -208,6 +209,30 @@ class Serial(unittest.TestCase):
                     gate.check_output_bound(out, b"")
                     gate.evaluate_serial("normal", gate.bounded(out), 33, False)
 
+    def test_running_process_is_killed_at_the_output_bound(self):
+        """A flooding guest is stopped while it runs; no more than the bound plus one byte is retained."""
+        bound = gate.MAX_OUTPUT
+        flood = "import os\nwhile True:\n    os.write({fd}, b'x' * 65536)\n"
+        for fd in (1, 2):
+            with self.subTest(stream=fd):
+                start = time.monotonic()
+                rc, out, err, timed_out = gate.run_bounded([sys.executable, "-c", flood.format(fd=fd)],
+                                                           dict(os.environ), timeout=60)
+                self.assertLess(time.monotonic() - start, 30)
+                self.assertFalse(timed_out)
+                self.assertNotEqual(rc, 0)
+                self.assertEqual(len(out if fd == 1 else err), bound + 1)
+                with self.assertRaises(ValueError):
+                    gate.check_output_bound(out, err)
+        rc, out, err, timed_out = gate.run_bounded(
+            [sys.executable, "-c", "import sys; sys.stdout.write('A\\n'); sys.stderr.write('B'); sys.exit(33)"],
+            dict(os.environ), timeout=60)
+        self.assertEqual((rc, out, err, timed_out), (33, b"A\n", b"B", False))
+        rc, out, err, timed_out = gate.run_bounded(
+            [sys.executable, "-c", "import sys, time; print('early', flush=True); time.sleep(60)"],
+            dict(os.environ), timeout=1)
+        self.assertEqual((rc, out, timed_out), (None, b"early\n", True))
+
 
 class Command(unittest.TestCase):
     def test_qemu_command_per_case(self):
@@ -256,7 +281,8 @@ class Command(unittest.TestCase):
         refuse = mock.Mock(side_effect=AssertionError("must not be reached"))
         with tempfile.TemporaryDirectory() as directory, mock.patch.dict(os.environ), \
                 mock.patch.object(gate, "source_hash", refuse), \
-                mock.patch.object(gate.subprocess, "run", refuse), mock.patch.object(gate.shutil, "which", refuse):
+                mock.patch.object(gate.subprocess, "run", refuse), mock.patch.object(gate.subprocess, "Popen", refuse), \
+                mock.patch.object(gate.shutil, "which", refuse):
             root = Path(directory).resolve()
             os.environ["NOS_QEMU_MACHINE"] = "pc-q35-10.0"
             with mock.patch.object(gate, "ROOT", root), mock.patch.object(gate, "BUILD", root / "build"):
@@ -303,6 +329,11 @@ class FakeRun:
             (run / self.tamper).write_bytes(b"changed")
         return subprocess.CompletedProcess(args, 33, stdout=self.stdout, stderr=b"")
 
+    def bounded(self, args, env, *, timeout):
+        """The scripted QEMU behind run_bounded: it keeps at most MAX_OUTPUT + 1 bytes per stream."""
+        result = self.qemu(args)
+        return result.returncode, result.stdout[:gate.MAX_OUTPUT + 1], result.stderr[:gate.MAX_OUTPUT + 1], False
+
     def run(self) -> dict:
         with mock.patch.dict(os.environ), mock.patch.object(gate, "ROOT", self.root), \
                 mock.patch.object(gate, "BUILD", self.build), \
@@ -311,6 +342,8 @@ class FakeRun:
                 mock.patch.object(gate, "firmware", return_value=(self.code, self.variables)), \
                 mock.patch.object(gate.shutil, "which", return_value="/fake/qemu-system-x86_64"), \
                 mock.patch.object(gate.subprocess, "run", side_effect=self.qemu), \
+                mock.patch.object(gate, "run_bounded", side_effect=self.bounded), \
+                mock.patch.object(gate.subprocess, "Popen", side_effect=AssertionError("unscripted QEMU launch")), \
                 mock.patch("builtins.print"):
             os.environ.pop("NOS_QEMU_MACHINE", None)
             return gate.run_case("normal")

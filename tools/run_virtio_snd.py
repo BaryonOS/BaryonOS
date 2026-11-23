@@ -26,7 +26,8 @@ only, because QEMU option values cannot carry `,` `:` `=` or whitespace
 safely. The OVMF CODE and VARS template copies are hashed before launch and
 must match their sources and stay unchanged; `ovmf_vars_final_sha256` is the
 post-run NVRAM state OVMF wrote, not an input identity. Output beyond the
-4 MiB bound fails the run (the truncated log is kept for diagnostics).
+4 MiB bound kills QEMU while it runs and fails the run (the truncated log is
+kept for diagnostics).
 
 Scope: QEMU/TCG emulator output only. A TX completion means QEMU accepted the
 samples, the WAV shows what its audio backend wrote; nothing here measures
@@ -43,6 +44,7 @@ import re
 import shutil
 import struct
 import subprocess
+import threading
 import time
 import uuid
 
@@ -349,6 +351,49 @@ def check_output_bound(stdout: bytes, stderr: bytes) -> None:
             raise ValueError(f"QEMU {name} has {len(data)} bytes, exceeding the {MAX_OUTPUT}-byte bound")
 
 
+def run_bounded(args: list[str], env: dict, *, timeout: float) -> tuple[int | None, bytes, bytes, bool]:
+    """Run QEMU, draining stdout and stderr concurrently and retaining at most MAX_OUTPUT + 1 bytes of each.
+
+    The first byte beyond the bound kills QEMU while it runs, so check_output_bound() then fails the run with
+    bounded logs. Returns (raw exit, or None on timeout; stdout; stderr; timed_out).
+    """
+    process = subprocess.Popen(args, cwd=ROOT, env=env, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    buffers, overflow = (bytearray(), bytearray()), threading.Event()
+
+    def drain(pipe, kept: bytearray) -> None:
+        try:
+            while chunk := pipe.read1(65536):
+                kept.extend(chunk[:max(0, MAX_OUTPUT + 1 - len(kept))])
+                if len(kept) > MAX_OUTPUT:
+                    overflow.set()  # keep reading (and discarding) until the kill closes the pipe
+        finally:
+            pipe.close()
+    threads = [threading.Thread(target=drain, args=(pipe, kept), daemon=True)
+               for pipe, kept in zip((process.stdout, process.stderr), buffers)]
+    for thread in threads:
+        thread.start()
+    deadline, timed_out = time.monotonic() + timeout, False
+    try:
+        while process.poll() is None:
+            remaining = deadline - time.monotonic()
+            if remaining <= 0 or overflow.is_set():
+                timed_out = remaining <= 0 and not overflow.is_set()
+                break
+            try:
+                process.wait(timeout=min(0.05, remaining))
+            except subprocess.TimeoutExpired:
+                continue
+    finally:
+        if process.poll() is None:
+            process.kill()
+        process.wait()
+        for thread in threads:
+            thread.join(timeout=10)
+    if any(thread.is_alive() for thread in threads):
+        raise RuntimeError("QEMU output pipes did not close after the process ended")
+    return (None if timed_out else process.returncode), bytes(buffers[0]), bytes(buffers[1]), timed_out
+
+
 def stage_firmware(run_dir: Path, code: Path, variables: Path) -> dict:
     """Copies OVMF CODE and a VARS template plus its writable copy; refuses a
     staged file that differs from its source, before QEMU is started."""
@@ -407,12 +452,7 @@ def run_case(case: str, *, timeout: int = 180) -> dict:
     args = qemu_arguments(case, qemu, rel, machine)
     started = datetime.now(timezone.utc).isoformat()
     start = time.monotonic()
-    timed_out = False
-    try:
-        result = subprocess.run(args, cwd=ROOT, env=env, capture_output=True, timeout=timeout)
-        rc, out, err = result.returncode, result.stdout, result.stderr
-    except subprocess.TimeoutExpired as exc:
-        timed_out, rc, out, err = True, None, exc.stdout or b"", exc.stderr or b""
+    rc, out, err, timed_out = run_bounded(args, env, timeout=timeout)
     duration = time.monotonic() - start
     stdout, stderr = bounded(out), bounded(err)
     (run_dir / "serial.txt").write_text(stdout, encoding="utf-8")
