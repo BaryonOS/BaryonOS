@@ -200,6 +200,7 @@ class DhcpPeerTest(unittest.TestCase):
     def test_renewal_before_second_announcement_is_acked_not_nakked(self):
         step = Recorder()
         acquire(step, 0, 0x11111111)
+        resolve_all(step, 0)
         exchange(step, LEASES[0], 40000, 8080, 0)
         exchange(step, LEASES[0], 40001, 8090, 1)
         server = (0x6e303200 + 8081 * 0x100 + 1) & MASK
@@ -213,6 +214,7 @@ class DhcpPeerTest(unittest.TestCase):
         self.assertEqual(options(nak)[53], bytes((6,)))
         self.assertEqual(step.machine.counts["naks"], 1)
         acquire(step, 1, 0x33333333)
+        resolve_all(step, 1)
         exchange(step, LEASES[1], 40004, 8082, 0)
         # An ACKed early renewal means the NAK was not tested on the first renewal.
         self.assertEqual(step.machine.counts["early_renewal_acks"], 1)
