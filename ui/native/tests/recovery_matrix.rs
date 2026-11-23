@@ -18,8 +18,9 @@
 //!
 //! Per row, at 100 % and 200 %: draft bytes, caret and selection anchor are
 //! unchanged; exactly one semantic node is focused and it is enabled; the Status
-//! node text equals the drawn `status_label` and its word-wrapped lines fit the
-//! status rectangle; nothing shows Saved without a COMMIT ACK; no request is
+//! node text equals `status_label(view.status)` (the painted string is not
+//! compared; the painter calls `status_label` separately) and its word-wrapped
+//! lines fit the status rectangle; nothing shows Saved without a COMMIT ACK; no request is
 //! replayed. Focus is checked through semantic nodes, never by control index.
 //!
 //! Dropped: none of the requested rows. The status line is word-wrapped
