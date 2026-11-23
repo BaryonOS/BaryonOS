@@ -41,11 +41,13 @@ ownership, then merges with
 
 Auto-merge may be enabled only after every non-required check on that head is
 green. An enabled auto-merge is not a completed merge; the owning workstream
-remains responsible for the outcome. GitHub keeps auto-merge armed when a
-writer with write access pushes a new head, so a workstream disables
-auto-merge (`gh pr merge <N> --disable-auto`) before any push to that pull
-request and re-enables it only after the new head is reassessed under the same
-conditions.
+remains responsible for the outcome. Auto-merge may stay armed only while
+every applicable check on the current head is complete and green. GitHub keeps
+auto-merge armed across pushes and check reruns and does not wait for
+non-required checks, so a workstream disables auto-merge
+(`gh pr merge <N> --disable-auto`) before any push, check rerun or newly
+triggered applicable check, and re-enables it only after that head is
+reassessed under the same conditions.
 
 **Limits:**
 
