@@ -51,6 +51,14 @@ presence in an interactive bundle must be confirmed against the bundle
 `manifest.json` before the preregistration is frozen. If absent, it becomes
 NOT YET TESTABLE for that round.
 
+**One frozen bundle per round.** Every counted task in a round runs on the same
+frozen bundle, recorded by its `manifest.json` in the preregistration (§10).
+Round 1 uses the `native-window-session` bundle, which carries CT01–CT06,
+CT10 and CT11 and the conditional tasks if present. The
+`native-system-session-preview` surface for CT06 is an alternative only: it is
+used in a separately frozen, separately scheduled session with its own
+manifest and is never pooled with Round 1 results.
+
 **Audit basis.** The classification below was re-audited against the
 `native-window-session` bundle at `main` commit
 `47a30a02162e0714181001c3553ba86e1e60d3e6`. In that bundle the compositor
@@ -65,8 +73,10 @@ cycling (`main.rs:452-455`, `scene.rs:1295-1297`) and an Alt+Tab switcher
 (`scene.rs:628-697`, wired at `main.rs:344-356`). The bundle starts on the
 `Desktop` page: `Scene::new` calls `Shell::new(false)` (`scene.rs:183`), and
 the start on `Page::Lock` (`main.rs:233-234`) is compiled only with the
-`session-preview` cargo feature, which `tools/build_materiaal.py:52` sets only
-for kernel feature `native-session-route`; `tools/package_windows_qemu.py:119`
+`session-preview` cargo feature. `tools/build.py:205` sets `session_preview`
+only for kernel feature `native-session-route`, `tools/build_materiaal.py:52`
+forwards it and `sdk/examples/window-session/build.py:46` turns it into that
+cargo feature; `tools/package_windows_qemu.py:119`
 refuses that profile. Source presence is not runtime evidence; every task is
 rechecked in the pilot (§10).
 
@@ -81,7 +91,7 @@ rechecked in the pilot (§10).
 | CT03 | Use the Calculator for a given sum while Materiaal stays open, then return to the document | [`sdk/examples/calculator`](../../sdk/examples/calculator) in `native-window-session` | FR-U01, U02 (switching/focus) |
 | CT04 | Move the two windows so both are fully visible side by side, by dragging or with the window menu "Ordenen" | `native-window-session` (two draggable windows, U01 acceptance); window menu "Ordenen" → `Scene::arrange_positions` ([`scene.rs:452-511`](../../sdk/examples/window-session/src/scene.rs)); [`sdk/examples/compositor`](../../sdk/examples/compositor) | D1 "arrange a window", FR-U01 |
 | CT05 | Complete CT01–CT02 with the keyboard only (no pointer) | Keyboard focus route via [`sdk/examples/input-service`](../../sdk/examples/input-service) and the compositor; [NATIVE-INPUT-DAEMON.md](NATIVE-INPUT-DAEMON.md) | FR-U05 (keyboard part), U04, UC09 (partial) |
-| CT06 | Lock the workspace, try to sign in as the local user, read the result, then return to the workspace through the guest test session | `native-window-session`: lock via Super+L, Sessie → "Scherm afschermen" or search result "Scherm afschermen" (`shell.rs:298`, `shell.rs:353`, `shell.rs:441`); "Aanmelden" → "Lokale gebruiker · nog niet gekoppeld" → refusal notice; "VM-gast · openbare testsessie" → "Open testsessie" (`shell.rs:240-275`, `shell.rs:372-413`). Alternative surface: `native-system-session-preview` with runner [`tools/run_session_preview.py`](../../tools/run_session_preview.py); [SESSION-AND-DESKTOP.md](SESSION-AND-DESKTOP.md) | FR-U03 (comprehension of a refusal); **no** FR-S02 claim: no real authentication exists |
+| CT06 | Lock the workspace, try to sign in as the local user by choosing any of the offered sign-in methods, read the result, then return to the workspace through the guest test session | `native-window-session`: lock via Super+L, Sessie → "Scherm afschermen" or search result "Scherm afschermen" (`shell.rs:298`, `shell.rs:353`, `shell.rs:441`); "Aanmelden" → "Lokale gebruiker · nog niet gekoppeld" → refusal notice; "VM-gast · openbare testsessie" → "Open testsessie" (`shell.rs:240-275`, `shell.rs:372-413`). Alternative surface: `native-system-session-preview` with runner [`tools/run_session_preview.py`](../../tools/run_session_preview.py); [SESSION-AND-DESKTOP.md](SESSION-AND-DESKTOP.md) | FR-U03 (comprehension of a refusal); **no** FR-S02 claim: no real authentication exists |
 | CT10 | Start Calculator and then Materiaal, once from the dock and once from search | `native-window-session` dock buttons "Materiaal" and "Rekenmachine" (`shell.rs:539-550`, drawn at `shell.rs:626-666`); search page "Zoeken en starten" via dock "Zoeken", F3 or a Super key tap (`shell.rs:276-283`, `shell.rs:324-370`, `shell.rs:417-424`, `shell.rs:445`); both end in `ShellCommand::Activate` (`main.rs:430-432`) | D1 "start an app" (dock/search part), FR-U01 |
 | CT11 | Switch between the two open windows with the keyboard | `native-window-session` Alt+Tab switcher "WISSEL VAN VENSTER" (`scene.rs:628-697`, `scene.rs:1851`); F6 cycles focus directly (`main.rs:452-455`) | FR-U01, U02 (switching/focus) |
 
@@ -182,11 +192,13 @@ a runner provides one). Observer judgement alone is evidence level A/V, not D.
 
 ## 5. Friction and visual-inconsistency log
 
-Each finding is one record. The format is plain JSON lines so that it can be
-aggregated without personal data:
+Each finding is one record in plain JSON lines. The observer's working copy,
+kept only on the local disk (§8), may link a finding to participant pseudonyms.
+The committed copy carries no participant field: it records only how many
+participants were affected (`frequency`) and paraphrased observations:
 
 ```json
-{"finding": "F-003", "round": 1, "participant": "P05", "task": "CT02",
+{"finding": "F-003", "round": 1, "task": "CT02",
  "kind": "friction", "severity": 2, "frequency": 3,
  "observed": "List entry not recognised as the saved document",
  "screen_ref": "frame-hash-or-screendump-id", "fr": ["FR-A01", "FR-U04"],
@@ -230,7 +242,7 @@ image with new participants meets all budgets above.
 - **Representative users:** adults who use Windows, macOS or Linux at least
   weekly and are not system administrators or BaryonOS contributors
   (DESIGN-AMBITION, ADR-058 familiarity goal). The number per round is an owner
-  question (§11).
+  question (§12).
 - **Accessibility participants:** a separate subgroup is shared with
   `U04-T4` ("Accessibility user task tests", blocked) and UC09. The protocol
   records only the assistive configuration used (for example keyboard only,
@@ -261,10 +273,12 @@ Consistent with [LOCAL-PRIVACY-CONTRACT.md](../LOCAL-PRIVACY-CONTRACT.md) §1 an
   recordings stay on an owner-controlled local disk outside the repository, are
   never uploaded to a cloud service, and are deleted at the retention date agreed
   by the owner.
-- **Pseudonyms** (`P01`, `P02`, …) are the only identifiers in any record that
-  leaves the observer's local disk.
-- **No personal data in the repository.** Only aggregated, de-identified results
-  and findings (§5 format) are committed. Free-text quotes are paraphrased and
+- **Pseudonyms** (`P01`, `P02`, …) are used in local records only. Because the
+  owner keeps the pseudonym key, pseudonymised records are personal data and are
+  never committed.
+- **No personal data in the repository.** Only aggregated results and findings
+  in the committed §5 format (no participant field, paraphrased observations)
+  are committed. Free-text quotes are paraphrased and
   checked for identifying content before commit.
 - Participants type only study-provided text; no personal documents, accounts
   or passwords are entered into the VM.
@@ -339,7 +353,7 @@ docs/verification/u06-usability-<YYYYMMDD>/
   environment.json        bundle manifest hashes, host/QEMU/OVMF/accelerator
   tasks.json              frozen task set, success keys, budgets
   results-aggregate.json  per-task aggregates and SUS summary (no per-person rows with free text)
-  findings.jsonl          §5 records, pseudonymised
+  findings.jsonl          committed §5 records: no participant field, counts only
   deviations.md           every change after the freeze, with reason
 ```
 
