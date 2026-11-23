@@ -193,12 +193,20 @@ instance.
   generation without the boot incarnation. A trusted cross-boot lower bound
   needs a freshness anchor, which is option 5B.
 - **Boot incarnation freshness.** The argument above holds only if a service
-  incarnation can never repeat across cold boots. A per-boot counter or a
+  incarnation does not repeat across cold boots. A per-boot counter or a
   value read from storage could repeat after a power cycle or a store
   replay, so neither is enough. The required property is that the
   incarnation includes a per-boot value of at least 128 bits drawn at boot
   from the platform's approved entropy source, the one already used for key
   material, and that the value is never persisted.
+  - Strength and accepted risk: the value must carry at least 128 bits of
+    entropy, from a source seeded with at least that much. Non-reuse is then
+    probabilistic, not absolute. Across n cold boots, the chance that any two
+    values collide is at most n²/2¹²⁹. For 2³² boots that is below 2⁻⁶⁵.
+    This proposal accepts that residual risk, the same order of risk as
+    guessing a 128-bit key. Absolute non-reuse would need a trusted,
+    non-replayable counter, which is the anchor of option 5B and is not
+    proposed now.
   - Failure behaviour: if that entropy cannot be obtained, the network
     service starts with no incarnation, delivers no grants and shows a
     visible "network permissions unavailable" status. It never falls back
