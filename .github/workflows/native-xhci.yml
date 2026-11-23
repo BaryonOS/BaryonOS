@@ -71,7 +71,7 @@ jobs:
             python3 -B tools/tokenguard.py run -- python3 -B tools/build.py --kernel-feature "$feature"
             python3 -B tools/tokenguard.py run -- python3 -B tools/run_xhci.py --case "$case_name"
           done
-          for profile in 'reports native-usb-hid-probe' 'readonly test-usb-hid-readonly-fault' 'reattach native-usb-hid-reattach'; do
+          for profile in 'reports native-usb-hid-probe' 'readonly test-usb-hid-readonly-fault' 'reattach native-usb-hid-reattach' 'reattach-mouse native-usb-hid-mouse-reattach'; do
             read -r case_name feature <<< "$profile"
             export NOS_BUILD_DIR="$GITHUB_WORKSPACE/build/xhci-native/usb-$case_name"
             python3 -B tools/tokenguard.py run -- python3 -B tools/build.py --kernel-feature "$feature"
@@ -106,6 +106,7 @@ jobs:
             build/xhci-native/usb-reports/usb-hid-reports-report.json
             build/xhci-native/usb-readonly/usb-hid-readonly-report.json
             build/xhci-native/usb-reattach/usb-hid-reattach-report.json
+            build/xhci-native/usb-reattach-mouse/usb-hid-reattach-mouse-report.json
             build/xhci-native/snd/virtio-snd-normal-report.json
             build/xhci-native/snd/virtio-snd-no-device-report.json
             build/xhci-native/snd/virtio-snd-access-platform-report.json
