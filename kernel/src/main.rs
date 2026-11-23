@@ -124,6 +124,11 @@ compile_error!("test-system-s3 suspends only the granted base native-system-powe
 ))]
 compile_error!("test-system-s3 excludes the network, clock, NAS, random, display-input and window-session system profiles");
 #[cfg(all(
+    feature = "test-system-s3-held-completion",
+    feature = "test-system-s3-reinit"
+))]
+compile_error!("the S3 held-completion and re-init fixtures require separate boots");
+#[cfg(all(
     feature = "native-smp",
     not(feature = "native-smp-legacy"),
     any(

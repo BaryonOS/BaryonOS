@@ -30,9 +30,13 @@ POWER_FEATURE = {"power": "native-system-power", "power-flush-error": "test-syst
                  # H05-T4 (ADR-H05-S3-SYSTEM-20261123): one granted S3 cycle, then S5.
                  "power-s3": "test-system-s3",
                  # H05-T5b: the same cycle, then virtio-rng re-initialised after the wake.
-                 "power-s3-reinit": "test-system-s3-reinit"}
+                 "power-s3-reinit": "test-system-s3-reinit",
+                 # Review R1: SUSPEND refuses a held completion (-8); one labelled
+                 # gate-defect injection then sleeps, and only the post-wake latch
+                 # keeps the held request's teardown reset off the device.
+                 "power-s3-held-completion": "test-system-s3-held-completion"}
 POWER_CASES = tuple(POWER_FEATURE)
-S3_CASES = ("power-s3", "power-s3-reinit")
+S3_CASES = ("power-s3", "power-s3-reinit", "power-s3-held-completion")
 # The single re-init marker; CI's QEMU 8.2.2 may keep the BARs that 10.2.1 clears.
 REINIT = re.compile(r"KEYRING:S3:REINIT:BARS=(KEPT|RESTORED):STATUS=15:SELFTEST=32")
 S5_TAIL = ("POWER:S5:PM1A=0x0604:SLP_TYP=0:SCI_EN=1", "POWER:S5:WRITE")
@@ -196,11 +200,17 @@ def refuse_stray_suspend(case: str, stdout: str) -> None:
         raise ValueError("re-init evidence outside the power-s3-reinit profile")
 
 
-SUSPEND_ORDER = ("REFUSALS", "GRANTED", "TICK_AFTER_WAKE", "LOST_ENTROPY", "LOST_BLOCK")
+# Review R3: after CLEANUP, each broker's device accesses at the wake (live
+# counters, > 0), the post-wake accesses outside the accounted re-init path
+# and the teardown resets the latch suppressed.
+LIVE_AT_WAKE = ("DEVICE_IO_AT_WAKE_KEYRING", "DEVICE_IO_AT_WAKE_VOLUME")
+DEVICE_ORDER = (*LIVE_AT_WAKE, "DEVICE_IO_AFTER_WAKE", "DEVICE_SUPPRESSED")
+SUSPEND_ORDER = ("REFUSALS", "GRANTED", "TICK_AFTER_WAKE", "HELD_REFUSALS", "LOST_ENTROPY",
+                 "LOST_BLOCK", *DEVICE_ORDER)
 # Re-init: one 32-byte post-wake delivery, the pre-sleep ticket refused (-1),
 # init's POWER handle refused by authority (-6), block still lost (-14).
-REINIT_ORDER = ("REFUSALS", "GRANTED", "TICK_AFTER_WAKE", "REINIT_ENTROPY",
-                "REINIT_STALE_TICKET", "REINIT_ENTROPY_AUTH", "LOST_BLOCK")
+REINIT_ORDER = ("REFUSALS", "GRANTED", "TICK_AFTER_WAKE", "HELD_REFUSALS", "REINIT_ENTROPY",
+                "REINIT_STALE_TICKET", "REINIT_ENTROPY_AUTH", "LOST_BLOCK", *DEVICE_ORDER)
 
 
 def check_power(case: str, stdout: str, found: dict) -> None:
@@ -212,11 +222,16 @@ def check_power(case: str, stdout: str, found: dict) -> None:
         expected = {"POWER_INIT_REFUSALS": 3, "POWER_APP_REFUSALS": 2, "POWER_NOT_DURABLE": 0}
         if case in S3_CASES:
             reinit = case == "power-s3-reinit"
+            held = int(case == "power-s3-held-completion")
             check_suspend(lines, reinit)
-            # -8 before SHUTDOWN, -6, -4, -1, then the grant and the one-shot -14;
-            # after the wake init's entropy and block requests each return -14.
-            expected.update(SUSPEND_REFUSALS=5, SUSPEND_GRANTED=1, SUSPEND_TICK_AFTER_WAKE=1,
-                            SUSPEND_LOST_BLOCK=14)
+            # -8 before SHUTDOWN, -6, -4, -1, [the held-completion -8,] then the
+            # grant and the one-shot -14; after the wake init's entropy and block
+            # requests each return -14. No broker device access after the wake
+            # outside the accounted re-init; the latch suppressed exactly the held
+            # request's teardown reset.
+            expected.update(SUSPEND_REFUSALS=5 + held, SUSPEND_GRANTED=1, SUSPEND_TICK_AFTER_WAKE=1,
+                            SUSPEND_HELD_REFUSALS=held, SUSPEND_LOST_BLOCK=14,
+                            SUSPEND_DEVICE_IO_AFTER_WAKE=0, SUSPEND_DEVICE_SUPPRESSED=held)
             if reinit:
                 expected.update(SUSPEND_REINIT_ENTROPY=32, SUSPEND_REINIT_STALE_TICKET=1,
                                 SUSPEND_REINIT_ENTROPY_AUTH=6)
@@ -225,6 +240,18 @@ def check_power(case: str, stdout: str, found: dict) -> None:
             suspend = [line.split(":")[1] for line in lines if line.startswith("SYSTEM:SUSPEND")]
             if suspend != [f"SUSPEND_{key}" for key in (REINIT_ORDER if reinit else SUSPEND_ORDER)]:
                 raise ValueError(f"{case} suspend evidence out of order: {suspend}")
+            # The kernel's real order: the wake evidence (ending in LOST_BLOCK)
+            # before CLEANUP, the device evidence after every owner's teardown
+            # and before the case marker.
+            at = {line.split(":")[1]: index for index, line in enumerate(lines)
+                  if line.startswith("SYSTEM:SUSPEND_")}
+            if not (at["SUSPEND_LOST_BLOCK"] < lines.index("SYSTEM:CLEANUP:PASS")
+                    < at[f"SUSPEND_{DEVICE_ORDER[0]}"]
+                    and at[f"SUSPEND_{DEVICE_ORDER[-1]}"] < lines.index(expected_markers(case)[-2])):
+                raise ValueError(f"{case} suspend evidence out of order around CLEANUP")
+            for key in LIVE_AT_WAKE:
+                if found.get(f"SUSPEND_{key}", 0) < 1:
+                    raise ValueError(f"SUSPEND_{key}: expected a live counter (> 0), found {found.get(f'SUSPEND_{key}')}")
     else:
         fault = "FLUSH_ERROR" if case == "power-flush-error" else "FLUSH_TIMEOUT"
         if (any(line.startswith("POWER:") for line in lines)
