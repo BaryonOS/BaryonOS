@@ -1578,6 +1578,50 @@ class RunnerResiduals(unittest.TestCase):
                 self.assertFalse(record.exists())
                 self.assertFalse(controller.trusted() and planted != "hardlinked controller.lock")
 
+    def test_a_state_directory_linked_into_the_trusted_home_is_refused(self):
+        # 56716bca: with build/roadmap-pipeline -> <home>, the "legacy" marker was the marker itself,
+        # so `resume --accept` wrote the accepted snapshot and unlinked it at once.
+        for entry, target in (("resume --accept", "home"), ("acquire", "home"), ("acquire", "its parent"),
+                              ("acquire", "inside it")):
+            with self.subTest(entry=entry, target=target), tempfile.TemporaryDirectory() as tmp, \
+                    self.live_state(tmp) as (repo, state, controller), \
+                    unittest.mock.patch.object(rr.Controller, "refuse_live_workers"):
+                home = controller.marker().parent
+                self.manual_marker(controller)
+                state.rmdir()
+                link = {"home": home, "its parent": home.parent, "inside it": home / "sub"}[target]
+                link.mkdir(exist_ok=True)
+                state.symlink_to(link, target_is_directory=True)
+                if entry == "acquire":
+                    with self.assertRaisesRegex(rr.Stop, "overlaps the trusted baseline home"):
+                        controller.acquire()
+                else:
+                    self.assertEqual(self.resume()[0], 2)
+                    self.assertEqual(self.resume("--accept", "0" * 16)[0], 2)
+                self.assertEqual(controller.manual_claim(), "L01-T3")  # the claim and its marker stand
+                self.assertFalse((home / "controller.lock").exists())
+
+    def test_the_accepted_snapshot_outlives_a_legacy_marker_that_is_the_marker(self):
+        # Second layer under own_state(): the legacy unlink runs before the snapshot is written.
+        with tempfile.TemporaryDirectory() as tmp, self.live_state(tmp) as (repo, state, controller), \
+                unittest.mock.patch.object(rr.Controller, "refuse_live_workers"), \
+                unittest.mock.patch.object(rr.Controller, "own_state"):
+            home = controller.marker().parent
+            self.manual_marker(controller)
+            state.rmdir()
+            state.symlink_to(home, target_is_directory=True)
+            self.assertEqual(self.accept()[0], 0)
+            self.assertTrue(json.loads(controller.marker().read_text())["session"].startswith("accepted"))
+
+    def test_acquire_does_not_follow_a_planted_controller_lock(self):
+        with tempfile.TemporaryDirectory() as tmp, self.live_state(tmp) as (repo, state, controller):
+            home = controller.marker().parent
+            home.mkdir(parents=True)
+            (state / "controller.lock").symlink_to(home / rr.TRUSTED_RECORD)
+            with self.assertRaisesRegex(rr.Stop, "planted symlink"):
+                controller.acquire()
+            self.assertFalse((home / rr.TRUSTED_RECORD).exists())
+
     def test_the_accepted_state_stays_the_baseline_until_a_preflight_passes(self):
         # ba9eab6a retired the baseline on --accept: a plant made after it was adopted unseen.
         with tempfile.TemporaryDirectory() as tmp, self.live_state(tmp) as (repo, state, controller), \

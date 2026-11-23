@@ -540,8 +540,20 @@ class Controller:
         self.run_id = dt.datetime.now().strftime("%Y%m%dT%H%M%S") + f"-{os.getpid()}"
 
     # --- locking and lifecycle ---
-    def acquire(self) -> None:
+    def own_state(self) -> None:
+        """The state directory lies in the checkout: a session can make it (or a component) a link
+        into the trusted home, and every controller write there would then reach the baseline."""
         self.state.mkdir(parents=True, exist_ok=True)
+        home = self.marker().parent
+        if home == self.state:  # a test layout: the state directory is its own baseline home
+            return
+        state, home = self.state.resolve(), home.resolve()
+        if state == home or home in state.parents or state in home.parents:
+            raise Stop(f"the state directory {self.state} resolves to {state}, which overlaps the trusted "
+                       f"baseline home {home}; remove the planted link")
+
+    def acquire(self) -> None:
+        self.own_state()
         if (self.state / "STOP").exists():  # before recover() can run git status
             raise Stop("stop file present (build/roadmap-pipeline/STOP)")
         self.lock_file = open_private(self.state / "controller.lock")
@@ -765,9 +777,9 @@ class Controller:
         """Clear STOP and PAUSE. The saved baseline stays while anything may still change the
         checkout (a running controller or worker, an active manual claim), and it is never
         retired over a change the lead has not acknowledged by its digest."""
+        self.own_state()  # before the unlinks below follow a planted link into the trusted home
         for name in ("STOP", "PAUSE"):
             (self.state / name).unlink(missing_ok=True)
-        self.state.mkdir(parents=True, exist_ok=True)
         self.lock_file = open_private(self.state / "controller.lock")
         try:
             fcntl.flock(self.lock_file, fcntl.LOCK_EX | fcntl.LOCK_NB)
@@ -800,8 +812,8 @@ class Controller:
         # the session, say) is still compared by the next preflight, which retires it only last.
         snapshot = {"baseline": read[0], "session": f"accepted {now()}", "ignored": read[1]}  # the reviewed read
         self.retire_baseline()  # writes the trust record and drops the nonce
+        (self.state / CALLBACKS_MARKER).unlink(missing_ok=True)  # a legacy in-checkout baseline, first
         atomic_write(self.marker(), json.dumps(snapshot))
-        (self.state / CALLBACKS_MARKER).unlink(missing_ok=True)  # a legacy in-checkout baseline
         return ("stop/pause cleared; the reviewed state is now the saved session baseline (the next preflight "
                 "compares against it and retires it)")
 
