@@ -2207,7 +2207,9 @@ impl<'a, T: Transport> Controller<'a, T> {
                 }
                 if input.changed.right()
                     && input.buttons.right()
-                    && Layout::new(self.viewport).editor.contains(x, y)
+                    && Layout::for_screen(self.viewport, self.screen)
+                        .editor
+                        .contains(x, y)
                 {
                     return self.open_document_menu(Some((x, y)));
                 }

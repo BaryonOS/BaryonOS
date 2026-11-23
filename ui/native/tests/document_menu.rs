@@ -133,7 +133,7 @@ fn genuine_menu_keys_pointer_and_named_button_open_without_storage_or_selection_
             );
             assert!(ui.view().document_menu.is_none());
         }
-        let editor = Layout::new(ui.view().viewport).editor;
+        let editor = Layout::for_screen(ui.view().viewport, Screen::Editor).editor;
         send(ui, &mut sequence, mouse(editor.x + 70, editor.y + 20, 2, 2));
         send(ui, &mut sequence, mouse(editor.x + 70, editor.y + 20, 0, 2));
         let menu = ui.view().document_menu.unwrap();
@@ -151,7 +151,14 @@ fn genuine_menu_keys_pointer_and_named_button_open_without_storage_or_selection_
         ] {
             ui.resize(Viewport::new(w, h, scale, 2).unwrap()).unwrap();
             let layout = Layout::new(ui.view().viewport);
-            for other in [layout.back, layout.tool, layout.save, layout.editor] {
+            let painted = Layout::for_screen(ui.view().viewport, Screen::Editor).editor;
+            for other in [
+                layout.back,
+                layout.tool,
+                layout.save,
+                layout.editor,
+                painted,
+            ] {
                 assert!(!layout.context_menu.intersects(other));
             }
             let mut nodes = [SemanticNode::EMPTY; MAX_SEMANTIC_NODES];

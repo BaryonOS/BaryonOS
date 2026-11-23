@@ -249,8 +249,21 @@ impl Layout {
             layout.rename.y = 80;
             layout.organize.y = 80;
             layout.history.y = 80;
-            layout.editor.y += 56;
-            layout.editor.height = layout.editor.height.saturating_sub(56);
+            if viewport.logical_width() >= 784 && viewport.logical_height() < 360 {
+                // The title moves to the top row (`editor_title`), so the editor
+                // starts under the Rename row and keeps one full text line.
+                let bottom = layout.editor.y + layout.editor.height;
+                layout.editor.y = layout.rename.y + layout.rename.height + 8;
+                layout.editor.height = bottom
+                    .saturating_sub(layout.editor.y)
+                    .max(32 + d::LINE_HEIGHT);
+            } else {
+                // shortcut: at 700..783 and heights below 288 this still leaves
+                // no full text line; those frames are frozen by the UI/UX ruling
+                // until a follow-up may change them.
+                layout.editor.y += 56;
+                layout.editor.height = layout.editor.height.saturating_sub(56);
+            }
         }
         let (width, height) = (viewport.logical_width(), viewport.logical_height());
         let compact = height < 360;
@@ -334,6 +347,39 @@ impl Layout {
     }
     pub fn text_left(self) -> u32 {
         self.editor.x + 20
+    }
+    /// The document title on the editor screens: origin, usable width and
+    /// line height, in logical pixels.
+    pub fn editor_title(self) -> Rect {
+        let compact = self.height < 360;
+        let size = if compact { Size::Body } else { Size::Title };
+        let line = Font::new(size, Weight::Semibold, self.scale == Scale::Percent200).height()
+            / self.scale.factor();
+        if compact && self.width >= 784 {
+            // Between Tool and Save on the top row, clear of the Rename row.
+            let x = self.tool.x + self.tool.width + 12;
+            return Rect {
+                x,
+                y: self.back.y + self.back.height.saturating_sub(line) / 2,
+                width: self.save.x.saturating_sub(x + 12),
+                height: line,
+            };
+        }
+        Rect {
+            x: d::PAD,
+            y: if compact {
+                76
+            } else if self.width >= 700 {
+                140
+            } else {
+                84
+            },
+            width: self
+                .editor
+                .width
+                .min(self.context_menu.x.saturating_sub(d::PAD + 12)),
+            height: line,
+        }
     }
     pub fn text_top(self) -> u32 {
         self.editor.y + 16
@@ -736,26 +782,14 @@ impl<'a> Frame<'a> {
                     );
                 }
                 let title = core::str::from_utf8(self.view.title).unwrap_or("Naam niet leesbaar");
+                // shortcut: compact 700..783 keeps its frozen y 76 overlap with
+                // the Rename row until its frames may change.
+                let place = layout.editor_title();
                 paint.elided(
-                    d::PAD,
-                    if viewport.logical_height() < 360 {
-                        // Below the Rename row (y 80..124). shortcut: 700..783
-                        // keeps its frozen y 76 overlap until its frames may change.
-                        if viewport.logical_width() >= 784 {
-                            132
-                        } else {
-                            76
-                        }
-                    } else if viewport.logical_width() >= 700 {
-                        140
-                    } else {
-                        84
-                    },
+                    place.x,
+                    place.y,
                     title,
-                    layout
-                        .editor
-                        .width
-                        .min(layout.context_menu.x.saturating_sub(d::PAD + 12)),
+                    place.width,
                     (
                         if viewport.logical_height() < 360 {
                             Size::Body

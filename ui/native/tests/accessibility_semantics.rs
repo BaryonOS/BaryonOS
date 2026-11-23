@@ -356,13 +356,16 @@ fn reads_before(a: &SemanticNode<'_>, b: &SemanticNode<'_>) -> bool {
     }
 }
 
+/// A node Tab can land on when enabled; a read-only text editor is one.
+fn focusable(role: Role, actions: SemanticActions) -> bool {
+    actions.activate
+        || actions.set_value
+        || matches!(role, Role::Button | Role::ListItem | Role::TextEditor)
+}
+
 fn controls<'a>(raw: &'a [SemanticNode<'a>]) -> Vec<&'a SemanticNode<'a>> {
     raw.iter()
-        .filter(|n| {
-            n.actions.activate
-                || n.actions.set_value
-                || matches!(n.role, Role::Button | Role::ListItem | Role::TextEditor)
-        })
+        .filter(|n| focusable(n.role, n.actions))
         .collect()
 }
 
@@ -401,7 +404,7 @@ fn reading_order_guard(ui: &mut Controller<'_, Port>, seq: &mut u64, name: &str)
             let tree = nodes(ui);
             let order: Vec<SemanticId> = tree
                 .iter()
-                .filter(|n| n.enabled && (n.actions.activate || n.actions.set_value))
+                .filter(|n| n.enabled && focusable(n.role, n.actions))
                 .map(|n| n.id)
                 .collect();
             let at = order
@@ -440,9 +443,27 @@ enum State {
     Organize,
     Filter,
     ConfirmClose,
+    /// Rename / Organize with an empty form, so Confirm is disabled.
+    RenameEmpty,
+    OrganizeEmpty,
+    History,
+}
+
+/// Controls each state must still expose, disabled, in the semantic tree.
+fn disabled_in(state: State, mode: EditMode) -> &'static [SemanticId] {
+    match (state, mode) {
+        (State::EditorSaving, _) => &[SemanticId::DocumentTool],
+        (State::RenameEmpty | State::OrganizeEmpty, _) => &[SemanticId::FormConfirm],
+        (State::Editor, EditMode::ReadOnly) => &[SemanticId::Save],
+        _ => &[],
+    }
 }
 
 fn guard_state(w: u32, h: u32, scale: Scale, state: State) {
+    guard_state_in(w, h, scale, state, EditMode::ReadWrite);
+}
+
+fn guard_state_in(w: u32, h: u32, scale: Scale, state: State, mode: EditMode) {
     let host = Host::new();
     for i in 0..7u64 {
         host.borrow_mut().seed_named(i, b"Reis", b"Earlier");
@@ -451,7 +472,7 @@ fn guard_state(w: u32, h: u32, scale: Scale, state: State) {
     let (mut d, mut o, mut s) = ([0; 4096], [0; 4096], [0; 4096]);
     let mut ui = controller(
         &host,
-        EditMode::ReadWrite,
+        mode,
         Buffers {
             draft: &mut d,
             original: &mut o,
@@ -485,6 +506,15 @@ fn guard_state(w: u32, h: u32, scale: Scale, state: State) {
                 }
                 State::Rename => ui.begin_rename().unwrap(),
                 State::Organize => ui.begin_organize().unwrap(),
+                State::RenameEmpty => {
+                    ui.begin_rename().unwrap();
+                    ui.set_form_value("").unwrap();
+                }
+                State::OrganizeEmpty => {
+                    ui.begin_organize().unwrap();
+                    ui.set_form_value("").unwrap();
+                }
+                State::History => ui.begin_history().unwrap(),
                 State::ConfirmClose => {
                     ui.insert("Mine ").unwrap();
                     ui.request_back().unwrap();
@@ -494,19 +524,37 @@ fn guard_state(w: u32, h: u32, scale: Scale, state: State) {
             }
         }
     }
-    let name = format!("{state:?} {w}x{h} {scale:?}");
+    let name = format!("{state:?} {mode:?} {w}x{h} {scale:?}");
+    let tree = nodes(&ui);
+    for id in disabled_in(state, mode) {
+        let node = tree
+            .iter()
+            .find(|n| n.id == *id)
+            .unwrap_or_else(|| panic!("{name}: disabled {id:?} missing from the semantic tree"));
+        assert!(!node.enabled, "{name}: {id:?} should be disabled");
+    }
     let mut seq = 0;
     reading_order_guard(&mut ui, &mut seq, &name);
 }
 
-/// Widths below 700, 700..783 and from 784 (and a compact height), each at
-/// 100 % and 200 %, for every native app screen except History. History is
-/// still read Restore (right) before Cancel (left); the native library gate
-/// scripts Alt+H, Tab, Enter onto Restore, so its order is a separate change.
+/// Widths below 480, 480..559, below 700, 700..783 and from 784 (with compact
+/// heights down to 240), each at 100 % and 200 %, for every native app screen
+/// except History, plus read-only Material and Editor. History is still read
+/// Restore (right) before Cancel (left); see the ignored test below.
 #[test]
 fn semantic_order_is_reading_order_and_tab_follows_it_on_every_screen() {
     run(|| {
-        for (w, h) in [(600, 540), (760, 540), (960, 540), (880, 300)] {
+        for (w, h) in [
+            (400, 540),
+            (520, 540),
+            (600, 540),
+            (760, 540),
+            (760, 300),
+            (960, 540),
+            (880, 300),
+            (880, 287),
+            (880, 240),
+        ] {
             for scale in [Scale::Percent100, Scale::Percent200] {
                 for state in [
                     State::Material,
@@ -515,12 +563,31 @@ fn semantic_order_is_reading_order_and_tab_follows_it_on_every_screen() {
                     State::EditorSaving,
                     State::Rename,
                     State::Organize,
+                    State::RenameEmpty,
+                    State::OrganizeEmpty,
                     State::Filter,
                     State::ConfirmClose,
                 ] {
                     guard_state(w, h, scale, state);
                 }
+                for state in [State::Material, State::Editor] {
+                    guard_state_in(w, h, scale, state, EditMode::ReadOnly);
+                }
             }
+        }
+    });
+}
+
+#[test]
+#[ignore = "follow-up: the History dialog reads Version, Restore, Cancel, not \
+            its visual order; out of the U04 ruling's scope and relied on by \
+            tools/window_library.py:77 (Alt+H, Tab, Enter) and \
+            ui/native/tests/library_native_fixture.rs:191-192, so it must \
+            change together with those scripts"]
+fn history_dialog_semantic_order_is_reading_order() {
+    run(|| {
+        for scale in [Scale::Percent100, Scale::Percent200] {
+            guard_state(960, 540, scale, State::History);
         }
     });
 }
