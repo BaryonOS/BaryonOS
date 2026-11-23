@@ -298,3 +298,65 @@ fn input_bounds_precede_untrusted_text_scans_and_grant_iteration() {
         Err(Error::TextFull)
     ));
 }
+
+type Volume = Index<4, 32, 4, 8>;
+
+#[test]
+fn objects_per_domain_parameter_maps_identities() {
+    let mut index = Volume::new();
+    let g0 = index.grant(0, 1).unwrap();
+    let g1 = index.grant(1, 1).unwrap();
+    for object in [0, 7] {
+        index.update(g0, doc(object, 1, "a")).unwrap();
+    }
+    for object in [8, 15] {
+        index.update(g1, doc(object, 1, "a")).unwrap();
+    }
+    for (grant, object) in [(g0, 8), (g1, 7), (g1, 16), (g0, u64::MAX), (g1, u64::MAX)] {
+        assert_eq!(
+            index.update(grant, doc(object, 2, "a")),
+            Err(Error::InvalidIdentity)
+        );
+        assert_eq!(index.delete(grant, object, 2), Err(Error::InvalidIdentity));
+    }
+    assert_eq!(index.query::<4>(&[g0, g1], b"a").unwrap().len(), 4);
+    // The rebuild path applies the same mapping.
+    assert_eq!(
+        index.rebuild(g0, &[doc(8, 1, "a")]),
+        Err(Error::InvalidIdentity)
+    );
+    index
+        .rebuild(g1, &[doc(9, 1, "b"), doc(15, 2, "b")])
+        .unwrap();
+    assert_eq!(index.query::<4>(&[g1], b"b").unwrap().len(), 2);
+}
+
+#[test]
+fn default_objects_per_domain_remains_two() {
+    let mut index = Cache::new();
+    let g0 = index.grant(0, 1).unwrap();
+    let g1 = index.grant(1, 1).unwrap();
+    index.update(g0, doc(1, 1, "a")).unwrap();
+    index.update(g1, doc(3, 1, "a")).unwrap();
+    for (grant, object) in [(g0, 2), (g1, 4), (g1, 7), (g1, u64::MAX)] {
+        assert_eq!(
+            index.update(grant, doc(object, 1, "a")),
+            Err(Error::InvalidIdentity)
+        );
+    }
+    assert_eq!(
+        index.rebuild(g0, &[doc(2, 1, "a")]),
+        Err(Error::InvalidIdentity)
+    );
+}
+
+#[test]
+fn objects_per_domain_bounds_cached_entry_validation() {
+    let mut index = Volume::new();
+    let grant = index.grant(0, 1).unwrap();
+    index.update(grant, doc(7, 1, "a")).unwrap();
+    let entry = index.entries[0][0].as_mut().unwrap();
+    entry.hit.object = 8;
+    entry.seal();
+    assert_eq!(index.query::<2>(&[grant], b"a"), Err(Error::Corrupt));
+}

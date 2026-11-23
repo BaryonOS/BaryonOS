@@ -49,7 +49,7 @@ class Quarantine(unittest.TestCase):
 
     def test_real_cli_refuses_without_credentials_or_external_tools(self):
         result = subprocess.run(
-            [sys.executable, "-I", str(pathlib.Path(pipeline.__file__)), "--once", "--dry-run"],
+            [sys.executable, "-I", "-B", str(pathlib.Path(pipeline.__file__)), "--once", "--dry-run"],
             env={"PATH": ""}, capture_output=True, text=True, timeout=10,
         )
         self.assertEqual(result.returncode, 2)
