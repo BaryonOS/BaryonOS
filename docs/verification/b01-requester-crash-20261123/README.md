@@ -2,7 +2,8 @@
 
 Date: 23 November 2026 (Europe/Amsterdam). Criterion B01 (entropy/keyring
 broker), task B01-T2. Branch `claude/b01-requester-crash-20261123`, base
-`origin/main` `297d7bfc`. Source fingerprint v3 `9dfc6062748fe6a86c630d68823fea4ba07fd74e89a723aafdc8039b9b95fddd`;
+`origin/main` `297d7bfc`, source commit `7325d988`. Source fingerprint v3 `f4ac627c35c56a0860317cc45e685faebc394dae43fada80ddc2fd5143e42fa8`
+(recaptured after the EGD drain fix; supersedes the earlier `9dfc6062…fddd` capture);
 per-stage records: `keyring-gate.json`; file hashes: `SHA256SUMS` (this README is not covered).
 
 Command: `NOS_QEMU_MACHINE=pc-q35-8.2 python3 -B -u tools/test_keyring.py`
@@ -41,6 +42,9 @@ bytes. On QEMU 10.2.1 the unchanged timeout case gives `[255, 1, 255, 1]`
 with one kernel ticket, so the host check accepts only whole `[255, 1]`
 pairs and an unanswered backend; the number of guest submissions is pinned
 kernel-side by `DEVICE_SUBMISSIONS=1`, not by the transcript.
+Because QEMU writes the 255 and 1 commands separately, the silent backend
+reads its socket to EOF after stop (bounded by `DRAIN_SECONDS`, 1 s) before
+the transcript is frozen, so a pair split at shutdown is not cut.
 This whole-pair rule now also applies to the existing `timeout` case, which
 previously required only a non-empty transcript; the hosted runner's QEMU
 build has not yet been observed under the new rule. The harness's
