@@ -11,7 +11,7 @@ The inventory must agree with the run's own serial log: its PCI functions with
 the ``HWINV:PCI`` lines and count, its DMAR observation with the
 ``HWINV:ACPI:DMAR`` line and the kernel's ACPI discovery marker, its CPUID vendor with the single
 ``HWINV:CPUID`` line and its Secure Boot state with the single ``HWINV:SECUREBOOT`` line (``1`` enabled,
-``0`` disabled, ``ABSENT`` unknown). A protocol may
+``0`` disabled, ``ABSENT`` unknown, which also forbids a record claiming ``enabled``). A protocol may
 be ``ready`` only while none of the owner decisions that block it is open, and a
 record is accepted only when the accepted records its protocol requires exist
 with the same target, ``source_sha256``, ``source_commit`` and inventory

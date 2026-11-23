@@ -1200,10 +1200,11 @@ class ProtocolEvidenceTests(unittest.TestCase):
                  "malformed HWINV:CPUID"),
                 ("log absent, inventory unknown, record enabled",
                  dict(inventory=physical_inventory(secure_boot="unknown"), secure_boot="enabled",
-                      lines=at(secure, "HWINV:SECUREBOOT=ABSENT")), "Secure Boot")):
+                      lines=at(secure, "HWINV:SECUREBOOT=ABSENT")), "ABSENT contradicts the record")):
             with self.subTest(case=label):
                 self.rejects(self.signed(**changes), reason)
-        # ABSENT maps to an unknown inventory state, never to disabled; the record keeps the operator observation.
+        # ABSENT maps to an unknown inventory state, never to disabled; the record keeps the operator
+        # observation unless it claims enabled, which ABSENT contradicts.
         unknown = physical_inventory(secure_boot="unknown")
         self.assertTrue(hw_evidence.validate_record(self.signed(inventory=unknown), self.root)["passed"])
         self.assertIn("HWINV:SECUREBOOT=ABSENT", self.fixture.serial_lines(inventory=unknown))
