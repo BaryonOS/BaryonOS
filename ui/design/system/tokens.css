@@ -1,5 +1,5 @@
-/* BaryonOS design system ds-1.0: tokens
-   14 November 2026. DESIGN ARTEFACT, not a working OS and not product code.
+/* BaryonOS design system ds-1.1: tokens
+   14 November 2026; ds-1.1 accessibility axes 15 November 2026 (DESIGN-SYSTEM.md section 21). DESIGN ARTEFACT, not a working OS and not product code.
    Source of truth: ui/design/concepts/orbitaal-v2/index.html (Orbitaal v2 board: .dk, .lt, .hc, :root, motion table B1).
    Shaped by docs/design/suite/WORKSPACE-REQUIREMENTS.md (S0): D1 no status hue, D2 densities, D3 neutral surfaces
    (values PROVISIONAL), D4 region names. Type: docs/design/TYPOGRAPHY.md section 8 (type-1.0).
@@ -424,8 +424,150 @@
   --space-panel: 8px;
 }
 
+
+/* ===== ds-1.1 accessibility axes (DESIGN-SYSTEM.md section 21; matrix docs/design/accessibility/ACCESSIBILITY-MATRIX.md) =====
+   One data attribute per axis, combinable with every theme, the scale and every other axis. An axis applies to the element
+   that carries it and to every themed element inside it (so a Kern surface with its own data-theme keeps the axis).
+   shortcut: a nested element cannot switch an axis back to another value inside a subtree that already sets it; upgrade
+   path: @container style() queries once the native settings store owns the cascade.
+   Ownership (one owner per token): contrast owns text and line roles; colour-perception owns place colours and the Kern warning
+   colours; transparency owns glass, Orbit and launcher materials; stimulus owns --color-blade-glow and the stimulus layer tokens.
+   Light intensity is an output white level (components.css filter, sRGB x 0.85, applied last) plus one compensation block per theme
+   below, placed BEFORE the contrast and colour-perception blocks: same specificity, so increased contrast (attribute or device) and a
+   re-mapped palette win where they are set; their own values hold at x 0.85 on every overlay stack (check.mjs (6)). Device preferences apply only while no element in the
+   chain carries the axis attribute (absent attribute = follow the device; any explicit value is the user's deliberate choice). */
+
+/* light-intensity: dimmed compensation for the near-floor roles (repair-1): text-subtle and disabled >= 4.5:1, line-strong >= 3:1 and
+   the default internet place >= 3:1 on every surface and overlay stack after x 0.85; muted rises with subtle to keep the hierarchy. */
+:is(:root:not([data-theme]), [data-theme="dark"]):is([data-light-intensity="dimmed"], [data-light-intensity="dimmed"] *) {
+  --color-text-muted: #BCC3D7; --color-text-subtle: #ACB2C7; --color-text-disabled: #ACB2C7; --color-line-strong: #848DB0;
+  --place-internet: #FF695E; --place-internet-line: rgba(255,105,94,.5);
+}
+[data-theme="light"]:is([data-light-intensity="dimmed"], [data-light-intensity="dimmed"] *) {
+  --color-text-subtle: #4A5269; --color-text-disabled: #4A5269; --color-line-strong: #68718C;
+}
+
+/* contrast: increased (text >= 7:1, lines >= 3:1, also at x 0.85). The contrast theme already meets it: no block (section 21.3). */
+:is(:root:not([data-theme]), [data-theme="dark"]):is([data-contrast="increased"], [data-contrast="increased"] *) {
+  --color-text: #FFFFFF; --color-text-muted: #E2E6F0; --color-text-subtle: #DADFE9; --color-text-disabled: #DADFE9;
+  --color-line: #7D87AB; --color-line-strong: #C3CAE0; --color-rim-c: #7D87AB; --material-glass-line: #7D87AB;
+  --material-kern-tx2: #E2E6F0; --material-kern-line: #7D87AB;
+  --color-neutral-text: #FFFFFF; --color-neutral-text-muted: #E4E4E4; --color-neutral-text-subtle: #D6D6D6; --color-neutral-line: #8A8A8A; --color-neutral-line-strong: #CBCBCB;
+}
+[data-theme="light"]:is([data-contrast="increased"], [data-contrast="increased"] *) {
+  --color-text: #05080F; --color-text-muted: #20273A; --color-text-subtle: #283044; --color-text-disabled: #283044;
+  --color-line: #5E6884; --color-line-strong: #2F3749; --color-rim-c: #5E6884; --material-glass-line: #5E6884;
+  --material-kern-tx2: #20273A; --material-kern-line: #5E6884;
+  --color-neutral-text: #080808; --color-neutral-text-muted: #252525; --color-neutral-text-subtle: #2D2D2D; --color-neutral-line: #676767; --color-neutral-line-strong: #383838;
+}
+@media (prefers-contrast: more) {
+:is(:root:not([data-theme]), [data-theme="dark"]):not([data-contrast], [data-contrast] *) {
+  --color-text: #FFFFFF; --color-text-muted: #E2E6F0; --color-text-subtle: #DADFE9; --color-text-disabled: #DADFE9;
+  --color-line: #7D87AB; --color-line-strong: #C3CAE0; --color-rim-c: #7D87AB; --material-glass-line: #7D87AB;
+  --material-kern-tx2: #E2E6F0; --material-kern-line: #7D87AB;
+  --color-neutral-text: #FFFFFF; --color-neutral-text-muted: #E4E4E4; --color-neutral-text-subtle: #D6D6D6; --color-neutral-line: #8A8A8A; --color-neutral-line-strong: #CBCBCB;
+}
+[data-theme="light"]:not([data-contrast], [data-contrast] *) {
+  --color-text: #05080F; --color-text-muted: #20273A; --color-text-subtle: #283044; --color-text-disabled: #283044;
+  --color-line: #5E6884; --color-line-strong: #2F3749; --color-rim-c: #5E6884; --material-glass-line: #5E6884;
+  --material-kern-tx2: #20273A; --material-kern-line: #5E6884;
+  --color-neutral-text: #080808; --color-neutral-text-muted: #252525; --color-neutral-text-subtle: #2D2D2D; --color-neutral-line: #676767; --color-neutral-line-strong: #383838;
+}
+}
+
+/* transparency: opaque (same hue family as the composite over --color-bg). The contrast theme is opaque already. */
+:is(:root:not([data-theme]), [data-theme="dark"]):is([data-transparency="opaque"], [data-transparency="opaque"] *) {
+  --material-glass: #090D16; --material-orbit-bg: linear-gradient(180deg,#1B2039,#0E1121); --material-launch: var(--material-launch-opaque);
+}
+[data-theme="light"]:is([data-transparency="opaque"], [data-transparency="opaque"] *) {
+  --material-glass: #F2F5FA; --material-orbit-bg: linear-gradient(180deg,#F9FAFC,#EAEEF5); --material-launch: var(--material-launch-opaque);
+}
+@media (prefers-reduced-transparency: reduce) {
+:is(:root:not([data-theme]), [data-theme="dark"]):not([data-transparency], [data-transparency] *) {
+  --material-glass: #090D16; --material-orbit-bg: linear-gradient(180deg,#1B2039,#0E1121); --material-launch: var(--material-launch-opaque);
+}
+[data-theme="light"]:not([data-transparency], [data-transparency] *) {
+  --material-glass: #F2F5FA; --material-orbit-bg: linear-gradient(180deg,#F9FAFC,#EAEEF5); --material-launch: var(--material-launch-opaque);
+}
+}
+
+/* colour-perception: place colours re-mapped for protan, deutan and tritan simulation (Machado 2009, severity 1.0), each >= 3:1 on
+   every surface and overlay stack at x 1 and x 0.85 (check.mjs (6)); the shape, icon and text of every place stay (baseline row 1). An aid without a claim (matrix row 4, insufficient). */
+:is(:root:not([data-theme]), [data-theme="dark"]):is([data-colour-perception="protan"], [data-colour-perception="protan"] *) {
+  --place-device: #F5E84A; --place-nas: #5AA2FF; --place-internet: #F57075; --place-internet-line: rgba(245,112,117,.5); --material-kern-warn-ic: #F57075; --material-kern-warn-line: rgba(245,112,117,.45);
+}
+:is(:root:not([data-theme]), [data-theme="dark"]):is([data-colour-perception="deutan"], [data-colour-perception="deutan"] *) {
+  --place-device: #F5E84A; --place-nas: #5AA2FF; --place-internet: #D4857A; --place-internet-line: rgba(212,133,122,.5); --material-kern-warn-ic: #D4857A; --material-kern-warn-line: rgba(212,133,122,.45);
+}
+:is(:root:not([data-theme]), [data-theme="dark"]):is([data-colour-perception="tritan"], [data-colour-perception="tritan"] *) {
+  --place-device: #3BE86A; --place-nas: #B57EFF; --place-internet: #FF695E; --place-internet-line: rgba(255,105,94,.5); --material-kern-warn-ic: #FF695E; --material-kern-warn-line: rgba(255,105,94,.45);
+}
+[data-theme="light"]:is([data-colour-perception="protan"], [data-colour-perception="protan"] *) {
+  --place-device: #757518; --place-nas: #1061D6; --place-internet: #5A0A18; --place-internet-line: rgba(90,10,24,.5); --material-kern-warn-ic: #5A0A18; --material-kern-warn-line: rgba(90,10,24,.45);
+}
+[data-theme="light"]:is([data-colour-perception="deutan"], [data-colour-perception="deutan"] *) {
+  --place-device: #8A6D00; --place-nas: #1061D6; --place-internet: #5A0A18; --place-internet-line: rgba(90,10,24,.5); --material-kern-warn-ic: #5A0A18; --material-kern-warn-line: rgba(90,10,24,.45);
+}
+[data-theme="light"]:is([data-colour-perception="tritan"], [data-colour-perception="tritan"] *) {
+  --place-device: #0E8428; --place-nas: #9A12E6; --place-internet: #CC3328; --place-internet-line: rgba(204,51,40,.5); --material-kern-warn-ic: #CC3328; --material-kern-warn-line: rgba(204,51,40,.45);
+}
+[data-theme="contrast"]:is([data-colour-perception="protan"], [data-colour-perception="protan"] *) {
+  --place-device: #FFF23A; --place-nas: #8EC5FF; --place-internet: #FF3D43; --place-internet-line: #FF3D43; --material-kern-warn-ic: #FF3D43; --material-kern-warn-line: #FF3D43;
+}
+[data-theme="contrast"]:is([data-colour-perception="deutan"], [data-colour-perception="deutan"] *) {
+  --place-device: #FFF23A; --place-nas: #8EC5FF; --place-internet: #C4735E; --place-internet-line: #C4735E; --material-kern-warn-ic: #C4735E; --material-kern-warn-line: #C4735E;
+}
+[data-theme="contrast"]:is([data-colour-perception="tritan"], [data-colour-perception="tritan"] *) {
+  --place-device: #3BF26A; --place-nas: #9575FF; --place-internet: #FF8A80; --place-internet-line: #FF8A80; --material-kern-warn-ic: #FF8A80; --material-kern-warn-line: #FF8A80;
+}
+
+/* stimulus (repair-1: made perceivable): calm removes the blade glow and flattens window, Orbit, plate, launcher and inspector depth
+   to a short contact shadow; rich deepens that depth and adds a cool ambient halo around floating surfaces. The Kern trusted elevation
+   (--elev-trusted) is never touched. The contrast theme has no glow and no shadow depth: both values change nothing there (the settings
+   group says so). Shadows sit outside surfaces, so no text or line contrast pair depends on this axis. */
+:is(:root, [data-theme]):is([data-stimulus="calm"], [data-stimulus="calm"] *) {
+  --color-blade-glow: transparent;
+}
+:is(:root:not([data-theme]), [data-theme="dark"]):is([data-stimulus="rich"], [data-stimulus="rich"] *) {
+  --color-blade-glow: rgba(230,235,245,.6);
+}
+[data-theme="light"]:is([data-stimulus="rich"], [data-stimulus="rich"] *) {
+  --color-blade-glow: rgba(43,50,69,.32);
+}
+[data-theme="contrast"]:is([data-stimulus="rich"], [data-stimulus="rich"] *) {
+  --color-blade-glow: transparent;
+}
+
+:is(:root:not([data-theme]), [data-theme="dark"]):is([data-stimulus="calm"], [data-stimulus="calm"] *) {
+  --elev-window: 0 1px 0 rgba(0,0,0,.4),0 8px 18px rgba(0,0,0,.32); --elev-window-inactive: 0 6px 14px rgba(0,0,0,.28); --elev-orbit: 0 6px 16px rgba(0,0,0,.36); --elev-plate: 0 6px 16px rgba(0,0,0,.18); --elev-launcher: 0 10px 24px rgba(0,0,0,.42); --elev-inspector: -4px 6px 16px rgba(0,0,0,.3);
+}
+:is(:root:not([data-theme]), [data-theme="dark"]):is([data-stimulus="rich"], [data-stimulus="rich"] *) {
+  --elev-window: 26px 44px 84px rgba(0,0,0,.66),6px 12px 28px rgba(0,0,0,.46),0 0 64px rgba(120,140,230,.2); --elev-window-inactive: 16px 28px 60px rgba(0,0,0,.52),0 0 44px rgba(120,140,230,.1); --elev-orbit: 0 22px 54px rgba(0,0,0,.6),0 0 44px rgba(120,140,230,.2),0 2px 0 rgba(0,0,0,.3); --elev-plate: 0 22px 56px rgba(0,0,0,.34); --elev-launcher: 26px 44px 84px rgba(0,0,0,.66),0 0 64px rgba(120,140,230,.2); --elev-inspector: -16px 22px 48px rgba(0,0,0,.48);
+}
+[data-theme="light"]:is([data-stimulus="calm"], [data-stimulus="calm"] *) {
+  --elev-window: 0 1px 0 rgba(36,54,108,.1),0 6px 14px rgba(36,54,108,.1); --elev-window-inactive: 0 4px 10px rgba(36,54,108,.08); --elev-orbit: 0 6px 16px rgba(36,54,108,.1),0 1px 0 rgba(255,255,255,.9) inset; --elev-plate: 0 6px 16px rgba(36,54,108,.08); --elev-launcher: 0 10px 22px rgba(36,54,108,.12); --elev-inspector: -4px 6px 16px rgba(36,54,108,.08);
+}
+[data-theme="light"]:is([data-stimulus="rich"], [data-stimulus="rich"] *) {
+  --elev-window: 24px 40px 72px rgba(36,54,108,.3),6px 12px 28px rgba(36,54,108,.18),0 0 56px rgba(90,120,220,.22); --elev-window-inactive: 16px 28px 56px rgba(36,54,108,.22),0 0 40px rgba(90,120,220,.1); --elev-orbit: 0 22px 52px rgba(36,54,108,.28),0 0 40px rgba(90,120,220,.2),0 1px 0 rgba(255,255,255,.9) inset; --elev-plate: 0 22px 56px rgba(36,54,108,.22); --elev-launcher: 24px 40px 72px rgba(36,54,108,.3),0 0 56px rgba(90,120,220,.22); --elev-inspector: -16px 22px 48px rgba(36,54,108,.22);
+}
+
+/* targets: hit-area floor; components size hit areas with max(their size, --space-target-min). */
+:is([data-targets="32"], [data-targets="32"] *) {
+  --space-target-min: 32px;
+}
+:is([data-targets="44"], [data-targets="44"] *) {
+  --space-target-min: 44px;
+}
+
+/* text-spacing: wider = the four WCAG 1.4.12 values together (TYPOGRAPHY.md 8.6, "Ruimere tekst"); line heights 1.5 x size. */
+:is([data-text-spacing="wider"], [data-text-spacing="wider"] *) {
+  --type-caption-line: 19.5px; --type-body-line: 22.5px; --type-body-dense-line: 22.5px; --type-body-strong-line: 22.5px; --type-title-line: 33px; --type-display-line: 72px;
+}
+
 /* Reduced motion: every duration 0 ms (B1: nothing moves; the boot rests on the mark) */
 @media (prefers-reduced-motion: reduce) {
-  :root { --motion-duration-fast: 0ms; --motion-duration-selection: 0ms; --motion-duration-base: 0ms; --motion-duration-ask: 0ms; --motion-duration-focus: 0ms; --motion-duration-slow: 0ms; --motion-duration-boot: 0ms; --motion-duration-loader: 0ms; --motion-duration-halo: 0ms; --motion-duration-loader-pulse: 0ms; --motion-duration-stagger: 0ms; }
+  :root:not([data-motion="full"]) { --motion-duration-fast: 0ms; --motion-duration-selection: 0ms; --motion-duration-base: 0ms; --motion-duration-ask: 0ms; --motion-duration-focus: 0ms; --motion-duration-slow: 0ms; --motion-duration-boot: 0ms; --motion-duration-loader: 0ms; --motion-duration-halo: 0ms; --motion-duration-loader-pulse: 0ms; --motion-duration-stagger: 0ms; }
 }
 [data-motion="reduce"] { --motion-duration-fast: 0ms; --motion-duration-selection: 0ms; --motion-duration-base: 0ms; --motion-duration-ask: 0ms; --motion-duration-focus: 0ms; --motion-duration-slow: 0ms; --motion-duration-boot: 0ms; --motion-duration-loader: 0ms; --motion-duration-halo: 0ms; --motion-duration-loader-pulse: 0ms; --motion-duration-stagger: 0ms; }
+/* data-motion="full": the user's deliberate choice over a device reduced-motion preference; same values as :root (check.mjs) */
+[data-motion="full"] { --motion-duration-fast: 140ms; --motion-duration-selection: 160ms; --motion-duration-base: 220ms; --motion-duration-ask: 240ms; --motion-duration-focus: 260ms; --motion-duration-slow: 320ms; --motion-duration-boot: 1400ms; --motion-duration-loader: 1400ms; --motion-duration-halo: 2400ms; --motion-duration-loader-pulse: 2800ms; --motion-duration-stagger: 80ms; }
