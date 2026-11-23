@@ -403,12 +403,8 @@ impl Service {
             reply.data[..ID].copy_from_slice(&catalog.id);
             put64(&mut reply.data, 16, catalog.formatted);
         }
-        for lane in 1..LANES {
-            put64(
-                &mut reply.data,
-                16 + lane * 8,
-                self.lanes[lane].max_generation,
-            );
+        for (lane, state) in self.lanes.iter().enumerate().skip(1) {
+            put64(&mut reply.data, 16 + lane * 8, state.max_generation);
         }
     }
 
