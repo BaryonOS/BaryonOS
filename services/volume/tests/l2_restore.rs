@@ -527,6 +527,10 @@ fn malformed_commit_replies_leave_only_confirmed_commits_in_the_report() {
         let t = recover(disk.settled()).unwrap();
         let committed = t.entries.iter().filter(|e| e.installed != 0).count()
             + t.collections.iter().filter(|c| c.present).count();
-        assert_eq!(committed, report.committed + 1, "the rejected reply committed");
+        assert_eq!(
+            committed,
+            report.committed + 1,
+            "the rejected reply committed"
+        );
     }
 }

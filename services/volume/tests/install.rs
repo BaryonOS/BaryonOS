@@ -798,11 +798,18 @@ fn malformed_install_begin_replies_abort_only_their_own_request() {
         EPOCH,
         700,
     );
-    assert_eq!(c.install_begin(object, &m, (0, 0, 0)), Err(Status::Protocol));
+    assert_eq!(
+        c.install_begin(object, &m, (0, 0, 0)),
+        Err(Status::Protocol)
+    );
     assert_eq!(c.transport.aborts, [(object, 700)]);
     c.transport.byte = None;
     assert_eq!(c.install_begin(object, &m, (0, 0, 0)), Err(Status::Busy));
-    assert_eq!(c.transport.aborts.len(), 1, "a valid refusal needs no abort");
+    assert_eq!(
+        c.transport.aborts.len(),
+        1,
+        "a valid refusal needs no abort"
+    );
     c.abort(object, 0, id).unwrap();
     c.install(object, &m, (0, 0, 0), fill(object)).unwrap();
 }
