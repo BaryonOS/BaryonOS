@@ -109,6 +109,20 @@ compile_error!("native-system-power gates S5 on exactly the base native-system b
     )
 ))]
 compile_error!("test-system-s3 suspends only the granted base native-system-power profile: no fault fixture, live FPU state or GS anchor survives the wake");
+// Explicit, not only through the native-system-power guard: the wake resets
+// every device, and only the block and entropy brokers refuse after it.
+#[cfg(all(
+    feature = "test-system-s3",
+    any(
+        feature = "native-system-net",
+        feature = "native-system-clock",
+        feature = "native-system-nas-probe",
+        feature = "native-system-random",
+        feature = "native-system-display-input",
+        feature = "native-window-session"
+    )
+))]
+compile_error!("test-system-s3 excludes the network, clock, NAS, random, display-input and window-session system profiles");
 #[cfg(all(
     feature = "native-smp",
     not(feature = "native-smp-legacy"),
