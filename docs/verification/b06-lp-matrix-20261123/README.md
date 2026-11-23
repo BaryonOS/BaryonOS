@@ -19,8 +19,13 @@ compliance.
 The 20261115 README defines `none` as "no complete-scenario evidence mapped". In
 this revision, `native` means: **the core denial in the LP row's "Required result"
 column was exercised in an archived, passing, source-bound native QEMU run**. It
-does **not** mean that the complete LP scenario is covered. The `limit` string in
-the `--check` output states the same qualifier. A row is not mapped as `native` when
+does **not** mean that the complete LP scenario is covered. This meaning is a
+human-reviewed mapping recorded in this README and in each row's `remaining` text.
+`tools/lp_matrix.py` does not inspect what an archived run exercised: it checks only
+that a native row's evidence is a passing QEMU record (`passed`, `timed_out`,
+`raw_qemu_exit` 33, and a 64-hex `source_sha256` tag that it does not compare
+with any source fingerprint). The `limit` string in the
+`--check` output states that boundary. A row is not mapped as `native` when
 the evidence covers only one of several distinct artifact classes or paths that
 the row names (see LP-12). Every part of the row
 that the run did not exercise is named in the row's `remaining` text. The matrix
@@ -116,6 +121,11 @@ their 20261115 residual text.
 - `python3 -B tools/lp_matrix.py --check`
 - `python3 -B tools/lp_matrix.py --check --matrix docs/verification/b06-lp-matrix-20261115/matrix.json`
 - `python3 -m compileall -q tools/lp_matrix.py`
+
+The `--check` output names the checked revision in its `matrix` field, and a failure
+line names the `--matrix` argument. `--matrix` accepts only a
+`docs/verification/<revision>/matrix.json` file of at most 1 MiB inside the
+repository, the same size bound that applies to evidence files.
 
 The tests include negative cases. A native row that points at a record with
 `raw_qemu_exit` 35 or `passed: false` is rejected. This covers the archived
