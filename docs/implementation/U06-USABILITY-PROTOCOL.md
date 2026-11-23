@@ -338,11 +338,13 @@ Consistent with [LOCAL-PRIVACY-CONTRACT.md](../LOCAL-PRIVACY-CONTRACT.md) §1 an
    rebuild the pilot is repeated.
 4. **Preregistration freeze**, after the pilot: copy of this protocol with
    the agreed task set, success keys, budgets, analysis plan and bundle
-   `manifest.json`; its SHA-256 is recorded before the first counted session, following the precedent of
+   `manifest.json`; its SHA-256 is recorded before the first counted
+   session, following the precedent of
    [the logotype review pre-registration](../verification/logotype-review-20261114/PREREGISTRATION.md),
    which is committed before the review runs so that the commit time evidences
    the order. The frozen copy contains the pilot-derived keys (CT01 status
-   text, CT04 end state, CT12 powered-off end state) and the testability
+   text, CT04 end state, CT10 start state, CT12 powered-off end state) and
+   the testability
    decision for CT07–CT09 and CT12; these do not change after the first
    counted session. Later changes go to a deviations log, never silently into
    the frozen copy.
