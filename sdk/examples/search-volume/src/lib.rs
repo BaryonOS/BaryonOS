@@ -156,6 +156,14 @@ impl<T: Transport> Search<T> {
         Ok(())
     }
 
+    /// Names longer than the protocol limit are refused before encoding.
+    fn named(name: &[u8]) -> Result<(), Error> {
+        if name.len() > NAME {
+            return Err(Error::Volume(Status::Range));
+        }
+        Ok(())
+    }
+
     fn own(&self, object: u64) -> Result<usize, Error> {
         self.live()?;
         if object / PER_DOMAIN as u64 != self.domain as u64 {
@@ -189,7 +197,12 @@ impl<T: Transport> Search<T> {
         if again != generation {
             return Err(Error::Volume(Status::Stale));
         }
-        if self.generation.is_some_and(|last| generation <= last) {
+        // A dirty index may rebuild at the last applied generation: an
+        // uncertain mutation reply need not have advanced it.
+        if self
+            .generation
+            .is_some_and(|last| generation < last || (generation == last && !self.dirty))
+        {
             return Err(Error::StaleGeneration);
         }
         let mut collection_of = [0; PER_DOMAIN];
@@ -243,6 +256,7 @@ impl<T: Transport> Search<T> {
         content: &[u8],
     ) -> Result<u64, Error> {
         self.own(object)?;
+        Self::named(name)?;
         self.forced(|client| {
             client
                 .write(object, expected, name, content.len(), |offset, buffer| {
@@ -254,6 +268,7 @@ impl<T: Transport> Search<T> {
 
     /// Create, rename (non-empty `name`) or delete (empty) a collection.
     pub fn collection(&mut self, index: usize, expected: u64, name: &[u8]) -> Result<u64, Error> {
+        Self::named(name)?;
         let domain = self.domain;
         self.forced(|client| {
             client
@@ -281,6 +296,7 @@ impl<T: Transport> Search<T> {
     /// Rename, then index the new name at the revision RENAME returned.
     pub fn rename(&mut self, object: u64, expected: u64, name: &[u8]) -> Result<u64, Error> {
         let slot = self.own(object)?;
+        Self::named(name)?;
         let revision = self.client.rename(object, expected, name);
         let revision = revision.map_err(|status| self.uncertain(status))?;
         let document = Document {

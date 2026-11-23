@@ -614,3 +614,27 @@ fn label_change_between_lists_is_stale_and_publishes_nothing() {
     search.rebuild().unwrap();
     assert_eq!(find(&search, "home zulu"), vec![(0, 3)]);
 }
+
+/// A dirty index rebuilds at the unchanged generation after an uncertain reply.
+#[test]
+fn dirty_index_rebuilds_at_the_last_applied_generation() {
+    let mut search = fixture();
+    let before = generation(&search);
+    search.dirty = true;
+    search.rebuild().unwrap();
+    assert_eq!(generation(&search), before);
+    assert!(search.query(b"meeting").is_ok());
+    assert_eq!(search.rebuild(), Err(Error::StaleGeneration));
+}
+
+/// Names over the protocol limit are refused before any request is built.
+#[test]
+fn over_long_names_are_refused_before_encoding() {
+    let mut search = fixture();
+    let long = [b'a'; NAME + 1];
+    let range = Err(Error::Volume(Status::Range));
+    assert_eq!(search.rename(0, 2, &long), range);
+    assert_eq!(search.write(6, 0, &long, b"x"), range);
+    assert_eq!(search.collection(1, 1, &long), range);
+    assert!(search.query(b"meeting").is_ok());
+}
