@@ -2,7 +2,7 @@
 
 Date: 23 November 2026 (Europe/Amsterdam). Criterion B01 (entropy/keyring
 broker), task B01-T2. Branch `claude/b01-requester-crash-20261123`, base
-`origin/main` `297d7bfc`. Source fingerprint v3 `78e2a9e3fc30f2359d344f9ce35458efac779de298b137ece4036f6388eaa9ff`;
+`origin/main` `297d7bfc`. Source fingerprint v3 `9dfc6062748fe6a86c630d68823fea4ba07fd74e89a723aafdc8039b9b95fddd`;
 per-stage records: `keyring-gate.json`; file hashes: `SHA256SUMS` (this README is not covered).
 
 Command: `NOS_QEMU_MACHINE=pc-q35-8.2 python3 -B -u tools/test_keyring.py`
@@ -56,5 +56,20 @@ kernel-side by `DEVICE_SUBMISSIONS=1`, not by the transcript.
 - The probes are kernel-driven calls through the real syscall handler on
   the surviving service's capability, as the existing lease and
   authority-loss fixtures.
+- `CRASH_TICKET_REFUSED` is defence in depth, not independent evidence: at
+  that point no pending or completed request exists and the ticket belongs
+  to another binding, so `0x61` returns -1 for either reason. The
+  load-bearing checks are the crash-gate state checks, which the negative
+  control above shows fail without the quarantine.
+- A device that answers late after the crash (stale DMA) is not exercised;
+  the crash case uses only the silent backend.
+- After a missing reset-ACK the broker is quarantined but still reports
+  the timeout code -13, not -14. This predates B01-T2 and is a diagnostic
+  gap only: restart and re-initialisation both require `!quarantined`.
+- Both new features are rejected at compile time together with
+  `native-smp-legacy` or `native-system`, so the fixtures cannot alter the
+  shared broker path of the system profile. The two features also imply
+  `test-keyring-timeout`, which only selects the three-process slot count
+  in `m3.rs`; `case()` tests the B01-T2 features first.
 - No physical RNG, min-entropy, TPM or side-channel claim. AI-written and
   AI-checked; no independent human audit.

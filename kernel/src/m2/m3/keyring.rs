@@ -1149,13 +1149,16 @@ fn refusal_probe(s: &mut State) {
 }
 
 fn finish(s: &mut State) -> ! {
+    // Read once: crashed() borrows the runtime and must not overlap `r`.
+    let crash = crashed(CRASH_SLOT);
+    let dead = |slot: usize| crash && slot == CRASH_SLOT;
     let r = runtime();
     let app = r.app;
     let [status, step, generated, sealed, unsealed, tamper_denied, cross_denied, revoked_denied, quota_denied, recovery_export_denied, recovery_restore_denied, _, _, not_ready, entropy_denied, status_calls, b_unseal] =
         app;
     let mut services = [[0u64; 10]; 2];
     for (i, slot) in SERVICE_SLOTS.into_iter().enumerate() {
-        if crashed(slot) {
+        if dead(slot) {
             // The crashed slot is gone; its words were snapshotted at the fault.
             services[i] = r.crashed;
             continue;
@@ -1409,7 +1412,7 @@ fn finish(s: &mut State) -> ! {
     serial::write(marker());
     // Resource accounting: release both live services, then require the exact
     // frame baseline and an empty engine. The DMA pool stays kernel-owned.
-    for slot in SERVICE_SLOTS.into_iter().filter(|slot| !crashed(*slot)) {
+    for slot in SERVICE_SLOTS.into_iter().filter(|slot| !dead(*slot)) {
         s.audit_process(slot);
     }
     let released = releasable_frames(s);
@@ -1424,7 +1427,7 @@ fn finish(s: &mut State) -> ! {
         }
     }
     let pool = r.pool;
-    for slot in SERVICE_SLOTS.into_iter().filter(|slot| !crashed(*slot)) {
+    for slot in SERVICE_SLOTS.into_iter().filter(|slot| !dead(*slot)) {
         s.processes[slot].status = Status::Dying;
         s.cleanup(slot);
     }
