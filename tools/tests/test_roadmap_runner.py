@@ -66,7 +66,9 @@ class Ledger(unittest.TestCase):
             def preflight():
                 controller.callbacks = "cb"
                 return "a" * 40
+            # Patched: pgrep also sees tagged processes of a concurrent run on the host.
             with unittest.mock.patch.object(rr, "LEDGER", ledger), \
+                    unittest.mock.patch.object(rr.Controller, "refuse_live_workers"), \
                     unittest.mock.patch.object(rr, "git_callbacks", return_value="cb"), \
                     unittest.mock.patch.object(controller, "preflight", side_effect=preflight):
                 with self.assertRaisesRegex(rr.Stop, "lock"):
@@ -113,7 +115,7 @@ class Ledger(unittest.TestCase):
                     controller.release()
 
     def test_refused_controller_does_not_remove_foreign_lease(self):
-        with tempfile.TemporaryDirectory() as tmp:
+        with tempfile.TemporaryDirectory() as tmp, unittest.mock.patch.object(rr.Controller, "refuse_live_workers"):
             state = Path(tmp)
             owner = rr.Controller(rr.Config(), state)
             contender = rr.Controller(rr.Config(), state)
@@ -598,6 +600,7 @@ class Session(unittest.TestCase):
                 controller = rr.Controller(rr.Config(), state)
                 try:
                     with unittest.mock.patch.object(rr, "git_callbacks", return_value=later), \
+                            unittest.mock.patch.object(rr.Controller, "refuse_live_workers"), \
                             unittest.mock.patch.object(controller, "ignored_files", return_value={}), \
                             unittest.mock.patch.object(rr, "git", side_effect=rr.Stop("git reached")) as git:
                         with self.assertRaisesRegex(rr.Stop, "interrupted session" if stops else "git reached"):
@@ -1578,28 +1581,97 @@ class RunnerResiduals(unittest.TestCase):
                 self.assertFalse(record.exists())
                 self.assertFalse(controller.trusted() and planted != "hardlinked controller.lock")
 
-    def test_a_state_directory_linked_into_the_trusted_home_is_refused(self):
+    def test_a_state_directory_linked_into_a_trusted_home_is_refused(self):
         # 56716bca: with build/roadmap-pipeline -> <home>, the "legacy" marker was the marker itself,
-        # so `resume --accept` wrote the accepted snapshot and unlinked it at once.
-        for entry, target in (("resume --accept", "home"), ("acquire", "home"), ("acquire", "its parent"),
-                              ("acquire", "inside it")):
-            with self.subTest(entry=entry, target=target), tempfile.TemporaryDirectory() as tmp, \
-                    self.live_state(tmp) as (repo, state, controller), \
-                    unittest.mock.patch.object(rr.Controller, "refuse_live_workers"):
-                home = controller.marker().parent
-                self.manual_marker(controller)
+        # so `resume --accept` wrote the accepted snapshot and unlinked it at once. 7d699231 checked
+        # only this checkout's home: a link to a sibling checkout's home unlinked that one's marker.
+        targets = ("home", "its parent", "inside it", "a sibling checkout's home")
+        for entry in ("resume --accept", "acquire"):
+            for target in targets:
+                with self.subTest(entry=entry, target=target), tempfile.TemporaryDirectory() as tmp, \
+                        self.live_state(tmp) as (repo, state, controller), \
+                        unittest.mock.patch.object(rr.Controller, "refuse_live_workers"):
+                    home = controller.marker().parent
+                    self.manual_marker(controller)
+                    sibling = home.parent / ("0" * 16)
+                    sibling.mkdir()
+                    rr.atomic_write(sibling / rr.CALLBACKS_MARKER, json.dumps({"manual": "S", "ignored": {}}))
+                    digest = re.search(r"resume --accept ([0-9a-f]+)", self.resume()[1]).group(1)
+                    for name in os.listdir(state):
+                        (state / name).unlink()
+                    state.rmdir()
+                    link = {"home": home, "its parent": home.parent, "inside it": home / "sub",
+                            "a sibling checkout's home": sibling}[target]
+                    link.mkdir(exist_ok=True)
+                    state.symlink_to(link, target_is_directory=True)
+                    if entry == "acquire":
+                        with self.assertRaisesRegex(rr.Stop, "remove the planted link"):
+                            controller.acquire()
+                    else:
+                        code, message = self.resume("--accept", digest)  # the reviewed digest
+                        self.assertEqual(code, 2, message)
+                        self.assertIn("remove the planted link", message)
+                    self.assertEqual(controller.manual_claim(), "L01-T3")  # the claim and its marker stand
+                    self.assertTrue((sibling / rr.CALLBACKS_MARKER).exists())  # and the sibling's
+                    self.assertFalse((link / "controller.lock").exists())
+
+    def test_a_linked_build_component_creates_nothing_in_a_sibling_home(self):
+        with tempfile.TemporaryDirectory() as tmp, self.live_state(tmp) as (repo, state, controller):
+            sibling = controller.marker().parent.parent / ("0" * 16)
+            sibling.mkdir(parents=True)
+            state.rmdir()
+            (repo / "build").rmdir()
+            (repo / "build").symlink_to(sibling, target_is_directory=True)
+            with self.assertRaisesRegex(rr.Stop, "remove the planted link"):
+                controller.acquire()
+            self.assertEqual(os.listdir(sibling), [])  # checked before mkdir followed the link
+
+    def test_a_linked_legacy_marker_outside_the_checkout_is_refused(self):
+        with tempfile.TemporaryDirectory() as tmp, self.live_state(tmp) as (repo, state, controller), \
+                unittest.mock.patch.object(rr.Controller, "refuse_live_workers"):
+            self.manual_marker(controller)
+            sibling = controller.marker().parent.parent / ("0" * 16)
+            sibling.mkdir()
+            rr.atomic_write(sibling / rr.CALLBACKS_MARKER, json.dumps({"manual": "S", "ignored": {}}))
+            (state / rr.CALLBACKS_MARKER).symlink_to(sibling / rr.CALLBACKS_MARKER)
+            code, message = self.resume()
+            self.assertEqual(code, 2, message)
+            self.assertIn("outside the checkout", message)
+            self.assertTrue((sibling / rr.CALLBACKS_MARKER).exists())
+
+    def test_a_link_swapped_in_after_the_review_carries_no_unlink(self):
+        with tempfile.TemporaryDirectory() as tmp, self.live_state(tmp) as (repo, state, controller), \
+                unittest.mock.patch.object(rr.Controller, "refuse_live_workers"):
+            self.manual_marker(controller)
+            sibling = controller.marker().parent.parent / ("0" * 16)
+            sibling.mkdir()
+            rr.atomic_write(sibling / rr.CALLBACKS_MARKER, json.dumps({"manual": "S", "ignored": {}}))
+            digest = re.search(r"resume --accept ([0-9a-f]+)", self.resume()[1]).group(1)
+            real_digest = rr.Controller.review_digest
+
+            def digest_then_swap(self, review, read):  # after resume's first own_state()
+                value = real_digest(self, review, read)
+                for name in os.listdir(state):
+                    (state / name).unlink()
                 state.rmdir()
-                link = {"home": home, "its parent": home.parent, "inside it": home / "sub"}[target]
-                link.mkdir(exist_ok=True)
-                state.symlink_to(link, target_is_directory=True)
-                if entry == "acquire":
-                    with self.assertRaisesRegex(rr.Stop, "overlaps the trusted baseline home"):
-                        controller.acquire()
-                else:
-                    self.assertEqual(self.resume()[0], 2)
-                    self.assertEqual(self.resume("--accept", "0" * 16)[0], 2)
-                self.assertEqual(controller.manual_claim(), "L01-T3")  # the claim and its marker stand
-                self.assertFalse((home / "controller.lock").exists())
+                state.symlink_to(sibling, target_is_directory=True)
+                return value
+            with unittest.mock.patch.object(rr.Controller, "review_digest", digest_then_swap):
+                self.assertEqual(self.resume("--accept", digest)[0], 2)
+            self.assertTrue((sibling / rr.CALLBACKS_MARKER).exists())
+            self.assertEqual(controller.manual_claim(), "L01-T3")  # refused before anything was retired
+
+    def test_a_refused_resume_does_not_claim_it_cleared_stop(self):
+        with tempfile.TemporaryDirectory() as tmp, self.live_state(tmp) as (repo, state, controller):
+            elsewhere = Path(tmp) / "elsewhere"
+            elsewhere.mkdir()
+            (elsewhere / "STOP").write_text("x")
+            state.rmdir()
+            state.symlink_to(elsewhere, target_is_directory=True)
+            code, message = self.resume()
+            self.assertEqual(code, 2)
+            self.assertNotIn("stop/pause cleared", message)
+            self.assertTrue((elsewhere / "STOP").exists())
 
     def test_the_accepted_snapshot_outlives_a_legacy_marker_that_is_the_marker(self):
         # Second layer under own_state(): the legacy unlink runs before the snapshot is written.

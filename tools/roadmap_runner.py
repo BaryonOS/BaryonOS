@@ -542,15 +542,18 @@ class Controller:
     # --- locking and lifecycle ---
     def own_state(self) -> None:
         """The state directory lies in the checkout: a session can make it (or a component) a link
-        into the trusted home, and every controller write there would then reach the baseline."""
-        self.state.mkdir(parents=True, exist_ok=True)
-        home = self.marker().parent
-        if home == self.state:  # a test layout: the state directory is its own baseline home
+        into any checkout's trusted home, and every controller write and unlink there would follow.
+        Its resolved path must be exactly the in-checkout one; checked before and after mkdir."""
+        if self.baseline is not None:  # a test layout: the state directory is its own baseline home
+            self.state.mkdir(parents=True, exist_ok=True)
             return
-        state, home = self.state.resolve(), home.resolve()
-        if state == home or home in state.parents or state in home.parents:
-            raise Stop(f"the state directory {self.state} resolves to {state}, which overlaps the trusted "
-                       f"baseline home {home}; remove the planted link")
+        expected = ROOT.resolve() / STATE.relative_to(ROOT)
+        for create in (False, True):
+            if create:
+                self.state.mkdir(parents=True, exist_ok=True)
+            if (resolved := self.state.resolve()) != expected:
+                raise Stop(f"the state directory {self.state} resolves to {resolved}, not {expected}; "
+                           "remove the planted link")
 
     def acquire(self) -> None:
         self.own_state()
@@ -704,7 +707,14 @@ class Controller:
 
     def legacy_marker(self) -> Path | None:
         legacy = self.state / CALLBACKS_MARKER
-        return legacy if legacy != self.marker() and os.path.lexists(legacy) else None
+        if legacy == self.marker() or not os.path.lexists(legacy):
+            return None
+        # Resolved, not as text: through a link the "legacy" file can be this or a sibling's marker.
+        if (real := legacy.resolve()) == self.marker().resolve():
+            return None
+        if ROOT.resolve() not in real.parents:
+            raise Stop(f"the legacy marker {legacy} resolves to {real}, outside the checkout; remove the link")
+        return legacy
 
     def marker(self) -> Path:
         return (self.baseline or baseline_home()) / CALLBACKS_MARKER
@@ -811,8 +821,9 @@ class Controller:
         # The acknowledged state becomes the baseline, so a change made after it (a detached child of
         # the session, say) is still compared by the next preflight, which retires it only last.
         snapshot = {"baseline": read[0], "session": f"accepted {now()}", "ignored": read[1]}  # the reviewed read
+        self.own_state()  # again, before anything is retired: a link swapped in since would carry the unlink
+        (self.state / CALLBACKS_MARKER).unlink(missing_ok=True)  # a legacy in-checkout baseline
         self.retire_baseline()  # writes the trust record and drops the nonce
-        (self.state / CALLBACKS_MARKER).unlink(missing_ok=True)  # a legacy in-checkout baseline, first
         atomic_write(self.marker(), json.dumps(snapshot))
         return ("stop/pause cleared; the reviewed state is now the saved session baseline (the next preflight "
                 "compares against it and retires it)")
@@ -1474,7 +1485,9 @@ def main() -> int:
         try:
             print(controller.resume(args.accept))
         except Stop as error:
-            print(f"stop/pause cleared; the saved session baseline is kept: {error}")
+            held = [n for n in ("STOP", "PAUSE") if os.path.lexists(STATE / n)]  # a refusal can precede the clear
+            print(f"{'stop/pause cleared' if not held else f'{held} still present'}; "
+                  f"the saved session baseline is kept: {error}")
             return 2
         finally:
             controller.release()
