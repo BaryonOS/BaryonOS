@@ -31,13 +31,16 @@ FEATURES = {
     "cycles": "native-acpi-s3",
     "corrupt-facs": "test-acpi-s3-corrupt-facs",
     "stale-token": "test-acpi-s3-stale-token",
+    "unarmed-wake": "test-acpi-s3-unarmed-wake",
+    "facs-end": "test-acpi-s3-facs-end",
 }
 CYCLES = 3
-# Raw QEMU exit per case: (isa-debug value << 1) | 1. A pass and the
-# corrupt-FACS plan rejection (no PM1 write, returns to the M2 exit) end with
-# 0x10 (33); a rejected wake ends with the kernel's WAKE_REJECTED_EXIT 0x12
-# (37), which no other kernel or loader path uses.
-EXIT = {"cycles": 33, "corrupt-facs": 33, "stale-token": 37}
+# Raw QEMU exit per case: (isa-debug value << 1) | 1. Only a pass ends with
+# 0x10 (33). A rejected wake ends with the kernel's WAKE_REJECTED_EXIT 0x12
+# (37) and a refused plan or FACS store (no PM1 write) with PLAN_REJECTED_EXIT
+# 0x13 (39); no other kernel or loader path writes either value.
+EXIT = {"cycles": 33, "corrupt-facs": 39, "stale-token": 37, "unarmed-wake": 37,
+        "facs-end": 39}
 # The FACS layout, PM1 ports and firmware path below are measured on this
 # machine only; another machine type is a different, unverified profile.
 MACHINE = "pc-q35-8.2"
@@ -49,6 +52,8 @@ RESUMED = re.compile(r"POWER:S3:RESUMED:CYCLE=(\d):ENTRY=PM32:PM1_STS=(0x[0-9a-f
                      r"SCI_EN=(RESTORED|KEPT):HWSIG=SAME:FACS=DISARMED:CANARY=PASS:CR3=SAME")
 ENTER = "POWER:S3:ENTER:CYCLE={}:SCI_EN=1"
 STALE = "POWER:S3:WAKE:REJECTED:TOKEN:ARMED=1:PAGE=0x5a5a0001"
+UNARMED = "POWER:S3:WAKE:REJECTED:TOKEN:ARMED=0:PAGE=0x0"
+FACS_END = ("POWER:S3:STORE:FACS_END:REFUSED:Permission", "POWER:S3:REJECTED:FacsStore:DISARMED")
 DWELL_S = 0.5
 MAX_OUTPUT = 4 * 1024 * 1024
 
@@ -170,7 +175,8 @@ class SystemWake:
 def expected_wakeups(case: str) -> int:
     if case not in FEATURES:
         raise ValueError("Unknown S3 fixture case")
-    return {"cycles": CYCLES, "corrupt-facs": 0, "stale-token": 1}[case]
+    return {"cycles": CYCLES, "corrupt-facs": 0, "stale-token": 1, "unarmed-wake": 1,
+            "facs-end": 0}[case]
 
 
 def _serial(path: Path) -> str:
@@ -296,10 +302,12 @@ def evaluate(case: str, stdout: str, raw_exit: int | None, timed_out: bool,
             and pm32 % 16 == 0):
         raise ValueError("Wake entries outside the real-mode page / 32-bit image bounds")
     observed.update(real_mode_entry=hex(real), protected_entry=hex(pm32))
-    if case == "stale-token":
-        if tail[1:] != [ENTER.format(1), STALE]:
-            raise ValueError(f"Unexpected stale-token tail: {tail[1:]}")
-        observed["rejection"] = STALE
+    rejected = {"stale-token": [ENTER.format(1), STALE],
+                "unarmed-wake": [ENTER.format(1), UNARMED], "facs-end": list(FACS_END)}
+    if case in rejected:
+        if tail[1:] != rejected[case]:
+            raise ValueError(f"Unexpected {case} tail: {tail[1:]}")
+        observed["rejection"] = tail[-1]
         return observed
     body = tail[1:]
     if len(body) != 2 * CYCLES + 1 or body[-1] != "POWER:S3:PASS":
