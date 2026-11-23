@@ -1018,6 +1018,59 @@ impl<'a> Service<'a> {
 }
 
 impl Service<'_> {
+    /// MAC of the next hop toward this slot's granted destination. `None`
+    /// while unknown; a missing entry starts ARP (if the TX slot is free).
+    fn next_hop(&mut self, slot: usize, now: u64) -> Result<Option<[u8; 6]>, Fault> {
+        let d = self.config.destinations[slot];
+        let mask = u32::MAX << (32 - self.config.link.prefix_len);
+        let next_hop = if u32::from_be_bytes(d.ipv4) & mask
+            == u32::from_be_bytes(self.config.link.ipv4) & mask
+        {
+            d.ipv4
+        } else if let Some(gateway) = self.lease.and_then(|l| l.routers().first().copied()) {
+            gateway
+        } else {
+            return Ok(None);
+        };
+        if let Some(mac) = self.owners[slot]
+            .neighbor
+            .as_mut()
+            .and_then(|n| n.lookup(next_hop, now))
+        {
+            return Ok(Some(mac));
+        }
+        let mut frame = [0; 60];
+        let n = nieuw_os_net_protocol::arp::build_request(
+            Interface {
+                mac: self.config.link.mac,
+                ipv4: self.config.link.ipv4,
+            },
+            next_hop,
+            &mut frame,
+        )
+        .map_err(|_| Fault::Configuration)?;
+        if self.owners[slot]
+            .neighbor
+            .as_mut()
+            .is_some_and(|n| n.begin(next_hop, now, 100).is_ok())
+        {
+            match self
+                .stack
+                .get_mut(now)?
+                .queue_control_frame(&frame[..n], now)
+            {
+                Ok(_) => {}
+                Err(StackError::Busy) => {
+                    if let Some(neighbor) = &mut self.owners[slot].neighbor {
+                        neighbor.cancel();
+                    }
+                }
+                Err(_) => return Err(Fault::Transport),
+            }
+        }
+        Ok(None)
+    }
+
     /// One IPv4 datagram from `source_port` to this slot's granted destination,
     /// with ARP resolution of the next hop. `Again` while ARP is pending.
     fn send_udp(
@@ -1029,21 +1082,7 @@ impl Service<'_> {
         now: u64,
     ) -> Result<Status, Fault> {
         let d = self.config.destinations[slot];
-        let mask = u32::MAX << (32 - self.config.link.prefix_len);
-        let next_hop = if u32::from_be_bytes(d.ipv4) & mask
-            == u32::from_be_bytes(self.config.link.ipv4) & mask
-        {
-            d.ipv4
-        } else if let Some(gateway) = self.lease.and_then(|l| l.routers().first().copied()) {
-            gateway
-        } else {
-            return Ok(Status::Again);
-        };
-        if let Some(mac) = self.owners[slot]
-            .neighbor
-            .as_mut()
-            .and_then(|n| n.lookup(next_hop, now))
-        {
+        if let Some(mac) = self.next_hop(slot, now)? {
             let mut frame = [0; FRAME_BYTES];
             let id = self.identification;
             let n = build_udp_ipv4(
@@ -1076,35 +1115,6 @@ impl Service<'_> {
                 Err(_) => Err(Fault::Transport),
             }
         } else {
-            let mut frame = [0; 60];
-            let n = nieuw_os_net_protocol::arp::build_request(
-                Interface {
-                    mac: self.config.link.mac,
-                    ipv4: self.config.link.ipv4,
-                },
-                next_hop,
-                &mut frame,
-            )
-            .map_err(|_| Fault::Configuration)?;
-            if self.owners[slot]
-                .neighbor
-                .as_mut()
-                .is_some_and(|n| n.begin(next_hop, now, 100).is_ok())
-            {
-                match self
-                    .stack
-                    .get_mut(now)?
-                    .queue_control_frame(&frame[..n], now)
-                {
-                    Ok(_) => {}
-                    Err(StackError::Busy) => {
-                        if let Some(neighbor) = &mut self.owners[slot].neighbor {
-                            neighbor.cancel();
-                        }
-                    }
-                    Err(_) => return Err(Fault::Transport),
-                }
-            }
             Ok(Status::Again)
         }
     }
@@ -1132,7 +1142,12 @@ impl Service<'_> {
         };
         let owner = &mut self.owners[slot];
         let (status, addresses, length) = match &mut owner.dns {
-            Some(query) if query.name == name => {
+            // A stored outcome answers only the lookup that was in progress,
+            // until its deadline (so a short non-zero TTL can still reach that
+            // lookup). Past it, the cache or a fresh query answers instead.
+            Some(query)
+                if query.name == name && (query.outcome.is_none() || now < query.deadline) =>
+            {
                 if let Some(outcome) = query.outcome.take() {
                     owner.dns = None;
                     outcome
@@ -1250,13 +1265,24 @@ impl Service<'_> {
             if query.sent.is_some() || now >= query.deadline || owner.revoked || owner.retired {
                 continue;
             }
+            let name = query.name;
+            // Draw only for a query that can leave now: no entropy is spent
+            // while ARP is pending or an earlier frame holds the shared TX slot.
+            if self
+                .next_hop(slot, now)
+                .map_err(DnsDriveError::Service)?
+                .is_none()
+                || !self.stack.can_queue_control_frame()
+            {
+                continue;
+            }
             let value = random.random_u32().map_err(DnsDriveError::Random)?;
             let id = value as u16;
             // 13 random bits; the low bit names the slot (see `frame_owner`).
             let port = DNS_PORT_BASE | (((value >> 16) as u16) & 0x3ffe) | slot as u16;
             let question = Question {
                 id,
-                name: query.name,
+                name,
                 kind: QueryType::A,
             };
             let mut message = [0; 16 + MAX_NAME + 2];

@@ -8,8 +8,8 @@ mod support;
 use core::ptr;
 use nieuw_os_net_stack::{Config, LinkConfig, SocketStorage};
 use nieuw_os_network_service::{
-    wire, Buffers, Configuration, Destination, DhcpConfiguration, DnsCache, Fault, ProbeTiming,
-    RandomSource, Service,
+    wire, Buffers, Configuration, Destination, DhcpConfiguration, DnsCache, DnsDriveError, Fault,
+    ProbeTiming, RandomSource, Service,
 };
 use nieuw_os_sdk_runtime::{
     native, EntropySource, Handle, NetworkSource, Outgoing, ReceiveEndpoint, SendEndpoint,
@@ -116,8 +116,13 @@ impl Bridge {
                 .drive_dhcp(tick, random)
                 .unwrap_or_else(|_| fail(33));
             // Recorded Resolve queries leave only with fresh IDs/ports drawn
-            // from the same entropy grant; no entropy, no query.
-            service.drive_dns(tick, random).unwrap_or_else(|_| fail(40));
+            // from the same entropy grant; no entropy, no query. A failed draw
+            // skips DNS for this iteration so queued frames still drain; the
+            // unsent query is retried with a new draw on a later one.
+            match service.drive_dns(tick, random) {
+                Ok(_) | Err(DnsDriveError::Random(())) => {}
+                Err(DnsDriveError::Service(_)) => fail(40),
+            }
         }
         service.poll(tick).unwrap_or_else(|_| fail(16));
         if self.pending.is_none() {
