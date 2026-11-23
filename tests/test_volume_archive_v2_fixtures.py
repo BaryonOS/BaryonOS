@@ -8,7 +8,6 @@ encoder of its own. This test regenerates every file and requires byte equality.
 Regenerate after a deliberate change: python3 -B tests/test_volume_archive_v2_fixtures.py --write
 """
 from __future__ import annotations
-import struct
 import sys
 import unittest
 from pathlib import Path
