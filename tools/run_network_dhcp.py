@@ -8,7 +8,9 @@ DHCPNAK (app A's held token goes stale and OpenTcp is refused) and re-acquires
 lease DNS server under its UDP/53 grant (NXDOMAIN cached, spoofs dropped and
 counted, cache flushed by the withdrawal); app B has no such grant and is
 refused. Link control and lease expiry are out of scope.
-Images, user ELFs, firmware and serial bytes are bound to one unchanged source.
+Images, user ELFs, firmware and serial bytes are refused unless the source
+fingerprint is the same before the build and after the run; an edit reverted
+in between is not detected.
 """
 from __future__ import annotations
 import argparse
