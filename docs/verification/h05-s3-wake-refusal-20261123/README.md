@@ -36,9 +36,13 @@ in the bounded `Suspend` log (4 entries). `finish` requires exactly
 from any other process (fail closed on overflow), then prints the logged
 magnitudes. `tools/run_system.py` requires `SUSPEND_LOST_ENTROPY=14` and
 `SUSPEND_LOST_BLOCK=14` after `SUSPEND_TICK_AFTER_WAKE`, in order, and
-refuses any `SYSTEM:SUSPEND*` line in the other power cases.
+refuses any `SYSTEM:SUSPEND*` line in the `power` case (the flush-fault
+and normal/recover oracles do not check for it).
 
 ## Results (source commit `026269b6`, source fingerprint v3 `b2c44a16…`)
+
+The runs used the uncommitted tree that became `026269b6`; the v3 source
+fingerprint recomputed on the clean commit is the same `b2c44a16…`.
 
 | Command | Exit | Result |
 |---|---|---|
@@ -48,6 +52,9 @@ refuses any `SYSTEM:SUSPEND*` line in the other power cases.
 | `python3 -B -m unittest discover -s tests -p test_system_harness.py` | 0 | 29 tests |
 | `python3 -B -m unittest discover -s tests -p 'test_system_*.py'` | 0 | 63 tests, incl. 2 new oracle tests |
 | `python3 -B -m unittest discover -s tools/tests -p test_sleep.py` | 0 | 17 tests |
+| `python3 -B tools/preflight.py --strict` | 0 | — |
+| `python3 -B -m unittest discover -s tests -p test_ci_workflows.py` / `'test_ci_evidence*.py'` | 0 | 28 / 38 tests |
+| `python3 -B -m unittest tools.tests.test_gs_discipline` | 0 | 8 tests |
 | `cargo +1.90.0 fmt --all -- --check`, same with `+1.100.0`, and `--manifest-path sdk/examples/system/Cargo.toml` | 0 | — |
 
 Environment for the native runs: `NOS_BUILD_DIR=<worktree>/build/h05t5a`
@@ -80,6 +87,10 @@ POWER:S5:WRITE
 
 The `power` case serial contains no `SYSTEM:SUSPEND` line, and its refusal
 counters (`POWER_INIT_REFUSALS=3`, `POWER_APP_REFUSALS=2`) are unchanged.
+Other profiles are unchanged by construction (every kernel change is gated on
+`test-system-s3`; init's new calls run only when word 592 is set), not by a
+byte diff: the larger init ELF is embedded in every system-profile kernel,
+and only the power-gate and `native-acpi-s3` profiles were rebuilt and run.
 Raw logs remain in the ignored `build/h05t5a/` of the executing worktree;
 they are not committed.
 
