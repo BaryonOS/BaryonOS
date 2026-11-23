@@ -39,15 +39,18 @@ Before every push or merge, the workstream re-checks the head, the base and
 ownership, then merges with
 `gh pr merge <N> --squash --match-head-commit <sha>`.
 
-Auto-merge may be enabled only after every non-required check on that head is
-green. An enabled auto-merge is not a completed merge; the owning workstream
-remains responsible for the outcome. Auto-merge may stay armed only while
-every applicable check on the current head is complete and green. GitHub keeps
-auto-merge armed across pushes and check reruns and does not wait for
-non-required checks, so a workstream disables auto-merge
-(`gh pr merge <N> --disable-auto`) before any push, check rerun or newly
-triggered applicable check, and re-enables it only after that head is
-reassessed under the same conditions.
+Workstreams do not enable GitHub auto-merge under this decision. Auto-merge
+gates only on the required checks (`host-quality`, `qemu-smoke`, `merge-hold`)
+and stays armed while anyone, including another actor, pushes or reruns or
+starts a non-required check, so it cannot enforce the first condition above.
+Instead, immediately before the merge call the workstream verifies that every
+applicable check on the exact head is complete and green, waits for any check
+that anyone has rerun or newly started on that head, and then merges directly
+with `--match-head-commit`; a push by any actor changes the head and makes that
+call fail. The residual window is the seconds between that verification and
+the merge call, not the open-ended window of an armed auto-merge. A workstream
+that finds auto-merge armed on its pull request disables it
+(`gh pr merge <N> --disable-auto`).
 
 **Limits:**
 
