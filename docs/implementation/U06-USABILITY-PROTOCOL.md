@@ -47,9 +47,13 @@ that the task set remains traceable to the full product scope; they are run
 in a later round once their native surface exists.
 
 A task marked **CONDITIONAL** has native source and tests on `main`, but its
-presence in an interactive bundle must be confirmed against the bundle
-`manifest.json` before the preregistration is frozen. If absent, it becomes
-NOT YET TESTABLE for that round.
+presence in an interactive bundle must be confirmed against the running
+candidate bundle before the preregistration is frozen: by source inspection at
+the bundle's recorded `source_commit`, with path and line per route, and by a
+pilot run (§10). The bundle `manifest.json` written by
+`tools/package_windows_qemu.py` records hashes, kernel and loader features and
+the source version, but no shell routes, so it cannot confirm a route. If a
+route is absent, the task becomes NOT YET TESTABLE for that round.
 
 **One frozen bundle per round.** Every counted task in a round runs on the same
 frozen bundle, recorded by its `manifest.json` in the preregistration (§10).
@@ -107,9 +111,9 @@ the participant, not shown at boot (§1 audit basis).
 
 | ID | Task | Native source on `main` | Condition |
 |---|---|---|---|
-| CT07 | Rename the document, place it in a collection, find it with the library search field | [NATIVE-MATERIAL-LIBRARY.md](NATIVE-MATERIAL-LIBRARY.md) (U03 implementation; native acceptance open) | Library build present in the frozen bundle manifest |
+| CT07 | Rename the document, place it in a collection, find it with the library search field | [NATIVE-MATERIAL-LIBRARY.md](NATIVE-MATERIAL-LIBRARY.md) (U03 implementation; native acceptance open) | Library route confirmed in the running candidate bundle (§1) |
 | CT08 | Restore an earlier revision of the document | Same; [S06-COLLECTIONS-HISTORY.md](S06-COLLECTIONS-HISTORY.md) | Same |
-| CT09 | Copy a selected sentence and paste it into another place | [NATIVE-CLIPBOARD.md](NATIVE-CLIPBOARD.md) (U02 contract; not closed) | Clipboard route present in the frozen bundle manifest |
+| CT09 | Copy a selected sentence and paste it into another place | [NATIVE-CLIPBOARD.md](NATIVE-CLIPBOARD.md) (U02 contract; not closed) | Clipboard route confirmed in the running candidate bundle (§1) |
 | CT12 | With all work saved, shut the system down from the session menu | `native-window-session` Sessie page "Afsluiten" (`shell.rs:301`, `shell.rs:406`) → `CONTROL [9]` (`main.rs:433-436`); "Opnieuw starten · nog niet beschikbaar" (`shell.rs:305`) | The pilot confirms that the VM ends in an observable powered-off state on the reference host; otherwise NOT YET TESTABLE for that round |
 
 ### 2.3 NOT YET TESTABLE
@@ -149,7 +153,7 @@ state, before the native trusted shell was present. Changes:
 | Change a setting | NT03 NOT YET TESTABLE (no Settings app) | NT03 narrowed to persistence after restart and a full Settings app; the "Snelle instellingen" page offers no changeable setting to test |
 | System search | NT05 NOT YET TESTABLE (no search) | App/action search is used in CT10; NT05 narrowed to indexed file/content search |
 | Shut down | NT07 NOT YET TESTABLE | CT12 CONDITIONAL for shutdown via "Afsluiten" with saved work; NT07 narrowed to unsaved-work handling and restart |
-| Arrange windows | CT04 by dragging | CT04 by dragging or "Ordenen"; non-overlap at 1280×720 confirmed in the pilot (§4) |
+| Arrange windows | CT04 by dragging | CT04 by dragging or "Ordenen"; non-overlap at 1280×720 is pending pilot confirmation (§4) |
 | Other tasks | CT01–CT03, CT05, CT07–CT09, NT01, NT06, NT08–NT10, NT12–NT14 | Unchanged; the `Capability` page has no opener in the shell (`shell.rs:310-319`), so NT08 stays NOT YET TESTABLE |
 
 ## 3. Measures per task
@@ -180,15 +184,16 @@ All measures are taken by a human observer and from host-side capture; see §6.
 | CT07 | New name shown; document listed in the target collection; found via search |
 | CT08 | Earlier revision content shown as current, participant can state which version is active |
 | CT09 | Pasted text identical to the selection at the intended location |
-| CT10 | "Rekenmachine" and "Materiaal" windows focused after a dock click and after choosing the result on "Zoeken en starten" |
+| CT10 | Start state, before each of the two runs (dock, then search): both app windows minimized, so neither "Rekenmachine" nor "Materiaal" is visible; the observer sets and records this state. End state: each window opened by the participant during the run is visible and focused after a dock click, respectively after choosing the result on "Zoeken en starten". The two app windows exist for the whole session and activation unhides and focuses an existing window (`Scene::select`, `scene.rs:1280-1292`), so without this start state focusing an already open window (for example Materiaal after CT03) would satisfy the task |
 | CT11 | Focus moved to the requested window with Alt+Tab ("WISSEL VAN VENSTER") or F6; the observer records which route was used |
-| CT12 | After "Afsluiten" the VM reaches the powered-off end state confirmed in the pilot; no participant-entered content lost |
+| CT12 | After "Afsluiten" the VM reaches the powered-off end state confirmed in the pilot. Content survival is a separate check, not part of this observer-verified end state: after power-off, the CT01 document is checked by a host-side disk oracle where the runner provides one, or reopened under observer control after a reboot of the same disk image, outside the timed task. If neither check is available, content survival is recorded as not verified and no no-loss result is claimed |
 
 The UI strings above are Dutch because the shell and app strings on `main` are Dutch;
 they are success keys, not translations to show participants (see §12
 question 6). For CT01, CT02 and CT07–CT09 the observer additionally records
 whether the end state persisted after the session (host-side disk oracle where
-a runner provides one). Observer judgement alone is evidence level A/V, not D.
+a runner provides one); CT12 uses the separate content-survival check above.
+Observer judgement alone is evidence level A/V, not D.
 
 ## 5. Friction and visual-inconsistency log
 
@@ -198,11 +203,7 @@ The committed copy carries no participant field: it records only how many
 participants were affected (`frequency`) and paraphrased observations:
 
 ```json
-{"finding": "F-003", "round": 1, "task": "CT02",
- "kind": "friction", "severity": 2, "frequency": 3,
- "observed": "List entry not recognised as the saved document",
- "screen_ref": "frame-hash-or-screendump-id", "fr": ["FR-A01", "FR-U04"],
- "status": "open", "resolution": null, "retest_round": null}
+{"finding": "F-003", "round": 1, "task": "CT02", "kind": "friction", "severity": 2, "frequency": 3, "observed": "List entry not recognised as the saved document", "screen_ref": "frame-hash-or-screendump-id", "fr": ["FR-A01", "FR-U04"], "status": "open", "resolution": null, "retest_round": null}
 ```
 
 - `kind`: `friction` (hesitation, wrong path, confusion), `error` (as §3),
@@ -325,17 +326,24 @@ Consistent with [LOCAL-PRIVACY-CONTRACT.md](../LOCAL-PRIVACY-CONTRACT.md) §1 an
      "the workspace opens directly". If a later bundle starts on the lock
      screen, that README line is stale and is reported for correction in a
      separate change, and the CT06 start state is revised;
-   - confirm presence of CT07–CT09 and CT12 routes in the bundle manifest.
-3. **Preregistration freeze:** copy of this protocol with the agreed task set,
-   success keys, budgets, analysis plan and bundle `manifest.json`; its SHA-256
-   is recorded before the first counted session, following the precedent of
+   - confirm each CT07–CT09 and CT12 route individually by source inspection
+     at the bundle's `source_commit`, recording source path and line per route;
+     the bundle manifest lists no routes (§1). The pilot (step 3) then confirms
+     each route at runtime.
+3. **Pilot** with one or two people (not counted) on the candidate bundle, to
+   check scripts and timing, and to confirm the CT01 status text, the CT04
+   non-overlap end state with "Ordenen", the CT12 powered-off end state and
+   the CT07–CT09 and CT12 routes.
+4. **Preregistration freeze**, after the pilot: copy of this protocol with
+   the agreed task set, success keys, budgets, analysis plan and bundle
+   `manifest.json`; its SHA-256 is recorded before the first counted session, following the precedent of
    [the logotype review pre-registration](../verification/logotype-review-20261114/PREREGISTRATION.md),
    which is committed before the review runs so that the commit time evidences
-   the order. Later changes go to a deviations log, never silently into the
-   frozen copy.
-4. **Pilot** with one or two people (not counted) to check scripts and timing,
-   and to confirm the CT04 non-overlap end state, the CT12 powered-off end
-   state and the CT01 status text.
+   the order. The frozen copy contains the pilot-derived keys (CT01 status
+   text, CT04 end state, CT12 powered-off end state) and the testability
+   decision for CT07–CT09 and CT12; these do not change after the first
+   counted session. Later changes go to a deviations log, never silently into
+   the frozen copy.
 5. **Round 1** sessions (about 45–60 minutes: introduction, consent, tasks in
    a fixed order with CT05 last, SEQ after each task, SUS, short debrief).
 6. **Analysis** against the frozen plan: per-task completion, errors, assists,
