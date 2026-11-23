@@ -16,9 +16,23 @@ const html = rd('index.html') + rd('sweep.html')
 const RESERVED = 'ds-workspace ds-menu-bar ds-toolbar ds-tool-rail ds-canvas ds-inspector ds-panel ds-timeline ds-data-grid ds-status-bar ds-document-tabs ds-command-palette ds-track ds-ruler ds-playhead ds-cell ds-number-field ds-layer-row ds-keycap ds-expander ds-export-dialog ds-object-chip ds-place-badge ds-version-indicator ds-link-badge ds-workspace-switcher ds-keymap-editor ds-version-timeline ds-color-picker ds-scope ds-meter'.split(' ')
 const COLOUR = /#[0-9a-f]{3,8}\b|\b(rgba?|hsla?|oklch|oklab|lab|lch|hwb)\(|(?<![\w-])(white|black|red|green|blue|gray|grey|yellow|orange|purple|pink|silver|navy)(?![\w-])/i
 
+// Removes HTML comments for scanning only; output is never rendered.
+const dropHtmlComments = (s) => {
+  let out = ''
+  let i = 0
+  for (;;) {
+    const a = s.indexOf('<!--', i)
+    if (a < 0) return out + s.slice(i)
+    out += s.slice(i, a)
+    const b = s.indexOf('-->', a + 4)
+    if (b < 0) return out
+    i = b + 3
+  }
+}
+
 test('no colour literal in journey.css, index.html, sweep.html or journey scripts', () => {
   const strip = (s) => s.replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '')
-  for (const [name, src] of [['journey.css', css], ['html', html.replace(/<!--[\s\S]*?-->/g, '')], ...jsFiles.map((f) => [f, rd(f)])]) {
+  for (const [name, src] of [['journey.css', css], ['html', dropHtmlComments(html)], ...jsFiles.map((f) => [f, rd(f)])]) {
     const body = strip(src).replace(/data-[a-z-]+="[^"]*"/g, '').replace(/'[a-z-]+-(blue|green|red)'/g, '')
     const m = (name.endsWith('.js') ? body.match(/style[^;\n]*(#[0-9a-f]{3,8}\b|rgba?\()/i) : body.match(COLOUR))
     assert.equal(m, null, `${name}: ${m && m[0]}`)
