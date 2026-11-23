@@ -216,6 +216,7 @@ class Session(unittest.TestCase):
         self.assertNotIn("Edit", rr.allow_rules())
         self.assertFalse([r for r in rr.allow_rules() if "remember" in r])
         self.assertIn("Bash(git push:*)", rr.DENY)
+        self.assertIn("Edit(build/roadmap-pipeline/**)", rr.DENY)  # baseline, STOP and logs
         for path in ("Edit(.git/**)", "Edit(**/__pycache__/**)", "Edit(**/*.pyc)"):
             self.assertIn(path, rr.DENY)
         # git diff/log/show accept --output=<path>, an arbitrary write (e.g. .git/config.worktree).
@@ -517,6 +518,76 @@ class Session(unittest.TestCase):
                     unittest.mock.patch.object(rr.sys, "argv", ["roadmap_runner.py", "brief"]):
                 self.assertEqual(rr.main(), 2)
             git.assert_not_called()
+
+    def interrupted_session(self, root, callbacks):
+        controller = rr.Controller(rr.Config(), root / "state")
+        controller.callbacks = "before"
+        proc = unittest.mock.Mock(pid=2 ** 22 + 12345)
+        proc.wait.side_effect = KeyboardInterrupt
+        with unittest.mock.patch.object(rr, "require_pipeline_release"), \
+                unittest.mock.patch.object(rr.subprocess, "Popen", return_value=proc), \
+                unittest.mock.patch.object(rr.os, "killpg") as kill, \
+                unittest.mock.patch.object(controller, "heartbeat"), \
+                unittest.mock.patch.object(rr, "git_callbacks", return_value=callbacks):
+            try:
+                controller.session("worker", "A", root, "brief", {}, [], "default", 10)
+            except (KeyboardInterrupt, rr.Stop) as error:
+                outcome = error
+        kill.assert_called_with(proc.pid, rr.signal.SIGKILL)  # no live worker after an exception
+        return controller, outcome
+
+    def test_interrupted_session_still_checks_callbacks(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            _, outcome = self.interrupted_session(root, "after")
+            self.assertIsInstance(outcome, rr.Stop)
+            self.assertTrue((root / "state" / "STOP").exists())
+
+    def test_interrupted_session_leaves_its_baseline_for_the_next_preflight(self):
+        for later, stops in (("after", True), ("before", False)):
+            with self.subTest(later=later), tempfile.TemporaryDirectory() as tmp:
+                root = Path(tmp)
+                controller, outcome = self.interrupted_session(root, "before")
+                self.assertIsInstance(outcome, KeyboardInterrupt)
+                marker = root / "state" / rr.CALLBACKS_MARKER
+                self.assertEqual(json.loads(marker.read_text())["baseline"], "before")
+                fresh = rr.Controller(rr.Config(), root / "state")
+                no_worker = rr.subprocess.CompletedProcess([], 1, "", "")
+                with unittest.mock.patch.object(rr, "git_callbacks", return_value=later), \
+                        unittest.mock.patch.object(rr.subprocess, "run", return_value=no_worker), \
+                        unittest.mock.patch.object(rr, "git", side_effect=rr.Stop("git reached")) as git:
+                    with self.assertRaisesRegex(rr.Stop, "interrupted session" if stops else "git reached"):
+                        fresh.preflight()
+                self.assertEqual((root / "state" / "STOP").exists(), stops)
+                self.assertEqual(marker.exists(), stops)  # adopted only when unchanged
+                if stops:
+                    git.assert_not_called()  # no hook-running Git call before the comparison
+
+    def test_controller_git_ignores_inherited_repository_location(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            env = {k: v for k, v in __import__("os").environ.items() if not k.startswith("GIT_")}
+            repos = [Path(tmp) / name for name in ("root", "other")]
+            for repo in repos:
+                rr.subprocess.run(["git", "init", "-q", str(repo)], check=True, env=env)
+            (repos[0] / "only-in-root.txt").write_text("")
+            inherited = dict(env, GIT_DIR=str(repos[1] / ".git"), GIT_WORK_TREE=str(repos[1]),
+                             GIT_SSL_CAINFO="/ca.pem")
+            with unittest.mock.patch.object(rr, "ROOT", repos[0]), \
+                    unittest.mock.patch.dict("os.environ", inherited, clear=True):
+                self.assertIn("only-in-root.txt", rr.git("status", "--porcelain", "--untracked-files=all"))
+                self.assertEqual(rr.git_env().get("GIT_SSL_CAINFO"), "/ca.pem")
+                self.assertNotIn("GIT_DIR", rr.git_env())
+
+    def test_gates_resolve_before_the_worker_session(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            controller = rr.Controller(rr.Config(), Path(tmp))
+            with unittest.mock.patch.object(rr, "require_pipeline_release"), \
+                    unittest.mock.patch.object(controller, "preflight", return_value="a" * 40), \
+                    unittest.mock.patch.object(rr, "resolve_gate", side_effect=ImportError("No module named 'yaml'")), \
+                    unittest.mock.patch.object(controller, "session") as session:
+                with self.assertRaisesRegex(rr.Blocked, "gate cannot be resolved: No module named 'yaml'"):
+                    controller.run_task(dict(task("A"), gates=["ci.yml#x"]))
+            session.assert_not_called()
 
     def test_session_stops_when_git_callbacks_changed(self):
         with tempfile.TemporaryDirectory() as tmp:

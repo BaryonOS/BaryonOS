@@ -173,8 +173,15 @@ configuration or hooks. Instead of refusing every pre-existing hook, the control
 fingerprints `git config --list --show-scope --show-origin`, the hooks directory
 and `info/attributes` (including symlinked hook targets) at preflight. After any
 session that changed them it writes the `STOP` file and stops, so a later run
-cannot adopt the change as its baseline. Controller Git runs with
-`core.fsmonitor=false`. `run` and `brief` check `STOP` before any Git command
+cannot adopt the change as its baseline. The baseline is persisted before each
+session and compared in a `finally` block, also when the session is interrupted;
+if the controller itself dies, the next preflight compares against the persisted
+baseline before any Git command that can run a callback. Workers may not edit
+`build/roadmap-pipeline/**`, which holds that baseline, `STOP` and the logs.
+Controller Git runs with `core.fsmonitor=false` and without inherited
+repository-location variables such as `GIT_DIR` or `GIT_WORK_TREE`. Task gates
+are resolved before the worker session, so a gate that cannot be resolved blocks
+the task without spending a session. `run` and `brief` check `STOP` before any Git command
 that can run a callback; only the startup module check (`git ls-files` with
 fsmonitor disabled) runs earlier. Controller Python resolves the standard library and site-packages before
 `tools/`, refuses to start while untracked or ignored importable entries

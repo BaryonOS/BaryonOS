@@ -45,6 +45,17 @@ from pathlib import Path
 # ignored __pycache__/ paths that its scope check does not see.
 sys.pycache_prefix = tempfile.mkdtemp(prefix="roadmap-pycache-")
 
+# Repository-location overrides inherited from a shell or hook would point Git at another
+# repository; other GIT_* variables (for example GIT_SSL_CAINFO for push) are kept.
+GIT_LOCATION_VARS = ("GIT_DIR", "GIT_WORK_TREE", "GIT_INDEX_FILE", "GIT_OBJECT_DIRECTORY",
+                     "GIT_ALTERNATE_OBJECT_DIRECTORIES", "GIT_COMMON_DIR", "GIT_NAMESPACE", "GIT_PREFIX",
+                     "GIT_CEILING_DIRECTORIES", "GIT_DISCOVERY_ACROSS_FILESYSTEM")
+
+
+def git_env() -> dict[str, str]:
+    return {k: v for k, v in os.environ.items() if k not in GIT_LOCATION_VARS}
+
+
 def planted_modules(tools: str = TOOLS_DIR) -> list[str]:
     """Untracked or ignored importable entries directly under tools/: modules, sourceless
     bytecode, extension modules and package directories. The sibling imports below put tools/
@@ -52,7 +63,7 @@ def planted_modules(tools: str = TOOLS_DIR) -> list[str]:
     so a planted tools/.git cannot answer for it."""
     parent, base = os.path.split(tools)
     listed = subprocess.run(["git", "-c", "core.fsmonitor=false", "-C", parent, "ls-files", "-z", "--others",
-                             "--directory", "--", base + "/"], capture_output=True, text=True)
+                             "--directory", "--", base + "/"], capture_output=True, text=True, env=git_env())
     if listed.returncode:
         return [f"<git ls-files failed: {listed.stderr.strip()[-200:]}>"]
     # Only entries directly in tools/ shadow a top-level import; tracked subdirectories do not.
@@ -108,9 +119,12 @@ DENY = ["Bash(git push:*)", "Bash(git commit:*)", "Bash(git reset:*)", "Bash(git
         "Read(~/.claude/.credentials.json)", "Read(~/.ssh/**)", "Read(~/.config/gh/**)",
         "Read(~/.git-credentials)", "Read(//home/claude/**)", "Read(//root/.ccr/**)",
         # Paths the controller's scope check cannot see: Git state, caches, home.
-        "Edit(.git/**)", "Edit(**/__pycache__/**)", "Edit(**/*.pyc)", "Edit(.claude/**)"]
+        "Edit(.git/**)", "Edit(**/__pycache__/**)", "Edit(**/*.pyc)", "Edit(.claude/**)",
+        # Controller state: the callback baseline, STOP and session logs.
+        "Edit(build/roadmap-pipeline/**)"]
 PROCESS_TAG = "roadmap-pipeline-"
 READ_ONLY_DISALLOWED = "Edit,Write,MultiEdit,NotebookEdit"
+CALLBACKS_MARKER = "callbacks-baseline.json"  # present while a session may change Git state
 INIT_DENY_PROBE = "build/roadmap-pipeline/DENY-PROBE"
 TRAILERS = ("Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>\n"
             "Claude-Session: https://claude.ai/code/session_01TJtT9VANihpE4RzPd4d8su\n")
@@ -368,7 +382,7 @@ def pid_alive(pid: int) -> bool:
 def git_callbacks() -> str:
     """Fingerprint of every Git setting and hook that could run code on a later Git call."""
     config = subprocess.run(["git", "config", "--list", "--show-scope", "--show-origin"], cwd=ROOT,
-                            capture_output=True, text=True).stdout
+                            capture_output=True, text=True, env=git_env()).stdout
     parts = [config]
     for name in ("hooks", "info/attributes"):
         path = Path(git("rev-parse", "--git-path", name).strip())
@@ -408,7 +422,8 @@ def gate_report(log: Path) -> tuple[str, str]:
 
 
 def git(*args: str, check: bool = True) -> str:
-    done = subprocess.run(["git", "-c", "core.fsmonitor=false", *args], cwd=ROOT, capture_output=True, text=True)
+    done = subprocess.run(["git", "-c", "core.fsmonitor=false", *args], cwd=ROOT, capture_output=True, text=True,
+                          env=git_env())
     if check and done.returncode:
         raise Stop(f"git {' '.join(args[:3])} failed ({done.returncode}): {done.stderr.strip()[-800:]}")
     return done.stdout
@@ -492,18 +507,35 @@ class Controller:
                 raise Stop("stop file present while paused")
 
     def preflight(self) -> str:
+        alive = subprocess.run(["pgrep", "-f", f"--name {PROCESS_TAG}"],
+                               capture_output=True, text=True).stdout.split()
+        if [p for p in alive if int(p) != os.getpid()]:
+            raise Stop(f"a previous worker process is still alive: {alive}")
+        # Before any Git command that can run a hook. A session that never reached its own check
+        # (interrupt, crash, kill) left its baseline behind: compare with it, never adopt a change.
+        marker = self.state / CALLBACKS_MARKER
+        if marker.exists():
+            try:
+                self.callbacks = json.loads(marker.read_text())["baseline"]
+            except (ValueError, KeyError, TypeError):
+                self.callbacks = None  # unreadable baseline: fail closed
+            self.check_callbacks("an interrupted session")
+            marker.unlink()
+        self.callbacks = git_callbacks()
         branch = git("branch", "--show-current").strip()
         if branch != self.cfg.branch:
             raise Stop(f"checkout is on {branch!r}, expected {self.cfg.branch!r}")
         dirty = git("status", "--porcelain", "--untracked-files=all").strip()
         if dirty:
             raise Stop(f"checkout is not clean; refusing to start a writer:\n{dirty[:2000]}")
-        alive = subprocess.run(["pgrep", "-f", f"--name {PROCESS_TAG}"],
-                               capture_output=True, text=True).stdout.split()
-        if [p for p in alive if int(p) != os.getpid()]:
-            raise Stop(f"a previous worker process is still alive: {alive}")
-        self.callbacks = git_callbacks()
         return git("rev-parse", "HEAD").strip()
+
+    def check_callbacks(self, where: str) -> None:
+        if git_callbacks() != self.callbacks:
+            # Sticky: a later run must not adopt the planted callback as its new baseline.
+            atomic_write(self.state / "STOP", f"Git callbacks changed during {where}\n")
+            raise Stop(f"Git hooks or configuration changed during {where}; no further Git "
+                       "command runs until the lead inspects .git and the Git configuration")
 
     # --- one fresh headless session ---
     def session(self, kind: str, task_id: str, attempt_dir: Path, prompt: str, schema: dict,
@@ -522,29 +554,38 @@ class Controller:
         atomic_write(attempt_dir / f"{kind}-argv.json", json.dumps(argv[:1] + argv[1:], indent=1))
         out, err = attempt_dir / f"{kind}-result.json", attempt_dir / f"{kind}-stderr.log"
         started = time.monotonic()
-        with out.open("w") as stdout, err.open("w") as stderr, brief.open("rb") as stdin:
-            proc = subprocess.Popen(argv, cwd=ROOT, env=worker_env(dict(os.environ)), stdin=stdin,
-                                    stdout=stdout, stderr=stderr, start_new_session=True)
-            self.heartbeat(task=task_id, phase=kind, worker_pid=proc.pid, session_id=session_id)
-            code, stop_reason = None, None
-            deadline = time.monotonic() + timeout
-            while code is None:
-                try:
-                    code = proc.wait(timeout=60)
-                except subprocess.TimeoutExpired:
-                    live = self.transcript_check(session_id, prompt)
-                    self.heartbeat(compactions=live.get("compactions", 0))
-                    if live.get("compactions", 0) > self.cfg.max_compactions:
-                        stop_reason = f"compaction churn: {live['compactions']} compactions"
-                    elif time.monotonic() > deadline:
-                        stop_reason = f"timeout after {timeout}s"
-                    if stop_reason:
-                        os.killpg(proc.pid, signal.SIGTERM)
-                        with contextlib.suppress(subprocess.TimeoutExpired):
-                            proc.wait(timeout=30)
-                        code = -9
-            with contextlib.suppress(ProcessLookupError):
-                os.killpg(proc.pid, signal.SIGKILL)  # no orphan child may keep editing
+        # Kept until this session is verified: an interrupted controller is checked against it later.
+        atomic_write(self.state / CALLBACKS_MARKER, json.dumps({"baseline": self.callbacks, "session": session_id}))
+        proc = None
+        try:
+            with out.open("w") as stdout, err.open("w") as stderr, brief.open("rb") as stdin:
+                proc = subprocess.Popen(argv, cwd=ROOT, env=worker_env(dict(os.environ)), stdin=stdin,
+                                        stdout=stdout, stderr=stderr, start_new_session=True)
+                self.heartbeat(task=task_id, phase=kind, worker_pid=proc.pid, session_id=session_id)
+                code, stop_reason = None, None
+                deadline = time.monotonic() + timeout
+                while code is None:
+                    try:
+                        code = proc.wait(timeout=60)
+                    except subprocess.TimeoutExpired:
+                        live = self.transcript_check(session_id, prompt)
+                        self.heartbeat(compactions=live.get("compactions", 0))
+                        if live.get("compactions", 0) > self.cfg.max_compactions:
+                            stop_reason = f"compaction churn: {live['compactions']} compactions"
+                        elif time.monotonic() > deadline:
+                            stop_reason = f"timeout after {timeout}s"
+                        if stop_reason:
+                            os.killpg(proc.pid, signal.SIGTERM)
+                            with contextlib.suppress(subprocess.TimeoutExpired):
+                                proc.wait(timeout=30)
+                            code = -9
+                with contextlib.suppress(ProcessLookupError):
+                    os.killpg(proc.pid, signal.SIGKILL)  # no orphan child may keep editing
+        finally:
+            if proc is not None:
+                with contextlib.suppress(ProcessLookupError):
+                    os.killpg(proc.pid, signal.SIGKILL)  # also on an exception path
+            self.check_callbacks(f"the {kind} session {session_id}")
         self.heartbeat(worker_pid=None)
         text = out.read_text(errors="replace")
         try:
@@ -563,11 +604,7 @@ class Controller:
             "output": structured(result),
         }
         atomic_write(attempt_dir / f"{kind}-record.json", json.dumps(record, indent=2))
-        if git_callbacks() != self.callbacks:
-            # Sticky: a later run must not adopt the planted callback as its new baseline.
-            atomic_write(self.state / "STOP", f"Git callbacks changed during {kind} session {session_id}\n")
-            raise Stop(f"Git hooks or configuration changed during the {kind} session; no further Git "
-                       "command runs until the lead inspects .git and the Git configuration")
+        (self.state / CALLBACKS_MARKER).unlink(missing_ok=True)  # verified in the finally clause
         blob = text + err.read_text(errors="replace")
         if code != 0 and RATE_LIMIT.search(blob):
             raise Stop(f"{kind} session hit a rate or usage limit; see {err}")
@@ -644,7 +681,7 @@ class Controller:
                                 gate.finalizer_reserve_seconds if gate else 0)
                 # Untracked candidate files must reach the gate; it stages only these paths.
                 sources = agent_source_paths(self.changed())
-            except (KeyError, ValueError, OSError, subprocess.SubprocessError) as error:
+            except (KeyError, ValueError, ImportError, OSError, subprocess.SubprocessError) as error:
                 failure = f"gate blocked: {error}"
                 log.write_text(failure + "\n")
                 code = GATE_FAIL_EXIT
@@ -808,6 +845,11 @@ Return the structured result.
     def run_task(self, task: dict) -> str:
         require_pipeline_release()
         head = self.preflight()
+        if task.get("gates"):  # PyYAML and the workflows must work before a session is spent
+            try:
+                resolve_gate(task["gates"], ROOT / ".github" / "workflows")
+            except (KeyError, ValueError, ImportError) as error:
+                raise Blocked(f"gate cannot be resolved: {error}") from error
         # The ledger is not touched while a worker runs: 'active' is the lease itself.
         self.heartbeat(task=task["id"], phase="start", base=head)
         task_dir = self.state / "runs" / self.run_id / task["id"]
@@ -1027,6 +1069,7 @@ def isolate_imports() -> None:
     imports and agent_gate's PyYAML, may resolve a module from there."""
     checkout = {ROOT, ROOT / "tools"}
     sys.path[:] = [p for p in sys.path if Path(p or ".").resolve() not in checkout]
+    # Optional for plain checks; a task with gates resolves them before its worker session.
     with contextlib.suppress(ImportError):
         import yaml  # noqa: F401  (agent_gate imports it only after a worker session)
 
