@@ -41,7 +41,11 @@ ownership, then merges with
 
 Auto-merge may be enabled only after every non-required check on that head is
 green. An enabled auto-merge is not a completed merge; the owning workstream
-remains responsible for the outcome.
+remains responsible for the outcome. GitHub keeps auto-merge armed when a
+writer with write access pushes a new head, so a workstream disables
+auto-merge (`gh pr merge <N> --disable-auto`) before any push to that pull
+request and re-enables it only after the new head is reassessed under the same
+conditions.
 
 **Limits:**
 
@@ -57,6 +61,46 @@ remains responsible for the outcome.
 **Coordinator role:** the integration coordinator handles only cross-stream
 dependencies, ownership conflicts, orphaned pull requests and escalations that
 a workstream cannot resolve itself. It is not an approval step.
+
+**Alternatives:** keep one integration coordinator as the only merger (rejected:
+it serialised about 35 open pull requests and invited competing writers on the
+same branches); allow every session and pipeline worker to merge (rejected:
+too broad for unattended workers that must not change their own evaluators).
+
+**Rationale:** the workstream that wrote and verified a change has the best
+context to repair and merge it. Branch protection (required checks, strict
+up-to-date base, squash only, resolved threads) and `merge-hold` remain the
+technical boundary, so the delegation moves only the decision, not the gate.
+
+**Consequences:** each workstream carries its own review, CI and merge
+workload. The coordinator stops being a queue and keeps only exceptions.
+Writer conflicts shrink because one session owns each branch; stacked pull
+requests across workstreams still need explicit coordination.
+
+**Security invariant:** no merge without the required checks, the applicable
+acceptance hold and resolved threads on the exact merged head; no bypass of
+branch protection; protected policy and evaluator files stay lead-scoped.
+
+**Test evidence:** none applies to a governance text change. The governance
+and documentation checks (`tools/tests/test_agent_governance.py`,
+`tools/check_english_docs.py`, `tools/progress.py --check`) pass on this
+change; they do not prove that sessions follow the rule.
+
+**Migration and rollback:** to restore the previous model, the project owner
+revokes this ADR; workstreams then disable any armed auto-merge on their open
+pull requests and return to draft or "final" handoff to a single coordinator.
+Pull requests already merged under this ADR stay merged and are judged on
+their recorded checks.
+
+**Refutation and review criteria:** review this decision if a pull request
+merges with a failing or pending applicable check, an unresolved finding, a
+bypassed protection or a merge-hold released without its acceptance; if two
+writers collide on one branch; or if a merge reaches `main` from a head that
+was not reassessed after a push. Any such case is recorded and may restore
+owner approval per merge.
+
+**Owner:** project owner (decision); each workstream for its own pull requests;
+the lead agent for integration and decision management.
 
 ## ADR-S09-DUALDISK-20261119 — Test-only second virtio-blk device for the S09 archive fixture
 
