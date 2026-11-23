@@ -60,7 +60,9 @@ def nested_git(root: Path) -> list[str]:
     """Every .git below the checkout root. Git skips them, so status, ls-files, revert and the
     callback fingerprint never see one; a planted nested .git/config can carry a callback."""
     found = []
-    for directory, dirs, files in os.walk(root):  # never follows symlinks
+    # An unreadable directory could hide one: report it instead of skipping it (fail closed).
+    unreadable = lambda error: found.append(f"unreadable: {os.path.relpath(error.filename, root)}")
+    for directory, dirs, files in os.walk(root, onerror=unreadable):  # never follows symlinks
         if ".git" in dirs or ".git" in files:
             if Path(directory) != root:
                 found.append(os.path.relpath(os.path.join(directory, ".git"), root))
@@ -451,10 +453,25 @@ def git(*args: str, check: bool = True) -> str:
     return done.stdout
 
 
+def baseline_home() -> Path:
+    """Where the saved session baseline lives: outside every root a session may write. A manual
+    Codex `workspace-write` session writes the checkout, /tmp and $TMPDIR, so it could delete or
+    forge a baseline kept in build/."""
+    base = Path(os.environ.get("XDG_STATE_HOME") or Path.home() / ".local" / "state").resolve()
+    home = base / "baryonos-roadmap-pipeline" / sha256(str(ROOT.resolve()))[:16]
+    for writable in {ROOT.resolve(), Path(tempfile.gettempdir()).resolve(), Path("/tmp").resolve()}:
+        if home == writable or writable in home.parents:
+            raise Stop(f"the session baseline directory {home} lies in the session-writable {writable}; "
+                       "set XDG_STATE_HOME elsewhere")
+    return home
+
+
 class Controller:
-    def __init__(self, cfg: Config, state: Path = STATE):
+    def __init__(self, cfg: Config, state: Path = STATE, baseline: Path | None = None):
         self.cfg = cfg
         self.state = state
+        # A test state directory already lies outside the checkout; the real one does not.
+        self.baseline = baseline if baseline is not None else (None if state == STATE else state)
         self.lock_file = None
         self.lock_acquired = False
         self.lease_owned = False
@@ -564,26 +581,91 @@ class Controller:
 
     def check_saved_baseline(self, *, retire: bool) -> None:
         """Before any Git command that can run a hook or filter. A session that never reached its
-        own check (interrupt, crash, kill) left its baseline behind: compare with it, never adopt
-        a change. Retire it only once no worker can still change the callbacks."""
-        marker = self.state / CALLBACKS_MARKER
-        if not marker.exists():
-            return
-        try:
-            saved = json.loads(marker.read_text())
-        except ValueError:
-            saved = None
-        saved = saved if isinstance(saved, dict) else {}  # unreadable baseline: both checks fail closed
-        self.callbacks, ignored = saved.get("baseline"), saved.get("ignored")
-        self.check_callbacks("an interrupted session")
-        delta = self.ignored_delta(ignored) if isinstance(ignored, dict) else ("unreadable baseline",)
-        if any(delta):
-            # Sticky like a callback change: the lead reviews, then `resume` retires this baseline.
-            atomic_write(self.state / "STOP", "ignored files changed since a session's baseline\n")
-            raise Stop("ignored files changed since an interrupted or manual session's baseline "
-                       f"(created, changed or removed); review them, then run `resume`: {delta}")
-        if retire:
+        own check (interrupt, crash, kill, Stop) left its baseline behind: compare with it, never
+        adopt a change. Retire it only once no worker can still change the callbacks."""
+        marker, legacy = self.marker(), self.legacy_marker()
+        if marker.exists():
+            saved = self.saved_baseline(marker)
+            self.callbacks, ignored = saved.get("baseline"), saved.get("ignored")
+            self.check_callbacks("an interrupted session")
+            delta = self.ignored_delta(ignored) if isinstance(ignored, dict) else (["unreadable baseline"], [])
+            if any(delta):
+                # Sticky like a callback change: `resume` shows the delta and retires only on --accept.
+                atomic_write(self.state / "STOP", "ignored files changed since a session's baseline\n")
+                raise Stop("ignored files changed since an interrupted or manual session's baseline "
+                           f"(created, changed or removed); review them, then run `resume`: "
+                           f"{[paths[:20] for paths in delta]}")
+        if legacy:
+            # Written before the baseline left the checkout: a session could have rewritten it.
+            atomic_write(self.state / "STOP", "a session baseline inside the checkout cannot be trusted\n")
+            raise Stop(f"{legacy} lies inside the checkout, where a session could forge it; review the "
+                       "ignored files and Git callbacks, then run `resume`")
+        if retire and marker.exists():
             marker.unlink()
+
+    @staticmethod
+    def saved_baseline(path: Path) -> dict:
+        try:
+            saved = json.loads(path.read_text())
+        except (OSError, ValueError):
+            saved = None
+        return saved if isinstance(saved, dict) else {}  # unreadable baseline: every check fails closed
+
+    def legacy_marker(self) -> Path | None:
+        legacy = self.state / CALLBACKS_MARKER
+        return legacy if legacy != self.marker() and os.path.lexists(legacy) else None
+
+    def marker(self) -> Path:
+        return (self.baseline or baseline_home()) / CALLBACKS_MARKER
+
+    def retire_baseline(self) -> None:
+        """Only after the caller has validated the session's checkout, ignored files included."""
+        self.marker().unlink(missing_ok=True)
+
+    def baseline_review(self) -> dict | None:
+        """What retiring the saved baseline would adopt: the change since it was taken."""
+        marker, legacy = self.marker(), self.legacy_marker()
+        source = marker if marker.exists() else legacy
+        if source is None:
+            return None
+        saved = self.saved_baseline(source)
+        ignored = saved.get("ignored")
+        created, changed = self.ignored_delta(ignored) if isinstance(ignored, dict) else (["unreadable baseline"], [])
+        return {"untrusted_legacy_baseline": legacy is not None,
+                "callbacks_changed": git_callbacks() != saved.get("baseline"),
+                "created": created, "changed_or_removed": changed}
+
+    def resume(self, accept: str | None = None) -> str:
+        """Clear STOP and PAUSE. The saved baseline stays while anything may still change the
+        checkout (a running controller or worker, an active manual claim), and it is never
+        retired over a change the lead has not acknowledged by its digest."""
+        for name in ("STOP", "PAUSE"):
+            (self.state / name).unlink(missing_ok=True)
+        self.state.mkdir(parents=True, exist_ok=True)
+        self.lock_file = (self.state / "controller.lock").open("a+")
+        try:
+            fcntl.flock(self.lock_file, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except BlockingIOError:
+            return "stop/pause cleared; a controller is running, so the saved session baseline is kept"
+        self.lock_acquired = True
+        self.refuse_live_workers()
+        if active := [t["id"] for t in load_ledger(LEDGER)["tasks"] if t["status"] == "active"]:
+            return (f"stop/pause cleared; manual task {active} is active, so the saved session baseline "
+                    "is kept until it is validated")
+        review = self.baseline_review()
+        if review is None:
+            return "stop/pause cleared; no saved session baseline"
+        digest = sha256(json.dumps(review, sort_keys=True))[:16]
+        unchanged = not (review["untrusted_legacy_baseline"] or review["callbacks_changed"]
+                         or review["created"] or review["changed_or_removed"])
+        if not unchanged and accept != digest:
+            shown = {k: v[:50] if isinstance(v, list) else v for k, v in review.items()}
+            return ("stop/pause cleared; the saved session baseline is kept because retiring it would adopt "
+                    f"this change: {json.dumps(shown)}. Review it (Git callbacks included), then run "
+                    f"`resume --accept {digest}`")
+        self.retire_baseline()
+        (self.state / CALLBACKS_MARKER).unlink(missing_ok=True)  # a legacy in-checkout baseline
+        return "stop/pause cleared; the saved session baseline is retired (the next preflight takes a fresh one)"
 
     def check_callbacks(self, where: str) -> None:
         if git_callbacks() != self.callbacks:
@@ -609,9 +691,10 @@ class Controller:
         atomic_write(attempt_dir / f"{kind}-argv.json", json.dumps(argv[:1] + argv[1:], indent=1))
         out, err = attempt_dir / f"{kind}-result.json", attempt_dir / f"{kind}-stderr.log"
         started = time.monotonic()
-        # Kept until this session is verified: an interrupted controller is checked against it later.
-        atomic_write(self.state / CALLBACKS_MARKER, json.dumps({"baseline": self.callbacks, "session": session_id,
-                                                                "ignored": self.ignored_files()}))
+        # Kept until the caller has validated this session (retire_baseline): a Stop or an interrupted
+        # controller before then is checked against it later.
+        atomic_write(self.marker(), json.dumps({"baseline": self.callbacks, "session": session_id,
+                                                "ignored": self.ignored_files()}))
         proc = None
         try:
             with out.open("w") as stdout, err.open("w") as stderr, brief.open("rb") as stdin:
@@ -660,7 +743,6 @@ class Controller:
             "output": structured(result),
         }
         atomic_write(attempt_dir / f"{kind}-record.json", json.dumps(record, indent=2))
-        (self.state / CALLBACKS_MARKER).unlink(missing_ok=True)  # verified in the finally clause
         blob = text + err.read_text(errors="replace")
         if code != 0 and RATE_LIMIT.search(blob):
             raise Stop(f"{kind} session hit a rate or usage limit; see {err}")
@@ -700,8 +782,15 @@ class Controller:
 
     # --- validation owned by the controller ---
     def tree_fingerprint(self) -> str:
+        # Status and diff list an untracked file but not its content: hash that content too.
+        untracked = {}
+        for path in filter(None, git("ls-files", "-z", "--others", "--exclude-standard").split("\0")):
+            target = ROOT / path
+            with contextlib.suppress(FileNotFoundError):
+                untracked[path] = (os.readlink(target) if target.is_symlink()
+                                   else sha256(target.read_bytes()) if target.is_file() else "other")
         return sha256(git("status", "--porcelain", "--untracked-files=all") + git(*DIFF_HEAD)
-                      + json.dumps([self.ignored_files(), nested_git(ROOT)], sort_keys=True))
+                      + json.dumps([self.ignored_files(), nested_git(ROOT), untracked], sort_keys=True))
 
     def changed(self) -> list[str]:
         return parse_porcelain(git("status", "--porcelain", "--untracked-files=all"))
@@ -873,9 +962,9 @@ Rules (binding, in addition to AGENTS.md):
                 "manual_required": True, "unattended_ready": False}
         atomic_write(directory / "dispatch.json", json.dumps(plan, indent=2))
         # The manual session may change Git state: the next preflight compares, never adopts.
-        atomic_write(self.state / CALLBACKS_MARKER, json.dumps({"baseline": self.callbacks,
-                                                                "session": f"manual {task['id']}",
-                                                                "ignored": self.ignored_files()}))
+        atomic_write(self.marker(), json.dumps({"baseline": self.callbacks,
+                                                "session": f"manual {task['id']}",
+                                                "ignored": self.ignored_files()}))
         update_task(task["id"], path=LEDGER, status="active", history={
             "at": now(), "event": "manual-codex-claim", "base": head,
             "dispatch": str(directory / "dispatch.json"), "brief_sha256": plan["brief_sha256"]})
@@ -967,6 +1056,7 @@ Return the structured result.
                 if leftover := [p for p in changed if not in_write_set(p, task["write_paths"])] \
                         + self.new_ignored(ignored):  # e.g. a path revert() cannot remove
                     raise Stop(f"out-of-scope paths survived the revert; review them: {leftover[:20]}")
+            self.retire_baseline()  # the worker's nested .git, ignored-file and scope checks passed
             out = worker.get("output") or {}
             if worker["exit_code"] != 0 or worker["is_error"]:
                 kind = "session"
@@ -995,6 +1085,7 @@ Return the structured result.
                     record["verifier"] = verifier
                     if self.tree_fingerprint() != before:
                         raise Stop("the read-only verifier changed the working tree; stopping for review")
+                    self.retire_baseline()
                     verdict = verifier.get("output") or {}
                     findings = verdict.get("findings") or []
                     if verifier["exit_code"] == 0 and verdict.get("verdict") == "pass" and not blocking(findings):
@@ -1108,6 +1199,8 @@ Return the structured result.
                               disallowed=READ_ONLY_DISALLOWED, budget=self.cfg.verifier_budget_usd)
         record["head_expected"] = head
         record["checkout_clean_after"] = not (self.changed() or any(self.ignored_delta(ignored)) or nested_git(ROOT))
+        if record["checkout_clean_after"]:  # otherwise the next run compares with the init baseline
+            self.retire_baseline()
         record["deny_probe_file_absent"] = not probe.exists()  # controller-side oracle
         probe.unlink(missing_ok=True)
         atomic_write(adir / "init-check.json", json.dumps(record, indent=2))
@@ -1195,8 +1288,10 @@ def main() -> int:
     run.add_argument("--model", default=Config.model)
     run.add_argument("--effort", default=Config.effort, help="security/high-risk tasks")
     run.add_argument("--routine-effort", default=Config.routine_effort, help="low/medium-risk tasks")
-    for name in ("status", "stop", "pause", "resume", "validate", "brief"):
+    for name in ("status", "stop", "pause", "validate", "brief"):
         sub.add_parser(name)
+    sub.add_parser("resume").add_argument(
+        "--accept", metavar="DIGEST", help="retire a saved baseline over the change `resume` reported")
     args = parser.parse_args()
     STATE.mkdir(parents=True, exist_ok=True)
     if args.cmd == "status":
@@ -1211,9 +1306,14 @@ def main() -> int:
         return 0
     if args.cmd == "resume":
         # The lead has reviewed the reported change: a sticky STOP must not re-fire on the old baseline.
-        for name in ("STOP", "PAUSE", CALLBACKS_MARKER):
-            (STATE / name).unlink(missing_ok=True)
-        print("stop/pause cleared; any saved session baseline retired (the next preflight takes a fresh one)")
+        controller = Controller(Config(), STATE)
+        try:
+            print(controller.resume(args.accept))
+        except Stop as error:
+            print(f"stop/pause cleared; the saved session baseline is kept: {error}")
+            return 2
+        finally:
+            controller.release()
         return 0
     if args.cmd == "brief":
         if (STATE / "STOP").exists():  # before any Git call, like the run loop

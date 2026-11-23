@@ -1,3 +1,7 @@
+import contextlib
+import io
+import os
+import re
 import json
 import shutil
 import sys
@@ -1013,29 +1017,161 @@ class RunnerResiduals(unittest.TestCase):
                 rr.os.utime(cache, ns=(stat.st_atime_ns, stat.st_mtime_ns))  # mtime restored, ctime not
                 self.assertEqual(controller.ignored_delta(before), ([], ["build/cache.bin"]))
 
+    @contextlib.contextmanager
+    def live_state(self, tmp, active=()):
+        """The real layout: controller state inside the checkout, the baseline outside it."""
+        repo, env = self.repo(tmp, "build/\n")
+        state, home = repo / "build" / "roadmap-pipeline", Path(tmp) / "xdg-state"
+        state.mkdir(parents=True)
+        ledger = {"tasks": [dict(task(t), status="active") for t in active]}
+        with unittest.mock.patch.object(rr, "ROOT", repo), unittest.mock.patch.object(rr, "STATE", state), \
+                unittest.mock.patch.object(rr, "baseline_home", return_value=home), \
+                unittest.mock.patch.object(rr, "load_ledger", return_value=ledger), \
+                unittest.mock.patch.dict("os.environ", env, clear=True), \
+                unittest.mock.patch.object(rr, "git_callbacks", return_value="cb"):
+            yield repo, state, rr.Controller(rr.Config(), state)
+
+    def resume(self, *extra):
+        """`resume` through the CLI: (exit code, printed message)."""
+        with unittest.mock.patch.object(rr, "isolate_imports"), \
+                unittest.mock.patch.object(rr.sys, "argv", ["roadmap_runner.py", "resume", *extra]), \
+                contextlib.redirect_stdout(io.StringIO()) as out:
+            code = rr.main()
+        return code, out.getvalue()
+
+    def accept(self):
+        """The lead's review step: `resume` reports the change and its digest; accept exactly that."""
+        code, message = self.resume()
+        self.assertEqual(code, 0)
+        digest = re.search(r"resume --accept ([0-9a-f]+)", message)
+        self.assertIsNotNone(digest, message)
+        return self.resume("--accept", digest.group(1))
+
     def test_saved_baseline_covers_ignored_files_until_resume(self):
         for session in ("manual A", "crashed worker"):
-            with self.subTest(session=session), tempfile.TemporaryDirectory() as tmp:
-                repo, env = self.repo(tmp, "build/\n")
-                state = repo / "build" / "roadmap-pipeline"
-                state.mkdir(parents=True)
-                with unittest.mock.patch.object(rr, "ROOT", repo), unittest.mock.patch.object(rr, "STATE", state), \
-                        unittest.mock.patch.dict("os.environ", env, clear=True), \
-                        unittest.mock.patch.object(rr, "git_callbacks", return_value="cb"):
-                    controller = rr.Controller(rr.Config(), state)
-                    (state / rr.CALLBACKS_MARKER).write_text(json.dumps(
-                        {"baseline": "cb", "session": session, "ignored": controller.ignored_files()}))
-                    controller.check_saved_baseline(retire=False)  # unchanged: passes
-                    (repo / "build" / "dropped.py").write_text("")
-                    with self.assertRaisesRegex(rr.Stop, "ignored files changed"):
-                        controller.check_saved_baseline(retire=False)
-                    self.assertTrue((state / "STOP").exists())
-                    with unittest.mock.patch.object(rr, "isolate_imports"), \
-                            unittest.mock.patch.object(rr.sys, "argv", ["roadmap_runner.py", "resume"]):
-                        self.assertEqual(rr.main(), 0)
-                    self.assertFalse((state / "STOP").exists())
-                    self.assertFalse((state / rr.CALLBACKS_MARKER).exists())  # reviewed: not re-fired
+            with self.subTest(session=session), tempfile.TemporaryDirectory() as tmp, \
+                    self.live_state(tmp) as (repo, state, controller):
+                rr.atomic_write(controller.marker(), json.dumps(
+                    {"baseline": "cb", "session": session, "ignored": controller.ignored_files()}))
+                controller.check_saved_baseline(retire=False)  # unchanged: passes
+                (repo / "build" / "dropped.py").write_text("")
+                with self.assertRaisesRegex(rr.Stop, "ignored files changed"):
                     controller.check_saved_baseline(retire=False)
+                self.assertTrue((state / "STOP").exists())
+                self.assertEqual(self.resume()[0], 0)
+                self.assertFalse((state / "STOP").exists())
+                self.assertTrue(controller.marker().exists())  # not retired over an unreviewed change
+                self.assertEqual(self.accept()[0], 0)
+                self.assertFalse(controller.marker().exists())  # reviewed: not re-fired
+                controller.check_saved_baseline(retire=False)
+
+    def test_session_baseline_lies_outside_every_session_writable_root(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            repo = Path(tmp) / "repo"
+            with unittest.mock.patch.object(rr, "ROOT", repo):
+                for writable in (repo / "build", Path(tempfile.gettempdir()) / "x", Path("/tmp/x")):
+                    with self.subTest(xdg=writable), unittest.mock.patch.dict("os.environ", {"XDG_STATE_HOME": str(writable)}):
+                        with self.assertRaisesRegex(rr.Stop, "session-writable"):
+                            rr.baseline_home()
+                with unittest.mock.patch.dict("os.environ", {"XDG_STATE_HOME": "/var/lib/lead"}):
+                    self.assertEqual(rr.baseline_home().parent, Path("/var/lib/lead/baryonos-roadmap-pipeline"))
+                self.assertEqual(rr.Controller(rr.Config()).baseline, None)  # the real state uses baseline_home
+
+    def test_a_session_cannot_delete_or_forge_its_baseline(self):
+        for tamper in ("delete", "forge"):
+            with self.subTest(tamper=tamper), tempfile.TemporaryDirectory() as tmp, \
+                    self.live_state(tmp) as (repo, state, controller):
+                controller.callbacks = "cb"
+                controller.preflight = lambda: "a" * 40  # the claim itself, without a real ledger
+                with unittest.mock.patch.object(rr, "select_task", return_value=task("A")), \
+                        unittest.mock.patch.object(rr, "update_task"):
+                    controller.lock_acquired = True
+                    controller.prepare_manual()
+                self.assertNotIn(repo.resolve(), controller.marker().resolve().parents)
+                # The manual session writes everything under the checkout, build/roadmap-pipeline included.
+                (repo / "build" / "evil.sh").write_text("")
+                for leftover in state.glob("*.json"):
+                    leftover.unlink()
+                if tamper == "forge":
+                    rr.atomic_write(state / rr.CALLBACKS_MARKER, json.dumps(
+                        {"baseline": "cb", "session": "manual A", "ignored": controller.ignored_files()}))
+                with self.assertRaisesRegex(rr.Stop, "ignored files changed|lies inside the checkout"):
+                    rr.Controller(rr.Config(), state).check_saved_baseline(retire=True)
+                self.assertTrue((state / "STOP").exists())
+
+    def test_resume_keeps_the_baseline_while_a_session_may_still_run(self):
+        for blocker in ("active manual claim", "running controller"):
+            with self.subTest(blocker=blocker), tempfile.TemporaryDirectory() as tmp, \
+                    self.live_state(tmp, active=("A",) if blocker == "active manual claim" else ()) \
+                    as (repo, state, controller):
+                rr.atomic_write(controller.marker(), json.dumps(
+                    {"baseline": "cb", "session": "manual A", "ignored": controller.ignored_files()}))
+                (state / "STOP").write_text("x")
+                holder = (state / "controller.lock").open("a+")
+                if blocker == "running controller":
+                    rr.fcntl.flock(holder, rr.fcntl.LOCK_EX | rr.fcntl.LOCK_NB)
+                try:
+                    self.assertEqual(self.resume()[0], 0)
+                finally:
+                    holder.close()
+                self.assertFalse((state / "STOP").exists())  # a paused or stopped run may continue
+                self.assertTrue(controller.marker().exists())
+                (repo / "build" / "post-resume.sh").write_text("")  # the session keeps running
+                with self.assertRaisesRegex(rr.Stop, "ignored files changed"):
+                    controller.check_saved_baseline(retire=True)
+
+    def test_session_keeps_its_baseline_until_the_caller_validated_it(self):
+        for outcome in ("returns", "rate limit"):
+            with self.subTest(outcome=outcome), tempfile.TemporaryDirectory() as tmp:
+                root = Path(tmp)
+                controller = rr.Controller(rr.Config(), root / "state")
+                controller.callbacks = "cb"
+                proc = unittest.mock.Mock(pid=2 ** 22 + 12345)
+                proc.wait.return_value = 0 if outcome == "returns" else 1
+
+                def spawn(*args, stderr, **kwargs):
+                    if outcome == "rate limit":
+                        stderr.write("429 too many requests")
+                    return proc
+                with unittest.mock.patch.object(rr, "require_pipeline_release"), \
+                        unittest.mock.patch.object(rr.subprocess, "Popen", side_effect=spawn), \
+                        unittest.mock.patch.object(rr.os, "killpg"), \
+                        unittest.mock.patch.object(controller, "heartbeat"), \
+                        unittest.mock.patch.object(controller, "transcript_check", return_value={}), \
+                        unittest.mock.patch.object(controller, "ignored_files", return_value={}), \
+                        unittest.mock.patch.object(rr, "git_callbacks", return_value="cb"):
+                    if outcome == "returns":
+                        controller.session("worker", "A", root, "brief", {}, [], "default", 10)
+                    else:
+                        with self.assertRaisesRegex(rr.Stop, "rate or usage limit"):
+                            controller.session("worker", "A", root, "brief", {}, [], "default", 10)
+                # Retired only by the caller after its ignored-file and nested .git checks.
+                self.assertTrue(controller.marker().exists())
+
+    def test_run_task_retires_the_worker_baseline_only_after_validation(self):
+        for altered in (False, True):
+            with self.subTest(altered=altered), tempfile.TemporaryDirectory() as tmp:
+                repo, env = self.repo(tmp, "build/\n")
+                (repo / "build").mkdir()
+                (repo / "build" / "cache.bin").write_text("a")
+                controller = rr.Controller(rr.Config(max_repairs=0), Path(tmp) / "state")
+
+                def worker(*args, **kwargs):
+                    rr.atomic_write(controller.marker(), "{}")
+                    if altered:
+                        (repo / "build" / "cache.bin").write_text("changed")
+                    return {"exit_code": 0, "is_error": False, "output": {"state": "blocked"}}
+                with unittest.mock.patch.object(rr, "ROOT", repo), \
+                        unittest.mock.patch.dict("os.environ", env, clear=True), \
+                        unittest.mock.patch.object(rr, "require_pipeline_release"), \
+                        unittest.mock.patch.object(controller, "preflight", return_value="a" * 40), \
+                        unittest.mock.patch.object(controller, "heartbeat"), \
+                        unittest.mock.patch.object(controller, "check_controls"), \
+                        unittest.mock.patch.object(controller, "session", side_effect=worker):
+                    with self.assertRaisesRegex(rr.Stop if altered else rr.Blocked,
+                                                "changed or removed ignored" if altered else "reported blocked"):
+                        controller.run_task(task("A"))
+                self.assertEqual(controller.marker().exists(), altered)
 
     def test_init_check_cleanliness_covers_ignored_files(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -1043,6 +1179,7 @@ class RunnerResiduals(unittest.TestCase):
             controller = rr.Controller(rr.Config(), Path(tmp) / "state")
 
             def init(*args, **kwargs):
+                rr.atomic_write(controller.marker(), "{}")
                 (repo / "build").mkdir()
                 (repo / "build" / "x").write_text("x")
                 return {"session_id": "s", "exit_code": 0}
@@ -1051,6 +1188,110 @@ class RunnerResiduals(unittest.TestCase):
                     unittest.mock.patch.object(controller, "preflight", return_value="a" * 40), \
                     unittest.mock.patch.object(controller, "session", side_effect=init):
                 self.assertFalse(controller.init_check()["checkout_clean_after"])
+            self.assertTrue(controller.marker().exists())  # the next run compares with it
+
+    def test_init_check_retires_its_baseline_only_when_the_checkout_stayed_clean(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            repo, env = self.repo(tmp, "build/\n")
+            controller = rr.Controller(rr.Config(), Path(tmp) / "state")
+
+            def init(*args, **kwargs):
+                rr.atomic_write(controller.marker(), "{}")
+                return {"session_id": "s", "exit_code": 0}
+            with unittest.mock.patch.object(rr, "ROOT", repo), \
+                    unittest.mock.patch.dict("os.environ", env, clear=True), \
+                    unittest.mock.patch.object(controller, "preflight", return_value="a" * 40), \
+                    unittest.mock.patch.object(controller, "session", side_effect=init):
+                self.assertTrue(controller.init_check()["checkout_clean_after"])
+            self.assertFalse(controller.marker().exists())
+
+    def test_resume_never_retires_a_baseline_over_an_unacknowledged_change(self):
+        for case in ("leftover after a Stop", "forged legacy marker", "forged STOP", "wrong digest"):
+            with self.subTest(case=case), tempfile.TemporaryDirectory() as tmp, \
+                    self.live_state(tmp) as (repo, state, controller):
+                rr.atomic_write(controller.marker(), json.dumps(
+                    {"baseline": "cb", "session": "worker", "ignored": controller.ignored_files()}))
+                (repo / "build" / "planted.sh").write_text("")  # what the session left behind
+                if case == "forged legacy marker":
+                    rr.atomic_write(state / rr.CALLBACKS_MARKER, json.dumps(
+                        {"baseline": "cb", "session": "x", "ignored": controller.ignored_files()}))
+                    with self.assertRaisesRegex(rr.Stop, "planted.sh"):  # the trusted delta is reported first
+                        controller.check_saved_baseline(retire=False)
+                if case == "forged STOP":
+                    (state / "STOP").write_text("x")
+                code, message = self.resume("--accept", "0" * 16) if case == "wrong digest" else self.resume()
+                self.assertEqual(code, 0)
+                self.assertIn("planted.sh", message)
+                self.assertTrue(controller.marker().exists())
+                with self.assertRaisesRegex(rr.Stop, "ignored files changed"):
+                    rr.Controller(rr.Config(), state).check_saved_baseline(retire=True)
+
+    def test_resume_retires_an_untrusted_legacy_baseline_only_on_acknowledgement(self):
+        with tempfile.TemporaryDirectory() as tmp, self.live_state(tmp) as (repo, state, controller):
+            rr.atomic_write(state / rr.CALLBACKS_MARKER, json.dumps(
+                {"baseline": "cb", "session": "manual A", "ignored": controller.ignored_files()}))
+            with self.assertRaisesRegex(rr.Stop, "lies inside the checkout"):
+                controller.check_saved_baseline(retire=True)
+            self.assertTrue((state / "STOP").exists())
+            self.assertIn("untrusted_legacy_baseline", self.resume()[1])
+            self.assertTrue((state / rr.CALLBACKS_MARKER).exists())
+            self.assertEqual(self.accept()[0], 0)
+            self.assertFalse((state / rr.CALLBACKS_MARKER).exists())
+            controller.check_saved_baseline(retire=True)  # no longer re-fires
+
+    def test_resume_refuses_while_a_tagged_worker_is_alive(self):
+        with tempfile.TemporaryDirectory() as tmp, self.live_state(tmp) as (repo, state, controller):
+            rr.atomic_write(controller.marker(), json.dumps(
+                {"baseline": "cb", "session": "worker", "ignored": controller.ignored_files()}))
+            with unittest.mock.patch.object(rr.Controller, "refuse_live_workers",
+                                            side_effect=rr.Stop("a previous worker process is still alive")):
+                code, message = self.resume()
+            self.assertEqual(code, 2)
+            self.assertIn("still alive", message)
+            self.assertTrue(controller.marker().exists())
+
+    def test_verifier_baseline_is_retired_only_after_its_fingerprint_check(self):
+        for tampers in (False, True):
+            with self.subTest(tampers=tampers), tempfile.TemporaryDirectory() as tmp:
+                repo, env = self.repo(tmp, "build/\n")
+                controller = rr.Controller(rr.Config(max_repairs=0), Path(tmp) / "state")
+
+                def session(kind, *args, **kwargs):
+                    rr.atomic_write(controller.marker(), "{}")
+                    if kind == "worker":
+                        (repo / "services" / "x").mkdir(parents=True)
+                        (repo / "services" / "x" / "a.txt").write_text("a")
+                        return {"exit_code": 0, "is_error": False, "output": {"state": "done"}}
+                    if tampers:
+                        (repo / "services" / "x" / "a.txt").write_text("verifier edit")
+                    return {"exit_code": 0, "is_error": False, "output": {"verdict": "pass", "findings": []}}
+                with unittest.mock.patch.object(rr, "ROOT", repo), \
+                        unittest.mock.patch.dict("os.environ", env, clear=True), \
+                        unittest.mock.patch.object(rr, "require_pipeline_release"), \
+                        unittest.mock.patch.object(controller, "preflight", return_value="a" * 40), \
+                        unittest.mock.patch.object(controller, "heartbeat"), \
+                        unittest.mock.patch.object(controller, "check_controls"), \
+                        unittest.mock.patch.object(controller, "run_checks", return_value=(True, [], "")), \
+                        unittest.mock.patch.object(controller, "checkpoint", return_value="committed"), \
+                        unittest.mock.patch.object(controller, "session", side_effect=session):
+                    if tampers:
+                        with self.assertRaisesRegex(rr.Stop, "verifier changed the working tree"):
+                            controller.run_task(task("A"))
+                    else:
+                        self.assertEqual(controller.run_task(task("A")), "committed")
+                self.assertEqual(controller.marker().exists(), tampers)
+
+    def test_nested_git_reports_an_unreadable_directory(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / "locked").mkdir()
+            (root / "locked").chmod(0)
+            try:
+                if os.access(root / "locked", os.R_OK):
+                    self.skipTest("running with privileges that read any directory")
+                self.assertEqual(rr.nested_git(root), ["unreadable: locked"])
+            finally:
+                (root / "locked").chmod(0o700)
 
     def test_push_runs_no_pre_push_hook(self):
         with tempfile.TemporaryDirectory() as tmp:
