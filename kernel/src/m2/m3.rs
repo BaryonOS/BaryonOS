@@ -2166,6 +2166,8 @@ fn event(source: *const u64) -> *const u64 {
             state.ticks + 1
         };
         state.timer_interrupts += 1;
+        #[cfg(feature = "test-system-s3")]
+        system::tick_after_wake(state);
         if state.last_tick != 0 {
             state.max_tick_gap =
                 core::cmp::max(state.max_tick_gap, begin.saturating_sub(state.last_tick));
@@ -2206,11 +2208,14 @@ fn event(source: *const u64) -> *const u64 {
         #[cfg(feature = "native-system")]
         let supervisor_call = matches!(number, 0x30 | 0x50..=0x52 | 0x60 | 0x61)
             || cfg!(feature = "native-system-net") && matches!(number, 0x70..=0x72)
+            || cfg!(feature = "test-system-net-link") && number == 0x74
             || cfg!(feature = "native-window-session") && number == 0x53;
         #[cfg(feature = "native-system-clock")]
         let supervisor_call = supervisor_call || number == 0x73;
         #[cfg(feature = "native-system-power")]
         let supervisor_call = supervisor_call || number == 0x90;
+        #[cfg(feature = "test-system-s3")]
+        let supervisor_call = supervisor_call || number == 0x91;
         #[cfg(not(any(feature = "native-supervisor", feature = "native-keyring")))]
         #[allow(unused_variables)]
         let supervisor_call = false;
@@ -2268,6 +2273,17 @@ fn event(source: *const u64) -> *const u64 {
                 }
             }
         }
+        #[cfg(feature = "test-system-s3")]
+        if number == 0x91 {
+            let code = system::suspend(state, current, args);
+            if code == 0 {
+                // The wake reset the PIC and PIT; IF stays 0 until iretq.
+                timer_init();
+                state.audit();
+            }
+            state.processes[current].context[14] = code as u64;
+            state.processes[current].context[12] = 0;
+        }
         #[cfg(feature = "native-keyring")]
         if matches!(number, 0x60 | 0x61) {
             let (rax, rdx) = keyring::syscall(state, current, number, args);
@@ -2285,7 +2301,8 @@ fn event(source: *const u64) -> *const u64 {
             state.processes[current].context[12] = rdx;
         }
         #[cfg(feature = "native-system-net")]
-        if matches!(number, 0x70..=0x72) {
+        if matches!(number, 0x70..=0x72) || cfg!(feature = "test-system-net-link") && number == 0x74
+        {
             let (rax, rdx) = network::syscall(state, current, number, args);
             state.processes[current].context[14] = rax as u64;
             state.processes[current].context[12] = rdx;

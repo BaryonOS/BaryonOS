@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Journey sweep</title>
+<link rel="icon" href="data:,">
+<!-- DESIGN ARTEFACT, UX-E E10: self-check of the prototype journey. Loads index.html?test=1 in one iframe, visits every built
+     station and state per viewport and theme, and reports overflow, missing feasibility labels, undefined var(--x), focus order,
+     target size, text contrast, animation length and live regions into #out (JSON). Query: ?only=1440|320|720 -->
+<link rel="stylesheet" href="../system/tokens.css">
+<link rel="stylesheet" href="./journey.css">
+<script type="module" src="./journey/sweep.js"></script>
+</head>
+<body>
+<header class="jr-band"><div class="jr-band-id"><h1>Journey sweep (E10)</h1><p id="sw-state">running</p></div></header>
+<main id="sw" aria-label="Sweep" style="padding: var(--space-4); display: grid; gap: var(--space-4)">
+  <iframe id="sw-frame" title="Journey under test" style="border: 1px solid var(--color-line-strong); background: var(--color-bg)"></iframe>
+  <table class="jr-table" id="sw-table"><caption>Failures</caption><thead><tr><th scope="col">Cell</th><th scope="col">Station</th><th scope="col">State</th><th scope="col">Kind</th><th scope="col">Detail</th></tr></thead><tbody></tbody></table>
+  <pre id="out"></pre>
+</main>
+</body>
+</html>
