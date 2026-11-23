@@ -783,7 +783,8 @@ else:
             # The exact-gap premise must hold: replay cannot yield these, so doctor
             # the replay with otherwise consistent arithmetic.
             replay = validate_transcript(peer, case="port-sweep")
-            for requests, replies in ((3, 4), (3, 0), (0, 0)):
+            # bool passes the arithmetic but is not an exact int count.
+            for requests, replies in ((3, 4), (3, 0), (0, 0), (3, True), (True, True)):
                 doctored = dict(replay, counts=dict(replay["counts"], sweep_arp_requests=requests,
                                                     sweep_arp_replies=replies))
                 with (self.subTest(requests=requests, replies=replies),

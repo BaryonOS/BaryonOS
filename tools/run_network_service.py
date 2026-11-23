@@ -35,8 +35,8 @@ FEATURES = {"normal": FEATURE, "client-exit": "test-net-service-client-exit", "r
 # their existing inclusive 6,000-tick boundary and 90-second host default.
 EXHAUSTION_TICK_DEADLINE = 12_000
 # Port sweep: two full 65,535-port TCP sweeps plus the app checks within the
-# 264-second budget (26,400 ticks, also enforced by the kernel fixture). One
-# local run: kernel PASS at tick 24,817 and 249.6 host seconds.
+# 264-second budget (26,400 ticks, also enforced by the kernel fixture). Local
+# TCG runs: kernel PASS at ticks 24,817 (249.6 s) and 23,455 (236.0 s).
 PORT_SWEEP_TICK_DEADLINE = 26_400
 PORT_SWEEP_TIMEOUT = 300
 BOOT = ("BOOT:EBS_OK", "KERNEL:ENTRY", "BOOTINFO:OK", "KS-01:PASS", "KS-02:PASS", "KS-03:PASS", "M2:PASS")
