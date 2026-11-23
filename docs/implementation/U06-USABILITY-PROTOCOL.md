@@ -53,7 +53,13 @@ the bundle's recorded `source_commit`, with path and line per route, and by a
 pilot run (§10). The bundle `manifest.json` written by
 `tools/package_windows_qemu.py` records hashes, kernel and loader features and
 the source version, but no shell routes, so it cannot confirm a route. If a
-route is absent, the task becomes NOT YET TESTABLE for that round.
+route is absent, the task becomes NOT YET TESTABLE for that round. The
+packager records `git` `HEAD` as `source_commit` but checks the bundle only
+against the current checkout's source fingerprint and does not reject
+uncommitted changes, so before any route is cited the source fingerprint
+(version 3, `tools/common.py`) of a clean checkout of `source_commit` must
+equal the manifest's `source_sha256`. If it differs, the bundle is rebuilt
+and repackaged from a clean checkout and no route is confirmed for it.
 
 **One frozen bundle per round.** Every counted task in a round runs on the same
 frozen bundle, recorded by its `manifest.json` in the preregistration (§10).
@@ -186,13 +192,14 @@ All measures are taken by a human observer and from host-side capture; see §6.
 | CT09 | Pasted text identical to the selection at the intended location |
 | CT10 | Start state, before each of the two runs (dock, then search): both app windows minimized, so neither "Rekenmachine" nor "Materiaal" is visible; the observer sets and records this state. End state: each window opened by the participant during the run is visible and focused after a dock click, respectively after choosing the result on "Zoeken en starten". The two app windows exist for the whole session and activation unhides and focuses an existing window (`Scene::select`, `scene.rs:1280-1292`), so without this start state focusing an already open window (for example Materiaal after CT03) would satisfy the task |
 | CT11 | Focus moved to the requested window with Alt+Tab ("WISSEL VAN VENSTER") or F6; the observer records which route was used |
-| CT12 | After "Afsluiten" the VM reaches the powered-off end state confirmed in the pilot. Content survival is a separate check, not part of this observer-verified end state: after power-off, the CT01 document is checked by a host-side disk oracle where the runner provides one (for example the volume-image oracle of `tools/run_window_session.py`), outside the timed task. If no such check is available, for example on the Windows launcher, content survival is recorded as not verified and no no-loss result is claimed |
+| CT12 | After "Afsluiten" the VM reaches the powered-off end state confirmed in the pilot. Content survival is not part of this observer-verified end state and is recorded as not verified: no host-side oracle on `main` reads a participant's document. The existing disk oracles (`tools/run_materiaal_probe.py`, `tools/window_library.py`, used by `tools/run_window_session.py`) accept only their fixed test fixtures, and that runner drives QEMU headless with scripted input, so it offers no participant session. No no-loss result is claimed until such an oracle exists |
 
 The UI strings above are Dutch because the shell and app strings on `main` are Dutch;
 they are success keys, not translations to show participants (see §12
 question 6). For CT01, CT02 and CT07–CT09 the observer additionally records
-whether the end state persisted after the session (host-side disk oracle where
-a runner provides one); CT12 uses the separate content-survival check above.
+whether the end state persisted after the session; without a host-side
+oracle that reads participant documents (see CT12) persistence is recorded as
+not verified.
 Observer judgement alone is evidence level A/V, not D.
 
 ## 5. Friction and visual-inconsistency log
