@@ -1,0 +1,8 @@
+cells fully covered 34/75; partial only 16; uncovered 25
+  uncovered: D01.L5, D03.L4, D03.L5, D04.L4, D04.L5, D05.L2, D05.L3, D06.L5, D07.L4, D08.L3, D09.L3, D09.L5, D10.L4, D10.L5, D11.L3, D11.L4, D11.L5, D13.L4, D14.L1, D14.L3, D14.L4, D14.L5, D15.L3, D15.L4, D15.L5
+  partial only: D01.L1, D01.L3, D04.L1, D05.L1, D06.L4, D08.L1, D09.L1, D09.L2, D10.L1, D10.L3, D11.L1, D12.L5, D13.L1, D14.L2, D15.L1, D15.L2
+  basis 'from' cells: D03.L5, D05.L3, D05.L4, D06.L4, D07.L4, D07.L5, D08.L5, D14.L4, D15.L3
+S1 rows 216 split {'prototyped (host)': 14, 'proposed': 202, 'passed (native)': 0}; section 6 rows 216; summary rows 65
+dimensions 15 x levels ['L1', 'L2', 'L3', 'L4', 'L5']
+acceptance criteria 46 per level {'L1': 11, 'L2': 9, 'L3': 8, 'L4': 7, 'L5': 4}; section 9 URLs 9
+PASS

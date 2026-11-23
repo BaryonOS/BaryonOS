@@ -1,11 +1,15 @@
 # BaryonOS accessibility research and two-tier system proposal (UX-A11Y-R)
 
 Date: 15 November 2026 (Europe/Amsterdam). Branch `claude/baryon-os-design-pipeline-20261115`.
-Status: research synthesis and proposal. No design-system, prototype or implementation file was
-changed. Integration into ds-1.x is the next task (UX-A11Y-DS). Nothing here is a user-tested
+Status: research synthesis and proposal. No prototype or implementation file was changed; amendment
+A1 reworded only flash-related statements of `docs/design/DESIGN-SYSTEM.md` (section 12, B8, O-A12, sources). Integration into ds-1.x is the next task (UX-A11Y-DS). Nothing here is a user-tested
 result, a human accessibility audit or a conformance claim.
 
-Companion matrix: `ACCESSIBILITY-MATRIX.md` (92 need-adaptation rows, 110 sources). Structural
+Amendment A1, 19 November 2026: flashing, photosensitivity, third-party and unsolicited media, and
+games, under the project-owner decisions of 15 November 2026 and owner decision B of
+19 November 2026 (protection follows the unsolicited placement; section 3.5; Appendix A.3).
+
+Companion matrix: `ACCESSIBILITY-MATRIX.md` (96 need-adaptation rows, 121 sources). Structural
 check: `python3 -I docs/verification/a11y-research-20261115/check.py .` (exit 0 on 15 November
 2026). Inputs: the perception, cognition and interaction dossiers of three research workers. The
 dossiers, the matrix generator and the scripts of repair rounds 1 and 2 are local build artefacts
@@ -42,10 +46,15 @@ For every need the six owner questions were asked:
   - Understanding documents for SC 2.3.1, 2.3.3 and 2.2.2 (`PER-U231`, `PER-U233`, `W3C-U222`).
   - WCAG 3.0 (`WCAG3`). Its status on the fetch date is a W3C Working Draft of 10 September 2026,
     not ready for conformance claims. It is not used as a normative basis, and no APCA threshold is
-    adopted.
+    adopted. Re-checked on 19 November 2026 for amendment A1: still the Working Draft of
+    10 September 2026.
   - EN 301 549 V4.1.1 (2026-09) (`EN549`). The synthesis downloaded the free ETSI PDF and recorded
     its sha256. Every cited clause number was checked against its headings.
-  - ITU-R BT.1702-3 (`PER-ITU1702`).
+  - ITU-R BT.1702-3 (`PER-ITU1702`), re-fetched on 19 November 2026 for amendment A1.
+  - Amendment A1, fetched on 19 November 2026: the Understanding document for SC 2.3.2
+    (`W3C-U232`) and Xbox Accessibility Guideline 118, Photosensitivity (`PER-XAG118`, Microsoft
+    Learn, guideline number 118). The SC 2.2.2 Understanding document (`W3C-U222`) was re-read for
+    its separation of blinking from flashing.
   - W3C notes: Making Content Usable (`COG-COGA`), Accessibility Requirements for People with Low
     Vision (`PER-W3CLV`), Natural Language Interface Accessibility User Requirements (`INT-NAUR`),
     WCAG2ICT (`INT-WCAG2ICT`), Media Queries Level 5 (`INT-MQ5`) and Core-AAM 1.2 (`INT-COREAAM`).
@@ -56,7 +65,10 @@ For every need the six owner questions were asked:
   and Semantic Scholar. Each reference was resolved with `verify_reference` or `lookup_reference`.
   Findings come only from abstracts or conclusions that were actually read; no full texts were
   read. The synthesis independently re-resolved the two highest-graded references,
-  `COG-WOOD17` and `COG-GILL11`, by DOI.
+  `COG-WOOD17` and `COG-GILL11`, by DOI. Amendment A1 searched PubMed (photosensitive epilepsy and
+  video games; migraine visual triggers; photosensitivity warnings; video filtering and detection)
+  and OpenAlex, resolved eight new references by PubMed metadata or `verify_reference`, and read
+  one full text (`PER-BARBU19`, author PDF).
 - **Platform documentation** (Microsoft UI Automation and UISettings, Apple AppKit and UIKit,
   Android accessibility services, AT-SPI, GNOME help and AccessKit) documents practice only. It
   never raises an empirical grade above insufficient.
@@ -121,12 +133,12 @@ For every need the six owner questions were asked:
   - *Setting*: an independently combinable axis. It may start automatically from a named device
     or user preference.
 
-**Basis of the 51 rows graded limited** (matrix row numbers, counted from the first data row):
+**Basis of the 53 rows graded limited** (matrix row numbers, counted from the first data row):
 
 | Basis class | Rows |
 |---|---|
 | Tests the adaptation or its variable in the target population (small, single or multi-factor studies) | 6, 34, 35, 36, 37, 40, 41, 47, 48, 58, 59, 66 |
-| Tests it in another population or context | 7, 8, 10, 12, 21, 29, 30, 42, 43, 45, 68, 74, 75, 85 |
+| Tests it in another population or context | 7, 8, 10, 12, 21, 26, 29, 30, 42, 43, 45, 68, 74, 75, 85, 93 |
 | Uncontrolled evidence of use or preference in the target population (surveys, case series) | 16, 17, 70, 72, 78, 79 |
 | Recognised-organisation consensus that recommends the adaptation | 9, 13, 19, 23, 24, 25, 27, 49, 50, 51, 52, 54, 55, 73, 80, 81, 82, 88, 92 |
 
@@ -199,8 +211,9 @@ bound (row 21) is an untagged baseline comfort rule, no longer a safety row. Tie
 
 ### 2.1 De-duplication
 
-The dossiers contributed 103 rows; the matrix has 92: 103 − 13 merged + 1 added by the synthesis
-(s0) + 1 added in repair round 1 (r1, the vestibular safety limit). Repair round 2 split no rows;
+The dossiers contributed 103 rows; the matrix had 92: 103 − 13 merged + 1 added by the synthesis
+(s0) + 1 added in repair round 1 (r1, the vestibular safety limit). Amendment A1 added rows 93–96
+(a1–a4), so the matrix now has 96. Repair round 2 split no rows;
 it gave the haptic parts of two rows their own status inside the Native status cell.
 
 - **Twelve merges removed 13 rows:**
@@ -419,6 +432,11 @@ read here supports directly.
   - High-contrast stripes are unpleasant and induce illusions (`PER-WILKINS84`).
   - The trusted Kern surface takes the opposite theme, so a bright panel appears inside the dark
     theme (tokens.css 128).
+  - In media and games (amendment A1): flicker and glare are commonly reported headache and migraine
+    triggers, more so with photophobia (`PER-HAYNE19`, online survey of 491 participants); striped
+    patterns cause more discomfort and illusions in migraine (`PER-SHEPHERD13`). Xbox Accessibility
+    Guideline 118 names migraine episodes besides seizures (`PER-XAG118`). These sources document the
+    barrier only.
 - **Q2 Supported.**
   - EN 301 549 clause 4.2.2 Note 2 (control of brightness and intensity). No WCAG criterion covers
     luminance comfort.
@@ -447,6 +465,9 @@ read here supports directly.
     comfort tint; matrix row 22).
   - Under light intensity, trusted surfaces keep their distinction by edge, material and label
     rather than by luminance inversion.
+  - The `flash-attenuation` axis of section 3.5 also serves migraine and visual discomfort in started
+    media (row 96, insufficient: no study tests attenuating media for migraine); no prevention is
+    claimed.
 - **Q6 Limits.** Contrast floors stay. Flash and pattern limits apply to every toggle.
 - **Baseline comfort rule (not a safety limit).** Stripe, grid and dot texture fills (wallpapers,
   backgrounds, ornaments, loader and progress-track fills) with more than five light-dark pairs stay at
@@ -458,45 +479,169 @@ read here supports directly.
 
 ### 3.5 Photosensitive epilepsy
 
+Amendment A1 (19 November 2026) applies the project-owner decisions of 15 November 2026 on
+third-party flashing media and on photosensitivity and video games, with the owner correction of the
+readings F1, F2 and F5, and repair round 3 applies owner decision B of 19 November 2026 (protection follows the
+unsolicited placement). It separates three contexts with their own rules: (1) the system interface,
+(2) unsolicited content and (3) games and media that the user deliberately starts. Ordinary motion,
+personal motion sensitivity (section 3.6) and flashes that are a safety risk are three different
+things; safe animation stays part of the futuristic default.
+
 - **Q1 Barriers.**
   - Repeated luminance flashes, saturated-red transitions and regular stripes can provoke
     seizures.
-  - Photosensitivity occurs in about 0.3–3 % of people (`PER-FISHER05`).
+  - Prevalence estimates depend on the definition: about 0.3–3 % for photosensitivity
+    (`PER-FISHER05`); light-provoked seizures in up to 1 in 4,000 persons (`PER-FISHER22`).
   - In the 1997 broadcast incident, most patients who seized had no earlier unprovoked seizure
-    (`PER-ISHIGURO04`), so users often cannot know they should enable a setting.
+    (`PER-ISHIGURO04`), so users often cannot know they should enable a setting or heed a warning.
+  - Games and media: in two European multicentre studies of referred patients, a video game was more
+    provocative than a standard television programme, and playing more than viewing (`PER-KNT99`,
+    `PER-KNT02`). The updated Epilepsy Foundation review names video games and social-media clips as
+    triggers (`PER-FISHER22`). Such content is normal entertainment that people choose.
+  - Unsolicited content (autoplay, previews, advertisements, notifications, third-party or
+    downloaded wallpapers) reaches
+    people who did not choose it, and the system does not author it.
 - **Q2 Supported (normative).**
   - WCAG 2.2 SC 2.3.1 (A): nothing flashes more than three times in any one-second period unless
     it is below the general and red flash thresholds. A general flash is an opposing pair of
     relative-luminance changes of 10 % or more where the darker state is below 0.80. The area limit
     is 0.006 sr, about 25 % of a 10-degree field. The saturated-red definition comes from
     ISO 9241-391 via `PER-U231`.
+  - WCAG 2.2 SC 2.3.2 (AAA) forbids flashing above three per second regardless of brightness or
+    size (`W3C-U232`). It is not adopted as the baseline, because it would also forbid small,
+    below-threshold flashing that SC 2.3.1 accepts; system designs may still meet it.
+  - WCAG 2.2 SC 2.2.2 (A) is a different rule: moving, blinking or scrolling content that starts
+    automatically, lasts more than 5 s and runs beside other content needs a pause, stop or hide
+    mechanism. Its Understanding document treats blinking as a distraction issue and assigns
+    flashing to Guideline 2.3 (`W3C-U222`). BaryonOS keeps the two apart (rows 24 and 31).
   - EN 301 549 clauses 4.2.9 and 11.2.3.1.
-  - ITU-R BT.1702-3: Guideline 1 sets screen-area and absolute-luminance flash rules, including an
-    HDR rule; Guideline 2 sets pattern limits.
+  - ITU-R BT.1702-3 (`PER-ITU1702`): Guideline 1 sets screen-area and absolute-luminance flash rules,
+    including an HDR rule; Guideline 2 sets pattern limits. Guideline 1 adds that the cumulative risk
+    of successive flash sequences over a prolonged period is unknown and that a flashing sequence
+    lasting more than five seconds might constitute a risk even when it complies. BaryonOS treats that
+    remark as an additional risk consideration (a design review of long compliant sequences), not as a
+    universal hard limit (owner correction F1). Recital g states that the risk cannot be eliminated for
+    the most susceptible viewers. Annex 4 describes optional receiver-side adaptive temporal filtering
+    (a 20 dB or greater reduction at 10 Hz and above is given as typical) with a trade-off against
+    image blur.
+  - Xbox Accessibility Guideline 118, Photosensitivity (`PER-XAG118`, fetched 19 November 2026):
+    luminance, red and spatial-pattern failure criteria for games at about 20 % of the screen,
+    migraine named besides seizures, and eliminating triggers preferred over splash-screen warnings.
+    It is platform guidance, not empirical evidence; its area value differs from WCAG, and BaryonOS
+    measures system surfaces against WCAG 2.3.1 and ITU-R BT.1702-3. XAG 118 also notes that
+    lower-intensity flashing can fail when it continues for an extended period; like the BT.1702-3
+    five-second remark, BaryonOS treats this as an additional risk consideration for design review,
+    platform guidance only, not a limit.
 - **Q2 Supported (empirical, limited).**
   - Expert consensus of the Epilepsy Foundation of America (`PER-HARDING05`).
   - A stimulus model estimated to protect at least two thirds of susceptible patients
     (`PER-WILKINS05`).
-  - Observational reductions in incidence after broadcast guidelines.
-- **Q3 Insufficient.** A "reduce motion" or "safe mode" switch as protection. "Epilepsy-safe"
-  labels without measurement.
-- **Q4 Individual differences.** None are used: the limit is the same for everyone.
-- **Q5 Settings.** None replaces the baseline. Reduced motion lowers exposure further for those who
-  choose it.
+  - Some countries regulate media to reduce risk (`PER-FISHER22`). No incidence study was read in
+    this review, so no reduction in incidence is claimed here.
+  - Automatic attenuation (rows 26 and 93, one shared rationale: limited under section 1.3 rules 5(a)
+    and 3, another population and a proxy outcome): a learned
+    video-to-video transformation reduced flashing in 74–82 % of clips with artificially inserted flashes as judged by raters without
+    a stated photosensitivity; it worked on 64 x 64 px clips and performed worse with fewer or no
+    future frames
+    (`PER-BARBU19`). No study with photosensitive participants or seizure outcomes was found.
+- **Q3 Insufficient.**
+  - A "reduce motion" or "safe mode" switch as protection.
+  - "Epilepsy-safe" labels without measurement.
+  - Warnings as protection: no study of the protective effect of photosensitivity warnings was found
+    (PubMed search of 19 November 2026); crowdsourced warnings are tied to scenes and times rather
+    than to generic labels (`PER-SOUTH23`); `PER-XAG118` prefers eliminating triggers.
+  - Automatic analysis as a guarantee: no peer-reviewed clinical validation of an analyser or
+    attenuator with photosensitive users was found. `PER-BARBU19` states that existing flash-detection
+    tools are not calibrated with human psychophysics, and the five major guidelines are not fully
+    harmonised (`PER-JORDAN24`).
+  - Vendor practice, Apple Dim Flashing Lights (`PER-APPLEDFL`, Apple developer documentation
+    fetched 19 November 2026): an optional device setting with which the system detects, dims and
+    informs people about flashing sequences in media (iOS, iPadOS and tvOS 16.4, macOS 13.3). Apps read
+    it as a Boolean (`MADimFlashingLightsEnabled()`) with a change notification, and from iOS 17 and
+    macOS 14 apps that draw their own video can detect and dim flashing sequences with
+    `MAFlashingLightsProcessor`. The fetched pages state no detection accuracy and this review cites no
+    evaluation of it, so it is insufficient as evidence; it is relevant as existing practice for the
+    `flash-attenuation` axis, for automatic selection from a host preference (Q5) and for preference
+    privacy (section 8).
+- **Q4 Individual differences.**
+  - The system-interface limit is the same for everyone.
+  - Sensitivity differs between people (frequency, colour, area, patterns; `PER-FISHER22`), and so does
+    the preferred trade-off between attenuation and fidelity in content a person chooses: some want
+    games and films unchanged, others want them attenuated system-wide or for one app.
+- **Q5 Settings.**
+  - None replaces the baseline.
+  - `flash-attenuation` (row 93): off (default), attenuate or strong, system-wide with optional per-app
+    values the user chooses. It attenuates rapid large-area luminance change, saturated-red transitions
+    and high-contrast patterns in started content without blocking it. Natively no device preference
+    selects it: BaryonOS is the platform, and no CSS or web media feature for it exists (Media Queries 5
+    editor's draft, checked 19 November 2026). Where BaryonOS content runs on a host platform that
+    offers such a preference (for example Apple Dim Flashing Lights, `PER-APPLEDFL`), that preference
+    may select `attenuate`, with its source recorded.
+  - Reduced motion and flash attenuation are separate personal preferences (row 95; ADR-DESIGN-OWNER-20261115,
+    decision B point 6): neither selects,
+    weakens or replaces the other, and the baseline never forces reduced motion.
+  - Apps receive no medical or raw flash-attenuation value: the system applies the presentation itself
+    at composition, or passes a coarse presentation request through a capability-gated interface
+    (section 8; a proposal, not an implemented API).
+  - Informative notices (row 94) are a baseline behaviour, not a setting: they appear only where a
+    hazard is known and never for content assessed safe.
 - **Q6 Limits (all baseline).**
-  - The flash limit for all system UI, including theme and setting switches, alerts, scan
-    highlights and dwell feedback.
-  - Pattern limits for wallpapers and effects.
-  - The absolute-luminance rules once HDR output exists.
-  - Measuring native redraw flicker before release (`PROFILES-AND-USERS.md` 44–51).
-  - Future research: a compositor flash guard for third-party content. It is never a setting and can
-    never be switched off for system-drawn surfaces.
-  - Outside the baseline safety guarantee: a deliberate, warned, non-persistent reveal of one
-    third-party media item for one viewing is recorded as a candidate exception, because some content
-    carries its meaning in the flashing. It is not offered until a safety review with clinical expertise
-    approves it, and it never applies to system-drawn surfaces. A warning alone does not protect:
-    in the 1997 broadcast incident, most patients who seized had no earlier unprovoked seizure
-    (`PER-ISHIGURO04`).
+  - *Context 1, the system interface (never switchable).* The flash limit for all system UI
+    (WCAG 2.2 SC 2.3.1 general and red thresholds; ITU-R BT.1702-3 Guideline 1), including theme and
+    setting switches, alerts, scan highlights and dwell feedback (row 24); pattern limits for
+    wallpapers and effects (row 25); the absolute-luminance rules once HDR output exists (row 27);
+    measuring native redraw flicker before release (row 28, `PROFILES-AND-USERS.md` 44–51). The
+    five-second remark of ITU-R BT.1702-3 is a review trigger, not a fail criterion. WCAG 2.2.2
+    (row 31) is met separately; finite system loops are one way to meet it without a control; auto-starting moving
+    content that lasts more than 5 s beside other content needs a pause, stop or hide mechanism
+    (WCAG 2.2.2), and other safe animation is not restricted.
+  - *Context 2, unsolicited content (protection where technically possible; the protection follows
+    the unsolicited placement, owner decision B of 19 November 2026).* A compositor flash guard
+    (row 26, future research) attenuates or holds content that would exceed the thresholds, wherever
+    technically feasible (decision B point 1). Unassessed moving media are not presumed safe and start
+    in a static or otherwise safe presentation until analysed; content assessed safe plays normally
+    without a notice. The guard is never a setting, has no "show anyway" control and offers no
+    per-item reveal (owner decision of 15 November 2026; the candidate per-item reveal recorded in
+    run 2 is withdrawn). A playback the user starts from an unsolicited placement, and any direct
+    open, enlarge, full-screen, forward or hand-off (for example "open in app") action from it, never
+    lifts the protection before the item is assessed safe, whatever the user's `flash-attenuation`
+    setting. Where the real-time guard or attenuation runs for the item, only the static-first hold
+    ends and the guard or attenuation stays active until the item is assessed safe. Where it cannot
+    run for the item (for example protected (DRM) or HDR video, live streams that cannot be
+    pre-analysed, or games that render through their own pipeline), the static or otherwise safe
+    presentation (still frame, description, scene notes) stays until the item is analysed and assessed
+    safe; deliberate playback stays available through an independent open from the user's own library
+    or another application (context 3). A single click therefore never bypasses an active safety
+    restriction (owner correction F2; decision B point 2, which has no feasibility qualifier). An
+    analysis result belongs to the item, not to a user: it carries no user identity or viewing history
+    and comes from the title's own declaration or from an analysis held only while the item is in use
+    and recomputed afterwards, never from a per-user store (decision B point 4).
+  - *Context 3, deliberately started games and media (user choice).* A deliberate start is the
+    user's independent opening of an item from their own app, library, launcher or another
+    application, not a start from an unsolicited placement. No categorical block and no default
+    reduction: when the user later independently opens media that once appeared in an unsolicited
+    placement, deliberate playback normally remains available (decision B point 3). Starting an item
+    is a normal start, distinct from bypassing a protection: it never silently removes the user's own
+    `flash-attenuation` settings or a restriction that applies to the item for another reason (owner
+    correction F2; decision B point 3). No permanent per-user record of hazardous media or viewing
+    history is kept to carry an assessment from an unsolicited placement to a later independent start
+    (decision B point 4); an informative notice (row 94) appears only where it needs no such record,
+    for example from the title's own declaration. Designers choose how this looks.
+  - *Claims.* No statement says that BaryonOS detects or prevents all hazardous flashes without
+    verified technical enforcement, and a warning is never presented as a safety guarantee (decision
+    B point 5). Any automatic analysis is described with its demonstrated
+    accuracy and limits, or as future research.
+- **Safe alternatives that keep content available.** Designers choose form and interaction; these
+  are mechanisms, not a prescribed interface. None works in the browser prototype yet.
+
+  | Alternative | Context | Status | Technical limits and justification |
+  |---|---|---|---|
+  | Still first frame or poster until the item is analysed and assessed safe (a start from the unsolicited placement does not end it where the guard cannot run for the item) | 2 | prototype: absent; native: needs-extension (media engine and compositor) | analysis needs look-ahead, so live streams cannot be pre-analysed; a still frame loses motion until the item is assessed safe or the user opens it independently from their library or another application (context 3) |
+  | Analysis before autoplay of stored media (offline frame analysis against the WCAG and ITU-R thresholds) | 2, 3 | prototype: absent; native: needs-extension (media engine) | compute and battery cost; pixels on protected (DRM) video paths may be unavailable to analysis; accuracy against human response is not demonstrated (`PER-BARBU19`, `PER-JORDAN24`) |
+  | Real-time temporal attenuation or frame blending at composition (ITU-R BT.1702-3 Annex 4) | 2, 3 | prototype: absent; native: needs-extension (compositor) | blur and ghosting trade-off; a causal filter without future frames is weaker (`PER-BARBU19`), and look-ahead adds latency that games and live media cannot afford; HDR needs display luminance; games that render through their own pipeline are filtered only at composition |
+  | Reduced flash intensity: contrast compression of rapid changes and desaturation of saturated red | 2, 3 | prototype: absent; native: needs-extension (compositor) | changes the creator's image; strong values may lose meaning carried by light |
+  | Descriptions, transcripts or scene notes of what flashes and when | 2, 3 | prototype: absent; native: needs-extension (media engine, provider-supplied tracks); on-device generated descriptions: future-research (on-device only, no network permission) | depends on provider metadata; generated descriptions have unknown accuracy |
+  | Engine-side reduction through a coarse presentation request to games | 3 | prototype: absent; native: future-research (capability proposal, section 10) | only games that implement it benefit; never receives the raw setting |
 
 ### 3.6 Vestibular disorders and motion intolerance
 
@@ -871,6 +1016,9 @@ read here supports directly.
 | Dark mode as a universal legibility fix | insufficient | No adequate study settles the universal claim. Limited context against it: one controlled study of normally sighted younger and older adults found a positive-polarity advantage for acuity and proofreading in both age groups (`PER-PIEPENBROCK13`). Its sample size and design details are not in the PubMed abstract, and the full text could not be read (no PubMed Central copy, closed access in OpenAlex, publisher page HTTP 403 on 15 November 2026), so it cannot carry a contradicted grade (synthesis rule 6). Among 19 low-vision readers, five read white-on-black faster (`PER-RUBIN89`), which supports individual choice. Both polarities are full-quality options; neither is presented as healthier. |
 | APCA or other new contrast metrics | insufficient | Normative basis: none. WCAG 3 is a Working Draft whose contrast metric is still to be determined (`WCAG3`), so WCAG 2.2 ratios stay the floor and no APCA threshold is adopted. |
 | A reduce-motion switch as seizure protection | insufficient | Flash limits are baseline for everyone. |
+| Photosensitivity warnings and splash screens as protection | insufficient | No study of their protective effect was found; `PER-SOUTH23` describes warning content only, and `PER-XAG118` prefers eliminating triggers. Notices are informative only (row 94) and never lift a protection. |
+| Automatic flash detection or filtering that "catches every hazard" | insufficient | No clinical validation with photosensitive users was found; `PER-BARBU19` tested attenuation with raters, and existing tools are not calibrated with human psychophysics. Described only with demonstrated accuracy and limits (rows 26, 93). |
+| Blocking flashing games and films by default | insufficient | No study supports it, and it removes normal function (owner decision of 15 November 2026). Started media play normally; the `flash-attenuation` axis is optional (row 93). |
 | "Bionic reading" | insufficient | Results are inconsistent (`COG-BEEL25`, `COG-WANG26`). Not proposed. |
 | Diagnosis modes ("ADHD mode", "autism theme", "epilepsy mode") | insufficient | No study found; rejected by the owner's decision. Axes only; presets are named combinations. |
 | "All notifications off" as the attention remedy | insufficient | No study tested it for attention or ADHD. Context only (limited, other population): in one randomised field experiment in the general population (n = 237, no ADHD sample described), participants who received no notifications gained few of the benefits of batching and reported more anxiety and fear of missing out (`COG-FITZ19`). Batched and quiet modes both stay available; neither is presented as an ADHD treatment. |
@@ -923,6 +1071,11 @@ read here supports directly.
    - `colour-perception` remaps only for users who choose it.
 8. **Visual alerts versus photosensitivity.** The full-screen visual alert is a sub-threshold
    luminance change; the flash limit is baseline.
+   - **Entertainment freedom versus photosensitivity (amendment A1).** Games and films keep their
+     flashes and effects when the user starts them; the system interface and unsolicited content are
+     protected without configuration; people who want more choose the `flash-attenuation` axis,
+     system-wide or per app (section 3.5). Reduced motion and flash attenuation never switch each other
+     on or off.
 9. **Interruption batching versus security.** Permission prompts, trust indicators and data-loss
    warnings are never batched, delayed or simplified (`BOS-SECFLOOR`). WCAG SC 2.2.4 also exempts
    emergencies.
@@ -960,18 +1113,26 @@ motion.
   tagged row is not baseline. The other Q6 limits (for example speech never the only input, never
   sound-only, no keyboard trap, no data loss on time-out) are mandatory access limits: baseline rows
   without the tag, held by the rule that a baseline row's axis is `none (baseline)`.
-  - Flash limits (SC 2.3.1; BT.1702-3 Guideline 1).
+  - Flash limits (SC 2.3.1; BT.1702-3 Guideline 1). The BT.1702-3 remark on flashing sequences
+    longer than 5 s is an additional risk consideration (design review), not a hard limit.
   - Pattern limits (BT.1702-3 Guideline 2). The stripe-texture comfort bound (row 21) is not a
     safety limit; it is listed under Perception.
   - Absolute-luminance rules once HDR output exists.
   - Native redraw flicker measured before release.
-  - A compositor flash guard for third-party content (future research) that is never a setting and
-    never switched off for system-drawn surfaces. A per-item reveal for third-party media is outside
-    this guarantee and is not offered until a clinical safety review approves it.
+  - Protection of unsolicited content where technically possible: a compositor flash guard (future
+    research) that is never a setting, has no "show anyway" control and no per-item reveal, and is
+    never switched off for system-drawn surfaces; unassessed moving media are not presumed safe. The
+    protection follows the unsolicited placement: a start, open, enlarge, forward or hand-off action from it
+    never lifts the protection before the item is assessed safe (owner decision B of 19 November 2026);
+    it ends only the static-first hold where the guard or attenuation runs for the item, and otherwise
+    the static or otherwise safe presentation stays until the item is analysed and assessed safe. Deliberately started
+    games and media play normally (section 3.5, context 3); starting them never silently removes the
+    user's `flash-attenuation` settings or an independently established restriction.
   - A vestibular safety limit for large-field motion, boot included (section 3.6 Q6). It limits
     movement only; light, opacity, glow and colour that change in place over large areas stay free
     within the flash limits, while a light front travelling across the display counts as movement.
-  - Auto-moving content stops within 5 s or can be paused.
+  - Auto-moving content stops within 5 s or can be paused (WCAG 2.2.2, a motion and distraction
+    rule distinct from the flash limits).
   - Every motion has a static equivalent.
   - Keyboard-filter safety, deliberate consent under alternative input, and security signals intact
     under every setting (also listed under Interaction and Platform).
@@ -1037,6 +1198,7 @@ preference, and the user is told which preference was followed.
 | Vision | `magnifier` | off; full-screen; lens (level, tracking) | shortcut; device magnifier preference | scaled composition |
 | Vision | `screen-reader` | off; on (rate, verbosity, braille) | shortcut; first-boot offer | speech and braille output |
 | Motion and stimulus | `motion` | full (within the baseline large-field bound); reduced; none | `prefers-reduced-motion: reduce` selects reduced (natively the profile value); before any value exists, at first boot, only the baseline bound applies and first-run setup offers the choice | movement animation and loops |
+| Motion and stimulus | `flash-attenuation` (amendment A1) | off; attenuate; strong (system-wide, with optional per-app values) | natively manual (BaryonOS is the platform; no CSS or web media feature exists, Media Queries 5 editor's draft checked 19 November 2026); a host-device preference where available (for example Apple Dim Flashing Lights, `PER-APPLEDFL`) may select `attenuate`, source recorded; `prefers-reduced-motion` neither selects it nor is selected by it | attenuation of rapid large-area luminance change, saturated-red transitions and high-contrast patterns in games and media the user starts; never the system-interface or unsolicited-content baseline (section 3.5) |
 | Motion and stimulus | `stimulus` | regular; calm; rich | manual | glow, ornament, ambient effects, simultaneous panels; `rich` only adds intensity, and every flagship identity feature is in the regular default |
 | Motion and stimulus | `interruptions` | immediate; batched; quiet (per app and contact) | device focus or do-not-disturb state | notification delivery timing (never security signals) |
 | Reading | `text-spacing` | standard; wider (four SC 1.4.12 values together) | manual | letter, word, line and paragraph spacing |
@@ -1072,7 +1234,12 @@ preferences without claims.
    reduced motion", with a per-axis override. Proposal: natively, BaryonOS is itself the platform,
    so its profile store would act as the device preference that apps (and any future browser
    engine) see; this is part of the profiles extension in section 10.
-4. **Presets are shortcuts only.** A convenience preset (for example "Calm reading": calm stimulus,
+4. **Motion and flash attenuation stay separate (amendment A1).** `motion` owns animation of the
+   interface; `flash-attenuation` owns attenuation of started media. Neither selects, weakens or
+   replaces the other, neither touches the baseline flash and pattern limits, and the baseline never
+   forces reduced motion. A per-app `flash-attenuation` value overrides only the system-wide value of
+   that axis for that app.
+5. **Presets are shortcuts only.** A convenience preset (for example "Calm reading": calm stimulus,
    wider spacing, short lines, reduced motion) is a named combination. It is never named after a
    diagnosis, every member stays individually adjustable, and changing one member does not reset
    the others.
@@ -1112,6 +1279,22 @@ preferences without claims.
   - It is a separate capability with consent per property.
   - It returns coarse values only (for example "reduce motion: yes").
   - It never reveals whether assistive technology is running, and it is revocable.
+  - Photosensitivity (amendment A1, owner correction F5): apps receive no medical or raw personal
+    value. The system applies the user's choice itself by attenuating the app's surface at
+    composition. Only where an app, typically a game engine, must change its own effects does it
+    receive a coarse presentation request (for example "reduce rapid luminance change: yes") through
+    this capability. A media or game package may declare known photosensitivity content in its
+    manifest so that the system can show an informative notice (row 94). Both are capability
+    proposals for later design, not implemented APIs. Residual risk: an app can infer that the
+    setting is on by observing the attenuation of its own rendered output, so composition-side
+    enforcement reduces disclosure but does not hide the setting from the app it applies to. The
+    stored key and any per-app list use the presentation name `flash-attenuation` rather than a health
+    label (renamed from `photosensitivity` in repair round 3). For
+    comparison, Apple exposes its Dim Flashing Lights value to apps as a Boolean with a change notification;
+    the fetched pages describe no permission step (`PER-APPLEDFL`). BaryonOS does not adopt that
+    model, because it would hand the raw value to apps that do not need it. Reading such a host
+    preference for automatic selection is possible only for a native host application, not for the
+    browser prototype, which has no media feature for it.
   - Proposal: if a BaryonOS browser exposes preference media features to web content, it exposes
     only those the user has not restricted.
 - **On-device processing.** Read-aloud, captions, speech recognition, summarising, the "where was
@@ -1172,13 +1355,23 @@ exists yet)".
    - colour-matrix filters;
    - opacity per material;
    - a flash budget and frame-level check;
-   - the third-party flash guard, with no off switch for system-drawn surfaces;
+   - the flash guard for unsolicited content, with no off switch for system-drawn surfaces, no
+     "show anyway" control and no per-item reveal, and a static or otherwise safe presentation of
+     unassessed moving media until analysed (amendment A1); the guard stays active for a playback
+     started from an unsolicited placement and for any open, enlarge, full-screen, forward or hand-off
+     action from it until the item is assessed safe, the static or otherwise safe presentation stays for
+     such actions where the guard cannot run for the item, and no per-user record of hazardous media or viewing
+     history is kept for it (owner decision B of 19 November 2026);
+   - a per-surface temporal attenuation stage for the `flash-attenuation` axis in started games and
+     media, with a latency budget; games that render through their own pipeline are filtered at
+     composition only, and protected (DRM) or HDR video paths need their own analysis route;
    - a back buffer or page flip against redraw flicker;
    - AT overlays (scan highlight, dwell progress, numbered labels);
    - a protected system surface that notifications cannot cover;
    - the animation clock that applies `motion`, and the vestibular safety limit for system surfaces
      (category exclusions and the area and duration bounds, boot included);
-   - in that clock, the 5 s stop or settle of auto-moving content and a registered static equivalent
+   - in that clock, the WCAG 2.2.2 5 s stop or settle of auto-moving content (or a pause, stop or
+     hide control for auto-starting content that runs longer beside other content) and a registered static equivalent
      per animation. `NATIVE-COMPOSITOR.md` defines no animation clock, and native code has no
      animation yet (`ui/native/src/design.rs` line 71).
 3. **Accessibility service** (CAPABILITY-MATRIX dependency "Accessibility service"):
@@ -1201,8 +1394,14 @@ exists yet)".
 
      Accessibility input and output paths are a documented attack surface (`INT-JANG2014`).
    - A separate app-facing preference capability (section 8).
+   - Photosensitivity (amendment A1), a capability and privacy extension: a coarse presentation
+     request for apps that change their own effects, never the raw or medical value; and a package
+     manifest declaration of known photosensitivity content for informative notices. Residual
+     privacy risk recorded with it: inference of the setting by an app that observes its own
+     attenuated output (section 8).
 6. **Profiles** (`PROFILES-AND-USERS.md`):
-   - a per-user store for every axis;
+   - a per-user store for every axis, including system-wide and per-app `flash-attenuation` values
+     kept separate from `motion`;
    - applied at sign-in and on the trusted screen;
    - a pre-sign-in route, including a motion value before any account exists;
    - the first-run order: the motion choice before any large-field animation;
@@ -1223,7 +1422,11 @@ exists yet)".
 
 9. **Audio transport.** Audio capture and output. `drivers/virtio-snd` has a host codec only; its
    transport contract is only proposed.
-10. **Media engine.** Caption, transcript and sign-video tracks for first-party and app media.
+10. **Media engine.** Caption, transcript and sign-video tracks for first-party and app media; for
+    amendment A1 also analysis of stored media before autoplay, a still first frame for unassessed
+    unsolicited media that a start, open, enlarge, full-screen, forward or hand-off action from the
+    placement keeps until the item is assessed safe where the guard cannot run for it, per-item
+    analysis results without user identity (not kept per user), and description or scene-note tracks for content that flashes.
 11. **Shell notification service.** Delivery modes, the security exemption, and timing values from
     `input-timing`. `DESKTOP-SHELL.md` mentions notifications but defines no service.
 12. **Strings catalogue with variants.** Plain-language and explanation variants of system text.
@@ -1259,7 +1462,8 @@ the existing per-app high-contrast flag already selects `theme::HIGH_CONTRAST`
 | Numbers in three forms (exact, rounded word, proportion glyph), drawn by the system | Understandable numbers in every app | technically feasible; user effect to test |
 | Adaptive layer outside the familiar path | Intent-aware help without unpredictability | technically feasible; user effect is future research |
 | Semantic group scanning with optional gaze pre-selection | Faster switch access | future research |
-| Compositor flash guard for third-party content | Protection without a setting; never switched off for system-drawn surfaces; a warned, non-persistent per-item reveal for third-party media is outside the baseline guarantee and not offered until a clinical safety review approves it | future research |
+| Compositor flash guard for unsolicited content (amendment A1) | Protection without a setting where technically possible; never switched off for system-drawn surfaces; no "show anyway" control and no per-item reveal; the protection follows the unsolicited placement, including direct open, enlarge, forward and hand-off actions; deliberately started games and media play normally | future research (no demonstrated accuracy; section 3.5) |
+| Flash attenuation of started media (`flash-attenuation` axis), system-wide or per app | Lets people keep their games and films while choosing a gentler rendering; a coarse request lets engines adapt their own effects without the raw setting | technically feasible at composition (ITU-R BT.1702-3 Annex 4); engine-side request is future research |
 | "Where was I" on-device resume summary | Recovery after interruption | future research (on-device inference and privacy review open) |
 | On-device personal voice model | Voice control for disordered speech | future research |
 
@@ -1267,8 +1471,8 @@ the existing per-app high-contrast flag already selects `theme::HIGH_CONTRAST`
 
 Automated checks verify conformance only, not user benefit: contrast sweeps per axis combination,
 CVD and greyscale simulation, frame-level flash and pattern analysis, reflow at every text size,
-text-spacing overrides, accessibility-tree audits and keyboard walk-throughs. The matrix marks 60 of
-92 rows "user test needed: yes". Priorities:
+text-spacing overrides, accessibility-tree audits and keyboard walk-throughs. The matrix marks 63 of
+96 rows "user test needed: yes". Priorities:
 
 1. Screen-reader and braille walk-throughs of first-run setup, sign-in, Orbit, windows, permission
    prompts and settings.
@@ -1285,6 +1489,19 @@ text-spacing overrides, accessibility-tree audits and keyboard walk-throughs. Th
 9. Targets, pointer assistance, keyboard filters, switch, dwell and voice with motor-impaired users.
 10. Captions, alert modalities and sign video with DHH and Deaf signers.
 11. Plain-language permission prompts with people with intellectual disabilities.
+12. Photosensitivity (amendment A1): comprehension and acceptability of the `flash-attenuation` axis,
+    its per-app values, the informative notices and the static presentation of unsolicited media,
+    with people with photosensitivity, migraine or visual discomfort, using non-hazardous material
+    only.
+
+**Photosensitivity safety in testing (amendment A1).** User tests never expose participants with
+photosensitive epilepsy, or anyone, to stimuli above the WCAG 2.3.1 or ITU-R BT.1702-3 thresholds.
+Whether the limits, the flash guard and the attenuation work is verified by measurement instead:
+frame-level analysis of system surfaces, replay of provocative clips through the guard and the
+attenuation levels with automated counting of remaining flashes, flashing area and red transitions,
+and measured latency and false positives. Participants judge only non-hazardous material
+(understanding, control, visual quality, whether it still feels like BaryonOS). Any study that needs
+provocative stimuli is outside this project and requires clinical ethics approval.
 
 How to test:
 
@@ -1295,17 +1512,16 @@ How to test:
   where possible.
 - **Measures.**
   - Task success, time and errors.
-  - Comfort and symptom ratings, without treatment claims. Photosensitive participants are never
-    exposed to flashing stimuli.
+  - Comfort and symptom ratings, without treatment claims. No participant is exposed to stimuli
+    above the flash or pattern thresholds (see above).
   - Preference, recorded as preference rather than efficacy.
   - Whether the result still feels like BaryonOS.
 - **Privacy.** Health-related data stays minimal, on-device or offline, and is deleted after
   analysis.
 - **Audit.** An independent human accessibility audit against EN 301 549 V4.1.1 clause 11 remains
-  open. Conformance is claimed only per tested clause with stored evidence. A safety review with
-  clinical expertise of the third-party flash-guard reveal is also open; it never exposes
-  photosensitive participants to flashing stimuli. Until it approves the reveal, the reveal is not
-  offered.
+  open. Conformance is claimed only per tested clause with stored evidence. There is no per-item reveal
+  of the flash guard to review: the project owner decided on 15 November 2026 to keep it off, and
+  amendment A1 removed it as a future option.
 
 ## 13. Prototype findings for UX-A11Y-DS (not changed here)
 
@@ -1356,6 +1572,17 @@ How to test:
 - The grading sweep of repair run 2 (synthesis rule 6, the scoped reminder grade, the stripe-texture
   bound) is likewise a judgement from abstracts by one worker, not an independent review. The
   1.5:1 stripe-texture ratio is an own design rule that needs a user test.
+- Amendment A1 (19 November 2026) is a targeted addition, not a systematic review of
+  photosensitivity. It read one full text (`PER-BARBU19`) and otherwise abstracts and primary
+  standards. No study of the protective effect of warnings and no clinical validation of automatic
+  flash analysis or attenuation with photosensitive users was found, so rows 94 and 96 are
+  insufficient and rows 26 and 93 are limited on another population and a proxy outcome (one shared
+  rationale). Accuracy, latency and false-positive
+  rates of any BaryonOS analysis are unknown until measured; no statement claims that BaryonOS
+  detects or prevents all hazardous flashes. Protected (DRM) and HDR video paths and games that
+  render through their own pipeline limit what the compositor can analyse or change; from an
+  unsolicited placement such items therefore stay in a static or otherwise safe presentation until
+  assessed safe, which costs motion and live viewing in that placement.
 - Repair round 1 of run 2 found no study of caption display style with deaf and hard-of-hearing
   viewers and could not read the full text of `PER-PIEPENBROCK13`; both items are graded
   insufficient until such evidence is read.
@@ -1373,7 +1600,8 @@ c4; 39 c5; 40 c7; 41 c8; 42 c9; 43 c10; 44 c11; 45 c12; 46 c15; 47 c17; 48 c18; 
 c21; 52 c23; 53 c24; 54 c26; 55 c27; 56 c28; 57 i0; 58 i1; 59 i2; 60 i3; 61 p6+i5; 62 i4; 63 i6; 64
 i7; 65 i8; 66 i9; 67 i10; 68 i11; 69 i12; 70 i13; 71 i14; 72 i15; 73 c20+i16; 74 i17; 75 i18; 76
 i19; 77 i20; 78 i21; 79 i22; 80 i24; 81 i25; 82 i26; 83 i27; 84 i28; 85 i29; 86 p29+c29+i35; 87
-p31+i36; 88 p30+c25; 89 c13; 90 i38; 91 i39; 92 c22+i40.
+p31+i36; 88 p30+c25; 89 c13; 90 i38; 91 i39; 92 c22+i40; 93 a1; 94 a2; 95 a3; 96 a4 (a = added in
+amendment A1, no dossier row).
 
 **A.2 Standards as fetched on 15 November 2026.**
 
@@ -1383,10 +1611,10 @@ p31+i36; 88 p30+c25; 89 c13; 90 i38; 91 i39; 92 c22+i40.
   the matrix gives: 1.2.2 (A), 1.2.4 (AA), 1.2.6 (AAA), 1.3.1 (A), 1.3.3 (A), 1.4.1 (A),
   1.4.3 (AA), 1.4.4 (AA), 1.4.6 (AAA), 1.4.8 (AAA), 1.4.10 (AA), 1.4.11 (AA), 1.4.12 (AA),
   1.4.13 (AA), 2.1.1 (A), 2.1.2 (A), 2.1.4 (A), 2.2.1 (A), 2.2.2 (A), 2.2.4 (AAA), 2.2.6 (AAA),
-  2.3.1 (A), 2.3.3 (AAA), 2.4.1 (A), 2.4.3 (A), 2.4.7 (AA), 2.4.11 (AA), 2.4.13 (AAA), 2.5.1 (A),
+  2.3.1 (A), 2.3.2 (AAA), 2.3.3 (AAA), 2.4.1 (A), 2.4.3 (A), 2.4.7 (AA), 2.4.11 (AA), 2.4.13 (AAA), 2.5.1 (A),
   2.5.2 (A), 2.5.3 (A), 2.5.5 (AAA), 2.5.7 (AA), 2.5.8 (AA), 3.1.3 (AAA), 3.1.4 (AAA), 3.1.5 (AAA), 3.2.1 (A),
   3.2.3 (AA), 3.2.4 (AA), 3.2.5 (AAA), 3.2.6 (A), 3.3.1 (A), 3.3.3 (AA), 3.3.4 (AA), 3.3.6 (AAA),
-  3.3.8 (AA), 3.3.9 (AAA), 4.1.2 (A), 4.1.3 (AA) (50 criteria).
+  3.3.8 (AA), 3.3.9 (AAA), 4.1.2 (A), 4.1.3 (AA) (51 criteria).
 - EN 301 549 V4.1.1 (2026-09) PDF from etsi.org, 3,971,655 bytes, sha256
   `636914c5c18dc58cf7716b8935502f1471de05caf5e1e6ae32469eed929cb824`. Every clause number cited in
   the matrix exists among the headings of that version (for ranges, both ends were checked): 4.2.1,
@@ -1396,6 +1624,10 @@ p31+i36; 88 p30+c25; 89 c13; 90 i38; 91 i39; 92 c22+i40.
   11.2.4.11, 11.2.5.1, 11.2.5.3, 11.2.5.7, 11.2.5.8, 11.3.3.8, 11.4.1.2, 11.4.1.3, 11.5.2.1,
   11.5.2.4, 11.5.2.5, 11.5.2.13, 11.5.2.14, 11.5.2.15, 11.5.2.17, 11.6.2, 11.7 (52 clauses).
 - Understanding SC 2.2.2 (`W3C-U222`): sha256 prefix `7780b8cdbca2f3`.
+- Amendment A1, 19 November 2026: ITU-R BT.1702-3 PDF re-fetched (sha256 prefix `9d1167de5553a82c`,
+  text extracted with pdftotext); Understanding SC 2.3.2 (`W3C-U232`) and Xbox Accessibility
+  Guideline 118 (`PER-XAG118`) fetched as text summaries without hashes. WCAG 2.2 SC 2.3.2 (AAA) is
+  added to the cited criteria and to the list above (51 criteria).
 
 **A.3 Repair history.**
 
@@ -1434,3 +1666,87 @@ p31+i36; 88 p30+c25; 89 c13; 90 i38; 91 i39; 92 c22+i40.
   strong rose from 1 to 2 and moderate fell from 2 to 1. Re-read the
   abstracts of `COG-WOOD17` and `INT-BURNHAM2008` (OpenAlex API) and `PER-PIEPENBROCK13` (PubMed
   23654206), and confirmed the `INT-BURNHAM2008` metadata by DOI (lookup_reference).
+- Amendment A1 (19 November 2026): applied the project-owner decisions of 15 November 2026 on
+  third-party flashing media and on photosensitivity and video games, with the owner correction of
+  the readings F1, F2 and F5, by editing the existing files without regenerating the matrix. Rewrote
+  section 3.5 into three contexts (system interface, unsolicited content, deliberately started games
+  and media) with safe alternatives and their limits; withdrew the per-item reveal of the flash guard
+  from row 26 and sections 3.5, 6.1, 11 and 12 (closes open minor 8); documented the ITU-R BT.1702-3
+  five-second remark on row 24 as an additional risk consideration, not a hard limit (closes open
+  minor 6); gave the section 3.5 Q2 bullet on broadcast regulation a source (`PER-FISHER22`) and
+  dropped the unsourced incidence claim (closes open minor 7); kept WCAG 2.2.2 distinct from flash
+  safety on row 31; added rows 93 (`photosensitivity` axis, limited), 94 (informative notices,
+  insufficient), 95 (motion and photosensitivity separate, privacy of the value, insufficient) and 96
+  (migraine and visual discomfort in media, insufficient); added the `photosensitivity` axis
+  (section 7) and the related contract extensions (section 10); and added ten sources. Counts:
+  96 rows (baseline 53, setting 43), 120 sources, limited 52, insufficient 40, user test needed 63.
+  The pinned identity of row 26 in the lead-owned baseline contract of `tools/check_a11y_matrix.py`
+  must follow the new row-26 Adaptation text; until the lead updates it, the gate reports that one
+  identity.
+- Amendment A1, repair round 1 (19 November 2026): reworded the WCAG 2.2.2 statements in section 3.5
+  context 1 and section 10 (and in `DESIGN-SYSTEM.md` section 12 and B8) so that only auto-starting
+  moving content lasting more than 5 s beside other content needs a pause, stop or hide mechanism;
+  stated on row 26 and in section 3.5 that an open, expand, full-screen or hand-off action from an
+  unsolicited placement inherits that placement's attenuation, and marked WCAG 2.2.2 on row 26 as the
+  motion/distraction basis of the static-first presentation, not a flash rule; added to the
+  `PER-BARBU19` caveats that the clips had artificially inserted flashes; dropped the unverified
+  version-history detail from `PER-XAG118`; and recorded inference of the photosensitivity setting
+  by an app observing its own attenuated output as a residual privacy risk (sections 8 and 10). No
+  grade, tier or count changed. The row-26 identity in the lead-owned baseline contract still has to
+  follow the amended Adaptation text.
+- Amendment A1, repair round 2 (19 November 2026): fixed the findings of the second verifier
+  without regenerating the matrix. Narrowed the claim that no device preference exists for the
+  `photosensitivity` axis to the native platform and to CSS and web media features (Media Queries 5
+  editor's draft checked 19 November 2026); added Apple Dim Flashing Lights as vendor practice
+  (`PER-APPLEDFL`, insufficient, developer documentation fetched 19 November 2026) with automatic
+  selection from a host-device preference where available (section 3.5 Q3 and Q5, section 7, section 8,
+  rows 93 and 96); added to the row-93 caveat that the tested attenuation used future frames, so
+  real-time attenuation of games and live media is untested; stated on row 26 and in section 3.5 that
+  a measured assessment follows a recognised item, so saving and reopening it does not remove the
+  attenuation (limited by content-identity recognition; a design decision open for owner
+  confirmation), with the exception noted on row 93 and a per-user assessment record added to the
+  compositor extension (section 10.1 item 2) with its privacy treatment; limited row 26 and section 3.5 Q1 to
+  third-party or downloaded wallpapers; stated why row 31 carries the Safety tag; added the XAG 118
+  remark on long lower-intensity flashing as a further risk consideration; corrected the scope of the
+  `DESIGN-SYSTEM.md` rewording (section 12, B8, O-A12, sources); and folded SC 2.3.2 into the A.2 list.
+  No Adaptation cell, grade or tier changed. Counts: 96 rows (baseline 53, setting 43), 121 sources,
+  limited 52, insufficient 40, user test needed 63. The row-26 identity in the lead-owned baseline
+  contract still has to follow the amended Adaptation text.
+- Amendment A1, repair round 3 (19 November 2026): applied owner decision B of 19 November 2026
+  (protection follows the unsolicited placement) without regenerating the matrix. Withdrew the round-2
+  rule that a measured assessment follows a recognised item, its row-93 exception and the per-user
+  assessment record of section 10.1 item 2 (decision B points 3 and 4); "no reduction by default"
+  holds again for an independent deliberate start, while the user's own settings and independently
+  established restrictions stay in force. Stated on row 26 and in section 3.5 context 2 that a
+  playback started from an unsolicited placement, and any direct open, enlarge, full-screen or
+  forward or hand-off action from it, keeps the real-time guard or attenuation where technically feasible until
+  the item is assessed safe, and only the static-first hold ends at the start, with matching review
+  and automated checks on row 26. Gave rows 26 and 93 one shared rationale for `PER-BARBU19` and
+  regraded row 26 from insufficient to limited under section 1.3 rules 5(a) and 3 (table after
+  section 1.3, section 14); named the owner decision of 15 November 2026 as the basis of the
+  static-first presentation on row 26 and cited WCAG 2.2 SC 2.2.2 only for the pause, stop or hide
+  mechanism; limited row 94 notices to those that need no per-user record; renamed the setting axis
+  from `photosensitivity` to `flash-attenuation` (sections 3.4, 3.5, 4, 5, 6, 7, 8, 10, 11 and 12,
+  rows 93-96, `DESIGN-SYSTEM.md` O-A12), while the Need "Photosensitive epilepsy" stays; the
+  Adaptation cells of the setting rows 93 and 96 refer to "the attenuation setting" without the axis
+  name, because the archived structural check treats any Adaptation that mentions "flash" as a safety
+  row that must be baseline; and put the section 3.5 safe-alternatives statuses on the fixed scale.
+  Counts: 96 rows (baseline 53, setting 43), 121 sources, limited 53, insufficient 39, user test
+  needed 63. The row-26 identity in the lead-owned baseline contract still has to follow the amended
+  Adaptation text.
+- Amendment A1, repair round 4 (19 November 2026): closed the remaining gap in owner decision B
+  point 2. Row 26, section 3.5 context 2, section 6.1, sections 10.1 and 10.2, section 14 and the
+  safe-alternatives table now state that a start, open, enlarge, full-screen, forward or hand-off
+  action from an unsolicited placement never lifts the protection before the item is assessed safe:
+  it ends only the static-first hold where the guard or attenuation runs for the item, and otherwise
+  (for example protected (DRM) or HDR video, live streams, own-pipeline games) the static or otherwise
+  safe presentation stays until the item is analysed and assessed safe, while deliberate playback stays
+  available through an independent open (context 3). Row 26 review item (2) and its automated check
+  cover such items. Stated that analysis results belong to the item, carry no user identity or
+  viewing history and are recomputed rather than kept per user (rows 26 and 94, section 3.5;
+  decision B point 4). Named the media engine on row 26 as a new contract; matched row 93 to the
+  ITU-R BT.1702-3 Annex 4 wording ("typically expected"); corrected the `components.css` comment
+  that presented the BT.1702-3 five-second remark as a limit (comment only). No grade, tier or
+  source changed. Counts: 96 rows (baseline 53, setting 43), 121 sources, limited 53, insufficient
+  39, user test needed 63. The row-26 identity in the lead-owned baseline contract still has to
+  follow the amended Adaptation text.
