@@ -12,7 +12,15 @@ import merge_hold
 
 HEAD = "a" * 40
 OTHER = "b" * 40
-ENV = {"GH_TOKEN": "x", "REPO": "o/r", "PR_NUMBER": "7", "HEAD_SHA": HEAD}
+ENV = {"GH_TOKEN": "x", "REPO": "o/r", "EVENT_NAME": "pull_request",
+       "PR_NUMBER": "7", "HEAD_SHA": HEAD}
+GROUP = "c" * 40
+BASE = "d" * 40
+GROUP_ENV = {"GH_TOKEN": "x", "REPO": "o/r", "EVENT_NAME": "merge_group",
+             "PR_NUMBER": "", "HEAD_SHA": "",
+             "MERGE_GROUP_HEAD_SHA": GROUP,
+             "MERGE_GROUP_HEAD_REF": f"refs/heads/gh-readonly-queue/main/pr-8-{BASE}",
+             "MERGE_GROUP_BASE_REF": "refs/heads/main"}
 
 
 def comment(body, association="MEMBER"):
@@ -97,12 +105,116 @@ class MainTests(TestCase):
         self.assertEqual(self.run_main(env, lambda t, u: [])[0], 1)
         env = dict(ENV, PR_NUMBER="seven")
         self.assertEqual(self.run_main(env, lambda t, u: [])[0], 1)
+        for event in (None, "push", "pull_request_target"):
+            with self.subTest(event=event):
+                env = {k: v for k, v in ENV.items() if k != "EVENT_NAME"}
+                if event:
+                    env["EVENT_NAME"] = event
+                self.assertEqual(self.run_main(env, lambda t, u: [])[0], 1)
 
     def test_unexpected_payload_fails_closed(self):
         def odd(token, url):
             raise TypeError("Unexpected API response")
 
         self.assertEqual(self.run_main(ENV, odd)[0], 1)
+
+
+def entry(position, number, commit, head, state="OPEN", base="main"):
+    return {"position": position, "headCommit": {"oid": commit},
+            "pullRequest": {"number": number, "state": state,
+                            "baseRefName": base, "headRefOid": head}}
+
+
+class MergeGroupTests(TestCase):
+    """PR 7 is ahead of PR 8; group commit GROUP contains both."""
+
+    def run_group(self, nodes, labels=None, comments=None, trees=None,
+                  env=None, answer=None):
+        labels, comments, trees = labels or {}, comments or {}, trees or {}
+        calls = []
+
+        def fetch(token, url):
+            number = int(url.split("/")[-2])
+            if url.endswith("/labels"):
+                return [{"name": name} for name in labels.get(number, [])]
+            return comments.get(number, [])
+
+        def call(token, url, payload=None):
+            calls.append(url)
+            if url.endswith("/graphql"):
+                self.assertEqual(payload["variables"], {"owner": "o", "name": "r"})
+                return answer if answer is not None else {"data": {"repository": {
+                    "mergeQueue": {"entries": {"pageInfo": {"hasNextPage": False},
+                                               "nodes": nodes}}}}}
+            return {"tree": {"sha": trees.get(url.rsplit("/", 1)[1], "tree-" + url[-6:])}}
+
+        out = io.StringIO()
+        with mock.patch.dict(os.environ, env or GROUP_ENV, clear=True), \
+                mock.patch.object(merge_hold, "fetch_all", fetch), \
+                mock.patch.object(merge_hold, "call", call), \
+                contextlib.redirect_stdout(out):
+            return merge_hold.main(), out.getvalue(), calls
+
+    QUEUE = [entry(1, 7, "e" * 40, HEAD), entry(2, 8, GROUP, OTHER),
+             entry(3, 9, "f" * 40, "9" * 40)]
+
+    def test_unheld_group_passes_and_checks_every_contained_pr(self):
+        code, out, _ = self.run_group(self.QUEUE)
+        self.assertEqual(code, 0, out)
+        self.assertIn("#7:", out)
+        self.assertIn("#8:", out)
+        self.assertNotIn("#9:", out)
+
+    def test_released_pr_with_the_landing_tree_passes(self):
+        code, out, _ = self.run_group(
+            [entry(1, 8, GROUP, OTHER)],
+            labels={8: [merge_hold.LABEL]},
+            comments={8: [comment("acceptance-released: " + OTHER)]},
+            trees={GROUP: "t1", OTHER: "t1"})
+        self.assertEqual(code, 0, out)
+
+    def test_unreleased_pending_pr_ahead_in_the_group_fails(self):
+        code, out, _ = self.run_group(self.QUEUE, labels={7: [merge_hold.LABEL]})
+        self.assertEqual(code, 1)
+        self.assertIn("#7: ::error::", out)
+
+    def test_release_does_not_cover_a_different_landing_tree(self):
+        code, out, _ = self.run_group(
+            self.QUEUE,
+            labels={8: [merge_hold.LABEL]},
+            comments={8: [comment("acceptance-released: " + OTHER)]},
+            trees={GROUP: "combined", OTHER: "pr-only"})
+        self.assertEqual(code, 1)
+        self.assertIn("#8: ::error::", out)
+
+    def test_malformed_or_unknown_head_ref_fails_closed(self):
+        for ref in ("", "refs/heads/main", "refs/heads/gh-readonly-queue/main/pr-8",
+                    f"refs/heads/gh-readonly-queue/other/pr-8-{BASE}",
+                    f"refs/heads/gh-readonly-queue/main/pr-8-{BASE}x",
+                    f"refs/heads/gh-readonly-queue/main/pr-9-{BASE}"):
+            with self.subTest(ref=ref):
+                code, out, _ = self.run_group(self.QUEUE, env=dict(GROUP_ENV, MERGE_GROUP_HEAD_REF=ref))
+                self.assertEqual(code, 1, out)
+
+    def test_unidentifiable_group_fails_closed(self):
+        page = {"pageInfo": {"hasNextPage": True}, "nodes": self.QUEUE}
+        for nodes, answer, env in (
+            ([entry(1, 8, "e" * 40, OTHER)], None, None),
+            (self.QUEUE + [entry(4, 8, GROUP, OTHER)], None, None),
+            ([entry(1, 7, "e" * 40, HEAD, state="CLOSED"), entry(2, 8, GROUP, OTHER)], None, None),
+            ([entry(1, 8, GROUP, OTHER, base="release")], None, None),
+            ([entry("1", 8, GROUP, OTHER)], None, None),
+            (None, {"errors": [{"message": "denied"}]}, None),
+            (None, {"data": {"repository": {"mergeQueue": None}}}, None),
+            (None, {"data": {"repository": {"mergeQueue": {"entries": page}}}}, None),
+            (self.QUEUE, None, dict(GROUP_ENV, MERGE_GROUP_BASE_REF="refs/heads/dev")),
+            (self.QUEUE, None, dict(GROUP_ENV, MERGE_GROUP_HEAD_SHA="")),
+            (self.QUEUE, None, {k: v for k, v in GROUP_ENV.items() if k != "MERGE_GROUP_HEAD_REF"}),
+        ):
+            with self.subTest(nodes=nodes, answer=answer, env=env):
+                code, out, _ = self.run_group(nodes, answer=answer, env=env)
+                self.assertEqual(code, 1, out)
+                self.assertIn("::error::", out)
 
 
 class FetchTests(TestCase):

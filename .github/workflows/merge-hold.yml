@@ -2,18 +2,23 @@
 # While the `acceptance-pending` label is set, this check fails unless a trusted
 # participant commented `acceptance-released: <head SHA>` for the current head
 # commit. A new push changes the SHA and re-arms the hold. Labels and comments
-# are read live (tools/merge_hold.py). See ADR-MERGE-HOLD-20261113.
+# are read live (tools/merge_hold.py). On merge_group it checks every pull
+# request in the queue commit and fails closed if they cannot be identified.
+# See ADR-MERGE-HOLD-20261113.
 name: Merge hold
 
 on:
   pull_request:
     types: [opened, synchronize, reopened, labeled, unlabeled]
+  merge_group:
+    types: [checks_requested]
 
 permissions:
   contents: read
 
 concurrency:
-  group: merge-hold-${{ github.event.pull_request.number }}
+  # Each merge group has its own gh-readonly-queue ref, so groups never cancel each other.
+  group: merge-hold-${{ github.event_name }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -35,6 +40,10 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           REPO: ${{ github.repository }}
+          EVENT_NAME: ${{ github.event_name }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          MERGE_GROUP_HEAD_SHA: ${{ github.event.merge_group.head_sha }}
+          MERGE_GROUP_HEAD_REF: ${{ github.event.merge_group.head_ref }}
+          MERGE_GROUP_BASE_REF: ${{ github.event.merge_group.base_ref }}
         run: python3 -B tools/merge_hold.py

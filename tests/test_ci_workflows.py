@@ -781,12 +781,19 @@ cp -- "$ACTIONLINT_FIXTURE" "$output"
     def test_required_gates_are_unfiltered_and_independent(self):
         """Required check names always exist and run without a serial dependency."""
         workflow = self.workflows[".github/workflows/ci.yml"]
-        for event in ("pull_request", "push"):
+        for event in ("pull_request", "merge_group", "push"):
             trigger = workflow["on"][event]
             with self.subTest(event=event):
                 self.assertNotIn("paths", trigger)
                 self.assertNotIn("paths-ignore", trigger)
+        self.assertEqual(workflow["on"]["merge_group"], {"types": ["checks_requested"]})
         self.assertIn("main", workflow["on"]["push"]["branches"])
+        # Merge groups have unique refs, so concurrent groups never cancel each other.
+        self.assertIn("${{ github.ref }}", workflow["concurrency"]["group"])
+        for job_id in ("upload-coverage-rust", "upload-coverage-python",
+                       "upload-coverage-javascript"):
+            with self.subTest(job=job_id):
+                self.assertIn("github.event_name != 'merge_group'", workflow["jobs"][job_id]["if"])
         for job_id in ("host-quality", "qemu-smoke"):
             job = workflow["jobs"][job_id]
             with self.subTest(job=job_id):
@@ -833,7 +840,13 @@ cp -- "$ACTIONLINT_FIXTURE" "$output"
         path = ".github/workflows/merge-hold.yml"
         workflow = self.workflows[path]
         trigger = workflow["on"]["pull_request"]
-        self.assertEqual(set(workflow["on"]), {"pull_request"})
+        self.assertEqual(set(workflow["on"]), {"pull_request", "merge_group"})
+        self.assertEqual(workflow["on"]["merge_group"], {"types": ["checks_requested"]})
+        self.assertEqual(
+            workflow["concurrency"]["group"],
+            "merge-hold-${{ github.event_name }}-"
+            "${{ github.event.pull_request.number || github.ref }}",
+        )
         self.assertEqual(
             set(trigger["types"]),
             {"opened", "synchronize", "reopened", "labeled", "unlabeled"},
@@ -863,8 +876,12 @@ cp -- "$ACTIONLINT_FIXTURE" "$output"
         self.assertEqual(decide["env"], {
             "GH_TOKEN": "${{ github.token }}",
             "REPO": "${{ github.repository }}",
+            "EVENT_NAME": "${{ github.event_name }}",
             "PR_NUMBER": "${{ github.event.pull_request.number }}",
             "HEAD_SHA": "${{ github.event.pull_request.head.sha }}",
+            "MERGE_GROUP_HEAD_SHA": "${{ github.event.merge_group.head_sha }}",
+            "MERGE_GROUP_HEAD_REF": "${{ github.event.merge_group.head_ref }}",
+            "MERGE_GROUP_BASE_REF": "${{ github.event.merge_group.base_ref }}",
         })
 
     def test_only_artifact_uploads_can_tolerate_errors(self):

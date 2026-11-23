@@ -9,6 +9,10 @@ on:
         default: false
   pull_request:
     types: [opened, synchronize, reopened]
+  # Required checks must also report on the merge-queue commit (main plus the
+  # queued pull requests); checkout without a ref tests exactly that commit.
+  merge_group:
+    types: [checks_requested]
   push:
     branches: [main]
 
@@ -399,7 +403,7 @@ jobs:
   upload-coverage-rust:
     name: upload-coverage-rust
     needs: host-quality
-    if: ${{ !cancelled() && needs.host-quality.result == 'success' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) }}
+    if: ${{ !cancelled() && needs.host-quality.result == 'success' && github.event_name != 'merge_group' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) }}
     runs-on: ubuntu-24.04
     permissions:
       contents: read
@@ -418,7 +422,7 @@ jobs:
   upload-coverage-python:
     name: upload-coverage-python
     needs: host-quality
-    if: ${{ !cancelled() && needs.host-quality.result == 'success' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) }}
+    if: ${{ !cancelled() && needs.host-quality.result == 'success' && github.event_name != 'merge_group' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) }}
     runs-on: ubuntu-24.04
     permissions:
       contents: read
@@ -437,7 +441,7 @@ jobs:
   upload-coverage-javascript:
     name: upload-coverage-javascript
     needs: host-quality
-    if: ${{ !cancelled() && needs.host-quality.result == 'success' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) }}
+    if: ${{ !cancelled() && needs.host-quality.result == 'success' && github.event_name != 'merge_group' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) }}
     runs-on: ubuntu-24.04
     permissions:
       contents: read
