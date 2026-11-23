@@ -9,6 +9,7 @@ pub mod boot;
 pub mod boot_interface;
 pub mod boot_session;
 pub mod hid_control;
+pub mod hotplug;
 
 /// A descriptor borrowed from a validated byte range.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]

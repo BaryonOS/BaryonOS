@@ -63,6 +63,13 @@ AT_LEAST = {
                 "APP_ENTROPY_DENIED": 1, "DENIED": 1},
 }
 AT_LEAST["restart"] = dict(AT_LEAST["normal"])
+# Recovery is exercised only in normal; the other manifests stay unchanged.
+EXPECT["normal"].update({"SERVICE_B_KEYS": 32, "MGMT_EXPORTS": 1,
+                       "MGMT_RESTORES": 1, "B_UNSEAL_OK": 1,
+                       "MGMT_WRONG_SECRET_DENIED": 1, "ADMIN_GENERATE_DENIED": 1})
+AT_LEAST["normal"]["ADMIN_BAD_CALLER"] = 1
+# Native lease fixture: two abandoned answers reclaimed; one authority-loss quarantine.
+EXPECT["normal"].update({"LEASE_RECLAIMS": 2, "AUTHORITY_QUARANTINE": 1})
 
 
 class SilentEgd:

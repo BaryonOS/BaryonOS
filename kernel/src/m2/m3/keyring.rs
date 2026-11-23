@@ -1,7 +1,8 @@
 //! B01 native keyring profile (ADR-043). The kernel owns the virtio-rng
 //! device and brokers raw entropy bytes to holders of an `Entropy`
 //! capability; it performs no cryptography, no mixing and no caching. Two
-//! Key Service instances (slots 0 and 1) and one app (slot 2) run in ring 3;
+//! Key Service instances (slots 0 and 1), one app (slot 2), and a normal-case
+//! management instance of the app ELF (slot 3) run in ring 3;
 //! the app reports its observations through evidence words and the kernel
 //! verifies them together with its own counters. Single CPU, IF=0.
 use super::*;
@@ -10,11 +11,14 @@ use virtio_rng_driver::{Device, Discovery, RngPool, MAX_REQUEST};
 
 /// Broker deadline for one device answer, in 100 Hz ticks.
 const TIMEOUT: u64 = 64;
+/// A caller must consume a completed answer within the same bounded interval.
+const COMPLETED_LEASE: u64 = TIMEOUT;
 const RESET_TIMEOUT: u64 = 10;
 /// Whole-run budget in ticks; the host also bounds wall time.
 const RUN_TICKS: u64 = 6000;
 const SERVICE_SLOTS: [usize; 2] = [0, 1];
 const APP_SLOT: usize = 2;
+const ADMIN_SLOT: usize = 3;
 
 const NORMAL: u64 = 0;
 const NO_DEVICE: u64 = 1;
@@ -25,9 +29,34 @@ const RESTART: u64 = 4;
 /// Service evidence words (startup page offsets), snapshotted at finish.
 const SERVICE_WORDS: [u64; 10] = [192, 200, 208, 216, 224, 232, 240, 248, 256, 264];
 /// App evidence words, snapshotted at app exit.
-const APP_WORDS: [u64; 16] = [
-    40, 240, 400, 408, 416, 424, 432, 440, 448, 456, 464, 472, 480, 488, 496, 504,
+const APP_WORDS: [u64; 17] = [
+    40, 240, 400, 408, 416, 424, 432, 440, 448, 456, 464, 472, 480, 488, 496, 504, 528,
 ];
+
+#[derive(Clone, Copy, PartialEq, Eq)]
+struct EntropyBinding {
+    pid: u64,
+    /// Opaque capability handle; its high word is the capability generation.
+    handle: u64,
+    /// Entropy object index and generation returned by capability-core.
+    object_key: u64,
+}
+
+#[derive(Clone, Copy)]
+struct Pending {
+    binding: EntropyBinding,
+    ticket: u64,
+    requested: u32,
+    deadline: u64,
+}
+
+#[derive(Clone, Copy)]
+struct Completed {
+    binding: EntropyBinding,
+    ticket: u64,
+    result: Result<u32, i64>,
+    deadline: u64,
+}
 
 struct Runtime {
     info: Option<Discovery>,
@@ -35,10 +64,10 @@ struct Runtime {
     device: Option<Device>,
     pool: RngPool,
     offline: i64,
-    /// One outstanding request: (pid, ticket, requested length, deadline tick).
-    pending: Option<(u64, u64, u32, u64)>,
-    /// A completed or failed request waiting for its poll: (pid, ticket, result).
-    completed: Option<(u64, u64, Result<u32, i64>)>,
+    /// One outstanding device request, bound to its exact capability and object.
+    pending: Option<Pending>,
+    /// One completed result with a bounded owner-consumption lease.
+    completed: Option<Completed>,
     bytes: [u8; 256],
     next_ticket: u64,
     requests: u64,
@@ -55,9 +84,16 @@ struct Runtime {
     restart_stage: u8,
     restart_deadline: u64,
     restarted_bytes: u64,
+    /// Completed results reclaimed because their consumption lease expired.
+    lease_reclaims: u64,
+    lease_stage: u8,
+    lease_deadline: u64,
+    lease_ticket: u64,
     app_exited: bool,
     app_code: u64,
-    app: [u64; 16],
+    app: [u64; 17],
+    admin_exited: bool,
+    admin: [u64; 4],
     finish: u8,
 }
 static mut RUNTIME: Runtime = Runtime {
@@ -88,14 +124,63 @@ static mut RUNTIME: Runtime = Runtime {
     restart_stage: 0,
     restart_deadline: 0,
     restarted_bytes: 0,
+    lease_reclaims: 0,
+    lease_stage: 0,
+    lease_deadline: 0,
+    lease_ticket: 0,
     app_exited: false,
     app_code: 0,
-    app: [0; 16],
+    app: [0; 17],
+    admin_exited: false,
+    admin: [0; 4],
     finish: 0,
 };
 fn runtime() -> &'static mut Runtime {
     // SAFETY: KERNEL held, IF=0; each borrow ends before scheduling or cleanup.
     unsafe { &mut *ptr::addr_of_mut!(RUNTIME) }
+}
+
+fn entropy_binding(pid: u64, handle: u64) -> Result<EntropyBinding, i64> {
+    let authority = m4::engine()
+        .authorize_entropy(pid, handle)
+        .map_err(|error| error.code())?;
+    Ok(EntropyBinding {
+        pid,
+        handle,
+        object_key: authority.object_key(),
+    })
+}
+
+fn binding_is_live(binding: EntropyBinding) -> bool {
+    m4::engine()
+        .authorize_entropy(binding.pid, binding.handle)
+        .is_ok_and(|authority| authority.object_key() == binding.object_key)
+}
+
+fn reclaim_completed(now: u64) {
+    let Some(completed) = runtime().completed else {
+        return;
+    };
+    let expired = now >= completed.deadline;
+    if expired || !binding_is_live(completed.binding) {
+        let r = runtime();
+        r.completed = None;
+        r.bytes = [0; 256];
+        r.lease_reclaims += u64::from(expired);
+    }
+}
+
+fn quarantine_pending() {
+    let r = runtime();
+    // Dropping broker state while DMA remains live could let another holder
+    // reuse its pages. Stop the device and retain the existing quarantine.
+    if let Some(device) = r.device.as_mut() {
+        device.begin_reset();
+    }
+    r.offline = -14;
+    r.quarantined = true;
+    r.pending = None;
+    r.bytes = [0; 256];
 }
 
 fn case() -> u64 {
@@ -216,11 +301,12 @@ pub fn prepare(frames: &mut Frames<FRAME_COUNT>, kernel: &mut Paging) {
 }
 
 pub fn manifest(s: &mut State) {
-    if s.amount != 3 || s.fault || s.exited || s.unexpected {
+    let expected_processes = if case() == NORMAL { 4 } else { 3 };
+    if s.amount != expected_processes || s.fault || s.exited || s.unexpected {
         fail(b"MANIFEST_STATE");
     }
     let e = m4::engine();
-    for slot in 0..3 {
+    for slot in 0..s.amount {
         e.register(s.processes[slot].pid).unwrap();
     }
     let app = s.processes[APP_SLOT].pid;
@@ -303,6 +389,53 @@ pub fn manifest(s: &mut State) {
     ] {
         put(s, APP_SLOT, offset, value);
     }
+    if case() == NORMAL {
+        let admin = s.processes[ADMIN_SLOT].pid;
+        let reply_root = e.create_endpoint(admin).unwrap();
+        let reply_recv = e.derive(admin, reply_root, RECV).unwrap();
+        put(s, ADMIN_SLOT, 56, reply_recv);
+        for (i, slot) in SERVICE_SLOTS.into_iter().enumerate() {
+            let service = s.processes[slot].pid;
+            let root = e.create_endpoint(service).unwrap();
+            let receive = e.derive(service, root, RECV).unwrap();
+            let send = e.bootstrap_delegate(service, root, admin, SEND).unwrap();
+            let reply = e
+                .bootstrap_delegate(admin, reply_root, service, SEND)
+                .unwrap();
+            for (offset, value) in [(96, receive), (104, reply), (168, admin)] {
+                put(s, slot, offset, value);
+            }
+            put(s, ADMIN_SLOT, 64 + i as u64 * 16, send);
+            // Test-only alias: SEND cannot forge the kernel-supplied sender PID.
+            if i == 1 {
+                let alias = e.bootstrap_delegate(service, root, app, SEND).unwrap();
+                put(s, APP_SLOT, 104, alias);
+            }
+            e.close(service, root).unwrap();
+        }
+        e.close(admin, reply_root).unwrap();
+        for (offset, value) in [
+            (0, 3),
+            (32, 1),
+            (160, s.processes[0].pid),
+            (168, s.processes[1].pid),
+            (176, admin),
+        ] {
+            put(s, ADMIN_SLOT, offset, value);
+        }
+        // Every live handle is accounted for, including the test-only alias.
+        require(
+            e.stats().handles == 21 && e.check_invariants(),
+            b"ADMIN_MANIFEST",
+        );
+        for (slot, handles) in [(0, 6), (1, 6), (APP_SLOT, 6), (ADMIN_SLOT, 3)] {
+            require(
+                e.available_slots(s.processes[slot].pid)
+                    == capability_core::MAX_SLOTS - 1 - handles,
+                b"ADMIN_HANDLE_EQUATION",
+            );
+        }
+    }
     s.free_baseline = s
         .free_count()
         .checked_add(releasable_frames(s))
@@ -324,13 +457,17 @@ fn call(s: &mut State, slot: usize, n: u64, a: [u64; 6]) -> Result<u64, i64> {
             if a[2..].iter().any(|x| *x != 0) {
                 return Err(-1);
             }
-            if let Err(error) = m4::engine().check_entropy(pid, a[0]) {
-                runtime().denied += 1;
-                return Err(error.code());
-            }
+            let binding = match entropy_binding(pid, a[0]) {
+                Ok(binding) => binding,
+                Err(error) => {
+                    runtime().denied += 1;
+                    return Err(error);
+                }
+            };
             if a[1] == 0 || a[1] > u64::from(MAX_REQUEST) {
                 return Err(-11);
             }
+            reclaim_completed(s.ticks);
             let r = runtime();
             r.requests += 1;
             if r.offline != 0 {
@@ -345,31 +482,43 @@ fn call(s: &mut State, slot: usize, n: u64, a: [u64; 6]) -> Result<u64, i64> {
             device.request(a[1] as u32).map_err(|_| -8)?;
             let ticket = r.next_ticket;
             r.next_ticket += 1;
-            r.pending = Some((pid, ticket, a[1] as u32, s.ticks + TIMEOUT));
+            r.pending = Some(Pending {
+                binding,
+                ticket,
+                requested: a[1] as u32,
+                deadline: s.ticks + TIMEOUT,
+            });
             Ok(ticket)
         }
         0x61 => {
             if a[4..].iter().any(|x| *x != 0) {
                 return Err(-1);
             }
-            if let Err(error) = m4::engine().check_entropy(pid, a[0]) {
-                runtime().denied += 1;
-                return Err(error.code());
-            }
+            let binding = match entropy_binding(pid, a[0]) {
+                Ok(binding) => binding,
+                Err(error) => {
+                    runtime().denied += 1;
+                    return Err(error);
+                }
+            };
+            reclaim_completed(s.ticks);
             let r = runtime();
-            let Some((owner, ticket, result)) = r.completed else {
+            let Some(completed) = r.completed else {
                 return match r.pending {
-                    Some((owner, ticket, _, _)) if owner == pid && ticket == a[1] => Err(-8),
+                    Some(pending) if pending.binding == binding && pending.ticket == a[1] => {
+                        Err(-8)
+                    }
                     _ => Err(-1),
                 };
             };
-            if owner != pid || ticket != a[1] {
+            if completed.binding != binding || completed.ticket != a[1] {
                 return Err(-1);
             }
-            let length = match result {
+            let length = match completed.result {
                 Ok(length) => length,
                 Err(code) => {
                     r.completed = None;
+                    r.bytes = [0; 256];
                     return Err(code);
                 }
             };
@@ -391,8 +540,9 @@ fn call(s: &mut State, slot: usize, n: u64, a: [u64; 6]) -> Result<u64, i64> {
 }
 
 fn advance(s: &State) {
-    let r = runtime();
-    if r.resetting {
+    reclaim_completed(s.ticks);
+    if runtime().resetting {
+        let r = runtime();
         if r.device.as_ref().is_some_and(Device::reset_acknowledged) {
             r.resetting = false;
             r.reset_acks += 1;
@@ -404,23 +554,38 @@ fn advance(s: &State) {
         }
         return;
     }
-    let Some((pid, ticket, requested, deadline)) = r.pending else {
+    let Some(pending) = runtime().pending else {
         return;
     };
+    if !binding_is_live(pending.binding) {
+        quarantine_pending();
+        return;
+    }
+    let r = runtime();
     let Some(device) = r.device.as_mut() else {
         r.pending = None;
-        r.completed = Some((pid, ticket, Err(-14)));
+        r.completed = Some(Completed {
+            binding: pending.binding,
+            ticket: pending.ticket,
+            result: Err(-14),
+            deadline: s.ticks + COMPLETED_LEASE,
+        });
         return;
     };
     let mut buffer = [0u8; 256];
     match device.poll(&mut buffer) {
         Ok(Some(length)) => {
-            if length != requested {
+            if length != pending.requested {
                 // The device answered short: that is an I/O error, never
                 // padded or retried on the caller's behalf.
                 r.io_errors += 1;
                 r.pending = None;
-                r.completed = Some((pid, ticket, Err(-12)));
+                r.completed = Some(Completed {
+                    binding: pending.binding,
+                    ticket: pending.ticket,
+                    result: Err(-12),
+                    deadline: s.ticks + COMPLETED_LEASE,
+                });
                 return;
             }
             if case() == STUCK {
@@ -429,13 +594,23 @@ fn advance(s: &State) {
             }
             r.bytes = buffer;
             r.pending = None;
-            r.completed = Some((pid, ticket, Ok(length)));
+            r.completed = Some(Completed {
+                binding: pending.binding,
+                ticket: pending.ticket,
+                result: Ok(length),
+                deadline: s.ticks + COMPLETED_LEASE,
+            });
         }
         Ok(None) => {
-            if s.ticks >= deadline {
+            if s.ticks >= pending.deadline {
                 r.timeouts += 1;
                 r.pending = None;
-                r.completed = Some((pid, ticket, Err(-13)));
+                r.completed = Some(Completed {
+                    binding: pending.binding,
+                    ticket: pending.ticket,
+                    result: Err(-13),
+                    deadline: s.ticks + COMPLETED_LEASE,
+                });
                 r.bytes = [0; 256];
                 device.begin_reset();
                 r.offline = -13;
@@ -446,32 +621,49 @@ fn advance(s: &State) {
         Err(_) => {
             r.io_errors += 1;
             r.pending = None;
-            r.completed = Some((pid, ticket, Err(-12)));
+            r.completed = Some(Completed {
+                binding: pending.binding,
+                ticket: pending.ticket,
+                result: Err(-12),
+                deadline: s.ticks + COMPLETED_LEASE,
+            });
         }
     }
 }
 
 pub fn detach(pid: u64) {
-    let r = runtime();
-    if r.pending.is_some_and(|(owner, _, _, _)| owner == pid) {
+    if runtime()
+        .pending
+        .is_some_and(|request| request.binding.pid == pid)
+    {
         // Dropping the broker ticket alone leaves the driver's DMA request
         // outstanding forever. Fail closed and stop the device; the pinned
         // pages are quarantined until reboot, never reused by another owner.
-        if let Some(device) = r.device.as_mut() {
-            device.begin_reset();
-        }
-        r.offline = -14;
-        r.quarantined = true;
-        r.pending = None;
-        r.bytes = [0; 256];
+        quarantine_pending();
     }
-    if r.completed.is_some_and(|(owner, _, _)| owner == pid) {
+    if runtime()
+        .completed
+        .is_some_and(|request| request.binding.pid == pid)
+    {
+        let r = runtime();
         r.completed = None;
         r.bytes = [0; 256];
     }
 }
 
 pub fn observe_exit(s: &mut State, slot: usize, _counter: u64) {
+    if case() == NORMAL && slot == ADMIN_SLOT {
+        require(
+            s.last_event.code == 0 && word(s, slot, 40) == 1,
+            b"ADMIN_RESULT",
+        );
+        let r = runtime();
+        for (i, offset) in [400, 408, 416, 424].into_iter().enumerate() {
+            r.admin[i] = word(s, slot, offset);
+        }
+        r.admin_exited = true;
+        return;
+    }
     if slot != APP_SLOT {
         fail(b"SERVICE_EXIT");
     }
@@ -506,6 +698,36 @@ pub fn poll(s: &mut State) -> Option<*const u64> {
         }
     }
     let r = runtime();
+    if case() == NORMAL && !r.app_exited {
+        if !r.admin_exited
+            && word(s, ADMIN_SLOT, 512) == 0
+            && word(s, APP_SLOT, 512) == 1
+            && word(s, 1, 416) == 1
+        {
+            // Start management only after the bad caller was rejected without
+            // a reply or any key-state change in the unused service B.
+            require(
+                word(s, 1, 208) == 0 && word(s, 1, 216) == 0,
+                b"BAD_CALLER_STATE",
+            );
+            require(
+                word(s, 1, 400) == 0 && word(s, 1, 408) == 0,
+                b"BAD_CALLER_DISPATCH",
+            );
+            require(
+                word(s, 1, 240) == 0 && word(s, 1, 256) == 0,
+                b"BAD_CALLER_COUNTERS",
+            );
+            require(
+                m4::engine().stats().queued_messages == 0,
+                b"BAD_CALLER_REPLY",
+            );
+            put(s, ADMIN_SLOT, 512, 1);
+        }
+        if r.admin_exited {
+            put(s, APP_SLOT, 520, 1);
+        }
+    }
     if !r.app_exited {
         return None;
     }
@@ -518,6 +740,9 @@ pub fn poll(s: &mut State) -> Option<*const u64> {
         return None;
     }
     if case() == RESTART && !restart_fixture(s) {
+        return None;
+    }
+    if case() == NORMAL && !lease_fixture(s) {
         return None;
     }
     finish(s)
@@ -598,10 +823,127 @@ fn restart_fixture(s: &State) -> bool {
     true
 }
 
+fn entropy_handle(s: &State, slot: usize) -> u64 {
+    word(s, slot, 48)
+}
+
+/// Labelled native fixture (normal case only), driven by the real syscall
+/// handler and real timer ticks after the services went idle. Service A
+/// abandons a completed answer; service B is refused with EAGAIN while the
+/// lease runs and admitted once the kernel reclaimed and wiped the answer.
+fn lease_fixture(s: &mut State) -> bool {
+    let (a, b) = (entropy_handle(s, 0), entropy_handle(s, 1));
+    match runtime().lease_stage {
+        0 => {
+            let r = runtime();
+            require(
+                r.completed.is_none() && r.offline == 0 && !r.resetting,
+                b"LEASE_BROKER_BUSY",
+            );
+            let ticket =
+                call(s, 0, 0x60, [a, 256, 0, 0, 0, 0]).unwrap_or_else(|_| fail(b"LEASE_REQUEST"));
+            let r = runtime();
+            r.lease_ticket = ticket;
+            r.lease_deadline = s.ticks + TIMEOUT;
+            r.lease_stage = 1;
+            false
+        }
+        1 | 3 => {
+            let r = runtime();
+            let Some(completed) = r.completed else {
+                require(s.ticks < r.lease_deadline, b"LEASE_NO_ANSWER");
+                return false;
+            };
+            require(
+                completed.ticket == r.lease_ticket
+                    && completed.result == Ok(256)
+                    && r.bytes.iter().any(|byte| *byte != 0),
+                b"LEASE_ANSWER",
+            );
+            // poll() returns before this fixture while a request is pending, so
+            // advance() created the answer on this tick: pin the documented 64.
+            require(completed.deadline == s.ticks + 64, b"LEASE_LENGTH");
+            r.lease_deadline = completed.deadline;
+            if r.lease_stage == 1 {
+                // The abandoned answer blocks the peer only while leased.
+                require(
+                    call(s, 1, 0x60, [b, 256, 0, 0, 0, 0]) == Err(-8),
+                    b"LEASE_PEER_NOT_BUSY",
+                );
+            }
+            runtime().lease_stage += 1;
+            false
+        }
+        stage => {
+            let r = runtime();
+            if s.ticks < r.lease_deadline {
+                require(r.completed.is_some(), b"LEASE_EARLY_RECLAIM");
+                return false;
+            }
+            // poll() ran advance() for this tick: the lease has expired.
+            require(
+                r.completed.is_none() && r.bytes.iter().all(|byte| *byte == 0),
+                b"LEASE_NOT_RECLAIMED",
+            );
+            if stage == 4 {
+                return true;
+            }
+            let ticket = r.lease_ticket;
+            require(
+                call(s, 0, 0x61, [a, ticket, 0, 256, 0, 0]) == Err(-1),
+                b"LEASE_STALE_TICKET",
+            );
+            let ticket = call(s, 1, 0x60, [b, 256, 0, 0, 0, 0])
+                .unwrap_or_else(|_| fail(b"LEASE_PEER_BLOCKED"));
+            let r = runtime();
+            r.lease_ticket = ticket;
+            r.lease_deadline = s.ticks + TIMEOUT;
+            r.lease_stage = 3;
+            false
+        }
+    }
+}
+
+/// Labelled native fixture (normal case only): a holder that closes its
+/// entropy handle while its DMA request is pending stops the device. The
+/// peer then sees Offline (-14) until reboot; see B01-ENTROPY-AND-KEYS.md.
+fn authority_loss_fixture(s: &mut State) {
+    let r = runtime();
+    require(
+        r.pending.is_none() && r.completed.is_none() && r.offline == 0 && !r.quarantined,
+        b"QUARANTINE_BROKER_BUSY",
+    );
+    let (pid, a, b) = (
+        s.processes[0].pid,
+        entropy_handle(s, 0),
+        entropy_handle(s, 1),
+    );
+    call(s, 0, 0x60, [a, 256, 0, 0, 0, 0]).unwrap_or_else(|_| fail(b"QUARANTINE_REQUEST"));
+    require(runtime().pending.is_some(), b"QUARANTINE_NOT_PENDING");
+    if m4::engine().close(pid, a).is_err() {
+        fail(b"QUARANTINE_CLOSE");
+    }
+    advance(s);
+    let r = runtime();
+    require(
+        r.quarantined
+            && r.offline == -14
+            && r.pending.is_none()
+            && r.completed.is_none()
+            && r.bytes.iter().all(|byte| *byte == 0),
+        b"AUTHORITY_NOT_QUARANTINED",
+    );
+    require(
+        call(s, 1, 0x60, [b, 256, 0, 0, 0, 0]) == Err(-14),
+        b"QUARANTINE_PEER",
+    );
+    print_number(b"KEYRING:AUTHORITY_QUARANTINE:", 1);
+}
+
 fn finish(s: &mut State) -> ! {
     let r = runtime();
     let app = r.app;
-    let [status, step, generated, sealed, unsealed, tamper_denied, cross_denied, revoked_denied, quota_denied, recovery_export_denied, recovery_restore_denied, _, _, not_ready, entropy_denied, status_calls] =
+    let [status, step, generated, sealed, unsealed, tamper_denied, cross_denied, revoked_denied, quota_denied, recovery_export_denied, recovery_restore_denied, _, _, not_ready, entropy_denied, status_calls, b_unseal] =
         app;
     let mut services = [[0u64; 10]; 2];
     for (i, slot) in SERVICE_SLOTS.into_iter().enumerate() {
@@ -667,12 +1009,11 @@ fn finish(s: &mut State) -> ! {
                 b"RIGHTS_NOT_DENIED",
             );
             require(
-                recovery_export_denied >= 1 && recovery_restore_denied >= 1,
+                recovery_export_denied == 1 && recovery_restore_denied == 1,
                 b"RECOVERY_AUTHORITY_NOT_RESTRICTED",
             );
-            // Ordinary app ingress cannot perform restore in service B.
             require(
-                services[0][4] >= 1 && services[1][8] == 0,
+                services[0][4] >= 1 && services[1][8] == u64::from(case() == NORMAL),
                 b"SERVICE_COUNTERS",
             );
             require(not_ready == 0, b"UNEXPECTED_NOT_READY");
@@ -735,6 +1076,39 @@ fn finish(s: &mut State) -> ! {
             require(services[0][2] == 0 && services[1][2] == 0, b"SERVICE_KEYS");
         }
     }
+    if case() == NORMAL {
+        require(
+            r.admin_exited && r.admin == [1, 1, 1, 1],
+            b"MANAGEMENT_RECOVERY",
+        );
+        require(b_unseal == 1, b"B_UNSEAL");
+        require(
+            word(s, 0, 392) == 1 && word(s, 0, 400) == 0,
+            b"ADMIN_EXPORT",
+        );
+        require(
+            word(s, 1, 392) == 0 && word(s, 1, 400) == 1,
+            b"ADMIN_RESTORE",
+        );
+        require(
+            word(s, 1, 408) == 2 && word(s, 1, 416) == 1,
+            b"ADMIN_NEGATIVES",
+        );
+        require(
+            word(s, 0, 384) == 1 && word(s, 1, 384) == 4,
+            b"ADMIN_NO_REPLY",
+        );
+        for (label, value) in [
+            (&b"KEYRING:MGMT_EXPORTS:"[..], r.admin[0]),
+            (b"KEYRING:MGMT_RESTORES:", r.admin[1]),
+            (b"KEYRING:MGMT_WRONG_SECRET_DENIED:", r.admin[2]),
+            (b"KEYRING:ADMIN_GENERATE_DENIED:", r.admin[3]),
+            (b"KEYRING:B_UNSEAL_OK:", b_unseal),
+            (b"KEYRING:ADMIN_BAD_CALLER:", word(s, 1, 416)),
+        ] {
+            print_number(label, value);
+        }
+    }
     serial::write(b"KEYRING:READY\n");
     for (label, value) in [
         (&b"KEYRING:REQUESTS:"[..], r.requests),
@@ -746,6 +1120,7 @@ fn finish(s: &mut State) -> ! {
         (b"KEYRING:RESET_ACKS:", r.reset_acks),
         (b"KEYRING:QUARANTINED:", u64::from(r.quarantined)),
         (b"KEYRING:RESTARTED_BYTES:", r.restarted_bytes),
+        (b"KEYRING:LEASE_RECLAIMS:", r.lease_reclaims),
         (b"KEYRING:SERVICE_A_STATE:", services[0][0]),
         (b"KEYRING:SERVICE_B_STATE:", services[1][0]),
         (b"KEYRING:SERVICE_A_REASON:", services[0][1]),
@@ -775,6 +1150,10 @@ fn finish(s: &mut State) -> ! {
     ] {
         print_number(label, value);
     }
+    if case() == NORMAL {
+        authority_loss_fixture(s);
+    }
+    let r = runtime();
     serial::write(marker());
     // Resource accounting: release both live services, then require the exact
     // frame baseline and an empty engine. The DMA pool stays kernel-owned.

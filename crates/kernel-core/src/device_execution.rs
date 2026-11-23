@@ -551,7 +551,7 @@ impl<const N: usize> LeaseRegistry<N> {
             .position(Option::is_none)
             .ok_or(Error::Exhausted)?;
         let nonce = NEXT_LEASE_NONCE
-            .fetch_update(Ordering::Relaxed, Ordering::Relaxed, |n| n.checked_add(1))
+            .try_update(Ordering::Relaxed, Ordering::Relaxed, |n| n.checked_add(1))
             .map_err(|_| Error::Exhausted)?;
         let lease = DeviceLease::matched(function, driver, nonce)?;
         self.live[slot] = Some((function.address, nonce));
@@ -1848,7 +1848,6 @@ mod tests {
         assert_eq!(lease.dma_direction(&grant), Ok(DmaDirection::DeviceWrites));
         assert_eq!(lease.dma_length(&grant), Ok(4097));
         assert!(lease.dma_pages(&grant).unwrap().iter().all(|pa| *pa != 0));
-        let mut control = Control::default();
         assert_eq!(
             lease.release_dma(&grant, &mut frames, |_| {}),
             Err(Error::InvalidState)
@@ -1864,7 +1863,6 @@ mod tests {
             ),
             Err(Error::Exhausted)
         );
-        control.reset_ack = true;
     }
 
     #[test]

@@ -179,8 +179,7 @@ fn previews_sample_real_owned_backing_at_both_scales_and_reject_short_buffers() 
         assert!(bounds.x >= 0 && bounds.y >= 0);
         assert!(bounds.x as u32 + bounds.width <= width);
         assert!(bounds.y as u32 + bounds.height <= height);
-        for index in 0..2 {
-            let window = scene.windows[index];
+        for (index, window) in scene.windows.iter().enumerate() {
             for y in 0..window.body.height as usize {
                 for x in 0..window.body.width as usize {
                     backing[window.offset + y * window.body.width as usize + x] =

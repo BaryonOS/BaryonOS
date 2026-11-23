@@ -1,0 +1,323 @@
+{
+  "schema_version": 1,
+  "source": "2073e4affd8a46a4bd0a1b95bcb06f7c2b0062c2",
+  "prior_source": "221d0322fe4a53070eec72982d8382f4ee1cf47f",
+  "generated_at_utc": "2026-11-18T03:27:54.293799+00:00",
+  "changed_active_documents": [
+    {
+      "path": "AGENTS.md",
+      "sha256": "0c63eb2339fe46d07ddede987592d65929b4e6c92ee4e18185facfa5cf4ba3a5",
+      "classification": "active_english_guidance",
+      "review": "Actual changed command/prose lines reviewed; full-source lexical scan. This language disposition does not independently validate the compiler migration.",
+      "reason": "Active English command guidance explicitly updated to Rust 1.100.0; historical evidence versions and measured profiles retain their original role. The installation paragraph now states one current toolchain across the workspaces."
+    },
+    {
+      "path": "crates/AGENTS.md",
+      "sha256": "7ea0b0f39f120567b867a64c461368882e61f8287ccc967a6818ab4fe675339d",
+      "classification": "active_english_guidance",
+      "review": "Actual changed command/prose lines reviewed; full-source lexical scan. This language disposition does not independently validate the compiler migration.",
+      "reason": "Active English command guidance explicitly updated to Rust 1.100.0; historical evidence versions and measured profiles retain their original role."
+    },
+    {
+      "path": "drivers/AGENTS.md",
+      "sha256": "3cc90198bafeb019f63b222032e4187a33e46886dfaca3ad41ecdc7ff612c8b6",
+      "classification": "active_english_guidance",
+      "review": "Actual changed command/prose lines reviewed; full-source lexical scan. This language disposition does not independently validate the compiler migration.",
+      "reason": "Active English command guidance explicitly updated to Rust 1.100.0; historical evidence versions and measured profiles retain their original role."
+    },
+    {
+      "path": "experiments/AGENTS.md",
+      "sha256": "615bbcb2cf28e5de81e7d714fa2dfcc5651e750c197fc51006538d54275776af",
+      "classification": "active_english_guidance",
+      "review": "Actual changed command/prose lines reviewed; full-source lexical scan. This language disposition does not independently validate the compiler migration.",
+      "reason": "Active English command guidance explicitly updated to Rust 1.100.0; historical evidence versions and measured profiles retain their original role."
+    },
+    {
+      "path": "kernel/AGENTS.md",
+      "sha256": "3864042717479ad4d0b7509e570eb97eec4a19d223426a4e5d94ee5ce2ac5b84",
+      "classification": "active_english_guidance",
+      "review": "Actual changed command/prose lines reviewed; full-source lexical scan. This language disposition does not independently validate the compiler migration.",
+      "reason": "Active English command guidance explicitly updated to Rust 1.100.0; historical evidence versions and measured profiles retain their original role."
+    },
+    {
+      "path": "sdk/AGENTS.md",
+      "sha256": "6cad3d6c69ba1458be9c47e1c8df0203aee4f3a903107625467e892369ac4d35",
+      "classification": "active_english_guidance",
+      "review": "Actual changed command/prose lines reviewed; full-source lexical scan. This language disposition does not independently validate the compiler migration.",
+      "reason": "Active English command guidance explicitly updated to Rust 1.100.0; historical evidence versions and measured profiles retain their original role."
+    },
+    {
+      "path": "services/AGENTS.md",
+      "sha256": "502f101993fca51f5fbe71a3e63f44484bee6d980d35bb8e2eb5b12bb36e184c",
+      "classification": "active_english_guidance",
+      "review": "Actual changed command/prose lines reviewed; full-source lexical scan. This language disposition does not independently validate the compiler migration.",
+      "reason": "Active English command guidance explicitly updated to Rust 1.100.0; historical evidence versions and measured profiles retain their original role."
+    },
+    {
+      "path": "CODEX-WORKFLOW.md",
+      "sha256": "0485208be7f985d60bee6b560777ef9b6140d37915352942fc5bf1e59d7f4144",
+      "classification": "active_english_guidance",
+      "review": "Actual changed command/prose lines reviewed; full-source lexical scan. This language disposition does not independently validate the compiler migration.",
+      "reason": "Active English command guidance explicitly updated to Rust 1.100.0; historical evidence versions and measured profiles retain their original role."
+    },
+    {
+      "path": "docs/DEVELOPMENT.md",
+      "sha256": "3da5463d5f33376de5f0f6059c84ea690d3349ccba67cee476488c731bcc5629",
+      "classification": "active_english_guidance",
+      "review": "Actual changed command/prose lines reviewed; full-source lexical scan. This language disposition does not independently validate the compiler migration.",
+      "reason": "Active English command guidance explicitly updated to Rust 1.100.0; historical evidence versions and measured profiles retain their original role. The dated active-pin section distinguishes current commands from historical setup tables and unverified current Windows-host execution."
+    },
+    {
+      "path": "docs/DEPENDENCIES.md",
+      "sha256": "782512bf06d738a21a6bd648886f52b5cca231b4c0bd4e1ba1847d1603144fbe",
+      "classification": "active_english_guidance",
+      "review": "Actual changed command/prose lines reviewed; full-source lexical scan. This language disposition does not independently validate the compiler migration.",
+      "reason": "Active English command guidance explicitly updated to Rust 1.100.0; historical evidence versions and measured profiles retain their original role. The active compiler header and recorded Linux-profile wording prevent an old measured Rust 1.90 profile being read as the current pin."
+    },
+    {
+      "path": "docs/design/accessibility/ACCESSIBILITY-MATRIX.md",
+      "sha256": "e12d566f069a56e1066689e598f5bfbad7ac646c6347e14da2dc94b0a5a6e6b5",
+      "classification": "active_english_accessibility_research_with_preserved_example",
+      "review": "Frontmatter, evidence/status schema, representative complete rows and the sole lexical candidate read; full-source lexical scan. Not a full manual reading of all 92 rows.",
+      "reason": "Line 55 quotes 'ongeveer een derde' (about a third) and 'over 10 minuten' (in 10 minutes) as quantity/time example text; the surrounding matrix is English. These examples do not implement or accept runtime localisation. Research/proposal, insufficient evidence, absent/partial native status and required user tests remain explicit."
+    },
+    {
+      "path": "docs/design/accessibility/ACCESSIBILITY-RESEARCH.md",
+      "sha256": "89ecc4ab70742dbc45e22bd9ee58885240b937366e783c1b8b2d4b6c706e8009",
+      "classification": "active_english_accessibility_research",
+      "review": "English frontmatter, method, all main section headings and status/limits reviewed; full-source lexical scan. Not a new scientific/conformance audit or full manual reading of every paragraph.",
+      "reason": "Current research synthesis/proposal remains active; explicit dated source, source-access limits, no native implementation/user test/conformance claim and required contract extensions remain intact."
+    },
+    {
+      "path": "docs/DECISIONS.md",
+      "sha256": "7f34444758f88c8d1150939eb66b50a6da01969262b09cbc8d92012e11d2282c",
+      "classification": "active_english_authoritative_decision_record",
+      "review": "Added owner-decision text read; all three remaining lexical candidates rechecked.",
+      "reason": "New owner-decision rendering is English and separates requirements from implementation. Existing Dutch source quotations and Bestanden (Files) naming retain their English surrounding explanation. Normative ADRs are not archived because of their dates."
+    },
+    {
+      "path": "docs/PROJECT-STATE.md",
+      "sha256": "3881e46a0cf0f9fe662636a06ea63b6bb729260b0879b7e72551a2d0c3d4d04f",
+      "classification": "active_english_authoritative_checkpoint",
+      "review": "Current opening checkpoint and ownership/status prose read; full-source lexical scan has no candidate.",
+      "reason": "Active shared state remains authoritative and source-bound; pending acceptance, security, hosted verification and the unchanged 41/100 score remain explicit."
+    },
+    {
+      "path": "docs/design/DESIGN-SYSTEM.md",
+      "sha256": "43d443932873bc9609c21b4e510cbaa1556de18cac78709ee7ac74a35c1ff348",
+      "classification": "active_english_design_contract_with_preserved_interface_literals",
+      "review": "Actual added supersession paragraph and all 21 candidate locations rechecked.",
+      "reason": "The superseding owner decision is explained in English; quoted Dutch prompt controls are named alongside the English model. Retained gallery/evidence-specific strings do not establish localisation or a new native authorisation implementation."
+    },
+    {
+      "path": "docs/implementation/S09-BACKUP-ARCHIVE.md",
+      "sha256": "b3d4e7928bf16e951f15aa6f3722f1a980f39537c0e07fa6b5f73a634a73bcb1",
+      "classification": "active_english_implementation_specification",
+      "review": "Updated section headings/status and scoped export/verification passages reviewed; full-source lexical scan has no candidate.",
+      "reason": "The active S09 specification remains English. Accepted subset, exact native evidence, platform limits and still-open user-facing/provider/full issue requirements remain distinct."
+    }
+  ],
+  "changed_verification_entrypoints": [
+    {
+      "path": "docs/verification/a11y-checker-20261118/README.md",
+      "sha256": "ecc102e88d2448d9b850000c3ed4672d76b7d24d2c82fca170829294be09acf4",
+      "classification": "source_bound_english_verification_entrypoint",
+      "scope_role": "Receipt of its explicitly named source/run/status; current English navigation text is acknowledged despite exclusion from the main active-document lexical inventory. No historical source is relabelled current acceptance.",
+      "review": "English title/frontmatter reviewed and full-source lexical scan; not a new independent verification of every underlying claim.",
+      "candidate_lines": []
+    },
+    {
+      "path": "docs/verification/a11y-research-20261115/README.md",
+      "sha256": "9477028ce0f6ece335996eb91bc7b28442d3704f720c4b70f2b9e1aa1b011938",
+      "classification": "source_bound_english_verification_entrypoint",
+      "scope_role": "Receipt of its explicitly named source/run/status; current English navigation text is acknowledged despite exclusion from the main active-document lexical inventory. No historical source is relabelled current acceptance.",
+      "review": "English title/frontmatter reviewed and full-source lexical scan; not a new independent verification of every underlying claim.",
+      "candidate_lines": []
+    },
+    {
+      "path": "docs/verification/coderabbit-oss-20261117/README.md",
+      "sha256": "7f030e909a9a7e527edb62597d32cbc89417abca4234e875e83c270db8adb55b",
+      "classification": "source_bound_english_verification_entrypoint",
+      "scope_role": "Receipt of its explicitly named source/run/status; current English navigation text is acknowledged despite exclusion from the main active-document lexical inventory. No historical source is relabelled current acceptance.",
+      "review": "English title/frontmatter reviewed and full-source lexical scan; not a new independent verification of every underlying claim.",
+      "candidate_lines": []
+    },
+    {
+      "path": "docs/verification/ds-1.0-c1-20261115/SUPERSEDED.md",
+      "sha256": "4876a015e0341d2a790416e1ca57636b937d4be51ebddbac31e8a464a83f8172",
+      "classification": "source_bound_english_verification_entrypoint",
+      "scope_role": "Receipt of its explicitly named source/run/status; current English navigation text is acknowledged despite exclusion from the main active-document lexical inventory. No historical source is relabelled current acceptance.",
+      "review": "English title/frontmatter reviewed and full-source lexical scan; not a new independent verification of every underlying claim.",
+      "candidate_lines": []
+    },
+    {
+      "path": "docs/verification/issue274-archive-entrypoints-20261118/README.md",
+      "sha256": "bfe9e9f3fb5e5c23e1e54f688f318cfdf4ff632cf9516e1b157201911c5d62f0",
+      "classification": "source_bound_english_verification_entrypoint",
+      "scope_role": "Receipt of its explicitly named source/run/status; current English navigation text is acknowledged despite exclusion from the main active-document lexical inventory. No historical source is relabelled current acceptance.",
+      "review": "English title/frontmatter reviewed and full-source lexical scan; not a new independent verification of every underlying claim.",
+      "candidate_lines": []
+    },
+    {
+      "path": "docs/verification/issue42-combined-20261118/README.md",
+      "sha256": "8f4c71f1ff2916d2afb4cf21da4bc2e863831cfe12ea6ee60da5b411d36aafad",
+      "classification": "source_bound_english_verification_entrypoint",
+      "scope_role": "Receipt of its explicitly named source/run/status; current English navigation text is acknowledged despite exclusion from the main active-document lexical inventory. No historical source is relabelled current acceptance.",
+      "review": "Full body read, including pending/open limits.",
+      "candidate_lines": []
+    },
+    {
+      "path": "docs/verification/phase0-combined-20261118/CONTINUATION.md",
+      "sha256": "a4d58ef057b27001c433a4fc723ab1b4e82e6639c8516f2d3ddf952ac74b0254",
+      "classification": "source_bound_english_verification_entrypoint",
+      "scope_role": "Receipt of its explicitly named source/run/status; current English navigation text is acknowledged despite exclusion from the main active-document lexical inventory. No historical source is relabelled current acceptance.",
+      "review": "Full body read, including pending/open limits.",
+      "candidate_lines": []
+    },
+    {
+      "path": "docs/verification/phase0-combined-20261118/README.md",
+      "sha256": "cf697cd1acda2611a04ae5deeb4104f4cd86f68220d2fba681f60b46302271f5",
+      "classification": "source_bound_english_verification_entrypoint",
+      "scope_role": "Receipt of its explicitly named source/run/status; current English navigation text is acknowledged despite exclusion from the main active-document lexical inventory. No historical source is relabelled current acceptance.",
+      "review": "Full body read, including pending/open limits.",
+      "candidate_lines": []
+    },
+    {
+      "path": "docs/verification/phase0-pipeline-quarantine-20261118/README.md",
+      "sha256": "452623d6714a13f04eb3d6fba07f981d0dd3f765ece48833928b30b0095f27f8",
+      "classification": "source_bound_english_verification_entrypoint",
+      "scope_role": "Receipt of its explicitly named source/run/status; current English navigation text is acknowledged despite exclusion from the main active-document lexical inventory. No historical source is relabelled current acceptance.",
+      "review": "English title/frontmatter reviewed and full-source lexical scan; not a new independent verification of every underlying claim.",
+      "candidate_lines": []
+    },
+    {
+      "path": "docs/verification/phase0-pr340-20261117/README.md",
+      "sha256": "cd6093b701bf33d1e9e6c7edd3dcebb4fba143a2256d4f58fac29f6c40c41d4a",
+      "classification": "source_bound_english_verification_entrypoint",
+      "scope_role": "Receipt of its explicitly named source/run/status; current English navigation text is acknowledged despite exclusion from the main active-document lexical inventory. No historical source is relabelled current acceptance.",
+      "review": "English title/frontmatter reviewed and full-source lexical scan; not a new independent verification of every underlying claim.",
+      "candidate_lines": []
+    },
+    {
+      "path": "docs/verification/phase0-pr340-cloud-20261118/README.md",
+      "sha256": "8cc7612187f6f689ac4080e8a6622a673596f1f63dbcdcc3984f34a64c261572",
+      "classification": "source_bound_english_verification_entrypoint",
+      "scope_role": "Receipt of its explicitly named source/run/status; current English navigation text is acknowledged despite exclusion from the main active-document lexical inventory. No historical source is relabelled current acceptance.",
+      "review": "English title/frontmatter reviewed and full-source lexical scan; not a new independent verification of every underlying claim.",
+      "candidate_lines": []
+    },
+    {
+      "path": "docs/verification/phase0-pr340-cloud-20261118/combined-source-7213/README.md",
+      "sha256": "142d1acbcb0f06b1165d489cb8e50342a8a9d1ff77567be68d7fe6d261290c35",
+      "classification": "source_bound_english_verification_entrypoint",
+      "scope_role": "Receipt of its explicitly named source/run/status; current English navigation text is acknowledged despite exclusion from the main active-document lexical inventory. No historical source is relabelled current acceptance.",
+      "review": "English title/frontmatter reviewed and full-source lexical scan; not a new independent verification of every underlying claim.",
+      "candidate_lines": []
+    },
+    {
+      "path": "docs/verification/phase0-pr340-integration-20261117/README.md",
+      "sha256": "5345b5c9a43419d5792d2d3b69dd524a5e4a98df808ccfd184c3315c9d423171",
+      "classification": "source_bound_english_verification_entrypoint",
+      "scope_role": "Receipt of its explicitly named source/run/status; current English navigation text is acknowledged despite exclusion from the main active-document lexical inventory. No historical source is relabelled current acceptance.",
+      "review": "English title/frontmatter reviewed and full-source lexical scan; not a new independent verification of every underlying claim.",
+      "candidate_lines": []
+    },
+    {
+      "path": "docs/verification/phase0-pr350-cloud-20261118/README.md",
+      "sha256": "ec98cc49b6f21de652b3c70c3dc0623d8e9c4acfa203e08a4f03958cdc6e4f4b",
+      "classification": "source_bound_english_verification_entrypoint",
+      "scope_role": "Receipt of its explicitly named source/run/status; current English navigation text is acknowledged despite exclusion from the main active-document lexical inventory. No historical source is relabelled current acceptance.",
+      "review": "English title/frontmatter reviewed and full-source lexical scan; not a new independent verification of every underlying claim.",
+      "candidate_lines": []
+    },
+    {
+      "path": "docs/verification/phase0-pr350-cloud-20261118/prior-checkpoint.md",
+      "sha256": "e8977fb83fb921a8e38f4bdfc8b59177041bed5f919df20269a4942670c67551",
+      "classification": "source_bound_english_verification_entrypoint",
+      "scope_role": "Receipt of its explicitly named source/run/status; current English navigation text is acknowledged despite exclusion from the main active-document lexical inventory. No historical source is relabelled current acceptance.",
+      "review": "English title/frontmatter reviewed and full-source lexical scan; not a new independent verification of every underlying claim.",
+      "candidate_lines": []
+    },
+    {
+      "path": "docs/verification/phase0-pr350-integration-20261117/README.md",
+      "sha256": "cc87d320c0df78d006bed0cea95f4ffed4ba4cbb7c41b50e23189b9cfa223098",
+      "classification": "source_bound_english_verification_entrypoint",
+      "scope_role": "Receipt of its explicitly named source/run/status; current English navigation text is acknowledged despite exclusion from the main active-document lexical inventory. No historical source is relabelled current acceptance.",
+      "review": "English title/frontmatter reviewed and full-source lexical scan; not a new independent verification of every underlying claim.",
+      "candidate_lines": []
+    },
+    {
+      "path": "docs/verification/phase0-rust100-20261117/README.md",
+      "sha256": "2a6c73bfdbf6477674f139138c0e6f7e6f13bee66fd7494a7459b3673359c001",
+      "classification": "source_bound_english_verification_entrypoint",
+      "scope_role": "Receipt of its explicitly named source/run/status; current English navigation text is acknowledged despite exclusion from the main active-document lexical inventory. No historical source is relabelled current acceptance.",
+      "review": "English title/frontmatter reviewed and full-source lexical scan; not a new independent verification of every underlying claim.",
+      "candidate_lines": []
+    },
+    {
+      "path": "docs/verification/phase0-rust100-ci-repair-20261118/README.md",
+      "sha256": "12d6bcdeeaa274643bb826939c25e705f82cf721fb23335a21cbe1735196ca79",
+      "classification": "source_bound_english_verification_entrypoint",
+      "scope_role": "Receipt of its explicitly named source/run/status; current English navigation text is acknowledged despite exclusion from the main active-document lexical inventory. No historical source is relabelled current acceptance.",
+      "review": "English title/frontmatter reviewed and full-source lexical scan; not a new independent verification of every underlying claim.",
+      "candidate_lines": []
+    },
+    {
+      "path": "docs/verification/phase0-rust100-cloud-20261118/README.md",
+      "sha256": "b414636c9060e84b0cbf682397731d3a0a3ad9f4514f1bb4aafbfe84b989b7e8",
+      "classification": "source_bound_english_verification_entrypoint",
+      "scope_role": "Receipt of its explicitly named source/run/status; current English navigation text is acknowledged despite exclusion from the main active-document lexical inventory. No historical source is relabelled current acceptance.",
+      "review": "English title/frontmatter reviewed and full-source lexical scan; not a new independent verification of every underlying claim.",
+      "candidate_lines": []
+    },
+    {
+      "path": "docs/verification/s09-archive/NAMES-ORACLE-20261115.md",
+      "sha256": "ec4e1bf87eb3438b7e1e1749a16e5e21cf1589ca479a43e15b333f7c72c58b07",
+      "classification": "source_bound_english_verification_entrypoint",
+      "scope_role": "Receipt of its explicitly named source/run/status; current English navigation text is acknowledged despite exclusion from the main active-document lexical inventory. No historical source is relabelled current acceptance.",
+      "review": "English title/frontmatter reviewed and full-source lexical scan; not a new independent verification of every underlying claim.",
+      "candidate_lines": []
+    },
+    {
+      "path": "docs/verification/s09-archive/USTAR-NATIVE-20261115.md",
+      "sha256": "3677cae585ef4797d8b10c4fcd24cdd108e10e5e2adfdd8b3d3ab0c8c9c7ee27",
+      "classification": "source_bound_english_verification_entrypoint",
+      "scope_role": "Receipt of its explicitly named source/run/status; current English navigation text is acknowledged despite exclusion from the main active-document lexical inventory. No historical source is relabelled current acceptance.",
+      "review": "English title/frontmatter reviewed and full-source lexical scan; not a new independent verification of every underlying claim.",
+      "candidate_lines": []
+    }
+  ],
+  "issue274": {
+    "url": "https://github.com/BaryonOS/BaryonOS/issues/274",
+    "state_observed": "open",
+    "body_updated_at": "2026-11-11T16:48:55Z",
+    "requeried_at_utc": "2026-11-18T03:27:54.293799+00:00",
+    "objective": "All active, first-party, human-readable Baryon OS documentation accessible in professional English without altering contracts, accepted scope, source evidence or executable behaviour.",
+    "completion_criterion": "Every current first-party document reachable through normal README/contributing/developer navigation is available in English or has an explicit English equivalent and clearly marked archived original. Default community submissions are English. Remaining exceptions are documented with reasons.",
+    "safeguard_4": "Historical CI output, original quotations, third-party literature, vendored code, licence texts and source archives must not be rewritten in place. English summaries/entrypoints with provenance are appropriate.",
+    "verdict": "NOT COMPLETE",
+    "remaining": [
+      "Proper native UI/runtime localisation is not implemented by these documentation changes; two current label functions are directly evidenced.",
+      "This inventory provides a reproducible Markdown and bounded community/navigation audit, not complete review of every prose-generating script or generated asset.",
+      "Independent final semantic review of the new English entrypoints and exact integration candidate remains separate.",
+      "The preexisting generated build/toolchain-provenance.json link is absent from the checkout; no fabricated artifact or false link pass is supplied."
+    ],
+    "preserved": [
+      "34 source-bound originals unchanged; 33 have source-specific English summaries/entrypoints and one has a full English equivalent.",
+      "Current authoritative contracts and parser keys remain intact; no blanket historical classification by date.",
+      "Evidence-specific UI strings, quotations, storage formats, identifiers and tests remain intact.",
+      "Score remains 41/100."
+    ]
+  },
+  "wiki": {
+    "remote_verified_commit": "4a01b8b2ad2695da509a512ea688007c964f56da",
+    "receipt": "docs/verification/issue274-wiki-publication-20261118/published.json",
+    "note": "The existing exact 15-file publication and preserved old 13-page proof remain unchanged; no new Wiki publication is performed."
+  },
+  "limitations": [
+    "Heuristic absence is not professional English-quality proof.",
+    "Manual review scope for each changed document is explicit above.",
+    "Original 874 and 221 inventories and all historic receipts remain unchanged.",
+    "Runtime/API compatibility, security acceptance, CI and main integration require their own evidence."
+  ]
+}

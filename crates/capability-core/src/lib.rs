@@ -119,6 +119,19 @@ impl BlockAuthorization {
     }
 }
 
+/// Stable identity of an authorized entropy object. The key includes the
+/// object's generation, so a later object that reuses its slot cannot inherit
+/// authority recorded for an earlier request.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct EntropyAuthorization {
+    object_key: u64,
+}
+impl EntropyAuthorization {
+    pub const fn object_key(self) -> u64 {
+        self.object_key
+    }
+}
+
 /// Read-only view of a `Process` object for the holder of an OBSERVE/KILL node.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct ProcessView {
@@ -317,8 +330,10 @@ fn digest_message(h: &mut DiagnosticHasher, m: &Message) {
         | m.caps[1].rights;
     if header == 0
         && m.data
-            .chunks_exact(8)
-            .all(|bytes| u64::from_le_bytes(bytes.try_into().unwrap()) == 0)
+            .as_chunks::<8>()
+            .0
+            .iter()
+            .all(|bytes| u64::from_le_bytes(*bytes) == 0)
     {
         h.zeros += MESSAGE_SIZE / 8;
         return;
@@ -335,8 +350,8 @@ fn digest_message(h: &mut DiagnosticHasher, m: &Message) {
         word(h, cap.handle);
         word(h, cap.rights);
     }
-    for bytes in m.data.chunks_exact(8) {
-        word(h, u64::from_le_bytes(bytes.try_into().unwrap()));
+    for bytes in m.data.as_chunks::<8>().0 {
+        word(h, u64::from_le_bytes(*bytes));
     }
 }
 
@@ -355,8 +370,8 @@ fn digest_message_direct(h: &mut u64, m: &Message) {
         word(h, cap.handle);
         word(h, cap.rights);
     }
-    for bytes in m.data.chunks_exact(8) {
-        word(h, u64::from_le_bytes(bytes.try_into().unwrap()));
+    for bytes in m.data.as_chunks::<8>().0 {
+        word(h, u64::from_le_bytes(*bytes));
     }
 }
 
@@ -816,13 +831,20 @@ impl Engine {
         );
         Ok(self.attach(p, slot, self.node_id(node)))
     }
-    pub fn check_entropy(&self, pid: u64, handle: u64) -> Result<(), Error> {
+    pub fn authorize_entropy(&self, pid: u64, handle: u64) -> Result<EntropyAuthorization, Error> {
         let node = self.resolve(pid, handle)?;
-        let i = self.nodes[node].object.index as usize;
+        let object = self.nodes[node].object;
+        let i = object.index as usize;
         if !(ENTROPY_BASE..NETWORK_BASE).contains(&i) {
             return Err(Error::Type);
         }
-        self.require(node, ENTROPY)
+        self.require(node, ENTROPY)?;
+        Ok(EntropyAuthorization {
+            object_key: (u64::from(object.generation) << 32) | u64::from(object.index),
+        })
+    }
+    pub fn check_entropy(&self, pid: u64, handle: u64) -> Result<(), Error> {
+        self.authorize_entropy(pid, handle).map(|_| ())
     }
     /// Manifest-only raw network authority. No process can manufacture, derive
     /// or transfer this handle; closing it and owner exit invalidate it.
@@ -1697,11 +1719,10 @@ impl Engine {
     fn slots(&self, p: usize, count: usize) -> Result<[usize; 2], Error> {
         let mut result = [0; 2];
         let mut found = 0;
-        for s in 1..MAX_SLOTS {
+        for (s, slot) in self.processes[p].slots.iter().enumerate().skip(1) {
             if found == count {
                 break;
             }
-            let slot = self.processes[p].slots[s];
             if !slot.retired && slot.node == Id::NONE {
                 result[found] = s;
                 found += 1;
@@ -2275,8 +2296,8 @@ impl Engine {
                 add(&mut h, x);
             }
             for q in &e.queue {
-                for word in q.message.encode().chunks_exact(8) {
-                    add(&mut h, u64::from_le_bytes(word.try_into().unwrap()));
+                for word in q.message.encode().as_chunks::<8>().0 {
+                    add(&mut h, u64::from_le_bytes(*word));
                 }
                 for x in q.caps {
                     id(&mut h, x);
@@ -2531,8 +2552,8 @@ impl Engine {
                 add(&mut h, x);
             }
             for q in &e.queue {
-                for word in q.message.encode().chunks_exact(8) {
-                    add(&mut h, u64::from_le_bytes(word.try_into().unwrap()));
+                for word in q.message.encode().as_chunks::<8>().0 {
+                    add(&mut h, u64::from_le_bytes(*word));
                 }
                 for x in q.caps {
                     id(&mut h, x);
@@ -3338,8 +3359,8 @@ mod digest_differential {
         m
     }
     fn reference_message(mut h: u64, message: &Message) -> u64 {
-        for bytes in message.encode().chunks_exact(8) {
-            h = (h ^ u64::from_le_bytes(bytes.try_into().unwrap())).wrapping_mul(0x100000001b3);
+        for bytes in message.encode().as_chunks::<8>().0 {
+            h = (h ^ u64::from_le_bytes(*bytes)).wrapping_mul(0x100000001b3);
         }
         h
     }
@@ -3371,7 +3392,7 @@ mod digest_differential {
         let mut seed = 0x5a8279993c6ef372;
         for _ in 0..256 {
             let mut wire = [0; MESSAGE_SIZE];
-            for bytes in wire.chunks_exact_mut(8) {
+            for bytes in wire.as_chunks_mut::<8>().0 {
                 bytes.copy_from_slice(&random(&mut seed).to_le_bytes());
             }
             let message = raw_message(&wire);
@@ -3557,7 +3578,7 @@ mod digest_differential {
                     ep.len = random(&mut seed) as u8;
                     for q in &mut ep.queue {
                         let mut bytes = [0; MESSAGE_SIZE];
-                        for word in bytes.chunks_exact_mut(8) {
+                        for word in bytes.as_chunks_mut::<8>().0 {
                             word.copy_from_slice(&random(&mut seed).to_le_bytes());
                         }
                         q.message = raw_message(&bytes);
@@ -3635,26 +3656,24 @@ mod digest_differential {
                     };
                 }
             }
-            for n in &mut e.nodes {
-                *n = Node {
+            e.nodes.fill(Node {
+                generation: 0,
+                live: false,
+                retired: false,
+                revoked: false,
+                object: Id {
+                    index: 0,
                     generation: 0,
-                    live: false,
-                    retired: false,
-                    revoked: false,
-                    object: Id {
-                        index: 0,
-                        generation: 0,
-                    },
-                    parent: Id {
-                        index: 0,
-                        generation: 0,
-                    },
-                    issuer: 0,
-                    rights: 0,
-                    refs: 0,
-                    depth: 0,
-                };
-            }
+                },
+                parent: Id {
+                    index: 0,
+                    generation: 0,
+                },
+                issuer: 0,
+                rights: 0,
+                refs: 0,
+                depth: 0,
+            });
             for ep in &mut e.endpoints {
                 ep.generation = 0;
                 for q in &mut ep.queue {

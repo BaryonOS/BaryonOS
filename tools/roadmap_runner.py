@@ -1,50 +1,85 @@
 #!/usr/bin/env python3
-"""Clean-session roadmap runner: one fresh headless Claude Code session per ledger task.
+"""Codex roadmap task dispatch with fail-closed legacy automation.
 
-The long-lived part is this small deterministic controller, not a chat transcript.
-It owns the task ledger, an exclusive controller lock, a write lease with heartbeat,
-stop/pause files, logs and receipts. For each READY task it
+`brief` claims one READY task and prepares an immutable Codex dispatch plan for
+the lead. No model or gate is executed by that command. Automatic execution and
+legacy Claude helpers remain source-held until the shared isolation replacement
+is accepted. The existing ledger, lock, stop/pause controls and recovery are reused;
+there is no second queue and no transfer of this roadmap to Claude.
+Runtime state stays in ignored build/roadmap-pipeline/.
 
-1. checks that the checkout is clean, on the expected branch, with no live worker;
-2. writes an immutable worker brief (task, bounded source pointers, rules, checks);
-3. starts a NEW `claude -p` process with a fresh `--session-id` (never --continue,
-   --resume or --fork-session), an allow-listed environment, `--permission-prompts
-   none`, file edits plus the task's own check commands only, and `--autocompact`;
-4. validates the result itself: changed files against the task's write set,
-   protected paths, the ledger's trusted check commands with raw exit codes, and the
-   progress register; the worker's self-reported JSON is recorded, never trusted;
-5. asks a second fresh, read-only session to verify the diff independently;
-6. commits verified work with a compact receipt, pushes the dedicated branch and
-   releases the lease before the next task starts in another fresh session.
-
-It reuses `agent_gate.run_gate` for CI-job gates and `agent_pipeline.is_protected`
-for the rule that agents never edit the files that judge them. It never merges,
-never enables auto-merge and never pushes to any branch but `--branch`.
-Runtime state lives in ignored build/roadmap-pipeline/; the task ledger and
-receipts are versioned under docs/roadmap-pipeline/ so a new container can resume.
+Candidate bytes never run with controller authority: task checks, gates and the
+progress check run only through the shared isolated gate runner (agent_gate), host
+sessions get no check commands, Git callback configuration is fingerprinted around
+every session, controller Git runs without fsmonitor, and controller Python neither
+imports nor reads bytecode from the checkout (progress.py runs with -I).
 """
 from __future__ import annotations
+
+import os
+import sys
+
+# Worker sessions can write tools/*.py. Resolve the standard library and site-packages
+# before the checkout (os and sys are built in or frozen, so they cannot be shadowed).
+TOOLS_DIR = os.path.dirname(os.path.realpath(__file__))
+sys.path[:] = [p for p in sys.path if os.path.realpath(p or ".") != TOOLS_DIR] + [TOOLS_DIR]
 
 import argparse
 import contextlib
 import datetime as dt
 import fcntl
 import hashlib
+import importlib.machinery
 import json
-import os
 import re
 import shutil
 import signal
 import subprocess
-import sys
+import tempfile
 import time
 import uuid
 from dataclasses import dataclass
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent))
-from agent_gate import FAIL_EXIT as GATE_FAIL_EXIT, resolve as resolve_gate, run_gate  # noqa: E402
-from agent_pipeline import is_protected  # noqa: E402
+# Bytecode caches in the checkout are never read: a worker could plant them under
+# ignored __pycache__/ paths that its scope check does not see.
+sys.pycache_prefix = tempfile.mkdtemp(prefix="roadmap-pycache-")
+
+# Repository-location overrides inherited from a shell or hook would point Git at another
+# repository; other GIT_* variables (for example GIT_SSL_CAINFO for push) are kept.
+GIT_LOCATION_VARS = ("GIT_DIR", "GIT_WORK_TREE", "GIT_INDEX_FILE", "GIT_OBJECT_DIRECTORY",
+                     "GIT_ALTERNATE_OBJECT_DIRECTORIES", "GIT_COMMON_DIR", "GIT_NAMESPACE", "GIT_PREFIX",
+                     "GIT_CEILING_DIRECTORIES", "GIT_DISCOVERY_ACROSS_FILESYSTEM")
+
+
+def git_env() -> dict[str, str]:
+    return {k: v for k, v in os.environ.items() if k not in GIT_LOCATION_VARS}
+
+
+def planted_modules(tools: str = TOOLS_DIR) -> list[str]:
+    """Untracked or ignored importable entries directly under tools/: modules, sourceless
+    bytecode, extension modules and package directories. The sibling imports below put tools/
+    first on sys.path, so such a file would shadow a library. Listed from the parent directory,
+    so a planted tools/.git cannot answer for it."""
+    parent, base = os.path.split(tools)
+    listed = subprocess.run(["git", "-c", "core.fsmonitor=false", "-C", parent, "ls-files", "-z", "--others",
+                             "--directory", "--", base + "/"], capture_output=True, text=True, env=git_env())
+    if listed.returncode:
+        return [f"<git ls-files failed: {listed.stderr.strip()[-200:]}>"]
+    # Only entries directly in tools/ shadow a top-level import; tracked subdirectories do not.
+    names = [p[len(base) + 1:] for p in listed.stdout.split("\0") if p.startswith(base + "/")]
+    importable = tuple(importlib.machinery.all_suffixes())
+    found = sorted(n for n in names if n and "/" not in n.rstrip("/") and n != "__pycache__/"
+                   and (n.endswith("/") or n.endswith(importable) or "." not in n))
+    return ([".git"] if os.path.lexists(os.path.join(tools, ".git")) else []) + found
+
+
+if __name__ == "__main__" and (planted := planted_modules()):
+    sys.exit(f"refusing to start: untracked modules under tools/ could run as controller code: {planted}")
+from agent_gate import (FAIL_EXIT as GATE_FAIL_EXIT, PROGRESS_CHECK, GatePlan,  # noqa: E402
+                        resolve as resolve_gate, run_gate)
+from agent_pipeline import TaskError, is_protected, require_pipeline_release  # noqa: E402
+from common import agent_source_paths  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[1]
 LEDGER = ROOT / "docs" / "roadmap-pipeline" / "ledger.json"
@@ -76,15 +111,20 @@ GRAPHIFY_READ = ("graphify_find", "graphify_callers", "graphify_impact", "graphi
                  "graphify_trace", "graphify_imports_exports", "query_graph", "recall",
                  "list_repositories", "graph_stats", "search", "fetch")
 GRAPHIFY_SERVERS = ("Graphify", "claude_ai_Graphify")
-READ_GIT = ("git status", "git diff", "git log", "git show", "git rev-parse", "git branch --show-current")
+# No git diff/log/show: their --output=<path> writes anywhere, including .git/config.worktree.
+READ_GIT = ("git status", "git rev-parse", "git branch --show-current")
 DENY = ["Bash(git push:*)", "Bash(git commit:*)", "Bash(git reset:*)", "Bash(git checkout:*)",
         "Bash(git clean:*)", "Bash(git stash:*)", "Bash(git rebase:*)", "Bash(git merge:*)",
         "Bash(gh:*)", "Bash(curl:*)", "Bash(wget:*)", "WebFetch", "WebSearch",
         "Read(~/.claude/.credentials.json)", "Read(~/.ssh/**)", "Read(~/.config/gh/**)",
-        "Read(~/.git-credentials)", "Read(//home/claude/**)", "Read(//root/.ccr/**)"]
+        "Read(~/.git-credentials)", "Read(//home/claude/**)", "Read(//root/.ccr/**)",
+        # Paths the controller's scope check cannot see: Git state, caches, home.
+        "Edit(.git/**)", "Edit(**/__pycache__/**)", "Edit(**/*.pyc)", "Edit(.claude/**)",
+        # Controller state: the callback baseline, STOP and session logs.
+        "Edit(build/roadmap-pipeline/**)"]
 PROCESS_TAG = "roadmap-pipeline-"
 READ_ONLY_DISALLOWED = "Edit,Write,MultiEdit,NotebookEdit"
-INIT_ALLOWED_PROBE = "python3 -B tools/progress.py --check"
+CALLBACKS_MARKER = "callbacks-baseline.json"  # present while a session may change Git state
 INIT_DENY_PROBE = "build/roadmap-pipeline/DENY-PROBE"
 TRAILERS = ("Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>\n"
             "Claude-Session: https://claude.ai/code/session_01TJtT9VANihpE4RzPd4d8su\n")
@@ -239,13 +279,11 @@ def worker_env(source: dict[str, str]) -> dict[str, str]:
     return env
 
 
-def allow_rules(task: dict | None, extra_tools: tuple[str, ...] = ()) -> list[str]:
+def allow_rules(extra_tools: tuple[str, ...] = ()) -> list[str]:
+    """Host sessions read and edit only; candidate code runs solely in the isolated gate."""
     rules = ["Read", "Glob", "Grep", "Skill", *extra_tools]
     rules += [f"Bash({c}:*)" for c in READ_GIT]
     rules += [f"mcp__{s}__{t}" for s in GRAPHIFY_SERVERS for t in GRAPHIFY_READ]
-    for command in (task or {}).get("checks", []) + (task or {}).get("worker_commands", []):
-        rules.append(f"Bash({command}:*)")
-        rules.append(f"Bash(python3 -B tools/tokenguard.py run -- {command}:*)")
     return rules
 
 
@@ -270,8 +308,16 @@ def claude_argv(cfg: Config, name: str, session_id: str, settings: Path, schema:
     return argv
 
 
+def codex_argv(result: Path) -> list[str]:
+    """Installed Codex 0.167.2 interface; retain user config, auth, MCP and hooks."""
+    return ["codex", "exec", "--ephemeral", "--strict-config", "--sandbox", "workspace-write",
+            "--json", "--output-last-message", str(result), "-"]
+
+
 def failure_fingerprint(kind: str, text: str) -> str:
-    lines = [re.sub(r"\d+(\.\d+)?(ms|s)\b", "<t>", l) for l in text.splitlines()[-20:]]
+    # The whole bounded text: a tail window misses which test failed when stderr ends the same.
+    lines = [re.sub(r"(duration_ms:?\s+)\d+(\.\d+)?", r"\1<t>", re.sub(r"\d+(\.\d+)?(ms|s)\b", "<t>", l))
+             for l in text.splitlines()]
     return sha256(kind + "\n" + "\n".join(lines))[:16]
 
 
@@ -333,8 +379,51 @@ def pid_alive(pid: int) -> bool:
     return True
 
 
+def git_callbacks() -> str:
+    """Fingerprint of every Git setting and hook that could run code on a later Git call."""
+    config = subprocess.run(["git", "config", "--list", "--show-scope", "--show-origin"], cwd=ROOT,
+                            capture_output=True, text=True, env=git_env()).stdout
+    parts = [config]
+    for name in ("hooks", "info/attributes"):
+        path = Path(git("rev-parse", "--git-path", name).strip())
+        path = path if path.is_absolute() else ROOT / path
+        files = sorted(path.rglob("*")) if path.is_dir() else [path]
+        for file in files:
+            if file.is_file() or file.is_symlink():
+                info = file.lstat()
+                body = (os.readlink(file).encode() + b"\0" if file.is_symlink() else b"") + \
+                    (file.read_bytes() if file.is_file() else b"")
+                parts.append(f"{file}:{info.st_mode:o}:{sha256(body)}")
+    return sha256("\n".join(parts))
+
+
+GATE_VOLATILE = ("## resource:", "## scratch:", "## ephemeral scratch:", "## source", "## staged source")
+
+
+def gate_report(log: Path) -> tuple[str, str]:
+    """Digest of the gate log and its raw stream files, and repair feedback that inlines the
+    failing output without per-run resource evidence (which would defeat identical-failure detection)."""
+    # The log directory is created by the controller after the session, so only the gate writes here.
+    files = [f for f in [log, *sorted(log.parent.glob(log.name + ".*"))] if f.is_file() and not f.is_symlink()]
+    digest = sha256(b"".join(f.name.encode() + b"\0" + f.read_bytes() + b"\0" for f in files))
+    lines: list[str] = []
+    for line in log.read_text(errors="replace").splitlines() if files else []:
+        if line.startswith("## bounded raw streams:"):
+            for name in line.split(":", 1)[1].replace(",", " ").split():
+                stream = log.with_name(name)
+                if Path(name).name == name and stream.is_file():
+                    lines += [f"## {name}", *stream.read_text(errors="replace").splitlines()[-60:]]
+        elif not line.startswith(GATE_VOLATILE):
+            lines.append(line)
+    for stream in (log.with_name(f"{log.name}.resource.{s}.log") for s in ("stdout", "stderr")):
+        if stream in files:  # raw output saved when the sandbox boundary itself failed
+            lines += [f"## {stream.name}", *stream.read_text(errors="replace").splitlines()[-60:]]
+    return digest, "\n".join(lines[-120:])
+
+
 def git(*args: str, check: bool = True) -> str:
-    done = subprocess.run(["git", *args], cwd=ROOT, capture_output=True, text=True)
+    done = subprocess.run(["git", "-c", "core.fsmonitor=false", *args], cwd=ROOT, capture_output=True, text=True,
+                          env=git_env())
     if check and done.returncode:
         raise Stop(f"git {' '.join(args[:3])} failed ({done.returncode}): {done.stderr.strip()[-800:]}")
     return done.stdout
@@ -345,30 +434,42 @@ class Controller:
         self.cfg = cfg
         self.state = state
         self.lock_file = None
+        self.lock_acquired = False
+        self.lease_owned = False
         self.spent = 0.0
+        self.callbacks: str | None = None  # set by preflight(); unset means every session stops
         self.run_id = dt.datetime.now().strftime("%Y%m%dT%H%M%S") + f"-{os.getpid()}"
 
     # --- locking and lifecycle ---
     def acquire(self) -> None:
         self.state.mkdir(parents=True, exist_ok=True)
+        if (self.state / "STOP").exists():  # before recover() can run git status
+            raise Stop("stop file present (build/roadmap-pipeline/STOP)")
         self.lock_file = (self.state / "controller.lock").open("a+")
         try:
             fcntl.flock(self.lock_file, fcntl.LOCK_EX | fcntl.LOCK_NB)
         except BlockingIOError as error:
             raise Stop("another controller holds build/roadmap-pipeline/controller.lock") from error
+        self.lock_acquired = True
         self.lock_file.seek(0)
         self.lock_file.truncate()
         self.lock_file.write(json.dumps({"pid": os.getpid(), "run": self.run_id, "started": now()}))
         self.lock_file.flush()
+        self.refuse_live_workers()  # a live worker could still change the callbacks
+        self.check_saved_baseline(retire=False)  # recover() runs git status, which can run a filter
         self.recover()
 
     def release(self) -> None:
-        with contextlib.suppress(FileNotFoundError):
-            (self.state / "lease.json").unlink()
+        if self.lease_owned:
+            with contextlib.suppress(FileNotFoundError):
+                (self.state / "lease.json").unlink()
         if self.lock_file:
-            fcntl.flock(self.lock_file, fcntl.LOCK_UN)
+            if self.lock_acquired:
+                fcntl.flock(self.lock_file, fcntl.LOCK_UN)
             self.lock_file.close()
             self.lock_file = None
+        self.lock_acquired = False
+        self.lease_owned = False
 
     def recover(self) -> None:
         """A lease without a live owner means an interrupted task: never auto-clean it."""
@@ -396,6 +497,7 @@ class Controller:
         lease = json.loads(lease_path.read_text()) if lease_path.exists() else {}
         lease.update(fields, controller_pid=os.getpid(), run=self.run_id, heartbeat=now())
         atomic_write(lease_path, json.dumps(lease, indent=2))
+        self.lease_owned = True
 
     def check_controls(self) -> None:
         if (self.state / "STOP").exists():
@@ -406,23 +508,58 @@ class Controller:
             if (self.state / "STOP").exists():
                 raise Stop("stop file present while paused")
 
+    def refuse_live_workers(self) -> None:
+        # `--`: without it pgrep parses the pattern as an option, exits 2 and finds nothing.
+        try:
+            probe = subprocess.run(["pgrep", "-f", "--", f"--name {PROCESS_TAG}"],
+                                   capture_output=True, text=True)
+        except OSError as error:
+            raise Stop(f"worker probe failed: {error}") from error
+        if probe.returncode not in (0, 1):  # 1: no match; anything else is no evidence of absence
+            raise Stop(f"worker probe failed (pgrep exit {probe.returncode}): {probe.stderr.strip()[-300:]}")
+        alive = [p for p in probe.stdout.split() if int(p) != os.getpid()]
+        if alive:
+            raise Stop(f"a previous worker process is still alive: {alive}")
+
     def preflight(self) -> str:
+        self.refuse_live_workers()
+        self.check_saved_baseline(retire=True)  # no worker is alive any more
+        self.callbacks = git_callbacks()
         branch = git("branch", "--show-current").strip()
         if branch != self.cfg.branch:
             raise Stop(f"checkout is on {branch!r}, expected {self.cfg.branch!r}")
         dirty = git("status", "--porcelain", "--untracked-files=all").strip()
         if dirty:
             raise Stop(f"checkout is not clean; refusing to start a writer:\n{dirty[:2000]}")
-        alive = subprocess.run(["pgrep", "-f", f"--name {PROCESS_TAG}"],
-                               capture_output=True, text=True).stdout.split()
-        if [p for p in alive if int(p) != os.getpid()]:
-            raise Stop(f"a previous worker process is still alive: {alive}")
         return git("rev-parse", "HEAD").strip()
+
+    def check_saved_baseline(self, *, retire: bool) -> None:
+        """Before any Git command that can run a hook or filter. A session that never reached its
+        own check (interrupt, crash, kill) left its baseline behind: compare with it, never adopt
+        a change. Retire it only once no worker can still change the callbacks."""
+        marker = self.state / CALLBACKS_MARKER
+        if not marker.exists():
+            return
+        try:
+            self.callbacks = json.loads(marker.read_text())["baseline"]
+        except (ValueError, KeyError, TypeError):
+            self.callbacks = None  # unreadable baseline: fail closed
+        self.check_callbacks("an interrupted session")
+        if retire:
+            marker.unlink()
+
+    def check_callbacks(self, where: str) -> None:
+        if git_callbacks() != self.callbacks:
+            # Sticky: a later run must not adopt the planted callback as its new baseline.
+            atomic_write(self.state / "STOP", f"Git callbacks changed during {where}\n")
+            raise Stop(f"Git hooks or configuration changed during {where}; no further Git "
+                       "command runs until the lead inspects .git and the Git configuration")
 
     # --- one fresh headless session ---
     def session(self, kind: str, task_id: str, attempt_dir: Path, prompt: str, schema: dict,
                 rules: list[str], mode: str, timeout: int, disallowed: str | None = None,
                 budget: float | None = None, effort: str | None = None) -> dict:
+        require_pipeline_release()
         if self.spent >= self.cfg.total_budget_usd:
             raise Stop(f"cumulative estimated cost {self.spent:.2f} USD reached the cap")
         session_id = str(uuid.uuid4())
@@ -435,29 +572,38 @@ class Controller:
         atomic_write(attempt_dir / f"{kind}-argv.json", json.dumps(argv[:1] + argv[1:], indent=1))
         out, err = attempt_dir / f"{kind}-result.json", attempt_dir / f"{kind}-stderr.log"
         started = time.monotonic()
-        with out.open("w") as stdout, err.open("w") as stderr, brief.open("rb") as stdin:
-            proc = subprocess.Popen(argv, cwd=ROOT, env=worker_env(dict(os.environ)), stdin=stdin,
-                                    stdout=stdout, stderr=stderr, start_new_session=True)
-            self.heartbeat(task=task_id, phase=kind, worker_pid=proc.pid, session_id=session_id)
-            code, stop_reason = None, None
-            deadline = time.monotonic() + timeout
-            while code is None:
-                try:
-                    code = proc.wait(timeout=60)
-                except subprocess.TimeoutExpired:
-                    live = self.transcript_check(session_id, prompt)
-                    self.heartbeat(compactions=live.get("compactions", 0))
-                    if live.get("compactions", 0) > self.cfg.max_compactions:
-                        stop_reason = f"compaction churn: {live['compactions']} compactions"
-                    elif time.monotonic() > deadline:
-                        stop_reason = f"timeout after {timeout}s"
-                    if stop_reason:
-                        os.killpg(proc.pid, signal.SIGTERM)
-                        with contextlib.suppress(subprocess.TimeoutExpired):
-                            proc.wait(timeout=30)
-                        code = -9
-            with contextlib.suppress(ProcessLookupError):
-                os.killpg(proc.pid, signal.SIGKILL)  # no orphan child may keep editing
+        # Kept until this session is verified: an interrupted controller is checked against it later.
+        atomic_write(self.state / CALLBACKS_MARKER, json.dumps({"baseline": self.callbacks, "session": session_id}))
+        proc = None
+        try:
+            with out.open("w") as stdout, err.open("w") as stderr, brief.open("rb") as stdin:
+                proc = subprocess.Popen(argv, cwd=ROOT, env=worker_env(dict(os.environ)), stdin=stdin,
+                                        stdout=stdout, stderr=stderr, start_new_session=True)
+                self.heartbeat(task=task_id, phase=kind, worker_pid=proc.pid, session_id=session_id)
+                code, stop_reason = None, None
+                deadline = time.monotonic() + timeout
+                while code is None:
+                    try:
+                        code = proc.wait(timeout=60)
+                    except subprocess.TimeoutExpired:
+                        live = self.transcript_check(session_id, prompt)
+                        self.heartbeat(compactions=live.get("compactions", 0))
+                        if live.get("compactions", 0) > self.cfg.max_compactions:
+                            stop_reason = f"compaction churn: {live['compactions']} compactions"
+                        elif time.monotonic() > deadline:
+                            stop_reason = f"timeout after {timeout}s"
+                        if stop_reason:
+                            os.killpg(proc.pid, signal.SIGTERM)
+                            with contextlib.suppress(subprocess.TimeoutExpired):
+                                proc.wait(timeout=30)
+                            code = -9
+                with contextlib.suppress(ProcessLookupError):
+                    os.killpg(proc.pid, signal.SIGKILL)  # no orphan child may keep editing
+        finally:
+            if proc is not None:
+                with contextlib.suppress(ProcessLookupError):
+                    os.killpg(proc.pid, signal.SIGKILL)  # also on an exception path
+            self.check_callbacks(f"the {kind} session {session_id}")
         self.heartbeat(worker_pid=None)
         text = out.read_text(errors="replace")
         try:
@@ -476,6 +622,7 @@ class Controller:
             "output": structured(result),
         }
         atomic_write(attempt_dir / f"{kind}-record.json", json.dumps(record, indent=2))
+        (self.state / CALLBACKS_MARKER).unlink(missing_ok=True)  # verified in the finally clause
         blob = text + err.read_text(errors="replace")
         if code != 0 and RATE_LIMIT.search(blob):
             raise Stop(f"{kind} session hit a rate or usage limit; see {err}")
@@ -532,46 +679,38 @@ class Controller:
                     shutil.rmtree(target) if target.is_dir() else target.unlink()
 
     def run_checks(self, task: dict, attempt_dir: Path) -> tuple[bool, list[dict], str]:
+        require_pipeline_release()
         results, failure = [], ""
         lock = (self.state / "qemu.lock").open("a+") if task.get("native") else None
         if lock:
             fcntl.flock(lock, fcntl.LOCK_EX)
         try:
-            commands = [(f"check-{i}", c) for i, c in enumerate(task["checks"], 1)]
-            commands.append(("progress", "python3 tools/progress.py --check"))
-            for name, command in commands:
-                self.heartbeat(phase=f"check:{name}")
-                log = attempt_dir / f"{name}.log"
-                started = time.monotonic()
-                with log.open("w") as out:
-                    try:
-                        code = subprocess.call(["bash", "--noprofile", "--norc", "-eo", "pipefail", "-c", command],
-                                               cwd=ROOT, stdout=out, stderr=subprocess.STDOUT,
-                                               timeout=self.cfg.check_timeout)
-                    except subprocess.TimeoutExpired:
-                        code = 124
-                results.append({"name": name, "command": command, "exit_code": code,
-                                "duration_s": round(time.monotonic() - started, 1),
-                                "log_sha256": sha256(log.read_bytes())})
-                if code:
-                    failure = f"{command} exited {code}:\n" + "\n".join(
-                        log.read_text(errors="replace").splitlines()[-120:])
-                    return False, results, failure
-            if task.get("gates"):
-                log = attempt_dir / "gate.log"
-                try:
-                    commands = resolve_gate(task["gates"], ROOT / ".github" / "workflows")
-                except (KeyError, ValueError) as error:
-                    failure = f"gate blocked: {error}"
-                    log.write_text(failure + "\n")
-                    code = GATE_FAIL_EXIT
-                else:
-                    code = run_gate(commands, ROOT, log)
-                results.append({"name": "gates", "command": " ".join(task["gates"]), "exit_code": code,
-                                "log_sha256": sha256(log.read_bytes())})
-                if code:
-                    return False, results, failure or "\n".join(
-                        log.read_text(errors="replace").splitlines()[-120:])
+            self.heartbeat(phase="checks")
+            # A fresh directory the worker could not pre-seed with files bound into the receipt.
+            log = Path(tempfile.mkdtemp(prefix="checks-", dir=attempt_dir)) / "checks.log"
+            commands = [(f"check-{i}", c, {}) for i, c in enumerate(task["checks"], 1)]
+            try:
+                gate = resolve_gate(task["gates"], ROOT / ".github" / "workflows") if task.get("gates") else None
+                # resolve() already ends with the progress check; plain checks add it here.
+                # One shared deadline: the task checks' budget plus the resolved gate's own budget.
+                timeout = self.cfg.check_timeout + ((gate.timeout_seconds or 0) if gate else 0)
+                plan = GatePlan(tuple(commands) + (gate.commands if gate else (PROGRESS_CHECK,)),
+                                gate.finalizers if gate else (), timeout,
+                                gate.finalizer_reserve_seconds if gate else 0)
+                # Untracked candidate files must reach the gate; it stages only these paths.
+                sources = agent_source_paths(self.changed())
+            except (KeyError, ValueError, ImportError, OSError, subprocess.SubprocessError) as error:
+                failure = f"gate blocked: {error}"
+                log.write_text(failure + "\n")
+                code = GATE_FAIL_EXIT
+            else:
+                code = run_gate(plan, ROOT, log, os.environ.copy(), source_paths=sources)
+            digest, report = gate_report(log)
+            results.append({"name": "isolated-checks", "commands": [c[1] for c in commands],
+                            "gates": task.get("gates", []), "exit_code": code, "log": str(log),
+                            "log_sha256": digest})
+            if code:
+                return False, results, failure or report or f"isolated checks exited {code}"
             return True, results, ""
         finally:
             if lock:
@@ -579,54 +718,94 @@ class Controller:
                 lock.close()
 
     # --- prompts ---
-    def worker_prompt(self, task: dict, head: str, feedback: str) -> str:
+    def worker_prompt(self, task: dict, head: str, feedback: str,
+                      runner: str = "the controller runs the task's checks and gates in the isolated "
+                                    "gate runner and returns any failure to the next session") -> str:
         fields = {k: task.get(k) for k in ("id", "criterion", "milestone", "title", "goal", "why_now",
                                            "write_paths", "read_paths", "graph_notes", "checks", "acceptance",
                                            "out_of_scope", "non_claimable", "risk", "evidence_level")}
         text = f"""roadmap-pipeline-task {task['id']} (run {self.run_id})
 
-You are a FRESH worker session of the BaryonOS H/U/N/B/A/P/L/R roadmap pipeline. You
-have no earlier conversation; this brief, AGENTS.md (already loaded through CLAUDE.md)
+You are a FRESH Codex worker session of the BaryonOS H/U/N/B/A/P/L/R roadmap pipeline. You
+have no earlier conversation; read this brief, AGENTS.md and applicable directory rules
 and the repository are your only context. Implement exactly ONE cohesive, verifiable
 slice described below, then stop.
 
-Repository: {ROOT} on branch {self.cfg.branch} at {head}. {"The working tree holds the previous attempt's uncommitted change; repair it." if feedback else "The checkout was clean when you started."}
+Repository: {ROOT} on branch {self.cfg.branch} at {head}. {"The working tree holds the previous attempt's uncommitted change; repair it." if feedback else "The checkout was clean before the controller recorded this active ledger claim; that lead-owned ledger change is expected."}
 
 Task (immutable; from docs/roadmap-pipeline/ledger.json):
 {json.dumps(fields, indent=2, ensure_ascii=False)}
 
 Rules (binding, in addition to AGENTS.md):
+- Use the actual builder role `.codex/agents/os_builder.toml`; optional missing
+  role files are not prerequisites. Claude owns S09 and Orbitaal, Codex owns this task.
 - Write ONLY inside write_paths. Never edit .github/, tools/agent_*.py, tools/common.py,
   tools/progress.py, tools/roadmap_runner.py, AGENTS.md, CLAUDE.md, docs/progress.json,
   docs/PROGRESS.md, docs/PROJECT-STATE.md, docs/DECISIONS.md, README.md or
-  docs/roadmap-pipeline/. The controller reverts anything else and records it.
+  docs/roadmap-pipeline/. The lead checks the full diff before accepting it.
 - Do not run git commands that change state, do not commit, push, fetch or use gh.
-  Read-only git (status/diff/log/show) is allowed. No network access is needed.
-- Graphify first: if Graphify MCP tools are available, call recall with your write
+  Only `git status`, `git rev-parse` and `git branch --show-current` are allowed.
+  No network access is needed.
+- Graphify first: if Graphify MCP tools are available, invoke `recall` with your write
   paths and use graphify_find/impact/tests_for/file_neighbors before editing; the graph
   reflects main, so confirm against current files. If unavailable, read code directly
-  and say so. Do not call remember (the lead records durable notes).
+  and say so. Do not invoke `remember` (the lead records durable notes).
 - Load the `ponytail` skill (full) if available: smallest safe change, reuse existing
   utilities, no reduced functionality or test evidence. Use relevant
   `verification-loop` guidance and `.agents/skills/os-dev` only where it applies.
-- You may run exactly the task's check commands (optionally through
-  `python3 -B tools/tokenguard.py run -- <command>`), plus read-only git. Other commands
-  are denied automatically; that is expected, not an error to work around.
+- Targeted read-only source inspection using cat, rg, sed or Token Guard inspect/slice
+  is allowed, plus `git status`, `git rev-parse` and `git branch --show-current`. Do
+  not build or run code: {runner}. Tool policy is not a claim of technical isolation.
 - Security Floor: no new trust roots, key escrow, telemetry, cloud fallback, broader
   capabilities or relaxed verification. Do not invent cryptography. Validate untrusted
   lengths and pointers. Add negative tests for every new boundary.
 - Public text, comments and docs in professional, impersonal English. Label evidence
   levels honestly (host test, native QEMU, physical hardware, human study, external
   audit). Never claim a check passed unless you ran it and saw exit code 0; the
-  controller re-runs every check independently anyway.
+  lead validates results against source and raw logs before acceptance.
 - Do not change docs/progress.json or award acceptance; report what evidence exists.
 - If the task is not safely implementable as specified, stop and report state
   "blocked" with the precise blocker instead of improvising a different task.
 """
         if feedback:
             text += f"\nThe previous attempt was rejected. Resolve ONLY these concrete findings:\n{feedback}\n"
-        text += "\nFinish with the structured result (JSON schema enforced): no log dumps, no false success.\n"
+        for plugin, skill in (("ponytail/ponytail", "ponytail"), ("ecc/ecc", "verification-loop")):
+            paths = list((Path.home() / ".codex/plugins/cache" / plugin).glob(f"*/skills/{skill}/SKILL.md"))
+            if paths:
+                text += f"\nRead {max(paths, key=lambda path: path.stat().st_mtime)} once; apply only relevant guidance.\n"
+        text += "\nFinish with one JSON result matching WORKER_SCHEMA in tools/roadmap_runner.py; no log dumps or false success.\n"
         return text
+
+    def prepare_manual(self) -> dict:
+        """Claim a READY task without executing untrusted code or lifting the hold."""
+        if not self.lock_acquired:
+            raise Stop("manual claim requires the controller lock")
+        self.check_controls()
+        head = self.preflight()
+        ledger = load_ledger(LEDGER)
+        if any(task["status"] == "active" for task in ledger["tasks"]):
+            raise Stop("a manual task is already active; validate or recover it first")
+        task = select_task(ledger)
+        if task is None:
+            raise Stop("no eligible READY task; preserve active/manual work")
+        directory = self.state / "manual" / f"{task['id']}-{uuid.uuid4().hex}"
+        directory.mkdir(parents=True)
+        prompt = self.worker_prompt(task, head, "", "the lead runs the task's checks and gates after "
+                                                    "validating the diff")
+        prompt += ("\nManual fresh-session fallback: the lead launches this session, validates the diff "
+                   "and runs required gates directly. Do not run the held controllers or agent_gate. "
+                   "No automatic continuation or safe unattended readiness is established.\n")
+        atomic_write(directory / "brief.md", prompt)
+        plan = {"task_id": task["id"], "base": head, "branch": self.cfg.branch,
+                "brief_sha256": sha256(prompt), "stdin": str(directory / "brief.md"),
+                "argv": codex_argv(directory / "final.json"),
+                "stdout": str(directory / "events.jsonl"), "stderr": str(directory / "stderr.log"),
+                "manual_required": True, "unattended_ready": False}
+        atomic_write(directory / "dispatch.json", json.dumps(plan, indent=2))
+        update_task(task["id"], path=LEDGER, status="active", history={
+            "at": now(), "event": "manual-codex-claim", "base": head,
+            "dispatch": str(directory / "dispatch.json"), "brief_sha256": plan["brief_sha256"]})
+        return plan
 
     def verifier_prompt(self, task: dict, head: str, diff: str, untracked: list[str], checks: list[dict]) -> str:
         return f"""roadmap-pipeline-verify {task['id']} (run {self.run_id})
@@ -674,16 +853,21 @@ file. Report facts only:
    whether BaryonOS/BaryonOS is queryable.
 5. Which of these skills are listed for you: ponytail, verification-loop, token-guard,
    os-dev (or the repository skill .agents/skills/os-dev).
-6. Policy probes. (a) Run `python3 -B tools/progress.py --check`; it is explicitly
-   allowed. (b) Then try exactly `python3 -c "open('build/roadmap-pipeline/DENY-PROBE','w').write('x')"`;
-   it is not allowed and should be refused without a prompt. Report both outcomes
-   (put (b) in bash_denied_example and (a) in notes). Do not try any workaround.
+6. Policy probe. Try exactly `python3 -c "open('build/roadmap-pipeline/DENY-PROBE','w').write('x')"`;
+   it is not allowed and should be refused without a prompt. Report the outcome in
+   bash_denied_example. Do not try any workaround.
 Return the structured result.
 """
 
     # --- task lifecycle ---
     def run_task(self, task: dict) -> str:
+        require_pipeline_release()
         head = self.preflight()
+        if task.get("gates"):  # PyYAML and the workflows must work before a session is spent
+            try:
+                resolve_gate(task["gates"], ROOT / ".github" / "workflows")
+            except (KeyError, ValueError, ImportError) as error:
+                raise Blocked(f"gate cannot be resolved: {error}") from error
         # The ledger is not touched while a worker runs: 'active' is the lease itself.
         self.heartbeat(task=task["id"], phase="start", base=head)
         task_dir = self.state / "runs" / self.run_id / task["id"]
@@ -693,7 +877,7 @@ Return the structured result.
             adir = task_dir / f"attempt-{attempt}"
             adir.mkdir(parents=True, exist_ok=True)
             worker = self.session("worker", task["id"], adir, self.worker_prompt(task, head, feedback),
-                                  WORKER_SCHEMA, allow_rules(task, ("Edit", "Write", "MultiEdit")),
+                                  WORKER_SCHEMA, allow_rules(("Edit", "Write", "MultiEdit")),
                                   "acceptEdits", self.cfg.worker_timeout, effort=effort_for(self.cfg, task))
             record = {"attempt": attempt, "worker": worker}
             attempts.append(record)
@@ -723,7 +907,7 @@ Return the structured result.
                     before = self.tree_fingerprint()
                     verifier = self.session("verifier", task["id"], adir,
                                             self.verifier_prompt(task, head, diff[:60_000], untracked, checks),
-                                            VERIFIER_SCHEMA, allow_rules(None), "default",
+                                            VERIFIER_SCHEMA, allow_rules(), "default",
                                             self.cfg.verifier_timeout, disallowed=READ_ONLY_DISALLOWED,
                                             budget=self.cfg.verifier_budget_usd,
                                             effort=effort_for(self.cfg, task))
@@ -799,7 +983,8 @@ Return the structured result.
             raise Stop("assessment update would change criteria; refusing")
         atomic_write(path, json.dumps(data, indent=2, ensure_ascii=False) + "\n")
         for mode in ("--write", "--check"):
-            done = subprocess.run([sys.executable, "-B", "tools/progress.py", mode], cwd=ROOT,
+            # -I keeps the checkout's tools/ directory off sys.path: no worker module shadows stdlib.
+            done = subprocess.run([sys.executable, "-I", "-B", "tools/progress.py", mode], cwd=ROOT,
                                   capture_output=True, text=True)
             if done.returncode:
                 raise Stop(f"progress.py {mode} failed: {done.stdout[-400:]}{done.stderr[-400:]}")
@@ -814,8 +999,9 @@ Return the structured result.
             return
         for delay in (0, 2, 4, 8, 16):
             time.sleep(delay)
-            done = subprocess.run(["git", "push", "-q", "-u", "origin", self.cfg.branch], cwd=ROOT,
-                                  capture_output=True, text=True)
+            done = subprocess.run(["git", "-c", "core.fsmonitor=false", "push", "-q", "-u", "origin",
+                                   self.cfg.branch], cwd=ROOT,
+                                  capture_output=True, text=True, env=git_env())
             if done.returncode == 0:
                 return
         raise Stop(f"push failed: {done.stderr.strip()[-600:]}")
@@ -836,7 +1022,7 @@ Return the structured result.
         probe = ROOT / INIT_DENY_PROBE
         probe.unlink(missing_ok=True)
         record = self.session("init", "INIT-CHECK", adir, self.init_prompt(), INIT_SCHEMA,
-                              allow_rules(None) + [f"Bash({INIT_ALLOWED_PROBE}:*)"], "default", 15 * 60,
+                              allow_rules(), "default", 15 * 60,
                               disallowed=READ_ONLY_DISALLOWED, budget=self.cfg.verifier_budget_usd)
         record["head_expected"] = head
         record["checkout_clean_after"] = not self.changed()
@@ -854,6 +1040,7 @@ Return the structured result.
                 out.write(json.dumps({"at": now(), **fields}) + "\n")
             print(json.dumps({"at": now(), **fields}), flush=True)
 
+        self.check_controls()  # a STOP from an earlier run must hold before any Git call
         if init:
             record = self.init_check()
             event(event="init-check", session=record["session_id"], exit=record["exit_code"],
@@ -896,7 +1083,18 @@ def status(state: Path = STATE) -> int:
     return 0
 
 
+def isolate_imports() -> None:
+    """Worker sessions can write under the checkout: no later import, including lazy stdlib
+    imports and agent_gate's PyYAML, may resolve a module from there."""
+    checkout = {ROOT, ROOT / "tools"}
+    sys.path[:] = [p for p in sys.path if Path(p or ".").resolve() not in checkout]
+    # Optional for plain checks; a task with gates resolves them before its worker session.
+    with contextlib.suppress(ImportError):
+        import yaml  # noqa: F401  (agent_gate imports it only after a worker session)
+
+
 def main() -> int:
+    isolate_imports()
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     sub = parser.add_subparsers(dest="cmd", required=True)
     run = sub.add_parser("run", help="run the controller loop")
@@ -908,7 +1106,7 @@ def main() -> int:
     run.add_argument("--model", default=Config.model)
     run.add_argument("--effort", default=Config.effort, help="security/high-risk tasks")
     run.add_argument("--routine-effort", default=Config.routine_effort, help="low/medium-risk tasks")
-    for name in ("status", "stop", "pause", "resume", "validate"):
+    for name in ("status", "stop", "pause", "resume", "validate", "brief"):
         sub.add_parser(name)
     args = parser.parse_args()
     STATE.mkdir(parents=True, exist_ok=True)
@@ -927,6 +1125,25 @@ def main() -> int:
             (STATE / name).unlink(missing_ok=True)
         print("stop/pause cleared")
         return 0
+    if args.cmd == "brief":
+        if (STATE / "STOP").exists():  # before any Git call, like the run loop
+            print("stop file present (build/roadmap-pipeline/STOP)")
+            return 2
+        controller = Controller(Config(branch=git("branch", "--show-current").strip()))
+        try:
+            controller.acquire()
+            print(json.dumps(controller.prepare_manual(), indent=2))
+        except Stop as error:
+            print(str(error))
+            return 2
+        finally:
+            controller.release()
+        return 0
+    try:
+        require_pipeline_release()
+    except TaskError as error:
+        print(f"{error} Use `brief` for lead-supervised fresh Codex dispatch.")
+        return 2
     cfg = Config(push=not args.no_push, total_budget_usd=args.total_budget_usd,
                  session_budget_usd=args.session_budget_usd, model=args.model, effort=args.effort,
                  routine_effort=args.routine_effort)

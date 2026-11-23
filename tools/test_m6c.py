@@ -63,7 +63,7 @@ def test_m6c():
     try:
         run_logged([sys.executable,'-B','tools/preflight.py','--strict'],'m6c-preflight')
         record('strict-development-inventory',True,BUILD/'logs/m6c-preflight.stdout.txt',['M6C-TOOLS'])
-        run_logged(['cargo','+1.90.0','test','--locked','--offline','-p','catalog-core'],'m6c-host-tests')
+        run_logged(['cargo','+1.100.0','test','--locked','--offline','-p','catalog-core'],'m6c-host-tests')
         record('catalog-core-and-wire-host-tests',True,BUILD/'logs/m6c-host-tests.stdout.txt',
                ['M6C-REVISIONS','M6C-TOMBSTONES','M6C-BOUNDED-RECOVERY'])
         run_logged([sys.executable,'-B','-m','unittest','discover','-s','tests','-p','test_m6c_*.py'],

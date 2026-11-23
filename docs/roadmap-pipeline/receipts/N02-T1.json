@@ -1,0 +1,51 @@
+{
+  "task_id": "N02-T1",
+  "source_commit": "138d48de9f351836956db79f2d30dbd93814c59e",
+  "evidence_level": "host model and freestanding build",
+  "files_sha256": {
+    "services/net-protocol/src/resolver.rs": "9f7ea4db84cdf75ceae0a4abc61fab62e8426c2aebeeb230764148325ebc3705",
+    "services/net-protocol/src/dns.rs": "3b49eae50cbbb6bdd79683c2d4549383e93f925dcc9e7347ef849968c88f5c00",
+    "services/net-protocol/src/lib.rs": "a8217814d054d37613816c8625eb98e48c83259e741d198f2cfba5c5b5d512a8",
+    "services/net-protocol/tests/resolver.rs": "3eb729047df58c683e59cd496c76d012b09e85397e576ed7e0ed49d54cee4322",
+    "services/net-protocol/tests/dns.rs": "fe8f504d4a31d80bcf3e8d10f3c96bde871c0a42d737e2dc5eefdf80c6c9247d",
+    "services/net-protocol/README.md": "a9ac3a4c4efba1f2ccea8398d7c9a45532f8ce344f820142698873c911e41f2d"
+  },
+  "checks": {
+    "test": {
+      "command": "/bin/bash -lc 'PATH=/home/simon/.rustup/toolchains/1.90.0-x86_64-unknown-linux-gnu/bin:$PATH python3 -B tools/tokenguard.py run -- /home/simon/.rustup/toolchains/1.90.0-x86_64-unknown-linux-gnu/bin/cargo test --manifest-path services/net-protocol/Cargo.toml --locked'",
+      "exit_code": 0,
+      "log": "build/tokenguard/run-gptlni3r.log",
+      "log_sha256": "0b0ef2ba91b045c8940645eb2b3b4e5dae9559c43661f4f3b04dda854bfa8f1c"
+    },
+    "clippy": {
+      "command": "/bin/bash -lc 'PATH=/home/simon/.rustup/toolchains/1.90.0-x86_64-unknown-linux-gnu/bin:$PATH python3 -B tools/tokenguard.py run -- /home/simon/.rustup/toolchains/1.90.0-x86_64-unknown-linux-gnu/bin/cargo clippy --manifest-path services/net-protocol/Cargo.toml --locked --all-targets -- -D warnings'",
+      "exit_code": 0,
+      "log": "build/tokenguard/run-e0k8vudo.log",
+      "log_sha256": "bb4093b2feaf854f5dfdb554e0fb568d0413c16fb198dfd9580840da439cdc01"
+    },
+    "fmt": {
+      "command": "/bin/bash -lc 'PATH=/home/simon/.rustup/toolchains/1.90.0-x86_64-unknown-linux-gnu/bin:$PATH python3 -B tools/tokenguard.py run -- /home/simon/.rustup/toolchains/1.90.0-x86_64-unknown-linux-gnu/bin/cargo fmt --manifest-path services/net-protocol/Cargo.toml --all -- --check'",
+      "exit_code": 0,
+      "log": "build/tokenguard/run-rdyiyyfk.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "build": {
+      "command": "/bin/bash -lc 'PATH=/home/simon/.rustup/toolchains/1.90.0-x86_64-unknown-linux-gnu/bin:$PATH python3 -B tools/tokenguard.py run -- /home/simon/.rustup/toolchains/1.90.0-x86_64-unknown-linux-gnu/bin/cargo build --manifest-path services/net-protocol/Cargo.toml --locked --release --target x86_64-unknown-none'",
+      "exit_code": 0,
+      "log": "build/tokenguard/run-gwco0ylo.log",
+      "log_sha256": "e4d449f7b3d939bc4c9bbf2caa8cbeb9616fd7e45a73064ba698c7ed79a34b26"
+    }
+  },
+  "host_tests": 79,
+  "worker_session": "01a1f046-5679-7c10-a9ca-2876c8b4ac6c",
+  "review": "One bounded read-only AI source review found no blocking defect; no human audit",
+  "supervision": "Lead validated actual source diff and raw command events; final worker prose was not used as test evidence. Empty shell artifact quarantined under ignored build; no UI files modified.",
+  "not_run": [
+    "native resolver service",
+    "real DNS traffic/sockets",
+    "DNSSEC",
+    "network permission or broker integration",
+    "hardware/human audit"
+  ],
+  "score": "41/100 unchanged; N02 remains open"
+}

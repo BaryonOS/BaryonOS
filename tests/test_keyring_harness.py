@@ -93,6 +93,19 @@ class EntropyFixture(unittest.TestCase):
 
 
 class Verdict(unittest.TestCase):
+    def test_management_evidence_is_required_only_for_normal(self):
+        # Synthetic transcripts test the verdict, never native execution.
+        for key in ("MGMT_EXPORTS", "MGMT_RESTORES", "B_UNSEAL_OK",
+                    "MGMT_WRONG_SECRET_DENIED", "ADMIN_GENERATE_DENIED", "ADMIN_BAD_CALLER",
+                    "LEASE_RECLAIMS", "AUTHORITY_QUARANTINE"):
+            values = good("normal")
+            del values[key]
+            with self.subTest(key=key), self.assertRaisesRegex(ValueError, key):
+                rs.evaluate("normal", transcript("normal", values), 33, False)
+            self.assertNotIn(key, good("restart"))
+        self.assertEqual(rs.EXPECT["normal"]["SERVICE_B_KEYS"], 32)
+        self.assertEqual(rs.EXPECT["restart"]["SERVICE_B_KEYS"], 0)
+
     def test_complete_transcripts_pass_for_every_case(self):
         for case in rs.FEATURE:
             found = rs.evaluate(case, transcript(case, good(case)), 33, False)

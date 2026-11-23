@@ -2,13 +2,13 @@
   "schema_version": 1,
   "rubric_version": 1,
   "assessment": {
-    "date": "2026-11-18",
-    "source_commit": "5acd07961bd12d389987fc2251f4f7834faae97d",
+    "date": "2026-11-19",
+    "source_commit": "8f9708663a8c7b94db3d35613047bcbad3a308c3",
     "assessment_basis": "parent_commit",
-    "branch": "codex/n04-port-sweep",
-    "task": "N04-T1: blocked native full-port sweep prototype; no criterion accepted",
+    "branch": "ccr-eb161a01-03937i",
+    "task": "Record the project-owner decision package of 19 November 2026",
     "previous_score": 41,
-    "summary": "N04-T1 host prototype preserved; native full sweep blocked on measured throughput. No criterion accepted;41/100 unchanged."
+    "summary": "41/100 unchanged. Architecture and priority decisions recorded as ADRs; no implementation or acceptance evidence changes any criterion."
   },
   "tracks": [
     {

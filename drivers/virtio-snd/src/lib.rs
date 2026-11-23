@@ -171,7 +171,12 @@ impl Query {
             items: [StreamInfo::EMPTY; MAX_ITEMS as usize],
             len: 0,
         };
-        for (index, record) in bytes[HDR_BYTES..].chunks_exact(INFO_BYTES).enumerate() {
+        for (index, record) in bytes[HDR_BYTES..]
+            .as_chunks::<INFO_BYTES>()
+            .0
+            .iter()
+            .enumerate()
+        {
             let id = self
                 .start
                 .checked_add(u32::try_from(index).map_err(|_| Error::Overflow)?)

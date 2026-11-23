@@ -57,3 +57,25 @@ Variants must be started with their corresponding feature and `--case`.
 Cold recovery uses only the existing guarded Volume through run_m6;
 a newly created volume is not recovery evidence. The exact protocol, six
 service cuts and six external VM cuts are in docs/implementation/M6A-WRITE-RECOVERY.md.
+
+## Test-only second function (S09 archive fixture)
+
+The driver addresses a closed set of two fixed PCI functions, selected by
+the `Function` enum: `Primary` (`00:05.0`) and `Archive` (`00:06.0`). No
+caller passes a bus/device/function number. `discover()` still means
+`Primary`, so every existing profile is unchanged. `Discovery` and `Device`
+store their function, and every configuration access after discovery
+(bus-master enable, the DRIVER_OK failure path, `begin_reset` and
+`reset_acknowledged`) uses the stored function, so resetting one device
+never touches the other's command register.
+
+Only the kernel feature `test-volume-archive-device` calls
+`discover_function(Function::Archive)`. That feature cannot be combined with
+`native-system`, whose harnesses put virtio-rng on `00:06.0`; a non-blk
+function there would anyway fail the `1af4:1042` identity check and stay
+offline. The second device has its own five pinned pages, disjoint from the
+first device's pool. The same trust model applies: QEMU is trusted, there
+is no IOMMU, and the evidence is local QEMU only. The volume harness attaches
+the second disk with an explicit `addr=0x6`; QEMU refuses an explicit slot
+that is already taken, so a passing boot shows that the boot ESP is not on
+`00:06.0`.

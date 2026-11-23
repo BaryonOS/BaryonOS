@@ -7,7 +7,11 @@ use super::{
     validate_successor, verify_policy, PolicyReject, VerifiedPolicy, BINDING_ENVELOPE_LEN,
     BINDING_MESSAGE_LEN, POLICY_HEADER_LEN, SIGNER_ENTRY_LEN,
 };
-use crate::{Reject, TrustAnchors, ED25519_SIGNATURE, MANIFEST_LEN};
+use crate::policy_anchor::{
+    classify_readback, compare_and_swap, transition_identity, AnchorReject, CommitState,
+    PolicyAnchor, Slot, ANCHOR_LEN,
+};
+use crate::{sha256, Reject, TrustAnchors, ED25519_SIGNATURE, MANIFEST_LEN};
 
 const POLICY: &[u8] = include_bytes!("probe-fixtures/policy.bin");
 // Reuse authenticated window fixtures for lineage checks. This keeps the
@@ -20,7 +24,7 @@ const BINDING: &[u8; BINDING_ENVELOPE_LEN] = include_bytes!("probe-fixtures/bind
 const BODY_LEN: usize = POLICY_HEADER_LEN + SIGNER_ENTRY_LEN;
 const POLICY_LEN: usize = BODY_LEN + crate::ED25519_SIGNATURE + crate::MLDSA65_SIGNATURE;
 
-pub const CASE_COUNT: u64 = 26;
+pub const CASE_COUNT: u64 = 34;
 pub const EXPECTED_MASK: u64 = (1 << CASE_COUNT) - 1;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -84,6 +88,61 @@ fn window_case(root: &TrustAnchors, policy: &[u8], binding: &[u8], expected: Rej
         }
         Err(_) => false,
     }
+}
+
+fn anchor_cases(current: &VerifiedPolicy<'_>, next: &VerifiedPolicy<'_>) -> [bool; 8] {
+    let Ok(anchor) = PolicyAnchor::test_bootstrap(
+        current.version(),
+        current.digest(),
+        current.minimum_image_version(),
+    ) else {
+        return [false; 8];
+    };
+    let image_version = core::cmp::max(anchor.image_floor(), next.minimum_image_version());
+    let Ok(operation) = transition_identity(
+        &anchor,
+        next.version(),
+        next.digest(),
+        image_version,
+        sha256(MANIFEST),
+        sha256(PAYLOAD),
+        PAYLOAD.len() as u32,
+        Slot::B,
+    ) else {
+        return [false; 8];
+    };
+    let Ok(successor) = anchor.successor(
+        next.version(),
+        next.digest(),
+        core::cmp::max(anchor.image_floor(), next.minimum_image_version()),
+        operation,
+    ) else {
+        return [false; 8];
+    };
+    let Some(conflicting_version) = next.version().checked_add(1) else {
+        return [false; 8];
+    };
+    let Ok(conflicting) = anchor.successor(
+        conflicting_version,
+        [0x55; 32],
+        successor.image_floor(),
+        [0x66; 32],
+    ) else {
+        return [false; 8];
+    };
+    [
+        PolicyAnchor::decode(&anchor.encode()) == Ok(anchor)
+            && PolicyAnchor::decode(&successor.encode()) == Ok(successor),
+        compare_and_swap(&anchor, &anchor, &successor) == Ok(successor),
+        compare_and_swap(&successor, &anchor, &successor) == Err(AnchorReject::Predecessor),
+        classify_readback(&anchor, &successor, &anchor.encode()) == Ok(CommitState::Predecessor),
+        classify_readback(&anchor, &successor, &successor.encode()) == Ok(CommitState::Successor),
+        classify_readback(&anchor, &successor, &successor.encode()[..ANCHOR_LEN - 1])
+            == Err(AnchorReject::Format),
+        classify_readback(&anchor, &successor, &conflicting.encode())
+            == Err(AnchorReject::Conflict),
+        anchor.successor(next.version(), next.digest(), 0, operation) == Err(AnchorReject::Floor),
+    ]
 }
 
 /// Each bit is set only after that case actually executes and returns its exact
@@ -211,6 +270,13 @@ pub fn run() -> ProbeReport {
             .err()
             == Some(PolicyReject::Format),
     ); // 25
+    let successor = verify_policy(SUCCESSOR, &root);
+    let Ok(successor) = successor else {
+        return report;
+    };
+    for passed in anchor_cases(&policy, &successor) {
+        report.record(passed);
+    } // 26..33: canonical anchor, CAS/readback and fail-closed faults
     report
 }
 
@@ -219,8 +285,8 @@ mod tests {
     #[test]
     fn immutable_native_vector_cases_match_the_exact_report() {
         let report = super::run();
-        assert_eq!(report.cases, 26);
-        assert_eq!(report.passed_mask, 67_108_863);
+        assert_eq!(report.cases, 34);
+        assert_eq!(report.passed_mask, 17_179_869_183);
         assert!(report.passed());
     }
 }

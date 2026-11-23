@@ -315,6 +315,15 @@ test-volume-archive-corrupt = ["native-volume"]
 test-volume-archive-conflict = ["native-volume"]
 test-volume-archive-full = ["native-volume"]
 test-volume-archive-ustar = ["native-volume"]
+# S09 test-only second virtio-blk disk (00:06.0); never with native-system.
+test-volume-archive-device = ["native-volume"]
+test-volume-archive-disk-export = ["test-volume-archive-device"]
+test-volume-archive-disk-restore = ["test-volume-archive-device"]
+test-volume-archive-disk-absent = ["test-volume-archive-device"]
+test-volume-archive-disk-small = ["test-volume-archive-device"]
+test-volume-archive-disk-wrong = ["test-volume-archive-device"]
+test-volume-archive-disk-cut = ["test-volume-archive-device"]
+test-volume-archive-disk-verify = ["test-volume-archive-device"]
 
 # B03 signed updates: generic broker over the slot store, one ring-3 update
 # service; the kernel's own version comes from the build env NOS_IMAGE_VERSION.

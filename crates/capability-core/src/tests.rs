@@ -1192,6 +1192,22 @@ fn b01_entropy_capability_is_typed_exclusive_and_bounded() {
 }
 
 #[test]
+fn b01_entropy_authorization_distinguishes_reused_handles_and_objects() {
+    run(|e| {
+        setup(e, 1);
+        let old_handle = e.create_entropy(1).unwrap();
+        let old_authority = e.authorize_entropy(1, old_handle).unwrap();
+        e.close(1, old_handle).unwrap();
+
+        let new_handle = e.create_entropy(1).unwrap();
+        let new_authority = e.authorize_entropy(1, new_handle).unwrap();
+        assert_ne!(old_handle, new_handle);
+        assert_ne!(old_authority.object_key(), new_authority.object_key());
+        assert_atomic(e, Error::BadHandle, |e| e.authorize_entropy(1, old_handle));
+    });
+}
+
+#[test]
 fn raw_network_authority_is_typed_private_and_cannot_be_delegated() {
     run(|e| {
         setup(e, 2);

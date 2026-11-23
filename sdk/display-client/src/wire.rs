@@ -146,7 +146,7 @@ pub fn validate_pixels(bytes: &[u8]) -> Result<(), Invalid> {
     if bytes.is_empty()
         || bytes.len() > MAX_BYTES
         || !bytes.len().is_multiple_of(4)
-        || bytes.chunks_exact(4).any(|p| p[3] != 0)
+        || bytes.as_chunks::<4>().0.iter().any(|p| p[3] != 0)
     {
         Err(Invalid)
     } else {

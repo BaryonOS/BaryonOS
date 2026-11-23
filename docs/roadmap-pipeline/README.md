@@ -18,6 +18,34 @@ recorded only by the lead, with the required evidence level.
 | `receipts/<task>.json` | Compact, versioned receipt per verified task: base commit, file hashes, fresh session IDs, controller-run check exit codes and log hashes, verifier findings, and transcript checks. |
 | `build/roadmap-pipeline/` (ignored) | Runtime state: controller lock, lease with heartbeat, `STOP`/`PAUSE` files, worker briefs, raw session output, full check logs. |
 
+## Codex ownership and supervised continuation
+
+The project owner assigns this roadmap and controller to OpenAI Codex. Claude Code
+retains S09 and Orbitaal/UI/UX. Historical Claude launch details below are retained
+as implementation history, not current executor instructions.
+
+`python3 -B tools/roadmap_runner.py brief` takes the existing controller lock, checks
+STOP/PAUSE, branch cleanliness and live leases, selects the first eligible READY task,
+freezes its brief/dispatch plan and records an active manual claim in the existing
+ledger. It releases its process lock without marking the task verified. Another
+selection refuses while that task is active; the lead must validate results and checkpoint the
+claim before the next task. Interrupted manual work stays active for explicit recovery,
+never automatic cleanup or blind replay.
+
+The plan contains literal Codex argv and stdin/stdout/stderr paths. Codex 0.167.2
+supports `exec --ephemeral --strict-config --sandbox workspace-write --json
+--output-last-message ... -`. The lead launches the command with the brief on stdin,
+retaining existing user config, authentication, MCP and hooks. No resume/fork, Claude
+flag translation, permission bypass, config replacement or silent fallback is used.
+Do not pass task output as shell code. Full local events identify the fresh session.
+
+Automatic `run`, direct worker sessions, task transactions and controller-run checks
+remain blocked by the shared source hold. A prepared plan is **manual fallback**, not
+`AUTONOMOUS_RUNNER_READY`: authenticated offline editing/gate compatibility is still
+unaccepted. The lead runs permitted targeted checks directly in the trusted development
+session and verifies the actual diff/raw results before updating the ledger or PR.
+No generated-code execution with publication credentials is introduced.
+
 ## Controller
 
 ### Separate issue-driven controller: default-deny execution
@@ -78,10 +106,10 @@ only in the trusted controller checkout after source and head verification.
 The offline fixture verifies boundary behavior, not authenticated Claude, Codex,
 Copilot, Graphify or native-client compatibility. Those environments require
 separate evidence and remain unverified until tested. No credential/network broker
-is introduced. The roadmap controller described below retains its own execution
-and ownership model: its direct worker/check commands have not been migrated or
-verified by this change. Its calls to the shared gate now fail closed without an
-approved isolated runtime. The two controllers are not interchangeable.
+is introduced. The roadmap controller described below retains its own ownership
+model but no longer runs candidate code on the host: its task checks, gates and
+`tools/progress.py --check` go through the same shared gate and fail closed
+without an approved isolated runtime. The two controllers are not interchangeable.
 
 **Enablement remains blocked.** The committed disabled policy must remain in place
 until real dedicated mounts with measured workload headroom, the complete resource
@@ -108,7 +136,11 @@ READY task whose dependencies are verified it:
    `--continue`, `--resume` or `--fork-session`, and never `--bare`, bypass modes or
    skipped permissions. The worker has an allow-listed environment without GitHub,
    cloud or session-ingress credentials, `--permission-prompts none`, file edits
-   (`acceptEdits`), read-only git, and exactly the task's check commands.
+   (`acceptEdits`), `git status`, `git rev-parse` and `git branch --show-current`.
+   `git diff`, `git log` and `git show` are not allowed because `--output=<path>`
+   writes arbitrary files. It runs no check, build or test command: candidate code
+   executes only in the isolated gate (step 4). Edits under `.git/`, `__pycache__/`,
+   `*.pyc` and `.claude/` are denied; the verifier receives the diff from the controller.
    A session-scoped `--autocompact` window is the context fail-safe (see the
    measured limit below), and `--max-budget-usd` sets a per-session cap on the
    CLI's cost estimate. The controller polls the transcript every minute and stops
@@ -117,8 +149,14 @@ READY task whose dependencies are verified it:
    anything else is reverted and reported. Protected files (workflows, the
    pipeline, the progress register and its views, AGENTS.md/CLAUDE.md,
    PROJECT-STATE.md, DECISIONS.md) are never accepted from a worker. The ledger's
-   check commands and `tools/progress.py --check` are re-run with raw exit codes.
-   The worker's JSON report is recorded, never trusted;
+   check commands, its gates and `tools/progress.py --check` run as one plan through
+   `agent_gate.run_gate`, which stages the changed (including untracked) files into
+   the isolated sandbox and records raw exit codes under one shared deadline (the
+   controller's check budget; `agent_gate.resolve()` currently sets no per-job
+   budget or finalizer, so none is added). The gate writes into a directory the
+   controller creates after the session; with the committed disabled policy this fails closed. Repair feedback
+   inlines the failing raw streams, and the receipt hash covers them. The worker's
+   JSON report is recorded, never trusted;
 5. starts a second fresh, read-only session that verifies the diff against the task
    without seeing the writer's self-report. A blocker or major finding sends the task
    back to a new worker session with only those findings, for at most two repair
@@ -129,6 +167,41 @@ READY task whose dependencies are verified it:
 Each session's transcript is checked so that it contains exactly one root user
 message, equal to the brief, and no entries from another session. This is the
 evidence that no earlier conversation was inherited.
+
+The controller's own Git commands could run code that a worker planted in Git
+configuration or hooks. Instead of refusing every pre-existing hook, the controller
+fingerprints `git config --list --show-scope --show-origin`, the hooks directory
+and `info/attributes` (including symlinked hook targets) at preflight. After any
+session that changed them it writes the `STOP` file and stops, so a later run
+cannot adopt the change as its baseline. The baseline is persisted before each
+session and compared in a `finally` block, also when the session is interrupted;
+if the controller itself dies, the next run compares against the persisted
+baseline right after taking the controller lock and confirming that no worker process
+is alive, before lease recovery or any other
+Git command that can run a hook or filter, and retires it only at preflight, once no
+worker process is alive. A worker probe that fails (any `pgrep` status other than
+match or no match) stops the controller instead of counting as absence. Workers may not edit
+`build/roadmap-pipeline/**`, which holds that baseline, `STOP` and the logs.
+Controller Git (including `git push`) runs with `core.fsmonitor=false` and without inherited
+repository-location variables such as `GIT_DIR` or `GIT_WORK_TREE`. Task gates
+are resolved before the worker session, so a gate that cannot be resolved blocks
+the task without spending a session. `run` and `brief` check `STOP` before any Git command
+that can run a callback; only the startup module check (`git ls-files` with
+fsmonitor disabled) runs earlier. Controller Python resolves the standard library and site-packages before
+`tools/`, refuses to start while untracked or ignored importable entries
+(modules, bytecode, extension modules, package directories or a nested `.git`) sit
+directly in `tools/` (the sibling imports put `tools/` first), removes the checkout
+from `sys.path` before preloading PyYAML, never reads checkout bytecode
+(`sys.pycache_prefix` is a private temporary directory) and runs
+`tools/progress.py` with `-I`. The fingerprint is compared after each session, so a
+change that a session makes and reverts before it ends is not detected, and only
+`core.fsmonitor` is neutralised for controller Git; other callbacks rely on the
+fingerprint and on the `.git/**` edit deny. Further residual limits: an
+ignored path outside the denied patterns, a modified tracked file left behind
+when a session ends in `Stop` (it runs on the lead's next invocation), a process
+that escapes the worker's process group, and the absent native sandbox (bubblewrap 0.13.1 or later with a
+verified profile). The runner therefore stays held by `EXECUTION_HOLD` and the
+disabled policy; these changes are not evidence that it may be enabled.
 
 ### Controls
 

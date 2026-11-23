@@ -11,7 +11,7 @@ resolver = "2"
 [dependencies]
 roxmltree = { version = "=0.21.2", default-features = false }
 # Pin the reviewed no_std transitive search implementation as well.
-memchr = { version = "=2.7.6", default-features = false }
+memchr = { version = "=2.8.3", default-features = false }
 zune-inflate = { version = "=0.2.54", default-features = false }
 
 [features]

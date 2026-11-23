@@ -212,6 +212,6 @@ A scoped SEC interface review must check this concrete frozen document
 against the existing recovery contract; it does not replace an independent human audit.
 Reverting this document alone changes no storage or runtime behaviour.
 
-[core]: https://github.com/simonvanieperen/nieuw-os/blob/dce3b05aa358f4dbde6f2349b426217779b40052/crates/app-package-core/src/lib.rs
-[recovery]: https://github.com/simonvanieperen/nieuw-os/blob/05784243d3d1ea273b588de82069596648fbde4d/docs/contracts/APP-SOURCE-RECOVERY.md
-[queue]: https://github.com/simonvanieperen/nieuw-os/blob/82664b56a03dad5f2cdd64314234c406dd74a299/docs/WORK-QUEUE.md
+[core]: https://github.com/BaryonOS/BaryonOS/blob/dce3b05aa358f4dbde6f2349b426217779b40052/crates/app-package-core/src/lib.rs
+[recovery]: https://github.com/BaryonOS/BaryonOS/blob/05784243d3d1ea273b588de82069596648fbde4d/docs/contracts/APP-SOURCE-RECOVERY.md
+[queue]: https://github.com/BaryonOS/BaryonOS/blob/82664b56a03dad5f2cdd64314234c406dd74a299/docs/WORK-QUEUE.md

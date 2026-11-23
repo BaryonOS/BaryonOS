@@ -23,7 +23,7 @@ Use this skill for OS development and technical explanations directly related to
 
 After bootstrap, the repository version contains a local snapshot of:
 
-- the latest revision of **3,054 pages** from the supplied OSDev Wiki export;
+- the latest revision of **3,021 pages** from the supplied OSDev Wiki export (excluded records: `references/exclusions.json`);
 - all **78 physical pages** of Erik Helin and Adam Renberg's *The little book about OS development* (2015-01-19 edition);
 - source IDs, revision dates, local locations and SHA-256 verification for each source block.
 

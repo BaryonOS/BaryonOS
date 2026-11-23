@@ -23,7 +23,10 @@ M6B_FAULT_CASES = ("write-error", "flush-error") + M6B_TIMEOUT_CASES
 M6B_CASES = ("recover", "errors", "full", "corrupt", "vm-cut-before-ack", "vm-cut-after-flush") + M6B_FAULT_CASES
 M6C_CASES = ("recover", "errors", "full", "corrupt", "legacy", "vm-cut-before-rename", "vm-cut-after-rename") + M6C_FAULT_CASES
 VOLUME_ARCHIVE_CASES = ("archive-export", "archive-restore", "archive-corrupt", "archive-conflict",
-                        "archive-full", "archive-ustar")
+                        "archive-full", "archive-ustar",
+                        # S09 test-only second disk (kernel feature test-volume-archive-device).
+                        "archive-disk-export", "archive-disk-restore", "archive-disk-absent",
+                        "archive-disk-small", "archive-disk-wrong", "archive-disk-cut", "archive-disk-verify")
 VOLUME_CASES = ("recover", "cut-data", "cut-table", "recover-cut", "corrupt", "foreign", "cut-txn",
                 *VOLUME_ARCHIVE_CASES)
 VOLUME_FEATURES = ("native-volume", *(f"test-volume-{case}" for case in VOLUME_CASES))
@@ -377,9 +380,9 @@ def build(loader_feature=None, kernel_feature=None, label="normal", image_versio
             extra_env["NOS_M6C_ELF"] = str(build_users("m6c", sdk_runtime=use_sdk,
                 document_session=use_document_session).resolve())
     if not (ROOT / "Cargo.lock").exists():
-        run_logged(["cargo", "+1.90.0", "generate-lockfile"], "lockfile")
+        run_logged(["cargo", "+1.100.0", "generate-lockfile"], "lockfile")
     for package, target, feature in (("os-loader", "x86_64-unknown-uefi", loader_feature), ("os-kernel", "x86_64-unknown-none", kernel_feature)):
-        args = ["cargo", "+1.90.0", "build", "--locked", "--release", "--target-dir", str(TARGET), "-p", package, "--target", target]
+        args = ["cargo", "+1.100.0", "build", "--locked", "--release", "--target-dir", str(TARGET), "-p", package, "--target", target]
         if feature:
             args += ["--features", feature]
         if package == "os-kernel" and kernel_feature == "native-update-policy-probe":

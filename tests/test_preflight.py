@@ -24,10 +24,10 @@ def archive_bytes(payload=b'synthetic archive member'):
 class RequiredToolProbes(unittest.TestCase):
     def inventory(self, tool=None, strict=True, *, strict_host_tests=False,
                   tool_name='cargo', mutate=None,
-                  compiler='rustc 1.90.0 (synthetic)', query_fault=None,
+                  compiler='rustc 1.100.0 (synthetic)', query_fault=None,
                   rustup=None, wrong_target=False, compiler_args=None):
         if compiler_args is None:
-            compiler_args = ['+1.90.0']
+            compiler_args = ['+1.100.0']
         if rustup is None:
             rustup = {'available': False, 'path': None, 'version': None}
         self.commands = []
@@ -58,7 +58,7 @@ class RequiredToolProbes(unittest.TestCase):
             def run(command, **_kwargs):
                 self.commands.append(command)
                 if command[0] == 'synthetic-rustup':
-                    self.assertEqual(command[1:], ['target', 'list', '--installed', '--toolchain', '1.90.0'])
+                    self.assertEqual(command[1:], ['target', 'list', '--installed', '--toolchain', '1.100.0'])
                     return subprocess.CompletedProcess(command, 0, '\n'.join(preflight.REQUIRED_TARGETS) + '\n', '')
                 prefix = ['synthetic-rustc', *compiler_args]
                 self.assertEqual(command[:len(prefix)], prefix)
@@ -201,7 +201,7 @@ class RequiredToolProbes(unittest.TestCase):
             self.assertEqual(report['tools']['rustup'], manager)
 
     def test_wrong_selected_compiler_version_is_rejected(self):
-        for version in ('rustc 1.89.0 (old)', 'rustc 1.90.0-nightly (other)', 'rustc 1.91.0 (new)', None):
+        for version in ('rustc 1.89.0 (old)', 'rustc 1.100.0-nightly (other)', 'rustc 1.101.0 (new)', None):
             status, report = self.inventory(compiler=version)
             self.assertEqual(status, 2)
             self.assertFalse(report['rust_toolchain']['compiler_valid'])
@@ -258,16 +258,16 @@ class RequiredToolProbes(unittest.TestCase):
         with tempfile.TemporaryDirectory() as root:
             for name in ('rustc', 'cargo'):
                 def run(command, **_kwargs):
-                    stdout = str(Path(root).resolve()) + '\n' if '--print' in command else name + ' 1.90.0\n'
+                    stdout = str(Path(root).resolve()) + '\n' if '--print' in command else name + ' 1.100.0\n'
                     return subprocess.CompletedProcess(command, 0, stdout, '')
                 with patch.object(preflight.shutil, 'which', return_value='synthetic-' + name), \
                         patch.object(preflight.subprocess, 'run', side_effect=run) as calls:
                     tool = preflight.probe(name)
-                self.assertEqual(calls.call_args_list[0].args[0], ['synthetic-' + name, '+1.90.0', '--version'])
+                self.assertEqual(calls.call_args_list[0].args[0], ['synthetic-' + name, '+1.100.0', '--version'])
                 if name == 'rustc':
-                    self.assertEqual(calls.call_args_list[1].args[0], ['synthetic-rustc', '+1.90.0', '--print', 'sysroot'])
-                self.assertEqual(tool['selected_toolchain'], '1.90.0')
-                self.assertEqual(tool['toolchain_args'], ['+1.90.0'])
+                    self.assertEqual(calls.call_args_list[1].args[0], ['synthetic-rustc', '+1.100.0', '--print', 'sysroot'])
+                self.assertEqual(tool['selected_toolchain'], '1.100.0')
+                self.assertEqual(tool['toolchain_args'], ['+1.100.0'])
                 self.assertEqual(tool['invocation_mode'], 'pinned-selector')
                 self.assertTrue(preflight.usable(tool))
 
@@ -275,9 +275,9 @@ class RequiredToolProbes(unittest.TestCase):
         with tempfile.TemporaryDirectory() as root:
             for name in ('rustc', 'cargo'):
                 def run(command, **_kwargs):
-                    if '+1.90.0' in command:
+                    if '+1.100.0' in command:
                         return subprocess.CompletedProcess(command, 1, '', 'unsupported selector')
-                    stdout = str(Path(root).resolve()) + '\n' if '--print' in command else name + ' 1.90.0 (direct)\n'
+                    stdout = str(Path(root).resolve()) + '\n' if '--print' in command else name + ' 1.100.0 (direct)\n'
                     return subprocess.CompletedProcess(command, 0, stdout, '')
                 with patch.object(preflight.shutil, 'which', return_value='synthetic-' + name), \
                         patch.object(preflight.subprocess, 'run', side_effect=run) as calls:
@@ -291,9 +291,9 @@ class RequiredToolProbes(unittest.TestCase):
         with tempfile.TemporaryDirectory() as root:
             def run(command, **_kwargs):
                 if '--version' in command:
-                    return subprocess.CompletedProcess(command, 0, 'rustc 1.90.0 (direct)\n', '')
-                if '+1.90.0' in command:
-                    return subprocess.CompletedProcess(command, 1, '', "couldn't read +1.90.0")
+                    return subprocess.CompletedProcess(command, 0, 'rustc 1.100.0 (direct)\n', '')
+                if '+1.100.0' in command:
+                    return subprocess.CompletedProcess(command, 1, '', "couldn't read +1.100.0")
                 return subprocess.CompletedProcess(command, 0, str(Path(root).resolve()) + '\n', '')
             with patch.object(preflight.shutil, 'which', return_value='synthetic-rustc'), \
                     patch.object(preflight.subprocess, 'run', side_effect=run):
@@ -303,14 +303,14 @@ class RequiredToolProbes(unittest.TestCase):
             status, report = self.inventory(tool, tool_name='rustc', compiler_args=[])
             self.assertEqual(status, 0)
             self.assertTrue(report['rust_toolchain']['compiler_valid'])
-            self.assertTrue(all('+1.90.0' not in command for command in self.commands))
+            self.assertTrue(all('+1.100.0' not in command for command in self.commands))
 
     def test_wrong_versions_cannot_pass_either_invocation_form(self):
         for name in ('rustc', 'cargo'):
-            for version in ('1.89.0', '1.90.0-nightly', '1.91.0', '1.90.00'):
+            for version in ('1.89.0', '1.100.0-nightly', '1.101.0', '1.100.00'):
                 for direct in (False, True):
                     def run(command, **_kwargs):
-                        if direct and '+1.90.0' in command:
+                        if direct and '+1.100.0' in command:
                             return subprocess.CompletedProcess(command, 1, '', 'unsupported selector')
                         return subprocess.CompletedProcess(command, 0, name + ' ' + version + '\n', '')
                     with self.subTest(name=name, version=version, direct=direct), \
@@ -325,7 +325,7 @@ class RequiredToolProbes(unittest.TestCase):
         for fault in (-6, subprocess.TimeoutExpired('synthetic-rustc', 10)):
             def run(command, **_kwargs):
                 if '--version' in command:
-                    return subprocess.CompletedProcess(command, 0, 'rustc 1.90.0\n', '')
+                    return subprocess.CompletedProcess(command, 0, 'rustc 1.100.0\n', '')
                 if isinstance(fault, BaseException):
                     raise fault
                 return subprocess.CompletedProcess(command, fault, '', 'compiler crashed')

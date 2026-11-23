@@ -47,7 +47,7 @@ def test_m6():
     try:
         run_logged([sys.executable, "tools/preflight.py", "--strict"], "m6a-preflight")
         record("strict-development-inventory", True, "build/logs/m6a-preflight.stdout.txt", ["M6A-TOOLS"])
-        run_logged(["cargo", "+1.90.0", "test", "--locked", "--offline", "-p", "capability-core",
+        run_logged(["cargo", "+1.100.0", "test", "--locked", "--offline", "-p", "capability-core",
                     "-p", "virtio-core", "-p", "kernel-core", "-p", "block-protocol"], "m6a-host-tests")
         record("core-protocol-journal-host-tests", True, "build/logs/m6a-host-tests.stdout.txt", ["M6A-AUTHORITY", "M6A-POLICY", "M6A-JOURNAL"])
         run_logged([sys.executable, "-m", "unittest", "discover", "-s", "tests", "-p", "test_m6_*.py"], "m6a-harness-tests")

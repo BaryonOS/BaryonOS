@@ -1,0 +1,144 @@
+{
+  "task": "N02-T2",
+  "source_commit": "ed44d77c32d0d19e0b6fab51398b169a962f9409",
+  "base": "2eac8ca39ce04753f4f6bef3b09ee9b3610c065f",
+  "level": "host/build",
+  "toolchain": "Rust1.91.1 ed61e7d7e installed, Clippy/fmt present, unknown-none target added; global default unchanged",
+  "environment": {
+    "CARGO_TARGET_DIR": "build/n02-target",
+    "PATH_prefix": "/home/simon/.rustup/toolchains/1.91.1-x86_64-unknown-linux-gnu/bin"
+  },
+  "checks": [
+    {
+      "argv": [
+        "cargo",
+        "test",
+        "--locked",
+        "--manifest-path",
+        "services/network-service/Cargo.toml"
+      ],
+      "exit_code": 0,
+      "raw_log": "build/tokenguard/run-y8nuaba3.log",
+      "sha256": "4ab817d868a35e9f2d269edb90b2d5b470fe2503c310293a26a8ad51e8d966b4"
+    },
+    {
+      "argv": [
+        "cargo",
+        "test",
+        "--locked",
+        "--manifest-path",
+        "services/net-config/Cargo.toml"
+      ],
+      "exit_code": 0,
+      "raw_log": "build/tokenguard/run-7peal4ad.log",
+      "sha256": "1a1e0278c914d7d071c63ba47bfee26820ed0744156578f5b451f23531442338"
+    },
+    {
+      "argv": [
+        "cargo",
+        "clippy",
+        "--locked",
+        "--manifest-path",
+        "services/network-service/Cargo.toml",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit_code": 0,
+      "raw_log": "build/tokenguard/run-jycwn3v3.log",
+      "sha256": "3d8417c09f31a0e993e5a9622dcc3eb92327bd44c1d7c359323f1ebfdd620a72"
+    },
+    {
+      "argv": [
+        "cargo",
+        "clippy",
+        "--locked",
+        "--manifest-path",
+        "services/net-config/Cargo.toml",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit_code": 0,
+      "raw_log": "build/tokenguard/run-bhmk8jlj.log",
+      "sha256": "b9f617bc2dfd56c2afb71224a6dc1193ceb8b2c2c00258810f2d3c431abd9645"
+    },
+    {
+      "argv": [
+        "cargo",
+        "fmt",
+        "--manifest-path",
+        "services/network-service/Cargo.toml",
+        "--all",
+        "--",
+        "--check"
+      ],
+      "exit_code": 0,
+      "raw_log": "build/tokenguard/run-rv25fkwf.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "argv": [
+        "cargo",
+        "fmt",
+        "--manifest-path",
+        "services/net-config/Cargo.toml",
+        "--all",
+        "--",
+        "--check"
+      ],
+      "exit_code": 0,
+      "raw_log": "build/tokenguard/run-9jbkpztc.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "argv": [
+        "cargo",
+        "build",
+        "--locked",
+        "--manifest-path",
+        "services/network-service/Cargo.toml",
+        "--lib",
+        "--release",
+        "--target",
+        "x86_64-unknown-none"
+      ],
+      "exit_code": 0,
+      "raw_log": "build/tokenguard/run-rwu1nqy6.log",
+      "sha256": "2d0b0d7c1806cd6ec509274258ee071f44e2bb1fa5e4f2cf88068adb70111b5d"
+    },
+    {
+      "argv": [
+        "cargo",
+        "check",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "sdk/examples/network-service/Cargo.toml",
+        "--features",
+        "native",
+        "--target",
+        "x86_64-unknown-none",
+        "--release"
+      ],
+      "exit_code": 0,
+      "raw_log": "build/tokenguard/run-lzb5zrvm.log",
+      "sha256": "b6b719eb1aea7d344f9bec85df3a37ef789d334c5c001a6ac37868888bd0cf89"
+    }
+  ],
+  "tests": {
+    "network_service": 20,
+    "net_config": 38
+  },
+  "review": "Supervised fresh os_builder plus lead source/diff review. One off-link destination guard corrected and exercised by gateway regression. Existing14 static tests unchanged. No repeated matrix.",
+  "dependencies": "Both locks add only existing net-config local package edge; registry pins unchanged.",
+  "not_run": [
+    "Native DHCP/QEMU",
+    "SDK ELF linking",
+    "Real authorized network",
+    "Hardware/human acceptance"
+  ],
+  "score": "41 -> 41/100; N02 open"
+}

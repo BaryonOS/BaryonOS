@@ -205,6 +205,6 @@ Reverting this document alone requires no data migration and changes no code.
 
 - [B02 records and key state](../implementation/B02-SECURE-RECORDS.md)
 - [Privacy contract](../LOCAL-PRIVACY-CONTRACT.md)
-- [`APP-PACKAGES.md` at the Apps review source](https://github.com/simonvanieperen/nieuw-os/blob/dce3b05aa358f4dbde6f2349b426217779b40052/docs/implementation/APP-PACKAGES.md)
-- [`ARTIFACT-STORE-CONTRACT.md` at the root-store source](https://github.com/simonvanieperen/nieuw-os/blob/7f4f7bfe28fe9b2314bc4e4192e43942838d5dcb/docs/implementation/ARTIFACT-STORE-CONTRACT.md)
-- [Shared cryptographic authority on a separate SEC work item](https://github.com/simonvanieperen/nieuw-os/blob/c5fbb21a0e46e010d5e9b4748ae9b9307a67cef4/docs/contracts/NATIVE-CRYPTO-AUTHORITY.md)
+- [`APP-PACKAGES.md` at the Apps review source](https://github.com/BaryonOS/BaryonOS/blob/dce3b05aa358f4dbde6f2349b426217779b40052/docs/implementation/APP-PACKAGES.md)
+- [`ARTIFACT-STORE-CONTRACT.md` at the root-store source](https://github.com/BaryonOS/BaryonOS/blob/7f4f7bfe28fe9b2314bc4e4192e43942838d5dcb/docs/implementation/ARTIFACT-STORE-CONTRACT.md)
+- [Shared cryptographic authority on a separate SEC work item](https://github.com/BaryonOS/BaryonOS/blob/c5fbb21a0e46e010d5e9b4748ae9b9307a67cef4/docs/contracts/NATIVE-CRYPTO-AUTHORITY.md)

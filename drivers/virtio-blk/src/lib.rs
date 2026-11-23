@@ -1,6 +1,8 @@
 #![no_std]
 #![deny(unsafe_op_in_unsafe_fn)]
-//! Exact QEMU 00:05.0 modern virtio-blk transport. No user address enters here.
+//! Exact QEMU modern virtio-blk transport on one of two closed, fixed PCI
+//! functions: 00:05.0 (every profile) and the test-only 00:06.0 archive disk.
+//! No caller supplies a bus/device/function number. No user address enters here.
 //! Caller retains five exclusive, identity-mapped kernel DMA pages until reboot.
 //! Protocol-conforming QEMU is trusted; this is not a malicious-device IOMMU.
 use core::{
@@ -10,40 +12,70 @@ use core::{
 };
 use virtio_core::{descriptor_plan, parse_capabilities, validate_descriptors, QUEUE_SIZE};
 pub use virtio_core::{Bar, Completion, DmaPool, Error, Regions};
-const BDF: u32 = 5 << 11;
 const RAM_END: u64 = 256 * 1024 * 1024;
+/// Closed set of fixed PCI functions this driver may touch.
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
+pub enum Function {
+    /// QEMU 00:05.0, the only function of every existing profile.
+    Primary,
+    /// QEMU 00:06.0, the test-only second (archive) disk of the volume fixture.
+    Archive,
+}
+impl Function {
+    const fn bdf(self) -> u32 {
+        match self {
+            Function::Primary => 5 << 11,
+            Function::Archive => 6 << 11,
+        }
+    }
+}
 #[derive(Clone, Copy)]
 pub struct Discovery {
+    pub function: Function,
     pub config: [u8; 256],
     pub bars: [Bar; 6],
     pub regions: Regions,
 }
-fn cfg_read(offset: u16) -> u32 {
+fn cfg_read(function: Function, offset: u16) -> u32 {
     let value: u32;
-    // SAFETY: CPL0 single-CPU initialization/transport, exact fixed PCI BDF.
-    // No userspace-supplied config address and no access to the boot ESP's BDF.
+    let bdf = function.bdf();
+    // SAFETY: CPL0 single-CPU initialization/transport, one of two closed fixed
+    // PCI functions. No userspace-supplied config address and no access to the
+    // boot ESP's BDF (the harness proves the ESP is on neither fixed slot).
     unsafe {
-        asm!("out dx,eax",in("dx") 0xcf8u16,in("eax") 0x80000000|BDF|u32::from(offset&0xfc),options(nomem,nostack));
+        asm!("out dx,eax",in("dx") 0xcf8u16,in("eax") 0x80000000|bdf|u32::from(offset&0xfc),options(nomem,nostack));
         asm!("in eax,dx",in("dx") 0xcfcu16,out("eax") value,options(nomem,nostack));
     }
     value
 }
-fn cfg_write(offset: u16, value: u32) {
-    // SAFETY: Same fixed-device exclusive config-I/O contract as cfg_read.
+fn cfg_write(function: Function, offset: u16, value: u32) {
+    let bdf = function.bdf();
+    // SAFETY: Same closed fixed-function exclusive config-I/O contract as cfg_read.
     unsafe {
-        asm!("out dx,eax",in("dx") 0xcf8u16,in("eax") 0x80000000|BDF|u32::from(offset&0xfc),options(nomem,nostack));
+        asm!("out dx,eax",in("dx") 0xcf8u16,in("eax") 0x80000000|bdf|u32::from(offset&0xfc),options(nomem,nostack));
         asm!("out dx,eax",in("dx") 0xcfcu16,in("eax") value,options(nomem,nostack));
     }
 }
-fn command(value: u16) {
+fn command(function: Function, value: u16) {
+    let bdf = function.bdf();
     // Use 16-bit config access: writing the status upper half could clear W1C.
-    // SAFETY: CPL0, fixed BDF command register only; no arbitrary PCI authority.
+    // SAFETY: CPL0, command register of one closed fixed function only; no
+    // arbitrary PCI authority.
     unsafe {
-        asm!("out dx,eax",in("dx") 0xcf8u16,in("eax") 0x80000000|BDF|4,options(nomem,nostack));
+        asm!("out dx,eax",in("dx") 0xcf8u16,in("eax") 0x80000000|bdf|4,options(nomem,nostack));
         asm!("out dx,ax",in("dx") 0xcfcu16,in("ax") value,options(nomem,nostack));
     }
 }
+/// Discover the primary function 00:05.0; unchanged for every existing caller.
 pub fn discover() -> Result<Discovery, Error> {
+    discover_function(Function::Primary)
+}
+/// Discover one function of the closed set. An absent or non-virtio-blk
+/// function fails closed with `Offline` before any BAR is probed.
+pub fn discover_function(function: Function) -> Result<Discovery, Error> {
+    let cfg_read = |offset| cfg_read(function, offset);
+    let cfg_write = |offset, value| cfg_write(function, offset, value);
+    let command = |value| command(function, value);
     if cfg_read(0) != 0x10421af4 {
         return Err(Error::Offline);
     }
@@ -115,12 +147,14 @@ pub fn discover() -> Result<Discovery, Error> {
         return Err(Error::Protocol);
     }
     Ok(Discovery {
+        function,
         config,
         bars,
         regions,
     })
 }
 pub struct Device {
+    function: Function,
     common: u64,
     notify: u64,
     pub pool: DmaPool,
@@ -177,6 +211,7 @@ impl Device {
             return Err(Error::Range);
         }
         let mut result = Self {
+            function: info.function,
             common,
             notify: 0,
             pool,
@@ -271,14 +306,15 @@ impl Device {
                 return Err(Error::Range);
             }
             fence(Ordering::SeqCst);
-            command((cfg_read(4) as u16) | 6 | (1 << 10));
+            let f = info.function;
+            command(f, (cfg_read(f, 4) as u16) | 6 | (1 << 10));
             write8(common + 20, 15);
             if read8(common + 20) != 15 {
                 // Failure after BME-enable is not an idle/offline device: first
                 // request reset and disable bus mastering. Caller quarantines
                 // its permanent pool; no future reuse is authorized by this Err.
                 write8(common + 20, 0);
-                command((cfg_read(4) as u16 & !4) | (1 << 10));
+                command(f, (cfg_read(f, 4) as u16 & !4) | (1 << 10));
                 return Err(Error::Protocol);
             }
         }
@@ -474,16 +510,18 @@ impl Device {
     }
     pub fn begin_reset(&mut self) {
         self.ready = false;
-        // SAFETY: Fixed owned device; stop DMA authorization and request protocol
-        // reset. Pages stay pinned even if the device never acknowledges reset.
+        // SAFETY: This device's own fixed function; stop DMA authorization and
+        // request protocol reset. Pages stay pinned even without reset ack.
         unsafe {
             write8(self.common + 20, 0);
         }
-        command((cfg_read(4) as u16 & !4) | (1 << 10));
+        let f = self.function;
+        command(f, (cfg_read(f, 4) as u16 & !4) | (1 << 10));
     }
     pub fn reset_acknowledged(&self) -> bool {
-        // SAFETY: Own UC status register; BME read confirms fixed-device disable.
-        unsafe { read8(self.common + 20) == 0 && cfg_read(4) & 4 == 0 }
+        // SAFETY: Own UC status register; BME read of this device's own fixed
+        // function confirms its DMA disable.
+        unsafe { read8(self.common + 20) == 0 && cfg_read(self.function, 4) & 4 == 0 }
     }
     pub fn pending(&self) -> bool {
         self.pending
@@ -533,5 +571,20 @@ unsafe fn write32(a: u64, v: u32) {
 unsafe fn write64(a: u64, v: u64) {
     unsafe {
         (a as *mut u64).write_volatile(v);
+    }
+}
+#[cfg(test)]
+mod tests {
+    use super::Function;
+    #[test]
+    fn only_two_fixed_functions_are_reachable() {
+        // Exhaustive match: adding a variant fails to compile here.
+        for f in [Function::Primary, Function::Archive] {
+            match f {
+                Function::Primary => assert_eq!(f.bdf(), 5 << 11),
+                Function::Archive => assert_eq!(f.bdf(), 6 << 11),
+            }
+            assert_eq!(f.bdf() & !(0x1f << 11), 0, "bus 0, function 0 only");
+        }
     }
 }

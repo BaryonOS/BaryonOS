@@ -22,8 +22,6 @@ The wiki covers text output, linear framebuffers, video modes, fonts, buffering,
 The selection below was generated automatically from page titles and categories; it is not a substantive assessment of each article.
 
 - [3D Renderer Basics](../corpus/wiki-11.md#w004019) [W004019]
-- [Accelerated Graphic Cards](../corpus/wiki-03.md#w001854) [W001854]
-- [AGP](../corpus/wiki-03.md#w001855) [W001855]
 - [AMD Atombios](../corpus/wiki-12.md#w004257) [W004257]
 - [Apple Screen Info](../corpus/wiki-14.md#w004854) [W004854]
 - [ATI Rage 128](../corpus/wiki-14.md#w004956) [W004956]
@@ -52,8 +50,6 @@ The selection below was generated automatically from page titles and categories;
 - [Ramfb](../corpus/wiki-14.md#w004853) [W004853]
 - [Scalable Screen Font](../corpus/wiki-13.md#w004388) [W004388]
 - [Simple Scalable Fonts](../corpus/wiki-05.md#w002439) [W002439]
-- [Text Mode Cursor](../corpus/wiki-03.md#w001932) [W001932]
-- [Text UI](../corpus/wiki-02.md#w001553) [W001553]
 - [TrueType Fonts](../corpus/wiki-07.md#w002909) [W002909]
 - [VESA BIOS Extension/Accelerator Functions](../corpus/wiki-07.md#w003101) [W003101]
 - [VESA Video Modes](../corpus/wiki-03.md#w001904) [W001904]
