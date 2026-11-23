@@ -976,17 +976,24 @@ class RunnerResiduals(unittest.TestCase):
 
     def test_revert_removes_a_symlink_never_its_target(self):
         with tempfile.TemporaryDirectory() as tmp:
-            repo, env = self.repo(tmp, "build/\n")
+            repo, env = self.repo(tmp, "build/\nout/\n")
             (repo / "build").mkdir()
+            (repo / "out").mkdir()
             keep_file, keep_dir = Path(tmp) / "keep.txt", repo / ".git"
             keep_file.write_text("x")
+            cache = repo / "build" / "cache.bin"  # a pre-existing ignored file inside the checkout
+            cache.write_text("keep")
             (repo / "build" / "f").symlink_to(keep_file)
             (repo / "build" / "d").symlink_to(keep_dir)
+            (repo / "out" / "link").symlink_to(cache)
             with unittest.mock.patch.object(rr, "ROOT", repo), \
                     unittest.mock.patch.dict("os.environ", env, clear=True):
+                rr.Controller(rr.Config(), Path(tmp) / "state").revert(["out/link"])
+                self.assertFalse(rr.os.path.lexists(repo / "out" / "link"))
+                self.assertEqual(cache.read_text(), "keep")
                 rr.Controller(rr.Config(), Path(tmp) / "state").revert(["build/f", "build/d"])
-            self.assertFalse(rr.os.path.lexists(repo / "build" / "f"))
-            self.assertFalse(rr.os.path.lexists(repo / "build" / "d"))
+            for link in ("build/f", "build/d"):
+                self.assertFalse(rr.os.path.lexists(repo / link))
             self.assertTrue(keep_file.exists())
             self.assertTrue((keep_dir / "HEAD").exists())
 
