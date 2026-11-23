@@ -44,6 +44,9 @@ def summarise(paths: list[Path]) -> dict:
         raise ValueError("At least one report is required")
     reports = [(path, *load(path)) for path in paths]
     first = reports[0][1]
+    for key in ("source_commit", "source_sha256"):
+        if not first.get(key):
+            raise ValueError(f"{reports[0][0]}: {key} is missing; samples must bind to one source")
     for path, report, _ in reports[1:]:
         for key in IDENTITY:
             if report.get(key) != first.get(key):
@@ -67,13 +70,15 @@ def summarise(paths: list[Path]) -> dict:
         raise ValueError("No phase carries " + FIELD)
     phases = {}
     for name, values in samples.items():
+        if len(values) != len(reports):
+            raise ValueError(f"{name}: present in {len(values)} of {len(reports)} reports")
         phases[name] = {"count": len(values), "min_s": min(values),
                         "p50_s": _quantile(values, 50), "p95_s": _quantile(values, 95),
                         "max_s": max(values), "last_input_kinds": sorted(kinds[name])}
     return {"kind": "baseline", "accepted": None, "budget": None, "scope": SCOPE,
             "identity": {key: first.get(key) for key in IDENTITY},
-            "runs": [{"report": str(path), "sha256": digest,
-                      # Base name only: no local home path enters committed evidence.
+            "runs": [{"report": path.name, "sha256": digest,
+                      # Base names only: no local home path enters committed evidence.
                       "run_directory": Path(str(report.get("run_directory"))).name,
                       "duration_s": report.get("duration_s")} for path, report, digest in reports],
             "phases": phases}

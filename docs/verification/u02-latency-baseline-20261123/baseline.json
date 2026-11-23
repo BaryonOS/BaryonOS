@@ -353,19 +353,19 @@
   "runs": [
     {
       "duration_s": 358.38776098699964,
-      "report": "build/u02-logs/report-1.json",
+      "report": "report-1.json",
       "run_directory": "window-1f624aabbe0241788d7dd0939f90d34c",
       "sha256": "2796fafdcfe6a1ed2c21ed5d4e0c2bd9a03c876d4866fd19da3fdcc0945416b2"
     },
     {
       "duration_s": 374.25989120599843,
-      "report": "build/u02-logs/report-2.json",
+      "report": "report-2.json",
       "run_directory": "window-97f5f11732bc4be7b75e02e2d0cb666c",
       "sha256": "e3a51cbeb41c13c153470e69d5432abeaf6d8a1b3e15c3117afec4d90b28e7d6"
     },
     {
       "duration_s": 359.83572562100017,
-      "report": "build/u02-logs/report-3.json",
+      "report": "report-3.json",
       "run_directory": "window-a0f37878493d471098eec23e671c8336",
       "sha256": "c8dddedb95a37193df910199bf99b95b27b0196231ef4862e181ff75f27dcd07"
     }

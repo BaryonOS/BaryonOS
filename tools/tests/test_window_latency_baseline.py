@@ -76,6 +76,17 @@ class BaselineTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "No phase"):
             baseline.summarise(self.write(report(0, {})))
 
+    def test_rejects_unbound_source_and_uneven_phases(self):
+        for key in ("source_commit", "source_sha256"):
+            with self.subTest(key=key), self.assertRaises(ValueError):
+                baseline.summarise(self.write(*(report(run, {"editor": 0.1}, **{key: None}) for run in range(2))))
+        with self.assertRaisesRegex(ValueError, "present in 1 of 2"):
+            baseline.summarise(self.write(report(0, {"editor": 0.1, "dirty": 0.2}), report(1, {"editor": 0.1})))
+
+    def test_records_report_base_names_only(self):
+        summary = baseline.summarise(self.write(*(report(run, {"editor": 0.1}) for run in range(2))))
+        self.assertEqual([run["report"] for run in summary["runs"]], ["report-0.json", "report-1.json"])
+
     def test_cli_fails_closed_and_writes_json(self):
         good = self.write(report(0, {"editor": 0.1}), report(1, {"editor": 0.2}))
         output = good[0].parent / "baseline.json"
