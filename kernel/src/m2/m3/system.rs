@@ -176,9 +176,14 @@ pub(super) fn after_wake(slot: usize, number: u64, code: i64) {
         p.other = p.other.saturating_add(1);
     }
 }
-/// First timer interrupt after the wake: tell init it may continue.
+/// First timer interrupt after the wake: tell init it may continue. With
+/// test-system-s3-reinit only once virtio-rng is re-initialised (H05-T5b).
 #[cfg(feature = "test-system-s3")]
 pub(super) fn tick_after_wake(s: &State) {
+    #[cfg(feature = "test-system-s3-reinit")]
+    if !keyring::reinit_done() {
+        return;
+    }
     let p = suspend_state();
     if p.resumed && !p.ticked && s.processes[INIT].status != Status::Dead {
         p.ticked = true;
@@ -402,6 +407,10 @@ pub(super) fn manifest(s: &mut State) {
         put(s, INIT, 48, power);
         #[cfg(feature = "test-system-s3")]
         put(s, INIT, 592, 1);
+        // H05-T5b: entropy is served again after the wake; init's POWER handle
+        // then reaches the authority check (-6) instead of the -14 refusal.
+        #[cfg(feature = "test-system-s3-reinit")]
+        put(s, INIT, 624, 1);
         put(s, APP, 104, power);
         // SHUTDOWN is accepted only on domain 1, init's volume ingress.
         put(s, VOLUME, 104, 2);
@@ -734,6 +743,11 @@ pub(super) fn observe_fault(s: &mut State, slot: usize, context: &[u64; 22], _co
 pub(super) fn poll(s: &mut State) -> Option<*const u64> {
     #[cfg(feature = "native-system-random")]
     random_fixture::poll(s);
+    #[cfg(feature = "test-system-s3-reinit")]
+    if resumed() {
+        let handle = word(s, KEY, 48);
+        keyring::reinit_poll(s, KEY, handle);
+    }
     keyring::broker_tick(s);
     m5::broker_tick(s);
     #[cfg(feature = "native-system-net")]
@@ -917,12 +931,19 @@ fn finish(s: &mut State) -> ! {
     #[cfg(feature = "test-system-s3")]
     {
         let p = suspend_state();
+        // H05-T5b: after re-init init's entropy request reaches the authority
+        // check with its POWER handle (-6); block requests stay lost (-14).
+        let entropy = if cfg!(feature = "test-system-s3-reinit") {
+            -6
+        } else {
+            -14
+        };
         let ok = p.granted
             && p.resumed
             && p.ticked
             && s.timer_interrupts > p.irqs_at_wake
             && p.log[..p.count] == [-8, -6, -4, -1, 0, -14]
-            && p.lost[..p.lost_count] == [(0x60, -14), (0x40, -14)]
+            && p.lost[..p.lost_count] == [(0x60, entropy), (0x40, -14)]
             && p.other == 0;
         if !ok {
             for code in &p.log[..p.count] {
@@ -937,7 +958,18 @@ fn finish(s: &mut State) -> ! {
         print_number(b"SYSTEM:SUSPEND_REFUSALS:", (p.count - 1) as u64);
         print_number(b"SYSTEM:SUSPEND_GRANTED:", 1);
         print_number(b"SYSTEM:SUSPEND_TICK_AFTER_WAKE:", 1);
+        #[cfg(feature = "test-system-s3-reinit")]
+        {
+            let (served, stale) = keyring::reinit_evidence().unwrap_or_else(|| fail(b"S3_REINIT"));
+            print_number(b"SYSTEM:SUSPEND_REINIT_ENTROPY:", served);
+            print_number(b"SYSTEM:SUSPEND_REINIT_STALE_TICKET:", stale.unsigned_abs());
+            print_number(
+                b"SYSTEM:SUSPEND_REINIT_ENTROPY_AUTH:",
+                p.lost[0].1.unsigned_abs(),
+            );
+        }
         // The logged magnitudes, so a host oracle can tell -14 from 0.
+        #[cfg(not(feature = "test-system-s3-reinit"))]
         print_number(b"SYSTEM:SUSPEND_LOST_ENTROPY:", p.lost[0].1.unsigned_abs());
         print_number(b"SYSTEM:SUSPEND_LOST_BLOCK:", p.lost[1].1.unsigned_abs());
     }
@@ -1110,7 +1142,9 @@ fn finish(s: &mut State) -> ! {
             print_number(b"SYSTEM:POWER:GATE_LOST:", code as u64);
             fail(b"POWER_GATE");
         }
-        serial::write(if cfg!(feature = "test-system-s3") {
+        serial::write(if cfg!(feature = "test-system-s3-reinit") {
+            &b"SYSTEM:POWER:GATE:PASS\nSYSTEM:CASE:POWER_S3_REINIT:PASS\nM1:PASS\n"[..]
+        } else if cfg!(feature = "test-system-s3") {
             &b"SYSTEM:POWER:GATE:PASS\nSYSTEM:CASE:POWER_S3:PASS\nM1:PASS\n"[..]
         } else {
             b"SYSTEM:POWER:GATE:PASS\nSYSTEM:CASE:POWER:PASS\nM1:PASS\n"

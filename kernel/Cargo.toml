@@ -186,6 +186,7 @@ test-system-power-flush-error = ["native-system-power"]
 test-system-power-flush-timeout = ["native-system-power"]
 # H05-T4 (ADR-H05-S3-SYSTEM-20261123): test-only SUSPEND 0x91 behind POWER and the storage gate.
 test-system-s3 = ["native-system-power", "acpi-s3-core"]
+test-system-s3-reinit = ["test-system-s3"]
 native-system-nas-probe = ["native-system", "monotonic-clock", "ipc-wait"]
 test-system-nas-recover = ["native-system-nas-probe", "test-system-recover"]
 # Real NIC integration; the base joint profile never probes or maps a NIC.

@@ -159,6 +159,16 @@ pub fn discover() -> Result<Discovery, Error> {
         config[offset..offset + 4].copy_from_slice(&cfg_read(offset as u16).to_le_bytes());
     }
     let regions = parse_capabilities_for(&config, &bars, DEVICE_ID_ENTROPY)?;
+    quiesce_interrupts(&config)?;
+    Ok(Discovery {
+        config,
+        bars,
+        regions,
+    })
+}
+
+/// Disable MSI and MSI-X (function-masked) along the bounded capability list.
+fn quiesce_interrupts(config: &[u8; 256]) -> Result<(), Error> {
     let mut at = config[0x34] as usize;
     let mut count = 0;
     while at != 0 && count < 48 {
@@ -178,11 +188,103 @@ pub fn discover() -> Result<Discovery, Error> {
     if at != 0 {
         return Err(Error::Protocol);
     }
-    Ok(Discovery {
-        config,
-        bars,
-        regions,
-    })
+    Ok(())
+}
+
+/// How the six BAR dwords of the fixed function compare with discovery after
+/// an S3 wake (H05-T5b). No BAR is ever sized again.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum BarState {
+    /// Every BAR dword still equals the discovered value.
+    Kept,
+    /// Every BAR lost its address (only read-only type bits remain); the
+    /// discovered values were written back and read back equal.
+    Restored,
+}
+
+/// Classify the current BAR dwords against the discovered ones. Accepted are
+/// exactly two states: all unchanged, or all addresses cleared with the
+/// read-only type bits intact. Anything else (a mixture, a different non-zero
+/// base, changed type bits) is refused: the device then stays offline.
+pub fn classify_bars(saved: [u32; 6], now: [u32; 6]) -> Result<BarState, Error> {
+    if now == saved {
+        return Ok(BarState::Kept);
+    }
+    let mut i = 0;
+    while i < 6 {
+        let low = saved[i];
+        let (type_bits, wide) = if low & 1 != 0 {
+            (3, false)
+        } else {
+            (15, low & 6 == 4)
+        };
+        if now[i] != low & type_bits {
+            return Err(Error::Range);
+        }
+        if wide {
+            if i == 5 || now[i + 1] != 0 {
+                return Err(Error::Range);
+            }
+            i += 2;
+        } else {
+            i += 1;
+        }
+    }
+    Ok(BarState::Restored)
+}
+
+fn saved_dword(config: &[u8; 256], offset: usize) -> u32 {
+    u32::from_le_bytes([
+        config[offset],
+        config[offset + 1],
+        config[offset + 2],
+        config[offset + 3],
+    ])
+}
+
+/// Re-validate the fixed function after an S3 wake without sizing any BAR:
+/// identity, then the six BAR dwords (restored only from the all-cleared
+/// state and read back), memory decode without bus mastering, the capability
+/// regions (must equal `saved` exactly) and the interrupt quiesce of
+/// `discover`. DMA stays impossible until `Device::initialize`.
+pub fn rediscover(saved: &Discovery) -> Result<BarState, Error> {
+    let id = (u32::from(DEVICE_ID_ENTROPY) << 16) | 0x1af4;
+    if cfg_read(0) != id || saved_dword(&saved.config, 0) != id {
+        return Err(Error::Offline);
+    }
+    // Decode and bus mastering off while the BARs may change.
+    command((cfg_read(4) as u16 & !7) | (1 << 10));
+    let mut old = [0u32; 6];
+    let mut now = [0u32; 6];
+    for i in 0..6 {
+        old[i] = saved_dword(&saved.config, 0x10 + i * 4);
+        now[i] = cfg_read(0x10 + i as u16 * 4);
+    }
+    let state = classify_bars(old, now)?;
+    if state == BarState::Restored {
+        for (i, value) in old.iter().enumerate() {
+            cfg_write(0x10 + i as u16 * 4, *value);
+        }
+        for (i, value) in old.iter().enumerate() {
+            if cfg_read(0x10 + i as u16 * 4) != *value {
+                return Err(Error::Range);
+            }
+        }
+    }
+    // The discovery state: memory decode, INTx disabled, no bus mastering.
+    command((cfg_read(4) as u16 & !7) | 2 | (1 << 10));
+    if cfg_read(4) & 7 != 2 {
+        return Err(Error::Protocol);
+    }
+    let mut config = [0u8; 256];
+    for offset in (0..256).step_by(4) {
+        config[offset..offset + 4].copy_from_slice(&cfg_read(offset as u16).to_le_bytes());
+    }
+    if parse_capabilities_for(&config, &saved.bars, DEVICE_ID_ENTROPY)? != saved.regions {
+        return Err(Error::Protocol);
+    }
+    quiesce_interrupts(&config)?;
+    Ok(state)
 }
 
 pub struct Device {
@@ -359,6 +461,11 @@ impl Device {
     pub fn pending(&self) -> bool {
         self.pending.is_some()
     }
+    /// The device status register as the device reports it.
+    pub fn status(&self) -> u8 {
+        // SAFETY: Own UC common-configuration register from a validated mapping.
+        unsafe { read8(self.common + 20) }
+    }
     pub fn begin_reset(&mut self) {
         self.ready = false;
         self.pending = None;
@@ -492,6 +599,52 @@ mod tests {
                 }
             }
         }
+    }
+
+    /// QEMU 10.2.1 q35, 00:06.0 before and after an S3 wake (H05-T5b probe):
+    /// BAR1 32-bit at 0x80001000, BAR4 64-bit prefetchable at 0xc0_0000_8000.
+    const DISCOVERED: [u32; 6] = [0, 0x8000_1000, 0, 0, 0x0000_800c, 0xc0];
+    const WOKEN: [u32; 6] = [0, 0, 0, 0, 0xc, 0];
+
+    #[test]
+    fn bars_are_kept_or_restored_only_from_the_cleared_state() {
+        assert_eq!(classify_bars(DISCOVERED, DISCOVERED), Ok(BarState::Kept));
+        assert_eq!(classify_bars(DISCOVERED, WOKEN), Ok(BarState::Restored));
+        assert_eq!(classify_bars([0; 6], [0; 6]), Ok(BarState::Kept));
+        let io = [0xc001, 0, 0, 0, 0, 0];
+        assert_eq!(
+            classify_bars(io, [1, 0, 0, 0, 0, 0]),
+            Ok(BarState::Restored)
+        );
+        for now in [
+            // Mixed: BAR1 kept, BAR4 cleared, and the reverse.
+            [0, 0x8000_1000, 0, 0, 0xc, 0],
+            [0, 0, 0, 0, 0x0000_800c, 0xc0],
+            // A different non-zero base, low or high dword.
+            [0, 0x8000_2000, 0, 0, 0x0000_800c, 0xc0],
+            [0, 0, 0, 0, 0xc, 0xc1],
+            [0, 0, 0, 0, 0x0000_900c, 0],
+            // Read-only type bits changed (prefetch lost, 32-bit, I/O).
+            [0, 0, 0, 0, 0x4, 0],
+            [0, 0, 0, 0, 0x0, 0],
+            [0, 1, 0, 0, 0xc, 0],
+            // A BAR that discovery saw empty now decodes something.
+            [0x1000, 0, 0, 0, 0xc, 0],
+            [0, 0, 0, 0x8, 0xc, 0],
+            // The device no longer answers config reads.
+            [u32::MAX; 6],
+        ] {
+            assert_eq!(
+                classify_bars(DISCOVERED, now),
+                Err(Error::Range),
+                "{now:x?}"
+            );
+        }
+        // A 64-bit BAR cannot start in the last slot.
+        assert_eq!(
+            classify_bars([0, 0, 0, 0, 0, 4], [0, 0, 0, 0, 0, 0]),
+            Err(Error::Range)
+        );
     }
 
     #[test]
