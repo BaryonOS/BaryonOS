@@ -30,7 +30,7 @@ The edge set contains:
 
 ### Checked invariants
 
-The oracle is written from the rules in the crate source, which is its primary source: `crates/elf-loader-core/src/lib.rs` (BaryonOS project, `parse` and its `Error` variants) at commit `2f4ac6ae814fac18bca52ff80d4b9f774d12bec2`, <https://github.com/BaryonOS/BaryonOS/blob/2f4ac6ae814fac18bca52ff80d4b9f774d12bec2/crates/elf-loader-core/src/lib.rs>. The policy-envelope oracle likewise derives from `crates/update-core/src/policy_envelope.rs` at the same commit. The oracle is checked against the (mutated) input bytes.
+The oracle is written from the rules in the crate source, which is its primary source: `crates/elf-loader-core/src/lib.rs` (BaryonOS project, `parse` and its `Error` variants) at commit `2f4ac6ae814fac18bca52ff80d4b9f774d12bec2`, <https://github.com/BaryonOS/BaryonOS/blob/2f4ac6ae814fac18bca52ff80d4b9f774d12bec2/crates/elf-loader-core/src/lib.rs>. The policy-envelope oracle likewise derives from `crates/update-core/src/policy_envelope.rs` at the same commit, <https://github.com/BaryonOS/BaryonOS/blob/2f4ac6ae814fac18bca52ff80d4b9f774d12bec2/crates/update-core/src/policy_envelope.rs>. The oracle is checked against the (mutated) input bytes.
 
 - `parse` never panics within the enumerated inputs. Every call runs under `catch_unwind`, which reports the case that panicked.
 - A rejection is a typed `Error` value; a partial plan is never returned.
