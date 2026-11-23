@@ -49,9 +49,16 @@ that the project owner or security authority must make.
   key isolation, memory protection or protection of unshared data.
 - No self-written cryptographic primitive, no record-protection code and no
   trust-root substitution.
-- Every random byte used for key generation, encapsulation, TLS randoms and
-  signing reaches the authenticated Key-Service session; no host getrandom,
-  CPU RNG, cached seed or network fallback.
+- **Proposed native-acceptance requirement:** every random byte used for key
+  generation, encapsulation, TLS randoms and signing reaches the authenticated
+  Key-Service session; no host getrandom, CPU RNG, cached seed or network
+  fallback. **Host-test state (implemented in
+  [PR #426](https://github.com/BaryonOS/BaryonOS/pull/426)):** the host
+  oracle routes TLS randoms through `KeyServiceRandom`, but aws-lc-rs draws
+  key-exchange, encapsulation and signing randomness internally and bypasses
+  it. **Unknown:** no decision establishes this as an approved host-test
+  exception; question 3 asks for one. Host evidence never counts towards this
+  requirement.
 - Monotonic uptime, host/build time or an untrusted RTC never becomes calendar
   time.
 - A classical-only peer is refused; there is no second group in the offer.
@@ -101,7 +108,8 @@ Under every P2 option the rustls end still needs a provider that offers
 X25519MLKEM768. On rustls 0.23.46 that is aws-lc-rs (or rustls-graviola on an
 AVX2-capable host); an option B provider can take that place only after it
 exists. H2 therefore does not avoid a host-only aws-lc-rs dependency unless
-option B is implemented first. Any host oracle is a development and test tool only. It never ships in an OS
+option B is implemented first or every test host meets rustls-graviola's CPU
+requirements. Any host oracle is a development and test tool only. It never ships in an OS
 image and never supplies native acceptance evidence.
 
 ### P3 — Test peer pinning model
@@ -156,9 +164,13 @@ audit. The N03 score contribution stays at zero, and the overall score stays
    mirroring upstream rustls code, fall within ADR-028's "no custom combiner"
    prohibition?
 3. Do you confirm or reject the reported choice of a host-only aws-lc-rs test
-   dependency for the rustls end of the host loopback (needed under every P2
-   option until an option B provider exists), and should the peer be rustls
-   (H1), the existing Node.js/OpenSSL peer (H2) or both (H3)?
+   dependency for the rustls end of the host loopback, including the bypass of
+   `KeyServiceRandom` by its internal randomness as a host-test exception? On
+   rustls 0.23.46 the alternative is rustls-graviola 0.4.0, which provides
+   X25519MLKEM768 only on hosts with the x86_64 features its README requires;
+   aws-lc-rs is needed only where that alternative or an option B provider is
+   unavailable. Should the peer be rustls (H1), the existing Node.js/OpenSSL
+   peer (H2) or both (H3)?
 4. Is a repository-public test CA with exact SPKI pins and Ed25519 leaf
    certificates acceptable for QEMU and host tests (P3)?
 5. Which certificate-time policy applies: T1, T2 or T3?

@@ -111,10 +111,11 @@ resolved with
 `cargo +1.100.0 tree -e normal,build --target x86_64-unknown-none --prefix none`;
 the build-script crates are the resolved packages whose `cargo metadata` target
 list contains a `custom-build` target. Every probe uses the crate's default
-features unless its row states otherwise. The rustls, aes-gcm, rustls-webpki
-and rustls-pki-types probes use `default-features = false`, matching how a
-native provider would depend on them; their rows state what the default
-features add. Rechecked on 23 November 2026.
+features unless its row states otherwise. The rustls, rustls-webpki and
+rustls-pki-types probes use `default-features = false`, and the aes-gcm probe
+uses `default-features = false, features = ["aes"]` (AES enabled, getrandom
+disabled), matching how a native provider would depend on them; their rows
+state what the default features add. Rechecked on 23 November 2026.
 
 | Crate | Latest (date) | Licence (crates.io) | `no_std` attribute | Build scripts in isolated graph | Random source | SIMD/backend selection |
 |---|---|---|---|---|---|---|
@@ -127,7 +128,7 @@ features add. Rechecked on 23 November 2026.
 | [libcrux-ml-kem](https://github.com/cryspen/libcrux) | 0.0.12 (2026-11-19) | Apache-2.0 | `#![no_std]` | libc, libcrux-intrinsics, libcrux-ml-kem, libcrux-sha3 | caller-supplied `randomness: [u8; N]` arrays or `TryCryptoRng` | build scripts enable `simd256` on every x86_64 build unless `LIBCRUX_DISABLE_SIMD256` is set; hax/F* verification annotations present |
 | [x25519-dalek](https://github.com/dalek-cryptography/curve25519-dalek) | 3.0.0 (2026-07-06) | BSD-3-Clause | `#![no_std]` | curve25519-dalek, proc-macro2, quote | `random_from_rng(CryptoRng)`; optional `getrandom` feature (`random()` panics on failure); `StaticSecret: From<[u8; 32]>` behind `static_secrets` | curve25519-dalek build script selects `serial`/`fiat`/`simd`/`avx512` through `curve25519_dalek_backend` |
 | [ed25519-dalek](https://github.com/dalek-cryptography/curve25519-dalek) | 3.0.0 (2026-07-06) | BSD-3-Clause | `#![no_std]` | curve25519-dalek, proc-macro2, quote | signing is deterministic (RFC 8032); key generation through optional `rand_core` | through curve25519-dalek backend selection |
-| [aes-gcm](https://github.com/RustCrypto/AEADs) | 0.11.1 (2026-08-21) | Apache-2.0 OR MIT | `#![no_std]` | `default-features = false`: none. Default features add getrandom | optional `getrandom`/`rand_core` (nonce generation only) | aes 0.9 and polyval 0.7 use `cpufeatures` runtime detection; `aes_backend="soft"` and `polyval_backend="soft"` force software |
+| [aes-gcm](https://github.com/RustCrypto/AEADs) | 0.11.1 (2026-08-21) | Apache-2.0 OR MIT | `#![no_std]` | `default-features = false, features = ["aes"]`: none (18 nodes). Default features add getrandom | optional `getrandom`/`rand_core`, which supply randomness to the key and nonce generation helpers (`Key::generate`, `Nonce::generate`); disabled in the probed configuration | aes 0.9 and polyval 0.7 use `cpufeatures` runtime detection; `aes_backend="soft"` and `polyval_backend="soft"` force software |
 | [sha2](https://github.com/RustCrypto/hashes) | 0.11.1 (2026-10-12) | MIT OR Apache-2.0 | `#![no_std]` | none | none | `cpufeatures` detection of SHA-NI/AVX2; `sha2_backend` cfg |
 | [hkdf](https://github.com/RustCrypto/KDFs) | 0.13.0 (2026-03-30) | MIT OR Apache-2.0 | `#![no_std]` | none | none | through hmac/sha2 |
 | [rustls-webpki](https://github.com/rustls/webpki) | 0.103.17 (2026-11-12); 0.104.0-alpha.8 pre (2026-10-20) | ISC | `#![no_std]` | none (default features off) | none | through provider |
