@@ -549,6 +549,7 @@ pub(super) fn device_reset_evidence() -> (u64, u64, u64) {
     (r.fault.tick, r.fault.ticket, r.fault.rx_errors)
 }
 /// Link-down refusals also count as denied; zero outside the link profile.
+#[cfg(not(feature = "test-net-service-device-reset"))]
 fn link_refused(_r: &Runtime) -> u64 {
     #[cfg(feature = "test-net-service-link")]
     return link::refused(_r);
@@ -1014,6 +1015,9 @@ pub(super) mod link {
             [1, 3, 3, 2, 1, 0, 0, 1, 0, 0],
             "service link evidence"
         );
+        // One send and one poll can each race the edge once; more means the
+        // service ignored the refusal.
+        assert!(c.tx_refused <= 1 && c.rx_refused <= 1);
         assert!(c.queries > 0 && 0 < down && down < up);
         (down, up)
     }

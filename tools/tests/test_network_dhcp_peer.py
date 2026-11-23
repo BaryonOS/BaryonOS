@@ -408,7 +408,9 @@ class LinkPeerTest(unittest.TestCase):
                               ("dropped", step.actions[:link] + step.actions[link + 1:]),
                               ("up", step.actions[:link] + [dict(step.actions[link], up=True)] + step.actions[link + 1:]),
                               ("extra key", step.actions[:link] + [dict(step.actions[link], output=[])]
-                               + step.actions[link + 1:])):
+                               + step.actions[link + 1:]),
+                              ("not quiet", step.actions[:link] + [dict(step.actions[link],
+                               at=step.actions[link - 1]["at"] + 0.1)] + step.actions[link + 1:])):
             with self.subTest(name), self.assertRaises(ProtocolError):
                 validate_transcript(dict(evidence, actions=actions))
         with self.assertRaises(ProtocolError):
@@ -494,6 +496,57 @@ class LinkRunnerTest(unittest.TestCase):
             self.runner.link_sequence(good, summary, 3)
         with self.assertRaises(ValueError):
             self.runner.link_sequence(good, {}, 2)
+
+    def serial(self, case="link", service=None, network=None, link=None, netlink=None):
+        """A synthetic native serial that sequence() accepts unless overridden."""
+        r = self.runner
+        svc = dict.fromkeys(r.OFFSETS, 0)
+        svc.update({560: 2, 568: 1, 592: 1071, 600: 1, 616: 2482})
+        svc.update({656: 1, 664: 2} if case == "link" else {})
+        svc.update(service or {})
+        net = dict.fromkeys(r.NETWORK, 0)
+        net.update(NET_RX_COMPLETED=2, NET_DENIED=3)
+        net.update(network or {})
+        kernel = dict(zip(r.LINK_NAMES, (1, 3, 3, 2, 1, 0, 1, 0, 0, 1, 0, 0, 9, 1071, 1073)))
+        kernel.update(link or {})
+        num = lambda prefix, value: f"{prefix}:{value:020d}"
+        lines = list(r.BOOT) + ["NETSVC:MANIFEST:PASS"]
+        lines += [num(f"NETSVC:{role}:{offset}", svc[offset] if role == "SERVICE" else 0)
+                  for role in r.ROLES for offset in r.OFFSETS]
+        lines += [num(f"SYSTEM:{name}", value) for name, value in net.items()]
+        lines += [num("NETSVC:APP_A_EXIT_TICKS", 2486), num("NETSVC:APP_B_EXIT_TICKS", 2490),
+                  num("NETSVC:ENTROPY_BYTES", 12)]
+        if case == "link":
+            lines += [num(f"SYSTEM:NETLINK_{name}", value) for name, value in kernel.items()]
+        lines += self.netlink() if netlink is None else netlink
+        return "\n".join(lines + ["NETSVC:CLEANUP:PASS", "NETSVC:PASS", "M1:PASS"]) + "\n"
+
+    def test_link_sequence_binds_service_kernel_and_broker_counters(self):
+        observed = self.runner.sequence(self.serial(), "link")
+        self.assertEqual((observed["link"]["DOWN_TICK"], observed["link"]["UP_TICK"]), (1071, 1073))
+        self.assertEqual(self.runner.sequence(self.serial("dhcp", netlink=[]))["processes"]["SERVICE"]["656"], 0)
+        mutants = {
+            "no withdrawal": dict(service={656: 0}),
+            "one acquire": dict(service={664: 1}),
+            "denied formula": dict(network=dict(NET_DENIED=4)),
+            "two tx refusals": dict(network=dict(NET_DENIED=4), link=dict(TX_REFUSED=2)),
+            "two rx refusals": dict(network=dict(NET_DENIED=5), link=dict(RX_REFUSED=2)),
+            "withdrawn before edge": dict(link=dict(DOWN_TICK=1072)),
+            "leased before up edge": dict(link=dict(UP_TICK=2482)),
+            "up before down": dict(link=dict(UP_TICK=1071)),
+            "no queries": dict(link=dict(QUERIES=0)),
+            "second cycle": dict(link=dict(EPOCH=5)),
+        }
+        for name, change in mutants.items():
+            with self.subTest(name), self.assertRaises(ValueError):
+                self.runner.sequence(self.serial(**change), "link")
+        with self.subTest("dhcp observed link"), self.assertRaisesRegex(ValueError, "observed the link"):
+            self.runner.sequence(self.serial("dhcp", service={656: 1}, netlink=[]))
+        with self.subTest("netlink in dhcp case"), self.assertRaises(ValueError):
+            self.runner.sequence(self.serial("dhcp"))
+        with self.subTest("kernel summary in dhcp case"), self.assertRaisesRegex(ValueError, "Unknown/reordered"):
+            self.runner.sequence(self.serial("dhcp", netlink=[]).replace(
+                "NETSVC:CLEANUP:PASS", "SYSTEM:NETLINK_EPOCH:" + "0" * 19 + "3\nNETSVC:CLEANUP:PASS"))
 
     def test_on_poll_exception_kills_qemu_stand_in(self):
         from run_network_service import execute_native

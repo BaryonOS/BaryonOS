@@ -628,6 +628,9 @@ def validate_transcript(evidence):
             raise ProtocolError("changed/nonfinite transcript time")
         last = now
         if link:
+            # The drop follows a quiet guest; a late frame fails closed.
+            if now - machine.last_input < QUIET_S:
+                raise ProtocolError("link drop without the quiet interval")
             # Raises unless the first lease was bound and ready; a second
             # drop finds it already withdrawn.
             machine.link_down(now)

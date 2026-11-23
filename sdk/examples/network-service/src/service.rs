@@ -82,30 +82,38 @@ struct Bridge {
     watch: bool,
     /// Last `(epoch, up)` the service acted on; None before the first sample.
     link: Option<(u64, bool)>,
+    /// A changed `(epoch, up)` sampled before the loop read its clock.
+    seen: Option<(u64, bool)>,
 }
 impl Bridge {
+    /// Queries the link before the loop reads its clock, so the tick handed to
+    /// link_down/link_up is never earlier than the kernel's edge tick.
+    fn observe_link(&mut self) {
+        if !self.watch {
+            return;
+        }
+        match native::net_link(self.source) {
+            Ok(sample) if self.link.map(|l| l.0) != Some(sample.0) => self.seen = Some(sample),
+            Ok(_) => {}
+            // Before the kernel's first sample.
+            Err(e) if e.is_again() => {}
+            Err(_) => fail(42),
+        }
+    }
     /// DHCP mode uses only the timestamped TX API; the legacy static calls
     /// below deliberately return nothing/refuse in that mode.
     fn step_dhcp(&mut self, service: &mut Service<'_>, tick: u64) {
-        if self.watch {
-            match native::net_link(self.source) {
-                // Any epoch change withdraws first: link_up itself withdraws a
-                // configuration, so a hidden down/up (epoch + 2) is covered.
-                Ok((epoch, up)) if self.link.map(|l| l.0) != Some(epoch) => {
-                    if up {
-                        service.link_up(tick)
-                    } else {
-                        service.link_down(tick)
-                    }
-                    .unwrap_or_else(|_| fail(41));
-                    bump(if up { 664 } else { 656 });
-                    self.link = Some((epoch, up));
-                }
-                Ok(_) => {}
-                // Before the kernel's first sample.
-                Err(e) if e.is_again() => {}
-                Err(_) => fail(42),
+        // Any epoch change withdraws first: link_up itself withdraws a
+        // configuration, so a hidden down/up (epoch + 2) is covered.
+        if let Some((epoch, up)) = self.seen.take() {
+            if up {
+                service.link_up(tick)
+            } else {
+                service.link_down(tick)
             }
+            .unwrap_or_else(|_| fail(41));
+            bump(if up { 664 } else { 656 });
+            self.link = Some((epoch, up));
         }
         // Not yet observed or down: neither send nor receive. A pending TX
         // ticket still completes below; 0x71 has no link gate.
@@ -418,6 +426,7 @@ fn run() -> ! {
         }),
         watch,
         link: None,
+        seen: None,
     };
     let mut leased: Option<u64> = None;
     let mut pending: [Option<wire::Packet>; 2] = [None, None];
@@ -426,6 +435,7 @@ fn run() -> ! {
     let mut revoked_at = 0;
     support::put(400, 1);
     loop {
+        bridge.observe_link();
         let tick = now();
         bridge.step(&mut service, tick);
         bump(408);

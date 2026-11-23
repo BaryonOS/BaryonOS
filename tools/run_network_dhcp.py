@@ -74,7 +74,8 @@ class LinkHandshake:
             self.qmp, self.directory = self.connect(self.run_dir, process, self.deadline)
         if len(self.actions) >= 2:
             raise RuntimeError("link toggle budget of the harness exceeded")
-        reply = self.qmp.command("set_link", {"name": NETDEV, "up": up})
+        # Through the shared allowlist: only qmp_capabilities and set_link.
+        reply = LinkControl.command(self, "set_link", {"name": NETDEV, "up": up})
         if reply != {}:
             raise RuntimeError(f"unexpected set_link reply {reply!r}")
         self.actions.append(dict(up=up, phase=self.phase, completed_s=round(time.monotonic() - self.started, 3)))
@@ -90,11 +91,13 @@ class LinkHandshake:
             self.phase = "done"
 
     def close(self):
-        if self.qmp is not None:
-            self.qmp.close()
-        if self.directory is not None:
-            os.close(self.directory)
-            self.directory = None
+        try:
+            if self.qmp is not None:
+                self.qmp.close()
+        finally:
+            if self.directory is not None:
+                os.close(self.directory)
+                self.directory = None
 
     def evidence(self):
         return dict(kind="QMP set_link driver; private unix socket in the run directory", phase=self.phase,
@@ -202,6 +205,7 @@ def sequence(stdout, case="dhcp"):
                            "WINDOW_DELTA", "EXHAUSTED")] != [1, 3, 3, 2, 1, 0, 0, 1, 0, 0]
             or link["QUERIES"] == 0 or (service[656], service[664]) != (1, 2)
             or network["NET_DENIED"] != 2 + link["TX_REFUSED"] + link["RX_REFUSED"]
+            or link["TX_REFUSED"] > 1 or link["RX_REFUSED"] > 1
             # Withdrawal no earlier than the down edge; re-lease after the up edge.
             or not 0 < link["DOWN_TICK"] <= service[592] or not link["DOWN_TICK"] < link["UP_TICK"] < service[616]):
         raise ValueError("Native link cycle evidence differs")
