@@ -200,9 +200,11 @@ def refuse_stray_suspend(case: str, stdout: str) -> None:
         raise ValueError("re-init evidence outside the power-s3-reinit profile")
 
 
-# Review R3: after CLEANUP, the post-wake device accesses outside the accounted
-# re-init path and the teardown resets the latch suppressed.
-DEVICE_ORDER = ("DEVICE_IO_AFTER_WAKE", "DEVICE_SUPPRESSED")
+# Review R3: after CLEANUP, each broker's device accesses at the wake (live
+# counters, > 0), the post-wake accesses outside the accounted re-init path
+# and the teardown resets the latch suppressed.
+LIVE_AT_WAKE = ("DEVICE_IO_AT_WAKE_KEYRING", "DEVICE_IO_AT_WAKE_VOLUME")
+DEVICE_ORDER = (*LIVE_AT_WAKE, "DEVICE_IO_AFTER_WAKE", "DEVICE_SUPPRESSED")
 SUSPEND_ORDER = ("REFUSALS", "GRANTED", "TICK_AFTER_WAKE", "HELD_REFUSALS", "LOST_ENTROPY",
                  "LOST_BLOCK", *DEVICE_ORDER)
 # Re-init: one 32-byte post-wake delivery, the pre-sleep ticket refused (-1),
@@ -238,6 +240,18 @@ def check_power(case: str, stdout: str, found: dict) -> None:
             suspend = [line.split(":")[1] for line in lines if line.startswith("SYSTEM:SUSPEND")]
             if suspend != [f"SUSPEND_{key}" for key in (REINIT_ORDER if reinit else SUSPEND_ORDER)]:
                 raise ValueError(f"{case} suspend evidence out of order: {suspend}")
+            # The kernel's real order: the wake evidence (ending in LOST_BLOCK)
+            # before CLEANUP, the device evidence after every owner's teardown
+            # and before the case marker.
+            at = {line.split(":")[1]: index for index, line in enumerate(lines)
+                  if line.startswith("SYSTEM:SUSPEND_")}
+            if not (at["SUSPEND_LOST_BLOCK"] < lines.index("SYSTEM:CLEANUP:PASS")
+                    < at[f"SUSPEND_{DEVICE_ORDER[0]}"]
+                    and at[f"SUSPEND_{DEVICE_ORDER[-1]}"] < lines.index(expected_markers(case)[-2])):
+                raise ValueError(f"{case} suspend evidence out of order around CLEANUP")
+            for key in LIVE_AT_WAKE:
+                if found.get(f"SUSPEND_{key}", 0) < 1:
+                    raise ValueError(f"SUSPEND_{key}: expected a live counter (> 0), found {found.get(f'SUSPEND_{key}')}")
     else:
         fault = "FLUSH_ERROR" if case == "power-flush-error" else "FLUSH_TIMEOUT"
         if (any(line.startswith("POWER:") for line in lines)

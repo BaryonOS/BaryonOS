@@ -1066,7 +1066,8 @@ fn reset(r: &mut Runtime, now: u64) {
     // teardown (`detach`) is the only caller left there (`advance` returns
     // first). The Policy keeps what `exit` left: a completed request is gone
     // (Ready); a published, uncompleted one (never admitted by the SUSPEND
-    // gate) stays Resetting, so the S5 gate fails closed.
+    // gate) leaves publications != completions, so the S5 gate fails closed
+    // (-16).
     #[cfg(feature = "test-system-s3")]
     if super::system::resumed() {
         super::system::device_access_suppressed();

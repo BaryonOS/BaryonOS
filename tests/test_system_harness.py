@@ -10,7 +10,7 @@ import unittest
 import unittest.mock
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "tools"))
-from run_system import (KEYSTATE_HEADER, KEYSTATE_NAME, KEYSTATE_OBJECT, OPAQUE_OBJECTS, PERSIST_EXACT,
+from run_system import (DEVICE_ORDER, KEYSTATE_HEADER, KEYSTATE_NAME, KEYSTATE_OBJECT, OPAQUE_OBJECTS, PERSIST_EXACT,
                         SEALED_NAME, SEALED_OBJECT, check_disk, check_esp, check_image, check_parent,
                         S5_TAIL, COLD_CASES, cold_image, evaluate_cold, evaluate, expected_markers, record_plaintext)
 import volume_disk
@@ -327,8 +327,16 @@ class SystemHarnessTests(unittest.TestCase):
         self.assertNotIn("content_hex", oracle["objects"][0]["versions"][0])
 
 
+# Printed by the kernel between BROKERS:PASS and CLEANUP:PASS, and after it.
+TEARDOWN = ("LIVE_PROCESSES_AFTER", "FRAMES_RECOVERED")
+DEVICE = tuple(f"SUSPEND_{key}" for key in DEVICE_ORDER)
+AT_WAKE = dict(SUSPEND_DEVICE_IO_AT_WAKE_KEYRING=9, SUSPEND_DEVICE_IO_AT_WAKE_VOLUME=700)
+
+
 def power_transcript(case="power", tail=None, **changes):
-    """H05 power run: the normal flow plus refusal counters, then the S5 tail."""
+    """H05 power run in the kernel's real order: the wake evidence and the
+    counters, BROKERS, teardown, CLEANUP, the post-wake device evidence, then
+    the gate, case marker and S5 tail."""
     ok = case in ("power", "power-s3", "power-s3-reinit", "power-s3-held-completion")
     values = dict(POWER_INIT_REFUSALS=3 if ok else 4, POWER_APP_REFUSALS=2,
                   POWER_NOT_DURABLE=0 if ok else 1, DISK_FLUSHES=4)
@@ -336,15 +344,20 @@ def power_transcript(case="power", tail=None, **changes):
     if case in ("power-s3", "power-s3-held-completion"):
         values.update(SUSPEND_REFUSALS=5 + held, SUSPEND_GRANTED=1, SUSPEND_TICK_AFTER_WAKE=1,
                       SUSPEND_HELD_REFUSALS=held, SUSPEND_LOST_ENTROPY=14, SUSPEND_LOST_BLOCK=14,
-                      SUSPEND_DEVICE_IO_AFTER_WAKE=0, SUSPEND_DEVICE_SUPPRESSED=held)
+                      **AT_WAKE, SUSPEND_DEVICE_IO_AFTER_WAKE=0, SUSPEND_DEVICE_SUPPRESSED=held)
     if case == "power-s3-reinit":
         values.update(SUSPEND_REFUSALS=5, SUSPEND_GRANTED=1, SUSPEND_TICK_AFTER_WAKE=1,
                       SUSPEND_HELD_REFUSALS=0, SUSPEND_REINIT_ENTROPY=32, SUSPEND_REINIT_STALE_TICKET=1,
                       SUSPEND_REINIT_ENTROPY_AUTH=6, SUSPEND_LOST_BLOCK=14,
-                      SUSPEND_DEVICE_IO_AFTER_WAKE=0, SUSPEND_DEVICE_SUPPRESSED=0)
+                      **AT_WAKE, SUSPEND_DEVICE_IO_AFTER_WAKE=0, SUSPEND_DEVICE_SUPPRESSED=0)
     values.update(changes)
     values = {key: value for key, value in values.items() if value is not None}
-    body = transcript("normal", **values).replace("SYSTEM:CASE:NORMAL:PASS\nM1:PASS\n", "")
+    lines = transcript("normal", **values).replace(
+        "SYSTEM:BROKERS:PASS\nSYSTEM:CLEANUP:PASS\nSYSTEM:CASE:NORMAL:PASS\nM1:PASS\n", "").splitlines()
+    group = [[line for line in lines if line.split(":")[1] in keys] for keys in (TEARDOWN, DEVICE)]
+    body = "".join(f"{line}\n" for line in (
+        *(line for line in lines if line not in group[0] + group[1]), "SYSTEM:BROKERS:PASS",
+        *group[0], "SYSTEM:CLEANUP:PASS", *group[1]))
     marker = expected_markers(case)[-2]
     if ok:
         end = ["SYSTEM:POWER:GATE:PASS", marker, "M1:PASS", *S5_TAIL] if tail is None else tail
@@ -591,10 +604,47 @@ class PowerS3HeldCompletionHarnessTests(unittest.TestCase):
                           kernel_feature="test-system-s3-held-completion",
                           source_sha256="source", after_sha256="disk"), "source", "disk", network=False)
 
+    def test_device_evidence_must_follow_cleanup_and_precede_the_case_marker(self):
+        # Review follow-up A: the kernel prints the wake evidence before CLEANUP
+        # and the device evidence after every teardown, before the case marker.
+        device = "".join(line + "\n" for line in held_transcript().splitlines()
+                         if line.split(":")[1] in DEVICE)
+        cleanup = "SYSTEM:CLEANUP:PASS\n"
+        case = "SYSTEM:CASE:POWER_S3_HELD_COMPLETION:PASS\n"
+        good = held_transcript()
+        self.assertIn(cleanup + device, good)
+        lost = next(line for line in good.splitlines() if line.startswith("SYSTEM:SUSPEND_LOST_BLOCK:")) + "\n"
+        for text in (good.replace(device, "").replace(cleanup, device + cleanup),  # device lines above CLEANUP
+                     good.replace(device, "").replace(case, case + device),  # after the case marker
+                     good.replace(lost, "").replace(cleanup, cleanup + lost)):  # wake evidence after CLEANUP
+            self.assertNotEqual(text, good)
+            with self.subTest(text=text[-600:]), self.assertRaisesRegex(ValueError, "order"):
+                evaluate("power-s3-held-completion", text, 0, False)
+
+    def test_device_counters_must_be_live_at_the_wake(self):
+        # Review follow-up D: a dead counter (no fetch_add) reads 0 at the wake.
+        found = evaluate("power-s3-held-completion", held_transcript(), 0, False)
+        self.assertGreater(found["SUSPEND_DEVICE_IO_AT_WAKE_KEYRING"], 0)
+        self.assertGreater(found["SUSPEND_DEVICE_IO_AT_WAKE_VOLUME"], 0)
+        for key in AT_WAKE:
+            for case, make in (("power-s3", s3_transcript), ("power-s3-reinit", reinit_transcript),
+                               ("power-s3-held-completion", held_transcript)):
+                with self.subTest(case=case, key=key), self.assertRaisesRegex(ValueError, f"{key}: expected a live"):
+                    evaluate(case, make(**{key: 0}), 0, False)
+                with self.subTest(case=case, key=key, missing=True), self.assertRaisesRegex(ValueError, "order"):
+                    evaluate(case, make(**{key: None}), 0, False)
+
 
 KERNEL = Path(__file__).resolve().parents[1] / "kernel/src/m2"
-DEVICE_CALL = re.compile(r"\.(begin_reset|reset_acknowledged|poll|request|prepare_operation|publish_prepared|status)\("
-                         r"|Device::(reset_acknowledged|initialize_profile|initialize)\b|\brediscover\(")
+DRIVERS = Path(__file__).resolve().parents[1] / "drivers"
+# Driver entry points that touch neither MMIO nor PCI config space: pool and
+# feature checks, used-ring validation, BAR classification, the in-memory
+# pending flag. Every other `pub fn` / `pub unsafe fn` is a device call.
+PURE = {"validate", "negotiate_rng_features", "validate_used", "classify_bars", "pending"}
+DRIVER_FNS = {name for crate in ("virtio-rng", "virtio-blk") for name in re.findall(
+    r"^\s*pub (?:unsafe )?fn (\w+)", (DRIVERS / crate / "src/lib.rs").read_text(), re.M)}
+DEVICE_METHODS = "|".join(sorted(DRIVER_FNS - PURE))
+DEVICE_CALL = re.compile(rf"\.(?:{DEVICE_METHODS})\(|::(?:{DEVICE_METHODS})\b")
 FUNCTION = re.compile(r"^\s*(?:pub(?:\([^)]*\))?\s+)?fn\s+(\w+)")
 
 
@@ -620,8 +670,16 @@ def functions(path: Path) -> dict[str, list[tuple[int, str]]]:
 
 def device_calls(body):
     return [(number, line) for number, line in body
-            if not line.strip().startswith("//") and DEVICE_CALL.search(line)
-            and "policy.request(" not in line]
+            if DEVICE_CALL.search(line.split("//")[0]) and "policy.request(" not in line]
+
+
+def following(body, marker):
+    """The code statements after the first code line containing `marker`
+    (comments, blank lines and attributes skipped)."""
+    code = [line.split("//")[0].strip() for _, line in body]
+    code = [line for line in code if line and not line.startswith("#[")]
+    index = next(i for i, line in enumerate(code) if marker in line)
+    return code[index + 1:]
 
 
 class PostWakeLatchStructure(unittest.TestCase):
@@ -650,6 +708,18 @@ class PostWakeLatchStructure(unittest.TestCase):
                           f"uncounted device call at {name}:{number} in {fn}: {line.strip()}")
             previous = number
 
+    def test_device_call_list_comes_from_the_drivers(self):
+        self.assertTrue(PURE <= DRIVER_FNS, PURE - DRIVER_FNS)
+        for name in ("kick", "submit", "discover", "discover_function", "rediscover", "initialize",
+                     "initialize_profile", "begin_reset", "reset_acknowledged", "poll", "request",
+                     "prepare_operation", "publish_prepared", "status"):
+            self.assertIn(name, DEVICE_METHODS.split("|"))
+        for line in ("d.kick();", "virtio_blk_driver::discover()", "Device::initialize(", "x.submit(",
+                     "virtio_blk_driver::discover_function(f)", "lane.device.as_ref().is_some_and(Device::reset_acknowledged)"):
+            self.assertTrue(DEVICE_CALL.search(line), line)
+        for line in ("device.pending()", "pool.validate(end)", "r.policy.request()", "// d.kick();"):
+            self.assertFalse(device_calls([(1, line)]), line)
+
     def test_every_device_call_site_is_classified(self):
         for name in self.REACHABLE:
             bodies = functions(KERNEL / "m3" / name)
@@ -662,7 +732,7 @@ class PostWakeLatchStructure(unittest.TestCase):
             for fn in sorted(reachable):
                 body = bodies[fn]
                 with self.subTest(file=name, fn=fn):
-                    latch = [number for number, line in body if self.LATCH[name] in line]
+                    latch = [number for number, line in body if self.LATCH[name] in line.split("//")[0]]
                     self.assertTrue(latch and latch[0] < device_calls(body)[0][0], "latch not before the device call")
                     self.counted(name, fn, body, "device_access")
         # The keyring latch opens only after the validated re-init; the volume
@@ -675,6 +745,44 @@ class PostWakeLatchStructure(unittest.TestCase):
         self.assertEqual(len(latches), 3)
         for index in latches:
             self.assertEqual(lines[index - 1].strip(), '#[cfg(feature = "test-system-s3")]')
+
+    def test_each_latch_returns_before_any_device_statement(self):
+        """The guarded statement itself, not only the latch text: each latch
+        returns, and each teardown binds the device only through its guard."""
+        keyring = functions(KERNEL / "m3/keyring.rs")
+        volume = functions(KERNEL / "m3/volume.rs")
+        self.assertEqual(following(keyring["advance"], "if device_lost() {")[0], "return;")
+        self.assertEqual(following(keyring["call"], "if device_lost() {")[0], "return Err(-14);")
+        # Every device call of `call` sits inside the 0x60 arm, after its latch.
+        call = keyring["call"]
+        arm = next(number for number, line in call if line.strip() == "0x60 => {")
+        end = next(number for number, line in call if line.strip() == "0x61 => {")
+        latch = next(number for number, line in call if "if device_lost() {" in line.split("//")[0])
+        self.assertTrue(arm < latch < end)
+        for number, line in device_calls(call):
+            self.assertTrue(latch < number < end, f"keyring call device statement outside 0x60: {line.strip()}")
+        quarantine = keyring["quarantine_pending"]
+        bind = "if let Some(device) = r.device.as_mut().filter(|_| touch) {"
+        self.assertEqual(following(quarantine, "let r = runtime();")[0], "let touch = !device_lost();")
+        self.assertEqual(following(quarantine, bind)[:3], ["device_access();", "device.begin_reset();", "}"])
+        self.assertEqual([line.split("//")[0].strip() for _, line in quarantine if "r.device" in line], [bind])
+        self.assertEqual(following(volume["reset"], "if super::system::resumed() {")[:2],
+                         ["super::system::device_access_suppressed();", "return;"])
+        self.assertEqual(following(volume["advance"], "if super::system::resumed() {")[0], "return;")
+        self.assertEqual(following(volume["device_call"], "if super::system::resumed() {")[0], "return Err(-14);")
+        # Re-init: no MMIO before `rediscover` validated the BARs.
+        fail = keyring["reinit_fail"]
+        bind = "if let Some(device) = r.device.as_mut().filter(|_| validated) {"
+        self.assertEqual(following(fail, "fn reinit_fail")[0], "let validated = reinit_state().bars.is_some();")
+        self.assertEqual(following(fail, bind)[:2], ["reinit_access();", "device.begin_reset();"])
+        self.assertEqual([line.split("//")[0].strip() for _, line in fail if "r.device" in line], [bind])
+        poll = keyring["reinit_poll"]
+        stage0 = [(number, line) for number, line in poll
+                  if next(n for n, text in poll if text.strip() == "0 => {") <= number
+                  < next(n for n, text in poll if text.strip() == "1 => {")]
+        bars = next(number for number, line in stage0 if "p.bars = Some(" in line.split("//")[0])
+        reset = next(number for number, line in poll if "begin_reset" in line.split("//")[0])
+        self.assertLess(bars, reset)
 
     def test_reinit_calls_are_accounted_and_reached_only_after_the_wake(self):
         source = (KERNEL / "m3/keyring.rs").read_text().splitlines()
@@ -711,7 +819,9 @@ class PostWakeLatchStructure(unittest.TestCase):
         quiescent = "\n".join(line for _, line in functions(KERNEL / "m3/volume.rs")["sleep_quiescent"])
         self.assertIn("r.policy.request().is_none()", quiescent)
         finish = "\n".join(line for _, line in functions(KERNEL / "m3/system.rs")["finish"])
-        self.assertIn("io_after == 0 && p.suppressed == suppressed", finish)
+        for term in ("&& keyring_at_wake > 0", "&& volume_at_wake > 0", "&& io_after == 0",
+                     "&& p.suppressed == suppressed"):
+            self.assertIn(term, finish)
 
 
 class PowerHarnessTests(unittest.TestCase):

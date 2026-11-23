@@ -111,7 +111,7 @@ struct Suspend {
     #[cfg(feature = "test-system-s3-reinit")]
     broker_at_wake: (u64, u64),
     /// Device accesses of both brokers (`device_io`) at the wake (review R3).
-    io_at_wake: (u64, u64),
+    io_at_wake: (u64, u64, u64),
     /// SUSPEND refusals (-8) because the volume broker still held a request.
     held_refusals: u64,
     /// Teardown resets the post-wake latch kept away from a device.
@@ -132,7 +132,7 @@ static mut SUSPEND: Suspend = Suspend {
     key_entropy: 0,
     #[cfg(feature = "test-system-s3-reinit")]
     broker_at_wake: (0, 0),
-    io_at_wake: (0, 0),
+    io_at_wake: (0, 0, 0),
     held_refusals: 0,
     suppressed: 0,
 };
@@ -145,25 +145,34 @@ fn suspend_state() -> &'static mut Suspend {
 /// Every device access of both brokers (review R3): entropy requests reaching
 /// the driver, block descriptor preparations and publications, polls, resets,
 /// reset acknowledgement reads and re-initialisations, each counted at its
-/// call site. (all, accounted re-init subset; 0 outside test-system-s3-reinit).
+/// call site. (keyring, volume, accounted keyring re-init subset; the last
+/// is 0 outside test-system-s3-reinit).
 #[cfg(feature = "test-system-s3")]
-fn device_io() -> (u64, u64) {
+fn device_io() -> (u64, u64, u64) {
     let (keyring, accounted) = keyring::device_accesses();
-    (keyring.saturating_add(m5::device_accesses()), accounted)
+    (keyring, m5::device_accesses(), accounted)
 }
 #[cfg(feature = "test-system-s3")]
 pub(super) fn device_access_suppressed() {
     let p = suspend_state();
     p.suppressed = p.suppressed.saturating_add(1);
 }
-/// test-system-s3-held-completion only: after the quiescence check refused
-/// once, skip it until the grant (a labelled gate-defect injection) so that
-/// the post-wake latch alone must keep the held request's teardown reset away
-/// from the device. Never compiled into another profile.
-#[cfg(feature = "test-system-s3")]
+/// test-system-s3-held-completion only: once the quiescence check has refused
+/// (-8), skip it on every later SUSPEND until the grant (a labelled gate-defect
+/// injection) so that the post-wake latch alone must keep the held request's
+/// teardown reset away from the device.
+#[cfg(feature = "test-system-s3-held-completion")]
 fn held_check_skipped() -> bool {
     let p = suspend_state();
-    cfg!(feature = "test-system-s3-held-completion") && p.held_refusals > 0 && !p.granted
+    p.held_refusals > 0 && !p.granted
+}
+/// Every other S3 profile: the quiescence check is never skipped.
+#[cfg(all(
+    feature = "test-system-s3",
+    not(feature = "test-system-s3-held-completion")
+))]
+fn held_check_skipped() -> bool {
+    false
 }
 /// Syscall 0x91 SUSPEND(power handle, 0, 0, 0, 0, 0), same validation order
 /// as POWER_OFF, then volume broker quiescence (-8: it still holds a request,
@@ -1243,16 +1252,32 @@ fn finish(s: &mut State) -> ! {
     #[cfg(feature = "test-system-s3")]
     {
         let p = suspend_state();
-        let (all, accounted) = device_io();
-        let accounted = accounted.saturating_sub(p.io_at_wake.1);
-        let io_after = all.saturating_sub(p.io_at_wake.0).saturating_sub(accounted);
+        let (keyring, volume, accounted) = device_io();
+        let (keyring_at_wake, volume_at_wake, accounted_at_wake) = p.io_at_wake;
+        let accounted = accounted.saturating_sub(accounted_at_wake);
+        let io_after = keyring
+            .saturating_add(volume)
+            .saturating_sub(keyring_at_wake.saturating_add(volume_at_wake))
+            .saturating_sub(accounted);
         let suppressed = u64::from(cfg!(feature = "test-system-s3-held-completion"));
+        // Counter liveness: init's pre-sleep block I/O and the services'
+        // startup entropy seeds were counted, so a dead counter cannot pass.
+        print_number(
+            b"SYSTEM:SUSPEND_DEVICE_IO_AT_WAKE_KEYRING:",
+            keyring_at_wake,
+        );
+        print_number(b"SYSTEM:SUSPEND_DEVICE_IO_AT_WAKE_VOLUME:", volume_at_wake);
         print_number(b"SYSTEM:SUSPEND_DEVICE_IO_AFTER_WAKE:", io_after);
         print_number(b"SYSTEM:SUSPEND_DEVICE_SUPPRESSED:", p.suppressed);
         // The re-init profile must have used its accounted path; no other may.
         let reinit = cfg!(feature = "test-system-s3-reinit");
         require(
-            p.resumed && io_after == 0 && p.suppressed == suppressed && (accounted > 0) == reinit,
+            p.resumed
+                && keyring_at_wake > 0
+                && volume_at_wake > 0
+                && io_after == 0
+                && p.suppressed == suppressed
+                && (accounted > 0) == reinit,
             b"SUSPEND_DEVICE_EVIDENCE",
         );
     }
