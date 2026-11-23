@@ -332,8 +332,10 @@ def power_transcript(case="power", tail=None, **changes):
     values = dict(POWER_INIT_REFUSALS=3 if ok else 4, POWER_APP_REFUSALS=2,
                   POWER_NOT_DURABLE=0 if ok else 1, DISK_FLUSHES=4)
     if case == "power-s3":
-        values.update(SUSPEND_REFUSALS=5, SUSPEND_GRANTED=1, SUSPEND_TICK_AFTER_WAKE=1)
+        values.update(SUSPEND_REFUSALS=5, SUSPEND_GRANTED=1, SUSPEND_TICK_AFTER_WAKE=1,
+                      SUSPEND_LOST_ENTROPY=14, SUSPEND_LOST_BLOCK=14)
     values.update(changes)
+    values = {key: value for key, value in values.items() if value is not None}
     body = transcript("normal", **values).replace("SYSTEM:CASE:NORMAL:PASS\nM1:PASS\n", "")
     marker = expected_markers(case)[-2]
     if ok:
@@ -397,6 +399,26 @@ class PowerS3HarnessTests(unittest.TestCase):
         plain = s3_transcript().replace("SYSTEM:CASE:POWER_S3:PASS", "SYSTEM:CASE:POWER:PASS")
         with self.assertRaises(ValueError):
             evaluate("power-s3", plain, 0, False)
+
+    def test_post_wake_device_refusals_are_exact_and_ordered(self):
+        found = evaluate("power-s3", s3_transcript(), 0, False)
+        self.assertEqual((found["SUSPEND_LOST_ENTROPY"], found["SUSPEND_LOST_BLOCK"]), (14, 14))
+        # Missing refusal, a 0 instead of -14, or another refusal code.
+        for change in (dict(SUSPEND_LOST_ENTROPY=None), dict(SUSPEND_LOST_BLOCK=None),
+                       dict(SUSPEND_LOST_ENTROPY=0), dict(SUSPEND_LOST_BLOCK=0),
+                       dict(SUSPEND_LOST_ENTROPY=6), dict(SUSPEND_LOST_BLOCK=4)):
+            with self.subTest(change=change), self.assertRaises(ValueError):
+                evaluate("power-s3", s3_transcript(**change), 0, False)
+        entropy = "SYSTEM:SUSPEND_LOST_ENTROPY:" + "14".zfill(20)
+        block = "SYSTEM:SUSPEND_LOST_BLOCK:" + "14".zfill(20)
+        swapped = s3_transcript().replace(entropy, "SWAP").replace(block, entropy).replace("SWAP", block)
+        with self.assertRaisesRegex(ValueError, "order"):
+            evaluate("power-s3", swapped, 0, False)
+
+    def test_suspend_evidence_outside_power_s3_is_refused(self):
+        text = power_transcript("power", SUSPEND_LOST_ENTROPY=14)
+        with self.assertRaisesRegex(ValueError, "outside"):
+            evaluate("power", text, 0, False)
 
     def test_wrong_machine_or_accelerator_is_refused_before_launch(self):
         import run_system as runner

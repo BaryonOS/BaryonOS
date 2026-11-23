@@ -99,6 +99,9 @@ struct Suspend {
     resumed: bool,
     irqs_at_wake: u64,
     ticked: bool,
+    /// Init's entropy/block syscalls after the wake: (number, result).
+    lost: [(u64, i64); 4],
+    lost_count: usize,
 }
 #[cfg(feature = "test-system-s3")]
 static mut SUSPEND: Suspend = Suspend {
@@ -109,6 +112,8 @@ static mut SUSPEND: Suspend = Suspend {
     resumed: false,
     irqs_at_wake: 0,
     ticked: false,
+    lost: [(0, 0); 4],
+    lost_count: 0,
 };
 #[cfg(feature = "test-system-s3")]
 fn suspend_state() -> &'static mut Suspend {
@@ -155,6 +160,21 @@ pub(super) fn suspend(s: &mut State, slot: usize, a: [u64; 6]) -> i64 {
 #[cfg(feature = "test-system-s3")]
 pub(super) fn resumed() -> bool {
     suspend_state().resumed
+}
+/// Every entropy (0x60) and block (0x40..=0x43) result after the wake, as
+/// returned. Another caller or an overflow counts in `other`: fail closed.
+#[cfg(feature = "test-system-s3")]
+pub(super) fn after_wake(slot: usize, number: u64, code: i64) {
+    let p = suspend_state();
+    if !p.resumed {
+        return;
+    }
+    if slot == INIT && p.lost_count < p.lost.len() {
+        p.lost[p.lost_count] = (number, code);
+        p.lost_count += 1;
+    } else {
+        p.other = p.other.saturating_add(1);
+    }
 }
 /// First timer interrupt after the wake: tell init it may continue.
 #[cfg(feature = "test-system-s3")]
@@ -902,16 +922,24 @@ fn finish(s: &mut State) -> ! {
             && p.ticked
             && s.timer_interrupts > p.irqs_at_wake
             && p.log[..p.count] == [-8, -6, -4, -1, 0, -14]
+            && p.lost[..p.lost_count] == [(0x60, -14), (0x40, -14)]
             && p.other == 0;
         if !ok {
             for code in &p.log[..p.count] {
                 print_number(b"SYSTEM:SUSPEND:LOG_RESULT:", code.unsigned_abs());
+            }
+            for (number, code) in &p.lost[..p.lost_count] {
+                print_number(b"SYSTEM:SUSPEND:LOST_CALL:", *number);
+                print_number(b"SYSTEM:SUSPEND:LOST_RESULT:", code.unsigned_abs());
             }
             fail(b"SUSPEND_EVIDENCE");
         }
         print_number(b"SYSTEM:SUSPEND_REFUSALS:", (p.count - 1) as u64);
         print_number(b"SYSTEM:SUSPEND_GRANTED:", 1);
         print_number(b"SYSTEM:SUSPEND_TICK_AFTER_WAKE:", 1);
+        // The logged magnitudes, so a host oracle can tell -14 from 0.
+        print_number(b"SYSTEM:SUSPEND_LOST_ENTROPY:", p.lost[0].1.unsigned_abs());
+        print_number(b"SYSTEM:SUSPEND_LOST_BLOCK:", p.lost[1].1.unsigned_abs());
     }
     // Seals: legacy 1 + record 1 (+ persisted record in the normal run).
     // Unseals: legacy 1 + record 1 (+ restored record after the cold start).

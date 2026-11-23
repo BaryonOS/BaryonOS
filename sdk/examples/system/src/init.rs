@@ -14,8 +14,8 @@ use keyring_core::{
     wire as kw, Status as KeyStatus, SECRET_BYTES,
 };
 use nieuw_os_sdk_runtime::{
-    native, Capability, Error, Handle, LaunchImage, ProcessStatus, ReceiveEndpoint, Rights,
-    SendEndpoint,
+    native, BlockDevice, Capability, EntropySource, Error, Handle, LaunchImage, ProcessStatus,
+    ReceiveEndpoint, Rights, SendEndpoint,
 };
 use protocol::*;
 use volume_core::{checksum_update, client::Client, FNV_OFFSET};
@@ -337,6 +337,18 @@ fn suspend_sequence(power: Handle, image: LaunchImage, forged: Handle) {
     }
     check(ticked, 76);
     check(native::suspend(power) == Err(Error::Kernel(-14)), 77);
+    // Devices are lost: well-formed entropy and block requests are refused
+    // with -14 before any authority check. Init holds no entropy or block
+    // capability and the storage gate closed every block object, so its own
+    // POWER handle (-6 before the wake) is the only handle it can present.
+    check(
+        native::entropy_request(EntropySource::from_handle(power), 1) == Err(Error::Kernel(-14)),
+        78,
+    );
+    check(
+        native::block_read(BlockDevice::from_handle(power), 0, 0, 1) == Err(Error::Kernel(-14)),
+        79,
+    );
 }
 
 #[no_mangle]

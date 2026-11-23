@@ -828,7 +828,10 @@ fn input_bytes(s: &State, slot: usize, pointer: u64) -> Result<[u8; 512], i64> {
 }
 
 pub fn syscall(s: &mut State, slot: usize, n: u64, a: [u64; 6]) -> (i64, u64) {
-    match device_call(s, slot, n, a) {
+    let result = device_call(s, slot, n, a);
+    #[cfg(feature = "test-system-s3")]
+    super::system::after_wake(slot, n, result.err().unwrap_or(0));
+    match result {
         Ok(v) => (0, v),
         Err(code) => {
             // Apps hold no volume block capability: every app call to it
@@ -863,6 +866,13 @@ fn device_call(s: &mut State, slot: usize, n: u64, a: [u64; 6]) -> Result<u64, i
     }
     if n == 0x41 && a[3] != 320 || n == 0x42 && a[3] != 512 {
         return Err(-11);
+    }
+    // ADR-H05-S3-SYSTEM-20261123: the wake reset the device. Every later
+    // request is refused after the shape checks, before authority, policy,
+    // copies or device access; the storage gate left no block authority.
+    #[cfg(feature = "test-system-s3")]
+    if super::system::resumed() {
+        return Err(-14);
     }
     let pid = s.processes[slot].pid;
     let rights = match n {
@@ -958,11 +968,6 @@ fn device_call(s: &mut State, slot: usize, n: u64, a: [u64; 6]) -> Result<u64, i
         None
     };
     let r = runtime();
-    // ADR-H05-S3-SYSTEM-20261123: the wake reset the device.
-    #[cfg(feature = "test-system-s3")]
-    if super::system::resumed() {
-        return Err(-14);
-    }
     if r.lanes[dev].offline != 0 {
         return Err(r.lanes[dev].offline);
     }

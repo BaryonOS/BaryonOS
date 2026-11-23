@@ -176,6 +176,9 @@ def check_suspend(lines: list[str]) -> None:
         raise ValueError("power-s3 S3 markers are out of order")
 
 
+SUSPEND_ORDER = ("REFUSALS", "GRANTED", "TICK_AFTER_WAKE", "LOST_ENTROPY", "LOST_BLOCK")
+
+
 def check_power(case: str, stdout: str, found: dict) -> None:
     """Exact S5 tail after M1:PASS, or a refusal without any PM1 write."""
     lines = stdout.splitlines()
@@ -185,8 +188,15 @@ def check_power(case: str, stdout: str, found: dict) -> None:
         expected = {"POWER_INIT_REFUSALS": 3, "POWER_APP_REFUSALS": 2, "POWER_NOT_DURABLE": 0}
         if case == "power-s3":
             check_suspend(lines)
-            # -8 before SHUTDOWN, -6, -4, -1, then the grant and the one-shot -14.
-            expected.update(SUSPEND_REFUSALS=5, SUSPEND_GRANTED=1, SUSPEND_TICK_AFTER_WAKE=1)
+            # -8 before SHUTDOWN, -6, -4, -1, then the grant and the one-shot -14;
+            # after the wake init's entropy and block requests each return -14.
+            expected.update(SUSPEND_REFUSALS=5, SUSPEND_GRANTED=1, SUSPEND_TICK_AFTER_WAKE=1,
+                            SUSPEND_LOST_ENTROPY=14, SUSPEND_LOST_BLOCK=14)
+            suspend = [line.split(":")[1] for line in lines if line.startswith("SYSTEM:SUSPEND")]
+            if suspend != [f"SUSPEND_{key}" for key in SUSPEND_ORDER]:
+                raise ValueError(f"power-s3 suspend evidence out of order: {suspend}")
+        elif any(line.startswith("SYSTEM:SUSPEND") for line in lines):
+            raise ValueError("suspend evidence outside the power-s3 profile")
     else:
         fault = "FLUSH_ERROR" if case == "power-flush-error" else "FLUSH_TIMEOUT"
         if (any(line.startswith("POWER:") for line in lines)

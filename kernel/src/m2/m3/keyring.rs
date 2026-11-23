@@ -444,10 +444,15 @@ pub fn manifest(s: &mut State) {
 }
 
 pub fn syscall(s: &mut State, slot: usize, n: u64, a: [u64; 6]) -> (i64, u64) {
-    match call(s, slot, n, a) {
+    let result = match call(s, slot, n, a) {
         Ok(value) => (0, value),
         Err(code) => (code, 0),
+    };
+    #[cfg(feature = "test-system-s3")]
+    if n == 0x60 {
+        super::system::after_wake(slot, n, result.0);
     }
+    result
 }
 
 fn call(s: &mut State, slot: usize, n: u64, a: [u64; 6]) -> Result<u64, i64> {
@@ -456,6 +461,12 @@ fn call(s: &mut State, slot: usize, n: u64, a: [u64; 6]) -> Result<u64, i64> {
         0x60 => {
             if a[2..].iter().any(|x| *x != 0) {
                 return Err(-1);
+            }
+            // ADR-H05-S3-SYSTEM-20261123: the wake reset the device. Refused
+            // before authority, ring or counter: no binding, no `denied` count.
+            #[cfg(feature = "test-system-s3")]
+            if super::system::resumed() {
+                return Err(-14);
             }
             let binding = match entropy_binding(pid, a[0]) {
                 Ok(binding) => binding,
@@ -466,12 +477,6 @@ fn call(s: &mut State, slot: usize, n: u64, a: [u64; 6]) -> Result<u64, i64> {
             };
             if a[1] == 0 || a[1] > u64::from(MAX_REQUEST) {
                 return Err(-11);
-            }
-            // ADR-H05-S3-SYSTEM-20261123: the wake reset the device; no ring
-            // or counter is touched for it again on this boot.
-            #[cfg(feature = "test-system-s3")]
-            if super::system::resumed() {
-                return Err(-14);
             }
             reclaim_completed(s.ticks);
             let r = runtime();
