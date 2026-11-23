@@ -88,6 +88,12 @@ static ARMED: AtomicU32 = AtomicU32::new(0);
 /// profile; no other kernel or loader path writes it, so it is neither the
 /// pass (0x10, raw 33) nor a generic failure (0x11, raw 35).
 const WAKE_REJECTED_EXIT: u32 = 0x12;
+/// isa-debug-exit value of a refused S3 plan in `native-acpi-s3` (raw QEMU
+/// exit 39): every `resolve` rejection and a cleanly disarmed FACS store
+/// failure, none of which performed a PM1 write. No other kernel or loader
+/// path writes it, so a refused plan can never end with the pass (0x10).
+#[cfg(feature = "native-acpi-s3")]
+const PLAN_REJECTED_EXIT: u32 = 0x13;
 
 // Wake page layout (offsets inside the copied page):
 //   0  cli; short jmp to code      8  CR3 (patched once)
@@ -602,17 +608,29 @@ fn cycle(
     // Pre-sleep: clear WAK_STS, fill the canary, arm token and FACS.
     clear_status(event, Pm1Event::WAKE_STATUS);
     canary(&ctx.canary, cycle, true);
-    // SAFETY: Single CPU; SAVED is written before the generation is armed,
-    // so s3_wake reads it only for a token this cycle authorized.
-    unsafe {
-        ptr::addr_of_mut!(SAVED).write(Saved {
+    // Negative fixture: SAVED is poisoned (all-ones faults on any restore)
+    // and no generation is armed, while the page keeps this cycle's token;
+    // only the ARMED check in s3_wake stands before a faulting restore.
+    let unarmed = cfg!(feature = "test-acpi-s3-unarmed-wake");
+    let saved = if unarmed {
+        Saved {
+            cr0: u64::MAX,
+            cr4: u64::MAX,
+            efer: u64::MAX,
+            pat: u64::MAX,
+        }
+    } else {
+        Saved {
             cr0: cr(false),
             cr4: cr(true),
             efer: rdmsr(MSR_EFER),
             pat: rdmsr(MSR_PAT),
-        });
-    }
-    ARMED.store(cycle, Ordering::Release);
+        }
+    };
+    // SAFETY: Single CPU; SAVED is written before the generation is armed,
+    // so s3_wake reads it only for a token this cycle authorized.
+    unsafe { ptr::addr_of_mut!(SAVED).write(saved) };
+    ARMED.store(if unarmed { 0 } else { cycle }, Ordering::Release);
     let page_token = if cfg!(feature = "test-acpi-s3-stale-token") {
         // Negative fixture: the page carries another generation's token.
         cycle ^ 0x5a5a_0000
@@ -620,7 +638,22 @@ fn cycle(
         cycle
     };
     set_token(ctx.page, page_token);
-    if !store_facs(paging, facs, length, ctx.wake, copy) {
+    let stored = if cfg!(feature = "test-acpi-s3-facs-end") {
+        // Negative fixture: one byte at facs+length, just past the recorded
+        // extent, stands in for the wake stores and must be refused.
+        // SAFETY: Deliberately outside the caller contract: write_firmware
+        // checks the recorded extent before any mapping or store and returns
+        // Permission for this span; any other result stops the VM below.
+        let refused = unsafe { paging.write_firmware(facs + length as u64, &[0]) };
+        if refused != Err(kernel_core::Error::Permission) {
+            serial::fail(b"S3_FACS_END_NOT_REFUSED");
+        }
+        serial::write(b"POWER:S3:STORE:FACS_END:REFUSED:Permission\n");
+        false
+    } else {
+        store_facs(paging, facs, length, ctx.wake, copy)
+    };
+    if !stored {
         // Never leave a partially armed vector behind.
         ARMED.store(0, Ordering::Release);
         set_token(ctx.page, 0);
@@ -713,15 +746,17 @@ fn cycle(
 }
 
 /// Runs the bounded S3 cycles after M2 passed; returns only after the last
-/// validated wake or after a reported rejection that performed no PM1 write.
+/// validated wake. A reported rejection that performed no PM1 write stops
+/// the VM with `PLAN_REJECTED_EXIT`, never the M2 pass exit.
 #[cfg(feature = "native-acpi-s3")]
 pub fn run(frames: &Frames<FRAME_COUNT>, paging: &mut paging::Paging, prepared: Preparation) {
     let Some(ctx) = resolve(prepared) else {
-        return;
+        serial::exit(PLAN_REJECTED_EXIT);
     };
     for generation in 1..=CYCLES {
         if !cycle(Some(frames), paging, &ctx, generation) {
-            return serial::write(b"POWER:S3:REJECTED:FacsStore:DISARMED\n");
+            serial::write(b"POWER:S3:REJECTED:FacsStore:DISARMED\n");
+            serial::exit(PLAN_REJECTED_EXIT);
         }
     }
     serial::write(b"POWER:S3:PASS\n");

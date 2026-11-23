@@ -79,7 +79,7 @@ def run_guest(label="smoke", *, esp=None, timeout=60, required_markers=MARKERS,
             or reboot_on_reset or xhci_case is not None or hid_input_probe):
         raise ValueError("USB HID requires the isolated single-CPU xHCI fixture")
     if s3_case is not None and (
-            s3_case not in ("cycles", "corrupt-facs", "stale-token") or cpus != 1
+            s3_case not in ("cycles", "corrupt-facs", "stale-token", "unarmed-wake", "facs-end") or cpus != 1
             or tcg_threads != "single" or memory_mib != 256 or m5_case is not None
             or rtc_base is not None or tpm_socket is not None or acpi_tables
             or reboot_on_reset or xhci_case is not None or hid_input_probe

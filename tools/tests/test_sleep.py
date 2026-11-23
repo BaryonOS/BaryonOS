@@ -33,6 +33,8 @@ TAILS = {
     "cycles": cycles_tail(),
     "corrupt-facs": ["POWER:S3:REJECTED:InvalidSignature"],
     "stale-token": [PLAN, gate.ENTER.format(1), gate.STALE],
+    "unarmed-wake": [PLAN, gate.ENTER.format(1), gate.UNARMED],
+    "facs-end": [PLAN, *gate.FACS_END],
 }
 
 
@@ -52,7 +54,8 @@ class SleepVerifier(unittest.TestCase):
                 observed = gate.evaluate(case, transcript(tail), gate.EXIT[case], False,
                                          events(case))
                 self.assertEqual(observed["case"], case)
-        self.assertEqual(gate.EXIT, {"cycles": 33, "corrupt-facs": 33, "stale-token": 37})
+        self.assertEqual(gate.EXIT, {"cycles": 33, "corrupt-facs": 39, "stale-token": 37,
+                                     "unarmed-wake": 37, "facs-end": 39})
         observed = gate.evaluate("cycles", transcript(TAILS["cycles"]), 33, False,
                                  events("cycles"))
         self.assertEqual(len(observed["cycles"]), gate.CYCLES)
@@ -139,11 +142,39 @@ class SleepVerifier(unittest.TestCase):
             with self.subTest(code=code), self.assertRaises(ValueError):
                 gate.evaluate("stale-token", transcript(TAILS["stale-token"]), code, timed_out,
                               events("stale-token"))
-        for case in ("cycles", "corrupt-facs"):
+        for case in ("cycles", "corrupt-facs", "facs-end"):
             with self.subTest(case=case), self.assertRaises(ValueError):
                 gate.evaluate(case, transcript(TAILS[case]), 37, False, events(case))
         with self.assertRaises(ValueError):
             gate.expected_wakeups("unknown")
+
+    def test_a_refused_plan_never_ends_with_the_pass_exit(self):
+        # Before H05-T6b a refused plan returned to the M2 pass exit (raw 33).
+        for case in ("corrupt-facs", "facs-end"):
+            for code, timed_out in [(33, False), (35, False), (37, False), (0, False),
+                                    (None, True)]:
+                with self.subTest(case=case, code=code), self.assertRaises(ValueError):
+                    gate.evaluate(case, transcript(TAILS[case]), code, timed_out, events(case))
+        for case in ("cycles", "stale-token", "unarmed-wake"):
+            with self.subTest(case=case), self.assertRaises(ValueError):
+                gate.evaluate(case, transcript(TAILS[case]), 39, False, events(case))
+
+    def test_unarmed_wake_and_facs_end_tails_are_exact(self):
+        # An unarmed wake must sleep once and never resume; the out-of-extent
+        # store must be refused before any sleep and disarm cleanly.
+        bad = [
+            ("unarmed-wake", [PLAN, gate.ENTER.format(1), resumed(1)], 37, events("unarmed-wake")),
+            ("unarmed-wake", [PLAN, gate.ENTER.format(1), gate.STALE], 37, events("unarmed-wake")),
+            ("unarmed-wake", TAILS["unarmed-wake"], 37, []),
+            ("facs-end", TAILS["facs-end"], 39, ["SUSPEND", "WAKEUP"]),
+            ("facs-end", [PLAN, gate.FACS_END[1]], 39, []),
+            ("facs-end", [PLAN, gate.FACS_END[0]], 39, []),
+            ("facs-end", [PLAN, "POWER:S3:STORE:FACS_END:REFUSED:Range", gate.FACS_END[1]], 39, []),
+            ("facs-end", ["POWER:S3:REJECTED:InvalidSignature"], 39, []),
+        ]
+        for case, tail, code, observed_events in bad:
+            with self.subTest(case=case, tail=tail[-1]), self.assertRaises(ValueError):
+                gate.evaluate(case, transcript(tail), code, False, observed_events)
 
 
 FAKE_QMP = """
