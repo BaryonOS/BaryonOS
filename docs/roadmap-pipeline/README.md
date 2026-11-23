@@ -151,8 +151,8 @@ READY task whose dependencies are verified it:
    PROJECT-STATE.md, DECISIONS.md) are never accepted from a worker. The ledger's
    check commands, its gates and `tools/progress.py --check` run as one plan through
    `agent_gate.run_gate`, which stages the changed (including untracked) files into
-   the isolated sandbox and records raw exit codes under the controller's check
-   deadline; with the committed disabled policy this fails closed. Repair feedback
+   the isolated sandbox and records raw exit codes under one shared deadline (the
+   controller's check budget plus a resolved gate's own workflow budget); with the committed disabled policy this fails closed. Repair feedback
    inlines the failing raw streams, and the receipt hash covers them. The worker's
    JSON report is recorded, never trusted;
 5. starts a second fresh, read-only session that verifies the diff against the task
@@ -175,7 +175,10 @@ cannot adopt the change as its baseline. Controller Git runs with
 `core.fsmonitor=false`. Controller Python removes the checkout from `sys.path`
 after its own imports, preloads PyYAML, never reads checkout bytecode
 (`sys.pycache_prefix` is a private temporary directory) and runs
-`tools/progress.py` with `-I`. Residual limits: an
+`tools/progress.py` with `-I`. The fingerprint is compared after each session, so a
+change that a session makes and reverts before it ends is not detected, and only
+`core.fsmonitor` is neutralised for controller Git; other callbacks rely on the
+fingerprint and on the `.git/**` edit deny. Further residual limits: an
 ignored path outside the denied patterns, a process that escapes the worker's
 process group, and the absent native sandbox (bubblewrap 0.13.1 or later with a
 verified profile). The runner therefore stays held by `EXECUTION_HOLD` and the

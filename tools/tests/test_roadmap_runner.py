@@ -339,14 +339,14 @@ class Session(unittest.TestCase):
         self.checks(task("A", checks=["true"]), run_gate=gate)
         self.assertEqual(gate.call_args.args[0].timeout_seconds, rr.Config().check_timeout)
 
-    def test_resolved_gate_keeps_finalizers_and_the_shorter_deadline(self):
+    def test_resolved_gate_keeps_finalizers_and_adds_its_deadline(self):
         resolved = rr.GatePlan((("g", "make g", {}), rr.PROGRESS_CHECK), (("f", "cleanup", {}),), 600, 60)
         gate = unittest.mock.Mock(return_value=0)
         self.checks(dict(task("A", checks=["true"]), gates=["ci.yml#x"]),
                     resolve_gate=unittest.mock.Mock(return_value=resolved), run_gate=gate)
         plan = gate.call_args.args[0]
         self.assertEqual((plan.finalizers, plan.timeout_seconds, plan.finalizer_reserve_seconds),
-                         (resolved.finalizers, 600, 60))
+                         (resolved.finalizers, rr.Config().check_timeout + 600, 60))
 
     def test_unstageable_worker_path_is_a_recorded_failure(self):
         gate = unittest.mock.Mock()

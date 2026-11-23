@@ -601,7 +601,8 @@ class Controller:
             try:
                 gate = resolve_gate(task["gates"], ROOT / ".github" / "workflows") if task.get("gates") else None
                 # resolve() already ends with the progress check; plain checks add it here.
-                timeout = min(filter(None, (self.cfg.check_timeout, gate and gate.timeout_seconds)))
+                # One shared deadline: the task checks' budget plus the resolved gate's own budget.
+                timeout = self.cfg.check_timeout + ((gate.timeout_seconds or 0) if gate else 0)
                 plan = GatePlan(tuple(commands) + (gate.commands if gate else (PROGRESS_CHECK,)),
                                 gate.finalizers if gate else (), timeout,
                                 gate.finalizer_reserve_seconds if gate else 0)
@@ -651,7 +652,8 @@ Rules (binding, in addition to AGENTS.md):
   docs/PROGRESS.md, docs/PROJECT-STATE.md, docs/DECISIONS.md, README.md or
   docs/roadmap-pipeline/. The lead checks the full diff before accepting it.
 - Do not run git commands that change state, do not commit, push, fetch or use gh.
-  Read-only git (status/diff/log/show) is allowed. No network access is needed.
+  Only `git status`, `git rev-parse` and `git branch --show-current` are allowed.
+  No network access is needed.
 - Graphify first: if Graphify MCP tools are available, invoke `recall` with your write
   paths and use graphify_find/impact/tests_for/file_neighbors before editing; the graph
   reflects main, so confirm against current files. If unavailable, read code directly
