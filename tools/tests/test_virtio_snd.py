@@ -8,7 +8,7 @@ import subprocess
 import sys
 import tempfile
 import unittest
-from unittest import mock
+import unittest.mock
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import run_virtio_snd as gate
@@ -228,7 +228,7 @@ class Command(unittest.TestCase):
             gate.qemu_arguments("unknown", "qemu", rel, gate.MACHINE)
 
     def test_machine_is_pinned_to_the_fixture_profile(self):
-        with mock.patch.dict(os.environ):
+        with unittest.mock.patch.dict(os.environ):
             os.environ.pop("NOS_QEMU_MACHINE", None)
             self.assertEqual(gate.fixture_machine(), "pc-q35-8.2")
             args = gate.qemu_arguments("normal", "qemu", "build/run/x", gate.fixture_machine())
@@ -253,17 +253,20 @@ class Command(unittest.TestCase):
                     gate.qemu_arguments(case, "qemu", rel, gate.MACHINE)
 
     def test_refused_inputs_create_nothing_and_launch_nothing(self):
-        refuse = mock.Mock(side_effect=AssertionError("must not be reached"))
-        with tempfile.TemporaryDirectory() as directory, mock.patch.dict(os.environ), \
-                mock.patch.object(gate, "source_hash", refuse), \
-                mock.patch.object(gate.subprocess, "run", refuse), mock.patch.object(gate.shutil, "which", refuse):
+        refuse = unittest.mock.Mock(side_effect=AssertionError("must not be reached"))
+        with tempfile.TemporaryDirectory() as directory, unittest.mock.patch.dict(os.environ), \
+                unittest.mock.patch.object(gate, "source_hash", refuse), \
+                unittest.mock.patch.object(gate.subprocess, "run", refuse), \
+                unittest.mock.patch.object(gate.shutil, "which", refuse):
             root = Path(directory).resolve()
             os.environ["NOS_QEMU_MACHINE"] = "pc-q35-10.0"
-            with mock.patch.object(gate, "ROOT", root), mock.patch.object(gate, "BUILD", root / "build"):
+            with unittest.mock.patch.object(gate, "ROOT", root), \
+                    unittest.mock.patch.object(gate, "BUILD", root / "build"):
                 with self.assertRaises(ValueError):
                     gate.run_case("normal")
             os.environ.pop("NOS_QEMU_MACHINE")
-            with mock.patch.object(gate, "ROOT", root), mock.patch.object(gate, "BUILD", root / "build,x"):
+            with unittest.mock.patch.object(gate, "ROOT", root), \
+                    unittest.mock.patch.object(gate, "BUILD", root / "build,x"):
                 with self.assertRaises(ValueError):
                     gate.run_case("normal")
             self.assertEqual(list(root.iterdir()), [])
@@ -304,14 +307,14 @@ class FakeRun:
         return subprocess.CompletedProcess(args, 33, stdout=self.stdout, stderr=b"")
 
     def run(self) -> dict:
-        with mock.patch.dict(os.environ), mock.patch.object(gate, "ROOT", self.root), \
-                mock.patch.object(gate, "BUILD", self.build), \
-                mock.patch.object(gate, "source_hash", return_value="f" * 64), \
-                mock.patch.object(gate, "environment", return_value={"PATH": "/fake"}), \
-                mock.patch.object(gate, "firmware", return_value=(self.code, self.variables)), \
-                mock.patch.object(gate.shutil, "which", return_value="/fake/qemu-system-x86_64"), \
-                mock.patch.object(gate.subprocess, "run", side_effect=self.qemu), \
-                mock.patch("builtins.print"):
+        with unittest.mock.patch.dict(os.environ), unittest.mock.patch.object(gate, "ROOT", self.root), \
+                unittest.mock.patch.object(gate, "BUILD", self.build), \
+                unittest.mock.patch.object(gate, "source_hash", return_value="f" * 64), \
+                unittest.mock.patch.object(gate, "environment", return_value={"PATH": "/fake"}), \
+                unittest.mock.patch.object(gate, "firmware", return_value=(self.code, self.variables)), \
+                unittest.mock.patch.object(gate.shutil, "which", return_value="/fake/qemu-system-x86_64"), \
+                unittest.mock.patch.object(gate.subprocess, "run", side_effect=self.qemu), \
+                unittest.mock.patch("builtins.print"):
             os.environ.pop("NOS_QEMU_MACHINE", None)
             return gate.run_case("normal")
 
@@ -361,7 +364,7 @@ class Report(unittest.TestCase):
 
             run = root / "run"
             run.mkdir()
-            with mock.patch.object(gate.shutil, "copy2", side_effect=corrupting):
+            with unittest.mock.patch.object(gate.shutil, "copy2", side_effect=corrupting):
                 with self.assertRaises(ValueError):
                     gate.stage_firmware(run, code, variables)
             hashes = gate.stage_firmware(run, code, variables)

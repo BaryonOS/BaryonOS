@@ -107,7 +107,7 @@ jobs:
 
   power-system-gate:
     runs-on: ubuntu-24.04
-    timeout-minutes: 45
+    timeout-minutes: 60
     env:
       NOS_QEMU_MACHINE: pc-q35-8.2
       NOS_BUILD_DIR: ${{ github.workspace }}/build/power-system-gate
@@ -138,6 +138,12 @@ jobs:
           python3 -B tools/preflight.py --strict
           python3 -B -m unittest discover -s tests -p test_system_harness.py
           python3 -B -u tools/test_power_system.py
+      - name: Ring-3 S3 through the POWER capability with cold recovery after each case
+        env:
+          NOS_BUILD_DIR: ${{ github.workspace }}/build/power-system-gate/s3
+        run: |
+          mkdir -p "$NOS_BUILD_DIR"
+          python3 -B -u tools/test_power_system.py --s3
       - name: Preserve POWER-system gate report
         if: ${{ always() }}
         uses: ./.github/actions/preserve-evidence
@@ -145,5 +151,10 @@ jobs:
           job-status: ${{ job.status }}
           full-evidence: ${{ github.event_name == 'workflow_dispatch' && inputs.full_evidence }}
           name: power-system-gate-report
-          path: build/power-system-gate/power-system-gate.json
+          path: |
+            build/power-system-gate/power-system-gate.json
+            build/power-system-gate/s3/s3-system-gate.json
+          required-paths: |
+            build/power-system-gate/power-system-gate.json
+            build/power-system-gate/s3/s3-system-gate.json
           if-no-files-found: error
