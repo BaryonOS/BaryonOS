@@ -159,6 +159,7 @@ experiments/quantum/verify.py
 kernel/Cargo.toml
 kernel/build.rs
 kernel/linker.ld
+kernel/src/dispi.rs
 kernel/src/framebuffer.rs
 kernel/src/graphics.rs
 kernel/src/m2.rs
@@ -732,6 +733,7 @@ tools/preflight.py
 tools/progress.py
 tools/run.py
 tools/run_cap_bench.py
+tools/run_dispi.py
 tools/run_display_probe.py
 tools/run_fpu.py
 tools/run_graphics.py
@@ -793,6 +795,7 @@ tools/tests/native_snapshot_wipe.rs
 tools/tests/test_acpi_serial.py
 tools/tests/test_agent_pipeline.py
 tools/tests/test_cap_bench.py
+tools/tests/test_dispi.py
 tools/tests/test_gs_discipline.py
 tools/tests/test_images.py
 tools/tests/test_ipc_wait.py
