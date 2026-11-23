@@ -53,6 +53,19 @@ GIT_LOCATION_VARS = ("GIT_DIR", "GIT_WORK_TREE", "GIT_INDEX_FILE", "GIT_OBJECT_D
                      "GIT_CEILING_DIRECTORIES", "GIT_DISCOVERY_ACROSS_FILESYSTEM")
 # Controller Git runs with credentials over a tree the worker wrote: no fsmonitor and no hooks.
 CONTROLLER_GIT_CONFIG = ("-c", "core.fsmonitor=false", "-c", "core.hooksPath=/dev/null")
+DIFF_HEAD = ("diff", "--no-ext-diff", "--no-textconv", "HEAD")
+
+
+def nested_git(root: Path) -> list[str]:
+    """Every .git below the checkout root. Git skips them, so status, ls-files, revert and the
+    callback fingerprint never see one; a planted nested .git/config can carry a callback."""
+    found = []
+    for directory, dirs, files in os.walk(root):  # never follows symlinks
+        if ".git" in dirs or ".git" in files:
+            if Path(directory) != root:
+                found.append(os.path.relpath(os.path.join(directory, ".git"), root))
+            dirs[:] = [d for d in dirs if d != ".git"]
+    return sorted(found)
 
 
 def git_env() -> dict[str, str]:
@@ -63,8 +76,9 @@ def planted_modules(tools: str = TOOLS_DIR) -> list[str]:
     """Untracked or ignored importable entries anywhere under tools/: modules, sourceless
     bytecode, extension modules and package directories. The sibling imports below put tools/
     on sys.path, so such a file would shadow a library, and a nested one would reach the lead's
-    later test runs. Listed from the parent directory, so a planted tools/.git cannot answer for it.
-    Checked at startup and again before every session."""
+    later test runs. __pycache__ counts too: this controller never reads it, but a later lead run
+    imports bytecode whose recorded source metadata matches. Listed from the parent directory, so a
+    planted tools/.git cannot answer for it. Checked at startup and again before every session."""
     parent, base = os.path.split(tools)
     listed = subprocess.run(["git", *CONTROLLER_GIT_CONFIG, "-C", parent, "ls-files", "-z", "--others",
                              "--directory", "--", base + "/"], capture_output=True, text=True, env=git_env())
@@ -72,8 +86,7 @@ def planted_modules(tools: str = TOOLS_DIR) -> list[str]:
         return [f"<git ls-files failed: {listed.stderr.strip()[-200:]}>"]
     names = [p[len(base) + 1:] for p in listed.stdout.split("\0") if p.startswith(base + "/")]
     importable = tuple(importlib.machinery.all_suffixes())
-    # Bytecode caches are never read (sys.pycache_prefix); every other importable name counts.
-    found = sorted(n for n in names if n and "__pycache__" not in n.split("/")
+    found = sorted(n for n in names if n
                    and (n.endswith("/") or n.endswith(importable) or "." not in n.rsplit("/", 1)[-1]))
     return ([".git"] if os.path.lexists(os.path.join(tools, ".git")) else []) + found
 
@@ -123,7 +136,7 @@ DENY = ["Bash(git push:*)", "Bash(git commit:*)", "Bash(git reset:*)", "Bash(git
         "Read(~/.claude/.credentials.json)", "Read(~/.ssh/**)", "Read(~/.config/gh/**)",
         "Read(~/.git-credentials)", "Read(//home/claude/**)", "Read(//root/.ccr/**)",
         # Paths the controller's scope check cannot see: Git state, caches, home.
-        "Edit(.git/**)", "Edit(**/__pycache__/**)", "Edit(**/*.pyc)", "Edit(.claude/**)",
+        "Edit(.git/**)", "Edit(**/.git/**)", "Edit(**/.git)", "Edit(**/__pycache__/**)", "Edit(**/*.pyc)", "Edit(.claude/**)",
         # Controller state: the callback baseline, STOP and session logs.
         "Edit(build/roadmap-pipeline/**)"]
 PROCESS_TAG = "roadmap-pipeline-"
@@ -538,6 +551,8 @@ class Controller:
         self.check_saved_baseline(retire=True)  # no worker is alive any more
         if planted := planted_modules():
             raise Stop(f"untracked or ignored modules under tools/ could run as code: {planted}")
+        if nested := nested_git(ROOT):
+            raise Stop(f"nested .git paths can carry Git callbacks; remove them: {nested[:20]}")
         self.callbacks = git_callbacks()
         branch = git("branch", "--show-current").strip()
         if branch != self.cfg.branch:
@@ -555,10 +570,18 @@ class Controller:
         if not marker.exists():
             return
         try:
-            self.callbacks = json.loads(marker.read_text())["baseline"]
-        except (ValueError, KeyError, TypeError):
-            self.callbacks = None  # unreadable baseline: fail closed
+            saved = json.loads(marker.read_text())
+        except ValueError:
+            saved = None
+        saved = saved if isinstance(saved, dict) else {}  # unreadable baseline: both checks fail closed
+        self.callbacks, ignored = saved.get("baseline"), saved.get("ignored")
         self.check_callbacks("an interrupted session")
+        delta = self.ignored_delta(ignored) if isinstance(ignored, dict) else ("unreadable baseline",)
+        if any(delta):
+            # Sticky like a callback change: the lead reviews, then `resume` retires this baseline.
+            atomic_write(self.state / "STOP", "ignored files changed since a session's baseline\n")
+            raise Stop("ignored files changed since an interrupted or manual session's baseline "
+                       f"(created, changed or removed); review them, then run `resume`: {delta}")
         if retire:
             marker.unlink()
 
@@ -587,7 +610,8 @@ class Controller:
         out, err = attempt_dir / f"{kind}-result.json", attempt_dir / f"{kind}-stderr.log"
         started = time.monotonic()
         # Kept until this session is verified: an interrupted controller is checked against it later.
-        atomic_write(self.state / CALLBACKS_MARKER, json.dumps({"baseline": self.callbacks, "session": session_id}))
+        atomic_write(self.state / CALLBACKS_MARKER, json.dumps({"baseline": self.callbacks, "session": session_id,
+                                                                "ignored": self.ignored_files()}))
         proc = None
         try:
             with out.open("w") as stdout, err.open("w") as stderr, brief.open("rb") as stdin:
@@ -676,8 +700,8 @@ class Controller:
 
     # --- validation owned by the controller ---
     def tree_fingerprint(self) -> str:
-        return sha256(git("status", "--porcelain", "--untracked-files=all") + git("diff", "HEAD")
-                      + json.dumps(self.ignored_files(), sort_keys=True))
+        return sha256(git("status", "--porcelain", "--untracked-files=all") + git(*DIFF_HEAD)
+                      + json.dumps([self.ignored_files(), nested_git(ROOT)], sort_keys=True))
 
     def changed(self) -> list[str]:
         return parse_porcelain(git("status", "--porcelain", "--untracked-files=all"))
@@ -696,15 +720,20 @@ class Controller:
                 continue
             with contextlib.suppress(FileNotFoundError):
                 info = (ROOT / path).lstat()
-                snapshot[path] = [info.st_mode, info.st_size, info.st_mtime_ns, info.st_ino]
+                snapshot[path] = [info.st_mode, info.st_size, info.st_mtime_ns, info.st_ctime_ns, info.st_ino]
         return snapshot
+
+    def ignored_delta(self, before: dict[str, list[int]]) -> tuple[list[str], list[str]]:
+        """(created, changed or removed) ignored files since the snapshot `before`."""
+        after = self.ignored_files()
+        return sorted(set(after) - set(before)), sorted(p for p in before if after.get(p) != before[p])
 
     def new_ignored(self, before: dict[str, list[int]]) -> list[str]:
         """Ignored files a session created; one it changed or removed cannot be restored."""
-        after = self.ignored_files()
-        if altered := sorted(p for p in before if after.get(p) != before[p]):
+        created, altered = self.ignored_delta(before)
+        if altered:
             raise Stop(f"a session changed or removed ignored files; review them: {altered[:20]}")
-        return sorted(set(after) - set(before))
+        return created
 
     def revert(self, paths: list[str]) -> None:
         """Only for paths the worker created or edited in a checkout that was clean before."""
@@ -713,9 +742,11 @@ class Controller:
             if path in tracked:
                 git("checkout", "HEAD", "--", path, check=False)
             else:
-                target = (ROOT / path).resolve()
-                if ROOT in target.parents and target.exists():
-                    shutil.rmtree(target) if target.is_dir() else target.unlink()
+                # The entry itself, never what a symlink points at; its parent must lie inside ROOT.
+                target = ROOT / path
+                parent = target.parent.resolve()
+                if (parent == ROOT.resolve() or ROOT.resolve() in parent.parents) and os.path.lexists(target):
+                    shutil.rmtree(target) if target.is_dir() and not target.is_symlink() else target.unlink()
 
     def run_checks(self, task: dict, attempt_dir: Path) -> tuple[bool, list[dict], str]:
         require_pipeline_release()
@@ -843,7 +874,8 @@ Rules (binding, in addition to AGENTS.md):
         atomic_write(directory / "dispatch.json", json.dumps(plan, indent=2))
         # The manual session may change Git state: the next preflight compares, never adopts.
         atomic_write(self.state / CALLBACKS_MARKER, json.dumps({"baseline": self.callbacks,
-                                                                "session": f"manual {task['id']}"}))
+                                                                "session": f"manual {task['id']}",
+                                                                "ignored": self.ignored_files()}))
         update_task(task["id"], path=LEDGER, status="active", history={
             "at": now(), "event": "manual-codex-claim", "base": head,
             "dispatch": str(directory / "dispatch.json"), "brief_sha256": plan["brief_sha256"]})
@@ -924,6 +956,8 @@ Return the structured result.
                                   "acceptEdits", self.cfg.worker_timeout, effort=effort_for(self.cfg, task))
             record = {"attempt": attempt, "worker": worker}
             attempts.append(record)
+            if nested := nested_git(ROOT):  # invisible to the scope check and revert below
+                raise Stop(f"the worker session left nested .git paths; review them: {nested[:20]}")
             changed = self.changed()
             # New ignored files are never in scope: nothing commits them and later runs may use them.
             if bad := [p for p in changed if not in_write_set(p, task["write_paths"])] + self.new_ignored(ignored):
@@ -931,7 +965,7 @@ Return the structured result.
                 record["reverted_out_of_scope"] = bad
                 changed = self.changed()
                 if leftover := [p for p in changed if not in_write_set(p, task["write_paths"])] \
-                        + self.new_ignored(ignored):  # e.g. a symlink revert() refuses to follow
+                        + self.new_ignored(ignored):  # e.g. a path revert() cannot remove
                     raise Stop(f"out-of-scope paths survived the revert; review them: {leftover[:20]}")
             out = worker.get("output") or {}
             if worker["exit_code"] != 0 or worker["is_error"]:
@@ -949,7 +983,7 @@ Return the structured result.
                 if not ok:
                     kind, detail = "checks", failure
                 else:
-                    diff = git("diff", "HEAD")
+                    diff = git(*DIFF_HEAD)
                     untracked = [p for p in changed if p not in set(git("ls-files", "--", *changed).split())]
                     before = self.tree_fingerprint()
                     verifier = self.session("verifier", task["id"], adir,
@@ -1068,11 +1102,12 @@ Return the structured result.
         adir.mkdir(parents=True, exist_ok=True)
         probe = ROOT / INIT_DENY_PROBE
         probe.unlink(missing_ok=True)
+        ignored = self.ignored_files()
         record = self.session("init", "INIT-CHECK", adir, self.init_prompt(), INIT_SCHEMA,
                               allow_rules(), "default", 15 * 60,
                               disallowed=READ_ONLY_DISALLOWED, budget=self.cfg.verifier_budget_usd)
         record["head_expected"] = head
-        record["checkout_clean_after"] = not self.changed()
+        record["checkout_clean_after"] = not (self.changed() or any(self.ignored_delta(ignored)) or nested_git(ROOT))
         record["deny_probe_file_absent"] = not probe.exists()  # controller-side oracle
         probe.unlink(missing_ok=True)
         atomic_write(adir / "init-check.json", json.dumps(record, indent=2))
@@ -1175,9 +1210,10 @@ def main() -> int:
         print(f"{args.cmd} requested; the controller honours it before the next session")
         return 0
     if args.cmd == "resume":
-        for name in ("STOP", "PAUSE"):
+        # The lead has reviewed the reported change: a sticky STOP must not re-fire on the old baseline.
+        for name in ("STOP", "PAUSE", CALLBACKS_MARKER):
             (STATE / name).unlink(missing_ok=True)
-        print("stop/pause cleared")
+        print("stop/pause cleared; any saved session baseline retired (the next preflight takes a fresh one)")
         return 0
     if args.cmd == "brief":
         if (STATE / "STOP").exists():  # before any Git call, like the run loop
