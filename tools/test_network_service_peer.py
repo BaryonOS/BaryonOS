@@ -729,7 +729,11 @@ else:
                     while replied < 300:
                         # Host fixture decodes only one finite four-frame batch.
                         decoder.count = 0
-                        for frame in decoder.feed(connection.recv(4096)):
+                        chunk = connection.recv(4096)
+                        if not chunk:
+                            # Repeated EOF reads are not bounded by the socket timeout.
+                            self.fail("peer closed before all replies")
+                        for frame in decoder.feed(chunk):
                             if frame[12:14] == b"\x08\x06":
                                 connection.sendall(framed(guest_arp_reply()))
                                 continue
