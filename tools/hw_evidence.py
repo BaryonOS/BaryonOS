@@ -7,7 +7,13 @@ the HW-FR target from ``docs/drivers/hardware-matrix.json``, the image, source,
 inventory and serial-log hashes, the Secure Boot state, the operator and signer
 and one confirmation per forbidden action. Signatures are checked only by the
 standard ``ssh-keygen -Y verify`` tool; this module implements no cryptography.
-Every failure rejects the record (fail closed).
+The inventory must agree with the run's own serial log: its PCI functions with
+the ``HWINV:PCI`` lines and count, its DMAR observation with the
+``HWINV:ACPI:DMAR`` line and the kernel's ACPI discovery marker. A protocol may
+be ``ready`` only while none of the owner decisions that block it is open, and a
+record is accepted only when the accepted records its protocol requires exist
+with the same target, ``source_sha256``, ``source_commit`` and inventory
+SHA-256. Every failure rejects the record (fail closed).
 """
 from __future__ import annotations
 
@@ -35,6 +41,39 @@ RECORD_GLOB = "hw-evidence*.json"
 NAMESPACE = "baryonos-hw-evidence"
 PHYSICAL_PROFILE = "HW-FR"
 PROTOCOL_IDS = frozenset({"HW-INV", "H05-S5", "H05-S3", "H02-USB", "H03-AV", "H04-NET", "R03-INSTALL"})
+OWNER_DECISIONS = frozenset({"OD-HW-TARGETS", "OD-HW-BOOT", "OD-HW-DISKS", "OD-HW-CAPTURE", "OD-HW-SIGNERS",
+                             "OD-HW-FAMILIES", "OD-HW-PUBLISH", "OD-HW-INV-ROUTE", "OD-HW-POWER"})
+# Minimum protocols each owner decision blocks (docs/drivers/HARDWARE-TARGETS.md). The matrix may list more,
+# never fewer, so shrinking a decision's `blocks` cannot open a protocol.
+REQUIRED_BLOCKS = {
+    "OD-HW-TARGETS": PROTOCOL_IDS, "OD-HW-BOOT": PROTOCOL_IDS, "OD-HW-DISKS": PROTOCOL_IDS,
+    "OD-HW-CAPTURE": PROTOCOL_IDS, "OD-HW-SIGNERS": PROTOCOL_IDS, "OD-HW-PUBLISH": PROTOCOL_IDS,
+    "OD-HW-FAMILIES": frozenset({"H02-USB", "H03-AV", "H04-NET", "R03-INSTALL"}),
+    "OD-HW-INV-ROUTE": frozenset({"HW-INV"}), "OD-HW-POWER": frozenset({"H05-S3"}),
+}
+# Accepted records a protocol requires with the same target, source_sha256, source_commit and inventory SHA-256
+# (catalogue preconditions).
+PREREQUISITES = {"HW-INV": (), "H05-S5": ("HW-INV",), "H05-S3": ("HW-INV", "H05-S5"), "H02-USB": ("HW-INV",),
+                 "H03-AV": ("HW-INV",), "H04-NET": ("HW-INV",), "R03-INSTALL": ("HW-INV", "H02-USB", "H05-S5")}
+# Boot and self-test markers that every profile emits; they never identify a device.
+GENERIC_MARKERS = frozenset({"BOOT:EBS_OK", "KERNEL:ENTRY", "BOOTINFO:OK", "KS-01:PASS", "KS-02:PASS",
+                             "KS-03:PASS", "M1:PASS", "M2:PASS"})
+BOOT_MARKER = "BOOT:EBS_OK"
+HWINV_DMAR_FORMAT = "HWINV:ACPI:DMAR=<PRESENT|ABSENT>:DRHD=<n>"
+HWINV_DMAR_MARKER = "HWINV:ACPI:DMAR=*"
+HWINV_PCI_FORMATS = ("HWINV:PCI:<ssss>:<bb>:<dd>.<f>:<vendor>:<device>:<class>:<subclass>:<prog_if>:<revision>",
+                     "HWINV:PCI:COUNT=<n>")
+HWINV_PCI_COUNT_MARKER = "HWINV:PCI:COUNT=*"
+PCI_FIELDS = ("address", "vendor", "device", "class", "subclass", "prog_if", "revision")
+# Kernel ACPI discovery outcomes (kernel/src/m2/acpi.rs report(), crates/boot-protocol/src/acpi.rs) and the
+# inventory DMAR observation each one allows: (acpi.dmar, minimum drhd_units, maximum drhd_units).
+KERNEL_DMAR_STATES = {"ACPI:UNAVAILABLE:NO_DMAR": ("absent", 0, 0),
+                      "ACPI:UNAVAILABLE:NO_DMAR_UNITS": ("present", 0, 0),
+                      "ACPI:DISCOVERY:MCFG_DMAR": ("present", 1, None)}
+CONTAINED_SUFFIX = ":BUS_MASTER:CONTAINED"
+# PCI (class, subclass, prog_if) the bound inventory must list for a protocol device.
+DEVICE_PCI_CLASS = {"xhci": ("0c", "03", "30")}
+MAX_DRHD = 64
 BASELINE_FORBIDDEN = ("no-firmware-flash", "no-firmware-settings-save", "no-bootorder-change",
                       "removable-media-only", "no-internal-disk-access", "no-secure-boot-key-change",
                       "no-personal-data")
@@ -45,8 +84,9 @@ TOP_KEYS = {"schema", "namespace", "allowed_signers", "scope", "signing", "forbi
             "baseline_forbidden_actions", "record_fields", "inventory_format", "hwinv_marker_format",
             "protocols"}
 PROTOCOL_KEYS = {"id", "version", "criterion", "fr_rows", "title", "profile", "devices", "image", "status",
-                 "blocking_reasons", "markers_implemented", "preconditions", "steps", "required_markers",
-                 "failure_markers", "forbidden_actions", "recovery_route", "evidence_fields"}
+                 "blocking_reasons", "markers_implemented", "preconditions", "prerequisites", "steps",
+                 "required_markers", "failure_markers", "device_markers", "forbidden_actions", "recovery_route",
+                 "evidence_fields"}
 # PCI vendors that only appear on emulated or paravirtual hardware.
 HYPERVISOR_PCI_VENDORS = {"1af4": "virtio", "1b36": "QEMU", "1234": "QEMU/Bochs display",
                           "15ad": "VMware", "80ee": "VirtualBox"}
@@ -64,6 +104,14 @@ SIGNER_LINE = re.compile(r"(?P<principals>\S+)\s+(?:(?P<options>\S+)\s+)?"
                          r"(?P<keytype>(?:ssh|ecdsa|sk)-\S+)\s+(?P<key>[A-Za-z0-9+/]+={0,2})(?:\s+\S.*)?")
 OPTION = re.compile(r'(cert-authority|namespaces="[^"]*"|valid-(?:after|before)="?[0-9]{8,14}Z?"?)(?:,|$)')
 HWINV_PCI = re.compile(r"HWINV:PCI:[0-9a-f]{4}:[0-9a-f]{2}:[0-9a-f]{2}\.[0-7]:([0-9a-f]{4}):", re.IGNORECASE)
+HWINV_DMAR = re.compile(r"HWINV:ACPI:DMAR=(PRESENT|ABSENT):DRHD=(0|[1-9][0-9]?)")
+# Lowercase hex exactly as in the inventory; any other line naming HWINV:PCI: is malformed.
+HWINV_PCI_LINE = re.compile(r"HWINV:PCI:([0-9a-f]{4}:[0-9a-f]{2}:[0-1][0-9a-f]\.[0-7]):([0-9a-f]{4}):([0-9a-f]{4}):"
+                            r"([0-9a-f]{2}):([0-9a-f]{2}):([0-9a-f]{2}):([0-9a-f]{2})")
+HWINV_PCI_COUNT = re.compile(r"HWINV:PCI:COUNT=(0|[1-9][0-9]{0,3})")
+KERNEL_DMAR = re.compile(r"ACPI:(?:UNAVAILABLE:NO_DMAR(?:_UNITS)?|DISCOVERY:MCFG_DMAR)")
+# Point sizes of uncompressed SEC1 points (RFC 5656 section 3.1).
+EC_POINT_SIZES = {"nistp256": 65, "nistp384": 97, "nistp521": 133}
 MAX_JSON, MAX_LOG, MAX_SIG, MAX_SIGNERS = 1 << 20, 4 << 20, 64 << 10, 64 << 10
 
 
@@ -87,6 +135,9 @@ def repo_file(root: Path, name: str) -> Path:
     except OSError as error:
         raise EvidenceError(f"missing file {name}") from error
     _require(path.is_relative_to(root) and path.is_file(), f"{name} is outside the repository or not a file")
+    # A symlink (or a path through a symlinked directory) would let a location rule judge a different file
+    # than the one read; only the named file itself is accepted.
+    _require(path.relative_to(root).as_posix() == name, f"{name} is a symlink or aliased path (fail closed)")
     return path
 
 
@@ -110,10 +161,15 @@ def _text_list(value: object, label: str, *, empty: bool = False) -> list[str]:
     return value
 
 
-def matrix_profile(root: Path) -> tuple[str | None, set[str]]:
-    """Return the HW-FR target (None when unselected) and its device ids."""
+def _matrix(root: Path) -> dict:
     matrix = _json(repo_file(root, MATRIX.as_posix()))
     _require(isinstance(matrix, dict) and isinstance(matrix.get("profiles"), list), "invalid hardware matrix")
+    return matrix
+
+
+def matrix_profile(root: Path, matrix: dict | None = None) -> tuple[str | None, set[str]]:
+    """Return the HW-FR target (None when unselected) and its device ids."""
+    matrix = _matrix(root) if matrix is None else matrix
     found = [p for p in matrix["profiles"] if isinstance(p, dict) and p.get("id") == PHYSICAL_PROFILE]
     _require(len(found) == 1 and found[0].get("kind") == "hardware", "hardware matrix lacks one HW-FR profile")
     target = found[0].get("target")
@@ -121,6 +177,40 @@ def matrix_profile(root: Path) -> tuple[str | None, set[str]]:
     devices = found[0].get("devices")
     _require(isinstance(devices, list), "invalid HW-FR devices")
     return target, {d.get("id") for d in devices if isinstance(d, dict)}
+
+
+def open_blockers(matrix: dict) -> dict[str, list[str]]:
+    """Map every protocol to the owner decisions that still block it (fail closed).
+
+    A decision is closed only when exactly one entry carries its id, with status ``decided`` and a non-empty
+    ``reference``. An open decision blocks its listed protocols plus REQUIRED_BLOCKS. Missing, duplicate or
+    malformed entries stay open; an unknown entry blocks every protocol; a matrix without ``owner_decisions``
+    (schema 1) blocks every protocol.
+    """
+    blockers: dict[str, set[str]] = {ident: set() for ident in PROTOCOL_IDS}
+    decisions = matrix.get("owner_decisions")
+    if not isinstance(decisions, list):
+        for found in blockers.values():
+            found.add("owner decisions not recorded")
+        return {ident: sorted(found) for ident, found in blockers.items()}
+    entries: dict[str, list[dict]] = {}
+    for entry in decisions:
+        ident = entry.get("id") if isinstance(entry, dict) else None
+        if isinstance(ident, str) and ident in OWNER_DECISIONS:
+            entries.setdefault(ident, []).append(entry)
+            continue
+        for found in blockers.values():
+            found.add(ident if isinstance(ident, str) else "malformed owner decision")
+    for ident in OWNER_DECISIONS:
+        found = entries.get(ident, [])
+        if (len(found) == 1 and found[0].get("status") == "decided" and isinstance(found[0].get("reference"), str)
+                and found[0]["reference"].strip()):
+            continue
+        listed = {block for entry in found if isinstance(entry.get("blocks"), list)
+                  for block in entry["blocks"] if block in PROTOCOL_IDS}
+        for protocol in listed | REQUIRED_BLOCKS[ident]:
+            blockers[protocol].add(ident)
+    return {ident: sorted(found) for ident, found in blockers.items()}
 
 
 def _kernel_features(root: Path) -> set[str]:
@@ -147,7 +237,13 @@ def load_protocols(root: Path = ROOT) -> dict[str, dict]:
              "invalid forbidden-action catalogue")
     _require(doc["baseline_forbidden_actions"] == list(BASELINE_FORBIDDEN)
              and set(BASELINE_FORBIDDEN) <= set(catalogue), "baseline forbidden actions differ from the validator")
-    _, devices = matrix_profile(root)
+    formats = doc["hwinv_marker_format"]
+    _require(isinstance(formats, list) and all(isinstance(f, str) for f in formats)
+             and {HWINV_DMAR_FORMAT, *HWINV_PCI_FORMATS} <= set(formats),
+             f"hwinv_marker_format must list {HWINV_DMAR_FORMAT} and {' and '.join(HWINV_PCI_FORMATS)}")
+    matrix = _matrix(root)
+    _, devices = matrix_profile(root, matrix)
+    blockers = open_blockers(matrix)
     features = _kernel_features(root)
     protocols: dict[str, dict] = {}
     _require(isinstance(doc["protocols"], list), "protocols must be a list")
@@ -176,10 +272,14 @@ def load_protocols(root: Path = ROOT) -> dict[str, dict]:
             _require(protocol["blocking_reasons"] == [] and protocol["markers_implemented"]
                      and image["kernel_feature_present"] and image["physical_image"] == "available",
                      f"{ident}: ready requires implemented markers, a present kernel feature and a physical image")
+            _require(not blockers[ident],
+                     f"{ident}: ready while owner decision(s) {', '.join(blockers[ident])} remain open")
         else:
             _require(protocol["status"] == "blocked", f"{ident}: status must be ready or blocked")
             _text_list(protocol["blocking_reasons"], f"{ident} blocking_reasons")
         _text_list(protocol["preconditions"], f"{ident} preconditions")
+        _require(protocol["prerequisites"] == list(PREREQUISITES[ident]),
+                 f"{ident}: prerequisites differ from the validator")
         _text_list(protocol["recovery_route"], f"{ident} recovery_route")
         steps = protocol["steps"]
         _require(isinstance(steps, list) and steps, f"{ident}: steps missing")
@@ -193,6 +293,20 @@ def load_protocols(root: Path = ROOT) -> dict[str, dict]:
         for key in ("required_markers", "failure_markers"):
             _require(all(MARKER.fullmatch(m) for m in _text_list(protocol[key], f"{ident} {key}")),
                      f"{ident}: invalid marker in {key}")
+        device_markers, claimed = protocol["device_markers"], []
+        _require(isinstance(device_markers, dict) and set(device_markers) == set(scope),
+                 f"{ident}: device_markers must name exactly the protocol devices")
+        for device, listed in device_markers.items():
+            for marker in _text_list(listed, f"{ident} device_markers {device}"):
+                _require(MARKER.fullmatch(marker) is not None, f"{ident}: invalid device marker {marker!r}")
+                _require(not any(_matches(marker, generic) for generic in GENERIC_MARKERS),
+                         f"{ident}: generic marker {marker!r} cannot identify device {device}")
+                # A line one device's pattern matches must never also satisfy another device's pattern.
+                for owner, other in claimed:
+                    _require(marker != other and (owner == device or not _overlap(marker, other)),
+                             f"{ident}: device marker {marker!r} ({device}) overlaps {other!r} ({owner}); "
+                             "markers are shared between devices")
+                claimed.append((device, marker))
         forbidden = _text_list(protocol["forbidden_actions"], f"{ident} forbidden_actions")
         _require(len(set(forbidden)) == len(forbidden) and set(forbidden) <= set(catalogue)
                  and set(BASELINE_FORBIDDEN) <= set(forbidden), f"{ident}: forbidden actions omit the baseline")
@@ -201,6 +315,10 @@ def load_protocols(root: Path = ROOT) -> dict[str, dict]:
                  and len(evidence_fields) == len(RECORD_KEYS), f"{ident}: evidence_fields differ from the record schema")
         protocols[ident] = protocol
     _require(set(protocols) == PROTOCOL_IDS, "required physical protocol missing")
+    _require(HWINV_DMAR_MARKER in protocols["HW-INV"]["required_markers"],
+             f"HW-INV must require the {HWINV_DMAR_MARKER} marker")
+    _require(HWINV_PCI_COUNT_MARKER in protocols["HW-INV"]["required_markers"],
+             f"HW-INV must require the {HWINV_PCI_COUNT_MARKER} marker")
     return protocols
 
 
@@ -216,6 +334,41 @@ def _signer_options(text: str, number: int) -> dict[str, str]:
         found[name] = match.group(1)
         position = match.end()
     return found
+
+
+def _ssh_strings(blob: bytes) -> list[bytes]:
+    """Split an SSH wire-format blob into its uint32-length strings (format parsing only)."""
+    fields, offset = [], 0
+    while offset < len(blob):
+        _require(offset + 4 <= len(blob), "truncated length prefix")
+        (length,) = struct.unpack(">I", blob[offset:offset + 4])
+        fields.append(blob[offset + 4:offset + 4 + length])
+        _require(len(fields[-1]) == length, "truncated string")
+        offset += 4 + length
+    return fields
+
+
+def _public_key_ok(keytype: str, blob: bytes) -> bool:
+    """True when the blob has exactly the public-key layout of its type (RFC 8709, RFC 5656, PROTOCOL.u2f)."""
+    try:
+        fields = _ssh_strings(blob)
+    except EvidenceError:
+        return False
+    if not fields or fields[0] != keytype.encode():
+        return False
+    if keytype == "ssh-ed25519":
+        return len(fields) == 2 and len(fields[1]) == 32
+    if keytype == "sk-ssh-ed25519@openssh.com":
+        return len(fields) == 3 and len(fields[1]) == 32 and len(fields[2]) > 0
+    curve = keytype.removeprefix("sk-").removeprefix("ecdsa-sha2-").removesuffix("@openssh.com")
+    size = EC_POINT_SIZES.get(curve)
+    point_ok = (size is not None and len(fields) >= 3 and fields[1] == curve.encode() and len(fields[2]) == size
+                and fields[2][:1] == b"\x04")
+    if keytype.startswith("ecdsa-sha2-"):
+        return point_ok and len(fields) == 3
+    if keytype == "sk-ecdsa-sha2-nistp256@openssh.com":
+        return point_ok and len(fields) == 4 and len(fields[3]) > 0
+    return False
 
 
 def load_signers(root: Path = ROOT) -> set[str]:
@@ -244,7 +397,7 @@ def load_signers(root: Path = ROOT) -> set[str]:
             blob = base64.b64decode(match["key"], validate=True)
         except ValueError as error:
             raise EvidenceError(f"allowed signers line {number}: invalid key encoding") from error
-        _require(len(blob) > 4 and blob[4:4 + struct.unpack(">I", blob[:4])[0]] == match["keytype"].encode(),
+        _require(_public_key_ok(match["keytype"], blob),
                  f"allowed signers line {number}: key blob does not match its key type")
         principals.update(names)
     return principals
@@ -310,8 +463,9 @@ def _inventory(data: bytes) -> dict:
         inventory = json.loads(data)
     except (UnicodeDecodeError, json.JSONDecodeError) as error:
         raise EvidenceError(f"inventory is not valid JSON: {error}") from error
-    _require(isinstance(inventory, dict) and set(inventory) == {"schema", "kind", "cpuid", "secure_boot", "pci"}
-             and type(inventory["schema"]) is int and inventory["schema"] == 1
+    _require(isinstance(inventory, dict)
+             and set(inventory) == {"schema", "kind", "cpuid", "secure_boot", "acpi", "pci"}
+             and type(inventory["schema"]) is int and inventory["schema"] == 2
              and inventory["kind"] == "baryonos-hw-inventory",
              "inventory has an unknown format")
     cpuid = inventory["cpuid"]
@@ -320,6 +474,11 @@ def _inventory(data: bytes) -> dict:
              "inventory lacks the CPUID vendor and hypervisor bit")
     _require(not cpuid["hypervisor_bit"], "virtual capture: inventory records the CPUID hypervisor bit")
     _require(inventory["secure_boot"] in {"enabled", "disabled", "unknown"}, "inventory Secure Boot state invalid")
+    acpi = inventory["acpi"]
+    _require(isinstance(acpi, dict) and set(acpi) == {"dmar", "drhd_units"} and acpi["dmar"] in {"present", "absent"}
+             and type(acpi["drhd_units"]) is int and 0 <= acpi["drhd_units"] <= MAX_DRHD
+             and (acpi["dmar"] == "present" or acpi["drhd_units"] == 0),
+             f"inventory acpi must be {{dmar: present|absent, drhd_units: 0..{MAX_DRHD}}}; absent needs 0 units")
     pci = inventory["pci"]
     _require(isinstance(pci, list) and 0 < len(pci) <= 1024, "inventory lists no PCI functions")
     for function in pci:
@@ -332,11 +491,58 @@ def _inventory(data: bytes) -> dict:
         vendor = function["vendor"]
         _require(vendor not in HYPERVISOR_PCI_VENDORS,
                  f"virtual capture: PCI vendor {vendor} ({HYPERVISOR_PCI_VENDORS.get(vendor)}) is not physical")
+    _require(len({function["address"] for function in pci}) == len(pci), "inventory lists a PCI address twice")
     return inventory
 
 
 def _matches(marker: str, line: str) -> bool:
     return line.startswith(marker[:-1]) if marker.endswith("*") else line == marker
+
+
+def _overlap(first: str, second: str) -> bool:
+    """True when some serial line can match both marker patterns (a trailing '*' is the only wildcard)."""
+    one, two = first.removesuffix("*"), second.removesuffix("*")
+    if first.endswith("*") and second.endswith("*"):
+        return one.startswith(two) or two.startswith(one)
+    if first.endswith("*"):
+        return two.startswith(one)
+    if second.endswith("*"):
+        return one.startswith(two)
+    return one == two
+
+
+def pci_log_problem(lines: list[str], pci: list[dict], *, required: bool) -> str | None:
+    """Return why the serial log's HWINV:PCI lines differ from inventory.pci, or None when they agree.
+
+    When the log names HWINV:PCI anywhere, or the protocol requires HWINV:PCI:COUNT (HW-INV), the log must list
+    every inventory PCI function exactly once as an HWINV:PCI line and nothing else, and carry exactly one
+    HWINV:PCI:COUNT equal to their number.
+    """
+    listed, counts = [], []
+    for line in lines:
+        if "HWINV:PCI:" not in line.upper():
+            continue
+        if (count := HWINV_PCI_COUNT.fullmatch(line)) is not None:
+            counts.append(int(count[1]))
+        elif (function := HWINV_PCI_LINE.fullmatch(line)) is not None:
+            listed.append(function.groups())
+        else:
+            return f"malformed HWINV:PCI line {line!r}"
+    if not (required or listed or counts):
+        return None
+    if len(counts) != 1:
+        return f"serial log carries {len(counts)} HWINV:PCI:COUNT lines; exactly one is required"
+    if len(set(listed)) != len(listed):
+        return "serial log lists a PCI function twice"
+    inventory = {tuple(function[key] for key in PCI_FIELDS) for function in pci}
+    missing, extra = sorted(inventory - set(listed)), sorted(set(listed) - inventory)
+    if missing or extra:
+        return ("HWINV:PCI lines differ from inventory.pci (absent from the log: "
+                f"{', '.join(f[0] for f in missing) or 'none'}; absent from the inventory: "
+                f"{', '.join(f[0] for f in extra) or 'none'})")
+    if counts[0] != len(listed):
+        return f"HWINV:PCI:COUNT={counts[0]} differs from the {len(listed)} listed PCI functions"
+    return None
 
 
 def outcome(protocol: dict, lines: list[str], steps: list[dict]) -> str | None:
@@ -354,6 +560,12 @@ def outcome(protocol: dict, lines: list[str], steps: list[dict]) -> str | None:
         if position == len(lines):
             return f"required marker {marker!r} missing or out of order"
         position += 1
+    # Every occurrence counts, also after firmware output on the same line: the loader writes the marker without
+    # a preceding newline, so a restart must not hide behind console bytes.
+    boots = sum(line.count(BOOT_MARKER) for line in lines)
+    expected = protocol["required_markers"].count(BOOT_MARKER)
+    if boots != expected:
+        return f"{BOOT_MARKER} appears {boots} time(s); protocol expects exactly {expected} (unexpected restart)"
     return None
 
 
@@ -362,13 +574,66 @@ def is_record_path(name: str) -> bool:
     return len(parts) >= 4 and parts[:2] == EVIDENCE and fnmatch.fnmatchcase(parts[-1], RECORD_GLOB)
 
 
+class _PrerequisiteCycle(EvidenceError):
+    """The prerequisite table loops; never skipped as an ordinary rejected candidate."""
+
+
+def _record_protocol(path: Path) -> object:
+    """Read only a candidate record's protocol id, to pre-filter candidates before full validation."""
+    try:
+        record = json.loads(_read(path, MAX_JSON))
+    except (EvidenceError, OSError, UnicodeDecodeError, json.JSONDecodeError):
+        return None
+    reference = record.get("protocol") if isinstance(record, dict) else None
+    return reference.get("id") if isinstance(reference, dict) else None
+
+
+def _require_prerequisites(root: Path, name: str, summary: dict, active: frozenset[str]) -> None:
+    """Require an accepted, passing prerequisite record with the same target, source hash, commit and inventory.
+
+    Every candidate is fully validated (signature, protocol status, owner decisions and its own prerequisites);
+    a candidate that fails validation never counts.
+    """
+    chain = active | {summary["protocol"]}
+    candidates: list[str] | None = None
+    for required in PREREQUISITES[summary["protocol"]]:
+        if required in chain:
+            raise _PrerequisiteCycle(f"prerequisite cycle: {' -> '.join(sorted(chain))} -> {required}")
+        if candidates is None:
+            candidates = sorted(p.relative_to(root).as_posix() for p in root.joinpath(*EVIDENCE).rglob(RECORD_GLOB)
+                                if p.is_file())
+        found = False
+        for candidate in candidates:
+            if candidate == name or _record_protocol(root / candidate) != required:
+                continue
+            try:
+                other = _validate_record(candidate, root, chain)
+            except _PrerequisiteCycle:
+                raise
+            except (EvidenceError, OSError):
+                continue
+            found = (other["protocol"] == required and other["passed"] is True
+                     and all(other[key] == summary[key]
+                             for key in ("target", "source_sha256", "source_commit", "inventory_sha256")))
+            if found:
+                break
+        _require(found, f"precondition unmet: no accepted, passing {required} record with the same target, "
+                        "source_sha256, source_commit and inventory SHA-256")
+
+
 def validate_record(name: str | Path, root: Path = ROOT) -> dict:
     """Validate one record and return its binding summary; raise EvidenceError on any defect."""
     root = root.resolve(strict=True)
     if isinstance(name, Path):
         name = (name.relative_to(root) if name.is_absolute() else name).as_posix()
+    return _validate_record(name, root, frozenset())
+
+
+def _validate_record(name: str, root: Path, active: frozenset[str]) -> dict:
     _require(is_record_path(name), f"{name}: records must be docs/verification/<dir>/{RECORD_GLOB}")
     path = repo_file(root, name)
+    _require(is_record_path(path.relative_to(root).as_posix()),
+             f"{name}: records must be docs/verification/<dir>/{RECORD_GLOB}")
     data = _read(path, MAX_JSON)
     principals = load_signers(root)
     _require(bool(principals), f"no allowed signers: {SIGNERS} lists no key; the project owner must add a signing "
@@ -437,6 +702,10 @@ def validate_record(name: str | Path, root: Path = ROOT) -> dict:
              and [s["id"] for s in steps] == [s["id"] for s in protocol["steps"]],
              "steps must list every protocol step in order with pass, fail or not-run")
     _require(record["dma_posture"] in POSTURES, "unknown DMA posture")
+    contained = any(marker.endswith(CONTAINED_SUFFIX) for marker in protocol["required_markers"])
+    _require(record["dma_posture"] != "VT-d contained" or contained,
+             f"VT-d contained posture needs a protocol that requires a *{CONTAINED_SUFFIX} marker; an ACPI DMAR "
+             "table in the inventory is not containment")
     _require(type(record["passed"]) is bool, "passed must be boolean")
     _require(isinstance(record["notes"], str) and len(record["notes"]) <= 4000, "notes must be text")
     for line in lines:
@@ -445,11 +714,44 @@ def validate_record(name: str | Path, root: Path = ROOT) -> dict:
         vendor = HWINV_PCI.match(line)
         _require(vendor is None or vendor.group(1).lower() not in HYPERVISOR_PCI_VENDORS,
                  f"virtual capture: serial log lists PCI vendor {vendor and vendor.group(1)}")
+    dmar_lines = [line for line in lines if line.startswith("HWINV:ACPI:DMAR=")]
+    _require(len(dmar_lines) <= 1, "serial log repeats the HWINV:ACPI:DMAR observation")
+    for line in dmar_lines:
+        dmar = HWINV_DMAR.fullmatch(line)
+        _require(dmar is not None and int(dmar[2]) <= MAX_DRHD, f"malformed DMAR marker {line!r}")
+        _require((dmar[1].lower(), int(dmar[2])) == (inventory["acpi"]["dmar"], inventory["acpi"]["drhd_units"]),
+                 "serial log DMAR observation contradicts the inventory")
+    acpi = inventory["acpi"]
+    for line in lines:
+        for found in KERNEL_DMAR.finditer(line):
+            state, low, high = KERNEL_DMAR_STATES[found[0]]
+            _require(acpi["dmar"] == state and low <= acpi["drhd_units"] <= (MAX_DRHD if high is None else high),
+                     f"kernel ACPI marker {found[0]} in the serial log contradicts the inventory "
+                     f"(acpi.dmar={acpi['dmar']}, drhd_units={acpi['drhd_units']})")
+    pci_problem = pci_log_problem(lines, inventory["pci"],
+                                  required=HWINV_PCI_COUNT_MARKER in protocol["required_markers"])
+    _require(pci_problem is None, f"inventory not bound to the serial log: {pci_problem}")
+    if contained:
+        _require(inventory["acpi"]["dmar"] == "present" and inventory["acpi"]["drhd_units"] >= 1,
+                 f"{protocol['id']} needs an inventory with an ACPI DMAR table and at least one DRHD unit")
+    for device in protocol["devices"]:
+        wanted = DEVICE_PCI_CLASS.get(device)
+        if wanted is not None:
+            _require(any((f["class"], f["subclass"], f["prog_if"]) == wanted for f in inventory["pci"]),
+                     f"inventory lists no {device} PCI function (class {'/'.join(wanted)})")
     failure = outcome(protocol, lines, steps)
     _require(not (record["passed"] and failure), f"failed run relabelled as passed: {failure}")
-    return dict(path=name, protocol=protocol["id"], version=protocol["version"], profile=record["profile"],
-                target=record["target"], devices=list(devices), passed=record["passed"],
-                dma_posture=record["dma_posture"], signer=signer)
+    # Also for failed runs: a record never names a device whose own transport markers are absent.
+    for device in devices:
+        for marker in protocol["device_markers"][device]:
+            _require(any(_matches(marker, line) for line in lines),
+                     f"device {device} listed without its transport marker {marker}")
+    summary = dict(path=name, protocol=protocol["id"], version=protocol["version"], profile=record["profile"],
+                   target=record["target"], devices=list(devices), passed=record["passed"],
+                   dma_posture=record["dma_posture"], signer=signer, source_sha256=record["source_sha256"],
+                   source_commit=record["source_commit"], inventory_sha256=record["inventory"]["sha256"])
+    _require_prerequisites(root, name, summary, active)
+    return summary
 
 
 def check(root: Path = ROOT) -> dict:

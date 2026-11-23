@@ -80,9 +80,11 @@ completes with status `BAD_MSG`, although §5.14.6.8 lists only `OK` or
   stops, including after failed initialisation: one ring page per queue (4),
   one control/event data page, and two TX bounce pages.
 - Period: 10 ms at 48 kHz/stereo/S16 = 1920 bytes. Four TX slots
-  (2 × 2048 bytes per bounce page); a 4-byte header and 8-byte status per slot
-  in the control/event data page. At most 40 ms is buffered; this is not a
-  latency claim (the budget is H03 work on physical hardware).
+  (2 × 2048 bytes per bounce page); each slot holds the 4-byte xfer header
+  followed by at most 2044 PCM bytes, so `pcm::MAX_PERIOD_BYTES` is 2044. Only
+  the 8-byte status per slot lives in the control/event data page. At most
+  40 ms is buffered; this is not a latency claim (the budget is H03 work on
+  physical hardware).
 - PCM arrives from the broker through a complete, one-time kernel copy into a
   free slot. No Rust reference to DMA is shared, and no application or broker
   pointer enters a descriptor. An invalid or oversized broker buffer is
@@ -137,16 +139,16 @@ twice), every state `→Fencing` on error/revocation, and
 | F5 | Control status ≠ OK, used length ≠ expected | codec + transport | stream not started; BAD_MSG/IO_ERR ⇒ fence | — |
 | F6 | Control timeout | monotonic deadline | fence | blocked backend (open) |
 | F7 | TX used ID unknown/not published, used length ≠ 8 | transport | fence; no slot released | model injection |
-| F8 | Used index changes while nothing is outstanding (stale) | idle check before publication | fence | model injection |
+| F8 | Used index changes while nothing is outstanding (stale) | idle check before publication: the used index is checked against the outstanding count from before the new request immediately before every publication, and on every poll (F8 is a sampled check: a stale element written in the few instructions between that read and the available-index store carries the new chain's head and length and is accepted, because virtio has no per-publication tag; this window is accepted only under the fixture's trusted-transport assumption, ADR-H03-SND-FIXTURE-20261119, and is characterised by `stale_completion_inside_the_publication_window_is_a_documented_limit`) | fence | model injection |
 | F9 | TX status `IO_ERR`, `BAD_MSG`, or unknown | status | `IO_ERR`: release slot, return `IoError` to broker, stop stream. `BAD_MSG`/unknown: fence | model injection (the driver never submits an invalid stream ID) |
-| F10 | `DEVICE_NEEDS_RESET` / configuration change | status read | fence | duplicate RELEASE (QEMU `virtio_error`) |
-| F11 | Completion after status-0 acknowledgement | ring snapshot after fence | §2.4.1 violation ⇒ `Quarantined` | model injection |
+| F10 | `DEVICE_NEEDS_RESET` / configuration change | status read | fence | not run. A future trigger is a test-only control request with an out-of-range stream ID, for which QEMU 8.2.2 `virtio_error` sets `NEEDS_RESET`. A repeated valid RELEASE is answered `OK` (§1), so it is not an F10 trigger |
+| F11 | Completion after status-0 acknowledgement | used-ring baseline bracketed around the acknowledging status/BME read-back, then an unchanged window and a final matching observation before the epoch advances | §2.4.1 violation ⇒ `Quarantined` | model injection |
 | F12 | Fence timeout | deadline | `Quarantined`, pool pinned | model injection |
 | F13 | Broker exit / capability closed during `Running` | kernel cleanup | revocation fence; no replay | terminate broker during playback |
 | F14 | Invalid/oversized broker buffer | usercopy validation | `Invalid`, nothing published | syscall with invalid pointer/length |
 | F15 | All slots occupied | slot count | `Again`, do not block | rapid writes |
 | F16 | Underrun (no data) | broker | `Stopped`, no error | pause |
-| F17 | Invalid event (length ≠ 8, stream ≥ streams, unknown type) | event parser | ignore + counter; repeated ⇒ fence | model injection |
+| F17 | Invalid event (used length < 8, stream ≥ streams, unknown type) | event parser | ignore + counter; repeated ⇒ fence. A used length above the 8-byte writable buffer is a used-ring violation (F7 class) and fences at once | model injection |
 | F18 | Epoch overflow | `checked_add` | `Quarantined` | host test |
 | F19 | Second RELEASE | stream flag | reject before submission | host test |
 
@@ -191,8 +193,9 @@ fence acknowledgement.
 
 Negative cases: F1 (no device), F13 (broker terminated during playback →
 fence acknowledgement; the WAV subsequently grows only with silent frames
-inside the final window), F14 (invalid buffer), and F10 (duplicate RELEASE
-rejected before submission). Record the source commit,
+inside the final window), F14 (invalid buffer), and F19 (duplicate RELEASE
+rejected before submission). F10 has no trigger in this profile and stays
+open. Record the source commit,
 `tools/common.py` fingerprint, kernel/loader/image hashes, QEMU/OVMF
 hashes, exact command, wall-clock duration, and completion count. H03 and
 FR-H02/A06 remain open.
@@ -276,8 +279,10 @@ Observed QEMU 8.2.2 behaviour and the resulting driver rules:
 - `virtio_snd_reset` keeps already popped TX elements. An exploratory
   in-flight fence (non-acceptance) showed QEMU playing them after
   re-initialisation and completing used id 0 with length 8 while head 0 was
-  not outstanding; the driver detected it and failed closed, and the WAV showed
-  replayed slot data. The accepted fence-reinit case therefore fences with no
+  not outstanding; the driver detected it and failed closed (F7, in the new
+  epoch; the 50 ms fence stability window had passed unchanged, so the F11
+  snapshot does not catch elements QEMU retains across reset), and the WAV
+  showed replayed slot data. The accepted fence-reinit case therefore fences with no
   TX outstanding; an in-flight fence followed by re-initialisation is not
   recoverable on this QEMU (quarantine is).
 - A TX completion means QEMU accepted the samples, which the WAV backend then
@@ -289,7 +294,10 @@ Observed QEMU 8.2.2 behaviour and the resulting driver rules:
   (`isa-debug-exit` runs the audio cleanup), a killed guest leaves size 0.
 - `iommu_platform=on` is accepted without a vIOMMU and offers
   `ACCESS_PLATFORM` (bit 33); the driver refuses it before FEATURES_OK.
-- The event queue is unimplemented (never completed).
+- The event queue is unimplemented (never completed). The driver still
+  handles at most four event completions per poll, so a device that keeps
+  completing the re-posted buffers cannot keep the kernel from its TX-progress
+  and drain deadlines.
 
 | # | Coverage in H03-T3a |
 | --- | --- |
@@ -297,15 +305,18 @@ Observed QEMU 8.2.2 behaviour and the resulting driver rules:
 | F2 | native: `iommu_platform=on` ⇒ offline, BME never set, no DRIVER_OK, empty WAV |
 | F3 | host codec only: QEMU refuses `streams` outside 1..10 |
 | F4, F9 | host codec |
-| F5, F7, F8, F11 | host (`queue` tests) and the strict checks of every native run; the exploratory in-flight run exercised F7/F11 detection |
+| F5, F7, F8 | host (`queue` tests) and the strict checks of every native run (F8 also immediately before every publication); the exploratory in-flight run (non-acceptance) exercised F7 detection natively: after re-initialisation, used id 0 with length 8 for an unpublished head ⇒ `USED_RING_VIOLATION`, raw exit 35 |
 | F6 | not run (no blocked backend) |
-| F10 | every native poll requires status `0x0f`; reported after the refused second RELEASE |
-| F12 | native: zero fence deadline ⇒ quarantine, nothing published afterwards, pool pinned |
-| F17 | code path and host tests (QEMU sends no events); `CTL_NOTIFY` counts against the bound |
+| F10 | negative not run: no `DEVICE_NEEDS_RESET` was induced (QEMU 8.2.2 answers a repeated valid RELEASE with `OK`); every native poll and the end of the normal case require status `0x0f` (positive path only) |
+| F11 | host only (`queue_tests::fence_misses_and_post_fence_changes_quarantine`, `a_used_index_moving_across_the_acknowledging_read_quarantines`, `finish_fence_requires_a_matching_final_observation`, `transport_model_tests::i2_used_index_moving_after_ack_quarantines`); every accepted native fence held the bracket, the 50 ms window and the final observation unchanged (`SND:USED:STABLE`); no native run observed a used-index, status or BME change during the window |
+| F12 | native: zero fence deadline with 1-3 TX periods driver-outstanding (checked by the kernel and by the runner) ⇒ quarantine, nothing published afterwards, pool pinned |
+| F17 | host tests only (`pcm::handle_event`, `queue` short event completions; QEMU sends no events); a used length below 8 and `CTL_NOTIFY` count against the bound, a used length above 8 fences |
 | F18 | host test |
 | F19 | native and host: second RELEASE refused before encoding, nothing sent |
 
-Fence-reinit: 10 periods of A, fence acknowledged (status 0, BME off, used
-rings stable for 50 ms), epoch 1, full §5.14.5 re-initialisation, all of B.
+Fence-reinit: 10 periods of A, fence acknowledged (status 0, BME off, an
+unchanged used-ring bracket around that read-back, used rings stable for
+50 ms and a matching final observation), epoch 1, full §5.14.5
+re-initialisation, all of B.
 Oracle: an exact A prefix no longer than the 4800 submitted frames, at most
 4800 silent frames, all 48000 B frames, never A after B.

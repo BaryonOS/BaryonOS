@@ -15,7 +15,18 @@ Oracles independent of the kernel's own report:
   (`TRANSPORT.md` §7): at most 4800 silent frames before and after, no other
   tolerance. Fence/re-init: an exact prefix of pattern A no longer than what
   the guest submitted, at most 4800 silent frames, all of pattern B, never A
-  after B. Quarantine: only a prefix of A.
+  after B. Quarantine: only a prefix of A, and the guest must have submitted
+  1-3 periods more than the 10 it completed (TX driver-outstanding at the
+  zero-deadline fence).
+
+Run inputs are refused before anything is created: the machine is pinned to
+pc-q35-8.2 (unset `NOS_QEMU_MACHINE` selects it, any other value is an
+error), and the run directory must be a relative path of `[A-Za-z0-9._/-]`
+only, because QEMU option values cannot carry `,` `:` `=` or whitespace
+safely. The OVMF CODE and VARS template copies are hashed before launch and
+must match their sources and stay unchanged; `ovmf_vars_final_sha256` is the
+post-run NVRAM state OVMF wrote, not an input identity. Output beyond the
+4 MiB bound fails the run (the truncated log is kept for diagnostics).
 
 Scope: QEMU/TCG emulator output only. A TX completion means QEMU accepted the
 samples, the WAV shows what its audio backend wrote; nothing here measures
@@ -26,6 +37,7 @@ from __future__ import annotations
 import argparse
 from datetime import datetime, timezone
 import json
+import os
 from pathlib import Path
 import re
 import shutil
@@ -47,6 +59,7 @@ MAX_TIMEOUT = 240
 MAX_OUTPUT = 4 * 1024 * 1024
 MAX_WAV = 16 * 1024 * 1024
 QEMU_SERIES = "QEMU emulator version 8.2."
+MACHINE = "pc-q35-8.2"
 FIXTURE_FRAMES = 48_000
 PERIOD_FRAMES = 480
 FENCE_AFTER_PERIODS = 10
@@ -77,9 +90,31 @@ def device(case: str) -> list[str]:
     return ["-device", option]
 
 
-def qemu_arguments(case: str, qemu: str, rel: str) -> list[str]:
+def fixture_machine() -> str:
+    """The machine profile the fixture is pinned to; never another profile."""
+    value = os.environ.get("NOS_QEMU_MACHINE")
+    if value is None:
+        return MACHINE
+    selected = qemu_machine(value)  # refuses unknown and empty profiles
+    if selected != MACHINE:
+        raise ValueError(f"H03-T3a fixture is pinned to {MACHINE}; unset NOS_QEMU_MACHINE or set it to {MACHINE}")
+    return selected
+
+
+def qemu_path(rel: str) -> str:
+    """A relative path that QEMU's option parsers read literally."""
+    if (not isinstance(rel, str) or rel.startswith("/") or re.fullmatch(r"[A-Za-z0-9._/-]+", rel) is None
+            or ".." in rel.split("/")):
+        raise ValueError(f"QEMU option path must be relative and match [A-Za-z0-9._/-]+: {rel!r}")
+    return rel
+
+
+def qemu_arguments(case: str, qemu: str, rel: str, machine: str) -> list[str]:
     """Self-built command (as run_keyring.py); tools/run.py stays unchanged."""
-    return [qemu, "-machine", qemu_machine(), "-accel", "tcg,thread=single",
+    qemu_path(rel)
+    if machine != MACHINE:
+        raise ValueError(f"H03-T3a fixture is pinned to {MACHINE}, not {machine!r}")
+    return [qemu, "-machine", machine, "-accel", "tcg,thread=single",
             "-icount", "shift=0,sleep=off", "-cpu", "qemu64", "-smp", "1", "-m", "256M",
             "-nodefaults", "-display", "none", "-monitor", "none", "-serial", "stdio",
             "-nic", "none", "-no-reboot",
@@ -286,10 +321,12 @@ def evaluate_serial(case: str, stdout: str, raw_exit, timed_out: bool) -> dict:
             if bool(offered & ACCESS_PLATFORM) != (case == "access-platform"):
                 raise ValueError("ACCESS_PLATFORM offer does not match the case")
     if case == "quarantine":
+        # SND:FRAMES is exactly the fenced count, so submitted minus fenced is
+        # what was still driver-outstanding at the fence: 1 to TX_SLOTS - 1.
         submitted = int(values["submitted_frames"])
         fenced = FENCE_AFTER_PERIODS * PERIOD_FRAMES
-        if submitted % PERIOD_FRAMES or not fenced <= submitted <= fenced + 3 * PERIOD_FRAMES:
-            raise ValueError(f"implausible submitted frame count {submitted}")
+        if submitted % PERIOD_FRAMES or not fenced < submitted <= fenced + 3 * PERIOD_FRAMES:
+            raise ValueError(f"submitted frame count {submitted} shows no TX outstanding at the fence or is implausible")
     return values
 
 
@@ -305,9 +342,43 @@ def bounded(data: bytes) -> str:
     return data[:MAX_OUTPUT].decode("utf-8", "replace")
 
 
+def check_output_bound(stdout: bytes, stderr: bytes) -> None:
+    """Output past the bound fails the run: the oracle sees only the bounded prefix."""
+    for name, data in (("stdout", stdout), ("stderr", stderr)):
+        if len(data) > MAX_OUTPUT:
+            raise ValueError(f"QEMU {name} has {len(data)} bytes, exceeding the {MAX_OUTPUT}-byte bound")
+
+
+def stage_firmware(run_dir: Path, code: Path, variables: Path) -> dict:
+    """Copies OVMF CODE and a VARS template plus its writable copy; refuses a
+    staged file that differs from its source, before QEMU is started."""
+    source_code, source_vars = sha256(code), sha256(variables)
+    shutil.copy2(code, run_dir / "OVMF_CODE.fd")
+    shutil.copy2(variables, run_dir / "OVMF_VARS.template.fd")
+    shutil.copy2(run_dir / "OVMF_VARS.template.fd", run_dir / "OVMF_VARS.fd")
+    hashes = {"ovmf_code_sha256": sha256(run_dir / "OVMF_CODE.fd"),
+              "ovmf_vars_template_sha256": sha256(run_dir / "OVMF_VARS.template.fd")}
+    if (hashes["ovmf_code_sha256"] != source_code or hashes["ovmf_vars_template_sha256"] != source_vars
+            or sha256(run_dir / "OVMF_VARS.fd") != source_vars):
+        raise ValueError("staged OVMF firmware does not match its source")
+    return hashes
+
+
+def check_firmware_unchanged(run_dir: Path, hashes: dict) -> None:
+    """The read-only CODE copy and the unused VARS template must survive the run."""
+    if (sha256(run_dir / "OVMF_CODE.fd") != hashes["ovmf_code_sha256"]
+            or sha256(run_dir / "OVMF_VARS.template.fd") != hashes["ovmf_vars_template_sha256"]):
+        raise ValueError("OVMF CODE or VARS template changed during the run")
+
+
 def run_case(case: str, *, timeout: int = 180) -> dict:
     if case not in FEATURE or not 0 < timeout <= MAX_TIMEOUT:
         raise ValueError("unknown virtio-snd case or invalid timeout")
+    # Refused before the manifest is read, QEMU is located or anything is created.
+    machine = fixture_machine()
+    if not BUILD.resolve().is_relative_to(ROOT.resolve()):
+        raise ValueError("NOS_BUILD_DIR must be inside the checkout for QEMU runs")
+    qemu_path(BUILD.resolve().relative_to(ROOT.resolve()).as_posix())
     frozen = source_hash()
     manifest_path = BUILD / "manifest.json"
     manifest_hash = sha256(manifest_path)
@@ -316,8 +387,6 @@ def run_case(case: str, *, timeout: int = 180) -> dict:
             or manifest.get("source_fingerprint_version") != 3
             or manifest.get("source_sha256") != frozen):
         raise ValueError(f"build {FEATURE[case]} from the current source first")
-    if not BUILD.resolve().is_relative_to(ROOT.resolve()):
-        raise ValueError("NOS_BUILD_DIR must be inside the checkout for QEMU runs")
     env = environment()
     qemu = shutil.which("qemu-system-x86_64", path=env["PATH"])
     if not qemu:
@@ -333,10 +402,9 @@ def run_case(case: str, *, timeout: int = 180) -> dict:
     for name, key in (("esp/kernel.elf", "kernel"), ("esp/EFI/BOOT/BOOTX64.EFI", "loader")):
         if sha256(run_dir / name) != manifest[key]["sha256"]:
             raise ValueError(f"snapshotted {name} does not match the build manifest")
-    shutil.copy2(variables, run_dir / "OVMF_VARS.fd")
-    shutil.copy2(code, run_dir / "OVMF_CODE.fd")
+    firmware_hashes = stage_firmware(run_dir, code, variables)
     rel = run_dir.relative_to(ROOT).as_posix()
-    args = qemu_arguments(case, qemu, rel)
+    args = qemu_arguments(case, qemu, rel, machine)
     started = datetime.now(timezone.utc).isoformat()
     start = time.monotonic()
     timed_out = False
@@ -350,19 +418,24 @@ def run_case(case: str, *, timeout: int = 180) -> dict:
     (run_dir / "serial.txt").write_text(stdout, encoding="utf-8")
     (run_dir / "stderr.txt").write_text(stderr, encoding="utf-8")
     wav = run_dir / "out.wav"
-    report = dict(schema_version=1, task="H03-T3a", case=case, kernel_feature=FEATURE[case],
+    report = dict(schema_version=2, task="H03-T3a", case=case, kernel_feature=FEATURE[case],
                   started_utc=started, duration_s=round(duration, 3), timeout_s=timeout,
                   timed_out=timed_out, raw_qemu_exit=rc, command=args, qemu_version=version,
-                  qemu_machine=qemu_machine(), source_fingerprint_version=3, source_sha256=frozen,
+                  qemu_machine=machine, source_fingerprint_version=3, source_sha256=frozen,
                   manifest_sha256=manifest_hash, kernel_sha256=manifest["kernel"]["sha256"],
                   loader_sha256=manifest["loader"]["sha256"], run_directory=str(run_dir),
-                  ovmf_code_sha256=sha256(run_dir / "OVMF_CODE.fd"),
-                  ovmf_vars_sha256=sha256(run_dir / "OVMF_VARS.fd"),
+                  **firmware_hashes,
+                  # Post-run NVRAM state OVMF wrote during the boot; not an input identity.
+                  ovmf_vars_final_sha256=sha256(run_dir / "OVMF_VARS.fd"),
+                  stdout_bytes=len(out), stderr_bytes=len(err),
+                  output_truncated=len(out) > MAX_OUTPUT or len(err) > MAX_OUTPUT,
                   scope="QEMU 8.2 TCG -icount emulator WAV output of a kernel-only fixture; "
                         "no syscall, capability, ring-3 broker, audible/physical playback, "
                         "latency or DMA-isolation claim",
                   stdout=stdout, stderr=stderr, passed=False)
     try:
+        check_output_bound(out, err)
+        check_firmware_unchanged(run_dir, firmware_hashes)
         if wav.exists():
             size = wav.stat().st_size
             if size > MAX_WAV:

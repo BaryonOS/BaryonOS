@@ -4,7 +4,8 @@
 //! Pure byte encoding, response validation and a per-stream state machine.
 //! No transport, queue, DMA, MMIO, broker, app grant or audible output: the
 //! kernel transport owns descriptors, slots and fences (`TRANSPORT.md`).
-//! Callers pass exactly the device-written used-length bytes of a response.
+//! Callers pass exactly the device-written used-length bytes of a response;
+//! an event buffer goes through [`handle_event`] with its reported length.
 //!
 //! Lifecycle (spec "PCM command lifecycle"): SET_PARAMS -> {SET_PARAMS,
 //! PREPARE}; PREPARE -> {SET_PARAMS, PREPARE, START, RELEASE}; START ->
@@ -45,10 +46,14 @@ pub const TX_STATUS_BYTES: usize = 8;
 /// `virtio_snd_event`: code + data.
 pub const EVENT_BYTES: usize = 8;
 
-/// Own bounds (`TRANSPORT.md` §4): four bounce slots of 2048 bytes.
-pub const MAX_PERIOD_BYTES: u32 = 2048;
+/// Own bounds (`TRANSPORT.md` §4): four bounce slots of 2048 bytes, each
+/// holding the 4-byte xfer header and at most one period, so one period is at
+/// most 2044 bytes (511 frames). `queue` asserts that this equals its slot
+/// payload limit, so every accepted period can be sent as one TX message.
+pub const MAX_PERIOD_BYTES: u32 = 2048 - XFER_BYTES as u32;
 pub const MAX_PERIODS: u32 = 4;
 pub const MAX_BUFFER_BYTES: u32 = MAX_PERIOD_BYTES * MAX_PERIODS;
+const _: () = assert!(MAX_PERIOD_BYTES.is_multiple_of(FRAME_BYTES));
 /// F17: repeated invalid events are not ignored forever.
 pub const MAX_INVALID_EVENTS: u32 = 8;
 
@@ -253,6 +258,39 @@ pub fn parse_event(config: Config, bytes: &[u8]) -> Result<Event, Error> {
         // CTLS is never negotiated, so a control notification is a violation.
         EVT_CTL_NOTIFY => Err(Error::Unsupported),
         _ => Err(Error::InvalidEvent),
+    }
+}
+
+/// One completed event buffer (F17), given the used length the device
+/// reported and the 8 bytes of the buffer. A used length below 8 is an invalid
+/// event: its bytes are not decoded, it is counted. Exactly 8 bytes are
+/// decoded and routed to `stream`; `Stale` is ignored without counting, a
+/// device violation fences, every other refusal is counted. A used length
+/// above the 8-byte buffer is `Length` (fence). The budget bound fences.
+pub fn handle_event(
+    config: Config,
+    stream: Option<&mut Stream>,
+    used_len: u32,
+    bytes: &[u8; EVENT_BYTES],
+    budget: &mut EventBudget,
+) -> Result<(), Error> {
+    if used_len > EVENT_BYTES as u32 {
+        return Err(Error::Length);
+    }
+    if used_len < EVENT_BYTES as u32 {
+        return budget.note_invalid();
+    }
+    let outcome = match parse_event(config, bytes) {
+        Ok(event) => match stream {
+            Some(stream) => stream.event(event),
+            None => Err(Error::InvalidEvent),
+        },
+        Err(error) => Err(error),
+    };
+    match outcome {
+        Ok(()) | Err(Error::Stale) => Ok(()),
+        Err(error) if error.requires_fence() => Err(error),
+        Err(_) => budget.note_invalid(),
     }
 }
 

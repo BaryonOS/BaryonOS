@@ -790,13 +790,25 @@ impl Device {
 
     /// Writes one chain and publishes its head. The bookkeeping is updated
     /// first, so an outstanding head's descriptors are never rewritten.
+    ///
+    /// F8 before publication: the device's used index is read after the
+    /// earlier request/response/PCM stores and checked against the requests
+    /// outstanding before this one, so a stale completion that arrived while
+    /// the queue was idle cannot later pass as this request's completion. The
+    /// few instructions between that read and the available-index store remain
+    /// a window inherent to polling, which this check narrows but cannot close.
     fn place<const N: usize>(&mut self, index: usize, chain: &Chain<N>) -> Result<(), Fault> {
         let queue = ACTIVE[index];
-        let publication = self.rings[index].publish_chain(
-            chain.head,
-            chain.used_len,
-            chain.alternate_used_len,
-        )?;
+        fence(Ordering::SeqCst);
+        let device_index = self.used_index(index)?;
+        let publication = self.rings[index]
+            .publish_checked(device_index, chain)
+            .inspect_err(|error| {
+                if *error == queue::Error::UsedOverrun {
+                    decimal(b"SND:FAULT:USED:QUEUE=", index as u64, b"");
+                    decimal(b":INDEX=", device_index.into(), b"\n");
+                }
+            })?;
         let table = self.pool.descriptors(queue)?;
         for (slot, descriptor) in chain.entries {
             let entry = table + u64::from(slot) * 16;
@@ -819,9 +831,11 @@ impl Device {
         Ok(self.dma.r16(self.pool.used(ACTIVE[index])? + 2))
     }
 
-    /// Consumes one validated used element: exact length, published head and
-    /// an index move bounded by the outstanding requests. Returns the head and
-    /// the reported used length.
+    /// Consumes one validated used element: a published head, an index move
+    /// bounded by the outstanding requests and the exact used length, except
+    /// for event heads published with `accept_short`, which may complete
+    /// shorter and are then counted by `pcm::handle_event`. Returns the head
+    /// and the reported used length.
     fn take_used(&mut self, index: usize) -> Result<Option<(u16, u32)>, Fault> {
         let device_index = self.used_index(index)?;
         if self.rings[index].pending(device_index)? == 0 {
@@ -986,32 +1000,34 @@ impl Device {
 
     /// Re-posts consumed event buffers. F17 and the PR #197 advisory: every
     /// invalid event, including CTL_NOTIFY (`Unsupported`, CTLS is never
-    /// negotiated), counts against the bound; the bound itself fences.
+    /// negotiated) and a used length below 8, counts against the bound; the
+    /// bound itself fences (`pcm::handle_event`). At most `EVENTS_PER_POLL`
+    /// completions per call, so a device that keeps completing the re-posted
+    /// buffers cannot keep the caller from its TX-progress or drain deadline.
     fn poll_events(&mut self, mut stream: Option<&mut pcm::Stream>) -> Result<(), Fault> {
         let config = self.config.ok_or(Fault::State)?;
-        while let Some((head, _)) = self.take_used(EVENTS)? {
+        queue::bounded_poll(queue::EVENTS_PER_POLL, || -> Result<bool, Fault> {
+            let Some((head, length)) = self.take_used(EVENTS)? else {
+                return Ok(false);
+            };
             let address = self.pool.event(head)?;
             let mut bytes = [0u8; pcm::EVENT_BYTES];
             for (offset, byte) in bytes.iter_mut().enumerate() {
                 *byte = self.dma.r8(address + offset as u64);
             }
-            let outcome = match pcm::parse_event(config, &bytes) {
-                Ok(event) => match stream.as_deref_mut() {
-                    Some(stream) => stream.event(event),
-                    None => Err(pcm::Error::InvalidEvent),
-                },
-                Err(error) => Err(error),
-            };
-            match outcome {
-                Ok(()) | Err(pcm::Error::Stale) => {}
-                Err(error) if error.requires_fence() => return Err(Fault::Pcm(error)),
-                Err(_) => self.budget.note_invalid()?,
-            }
+            pcm::handle_event(
+                config,
+                stream.as_deref_mut(),
+                length,
+                &bytes,
+                &mut self.budget,
+            )?;
             self.dma.w64(address, 0);
             let chain = queue::event_chain(&self.pool, head)?;
             self.place(EVENTS, &chain)?;
             self.notify(EVENTS)?;
-        }
+            Ok(true)
+        })?;
         Ok(())
     }
 
@@ -1147,35 +1163,55 @@ impl Device {
                 *value = unsafe { page.add(offset).cast::<u16>().read_volatile() };
             }
         });
+        // Orders the sample before the status/BME read-back that follows.
+        fence(Ordering::SeqCst);
         used
     }
 
     /// Fence (`TRANSPORT.md` §5 and its security correction): publication is
     /// frozen first, then status 0 and BME off are both read back before the
-    /// deadline, the used rings stay unchanged for a window, and only then the
-    /// epoch advances. Every miss quarantines; nothing is released selectively.
+    /// deadline. The used-ring baseline is bracketed around that acknowledging
+    /// read-back (a sample before every read-back, one after the acknowledging
+    /// one; any difference is F11), the used rings stay unchanged for a
+    /// window, and a final observation after the window must still match
+    /// before the epoch advances. Every miss quarantines; nothing is released
+    /// selectively, and no acknowledgement marker is written for a fence that
+    /// quarantines.
     fn fence(&mut self, budget_ms: u64, acknowledged: &[u8]) -> Result<u64, Fault> {
         let budget = budget_ms.saturating_mul(self.clock.per_ms);
+        // Reset and bus mastering off before any bookkeeping, so even a
+        // quarantine from `begin_fence` leaves the device stopped. Raw write:
+        // the acknowledgement below reads it back (and retries it).
+        self.common.w8(DEVICE_STATUS, 0);
+        let _ = self.pci.0.write_u16(FIXTURE, 4, MEMORY | INT_DISABLE);
         if self.life.begin_fence(rdtsc(), budget).is_err() {
             self.life.quarantine();
             return Err(Fault::Quarantined);
         }
-        self.common.w8(DEVICE_STATUS, 0);
-        // Raw write: the acknowledgement below reads it back.
-        let _ = self.pci.0.write_u16(FIXTURE, 4, MEMORY | INT_DISABLE);
         loop {
+            // Only after `poll_fence` is it known which read-back acknowledged,
+            // so every iteration samples first.
+            let before = self.used_snapshot();
             let status = self.status();
             let bus_master = self.pci.bus_master();
             match self.life.poll_fence(rdtsc(), status, bus_master) {
-                FenceStep::Pending => spin_loop(),
-                FenceStep::Acknowledged => break,
+                FenceStep::Pending => {
+                    if bus_master {
+                        let _ = self.pci.0.write_u16(FIXTURE, 4, MEMORY | INT_DISABLE);
+                    }
+                    spin_loop();
+                }
+                FenceStep::Acknowledged => {
+                    let after = self.used_snapshot();
+                    if self.life.record_snapshot(before, after).is_err() {
+                        return Err(Fault::Quarantined);
+                    }
+                    break;
+                }
                 FenceStep::Quarantined => return Err(Fault::Quarantined),
             }
         }
         serial::write(acknowledged);
-        if self.life.record_snapshot(self.used_snapshot()).is_err() {
-            return Err(Fault::Quarantined);
-        }
         let end = self.clock.after(STABLE_MS);
         loop {
             let used = self.used_snapshot();
@@ -1189,10 +1225,18 @@ impl Device {
             }
             spin_loop();
         }
+        // The final observation is read once the window has ended.
+        let used = self.used_snapshot();
+        let status = self.status();
+        let bus_master = self.pci.bus_master();
+        let epoch = self
+            .life
+            .finish_fence(used, status, bus_master)
+            .map_err(|_| Fault::Quarantined)?;
         if !acknowledged.is_empty() {
             serial::write(b"SND:USED:STABLE\n");
         }
-        self.life.finish_fence().map_err(|_| Fault::Quarantined)
+        Ok(epoch)
     }
 
     /// Every pool page is still Kernel-owned and mapped identity RW/NX.
@@ -1275,9 +1319,13 @@ fn fence_reinit(
     device.check_pages(frames, paging)
 }
 
-/// A fence with a zero deadline during playback (TX still outstanding) must
-/// quarantine: no acknowledgement, no publication or MMIO afterwards, and the
-/// pool stays pinned and mapped.
+/// A fence with a zero deadline during playback must quarantine: no
+/// acknowledgement, no publication or MMIO afterwards, and the pool stays
+/// pinned and mapped. At least one TX period must still be driver-outstanding
+/// (published, not reclaimed) when it starts, so pool slots the device may
+/// still read are what the quarantine retains; that is checked, not assumed.
+/// It does not prove device-side DMA was in flight: QEMU 8.2.2 does not drain
+/// its TX queue on the status-0 write.
 fn quarantine(
     device: &mut Device,
     frames: &Frames<FRAME_COUNT>,
@@ -1286,6 +1334,9 @@ fn quarantine(
     let mut stream = device.open_stream()?;
     device.configure(&mut stream)?;
     device.play(&mut stream, Pattern::A, FIXTURE_TOTAL_PERIODS, FENCE_AFTER)?;
+    if device.rings[TX].outstanding() == 0 {
+        return Err(Fault::State);
+    }
     match device.fence(0, b"SND:FENCE:ACK\n") {
         Err(Fault::Quarantined) if device.life.phase() == Phase::Quarantined => {}
         _ => return Err(Fault::State),

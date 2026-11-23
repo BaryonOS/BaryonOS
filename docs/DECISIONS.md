@@ -5,6 +5,50 @@ This document distinguishes the decisions and authority of the project owner
 from those of the executing roles. Source quotations retain their original
 wording and speaker.
 
+## ADR-H05-S3-SYSTEM-20261123 — Test-profile S3 from the system profile: syscall 0x91 behind POWER and the storage gate
+
+**Status:** technical decision of the executing hardware-track lead on
+23 November 2026, inside the H05 implementation mandate (H05-T4). It is not a
+project-owner approval and not a product power API. It exists only behind the
+opt-in test feature `test-system-s3`; no published ABI version contains it.
+Physical sleep, product suspend UX and device re-initialisation stay open.
+
+**Context.** H05-T3 (ADR-H05-S3-WAKE-20261119) suspends and resumes only the
+single-CPU IF0 bootstrap. H05 requires sleep/wake that is recoverable for a
+running system: ring-3 processes must continue after a wake. QEMU resets every
+device on wake (the CPU and all PCI functions restart; OVMF then transfers to
+the waking vector), so no virtio device state survives. The M3 scheduler counts
+PIT ticks; the TSC is used only for saturating diagnostics.
+
+**Decision.**
+1. **Syscall `0x91` SUSPEND(power handle, 0, 0, 0, 0, 0)**, the next number
+   after `0x90` (POWER_OFF), allocated like `0x74` in ADR-H04-LINK-20261119.
+   Validation order equals POWER_OFF: zero reserved arguments (-1), the
+   non-delegable init-only POWER object (`check_power`), an S3 plan that
+   discovery accepted with the FACS proven ACPI NVS (-14 otherwise), then the
+   same storage gate as S5 (`storage_closed`: volume shut down, no block
+   object, entropy broker idle; -8 retry, -16 never). One granted suspend per
+   boot; a second request returns -14.
+2. **Synchronous sleep in the caller's syscall.** IF stays 0. The kernel reuses
+   the H05-T3 wake page, token, FACS arm/disarm, canary and post-wake checks,
+   additionally saves and restores the caller's CR3, reloads the GDT/IDT/TR
+   through the shared loader and reprograms the PIC and PIT exactly as at
+   boot. Only after every check passes does the syscall return 0 to the
+   caller; any failed check stops the VM (fail closed, no partial resume).
+3. **Devices are lost, not resumed.** Because the storage gate already closed
+   every block authority and the entropy broker is idle, no DMA can be in
+   flight. After a wake the kernel marks the system as resumed: every later
+   device-backed request (block, entropy, network) is refused, and the only
+   way forward that the profile exercises is POWER_OFF (S5), which re-runs the
+   storage gate. Device re-initialisation after a wake is a separate slice.
+4. **Time.** Sleep time does not advance the tick clock; deadlines therefore
+   pause across S3. This is recorded, not hidden.
+
+**Evidence boundary.** QEMU `pc-q35-8.2`/OVMF/TCG only, wake only through QMP
+`system_wakeup`; no AML `_PTS`/`_WAK`, no SMP, no device survival, no
+physical firmware. Exit 33 plus the kernel markers and the harness's QMP
+`SUSPEND`/`WAKEUP` events are the oracle.
+
 ## ADR-H04-LINK-20261119 — Test-profile NIC link query 0x74 and link-down refusal -23
 
 **Status:** technical decision of the executing hardware-track lead on
@@ -32,8 +76,11 @@ accepts no criterion.
    - The check runs after the argument, capability and offline checks.
    - It runs before any descriptor publication, bounce-page (DMA) write,
      doorbell or copy-out.
-   - Precedence: argument errors, then capability errors, then -14, then
-     -23, then -8.
+   - Precedence: argument errors, then capability errors, then the
+     broker's existing offline code, then -23, then -8. The offline code is
+     -14 after budget exhaustion or owner exit and otherwise the mapped stop
+     cause (for example -12 after an I/O stop). That path is shared with
+     feature-off builds and is deliberately unchanged.
    - -23 was the first free value: -1 to -22 are in use, -22 for invalid
      clock arguments.
 3. **Kernel-owned link state.** The kernel owns a strictly increasing
@@ -44,9 +91,13 @@ accepts no criterion.
    - The budget is eight transitions per device lifetime. Exhausting it, or
      any device reset, latches through the existing `stop()` and reset
      acknowledgement. There is no reinitialisation.
-4. **Epoch isolation.** A received frame held across a down edge is dropped
-   and its pinned RX page is reposted. No frame from an earlier epoch is
-   delivered after reconnect.
+4. **Epoch isolation.** At every observed edge, down or up, real or
+   synthetic, the kernel first takes a completion that is already in the RX
+   used ring, then drops it and reposts its pinned page. No frame observed
+   before an edge is delivered after it. `0x74` returns -14 after any stop
+   or latch, so -15 means only that `VIRTIO_NET_F_STATUS` is absent. (Added
+   20 November 2026 after an AI security review; see
+   `docs/verification/h04-link-review-20261120/`.)
 5. **Without `VIRTIO_NET_F_STATUS`** the link is treated as active
    (virtio 1.2 §5.1.4.2).
 
@@ -63,6 +114,13 @@ accepts no criterion.
   - a stale RX frame crosses an epoch.
 - Evidence is QEMU 8.2.2/TCG only. There is no physical NIC, and QEMU has no
   802.11 or Bluetooth model.
+- Link state is sampled once per PIT tick. A frame that completes during
+  a hidden down window, which opens and closes between two samples, is
+  first seen in the current epoch. The u8 configuration generation narrows
+  but cannot remove this sampling limit. Exactly 256 changes between two
+  samples are undetectable. The edge harvests are covered by host model
+  tests and source inspection; no native case drives two or three
+  `set_link` changes within one tick.
 
 ## ADR-H03-SND-FIXTURE-20261119 — Kernel-only virtio-snd PCM output fixture for the fixed QEMU 8.2 profile
 
@@ -98,8 +156,13 @@ M3, framebuffer, SMP, RTC, ACPI S3/S5 and xHCI (`kernel/src/main.rs`).
 
 1. *PCM_INFO used length.* QEMU 8.2.2 writes the PCM_INFO records but pushes
    `sizeof(virtio_snd_hdr)` (4) as the used length for every control
-   response. The lead checked this in the release source,
-   `hw/audio/virtio-snd.c` lines 247-249 and 752.
+   response. The lead checked this in QEMU tag `v8.2.2`,
+   `hw/audio/virtio-snd.c`
+   (<https://gitlab.com/qemu-project/qemu/-/blob/v8.2.2/hw/audio/virtio-snd.c>,
+   SHA-256 `99a13ef25d0729dd46e9947dea12986598b5b9242422a052fb05214f22e7794d`,
+   identical in the release tarball): `virtio_snd_handle_pcm_info` copies
+   the records after the header (lines 247-251), and `process_cmd` pushes
+   used length `sizeof(virtio_snd_hdr)` (line 752).
    - For PCM_INFO only, the driver accepts 4 as well as the exact
      `4 + 32n`. Every other message keeps exact lengths.
    - The response buffer is zeroed before publication and parsed strictly,
