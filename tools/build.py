@@ -149,10 +149,14 @@ def native_smp_handoff_required(kernel_feature):
     ))
 
 
-def build(loader_feature=None, kernel_feature=None, label="normal", image_version=None):
-    # Cargo.lock is a fingerprinted input, so create it before the first fingerprint.
+def ensure_lockfile():
+    """Cargo.lock is a fingerprinted input: create it before any fingerprint is taken."""
     if not (ROOT / "Cargo.lock").exists():
         run_logged(["cargo", "+1.100.0", "generate-lockfile"], "lockfile")
+
+
+def build(loader_feature=None, kernel_feature=None, label="normal", image_version=None):
+    ensure_lockfile()
     # Refuse a build whose source differs between the first compile and the manifest.
     # shortcut: equal start and end fingerprints miss an edit reverted mid-build;
     # build from a private source snapshot if this must bind the compiled bytes.
