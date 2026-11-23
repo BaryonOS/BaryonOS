@@ -1029,21 +1029,34 @@ from the nearest outward: each must have left the queue or completed
 at the first entry whose `merge-hold` concluded `success`, because only a
 successful run waited the same way; a `merge-hold` that failed early, was
 cancelled or lost its runner proves nothing about the entries ahead of it.
-Queue entries without a commit or pull request behind the group are
-ignored. Ahead of it, an entry without a commit keeps the run waiting and fails
-closed at the 45-minute deadline; an entry with a commit but no pull request
-fails closed at once when the group is evaluated. An entry ahead whose pull
-request has already merged is on `main` and is skipped. A group whose own
-commit a well-formed queue read no longer lists (ejected or rebuilt) fails at
-once; a failed or malformed read is retried until the deadline. This holds
+Queue entries behind the group are not evaluated, and one without a commit
+does not delay the run; an entry anywhere in the queue without a pull request
+(or without an integer pull request number) disables the fast stale-group
+detection below, so the run is retried until the deadline. Ahead of the group,
+an entry without a commit keeps the run waiting, and fails closed at the
+45-minute deadline, only while the wait walk reaches it; beyond the nearest
+entry ahead whose `merge-hold` concluded `success` the walk stops, and the
+final evaluation fails closed at once on that entry unless its pull request
+has already merged. An entry ahead with a commit but no pull request fails
+closed at once when the group is evaluated. The wait walk does not skip an
+entry ahead whose pull request has already merged; only the final evaluation
+skips it, because it is on `main`. Fast stale-group detection applies only
+after the group's own `host-quality` and `qemu-smoke` have completed: a group
+whose own commit two consecutive well-formed, non-empty queue reads, one poll
+interval apart, both no longer list (ejected or rebuilt) fails at once. Any
+other poll in between restarts that count, and a failed, malformed or empty
+read is retried until the deadline. This holds
 only while `host-quality`, `qemu-smoke` and `merge-hold` are the only required
 checks; a later-finishing required check reopens the window. The queue
 ruleset must also have "Only merge non-failing pull requests" set to Yes, so
 an entry whose required checks failed cannot merge as part of a later group
 that passed; a minimum group size of 1 with no merge-limit wait, so the
-window after the final read is not lengthened; and each pull request built
+window after the final read is not lengthened; each pull request built
 separately (no batching), so every entry has its own commit and its own
-`merge-hold` run. Verify these four settings when the queue is enabled. On
+`merge-hold` run; and a merge queue status check timeout of at least 60
+minutes, so GitHub does not remove a group while `merge-hold` still waits (up
+to 45 minutes, inside a job `timeout-minutes` of 50). Verify these five
+settings when the queue is enabled. On
 `merge_group` the workflow and `tools/merge_hold.py` come from the group
 commit, which includes the entries ahead, so a queued pull request ahead can
 change the script that decides a pull request behind it; this is the same

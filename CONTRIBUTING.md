@@ -108,9 +108,11 @@ that read blocks the merge; a hold set after it, while GitHub is merging the
 group, is not seen. Set the label before adding a pull request to the queue;
 to apply a hold to a pull request already queued, also remove it from the
 queue. A pull request ahead that has already merged is on `main` and is not
-evaluated again. A group whose commit has left the queue (ejected or rebuilt)
-fails at once; if the wait exceeds 45 minutes the check also fails closed and
-the group leaves the queue.
+evaluated again. Once the group's own `host-quality` and `qemu-smoke` have
+completed, a group whose commit has left the queue (ejected or rebuilt) fails
+as soon as two consecutive queue reads, one poll apart, no longer list it; if
+the wait exceeds 45 minutes the check also fails closed and the group leaves
+the queue.
 
 A released hold passes in the queue only when that pull request's own queue
 entry lands exactly the released tree. Release it on a head that is up to date
@@ -118,10 +120,12 @@ with `main`, and let the entries ahead of it merge first; a released pull
 request queued behind others usually lands a different tree and fails until it
 is updated and released again.
 
-This assumes the queue ruleset requires only `host-quality`, `qemu-smoke` and
-`merge-hold`; has "Only merge non-failing pull requests" set to Yes; uses a
-minimum group size of 1 with no merge-limit wait; and builds each pull request
-separately (no batching). Verify these settings when the queue is enabled.
+This assumes five queue ruleset settings: it requires only `host-quality`,
+`qemu-smoke` and `merge-hold`; has "Only merge non-failing pull requests" set
+to Yes; uses a minimum group size of 1 with no merge-limit wait; builds each
+pull request separately (no batching); and sets the status check timeout to at
+least 60 minutes, above the 45-minute `merge-hold` wait and its 50-minute job
+timeout. Verify these five settings when the queue is enabled.
 
 A label change made with a workflow's `GITHUB_TOKEN` starts no new
 `merge-hold` run. `merge-hold` becomes a required status check only after its
