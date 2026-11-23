@@ -183,6 +183,7 @@ kernel/src/m2/m3/m6c.rs
 kernel/src/m2/m3/memory_fixture.rs
 kernel/src/m2/m3/nas.rs
 kernel/src/m2/m3/network.rs
+kernel/src/m2/m3/network_dhcp.rs
 kernel/src/m2/m3/network_service.rs
 kernel/src/m2/m3/network_tx.rs
 kernel/src/m2/m3/ps2.rs
@@ -724,6 +725,7 @@ tools/m6c_faults.py
 tools/materiaal_cold.py
 tools/mutate_volume.py
 tools/net_test_peer.py
+tools/network_dhcp_peer.py
 tools/network_service_peer.py
 tools/package_token_guard.py
 tools/package_windows_qemu.py
@@ -745,6 +747,7 @@ tools/run_materiaal_preview.py
 tools/run_materiaal_probe.py
 tools/run_memory.py
 tools/run_net_system.py
+tools/run_network_dhcp.py
 tools/run_network_service.py
 tools/run_qsim.py
 tools/run_qsim_job.py
@@ -778,6 +781,7 @@ tools/test_memory_system.py
 tools/test_milestones.py
 tools/test_nas.py
 tools/test_net_system.py
+tools/test_network_dhcp_peer.py
 tools/test_network_service_peer.py
 tools/test_resource_pressure.py
 tools/test_storage_resilience.py
