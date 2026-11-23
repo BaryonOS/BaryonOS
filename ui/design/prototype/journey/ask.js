@@ -74,7 +74,7 @@ export function initAsk(ctx) {
     const a = APP[r.app] ?? r.app, w = what(r), R = TR.result, Q = TR.quiet
     const text = res.via === 'remembered' ? (res.answer === 'allow' ? Q.covered(a, w) : Q.deniedRemembered(a, w))
       : res.via === 'covered' ? R.allow['app-session'](a, w)
-      : res.via === 'temporary-deny' ? Q.tempDeny(a, w, 1)
+      : res.via === 'temporary-deny' ? Q.tempDeny(a, w, res.retries)
       : res.via === 'cancel' ? R.cancel(a)
       : res.via === 'error' ? R.error(a)
       : res.remembered ? R.remembered(a, w, TR.grant.decision[res.answer])

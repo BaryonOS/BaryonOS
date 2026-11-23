@@ -53,7 +53,8 @@ test('owner 3 + R2: Weigeren without remembering records no lasting denial and r
   assert.equal(P.grants.remembered().length, 0)
   const r = await P.ask(READ)
   assert.deepEqual([r.answer, r.via, n], ['deny', 'temporary-deny', 1])
-  await P.ask(READ)
+  assert.equal(r.retries, 1, 'first quiet refusal reports its count to the app note')
+  assert.equal((await P.ask(READ)).retries, 2, 'the result carries the growing retry count')
   assert.equal(events.filter((e) => e.op === 'quiet-deny').at(-1).retries, 2, 'retry count for the quiet shell note')
   await P.ask(READ, { gesture: true }) // a new deliberate user gesture asks again
   assert.equal(n, 2)

@@ -1,6 +1,6 @@
 // Stations 2-4: desktop, Orbit, Menu, status, clock, Zoeken, switcher and windows.
 // Windows follow wm.js: DOM order = MRU order = focus order; the active window is never moved.
-import { T, DATA, el, icon, store, files, bus, motionMs, grants } from '../contract.js'
+import { T, DATA, el, icon, store, files, bus, motionMs } from '../contract.js'
 import { createWm } from './wm.js'
 import { buildIndex, query } from './search.js'
 import { ACTIONS } from './state.js'

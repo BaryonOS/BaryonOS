@@ -170,6 +170,7 @@ export const files = {
 // view = { compact, rememberAllow, confirmAllow, reason }.
 // ask(request, { gesture }) -> { answer: 'allow' | 'deny', via, remembered, until }
 //   via: 'prompt' | 'cancel' | 'remembered' | 'covered' | 'temporary-deny' | 'error' (the prompt could not be shown)
+//   retries: number of quiet refusals so far (only when via is 'temporary-deny')
 export const KEY = ['app', 'right', 'data', 'destination', 'scope']
 export const RIGHTS = new Set(['read', 'readWrite', 'save-copy', 'connect', 'send-copy', 'read-connect', 'camera', 'microphone', 'location'])
 const NEEDS_DEST = new Set(['connect', 'send-copy', 'read-connect']) // rights that reach a named place beyond the device
@@ -283,7 +284,7 @@ export function createPermissions({ emit = () => {} } = {}) {
     if (td && !gesture) { // R2: automatic identical re-request, refused quietly; only a new deliberate gesture asks again
       td.retries++
       emit('permission', { op: 'quiet-deny', key: k, retries: td.retries, request: pick(r) })
-      return { answer: 'deny', via: 'temporary-deny', remembered: false, until: 'app-session' }
+      return { answer: 'deny', via: 'temporary-deny', remembered: false, until: 'app-session', retries: td.retries }
     }
     if (pending.has(k)) return pending.get(k)
     const p = (tail ? tail.then(() => decide(r, k)) : decide(r, k)).finally(() => pending.delete(k)) // decide never rejects

@@ -4,9 +4,9 @@
 // Tab/Shift+Tab (native), Space/Enter (native buttons), arrows for tabs, listbox rows and menu (radios are native),
 // Escape closes the menu, dialogs and tooltips. Query: ?only=dark|light|contrast|a11y|combos|scale|ref ?motion=reduce
 // ?theme=dark|light|contrast ?measure=1. ds-1.1: the Toegankelijkheid settings group drives #a11y-preview; #combo-host renders a pairwise set.
-import { icon, T, ask, setPrompt, grants, files, bus, createPermissions, appReason, rememberAllowOffered, needsConfirm } from '../prototype/contract.js'
+import { icon, ask, setPrompt, grants, bus, createPermissions, appReason } from '../prototype/contract.js'
 import { ICONS } from './icons.js'
-import { TR, APP, APP_ICON, esc, badge, itemName, places, what, words, keyChips, lines, viewOf, renderAsk, syncAsk, grantRows } from '../prototype/ask-view.js'
+import { TR, APP, esc, what, words, lines, viewOf, renderAsk, syncAsk, grantRows } from '../prototype/ask-view.js'
 
 const q = new URLSearchParams(location.search)
 const root = document.documentElement
@@ -181,7 +181,7 @@ grants.seedRemembered({ ...CASE.send, destination: 'zaadruil.example' }, 'deny')
 { const g = grants.remembered().find((x) => x.data === 'plattegrond' && x.decision === 'allow')
   for (const n of $$('[data-ask-covered] > p')) n.innerHTML = `<strong>Voorbeeld · al onthouden, dus geen vraag:</strong> ${esc(TR.quiet.covered(APP[g.app], what(g)))} ${TR.prototype}` }
 function renderGrants() {
-  const G = TR.grant, list = grants.remembered()
+  const list = grants.remembered()
   for (const host of $$('[data-grants]')) {
     host.innerHTML = grantRows(list)
     hydrate(host)

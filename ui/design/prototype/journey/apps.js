@@ -1,6 +1,6 @@
 // Slice A app bodies: Notities (Tuinplan), Rekenmachine, Bestanden (read-only list),
 // Instellingen (Weergave, Toegankelijkheid; other categories follow). Others show a "volgt" body.
-import { T, DATA, el, icon, files, bus } from '../contract.js'
+import { T, el, icon, files, bus } from '../contract.js'
 import { appAccess, appName } from './access.js'
 import { renderFiles, renderBrowser, renderFotos, settingsPage } from './stations.js'
 
@@ -109,7 +109,6 @@ export function renderApp(app, body, ctx) {
   body.append(emptyState({ id: `${body.parentElement.id || app}-later`, ic: app, title: A.later(appName(app)), hint: J.tour.laterWhy }))
 }
 
-const APPICON = { notities: 'notities', fotos: 'fotos', browser: 'browser' }
 let page = 'toegankelijkheid'
 let unsub = null
 function settings(body, ctx) {

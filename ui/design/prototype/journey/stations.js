@@ -115,7 +115,7 @@ export function renderFiles(body, ctx) {
 }
 
 function drawInspector(insp, ctx, redraw, say) {
-  const X = B().files, V = B().versions
+  const X = B().files
   const f = fv.sel ? files.get(fv.sel) : null
   if (!f) { insp.replaceChildren(el('h3', { class: 'jr-set-h', id: 'jr-insp-h' }, X.inspector), el('p', { class: 'jr-empty-line' }, X.selectHint)); return }
   const tabs = [['versies', T.bestanden.inspector.versions], ['opslag', T.bestanden.inspector.storage], ['ordenen', X.moveTo]]
@@ -297,7 +297,6 @@ export function appEnded(app) { delete appNote[app]; if (app === 'browser') web.
 // Externe opslag (E1 5, B repair 2): the user chooses the provider here, after reading what it gets and what it never gets;
 // Bestanden then offers it per file. Choosing it is the explicit selection; loosening it returns every copy to this device.
 function externalStorage(S, ctx, redraw, pane) {
-  const X = B().files
   const link = () => { ext.linked = true; redraw(); ctx.live(S.extLinkedLive(PROVIDER)); pane.querySelector('[data-fk="ext-unlink"]')?.focus() }
   const unlink = () => {
     const moved = Object.keys(placeOf).filter((id) => placeOf[id] === 'external')
