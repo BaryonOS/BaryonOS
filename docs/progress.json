@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-23",
-    "source_commit": "e353af0cee534b4c4341ad6bf1d0894791fb606b",
+    "source_commit": "6843b8bb6158237f2452fe726a7bdccca5344640",
     "assessment_basis": "parent_commit",
     "branch": "claude/h-track-20261123",
-    "task": "H05-T6b S3 rejection exit and fixtures, plus re-init review fixes (merged into claude/h-track-20261123)",
+    "task": "H05-R1 post-wake broker latches, quiescence gate and device-access counters (merged into claude/h-track-20261123)",
     "previous_score": 41,
-    "summary": "41/100 unchanged. H05-T6b gives every S3 rejection in native-acpi-s3 a dedicated exit and adds native unarmed-wake and FACS-end fixtures; the re-init path no longer issues MMIO before BAR validation. H05 still needs hosted runs of the new cases, block re-initialisation, the R1 broker latches and physical acceptance; no criterion changes."
+    "summary": "41/100 unchanged. H05-R1 keeps every kernel broker path off a lost device after an S3 wake, refuses SUSPEND while the volume broker holds a request and counts every broker device access; natively only the volume reset latch is provoked. H05 still needs block re-initialisation, hosted runs of the new cases and physical acceptance; no criterion changes."
   },
   "tracks": [
     {

@@ -2414,6 +2414,46 @@
       "next": "Integration session adds the unarmed-wake and facs-end steps to native-power.yml; hosted run on the #415 head."
     },
     {
+      "id": "H05-R1",
+      "criterion": "H05",
+      "milestone": "M9",
+      "executor": "lead",
+      "status": "verified",
+      "title": "Post-wake broker device latches, quiescence gate and device-access counters (cloud review R1/R3 of #409)",
+      "goal": "After a validated S3 wake no kernel broker path (tick, teardown, syscall) touches a lost device, SUSPEND is refused while the volume broker holds a request, and every broker device access is counted.",
+      "deps": [
+        "H05-T5b"
+      ],
+      "write_paths": [
+        "kernel/Cargo.toml",
+        "kernel/src/main.rs",
+        "kernel/src/m2/m3/system.rs",
+        "kernel/src/m2/m3/volume.rs",
+        "kernel/src/m2/m3/keyring.rs",
+        "sdk/examples/system/src/init.rs",
+        "tools/build.py",
+        "tools/run_system.py",
+        "tests/test_system_harness.py",
+        "docs/verification/h05-s3-held-completion-20261123/"
+      ],
+      "checks": [
+        "python3 -B -u tools/test_power_system.py (12/12 stages incl. power-s3-held-completion raw 0)",
+        "python3 -B -m unittest tests.test_system_harness",
+        "mutation: PostWakeLatchStructure refuses unlatched, uncounted, bare-called and attribute-gated variants; native mutant without the volume counter fails (raw 35)"
+      ],
+      "evidence_level": "native QEMU/TCG (local QEMU 10.2.1, pc-q35-8.2); hosted native-power power-system-gate on the #415 head",
+      "non_claimable": "Natively only the volume reset latch is provoked, through a labelled gate-defect injection; the keyring latches and volume advance are checked by source shape and the access counter only; no physical firmware, no device survival.",
+      "source_commit": "63d134e8",
+      "history": [
+        {
+          "event": "verified",
+          "at": "2026-11-23",
+          "reason": "builder 8343d2fa/0c1a163c/31bdcd08; three independent AI reviews approve-with-minors; follow-up a4f3c040/c51ad0b7/df6dc2da/827e6a2b (A-E); verifier found two test survivors, closed by lead 63d134e8 with four mutants; ADR-H05-S3-SYSTEM amendment H05-R1."
+        }
+      ],
+      "next": "Hosted power-system-gate on the #415 head; integration through the integration session."
+    },
+    {
       "id": "H06-T2",
       "criterion": "H06",
       "milestone": "M9",

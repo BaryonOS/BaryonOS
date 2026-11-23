@@ -1,5 +1,25 @@
 # Current project status
 
+## NEXT AGENT HANDOFF — H-track lead: post-wake broker latches and quiescence gate (H05-R1) — 23 November 2026
+
+**Delivered (H05-R1, verified, not accepted):** after a validated S3 wake the volume broker's
+`reset`/`advance` and the keyring's `call` (0x60), `advance` and `quarantine_pending` return
+before any device access (keyring only until the validated re-init of `test-system-s3-reinit`).
+SUSPEND returns -8 while the volume broker is not quiescent (a held request, including an
+unconsumed completed result). Every broker device call site is counted; after CLEANUP the kernel
+requires zero post-wake accesses outside the accounted re-init path and live counters at the
+wake. New profile `test-system-s3-held-completion` provokes the volume `reset` latch through a
+labelled gate-defect injection (exact log `[-8,-6,-4,-1,-8,0,-14]`, one suppressed reset).
+[Evidence](verification/h05-s3-held-completion-20261123/README.md): `test_power_system.py`
+12/12 stages, five `run_sleep.py` cases raw 33/37/39/37/39 (local QEMU 10.2.1, pc-q35-8.2, TCG).
+Three independent AI reviews approve-with-minors, fixed; the verifier's two test survivors are
+closed with four mutants. ADR-H05-S3-SYSTEM amendment H05-R1.
+**CodeRabbit on #415:** the net-link counter-window check now also requires the first window to
+open after the initial up edge (`6c2d159b`).
+**Open:** the keyring latches and volume `advance` are checked by source shape and counter only;
+hosted `native-power.yml` still lacks the unarmed-wake and facs-end steps (integration request).
+**Score:** 41 → 41/100 (no criterion changes).
+
 ## NEXT AGENT HANDOFF — H-track lead: S3 rejection exit and fixtures (H05-T6b), re-init review fixes — 23 November 2026
 
 **Delivered (H05-T6b, verified, not accepted):** in `native-acpi-s3` every refused S3 plan and

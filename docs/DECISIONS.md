@@ -27,8 +27,13 @@ PIT ticks; the TSC is used only for saturating diagnostics.
    non-delegable init-only POWER object (`check_power`), an S3 plan that
    discovery accepted with the FACS proven ACPI NVS (-14 otherwise), then the
    same storage gate as S5 (`storage_closed`: volume shut down, no block
-   object, entropy broker idle; -8 retry, -16 never). One granted suspend per
-   boot; a second request returns -14.
+   object, entropy broker idle; -8 retry, -16 never). Amendment H05-R1
+   (23 November 2026): after that gate, SUSPEND also returns -8 while the
+   volume broker is not quiescent (`volume::sleep_quiescent()`: a request held
+   by the Policy, including a completed result its owner has not consumed, a
+   non-Ready phase, a stored error or a reset in progress); the refusal precedes
+   any I/O and is counted. One granted suspend per boot; a second request
+   returns -14.
 2. **Synchronous sleep in the caller's syscall.** IF stays 0. The kernel reuses
    the H05-T3 wake page, token, FACS arm/disarm, canary and post-wake checks.
    The handler runs under the kernel root CR3 (amendment H05-T6b: the one the
@@ -70,6 +75,15 @@ PIT ticks; the TSC is used only for saturating diagnostics.
    QEMU 8.2.2 path, which is unmeasured
    (docs/verification/h05-s3-reinit-20261123/). In `test-system-s3`, devices
    remain lost.
+   Amendment H05-R1 (23 November 2026): the refusal also covers the kernel's
+   own broker paths, not only syscalls. Volume `reset` (owner teardown) and
+   `advance` (broker tick) return before any device access after a wake, and
+   keyring `call` (0x60), `advance` and `quarantine_pending` do so through
+   `device_lost()` = resumed and not yet re-initialised, so only the validated
+   re-init of `test-system-s3-reinit` lifts the keyring latch. Every broker
+   device call site is preceded by an access counter; after CLEANUP the kernel
+   requires zero post-wake device accesses outside the accounted re-init path,
+   and live (non-zero) counters at the wake.
 4. **Time.** Sleep time does not advance the tick clock; deadlines therefore
    pause across S3. This is recorded, not hidden.
 
@@ -98,7 +112,16 @@ refusal order natively (docs/verification/h05-s3-rejections-20261123/); hosted C
 runs them only after `native-power.yml` gains their steps. Loading CR3 from the
 kernel image moves one field off the wake page; the page's 16-bit code, GDTR and
 far pointer still decide execution before the ARMED check, so the wake page's
-trust is unchanged.
+trust is unchanged. Amendment H05-R1 (23 November 2026): the opt-in profile
+`test-system-s3-held-completion` (mutually exclusive with
+`test-system-s3-reinit`) leaves init's completed SHUTDOWN flush held, expects
+one quiescence -8 and then applies a labelled gate-defect injection
+(`held_check_skipped`, compiled only into that profile) so the sleep happens
+with the held request. Its exact SUSPEND log is `[-8, -6, -4, -1, -8, 0, -14]`
+with `HELD_REFUSALS=1`, zero post-wake device accesses and one suppressed reset
+(docs/verification/h05-s3-held-completion-20261123/). Natively only the volume
+`reset` latch is provoked; the other latches are checked by source shape and
+the access counter only, not by a provoking fixture.
 
 ## ADR-H04-LINK-20261119 — Test-profile NIC link query 0x74 and link-down refusal -23
 
