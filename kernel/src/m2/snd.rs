@@ -642,7 +642,13 @@ impl Device {
     /// §3.1.1 and §5.14.5. `Ok(false)`: the device offered a feature set the
     /// policy refuses (F2); it stays offline without bus mastering.
     fn initialize(&mut self) -> Result<bool, Fault> {
-        if self.life.phase() != Phase::Offline {
+        // Local guard, not call order: Offline and no control or TX request
+        // outstanding, so the ring reset below never forgets a live request.
+        if self
+            .life
+            .check_initialize(&self.rings[CONTROL], &self.rings[TX])
+            .is_err()
+        {
             return Err(Fault::State);
         }
         self.pci.set_command(MEMORY | INT_DISABLE)?;
@@ -797,10 +803,20 @@ impl Device {
     /// the queue was idle cannot later pass as this request's completion. The
     /// few instructions between that read and the available-index store remain
     /// a window inherent to polling, which this check narrows but cannot close.
+    /// Used elements already visible at that read are validated (outstanding,
+    /// distinct heads with an acceptable length) before the new head is
+    /// registered, so none of them can later pass as its completion.
     fn place<const N: usize>(&mut self, index: usize, chain: &Chain<N>) -> Result<(), Fault> {
         let queue = ACTIVE[index];
         fence(Ordering::SeqCst);
         let device_index = self.used_index(index)?;
+        fence(Ordering::Acquire);
+        let elements = self.pool.used(queue)? + 4;
+        let dma = &self.dma;
+        self.rings[index].check_visible(device_index, |entry| {
+            let element = elements + u64::from(entry) * 8;
+            (dma.r32(element), dma.r32(element + 4))
+        })?;
         let publication = self.rings[index]
             .publish_checked(device_index, chain)
             .inspect_err(|error| {
@@ -1211,7 +1227,6 @@ impl Device {
                 FenceStep::Quarantined => return Err(Fault::Quarantined),
             }
         }
-        serial::write(acknowledged);
         let end = self.clock.after(STABLE_MS);
         loop {
             let used = self.used_snapshot();
@@ -1233,6 +1248,9 @@ impl Device {
             .life
             .finish_fence(used, status, bus_master)
             .map_err(|_| Fault::Quarantined)?;
+        // The marker only after the stability check, never for a fence that
+        // quarantined in the window.
+        serial::write(acknowledged);
         if !acknowledged.is_empty() {
             serial::write(b"SND:USED:STABLE\n");
         }

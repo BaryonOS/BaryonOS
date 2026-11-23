@@ -30,8 +30,11 @@ fixture actually observed there. QEMU 8.2.2 behaviour from its source (rows
 above): stream IDs `< streams/2 + streams%2` are output streams and the
 remainder are input streams; `streams=2` therefore makes stream 0 output and
 stream 1 **input**, `streams=1` only an output stream. Stream information
-exposes `features=0`, `channels_min=1`, `channels_max` = audiodev channels,
-S16 and 48 kHz; every stream is prepared with default parameters at realize.
+exposes `features=0`, `channels_min=1`, `channels_max` =
+`MIN(AUDIO_MAX_CHANNELS, params->channels)` (QEMU 8.2.2
+`hw/audio/virtio-snd.c`, `virtio_snd_pcm_prepare` through
+`virtio_snd_get_qemu_audsettings`; the default parameters from
+`virtio_snd_realize` have `channels = 2`), S16 and 48 kHz; every stream is prepared with default parameters at realize.
 `virtio_error` on RELEASE covers only an unknown stream ID: a released stream
 is never cleared, so a second RELEASE of the same stream would be answered
 `OK` (correcting the earlier reading); the driver refuses it before encoding
@@ -139,16 +142,17 @@ twice), every state `→Fencing` on error/revocation, and
 | F5 | Control status ≠ OK, used length ≠ expected | codec + transport | stream not started; BAD_MSG/IO_ERR ⇒ fence | — |
 | F6 | Control timeout | monotonic deadline | fence | blocked backend (open) |
 | F7 | TX used ID unknown/not published, used length ≠ 8 | transport | fence; no slot released | model injection |
-| F8 | Used index changes while nothing is outstanding (stale) | idle check before publication: the used index is checked against the outstanding count from before the new request immediately before every publication, and on every poll (F8 is a sampled check: a stale element written in the few instructions between that read and the available-index store carries the new chain's head and length and is accepted, because virtio has no per-publication tag; this window is accepted only under the fixture's trusted-transport assumption, ADR-H03-SND-FIXTURE-20261119, and is characterised by `stale_completion_inside_the_publication_window_is_a_documented_limit`) | fence | model injection |
+| F8 | Used index changes while nothing is outstanding (stale) | idle check before publication: the used index is checked against the outstanding count from before the new request immediately before every publication, and on every poll; used elements already visible at that read are validated as distinct outstanding heads with an acceptable length before the new head is registered (`Ring::check_visible`) (F8 is a sampled check: a stale element written in the few instructions between that read and the available-index store carries the new chain's head and length and is accepted, because virtio has no per-publication tag; this window is accepted only under the fixture's trusted-transport assumption, ADR-H03-SND-FIXTURE-20261119, and is characterised by `stale_completion_inside_the_publication_window_is_a_documented_limit`) | fence | model injection |
 | F9 | TX status `IO_ERR`, `BAD_MSG`, or unknown | status | `IO_ERR`: release slot, return `IoError` to broker, stop stream. `BAD_MSG`/unknown: fence | model injection (the driver never submits an invalid stream ID) |
-| F10 | `DEVICE_NEEDS_RESET` / configuration change | status read | fence | not run. A future trigger is a test-only control request with an out-of-range stream ID, for which QEMU 8.2.2 `virtio_error` sets `NEEDS_RESET`. A repeated valid RELEASE is answered `OK` (§1), so it is not an F10 trigger |
+| F10 | `DEVICE_NEEDS_RESET` (any status other than live) | status read on every poll (`check_device`) | fence | not run. A future trigger is a test-only control request with an out-of-range stream ID, for which QEMU 8.2.2 `virtio_error` sets `NEEDS_RESET`. A repeated valid RELEASE is answered `OK` (§1), so it is not an F10 trigger |
+| F10a | Configuration change after DRIVER_OK | not detected: `config_generation` is read only during initialisation (`stable_config`), and the configuration interrupt is never enabled; the fixture's configuration is static | none (open) | not run |
 | F11 | Completion after status-0 acknowledgement | used-ring baseline bracketed around the acknowledging status/BME read-back, then an unchanged window and a final matching observation before the epoch advances | §2.4.1 violation ⇒ `Quarantined` | model injection |
 | F12 | Fence timeout | deadline | `Quarantined`, pool pinned | model injection |
 | F13 | Broker exit / capability closed during `Running` | kernel cleanup | revocation fence; no replay | terminate broker during playback |
 | F14 | Invalid/oversized broker buffer | usercopy validation | `Invalid`, nothing published | syscall with invalid pointer/length |
 | F15 | All slots occupied | slot count | `Again`, do not block | rapid writes |
 | F16 | Underrun (no data) | broker | `Stopped`, no error | pause |
-| F17 | Invalid event (used length < 8, stream ≥ streams, unknown type) | event parser | ignore + counter; repeated ⇒ fence. A used length above the 8-byte writable buffer is a used-ring violation (F7 class) and fences at once | model injection |
+| F17 | Invalid event (used length < 8, stream ≥ streams, unknown type, unselected XRUN) or stale event after STOP | event parser | ignore + counter (invalid and stale tallied separately, each bounded at 8 per attached device); repeated ⇒ fence. A used length above the 8-byte writable buffer is a used-ring violation (F7 class) and fences at once | model injection |
 | F18 | Epoch overflow | `checked_add` | `Quarantined` | host test |
 | F19 | Second RELEASE | stream flag | reject before submission | host test |
 

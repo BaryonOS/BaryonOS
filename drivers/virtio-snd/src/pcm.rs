@@ -56,6 +56,9 @@ pub const MAX_BUFFER_BYTES: u32 = MAX_PERIOD_BYTES * MAX_PERIODS;
 const _: () = assert!(MAX_PERIOD_BYTES.is_multiple_of(FRAME_BYTES));
 /// F17: repeated invalid events are not ignored forever.
 pub const MAX_INVALID_EVENTS: u32 = 8;
+// One STOP yields at most `MAX_PERIODS + 1` stale events, which must fit the
+// stale budget, so a well-behaved device never storms on a single STOP.
+const _: () = assert!(MAX_PERIODS < MAX_INVALID_EVENTS);
 
 /// Fixed initial playback profile: stereo, S16, 48 kHz.
 pub const CHANNELS: u8 = 2;
@@ -108,8 +111,9 @@ pub enum Error {
     /// More than `MAX_INVALID_EVENTS` invalid events were observed.
     EventStorm,
     /// A PCM event for this stream after a device-confirmed STOP, within the
-    /// bound of what can still be in flight (`periods + 1`). Ignore it and do
-    /// not count it in `EventBudget`; beyond the bound it is `InvalidEvent`.
+    /// bound of what can still be in flight (`periods + 1`). Ignored, but
+    /// charged to the separate stale tally of `EventBudget` (START resets the
+    /// per-STOP bound, not the tally); beyond the bound it is `InvalidEvent`.
     Stale,
 }
 
@@ -264,9 +268,10 @@ pub fn parse_event(config: Config, bytes: &[u8]) -> Result<Event, Error> {
 /// One completed event buffer (F17), given the used length the device
 /// reported and the 8 bytes of the buffer. A used length below 8 is an invalid
 /// event: its bytes are not decoded, it is counted. Exactly 8 bytes are
-/// decoded and routed to `stream`; `Stale` is ignored without counting, a
-/// device violation fences, every other refusal is counted. A used length
-/// above the 8-byte buffer is `Length` (fence). The budget bound fences.
+/// decoded and routed to `stream`; `Stale` is ignored but charged to the stale
+/// tally, a device violation fences, every other refusal is counted as
+/// invalid. A used length above the 8-byte buffer is `Length` (fence). Either
+/// budget bound fences.
 pub fn handle_event(
     config: Config,
     stream: Option<&mut Stream>,
@@ -288,31 +293,53 @@ pub fn handle_event(
         Err(error) => Err(error),
     };
     match outcome {
-        Ok(()) | Err(Error::Stale) => Ok(()),
+        Ok(()) => Ok(()),
+        Err(Error::Stale) => budget.note_stale(),
         Err(error) if error.requires_fence() => Err(error),
         Err(_) => budget.note_invalid(),
     }
 }
 
-/// F17 counter: invalid events are ignored up to a bound, then fenced.
+/// F17 counters for one attached device: invalid events and stale events are
+/// each ignored up to `MAX_INVALID_EVENTS`, then fenced. Stale events have
+/// their own tally so `invalid` keeps meaning contract-violating events only.
 #[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
 pub struct EventBudget {
     invalid: u32,
+    stale: u32,
 }
 
 impl EventBudget {
     pub const fn new() -> Self {
-        Self { invalid: 0 }
+        Self {
+            invalid: 0,
+            stale: 0,
+        }
     }
 
     pub const fn invalid(self) -> u32 {
         self.invalid
     }
 
+    pub const fn stale(self) -> u32 {
+        self.stale
+    }
+
     /// Records one invalid event; the bound itself is the fence trigger.
     pub fn note_invalid(&mut self) -> Result<(), Error> {
-        self.invalid = self.invalid.saturating_add(1);
-        if self.invalid > MAX_INVALID_EVENTS {
+        Self::note(&mut self.invalid)
+    }
+
+    /// Records one stale event: START resets the per-STOP stale bound of a
+    /// stream, so without this tally STOP/START cycles would let a device
+    /// deliver stale events without limit.
+    pub fn note_stale(&mut self) -> Result<(), Error> {
+        Self::note(&mut self.stale)
+    }
+
+    fn note(count: &mut u32) -> Result<(), Error> {
+        *count = count.saturating_add(1);
+        if *count > MAX_INVALID_EVENTS {
             Err(Error::EventStorm)
         } else {
             Ok(())
@@ -542,18 +569,20 @@ impl Stream {
             return Err(Error::InvalidStream);
         }
         let params = match (self.state, self.params) {
-            (State::Running, Some(params)) => params,
+            (State::Running | State::Stopped, Some(params)) => params,
+            _ => return Err(Error::InvalidEvent),
+        };
+        // Device data is untrusted: XRUN events only when SET_PARAMS selected
+        // them, also after STOP (never `Stale`, so never within that bound).
+        if matches!(event, Event::Xrun(_)) && !params.xrun_events() {
+            return Err(Error::InvalidEvent);
+        }
+        if self.state == State::Stopped {
             // Race with STOP: at most every period plus one XRUN was queued.
-            (State::Stopped, Some(params))
-                if self.stale <= params.buffer_bytes() / params.period_bytes() =>
-            {
+            if self.stale <= params.buffer_bytes() / params.period_bytes() {
                 self.stale += 1;
                 return Err(Error::Stale);
             }
-            _ => return Err(Error::InvalidEvent),
-        };
-        // Device data is untrusted: XRUN events only when SET_PARAMS selected them.
-        if matches!(event, Event::Xrun(_)) && !params.xrun_events() {
             return Err(Error::InvalidEvent);
         }
         *counter = counter.saturating_add(1);

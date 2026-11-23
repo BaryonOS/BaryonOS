@@ -518,26 +518,54 @@ impl Ring {
     /// its expected one; the caller compares the length and counts it (F17).
     /// On any error the ring is unchanged.
     pub fn complete(&mut self, id: u32, used_len: u32) -> Result<u16, Error> {
-        let head = u16::try_from(id).map_err(|_| Error::UnknownId)?;
-        let index = usize::from(head);
-        let (Some(slot), Some(short_slot)) =
-            (self.expected.get_mut(index), self.short.get_mut(index))
+        let index = self.validate(id, used_len)?;
+        self.expected[index] = (0, 0);
+        self.short[index] = false;
+        self.outstanding -= 1;
+        self.last_used = self.last_used.wrapping_add(1);
+        Ok(index as u16)
+    }
+
+    /// Validates, without consuming them, the used elements the device has
+    /// already made visible (`device_index` beyond the consumed index): each
+    /// must name a distinct outstanding head with an acceptable used length.
+    /// Called right before a new head is registered, so an element that is
+    /// already visible cannot later pass as the new head's completion (F7/F8).
+    /// `read(entry)` returns `(id, used_len)` of used-ring entry `entry`.
+    pub fn check_visible(
+        &self,
+        device_index: u16,
+        mut read: impl FnMut(u16) -> (u32, u32),
+    ) -> Result<(), Error> {
+        let mut seen = 0u16;
+        for offset in 0..self.pending(device_index)? {
+            let (id, used_len) = read(self.last_used.wrapping_add(offset) % QUEUE_SIZE);
+            let bit = 1u16 << self.validate(id, used_len)?;
+            if seen & bit != 0 {
+                return Err(Error::UnknownId);
+            }
+            seen |= bit;
+        }
+        Ok(())
+    }
+
+    /// An outstanding head and an acceptable used length for it.
+    fn validate(&self, id: u32, used_len: u32) -> Result<usize, Error> {
+        let index = usize::try_from(id).map_err(|_| Error::UnknownId)?;
+        let (Some(&(expected, alternate)), Some(&short)) =
+            (self.expected.get(index), self.short.get(index))
         else {
             return Err(Error::UnknownId);
         };
-        if slot.0 == 0 {
+        if expected == 0 {
             return Err(Error::UnknownId);
         }
-        let exact = slot.0 == used_len || (slot.1 != 0 && slot.1 == used_len);
-        let short = *short_slot && used_len < slot.0;
+        let exact = expected == used_len || (alternate != 0 && alternate == used_len);
+        let short = short && used_len < expected;
         if !exact && !short {
             return Err(Error::Length);
         }
-        *slot = (0, 0);
-        *short_slot = false;
-        self.outstanding -= 1;
-        self.last_used = self.last_used.wrapping_add(1);
-        Ok(head)
+        Ok(index)
     }
 }
 
@@ -618,6 +646,21 @@ impl Lifecycle {
                 self.phase = Phase::Live;
                 Ok(())
             }
+            Phase::Quarantined => Err(Error::Quarantined),
+            _ => Err(Error::State),
+        }
+    }
+
+    /// (Re-)initialisation precondition, checked locally rather than relying
+    /// on call order: `Offline`, and no control or TX request outstanding.
+    /// TX must be empty because QEMU 8.2.2's reset does not drain popped TX
+    /// elements, which then complete into the re-initialised rings
+    /// (`TRANSPORT.md` §10). Event buffers stay posted on a live device and
+    /// are excluded: an acknowledged fence (status 0 and BME off read back,
+    /// used rings stable) has voided them.
+    pub fn check_initialize(&self, control: &Ring, tx: &Ring) -> Result<(), Error> {
+        match self.phase {
+            Phase::Offline if control.outstanding() == 0 && tx.outstanding() == 0 => Ok(()),
             Phase::Quarantined => Err(Error::Quarantined),
             _ => Err(Error::State),
         }
