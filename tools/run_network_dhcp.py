@@ -5,7 +5,9 @@ Same isolation, grants and causal localhost Ethernet peer as N01, but the
 service starts unconfigured, acquires 192.0.2.66/24 by DHCP, withdraws it on a
 DHCPNAK (app A's held token goes stale and OpenTcp is refused) and re-acquires
 192.0.2.67 for a fresh exchange. Link control and lease expiry are out of scope.
-Images, user ELFs, firmware and serial bytes are bound to one unchanged source.
+Images, user ELFs, firmware and serial bytes are refused unless the source
+fingerprint is the same before the build and after the run; an edit reverted
+in between is not detected.
 """
 from __future__ import annotations
 import argparse
