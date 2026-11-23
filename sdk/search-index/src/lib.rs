@@ -7,7 +7,7 @@ use sha2::{Digest, Sha256};
 #[cfg(test)]
 mod tests;
 
-/// Matches the current catalogue's two domains and two object IDs per domain.
+/// Matches the current catalogue's two domains. Objects per domain is `Index`'s `P`.
 pub const DOMAINS: usize = 2;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -131,9 +131,9 @@ impl<const B: usize, const T: usize> Entry<B, T> {
         hash.finalize().into()
     }
 
-    fn validate(&self) -> Result<(), Error> {
+    fn validate(&self, per_domain: u64) -> Result<(), Error> {
         if self.hit.domain >= DOMAINS
-            || self.hit.object / 2 != self.hit.domain as u64
+            || self.hit.object / per_domain != self.hit.domain as u64
             || self.hit.revision == 0
             || self.text.length > B
             || self.text.count > T
@@ -156,20 +156,33 @@ impl<const B: usize, const T: usize> Entry<B, T> {
 /// E bounds live records plus revision tombstones per domain; B bounds total UTF-8 bytes
 /// per record/query (and each token); T bounds tokens per record/query.
 /// Grant epochs and tombstones are retained until a strictly newer grant.
-pub struct Index<const E: usize, const B: usize, const T: usize> {
+/// P is the storage service's authoritative object IDs per domain
+/// (`object / P == domain`); the default 2 matches `services/catalog`.
+///
+/// ```compile_fail
+/// let _ = nieuw_os_search_index::Index::<1, 8, 1, 0>::new();
+/// ```
+pub struct Index<const E: usize, const B: usize, const T: usize, const P: usize = 2> {
     epochs: [u64; DOMAINS],
     granted: [bool; DOMAINS],
     entries: [[Option<Entry<B, T>>; E]; DOMAINS],
 }
 
-impl<const E: usize, const B: usize, const T: usize> Default for Index<E, B, T> {
+impl<const E: usize, const B: usize, const T: usize, const P: usize> Default for Index<E, B, T, P> {
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl<const E: usize, const B: usize, const T: usize> Index<E, B, T> {
+impl<const E: usize, const B: usize, const T: usize, const P: usize> Index<E, B, T, P> {
+    /// Compile-time rejection of P == 0, which would make `object / P` divide by zero.
+    const PER_DOMAIN: u64 = {
+        assert!(P != 0, "objects per domain must be nonzero");
+        P as u64
+    };
+
     pub const fn new() -> Self {
+        let _ = Self::PER_DOMAIN;
         Self {
             epochs: [0; DOMAINS],
             granted: [false; DOMAINS],
@@ -209,7 +222,7 @@ impl<const E: usize, const B: usize, const T: usize> Index<E, B, T> {
 
     fn identity(&self, grant: Grant, object: u64, revision: u64) -> Result<(), Error> {
         self.authorize(grant)?;
-        if object / 2 != grant.domain as u64 || revision == 0 {
+        if object / Self::PER_DOMAIN != grant.domain as u64 || revision == 0 {
             return Err(Error::InvalidIdentity);
         }
         Ok(())
@@ -217,7 +230,7 @@ impl<const E: usize, const B: usize, const T: usize> Index<E, B, T> {
 
     fn validate_domain(&self, domain: usize) -> Result<(), Error> {
         for entry in self.entries[domain].iter().flatten() {
-            entry.validate()?;
+            entry.validate(Self::PER_DOMAIN)?;
             if entry.hit.domain != domain {
                 return Err(Error::Corrupt);
             }
@@ -300,7 +313,7 @@ impl<const E: usize, const B: usize, const T: usize> Index<E, B, T> {
         for old in self.entries[grant.domain]
             .iter()
             .flatten()
-            .filter(|old| old.validate().is_ok() && old.hit.domain == grant.domain)
+            .filter(|old| old.validate(Self::PER_DOMAIN).is_ok() && old.hit.domain == grant.domain)
         {
             if let Some(doc) = snapshot.iter().find(|doc| doc.object == old.hit.object) {
                 if doc.revision < old.hit.revision {

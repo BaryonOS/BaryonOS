@@ -27,6 +27,14 @@ pub struct Ticket {
     attempt: u8,
 }
 
+impl Ticket {
+    /// The owner-assigned identity a fresh Session for this attach must use.
+    /// Reading it confers no device, transfer or completion authority.
+    pub const fn lifetime(self) -> Lifetime {
+        self.lifetime
+    }
+}
+
 #[derive(Clone, Copy)]
 struct Entry {
     generation: u64,

@@ -1,0 +1,828 @@
+{
+ "schema_version": 1,
+ "task": "H02-T3",
+ "criterion": "H02",
+ "date_europe_amsterdam": "2026-11-20",
+ "base_commit": "9c707c8",
+ "source_fingerprint_version": 3,
+ "executed_source_sha256": "a5894c23b6006b615f0a75c1fffd72a71903226d2ff8f3dbd550403185e17b22",
+ "execution_checkout": "Exact content copy of the task worktree outside the parent checkout; source-v3 fingerprint equal to the worktree before execution. See README.",
+ "toolchain": {
+  "rustc": "1.100.0 (0ef1bc386 2026-11-09)",
+  "cargo": "1.100.0 (3acc79c0c 2026-11-05)"
+ },
+ "native": [
+  {
+   "case": "reattach",
+   "kernel_feature": "native-usb-hid-reattach",
+   "passed": true,
+   "harness_error": null,
+   "raw_qemu_exit": 33,
+   "expected_exit": 33,
+   "timed_out": false,
+   "duration_s": 4.973,
+   "started_utc": "2026-11-19T23:19:02.768438+00:00",
+   "source_fingerprint_version": 3,
+   "source_sha256": "a5894c23b6006b615f0a75c1fffd72a71903226d2ff8f3dbd550403185e17b22",
+   "manifest_sha256": "342fb7b113a150b06a6008fb0f1e31ef6c80a7acf98480761b4c71e33d5800f9",
+   "kernel_sha256": "aed10a7d2c493d11ca1b3abb345955655a0e5758cf594a0fdd199f5fb2074ce6",
+   "loader_sha256": "7eeaaa275dad7d0686f5520c9445f0fd8c12f464a99ea90b6a74707cf1a0da50",
+   "artifact_binding_passed": true,
+   "artifact_sha256": {
+    "esp/kernel.elf": "aed10a7d2c493d11ca1b3abb345955655a0e5758cf594a0fdd199f5fb2074ce6",
+    "esp/EFI/BOOT/BOOTX64.EFI": "7eeaaa275dad7d0686f5520c9445f0fd8c12f464a99ea90b6a74707cf1a0da50",
+    "OVMF_CODE.fd": "ad23261d43116abc3747d59a7837fbf578c9586a8993f4eeba064cd07eccb083",
+    "OVMF_VARS.template.fd": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e"
+   },
+   "qemu_version": "QEMU emulator version 8.2.2 (Debian 1:8.2.2+ds-0ubuntu1.18)",
+   "profile": "development-package; pc-q35-8.2/qemu64/TCG/1CPU/256MiB",
+   "firmware_source": [
+    "/usr/share/OVMF/OVMF_CODE_4M.fd",
+    "/usr/share/OVMF/OVMF_VARS_4M.fd"
+   ],
+   "qemu_command": [
+    "/usr/bin/qemu-system-x86_64",
+    "-machine",
+    "pc-q35-8.2",
+    "-accel",
+    "tcg,thread=single",
+    "-cpu",
+    "qemu64",
+    "-smp",
+    "1",
+    "-m",
+    "256M",
+    "-nodefaults",
+    "-display",
+    "none",
+    "-monitor",
+    "none",
+    "-serial",
+    "file:build/reattach/run/usb-hid-reattach-4afd262d2e/usb-stdout.bin",
+    "-nic",
+    "none",
+    "-no-reboot",
+    "-drive",
+    "if=pflash,unit=0,format=raw,readonly=on,file=build/reattach/run/usb-hid-reattach-4afd262d2e/OVMF_CODE.fd",
+    "-drive",
+    "if=pflash,unit=1,format=raw,file=build/reattach/run/usb-hid-reattach-4afd262d2e/OVMF_VARS.fd",
+    "-drive",
+    "if=virtio,index=0,format=raw,readonly=on,file=fat:build/reattach/run/usb-hid-reattach-4afd262d2e/esp",
+    "-device",
+    "isa-debug-exit,iobase=0xf4,iosize=0x04",
+    "-device",
+    "intel-iommu,caching-mode=on,intremap=off,device-iotlb=off,aw-bits=39",
+    "-device",
+    "qemu-xhci,id=xhci,bus=pcie.0,addr=0x5,p2=2,p3=0",
+    "-device",
+    "usb-kbd,id=hid-kbd,bus=xhci.0,port=1,usb_version=1",
+    "-device",
+    "usb-mouse,id=hid-mouse,bus=xhci.0,port=2,usb_version=1",
+    "-qmp",
+    "stdio"
+   ],
+   "base_commit_field": null,
+   "serial_sha256": "9f1a7651beda258f601c0ad1765863c4b6330143a35b9dc3461f84c55facff70",
+   "boot_markers": [
+    "BOOT:EBS_OK",
+    "KERNEL:ENTRY",
+    "BOOTINFO:OK",
+    "KS-01:PASS",
+    "KS-02:PASS"
+   ],
+   "controlled_markers": [
+    "XHCI:BEGIN",
+    "USB:BEGIN",
+    "USB:PAGING:PASS",
+    "USB:DOMAIN:PASS",
+    "USB:BUS_MASTER:CONTAINED",
+    "USB:ENUM:KEYBOARD",
+    "USB:ENUM:MOUSE",
+    "USB:PROTOCOL:PASS",
+    "USB:READY",
+    "USB:KEY_DOWN",
+    "USB:KEY_UP",
+    "USB:MOUSE_DOWN",
+    "USB:MOUSE_UP",
+    "USB:HELD_KEY",
+    "USB:UNPLUG_CLEAR:PASS",
+    "USB:STALE_TOKEN:DENIED",
+    "USB:REPORTS:PASS",
+    "USB:REATTACH:DETACHED",
+    "USB:REATTACH:ENUM:KEYBOARD",
+    "USB:REATTACH:SLOT_REUSED",
+    "USB:REATTACH:STALE_DENIED",
+    "USB:REATTACH:READY",
+    "USB:REATTACH:KEY_DOWN",
+    "USB:REATTACH:KEY_UP",
+    "USB:REATTACH:UNPLUG:PASS",
+    "USB:ATTACH:BUDGET_DENIED",
+    "USB:RETIRED:UNCHANGED",
+    "USB:GUARD:UNCHANGED",
+    "USB:QUIESCE:PASS",
+    "USB:PAGES:RETAINED",
+    "USB:PASS",
+    "XHCI:PASS"
+   ],
+   "diagnostic_rejections": [],
+   "qmp": [
+    {
+     "execute": "qmp_capabilities",
+     "arguments": null,
+     "response": "return"
+    },
+    {
+     "execute": "input-send-event",
+     "arguments": {
+      "events": [
+       {
+        "type": "key",
+        "data": {
+         "down": true,
+         "key": {
+          "type": "qcode",
+          "data": "a"
+         }
+        }
+       }
+      ]
+     },
+     "response": "return"
+    },
+    {
+     "execute": "input-send-event",
+     "arguments": {
+      "events": [
+       {
+        "type": "key",
+        "data": {
+         "down": false,
+         "key": {
+          "type": "qcode",
+          "data": "a"
+         }
+        }
+       }
+      ]
+     },
+     "response": "return"
+    },
+    {
+     "execute": "input-send-event",
+     "arguments": {
+      "events": [
+       {
+        "type": "rel",
+        "data": {
+         "axis": "x",
+         "value": 7
+        }
+       },
+       {
+        "type": "rel",
+        "data": {
+         "axis": "y",
+         "value": -3
+        }
+       },
+       {
+        "type": "btn",
+        "data": {
+         "down": true,
+         "button": "left"
+        }
+       }
+      ]
+     },
+     "response": "return"
+    },
+    {
+     "execute": "input-send-event",
+     "arguments": {
+      "events": [
+       {
+        "type": "btn",
+        "data": {
+         "down": false,
+         "button": "left"
+        }
+       }
+      ]
+     },
+     "response": "return"
+    },
+    {
+     "execute": "input-send-event",
+     "arguments": {
+      "events": [
+       {
+        "type": "key",
+        "data": {
+         "down": true,
+         "key": {
+          "type": "qcode",
+          "data": "b"
+         }
+        }
+       }
+      ]
+     },
+     "response": "return"
+    },
+    {
+     "execute": "device_del",
+     "arguments": {
+      "id": "hid-kbd"
+     },
+     "response": "return"
+    },
+    {
+     "execute": "input-send-event",
+     "arguments": {
+      "events": [
+       {
+        "type": "key",
+        "data": {
+         "down": false,
+         "key": {
+          "type": "qcode",
+          "data": "b"
+         }
+        }
+       }
+      ]
+     },
+     "response": "return"
+    },
+    {
+     "execute": "device_add",
+     "arguments": {
+      "driver": "usb-kbd",
+      "id": "hid-kbd-g2",
+      "bus": "xhci.0",
+      "port": "1",
+      "usb_version": 1
+     },
+     "response": "return"
+    },
+    {
+     "execute": "input-send-event",
+     "arguments": {
+      "events": [
+       {
+        "type": "key",
+        "data": {
+         "down": true,
+         "key": {
+          "type": "qcode",
+          "data": "c"
+         }
+        }
+       }
+      ]
+     },
+     "response": "return"
+    },
+    {
+     "execute": "input-send-event",
+     "arguments": {
+      "events": [
+       {
+        "type": "key",
+        "data": {
+         "down": false,
+         "key": {
+          "type": "qcode",
+          "data": "c"
+         }
+        }
+       }
+      ]
+     },
+     "response": "return"
+    },
+    {
+     "execute": "device_del",
+     "arguments": {
+      "id": "hid-kbd-g2"
+     },
+     "response": "return"
+    },
+    {
+     "execute": "device_add",
+     "arguments": {
+      "driver": "usb-kbd",
+      "id": "hid-kbd-g3",
+      "bus": "xhci.0",
+      "port": "1",
+      "usb_version": 1
+     },
+     "response": "return"
+    }
+   ],
+   "qmp_error": null,
+   "observed": {
+    "markers": [
+     "USB:BEGIN",
+     "USB:PAGING:PASS",
+     "USB:DOMAIN:PASS",
+     "USB:BUS_MASTER:CONTAINED",
+     "USB:ENUM:KEYBOARD",
+     "USB:ENUM:MOUSE",
+     "USB:PROTOCOL:PASS",
+     "USB:READY",
+     "USB:KEY_DOWN",
+     "USB:KEY_UP",
+     "USB:MOUSE_DOWN",
+     "USB:MOUSE_UP",
+     "USB:HELD_KEY",
+     "USB:UNPLUG_CLEAR:PASS",
+     "USB:STALE_TOKEN:DENIED",
+     "USB:REPORTS:PASS",
+     "USB:REATTACH:DETACHED",
+     "USB:REATTACH:ENUM:KEYBOARD",
+     "USB:REATTACH:SLOT_REUSED",
+     "USB:REATTACH:STALE_DENIED",
+     "USB:REATTACH:READY",
+     "USB:REATTACH:KEY_DOWN",
+     "USB:REATTACH:KEY_UP",
+     "USB:REATTACH:UNPLUG:PASS",
+     "USB:ATTACH:BUDGET_DENIED",
+     "USB:RETIRED:UNCHANGED",
+     "USB:GUARD:UNCHANGED",
+     "USB:QUIESCE:PASS",
+     "USB:PAGES:RETAINED",
+     "USB:PASS"
+    ],
+    "usb_reports": true,
+    "readonly_write_denied": false,
+    "same_port_reattach": true,
+    "input_policy_authority": false
+   },
+   "scope": "QEMU native USB2 HID completions and directional VT-d; no IPC broker, IRQ or physical acceptance; same-port reattach uses QEMU device_add/device_del, not physical hotplug"
+  },
+  {
+   "case": "reports",
+   "kernel_feature": "native-usb-hid-probe",
+   "passed": true,
+   "harness_error": null,
+   "raw_qemu_exit": 33,
+   "expected_exit": 33,
+   "timed_out": false,
+   "duration_s": 2.731,
+   "started_utc": "2026-11-19T23:19:33.268410+00:00",
+   "source_fingerprint_version": 3,
+   "source_sha256": "a5894c23b6006b615f0a75c1fffd72a71903226d2ff8f3dbd550403185e17b22",
+   "manifest_sha256": "d1510a611cd4bb23287dd245fa20223a526bed0f235a7c1f0a153a5c1549c6cc",
+   "kernel_sha256": "35c37f51c7ad61e2ce9150868631fe94414098c1247a2898d63adf8dfe9c37a6",
+   "loader_sha256": "7eeaaa275dad7d0686f5520c9445f0fd8c12f464a99ea90b6a74707cf1a0da50",
+   "artifact_binding_passed": true,
+   "artifact_sha256": {
+    "esp/kernel.elf": "35c37f51c7ad61e2ce9150868631fe94414098c1247a2898d63adf8dfe9c37a6",
+    "esp/EFI/BOOT/BOOTX64.EFI": "7eeaaa275dad7d0686f5520c9445f0fd8c12f464a99ea90b6a74707cf1a0da50",
+    "OVMF_CODE.fd": "ad23261d43116abc3747d59a7837fbf578c9586a8993f4eeba064cd07eccb083",
+    "OVMF_VARS.template.fd": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e"
+   },
+   "qemu_version": "QEMU emulator version 8.2.2 (Debian 1:8.2.2+ds-0ubuntu1.18)",
+   "profile": "development-package; pc-q35-8.2/qemu64/TCG/1CPU/256MiB",
+   "firmware_source": [
+    "/usr/share/OVMF/OVMF_CODE_4M.fd",
+    "/usr/share/OVMF/OVMF_VARS_4M.fd"
+   ],
+   "qemu_command": [
+    "/usr/bin/qemu-system-x86_64",
+    "-machine",
+    "pc-q35-8.2",
+    "-accel",
+    "tcg,thread=single",
+    "-cpu",
+    "qemu64",
+    "-smp",
+    "1",
+    "-m",
+    "256M",
+    "-nodefaults",
+    "-display",
+    "none",
+    "-monitor",
+    "none",
+    "-serial",
+    "file:build/reports/run/usb-hid-reports-f6fa3e4241/usb-stdout.bin",
+    "-nic",
+    "none",
+    "-no-reboot",
+    "-drive",
+    "if=pflash,unit=0,format=raw,readonly=on,file=build/reports/run/usb-hid-reports-f6fa3e4241/OVMF_CODE.fd",
+    "-drive",
+    "if=pflash,unit=1,format=raw,file=build/reports/run/usb-hid-reports-f6fa3e4241/OVMF_VARS.fd",
+    "-drive",
+    "if=virtio,index=0,format=raw,readonly=on,file=fat:build/reports/run/usb-hid-reports-f6fa3e4241/esp",
+    "-device",
+    "isa-debug-exit,iobase=0xf4,iosize=0x04",
+    "-device",
+    "intel-iommu,caching-mode=on,intremap=off,device-iotlb=off,aw-bits=39",
+    "-device",
+    "qemu-xhci,id=xhci,bus=pcie.0,addr=0x5,p2=2,p3=0",
+    "-device",
+    "usb-kbd,id=hid-kbd,bus=xhci.0,port=1,usb_version=1",
+    "-device",
+    "usb-mouse,id=hid-mouse,bus=xhci.0,port=2,usb_version=1",
+    "-qmp",
+    "stdio"
+   ],
+   "base_commit_field": null,
+   "serial_sha256": "05ade1d6f06d76e37ff9e3c1f05ff04c97e83278bfe8e4acaedd7076efdc8d71",
+   "boot_markers": [
+    "BOOT:EBS_OK",
+    "KERNEL:ENTRY",
+    "BOOTINFO:OK",
+    "KS-01:PASS",
+    "KS-02:PASS"
+   ],
+   "controlled_markers": [
+    "XHCI:BEGIN",
+    "USB:BEGIN",
+    "USB:PAGING:PASS",
+    "USB:DOMAIN:PASS",
+    "USB:BUS_MASTER:CONTAINED",
+    "USB:ENUM:KEYBOARD",
+    "USB:ENUM:MOUSE",
+    "USB:PROTOCOL:PASS",
+    "USB:READY",
+    "USB:KEY_DOWN",
+    "USB:KEY_UP",
+    "USB:MOUSE_DOWN",
+    "USB:MOUSE_UP",
+    "USB:HELD_KEY",
+    "USB:UNPLUG_CLEAR:PASS",
+    "USB:STALE_TOKEN:DENIED",
+    "USB:REPORTS:PASS",
+    "USB:GUARD:UNCHANGED",
+    "USB:QUIESCE:PASS",
+    "USB:PAGES:RETAINED",
+    "USB:PASS",
+    "XHCI:PASS"
+   ],
+   "diagnostic_rejections": [],
+   "qmp": [
+    {
+     "execute": "qmp_capabilities",
+     "arguments": null,
+     "response": "return"
+    },
+    {
+     "execute": "input-send-event",
+     "arguments": {
+      "events": [
+       {
+        "type": "key",
+        "data": {
+         "down": true,
+         "key": {
+          "type": "qcode",
+          "data": "a"
+         }
+        }
+       }
+      ]
+     },
+     "response": "return"
+    },
+    {
+     "execute": "input-send-event",
+     "arguments": {
+      "events": [
+       {
+        "type": "key",
+        "data": {
+         "down": false,
+         "key": {
+          "type": "qcode",
+          "data": "a"
+         }
+        }
+       }
+      ]
+     },
+     "response": "return"
+    },
+    {
+     "execute": "input-send-event",
+     "arguments": {
+      "events": [
+       {
+        "type": "rel",
+        "data": {
+         "axis": "x",
+         "value": 7
+        }
+       },
+       {
+        "type": "rel",
+        "data": {
+         "axis": "y",
+         "value": -3
+        }
+       },
+       {
+        "type": "btn",
+        "data": {
+         "down": true,
+         "button": "left"
+        }
+       }
+      ]
+     },
+     "response": "return"
+    },
+    {
+     "execute": "input-send-event",
+     "arguments": {
+      "events": [
+       {
+        "type": "btn",
+        "data": {
+         "down": false,
+         "button": "left"
+        }
+       }
+      ]
+     },
+     "response": "return"
+    },
+    {
+     "execute": "input-send-event",
+     "arguments": {
+      "events": [
+       {
+        "type": "key",
+        "data": {
+         "down": true,
+         "key": {
+          "type": "qcode",
+          "data": "b"
+         }
+        }
+       }
+      ]
+     },
+     "response": "return"
+    },
+    {
+     "execute": "device_del",
+     "arguments": {
+      "id": "hid-kbd"
+     },
+     "response": "return"
+    }
+   ],
+   "qmp_error": null,
+   "observed": {
+    "markers": [
+     "USB:BEGIN",
+     "USB:PAGING:PASS",
+     "USB:DOMAIN:PASS",
+     "USB:BUS_MASTER:CONTAINED",
+     "USB:ENUM:KEYBOARD",
+     "USB:ENUM:MOUSE",
+     "USB:PROTOCOL:PASS",
+     "USB:READY",
+     "USB:KEY_DOWN",
+     "USB:KEY_UP",
+     "USB:MOUSE_DOWN",
+     "USB:MOUSE_UP",
+     "USB:HELD_KEY",
+     "USB:UNPLUG_CLEAR:PASS",
+     "USB:STALE_TOKEN:DENIED",
+     "USB:REPORTS:PASS",
+     "USB:GUARD:UNCHANGED",
+     "USB:QUIESCE:PASS",
+     "USB:PAGES:RETAINED",
+     "USB:PASS"
+    ],
+    "usb_reports": true,
+    "readonly_write_denied": false,
+    "same_port_reattach": false,
+    "input_policy_authority": false
+   },
+   "scope": "QEMU native USB2 HID completions and directional VT-d; no IPC broker, IRQ or physical acceptance"
+  },
+  {
+   "case": "readonly",
+   "kernel_feature": "test-usb-hid-readonly-fault",
+   "passed": true,
+   "harness_error": null,
+   "raw_qemu_exit": 33,
+   "expected_exit": 33,
+   "timed_out": false,
+   "duration_s": 2.606,
+   "started_utc": "2026-11-19T23:19:37.559504+00:00",
+   "source_fingerprint_version": 3,
+   "source_sha256": "a5894c23b6006b615f0a75c1fffd72a71903226d2ff8f3dbd550403185e17b22",
+   "manifest_sha256": "8d43e19296a3030e3062a8b2202f90bdf0fde35fdab35d03cf9ccd1a772a291f",
+   "kernel_sha256": "9f5e322444da5efafb4c4af83706aa30ef0a5ad0f726facf093bdc9771fa9ab0",
+   "loader_sha256": "7eeaaa275dad7d0686f5520c9445f0fd8c12f464a99ea90b6a74707cf1a0da50",
+   "artifact_binding_passed": true,
+   "artifact_sha256": {
+    "esp/kernel.elf": "9f5e322444da5efafb4c4af83706aa30ef0a5ad0f726facf093bdc9771fa9ab0",
+    "esp/EFI/BOOT/BOOTX64.EFI": "7eeaaa275dad7d0686f5520c9445f0fd8c12f464a99ea90b6a74707cf1a0da50",
+    "OVMF_CODE.fd": "ad23261d43116abc3747d59a7837fbf578c9586a8993f4eeba064cd07eccb083",
+    "OVMF_VARS.template.fd": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e"
+   },
+   "qemu_version": "QEMU emulator version 8.2.2 (Debian 1:8.2.2+ds-0ubuntu1.18)",
+   "profile": "development-package; pc-q35-8.2/qemu64/TCG/1CPU/256MiB",
+   "firmware_source": [
+    "/usr/share/OVMF/OVMF_CODE_4M.fd",
+    "/usr/share/OVMF/OVMF_VARS_4M.fd"
+   ],
+   "qemu_command": [
+    "/usr/bin/qemu-system-x86_64",
+    "-machine",
+    "pc-q35-8.2",
+    "-accel",
+    "tcg,thread=single",
+    "-cpu",
+    "qemu64",
+    "-smp",
+    "1",
+    "-m",
+    "256M",
+    "-nodefaults",
+    "-display",
+    "none",
+    "-monitor",
+    "none",
+    "-serial",
+    "file:build/readonly/run/usb-hid-readonly-ea0340ea6d/usb-stdout.bin",
+    "-nic",
+    "none",
+    "-no-reboot",
+    "-drive",
+    "if=pflash,unit=0,format=raw,readonly=on,file=build/readonly/run/usb-hid-readonly-ea0340ea6d/OVMF_CODE.fd",
+    "-drive",
+    "if=pflash,unit=1,format=raw,file=build/readonly/run/usb-hid-readonly-ea0340ea6d/OVMF_VARS.fd",
+    "-drive",
+    "if=virtio,index=0,format=raw,readonly=on,file=fat:build/readonly/run/usb-hid-readonly-ea0340ea6d/esp",
+    "-device",
+    "isa-debug-exit,iobase=0xf4,iosize=0x04",
+    "-device",
+    "intel-iommu,caching-mode=on,intremap=off,device-iotlb=off,aw-bits=39",
+    "-device",
+    "qemu-xhci,id=xhci,bus=pcie.0,addr=0x5,p2=2,p3=0",
+    "-device",
+    "usb-kbd,id=hid-kbd,bus=xhci.0,port=1,usb_version=1",
+    "-device",
+    "usb-mouse,id=hid-mouse,bus=xhci.0,port=2,usb_version=1",
+    "-qmp",
+    "stdio"
+   ],
+   "base_commit_field": null,
+   "serial_sha256": "153503c1fc0e81227bbde1976fb6781d6bd576855eefda134e043be8dc32dc0a",
+   "boot_markers": [
+    "BOOT:EBS_OK",
+    "KERNEL:ENTRY",
+    "BOOTINFO:OK",
+    "KS-01:PASS",
+    "KS-02:PASS"
+   ],
+   "controlled_markers": [
+    "XHCI:BEGIN",
+    "USB:BEGIN",
+    "USB:PAGING:PASS",
+    "USB:DOMAIN:PASS",
+    "USB:BUS_MASTER:CONTAINED",
+    "USB:READONLY:WRITE_DENIED",
+    "USB:GUARD:UNCHANGED",
+    "USB:QUIESCE:PASS",
+    "USB:PAGES:RETAINED",
+    "USB:PASS",
+    "XHCI:PASS"
+   ],
+   "diagnostic_rejections": [],
+   "qmp": [
+    {
+     "execute": "qmp_capabilities",
+     "arguments": null,
+     "response": "return"
+    }
+   ],
+   "qmp_error": null,
+   "observed": {
+    "markers": [
+     "USB:BEGIN",
+     "USB:PAGING:PASS",
+     "USB:DOMAIN:PASS",
+     "USB:BUS_MASTER:CONTAINED",
+     "USB:READONLY:WRITE_DENIED",
+     "USB:GUARD:UNCHANGED",
+     "USB:QUIESCE:PASS",
+     "USB:PAGES:RETAINED",
+     "USB:PASS"
+    ],
+    "usb_reports": false,
+    "readonly_write_denied": true,
+    "same_port_reattach": false,
+    "input_policy_authority": false
+   },
+   "scope": "QEMU native USB2 HID completions and directional VT-d; no IPC broker, IRQ or physical acceptance"
+  }
+ ],
+ "reattach_repeats": [
+  {
+   "case": "reattach",
+   "passed": true,
+   "raw_qemu_exit": 33,
+   "timed_out": false,
+   "duration_s": 4.529,
+   "started_utc": "2026-11-19T23:19:14.750604+00:00",
+   "source_sha256": "a5894c23b6006b615f0a75c1fffd72a71903226d2ff8f3dbd550403185e17b22",
+   "kernel_sha256": "aed10a7d2c493d11ca1b3abb345955655a0e5758cf594a0fdd199f5fb2074ce6",
+   "serial_sha256": "9f1a7651beda258f601c0ad1765863c4b6330143a35b9dc3461f84c55facff70",
+   "controlled_markers": [
+    "XHCI:BEGIN",
+    "USB:BEGIN",
+    "USB:PAGING:PASS",
+    "USB:DOMAIN:PASS",
+    "USB:BUS_MASTER:CONTAINED",
+    "USB:ENUM:KEYBOARD",
+    "USB:ENUM:MOUSE",
+    "USB:PROTOCOL:PASS",
+    "USB:READY",
+    "USB:KEY_DOWN",
+    "USB:KEY_UP",
+    "USB:MOUSE_DOWN",
+    "USB:MOUSE_UP",
+    "USB:HELD_KEY",
+    "USB:UNPLUG_CLEAR:PASS",
+    "USB:STALE_TOKEN:DENIED",
+    "USB:REPORTS:PASS",
+    "USB:REATTACH:DETACHED",
+    "USB:REATTACH:ENUM:KEYBOARD",
+    "USB:REATTACH:SLOT_REUSED",
+    "USB:REATTACH:STALE_DENIED",
+    "USB:REATTACH:READY",
+    "USB:REATTACH:KEY_DOWN",
+    "USB:REATTACH:KEY_UP",
+    "USB:REATTACH:UNPLUG:PASS",
+    "USB:ATTACH:BUDGET_DENIED",
+    "USB:RETIRED:UNCHANGED",
+    "USB:GUARD:UNCHANGED",
+    "USB:QUIESCE:PASS",
+    "USB:PAGES:RETAINED",
+    "USB:PASS",
+    "XHCI:PASS"
+   ],
+   "qmp_error": null,
+   "qmp_commands": 13
+  },
+  {
+   "case": "reattach",
+   "passed": true,
+   "raw_qemu_exit": 33,
+   "timed_out": false,
+   "duration_s": 4.601,
+   "started_utc": "2026-11-19T23:19:19.625360+00:00",
+   "source_sha256": "a5894c23b6006b615f0a75c1fffd72a71903226d2ff8f3dbd550403185e17b22",
+   "kernel_sha256": "aed10a7d2c493d11ca1b3abb345955655a0e5758cf594a0fdd199f5fb2074ce6",
+   "serial_sha256": "9f1a7651beda258f601c0ad1765863c4b6330143a35b9dc3461f84c55facff70",
+   "controlled_markers": [
+    "XHCI:BEGIN",
+    "USB:BEGIN",
+    "USB:PAGING:PASS",
+    "USB:DOMAIN:PASS",
+    "USB:BUS_MASTER:CONTAINED",
+    "USB:ENUM:KEYBOARD",
+    "USB:ENUM:MOUSE",
+    "USB:PROTOCOL:PASS",
+    "USB:READY",
+    "USB:KEY_DOWN",
+    "USB:KEY_UP",
+    "USB:MOUSE_DOWN",
+    "USB:MOUSE_UP",
+    "USB:HELD_KEY",
+    "USB:UNPLUG_CLEAR:PASS",
+    "USB:STALE_TOKEN:DENIED",
+    "USB:REPORTS:PASS",
+    "USB:REATTACH:DETACHED",
+    "USB:REATTACH:ENUM:KEYBOARD",
+    "USB:REATTACH:SLOT_REUSED",
+    "USB:REATTACH:STALE_DENIED",
+    "USB:REATTACH:READY",
+    "USB:REATTACH:KEY_DOWN",
+    "USB:REATTACH:KEY_UP",
+    "USB:REATTACH:UNPLUG:PASS",
+    "USB:ATTACH:BUDGET_DENIED",
+    "USB:RETIRED:UNCHANGED",
+    "USB:GUARD:UNCHANGED",
+    "USB:QUIESCE:PASS",
+    "USB:PAGES:RETAINED",
+    "USB:PASS",
+    "XHCI:PASS"
+   ],
+   "qmp_error": null,
+   "qmp_commands": 13
+  }
+ ],
+ "evidence_level": "Native own-kernel execution in QEMU 8.2.2 TCG with emulated xHCI and VT-d. Not physical hardware, IRQ delivery, physical hotplug or human acceptance.",
+ "h02_status": "open"
+}

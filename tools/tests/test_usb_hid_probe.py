@@ -20,10 +20,44 @@ class OracleTests(unittest.TestCase):
     def test_reports_and_readonly_are_distinct(self):
         for case in probe.FEATURES:
             result = probe.evaluate(case, transcript(case), 33, False)
-            self.assertEqual(result["usb_reports"], case == "reports")
+            self.assertEqual(result["usb_reports"], case != "readonly")
+            self.assertEqual(result["same_port_reattach"], case == "reattach")
             self.assertFalse(result["input_policy_authority"])
+            for other in probe.FEATURES:
+                if other != case:
+                    with self.subTest(case=case, other=other), self.assertRaises(ValueError):
+                        probe.evaluate(case, transcript(other), 33, False)
+
+    def test_reattach_markers_are_mandatory_unique_and_ordered(self):
+        self.assertEqual(probe.FEATURES["reattach"], "native-usb-hid-reattach")
+        expected = probe.markers("reattach")
+        self.assertEqual(expected[:len(probe.START) + len(probe.REPORTS)], probe.START + probe.REPORTS)
+        self.assertEqual(expected[-len(probe.END):], probe.END)
+        for marker in probe.REATTACH:
+            with self.subTest(missing=marker), self.assertRaises(ValueError):
+                probe.evaluate("reattach", transcript("reattach").replace(marker + "\n", ""), 33, False)
+            with self.subTest(duplicate=marker), self.assertRaises(ValueError):
+                probe.evaluate("reattach", transcript("reattach").replace(marker + "\n", marker + "\n" + marker + "\n"),
+                               33, False)
+        swaps = [("USB:REATTACH:KEY_DOWN", "USB:REATTACH:KEY_UP"),
+                 ("USB:REATTACH:DETACHED", "USB:REATTACH:ENUM:KEYBOARD"),
+                 ("USB:REATTACH:STALE_DENIED", "USB:REATTACH:READY"),
+                 ("USB:REATTACH:UNPLUG:PASS", "USB:ATTACH:BUDGET_DENIED"),
+                 ("USB:REPORTS:PASS", "USB:REATTACH:DETACHED"),
+                 ("USB:RETIRED:UNCHANGED", "USB:GUARD:UNCHANGED")]
+        for first, second in swaps:
+            swapped = transcript("reattach").replace(first + "\n" + second, second + "\n" + first)
+            self.assertNotEqual(swapped, transcript("reattach"))
+            with self.subTest(swap=first), self.assertRaises(ValueError):
+                probe.evaluate("reattach", swapped, 33, False)
+        # A different slot is an unaccepted observation, and an extra attach
+        # after budget denial is evidence of a missing refusal.
+        for corrupt in (transcript("reattach").replace("SLOT_REUSED", "SLOT_NEW"),
+                        transcript("reattach").replace("USB:ATTACH:BUDGET_DENIED\n",
+                                                       "USB:ATTACH:BUDGET_DENIED\nUSB:ENUM:KEYBOARD\n"),
+                        transcript("reattach") + "USB-DIAG:REJECT:45\n"):
             with self.assertRaises(ValueError):
-                probe.evaluate(case, transcript("readonly" if case == "reports" else "reports"), 33, False)
+                probe.evaluate("reattach", corrupt, 33, False)
 
     def test_all_mandatory_markers_are_required(self):
         for marker in probe.BOOT + ("XHCI:BEGIN",) + probe.markers("reports") + ("XHCI:PASS",):
@@ -70,17 +104,49 @@ class FakeProcess:
         return self.returncode
 
 
+class ExitingProcess(FakeProcess):
+    def wait(self, timeout=None):
+        self.returncode = 33
+        self.reaped = True
+        return self.returncode
+
+
 class FakeQmp:
+    fail = None
+
     def __init__(self, process, deadline):
         self.deadline = deadline
         self.trace = []
         self.closed = False
 
     def command(self, name, arguments=None):
-        self.trace.append({"request": {"execute": name, "arguments": arguments}, "response": {"return": {}}})
+        request = {"execute": name, "arguments": arguments}
+        if (name, (arguments or {}).get("id")) == self.fail:
+            # QmpPipe records an error reply before raising it.
+            self.trace.append({"request": request, "response": {"error": {"class": "GenericError"}}})
+            raise RuntimeError("QMP command failed: GenericError")
+        self.trace.append({"request": request, "response": {"return": {}}})
 
     def close(self):
         self.closed = True
+
+
+class FailingAddQmp(FakeQmp):
+    fail = ("device_add", "hid-kbd-g2")
+
+
+def waits(seen, fail=None):
+    def wait(process, path, marker, deadline):
+        seen.append(marker)
+        if marker == fail:
+            raise RuntimeError("Guest rejected USB fixture before " + marker)
+    return wait
+
+
+REATTACH_WAITS = ["USB:READY", "USB:KEY_DOWN", "USB:KEY_UP", "USB:MOUSE_DOWN", "USB:MOUSE_UP",
+                  "USB:HELD_KEY", "USB:STALE_TOKEN:DENIED", "USB:REATTACH:DETACHED",
+                  "USB:REATTACH:READY", "USB:REATTACH:KEY_DOWN", "USB:REATTACH:KEY_UP",
+                  "USB:REATTACH:UNPLUG:PASS"]
 
 
 class LifecycleTests(unittest.TestCase):
@@ -136,6 +202,55 @@ class LifecycleTests(unittest.TestCase):
             self.assertEqual(result["trace"], [])
             self.assertTrue(result["timed_out"])
             self.assertTrue(process.killed and process.reaped)
+
+    def _reattach(self, process, qmp, fail=None):
+        seen = []
+        with tempfile.TemporaryDirectory() as directory, \
+                patch.object(probe.subprocess, "Popen", return_value=process), \
+                patch.object(probe, "QmpPipe", qmp), \
+                patch.object(probe, "_wait_marker", side_effect=waits(seen, fail)):
+            result = probe.controlled_guest(["qemu", "-serial", "stdio"], cwd=directory, env={}, timeout=5,
+                                            run_dir=directory, case="reattach")
+        requests = [(entry["request"]["execute"], entry["request"]["arguments"]) for entry in result["trace"]]
+        return result, seen, requests
+
+    def test_reattach_sequence_is_exact_and_ends_with_a_refused_attach(self):
+        process = ExitingProcess()
+        result, seen, requests = self._reattach(process, FakeQmp)
+        self.assertIsNone(result["error"])
+        self.assertEqual(result["returncode"], 33)
+        self.assertEqual(seen, REATTACH_WAITS)
+        self.assertEqual(requests[-7:], [
+            ("device_del", {"id": "hid-kbd"}),
+            ("input-send-event", {"events": [probe._key("b", False)]}),
+            ("device_add", probe._keyboard("hid-kbd-g2")),
+            ("input-send-event", {"events": [probe._key("c", True)]}),
+            ("input-send-event", {"events": [probe._key("c", False)]}),
+            ("device_del", {"id": "hid-kbd-g2"}),
+            ("device_add", probe._keyboard("hid-kbd-g3"))])
+        self.assertEqual(probe._keyboard("hid-kbd-g3"), {"driver": "usb-kbd", "id": "hid-kbd-g3",
+                                                          "bus": "xhci.0", "port": "1", "usb_version": 1})
+        self.assertFalse(process.killed)
+        self.assertTrue(process.reaped)
+
+    def test_reattach_device_add_failure_reaps_without_further_input(self):
+        process = FakeProcess()
+        result, seen, requests = self._reattach(process, FailingAddQmp)
+        self.assertIn("QMP command failed", result["error"])
+        self.assertEqual(seen[-1], "USB:REATTACH:DETACHED")
+        # Key b was already released; nothing is held, so no cleanup input.
+        self.assertEqual(requests[-1], ("device_add", probe._keyboard("hid-kbd-g2")))
+        self.assertNotIn(("device_add", probe._keyboard("hid-kbd-g3")), requests)
+        self.assertTrue(process.killed and process.reaped)
+
+    def test_reattach_failures_release_every_held_key(self):
+        for fail, held in (("USB:STALE_TOKEN:DENIED", "b"), ("USB:REATTACH:KEY_DOWN", "c")):
+            with self.subTest(fail=fail):
+                process = FakeProcess()
+                result, _, requests = self._reattach(process, FakeQmp, fail)
+                self.assertIn("Guest rejected", result["error"])
+                self.assertEqual(requests[-1], ("input-send-event", {"events": [probe._key(held, False)]}))
+                self.assertTrue(process.killed and process.reaped)
 
     def test_failed_manifest_leaves_failed_report(self):
         with tempfile.TemporaryDirectory() as directory, patch.object(probe, "BUILD", Path(directory)), \
