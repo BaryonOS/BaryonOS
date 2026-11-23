@@ -8,24 +8,29 @@ use nieuw_os_document_session::{volume::Buffers, EditMode};
 use nieuw_os_graphics::{Font, Size, Weight};
 use nieuw_os_input_core::Event;
 use nieuw_os_materiaal::{
-    a11y::{presentation, scale_for_text_percent, Presentation, PERCENT200_THRESHOLD},
+    a11y::{
+        presentation, scale_for_text_percent, Presentation, MAX_TEXT_SCALE_PERCENT,
+        MIN_TEXT_SCALE_PERCENT, PERCENT200_THRESHOLD,
+    },
     controller::{Controller, InputEnvelope, Screen},
     render::{Frame, Role, SemanticId, SemanticNode, MAX_SEMANTIC_NODES},
     Scale, Viewport, TILE_PIXELS,
 };
-use nieuw_os_settings_core::{Settings, Theme, MAX_TEXT_SCALE_PERCENT, MIN_TEXT_SCALE_PERCENT};
 use ui_core::{KeyAction, KeyboardEvent, KeyboardModifiers, PhysicalKey};
-
-fn settings(percent: u16, reduced_motion: bool) -> Settings {
-    Settings::new(Theme::System, percent, reduced_motion).unwrap()
-}
 
 #[test]
 fn text_scale_boundaries_fail_closed_to_rendered_scales() {
+    // Same range as settings-core MIN/MAX_TEXT_SCALE_PERCENT.
     assert_eq!(MIN_TEXT_SCALE_PERCENT, 75);
     assert_eq!(MAX_TEXT_SCALE_PERCENT, 300);
     assert_eq!(PERCENT200_THRESHOLD, 150);
     for (percent, scale) in [
+        // Out of range: fail closed to the 100 % default.
+        (0, Scale::Percent100),
+        (74, Scale::Percent100),
+        (301, Scale::Percent100),
+        (u16::MAX, Scale::Percent100),
+        // In range: nearer rendered step.
         (75, Scale::Percent100),
         (100, Scale::Percent100),
         (125, Scale::Percent100),
@@ -35,23 +40,16 @@ fn text_scale_boundaries_fail_closed_to_rendered_scales() {
         (300, Scale::Percent200),
     ] {
         assert_eq!(scale_for_text_percent(percent), scale, "{percent}");
-        assert_eq!(
-            presentation(settings(percent, false)).scale,
-            scale,
-            "{percent}"
-        );
+        assert_eq!(presentation(percent, false).scale, scale, "{percent}");
     }
-    // Out-of-range values never become Settings, so they cannot be mapped.
-    assert!(Settings::new(Theme::System, 74, false).is_err());
-    assert!(Settings::new(Theme::System, 301, false).is_err());
 }
 
 #[test]
 fn reduced_motion_passes_through_unchanged() {
     for reduced_motion in [false, true] {
-        for percent in [75, 149, 150, 300] {
+        for percent in [0, 74, 75, 149, 150, 300, 301, u16::MAX] {
             assert_eq!(
-                presentation(settings(percent, reduced_motion)),
+                presentation(percent, reduced_motion),
                 Presentation {
                     scale: scale_for_text_percent(percent),
                     reduced_motion,
@@ -153,7 +151,7 @@ fn check_no_clipped_labels(ui: &Controller<'_, Port>, name: &str) {
 fn persisted_200_percent_renders_workspace_screens_without_clipped_labels() {
     run(|| {
         for percent in [PERCENT200_THRESHOLD, 200, MAX_TEXT_SCALE_PERCENT] {
-            let p = presentation(settings(percent, true));
+            let p = presentation(percent, true);
             let host = Host::new();
             host.borrow_mut().seed_named(0, b"Reis", b"Earlier");
             host.borrow_mut().seed_named(0, b"Reis", b"Current");
