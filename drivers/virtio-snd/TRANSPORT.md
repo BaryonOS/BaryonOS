@@ -297,7 +297,7 @@ Observed QEMU 8.2.2 behaviour and the resulting driver rules:
 | F2 | native: `iommu_platform=on` ⇒ offline, BME never set, no DRIVER_OK, empty WAV |
 | F3 | host codec only: QEMU refuses `streams` outside 1..10 |
 | F4, F9 | host codec |
-| F5, F7, F8, F11 | host (`queue` tests) and the strict checks of every native run; the exploratory in-flight run exercised F7/F11 detection |
+| F5, F7, F8, F11 | host (`queue` tests) and the strict checks of every native run; F8 is also checked before every publication and F11 brackets the acknowledging status/BME read-back with used-index samples (review follow-up of 23 November 2026; native evidence: hosted `native-xhci.yml` on the fix head); the exploratory in-flight run exercised F7/F11 detection |
 | F6 | not run (no blocked backend) |
 | F10 | every native poll requires status `0x0f`; reported after the refused second RELEASE |
 | F12 | native: zero fence deadline ⇒ quarantine, nothing published afterwards, pool pinned |

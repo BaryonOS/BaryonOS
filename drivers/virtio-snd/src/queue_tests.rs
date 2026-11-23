@@ -285,7 +285,7 @@ fn fence_acknowledges_only_status_zero_and_bus_master_off_before_deadline() {
     life.go_live().unwrap();
     life.begin_fence(100, 50).unwrap();
     assert_eq!(life.poll_fence(149, 0, false), FenceStep::Acknowledged);
-    life.record_snapshot([1, 4, 9]).unwrap();
+    life.record_snapshot([1, 4, 9], [1, 4, 9]).unwrap();
     life.check_snapshot([1, 4, 9], 0, false).unwrap();
     assert!(!life.may_publish());
     assert_eq!(life.finish_fence(), Ok(1));
@@ -305,6 +305,17 @@ fn fence_misses_and_post_fence_changes_quarantine() {
     zero.begin_fence(7, 0).unwrap();
     assert_eq!(zero.poll_fence(7, 0, false), FenceStep::Quarantined);
     // Any used-index, status or BME change after the snapshot.
+    // F11: a used-index move across the acknowledging read-back.
+    let mut across = Lifecycle::new();
+    across.go_live().unwrap();
+    across.begin_fence(0, 10).unwrap();
+    assert_eq!(across.poll_fence(1, 0, false), FenceStep::Acknowledged);
+    assert_eq!(
+        across.record_snapshot([1, 4, 9], [1, 5, 9]),
+        Err(Error::Quarantined)
+    );
+    assert_eq!(across.phase(), Phase::Quarantined);
+    assert_eq!(across.finish_fence(), Err(Error::Quarantined));
     for (used, status, bme) in [
         ([1, 4, 10], 0, false),
         ([1, 4, 9], 1, false),
@@ -314,7 +325,7 @@ fn fence_misses_and_post_fence_changes_quarantine() {
         life.go_live().unwrap();
         life.begin_fence(0, 10).unwrap();
         assert_eq!(life.poll_fence(1, 0, false), FenceStep::Acknowledged);
-        life.record_snapshot([1, 4, 9]).unwrap();
+        life.record_snapshot([1, 4, 9], [1, 4, 9]).unwrap();
         assert_eq!(
             life.check_snapshot(used, status, bme),
             Err(Error::Quarantined)
@@ -327,7 +338,7 @@ fn fence_misses_and_post_fence_changes_quarantine() {
     let mut epoch = Lifecycle::with_epoch(u64::MAX);
     epoch.begin_fence(0, 10).unwrap();
     assert_eq!(epoch.poll_fence(1, 0, false), FenceStep::Acknowledged);
-    epoch.record_snapshot([0; 3]).unwrap();
+    epoch.record_snapshot([0; 3], [0; 3]).unwrap();
     epoch.check_snapshot([0; 3], 0, false).unwrap();
     assert_eq!(epoch.finish_fence(), Err(Error::Quarantined));
     // Quarantine is terminal for every transition.
@@ -337,7 +348,10 @@ fn fence_misses_and_post_fence_changes_quarantine() {
         assert_eq!(life.go_live(), Err(Error::Quarantined));
         assert_eq!(life.begin_fence(0, 10), Err(Error::Quarantined));
         assert_eq!(life.poll_fence(0, 0, false), FenceStep::Quarantined);
-        assert_eq!(life.record_snapshot([0; 3]), Err(Error::Quarantined));
+        assert_eq!(
+            life.record_snapshot([0; 3], [0; 3]),
+            Err(Error::Quarantined)
+        );
         assert_eq!(life.finish_fence(), Err(Error::Quarantined));
         assert_eq!(life.phase(), Phase::Quarantined);
     }
