@@ -1020,7 +1020,7 @@ Status: accepted, 13 November 2026, on the project owner's instruction after
 
 **Amendment, 23 November 2026 (merge queue preparation, not yet enabled):**
 `merge-hold` and the required `ci.yml` checks also run on `merge_group`. The
-merge-group run evaluates the group's pull request and every entry ahead of it,
+merge-group run evaluates the group's pull request and every unmerged entry ahead,
 each on its own head SHA; a released hold also requires that entry's queue
 commit to land the released tree. It decides last: it waits until the group's
 `host-quality` and `qemu-smoke` have completed, then walks the entries ahead
@@ -1030,21 +1030,34 @@ at the first entry whose `merge-hold` concluded `success`, because only a
 successful run waited the same way; a `merge-hold` that failed early, was
 cancelled or lost its runner proves nothing about the entries ahead of it.
 Queue entries without a commit or pull request behind the group are
-ignored; ahead of it they keep the run waiting and fail closed at the
-45-minute deadline. This holds only while `host-quality`, `qemu-smoke` and
-`merge-hold` are the only required checks; a later-finishing required check
-reopens the window. The queue ruleset must also have "Only merge non-failing
-pull requests" set to Yes, so an entry whose required checks failed cannot
-merge as part of a later group that passed; verify both settings when the
-queue is enabled. The behaviour rests on GitHub's merge queue documentation
+ignored. Ahead of it, an entry without a commit keeps the run waiting and fails
+closed at the 45-minute deadline; an entry with a commit but no pull request
+fails closed at once when the group is evaluated. An entry ahead whose pull
+request has already merged is on `main` and is skipped. A group whose own
+commit a well-formed queue read no longer lists (ejected or rebuilt) fails at
+once; a failed or malformed read is retried until the deadline. This holds
+only while `host-quality`, `qemu-smoke` and `merge-hold` are the only required
+checks; a later-finishing required check reopens the window. The queue
+ruleset must also have "Only merge non-failing pull requests" set to Yes, so
+an entry whose required checks failed cannot merge as part of a later group
+that passed; a minimum group size of 1 with no merge-limit wait, so the
+window after the final read is not lengthened; and each pull request built
+separately (no batching), so every entry has its own commit and its own
+`merge-hold` run. Verify these four settings when the queue is enabled. On
+`merge_group` the workflow and `tools/merge_hold.py` come from the group
+commit, which includes the entries ahead, so a queued pull request ahead can
+change the script that decides a pull request behind it; this is the same
+trust boundary as a pull request changing its own script, and review of
+`tools/merge_hold.py` and `.github/**` remains the control. The behaviour rests on GitHub's merge queue documentation
 and unit tests with a mocked API; it has not yet run against a live queue.
 - Enforced: a hold set, or a release comment removed, before the final read
   blocks every group containing that pull request, including a later group that
   merges the entries ahead with it.
 - Not enforced: a hold set after the final read, while GitHub concludes the job
   and merges the group. The window does not depend on other entries' check
-  durations, but it is not bounded by the project; any merge-limit wait time
-  in the queue ruleset lengthens it. Owners set the label before queueing and
+  durations, but it is not bounded by the project; a merge-limit wait time or
+  a minimum group size above 1 in the queue ruleset would lengthen it, which
+  is why both are preconditions above. Owners set the label before queueing and
   remove a pull request from the queue to apply a late hold.
 - Automatic removal from the queue on a late label (GraphQL
   `dequeuePullRequest` from the `pull_request` run) was not adopted: its
