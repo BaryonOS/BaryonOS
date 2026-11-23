@@ -67,3 +67,24 @@ The baseline at `c208abe4` passed all three S3 cases with raw 33.
 
 The ADR-H05-S3-SYSTEM-20261123 sentence "A rejected wake token exits 0x11 in
 this profile" is now stale. It should read 0x12 (raw 37).
+
+## Independent review
+
+A fresh AI reviewer read `c208abe4..a99b56ed` and approved with minors. It built nothing.
+This is not a human audit.
+
+The lead fixed one finding in this branch: `write_firmware` now loads the extent length
+(Acquire) before the start, so it can never pair a published length with an older start.
+That pairing is latent today, since only one BSP runs with IF=0. After the fix,
+`native-acpi-s3` cycles gives raw 33, stale-token raw 37 and corrupt-facs raw 33.
+
+The lead amends the ADR (0x12) when merging. Open follow-ups, all of which fail closed:
+- Every `resolve()` → `None` plan rejection in `native-acpi-s3` still ends with exit 0x10
+  (raw 33). This covers `corrupt-facs`, `FacsExtent`, `NotNvs`, `Pm1bUnsupported` and
+  `FacsStore:DISARMED`. Each one is still refused by `run_sleep.py`'s exact-tail check.
+- No test fixture covers an unarmed wake with a poisoned `SAVED`, or a store at
+  `facs+length`.
+- The 32-bit wake stage still loads CR3 from the low wake page before `ARMED` is checked.
+
+The network refusal (item 1) is defence in depth. No gate compiles it, because the guard
+forbids `native-system-net` together with `test-system-s3`.

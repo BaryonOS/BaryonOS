@@ -530,9 +530,13 @@ impl Paging {
         input: &[u8],
     ) -> Result<(), kernel_core::Error> {
         let [start, length] = &FIRMWARE_WRITE_EXTENT;
+        // Length first: its Acquire pairs with the recorder's Release, so the
+        // start read after it is the one published with that length.
+        let extent_length = length.load(Ordering::Acquire) as usize;
+        let extent_start = start.load(Ordering::Relaxed);
         if !nieuw_os_acpi_power::store_within_extent(
-            start.load(Ordering::Acquire),
-            length.load(Ordering::Acquire) as usize,
+            extent_start,
+            extent_length,
             address,
             input.len(),
         ) {
