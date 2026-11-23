@@ -103,15 +103,32 @@ impl Service {
     /// every index allocated on restore. The service retains no copy of the
     /// caller's secret. Export binds the live instance to this volume.
     ///
-    /// Export is allowed in write-ahead mode, including while allocations or
-    /// revocations are pending after `Failed` and after the uncertain latch is
-    /// set by `Unknown`. It changes no namespace state and the live state is a
-    /// monotonic superset of every committed snapshot, so such a blob can never
-    /// make an index issuable again. It is, however, live state and not the
-    /// committed state: it must not be treated as, or persisted in place of,
-    /// the durable snapshot, because that is the replay `StoreError::Unknown`
-    /// forbids. Recovery uses a fresh instance restoring the on-disk blob.
+    /// In write-ahead mode export is refused with `NotReady` unless the state
+    /// is settled: while an allocation or revocation is pending after `Failed`
+    /// or after a failed snapshot build, and permanently once `Unknown` has
+    /// set the uncertain latch. Such live state includes indices that no store
+    /// commit has confirmed; a fresh instance restoring it would see no
+    /// pending gate and could seal under them. Once settled, the live
+    /// allocation and revocation state equals the last committed snapshot;
+    /// only the generation can be ahead after a `Failed` re-commit of an
+    /// already-revoked index. Recovery from an uncertain
+    /// instance is a fresh instance restoring the on-disk blob.
     pub fn export_persistent(
+        &mut self,
+        volume: &[u8; 16],
+        secret: &[u8; SECRET_BYTES],
+        source: &mut impl EntropySource,
+        out: &mut [u8; PERSISTENT_BLOB],
+    ) -> Result<SnapshotInfo, Status> {
+        if self.write_ahead && !self.write_ahead_settled() {
+            return Err(Status::NotReady);
+        }
+        self.seal_snapshot(volume, secret, source, out)
+    }
+
+    /// Seal the live state. Only `export_persistent` (settled) and
+    /// `commit_durable` (the blob goes to the store, never to a caller) use it.
+    fn seal_snapshot(
         &mut self,
         volume: &[u8; 16],
         secret: &[u8; SECRET_BYTES],
@@ -269,7 +286,7 @@ impl Service {
     ) -> Result<SnapshotInfo, WriteAheadError> {
         let mut blob = [0u8; PERSISTENT_BLOB];
         let info = self
-            .export_persistent(volume, secret, source, &mut blob)
+            .seal_snapshot(volume, secret, source, &mut blob)
             .map_err(WriteAheadError::Key)?;
         match store.commit(info.generation, &blob) {
             Ok(()) => {

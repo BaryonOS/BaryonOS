@@ -442,6 +442,73 @@ fn recovery_export_is_refused_while_write_ahead_state_is_pending() {
     );
 }
 
+/// A live snapshot with a pending index, restored into a fresh instance, would
+/// lose the pending gate and let that index seal without any store commit.
+#[test]
+fn persistent_export_is_refused_while_write_ahead_state_is_unsettled() {
+    let export = |s: &mut Service, e: &mut Entropy| {
+        let mut out = [0x5au8; PERSISTENT_BLOB];
+        let result = s.export_persistent(&VOLUME, &SECRET, e, &mut out);
+        if result.is_err() {
+            assert_eq!(out, [0x5au8; PERSISTENT_BLOB], "refused export wrote");
+        }
+        result.map(|info| (info, out))
+    };
+
+    // Failed allocation: index 0 is pending and must not leave as a blob.
+    let (mut s, mut e) = ready(0x6868);
+    let mut store = Store::new();
+    store.mode = Mode::Fail;
+    assert_eq!(
+        generate(&mut s, &mut store, &mut e),
+        Err(WriteAheadError::Failed)
+    );
+    assert_eq!(export(&mut s, &mut e), Err(Status::NotReady));
+    assert_eq!(seal(&mut s, 0, &mut e), Err(Status::NotReady));
+
+    // After a successful commit the export equals the durable state.
+    store.mode = Mode::Ok;
+    assert_eq!(generate(&mut s, &mut store, &mut e), Ok(1));
+    let (info, blob) = export(&mut s, &mut e).unwrap();
+    let (_, _, durable) = reopen(&store);
+    assert_eq!(info, durable);
+    let (mut fresh, mut fe) = ready(0x6869);
+    let restored = fresh
+        .restore_persistent(&VOLUME, &SECRET, &blob, 0, &mut fe)
+        .unwrap();
+    assert_eq!(restored, durable);
+    assert!(seal(&mut fresh, 1, &mut fe).is_ok());
+
+    // Failed revocation: pending until a retry commits it.
+    let (mut s, mut e, mut store, _) = committed_base();
+    store.mode = Mode::Fail;
+    assert_eq!(
+        revoke(&mut s, 0, &mut store, &mut e),
+        Err(WriteAheadError::Failed)
+    );
+    assert_eq!(export(&mut s, &mut e), Err(Status::NotReady));
+    store.mode = Mode::Ok;
+    assert_eq!(revoke(&mut s, 0, &mut store, &mut e), Ok(()));
+    let (info, _) = export(&mut s, &mut e).unwrap();
+    assert_eq!(info.revoked[0] & 1, 1);
+
+    // Unknown latches the refusal permanently.
+    let (mut s, mut e, mut store, _) = committed_base();
+    store.mode = Mode::UnknownLost;
+    assert_eq!(
+        generate(&mut s, &mut store, &mut e),
+        Err(WriteAheadError::Unknown)
+    );
+    store.mode = Mode::Ok;
+    for _ in 0..2 {
+        assert_eq!(export(&mut s, &mut e), Err(Status::NotReady));
+        assert_eq!(
+            generate(&mut s, &mut store, &mut e),
+            Err(WriteAheadError::Unknown)
+        );
+    }
+}
+
 fn unknown_latches(mode: Mode) -> Store {
     let (mut s, mut e, mut store, _) = committed_base();
     store.mode = mode;
