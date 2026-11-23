@@ -6,9 +6,9 @@
     "source_commit": "5baafc33f53991da3202f624e7daa4ee7e324388",
     "assessment_basis": "parent_commit",
     "branch": "claude/h-track-20261123",
-    "task": "H05-T5a native post-wake device-loss refusal (test-system-s3)",
+    "task": "H03-T4 native Bochs DISPI mode-set fixture (PR #417) and #409 review documentation follow-ups",
     "previous_score": 41,
-    "summary": "41/100 unchanged. H05-T5a proves natively that init's entropy (0x60) and block (0x40) requests after the S3 wake return -14 before any authority, ring or device access (power gate 8/8, docs/verification/h05-s3-wake-refusal-20261123/). H05 stays open: physical sleep/wake, device re-initialisation after a wake and the OD-HW-* owner decisions are outstanding; no criterion changes."
+    "summary": "41/100 unchanged. H03-T4 sets four allowlisted display modes natively through Bochs DISPI on QEMU stdvga with register readback and pixel-exact screendumps, and refuses other display devices fail-closed (PR #417, docs/verification/h03-dispi-modeset-20261123/). H03 stays open: physical GPUs, EDID, compositor integration and hosted evidence are outstanding; no criterion changes."
   },
   "tracks": [
     {

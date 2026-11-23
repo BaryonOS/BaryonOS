@@ -2010,6 +2010,45 @@
       "next": "H03-T3b: ring-3 audio broker and AUDIO capability once B1, B2 and B4 are decided by the project owner."
     },
     {
+      "id": "H03-T4",
+      "criterion": "H03",
+      "milestone": "M9",
+      "executor": "lead",
+      "status": "verified",
+      "title": "Native Bochs DISPI mode-set fixture with pixel-exact screendump oracle (QEMU stdvga, IF0)",
+      "goal": "Bind exactly one 1234:1111 display, prove BAR0 equals the GOP base and decode is enabled, set four allowlisted 32-bpp modes through DISPI with full register readback, draw a bounded pattern inside the GOP mapping, and verify every mode pixel-exactly; refuse any other display device fail-closed.",
+      "deps": [],
+      "write_paths": [
+        "kernel/src/dispi.rs",
+        "kernel/src/framebuffer.rs",
+        "kernel/src/main.rs",
+        "kernel/src/m2.rs",
+        "kernel/Cargo.toml",
+        "tools/build.py",
+        "tools/run_dispi.py",
+        "tools/tests/test_dispi.py",
+        "docs/implementation/NATIVE-DISPI-MODESET.md",
+        "docs/verification/h03-dispi-modeset-20261123/"
+      ],
+      "checks": [
+        "python3 -B tools/build.py --kernel-feature native-dispi-probe && python3 -B tools/run_dispi.py --case positive",
+        "python3 -B tools/run_dispi.py --case negative",
+        "python3 -B -m unittest tools.tests.test_dispi"
+      ],
+      "evidence_level": "native QEMU/TCG (local QEMU 10.2.1, pc-q35-8.2); hosted step pending an integration request",
+      "non_claimable": "Physical GPUs, EDID, 1920x1080, ring-3 mode changes, compositor integration, refusal paths other than DEVICE natively, and H03 acceptance stay open.",
+      "source_commit": "91bd4135",
+      "pr": 417,
+      "history": [
+        {
+          "event": "verified",
+          "at": "2026-11-23",
+          "reason": "positive raw 33 with 4/4 pixel-exact screendumps and negative raw 35 on 91bd4135; smoke/display-probe/graphics regressions raw 33; test_dispi 12; independent AI review: no blocking/major, minors 1-3 fixed in 91bd4135."
+        }
+      ],
+      "next": "Hosted native-display-input.yml step via integration request; then a ring-3 mode-change contract or physical GOP/EDID evidence."
+    },
+    {
       "id": "H04-T3",
       "criterion": "H04",
       "milestone": "M9",

@@ -1,5 +1,29 @@
 # Current project status
 
+## NEXT AGENT HANDOFF — H-track lead: Bochs DISPI mode-set fixture (H03-T4) and #409 review follow-ups — 23 November 2026
+
+**Delivered (H03-T4, verified, not accepted):** draft PR #417 (`claude/h03-dispi-20261123`,
+head `009af7ad`, from `main` `035b44e5`). Profile `native-dispi-probe` binds exactly one
+1234:1111 display, checks that BAR0 (masked) equals the GOP base and that memory decode is
+enabled, sets four allowlisted 32-bpp modes through DISPI with full register readback, and
+verifies each mode pixel-exactly against a QEMU screendump; any other display device is
+refused fail-closed. [Evidence](verification/h03-dispi-modeset-20261123/README.md):
+positive raw 33, negative raw 35 (local QEMU 10.2.1, pc-q35-8.2, TCG). An independent AI
+review found no blocking or major findings; minors were fixed in `91bd4135`. The hosted
+`native-display-input.yml` step is queued with the integration manager, after #410 and #409.
+**#409 integration-review documentation items:** item 5 — the extended FACS vector policy is
+documented as QEMU/OVMF-only (ADR-H05-S3-WAKE-20261119, Decision item 3). Item 7 — the retired
+generation-1 DMA pages that stay mapped in the VT-d domain are documented as a fixture-only
+pattern (NATIVE-USB-HID.md, reattach step 7). Item 8 — the raw artifacts of
+`docs/verification/h05-s3-system-20261123/` are produced by the hosted `native-power.yml`
+job; the committed README summarises them and does not replace them.
+**In flight:** H05-T5b (virtio-rng re-initialisation after the wake), H05-T6 (#409 review
+items 1–4), H03-T3c (virtio-snd hardening), H-CR415 (CodeRabbit tooling findings on #415).
+**Next:** review and integrate each builder; then the queued items (APP-caller 0x91 negative,
+remaining CodeRabbit findings) and H02 mouse reattach. #415 is retargeted to `main` by this
+session after #409 merges.
+**Score:** 41 → 41/100 (no criterion changes; H03 and H05 need further native and physical evidence).
+
 ## NEXT AGENT HANDOFF — H-track lead: post-wake device-loss refusal (H05-T5a) — 23 November 2026
 
 **Mandate:** project-owner H-track pipeline instruction of 23 November 2026. PR #409

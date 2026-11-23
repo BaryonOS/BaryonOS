@@ -153,6 +153,13 @@ including after a failed or uncertain hardware transition.
    denied. The two retired canaries (`USB:RETIRED:UNCHANGED`) and the guard
    must be unchanged. All pages remain retained until the VM exits.
 
+**Fixture-only pattern.** The retired generation-1 read/write pages stay
+mapped in the VT-d domain until the VM exits; only the canaries prove they
+were not written after retirement. This is acceptable for this fixture, not as
+a production reattach pattern: a product driver must unmap or reassign retired
+DMA pages and invalidate the IOTLB before reuse (integration review of #409,
+23 November 2026).
+
 Every PORTSC write preserves PP and writes only write-1-to-clear change bits
 or PR; PED=1 is never written. Interrupts remain masked. A connect event
 during the report phase fails closed in this profile, whereas the earlier
