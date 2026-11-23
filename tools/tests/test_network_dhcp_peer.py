@@ -39,8 +39,10 @@ def arp(sender_ip, target_ip, destination=BROADCAST_MAC):
             + CLIENT_MAC + sender_ip + b"\0" * 6 + target_ip).ljust(60, b"\0")
 
 
-def tcp(address, source, target, seq, ack, flags, payload=b""):
-    segment = struct.pack("!HHIIBBHHH", source, target, seq & MASK, ack & MASK, 5 << 4, flags, 4096, 0, 0) + payload
+def tcp(address, source, target, seq, ack, flags, payload=b"", tcp_opts=b""):
+    words = 5 + len(tcp_opts) // 4
+    segment = (struct.pack("!HHIIBBHHH", source, target, seq & MASK, ack & MASK, words << 4, flags, 4096, 0, 0)
+               + tcp_opts + payload)
     value = checksum(address + PEER_IP + struct.pack("!BBH", 0, 6, len(segment)) + segment)
     segment = segment[:16] + struct.pack("!H", value) + segment[18:]
     ip = ipv4_header(address, PEER_IP, 6, len(segment), 7)
@@ -166,6 +168,19 @@ class DhcpPeerTest(unittest.TestCase):
         # An ACKed early renewal means the NAK was not tested on the first renewal.
         self.assertEqual(step.machine.counts["early_renewal_acks"], 1)
         self.assertFalse(step.evidence()["complete"])
+
+    def test_illegal_tcp_option_lengths_are_refused(self):
+        for bad, reason in ((bytes((2, 0, 0, 0)), "option length"), (bytes((2, 1, 0, 0)), "option length"),
+                            (bytes((2, 3, 5, 0)), "MSS"), (bytes((2, 4, 0, 0)), "MSS"),
+                            (bytes((3, 5, 1, 1)), "option length"), (bytes((0, 0, 0, 1)), "padding")):
+            step = Recorder()
+            acquire(step, 0, 1, announcements=2)
+            with self.assertRaisesRegex(ProtocolError, reason):
+                step(tcp(LEASES[0], 40000, 8080, 1000 * 8080, 0, SYN, tcp_opts=bad))
+        for good in (bytes((2, 4, 5, 0xb4)), bytes((1, 1, 1, 0)), b""):
+            step = Recorder()
+            acquire(step, 0, 1, announcements=2)
+            self.assertEqual(len(step(tcp(LEASES[0], 40000, 8080, 1000 * 8080, 0, SYN, tcp_opts=good))), 1)
 
     def test_frames_from_withdrawn_address_are_refused(self):
         for late in (tcp(LEASES[0], 40002, 8081, 6, 0, ACK), arp(LEASES[0], PEER_IP),

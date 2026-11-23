@@ -133,7 +133,27 @@ def tcp_segment(frame, client_ip):
     if (offset & 15 or not 20 <= size <= min(60, len(tcp)) or flags & ~31 or urgent
             or len(tcp) - size > 1024 or checksum(client_ip + PEER_IP + struct.pack("!BBH", 0, 6, len(tcp)) + tcp)):
         raise ProtocolError("TCP checksum, flags or bounds")
+    tcp_options(tcp[20:size])
     return _wire.Segment(source, target, seq, ack, flags, window, tcp[20:size], tcp[size:])
+
+
+def tcp_options(options):
+    """RFC 9293 option lengths, as the N01 peer enforces them; EOL padding must be zero."""
+    at = 0
+    while at < len(options):
+        kind = options[at]
+        if kind == 0:
+            if any(options[at + 1:]):
+                raise ProtocolError("noncanonical TCP option padding")
+            return
+        if kind == 1:
+            at += 1
+            continue
+        if at + 2 > len(options) or options[at + 1] < 2 or at + options[at + 1] > len(options):
+            raise ProtocolError("illegal TCP option length")
+        if kind == 2 and (options[at + 1] != 4 or options[at + 2:at + 4] == b"\0\0"):
+            raise ProtocolError("invalid MSS option")
+        at += options[at + 1]
 
 
 @dataclass
