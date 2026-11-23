@@ -8,12 +8,19 @@ are read live through the REST API, so event ordering and re-runs cannot
 replay a stale decision. A new push changes the head SHA and re-arms the hold
 automatically. Any API or input error fails closed. See ADR-MERGE-HOLD-20261113.
 
-On a `merge_group` event the check first waits until the other required checks
-(`host-quality`, `qemu-smoke`) have completed on the group commit, so labels and
-comments are read as late as possible: a hold added while the queue is still
-testing the group is seen. It then evaluates every pull request whose changes
-the merge-queue commit contains: the queue entry whose commit is the group head
-plus every entry ahead of it. Each must pass the same decision for its own head
+On a `merge_group` event the check decides as late as it can. It first waits
+until the other required checks (`host-quality`, `qemu-smoke`) have completed on
+the group commit, then until the nearest queue entry ahead has left the queue or
+completed `host-quality`, `qemu-smoke` and `merge-hold` on its own commit. That
+entry's `merge-hold` waited the same way, so every entry ahead has finished. The
+queue merges in order, so this group can merge only after those entries; labels
+and comments are therefore read close to this group's merge, not when its own
+checks end. A hold added after that final read, until GitHub merges the group,
+is not seen (ADR-MERGE-HOLD-20261113). The 45-minute deadline covers the group's
+own checks and the whole chain ahead, each position adding up to one poll.
+It then evaluates every pull request whose changes the merge-queue commit
+contains: the queue entry whose commit is the group head plus every entry ahead
+of it. Each must pass the same decision for its own head
 SHA. A released hold additionally requires the tree of that pull request's own
 queue entry commit (the commit `main` moves to when it merges) to equal the
 released head tree, so acceptance never carries over to a tree it did not run on.
@@ -35,6 +42,9 @@ API = "https://api.github.com"
 # Required checks merge-hold waits for on merge_group (ci.yml job names, run by
 # GitHub Actions, app id 15368). The wait budget stays below the job timeout.
 WAIT_CHECKS = ("host-quality", "qemu-smoke")
+# An entry ahead has finished once these ran on its own commit; "merge-hold" is
+# this check (merge-hold.yml job name), which waited for the entries ahead of it.
+AHEAD_CHECKS = WAIT_CHECKS + ("merge-hold",)
 ACTIONS_APP_ID = 15368
 POLL_SECONDS = 60
 WAIT_SECONDS = 45 * 60
@@ -116,11 +126,13 @@ def pull_request_hold(token, repo, number, head_sha):
     return passed, message, labels
 
 
-def group_members(token, repo, head_ref, head_sha):
-    """Return the open queue entries whose changes the group commit contains."""
-    match = QUEUE_REF.fullmatch(head_ref)
-    if not match or not SHA.fullmatch(head_sha):
-        raise ValueError(f"unexpected merge group ref {head_ref!r} or SHA {head_sha!r}")
+def commit_oid(node):
+    """The entry's commit SHA, or None while it has no commit (nullable in GraphQL)."""
+    return (node.get("headCommit") or {}).get("oid")
+
+
+def queue_nodes(token, repo):
+    """Read every entry of the main merge queue live; raise on any doubt."""
     owner, name = repo.split("/")
     answer = call(token, API + "/graphql",
                   {"query": QUEUE_QUERY, "variables": {"owner": owner, "name": name}})
@@ -129,19 +141,37 @@ def group_members(token, repo, head_ref, head_sha):
     entries = answer["data"]["repository"]["mergeQueue"]["entries"]
     if entries["pageInfo"]["hasNextPage"]:
         raise ValueError("merge queue has more entries than one page")
-    nodes = entries["nodes"]
-    own = [node for node in nodes if node["headCommit"]["oid"] == head_sha]
-    if len(own) != 1 or own[0]["pullRequest"]["number"] != int(match.group(1)):
-        raise ValueError(f"no single queue entry matches {head_ref} at {head_sha}")
+    return entries["nodes"]
+
+
+def own_position(nodes, head_sha):
+    """Position of the single entry whose commit is head_sha (other entries may be unbuilt)."""
+    own = [node for node in nodes if commit_oid(node) == head_sha]
+    if len(own) != 1:
+        raise ValueError(f"no single queue entry has commit {head_sha}")
     position = own[0]["position"]
     if not isinstance(position, int):
         raise TypeError("queue position is not an integer")
+    return own[0], position
+
+
+def group_members(token, repo, head_ref, head_sha):
+    """Return the open queue entries whose changes the group commit contains."""
+    match = QUEUE_REF.fullmatch(head_ref)
+    if not match or not SHA.fullmatch(head_sha):
+        raise ValueError(f"unexpected merge group ref {head_ref!r} or SHA {head_sha!r}")
+    nodes = queue_nodes(token, repo)
+    own, position = own_position(nodes, head_sha)
+    if (own.get("pullRequest") or {}).get("number") != int(match.group(1)):
+        raise ValueError(f"no single queue entry matches {head_ref} at {head_sha}")
     members = [node for node in nodes if node["position"] <= position]
     for node in members:
-        pull = node["pullRequest"]
+        pull = node.get("pullRequest")
+        if not pull:
+            raise ValueError(f"queue entry at position {node['position']} has no pull request")
         if pull["state"] != "OPEN" or pull["baseRefName"] != "main":
             raise ValueError(f"queued pull request #{pull['number']} is not an open PR to main")
-        if not SHA.fullmatch(node["headCommit"]["oid"] or ""):
+        if not SHA.fullmatch(commit_oid(node) or ""):
             raise ValueError(f"queue entry for #{pull['number']} has no commit")
     return members
 
@@ -150,25 +180,57 @@ def tree(token, repo, sha):
     return call(token, f"{API}/repos/{repo}/git/commits/{sha}")["tree"]["sha"]
 
 
-def wait_for_checks(token, repo, sha):
-    """Block until every WAIT_CHECKS run on sha has completed; raise at the deadline.
-
-    Only the timing depends on this: the decision afterwards reads labels and
-    comments live and fails closed. An absent check run counts as not done, and
-    API errors are retried, because waiting longer never weakens the hold.
-    """
+def unfinished(token, repo, sha, names):
+    """Names of the check runs on sha that have not completed (absent counts as not done)."""
     # shortcut: one page of 100 check runs; a commit with more runs waits until
     # the deadline and fails closed. Page through if the workflows ever grow that far.
     url = (f"{API}/repos/{repo}/commits/{sha}/check-runs"
            f"?app_id={ACTIONS_APP_ID}&filter=latest&per_page=100")
+    runs = call(token, url)["check_runs"]
+    done = {run["name"] for run in runs if run["status"] == "completed"}
+    return [f"{name} on {sha}" for name in names if name not in done]
+
+
+def still_running(token, repo, sha):
+    """What this group still waits for: its own checks, then the nearest entry ahead.
+
+    Only the nearest entry ahead is polled: its own merge-hold completes only
+    after the entry ahead of it finished, so the wait covers the whole queue
+    ahead while each run makes two REST requests (plus one GraphQL query) per
+    poll. "The rate limit for GITHUB_TOKEN is 1,000 requests per hour per
+    repository" (https://docs.github.com/en/rest/using-the-rest-api/rate-limits-for-the-rest-api),
+    so about eight concurrent groups fit; beyond that reads fail, are retried
+    and, at the deadline, fail closed.
+    """
+    pending = unfinished(token, repo, sha, WAIT_CHECKS)
+    if pending:
+        return pending
+    nodes = queue_nodes(token, repo)
+    _, position = own_position(nodes, sha)
+    ahead = [node for node in nodes if node["position"] < position]
+    if not ahead:
+        return []
+    nearest = max(ahead, key=lambda node: node["position"])
+    oid = commit_oid(nearest)
+    if not SHA.fullmatch(oid or ""):
+        return [f"queue entry at position {nearest['position']} has no commit yet"]
+    return unfinished(token, repo, oid, AHEAD_CHECKS)
+
+
+def wait_for_checks(token, repo, sha):
+    """Block until this group's checks and the entries ahead have finished; raise at the deadline.
+
+    Only the timing depends on this: the decision afterwards reads the queue,
+    labels and comments live and fails closed. API errors and unbuilt entries
+    are retried, because waiting longer never weakens the hold. An entry ahead
+    that leaves the queue (merged or removed) no longer counts.
+    """
     deadline = time.monotonic() + WAIT_SECONDS
     while True:
         try:
-            runs = call(token, url)["check_runs"]
-            done = {run["name"] for run in runs if run["status"] == "completed"}
-            pending = [name for name in WAIT_CHECKS if name not in done]
-        except (KeyError, ValueError, TypeError, AttributeError, OSError) as exc:
-            pending = [f"check-run read failed: {exc}"]
+            pending = still_running(token, repo, sha)
+        except (KeyError, IndexError, ValueError, TypeError, AttributeError, OSError) as exc:
+            pending = [f"queue or check-run read failed: {exc}"]
         if not pending:
             return
         if time.monotonic() >= deadline:
@@ -184,7 +246,8 @@ def merge_group_hold(token, repo):
     head_ref = os.environ["MERGE_GROUP_HEAD_REF"]
     if not QUEUE_REF.fullmatch(head_ref) or not SHA.fullmatch(head_sha):
         raise ValueError(f"unexpected merge group ref {head_ref!r} or SHA {head_sha!r}")
-    # Decide last: labels and comments are read only after the slow checks finish.
+    # Decide last: labels and comments are read only after this group's checks
+    # and every entry ahead (which merge first) have finished.
     wait_for_checks(token, repo, head_sha)
     members = group_members(token, repo, head_ref, head_sha)
     ok, lines = True, []

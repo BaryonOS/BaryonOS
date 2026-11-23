@@ -1018,8 +1018,34 @@ Status: accepted, 13 November 2026, on the project owner's instruction after
   contract test pins the trigger, the permissions and the absence of `if`,
   `defaults` and filters.
 
+**Amendment, 23 November 2026 (merge queue preparation, not yet enabled):**
+`merge-hold` and the required `ci.yml` checks also run on `merge_group`. The
+merge-group run evaluates the group's pull request and every entry ahead of it,
+each on its own head SHA; a released hold also requires that entry's queue
+commit to land the released tree. It decides last: it waits until the group's
+`host-quality` and `qemu-smoke` have completed and the nearest entry ahead has
+left the queue or completed `host-quality`, `qemu-smoke` and `merge-hold` on its
+own commit (that `merge-hold` waited the same way, so the whole queue ahead has
+finished). Queue entries without a commit or pull request behind the group are
+ignored; ahead of it they keep the run waiting and fail closed at the
+45-minute deadline.
+- Enforced: a hold set, or a release comment removed, before the final read
+  blocks every group containing that pull request, including a later group that
+  merges the entries ahead with it.
+- Not enforced: a hold set after the final read, while GitHub concludes the job
+  and merges the group. The window does not depend on other entries' check
+  durations, but it is not bounded by the project; any merge-limit wait time
+  in the queue ruleset lengthens it. Owners set the label before queueing and
+  remove a pull request from the queue to apply a late hold.
+- Automatic removal from the queue on a late label (GraphQL
+  `dequeuePullRequest` from the `pull_request` run) was not adopted: the
+  required token permission is not documented, it would give a write token to
+  a job that runs the pull request's own script, it cannot act for fork pull
+  requests, and it races the merge on runner start-up latency. It needs a
+  separate owner decision.
+
 **Revise when:** a reliable, always-reporting aggregate of out-of-band
-acceptance becomes available, or the merge queue is adopted.
+acceptance becomes available, or the merge queue is enabled.
 
 ## ADR-WINDOW-SCALE2-DEADLINE-20261112 — Per-scale harness deadline for the native window gate
 

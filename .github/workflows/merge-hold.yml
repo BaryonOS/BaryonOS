@@ -3,10 +3,12 @@
 # participant commented `acceptance-released: <head SHA>` for the current head
 # commit. A new push changes the SHA and re-arms the hold. Labels and comments
 # are read live (tools/merge_hold.py). On merge_group it first waits for
-# host-quality and qemu-smoke to complete on the queue commit, so a hold added
-# while the group is still testing is seen, then checks every pull request in
-# the queue commit and fails closed if they cannot be identified.
-# See ADR-MERGE-HOLD-20261113.
+# host-quality and qemu-smoke to complete on the queue commit, then until the
+# entry ahead has left the queue or finished host-quality, qemu-smoke and
+# merge-hold on its own commit, so it decides just before the group can merge.
+# It then checks every pull request in the queue commit and fails closed if
+# they cannot be identified or the 45-minute wait expires. A hold added after
+# that final read is not seen. See ADR-MERGE-HOLD-20261113.
 name: Merge hold
 
 on:
