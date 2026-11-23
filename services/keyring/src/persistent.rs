@@ -239,7 +239,7 @@ impl Service {
     }
 
     /// Write-ahead mode with nothing pending: the last commit returned `Ok`.
-    fn write_ahead_settled(&self) -> bool {
+    pub(crate) fn write_ahead_settled(&self) -> bool {
         self.write_ahead
             && !self.uncertain
             && self.pending.iter().all(|&bits| bits == 0)

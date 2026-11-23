@@ -394,6 +394,54 @@ fn failed_generate_consumes_index_without_ciphertext() {
     assert_eq!(info.revoked[0], 0);
 }
 
+#[test]
+fn recovery_export_is_refused_while_write_ahead_state_is_pending() {
+    let (mut s, mut e) = ready(0x6767);
+    let mut store = Store::new();
+    store.mode = Mode::Fail;
+    assert_eq!(
+        generate(&mut s, &mut store, &mut e),
+        Err(WriteAheadError::Failed)
+    );
+    let mut secret = [0x11u8; SECRET_BYTES];
+    let mut blob = [0x22u8; RECOVERY_BLOB];
+    assert_eq!(
+        s.export_recovery(&mut e, &mut secret, &mut blob),
+        Err(Status::NotReady),
+        "pending allocation must not leave through recovery"
+    );
+    assert_eq!(
+        secret, [0x11u8; SECRET_BYTES],
+        "refused export must not write"
+    );
+    assert_eq!(
+        blob, [0x22u8; RECOVERY_BLOB],
+        "refused export must not write"
+    );
+
+    // Once a later commit settles the state, export and restore work again
+    // and the formerly pending index is only usable because it is durable.
+    store.mode = Mode::Ok;
+    assert_eq!(generate(&mut s, &mut store, &mut e), Ok(1));
+    s.export_recovery(&mut e, &mut secret, &mut blob).unwrap();
+    let (mut fresh, mut fe) = ready(0x6768);
+    fresh.restore(&secret, &blob, &mut fe).unwrap();
+    assert!(seal(&mut fresh, 1, &mut fe).is_ok());
+
+    // An uncertain commit also blocks export.
+    let (mut u, mut ue) = ready(0x6769);
+    let mut lost = Store::new();
+    lost.mode = Mode::UnknownLost;
+    assert_eq!(
+        generate(&mut u, &mut lost, &mut ue),
+        Err(WriteAheadError::Unknown)
+    );
+    assert_eq!(
+        u.export_recovery(&mut ue, &mut secret, &mut blob),
+        Err(Status::NotReady)
+    );
+}
+
 fn unknown_latches(mode: Mode) -> Store {
     let (mut s, mut e, mut store, _) = committed_base();
     store.mode = mode;

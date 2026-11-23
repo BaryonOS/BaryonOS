@@ -503,6 +503,13 @@ impl Service {
         secret: &mut [u8; SECRET_BYTES],
         blob: &mut [u8; RECOVERY_BLOB],
     ) -> Result<(), Status> {
+        // A restore marks every index allocated, so exporting while a
+        // write-ahead allocation or revocation is pending, or after an
+        // `Unknown` commit, would let a fresh instance use state that was
+        // never durably committed.
+        if self.write_ahead && !self.write_ahead_settled() {
+            return Err(Status::NotReady);
+        }
         self.account(source)?;
         let drbg = self.drbg.as_mut().ok_or(Status::NotReady)?;
         drbg.fill(secret);
