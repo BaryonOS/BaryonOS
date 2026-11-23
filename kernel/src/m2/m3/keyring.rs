@@ -509,12 +509,22 @@ pub fn syscall(s: &mut State, slot: usize, n: u64, a: [u64; 6]) -> (i64, u64) {
     result
 }
 
+/// 0x60 request length: 1..=MAX_REQUEST bytes.
+fn valid_length(length: u64) -> bool {
+    length != 0 && length <= u64::from(MAX_REQUEST)
+}
+
 fn call(s: &mut State, slot: usize, n: u64, a: [u64; 6]) -> Result<u64, i64> {
     let pid = s.processes[slot].pid;
     match n {
         0x60 => {
             if a[2..].iter().any(|x| *x != 0) {
                 return Err(-1);
+            }
+            // After the wake the length keeps its -11 without an authority
+            // check; before the wake it runs after authority, unchanged.
+            if !valid_length(a[1]) && device_lost() {
+                return Err(-11);
             }
             // ADR-H05-S3-SYSTEM-20261123: the wake reset the device. Refused
             // before authority, ring or counter: no binding, no `denied` count.
@@ -529,7 +539,7 @@ fn call(s: &mut State, slot: usize, n: u64, a: [u64; 6]) -> Result<u64, i64> {
                     return Err(error);
                 }
             };
-            if a[1] == 0 || a[1] > u64::from(MAX_REQUEST) {
+            if !valid_length(a[1]) {
                 return Err(-11);
             }
             reclaim_completed(s.ticks);
