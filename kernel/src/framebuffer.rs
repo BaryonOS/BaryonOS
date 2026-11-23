@@ -111,3 +111,47 @@ pub fn validate_pixels(x: u32, y: u32, pixels: &[u32]) -> Result<(), ()> {
     }
     pixel_span(&framebuffer(), x, y, pixels).map(|_| ())
 }
+
+/// H03 DISPI: bytes of a live linear 32-bpp mode with stride == width. The
+/// extent must fit both the GOP descriptor and the existing GOP mapping, so a
+/// mode change never needs or creates another page-table entry.
+#[cfg(feature = "native-dispi-probe")]
+pub(crate) fn mode_extent(f: &FramebufferInfo, width: u32, height: u32) -> Result<u64, ()> {
+    let mapped = f.mapped_len().map_err(|_| ())?;
+    if width == 0 || height == 0 {
+        return Err(());
+    }
+    // Two u32 factors times 4 cannot overflow u64.
+    let extent = u64::from(width) * u64::from(height) * 4;
+    if extent > mapped || extent > f.byte_len {
+        return Err(());
+    }
+    Ok(extent)
+}
+
+/// H03 DISPI: fill a whole live mode from a pure colour function. The extent
+/// is validated once before the first store; every store stays below it.
+#[cfg(feature = "native-dispi-probe")]
+pub fn fill_mode(width: u32, height: u32, color: impl Fn(u32, u32) -> u32) -> Result<(), ()> {
+    if !FRAMEBUFFER_MAPPED.load(Ordering::Acquire) {
+        return Err(());
+    }
+    let extent = mode_extent(&framebuffer(), width, height)?;
+    for y in 0..height {
+        for x in 0..width {
+            let offset = (u64::from(y) * u64::from(width) + u64::from(x)) * 4;
+            if offset + 4 > extent {
+                return Err(());
+            }
+            // SAFETY: map() published readiness after installing the audited
+            // supervisor-RW/NX/UC GOP mapping of mapped_len bytes; mode_extent
+            // bounded offset+4 by that length and by byte_len. The window is
+            // 4-byte aligned; one IF0 CPU owns these synchronous MMIO stores.
+            unsafe {
+                ((FRAMEBUFFER_WINDOW + offset) as *mut u32)
+                    .write_volatile(color(x, y) & 0x00ff_ffff);
+            }
+        }
+    }
+    Ok(())
+}
