@@ -4,6 +4,7 @@ import re
 import unittest
 import subprocess
 import sys
+from unittest import mock
 from unittest.mock import Mock
 import run_window_session as window
 
@@ -59,6 +60,35 @@ class WindowRunnerTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "ordered switcher input marker"):
             window.switcher_key_edge(control, move, lambda: dict(state), "alt", True, 1)
         control.command.assert_not_called()
+
+    def test_phase_latency_restarts_at_every_injected_input_not_only_key_chords(self):
+        # Regression: pointer, button and shell input left a stale key() start.
+        control = object.__new__(window.InputTimedQmp)
+        clock = iter(range(1, 100))
+        with mock.patch.object(window.QmpPipe, "command", return_value={}) as sent, \
+             mock.patch.object(window.time, "monotonic", lambda: next(clock)):
+            control.command("send-key", {"keys": [{"type": "qcode", "data": "a"}], "hold-time": 1})
+            self.assertEqual(control.last_input, (1, "key"))
+            for events, kind in (
+                    ([{"type": "rel", "data": {"axis": "x", "value": 5}}], "pointer"),
+                    ([{"type": "btn", "data": {"down": True, "button": "left"}}], "button"),
+                    ([{"type": "key", "data": {"down": True, "key": {"type": "qcode", "data": "f7"}}}], "key"),
+                    ([{"type": "rel", "data": {"axis": "x", "value": 1}},
+                      {"type": "btn", "data": {"down": False, "button": "left"}}], "mixed")):
+                stamp = control.last_input[0]
+                control.command("input-send-event", {"events": events})
+                self.assertEqual(control.last_input[1], kind)
+                self.assertGreater(control.last_input[0], stamp)
+            last = control.last_input
+            control.command("screendump", {"filename": "x.ppm"})
+            control.command("quit")
+            self.assertEqual(control.last_input, last)
+        self.assertEqual(sent.call_count, 7)
+
+    def test_runner_uses_the_input_timed_qmp_for_phase_latency(self):
+        source = Path(window.__file__).read_text(encoding="utf-8")
+        self.assertIn("control = InputTimedQmp(process, deadline)", source)
+        self.assertNotIn("action_started[0] = ", source)
 
     def test_switcher_work_capture_requires_two_identical_full_images(self):
         matches = window.consecutive_image_matcher()
