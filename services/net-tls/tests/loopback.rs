@@ -1,0 +1,935 @@
+//! N03-T2 host loopback handshake: HOST EVIDENCE ONLY, not a native TLS port.
+//!
+//! Both peers are rustls 0.23.46 with the aws-lc-rs provider as a host-only test
+//! oracle (dev-dependency; owner decision 2026-11-23). The project's own
+//! `KeyServiceRandom` (over a synthetic Key-Service transport) is the rustls
+//! `SecureRandom` of the profile side, and `CertificateClock` is exercised as the
+//! rustls `TimeProvider` negative. aws-lc's own KEM/signing randomness does NOT
+//! pass through `KeyServiceRandom`; that route stays an open N03 blocker.
+//!
+//! Profile (ADR-028): TLS 1.3 only, X25519MLKEM768 only, TLS13_AES_256_GCM_SHA384
+//! only, fixed ALPN, mutual exact certificate + SPKI pinning, no resumption,
+//! tickets, 0-RTT or half-RTT data, no classical fallback. The profile and pin
+//! verifier live in this test because `src/` does not yet provide them.
+//!
+//! Credentials: TEST-ONLY Ed25519 keys and self-signed certificates generated at
+//! runtime by rcgen; nothing is committed, no trust root is created. Certificate
+//! validity periods are NOT checked: no trusted certificate-time authority exists,
+//! so positive runs use a fixed test `TimeProvider` (harness assumption).
+
+use core::num::NonZeroU64;
+use nieuw_os_keyring_random_client::{Session, Transport};
+use nieuw_os_net_tls::random::{KeyServiceRandom, MonotonicClock};
+use nieuw_os_net_tls::time::CertificateClock;
+use nieuw_os_sdk_runtime::{
+    Error as RuntimeError, Handle, Outgoing, ReceiveEndpoint, Received, SendEndpoint,
+};
+use rcgen::{CertificateParams, KeyPair, PublicKeyData, PKCS_ED25519};
+use rustls::client::danger::{HandshakeSignatureValid, ServerCertVerified, ServerCertVerifier};
+use rustls::crypto::aws_lc_rs::{cipher_suite, default_provider, kx_group};
+use rustls::crypto::{
+    verify_tls13_signature, CryptoProvider, SupportedKxGroup, WebPkiSupportedAlgorithms,
+};
+use rustls::pki_types::{CertificateDer, PrivatePkcs8KeyDer, ServerName, UnixTime};
+use rustls::server::danger::{ClientCertVerified, ClientCertVerifier};
+use rustls::server::NoServerSessionStorage;
+use rustls::sign::{CertifiedKey, SingleCertAndKey};
+use rustls::time_provider::TimeProvider;
+use rustls::{
+    AlertDescription, CertificateError, ClientConfig, ClientConnection, Connection,
+    DigitallySignedStruct, DistinguishedName, Error, NamedGroup, PeerIncompatible, ProtocolVersion,
+    ServerConfig, ServerConnection, SignatureScheme, SupportedCipherSuite,
+    SupportedProtocolVersion,
+};
+use std::io::{Read, Write};
+use std::sync::atomic::{AtomicUsize, Ordering};
+use std::sync::Arc;
+
+const ALPN: &[u8] = b"baryon-n03-host-loopback/1";
+const SERVER_NAME: &str = "nas.peer.test";
+static TLS13_ONLY: &[&SupportedProtocolVersion] = &[&rustls::version::TLS13];
+static TLS12_ONLY: &[&SupportedProtocolVersion] = &[&rustls::version::TLS12];
+
+// ---------------------------------------------------------------- RNG fixture
+
+/// Synthetic Key-Service RANDOM peer, same wire shape as tests/random.rs.
+struct KeyService {
+    sends: Arc<AtomicUsize>,
+    deny: bool,
+    id: u64,
+    length: usize,
+}
+
+impl Transport for KeyService {
+    fn send(&mut self, _: SendEndpoint, message: &Outgoing) -> Result<(), RuntimeError> {
+        let payload = &message.as_bytes()[64..320];
+        self.id = u64::from_le_bytes(payload[4..12].try_into().unwrap());
+        self.length = usize::from(u16::from_le_bytes(payload[22..24].try_into().unwrap()));
+        self.sends.fetch_add(1, Ordering::SeqCst);
+        Ok(())
+    }
+    fn receive(&mut self, _: ReceiveEndpoint) -> Result<Received, RuntimeError> {
+        let mut payload = [0; 256];
+        payload[0] = 0x8a;
+        payload[4..12].copy_from_slice(&self.id.to_le_bytes());
+        if self.deny {
+            payload[12..16].copy_from_slice(&(-1i32).to_le_bytes());
+        } else {
+            payload[2..4].copy_from_slice(&((16 + self.length) as u16).to_le_bytes());
+            payload[16..20].copy_from_slice(b"RND1");
+            payload[20..22].copy_from_slice(&1u16.to_le_bytes());
+            payload[22..24].copy_from_slice(&(self.length as u16).to_le_bytes());
+            payload[32..32 + self.length].fill(0xa5 ^ self.id as u8);
+        }
+        let mut envelope = *Outgoing::new(0x4b45_5931, &payload).unwrap().as_bytes();
+        envelope[..8].copy_from_slice(&7u64.to_le_bytes());
+        Received::from_bytes(envelope, 256)
+    }
+    fn yield_now(&mut self) -> Result<(), RuntimeError> {
+        Ok(())
+    }
+    fn close(&mut self, _: Handle) -> Result<(), RuntimeError> {
+        Ok(())
+    }
+}
+
+struct Ticks(u64);
+impl MonotonicClock for Ticks {
+    fn ticks(&mut self) -> Result<u64, RuntimeError> {
+        self.0 += 1;
+        Ok(self.0)
+    }
+}
+
+/// rustls takes `&'static dyn SecureRandom`; one leaked lease per config.
+fn key_service_random(
+    deny: bool,
+) -> (
+    &'static KeyServiceRandom<KeyService, Ticks>,
+    Arc<AtomicUsize>,
+) {
+    let sends = Arc::new(AtomicUsize::new(0));
+    let handle = |slot: u64| Handle::from_raw((1u64 << 32) | slot).unwrap();
+    let session = Session::new(
+        KeyService {
+            sends: sends.clone(),
+            deny,
+            id: 0,
+            length: 0,
+        },
+        SendEndpoint::from_handle(handle(1)),
+        ReceiveEndpoint::from_handle(handle(2)),
+        7,
+        8,
+    )
+    .unwrap();
+    let rng = KeyServiceRandom::new(session, Ticks(0), NonZeroU64::new(1_000).unwrap());
+    (Box::leak(Box::new(rng)), sends)
+}
+
+// ------------------------------------------------------- profile and pinning
+
+/// Fixed test-only instant: harness assumption, never a trusted calendar.
+#[derive(Debug)]
+struct FixedTestTime;
+impl TimeProvider for FixedTestTime {
+    fn current_time(&self) -> Option<UnixTime> {
+        Some(UnixTime::since_unix_epoch(core::time::Duration::from_secs(
+            1_793_361_600,
+        )))
+    }
+}
+
+struct Identity {
+    cert: CertificateDer<'static>,
+    spki: Vec<u8>,
+    key: Vec<u8>,
+    /// Extra chain certificates presented after `cert` (negatives only).
+    extra: Vec<CertificateDer<'static>>,
+}
+
+impl Identity {
+    /// TEST-ONLY ephemeral Ed25519 identity; never persisted.
+    fn generate() -> Self {
+        let key = KeyPair::generate_for(&PKCS_ED25519).unwrap();
+        let cert = CertificateParams::new(vec![SERVER_NAME.into()])
+            .unwrap()
+            .self_signed(&key)
+            .unwrap();
+        Self {
+            cert: cert.der().clone(),
+            spki: key.subject_public_key_info(),
+            key: key.serialize_der(),
+            extra: Vec::new(),
+        }
+    }
+    /// Presents `pinned`'s exact certificate but holds an unrelated private key.
+    fn forged(pinned: &Identity) -> Self {
+        Self {
+            cert: pinned.cert.clone(),
+            spki: pinned.spki.clone(),
+            ..Self::generate()
+        }
+    }
+    /// Presents the genuine certificate and key plus an extra chain certificate.
+    fn with_intermediate(genuine: &Identity) -> Self {
+        Self {
+            cert: genuine.cert.clone(),
+            spki: genuine.spki.clone(),
+            key: genuine.key.clone(),
+            extra: vec![Identity::generate().cert],
+        }
+    }
+    /// Resolver input; unlike `with_single_cert` it does not check that the key
+    /// matches the certificate, so forged identities reach the peer verifier.
+    fn certified(&self) -> Arc<SingleCertAndKey> {
+        let key = PrivatePkcs8KeyDer::from(self.key.clone()).into();
+        let key = default_provider()
+            .key_provider
+            .load_private_key(key)
+            .unwrap();
+        let chain = core::iter::once(self.cert.clone())
+            .chain(self.extra.iter().cloned())
+            .collect();
+        Arc::new(CertifiedKey::new(chain, key).into())
+    }
+}
+
+/// Exact end-entity DER and SPKI pin, no intermediates, TLS 1.3 signatures only.
+#[derive(Debug)]
+struct Pin {
+    cert: CertificateDer<'static>,
+    spki: Vec<u8>,
+    algorithms: WebPkiSupportedAlgorithms,
+}
+
+impl Pin {
+    fn of(identity: &Identity) -> Arc<Self> {
+        Arc::new(Self {
+            cert: identity.cert.clone(),
+            spki: identity.spki.clone(),
+            algorithms: default_provider().signature_verification_algorithms,
+        })
+    }
+    fn check(
+        &self,
+        end_entity: &CertificateDer<'_>,
+        intermediates: &[CertificateDer<'_>],
+    ) -> Result<(), Error> {
+        let parsed = webpki::EndEntityCert::try_from(end_entity)
+            .map_err(|_| Error::InvalidCertificate(CertificateError::BadEncoding))?;
+        let spki_matches = parsed.subject_public_key_info().as_ref() == self.spki.as_slice();
+        if intermediates.is_empty() && end_entity.as_ref() == self.cert.as_ref() && spki_matches {
+            Ok(())
+        } else {
+            Err(Error::InvalidCertificate(
+                CertificateError::ApplicationVerificationFailure,
+            ))
+        }
+    }
+    fn tls13(
+        &self,
+        message: &[u8],
+        cert: &CertificateDer<'_>,
+        dss: &DigitallySignedStruct,
+    ) -> Result<HandshakeSignatureValid, Error> {
+        // The pin authenticates nothing without proof of possession of the key.
+        self.check(cert, &[])?;
+        verify_tls13_signature(message, cert, dss, &self.algorithms)
+    }
+}
+
+fn tls12_refused() -> Result<HandshakeSignatureValid, Error> {
+    Err(Error::PeerIncompatible(
+        PeerIncompatible::Tls12NotOfferedOrEnabled,
+    ))
+}
+
+impl ServerCertVerifier for Pin {
+    fn verify_server_cert(
+        &self,
+        end_entity: &CertificateDer<'_>,
+        intermediates: &[CertificateDer<'_>],
+        _: &ServerName<'_>,
+        _: &[u8],
+        _: UnixTime,
+    ) -> Result<ServerCertVerified, Error> {
+        self.check(end_entity, intermediates)
+            .map(|()| ServerCertVerified::assertion())
+    }
+    fn verify_tls12_signature(
+        &self,
+        _: &[u8],
+        _: &CertificateDer<'_>,
+        _: &DigitallySignedStruct,
+    ) -> Result<HandshakeSignatureValid, Error> {
+        tls12_refused()
+    }
+    fn verify_tls13_signature(
+        &self,
+        m: &[u8],
+        c: &CertificateDer<'_>,
+        d: &DigitallySignedStruct,
+    ) -> Result<HandshakeSignatureValid, Error> {
+        self.tls13(m, c, d)
+    }
+    fn supported_verify_schemes(&self) -> Vec<SignatureScheme> {
+        vec![SignatureScheme::ED25519]
+    }
+}
+
+impl ClientCertVerifier for Pin {
+    fn root_hint_subjects(&self) -> &[DistinguishedName] {
+        &[]
+    }
+    fn client_auth_mandatory(&self) -> bool {
+        true
+    }
+    fn verify_client_cert(
+        &self,
+        end_entity: &CertificateDer<'_>,
+        intermediates: &[CertificateDer<'_>],
+        _: UnixTime,
+    ) -> Result<ClientCertVerified, Error> {
+        self.check(end_entity, intermediates)
+            .map(|()| ClientCertVerified::assertion())
+    }
+    fn verify_tls12_signature(
+        &self,
+        _: &[u8],
+        _: &CertificateDer<'_>,
+        _: &DigitallySignedStruct,
+    ) -> Result<HandshakeSignatureValid, Error> {
+        tls12_refused()
+    }
+    fn verify_tls13_signature(
+        &self,
+        m: &[u8],
+        c: &CertificateDer<'_>,
+        d: &DigitallySignedStruct,
+    ) -> Result<HandshakeSignatureValid, Error> {
+        self.tls13(m, c, d)
+    }
+    fn supported_verify_schemes(&self) -> Vec<SignatureScheme> {
+        vec![SignatureScheme::ED25519]
+    }
+}
+
+/// One side's crypto and version selection.
+struct Side {
+    suites: Vec<SupportedCipherSuite>,
+    groups: Vec<&'static dyn SupportedKxGroup>,
+    versions: &'static [&'static SupportedProtocolVersion],
+    random: Option<&'static KeyServiceRandom<KeyService, Ticks>>,
+    time: Arc<dyn TimeProvider>,
+    alpn: Option<&'static [u8]>,
+}
+
+impl Side {
+    /// The fixed ADR-028 profile with the project's Key-Service RNG adapter.
+    fn profile(random: &'static KeyServiceRandom<KeyService, Ticks>) -> Self {
+        Self {
+            suites: vec![cipher_suite::TLS13_AES_256_GCM_SHA384],
+            groups: vec![kx_group::X25519MLKEM768],
+            versions: TLS13_ONLY,
+            random: Some(random),
+            time: Arc::new(FixedTestTime),
+            alpn: Some(ALPN),
+        }
+    }
+    /// A deviating oracle peer (aws-lc RNG), used only by negative tests.
+    fn peer() -> Self {
+        Self {
+            random: None,
+            ..Self::profile(key_service_random(false).0)
+        }
+    }
+    fn provider(&self) -> Arc<CryptoProvider> {
+        let mut provider = default_provider();
+        provider.cipher_suites = self.suites.clone();
+        provider.kx_groups = self.groups.clone();
+        if let Some(random) = self.random {
+            provider.secure_random = random;
+        }
+        Arc::new(provider)
+    }
+}
+
+fn client_config(
+    side: &Side,
+    server_pin: Arc<Pin>,
+    identity: Option<&Identity>,
+) -> Result<ClientConfig, Error> {
+    let builder = ClientConfig::builder_with_details(side.provider(), side.time.clone())
+        .with_protocol_versions(side.versions)?
+        .dangerous()
+        .with_custom_certificate_verifier(server_pin);
+    let mut config = match identity {
+        Some(id) => builder.with_client_cert_resolver(id.certified()),
+        None => builder.with_no_client_auth(),
+    };
+    config.alpn_protocols = side.alpn.iter().map(|p| p.to_vec()).collect();
+    config.resumption = rustls::client::Resumption::disabled();
+    config.enable_early_data = false;
+    Ok(config)
+}
+
+fn server_config(
+    side: &Side,
+    client_pin: Arc<Pin>,
+    identity: &Identity,
+) -> Result<ServerConfig, Error> {
+    let mut config = ServerConfig::builder_with_details(side.provider(), side.time.clone())
+        .with_protocol_versions(side.versions)?
+        .with_client_cert_verifier(client_pin)
+        .with_cert_resolver(identity.certified());
+    config.alpn_protocols = side.alpn.iter().map(|p| p.to_vec()).collect();
+    config.session_storage = Arc::new(NoServerSessionStorage {});
+    config.send_tls13_tickets = 0;
+    config.max_early_data_size = 0;
+    config.send_half_rtt_data = false;
+    Ok(config)
+}
+
+// ------------------------------------------------- in-memory transport pump
+
+struct Outcome {
+    client: Connection,
+    server: Connection,
+    client_error: Option<Error>,
+    server_error: Option<Error>,
+}
+
+/// Move all pending records from `from` to `to`; returns whether bytes moved.
+fn transfer(from: &mut Connection, to: &mut Connection, to_error: &mut Option<Error>) -> bool {
+    let mut wire = Vec::new();
+    while from.wants_write() {
+        from.write_tls(&mut wire).unwrap();
+    }
+    if wire.is_empty() || to_error.is_some() {
+        return !wire.is_empty();
+    }
+    let mut input = wire.as_slice();
+    while !input.is_empty() {
+        if to.read_tls(&mut input).unwrap() == 0 {
+            break;
+        }
+        if let Err(error) = to.process_new_packets() {
+            *to_error = Some(error);
+            break;
+        }
+    }
+    true
+}
+
+fn pump(outcome: &mut Outcome) {
+    for _ in 0..32 {
+        let a = transfer(
+            &mut outcome.client,
+            &mut outcome.server,
+            &mut outcome.server_error,
+        );
+        let b = transfer(
+            &mut outcome.server,
+            &mut outcome.client,
+            &mut outcome.client_error,
+        );
+        if !a && !b {
+            return;
+        }
+    }
+    panic!("handshake did not settle");
+}
+
+/// Bytes a client queues before the handshake. rustls holds them until client
+/// traffic keys exist; negatives prove the server never releases them.
+const QUEUED: &[u8] = b"client data queued before the handshake";
+
+fn handshake(client: ClientConfig, server: ServerConfig) -> Outcome {
+    handshake_with(client, server, QUEUED)
+}
+
+fn handshake_with(client: ClientConfig, server: ServerConfig, queued: &[u8]) -> Outcome {
+    let name = ServerName::try_from(SERVER_NAME).unwrap();
+    let mut outcome = Outcome {
+        client: ClientConnection::new(Arc::new(client), name)
+            .unwrap()
+            .into(),
+        server: ServerConnection::new(Arc::new(server)).unwrap().into(),
+        client_error: None,
+        server_error: None,
+    };
+    outcome.client.writer().write_all(queued).unwrap();
+    pump(&mut outcome);
+    outcome
+}
+
+/// Plaintext bytes this side has released to the application.
+fn plaintext(connection: &mut Connection) -> Vec<u8> {
+    let mut out = Vec::new();
+    let mut chunk = [0u8; 256];
+    while let Ok(n) = connection.reader().read(&mut chunk) {
+        if n == 0 {
+            break;
+        }
+        out.extend_from_slice(&chunk[..n]);
+    }
+    out
+}
+
+/// Profile acceptance gate. Application data may flow only after this passes.
+fn accepted(connection: &Connection, peer: &Pin) -> Result<(), &'static str> {
+    if connection.is_handshaking() {
+        return Err("handshaking");
+    }
+    if connection.protocol_version() != Some(ProtocolVersion::TLSv1_3) {
+        return Err("version");
+    }
+    if connection.negotiated_key_exchange_group().map(|g| g.name())
+        != Some(NamedGroup::X25519MLKEM768)
+    {
+        return Err("group");
+    }
+    if connection.negotiated_cipher_suite().map(|s| s.suite())
+        != Some(rustls::CipherSuite::TLS13_AES_256_GCM_SHA384)
+    {
+        return Err("suite");
+    }
+    if connection.alpn_protocol() != Some(ALPN) {
+        return Err("alpn");
+    }
+    match connection.peer_certificates() {
+        Some([cert]) if peer.check(cert, &[]).is_ok() => Ok(()),
+        _ => Err("peer"),
+    }
+}
+
+/// Negative cases: the server gate refuses, the client gate gives `client_gate`,
+/// and neither side released application plaintext (including `QUEUED`).
+fn assert_refused(
+    outcome: &mut Outcome,
+    server_pin: &Pin,
+    client_pin: &Pin,
+    client_gate: Result<(), &'static str>,
+) {
+    assert!(accepted(&outcome.server, client_pin).is_err());
+    assert_eq!(accepted(&outcome.client, server_pin), client_gate);
+    assert!(plaintext(&mut outcome.client).is_empty());
+    assert!(plaintext(&mut outcome.server).is_empty());
+}
+
+fn alert(error: &Option<Error>) -> Option<AlertDescription> {
+    match error {
+        Some(Error::AlertReceived(description)) => Some(*description),
+        _ => None,
+    }
+}
+
+struct Peers {
+    server: Identity,
+    client: Identity,
+}
+impl Peers {
+    fn new() -> Self {
+        Self {
+            server: Identity::generate(),
+            client: Identity::generate(),
+        }
+    }
+}
+
+// ----------------------------------------------------------------- positive
+
+#[test]
+fn profile_handshake_is_mutually_pinned_hybrid_tls13_and_uses_key_service_random() {
+    let peers = Peers::new();
+    let (client_rng, client_sends) = key_service_random(false);
+    let (server_rng, server_sends) = key_service_random(false);
+    let (server_pin, client_pin) = (Pin::of(&peers.server), Pin::of(&peers.client));
+    let client = client_config(
+        &Side::profile(client_rng),
+        server_pin.clone(),
+        Some(&peers.client),
+    )
+    .unwrap();
+    let server = server_config(
+        &Side::profile(server_rng),
+        client_pin.clone(),
+        &peers.server,
+    )
+    .unwrap();
+    let mut outcome = handshake_with(client, server, b"");
+
+    assert!(outcome.client_error.is_none(), "{:?}", outcome.client_error);
+    assert!(outcome.server_error.is_none(), "{:?}", outcome.server_error);
+    assert_eq!(accepted(&outcome.client, &server_pin), Ok(()));
+    assert_eq!(accepted(&outcome.server, &client_pin), Ok(()));
+    // The rustls SecureRandom route reached the project's Key-Service adapter.
+    assert!(client_sends.load(Ordering::SeqCst) > 0);
+    assert!(server_sends.load(Ordering::SeqCst) > 0);
+
+    outcome
+        .client
+        .writer()
+        .write_all(b"client after acceptance")
+        .unwrap();
+    outcome
+        .server
+        .writer()
+        .write_all(b"server after acceptance")
+        .unwrap();
+    pump(&mut outcome);
+    assert_eq!(plaintext(&mut outcome.server), b"client after acceptance");
+    assert_eq!(plaintext(&mut outcome.client), b"server after acceptance");
+}
+
+#[test]
+fn queued_client_data_is_released_only_after_a_completed_handshake() {
+    // Control for the negatives: the same QUEUED bytes do arrive when both
+    // sides accept, so an empty server read in a negative is not vacuous.
+    let peers = Peers::new();
+    let (server_pin, client_pin) = (Pin::of(&peers.server), Pin::of(&peers.client));
+    let client = client_config(
+        &Side::profile(key_service_random(false).0),
+        server_pin.clone(),
+        Some(&peers.client),
+    )
+    .unwrap();
+    let server = server_config(
+        &Side::profile(key_service_random(false).0),
+        client_pin.clone(),
+        &peers.server,
+    )
+    .unwrap();
+    let mut outcome = handshake(client, server);
+    assert_eq!(accepted(&outcome.server, &client_pin), Ok(()));
+    assert_eq!(plaintext(&mut outcome.server), QUEUED);
+}
+
+// ---------------------------------------------------------------- negatives
+
+/// Profile client against a deviating server.
+fn against_server(peer: Side) -> (Outcome, Arc<Pin>, Arc<Pin>) {
+    let peers = Peers::new();
+    let (server_pin, client_pin) = (Pin::of(&peers.server), Pin::of(&peers.client));
+    let client = client_config(
+        &Side::profile(key_service_random(false).0),
+        server_pin.clone(),
+        Some(&peers.client),
+    )
+    .unwrap();
+    let server = server_config(&peer, client_pin.clone(), &peers.server).unwrap();
+    (handshake(client, server), server_pin, client_pin)
+}
+
+/// Deviating client against the profile server.
+fn against_client(peer: Side) -> (Outcome, Arc<Pin>, Arc<Pin>) {
+    let peers = Peers::new();
+    let (server_pin, client_pin) = (Pin::of(&peers.server), Pin::of(&peers.client));
+    let client = client_config(&peer, server_pin.clone(), Some(&peers.client)).unwrap();
+    let server = server_config(
+        &Side::profile(key_service_random(false).0),
+        client_pin.clone(),
+        &peers.server,
+    )
+    .unwrap();
+    (handshake(client, server), server_pin, client_pin)
+}
+
+#[test]
+fn classical_only_x25519_server_gets_no_fallback() {
+    let (mut o, sp, cp) = against_server(Side {
+        groups: vec![kx_group::X25519],
+        ..Side::peer()
+    });
+    assert_eq!(
+        o.server_error,
+        Some(Error::PeerIncompatible(
+            PeerIncompatible::NoKxGroupsInCommon
+        ))
+    );
+    assert_eq!(
+        alert(&o.client_error),
+        Some(AlertDescription::HandshakeFailure)
+    );
+    assert_refused(&mut o, &sp, &cp, Err("handshaking"));
+}
+
+#[test]
+fn classical_only_x25519_client_gets_no_fallback() {
+    let (mut o, sp, cp) = against_client(Side {
+        groups: vec![kx_group::X25519],
+        ..Side::peer()
+    });
+    assert_eq!(
+        o.server_error,
+        Some(Error::PeerIncompatible(
+            PeerIncompatible::NoKxGroupsInCommon
+        ))
+    );
+    assert_eq!(
+        alert(&o.client_error),
+        Some(AlertDescription::HandshakeFailure)
+    );
+    assert_refused(&mut o, &sp, &cp, Err("handshaking"));
+}
+
+#[test]
+fn other_cipher_suite_server_is_refused() {
+    let (mut o, sp, cp) = against_server(Side {
+        suites: vec![cipher_suite::TLS13_AES_128_GCM_SHA256],
+        ..Side::peer()
+    });
+    assert_eq!(
+        o.server_error,
+        Some(Error::PeerIncompatible(
+            PeerIncompatible::NoCipherSuitesInCommon
+        ))
+    );
+    assert_eq!(
+        alert(&o.client_error),
+        Some(AlertDescription::HandshakeFailure)
+    );
+    assert_refused(&mut o, &sp, &cp, Err("handshaking"));
+}
+
+#[test]
+fn tls12_only_server_is_refused() {
+    let (mut o, sp, cp) = against_server(Side {
+        suites: vec![cipher_suite::TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384],
+        groups: vec![kx_group::X25519],
+        versions: TLS12_ONLY,
+        ..Side::peer()
+    });
+    assert_eq!(
+        o.server_error,
+        Some(Error::PeerIncompatible(
+            PeerIncompatible::Tls12NotOfferedOrEnabled
+        ))
+    );
+    assert_eq!(
+        alert(&o.client_error),
+        Some(AlertDescription::ProtocolVersion)
+    );
+    assert_refused(&mut o, &sp, &cp, Err("handshaking"));
+}
+
+#[test]
+fn tls12_only_client_is_refused() {
+    let (mut o, sp, cp) = against_client(Side {
+        suites: vec![cipher_suite::TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384],
+        groups: vec![kx_group::X25519],
+        versions: TLS12_ONLY,
+        ..Side::peer()
+    });
+    assert_eq!(
+        o.server_error,
+        Some(Error::PeerIncompatible(
+            PeerIncompatible::Tls12NotOfferedOrEnabled
+        ))
+    );
+    assert_eq!(
+        alert(&o.client_error),
+        Some(AlertDescription::ProtocolVersion)
+    );
+    assert_refused(&mut o, &sp, &cp, Err("handshaking"));
+}
+
+#[test]
+fn wrong_server_pin_is_refused_before_any_plaintext() {
+    let peers = Peers::new();
+    let impostor = Identity::generate();
+    let (expected_server, client_pin) = (Pin::of(&peers.server), Pin::of(&peers.client));
+    let client = client_config(
+        &Side::profile(key_service_random(false).0),
+        expected_server.clone(),
+        Some(&peers.client),
+    )
+    .unwrap();
+    let server = server_config(&Side::peer(), client_pin.clone(), &impostor).unwrap();
+    let mut o = handshake(client, server);
+    assert_eq!(
+        o.client_error,
+        Some(Error::InvalidCertificate(
+            CertificateError::ApplicationVerificationFailure
+        ))
+    );
+    assert_eq!(alert(&o.server_error), Some(AlertDescription::AccessDenied));
+    assert_refused(&mut o, &expected_server, &client_pin, Err("handshaking"));
+}
+
+#[test]
+fn wrong_client_pin_is_refused_by_the_server_before_any_plaintext() {
+    let peers = Peers::new();
+    let impostor = Identity::generate();
+    let (server_pin, expected_client) = (Pin::of(&peers.server), Pin::of(&peers.client));
+    let client = client_config(&Side::peer(), server_pin.clone(), Some(&impostor)).unwrap();
+    let server = server_config(
+        &Side::profile(key_service_random(false).0),
+        expected_client.clone(),
+        &peers.server,
+    )
+    .unwrap();
+    let mut o = handshake(client, server);
+    assert_eq!(
+        o.server_error,
+        Some(Error::InvalidCertificate(
+            CertificateError::ApplicationVerificationFailure
+        ))
+    );
+    assert_eq!(alert(&o.client_error), Some(AlertDescription::AccessDenied));
+    // TLS 1.3: the client completes before the server rejects its certificate,
+    // so its own gate passes; only the later alert (asserted above) and the
+    // server's refusal to release QUEUED stop the exchange.
+    assert_refused(&mut o, &server_pin, &expected_client, Ok(()));
+}
+
+#[test]
+fn missing_client_certificate_is_refused() {
+    let peers = Peers::new();
+    let (server_pin, client_pin) = (Pin::of(&peers.server), Pin::of(&peers.client));
+    let client = client_config(&Side::peer(), server_pin.clone(), None).unwrap();
+    let server = server_config(
+        &Side::profile(key_service_random(false).0),
+        client_pin.clone(),
+        &peers.server,
+    )
+    .unwrap();
+    let mut o = handshake(client, server);
+    assert_eq!(o.server_error, Some(Error::NoCertificatesPresented));
+    assert_eq!(
+        alert(&o.client_error),
+        Some(AlertDescription::CertificateRequired)
+    );
+    // TLS 1.3: the client completes before the server rejects its certificate,
+    // so its own gate passes; only the later alert (asserted above) and the
+    // server's refusal to release QUEUED stop the exchange.
+    assert_refused(&mut o, &server_pin, &client_pin, Ok(()));
+}
+
+#[test]
+fn wrong_alpn_client_is_refused() {
+    let (mut o, sp, cp) = against_client(Side {
+        alpn: Some(b"http/1.1"),
+        ..Side::peer()
+    });
+    assert_eq!(o.server_error, Some(Error::NoApplicationProtocol));
+    assert_eq!(
+        alert(&o.client_error),
+        Some(AlertDescription::NoApplicationProtocol)
+    );
+    assert_refused(&mut o, &sp, &cp, Err("handshaking"));
+}
+
+#[test]
+fn server_without_alpn_is_refused_by_the_acceptance_gate() {
+    let (mut o, sp, cp) = against_server(Side {
+        alpn: None,
+        ..Side::peer()
+    });
+    // rustls itself tolerates a server that selects no ALPN; only the gate
+    // refuses it. Data queued before the gate already reached that server, so
+    // a profile consumer must run the gate before its first write or read.
+    assert!(o.client_error.is_none() && o.server_error.is_none());
+    assert_eq!(accepted(&o.client, &sp), Err("alpn"));
+    assert_eq!(accepted(&o.server, &cp), Err("alpn"));
+    assert!(plaintext(&mut o.client).is_empty());
+    assert_eq!(plaintext(&mut o.server), QUEUED);
+}
+
+#[test]
+fn key_service_rng_denial_fails_closed_without_fallback() {
+    let peers = Peers::new();
+    let (denying, sends) = key_service_random(true);
+    let client = client_config(
+        &Side::profile(denying),
+        Pin::of(&peers.server),
+        Some(&peers.client),
+    )
+    .unwrap();
+    let name = ServerName::try_from(SERVER_NAME).unwrap();
+    let error = ClientConnection::new(Arc::new(client), name).unwrap_err();
+    assert_eq!(error, Error::FailedToGetRandomBytes);
+    assert_eq!(sends.load(Ordering::SeqCst), 1);
+}
+
+#[test]
+fn unavailable_certificate_time_fails_closed() {
+    let peers = Peers::new();
+    let (server_pin, client_pin) = (Pin::of(&peers.server), Pin::of(&peers.client));
+    let side = Side {
+        time: Arc::new(CertificateClock::new(|| Ok(None))),
+        ..Side::profile(key_service_random(false).0)
+    };
+    let client = client_config(&side, server_pin.clone(), Some(&peers.client)).unwrap();
+    let server = server_config(&Side::peer(), client_pin.clone(), &peers.server).unwrap();
+    let mut o = handshake(client, server);
+    assert_eq!(o.client_error, Some(Error::FailedToGetCurrentTime));
+    assert_refused(&mut o, &server_pin, &client_pin, Err("handshaking"));
+}
+
+#[test]
+fn server_with_pinned_certificate_but_impostor_key_is_refused() {
+    // Proves CertificateVerify is checked: the pin alone authenticates nothing.
+    let peers = Peers::new();
+    let (server_pin, client_pin) = (Pin::of(&peers.server), Pin::of(&peers.client));
+    let client = client_config(
+        &Side::profile(key_service_random(false).0),
+        server_pin.clone(),
+        Some(&peers.client),
+    )
+    .unwrap();
+    let forged = Identity::forged(&peers.server);
+    let server = server_config(&Side::peer(), client_pin.clone(), &forged).unwrap();
+    let mut o = handshake(client, server);
+    assert_eq!(
+        o.client_error,
+        Some(Error::InvalidCertificate(CertificateError::BadSignature))
+    );
+    assert_eq!(alert(&o.server_error), Some(AlertDescription::DecryptError));
+    assert_refused(&mut o, &server_pin, &client_pin, Err("handshaking"));
+}
+
+#[test]
+fn client_with_pinned_certificate_but_impostor_key_is_refused() {
+    let peers = Peers::new();
+    let (server_pin, client_pin) = (Pin::of(&peers.server), Pin::of(&peers.client));
+    let forged = Identity::forged(&peers.client);
+    let client = client_config(&Side::peer(), server_pin.clone(), Some(&forged)).unwrap();
+    let server = server_config(
+        &Side::profile(key_service_random(false).0),
+        client_pin.clone(),
+        &peers.server,
+    )
+    .unwrap();
+    let mut o = handshake(client, server);
+    assert_eq!(
+        o.server_error,
+        Some(Error::InvalidCertificate(CertificateError::BadSignature))
+    );
+    assert_eq!(alert(&o.client_error), Some(AlertDescription::DecryptError));
+    // TLS 1.3 client completes before the server checks its CertificateVerify.
+    assert_refused(&mut o, &server_pin, &client_pin, Ok(()));
+}
+
+#[test]
+fn pinned_server_certificate_with_an_intermediate_is_refused() {
+    let peers = Peers::new();
+    let (server_pin, client_pin) = (Pin::of(&peers.server), Pin::of(&peers.client));
+    let client = client_config(
+        &Side::profile(key_service_random(false).0),
+        server_pin.clone(),
+        Some(&peers.client),
+    )
+    .unwrap();
+    let chained = Identity::with_intermediate(&peers.server);
+    let server = server_config(&Side::peer(), client_pin.clone(), &chained).unwrap();
+    let mut o = handshake(client, server);
+    assert_eq!(
+        o.client_error,
+        Some(Error::InvalidCertificate(
+            CertificateError::ApplicationVerificationFailure
+        ))
+    );
+    assert_refused(&mut o, &server_pin, &client_pin, Err("handshaking"));
+}
