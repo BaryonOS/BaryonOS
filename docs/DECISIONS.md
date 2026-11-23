@@ -5,6 +5,84 @@ This document distinguishes the decisions and authority of the project owner
 from those of the executing roles. Source quotations retain their original
 wording and speaker.
 
+## ADR-B02-KEY1-RELAY-20261123 — Write-ahead key state committed by init on behalf of the Key Service
+
+**Status:** project-owner decision of 23 November 2026, given in the B-track
+session as two answers: "Init relays commits" (who writes the key-state
+snapshot) and "Service holds it (Recommended)" (who keeps the external
+secret). The option "Supersede ADR-051" (a block/volume right for the Key
+Service) was offered and not chosen. The owner did not decide rollback
+anchoring, a trusted generation floor, product secret custody or production
+use; they stay open. This ADR authorises a TEST-profile implementation only.
+
+**Context.** B02-T2 added a host-only write-ahead contract:
+`Service::generate_durable`/`revoke_durable` and `wire::dispatch_domain_durable`
+reply `Ok` to GENERATE/REVOKE only after a `KeyStateStore` committed the
+sealed 120-byte snapshot in the same call (`services/keyring`, tests in
+`services/keyring/tests/write_ahead.rs`). No native store exists, because
+ADR-051 gives the Key Service no volume right and keeps the external secret
+outside the service. Until now the init/app protocol (`KEYS_READY` →
+commit → `PERSISTED`) orders key state before ciphertext, and an
+uncooperative app can bypass it.
+
+**Decision.**
+1. **Commit ingress.** A new kernel endpoint, the key-state commit ingress,
+   is received only by init. The Key Service holds the only SEND handle; no
+   app, worker or other service holds it. The FR-I01 manifest checks this as
+   it checks `APP_ADMIN_HANDLE` (INT3-FU-116): object comparison per handle
+   across every non-init handle table plus an exact count. The Key Service
+   still has no block or volume right, so alternative (a) of ADR-051 stays
+   rejected.
+2. **Secret custody (amends ADR-051).** Init supplies the external secret to
+   the Key Service once per instance through administrative ingress: with the
+   existing RESTORE_PERSISTENT on a cold start, or with one new admin-only
+   opcode on a fresh instance. The opcode number is allocated in the
+   implementation change. Domain and RANDOM ingress reject it before any
+   processing, as they reject opcodes 11/12. The service keeps the secret in
+   zeroizing memory for the lifetime of the instance. It never returns,
+   logs or re-exports it. A second supply with any secret is refused, and
+   the secret is wiped when the instance ends. This replaces the sentence of
+   ADR-051 that the secret "is not retained by the service"; the remainder of
+   ADR-051 stands.
+3. **Commit protocol.** For GENERATE or REVOKE on a write-ahead domain
+   ingress, the service seals generation n+1 bound to the volume identity.
+   It then sends `(generation, blob)` to the commit ingress in a synchronous,
+   bounded call. Init writes the blob to key-state object 8 in one
+   crash-consistent volume transaction in domain 1, flushes, and replies
+   `COMMITTED(generation)` or `NOT_COMMITTED`. Mapping to
+   `StoreError`/`WriteAheadError`:
+   - `COMMITTED` with the same generation: commit succeeded; the domain caller receives `Ok`.
+   - `NOT_COMMITTED`: `Failed`, which replies `NotReady` and allows an explicit retry. Init may send it only when it has not begun the transaction.
+   - Any other outcome: `Unknown`, which replies `Degraded` and latches the instance. This covers a timeout, a restart of init, a mismatched generation, a malformed reply and a failure after the transaction began.
+4. **Authority and ordering.** Init accepts a commit by the kernel endpoint
+   object, never by a payload field or PID. The service trusts only the reply
+   to its own call. Init completes RESTORE or the secret supply before the
+   Key Service accepts domain traffic. After that, init makes no blocking
+   call into the Key Service while a commit request can be outstanding, so
+   the synchronous commit cannot deadlock against administrative ingress.
+   Every wait is bounded; expiry is `Unknown`. The `KEYS_READY`/`PERSISTED`
+   cooperation may stay in the test profile as additional evidence. The
+   enforcement point becomes the Key Service's `Ok`.
+5. **Limits.** The secret remains the compile-time test constant in the
+   init ELF of the disposable image (ADR-051). There is one writer and one
+   instance, and the volume identity remains the profile constant
+   `NOS-SYSTEM-VOL01`. Cold rollback anchoring and a trusted generation
+   floor stay out of scope (B02-T3, which needs a separate owner decision).
+
+**Consequences and residual risk.** The service process now holds both the
+master and the wrapping secret. Someone who can read that process memory
+already has every key. Retaining the secret adds the ability to produce
+snapshots that init accepts for the next cold start, which forges lineage.
+The cost was accepted to keep the KEY1 ABI unchanged. The other option
+offered, init keeping the secret, needs a pending status or deferred domain
+reply and per-operation exports; the owner did not choose it. B02 earns no
+credit from this ADR. Acceptance needs native QEMU evidence of:
+- a normal commit
+- `NOT_COMMITTED` before any write, mapped to `NotReady`
+- a commit timeout that latches `Degraded`
+- an app without commit SEND (manifest)
+- the existing host tests
+
 ## ADR-H05-S3-SYSTEM-20261123 — Test-profile S3 from the system profile: syscall 0x91 behind POWER and the storage gate
 
 **Status:** technical decision of the executing hardware-track lead on
