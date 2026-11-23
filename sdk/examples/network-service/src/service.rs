@@ -54,7 +54,7 @@ struct Pending {
 /// this service already holds; a failed read is an error, never a constant
 /// fallback. One draw waits for at most 100,000 yielding polls or until the
 /// keyring's 64-tick device timeout, whichever ends first. After that timeout
-/// the keyring keeps the grant offline for the rest of the boot.
+/// the keyring broker stays offline for every grant for the rest of the boot.
 struct Entropy {
     source: EntropySource,
     draws: u64,
@@ -122,9 +122,9 @@ impl Bridge {
             // from the same entropy grant; no entropy, no query. A failed draw
             // skips DNS for this iteration so queued frames still drain. Later
             // iterations draw again only until the query's deadline: a busy or
-            // short keyring answer can clear, but an offline grant cannot, and
+            // short keyring answer can clear, but an offline broker cannot, and
             // the unsent query then ends as `Status::Timeout` for its caller.
-            // The next DHCP draw on an offline grant stops the service (33).
+            // The next DHCP draw on an offline broker stops the service (33).
             match service.drive_dns(tick, random) {
                 Ok(_) | Err(DnsDriveError::Random(())) => {}
                 Err(DnsDriveError::Service(_)) => fail(40),
