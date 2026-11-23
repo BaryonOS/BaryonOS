@@ -1368,9 +1368,10 @@ fn portal(app: &mut App, case: u64) {
 }
 
 /// Writable source step S1-S4 of the export case (spec section 3.2), so that
-/// archive origins differ from the values a destination assigns. Each step
-/// reads the current revision first; the host oracle derives the expected
-/// source state from the parent image the same way.
+/// archive origins differ from the values a destination assigns. S1 and S2
+/// read the current revision first; S3 and S4 expect the collection
+/// revisions of the `archive-export` parent (1, 1, absent) and fail closed
+/// otherwise. The host oracle derives the source state from that image.
 #[cfg(feature = "l2-portal")]
 fn l2_source_step(app: &mut App) {
     // S1: two consecutive zero-length WRITEs to object 2 ("Leeg"): no chunk.
@@ -1383,14 +1384,12 @@ fn l2_source_step(app: &mut App) {
     app.write(2, revision, &name[..length], 0, 906);
     // S2: META on object 5 (tags change only).
     let stat = app.stat(5, 910);
-    check(
-        app.client.meta(
-            app.object(5),
-            stat.revision,
-            stat.tags ^ 1,
-            stat.kind,
-            stat.collection,
-        ) == Ok(stat.revision + 1),
+    app.meta(
+        5,
+        stat.revision,
+        stat.tags ^ 1,
+        stat.kind,
+        stat.collection,
         911,
     );
     app.commits += 1;
@@ -1411,7 +1410,9 @@ fn l2_source_step(app: &mut App) {
 
 /// Provenance of the restored domain against the verified plan: the number
 /// of objects and collections whose installed origins differ from the
-/// archive values (0 expected). Content and metadata are host-checked.
+/// archive values (0 expected). An absent archive slot must stay never-used,
+/// exactly `(NotFound, 0)` as in the host oracle. Content, metadata and
+/// deleted collections are host-checked.
 #[cfg(feature = "l2-portal")]
 fn l2_mismatches(app: &mut App, plan: &ArchiveV2) -> u64 {
     let mut mismatches = 0;
@@ -1426,7 +1427,10 @@ fn l2_mismatches(app: &mut App, plan: &ArchiveV2) -> u64 {
         let object = app.object(o.slot as u64);
         let n = archive::replayable(o);
         if n == 0 {
-            mismatches += u64::from(app.client.stat(object).is_ok());
+            mismatches += u64::from(!matches!(
+                app.client.stat(object),
+                Err((Status::NotFound, 0))
+            ));
             continue;
         }
         let equal = match app.client.provenance(object, n as u64) {
@@ -1455,7 +1459,9 @@ fn l2_report(report: &L2Report, result: Status) {
 
 /// S09 phase 3 backup portal on the device-1 archive disk: v2 export with
 /// a writable source step (25), cold L2 restore (26), a corrupt archive
-/// (27) and a used domain after a cold boot (28).
+/// (27) and a used domain after a cold boot (28). Each case runs in its own
+/// non-inlined function, so its `ArchiveV2` copies leave the stack before
+/// the next phase and never stay in the frame of `run` (spec section 5.2).
 #[cfg(feature = "l2-portal")]
 fn l2_portal(app: &mut App, case: u64) {
     let device = BlockDevice::from_handle(
@@ -1470,78 +1476,99 @@ fn l2_portal(app: &mut App, case: u64) {
     // process before entry and nothing else here uses it; this is the only
     // reference, held for the rest of the portal run on one thread.
     let scratch = unsafe { &mut *(HEAP as *mut [u8; MAX_LENGTH]) };
-    let mut disk = NativeDisk { device };
     // Archive I/O never overlaps another app's service I/O: slot 2 waits for
     // phase 2 (kernel gate), as in the v1 portal.
     app.phase(1);
     if case != L2_EXPORT {
-        // A READ-only grant: the portal cannot write the archive disk.
-        check(native::block_write(device, 0, &[0; 512]).is_err(), 702);
+        // A READ-only grant: the capability check refuses the write with
+        // capability-core `Error::Access` (-5), before any broker state.
+        check(
+            native::block_write(device, 0, &[0; 512])
+                == Err(nieuw_os_sdk_runtime::Error::Kernel(-5)),
+            702,
+        );
     }
-    let mut plan = ArchiveV2::default();
     match case {
-        L2_EXPORT => {
-            l2_source_step(app);
-            let mut sink = DiskSink::new(&mut disk, ARCHIVE_SECTORS);
-            let export =
-                archive::export_v2(&mut app.client, 0, &mut sink).unwrap_or_else(|_| fail(710));
-            let length = sink.finish().unwrap_or_else(|_| fail(711));
-            // Read the stored bytes back through the same capability.
-            plan = archive::verify_v2(&mut DiskSource::new(&mut disk, ARCHIVE_SECTORS), scratch)
-                .unwrap_or_else(|_| fail(712));
-            check(plan == export.archive, 713);
-            support::put(L2_WORDS.skipped, export.omitted as u64);
-            support::put(L2_WORDS.length, length);
-        }
-        L2_RESTORE | L2_CORRUPT => {
-            // Source loss: a fresh volume whose domain 0 starts empty.
-            check(app.list(0, 720).1 == 0, 721);
-            let result = archive::restore_native_l2(
-                || DiskSource::new(NativeDisk { device }, ARCHIVE_SECTORS),
-                scratch,
-                &mut app.client,
-                0,
-                &mut plan,
-            );
-            if case == L2_RESTORE {
-                let report = result.unwrap_or_else(|_| fail(722));
-                l2_report(&report, Status::Ok);
-                app.commits += report.committed as u64;
-                support::put(L2_WORDS.mismatches, l2_mismatches(app, &plan));
-            } else {
-                // Refused at verification, before any service request.
-                let (status, report) = result.err().unwrap_or_else(|| fail(723));
-                check(status == Status::Corrupt && report.committed == 0, 724);
-                l2_report(&report, status);
-                check(app.list(0, 725).1 == 0, 726);
-            }
-        }
-        L2_USED => {
-            // The restored domain after a cold boot, both disks read-only.
-            plan = archive::verify_v2(&mut DiskSource::new(&mut disk, ARCHIVE_SECTORS), scratch)
-                .unwrap_or_else(|_| fail(730));
-            support::put(L2_WORDS.mismatches, l2_mismatches(app, &plan));
-            let object = app.object(7);
-            check(
-                app.client.write(object, 0, b"Nee", 1, fill(object, 1)) == Err(Status::Access),
-                731,
-            );
-            let (status, report) = archive::restore_native_l2(
-                || DiskSource::new(NativeDisk { device }, ARCHIVE_SECTORS),
-                scratch,
-                &mut app.client,
-                0,
-                &mut ArchiveV2::default(),
-            )
-            .err()
-            .unwrap_or_else(|| fail(732));
-            check(status == Status::Stale && report.committed == 0, 733);
-            l2_report(&report, status);
-        }
+        L2_EXPORT => l2_export(app, device, scratch),
+        L2_RESTORE | L2_CORRUPT => l2_restore(app, device, scratch, case == L2_RESTORE),
+        L2_USED => l2_used(app, device, scratch),
         _ => fail(769),
     }
     app.phase(2);
     app.report(750);
+}
+
+/// Case 25: S1-S4, then a v2 export to the device-1 disk, read back and
+/// verified through the same capability.
+#[cfg(feature = "l2-portal")]
+#[inline(never)]
+fn l2_export(app: &mut App, device: BlockDevice, scratch: &mut [u8; MAX_LENGTH]) {
+    l2_source_step(app);
+    let mut disk = NativeDisk { device };
+    let mut sink = DiskSink::new(&mut disk, ARCHIVE_SECTORS);
+    let export = archive::export_v2(&mut app.client, 0, &mut sink).unwrap_or_else(|_| fail(710));
+    let length = sink.finish().unwrap_or_else(|_| fail(711));
+    let plan = archive::verify_v2(&mut DiskSource::new(&mut disk, ARCHIVE_SECTORS), scratch)
+        .unwrap_or_else(|_| fail(712));
+    check(plan == export.archive, 713);
+    support::put(L2_WORDS.skipped, export.omitted as u64);
+    support::put(L2_WORDS.length, length);
+}
+
+/// Cases 26 and 27: a cold L2 restore into a fresh volume (source loss);
+/// a damaged archive is refused at verification, before any service request.
+#[cfg(feature = "l2-portal")]
+#[inline(never)]
+fn l2_restore(app: &mut App, device: BlockDevice, scratch: &mut [u8; MAX_LENGTH], intact: bool) {
+    check(app.list(0, 720).1 == 0, 721);
+    let mut plan = ArchiveV2::default();
+    let result = archive::restore_native_l2(
+        || DiskSource::new(NativeDisk { device }, ARCHIVE_SECTORS),
+        scratch,
+        &mut app.client,
+        0,
+        &mut plan,
+    );
+    if intact {
+        let report = result.unwrap_or_else(|_| fail(722));
+        l2_report(&report, Status::Ok);
+        app.commits += report.committed as u64;
+        support::put(L2_WORDS.mismatches, l2_mismatches(app, &plan));
+    } else {
+        let (status, report) = result.err().unwrap_or_else(|| fail(723));
+        check(status == Status::Corrupt && report.committed == 0, 724);
+        l2_report(&report, status);
+        check(app.list(0, 725).1 == 0, 726);
+    }
+}
+
+/// Case 28: the restored domain after a cold boot, both disks read-only.
+/// Provenance still matches, and a second restore is refused as `Stale`.
+#[cfg(feature = "l2-portal")]
+#[inline(never)]
+fn l2_used(app: &mut App, device: BlockDevice, scratch: &mut [u8; MAX_LENGTH]) {
+    let plan = archive::verify_v2(
+        &mut DiskSource::new(NativeDisk { device }, ARCHIVE_SECTORS),
+        scratch,
+    )
+    .unwrap_or_else(|_| fail(730));
+    support::put(L2_WORDS.mismatches, l2_mismatches(app, &plan));
+    let object = app.object(7);
+    check(
+        app.client.write(object, 0, b"Nee", 1, fill(object, 1)) == Err(Status::Access),
+        731,
+    );
+    let (status, report) = archive::restore_native_l2(
+        || DiskSource::new(NativeDisk { device }, ARCHIVE_SECTORS),
+        scratch,
+        &mut app.client,
+        0,
+        &mut ArchiveV2::default(),
+    )
+    .err()
+    .unwrap_or_else(|| fail(732));
+    check(status == Status::Stale && report.committed == 0, 733);
+    l2_report(&report, status);
 }
 
 fn run() {
