@@ -67,6 +67,13 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "65cd87c9a6d60536580b316ad985726104730a5151c99845f2490428ef91240a"
 
 [[package]]
+name = "nieuw-os-sdk-runtime"
+version = "0.1.0"
+dependencies = [
+ "zeroize",
+]
+
+[[package]]
 name = "nieuw-os-search-index"
 version = "0.1.0"
 dependencies = [
@@ -77,6 +84,7 @@ dependencies = [
 name = "nieuw-os-search-volume-example"
 version = "0.1.0"
 dependencies = [
+ "nieuw-os-sdk-runtime",
  "nieuw-os-search-index",
  "volume-core",
 ]
@@ -110,3 +118,9 @@ version = "0.1.0"
 dependencies = [
  "catalog-core",
 ]
+
+[[package]]
+name = "zeroize"
+version = "1.9.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e13084392c5e4bc371903e2935a5eaeed24905a7511356b883835e18a78f6879"
