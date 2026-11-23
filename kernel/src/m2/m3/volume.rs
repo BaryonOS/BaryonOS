@@ -905,8 +905,16 @@ fn device_call(s: &mut State, slot: usize, n: u64, a: [u64; 6]) -> Result<u64, i
     // ADR-H05-S3-SYSTEM-20261123: the wake reset the device. Every later
     // request is refused after the shape checks, before authority, policy,
     // copies or device access; the storage gate left no block authority.
+    // The scalar 0x40 length/range checks keep their codes here too; they
+    // still precede authority, so the pre-wake order is unchanged.
     #[cfg(feature = "test-system-s3")]
     if super::system::resumed() {
+        if n == 0x40 && (a[3] == 0 || a[3] > 128) {
+            return Err(-11);
+        }
+        if n == 0x40 && a[2].checked_add(a[3]).filter(|v| *v <= 512).is_none() {
+            return Err(-1);
+        }
         return Err(-14);
     }
     let pid = s.processes[slot].pid;
