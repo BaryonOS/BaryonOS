@@ -199,12 +199,18 @@ instance.
   incarnation includes a per-boot value of at least 128 bits drawn at boot
   from the platform's approved entropy source, the one already used for key
   material, and that the value is never persisted.
-  - Strength and accepted risk: the value must carry at least 128 bits of
-    entropy, from a source seeded with at least that much. Non-reuse is then
-    probabilistic, not absolute. Across n cold boots, the chance that any two
-    values collide is at most n²/2¹²⁹. For 2³² boots that is below 2⁻⁶⁵.
-    This proposal accepts that residual risk, the same order of risk as
-    guessing a 128-bit key. Absolute non-reuse would need a trusted,
+  - Strength: each boot's value must have at least 128 bits of min-entropy
+    conditional on every earlier boot's value. A generator whose state can
+    repeat across boots does not qualify, even with a 128-bit seed. This
+    includes a seed restored from storage, which a store replay can roll
+    back. Fresh entropy must enter at every boot. If the entropy source
+    cannot provide that, the failure behaviour below applies: no
+    incarnation and no grants.
+  - Accepted risk: non-reuse is then probabilistic, not absolute. Any one
+    pair of boots collides with probability at most 2⁻¹²⁸. Across n cold
+    boots, the chance that any two values collide is at most n²/2¹²⁹, which
+    is below 2⁻⁶⁵ for 2³² boots. This proposal accepts that aggregate bound
+    as the residual risk. Absolute non-reuse would need a trusted,
     non-replayable counter, which is the anchor of option 5B and is not
     proposed now.
   - Failure behaviour: if that entropy cannot be obtained, the network
