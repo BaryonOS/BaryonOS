@@ -1,5 +1,28 @@
 # Current project status
 
+## NEXT AGENT HANDOFF — H-track lead: H02 mouse reattach and S3 review follow-ups — 23 November 2026
+
+**Delivered (H02-T4, verified, not accepted):** PR #461 adds the exclusive
+`native-usb-hid-mouse-reattach` profile. After the `reports` sequence the guest retires the
+keyboard, unplugs the generation-1 mouse with the left button held (released once), and
+re-enumerates the mouse into the reused keyboard slot within the 16-page VT-d fixture (no new
+page, grant or direction). It rejects both captured generation-1 completions (the reused-slot
+one by its never-reused TRB address alone, guest-asserted), both generation-1 Session tokens and
+the old ticket, then passes press/release, unplug and the budget denial; retired pages 5, 12, 6
+and 13 are canary-checked. [Evidence](verification/h02-native-mouse-reattach-20261123/README.md):
+`reattach-mouse` raw 33 (three runs), keyboard `reattach`, `reports`, `readonly` raw 33, mutation
+control raw 35 (local QEMU 10.2.1, pc-q35-8.2, TCG). Independent AI review approve-with-minors,
+fixed; re-review approve. The hosted `native-xhci.yml` row is a lead-scoped integration change
+folded into #461; #461 stays acceptance-pending until `reattach-mouse` passes on QEMU 8.2.2.
+**CodeRabbit review 6022999851 (S3 follow-ups):** after the wake the volume broker keeps the 0x40
+length (-11) and range (-1) codes before its -14 refusal, through one `read_range` helper shared
+with the unchanged pre-wake path; an init device-loss probe before the proven post-wake tick now
+counts as unexpected and fails the gate. `test_power_system.py` 12/12 stages; no native probe
+exercises the new post-wake -11/-1 codes (init issues only a valid read).
+**Open:** keyring.rs:468 and run_system.py:171 (WAK_STS) wait for B-track write sets
+(B01-T2, #456); `Engine::next()` still drops port events during command waits (documented).
+**Score:** 41 → 41/100 (no criterion changes).
+
 ## NEXT AGENT HANDOFF — H-track lead: post-wake broker latches and quiescence gate (H05-R1) — 23 November 2026
 
 **Delivered (H05-R1, verified, not accepted):** after a validated S3 wake the volume broker's

@@ -1933,6 +1933,49 @@
       "next": "H02-T4: MSI/MSI-X with VT-d interrupt remapping (needs its own security design/ADR) or the long-lived input-policy handoff."
     },
     {
+      "id": "H02-T4",
+      "criterion": "H02",
+      "milestone": "M9",
+      "executor": "lead",
+      "status": "verified",
+      "title": "Native same-port USB mouse reattach with cross-device slot reuse (QEMU)",
+      "goal": "Add the exclusive native-usb-hid-mouse-reattach profile: after the reports sequence retire the keyboard, unplug the generation-1 mouse with a held button, re-enumerate it into the reused keyboard slot within the 16-page VT-d fixture, and reject every generation-1 completion, Session token and attach ticket; then press/release, unplug and deny a budget-exceeding attach.",
+      "deps": [
+        "H02-T3"
+      ],
+      "write_paths": [
+        "kernel/src/m2/xhci/usb.rs",
+        "kernel/Cargo.toml",
+        "kernel/src/main.rs",
+        "tools/build.py",
+        "tools/run.py",
+        "tools/run_usb_hid.py",
+        "tools/tests/test_usb_hid_probe.py",
+        "docs/implementation/NATIVE-USB-HID.md",
+        "docs/drivers/DRIVER-ARCHITECTURE.md",
+        "docs/verification/h02-native-mouse-reattach-20261123/"
+      ],
+      "checks": [
+        "python3 -B -m unittest discover -s tools/tests -p 'test_usb_hid*.py' -v",
+        "python3 -B tools/build.py --kernel-feature native-usb-hid-mouse-reattach && python3 -B tools/run_usb_hid.py --case reattach-mouse",
+        "python3 -B tools/build.py --kernel-feature native-usb-hid-reattach && python3 -B tools/run_usb_hid.py --case reattach"
+      ],
+      "history": [
+        {
+          "event": "verified",
+          "at": "2026-11-23",
+          "reason": "PR #461 (head 6c8d74b1, source fe8959dd): reattach-mouse raw 33 twice plus a lead rerun, keyboard reattach/reports/readonly raw 33 on local QEMU 10.2.1; mutation control fails (raw 35). Independent AI review approve-with-minors, fixed; re-review approve. Hosted native-xhci row added via the lead-scoped integration change folded into #461; acceptance-pending until it passes on QEMU 8.2.2."
+        }
+      ],
+      "lead_paths": [
+        ".github/workflows/native-xhci.yml"
+      ],
+      "evidence_level": "native QEMU/TCG (local QEMU 10.2.1); hosted 8.2.2 run pending on #461",
+      "non_claimable": "Physical hotplug/reset, IRQs, hubs, wheel bytes, malformed devices, the long-lived input-policy handoff and H02 acceptance stay open; retired-page canaries detect but do not prevent late writes; Engine::next() still drops port events during command waits.",
+      "source_commit": "fe8959dd8327cbce393d395755f956da226b07c5",
+      "next": "MSI/MSI-X with VT-d interrupt remapping (own security design/ADR) or the long-lived input-policy handoff."
+    },
+    {
       "id": "H03-T3",
       "criterion": "H03",
       "milestone": "M9",

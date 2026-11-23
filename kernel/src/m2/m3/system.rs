@@ -242,7 +242,8 @@ pub(super) fn after_wake(slot: usize, number: u64, code: i64) {
     if !p.resumed {
         return;
     }
-    if slot == INIT && p.lost_count < p.lost.len() {
+    // An init probe before the proven post-wake tick is unexpected (p.other).
+    if slot == INIT && p.ticked && p.lost_count < p.lost.len() {
         p.lost[p.lost_count] = (number, code);
         p.lost_count += 1;
     } else {
