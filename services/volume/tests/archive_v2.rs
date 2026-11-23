@@ -579,6 +579,45 @@ fn a_staged_upload_in_the_destination_makes_the_first_begin_busy() {
     assert_eq!(restore(&bytes, &mut c).unwrap().0.restored, 0b0000_0101);
 }
 
+#[test]
+fn a_collection_only_restore_is_not_refused_by_a_staged_upload() {
+    // Pins the documented exception: with no version to replay there is no
+    // BEGIN, COLLECTION is not refused by a staged upload, so the restore
+    // succeeds and makes the domain used; the staged upload still commits.
+    let bytes = fixture("collection-only.bin");
+    let mut disk = SimDisk::new();
+    let mut service = Service::new(EPOCH, Table::EMPTY, false);
+    let object = (DOMAIN * PER_DOMAIN + 3) as u64;
+    let mut begin = wire::Header::new(wire::BEGIN, 2, EPOCH, object);
+    begin.length = 4;
+    begin.name_length = 4;
+    begin.aux = 4;
+    let response = service.handle_for(DOMAIN, 77, &upload::encode(&begin, b"Half", 0), &mut disk);
+    let token = upload::token(&response);
+    assert_ne!(token, 0);
+    let mut c = client(&mut service, &mut disk, DOMAIN, None);
+    assert_eq!(archive::never_used(&mut c, DOMAIN), Ok(true));
+    let (report, _) = restore(&bytes, &mut c).unwrap();
+    assert_eq!(
+        (report.writes, report.committed, c.transport.begins),
+        (0, 2, 0)
+    );
+    assert_eq!(archive::never_used(&mut c, DOMAIN), Ok(false));
+    assert!(service.session(DOMAIN).is_some());
+    let mut call = |operation, aux, length, data: &[u8]| {
+        let mut h = wire::Header::new(operation, begin.request_id, EPOCH, object);
+        h.aux = aux;
+        h.length = length;
+        let response = service.handle_for(DOMAIN, 77, &upload::encode(&h, data, token), &mut disk);
+        let reply = upload::validate_reply(&h, token, &response, EPOCH).unwrap();
+        (Status::from_code(i64::from(reply.status)), reply.revision)
+    };
+    assert_eq!(call(wire::APPEND, 0, 4, b"Rest").0, Status::Ok);
+    assert_eq!(call(wire::COMMIT, 4, 0, &[]), (Status::Ok, 1));
+    let mut c = client(&mut service, &mut disk, DOMAIN, None);
+    assert_eq!(c.collection_stat(DOMAIN, 3).unwrap().name(), b"Leeg");
+}
+
 /// Fill the other domain to its quota: 40 committed chunks, or 32 committed
 /// plus 8 staged in an open upload session.
 fn fill_other_domain(service: &mut Service, disk: &mut SimDisk, staged: bool) {

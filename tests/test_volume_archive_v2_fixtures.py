@@ -117,6 +117,10 @@ def fixtures() -> dict[str, tuple[bytes, str | None]]:
         "free-24.bin": (encode(**full_parts(two_chunks=False), flags=0, clock=30), None),
         "boundary.bin": (encode(**boundary_parts(), flags=0, clock=3), None),
         "delete-gap.bin": (encode(**delete_gap_parts(), flags=0, clock=1000), None),
+        # Present collections only: native restore replays no version, so it sends no BEGIN.
+        "collection-only.bin": (encode(collections=[dict(index=1, present=True, revision=4, name="Map"),
+                                                    dict(index=3, present=True, revision=7, name="Leeg")],
+                                       objects=[], flags=0, clock=7), None),
         "s1-version-revision-zero.bin": (encode(**first_object(
             versions=[(8, "a", b"1"), (6, "b", b"2"), (0, "c", b"3")])), "version revision is zero"),
         "s2-newest-version-above-object.bin": (encode(**first_object(versions=[(10, "a", b"1")])),

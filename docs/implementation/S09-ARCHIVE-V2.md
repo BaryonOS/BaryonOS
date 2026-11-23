@@ -293,11 +293,23 @@ clock bounds its own revisions and stamps (`table.rs:644-666`).
   object all stay referenced) and more than
   `GUARANTEED_FREE = CHUNKS − (DOMAINS − 1) × QUOTA = 24` (`Full`; the
   volume-wide free count is not observable, but BEGIN keeps every other
-  domain's committed plus staged chunks within `QUOTA`). Its first mutation
-  is a BEGIN: all WRITEs come first, then COLLECTION creates, then META, so
-  a refusal or a failed first BEGIN leaves the domain never used, and its
-  report counts every commit (`committed`) so a caller can tell "refused,
-  untouched" from "failed, used".
+  domain's committed plus staged chunks within `QUOTA`). All WRITEs come
+  first, then COLLECTION creates, then META, so a refusal or a failed first
+  BEGIN changes nothing in the domain, and its report counts every commit
+  of this restore (`committed`) so a caller can tell "refused, unchanged by
+  this restore" from "failed, used". `committed == 0` does not mean the
+  domain is never used: `Stale` reports an already used domain with zero.
+  The first mutation is a BEGIN only when a version is replayed; a
+  token-bound upload staged in the domain then makes it `Busy` before any
+  commit, while a legacy (token 0) staged upload is replaced by that BEGIN,
+  as for any legacy BEGIN. An archive with no replayable version but a present collection
+  starts with COLLECTION, which a staged upload does not refuse: that
+  restore succeeds and makes the domain used, and the staged upload can
+  still COMMIT afterwards because COLLECTION leaves object revisions
+  unchanged. No read operation exposes staged uploads, so `restore_native`
+  cannot detect this; it falls under the existing precondition that the
+  caller is the only writer of the destination domain
+  (`a_collection_only_restore_is_not_refused_by_a_staged_upload`).
 - `modified` versus the object revision: the table has no such relation.
 - Uniqueness of names: the volume does not enforce it (v1 likewise).
 

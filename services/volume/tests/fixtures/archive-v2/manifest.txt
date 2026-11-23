@@ -13,6 +13,9 @@ boundary.bin archive 0 0 5 3 65536 65872
 boundary.bin collection 4 1 2 6363636363636363636363636363636363636363636363636363636363636363
 boundary.bin object 7 1 4 0 1 3 1 3 1
 boundary.bin version 7 0 3 65536 2216012086724862757 6e6e6e6e6e6e6e6e6e6e6e6e6e6e6e6e6e6e6e6e6e6e6e6e6e6e6e6e6e6e6e6e
+collection-only.bin archive 0 0 11 7 0 208
+collection-only.bin collection 1 1 4 4d6170
+collection-only.bin collection 3 1 7 4c656567
 content-free-unaccounted.bin refused content-free record without the accounted flag
 delete-gap.bin archive 0 0 6598 1000 73745 75489
 delete-gap.bin collection 1 1 900 4d6170

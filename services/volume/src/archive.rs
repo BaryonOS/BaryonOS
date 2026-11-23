@@ -960,12 +960,14 @@ pub struct NativeReport {
     pub restored: u8,
     /// Committed WRITEs.
     pub writes: usize,
-    /// Every commit that made the domain used (WRITE, COLLECTION, META).
-    /// Zero after an error other than `Unknown` or `Protocol` means refused
-    /// and untouched, so the domain is still never used; otherwise it is used
-    /// and a retry is refused. After an unresolved `Unknown`, or a malformed
-    /// reply (`Protocol`), the domain may be used even at zero: [`never_used`]
-    /// decides on retry.
+    /// Every commit this restore made (WRITE, COLLECTION, META). Zero after
+    /// an error other than `Unknown` or `Protocol` means this restore changed
+    /// nothing: the domain is as it was, never used only if it was before
+    /// (not after `Stale`, which reports an already used domain). Non-zero
+    /// means this restore made the domain used and a retry is refused. After
+    /// an unresolved `Unknown`, or a malformed reply (`Protocol`), this
+    /// restore may have committed even at zero: [`never_used`] decides on
+    /// retry.
     pub committed: usize,
     /// Versions of present objects not replayed because they follow a
     /// revision gap and may predate a DELETE (owner decision, 19 November
@@ -1028,18 +1030,25 @@ pub fn never_used<T: Transport>(client: &mut Client<T>, domain: usize) -> Result
 /// capacity checks count replayed versions only. The volume-wide free chunk count is not
 /// observable through the protocol, so a replay needing more than
 /// [`GUARANTEED_FREE`] chunks is refused with `Full` before the first write.
-/// The first mutation is always a BEGIN: every WRITE comes first, then the
-/// collections, then each object's META from the verified plan. A lost
+/// Every WRITE comes first, then the collections, then each object's META
+/// from the verified plan, so the first mutation is a BEGIN whenever a
+/// version is replayed; a token-bound upload staged in the domain then makes
+/// it `Busy` before anything commits (a legacy, token-0 staged upload is
+/// instead replaced by that BEGIN, as for any legacy BEGIN). A restore with no replayable version
+/// but a present collection starts with COLLECTION, which a staged upload
+/// does not refuse: it succeeds, the domain becomes used, and the staged
+/// upload can still COMMIT afterwards (its object revision is unchanged).
+/// No read operation exposes staged uploads, so this is not detected. A lost
 /// reply (`Unknown`) is resolved by STAT or COLLECTION_STAT and accepted only
 /// when the state is exactly what was sent. A failure with
 /// `report.committed == 0` and a status other than `Unknown` or `Protocol`
-/// left the domain untouched; an unresolved `Unknown` or a malformed reply
-/// (`Protocol`) may have committed, so the domain must
-/// then be treated as used ([`never_used`] decides on retry). Any other later
-/// failure leaves it used, and a retry is then refused. The
-/// caller must be the only writer of the destination domain meanwhile: a
-/// concurrent write to a slot the archive does not use, after the
-/// never-used check, is not detected.
+/// means this restore changed nothing (after `Stale` the domain was already
+/// used); an unresolved `Unknown` or a malformed reply (`Protocol`) may have
+/// committed, so the domain must then be treated as used ([`never_used`]
+/// decides on retry). Any other later failure leaves it used, and a retry is
+/// then refused. The caller must be the only writer of the destination
+/// domain meanwhile: a concurrent write to a slot the archive does not use,
+/// after the never-used check, is not detected.
 ///
 /// `source` receives the verified archive before anything is written: the
 /// recorded source revisions, stamps, clock and generation are reported only
