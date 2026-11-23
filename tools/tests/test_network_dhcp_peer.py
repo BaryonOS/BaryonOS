@@ -400,6 +400,7 @@ class DhcpRunnerSummaryTest(unittest.TestCase):
             raise subprocess.CalledProcessError(101, ["cargo", "build"])
         with patch.object(self.runner, "BUILD", self.build), \
                 patch.object(self.runner, "source_hash", return_value="a" * 64), \
+                patch.object(self.builder, "ensure_lockfile"), \
                 patch.object(self.builder, "build", side_effect=failing_build), \
                 patch.object(self.runner, "run_network_dhcp") as run:
             with self.assertRaises(subprocess.CalledProcessError):
