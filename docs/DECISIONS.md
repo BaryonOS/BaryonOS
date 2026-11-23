@@ -1028,7 +1028,10 @@ left the queue or completed `host-quality`, `qemu-smoke` and `merge-hold` on its
 own commit (that `merge-hold` waited the same way, so the whole queue ahead has
 finished). Queue entries without a commit or pull request behind the group are
 ignored; ahead of it they keep the run waiting and fail closed at the
-45-minute deadline.
+45-minute deadline. This holds only while `host-quality`, `qemu-smoke` and
+`merge-hold` are the only required checks; a later-finishing required check
+reopens the window. The behaviour rests on GitHub's merge queue documentation
+and unit tests with a mocked API; it has not yet run against a live queue.
 - Enforced: a hold set, or a release comment removed, before the final read
   blocks every group containing that pull request, including a later group that
   merges the entries ahead with it.
@@ -1038,8 +1041,9 @@ ignored; ahead of it they keep the run waiting and fail closed at the
   in the queue ruleset lengthens it. Owners set the label before queueing and
   remove a pull request from the queue to apply a late hold.
 - Automatic removal from the queue on a late label (GraphQL
-  `dequeuePullRequest` from the `pull_request` run) was not adopted: the
-  required token permission is not documented, it would give a write token to
+  `dequeuePullRequest` from the `pull_request` run) was not adopted: its
+  required token permission is not stated in the GraphQL pull request
+  reference or the GITHUB_TOKEN permissions page, it would give a write token to
   a job that runs the pull request's own script, it cannot act for fork pull
   requests, and it races the merge on runner start-up latency. It needs a
   separate owner decision.
