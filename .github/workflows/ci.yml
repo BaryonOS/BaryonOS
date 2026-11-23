@@ -126,8 +126,8 @@ jobs:
           coverage xml
       - name: Root Rust host tests
         run: |
-          cargo +1.100.0 llvm-cov --locked -p boot-protocol -p elf-loader-core -p kernel-core -p capability-core -p virtio-core -p ui-core -p virtio-blk-driver -p block-protocol -p object-core -p catalog-core -p volume-core -p keyring-core -p virtio-rng-driver -p virtio-net-driver -p driver-core -p pci-core -p update-core -p update-tool --cobertura --output-path build/coverage-raw/rust-cobertura.xml
-          cargo +1.100.0 clippy --locked -p boot-protocol -p elf-loader-core -p kernel-core -p capability-core -p virtio-core -p ui-core -p virtio-blk-driver -p block-protocol -p object-core -p catalog-core -p volume-core -p keyring-core -p virtio-rng-driver -p virtio-net-driver -p driver-core -p pci-core -p update-core -p update-tool --all-targets -- -D warnings
+          cargo +1.100.0 llvm-cov --locked -p boot-protocol -p elf-loader-core -p kernel-core -p capability-core -p virtio-core -p ui-core -p virtio-blk-driver -p block-protocol -p object-core -p catalog-core -p volume-core -p destination-core -p keyring-core -p virtio-rng-driver -p virtio-net-driver -p driver-core -p pci-core -p update-core -p update-tool --cobertura --output-path build/coverage-raw/rust-cobertura.xml
+          cargo +1.100.0 clippy --locked -p boot-protocol -p elf-loader-core -p kernel-core -p capability-core -p virtio-core -p ui-core -p virtio-blk-driver -p block-protocol -p object-core -p catalog-core -p volume-core -p destination-core -p keyring-core -p virtio-rng-driver -p virtio-net-driver -p driver-core -p pci-core -p update-core -p update-tool --all-targets -- -D warnings
           cargo +1.100.0 fmt --all -- --check
       - name: SDK tests and lint
         run: |
