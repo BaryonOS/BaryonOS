@@ -70,6 +70,12 @@ def nested_git(root: Path) -> list[str]:
     return sorted(found)
 
 
+def brief(items: list[str], count: int = 20, chars: int = 2000) -> str:
+    """A bounded excerpt of a path list for a Stop message, saying when it is cut."""
+    text = json.dumps(items[:count]) + (f" (+{len(items) - count} more)" if len(items) > count else "")
+    return text if len(text) <= chars else text[:chars] + "...(cut)"
+
+
 def git_env() -> dict[str, str]:
     return {k: v for k, v in os.environ.items() if k not in GIT_LOCATION_VARS}
 
@@ -144,6 +150,8 @@ DENY = ["Bash(git push:*)", "Bash(git commit:*)", "Bash(git reset:*)", "Bash(git
 PROCESS_TAG = "roadmap-pipeline-"
 READ_ONLY_DISALLOWED = "Edit,Write,MultiEdit,NotebookEdit"
 CALLBACKS_MARKER = "callbacks-baseline.json"  # present while a session may change Git state
+REVIEW_NONCE = "review-nonce"  # issued by `resume`: no digest exists before the lead saw the review
+TRUSTED_RECORD = "trusted-checkout.json"  # this checkout's baselines have lived outside it since then
 INIT_DENY_PROBE = "build/roadmap-pipeline/DENY-PROBE"
 TRAILERS = ("Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>\n"
             "Claude-Session: https://claude.ai/code/session_01TJtT9VANihpE4RzPd4d8su\n")
@@ -328,8 +336,10 @@ def claude_argv(cfg: Config, name: str, session_id: str, settings: Path, schema:
 
 
 def codex_argv(result: Path) -> list[str]:
-    """Installed Codex 0.167.2 interface; retain user config, auth, MCP and hooks."""
-    return ["codex", "exec", "--ephemeral", "--strict-config", "--sandbox", "workspace-write",
+    """Installed Codex 0.167.2 interface. Auth stays; the user config, plugins and apps do not, so
+    the session gets no MCP server that could write outside the shell sandbox (the baseline home)."""
+    return ["codex", "exec", "--ephemeral", "--strict-config", "--ignore-user-config", "--disable", "plugins",
+            "--disable", "apps", "--sandbox", "workspace-write",
             "--json", "--output-last-message", str(result), "-"]
 
 
@@ -445,6 +455,13 @@ def gate_report(log: Path) -> tuple[str, str]:
     return digest, "\n".join(lines[-120:])
 
 
+def hidden_tracked() -> list[str]:
+    """Tracked paths whose index flags hide worktree edits from status, diff and revert:
+    assume-unchanged (lower-case tag) and skip-worktree (S)."""
+    return sorted(entry[2:] for entry in git("ls-files", "-v", "-z").split("\0")
+                  if entry and (entry[0].islower() or entry[0] == "S"))
+
+
 def git(*args: str, check: bool = True) -> str:
     done = subprocess.run(["git", *CONTROLLER_GIT_CONFIG, *args], cwd=ROOT, capture_output=True, text=True,
                           env=git_env())
@@ -458,8 +475,9 @@ def baseline_home() -> Path:
     Codex `workspace-write` session writes the checkout, /tmp and $TMPDIR, so it could delete or
     forge a baseline kept in build/."""
     base = Path(os.environ.get("XDG_STATE_HOME") or Path.home() / ".local" / "state").resolve()
-    home = base / "baryonos-roadmap-pipeline" / sha256(str(ROOT.resolve()))[:16]
-    for writable in {ROOT.resolve(), Path(tempfile.gettempdir()).resolve(), Path("/tmp").resolve()}:
+    # Resolved whole: a symlinked component must not lead the checks past the real location.
+    home = (base / "baryonos-roadmap-pipeline" / sha256(str(ROOT.resolve()))[:16]).resolve()
+    for writable in dict.fromkeys([ROOT.resolve(), Path(tempfile.gettempdir()).resolve(), Path("/tmp").resolve()]):
         if home == writable or writable in home.parents:
             raise Stop(f"the session baseline directory {home} lies in the session-writable {writable}; "
                        "set XDG_STATE_HOME elsewhere")
@@ -565,11 +583,15 @@ class Controller:
         # A manual Codex session is not a tagged process: its claim keeps its baseline alive.
         if active := [t["id"] for t in load_ledger(LEDGER)["tasks"] if t["status"] == "active"]:
             raise Stop(f"manual task {active} is active; validate it and update the ledger first")
-        self.check_saved_baseline(retire=True)  # no worker is alive any more
-        if planted := planted_modules():
-            raise Stop(f"untracked or ignored modules under tools/ could run as code: {planted}")
-        if nested := nested_git(ROOT):
-            raise Stop(f"nested .git paths can carry Git callbacks; remove them: {nested[:20]}")
+        # The ledger lies in the checkout, where the session can mark its task done: the claim that
+        # counts is the one in the trusted marker, which only `resume --accept` ends.
+        if claim := self.manual_claim():
+            raise Stop(f"manual task {claim} holds the session baseline; validate its result, then run `resume`")
+        self.check_saved_baseline(retire=False)
+        if not self.trusted():
+            raise Stop("this checkout has no trusted session baseline yet (an older controller may have kept "
+                       "it inside the checkout); review the checkout, then run `resume`")
+        self.refuse_invisible_changes()
         self.callbacks = git_callbacks()
         branch = git("branch", "--show-current").strip()
         if branch != self.cfg.branch:
@@ -577,7 +599,22 @@ class Controller:
         dirty = git("status", "--porcelain", "--untracked-files=all").strip()
         if dirty:
             raise Stop(f"checkout is not clean; refusing to start a writer:\n{dirty[:2000]}")
-        return git("rev-parse", "HEAD").strip()
+        head = git("rev-parse", "HEAD").strip()
+        # Last: a Stop above keeps the baseline, so what the lead removes next is still compared.
+        self.retire_baseline()
+        return head
+
+    @staticmethod
+    def refuse_invisible_changes() -> None:
+        """What the baseline comparison cannot see: Git lists nothing inside a nested repository,
+        index flags hide tracked edits, and a planted module runs as controller code. Each one
+        keeps the baseline (preflight and `resume` alike), so it is compared again once removed."""
+        if planted := planted_modules():
+            raise Stop(f"untracked or ignored modules under tools/ could run as code: {brief(planted)}")
+        if nested := nested_git(ROOT):
+            raise Stop(f"nested .git paths can carry Git callbacks; remove them: {brief(nested)}")
+        if hidden := hidden_tracked():
+            raise Stop(f"tracked paths hide worktree edits (assume-unchanged or skip-worktree): {brief(hidden)}")
 
     def check_saved_baseline(self, *, retire: bool) -> None:
         """Before any Git command that can run a hook or filter. A session that never reached its
@@ -594,7 +631,7 @@ class Controller:
                 atomic_write(self.state / "STOP", "ignored files changed since a session's baseline\n")
                 raise Stop("ignored files changed since an interrupted or manual session's baseline "
                            f"(created, changed or removed); review them, then run `resume`: "
-                           f"{[paths[:20] for paths in delta]}")
+                           f"{[brief(paths) for paths in delta]}")
         if legacy:
             # Written before the baseline left the checkout: a session could have rewritten it.
             atomic_write(self.state / "STOP", "a session baseline inside the checkout cannot be trusted\n")
@@ -618,22 +655,60 @@ class Controller:
     def marker(self) -> Path:
         return (self.baseline or baseline_home()) / CALLBACKS_MARKER
 
+    def manual_claim(self) -> str | None:
+        marker = self.marker()
+        saved = self.saved_baseline(marker) if marker.exists() else {}
+        session = saved.get("session")
+        # A claim written by 3a24e2c4 carries no "manual" key, only its session name.
+        return saved.get("manual") or (session[len("manual "):] if isinstance(session, str)
+                                       and session.startswith("manual ") else None)
+
+    def trusted(self) -> bool:
+        """Whether this checkout's baseline history lies outside every session's reach. Without the
+        record, a session could have deleted an older in-checkout baseline and left no trace."""
+        return (self.marker().parent / TRUSTED_RECORD).exists() or self.marker().exists()
+
     def retire_baseline(self) -> None:
         """Only after the caller has validated the session's checkout, ignored files included."""
+        record = self.marker().parent / TRUSTED_RECORD
+        if not record.exists():
+            atomic_write(record, json.dumps({"since": now(), "root": str(ROOT)}))
         self.marker().unlink(missing_ok=True)
+        (self.marker().parent / REVIEW_NONCE).unlink(missing_ok=True)
 
     def baseline_review(self) -> dict | None:
-        """What retiring the saved baseline would adopt: the change since it was taken."""
+        """What retiring the saved baseline would adopt: the change since it was taken. With no
+        trusted baseline there is no delta to show: the lead reviews the checkout as a whole."""
         marker, legacy = self.marker(), self.legacy_marker()
-        source = marker if marker.exists() else legacy
-        if source is None:
-            return None
-        saved = self.saved_baseline(source)
+        if not marker.exists():
+            if legacy is None and self.trusted():
+                return None
+            return {"no_trusted_baseline": True, "legacy_marker_in_checkout": legacy is not None}
+        saved = self.saved_baseline(marker)
         ignored = saved.get("ignored")
         created, changed = self.ignored_delta(ignored) if isinstance(ignored, dict) else (["unreadable baseline"], [])
-        return {"untrusted_legacy_baseline": legacy is not None,
+        return {"manual_claim": self.manual_claim(), "legacy_marker_in_checkout": legacy is not None,
                 "callbacks_changed": git_callbacks() != saved.get("baseline"),
                 "created": created, "changed_or_removed": changed}
+
+    def review_digest(self, review: dict) -> str:
+        """Binds the acknowledgement to the exact state the lead reviewed: the Git callbacks, every
+        ignored file's identity (ctime and inode change on any later write), the changed files'
+        content and both markers. A later, different change gives a different digest."""
+        def content(path: Path) -> str | None:
+            try:
+                return os.readlink(path) if path.is_symlink() else sha256(path.read_bytes()) if path.is_file() else None
+            except OSError as error:
+                return f"unreadable: {error.errno}"
+        changed = review.get("created", []) + review.get("changed_or_removed", [])
+        markers = [self.marker(), self.state / CALLBACKS_MARKER]
+        nonce = self.marker().parent / REVIEW_NONCE
+        if not nonce.exists():
+            atomic_write(nonce, uuid.uuid4().hex)
+        bound = {"nonce": nonce.read_text(), "review": review, "callbacks": git_callbacks(), "ignored": self.ignored_files(),
+                 "hidden": hidden_tracked(), "content": {p: content(ROOT / p) for p in changed},
+                 "markers": [content(m) if os.path.lexists(m) else None for m in markers]}
+        return sha256(json.dumps(bound, sort_keys=True))[:16]
 
     def resume(self, accept: str | None = None) -> str:
         """Clear STOP and PAUSE. The saved baseline stays while anything may still change the
@@ -655,13 +730,19 @@ class Controller:
         review = self.baseline_review()
         if review is None:
             return "stop/pause cleared; no saved session baseline"
-        digest = sha256(json.dumps(review, sort_keys=True))[:16]
-        unchanged = not (review["untrusted_legacy_baseline"] or review["callbacks_changed"]
-                         or review["created"] or review["changed_or_removed"])
-        if not unchanged and accept != digest:
-            shown = {k: v[:50] if isinstance(v, list) else v for k, v in review.items()}
+        # Before any digest: the review cannot show what lies inside a nested repository.
+        self.refuse_invisible_changes()
+        digest = self.review_digest(review)
+        # A manual claim always needs the lead's word: its session may still be running and plant
+        # something after an empty delta was shown.
+        if any(review.values()) and accept != digest:
+            shown = {k: (v[:50] + [f"... {len(v) - 50} more"] if len(v) > 50 else v) if isinstance(v, list) else v
+                     for k, v in review.items()}
+            note = (" Confirm that the manual session has ended and validate its result." if review.get("manual_claim")
+                    else " There is no trusted baseline to compare with: review the whole checkout, its ignored "
+                         "files and Git callbacks." if review.get("no_trusted_baseline") else "")
             return ("stop/pause cleared; the saved session baseline is kept because retiring it would adopt "
-                    f"this change: {json.dumps(shown)}. Review it (Git callbacks included), then run "
+                    f"this change: {json.dumps(shown)}.{note} Review it (Git callbacks included), then run "
                     f"`resume --accept {digest}`")
         self.retire_baseline()
         (self.state / CALLBACKS_MARKER).unlink(missing_ok=True)  # a legacy in-checkout baseline
@@ -683,7 +764,9 @@ class Controller:
             raise Stop(f"cumulative estimated cost {self.spent:.2f} USD reached the cap")
         session_id = str(uuid.uuid4())
         settings = attempt_dir / f"{kind}-settings.json"
-        atomic_write(settings, json.dumps({"permissions": {"allow": rules, "deny": DENY}}, indent=2))
+        # The baseline left build/, so Edit(build/roadmap-pipeline/**) no longer covers it.
+        deny = DENY + [f"Edit(/{(self.baseline or baseline_home()).parent}/**)"]
+        atomic_write(settings, json.dumps({"permissions": {"allow": rules, "deny": deny}}, indent=2))
         brief = attempt_dir / f"{kind}-brief.md"
         atomic_write(brief, prompt)
         argv = claude_argv(self.cfg, f"{PROCESS_TAG}{kind}-{task_id}", session_id, settings, schema, mode,
@@ -787,10 +870,11 @@ class Controller:
         for path in filter(None, git("ls-files", "-z", "--others", "--exclude-standard").split("\0")):
             target = ROOT / path
             with contextlib.suppress(FileNotFoundError):
-                untracked[path] = (os.readlink(target) if target.is_symlink()
-                                   else sha256(target.read_bytes()) if target.is_file() else "other")
+                untracked[path] = [target.lstat().st_mode, os.readlink(target) if target.is_symlink()
+                                   else sha256(target.read_bytes()) if target.is_file() else "other"]
         return sha256(git("status", "--porcelain", "--untracked-files=all") + git(*DIFF_HEAD)
-                      + json.dumps([self.ignored_files(), nested_git(ROOT), untracked], sort_keys=True))
+                      + json.dumps([self.ignored_files(), nested_git(ROOT), hidden_tracked(), untracked],
+                                   sort_keys=True))
 
     def changed(self) -> list[str]:
         return parse_porcelain(git("status", "--porcelain", "--untracked-files=all"))
@@ -962,7 +1046,7 @@ Rules (binding, in addition to AGENTS.md):
                 "manual_required": True, "unattended_ready": False}
         atomic_write(directory / "dispatch.json", json.dumps(plan, indent=2))
         # The manual session may change Git state: the next preflight compares, never adopts.
-        atomic_write(self.marker(), json.dumps({"baseline": self.callbacks,
+        atomic_write(self.marker(), json.dumps({"baseline": self.callbacks, "manual": task["id"],
                                                 "session": f"manual {task['id']}",
                                                 "ignored": self.ignored_files()}))
         update_task(task["id"], path=LEDGER, status="active", history={
@@ -1046,7 +1130,9 @@ Return the structured result.
             record = {"attempt": attempt, "worker": worker}
             attempts.append(record)
             if nested := nested_git(ROOT):  # invisible to the scope check and revert below
-                raise Stop(f"the worker session left nested .git paths; review them: {nested[:20]}")
+                raise Stop(f"the worker session left nested .git paths; review them: {brief(nested)}")
+            if hidden := hidden_tracked():  # their edits are invisible to the scope check as well
+                raise Stop(f"the worker session hid tracked edits behind index flags: {brief(hidden)}")
             changed = self.changed()
             # New ignored files are never in scope: nothing commits them and later runs may use them.
             if bad := [p for p in changed if not in_write_set(p, task["write_paths"])] + self.new_ignored(ignored):
@@ -1198,7 +1284,8 @@ Return the structured result.
                               allow_rules(), "default", 15 * 60,
                               disallowed=READ_ONLY_DISALLOWED, budget=self.cfg.verifier_budget_usd)
         record["head_expected"] = head
-        record["checkout_clean_after"] = not (self.changed() or any(self.ignored_delta(ignored)) or nested_git(ROOT))
+        record["checkout_clean_after"] = not (self.changed() or any(self.ignored_delta(ignored)) or nested_git(ROOT)
+                                              or hidden_tracked())
         if record["checkout_clean_after"]:  # otherwise the next run compares with the init baseline
             self.retire_baseline()
         record["deny_probe_file_absent"] = not probe.exists()  # controller-side oracle

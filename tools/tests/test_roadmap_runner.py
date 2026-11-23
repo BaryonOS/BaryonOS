@@ -13,6 +13,8 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import roadmap_runner as rr
 
+REAL_GIT_CALLBACKS = rr.git_callbacks
+
 
 def task(tid, status="ready", deps=(), writes=("services/x/",), checks=("true",)):
     return {"id": tid, "criterion": "N02", "title": tid, "goal": "g", "status": status,
@@ -20,15 +22,20 @@ def task(tid, status="ready", deps=(), writes=("services/x/",), checks=("true",)
 
 
 class Ledger(unittest.TestCase):
-    def test_codex_dispatch_is_fresh_and_preserves_configuration(self):
+    def test_codex_dispatch_is_fresh_and_drops_user_mcp_servers(self):
         argv = rr.codex_argv(Path("/result.json"))
         self.assertEqual(argv[:2], ["codex", "exec"])
         self.assertEqual(argv[-1], "-")
         self.assertIn("--ephemeral", argv)
         self.assertIn("--strict-config", argv)
         self.assertEqual(argv[argv.index("--sandbox") + 1], "workspace-write")
-        self.assertFalse(set(argv) & {"resume", "fork", "--ignore-user-config", "--ignore-rules",
+        self.assertFalse(set(argv) & {"resume", "fork", "--ignore-rules",
                                      "--dangerously-bypass-approvals-and-sandbox", "--full-auto"})
+        # User MCP servers, plugins and apps run outside the shell sandbox, so they could reach the
+        # baseline home; auth stays (Codex reads it from CODEX_HOME, not config.toml).
+        self.assertIn("--ignore-user-config", argv)
+        disabled = {argv[i + 1] for i, a in enumerate(argv) if a == "--disable"}
+        self.assertLessEqual({"plugins", "apps"}, disabled)
 
     def test_automatic_ingresses_remain_held_before_commands_or_writes(self):
         with tempfile.TemporaryDirectory() as tmp, \
@@ -73,6 +80,7 @@ class Ledger(unittest.TestCase):
                     self.assertFalse(first["unattended_ready"])
                     marker = json.loads((root / "state" / rr.CALLBACKS_MARKER).read_text())
                     self.assertEqual(marker["baseline"], "cb")  # the next preflight compares, never adopts
+                    self.assertEqual(marker["manual"], "A")  # the claim the in-checkout ledger cannot end
                     with self.assertRaisesRegex(rr.Stop, "already active"):
                         controller.prepare_manual()
                 finally:
@@ -679,7 +687,7 @@ class Session(unittest.TestCase):
                     with self.assertRaisesRegex(rr.Stop, "interrupted session" if stops else "git reached"):
                         fresh.preflight()
                 self.assertEqual((root / "state" / "STOP").exists(), stops)
-                self.assertEqual(marker.exists(), stops)  # adopted only when unchanged
+                self.assertTrue(marker.exists())  # retired only once every preflight check passed
                 if stops:
                     git.assert_not_called()  # no hook-running Git call before the comparison
 
@@ -838,6 +846,7 @@ class RunnerResiduals(unittest.TestCase):
                     unittest.mock.patch.object(rr, "git_callbacks", return_value="cb"), \
                     unittest.mock.patch.object(rr, "planted_modules", return_value=["tests/evil.py"]), \
                     unittest.mock.patch.object(rr, "git") as git:
+                rr.atomic_write(Path(tmp) / rr.TRUSTED_RECORD, "{}")
                 with self.assertRaisesRegex(rr.Stop, "tests/evil.py"):
                     rr.Controller(rr.Config(), Path(tmp)).preflight()
             git.assert_not_called()
@@ -928,6 +937,7 @@ class RunnerResiduals(unittest.TestCase):
                     unittest.mock.patch.object(rr, "load_ledger", return_value={"tasks": []}), \
                     unittest.mock.patch.object(rr, "planted_modules", return_value=[]), \
                     unittest.mock.patch.object(rr, "git_callbacks", return_value="cb"):
+                rr.atomic_write(Path(tmp) / "state" / rr.TRUSTED_RECORD, "{}")
                 with self.assertRaisesRegex(rr.Stop, "nested .git"):
                     rr.Controller(rr.Config(), Path(tmp) / "state").preflight()
             shutil.rmtree(repo / "crates")
@@ -1028,6 +1038,7 @@ class RunnerResiduals(unittest.TestCase):
                 unittest.mock.patch.object(rr, "baseline_home", return_value=home), \
                 unittest.mock.patch.object(rr, "load_ledger", return_value=ledger), \
                 unittest.mock.patch.dict("os.environ", env, clear=True), \
+                unittest.mock.patch.object(rr, "planted_modules", return_value=[]), \
                 unittest.mock.patch.object(rr, "git_callbacks", return_value="cb"):
             yield repo, state, rr.Controller(rr.Config(), state)
 
@@ -1205,6 +1216,18 @@ class RunnerResiduals(unittest.TestCase):
                 self.assertTrue(controller.init_check()["checkout_clean_after"])
             self.assertFalse(controller.marker().exists())
 
+            def hiding_init(*args, **kwargs):
+                rr.atomic_write(controller.marker(), "{}")
+                rr.git("update-index", "--skip-worktree", ".gitignore")
+                (repo / ".gitignore").write_text("everything/\n")
+                return {"session_id": "s", "exit_code": 0}
+            with unittest.mock.patch.object(rr, "ROOT", repo), \
+                    unittest.mock.patch.dict("os.environ", env, clear=True), \
+                    unittest.mock.patch.object(controller, "preflight", return_value="a" * 40), \
+                    unittest.mock.patch.object(controller, "session", side_effect=hiding_init):
+                self.assertFalse(controller.init_check()["checkout_clean_after"])
+            self.assertTrue(controller.marker().exists())
+
     def test_resume_never_retires_a_baseline_over_an_unacknowledged_change(self):
         for case in ("leftover after a Stop", "forged legacy marker", "forged STOP", "wrong digest"):
             with self.subTest(case=case), tempfile.TemporaryDirectory() as tmp, \
@@ -1233,7 +1256,7 @@ class RunnerResiduals(unittest.TestCase):
             with self.assertRaisesRegex(rr.Stop, "lies inside the checkout"):
                 controller.check_saved_baseline(retire=True)
             self.assertTrue((state / "STOP").exists())
-            self.assertIn("untrusted_legacy_baseline", self.resume()[1])
+            self.assertIn('"no_trusted_baseline": true', self.resume()[1])  # no delta from session data
             self.assertTrue((state / rr.CALLBACKS_MARKER).exists())
             self.assertEqual(self.accept()[0], 0)
             self.assertFalse((state / rr.CALLBACKS_MARKER).exists())
@@ -1292,6 +1315,189 @@ class RunnerResiduals(unittest.TestCase):
                 self.assertEqual(rr.nested_git(root), ["unreadable: locked"])
             finally:
                 (root / "locked").chmod(0o700)
+
+    def preflight(self, repo, controller):
+        """A real preflight in a live_state checkout (no worker probe, the checkout's own branch)."""
+        branch = rr.subprocess.run(["git", "-C", str(repo), "branch", "--show-current"], check=True,
+                                   capture_output=True, text=True).stdout.strip()
+        controller.cfg = rr.Config(branch=branch)
+        with unittest.mock.patch.object(rr.Controller, "refuse_live_workers"), \
+                unittest.mock.patch.object(rr, "planted_modules", return_value=[]):
+            return controller.preflight()
+
+    def manual_marker(self, controller, task_id="L01-T3"):
+        rr.atomic_write(controller.marker(), json.dumps({"baseline": "cb", "manual": task_id,
+                                                         "session": f"manual {task_id}",
+                                                         "ignored": controller.ignored_files()}))
+
+    def test_a_manual_claim_outlives_a_ledger_the_session_rewrote(self):
+        # 3a24e2c4 read the claim from the in-checkout ledger only: the session marks its task done,
+        # preflight retires the baseline, and what it plants afterwards is adopted.
+        with tempfile.TemporaryDirectory() as tmp, self.live_state(tmp) as (repo, state, controller):
+            self.manual_marker(controller)  # the ledger (patched) already says nothing is active
+            with self.assertRaisesRegex(rr.Stop, "manual task L01-T3 holds the session baseline"):
+                self.preflight(repo, controller)
+            self.assertTrue(controller.marker().exists())
+            with unittest.mock.patch.object(rr.Controller, "refuse_live_workers"):
+                code, message = self.resume()  # the delta is still empty, yet the session may run on
+            self.assertEqual(code, 0)
+            self.assertIn("Confirm that the manual session has ended", message)
+            self.assertTrue(controller.marker().exists())
+            with unittest.mock.patch.object(rr.Controller, "refuse_live_workers"):
+                self.assertEqual(self.accept()[0], 0)
+            self.assertFalse(controller.marker().exists())
+            self.assertEqual(self.preflight(repo, controller), rr.git("rev-parse", "HEAD").strip())
+
+    def test_preflight_keeps_the_baseline_until_every_check_passed(self):
+        # 3a24e2c4 retired before the nested .git check: the lead removes sub/.git as told, and the
+        # ignored payload Git could not see inside sub/ is adopted on the next run.
+        with tempfile.TemporaryDirectory() as tmp, self.live_state(tmp) as (repo, state, controller):
+            (repo / ".gitignore").write_text("build/\ntarget/\n")
+            rr.git("commit", "-q", "--no-verify", "-am", "ignore target")
+            rr.atomic_write(controller.marker(), json.dumps(
+                {"baseline": "cb", "session": "worker", "ignored": controller.ignored_files()}))
+            rr.subprocess.run(["git", "init", "-q", str(repo / "sub")], check=True)
+            (repo / "sub" / "target" / "release").mkdir(parents=True)
+            (repo / "sub" / "target" / "release" / "tool").write_text("payload")
+            with self.assertRaisesRegex(rr.Stop, "nested .git"):
+                self.preflight(repo, controller)
+            self.assertTrue(controller.marker().exists())
+            with unittest.mock.patch.object(rr.Controller, "refuse_live_workers"):
+                code, message = self.resume()  # nor does `resume` retire it over the invisible payload
+            self.assertEqual(code, 2)
+            self.assertIn("nested .git", message)
+            self.assertTrue(controller.marker().exists())
+            shutil.rmtree(repo / "sub" / ".git")  # exactly what the Stop asked for
+            with self.assertRaisesRegex(rr.Stop, "sub/target/release/tool"):
+                self.preflight(repo, controller)
+            self.assertTrue(controller.marker().exists())
+            shutil.rmtree(repo / "sub")
+            (state / "STOP").unlink()
+            (repo / "dirty.txt").write_text("x")  # a later check fails: the baseline still stays
+            with self.assertRaisesRegex(rr.Stop, "not clean"):
+                self.preflight(repo, controller)
+            self.assertTrue(controller.marker().exists())
+            (repo / "dirty.txt").unlink()
+            rr.git("checkout", "-q", "-b", "elsewhere")
+            with unittest.mock.patch.object(rr.Controller, "refuse_live_workers"), \
+                    unittest.mock.patch.object(rr, "planted_modules", return_value=[]):
+                controller.cfg = rr.Config(branch="main-only")
+                with self.assertRaisesRegex(rr.Stop, "expected 'main-only'"):
+                    controller.preflight()
+            self.assertTrue(controller.marker().exists())
+
+    def test_a_manual_claim_in_the_previous_marker_format_still_needs_acknowledgement(self):
+        # 3a24e2c4 wrote the claim only as the session name: an empty delta must not retire it.
+        with tempfile.TemporaryDirectory() as tmp, self.live_state(tmp) as (repo, state, controller), \
+                unittest.mock.patch.object(rr.Controller, "refuse_live_workers"):
+            rr.atomic_write(controller.marker(), json.dumps(
+                {"baseline": "cb", "session": "manual L01-T3", "ignored": controller.ignored_files()}))
+            self.assertEqual(controller.manual_claim(), "L01-T3")
+            code, message = self.resume()
+            self.assertIn("Confirm that the manual session has ended", message)
+            self.assertTrue(controller.marker().exists())
+
+    def test_accept_digest_binds_the_reviewed_content(self):
+        # 3a24e2c4 hashed only the path lists: a reviewed digest also accepted a later, different change.
+        for swap in ("content", "hooks"):
+            with self.subTest(swap=swap), tempfile.TemporaryDirectory() as tmp, \
+                    self.live_state(tmp) as (repo, state, controller), \
+                    unittest.mock.patch.object(rr, "git_callbacks", side_effect=REAL_GIT_CALLBACKS), \
+                    unittest.mock.patch.object(rr.Controller, "refuse_live_workers"):
+                # The hooks case starts from callbacks that already differ, so `callbacks_changed`
+                # stays true: only binding the fingerprint itself catches the second change.
+                saved = "other" if swap == "hooks" else rr.git_callbacks()
+                rr.atomic_write(controller.marker(), json.dumps(
+                    {"baseline": saved, "session": "worker", "ignored": controller.ignored_files()}))
+                (repo / "build" / "tool.py").write_text("print('reviewed')\n")
+                reviewed = re.search(r"resume --accept ([0-9a-f]+)", self.resume()[1]).group(1)
+                if swap == "content":
+                    (repo / "build" / "tool.py").write_text("print('swapped')\n")
+                else:
+                    rr.git("config", "core.hooksPath", str(repo / "build"))
+                code, message = self.resume("--accept", reviewed)
+                self.assertIn("is kept", message)
+                self.assertTrue(controller.marker().exists())
+
+    def test_digest_exists_only_after_the_lead_ran_resume(self):
+        with tempfile.TemporaryDirectory() as tmp, self.live_state(tmp) as (repo, state, controller), \
+                unittest.mock.patch.object(rr.Controller, "refuse_live_workers"):
+            rr.atomic_write(state / rr.CALLBACKS_MARKER, "{}")  # a forged legacy marker
+            first = re.search(r"resume --accept ([0-9a-f]+)", self.resume()[1]).group(1)
+            (controller.marker().parent / rr.REVIEW_NONCE).unlink()  # another review round
+            second = re.search(r"resume --accept ([0-9a-f]+)", self.resume()[1]).group(1)
+            self.assertNotEqual(first, second)  # no constant, precomputable digest
+            self.assertIn("is kept", self.resume("--accept", first)[1])
+
+    def test_a_deleted_legacy_baseline_leaves_no_trusted_history(self):
+        # 3a24e2c4: deleting the in-checkout marker gave no Stop, and the plants were adopted.
+        with tempfile.TemporaryDirectory() as tmp, self.live_state(tmp) as (repo, state, controller):
+            with self.assertRaisesRegex(rr.Stop, "no trusted session baseline"):
+                self.preflight(repo, controller)
+            with unittest.mock.patch.object(rr.Controller, "refuse_live_workers"):
+                self.assertIn('"no_trusted_baseline": true', self.resume()[1])
+                self.assertEqual(self.accept()[0], 0)
+            self.assertTrue((controller.marker().parent / rr.TRUSTED_RECORD).exists())
+            self.preflight(repo, controller)
+
+    def test_index_flags_cannot_hide_a_tracked_edit(self):
+        for flag in ("--skip-worktree", "--assume-unchanged"):
+            with self.subTest(flag=flag), tempfile.TemporaryDirectory() as tmp, \
+                    self.live_state(tmp) as (repo, state, controller):
+                rr.atomic_write(controller.marker().parent / rr.TRUSTED_RECORD, "{}")
+                (repo / "gate.py").write_text("ok\n")
+                rr.git("add", "gate.py")
+                rr.git("commit", "-q", "--no-verify", "-m", "gate")
+                before = controller.tree_fingerprint()
+                rr.git("update-index", flag, "gate.py")
+                (repo / "gate.py").write_text("evil\n")
+                self.assertEqual(rr.git("status", "--porcelain"), "")  # invisible to status
+                self.assertNotEqual(controller.tree_fingerprint(), before)
+                with self.assertRaisesRegex(rr.Stop, "hide worktree edits.*gate.py"):
+                    self.preflight(repo, controller)
+
+    def test_run_task_refuses_a_worker_that_hid_a_tracked_edit(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            repo, env = self.repo(tmp)
+            controller = rr.Controller(rr.Config(max_repairs=0), Path(tmp) / "state")
+
+            def worker(*args, **kwargs):
+                rr.git("update-index", "--skip-worktree", ".gitignore")
+                (repo / ".gitignore").write_text("everything/\n")  # out of scope, invisible to status
+                return {"exit_code": 0, "is_error": False, "output": {"state": "implemented"}}
+            with unittest.mock.patch.object(rr, "ROOT", repo), \
+                    unittest.mock.patch.object(rr, "require_pipeline_release"), \
+                    unittest.mock.patch.dict("os.environ", env, clear=True), \
+                    unittest.mock.patch.object(controller, "preflight", return_value="a" * 40), \
+                    unittest.mock.patch.object(controller, "heartbeat"), \
+                    unittest.mock.patch.object(controller, "session", side_effect=worker), \
+                    unittest.mock.patch.object(controller, "run_checks") as checks:
+                with self.assertRaisesRegex(rr.Stop, "hid tracked edits.*gitignore"):
+                    controller.run_task(task("A"))
+                checks.assert_not_called()
+
+    def test_a_symlinked_state_component_cannot_lead_the_baseline_into_the_checkout(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            repo, state = Path(tmp) / "repo", Path(tmp) / "state"
+            (repo / "build").mkdir(parents=True)
+            state.mkdir()
+            (state / "baryonos-roadmap-pipeline").symlink_to(repo / "build")
+            with unittest.mock.patch.object(rr, "ROOT", repo), \
+                    unittest.mock.patch.dict("os.environ", {"XDG_STATE_HOME": str(state)}):
+                with self.assertRaisesRegex(rr.Stop, f"session-writable {re.escape(str(repo.resolve()))};"):
+                    rr.baseline_home()  # named as the checkout, not just as part of /tmp
+
+    def test_worker_settings_deny_edits_to_the_baseline_home(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            home = Path(tmp) / "xdg" / "baryonos-roadmap-pipeline" / "abc"
+            controller = rr.Controller(rr.Config(), Path(tmp) / "state", baseline=home)
+            with unittest.mock.patch.object(rr, "require_pipeline_release"), \
+                    unittest.mock.patch.object(controller, "ignored_files", return_value={}), \
+                    unittest.mock.patch.object(rr.subprocess, "Popen", side_effect=OSError("stop here")):
+                with contextlib.suppress(Exception):
+                    controller.session("worker", "A", Path(tmp), "brief", {}, [], "default", 10)
+            deny = json.loads((Path(tmp) / "worker-settings.json").read_text())["permissions"]["deny"]
+            self.assertIn(f"Edit(/{home.parent}/**)", deny)
 
     def test_push_runs_no_pre_push_hook(self):
         with tempfile.TemporaryDirectory() as tmp:
