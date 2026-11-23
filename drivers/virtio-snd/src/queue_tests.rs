@@ -844,3 +844,36 @@ fn an_event_poll_handles_at_most_events_per_poll() {
     assert_eq!(errors, 1);
     assert_eq!(bounded_poll::<()>(0, || panic!("never called")), Ok(0));
 }
+
+/// CHARACTERISATION of the documented F8 limit (TRANSPORT.md F8 row): the
+/// idle check is a sample. A stale used element that the device writes after
+/// `publish_checked` read the used index, but before the available-index
+/// store, has the new chain's head and length and is accepted as its
+/// completion. Virtio carries no per-publication tag that could tell the two
+/// apart, so this window is accepted only under the fixture's trusted-transport
+/// assumption (ADR-H03-SND-FIXTURE-20261119: no IOMMU, no DMA-isolation
+/// claim). If this test ever starts failing because the window was closed,
+/// update the F8 row instead of deleting the test.
+#[test]
+fn stale_completion_inside_the_publication_window_is_a_documented_limit() {
+    let pool = pool();
+    let chain = control_chain(&pool, 24, 4).unwrap();
+    let mut ring = idle_after_one();
+    let sampled = ring.used_index();
+    // Interleaving: sample, publish (outstanding becomes 1), then the device
+    // advances the used index by one with head 0 before the driver's poll.
+    ring.publish_checked(sampled, &chain).unwrap();
+    let stale = sampled.wrapping_add(1);
+    assert_eq!(
+        ring.pending(stale),
+        Ok(1),
+        "indistinguishable from a real completion"
+    );
+    assert_eq!(
+        ring.complete(u32::from(chain.head), chain.used_len),
+        Ok(chain.head)
+    );
+    // Outside that window the same stale element is refused (the F8 check).
+    let mut idle = idle_after_one();
+    assert_eq!(idle.publish_checked(stale, &chain), Err(Error::UsedOverrun));
+}
