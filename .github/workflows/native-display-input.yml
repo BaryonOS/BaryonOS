@@ -127,6 +127,12 @@ jobs:
             --qmp-transport pipe \
             --vga-rom /usr/share/seabios/vgabios-stdvga.bin \
             2>&1 | tee "$NOS_BUILD_DIR/logs/display-native.txt"
+      - name: H03 DISPI mode set (positive and refused)
+        # Runs after the display probe: this build replaces its image manifest.
+        run: |
+          python3 -B -u tools/build.py --kernel-feature native-dispi-probe
+          python3 -B -u tools/run_dispi.py --case positive 2>&1 | tee "$NOS_BUILD_DIR/logs/dispi-positive.txt"
+          python3 -B -u tools/run_dispi.py --case negative 2>&1 | tee "$NOS_BUILD_DIR/logs/dispi-negative.txt"
       - name: Preserve clean tracked sources and standalone output paths
         run: |
           git diff --exit-code
