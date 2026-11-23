@@ -320,7 +320,7 @@ class DhcpRunnerSummaryTest(unittest.TestCase):
 
 
 class BuildSourceFingerprintTest(unittest.TestCase):
-    """F11: build() binds artifacts to the source fingerprint taken before the first compile."""
+    """F11: build() refuses a source that changed between its first and last fingerprint."""
     def setUp(self):
         import build as builder
         self.builder, self.calls = builder, []
@@ -367,6 +367,21 @@ class BuildSourceFingerprintTest(unittest.TestCase):
         self.assertEqual(manifest["source_sha256"], "a" * 64)
         self.assertEqual(save.call_args_list[0].args[1]["source_sha256"], "a" * 64)
 
+
+    def test_missing_lockfile_is_generated_before_the_first_fingerprint(self):
+        lockfile, exists = self.builder.ROOT / "Cargo.lock", Path.exists
+        def step(args, name, **_):
+            self.calls.append("lockfile" if name == "lockfile" else "compile")
+        with patch.object(Path, "exists", lambda path: False if path == lockfile else exists(path)), \
+                patch.object(self.builder, "source_hash", side_effect=self.fingerprints("a" * 64, "b" * 64)), \
+                patch.object(self.builder, "run_logged", side_effect=step), \
+                patch.object(self.builder, "inspect_pe"), \
+                patch.object(self.builder.shutil, "copy2"), \
+                patch.object(self.builder, "save_json") as save:
+            with self.assertRaisesRegex(ValueError, "Source changed during the build"):
+                self.builder.build()
+        self.assertEqual(self.calls[:2], ["lockfile", "hash"])
+        save.assert_not_called()
 
 if __name__ == "__main__":
     unittest.main()
