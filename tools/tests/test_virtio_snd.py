@@ -40,6 +40,36 @@ def snd_lines(case: str, submitted: int = 6240) -> list:
     return [line if isinstance(line, str) else fills[line[1]] for line in gate.expected_lines(case)]
 
 
+# Independent literal serial fixtures: the acceptance test does not derive its
+# input from `gate.expected_lines`, so a wrong template cannot accept itself.
+_PROBE = ["SND:BEGIN", "SND:TSC_PER_MS:1000018"]
+_DEVICE = _PROBE + ["SND:DEVICE:1af4:1059:00:08.0", "SND:BAR_BASE:000000c000004000",
+                    "SND:BAR_SIZE:0000000000004000", "SND:MMIO_PAGES:3"]
+_PARAMS = "SND:PARAMS:BUFFER=7680:PERIOD=1920:FEATURES=0:CHANNELS=2:FORMAT=S16:RATE=48000"
+_EPOCH_0 = [FEATURES, "SND:DRIVER_FEATURES:0000000100000000", "SND:CONFIG:JACKS=0:STREAMS=1:CHMAPS=0",
+            "SND:RXQ:DISABLED", "SND:DRIVER_OK:EPOCH=0", "SND:PCM_INFO:USED_LEN=4:RECORDS_LEN=36",
+            "SND:STREAM:0:OUTPUT", _PARAMS, "SND:PREPARE:OK", "SND:START:OK"]
+_EPOCH_1 = [FEATURES, "SND:DRIVER_FEATURES:0000000100000000", "SND:CONFIG:JACKS=0:STREAMS=1:CHMAPS=0",
+            "SND:RXQ:DISABLED", "SND:DRIVER_OK:EPOCH=1", "SND:PCM_INFO:USED_LEN=36:RECORDS_LEN=36",
+            "SND:STREAM:0:OUTPUT", _PARAMS, "SND:PREPARE:OK", "SND:START:OK"]
+_FULL = ["SND:SUBMITTED_FRAMES:48000", "SND:FRAMES:48000", "SND:TX_COMPLETIONS:100"]
+_FINISH = ["SND:DRAIN:200MS:RUNNING", "SND:STOP:OK", "SND:IDLE:200MS:STOPPED", "SND:RELEASE:OK",
+           "SND:RELEASE_TWICE:REFUSED:NOT_SENT", "SND:DEVICE_STATUS:0x0f", "SND:EVENTS:INVALID=0",
+           "SND:QUIESCE:ACK", "SND:USED:STABLE", "SND:PAGES:RETAINED", "SND:PASS"]
+INDEPENDENT_SERIAL = {
+    "no-device": _PROBE + ["SND:ABSENT"],
+    "access-platform": _DEVICE + [FEATURES_AP, "SND:OFFLINE:FEATURES",
+                                  "SND:OFFLINE:BUS_MASTER=0:DRIVER_OK=0"],
+    "normal": _DEVICE + _EPOCH_0 + _FULL + _FINISH,
+    "fence-reinit": _DEVICE + _EPOCH_0
+    + ["SND:SUBMITTED_FRAMES:4800", "SND:FRAMES:4800", "SND:TX_COMPLETIONS:10",
+       "SND:FENCE:ACK", "SND:USED:STABLE", "SND:EPOCH:1"] + _EPOCH_1 + _FULL + _FINISH,
+    "quarantine": _DEVICE + _EPOCH_0
+    + ["SND:SUBMITTED_FRAMES:6240", "SND:FRAMES:4800", "SND:TX_COMPLETIONS:10",
+       "SND:QUARANTINED", "SND:PUBLISH:REFUSED", "SND:PAGES:RETAINED", "SND:PASS"],
+}
+
+
 def transcript(case: str, lines=None, boots: int = 1) -> str:
     lines = snd_lines(case) if lines is None else lines
     boot = list(gate.BOOT) * boots
@@ -139,11 +169,16 @@ class Wav(unittest.TestCase):
 
 class Serial(unittest.TestCase):
     def test_every_case_accepts_its_exact_sequence(self):
+        self.assertEqual(set(INDEPENDENT_SERIAL), set(gate.FEATURE))
         for case in gate.FEATURE:
             with self.subTest(case):
-                values = gate.evaluate_serial(case, transcript(case), 33, False)
+                literal = transcript(case, INDEPENDENT_SERIAL[case])
+                values = gate.evaluate_serial(case, literal, 33, False)
                 self.assertEqual(values["tsc_per_ms"], "1000018")
-        values = gate.evaluate_serial("quarantine", transcript("quarantine"), 33, False)
+                # The template-filled helper used by the mutation tests matches.
+                self.assertEqual(snd_lines(case), INDEPENDENT_SERIAL[case])
+        literal = transcript("quarantine", INDEPENDENT_SERIAL["quarantine"])
+        values = gate.evaluate_serial("quarantine", literal, 33, False)
         self.assertEqual(gate.submitted_a("quarantine", values), 6240)
         self.assertEqual(gate.submitted_a("fence-reinit", {}), 4800)
 

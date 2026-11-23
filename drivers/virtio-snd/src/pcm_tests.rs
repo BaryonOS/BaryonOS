@@ -536,10 +536,25 @@ fn stream_events_count_only_while_running_for_this_stream() {
     late.stop().unwrap();
     ok(&mut late);
     assert_eq!(
-        late.event(Event::Xrun(1)),
+        late.event(Event::PeriodElapsed(1)),
         Err(Error::Stale),
         "START resets the bound"
     );
+    // An XRUN that SET_PARAMS did not select stays invalid after STOP and
+    // does not use the stale bound; a selected one is stale.
+    assert_eq!(late.event(Event::Xrun(1)), Err(Error::InvalidEvent));
+    for _ in 1..=4 {
+        assert_eq!(late.event(Event::PeriodElapsed(1)), Err(Error::Stale));
+    }
+    assert_eq!(
+        late.event(Event::PeriodElapsed(1)),
+        Err(Error::InvalidEvent)
+    );
+    s.stop().unwrap();
+    ok(&mut s);
+    assert_eq!(s.event(Event::Xrun(1)), Err(Error::Stale));
+    s.start().unwrap();
+    ok(&mut s);
     // A new SET_PARAMS resets the counters of the previous lifetime.
     s.stop().unwrap();
     ok(&mut s);
@@ -663,7 +678,8 @@ fn f17_full_events_route_and_share_one_budget_with_short_ones() {
         handle_event(cfg, Some(&mut s), 8, &invalid[1], &mut budget),
         Err(Error::EventStorm)
     );
-    // Without a stream every decoded event is invalid; Stale is not counted.
+    // Without a stream every decoded event is invalid; Stale is charged to its
+    // own tally, not to the invalid count.
     let mut none = EventBudget::new();
     assert_eq!(handle_event(cfg, None, 8, &elapsed, &mut none), Ok(()));
     assert_eq!(none.invalid(), 1);
@@ -675,10 +691,75 @@ fn f17_full_events_route_and_share_one_budget_with_short_ones() {
             Ok(())
         );
     }
-    assert_eq!(stale.invalid(), 0);
+    assert_eq!((stale.invalid(), stale.stale()), (0, 5));
     assert_eq!(
         handle_event(cfg, Some(&mut late), 8, &elapsed, &mut stale),
         Ok(())
     );
     assert_eq!(stale.invalid(), 1, "beyond the stale bound it counts");
+    assert_eq!(stale.stale(), 5);
+}
+
+#[test]
+fn f17_only_stale_events_exhaust_the_budget_across_stop_start_cycles() {
+    let (cfg, _) = running_stream();
+    let elapsed = event_bytes(EVT_PCM_PERIOD_ELAPSED, 1);
+    let mut s = stopped();
+    let mut budget = EventBudget::new();
+    // First STOP: periods + 1 = 5 stale events, all within the budget.
+    for _ in 0..=4 {
+        assert_eq!(
+            handle_event(cfg, Some(&mut s), 8, &elapsed, &mut budget),
+            Ok(())
+        );
+    }
+    // START resets the per-STOP bound, but not the device-lifetime tally.
+    s.start().unwrap();
+    ok(&mut s);
+    s.stop().unwrap();
+    ok(&mut s);
+    for _ in 5..MAX_INVALID_EVENTS {
+        assert_eq!(
+            handle_event(cfg, Some(&mut s), 8, &elapsed, &mut budget),
+            Ok(())
+        );
+    }
+    assert_eq!((budget.stale(), budget.invalid()), (MAX_INVALID_EVENTS, 0));
+    let storm = handle_event(cfg, Some(&mut s), 8, &elapsed, &mut budget);
+    assert_eq!(storm, Err(Error::EventStorm));
+    assert!(storm.unwrap_err().requires_fence());
+    assert_eq!(s.periods_elapsed(), 0, "stale events are never routed");
+}
+
+#[test]
+fn f17_unselected_xrun_after_stop_is_charged_as_invalid() {
+    let (cfg, _) = running_stream();
+    let mut s = stopped();
+    assert!(!s.params().unwrap().xrun_events());
+    let xrun = event_bytes(EVT_PCM_XRUN, 1);
+    let mut budget = EventBudget::new();
+    for _ in 0..MAX_INVALID_EVENTS {
+        assert_eq!(
+            handle_event(cfg, Some(&mut s), 8, &xrun, &mut budget),
+            Ok(())
+        );
+    }
+    assert_eq!((budget.invalid(), budget.stale()), (MAX_INVALID_EVENTS, 0));
+    assert_eq!(
+        handle_event(cfg, Some(&mut s), 8, &xrun, &mut budget),
+        Err(Error::EventStorm)
+    );
+}
+
+#[test]
+fn f17_stale_tally_fences_after_bound() {
+    let mut budget = EventBudget::new();
+    for _ in 0..MAX_INVALID_EVENTS {
+        assert_eq!(budget.note_stale(), Ok(()));
+    }
+    assert_eq!(budget.note_stale(), Err(Error::EventStorm));
+    assert_eq!(
+        (budget.stale(), budget.invalid()),
+        (MAX_INVALID_EVENTS + 1, 0)
+    );
 }

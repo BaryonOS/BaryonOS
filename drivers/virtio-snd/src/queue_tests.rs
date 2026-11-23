@@ -285,11 +285,13 @@ fn ring_indices_wrap_and_fill_at_most_queue_size() {
 #[test]
 fn a_full_ring_straddling_the_index_wrap_stays_bounded() {
     let mut ring = Ring::new();
-    while ring.used_index() != 65_532 {
+    // Bounded setup: a broken index would fail the assert, not hang the test.
+    for _ in 0..65_532u32 {
         let head = ring.used_entry();
         ring.publish(head, 8).unwrap();
         ring.complete(u32::from(head), 8).unwrap();
     }
+    assert_eq!(ring.used_index(), 65_532);
     for head in 0..QUEUE_SIZE {
         ring.publish(head, 8).unwrap();
     }
@@ -876,4 +878,93 @@ fn stale_completion_inside_the_publication_window_is_a_documented_limit() {
     // Outside that window the same stale element is refused (the F8 check).
     let mut idle = idle_after_one();
     assert_eq!(idle.publish_checked(stale, &chain), Err(Error::UsedOverrun));
+}
+
+#[test]
+fn initialize_refuses_outstanding_control_or_tx_requests() {
+    let pool = pool();
+    let control = control_chain(&pool, 24, 4).unwrap();
+    let tx = tx_chain(&pool, 0, 1920).unwrap();
+    let idle = Ring::new();
+    let life = Lifecycle::new();
+    // Normal path: no control or TX request outstanding. Posted event
+    // buffers are not an input: they stay posted across a fence by design.
+    assert_eq!(life.check_initialize(&idle, &idle), Ok(()));
+    // A control or TX request still outstanding is refused, not discarded.
+    let mut busy_control = Ring::new();
+    busy_control.publish_checked(0, &control).unwrap();
+    let mut busy_tx = Ring::new();
+    busy_tx.publish_checked(0, &tx).unwrap();
+    assert_eq!(
+        life.check_initialize(&busy_control, &idle),
+        Err(Error::State)
+    );
+    assert_eq!(life.check_initialize(&idle, &busy_tx), Err(Error::State));
+    assert_eq!(
+        life.check_initialize(&busy_control, &busy_tx),
+        Err(Error::State)
+    );
+    // Once completed, the same rings may be re-initialised.
+    busy_tx.complete(u32::from(tx.head), tx.used_len).unwrap();
+    assert_eq!(life.check_initialize(&idle, &busy_tx), Ok(()));
+    // Only Offline may initialise, whatever the rings hold.
+    let mut live = Lifecycle::new();
+    live.go_live().unwrap();
+    assert_eq!(live.check_initialize(&idle, &idle), Err(Error::State));
+    let mut fencing = Lifecycle::new();
+    fencing.begin_fence(0, 10).unwrap();
+    assert_eq!(fencing.check_initialize(&idle, &idle), Err(Error::State));
+    let mut quarantined = Lifecycle::new();
+    quarantined.quarantine();
+    assert_eq!(
+        quarantined.check_initialize(&idle, &idle),
+        Err(Error::Quarantined)
+    );
+}
+
+#[test]
+fn visible_completions_are_validated_before_a_new_head_is_registered() {
+    let mut ring = Ring::new();
+    ring.publish(0, 8).unwrap();
+    ring.publish(1, 8).unwrap();
+    let base = ring.used_index();
+    let at = |elements: [(u32, u32); 2]| move |entry: u16| elements[usize::from(entry)];
+    // Nothing visible: nothing is read.
+    assert_eq!(ring.check_visible(base, |_| unreachable!()), Ok(()));
+    // Valid visible completions of outstanding heads pass, in any order.
+    assert_eq!(ring.check_visible(base + 2, at([(1, 8), (0, 8)])), Ok(()));
+    assert_eq!(ring.check_visible(base + 1, at([(0, 8), (9, 9)])), Ok(()));
+    // A visible element naming the head about to be registered (2), a head
+    // not outstanding, a wrong length or a duplicate is refused.
+    let before = ring;
+    assert_eq!(
+        ring.check_visible(base + 1, at([(2, 8), (0, 0)])),
+        Err(Error::UnknownId)
+    );
+    assert_eq!(
+        ring.check_visible(base + 2, at([(0, 8), (u32::MAX, 8)])),
+        Err(Error::UnknownId)
+    );
+    assert_eq!(
+        ring.check_visible(base + 1, at([(1, 4), (0, 0)])),
+        Err(Error::Length)
+    );
+    assert_eq!(
+        ring.check_visible(base + 2, at([(1, 8), (1, 8)])),
+        Err(Error::UnknownId)
+    );
+    // An index beyond the outstanding requests is still F8.
+    assert_eq!(
+        ring.check_visible(base + 3, |_| unreachable!()),
+        Err(Error::UsedOverrun)
+    );
+    assert_eq!(ring, before, "checking never consumes");
+    // Entries are read from the consumed position on.
+    ring.complete(0, 8).unwrap();
+    let mut entries = [(0, 0); QUEUE_SIZE as usize];
+    entries[usize::from(ring.used_entry())] = (1, 8);
+    assert_eq!(
+        ring.check_visible(ring.used_index() + 1, |entry| entries[usize::from(entry)]),
+        Ok(())
+    );
 }
