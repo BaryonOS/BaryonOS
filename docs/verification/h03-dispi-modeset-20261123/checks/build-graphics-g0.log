@@ -1,0 +1,49 @@
+    Finished `release` profile [optimized] target(s) in 0.01s
+   Compiling os-kernel v0.1.0 (/home/simon/projects/BaryonOS-worktrees/h03-dispi/kernel)
+warning: function `validate_pixels` is never used
+   --> kernel/src/framebuffer.rs:108:8
+    |
+108 | pub fn validate_pixels(x: u32, y: u32, pixels: &[u32]) -> Result<(), ()> {
+    |        ^^^^^^^^^^^^^^^
+    |
+    = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: function `hex` is never used
+   --> kernel/src/serial.rs:184:8
+    |
+184 | pub fn hex(label: &[u8], value: u64) {
+    |        ^^^
+
+warning: `os-kernel` (bin "os-kernel") generated 2 warnings
+warning: unused dependency `block-protocol`
+   --> kernel/Cargo.toml:354:1
+    |
+354 | block-protocol = { path = "../services/block" }
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: `cargo::unused_dependencies` is set to `warn` by default
+help: consider removing the dependency on `block-protocol`
+warning: unused dependency `capability-core`
+   --> kernel/Cargo.toml:349:1
+    |
+349 | capability-core = { path = "../crates/capability-core" }
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+help: consider removing the dependency on `capability-core`
+warning: unused dependency `smp-lock`
+   --> kernel/Cargo.toml:348:1
+    |
+348 | smp-lock = { path = "../crates/smp-lock" }
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+help: consider removing the dependency on `smp-lock`
+warning: unused dependency `virtio-blk-driver`
+   --> kernel/Cargo.toml:351:1
+    |
+351 | virtio-blk-driver = { path = "../drivers/virtio-blk" }
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+help: consider removing the dependency on `virtio-blk-driver`
+warning: `os-kernel` (manifest) generated 4 warnings
+    Finished `release` profile [optimized] target(s) in 0.34s
+Built and inspected graphics-g0: 3 ELF load segments

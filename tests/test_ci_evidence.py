@@ -106,6 +106,40 @@ class EvidenceTests(unittest.TestCase):
         self.assertIn("has-files=true\n", outputs)
         self.assertIn("required-files=false\n", outputs)
 
+    def test_missing_required_report_on_failed_job_keeps_diagnostics(self):
+        """A failed or cancelled job still collects what exists and records the gap."""
+        self.write(VOLUME_AUXILIARY, '{"passed":false}\n')
+        for status in ("failure", "cancelled"):
+            with self.subTest(status=status):
+                output = self.base / f"compact-{status}"
+                receipt = self.collect(
+                    paths=f"{VOLUME_REPORT}\n{VOLUME_AUXILIARY}",
+                    required_paths=VOLUME_REPORT, status=status, output=output,
+                )
+                self.assertEqual([e["path"] for e in receipt["retained"]], [VOLUME_AUXILIARY])
+                self.assertEqual(receipt["unretained_required_paths"], [VOLUME_REPORT])
+                self.assertEqual(json.loads((output / "_meta/receipt.json").read_text()), receipt)
+                self.assertTrue(any("Required evidence was not retained" in warning
+                                    for warning in receipt["warnings"]))
+                self.assertTrue((output / VOLUME_AUXILIARY).is_file())
+        outputs = Path(self.env["GITHUB_OUTPUT"]).read_text()
+        self.assertEqual(outputs.count("required-files=false\n"), 2)
+        summary = Path(self.env["GITHUB_STEP_SUMMARY"]).read_text()
+        self.assertEqual(summary.count("The job has already failed"), 2)
+        self.assertNotIn("this collection must fail", summary)
+
+    def test_missing_required_report_fails_closed_for_other_statuses(self):
+        """Only an explicit failure or cancellation relaxes the required-report check."""
+        self.write(VOLUME_AUXILIARY, '{"passed":true}\n')
+        for status in ("success", "skipped", "unknown"):
+            with self.subTest(status=status):
+                with self.assertRaisesRegex(evidence.EvidenceError, "Required evidence path"):
+                    self.collect(
+                        paths=f"{VOLUME_REPORT}\n{VOLUME_AUXILIARY}",
+                        required_paths=VOLUME_REPORT, status=status,
+                        output=self.base / f"compact-{status}",
+                    )
+
     def test_required_paths_reject_noncanonical_or_pattern_labels(self):
         """Required evidence names are literal canonical relative paths."""
         for label in (
@@ -272,7 +306,8 @@ class EvidenceTests(unittest.TestCase):
         for index in range(3):
             self.write(f"build/report-{index}.txt", b"x" * (3 * 1024 * 1024))
         with self.assertRaisesRegex(evidence.EvidenceError, "Required evidence path"):
-            self.collect(max_file_bytes=4 * 1024 * 1024, required_paths="build/report-2.txt")
+            self.collect(max_file_bytes=4 * 1024 * 1024, required_paths="build/report-2.txt",
+                         status="success")
         receipt = json.loads((self.output / "_meta/receipt.json").read_text())
         self.assertEqual(receipt["retained_bytes"], 6 * 1024 * 1024)
         self.assertEqual(receipt["omitted_reason_counts"], {"total-byte-limit": 1})
