@@ -105,11 +105,17 @@ accepted.
 | H3 | Both H1 and H2. | Strongest host evidence; largest host test surface. |
 
 Under every P2 option the rustls end still needs a provider that offers
-X25519MLKEM768. On rustls 0.23.46 that is aws-lc-rs (or rustls-graviola on an
-AVX2-capable host); an option B provider can take that place only after it
-exists. H2 therefore does not avoid a host-only aws-lc-rs dependency unless
-option B is implemented first or every test host meets rustls-graviola's CPU
-requirements. Any host oracle is a development and test tool only. It never ships in an OS
+X25519MLKEM768. On rustls 0.23.46 the published candidates are aws-lc-rs;
+rustls-graviola 0.4.0 on x86_64 hosts with `aes`, `ssse3`, `avx`, `avx2`,
+`adx`, `bmi2` and `pclmulqdq`, or aarch64 hosts with `aes`, `sha2`, `pmull`
+and `neon` (graviola README); and rustls-openssl 0.4.2 (MIT, rustls 0.23,
+system or vendored OpenSSL), whose source exposes X25519MLKEM768 only when
+the linked OpenSSL is 3.5 or later. The rustls-openssl entry is compatibility
+evidence from its published source only; the project has neither tested nor
+approved it, and a host OpenSSL dependency would also make H1 and H2 share
+the OpenSSL implementation. An option B provider can take that place only
+after it exists. H2 therefore needs aws-lc-rs only where no other candidate
+is available on the test host and option B is not yet implemented. Any host oracle is a development and test tool only. It never ships in an OS
 image and never supplies native acceptance evidence.
 
 ### P3 — Test peer pinning model
@@ -166,10 +172,11 @@ audit. The N03 score contribution stays at zero, and the overall score stays
 3. Do you confirm or reject the reported choice of a host-only aws-lc-rs test
    dependency for the rustls end of the host loopback, including the bypass of
    `KeyServiceRandom` by its internal randomness as a host-test exception? On
-   rustls 0.23.46 the alternative is rustls-graviola 0.4.0, which provides
-   X25519MLKEM768 only on hosts with the x86_64 features its README requires;
-   aws-lc-rs is needed only where that alternative or an option B provider is
-   unavailable. Should the peer be rustls (H1), the existing Node.js/OpenSSL
+   rustls 0.23.46 the alternatives are rustls-graviola 0.4.0 on x86_64 or
+   aarch64 hosts with the CPU features its README requires, and the untested
+   rustls-openssl 0.4.2 against OpenSSL 3.5 or later (see P2); aws-lc-rs is
+   needed only where neither alternative nor an option B provider is
+   available. Should the peer be rustls (H1), the existing Node.js/OpenSSL
    peer (H2) or both (H3)?
 4. Is a repository-public test CA with exact SPKI pins and Ed25519 leaf
    certificates acceptable for QEMU and host tests (P3)?
