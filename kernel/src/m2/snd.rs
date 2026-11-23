@@ -813,18 +813,18 @@ impl Device {
         fence(Ordering::Acquire);
         let elements = self.pool.used(queue)? + 4;
         let dma = &self.dma;
-        self.rings[index].check_visible(device_index, |entry| {
-            let element = elements + u64::from(entry) * 8;
-            (dma.r32(element), dma.r32(element + 4))
-        })?;
-        let publication = self.rings[index]
-            .publish_checked(device_index, chain)
+        self.rings[index]
+            .check_visible(device_index, |entry| {
+                let element = elements + u64::from(entry) * 8;
+                (dma.r32(element), dma.r32(element + 4))
+            })
             .inspect_err(|error| {
                 if *error == queue::Error::UsedOverrun {
                     decimal(b"SND:FAULT:USED:QUEUE=", index as u64, b"");
                     decimal(b":INDEX=", device_index.into(), b"\n");
                 }
             })?;
+        let publication = self.rings[index].publish_checked(device_index, chain)?;
         let table = self.pool.descriptors(queue)?;
         for (slot, descriptor) in chain.entries {
             let entry = table + u64::from(slot) * 16;
