@@ -1,4 +1,4 @@
-# ADR-NET-ISSUER-&lt;YYYYMMDD&gt; — Network grant issuer, helper subgrants, regrant and durable denial
+# ADR-NET-ISSUER-YYYYMMDD (date set on adoption) — Network grant issuer, helper subgrants, regrant and durable denial
 
 **Status: PROPOSED — owner decision required.** This file is a draft for
 adoption into `docs/DECISIONS.md`. Nothing in it is adopted, implemented or
@@ -64,7 +64,7 @@ Two independent mechanisms exist. Neither is a production issuer.
    only in service state.
 6. **Related decisions and contracts:**
    - ADR-044 (`docs/DECISIONS.md:3324`) requires one bounded broker.
-   - ADR-035 (`:2716`) states that consent expands functionality, not trust.
+   - ADR-035 (`:2716`) ("Security Floor remains active when privacy is voluntarily reduced") keeps the Security Floor in force when a privacy choice widens sharing; consent expands functionality, not trust.
    - ADR-B03-B04-TARGET (`:108`) leaves the persistent anchor backend
      unapproved.
    - The privacy contract requires durable blocking before cleanup and no false
@@ -152,7 +152,7 @@ These attenuation-only rules apply under every option:
   `GrantLimit` and never evicts another grant.
 
 **Known cost.** In the current broker, revoking any grant that has a live
-session quarantines the whole shared backend (`fence`, `:292`–`:293`).
+session quarantines the whole shared backend (`services/net-broker/src/lib.rs`, `fence`, `:292`–`:293`).
 Cascading revocation therefore also interrupts unrelated apps until a verified
 device reset and an explicit recovery decision. Per-socket fencing is separate
 future work and is not part of this ADR.
