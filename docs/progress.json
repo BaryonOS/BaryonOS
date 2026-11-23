@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-23",
-    "source_commit": "5baafc33f53991da3202f624e7daa4ee7e324388",
+    "source_commit": "60926c1602e315666cc5dab647c64cce2d4da4e9",
     "assessment_basis": "parent_commit",
     "branch": "claude/h-track-20261123",
-    "task": "H03-T4 native Bochs DISPI mode-set fixture (PR #417) and #409 review documentation follow-ups",
+    "task": "H03-T3c virtio-snd hardening (merged into claude/h-track-20261123)",
     "previous_score": 41,
-    "summary": "41/100 unchanged. H03-T4 sets four allowlisted display modes natively through Bochs DISPI on QEMU stdvga with register readback and pixel-exact screendumps, and refuses other display devices fail-closed (PR #417, docs/verification/h03-dispi-modeset-20261123/). H03 stays open: physical GPUs, EDID, compositor integration and hosted evidence are outstanding; no criterion changes."
+    "summary": "41/100 unchanged. H03-T3c hardens the virtio-snd driver (stale-event tally, re-initialisation guard, visible used-element check, fence marker order) with host tests and kernel builds; native behaviour awaits hosted native-xhci.yml. No criterion changes."
   },
   "tracks": [
     {

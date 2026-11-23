@@ -2010,6 +2010,40 @@
       "next": "H03-T3b: ring-3 audio broker and AUDIO capability once B1, B2 and B4 are decided by the project owner."
     },
     {
+      "id": "H03-T3c",
+      "criterion": "H03",
+      "milestone": "M9",
+      "executor": "builder+lead",
+      "status": "verified",
+      "title": "virtio-snd hardening: stale-event tally, re-initialisation guard, visible-element check, marker order",
+      "goal": "Close the snd addendum items 4/5 and CodeRabbit findings a-g of #415 without changing successful serial output.",
+      "deps": [
+        "H03-T3b"
+      ],
+      "write_paths": [
+        "drivers/virtio-snd/",
+        "kernel/src/m2/snd.rs",
+        "tools/tests/test_virtio_snd.py",
+        "docs/verification/h03-snd-hardening-20261123/"
+      ],
+      "checks": [
+        "cargo +1.90.0 test --locked --manifest-path drivers/virtio-snd/Cargo.toml",
+        "python3 -B tools/build.py --kernel-feature native-virtio-snd-probe (and test-snd-fence-reinit, test-snd-quarantine)",
+        "python3 -B -m unittest tools.tests.test_virtio_snd"
+      ],
+      "evidence_level": "host tests and kernel builds only; native fixture needs QEMU 8.2 (hosted native-xhci.yml)",
+      "non_claimable": "Native behaviour of the re-initialisation guard, check_visible and fence marker order is unexercised until hosted native-xhci.yml passes; config changes after DRIVER_OK stay open (F10a).",
+      "source_commit": "18d293a5",
+      "history": [
+        {
+          "event": "verified",
+          "at": "2026-11-23",
+          "reason": "builder 557e7668/3562f868/5ac86ba1; independent AI review approve-with-minors; lead fixes 18d293a5; virtio-snd tests 81 on 1.90.0 and 1.100.0, clippy, three snd kernel profiles build, test_virtio_snd OK."
+        }
+      ],
+      "next": "Hosted native-xhci.yml on the #415 head."
+    },
+    {
       "id": "H03-T4",
       "criterion": "H03",
       "milestone": "M9",
