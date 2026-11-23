@@ -236,9 +236,10 @@ session on QEMU 8.2.2 `pc-q35-8.2` with Ubuntu `OVMF_CODE_4M.fd` under TCG:
    QEMU/OVMF kernel profile, additionally stores the kernel's 32-bit entry
    into offset 24 of a version-0 FACS. Discovery has proven those bytes zero,
    and the disarm plan restores zero right after every wake. The default
-   policy `Specification` refuses a 32-bit entry for a version-0 FACS. This policy is
-   valid only for the QEMU/OVMF profile; physical firmware must not use it
-   without its own evidence (integration review of #409, 23 November 2026).
+   policy `Specification` refuses a 32-bit entry for a version-0 FACS. `Edk2Version0Extended`
+   is valid only for the QEMU/OVMF profile; physical firmware must not use it
+   without its own evidence, and this restriction does not apply to the default
+   `Specification` policy (integration review of #409, 23 November 2026).
 4. Both entries converge on one 32-bit stage and one 64-bit token check: only
    the armed generation resumes the saved context; any other wake is reported
    and stops the VM.

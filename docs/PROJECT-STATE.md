@@ -7,7 +7,7 @@ head `009af7ad`, from `main` `035b44e5`). Profile `native-dispi-probe` binds exa
 1234:1111 display, checks that BAR0 (masked) equals the GOP base and that memory decode is
 enabled, sets four allowlisted 32-bpp modes through DISPI with full register readback, and
 verifies each mode pixel-exactly against a QEMU screendump; any other display device is
-refused fail-closed. [Evidence](verification/h03-dispi-modeset-20261123/README.md):
+refused fail-closed. [Evidence](https://github.com/BaryonOS/BaryonOS/blob/0f2b9881b23d74f6240e22c8fde2749e30b28381/docs/verification/h03-dispi-modeset-20261123/README.md) (on the #417 branch):
 positive raw 33, negative raw 35 (local QEMU 10.2.1, pc-q35-8.2, TCG). An independent AI
 review found no blocking or major findings; minors were fixed in `91bd4135`. The hosted
 `native-display-input.yml` step is queued with the integration manager, after #410 and #409.

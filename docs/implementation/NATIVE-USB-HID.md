@@ -154,8 +154,10 @@ including after a failed or uncertain hardware transition.
    must be unchanged. All pages remain retained until the VM exits.
 
 **Fixture-only pattern.** The retired generation-1 read/write pages stay
-mapped in the VT-d domain until the VM exits; only the canaries prove they
-were not written after retirement. This is acceptable for this fixture, not as
+mapped in the VT-d domain until the VM exits. The canaries show only that
+their bytes were unchanged at the final check; a write that leaves or restores
+the canary bytes would pass, so the fixture does not prove that no write
+occurred after retirement. This is acceptable for this fixture, not as
 a production reattach pattern: a product driver must unmap or reassign retired
 DMA pages and invalidate the IOTLB before reuse (integration review of #409,
 23 November 2026).
