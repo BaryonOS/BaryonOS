@@ -174,10 +174,24 @@ instance.
 - **New state.** A per-(principal, destination) *owner generation*, kept by
   the policy process. It is distinct from the existing per-connection
   `Owner.generation`/token counter.
-- **Monotonic and durable.** The generation is persisted before the grant is
-  delivered, and it is never reset or reused.
+- **Monotonic and durable within the authenticated store.** The generation is
+  persisted before the grant is delivered. Within one boot, and within one
+  unbroken lineage of the authenticated store, it is never reset or reused.
 - **Regrant.** A regrant issues generation g+1, greater than every generation
-  previously issued or tombstoned for that owner.
+  previously issued or tombstoned for that owner *in the store as loaded*.
+- **Cold boot and replay (limit under 5A).** After a cold boot the policy
+  process reads the owner generation from the authenticated store. Option 5A
+  gives no trusted lower bound, so a replayed older but authentic store can
+  roll the counter back, and later re-confirmations can issue generation
+  numbers that were already used before the power cycle; tombstones written
+  after the replayed snapshot are absent. This does not revive old authority,
+  because every token, connection, queued request and delivered grant is also
+  bound to the service incarnation of the current boot, and nothing issued
+  before the power cycle is valid after it (5A starts every grant denied).
+  Generation numbers are therefore unique only per boot and store lineage,
+  never as a global identifier, and no persistent reference may use a
+  generation without the boot incarnation. A trusted cross-boot lower bound
+  needs a freshness anchor, which is option 5B.
 - **Old authority.** Tokens, connections, queued requests and late completions
   that carry an older generation or an older service incarnation are refused.
   - Generation or incarnation mismatch: `Stale` (wire) or `StaleGrant`/
@@ -209,7 +223,14 @@ reported separately:
 4. **`DurabilityUnknown`.** The write failed, timed out or read back
    differently. Live denial stays in place. The state is reported as unknown,
    never as success. Retry is allowed, and a later `Durable` requires a fresh
-   readback.
+   readback. The grant stays denied for the rest of the boot, including
+   across a restart of the policy process or the network service, even if
+   storage still holds a valid allow record for it: a component that outlives
+   both restarts within the boot keeps a boot-lifetime denial entry, and the
+   network service refuses re-delivery of that owner until the revocation has
+   reached `Durable` with a fresh readback. Which component holds that entry
+   (for example the service manager or the kernel delegation table) is open
+   question 7.
 
 **Restart semantics** (warm restart within the same boot):
 
@@ -220,14 +241,18 @@ reported separately:
 - Time-bounded grants do not survive any restart. They are expressed in boot
   ticks, and there is no trusted wall clock (ADR-050, ADR-057). Persisted
   grants are "until revoked" grants, or they are not persisted.
-- If the policy process itself restarts, it reloads from storage. Missing,
+- If the policy process itself restarts, it reloads from storage, and every
+  boot-lifetime denial entry from Decision 4 state 4 overrides any allow
+  record it reloads. Missing,
   corrupt, unauthenticated or version-unknown state yields **no grants**
   (fail-closed) and a visible "network permissions could not be restored"
   status. It never yields reconstruction from app requests.
 - **Proposed persistence model.** Persist an allow-list of grant records plus
   generation tombstones. Then loss of state denies access rather than
-  re-enabling it, and only *replay* of an older valid state can resurrect a
-  revoked grant. Decision 5 addresses that replay.
+  re-enabling it. Within a boot, a failed tombstone write is covered by the
+  boot-lifetime denial entry above, not by Decision 5. Across a power cycle,
+  only *replay* of an older valid state can resurrect a revoked grant;
+  Decision 5 addresses that cold-boot case.
 
 ## Decision 5 — cold freshness anchor
 
@@ -327,3 +352,33 @@ These three are the options with Security Floor impact.
    state (5B), and if so, when?
 6. Does N04 acceptance require durable revocation across restart, or only
    native enforcement, revocation and helper routes within one boot?
+7. Which component, outliving both a policy-process and a network-service
+   restart within one boot, holds the boot-lifetime denial entries of
+   Decision 4 (`DurabilityUnknown`)?
+
+## Sources
+
+All repository sources are from the BaryonOS project (organisation BaryonOS),
+repository <https://github.com/BaryonOS/BaryonOS>, at baseline commit
+`2f4ac6ae814fac18bca52ff80d4b9f774d12bec2` (2026-11-23). A citation `path:line`
+resolves to
+`https://github.com/BaryonOS/BaryonOS/blob/2f4ac6ae814fac18bca52ff80d4b9f774d12bec2/<path>#L<line>`.
+
+- `docs/DECISIONS.md`: ADR-035 "Security Floor remains active when privacy is
+  voluntarily reduced"; ADR-036 "An external provider may only provide opaque
+  ciphertext storage"; ADR-044 "Native networking through one bounded
+  capability broker"; ADR-050 "Opt-in wall-clock syscall remains visibly
+  untrusted"; ADR-057 "Exclusive native CMOS bootstrap, no trusted time";
+  ADR-B03-B04-TARGET-20261119 "Target architecture for update authenticity and
+  recovery".
+- Contracts: `docs/LOCAL-PRIVACY-CONTRACT.md`,
+  `docs/implementation/KERNEL-AND-SECURITY-CONTRACT.md`,
+  `docs/implementation/NAS-SHARING-AND-INTERNET.md`,
+  `docs/implementation/B02-SECURE-RECORDS.md`,
+  `docs/implementation/N04-ISSUER-DELEGATION.md`.
+- Implementation: `services/net-broker/src/lib.rs`,
+  `services/network-service/src/lib.rs`,
+  `sdk/examples/network-service/src/service.rs`,
+  `kernel/src/m2/m3/network_service.rs`, `crates/capability-core/src/lib.rs`.
+- Evidence: `docs/verification/n04-native-revoke-20261105/`,
+  `docs/verification/n04-helper-20261114/`.
