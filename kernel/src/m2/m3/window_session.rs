@@ -913,9 +913,12 @@ pub(super) fn poll(s: &mut State) {
             s.processes[VOLUME].status != Status::Dead,
             b"READONLY_VOLUME_DEAD",
         );
+        // Word 120 is read back from the live VOLUME image, not the manifest constant.
+        let read_only = word(s, VOLUME, 120);
         let commits = word(s, VOLUME, 304);
         for (label, value) in [
-            (b"WINDOW:VOLUME:REJECTED:".as_slice(), word(s, VOLUME, 352)),
+            (b"WINDOW:VOLUME:READ_ONLY:".as_slice(), read_only),
+            (b"WINDOW:VOLUME:REJECTED:", word(s, VOLUME, 352)),
             (b"WINDOW:VOLUME:COMMITS:", commits),
             (b"WINDOW:VOLUME:UNKNOWN:", word(s, VOLUME, 368)),
             (b"WINDOW:VOLUME:UNCERTAIN:", word(s, VOLUME, 376)),
@@ -925,7 +928,7 @@ pub(super) fn poll(s: &mut State) {
             print_number(label, value);
         }
         require(
-            commits == 0 && submitted[1..] == [0, 0],
+            read_only == 1 && commits == 0 && submitted[1..] == [0, 0],
             b"READONLY_MUTATED",
         );
     }
