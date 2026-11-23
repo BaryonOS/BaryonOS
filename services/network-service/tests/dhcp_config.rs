@@ -277,7 +277,9 @@ fn dhcp_probes_gate_same_transport_and_dns_has_no_fallback() {
 
 #[test]
 fn nak_expiry_and_link_down_withdraw_and_reconnect_never_reuses_tokens() {
-    for loss in 0..3 {
+    // loss 3: a down/up pair hidden between two link queries arrives as a
+    // new up epoch only (N02-T3b); link_up alone must withdraw the lease.
+    for loss in 0..4 {
         with_service(|s| {
             let now = acquire(s, 0, 0x1234, true);
             let opened = rpc(s, 0, Operation::OpenTcp, 1, 0, now);
@@ -297,6 +299,8 @@ fn nak_expiry_and_link_down_withdraw_and_reconnect_never_reuses_tokens() {
                 s.ingress(&reply(6, 0x5678, true, SERVER), lost).unwrap();
             } else if loss == 2 {
                 s.link_down(lost).unwrap();
+            } else if loss == 3 {
+                s.link_up(lost).unwrap();
             }
             // Expiry is observed by the RPC, without requiring a preceding poll.
             assert_eq!(
@@ -315,7 +319,9 @@ fn nak_expiry_and_link_down_withdraw_and_reconnect_never_reuses_tokens() {
             assert!(s.transmission_at(lost).unwrap().is_none());
             if loss != 0 {
                 // Withdrawal hid the real pending frame but did not release its slot.
-                s.link_up(lost).unwrap();
+                if loss != 3 {
+                    s.link_up(lost).unwrap();
+                }
                 let mut rng = random(0xabcd);
                 assert_eq!(s.drive_dhcp(lost, &mut rng), Ok(DriveOutcome::Backpressure));
                 s.complete_transmission_at(pending, lost).unwrap();

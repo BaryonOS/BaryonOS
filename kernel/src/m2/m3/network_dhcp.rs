@@ -7,13 +7,15 @@ use super::*;
 use capability_core::{PROCESS_EXITED, RECV, SEND};
 
 const EPOCH: u64 = 1;
-const OFFSETS: [u64; 33] = [
+/// N02-T3b: one QMP link down/up replaces the NAK as the withdrawal cause.
+const LINK: bool = cfg!(feature = "test-net-service-link");
+const OFFSETS: [u64; 35] = [
     240, 400, 408, 416, 424, 432, 440, 448, 456, 464, 472, 480, 488, 496, 504, 512, 520, 528, 536,
-    544, 552, 560, 568, 576, 584, 592, 600, 608, 616, 624, 632, 640, 648,
+    544, 552, 560, 568, 576, 584, 592, 600, 608, 616, 624, 632, 640, 648, 656, 664,
 ];
 pub(super) const PROCESSES: usize = 3;
 struct Evidence {
-    snapshots: [Option<[u64; 33]>; 3],
+    snapshots: [Option<[u64; 35]>; 3],
     kernel_tables: usize,
     exits: [u64; 3],
 }
@@ -96,7 +98,8 @@ pub(super) fn manifest(s: &mut State) {
         // DNS server; app B keeps a non-DNS port and must be refused.
         (136, 53),
         (144, 9001),
-        (176, 1),
+        // 1 = DHCP with the NAK case; 2 = DHCP that follows the link (N02-T3b).
+        (176, 1 + u64::from(LINK)),
     ] {
         put(s, 0, at, value);
     }
@@ -151,7 +154,7 @@ pub(super) fn observe_exit(s: &mut State, slot: usize, _: u64) {
         slot < PROCESSES && evidence().snapshots[slot].is_none(),
         b"EXIT_SLOT",
     );
-    let mut values = [0; 33];
+    let mut values = [0; 35];
     for (i, at) in OFFSETS.iter().enumerate() {
         values[i] = word(s, slot, *at);
     }
@@ -212,6 +215,13 @@ pub(super) fn poll(s: &mut State) -> Option<*const u64> {
     let service = evidence().snapshots[0].unwrap();
     check_dhcp(&service);
     network::print_and_check(service[3], service[4]);
+    // The service saw the real down edge before withdrawing, and re-leased
+    // only after the real up edge.
+    #[cfg(feature = "test-net-service-link")]
+    {
+        let (down, up) = network::link::check_service();
+        require(down <= service[25] && up < service[28], b"LINK_ORDER");
+    }
     let (bytes, denied, healthy) = keyring::broker_summary();
     // The 8-byte stack seed plus one 4-byte draw per DHCP random sample.
     require(
@@ -248,7 +258,7 @@ fn subnet_host(address: u64) -> bool {
 }
 /// Two leases, exactly one NAK withdrawal, no app traffic outside a lease and
 /// a fresh token after re-acquisition, ordered on one boot-monotonic clock.
-fn check_dhcp(service: &[u64; 33]) {
+fn check_dhcp(service: &[u64; 35]) {
     let [_, a, b] = evidence().snapshots.map(Option::unwrap);
     // UDP is DNS only: service.test on each lease and missing.test once (the
     // cached NXDOMAIN is not re-queried); the two peer spoofs are malformed.
@@ -306,7 +316,7 @@ fn check_dhcp(service: &[u64; 33]) {
             && b[14] == 0
             && b[19] == 0
             && b[29] == 1
-            && b[30..] == [0; 3],
+            && b[30..] == [0; 5],
         b"DHCP_APP_B_EVIDENCE",
     );
     // First resolution, held connection live, then lease withdrawn, then the
@@ -330,5 +340,12 @@ fn check_dhcp(service: &[u64; 33]) {
             && reresolved <= fresh
             && fresh <= evidence().exits[1],
         b"DHCP_ORDER",
+    );
+    // Link observations by the service: downs, then ups including the first
+    // sample. Outside the link profile the service never queries the link.
+    let l = u64::from(LINK);
+    require(
+        service[33] == l && service[34] == 2 * l,
+        b"DHCP_LINK_EVIDENCE",
     );
 }

@@ -45,8 +45,11 @@ FORBIDDEN = ("FAIL", "PANIC")
 
 
 
-def execute_native(command, env, *, timeout, limit=128 * 1024):
+def execute_native(command, env, *, timeout, limit=128 * 1024, on_poll=None):
     """Owned QEMU process; bounded binary pipes, lifetime and final wait.
+
+    on_poll(stdout_bytes_so_far, process), when given, runs every 20 ms while
+    QEMU lives; an exception from it propagates after QEMU is killed.
 
     Never normalize or replace undecodable bytes. Reader threads retain at
     most limit bytes per pipe and signal overflow so the owner kills QEMU.
@@ -61,7 +64,8 @@ def execute_native(command, env, *, timeout, limit=128 * 1024):
     def reader(pipe, output):
         try:
             while True:
-                raw = pipe.read(4096)
+                # read1: whatever is available, so on_poll sees serial lines promptly.
+                raw = pipe.read1(4096)
                 if not raw:
                     return
                 remaining = limit - len(output)
@@ -84,6 +88,8 @@ def execute_native(command, env, *, timeout, limit=128 * 1024):
                 timed_out = remaining <= 0
                 process.kill()
                 break
+            if on_poll is not None:
+                on_poll(bytes(buffers[0]), process)
             try:
                 process.wait(timeout=min(0.02, remaining))
             except subprocess.TimeoutExpired:

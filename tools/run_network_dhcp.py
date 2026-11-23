@@ -7,7 +7,13 @@ DHCPNAK (app A's held token goes stale and OpenTcp is refused) and re-acquires
 192.0.2.67 for a fresh exchange. App A resolves service.test through the
 lease DNS server under its UDP/53 grant (NXDOMAIN cached, spoofs dropped and
 counted, cache flushed by the withdrawal); app B has no such grant and is
-refused. Link control and lease expiry are out of scope.
+refused. Lease expiry is out of scope.
+
+`--case link` (N02-T3b) replaces the NAK with one virtio-net link down/up
+driven through a private QMP socket (`qmp_capabilities` and `set_link net0`
+only): the service observes the kernel link epoch (test syscall 0x74),
+withdraws the lease on the down edge and acquires a fresh one after the up
+edge; the peer refuses any later frame from the old address.
 Images, user ELFs, firmware and serial bytes are refused unless the source
 fingerprint is the same before the build and after the run; an edit reverted
 in between is not detected.
@@ -17,6 +23,7 @@ import argparse
 import hashlib
 from datetime import datetime, timezone
 import math
+import os
 from pathlib import Path
 import re
 import shutil
@@ -31,20 +38,117 @@ from run_fpu import private_path, publish_json, load_json
 from run_system import check_esp, network_arguments
 from run_network_service import BOOT, FORBIDDEN, REQUIRED, execute_native, integer, record_streams
 from network_dhcp_peer import LEASES, Peer, validate_transcript
+from run_net_link import NETDEV, LinkControl, check_qmp
 
 FEATURE = "test-net-service-dhcp"
+CASES = {"dhcp": FEATURE, "link": "test-net-service-link"}
+SUMMARIES = {"dhcp": "network-dhcp-report.json", "link": "network-dhcp-link-report.json"}
 LAST_TICK = 6000
 OFFSETS = (240, 400, 408, 416, 424, 432, 440, 448, 456, 464, 472, 480, 488, 496, 504, 512, 520, 528,
-           536, 544, 552, 560, 568, 576, 584, 592, 600, 608, 616, 624, 632, 640, 648)
+           536, 544, 552, 560, 568, 576, 584, 592, 600, 608, 616, 624, 632, 640, 648, 656, 664)
+# Kernel summary of the one link cycle (link case only), each exactly once.
+LINK_NAMES = ("SUPPORTED", "EPOCH", "EVENTS", "UPS", "DOWNS", "SYNTHETIC", "TX_REFUSED", "RX_REFUSED",
+              "RX_DROPPED", "WINDOWS", "WINDOW_DELTA", "EXHAUSTED", "QUERIES", "DOWN_TICK", "UP_TICK")
+DOWN_OBSERVED = b"NETLINK:QUERY:DOWN:%020d\n" % 2
+
+
+def link_marker(label, value):
+    return f"NETLINK:{label}:{value:020d}"
+
+
+class LinkHandshake:
+    """execute_native on_poll hook: one QMP link drop and restore, each gated.
+
+    Down only after the peer asks (first lease ready and the wire quiet); up
+    only after the peer withdrew the old lease and the service observed the
+    down epoch. The QMP client and its private-socket checks are run_net_link's.
+    """
+    def __init__(self, machine, run_dir, deadline, connect=None):
+        self.machine, self.run_dir, self.deadline = machine, run_dir, deadline
+        self.connect = connect or LinkControl._connect
+        self.qmp = self.directory = None
+        self.phase, self.actions, self.started = "wait-quiet", [], time.monotonic()
+
+    def toggle(self, up, process):
+        if self.qmp is None:
+            self.qmp, self.directory = self.connect(self.run_dir, process, self.deadline)
+        if len(self.actions) >= 2:
+            raise RuntimeError("link toggle budget of the harness exceeded")
+        # Through the shared allowlist: only qmp_capabilities and set_link.
+        reply = LinkControl.command(self, "set_link", {"name": NETDEV, "up": up})
+        if reply != {}:
+            raise RuntimeError(f"unexpected set_link reply {reply!r}")
+        self.actions.append(dict(up=up, phase=self.phase, completed_s=round(time.monotonic() - self.started, 3)))
+
+    def __call__(self, stdout, process):
+        if self.phase == "wait-quiet" and self.machine.want_down.is_set():
+            self.toggle(False, process)
+            self.machine.link_off.set()
+            self.phase = "wait-observed"
+        elif (self.phase == "wait-observed" and self.machine.withdrawn_ack.is_set()
+              and DOWN_OBSERVED in stdout):
+            self.toggle(True, process)
+            self.phase = "done"
+
+    def close(self):
+        try:
+            if self.qmp is not None:
+                self.qmp.close()
+        finally:
+            if self.directory is not None:
+                os.close(self.directory)
+                self.directory = None
+
+    def evidence(self):
+        return dict(kind="QMP set_link driver; private unix socket in the run directory", phase=self.phase,
+                    trace=list(self.qmp.trace) if self.qmp is not None else [], actions=list(self.actions))
+
+
+def link_sequence(netlink, summary, rx_completed):
+    """Exactly one quiescent down/up cycle in the kernel's NETLINK lines."""
+    if set(summary) != set(LINK_NAMES):
+        raise ValueError("Incomplete kernel link summary")
+    held = [i for i, line in enumerate(netlink) if line.startswith("NETLINK:RX_HELD:")]
+    if [netlink[i] for i in held] != [link_marker("RX_HELD", n) for n in range(1, rx_completed + 1)]:
+        raise ValueError("Kernel RX_HELD lines differ from the RX completions")
+    rest = [line for i, line in enumerate(netlink) if i not in held]
+    refused = link_marker("DOWN_REFUSED", 2)
+    if rest.count(refused) > 1:
+        raise ValueError("Duplicate link refusal marker")
+    has_refused = refused in rest
+    if has_refused:
+        rest.remove(refused)
+    windows = [re.fullmatch(r"NETLINK:WINDOW_(?:OPEN|CLOSE)_(?:TX|PUBLISHED):([0-9]{20})", line)
+               for line in rest[3:5] + rest[7:9]]
+    if len(rest) != 11 or None in windows:
+        raise ValueError("Kernel link lines differ from one down/up cycle")
+    tx, published = windows[0].group(1), windows[1].group(1)
+    want = ["NETLINK:ATTACH:STATUS", link_marker("EVENT:UP", 1), link_marker("QUERY:UP", 1),
+            "NETLINK:WINDOW_OPEN_TX:" + tx, "NETLINK:WINDOW_OPEN_PUBLISHED:" + published,
+            link_marker("EVENT:DOWN", 2), link_marker("QUERY:DOWN", 2),
+            "NETLINK:WINDOW_CLOSE_TX:" + tx, "NETLINK:WINDOW_CLOSE_PUBLISHED:" + published,
+            link_marker("EVENT:UP", 3), link_marker("QUERY:UP", 3)]
+    if rest != want:
+        raise ValueError("Kernel link lines differ from one down/up cycle")
+    down, up = netlink.index(want[5]), netlink.index(want[9])
+    if any(down < i < up for i in held):
+        raise ValueError("RX delivered inside the link-down window")
+    if has_refused and not down < netlink.index(refused) < netlink.index(want[7]):
+        raise ValueError("Link refusal marker outside the down window")
 ROLES = ("SERVICE", "APP_A", "APP_B")
 NETWORK = ("NET_TX_SUBMITTED", "NET_TX_COMPLETED", "NET_RX_COMPLETED", "NET_RX_DELIVERED",
            "NET_DENIED", "NET_TX_TIMEOUTS", "NET_RESETS", "NET_RESET_ACKS")
 
 
-def sequence(stdout):
+def sequence(stdout, case="dhcp"):
     if not isinstance(stdout, str) or len(stdout) > 128 * 1024 or any(s in stdout for s in FORBIDDEN):
         raise ValueError("Failed/oversized actual native serial")
     lines = without_acpi_diagnostics(stdout).splitlines()
+    # Kernel link events interleave with boot and process output; the link
+    # case checks them as their own ordered stream.
+    netlink = [line for line in lines if line.startswith("NETLINK:")] if case == "link" else []
+    if case == "link":
+        lines = [line for line in lines if not line.startswith("NETLINK:")]
     if any(lines.count(marker) != 1 for marker in REQUIRED):
         raise ValueError("Missing/duplicate required native marker")
     start = lines.index(BOOT[0])
@@ -54,7 +158,7 @@ def sequence(stdout):
         raise ValueError("Native boot/manifest order differs")
     if lines[-3:] != ["NETSVC:CLEANUP:PASS", "NETSVC:PASS", "M1:PASS"]:
         raise ValueError("Native clean ending missing")
-    found, network, exit_ticks, entropy = {r: {} for r in ROLES}, {}, {}, None
+    found, network, exit_ticks, entropy, link = {r: {} for r in ROLES}, {}, {}, None, {}
     numeric = re.compile(r"NETSVC:(SERVICE|APP_A|APP_B):([0-9]+):([0-9]{20})")
     for line in lines[start + len(BOOT) + 1:-3]:
         if match := re.fullmatch(r"NETSVC:(APP_A|APP_B)_EXIT_TICKS:([0-9]{20})", line):
@@ -76,6 +180,11 @@ def sequence(stdout):
             if name not in NETWORK or name in network:
                 raise ValueError("Unknown/duplicate broker observation")
             network[name] = integer(int(value))
+        elif case == "link" and (match := re.fullmatch(r"SYSTEM:NETLINK_([A-Z_]+):([0-9]{20})", line)):
+            name, value = match.groups()
+            if name not in LINK_NAMES or name in link:
+                raise ValueError("Unknown/duplicate kernel link observation")
+            link[name] = integer(int(value))
         else:
             raise ValueError("Unknown/reordered native evidence: " + line)
     if (any(set(values) != set(OFFSETS) for values in found.values()) or set(network) != set(NETWORK)
@@ -85,13 +194,28 @@ def sequence(stdout):
     if (service[560] != 2 or service[568] != 1 or service[608] != 0
             or entropy != 8 + 4 * service[600] or not 0 < service[592] <= service[616] <= LAST_TICK):
         raise ValueError("Native DHCP lease/withdrawal/entropy evidence differs")
-    return {"processes": {r: {str(k): v for k, v in values.items()} for r, values in found.items()},
-            "network": network, "entropy_bytes": entropy, "exit_ticks": exit_ticks}
+    observed = {"processes": {r: {str(k): v for k, v in values.items()} for r, values in found.items()},
+                "network": network, "entropy_bytes": entropy, "exit_ticks": exit_ticks}
+    if case != "link":
+        if service[656] or service[664]:
+            raise ValueError("The DHCP case observed the link")
+        return observed
+    link_sequence(netlink, link, network["NET_RX_COMPLETED"])
+    if ([link[n] for n in ("SUPPORTED", "EPOCH", "EVENTS", "UPS", "DOWNS", "SYNTHETIC", "RX_DROPPED", "WINDOWS",
+                           "WINDOW_DELTA", "EXHAUSTED")] != [1, 3, 3, 2, 1, 0, 0, 1, 0, 0]
+            or link["QUERIES"] == 0 or (service[656], service[664]) != (1, 2)
+            or network["NET_DENIED"] != 2 + link["TX_REFUSED"] + link["RX_REFUSED"]
+            or link["TX_REFUSED"] > 1 or link["RX_REFUSED"] > 1
+            # Withdrawal no earlier than the down edge; re-lease after the up edge.
+            or not 0 < link["DOWN_TICK"] <= service[592] or not link["DOWN_TICK"] < link["UP_TICK"] < service[616]):
+        raise ValueError("Native link cycle evidence differs")
+    observed.update(link=link, netlink=netlink)
+    return observed
 
 
-def validate_build(frozen):
+def validate_build(frozen, feature=FEATURE):
     manifest = load_json(private_path(BUILD / "manifest.json", regular=True))
-    if (manifest.get("kernel_feature") != FEATURE or manifest.get("loader_feature") is not None
+    if (manifest.get("kernel_feature") != feature or manifest.get("loader_feature") is not None
             or manifest.get("source_sha256") != frozen or manifest.get("source_fingerprint_version") != 3
             or manifest.get("sdk_runtime") is not False or manifest.get("document_session") is not False):
         raise ValueError("Build the DHCP native service profile on the unchanged current source")
@@ -107,15 +231,15 @@ def validate_build(frozen):
     return manifest
 
 
-def evaluate(report, peer):
+def evaluate(report, peer, case="dhcp", control=None):
     if (type(report.get("raw_qemu_exit")) is not int or report["raw_qemu_exit"] != 33
-            or report.get("timed_out") is not False or report.get("kernel_feature") != FEATURE
+            or report.get("timed_out") is not False or report.get("kernel_feature") != CASES[case]
             or not isinstance(report.get("qemu_version"), str) or not report["qemu_version"].startswith("QEMU emulator version ")
             or type(report.get("duration_s")) not in (int, float) or not math.isfinite(report["duration_s"])
             or not 0 <= report["duration_s"] <= report["timeout_s"] + 5):
         raise ValueError("Native QEMU exit/lifetime/profile evidence failed")
-    observed = sequence(report["stdout"])
-    if (peer.get("passed") is not True or peer.get("connected") is not True
+    observed = sequence(report["stdout"], case)
+    if (peer.get("case") != case or peer.get("passed") is not True or peer.get("connected") is not True
             or peer.get("error") is not None or peer.get("rejected_frame") is not None):
         raise ValueError("Actual synthetic DHCP peer failed: " + str(peer.get("error")))
     counts = validate_transcript(peer)["counts"]
@@ -127,15 +251,25 @@ def evaluate(report, peer):
     # DNS is the only guest UDP; each peer spoof must be a native malformed drop.
     if service["448"] != counts["dns_queries"] or service["512"] != counts["dns_spoofs"]:
         raise ValueError("Native DNS query/spoof counters contradict the peer transcript")
+    if case == "link":
+        command = report.get("command", [])
+        qmp = [command[i + 1] for i, item in enumerate(command[:-1]) if item == "-qmp"]
+        private = f"unix:{Path(report['run_directory']).relative_to(ROOT).as_posix()}/qmp.sock,server=on,wait=off"
+        if qmp != [private] or command.count("-monitor") != 1:
+            raise ValueError("unexpected QEMU monitor: only one private QMP socket is allowed")
+        check_qmp("link", control, {"toggles": [False, True]})
+        if counts["naks"] or counts["link_downs"] != 1:
+            raise ValueError("The link case withdrew the lease other than by one link drop")
     return observed
 
 
-def run_network_dhcp(*, timeout=90, frozen=None):
+def run_network_dhcp(*, timeout=90, frozen=None, case="dhcp"):
     if type(timeout) is not int or not 1 <= timeout <= 180:
         raise ValueError("Native timeout must be bounded 1..180 seconds")
+    feature = CASES[case]
     private_path(BUILD)
     frozen = source_hash() if frozen is None else frozen
-    manifest = validate_build(frozen)
+    manifest = validate_build(frozen, feature)
     env = environment()
     qemu = shutil.which("qemu-system-x86_64", path=env["PATH"])
     if qemu is None:
@@ -171,19 +305,32 @@ def run_network_dhcp(*, timeout=90, frozen=None):
                "-device", "isa-debug-exit,iobase=0xf4,iosize=0x04",
                "-object", "rng-random,id=rng0,filename=/dev/urandom",
                "-device", "virtio-rng-pci,rng=rng0,id=rng,addr=0x6,disable-legacy=on,max-bytes=1048576,period=1000"]
+    if case == "link":
+        command += ["-qmp", f"unix:{rel}/qmp.sock,server=on,wait=off"]
     if (Path(qemu).parent / "share").is_dir():
         command += ["-L", str(Path(qemu).parent / "share")]
-    report = dict(schema_version=1, passed=False, case="dhcp", kernel_feature=FEATURE,
-                  scope="three actual isolated ring-3 processes; DHCPv4 acquire/NAK withdrawal/re-acquire on synthetic localhost Ethernet; A-record DNS through the lease server with one synthetic responder; no link control, lease expiry, TCP DNS, DNSSEC, TLS or physical hardware claim",
+    link_scope = ("three actual isolated ring-3 processes; one QMP set_link down/up on emulated virtio-net STATUS "
+                  "withdraws the DHCPv4 lease and a fresh one is acquired, DNS re-resolved through the new lease "
+                  "server; no NAK, repeated flapping, physical NIC, Wi-Fi or production link ABI claim")
+    report = dict(schema_version=1, passed=False, case=case, kernel_feature=feature,
+                  scope=link_scope if case == "link" else "three actual isolated ring-3 processes; DHCPv4 acquire/NAK withdrawal/re-acquire on synthetic localhost Ethernet; A-record DNS through the lease server with one synthetic responder; no link control, lease expiry, TCP DNS, DNSSEC, TLS or physical hardware claim",
                   source_commit=subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip(),
                   source_fingerprint_version=3, source_sha256=frozen, manifest=manifest,
                   run_directory=str(directory), timeout_s=timeout, started_utc=datetime.now(timezone.utc).isoformat(),
                   qemu_sha256=qemu_hash, firmware_sha256=original_firmware, snapshot_sha256=snapshots,
                   qemu_version=subprocess.check_output([qemu, "--version"], env=env, text=True, timeout=10).strip())
-    with Peer(timeout=timeout) as peer:
+    control = None
+    with Peer(timeout=timeout, case=case) as peer:
         command += network_arguments(peer.port)
         begin = time.monotonic()
-        rc, stdout_raw, stderr_raw, timed_out, output_overflow = execute_native(command, env, timeout=timeout)
+        if case == "link":
+            control = LinkHandshake(peer.machine, directory, begin + timeout)
+        try:
+            rc, stdout_raw, stderr_raw, timed_out, output_overflow = execute_native(
+                command, env, timeout=timeout, on_poll=control)
+        finally:
+            if control is not None:
+                control.close()
         report.update(command=command, duration_s=time.monotonic() - begin, raw_qemu_exit=rc,
                       timed_out=timed_out, output_overflow=output_overflow,
                       stdout_sha256=hashlib.sha256(stdout_raw).hexdigest(), stderr_sha256=hashlib.sha256(stderr_raw).hexdigest(),
@@ -191,12 +338,14 @@ def run_network_dhcp(*, timeout=90, frozen=None):
     evidence = peer.finish()
     publish_json(directory / "network-peer.json", evidence)
     report["peer"] = evidence
+    if control is not None:
+        report["link_control"] = control.evidence()
     try:
         stdout, stderr = record_streams(directory, stdout_raw, stderr_raw)
         report.update(stdout=stdout, stderr=stderr)
         if output_overflow:
             raise ValueError("Native output exceeded bounded pipe storage")
-        report["observed"] = evaluate(report, evidence)
+        report["observed"] = evaluate(report, evidence, case, report.get("link_control"))
         if load_json(private_path(directory / "network-peer.json", regular=True)) != evidence:
             raise ValueError("Stored peer transcript differs from actual server bytes")
         check_esp(directory / "esp", manifest)
@@ -204,14 +353,14 @@ def run_network_dhcp(*, timeout=90, frozen=None):
             raise ValueError("Immutable firmware/ESP snapshot changed during run")
         if {"code": sha256(code), "vars_template": sha256(variables)} != original_firmware or sha256(Path(qemu)) != qemu_hash:
             raise ValueError("QEMU or original firmware changed during run")
-        if validate_build(frozen) != manifest or source_hash() != frozen:
+        if validate_build(frozen, feature) != manifest or source_hash() != frozen:
             raise ValueError("Source/build/user artifacts changed during run")
         report.update(passed=True, network_dhcp_gate=True)
     except (ValueError, KeyError, TypeError, OSError) as error:
         report.update(error=f"{type(error).__name__}: {error}", network_dhcp_gate=False)
     publish_json(directory / "result.json", report)
-    publish_json(BUILD / "network-dhcp-report.json", report)
-    print(f"N02 native DHCP passed={report['passed']} raw={rc} duration={report['duration_s']:.3f}s {directory}")
+    publish_json(BUILD / SUMMARIES[case], report)
+    print(f"N02 native DHCP ({case}) passed={report['passed']} raw={rc} duration={report['duration_s']:.3f}s {directory}")
     if "error" in report:
         print(report["error"])
     return report
@@ -221,11 +370,14 @@ def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--timeout", type=int, default=90, help="host timeout seconds (default 90)")
     parser.add_argument("--no-build", action="store_true", help="require an existing source-matching build")
+    parser.add_argument("--case", choices=tuple(CASES), default="dhcp",
+                        help="dhcp: DHCPNAK withdrawal (default); link: QMP link down/up withdrawal")
     args = parser.parse_args(argv)
+    feature = CASES[args.case]
     # The stable summary never outlives a newer attempt; each run keeps its own run directory.
-    summary = BUILD / "network-dhcp-report.json"
+    summary = BUILD / SUMMARIES[args.case]
     private_path(BUILD).mkdir(parents=True, exist_ok=True)
-    failure = dict(schema_version=1, passed=False, case="dhcp", kernel_feature=FEATURE, network_dhcp_gate=False,
+    failure = dict(schema_version=1, passed=False, case=args.case, kernel_feature=feature, network_dhcp_gate=False,
                    error="N02 build/run did not complete")
     publish_json(summary, failure)
     try:
@@ -235,8 +387,10 @@ def main(argv=None):
         # Fingerprint before the build, so the post-run check compares against the build-start source.
         frozen = source_hash()
         if not args.no_build:
-            build(None, FEATURE, FEATURE)
-        return 0 if run_network_dhcp(timeout=args.timeout, frozen=frozen)["passed"] else 1
+            build(None, feature, feature)
+        # The dhcp call keeps its original signature.
+        extra = {"case": args.case} if args.case != "dhcp" else {}
+        return 0 if run_network_dhcp(timeout=args.timeout, frozen=frozen, **extra)["passed"] else 1
     except BaseException as error:
         failure["error"] = f"{type(error).__name__}: {error}"
         publish_json(summary, failure)

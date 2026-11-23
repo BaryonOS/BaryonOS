@@ -220,6 +220,8 @@ test-net-service-device-reset = ["native-net-service", "virtio-net-driver/test-d
 test-net-service-exhaustion = ["native-net-service", "ipc-wait"]
 # N02: the service acquires its address by DHCP and withdraws it on NAK.
 test-net-service-dhcp = ["native-net-service"]
+# N02-T3b: a QMP link down/up withdraws and re-acquires the DHCP lease.
+test-net-service-link = ["test-net-service-dhcp", "test-system-net-link"]
 test-system-tcp-recover = ["native-system-tcp", "test-system-recover"]
 # B01 entropy broker + Key Service profile: virtio-rng broker, two services, one app.
 native-keyring = ["milestone-m4", "dep:virtio-rng-driver"]

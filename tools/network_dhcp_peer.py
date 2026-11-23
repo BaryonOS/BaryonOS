@@ -20,6 +20,7 @@ from dataclasses import dataclass, field
 import hashlib
 import re
 import struct
+import threading
 
 from network_service_peer import (ACK, CLIENT_MAC, FIN, MASK, MAX_FRAME, MAX_FRAMES, PEER_IP,
                                   PEER_MAC, PSH, REQUESTS, RESPONSES, RST, SYN, Peer as BasePeer,
@@ -34,6 +35,13 @@ LEASE_SECONDS = 3600
 # (T1, T2) per lease: the first renews soon enough to deliver the NAK inside
 # the native deadline; the second does not renew during the run.
 TIMES = ((10, 3000), (1800, 3000))
+# N02-T3b link case: no renewal during the run; a QMP link down/up, not a NAK,
+# withdraws the first lease.
+LINK_TIMES = ((1800, 3000), (1800, 3000))
+# Wall-clock silence after the first lease is ready before the link drop is
+# requested, so no frame of that lease is still in flight.
+QUIET_S = 0.5
+CASES = ("dhcp", "link")
 COOKIE = bytes((99, 130, 83, 99))
 PARAMETERS = bytes((1, 3, 6, 51, 54, 58, 59))
 BOOTP_BYTES = 300
@@ -230,7 +238,17 @@ class Connection:
 
 
 class DhcpMachine:
-    def __init__(self):
+    def __init__(self, case="dhcp"):
+        if case not in CASES:
+            raise ValueError("unknown DHCP peer case")
+        self.case = case
+        self.times = LINK_TIMES if case == "link" else TIMES
+        # Link handshake with the runner thread: the peer asks for the drop,
+        # the runner reports the QMP set_link off, the peer withdraws and
+        # acknowledges before the runner may restore the link.
+        self.link_state, self.last_input, self.record = "up", 0.0, None
+        self.want_down, self.link_off, self.withdrawn_ack = (threading.Event(), threading.Event(),
+                                                              threading.Event())
         self.phase = "idle"
         self.lease = -1
         self.offer_xid = None
@@ -246,7 +264,7 @@ class DhcpMachine:
                  "renewals", "renewal_acks", "early_renewal_acks", "naks", "retransmissions", "arp_probes",
                  "arp_announcements", "arp_requests", "arp_replies", "syns", "syn_acks",
                  "http_requests", "valid_data_sent", "fins_sent", "client_fins_acked", "held",
-                 "dns_queries", "dns_answers", "dns_nxdomains", "dns_spoofs")
+                 "dns_queries", "dns_answers", "dns_nxdomains", "dns_spoofs", "link_downs")
         self.counts = dict.fromkeys(names, 0)
 
     @property
@@ -275,7 +293,7 @@ class DhcpMachine:
                  + ZERO_IP + ZERO_IP + CLIENT_MAC + b"\0" * 10 + b"\0" * 192 + COOKIE)
         options = bytes((53, 1, kind, 54, 4)) + PEER_IP
         if not nak:
-            t1, t2 = TIMES[lease]
+            t1, t2 = self.times[lease]
             options += (bytes((51, 4)) + struct.pack("!I", LEASE_SECONDS) + bytes((58, 4)) + struct.pack("!I", t1)
                         + bytes((59, 4)) + struct.pack("!I", t2) + bytes((1, 4)) + SUBNET_MASK + bytes((3, 4)) + PEER_IP
                         # Every OFFER/ACK (renewals too) names the peer as DNS server.
@@ -330,7 +348,7 @@ class DhcpMachine:
         self.xids.append(m["xid"])
         self.event("rx", "dhcp-renew", frame, xid=m["xid"])
         self.counts["renewals"] += 1
-        if self.lease == 0 and self.ready_for_nak():
+        if self.case == "dhcp" and self.lease == 0 and self.ready_for_nak():
             self.withdrawn.add(self.address)
             self.phase = "withdrawn"
             self.counts["naks"] += 1
@@ -515,6 +533,7 @@ class DhcpMachine:
         raise ProtocolError("unhandled TCP phase")
 
     def handle(self, frame, now=0.0):
+        self.last_input = now
         if not 14 <= len(frame) <= MAX_FRAME or self.counts["client_frames"] >= MAX_FRAMES:
             raise ProtocolError("input frame budget")
         if frame[6:12] != CLIENT_MAC:
@@ -536,7 +555,30 @@ class DhcpMachine:
             return self.segment(frame)
         raise ProtocolError("unexpected IPv4 protocol")
 
+    def ready_for_link(self):
+        return (self.case == "link" and self.phase == "bound" and self.lease == 0 and self.ready_for_nak()
+                and all((0, name) in self.dns_seen for lease, name in DNS_QUERIES if lease == 0))
+
+    def link_down(self, now):
+        """Withdraw the first lease after the link went down; replayed from the transcript."""
+        if not self.ready_for_link():
+            raise ProtocolError("link drop outside the ready first lease")
+        self.withdrawn.add(self.address)
+        self.phase, self.link_state = "withdrawn", "down"
+        self.counts["link_downs"] += 1
+        if self.record is not None:
+            self.record(dict(kind="link", at=now, up=False))
+
     def poll(self, now):
+        if self.link_state == "up" and self.ready_for_link() and now - self.last_input >= QUIET_S:
+            self.link_state = "requested"
+            self.want_down.set()
+        elif self.link_state == "requested" and self.link_off.is_set():
+            # The socket is drained (poll runs on a receive timeout) and QEMU
+            # no longer forwards guest frames, so nothing from the old lease
+            # is still in flight.
+            self.link_down(now)
+            self.withdrawn_ack.set()
         return []
 
     def summary(self):
@@ -549,14 +591,17 @@ class DhcpMachine:
         complete = (exchanged and set(c) == set(EXCHANGES) | set(HELD) and c[8081].phase == "held"
                     and self.lease == 1 and self.phase == "bound" and self.withdrawn == {LEASES[0]}
                     and self.counts["discovers"] == 2 and self.counts["selects"] >= 2
-                    # The first renewal of the first lease must be the NAK case.
-                    and self.counts["naks"] == 1 and self.counts["early_renewal_acks"] == 0 and self.probes == [3, 3] and self.announcements[0] == 2
+                    # The first renewal of the first lease must be the NAK case;
+                    # in the link case one link drop, and no renewal, withdraws it.
+                    and (self.counts["naks"], self.counts["link_downs"]) == ((0, 1) if self.case == "link" else (1, 0))
+                    and (self.case == "dhcp" or self.counts["renewals"] == 0)
+                    and self.counts["early_renewal_acks"] == 0 and self.probes == [3, 3] and self.announcements[0] == 2
                     # The service may retire and exit before the second
                     # announcement of the final lease; the first makes it usable.
                     and self.announcements[1] in (1, 2)
                     and self.counts["client_fins_acked"] == 3 and self.counts["held"] == 1
                     and self.dns_seen == list(DNS_QUERIES) and self.counts["dns_spoofs"] == 2)
-        return dict(case="dhcp", complete=complete, counts=dict(self.counts), cases=cases,
+        return dict(case=self.case, complete=complete, counts=dict(self.counts), cases=cases,
                     dns_queries=[[lease, name] for lease, name in self.dns_seen],
                     leases=[".".join(map(str, lease)) for lease in LEASES[:self.lease + 1]],
                     withdrawn=sorted(".".join(map(str, a)) for a in self.withdrawn),
@@ -565,19 +610,31 @@ class DhcpMachine:
 
 def validate_transcript(evidence):
     """Replay every recorded guest frame; the replies must be reproduced exactly."""
-    if evidence.get("case") != "dhcp":
+    case = evidence.get("case")
+    if case not in CASES:
         raise ProtocolError("peer transcript case binding changed")
     actions = evidence.get("actions")
     if not isinstance(actions, list) or not 1 <= len(actions) <= MAX_ACTIONS:
         raise ProtocolError("missing/bounded raw transcript")
-    machine, last = DhcpMachine(), 0.0
+    machine, last = DhcpMachine(case), 0.0
     for action in actions:
-        if not isinstance(action, dict) or set(action) != {"kind", "at", "input", "output"} or action["kind"] != "input":
+        link = (case == "link" and isinstance(action, dict) and set(action) == {"kind", "at", "up"}
+                and action["kind"] == "link" and action["up"] is False)
+        if not link and (not isinstance(action, dict) or set(action) != {"kind", "at", "input", "output"}
+                         or action["kind"] != "input"):
             raise ProtocolError("malformed transcript action")
         now = action["at"]
         if type(now) not in (int, float) or not last <= now <= 180:
             raise ProtocolError("changed/nonfinite transcript time")
         last = now
+        if link:
+            # The drop follows a quiet guest; a late frame fails closed.
+            if now - machine.last_input < QUIET_S:
+                raise ProtocolError("link drop without the quiet interval")
+            # Raises unless the first lease was bound and ready; a second
+            # drop finds it already withdrawn.
+            machine.link_down(now)
+            continue
         def packet(value):
             if not isinstance(value, str) or not 28 <= len(value) <= MAX_FRAME * 2 or len(value) % 2 or re.fullmatch("[0-9a-f]+", value) is None:
                 raise ProtocolError("malformed recorded packet")
@@ -597,9 +654,10 @@ def validate_transcript(evidence):
 
 class Peer(BasePeer):
     """The N01 socket loop with the DHCP machine and DHCP transcript replay."""
-    def __init__(self, timeout=180):
+    def __init__(self, timeout=180, case="dhcp"):
         super().__init__(timeout, case="normal")
-        self.machine = DhcpMachine()
+        self.machine = DhcpMachine(case)
+        self.machine.record = self.actions.append
 
     def finish(self):
         self.close()
