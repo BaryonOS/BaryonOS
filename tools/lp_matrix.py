@@ -9,7 +9,8 @@ import re
 
 ROOT = Path(__file__).resolve().parents[1]
 CONTRACT = Path("docs/LOCAL-PRIVACY-CONTRACT.md")
-MATRIX = Path("docs/verification/b06-lp-matrix-20261115/matrix.json")
+# Default is the newest revision; earlier revisions stay readable through --matrix.
+MATRIX = Path("docs/verification/b06-lp-matrix-20261123/matrix.json")
 
 
 def evidence_file(root: Path, reference: dict) -> tuple[Path, bytes]:
@@ -31,13 +32,16 @@ def evidence_file(root: Path, reference: dict) -> tuple[Path, bytes]:
     return path, data
 
 
-def check(root: Path = ROOT) -> dict:
+def check(root: Path = ROOT, matrix: Path = MATRIX) -> dict:
     root = root.resolve(strict=True)
+    matrix_path = (root / matrix).resolve(strict=True)
+    if not matrix_path.is_relative_to(root) or not matrix_path.is_file():
+        raise ValueError("matrix must be a repository file")
     ids = re.findall(r"^\| (LP-[0-9]{2}) \|", (root / CONTRACT).read_text(), re.MULTILINE)
     expected = {f"LP-{i:02}" for i in range(1, 32)}
     if len(ids) != 31 or set(ids) != expected:
         raise ValueError("contract must contain 31 unique LP IDs")
-    data = json.loads((root / MATRIX).read_text())
+    data = json.loads(matrix_path.read_text())
     if not isinstance(data, dict) or set(data) != {"schema", "rows"} or type(data["schema"]) is not int or data["schema"] != 1:
         raise ValueError("unknown LP matrix schema")
     rows = data["rows"]
@@ -73,15 +77,18 @@ def check(root: Path = ROOT) -> dict:
         counts[status] += 1
         risks.append({"id": ident, "status": status, "remaining": row["remaining"]})
     return {"structurally_valid": True, "counts": counts, "residual_coverage": risks,
-            "limit": "Reference validation only; no evidence authenticity, complete-scenario or privacy acceptance."}
+            "limit": ("Reference validation only; no evidence authenticity, complete-scenario or privacy acceptance. "
+                      "A native row means the row's core denial was exercised in a passing native run, "
+                      "not that the complete LP scenario is covered; see each row's residual text.")}
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--check", action="store_true", required=True)
-    parser.parse_args()
+    parser.add_argument("--matrix", type=Path, default=MATRIX, help="repository-relative matrix revision")
+    args = parser.parse_args()
     try:
-        print(json.dumps(check(), indent=2))
+        print(json.dumps(check(matrix=args.matrix), indent=2))
     except (ValueError, OSError, RuntimeError, TypeError) as error:
         print(f"LP matrix: {error}")
         return 1

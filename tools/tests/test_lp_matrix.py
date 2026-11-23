@@ -91,5 +91,78 @@ class MatrixTests(unittest.TestCase):
                 self.run_check()
 
 
+OLD_MATRIX = Path("docs/verification/b06-lp-matrix-20261115/matrix.json")
+NATIVE_ERROR = "not a passing source-bound QEMU record"
+
+
+class RevisionTests(unittest.TestCase):
+    """Checks against the archived repository revisions, not new native evidence."""
+
+    def test_new_revision_maps_only_lp10_native(self):
+        result = lp_matrix.check()
+        self.assertEqual(result["counts"], dict(native=1, host=0, none=30))
+        self.assertIn("not that the complete LP scenario is covered", result["limit"])
+        new = json.loads((lp_matrix.ROOT / lp_matrix.MATRIX).read_text())["rows"]
+        old = json.loads((lp_matrix.ROOT / OLD_MATRIX).read_text())["rows"]
+        changed = {n["id"]: n for n, o in zip(new, old) if n != o}
+        self.assertEqual([n["id"] for n in new], [o["id"] for o in old])
+        self.assertEqual(set(changed), {"LP-10", "LP-12"})
+        self.assertEqual(changed["LP-10"]["evidence"]["path"],
+                         "docs/verification/n04-native-revoke-20261105/revoke-report.json")
+        # LP-12 stays none: model and package paths lack native evidence; B03 pointers are residual text only.
+        self.assertEqual((changed["LP-12"]["status"], changed["LP-12"]["evidence"]), ("none", None))
+        self.assertIn("docs/verification/b03/4-bad-digest/result.json", changed["LP-12"]["remaining"])
+        self.assertIn("earlier external copies", changed["LP-10"]["remaining"])
+        self.assertIn("modified model has no native model loader", changed["LP-12"]["remaining"])
+
+    def test_old_revision_still_validates(self):
+        self.assertEqual(lp_matrix.check(matrix=OLD_MATRIX)["counts"], dict(native=0, host=0, none=31))
+
+    def test_matrix_outside_repository_is_rejected(self):
+        with tempfile.TemporaryDirectory() as outside:
+            target = Path(outside) / "matrix.json"
+            target.write_text((lp_matrix.ROOT / lp_matrix.MATRIX).read_text())
+            with self.assertRaises(ValueError):
+                lp_matrix.check(matrix=target)
+
+    def isolated(self, record_name, record):
+        temp = tempfile.TemporaryDirectory()
+        self.addCleanup(temp.cleanup)
+        root = Path(temp.name)
+        for name in (lp_matrix.CONTRACT, lp_matrix.MATRIX):
+            (root / name).parent.mkdir(parents=True, exist_ok=True)
+            (root / name).write_bytes((lp_matrix.ROOT / name).read_bytes())
+        data = json.loads((root / lp_matrix.MATRIX).read_text())
+        for row in data["rows"]:
+            if row["status"] == "native":
+                path = root / row["evidence"]["path"]
+                path.parent.mkdir(parents=True, exist_ok=True)
+                path.write_bytes((lp_matrix.ROOT / row["evidence"]["path"]).read_bytes())
+        # Synthetic: promote LP-12 to native only to exercise the native record checks.
+        row = next(r for r in data["rows"] if r["id"] == "LP-12")
+        row["status"] = "native"
+        (root / record_name).parent.mkdir(parents=True, exist_ok=True)
+        (root / record_name).write_bytes(record)
+        row["evidence"] = dict(path=record_name, sha256=hashlib.sha256(record).hexdigest())
+        (root / lp_matrix.MATRIX).write_text(json.dumps(data))
+        return root
+
+    def test_native_row_rejects_failed_or_wrong_exit_record(self):
+        name = "docs/verification/b03/3-bad-signature/result.json"
+        report = json.loads((lp_matrix.ROOT / name).read_bytes())
+        self.assertEqual(lp_matrix.check(self.isolated(name, json.dumps(report).encode()))["counts"]["native"], 2)
+        for change in (dict(raw_qemu_exit=35), dict(passed=False)):
+            root = self.isolated(name, json.dumps(report | change).encode())
+            with self.assertRaisesRegex(ValueError, NATIVE_ERROR):
+                lp_matrix.check(root)
+
+    def test_archived_exit_35_record_is_rejected_as_native(self):
+        name = "docs/verification/b03/9-no-valid-slot/result.json"
+        record = (lp_matrix.ROOT / name).read_bytes()
+        self.assertEqual(json.loads(record)["raw_qemu_exit"], 35)
+        with self.assertRaisesRegex(ValueError, NATIVE_ERROR):
+            lp_matrix.check(self.isolated(name, record))
+
+
 if __name__ == "__main__":
     unittest.main()
