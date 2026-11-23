@@ -176,6 +176,6 @@ flush-timeout cases and all five recoveries give raw 33. power-s3
 still prints `SUSPEND_LOST_ENTROPY=14`. power-s3-reinit prints
 `ENTROPY_BYTES=1056`, which is 1024 before the sleep plus 32 after it.
 virtio-rng test and clippy, `cargo fmt --all --check`,
-`tests.test_system_harness` (37 tests) and `test_sleep.py` (17 tests)
+`tests.test_system_harness` (36 tests) and `test_sleep.py` (17 tests)
 all pass, as does `preflight.py --strict` (exit 0). Hosted CI was not
 run.
