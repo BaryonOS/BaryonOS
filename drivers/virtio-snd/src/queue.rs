@@ -603,11 +603,13 @@ impl Lifecycle {
         FenceStep::Pending
     }
 
-    /// First used-index snapshot after both acknowledgements.
-    pub fn record_snapshot(&mut self, used: [u16; 3]) -> Result<(), Error> {
+    /// First used-index snapshot after both acknowledgements. `before` and
+    /// `after` bracket the acknowledging status/BME read-back; a move between
+    /// them may be a completion after status 0 (F11) and quarantines.
+    pub fn record_snapshot(&mut self, before: [u16; 3], after: [u16; 3]) -> Result<(), Error> {
         match (self.phase, self.snapshot) {
-            (Phase::Acknowledged, None) => {
-                self.snapshot = Some(used);
+            (Phase::Acknowledged, None) if before == after => {
+                self.snapshot = Some(after);
                 Ok(())
             }
             (Phase::Quarantined, _) => Err(Error::Quarantined),

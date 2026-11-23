@@ -26,6 +26,7 @@ from __future__ import annotations
 import argparse
 from datetime import datetime, timezone
 import json
+import os
 from pathlib import Path
 import re
 import shutil
@@ -34,7 +35,7 @@ import subprocess
 import time
 import uuid
 
-from common import BUILD, ROOT, environment, firmware, qemu_machine, save_json, sha256, source_hash
+from common import BUILD, ROOT, environment, firmware, save_json, sha256, source_hash
 
 FEATURE = {
     "normal": "native-virtio-snd-probe",
@@ -47,6 +48,8 @@ MAX_TIMEOUT = 240
 MAX_OUTPUT = 4 * 1024 * 1024
 MAX_WAV = 16 * 1024 * 1024
 QEMU_SERIES = "QEMU emulator version 8.2."
+# The fixture machine, pinned as in run_sleep.py; another machine is an unverified profile.
+MACHINE = "pc-q35-8.2"
 FIXTURE_FRAMES = 48_000
 PERIOD_FRAMES = 480
 FENCE_AFTER_PERIODS = 10
@@ -59,6 +62,14 @@ BOOT = ("BOOT:EBS_OK", "KERNEL:ENTRY", "BOOTINFO:OK", "KS-01:PASS", "KS-02:PASS"
         "ACPI:UNAVAILABLE:NO_DMAR", "DEVICE-EXECUTION:BLOCKED:ADAPTER_ABSENT")
 END = ("KS-03:PASS", "M2:PASS", "M1:PASS")
 FAILURES = ("PANIC", "FAIL")
+
+
+def machine() -> str:
+    """Unset NOS_QEMU_MACHINE means the fixture machine; any other value is refused."""
+    selected = os.environ.get("NOS_QEMU_MACHINE", MACHINE)
+    if selected != MACHINE:
+        raise ValueError(f"the virtio-snd fixture is pinned to {MACHINE}; set NOS_QEMU_MACHINE={MACHINE} or unset it")
+    return selected
 
 
 def audiodev(rel: str) -> list[str]:
@@ -79,7 +90,7 @@ def device(case: str) -> list[str]:
 
 def qemu_arguments(case: str, qemu: str, rel: str) -> list[str]:
     """Self-built command (as run_keyring.py); tools/run.py stays unchanged."""
-    return [qemu, "-machine", qemu_machine(), "-accel", "tcg,thread=single",
+    return [qemu, "-machine", machine(), "-accel", "tcg,thread=single",
             "-icount", "shift=0,sleep=off", "-cpu", "qemu64", "-smp", "1", "-m", "256M",
             "-nodefaults", "-display", "none", "-monitor", "none", "-serial", "stdio",
             "-nic", "none", "-no-reboot",
@@ -308,6 +319,7 @@ def bounded(data: bytes) -> str:
 def run_case(case: str, *, timeout: int = 180) -> dict:
     if case not in FEATURE or not 0 < timeout <= MAX_TIMEOUT:
         raise ValueError("unknown virtio-snd case or invalid timeout")
+    selected_machine = machine()
     frozen = source_hash()
     manifest_path = BUILD / "manifest.json"
     manifest_hash = sha256(manifest_path)
@@ -353,7 +365,7 @@ def run_case(case: str, *, timeout: int = 180) -> dict:
     report = dict(schema_version=1, task="H03-T3a", case=case, kernel_feature=FEATURE[case],
                   started_utc=started, duration_s=round(duration, 3), timeout_s=timeout,
                   timed_out=timed_out, raw_qemu_exit=rc, command=args, qemu_version=version,
-                  qemu_machine=qemu_machine(), source_fingerprint_version=3, source_sha256=frozen,
+                  qemu_machine=selected_machine, source_fingerprint_version=3, source_sha256=frozen,
                   manifest_sha256=manifest_hash, kernel_sha256=manifest["kernel"]["sha256"],
                   loader_sha256=manifest["loader"]["sha256"], run_directory=str(run_dir),
                   ovmf_code_sha256=sha256(run_dir / "OVMF_CODE.fd"),

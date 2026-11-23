@@ -792,6 +792,9 @@ impl Device {
     /// first, so an outstanding head's descriptors are never rewritten.
     fn place<const N: usize>(&mut self, index: usize, chain: &Chain<N>) -> Result<(), Fault> {
         let queue = ACTIVE[index];
+        // F8: idle check before publication, against the old outstanding count,
+        // so a stale used element cannot pass as this chain's completion.
+        self.check_used(index)?;
         let publication = self.rings[index].publish_chain(
             chain.head,
             chain.used_len,
@@ -849,12 +852,18 @@ impl Device {
             return Err(Fault::Status(status));
         }
         for index in 0..ACTIVE.len() {
-            let device_index = self.used_index(index)?;
-            self.rings[index].pending(device_index).inspect_err(|_| {
-                decimal(b"SND:FAULT:USED:QUEUE=", index as u64, b"");
-                decimal(b":INDEX=", device_index.into(), b"\n");
-            })?;
+            self.check_used(index)?;
         }
+        Ok(())
+    }
+
+    /// F8: a used-index move beyond the outstanding requests of one queue.
+    fn check_used(&self, index: usize) -> Result<(), Fault> {
+        let device_index = self.used_index(index)?;
+        self.rings[index].pending(device_index).inspect_err(|_| {
+            decimal(b"SND:FAULT:USED:QUEUE=", index as u64, b"");
+            decimal(b":INDEX=", device_index.into(), b"\n");
+        })?;
         Ok(())
     }
 
@@ -1164,18 +1173,24 @@ impl Device {
         // Raw write: the acknowledgement below reads it back.
         let _ = self.pci.0.write_u16(FIXTURE, 4, MEMORY | INT_DISABLE);
         loop {
+            // F11: used samples bracket the read-back that acknowledges; the
+            // snapshot is taken only if nothing moved across it.
+            let before = self.used_snapshot();
             let status = self.status();
             let bus_master = self.pci.bus_master();
             match self.life.poll_fence(rdtsc(), status, bus_master) {
                 FenceStep::Pending => spin_loop(),
-                FenceStep::Acknowledged => break,
+                FenceStep::Acknowledged => {
+                    let after = self.used_snapshot();
+                    if self.life.record_snapshot(before, after).is_err() {
+                        return Err(Fault::Quarantined);
+                    }
+                    break;
+                }
                 FenceStep::Quarantined => return Err(Fault::Quarantined),
             }
         }
         serial::write(acknowledged);
-        if self.life.record_snapshot(self.used_snapshot()).is_err() {
-            return Err(Fault::Quarantined);
-        }
         let end = self.clock.after(STABLE_MS);
         loop {
             let used = self.used_snapshot();

@@ -1,9 +1,11 @@
 """HOST_ONLY H03-T3a oracle counterexamples; fixtures are not native evidence."""
+import os
 from pathlib import Path
 import struct
 import sys
 import tempfile
 import unittest
+from unittest import mock
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import run_virtio_snd as gate
@@ -189,6 +191,19 @@ class Serial(unittest.TestCase):
             self.assertEqual(gate.qemu_arguments(case, "qemu", rel)[-2:], normal[-2:])
         with self.assertRaises(ValueError):
             gate.qemu_arguments("unknown", "qemu", rel)
+
+    def test_machine_is_pinned_to_the_fixture(self):
+        unset = {k: v for k, v in os.environ.items() if k != "NOS_QEMU_MACHINE"}
+        with mock.patch.dict(os.environ, unset, clear=True):
+            self.assertEqual(gate.machine(), "pc-q35-8.2")
+            command = gate.qemu_arguments("normal", "qemu", "build/run/x")
+            self.assertEqual(command[command.index("-machine") + 1], "pc-q35-8.2")
+        for other in ("pc-q35-10.0", "pc-q35-7.2", ""):
+            with mock.patch.dict(os.environ, {"NOS_QEMU_MACHINE": other}):
+                with self.assertRaises(ValueError):
+                    gate.machine()
+                with self.assertRaises(ValueError):
+                    gate.qemu_arguments("normal", "qemu", "build/run/x")
 
 
 if __name__ == "__main__":
