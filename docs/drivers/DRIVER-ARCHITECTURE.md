@@ -11,8 +11,9 @@ before mapping; the existing transports retain their own I/O and DMA logic.
 A separate `drivers/xhci` crate matches the USB host-controller class and
 inspects controller registers; only the opt-in, QEMU-only `native-xhci-probe`
 and `native-usb-hid-probe` kernel profiles use it, for one fixture controller,
-together with the profiles built on the latter (`native-usb-hid-reattach`, a
-QEMU-only same-port keyboard reattach fixture, and the
+together with the profiles built on the latter (`native-usb-hid-reattach` and
+`native-usb-hid-mouse-reattach`, QEMU-only same-port keyboard and mouse
+reattach fixtures, and the
 `test-usb-hid-readonly-fault` negative profile).
 No NVMe crate exists: earlier revisions of this document described an NVMe
 probe crate that is not present in the repository. A shared heterogeneous

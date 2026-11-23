@@ -22,7 +22,12 @@ native-virtio-snd-probe = ["milestone-m2", "if0-device-window", "dep:pci-core", 
 test-snd-fence-reinit = ["native-virtio-snd-probe"]
 test-snd-quarantine = ["native-virtio-snd-probe"]
 native-usb-hid-probe = ["native-xhci-probe", "dep:nieuw-os-usb-core"]
-native-usb-hid-reattach = ["native-usb-hid-probe"]
+# Internal: the shared same-port USB reattach path; selected only through the
+# keyboard and mouse reattach profiles below.
+usb-hid-reattach-core = ["native-usb-hid-probe"]
+native-usb-hid-reattach = ["usb-hid-reattach-core"]
+# H02-T4: same-port USB mouse reattach; a separate boot from the keyboard profile.
+native-usb-hid-mouse-reattach = ["usb-hid-reattach-core"]
 test-usb-hid-readonly-fault = ["native-usb-hid-probe"]
 test-xhci-dma-fault = ["native-xhci-probe"]
 test-xhci-no-dmar = ["native-xhci-probe"]

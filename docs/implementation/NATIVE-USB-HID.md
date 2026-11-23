@@ -48,7 +48,13 @@ granted before the domain is established; no grant is ever added afterwards.
 
 | Allocation (reattach profile only) | Pages | Device permission |
 |---|---:|---|
-| Generation-2 keyboard: output context at offset 0, report buffer at `0x800` | 1 | Read and write |
+| Generation-2 device: output context at offset 0, report buffer at `0x800` | 1 | Read and write |
+
+The `native-usb-hid-mouse-reattach` profile reuses this same sixteenth page
+for the generation-2 mouse; it adds no page, grant or direction. Both reattach
+profiles select the internal `usb-hid-reattach-core` Cargo feature and are
+mutually exclusive, and both are exclusive with the read-only fault profile
+(`compile_error!`, cargo exit 101).
 
 This page holds only zeroed memory, xHC-maintained context and report bytes.
 The 1 KiB output context requires the 32-byte context size, which the fixture
@@ -177,6 +183,78 @@ required, held keys are released on every error path and the process is
 always reaped. QEMU device addition and removal are emulated hotplug, not
 physical hotplug.
 
+## Same-port mouse reattach
+
+`native-usb-hid-mouse-reattach` is a separate boot. It runs the complete,
+unchanged `reports` sequence, including the keyboard unplug with B held, and
+then re-enumerates the mouse on root port 2 instead of the keyboard.
+
+1. **Retire the keyboard first.** Directly after `USB:REPORTS:PASS`, `Ports`
+   detaches port 1 and DCBAA[keyboard slot] is cleared. The generation-1
+   keyboard output context (page 5) and report page (page 12) are filled with
+   the canary before any later Enable Slot can hand that slot out again.
+2. **Unplug with a button held.** The guest waits for a generation-1 left
+   press without movement (`USB:REATTACH:HELD_BUTTON`). Movement-free empty
+   changes are ignored and resubmitted; any other mouse change (code 53), an
+   event on another slot (code 54), or a port event that is not the port-2
+   disconnect after the press (code 52) fails closed. On the port-2 CCS=0
+   event the correlated Stop Endpoint and Disable Slot run, and detach must
+   release exactly `buttons_released = 1`. The stale token is refused and a
+   repeated detach must be the mouse's empty change.
+3. **Reattach.** The shared `reattach()` step is the single owner of retiring
+   the mouse: `Ports` detach of port 2, DCBAA[2] cleared, the generation-1
+   mouse output context (page 6) and report page (page 13) filled, and
+   `USB:REATTACH:DETACHED`. Only a port-2 connect with PED=0 while port 2 is
+   `Detached` starts the generation-2 attach into the spare page; the old
+   mouse ticket must be `Stale` while the new one is `Enumerating` (code 51).
+   The new device must again be a boot mouse (code 44),
+   `USB:REATTACH:ENUM:MOUSE`.
+4. **Slot reuse is checked, not assumed.** QEMU's Enable Slot is expected to
+   return the lowest free slot, so the generation-2 mouse receives the retired
+   keyboard's slot (`USB:REATTACH:SLOT_REUSED:KEYBOARD`). QEMU 10.2.1 on the
+   local host showed this; hosted CI (QEMU 8.2.2) does not run this case yet.
+   `SLOT_REUSED:MOUSE` and `SLOT_NEW` are printed if QEMU differs, and the
+   oracle refuses both.
+5. **Reject generation-1 work by named source.** Both real generation-1
+   completions are replayed against the generation-2 pending transfer:
+   the keyboard's last completion (its source slot is the reused slot, so
+   slot and endpoint must match and only the never-reused TRB address, input
+   ring page 9 versus page 10, rejects it) and the mouse's last completion
+   (refused by slot). Each event must carry its recorded source slot (code 45).
+   The generation-1 mouse token and the generation-1 keyboard token must each
+   return exactly `UnexpectedCompletion`, the old mouse ticket `Stale`, and the
+   pending transfer must remain unchanged.
+6. **Use, unplug and budget.** One QEMU event with x −4, y +6 and left down
+   gives `USB:REATTACH:MOUSE_DOWN`; the release gives `USB:REATTACH:MOUSE_UP`
+   (code 55 otherwise). The generation-2 unplug expects an empty release set,
+   then `USB:REATTACH:UNPLUG:PASS`. The third mouse identity on port 2 is
+   refused by the instance attach budget (keyboard g1, mouse g1, mouse g2),
+   `USB:ATTACH:BUDGET_DENIED`.
+7. **End.** After halt, bus-master clear and domain denial, pages 5, 12, 6
+   and 13 must still hold the canary (`USB:RETIRED:UNCHANGED`); the guard must
+   be unchanged.
+
+**Evidence limits.** In this profile the generation-1 mouse event is refused
+by slot; same-device TRB-address-only rejection remains keyboard-profile
+evidence. This profile adds the cross-device case in which only the TRB
+address rejects the keyboard event in the reused slot. The token checks do
+not isolate the Session lifetime field: the generation-1 tokens have a higher
+sequence number than the generation-2 pending token, so they would be refused
+even without it. Lifetime isolation is covered by the `drivers/usb` host
+tests; only the in-attach ticket check (code 51) is generation-specific.
+The QEMU usb-mouse boot report is at most four bytes; wheel bytes are not
+exercised. The canary pattern is fixture-only, as described above.
+
+The harness sequence is: release B after `USB:STALE_TOKEN:DENIED`; press left
+after `USB:REPORTS:PASS`; `device_del hid-mouse` after
+`USB:REATTACH:HELD_BUTTON`; after `USB:REATTACH:DETACHED`, release left (it
+reaches only QEMU's PS/2 mouse) and `device_add` `usb-mouse` `hid-mouse-g2` on
+`xhci.0` port `2` with `usb_version=1`; after `USB:REATTACH:READY`, send x −4,
+y +6 and left down in one event, then left up; `device_del hid-mouse-g2`; and
+after `USB:REATTACH:UNPLUG:PASS`, `device_add hid-mouse-g3`. That is fifteen
+QMP commands; every reply is required and held keys and buttons are released
+on every error path.
+
 ## Separate evidence cases
 
 `tools/run_usb_hid.py --case reports` requires the exact ordered native USB
@@ -190,6 +268,9 @@ cases remain separate boots in `tools/run_xhci.py`. `--case reattach` runs
 then the reattach markers above in exact order, every QMP reply and raw exit 33.
 Its source-bound results are in
 [the H02-T3 evidence](../verification/h02-native-reattach-20261119/README.md).
+`--case reattach-mouse` runs `native-usb-hid-mouse-reattach` with the same
+rules and the mouse reattach markers; its results are in
+[the H02-T4 evidence](../verification/h02-native-mouse-reattach-20261123/README.md).
 
 The actual input-policy IPC experiment is documented in
 [HID-INPUT.md](../../sdk/examples/input-service/HID-INPUT.md). It uses real
@@ -200,9 +281,9 @@ combination is not evidence of an operational USB-to-UI broker.
 
 The next integration requires a bounded kernel/device-service completion
 handoff, a long-lived requester lifecycle and an explicit coexistence contract
-for other DMA consumers. A QEMU same-port keyboard reattach now exists as a
-separate profile. Real IRQ delivery, physical reset/reattach, general hotplug
-(other ports, hubs, mouse reattach, retries), the physical reference matrix and
+for other DMA consumers. QEMU same-port keyboard and mouse reattach now exist
+as separate profiles. Real IRQ delivery, physical reset/reattach, general hotplug
+(other ports, hubs, retries), the physical reference matrix and
 human acceptance remain open.
 Source-bound results and the standard gates are recorded in
 [the checkpoint evidence](../verification/issue42-native-input-20261114/README.md).
