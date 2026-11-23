@@ -102,6 +102,14 @@ struct Suspend {
     /// Init's entropy/block syscalls after the wake: (number, result).
     lost: [(u64, i64); 4],
     lost_count: usize,
+    /// Kernel copy of the Key Service's Entropy handle, taken at manifest
+    /// time; ring 3 can rewrite its startup page, never this.
+    #[cfg(feature = "test-system-s3-reinit")]
+    key_entropy: u64,
+    /// Broker (delivered bytes, denied) at the wake, before any post-wake
+    /// request, so post-wake activity cannot pad the pre-sleep evidence.
+    #[cfg(feature = "test-system-s3-reinit")]
+    broker_at_wake: (u64, u64),
 }
 #[cfg(feature = "test-system-s3")]
 static mut SUSPEND: Suspend = Suspend {
@@ -114,6 +122,10 @@ static mut SUSPEND: Suspend = Suspend {
     ticked: false,
     lost: [(0, 0); 4],
     lost_count: 0,
+    #[cfg(feature = "test-system-s3-reinit")]
+    key_entropy: 0,
+    #[cfg(feature = "test-system-s3-reinit")]
+    broker_at_wake: (0, 0),
 };
 #[cfg(feature = "test-system-s3")]
 fn suspend_state() -> &'static mut Suspend {
@@ -154,6 +166,11 @@ pub(super) fn suspend(s: &mut State, slot: usize, a: [u64; 6]) -> i64 {
     let p = suspend_state();
     p.resumed = true;
     p.irqs_at_wake = s.timer_interrupts;
+    #[cfg(feature = "test-system-s3-reinit")]
+    {
+        let (delivered, denied, _) = keyring::broker_summary();
+        p.broker_at_wake = (delivered, denied);
+    }
     0
 }
 /// After a validated wake every device is reset by the platform.
@@ -431,6 +448,10 @@ pub(super) fn manifest(s: &mut State) {
     let (key_admin_ingress, init_key_admin) = channel(e, key, init);
     let (init_key_reply, key_admin_reply) = channel(e, init, key);
     let entropy = e.create_entropy(key).unwrap();
+    #[cfg(feature = "test-system-s3-reinit")]
+    {
+        suspend_state().key_entropy = entropy;
+    }
     let (volume_reply, volume_send_reply) = channel(e, app, volume);
     let (volume_ingress, app_volume) = channel(e, volume, app);
     // The second volume domain belongs to init (key-state snapshot), never the app.
@@ -745,7 +766,7 @@ pub(super) fn poll(s: &mut State) -> Option<*const u64> {
     random_fixture::poll(s);
     #[cfg(feature = "test-system-s3-reinit")]
     if resumed() {
-        let handle = word(s, KEY, 48);
+        let handle = suspend_state().key_entropy;
         keyring::reinit_poll(s, KEY, handle);
     }
     keyring::broker_tick(s);
@@ -852,6 +873,20 @@ fn finish(s: &mut State) -> ! {
         serial::write(b"SYSTEM:CLOCK:INVALID_ARGS:PASS\n");
     }
     let (entropy, denied, entropy_idle) = keyring::broker_summary();
+    // H05-T5b: judge the pre-sleep values against the bounds below, and the
+    // post-wake increments exactly: the kernel's 32-byte delivery, init's -6.
+    #[cfg(feature = "test-system-s3-reinit")]
+    let (entropy_before, denied_before) = {
+        let (delivered_before, denied_before) = suspend_state().broker_at_wake;
+        require(
+            entropy.checked_sub(delivered_before) == Some(32)
+                && denied.checked_sub(denied_before) == Some(1),
+            b"S3_REINIT_BROKER_DELTA",
+        );
+        (delivered_before, denied_before)
+    };
+    #[cfg(not(feature = "test-system-s3-reinit"))]
+    let (entropy_before, denied_before) = (entropy, denied);
     let (published, completed, block_idle) = m5::broker_summary();
     // Power fault fixtures: exactly the injected SHUTDOWN flush never completed.
     let refused = cfg!(any(
@@ -864,7 +899,11 @@ fn finish(s: &mut State) -> ! {
         block_idle && published == completed
     };
     require(
-        entropy >= 1024 && denied >= 1 && entropy_idle && block_state && published[0] > 0,
+        entropy_before >= 1024
+            && denied_before >= 1
+            && entropy_idle
+            && block_state
+            && published[0] > 0,
         b"BROKER_STATE",
     );
     if cfg!(feature = "test-system-recover") {

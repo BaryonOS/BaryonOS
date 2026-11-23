@@ -1382,11 +1382,13 @@ pub(super) fn reinit_poll(s: &mut State, key: usize, handle: u64) {
             bytes.fill(0);
             let status = device.status();
             reinit_require(status == 15 && !device.pending(), b"SELFTEST_STATE");
-            serial::write(b"KEYRING:S3:REINIT:BARS=");
-            serial::write(match p.bars {
+            let bars: &[u8] = match p.bars {
                 Some(virtio_rng_driver::BarState::Kept) => b"KEPT",
-                _ => b"RESTORED",
-            });
+                Some(virtio_rng_driver::BarState::Restored) => b"RESTORED",
+                None => reinit_fail(b"NO_BAR_STATE"),
+            };
+            serial::write(b"KEYRING:S3:REINIT:BARS=");
+            serial::write(bars);
             serial::write(b":STATUS=");
             serial::write(&[b'0' + status / 10, b'0' + status % 10]);
             serial::write(b":SELFTEST=32\n");

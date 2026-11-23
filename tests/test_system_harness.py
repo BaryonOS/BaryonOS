@@ -505,6 +505,12 @@ class PowerS3ReinitHarnessTests(unittest.TestCase):
             with self.subTest(change=change), self.assertRaises(ValueError):
                 evaluate("power-s3-reinit", reinit_transcript(**change), 0, False)
 
+    def test_post_wake_delivery_cannot_pad_the_entropy_bound(self):
+        self.assertEqual(evaluate("power-s3-reinit", reinit_transcript(ENTROPY_BYTES=288),
+                                  0, False)["ENTROPY_BYTES"], 288)
+        with self.assertRaisesRegex(ValueError, "before the sleep"):
+            evaluate("power-s3-reinit", reinit_transcript(ENTROPY_BYTES=287), 0, False)
+
     def test_block_served_after_the_wake_is_refused(self):
         for change in (dict(SUSPEND_LOST_BLOCK=0), dict(SUSPEND_LOST_BLOCK=None),
                        dict(SUSPEND_LOST_BLOCK=6)):

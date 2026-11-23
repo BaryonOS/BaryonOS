@@ -237,6 +237,9 @@ def check_power(case: str, stdout: str, found: dict) -> None:
     for key, value in expected.items():
         if found.get(key) != value:
             raise ValueError(f"{key}: expected {value}, found {found.get(key)}")
+    # The kernel fixture's 32 post-wake bytes cannot pad the pre-sleep bound.
+    if case == "power-s3-reinit" and found["ENTROPY_BYTES"] - found["SUSPEND_REINIT_ENTROPY"] < 256:
+        raise ValueError("ENTROPY_BYTES: fewer than 256 bytes delivered before the sleep")
 
 
 def evaluate(case: str, stdout: str, raw_exit: int | None, timed_out: bool) -> dict[str, int]:

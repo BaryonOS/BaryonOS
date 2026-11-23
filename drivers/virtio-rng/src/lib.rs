@@ -640,9 +640,10 @@ mod tests {
                 "{now:x?}"
             );
         }
-        // A 64-bit BAR cannot start in the last slot.
+        // A 64-bit BAR cannot start in the last slot: type bits match, so
+        // only the slot-5 check refuses it.
         assert_eq!(
-            classify_bars([0, 0, 0, 0, 0, 4], [0, 0, 0, 0, 0, 0]),
+            classify_bars([0x1000, 0, 0, 0, 0, 4], [0, 0, 0, 0, 0, 4]),
             Err(Error::Range)
         );
     }
