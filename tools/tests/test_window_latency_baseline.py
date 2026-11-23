@@ -64,6 +64,23 @@ class BaselineTests(unittest.TestCase):
             with self.subTest(key=key), self.assertRaisesRegex(ValueError, key):
                 baseline.summarise(self.write(report(0, {"editor": 0.1}), report(1, {"editor": 0.1}, **{key: value})))
 
+    def test_rejects_profile_identity_missing_from_every_report(self):
+        for key in ("scale", "viewport", "qemu_sha256", "kernel_feature", "switcher_requested"):
+            reports = [report(run, {"editor": 0.1}) for run in range(2)]
+            for data in reports:
+                del data[key]
+            with self.subTest(key=key), self.assertRaisesRegex(ValueError, f"{key} is missing"):
+                baseline.summarise(self.write(*reports))
+
+    def test_rejects_non_object_phase_cleanly(self):
+        for bad in (None, 1, "x", []):
+            data = report(0, {"editor": 0.1})
+            data["phases"]["editor"] = bad
+            path = self.write(data)
+            with self.subTest(bad=bad), self.assertRaisesRegex(ValueError, "not a JSON object"):
+                baseline.summarise(path)
+            self.assertEqual(baseline.main([str(path[0])]), 1)
+
     def test_rejects_reused_run_or_duplicate_report(self):
         with self.assertRaisesRegex(ValueError, "Duplicate"):
             baseline.summarise(self.write(report(0, {"editor": 0.1}), report(0, {"editor": 0.2})))

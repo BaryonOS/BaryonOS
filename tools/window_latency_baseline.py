@@ -36,6 +36,9 @@ def load(path: Path) -> tuple[dict, str]:
         raise ValueError(f"{path}: report did not pass (passed/raw exit 33/error)")
     if type(report.get("phases")) is not dict or not report["phases"]:
         raise ValueError(f"{path}: report has no verified phases")
+    for name, phase in report["phases"].items():
+        if type(phase) is not dict:
+            raise ValueError(f"{path}: phase {name} is not a JSON object")
     duration = report.get("duration_s")
     if type(duration) not in (int, float) or not 0 <= duration < 86400:
         raise ValueError(f"{path}: invalid duration_s")
@@ -61,6 +64,9 @@ def summarise(paths: list[Path]) -> dict:
     for key in ("source_commit", "source_sha256"):
         if not first.get(key):
             raise ValueError(f"{reports[0][0]}: {key} is missing; samples must bind to one source")
+    for key in IDENTITY:
+        if first.get(key) is None:
+            raise ValueError(f"{reports[0][0]}: {key} is missing; samples must bind to one profile")
     for path, report, _ in reports[1:]:
         for key in IDENTITY:
             if report.get(key) != first.get(key):
