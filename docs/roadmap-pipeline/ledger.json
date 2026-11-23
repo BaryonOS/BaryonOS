@@ -2300,6 +2300,45 @@
       "next": "H05-T5b: virtio-rng re-initialisation after the wake in a new test-system-s3-reinit profile (fail closed if the BDF, IDs or BARs differ)."
     },
     {
+      "id": "H05-T5b",
+      "criterion": "H05",
+      "milestone": "M9",
+      "executor": "builder+lead",
+      "status": "verified",
+      "title": "virtio-rng re-initialisation after an S3 wake (test-system-s3-reinit)",
+      "goal": "After a validated wake, re-validate and re-initialise virtio-rng fail-closed so entropy is served again, while block devices stay lost.",
+      "deps": [
+        "H05-T5a"
+      ],
+      "write_paths": [
+        "kernel/Cargo.toml",
+        "tools/build.py",
+        "kernel/src/m2/m3/keyring.rs",
+        "kernel/src/m2/m3/system.rs",
+        "drivers/virtio-rng/src/lib.rs",
+        "sdk/examples/system/src/init.rs",
+        "tools/run_system.py",
+        "tests/test_system_harness.py",
+        "docs/verification/h05-s3-reinit-20261123/"
+      ],
+      "checks": [
+        "python3 -B tools/test_power_system.py (10/10 including power-s3-reinit raw 0)",
+        "cargo +1.90.0 test/clippy for drivers/virtio-rng",
+        "python3 -B -m unittest tests.test_system_harness"
+      ],
+      "evidence_level": "native QEMU/TCG (local QEMU 10.2.1, pc-q35-8.2, BARS=RESTORED); hosted native-power pending",
+      "non_claimable": "Post-wake delivery is kernel-driven, not to a ring-3 process; SYSTEM:FAIL:S3_REINIT paths and the BARS=KEPT branch (CI QEMU 8.2.2) are unexercised; block re-initialisation and physical S3 stay open.",
+      "source_commit": "4988e6cc",
+      "history": [
+        {
+          "event": "verified",
+          "at": "2026-11-23",
+          "reason": "builder b51f04d8/c4f898a1/b6c76c08; independent AI review approve-with-minors (ADR amendment required); fixer 20f53dd4/37b8ff0a/4988e6cc; lead ADR amendment; power gate 10/10 on the merged tree."
+        }
+      ],
+      "next": "R1 port (held completion, post-wake broker latches) onto #415; hosted native-power with the 10-stage gate."
+    },
+    {
       "id": "H05-T6",
       "criterion": "H05",
       "milestone": "M9",

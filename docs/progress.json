@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-23",
-    "source_commit": "9d14f325404097f990b418ed4ded06013751252d",
+    "source_commit": "97a61adbe2026568a9c8fb0e4297d590a02eeff5",
     "assessment_basis": "parent_commit",
     "branch": "claude/h-track-20261123",
-    "task": "H05-T6 S3 hardening (merged into claude/h-track-20261123)",
+    "task": "H05-T5b virtio-rng re-initialisation after S3 (merged into claude/h-track-20261123)",
     "previous_score": 41,
-    "summary": "41/100 unchanged. H05-T6 validates the wake token before any restore, gives rejected wakes the dedicated exit 0x12, bounds FACS stores to the validated extent and refuses post-wake network calls; power gate 8/8 locally. H05 needs device re-initialisation and physical acceptance; no criterion changes."
+    "summary": "41/100 unchanged. H05-T5b re-validates and re-initialises virtio-rng after a validated S3 wake in an opt-in profile and serves entropy again through a kernel-driven fixture; power gate 10/10 locally. H05 still needs block-device re-initialisation, the R1 broker latches and physical acceptance; no criterion changes."
   },
   "tracks": [
     {
