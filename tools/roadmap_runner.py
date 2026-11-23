@@ -535,10 +535,11 @@ def expected_state(state: Path) -> Path | None:
         return None
 
 
-def pin_state(state: Path) -> None:
+def pin_state(state: Path, walk: bool = True) -> None:
     """The state directory lies in the checkout: a session can make it (or a component such as
     build/) a link into any checkout's trusted home, and every controller write, mkdir and unlink
-    there would follow. Its resolved path must be exactly the in-checkout one, before and after mkdir."""
+    there would follow. Its resolved path must be exactly the in-checkout one, before and after mkdir.
+    Run again after every session or gate: a link left by an exited process is refused before use."""
     if (expected := expected_state(state)) is None:
         state.mkdir(parents=True, exist_ok=True)
         return
@@ -548,11 +549,32 @@ def pin_state(state: Path) -> None:
         if (resolved := state.resolve()) != expected:
             raise Stop(f"the state directory {state} resolves to {resolved}, not {expected}; it must lie "
                        "inside the checkout: remove the link (planted, or a build tree moved elsewhere)")
+    if not walk:
+        return
+
+    def unreadable(error: OSError) -> None:  # an unlisted directory could hide a link: fail closed
+        raise Stop(f"unreadable controller state {error.filename}: {error.strerror}; restore its permissions")
     # Below it, manual/, runs/ and their task directories are walked as paths: a link left there by
     # an exited session would carry later mkdirs and writes out. The controller creates no links.
-    for directory, dirs, files in os.walk(state):  # never follows links
+    for directory, dirs, files in os.walk(state, onerror=unreadable):  # never follows links
         if links := [name for name in dirs + files if os.path.islink(os.path.join(directory, name))]:
             raise Stop(f"links in the controller state {directory}: {brief(links)}; remove the link")
+
+
+def open_state(state: Path) -> int:
+    """A descriptor of the in-checkout state directory, opened one component at a time without
+    following any link (no /proc needed): a link swapped in later cannot redirect what goes through it."""
+    root = ROOT.resolve()
+    fd = os.open(root, os.O_RDONLY | os.O_DIRECTORY | os.O_CLOEXEC)
+    try:
+        for part in expected_state(state).relative_to(root).parts:
+            fd, parent = os.open(part, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW | os.O_CLOEXEC, dir_fd=fd), fd
+            os.close(parent)
+    except OSError as error:
+        os.close(fd)
+        raise Stop(f"the state directory {state} cannot be opened without following a link "
+                   f"({error.strerror}); remove the link") from error
+    return fd
 
 
 class Controller:
@@ -579,25 +601,12 @@ class Controller:
     def unlink_in_state(self, *names: str) -> None:
         """Unlinks through one descriptor of the verified state directory: a link swapped in after
         own_state() cannot carry the unlink into another checkout's home."""
-        if self.baseline is not None or (pinned := expected_state(self.state)) is None:
+        if self.baseline is not None or expected_state(self.state) is None:
             for name in names:
                 (self.state / name).unlink(missing_ok=True)
             return
-        expected = str(pinned)
+        fd = open_state(self.state)
         try:
-            fd = os.open(self.state, os.O_RDONLY | os.O_DIRECTORY | os.O_CLOEXEC)  # verified below
-        except OSError as error:
-            raise Stop(f"refusing the state directory {self.state}: {error.strerror} (a planted link?)") from error
-        try:
-            try:
-                opened = os.readlink(f"/proc/self/fd/{fd}")
-            except OSError:  # no /proc: compare identities instead
-                info, pinned_info = os.fstat(fd), os.stat(expected)
-                opened = expected if (info.st_dev, info.st_ino) == (pinned_info.st_dev, pinned_info.st_ino) \
-                    else f"another directory (inode {info.st_ino})"
-            if opened != expected:
-                raise Stop(f"the state directory {self.state} opened as {opened}, not {expected}; "
-                           "remove the link")
             for name in names:
                 with contextlib.suppress(FileNotFoundError):
                     os.unlink(name, dir_fd=fd)
@@ -624,8 +633,10 @@ class Controller:
 
     def release(self) -> None:
         if self.lease_owned:
-            with contextlib.suppress(FileNotFoundError):
-                (self.state / "lease.json").unlink()
+            try:
+                self.unlink_in_state("lease.json")
+            except Stop as error:  # a relinked state: keep whatever lease is there; recover() blocks on it
+                print(f"lease left in place: {error}", file=sys.stderr)
         if self.lock_file:
             if self.lock_acquired:
                 fcntl.flock(self.lock_file, fcntl.LOCK_UN)
@@ -930,6 +941,9 @@ class Controller:
             if proc is not None:
                 with contextlib.suppress(ProcessLookupError):
                     os.killpg(proc.pid, signal.SIGKILL)  # also on an exception path
+            # Before any write below or in the next attempt: a link the session left in the state
+            # (a relinked directory, a planted attempt-N) must not carry it out of the checkout.
+            self.own_state()
             self.check_callbacks(f"the {kind} session {session_id}")
         self.heartbeat(worker_pid=None)
         text = out.read_text(errors="replace")
@@ -1079,6 +1093,7 @@ class Controller:
                 code = GATE_FAIL_EXIT
             else:
                 code = run_gate(plan, ROOT, log, os.environ.copy(), source_paths=sources)
+                self.own_state()  # the gate ran the worker's code: refuse a link it left in the state
             digest, report = gate_report(log)
             results.append({"name": "isolated-checks", "commands": [c[1] for c in commands],
                             "gates": task.get("gates", []), "exit_code": code, "log": str(log),
@@ -1512,7 +1527,9 @@ def main() -> int:
         "--accept", metavar="DIGEST", help="retire a saved baseline over the change `resume` reported")
     args = parser.parse_args()
     try:
-        pin_state(STATE)  # before this mkdir or the stop/pause write could follow a planted link
+        # Before this mkdir or the stop/pause write could follow a planted link. The brake writes only
+        # at the top: a link deeper down (refused by every controller start) must not hold it back.
+        pin_state(STATE, walk=args.cmd not in ("stop", "pause"))
     except Stop as error:
         print(error)
         return 2

@@ -1577,7 +1577,8 @@ class RunnerResiduals(unittest.TestCase):
                     with unittest.mock.patch.object(rr, "isolate_imports"), \
                             unittest.mock.patch.object(rr.sys, "argv", ["roadmap_runner.py", "stop"]), \
                             contextlib.redirect_stdout(io.StringIO()):
-                        self.assertEqual(rr.main(), 2)  # refused by the state pin, never followed
+                        self.assertEqual(rr.main(), 0)  # the brake holds: the link is replaced, never followed
+                    self.assertFalse((state / "STOP").is_symlink())
                 else:
                     target = state / "x.json"
                     target.with_suffix(f".json.tmp{os.getpid()}").symlink_to(record)
@@ -1660,19 +1661,17 @@ class RunnerResiduals(unittest.TestCase):
             sibling.mkdir()
             rr.atomic_write(sibling / rr.CALLBACKS_MARKER, json.dumps({"manual": "S", "ignored": {}}))
             digest = re.search(r"resume --accept ([0-9a-f]+)", self.resume()[1]).group(1)
-            real_readlink, calls = os.readlink, []
+            real_unlink, calls = os.unlink, []
 
-            def readlink_then_swap(path, *args, **kwargs):
-                value = real_readlink(path, *args, **kwargs)
-                if str(path).startswith("/proc/self/fd/"):
-                    calls.append(1)
-                    if len(calls) == 2:  # verified for the legacy unlink; swap before it runs
-                        os.rename(state, Path(tmp) / "state-moved")
-                        state.symlink_to(sibling, target_is_directory=True)
-                return value
-            with unittest.mock.patch.object(rr.os, "readlink", readlink_then_swap):
+            def swap_then_unlink(path, *args, **kwargs):
+                if path == rr.CALLBACKS_MARKER and kwargs.get("dir_fd") is not None:
+                    calls.append(1)  # the descriptor is open; swap before the legacy unlink runs
+                    os.rename(state, Path(tmp) / "state-moved")
+                    state.symlink_to(sibling, target_is_directory=True)
+                return real_unlink(path, *args, **kwargs)
+            with unittest.mock.patch.object(rr.os, "unlink", swap_then_unlink):
                 self.assertEqual(self.resume("--accept", digest)[0], 0)
-            self.assertEqual(len(calls), 2)
+            self.assertEqual(len(calls), 1)
             self.assertTrue((sibling / rr.CALLBACKS_MARKER).exists())
 
     def test_a_link_inside_the_state_directory_carries_no_write(self):
@@ -1800,17 +1799,136 @@ class RunnerResiduals(unittest.TestCase):
             self.assertTrue((elsewhere / "STOP").exists())
 
     def test_the_state_descriptor_holds_when_own_state_is_bypassed(self):
-        # Second layer under own_state(): unlinks go through a verified descriptor of the directory.
-        with tempfile.TemporaryDirectory() as tmp, self.live_state(tmp) as (repo, state, controller), \
-                unittest.mock.patch.object(rr, "pin_state"), unittest.mock.patch.object(rr.Controller, "own_state"):
-            home = controller.marker().parent
-            self.manual_marker(controller)
-            state.rmdir()
-            state.symlink_to(home, target_is_directory=True)
-            code, message = self.resume()
-            self.assertEqual(code, 2, message)
-            self.assertIn("opened as", message)
-            self.assertEqual(controller.manual_claim(), "L01-T3")
+        # Second layer under own_state(): unlinks go through a descriptor opened without following
+        # links. 3e8a1a39's fallback without /proc compared the directory with itself and unlinked.
+        real_readlink = os.readlink
+
+        def no_proc(path, *args, **kwargs):
+            if str(path).startswith("/proc/"):
+                raise FileNotFoundError(2, "No such file or directory")
+            return real_readlink(path, *args, **kwargs)
+        for proc in (True, False):
+            with self.subTest(proc=proc), tempfile.TemporaryDirectory() as tmp, \
+                    self.live_state(tmp) as (repo, state, controller), \
+                    unittest.mock.patch.object(rr, "pin_state"), \
+                    unittest.mock.patch.object(rr.Controller, "own_state"), \
+                    unittest.mock.patch.object(rr.os, "readlink", real_readlink if proc else no_proc):
+                home = controller.marker().parent
+                self.manual_marker(controller)
+                (home / "STOP").write_text("x")
+                state.rmdir()
+                state.symlink_to(home, target_is_directory=True)
+                code, message = self.resume()
+                self.assertEqual(code, 2, message)
+                self.assertIn("without following a link", message)
+                self.assertTrue((home / "STOP").exists())
+                self.assertEqual(controller.manual_claim(), "L01-T3")
+
+    def worker_run(self, repo, state, controller, plant):
+        """run_task with a real session(): each worker runs `plant` (shell) in attempt 1, then fails."""
+        controller.cfg = rr.Config(max_repairs=1)
+        controller.callbacks = "cb"
+
+        def argv(cfg, name, sid, settings, *args, **kwargs):
+            adir = Path(settings).parent
+            script = plant(adir) if adir.name == "attempt-1" else ""
+            return ["sh", "-c", script + 'echo \'{"is_error": true, "result": "no"}\'; exit 1']
+
+        def preflight():
+            controller.own_state()
+            return "a" * 40
+        with unittest.mock.patch.object(rr, "claude_argv", argv), \
+                unittest.mock.patch.object(rr, "require_pipeline_release"), \
+                unittest.mock.patch.object(controller, "preflight", preflight):
+            try:
+                return controller.run_task(task("A"))
+            finally:
+                controller.release()
+
+    def test_a_link_left_by_a_session_carries_no_later_write(self):
+        # 3e8a1a39 pinned the state only in preflight: attempt 2 wrote its session files through an
+        # attempt-2 link left by attempt 1, and a relinked state took the heartbeat, then release()
+        # unlinked another checkout's lease.
+        for planted in ("attempt-2", "state directory"):
+            with self.subTest(planted=planted), tempfile.TemporaryDirectory() as tmp, \
+                    self.live_state(tmp) as (repo, state, controller):
+                sibling = controller.marker().parent.parent / ("0" * 16)
+                sibling.mkdir(parents=True)
+                other = Path(tmp) / "other-checkout" / "build" / "roadmap-pipeline"
+                other.mkdir(parents=True)
+                lease = json.dumps({"task": "OTHER", "controller_pid": 1})
+                (other / "lease.json").write_text(lease)
+                if planted == "attempt-2":
+                    def plant(adir):
+                        return f'ln -s "{sibling}" "{adir.parent / "attempt-2"}"; '
+                else:
+                    def plant(adir):
+                        return f'mv "{state}" "{state}.moved"; ln -s "{other}" "{state}"; '
+                with self.assertRaisesRegex(rr.Stop, "links in the controller state|resolves to"):
+                    self.worker_run(repo, state, controller, plant)
+                self.assertEqual(os.listdir(sibling), [])
+                self.assertEqual(sorted(os.listdir(other)), ["lease.json"])
+                self.assertEqual((other / "lease.json").read_text(), lease)
+
+    def test_a_link_left_by_the_gate_is_refused_before_any_write(self):
+        with tempfile.TemporaryDirectory() as tmp, self.live_state(tmp) as (repo, state, controller):
+            sibling = controller.marker().parent.parent / ("0" * 16)
+            sibling.mkdir(parents=True)
+            adir = state / "runs" / "r1" / "A" / "attempt-1"
+            adir.mkdir(parents=True)
+
+            ran = []
+
+            def gate(plan, root, log, env, source_paths=()):
+                ran.append(1)
+                log.write_text("ok\n")
+                (adir.parent / "attempt-2").symlink_to(sibling, target_is_directory=True)
+                return 0
+            with unittest.mock.patch.object(rr, "run_gate", gate), \
+                    unittest.mock.patch.object(rr, "agent_source_paths", return_value=()), \
+                    unittest.mock.patch.object(rr, "require_pipeline_release"), \
+                    self.assertRaisesRegex(rr.Stop, "links in the controller state"):
+                controller.run_checks(dict(task("A"), checks=["true"]), adir)
+            self.assertEqual(ran, [1])
+            self.assertEqual(os.listdir(sibling), [])
+
+    @unittest.skipIf(os.geteuid() == 0, "root reads any directory")
+    def test_an_unreadable_state_directory_is_refused(self):
+        # 3e8a1a39's walk dropped the scandir error: a link under an unreadable directory passed.
+        for unreadable in ("state", "state/runs"):
+            with self.subTest(unreadable=unreadable), tempfile.TemporaryDirectory() as tmp, \
+                    self.live_state(tmp) as (repo, state, controller):
+                sibling = controller.marker().parent.parent / ("0" * 16)
+                sibling.mkdir(parents=True)
+                (state / "runs").mkdir()
+                (state / "runs" / "r1").symlink_to(sibling, target_is_directory=True)
+                locked = state if unreadable == "state" else state / "runs"
+                locked.chmod(0o300)
+                try:
+                    with self.assertRaisesRegex(rr.Stop, "unreadable controller state"):
+                        controller.acquire()
+                finally:
+                    locked.chmod(0o700)
+                self.assertEqual(os.listdir(sibling), [])
+
+    def test_stop_and_pause_hold_despite_a_link_deeper_in_the_state(self):
+        # 3e8a1a39 refused the brake over any link a worker left: the running controller went on.
+        for command in ("stop", "pause"):
+            with self.subTest(command=command), tempfile.TemporaryDirectory() as tmp, \
+                    self.live_state(tmp) as (repo, state, controller):
+                elsewhere = Path(tmp) / "elsewhere"
+                elsewhere.mkdir()
+                (state / "runs" / "r1" / "A").mkdir(parents=True)
+                (state / "runs" / "r1" / "A" / "attempt-2").symlink_to(elsewhere, target_is_directory=True)
+                with unittest.mock.patch.object(rr, "isolate_imports"), \
+                        unittest.mock.patch.object(rr.sys, "argv", ["roadmap_runner.py", command]), \
+                        contextlib.redirect_stdout(io.StringIO()):
+                    self.assertEqual(rr.main(), 0)
+                self.assertTrue((state / command.upper()).exists())
+                self.assertEqual(os.listdir(elsewhere), [])
+                if command == "stop":
+                    with self.assertRaisesRegex(rr.Stop, "stop file present"):
+                        controller.check_controls()
 
     def test_acquire_does_not_follow_a_planted_controller_lock(self):
         # The open itself, under the state pin (which refuses any link in the state directory first).
