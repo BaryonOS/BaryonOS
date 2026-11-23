@@ -42,9 +42,10 @@ that gap with version-bound source inspection.
 Release data come from the crates.io API
 (`https://crates.io/api/v1/crates/<name>`, generic User-Agent, accessed
 23 November 2026) and from the upstream repositories linked in each row.
-Source observations come from the exact published crate archives, fetched with
-`cargo +1.100.0 fetch --locked` into scratch probe manifests outside the
-repository and inspected as text. `cargo metadata` and
+Source observations come from the exact published crate archives
+(`https://crates.io/api/v1/crates/<name>/<version>/download`, accessed
+23 November 2026), fetched with `cargo +1.100.0 fetch --locked` into scratch
+probe manifests outside the repository and inspected as text. `cargo metadata` and
 `cargo tree --target x86_64-unknown-none -e normal,build` were run per
 candidate in isolated probe manifests, so that feature unification between
 candidates does not attribute one candidate's build scripts to another.
@@ -88,7 +89,7 @@ this is a documentation lag, not a different construction.
 
 | Source (exact version) | Observation | Consequence |
 |---|---|---|
-| rustls 0.23.46 (crate archive) | `X25519MLKEM768` exists only in `src/crypto/aws_lc_rs/pq/`; the generic `Hybrid` combiner there is `pub(crate)`. The `ring` module has no ML-KEM group. The `prefer-post-quantum` feature implies `aws_lc_rs`. | On the pinned release, rustls exposes the group **only** through the aws-lc-rs provider. Any other provider must carry its own concatenation/split code. |
+| rustls 0.23.46 (crate archive) | `X25519MLKEM768` exists only in `src/crypto/aws_lc_rs/pq/`; the generic `Hybrid` combiner there is `pub(crate)`. No ML-KEM reference was found in `src/crypto/ring/`. The `prefer-post-quantum` feature implies `aws_lc_rs`. | On the pinned release, rustls exposes the group **only** through the aws-lc-rs provider. Any other provider must carry its own concatenation/split code. |
 | rustls 0.24.0-dev.3 (pre-release, published 2026-11-12) | `rustls::crypto::kx::Hybrid` and `HybridLayout` are public; `post_quantum_first` selects the order. aws-lc-rs appears only as a dev-dependency (through rcgen); providers moved to the separate crates `rustls-aws-lc-rs` and `rustls-ring` (both 0.24.0-dev.3, 2026-11-12). | Upstream direction makes the RFC 10024 concatenation a rustls-owned component usable by any provider. It is a development pre-release, not an admissible pin. |
 | rustls-post-quantum 0.2.4 (2025-09-23) | Re-exports `rustls::crypto::aws_lc_rs::kx_group::{MLKEM768, X25519MLKEM768}`; depends on rustls with `aws-lc-rs` and on aws-lc-rs. Its crate documentation states that ML-KEM moved into rustls in 0.23.22. | Not an independent implementation; adds nothing for a non-AWS-LC route. |
 | rustls-graviola 0.4.0 (2026-06-17) | Exports `kx::X25519MLKEM768`, built from its own `pub(crate) Hybrid` copy of the rustls glue over graviola ML-KEM and X25519. | A second provider exposing the group exists; its hybrid glue is provider-owned code, not rustls code. |
@@ -103,13 +104,14 @@ of each crate, including the crate itself.
 | Crate | Latest (date) | Licence (crates.io) | `no_std` attribute | Build scripts in isolated graph | Random source | SIMD/backend selection |
 |---|---|---|---|---|---|---|
 | [rustls](https://github.com/rustls/rustls) | 0.23.46 (2026-10-14); 0.24.0-dev.3 pre (2026-11-12) | Apache-2.0 OR ISC OR MIT | `#![no_std]` | rustls only (nightly `read_buf` cfg; inert without that feature) | provider `SecureRandom` | none in core |
-| [rustls-rustcrypto](https://github.com/RustCrypto/rustls-rustcrypto) | 0.1.0-pre.0 pre (2026-11-09); last default-branch commit 2026-11-09 | MIT OR Apache-2.0 | `#![no_std]` attribute, but the README states that `std` is currently required; default features `std`, `tls12` | curve25519-dalek, getrandom, num-traits, paste, proc-macro2, quote, rustls (73 nodes) | hard-wired `getrandom::SysRng` in `SecureRandom`, key exchange and signing | inherited from primitives |
+| [rustls-rustcrypto](https://github.com/RustCrypto/rustls-rustcrypto) | 0.1.0-pre.0 pre (2026-11-09); last default-branch commit 2026-11-09 | MIT OR Apache-2.0 | `#![no_std]` attribute, but the README states that `std` is currently required; default features `std`, `tls12`, `zeroize` | curve25519-dalek, getrandom, num-traits, paste, proc-macro2, quote, rustls (73 nodes) | hard-wired `getrandom::SysRng` in `SecureRandom`, key exchange and signing | inherited from primitives |
 | [rustls-post-quantum](https://github.com/rustls/rustls) | 0.2.4 (2025-09-23); 0.3.0-dev.2 pre (2026-07-27) | Apache-2.0 OR ISC OR MIT | none | aws-lc-rs, aws-lc-sys, libc, rustls | AWS-LC `RAND_bytes` | AWS-LC assembly |
 | [rustls-graviola](https://github.com/ctz/graviola) | 0.4.0 (2026-06-17) | Apache-2.0 OR ISC OR MIT-0 | none (std crate) | getrandom, rustls | `getrandom::fill` inside graviola | graviola README requires x86_64 `aes`, `ssse3`, `avx`, `avx2`, `adx`, `bmi2` and `pclmulqdq`; `vzeroall` assumes AVX |
-| [graviola](https://github.com/ctz/graviola) | 0.4.5 (2026-11-10) | Apache-2.0 OR ISC OR MIT-0 | none (std crate) | none | `getrandom::fill` | as above; optional AVX-512 with runtime detection |
-| [ml-kem](https://github.com/RustCrypto/KEMs) | 0.3.4 (2026-10-31) | Apache-2.0 OR MIT | `#![no_std]` | num-traits | generic `CryptoRng`/`TryCryptoRng`; `DecapsulationKey::from_seed` public; `encapsulate_deterministic` public but `doc(hidden)` without `hazmat`; `getrandom` feature optional | portable Rust |
+| [graviola](https://github.com/ctz/graviola) | 0.4.5 (2026-11-10) | Apache-2.0 OR ISC OR MIT-0 | none (std crate) | getrandom (graviola itself has none) | `getrandom::fill` | as above; optional AVX-512 with runtime detection |
+| [ml-kem](https://github.com/RustCrypto/KEMs) | 0.3.4 (2026-10-31) | Apache-2.0 OR MIT | `#![no_std]` | num-traits | generic `CryptoRng`/`TryCryptoRng`; `DecapsulationKey::from_seed` public; `encapsulate_deterministic` public but `doc(hidden)` without `hazmat`; `getrandom` feature optional | no `asm!`, `target_feature` or `cpufeatures` use found in ml-kem, module-lattice or sha3 source; keccak 0.2.2 has an aarch64-only SHA-3 backend |
 | [libcrux-ml-kem](https://github.com/cryspen/libcrux) | 0.0.12 (2026-11-19) | Apache-2.0 | `#![no_std]` | libc, libcrux-intrinsics, libcrux-ml-kem, libcrux-sha3 | caller-supplied `randomness: [u8; N]` arrays or `TryCryptoRng` | build scripts enable `simd256` on every x86_64 build unless `LIBCRUX_DISABLE_SIMD256` is set; hax/F* verification annotations present |
 | [x25519-dalek](https://github.com/dalek-cryptography/curve25519-dalek) | 3.0.0 (2026-07-06) | BSD-3-Clause | `#![no_std]` | curve25519-dalek, proc-macro2, quote | `random_from_rng(CryptoRng)`; optional `getrandom` feature (`random()` panics on failure); `StaticSecret: From<[u8; 32]>` behind `static_secrets` | curve25519-dalek build script selects `serial`/`fiat`/`simd`/`avx512` through `curve25519_dalek_backend` |
+| [ed25519-dalek](https://github.com/dalek-cryptography/curve25519-dalek) | 3.0.0 (2026-07-06) | BSD-3-Clause | `#![no_std]` | curve25519-dalek, proc-macro2, quote | signing is deterministic (RFC 8032); key generation through optional `rand_core` | through curve25519-dalek backend selection |
 | [aes-gcm](https://github.com/RustCrypto/AEADs) | 0.11.1 (2026-08-21) | Apache-2.0 OR MIT | `#![no_std]` | none | optional `getrandom`/`rand_core` (nonce generation only) | aes 0.9 and polyval 0.7 use `cpufeatures` runtime detection; `aes_backend="soft"` and `polyval_backend="soft"` force software |
 | [sha2](https://github.com/RustCrypto/hashes) | 0.11.1 (2026-10-12) | MIT OR Apache-2.0 | `#![no_std]` | none | none | `cpufeatures` detection of SHA-NI/AVX2; `sha2_backend` cfg |
 | [hkdf](https://github.com/RustCrypto/KDFs) | 0.13.0 (2026-03-30) | MIT OR Apache-2.0 | `#![no_std]` | none | none | through hmac/sha2 |
@@ -120,19 +122,25 @@ of each crate, including the crate itself.
 ### RustSec status
 
 Checked against the [RustSec advisory database](https://github.com/rustsec/advisory-db)
-`crates/<name>` directories at advisory-db commit `52384ab5` (2026-11-23) and
-the [rustsec.org](https://rustsec.org/) package pages, both accessed
-23 November 2026. A missing directory is recorded as "no advisory recorded",
-not as proof of absence of defects.
+`crates/<name>` directories at advisory-db commit `52384ab5` (2026-11-23),
+the [rustsec.org](https://rustsec.org/) package pages
+(`https://rustsec.org/packages/<name>.html`) and advisory pages
+(`https://rustsec.org/advisories/<ID>.html`), all accessed 23 November 2026.
+Only the crates named below were checked, plus ed25519-dalek and rsa as
+examples from the rustls-rustcrypto graph; transitive graphs were not checked
+as a whole. A missing directory is recorded as "no advisory recorded", not as
+proof of absence of defects.
 
 | Crate | Advisories (date, patched range) | Status for the versions in question |
 |---|---|---|
-| rustls | RUSTSEC-2024-0336, RUSTSEC-2024-0399, RUSTSEC-2026-0285 (2026-09-14, ≥0.23.45), RUSTSEC-2026-0346/0347/0348/0349 (2026-10-14, ≥0.23.46) | 0.23.46 is patched for all. RUSTSEC-2026-0349, "Unauthenticated ServerHello can downgrade later connections to classical key exchange", is directly relevant to the no-classical-fallback invariant. |
-| rustls-webpki | RUSTSEC-2023-0053, RUSTSEC-2026-0049, -0098, -0099, -0104, -0382 (2026-10-20, ≥0.103.16) | The net-tls lock (0.103.16) and 0.103.17 are inside every patched range. |
+| rustls | RUSTSEC-2024-0336 (2024-04-19, ≥0.23.5), RUSTSEC-2024-0399 (2024-11-22, ≥0.23.18), RUSTSEC-2026-0285 (2026-09-14, ≥0.23.45), RUSTSEC-2026-0346/0347/0348/0349 (2026-10-14, ≥0.23.46) | 0.23.46 is patched for all. RUSTSEC-2026-0349, "Unauthenticated ServerHello can downgrade later connections to classical key exchange", is directly relevant to the no-classical-fallback invariant. |
+| rustls-webpki | RUSTSEC-2023-0053 (2023-08-22, ≥0.101.4), RUSTSEC-2026-0049 (2026-03-20, ≥0.103.10), -0098 and -0099 (2026-04-14, ≥0.103.12), -0104 (2026-04-22, ≥0.103.13), -0382 (2026-10-20, ≥0.103.16) | The net-tls lock (0.103.16) and 0.103.17 are inside every patched range. |
 | aws-lc-sys | RUSTSEC-2026-0044 to -0048 (patched ≥0.38.0 or ≥0.39.0) | 0.47.0 is patched. |
 | aes-gcm | RUSTSEC-2023-0096 (patched ≥0.10.3) | 0.11.1 is patched. |
 | sha2 | RUSTSEC-2021-0100 (affects 0.9.7 only) | 0.11.1 is not affected. |
 | curve25519-dalek | RUSTSEC-2024-0344 (patched ≥4.1.3) | x25519-dalek 3.0.0 resolves curve25519-dalek 5.0.0. |
+| ed25519-dalek | RUSTSEC-2022-0093 (2022-06-11, patched ≥2) | 3.0.0 is patched. |
+| rsa (rustls-rustcrypto dependency) | RUSTSEC-2023-0071 (2023-11-22, patched ≥0.10.0) | The resolved 0.10.0 is inside the patched range. |
 | rustls-rustcrypto, rustls-post-quantum, rustls-graviola, graviola, ml-kem, libcrux-ml-kem, x25519-dalek, hkdf, rustls-pki-types, aws-lc-rs, getrandom | no advisory recorded | — |
 
 ### RNG injectability
@@ -158,7 +166,7 @@ not as proof of absence of defects.
 | aws-lc-rs (rustls 0.23.46 built-in group) | The only released source of X25519MLKEM768 inside rustls. Requires `std`, a C/assembly build, CMake/cc tooling and `RAND_bytes`; a bare-metal port is a separate engineering project. Not selected. |
 | rustls-graviola / graviola | Exposes the group, but is std-only, getrandom-bound and AVX/AVX2/ADX/BMI2-dependent, which conflicts with the scalar VM profile. Not selected. |
 | rustls-rustcrypto | Pre-release, std-required per README, no hybrid group, hard-wired getrandom. Not selected. |
-| Primitives (ml-kem or libcrux-ml-kem, x25519-dalek, aes-gcm, sha2, hkdf) | `no_std` attributes and injectable randomness; build scripts absent or controllable. Usable only behind provider glue that rustls 0.23.46 does not supply. Not selected. |
+| Primitives (ml-kem or libcrux-ml-kem, x25519-dalek, ed25519-dalek, aes-gcm, sha2, hkdf) | `no_std` attributes and injectable randomness; build scripts absent or controllable. Usable only behind provider glue that rustls 0.23.46 does not supply. Not selected. |
 | rustls 0.24 public `Hybrid` | Removes the need for project-owned concatenation code once released; currently a development pre-release. Not selected. |
 
 ## Required RNG and runtime seam
