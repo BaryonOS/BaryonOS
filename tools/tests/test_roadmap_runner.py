@@ -1831,7 +1831,10 @@ class RunnerResiduals(unittest.TestCase):
 
         def argv(cfg, name, sid, settings, *args, **kwargs):
             adir = Path(settings).parent
-            script = plant(adir) if adir.name == "attempt-1" else ""
+            # Plant only after the heartbeat that follows the start: a write while the worker is still
+            # alive is the accepted live-writer residual, not what these tests are about.
+            wait = f'until grep -q worker_pid "{state / "lease.json"}" 2>/dev/null; do sleep 0.01; done; '
+            script = wait + plant(adir) if adir.name == "attempt-1" else ""
             return ["sh", "-c", script + 'echo \'{"is_error": true, "result": "no"}\'; exit 1']
 
         def preflight():
@@ -1870,28 +1873,6 @@ class RunnerResiduals(unittest.TestCase):
                 self.assertEqual(sorted(os.listdir(other)), ["lease.json"])
                 self.assertEqual((other / "lease.json").read_text(), lease)
 
-    def test_a_link_left_by_the_gate_is_refused_before_any_write(self):
-        with tempfile.TemporaryDirectory() as tmp, self.live_state(tmp) as (repo, state, controller):
-            sibling = controller.marker().parent.parent / ("0" * 16)
-            sibling.mkdir(parents=True)
-            adir = state / "runs" / "r1" / "A" / "attempt-1"
-            adir.mkdir(parents=True)
-
-            ran = []
-
-            def gate(plan, root, log, env, source_paths=()):
-                ran.append(1)
-                log.write_text("ok\n")
-                (adir.parent / "attempt-2").symlink_to(sibling, target_is_directory=True)
-                return 0
-            with unittest.mock.patch.object(rr, "run_gate", gate), \
-                    unittest.mock.patch.object(rr, "agent_source_paths", return_value=()), \
-                    unittest.mock.patch.object(rr, "require_pipeline_release"), \
-                    self.assertRaisesRegex(rr.Stop, "links in the controller state"):
-                controller.run_checks(dict(task("A"), checks=["true"]), adir)
-            self.assertEqual(ran, [1])
-            self.assertEqual(os.listdir(sibling), [])
-
     @unittest.skipIf(os.geteuid() == 0, "root reads any directory")
     def test_an_unreadable_state_directory_is_refused(self):
         # 3e8a1a39's walk dropped the scandir error: a link under an unreadable directory passed.
@@ -1929,6 +1910,15 @@ class RunnerResiduals(unittest.TestCase):
                 if command == "stop":
                     with self.assertRaisesRegex(rr.Stop, "stop file present"):
                         controller.check_controls()
+                (state / command.upper()).unlink()
+                home = controller.marker().parent
+                home.mkdir(parents=True, exist_ok=True)
+                (state / f"{command.upper()}.tmp{os.getpid()}").symlink_to(home / rr.TRUSTED_RECORD)
+                with unittest.mock.patch.object(rr, "isolate_imports"), \
+                        unittest.mock.patch.object(rr.sys, "argv", ["roadmap_runner.py", command]), \
+                        contextlib.redirect_stdout(io.StringIO()):
+                    self.assertEqual(rr.main(), 2)  # refused cleanly, not a traceback
+                self.assertFalse((home / rr.TRUSTED_RECORD).exists())
 
     def test_acquire_does_not_follow_a_planted_controller_lock(self):
         # The open itself, under the state pin (which refuses any link in the state directory first).

@@ -539,7 +539,8 @@ def pin_state(state: Path, walk: bool = True) -> None:
     """The state directory lies in the checkout: a session can make it (or a component such as
     build/) a link into any checkout's trusted home, and every controller write, mkdir and unlink
     there would follow. Its resolved path must be exactly the in-checkout one, before and after mkdir.
-    Run again after every session or gate: a link left by an exited process is refused before use."""
+    Run again after every session: a link left by an exited session is refused before use. (Gate steps
+    see only a read-only staged copy, never the checkout.)"""
     if (expected := expected_state(state)) is None:
         state.mkdir(parents=True, exist_ok=True)
         return
@@ -1093,7 +1094,6 @@ class Controller:
                 code = GATE_FAIL_EXIT
             else:
                 code = run_gate(plan, ROOT, log, os.environ.copy(), source_paths=sources)
-                self.own_state()  # the gate ran the worker's code: refuse a link it left in the state
             digest, report = gate_report(log)
             results.append({"name": "isolated-checks", "commands": [c[1] for c in commands],
                             "gates": task.get("gates", []), "exit_code": code, "log": str(log),
@@ -1540,7 +1540,11 @@ def main() -> int:
         print("ledger ok")
         return 0
     if args.cmd in ("stop", "pause"):
-        atomic_write(STATE / args.cmd.upper(), now())
+        try:
+            atomic_write(STATE / args.cmd.upper(), now())
+        except Stop as error:  # a planted temporary name: refused, never followed
+            print(error)
+            return 2
         print(f"{args.cmd} requested; the controller honours it before the next session")
         return 0
     if args.cmd == "resume":
