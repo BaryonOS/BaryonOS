@@ -64,6 +64,8 @@ struct Patch {
     objects: [(usize, Entry); TRANSACT_MAX],
     count: usize,
     collections: Option<[Collection; DOMAINS * COLLECTIONS]>,
+    /// Minimum table version of the published copy (0 = keep the current).
+    format: u16,
 }
 
 impl Patch {
@@ -72,6 +74,7 @@ impl Patch {
             objects: [(0, Entry::EMPTY); TRANSACT_MAX],
             count: 0,
             collections: None,
+            format: 0,
         }
     }
     fn one(object: usize, entry: Entry) -> Self {
@@ -567,6 +570,7 @@ impl Service {
             content_sum: session.content_sum,
             chunks: session.chunks,
             sums: session.sums,
+            origin: 0,
         };
         entry.current.chunks[session.chunk_count..].fill(NO_CHUNK);
         entry.current.sums[session.chunk_count..].fill(0);
@@ -923,7 +927,9 @@ impl Service {
         let collections = patch.collections.unwrap_or(self.table.collections);
         let mut clocks = self.table.clocks;
         clocks[domain] += 1;
+        let format = self.table.format.max(patch.format);
         let next = Next {
+            format,
             generation,
             request_id,
             clocks,
@@ -948,6 +954,7 @@ impl Service {
             self.uncertain = true;
             return Err((Status::Unknown, 0));
         }
+        self.table.format = format;
         self.table.generation = generation;
         self.table.request_id = request_id;
         self.table.clocks = clocks;

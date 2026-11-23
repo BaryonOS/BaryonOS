@@ -168,11 +168,13 @@ fn adjacent_generation_checks_do_not_wrap_or_panic() {
         states: [SectorState::Valid(2, 7); table::TABLE_SECTORS_USIZE],
         format_marker: false,
         valid: Some(2),
+        format: table::VERSION,
     };
     let mut mixed = table::SlotScan {
         states: [SectorState::Zero; table::TABLE_SECTORS_USIZE],
         format_marker: false,
         valid: None,
+        format: table::VERSION,
     };
     mixed.states[0] = SectorState::Valid(u64::MAX, 8);
     assert_eq!(table::choose([valid, mixed]), Err(Status::Corrupt));
@@ -180,6 +182,7 @@ fn adjacent_generation_checks_do_not_wrap_or_panic() {
         states: [SectorState::Valid(u64::MAX, 8); table::TABLE_SECTORS_USIZE],
         format_marker: false,
         valid: Some(u64::MAX),
+        format: table::VERSION,
     };
     assert_eq!(table::choose([maximum, maximum]), Err(Status::Corrupt));
     mixed.states.fill(SectorState::Invalid);
