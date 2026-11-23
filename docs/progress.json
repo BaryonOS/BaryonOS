@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-23",
-    "source_commit": "e02ff67cf81a89bb5e3741eb0b90298408edaea2",
+    "source_commit": "5baafc33f53991da3202f624e7daa4ee7e324388",
     "assessment_basis": "parent_commit",
-    "branch": "ccr-38238c58-g8y1l6",
-    "task": "H05-T4 test-profile S3 from the running native system (syscall 0x91 behind POWER and the storage gate)",
+    "branch": "claude/h-track-20261123",
+    "task": "H05-T5a native post-wake device-loss refusal (test-system-s3)",
     "previous_score": 41,
-    "summary": "41/100 unchanged. H05-T4 adds test-system-s3: init's POWER capability obtains one S3 cycle in the running native system behind the storage gate, ring-3 processes continue after the wake (tick and stack checks), then S5 and a cold recovery pass (native QEMU/TCG, docs/verification/h05-s3-system-20261123/). H05 stays open: physical sleep/wake, device re-initialisation after a wake and the OD-HW-* owner decisions are outstanding; no criterion changes."
+    "summary": "41/100 unchanged. H05-T5a proves natively that init's entropy (0x60) and block (0x40) requests after the S3 wake return -14 before any authority, ring or device access (power gate 8/8, docs/verification/h05-s3-wake-refusal-20261123/). H05 stays open: physical sleep/wake, device re-initialisation after a wake and the OD-HW-* owner decisions are outstanding; no criterion changes."
   },
   "tracks": [
     {

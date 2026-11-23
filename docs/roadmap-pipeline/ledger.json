@@ -2188,7 +2188,43 @@
           "reason": "power gate 8/8 (power-s3 raw 0 + recover raw 33) and run_sleep cycles/corrupt-facs/stale-token raw 33 on e02ff67c, source v3 01fc98ba; adversarial review: no kernel/regression defect, four minor harness defects fixed."
         }
       ],
-      "next": "Hosted native-power.yml#power-system-gate on the pushed head; device re-initialisation after a wake is a separate slice."
+      "next": "H05-T5a verified 2026-11-23 (docs/verification/h05-s3-wake-refusal-20261123/); device re-initialisation after a wake is H05-T5b."
+    },
+    {
+      "id": "H05-T5a",
+      "criterion": "H05",
+      "milestone": "M9",
+      "executor": "lead",
+      "status": "verified",
+      "title": "Native post-wake device-loss refusal for entropy and block requests (test-system-s3)",
+      "goal": "Exercise natively that a well-formed entropy (0x60) or block (0x40) request after the S3 wake returns -14 before authority, ring, doorbell or counter access, with an exact kernel-side tagged log.",
+      "deps": [
+        "H05-T4"
+      ],
+      "write_paths": [
+        "kernel/src/m2/m3/{system,keyring,volume}.rs",
+        "sdk/examples/system/src/init.rs",
+        "tools/run_system.py",
+        "tests/test_system_harness.py",
+        "docs/verification/h05-s3-wake-refusal-20261123/"
+      ],
+      "checks": [
+        "NOS_QEMU_MACHINE=pc-q35-8.2 python3 -B tools/test_power_system.py",
+        "python3 -B tools/build.py --kernel-feature native-acpi-s3 && python3 -B tools/run_sleep.py --case cycles",
+        "python3 -B -m unittest discover -s tests -p test_system_harness.py",
+        "python3 -B -m unittest discover -s tools/tests -p test_sleep.py"
+      ],
+      "evidence_level": "native QEMU/TCG",
+      "non_claimable": "An authorised post-wake request, 0x41-0x43/0x61 after the wake, device re-initialisation, physical sleep/wake and H05 acceptance stay open.",
+      "source_commit": "5baafc33f53991da3202f624e7daa4ee7e324388",
+      "history": [
+        {
+          "event": "verified",
+          "at": "2026-11-23",
+          "reason": "power gate 8/8 on 5baafc33 (power-s3 raw 0 with SUSPEND_LOST_ENTROPY/BLOCK=-14, recover raw 33); run_sleep cycles raw 33 on 026269b6; harness 29 tests; independent AI review: no blocking/major, minor 1 fixed in 5baafc33."
+        }
+      ],
+      "next": "H05-T5b: virtio-rng re-initialisation after the wake in a new test-system-s3-reinit profile (fail closed if the BDF, IDs or BARs differ)."
     },
     {
       "id": "H06-T2",

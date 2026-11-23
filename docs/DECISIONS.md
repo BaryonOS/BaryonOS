@@ -41,9 +41,13 @@ PIT ticks; the TSC is used only for saturating diagnostics.
    every block authority and the entropy broker is idle, no DMA can be in
    flight. After a wake the kernel marks the system as resumed: every later
    block or entropy request returns -14 before any ring, doorbell or counter
-   update (the profile has no network device). This refusal is enforced in
-   code and covered by review; no ring-3 process issues such a request after
-   the wake, so it is not exercised natively. The only way forward that the
+   update (the profile has no network device). Amendment H05-T5a (23 November
+   2026): the refusal precedes the authority lookup, after the argument-shape
+   checks, so any well-formed post-wake request takes it. Init's 0x60 and 0x40
+   requests after the wake each return -14 natively, and the kernel requires
+   the exact tagged log `[(0x60,-14),(0x40,-14)]`
+   (docs/verification/h05-s3-wake-refusal-20261123/). An authorised post-wake
+   request is not exercised. The only way forward that the
    profile exercises is POWER_OFF (S5), which re-runs the storage gate.
    Device re-initialisation after a wake is a separate slice.
 4. **Time.** Sleep time does not advance the tick clock; deadlines therefore

@@ -1,5 +1,30 @@
 # Current project status
 
+## NEXT AGENT HANDOFF — H-track lead: post-wake device-loss refusal (H05-T5a) — 23 November 2026
+
+**Mandate:** project-owner H-track pipeline instruction of 23 November 2026. PR #409
+(`ccr-38238c58-g8y1l6`, head `02ef433f`, hosted checks green) has no established
+exclusive writer (idle local session plus idle cloud sessions [9376d3]/[89a9d2]), so it is
+left untouched; this work is on the dedicated branch `claude/h-track-20261123`, stacked
+on `02ef433f`, in a draft PR to `main`. No merge.
+**Delivered (H05-T5a, verified, not accepted):** in `test-system-s3` the post-wake -14
+refusal now precedes the authority lookup; init's 0x60 and 0x40 requests after the wake
+each return -14 and the kernel requires the exact tagged log (ADR-H05-S3-SYSTEM-20261123
+item 3 amended). Review fix `5baafc33`: stray `SYSTEM:SUSPEND*` evidence is refused in
+every non-S3 case. [Evidence](verification/h05-s3-wake-refusal-20261123/README.md).
+**Checks (exit 0):** `test_power_system.py` 8/8 on `5baafc33` (power-s3 raw 0, recover
+raw 33); `run_sleep.py --case cycles` raw 33; harness 29, test_sleep 17, CI workflows 28,
+CI evidence 38; preflight strict; fmt; `progress.py --check`.
+**Environment finding:** the six `tools/tests` errors in `test_agent_isolation` and
+`test_agent_pipeline` reproduce only with the inherited `GIT_EDITOR`; with every `GIT_*`
+variable unset, all 68 tests pass. They are a session-environment artefact (the tests fail
+closed by design), not a code defect.
+**In flight:** H03-T4 Bochs DISPI mode-set fixture on `claude/h03-dispi-20261123` (from
+`main` `035b44e5`, probe-first; hosted evidence needs a `.github` integration request).
+**Next:** H05-T5b virtio-rng re-initialisation after the wake (new `test-system-s3-reinit`
+profile; fail closed if BDF, IDs or BARs differ after OVMF resume); then H02 mouse reattach.
+**Score:** 41 → 41/100 (H05 needs device re-initialisation and physical acceptance).
+
 ## NEXT AGENT HANDOFF — H-track lead: S3 from the running system (H05-T4) — 23 November 2026
 
 **Mandate:** project-owner H-track instruction (19 and 23 November 2026); this
