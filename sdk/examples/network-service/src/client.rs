@@ -758,7 +758,9 @@ fn dhcp(session: &mut Session<NativeTransport>, slot: usize, first: u16) -> ! {
             76,
         );
         bump(504);
-        // The withdrawal also dropped the resolver state: nothing is sent.
+        // Mostly the lease-none gate: Again before any cache lookup or query.
+        // The cache flush itself is proven by the peer, which then requires a
+        // fresh (lease 1, service.test) query instead of a cached answer.
         let mut out = [[0; 4]; MAX_RESOLVED];
         check(
             session.resolve("service.test", &mut out) == Err(Error::Service(Status::Again)),
