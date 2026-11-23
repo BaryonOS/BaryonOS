@@ -4,7 +4,6 @@ from __future__ import annotations
 import struct
 import unittest
 
-import network_dhcp_peer as peer
 from network_dhcp_peer import (BROADCAST_IP, BROADCAST_MAC, CLIENT_MAC, LEASES, PEER_IP, PEER_MAC,
                                ZERO_IP, DhcpMachine, ProtocolError, checksum, ipv4_header,
                                validate_transcript)

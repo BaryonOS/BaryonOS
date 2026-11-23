@@ -17,9 +17,9 @@ import hashlib
 import re
 import struct
 
-import network_service_peer as base
-from network_service_peer import (ACK, CLIENT_MAC, FIN, MASK, MAX_FRAME, PEER_IP, PEER_MAC, PSH,
-                                  REQUESTS, RESPONSES, RST, SYN, ProtocolError, checksum)
+from network_service_peer import (ACK, CLIENT_MAC, FIN, MASK, MAX_FRAME, MAX_FRAMES, PEER_IP,
+                                  PEER_MAC, PSH, REQUESTS, RESPONSES, RST, SYN, Peer as BasePeer,
+                                  ProtocolError, _wire, checksum)
 
 BROADCAST_MAC = b"\xff" * 6
 BROADCAST_IP = b"\xff" * 4
@@ -133,7 +133,7 @@ def tcp_segment(frame, client_ip):
     if (offset & 15 or not 20 <= size <= min(60, len(tcp)) or flags & ~31 or urgent
             or len(tcp) - size > 1024 or checksum(client_ip + PEER_IP + struct.pack("!BBH", 0, 6, len(tcp)) + tcp)):
         raise ProtocolError("TCP checksum, flags or bounds")
-    return base._wire.Segment(source, target, seq, ack, flags, window, tcp[20:size], tcp[size:])
+    return _wire.Segment(source, target, seq, ack, flags, window, tcp[20:size], tcp[size:])
 
 
 @dataclass
@@ -391,7 +391,7 @@ class DhcpMachine:
         raise ProtocolError("unhandled TCP phase")
 
     def handle(self, frame, now=0.0):
-        if not 14 <= len(frame) <= MAX_FRAME or self.counts["client_frames"] >= base.MAX_FRAMES:
+        if not 14 <= len(frame) <= MAX_FRAME or self.counts["client_frames"] >= MAX_FRAMES:
             raise ProtocolError("input frame budget")
         if frame[6:12] != CLIENT_MAC:
             raise ProtocolError("wrong client MAC")
@@ -466,7 +466,7 @@ def validate_transcript(evidence):
     return summary
 
 
-class Peer(base.Peer):
+class Peer(BasePeer):
     """The N01 socket loop with the DHCP machine and DHCP transcript replay."""
     def __init__(self, timeout=180):
         super().__init__(timeout, case="normal")
