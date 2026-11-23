@@ -24,8 +24,8 @@ refuses generation-1 work after slot reuse. The `reattach` (keyboard),
   (`qemu-system-x86_64 --version`), machine `pc-q35-8.2`, qemu64,
   single-thread TCG, one CPU, 256 MiB, OVMF 4M from `/usr/share/OVMF`.
   Hosted CI uses QEMU 8.2.2; this case has **not** run there.
-- Execution checkout: the worktree
-  `BaryonOS-worktrees/h02-mouse`. It is not nested inside the main checkout,
+- Execution checkout: the worktree `BaryonOS-worktrees/h02-mouse`, written
+  `$W` below. It is not nested inside the main checkout,
   so the doubled-linker-script artifact described in the H02-T3 evidence does
   not apply.
 - Isolated environment: `NOS_BUILD_DIR=$W/build/h02m/usb-<case>`,
@@ -80,19 +80,32 @@ unchanged `reports` tuple (`USB:BEGIN` … `USB:REPORTS:PASS`), then
 `USB:RETIRED:UNCHANGED`, `USB:GUARD:UNCHANGED`, `USB:QUIESCE:PASS`,
 `USB:PAGES:RETAINED`, `USB:PASS`, framed by `XHCI:BEGIN`/`XHCI:PASS`.
 
-### Observed QEMU 10.2.1 behaviour
+### Guest-asserted behaviour on QEMU 10.2.1
 
-- After the keyboard was retired (slot 1 disabled, DCBAA[1] cleared), Enable
-  Slot for the generation-2 mouse returned slot 1. That slot is the retired
-  keyboard's, not the generation-1 mouse's slot 2
-  (`USB:REATTACH:SLOT_REUSED:KEYBOARD`). The replayed keyboard completion
-  therefore matched the new slot and DCI. Only its TRB address rejected it.
-  The generation-1 mouse completion was rejected by slot.
-- No port-1 event arrived during the held-button and unplug step. The step
-  refuses any such event (codes 52 to 54), so the passing runs confirm this
-  for QEMU 10.2.1.
-- The third identity on port 2 was refused with `Exhausted`, with no port
-  reset and no Enable Slot, and no event arrived in the quiet window.
+The serial output prints no slot numbers or port events. Each point below
+follows from a marker that the guest prints only when the stated condition
+holds. In every other case the guest fails closed (`kernel/src/m2/xhci/usb.rs`
+at `16cb2474`).
+
+- `USB:REATTACH:SLOT_REUSED:KEYBOARD` was emitted. In the mouse profile this
+  marker is printed only when the generation-2 mouse's slot equals the
+  source slot of the first replayed event, which is the retired keyboard's
+  slot. Otherwise the guest prints `SLOT_REUSED:MOUSE` or `SLOT_NEW`, and the
+  oracle refuses both. The replay check that follows requires each replayed
+  event to carry its source slot and to be refused by `accepts()`. It also
+  requires the event from the reused slot to match the new DCI. The keyboard
+  completion was therefore rejected by its TRB address alone, and the
+  generation-1 mouse completion by its slot.
+- `USB:REATTACH:HELD_BUTTON` was followed by `USB:REATTACH:DETACHED`. In
+  `hold_and_unplug_mouse()` the following fail closed: any port event before
+  the held button or on another port, a connect (code 52), a transfer event
+  from another slot (54), and any change other than one left press (53). The
+  passing runs show that none of these occurred on QEMU 10.2.1.
+- `USB:ATTACH:BUDGET_DENIED` was emitted. It is printed only after the
+  checks that the port index is `Detached`, that `attach()` returns
+  `Exhausted` and that PED=0. No event may arrive in the bounded quiet
+  window, and the port must end with `PORTSC & 3 == 1`; otherwise the guest
+  fails with code 46 or the event's own rejection.
 
 ## Mutation control (local only, not committed)
 
