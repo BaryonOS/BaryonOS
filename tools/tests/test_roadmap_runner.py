@@ -6,6 +6,7 @@ import hashlib
 import json
 import shutil
 import sys
+import signal
 import tempfile
 import unittest
 import unittest.mock
@@ -1930,6 +1931,89 @@ class RunnerResiduals(unittest.TestCase):
             with self.assertRaisesRegex(rr.Stop, "planted symlink"):
                 controller.acquire()
             self.assertFalse((home / rr.TRUSTED_RECORD).exists())
+
+    def swap_to_sibling_state(self, tmp, state):
+        """A live swapper's move: the state directory becomes a link to a sibling checkout's state."""
+        other = Path(tmp) / "other-checkout" / "build" / "roadmap-pipeline"
+        other.mkdir(parents=True, exist_ok=True)
+        lease = json.dumps({"task": "OTHER", "controller_pid": 1})
+        (other / "lease.json").write_text(lease)
+        os.rename(state, Path(tmp) / "state-moved")
+        state.symlink_to(other, target_is_directory=True)
+        return other / "lease.json", lease
+
+    def test_lease_reads_and_unlinks_never_follow_a_swapped_state(self):
+        # cabebd55 review: recover() and loop() still read and unlinked lease.json by path.
+        for site in ("recover read", "recover unlink", "loop"):
+            with self.subTest(site=site), tempfile.TemporaryDirectory() as tmp, \
+                    self.live_state(tmp) as (repo, state, controller):
+                swapped = []
+                if site == "recover unlink":
+                    (state / "lease.json").write_text(json.dumps({"task": "A"}))  # no live owner
+
+                    def ledger_then_swap(*args, **kwargs):  # after the lease was read, before its unlink
+                        swapped.append(self.swap_to_sibling_state(tmp, state))
+                        return {"tasks": []}
+                    with unittest.mock.patch.object(rr, "load_ledger", side_effect=ledger_then_swap), \
+                            self.assertRaisesRegex(rr.Stop, "without following a link"):
+                        controller.acquire()
+                elif site == "recover read":
+                    (state / "lease.json").write_text(json.dumps({"task": "A", "controller_pid": 1}))
+                    real_own, swap = rr.Controller.own_state, self.swap_to_sibling_state
+
+                    def own_then_swap(ctl):  # right after acquire()'s pin, before recover()
+                        real_own(ctl)
+                        swapped.append(swap(tmp, state))
+                    with unittest.mock.patch.object(rr.Controller, "own_state", own_then_swap), \
+                            self.assertRaisesRegex(rr.Stop, "without following a link"):
+                        controller.acquire()
+                else:
+                    controller.lease_owned = True
+                    (state / "runs" / controller.run_id).mkdir(parents=True)
+                    tasks = [task("A"), None]
+
+                    def run_then_swap(task_):
+                        swapped.append(self.swap_to_sibling_state(tmp, state))
+                        (state / "runs" / controller.run_id).mkdir(parents=True)  # the event log's directory
+                        return "c" * 40
+                    with unittest.mock.patch.object(rr, "select_task", side_effect=lambda ledger: tasks.pop(0)), \
+                            unittest.mock.patch.object(rr, "controller_environment"), \
+                            unittest.mock.patch.object(controller, "run_task", run_then_swap), \
+                            contextlib.redirect_stdout(io.StringIO()), \
+                            self.assertRaisesRegex(rr.Stop, "without following a link"):
+                        controller.loop(2, False)
+                path, lease = swapped[0]
+                self.assertEqual(path.read_text(), lease)  # the sibling's lease survives
+
+    def test_a_planted_fifo_lease_is_refused_without_waiting(self):
+        with tempfile.TemporaryDirectory() as tmp, self.live_state(tmp) as (repo, state, controller):
+            os.mkfifo(state / "lease.json")
+            previous = signal.signal(signal.SIGALRM, lambda *args: self.fail("blocked on the FIFO"))
+            signal.alarm(5)
+            try:
+                with self.assertRaisesRegex(rr.Stop, "not a regular file"):
+                    controller.acquire()
+            finally:
+                signal.alarm(0)
+                signal.signal(signal.SIGALRM, previous)
+                controller.release()
+
+    def test_odd_entries_in_the_state_exit_cleanly(self):
+        # A self-loop link at the state path, or a STOP directory, raised OSError instead of a refusal.
+        for planted in ("self-loop state", "STOP directory"):
+            with self.subTest(planted=planted), tempfile.TemporaryDirectory() as tmp, \
+                    self.live_state(tmp) as (repo, state, controller):
+                if planted == "self-loop state":
+                    state.rmdir()
+                    state.symlink_to(state)
+                    command = "status"
+                else:
+                    (state / "STOP").mkdir()
+                    command = "resume"
+                with unittest.mock.patch.object(rr, "isolate_imports"), \
+                        unittest.mock.patch.object(rr.sys, "argv", ["roadmap_runner.py", command]), \
+                        contextlib.redirect_stdout(io.StringIO()) as out:
+                    self.assertEqual(rr.main(), 2, out.getvalue())
 
     def test_the_accepted_state_stays_the_baseline_until_a_preflight_passes(self):
         # ba9eab6a retired the baseline on --accept: a plant made after it was adopted unseen.

@@ -545,9 +545,13 @@ def pin_state(state: Path, walk: bool = True) -> None:
         state.mkdir(parents=True, exist_ok=True)
         return
     for create in (False, True):
-        if create:
-            state.mkdir(parents=True, exist_ok=True)
-        if (resolved := state.resolve()) != expected:
+        try:
+            if create:
+                state.mkdir(parents=True, exist_ok=True)
+            resolved = state.resolve()
+        except (OSError, RuntimeError) as error:  # e.g. a self-loop link or a file in its place
+            raise Stop(f"the state directory {state} cannot be used ({error}); remove the planted entry") from error
+        if resolved != expected:
             raise Stop(f"the state directory {state} resolves to {resolved}, not {expected}; it must lie "
                        "inside the checkout: remove the link (planted, or a build tree moved elsewhere)")
     if not walk:
@@ -609,10 +613,37 @@ class Controller:
         fd = open_state(self.state)
         try:
             for name in names:
-                with contextlib.suppress(FileNotFoundError):
+                try:
                     os.unlink(name, dir_fd=fd)
+                except FileNotFoundError:
+                    pass
+                except OSError as error:  # e.g. a directory planted under the name
+                    raise Stop(f"refusing to remove {name} from the state: {error.strerror}") from error
         finally:
             os.close(fd)
+
+    def read_lease(self) -> dict | None:
+        """lease.json through a descriptor of the state directory (open_state() for the real one): no
+        link is followed, and a planted FIFO or other non-regular file is refused, never waited on."""
+        if self.baseline is not None or expected_state(self.state) is None:
+            try:
+                fd = os.open(self.state, os.O_RDONLY | os.O_DIRECTORY | os.O_CLOEXEC)
+            except FileNotFoundError:  # a test layout not created yet holds no lease
+                return None
+        else:
+            fd = open_state(self.state)
+        try:
+            lease = os.open("lease.json", os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK | os.O_CLOEXEC, dir_fd=fd)
+        except FileNotFoundError:
+            return None
+        except OSError as error:
+            raise Stop(f"refusing to read lease.json: {error.strerror} (a planted link?)") from error
+        finally:
+            os.close(fd)
+        with os.fdopen(lease, "rb") as handle:
+            if not stat.S_ISREG(os.fstat(handle.fileno()).st_mode):
+                raise Stop("refusing to read lease.json: not a regular file")
+            return json.loads(handle.read())
 
     def acquire(self) -> None:
         self.own_state()
@@ -648,10 +679,8 @@ class Controller:
 
     def recover(self) -> None:
         """A lease without a live owner means an interrupted task: never auto-clean it."""
-        lease_path = self.state / "lease.json"
-        if not lease_path.exists():
+        if (lease := self.read_lease()) is None:
             return
-        lease = json.loads(lease_path.read_text())
         for pid in (lease.get("worker_pid"), lease.get("controller_pid")):
             if pid and pid != os.getpid() and pid_alive(pid):
                 raise Stop(f"lease owner pid {pid} still alive; refusing to start a second writer")
@@ -662,16 +691,15 @@ class Controller:
                            for t in load_ledger()["tasks"]):
             update_task(task_id, status="blocked", history={
                 "at": now(), "event": "interrupted", "lease": lease, "dirty_paths": parse_porcelain(dirty)})
-        lease_path.unlink()
+        self.unlink_in_state("lease.json")
         if dirty.strip():
             raise Stop("recovered an interrupted lease and the checkout has a partial diff; "
                        "review it before restarting (see ledger history)")
 
     def heartbeat(self, **fields) -> None:
-        lease_path = self.state / "lease.json"
-        lease = json.loads(lease_path.read_text()) if lease_path.exists() else {}
+        lease = self.read_lease() or {}
         lease.update(fields, controller_pid=os.getpid(), run=self.run_id, heartbeat=now())
-        atomic_write(lease_path, json.dumps(lease, indent=2))
+        atomic_write(self.state / "lease.json", json.dumps(lease, indent=2))
         self.lease_owned = True
 
     def check_controls(self) -> None:
@@ -1475,7 +1503,7 @@ Return the structured result.
                 self.mark_blocked(task["id"], str(error))
                 event(event="blocked", task=task["id"], reason=str(error)[:600])
             done += 1
-            (self.state / "lease.json").unlink(missing_ok=True)
+            self.unlink_in_state("lease.json")
         event(event="stop", reason=f"max tasks {max_tasks} reached")
         return "max-tasks"
 
