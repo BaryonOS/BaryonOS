@@ -39,9 +39,11 @@ unchanged.
 **B. Fixtures (`kernel/Cargo.toml`, `tools/build.py`, `tools/run.py`,
 `tools/run_sleep.py`).**
 1. `test-acpi-s3-unarmed-wake` (case `unarmed-wake`). `cycle` writes an all-ones
-   `SAVED`, leaves `ARMED` at 0 and sets the page token to the cycle (1). Expected
-   tail: PLAN, `POWER:S3:ENTER:CYCLE=1:SCI_EN=1`,
-   `POWER:S3:WAKE:REJECTED:TOKEN:ARMED=0:PAGE=0x1`; one QMP SUSPEND/WAKEUP pair; raw 37.
+   `SAVED`, leaves `ARMED` at 0 and sets the page token to 0, so the token equals
+   `ARMED` and only the `armed == 0` clause refuses the wake (review follow-up, see
+   below; the first version used token 1). Expected tail: PLAN,
+   `POWER:S3:ENTER:CYCLE=1:SCI_EN=1`, `POWER:S3:WAKE:REJECTED:TOKEN:ARMED=0:PAGE=0x0`;
+   one QMP SUSPEND/WAKEUP pair; raw 37.
 2. `test-acpi-s3-facs-end` (case `facs-end`). In place of the wake stores, `cycle`
    writes one byte at `facs+length` through `write_firmware`. Any result other than
    `Err(Permission)` fails the VM with `S3_FACS_END_NOT_REFUSED`. The kernel then
@@ -100,6 +102,31 @@ which the stale-token fixture could not.
 The mutation was reverted with `git checkout`. The `Permission` the fixture
 observes therefore comes from the extent check, not from a later
 `firmware_span` refusal.
+
+## Review follow-up (independent review, APPROVE-WITH-MINORS)
+
+The independent review found that the first unarmed fixture (page token 1,
+`ARMED` 0) was already refused by `token != armed`, so the `armed == 0` clause
+was untested. The fixture now writes page token 0; `run_sleep.UNARMED` expects
+`PAGE=0x0`. All five cases were rerun on that tree (same environment as above,
+logs in the ignored `build/h05t6b/logs/minor/`):
+
+| Case | build / run | raw |
+|---|---|---|
+| `cycles` | 0 / 0 | 33 |
+| `stale-token` | 0 / 0 | 37 |
+| `corrupt-facs` | 0 / 0 | 39 |
+| `unarmed-wake` | 0 / 0 | 37 |
+| `facs-end` | 0 / 0 | 39 |
+
+`unittest discover -s tools/tests -p 'test_sleep.py'` and `cargo +1.90.0 fmt --all
+-- --check` exit 0. All five reports carry `source_sha256` `933d8b15…1578`, which
+equals `source_hash()` of the commit that adds this section.
+
+**Mutation check 3 (uncommitted).** With `armed == 0 ||` removed from `s3_wake`,
+the `unarmed-wake` fixture failed: the guest restored the all-ones `SAVED`, printed
+no rejection marker and was killed at the timeout (raw -9); `run_sleep.py` exited
+1. The clause was restored from a copy and the five cases above ran afterwards.
 
 ## Limits
 

@@ -614,9 +614,9 @@ fn cycle(
     // Pre-sleep: clear WAK_STS, fill the canary, arm token and FACS.
     clear_status(event, Pm1Event::WAKE_STATUS);
     canary(&ctx.canary, cycle, true);
-    // Negative fixture: SAVED is poisoned (all-ones faults on any restore)
-    // and no generation is armed, while the page keeps this cycle's token;
-    // only the ARMED check in s3_wake stands before a faulting restore.
+    // Negative fixture: SAVED is poisoned (all-ones faults on any restore),
+    // no generation is armed and the page token is 0, so token == ARMED and
+    // only the `armed == 0` clause in s3_wake stands before a faulting restore.
     let unarmed = cfg!(feature = "test-acpi-s3-unarmed-wake");
     let saved = if unarmed {
         Saved {
@@ -640,6 +640,8 @@ fn cycle(
     let page_token = if cfg!(feature = "test-acpi-s3-stale-token") {
         // Negative fixture: the page carries another generation's token.
         cycle ^ 0x5a5a_0000
+    } else if unarmed {
+        0
     } else {
         cycle
     };
