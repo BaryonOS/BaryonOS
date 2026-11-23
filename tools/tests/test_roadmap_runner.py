@@ -1,4 +1,5 @@
 import json
+import shutil
 import sys
 import tempfile
 import unittest
@@ -608,6 +609,36 @@ class Session(unittest.TestCase):
                     unittest.mock.patch.object(rr.subprocess, "run", return_value=pushed) as run:
                 controller.push()
             self.assertNotIn("GIT_DIR", run.call_args.kwargs["env"])
+            self.assertEqual(run.call_args.args[0][:3], ["git", "-c", "core.fsmonitor=false"])
+
+    def test_a_failed_worker_probe_is_not_taken_as_absence(self):
+        for outcome in (rr.subprocess.CompletedProcess([], 2, "", "pgrep: unknown option"),
+                        FileNotFoundError("pgrep")):
+            with self.subTest(outcome=outcome), tempfile.TemporaryDirectory() as tmp:
+                state = Path(tmp)
+                marker = state / rr.CALLBACKS_MARKER
+                marker.write_text(json.dumps({"baseline": "before", "session": "s"}))
+                probe = {"side_effect": outcome} if isinstance(outcome, Exception) else {"return_value": outcome}
+                with unittest.mock.patch.object(rr.subprocess, "run", **probe), \
+                        unittest.mock.patch.object(rr, "git_callbacks", return_value="before") as callbacks:
+                    with self.assertRaisesRegex(rr.Stop, "worker probe failed"):
+                        rr.Controller(rr.Config(), state).preflight()
+                callbacks.assert_not_called()
+                self.assertTrue(marker.exists())  # never retired without evidence that no worker lives
+
+    @unittest.skipUnless(shutil.which("pgrep"), "pgrep not installed")
+    def test_worker_probe_finds_a_real_tagged_process(self):
+        worker = rr.subprocess.Popen([sys.executable, "-c", "import time; time.sleep(30)",
+                                      "--name", rr.PROCESS_TAG + "probe"])
+        try:
+            with tempfile.TemporaryDirectory() as tmp:
+                with self.assertRaisesRegex(rr.Stop, f"still alive: .*{worker.pid}"):
+                    rr.Controller(rr.Config(), Path(tmp)).refuse_live_workers()
+        finally:
+            worker.kill()
+            worker.wait()
+        with tempfile.TemporaryDirectory() as tmp:
+            rr.Controller(rr.Config(), Path(tmp)).refuse_live_workers()  # exit 1: none left
 
     def test_interrupted_session_leaves_its_baseline_for_the_next_preflight(self):
         for later, stops in (("after", True), ("before", False)):

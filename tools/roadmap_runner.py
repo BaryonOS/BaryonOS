@@ -509,9 +509,16 @@ class Controller:
                 raise Stop("stop file present while paused")
 
     def refuse_live_workers(self) -> None:
-        alive = subprocess.run(["pgrep", "-f", f"--name {PROCESS_TAG}"],
-                               capture_output=True, text=True).stdout.split()
-        if [p for p in alive if int(p) != os.getpid()]:
+        # `--`: without it pgrep parses the pattern as an option, exits 2 and finds nothing.
+        try:
+            probe = subprocess.run(["pgrep", "-f", "--", f"--name {PROCESS_TAG}"],
+                                   capture_output=True, text=True)
+        except OSError as error:
+            raise Stop(f"worker probe failed: {error}") from error
+        if probe.returncode not in (0, 1):  # 1: no match; anything else is no evidence of absence
+            raise Stop(f"worker probe failed (pgrep exit {probe.returncode}): {probe.stderr.strip()[-300:]}")
+        alive = [p for p in probe.stdout.split() if int(p) != os.getpid()]
+        if alive:
             raise Stop(f"a previous worker process is still alive: {alive}")
 
     def preflight(self) -> str:
@@ -992,7 +999,8 @@ Return the structured result.
             return
         for delay in (0, 2, 4, 8, 16):
             time.sleep(delay)
-            done = subprocess.run(["git", "push", "-q", "-u", "origin", self.cfg.branch], cwd=ROOT,
+            done = subprocess.run(["git", "-c", "core.fsmonitor=false", "push", "-q", "-u", "origin",
+                                   self.cfg.branch], cwd=ROOT,
                                   capture_output=True, text=True, env=git_env())
             if done.returncode == 0:
                 return

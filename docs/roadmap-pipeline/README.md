@@ -179,7 +179,8 @@ if the controller itself dies, the next run compares against the persisted
 baseline right after taking the controller lock and confirming that no worker process
 is alive, before lease recovery or any other
 Git command that can run a hook or filter, and retires it only at preflight, once no
-worker process is alive. Workers may not edit
+worker process is alive. A worker probe that fails (any `pgrep` status other than
+match or no match) stops the controller instead of counting as absence. Workers may not edit
 `build/roadmap-pipeline/**`, which holds that baseline, `STOP` and the logs.
 Controller Git (including `git push`) runs with `core.fsmonitor=false` and without inherited
 repository-location variables such as `GIT_DIR` or `GIT_WORK_TREE`. Task gates
