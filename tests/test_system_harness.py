@@ -3,6 +3,7 @@ import copy
 import hashlib
 import os
 from pathlib import Path
+import re
 import sys
 import tempfile
 import unittest
@@ -328,16 +329,19 @@ class SystemHarnessTests(unittest.TestCase):
 
 def power_transcript(case="power", tail=None, **changes):
     """H05 power run: the normal flow plus refusal counters, then the S5 tail."""
-    ok = case in ("power", "power-s3", "power-s3-reinit")
+    ok = case in ("power", "power-s3", "power-s3-reinit", "power-s3-held-completion")
     values = dict(POWER_INIT_REFUSALS=3 if ok else 4, POWER_APP_REFUSALS=2,
                   POWER_NOT_DURABLE=0 if ok else 1, DISK_FLUSHES=4)
-    if case == "power-s3":
-        values.update(SUSPEND_REFUSALS=5, SUSPEND_GRANTED=1, SUSPEND_TICK_AFTER_WAKE=1,
-                      SUSPEND_LOST_ENTROPY=14, SUSPEND_LOST_BLOCK=14)
+    held = int(case == "power-s3-held-completion")
+    if case in ("power-s3", "power-s3-held-completion"):
+        values.update(SUSPEND_REFUSALS=5 + held, SUSPEND_GRANTED=1, SUSPEND_TICK_AFTER_WAKE=1,
+                      SUSPEND_HELD_REFUSALS=held, SUSPEND_LOST_ENTROPY=14, SUSPEND_LOST_BLOCK=14,
+                      SUSPEND_DEVICE_IO_AFTER_WAKE=0, SUSPEND_DEVICE_SUPPRESSED=held)
     if case == "power-s3-reinit":
         values.update(SUSPEND_REFUSALS=5, SUSPEND_GRANTED=1, SUSPEND_TICK_AFTER_WAKE=1,
-                      SUSPEND_REINIT_ENTROPY=32, SUSPEND_REINIT_STALE_TICKET=1,
-                      SUSPEND_REINIT_ENTROPY_AUTH=6, SUSPEND_LOST_BLOCK=14)
+                      SUSPEND_HELD_REFUSALS=0, SUSPEND_REINIT_ENTROPY=32, SUSPEND_REINIT_STALE_TICKET=1,
+                      SUSPEND_REINIT_ENTROPY_AUTH=6, SUSPEND_LOST_BLOCK=14,
+                      SUSPEND_DEVICE_IO_AFTER_WAKE=0, SUSPEND_DEVICE_SUPPRESSED=0)
     values.update(changes)
     values = {key: value for key, value in values.items() if value is not None}
     body = transcript("normal", **values).replace("SYSTEM:CASE:NORMAL:PASS\nM1:PASS\n", "")
@@ -528,6 +532,186 @@ class PowerS3ReinitHarnessTests(unittest.TestCase):
             evaluate("power", power_transcript("power") + S3_REINIT + "\n", 0, False)
         check_parent(dict(case="power-s3-reinit", passed=True, kernel_feature="test-system-s3-reinit",
                           source_sha256="source", after_sha256="disk"), "source", "disk", network=False)
+
+
+def held_transcript(**changes):
+    """Review R1 power-s3-held-completion: the base S3 cycle plus the held -8."""
+    return s3_transcript(case="power-s3-held-completion", **changes)
+
+
+class PowerS3HeldCompletionHarnessTests(unittest.TestCase):
+    def test_passes_only_with_raw_exit_zero_and_exact_held_evidence(self):
+        found = evaluate("power-s3-held-completion", held_transcript(), 0, False)
+        self.assertEqual((found["SUSPEND_REFUSALS"], found["SUSPEND_HELD_REFUSALS"],
+                          found["SUSPEND_DEVICE_IO_AFTER_WAKE"], found["SUSPEND_DEVICE_SUPPRESSED"]),
+                         (6, 1, 0, 1))
+        for raw, timed_out in ((33, False), (None, True), (37, False)):
+            with self.subTest(raw=raw), self.assertRaises(ValueError):
+                evaluate("power-s3-held-completion", held_transcript(), raw, timed_out)
+
+    def test_post_wake_device_access_fails(self):
+        for case, text in (("power-s3-held-completion", held_transcript(SUSPEND_DEVICE_IO_AFTER_WAKE=1)),
+                           ("power-s3", s3_transcript(SUSPEND_DEVICE_IO_AFTER_WAKE=1)),
+                           ("power-s3-reinit", reinit_transcript(SUSPEND_DEVICE_IO_AFTER_WAKE=1)),
+                           ("power-s3-held-completion", held_transcript(SUSPEND_DEVICE_IO_AFTER_WAKE=None))):
+            with self.subTest(case=case), self.assertRaisesRegex(ValueError, "DEVICE_IO_AFTER_WAKE|out of order"):
+                evaluate(case, text, 0, False)
+
+    def test_missing_held_refusal_fails(self):
+        for change in (dict(SUSPEND_HELD_REFUSALS=0), dict(SUSPEND_HELD_REFUSALS=None),
+                       dict(SUSPEND_HELD_REFUSALS=2), dict(SUSPEND_REFUSALS=5),
+                       dict(SUSPEND_HELD_REFUSALS=0, SUSPEND_REFUSALS=5)):
+            with self.subTest(change=change), self.assertRaises(ValueError):
+                evaluate("power-s3-held-completion", held_transcript(**change), 0, False)
+        # A held refusal in the base profile is a gate that refused without cause.
+        with self.assertRaises(ValueError):
+            evaluate("power-s3", s3_transcript(SUSPEND_HELD_REFUSALS=1, SUSPEND_REFUSALS=6), 0, False)
+
+    def test_suppressed_must_equal_held(self):
+        for case, text in (("power-s3-held-completion", held_transcript(SUSPEND_DEVICE_SUPPRESSED=0)),
+                           ("power-s3-held-completion", held_transcript(SUSPEND_DEVICE_SUPPRESSED=2)),
+                           ("power-s3-held-completion", held_transcript(SUSPEND_DEVICE_SUPPRESSED=None)),
+                           ("power-s3", s3_transcript(SUSPEND_DEVICE_SUPPRESSED=1)),
+                           ("power-s3-reinit", reinit_transcript(SUSPEND_DEVICE_SUPPRESSED=1))):
+            with self.subTest(case=case), self.assertRaisesRegex(ValueError, "SUPPRESSED|out of order"):
+                evaluate(case, text, 0, False)
+
+    def test_device_evidence_order_and_profile_boundaries(self):
+        io = "SYSTEM:SUSPEND_DEVICE_IO_AFTER_WAKE:" + "0".zfill(20)
+        sup = "SYSTEM:SUSPEND_DEVICE_SUPPRESSED:" + "1".zfill(20)
+        swapped = held_transcript().replace(io, "SWAP").replace(sup, io).replace("SWAP", sup)
+        with self.assertRaisesRegex(ValueError, "out of order"):
+            evaluate("power-s3-held-completion", swapped, 0, False)
+        plain = held_transcript().replace("SYSTEM:CASE:POWER_S3_HELD_COMPLETION:PASS", "SYSTEM:CASE:POWER_S3:PASS")
+        with self.assertRaises(ValueError):
+            evaluate("power-s3-held-completion", plain, 0, False)
+        with self.assertRaisesRegex(ValueError, "outside"):
+            evaluate("power", power_transcript("power", SUSPEND_DEVICE_SUPPRESSED=1), 0, False)
+        check_parent(dict(case="power-s3-held-completion", passed=True,
+                          kernel_feature="test-system-s3-held-completion",
+                          source_sha256="source", after_sha256="disk"), "source", "disk", network=False)
+
+
+KERNEL = Path(__file__).resolve().parents[1] / "kernel/src/m2"
+DEVICE_CALL = re.compile(r"\.(begin_reset|reset_acknowledged|poll|request|prepare_operation|publish_prepared|status)\("
+                         r"|Device::(reset_acknowledged|initialize_profile|initialize)\b|\brediscover\(")
+FUNCTION = re.compile(r"^\s*(?:pub(?:\([^)]*\))?\s+)?fn\s+(\w+)")
+
+
+def functions(path: Path) -> dict[str, list[tuple[int, str]]]:
+    """`fn` bodies by name, first definition wins (brace matching on code)."""
+    lines = path.read_text().splitlines()
+    found = {}
+    for index, line in enumerate(lines):
+        match = FUNCTION.match(line)
+        if not match:
+            continue
+        depth, started, body = 0, False, []
+        for number in range(index, len(lines)):
+            code = lines[number].split("//")[0]
+            depth += code.count("{") - code.count("}")
+            started = started or "{" in code
+            body.append((number + 1, lines[number]))
+            if started and depth == 0:
+                break
+        found.setdefault(match.group(1), body)
+    return found
+
+
+def device_calls(body):
+    return [(number, line) for number, line in body
+            if not line.strip().startswith("//") and DEVICE_CALL.search(line)
+            and "policy.request(" not in line]
+
+
+class PostWakeLatchStructure(unittest.TestCase):
+    """STRUCTURAL ONLY (review R1/R3): source shape of the post-wake device
+    latch and the access counter of both system brokers. Natively only the
+    volume `reset` latch is provoked (power-s3-held-completion); this test keeps
+    a future edit from adding an unlatched or uncounted broker device call."""
+
+    # Reachable after the S3 wake in the system profile (broker ticks,
+    # submission syscalls, owner teardown): latched and counted.
+    REACHABLE = {"keyring.rs": {"call", "advance", "quarantine_pending"},
+                 "volume.rs": {"device_call", "reset", "advance"}}
+    LATCH = {"keyring.rs": "device_lost()", "volume.rs": "system::resumed()"}
+    # The validated re-init path (test-system-s3-reinit only): accounted.
+    REINIT = {"keyring.rs": {"reinit_poll", "reinit_fail"}, "volume.rs": set()}
+    # Boot-time setup, and standalone-profile fixtures whose `poll` is compiled
+    # only without native-system (checked below).
+    OTHER = {"keyring.rs": {"prepare", "restart_fixture", "finish"},
+             "volume.rs": {"prepare", "prepare_archive_device", "finish"}}
+
+    def counted(self, name, fn, body, counter):
+        previous = body[0][0]
+        for number, line in device_calls(body):
+            window = [text for at, text in body if previous <= at < number]
+            self.assertIn(f"{counter}();", [text.strip() for text in window[-8:]],
+                          f"uncounted device call at {name}:{number} in {fn}: {line.strip()}")
+            previous = number
+
+    def test_every_device_call_site_is_classified(self):
+        for name in self.REACHABLE:
+            bodies = functions(KERNEL / "m3" / name)
+            with_calls = {fn for fn, body in bodies.items() if device_calls(body)}
+            self.assertEqual(with_calls, self.REACHABLE[name] | self.REINIT[name] | self.OTHER[name], name)
+
+    def test_reachable_calls_follow_the_latch_and_are_counted(self):
+        for name, reachable in self.REACHABLE.items():
+            bodies = functions(KERNEL / "m3" / name)
+            for fn in sorted(reachable):
+                body = bodies[fn]
+                with self.subTest(file=name, fn=fn):
+                    latch = [number for number, line in body if self.LATCH[name] in line]
+                    self.assertTrue(latch and latch[0] < device_calls(body)[0][0], "latch not before the device call")
+                    self.counted(name, fn, body, "device_access")
+        # The keyring latch opens only after the validated re-init; the volume
+        # latches are compiled into every S3 profile and only there.
+        lost = "\n".join(line for _, line in functions(KERNEL / "m3/keyring.rs")["device_lost"])
+        self.assertIn('#[cfg(feature = "test-system-s3")]\n    let lost = super::system::resumed() && !reinitialised();',
+                      lost)
+        lines = (KERNEL / "m3/volume.rs").read_text().splitlines()
+        latches = [index for index, line in enumerate(lines) if "if super::system::resumed()" in line]
+        self.assertEqual(len(latches), 3)
+        for index in latches:
+            self.assertEqual(lines[index - 1].strip(), '#[cfg(feature = "test-system-s3")]')
+
+    def test_reinit_calls_are_accounted_and_reached_only_after_the_wake(self):
+        source = (KERNEL / "m3/keyring.rs").read_text().splitlines()
+        bodies = functions(KERNEL / "m3/keyring.rs")
+        for fn in sorted(self.REINIT["keyring.rs"]):
+            with self.subTest(fn=fn):
+                start = bodies[fn][0][0]
+                self.assertEqual(source[start - 2].strip(), '#[cfg(feature = "test-system-s3-reinit")]')
+                self.counted("keyring.rs", fn, bodies[fn], "reinit_access")
+        callers = {caller for caller, body in bodies.items() if caller != "reinit_fail"
+                   and any("reinit_fail(" in line for _, line in body)}
+        self.assertEqual(callers, {"reinit_require", "reinit_poll"})
+        poll = "\n".join(line for _, line in functions(KERNEL / "m3/system.rs")["poll"])
+        self.assertIn("if resumed() {\n        let handle = suspend_state().key_entropy;\n"
+                      "        keyring::reinit_poll(", poll)
+
+    def test_standalone_broker_fixtures_never_run_in_native_system(self):
+        m3 = (KERNEL / "m3.rs").read_text()
+        for call in ("keyring::poll(state)", "m5::poll(state)"):
+            before = m3[:m3.index(call)].splitlines()[-2]
+            self.assertIn('not(feature = "native-system")', before, call)
+        for name in self.OTHER:
+            bodies = functions(KERNEL / "m3" / name)
+            for fn in ("restart_fixture", "finish"):
+                callers = {caller for caller, body in bodies.items()
+                           if caller != fn and any(f"{fn}(s)" in line for _, line in body)}
+                self.assertTrue(callers <= {"poll"}, (name, fn, callers))
+
+    def test_s3_gate_refuses_a_held_request_before_the_transition(self):
+        body = "\n".join(line for _, line in functions(KERNEL / "m3/system.rs")["suspend"])
+        order = [body.index(text) for text in ("storage_closed()", "m5::sleep_quiescent()",
+                                               "sleep::suspend(", "p.io_at_wake = io;")]
+        self.assertEqual(order, sorted(order))
+        quiescent = "\n".join(line for _, line in functions(KERNEL / "m3/volume.rs")["sleep_quiescent"])
+        self.assertIn("r.policy.request().is_none()", quiescent)
+        finish = "\n".join(line for _, line in functions(KERNEL / "m3/system.rs")["finish"])
+        self.assertIn("io_after == 0 && p.suppressed == suppressed", finish)
 
 
 class PowerHarnessTests(unittest.TestCase):

@@ -170,11 +170,65 @@ fn reclaim_completed(now: u64) {
     }
 }
 
+/// H05 evidence (review R3): one count per broker access to the virtio-rng
+/// device (request submission, used-ring poll, reset, reset acknowledgement
+/// read and every re-init step), counted at the call itself and
+/// independently of the post-wake latch. `ACCOUNTED` (test-system-s3-reinit
+/// only) holds the subset made by the validated re-init path: the re-init
+/// stages themselves and broker paths once the re-init lifted the latch.
+#[cfg(feature = "test-system-s3")]
+static DEVICE_ACCESSES: core::sync::atomic::AtomicU64 = core::sync::atomic::AtomicU64::new(0);
+#[cfg(feature = "test-system-s3-reinit")]
+static ACCOUNTED: core::sync::atomic::AtomicU64 = core::sync::atomic::AtomicU64::new(0);
+fn device_access() {
+    #[cfg(feature = "test-system-s3")]
+    DEVICE_ACCESSES.fetch_add(1, core::sync::atomic::Ordering::Relaxed);
+    #[cfg(feature = "test-system-s3-reinit")]
+    if reinitialised() {
+        ACCOUNTED.fetch_add(1, core::sync::atomic::Ordering::Relaxed);
+    }
+}
+/// A device access of the re-init stages (`reinit_poll`, `reinit_fail`).
+#[cfg(feature = "test-system-s3-reinit")]
+fn reinit_access() {
+    DEVICE_ACCESSES.fetch_add(1, core::sync::atomic::Ordering::Relaxed);
+    ACCOUNTED.fetch_add(1, core::sync::atomic::Ordering::Relaxed);
+}
+/// (every device access, the accounted re-init subset).
+#[cfg(feature = "test-system-s3")]
+pub(super) fn device_accesses() -> (u64, u64) {
+    #[cfg(feature = "test-system-s3-reinit")]
+    let accounted = ACCOUNTED.load(core::sync::atomic::Ordering::Relaxed);
+    #[cfg(not(feature = "test-system-s3-reinit"))]
+    let accounted = 0;
+    (
+        DEVICE_ACCESSES.load(core::sync::atomic::Ordering::Relaxed),
+        accounted,
+    )
+}
+/// Review R1 post-wake latch: after a validated S3 wake the platform reset
+/// virtio-rng, so no broker path may touch it until (test-system-s3-reinit
+/// only) the validated re-init lifted the latch. Without S3 never latched.
+fn device_lost() -> bool {
+    #[cfg(feature = "test-system-s3")]
+    let lost = super::system::resumed() && !reinitialised();
+    #[cfg(not(feature = "test-system-s3"))]
+    let lost = false;
+    lost
+}
+
 fn quarantine_pending() {
     let r = runtime();
     // Dropping broker state while DMA remains live could let another holder
     // reuse its pages. Stop the device and retain the existing quarantine.
-    if let Some(device) = r.device.as_mut() {
+    // Review R1: after the wake (latch) only the quarantine below remains.
+    let touch = !device_lost();
+    #[cfg(feature = "test-system-s3")]
+    if !touch {
+        super::system::device_access_suppressed();
+    }
+    if let Some(device) = r.device.as_mut().filter(|_| touch) {
+        device_access();
         device.begin_reset();
     }
     r.offline = -14;
@@ -465,8 +519,7 @@ fn call(s: &mut State, slot: usize, n: u64, a: [u64; 6]) -> Result<u64, i64> {
             // ADR-H05-S3-SYSTEM-20261123: the wake reset the device. Refused
             // before authority, ring or counter: no binding, no `denied` count.
             // H05-T5b: test-system-s3-reinit lifts this only after re-init.
-            #[cfg(feature = "test-system-s3")]
-            if super::system::resumed() && !reinitialised() {
+            if device_lost() {
                 return Err(-14);
             }
             let binding = match entropy_binding(pid, a[0]) {
@@ -491,6 +544,8 @@ fn call(s: &mut State, slot: usize, n: u64, a: [u64; 6]) -> Result<u64, i64> {
                 return Err(-8);
             }
             let device = r.device.as_mut().ok_or(-14)?;
+            // Counted whether the request is accepted, fails or stays pending.
+            device_access();
             device.request(a[1] as u32).map_err(|_| -8)?;
             let ticket = r.next_ticket;
             r.next_ticket += 1;
@@ -553,8 +608,17 @@ fn call(s: &mut State, slot: usize, n: u64, a: [u64; 6]) -> Result<u64, i64> {
 
 fn advance(s: &State) {
     reclaim_completed(s.ticks);
+    // Review R1: no reset acknowledgement read or used-ring poll after the S3
+    // wake until a validated re-init. Nothing can be active here: the storage
+    // gate admitted only an idle broker and every 0x60 since returned -14.
+    if device_lost() {
+        return;
+    }
     if runtime().resetting {
         let r = runtime();
+        if r.device.is_some() {
+            device_access();
+        }
         if r.device.as_ref().is_some_and(Device::reset_acknowledged) {
             r.resetting = false;
             r.reset_acks += 1;
@@ -585,6 +649,7 @@ fn advance(s: &State) {
         return;
     };
     let mut buffer = [0u8; 256];
+    device_access();
     match device.poll(&mut buffer) {
         Ok(Some(length)) => {
             if length != pending.requested {
@@ -624,6 +689,7 @@ fn advance(s: &State) {
                     deadline: s.ticks + COMPLETED_LEASE,
                 });
                 r.bytes = [0; 256];
+                device_access();
                 device.begin_reset();
                 r.offline = -13;
                 r.resetting = true;
@@ -1289,6 +1355,7 @@ fn reinit_fail(reason: &[u8]) -> ! {
     // Stop the device first; the VM exits next, so no page is ever reused.
     let r = runtime();
     if let Some(device) = r.device.as_mut() {
+        reinit_access();
         device.begin_reset();
     }
     r.offline = -14;
@@ -1330,15 +1397,18 @@ pub(super) fn reinit_poll(s: &mut State, key: usize, handle: u64) {
             reinit_require(r.next_ticket > 1, b"NO_PRESLEEP_TICKET");
             r.offline = -14;
             p.ticket_floor = r.next_ticket;
+            reinit_access();
             p.bars = Some(
                 virtio_rng_driver::rediscover(&info).unwrap_or_else(|_| reinit_fail(b"REDISCOVER")),
             );
+            reinit_access();
             r.device.as_mut().unwrap().begin_reset();
             p.deadline = s.ticks + RESET_TIMEOUT;
             p.stage = 1;
         }
         1 => {
             let r = runtime();
+            reinit_access();
             if !r.device.as_ref().is_some_and(Device::reset_acknowledged) {
                 reinit_require(s.ticks < p.deadline, b"RESET_ACK");
                 return;
@@ -1350,17 +1420,20 @@ pub(super) fn reinit_poll(s: &mut State, key: usize, handle: u64) {
             r.pending = None;
             r.completed = None;
             r.bytes = [0; 256];
+            reinit_access();
             // SAFETY: The mappings from `prepare` are permanent supervisor UC/NX
             // and `rediscover` proved the BARs and regions they cover unchanged;
             // the three pool pages are still exclusively kernel-owned and the
             // reset was acknowledged (status 0, bus mastering off) first.
             let device = unsafe { Device::initialize(r.info.unwrap(), r.mapped, r.pool) }
                 .unwrap_or_else(|_| reinit_fail(b"INITIALIZE"));
+            reinit_access();
             reinit_require(
                 device.pool == r.pool && !device.pending() && device.status() == 15,
                 b"DEVICE_STATE",
             );
             r.device = Some(device);
+            reinit_access();
             r.device
                 .as_mut()
                 .unwrap()
@@ -1373,6 +1446,7 @@ pub(super) fn reinit_poll(s: &mut State, key: usize, handle: u64) {
             let r = runtime();
             let device = r.device.as_mut().unwrap();
             let mut bytes = [0u8; 256];
+            reinit_access();
             match device.poll(&mut bytes) {
                 Ok(Some(32)) => {}
                 Ok(None) if s.ticks < p.deadline => return,
@@ -1380,6 +1454,7 @@ pub(super) fn reinit_poll(s: &mut State, key: usize, handle: u64) {
             }
             // Self-test bytes are discarded: never delivered, never counted.
             bytes.fill(0);
+            reinit_access();
             let status = device.status();
             reinit_require(status == 15 && !device.pending(), b"SELFTEST_STATE");
             let bars: &[u8] = match p.bars {

@@ -257,8 +257,11 @@ fn power_off_sequence(power: Handle, image: LaunchImage) -> ! {
     check(native::derive(power, Rights::POWER).is_err(), 51);
     // The volume still holds BLOCK authority: refused, nothing happens.
     check(native::power_off(power) == Error::Kernel(-8), 52);
-    // test-system-s3 kernels set word 592; every other profile skips SUSPEND.
-    let s3 = support::word(592) == 1;
+    // test-system-s3 kernels set word 592 (2: the held-completion fixture);
+    // every other profile skips SUSPEND.
+    let word = support::word(592);
+    let held = word == 2;
+    let s3 = word == 1 || held;
     if s3 {
         check(native::suspend(power) == Err(Error::Kernel(-8)), 70);
     }
@@ -270,7 +273,7 @@ fn power_off_sequence(power: Handle, image: LaunchImage) -> ! {
     let forged = Handle::from_raw(power.raw() + (1 << 32)).unwrap_or_else(|_| fail(54));
     check(native::power_off(forged) == Error::Kernel(-4), 54);
     if s3 {
-        suspend_sequence(power, image, forged);
+        suspend_sequence(power, image, forged, held);
     }
     for _ in 0..LIMIT * 8 {
         match native::power_off(power) {
@@ -289,7 +292,7 @@ fn power_off_sequence(power: Handle, image: LaunchImage) -> ! {
 /// granted suspend, proof of ticks after the wake, then the one-shot refusal.
 /// The kernel logs each SUSPEND result itself; init only sequences.
 #[inline(never)]
-fn suspend_sequence(power: Handle, image: LaunchImage, forged: Handle) {
+fn suspend_sequence(power: Handle, image: LaunchImage, forged: Handle, held: bool) {
     check(
         native::suspend(image.handle()) == Err(Error::Kernel(-6)),
         71,
@@ -319,7 +322,12 @@ fn suspend_sequence(power: Handle, image: LaunchImage, forged: Handle) {
         // SAFETY: Aligned write into this frame's own live local array.
         unsafe { core::ptr::write_volatile(slot, value) };
     }
-    // Storage is closed after SHUTDOWN Ok, so the first request is granted.
+    // Held-completion fixture: the volume broker still holds the completed
+    // SHUTDOWN flush, so the kernel refuses once (-8) before any I/O.
+    if held {
+        check(native::suspend(power) == Err(Error::Kernel(-8)), 80);
+    }
+    // Storage is closed after SHUTDOWN Ok, so the next request is granted.
     check(native::suspend(power) == Ok(()), 74);
     for (index, slot) in pattern.iter_mut().enumerate() {
         let expected = (slot as *mut u64 as u64) ^ 0x5a5a_5a5a_0000_0000 ^ index as u64;
