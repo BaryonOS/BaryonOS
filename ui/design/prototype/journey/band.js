@@ -35,7 +35,10 @@ export function initBand(ctx) {
       return el('li', {}, el('button', { class: 'jr-tour-item', type: 'button', 'aria-current': here ? 'step' : null, on: { click: () => ctx.go(s.id) } },
         el('span', { class: 'jr-tour-n' }, String(s.n)), el('span', { class: 'jr-tour-t' }, t.title),
         here ? el('span', { class: 'jr-chip', 'data-on': '' }, J.tour.here) : ctx.seen.has(s.id) ? el('span', { class: 'jr-chip' }, J.tour.seen) : null,
-        el('span', { class: 'jr-tour-what' }, t.what)))
+        el('span', { class: 'jr-tour-what' }, t.what)),
+        // B repair 2: station 7 names its three requests, so nobody has to guess where the document request lives
+        s.id === 'toestemming' ? el('div', { class: 'jr-tour-tasks' }, el('p', { id: 'jr-tasks-h' }, J.b.perm.tasks),
+          el('ol', { 'aria-labelledby': 'jr-tasks-h' }, [J.b.perm.task1, J.b.perm.task2, J.b.perm.task3].map((x) => el('li', {}, x)))) : null)
     }))
   }
   const next = () => {
@@ -51,14 +54,23 @@ export function initBand(ctx) {
     desk: [J.sim.desk, J.sim.continueList, { filled: J.sim.filled, empty: J.sim.empty }],
     launch: [J.sim.launch, J.sim.nextLaunch, { normal: J.sim.normal, slow: J.sim.slow, fail: J.sim.fail }],
     search: [J.sim.search, J.sim.index, { ready: J.sim.ready, updating: J.sim.updating, unavailable: J.sim.unavailable }],
-    nas: [J.more.nas, J.more.nasLabel, { online: J.more.nasOnline, offline: J.more.nasOffline }] }
+    nas: [J.more.nas, J.more.nasLabel, { online: J.more.nasOnline, offline: J.more.nasOffline }],
+    // slice B: one group per station that loads or fetches (E2)
+    files: [J.b.sim.files, J.b.sim.filesView, { filled: J.b.sim.filled, loading: J.b.sim.loading, error: J.b.sim.error, empty: J.b.sim.empty }],
+    versions: [J.b.sim.versions, J.b.sim.versionsView, { filled: J.b.sim.filled, loading: J.b.sim.loading, error: J.b.sim.error, empty: J.b.sim.empty }],
+    web: [J.b.sim.perm, J.b.sim.site, { normal: J.b.sim.normal, slow: J.b.sim.slow, fail: J.b.sim.fail }],
+    updates: [J.b.sim.settings, J.b.sim.updates, { current: J.b.sim.current, checking: J.b.sim.checking, error: J.b.sim.error }] }
   const sets = Object.entries(groups).map(([g, [legend, label, opts]]) => el('fieldset', { class: 'ds-fieldset jr-sim-group' },
     el('legend', {}, legend),
     el('div', { class: 'ds-seg', role: 'radiogroup', 'aria-label': label }, SIM_OPTIONS[g].map((v) => el('label', { class: 'ds-radio' },
       el('input', { type: 'radio', name: `jr-sim-${g}`, value: v, checked: ctx.sim[g] === v, on: { change: () => ctx.setSim(g, v) } }), opts[v]))),
     g === 'signin' ? el('div', { class: 'jr-row' },
       el('button', { class: 'ds-btn', 'data-variant': 'secondary', type: 'button', on: { click: async () => { if (ctx.signedIn && !(await ctx.signOut())) return; ctx.session.oobe(1) } } }, J.sim.firstRun),
-      el('button', { class: 'ds-btn', 'data-variant': 'secondary', type: 'button', id: 'jr-sim-lock', on: { click: () => ctx.signedIn && ctx.go('aanmelden') } }, J.sim.lockNow)) : null))
+      el('button', { class: 'ds-btn', 'data-variant': 'secondary', type: 'button', id: 'jr-sim-lock', on: { click: () => ctx.signedIn && ctx.go('aanmelden') } }, J.sim.lockNow)) : null,
+    // station 7: the two prompt events act out a failing prompt (via 'error') and an app re-asking without a gesture (R2)
+    g === 'web' ? el('div', { class: 'jr-row' },
+      el('button', { class: 'ds-btn', 'data-variant': 'secondary', type: 'button', on: { click: () => { ctx.ask.failNext(); ctx.live(J.b.sim.failArmed) } } }, J.b.sim.failNext),
+      el('button', { class: 'ds-btn', 'data-variant': 'secondary', type: 'button', on: { click: async () => { if (!ctx.ask.hasLast()) return ctx.live(J.b.sim.noLast); const r = await ctx.ask.repeatLast(); ctx.live(r.text) } } }, J.b.sim.autoAgain)) : null))
   bus.on('jr:sim', (g) => { for (const r of document.querySelectorAll(`input[name="jr-sim-${g}"]`)) r.checked = r.value === ctx.sim[g] })
   panels.sim = el('aside', { class: 'jr-panel', id: 'jr-sim', 'aria-label': J.sim.note, hidden: true },
     head('sim', J.sim.title),

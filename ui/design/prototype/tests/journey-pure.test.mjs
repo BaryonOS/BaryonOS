@@ -17,7 +17,7 @@ test('ten stations in E1 order with unique ids, titles and valid labels', () => 
     for (const [fn, lab, src] of s.feas) { assert.ok(fn && src); assert.ok(FEAS.includes(lab), `${s.id}: ${lab}`) }
   }
   for (const s of built()) { assert.ok(s.feas.length > 0, s.id); assert.ok(s.states.includes('success') || s.states.includes('empty')) }
-  assert.deepEqual(built().map((s) => s.id), ['aanmelden', 'bureaublad', 'vensters', 'zoeken'])
+  assert.deepEqual(built().map((s) => s.id), ['aanmelden', 'bureaublad', 'vensters', 'zoeken', 'bestanden', 'versies', 'toestemming', 'instellingen'])
 })
 
 test('router: round trip, defaults, pending before sign-in, later slices never route', () => {
@@ -26,8 +26,9 @@ test('router: round trip, defaults, pending before sign-in, later slices never r
   assert.equal(parse('#/onzin', { signedIn: false }).station, 'aanmelden')
   const r = parse('#/zoeken', { signedIn: false })
   assert.deepEqual([r.station, r.pending], ['aanmelden', 'zoeken'])
-  const l = parse('#/versies', { signedIn: true })
-  assert.deepEqual([l.station, l.later], ['bureaublad', 'versies'])
+  const l = parse('#/meldingen', { signedIn: true })
+  assert.deepEqual([l.station, l.later], ['bureaublad', 'meldingen'])
+  assert.equal(parse('#/versies', { signedIn: true }).station, 'versies')
 })
 
 test('go() only opens or focuses: no close or discard effect for any station', () => {

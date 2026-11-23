@@ -1,15 +1,27 @@
 // Slice A app bodies: Notities (Tuinplan), Rekenmachine, Bestanden (read-only list),
 // Instellingen (Weergave, Toegankelijkheid; other categories follow). Others show a "volgt" body.
-import { T, DATA, el, icon, files, bus, grants } from '../contract.js'
+import { T, DATA, el, icon, files, bus } from '../contract.js'
+import { appAccess, appName } from './access.js'
+import { renderFiles, renderBrowser, renderFotos, settingsPage } from './stations.js'
 
+// Notities holds one document at a time (single window). E11: the app side of the broker can read what the user opened and
+// write only after a trusted edit or save action in the shell-drawn window bar; it can never grant anything itself.
+const notes = appAccess('notities')
+let doc = null // the document the user opened in Notities (shell sets it)
 let draft = null // unsaved Notities text; survives minimising and station changes
 let noteArea = null
+export const noteDoc = () => doc
+let insNote = null // the quiet in-app note after the Boodschappen request (station 7)
+export const setNoteDoc = (id) => { doc = id; draft = null; insNote = null }
 export const noteDirty = () => draft != null
 export const discardNote = () => { draft = null }
+// -> true when saved or nothing to save; false when the write failed closed (no readWrite grant): the draft is kept
 export function saveNote() {
-  if (draft == null) return
-  files.save('tuinplan', draft)
-  draft = null
+  if (draft == null || !doc) return true
+  const text = draft
+  const r = notes.write(doc, () => files.save(doc, text))
+  if (r.ok) draft = null
+  return r.ok
 }
 
 // Full .ds-empty anatomy as the gallery renders it (orbit with a place satellite, title, hint, actions), so the title never
@@ -21,31 +33,48 @@ export const emptyState = ({ id, tone = null, role = null, ic, title, hint, feas
   el('p', { class: 'ds-empty-hint', 'data-sim-fn': feas ? '' : null }, hint, feas ? ' ' : null, feas),
   actions.length ? el('div', { class: 'ds-empty-actions' }, actions) : null)
 
-// Consent (OQ-5): Notities shows Tuinplan only while a grant covers it. The seeded temporary grant ends when the last Notities
-// window closes; until slice B asks through the UX-C prompt, a reopened Notities fails closed and says why.
-const tuinplanCovered = () => grants.temporary().some((g) => g.app === 'notities' && g.data === 'tuinplan')
-  || grants.remembered().some((g) => g.app === 'notities' && g.data === 'tuinplan' && g.decision === 'allow')
+const openable = (f) => !!f && typeof f.versions?.at(-1)?.body === 'string' // documents Notities can show
+export const canOpenInNotes = (id) => openable(files.get(id))
 
 export function renderApp(app, body, ctx) {
   const J = ctx.J
   const A = J.apps
   body.replaceChildren()
-  if (app === 'notities' && !tuinplanCovered()) {
-    body.append(emptyState({ id: `${body.parentElement.id || app}-nogrant`, ic: 'notities', title: J.more.noGrantTitle, hint: J.more.noGrantHint, feas: ctx.feas('simulated') }))
+  const X = J.access
+  const wid = body.parentElement.id || app
+  const O = J.b.open, P = J.b.perm
+  // the system file chooser (a shell-drawn dialog outside the app content): the user's pick in it is the open gesture
+  const openBtn = () => el('button', { class: 'ds-btn', 'data-variant': 'primary', type: 'button', on: { click: (e) => ctx.chooser(e) } }, icon('bestanden', { size: 16 }), O.dots)
+  if (app === 'notities' && !doc) {
+    body.append(emptyState({ id: `${wid}-nodoc`, ic: 'notities', title: X.noDocTitle, hint: O.noDocHint, feas: ctx.feas('now'), actions: [openBtn()] }))
+    return
+  }
+  if (app === 'notities' && !notes.canRead(doc)) { // fail closed: the grant ended (closed, revoked, signed out)
+    body.append(emptyState({ id: `${wid}-nogrant`, ic: 'notities', title: X.revokedTitle(files.get(doc)?.name ?? doc), hint: X.revokedHint, feas: ctx.feas('now'), actions: [openBtn()] }))
     return
   }
   if (app === 'notities') {
-    const f = files.get('tuinplan')
+    const f = files.get(doc)
+    const rw = notes.canWrite(doc)
     const status = el('p', { class: 'jr-app-status', 'aria-live': 'polite' })
-    const showStatus = () => status.replaceChildren(draft != null ? el('span', { class: 'jr-chip' }, J.shell.draft) : el('span', {}, `${f.name} · ${f.changed}`))
-    noteArea = el('textarea', { class: 'ds-input jr-note-text', id: 'jr-note', 'aria-label': J.shell.noteLabel, 'data-autofocus': '', spellcheck: 'false',
-      on: { input: (e) => { draft = e.target.value; showStatus() },
-        keydown: (e) => { if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's' && !e.repeat) { e.preventDefault(); save() } } } })
+    const showStatus = () => status.replaceChildren(el('span', { class: 'jr-chip' }, rw ? X.modeWrite : X.modeRead), ' ', draft != null ? el('span', { class: 'jr-chip' }, J.shell.draft) : el('span', {}, `${f.name} · ${f.changed}`))
+    noteArea = el('textarea', { class: 'ds-input jr-note-text', id: 'jr-note', 'aria-label': `${T.apps.notities}: ${f.name}`, 'aria-describedby': `${wid}-mode`, 'data-autofocus': '', spellcheck: 'false', readonly: !rw,
+      on: { input: (e) => { if (!notes.canWrite(doc)) return; draft = e.target.value; showStatus() } } })
     noteArea.value = draft ?? f.versions.at(-1).body
-    const saved = el('p', { class: 'jr-pop-note', 'data-sim-fn': '', hidden: true }, J.shell.saved, ' ', ctx.feas('simulated'))
-    const save = () => { const had = draft != null; saveNote(); showStatus(); if (had) { saved.hidden = false; ctx.live(J.shell.saved) } }
-    body.append(el('div', { class: 'jr-app-bar', 'data-sim-scope': '' },
-      el('button', { class: 'ds-btn', 'data-variant': 'secondary', type: 'button', on: { click: save } }, icon('check', { size: 16 }), J.session.save, el('kbd', { class: 'ds-kbd' }, 'Ctrl+S')), status, saved), noteArea)
+    // station 7: Notities asks for a document the user did not hand it; the answer only ever adds to the draft after Bewerken
+    const insert = el('button', { class: 'ds-btn', 'data-variant': 'quiet', type: 'button', on: { click: async () => {
+      const res = await ctx.ask.request({ kind: 'ongoing', app: 'notities', right: 'read', data: 'boodschappen', destination: null, scope: 'document' }, { gesture: true })
+      if (res.answer !== 'allow') insNote = `${P.notInserted} ${res.text}`
+      else if (!notes.canWrite(doc)) insNote = P.needEdit
+      else { draft = `${(draft ?? f.versions.at(-1).body).trimEnd()}\n\n${files.get('boodschappen').versions.at(-1).body}`; insNote = P.inserted }
+      renderApp(app, body, ctx); ctx.live(insNote)
+      body.querySelector('.jr-note-tools button')?.focus()
+    } } }, icon('list', { size: 16 }), insNote && !insNote.startsWith(P.inserted) ? P.again : P.insertList)
+    // compact labels (repair 1): one visible chip next to the mode; the model sentence and the native label in a disclosure
+    body.append(el('div', { class: 'jr-app-bar', 'data-sim-scope': '' }, status, el('span', { 'data-sim-fn': '' }, ctx.feas('now')),
+      el('details', { class: 'jr-info' }, el('summary', {}, O.info),
+        el('p', { class: 'jr-pop-note', id: `${wid}-mode`, 'data-sim-fn': '' }, rw ? X.edited(f.name) : X.readHint(f.name), ' ', X.modelNow, ' ', ctx.feas('now'), ' ', X.modelNative, ' ', ctx.feas('feasible')))),
+    el('div', { class: 'jr-row jr-note-tools' }, insert, insNote ? el('p', { class: 'jr-pop-note', role: 'status' }, insNote) : null), noteArea)
     showStatus()
     return
   }
@@ -73,29 +102,20 @@ export function renderApp(app, body, ctx) {
     grid.querySelector('button').setAttribute('data-autofocus', '')
     return
   }
-  if (app === 'bestanden') {
-    const coll = Object.fromEntries(DATA.collections.map((c) => [c.id, c.name]))
-    body.append(el('div', { class: 'ds-banner', 'data-tone': 'info', 'data-sim-scope': '', 'data-sim-fn': '' }, icon('dot', { size: 18 }), el('p', {}, J.shell.readOnly, ' ', ctx.feas('now'))),
-      el('ul', { class: 'jr-plain jr-file-list', 'aria-label': T.apps.bestanden }, files.list().map((f) => el('li', { class: 'ds-row', 'data-sim-scope': '' },
-        icon(f.kind === 'image' ? 'image' : f.kind === 'note' ? 'note' : 'doc', { size: 20 }),
-        el('span', { class: 'ds-row-name' }, f.name),
-        el('span', { class: 'ds-row-meta' }, coll[f.collection] ?? ''),
-        el('span', { class: 'ds-place', 'data-place': f.storage === 'local' ? 'device' : 'nas', 'data-sim-fn': f.storage === 'local' ? null : '' },
-          el('i', { class: 'ds-node', 'data-shape': f.storage === 'local' ? 'device' : 'nas', 'aria-hidden': 'true' }), icon(f.storage === 'local' ? 'device' : 'nas', { size: 16 }), f.storage === 'local' ? T.privacy.local : DATA.nas.name),
-        f.storage === 'local' ? null : ctx.feas('simulated'),
-        el('span', { class: 'ds-row-meta' }, f.changed)))))
-    return
-  }
+  if (app === 'bestanden') return renderFiles(body, ctx)
+  if (app === 'browser') return renderBrowser(body, ctx)
+  if (app === 'fotos') return renderFotos(body, ctx)
   if (app === 'instellingen') return settings(body, ctx)
-  body.append(emptyState({ id: `${body.parentElement.id || app}-later`, ic: app, title: A.later(T.apps[app] ?? app), hint: J.tour.laterWhy }))
+  body.append(emptyState({ id: `${body.parentElement.id || app}-later`, ic: app, title: A.later(appName(app)), hint: J.tour.laterWhy }))
 }
 
+const APPICON = { notities: 'notities', fotos: 'fotos', browser: 'browser' }
 let page = 'toegankelijkheid'
 let unsub = null
 function settings(body, ctx) {
   const J = ctx.J
   const cats = T.instellingen.categories
-  const BUILT = new Set(['weergave', 'toegankelijkheid'])
+  const BUILT = new Set(['weergave', 'toegankelijkheid', 'privacy', 'opslag', 'updates'])
   const nav = el('ul', { class: 'jr-plain jr-set-nav' })
   const pane = el('div', { class: 'jr-set-pane' })
   const q = el('input', { class: 'ds-input', type: 'search', id: 'jr-set-q', on: { input: () => drawNav() } })
@@ -119,6 +139,8 @@ function settings(body, ctx) {
       pane.replaceChildren(h, el('p', { class: 'jr-lead' }, J.shell.a11yLead),
         ...Object.entries(J.a11y.axes).map(([axis, [name, opts]]) => seg(axis, name, opts, ctx.axes[axis] ?? '', (v) => ctx.setAxis(axis, v))),
         el('div', { class: 'jr-row' }, reset, undoBtn))
+    } else if (settingsPage(page, pane, h, ctx, () => { drawPane() })) {
+      // slice B pages: Privacy en beveiliging (Appmachtigingen and session file grants), Opslag en NAS, Updates
     } else {
       pane.replaceChildren(h, el('p', { class: 'jr-empty-line' }, J.tour.laterWhy))
     }

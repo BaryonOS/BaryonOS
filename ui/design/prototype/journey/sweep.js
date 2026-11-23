@@ -12,6 +12,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms))
 const failures = []
 const warnings = []
 let cells = 0
+const visited = [] // coverage record: every cell the sweep measured
 
 const parse = (c) => {
   let m = c.match(/rgba?\(([\d.]+),\s*([\d.]+),\s*([\d.]+)(?:,\s*([\d.]+))?\)/)
@@ -40,7 +41,9 @@ function check(win, cell, station, state, varNames) {
   const add = (kind, detail, list = failures) => list.push({ cell, station, state, kind, detail: String(detail).slice(0, 160) })
   const vw = doc.documentElement.clientWidth
   const theme = doc.documentElement.dataset.theme
-  const visible = (el) => { if (el.closest('[hidden],[inert]')) return false; const cs = win.getComputedStyle(el); if (cs.visibility === 'hidden' || cs.display === 'none') return false; const r = el.getBoundingClientRect(); return r.width > 0 && r.height > 0 }
+  // an open modal dialog (showModal) makes everything outside it inert: only the dialog is checked in that cell (slice B)
+  const modal = doc.querySelector('dialog:modal')
+  const visible = (el) => { if (el.closest('[hidden],[inert]') || (modal && !modal.contains(el))) return false; const cs = win.getComputedStyle(el); if (cs.visibility === 'hidden' || cs.display === 'none') return false; const r = el.getBoundingClientRect(); return r.width > 0 && r.height > 0 }
   const name = (el) => `${el.tagName.toLowerCase()}${el.id ? '#' + el.id : ''}.${[...el.classList].join('.')} "${(el.getAttribute('aria-label') || el.textContent || '').trim().slice(0, 40)}"`
   // Only containers designed to scroll sideways (data tables, WCAG 1.4.10 exception) excuse horizontal overflow.
   const scrollParent = (el) => el.closest('.jr-table-wrap')
@@ -184,13 +187,51 @@ function check(win, cell, station, state, varNames) {
     const lbl = el.getAttribute('aria-label') ?? ''
     if (/(^|[^\w])(null|undefined|NaN)([^\w]|$)|nullnull/.test(`${own} ${lbl}`)) add('null-text', `${name(el)} "${own.trim().slice(0, 60)}"`)
   }
+  // 10 frame containment (B repair 2): a box inside a window stays inside that window, and a box inside a window bar inside
+  // the bar (the shell's trusted frame actions must never hang over the desktop or into the app content). A scroll box or a
+  // popover (menu, listbox, dialog) in between excuses it; only the outermost escaping box is reported.
+  const escaped = new Set()
+  for (const el of all) {
+    const w = el.closest('.ds-window')
+    if (!w || el === w || el.closest('[role=menu], [role=listbox], .ds-menu, [popover], dialog') || [...escaped].some((x) => x.contains(el))) continue
+    let scroller = false
+    for (let p = el.parentElement; p && p !== w; p = p.parentElement) { const pcs = win.getComputedStyle(p); if (/auto|scroll/.test(pcs.overflowY + pcs.overflowX)) { scroller = true; break } }
+    if (scroller) continue
+    const host = el.closest('.ds-window-bar') ?? w, q = host.getBoundingClientRect(), r = el.getBoundingClientRect()
+    if (host === el) continue
+    if (r.top < q.top - 1 || r.bottom > q.bottom + 1 || r.left < q.left - 1 || r.right > q.right + 1) {
+      escaped.add(el)
+      add('escape', `${name(el)} outside its ${host === w ? 'window' : 'window bar'} [${Math.round(r.left)},${Math.round(r.top)},${Math.round(r.right)},${Math.round(r.bottom)}] vs [${Math.round(q.left)},${Math.round(q.top)},${Math.round(q.right)},${Math.round(q.bottom)}]`)
+    }
+  }
+  // 11 truncated labels (B repair 2): an ellipsis that leaves less than two thirds of a label, or less than about four
+  // characters, hides its meaning (a window title 'Notit...', a settings row 'S...'); a milder ellipsis is a warning.
+  for (const el of all) {
+    const cs = win.getComputedStyle(el)
+    if (cs.textOverflow !== 'ellipsis' || el.scrollWidth <= el.clientWidth + 1 || !textOf(el)) continue
+    const detail = `${name(el)} shows ${el.clientWidth} of ${el.scrollWidth} px`
+    if (el.clientWidth < el.scrollWidth * 0.67 || el.clientWidth < 4 * parseFloat(cs.fontSize)) add('truncated', detail); else add('truncated', detail, warnings)
+  }
   // focus re-test last: focusing may close a popover
-  for (const [el, box, cx, cy, hit] of retest) {
+  for (const [el, box, cx, cy] of retest) {
     if (!el.isConnected) continue
     el.focus({ preventScroll: true })
     const again = doc.elementFromPoint(cx, cy)
     if (again && !box.contains(again) && !again.contains(box)) add('obscured', `${name(el)} under ${name(again)}`); else add('covered-until-focus', name(el), warnings)
     el.blur()
+  }
+  // 12 tab keyboard focus (B repair 2, WAI-ARIA tabs): after ArrowRight and ArrowLeft the focus is on the newly selected tab.
+  // Runs last because it changes the selection; ArrowLeft returns to the tab the state showed.
+  for (const tl of [...doc.querySelectorAll('[role=tablist]')].filter(visible)) {
+    const sel = tl.querySelector('[role=tab][aria-selected=true]')
+    if (!sel) { add('tab-focus', `no selected tab in ${name(tl)}`); continue }
+    sel.focus({ preventScroll: true })
+    for (const key of ['ArrowRight', 'ArrowLeft']) {
+      doc.activeElement.dispatchEvent(new win.KeyboardEvent('keydown', { key, bubbles: true, cancelable: true }))
+      const a = doc.activeElement
+      if (a?.getAttribute('role') !== 'tab' || a.getAttribute('aria-selected') !== 'true') add('tab-focus', `${key}: focus on ${a ? name(a) : 'nothing'}, not on the selected tab`)
+    }
+    doc.activeElement?.blur()
   }
 }
 
@@ -204,6 +245,7 @@ async function run() {
     for (const th of themes) {
       J.setRoot(THEMES[th])
       await sleep(450)
+      const before = cells, expected = J.stations().reduce((n, s) => n + s.states.length, 0) + J.extras().length
       for (const s of J.stations()) for (const state of s.states) {
         await J.show(s.id, state)
         await sleep(state === 'success' && s.id === 'vensters' ? 50 : 120)
@@ -214,7 +256,7 @@ async function run() {
         // headless virtual time does not advance CSS transitions: measure the end state of every finite animation
         for (const a of win.document.getAnimations()) if (Number.isFinite(a.effect?.getComputedTiming?.().endTime)) { try { a.finish() } catch {} }
         await sleep(60) // let animationend handlers run, as they would for a person
-        cells++
+        cells++; visited.push(`${w} ${th} ${s.id}:${state}`)
         check(win, `${w}x${h} ${th}`, s.id, state, varNames)
         // consent coverage: the granted Tuinplan body is measured in the success cell (OQ-5, contract.js grants)
         if (s.id === 'vensters' && state === 'success' && !win.document.querySelector('#jr-note')) failures.push({ cell: `${w}x${h} ${th}`, station: s.id, state, kind: 'coverage', detail: 'granted Tuinplan body not shown' })
@@ -223,14 +265,16 @@ async function run() {
         await J.extra(x)
         for (const a of win.document.getAnimations()) if (Number.isFinite(a.effect?.getComputedTiming?.().endTime)) { try { a.finish() } catch {} }
         await sleep(60)
-        cells++
+        cells++; visited.push(`${w} ${th} extra:${x}`)
         check(win, `${w}x${h} ${th}`, `extra:${x}`, 'view', varNames)
         if (x === 'nogrant' && win.document.querySelector('#jr-note')) failures.push({ cell: `${w}x${h} ${th}`, station: 'extra:nogrant', state: 'view', kind: 'consent', detail: 'Tuinplan text shown without a grant' })
         await J.reset()
       }
+      // coverage (B repair 2): every station state and every extra was measured in this view and theme, or the run fails
+      if (cells - before !== expected) failures.push({ cell: `${w}x${h} ${th}`, station: '*', state: '*', kind: 'coverage', detail: `measured ${cells - before} of ${expected} cells` })
     }
   }
-  const out = { focus: 'document.hasFocus() true in every load', cells, failures, warnings: warnings.length, warningsByKind: warnings.reduce((m, f) => ((m[f.kind] = (m[f.kind] ?? 0) + 1), m), {}), warningSample: warnings.slice(0, 20), summary: Object.entries(failures.reduce((m, f) => ((m[f.kind] = (m[f.kind] ?? 0) + 1), m), {})) }
+  const out = { focus: 'document.hasFocus() true in every load', cells, visited, failures, warnings: warnings.length, warningsByKind: warnings.reduce((m, f) => ((m[f.kind] = (m[f.kind] ?? 0) + 1), m), {}), warningSample: warnings.slice(0, 20), summary: Object.entries(failures.reduce((m, f) => ((m[f.kind] = (m[f.kind] ?? 0) + 1), m), {})) }
   document.getElementById('out').textContent = JSON.stringify(out, null, 1)
   document.querySelector('#sw-table tbody').replaceChildren(...failures.slice(0, 200).map((f) => { const tr = document.createElement('tr'); for (const k of ['cell', 'station', 'state', 'kind', 'detail']) { const td = document.createElement('td'); td.textContent = f[k]; tr.append(td) } return tr }))
   document.getElementById('sw-state').textContent = `done: ${cells} cells, ${failures.length} failures`

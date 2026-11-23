@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Aanmelden · BaryonOS-prototype</title>
 <link rel="icon" href="data:,">
-<!-- DESIGN ARTEFACT, UX-E slice A (19 November 2026): connected prototype journey of BaryonOS (Orbitaal ds-1.1).
+<!-- DESIGN ARTEFACT, UX-E slices A (19 November 2026) and B (23 November 2026): connected prototype journey of BaryonOS (Orbitaal ds-1.1).
      A browser simulation with sample data: not a working OS and not product code. See docs/design/PROTOTYPE.md.
      Query: ?test=1 exposes window.__journey for sweep.html only. -->
 <script>window.__errs = []; addEventListener('error', e => __errs.push(String(e.message || e.type) + ' @ ' + (e.filename || (e.target && (e.target.src || e.target.href)) || '')), true); addEventListener('unhandledrejection', e => __errs.push('rejection: ' + String(e.reason && e.reason.message || e.reason)));
@@ -22,6 +22,8 @@
   <div id="jr-desk" class="jr-desk" hidden inert></div>
 </main>
 <div class="ds-live" aria-live="polite" id="jr-live"></div>
+<dialog id="jr-chooser" class="ds-dialog" aria-labelledby="jr-chooser-t" aria-describedby="jr-chooser-d"></dialog>
+<dialog id="jr-ask" class="ds-dialog" data-variant="ask" role="alertdialog" aria-labelledby="jr-ask-t"></dialog>
 <dialog id="jr-confirm" class="ds-dialog" aria-labelledby="jr-confirm-t" aria-describedby="jr-confirm-d"></dialog>
 </body>
 </html>

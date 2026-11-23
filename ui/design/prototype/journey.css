@@ -237,3 +237,113 @@ button.jr-tour-item:hover { background: var(--color-hover); }
   .jr-clock { font-size: var(--type-title-size); line-height: var(--type-title-line); }
 }
 @container (max-width: 23.99rem) { .jr-clock-date { display: none; } }
+/* slice B, E11: Bewerken and Opslaan drawn by the shell in the window bar, outside the app content (trusted surface) */
+.jr-frame-acts { display: flex; flex-wrap: wrap; gap: var(--space-2); margin-inline-start: auto; align-items: center; }
+.jr-frame-acts .ds-btn[aria-pressed="true"] { border-color: var(--color-focus); }
+@container (max-width: 30rem) { .jr-frame-acts .ds-kbd { display: none; } }
+/* grants view rows (E11): wrap instead of the fixed .ds-row columns, so 320 px and 200 % never scroll sideways */
+.jr-acc-row { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2) var(--space-3); padding-block: var(--space-2); border-bottom: 1px solid var(--color-line); }
+.jr-acc-row .ds-row-name { flex: 1 1 12rem; min-width: 0; overflow-wrap: anywhere; color: var(--color-text); }
+.jr-acc-row .ds-row-meta { color: var(--color-text-muted); }
+
+/* ---------- UX-E slice B: stations 5-8 and the E11 repair (layout only; ds-1.1 tokens, no colour literal) ---------- */
+/* Bestanden: places and collections | list | inspector. Container queries keep it whole at 320 CSS px and at 200 %. */
+.jr-win[data-app="bestanden"] .ds-window-body { container-type: inline-size; }
+.jr-files { display: grid; grid-template-columns: minmax(0, 12rem) minmax(0, 1fr) minmax(0, 18rem); gap: var(--space-4); align-items: start; }
+.jr-files-side, .jr-files-main, .jr-files-insp { display: grid; gap: var(--space-3); align-content: start; min-width: 0; }
+.jr-files-side .ds-row { width: 100%; }
+.jr-files-tools { display: flex; flex-wrap: wrap; gap: var(--space-3); align-items: end; }
+.jr-files-tools .ds-field { flex: 1 1 12rem; min-width: 0; }
+.jr-files-group, .jr-files-keep { min-width: 0; }
+.jr-files-keep { display: grid; gap: var(--space-1); }
+.jr-files-grp { display: grid; gap: var(--space-1); }
+.jr-file-row { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-1) var(--space-3); white-space: normal; padding-block: var(--space-1); border-radius: var(--radius-row); }
+.jr-file-row[data-sel] { outline: 1px solid var(--color-line-strong); }
+.jr-file-name { flex: 1 1 8rem; min-width: 0; min-height: 2.75rem; text-align: start; overflow-wrap: anywhere; font: inherit; color: var(--color-text); background: none; border: 0; padding: 0 var(--space-1); border-radius: var(--radius-control); cursor: pointer; }
+.jr-file-name[aria-pressed="true"] { font-weight: var(--type-body-strong-weight); }
+.jr-file-row .ds-row-meta { flex: 0 1 auto; min-width: 0; }
+.jr-file-places { display: inline-flex; flex-wrap: wrap; gap: var(--space-1); align-items: center; }
+.jr-files-insp { padding: var(--space-3); border: 1px solid var(--color-line); border-radius: var(--radius-card); background: var(--color-surface-inset); }
+.jr-files-insp .ds-tablist { flex-wrap: wrap; }
+@container (max-width: 56rem) { .jr-files { grid-template-columns: minmax(0, 11rem) minmax(0, 1fr); } .jr-files-insp { grid-column: 1 / -1; } }
+@container (max-width: 34rem) { .jr-files { grid-template-columns: minmax(0, 1fr); } }
+
+/* Metaphor "where data travels": a node moves along the route once; reduced motion ends at once (0 ms duration tokens) */
+.jr-route { display: grid; gap: var(--space-2); padding: var(--space-3); border: 1px solid var(--color-line); border-radius: var(--radius-card); }
+.jr-route-track { display: grid; grid-template-columns: auto minmax(3rem, 1fr) auto; align-items: center; gap: var(--space-2); }
+.jr-route-line { position: relative; display: flex; justify-content: center; align-items: center; height: 1.5rem; border-bottom: 1px dashed var(--color-line-strong); color: var(--color-text-muted); }
+.jr-route-dot { position: absolute; left: 0; bottom: -0.3rem; width: 0.6rem; height: 0.6rem; border-radius: var(--radius-round); background: var(--color-text); opacity: 0; }
+.jr-route[data-phase="travel"] .jr-route-dot { animation: jr-travel var(--motion-duration-slow) var(--motion-ease-in-out) 3 both; }
+.jr-route[data-phase="wait"] .jr-route-dot { opacity: 1; left: calc(50% - 0.3rem); }
+@keyframes jr-travel { from { left: 0; opacity: 1; } to { left: calc(100% - 0.6rem); opacity: 1; } }
+.jr-route-labels { display: flex; flex-wrap: wrap; justify-content: space-between; gap: var(--space-2); }
+.jr-route-text { margin: 0; }
+
+/* Metaphor "a stack of drafts": versions as offset sheets; a restored sheet lifts onto the stack */
+.jr-versions { gap: var(--space-2); }
+.jr-sheet { display: grid; gap: var(--space-1); padding: var(--space-3); border: 1px solid var(--color-line); border-radius: var(--radius-card); background: var(--color-surface-raised); box-shadow: var(--elev-plate); }
+.jr-sheet + .jr-sheet { margin-inline-start: var(--space-2); }
+.jr-sheet-h { margin: 0; display: flex; flex-wrap: wrap; gap: var(--space-1) var(--space-2); align-items: center; }
+.jr-sheet[data-lift] { animation: jr-lift var(--motion-duration-base) var(--motion-ease-orbital-out) 1 both; }
+@keyframes jr-lift { from { transform: translateY(var(--space-4)); box-shadow: none; } to { transform: none; box-shadow: var(--elev-plate); } }
+.jr-diff { padding: var(--space-2) var(--space-3); border-inline-start: 2px solid var(--color-line-strong); }
+.jr-diff li { overflow-wrap: anywhere; }
+
+/* Webvenster and Foto's (station 7): the site and the viewfinder are drawn with tokens only; no camera, no network */
+.jr-web { display: grid; gap: var(--space-3); }
+.jr-web-bar { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); padding: var(--space-2) var(--space-3); border: 1px solid var(--color-line); border-radius: var(--radius-control); background: var(--color-surface-inset); }
+.jr-web-addr { flex: 1 1 8rem; min-width: 0; overflow-wrap: anywhere; color: var(--color-text); }
+.jr-web-load, .jr-web-site, .jr-fotos { display: grid; gap: var(--space-3); }
+.jr-viewfinder { margin: 0; display: grid; gap: var(--space-2); justify-items: start; }
+.jr-viewfinder-frame { display: block; width: min(100%, 20rem); aspect-ratio: 4 / 3; border: 2px dashed var(--color-line-strong); border-radius: var(--radius-card); background: var(--color-surface-inset); }
+
+/* E11 repair: compact file-access labels, the Openen... action and the Bewerken state chip (the key turns) */
+.jr-info summary { cursor: pointer; color: var(--color-text-muted); min-height: 1.5rem; }
+.jr-info[open] { flex-basis: 100%; }
+.jr-note-tools { margin-bottom: var(--space-2); }
+.jr-edit-on[data-anim] { animation: jr-unlock var(--motion-duration-base) var(--motion-ease-orbital-out) 1 both; }
+@keyframes jr-unlock { from { transform: translateX(calc(-1 * var(--space-4))); opacity: 0; } to { transform: none; opacity: 1; } }
+.jr-chooser-list .ds-row { width: 100%; flex-wrap: wrap; white-space: normal; }
+.jr-chooser-list .ds-row[aria-disabled="true"] .ds-row-meta { flex-basis: 100%; }
+:where(.jr-files-side, .jr-chooser-list) button.ds-row { background-color: transparent; border: 0; font: inherit; color: var(--color-text); text-align: start; }
+.jr-files-side .ds-row[aria-current="page"] { background: var(--color-selection); box-shadow: inset 3px 0 0 var(--color-blade); }
+.jr-web-bar .jr-chip, .jr-fotos .jr-chip { white-space: normal; overflow-wrap: anywhere; }
+.jr-web-load .ds-progress { max-width: 100%; }
+/* B repair 2: a window bar with the shell's file actions always has two rows inside the frame: the title row (icon, title,
+   window controls) and the shell's action row below it, so the actions never hang over the desktop or into the app content
+   and the title is never squeezed. The bar grows with the actions; at any width they wrap inside the bar. */
+.jr-win .ds-window-bar:has(.jr-frame-acts) { height: auto; min-height: 52px; flex-shrink: 0; flex-wrap: wrap; row-gap: var(--space-1); padding-block: var(--space-1); }
+.jr-win .ds-window-bar:has(.jr-frame-acts) .ds-window-title { flex: 1 1 6rem; }
+.jr-win .ds-window-bar:has(.jr-frame-acts) .ds-window-ctls { order: 2; }
+.jr-win .ds-window-bar .jr-frame-acts { order: 3; flex: 1 1 100%; margin-inline-start: 0; padding-block-start: var(--space-1); border-top: 1px solid var(--color-line); }
+/* Bestanden and Instellingen hold three or two panes: a larger default window (snap, maximise and stack mode still apply) */
+.jr-windows .jr-win:is([data-app="bestanden"], [data-app="instellingen"]):not([data-state="maximised"]):not([data-snap="left"]):not([data-snap="right"]) { width: min(64rem, 86%); height: min(40rem, calc(100% - var(--space-8))); }
+:is(.jr-files-side, .jr-set-nav) .ds-row { display: flex; align-items: center; gap: var(--space-2); box-sizing: border-box; min-height: 2.75rem; white-space: normal; }
+:is(.jr-files-side, .jr-set-nav) .ds-row .ds-row-name { flex: 1 1 auto; min-width: 0; overflow-wrap: anywhere; }
+.jr-chooser-list .ds-row { display: flex; align-items: center; gap: var(--space-1) var(--space-3); box-sizing: border-box; min-height: 2.75rem; }
+.jr-chooser-list .ds-row .ds-row-name { flex: 1 1 8rem; min-width: 0; }
+/* B repair 2: station 7 lists its three requests under its Rondleiding entry */
+.jr-tour-list > li:has(.jr-tour-tasks) { grid-column: 1 / -1; display: grid; gap: var(--space-1); }
+.jr-tour-list > li:has(.jr-tour-tasks) > .jr-tour-item { height: auto; }
+.jr-tour-tasks { padding: 0 var(--space-3) var(--space-1); font-size: var(--type-caption-size); line-height: var(--type-caption-line); color: var(--color-text-muted); }
+.jr-tour-tasks p { margin: 0; font-weight: var(--font-weight-strong); color: var(--color-text); }
+.jr-tour-tasks ol { margin: 0; padding-inline-start: var(--space-5); }
+/* B repair 2: Externe opslag in Instellingen > Opslag en NAS (the internet place, chosen by the user) */
+.jr-ext { display: grid; gap: var(--space-2); padding-block-start: var(--space-3); border-top: 1px solid var(--color-line); }
+.jr-ext-facts { margin: 0; padding-inline-start: var(--space-5); display: grid; gap: var(--space-1); max-width: 72ch; }
+/* B repair 3: Bestanden toolbar: search and 'Groeperen op' in one row; the three segments sit side by side */
+.jr-files-tools .jr-files-group { flex: 0 1 auto; }
+.jr-files-group .ds-seg { grid-template-columns: repeat(3, auto); }
+/* B repair 3: comparing versions gives the inspector the width the diff needs (wide windows; narrow ones already span) */
+@container (min-width: 56.01rem) { .jr-files:has(.jr-diff) { grid-template-columns: minmax(0, 11rem) minmax(0, 1fr) minmax(0, 1.25fr); } }
+/* B repair 3: station 7 places its three requesting apps side by side, station 8 puts Instellingen in the main position
+   (wide frames only; stack mode, snap and maximise keep their own rules) */
+@container (min-width: 72rem) {
+  .jr-windows .ds-window[data-tile]:not([data-state="maximised"]):not([data-snap="left"]):not([data-snap="right"]) { top: var(--space-4); height: min(30rem, calc(100% - var(--space-8))); }
+  .jr-windows .ds-window[data-tile="1"]:not([data-state="maximised"]):not([data-snap="left"]):not([data-snap="right"]) { left: 1%; width: 32%; }
+  .jr-windows .ds-window[data-tile="2"]:not([data-state="maximised"]):not([data-snap="left"]):not([data-snap="right"]) { left: 34%; width: 32%; }
+  .jr-windows .ds-window[data-tile="3"]:not([data-state="maximised"]):not([data-snap="left"]):not([data-snap="right"]) { left: 67%; width: 32%; }
+  .jr-windows .ds-window[data-tile="main"]:not([data-state="maximised"]):not([data-snap="left"]):not([data-snap="right"]) { left: 4%; height: min(40rem, calc(100% - var(--space-8))); }
+}
+/* B repair 3: internet in use (gesimuleerd): a heavier ring than 'off', so the state is not carried by colour alone */
+:is(.jr-status-nodes, .jr-quick-net) .ds-node[data-shape="internet"][data-state="on"] { box-shadow: inset 0 0 0 3.5px var(--ds-c); }

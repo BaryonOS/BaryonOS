@@ -4,7 +4,10 @@ import { T, DATA, el, icon, store, files, bus, motionMs, grants } from '../contr
 import { createWm } from './wm.js'
 import { buildIndex, query } from './search.js'
 import { ACTIONS } from './state.js'
-import { renderApp, saveNote, noteDirty, discardNote, emptyState } from './apps.js'
+import { renderApp, saveNote, noteDirty, discardNote, emptyState, noteDoc, setNoteDoc, canOpenInNotes } from './apps.js'
+import { fileAccess, TEST_OPEN, isUserGesture, appName } from './access.js'
+import { saveShortcut } from './fileaccess.js'
+import { appEnded, netInUse } from './stations.js'
 
 const APP_ICON = { bestanden: 'bestanden', notities: 'notities', instellingen: 'instellingen', haven: 'haven', browser: 'browser', fotos: 'fotos', rekenmachine: 'rekenmachine', muziek: 'muziek' }
 
@@ -20,9 +23,12 @@ export function initShell(ctx) {
 
   const nodes = new Map() // window id -> {node, body, app}
   const wm = createWm({ emit: (type, w) => {
-    if (type === 'appClosed') grants.appClosed?.(w) // OQ-5 end event: last window of the app closed
+    if (type === 'appClosed') { fileAccess.shell.appClosed(w); appEnded(w) } // OQ-5 end event: last window of the app closed; ends its file grants (E11 c)
   } })
-  const title = (app) => T.apps[app] ?? app
+  const title = appName
+  // B repair 3 (lead decision 5): internet in use, by which running app and for which single destination (gesimuleerd)
+  const netUses = () => netInUse(new Set(wm.list().map((w) => w.app)))
+  const netText = () => netUses().map((u) => J.b.r3.netUse(title(u.app), u.dest)).join('; ')
   const place = (storage) => {
     const p = storage === 'local' ? 'device' : 'nas'
     return el('span', { class: 'ds-place', 'data-place': p }, el('i', { class: 'ds-node', 'data-shape': p, 'data-state': p === 'nas' && !store.get('nasOnline') ? 'off' : null, 'aria-hidden': 'true' }), icon(p, { size: 16 }), p === 'device' ? T.privacy.local : DATA.nas.name)
@@ -33,26 +39,121 @@ export function initShell(ctx) {
     const recent = ctx.sim.desk === 'empty' ? [] : files.list({ recent: true }).slice(0, 4)
     const h = new Date(`${DATA.now.iso}`).getHours()
     const greet = T.desktop.greeting[h < 12 ? 'morning' : h < 18 ? 'afternoon' : 'evening']
-    const nas = !!store.get('nasOnline')
+    const nas = !!store.get('nasOnline'), net = netText()
     // the three-node privacy instrument (ds-1.1 .ds-privacy): where work is, with shape, icon and text; internet stays off
     const col = (p, state, label) => el('div', { class: 'ds-privacy-col', 'data-place': p, 'data-state': state },
       el('i', { class: 'ds-node', 'data-shape': p, 'data-state': state === 'off' ? 'off' : null }), el('span', { class: 'ds-privacy-lbl' }, icon(p, { size: 16 }), label))
     const privacy = el('div', { class: 'jr-desk-privacy', 'data-sim-scope': '', 'data-sim-fn': '' },
-      el('div', { class: 'ds-privacy', 'data-state': 'local', role: 'status', 'aria-label': J.more.privacy(nas) },
-        el('div', { class: 'ds-privacy-track', 'aria-hidden': 'true' }, col('device', 'lit', J.more.device), col('nas', nas ? 'lit' : 'off', DATA.nas.name), col('internet', 'off', J.more.internet)),
-        el('div', { class: 'ds-privacy-text', 'aria-hidden': 'true' }, el('span', {}, J.more.privacyWhere(nas)), el('span', {}, J.more.privacyNet))),
+      el('div', { class: 'ds-privacy', 'data-state': 'local', role: 'status', 'aria-label': net ? J.b.r3.privacy(nas, net) : J.more.privacy(nas) },
+        el('div', { class: 'ds-privacy-track', 'aria-hidden': 'true' }, col('device', 'lit', J.more.device), col('nas', nas ? 'lit' : 'off', DATA.nas.name), col('internet', net ? 'lit' : 'off', J.more.internet)),
+        el('div', { class: 'ds-privacy-text', 'aria-hidden': 'true' }, el('span', {}, J.more.privacyWhere(nas)), el('span', {}, net ? J.b.r3.privacyNet(net) : J.more.privacyNet))),
       ctx.feas('simulated'))
     // recent work on a trajectory, newest first: the lit dot is where you were last (Orbitaal v2 board, Bureaublad)
     cont.replaceChildren(el('div', { class: 'jr-desk-head' }, el('p', { class: 'jr-greet' }, `${greet}, ${DATA.user.name}`), privacy),
       el('div', { class: 'jr-plate' },
         el('h2', { id: 'jr-cont-h' }, T.desktop.continueTitle),
-        recent.length ? el('ul', { class: 'jr-cont-list' }, recent.map((f) => el('li', {}, el('button', { class: 'jr-cont-item', type: 'button', on: { click: () => openFile(f.id) } },
+        recent.length ? el('ul', { class: 'jr-cont-list' }, recent.map((f) => el('li', {}, el('button', { class: 'jr-cont-item', type: 'button', on: { click: (e) => openFile(f.id, e) } },
           el('span', { class: 'jr-thumb', 'aria-hidden': 'true' }, icon(f.kind, { size: 24 })),
           el('span', { class: 'jr-cont-text' }, el('span', { class: 'jr-cont-name' }, f.name), el('span', { class: 'jr-cont-meta' }, `${J.more.kinds[f.kind] ?? ''} · ${f.changed}`)),
           place(f.storage)))))
           : el('p', { class: 'jr-empty-line' }, J.shell.continueEmpty)))
   }
-  const openFile = (id) => (id === 'tuinplan' ? open('notities') : open('bestanden'))
+  // E11 (a): every explicit user open (Bestanden Openen and Openen met, a Zoeken result, Verder waar je was, Menu recent, the
+  // Openen... chooser) lands here and seeds a temporary read for exactly that document; never readWrite, never a prompt.
+  // Router opens never seed. `ev` must be the real input event of the user's gesture; the broker checks it again
+  // (fileaccess.js isUserGesture), so a script-made event or a forged object seeds nothing. TEST_OPEN: ?test=1 hook only.
+  async function openFile(id, ev) {
+    if (!canOpenInNotes(id)) return open('bestanden')
+    if (!isUserGesture(ev)) { ctx.live(J.access.refusedOpen); return null }
+    const prev = noteDoc()
+    if (prev && prev !== id) { // the single Notities window switches document: the previous one is closed first
+      if (noteDirty()) {
+        const v = await ctx.confirm(J.access.dirtyClose(files.get(prev)?.name ?? prev))
+        if (v === 'cancel') return null
+        if (v === 'save' && !saveNote()) return null
+        if (v === 'discard') discardNote()
+      }
+      fileAccess.shell.close('notities', prev)
+    }
+    if (!fileAccess.shell.open('notities', id, ev)) { ctx.live(J.access.refusedOpen); return null }
+    if (id !== prev) setNoteDoc(id) // reopening the same document keeps its draft
+    const w = open('notities')
+    refresh('notities')
+    return w
+  }
+  function refresh(app) {
+    for (const [id, n] of nodes) if (n.app === app && !n.body.getAttribute('aria-busy') && !n.body.querySelector(':scope > .ds-empty[data-tone="error"][id$="-err"]')) { // never over a failed launch
+      const a = document.activeElement, keep = n.body.contains(a) ? (a.id === 'jr-note' ? [a.selectionStart, a.selectionEnd] : []) : null
+      renderApp(app, n.body, { ...ctx, open, openFile, args: {} })
+      syncBar(id)
+      if (keep) { const t = n.body.querySelector('#jr-note'); if (t) { t.focus(); if (keep.length) t.setSelectionRange(...keep) } } // a save never drops focus or caret
+    }
+  }
+  // E11 (b): Bewerken and Opslaan are drawn by the shell in the window bar, outside the app content; they pass the real input
+  // event to the broker, which refuses anything not isTrusted (a script-made click, including one from app content).
+  function syncBar(id) {
+    const n = nodes.get(id); if (!n || n.app !== 'notities') return
+    const d = noteDoc(), lv = d ? fileAccess.shell.level('notities', d) : null
+    const eb = n.node.querySelector('.jr-edit'), sb = n.node.querySelector('.jr-save'), on = n.node.querySelector('.jr-edit-on')
+    // repair 1: Bewerken is a one-way action, not a toggle; once granted, a state chip replaces it until the file is closed
+    eb.hidden = !lv || lv === 'readWrite'
+    on.hidden = lv !== 'readWrite'
+    sb.hidden = !lv
+  }
+  // B repair 3 (lead decision 3): only an activation of a control the shell draws in the window frame (Bewerken, Opslaan)
+  // escalates; a keystroke, whatever element has focus, never does. TEST_OPEN: the ?test=1 hook only.
+  const fromFrame = (e) => (TEST_OPEN !== null && e === TEST_OPEN) || !!e?.currentTarget?.closest?.('.jr-frame-acts')
+  function editAction(id, e) {
+    const d = noteDoc()
+    if (!d || !fromFrame(e)) return false
+    if (fileAccess.shell.level('notities', d) === 'readWrite') return true
+    const ok = fileAccess.shell.edit('notities', d, e) // the broker refuses anything but a real user gesture
+    ctx.live(ok ? J.access.edited(files.get(d)?.name ?? d) : J.access.refused)
+    if (ok) {
+      refresh('notities')
+      // metaphor: the key turns (the chip slides out of where Bewerken was); reduced motion: duration tokens are 0 ms
+      const chip = nodes.get(id)?.node.querySelector('.jr-edit-on')
+      if (chip) { chip.dataset.anim = ''; setTimeout(() => chip.removeAttribute('data-anim'), 400) }
+      nodes.get(id)?.node.querySelector('#jr-note')?.focus()
+    }
+    return ok
+  }
+  // Ctrl+S (E11 b, lead decision 3): saves only while readWrite is held; on a read-only document it moves focus to the
+  // shell's Bewerken control and says why, so the escalation is always the user's own activation of that control.
+  function saveKey(id) {
+    const d = noteDoc(), lv = d ? fileAccess.shell.level('notities', d) : null, act = saveShortcut(lv)
+    if (act === 'save') { if (noteDirty()) { if (saveNote()) { refresh('notities'); ctx.live(J.shell.saved) } else ctx.live(J.access.writeRefused(files.get(d)?.name ?? d)) } return }
+    if (act === 'point-to-edit') { nodes.get(id)?.node.querySelector('.jr-edit')?.focus(); ctx.live(J.b.r3.ctrlSReadOnly(files.get(d)?.name ?? d)) }
+  }
+  function saveAction(id, e) {
+    const d = noteDoc()
+    if (!d || !editAction(id, e)) return
+    if (!noteDirty()) return
+    if (saveNote()) { refresh('notities'); ctx.live(J.shell.saved) } else ctx.live(J.access.writeRefused(files.get(d)?.name ?? d))
+  }
+
+  // The system file chooser (a powerbox): a modal dialog the shell draws outside every app's content. Opening it needs a user
+  // gesture; the pick inside it is the open gesture that seeds read for that one file (E11 a). With `file`, it is Openen met.
+  function chooser(e, { file = null } = {}) {
+    if (!isUserGesture(e)) { ctx.live(J.access.refusedOpen); return }
+    const dlg = document.getElementById('jr-chooser'), O = J.b.open, X = J.b.files
+    const opener = document.activeElement
+    let picked = false
+    const pick = (id) => (ev) => { picked = true; dlg.close(); openFile(id, ev) }
+    const items = file
+      ? ['notities', 'browser', 'fotos'].map((app) => el('li', {}, app === 'notities' && canOpenInNotes(file)
+        ? el('button', { class: 'ds-row', type: 'button', on: { click: pick(file) } }, icon(APP_ICON[app], { size: 18 }), el('span', { class: 'ds-row-name' }, title(app)))
+        : el('div', { class: 'ds-row', 'aria-disabled': 'true' }, icon(APP_ICON[app], { size: 18 }), el('span', { class: 'ds-row-name' }, title(app)), el('span', { class: 'ds-row-meta' }, X.cannotOpen(title(app))))))
+      : files.list().filter((f) => canOpenInNotes(f.id)).map((f) => el('li', {}, el('button', { class: 'ds-row', type: 'button', on: { click: pick(f.id) } }, icon(f.kind === 'list' ? 'list' : 'note', { size: 18 }), el('span', { class: 'ds-row-name' }, f.name), place(f.storage))))
+    const cancel = el('button', { class: 'ds-btn', 'data-variant': 'secondary', type: 'button', on: { click: () => dlg.close() } }, O.cancel)
+    dlg.replaceChildren(el('h2', { class: 'ds-dialog-title', id: 'jr-chooser-t' }, file ? X.openWithTitle(files.get(file)?.name ?? file) : O.chooserTitle),
+      el('div', { class: 'ds-dialog-body' }, el('p', { class: 'ds-dialog-text', id: 'jr-chooser-d' }, file ? O.withLead : O.chooserLead), el('ul', { class: 'jr-plain jr-chooser-list' }, items)),
+      el('div', { class: 'ds-dialog-actions' }, cancel))
+    dlg.onclose = () => { if (!picked && opener?.isConnected) opener.focus() }
+    dlg.showModal()
+    ;(dlg.querySelector('.ds-dialog-body button') ?? cancel).focus()
+  }
+  ctx.chooser = chooser
 
   // --- Orbit ---
   const items = {}
@@ -61,6 +162,7 @@ export function initShell(ctx) {
     const running = new Set(wm.list().map((w) => w.app))
     const active = wm.active()?.app
     const apps = stack ? [] : [...new Set([...store.get('pinned'), ...running])]
+    const net = netText()
     const item = (key, label, ic, onclick, extra = {}) => {
       const b = el('button', { class: 'ds-taskitem', type: 'button', 'aria-label': label, on: { click: onclick }, ...extra }, ic)
       items[key] = b
@@ -77,15 +179,16 @@ export function initShell(ctx) {
           () => (st === 'active' ? minimise(wm.active().id) : open(a)), { 'data-state': st, 'aria-current': st === 'active' ? 'true' : null })
       }),
       apps.length ? el('span', { class: 'ds-orbit-sep', 'aria-hidden': 'true' }) : null,
-      item('status', store.get('nasOnline') ? J.shell.status : J.shell.statusOffline,
+      item('status', net ? J.b.r3.status(!!store.get('nasOnline'), net) : store.get('nasOnline') ? J.shell.status : J.shell.statusOffline,
         el('span', { class: 'jr-status-nodes' }, el('i', { class: 'ds-node', 'data-shape': 'device', 'data-place': 'device', 'aria-hidden': 'true' }),
           el('i', { class: 'ds-node', 'data-shape': 'nas', 'data-place': 'nas', 'data-state': store.get('nasOnline') ? null : 'off', 'aria-hidden': 'true' }),
-          el('i', { class: 'ds-node', 'data-shape': 'internet', 'data-place': 'internet', 'data-state': 'off', 'aria-hidden': 'true' })),
+          el('i', { class: 'ds-node', 'data-shape': 'internet', 'data-place': 'internet', 'data-state': net ? 'on' : 'off', 'aria-hidden': 'true' })),
         (e) => togglePop('quick', e.currentTarget), { 'aria-expanded': String(openPop === 'quick') }),
       item('clock', J.shell.clock(DATA.now.clock, DATA.now.date),
         el('span', { class: 'jr-clock-item' }, el('span', {}, DATA.now.clock), el('span', { class: 'jr-clock-date' }, DATA.now.short),
           store.get('notifications').length ? el('span', { class: 'ds-taskitem-badge', 'aria-hidden': 'true' }, String(store.get('notifications').length)) : null),
         (e) => togglePop('notes', e.currentTarget), { 'aria-expanded': String(openPop === 'notes'), 'data-wide': '' })].filter(Boolean))
+    syncNet() // the desktop privacy instrument follows the same state (an app closing ends its internet use there too)
   }
 
   // --- Popovers: non-modal, one at a time, Escape or outside click closes, focus returns to the trigger ---
@@ -138,7 +241,7 @@ export function initShell(ctx) {
         el('h2', { class: 'ds-vh' }, T.orbit.menu),
         el('div', { class: 'ds-field', 'data-variant': 'search' }, el('label', { class: 'ds-vh', for: 'jr-menu-q' }, T.orbit.search), el('span', { class: 'ds-input-wrap' }, icon('zoeken', { size: 18 }), q)),
         el('h3', { class: 'jr-pop-h' }, T.menu.pinned), el('div', { class: 'jr-app-grid' }, store.get('pinned').map(appBtn)),
-        el('h3', { class: 'jr-pop-h' }, T.menu.recent), el('ul', { class: 'jr-plain' }, files.list({ recent: true }).slice(0, 3).map((f) => el('li', {}, el('button', { class: 'ds-row', type: 'button', on: { click: () => { closePopovers(false); openFile(f.id) } } }, icon('note', { size: 18 }), el('span', { class: 'ds-row-name' }, f.name), place(f.storage))))),
+        el('h3', { class: 'jr-pop-h' }, T.menu.recent), el('ul', { class: 'jr-plain' }, files.list({ recent: true }).slice(0, 3).map((f) => el('li', {}, el('button', { class: 'ds-row', type: 'button', on: { click: (e) => { closePopovers(false); openFile(f.id, e) } } }, icon('note', { size: 18 }), el('span', { class: 'ds-row-name' }, f.name), place(f.storage))))),
         el('h3', { class: 'jr-pop-h' }, T.menu.allApps), el('div', { class: 'jr-app-grid' }, DATA.apps.filter((a) => !a.pinned).map((a) => appBtn(a.id))),
         el('div', { class: 'jr-pop-foot' }, el('span', { class: 'jr-avatar', 'aria-hidden': 'true' }, DATA.user.initials), el('span', { class: 'jr-grow' }, DATA.user.full),
           el('button', { class: 'ds-btn', 'data-variant': 'secondary', type: 'button', on: { click: () => { closePopovers(false); ctx.go('aanmelden') } } }, icon('lock', { size: 16 }), T.menu.lock),
@@ -166,6 +269,8 @@ export function initShell(ctx) {
       return [
         el('h2', { class: 'jr-pop-title' }, T.quick.title),
         el('p', { class: 'jr-pop-note', 'data-sim-scope': '', 'data-sim-fn': '' }, el('span', { class: 'ds-place', 'data-place': 'device' }, el('i', { class: 'ds-node', 'data-shape': 'device', 'aria-hidden': 'true' }), icon('device', { size: 16 }), T.privacy.local), ' ', ctx.feas('simulated')),
+        el('p', { class: 'jr-pop-note jr-quick-net', 'data-sim-scope': '', 'data-sim-fn': '' }, el('span', { class: 'ds-place', 'data-place': 'internet' }, el('i', { class: 'ds-node', 'data-shape': 'internet', 'data-state': netText() ? 'on' : 'off', 'aria-hidden': 'true' }), icon('internet', { size: 16 }), J.more.internet),
+          ' ', netText() ? J.b.r3.quickNet(netText()) : J.b.r3.quickNetOff, ' ', ctx.feas('simulated')),
         el('div', { class: 'jr-quick' }, sw('wifi', `${T.quick.wifi} · ${T.quick.wifiNetwork}`), sw('bluetooth', T.quick.bluetooth), sw('focusMode', T.quick.focus)),
         el('fieldset', { class: 'ds-fieldset' }, el('legend', {}, T.quick.theme), el('div', { class: 'ds-seg' }, J.a11y.axes.theme[1].map(([v, l]) => el('label', { class: 'ds-radio' },
           el('input', { type: 'radio', name: 'jr-quick-theme', value: v, checked: (ctx.axes.theme ?? '') === v, on: { change: () => ctx.setAxis('theme', v) } }), l)))),
@@ -232,7 +337,7 @@ export function initShell(ctx) {
   function drawResults() {
     const q = pops.querySelector('#jr-q'); if (!q) return
     qText = q.value
-    const idx = buildIndex({ T, DATA, files: files.list(), actions: ACTIONS })
+    const idx = buildIndex({ T, DATA, files: files.list(), actions: ACTIONS, name: appName })
     const st = pops.querySelector('#jr-search-state')
     const box = pops.querySelector('#jr-results')
     const mode = ctx.sim.search
@@ -254,7 +359,7 @@ export function initShell(ctx) {
       const id = `jr-r${opts.length}`
       opts.push({ id, it })
       const ic = { apps: APP_ICON[it.id] ?? 'apps', files: 'note', settings: 'instellingen', actions: 'fwd', assistant: 'assistent' }[it.group] ?? 'dot'
-      return el('div', { class: 'ds-row', role: 'option', id, 'aria-selected': 'false', on: { click: () => run(it), pointerdown: (e) => e.preventDefault() } }, icon(ic, { size: 20 }), label, extra)
+      return el('div', { class: 'ds-row', role: 'option', id, 'aria-selected': 'false', on: { click: (e) => run(it, e), pointerdown: (e) => e.preventDefault() } }, icon(ic, { size: 20 }), label, extra)
     }
     if (!qText.trim()) {
       box.replaceChildren(el('div', { role: 'group', 'aria-label': J.search.suggestions, class: 'jr-result-group' }, el('p', { class: 'jr-pop-h', 'aria-hidden': 'true' }, J.search.suggestions),
@@ -304,9 +409,9 @@ export function initShell(ctx) {
       cur.setAttribute('aria-selected', 'true'); cur.scrollIntoView({ block: 'nearest' })
       preview(opts[active].it)
       e.target.setAttribute('aria-activedescendant', opts[active].id)
-    } else if (e.key === 'Enter' && active >= 0) { e.preventDefault(); run(opts[active].it) }
+    } else if (e.key === 'Enter' && active >= 0) { e.preventDefault(); run(opts[active].it, e) }
   }
-  function run(it) {
+  function run(it, e) {
     if (it.group === 'assistant') {
       const st = pops.querySelector('#jr-search-state')
       st.dataset.simScope = ''
@@ -315,24 +420,43 @@ export function initShell(ctx) {
     }
     closePopovers(false)
     if (it.group === 'apps') open(it.id)
-    else if (it.group === 'files') openFile(it.id)
+    else if (it.group === 'files') openFile(it.id, e)
     else if (it.group === 'settings') open('instellingen', { page: it.page ?? it.id.split(':')[0] })
     else if (it.id === 'lock') ctx.go('aanmelden')
     else if (it.id === 'nas') open('bestanden')
     else { ctx.setAxis('theme', it.id); ctx.live(J.r2.themeSet(J.search.actions[it.id] ?? it.id)) }
   }
 
+  // E11 (c): the grants view (Instellingen > Privacy en beveiliging) lists and revokes file grants through these two.
+  ctx.openFiles = () => fileAccess.shell.list()
+  ctx.revokeFile = async (app, doc) => {
+    if (app === 'notities' && doc === noteDoc() && noteDirty()) { // never drop a draft silently
+      const v = await ctx.confirm(J.access.revokeAsk(files.get(doc)?.name ?? doc))
+      if (v === 'cancel') return false
+      if (v === 'save' && !saveNote()) return false
+      if (v === 'discard') discardNote()
+    }
+    fileAccess.shell.revoke(app, doc)
+    refresh(app)
+    return true
+  }
+
   // --- Windows ---
   let cascade = 0
   function open(app, args = {}) {
+    if (app === 'bestanden' && (args.select || args.tab)) bus.emit('jr:files', args)
     const existing = wm.list().find((w) => w.app === app)
+    if (existing && args.tile) nodes.get(existing.id).node.dataset.tile = args.tile
+    // a route revisit focuses an open multi-window app instead of adding a window (go() only opens or focuses)
+    if (args.reuse && existing) { wm.focus(existing.id); render(); focusWin(existing.id); ctx.live(J.shell.focused(title(app))); return existing }
     const w = wm.open(app)
-    if (existing && existing.id === w.id) { render(); if (args.page) bus.emit('jr:settings', args.page); focusWin(w.id); ctx.live(J.shell.focused(title(app))); return w }
+    if (existing && existing.id === w.id) { render(); if (args.page) bus.emit('jr:settings', args.page); if (args.select || args.tab) refresh(app); focusWin(w.id); ctx.live(J.shell.focused(title(app))); return w }
     const from = items[`app:${app}`]?.getBoundingClientRect()
     const n = cascade++ % 5
-    const node = el('section', { class: 'ds-window jr-win', role: 'region', 'aria-labelledby': `${w.id}-t`, 'data-app': app,
+    const node = el('section', { class: 'ds-window jr-win', role: 'region', 'aria-labelledby': `${w.id}-t`, 'data-app': app, 'data-tile': args.tile ?? null,
       style: `--jr-dyn-x: calc(4% + ${n * 32}px); --jr-dyn-y: ${16 + n * 28}px`,
-      on: { focusin: () => { if (wm.active()?.id !== w.id) { wm.focus(w.id); render() } }, pointerdown: () => { if (wm.active()?.id !== w.id) { wm.focus(w.id); render() } } } })
+      on: { keydown: (e) => { if (app === 'notities' && (e.ctrlKey || e.metaKey) && !e.altKey && e.key.toLowerCase() === 's') { e.preventDefault(); if (!e.repeat) saveKey(w.id) } },
+        focusin: () => { if (wm.active()?.id !== w.id) { wm.focus(w.id); render() } }, pointerdown: () => { if (wm.active()?.id !== w.id) { wm.focus(w.id); render() } } } })
     const body = el('div', { class: 'ds-window-body' })
     const bar = el('header', { class: 'ds-window-bar', on: { dblclick: () => { wm.maximise(w.id); render() } } },
       el('span', { class: 'ds-menu-anchor jr-winmenu-anchor' },
@@ -341,7 +465,13 @@ export function initShell(ctx) {
       el('div', { class: 'ds-window-ctls' },
         el('button', { class: 'ds-window-ctl', type: 'button', 'aria-label': T.window.minimize, on: { click: () => minimise(w.id) } }, icon('min', { size: 16 })),
         el('button', { class: 'ds-window-ctl jr-ctl-max', type: 'button', 'aria-label': T.window.maximize, on: { click: () => { wm.maximise(w.id); render() } } }, icon('max', { size: 16 })),
-        el('button', { class: 'ds-window-ctl', type: 'button', 'aria-label': `${T.window.close} (Alt+W)`, on: { click: () => close(w.id) } }, icon('close', { size: 16 }))))
+        el('button', { class: 'ds-window-ctl', type: 'button', 'aria-label': `${T.window.close} (Alt+W)`, on: { click: () => close(w.id) } }, icon('close', { size: 16 }))),
+      // B repair 2: the shell's action row comes after the window controls in the DOM, so Tab follows the two visual rows
+      app === 'notities' ? el('span', { class: 'jr-frame-acts' },
+        el('button', { class: 'ds-btn jr-open', 'data-variant': 'quiet', type: 'button', 'aria-label': J.b.open.chooserTitle, on: { click: (e) => chooser(e) } }, icon('bestanden', { size: 16 }), el('span', { class: 'jr-open-t' }, J.b.open.dots)),
+        el('button', { class: 'ds-btn jr-edit', 'data-variant': 'secondary', type: 'button', hidden: true, on: { click: (e) => editAction(w.id, e) } }, icon('toegang', { size: 16 }), J.access.edit),
+        el('span', { class: 'jr-chip jr-edit-on', 'data-on': '', hidden: true }, icon('toegang', { size: 14 }), J.access.editing),
+        el('button', { class: 'ds-btn jr-save', 'data-variant': 'secondary', type: 'button', hidden: true, on: { click: (e) => saveAction(w.id, e) } }, icon('check', { size: 16 }), J.access.save, el('kbd', { class: 'ds-kbd' }, 'Ctrl+S'))) : null)
     node.append(bar, body)
     winHost.prepend(node)
     nodes.set(w.id, { node, body, app })
@@ -377,7 +507,8 @@ export function initShell(ctx) {
         return
       }
       body.removeAttribute('data-sim-scope')
-      renderApp(app, body, { ...ctx, open, args })
+      renderApp(app, body, { ...ctx, open, openFile, args })
+      syncBar(id)
     }, 600)
   }
   bus.on('jr:sim', (g) => { if (g === 'launch' && ctx.sim.launch === 'normal') for (const [id, n] of nodes) if (n.body.getAttribute('aria-busy')) launch(id, {}) })
@@ -418,11 +549,13 @@ export function initShell(ctx) {
   async function close(id) {
     const n = nodes.get(id); if (!n) return
     if (n.app === 'notities' && noteDirty()) {
-      const v = await ctx.confirm(J.r2.dirtyCloseBody)
+      const v = await ctx.confirm(J.access.dirtyClose(files.get(noteDoc())?.name ?? ''))
       if (v === 'cancel') return
-      if (v === 'save') saveNote(); else discardNote()
+      if (v === 'save' && !saveNote()) return
+      if (v === 'discard') discardNote()
     }
     nodes.delete(id); n.node.remove(); wm.close(id); render()
+    if (n.app === 'notities') setNoteDoc(null) // the document is closed with its window; appClosed ended its grants
     const a = wm.active(); a ? focusWin(a.id) : items.menu?.focus()
     ctx.live(J.shell.closed(title(n.app)))
   }
@@ -473,13 +606,22 @@ export function initShell(ctx) {
 
   bus.on('store:nasOnline', () => { renderOrbit(); renderContinue(); if (openPop === 'quick') togglePop('quick', items.status, true) })
   bus.on('store:notifications', renderOrbit)
+  // B repair 3 (lead decision 5): a connect grant starting or ending (allow, end-temporary, app-closed, logout) updates the
+  // Orbit status and the desktop privacy instrument at once; focus on an Orbit item survives the redraw
+  let netSig = ''
+  const syncNet = () => { const s = netText(); if (s !== netSig) { netSig = s; renderContinue() } }
+  bus.on('permission', () => { const k = Object.keys(items).find((x) => items[x] === document.activeElement); renderOrbit(); if (k) items[k]?.focus() })
   bus.on('jr:sim', (g) => { if (g === 'desk') renderContinue(); if (g === 'search') drawResults() })
   renderContinue(); renderOrbit()
 
   return { /* after sign-in focus starts on the Menu button */
     show() { renderContinue(); items.menu?.focus() }, open, openSearch: () => togglePop('search', items.search, true), pop: (id) => togglePop(id, items[id === 'quick' ? 'status' : id === 'notes' ? 'clock' : id], true), searchFor, closePopovers, command,
-    count: () => wm.list().length, dirty: noteDirty, saveAll: saveNote, discardAll: discardNote,
-    closeAll() { for (const id of [...nodes.keys()]) { nodes.get(id).node.remove(); nodes.delete(id); wm.close(id) } closePopovers(false); render() },
+    openFileForTest: TEST_OPEN ? (id) => openFile(id, TEST_OPEN) : undefined,
+    // ?test=1 only: the trusted Bewerken of the active Notities window, so the sweep can measure the edit state (E10)
+    editForTest: TEST_OPEN ? () => { const n = [...nodes].find(([, x]) => x.app === 'notities'); return n ? editAction(n[0], TEST_OPEN) : false } : undefined,
+    chooser,
+    count: () => wm.list().length, dirty: noteDirty, saveAll: saveNote, discardAll: discardNote, openFile, refresh,
+    closeAll() { for (const id of [...nodes.keys()]) { nodes.get(id).node.remove(); nodes.delete(id); wm.close(id) } setNoteDoc(null); closePopovers(false); render() },
     regionTarget: () => { const a = wm.active(); return a ? nodes.get(a.id).node.querySelector('.jr-winicon') : document.querySelector('.jr-continue button') },
     focusFallback: () => { const a = wm.active(); a ? focusWin(a.id) : items.menu?.focus() },
   }

@@ -9,9 +9,9 @@ function matches(text, q) {
 }
 
 // items: [{group, id, label, sub?, terms?}]
-export function buildIndex({ T, DATA, files, actions }) {
+export function buildIndex({ T, DATA, files, actions, name = (id) => T.apps[id] ?? id }) {
   const items = []
-  for (const a of DATA.apps) items.push({ group: 'apps', id: a.id, label: T.apps[a.id] ?? a.id })
+  for (const a of DATA.apps) items.push({ group: 'apps', id: a.id, label: name(a.id) })
   const coll = Object.fromEntries(DATA.collections.map((c) => [c.id, c.name]))
   for (const f of files) items.push({ group: 'files', id: f.id, label: f.name, sub: coll[f.collection] ?? '', place: f.storage, terms: [coll[f.collection] ?? ''] })
   const cat = T.instellingen.categories
