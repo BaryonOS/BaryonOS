@@ -1,0 +1,70 @@
+{
+  "schema_version": 1,
+  "source_fingerprint_version": 3,
+  "source_sha256": "031b10c20abd96649be2db121ea4646931ebba785527296ca95b52da8dddde0c",
+  "test_inputs": {
+    "sdk/examples/tcp-probe/test_peer.py": "8d1c5467c135c35dc528b46d852befeee3401b01621ab47e294e2fcf538d46a3",
+    "tests/test_net_peer.py": "34e6a2f6afa4c96e3edeb697ebe7a9ba9fda7477946fa5c02d1585ba1710023c",
+    "tests/test_system_capture.py": "880f024d75a165f52bd51d0247b5b0b632e764970ff7fd4222f13b6333c4665b",
+    "tests/test_system_harness.py": "f09cd03a71a3d24a57dd8c52de69b6a139f6fbc226ba2f969c1cf153552c4c76",
+    "tests/test_tcp_harness.py": "05ef2ba3375962a81209c1c945a1aa9eaff09fac1dfa0f555d2422a3ad185dfc",
+    "tests/test_tcp_transcript.py": "4d3d74cd7065d49d3e914951a53356a9805c9e34632b808af36cd6940771a0b4"
+  },
+  "status": "completed",
+  "passed": true,
+  "host": [
+    {
+      "command": [
+        "/usr/bin/python3",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tests",
+        "-p",
+        "test_system_*.py"
+      ],
+      "exit": 0,
+      "stdout": "/home/simon/projects/BaryonOS-worktrees/b02-tamper-native/build/logs/system-host-0.stdout.txt",
+      "stderr": "/home/simon/projects/BaryonOS-worktrees/b02-tamper-native/build/logs/system-host-0.stderr.txt"
+    },
+    {
+      "command": [
+        "cargo",
+        "+1.100.0",
+        "test",
+        "--locked",
+        "--manifest-path",
+        "sdk/Cargo.toml",
+        "-p",
+        "nieuw-os-sdk-runtime"
+      ],
+      "exit": 0,
+      "stdout": "/home/simon/projects/BaryonOS-worktrees/b02-tamper-native/build/logs/system-host-1.stdout.txt",
+      "stderr": "/home/simon/projects/BaryonOS-worktrees/b02-tamper-native/build/logs/system-host-1.stderr.txt"
+    }
+  ],
+  "stages": [
+    {
+      "case": "normal",
+      "passed": true,
+      "run_directory": "/home/simon/projects/BaryonOS-worktrees/b02-tamper-native/build/run/system-normal-b23daab264694c5fb2ce63e4fb9f7bd8",
+      "raw_qemu_exit": 33,
+      "before_sha256": "49c40c316234e2e4e4c8dd681a057b1b36611648896dcacba1794263b711c266",
+      "after_sha256": "6c2bbfc1549b09ec4fa8959e928a067f7bc9ac9fba6aec0f2c99314460168962",
+      "duration_s": 4.772390860001906
+    },
+    {
+      "case": "recover",
+      "passed": true,
+      "run_directory": "/home/simon/projects/BaryonOS-worktrees/b02-tamper-native/build/run/system-recover-e5067aeba2b74821ab3edf88e16ecf49",
+      "raw_qemu_exit": 33,
+      "before_sha256": "6c2bbfc1549b09ec4fa8959e928a067f7bc9ac9fba6aec0f2c99314460168962",
+      "after_sha256": "6c2bbfc1549b09ec4fa8959e928a067f7bc9ac9fba6aec0f2c99314460168962",
+      "duration_s": 3.0436149870001827
+    }
+  ],
+  "final_kernel_sha256": "42d44a0cd83d17ed4b07205945019e824f49d9b3d48985c4658e6e50f7fe8eaa",
+  "final_manifest": "/home/simon/projects/BaryonOS-worktrees/b02-tamper-native/build/manifest.json"
+}
