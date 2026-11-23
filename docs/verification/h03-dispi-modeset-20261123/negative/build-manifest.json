@@ -4,7 +4,7 @@
   "kernel_feature": "native-dispi-probe",
   "loader_feature": "desktop-mode",
   "source_fingerprint_version": 3,
-  "source_sha256": "bdfbfb1db1601c1f99cc13b3027770096a951a60432ed048c462348eeb00825e",
+  "source_sha256": "9956dcdbf31d948a504cdb8cdc8842f9c702713e3891041d9b60edc24b0aa3a9",
   "loader": {
     "sha256": "577df22cbe897173853fd1bb23545d144b212cf3e973657b14447034cf33d462",
     "format": "AMD64 PE32+",
@@ -12,15 +12,15 @@
     "imports": 0
   },
   "kernel": {
-    "sha256": "2eeeaf5724a7233ed4410c28fa6fd6b0d9842e69ecceabbb79936e191a76b743",
+    "sha256": "65d840e428681b39a0ed5c099031ee4ee801153940ff5941d5bbaf83ddba3ad5",
     "entry": 33554432,
     "segments": [
       {
         "flags": 5,
         "offset": 4096,
         "address": 33554432,
-        "filesz": 44371,
-        "memsz": 44371,
+        "filesz": 44451,
+        "memsz": 44451,
         "page_start": 33554432,
         "page_end": 33599488
       },
@@ -28,8 +28,8 @@
         "flags": 4,
         "offset": 49152,
         "address": 33599488,
-        "filesz": 6371,
-        "memsz": 6371,
+        "filesz": 6387,
+        "memsz": 6387,
         "page_start": 33599488,
         "page_end": 33607680
       },
@@ -54,13 +54,13 @@
         "name": ".text",
         "type": 1,
         "flags": 6,
-        "size": 44371
+        "size": 44451
       },
       {
         "name": ".rodata",
         "type": 1,
         "flags": 50,
-        "size": 6371
+        "size": 6387
       },
       {
         "name": ".data",

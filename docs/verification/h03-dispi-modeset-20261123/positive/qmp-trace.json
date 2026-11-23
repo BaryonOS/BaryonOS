@@ -14,7 +14,7 @@
       "execute": "screendump",
       "id": 2,
       "arguments": {
-        "filename": "/home/simon/.cache/baryon-h03t4/build/run/dispi-positive-c0c868087d/mode-640x480.ppm"
+        "filename": "/home/simon/projects/BaryonOS-worktrees/h03-dispi/build/h03t4fix/run/dispi-positive-5309e80cdb/mode-640x480.ppm"
       }
     },
     "response": {
@@ -46,7 +46,7 @@
       "execute": "screendump",
       "id": 4,
       "arguments": {
-        "filename": "/home/simon/.cache/baryon-h03t4/build/run/dispi-positive-c0c868087d/mode-800x600.ppm"
+        "filename": "/home/simon/projects/BaryonOS-worktrees/h03-dispi/build/h03t4fix/run/dispi-positive-5309e80cdb/mode-800x600.ppm"
       }
     },
     "response": {
@@ -78,7 +78,7 @@
       "execute": "screendump",
       "id": 6,
       "arguments": {
-        "filename": "/home/simon/.cache/baryon-h03t4/build/run/dispi-positive-c0c868087d/mode-1024x768.ppm"
+        "filename": "/home/simon/projects/BaryonOS-worktrees/h03-dispi/build/h03t4fix/run/dispi-positive-5309e80cdb/mode-1024x768.ppm"
       }
     },
     "response": {
@@ -110,7 +110,7 @@
       "execute": "screendump",
       "id": 8,
       "arguments": {
-        "filename": "/home/simon/.cache/baryon-h03t4/build/run/dispi-positive-c0c868087d/mode-1280x720.ppm"
+        "filename": "/home/simon/projects/BaryonOS-worktrees/h03-dispi/build/h03t4fix/run/dispi-positive-5309e80cdb/mode-1280x720.ppm"
       }
     },
     "response": {
