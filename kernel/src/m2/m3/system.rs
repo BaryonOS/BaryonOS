@@ -104,8 +104,15 @@ struct Sleep {
     /// one, so no submission may reach device hardware again.
     devices_lost: bool,
     device_refusals: u64,
-    /// Block requests published plus entropy bytes delivered, at the wake.
+    /// Device accesses of both brokers (keyring and volume `DEVICE_ACCESSES`:
+    /// submissions, polls, resets, reset reads, re-initialisations) at the wake.
     io_at_wake: u64,
+    /// Teardown resets the latch kept away from a device after the wake.
+    suppressed: u64,
+    /// SUSPEND refusals (-8) because the volume broker still held a request.
+    held_refusals: u64,
+    /// `sleep::Unavailable::FacsRestored` refusals: pre-sleep writes undone.
+    facs_restored: u64,
 }
 #[cfg(feature = "native-system-s3")]
 static mut SLEEP: Sleep = Sleep {
@@ -117,6 +124,9 @@ static mut SLEEP: Sleep = Sleep {
     devices_lost: false,
     device_refusals: 0,
     io_at_wake: 0,
+    suppressed: 0,
+    held_refusals: 0,
+    facs_restored: 0,
 };
 #[cfg(feature = "native-system-s3")]
 fn sleep_state() -> &'static mut Sleep {
@@ -124,9 +134,12 @@ fn sleep_state() -> &'static mut Sleep {
     // scheduling point or the S3 transition.
     unsafe { &mut *ptr::addr_of_mut!(SLEEP) }
 }
-/// True after a validated S3 wake. Device submission paths (keyring 0x60,
-/// volume 0x40/0x42/0x43) check it after their argument and authority checks
-/// and before any broker or device state, and refuse with -14.
+/// True after a validated S3 wake, for the rest of the boot. Device
+/// submission paths (keyring 0x60, volume 0x40/0x42/0x43) check it after
+/// their argument and authority checks and before any broker or device state,
+/// and refuse with -14. Broker progress (`advance`) and owner teardown
+/// (keyring `quarantine_pending`, volume `reset`) check it before any device
+/// MMIO or PCI config access and skip that access.
 #[cfg(feature = "native-system-s3")]
 pub(super) fn devices_lost() -> bool {
     sleep_state().devices_lost
@@ -137,16 +150,36 @@ pub(super) fn device_refused() {
     p.device_refusals = p.device_refusals.saturating_add(1);
 }
 #[cfg(feature = "native-system-s3")]
+pub(super) fn device_access_suppressed() {
+    let p = sleep_state();
+    p.suppressed = p.suppressed.saturating_add(1);
+}
+/// Every device access either broker made (review R3): entropy requests
+/// reaching the driver (accepted, failed or pending), block descriptor
+/// preparations and publications, polls, resets, reset acknowledgement reads
+/// and re-initialisations, each counted at its call site.
+#[cfg(feature = "native-system-s3")]
 fn device_io() -> u64 {
-    let (published, _, _) = m5::broker_summary();
-    let (entropy, _, _) = keyring::broker_summary();
-    published.iter().sum::<u64>().saturating_add(entropy)
+    keyring::device_accesses().saturating_add(m5::device_accesses())
+}
+/// test-system-s3-held-completion only: after the quiescence check refused
+/// once, skip it until the first sleep (a labelled gate-defect injection) so
+/// that the devices_lost latch alone must keep the held request's post-wake
+/// teardown away from the device. Never compiled into a product profile.
+#[cfg(feature = "native-system-s3")]
+fn held_check_skipped() -> bool {
+    let p = sleep_state();
+    cfg!(feature = "test-system-s3-held-completion") && p.held_refusals > 0 && p.generation == 0
 }
 /// Syscall 0x91 SUSPEND(power handle, 0, 0, 0, 0, 0): one synchronous ACPI
 /// S3 cycle under the same POWER capability and storage gate as POWER_OFF.
 /// Ok = (0, generation) after a validated wake; the caller continues. Order:
-/// arguments, authority, S3 plan (no I/O), storage gate (-8 retry, -16
-/// never this boot), then the transition with IF=0 on the only CPU.
+/// arguments, authority, S3 plan (read-only, no I/O), storage gate (-8 retry,
+/// -16 never this boot), volume broker quiescence (-8: it still holds a
+/// request, e.g. a completed one its owner never consumed), then the
+/// transition with IF=0 on the only CPU. These refusals precede any I/O; a
+/// refusal from inside the transition (`sleep::Unavailable::FacsRestored`,
+/// -14) follows pre-sleep writes that sleep undid and reported.
 #[cfg(feature = "native-system-s3")]
 pub(super) fn suspend(s: &mut State, slot: usize, a: [u64; 6]) -> (i64, u64) {
     let code = if a[1..].iter().any(|value| *value != 0) {
@@ -157,6 +190,10 @@ pub(super) fn suspend(s: &mut State, slot: usize, a: [u64; 6]) -> (i64, u64) {
         -14
     } else if let Err(code) = storage_closed() {
         code
+    } else if !m5::sleep_quiescent() && !held_check_skipped() {
+        let p = sleep_state();
+        p.held_refusals = p.held_refusals.saturating_add(1);
+        -8
     } else {
         0
     };
@@ -170,12 +207,20 @@ pub(super) fn suspend(s: &mut State, slot: usize, a: [u64; 6]) -> (i64, u64) {
     };
     // No user CR3 is live: event() switched to the kernel root, which the
     // wake page carries; sleep::suspend_once re-checks it before arming.
-    if crate::m2::sleep::suspend_once(&mut s.kernel, generation, |_| {}).is_err() {
-        // Reported by sleep; no PM1 write happened.
+    if let Err(reason) = crate::m2::sleep::suspend_once(&mut s.kernel, generation, |_| {}) {
+        // Reported by sleep; no PM1 control (SLP_EN) write happened. A
+        // `FacsRestored` refusal had cleared WAK_STS, filled the canary and
+        // armed the token and FACS, then undid the arm and read the disarmed
+        // FACS back; ring 3 sees -14 either way, the kernel counts it apart.
+        if reason == crate::m2::sleep::Unavailable::FacsRestored {
+            let p = sleep_state();
+            p.facs_restored = p.facs_restored.saturating_add(1);
+        }
         sleep_refused(slot, -14);
         return (-14, 0);
     }
-    // Validated wake. Latch first: every device behind a broker was reset.
+    // Validated wake. Latch first: every device behind a broker was reset;
+    // from here no broker path may touch one (devices_lost).
     {
         let p = sleep_state();
         p.devices_lost = true;
@@ -229,6 +274,27 @@ fn resume_after_wake(s: &mut State) {
     sleep_state().timer_irqs = irqs;
     s.audit();
     serial::write(b"SYSTEM:SLEEP:RESUMED:PASS\n");
+}
+/// After the teardown of every service (their detach ran above), before the
+/// S5 gate: no broker touched a device since the wake on any path, no
+/// submission was even attempted, and the latch suppressed exactly the
+/// teardown reset the held-completion fixture provokes (none otherwise).
+#[cfg(feature = "native-system-s3")]
+fn sleep_device_evidence() {
+    let p = sleep_state();
+    let io_after = if p.devices_lost {
+        device_io().saturating_sub(p.io_at_wake)
+    } else {
+        0
+    };
+    let suppressed = u64::from(cfg!(feature = "test-system-s3-held-completion"));
+    print_number(b"SYSTEM:SLEEP_DEVICE_IO_AFTER_WAKE:", io_after);
+    print_number(b"SYSTEM:SLEEP_DEVICE_REFUSALS:", p.device_refusals);
+    print_number(b"SYSTEM:SLEEP_DEVICE_SUPPRESSED:", p.suppressed);
+    require(
+        io_after == 0 && p.device_refusals == 0 && p.suppressed == suppressed,
+        b"SLEEP_DEVICE_EVIDENCE",
+    );
 }
 struct Evidence {
     app: Option<[u64; 13]>,
@@ -976,26 +1042,29 @@ fn finish(s: &mut State) -> ! {
     {
         // Same refusal shape as POWER_OFF: init's early -8, then its launch
         // handle and a forged generation; refused runs end -16 and never
-        // sleep. A completed run slept exactly once, saw two post-wake IRQ0s
-        // and published no device I/O after the wake.
+        // sleep. A completed run slept exactly once and saw two post-wake
+        // IRQ0s; the held-completion fixture adds exactly one quiescence -8
+        // before it. Device evidence follows the teardown (after CLEANUP).
         let p = sleep_state();
         let init = &p.log[INIT][..p.count[INIT]];
         let tail = &init[init.len().min(3)..];
         let slept = p.generation != 0;
-        let io_after = if slept {
-            device_io().saturating_sub(p.io_at_wake)
-        } else {
-            0
-        };
+        let held = u64::from(cfg!(feature = "test-system-s3-held-completion"));
         let ok = init.len() >= 3
             && init[..3] == [-8, -6, -4]
             && if refused {
                 !slept
                     && !p.devices_lost
+                    && p.held_refusals == 0
                     && tail.last() == Some(&-16)
                     && tail[..tail.len() - 1].iter().all(|c| *c == -8)
             } else {
-                tail.is_empty() && p.generation == 1 && p.devices_lost && p.timer_irqs >= 2
+                tail.len() as u64 == held
+                    && tail.iter().all(|c| *c == -8)
+                    && p.held_refusals == held
+                    && p.generation == 1
+                    && p.devices_lost
+                    && p.timer_irqs >= 2
             }
             && p.count[APP] == 2
             && matches!(p.log[APP][0], -4 | -6)
@@ -1003,8 +1072,7 @@ fn finish(s: &mut State) -> ! {
             && p.count[KEY] == 0
             && p.count[VOLUME] == 0
             && p.dropped.iter().all(|count| *count == 0)
-            && p.device_refusals == 0
-            && io_after == 0;
+            && p.facs_restored == 0;
         if !ok {
             for slot in [INIT, APP] {
                 for code in &p.log[slot][..p.count[slot]] {
@@ -1012,14 +1080,16 @@ fn finish(s: &mut State) -> ! {
                     print_number(b"SYSTEM:SLEEP:LOG_REFUSAL:", code.unsigned_abs());
                 }
             }
+            print_number(b"SYSTEM:SLEEP:HELD_REFUSALS:", p.held_refusals);
+            print_number(b"SYSTEM:SLEEP:FACS_RESTORED:", p.facs_restored);
             fail(b"SLEEP_EVIDENCE");
         }
         print_number(b"SYSTEM:SLEEP_INIT_REFUSALS:", init.len() as u64);
         print_number(b"SYSTEM:SLEEP_APP_REFUSALS:", p.count[APP] as u64);
+        print_number(b"SYSTEM:SLEEP_HELD_REFUSALS:", p.held_refusals);
+        print_number(b"SYSTEM:SLEEP_FACS_RESTORED:", p.facs_restored);
         print_number(b"SYSTEM:SLEEP_GENERATION:", u64::from(p.generation));
         print_number(b"SYSTEM:SLEEP_TIMER_IRQS:", p.timer_irqs);
-        print_number(b"SYSTEM:SLEEP_DEVICE_IO_AFTER_WAKE:", io_after);
-        print_number(b"SYSTEM:SLEEP_DEVICE_REFUSALS:", p.device_refusals);
     }
     // Seals: legacy 1 + record 1 (+ persisted record in the normal run).
     // Unseals: legacy 1 + record 1 (+ restored record after the cold start).
@@ -1183,6 +1253,8 @@ fn finish(s: &mut State) -> ! {
     print_number(b"SYSTEM:LIVE_PROCESSES_AFTER:", stats.processes as u64);
     print_number(b"SYSTEM:FRAMES_RECOVERED:", 1);
     serial::write(b"SYSTEM:CLEANUP:PASS\n");
+    #[cfg(feature = "native-system-s3")]
+    sleep_device_evidence();
     #[cfg(feature = "native-system-power")]
     if power_state().granted {
         // Every process is gone; re-check the gate on the final broker state.
@@ -1190,8 +1262,10 @@ fn finish(s: &mut State) -> ! {
             print_number(b"SYSTEM:POWER:GATE_LOST:", code as u64);
             fail(b"POWER_GATE");
         }
-        serial::write(if cfg!(feature = "native-system-s3") {
-            &b"SYSTEM:POWER:GATE:PASS\nSYSTEM:CASE:S3:PASS\nM1:PASS\n"[..]
+        serial::write(if cfg!(feature = "test-system-s3-held-completion") {
+            &b"SYSTEM:POWER:GATE:PASS\nSYSTEM:CASE:S3_HELD_COMPLETION:PASS\nM1:PASS\n"[..]
+        } else if cfg!(feature = "native-system-s3") {
+            b"SYSTEM:POWER:GATE:PASS\nSYSTEM:CASE:S3:PASS\nM1:PASS\n"
         } else {
             b"SYSTEM:POWER:GATE:PASS\nSYSTEM:CASE:POWER:PASS\nM1:PASS\n"
         });

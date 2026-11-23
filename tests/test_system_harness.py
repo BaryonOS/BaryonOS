@@ -6,6 +6,7 @@ from pathlib import Path
 import sys
 import tempfile
 import unittest
+import unittest.mock
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "tools"))
 from run_system import (KEYSTATE_HEADER, KEYSTATE_NAME, KEYSTATE_OBJECT, OPAQUE_OBJECTS, PERSIST_EXACT,
@@ -402,9 +403,10 @@ S3_RESUMED = ("POWER:S3:RESUMED:CYCLE=1:ENTRY=PM32:PM1_STS=0x8101:WAK_STS=1:SCI_
               "HWSIG=SAME:FACS=DISARMED:CANARY=PASS:CR3=SAME")
 S3_LINES = [S3_PLAN, run_sleep.ENTER.format(1), S3_RESUMED, *SLEEP_TAIL]
 S3_EVENTS = {"s3": ["RTC_CHANGE", "SUSPEND", "WAKEUP", "SHUTDOWN"],
+             "s3-held-completion": ["RTC_CHANGE", "SUSPEND", "WAKEUP", "SHUTDOWN"],
              "s3-stale-token": ["RTC_CHANGE", "SUSPEND", "WAKEUP"],
              "s3-not-durable": ["RTC_CHANGE"]}
-S3_EXIT = {"s3": 0, "s3-stale-token": 33, "s3-not-durable": 33}
+S3_EXIT = {"s3": 0, "s3-held-completion": 0, "s3-stale-token": 33, "s3-not-durable": 33}
 
 
 def s3_transcript(case="s3", sleep=None, tail=None, **changes):
@@ -412,10 +414,13 @@ def s3_transcript(case="s3", sleep=None, tail=None, **changes):
     if case == "s3-stale-token":
         lines = [*expected_markers(case), S3_PLAN, run_sleep.ENTER.format(1), run_sleep.STALE]
         return "\n".join(lines if sleep is None else [*expected_markers(case), *sleep]) + "\n"
-    durable = case == "s3"
-    values = dict(SLEEP_INIT_REFUSALS=3 if durable else 4, SLEEP_APP_REFUSALS=2,
+    durable = case != "s3-not-durable"
+    held = case == "s3-held-completion"
+    values = dict(SLEEP_INIT_REFUSALS=3 if case == "s3" else 4, SLEEP_APP_REFUSALS=2,
+                  SLEEP_HELD_REFUSALS=int(held), SLEEP_FACS_RESTORED=0,
                   SLEEP_GENERATION=int(durable), SLEEP_TIMER_IRQS=2 if durable else 0,
-                  SLEEP_DEVICE_IO_AFTER_WAKE=0, SLEEP_DEVICE_REFUSALS=0)
+                  SLEEP_DEVICE_IO_AFTER_WAKE=0, SLEEP_DEVICE_REFUSALS=0,
+                  SLEEP_DEVICE_SUPPRESSED=int(held))
     values.update(changes)
     marker = expected_markers(case)[-2]
     if tail is None:
@@ -470,18 +475,43 @@ class SleepHarnessTests(unittest.TestCase):
     def test_kernel_sleep_counters_are_exact(self):
         for change in (dict(SLEEP_INIT_REFUSALS=4), dict(SLEEP_APP_REFUSALS=1), dict(SLEEP_GENERATION=2),
                        dict(SLEEP_TIMER_IRQS=1), dict(SLEEP_DEVICE_IO_AFTER_WAKE=1),
-                       dict(SLEEP_DEVICE_REFUSALS=1), dict(POWER_INIT_REFUSALS=4), dict(DISK_FLUSHES=3)):
+                       dict(SLEEP_DEVICE_REFUSALS=1), dict(SLEEP_HELD_REFUSALS=1),
+                       dict(SLEEP_DEVICE_SUPPRESSED=1), dict(SLEEP_FACS_RESTORED=1),
+                       dict(POWER_INIT_REFUSALS=4), dict(DISK_FLUSHES=3)):
             with self.subTest(change=change), self.assertRaises(ValueError):
                 evaluate("s3", s3_transcript(**change), 0, False, S3_EVENTS["s3"])
         for change in (dict(SLEEP_INIT_REFUSALS=3), dict(SLEEP_GENERATION=1), dict(SLEEP_TIMER_IRQS=2),
-                       dict(POWER_NOT_DURABLE=0)):
+                       dict(SLEEP_HELD_REFUSALS=1), dict(SLEEP_DEVICE_SUPPRESSED=1),
+                       dict(SLEEP_FACS_RESTORED=1), dict(POWER_NOT_DURABLE=0)):
             with self.subTest(change=change), self.assertRaises(ValueError):
                 evaluate("s3-not-durable", s3_transcript("s3-not-durable", **change), 33, False,
                          S3_EVENTS["s3-not-durable"])
-        text = s3_transcript()
-        missing = "\n".join(line for line in text.splitlines() if "SLEEP_TIMER_IRQS" not in line) + "\n"
+        for key in ("SLEEP_TIMER_IRQS", "SLEEP_HELD_REFUSALS", "SLEEP_DEVICE_SUPPRESSED",
+                    "SLEEP_FACS_RESTORED"):
+            text = s3_transcript()
+            missing = "\n".join(line for line in text.splitlines() if key not in line) + "\n"
+            with self.subTest(missing=key), self.assertRaises(ValueError):
+                evaluate("s3", missing, 0, False, S3_EVENTS["s3"])
+
+    def test_held_completion_needs_the_gate_refusal_and_the_suppressed_reset(self):
+        """Review R1: the S3 gate refused the held request once (-8), and after
+        the wake the latch kept the owner's teardown reset off the device."""
+        case = "s3-held-completion"
+        found = evaluate(case, s3_transcript(case), 0, False, S3_EVENTS[case])
+        self.assertEqual((found["SLEEP_HELD_REFUSALS"], found["SLEEP_DEVICE_SUPPRESSED"],
+                          found["SLEEP_DEVICE_IO_AFTER_WAKE"]), (1, 1, 0))
+        for change in (dict(SLEEP_HELD_REFUSALS=0), dict(SLEEP_INIT_REFUSALS=3),
+                       dict(SLEEP_DEVICE_SUPPRESSED=0), dict(SLEEP_DEVICE_IO_AFTER_WAKE=1),
+                       dict(SLEEP_GENERATION=0), dict(SLEEP_TIMER_IRQS=1)):
+            with self.subTest(change=change), self.assertRaises(ValueError):
+                evaluate(case, s3_transcript(case, **change), 0, False, S3_EVENTS[case])
+        # The held run still powers off after the wake and has the plain S3 sequence.
+        for raw, events in ((33, S3_EVENTS[case]), (0, ["SUSPEND", "WAKEUP"])):
+            with self.subTest(raw=raw, events=events), self.assertRaises(ValueError):
+                evaluate(case, s3_transcript(case), raw, False, events)
         with self.assertRaises(ValueError):
-            evaluate("s3", missing, 0, False, S3_EVENTS["s3"])
+            evaluate(case, s3_transcript(case, sleep=S3_LINES[:-1]), 0, False, S3_EVENTS[case])
+        self.assertEqual(expected_markers(case)[-2], "SYSTEM:CASE:S3_HELD_COMPLETION:PASS")
 
     def test_refused_sleep_never_reaches_the_s3_path(self):
         with self.assertRaises(ValueError):
@@ -521,6 +551,30 @@ class SleepHarnessTests(unittest.TestCase):
                                dict(after_sha256="other")):
                     with self.assertRaises(ValueError):
                         check_parent({**previous, **change}, "source", "disk", network=False)
+
+
+
+class PowerGateSelectionTests(unittest.TestCase):
+    """Review R4: the native-power.yml step runs tools/test_power_system.py
+    without arguments; it must keep exactly the three POWER cases and report."""
+
+    def test_default_is_exactly_the_three_power_cases(self):
+        import test_power_system
+        self.assertEqual(test_power_system.select([]),
+                         (["power", "power-flush-error", "power-flush-timeout"], "power-system-gate.json"))
+
+    def test_s3_cases_run_only_when_selected_and_report_separately(self):
+        import test_power_system
+        self.assertEqual(test_power_system.select(["--s3"]), (list(S3_FEATURE), "s3-system-gate.json"))
+        self.assertEqual(test_power_system.select(["--case", "s3", "--case", "s3-not-durable", "--case", "s3"]),
+                         (["s3", "s3-not-durable"], "s3-system-gate.json"))
+        self.assertEqual(test_power_system.select(["--case", "power-flush-error"]),
+                         (["power-flush-error"], "power-system-gate.json"))
+        self.assertNotEqual(*test_power_system.REPORTS.values())
+        for argv in (["--case", "power", "--case", "s3"], ["--s3", "--case", "s3"], ["--case", "normal"]):
+            with self.subTest(argv=argv), self.assertRaises(SystemExit), \
+                    unittest.mock.patch("sys.stderr"):
+                test_power_system.select(argv)
 
 
 if __name__ == "__main__":

@@ -2270,7 +2270,9 @@ fn event(source: *const u64) -> *const u64 {
             }
         }
         // Synchronous S3: on success the caller resumes here after the wake
-        // with rax=0, rdx=generation; every refusal happens before any I/O.
+        // with rax=0, rdx=generation. Gate refusals precede any I/O; only a
+        // FACS store failure inside the transition (-14) follows pre-sleep
+        // writes, which sleep undoes and reports (system::suspend).
         #[cfg(feature = "native-system-s3")]
         if number == 0x91 {
             let (rax, rdx) = system::suspend(state, current, args);

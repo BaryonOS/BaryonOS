@@ -270,6 +270,41 @@ pub(super) fn power_gate() -> Result<(), i64> {
     }
     Ok(())
 }
+/// H05-T4 S3 gate addition: the broker holds no request at all, in particular
+/// no completed result that its owner has not consumed. A held request would
+/// make the owner's later exit reset the device after the wake (review R1).
+#[cfg(feature = "native-system-s3")]
+pub(super) fn sleep_quiescent() -> bool {
+    let r = runtime();
+    r.policy.request().is_none()
+        && r.policy.phase() == Phase::Ready
+        && r.error.is_none()
+        && !r.resetting
+}
+/// H05-T4 evidence: one count per broker access to a virtio-blk device
+/// (descriptor preparation, publication, used-ring poll, reset, reset
+/// acknowledgement read, re-initialisation), counted at the call itself and
+/// independently of the devices_lost guards in front of those calls.
+#[cfg(feature = "native-system-s3")]
+static DEVICE_ACCESSES: core::sync::atomic::AtomicU64 = core::sync::atomic::AtomicU64::new(0);
+fn device_access() {
+    #[cfg(feature = "native-system-s3")]
+    DEVICE_ACCESSES.fetch_add(1, core::sync::atomic::Ordering::Relaxed);
+}
+#[cfg(feature = "native-system-s3")]
+pub(super) fn device_accesses() -> u64 {
+    DEVICE_ACCESSES.load(core::sync::atomic::Ordering::Relaxed)
+}
+/// test-system-s3-held-completion: true exactly once, for the first
+/// successful consume of a FLUSH after init's first power request (init's
+/// SHUTDOWN flush, as for the power fault fixtures).
+#[cfg(feature = "test-system-s3-held-completion")]
+fn hold_shutdown_flush(op: Operation) -> bool {
+    static HELD: core::sync::atomic::AtomicBool = core::sync::atomic::AtomicBool::new(false);
+    op == Operation::Flush
+        && super::system::power_requested()
+        && !HELD.swap(true, core::sync::atomic::Ordering::Relaxed)
+}
 
 fn case() -> u64 {
     if cfg!(feature = "test-volume-recover") {
@@ -922,6 +957,13 @@ fn device_call(s: &mut State, slot: usize, n: u64, a: [u64; 6]) -> Result<u64, i
         let bytes = message.encode();
         m4::write_plan(&output, &bytes);
         assert_eq!(m4::read_plan(&output), bytes);
+        // Labelled fixture: the owner receives the normal success reply for
+        // init's SHUTDOWN flush, but the broker keeps the completed request
+        // exactly as if the owner had never consumed it (review R1 state).
+        #[cfg(feature = "test-system-s3-held-completion")]
+        if hold_shutdown_flush(request.operation) {
+            return Ok(u64::from(message.len));
+        }
         r.policy.consume(binding, a[1]).map_err(err)?;
         return Ok(u64::from(message.len));
     }
@@ -977,6 +1019,7 @@ fn device_call(s: &mut State, slot: usize, n: u64, a: [u64; 6]) -> Result<u64, i
         .policy
         .prepare(binding, op, capacity, s.ticks, TIMEOUT)
         .map_err(err)?;
+    device_access();
     if let Err(error) =
         r.lanes[dev]
             .device
@@ -993,6 +1036,7 @@ fn device_call(s: &mut State, slot: usize, n: u64, a: [u64; 6]) -> Result<u64, i
     #[cfg(not(feature = "native-system-power"))]
     let suppress = false;
     r.active = dev;
+    device_access();
     r.lanes[dev]
         .device
         .as_mut()
@@ -1015,10 +1059,22 @@ fn reset(r: &mut Runtime, now: u64) {
     if r.lanes[r.active].quarantined {
         return;
     }
+    // H05-T4 (review R1): after a validated S3 wake the power cycle already
+    // reset the device and stopped its DMA; nothing may touch its MMIO or
+    // PCI config space again. Owner teardown (detach) is the only caller left
+    // there (`advance` returns first). The Policy keeps what `exit` left: a
+    // completed request is gone (Ready); a published, uncompleted one (never
+    // admitted by the S3 gate) stays Resetting, so the S5 gate fails closed.
+    #[cfg(feature = "native-system-s3")]
+    if super::system::devices_lost() {
+        super::system::device_access_suppressed();
+        return;
+    }
     r.policy.start_reset().unwrap();
     r.resetting = true;
     r.reset_deadline = now + RESET_TIMEOUT;
     if let Some(device) = r.lanes[r.active].device.as_mut() {
+        device_access();
         device.begin_reset();
     }
 }
@@ -1048,6 +1104,14 @@ fn advance(s: &State) {
     let r = runtime();
     let now = s.ticks;
     r.now = now;
+    // H05-T4 (review R1): no reset acknowledgement read, re-initialisation or
+    // used-ring poll after the S3 wake. Nothing can be active here: the S3
+    // gate admitted only a quiescent broker, every submission since returned
+    // -14, and system::poll stops the kernel before this tick otherwise.
+    #[cfg(feature = "native-system-s3")]
+    if super::system::devices_lost() {
+        return;
+    }
     if r.resetting {
         let active = r.active;
         let writable = if active == 0 {
@@ -1056,7 +1120,11 @@ fn advance(s: &State) {
             device1_writable()
         };
         let lane = &mut r.lanes[active];
+        if lane.device.is_some() {
+            device_access();
+        }
         if lane.device.as_ref().is_some_and(Device::reset_acknowledged) {
+            device_access();
             // SAFETY: Real reset acknowledgement permits reuse of the same
             // pinned owned RAM pages and permanent validated supervisor MMIO.
             match unsafe {
@@ -1116,6 +1184,7 @@ fn advance(s: &State) {
     let injection = if power_track().io_error { 10 } else { 0 };
     #[cfg(not(feature = "native-system-power"))]
     let injection = 0;
+    device_access();
     let completion = r.lanes[r.active].device.as_mut().unwrap().poll(injection);
     // The injection applies only to an observed used-ring advance.
     #[cfg(feature = "native-system-power")]

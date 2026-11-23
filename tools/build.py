@@ -50,7 +50,8 @@ IMAGE_FEATURES = ("native-system-images",)
 SYSTEM_CLOCK_FEATURES = ("native-system-clock",)
 POWER_SYSTEM_FEATURES = ("native-system-power", "test-system-power-flush-error", "test-system-power-flush-timeout")
 # H05-T4: init's POWER capability also requests one synchronous S3 cycle.
-POWER_SYSTEM_FEATURES += ("native-system-s3", "test-system-s3-stale-token", "test-system-s3-not-durable")
+POWER_SYSTEM_FEATURES += ("native-system-s3", "test-system-s3-stale-token", "test-system-s3-not-durable",
+                          "test-system-s3-held-completion")
 SYSTEM_FEATURES = ("native-net-service", "test-net-service-client-exit", "test-net-service-revoke", "test-net-service-helper", "test-net-service-device-reset", "test-net-service-exhaustion", "native-cap-digest-bench", "native-system", "test-system-recover", "native-system-display-input", *NETWORK_SYSTEM_FEATURES, *NETWORK_LINK_FEATURES, *TCP_SYSTEM_FEATURES, *RANDOM_FEATURES, *IMAGE_FEATURES, *SYSTEM_CLOCK_FEATURES)
 SYSTEM_FEATURES += POWER_SYSTEM_FEATURES
 # PR 154 legacy SMP path (kernel/src/m2_legacy); every name enables native-smp-legacy and

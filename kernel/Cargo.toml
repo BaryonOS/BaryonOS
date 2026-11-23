@@ -190,6 +190,10 @@ test-system-power-flush-timeout = ["native-system-power"]
 native-system-s3 = ["native-system-power", "acpi-s3"]
 test-system-s3-stale-token = ["native-system-s3"]
 test-system-s3-not-durable = ["native-system-s3", "test-system-power-flush-error"]
+# H05-T4 review R1: the broker keeps init's SHUTDOWN flush unconsumed, the S3
+# gate must refuse it (-8); one labelled gate-defect injection then sleeps
+# anyway so that only the devices_lost latch keeps teardown off the device.
+test-system-s3-held-completion = ["native-system-s3"]
 native-system-nas-probe = ["native-system", "monotonic-clock", "ipc-wait"]
 test-system-nas-recover = ["native-system-nas-probe", "test-system-recover"]
 # Real NIC integration; the base joint profile never probes or maps a NIC.

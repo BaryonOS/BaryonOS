@@ -503,9 +503,23 @@ fn clear_status(event: Pm1Event, bits: u16) {
     }
 }
 
-/// Refusal of one sleep request before any PM1 write; the kernel already
-/// reported the reason (or, for `available`, deliberately stayed silent).
-pub struct Unavailable;
+/// Why one sleep request ended without a transition. Neither variant wrote
+/// PM1 control (SLP_TYP/SLP_EN); the kernel reported the reason on the serial
+/// line (only the silent `available` probe and the generation-0 guard do not).
+/// Every other outcome stops the VM.
+#[derive(Clone, Copy, PartialEq, Eq)]
+pub enum Unavailable {
+    /// Refused from the read-only plan before any I/O: no PM1 status or
+    /// control, FACS, wake-page or canary access.
+    Refused,
+    /// Refused after the pre-sleep writes: WAK_STS was cleared in PM1a_STS,
+    /// the canary filled, ARMED and the page token set, and then the FACS arm
+    /// store or its read-back failed. ARMED and the token were cleared again
+    /// and the disarmed FACS plan was stored and read back intact
+    /// (`POWER:S3:REJECTED:FacsStore:DISARMED`); a failed disarm stops the VM
+    /// (`S3_FACS_DISARM`) instead of returning.
+    FacsRestored,
+}
 
 /// The constant, validated inputs of every sleep, derived from the read-only
 /// discovery snapshot. `report` writes the reason for a refusal; neither path
@@ -571,8 +585,9 @@ pub fn available() -> bool {
 /// One validated S3 cycle with the nonzero `generation` as arm token. The
 /// caller holds the only CPU with IF=0 and the kernel CR3 active. Returns
 /// only after a validated wake (`post` ran on the resumed tables first) or
-/// after a reported refusal that performed no PM1 write; every other outcome
-/// stops the VM.
+/// after a reported refusal without any PM1 control (SLP_EN) write; see
+/// `Unavailable` for the pre-sleep writes the `FacsRestored` refusal already
+/// made and undid. Every other outcome stops the VM.
 pub fn suspend_once(
     paging: &mut paging::Paging,
     generation: u32,
@@ -580,9 +595,9 @@ pub fn suspend_once(
 ) -> Result<(), Unavailable> {
     if generation == 0 {
         // 0 is the "nothing armed" value of ARMED and the wake page.
-        return Err(Unavailable);
+        return Err(Unavailable::Refused);
     }
-    let (prepared, plan, wake, disarm) = plan(true).ok_or(Unavailable)?;
+    let (prepared, plan, wake, disarm) = plan(true).ok_or(Unavailable::Refused)?;
     let facs = plan.facs();
     let pm1a = plan.pm1a();
     let event = plan.pm1a_event();
@@ -605,7 +620,7 @@ pub fn suspend_once(
     if plan.pm1b().is_some() || plan.pm1b_event().is_some() {
         // The QEMU q35 profile has neither; PM1b paths are parser-tested only.
         serial::write(b"POWER:S3:REJECTED:Pm1bUnsupported\n");
-        return Err(Unavailable);
+        return Err(Unavailable::Refused);
     }
     // The wake path restores the saved CR4 verbatim: user-writable GS bases
     // (FSGSBASE) or XSAVE state would bypass the GS discipline and the
@@ -636,12 +651,14 @@ pub fn suspend_once(
     };
     set_token(prepared.page, page_token);
     if !store_facs(paging, facs.source_address(), length, wake, copy) {
-        // Never leave a partially armed vector behind.
+        // Not a refusal before I/O: WAK_STS, the canary, ARMED and the token
+        // were already written. Undo the arm and never leave a partially
+        // armed vector behind; report the restored FACS, or stop the VM.
         ARMED.store(0, Ordering::Release);
         set_token(prepared.page, 0);
         if store_facs(paging, facs.source_address(), length, disarm, copy) {
             serial::write(b"POWER:S3:REJECTED:FacsStore:DISARMED\n");
-            return Err(Unavailable);
+            return Err(Unavailable::FacsRestored);
         }
         serial::fail(b"S3_FACS_DISARM");
     }
@@ -735,8 +752,8 @@ pub fn suspend_once(
 }
 
 /// `native-acpi-s3`: the bounded S3 cycles after M2 passed; returns only
-/// after the last validated wake or after a reported rejection that
-/// performed no PM1 write.
+/// after the last validated wake or after a reported rejection without any
+/// PM1 control (SLP_EN) write (`Unavailable` lists what each one wrote).
 #[cfg(feature = "native-acpi-s3")]
 pub fn run(frames: &Frames<FRAME_COUNT>, paging: &mut paging::Paging) {
     for cycle in 1..=CYCLES {

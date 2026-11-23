@@ -505,8 +505,9 @@ pub fn power_off(power: Handle) -> Error {
 
 /// H05-T4 native-system-s3: ask the kernel for one synchronous ACPI S3 cycle
 /// with the POWER capability. Returns the 1-based wake generation after the
-/// kernel validated the wake; refusals happen before any I/O. Profiles
-/// without this call answer ENOSYS (-2).
+/// kernel validated the wake. Argument, authority, plan and storage-gate
+/// refusals precede any I/O; -14 can also follow a failed FACS store that the
+/// kernel undid and reported. Profiles without this call answer ENOSYS (-2).
 pub fn suspend(power: Handle) -> Result<u64, Error> {
     match call(0x91, [power.raw(), 0, 0, 0, 0, 0])? {
         0 => Err(Error::InvalidReturn),

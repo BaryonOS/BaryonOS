@@ -122,9 +122,18 @@ compile_error!("acpi-s3 is the shared S3 mechanism; select native-acpi-s3 or nat
     )
 ))]
 compile_error!("native-system-s3 suspends exactly the base native-system-power profile on one CPU");
-#[cfg(all(
-    feature = "test-system-s3-stale-token",
-    feature = "test-system-s3-not-durable"
+#[cfg(any(
+    all(
+        feature = "test-system-s3-stale-token",
+        feature = "test-system-s3-not-durable"
+    ),
+    all(
+        feature = "test-system-s3-held-completion",
+        any(
+            feature = "test-system-s3-stale-token",
+            feature = "test-system-s3-not-durable"
+        )
+    )
 ))]
 compile_error!("the S3 system negative cases require separate boots");
 #[cfg(all(

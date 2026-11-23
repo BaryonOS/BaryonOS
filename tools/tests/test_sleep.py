@@ -1,5 +1,6 @@
 """HOST_ONLY S3 verifier counterexamples; fixtures are not native evidence."""
 import os
+import re
 from pathlib import Path
 import subprocess
 import sys
@@ -272,6 +273,98 @@ class MachinePin(unittest.TestCase):
             with unittest.mock.patch.object(gate, "save_json"), \
                     self.assertRaisesRegex(ValueError, "pinned"):
                 gate.run_case("cycles")
+
+
+KERNEL = Path(__file__).resolve().parents[2] / "kernel/src/m2"
+DEVICE_CALL = re.compile(r"\.(begin_reset|reset_acknowledged|poll|request|prepare_operation|publish_prepared)\("
+                         r"|Device::(reset_acknowledged|initialize_profile)\b")
+FUNCTION = re.compile(r"^\s*(?:pub(?:\([^)]*\))?\s+)?fn\s+(\w+)")
+
+
+def functions(path: Path) -> dict[str, list[tuple[int, str]]]:
+    """Top-level and nested `fn` bodies by name (brace matching on code lines)."""
+    lines = path.read_text().splitlines()
+    found, index = {}, 0
+    while index < len(lines):
+        match = FUNCTION.match(lines[index])
+        if not match:
+            index += 1
+            continue
+        depth, started, body = 0, False, []
+        for number in range(index, len(lines)):
+            code = lines[number].split("//")[0]
+            depth += code.count("{") - code.count("}")
+            started = started or "{" in code
+            body.append((number + 1, lines[number]))
+            if started and depth == 0:
+                break
+        found.setdefault(match.group(1), body)
+        index += 1
+    return found
+
+
+def device_calls(body):
+    return [(number, line) for number, line in body
+            if not line.strip().startswith("//") and DEVICE_CALL.search(line)
+            and "policy.request(" not in line]
+
+
+class DevicesLostLatchStructure(unittest.TestCase):
+    """STRUCTURAL ONLY (review R1/R3): source shape of the post-wake device
+    guard and its access counter. The behaviour is exercised natively only by
+    the s3-held-completion case; this test keeps future edits from adding an
+    unguarded or uncounted device call to the native-system broker paths."""
+
+    # Functions reachable after the S3 wake in native-system-s3 (broker ticks,
+    # submission syscalls, owner teardown): guarded and counted.
+    REACHABLE = {"keyring.rs": {"call", "advance", "quarantine_pending"},
+                 "volume.rs": {"device_call", "reset", "advance"}}
+    # Boot-time setup, and standalone-profile fixtures whose `poll` is compiled
+    # only without native-system (checked below).
+    OTHER = {"keyring.rs": {"restart_fixture", "finish"},
+             "volume.rs": {"prepare", "prepare_archive_device", "finish"}}
+
+    def test_every_device_call_site_is_classified(self):
+        for name in self.REACHABLE:
+            bodies = functions(KERNEL / "m3" / name)
+            with_calls = {fn for fn, body in bodies.items() if device_calls(body)}
+            self.assertEqual(with_calls, self.REACHABLE[name] | self.OTHER[name], name)
+
+    def test_reachable_calls_follow_the_latch_and_are_counted(self):
+        for name, reachable in self.REACHABLE.items():
+            bodies = functions(KERNEL / "m3" / name)
+            for fn in sorted(reachable):
+                body = bodies[fn]
+                calls = device_calls(body)
+                latch = [number for number, line in body if "system::devices_lost()" in line]
+                with self.subTest(file=name, fn=fn):
+                    self.assertTrue(latch and latch[0] < calls[0][0], "devices_lost() not before the device call")
+                    previous = body[0][0]
+                    for number, line in calls:
+                        window = [text for at, text in body if previous <= at < number]
+                        counted = [text for text in window[-8:] if text.strip() == "device_access();"]
+                        self.assertTrue(counted, f"uncounted device call at {name}:{number}: {line.strip()}")
+                        previous = number
+
+    def test_standalone_broker_fixtures_never_run_in_native_system(self):
+        m3 = (KERNEL / "m3.rs").read_text()
+        for call in ("keyring::poll(state)", "m5::poll(state)"):
+            before = m3[:m3.index(call)].splitlines()[-2]
+            self.assertIn('not(feature = "native-system")', before, call)
+        for name in self.OTHER:
+            bodies = functions(KERNEL / "m3" / name)
+            for fn in ("restart_fixture", "finish"):
+                callers = {caller for caller, body in bodies.items()
+                           if caller != fn and any(f"{fn}(s)" in line for _, line in body)}
+                self.assertTrue(callers <= {"poll"}, (name, fn, callers))
+
+    def test_s3_gate_refuses_a_held_request_before_the_transition(self):
+        body = "\n".join(line for _, line in functions(KERNEL / "m3/system.rs")["suspend"])
+        order = [body.index(text) for text in ("storage_closed()", "m5::sleep_quiescent()",
+                                               "suspend_once(")]
+        self.assertEqual(order, sorted(order))
+        quiescent = "\n".join(line for _, line in functions(KERNEL / "m3/volume.rs")["sleep_quiescent"])
+        self.assertIn("r.policy.request().is_none()", quiescent)
 
 
 if __name__ == "__main__":

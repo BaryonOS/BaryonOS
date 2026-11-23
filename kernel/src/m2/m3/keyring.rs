@@ -170,11 +170,38 @@ fn reclaim_completed(now: u64) {
     }
 }
 
+/// H05-T4 evidence: one count per broker access to the virtio-rng device
+/// (request submission, used-ring poll, reset, reset acknowledgement read),
+/// counted at the call itself and independently of the devices_lost guards.
+#[cfg(feature = "native-system-s3")]
+static DEVICE_ACCESSES: core::sync::atomic::AtomicU64 = core::sync::atomic::AtomicU64::new(0);
+fn device_access() {
+    #[cfg(feature = "native-system-s3")]
+    DEVICE_ACCESSES.fetch_add(1, core::sync::atomic::Ordering::Relaxed);
+}
+#[cfg(feature = "native-system-s3")]
+pub(super) fn device_accesses() -> u64 {
+    DEVICE_ACCESSES.load(core::sync::atomic::Ordering::Relaxed)
+}
+
 fn quarantine_pending() {
     let r = runtime();
     // Dropping broker state while DMA remains live could let another holder
     // reuse its pages. Stop the device and retain the existing quarantine.
-    if let Some(device) = r.device.as_mut() {
+    // H05-T4 (review R1): after a validated S3 wake the power cycle already
+    // stopped the device; the latch forbids its MMIO and PCI config space, so
+    // only the quarantine below remains (and keeps the S5 gate at -8).
+    #[cfg(feature = "native-system-s3")]
+    let touch = if super::system::devices_lost() {
+        super::system::device_access_suppressed();
+        false
+    } else {
+        true
+    };
+    #[cfg(not(feature = "native-system-s3"))]
+    let touch = true;
+    if let Some(device) = r.device.as_mut().filter(|_| touch) {
+        device_access();
         device.begin_reset();
     }
     r.offline = -14;
@@ -486,6 +513,8 @@ fn call(s: &mut State, slot: usize, n: u64, a: [u64; 6]) -> Result<u64, i64> {
                 return Err(-8);
             }
             let device = r.device.as_mut().ok_or(-14)?;
+            // Counted whether the request is accepted, fails or stays pending.
+            device_access();
             device.request(a[1] as u32).map_err(|_| -8)?;
             let ticket = r.next_ticket;
             r.next_ticket += 1;
@@ -548,8 +577,19 @@ fn call(s: &mut State, slot: usize, n: u64, a: [u64; 6]) -> Result<u64, i64> {
 
 fn advance(s: &State) {
     reclaim_completed(s.ticks);
+    // H05-T4 (review R1): no reset acknowledgement read or used-ring poll
+    // after the S3 wake. Nothing can be active here: the S3 gate admitted
+    // only an idle broker, every 0x60 since returned -14, and system::poll
+    // stops the kernel before this tick otherwise.
+    #[cfg(feature = "native-system-s3")]
+    if super::system::devices_lost() {
+        return;
+    }
     if runtime().resetting {
         let r = runtime();
+        if r.device.is_some() {
+            device_access();
+        }
         if r.device.as_ref().is_some_and(Device::reset_acknowledged) {
             r.resetting = false;
             r.reset_acks += 1;
@@ -580,6 +620,7 @@ fn advance(s: &State) {
         return;
     };
     let mut buffer = [0u8; 256];
+    device_access();
     match device.poll(&mut buffer) {
         Ok(Some(length)) => {
             if length != pending.requested {
@@ -619,6 +660,7 @@ fn advance(s: &State) {
                     deadline: s.ticks + COMPLETED_LEASE,
                 });
                 r.bytes = [0; 256];
+                device_access();
                 device.begin_reset();
                 r.offline = -13;
                 r.resetting = true;

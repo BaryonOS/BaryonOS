@@ -30,20 +30,36 @@ POWER_FEATURE = {"power": "native-system-power", "power-flush-error": "test-syst
 # H05-T4: the same flow, but init first requests one synchronous ACPI S3 cycle
 # (syscall 0x91) behind the same storage gate. The harness alone wakes the
 # guest over QMP; stale-token stops at the rejected wake, not-durable never
-# sleeps. Separate from POWER_FEATURE so the H05 POWER cases stay unchanged.
+# sleeps. held-completion: the broker keeps init's SHUTDOWN flush unconsumed,
+# the S3 gate refuses it once (-8), then a labelled gate-defect injection
+# sleeps anyway and the latch must suppress the post-wake teardown reset.
+# Separate from POWER_FEATURE so the H05 POWER cases stay unchanged.
 S3_FEATURE = {"s3": "native-system-s3", "s3-stale-token": "test-system-s3-stale-token",
-              "s3-not-durable": "test-system-s3-not-durable"}
-S3_WAKEUPS = {"s3": 1, "s3-stale-token": 1, "s3-not-durable": 0}
+              "s3-not-durable": "test-system-s3-not-durable",
+              "s3-held-completion": "test-system-s3-held-completion"}
+S3_WAKEUPS = {"s3": 1, "s3-stale-token": 1, "s3-not-durable": 0, "s3-held-completion": 1}
 POWER_CASES = (*POWER_FEATURE, *S3_FEATURE)
+# Cases whose guest ends in the gated S5 write (raw exit 0, QMP SHUTDOWN).
+POWEROFF_CASES = ("power", "s3", "s3-held-completion")
 S5_TAIL = ("POWER:S5:PM1A=0x0604:SLP_TYP=0:SCI_EN=1", "POWER:S5:WRITE")
 # Kernel-observed S3 evidence (system.rs SLEEP_*): exact values and minimums.
+# DEVICE_IO_AFTER_WAKE counts every broker device access after the wake
+# (submissions, polls, resets, reset reads, re-initialisations), measured
+# after the teardown; DEVICE_SUPPRESSED counts teardown resets the latch kept
+# away from a device.
+_SLEEP_DEVICE = {"SLEEP_FACS_RESTORED": 0, "SLEEP_DEVICE_IO_AFTER_WAKE": 0,
+                 "SLEEP_DEVICE_REFUSALS": 0}
 SLEEP_EXACT = {
-    "s3": {"SLEEP_INIT_REFUSALS": 3, "SLEEP_APP_REFUSALS": 2, "SLEEP_GENERATION": 1,
-           "SLEEP_DEVICE_IO_AFTER_WAKE": 0, "SLEEP_DEVICE_REFUSALS": 0},
-    "s3-not-durable": {"SLEEP_APP_REFUSALS": 2, "SLEEP_GENERATION": 0, "SLEEP_TIMER_IRQS": 0,
-                       "SLEEP_DEVICE_IO_AFTER_WAKE": 0, "SLEEP_DEVICE_REFUSALS": 0},
+    "s3": {"SLEEP_INIT_REFUSALS": 3, "SLEEP_APP_REFUSALS": 2, "SLEEP_HELD_REFUSALS": 0,
+           "SLEEP_GENERATION": 1, "SLEEP_DEVICE_SUPPRESSED": 0, **_SLEEP_DEVICE},
+    "s3-held-completion": {"SLEEP_INIT_REFUSALS": 4, "SLEEP_APP_REFUSALS": 2,
+                           "SLEEP_HELD_REFUSALS": 1, "SLEEP_GENERATION": 1,
+                           "SLEEP_DEVICE_SUPPRESSED": 1, **_SLEEP_DEVICE},
+    "s3-not-durable": {"SLEEP_APP_REFUSALS": 2, "SLEEP_HELD_REFUSALS": 0, "SLEEP_GENERATION": 0,
+                       "SLEEP_TIMER_IRQS": 0, "SLEEP_DEVICE_SUPPRESSED": 0, **_SLEEP_DEVICE},
 }
-SLEEP_MINIMUM = {"s3": {"SLEEP_TIMER_IRQS": 2}, "s3-not-durable": {"SLEEP_INIT_REFUSALS": 4}}
+SLEEP_MINIMUM = {"s3": {"SLEEP_TIMER_IRQS": 2}, "s3-held-completion": {"SLEEP_TIMER_IRQS": 2},
+                 "s3-not-durable": {"SLEEP_INIT_REFUSALS": 4}}
 SLEEP_TAIL = ("SYSTEM:SLEEP:TIMER:WAIT", "SYSTEM:SLEEP:RESUMED:PASS")
 # B02 persistence objects: the app's sealed record (domain 0) and init's
 # encrypted key-state snapshot (domain 1). Both are ciphertext, never fixtures.
@@ -172,7 +188,7 @@ def expected_markers(case: str) -> tuple[str, ...]:
 def check_power(case: str, stdout: str, found: dict) -> None:
     """Exact S5 tail after M1:PASS, or a refusal without any PM1 write."""
     lines = stdout.splitlines()
-    if case in ("power", "s3"):
+    if case in POWEROFF_CASES:
         if tuple(lines[-3:]) != ("M1:PASS", *S5_TAIL) or "SYSTEM:POWER:GATE:PASS" not in lines:
             raise ValueError("power case did not end with the gated S5 write")
         expected = {"POWER_INIT_REFUSALS": 3, "POWER_APP_REFUSALS": 2, "POWER_NOT_DURABLE": 0}
@@ -193,8 +209,9 @@ def check_power(case: str, stdout: str, found: dict) -> None:
 def check_sleep(case: str, stdout: str, events: list[str] | None) -> dict:
     """Exact S3 sub-sequence of a ring-3 S3 case plus the independent QMP events.
 
-    `s3`: after the manifest and before BROKERS exactly PLAN, ENTER (cycle 1),
-    RESUMED (directly after ENTER), the timer wait and RESUMED:PASS.
+    `s3` and `s3-held-completion`: after the manifest and before BROKERS
+    exactly PLAN, ENTER (cycle 1), RESUMED (directly after ENTER), the timer
+    wait and RESUMED:PASS.
     `s3-stale-token`: PLAN, ENTER, then the token rejection ends the guest.
     `s3-not-durable`: no S3 line and no QMP SUSPEND at all.
     """
@@ -207,9 +224,9 @@ def check_sleep(case: str, stdout: str, events: list[str] | None) -> dict:
     if sleep_events != ["SUSPEND", "WAKEUP"] * S3_WAKEUPS[case]:
         raise ValueError(f"unexpected QMP sleep events: {sleep_events}")
     # The guest's S5 after the wake is a QMP SHUTDOWN (measured on QEMU 8.2):
-    # exactly one, after WAKEUP, and only in the case that powers off.
+    # exactly one, after WAKEUP, and only in the cases that power off.
     shutdown = [event for event in events if event == "SHUTDOWN"]
-    if case == "s3":
+    if case in POWEROFF_CASES:
         if shutdown != ["SHUTDOWN"] or events.index("SHUTDOWN") < events.index("WAKEUP"):
             raise ValueError(f"missing or misplaced QMP SHUTDOWN after the wake: {events}")
     elif shutdown:
@@ -262,7 +279,7 @@ def evaluate(case: str, stdout: str, raw_exit: int | None, timed_out: bool,
     if controlled != list(expected):
         raise ValueError(f"system marker sequence mismatch: {controlled}")
     # Only a guest poweroff exits 0: the power runs override -no-reboot.
-    if timed_out or raw_exit != (0 if case in ("power", "s3") else 33):
+    if timed_out or raw_exit != (0 if case in POWEROFF_CASES else 33):
         raise ValueError(f"raw exit {raw_exit}, timed_out {timed_out}")
     if any("PANIC" in line or "FAIL" in line for line in stdout.splitlines()):
         raise ValueError("guest failure marker")
