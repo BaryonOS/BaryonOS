@@ -112,6 +112,37 @@ class ColdHarnessTests(unittest.TestCase):
                 with self.assertRaises(ValueError):
                     evaluate_cold(case, log, rc, timeout)
 
+    def test_cold_log_cannot_carry_success_case_or_persistence_markers(self):
+        for case in COLD_CASES:
+            log = "\n".join((*expected_markers("recover")[:4], f"SYSTEM:COLD:REFUSED:{case}",
+                "SYSTEM:COLD_PLAINTEXT_REPLIES:00000000000000000000",
+                "SYSTEM:DISK_READS:00000000000000000001", "SYSTEM:DISK_WRITES:00000000000000000000",
+                "SYSTEM:DISK_FLUSHES:00000000000000000000"))
+            for extra in ("SYSTEM:CASE:RECOVER:PASS", "M1:PASS", "SYSTEM:BROKERS:PASS", "SYSTEM:CLEANUP:PASS",
+                          "SYSTEM:RECORD_RESTORED_UNSEAL:00000000000000000001",
+                          "SYSTEM:KEYSTATE_EXPORTS:00000000000000000000", "SYSTEM:POWER:GATE:PASS"):
+                with self.subTest(case=case, extra=extra), self.assertRaises(ValueError):
+                    evaluate_cold(case, log + "\n" + extra, 33, False)
+
+    def test_replay_is_an_open_boundary_not_a_cold_case(self):
+        from run_system import COLD_ANTIROLLBACK
+        self.assertNotIn("replay", COLD_CASES)
+        with self.assertRaises(ValueError):
+            cold_image(system_image(), "replay")
+        self.assertEqual(COLD_ANTIROLLBACK["status"], "UNPROTECTED")
+        self.assertTrue(COLD_ANTIROLLBACK["replay"].startswith("NOT_DETECTABLE"))
+
+    def test_cold_binding_requires_matching_fixture_and_unchanged_parent(self):
+        from run_system import check_cold_binding
+        same = "a" * 64
+        check_cold_binding("keystate", "keystate", same, same)
+        for env, before, after in (("withheld-secret", same, same), (None, same, same), ("", same, same),
+                                   ("keystate", same, "b" * 64), ("keystate", None, None)):
+            with self.subTest(env=env, before=before, after=after), self.assertRaises(ValueError):
+                check_cold_binding("keystate", env, before, after)
+        with self.assertRaises(ValueError):
+            check_cold_binding("replay", "replay", same, same)
+
 
 class SystemHarnessTests(unittest.TestCase):
     def test_partial_network_pass_cannot_authorize_cold_recovery(self):
