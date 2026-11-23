@@ -4,7 +4,7 @@ use nieuw_os_net_protocol::{arp, build_udp_ipv4, parse, UdpIpv4Tx};
 use nieuw_os_net_stack::{LinkConfig, SocketStorage, FRAME_BYTES};
 use nieuw_os_network_service::{
     wire::{HeaderFields, Operation, Packet, Status},
-    Buffers, Destination, DhcpConfiguration, Fault, Service,
+    Buffers, Destination, DhcpConfiguration, DnsCache, Fault, Service,
 };
 use std::collections::VecDeque;
 
@@ -19,6 +19,7 @@ fn with_service(f: impl FnOnce(&mut Service<'_>)) {
     let mut storage = [SocketStorage::EMPTY, SocketStorage::EMPTY];
     let (mut rx, mut tx) = ([0; FRAME_BYTES], [0; FRAME_BYTES]);
     let (mut ra, mut rb, mut ta, mut tb) = ([0; 4096], [0; 4096], [0; 4096], [0; 4096]);
+    let mut dns = DnsCache::new().unwrap();
     let mut service = Service::new_dhcp(
         DhcpConfiguration {
             epoch: 19,
@@ -42,6 +43,7 @@ fn with_service(f: impl FnOnce(&mut Service<'_>)) {
             tx_sockets: [&mut ta, &mut tb],
         },
         ProbeTiming::new(0, 100, 100).unwrap(),
+        &mut dns,
         0,
     )
     .unwrap();
