@@ -5,7 +5,7 @@
 use zeroize::Zeroizing;
 
 use crate::{
-    persistent::{SnapshotInfo, PERSISTENT_BLOB},
+    persistent::{KeyStateStore, SnapshotInfo, WriteAheadError, PERSISTENT_BLOB},
     records::{RecordContext, RecordKind, RECORD_SUITE, RECORD_VERSION},
     EntropySource, Service, Status, DOMAINS, MAX_PLAINTEXT, MAX_SEALED, NONCE_BYTES, RECOVERY_BLOB,
     SECRET_BYTES, TAG_BYTES,
@@ -330,7 +330,9 @@ pub fn dispatch_record(
 
 /// Ordinary app ingress. Recovery export/import and persistent snapshots are
 /// deliberately excluded; only the separately authorized management ingress
-/// may dispatch those operations.
+/// may dispatch those operations. GENERATE and REVOKE here are the legacy,
+/// non-durable operations and are refused with `Invalid` once the instance is
+/// in write-ahead mode; `dispatch_domain_durable` is the write-ahead variant.
 pub fn dispatch_domain(
     service: &mut Service,
     source: &mut impl EntropySource,
@@ -387,6 +389,70 @@ pub fn dispatch_domain(
             reply(header, Status::Invalid, &[])
         }
         _ => reply(header, Status::Invalid, &[]),
+    }
+}
+
+/// Write-ahead context of one domain ingress, held by the service adapter
+/// from its own configuration. Never built from request bytes.
+pub struct Durable<'a, S: KeyStateStore> {
+    pub volume: &'a [u8; VOLUME_ID],
+    pub secret: &'a [u8; SECRET_BYTES],
+    pub store: &'a mut S,
+}
+
+/// Status for a write-ahead failure: `Failed` is certainly not durable and an
+/// explicit retry is allowed (`NotReady`); `Unknown` has latched the instance
+/// (`Degraded`); a key-service refusal keeps its own status. An adapter must
+/// report an IPC timeout or ambiguous transport result as `StoreError::Unknown`.
+pub const fn durable_status(error: WriteAheadError) -> Status {
+    match error {
+        WriteAheadError::Key(status) => status,
+        WriteAheadError::Failed => Status::NotReady,
+        WriteAheadError::Unknown => Status::Degraded,
+    }
+}
+
+/// Domain ingress whose GENERATE and REVOKE are write-ahead: `Ok` is replied
+/// only after `durable.store` committed the snapshot in this call. Every other
+/// opcode is exactly `dispatch_domain`. Never falls back to the legacy
+/// generate/revoke, and never serves persistence or recovery opcodes.
+pub fn dispatch_domain_durable<S: KeyStateStore>(
+    service: &mut Service,
+    source: &mut impl EntropySource,
+    domain: usize,
+    header: &Header,
+    body: &[u8],
+    durable: &mut Durable<'_, S>,
+) -> [u8; SIZE] {
+    if !matches!(header.op, GENERATE | REVOKE) {
+        return dispatch_domain(service, source, domain, header, body);
+    }
+    if header.status != 0 || usize::from(header.length) != body.len() || !body.is_empty() {
+        return reply(header, Status::Invalid, &[]);
+    }
+    if header.op == GENERATE {
+        match service.generate_durable(
+            domain,
+            durable.volume,
+            durable.secret,
+            durable.store,
+            source,
+        ) {
+            Ok(index) => reply(header, Status::Ok, &[index]),
+            Err(error) => reply(header, durable_status(error), &[]),
+        }
+    } else {
+        match service.revoke_durable(
+            domain,
+            header.index,
+            durable.volume,
+            durable.secret,
+            durable.store,
+            source,
+        ) {
+            Ok(()) => reply(header, Status::Ok, &[]),
+            Err(error) => reply(header, durable_status(error), &[]),
+        }
     }
 }
 
@@ -450,10 +516,15 @@ pub fn restore_persistent_request(
 }
 
 /// Persistence-only dispatch for the separately granted administrative
-/// ingress. It never serves key, record, recovery or RANDOM opcodes, and the
-/// legacy/RANDOM dispatchers never reach `export_persistent`/`restore_persistent`.
-/// Every format check precedes the cryptographic work; a failed call leaves the
-/// namespace unchanged (see `Service::restore_persistent`).
+/// ingress. It never serves key, record, recovery or RANDOM opcodes.
+/// `dispatch_domain`, `dispatch_domain_durable` and `dispatch_random` never call
+/// `export_persistent`/`restore_persistent` or return a snapshot blob; in the
+/// durable dispatch the blob goes only to `KeyStateStore::commit`.
+/// Every format check precedes the cryptographic work. A refused call leaves
+/// the key namespace and the volume binding unchanged (a failed entropy reseed
+/// can still degrade the service); a successful EXPORT or RESTORE binds the
+/// instance to the request's volume. In write-ahead mode EXPORT is refused
+/// (`NotReady`) until state is settled and RESTORE is refused (`Invalid`).
 pub fn dispatch_persistent(
     service: &mut Service,
     source: &mut impl EntropySource,

@@ -5,6 +5,8 @@ building on B01/ADR-043 and `services/volume`. Status: **core, wire and
 native persistence slice implemented and proven under QEMU in the FR-I01
 profile (see FR-B02P below); cold rollback anchoring, write-ahead in the
 service and full B02 acceptance remain open**.
+A host-only write-ahead contract and a durable KEY1 domain dispatch exist
+(B02-T2, below); no native key-state store is wired to the service.
 There is no new kernel cryptography or dependency. The existing
 KEY1 opcodes/ABI are preserved; FR-B02N adds compatible record opcodes.
 
@@ -328,3 +330,15 @@ generation floor, write-ahead per GENERATE/REVOKE within the service, loss or
 compromise of the external secret (= attacker-chosen master at cold
 start), multiple writers, a native counterexample for the
 admin sender check, physical hardware.
+
+B02-T2 (host only): `Service::generate_durable`/`revoke_durable` commit
+the sealed key-state snapshot through a caller-supplied `KeyStateStore`
+before confirming, and `wire::dispatch_domain_durable` routes KEY1
+GENERATE/REVOKE of a domain ingress through them. `Ok` is replied only
+after a successful commit in that call; a certain store failure replies
+`NotReady` (explicit retry allowed) and an uncertain one replies
+`Degraded` and latches the instance. The volume, secret and store come
+from the service adapter, never from the request. Host tests:
+`services/keyring/tests/write_ahead.rs`. Still open: a native store
+for the keyring service (ADR-051 gives it no volume right and keeps the
+secret outside the service), so no QEMU profile exercises this path.

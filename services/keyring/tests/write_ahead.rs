@@ -7,8 +7,9 @@
 use keyring_core::{
     persistent::{KeyStateStore, SnapshotInfo, StoreError, WriteAheadError, PERSISTENT_BLOB},
     records::{RecordContext, RecordKind},
-    EntropySource, Service, Status, MAX_PLAINTEXT, MAX_SEALED, RECOVERY_BLOB, RESEED_INTERVAL,
-    SECRET_BYTES,
+    wire::{self, Header, GENERATE, REVOKE},
+    EntropySource, Service, Status, DOMAINS, MAX_PLAINTEXT, MAX_SEALED, RECOVERY_BLOB,
+    RESEED_INTERVAL, SECRET_BYTES,
 };
 
 /// Entropy-accounted operations performed by `committed_base`: allocate,
@@ -775,4 +776,282 @@ fn restore_in_write_ahead_mode_cannot_fake_a_durable_revocation() {
         Err(WriteAheadError::Key(Status::Revoked))
     );
     assert_eq!(fresh_store.calls, 0);
+}
+
+// ---- B02-T2: durable KEY1 domain dispatch (host only; no native store) ----
+
+const FOREIGN: [u8; 16] = *b"other-volume-003";
+
+fn key_op(op: u8, index: u8) -> Header {
+    Header {
+        op,
+        index,
+        length: 0,
+        request: 7,
+        status: 0,
+    }
+}
+
+/// One request through `dispatch_domain_durable` with the adapter-held
+/// volume, secret and store; returns the reply status and body.
+fn durable(
+    s: &mut Service,
+    e: &mut Entropy,
+    domain: usize,
+    header: Header,
+    body: &[u8],
+    store: &mut Store,
+) -> (Status, Vec<u8>) {
+    let mut ctx = wire::Durable {
+        volume: &VOLUME,
+        secret: &SECRET,
+        store,
+    };
+    let out = wire::dispatch_domain_durable(s, e, domain, &header, body, &mut ctx);
+    let reply = Header::decode(&out).unwrap();
+    assert_eq!(reply.op, header.op | wire::REPLY);
+    let length = usize::from(reply.length);
+    (
+        Status::from_code(reply.status),
+        out[wire::HEADER..wire::HEADER + length].to_vec(),
+    )
+}
+
+/// Drive `n` entropy-accounted operations on index 0 of a legacy instance.
+fn spend(s: &mut Service, e: &mut Entropy, n: u32) {
+    for _ in 0..n {
+        seal(s, 0, e).unwrap();
+    }
+}
+
+#[test]
+fn durable_dispatch_generate_is_ok_only_after_store_commit() {
+    let (mut s, mut e) = ready(0x8001);
+    let mut store = Store::new();
+    let ok = durable(&mut s, &mut e, 0, key_op(GENERATE, 0), &[], &mut store);
+    assert_eq!(ok, (Status::Ok, vec![0]));
+    assert_eq!(store.calls, 1);
+    assert_eq!(reopen(&store).2.created[0], 1);
+
+    store.mode = Mode::Fail;
+    let failed = durable(&mut s, &mut e, 0, key_op(GENERATE, 0), &[], &mut store);
+    assert_eq!(failed, (Status::NotReady, vec![]));
+    assert_eq!(store.calls, 2);
+    assert_eq!(
+        seal(&mut s, 1, &mut e),
+        Err(Status::NotReady),
+        "pending gate"
+    );
+    assert_eq!(reopen(&store).2.created[0], 1, "failed allocation durable");
+
+    for mode in [Mode::UnknownLost, Mode::UnknownLanded] {
+        let (mut s, mut e) = ready(0x8011);
+        let mut store = Store::new();
+        store.mode = mode;
+        let unknown = durable(&mut s, &mut e, 0, key_op(GENERATE, 0), &[], &mut store);
+        assert_eq!(unknown, (Status::Degraded, vec![]));
+        assert_eq!(store.calls, 1);
+        store.mode = Mode::Ok;
+        for op in [GENERATE, REVOKE] {
+            let latched = durable(&mut s, &mut e, 0, key_op(op, 0), &[], &mut store);
+            assert_eq!(latched, (Status::Degraded, vec![]));
+        }
+        assert_eq!(store.calls, 1, "latched instance reached the store");
+    }
+}
+
+#[test]
+fn durable_dispatch_revoke_reply_matches_durable_state() {
+    let (mut s, mut e) = ready(0x8002);
+    let mut store = Store::new();
+    let ok = durable(&mut s, &mut e, 0, key_op(GENERATE, 0), &[], &mut store);
+    assert_eq!(ok, (Status::Ok, vec![0]));
+    let sealed = seal(&mut s, 0, &mut e).unwrap();
+
+    store.mode = Mode::Fail;
+    let failed = durable(&mut s, &mut e, 0, key_op(REVOKE, 0), &[], &mut store);
+    assert_eq!(failed, (Status::NotReady, vec![]));
+    assert_eq!(unseal(&mut s, 0, &sealed, &mut e), Err(Status::Revoked));
+    assert_eq!(reopen(&store).2.revoked[0], 0, "Failed revocation durable");
+
+    store.mode = Mode::Ok;
+    let retried = durable(&mut s, &mut e, 0, key_op(REVOKE, 0), &[], &mut store);
+    assert_eq!(retried, (Status::Ok, vec![]));
+    assert_eq!(store.calls, 3);
+    let (mut cold, mut ce, info) = reopen(&store);
+    assert_eq!(info.revoked[0], 1);
+    assert_eq!(unseal(&mut cold, 0, &sealed, &mut ce), Err(Status::Revoked));
+
+    let (mut s, mut e) = ready(0x8012);
+    let mut store = Store::new();
+    durable(&mut s, &mut e, 0, key_op(GENERATE, 0), &[], &mut store);
+    store.mode = Mode::UnknownLost;
+    let unknown = durable(&mut s, &mut e, 0, key_op(REVOKE, 0), &[], &mut store);
+    assert_eq!(unknown, (Status::Degraded, vec![]));
+    store.mode = Mode::Ok;
+    for op in [REVOKE, GENERATE] {
+        let latched = durable(&mut s, &mut e, 0, key_op(op, 0), &[], &mut store);
+        assert_eq!(latched, (Status::Degraded, vec![]));
+    }
+    assert_eq!(store.calls, 2);
+}
+
+#[test]
+fn durable_dispatch_refuses_malformed_key_mutation_without_store_call() {
+    let (mut s, mut e) = ready(0x8003);
+    let mut store = Store::new();
+    let before = s.snapshot_info();
+    for op in [GENERATE, REVOKE] {
+        let mut with_body = key_op(op, 0);
+        with_body.length = 1;
+        let mut short = key_op(op, 0);
+        short.length = 1;
+        let mut status = key_op(op, 0);
+        status.status = 1;
+        for (header, body) in [(with_body, &[0u8][..]), (short, &[][..]), (status, &[][..])] {
+            let refused = durable(&mut s, &mut e, 0, header, body, &mut store);
+            assert_eq!(refused, (Status::Invalid, vec![]));
+        }
+        let foreign = durable(&mut s, &mut e, DOMAINS, key_op(op, 0), &[], &mut store);
+        assert_eq!(foreign, (Status::Invalid, vec![]));
+    }
+    assert_eq!(store.calls, 0);
+    assert_eq!(s.snapshot_info(), before);
+    // Write-ahead was never engaged: the legacy API still works.
+    assert_eq!(s.generate(0, &mut e), Ok(0));
+}
+
+#[test]
+fn durable_dispatch_never_reaches_persistence_or_legacy() {
+    let (mut s, mut e) = ready(0x8004);
+    let mut store = Store::new();
+    let blob = [0u8; PERSISTENT_BLOB];
+    let requests = [
+        wire::export_persistent_request(1, &VOLUME, &SECRET).unwrap(),
+        wire::restore_persistent_request(2, &VOLUME, &SECRET, 0, &blob).unwrap(),
+        wire::request(wire::EXPORT_RECOVERY, 0, 3, &[]).unwrap(),
+        wire::request(wire::RESTORE, 0, 4, &[0u8; SECRET_BYTES + RECOVERY_BLOB]).unwrap(),
+    ];
+    let before = s.snapshot_info();
+    for message in requests {
+        let header = Header::decode(&message).unwrap();
+        let body = &message[wire::HEADER..wire::HEADER + usize::from(header.length)];
+        let refused = durable(&mut s, &mut e, 0, header, body, &mut store);
+        assert_eq!(refused, (Status::Invalid, vec![]));
+    }
+    assert_eq!(store.calls, 0);
+    assert_eq!(s.snapshot_info(), before);
+    assert_eq!(s.counters.restores, 0);
+
+    let ok = durable(&mut s, &mut e, 0, key_op(GENERATE, 0), &[], &mut store);
+    assert_eq!(ok, (Status::Ok, vec![0]));
+    // No silent downgrade to the legacy, non-durable mutators.
+    for op in [GENERATE, REVOKE] {
+        let out = wire::dispatch_domain(&mut s, &mut e, 0, &key_op(op, 0), &[]);
+        let reply = Header::decode(&out).unwrap();
+        assert_eq!(Status::from_code(reply.status), Status::Invalid);
+        assert_eq!(reply.length, 0);
+    }
+    assert_eq!(store.calls, 1);
+    let info = s.snapshot_info();
+    assert_eq!((info.created[0], info.revoked[0]), (1, 0));
+}
+
+#[test]
+fn durable_dispatch_takes_domain_from_adapter_not_payload() {
+    let (mut s, mut e) = ready(0x8005);
+    let mut store = Store::new();
+    let message = wire::request(GENERATE, 0, 9, &[]).unwrap();
+    let header = Header::decode(&message).unwrap();
+    let ok = durable(&mut s, &mut e, 1, header, &[], &mut store);
+    assert_eq!(ok, (Status::Ok, vec![0]));
+    assert_eq!(s.snapshot_info().created, [0, 1]);
+    // Index 0 exists only in domain 1; the domain-0 ingress cannot revoke it.
+    let wrong = durable(&mut s, &mut e, 0, key_op(REVOKE, 0), &[], &mut store);
+    assert_eq!(wrong, (Status::BadHandle, vec![]));
+    assert_eq!(store.calls, 1);
+    assert_eq!(s.snapshot_info().revoked, [0, 0]);
+}
+
+/// I5: the first durable commit binds its volume even when sealing fails, so
+/// a later call with another volume is refused instead of reaching the state.
+#[test]
+fn first_durable_commit_failing_before_binding_still_binds_volume() {
+    let (mut s, mut e) = ready(0x8006);
+    assert_eq!(s.generate(0, &mut e), Ok(0));
+    // 1 + 61 accounted ops: allocate is op 63, the snapshot seal reseeds at 64.
+    spend(&mut s, &mut e, RESEED_INTERVAL - 3);
+    e.fail = true;
+    let mut store = Store::new();
+    assert_eq!(
+        generate(&mut s, &mut store, &mut e),
+        Err(WriteAheadError::Key(Status::Degraded))
+    );
+    let before = s.snapshot_info();
+    assert_eq!(
+        s.generate_durable(0, &FOREIGN, &SECRET, &mut store, &mut e),
+        Err(WriteAheadError::Key(Status::Invalid))
+    );
+    assert_eq!(
+        s.revoke_durable(0, 0, &FOREIGN, &SECRET, &mut store, &mut e),
+        Err(WriteAheadError::Key(Status::Invalid))
+    );
+    assert_eq!(s.snapshot_info(), before, "foreign volume changed state");
+    assert_eq!(store.calls, 0);
+}
+
+/// I1/I5 on the reachable Degraded path: `revoke_entry` accepts `Degraded`,
+/// so a durable REVOKE engages write-ahead but can never be confirmed.
+#[test]
+fn degraded_durable_revoke_binds_volume_and_never_confirms() {
+    let (mut s, mut e) = ready(0x8007);
+    assert_eq!(s.generate(0, &mut e), Ok(0));
+    assert_eq!(s.generate(0, &mut e), Ok(1));
+    spend(&mut s, &mut e, RESEED_INTERVAL - 3);
+    e.fail = true;
+    assert_eq!(seal(&mut s, 0, &mut e), Err(Status::Degraded));
+    let mut store = Store::new();
+    assert_eq!(
+        revoke(&mut s, 0, &mut store, &mut e),
+        Err(WriteAheadError::Key(Status::Degraded))
+    );
+    assert_eq!(s.snapshot_info().revoked[0], 1, "revoked locally at once");
+    let before = s.snapshot_info();
+    assert_eq!(
+        s.revoke_durable(0, 1, &FOREIGN, &SECRET, &mut store, &mut e),
+        Err(WriteAheadError::Key(Status::Invalid))
+    );
+    assert_eq!(s.snapshot_info(), before, "foreign volume revoked index 1");
+    assert_eq!(
+        revoke(&mut s, 1, &mut store, &mut e),
+        Err(WriteAheadError::Key(Status::Degraded))
+    );
+    assert_eq!(
+        generate(&mut s, &mut store, &mut e),
+        Err(WriteAheadError::Key(Status::Degraded))
+    );
+    assert_eq!(store.calls, 0, "no commit, so no confirmation");
+}
+
+/// I6: a failed persistent export outside write-ahead mode binds nothing.
+#[test]
+fn failed_export_before_binding_leaves_instance_unbound() {
+    let (mut s, mut e) = ready(0x8008);
+    assert_eq!(s.generate(0, &mut e), Ok(0));
+    // 1 + 62 accounted ops: the export's accounting reseeds at op 64.
+    spend(&mut s, &mut e, RESEED_INTERVAL - 2);
+    e.fail = true;
+    let before = s.snapshot_info();
+    let mut out = [0x5au8; PERSISTENT_BLOB];
+    assert_eq!(
+        s.export_persistent(&VOLUME, &SECRET, &mut e, &mut out),
+        Err(Status::Degraded)
+    );
+    assert_eq!(out, [0x5au8; PERSISTENT_BLOB], "failed export wrote");
+    assert_eq!(
+        s.export_persistent(&FOREIGN, &SECRET, &mut e, &mut out),
+        Err(Status::Degraded),
+        "failed export bound the volume"
+    );
+    assert_eq!(s.snapshot_info(), before);
 }
