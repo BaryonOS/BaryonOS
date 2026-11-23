@@ -37,6 +37,10 @@ pub enum StoreError {
 
 /// Crash-consistent volume transaction for one key-state snapshot. `Ok` means
 /// the blob of `generation` is durable; the service confirms nothing earlier.
+///
+/// A store has no identity the service can check, so the service never
+/// confirms a durable operation from an earlier commit: every confirmation is
+/// made by a successful commit to the store passed in that same call.
 pub trait KeyStateStore {
     fn commit(&mut self, generation: u64, blob: &[u8; PERSISTENT_BLOB]) -> Result<(), StoreError>;
 }
@@ -179,11 +183,17 @@ impl Service {
     /// Write-ahead REVOKE: the key is unusable at once, but the revocation is
     /// confirmed only after the snapshot recording it is committed. After a
     /// certain `Failed`, calling this again for the same index retries the
-    /// commit explicitly. If a later successful commit (for example an
-    /// unrelated `generate_durable`) already made the revocation durable, the
-    /// retry returns `Ok` without a store call. It never returns `Ok` for an
-    /// already-revoked index while any allocation or revocation is pending,
-    /// before the first write-ahead commit, or once the instance is uncertain.
+    /// commit explicitly.
+    ///
+    /// `Ok` means that the `store` passed in this call durably holds the
+    /// revocation: every confirmation is made by a successful commit to that
+    /// store, never by an earlier commit to any store. For an index that is
+    /// already revoked while the instance is settled, the live state is
+    /// committed again through `store` at the next generation, and the result
+    /// of that commit is returned (`Unknown` latches as elsewhere). It never
+    /// returns `Ok` for an already-revoked index while any allocation or
+    /// revocation is pending, before the first write-ahead commit, or once the
+    /// instance is uncertain.
     pub fn revoke_durable(
         &mut self,
         domain: usize,
@@ -201,14 +211,22 @@ impl Service {
                 .is_some_and(|bits| bits & (1 << index) != 0);
         if !retry {
             match self.revoke_entry(domain, index) {
-                Ok(()) => {}
-                // Idempotent retry: the last commit returned `Ok` and covered
-                // all live state, so this revocation is already durable.
-                Err(Status::Revoked) if self.write_ahead_settled() => return Ok(()),
+                Ok(()) => {
+                    self.write_ahead = true;
+                    self.revoke_pending[domain] |= 1 << index;
+                }
+                // Already revoked and settled: the earlier `Ok` may have come
+                // from another store, and the trait carries no store identity,
+                // so re-commit the live state through this `store` at a fresh
+                // generation instead of confirming without a store call.
+                Err(Status::Revoked) if self.write_ahead_settled() => {
+                    self.key_generation = self
+                        .key_generation
+                        .checked_add(1)
+                        .ok_or(WriteAheadError::Key(Status::Quota))?;
+                }
                 Err(status) => return Err(WriteAheadError::Key(status)),
             }
-            self.write_ahead = true;
-            self.revoke_pending[domain] |= 1 << index;
         }
         self.commit_durable(volume, secret, store, source)?;
         Ok(())

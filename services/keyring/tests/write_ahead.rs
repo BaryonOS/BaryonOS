@@ -234,13 +234,16 @@ fn revocation_is_not_confirmed_before_commit() {
     let (mut cold, mut ce, info) = reopen(&store);
     assert_eq!(info.revoked[0], 1);
     assert_eq!(unseal(&mut cold, 0, &sealed, &mut ce), Err(Status::Revoked));
-    // M3: a retry of a confirmed revocation is idempotent and needs no store call.
+    // B02-T2: a retry of a confirmed revocation is confirmed again only by a
+    // fresh commit through the passed store, at an advanced generation.
+    let generation = store.durable_generation;
     assert_eq!(revoke(&mut s, 0, &mut store, &mut e), Ok(()));
-    assert_eq!(store.calls, 3);
+    assert_eq!(store.calls, 4);
+    assert!(store.durable_generation > generation, "generation reused");
 }
 
 /// M3: Failed revoke, then an unrelated successful commit makes it durable;
-/// the retry reports `Ok` without another store call.
+/// B02-T2: the retry still reports `Ok` only after its own store commit.
 #[test]
 fn revoke_retry_after_unrelated_commit_is_idempotent() {
     let (mut s, mut e, mut store, sealed) = committed_base();
@@ -252,11 +255,72 @@ fn revoke_retry_after_unrelated_commit_is_idempotent() {
     store.mode = Mode::Ok;
     assert_eq!(generate(&mut s, &mut store, &mut e), Ok(1));
     assert_eq!(store.calls, 3);
+    let generation = store.durable_generation;
     assert_eq!(revoke(&mut s, 0, &mut store, &mut e), Ok(()));
-    assert_eq!(store.calls, 3, "durable revocation needs no new commit");
+    assert_eq!(store.calls, 4, "Ok without a commit to the passed store");
+    assert!(store.durable_generation > generation, "generation reused");
     let (mut cold, mut ce, info) = reopen(&store);
     assert_eq!(info.revoked[0], 1);
     assert_eq!(unseal(&mut cold, 0, &sealed, &mut ce), Err(Status::Revoked));
+}
+
+/// B02-T2: a revocation committed to store A is never confirmed for store B
+/// from A's commit; `Ok` follows only a successful commit to B, a `Failed`
+/// commit to B is not `Ok`, and an `Unknown` commit to B latches.
+#[test]
+fn already_revoked_index_is_confirmed_only_through_the_passed_store() {
+    let (mut s, mut e, mut a, sealed) = committed_base();
+    assert_eq!(revoke(&mut s, 0, &mut a, &mut e), Ok(()));
+    let a_calls = a.calls;
+    let mut b = Store::new();
+    assert_eq!(revoke(&mut s, 0, &mut b, &mut e), Ok(()));
+    assert_eq!(b.calls, 1, "Ok without a commit to B");
+    assert!(
+        b.durable_generation > a.durable_generation,
+        "generation reused"
+    );
+    assert_eq!(a.calls, a_calls);
+    let (mut cold, mut ce, info) = reopen(&b);
+    assert_eq!(info.revoked[0], 1);
+    assert_eq!(unseal(&mut cold, 0, &sealed, &mut ce), Err(Status::Revoked));
+
+    // B certainly fails: not Ok, and B holds no revocation.
+    let (mut s, mut e, mut a, sealed) = committed_base();
+    assert_eq!(revoke(&mut s, 0, &mut a, &mut e), Ok(()));
+    let mut b = Store::new();
+    b.mode = Mode::Fail;
+    assert_eq!(
+        revoke(&mut s, 0, &mut b, &mut e),
+        Err(WriteAheadError::Failed)
+    );
+    assert_eq!(b.calls, 1);
+    assert!(b.durable.is_none());
+    let (_, _, info) = reopen(&b);
+    assert_eq!(info.revoked[0], 0);
+    assert!(!s.write_ahead_uncertain());
+    // An explicit retry against B then commits and confirms it there.
+    b.mode = Mode::Ok;
+    assert_eq!(revoke(&mut s, 0, &mut b, &mut e), Ok(()));
+    let (mut cold, mut ce, info) = reopen(&b);
+    assert_eq!(info.revoked[0], 1);
+    assert_eq!(unseal(&mut cold, 0, &sealed, &mut ce), Err(Status::Revoked));
+
+    // B is uncertain: Unknown is returned and the instance latches.
+    let (mut s, mut e, mut a, _) = committed_base();
+    assert_eq!(revoke(&mut s, 0, &mut a, &mut e), Ok(()));
+    let mut b = Store::new();
+    b.mode = Mode::UnknownLost;
+    assert_eq!(
+        revoke(&mut s, 0, &mut b, &mut e),
+        Err(WriteAheadError::Unknown)
+    );
+    assert!(s.write_ahead_uncertain());
+    let a_calls = a.calls;
+    assert_eq!(
+        revoke(&mut s, 0, &mut a, &mut e),
+        Err(WriteAheadError::Unknown)
+    );
+    assert_eq!(a.calls, a_calls, "latched instance committed again");
 }
 
 /// M3: no `Ok` for an already-revoked index while anything is pending, while
