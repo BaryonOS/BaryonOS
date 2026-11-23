@@ -38,3 +38,17 @@ was **not run**. Hosted `native-xhci.yml` remains the native evidence.
   cycles now spends the stale budget; the fixture performs one STOP per stream.
 - `check_visible` is a sampled check with the same window as F8.
 - A configuration change after DRIVER_OK is not detected (F10a, open).
+
+## Independent review
+
+A fresh AI reviewer read the diff `965301b4..5ac86ba1` without building it. Verdict:
+approve with minors. This is not a human audit. The lead fixed three minors in `18d293a5`:
+- a compile-time bound ties the `check_visible` bitmask to `QUEUE_SIZE`;
+- every visible-element fault now names its queue and device index;
+- the README states that the per-device stale tally is not reset by re-initialisation.
+
+One nit is left as it is: when XRUN events are not selected, the `periods + 1` stale bound
+is one looser than necessary, which is harmless. After the fixes, the virtio-snd tests
+pass (81), clippy `-D warnings` passes with Rust 1.90.0 and 1.100.0, the three snd kernel
+profiles build, and `test_virtio_snd` passes. The native fixture was not run: it needs
+QEMU 8.2, so hosted `native-xhci.yml` must pass before acceptance.
