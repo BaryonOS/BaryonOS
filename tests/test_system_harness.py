@@ -121,7 +121,8 @@ class ColdHarnessTests(unittest.TestCase):
             for extra in ("SYSTEM:CASE:RECOVER:PASS", "M1:PASS", "SYSTEM:BROKERS:PASS", "SYSTEM:CLEANUP:PASS",
                           "SYSTEM:RECORD_RESTORED_UNSEAL:00000000000000000001",
                           "SYSTEM:KEYSTATE_EXPORTS:00000000000000000000", "SYSTEM:POWER:GATE:PASS"):
-                with self.subTest(case=case, extra=extra), self.assertRaises(ValueError):
+                with self.subTest(case=case, extra=extra), self.assertRaisesRegex(
+                        ValueError, "cold log carries a success, case or persistence marker"):
                     evaluate_cold(case, log + "\n" + extra, 33, False)
 
     def test_replay_is_an_open_boundary_not_a_cold_case(self):
