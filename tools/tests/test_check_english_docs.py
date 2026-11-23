@@ -51,6 +51,27 @@ class Classifier(unittest.TestCase):
         text = ENGLISH_TEXT + "\n~~~\n" + DUTCH_TEXT + "\n```\nmore\n~~~\n"
         self.assertFalse(checker.is_dutch(text))
 
+    def test_fence_inside_block_quote_is_ignored(self):
+        text = "> ~~~text\n> " + ("de " * 21) + "\n> ~~~\n"
+        self.assertFalse(checker.is_dutch(text))
+
+    def test_quoted_prose_outside_fence_counts(self):
+        self.assertTrue(checker.is_dutch("> " + DUTCH_TEXT + "\n"))
+
+    def test_unclosed_fence_ends_with_its_list_item(self):
+        text = "- Example\n\n  ~~~text\n  sample\n\n" + ("de " * 21)
+        self.assertTrue(checker.is_dutch(text))
+
+    def test_unclosed_fence_ends_with_its_block_quote(self):
+        self.assertTrue(checker.is_dutch("> ~~~\n> code\n\n" + DUTCH_TEXT))
+
+    def test_top_level_fence_keeps_less_indented_content(self):
+        text = ENGLISH_TEXT + "\n   ```\n" + DUTCH_TEXT + "\n   ```\n"
+        self.assertFalse(checker.is_dutch(text))
+
+    def test_unclosed_top_level_fence_runs_to_end(self):
+        self.assertFalse(checker.is_dutch(ENGLISH_TEXT + "\n```\n" + DUTCH_TEXT))
+
     def test_evidence_and_third_party_paths_are_excluded(self):
         for path in (
             "docs/verification/x/README.md",
