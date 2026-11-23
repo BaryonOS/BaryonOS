@@ -143,8 +143,15 @@ def run_network_dhcp(*, timeout=90):
     directory.mkdir(parents=True, exist_ok=False)
     shutil.copytree(BUILD / "esp", directory / "esp")
     check_esp(directory / "esp", manifest)
-    for path, name in ((code, "OVMF_CODE.fd"), (variables, "OVMF_VARS.template.fd"), (variables, "OVMF_VARS.fd")):
+    for path, name in ((code, "OVMF_CODE.fd"), (variables, "OVMF_VARS.template.fd")):
         shutil.copy2(path, private_path(directory / name))
+    # Boot only firmware bytes that match the recorded digests; VARS starts from the verified template.
+    if (sha256(directory / "OVMF_CODE.fd"), sha256(directory / "OVMF_VARS.template.fd")) != (
+            original_firmware["code"], original_firmware["vars_template"]):
+        raise ValueError("Firmware changed while it was copied")
+    shutil.copy2(directory / "OVMF_VARS.template.fd", private_path(directory / "OVMF_VARS.fd"))
+    if sha256(directory / "OVMF_VARS.fd") != original_firmware["vars_template"]:
+        raise ValueError("Initial writable firmware variables differ from the template")
     snapshots = {p.relative_to(directory).as_posix(): sha256(p) for p in
                  (directory / "OVMF_CODE.fd", directory / "OVMF_VARS.template.fd", directory / "esp/kernel.elf", directory / "esp/EFI/BOOT/BOOTX64.EFI")}
     rel = directory.relative_to(ROOT).as_posix()

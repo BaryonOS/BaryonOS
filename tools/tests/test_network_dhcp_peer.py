@@ -2,7 +2,11 @@
 """Host tests for the strict N02 DHCP peer; no QEMU or native evidence."""
 from __future__ import annotations
 import struct
+import sys
 import unittest
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from network_dhcp_peer import (BROADCAST_IP, BROADCAST_MAC, CLIENT_MAC, LEASES, PEER_IP, PEER_MAC,
                                ZERO_IP, DhcpMachine, ProtocolError, checksum, ipv4_header,
@@ -99,7 +103,7 @@ def exchange(step, address, source, port, slot):
 
 
 def first_lease(step):
-    acquire(step, 0, 0x11111111)
+    acquire(step, 0, 0x11111111, announcements=2)
     exchange(step, LEASES[0], 40000, 8080, 0)
     exchange(step, LEASES[0], 40001, 8090, 1)
     server = (0x6e303200 + 8081 * 0x100 + 1) & MASK
@@ -141,6 +145,22 @@ class DhcpPeerTest(unittest.TestCase):
         self.assertEqual(options(ack)[53], bytes((5,)))
         self.assertEqual((ack[:6], ack[30:34]), (CLIENT_MAC, LEASES[0]))
         self.assertEqual(step.machine.counts["naks"], 0)
+
+    def test_renewal_before_second_announcement_is_acked_not_nakked(self):
+        step = Recorder()
+        acquire(step, 0, 0x11111111)
+        exchange(step, LEASES[0], 40000, 8080, 0)
+        exchange(step, LEASES[0], 40001, 8090, 1)
+        server = (0x6e303200 + 8081 * 0x100 + 1) & MASK
+        step(tcp(LEASES[0], 40002, 8081, 5, 0, SYN))
+        step(tcp(LEASES[0], 40002, 8081, 6, server, ACK))
+        ack, = step(dhcp(3, 0x22222222, ciaddr=LEASES[0]))
+        self.assertEqual(options(ack)[53], bytes((5,)))
+        self.assertEqual(step.machine.counts["naks"], 0)
+        self.assertEqual(step(arp(LEASES[0], LEASES[0])), [])  # second announcement still accepted
+        nak, = step(dhcp(3, 0x22222223, ciaddr=LEASES[0]))
+        self.assertEqual(options(nak)[53], bytes((6,)))
+        self.assertEqual(step.machine.counts["naks"], 1)
 
     def test_frames_from_withdrawn_address_are_refused(self):
         for late in (tcp(LEASES[0], 40002, 8081, 6, 0, ACK), arp(LEASES[0], PEER_IP),

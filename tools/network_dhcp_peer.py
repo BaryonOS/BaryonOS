@@ -219,7 +219,8 @@ class DhcpMachine:
         done = all(self.connections.get(p) is not None and self.connections[p].closed
                    and self.connections[p].data_acked for p in (8080, 8090))
         held = self.connections.get(8081)
-        return done and held is not None and held.phase == "held"
+        return (done and held is not None and held.phase == "held"
+                and self.announcements[0] == 2)
 
     def dhcp(self, frame):
         m = parse_dhcp(frame)
