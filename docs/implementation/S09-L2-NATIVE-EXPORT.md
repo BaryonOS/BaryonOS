@@ -250,15 +250,17 @@ The portal builds each reader from a new `NativeDisk { device }`;
   links the changed `DiskSource`, so its size changes too and is measured
   together with the new one.
 - **Exclusivity.** The two features are mutually exclusive (`compile_error!`).
-- **Flows.** Cases 25–28 map to `l2_export`, `l2_restore`, `l2_corrupt` and
-  `l2_used`. Slot 2 runs the existing `phase(1)` / `wait_gate(2)` /
-  `report(760)` arm.
+- **Flows.** `l2_portal` runs the shared probes (701, 702) and dispatches
+  case 25 to `l2_export`, cases 26 and 27 to `l2_restore` (27 expects the
+  refusal) and case 28 to `l2_used`. Slot 2 runs the existing `phase(1)` /
+  `wait_gate(2)` / `report(760)` arm.
 - **Scratch.** The `MAX_LENGTH` scratch stays on the 64 KiB private heap.
 - **Stack.** `restore_native_l2` itself holds about three `ArchiveV2` copies,
-  each about 2.2–2.3 KiB (an estimate from the field layout). The caller holds
-  its plan by reference, and no second copy may stay in the long-lived frame.
-  The stack fault recorded in `S09-L2-PROVENANCE.md` section 11 shows the
-  risk.
+  each about 2.2–2.3 KiB (an estimate from the field layout). Each case
+  function is `#[inline(never)]`, so its `ArchiveV2` copies (including the
+  inlined `restore_native_l2`) leave the stack when it returns; none stays in
+  the frame of `run`. The stack fault recorded in `S09-L2-PROVENANCE.md`
+  section 11 shows the risk; slice B measured the bound.
 - **Evidence words** (new; inside the 1024-byte startup area; none collides
   with 40–512 or with U05):
 
@@ -270,7 +272,7 @@ The portal builds each reader from a new `NativeDisk { device }`;
   | 544 | `L2Report.skipped`, or `ExportV2.omitted` for case 25 |
   | 552 | provenance mismatches, 0 expected |
   | 560 | archive length in bytes |
-  | 568 | result status of the restore attempt (27, 28) |
+  | 568 | result status of the restore attempt (26–28) as `Status as i32`, sign-extended to 64 bits; 0 is both `Ok` and "not written", so case 26 is judged by words 520–552 |
 
 ### 5.3 Kernel test profile (`kernel/src/m2/m3/volume.rs`, `kernel/Cargo.toml`)
 
@@ -470,9 +472,10 @@ Each slice gets an independent AI review before the next begins. Hosted CI
   are host-tested.
 - Slice B measured the size and a static stack bound
   (`docs/verification/s09-l2-native-export-20261123/SLICE-B.md`). The stack
-  bound covers direct calls only.
+  bound covers direct calls only. The kernel reads word 568 as an `i64`.
 - Slice C: the kernel `ARCHIVE_IO` arms for 26–28 must accept the refused
-  device-1 write probe of the portal (step 702), or the probe moves.
+  device-1 write probe of the portal (step 702, which expects the
+  capability refusal `Access`, -5), or the probe moves.
 - The final S1–S4 set depends on the slice-C discrimination computation.
 - The merge order against U05 #436: whichever lands second resolves the
   appended lines in `case()`, `read_only()`, `marker()`, `kernel/Cargo.toml`
