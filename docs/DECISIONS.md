@@ -31,9 +31,16 @@ A workstream may merge only when all of these hold:
   on the exact current head.
 - Review threads were resolved only after their feedback was handled.
 - No high or critical code-scanning alert is open.
-- Dependent and stacked base pull requests are merged.
-- Any acceptance hold was released because its acceptance demonstrably passed
-  on that head.
+- Pull requests this one depends on, including stacked base pull requests,
+  are merged first, and this pull request's base is `main` (retargeted after
+  the base merge) at the time of the merge call.
+- A pull request whose acceptance needs a dispatch-only native matrix, soak or
+  final gate carries the `acceptance-pending` label until that acceptance has
+  run; every workflow that the acceptance criterion names counts as an
+  applicable check, whether or not it has been dispatched.
+- Any acceptance hold was released only by an `acceptance-released: <sha>`
+  comment that links the passing run on that exact head, never by removing
+  the label.
 
 Before every push or merge, the workstream re-checks the head, the base and
 ownership, then merges with
@@ -59,8 +66,10 @@ that finds auto-merge armed on its pull request disables it
 - No direct push to `main`, no force-push, no `--admin`, no bypass of
   protections, and no weakening of tests or evidence to make a pull request
   pass.
-- Protected policy and evaluator files still change only through a
-  lead-scoped, reviewed pull request.
+- Files on the Protected files list in `AGENTS.md` still change only through
+  a lead-scoped pull request reviewed by someone other than the merging
+  workstream. The exceptions are a new child directory for new evidence and
+  the workstream's own progress assessment, which this decision delegates.
 - Pipeline workers and other sessions keep the draft-only rule.
 
 **Coordinator role:** the integration coordinator handles only cross-stream
@@ -84,20 +93,21 @@ requests across workstreams still need explicit coordination.
 
 **Security invariant:** no merge without the required checks, the applicable
 acceptance hold and resolved threads on the exact merged head; no bypass of
-branch protection; protected policy and evaluator files stay lead-scoped.
+branch protection; files on the Protected files list stay lead-scoped.
 
 **Test evidence:** none applies to a governance text change. The governance
 and documentation checks (`tools/tests/test_agent_governance.py`,
 `tools/check_english_docs.py`, `tools/progress.py --check`) pass on this
 change; they do not prove that sessions follow the rule.
 
-**Migration and rollback:** to restore the previous model, workstreams first
-disable every armed auto-merge on their open pull requests
-(`gh pr merge <N> --disable-auto`) and do not re-enable it during the
-transition; the integration coordinator does the same for orphaned pull
-requests whose workstream is no longer active and confirms that no armed
-auto-merge remains; only then does the project owner revoke this ADR. Workstreams
-return to draft or "final" handoff to a single coordinator.
+**Migration and rollback:** to restore the previous model, the project owner
+announces the rollback; from then on workstreams and their pull-request
+workers issue no further `gh pr merge` calls, stop their merge drivers and
+hand their open pull requests back to a single coordinator in draft or
+"final" state. As a safety check, workstreams and the coordinator (for
+orphaned pull requests) disable any auto-merge found armed
+(`gh pr merge <N> --disable-auto`) and confirm that none remains; only then
+does the project owner revoke this ADR.
 Pull requests already merged under this ADR stay merged and are judged on
 their recorded checks.
 

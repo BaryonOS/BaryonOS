@@ -78,7 +78,9 @@ Coverage output is written under `build/coverage-raw/`, which is already ignored
 Merging requires the project owner's explicit approval, except that the six
 workstream sessions (S09, U, N, UI/UX design, B and H) may squash-merge their
 own pull requests once the conditions of `ADR-MERGE-DELEGATION-20261123` hold.
-Other sessions do not enable auto-merge (owner decision of 13 November 2026). The `merge-hold`
+No session enables auto-merge; the workstreams merge directly with
+`--match-head-commit` after verifying every applicable check on the exact head
+(owner decisions of 13 and 23 November 2026). The `merge-hold`
 check enforces the remaining case: a pull request whose merge condition
 includes acceptance outside the required checks, for example a dispatch-only
 native matrix, soak or final gate. A job skipped by its `if` condition reports
@@ -88,7 +90,8 @@ success and does not block a merge on its own.
   before any merge request.
 - After that acceptance has passed, not been skipped, on the current head
   commit, a participant with write access comments the exact line
-  `acceptance-released: <40-character head SHA>` and re-runs `merge-hold`.
+  `acceptance-released: <40-character head SHA>`, with a link to the passing
+  run on that head in the same comment, and re-runs `merge-hold`.
 - A new push changes the head SHA, so the hold applies again until a new
   release comment names the new head.
 
@@ -99,6 +102,9 @@ unavailable:
 gh api -X POST repos/BaryonOS/BaryonOS/issues/<PR>/labels -f 'labels[]=acceptance-pending'
 gh api -X DELETE repos/BaryonOS/BaryonOS/issues/<PR>/labels/acceptance-pending
 ```
+
+Removing the label does not release a hold: the `DELETE` command only corrects
+a label that was set in error, never one whose acceptance has not passed.
 
 A label change made with a workflow's `GITHUB_TOKEN` starts no new
 `merge-hold` run. `merge-hold` becomes a required status check only after its

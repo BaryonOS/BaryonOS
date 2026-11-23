@@ -36,8 +36,8 @@ GitHub Copilot; client adapters add tool constraints, never authority.
    assessment without awarding unaccepted criteria. Commit, push and open/update a
    draft PR under the current mandate. Manual squash needs mandatory checks and
    current owner authorization (the six workstreams hold it for their own PRs under
-   ADR-MERGE-DELEGATION-20261123); never bypass protection, and enable auto-merge only
-   when that mandate allows it.
+   ADR-MERGE-DELEGATION-20261123); never bypass protection or enable auto-merge; workstreams
+   merge directly with `--match-head-commit` after verifying every applicable check.
 9. Record one durable lesson in shared Graphify memory when useful; changing task
    state belongs in existing checkpoints, never AGENTS.md. Continue the next disjoint
    eligible task. External blockers do not stop independent implementation. At a hard

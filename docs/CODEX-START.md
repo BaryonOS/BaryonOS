@@ -26,7 +26,7 @@ Do not silently disable validation hooks or run a forbidden local index.
 Update the existing compact checkpoint and progress assessment; commit/push coherent work
 and open/update a draft PR. Manual squash requires actual mandatory checks and owner
 mandate (the six workstreams hold it for their own PRs under ADR-MERGE-DELEGATION-20261123).
-Never auto-merge outside that mandate, bypass protections, weaken permissions or disturb foreign WIP.
+Never auto-merge (the mandate allows only a direct `--match-head-commit` squash merge), bypass protections, weaken permissions or disturb foreign WIP.
 Governance does not require zero open items or prove runtime parity/Daybreak remediation.
 
 ## Read-only canary instruction
