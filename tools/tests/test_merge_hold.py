@@ -127,7 +127,8 @@ def entry(position, number, commit, head, state="OPEN", base="main"):
 
 def runs(*states):
     """Check-run list answer: one run per AHEAD_CHECKS name with the given status."""
-    return {"check_runs": [{"name": name, "status": state}
+    return {"check_runs": [{"name": name, "status": state,
+                            "conclusion": "success" if state == "completed" else None}
                            for name, state in zip(merge_hold.AHEAD_CHECKS, states)]}
 
 
@@ -139,10 +140,12 @@ class MergeGroupTests(TestCase):
     """PR 7 is ahead of PR 8; group commit GROUP contains both."""
 
     def run_group(self, nodes, labels=None, comments=None, trees=None,
-                  env=None, answer=None, checks=None, ahead=None, on_sleep=None):
-        """checks answer polls of the group commit, ahead those of any other commit."""
+                  env=None, answer=None, checks=None, ahead=None, on_sleep=None,
+                  commits=None):
+        """checks answer polls of the group commit, commits[sha] those of sha, ahead the rest."""
         labels, comments, trees = labels or {}, comments or {}, trees or {}
-        polls = {True: list(checks or [DONE]), False: list(ahead or [DONE])}
+        polls = {sha: list(answers) for sha, answers in (commits or {}).items()}
+        polls[GROUP], polls[None] = list(checks or [DONE]), list(ahead or [DONE])
         calls = []
 
         def fetch(token, url):
@@ -155,7 +158,7 @@ class MergeGroupTests(TestCase):
         def call(token, url, payload=None):
             calls.append(url)
             if "/check-runs?" in url:
-                queue = polls[f"/commits/{GROUP}/" in url]
+                queue = polls.get(url.split("/commits/")[1].split("/")[0], polls[None])
                 answer_ = queue.pop(0) if len(queue) > 1 else queue[0]
                 if isinstance(answer_, Exception):
                     raise answer_
@@ -279,6 +282,37 @@ class MergeGroupTests(TestCase):
         self.assertEqual(len([url for url in calls if f"/commits/{E}/check-runs?" in url]), 3)
         self.assertFalse([url for url in calls if "/commits/" + "f" * 40 in url])
         self.assertLabelsReadAfterWait(calls)
+
+    def test_entry_ahead_whose_merge_hold_ended_early_does_not_end_the_wait(self):
+        # PR 9's merge-hold failed early (no wait), so PR 7 ahead of it may still
+        # run; a hold set on PR 7 meanwhile must be seen by this group.
+        early = {"check_runs": [{"name": name, "status": "completed", "conclusion": result}
+                                for name, result in (("host-quality", "success"),
+                                                     ("qemu-smoke", "success"),
+                                                     ("merge-hold", "failure"))]}
+        a1, a2 = "1" * 40, "2" * 40
+
+        def add_hold(labels, comments, nodes):
+            labels[7] = [merge_hold.LABEL]
+
+        code, out, calls = self.run_group(
+            [entry(1, 7, a1, HEAD), entry(2, 9, a2, "9" * 40), entry(3, 8, GROUP, OTHER)],
+            commits={a2: [early], a1: [runs("in_progress", "in_progress", "in_progress"),
+                                       runs("completed", "completed", "in_progress"), DONE]},
+            on_sleep=add_hold)
+        self.assertEqual(code, 1, out)
+        self.assertIn("#7: ::error::", out)
+        self.assertEqual(calls.count("sleep"), 2)
+        self.assertLabelsReadAfterWait(calls)
+
+    def test_successful_entry_ahead_ends_the_walk(self):
+        a1, a2 = "1" * 40, "2" * 40
+        code, out, calls = self.run_group(
+            [entry(1, 7, a1, HEAD), entry(2, 9, a2, "9" * 40), entry(3, 8, GROUP, OTHER)],
+            commits={a2: [DONE], a1: [runs("in_progress", "in_progress", "in_progress")]})
+        self.assertEqual(code, 0, out)
+        self.assertEqual(calls.count("sleep"), 0)
+        self.assertFalse([url for url in calls if f"/commits/{a1}/" in url])
 
     def test_entry_ahead_that_leaves_the_queue_ends_the_wait(self):
         def merged(labels, comments, nodes):

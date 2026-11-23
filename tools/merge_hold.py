@@ -10,13 +10,16 @@ automatically. Any API or input error fails closed. See ADR-MERGE-HOLD-20261113.
 
 On a `merge_group` event the check decides as late as it can. It first waits
 until the other required checks (`host-quality`, `qemu-smoke`) have completed on
-the group commit, then until the nearest queue entry ahead has left the queue or
-completed `host-quality`, `qemu-smoke` and `merge-hold` on its own commit. That
-entry's `merge-hold` waited the same way, so every entry ahead has finished. The
-queue merges in order, so this group can merge only after those entries; labels
-and comments are therefore read close to this group's merge, not when its own
-checks end. A hold added after that final read, until GitHub merges the group,
-is not seen (ADR-MERGE-HOLD-20261113). The 45-minute deadline covers the group's
+the group commit, then walks the queue entries ahead from the nearest outward:
+each must have left the queue or completed `host-quality`, `qemu-smoke` and
+`merge-hold` on its own commit. The walk ends at the first entry whose
+`merge-hold` concluded `success`; that run waited the same way, so every entry
+ahead of it had finished. A `merge-hold` that ended otherwise proves nothing
+about the entries ahead of it, so those are checked too. The queue merges in
+order, so this group can merge only after those entries; labels and comments
+are therefore read close to this group's merge, not when its own checks end.
+A hold added after that final read, until GitHub merges the group, is not seen
+(ADR-MERGE-HOLD-20261113). The 45-minute deadline covers the group's
 own checks and the whole chain ahead, each position adding up to one poll.
 It then evaluates every pull request whose changes the merge-queue commit
 contains: the queue entry whose commit is the group head plus every entry ahead
@@ -43,7 +46,7 @@ API = "https://api.github.com"
 # GitHub Actions, app id 15368). The wait budget stays below the job timeout.
 WAIT_CHECKS = ("host-quality", "qemu-smoke")
 # An entry ahead has finished once these ran on its own commit; "merge-hold" is
-# this check (merge-hold.yml job name), which waited for the entries ahead of it.
+# this check (merge-hold.yml job name); a successful run waited for the entries ahead.
 AHEAD_CHECKS = WAIT_CHECKS + ("merge-hold",)
 ACTIONS_APP_ID = 15368
 POLL_SECONDS = 60
@@ -180,27 +183,35 @@ def tree(token, repo, sha):
     return call(token, f"{API}/repos/{repo}/git/commits/{sha}")["tree"]["sha"]
 
 
-def unfinished(token, repo, sha, names):
-    """Names of the check runs on sha that have not completed (absent counts as not done)."""
+def completed_runs(token, repo, sha):
+    """The completed check runs on sha by name (absent or running counts as not done)."""
     # shortcut: one page of 100 check runs; a commit with more runs waits until
     # the deadline and fails closed. Page through if the workflows ever grow that far.
     url = (f"{API}/repos/{repo}/commits/{sha}/check-runs"
            f"?app_id={ACTIONS_APP_ID}&filter=latest&per_page=100")
-    runs = call(token, url)["check_runs"]
-    done = {run["name"] for run in runs if run["status"] == "completed"}
+    return {run["name"]: run for run in call(token, url)["check_runs"]
+            if run["status"] == "completed"}
+
+
+def unfinished(token, repo, sha, names):
+    """Names of the check runs on sha that have not completed."""
+    done = completed_runs(token, repo, sha)
     return [f"{name} on {sha}" for name in names if name not in done]
 
 
 def still_running(token, repo, sha):
-    """What this group still waits for: its own checks, then the nearest entry ahead.
+    """What this group still waits for: its own checks, then the entries ahead.
 
-    Only the nearest entry ahead is polled: its own merge-hold completes only
-    after the entry ahead of it finished, so the wait covers the whole queue
-    ahead while each run makes two REST requests (plus one GraphQL query) per
-    poll. "The rate limit for GITHUB_TOKEN is 1,000 requests per hour per
-    repository" (https://docs.github.com/en/rest/using-the-rest-api/rate-limits-for-the-rest-api),
-    so about eight concurrent groups fit; beyond that reads fail, are retried
-    and, at the deadline, fail closed.
+    Entries ahead are walked from the nearest outward. The walk stops at the
+    first entry whose `merge-hold` concluded `success`: only a successful run
+    went through this same wait, so every entry ahead of it had finished. A
+    `merge-hold` that ended otherwise (failed early, cancelled, runner lost)
+    proves nothing about the entries ahead of it, so the walk continues. Each
+    run makes one REST request per entry walked plus one GraphQL query per
+    poll; usually that is the nearest entry only. "The rate limit for
+    GITHUB_TOKEN is 1,000 requests per hour per repository"
+    (https://docs.github.com/en/rest/using-the-rest-api/rate-limits-for-the-rest-api);
+    beyond it reads fail, are retried and, at the deadline, fail closed.
     """
     pending = unfinished(token, repo, sha, WAIT_CHECKS)
     if pending:
@@ -208,13 +219,17 @@ def still_running(token, repo, sha):
     nodes = queue_nodes(token, repo)
     _, position = own_position(nodes, sha)
     ahead = [node for node in nodes if node["position"] < position]
-    if not ahead:
-        return []
-    nearest = max(ahead, key=lambda node: node["position"])
-    oid = commit_oid(nearest)
-    if not SHA.fullmatch(oid or ""):
-        return [f"queue entry at position {nearest['position']} has no commit yet"]
-    return unfinished(token, repo, oid, AHEAD_CHECKS)
+    for node in sorted(ahead, key=lambda node: node["position"], reverse=True):
+        oid = commit_oid(node)
+        if not SHA.fullmatch(oid or ""):
+            return [f"queue entry at position {node['position']} has no commit yet"]
+        done = completed_runs(token, repo, oid)
+        pending = [f"{name} on {oid}" for name in AHEAD_CHECKS if name not in done]
+        if pending:
+            return pending
+        if done["merge-hold"].get("conclusion") == "success":
+            return []
+    return []
 
 
 def wait_for_checks(token, repo, sha):

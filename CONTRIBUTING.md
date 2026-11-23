@@ -100,13 +100,17 @@ gh api -X DELETE repos/BaryonOS/BaryonOS/issues/<PR>/labels/acceptance-pending
 
 In a merge queue, `merge-hold` also runs on every merge group. It waits until
 the group's `host-quality` and `qemu-smoke` have completed and every entry
-ahead has left the queue or finished its own required checks, then reads the
+ahead has left the queue or finished its own required checks (an entry whose
+`merge-hold` failed early does not count as proof for the entries ahead of
+it), then reads the
 labels and comments of every pull request the group contains. A hold set before
 that read blocks the merge; a hold set after it, while GitHub is merging the
 group, is not seen. Set the label before adding a pull request to the queue;
 to apply a hold to a pull request already queued, also remove it from the
 queue. If the wait exceeds 45 minutes the check fails closed and the group
-leaves the queue.
+leaves the queue. This assumes the queue ruleset requires only `host-quality`,
+`qemu-smoke` and `merge-hold`, and keeps "Only merge non-failing pull requests"
+set to Yes.
 
 A label change made with a workflow's `GITHUB_TOKEN` starts no new
 `merge-hold` run. `merge-hold` becomes a required status check only after its

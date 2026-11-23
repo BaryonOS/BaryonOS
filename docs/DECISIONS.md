@@ -1023,14 +1023,19 @@ Status: accepted, 13 November 2026, on the project owner's instruction after
 merge-group run evaluates the group's pull request and every entry ahead of it,
 each on its own head SHA; a released hold also requires that entry's queue
 commit to land the released tree. It decides last: it waits until the group's
-`host-quality` and `qemu-smoke` have completed and the nearest entry ahead has
-left the queue or completed `host-quality`, `qemu-smoke` and `merge-hold` on its
-own commit (that `merge-hold` waited the same way, so the whole queue ahead has
-finished). Queue entries without a commit or pull request behind the group are
+`host-quality` and `qemu-smoke` have completed, then walks the entries ahead
+from the nearest outward: each must have left the queue or completed
+`host-quality`, `qemu-smoke` and `merge-hold` on its own commit. The walk ends
+at the first entry whose `merge-hold` concluded `success`, because only a
+successful run waited the same way; a `merge-hold` that failed early, was
+cancelled or lost its runner proves nothing about the entries ahead of it.
+Queue entries without a commit or pull request behind the group are
 ignored; ahead of it they keep the run waiting and fail closed at the
 45-minute deadline. This holds only while `host-quality`, `qemu-smoke` and
 `merge-hold` are the only required checks; a later-finishing required check
-reopens the window. The behaviour rests on GitHub's merge queue documentation
+reopens the window. The queue ruleset must also keep "Only merge non-failing
+pull requests" set to Yes, so a failed entry cannot merge behind a later
+passing group; verify both settings when the queue is enabled. The behaviour rests on GitHub's merge queue documentation
 and unit tests with a mocked API; it has not yet run against a live queue.
 - Enforced: a hold set, or a release comment removed, before the final read
   blocks every group containing that pull request, including a later group that
