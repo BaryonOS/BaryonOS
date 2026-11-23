@@ -1,0 +1,111 @@
+{
+  "scope": "QEMU stdvga Bochs DISPI mode set by the own IF0 kernel; not physical hardware",
+  "case": "positive",
+  "passed": true,
+  "checks": {
+    "exact_serial_sequence": true,
+    "raw_exit": true,
+    "source_unchanged": true,
+    "every_mode_screendumped": true,
+    "screen_dimensions": true,
+    "screen_pixels_exact": true
+  },
+  "error": null,
+  "sequence_error": null,
+  "screens": [
+    {
+      "width": 640,
+      "height": 480,
+      "dimensions": true,
+      "pixels": true,
+      "mode": "640x480",
+      "sha256": "64f91fcd230d0390dc5be22d586e84e60d823c4ff1d9dd54c9302be206064e4f"
+    },
+    {
+      "width": 800,
+      "height": 600,
+      "dimensions": true,
+      "pixels": true,
+      "mode": "800x600",
+      "sha256": "0c8ed05ba015cd22f3aaa37edcb37529e2e1c36a8c14bdc64572c3940b41dd89"
+    },
+    {
+      "width": 1024,
+      "height": 768,
+      "dimensions": true,
+      "pixels": true,
+      "mode": "1024x768",
+      "sha256": "3d4ef2a8bfc35efcc1d53965b9a3a65b1ab614219c1e89b010f7880c7d3be1fe"
+    },
+    {
+      "width": 1280,
+      "height": 720,
+      "dimensions": true,
+      "pixels": true,
+      "mode": "1280x720",
+      "sha256": "f4a21f12c7e0caa18a574058918ed0fab5910bb845f8dbb6677f3349aa015f27"
+    }
+  ],
+  "command": [
+    "/usr/bin/qemu-system-x86_64",
+    "-machine",
+    "pc-q35-8.2",
+    "-accel",
+    "tcg,thread=single",
+    "-cpu",
+    "qemu64",
+    "-smp",
+    "1",
+    "-m",
+    "256M",
+    "-nodefaults",
+    "-display",
+    "none",
+    "-monitor",
+    "none",
+    "-serial",
+    "stdio",
+    "-nic",
+    "none",
+    "-no-reboot",
+    "-device",
+    "VGA,vgamem_mb=16",
+    "-qmp",
+    "unix:qmp.sock,server=on,wait=off",
+    "-drive",
+    "if=pflash,unit=0,format=raw,readonly=on,file=OVMF_CODE.fd",
+    "-drive",
+    "if=pflash,unit=1,format=raw,file=OVMF_VARS.fd",
+    "-drive",
+    "if=virtio,index=0,format=raw,readonly=on,file=fat:esp",
+    "-device",
+    "isa-debug-exit,iobase=0xf4,iosize=0x04"
+  ],
+  "cwd": "/home/simon/.cache/baryon-h03t4/build/run/dispi-positive-c0c868087d",
+  "machine": "pc-q35-8.2",
+  "raw_qemu_exit": 33,
+  "duration_s": 1.7187006799995288,
+  "source_fingerprint_version": 3,
+  "source_sha256": "bdfbfb1db1601c1f99cc13b3027770096a951a60432ed048c462348eeb00825e",
+  "base_commit": "576fe7ffb9c31507d5ded4b216b3a1f4e7102dc3",
+  "qemu_version": "QEMU emulator version 10.2.1 (Debian 1:10.2.1+ds-1ubuntu3.3)\nCopyright (c) 2003-2025 Fabrice Bellard and the QEMU Project developers",
+  "qemu_entry_path": "/usr/bin/qemu-system-x86_64",
+  "firmware": {
+    "code": "/usr/share/OVMF/OVMF_CODE_4M.fd",
+    "code_sha256": "874f15a7c9110e78a89db159f0f68fc97e9076b74777520de1c235426f758aa7"
+  },
+  "run_directory": "/home/simon/.cache/baryon-h03t4/build/run/dispi-positive-c0c868087d",
+  "stdout": "\u001b[2J\u001b[001;001H\u001b[=3h\u001b[2J\u001b[001;001H\u001b[2J\u001b[001;001H\u001b[8;042;160t\u001b[2J\u001b[001;001H\u001b[2J\u001b[001;001H\u001b[8;056;240t\u001b[2J\u001b[001;001HBdsDxe: loading Boot0002 \"UEFI Misc Device\" from PciRoot(0x0)/Pci(0x2,0x0)\r\nBdsDxe: starting Boot0002 \"UEFI Misc Device\" from PciRoot(0x0)/Pci(0x2,0x0)\r\nBOOT:EBS_OK\nKERNEL:ENTRY\nBOOTINFO:OK\nKS-01:PASS\nKS-02:PASS\nACPI:UNAVAILABLE:NO_DMAR\nDEVICE-EXECUTION:BLOCKED:ADAPTER_ABSENT\nKS-03:PASS\nDISPI:GOP_BASE:0000000080000000\nDISPI:GOP_BYTES:0000000000384000\nDISPI:BAR0_RAW:0000000080000008\nDISPI:ID:000000000000b0c5\nDISPI:VRAM:0000000001000000\nDISPI:READBACK:640:480:32:65:640:6553:0:0\nDISPI:MODE:640x480:SET\nDISPI:READBACK:800:600:32:65:800:5242:0:0\nDISPI:MODE:800x600:SET\nDISPI:READBACK:1024:768:32:65:1024:4096:0:0\nDISPI:MODE:1024x768:SET\nDISPI:READBACK:1280:720:32:65:1280:3276:0:0\nDISPI:MODE:1280x720:SET\nDISPI:PASS\nM1:PASS\n",
+  "artifacts": {
+    "OVMF_CODE.fd": "874f15a7c9110e78a89db159f0f68fc97e9076b74777520de1c235426f758aa7",
+    "qmp-trace.json": "b38f6dfe8b326ed36c360c940a0359cba1ac0000325d2f0d23f732d674bceca0",
+    "OVMF_VARS.fd": "f846b584dde5c176f62606ac8edb36235dc366bd268917ed9fd2951f3c4e3fa6",
+    "mode-800x600.ppm": "0c8ed05ba015cd22f3aaa37edcb37529e2e1c36a8c14bdc64572c3940b41dd89",
+    "build-manifest.json": "0000d510f3b6a33d2d52b71b0e69a8af72537017eaabba0a986f9d1167ead181",
+    "mode-640x480.ppm": "64f91fcd230d0390dc5be22d586e84e60d823c4ff1d9dd54c9302be206064e4f",
+    "mode-1024x768.ppm": "3d4ef2a8bfc35efcc1d53965b9a3a65b1ab614219c1e89b010f7880c7d3be1fe",
+    "serial.txt": "76245e22034e9db8b87c3d47f381fccd814a2ff04bde642419b7f443de81f033",
+    "mode-1280x720.ppm": "f4a21f12c7e0caa18a574058918ed0fab5910bb845f8dbb6677f3349aa015f27",
+    "stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  }
+}
