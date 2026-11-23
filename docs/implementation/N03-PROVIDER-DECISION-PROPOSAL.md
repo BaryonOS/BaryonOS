@@ -32,8 +32,10 @@ X25519MLKEM768 (RFC 10024) only, mutual certificate checking/pinning,
 existing peer-bound rights, "no custom combiner/record crypto" and no classical
 fallback. The refresh establishes three facts that make a decision necessary:
 
-1. On the pinned rustls 0.23.46, X25519MLKEM768 is reachable **only** through
-   the aws-lc-rs provider; the generic `Hybrid` combiner is crate-private.
+1. Among the providers built into the pinned rustls 0.23.46, X25519MLKEM768
+   is reachable **only** through aws-lc-rs; the generic `Hybrid` combiner is
+   crate-private. External providers that carry their own hybrid code
+   (rustls-graviola, rustls-openssl; see P2) are host-only std crates.
 2. aws-lc-rs requires `std` and a C/assembly build with its own `RAND_bytes`;
    no released provider exposes the group in a `no_std` form.
 3. rustls 0.24.0-dev.3 (pre-release) makes `Hybrid`/`HybridLayout` public, so
@@ -110,7 +112,15 @@ rustls-graviola 0.4.0 on x86_64 hosts with `aes`, `ssse3`, `avx`, `avx2`,
 `adx`, `bmi2` and `pclmulqdq`, or aarch64 hosts with `aes`, `sha2`, `pmull`
 and `neon` (graviola README); and rustls-openssl 0.4.2 (MIT, rustls 0.23,
 system or vendored OpenSSL), whose source exposes X25519MLKEM768 only when
-the linked OpenSSL is 3.5 or later. The rustls-openssl entry is compatibility
+the linked OpenSSL is 3.5 or later (source: Tom Fay, *rustls-openssl*
+0.4.2, crates.io release of 2 October 2026, crate documentation
+`src/lib.rs` and `src/kx_group/mod.rs`,
+<https://docs.rs/rustls-openssl/0.4.2/rustls_openssl/>; repository
+<https://github.com/tofay/rustls-openssl>). Each host candidate draws
+key-exchange randomness outside `KeyServiceRandom`: aws-lc-rs through
+`RAND_bytes`, rustls-graviola through graviola's unconditional
+`getrandom::fill` (graviola 0.4.5 `src/mid/rng.rs`), and rustls-openssl
+through OpenSSL. The rustls-openssl entry is compatibility
 evidence from its published source only; the project has neither tested nor
 approved it, and a host OpenSSL dependency would also make H1 and H2 share
 the OpenSSL implementation. An option B provider can take that place only
@@ -176,7 +186,10 @@ audit. The N03 score contribution stays at zero, and the overall score stays
    aarch64 hosts with the CPU features its README requires, and the untested
    rustls-openssl 0.4.2 against OpenSSL 3.5 or later (see P2); aws-lc-rs is
    needed only where neither alternative nor an option B provider is
-   available. Should the peer be rustls (H1), the existing Node.js/OpenSSL
+   available. Every candidate draws key-exchange randomness from its own host
+   route (AWS-LC `RAND_bytes`, host getrandom for graviola, OpenSSL's RNG), so
+   the decision on the host-test randomness exception applies to whichever
+   provider is selected; no candidate avoids it. Should the peer be rustls (H1), the existing Node.js/OpenSSL
    peer (H2) or both (H3)?
 4. Is a repository-public test CA with exact SPKI pins and Ed25519 leaf
    certificates acceptable for QEMU and host tests (P3)?
