@@ -951,8 +951,8 @@ const _: () = assert!(GUARANTEED_FREE > 0);
 
 /// Result of [`restore_native`]. A lost reply is resolved by reading state
 /// back and counted only when the request demonstrably committed; counts are
-/// a lower bound when the status is still `Unknown`: that request may have
-/// committed without a reply.
+/// a lower bound when the status is still `Unknown` or is `Protocol` (a
+/// malformed reply): that request may have committed without a valid reply.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub struct NativeReport {
     /// Bit `s`: archive slot `s` fully replayed (its replayable versions,
@@ -961,7 +961,8 @@ pub struct NativeReport {
     /// slot without metadata, after its META otherwise, so a later failure,
     /// also during the WRITE phase, keeps completed slots.
     pub restored: u8,
-    /// Committed WRITEs.
+    /// Committed WRITEs this restore confirmed (a lower bound after
+    /// `Unknown` or `Protocol`, see above).
     pub writes: usize,
     /// Every commit this restore made (WRITE, COLLECTION, META). Zero after
     /// an error other than `Unknown` or `Protocol` means this restore
@@ -979,6 +980,8 @@ pub struct NativeReport {
     /// Versions of present objects not replayed because they follow a
     /// revision gap and may predate a DELETE (owner decision, 19 November
     /// 2026). Content-free records are excluded separately and not counted.
+    /// Set as soon as the archive is verified, so a later refusal (`Invalid`,
+    /// `Stale`, `Quota`, `Full`) reports it too.
     pub skipped: usize,
 }
 
@@ -1028,8 +1031,11 @@ pub fn never_used<T: Transport>(client: &mut Client<T>, domain: usize) -> Result
 ///
 /// `open` must return a fresh reader of the same archive on each call: the
 /// archive is verified completely in a first pass, then read once per history
-/// depth so every object is written oldest version first; every replay pass
-/// is compared against the verified first pass before anything is written.
+/// depth so every object is written oldest version first. In every replay
+/// pass each object record is compared with the verified plan before its
+/// WRITE; the rest of the pass (header, collections, trailer, trailing bytes)
+/// is compared only after that pass's WRITEs, so such a mismatch returns
+/// `Corrupt` with `committed > 0` and leaves the domain used.
 /// Refused before the first write: a corrupt or v1 archive (`Corrupt`), an
 /// archive with `TOMBSTONES` set (`Invalid`, R2), a domain that was ever used
 /// (`Stale`, R3) and a replay that exceeds the domain quota (`Quota`; L1
@@ -1076,6 +1082,11 @@ pub fn restore_native<S: Source, T: Transport>(
     }
     let plan = verify_v2(&mut open(), scratch).map_err(|status| (status, report))?;
     *source = plan;
+    report.skipped = plan.objects[..plan.object_count]
+        .iter()
+        .filter(|object| object.present)
+        .map(|object| object.version_count - replayable(object))
+        .sum();
     if plan.tombstones {
         return Err((Status::Invalid, report));
     }
@@ -1100,11 +1111,6 @@ pub fn restore_native<S: Source, T: Transport>(
     if needed > GUARANTEED_FREE {
         return Err((Status::Full, report));
     }
-    report.skipped = plan.objects[..plan.object_count]
-        .iter()
-        .filter(|object| object.present)
-        .map(|object| object.version_count - replayable(object))
-        .sum();
     let mut revisions = [0u64; PER_DOMAIN];
     let needs_meta = |o: &&ObjectV2| o.tags != 0 || o.kind != 0 || o.collection != 0;
     for depth in (0..=HISTORY).rev() {

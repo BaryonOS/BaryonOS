@@ -350,8 +350,9 @@ impl<T: Transport> Client<T> {
 
     /// Stream a new revision. `fill(offset, buffer)` supplies content bytes so
     /// no client needs a document-sized buffer. On any error the upload is not
-    /// committed unless the error is `Unknown` (resolve with `stat`, never by
-    /// blindly repeating). Returns `(new revision, request ID)`.
+    /// committed unless the error is `Unknown`, or `Protocol` from a malformed
+    /// COMMIT reply (resolve with `stat`, never by blindly repeating). Returns
+    /// `(new revision, request ID)`.
     pub fn write(
         &mut self,
         object: u64,

@@ -411,7 +411,14 @@ fn refused_without_writes(
     let before = archive::never_used(&mut c, DOMAIN).unwrap();
     let (got, report) = restore(bytes, &mut c).unwrap_err();
     assert_eq!(got, status);
-    assert_eq!(report, NativeReport::default());
+    // Only `skipped` (known once the archive is verified) may be non-zero.
+    assert_eq!(
+        report,
+        NativeReport {
+            skipped: report.skipped,
+            ..NativeReport::default()
+        }
+    );
     assert_eq!(
         c.transport.mutations, mutations,
         "no mutating request (BEGIN, COLLECTION, META, ...) was sent"
@@ -608,6 +615,97 @@ fn replay_passes_must_match_the_verified_archive() {
     assert_eq!((status, report.committed), (Status::Corrupt, 0));
     // The mismatch is found before the first BEGIN: the domain is untouched.
     assert_eq!(archive::never_used(&mut c, DOMAIN), Ok(true));
+}
+
+#[test]
+fn a_refusal_reports_the_skipped_versions_of_the_verified_archive() {
+    // delete-gap.bin: 6 versions follow a revision gap. A refused restore
+    // (here an already used domain) reports them like a replay would.
+    let bytes = fixture("delete-gap.bin");
+    let object = (DOMAIN * PER_DOMAIN + 5) as u64;
+    let mut disk = SimDisk::new();
+    let mut service = Service::new(EPOCH, Table::EMPTY, false);
+    let mut c = client(&mut service, &mut disk, DOMAIN, None);
+    c.write(object, 0, b"Er", 1, |_, b| b.fill(1)).unwrap();
+    let (status, report) = restore(&bytes, &mut c).unwrap_err();
+    assert_eq!(
+        (status, report.writes, report.committed, report.skipped),
+        (Status::Stale, 0, 0, 6)
+    );
+}
+
+#[test]
+fn a_pass_differing_after_its_records_is_corrupt_after_its_writes() {
+    // Later passes carry one trailing byte: every object record still
+    // matches, so the first pass (depth 2: slot 1's oldest version) writes
+    // before the end of the pass is found to differ.
+    let good = fixture("restore.bin");
+    let mut longer = good.clone();
+    longer.push(0);
+    let mut disk = SimDisk::new();
+    let mut service = Service::new(EPOCH, Table::EMPTY, false);
+    let mut c = client(&mut service, &mut disk, DOMAIN, None);
+    let mut opened = 0;
+    let (status, report) = archive::restore_native(
+        || {
+            opened += 1;
+            reader(if opened == 1 { &good } else { &longer })
+        },
+        &mut scratch(),
+        &mut c,
+        DOMAIN,
+        &mut ArchiveV2::default(),
+    )
+    .unwrap_err();
+    assert_eq!(
+        (status, report.writes, report.committed, report.restored),
+        (Status::Corrupt, 1, 1, 0)
+    );
+    assert_eq!(archive::never_used(&mut c, DOMAIN), Ok(false));
+}
+
+/// Forwards every request but malforms the reply to the first COMMIT.
+struct MalformedCommit<'a> {
+    inner: Local<'a>,
+    done: bool,
+}
+impl Transport for MalformedCommit<'_> {
+    fn call(&mut self, request: &[u8; wire::SIZE]) -> Result<[u8; wire::SIZE], Status> {
+        let mut reply = self.inner.call(request)?;
+        if !self.done && wire::header(request).operation == wire::COMMIT {
+            self.done = true;
+            reply[2] ^= 1; // the reply's operation no longer matches
+        }
+        Ok(reply)
+    }
+}
+
+#[test]
+fn a_malformed_reply_to_a_landed_commit_is_a_lower_bound() {
+    let bytes = fixture("restore.bin");
+    let mut disk = SimDisk::new();
+    let mut service = Service::new(EPOCH, Table::EMPTY, false);
+    let mut c = Client::new(
+        MalformedCommit {
+            inner: Local {
+                service: &mut service,
+                disk: &mut disk,
+                domain: DOMAIN,
+            },
+            done: false,
+        },
+        EPOCH,
+        100,
+    );
+    let (status, report) = restore(&bytes, &mut c).unwrap_err();
+    assert_eq!(
+        (status, report.writes, report.committed, report.restored),
+        (Status::Protocol, 0, 0, 0)
+    );
+    // Yet the first WRITE (slot 1's oldest version) did commit.
+    let object = (DOMAIN * PER_DOMAIN + 1) as u64;
+    assert_eq!(c.stat(object).unwrap().revision, 1);
+    assert_eq!(archive::never_used(&mut c, DOMAIN), Ok(false));
 }
 
 #[test]
@@ -900,10 +998,18 @@ fn a_lost_collection_or_meta_reply_is_resolved_by_reading_back() {
         let report = lossy_restore(operation, 1, true, None).unwrap();
         assert_eq!((report.restored, report.committed), (0b0001_1010, 10));
     }
+    // Completed slots stay reported: metadata-free slot 3 after its WRITE,
+    // slot 1 after its META.
     let (status, report) = lossy_restore(wire::COLLECTION, 1, false, None).unwrap_err();
-    assert_eq!((status, report.committed), (Status::Unknown, 6));
+    assert_eq!(
+        (status, report.committed, report.restored),
+        (Status::Unknown, 6, 1 << 3)
+    );
     let (status, report) = lossy_restore(wire::META, 2, false, None).unwrap_err();
-    assert_eq!((status, report.committed), (Status::Unknown, 9));
+    assert_eq!(
+        (status, report.committed, report.restored),
+        (Status::Unknown, 9, 0b0000_1010)
+    );
 }
 
 // Reply byte offsets: revision 32, length (aux) 56, name 64, STAT content sum 96.
@@ -919,6 +1025,26 @@ fn skew_length(reply: &mut [u8; wire::SIZE]) {
 fn skew_content_sum(reply: &mut [u8; wire::SIZE]) {
     reply[96] ^= 1;
 }
+// STAT data starts at 64: tags at data 64, kind 68, collection 70.
+fn skew_tags(reply: &mut [u8; wire::SIZE]) {
+    reply[128] ^= 1;
+}
+fn skew_kind(reply: &mut [u8; wire::SIZE]) {
+    reply[132] ^= 1;
+}
+fn skew_collection(reply: &mut [u8; wire::SIZE]) {
+    reply[134] ^= 1;
+}
+// A well-formed COLLECTION_STAT reply for a deleted collection: count
+// (offset 52) 0 and no name (length 40, name length 48, data from 64). The
+// reply validation requires an absent collection to have no name, so the
+// `present` check cannot be separated from the name check; this pins that an
+// absent collection is never claimed.
+fn clear_present(reply: &mut [u8; wire::SIZE]) {
+    reply[40..44].fill(0);
+    reply[48..56].fill(0);
+    reply[64..].fill(0);
+}
 
 #[test]
 fn a_landed_commit_that_stat_shows_differently_is_not_claimed() {
@@ -933,8 +1059,22 @@ fn a_landed_commit_that_stat_shows_differently_is_not_claimed() {
             (Status::Unknown, 0, 0)
         );
     }
-    for skew in [bump_revision, skew_name] {
+    let skews: [fn(&mut [u8; wire::SIZE]); 3] = [bump_revision, skew_name, clear_present];
+    for skew in skews {
         let (status, report) = lossy_restore(wire::COLLECTION, 1, true, Some(skew)).unwrap_err();
-        assert_eq!((status, report.committed), (Status::Unknown, 6));
+        assert_eq!(
+            (status, report.committed, report.restored),
+            (Status::Unknown, 6, 1 << 3)
+        );
+    }
+    // META: 6 WRITEs and 2 COLLECTIONs confirmed, slot 1's META not claimed.
+    let skews: [fn(&mut [u8; wire::SIZE]); 4] =
+        [bump_revision, skew_tags, skew_kind, skew_collection];
+    for skew in skews {
+        let (status, report) = lossy_restore(wire::META, 1, true, Some(skew)).unwrap_err();
+        assert_eq!(
+            (status, report.committed, report.restored),
+            (Status::Unknown, 8, 1 << 3)
+        );
     }
 }
