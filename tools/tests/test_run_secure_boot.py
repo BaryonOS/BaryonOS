@@ -5,7 +5,7 @@ import subprocess
 import sys
 import tempfile
 import unittest
-from unittest import mock
+import unittest.mock
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import run_secure_boot as sb
@@ -117,7 +117,7 @@ class KeyCleanupTests(unittest.TestCase):
                         return subprocess.CompletedProcess(command, 0)
                     raise subprocess.CalledProcessError(1, command)
 
-                with mock.patch.object(sb.subprocess, "run", side_effect=fake_run) as run:
+                with unittest.mock.patch.object(sb.subprocess, "run", side_effect=fake_run) as run:
                     with self.assertRaises(subprocess.CalledProcessError):
                         sb.make_loader(case, loader, work, {})
                 self.assertEqual(run.call_args.args[0][0], "sbsign")
@@ -142,7 +142,7 @@ class InterfaceTests(unittest.TestCase):
         self.assertEqual(parameters(run_update.check_store), ["stage", "before", "after", "images"])
         self.assertEqual(parameters(run_update.load_images), [])
         for stage in ("install", "bad-digest"):
-            self.assertTrue({"pack", "mutate", "loader", "outcome"} <= set(run_update.STAGES[stage]))
+            self.assertLessEqual({"pack", "mutate", "loader", "outcome"}, set(run_update.STAGES[stage]))
         self.assertTrue(callable(run_update.disk.sha256))
         self.assertIsInstance(run_update.MAX_TIMEOUT, int)
 
@@ -201,8 +201,8 @@ class SecureBootProofTests(unittest.TestCase):
         self.assertTrue(sb.firmware_pin_problems(sb.EXPECTED_CODE_SHA256, "0" * 64))
 
     def test_main_refuses_unpinned_firmware_before_any_run(self):
-        with mock.patch.object(sb, "sha256", return_value="0" * 64), \
-                mock.patch.object(sb, "prepare", side_effect=AssertionError("must not build")):
+        with unittest.mock.patch.object(sb, "sha256", return_value="0" * 64), \
+                unittest.mock.patch.object(sb, "prepare", side_effect=AssertionError("must not build")):
             self.assertEqual(sb.main(["--case", "signed"]), 1)
 
 

@@ -9,7 +9,7 @@ hosted CI and not acceptance of B04.
 
 - Baseline commit: `2f4ac6ae814fac18bca52ff80d4b9f774d12bec2` (origin/main), with
   the uncommitted B04-T3 files of branch `claude/b04-secure-boot-test-20261123`.
-- Source fingerprint v3 (`common.source_hash`): `fe36bc53c7d267f688a110e2279c4ef3c822181360bf6e7c7746de5977ac30fe`
+- Source fingerprint v3 (`common.source_hash`): `2b95d62166f413163491fe15123c2d1454a49defcf8db7e5491ffa3b8c99c451`
 - QEMU: `QEMU emulator version 10.2.1 (Debian 1:10.2.1+ds-1ubuntu3.3)`, machine `pc-q35-10.0,smm=on`, TCG single-thread, secure pflash.
 - Firmware package: Ubuntu `ovmf 2025.11-3ubuntu7.3`
   - `OVMF_CODE_4M.secboot.fd` sha256 `33c413a04e9edf512c504e9b0accbcec4d009d406bca761cc0b8eacc93da60b6`
@@ -41,10 +41,10 @@ path-taking CLI).
 | Case | Loader sha256 | Host sbverify (snakeoil) | Raw QEMU exit | Host timeout | Duration | Observed | Verdict |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | unsigned | `5841d027…` | fail | -9 (host kill) | yes (120 s) | 120.0 s | BdsDxe `Access Denied -- rejected probably by Secure Boot`; no loader/kernel line; store unchanged | refused, as expected |
-| signed | `c908ecf1…` | pass | 33 | no | 3.7 s | `BOOT:FLOOR:0`, `BOOT:SLOT:B:REJECTED:FORMAT`, `BOOT:SLOT:A:VERSION:1`, `BOOT:SIGNED:OK`, `BOOT:EBS_OK` … `M1:PASS`; B03 `install` store oracle | booted, as expected |
-| wrong-key | `a7e673e5…` | fail (own ephemeral cert: pass) | -9 (host kill) | yes (120 s) | 120.0 s | same denial line; no loader/kernel line | refused, as expected |
-| tampered | `7c32b8f8…` | fail | -9 (host kill) | yes (120 s) | 120.0 s | same denial line; COFF TimeDateStamp byte at file offset 128 flipped after signing | refused, as expected |
-| kernel-digest | `caeeae77…` | pass | 33 | no | 3.9 s | `BOOT:SLOT:B:REJECTED:DIGEST`, fallback `BOOT:SLOT:A:VERSION:1`, `BOOT:SIGNED:OK` … `M1:PASS`; B03 `bad-digest` store oracle | loader-side refusal under SB, as expected |
+| signed | `c3723251…` | pass | 33 | no | 4.0 s | `BOOT:FLOOR:0`, `BOOT:SLOT:B:REJECTED:FORMAT`, `BOOT:SLOT:A:VERSION:1`, `BOOT:SIGNED:OK`, `BOOT:EBS_OK` … `M1:PASS`; B03 `install` store oracle | booted, as expected |
+| wrong-key | `57cd06dc…` | fail (own ephemeral cert: pass) | -9 (host kill) | yes (120 s) | 120.0 s | same denial line; no loader/kernel line | refused, as expected |
+| tampered | `3b2b8e17…` | fail | -9 (host kill) | yes (120 s) | 120.0 s | same denial line; COFF TimeDateStamp byte at file offset 128 flipped after signing | refused, as expected |
+| kernel-digest | `5d341da3…` | pass | 33 | no | 3.8 s | `BOOT:SLOT:B:REJECTED:DIGEST`, fallback `BOOT:SLOT:A:VERSION:1`, `BOOT:SIGNED:OK` … `M1:PASS`; B03 `bad-digest` store oracle | loader-side refusal under SB, as expected |
 
 Firmware identity is pinned in the runner and recorded per case: CODE
 `33c413a0…`, VARS template `a6b8fffa…`, per-run VARS before boot `a6b8fffa…`
