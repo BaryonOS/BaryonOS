@@ -77,6 +77,12 @@ the ignored `build/h05t6b/logs/{ab,c}/`.
 | `python3 -m compileall -q tools` | n/a | 0 |
 | `python3 -B tools/preflight.py --strict` | n/a | 0 |
 
+**Source binding.** Every native run used the working tree before it was
+committed, so each report's `base_commit` names the parent commit. The tree was
+then committed unchanged: `source_hash()` at `ef355dad` is `0988db5f…d5f`, and it
+equals `source_sha256` in all five `build/h05t6b/sleep-*-report.json` files. The
+C run overwrote the A+B reports; for the A+B column only `logs/ab/` remains.
+
 In the full `tools/tests` run, six tests in `test_agent_isolation` and
 `test_agent_pipeline` errored because the session exports `GIT_EDITOR=true`. With
 `env -u GIT_EDITOR`, both modules pass (68 tests, OK). Neither module touches S3.
@@ -87,6 +93,13 @@ printed ENTER and no rejection marker, and the run ended at the 180 s timeout
 (host kill, raw -9). `run_sleep.py` exited 1. The mutation was reverted with
 `git checkout`. The fixture therefore detects a restore before the authority check,
 which the stale-token fixture could not.
+
+**Mutation check 2 (uncommitted).** In `paging::write_firmware`, the
+`store_within_extent` refusal was disabled. The `facs-end` fixture then failed:
+`M1:FAIL:S3_FACS_END_NOT_REFUSED` and raw 35, not 39, and `run_sleep.py` exited 1.
+The mutation was reverted with `git checkout`. The `Permission` the fixture
+observes therefore comes from the extent check, not from a later
+`firmware_span` refusal.
 
 ## Limits
 
