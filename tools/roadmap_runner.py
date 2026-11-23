@@ -11,7 +11,8 @@ Runtime state stays in ignored build/roadmap-pipeline/.
 Candidate bytes never run with controller authority: task checks, gates and the
 progress check run only through the shared isolated gate runner (agent_gate), host
 sessions get no check commands, Git callback configuration is fingerprinted around
-every session, and controller Python runs isolated (-I) from the checkout.
+every session, controller Git runs without fsmonitor, and controller Python neither
+imports nor reads bytecode from the checkout (progress.py runs with -I).
 """
 from __future__ import annotations
 
@@ -72,14 +73,15 @@ GRAPHIFY_READ = ("graphify_find", "graphify_callers", "graphify_impact", "graphi
                  "graphify_trace", "graphify_imports_exports", "query_graph", "recall",
                  "list_repositories", "graph_stats", "search", "fetch")
 GRAPHIFY_SERVERS = ("Graphify", "claude_ai_Graphify")
-READ_GIT = ("git status", "git diff", "git log", "git show", "git rev-parse", "git branch --show-current")
+# No git diff/log/show: their --output=<path> writes anywhere, including .git/config.worktree.
+READ_GIT = ("git status", "git rev-parse", "git branch --show-current")
 DENY = ["Bash(git push:*)", "Bash(git commit:*)", "Bash(git reset:*)", "Bash(git checkout:*)",
         "Bash(git clean:*)", "Bash(git stash:*)", "Bash(git rebase:*)", "Bash(git merge:*)",
         "Bash(gh:*)", "Bash(curl:*)", "Bash(wget:*)", "WebFetch", "WebSearch",
         "Read(~/.claude/.credentials.json)", "Read(~/.ssh/**)", "Read(~/.config/gh/**)",
         "Read(~/.git-credentials)", "Read(//home/claude/**)", "Read(//root/.ccr/**)",
         # Paths the controller's scope check cannot see: Git state, caches, home.
-        "Edit(.git/**)", "Edit(**/__pycache__/**)", "Edit(**/*.pyc)", "Edit(.claude/**)", "Edit(~/**)"]
+        "Edit(.git/**)", "Edit(**/__pycache__/**)", "Edit(**/*.pyc)", "Edit(.claude/**)"]
 PROCESS_TAG = "roadmap-pipeline-"
 READ_ONLY_DISALLOWED = "Edit,Write,MultiEdit,NotebookEdit"
 INIT_DENY_PROBE = "build/roadmap-pipeline/DENY-PROBE"
@@ -346,13 +348,34 @@ def git_callbacks() -> str:
         for file in files:
             if file.is_file() or file.is_symlink():
                 info = file.lstat()
-                body = file.read_bytes() if file.is_file() and not file.is_symlink() else os.readlink(file).encode()
+                body = (os.readlink(file).encode() + b"\0" if file.is_symlink() else b"") + \
+                    (file.read_bytes() if file.is_file() else b"")
                 parts.append(f"{file}:{info.st_mode:o}:{sha256(body)}")
     return sha256("\n".join(parts))
 
 
+GATE_VOLATILE = ("## resource:", "## scratch:", "## ephemeral scratch:", "## source", "## staged source")
+
+
+def gate_report(log: Path) -> tuple[str, str]:
+    """Digest of the gate log and its raw stream files, and repair feedback that inlines the
+    failing output without per-run resource evidence (which would defeat identical-failure detection)."""
+    files = [log, *sorted(log.parent.glob(log.name + ".*"))] if log.is_file() else []
+    digest = sha256(b"".join(f.name.encode() + b"\0" + f.read_bytes() + b"\0" for f in files))
+    lines: list[str] = []
+    for line in log.read_text(errors="replace").splitlines() if files else []:
+        if line.startswith("## bounded raw streams:"):
+            for name in line.split(":", 1)[1].replace(",", " ").split():
+                stream = log.with_name(name)
+                if Path(name).name == name and stream.is_file():
+                    lines += [f"## {name}", *stream.read_text(errors="replace").splitlines()[-60:]]
+        elif not line.startswith(GATE_VOLATILE):
+            lines.append(line)
+    return digest, "\n".join(lines[-120:])
+
+
 def git(*args: str, check: bool = True) -> str:
-    done = subprocess.run(["git", *args], cwd=ROOT, capture_output=True, text=True)
+    done = subprocess.run(["git", "-c", "core.fsmonitor=false", *args], cwd=ROOT, capture_output=True, text=True)
     if check and done.returncode:
         raise Stop(f"git {' '.join(args[:3])} failed ({done.returncode}): {done.stderr.strip()[-800:]}")
     return done.stdout
@@ -506,6 +529,8 @@ class Controller:
         }
         atomic_write(attempt_dir / f"{kind}-record.json", json.dumps(record, indent=2))
         if git_callbacks() != self.callbacks:
+            # Sticky: a later run must not adopt the planted callback as its new baseline.
+            atomic_write(self.state / "STOP", f"Git callbacks changed during {kind} session {session_id}\n")
             raise Stop(f"Git hooks or configuration changed during the {kind} session; no further Git "
                        "command runs until the lead inspects .git and the Git configuration")
         blob = text + err.read_text(errors="replace")
@@ -575,23 +600,24 @@ class Controller:
             commands = [(f"check-{i}", c, {}) for i, c in enumerate(task["checks"], 1)]
             try:
                 gate = resolve_gate(task["gates"], ROOT / ".github" / "workflows") if task.get("gates") else None
-            except (KeyError, ValueError) as error:
+                # resolve() already ends with the progress check; plain checks add it here.
+                timeout = min(filter(None, (self.cfg.check_timeout, gate and gate.timeout_seconds)))
+                plan = GatePlan(tuple(commands) + (gate.commands if gate else (PROGRESS_CHECK,)),
+                                gate.finalizers if gate else (), timeout,
+                                gate.finalizer_reserve_seconds if gate else 0)
+                # Untracked candidate files must reach the gate; it stages only these paths.
+                sources = agent_source_paths(self.changed())
+            except (KeyError, ValueError, OSError, subprocess.SubprocessError) as error:
                 failure = f"gate blocked: {error}"
                 log.write_text(failure + "\n")
                 code = GATE_FAIL_EXIT
             else:
-                # resolve() already ends with the progress check; plain checks add it here.
-                plan = GatePlan(tuple(commands) + (gate.commands if gate else (PROGRESS_CHECK,)))
-                # Untracked candidate files must reach the gate; it stages only these paths.
-                code = run_gate(plan, ROOT, log, os.environ.copy(),
-                                source_paths=agent_source_paths(self.changed()))
-            output = log.read_bytes() if log.is_file() else b""
+                code = run_gate(plan, ROOT, log, os.environ.copy(), source_paths=sources)
+            digest, report = gate_report(log)
             results.append({"name": "isolated-checks", "commands": [c[1] for c in commands],
-                            "gates": task.get("gates", []), "exit_code": code,
-                            "log_sha256": sha256(output)})
+                            "gates": task.get("gates", []), "exit_code": code, "log_sha256": digest})
             if code:
-                return False, results, failure or "\n".join(
-                    output.decode(errors="replace").splitlines()[-120:]) or f"isolated checks exited {code}"
+                return False, results, failure or report or f"isolated checks exited {code}"
             return True, results, ""
         finally:
             if lock:
@@ -599,7 +625,9 @@ class Controller:
                 lock.close()
 
     # --- prompts ---
-    def worker_prompt(self, task: dict, head: str, feedback: str) -> str:
+    def worker_prompt(self, task: dict, head: str, feedback: str,
+                      runner: str = "the controller runs the task's checks and gates in the isolated "
+                                    "gate runner and returns any failure to the next session") -> str:
         fields = {k: task.get(k) for k in ("id", "criterion", "milestone", "title", "goal", "why_now",
                                            "write_paths", "read_paths", "graph_notes", "checks", "acceptance",
                                            "out_of_scope", "non_claimable", "risk", "evidence_level")}
@@ -632,9 +660,8 @@ Rules (binding, in addition to AGENTS.md):
   utilities, no reduced functionality or test evidence. Use relevant
   `verification-loop` guidance and `.agents/skills/os-dev` only where it applies.
 - Targeted read-only source inspection using cat, rg, sed or Token Guard inspect/slice
-  is allowed, plus read-only git. Do not build or run code: the controller runs the
-  task's checks and gates in the isolated gate runner and returns any failure to the
-  next session. Tool policy is not a claim of technical isolation.
+  is allowed, plus `git status`, `git rev-parse` and `git branch --show-current`. Do
+  not build or run code: {runner}. Tool policy is not a claim of technical isolation.
 - Security Floor: no new trust roots, key escrow, telemetry, cloud fallback, broader
   capabilities or relaxed verification. Do not invent cryptography. Validate untrusted
   lengths and pointers. Add negative tests for every new boundary.
@@ -669,7 +696,8 @@ Rules (binding, in addition to AGENTS.md):
             raise Stop("no eligible READY task; preserve active/manual work")
         directory = self.state / "manual" / f"{task['id']}-{uuid.uuid4().hex}"
         directory.mkdir(parents=True)
-        prompt = self.worker_prompt(task, head, "")
+        prompt = self.worker_prompt(task, head, "", "the lead runs the task's checks and gates after "
+                                                    "validating the diff")
         prompt += ("\nManual fresh-session fallback: the lead launches this session, validates the diff "
                    "and runs required gates directly. Do not run the held controllers or agent_gate. "
                    "No automatic continuation or safe unattended readiness is established.\n")
@@ -954,7 +982,17 @@ def status(state: Path = STATE) -> int:
     return 0
 
 
+def isolate_imports() -> None:
+    """Worker sessions can write under the checkout: no later import, including lazy stdlib
+    imports and agent_gate's PyYAML, may resolve a module from there."""
+    with contextlib.suppress(ImportError):
+        import yaml  # noqa: F401  (agent_gate imports it only after a worker session)
+    checkout = {ROOT, ROOT / "tools"}
+    sys.path[:] = [p for p in sys.path if Path(p or ".").resolve() not in checkout]
+
+
 def main() -> int:
+    isolate_imports()
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     sub = parser.add_subparsers(dest="cmd", required=True)
     run = sub.add_parser("run", help="run the controller loop")

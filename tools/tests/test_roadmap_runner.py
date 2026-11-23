@@ -215,6 +215,10 @@ class Session(unittest.TestCase):
         self.assertIn("Bash(git push:*)", rr.DENY)
         for path in ("Edit(.git/**)", "Edit(**/__pycache__/**)", "Edit(**/*.pyc)"):
             self.assertIn(path, rr.DENY)
+        # git diff/log/show accept --output=<path>, an arbitrary write (e.g. .git/config.worktree).
+        self.assertFalse([r for r in rules if r.startswith(("Bash(git diff", "Bash(git log", "Bash(git show"))])
+        # A home-directory deny would block every edit in a checkout under $HOME.
+        self.assertFalse([r for r in rr.DENY if r.startswith("Edit(~") or r.startswith("Edit(/")])
         self.assertNotIn("progress.py --check", rr.Controller(rr.Config(), Path("/nonexistent")).init_prompt())
 
     def test_failure_fingerprint_ignores_timings_but_not_content(self):
@@ -330,6 +334,86 @@ class Session(unittest.TestCase):
                 rr.subprocess.run(["git", "-C", str(repo), "config", "core.fsmonitor", "x"], check=True)
                 self.assertNotEqual(before, rr.git_callbacks())
 
+    def test_plain_checks_keep_the_configured_deadline(self):
+        gate = unittest.mock.Mock(return_value=0)
+        self.checks(task("A", checks=["true"]), run_gate=gate)
+        self.assertEqual(gate.call_args.args[0].timeout_seconds, rr.Config().check_timeout)
+
+    def test_resolved_gate_keeps_finalizers_and_the_shorter_deadline(self):
+        resolved = rr.GatePlan((("g", "make g", {}), rr.PROGRESS_CHECK), (("f", "cleanup", {}),), 600, 60)
+        gate = unittest.mock.Mock(return_value=0)
+        self.checks(dict(task("A", checks=["true"]), gates=["ci.yml#x"]),
+                    resolve_gate=unittest.mock.Mock(return_value=resolved), run_gate=gate)
+        plan = gate.call_args.args[0]
+        self.assertEqual((plan.finalizers, plan.timeout_seconds, plan.finalizer_reserve_seconds),
+                         (resolved.finalizers, 600, 60))
+
+    def test_unstageable_worker_path_is_a_recorded_failure(self):
+        gate = unittest.mock.Mock()
+        (passed, results, failure), _ = self.checks(
+            task("A"), run_gate=gate, agent_source_paths=unittest.mock.Mock(side_effect=ValueError("bad path")))
+        self.assertEqual((passed, failure), (False, "gate blocked: bad path"))
+        gate.assert_not_called()
+
+    def test_failure_feedback_inlines_raw_streams_without_resource_noise(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            log = Path(tmp) / "checks.log"
+
+            def write(cpu, error):
+                log.write_text(f"## source commit: abc\n## step: check-1\n## resource: {{\"cpu\": {cpu}}}\n"
+                               "## bounded raw streams: checks.log.step-1.stderr.log\n## exit: 101\n"
+                               "## FAIL: check-1 (exit 101)\n## scratch: {\"id\": %d}\n" % cpu)
+                (Path(tmp) / "checks.log.step-1.stderr.log").write_text(f"error[{error}]: mismatched types\n")
+                return rr.gate_report(log)
+
+            first, again, other = write(1, "E0308"), write(2, "E0308"), write(1, "E0425")
+        self.assertIn("error[E0308]: mismatched types", first[1])
+        self.assertNotIn("resource", first[1])
+        self.assertEqual(first[1], again[1])  # identical failures stay identical
+        self.assertNotEqual(first[0], other[0])  # the receipt binds the raw streams
+        self.assertNotEqual(rr.failure_fingerprint("checks", first[1]),
+                            rr.failure_fingerprint("checks", other[1]))
+
+    def test_controller_git_ignores_a_planted_fsmonitor(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            repo = Path(tmp) / "repo"
+            env = {k: v for k, v in __import__("os").environ.items() if not k.startswith("GIT_")}
+            rr.subprocess.run(["git", "init", "-q", str(repo)], check=True, env=env)
+            marker = Path(tmp) / "PWNED"
+            rr.subprocess.run(["git", "-C", str(repo), "config", "core.fsmonitor",
+                               f"touch {marker}; false"], check=True, env=env)
+            with unittest.mock.patch.object(rr, "ROOT", repo), \
+                    unittest.mock.patch.dict("os.environ", env, clear=True):
+                rr.git("status", "--porcelain")
+            self.assertFalse(marker.exists())
+
+    def test_symlinked_hook_target_changes_are_detected(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            repo = Path(tmp) / "repo"
+            env = {k: v for k, v in __import__("os").environ.items() if not k.startswith("GIT_")}
+            rr.subprocess.run(["git", "init", "-q", str(repo)], check=True, env=env)
+            target = Path(tmp) / "hook.sh"
+            target.write_text("#!/bin/sh\n")
+            (repo / ".git" / "hooks" / "post-commit").symlink_to(target)
+            with unittest.mock.patch.object(rr, "ROOT", repo), \
+                    unittest.mock.patch.dict("os.environ", env, clear=True):
+                before = rr.git_callbacks()
+                target.write_text("#!/bin/sh\ncurl evil\n")
+                self.assertNotEqual(before, rr.git_callbacks())
+
+    def test_main_drops_checkout_paths_from_imports(self):
+        tools = str(rr.ROOT / "tools")
+        with unittest.mock.patch.object(rr.sys, "path", [tools, str(rr.ROOT), "/usr/lib/python3"]):
+            rr.isolate_imports()
+            self.assertEqual(rr.sys.path, ["/usr/lib/python3"])
+
+    def test_manual_brief_names_the_lead_as_check_runner(self):
+        controller = rr.Controller(rr.Config(), Path("/nonexistent"))
+        manual = controller.worker_prompt(task("A"), "a" * 40, "", "the lead runs the checks")
+        self.assertIn("Do\n  not build or run code: the lead runs the checks.", manual)
+        self.assertNotIn("controller runs", manual)
+        self.assertIn("the controller runs the task's checks", controller.worker_prompt(task("A"), "a" * 40, ""))
+
     def test_session_stops_when_git_callbacks_changed(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
@@ -344,8 +428,10 @@ class Session(unittest.TestCase):
                     unittest.mock.patch.object(controller, "transcript_check", return_value={}), \
                     unittest.mock.patch.object(rr, "git_callbacks", side_effect=["before", "after"]):
                 controller.session("worker", "A", root, "brief", {}, [], "default", 10)
+                self.assertFalse((root / "state" / "STOP").exists())
                 with self.assertRaisesRegex(rr.Stop, "Git hooks or configuration changed"):
                     controller.session("worker", "A", root, "brief", {}, [], "default", 10)
+            self.assertTrue((root / "state" / "STOP").exists())  # a later run refuses to start
             self.assertIsNone(rr.Controller(rr.Config(), root).callbacks)
 
     def test_progress_assessment_runs_isolated_from_the_checkout(self):

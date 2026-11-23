@@ -136,9 +136,11 @@ READY task whose dependencies are verified it:
    `--continue`, `--resume` or `--fork-session`, and never `--bare`, bypass modes or
    skipped permissions. The worker has an allow-listed environment without GitHub,
    cloud or session-ingress credentials, `--permission-prompts none`, file edits
-   (`acceptEdits`) and read-only git. It runs no check, build or test command:
-   candidate code executes only in the isolated gate (step 4). Edits under `.git/`,
-   `__pycache__/`, `*.pyc`, `.claude/` and the home directory are denied.
+   (`acceptEdits`), `git status`, `git rev-parse` and `git branch --show-current`.
+   `git diff`, `git log` and `git show` are not allowed because `--output=<path>`
+   writes arbitrary files. It runs no check, build or test command: candidate code
+   executes only in the isolated gate (step 4). Edits under `.git/`, `__pycache__/`,
+   `*.pyc` and `.claude/` are denied; the verifier receives the diff from the controller.
    A session-scoped `--autocompact` window is the context fail-safe (see the
    measured limit below), and `--max-budget-usd` sets a per-session cap on the
    CLI's cost estimate. The controller polls the transcript every minute and stops
@@ -149,8 +151,10 @@ READY task whose dependencies are verified it:
    PROJECT-STATE.md, DECISIONS.md) are never accepted from a worker. The ledger's
    check commands, its gates and `tools/progress.py --check` run as one plan through
    `agent_gate.run_gate`, which stages the changed (including untracked) files into
-   the isolated sandbox and records raw exit codes; with the committed disabled
-   policy this fails closed. The worker's JSON report is recorded, never trusted;
+   the isolated sandbox and records raw exit codes under the controller's check
+   deadline; with the committed disabled policy this fails closed. Repair feedback
+   inlines the failing raw streams, and the receipt hash covers them. The worker's
+   JSON report is recorded, never trusted;
 5. starts a second fresh, read-only session that verifies the diff against the task
    without seeing the writer's self-report. A blocker or major finding sends the task
    back to a new worker session with only those findings, for at most two repair
@@ -165,9 +169,13 @@ evidence that no earlier conversation was inherited.
 The controller's own Git commands could run code that a worker planted in Git
 configuration or hooks. Instead of refusing every pre-existing hook, the controller
 fingerprints `git config --list --show-scope --show-origin`, the hooks directory
-and `info/attributes` at preflight and stops after any session that changed them.
-Controller Python never reads worker bytecode (`sys.pycache_prefix` is a private
-temporary directory) and `tools/progress.py` runs with `-I`. Residual limits: an
+and `info/attributes` (including symlinked hook targets) at preflight. After any
+session that changed them it writes the `STOP` file and stops, so a later run
+cannot adopt the change as its baseline. Controller Git runs with
+`core.fsmonitor=false`. Controller Python removes the checkout from `sys.path`
+after its own imports, preloads PyYAML, never reads checkout bytecode
+(`sys.pycache_prefix` is a private temporary directory) and runs
+`tools/progress.py` with `-I`. Residual limits: an
 ignored path outside the denied patterns, a process that escapes the worker's
 process group, and the absent native sandbox (bubblewrap 0.13.1 or later with a
 verified profile). The runner therefore stays held by `EXECUTION_HOLD` and the
