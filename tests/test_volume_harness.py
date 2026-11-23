@@ -1,5 +1,6 @@
 """Host tests for the M6e runner's serial evidence parsing (tools/run_volume.py)."""
 from __future__ import annotations
+import ast
 import sys
 import unittest
 from pathlib import Path
@@ -30,6 +31,33 @@ class VolumeEvidenceParsing(unittest.TestCase):
         for key in DIAGNOSTICS:
             line = f"{key}{34:020d}"
             self.assertFalse(any(marker in line for marker in rv.FAILURES))
+
+
+class VolumeStageTables(unittest.TestCase):
+    """Every gate stage has a feature, a marker, a built case and an allowed parent."""
+
+    def test_plan_matches_the_runner_tables(self):
+        tools = Path(__file__).resolve().parents[1] / "tools"
+        tree = ast.parse((tools / "test_volume.py").read_text(encoding="utf-8"))
+        plan = next(ast.literal_eval(node.value) for node in tree.body
+                    if isinstance(node, ast.Assign) and getattr(node.targets[0], "id", None) == "PLAN")
+        cases = {case for case, _ in plan}
+        self.assertTrue({"install", "install-recover", "install-cut"} <= cases)
+        for case, parent in plan:
+            self.assertIn(case, rv.FEATURE)
+            self.assertTrue(case in rv.CUT_MARKER or case in rv.CASE_MARKER, case)
+            if parent is None:
+                self.assertIn(case, rv.FRESH)
+            else:
+                self.assertNotIn(case, rv.FRESH)
+                self.assertIn((case, parent), rv.ALLOWED_PARENTS)
+        import build
+        for case, feature in rv.FEATURE.items():
+            self.assertIn(feature, build.VOLUME_FEATURES, case)
+        # The install stages link the plain app, never the archive portal.
+        self.assertFalse(set(rv.INSTALL_CASES) & set(build.VOLUME_ARCHIVE_CASES))
+        self.assertEqual(rv.expected_markers("install-cut")[-1], "VOLUME:CUT:INSTALL")
+        self.assertIn("install-recover", rv.READ_ONLY)
 
 
 if __name__ == "__main__":

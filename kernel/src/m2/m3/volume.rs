@@ -310,13 +310,20 @@ fn case() -> u64 {
         18
     } else if cfg!(feature = "test-volume-archive-disk-verify") {
         19
+    } else if cfg!(feature = "test-volume-install") {
+        // S09 L2 install cases: above 19 so no archive grant or I/O applies.
+        20
+    } else if cfg!(feature = "test-volume-install-recover") {
+        21
+    } else if cfg!(feature = "test-volume-install-cut") {
+        22
     } else {
         0
     }
 }
 /// Device-level read-only mount (emulator, virtio negotiation and service).
 fn read_only() -> bool {
-    cfg!(feature = "test-system-recover") || matches!(case(), 1 | 4 | 5)
+    cfg!(feature = "test-system-recover") || matches!(case(), 1 | 4 | 5 | 21)
 }
 /// Archive export (also into a too-small target, or followed by the ustar
 /// export) writes only the archive range: the device stays writable, but the
@@ -365,6 +372,8 @@ fn marker() -> &'static [u8] {
         16 => b"VOLUME:CASE:ARCHIVE_DISK_SMALL:PASS\n",
         17 => b"VOLUME:CASE:ARCHIVE_DISK_WRONG:PASS\n",
         19 => b"VOLUME:CASE:ARCHIVE_DISK_VERIFY:PASS\n",
+        20 => b"VOLUME:CASE:INSTALL:PASS\n",
+        21 => b"VOLUME:CASE:INSTALL_RECOVER:PASS\n",
         _ => b"VOLUME:FAIL:CUT_NOT_OBSERVED\n",
     }
 }
@@ -1156,7 +1165,7 @@ fn advance(s: &State) {
                 }
                 // Crash fixtures: once app A started its second upload, kill
                 // after completed content writes or inside the table write.
-                if matches!(case(), 2 | 3 | 6) && r.apps[0].phase >= 1 {
+                if matches!(case(), 2 | 3 | 6 | 22) && r.apps[0].phase >= 1 {
                     let base = *r.cut_base.get_or_insert((r.data_writes, r.table_writes));
                     if case() == 2 && r.data_writes >= base.0 + 40 {
                         cut(b"VOLUME:CUT:DATA\n");
@@ -1166,6 +1175,12 @@ fn advance(s: &State) {
                     }
                     if case() == 6 && r.table_writes >= base.1 + 4 {
                         cut(b"VOLUME:CUT:TXN\n");
+                    }
+                    // S09 L2: phase 1 follows the durable INSTALL_COLLECTION,
+                    // so the base latches on an INSTALL_APPEND data sector and
+                    // the only later table writes are the INSTALL_COMMIT copy.
+                    if case() == 22 && r.table_writes >= base.1 + 4 {
+                        cut(b"VOLUME:CUT:INSTALL\n");
                     }
                 }
             }
@@ -1391,6 +1406,11 @@ fn finish(s: &mut State) -> ! {
         {
             fail(b"NORMAL_RESULT");
         }
+    }
+    // S09 L2 install: exactly the INSTALL_COLLECTION and INSTALL_COMMIT
+    // publishes; the Range and Stale INSTALL_BEGIN refusals wrote no table.
+    if case() == 20 && (word(s, 0, 304) != 2 || r.apps[0].recovered_revision != 3) {
+        fail(b"INSTALL_RESULT");
     }
     serial::write(b"VOLUME:READY\n");
     for (index, app) in r.apps.iter().enumerate() {

@@ -2,11 +2,15 @@
 
 **Addressed to:** the Integration Manager. **From:** the S09 workstream, PR
 #411 (branch `claude/s09-l2-provenance`, head `83443b21`, stacked on #408).
-**Status:** open and **anticipatory**. None of the stages below exists yet.
-The S09 workstream does not change protected `.github/workflows/` files
-(project-owner instruction, 19 November 2026). This request asks for two
-things before the stages are built: the pin change, and release of the
-non-protected write set.
+**Status:** open. The four stages are implemented on this branch (the
+commit after `cc5fd5ca`). The full gate passed locally with 26 stages
+(`tools/test_volume.py`, `pc-q35-8.2`, KVM, `passed=True`, host checks exit
+0; `build/install-gate/volume-gate.json`). As expected,
+`test_volume_gate_stage_counts_match_plan` now fails with
+`AssertionError: Lists differ: ['22'] != ['26']` (observed locally, exit 1)
+until the two protected pins below are changed. The S09 workstream does not
+change protected `.github/workflows/` files (project-owner instruction,
+19 November 2026).
 
 ## Problem
 
@@ -74,12 +78,12 @@ Both files are identical on PR head `83443b21` and `main` `035b44e5`.
 | `.github/workflows/kvm-pilot.yml` | 124 | `"volume": ("run/volume-*/result.json", 22, "volume-gate.json"),` | `"volume": ("run/volume-*/result.json", 26, "volume-gate.json"),` |
 | `.github/workflows/volume-acceptance.yml` | 62 | `- name: M6e/S06 native volume gate (22 QEMU runs)` | `- name: M6e/S06 native volume gate (26 QEMU runs)` |
 
-## Expected failure (not yet observed)
+## Expected hosted failure
 
 If the stage commit lands without the pins, `host-quality` should fail on the
 same single test as in the 15 → 22 precedent
 (`S09-WORKFLOW-PIN-INTEGRATION-REQUEST.md`), with
-`AssertionError: Lists differ: ['22'] != ['26']`. No such run exists yet.
+`AssertionError: Lists differ: ['22'] != ['26']`. It has been reproduced locally; no hosted run of this head exists yet.
 
 ## Ordering
 
@@ -104,9 +108,11 @@ a measurement.
 - **App size.** The volume-docs app binary is linked against the same 64 KiB
   `.text` bound as the service. Linking the INSTALL client flows into the app
   has not been measured.
-- **Cut point.** The cut inside INSTALL_COMMIT must fall on a real write
-  boundary in the native disk path, as it does for `cut-txn`. The stage
-  commit fixes its exact write count, not this request.
+- **Cut point (fixed).** The kernel kills after 4 table-sector writes of the
+  INSTALL_COMMIT publish (as `cut-txn`). That copy is torn, so `recover-cut`
+  natively finds the object never-used (generation 1). The fully-installed
+  branch of the oracle is covered only by host tests
+  (`tests/test_volume_runner.py`).
 
 ## Verification after the change
 

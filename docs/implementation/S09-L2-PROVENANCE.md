@@ -9,8 +9,10 @@ resolutions below have not been reviewed again yet. The implementation
 review checks them.
 
 **Implementation: on host, with the native volume-docs service built with
-the L2 operations at opt-level "s" (section 11, deviation 1).** No native
-INSTALL stage exists yet.
+the L2 operations at opt-level "s" (section 11, deviation 1).** Four native
+INSTALL stages (`install`, `install-recover`, `install-cut`, `recover-cut`)
+pass in the local 26-stage gate; their protected pins are pending
+(`S09-L2-INSTALL-STAGE-INTEGRATION-REQUEST.md`).
 
 R1 requires review of table v3, crash recovery, compatibility, security and
 negative tests before implementation.
@@ -634,9 +636,8 @@ separate `CARGO_TARGET_DIR`.
 - **Out of scope:** the ownership control and resume (3.2); a
   provenance-carrying archive.
 - **Native stage:** the `volume_disk.py` v3 decoder is in scope (section
-  3). A native INSTALL stage changes the protected 22-stage pin; the
-  integration request is `S09-L2-INSTALL-STAGE-INTEGRATION-REQUEST.md`
-  (open, four planned stages, 22 → 26).
+  3). The four native INSTALL stages are implemented; the protected pins
+  (22 → 26) wait on `S09-L2-INSTALL-STAGE-INTEGRATION-REQUEST.md`.
 
 ## 10. Review record
 
