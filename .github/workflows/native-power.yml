@@ -95,6 +95,22 @@ jobs:
           mkdir -p "$NOS_BUILD_DIR"
           python3 -B tools/build.py --kernel-feature test-acpi-s3-stale-token
           python3 -B tools/run_sleep.py --case stale-token
+      - name: Unarmed wake is refused before any register restore
+        env:
+          NOS_BUILD_DIR: ${{ github.workspace }}/build/power-native/s3-unarmed-wake
+          NOS_TARGET_DIR: ${{ github.workspace }}/target/power-native-s3
+        run: |
+          mkdir -p "$NOS_BUILD_DIR"
+          python3 -B tools/build.py --kernel-feature test-acpi-s3-unarmed-wake
+          python3 -B tools/run_sleep.py --case unarmed-wake
+      - name: FACS store one byte past the extent is refused before any sleep
+        env:
+          NOS_BUILD_DIR: ${{ github.workspace }}/build/power-native/s3-facs-end
+          NOS_TARGET_DIR: ${{ github.workspace }}/target/power-native-s3
+        run: |
+          mkdir -p "$NOS_BUILD_DIR"
+          python3 -B tools/build.py --kernel-feature test-acpi-s3-facs-end
+          python3 -B tools/run_sleep.py --case facs-end
       - name: Preserve compact evidence and report archive availability
         if: ${{ always() }}
         uses: ./.github/actions/preserve-evidence
@@ -133,7 +149,7 @@ jobs:
         run: |
           cargo +1.100.0 fetch --locked
           cargo +1.100.0 fetch --locked --manifest-path sdk/Cargo.toml
-      - name: Validate host harness and run three POWER/cold-recovery cases
+      - name: Validate host harness and run the POWER/cold-recovery and S3 cases
         run: |
           python3 -B tools/preflight.py --strict
           python3 -B -m unittest discover -s tests -p test_system_harness.py
