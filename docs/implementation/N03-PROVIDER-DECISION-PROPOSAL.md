@@ -111,12 +111,16 @@ X25519MLKEM768. On rustls 0.23.46 the published candidates are aws-lc-rs;
 rustls-graviola 0.4.0 on x86_64 hosts with `aes`, `ssse3`, `avx`, `avx2`,
 `adx`, `bmi2` and `pclmulqdq`, or aarch64 hosts with `aes`, `sha2`, `pmull`
 and `neon` (graviola README); and rustls-openssl 0.4.2 (MIT, rustls 0.23,
-system or vendored OpenSSL), whose source exposes X25519MLKEM768 only when
-the linked OpenSSL is 3.5 or later (source: Tom Fay, *rustls-openssl*
+system or vendored OpenSSL). Its build script compiles the KEM groups,
+X25519MLKEM768 included, whenever the linked OpenSSL is 3.0 or later
+(`ossl300` cfg), and `available_groups()` keeps a group only if OpenSSL can
+fetch the algorithm at run time. OpenSSL 3.5 includes ML-KEM in its default
+provider; an earlier 3.x host offers the group only if another loaded OpenSSL
+provider supplies it (source: Tom Fay, *rustls-openssl*
 0.4.2, crates.io release of 2 October 2026, crate documentation
-`src/lib.rs` and `src/kx_group/mod.rs`,
+`src/lib.rs`, `src/kx_group/mod.rs` and `build.rs`,
 <https://docs.rs/rustls-openssl/0.4.2/rustls_openssl/>; repository
-<https://github.com/tofay/rustls-openssl>). Each host candidate draws
+<https://github.com/tofay/rustls-openssl>). Each of these three published host candidates draws
 key-exchange randomness outside `KeyServiceRandom`: aws-lc-rs through
 `RAND_bytes`, rustls-graviola through graviola's unconditional
 `getrandom::fill` (graviola 0.4.5 `src/mid/rng.rs`), and rustls-openssl
@@ -184,12 +188,14 @@ audit. The N03 score contribution stays at zero, and the overall score stays
    `KeyServiceRandom` by its internal randomness as a host-test exception? On
    rustls 0.23.46 the alternatives are rustls-graviola 0.4.0 on x86_64 or
    aarch64 hosts with the CPU features its README requires, and the untested
-   rustls-openssl 0.4.2 against OpenSSL 3.5 or later (see P2); aws-lc-rs is
+   rustls-openssl 0.4.2 against an OpenSSL that provides ML-KEM at run time,
+   by default from 3.5 (see P2); aws-lc-rs is
    needed only where neither alternative nor an option B provider is
-   available. Every candidate draws key-exchange randomness from its own host
-   route (AWS-LC `RAND_bytes`, host getrandom for graviola, OpenSSL's RNG), so
-   the decision on the host-test randomness exception applies to whichever
-   provider is selected; no candidate avoids it. Should the peer be rustls (H1), the existing Node.js/OpenSSL
+   available. Each of the three published host candidates draws key-exchange
+   randomness from its own host route (AWS-LC `RAND_bytes`, host getrandom for
+   graviola, OpenSSL's RNG), so the host-test randomness exception applies to
+   whichever of them is selected. An implemented option B provider that draws
+   through Key-Service (R1) would not need the exception. Should the peer be rustls (H1), the existing Node.js/OpenSSL
    peer (H2) or both (H3)?
 4. Is a repository-public test CA with exact SPKI pins and Ed25519 leaf
    certificates acceptable for QEMU and host tests (P3)?
