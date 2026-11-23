@@ -51,7 +51,12 @@ compile-time `NOS_SYSTEM_COLD_CASE` reached each kernel.
 | 7-gate-normal, 8-gate-recover (`test_system.py`) | 0 (gate) | 33 / 33 | none | 0 | 0 / 0 on recover | yes on recover | n/a |
 
 "Plaintext lines" counts serial lines that contain `PLAINTEXT`, other than the
-`SYSTEM:COLD_PLAINTEXT_REPLIES:00000000000000000000` evidence counter.
+`SYSTEM:COLD_PLAINTEXT_REPLIES:00000000000000000000` line. That line is not a measured counter.
+The kernel prints it as a constant zero (`kernel/src/m2/m3/system.rs`), and only after its
+`require` has confirmed zero Key Service seal and unseal successes (KEY words 224 and 232) and
+exactly one authentication failure (word 240). The no-plaintext evidence therefore comes from
+that kernel check plus the absence of any `PLAINTEXT` or `SYSTEM:RECORD_` line. The harness
+check that the value is zero cannot fail on its own.
 
 `tools/test_system.py` completed with `passed: true` (`system-gate.json`). Its host stage
 (`test_system_*.py` and `cargo +1.100.0 test --locked -p nieuw-os-sdk-runtime`) exited 0. The
@@ -59,9 +64,18 @@ final rebuilt normal kernel equals the tested one (`42d44a0c…`).
 
 ## What the harness now enforces (`tools/run_system.py`)
 
+Known limits, kept open (independent review, low severity):
+- The refusal label comes from the compile-time `NOS_SYSTEM_COLD_CASE`. `keystate` and
+  `withheld-secret` both refuse in the INIT slot, and their serial logs differ only in that label.
+- No run boots a mutating-case kernel against the unmutated parent image, so it is not shown
+  natively that the refusal depends on the host mutation rather than on the compiled case.
+- The harness does not assert that the mutated copy differs from the parent. This fails closed:
+  an unmutated copy would restore successfully and break the expected Auth result. The recorded
+  hashes do differ.
+
 - `evaluate_cold` requires exactly one `SYSTEM:COLD:` line, and it must equal the requested
-  case. It also requires raw exit 33, no timeout, `COLD_PLAINTEXT_REPLIES`, `DISK_WRITES` and
-  `DISK_FLUSHES` all zero, and the boot and manifest markers.
+  case. It also requires raw exit 33, no timeout, `DISK_WRITES` and `DISK_FLUSHES` zero (and the constant
+  `COLD_PLAINTEXT_REPLIES` line to read zero), and the boot and manifest markers.
 - It fails closed if a cold log contains any `SYSTEM:CASE:`, `M1:PASS`, `SYSTEM:BROKERS:`,
   `SYSTEM:CLEANUP:`, `SYSTEM:RECORD_`, `SYSTEM:POWER:` or `SYSTEM:KEYSTATE_` marker, or any
   `FAIL`, `PANIC` or plaintext marker.
