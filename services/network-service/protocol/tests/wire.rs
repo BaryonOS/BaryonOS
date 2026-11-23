@@ -104,3 +104,74 @@ fn requests_cannot_set_result_status_or_open_with_a_token() {
         assert!(Packet::request(h, &[]).is_err());
     }
 }
+#[test]
+fn resolve_names_and_address_replies_are_strictly_bounded() {
+    use nieuw_os_network_protocol::{MAX_NAME, MAX_RESOLVED};
+    let resolve = |name: &[u8]| {
+        let mut h = header(Operation::Resolve);
+        h.argument = name.len() as u32;
+        (h, Packet::request(h, name))
+    };
+    let (h, p) = resolve(b"Example-1.org.");
+    assert_eq!(p.unwrap().data(), b"Example-1.org.");
+    let long = [b'a'; MAX_NAME + 1];
+    let label = [b"a".repeat(64), b".org".to_vec()].concat();
+    let fit = [b"a".repeat(63), b".".to_vec()].concat().repeat(3);
+    let fit = [fit, b"d".repeat(MAX_NAME - 192)].concat();
+    assert_eq!(fit.len(), MAX_NAME);
+    assert!(resolve(&fit).1.is_ok());
+    for bad in [
+        &b""[..],
+        b".",
+        b"a..org",
+        b"-a.org",
+        b"a-.org",
+        b"a_b.org",
+        b"a b",
+        b"a.org\0",
+        &label,
+    ] {
+        assert!(matches!(resolve(bad).1, Err(Error::Argument)), "{bad:?}");
+    }
+    // Oversize lengths are refused before any body byte is read.
+    let mut big = header(Operation::Resolve);
+    big.argument = long.len() as u32;
+    assert!(Packet::request(big, &long).is_err());
+    let mut bytes = *resolve(b"a.org").1.unwrap().bytes();
+    bytes[36..40].copy_from_slice(&(DATA as u32 + 1).to_le_bytes());
+    assert!(matches!(
+        Packet::decode_request(&bytes),
+        Err(Error::Argument)
+    ));
+    // Address, port and connection are reserved: the service picks the server.
+    for at in [24, 40, 44] {
+        let mut bytes = *resolve(b"a.org").1.unwrap().bytes();
+        bytes[at] = 1;
+        assert!(matches!(
+            Packet::decode_request(&bytes),
+            Err(Error::Reserved)
+        ));
+    }
+    let addresses = [7; 4 * MAX_RESOLVED + 4];
+    for n in [4, 8, 4 * MAX_RESOLVED] {
+        let r = Packet::response(h, Status::Ok, n as u32, &addresses[..n]);
+        assert_eq!(
+            Packet::decode_response(r.bytes(), h).unwrap().data().len(),
+            n
+        );
+    }
+    for n in [0, 3, 5, 4 * MAX_RESOLVED + 4] {
+        let r = Packet::response(h, Status::Ok, n as u32, &addresses[..n]);
+        assert!(matches!(
+            Packet::decode_response(r.bytes(), h),
+            Err(Error::Argument)
+        ));
+    }
+    for status in [Status::NotFound, Status::ServerFailure] {
+        let r = Packet::response(h, status, 0, &[]);
+        assert_eq!(
+            Packet::decode_response(r.bytes(), h).unwrap().status(),
+            status
+        );
+    }
+}
