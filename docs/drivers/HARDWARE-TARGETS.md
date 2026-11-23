@@ -72,3 +72,25 @@ see the [driver research](../research/2026-11-03/os-repos-and-hardware-drivers.m
    USB serial driver. **On-screen route: unknown/not yet demonstrated.** Whether
    the same diagnostic markers appear on screen must be tested separately
    before a physical trial without a serial connection can succeed.
+
+## Machine-checked inventory
+
+The [hardware matrix](hardware-matrix.json) records the three profiles without
+selecting a physical machine. Run `python3 -B tools/hw_matrix.py --check`.
+`implemented` means source is present for a virtual-first transport, not that
+every device/profile combination has passed. `pending` and `unsupported` retain
+missing acceptance or absent drivers; a null driver path explicitly means absent.
+The older roadmap table above describes intended families, not current source
+availability. xHCI remains pending its separate integration and acceptance.
+
+`trusted kernel transport` does not establish isolated userspace DMA.
+`unsupported` makes no DMA-containment claim. `VT-d contained` requires an
+archived passing target/device-bound record with that explicit posture. No current
+row claims it. Evidence lists are empty until a scoped record is mapped.
+
+A `supported` row requires an existing `docs/verification/` JSON record containing
+`passed: true`, `level: H` for HW-FR (`native` for virtual profiles), matching
+`target`/`device` and a source SHA-256. HW-FR also requires a selected target.
+A QEMU/native record cannot qualify as H evidence. These structural checks do not
+establish record authenticity, owner authorization or hardware acceptance.
+Physical selection and execution remain with the project owner.

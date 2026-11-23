@@ -4,7 +4,6 @@ Non-x86 architectures remain fully represented, including ARM/AArch64, RISC-V, P
 
 ## Selected entry points
 
-- [ARM Overview](../corpus/wiki-05.md#w002332) [W002332] · revision 30546 · 2026-05-02T18:59:54Z
 - [AArch64](../corpus/wiki-12.md#w004267) [W004267] · revision 30864 · 2026-07-07T17:29:26Z
 - [RISC-V](../corpus/wiki-11.md#w004033) [W004033] · revision 28383 · 2023-10-12T17:54:42Z
 - [Raspberry Pi](../corpus/wiki-08.md#w003306) [W003306] · revision 30457 · 2026-04-06T15:36:18Z
@@ -31,7 +30,6 @@ The selection below was generated automatically from page titles and categories;
 - [ARM Integrator-CP ITPTMME Phase2](../corpus/wiki-09.md#w003503) [W003503]
 - [ARM Integrator-CP PL110 Dirty](../corpus/wiki-07.md#w003150) [W003150]
 - [ARM Local Timer](../corpus/wiki-13.md#w004370) [W004370]
-- [ARM Overview](../corpus/wiki-05.md#w002332) [W002332]
 - [ARM Paging](../corpus/wiki-12.md#w004221) [W004221]
 - [ARM SMMU versions 1 and 2](../corpus/wiki-13.md#w004366) [W004366]
 - [ARM System Calls](../corpus/wiki-07.md#w002877) [W002877]

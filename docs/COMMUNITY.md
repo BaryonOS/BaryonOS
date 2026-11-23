@@ -1,18 +1,18 @@
 # Discussions, reports, and contributions
 
-Use [Discussions](https://github.com/simonvanieperen/BaryonOS/discussions) for questions, proposals, and experiences. Use [Issues](https://github.com/simonvanieperen/BaryonOS/issues/new/choose) for reproducible defects and bounded implementation work. Search for an existing topic before opening a new one.
+Use [Discussions](https://github.com/BaryonOS/BaryonOS/discussions) for questions, proposals, and experiences. Use [Issues](https://github.com/BaryonOS/BaryonOS/issues/new/choose) for reproducible defects and bounded implementation work. Search for an existing topic before opening a new one.
 
 ## Choose the appropriate channel
 
 | You want to… | Place | Helpful information |
 |---|---|---|
-| Ask a question or get help | [Questions and help](https://github.com/simonvanieperen/BaryonOS/discussions/categories/questions-and-help) | Goal, context, and what has already been tried; a useful reply can be marked as the answer |
-| Evaluate a technical choice | [Architecture and design](https://github.com/simonvanieperen/BaryonOS/discussions/categories/architecture-and-design) | Current contract, proposal, alternatives, interfaces, and testable consequences |
-| Improve a user task or accessibility | [Product and user experience](https://github.com/simonvanieperen/BaryonOS/discussions/categories/product-and-user-experience) | Intended task, observed friction, and recognisable examples |
-| Share an experiment, demo, or test | [Test results and demos](https://github.com/simonvanieperen/BaryonOS/discussions/categories/test-results-and-demos) | Exact source revision, setup, observation, evidence, and remaining boundaries |
-| Collect preferences between concrete options | [Polls](https://github.com/simonvanieperen/BaryonOS/discussions/categories/polls) | A clear question and comparable options; voting does not replace a technical decision or acceptance evidence |
-| Share project news or an accepted decision | [Announcements](https://github.com/simonvanieperen/BaryonOS/discussions/categories/announcements) | Maintainer post with links to the authoritative source |
-| Report a defect, CI problem, or concrete task | [Issue forms](https://github.com/simonvanieperen/BaryonOS/issues/new/choose) | Reproduction or bounded result, source revision, and appropriate verification |
+| Ask a question or get help | [Questions and help](https://github.com/BaryonOS/BaryonOS/discussions/categories/questions-and-help) | Goal, context, and what has already been tried; a useful reply can be marked as the answer |
+| Evaluate a technical choice | [Architecture and design](https://github.com/BaryonOS/BaryonOS/discussions/categories/architecture-and-design) | Current contract, proposal, alternatives, interfaces, and testable consequences |
+| Improve a user task or accessibility | [Product and user experience](https://github.com/BaryonOS/BaryonOS/discussions/categories/product-and-user-experience) | Intended task, observed friction, and recognisable examples |
+| Share an experiment, demo, or test | [Test results and demos](https://github.com/BaryonOS/BaryonOS/discussions/categories/test-results-and-demos) | Exact source revision, setup, observation, evidence, and remaining boundaries |
+| Collect preferences between concrete options | [Polls](https://github.com/BaryonOS/BaryonOS/discussions/categories/polls) | A clear question and comparable options; voting does not replace a technical decision or acceptance evidence |
+| Share project news or an accepted decision | [Announcements](https://github.com/BaryonOS/BaryonOS/discussions/categories/announcements) | Maintainer post with links to the authoritative source |
+| Report a defect, CI problem, or concrete task | [Issue forms](https://github.com/BaryonOS/BaryonOS/issues/new/choose) | Reproduction or bounded result, source revision, and appropriate verification |
 
 Stay on topic, support technical statements, and distinguish proposals, code, executed tests, and assumptions. **English is the project language for active public documentation and community communication.** Technical identifiers remain unchanged.
 

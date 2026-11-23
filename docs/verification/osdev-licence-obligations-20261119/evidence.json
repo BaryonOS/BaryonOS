@@ -1,0 +1,124 @@
+{
+  "date": "2026-11-19",
+  "issue": 283,
+  "scope": "FLAGGED-REVIEW.md category 2 (licence with obligations)",
+  "corpus_changed": false,
+  "disposition_decided": false,
+  "unreachable": [
+    "wiki.osdev.org",
+    "web.archive.org",
+    "wiki.jwo.cz"
+  ],
+  "records": {
+    "W004323": {
+      "upstream": "Linux drivers/net/ethernet/intel/e1000e",
+      "licence": "GPL-2.0 (SPDX header in regs.h)",
+      "fetched": {
+        "https://raw.githubusercontent.com/torvalds/linux/master/drivers/net/ethernet/intel/e1000e/defines.h": "2f1000c156609dc033e079595b36201dd8afdda5f2eefa2aa8136629f8cb93d6",
+        "https://raw.githubusercontent.com/torvalds/linux/master/drivers/net/ethernet/intel/e1000e/e1000.h": "625a663bc9eebf711ff024219b3e23d86d38dcd4e4b855c2109ecfbb7edc4002",
+        "https://raw.githubusercontent.com/torvalds/linux/master/drivers/net/ethernet/intel/e1000e/hw.h": "f6eb7a08efd4b1dfa760fb8945c0e4d4fc9fc9af84b543129ab499115af7b4d0",
+        "https://raw.githubusercontent.com/torvalds/linux/master/drivers/net/ethernet/intel/e1000e/ich8lan.c": "f4dcb5d894aaf10f3e4a823bd041d698e5a76e91d478878f58ab008782bd1756",
+        "https://raw.githubusercontent.com/torvalds/linux/master/drivers/net/ethernet/intel/e1000e/ich8lan.h": "1740953124712287bce427e567ded42650de7488cd10ca8efcf148e65e69e5d3",
+        "https://raw.githubusercontent.com/torvalds/linux/master/drivers/net/ethernet/intel/e1000e/mac.c": "7b2c5d5676660fc94f09d615cc517c01315f58befa70311f4d9e1cde9d686050",
+        "https://raw.githubusercontent.com/torvalds/linux/master/drivers/net/ethernet/intel/e1000e/netdev.c": "4d2504899e51b26d3e84dd734367f822b6b928df5f6331172f578b69dcccba8c",
+        "https://raw.githubusercontent.com/torvalds/linux/master/drivers/net/ethernet/intel/e1000e/phy.c": "9be29547dd94354cfd5b55160ca36c1b5ffef49ffd14294f6defb0b3d04c81ad",
+        "https://raw.githubusercontent.com/torvalds/linux/master/drivers/net/ethernet/intel/e1000e/regs.h": "d88b2d94c0e44ea791b01a9958788bd43993f39e41fa19a102313fef5420c45f"
+      },
+      "compared_files": [
+        "defines.h",
+        "e1000.h",
+        "hw.h",
+        "ich8lan.c",
+        "ich8lan.h",
+        "mac.c",
+        "netdev.c",
+        "phy.c",
+        "regs.h"
+      ],
+      "code_blocks": 15,
+      "code_chars": 18835,
+      "verbatim_lines_min25": 6,
+      "verbatim_lines": [
+        "rctl &= ~E1000_RCTL_SZ_4096;",
+        "rctl &= ~E1000_RCTL_BSEX;",
+        "/* Extended Device Control */",
+        "/* these buffer sizes are valid if E1000_RCTL_BSEX is 0 */",
+        "/* these buffer sizes are valid if E1000_RCTL_BSEX is 1 */",
+        "/* Interrupt Cause Read */"
+      ],
+      "status": "uncertain",
+      "upstream_revision": "not recorded (mutable master)"
+    },
+    "W004744": {
+      "upstream": "HenipaOS (not located)",
+      "licence_stated": "BSD-3-Clause-No-Nuclear-License",
+      "spdx": {
+        "source": "https://raw.githubusercontent.com/spdx/license-list-data/main/json/licenses.json",
+        "listed": true,
+        "osi_approved": false,
+        "title": "SPDX License List (license-list-data, licenses.json)",
+        "organisation": "SPDX Workgroup, Linux Foundation",
+        "licenseListVersion": "ddf7382",
+        "releaseDate": "2026-11-18",
+        "sha256": "f8987d3db502e6e218749618cff130dfe8ea427b902f59512db3116a7394867b"
+      },
+      "status": "uncertain"
+    },
+    "W002279": {
+      "upstream": "GNU EFI inc/efidef.h",
+      "licence": "Intel EFI Application Toolkit BSD-style (README.efilib), Copyright 1998-2000 Intel",
+      "fetched": {
+        "https://sourceforge.net/p/gnu-efi/code/ci/master/tree/inc/efidef.h?format=raw": "ff107e7efdb0d8120bc222579dd32d2f3a23530c6ca40ceabc65c0c00b231503",
+        "https://sourceforge.net/p/gnu-efi/code/ci/master/tree/README.efilib?format=raw": "42d352e9c28dd446fd0209cd6f75588c8e41f0934540bb382bbd61c752360265"
+      },
+      "copied": "EFI_MEMORY_DESCRIPTOR structure",
+      "status": "uncertain",
+      "upstream_revision": "not recorded (mutable master)"
+    },
+    "W001545": {
+      "upstream": "Wikipedia Template:X86 protected mode interrupts, oldid 1283313564 (2025-03-31T18:50:07Z, 5418 bytes), via wiki.jwo.cz",
+      "licence": "CC BY-SA 4.0 (en.wikipedia.org siteinfo rightsinfo)",
+      "contributor_history_collected": false,
+      "status": "uncertain",
+      "licence_source": {
+        "title": "MediaWiki API siteinfo (rightsinfo), English Wikipedia",
+        "organisation": "Wikimedia Foundation",
+        "url": "https://en.wikipedia.org/w/api.php?action=query&meta=siteinfo&siprop=rightsinfo&format=json",
+        "retrieved": "2026-11-19",
+        "response": {
+          "url": "https://creativecommons.org/licenses/by-sa/4.0/deed.en",
+          "text": "Creative Commons Attribution-Share Alike 4.0"
+        }
+      },
+      "revision_source": {
+        "url": "https://en.wikipedia.org/w/api.php?action=query&prop=revisions&revids=1283313564&rvprop=ids|timestamp|user|size&format=json",
+        "retrieved": "2026-11-19",
+        "response": {
+          "revid": 1283313564,
+          "parentid": 1283312955,
+          "timestamp": "2025-03-31T18:50:07Z",
+          "size": 5418
+        }
+      },
+      "evidence_gaps": [
+        "contributor history not collected (query refused in session)",
+        "wiki.jwo.cz intermediate copy not verified (unreachable)"
+      ],
+      "attribution_source": {
+        "title": "Terms of Use",
+        "organisation": "Wikimedia Foundation",
+        "version": "effective 7 June 2023",
+        "provision": "section 7(g), attribution options for reused text pages (hyperlink or URL to the page; history page lists contributors)",
+        "url": "https://foundation.wikimedia.org/wiki/Policy:Terms_of_Use",
+        "fetched_url": "https://foundation.wikimedia.org/w/index.php?title=Policy:Terms_of_Use&action=raw",
+        "retrieved": "2026-11-19",
+        "sha256": "c96ef93b439ff9b8242dc3233f41ede57c0984ef9153fafa51aa5f8cf0678832"
+      }
+    },
+    "W004920": {
+      "same_as": "W001545",
+      "status": "uncertain"
+    }
+  },
+  "fetch_note": "Files fetched on 2026-11-19 between 10:45 and 10:55 UTC from mutable branch URLs (master/main); the immutable upstream commit was not recorded. Content is identified by SHA-256 only; re-fetching may yield different files, so the overlap measurement is reproducible only against these hashes."
+}

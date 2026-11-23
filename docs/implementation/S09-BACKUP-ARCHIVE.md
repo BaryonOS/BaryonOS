@@ -85,9 +85,54 @@ tested. Not covered by a test: omitting the revision comparison on
 list/stat on export (only relevant if another writer or the service itself
 deviates).
 
+Independent backup device, host model (19 November 2026, commit `c4ac9ec1`
+on branch `claude/s09-independent-recovery`). Five tests model the planned
+second virtual disk as its own `SimDisk`, with a volatile write cache, read and
+written through `DiskSink`/`DiskSource` from sector 0:
+1. Export to the device, then loss of the source service, volume and disk, then
+   cold restarts of the device and of the restored volume. Content, names,
+   tags, kind and collection are byte-exact. The archive records keep each
+   source revision and the source times. The destination assigns its own
+   revision (1, or 2 after metadata) and later times.
+2. A power cut before every write and before the final flush of an export over
+   an older archive, with the new archive both shorter and longer. Every kept
+   prefix, a torn sector and three reordered subsets are tried. `verify`
+   accepts only the unchanged older archive or the complete new one, and
+   otherwise returns `Corrupt`. The older copy is lost as soon as one differing
+   new sector lands.
+3. `Unknown` (landed or not) and `NoDevice` at every write and at the final
+   flush. `export` never reports success. Only a landed final flush leaves an
+   archive, and only `verify` accepts it.
+4. The device failing reads from sector 0, 1 or the last after `verify`
+   passed. Restore stops with `Io`. A second restore from the returned device
+   restores the rest and reports the earlier objects as conflicts, unchanged.
+5. The source volume's disk, and the backup device read one sector off, are
+   refused with `Corrupt`.
+
+Two mutations of `DiskSink::finish` were tried. Skipping the flush fails four
+tests. Ignoring a flush error fails two, both new: no earlier test caught it.
+The native step needs a second kernel-owned virtio-blk device. That is a
+device-ownership change and is requested in
+[S09-DUAL-DISK-FIXTURE-REQUEST.md](S09-DUAL-DISK-FIXTURE-REQUEST.md).
+
+**Native second disk (19 November 2026, local QEMU gate passed).** Under the
+approved bounds the fixture now has a test-only second virtio-blk disk at
+`00:06.0` (kernel feature `test-volume-archive-device`, driver enum
+`Function`). Seven stages run on it: `archive-disk-export` (disk 0
+byte-identical, disk 1 parsed independently and equal to the volume),
+`archive-disk-absent` (`NoDevice`), `archive-disk-small` (`Full`, nothing past
+the scope), `archive-disk-restore` (blank disk 0, disk 1 read-only),
+`archive-disk-wrong` (device-0 range granted: `Corrupt`), and
+`archive-disk-cut` followed by `archive-disk-verify` (kill after 20 archive
+writes over an older archive; the torn result is `Corrupt`). Evidence:
+[verification/s09-archive/dual-disk-native-20261119/](../verification/s09-archive/dual-disk-native-20261119/README.md).
+This is fixture evidence. D1–D5 are decided (`ADR-S09-DESTINATION-20261119`),
+but their destination service, the user task and the encrypted variant are
+not implemented.
+
 Open for S09/FR-O06: native backup portal with a target volume and capability
-chosen by the user, native QEMU trial with a second virtual disk,
-user export to common formats (e.g. plain text/image per
+chosen by the user (the native second-disk trial above is a fixture grant,
+not a user choice), user export to common formats (e.g. plain text/image per
 document), encrypted variant for NAS/provider, and a user task.
 
 ## Native slice — local QEMU gate passes (13 November 2026, branch `feat/s09-native-archive`)
@@ -149,7 +194,7 @@ without this ordering (run 2) failed it with a Busy status instead of
 `Corrupt` (step 740).
 
 **Runner stages** (`tools/run_volume.py`, plan of `tools/test_volume.py`, now
-15 QEMU runs): `archive-export` on the image left by `recover` (volume mounted
+22 QEMU runs, including the seven second-disk stages below): `archive-export` on the image left by `recover` (volume mounted
 read-only, every byte outside the archive range unchanged, zero padding, no
 write past the archive, writes = ⌈length/512⌉); `archive-restore` and
 `archive-corrupt` on a fresh image that holds only the copied archive range

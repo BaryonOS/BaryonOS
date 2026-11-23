@@ -1,0 +1,191 @@
+{
+  "schema": 1,
+  "rows": [
+    {
+      "id": "LP-01",
+      "status": "none",
+      "evidence": null,
+      "remaining": "Local tasks work; no other provider/relay as fallback. Complete-scenario evidence has not been mapped here; existing partial evidence remains in its original criterion records."
+    },
+    {
+      "id": "LP-02",
+      "status": "none",
+      "evidence": null,
+      "remaining": "No data without the paired, verified identity. Complete-scenario evidence has not been mapped here; existing partial evidence remains in its original criterion records."
+    },
+    {
+      "id": "LP-03",
+      "status": "none",
+      "evidence": null,
+      "remaining": "No sync without explicit internet permission for the same verified peer. Complete-scenario evidence has not been mapped here; existing partial evidence remains in its original criterion records."
+    },
+    {
+      "id": "LP-04",
+      "status": "none",
+      "evidence": null,
+      "remaining": "Supported local task works with the installed model. Complete-scenario evidence has not been mapped here; existing partial evidence remains in its original criterion records."
+    },
+    {
+      "id": "LP-05",
+      "status": "none",
+      "evidence": null,
+      "remaining": "Direct and delegated network access denied. Complete-scenario evidence has not been mapped here; existing partial evidence remains in its original criterion records."
+    },
+    {
+      "id": "LP-06",
+      "status": "none",
+      "evidence": null,
+      "remaining": "Explicit local limitation, no cloud inference. Complete-scenario evidence has not been mapped here; existing partial evidence remains in its original criterion records."
+    },
+    {
+      "id": "LP-07",
+      "status": "none",
+      "evidence": null,
+      "remaining": "Documents, history, indexes and NAS keys denied. Complete-scenario evidence has not been mapped here; existing partial evidence remains in its original criterion records."
+    },
+    {
+      "id": "LP-08",
+      "status": "none",
+      "evidence": null,
+      "remaining": "No NAS/LAN/internet or general document access. Complete-scenario evidence has not been mapped here; existing partial evidence remains in its original criterion records."
+    },
+    {
+      "id": "LP-09",
+      "status": "none",
+      "evidence": null,
+      "remaining": "No personal document through a file, NAS or helper path. Complete-scenario evidence has not been mapped here; existing partial evidence remains in its original criterion records."
+    },
+    {
+      "id": "LP-10",
+      "status": "none",
+      "evidence": null,
+      "remaining": "Future operations denied; earlier external copies noted separately. Complete-scenario evidence has not been mapped here; existing partial evidence remains in its original criterion records."
+    },
+    {
+      "id": "LP-11",
+      "status": "none",
+      "evidence": null,
+      "remaining": "Separate recovery copy remains usable; administrator may still erase their own NAS space. Complete-scenario evidence has not been mapped here; existing partial evidence remains in its original criterion records."
+    },
+    {
+      "id": "LP-12",
+      "status": "none",
+      "evidence": null,
+      "remaining": "No execution without successful authenticity/integrity verification. Complete-scenario evidence has not been mapped here; existing partial evidence remains in its original criterion records."
+    },
+    {
+      "id": "LP-13",
+      "status": "none",
+      "evidence": null,
+      "remaining": "Only documented necessary connections; no OS telemetry. Complete-scenario evidence has not been mapped here; existing partial evidence remains in its original criterion records."
+    },
+    {
+      "id": "LP-14",
+      "status": "none",
+      "evidence": null,
+      "remaining": "Bounded errors, no code execution or escape from authority boundaries. Complete-scenario evidence has not been mapped here; existing partial evidence remains in its original criterion records."
+    },
+    {
+      "id": "LP-15",
+      "status": "none",
+      "evidence": null,
+      "remaining": "No document names/plaintext/user keys; necessary metadata made explicit. Complete-scenario evidence has not been mapped here; existing partial evidence remains in its original criterion records."
+    },
+    {
+      "id": "LP-16",
+      "status": "none",
+      "evidence": null,
+      "remaining": "Revoke and delete without guest consent or decryption key. Complete-scenario evidence has not been mapped here; existing partial evidence remains in its original criterion records."
+    },
+    {
+      "id": "LP-17",
+      "status": "none",
+      "evidence": null,
+      "remaining": "No further publication or namespace revival; new invite = new namespace. Complete-scenario evidence has not been mapped here; existing partial evidence remains in its original criterion records."
+    },
+    {
+      "id": "LP-18",
+      "status": "none",
+      "evidence": null,
+      "remaining": "Reservations bounded and correctly released; administrator not blocked by guest quota. Complete-scenario evidence has not been mapped here; existing partial evidence remains in its original criterion records."
+    },
+    {
+      "id": "LP-19",
+      "status": "none",
+      "evidence": null,
+      "remaining": "Pairing denied; no automatic grant of trust. Complete-scenario evidence has not been mapped here; existing partial evidence remains in its original criterion records."
+    },
+    {
+      "id": "LP-20",
+      "status": "none",
+      "evidence": null,
+      "remaining": "No new decryption authority over guest data. Complete-scenario evidence has not been mapped here; existing partial evidence remains in its original criterion records."
+    },
+    {
+      "id": "LP-21",
+      "status": "none",
+      "evidence": null,
+      "remaining": "Only quota/usage/identity/status; no guest document list or content. Complete-scenario evidence has not been mapped here; existing partial evidence remains in its original criterion records."
+    },
+    {
+      "id": "LP-22",
+      "status": "none",
+      "evidence": null,
+      "remaining": "Authentication error; no partially accepted plaintext. Complete-scenario evidence has not been mapped here; existing partial evidence remains in its original criterion records."
+    },
+    {
+      "id": "LP-23",
+      "status": "none",
+      "evidence": null,
+      "remaining": "Only explicit app destination allowed; no permission inheritance. Complete-scenario evidence has not been mapped here; existing partial evidence remains in its original criterion records."
+    },
+    {
+      "id": "LP-24",
+      "status": "none",
+      "evidence": null,
+      "remaining": "Authenticated pairing/receiving/offering with understandable error and recovery paths. Complete-scenario evidence has not been mapped here; existing partial evidence remains in its original criterion records."
+    },
+    {
+      "id": "LP-25",
+      "status": "none",
+      "evidence": null,
+      "remaining": "Old authority does not revive; no unjustified durability or deletion claim. Complete-scenario evidence has not been mapped here; existing partial evidence remains in its original criterion records."
+    },
+    {
+      "id": "LP-26",
+      "status": "none",
+      "evidence": null,
+      "remaining": "No document plaintext, sensitive manifest content or Baryon OS content key available. Complete-scenario evidence has not been mapped here; existing partial evidence remains in its original criterion records."
+    },
+    {
+      "id": "LP-27",
+      "status": "none",
+      "evidence": null,
+      "remaining": "Authentication/rollback error according to the selected threat model; no partial plaintext. Complete-scenario evidence has not been mapped here; existing partial evidence remains in its original criterion records."
+    },
+    {
+      "id": "LP-28",
+      "status": "none",
+      "evidence": null,
+      "remaining": "Local operation and explicit recovery status; no silent provider fallback or false backup claim. Complete-scenario evidence has not been mapped here; existing partial evidence remains in its original criterion records."
+    },
+    {
+      "id": "LP-29",
+      "status": "none",
+      "evidence": null,
+      "remaining": "No educational popup; capability set remains identical in bytes/semantics and new access remains separate. Complete-scenario evidence has not been mapped here; existing partial evidence remains in its original criterion records."
+    },
+    {
+      "id": "LP-30",
+      "status": "none",
+      "evidence": null,
+      "remaining": "Telemetry path may use the granted scope but receives no document/NAS/key capability. Complete-scenario evidence has not been mapped here; existing partial evidence remains in its original criterion records."
+    },
+    {
+      "id": "LP-31",
+      "status": "none",
+      "evidence": null,
+      "remaining": "UI shows the combined scope for exfiltration; other documents/apps/secrets remain protected. Complete-scenario evidence has not been mapped here; existing partial evidence remains in its original criterion records."
+    }
+  ]
+}

@@ -28,6 +28,7 @@ pub enum Op {
     Shutdown = 11,
     UsageAt = 12,
     Close = 13,
+    Cancel = 14,
 }
 
 impl Op {
@@ -46,6 +47,7 @@ impl Op {
             11 => Ok(Self::Shutdown),
             12 => Ok(Self::UsageAt),
             13 => Ok(Self::Close),
+            14 => Ok(Self::Cancel),
             _ => Err(Error::Invalid),
         }
     }
@@ -149,8 +151,8 @@ impl Frame {
     fn validate_request(&self) -> Result<(), Error> {
         use Op::*;
         let namespace = matches!(self.op, Accept | Open | Usage | SetQuota | Revoke | Evict);
-        let session = matches!(self.op, Stage | Commit | Read | Close);
-        let upload = self.op == Commit;
+        let session = matches!(self.op, Stage | Commit | Read | Close | Cancel);
+        let upload = matches!(self.op, Commit | Cancel);
         if (self.namespace != [0; 32]) != namespace
             || (self.session != [0; TOKEN_BYTES]) != session
             || (self.upload != [0; TOKEN_BYTES]) != upload
@@ -367,6 +369,11 @@ pub fn dispatch<S: Storage>(
             Op::Revoke => service.revoke(caller, &request.namespace)?,
             Op::Evict => service.evict(caller, &request.namespace)?,
             Op::Close => service.close(caller, Session::from_bytes(&request.session)?)?,
+            Op::Cancel => service.cancel(
+                caller,
+                Session::from_bytes(&request.session)?,
+                Upload::from_bytes(&request.upload)?,
+            )?,
             Op::Shutdown => {
                 // Check the core's administrator authority even if there is
                 // no namespace yet; NotFound does not authorize a guest.

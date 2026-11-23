@@ -10,7 +10,6 @@ The process pages distinguish a running program and its resources from its indiv
 - [Context Switching](../corpus/wiki-01.md#w001418) [W001418] · revision 28474 · 2023-11-21T04:00:11Z
 - [Scheduling Algorithms](../corpus/wiki-01.md#w001477) [W001477] · revision 28155 · 2023-07-10T14:36:22Z
 - [Blocking Process](../corpus/wiki-03.md#w001797) [W001797] · revision 24004 · 2019-09-25T13:09:58Z
-- [Multiprocessor Scheduling](../corpus/wiki-03.md#w001888) [W001888] · revision 28122 · 2023-07-10T02:32:25Z
 
 ## Related PDF book pages
 
@@ -22,7 +21,6 @@ The process pages distinguish a running program and its resources from its indiv
 
 The selection below was generated automatically from page titles and categories; it is not a substantive assessment of each article.
 
-- [APIC](../corpus/wiki-03.md#w001882) [W001882]
 - [Blocking Process](../corpus/wiki-03.md#w001797) [W001797]
 - [Brendan's Multi-tasking Tutorial](../corpus/wiki-12.md#w004285) [W004285]
 - [C preprocessor](../corpus/wiki-05.md#w002352) [W002352]
@@ -33,11 +31,9 @@ The selection below was generated automatically from page titles and categories;
 - [IOAPIC](../corpus/wiki-05.md#w002434) [W002434]
 - [Kernel Multitasking](../corpus/wiki-13.md#w004503) [W004503]
 - [Loading a Process](../corpus/wiki-05.md#w002367) [W002367]
-- [Monotasking Systems](../corpus/wiki-01.md#w001473) [W001473]
 - [MP Specification](../corpus/wiki-10.md#w003591) [W003591]
 - [Multiprocessing](../corpus/wiki-06.md#w002671) [W002671]
 - [Multiprocessing Architecture](../corpus/wiki-11.md#w003858) [W003858]
-- [Multiprocessor Scheduling](../corpus/wiki-03.md#w001888) [W001888]
 - [Multitasking Systems](../corpus/wiki-01.md#w001474) [W001474]
 - [Multithreaded Kernel](../corpus/wiki-14.md#w004907) [W004907]
 - [Processes and Threads](../corpus/wiki-01.md#w001415) [W001415]

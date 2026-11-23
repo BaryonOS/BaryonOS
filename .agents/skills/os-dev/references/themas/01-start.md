@@ -6,7 +6,6 @@ Begin with the required programming and hardware knowledge, selection of the tar
 
 - [Getting Started](../corpus/wiki-03.md#w001748) [W001748] · revision 29110 · 2024-06-07T13:41:28Z
 - [Required Knowledge](../corpus/wiki-07.md#w003073) [W003073] · revision 31039 · 2026-10-23T14:00:30Z
-- [Beginner Mistakes](../corpus/wiki-03.md#w001879) [W001879] · revision 31014 · 2026-10-11T21:52:42Z
 - [What Order Should I Make Things In?](../corpus/wiki-02.md#w001577) [W001577] · revision 29273 · 2024-10-09T17:06:17Z
 - [Bare bones](../corpus/wiki-05.md#w002497) [W002497] · revision 7134 · 2009-01-27T23:50:32Z
 - [Meaty Skeleton](../corpus/wiki-09.md#w003448) [W003448] · revision 30797 · 2026-06-19T11:17:13Z
@@ -34,7 +33,6 @@ The selection below was generated automatically from page titles and categories;
 - [Bad Practices](../corpus/wiki-14.md#w005034) [W005034]
 - [Bare Bones](../corpus/wiki-03.md#w001741) [W001741]
 - [Bare Bones with NASM](../corpus/wiki-08.md#w003361) [W003361]
-- [Beginner Mistakes](../corpus/wiki-03.md#w001879) [W001879]
 - [Bootable Disk](../corpus/wiki-13.md#w004471) [W004471]
 - [Bootable El-Torito CD with GRUB Legacy](../corpus/wiki-05.md#w002415) [W002415]
 - [Bran's Kernel Development Tutorial Known Bugs](../corpus/wiki-04.md#w001950) [W001950]
@@ -58,7 +56,6 @@ The selection below was generated automatically from page titles and categories;
 - [FreeBasic Bare Bones](../corpus/wiki-04.md#w002155) [W002155]
 - [GameBoy Advance Barebones](../corpus/wiki-07.md#w002894) [W002894]
 - [GameBoy Advance Introduction](../corpus/wiki-07.md#w002889) [W002889]
-- [GCC Cross-Compiler](../corpus/wiki-01.md#w001448) [W001448]
 - [GDT Tutorial](../corpus/wiki-02.md#w001531) [W001531]
 - [Getting Started](../corpus/wiki-03.md#w001748) [W001748]
 - [Getting to Ring 3](../corpus/wiki-06.md#w002603) [W002603]

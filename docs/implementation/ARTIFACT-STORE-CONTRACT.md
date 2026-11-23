@@ -211,5 +211,5 @@ performance and full FR/rubric acceptance remain open.
 
 ## 8. Primary sources for the IPC boundary
 
-- **[AS-IPC1]** Baryon OS project. (2026, October 26). *Executable kernel and security contract M2–M4*, Message format and transaction section (source version `7f4f7bfe28fe9b2314bc4e4192e43942838d5dcb`). [Kernel and security contract](https://github.com/simonvanieperen/nieuw-os/blob/7f4f7bfe28fe9b2314bc4e4192e43942838d5dcb/docs/implementation/KERNEL-AND-SECURITY-CONTRACT.md).
-- **[AS-IPC2]** Baryon OS project. (n.d.). *SDK Message320 envelope: MESSAGE_SIZE, MAX_PAYLOAD and length validation* (source version `7f4f7bfe28fe9b2314bc4e4192e43942838d5dcb`). [SDK implementation](https://github.com/simonvanieperen/nieuw-os/blob/7f4f7bfe28fe9b2314bc4e4192e43942838d5dcb/sdk/runtime/src/message.rs).
+- **[AS-IPC1]** Baryon OS project. (2026, October 26). *Executable kernel and security contract M2–M4*, Message format and transaction section (source version `7f4f7bfe28fe9b2314bc4e4192e43942838d5dcb`). [Kernel and security contract](https://github.com/BaryonOS/BaryonOS/blob/7f4f7bfe28fe9b2314bc4e4192e43942838d5dcb/docs/implementation/KERNEL-AND-SECURITY-CONTRACT.md).
+- **[AS-IPC2]** Baryon OS project. (n.d.). *SDK Message320 envelope: MESSAGE_SIZE, MAX_PAYLOAD and length validation* (source version `7f4f7bfe28fe9b2314bc4e4192e43942838d5dcb`). [SDK implementation](https://github.com/BaryonOS/BaryonOS/blob/7f4f7bfe28fe9b2314bc4e4192e43942838d5dcb/sdk/runtime/src/message.rs).

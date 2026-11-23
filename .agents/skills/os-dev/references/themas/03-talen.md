@@ -70,5 +70,4 @@ The selection below was generated automatically from page titles and categories;
 - [Visual C++ Runtime](../corpus/wiki-07.md#w002992) [W002992]
 - [Visual Studio](../corpus/wiki-01.md#w001454) [W001454]
 - [Volatile (keyword)](../corpus/wiki-04.md#w002034) [W002034]
-- [Watcom](../corpus/wiki-03.md#w001938) [W001938]
 - [Zig Bare Bones](../corpus/wiki-14.md#w004677) [W004677]

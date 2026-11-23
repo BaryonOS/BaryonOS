@@ -10,7 +10,7 @@ Selected on 3 November 2026:
 | Dependency | Pin and provenance | Licence and build | Use/limit |
 |---|---|---|---|
 | roxmltree | `=0.21.2`, <https://github.com/RazrFalcon/roxmltree/tree/v0.21.2> | MIT OR Apache-2.0; actual registry metadata has no build script; no_std+alloc, unsafe forbidden upstream | Namespace-aware XML, DTD off, no entity resolver, node budget 32768, XML at most 1 MiB |
-| memchr | `=2.7.6`, existing upstream closure of roxmltree, <https://github.com/BurntSushi/memchr/tree/2.7.6> | Unlicense OR MIT; build.rs absent (404), default features off | Only no_std substring search code; std/logging/runtime CPU detection off. Upstream may use target-configured SIMD; the native target build still has to confirm this |
+| memchr | `=2.8.3` (Dependabot bump from reviewed `=2.7.6`; crate SHA-256 `cf8baf1c55e62ffcace7a9f06f4bd9cd3f0c4beb022d3b367256b91b87513d98` matches the lockfile), existing upstream closure of roxmltree, <https://github.com/BurntSushi/memchr/tree/2.8.3> | Unlicense OR MIT unchanged; manifest `build = false` and no build.rs in the published crate; feature set unchanged and default features off | Only no_std substring search code; std/logging/runtime CPU detection off. Upstream may use target-configured SIMD; the native target build still has to confirm this |
 | zune-inflate | `=0.2.54`, default features off | Existing ledger `services/image-codec/dependency-ledger.json`; MIT OR Apache-2.0 OR Zlib, no build script | ZIP raw DEFLATE; limit/size hint set, final length and ZIP CRC re-checked; best-effort heap limit, no new compression engine |
 
 The roxmltree Cargo.toml, src/lib.rs, LICENSE-MIT, CHANGELOG and the complete

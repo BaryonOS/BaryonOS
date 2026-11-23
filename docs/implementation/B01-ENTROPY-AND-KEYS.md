@@ -122,7 +122,17 @@ never hands keys to ordinary apps.
   bytes written by the device (shorter delivery is `EIO`, never
   padded); `-14 Offline` without device, `-13 Timeout` after 64 ticks.
   Errors leave the output buffer unchanged; after a successful poll the
-  kernel erases its copy. Like the block broker, the kernel never waits in a
+  kernel erases its copy. Requests and answers are bound to the caller's
+  process and `Entropy` handle; the handle and entropy-object generations
+  are recorded, so a closed, revoked or reused handle no longer matches
+  (native evidence covers a closed handle; generation reuse is covered by
+  the `capability-core` host test). An answer not polled within
+  64 ticks is erased and the slot is released; a later poll of that ticket
+  returns `-1` (unknown ticket), so the caller must request again. A holder
+  whose `Entropy` handle is closed or revoked while its device request is
+  pending stops the device: the broker fails closed with `-14 Offline` for
+  every holder until reboot, because the pinned DMA pages cannot be reused
+  safely. This is a known availability limit, not a recovered state. Like the block broker, the kernel never waits in a
   syscall for the device.
 - Startup: 4 × 256 bytes. Repetition Count Test with cutoff C = 1 +
   ⌈20 / H⌉ with a conservatively assumed H = 4 bits per byte → C = 6: six

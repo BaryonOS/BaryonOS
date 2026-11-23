@@ -96,7 +96,8 @@ class Verdict(unittest.TestCase):
     def test_management_evidence_is_required_only_for_normal(self):
         # Synthetic transcripts test the verdict, never native execution.
         for key in ("MGMT_EXPORTS", "MGMT_RESTORES", "B_UNSEAL_OK",
-                    "MGMT_WRONG_SECRET_DENIED", "ADMIN_GENERATE_DENIED", "ADMIN_BAD_CALLER"):
+                    "MGMT_WRONG_SECRET_DENIED", "ADMIN_GENERATE_DENIED", "ADMIN_BAD_CALLER",
+                    "LEASE_RECLAIMS", "AUTHORITY_QUARANTINE"):
             values = good("normal")
             del values[key]
             with self.subTest(key=key), self.assertRaisesRegex(ValueError, key):
