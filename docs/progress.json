@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-23",
-    "source_commit": "6843b8bb6158237f2452fe726a7bdccca5344640",
+    "source_commit": "c24e7a74f6ca87d6adf6532971b5aaa1a11b5a4c",
     "assessment_basis": "parent_commit",
-    "branch": "claude/h-track-20261123",
-    "task": "H05-R1 post-wake broker latches, quiescence gate and device-access counters (merged into claude/h-track-20261123)",
+    "branch": "claude/h05-cr-followup-20261123",
+    "task": "H02-T4 native USB mouse reattach (PR #461) and CodeRabbit S3 follow-ups (review 6022999851: volume 0x40 post-wake codes, init probes after the tick)",
     "previous_score": 41,
-    "summary": "41/100 unchanged. H05-R1 keeps every kernel broker path off a lost device after an S3 wake, refuses SUSPEND while the volume broker holds a request and counts every broker device access; natively only the volume reset latch is provoked. H05 still needs block re-initialisation, hosted runs of the new cases and physical acceptance; no criterion changes."
+    "summary": "41/100 unchanged. H02-T4 adds a native same-port mouse reattach with cross-device slot reuse in QEMU; hosted QEMU 8.2.2 acceptance and physical hotplug evidence remain open. The S3 follow-ups tighten the post-wake volume codes and the tick ordering of init's probes; H02 and H05 still need hosted runs and physical acceptance, so no criterion changes."
   },
   "tracks": [
     {
