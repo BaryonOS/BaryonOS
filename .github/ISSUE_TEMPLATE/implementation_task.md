@@ -54,4 +54,4 @@ A maintainer assesses scope, dependencies and gates and, where needed, selects
 start an agent or assign a label, owner or progress points. Changes to the
 pipeline, workflows and other protected files require a separately reviewed
 PR, rather than the autonomous pipeline. Use only synthetic test data;
-follow [SECURITY.md](https://github.com/simonvanieperen/BaryonOS/blob/main/SECURITY.md) for possible vulnerabilities.
+follow [SECURITY.md](https://github.com/BaryonOS/BaryonOS/blob/main/SECURITY.md) for possible vulnerabilities.

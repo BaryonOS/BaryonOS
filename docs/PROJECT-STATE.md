@@ -1,5 +1,204 @@
 # Current project status
 
+## NEXT AGENT HANDOFF — H-track lead: post-wake broker latches and quiescence gate (H05-R1) — 23 November 2026
+
+**Delivered (H05-R1, verified, not accepted):** after a validated S3 wake the volume broker's
+`reset`/`advance` and the keyring's `call` (0x60), `advance` and `quarantine_pending` return
+before any device access (keyring only until the validated re-init of `test-system-s3-reinit`).
+SUSPEND returns -8 while the volume broker is not quiescent (a held request, including an
+unconsumed completed result). Every broker device call site is counted; after CLEANUP the kernel
+requires zero post-wake accesses outside the accounted re-init path and live counters at the
+wake. New profile `test-system-s3-held-completion` provokes the volume `reset` latch through a
+labelled gate-defect injection (exact log `[-8,-6,-4,-1,-8,0,-14]`, one suppressed reset).
+[Evidence](verification/h05-s3-held-completion-20261123/README.md): `test_power_system.py`
+12/12 stages, five `run_sleep.py` cases raw 33/37/39/37/39 (local QEMU 10.2.1, pc-q35-8.2, TCG).
+Three independent AI reviews approve-with-minors, fixed; the verifier's two test survivors are
+closed with four mutants. ADR-H05-S3-SYSTEM amendment H05-R1.
+**CodeRabbit on #415:** the net-link counter-window check now also requires the first window to
+open after the initial up edge (`6c2d159b`).
+**Open:** the keyring latches and volume `advance` are checked by source shape and counter only;
+hosted `native-power.yml` runs all five S3 cases since `a5a378fd` (green on `b94be044`).
+**Score:** 41 → 41/100 (no criterion changes).
+
+## NEXT AGENT HANDOFF — H-track lead: S3 rejection exit and fixtures (H05-T6b), re-init review fixes — 23 November 2026
+
+**Delivered (H05-T6b, verified, not accepted):** in `native-acpi-s3` every refused S3 plan and
+every cleanly disarmed FACS store failure exits 0x13 (raw 39); `corrupt-facs` therefore moves
+from raw 33 to raw 39. New fixtures `test-acpi-s3-unarmed-wake` (raw 37; page token 0, so only
+the `ARMED == 0` clause refuses) and `test-acpi-s3-facs-end` (raw 39). The 32-bit wake stage
+loads CR3 from `NOS_S3_CR3` in the kernel image; wake-page offset 8 is reserved. Independent AI
+review: approve-with-minors, fixed in `04212e8d` (fixture token 0, third mutation) and the
+ADR-H05-S3-SYSTEM/ADR-H05-S3-WAKE amendments. [Evidence](verification/h05-s3-rejections-20261123/README.md):
+five `run_sleep.py` cases raw 33/37/39/37/39 (local QEMU 10.2.1, pc-q35-8.2, TCG).
+**CodeRabbit review 6023531102 (re-init):** `reinit_fail` no longer resets the device before
+`rediscover` validated the BARs, and stages 3–4 of `reinit_poll` hold no `REINIT` borrow across
+the 0x60/0x61 handlers (`8530dd14`); native `power-s3-reinit` passes.
+**Open:** hosted `native-power.yml` ran only cycles/corrupt-facs/stale-token at this checkpoint;
+`a5a378fd` later added the two new cases. R1 port and the
+CR415 tooling fixes are in flight.
+**Score:** 41 → 41/100 (no criterion changes).
+
+## NEXT AGENT HANDOFF — H-track lead: Bochs DISPI mode-set fixture (H03-T4) and #409 review follow-ups — 23 November 2026
+
+**Delivered (H03-T4, verified, not accepted):** draft PR #417 (`claude/h03-dispi-20261123`,
+head `009af7ad`, from `main` `035b44e5`). Profile `native-dispi-probe` binds exactly one
+1234:1111 display, checks that BAR0 (masked) equals the GOP base and that memory decode is
+enabled, sets four allowlisted 32-bpp modes through DISPI with full register readback, and
+verifies each mode pixel-exactly against a QEMU screendump; any other display device is
+refused fail-closed. [Evidence](https://github.com/BaryonOS/BaryonOS/blob/0f2b9881b23d74f6240e22c8fde2749e30b28381/docs/verification/h03-dispi-modeset-20261123/README.md) (on the #417 branch):
+positive raw 33, negative raw 35 (local QEMU 10.2.1, pc-q35-8.2, TCG). An independent AI
+review found no blocking or major findings; minors were fixed in `91bd4135`. The hosted
+`native-display-input.yml` step is queued with the integration manager, after #410 and #409.
+**#409 integration-review documentation items:** item 5 — the extended FACS vector policy is
+documented as QEMU/OVMF-only (ADR-H05-S3-WAKE-20261119, Decision item 3). Item 7 — the retired
+generation-1 DMA pages that stay mapped in the VT-d domain are documented as a fixture-only
+pattern (NATIVE-USB-HID.md, reattach step 7). Item 8 — the raw artifacts of
+`docs/verification/h05-s3-system-20261123/` are produced by the hosted `native-power.yml`
+job; the committed README summarises them and does not replace them.
+**In flight:** H05-T5b (virtio-rng re-initialisation after the wake), H05-T6 (#409 review
+items 1–4), H03-T3c (virtio-snd hardening), H-CR415 (CodeRabbit tooling findings on #415).
+**Next:** review and integrate each builder; then the queued items (APP-caller 0x91 negative,
+remaining CodeRabbit findings) and H02 mouse reattach. #415 is retargeted to `main` by this
+session after #409 merges.
+**Score:** 41 → 41/100 (no criterion changes; H03 and H05 need further native and physical evidence).
+
+## NEXT AGENT HANDOFF — H-track lead: post-wake device-loss refusal (H05-T5a) — 23 November 2026
+
+**Mandate:** project-owner H-track pipeline instruction of 23 November 2026. PR #409
+(`ccr-38238c58-g8y1l6`, head `02ef433f`, hosted checks green) has no established
+exclusive writer (idle local session plus idle cloud sessions [9376d3]/[89a9d2]), so it is
+left untouched; this work is on the dedicated branch `claude/h-track-20261123`, stacked
+on `02ef433f`, in a draft PR to `main`. No merge.
+**Delivered (H05-T5a, verified, not accepted):** in `test-system-s3` the post-wake -14
+refusal now precedes the authority lookup; init's 0x60 and 0x40 requests after the wake
+each return -14 and the kernel requires the exact tagged log (ADR-H05-S3-SYSTEM-20261123
+item 3 amended). Review fix `5baafc33`: stray `SYSTEM:SUSPEND*` evidence is refused in
+every non-S3 case. [Evidence](verification/h05-s3-wake-refusal-20261123/README.md).
+**Checks (exit 0):** `test_power_system.py` 8/8 on `5baafc33` (power-s3 raw 0, recover
+raw 33); `run_sleep.py --case cycles` raw 33; harness 29, test_sleep 17, CI workflows 28,
+CI evidence 38; preflight strict; fmt; `progress.py --check`.
+**Environment finding:** the six `tools/tests` errors in `test_agent_isolation` and
+`test_agent_pipeline` reproduce only with the inherited `GIT_EDITOR`; with every `GIT_*`
+variable unset, all 68 tests pass. They are a session-environment artefact (the tests fail
+closed by design), not a code defect.
+**In flight:** H03-T4 Bochs DISPI mode-set fixture on `claude/h03-dispi-20261123` (from
+`main` `035b44e5`, probe-first; hosted evidence needs a `.github` integration request).
+**Next:** H05-T5b virtio-rng re-initialisation after the wake (new `test-system-s3-reinit`
+profile; fail closed if BDF, IDs or BARs differ after OVMF resume); then H02 mouse reattach.
+**Score:** 41 → 41/100 (H05 needs device re-initialisation and physical acceptance).
+
+## NEXT AGENT HANDOFF — H-track lead: S3 from the running system (H05-T4) — 23 November 2026
+
+**Mandate:** project-owner H-track instruction (19 and 23 November 2026); this
+local session is the single writer of draft PR #409 (`ccr-38238c58-g8y1l6`). No merge.
+**Source:** `e02ff67c` (feature `31481f23`, review fixes `e02ff67c`) on top of the
+cloud session's merge `af1b650c` (its snd hardening was integrated, not overwritten).
+**Delivered (H05-T4, verified, not accepted):** `test-system-s3` adds syscall
+`0x91` SUSPEND under ADR-H05-S3-SYSTEM-20261123 (amended the same day to match
+the implementation). Init proves -8/-6/-4/-1, one granted S3 cycle, a ring-3
+stack pattern and a timer tick after the wake, the one-shot -14, then S5; a cold
+recovery boot of the image passes. The S3 path sits behind an internal
+`acpi-s3-core` feature; `sleep.rs` is split into `resolve` and `cycle` with
+unchanged native-acpi-s3 output.
+**Checks (exit 0):** `test_power_system.py` 8/8 including power-s3 (raw 0) and its
+recover (raw 33); `run_sleep.py` cycles/corrupt-facs/stale-token raw 33; host suites
+(system harness 61, test_sleep 17, CI workflows 28, CI evidence 38, GS discipline);
+fmt. `tools/tests` has 6 errors in `test_agent_isolation`/`test_agent_pipeline`
+("Git environment overrides require a verified controller adapter"), from this
+session's git environment, in files this slice does not touch.
+[Evidence](verification/h05-s3-system-20261123/README.md).
+**Limits:** QEMU/OVMF/TCG only; devices are lost across the wake (their -14
+refusal is code-reviewed, not exercised natively); no physical firmware, AML,
+SMP or FPU across sleep. Hosted `native-power.yml#power-system-gate` runs power-s3
+automatically through `test_power_system.py`; its step name still says "three"
+cases (protected file, cosmetic).
+**Next:** hosted CI on the pushed head; then H04 `flap`/`reset` link cases, H02 mouse
+reattach, or the H03 bochs DISPI mode-set fixture. Note: cloud session
+[9376d3] kept pushing to this branch after "This session leads"; every push here
+first verifies the remote head.
+**Score:** 41 → 41/100 (H05 needs physical acceptance).
+
+## NEXT AGENT HANDOFF — H-track lead resumed — 23 November 2026
+
+**Mandate:** project-owner H-track instruction, renewed on 23 November 2026, on
+branch `ccr-38238c58-g8y1l6` (draft PR #409). No merge or auto-merge.
+**Recovery:** the 19 November session ended on its usage limit after pushing
+`1dbf597c`; nothing else was found unpushed. The Codex H branches (#369, #371,
+#372, #384) were already merged into main. The main checkout holds about 920 staged
+files from another writer; they were left untouched.
+**Done this session (verified, not accepted):** CodeRabbit F8/F11 and the runner
+machine pin (`cc173d8e`); an unused import (`a616980f`); an independent focused
+security review of the snd fixture: no blocking finding, findings 1–3 fixed
+(the event loop is bounded per call, reset and BME-off happen before the fence
+bookkeeping, and BME-off is retried). Host checks pass. Local native snd is NOT RUN
+(QEMU 10.2.1 locally, the runner pins the 8.2 series); hosted `native-xhci.yml` is
+the native evidence. A local S3 baseline (`run_sleep.py --case cycles`,
+`pc-q35-8.2`, QEMU 10.2.1, OVMF 2025.11) gives raw 33 with 3 cycles.
+**Decided:** ADR-H05-S3-SYSTEM-20261123 (H05-T4 design: test-profile syscall 0x91
+SUSPEND behind POWER and the storage gate, a synchronous sleep, devices lost after
+a wake, then POWER_OFF).
+**Next:** implement H05-T4 under that ADR (`test-system-s3`: sleep.rs cycle
+refactor, 0x91 in m3/system.rs, an SDK wrapper, init calling suspend before
+power_off, a QMP wake in the system runner, then a `native-power.yml` case).
+Small QEMU follow-ups from read-only scoping: H04 `flap`/`reset` link cases, H02
+mouse reattach (16-page DMA budget), and an H03 bochs DISPI mode-set fixture
+with a screendump oracle. Not feasible in QEMU: Wi-Fi and Bluetooth.
+**Score:** 41 → 41/100. Every open H gate (H02–H06) requires physical reference
+hardware and the owner decisions OD-HW-*; nothing here is accepted.
+
+## NEXT AGENT HANDOFF — H-track lead: native ACPI S3 (H05-T3) — 19 November 2026
+
+**Mandate:** project-owner instruction of 19 November 2026 assigns the whole H track
+(H01–H06) to a Claude hardware-track lead on branch `ccr-38238c58-g8y1l6` (one draft PR).
+**Source:** `887c446d8b530b17ba34a1e9798b6e3d012aedcc` on base main `035b44e` (first slice `9c707c8`, then CI and review fixes).
+**Delivered (H05-T3, verified, not accepted):** the independent kernel suspends to RAM
+and resumes three times per boot through its own wake path (`native-acpi-s3`), with
+negative profiles `test-acpi-s3-corrupt-facs` and `test-acpi-s3-stale-token`.
+`parse_s3` now accepts the ACPI 1.0b FACS that QEMU 8.2.2/OVMF really builds (main
+rejected it). OVMF's real-mode S3 transfer stub cannot run under QEMU TCG (16-bit EIP
+truncation); the profile arms a 32-bit entry under the explicit `Edk2Version0Extended`
+policy and restores `SCI_EN`, which OVMF leaves clear (ADR-H05-S3-WAKE-20261119).
+**Checks (exit 0):** acpi-power test/clippy/fmt/freestanding build; root `fmt --all`;
+`test_sleep.py` 6 host counterexamples; `run_sleep.py` cycles/corrupt-facs/stale-token on
+source v3 `7710f46d…` (earlier rounds `ce3e3145…`, `e76b8fbf…`); S5 ×5 + corrupt-DSDT ×2, standard, M2 and M3 smokes; actionlint and
+CI workflow/evidence tests. [Evidence](verification/h05-native-s3-20261119/README.md).
+**Limits:** QEMU/TCG only; no physical firmware, other wake sources, AML `_PTS`/`_WAK`,
+devices/services/SMP across sleep, thermal or battery. Score 41 → 41/100.
+**Integrated H06-T4 (verified, host):** `docs/drivers/physical-protocols.json` (seven blocked
+physical protocols with safety constraints), `tools/hw_evidence.py` (OpenSSH-signed records bound
+to protocol/target/image/source/inventory; empty signer list fails closed), matrix schema 2 with
+nine open owner decisions; 25 tests with real ssh-keygen signatures (merge `839fb2c`, fix `9f66bf1`).
+**Integrated H02-T3 (verified, QEMU):** same-port USB keyboard reattach in the xHCI/USB-HID
+fixture: generation-2 re-enumeration with continued rings, replayed generation-1 event/token/ticket
+rejected, second unplug, budget-denied third attach (merge `af9b0bc`; reports/readonly/reattach
+raw 33 on source v3 `1ae4ed7f`; `native-xhci.yml` now runs `reattach`). Pitfall: a worktree nested
+in the checkout duplicates the kernel `rustflags` (linker script twice); run native gates from a
+non-nested checkout. The AI security review of the DMA/ring changes found no blocking issue;
+its low finding O1 (the native stale-ticket check was phase-based) is fixed by a generation-specific
+check while generation 2 is `Enumerating` (diagnostic 51), verified natively on source v3 `6ed7b9a2`
+with a mutation control; O2–O5 are informational and recorded in the H02 evidence README.
+**Integrated H03-T3a (verified, QEMU):** kernel-only virtio-snd PCM output fixture
+(`native-virtio-snd-probe`, IF0 M2, fixture 00:08.0, `-icount`) with an exact WAV oracle: normal,
+no-device, access-platform, fence-reinit and quarantine raw 33 on merge `167c2bc` (source v3
+`aadc6b7b`; WAV hashes equal the builder runs), plus xHCI/USB/S3/smoke/M2 regressions;
+`native-xhci.yml` runs the five cases. Three QEMU 8.2.2 deviations are recorded in
+ADR-H03-SND-FIXTURE-20261119 (PCM_INFO used length checked in the QEMU source). No ring-3 audio
+path: owner decisions B1, B2 and B4 stay open. A focused security review is running.
+**Integrated H04-T3 (verified, QEMU):** virtio-net link loss and reconnect with a fail-closed
+broker behind the test-profile link query 0x74 and refusal -23 (ADR-H04-LINK-20261119): link
+normal/nostatus/storm, native-system-net, network-service normal/device-reset and the POWER gate pass
+on merge `5bef53f`; `native-system.yml` runs the link cases. No product link API, Wi-Fi or Bluetooth.
+**In flight:** H06-T4 CodeRabbit findings (13 verified verdicts; implementation resumes); CodeRabbit
+review of `920b909` (snd used-ring and fence findings, runner machine default); focused security
+reviews of H03-T3a and H04-T3 (first attempts hit the usage limit). H05-T4 design is ready
+(synchronous S3 syscall 0x91 behind POWER and the storage gate). An independent AI review of the S3 diff
+found three low findings (all refuted for this profile, applied as hardening); hosted
+host-quality found two real defects (GS discipline, ledger protected path), both fixed.
+**Next:** H05-T4 (S3 from the native-system
+profile via the POWER capability behind the storage gate, PIC/PIT re-init, resumed
+processes) on top of H04-T3's QMP hook; H06-T3 inventory image. Physical acceptance
+needs owner decisions H06-T2 and authorized hardware.
+
 ## NEXT AGENT HANDOFF — owner decision package recorded — 19 November 2026
 
 **Source:** main `8f970866`. The project-owner decisions of 19 November 2026 are
@@ -14,12 +213,15 @@ in ADR-W001473-PROVENANCE-20261119. Applied on main: W001473, which has no
 verifiable grant (#397), and the 27 other imported records (#399) are excluded;
 this checkpoint's PR #400 excludes the 5 third-party records with unknown terms.
 The corpus then holds 3,099 records with 33 exclusions in
-`.agents/skills/os-dev/references/exclusions.json`. Records awaiting an owner
-decision (5 licences with notice or share-alike obligations, 12 quotations) stay
-in the corpus as uncertain until decided. The pre-CC0 review and the screening for
-older copied text are recorded in PR #398
-(`docs/verification/osdev-corpus-rights-20261119/`); each of its 1,298 uncertain
-records (including the pre-CC0 pages) still needs a recorded disposition. Open
+`.agents/skills/os-dev/references/exclusions.json`. Five records may carry notice
+or share-alike obligations from a named upstream licence; the upstream evidence is
+recorded in `docs/verification/osdev-licence-obligations-20261119/` and their
+disposition is an owner decision. The 12 quotations are a separate owner decision.
+These records stay in the corpus as uncertain until decided. The pre-CC0 review and
+the screening for older copied text are recorded in PR #398
+(`docs/verification/osdev-corpus-rights-20261119/`): of its 1,298 uncertain records
+(including the pre-CC0 pages), the five third-party records excluded in #400 have a
+disposition and 1,293 still need one. Open
 detail: the redirect records W002146 and W001978 point to excluded pages and are
 left in place pending a decision. #283 stays open until every uncertain record has
 a disposition.
@@ -982,15 +1184,15 @@ milestones never enter `docs/progress.json`; every BaryonOS capability is
 | UX-v2 | Orbitaal v2 board, CONCEPTS.md v2 section | `ui/design/concepts/orbitaal-v2/` Accepted (`ea4e033d`): independent rendered AI recheck, 21/21 planner items resolved, 0 blockers or majors, 6 minors open ([record](verification/orbitaal-v2-20261114/README.md)) |
 | UX-D | Design system ds-1.0 (tokens, icons, components, gallery) | `docs/design/DESIGN-SYSTEM.md`, `ui/design/system/` | Intermediate, **not Accepted**: base `46957bac` ([record](verification/ds-1.0-base-20261114/README.md)); correction UX-D-C1 (owner permission model) committed after run `wf_72e6bcf3-50d` ended `blocked_after_2_repairs` with 0 blockers, 1 major (design quality, AI opinion: generic empty, loading and error states) and 7 minors; owner conformance met, contract test 48 assertions passed ([record](verification/ds-1.0-c1-20261115/README.md)). The major is a must-fix of UX-A11Y-DS. The owner decision of 15 Nov replaced the permission model, so prompt conformance moves to UX-C; UX-D closes when the UX-A11Y-DS verifier passes, including the carried major |
 | UX-A11Y-R | Systematic accessibility literature review and checkable accessibility matrix (owner decision, 15 Nov) | `docs/design/accessibility/`, `docs/verification/a11y-research-20261115/` | Intermediate checkpoint (`8cca1167`); the systematic-review requirement remains open. Research document and matrix (92 rows, 110 sources; 51 baseline, 41 setting, 11 safety rows all baseline; grades strong 2, moderate 1, limited 51, insufficient 37, contradicted 1). Run 1 `wf_4f6a5638-e4a` ended `blocked_after_2_repairs`; run 2 `wf_baf4e604-27b` repaired the files in place and its independent AI verifier accepted them after one repair: 0 blockers, 0 majors, 10 minors open (row 26 reveal needs an owner decision before it may be offered). Literature, standards and AI review only; no user test or human audit ([record](verification/a11y-research-20261115/README.md)) |
-| UX-A11Y-DS | Two-tier accessibility system in ds-1.x: baseline in every regular theme, combinable setting axes as variants of the same identity, coherence across themes and combinations, automatic and manual checks; carries the UX-D design-quality major | `ui/design/system/`, `docs/design/DESIGN-SYSTEM.md` | **Not accepted.** Run 1 (`wf_f9909b01-8a7`, 15 Nov 14:45–20:31 CET) built ds-1.1 (two tiers, nine setting axes, place-aware empty, loading and error states, an accessibility settings group, `check.mjs`) and ended `blocked_after_2_repairs`: the independent verifier rounds found 5, 2 and 0 blockers and 6, 4 and 1 majors. The remaining major is a combination defect (`.ds-tabs` widens the page with wider text spacing at 200 %), with 9 minors; the final round judged the carried C1 design-quality major resolved (AI opinion). The deliverables stay uncommitted in the worktree until a verified run accepts them (snapshot and hashes in the ignored checkpoint). Run 2 (`runs-20261115/uxa11y-ds-run2.js`) repairs in place after a systematic overflow sweep; a further block becomes an owner blocker. Carries UX-A11Y-R minor 1; minor 6 (five-second clause) is superseded by the owner correction of 15 Nov and moves to UX-A11Y-A1 |
-| UX-A11Y-A1 | Amendment of the UX-A11Y-R research checkpoint, matrix and design criteria for the owner decisions of 15 Nov on flashing media and photosensitivity: system interface, unsolicited content, and deliberately started games and media as three contexts with their own rules | `docs/design/accessibility/`, `docs/design/DESIGN-SYSTEM.md` | Open; after UX-A11Y-DS (draft `runs-20261115/uxa11y-r-a1-flash-draft.js`) |
-| UX-C | Informed-consent experience for permission requests (owner ambition, 14 Nov; simplified permission model of 15 Nov: "Toestaan" / "Weigeren" plus an optional remember control, to be researched and verified before adoption; ADR before native persistent grants and remembered denials) | research and concepts in ignored `build/design-evidence/uxc/`, then `ui/design/system/`, `docs/design/DESIGN-SYSTEM.md` | Open; after UX-A11Y-DS, blocks UX-E |
-| UX-E | Connected prototype journey (simulation) | `ui/design/prototype/` | Open |
+| UX-A11Y-DS | Two-tier accessibility system in ds-1.x: baseline in every regular theme, combinable setting axes as variants of the same identity, coherence across themes and combinations, automatic and manual checks; carries the UX-D design-quality major | `ui/design/system/`, `docs/design/DESIGN-SYSTEM.md` | **Not accepted.** Run 1 (`wf_f9909b01-8a7`, 15 Nov 14:45–20:31 CET) built ds-1.1 (two tiers, nine setting axes, place-aware empty, loading and error states, an accessibility settings group, `check.mjs`) and ended `blocked_after_2_repairs`: the independent verifier rounds found 5, 2 and 0 blockers and 6, 4 and 1 majors. The remaining major is a combination defect (`.ds-tabs` widens the page with wider text spacing at 200 %), with 9 minors; the final round judged the carried C1 design-quality major resolved (AI opinion). The deliverables are committed to PR #360 for review only (`626d5cdf`); committing does not accept them (run-1 snapshot and hashes in the ignored checkpoint). Run 2 (`wf_dd7b8287-0d8`, 18 Nov 11:33–15:30 CET, workers-frozen) repaired in place after a systematic overflow sweep. It ended `blocked_after_2_repairs` (verifier rounds 0/2, 0/1, 2/1 blockers/majors): a ds-1.0 delete-dialog flash loop on a held Enter key (B8), a gallery caption at 3.47:1, and an undimmed modal backdrop. All three are fixable in the authorised files. `tokens.css` and `check.mjs` are unchanged. This is now an owner blocker. Carries UX-A11Y-R minor 1; minor 6 (five-second clause) is superseded by the owner correction of 15 Nov and moves to UX-A11Y-A1 |
+| UX-A11Y-A1 | Amendment of the UX-A11Y-R research checkpoint, matrix and design criteria for the owner decisions of 15 Nov on flashing media and photosensitivity: system interface, unsolicited content, and deliberately started games and media as three contexts with their own rules | `docs/design/accessibility/`, `docs/design/DESIGN-SYSTEM.md` | Accepted (19 Nov, AI verification only): run `wf_eaf3a45e-416` ended `blocked_after_2_repairs` on one owner question; the owner chose decision B on 19 Nov (protection follows the unsolicited placement; a direct open, enlarge or forward never lifts it; no per-user hazard record; warnings are no guarantee; reduced motion and flash attenuation stay separate). Repair run `wf_bc36fa86-cf9` was accepted by an independent verifier after one repair: 0 blockers, 0 majors, 5 minors open, 17 citations re-resolved with 0 mismatches. Matrix now 96 rows, 121 sources, 53 baseline; successor baseline contract and pin ([record](verification/a11y-checker-20261119/README.md)); matrix gate and 15 unit tests exit 0. No user test or human audit |
+| UX-C | Informed-consent experience for permission requests (owner ambition, 14 Nov; simplified permission model of 15 Nov: "Toestaan" / "Weigeren" plus an optional remember control, to be researched and verified before adoption; ADR before native persistent grants and remembered denials) | research and concepts in ignored `build/design-evidence/uxc/`, then `ui/design/system/`, `docs/design/DESIGN-SYSTEM.md` | Accepted (19 Nov, AI verification only; [record](verification/uxc-run2-20261119/README.md)): run 2 `wf_ff2800a7-fd9` ended `blocked_after_2_repairs` on one OQ-1 blocker; targeted repair run 2r `wf_043dc049-a87` fixed it (29/29 contract tests, mutation probes killed) and left two documentation and label majors (U7, U9); owner decision A (19 Nov) authorised a lead correction, which a fresh verifier `wf_70100a30-fbb` accepted with no regressions and no WCAG failure among the three reviewed minors. Prototype behaviour only; native remembered decisions need the Proposed ADR `ADR-PERMISSION-PERSISTENCE-20261119` accepted first |
+| UX-E | Connected prototype journey (simulation) | `ui/design/prototype/` | In progress: slice A (stations 1–4: sign-in, desktop and Orbit, windows, search) accepted 23 Nov on AI verification only, run `wf_0760de51-dca` after two repairs, 7 minors open ([record](verification/uxe-sliceA-20261123/README.md)). Slice B (files, versions, consent in context) needs owner confirmation of the file-open rule before acceptance; slice C needs suite task S7 |
 | UX-F | Visual verification, at most two polish passes | `docs/verification/` | Open |
 | UX-G | Native vertical slice, QEMU screenshots | `ui/native`, `ui/graphics` | Plan done; G0 measured; G1 (licence and packaging) next |
 | S0 | Suite requirements that shape ds-1.0 (colour scope, density, neutral surfaces, region names) | `docs/design/suite/WORKSPACE-REQUIREMENTS.md` Accepted (`b305fa7c`): D9 single-pointer selection routes added; independent AI recheck, 0 blockers or majors, 6 minors open ([record](verification/suite-s0-workspace-20261114/README.md)) |
-| S1 | Professional application capability matrix | `docs/design/suite/CAPABILITY-MATRIX.md` Accepted (`8e4abd8d`): 215 rows, 14 prototyped (host), 201 proposed, 0 native; independent AI verification, 0 blockers or majors, 5 minors open ([record](verification/suite-s1-capability-matrix-20261114/README.md)) |
-| S2 | Consumer-to-professional UX maturity model | `docs/design/suite/MATURITY-MODEL.md` | Open |
+| S1 | Professional application capability matrix | `docs/design/suite/CAPABILITY-MATRIX.md` Accepted (`8e4abd8d`): 216 rows, 14 prototyped (host), 202 proposed, 0 native; independent AI verification, 0 blockers or majors, 5 minors open ([record](verification/suite-s1-capability-matrix-20261114/README.md)) |
+| S2 | Consumer-to-professional UX maturity model | `docs/design/suite/MATURITY-MODEL.md` | Accepted (`4c6e1a22`): independent AI verification, 4 minors open ([record](verification/suite-s2-maturity-model-20261118/README.md)) |
 | S3 | Named file-format family, at least three naming systems, registry-checked extensions | `docs/design/suite/FILE-FORMATS.md` | Open |
 | S4 | Common native document/object architecture over the existing storage contracts | `docs/design/suite/OBJECT-ARCHITECTURE.md` | Open |
 | S5 | Interoperability and migration, feature-level compatibility matrix | `docs/design/suite/INTEROPERABILITY.md` | Open |
@@ -1055,24 +1257,47 @@ the superseded 14 November model only
 ([SUPERSEDED.md](verification/ds-1.0-c1-20261115/SUPERSEDED.md)).
 
 **Next:** in a fresh session, first reconcile Git, lock and process state
-(checkpoint section 14, last entry). The continuation branch
-`claude/baryon-os-design-pipeline-20261115` (draft PR #339, no auto-merge)
-carries the shutdown commits cherry-picked unchanged onto main `d572052b`.
+(checkpoint section 14, last entry). PR #339 was squash-merged as main
+`de9b9904`. The design work continues on branch
+`claude/baryon-os-design-pipeline-20261118`, cut from that commit.
 UX-A11Y-R is an intermediate research checkpoint (`8cca1167`, run 2
-`wf_baf4e604-27b`); the systematic-review requirement remains open. UX-A11Y-DS run 1
-ended `blocked_after_2_repairs` and is not accepted; its deliverables are the
-uncommitted changes in the worktree. Next: UX-A11Y-DS run 2
-(`runs-20261115/uxa11y-ds-run2.js`, arguments in `uxa11y-ds-run2-args.json`):
-a repair writer first sweeps every gallery panel for overflow across themes,
-text spacing, scale and widths, fixes the remaining major and the mechanical
-minors, then a fresh verifier runs the ten checks, at most two repairs;
-acceptance is no blocker or major and stored screenshots, and it also closes
-UX-D. If run 2 ends blocked, the residual becomes a concrete owner blocker.
-Run 2 is queued, not started: the plan's weekly usage limit stood at 94 % on
-15 November at 20:40 CET (run 1 used about 1.94 M subagent tokens), and it
-resets on 18 November 2026 at 07:00 CET.
-Then UX-A11Y-A1, UX-C run 1 (`runs-20261115/uxc-run1.js`), UX-C run 2, UX-E,
-UX-F, UX-G and G1.
+`wf_baf4e604-27b`); the systematic-review requirement remains open.
+
+UX-A11Y-DS run 2 (`wf_dd7b8287-0d8`, 18 November 2026, workers-frozen
+variant on the owner decision "Nee, bevroren") also ended
+`blocked_after_2_repairs`. It is not accepted. Its verifier rounds found:
+
+| Round | Blockers | Majors |
+|---|---|---|
+| 1 | 0 | 2 |
+| 2 | 0 | 1 |
+| 3 | 2 | 1 |
+
+The repairs fixed every earlier major. The final round found three new
+items, each fixable in the authorised write set:
+
+- **Blocker, flash safety.** Holding Enter on the ds-1.0 delete dialog makes
+  it open and close about 28 times per second over 44–47 % of the screen in
+  light themes. This breaks baseline item B8, and matrix row 36 does not
+  cover it.
+- **Blocker, contrast.** A gallery caption inside a card shadow reaches
+  3.47:1.
+- **Major, dimmed display.** Under dimmed light intensity the modal
+  backdrop is not dimmed.
+
+The verifier reports both blockers as present at base `de9b9904`.
+`tokens.css` and `check.mjs` stayed frozen at their verified hashes. Because
+this is the second blocked run, the residual is a concrete owner blocker
+(`owner-blocker-ds-run2-20261118.md` in the ignored checkpoint): authorise a
+bounded run 3 for the named items, or route the flash item to UX-A11Y-A1.
+The deliverables are committed for review only; committing does not accept
+them.
+
+UX-A11Y-A1 was accepted on 19 November 2026 (owner decision B). UX-C was accepted on 19 November 2026
+(owner decision A; AI verification only). **Next action:** UX-E (connected prototype journey), then UX-F,
+UX-G and G1.
+Separately, O-P1 moves the `tokens.css` generator into the repository so
+the file is reproducible.
 
 **Review correction (17 November 2026):** after CodeRabbit review of
 `4005ca67`, two matrix cells that contradicted the research document were

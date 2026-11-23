@@ -10,9 +10,19 @@ default = []
 test-panic = []
 test-hang = []
 milestone-m2 = []
+# Internal, never selected directly: the IF0 single-CPU fixture MMIO window
+# (0x3f200000) with its page-table audit and scratch, shared by the isolated
+# xHCI and virtio-snd fixtures.
+if0-device-window = []
 # H02: isolated single-CPU QEMU VT-d/xHCI DMA gate; no service/IRQ authority.
-native-xhci-probe = ["milestone-m2", "dep:pci-core", "dep:driver-core", "dep:nieuw-os-xhci"]
+native-xhci-probe = ["milestone-m2", "if0-device-window", "dep:pci-core", "dep:driver-core", "dep:nieuw-os-xhci"]
+# H03-T3a: kernel-only virtio-snd PCM output fixture (QEMU virtio-sound-pci at
+# 00:08.0, IF0, polling). No syscall, ring-3 path or capability.
+native-virtio-snd-probe = ["milestone-m2", "if0-device-window", "dep:pci-core", "dep:nieuw-os-virtio-snd"]
+test-snd-fence-reinit = ["native-virtio-snd-probe"]
+test-snd-quarantine = ["native-virtio-snd-probe"]
 native-usb-hid-probe = ["native-xhci-probe", "dep:nieuw-os-usb-core"]
+native-usb-hid-reattach = ["native-usb-hid-probe"]
 test-usb-hid-readonly-fault = ["native-usb-hid-probe"]
 test-xhci-dma-fault = ["native-xhci-probe"]
 test-xhci-no-dmar = ["native-xhci-probe"]
@@ -20,6 +30,15 @@ native-rtc = ["milestone-m2", "dep:nieuw-os-rtc"]
 # H05 step: IF0 M2 profile that ends in a validated ACPI S5 poweroff.
 native-acpi-s5 = ["milestone-m2", "dep:nieuw-os-acpi-power"]
 test-acpi-s5-corrupt-dsdt = ["native-acpi-s5"]
+# Internal: the shared S3 wake path; selected only through the profiles below.
+acpi-s3-core = ["dep:nieuw-os-acpi-power"]
+# H05 step: IF0 M2 profile that suspends to RAM (ACPI S3) and resumes through
+# its own real-mode wake page, three validated cycles, then the normal exit.
+native-acpi-s3 = ["milestone-m2", "acpi-s3-core"]
+test-acpi-s3-corrupt-facs = ["native-acpi-s3"]
+test-acpi-s3-stale-token = ["native-acpi-s3"]
+test-acpi-s3-unarmed-wake = ["native-acpi-s3"]
+test-acpi-s3-facs-end = ["native-acpi-s3"]
 # K06 step 1: opt-in AP bring-up profile. APs run a bounded sync self-test and
 # park; no scheduler, allocator, paging or IPC state is shared with them.
 native-smp = ["milestone-m2"]
@@ -101,6 +120,8 @@ native-system-materiaal-probe = ["native-system-materiaal"]
 test-system-materiaal-recover = ["native-system-materiaal-probe", "test-system-recover"]
 test-system-materiaal-scale200 = ["native-system-materiaal-probe"]
 graphics-g0 = ["framebuffer", "dep:ui-core"]
+# H03 IF0 Bochs DISPI mode-set fixture on the 1280x720 desktop-mode GOP framebuffer.
+native-dispi-probe = ["graphics-g0", "dep:pci-core"]
 test-m2-ro = ["milestone-m2"]
 test-m2-nx = ["milestone-m2"]
 test-m2-absent = ["milestone-m2"]
@@ -167,11 +188,23 @@ test-system-recover = ["native-system"]
 native-system-power = ["native-system", "dep:nieuw-os-acpi-power"]
 test-system-power-flush-error = ["native-system-power"]
 test-system-power-flush-timeout = ["native-system-power"]
+# H05-T4 (ADR-H05-S3-SYSTEM-20261123): test-only SUSPEND 0x91 behind POWER and the storage gate.
+test-system-s3 = ["native-system-power", "acpi-s3-core"]
+test-system-s3-reinit = ["test-system-s3"]
+# H05 review R1: the volume broker keeps init's SHUTDOWN flush unconsumed;
+# SUSPEND must refuse it (-8), then one labelled gate-defect injection sleeps
+# anyway so that only the post-wake latch keeps the teardown reset off the device.
+test-system-s3-held-completion = ["test-system-s3"]
 native-system-nas-probe = ["native-system", "monotonic-clock", "ipc-wait"]
 test-system-nas-recover = ["native-system-nas-probe", "test-system-recover"]
 # Real NIC integration; the base joint profile never probes or maps a NIC.
 native-system-net = ["native-system", "dep:virtio-net-driver"]
 test-system-net-recover = ["native-system-net", "test-system-recover"]
+# H04-T3 test profile: read-only link query 0x74, per-tick link polling and
+# fail-closed -23 refusal of TX/RX while down; QMP set_link in the runner.
+test-system-net-link = ["native-system-net"]
+# H04-T3: handshaked toggles exhaust the transition budget and latch a reset.
+test-system-net-link-storm = ["test-system-net-link"]
 # Bounded native TCP fixture; protocol processing stays in the ring-3 app.
 native-system-tcp = ["native-system-net", "monotonic-clock", "fpu-context"]
 # Reusable ring-3 network service and two IPC-only clients; separate manifest.
@@ -339,6 +372,7 @@ nieuw-os-xhci = { package = "nieuw-os-xhci-probe", path = "../drivers/xhci", opt
 nieuw-os-tpm-crb = { path = "../drivers/tpm-crb", optional = true }
 nieuw-os-rtc = { path = "../drivers/rtc", optional = true }
 nieuw-os-acpi-power = { path = "../drivers/acpi-power", optional = true }
+nieuw-os-virtio-snd = { path = "../drivers/virtio-snd", optional = true }
 nieuw-os-display-client = { path = "../sdk/display-client", default-features = false, optional = true }
 nieuw-os-ps2 = { path = "../drivers/ps2", optional = true }
 boot-protocol = { path = "../crates/boot-protocol" }

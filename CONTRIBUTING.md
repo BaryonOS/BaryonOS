@@ -10,7 +10,7 @@ Preserve technical identifiers, commands, file paths, test fixtures, literal UI 
 
 ## Choose the right place first
 
-Use [Discussions](https://github.com/simonvanieperen/BaryonOS/discussions) for questions, design trade-offs, and user-experience proposals. Use [Issues](https://github.com/simonvanieperen/BaryonOS/issues/new/choose) for reproducible defects, CI/test problems, documentation corrections, and bounded implementation tasks.
+Use [Discussions](https://github.com/BaryonOS/BaryonOS/discussions) for questions, design trade-offs, and user-experience proposals. Use [Issues](https://github.com/BaryonOS/BaryonOS/issues/new/choose) for reproducible defects, CI/test problems, documentation corrections, and bounded implementation tasks.
 
 The [community guide](docs/COMMUNITY.md) explains which channel fits each type of contribution. Search for existing work before opening a new issue or proposal. An ordinary submission does not start an agent pipeline; a maintainer reviews an actionable task before assigning a pipeline label.
 

@@ -11,6 +11,8 @@ use virtio_rng_driver::{Device, Discovery, RngPool, MAX_REQUEST};
 
 /// Broker deadline for one device answer, in 100 Hz ticks.
 const TIMEOUT: u64 = 64;
+/// A caller must consume a completed answer within the same bounded interval.
+const COMPLETED_LEASE: u64 = TIMEOUT;
 const RESET_TIMEOUT: u64 = 10;
 /// Whole-run budget in ticks; the host also bounds wall time.
 const RUN_TICKS: u64 = 6000;
@@ -31,16 +33,41 @@ const APP_WORDS: [u64; 17] = [
     40, 240, 400, 408, 416, 424, 432, 440, 448, 456, 464, 472, 480, 488, 496, 504, 528,
 ];
 
+#[derive(Clone, Copy, PartialEq, Eq)]
+struct EntropyBinding {
+    pid: u64,
+    /// Opaque capability handle; its high word is the capability generation.
+    handle: u64,
+    /// Entropy object index and generation returned by capability-core.
+    object_key: u64,
+}
+
+#[derive(Clone, Copy)]
+struct Pending {
+    binding: EntropyBinding,
+    ticket: u64,
+    requested: u32,
+    deadline: u64,
+}
+
+#[derive(Clone, Copy)]
+struct Completed {
+    binding: EntropyBinding,
+    ticket: u64,
+    result: Result<u32, i64>,
+    deadline: u64,
+}
+
 struct Runtime {
     info: Option<Discovery>,
     mapped: [u64; 6],
     device: Option<Device>,
     pool: RngPool,
     offline: i64,
-    /// One outstanding request: (pid, ticket, requested length, deadline tick).
-    pending: Option<(u64, u64, u32, u64)>,
-    /// A completed or failed request waiting for its poll: (pid, ticket, result).
-    completed: Option<(u64, u64, Result<u32, i64>)>,
+    /// One outstanding device request, bound to its exact capability and object.
+    pending: Option<Pending>,
+    /// One completed result with a bounded owner-consumption lease.
+    completed: Option<Completed>,
     bytes: [u8; 256],
     next_ticket: u64,
     requests: u64,
@@ -57,6 +84,11 @@ struct Runtime {
     restart_stage: u8,
     restart_deadline: u64,
     restarted_bytes: u64,
+    /// Completed results reclaimed because their consumption lease expired.
+    lease_reclaims: u64,
+    lease_stage: u8,
+    lease_deadline: u64,
+    lease_ticket: u64,
     app_exited: bool,
     app_code: u64,
     app: [u64; 17],
@@ -92,6 +124,10 @@ static mut RUNTIME: Runtime = Runtime {
     restart_stage: 0,
     restart_deadline: 0,
     restarted_bytes: 0,
+    lease_reclaims: 0,
+    lease_stage: 0,
+    lease_deadline: 0,
+    lease_ticket: 0,
     app_exited: false,
     app_code: 0,
     app: [0; 17],
@@ -102,6 +138,103 @@ static mut RUNTIME: Runtime = Runtime {
 fn runtime() -> &'static mut Runtime {
     // SAFETY: KERNEL held, IF=0; each borrow ends before scheduling or cleanup.
     unsafe { &mut *ptr::addr_of_mut!(RUNTIME) }
+}
+
+fn entropy_binding(pid: u64, handle: u64) -> Result<EntropyBinding, i64> {
+    let authority = m4::engine()
+        .authorize_entropy(pid, handle)
+        .map_err(|error| error.code())?;
+    Ok(EntropyBinding {
+        pid,
+        handle,
+        object_key: authority.object_key(),
+    })
+}
+
+fn binding_is_live(binding: EntropyBinding) -> bool {
+    m4::engine()
+        .authorize_entropy(binding.pid, binding.handle)
+        .is_ok_and(|authority| authority.object_key() == binding.object_key)
+}
+
+fn reclaim_completed(now: u64) {
+    let Some(completed) = runtime().completed else {
+        return;
+    };
+    let expired = now >= completed.deadline;
+    if expired || !binding_is_live(completed.binding) {
+        let r = runtime();
+        r.completed = None;
+        r.bytes = [0; 256];
+        r.lease_reclaims += u64::from(expired);
+    }
+}
+
+/// H05 evidence (review R3): one count per broker access to the virtio-rng
+/// device (request submission, used-ring poll, reset, reset acknowledgement
+/// read and every re-init step), counted at the call itself and
+/// independently of the post-wake latch. `ACCOUNTED` (test-system-s3-reinit
+/// only) holds the subset made by the validated re-init path: the re-init
+/// stages themselves and broker paths once the re-init lifted the latch.
+#[cfg(feature = "test-system-s3")]
+static DEVICE_ACCESSES: core::sync::atomic::AtomicU64 = core::sync::atomic::AtomicU64::new(0);
+#[cfg(feature = "test-system-s3-reinit")]
+static ACCOUNTED: core::sync::atomic::AtomicU64 = core::sync::atomic::AtomicU64::new(0);
+fn device_access() {
+    #[cfg(feature = "test-system-s3")]
+    DEVICE_ACCESSES.fetch_add(1, core::sync::atomic::Ordering::Relaxed);
+    #[cfg(feature = "test-system-s3-reinit")]
+    if reinitialised() {
+        ACCOUNTED.fetch_add(1, core::sync::atomic::Ordering::Relaxed);
+    }
+}
+/// A device access of the re-init stages (`reinit_poll`, `reinit_fail`).
+#[cfg(feature = "test-system-s3-reinit")]
+fn reinit_access() {
+    DEVICE_ACCESSES.fetch_add(1, core::sync::atomic::Ordering::Relaxed);
+    ACCOUNTED.fetch_add(1, core::sync::atomic::Ordering::Relaxed);
+}
+/// (every device access, the accounted re-init subset).
+#[cfg(feature = "test-system-s3")]
+pub(super) fn device_accesses() -> (u64, u64) {
+    #[cfg(feature = "test-system-s3-reinit")]
+    let accounted = ACCOUNTED.load(core::sync::atomic::Ordering::Relaxed);
+    #[cfg(not(feature = "test-system-s3-reinit"))]
+    let accounted = 0;
+    (
+        DEVICE_ACCESSES.load(core::sync::atomic::Ordering::Relaxed),
+        accounted,
+    )
+}
+/// Review R1 post-wake latch: after a validated S3 wake the platform reset
+/// virtio-rng, so no broker path may touch it until (test-system-s3-reinit
+/// only) the validated re-init lifted the latch. Without S3 never latched.
+fn device_lost() -> bool {
+    #[cfg(feature = "test-system-s3")]
+    let lost = super::system::resumed() && !reinitialised();
+    #[cfg(not(feature = "test-system-s3"))]
+    let lost = false;
+    lost
+}
+
+fn quarantine_pending() {
+    let r = runtime();
+    // Dropping broker state while DMA remains live could let another holder
+    // reuse its pages. Stop the device and retain the existing quarantine.
+    // Review R1: after the wake (latch) only the quarantine below remains.
+    let touch = !device_lost();
+    #[cfg(feature = "test-system-s3")]
+    if !touch {
+        super::system::device_access_suppressed();
+    }
+    if let Some(device) = r.device.as_mut().filter(|_| touch) {
+        device_access();
+        device.begin_reset();
+    }
+    r.offline = -14;
+    r.quarantined = true;
+    r.pending = None;
+    r.bytes = [0; 256];
 }
 
 fn case() -> u64 {
@@ -365,10 +498,15 @@ pub fn manifest(s: &mut State) {
 }
 
 pub fn syscall(s: &mut State, slot: usize, n: u64, a: [u64; 6]) -> (i64, u64) {
-    match call(s, slot, n, a) {
+    let result = match call(s, slot, n, a) {
         Ok(value) => (0, value),
         Err(code) => (code, 0),
+    };
+    #[cfg(feature = "test-system-s3")]
+    if n == 0x60 {
+        super::system::after_wake(slot, n, result.0);
     }
+    result
 }
 
 fn call(s: &mut State, slot: usize, n: u64, a: [u64; 6]) -> Result<u64, i64> {
@@ -378,13 +516,23 @@ fn call(s: &mut State, slot: usize, n: u64, a: [u64; 6]) -> Result<u64, i64> {
             if a[2..].iter().any(|x| *x != 0) {
                 return Err(-1);
             }
-            if let Err(error) = m4::engine().check_entropy(pid, a[0]) {
-                runtime().denied += 1;
-                return Err(error.code());
+            // ADR-H05-S3-SYSTEM-20261123: the wake reset the device. Refused
+            // before authority, ring or counter: no binding, no `denied` count.
+            // H05-T5b: test-system-s3-reinit lifts this only after re-init.
+            if device_lost() {
+                return Err(-14);
             }
+            let binding = match entropy_binding(pid, a[0]) {
+                Ok(binding) => binding,
+                Err(error) => {
+                    runtime().denied += 1;
+                    return Err(error);
+                }
+            };
             if a[1] == 0 || a[1] > u64::from(MAX_REQUEST) {
                 return Err(-11);
             }
+            reclaim_completed(s.ticks);
             let r = runtime();
             r.requests += 1;
             if r.offline != 0 {
@@ -396,34 +544,48 @@ fn call(s: &mut State, slot: usize, n: u64, a: [u64; 6]) -> Result<u64, i64> {
                 return Err(-8);
             }
             let device = r.device.as_mut().ok_or(-14)?;
+            // Counted whether the request is accepted, fails or stays pending.
+            device_access();
             device.request(a[1] as u32).map_err(|_| -8)?;
             let ticket = r.next_ticket;
             r.next_ticket += 1;
-            r.pending = Some((pid, ticket, a[1] as u32, s.ticks + TIMEOUT));
+            r.pending = Some(Pending {
+                binding,
+                ticket,
+                requested: a[1] as u32,
+                deadline: s.ticks + TIMEOUT,
+            });
             Ok(ticket)
         }
         0x61 => {
             if a[4..].iter().any(|x| *x != 0) {
                 return Err(-1);
             }
-            if let Err(error) = m4::engine().check_entropy(pid, a[0]) {
-                runtime().denied += 1;
-                return Err(error.code());
-            }
+            let binding = match entropy_binding(pid, a[0]) {
+                Ok(binding) => binding,
+                Err(error) => {
+                    runtime().denied += 1;
+                    return Err(error);
+                }
+            };
+            reclaim_completed(s.ticks);
             let r = runtime();
-            let Some((owner, ticket, result)) = r.completed else {
+            let Some(completed) = r.completed else {
                 return match r.pending {
-                    Some((owner, ticket, _, _)) if owner == pid && ticket == a[1] => Err(-8),
+                    Some(pending) if pending.binding == binding && pending.ticket == a[1] => {
+                        Err(-8)
+                    }
                     _ => Err(-1),
                 };
             };
-            if owner != pid || ticket != a[1] {
+            if completed.binding != binding || completed.ticket != a[1] {
                 return Err(-1);
             }
-            let length = match result {
+            let length = match completed.result {
                 Ok(length) => length,
                 Err(code) => {
                     r.completed = None;
+                    r.bytes = [0; 256];
                     return Err(code);
                 }
             };
@@ -445,8 +607,18 @@ fn call(s: &mut State, slot: usize, n: u64, a: [u64; 6]) -> Result<u64, i64> {
 }
 
 fn advance(s: &State) {
-    let r = runtime();
-    if r.resetting {
+    reclaim_completed(s.ticks);
+    // Review R1: no reset acknowledgement read or used-ring poll after the S3
+    // wake until a validated re-init. Nothing can be active here: the storage
+    // gate admitted only an idle broker and every 0x60 since returned -14.
+    if device_lost() {
+        return;
+    }
+    if runtime().resetting {
+        let r = runtime();
+        if r.device.is_some() {
+            device_access();
+        }
         if r.device.as_ref().is_some_and(Device::reset_acknowledged) {
             r.resetting = false;
             r.reset_acks += 1;
@@ -458,23 +630,39 @@ fn advance(s: &State) {
         }
         return;
     }
-    let Some((pid, ticket, requested, deadline)) = r.pending else {
+    let Some(pending) = runtime().pending else {
         return;
     };
+    if !binding_is_live(pending.binding) {
+        quarantine_pending();
+        return;
+    }
+    let r = runtime();
     let Some(device) = r.device.as_mut() else {
         r.pending = None;
-        r.completed = Some((pid, ticket, Err(-14)));
+        r.completed = Some(Completed {
+            binding: pending.binding,
+            ticket: pending.ticket,
+            result: Err(-14),
+            deadline: s.ticks + COMPLETED_LEASE,
+        });
         return;
     };
     let mut buffer = [0u8; 256];
+    device_access();
     match device.poll(&mut buffer) {
         Ok(Some(length)) => {
-            if length != requested {
+            if length != pending.requested {
                 // The device answered short: that is an I/O error, never
                 // padded or retried on the caller's behalf.
                 r.io_errors += 1;
                 r.pending = None;
-                r.completed = Some((pid, ticket, Err(-12)));
+                r.completed = Some(Completed {
+                    binding: pending.binding,
+                    ticket: pending.ticket,
+                    result: Err(-12),
+                    deadline: s.ticks + COMPLETED_LEASE,
+                });
                 return;
             }
             if case() == STUCK {
@@ -483,14 +671,25 @@ fn advance(s: &State) {
             }
             r.bytes = buffer;
             r.pending = None;
-            r.completed = Some((pid, ticket, Ok(length)));
+            r.completed = Some(Completed {
+                binding: pending.binding,
+                ticket: pending.ticket,
+                result: Ok(length),
+                deadline: s.ticks + COMPLETED_LEASE,
+            });
         }
         Ok(None) => {
-            if s.ticks >= deadline {
+            if s.ticks >= pending.deadline {
                 r.timeouts += 1;
                 r.pending = None;
-                r.completed = Some((pid, ticket, Err(-13)));
+                r.completed = Some(Completed {
+                    binding: pending.binding,
+                    ticket: pending.ticket,
+                    result: Err(-13),
+                    deadline: s.ticks + COMPLETED_LEASE,
+                });
                 r.bytes = [0; 256];
+                device_access();
                 device.begin_reset();
                 r.offline = -13;
                 r.resetting = true;
@@ -500,26 +699,31 @@ fn advance(s: &State) {
         Err(_) => {
             r.io_errors += 1;
             r.pending = None;
-            r.completed = Some((pid, ticket, Err(-12)));
+            r.completed = Some(Completed {
+                binding: pending.binding,
+                ticket: pending.ticket,
+                result: Err(-12),
+                deadline: s.ticks + COMPLETED_LEASE,
+            });
         }
     }
 }
 
 pub fn detach(pid: u64) {
-    let r = runtime();
-    if r.pending.is_some_and(|(owner, _, _, _)| owner == pid) {
+    if runtime()
+        .pending
+        .is_some_and(|request| request.binding.pid == pid)
+    {
         // Dropping the broker ticket alone leaves the driver's DMA request
         // outstanding forever. Fail closed and stop the device; the pinned
         // pages are quarantined until reboot, never reused by another owner.
-        if let Some(device) = r.device.as_mut() {
-            device.begin_reset();
-        }
-        r.offline = -14;
-        r.quarantined = true;
-        r.pending = None;
-        r.bytes = [0; 256];
+        quarantine_pending();
     }
-    if r.completed.is_some_and(|(owner, _, _)| owner == pid) {
+    if runtime()
+        .completed
+        .is_some_and(|request| request.binding.pid == pid)
+    {
+        let r = runtime();
         r.completed = None;
         r.bytes = [0; 256];
     }
@@ -616,6 +820,9 @@ pub fn poll(s: &mut State) -> Option<*const u64> {
     if case() == RESTART && !restart_fixture(s) {
         return None;
     }
+    if case() == NORMAL && !lease_fixture(s) {
+        return None;
+    }
     finish(s)
 }
 
@@ -692,6 +899,123 @@ fn restart_fixture(s: &State) -> bool {
         }
     }
     true
+}
+
+fn entropy_handle(s: &State, slot: usize) -> u64 {
+    word(s, slot, 48)
+}
+
+/// Labelled native fixture (normal case only), driven by the real syscall
+/// handler and real timer ticks after the services went idle. Service A
+/// abandons a completed answer; service B is refused with EAGAIN while the
+/// lease runs and admitted once the kernel reclaimed and wiped the answer.
+fn lease_fixture(s: &mut State) -> bool {
+    let (a, b) = (entropy_handle(s, 0), entropy_handle(s, 1));
+    match runtime().lease_stage {
+        0 => {
+            let r = runtime();
+            require(
+                r.completed.is_none() && r.offline == 0 && !r.resetting,
+                b"LEASE_BROKER_BUSY",
+            );
+            let ticket =
+                call(s, 0, 0x60, [a, 256, 0, 0, 0, 0]).unwrap_or_else(|_| fail(b"LEASE_REQUEST"));
+            let r = runtime();
+            r.lease_ticket = ticket;
+            r.lease_deadline = s.ticks + TIMEOUT;
+            r.lease_stage = 1;
+            false
+        }
+        1 | 3 => {
+            let r = runtime();
+            let Some(completed) = r.completed else {
+                require(s.ticks < r.lease_deadline, b"LEASE_NO_ANSWER");
+                return false;
+            };
+            require(
+                completed.ticket == r.lease_ticket
+                    && completed.result == Ok(256)
+                    && r.bytes.iter().any(|byte| *byte != 0),
+                b"LEASE_ANSWER",
+            );
+            // poll() returns before this fixture while a request is pending, so
+            // advance() created the answer on this tick: pin the documented 64.
+            require(completed.deadline == s.ticks + 64, b"LEASE_LENGTH");
+            r.lease_deadline = completed.deadline;
+            if r.lease_stage == 1 {
+                // The abandoned answer blocks the peer only while leased.
+                require(
+                    call(s, 1, 0x60, [b, 256, 0, 0, 0, 0]) == Err(-8),
+                    b"LEASE_PEER_NOT_BUSY",
+                );
+            }
+            runtime().lease_stage += 1;
+            false
+        }
+        stage => {
+            let r = runtime();
+            if s.ticks < r.lease_deadline {
+                require(r.completed.is_some(), b"LEASE_EARLY_RECLAIM");
+                return false;
+            }
+            // poll() ran advance() for this tick: the lease has expired.
+            require(
+                r.completed.is_none() && r.bytes.iter().all(|byte| *byte == 0),
+                b"LEASE_NOT_RECLAIMED",
+            );
+            if stage == 4 {
+                return true;
+            }
+            let ticket = r.lease_ticket;
+            require(
+                call(s, 0, 0x61, [a, ticket, 0, 256, 0, 0]) == Err(-1),
+                b"LEASE_STALE_TICKET",
+            );
+            let ticket = call(s, 1, 0x60, [b, 256, 0, 0, 0, 0])
+                .unwrap_or_else(|_| fail(b"LEASE_PEER_BLOCKED"));
+            let r = runtime();
+            r.lease_ticket = ticket;
+            r.lease_deadline = s.ticks + TIMEOUT;
+            r.lease_stage = 3;
+            false
+        }
+    }
+}
+
+/// Labelled native fixture (normal case only): a holder that closes its
+/// entropy handle while its DMA request is pending stops the device. The
+/// peer then sees Offline (-14) until reboot; see B01-ENTROPY-AND-KEYS.md.
+fn authority_loss_fixture(s: &mut State) {
+    let r = runtime();
+    require(
+        r.pending.is_none() && r.completed.is_none() && r.offline == 0 && !r.quarantined,
+        b"QUARANTINE_BROKER_BUSY",
+    );
+    let (pid, a, b) = (
+        s.processes[0].pid,
+        entropy_handle(s, 0),
+        entropy_handle(s, 1),
+    );
+    call(s, 0, 0x60, [a, 256, 0, 0, 0, 0]).unwrap_or_else(|_| fail(b"QUARANTINE_REQUEST"));
+    require(runtime().pending.is_some(), b"QUARANTINE_NOT_PENDING");
+    if m4::engine().close(pid, a).is_err() {
+        fail(b"QUARANTINE_CLOSE");
+    }
+    advance(s);
+    let r = runtime();
+    require(
+        r.quarantined
+            && r.offline == -14
+            && r.pending.is_none()
+            && r.completed.is_none()
+            && r.bytes.iter().all(|byte| *byte == 0),
+        b"AUTHORITY_NOT_QUARANTINED",
+    );
+    require(
+        call(s, 1, 0x60, [b, 256, 0, 0, 0, 0]) == Err(-14),
+        b"QUARANTINE_PEER",
+    );
+    print_number(b"KEYRING:AUTHORITY_QUARANTINE:", 1);
 }
 
 fn finish(s: &mut State) -> ! {
@@ -874,6 +1198,7 @@ fn finish(s: &mut State) -> ! {
         (b"KEYRING:RESET_ACKS:", r.reset_acks),
         (b"KEYRING:QUARANTINED:", u64::from(r.quarantined)),
         (b"KEYRING:RESTARTED_BYTES:", r.restarted_bytes),
+        (b"KEYRING:LEASE_RECLAIMS:", r.lease_reclaims),
         (b"KEYRING:SERVICE_A_STATE:", services[0][0]),
         (b"KEYRING:SERVICE_B_STATE:", services[1][0]),
         (b"KEYRING:SERVICE_A_REASON:", services[0][1]),
@@ -903,6 +1228,10 @@ fn finish(s: &mut State) -> ! {
     ] {
         print_number(label, value);
     }
+    if case() == NORMAL {
+        authority_loss_fixture(s);
+    }
+    let r = runtime();
     serial::write(marker());
     // Resource accounting: release both live services, then require the exact
     // frame baseline and an empty engine. The DMA pool stays kernel-owned.
@@ -958,4 +1287,244 @@ pub(super) fn broker_summary() -> (u64, u64, bool) {
         r.denied,
         r.offline == 0 && r.pending.is_none() && r.completed.is_none() && !r.resetting,
     )
+}
+
+/// test-system-s3 alone never re-initialises: the device stays lost.
+#[cfg(all(feature = "test-system-s3", not(feature = "test-system-s3-reinit")))]
+fn reinitialised() -> bool {
+    false
+}
+
+/// H05-T5b (test-system-s3-reinit): virtio-rng re-initialisation after a
+/// validated wake, driven from `system::poll` with tick deadlines. Stages:
+/// 0 rediscover + reset, 1 ack + ownership + initialize + self-test request,
+/// 2 self-test answer, 3 one Key Service request through the real handler,
+/// 4 its delivery, 5 done. Any failure stops the VM (fail closed).
+#[cfg(feature = "test-system-s3-reinit")]
+struct Reinit {
+    stage: u8,
+    deadline: u64,
+    bars: Option<virtio_rng_driver::BarState>,
+    /// Every pre-sleep ticket is below this; post-wake tickets start here.
+    ticket_floor: u64,
+    delivered_before: u64,
+    delivered_after: u64,
+    stale: i64,
+}
+#[cfg(feature = "test-system-s3-reinit")]
+static mut REINIT: Reinit = Reinit {
+    stage: 0,
+    deadline: 0,
+    bars: None,
+    ticket_floor: 0,
+    delivered_before: 0,
+    delivered_after: 0,
+    stale: 0,
+};
+#[cfg(feature = "test-system-s3-reinit")]
+fn reinit_state() -> &'static mut Reinit {
+    // SAFETY: KERNEL held, IF=0; each borrow ends before scheduling.
+    unsafe { &mut *ptr::addr_of_mut!(REINIT) }
+}
+#[cfg(feature = "test-system-s3-reinit")]
+const REINIT_SERVING: u8 = 3;
+#[cfg(feature = "test-system-s3-reinit")]
+const REINIT_DONE: u8 = 5;
+/// Last 32 bytes of the Key Service's initial heap, which its binary never
+/// uses: the delivery target of the post-wake request, wiped after the check.
+#[cfg(feature = "test-system-s3-reinit")]
+const DELIVERY: u64 = HEAP + 65536 - 32;
+
+#[cfg(feature = "test-system-s3-reinit")]
+fn reinitialised() -> bool {
+    reinit_state().stage >= REINIT_SERVING
+}
+/// Re-init and the served post-wake request completed.
+#[cfg(feature = "test-system-s3-reinit")]
+pub(super) fn reinit_done() -> bool {
+    reinit_state().stage == REINIT_DONE
+}
+/// (bytes delivered after re-init, stale-ticket result) once done.
+#[cfg(feature = "test-system-s3-reinit")]
+pub(super) fn reinit_evidence() -> Option<(u64, i64)> {
+    let p = reinit_state();
+    (p.stage == REINIT_DONE).then(|| (p.delivered_after - p.delivered_before, p.stale))
+}
+#[cfg(feature = "test-system-s3-reinit")]
+fn reinit_fail(reason: &[u8]) -> ! {
+    // Stop the device first; the VM exits next, so no page is ever reused.
+    // Only after `rediscover` validated the BARs does the pre-sleep register
+    // mapping name this device; before that no MMIO is issued at all.
+    let validated = reinit_state().bars.is_some();
+    let r = runtime();
+    if let Some(device) = r.device.as_mut().filter(|_| validated) {
+        reinit_access();
+        device.begin_reset();
+    }
+    r.offline = -14;
+    serial::write(b"KEYRING:S3:REINIT:FAIL:");
+    serial::write(reason);
+    serial::write(b"\nSYSTEM:FAIL:S3_REINIT\n");
+    serial::exit(0x11)
+}
+#[cfg(feature = "test-system-s3-reinit")]
+fn reinit_require(condition: bool, reason: &[u8]) {
+    if !condition {
+        reinit_fail(reason);
+    }
+}
+
+/// One step per poll after a validated wake (`system` calls this only then).
+/// `key` is the Key Service slot; `handle` its own Entropy capability.
+#[cfg(feature = "test-system-s3-reinit")]
+pub(super) fn reinit_poll(s: &mut State, key: usize, handle: u64) {
+    let p = reinit_state();
+    match p.stage {
+        0 => {
+            let r = runtime();
+            // The storage gate admitted the suspend only with an idle broker.
+            reinit_require(
+                r.pending.is_none()
+                    && r.completed.is_none()
+                    && !r.resetting
+                    && !r.quarantined
+                    && r.offline == 0,
+                b"BROKER_BUSY",
+            );
+            let info = r.info.unwrap_or_else(|| reinit_fail(b"NO_DISCOVERY"));
+            reinit_require(
+                r.device.as_ref().is_some_and(|device| !device.pending()),
+                b"DEVICE_BUSY",
+            );
+            // At least one pre-sleep ticket exists (the services' startup seeds).
+            reinit_require(r.next_ticket > 1, b"NO_PRESLEEP_TICKET");
+            r.offline = -14;
+            p.ticket_floor = r.next_ticket;
+            reinit_access();
+            p.bars = Some(
+                virtio_rng_driver::rediscover(&info).unwrap_or_else(|_| reinit_fail(b"REDISCOVER")),
+            );
+            reinit_access();
+            r.device.as_mut().unwrap().begin_reset();
+            p.deadline = s.ticks + RESET_TIMEOUT;
+            p.stage = 1;
+        }
+        1 => {
+            let r = runtime();
+            reinit_access();
+            if !r.device.as_ref().is_some_and(Device::reset_acknowledged) {
+                reinit_require(s.ticks < p.deadline, b"RESET_ACK");
+                return;
+            }
+            for page in [r.pool.rings, r.pool.used, r.pool.bounce] {
+                reinit_require(s.frames.owner(page) == Ok(Owner::Kernel), b"POOL_OWNER");
+            }
+            // Fresh broker state; `next_ticket` is kept, so it stays monotonic.
+            r.pending = None;
+            r.completed = None;
+            r.bytes = [0; 256];
+            reinit_access();
+            // SAFETY: The mappings from `prepare` are permanent supervisor UC/NX
+            // and `rediscover` proved the BARs and regions they cover unchanged;
+            // the three pool pages are still exclusively kernel-owned and the
+            // reset was acknowledged (status 0, bus mastering off) first.
+            let device = unsafe { Device::initialize(r.info.unwrap(), r.mapped, r.pool) }
+                .unwrap_or_else(|_| reinit_fail(b"INITIALIZE"));
+            reinit_access();
+            reinit_require(
+                device.pool == r.pool && !device.pending() && device.status() == 15,
+                b"DEVICE_STATE",
+            );
+            r.device = Some(device);
+            reinit_access();
+            r.device
+                .as_mut()
+                .unwrap()
+                .request(32)
+                .unwrap_or_else(|_| reinit_fail(b"SELFTEST_REQUEST"));
+            p.deadline = s.ticks + TIMEOUT;
+            p.stage = 2;
+        }
+        2 => {
+            let r = runtime();
+            let device = r.device.as_mut().unwrap();
+            let mut bytes = [0u8; 256];
+            reinit_access();
+            match device.poll(&mut bytes) {
+                Ok(Some(32)) => {}
+                Ok(None) if s.ticks < p.deadline => return,
+                _ => reinit_fail(b"SELFTEST"),
+            }
+            // Self-test bytes are discarded: never delivered, never counted.
+            bytes.fill(0);
+            reinit_access();
+            let status = device.status();
+            reinit_require(status == 15 && !device.pending(), b"SELFTEST_STATE");
+            let bars: &[u8] = match p.bars {
+                Some(virtio_rng_driver::BarState::Kept) => b"KEPT",
+                Some(virtio_rng_driver::BarState::Restored) => b"RESTORED",
+                None => reinit_fail(b"NO_BAR_STATE"),
+            };
+            serial::write(b"KEYRING:S3:REINIT:BARS=");
+            serial::write(bars);
+            serial::write(b":STATUS=");
+            serial::write(&[b'0' + status / 10, b'0' + status % 10]);
+            serial::write(b":SELFTEST=32\n");
+            r.offline = 0;
+            p.delivered_before = r.delivered_bytes;
+            p.stage = REINIT_SERVING;
+        }
+        3 => {
+            // Served normally: the Key Service's own capability through the
+            // real 0x60 handler (labelled kernel-driven fixture, as B01's lease
+            // fixture). The first post-wake ticket continues the sequence.
+            // `call` re-enters `reinitialised`, which borrows REINIT again:
+            // no borrow of it is live across the call.
+            let floor = p.ticket_floor;
+            let ticket = call(s, key, 0x60, [handle, 32, 0, 0, 0, 0])
+                .unwrap_or_else(|_| reinit_fail(b"SERVED_REQUEST"));
+            reinit_require(ticket == floor, b"TICKET_ORDER");
+            let p = reinit_state();
+            p.deadline = s.ticks + TIMEOUT;
+            p.stage = 4;
+        }
+        4 => {
+            let Some(completed) = runtime().completed else {
+                reinit_require(s.ticks < p.deadline, b"SERVED_TIMEOUT");
+                return;
+            };
+            reinit_require(completed.result == Ok(32), b"SERVED_RESULT");
+            // As in stage 3, no REINIT borrow is live across `call`.
+            let floor = p.ticket_floor;
+            // A pre-sleep ticket can never redeem the post-wake answer.
+            let stale = call(s, key, 0x61, [handle, floor - 1, DELIVERY, 32, 0, 0])
+                .err()
+                .unwrap_or(0);
+            reinit_require(stale == -1, b"STALE_TICKET");
+            reinit_require(
+                call(s, key, 0x61, [handle, floor, DELIVERY, 32, 0, 0]) == Ok(32),
+                b"DELIVERY",
+            );
+            let mut any = 0;
+            for offset in (0..32).step_by(8) {
+                let at = s.processes[key].physical(DELIVERY + offset);
+                any |= read_word(at);
+                write_word(at, 0);
+            }
+            let r = runtime();
+            reinit_require(
+                any != 0 && r.completed.is_none() && r.pending.is_none(),
+                b"DELIVERED_BYTES",
+            );
+            let p = reinit_state();
+            p.stale = stale;
+            p.delivered_after = r.delivered_bytes;
+            reinit_require(
+                p.delivered_after - p.delivered_before == 32,
+                b"DELIVERED_COUNT",
+            );
+            p.stage = REINIT_DONE;
+        }
+        _ => {}
+    }
 }

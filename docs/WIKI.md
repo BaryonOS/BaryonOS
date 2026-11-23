@@ -1,7 +1,7 @@
 # English GitHub Wiki source
 
 The Markdown pages in `docs/wiki/` are the reviewable English source for the
-GitHub Wiki requested in [issue #277](https://github.com/simonvanieperen/BaryonOS/issues/277).
+GitHub Wiki requested in [issue #277](https://github.com/BaryonOS/BaryonOS/issues/277).
 They explain concepts and link to canonical repository contracts; they do not
 maintain a second roadmap, status log, or acceptance register.
 

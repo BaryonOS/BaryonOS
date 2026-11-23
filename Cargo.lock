@@ -459,6 +459,10 @@ name = "nieuw-os-usb-core"
 version = "0.1.0"
 
 [[package]]
+name = "nieuw-os-virtio-snd"
+version = "0.1.0"
+
+[[package]]
 name = "nieuw-os-xhci-probe"
 version = "0.1.0"
 dependencies = [
@@ -495,6 +499,7 @@ dependencies = [
  "nieuw-os-rtc",
  "nieuw-os-tpm-crb",
  "nieuw-os-usb-core",
+ "nieuw-os-virtio-snd",
  "nieuw-os-xhci-probe",
  "object-core",
  "pci-core",

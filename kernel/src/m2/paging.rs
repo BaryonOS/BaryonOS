@@ -25,6 +25,28 @@ const _: () = assert!(
 /// PTE address of each CPU's slot, written once by `begin_scratch` before any
 /// AP starts (published by the AP start protocol), then read-only.
 static SCRATCH_ENTRY: [AtomicU64; MAX_CPUS] = [const { AtomicU64::new(0) }; MAX_CPUS];
+/// The FACS extent (address, length) whose ACPI NVS type-10 proof S3
+/// discovery returned; `write_firmware` refuses every store outside it.
+/// Recorded once on the single BSP before the first store; 0 length = none.
+#[cfg(feature = "acpi-s3-core")]
+static FIRMWARE_WRITE_EXTENT: [AtomicU64; 2] = [const { AtomicU64::new(0) }; 2];
+
+/// Records the proven FACS extent once. Returns false (recording nothing new)
+/// for an empty extent or a second, different extent.
+#[cfg(feature = "acpi-s3-core")]
+pub(super) fn record_firmware_write_extent(address: u64, length: usize) -> bool {
+    let [start, len] = &FIRMWARE_WRITE_EXTENT;
+    match len.load(Ordering::Acquire) {
+        0 if length != 0 => {
+            start.store(address, Ordering::Relaxed);
+            len.store(length as u64, Ordering::Release);
+            true
+        }
+        recorded => {
+            recorded != 0 && recorded == length as u64 && start.load(Ordering::Relaxed) == address
+        }
+    }
+}
 static mut EXECUTABLE: [bool; FRAME_COUNT] = [false; FRAME_COUNT];
 static mut OBSERVED: [Alias; FRAME_COUNT] = [Alias {
     writable: 0,
@@ -82,7 +104,7 @@ pub struct Paging {
     framebuffer: Option<(u64, u64)>,
     #[cfg(feature = "native-smp")]
     lapic: Option<u64>,
-    #[cfg(feature = "native-xhci-probe")]
+    #[cfg(feature = "if0-device-window")]
     native_devices: [u64; 64],
 }
 /// Fixed supervisor UC/NX window for the xAPIC register page (native-smp only).
@@ -95,7 +117,7 @@ pub const SHOOTDOWN_WINDOW: u64 = 0x3f1d0000;
 impl Paging {
     /// Reserve the entire fixture MMIO page-table path before CR3 activation.
     /// Later device mappings cannot require an unmapped CPU page-table frame.
-    #[cfg(feature = "native-xhci-probe")]
+    #[cfg(feature = "if0-device-window")]
     pub(super) fn prepare_native_devices(&mut self, frames: &mut Frames<FRAME_COUNT>) {
         let mut table = self.root;
         for shift in [39, 30, 21] {
@@ -111,7 +133,7 @@ impl Paging {
     }
     /// Dedicated IF0 fixture MMIO, independent of service mappings. Every leaf
     /// has an exact physical binding for the page-table audit below.
-    #[cfg(feature = "native-xhci-probe")]
+    #[cfg(feature = "if0-device-window")]
     pub(super) fn map_native_device(
         &mut self,
         frames: &mut Frames<FRAME_COUNT>,
@@ -355,7 +377,7 @@ impl Paging {
         feature = "native-keyring",
         feature = "native-tpm-crb",
         feature = "native-smp",
-        feature = "native-xhci-probe"
+        feature = "if0-device-window"
     ))]
     fn map_device_page(
         &mut self,
@@ -421,7 +443,7 @@ impl Paging {
             framebuffer: None,
             #[cfg(feature = "native-smp")]
             lapic: None,
-            #[cfg(feature = "native-xhci-probe")]
+            #[cfg(feature = "if0-device-window")]
             native_devices: [0; 64],
         };
         result.tables[0] = root;
@@ -479,11 +501,76 @@ impl Paging {
         address: u64,
         output: &mut [u8],
     ) -> Result<(), kernel_core::Error> {
+        let length = output.len();
+        let destination = output.as_mut_ptr();
+        // SAFETY: The caller's contract covers the span; `destination` is the
+        // exclusive kernel slice of exactly that length.
+        unsafe {
+            self.firmware_span(address, length, false, |window, copied, chunk| {
+                ptr::copy_nonoverlapping(window as *const u8, destination.add(copied), chunk);
+            })
+        }
+    }
+
+    /// Store bytes into firmware-owned ACPI NVS through one temporary
+    /// supervisor RW/NX mapping, removed again before returning. Used only for
+    /// the FACS waking-vector fields of the validated S3 plan.
+    ///
+    /// Fails closed (`Permission`, nothing mapped or written) unless the whole
+    /// span lies inside the extent `record_firmware_write_extent` recorded.
+    ///
+    /// # Safety
+    /// `address..address + input.len()` must lie entirely inside UEFI ACPI NVS
+    /// memory that the OS is specified to update (the FACS), never MMIO,
+    /// reclaimable table memory or RAM owned by the frame allocator.
+    #[cfg(feature = "acpi-s3-core")]
+    pub(super) unsafe fn write_firmware(
+        &mut self,
+        address: u64,
+        input: &[u8],
+    ) -> Result<(), kernel_core::Error> {
+        let [start, length] = &FIRMWARE_WRITE_EXTENT;
+        // Length first: its Acquire pairs with the recorder's Release, so the
+        // start read after it is the one published with that length.
+        let extent_length = length.load(Ordering::Acquire) as usize;
+        let extent_start = start.load(Ordering::Relaxed);
+        if !nieuw_os_acpi_power::store_within_extent(
+            extent_start,
+            extent_length,
+            address,
+            input.len(),
+        ) {
+            return Err(kernel_core::Error::Permission);
+        }
+        let source = input.as_ptr();
+        // SAFETY: As above; `source` is a readable kernel slice of that length.
+        unsafe {
+            self.firmware_span(address, input.len(), true, |window, copied, chunk| {
+                ptr::copy_nonoverlapping(source.add(copied), window, chunk);
+                core::sync::atomic::fence(Ordering::SeqCst);
+            })
+        }
+    }
+
+    /// Visits `address..address+length` one physical page at a time through
+    /// the single FIRMWARE_SCRATCH leaf (supervisor, NX, writable only when
+    /// asked), calling `access(window, offset_done, chunk_len)` per page.
+    ///
+    /// # Safety
+    /// The caller validated the span against the UEFI ACPI descriptors and
+    /// `access` touches at most `chunk_len` bytes at `window`.
+    unsafe fn firmware_span(
+        &mut self,
+        address: u64,
+        length: usize,
+        writable: bool,
+        mut access: impl FnMut(*mut u8, usize, usize),
+    ) -> Result<(), kernel_core::Error> {
         let end = address
-            .checked_add(output.len() as u64)
+            .checked_add(length as u64)
             .filter(|end| *end <= (1 << 52))
             .ok_or(kernel_core::Error::Range)?;
-        if output.is_empty() {
+        if length == 0 {
             return Ok(());
         }
         // CPUID is available in long mode and the leaf is checked before
@@ -502,7 +589,7 @@ impl Paging {
                 return Err(kernel_core::Error::Range);
             }
             let offset = (current - page) as usize;
-            let length = core::cmp::min(PAGE as usize - offset, output.len() - copied);
+            let chunk = core::cmp::min(PAGE as usize - offset, length - copied);
             let mut table = self.root;
             for shift in [39, 30, 21] {
                 let index = ((FIRMWARE_SCRATCH >> shift) & 511) as usize;
@@ -519,22 +606,17 @@ impl Paging {
             if read(table, index) != 0 {
                 return Err(kernel_core::Error::Overlap);
             }
-            write(table, index, page | PRESENT | NX);
+            let rights = if writable { WRITE } else { 0 };
+            write(table, index, page | PRESENT | rights | NX);
             invalidate(FIRMWARE_SCRATCH);
-            // SAFETY: The caller validated this ACPI memory span against the UEFI
-            // map. The temporary leaf is supervisor, read-only, NX, and removed
-            // before returning; output is a valid exclusive kernel slice.
-            unsafe {
-                ptr::copy_nonoverlapping(
-                    (FIRMWARE_SCRATCH + offset as u64) as *const u8,
-                    output.as_mut_ptr().add(copied),
-                    length,
-                );
-            }
+            // The caller validated this ACPI memory span against the UEFI map.
+            // The temporary leaf is supervisor, NX, writable only for the NVS
+            // store path, and removed before returning.
+            access((FIRMWARE_SCRATCH + offset as u64) as *mut u8, copied, chunk);
             write(table, index, 0);
             invalidate(FIRMWARE_SCRATCH);
-            copied += length;
-            current += length as u64;
+            copied += chunk;
+            current += chunk as u64;
         }
         Ok(())
     }
@@ -628,7 +710,7 @@ impl Paging {
             framebuffer: kernel.framebuffer,
             #[cfg(feature = "native-smp")]
             lapic: kernel.lapic,
-            #[cfg(feature = "native-xhci-probe")]
+            #[cfg(feature = "if0-device-window")]
             native_devices: kernel.native_devices,
         };
         result.tables[0] = root;
@@ -638,7 +720,7 @@ impl Paging {
     #[cfg(any(
         feature = "milestone-m3",
         feature = "native-smp",
-        feature = "native-xhci-probe"
+        feature = "if0-device-window"
     ))]
     pub fn unmap(&mut self, frames: &mut Frames<FRAME_COUNT>, va: u64) {
         let entry = self.clear_leaf(va);
@@ -679,7 +761,7 @@ impl Paging {
     #[cfg(any(
         feature = "milestone-m3",
         feature = "native-smp",
-        feature = "native-xhci-probe"
+        feature = "if0-device-window"
     ))]
     pub(super) fn clear_leaf(&mut self, va: u64) -> u64 {
         let (table, index) = self.location(va);
@@ -698,7 +780,7 @@ impl Paging {
     #[cfg(any(
         feature = "milestone-m3",
         feature = "native-smp",
-        feature = "native-xhci-probe"
+        feature = "if0-device-window"
     ))]
     fn location(&self, va: u64) -> (u64, usize) {
         let mut table = self.root;
@@ -715,7 +797,7 @@ impl Paging {
     #[cfg(any(
         feature = "milestone-m3",
         feature = "native-smp",
-        feature = "native-xhci-probe"
+        feature = "if0-device-window"
     ))]
     pub fn begin_scratch(&mut self, frames: &mut Frames<FRAME_COUNT>) {
         let (table, index) = self.location(SCRATCH);
@@ -853,7 +935,7 @@ impl Paging {
                     // walk's own transient alias); every other slot must be empty.
                     continue;
                 }
-                #[cfg(feature = "native-xhci-probe")]
+                #[cfg(feature = "if0-device-window")]
                 if (0x3f200000..0x3f240000).contains(&va) {
                     let index = ((va - 0x3f200000) / PAGE) as usize;
                     assert_eq!(
@@ -937,7 +1019,7 @@ fn write(table: u64, index: usize, value: u64) {
 #[cfg(any(
     feature = "milestone-m3",
     feature = "native-smp",
-    feature = "native-xhci-probe"
+    feature = "if0-device-window"
 ))]
 pub(super) fn release_leaf(frames: &mut Frames<FRAME_COUNT>, entry: u64) {
     let pa = entry & ADDRESS;
@@ -1044,7 +1126,7 @@ pub fn physical<R>(pa: u64, operation: impl FnOnce(*mut u8) -> R) -> R {
         result
     }
 }
-#[cfg(any(feature = "milestone-m4", feature = "native-xhci-probe"))]
+#[cfg(any(feature = "milestone-m4", feature = "if0-device-window"))]
 pub fn physical_read<R>(pa: u64, operation: impl FnOnce(*const u8) -> R) -> R {
     assert_eq!(pa % PAGE, 0);
     assert!(pa != 0 && pa < PAGE * FRAME_COUNT as u64);
