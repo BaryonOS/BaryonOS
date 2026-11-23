@@ -10,7 +10,10 @@ space bound to the match. Block, network and RNG receive kernel-owned BAR grants
 before mapping; the existing transports retain their own I/O and DMA logic.
 A separate `drivers/xhci` crate matches the USB host-controller class and
 inspects controller registers; only the opt-in, QEMU-only `native-xhci-probe`
-and `native-usb-hid-probe` kernel profiles use it, for one fixture controller.
+and `native-usb-hid-probe` kernel profiles use it, for one fixture controller,
+together with the profiles built on the latter (`native-usb-hid-reattach`, a
+QEMU-only same-port keyboard reattach fixture, and the
+`test-usb-hid-readonly-fault` negative profile).
 No NVMe crate exists: earlier revisions of this document described an NVMe
 probe crate that is not present in the repository. A shared heterogeneous
 registry, interrupt broker and generic DMA/IOMMU resource broker are still
@@ -83,9 +86,13 @@ Code and ID Assignment Specification 1.10, §1.2, and checks the revision and
 register offsets according to the Intel xHCI Requirements Specification 1.2c,
 §§5.2–5.3. The crate itself enables no bus mastering and allocates no DMA. The
 opt-in kernel fixture in `kernel/src/m2/xhci.rs` accepts only QEMU's
-`qemu-xhci` controller (PCI `1b36:000d`) at the fixed fixture MMIO address
-`0x3f210000` and enables bus mastering only inside an established native VT-d
-domain. Physical xHCI controllers are therefore rejected; the
+`qemu-xhci` controller (PCI `1b36:000d`) at segment 0, bus 0, function 0. It
+uses the BAR0 address that PCI discovery reports (at most 64 KiB, at or above
+`0x80000000`, not overlapping the register window of the DMAR unit that native DMA would
+use, when one qualifies) and maps that BAR at the fixed
+kernel virtual address `0x3f210000`; the virtual address is a kernel mapping
+choice, not a property of the controller. The fixture enables bus mastering only
+inside an established native VT-d domain. Physical xHCI controllers are therefore rejected; the
 [hardware matrix](hardware-matrix.json) keeps xHCI pending outside the QEMU
 profile. The USB descriptor core matches interface class/subclass/protocol
 according to USB 2.0 Specification §9.6.5; within that QEMU fixture it selects

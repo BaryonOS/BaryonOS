@@ -265,6 +265,27 @@ def check_markers(case: str, stdout: str, want: dict) -> dict:
         if len(opened) != want["windows"] or opened != closed:
             raise ValueError(f"down-window {kind} counters changed: {opened} -> {closed}")
         windows.append(opened)
+    # Equal counters prove nothing about the down interval unless each window spans it: window k opens after the
+    # previous up edge and before the k-th down edge, and closes after that down edge but before the next up edge.
+    downs = [index for index, line in enumerate(lines) if line.startswith(("NETLINK:EVENT:DOWN:",
+                                                                           "NETLINK:SYNTHETIC:DOWN:"))]
+    ups = [index for index, line in enumerate(lines) if line.startswith(("NETLINK:EVENT:UP:", "NETLINK:SYNTHETIC:UP:"))]
+    for kind in ("TX", "PUBLISHED"):
+        opens = [index for index, line in enumerate(lines) if line.startswith(f"NETLINK:WINDOW_OPEN_{kind}:")]
+        closes = [index for index, line in enumerate(lines) if line.startswith(f"NETLINK:WINDOW_CLOSE_{kind}:")]
+        if not len(opens) == len(closes) == len(downs):
+            raise ValueError(f"{len(opens)} {kind} down-windows for {len(downs)} down edges")
+        previous = -1
+        for opened, down, closed in zip(opens, downs, closes):
+            up = next((index for index in ups if index > down), None)
+            if up is None or not previous < opened < down < closed < up:
+                raise ValueError(f"{kind} down-window does not bracket the down interval at line {down}")
+            # apply() prints both closes immediately before the up edge, so a close must follow every marker of
+            # its interval (QUERY:DOWN, DOWN_REFUSED, ...). An RX_DROPPED from the up-edge harvest would also land
+            # here; it is not admitted, and the exact RX_DROPPED pin rejects such a run anyway.
+            if not all(line.startswith("NETLINK:WINDOW_CLOSE_") for line in lines[closed + 1:up]):
+                raise ValueError(f"{kind} down-window closed before the end of the down interval at line {down}")
+            previous = up
     if case == "normal":
         order = [lines.index(item) for item in (
             marker("NETLINK:RX_HELD:", PREDOWN_RX), marker("NETLINK:RX_DROPPED:", 1),

@@ -271,6 +271,55 @@ class VerifierTests(unittest.TestCase):
                              "event without STATUS")
         self.assert_rejected("normal", lambda *a: a[1].replace("NETLINK:ATTACH:STATUS", "NETLINK:ATTACH:NO_STATUS"))
 
+    def test_counter_windows_must_bracket_their_down_interval(self):
+        """Equal window counters prove nothing unless the window spans the link-down interval."""
+        m = link.marker
+        down = m("NETLINK:EVENT:DOWN:", 2) + "\n"
+        window = [m("NETLINK:WINDOW_OPEN_TX:", 9), m("NETLINK:WINDOW_OPEN_PUBLISHED:", 9 << 16 | 9)]
+        closing = [m("NETLINK:WINDOW_CLOSE_TX:", 9), m("NETLINK:WINDOW_CLOSE_PUBLISHED:", 9 << 16 | 9)]
+        block = "".join(line + "\n" for line in window)
+        close = "".join(line + "\n" for line in closing)
+
+        def before_down(_report, stdout, *_):  # both markers moved before EVENT:DOWN, values unchanged
+            return stdout.replace(close, "").replace(block + down, block + close + down)
+        with self.subTest(case="before_down"):
+            self.assert_rejected("normal", before_down, "window closed while the link was still up")
+
+        def after_up(_report, stdout, *_):  # window opened only after the reconnect
+            up = m("NETLINK:EVENT:UP:", 3) + "\n"
+            return stdout.replace(block, "").replace(close, "").replace(up, up + block + close)
+        with self.subTest(case="after_up"):
+            self.assert_rejected("normal", after_up, "window outside the down interval")
+
+        def tx_only_late(_report, stdout, *_):  # one kind closes after the reconnect
+            up = m("NETLINK:EVENT:UP:", 3) + "\n"
+            tx = closing[0] + "\n"
+            return stdout.replace(tx, "").replace(up, up + tx)
+        with self.subTest(case="tx_only_late"):
+            self.assert_rejected("normal", tx_only_late, "TX window closed after the link came back")
+
+        def storm_last_late(_report, stdout, *_):  # the last storm window closes after EVENT:UP:9
+            up = m("NETLINK:EVENT:UP:", 9) + "\n"
+            head, tail = stdout.rsplit(close + up, 1)
+            return head + up + close + tail
+        with self.subTest(case="storm_last_late"):
+            self.assert_rejected("storm", storm_last_late, "last storm window closed after the up edge")
+
+        def closed_right_after_down(_report, stdout, *_):  # closes before QUERY:DOWN:2 and DOWN_REFUSED:2
+            return stdout.replace(close, "").replace(down, down + close)
+        with self.subTest(case="closed_right_after_down"):
+            self.assert_rejected("normal", closed_right_after_down, "window closed inside the down interval")
+
+        def next_open_before_up(_report, stdout, *_):  # window 2 opens right after window 1 opens, before UP:3
+            lines = stdout.splitlines()
+            first = lines.index(window[1]) + 1
+            second = next(i for i in range(first, len(lines)) if lines[i] == window[0])
+            moved = lines[second:second + 2]
+            lines = lines[:second] + lines[second + 2:]
+            return "\n".join(lines[:first] + moved + lines[first:]) + "\n"
+        with self.subTest(case="next_open_before_up"):
+            self.assert_rejected("storm", next_open_before_up, "window k+1 opened before up edge k")
+
     def test_final_evidence_counterexamples(self):
         for case, key, value in (("normal", "NETLINK_WINDOW_DELTA", 1), ("normal", "NETLINK_TX_REFUSED", 0),
                                  ("normal", "NET_TX_SUBMITTED", 12), ("normal", "NETLINK_PROBE_STALE_ABSENT", 0),

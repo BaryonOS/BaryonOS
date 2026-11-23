@@ -9,7 +9,10 @@ and one confirmation per forbidden action. Signatures are checked only by the
 standard ``ssh-keygen -Y verify`` tool; this module implements no cryptography.
 The inventory must agree with the run's own serial log: its PCI functions with
 the ``HWINV:PCI`` lines and count, its DMAR observation with the
-``HWINV:ACPI:DMAR`` line and the kernel's ACPI discovery marker. A protocol may
+``HWINV:ACPI:DMAR`` line and the kernel's ACPI discovery marker, its CPUID vendor with the single
+``HWINV:CPUID`` line and its Secure Boot state with the single ``HWINV:SECUREBOOT`` line (``1`` enabled,
+``0`` disabled, ``ABSENT`` unknown). An unknown inventory state forbids every record that binds that
+inventory from claiming ``enabled``. A protocol may
 be ``ready`` only while none of the owner decisions that block it is open, and a
 record is accepted only when the accepted records its protocol requires exist
 with the same target, ``source_sha256``, ``source_commit`` and inventory
@@ -110,6 +113,13 @@ HWINV_PCI_LINE = re.compile(r"HWINV:PCI:([0-9a-f]{4}:[0-9a-f]{2}:[0-1][0-9a-f]\.
                             r"([0-9a-f]{2}):([0-9a-f]{2}):([0-9a-f]{2}):([0-9a-f]{2})")
 HWINV_PCI_COUNT = re.compile(r"HWINV:PCI:COUNT=(0|[1-9][0-9]{0,3})")
 KERNEL_DMAR = re.compile(r"ACPI:(?:UNAVAILABLE:NO_DMAR(?:_UNITS)?|DISCOVERY:MCFG_DMAR)")
+HWINV_CPUID = re.compile(r"HWINV:CPUID:VENDOR=([ -~]{12}):HYPERVISOR=([01])")
+HWINV_SECUREBOOT = re.compile(r"HWINV:SECUREBOOT=(0|1|ABSENT)")
+# Inventory secure_boot value each HWINV:SECUREBOOT observation requires; an absent variable is unknown, not disabled.
+SECUREBOOT_STATES = {"1": "enabled", "0": "disabled", "ABSENT": "unknown"}
+# The START marker reports the playback duration that sets the completion deadline (H03-AV step S7).
+HDA_START = re.compile(r"HDA:PLAYBACK:START:MS=([1-9][0-9]{0,5})")
+INSTALL_TARGET = "INSTALL:TARGET:"
 # Point sizes of uncompressed SEC1 points (RFC 5656 section 3.1).
 EC_POINT_SIZES = {"nistp256": 65, "nistp384": 97, "nistp521": 133}
 MAX_JSON, MAX_LOG, MAX_SIG, MAX_SIGNERS = 1 << 20, 4 << 20, 64 << 10, 64 << 10
@@ -122,6 +132,11 @@ class EvidenceError(ValueError):
 def _require(condition: bool, message: str) -> None:
     if not condition:
         raise EvidenceError(message)
+
+
+def _member(value: object, allowed) -> bool:
+    """Set membership for untrusted JSON values; a list or object never raises TypeError."""
+    return isinstance(value, str) and value in allowed
 
 
 def repo_file(root: Path, name: str) -> Path:
@@ -179,13 +194,37 @@ def matrix_profile(root: Path, matrix: dict | None = None) -> tuple[str | None, 
     return target, {d.get("id") for d in devices if isinstance(d, dict)}
 
 
+def decision_problem(decision: object) -> str | None:
+    """Why one hardware-matrix owner_decisions entry is malformed, or None (shared with tools/hw_matrix.py)."""
+    if (not isinstance(decision, dict) or not {"id", "decision", "status", "blocks"} <= set(decision)
+            or not set(decision) <= {"id", "decision", "status", "blocks", "reference"}):
+        return "invalid owner decision"
+    ident, blocks = decision["id"], decision["blocks"]
+    if not _member(ident, OWNER_DECISIONS):
+        return "unknown or duplicate owner decision"
+    if not isinstance(decision["decision"], str) or not decision["decision"].strip():
+        return "owner decision lacks a question"
+    if (not isinstance(blocks, list) or not blocks or not all(_member(block, PROTOCOL_IDS) for block in blocks)
+            or len(set(blocks)) != len(blocks)):
+        return "owner decision must block known physical protocols"
+    if not set(blocks) >= REQUIRED_BLOCKS[ident]:
+        return (f"{ident} blocks fewer protocols than the documented minimum "
+                f"({', '.join(sorted(REQUIRED_BLOCKS[ident]))})")
+    reference = decision.get("reference")
+    if decision["status"] != "open" and (decision["status"] != "decided" or not isinstance(reference, str)
+                                         or not reference.strip()):
+        return "a decided owner decision needs a reference"
+    return None
+
+
 def open_blockers(matrix: dict) -> dict[str, list[str]]:
     """Map every protocol to the owner decisions that still block it (fail closed).
 
-    A decision is closed only when exactly one entry carries its id, with status ``decided`` and a non-empty
-    ``reference``. An open decision blocks its listed protocols plus REQUIRED_BLOCKS. Missing, duplicate or
-    malformed entries stay open; an unknown entry blocks every protocol; a matrix without ``owner_decisions``
-    (schema 1) blocks every protocol.
+    A decision is closed only when exactly one entry carries its id, the entry is valid under
+    decision_problem() (the hardware-matrix rules, including the REQUIRED_BLOCKS minimum) and its status is
+    ``decided`` with a non-empty ``reference``. An open decision blocks its listed protocols plus
+    REQUIRED_BLOCKS. Missing, duplicate or malformed entries stay open; an unknown entry blocks every protocol;
+    a matrix without ``owner_decisions`` (schema 1) blocks every protocol.
     """
     blockers: dict[str, set[str]] = {ident: set() for ident in PROTOCOL_IDS}
     decisions = matrix.get("owner_decisions")
@@ -203,11 +242,10 @@ def open_blockers(matrix: dict) -> dict[str, list[str]]:
             found.add(ident if isinstance(ident, str) else "malformed owner decision")
     for ident in OWNER_DECISIONS:
         found = entries.get(ident, [])
-        if (len(found) == 1 and found[0].get("status") == "decided" and isinstance(found[0].get("reference"), str)
-                and found[0]["reference"].strip()):
+        if len(found) == 1 and found[0].get("status") == "decided" and decision_problem(found[0]) is None:
             continue
         listed = {block for entry in found if isinstance(entry.get("blocks"), list)
-                  for block in entry["blocks"] if block in PROTOCOL_IDS}
+                  for block in entry["blocks"] if _member(block, PROTOCOL_IDS)}
         for protocol in listed | REQUIRED_BLOCKS[ident]:
             blockers[protocol].add(ident)
     return {ident: sorted(found) for ident, found in blockers.items()}
@@ -242,8 +280,12 @@ def load_protocols(root: Path = ROOT) -> dict[str, dict]:
              and {HWINV_DMAR_FORMAT, *HWINV_PCI_FORMATS} <= set(formats),
              f"hwinv_marker_format must list {HWINV_DMAR_FORMAT} and {' and '.join(HWINV_PCI_FORMATS)}")
     matrix = _matrix(root)
-    _, devices = matrix_profile(root, matrix)
+    target, devices = matrix_profile(root, matrix)
     blockers = open_blockers(matrix)
+    if target is None:  # as in tools/hw_matrix.py: OD-HW-TARGETS cannot be decided without a selected target
+        for found in blockers.values():
+            if "OD-HW-TARGETS" not in found:
+                found.append("OD-HW-TARGETS")
     features = _kernel_features(root)
     protocols: dict[str, dict] = {}
     _require(isinstance(doc["protocols"], list), "protocols must be a list")
@@ -473,9 +515,11 @@ def _inventory(data: bytes) -> dict:
              and isinstance(cpuid["vendor"], str) and type(cpuid["hypervisor_bit"]) is bool,
              "inventory lacks the CPUID vendor and hypervisor bit")
     _require(not cpuid["hypervisor_bit"], "virtual capture: inventory records the CPUID hypervisor bit")
-    _require(inventory["secure_boot"] in {"enabled", "disabled", "unknown"}, "inventory Secure Boot state invalid")
+    _require(_member(inventory["secure_boot"], {"enabled", "disabled", "unknown"}),
+             "inventory Secure Boot state invalid")
     acpi = inventory["acpi"]
-    _require(isinstance(acpi, dict) and set(acpi) == {"dmar", "drhd_units"} and acpi["dmar"] in {"present", "absent"}
+    _require(isinstance(acpi, dict) and set(acpi) == {"dmar", "drhd_units"}
+             and _member(acpi["dmar"], {"present", "absent"})
              and type(acpi["drhd_units"]) is int and 0 <= acpi["drhd_units"] <= MAX_DRHD
              and (acpi["dmar"] == "present" or acpi["drhd_units"] == 0),
              f"inventory acpi must be {{dmar: present|absent, drhd_units: 0..{MAX_DRHD}}}; absent needs 0 units")
@@ -545,6 +589,12 @@ def pci_log_problem(lines: list[str], pci: list[dict], *, required: bool) -> str
     return None
 
 
+def _ordered_match(marker: str, line: str) -> bool:
+    # The loader writes BOOT:EBS_OK without a preceding newline, so firmware bytes can precede it on its line; the
+    # marker must still end the line. The restart count below counts every occurrence the same way or more.
+    return line.endswith(BOOT_MARKER) if marker == BOOT_MARKER else _matches(marker, line)
+
+
 def outcome(protocol: dict, lines: list[str], steps: list[dict]) -> str | None:
     """Return why a run failed, or None when every step and marker passed."""
     failed = [step["id"] for step in steps if step["result"] != "pass"]
@@ -555,7 +605,7 @@ def outcome(protocol: dict, lines: list[str], steps: list[dict]) -> str | None:
         return f"failure marker {hit!r} in serial log"
     position = 0
     for marker in protocol["required_markers"]:
-        while position < len(lines) and not _matches(marker, lines[position]):
+        while position < len(lines) and not _ordered_match(marker, lines[position]):
             position += 1
         if position == len(lines):
             return f"required marker {marker!r} missing or out of order"
@@ -680,8 +730,10 @@ def _validate_record(name: str, root: Path, active: frozenset[str]) -> dict:
     inventory = _inventory(_sha256_ref(root, path.parent, record["inventory"], "inventory"))
     log = _sha256_ref(root, path.parent, record["serial_log"], "serial log").decode("utf-8", "replace")
     lines = [line.strip() for line in log.splitlines()]
-    _require(record["secure_boot"] in {"enabled", "disabled"}, "secure_boot must be enabled or disabled")
-    _require(inventory["secure_boot"] in {"unknown", record["secure_boot"]},
+    _require(_member(record["secure_boot"], {"enabled", "disabled"}), "secure_boot must be enabled or disabled")
+    # An unknown inventory state cannot support an enabled claim in any record, whatever its own log shows.
+    _require(inventory["secure_boot"] == record["secure_boot"]
+             or (inventory["secure_boot"] == "unknown" and record["secure_boot"] == "disabled"),
              "Secure Boot state differs between record and inventory")
     _require(isinstance(record["operator"], str) and 0 < len(record["operator"].strip()) <= 128
              and record["operator"].isprintable(), "operator identity missing")
@@ -698,10 +750,10 @@ def _validate_record(name: str, root: Path, active: frozenset[str]) -> dict:
     _require(not unconfirmed, f"safety confirmation(s) not given: {', '.join(unconfirmed)}")
     steps = record["steps"]
     _require(isinstance(steps, list) and all(isinstance(s, dict) and set(s) == {"id", "result"}
-                                             and s["result"] in {"pass", "fail", "not-run"} for s in steps)
+                                             and _member(s["result"], {"pass", "fail", "not-run"}) for s in steps)
              and [s["id"] for s in steps] == [s["id"] for s in protocol["steps"]],
              "steps must list every protocol step in order with pass, fail or not-run")
-    _require(record["dma_posture"] in POSTURES, "unknown DMA posture")
+    _require(_member(record["dma_posture"], POSTURES), "unknown DMA posture")
     contained = any(marker.endswith(CONTAINED_SUFFIX) for marker in protocol["required_markers"])
     _require(record["dma_posture"] != "VT-d contained" or contained,
              f"VT-d contained posture needs a protocol that requires a *{CONTAINED_SUFFIX} marker; an ACPI DMAR "
@@ -714,6 +766,31 @@ def _validate_record(name: str, root: Path, active: frozenset[str]) -> dict:
         vendor = HWINV_PCI.match(line)
         _require(vendor is None or vendor.group(1).lower() not in HYPERVISOR_PCI_VENDORS,
                  f"virtual capture: serial log lists PCI vendor {vendor and vendor.group(1)}")
+    cpuid_lines = [line for line in lines if line.startswith("HWINV:CPUID:")]
+    _require(len(cpuid_lines) <= 1, "serial log repeats the HWINV:CPUID observation")
+    for line in cpuid_lines:
+        cpuid = HWINV_CPUID.fullmatch(line)
+        _require(cpuid is not None, f"malformed HWINV:CPUID marker {line!r}")
+        _require(cpuid[1] == inventory["cpuid"]["vendor"],
+                 f"serial log CPUID vendor {cpuid[1]!r} contradicts the inventory")
+    secure_lines = [line for line in lines if line.startswith("HWINV:SECUREBOOT")]
+    _require(len(secure_lines) <= 1, "serial log repeats the HWINV:SECUREBOOT observation")
+    for line in secure_lines:
+        secure = HWINV_SECUREBOOT.fullmatch(line)
+        _require(secure is not None, f"malformed HWINV:SECUREBOOT marker {line!r}")
+        # Firmware without the SecureBoot variable cannot have enforced it, whatever the operator recorded.
+        _require(secure[1] != "ABSENT" or record["secure_boot"] != "enabled",
+                 "serial log Secure Boot observation ABSENT contradicts the record (secure_boot=enabled)")
+        _require(inventory["secure_boot"] == SECUREBOOT_STATES[secure[1]],
+                 f"serial log Secure Boot observation {secure[1]} contradicts the inventory "
+                 f"(secure_boot={inventory['secure_boot']})")
+    start_lines = [line for line in lines if line.startswith("HDA:PLAYBACK:START")]
+    _require(len(start_lines) <= 1, "serial log repeats HDA:PLAYBACK:START")
+    for line in start_lines:
+        _require(HDA_START.fullmatch(line) is not None,
+                 f"malformed HDA:PLAYBACK:START marker {line!r}; expected HDA:PLAYBACK:START:MS=<n>")
+    # One install target per run: a later target line (for example during recovery) cannot rebind the claim.
+    _require(sum(INSTALL_TARGET in line for line in lines) <= 1, "serial log repeats INSTALL:TARGET")
     dmar_lines = [line for line in lines if line.startswith("HWINV:ACPI:DMAR=")]
     _require(len(dmar_lines) <= 1, "serial log repeats the HWINV:ACPI:DMAR observation")
     for line in dmar_lines:

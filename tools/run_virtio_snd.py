@@ -26,7 +26,8 @@ only, because QEMU option values cannot carry `,` `:` `=` or whitespace
 safely. The OVMF CODE and VARS template copies are hashed before launch and
 must match their sources and stay unchanged; `ovmf_vars_final_sha256` is the
 post-run NVRAM state OVMF wrote, not an input identity. Output beyond the
-4 MiB bound fails the run (the truncated log is kept for diagnostics).
+4 MiB bound kills QEMU while it runs and fails the run (the truncated log is
+kept for diagnostics).
 
 Scope: QEMU/TCG emulator output only. A TX completion means QEMU accepted the
 samples, the WAV shows what its audio backend wrote; nothing here measures
@@ -43,6 +44,7 @@ import re
 import shutil
 import struct
 import subprocess
+import threading
 import time
 import uuid
 
@@ -349,6 +351,63 @@ def check_output_bound(stdout: bytes, stderr: bytes) -> None:
             raise ValueError(f"QEMU {name} has {len(data)} bytes, exceeding the {MAX_OUTPUT}-byte bound")
 
 
+def run_bounded(args: list[str], env: dict, *, timeout: float) -> tuple[int | None, bytes, bytes, bool, dict]:
+    """Run QEMU, draining stdout and stderr concurrently and retaining at most MAX_OUTPUT + 1 bytes of each.
+
+    The first byte beyond the bound kills QEMU while it runs, so check_output_bound() then fails the run with
+    bounded logs. Returns (raw exit, or None on timeout; stdout; stderr; timed_out; stats), where timed_out
+    depends on the deadline alone and stats holds the total bytes drained per stream (retained plus discarded)
+    and output_overflow_killed (the harness killed a still-running QEMU for overflow). An exception in a drain
+    thread kills QEMU and is re-raised, so partial output is never returned as a complete capture.
+    """
+    process = subprocess.Popen(args, cwd=ROOT, env=env, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    buffers, drained, overflow, errors = (bytearray(), bytearray()), [0, 0], threading.Event(), []
+
+    def drain(index: int, pipe, kept: bytearray) -> None:
+        try:
+            while chunk := pipe.read1(65536):
+                drained[index] += len(chunk)
+                kept.extend(chunk[:max(0, MAX_OUTPUT + 1 - len(kept))])
+                if len(kept) > MAX_OUTPUT:
+                    overflow.set()  # keep reading (and discarding) until the kill closes the pipe
+        except BaseException as error:  # re-raised by the caller after the kill
+            errors.append(error)
+        finally:
+            pipe.close()
+    threads = [threading.Thread(target=drain, args=(index, pipe, kept), daemon=True)
+               for index, (pipe, kept) in enumerate(zip((process.stdout, process.stderr), buffers))]
+    deadline, timed_out, overflowed, killed = time.monotonic() + timeout, False, False, False
+    try:
+        for thread in threads:  # inside the try: a failed start still kills QEMU
+            thread.start()
+        while process.poll() is None:
+            remaining = deadline - time.monotonic()
+            if remaining <= 0 or overflow.is_set() or errors:
+                timed_out, overflowed = remaining <= 0, overflow.is_set()
+                break
+            try:
+                process.wait(timeout=min(0.05, remaining))
+            except subprocess.TimeoutExpired:
+                continue
+    finally:
+        if process.poll() is None:
+            process.kill()
+            killed = True
+        process.wait()
+        for thread, pipe in zip(threads, (process.stdout, process.stderr)):
+            if thread.ident is not None:  # join() raises for a thread whose start() failed
+                thread.join(timeout=10)
+            else:
+                pipe.close()  # only drain() closes a started thread's pipe
+    if errors:
+        raise errors[0]
+    if any(thread.is_alive() for thread in threads):
+        raise RuntimeError("QEMU output pipes did not close after the process ended")
+    stats = dict(stdout_drained_bytes=drained[0], stderr_drained_bytes=drained[1],
+                 output_overflow_killed=killed and overflowed)
+    return (None if timed_out else process.returncode), bytes(buffers[0]), bytes(buffers[1]), timed_out, stats
+
+
 def stage_firmware(run_dir: Path, code: Path, variables: Path) -> dict:
     """Copies OVMF CODE and a VARS template plus its writable copy; refuses a
     staged file that differs from its source, before QEMU is started."""
@@ -407,12 +466,7 @@ def run_case(case: str, *, timeout: int = 180) -> dict:
     args = qemu_arguments(case, qemu, rel, machine)
     started = datetime.now(timezone.utc).isoformat()
     start = time.monotonic()
-    timed_out = False
-    try:
-        result = subprocess.run(args, cwd=ROOT, env=env, capture_output=True, timeout=timeout)
-        rc, out, err = result.returncode, result.stdout, result.stderr
-    except subprocess.TimeoutExpired as exc:
-        timed_out, rc, out, err = True, None, exc.stdout or b"", exc.stderr or b""
+    rc, out, err, timed_out, stats = run_bounded(args, env, timeout=timeout)
     duration = time.monotonic() - start
     stdout, stderr = bounded(out), bounded(err)
     (run_dir / "serial.txt").write_text(stdout, encoding="utf-8")
@@ -427,8 +481,9 @@ def run_case(case: str, *, timeout: int = 180) -> dict:
                   **firmware_hashes,
                   # Post-run NVRAM state OVMF wrote during the boot; not an input identity.
                   ovmf_vars_final_sha256=sha256(run_dir / "OVMF_VARS.fd"),
-                  stdout_bytes=len(out), stderr_bytes=len(err),
-                  output_truncated=len(out) > MAX_OUTPUT or len(err) > MAX_OUTPUT,
+                  # *_bytes: retained (at most MAX_OUTPUT + 1); *_drained_bytes: everything read from QEMU.
+                  stdout_bytes=len(out), stderr_bytes=len(err), **stats,
+                  output_truncated=max(stats["stdout_drained_bytes"], stats["stderr_drained_bytes"]) > MAX_OUTPUT,
                   scope="QEMU 8.2 TCG -icount emulator WAV output of a kernel-only fixture; "
                         "no syscall, capability, ring-3 broker, audible/physical playback, "
                         "latency or DMA-isolation claim",

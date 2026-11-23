@@ -7,6 +7,8 @@ import struct
 import subprocess
 import sys
 import tempfile
+import threading
+import time
 import unittest
 from unittest import mock
 
@@ -243,6 +245,138 @@ class Serial(unittest.TestCase):
                     gate.check_output_bound(out, b"")
                     gate.evaluate_serial("normal", gate.bounded(out), 33, False)
 
+    def test_running_process_is_killed_at_the_output_bound(self):
+        """A flooding guest is stopped while it runs; no more than the bound plus one byte is retained."""
+        bound = gate.MAX_OUTPUT
+        flood = "import os\nwhile True:\n    os.write({fd}, b'x' * 65536)\n"
+        for fd in (1, 2):
+            with self.subTest(stream=fd):
+                start = time.monotonic()
+                rc, out, err, timed_out, stats = gate.run_bounded([sys.executable, "-c", flood.format(fd=fd)],
+                                                                  dict(os.environ), timeout=60)
+                self.assertLess(time.monotonic() - start, 30)
+                self.assertFalse(timed_out)
+                self.assertNotEqual(rc, 0)
+                self.assertEqual(len(out if fd == 1 else err), bound + 1)
+                # Every byte read is counted, including those discarded past the bound.
+                self.assertGreaterEqual(stats["stdout_drained_bytes" if fd == 1 else "stderr_drained_bytes"],
+                                        bound + 1)
+                self.assertTrue(stats["output_overflow_killed"])
+                with self.assertRaises(ValueError):
+                    gate.check_output_bound(out, err)
+        rc, out, err, timed_out, stats = gate.run_bounded(
+            [sys.executable, "-c", "import sys; sys.stdout.write('A\\n'); sys.stderr.write('B'); sys.exit(33)"],
+            dict(os.environ), timeout=60)
+        self.assertEqual((rc, out, err, timed_out), (33, b"A\n", b"B", False))
+        self.assertEqual(stats, dict(stdout_drained_bytes=2, stderr_drained_bytes=1, output_overflow_killed=False))
+        rc, out, err, timed_out, stats = gate.run_bounded(
+            [sys.executable, "-c", "import sys, time; print('early', flush=True); time.sleep(60)"],
+            dict(os.environ), timeout=5)
+        self.assertEqual((rc, out, timed_out, stats["output_overflow_killed"]), (None, b"early\n", True, False))
+
+    def test_deadline_and_overflow_together_report_both(self):
+        """The overflow is seen only once the deadline has passed: timed_out stays true beside the kill."""
+        fake = FakeProcess(stdout=[b"x" * (gate.MAX_OUTPUT + 10)])
+        with mock.patch.object(gate.subprocess, "Popen", return_value=fake):
+            rc, out, err, timed_out, stats = gate.run_bounded(["qemu"], {}, timeout=0)
+        self.assertEqual((rc, len(out), err, timed_out, fake.killed), (None, gate.MAX_OUTPUT + 1, b"", True, True))
+        self.assertEqual(stats, dict(stdout_drained_bytes=gate.MAX_OUTPUT + 10, stderr_drained_bytes=0,
+                                     output_overflow_killed=True))
+
+    def test_a_failed_drain_raises_instead_of_returning_partial_output(self):
+        fake = FakeProcess(stdout=[b"partial", OSError("pipe read failed")])
+        start = time.monotonic()
+        with mock.patch.object(gate.subprocess, "Popen", return_value=fake):
+            with self.assertRaisesRegex(OSError, "pipe read failed"):
+                gate.run_bounded(["qemu"], {}, timeout=30)
+        # The drain error itself stops the wait; the deadline must not be what ends it.
+        self.assertLess(time.monotonic() - start, 2)
+        self.assertTrue(fake.killed)
+
+    def test_overflow_of_a_process_that_exits_by_itself_is_counted_but_not_a_kill(self):
+        """Several chunks cross the bound, then QEMU exits before the harness can kill it."""
+        fake = SelfExitingProcess(stdout=[b"x" * gate.MAX_OUTPUT, b"y" * 10, b"z" * 10, b"w" * 10])
+        with mock.patch.object(gate.subprocess, "Popen", return_value=fake):
+            rc, out, err, timed_out, stats = gate.run_bounded(["qemu"], {}, timeout=30)
+        self.assertEqual((rc, len(out), err, timed_out, fake.killed), (0, gate.MAX_OUTPUT + 1, b"", False, False))
+        self.assertEqual(stats, dict(stdout_drained_bytes=gate.MAX_OUTPUT + 30, stderr_drained_bytes=0,
+                                     output_overflow_killed=False))
+
+    def test_qemu_is_killed_when_a_reader_thread_cannot_start(self):
+        started, popen = [], subprocess.Popen
+
+        def spawn(*args, **kwargs):
+            started.append(popen(*args, **kwargs))
+            return started[-1]
+        with mock.patch.object(gate.subprocess, "Popen", side_effect=spawn), \
+                mock.patch.object(gate.threading.Thread, "start", side_effect=RuntimeError("can't start new thread")):
+            with self.assertRaisesRegex(RuntimeError, "can't start new thread"):
+                gate.run_bounded([sys.executable, "-c", "import time; time.sleep(60)"], dict(os.environ), timeout=30)
+        process = started[0]
+        self.addCleanup(lambda: (process.kill(), process.wait()))
+        self.assertIsNotNone(process.poll(), "QEMU stand-in left running after Thread.start failed")
+        self.assertTrue(process.stdout.closed and process.stderr.closed, "pipes of unstarted readers left open")
+
+
+class FakePipe:
+    """Yields its scripted chunks (raising exceptions), then blocks until the process is killed, then EOF."""
+
+    def __init__(self, chunks, process, done):
+        self.chunks, self.process, self.done = list(chunks), process, done
+
+    def read1(self, _size):
+        if self.chunks:
+            chunk = self.chunks.pop(0)
+            if isinstance(chunk, BaseException):
+                self.done.set()
+                raise chunk
+            return chunk
+        self.done.set()
+        self.process.dead.wait(10)
+        return b""
+
+    def close(self):
+        pass
+
+
+class FakeProcess:
+    """A QEMU stand-in that runs until killed; poll() first waits until stdout delivered its chunks."""
+
+    def __init__(self, stdout):
+        self.dead, self.drained, self.killed, self.returncode = threading.Event(), threading.Event(), False, None
+        self.stdout, self.stderr = FakePipe(stdout, self, self.drained), FakePipe([], self, threading.Event())
+
+    def poll(self):
+        if not self.killed:
+            self.drained.wait(10)
+        return self.returncode
+
+    def wait(self, timeout=None):
+        if not self.dead.wait(timeout):
+            raise subprocess.TimeoutExpired("qemu", timeout)
+        return self.returncode
+
+    def kill(self):
+        self.killed, self.returncode = True, -9
+        self.dead.set()
+
+
+class SelfExitingProcess(FakeProcess):
+    """Running when first polled (after stdout delivered its chunks); exits with 0 by itself at the next poll."""
+
+    def __init__(self, stdout):
+        super().__init__(stdout)
+        self.polls = 0
+
+    def poll(self):
+        self.polls += 1
+        if self.polls == 1:
+            return super().poll()
+        if self.returncode is None:
+            self.returncode = 0
+            self.dead.set()
+        return self.returncode
+
 
 class Command(unittest.TestCase):
     def test_qemu_command_per_case(self):
@@ -291,7 +425,8 @@ class Command(unittest.TestCase):
         refuse = mock.Mock(side_effect=AssertionError("must not be reached"))
         with tempfile.TemporaryDirectory() as directory, mock.patch.dict(os.environ), \
                 mock.patch.object(gate, "source_hash", refuse), \
-                mock.patch.object(gate.subprocess, "run", refuse), mock.patch.object(gate.shutil, "which", refuse):
+                mock.patch.object(gate.subprocess, "run", refuse), mock.patch.object(gate.subprocess, "Popen", refuse), \
+                mock.patch.object(gate.shutil, "which", refuse):
             root = Path(directory).resolve()
             os.environ["NOS_QEMU_MACHINE"] = "pc-q35-10.0"
             with mock.patch.object(gate, "ROOT", root), mock.patch.object(gate, "BUILD", root / "build"):
@@ -338,6 +473,14 @@ class FakeRun:
             (run / self.tamper).write_bytes(b"changed")
         return subprocess.CompletedProcess(args, 33, stdout=self.stdout, stderr=b"")
 
+    def bounded(self, args, env, *, timeout):
+        """The scripted QEMU behind run_bounded: it keeps at most MAX_OUTPUT + 1 bytes per stream."""
+        result = self.qemu(args)
+        stats = dict(stdout_drained_bytes=len(result.stdout), stderr_drained_bytes=len(result.stderr),
+                     output_overflow_killed=len(result.stdout) > gate.MAX_OUTPUT)
+        return (result.returncode, result.stdout[:gate.MAX_OUTPUT + 1], result.stderr[:gate.MAX_OUTPUT + 1], False,
+                stats)
+
     def run(self) -> dict:
         with mock.patch.dict(os.environ), mock.patch.object(gate, "ROOT", self.root), \
                 mock.patch.object(gate, "BUILD", self.build), \
@@ -346,6 +489,8 @@ class FakeRun:
                 mock.patch.object(gate, "firmware", return_value=(self.code, self.variables)), \
                 mock.patch.object(gate.shutil, "which", return_value="/fake/qemu-system-x86_64"), \
                 mock.patch.object(gate.subprocess, "run", side_effect=self.qemu), \
+                mock.patch.object(gate, "run_bounded", side_effect=self.bounded), \
+                mock.patch.object(gate.subprocess, "Popen", side_effect=AssertionError("unscripted QEMU launch")), \
                 mock.patch("builtins.print"):
             os.environ.pop("NOS_QEMU_MACHINE", None)
             return gate.run_case("normal")
@@ -364,8 +509,8 @@ class Report(unittest.TestCase):
             self.assertEqual(report["ovmf_vars_template_sha256"], digest(b"vars" * 64))
             self.assertEqual(report["ovmf_vars_final_sha256"], digest(b"nvram written by the firmware"))
             self.assertNotIn("ovmf_vars_sha256", report)
-            self.assertEqual((report["stdout_bytes"], report["output_truncated"]),
-                             (len(fake.stdout), False))
+            self.assertEqual((report["stdout_bytes"], report["stdout_drained_bytes"], report["output_truncated"],
+                              report["output_overflow_killed"]), (len(fake.stdout), len(fake.stdout), False, False))
 
     def test_changed_firmware_inputs_or_oversized_output_fail_the_run(self):
         for tamper in ("OVMF_CODE.fd", "OVMF_VARS.template.fd"):
@@ -379,6 +524,8 @@ class Report(unittest.TestCase):
                              stdout=b"#" * (gate.MAX_OUTPUT - len(good)) + good + b"SND:PASS\n").run()
             self.assertFalse(report["passed"])
             self.assertTrue(report["output_truncated"])
+            self.assertEqual((report["stdout_bytes"], report["stdout_drained_bytes"], report["output_overflow_killed"]),
+                             (gate.MAX_OUTPUT + 1, gate.MAX_OUTPUT + len(b"SND:PASS\n"), True))
             self.assertIn("bound", report["error"])
 
     def test_a_staged_copy_that_differs_from_its_source_is_refused_before_launch(self):
