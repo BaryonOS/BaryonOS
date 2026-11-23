@@ -99,7 +99,10 @@ gate re-checks version, group, suite, ALPN and peer pin on both sides.
 Project code exercised: `KeyServiceRandom` (over a synthetic Key-Service
 transport) is the rustls `SecureRandom` of every profile side, and
 `CertificateClock` is the rustls `TimeProvider` in the unavailable-time negative.
-The profile and pin verifier are test code because `src/` provides neither yet.
+Since N03-T2c every profile side is built by the library `profile` module (below)
+from the full aws-lc-rs provider, so the library itself performs the restriction;
+deviating oracle peers keep raw test-only rustls configs because the library
+refuses to build them.
 
 Negative cases, each with an asserted specific error: X25519-only server and
 client (no fallback), other TLS 1.3 suite, TLS 1.2-only server and client, wrong
@@ -148,6 +151,47 @@ helpers) that this feature selection does not build. Exact versions and
 checksums are in `Cargo.lock`. Not reviewed: a complete source audit of AWS-LC,
 advisories at release time, or a distribution notice set; this oracle is never
 linked into a Baryon OS image.
+
+## N03-T2c library profile (`src/profile.rs`)
+
+Provider-agnostic, `no_std` + `alloc`, rustls `custom-provider` only. The caller
+supplies the `CryptoProvider` (and with it the `SecureRandom`), the
+`TimeProvider`, the fixed ALPN and the identity resolver; no provider is selected
+or added here, and the native provider choice stays open.
+
+- `restrict`, `client_config`, `server_config`: keep only X25519MLKEM768 and the
+  TLS 1.3 TLS13_AES_256_GCM_SHA384 suite and return `MissingKxGroup` /
+  `MissingCipherSuite` when the provider lacks them, never a weaker config.
+  TLS 1.3 only; client resumption disabled and early data off; server session
+  storage none, zero tickets, zero early data, no half-RTT data; exactly one
+  ALPN of 1..=255 bytes (`InvalidAlpn` otherwise). Client authentication is
+  mandatory on both builders.
+- `PinnedPeer`: client and server certificate verifier. Exact end-entity DER and
+  SPKI (via rustls `ParsedCertificate`), any intermediate refused, TLS 1.2
+  signatures refused, TLS 1.3 CertificateVerify delegated to the provider's
+  `verify_tls13_signature` after checking an explicit allowed-scheme list.
+  Construction refuses an SPKI that is not the certificate's own and schemes
+  the provider cannot verify. Server name, roots and validity period are not
+  consulted: the pin is the identity, and no trusted certificate time exists.
+- `accept(&CommonState, alpn, &PinnedPeer)`: checks, in order, handshake done,
+  TLS 1.3, X25519MLKEM768, TLS13_AES_256_GCM_SHA384, the fixed ALPN and the
+  single pinned peer certificate; returns the first `Refusal`. Works on buffered
+  and unbuffered rustls connections (both deref to `CommonState`).
+
+Consumer contract from the two #426 findings: call `accept` before the first
+application write or read (a server that selects no ALPN otherwise already
+received client data), and treat any received fatal alert as revoking the
+connection even after `accept` passed (a TLS 1.3 client completes before the
+server rejects its certificate).
+
+Library host tests (`tests/profile.rs`, aws-lc-rs oracle): full provider is
+reduced to exactly the profile; providers lacking the group or suite (including
+a TLS 1.2 AES-256-GCM-SHA384 suite) are refused by both builders; empty and
+256-byte ALPN refused; inconsistent pin and unsupported schemes refused; pin
+mismatch, intermediates and malformed DER refused by both verifiers; TLS 1.2 and
+unlisted signature schemes refused; a listed scheme reaches the provider
+(`BadSignature`). The rustls-webpki dev-dependency is no longer used by the
+tests; removing it is a manifest change left to the lead.
 
 ## Acceptance and evidence boundary
 
