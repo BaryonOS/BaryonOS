@@ -243,14 +243,23 @@ reported separately:
   grants are "until revoked" grants, or they are not persisted.
 - If the policy process itself restarts, it reloads from storage, and every
   boot-lifetime denial entry from Decision 4 state 4 overrides any allow
-  record it reloads. Missing,
-  corrupt, unauthenticated or version-unknown state yields **no grants**
-  (fail-closed) and a visible "network permissions could not be restored"
-  status. It never yields reconstruction from app requests.
+  record it reloads. A `Durable` revocation is enforced by its stored
+  tombstone. A reload must not return an older authentic snapshot written
+  before that tombstone, so the reload is subject to a freshness check. The
+  component that holds the boot-lifetime denial entries (open question 7)
+  also records the highest store generation committed in this boot. A
+  reloaded store whose generation is lower than that record is treated as
+  replayed, and so is any reload for which that record is unavailable.
+  Either case yields no grants. This check is the within-boot counterpart
+  of Decision 5, which covers the cold-boot case. Missing, corrupt,
+  unauthenticated, version-unknown or not-provably-current state yields
+  **no grants** (fail-closed) and a visible "network permissions could not
+  be restored" status. It never yields reconstruction from app requests.
 - **Proposed persistence model.** Persist an allow-list of grant records plus
   generation tombstones. Then loss of state denies access rather than
   re-enabling it. Within a boot, a failed tombstone write is covered by the
-  boot-lifetime denial entry above, not by Decision 5. Across a power cycle,
+  boot-lifetime denial entry above. Replay of an older snapshot within the
+  same boot is covered by the generation check above, not by Decision 5. Across a power cycle,
   only *replay* of an older valid state can resurrect a revoked grant;
   Decision 5 addresses that cold-boot case.
 
@@ -354,7 +363,8 @@ These three are the options with Security Floor impact.
    native enforcement, revocation and helper routes within one boot?
 7. Which component, outliving both a policy-process and a network-service
    restart within one boot, holds the boot-lifetime denial entries of
-   Decision 4 (`DurabilityUnknown`)?
+   Decision 4 (`DurabilityUnknown`) and the highest store generation
+   committed in this boot, which the warm-restart freshness check uses?
 
 ## Sources
 
