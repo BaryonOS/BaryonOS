@@ -106,10 +106,10 @@ only in the trusted controller checkout after source and head verification.
 The offline fixture verifies boundary behavior, not authenticated Claude, Codex,
 Copilot, Graphify or native-client compatibility. Those environments require
 separate evidence and remain unverified until tested. No credential/network broker
-is introduced. The roadmap controller described below retains its own execution
-and ownership model: its direct worker/check commands have not been migrated or
-verified by this change. Its calls to the shared gate now fail closed without an
-approved isolated runtime. The two controllers are not interchangeable.
+is introduced. The roadmap controller described below retains its own ownership
+model but no longer runs candidate code on the host: its task checks, gates and
+`tools/progress.py --check` go through the same shared gate and fail closed
+without an approved isolated runtime. The two controllers are not interchangeable.
 
 **Enablement remains blocked.** The committed disabled policy must remain in place
 until real dedicated mounts with measured workload headroom, the complete resource
@@ -136,7 +136,9 @@ READY task whose dependencies are verified it:
    `--continue`, `--resume` or `--fork-session`, and never `--bare`, bypass modes or
    skipped permissions. The worker has an allow-listed environment without GitHub,
    cloud or session-ingress credentials, `--permission-prompts none`, file edits
-   (`acceptEdits`), read-only git, and exactly the task's check commands.
+   (`acceptEdits`) and read-only git. It runs no check, build or test command:
+   candidate code executes only in the isolated gate (step 4). Edits under `.git/`,
+   `__pycache__/`, `*.pyc`, `.claude/` and the home directory are denied.
    A session-scoped `--autocompact` window is the context fail-safe (see the
    measured limit below), and `--max-budget-usd` sets a per-session cap on the
    CLI's cost estimate. The controller polls the transcript every minute and stops
@@ -145,8 +147,10 @@ READY task whose dependencies are verified it:
    anything else is reverted and reported. Protected files (workflows, the
    pipeline, the progress register and its views, AGENTS.md/CLAUDE.md,
    PROJECT-STATE.md, DECISIONS.md) are never accepted from a worker. The ledger's
-   check commands and `tools/progress.py --check` are re-run with raw exit codes.
-   The worker's JSON report is recorded, never trusted;
+   check commands, its gates and `tools/progress.py --check` run as one plan through
+   `agent_gate.run_gate`, which stages the changed (including untracked) files into
+   the isolated sandbox and records raw exit codes; with the committed disabled
+   policy this fails closed. The worker's JSON report is recorded, never trusted;
 5. starts a second fresh, read-only session that verifies the diff against the task
    without seeing the writer's self-report. A blocker or major finding sends the task
    back to a new worker session with only those findings, for at most two repair
@@ -157,6 +161,17 @@ READY task whose dependencies are verified it:
 Each session's transcript is checked so that it contains exactly one root user
 message, equal to the brief, and no entries from another session. This is the
 evidence that no earlier conversation was inherited.
+
+The controller's own Git commands could run code that a worker planted in Git
+configuration or hooks. Instead of refusing every pre-existing hook, the controller
+fingerprints `git config --list --show-scope --show-origin`, the hooks directory
+and `info/attributes` at preflight and stops after any session that changed them.
+Controller Python never reads worker bytecode (`sys.pycache_prefix` is a private
+temporary directory) and `tools/progress.py` runs with `-I`. Residual limits: an
+ignored path outside the denied patterns, a process that escapes the worker's
+process group, and the absent native sandbox (bubblewrap 0.13.1 or later with a
+verified profile). The runner therefore stays held by `EXECUTION_HOLD` and the
+disabled policy; these changes are not evidence that it may be enabled.
 
 ### Controls
 

@@ -7,6 +7,11 @@ legacy Claude helpers remain source-held until the shared isolation replacement
 is accepted. The existing ledger, lock, stop/pause controls and recovery are reused;
 there is no second queue and no transfer of this roadmap to Claude.
 Runtime state stays in ignored build/roadmap-pipeline/.
+
+Candidate bytes never run with controller authority: task checks, gates and the
+progress check run only through the shared isolated gate runner (agent_gate), host
+sessions get no check commands, Git callback configuration is fingerprinted around
+every session, and controller Python runs isolated (-I) from the checkout.
 """
 from __future__ import annotations
 
@@ -22,14 +27,20 @@ import shutil
 import signal
 import subprocess
 import sys
+import tempfile
 import time
 import uuid
 from dataclasses import dataclass
 from pathlib import Path
 
+# Bytecode caches in the checkout are never read: a worker could plant them under
+# ignored __pycache__/ paths that its scope check does not see.
+sys.pycache_prefix = tempfile.mkdtemp(prefix="roadmap-pycache-")
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from agent_gate import FAIL_EXIT as GATE_FAIL_EXIT, resolve as resolve_gate, run_gate  # noqa: E402
+from agent_gate import (FAIL_EXIT as GATE_FAIL_EXIT, PROGRESS_CHECK, GatePlan,  # noqa: E402
+                        resolve as resolve_gate, run_gate)
 from agent_pipeline import TaskError, is_protected, require_pipeline_release  # noqa: E402
+from common import agent_source_paths  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[1]
 LEDGER = ROOT / "docs" / "roadmap-pipeline" / "ledger.json"
@@ -66,10 +77,11 @@ DENY = ["Bash(git push:*)", "Bash(git commit:*)", "Bash(git reset:*)", "Bash(git
         "Bash(git clean:*)", "Bash(git stash:*)", "Bash(git rebase:*)", "Bash(git merge:*)",
         "Bash(gh:*)", "Bash(curl:*)", "Bash(wget:*)", "WebFetch", "WebSearch",
         "Read(~/.claude/.credentials.json)", "Read(~/.ssh/**)", "Read(~/.config/gh/**)",
-        "Read(~/.git-credentials)", "Read(//home/claude/**)", "Read(//root/.ccr/**)"]
+        "Read(~/.git-credentials)", "Read(//home/claude/**)", "Read(//root/.ccr/**)",
+        # Paths the controller's scope check cannot see: Git state, caches, home.
+        "Edit(.git/**)", "Edit(**/__pycache__/**)", "Edit(**/*.pyc)", "Edit(.claude/**)", "Edit(~/**)"]
 PROCESS_TAG = "roadmap-pipeline-"
 READ_ONLY_DISALLOWED = "Edit,Write,MultiEdit,NotebookEdit"
-INIT_ALLOWED_PROBE = "python3 -B tools/progress.py --check"
 INIT_DENY_PROBE = "build/roadmap-pipeline/DENY-PROBE"
 TRAILERS = ("Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>\n"
             "Claude-Session: https://claude.ai/code/session_01TJtT9VANihpE4RzPd4d8su\n")
@@ -224,13 +236,11 @@ def worker_env(source: dict[str, str]) -> dict[str, str]:
     return env
 
 
-def allow_rules(task: dict | None, extra_tools: tuple[str, ...] = ()) -> list[str]:
+def allow_rules(extra_tools: tuple[str, ...] = ()) -> list[str]:
+    """Host sessions read and edit only; candidate code runs solely in the isolated gate."""
     rules = ["Read", "Glob", "Grep", "Skill", *extra_tools]
     rules += [f"Bash({c}:*)" for c in READ_GIT]
     rules += [f"mcp__{s}__{t}" for s in GRAPHIFY_SERVERS for t in GRAPHIFY_READ]
-    for command in (task or {}).get("checks", []) + (task or {}).get("worker_commands", []):
-        rules.append(f"Bash({command}:*)")
-        rules.append(f"Bash(python3 -B tools/tokenguard.py run -- {command}:*)")
     return rules
 
 
@@ -324,6 +334,23 @@ def pid_alive(pid: int) -> bool:
     return True
 
 
+def git_callbacks() -> str:
+    """Fingerprint of every Git setting and hook that could run code on a later Git call."""
+    config = subprocess.run(["git", "config", "--list", "--show-scope", "--show-origin"], cwd=ROOT,
+                            capture_output=True, text=True).stdout
+    parts = [config]
+    for name in ("hooks", "info/attributes"):
+        path = Path(git("rev-parse", "--git-path", name).strip())
+        path = path if path.is_absolute() else ROOT / path
+        files = sorted(path.rglob("*")) if path.is_dir() else [path]
+        for file in files:
+            if file.is_file() or file.is_symlink():
+                info = file.lstat()
+                body = file.read_bytes() if file.is_file() and not file.is_symlink() else os.readlink(file).encode()
+                parts.append(f"{file}:{info.st_mode:o}:{sha256(body)}")
+    return sha256("\n".join(parts))
+
+
 def git(*args: str, check: bool = True) -> str:
     done = subprocess.run(["git", *args], cwd=ROOT, capture_output=True, text=True)
     if check and done.returncode:
@@ -339,6 +366,7 @@ class Controller:
         self.lock_acquired = False
         self.lease_owned = False
         self.spent = 0.0
+        self.callbacks: str | None = None  # set by preflight(); unset means every session stops
         self.run_id = dt.datetime.now().strftime("%Y%m%dT%H%M%S") + f"-{os.getpid()}"
 
     # --- locking and lifecycle ---
@@ -416,6 +444,7 @@ class Controller:
                                capture_output=True, text=True).stdout.split()
         if [p for p in alive if int(p) != os.getpid()]:
             raise Stop(f"a previous worker process is still alive: {alive}")
+        self.callbacks = git_callbacks()
         return git("rev-parse", "HEAD").strip()
 
     # --- one fresh headless session ---
@@ -476,6 +505,9 @@ class Controller:
             "output": structured(result),
         }
         atomic_write(attempt_dir / f"{kind}-record.json", json.dumps(record, indent=2))
+        if git_callbacks() != self.callbacks:
+            raise Stop(f"Git hooks or configuration changed during the {kind} session; no further Git "
+                       "command runs until the lead inspects .git and the Git configuration")
         blob = text + err.read_text(errors="replace")
         if code != 0 and RATE_LIMIT.search(blob):
             raise Stop(f"{kind} session hit a rate or usage limit; see {err}")
@@ -538,41 +570,28 @@ class Controller:
         if lock:
             fcntl.flock(lock, fcntl.LOCK_EX)
         try:
-            commands = [(f"check-{i}", c) for i, c in enumerate(task["checks"], 1)]
-            commands.append(("progress", "python3 tools/progress.py --check"))
-            for name, command in commands:
-                self.heartbeat(phase=f"check:{name}")
-                log = attempt_dir / f"{name}.log"
-                started = time.monotonic()
-                with log.open("w") as out:
-                    try:
-                        code = subprocess.call(["bash", "--noprofile", "--norc", "-eo", "pipefail", "-c", command],
-                                               cwd=ROOT, stdout=out, stderr=subprocess.STDOUT,
-                                               timeout=self.cfg.check_timeout)
-                    except subprocess.TimeoutExpired:
-                        code = 124
-                results.append({"name": name, "command": command, "exit_code": code,
-                                "duration_s": round(time.monotonic() - started, 1),
-                                "log_sha256": sha256(log.read_bytes())})
-                if code:
-                    failure = f"{command} exited {code}:\n" + "\n".join(
-                        log.read_text(errors="replace").splitlines()[-120:])
-                    return False, results, failure
-            if task.get("gates"):
-                log = attempt_dir / "gate.log"
-                try:
-                    commands = resolve_gate(task["gates"], ROOT / ".github" / "workflows")
-                except (KeyError, ValueError) as error:
-                    failure = f"gate blocked: {error}"
-                    log.write_text(failure + "\n")
-                    code = GATE_FAIL_EXIT
-                else:
-                    code = run_gate(commands, ROOT, log)
-                results.append({"name": "gates", "command": " ".join(task["gates"]), "exit_code": code,
-                                "log_sha256": sha256(log.read_bytes())})
-                if code:
-                    return False, results, failure or "\n".join(
-                        log.read_text(errors="replace").splitlines()[-120:])
+            self.heartbeat(phase="checks")
+            log = attempt_dir / "checks.log"
+            commands = [(f"check-{i}", c, {}) for i, c in enumerate(task["checks"], 1)]
+            try:
+                gate = resolve_gate(task["gates"], ROOT / ".github" / "workflows") if task.get("gates") else None
+            except (KeyError, ValueError) as error:
+                failure = f"gate blocked: {error}"
+                log.write_text(failure + "\n")
+                code = GATE_FAIL_EXIT
+            else:
+                # resolve() already ends with the progress check; plain checks add it here.
+                plan = GatePlan(tuple(commands) + (gate.commands if gate else (PROGRESS_CHECK,)))
+                # Untracked candidate files must reach the gate; it stages only these paths.
+                code = run_gate(plan, ROOT, log, os.environ.copy(),
+                                source_paths=agent_source_paths(self.changed()))
+            output = log.read_bytes() if log.is_file() else b""
+            results.append({"name": "isolated-checks", "commands": [c[1] for c in commands],
+                            "gates": task.get("gates", []), "exit_code": code,
+                            "log_sha256": sha256(output)})
+            if code:
+                return False, results, failure or "\n".join(
+                    output.decode(errors="replace").splitlines()[-120:]) or f"isolated checks exited {code}"
             return True, results, ""
         finally:
             if lock:
@@ -613,9 +632,9 @@ Rules (binding, in addition to AGENTS.md):
   utilities, no reduced functionality or test evidence. Use relevant
   `verification-loop` guidance and `.agents/skills/os-dev` only where it applies.
 - Targeted read-only source inspection using cat, rg, sed or Token Guard inspect/slice
-  is allowed. You may run the task's check commands (optionally through
-  `python3 -B tools/tokenguard.py run -- <command>`), plus read-only git. Other commands
-  are outside this assignment; tool policy is not a claim of technical isolation.
+  is allowed, plus read-only git. Do not build or run code: the controller runs the
+  task's checks and gates in the isolated gate runner and returns any failure to the
+  next session. Tool policy is not a claim of technical isolation.
 - Security Floor: no new trust roots, key escrow, telemetry, cloud fallback, broader
   capabilities or relaxed verification. Do not invent cryptography. Validate untrusted
   lengths and pointers. Add negative tests for every new boundary.
@@ -712,10 +731,9 @@ file. Report facts only:
    whether BaryonOS/BaryonOS is queryable.
 5. Which of these skills are listed for you: ponytail, verification-loop, token-guard,
    os-dev (or the repository skill .agents/skills/os-dev).
-6. Policy probes. (a) Run `python3 -B tools/progress.py --check`; it is explicitly
-   allowed. (b) Then try exactly `python3 -c "open('build/roadmap-pipeline/DENY-PROBE','w').write('x')"`;
-   it is not allowed and should be refused without a prompt. Report both outcomes
-   (put (b) in bash_denied_example and (a) in notes). Do not try any workaround.
+6. Policy probe. Try exactly `python3 -c "open('build/roadmap-pipeline/DENY-PROBE','w').write('x')"`;
+   it is not allowed and should be refused without a prompt. Report the outcome in
+   bash_denied_example. Do not try any workaround.
 Return the structured result.
 """
 
@@ -732,7 +750,7 @@ Return the structured result.
             adir = task_dir / f"attempt-{attempt}"
             adir.mkdir(parents=True, exist_ok=True)
             worker = self.session("worker", task["id"], adir, self.worker_prompt(task, head, feedback),
-                                  WORKER_SCHEMA, allow_rules(task, ("Edit", "Write", "MultiEdit")),
+                                  WORKER_SCHEMA, allow_rules(("Edit", "Write", "MultiEdit")),
                                   "acceptEdits", self.cfg.worker_timeout, effort=effort_for(self.cfg, task))
             record = {"attempt": attempt, "worker": worker}
             attempts.append(record)
@@ -762,7 +780,7 @@ Return the structured result.
                     before = self.tree_fingerprint()
                     verifier = self.session("verifier", task["id"], adir,
                                             self.verifier_prompt(task, head, diff[:60_000], untracked, checks),
-                                            VERIFIER_SCHEMA, allow_rules(None), "default",
+                                            VERIFIER_SCHEMA, allow_rules(), "default",
                                             self.cfg.verifier_timeout, disallowed=READ_ONLY_DISALLOWED,
                                             budget=self.cfg.verifier_budget_usd,
                                             effort=effort_for(self.cfg, task))
@@ -838,7 +856,8 @@ Return the structured result.
             raise Stop("assessment update would change criteria; refusing")
         atomic_write(path, json.dumps(data, indent=2, ensure_ascii=False) + "\n")
         for mode in ("--write", "--check"):
-            done = subprocess.run([sys.executable, "-B", "tools/progress.py", mode], cwd=ROOT,
+            # -I keeps the checkout's tools/ directory off sys.path: no worker module shadows stdlib.
+            done = subprocess.run([sys.executable, "-I", "-B", "tools/progress.py", mode], cwd=ROOT,
                                   capture_output=True, text=True)
             if done.returncode:
                 raise Stop(f"progress.py {mode} failed: {done.stdout[-400:]}{done.stderr[-400:]}")
@@ -875,7 +894,7 @@ Return the structured result.
         probe = ROOT / INIT_DENY_PROBE
         probe.unlink(missing_ok=True)
         record = self.session("init", "INIT-CHECK", adir, self.init_prompt(), INIT_SCHEMA,
-                              allow_rules(None) + [f"Bash({INIT_ALLOWED_PROBE}:*)"], "default", 15 * 60,
+                              allow_rules(), "default", 15 * 60,
                               disallowed=READ_ONLY_DISALLOWED, budget=self.cfg.verifier_budget_usd)
         record["head_expected"] = head
         record["checkout_clean_after"] = not self.changed()

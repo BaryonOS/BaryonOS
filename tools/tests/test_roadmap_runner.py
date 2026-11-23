@@ -205,15 +205,17 @@ class Session(unittest.TestCase):
         argv = rr.claude_argv(cfg, "n", "1", Path("/s.json"), {}, "acceptEdits", 1.0, None, "high")
         self.assertIn("--effort high", " ".join(argv))
 
-    def test_allow_rules_are_task_scoped(self):
-        t = dict(task("A", checks=["cargo +1.90.0 test --locked -p net-config"]))
-        rules = rr.allow_rules(t, ("Edit",))
-        self.assertIn("Bash(cargo +1.90.0 test --locked -p net-config:*)", rules)
+    def test_host_sessions_get_no_check_commands(self):
+        rules = rr.allow_rules(("Edit",))
         self.assertIn("Edit", rules)
-        self.assertFalse([r for r in rules if r in ("Bash", "Bash(*)", "Bash(cargo:*)")])
-        self.assertNotIn("Edit", rr.allow_rules(None))
-        self.assertFalse([r for r in rr.allow_rules(None) if "remember" in r])
+        # Candidate code runs only in the isolated gate, never as a host session command.
+        self.assertEqual([r for r in rules if r.startswith("Bash(") and not r.startswith("Bash(git ")], [])
+        self.assertNotIn("Edit", rr.allow_rules())
+        self.assertFalse([r for r in rr.allow_rules() if "remember" in r])
         self.assertIn("Bash(git push:*)", rr.DENY)
+        for path in ("Edit(.git/**)", "Edit(**/__pycache__/**)", "Edit(**/*.pyc)"):
+            self.assertIn(path, rr.DENY)
+        self.assertNotIn("progress.py --check", rr.Controller(rr.Config(), Path("/nonexistent")).init_prompt())
 
     def test_failure_fingerprint_ignores_timings_but_not_content(self):
         a = rr.failure_fingerprint("checks", "error[E0308] in x.rs\nfinished in 1.20s")
@@ -252,22 +254,113 @@ class Session(unittest.TestCase):
         self.assertTrue(rr.pid_alive(1) or True)
         self.assertFalse(rr.pid_alive(2 ** 22 + 12345))
 
-    def test_gate_resolution_failure_is_a_recorded_check_failure(self):
+    def checks(self, checked, **patches):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             attempt = root / "attempt"
             attempt.mkdir()
             controller = rr.Controller(rr.Config(), root / "state")
-            checked = dict(task("A", checks=[]), gates=["ci.yml#host-quality"])
             with unittest.mock.patch.object(controller, "heartbeat"), \
                     unittest.mock.patch.object(rr, "require_pipeline_release"), \
-                    unittest.mock.patch.object(rr.subprocess, "call", return_value=0), \
-                    unittest.mock.patch.object(rr, "resolve_gate", side_effect=ValueError("unsupported gate")):
-                passed, results, failure = controller.run_checks(checked, attempt)
-            self.assertFalse(passed)
-            self.assertEqual(results[-1]["exit_code"], rr.GATE_FAIL_EXIT)
-            self.assertEqual(failure, "gate blocked: unsupported gate")
-            self.assertEqual((attempt / "gate.log").read_text(), failure + "\n")
+                    unittest.mock.patch.object(controller, "changed", return_value=["services/x/new.rs"]), \
+                    unittest.mock.patch.object(rr.subprocess, "call") as host, \
+                    unittest.mock.patch.object(rr.subprocess, "run") as run, \
+                    unittest.mock.patch.multiple(rr, **(patches or {"ROOT": rr.ROOT})):
+                outcome = controller.run_checks(checked, attempt)
+                log = (attempt / "checks.log").read_text() if (attempt / "checks.log").is_file() else ""
+            host.assert_not_called()
+            # Only read-only Git listing may run on the host; no check command does.
+            self.assertEqual([c for c in run.call_args_list if not c.args[0][0].endswith("git")], [])
+            return outcome, log
+
+    def test_checks_and_progress_run_only_through_the_isolated_gate(self):
+        seen = {}
+
+        def gate(plan, cwd, log, env, *, source_paths):
+            seen.update(plan=plan, source_paths=source_paths)
+            log.write_text("ok\n")
+            return 0
+
+        (passed, results, failure), _ = self.checks(task("A", checks=["cargo test -p x"]),
+                                                    run_gate=unittest.mock.Mock(side_effect=gate))
+        self.assertTrue(passed)
+        self.assertEqual(seen["plan"].commands, (("check-1", "cargo test -p x", {}), rr.PROGRESS_CHECK))
+        self.assertIn("services/x/new.rs", seen["source_paths"])
+        self.assertEqual(results[0]["exit_code"], 0)
+
+    def test_gate_commands_follow_task_checks_once(self):
+        resolved = rr.GatePlan((("g", "make g", {}), rr.PROGRESS_CHECK))
+        gate = unittest.mock.Mock(return_value=0)
+        self.checks(dict(task("A", checks=["true"]), gates=["ci.yml#x"]),
+                    resolve_gate=unittest.mock.Mock(return_value=resolved), run_gate=gate)
+        self.assertEqual(gate.call_args.args[0].commands,
+                         (("check-1", "true", {}), ("g", "make g", {}), rr.PROGRESS_CHECK))
+
+    def test_disabled_policy_fails_the_checks_closed(self):
+        # The real gate with the committed disabled policy: nothing executes.
+        (passed, results, failure), log = self.checks(task("A", checks=["true"]))
+        self.assertFalse(passed)
+        self.assertEqual(results[0]["exit_code"], rr.GATE_FAIL_EXIT)
+        self.assertIn("not authorized", log)
+
+    def test_gate_resolution_failure_is_a_recorded_check_failure(self):
+        gate = unittest.mock.Mock()
+        (passed, results, failure), log = self.checks(
+            dict(task("A", checks=[]), gates=["ci.yml#host-quality"]),
+            resolve_gate=unittest.mock.Mock(side_effect=ValueError("unsupported gate")), run_gate=gate)
+        self.assertFalse(passed)
+        self.assertEqual(results[-1]["exit_code"], rr.GATE_FAIL_EXIT)
+        self.assertEqual(failure, "gate blocked: unsupported gate")
+        self.assertEqual(log, failure + "\n")
+        gate.assert_not_called()
+
+    def test_git_callback_change_during_a_session_stops_the_controller(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            repo = Path(tmp)
+            env = {k: v for k, v in __import__("os").environ.items() if not k.startswith("GIT_")}
+            rr.subprocess.run(["git", "init", "-q", str(repo)], check=True, env=env)
+            with unittest.mock.patch.object(rr, "ROOT", repo), \
+                    unittest.mock.patch.dict("os.environ", env, clear=True):
+                before = rr.git_callbacks()
+                self.assertEqual(before, rr.git_callbacks())
+                hook = repo / ".git" / "hooks" / "post-checkout"
+                hook.write_text("#!/bin/sh\n")
+                self.assertNotEqual(before, rr.git_callbacks())
+                hook.unlink()
+                rr.subprocess.run(["git", "-C", str(repo), "config", "core.fsmonitor", "x"], check=True)
+                self.assertNotEqual(before, rr.git_callbacks())
+
+    def test_session_stops_when_git_callbacks_changed(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            controller = rr.Controller(rr.Config(), root / "state")
+            controller.callbacks = "before"
+            proc = unittest.mock.Mock(pid=2 ** 22 + 12345)
+            proc.wait.return_value = 0
+            with unittest.mock.patch.object(rr, "require_pipeline_release"), \
+                    unittest.mock.patch.object(rr.subprocess, "Popen", return_value=proc), \
+                    unittest.mock.patch.object(rr.os, "killpg"), \
+                    unittest.mock.patch.object(controller, "heartbeat"), \
+                    unittest.mock.patch.object(controller, "transcript_check", return_value={}), \
+                    unittest.mock.patch.object(rr, "git_callbacks", side_effect=["before", "after"]):
+                controller.session("worker", "A", root, "brief", {}, [], "default", 10)
+                with self.assertRaisesRegex(rr.Stop, "Git hooks or configuration changed"):
+                    controller.session("worker", "A", root, "brief", {}, [], "default", 10)
+            self.assertIsNone(rr.Controller(rr.Config(), root).callbacks)
+
+    def test_progress_assessment_runs_isolated_from_the_checkout(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / "docs").mkdir()
+            (root / "docs" / "progress.json").write_text(json.dumps({"tracks": []}))
+            with unittest.mock.patch.object(rr, "ROOT", root), \
+                    unittest.mock.patch.object(rr.subprocess, "run") as run, \
+                    unittest.mock.patch.object(rr, "git", return_value=""):
+                run.return_value = rr.subprocess.CompletedProcess([], 0, "", "")
+                rr.Controller(rr.Config(), root / "state").record_assessment(dict(task("A"), title="t"), "a" * 40,
+                                                                           "verified")
+        argv = [c.args[0] for c in run.call_args_list]
+        self.assertEqual([a[1:4] for a in argv], [["-I", "-B", "tools/progress.py"]] * 2)
 
 
 if __name__ == "__main__":
