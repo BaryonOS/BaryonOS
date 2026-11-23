@@ -62,6 +62,10 @@ const EV_ADMIN_BAD_CALLER: u64 = 416;
 const RANDOM_DESCRIPTOR: u64 = u64::from_le_bytes(*b"NOSRNG01");
 const RANDOM_REPLY_POLLS: usize = 4096;
 const RANDOM_REPLY_TICKS: u64 = 100;
+// B01-T2 requester-crash startup words (see kernel keyring.rs CRASH_ROLE).
+const CASE_REQUESTER_CRASH: u64 = 5;
+const CRASH_ROLE: u64 = 424;
+const RELEASE: u64 = 432;
 
 /// Recovery and persistence ingress. Only the single manifest-named
 /// caller (a supervisor/recovery agent) may use it, and it dispatches
@@ -489,6 +493,22 @@ fn main() -> ! {
         ReceiveEndpoint::from_handle(handle(support::word(80))),
     ];
     let reply_to = SendEndpoint::from_handle(handle(support::word(88)));
+    if support::word(112) == CASE_REQUESTER_CRASH {
+        if support::word(CRASH_ROLE) == 1 {
+            // Labelled B01 fault injection: die with one real request pending.
+            if native::entropy_request(broker.source, 256).is_err() {
+                startup_error(11);
+            }
+            // SAFETY: ud2 raises #UD without touching memory, the stack or
+            // registers; the kernel terminates this process and never resumes it.
+            unsafe { core::arch::asm!("ud2", options(noreturn)) }
+        }
+        // Service A starts only after the kernel verified the quarantine.
+        while support::word(RELEASE) == 0 {
+            tick();
+            let _ = native::yield_now();
+        }
+    }
     let mut random = random_ingress(&ingress, reply_to);
     let mut admin = admin_ingress(&ingress, reply_to);
     // The administrative and RANDOM ingresses never share an endpoint handle.
