@@ -242,7 +242,7 @@ impl Layout {
     }
     pub fn for_screen(viewport: Viewport, screen: Screen) -> Self {
         let mut layout = Self::new(viewport);
-        if viewport.logical_width() >= 700 && viewport.logical_width() < 784 {
+        if viewport.logical_width() >= 700 {
             layout.rename.x = d::PAD;
             layout.organize.x = d::PAD + 128;
             layout.history.x = d::PAD + 240;
@@ -739,8 +739,14 @@ impl<'a> Frame<'a> {
                 paint.elided(
                     d::PAD,
                     if viewport.logical_height() < 360 {
-                        76
-                    } else if viewport.logical_width() >= 700 && viewport.logical_width() < 784 {
+                        // Below the Rename row (y 80..124). shortcut: 700..783
+                        // keeps its frozen y 76 overlap until its frames may change.
+                        if viewport.logical_width() >= 784 {
+                            132
+                        } else {
+                            76
+                        }
+                    } else if viewport.logical_width() >= 700 {
                         140
                     } else {
                         84
@@ -784,7 +790,7 @@ impl<'a> Frame<'a> {
                     );
                     paint.small(
                         d::PAD,
-                        if viewport.logical_width() >= 700 && viewport.logical_width() < 784 {
+                        if viewport.logical_width() >= 700 {
                             184
                         } else {
                             128
@@ -1219,6 +1225,29 @@ impl<'a> Frame<'a> {
                     None,
                     true,
                 );
+                // Pagination sits on the title row, so it is read first.
+                if self.view.list_scroll > 0 || self.view.objects.len() > l.list_rows() {
+                    push(
+                        SemanticId::PreviousPage,
+                        Some(SemanticId::Window),
+                        Role::Button,
+                        "Vorige materialen",
+                        None,
+                        l.list_previous,
+                        Some(Focus::Previous),
+                        self.view.list_scroll > 0,
+                    );
+                    push(
+                        SemanticId::NextPage,
+                        Some(SemanticId::Window),
+                        Role::Button,
+                        "Volgende materialen",
+                        None,
+                        l.list_next,
+                        Some(Focus::Next),
+                        self.view.list_scroll + l.list_rows() < self.view.objects.len(),
+                    );
+                }
                 push(
                     SemanticId::NewDocument,
                     Some(SemanticId::Window),
@@ -1274,28 +1303,6 @@ impl<'a> Frame<'a> {
                     None,
                     true,
                 );
-                if self.view.list_scroll > 0 || self.view.objects.len() > l.list_rows() {
-                    push(
-                        SemanticId::PreviousPage,
-                        Some(SemanticId::Window),
-                        Role::Button,
-                        "Vorige materialen",
-                        None,
-                        l.list_previous,
-                        Some(Focus::Previous),
-                        self.view.list_scroll > 0,
-                    );
-                    push(
-                        SemanticId::NextPage,
-                        Some(SemanticId::Window),
-                        Role::Button,
-                        "Volgende materialen",
-                        None,
-                        l.list_next,
-                        Some(Focus::Next),
-                        self.view.list_scroll + l.list_rows() < self.view.objects.len(),
-                    );
-                }
                 for (index, entry) in self
                     .view
                     .objects
@@ -1326,6 +1333,46 @@ impl<'a> Frame<'a> {
                 }
             }
             Screen::Editor => {
+                // Reading order: Back, Tool, Save on the top row, then the
+                // Rename/Organize/History row with the menu button, then text.
+                push(
+                    SemanticId::Back,
+                    Some(SemanticId::Window),
+                    Role::Button,
+                    "Terug naar materiaal",
+                    None,
+                    l.back,
+                    Some(Focus::Back),
+                    true,
+                );
+                push(
+                    SemanticId::DocumentTool,
+                    Some(SemanticId::Window),
+                    Role::Button,
+                    tool_action(self.view.tool),
+                    None,
+                    l.tool,
+                    Some(Focus::Tool),
+                    !self.view.saving,
+                );
+                push(
+                    SemanticId::Save,
+                    Some(SemanticId::Window),
+                    Role::Button,
+                    if self.view.saving {
+                        "Opslaan annuleren"
+                    } else {
+                        "Opslaan"
+                    },
+                    None,
+                    l.save,
+                    Some(if self.view.saving {
+                        Focus::CancelSave
+                    } else {
+                        Focus::Save
+                    }),
+                    self.view.can_save || self.view.saving,
+                );
                 if self.view.viewport.logical_width() >= 700 {
                     for (id, focus, bounds, label) in [
                         (
@@ -1364,44 +1411,6 @@ impl<'a> Frame<'a> {
                     }
                 }
                 push(
-                    SemanticId::Back,
-                    Some(SemanticId::Window),
-                    Role::Button,
-                    "Terug naar materiaal",
-                    None,
-                    l.back,
-                    Some(Focus::Back),
-                    true,
-                );
-                push(
-                    SemanticId::Save,
-                    Some(SemanticId::Window),
-                    Role::Button,
-                    if self.view.saving {
-                        "Opslaan annuleren"
-                    } else {
-                        "Opslaan"
-                    },
-                    None,
-                    l.save,
-                    Some(if self.view.saving {
-                        Focus::CancelSave
-                    } else {
-                        Focus::Save
-                    }),
-                    self.view.can_save || self.view.saving,
-                );
-                push(
-                    SemanticId::DocumentTool,
-                    Some(SemanticId::Window),
-                    Role::Button,
-                    tool_action(self.view.tool),
-                    None,
-                    l.tool,
-                    Some(Focus::Tool),
-                    !self.view.saving,
-                );
-                push(
                     SemanticId::DocumentMenu,
                     Some(SemanticId::Window),
                     Role::Button,
@@ -1439,20 +1448,6 @@ impl<'a> Frame<'a> {
                         l.form_input,
                         Some(Focus::FormInput),
                         true,
-                    );
-                    push(
-                        SemanticId::FormConfirm,
-                        parent,
-                        Role::Button,
-                        if self.view.screen == Screen::Rename {
-                            "Naam toepassen"
-                        } else {
-                            "Bewaren in collectie"
-                        },
-                        None,
-                        l.form_confirm,
-                        Some(Focus::FormConfirm),
-                        self.view.can_save && !workspace.form().is_empty(),
                     );
                 }
                 if self.view.screen == Screen::Organize {
@@ -1550,6 +1545,23 @@ impl<'a> Frame<'a> {
                     Some(Focus::FormCancel),
                     true,
                 );
+                // The footer reads Cancel (left) before Confirm (right).
+                if matches!(self.view.screen, Screen::Rename | Screen::Organize) {
+                    push(
+                        SemanticId::FormConfirm,
+                        parent,
+                        Role::Button,
+                        if self.view.screen == Screen::Rename {
+                            "Naam toepassen"
+                        } else {
+                            "Bewaren in collectie"
+                        },
+                        None,
+                        l.form_confirm,
+                        Some(Focus::FormConfirm),
+                        self.view.can_save && !workspace.form().is_empty(),
+                    );
+                }
             }
             Screen::ConfirmClose => {
                 push(

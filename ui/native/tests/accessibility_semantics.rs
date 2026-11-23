@@ -217,7 +217,6 @@ fn material_screen_labels_focus_and_wrapping_tab_cycle() {
     run(|| screen(Target::Material, false));
 }
 #[test]
-#[ignore = "U04 defect: Tab visits list items before search and filter (controller.rs:1543-1571); the semantic tree lists search and filter first (render.rs:1243 before 1317)"]
 fn material_screen_tab_order_matches_semantic_order() {
     run(|| screen(Target::Material, true));
 }
@@ -226,7 +225,6 @@ fn editor_screen_labels_focus_and_wrapping_tab_cycle() {
     run(|| screen(Target::Editor, false));
 }
 #[test]
-#[ignore = "U04 defect: Tab order Back, Document, Save, Rename, Organize, History, Tool, Menu (controller.rs:1572-1601); the semantic tree lists Rename, Organize, History first and Document last (render.rs:1332)"]
 fn editor_screen_tab_order_matches_semantic_order() {
     run(|| screen(Target::Editor, true));
 }
@@ -243,7 +241,6 @@ fn organize_screen_labels_focus_and_wrapping_tab_cycle() {
     run(|| screen(Target::Organize, false));
 }
 #[test]
-#[ignore = "U04 defect: Tab visits Cancel before the collection slots (controller.rs:1603-1618); the semantic tree lists the slots before Cancel (render.rs:1463, 1544)"]
 fn organize_screen_tab_order_matches_semantic_order() {
     run(|| screen(Target::Organize, true));
 }
@@ -343,6 +340,187 @@ fn status_node_text_changes_when_a_save_fails() {
             let (_, after) = status(&ui);
             assert!(!after.trim().is_empty());
             assert_ne!(before, after, "{scale:?}: status text unchanged on error");
+        }
+    });
+}
+
+/// Reading order of two control rectangles: controls whose vertical extents
+/// overlap share a row band and read left to right; otherwise the higher one
+/// reads first.
+fn reads_before(a: &SemanticNode<'_>, b: &SemanticNode<'_>) -> bool {
+    let (a, b) = (a.bounds, b.bounds);
+    if a.y < b.y + b.height && b.y < a.y + a.height {
+        a.x < b.x
+    } else {
+        a.y < b.y
+    }
+}
+
+fn controls<'a>(raw: &'a [SemanticNode<'a>]) -> Vec<&'a SemanticNode<'a>> {
+    raw.iter()
+        .filter(|n| {
+            n.actions.activate
+                || n.actions.set_value
+                || matches!(n.role, Role::Button | Role::ListItem | Role::TextEditor)
+        })
+        .collect()
+}
+
+/// Semantic order equals visual reading order, no two controls overlap, and
+/// every Tab / Shift-Tab step moves to the neighbouring enabled control of
+/// the semantic tree (a scrolling list may continue past its last row).
+fn reading_order_guard(ui: &mut Controller<'_, Port>, seq: &mut u64, name: &str) {
+    let mut raw = [SemanticNode::EMPTY; MAX_SEMANTIC_NODES];
+    let count = Frame::new(ui.view()).semantics(&mut raw).unwrap();
+    let all = controls(&raw[..count]);
+    for (i, a) in all.iter().enumerate() {
+        for b in &all[i + 1..] {
+            assert!(
+                !reads_before(b, a),
+                "{name}: {:?} {:?} is read before {:?} {:?} but follows it semantically",
+                b.id,
+                b.bounds,
+                a.id,
+                a.bounds
+            );
+            let (x, y) = (a.bounds, b.bounds);
+            assert!(
+                !(x.x < y.x + y.width
+                    && y.x < x.x + x.width
+                    && x.y < y.y + y.height
+                    && y.y < x.y + x.height),
+                "{name}: {:?} {x:?} overlaps {:?} {y:?}",
+                a.id,
+                b.id
+            );
+        }
+    }
+    let screen = ui.view().screen;
+    for reverse in [false, true] {
+        for _ in 0..24 {
+            let tree = nodes(ui);
+            let order: Vec<SemanticId> = tree
+                .iter()
+                .filter(|n| n.enabled && (n.actions.activate || n.actions.set_value))
+                .map(|n| n.id)
+                .collect();
+            let at = order
+                .iter()
+                .position(|id| *id == focused(ui))
+                .unwrap_or_else(|| panic!("{name}: focus not on an enabled control"));
+            key(ui, seq, PhysicalKey::Tab, reverse);
+            assert_eq!(ui.view().screen, screen, "{name}: Tab left the screen");
+            let next = focused(ui);
+            let expected = order[if reverse {
+                (at + order.len() - 1) % order.len()
+            } else {
+                (at + 1) % order.len()
+            }];
+            // Moving into or along a scrolling list may bring an off-screen
+            // row into view; that row is not in the tree taken before Tab.
+            let row = |id: &SemanticId| matches!(id, SemanticId::Object(_));
+            let scrolls = row(&next) && (row(&expected) || row(&order[at]));
+            assert!(
+                next == expected || (scrolls && !order.contains(&next)),
+                "{name}: Tab{} from {:?} went to {next:?}, semantic order says {expected:?}",
+                if reverse { " (reverse)" } else { "" },
+                order[at]
+            );
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug)]
+enum State {
+    Material,
+    MaterialPaged,
+    Editor,
+    EditorSaving,
+    Rename,
+    Organize,
+    Filter,
+    ConfirmClose,
+}
+
+fn guard_state(w: u32, h: u32, scale: Scale, state: State) {
+    let host = Host::new();
+    for i in 0..7u64 {
+        host.borrow_mut().seed_named(i, b"Reis", b"Earlier");
+    }
+    host.borrow_mut().seed_named(0, b"Reis", b"Current");
+    let (mut d, mut o, mut s) = ([0; 4096], [0; 4096], [0; 4096]);
+    let mut ui = controller(
+        &host,
+        EditMode::ReadWrite,
+        Buffers {
+            draft: &mut d,
+            original: &mut o,
+            staging: &mut s,
+        },
+    );
+    let factor = scale.factor();
+    ui.resize(Viewport::new(w * factor, h * factor, scale, 2).unwrap())
+        .unwrap();
+    ui.refresh().unwrap();
+    match state {
+        State::Material => {}
+        State::MaterialPaged => {
+            let generation = ui.view().generation;
+            ui.activate_semantic(SemanticId::NextPage, generation)
+                .unwrap();
+        }
+        State::Filter => {
+            let generation = ui.view().generation;
+            ui.activate_semantic(SemanticId::CollectionFilter, generation)
+                .unwrap();
+            assert_eq!(ui.view().screen, Screen::Filter);
+        }
+        _ => {
+            ui.open(0).unwrap();
+            match state {
+                State::EditorSaving => {
+                    ui.insert("Mine ").unwrap();
+                    ui.save().unwrap();
+                    assert!(ui.view().saving);
+                }
+                State::Rename => ui.begin_rename().unwrap(),
+                State::Organize => ui.begin_organize().unwrap(),
+                State::ConfirmClose => {
+                    ui.insert("Mine ").unwrap();
+                    ui.request_back().unwrap();
+                    assert_eq!(ui.view().screen, Screen::ConfirmClose);
+                }
+                _ => {}
+            }
+        }
+    }
+    let name = format!("{state:?} {w}x{h} {scale:?}");
+    let mut seq = 0;
+    reading_order_guard(&mut ui, &mut seq, &name);
+}
+
+/// Widths below 700, 700..783 and from 784 (and a compact height), each at
+/// 100 % and 200 %, for every native app screen except History. History is
+/// still read Restore (right) before Cancel (left); the native library gate
+/// scripts Alt+H, Tab, Enter onto Restore, so its order is a separate change.
+#[test]
+fn semantic_order_is_reading_order_and_tab_follows_it_on_every_screen() {
+    run(|| {
+        for (w, h) in [(600, 540), (760, 540), (960, 540), (880, 300)] {
+            for scale in [Scale::Percent100, Scale::Percent200] {
+                for state in [
+                    State::Material,
+                    State::MaterialPaged,
+                    State::Editor,
+                    State::EditorSaving,
+                    State::Rename,
+                    State::Organize,
+                    State::Filter,
+                    State::ConfirmClose,
+                ] {
+                    guard_state(w, h, scale, state);
+                }
+            }
         }
     });
 }

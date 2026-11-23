@@ -158,13 +158,15 @@ fn viewports() -> impl Iterator<Item = Viewport> {
 fn default_source_fingerprints() {
     // Frozen after integrating Veld with the current Horizon baseline. Includes
     // all 12 states per viewport, so high contrast must not alter default pixels.
+    // U04: the three viewports of 784 logical px or wider changed once, when
+    // the editor's Rename/Organize/History row moved off the Tool button.
     let expected = [
         0x7fe5bc0c2d85f1cd,
         0x65ea7749dfefb55e,
-        0x453d59211ecbefeb,
+        0x449678f8fab2a11f,
         0x54ad598f37ffa4be,
-        0x3258c89edd9da3f6,
-        0x96c9d12c6170d76a,
+        0xbb92471d095c325a,
+        0x92364f6b05d57c7a,
     ];
     let mut actual = [0; 6];
     for (index, viewport) in viewports().enumerate() {

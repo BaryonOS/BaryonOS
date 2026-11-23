@@ -541,9 +541,11 @@ fn menu_geometry_and_named_actions_are_stable_for_native_integration() {
                     width: 44,
                     height: 44,
                 },
+                // Keyboard menu follows the editor, which sits one control row
+                // lower at widths >= 700 (Rename/Organize/History row, U04).
                 Rect {
                     x: 44,
-                    y: 200,
+                    y: 256,
                     width: 248,
                     height: 208,
                 },
