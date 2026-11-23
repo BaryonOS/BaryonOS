@@ -33,7 +33,7 @@ STAT_REQUEST = ("        COLLECTION_STAT => {\n            base && h.revision ==
 
 # (id, file, exact text, replacement, suite). Each text occurs exactly once.
 MUTANTS = [
-    ("choose-unrelated-generations", TABLE, "if a.max(b) == a.min(b) + 1 {", "if true {", "rust"),
+    ("choose-unrelated-generations", TABLE, "if a.min(b).checked_add(1) == Some(a.max(b)) {", "if true {", "rust"),
     ("collection-clock-bound", TABLE,
      ".any(|(index, collection)| collection.revision > self.clocks[index / COLLECTIONS])",
      ".any(|_| false)", "rust"),
@@ -68,6 +68,22 @@ MUTANTS = [
     *[(f"collection-stat-request-{field}", WIRE, STAT_REQUEST, STAT_REQUEST.replace(f"\n                && {line}", ""),
        "rust") for field, line in (("length", "length == 0"), ("name-length", "h.name_length == 0"),
                                    ("count", "h.count == 0"))],
+    # S09 own-domain reads (docs/implementation/S09-OWN-DOMAIN-READS.md section 6).
+    ("domain-stat-request-base", WIRE, "        DOMAIN_STAT => {\n            base && h.revision == 0",
+     "        DOMAIN_STAT => {\n            h.revision == 0", "rust"),
+    ("domain-stat-global-generation", SERVICE, "self.table.clocks[domain],", "self.table.generation,", "rust"),
+    ("version-stat-prefix", SERVICE, "selector > entry.history_count || !prefix", "selector > entry.history_count",
+     "rust"),
+    ("version-stat-reply-revision", CLIENT,
+     "        wire::VERSION_STAT if request.name_length == 0 => {\n"
+     "            let (created, modified) = (get64(body, 64), get64(body, 72));\n"
+     "            h.revision == request.revision\n",
+     "        wire::VERSION_STAT if request.name_length == 0 => {\n"
+     "            let (created, modified) = (get64(body, 64), get64(body, 72));\n"
+     "            true\n", "rust"),
+    ("version-stat-name-reply-revision", CLIENT,
+     "        wire::VERSION_STAT => {\n            h.revision == request.revision\n",
+     "        wire::VERSION_STAT => {\n            true\n", "rust"),
     ("oracle-unrelated-generations", ORACLE, 'if newer["generation"] != older["generation"] + 1:', "if False:",
      "python"),
     ("oracle-modified-clock-bound", ORACLE, ' or e["modified"] > clocks[o // PER_DOMAIN]', "", "python"),

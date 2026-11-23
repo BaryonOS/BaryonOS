@@ -6,9 +6,15 @@ its host tests (`tests/test_volume_archive_v2.py`), a Rust reader
 (`walk_v2`/`verify_v2` in `services/volume/src/archive.rs`) checked against
 fixtures produced by the Python encoder
 (`services/volume/tests/fixtures/archive-v2/`), and an L1 `restore_native`
-host model tested against the real service (`services/volume/tests/archive_v2.rs`).
-There is **no writer**, no wire extension and nothing native. No v2 archive
-produced by `volume-core` has been parsed. This document makes **no claim of
+host model tested against the real service (`services/volume/tests/archive_v2.rs`),
+and since 19 November 2026 a **writer** (`export_v2` in
+`services/volume/src/archive.rs`) over two reviewed own-domain wire reads
+(DOMAIN_STAT, VERSION_STAT; [S09-OWN-DOMAIN-READS.md](S09-OWN-DOMAIN-READS.md)).
+Writer output built through the real service is accepted by the Rust reader
+and, as committed fixtures (`services/volume/tests/fixtures/archive-v2-written/`),
+by the independent Python reader with values derived from the source table
+(`tests/test_volume_archive_v2_written.py`), and round-trips through
+`restore_native`. Everything is host-only; nothing native was run. This document makes **no claim of
 recovery fidelity**; it defines what a v2 archive records and what a reader must refuse.
 Format v1 ([S09-BACKUP-ARCHIVE.md](S09-BACKUP-ARCHIVE.md)) and its restore rule
 remain the only implemented recovery path and are unchanged.
@@ -402,17 +408,18 @@ never feeds them into `touch` (`service.rs:603-618`).
 
 ## 8. Not done here (later steps)
 
-- Wire extensions (step 2): the own domain clock and history version names are
-  not exposed today, so **no writer can fill a v2 archive yet**; the fields
-  exist in the format only. Two caveats from the fidelity analysis (3.3)
-  apply: exposing a domain's own clock to that domain does not appear to
-  contradict the cross-domain property in `service.rs:591-593` (a domain
-  cannot observe how many commits another domain makes), but this needs
-  review; and the proposed STAT history extension discloses the caller's own
-  retained history after a DELETE, which R2 limits to content-free records and needs separate review.
+- Wire extensions (step 2): **done on host.** DOMAIN_STAT returns the
+  caller's own clock and generation (never the global generation);
+  VERSION_STAT returns stamps of any own slot and names only within a present
+  object's consecutive-revision prefix, so no pre-delete version is named
+  (independent AI security review, not a human audit; see
+  S09-OWN-DOMAIN-READS section 8). The writer exports with `ACCOUNTED` set,
+  `TOMBSTONES` clear, content-free records only for absent slots with a
+  non-zero revision and deleted collections (S9), and only the
+  consecutive-revision prefix of each present object.
 - Replays of 25 to 40 chunks are refused with `Full` even when they would
   fit (section 4.3); lifting that needs a reviewed free-count read.
-- Writer (`export` with a v2 selector), native reader dispatch in `walk`, a v2
+- Native writer and reader dispatch in `walk`, a v2
   range adapter for `DiskSource`, native QEMU stage, and L2 (table v3, INSTALL, STAT extension, recovery and crash tests).
 - The destination range size of PR #396 has not been checked against
   966 sectors.

@@ -1,0 +1,2 @@
+*.bin binary
+manifest.txt text eol=lf

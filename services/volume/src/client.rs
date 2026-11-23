@@ -123,6 +123,26 @@ pub fn validate_reply(request: &Header, body: &[u8; SIZE], epoch: u64) -> Result
                     length == 0
                 }
         }
+        // Own clock in `aux`, own generation in `revision`; no commit, no sum.
+        wire::DOMAIN_STAT => bare && h.count == 0 && (h.aux != 0 || h.revision == 0),
+        wire::VERSION_STAT if request.name_length == 0 => {
+            let (created, modified) = (get64(body, 64), get64(body, 72));
+            h.revision == request.revision
+                && length == 16
+                && h.name_length == 0
+                && h.aux == 0
+                && h.count < 2
+                && created != 0
+                && created <= modified
+        }
+        wire::VERSION_STAT => {
+            h.revision == request.revision
+                && h.count == 0
+                && h.name_length as usize == length
+                && named(body, length)
+                && h.aux != 0
+                && h.aux < h.revision
+        }
         wire::ABORT | wire::SHUTDOWN => {
             h.revision == request.revision && bare && h.count == 0 && h.aux == 0
         }
@@ -201,6 +221,25 @@ pub struct Stat {
     pub collection: u8,
     pub history_count: usize,
     pub history: [HistoryInfo; HISTORY],
+}
+
+/// VERSION_STAT reply. Selector 0: `present`, `created`, `modified`.
+/// Selector `s >= 1`: `version_revision` and the name of history version `s`.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub struct VersionStat {
+    pub revision: u64,
+    pub present: bool,
+    pub created: u64,
+    pub modified: u64,
+    pub version_revision: u64,
+    pub name_length: usize,
+    pub name: [u8; NAME],
+}
+
+impl VersionStat {
+    pub fn name(&self) -> &[u8] {
+        &self.name[..self.name_length]
+    }
 }
 
 /// One collection of the caller's domain as reported by COLLECTION_STAT.
@@ -537,6 +576,45 @@ impl<T: Transport> Client<T> {
             name_length: length,
             name,
         })
+    }
+
+    /// The caller's own `(generation, clock)`; allowed on a read-only mount.
+    /// An older service answers `NoSys`.
+    pub fn domain_stat(&mut self, domain: usize) -> Result<(u64, u64), Status> {
+        let object = (domain * PER_DOMAIN) as u64;
+        let header = Header::new(wire::DOMAIN_STAT, self.fresh(), self.epoch, object);
+        let (reply, _) = self.exchange(&header, &[])?;
+        Self::status(&reply)?;
+        Ok((reply.revision, reply.aux))
+    }
+
+    /// VERSION_STAT of `object` at object `revision` (see [`VersionStat`]).
+    /// Returns `Err((NotFound, revision))` like STAT.
+    pub fn version_stat(
+        &mut self,
+        object: u64,
+        revision: u64,
+        selector: usize,
+    ) -> Result<VersionStat, (Status, u64)> {
+        let mut header = Header::new(wire::VERSION_STAT, self.fresh(), self.epoch, object);
+        header.revision = revision;
+        header.name_length = selector as u32;
+        let (reply, body) = self.exchange(&header, &[]).map_err(|status| (status, 0))?;
+        Self::status(&reply).map_err(|status| (status, reply.revision))?;
+        let mut out = VersionStat {
+            revision: reply.revision,
+            ..VersionStat::default()
+        };
+        if selector == 0 {
+            out.present = reply.count == 1;
+            out.created = get64(&body, 64);
+            out.modified = get64(&body, 72);
+        } else {
+            out.version_revision = reply.aux;
+            out.name_length = reply.length as usize;
+            out.name[..out.name_length].copy_from_slice(wire::data(&body, out.name_length));
+        }
+        Ok(out)
     }
 
     /// Apply up to four sub-operations atomically. Returns the domain change
