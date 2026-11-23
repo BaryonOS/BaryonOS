@@ -296,8 +296,12 @@ clock bounds its own revisions and stamps (`table.rs:644-666`).
   domain's committed plus staged chunks within `QUOTA`). All WRITEs come
   first, then COLLECTION creates, then META, so a refusal or a failed first
   BEGIN changes nothing in the domain, and its report counts every commit
-  of this restore (`committed`) so a caller can tell "refused, unchanged by
-  this restore" from "failed, used". `committed == 0` does not mean the
+  of this restore that it confirmed (`committed`) so a caller can tell
+  "refused, unchanged by this restore" from "failed, used". The count is a
+  lower bound after `Unknown` (a lost reply that read-back could not
+  confirm) or `Protocol` (a malformed reply): that request may have
+  committed even at `committed == 0`, so the domain must then be treated as
+  possibly used, and `never_used` decides on a retry. `committed == 0` does not mean the
   domain is never used: `Stale` reports an already used domain with zero.
   The first mutation is a BEGIN only when a version is replayed; a
   token-bound upload staged in the domain then makes it `Busy` before any
