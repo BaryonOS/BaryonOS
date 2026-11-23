@@ -10,7 +10,7 @@ Specification: `docs/implementation/NATIVE-DISPI-MODESET.md`.
 Environment: local QEMU 10.2.1 (Debian 1:10.2.1+ds-1ubuntu3.3) with machine
 type `pc-q35-8.2`, TCG single thread, `qemu64`, 1 CPU, 256 MiB; OVMF
 `/usr/share/OVMF/OVMF_CODE_4M.fd` (sha256 `874f15a7…58aa7`). Hosted CI pins
-QEMU 8.2 and has **not** run this fixture. `tools/build.py` invokes Rust
+QEMU 8.2; its run of this fixture is recorded under "Hosted run" below. `tools/build.py` invokes Rust
 1.100.0 (`cargo +1.100.0 build`); `fmt` used Rust 1.90.0.
 `NOS_BUILD_DIR=build/h03t4fix` (ignored, inside the checkout),
 `NOS_QEMU_MACHINE=pc-q35-8.2`, `CARGO_TARGET_DIR=$HOME/.cache/baryon-h03t4/target`.
@@ -120,5 +120,14 @@ is refused instead of wrapping. The four allowlisted modes are unaffected. After
 change, the paired `native-dispi-probe` build was rerun locally on QEMU 10.2.1 with
 `-M pc-q35-8.2` and TCG: positive raw 33 with `DISPI:PASS`, negative raw 35 with
 `DISPI:REFUSED:DEVICE`, and `tools.tests.test_dispi` OK. The committed artifacts above
-remain bound to `91bd4135`. The hosted `native-display-input.yml` run on the PR head is
-the acceptance evidence.
+remain bound to `91bd4135`.
+
+## Hosted run
+
+`native-display-input.yml`, job `native-display-input`, step "H03 DISPI mode set
+(positive and refused)" on head `0f2b9881`: conclusion **success**, with
+`DISPI positive raw=33; passed=True` and `DISPI negative raw=35; passed=True` in the job
+log (QEMU 8.2 on the hosted runner). Run:
+<https://github.com/BaryonOS/BaryonOS/actions/runs/45192411259>. The raw serial and QMP
+artifacts of that run are not committed here. This hosted result covers the DISPI
+step only. It is not a review of other required checks or a merge decision.

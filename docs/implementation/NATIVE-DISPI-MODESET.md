@@ -109,7 +109,7 @@ EDID or monitor timing, mode switching by ring-3 services, the compositor and
   <https://gitlab.com/qemu-project/qemu/-/blob/v8.2.2/include/hw/display/bochs-vbe.h>.
 
 These sources describe the emulated device; they are not execution evidence.
-Local and hosted execution evidence is listed under the evidence boundary.
+Execution evidence is recorded in docs/verification/h03-dispi-modeset-20261123/: the committed artifacts are local, and the hosted run is recorded there separately.
 
 ## Refusal grammar
 
