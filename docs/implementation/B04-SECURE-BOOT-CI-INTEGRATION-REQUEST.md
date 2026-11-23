@@ -26,13 +26,23 @@ decides whether and where to add it.
      `build/run/secure-boot-<case>-<id>/`, holding the final `result.json`
      (including the Secure Boot proof verdict), `serial.txt` and `stderr.txt`;
   4. upload them with `preserve-evidence`, one checkout-relative pattern per
-     line, in the format of the existing B03 step:
+     line, in the format of the existing B03 step. The step must run under
+     `if: ${{ always() }}`, as the B03 upload does, because step 3 exits
+     non-zero on a failed case and that failing run is the one whose evidence
+     is needed:
 
      ```yaml
-     path: |
-       build/run/secure-boot-*/result.json
-       build/run/secure-boot-*/serial.txt
-       build/run/secure-boot-*/stderr.txt
+     - name: Preserve B04 secure-boot reports
+       if: ${{ always() }}
+       uses: ./.github/actions/preserve-evidence
+       with:
+         job-status: ${{ job.status }}
+         full-evidence: ${{ github.event_name == 'workflow_dispatch' && inputs.full_evidence }}
+         name: b04-secure-boot-reports
+         path: |
+           build/run/secure-boot-*/result.json
+           build/run/secure-boot-*/serial.txt
+           build/run/secure-boot-*/stderr.txt
      ```
 - Duration: about 6–8 minutes for the three refusal cases (120 s host timeout
   each) plus the image build.
