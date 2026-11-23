@@ -7,7 +7,7 @@ publish = false
 
 [dependencies]
 nieuw-os-nas-core = { version = "=0.1.0", path = "../native-core" }
-volume-core = { version = "=0.1.0", path = "../../volume" }
+volume-core = { version = "=0.1.0", path = "../../volume", default-features = false }
 
 [workspace]
 members = ["."]

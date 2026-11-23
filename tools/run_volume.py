@@ -9,7 +9,11 @@ and the D6(a) user export of that archive to ustar, read back with Python tarfil
 The archive-disk stages attach a test-only second virtio-blk disk at 00:06.0:
 export to it, a cold restore from it alone, an absent and a too-small disk, a
 grant of the wrong disk, and a power cut during an export over an older
-archive followed by a cold verify."""
+archive followed by a cold verify. The S09 L2 install stages are read with the
+v3-capable table reader (volume_disk.choose(allow_v3=True)): an INSTALL of
+fixture versions and an INSTALL_COLLECTION, their cold read-only re-check, and a
+power cut inside the INSTALL_COMMIT table write, after which the object must be
+exactly never-used or fully installed."""
 from __future__ import annotations
 import argparse
 from datetime import datetime, timezone
@@ -44,9 +48,10 @@ FEATURE = {"normal": "native-volume", "recover": "test-volume-recover",
            "archive-ustar": "test-volume-archive-ustar",
            **{case: f"test-volume-{case}" for case in (
                "archive-disk-export", "archive-disk-restore", "archive-disk-absent", "archive-disk-small",
-               "archive-disk-wrong", "archive-disk-cut", "archive-disk-verify")}}
+               "archive-disk-wrong", "archive-disk-cut", "archive-disk-verify",
+               "install", "install-recover", "install-cut")}}
 CUT_MARKER = {"cut-data": "VOLUME:CUT:DATA", "cut-table": "VOLUME:CUT:TABLE", "cut-txn": "VOLUME:CUT:TXN",
-              "archive-disk-cut": "VOLUME:CUT:ARCHIVE"}
+              "archive-disk-cut": "VOLUME:CUT:ARCHIVE", "install-cut": "VOLUME:CUT:INSTALL"}
 CASE_MARKER = {"normal": "NORMAL", "recover": "RECOVER", "recover-cut": "RECOVER_CUT",
                "corrupt": "CORRUPT", "foreign": "CORRUPT", "archive-export": "ARCHIVE_EXPORT",
                "archive-restore": "ARCHIVE_RESTORE", "archive-corrupt": "ARCHIVE_CORRUPT",
@@ -54,8 +59,25 @@ CASE_MARKER = {"normal": "NORMAL", "recover": "RECOVER", "recover-cut": "RECOVER
                "archive-ustar": "ARCHIVE_USTAR", "archive-disk-export": "ARCHIVE_DISK_EXPORT",
                "archive-disk-restore": "ARCHIVE_DISK_RESTORE", "archive-disk-absent": "ARCHIVE_DISK_ABSENT",
                "archive-disk-small": "ARCHIVE_DISK_SMALL", "archive-disk-wrong": "ARCHIVE_DISK_WRONG",
-               "archive-disk-verify": "ARCHIVE_DISK_VERIFY"}
-READ_ONLY = ("recover", "recover-cut", "corrupt", "foreign")
+               "archive-disk-verify": "ARCHIVE_DISK_VERIFY", "install": "INSTALL",
+               "install-recover": "INSTALL_RECOVER"}
+READ_ONLY = ("recover", "recover-cut", "corrupt", "foreign", "install-recover")
+# Cases that always start from a fresh image; every other case needs the image
+# its allowed parent left.
+FRESH = ("normal", "cut-data", "cut-table", "cut-txn", "corrupt", "foreign", "install", "install-cut")
+ALLOWED_PARENTS = frozenset({
+    ("recover", "normal"), ("recover-cut", "cut-data"),
+    ("recover-cut", "cut-table"), ("recover-cut", "cut-txn"),
+    ("archive-export", "recover"), ("archive-restore", "archive-export"),
+    ("archive-corrupt", "archive-export"), ("archive-conflict", "archive-export"),
+    ("archive-full", "archive-export"), ("archive-ustar", "archive-export"),
+    ("archive-disk-export", "archive-export"), ("archive-disk-absent", "archive-export"),
+    ("archive-disk-small", "archive-export"),
+    ("archive-disk-restore", "archive-disk-export"),
+    ("archive-disk-wrong", "archive-disk-export"),
+    ("archive-disk-cut", "archive-disk-export"),
+    ("archive-disk-verify", "archive-disk-cut"),
+    ("install-recover", "install"), ("recover-cut", "install-cut")})
 MAX_TIMEOUT = 600
 # S09 archive range; must equal ARCHIVE_FIRST_SECTOR/ARCHIVE_SECTORS in the
 # kernel volume profile and ARCHIVE_SECTORS in the portal app.
@@ -116,6 +138,24 @@ COLLECTIONS = {(0, 1): "Werk", (0, 2): "Privé", (1, 1): "Fotos"}
 # 57 commits by A and 27 by B; A holds 24 chunks and B 38 (history included).
 GENERATION, CHUNKS_USED = 84, 62
 DOMAIN_CLOCKS = [57, 27]
+
+# S09 L2 INSTALL fixture, mirrored by INSTALL_* in sdk/examples/volume-docs/src/app.rs
+# (tests/test_volume_runner.py checks both copies agree). Domain 0 first installs
+# collection INSTALL_COLLECTION = (index, name, origin), then object INSTALL_OBJECT
+# with INSTALL_VERSIONS = ((name, length), ...), current first: version i has
+# revision n - i, content fixture(INSTALL_OBJECT, n - i, length) and origin
+# INSTALL_ORIGIN_0 - i; INSTALL_ORIGIN = (origin_revision, created, modified);
+# INSTALL_META = (tags, kind, collection).
+INSTALL_OBJECT = 0
+INSTALL_VERSIONS = (("Versie drie", 5000), ("Versie twee", 300), ("Versie een", 0))
+INSTALL_ORIGIN = (40, 7, 31)
+INSTALL_ORIGIN_0 = 40
+INSTALL_META = (0x5A, 2, 1)
+INSTALL_COLLECTION = (1, "Import", 12)
+# Domain-0 commits of that flow (INSTALL_COLLECTION, INSTALL_COMMIT): the
+# generation and domain-0 clock of the installed state; one less is never-used.
+INSTALL_COMMITS = 2
+INSTALL_CASES = ("install", "install-recover", "install-cut")
 
 
 def numbers(stdout: str) -> dict[str, int]:
@@ -217,7 +257,7 @@ def run_volume(case: str, volume_dir: Path | None = None, *, timeout=MAX_TIMEOUT
     shutil.copytree(BUILD / "esp", run_dir / "esp")
     shutil.copy2(variables, run_dir / "OVMF_VARS.fd")
     shutil.copy2(code, run_dir / "OVMF_CODE.fd")
-    if case in ("normal", "cut-data", "cut-table", "cut-txn", "corrupt", "foreign"):
+    if case in FRESH:
         if volume_dir is not None:
             raise ValueError("writable and corrupt cases always start from a fresh image")
         volume_dir = BUILD / "run" / f"volume-image-{uuid.uuid4().hex[:10]}"
@@ -238,19 +278,9 @@ def run_volume(case: str, volume_dir: Path | None = None, *, timeout=MAX_TIMEOUT
                 volume_dir / "archive.img"):
             raise ValueError("the archive disk differs from the one left by the previous stage")
     parent = None
-    if case not in ("normal", "cut-data", "cut-table", "cut-txn", "corrupt", "foreign"):
+    if case not in FRESH:
         parent = last["case"]
-        if (case, parent) not in (("recover", "normal"), ("recover-cut", "cut-data"),
-                                  ("recover-cut", "cut-table"), ("recover-cut", "cut-txn"),
-                                  ("archive-export", "recover"), ("archive-restore", "archive-export"),
-                                  ("archive-corrupt", "archive-export"), ("archive-conflict", "archive-export"),
-                                  ("archive-full", "archive-export"), ("archive-ustar", "archive-export"),
-                                  ("archive-disk-export", "archive-export"), ("archive-disk-absent", "archive-export"),
-                                  ("archive-disk-small", "archive-export"),
-                                  ("archive-disk-restore", "archive-disk-export"),
-                                  ("archive-disk-wrong", "archive-disk-export"),
-                                  ("archive-disk-cut", "archive-disk-export"),
-                                  ("archive-disk-verify", "archive-disk-cut")):
+        if (case, parent) not in ALLOWED_PARENTS:
             raise ValueError(f"{case} cannot follow {parent}")
     archive_flip = archive_reference = None
     disk1 = None
@@ -385,6 +415,9 @@ def run_volume(case: str, volume_dir: Path | None = None, *, timeout=MAX_TIMEOUT
                 if "accepted" in str(error):
                     raise
                 oracle = {"refused": str(error)}
+        elif case in INSTALL_CASES or (case, parent) == ("recover-cut", "install-cut"):
+            oracle = analyse_v3(image.read_bytes())
+            check_install(case, oracle, evidence)
         elif case.startswith("archive-"):
             oracle = check_archive(case, before_bytes, image.read_bytes(), evidence, archive_reference)
         else:
@@ -874,6 +907,121 @@ def check_state(case: str, oracle, evidence, parent: str | None = None):
                 raise ValueError("guest recovered a different state than the oracle")
             if [evidence["VOLUME:A:DIGEST:"], evidence["VOLUME:B:DIGEST:"]] != oracle["digests"]:
                 raise ValueError("guest-reported digests differ from the disk oracle")
+
+
+def analyse_v3(image: bytes):
+    """volume_disk.analyse (frozen v2 reader) with volume_disk.choose(allow_v3=True),
+    plus the table format and the v3 provenance of every object and collection
+    (zero in a v2 table). Same image-size and outside-scope canary checks."""
+    if len(image) != volume_disk.IMAGE_SECTORS * SECTOR:
+        raise ValueError("image size changed")
+    first, count = volume_disk.FIRST, volume_disk.VOLUME_SECTORS
+    outside = [i for i in range(volume_disk.IMAGE_SECTORS)
+               if not first <= i < first + count and image[i * SECTOR:(i + 1) * SECTOR] != volume_disk.canary(i)]
+    if outside:
+        raise ValueError(f"sectors outside the granted scope changed: {outside[:8]}")
+    volume = image[first * SECTOR:(first + count) * SECTOR]
+    table = volume_disk.choose(volume, allow_v3=True)
+    objects = []
+    for obj, entry in enumerate(table["entries"]):
+        versions = []
+        for version in volume_disk.retained(entry):
+            data = volume_disk.content(volume, version)
+            written = next((r for r in range(version["revision"], 0, -1)
+                            if data == volume_disk.fixture(obj, r, version["length"])), None)
+            if written is None:
+                raise ValueError(f"object {obj} version {version['revision']} is not a written fixture")
+            versions.append({"revision": version["revision"], "length": version["length"],
+                             "name": version["name"].decode("utf-8"), "content_revision": written,
+                             "chunks": version["chunks"]})
+        objects.append({"object": obj, "revision": entry["revision"], "present": entry["present"],
+                        "collection": entry["collection"], "tags": entry["tags"], "kind": entry["kind"],
+                        "created": entry["created"], "modified": entry["modified"],
+                        "request_id": entry["request_id"], "versions": versions,
+                        "installed": entry.get("installed", 0), "origin": list(entry.get("origin", (0, 0, 0))),
+                        "origins": list(entry.get("origins", [0] * (volume_disk.HISTORY + 1)))})
+    collections = [{"index": i % volume_disk.COLLECTIONS + 1, "domain": i // volume_disk.COLLECTIONS,
+                    "present": c["present"], "revision": c["revision"], "name": c["name"].decode("utf-8"),
+                    "origin": c.get("origin", 0)}
+                   for i, c in enumerate(table["collections"])]
+    scans = [volume_disk.slot_states(volume, slot) for slot in range(2)]
+    return {"format": table["format"], "generation": table["generation"], "clocks": table["clocks"],
+            "objects": objects, "collections": collections,
+            "chunks_used": sum(len(volume_disk.unique_chunks(e)) for e in table["entries"]),
+            "slots": [[g if kind == "valid" else (0 if kind == "zero" else -1) for kind, g, _ in states]
+                      for _, states in scans],
+            "slot_markers": [volume_disk.is_format_marker(sectors[0]) for sectors, _ in scans],
+            "digests": [volume_disk.domain_digest(table, d) for d in range(volume_disk.DOMAINS)]}
+
+
+def install_state(oracle, installed: bool):
+    """Exactly the state after the fixture INSTALL_COLLECTION, then (when
+    `installed`) the fixture INSTALL; every value derives from INSTALL_*."""
+    n = len(INSTALL_VERSIONS)
+    commits = INSTALL_COMMITS if installed else INSTALL_COMMITS - 1
+    if (oracle["format"], oracle["generation"], oracle["clocks"]) != (3, commits, [commits, 0]):
+        raise ValueError(f"install table {oracle['format']}/{oracle['generation']}/{oracle['clocks']}")
+    index, name, origin = INSTALL_COLLECTION
+    check_collections(oracle, {(0, index): name})
+    if [c["origin"] for c in oracle["collections"]] != [
+            origin if (c["domain"], c["index"]) == (0, index) else 0 for c in oracle["collections"]]:
+        raise ValueError("collection origins differ from the install fixture")
+    clock = oracle["clocks"][0]
+    tags, kind, collection = INSTALL_META
+    for item in oracle["objects"]:
+        if item["object"] != INSTALL_OBJECT or not installed:
+            if item["present"] or item["revision"] or item["installed"] or any(item["origin"]) \
+                    or any(item["origins"]):
+                raise ValueError(f"object {item['object']} is not never-used")
+            continue
+        # Rule R: revision n, created == modified == the commit's own clock.
+        found = (item["present"], item["revision"], item["installed"], item["created"], item["modified"],
+                 item["collection"], item["tags"], item["kind"], tuple(item["origin"]), item["origins"])
+        if found != (True, n, n, clock, clock, collection, tags, kind, INSTALL_ORIGIN,
+                     [INSTALL_ORIGIN_0 - i for i in range(n)]):
+            raise ValueError(f"installed object mismatch: {found}")
+        versions = [(v["revision"], v["name"], v["length"], v["content_revision"]) for v in item["versions"]]
+        if versions != [(n - i, vname, length, n - i) for i, (vname, length) in enumerate(INSTALL_VERSIONS)]:
+            raise ValueError(f"installed versions mismatch: {versions}")
+    chunks = sum(-(-length // volume_disk.CHUNK) for _, length in INSTALL_VERSIONS) if installed else 0
+    if oracle["chunks_used"] != chunks:
+        raise ValueError(f"install chunk usage {oracle['chunks_used']}")
+
+
+def check_install(case: str, oracle, evidence):
+    """install and install-recover: the installed state, its previous table
+    copy complete. install-cut: never-used with a torn INSTALL_COMMIT copy.
+    recover-cut after install-cut: exactly one of the two."""
+    if case == "recover-cut":
+        installed = oracle["generation"] == INSTALL_COMMITS
+    else:
+        installed = case != "install-cut"
+    install_state(oracle, installed)
+    g = oracle["generation"]
+    if installed:
+        if oracle["slots"][(g + 1) % 2] != [g - 1] * volume_disk.TABLE_SECTORS:
+            raise ValueError("the previous table copy of the install is not complete")
+    else:
+        oracle["torn_sectors"] = torn_sectors(oracle, True)
+    oracle["install_outcome"] = "installed" if installed else "never-used"
+    if case == "install-cut":
+        return
+    item = oracle["objects"][INSTALL_OBJECT]
+    commits = INSTALL_COMMITS if case == "install" else 0
+    want = {"VOLUME:A:RECOVERED_REVISION:": item["revision"],
+            "VOLUME:A:RECOVERED_COLLECTION:": item["collection"],
+            "VOLUME:A:RECOVERED_SECOND:": item["installed"],
+            "VOLUME:SERVICE:GENERATION:": g,
+            # install: exactly the two publishes; the Stale and Range refusals wrote none.
+            "VOLUME:SERVICE:COMMITS:": commits,
+            "VOLUME:SERVICE:TABLE_WRITES:": commits,
+            # Broker view of the table region: the one-sector format marker of the
+            # fresh image plus one full table copy per publish, nothing else.
+            "VOLUME:BROKER:TABLE_SECTOR_WRITES:": 1 + commits * volume_disk.TABLE_SECTORS if commits else 0}
+    if {key: evidence[key] for key in want} != want:
+        raise ValueError(f"guest install evidence differs from the oracle: {want}")
+    if [evidence["VOLUME:A:DIGEST:"], evidence["VOLUME:B:DIGEST:"]] != oracle["digests"]:
+        raise ValueError("guest-reported digests differ from the disk oracle")
 
 
 if __name__ == "__main__":

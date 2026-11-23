@@ -13,7 +13,7 @@
 //! data and must only go to a destination the user chose (B02/P01 open).
 //! Only current versions are exported; local history is not a backup.
 use crate::client::{Client, CollectionInfo, Transport};
-use crate::wire::ListEntry;
+use crate::wire::{ListEntry, Manifest, ManifestVersion};
 use crate::{
     checksum_update, chunks_for, get16, get32, get64, put16, put32, put64, valid_name, Disk,
     Status, CHUNK, CHUNKS, COLLECTIONS, DOMAINS, FNV_OFFSET, HISTORY, MAX_LENGTH, NAME, PER_DOMAIN,
@@ -1351,7 +1351,23 @@ pub fn export_v2<T: Transport>(
             }
             Err((status, _)) => return Err(status),
         }
-        if o.revision > clock || o.modified > clock {
+        if o.modified > clock {
+            return Err(Status::Stale);
+        }
+        if o.revision > clock {
+            // Rule R (S09-L2-PROVENANCE section 5): an INSTALL of n versions
+            // may exceed the clock by up to n - 1 for a while. Inside the
+            // snapshot that is a format limit (Range, not retried), anything
+            // else a concurrent change (Stale). An older service: NoSys.
+            let installed = match client.provenance(object, o.revision) {
+                Ok(p) => p.installed as u64,
+                Err((Status::NoSys, _)) => 0,
+                Err((status, _)) => return Err(status),
+            };
+            let window = installed >= 1 && o.revision - clock < installed;
+            if window && client.domain_stat(domain)? == first {
+                return Err(Status::Range);
+            }
             return Err(Status::Stale);
         }
         archive.objects[archive.object_count] = o;
@@ -1433,4 +1449,182 @@ pub fn export_v2<T: Transport>(
     put64(&mut trailer, 8, out.sum);
     out.sink.put(&trailer)?;
     Ok(ExportV2 { archive, omitted })
+}
+
+/// Result of [`restore_native_l2`]. Destination values only: the recorded
+/// source values are in the `ArchiveV2` the caller passed in. Counts are a
+/// lower bound when the status is `Unknown`.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub struct L2Report {
+    /// Bit `s`: archive slot `s` installed (current version and its
+    /// replayable history, metadata and provenance) in one commit.
+    pub restored: u8,
+    /// Bit `i - 1`: collection `i` installed.
+    pub collections: u8,
+    /// INSTALL_COLLECTION and INSTALL_COMMIT commits. Zero after an error
+    /// means refused and untouched; otherwise the domain is used and a rerun
+    /// is refused (no resume, S09-L2-PROVENANCE section 5).
+    pub committed: usize,
+    /// Versions after the first revision gap of a present object (R2).
+    pub skipped: usize,
+    /// Live revisions the destination assigned, per slot.
+    pub revisions: [u64; PER_DOMAIN],
+}
+
+/// The INSTALL manifest of a present archive object: its replayable prefix,
+/// with every value copied from the archive, never derived.
+pub fn l2_manifest(object: &ObjectV2) -> Manifest {
+    let count = replayable(object);
+    let mut manifest = Manifest {
+        origin_revision: object.revision,
+        origin_created: object.created,
+        origin_modified: object.modified,
+        count,
+        ..Manifest::default()
+    };
+    for (out, version) in manifest.versions.iter_mut().zip(&object.versions[..count]) {
+        *out = ManifestVersion {
+            origin: version.revision,
+            length: version.length,
+            name_length: version.name_length,
+            name: version.name,
+        };
+    }
+    manifest
+}
+
+/// L2 native restore (S09-L2-PROVENANCE section 5): install a verified v2
+/// archive into a never-used `domain`, one INSTALL commit per present
+/// object, preserving the archive revisions and stamps as immutable
+/// provenance beside destination-assigned live revisions and clocks.
+///
+/// Refused before the first write, in this order: a corrupt or v1 archive
+/// (`Corrupt`), `TOMBSTONES` (`Invalid`, R2), a used domain (`Stale`, R3),
+/// a replay over `QUOTA` (`Quota`) or over [`GUARANTEED_FREE`] (`Full`), and
+/// a manifest the service would refuse (`Corrupt`). Then every present
+/// collection is installed, then every present object over its
+/// [`replayable`] prefix; content streams from a fresh `open()` in archive
+/// order and every version is compared with the verified plan (FNV-64,
+/// `Corrupt` and ABORT on a mismatch). An older service answers the first
+/// INSTALL operation with `NoSys` and nothing is committed. There is no
+/// resume: after the first commit a rerun is `Stale`, and an interrupted
+/// restore is repeated into a fresh domain. Provenance is asserted by the
+/// own domain, without authority or authenticity (FNV-64 is not
+/// authentication), and the caller must be the only writer meanwhile.
+pub fn restore_native_l2<S: Source, T: Transport>(
+    mut open: impl FnMut() -> S,
+    scratch: &mut [u8; MAX_LENGTH],
+    client: &mut Client<T>,
+    domain: usize,
+    source: &mut ArchiveV2,
+) -> Result<L2Report, (Status, L2Report)> {
+    let mut report = L2Report::default();
+    if domain >= DOMAINS {
+        return Err((Status::Invalid, report));
+    }
+    let plan = verify_v2(&mut open(), scratch).map_err(|status| (status, report))?;
+    *source = plan;
+    if plan.tombstones {
+        return Err((Status::Invalid, report));
+    }
+    match never_used(client, domain) {
+        Ok(true) => {}
+        Ok(false) => return Err((Status::Stale, report)),
+        Err(status) => return Err((status, report)),
+    }
+    let objects = &plan.objects[..plan.object_count];
+    let needed: usize = objects
+        .iter()
+        .flat_map(|object| object.versions[..replayable(object)].iter())
+        .map(|version| chunks_for(version.length))
+        .sum();
+    if needed > QUOTA {
+        return Err((Status::Quota, report));
+    }
+    if needed > GUARANTEED_FREE {
+        return Err((Status::Full, report));
+    }
+    // A mid-restore Invalid would leave a used domain with no resume.
+    if objects
+        .iter()
+        .any(|object| object.present && !l2_manifest(object).valid())
+    {
+        return Err((Status::Corrupt, report));
+    }
+    report.skipped = objects
+        .iter()
+        .filter(|object| object.present)
+        .map(|object| object.version_count - replayable(object))
+        .sum();
+    for collection in &plan.collections[..plan.collection_count] {
+        if collection.present {
+            client
+                .install_collection(
+                    domain,
+                    collection.index,
+                    collection.name(),
+                    collection.revision,
+                )
+                .map_err(|(status, _)| (status, report))?;
+            report.committed += 1;
+            report.collections |= 1 << (collection.index - 1);
+        }
+    }
+    let mut staged: Option<(u64, u64)> = None;
+    let mut done = report;
+    let installed = walk_v2(&mut open(), scratch, |object, index, content| {
+        let Some(planned) = plan.object(object.slot) else {
+            return Err(Status::Corrupt);
+        };
+        // The source is read again: act only on what the first pass verified.
+        let same = ObjectV2 {
+            versions: object.versions,
+            ..*planned
+        } == *object
+            && planned.versions[..=index] == object.versions[..=index];
+        let keep = replayable(planned);
+        if !same {
+            return Err(Status::Corrupt);
+        }
+        if index >= keep {
+            return Ok(());
+        }
+        if checksum_update(FNV_OFFSET, content) != planned.versions[index].content_sum {
+            return Err(Status::Corrupt);
+        }
+        let target = (domain * PER_DOMAIN + object.slot) as u64;
+        let manifest = l2_manifest(planned);
+        if index == 0 {
+            let meta = (planned.tags, planned.kind, planned.collection);
+            staged = Some((target, client.install_begin(target, &manifest, meta)?));
+        }
+        let Some((_, id)) = staged.filter(|(staged, _)| *staged == target) else {
+            return Err(Status::Corrupt);
+        };
+        let mut fill = |_: usize, offset: usize, chunk: &mut [u8]| {
+            chunk.copy_from_slice(&content[offset..offset + chunk.len()]);
+        };
+        client.install_stream(target, id, &manifest, index..index + 1, &mut fill)?;
+        if index + 1 == keep {
+            // An unanswered commit leaves `staged` set; the service keeps an
+            // incomplete session, so it is aborted below (not on Unknown).
+            done.revisions[object.slot] = client.install_commit(target, id, &manifest)?;
+            staged = None;
+            done.restored |= 1 << object.slot;
+            done.committed += 1;
+        }
+        Ok(())
+    });
+    report = done;
+    let status = match installed {
+        Ok(again) if again == plan => return Ok(report),
+        Ok(_) => Status::Corrupt,
+        Err(status) => status,
+    };
+    if let Some((target, id)) = staged {
+        if status != Status::Unknown {
+            let _ = client.abort(target, 0, id);
+        }
+    }
+    Err((status, report))
 }

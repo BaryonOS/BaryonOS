@@ -9,7 +9,8 @@
 //! the version selector for READ (0 = current, 1..=HISTORY = history slot).
 //! SHUTDOWN, DOMAIN_STAT and VERSION_STAT are additive within v6: older
 //! peers never send them and refuse them with NoSys. VERSION_STAT also uses
-//! the field at offset 48 as its version selector.
+//! the field at offset 48 as its version selector. INSTALL_* and
+//! PROVENANCE_STAT (S09-L2-PROVENANCE section 4) are additive the same way.
 use crate::{
     domain_of, get32, get64, put32, put64, valid_name, Status, COLLECTIONS, HISTORY, MAX_LENGTH,
     NAME, OBJECTS, PER_DOMAIN, TRANSACT_MAX,
@@ -49,6 +50,26 @@ pub const DOMAIN_STAT: u16 = 17;
 /// Read-only: stamps of any own slot (selector 0) or the name of a history
 /// version in the consecutive-revision prefix of a present object.
 pub const VERSION_STAT: u16 = 18;
+/// L2: stage an install of 1..=HISTORY + 1 versions into a never-used own slot.
+pub const INSTALL_BEGIN: u16 = 19;
+pub const INSTALL_APPEND: u16 = 20;
+pub const INSTALL_COMMIT: u16 = 21;
+/// L2: create a never-used own collection with a recorded source revision.
+pub const INSTALL_COLLECTION: u16 = 22;
+/// Read-only: provenance the own domain installed (object or collection).
+pub const PROVENANCE_STAT: u16 = 23;
+/// Highest operation code this peer serves; higher codes are NoSys. Without
+/// the `l2-install` feature the L2 operations are refused like on an older peer.
+pub const LAST: u16 = if cfg!(feature = "l2-install") {
+    PROVENANCE_STAT
+} else {
+    VERSION_STAT
+};
+
+/// INSTALL_BEGIN manifest: three object origins, then one record per version.
+pub const MANIFEST_HEAD: usize = 24;
+pub const MANIFEST_RECORD: usize = 45;
+pub const INSTALL_MAX: usize = HISTORY + 1;
 
 /// TRANSACT sub-operations.
 pub const SUB_META: u8 = 1;
@@ -144,6 +165,126 @@ pub fn decode_subop(bytes: &[u8]) -> Option<SubOp> {
     (structural && shaped).then_some(sub)
 }
 
+/// One version of an INSTALL manifest (index 0 = current, then history).
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub struct ManifestVersion {
+    /// Recorded source revision of this content (immutable provenance).
+    pub origin: u64,
+    pub length: usize,
+    pub name_length: usize,
+    pub name: [u8; NAME],
+}
+
+impl ManifestVersion {
+    pub fn name(&self) -> &[u8] {
+        &self.name[..self.name_length]
+    }
+}
+
+/// INSTALL_BEGIN data: caller-asserted provenance, never live values.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub struct Manifest {
+    pub origin_revision: u64,
+    pub origin_created: u64,
+    pub origin_modified: u64,
+    pub count: usize,
+    pub versions: [ManifestVersion; INSTALL_MAX],
+}
+
+impl Manifest {
+    /// Encoded length (`length` of the INSTALL_BEGIN request).
+    pub const fn bytes(&self) -> usize {
+        MANIFEST_HEAD + MANIFEST_RECORD * self.count
+    }
+
+    /// Sum of the version lengths, or None on overflow.
+    pub fn total(&self) -> Option<usize> {
+        self.versions[..self.count.min(INSTALL_MAX)]
+            .iter()
+            .try_fold(0usize, |sum, v| sum.checked_add(v.length))
+    }
+
+    pub fn chunks(&self) -> usize {
+        self.versions[..self.count.min(INSTALL_MAX)]
+            .iter()
+            .map(|v| crate::chunks_for(v.length))
+            .sum()
+    }
+
+    /// The shape rules of section 4 (the service and the client share them).
+    pub fn valid(&self) -> bool {
+        let n = self.count;
+        if !(1..=INSTALL_MAX).contains(&n)
+            || self.origin_revision == 0
+            || self.origin_created == 0
+            || self.origin_modified == 0
+            || self.origin_created > self.origin_modified
+        {
+            return false;
+        }
+        let first = self.versions[0].origin;
+        let shaped = self.versions[..n].iter().enumerate().all(|(index, v)| {
+            v.origin != 0
+                // Consecutive: no history behind a revision gap (R2).
+                && first.checked_sub(index as u64) == Some(v.origin)
+                && v.length <= MAX_LENGTH
+                && v.name_length <= NAME
+                && valid_name(v.name())
+                && v.name[v.name_length..].iter().all(|byte| *byte == 0)
+        });
+        let unused = self.versions[n..]
+            .iter()
+            .all(|v| *v == ManifestVersion::default());
+        shaped
+            && unused
+            && first <= self.origin_revision
+            && first >= n as u64
+            && self
+                .total()
+                .is_some_and(|total| total <= INSTALL_MAX * MAX_LENGTH)
+    }
+
+    pub fn encode(&self, out: &mut [u8]) {
+        put64(out, 0, self.origin_revision);
+        put64(out, 8, self.origin_created);
+        put64(out, 16, self.origin_modified);
+        for (index, v) in self.versions[..self.count].iter().enumerate() {
+            let at = MANIFEST_HEAD + index * MANIFEST_RECORD;
+            put64(out, at, v.origin);
+            put32(out, at + 8, v.length as u32);
+            out[at + 12] = v.name_length as u8;
+            out[at + 13..at + 13 + v.name_length].copy_from_slice(v.name());
+        }
+    }
+
+    /// Decode `count` records; None unless the result is `valid`.
+    pub fn decode(data: &[u8], count: usize) -> Option<Self> {
+        if !(1..=INSTALL_MAX).contains(&count)
+            || data.len() != MANIFEST_HEAD + MANIFEST_RECORD * count
+        {
+            return None;
+        }
+        let mut manifest = Self {
+            origin_revision: get64(data, 0),
+            origin_created: get64(data, 8),
+            origin_modified: get64(data, 16),
+            count,
+            ..Self::default()
+        };
+        for (index, v) in manifest.versions[..count].iter_mut().enumerate() {
+            let at = MANIFEST_HEAD + index * MANIFEST_RECORD;
+            v.origin = get64(data, at);
+            v.length = get32(data, at + 8) as usize;
+            v.name_length = usize::from(data[at + 12]);
+            if v.name_length > NAME {
+                return None;
+            }
+            v.name.copy_from_slice(&data[at + 13..at + 13 + NAME]);
+        }
+        manifest.valid().then_some(manifest)
+    }
+}
+
 /// Decode fixed header fields without trusting them; callers validate.
 pub fn header(body: &[u8; SIZE]) -> Header {
     Header {
@@ -190,7 +331,7 @@ pub fn validate_request(body: &[u8; SIZE], epoch: u64, domain: usize) -> Result<
     if u16::from_le_bytes([body[0], body[1]]) != VERSION || body[4..8] != [0; 4] {
         return Err(Status::Invalid);
     }
-    if !(STAT..=VERSION_STAT).contains(&h.operation) {
+    if !(STAT..=LAST).contains(&h.operation) {
         return Err(Status::NoSys);
     }
     if h.epoch != epoch || h.status != 0 || h.request_id == 0 {
@@ -284,6 +425,52 @@ pub fn validate_request(body: &[u8; SIZE], epoch: u64, domain: usize) -> Result<
                 && h.count == 0
                 && h.aux == 0
                 && h.name_length as usize <= HISTORY
+        }
+        #[cfg(feature = "l2-install")]
+        INSTALL_BEGIN => {
+            h.revision == 0
+                && h.name_length == 0
+                && unmeta(h.aux).3
+                && Manifest::decode(&body[64..64 + length], h.count as usize).is_some()
+        }
+        #[cfg(feature = "l2-install")]
+        INSTALL_APPEND => {
+            h.revision == 0
+                && h.name_length == 0
+                && h.count as usize <= HISTORY
+                && length != 0
+                && h.aux < MAX_LENGTH as u64
+        }
+        #[cfg(feature = "l2-install")]
+        INSTALL_COMMIT => {
+            h.revision == 0
+                && h.name_length == 0
+                && length == 0
+                && (1..=INSTALL_MAX as u32).contains(&h.count)
+                && h.aux <= (INSTALL_MAX * MAX_LENGTH) as u64
+        }
+        #[cfg(feature = "l2-install")]
+        INSTALL_COLLECTION => {
+            // Not `named()`: the data is the name followed by the origin.
+            let k = h.name_length as usize;
+            base && h.revision == 0
+                && h.count == 0
+                && (1..=COLLECTIONS as u64).contains(&h.aux)
+                && (1..=NAME).contains(&k)
+                && length == k + 8
+                && valid_name(&body[64..64 + k])
+                && get64(body, 64 + k) != 0
+        }
+        #[cfg(feature = "l2-install")]
+        PROVENANCE_STAT => {
+            h.revision != 0
+                && length == 0
+                && h.name_length == 0
+                && match h.count {
+                    0 => h.aux == 0,
+                    1 => base && (1..=COLLECTIONS as u64).contains(&h.aux),
+                    _ => false,
+                }
         }
         _ => false,
     };

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Complete M6e/S06 gate: host tests, then twenty-two real QEMU invocations in order.
+"""Complete M6e/S06 gate: host tests, then twenty-six real QEMU invocations in order.
 
 normal -> cold read-only recover (same image) -> S09 archive export into a
 disjoint range of that image (volume mounted read-only) -> restore of only that
@@ -13,7 +13,11 @@ wrong disk granted, and a power cut during an export over the older archive
 followed by a cold verify that must report Corrupt;
 cut-data (real kill) -> cold
 recover; cut-table (real kill) -> cold recover; cut-txn (real kill inside a
-multi-object transaction) -> cold recover; corrupt image refused.
+multi-object transaction) -> cold recover; corrupt image refused;
+S09 L2: install (INSTALL_COLLECTION, then INSTALL of one object with three
+fixture versions, into never-used slots) -> cold read-only install-recover;
+install-cut (real kill inside the INSTALL_COMMIT table write) -> cold
+recover-cut, which must find the object never-used or fully installed.
 Every stage is bound to one frozen source fingerprint. The host test inputs
 under tests/ fall outside that fingerprint, so they are frozen separately and
 re-checked before the verdict. Only the final summary with passed=true counts
@@ -55,7 +59,9 @@ PLAN = [("normal", None), ("recover", "normal"), ("archive-export", "recover"),
         ("archive-disk-wrong", "archive-disk-export"), ("archive-disk-cut", "archive-disk-export"),
         ("archive-disk-verify", "archive-disk-cut"),
         ("cut-data", None), ("recover-cut", "cut-data"), ("cut-table", None),
-        ("recover-cut", "cut-table"), ("cut-txn", None), ("recover-cut", "cut-txn"), ("corrupt", None)]
+        ("recover-cut", "cut-table"), ("cut-txn", None), ("recover-cut", "cut-txn"), ("corrupt", None),
+        ("install", None), ("install-recover", "install"), ("install-cut", None),
+        ("recover-cut", "install-cut")]
 
 
 def main() -> int:
