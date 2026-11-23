@@ -43,7 +43,8 @@ DISCOVER, OFFER, REQUEST, ACK_TYPE, NAK = 1, 2, 3, 5, 6
 EXCHANGES = {8080: (0, 0, 40000), 8090: (1, 0, 40001), 8082: (0, 1, 40004)}
 HELD = {8081: (0, 0, 40002)}
 MAX_ACTIONS = 512
-# (lease index, name) -> answer; any other query, or a repeat, fails the run.
+# (lease index, name) -> answer, in the order the guest must ask; any other
+# query, or a repeat, fails the run, and another order leaves it incomplete.
 DNS_QUERIES = {(0, "service.test"): "a", (0, "missing.test"): "nxdomain", (1, "service.test"): "a"}
 DNS_TTL, NEGATIVE_TTL = 300, 60
 DNS_PORT_FIRST = 49152
@@ -160,6 +161,11 @@ def dns_query(frame, client_ip):
     if message[at + 1:] != b"\0\x01\0\x01":
         raise ProtocolError("DNS query is not exactly one IN A question")
     return source, ident, ".".join(labels), message[12:]
+
+
+def encode_question(name):
+    """Exact IN A question bytes for a fixture name, as build_query writes them."""
+    return b"".join(bytes((len(label),)) + label.encode("ascii") for label in name.split(".")) + b"\0\0\x01\0\x01"
 
 
 def tcp_segment(frame, client_ip):
@@ -384,7 +390,9 @@ class DhcpMachine:
             raise ProtocolError("DNS outside a bound lease")
         port, ident, name, question = dns_query(frame, self.address)
         key = (self.lease, name)
-        if key not in DNS_QUERIES or key in self.dns_seen:
+        # The joined name is for reporting only: the raw question must be the
+        # exact label encoding, so a single label "service.test" never matches.
+        if key not in DNS_QUERIES or key in self.dns_seen or question != encode_question(name):
             raise ProtocolError("unexpected or repeated DNS query")
         self.dns_seen.append(key)
         self.counts["dns_queries"] += 1
@@ -547,7 +555,7 @@ class DhcpMachine:
                     # announcement of the final lease; the first makes it usable.
                     and self.announcements[1] in (1, 2)
                     and self.counts["client_fins_acked"] == 3 and self.counts["held"] == 1
-                    and sorted(self.dns_seen) == sorted(DNS_QUERIES) and self.counts["dns_spoofs"] == 2)
+                    and self.dns_seen == list(DNS_QUERIES) and self.counts["dns_spoofs"] == 2)
         return dict(case="dhcp", complete=complete, counts=dict(self.counts), cases=cases,
                     dns_queries=[[lease, name] for lease, name in self.dns_seen],
                     leases=[".".join(map(str, lease)) for lease in LEASES[:self.lease + 1]],

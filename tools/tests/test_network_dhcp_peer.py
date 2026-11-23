@@ -54,9 +54,10 @@ def tcp(address, source, target, seq, ack, flags, payload=b"", tcp_opts=b""):
     return (PEER_MAC + CLIENT_MAC + b"\x08\x00" + ip + segment).ljust(60, b"\0")
 
 
-def query(address, port, ident, name, *, flags=0x0100, kind=1, valid_checksum=True):
+def query(address, port, ident, name, *, flags=0x0100, kind=1, valid_checksum=True, labels=None):
     """Guest A query in the exact layout of services/net-protocol dns.rs."""
-    qname = b"".join(bytes((len(label),)) + label.encode() for label in name.split(".")) + b"\0"
+    labels = name.split(".") if labels is None else labels
+    qname = b"".join(bytes((len(label),)) + label.encode() for label in labels) + b"\0"
     message = struct.pack("!HHHHHH", ident, flags, 1, 0, 0, 0) + qname + struct.pack("!HH", kind, 1)
     udp = struct.pack("!HHHH", port, 53, 8 + len(message), 0) + message
     value = checksum(address + PEER_IP + struct.pack("!BBH", 0, 17, len(udp)) + udp) or 0xffff
@@ -327,6 +328,36 @@ class DhcpPeerTest(unittest.TestCase):
         step(dhcp(3, 0x22222222, ciaddr=LEASES[0]))
         with self.assertRaisesRegex(ProtocolError, "withdrawn"):
             step(query(LEASES[0], 50000, 1, "service.test"))
+
+    def test_single_label_with_a_dot_is_not_the_fixture_name(self):
+        step = Recorder()
+        acquire(step, 0, 1)
+        with self.assertRaisesRegex(ProtocolError, "unexpected or repeated DNS query"):
+            step(query(LEASES[0], 50000, 1, "service.test", labels=["service.test"]))
+        self.assertEqual(step.machine.dns_seen, [])
+        self.assertEqual(len(step(query(LEASES[0], 50000, 1, "service.test"))), 2)
+
+    def test_dns_queries_out_of_order_leave_the_run_incomplete(self):
+        def run(names):
+            step = Recorder()
+            acquire(step, 0, 0x11111111, announcements=2)
+            for i, name in enumerate(names):
+                step(query(LEASES[0], 50000 + 2 * i, 0x1200 + i, name))
+            exchange(step, LEASES[0], 40000, 8080, 0)
+            exchange(step, LEASES[0], 40001, 8090, 1)
+            server = (0x6e303200 + 8081 * 0x100 + 1) & MASK
+            step(tcp(LEASES[0], 40002, 8081, 5, 0, SYN))
+            step(tcp(LEASES[0], 40002, 8081, 6, server, ACK))
+            step(dhcp(3, 0x22222222, ciaddr=LEASES[0]))
+            acquire(step, 1, 0x33333333)
+            resolve_all(step, 1)
+            exchange(step, LEASES[1], 40004, 8082, 0)
+            return step.evidence()
+        self.assertTrue(run(("service.test", "missing.test"))["complete"])
+        reversed_run = run(("missing.test", "service.test"))
+        self.assertEqual(reversed_run["counts"]["dns_queries"], 3)
+        self.assertEqual(reversed_run["counts"]["dns_spoofs"], 2)
+        self.assertFalse(reversed_run["complete"])
 
     def test_incomplete_run_is_not_complete(self):
         step = Recorder()
