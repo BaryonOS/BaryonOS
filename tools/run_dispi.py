@@ -26,6 +26,8 @@ MODES = ((640, 480), (800, 600), (1024, 768), (1280, 720))
 GOP = (1280, 720)
 CASES = {'positive': 'VGA,vgamem_mb=16', 'negative': 'bochs-display'}
 PREFIXES = ('BOOT:EBS_', 'KERNEL:ENTRY', 'BOOTINFO:', 'KS-', 'DISPI', 'G0:', 'M1:', 'M2:')
+# Closed grammar of kernel/src/dispi.rs `DISPI:REFUSED:<TOKEN>` lines, in bind() order.
+REFUSALS = ('GOP', 'PCI_SCAN', 'DEVICE', 'PCI_BAR', 'BAR0', 'PCI_COMMAND', 'DECODE', 'ID', 'EXTENT')
 
 
 def pattern(mode, x, y):
@@ -86,23 +88,31 @@ def validate_serial(stdout, case):
     if base is None or size is None or size < GOP[0]*GOP[1]*4:
         return False, 'GOP descriptor lines'
     rest = lines[8:]
+    refused = [line.removeprefix('DISPI:REFUSED:') for line in rest if line.startswith('DISPI:REFUSED:')]
+    if any(token not in REFUSALS for token in refused):
+        return False, 'unknown refusal token'
     if case == 'negative':
         if rest != ['DISPI:REFUSED:DEVICE', 'M1:FAIL:DISPI_REFUSED']:
             return False, 'negative must refuse the device before any port or mode access'
         return True, None
-    if len(rest) != 3 + 2*len(MODES) + 2:
+    if refused:
+        return False, 'refused: '+refused[0]
+    if len(rest) != 4 + 2*len(MODES) + 2:
         return False, 'positive line count'
     bar0 = _hex(rest[0], 'DISPI:BAR0_RAW:')
-    ident = _hex(rest[1], 'DISPI:ID:')
-    vram = _hex(rest[2], 'DISPI:VRAM:')
+    command = _hex(rest[1], 'DISPI:COMMAND:')
+    ident = _hex(rest[2], 'DISPI:ID:')
+    vram = _hex(rest[3], 'DISPI:VRAM:')
     if bar0 is None or bar0 & 7 or bar0 & ~0xf != base:
         return False, 'BAR0 is not a 32-bit memory BAR at the GOP base'
+    if command is None or command > 0xffff or command & 3 != 3:
+        return False, 'PCI command register lacks I/O or memory decode'
     if ident is None or not 0xb0c0 <= ident <= 0xb0c5:
         return False, 'DISPI ID'
     if vram is None or any(w*h*4 > min(vram, size) for w, h in MODES):
         return False, 'VRAM or GOP extent'
     for index, (width, height) in enumerate(MODES):
-        readback, marker = rest[3+2*index:5+2*index]
+        readback, marker = rest[4+2*index:6+2*index]
         match = re.fullmatch(r'DISPI:READBACK:'+':'.join([r'([0-9]{1,5})']*8), readback)
         if match is None:
             return False, 'readback format'

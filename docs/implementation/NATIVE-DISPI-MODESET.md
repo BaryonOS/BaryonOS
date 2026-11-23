@@ -30,14 +30,21 @@ GOP descriptor and mapping are unchanged.
 
 - IF0, one CPU, CPL0 only: no syscall, no ring 3, no interrupt handler.
 - PCI access is the read-only `pci_core::enumerate` scan plus one raw read of
-  BAR0 at offset 0x10. There is no BAR sizing, no command-register write, no
-  bus mastering and no DMA.
+  BAR0 at offset 0x10 and one raw read of the command register at offset
+  0x04. There is no BAR sizing, no command-register write, no bus mastering
+  and no DMA.
 - Exactly one class-0x03 function may exist, and it must be 1234:1111,
   subclass 0, programming interface 0, segment 0, bus 0. Otherwise the kernel
   prints `DISPI:REFUSED:DEVICE` before any access to ports 0x1CE/0x1CF.
-- BAR0 must be a 32-bit memory BAR (bits 2:0 zero; bit 3, prefetchable, is
-  allowed) whose address bits equal the GOP `frame_buffer_base`. The GOP mode
-  must be 1280×720 with pixel format 1 (BGRX).
+- BAR0 must be a 32-bit memory BAR (bits 2:0 zero) whose address bits
+  (`BAR0 & !0xf`) equal the GOP `frame_buffer_base`. Bit 3 (prefetchable) is
+  ignored: it is allowed but not required. The measured value was
+  0x80000008. The GOP mode must be 1280×720 with pixel format 1 (BGRX).
+- The bound function's command register must already have I/O-space decode
+  (bit 0, ports 0x1CE/0x1CF) and memory-space decode (bit 1, linear
+  framebuffer) enabled by firmware; the kernel prints `DISPI:COMMAND:` and
+  otherwise refuses with `DISPI:REFUSED:DECODE` before any 0x1CE/0x1CF
+  access. It never sets these bits itself.
 - The DISPI ID must lie in 0xB0C0..=0xB0C5. VRAM (index 0xA × 64 KiB) and the
   existing GOP mapping must both cover every allowlisted mode at 32 bpp.
 - Modes come only from the const allowlist 640×480, 800×600, 1024×768,
@@ -92,3 +99,12 @@ Evidence for one source commit is in
 run this fixture. Not exercised: physical hardware, other display adapters,
 EDID or monitor timing, mode switching by ring-3 services, the compositor and
 1920×1080.
+
+## Refusal grammar
+
+A refusal is exactly one line `DISPI:REFUSED:<TOKEN>` followed by
+`M1:FAIL:DISPI_REFUSED` (exit 0x11). The closed token set, in `bind()` order,
+is `GOP`, `PCI_SCAN`, `DEVICE`, `PCI_BAR`, `BAR0`, `PCI_COMMAND`, `DECODE`,
+`ID`, `EXTENT`. `tools/run_dispi.py::REFUSALS` holds the same tuple; a host
+test compares it with the kernel source, and the runner rejects any other
+token.

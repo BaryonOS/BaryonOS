@@ -2,7 +2,8 @@
 //!
 //! Binds exactly one PCI function 1234:1111 class 0x0300 whose raw BAR0 (read
 //! only: no sizing, no command-register write, no bus mastering, no DMA)
-//! decodes to the GOP framebuffer base already mapped by `framebuffer::map`.
+//! decodes to the GOP framebuffer base already mapped by `framebuffer::map`
+//! and whose raw command register already enables I/O and memory decode.
 //! Modes come only from `MODES`; every pixel store is bounded by the live mode
 //! and the existing GOP mapping. Ports 0x1CE/0x1CF are touched only after the
 //! PCI binding succeeded; any other device or mismatch is refused fail-closed.
@@ -119,6 +120,16 @@ fn bind() {
     // Memory BAR (bit 0 clear), 32-bit type (bits 2:1 zero), exact GOP base.
     if bar0 & 0x7 != 0 || u64::from(bar0 & !0xf) != gop.base {
         refuse(b"BAR0");
+    }
+    // Raw read only: the command register is never written. Firmware must have
+    // enabled I/O (bit 0, ports 0x1CE/0x1CF) and memory (bit 1, LFB) decode.
+    let command = pci
+        .read_u32(address, 0x04)
+        .unwrap_or_else(|_| refuse(b"PCI_COMMAND"))
+        & 0xffff;
+    serial::hex(b"DISPI:COMMAND:", u64::from(command));
+    if command & 0x3 != 0x3 {
+        refuse(b"DECODE");
     }
     let id = read_register(ID);
     serial::hex(b"DISPI:ID:", u64::from(id));

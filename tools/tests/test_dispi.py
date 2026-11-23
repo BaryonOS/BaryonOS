@@ -1,5 +1,6 @@
 """Host checks of the H03 DISPI runner parser and pixel oracle; no QEMU."""
 from pathlib import Path
+import re
 import sys
 import unittest
 
@@ -8,7 +9,8 @@ import run_dispi as dispi
 
 HEAD = ['BOOT:EBS_OK', 'KERNEL:ENTRY', 'BOOTINFO:OK', 'KS-01:PASS', 'KS-02:PASS', 'KS-03:PASS',
         'DISPI:GOP_BASE:0000000080000000', 'DISPI:GOP_BYTES:0000000000384000']
-DEVICE = ['DISPI:BAR0_RAW:0000000080000008', 'DISPI:ID:000000000000b0c5',
+DEVICE = ['DISPI:BAR0_RAW:0000000080000008', 'DISPI:COMMAND:0000000000000003',
+          'DISPI:ID:000000000000b0c5',
           'DISPI:VRAM:0000000001000000']
 
 
@@ -84,15 +86,32 @@ class Serial(unittest.TestCase):
             lines[8] = 'DISPI:BAR0_RAW:' + raw
             self.assertFalse(self.check(lines)[0], raw)
 
+    def test_command_register_must_enable_io_and_memory_decode(self):
+        for raw in ('0000000000000001', '0000000000000002', '0000000000000000', '0000000000010003'):
+            lines = positive_lines()
+            lines[9] = 'DISPI:COMMAND:' + raw
+            self.assertFalse(self.check(lines)[0], raw)
+        lines = positive_lines()
+        lines[9] = 'DISPI:COMMAND:0000000000000007'
+        self.assertEqual(self.check(lines), (True, None))
+
+    def test_refusal_tokens_follow_the_closed_grammar(self):
+        decode = HEAD + DEVICE[:2] + ['DISPI:REFUSED:DECODE', 'M1:FAIL:DISPI_REFUSED']
+        self.assertEqual(self.check(decode), (False, 'refused: DECODE'))
+        self.assertEqual(self.check(HEAD + ['DISPI:REFUSED:BOGUS', 'M1:FAIL:DISPI_REFUSED'], 'negative'),
+                         (False, 'unknown refusal token'))
+        kernel = (dispi.ROOT/'kernel/src/dispi.rs').read_text()
+        self.assertEqual(tuple(re.findall(r'refuse\(b"([A-Z0-9_]+)"\)', kernel)), dispi.REFUSALS)
+
     def test_id_vram_readback_and_markers_are_exact(self):
-        for index, value in ((9, 'DISPI:ID:000000000000b0bf'),
-                             (10, 'DISPI:VRAM:0000000000200000'),
-                             (11, 'DISPI:READBACK:640:480:24:65:640:6553:0:0'),
-                             (11, 'DISPI:READBACK:640:480:32:193:640:6553:0:0'),
-                             (11, 'DISPI:READBACK:640:480:32:65:800:6553:0:0'),
-                             (11, 'DISPI:READBACK:640:480:32:65:640:479:0:0'),
-                             (11, 'DISPI:READBACK:640:480:32:65:640:6553:0:1'),
-                             (12, 'DISPI:MODE:800x600:SET'),
+        for index, value in ((10, 'DISPI:ID:000000000000b0bf'),
+                             (11, 'DISPI:VRAM:0000000000200000'),
+                             (12, 'DISPI:READBACK:640:480:24:65:640:6553:0:0'),
+                             (12, 'DISPI:READBACK:640:480:32:193:640:6553:0:0'),
+                             (12, 'DISPI:READBACK:640:480:32:65:800:6553:0:0'),
+                             (12, 'DISPI:READBACK:640:480:32:65:640:479:0:0'),
+                             (12, 'DISPI:READBACK:640:480:32:65:640:6553:0:1'),
+                             (13, 'DISPI:MODE:800x600:SET'),
                              (-2, 'G0:PASS')):
             lines = positive_lines()
             lines[index] = value
@@ -100,12 +119,14 @@ class Serial(unittest.TestCase):
 
     def test_missing_duplicate_or_extra_mode_markers_fail(self):
         lines = positive_lines()
-        self.assertFalse(self.check(lines[:12] + lines[14:])[0])
-        self.assertFalse(self.check(lines[:13] + lines[11:])[0])
+        self.assertFalse(self.check(lines[:13] + lines[15:])[0])
+        self.assertFalse(self.check(lines[:14] + lines[12:])[0])
         self.assertFalse(self.check(lines + ['M1:PASS'])[0])
 
     def test_negative_must_refuse_without_any_mode(self):
         for tail in (['DISPI:REFUSED:BAR0', 'M1:FAIL:DISPI_REFUSED'],
+                     ['DISPI:REFUSED:DECODE', 'M1:FAIL:DISPI_REFUSED'],
+                     DEVICE[:2] + ['DISPI:REFUSED:DECODE', 'M1:FAIL:DISPI_REFUSED'],
                      ['DISPI:REFUSED:DEVICE'],
                      DEVICE + ['DISPI:REFUSED:DEVICE', 'M1:FAIL:DISPI_REFUSED'],
                      ['DISPI:MODE:640x480:SET', 'DISPI:REFUSED:DEVICE', 'M1:FAIL:DISPI_REFUSED']):
