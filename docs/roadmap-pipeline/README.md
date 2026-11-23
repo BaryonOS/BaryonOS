@@ -186,8 +186,9 @@ from `sys.path` before preloading PyYAML, never reads checkout bytecode
 change that a session makes and reverts before it ends is not detected, and only
 `core.fsmonitor` is neutralised for controller Git; other callbacks rely on the
 fingerprint and on the `.git/**` edit deny. Further residual limits: an
-ignored path outside the denied patterns, a process that escapes the worker's
-process group, and the absent native sandbox (bubblewrap 0.13.1 or later with a
+ignored path outside the denied patterns, a modified tracked file left behind
+when a session ends in `Stop` (it runs on the lead's next invocation), a process
+that escapes the worker's process group, and the absent native sandbox (bubblewrap 0.13.1 or later with a
 verified profile). The runner therefore stays held by `EXECUTION_HOLD` and the
 disabled policy; these changes are not evidence that it may be enabled.
 
