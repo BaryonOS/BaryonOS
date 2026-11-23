@@ -114,16 +114,24 @@ class Ledger(unittest.TestCase):
                 self.assertEqual(rr.load_ledger(ledger)["tasks"][0]["status"], "active")
                 self.assertFalse((root / "state/lease.json").exists())
                 rr.update_task("A", path=ledger, status="verified")
+                record = root / "state" / rr.MANUAL_RECORD
+                completed = json.dumps({"claim": marker["claim"], "exit": 0})  # what the launcher writes after ECHILD
+                try:  # acquire() already refuses, before any baseline verdict
+                    with self.assertRaisesRegex(rr.Stop, "manual task A has no `manual-run` completion"):
+                        controller.acquire()
+                finally:
+                    controller.release()
+                rr.atomic_write(record, completed)
                 controller.acquire()
                 try:
                     # The real preflight: a ledger the session can rewrite does not end the claim.
                     with unittest.mock.patch.object(controller, "preflight",
                                                     side_effect=lambda: rr.Controller.preflight(controller)), \
                             unittest.mock.patch.object(rr.Controller, "refuse_live_workers"):
+                        record.unlink()  # preflight checks again before every task
                         with self.assertRaisesRegex(rr.Stop, "manual task A has no `manual-run` completion"):
                             controller.prepare_manual()
-                        rr.atomic_write(root / "state" / rr.MANUAL_RECORD, json.dumps(
-                            {"claim": marker["claim"], "exit": 0}))  # what the launcher writes after ECHILD
+                        rr.atomic_write(record, completed)
                         with self.assertRaisesRegex(rr.Stop, "manual task A holds the session baseline"):
                             controller.prepare_manual()
                     self.assertEqual(controller.manual_claim(), "A")
@@ -1663,7 +1671,7 @@ class RunnerResiduals(unittest.TestCase):
 
             read = rr.read_record
             with unittest.mock.patch.object(rr, "manual_processes", side_effect=lambda c: held() or []), \
-                    unittest.mock.patch.object(rr, "read_record", side_effect=lambda path: held() or read(path)):
+                    unittest.mock.patch.object(rr, "read_record", side_effect=lambda *a, **k: held() or read(*a, **k)):
                 controller.refuse_live_manual()
             self.assertEqual(seen, [True, True])
 
@@ -1842,6 +1850,200 @@ class RunnerResiduals(unittest.TestCase):
                     self.assertEqual(self.reap(self.launch(controller, argv, out=out)), 2)
                     self.assertIn("launcher record", out.read_text())
                     self.assertFalse((run / "RAN").exists())
+
+    def test_an_unreadable_launcher_record_is_never_read_as_no_launcher(self):
+        # A start record cut short or rewritten: read as "no earlier launcher", a new launcher overwrote it.
+        for content in ('{"claim": ', "[]", ""):
+            with self.subTest(content=content), tempfile.TemporaryDirectory() as tmp, \
+                    self.live_state(tmp) as (repo, state, controller):
+                run, record = Path(tmp), controller.marker().parent / rr.MANUAL_RECORD
+                argv = ["/bin/sh", "-c", f"touch {run}/RAN"]
+                claim = self.launcher_marker(controller, argv)
+                record.write_text(content)
+                with self.assertRaisesRegex(rr.Stop, f"unreadable launcher record .*resume --accept-orphans {claim}"):
+                    controller.refuse_live_manual()
+                if sys.platform == "linux":
+                    out = run / "out"
+                    self.assertEqual(self.reap(self.launch(controller, argv, out=out)), 2)
+                    self.assertIn("unreadable launcher record", out.read_text())
+                    self.assertFalse((run / "RAN").exists())
+                self.assertEqual(record.read_text(), content)  # kept for the lead's review
+                code, message = self.resume("--accept-orphans", claim)  # the way out the refusal names
+                self.assertEqual(code, 0, message)
+                self.assertEqual(json.loads(record.read_text())["claim"], claim)
+                controller.refuse_live_manual()
+
+    def test_acquire_names_a_running_launcher_before_any_baseline_verdict(self):
+        # The baseline comparison first gave a misleading reason and a sticky STOP while a launcher ran.
+        with tempfile.TemporaryDirectory() as tmp, self.live_state(tmp) as (repo, state, controller):
+            home = controller.marker().parent
+            claim = self.launcher_marker(controller)
+            (repo / "build" / "planted.sh").write_text("")  # an ignored-file change
+            holder = rr.open_private(home / rr.MANUAL_LOCK)
+            rr.fcntl.flock(holder, rr.fcntl.LOCK_EX | rr.fcntl.LOCK_NB)
+            try:
+                with self.assertRaisesRegex(rr.Stop, "launcher is still running"):
+                    controller.acquire()
+            finally:
+                controller.release()
+                holder.close()
+            self.assertFalse((state / "STOP").exists())
+            rr.atomic_write(home / rr.MANUAL_RECORD, json.dumps({"claim": claim, "exit": 0}))
+            try:  # the launcher has ended: the verdict follows as before
+                with self.assertRaisesRegex(rr.Stop, "ignored files changed"):
+                    controller.acquire()
+            finally:
+                controller.release()
+            self.assertTrue((state / "STOP").exists())
+
+    def test_a_planted_trusted_marker_is_refused_without_blocking(self):
+        for kind in ("symlink", "fifo"):
+            with self.subTest(kind=kind), tempfile.TemporaryDirectory() as tmp, \
+                    self.live_state(tmp) as (repo, state, controller):
+                run, marker = Path(tmp), controller.marker()
+                marker.parent.mkdir(parents=True, exist_ok=True)
+                if kind == "symlink":  # to a well-formed baseline: only O_NOFOLLOW refuses it
+                    (run / "forged.json").write_text(json.dumps(
+                        {"baseline": "cb", "session": "x", "ignored": controller.ignored_files()}))
+                    marker.symlink_to(run / "forged.json")
+                else:
+                    os.mkfifo(marker)
+                for check in (controller.manual_claim, controller.check_saved_baseline, controller.refuse_live_manual):
+                    # Removing it drops the comparison: the lead is told to review first.
+                    with self.deadline(), self.assertRaisesRegex(rr.Stop, "trusted marker.*review the checkout"):
+                        check()
+
+    def test_resume_takes_one_acknowledgement_and_names_a_refused_one(self):
+        with tempfile.TemporaryDirectory() as tmp, self.live_state(tmp) as (repo, state, controller):
+            (state / "STOP").write_text("x")
+            with contextlib.redirect_stderr(io.StringIO()) as err, self.assertRaises(SystemExit) as exited:
+                self.resume("--accept", "0" * 16, "--accept-orphans", "0" * 32)
+            self.assertEqual(exited.exception.code, 2)
+            self.assertIn("not allowed with", err.getvalue())
+            self.assertTrue((state / "STOP").exists())
+            code, message = self.resume("--accept-orphans", "0" * 32)
+            self.assertEqual(code, 2)
+            # It never clears STOP or PAUSE, so it must not say so.
+            self.assertTrue(message.startswith("nothing acknowledged: "), message)
+            self.assertIn("not the active launcher claim", message)
+            self.assertTrue((state / "STOP").exists())
+            code, message = self.resume("--accept-orphans", "")  # an unset shell variable
+            self.assertEqual(code, 2)
+            self.assertTrue(message.startswith("nothing acknowledged: "), message)
+            self.assertTrue((state / "STOP").exists())
+
+    @staticmethod
+    def proc_state(pid):
+        return Path(f"/proc/{pid}/stat").read_text().rsplit(")", 1)[1].split()[0]
+
+    def bounded_loop(self, run, body=""):
+        """A session for about 10 s at most (or until GO), so a regression cannot hang the suite."""
+        return ["/bin/sh", "-c", f"echo $$ > {run}/child.pid; i=0; while [ ! -e {run}/GO ] && [ $i -lt 500 ]; "
+                f"do {body}{shutil.which('sleep')} 0.02; i=$((i+1)); done; exit 0"]
+
+    def child_pid(self, run):
+        self.wait_for(lambda: (run / "child.pid").exists() and (run / "child.pid").read_text().strip() != "")
+        return int((run / "child.pid").read_text())
+
+    @staticmethod
+    def job_control_defaults():
+        """As an interactive shell starts a job. A non-interactive bash (`$(...)`, say) hands its children
+        SIGTSTP, SIGTTIN and SIGTTOU ignored, which would hide a regression from a pty test."""
+        for sig in (signal.SIGTSTP, signal.SIGTTIN, signal.SIGTTOU):
+            signal.signal(sig, signal.SIG_DFL)
+
+    @staticmethod
+    def end(run, child, pid):
+        (run / "GO").touch()
+        if child is not None:
+            with contextlib.suppress(ProcessLookupError):
+                os.killpg(child, signal.SIGKILL)
+        with contextlib.suppress(ChildProcessError):
+            os.waitpid(pid, 0)
+
+    @unittest.skipUnless(sys.platform == "linux", "PR_SET_CHILD_SUBREAPER and ptys are Linux-only here")
+    def test_ctrl_z_does_not_stop_a_session_on_a_terminal(self):
+        # The session's group holds the terminal while the launcher waits in os.wait(): stopped by Ctrl-Z,
+        # nothing could continue it and the terminal would hang. Ctrl-C still ends it.
+        with tempfile.TemporaryDirectory() as tmp, self.live_state(tmp) as (repo, state, controller):
+            run = Path(tmp)
+            argv = self.bounded_loop(run, body=f"echo $i > {run}/tick; ")
+            self.launcher_marker(controller, argv)
+            pid, master = pty.fork()
+            if pid == 0:
+                code = 99
+                try:
+                    self.job_control_defaults()
+                    code = controller.manual_run(argv)
+                finally:
+                    os._exit(code)
+            child = None
+            try:
+                child = self.child_pid(run)
+                self.wait_for(lambda: os.tcgetpgrp(master) == child)  # the session's group has the terminal
+                os.write(master, b"\x1a")
+                time.sleep(0.3)
+                self.assertNotEqual(self.proc_state(child), "T")
+                tick = (run / "tick").read_text().strip()
+                self.wait_for(lambda: (run / "tick").read_text().strip() not in ("", tick), 3)  # still running
+                os.write(master, b"\x03")
+                self.assertEqual(self.reap(pid), 130)
+            finally:
+                self.end(run, child, pid)
+                os.close(master)
+
+    @unittest.skipUnless(sys.platform == "linux", "PR_SET_CHILD_SUBREAPER is Linux-only")
+    def test_a_stopped_session_still_receives_a_forwarded_termination(self):
+        # Stopped by other means (SIGSTOP, a debugger), a group keeps a forwarded SIGTERM pending forever.
+        with tempfile.TemporaryDirectory() as tmp, self.live_state(tmp) as (repo, state, controller):
+            run = Path(tmp)
+            argv = self.bounded_loop(run)
+            self.launcher_marker(controller, argv)
+            launcher, child = self.launch(controller, argv), None
+            try:
+                child = self.child_pid(run)
+                os.killpg(child, signal.SIGSTOP)
+                self.wait_for(lambda: self.proc_state(child) == "T")
+                os.kill(launcher, signal.SIGTERM)
+                self.assertEqual(self.reap(launcher, 5), 143)
+            finally:
+                self.end(run, child, launcher)
+
+    @unittest.skipUnless(sys.platform == "linux", "PR_SET_CHILD_SUBREAPER and ptys are Linux-only here")
+    def test_a_launcher_in_the_background_never_takes_the_terminal(self):
+        # A background job of the terminal: the shell keeps the foreground, during the session and after it.
+        with tempfile.TemporaryDirectory() as tmp, self.live_state(tmp) as (repo, state, controller):
+            run = Path(tmp)
+            argv = self.bounded_loop(run)
+            self.launcher_marker(controller, argv)
+            pid, master = pty.fork()
+            if pid == 0:  # the terminal's session leader stands in for the shell
+                code = 99
+                try:
+                    launcher = os.fork()
+                    if launcher == 0:
+                        code = 98
+                        try:
+                            os.setpgid(0, 0)
+                            self.job_control_defaults()
+                            code = controller.manual_run(argv)
+                        finally:
+                            os._exit(code)
+                    code = os.waitstatus_to_exitcode(os.waitpid(launcher, 0)[1])
+                    # Before this leader exits, which would detach the terminal.
+                    (run / "after").write_text(str(os.tcgetpgrp(0)))
+                finally:
+                    os._exit(code)
+            child = None
+            try:
+                child = self.child_pid(run)  # written after the exec, so after any handover
+                self.assertEqual(os.tcgetpgrp(master), pid)
+                (run / "GO").touch()
+                self.assertEqual(self.reap(pid), 0)
+                self.assertEqual((run / "after").read_text(), str(pid))
+            finally:
+                self.end(run, child, pid)
+                os.close(master)
 
     def test_a_manual_run_refusal_after_pin_state_leaves_stdout_empty(self):
         # No claim: refused inside manual_run. The prctl is mocked so this process never becomes a subreaper.

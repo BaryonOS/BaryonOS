@@ -471,27 +471,36 @@ def manual_processes(claim: str) -> list[int]:
     return found
 
 
-def read_record(path: Path) -> dict:
-    """The launcher record, opened like the launcher lock: a planted link, FIFO or directory is
-    refused without being followed or blocking. Missing or unparsable: {} (every check fails closed)."""
+def read_private(path: Path, what: str, remedy: str = "remove it") -> bytes | None:
+    """Opened like the launcher lock: a planted link, FIFO or directory is refused without being
+    followed or blocking. None: missing."""
     try:
         fd = os.open(path, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK | os.O_CLOEXEC)
     except FileNotFoundError:
-        return {}
+        return None
     except OSError as error:
-        raise Stop(f"refusing the launcher record {path}: {error.strerror} (a planted link?); remove it") from error
+        raise Stop(f"refusing {what} {path}: {error.strerror} (a planted link?); {remedy}") from error
     try:
         if not stat.S_ISREG(os.fstat(fd).st_mode):
-            raise Stop(f"refusing the launcher record {path}: not a regular file; remove it")
+            raise Stop(f"refusing {what} {path}: not a regular file; {remedy}")
         with open(fd, "rb", closefd=False) as handle:
-            data = handle.read()
+            return handle.read()
     finally:
         os.close(fd)
+
+
+def read_record(path: Path, claim: str, invalid_ok: bool = False) -> dict:
+    """The launcher record of `claim`. Missing: {}. Present but no JSON object: a Stop, since it could
+    be a start record a later launcher would overwrite (`invalid_ok`: {}, for the acknowledgement)."""
+    if (data := read_private(path, "the launcher record")) is None:
+        return {}
     try:
         saved = json.loads(data)
     except ValueError:
         saved = None
-    return saved if isinstance(saved, dict) else {}
+    if isinstance(saved, dict) or invalid_ok:
+        return saved if isinstance(saved, dict) else {}
+    raise Stop(f"unreadable launcher record {path}; review it, then run `resume --accept-orphans {claim}`")
 
 
 def orphan_hint(record: dict) -> str:
@@ -734,6 +743,7 @@ class Controller:
         self.lock_file.write(json.dumps({"pid": os.getpid(), "run": self.run_id, "started": now()}))
         self.lock_file.flush()
         self.refuse_live_workers()  # a live worker could still change the callbacks
+        self.refuse_live_manual()  # so could a manual session: no baseline verdict (or STOP) while it runs
         self.check_saved_baseline()  # recover() runs git status, which can run a filter
         self.recover()
 
@@ -845,7 +855,8 @@ class Controller:
         if not claim:
             return
         record_path = self.marker().parent / MANUAL_RECORD
-        record = read_record(record_path)
+        # The acknowledgement replaces an unreadable record: the lead's word stands in for its completion.
+        record = read_record(record_path, claim, invalid_ok=acknowledge is not None)
         done = record.get("claim") == claim and ("exit" in record or "acknowledged" in record)
         if acknowledge is None and not done:
             raise Stop(f"manual task {self.manual_claim()} has no `manual-run` completion record, so a process of "
@@ -864,6 +875,8 @@ class Controller:
     def accept_orphans(self, claim: str) -> str:
         """`resume --accept-orphans <claim>`: the lead's word that no process of a manual session whose
         launcher left no completion record survives. Under resume's lock discipline."""
+        if not claim:
+            raise Stop("--accept-orphans needs the claim id the refusal named; nothing acknowledged")
         self.own_state()
         self.lock_file = open_private(self.state / "controller.lock")
         try:
@@ -909,7 +922,7 @@ class Controller:
                            "dispatch.json); this one differs, so nothing ran")
             record = home / MANUAL_RECORD
             # Sticky: a launcher of this claim ended without its completion, so its orphans may live.
-            previous_record = read_record(record)
+            previous_record = read_record(record, claim)
             if previous_record.get("claim") == claim and "exit" not in previous_record:
                 if "acknowledged" in previous_record:  # fail closed: the acknowledged claim is only retired
                     raise Stop(f"manual claim {claim} was acknowledged without a completion record; validate "
@@ -928,6 +941,8 @@ class Controller:
                 if child is not None:
                     with contextlib.suppress(ProcessLookupError, PermissionError):
                         os.killpg(child.pid, signum)
+                        if signum != signal.SIGQUIT:  # a group stopped by other means must still act on it
+                            os.killpg(child.pid, signal.SIGCONT)
             # A closing terminal (SIGHUP) or SIGQUIT must not end the launcher before ECHILD either.
             previous = {sig: signal.signal(sig, forward) for sig in relayed}
             # An inherited SIG_IGN makes the kernel reap every child itself: os.wait() would never see a status.
@@ -946,6 +961,11 @@ class Controller:
                 if terminal:  # the session's own group reads the terminal, so it gets no SIGTTIN
                     with contextlib.suppress(OSError):
                         os.tcsetpgrp(tty, os.getpgrp())
+                # No job control for the session: Ctrl-Z would stop its (foreground) group while the
+                # launcher waits in os.wait(), and no shell could resume it. SIG_IGN survives the exec.
+                # shortcut: a session that resets SIGTSTP or stops itself can still hang the terminal (kill its
+                # group from another terminal); waitpid(WUNTRACED) handling if a real session ever does that.
+                signal.signal(signal.SIGTSTP, signal.SIG_IGN)
                 signal.pthread_sigmask(signal.SIG_SETMASK, unblocked)  # the session never inherits the block
             try:
                 atomic_write(record, json.dumps(started))  # replaces any earlier completion: fail closed
@@ -1051,9 +1071,12 @@ class Controller:
 
     @staticmethod
     def saved_baseline(path: Path) -> dict:
+        # A planted link or FIFO: Stop, never followed or waited on. Removing the marker drops the comparison.
+        data = read_private(path, "the trusted marker", "review the checkout, its ignored files and Git callbacks "
+                            "as a whole before removing it")
         try:
-            saved = json.loads(path.read_text())
-        except (OSError, ValueError):
+            saved = json.loads(data) if data is not None else None
+        except ValueError:
             saved = None
         return saved if isinstance(saved, dict) else {}  # unreadable baseline: every check fails closed
 
@@ -1822,7 +1845,7 @@ def main() -> int:
         sub.add_parser(name)
     sub.add_parser("manual-run", help="run the manual session command (after --) until every descendant "
                    "has exited").add_argument("argv", nargs=argparse.REMAINDER)
-    resume = sub.add_parser("resume")
+    resume = sub.add_parser("resume").add_mutually_exclusive_group()
     resume.add_argument("--accept", metavar="DIGEST", help="retire a saved baseline over the change `resume` reported")
     resume.add_argument("--accept-orphans", metavar="CLAIM", help="after ending every process of a manual "
                         "session whose launcher left no completion record, acknowledge that claim")
@@ -1852,9 +1875,13 @@ def main() -> int:
         # The lead has reviewed the reported change: a sticky STOP must not re-fire on the old baseline.
         controller = Controller(Config(), STATE)
         try:
-            print(controller.accept_orphans(args.accept_orphans) if args.accept_orphans
+            # `is not None`: an empty claim (an unset shell variable) must refuse, never fall back to resume.
+            print(controller.accept_orphans(args.accept_orphans) if args.accept_orphans is not None
                   else controller.resume(args.accept))
         except Stop as error:
+            if args.accept_orphans is not None:  # it never clears STOP or PAUSE
+                print(f"nothing acknowledged: {error}")
+                return 2
             held = [n for n in ("STOP", "PAUSE") if os.path.lexists(STATE / n)]  # a refusal can precede the clear
             print(f"{'stop/pause cleared' if not held else f'{held} still present'}; "
                   f"the saved session baseline is kept: {error}")
