@@ -215,22 +215,41 @@ instance.
 reported separately:
 
 1. **`LiveDenied`.** The live fence is closed on the current service
-   incarnation. This happens first and never waits for storage.
-2. **`DurablePending`.** The tombstone or generation write has been submitted
-   to the authenticated-record boundary.
-3. **`Durable`.** The write succeeded and exact readback matched. Only this
-   state may be shown as "revocation survives restart".
+   incarnation. This happens first and never waits for storage. At the same
+   time, a component that outlives both a policy-process restart and a
+   network-service restart within the boot records a boot-lifetime denial
+   entry for the grant. The network service refuses re-delivery of that
+   owner while the entry exists. Which component holds the entry (for
+   example the service manager or the kernel delegation table) is open
+   question 7. The required outcome is fixed here; the mechanism is not.
+2. **`DurablePending`.** The tombstone write has been submitted to the
+   authenticated-record boundary. The denial entry from state 1 stays in
+   place. If the policy process crashes in this state, the grant therefore
+   stays denied after restart, even though neither a tombstone nor a
+   reported failure exists.
+3. **`Durable`.** Three steps have all completed, in this order:
+   - the tombstone write succeeded;
+   - exact readback matched;
+   - the surviving component has recorded the tombstone's store generation
+     as the highest generation committed in this boot.
+
+   Only then is the denial entry released. Only this state may be shown as
+   "revocation survives restart".
 4. **`DurabilityUnknown`.** The write failed, timed out or read back
-   differently. Live denial stays in place. The state is reported as unknown,
-   never as success. Retry is allowed, and a later `Durable` requires a fresh
-   readback. The grant stays denied for the rest of the boot, including
-   across a restart of the policy process or the network service, even if
-   storage still holds a valid allow record for it: a component that outlives
-   both restarts within the boot keeps a boot-lifetime denial entry, and the
-   network service refuses re-delivery of that owner until the revocation has
-   reached `Durable` with a fresh readback. Which component holds that entry
-   (for example the service manager or the kernel delegation table) is open
-   question 7.
+   differently, or the generation record could not be updated. Live denial
+   stays in place. The state is reported as unknown, never as success. Retry
+   is allowed, and a later `Durable` requires a fresh readback and a fresh
+   generation record. Until then, the denial entry from state 1 keeps the
+   grant denied for the rest of the boot. That holds across a restart of the
+   policy process or the network service, even if storage still holds a
+   valid allow record for the grant.
+
+**Store generation rule.** Each committed store snapshot receives a store
+generation strictly higher than that of every earlier committed snapshot,
+and every tombstone write advances it. An equal generation therefore
+identifies the same snapshot, so a snapshot written before a tombstone
+always has a lower generation than that tombstone. The reload check below
+relies on this rule.
 
 **Restart semantics** (warm restart within the same boot):
 
@@ -242,14 +261,17 @@ reported separately:
   ticks, and there is no trusted wall clock (ADR-050, ADR-057). Persisted
   grants are "until revoked" grants, or they are not persisted.
 - If the policy process itself restarts, it reloads from storage, and every
-  boot-lifetime denial entry from Decision 4 state 4 overrides any allow
-  record it reloads. A `Durable` revocation is enforced by its stored
+  boot-lifetime denial entry from Decision 4 overrides any allow record it
+  reloads. Such entries exist for every revocation that has not reached
+  `Durable`, including one interrupted in `DurablePending`. A `Durable`
+  revocation is enforced by its stored
   tombstone. A reload must not return an older authentic snapshot written
   before that tombstone, so the reload is subject to a freshness check. The
   component that holds the boot-lifetime denial entries (open question 7)
-  also records the highest store generation committed in this boot. A
-  reloaded store whose generation is lower than that record is treated as
-  replayed, and so is any reload for which that record is unavailable.
+  also records the highest store generation committed in this boot. Under
+  the store generation rule, a reloaded store whose generation is lower
+  than that record predates the latest committed tombstone. Such a store is
+  treated as replayed, and so is any reload for which that record is unavailable.
   Either case yields no grants. This check is the within-boot counterpart
   of Decision 5, which covers the cold-boot case. Missing, corrupt,
   unauthenticated, version-unknown or not-provably-current state yields
@@ -257,11 +279,12 @@ reported separately:
   be restored" status. It never yields reconstruction from app requests.
 - **Proposed persistence model.** Persist an allow-list of grant records plus
   generation tombstones. Then loss of state denies access rather than
-  re-enabling it. Within a boot, a failed tombstone write is covered by the
-  boot-lifetime denial entry above. Replay of an older snapshot within the
-  same boot is covered by the generation check above, not by Decision 5. Across a power cycle,
-  only *replay* of an older valid state can resurrect a revoked grant;
-  Decision 5 addresses that cold-boot case.
+  re-enabling it. Within a boot, an interrupted or failed tombstone write
+  is covered by the boot-lifetime denial entry above. Replay of an older
+  snapshot within the same boot is covered by the generation check above,
+  not by Decision 5. Across a power cycle, only *replay* of an older valid
+  state can resurrect a revoked grant; Decision 5 addresses that cold-boot
+  case.
 
 ## Decision 5 — cold freshness anchor
 
@@ -317,6 +340,12 @@ clause, which remains separate evidence.
 - **Durability.** Crash before and after the tombstone write and before and
   after the acknowledgement. Torn, corrupt or missing store. Unknown version.
   Readback mismatch reported as `DurabilityUnknown`.
+  - A policy-process crash in `DurablePending` followed by a restart must
+    leave the grant denied.
+  - A failed generation-record update must leave the revocation
+    `DurabilityUnknown` and the grant denied.
+  - Reload of a pre-tombstone snapshot within the same boot must be refused,
+    with no grants.
 - **Cold boot.** Replay of an older authentic store under 5A.
 - **Mutation controls.** A mutant that skips each check must fail the
   corresponding test.
@@ -363,8 +392,9 @@ These three are the options with Security Floor impact.
    native enforcement, revocation and helper routes within one boot?
 7. Which component, outliving both a policy-process and a network-service
    restart within one boot, holds the boot-lifetime denial entries of
-   Decision 4 (`DurabilityUnknown`) and the highest store generation
-   committed in this boot, which the warm-restart freshness check uses?
+   Decision 4 (from `LiveDenied` until `Durable`) and the highest store
+   generation committed in this boot, which the warm-restart freshness check
+   uses?
 
 ## Sources
 
