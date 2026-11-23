@@ -73,7 +73,8 @@ def summarise(paths: list[Path]) -> dict:
     return {"kind": "baseline", "accepted": None, "budget": None, "scope": SCOPE,
             "identity": {key: first.get(key) for key in IDENTITY},
             "runs": [{"report": str(path), "sha256": digest,
-                      "run_directory": report.get("run_directory"),
+                      # Base name only: no local home path enters committed evidence.
+                      "run_directory": Path(str(report.get("run_directory"))).name,
                       "duration_s": report.get("duration_s")} for path, report, digest in reports],
             "phases": phases}
 

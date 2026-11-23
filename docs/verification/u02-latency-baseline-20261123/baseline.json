@@ -1,0 +1,374 @@
+{
+  "accepted": null,
+  "budget": null,
+  "identity": {
+    "clipboard_requested": true,
+    "kernel_feature": "native-window-session-probe",
+    "library_requested": false,
+    "qemu_sha256": "fa552a45c337a88fe71e1e1af9ebace875f30e88685a6986d9406c92efaf44cb",
+    "scale": 1,
+    "session_route_requested": false,
+    "source_commit": "bc1f76b856900a3a6b0563c4c83ea4bce5d6c8de",
+    "source_sha256": "dc8e67dfb268c9cedef7ff0aa9684797ad7aaa4ef4d864861e188a8d6daec823",
+    "switcher_requested": false,
+    "viewport": [
+      1280,
+      720
+    ],
+    "workspace_requested": true
+  },
+  "kind": "baseline",
+  "phases": {
+    "calculator-contrast-restored": {
+      "count": 3,
+      "last_input_kinds": [
+        "key"
+      ],
+      "max_s": 7.5287150149997615,
+      "min_s": 7.281531371998426,
+      "p50_s": 7.282294450997142,
+      "p95_s": 7.5287150149997615
+    },
+    "calculator-high-contrast": {
+      "count": 3,
+      "last_input_kinds": [
+        "key"
+      ],
+      "max_s": 10.248963750000257,
+      "min_s": 9.567659505999472,
+      "p50_s": 9.616779035000945,
+      "p95_s": 10.248963750000257
+    },
+    "clipboard-back": {
+      "count": 3,
+      "last_input_kinds": [
+        "key"
+      ],
+      "max_s": 14.091818813998543,
+      "min_s": 13.01280357900032,
+      "p50_s": 13.378195369001332,
+      "p95_s": 14.091818813998543
+    },
+    "clipboard-calculator-copied": {
+      "count": 3,
+      "last_input_kinds": [
+        "key"
+      ],
+      "max_s": 1.9668501839987584,
+      "min_s": 1.7107612430008885,
+      "p50_s": 1.896545965999394,
+      "p95_s": 1.9668501839987584
+    },
+    "clipboard-copied": {
+      "count": 3,
+      "last_input_kinds": [
+        "key"
+      ],
+      "max_s": 11.711108936000528,
+      "min_s": 10.433372293999128,
+      "p50_s": 11.30791347700142,
+      "p95_s": 11.711108936000528
+    },
+    "clipboard-empty": {
+      "count": 3,
+      "last_input_kinds": [
+        "key"
+      ],
+      "max_s": 12.077560498000821,
+      "min_s": 10.826972431998001,
+      "p50_s": 11.273438927000825,
+      "p95_s": 12.077560498000821
+    },
+    "clipboard-numeric": {
+      "count": 3,
+      "last_input_kinds": [
+        "key"
+      ],
+      "max_s": 13.288408442000218,
+      "min_s": 12.44599777699841,
+      "p50_s": 13.085471414000494,
+      "p95_s": 13.288408442000218
+    },
+    "clipboard-pasted": {
+      "count": 3,
+      "last_input_kinds": [
+        "key"
+      ],
+      "max_s": 1.3856647229986265,
+      "min_s": 1.2791721329995198,
+      "p50_s": 1.3047695889981696,
+      "p95_s": 1.3856647229986265
+    },
+    "clipboard-recovered-empty": {
+      "count": 3,
+      "last_input_kinds": [
+        "key"
+      ],
+      "max_s": 12.302901623002981,
+      "min_s": 11.094126196996513,
+      "p50_s": 11.477791192999575,
+      "p95_s": 12.302901623002981
+    },
+    "clipboard-rejected": {
+      "count": 3,
+      "last_input_kinds": [
+        "key"
+      ],
+      "max_s": 1.3059758870003861,
+      "min_s": 1.2582053449987143,
+      "p50_s": 1.2856385369996133,
+      "p95_s": 1.3059758870003861
+    },
+    "clipboard-reset": {
+      "count": 3,
+      "last_input_kinds": [
+        "key"
+      ],
+      "max_s": 11.333418989997881,
+      "min_s": 10.38429546000043,
+      "p50_s": 11.187812719999783,
+      "p95_s": 11.333418989997881
+    },
+    "dirty": {
+      "count": 3,
+      "last_input_kinds": [
+        "key"
+      ],
+      "max_s": 0.7163512080005603,
+      "min_s": 0.6675677730017924,
+      "p50_s": 0.6890942659993016,
+      "p95_s": 0.7163512080005603
+    },
+    "document-menu": {
+      "count": 3,
+      "last_input_kinds": [
+        "key"
+      ],
+      "max_s": 10.11919886099713,
+      "min_s": 9.490915318001498,
+      "p50_s": 9.897655690001557,
+      "p95_s": 10.11919886099713
+    },
+    "document-menu-blocked": {
+      "count": 3,
+      "last_input_kinds": [
+        "key"
+      ],
+      "max_s": 0.13295027899948764,
+      "min_s": 0.1114919989995542,
+      "p50_s": 0.11236304599879077,
+      "p95_s": 0.13295027899948764
+    },
+    "document-menu-cancelled": {
+      "count": 3,
+      "last_input_kinds": [
+        "key"
+      ],
+      "max_s": 0.11222945500048809,
+      "min_s": 0.0912718780018622,
+      "p50_s": 0.11193298799844342,
+      "p95_s": 0.11222945500048809
+    },
+    "document-menu-contrast-restored": {
+      "count": 3,
+      "last_input_kinds": [
+        "key"
+      ],
+      "max_s": 12.309641583000484,
+      "min_s": 11.644860501000949,
+      "p50_s": 12.10470439799974,
+      "p95_s": 12.309641583000484
+    },
+    "document-menu-high-contrast": {
+      "count": 3,
+      "last_input_kinds": [
+        "key"
+      ],
+      "max_s": 13.330689373000496,
+      "min_s": 11.453676097000425,
+      "p50_s": 12.285946817999502,
+      "p95_s": 13.330689373000496
+    },
+    "document-menu-mouse": {
+      "count": 3,
+      "last_input_kinds": [
+        "pointer"
+      ],
+      "max_s": 8.986316041002283,
+      "min_s": 7.490756880997651,
+      "p50_s": 7.498821338998823,
+      "p95_s": 8.986316041002283
+    },
+    "document-menu-mouse-cancelled": {
+      "count": 3,
+      "last_input_kinds": [
+        "key"
+      ],
+      "max_s": 7.913479281000036,
+      "min_s": 7.485387278000417,
+      "p50_s": 7.492011032001756,
+      "p95_s": 7.913479281000036
+    },
+    "document-menu-next": {
+      "count": 3,
+      "last_input_kinds": [
+        "key"
+      ],
+      "max_s": 7.499589387996821,
+      "min_s": 6.8180147299972305,
+      "p50_s": 7.465017817998159,
+      "p95_s": 7.499589387996821
+    },
+    "document-menu-read": {
+      "count": 3,
+      "last_input_kinds": [
+        "key"
+      ],
+      "max_s": 9.909834983001929,
+      "min_s": 8.446429220002756,
+      "p50_s": 9.733531247002247,
+      "p95_s": 9.909834983001929
+    },
+    "document-menu-write": {
+      "count": 3,
+      "last_input_kinds": [
+        "key"
+      ],
+      "max_s": 3.568341636000696,
+      "min_s": 3.148717199001112,
+      "p50_s": 3.379844907001825,
+      "p95_s": 3.568341636000696
+    },
+    "editor": {
+      "count": 3,
+      "last_input_kinds": [
+        "key"
+      ],
+      "max_s": 11.938444227998843,
+      "min_s": 11.276751882000099,
+      "p50_s": 11.368897550000838,
+      "p95_s": 11.938444227998843
+    },
+    "initial": {
+      "count": 3,
+      "last_input_kinds": [
+        "pointer"
+      ],
+      "max_s": 0.07390004499757197,
+      "min_s": 0.07221258600111469,
+      "p50_s": 0.0734136640021461,
+      "p95_s": 0.07390004499757197
+    },
+    "list": {
+      "count": 3,
+      "last_input_kinds": [
+        "key"
+      ],
+      "max_s": 11.471558371002175,
+      "min_s": 10.933077557998331,
+      "p50_s": 10.991179027001635,
+      "p95_s": 11.471558371002175
+    },
+    "read-tool": {
+      "count": 3,
+      "last_input_kinds": [
+        "key"
+      ],
+      "max_s": 3.563761841996893,
+      "min_s": 3.3558620879994123,
+      "p50_s": 3.3564856209995924,
+      "p95_s": 3.563761841996893
+    },
+    "read-tool-blocked": {
+      "count": 3,
+      "last_input_kinds": [
+        "key"
+      ],
+      "max_s": 0.13264261400036048,
+      "min_s": 0.11306160700041801,
+      "p50_s": 0.11315429699970991,
+      "p95_s": 0.13264261400036048
+    },
+    "rebound-editor": {
+      "count": 3,
+      "last_input_kinds": [
+        "pointer"
+      ],
+      "max_s": 0.09994576600001892,
+      "min_s": 0.09597367100286647,
+      "p50_s": 0.09950803500032634,
+      "p95_s": 0.09994576600001892
+    },
+    "reopened": {
+      "count": 3,
+      "last_input_kinds": [
+        "key"
+      ],
+      "max_s": 11.779556338002294,
+      "min_s": 10.830200517000776,
+      "p50_s": 11.322682056001213,
+      "p95_s": 11.779556338002294
+    },
+    "restored-editor": {
+      "count": 3,
+      "last_input_kinds": [
+        "key"
+      ],
+      "max_s": 12.984597799997573,
+      "min_s": 12.342645958000503,
+      "p50_s": 12.6821359759997,
+      "p95_s": 12.984597799997573
+    },
+    "saved": {
+      "count": 3,
+      "last_input_kinds": [
+        "key"
+      ],
+      "max_s": 12.198030024002946,
+      "min_s": 11.182683879000251,
+      "p50_s": 11.317357953001192,
+      "p95_s": 12.198030024002946
+    },
+    "window-restored": {
+      "count": 3,
+      "last_input_kinds": [
+        "pointer"
+      ],
+      "max_s": 12.325355130997195,
+      "min_s": 11.402928380000958,
+      "p50_s": 11.83334775899857,
+      "p95_s": 12.325355130997195
+    },
+    "write-tool-restored": {
+      "count": 3,
+      "last_input_kinds": [
+        "key"
+      ],
+      "max_s": 3.585489430002781,
+      "min_s": 3.1933399090012244,
+      "p50_s": 3.3932328279988724,
+      "p95_s": 3.585489430002781
+    }
+  },
+  "runs": [
+    {
+      "duration_s": 358.38776098699964,
+      "report": "build/u02-logs/report-1.json",
+      "run_directory": "window-1f624aabbe0241788d7dd0939f90d34c",
+      "sha256": "2796fafdcfe6a1ed2c21ed5d4e0c2bd9a03c876d4866fd19da3fdcc0945416b2"
+    },
+    {
+      "duration_s": 374.25989120599843,
+      "report": "build/u02-logs/report-2.json",
+      "run_directory": "window-97f5f11732bc4be7b75e02e2d0cb666c",
+      "sha256": "e3a51cbeb41c13c153470e69d5432abeaf6d8a1b3e15c3117afec4d90b28e7d6"
+    },
+    {
+      "duration_s": 359.83572562100017,
+      "report": "build/u02-logs/report-3.json",
+      "run_directory": "window-a0f37878493d471098eec23e671c8336",
+      "sha256": "c8dddedb95a37193df910199bf99b95b27b0196231ef4862e181ff75f27dcd07"
+    }
+  ],
+  "scope": "TCG host-observed baseline, not U02 acceptance, no budget. Each interval runs from the start of the last injected QMP input to an exact full app-body oracle match and includes QMP, polling and capture overhead."
+}
