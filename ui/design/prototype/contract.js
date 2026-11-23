@@ -323,6 +323,17 @@ export function createPermissions({ emit = () => {} } = {}) {
       return true
     },
     canChangeToAllow: (g) => rememberAllowOffered(g) && !needsConfirm(g),
+    // owner decision of 23 Nov 2026 (file close / user revoke): end exactly one temporary grant while its app keeps running.
+    // Removes only that five-field key from the temporary grants and its compact-form record (a revocation is a changed
+    // circumstance, MF-5); remembered decisions, temporary denials (R2) and every other key are left as they are.
+    endTemporary(key) {
+      const k = keyOf(key), g = temporary.get(k)
+      if (!g) return null
+      temporary.delete(k)
+      eligible.delete(k)
+      emit('permission', { op: 'end-temporary', key: k })
+      return { ...g }
+    },
     // OQ-5 end events. A temporary grant ends with the logical app session (explicit termination), logout or a user-session
     // switch; hiding or minimising a window ends nothing, and there is no timeout. Temporary denials end with the app (R2).
     appClosed: (app) => endSession((g) => g.app === app, 'app-closed'),
