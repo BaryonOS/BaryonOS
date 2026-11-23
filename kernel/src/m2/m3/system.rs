@@ -102,6 +102,14 @@ struct Suspend {
     /// Init's entropy/block syscalls after the wake: (number, result).
     lost: [(u64, i64); 4],
     lost_count: usize,
+    /// Kernel copy of the Key Service's Entropy handle, taken at manifest
+    /// time; ring 3 can rewrite its startup page, never this.
+    #[cfg(feature = "test-system-s3-reinit")]
+    key_entropy: u64,
+    /// Broker (delivered bytes, denied) at the wake, before any post-wake
+    /// request, so post-wake activity cannot pad the pre-sleep evidence.
+    #[cfg(feature = "test-system-s3-reinit")]
+    broker_at_wake: (u64, u64),
 }
 #[cfg(feature = "test-system-s3")]
 static mut SUSPEND: Suspend = Suspend {
@@ -114,6 +122,10 @@ static mut SUSPEND: Suspend = Suspend {
     ticked: false,
     lost: [(0, 0); 4],
     lost_count: 0,
+    #[cfg(feature = "test-system-s3-reinit")]
+    key_entropy: 0,
+    #[cfg(feature = "test-system-s3-reinit")]
+    broker_at_wake: (0, 0),
 };
 #[cfg(feature = "test-system-s3")]
 fn suspend_state() -> &'static mut Suspend {
@@ -154,6 +166,11 @@ pub(super) fn suspend(s: &mut State, slot: usize, a: [u64; 6]) -> i64 {
     let p = suspend_state();
     p.resumed = true;
     p.irqs_at_wake = s.timer_interrupts;
+    #[cfg(feature = "test-system-s3-reinit")]
+    {
+        let (delivered, denied, _) = keyring::broker_summary();
+        p.broker_at_wake = (delivered, denied);
+    }
     0
 }
 /// After a validated wake every device is reset by the platform.
@@ -176,9 +193,14 @@ pub(super) fn after_wake(slot: usize, number: u64, code: i64) {
         p.other = p.other.saturating_add(1);
     }
 }
-/// First timer interrupt after the wake: tell init it may continue.
+/// First timer interrupt after the wake: tell init it may continue. With
+/// test-system-s3-reinit only once virtio-rng is re-initialised (H05-T5b).
 #[cfg(feature = "test-system-s3")]
 pub(super) fn tick_after_wake(s: &State) {
+    #[cfg(feature = "test-system-s3-reinit")]
+    if !keyring::reinit_done() {
+        return;
+    }
     let p = suspend_state();
     if p.resumed && !p.ticked && s.processes[INIT].status != Status::Dead {
         p.ticked = true;
@@ -402,6 +424,10 @@ pub(super) fn manifest(s: &mut State) {
         put(s, INIT, 48, power);
         #[cfg(feature = "test-system-s3")]
         put(s, INIT, 592, 1);
+        // H05-T5b: entropy is served again after the wake; init's POWER handle
+        // then reaches the authority check (-6) instead of the -14 refusal.
+        #[cfg(feature = "test-system-s3-reinit")]
+        put(s, INIT, 624, 1);
         put(s, APP, 104, power);
         // SHUTDOWN is accepted only on domain 1, init's volume ingress.
         put(s, VOLUME, 104, 2);
@@ -422,6 +448,10 @@ pub(super) fn manifest(s: &mut State) {
     let (key_admin_ingress, init_key_admin) = channel(e, key, init);
     let (init_key_reply, key_admin_reply) = channel(e, init, key);
     let entropy = e.create_entropy(key).unwrap();
+    #[cfg(feature = "test-system-s3-reinit")]
+    {
+        suspend_state().key_entropy = entropy;
+    }
     let (volume_reply, volume_send_reply) = channel(e, app, volume);
     let (volume_ingress, app_volume) = channel(e, volume, app);
     // The second volume domain belongs to init (key-state snapshot), never the app.
@@ -734,6 +764,11 @@ pub(super) fn observe_fault(s: &mut State, slot: usize, context: &[u64; 22], _co
 pub(super) fn poll(s: &mut State) -> Option<*const u64> {
     #[cfg(feature = "native-system-random")]
     random_fixture::poll(s);
+    #[cfg(feature = "test-system-s3-reinit")]
+    if resumed() {
+        let handle = suspend_state().key_entropy;
+        keyring::reinit_poll(s, KEY, handle);
+    }
     keyring::broker_tick(s);
     m5::broker_tick(s);
     #[cfg(feature = "native-system-net")]
@@ -838,6 +873,20 @@ fn finish(s: &mut State) -> ! {
         serial::write(b"SYSTEM:CLOCK:INVALID_ARGS:PASS\n");
     }
     let (entropy, denied, entropy_idle) = keyring::broker_summary();
+    // H05-T5b: judge the pre-sleep values against the bounds below, and the
+    // post-wake increments exactly: the kernel's 32-byte delivery, init's -6.
+    #[cfg(feature = "test-system-s3-reinit")]
+    let (entropy_before, denied_before) = {
+        let (delivered_before, denied_before) = suspend_state().broker_at_wake;
+        require(
+            entropy.checked_sub(delivered_before) == Some(32)
+                && denied.checked_sub(denied_before) == Some(1),
+            b"S3_REINIT_BROKER_DELTA",
+        );
+        (delivered_before, denied_before)
+    };
+    #[cfg(not(feature = "test-system-s3-reinit"))]
+    let (entropy_before, denied_before) = (entropy, denied);
     let (published, completed, block_idle) = m5::broker_summary();
     // Power fault fixtures: exactly the injected SHUTDOWN flush never completed.
     let refused = cfg!(any(
@@ -850,7 +899,11 @@ fn finish(s: &mut State) -> ! {
         block_idle && published == completed
     };
     require(
-        entropy >= 1024 && denied >= 1 && entropy_idle && block_state && published[0] > 0,
+        entropy_before >= 1024
+            && denied_before >= 1
+            && entropy_idle
+            && block_state
+            && published[0] > 0,
         b"BROKER_STATE",
     );
     if cfg!(feature = "test-system-recover") {
@@ -917,12 +970,19 @@ fn finish(s: &mut State) -> ! {
     #[cfg(feature = "test-system-s3")]
     {
         let p = suspend_state();
+        // H05-T5b: after re-init init's entropy request reaches the authority
+        // check with its POWER handle (-6); block requests stay lost (-14).
+        let entropy = if cfg!(feature = "test-system-s3-reinit") {
+            -6
+        } else {
+            -14
+        };
         let ok = p.granted
             && p.resumed
             && p.ticked
             && s.timer_interrupts > p.irqs_at_wake
             && p.log[..p.count] == [-8, -6, -4, -1, 0, -14]
-            && p.lost[..p.lost_count] == [(0x60, -14), (0x40, -14)]
+            && p.lost[..p.lost_count] == [(0x60, entropy), (0x40, -14)]
             && p.other == 0;
         if !ok {
             for code in &p.log[..p.count] {
@@ -937,7 +997,18 @@ fn finish(s: &mut State) -> ! {
         print_number(b"SYSTEM:SUSPEND_REFUSALS:", (p.count - 1) as u64);
         print_number(b"SYSTEM:SUSPEND_GRANTED:", 1);
         print_number(b"SYSTEM:SUSPEND_TICK_AFTER_WAKE:", 1);
+        #[cfg(feature = "test-system-s3-reinit")]
+        {
+            let (served, stale) = keyring::reinit_evidence().unwrap_or_else(|| fail(b"S3_REINIT"));
+            print_number(b"SYSTEM:SUSPEND_REINIT_ENTROPY:", served);
+            print_number(b"SYSTEM:SUSPEND_REINIT_STALE_TICKET:", stale.unsigned_abs());
+            print_number(
+                b"SYSTEM:SUSPEND_REINIT_ENTROPY_AUTH:",
+                p.lost[0].1.unsigned_abs(),
+            );
+        }
         // The logged magnitudes, so a host oracle can tell -14 from 0.
+        #[cfg(not(feature = "test-system-s3-reinit"))]
         print_number(b"SYSTEM:SUSPEND_LOST_ENTROPY:", p.lost[0].1.unsigned_abs());
         print_number(b"SYSTEM:SUSPEND_LOST_BLOCK:", p.lost[1].1.unsigned_abs());
     }
@@ -1110,7 +1181,9 @@ fn finish(s: &mut State) -> ! {
             print_number(b"SYSTEM:POWER:GATE_LOST:", code as u64);
             fail(b"POWER_GATE");
         }
-        serial::write(if cfg!(feature = "test-system-s3") {
+        serial::write(if cfg!(feature = "test-system-s3-reinit") {
+            &b"SYSTEM:POWER:GATE:PASS\nSYSTEM:CASE:POWER_S3_REINIT:PASS\nM1:PASS\n"[..]
+        } else if cfg!(feature = "test-system-s3") {
             &b"SYSTEM:POWER:GATE:PASS\nSYSTEM:CASE:POWER_S3:PASS\nM1:PASS\n"[..]
         } else {
             b"SYSTEM:POWER:GATE:PASS\nSYSTEM:CASE:POWER:PASS\nM1:PASS\n"

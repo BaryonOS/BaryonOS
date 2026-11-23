@@ -50,6 +50,23 @@ PIT ticks; the TSC is used only for saturating diagnostics.
    request is not exercised. The only way forward that the
    profile exercises is POWER_OFF (S5), which re-runs the storage gate.
    Device re-initialisation after a wake is a separate slice.
+   Amendment H05-T5b (23 November 2026): under the opt-in profile
+   `test-system-s3-reinit` only, after a validated wake and with an idle broker,
+   the kernel re-validates virtio-rng (same BDF and IDs, no BAR sizing) before it
+   lifts the entropy -14. It restores BARs only from the all-cleared state and
+   requires the readback and the capability regions to equal discovery. It then
+   resets with acknowledgement, checks pool ownership, initialises (bus mastering
+   only there) and runs a discarded 32-byte self-test. `next_ticket` stays
+   monotonic, so a pre-sleep ticket is refused (-1). Block devices stay lost
+   (-14). Any failure exits 0x11. The post-wake delivery is driven by the kernel
+   through the Key Service's own entropy capability, copied into kernel state at
+   manifest time, into an unused heap page that is wiped with IF=0. Init's own
+   post-wake request is refused by authority (-6), so no ring-3 process receives
+   post-wake entropy in this fixture. On local QEMU 10.2.1 the BARs are cleared
+   by the wake (`BARS=RESTORED`). The oracle also accepts `BARS=KEPT` for the CI
+   QEMU 8.2.2 path, which is unmeasured
+   (docs/verification/h05-s3-reinit-20261123/). In `test-system-s3`, devices
+   remain lost.
 4. **Time.** Sleep time does not advance the tick clock; deadlines therefore
    pause across S3. This is recorded, not hidden.
 

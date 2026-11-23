@@ -28,8 +28,13 @@ FEATURE = {"normal": "native-system", "recover": "test-system-recover"}
 POWER_FEATURE = {"power": "native-system-power", "power-flush-error": "test-system-power-flush-error",
                  "power-flush-timeout": "test-system-power-flush-timeout",
                  # H05-T4 (ADR-H05-S3-SYSTEM-20261123): one granted S3 cycle, then S5.
-                 "power-s3": "test-system-s3"}
+                 "power-s3": "test-system-s3",
+                 # H05-T5b: the same cycle, then virtio-rng re-initialised after the wake.
+                 "power-s3-reinit": "test-system-s3-reinit"}
 POWER_CASES = tuple(POWER_FEATURE)
+S3_CASES = ("power-s3", "power-s3-reinit")
+# The single re-init marker; CI's QEMU 8.2.2 may keep the BARs that 10.2.1 clears.
+REINIT = re.compile(r"KEYRING:S3:REINIT:BARS=(KEPT|RESTORED):STATUS=15:SELFTEST=32")
 S5_TAIL = ("POWER:S5:PM1A=0x0604:SLP_TYP=0:SCI_EN=1", "POWER:S5:WRITE")
 # B02 persistence objects: the app's sealed record (domain 0) and init's
 # encrypted key-state snapshot (domain 1). Both are ciphertext, never fixtures.
@@ -162,45 +167,64 @@ def s3_machine() -> str:
     return MACHINE
 
 
-def check_suspend(lines: list[str]) -> None:
+def check_suspend(lines: list[str], reinit: bool = False) -> None:
     """One resolved plan at bootstrap, then exactly one ENTER/RESUMED pair
-    inside init's run: after the manifest, before the broker evidence."""
+    inside init's run: after the manifest, before the broker evidence. With
+    re-init, exactly one re-init marker between RESUMED and the brokers."""
     from run_sleep import ENTER, PLAN, RESUMED  # lazy, see run_system
     s3 = [line for line in lines if line.startswith("POWER:S3:")]
     if (len(s3) != 3 or not PLAN.fullmatch(s3[0]) or s3[1] != ENTER.format(1)
             or not RESUMED.fullmatch(s3[2]) or RESUMED.fullmatch(s3[2]).group(1) != "1"):
         raise ValueError(f"power-s3 lacks exactly one planned, entered and resumed cycle: {s3}")
-    positions = [lines.index(marker) for marker in
-                 ("SYSTEM:MANIFEST:PASS", s3[1], s3[2], "SYSTEM:BROKERS:PASS")]
+    order = ["SYSTEM:MANIFEST:PASS", s3[1], s3[2], "SYSTEM:BROKERS:PASS"]
+    if reinit:
+        marker = [line for line in lines if line.startswith("KEYRING:S3:")]
+        if len(marker) != 1 or not REINIT.fullmatch(marker[0]):
+            raise ValueError(f"power-s3-reinit lacks exactly one re-init marker: {marker}")
+        order.insert(3, marker[0])
+    positions = [lines.index(marker) for marker in order]
     if positions != sorted(positions) or lines.index(s3[0]) > positions[0]:
         raise ValueError("power-s3 S3 markers are out of order")
 
 
 def refuse_stray_suspend(case: str, stdout: str) -> None:
-    """Every case except power-s3 must carry no SYSTEM:SUSPEND* evidence at all."""
-    if case != "power-s3" and any(line.startswith("SYSTEM:SUSPEND") for line in stdout.splitlines()):
+    """Only the S3 cases carry SYSTEM:SUSPEND* evidence, only re-init KEYRING:S3:."""
+    lines = stdout.splitlines()
+    if case not in S3_CASES and any(line.startswith("SYSTEM:SUSPEND") for line in lines):
         raise ValueError("suspend evidence outside the power-s3 profile")
+    if case != "power-s3-reinit" and any(line.startswith("KEYRING:S3:") for line in lines):
+        raise ValueError("re-init evidence outside the power-s3-reinit profile")
 
 
 SUSPEND_ORDER = ("REFUSALS", "GRANTED", "TICK_AFTER_WAKE", "LOST_ENTROPY", "LOST_BLOCK")
+# Re-init: one 32-byte post-wake delivery, the pre-sleep ticket refused (-1),
+# init's POWER handle refused by authority (-6), block still lost (-14).
+REINIT_ORDER = ("REFUSALS", "GRANTED", "TICK_AFTER_WAKE", "REINIT_ENTROPY",
+                "REINIT_STALE_TICKET", "REINIT_ENTROPY_AUTH", "LOST_BLOCK")
 
 
 def check_power(case: str, stdout: str, found: dict) -> None:
     """Exact S5 tail after M1:PASS, or a refusal without any PM1 write."""
     lines = stdout.splitlines()
-    if case in ("power", "power-s3"):
+    if case in ("power", *S3_CASES):
         if tuple(lines[-3:]) != ("M1:PASS", *S5_TAIL) or "SYSTEM:POWER:GATE:PASS" not in lines:
             raise ValueError("power case did not end with the gated S5 write")
         expected = {"POWER_INIT_REFUSALS": 3, "POWER_APP_REFUSALS": 2, "POWER_NOT_DURABLE": 0}
-        if case == "power-s3":
-            check_suspend(lines)
+        if case in S3_CASES:
+            reinit = case == "power-s3-reinit"
+            check_suspend(lines, reinit)
             # -8 before SHUTDOWN, -6, -4, -1, then the grant and the one-shot -14;
             # after the wake init's entropy and block requests each return -14.
             expected.update(SUSPEND_REFUSALS=5, SUSPEND_GRANTED=1, SUSPEND_TICK_AFTER_WAKE=1,
-                            SUSPEND_LOST_ENTROPY=14, SUSPEND_LOST_BLOCK=14)
+                            SUSPEND_LOST_BLOCK=14)
+            if reinit:
+                expected.update(SUSPEND_REINIT_ENTROPY=32, SUSPEND_REINIT_STALE_TICKET=1,
+                                SUSPEND_REINIT_ENTROPY_AUTH=6)
+            else:
+                expected.update(SUSPEND_LOST_ENTROPY=14)
             suspend = [line.split(":")[1] for line in lines if line.startswith("SYSTEM:SUSPEND")]
-            if suspend != [f"SUSPEND_{key}" for key in SUSPEND_ORDER]:
-                raise ValueError(f"power-s3 suspend evidence out of order: {suspend}")
+            if suspend != [f"SUSPEND_{key}" for key in (REINIT_ORDER if reinit else SUSPEND_ORDER)]:
+                raise ValueError(f"{case} suspend evidence out of order: {suspend}")
     else:
         fault = "FLUSH_ERROR" if case == "power-flush-error" else "FLUSH_TIMEOUT"
         if (any(line.startswith("POWER:") for line in lines)
@@ -213,6 +237,9 @@ def check_power(case: str, stdout: str, found: dict) -> None:
     for key, value in expected.items():
         if found.get(key) != value:
             raise ValueError(f"{key}: expected {value}, found {found.get(key)}")
+    # The kernel fixture's 32 post-wake bytes cannot pad the pre-sleep bound.
+    if case == "power-s3-reinit" and found["ENTROPY_BYTES"] - found["SUSPEND_REINIT_ENTROPY"] < 256:
+        raise ValueError("ENTROPY_BYTES: fewer than 256 bytes delivered before the sleep")
 
 
 def evaluate(case: str, stdout: str, raw_exit: int | None, timed_out: bool) -> dict[str, int]:
@@ -224,7 +251,7 @@ def evaluate(case: str, stdout: str, raw_exit: int | None, timed_out: bool) -> d
     if controlled != list(expected):
         raise ValueError(f"system marker sequence mismatch: {controlled}")
     # Only a guest poweroff exits 0: the power runs override -no-reboot.
-    if timed_out or raw_exit != (0 if case in ("power", "power-s3") else 33):
+    if timed_out or raw_exit != (0 if case in ("power", *S3_CASES) else 33):
         raise ValueError(f"raw exit {raw_exit}, timed_out {timed_out}")
     if any("PANIC" in line or "FAIL" in line for line in stdout.splitlines()):
         raise ValueError("guest failure marker")
@@ -403,7 +430,7 @@ def run_system(case: str, volume_dir: Path | None = None, *, timeout: int = MAX_
     if (qmp_hook is not None or nic_status is not True) and not link:
         raise ValueError("QMP link control and a STATUS-less NIC belong to the link profile only")
     wake, machine = None, None
-    if case == "power-s3":
+    if case in S3_CASES:
         from run_sleep import SystemWake  # lazy: run_sleep's wake hook reuses run_net_link, which imports this module
         # The S3 evidence boundary: the measured QEMU 8.2 q35/OVMF profile under TCG only.
         machine = s3_machine()
@@ -510,7 +537,7 @@ def run_system(case: str, volume_dir: Path | None = None, *, timeout: int = MAX_
             save_json(run_dir / "result.json", dict(case=case, passed=False, s3_control=wake.evidence(),
                                                     run_directory=str(run_dir),
                                                     error=f"{type(error).__name__}: {error}"))
-            raise RuntimeError(f"power-s3 control failed ({run_dir}): {error}") from error
+            raise RuntimeError(f"{case} control failed ({run_dir}): {error}") from error
         raise
     finally:
         if wake is not None:

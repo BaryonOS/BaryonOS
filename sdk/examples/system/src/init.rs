@@ -341,8 +341,12 @@ fn suspend_sequence(power: Handle, image: LaunchImage, forged: Handle) {
     // with -14 before any authority check. Init holds no entropy or block
     // capability and the storage gate closed every block object, so its own
     // POWER handle (-6 before the wake) is the only handle it can present.
+    // H05-T5b: a test-system-s3-reinit kernel (word 624) re-initialised
+    // virtio-rng before word 616, so entropy reaches the authority check.
+    let entropy = if support::word(624) == 1 { -6 } else { -14 };
     check(
-        native::entropy_request(EntropySource::from_handle(power), 1) == Err(Error::Kernel(-14)),
+        native::entropy_request(EntropySource::from_handle(power), 1)
+            == Err(Error::Kernel(entropy)),
         78,
     );
     check(

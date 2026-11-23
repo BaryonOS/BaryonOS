@@ -328,12 +328,16 @@ class SystemHarnessTests(unittest.TestCase):
 
 def power_transcript(case="power", tail=None, **changes):
     """H05 power run: the normal flow plus refusal counters, then the S5 tail."""
-    ok = case in ("power", "power-s3")
+    ok = case in ("power", "power-s3", "power-s3-reinit")
     values = dict(POWER_INIT_REFUSALS=3 if ok else 4, POWER_APP_REFUSALS=2,
                   POWER_NOT_DURABLE=0 if ok else 1, DISK_FLUSHES=4)
     if case == "power-s3":
         values.update(SUSPEND_REFUSALS=5, SUSPEND_GRANTED=1, SUSPEND_TICK_AFTER_WAKE=1,
                       SUSPEND_LOST_ENTROPY=14, SUSPEND_LOST_BLOCK=14)
+    if case == "power-s3-reinit":
+        values.update(SUSPEND_REFUSALS=5, SUSPEND_GRANTED=1, SUSPEND_TICK_AFTER_WAKE=1,
+                      SUSPEND_REINIT_ENTROPY=32, SUSPEND_REINIT_STALE_TICKET=1,
+                      SUSPEND_REINIT_ENTROPY_AUTH=6, SUSPEND_LOST_BLOCK=14)
     values.update(changes)
     values = {key: value for key, value in values.items() if value is not None}
     body = transcript("normal", **values).replace("SYSTEM:CASE:NORMAL:PASS\nM1:PASS\n", "")
@@ -354,10 +358,10 @@ S3_RESUMED = ("POWER:S3:RESUMED:CYCLE=1:ENTRY=PM32:PM1_STS=0x8101:WAK_STS=1:SCI_
               "HWSIG=SAME:FACS=DISARMED:CANARY=PASS:CR3=SAME")
 
 
-def s3_transcript(s3=(S3_ENTER, S3_RESUMED), plan=S3_PLAN, **changes):
+def s3_transcript(s3=(S3_ENTER, S3_RESUMED), plan=S3_PLAN, case="power-s3", **changes):
     """H05-T4 power-s3 in the kernel's real order: plan at bootstrap, the one
     cycle inside init's run (after MANIFEST, before the broker evidence)."""
-    text = power_transcript("power-s3", **changes)
+    text = power_transcript(case, **changes)
     before = (plan + "\n") if plan else ""
     return text.replace("SYSTEM:MANIFEST:PASS\n",
                         before + "SYSTEM:MANIFEST:PASS\n" + "".join(line + "\n" for line in s3), 1)
@@ -443,6 +447,86 @@ class PowerS3HarnessTests(unittest.TestCase):
 
     def test_a_passing_s3_image_of_the_same_source_may_recover(self):
         check_parent(dict(case="power-s3", passed=True, kernel_feature="test-system-s3",
+                          source_sha256="source", after_sha256="disk"), "source", "disk", network=False)
+
+
+S3_REINIT = "KEYRING:S3:REINIT:BARS=RESTORED:STATUS=15:SELFTEST=32"
+
+
+def reinit_transcript(marker=S3_REINIT, **changes):
+    """H05-T5b power-s3-reinit: the re-init marker right after RESUMED."""
+    return s3_transcript(s3=(S3_ENTER, S3_RESUMED, *((marker,) if marker else ())),
+                         case="power-s3-reinit", **changes)
+
+
+class PowerS3ReinitHarnessTests(unittest.TestCase):
+    def test_passes_with_either_bar_state_and_parses_the_post_wake_evidence(self):
+        for state in ("RESTORED", "KEPT"):
+            with self.subTest(state=state):
+                found = evaluate("power-s3-reinit",
+                                 reinit_transcript(S3_REINIT.replace("RESTORED", state)), 0, False)
+                self.assertEqual((found["SUSPEND_REINIT_ENTROPY"], found["SUSPEND_REINIT_STALE_TICKET"],
+                                  found["SUSPEND_REINIT_ENTROPY_AUTH"], found["SUSPEND_LOST_BLOCK"]),
+                                 (32, 1, 6, 14))
+        for raw, timed_out in ((33, False), (17, False), (None, True)):
+            with self.subTest(raw=raw), self.assertRaises(ValueError):
+                evaluate("power-s3-reinit", reinit_transcript(), raw, timed_out)
+
+    def test_missing_duplicate_or_misplaced_reinit_marker_is_refused(self):
+        with self.assertRaisesRegex(ValueError, "re-init marker"):
+            evaluate("power-s3-reinit", reinit_transcript(marker=None), 0, False)
+        doubled = reinit_transcript().replace(S3_REINIT, S3_REINIT + "\n" + S3_REINIT)
+        with self.assertRaisesRegex(ValueError, "re-init marker"):
+            evaluate("power-s3-reinit", doubled, 0, False)
+        late = reinit_transcript().replace(S3_REINIT + "\n", "").replace(
+            "SYSTEM:BROKERS:PASS\n", f"SYSTEM:BROKERS:PASS\n{S3_REINIT}\n")
+        early = reinit_transcript().replace(S3_REINIT + "\n", "").replace(
+            S3_ENTER + "\n", f"{S3_REINIT}\n{S3_ENTER}\n")
+        for text in (late, early):
+            with self.assertRaisesRegex(ValueError, "order"):
+                evaluate("power-s3-reinit", text, 0, False)
+
+    def test_wrong_bar_state_status_or_self_test_token_is_refused(self):
+        for old, new in (("RESTORED", "CHANGED"), ("RESTORED", "NONE"), ("RESTORED", "KEPT|RESTORED"),
+                         ("STATUS=15", "STATUS=11"), ("STATUS=15", "STATUS=0"),
+                         ("SELFTEST=32", "SELFTEST=0"), ("SELFTEST=32", "SELFTEST=31")):
+            with self.subTest(new=new), self.assertRaisesRegex(ValueError, "re-init marker"):
+                evaluate("power-s3-reinit", reinit_transcript(S3_REINIT.replace(old, new)), 0, False)
+
+    def test_entropy_refused_after_reinit_is_refused(self):
+        # No delivery, a short one, the old -14 refusal, a redeemed pre-sleep
+        # ticket, or the base profile's LOST_ENTROPY line in place of the delivery.
+        for change in (dict(SUSPEND_REINIT_ENTROPY=0), dict(SUSPEND_REINIT_ENTROPY=None),
+                       dict(SUSPEND_REINIT_ENTROPY=31), dict(SUSPEND_REINIT_ENTROPY_AUTH=14),
+                       dict(SUSPEND_REINIT_ENTROPY_AUTH=None), dict(SUSPEND_REINIT_STALE_TICKET=0),
+                       dict(SUSPEND_REINIT_STALE_TICKET=None),
+                       dict(SUSPEND_REINIT_ENTROPY=None, SUSPEND_REINIT_STALE_TICKET=None,
+                            SUSPEND_REINIT_ENTROPY_AUTH=None, SUSPEND_LOST_ENTROPY=14)):
+            with self.subTest(change=change), self.assertRaises(ValueError):
+                evaluate("power-s3-reinit", reinit_transcript(**change), 0, False)
+
+    def test_post_wake_delivery_cannot_pad_the_entropy_bound(self):
+        self.assertEqual(evaluate("power-s3-reinit", reinit_transcript(ENTROPY_BYTES=288),
+                                  0, False)["ENTROPY_BYTES"], 288)
+        with self.assertRaisesRegex(ValueError, "before the sleep"):
+            evaluate("power-s3-reinit", reinit_transcript(ENTROPY_BYTES=287), 0, False)
+
+    def test_block_served_after_the_wake_is_refused(self):
+        for change in (dict(SUSPEND_LOST_BLOCK=0), dict(SUSPEND_LOST_BLOCK=None),
+                       dict(SUSPEND_LOST_BLOCK=6)):
+            with self.subTest(change=change), self.assertRaises(ValueError):
+                evaluate("power-s3-reinit", reinit_transcript(**change), 0, False)
+
+    def test_case_marker_and_profile_boundaries(self):
+        plain = reinit_transcript().replace("SYSTEM:CASE:POWER_S3_REINIT:PASS", "SYSTEM:CASE:POWER_S3:PASS")
+        with self.assertRaises(ValueError):
+            evaluate("power-s3-reinit", plain, 0, False)
+        # The base S3 oracle and every other case refuse a re-init marker.
+        with self.assertRaisesRegex(ValueError, "outside"):
+            evaluate("power-s3", s3_transcript(s3=(S3_ENTER, S3_RESUMED, S3_REINIT)), 0, False)
+        with self.assertRaisesRegex(ValueError, "outside"):
+            evaluate("power", power_transcript("power") + S3_REINIT + "\n", 0, False)
+        check_parent(dict(case="power-s3-reinit", passed=True, kernel_feature="test-system-s3-reinit",
                           source_sha256="source", after_sha256="disk"), "source", "disk", network=False)
 
 
