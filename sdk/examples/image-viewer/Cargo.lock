@@ -44,14 +44,14 @@ name = "nieuw-os-surface-protocol"
 version = "0.1.0"
 
 [[package]]
+name = "nieuw-os-usb-core"
+version = "0.1.0"
+
+[[package]]
 name = "simd-adler32"
 version = "0.3.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3a219298ac11a56ea9a6d2120044824d6f01aeb034955e7af7bc16858527deea"
-
-[[package]]
-name = "nieuw-os-usb-core"
-version = "0.1.0"
 
 [[package]]
 name = "ui-core"
@@ -59,9 +59,9 @@ version = "0.1.0"
 
 [[package]]
 name = "zeroize"
-version = "1.9.1"
+version = "1.9.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e13084392c5e4bc371903e2935a5eaeed24905a7511356b883835e18a78f6879"
+checksum = "85ccff8a4805aba1eaa4cd4afcd49f7557dd2cf5fd79ffc37f8959466effc5aa"
 
 [[package]]
 name = "zune-core"
