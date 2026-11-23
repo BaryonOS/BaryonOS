@@ -5,11 +5,17 @@ host-testable library. It is temporarily a standalone workspace because the
 shared SDK manifest and lockfile have another owner. SDK membership, native
 integration and U05 acceptance remain open.
 
-`Index<E, B, T>` holds at most E records **per domain**, including deleted-object
-revision tombstones. B limits the combined bytes of name, collection labels,
-metadata text and content per record, and query bytes. T limits whitespace tokens
-per record/query; each token is bounded by B bytes. The catalogue currently has
-two domains, with `object / 2 == domain`. `query::<R>` bounds returned identities.
+`Index<E, B, T, P = 2>` holds at most E records **per domain**, including
+deleted-object revision tombstones. B limits the combined bytes of name, collection
+labels, metadata text and content per record, and query bytes. T limits whitespace
+tokens per record/query; each token is bounded by B bytes. The index has two
+domains, with `object / P == domain`. P is the number of object IDs per domain and
+must equal the authoritative per-domain count of the storage service whose
+identities are indexed: the default 2 matches `services/catalog`, while
+`services/volume` (`PER_DOMAIN = 8`) requires `P = 8`. A mismatched P would accept
+or refuse the wrong identities; it is not checked against the service at runtime.
+`P = 0` fails to compile. The same mapping applies to `update`, `delete`,
+`rebuild` and cached-entry validation. `query::<R>` bounds returned identities.
 Capacity failures are explicit; updates and rebuilds do not evict or partially
 publish records. Tombstones consume space until a newer authenticated epoch.
 
