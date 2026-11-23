@@ -2069,7 +2069,7 @@
         "python3 -B tools/run_dispi.py --case negative",
         "python3 -B -m unittest tools.tests.test_dispi"
       ],
-      "evidence_level": "native QEMU/TCG (local QEMU 10.2.1, pc-q35-8.2); hosted step pending an integration request",
+      "evidence_level": "native QEMU/TCG (local QEMU 10.2.1, pc-q35-8.2); hosted native-display-input.yml step merged with #417 (319f5656), green on main fdf85a69",
       "non_claimable": "Physical GPUs, EDID, 1920x1080, ring-3 mode changes, compositor integration, refusal paths other than DEVICE natively, and H03 acceptance stay open.",
       "source_commit": "91bd4135",
       "pr": 417,
@@ -2080,7 +2080,7 @@
           "reason": "positive raw 33 with 4/4 pixel-exact screendumps and negative raw 35 on 91bd4135; smoke/display-probe/graphics regressions raw 33; test_dispi 12; independent AI review: no blocking/major, minors 1-3 fixed in 91bd4135."
         }
       ],
-      "next": "Hosted native-display-input.yml step via integration request; then a ring-3 mode-change contract or physical GOP/EDID evidence."
+      "next": "A ring-3 mode-change contract or physical GOP/EDID evidence."
     },
     {
       "id": "H04-T3",
@@ -2401,7 +2401,7 @@
         "python3 -B -m unittest discover -s tools/tests -p 'test_sleep.py'",
         "mutation: removing armed == 0 fails unarmed-wake (raw -9)"
       ],
-      "evidence_level": "native QEMU/TCG (local QEMU 10.2.1, pc-q35-8.2); hosted native-power runs only cycles/corrupt-facs/stale-token until the integration request adds the two new cases",
+      "evidence_level": "native QEMU/TCG (local QEMU 10.2.1, pc-q35-8.2); hosted native-power runs all five cases since a5a378fd (green on the #415 head b94be044)",
       "non_claimable": "Only the facs-end boundary is native; UNAVAILABLE/UNREADABLE/FacsNotNvs/FacsExtent/Pm1bUnsupported raw 39 follows by construction; the wake page's 16-bit code, GDTR and far pointer still run before the ARMED check; no physical firmware.",
       "source_commit": "04212e8d",
       "history": [
@@ -2411,7 +2411,7 @@
           "reason": "builder ef355dad/d806d9ed/d0b3eac3; independent AI review approve-with-minors (fixture token 0, ADR wording, CI gap); lead fix 04212e8d with five native reruns and a third mutation; ADR amendments H05-T6b."
         }
       ],
-      "next": "Integration session adds the unarmed-wake and facs-end steps to native-power.yml; hosted run on the #415 head."
+      "next": "Physical S3 firmware evidence; the wake page's 16-bit code still runs before the ARMED check."
     },
     {
       "id": "H05-R1",

@@ -17,7 +17,7 @@ closed with four mutants. ADR-H05-S3-SYSTEM amendment H05-R1.
 **CodeRabbit on #415:** the net-link counter-window check now also requires the first window to
 open after the initial up edge (`6c2d159b`).
 **Open:** the keyring latches and volume `advance` are checked by source shape and counter only;
-hosted `native-power.yml` still lacks the unarmed-wake and facs-end steps (integration request).
+hosted `native-power.yml` runs all five S3 cases since `a5a378fd` (green on `b94be044`).
 **Score:** 41 → 41/100 (no criterion changes).
 
 ## NEXT AGENT HANDOFF — H-track lead: S3 rejection exit and fixtures (H05-T6b), re-init review fixes — 23 November 2026
@@ -33,8 +33,8 @@ five `run_sleep.py` cases raw 33/37/39/37/39 (local QEMU 10.2.1, pc-q35-8.2, TCG
 **CodeRabbit review 6023531102 (re-init):** `reinit_fail` no longer resets the device before
 `rediscover` validated the BARs, and stages 3–4 of `reinit_poll` hold no `REINIT` borrow across
 the 0x60/0x61 handlers (`8530dd14`); native `power-s3-reinit` passes.
-**Open:** hosted `native-power.yml` runs only cycles/corrupt-facs/stale-token until the
-integration session adds the two new cases (request sent with exact steps). R1 port and the
+**Open:** hosted `native-power.yml` ran only cycles/corrupt-facs/stale-token at this checkpoint;
+`a5a378fd` later added the two new cases. R1 port and the
 CR415 tooling fixes are in flight.
 **Score:** 41 → 41/100 (no criterion changes).
 
