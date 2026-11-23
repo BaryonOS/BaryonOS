@@ -1,0 +1,563 @@
+{
+ "schema_version": 1,
+ "redaction": "absolute checkout prefix replaced by <CHECKOUT>; nothing else changed",
+ "profiles": {
+  "cycles": {
+   "schema_version": 1,
+   "case": "cycles",
+   "passed": true,
+   "scope": "QEMU 8.2 q35/OVMF TCG ACPI S3 by the own kernel: FACS-armed wake, QMP system_wakeup, own trampoline and post-wake checks; no AML _PTS/_WAK, devices, services, SMP, interrupts or physical hardware",
+   "source_sha256": "7710f46d313be1b46b3baf8969c7bda5af34cc62166454bdebb95c41aa8bcbe5",
+   "source_fingerprint_version": 3,
+   "manifest_sha256": "68007a3f54a97620e8f832c1fe21247c63770e87e921afde41a5c0eb4b8219c3",
+   "guest": {
+    "label": "sleep-cycles",
+    "started_utc": "2026-11-19T23:19:16.577282+00:00",
+    "duration_s": 3.8546981310000774,
+    "timeout_s": 180,
+    "timed_out": false,
+    "raw_qemu_exit": 33,
+    "expected_exit": 33,
+    "required_markers": [
+     "BOOT:EBS_OK",
+     "KERNEL:ENTRY",
+     "BOOTINFO:OK",
+     "KS-01:PASS",
+     "KS-02:PASS",
+     "KS-03:PASS",
+     "M2:PASS",
+     "M1:PASS"
+    ],
+    "forbidden_markers": [
+     "M1:FAIL",
+     "M2:FAIL",
+     "M3:FAIL",
+     "M4:FAIL",
+     "M5:FAIL"
+    ],
+    "passed": true,
+    "command": [
+     "/usr/bin/qemu-system-x86_64",
+     "-machine",
+     "pc-q35-8.2",
+     "-accel",
+     "tcg,thread=single",
+     "-cpu",
+     "qemu64",
+     "-smp",
+     "1",
+     "-m",
+     "256M",
+     "-nodefaults",
+     "-display",
+     "none",
+     "-monitor",
+     "none",
+     "-serial",
+     "file:build/sleep-cycles/run/sleep-cycles-b4463a1747/s3-serial.bin",
+     "-nic",
+     "none",
+     "-no-reboot",
+     "-drive",
+     "if=pflash,unit=0,format=raw,readonly=on,file=build/sleep-cycles/run/sleep-cycles-b4463a1747/OVMF_CODE.fd",
+     "-drive",
+     "if=pflash,unit=1,format=raw,file=build/sleep-cycles/run/sleep-cycles-b4463a1747/OVMF_VARS.fd",
+     "-drive",
+     "if=virtio,index=0,format=raw,readonly=on,file=fat:build/sleep-cycles/run/sleep-cycles-b4463a1747/esp",
+     "-device",
+     "isa-debug-exit,iobase=0xf4,iosize=0x04",
+     "-qmp",
+     "stdio"
+    ],
+    "qemu_version": "QEMU emulator version 8.2.2 (Debian 1:8.2.2+ds-0ubuntu1.18)\nCopyright (c) 2003-2023 Fabrice Bellard and the QEMU Project developers",
+    "profile": "development-package; pc-q35-8.2/qemu64/TCG/1CPU/256MiB",
+    "base_commit": "db94d708305fe5ef1aa75592e3c400c6ea6c2ba5",
+    "source_fingerprint_version": 3,
+    "source_sha256": "7710f46d313be1b46b3baf8969c7bda5af34cc62166454bdebb95c41aa8bcbe5",
+    "artifact_sha256": {
+     "esp/kernel.elf": "74e9a2885ddae8b3a448441188e429c36cc646312fbc32536aa383295bdd8e05",
+     "esp/EFI/BOOT/BOOTX64.EFI": "3d8db251365db229a25ff31665af129fb5d957ae93fda50296057ccb8e11ef1e",
+     "OVMF_CODE.fd": "ad23261d43116abc3747d59a7837fbf578c9586a8993f4eeba064cd07eccb083",
+     "OVMF_VARS.template.fd": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e"
+    },
+    "firmware_source": [
+     "/usr/share/OVMF/OVMF_CODE_4M.fd",
+     "/usr/share/OVMF/OVMF_VARS_4M.fd"
+    ],
+    "run_directory": "<CHECKOUT>/build/sleep-cycles/run/sleep-cycles-b4463a1747",
+    "stdout": "\u001b[2J\u001b[01;01H\u001b[=3h\u001b[2J\u001b[01;01H\u001b[2J\u001b[01;01H\u001b[=3h\u001b[2J\u001b[01;01HBdsDxe: loading Boot0001 \"UEFI Misc Device\" from PciRoot(0x0)/Pci(0x1,0x0)\r\nBdsDxe: starting Boot0001 \"UEFI Misc Device\" from PciRoot(0x0)/Pci(0x1,0x0)\r\nBOOT:EBS_OK\nKERNEL:ENTRY\nBOOTINFO:OK\nKS-01:PASS\nKS-02:PASS\nACPI:UNAVAILABLE:NO_DMAR\nDEVICE-EXECUTION:BLOCKED:ADAPTER_ABSENT\nKS-03:PASS\nM2:PASS\nM1:PASS\nPOWER:S3:PLAN:PM1A=0x0604:SLP_TYP=1:PM1A_STS=0x0600:FACS_VERSION=0:REAL=0x1000:PM32=0x2000460:POLICY=Edk2Version0Extended\nPOWER:S3:ENTER:CYCLE=1:SCI_EN=1\nPOWER:S3:RESUMED:CYCLE=1:ENTRY=PM32:PM1_STS=0x8101:WAK_STS=1:SCI_EN=RESTORED:HWSIG=SAME:FACS=DISARMED:CANARY=PASS:CR3=SAME\nPOWER:S3:ENTER:CYCLE=2:SCI_EN=1\nPOWER:S3:RESUMED:CYCLE=2:ENTRY=PM32:PM1_STS=0x8101:WAK_STS=1:SCI_EN=RESTORED:HWSIG=SAME:FACS=DISARMED:CANARY=PASS:CR3=SAME\nPOWER:S3:ENTER:CYCLE=3:SCI_EN=1\nPOWER:S3:RESUMED:CYCLE=3:ENTRY=PM32:PM1_STS=0x8101:WAK_STS=1:SCI_EN=RESTORED:HWSIG=SAME:FACS=DISARMED:CANARY=PASS:CR3=SAME\nPOWER:S3:PASS\n",
+    "stderr": "",
+    "expected_artifact_sha256": {
+     "esp/kernel.elf": "74e9a2885ddae8b3a448441188e429c36cc646312fbc32536aa383295bdd8e05",
+     "esp/EFI/BOOT/BOOTX64.EFI": "3d8db251365db229a25ff31665af129fb5d957ae93fda50296057ccb8e11ef1e"
+    },
+    "artifact_binding_passed": true,
+    "s3_case": "cycles",
+    "s3_control": {
+     "trace": [
+      {
+       "request": {
+        "execute": "qmp_capabilities",
+        "id": 1
+       },
+       "response": {
+        "return": {},
+        "id": 1
+       }
+      },
+      {
+       "request": {
+        "execute": "query-status",
+        "id": 2
+       },
+       "response": {
+        "return": {
+         "status": "suspended",
+         "singlestep": false,
+         "running": false
+        },
+        "id": 2
+       }
+      },
+      {
+       "request": {
+        "execute": "query-status",
+        "id": 3
+       },
+       "response": {
+        "return": {
+         "status": "suspended",
+         "singlestep": false,
+         "running": false
+        },
+        "id": 3
+       }
+      },
+      {
+       "request": {
+        "execute": "system_wakeup",
+        "id": 4
+       },
+       "response": {
+        "return": {},
+        "id": 4
+       }
+      },
+      {
+       "request": {
+        "execute": "query-status",
+        "id": 5
+       },
+       "response": {
+        "return": {
+         "status": "suspended",
+         "singlestep": false,
+         "running": false
+        },
+        "id": 5
+       }
+      },
+      {
+       "request": {
+        "execute": "query-status",
+        "id": 6
+       },
+       "response": {
+        "return": {
+         "status": "suspended",
+         "singlestep": false,
+         "running": false
+        },
+        "id": 6
+       }
+      },
+      {
+       "request": {
+        "execute": "system_wakeup",
+        "id": 7
+       },
+       "response": {
+        "return": {},
+        "id": 7
+       }
+      },
+      {
+       "request": {
+        "execute": "query-status",
+        "id": 8
+       },
+       "response": {
+        "return": {
+         "status": "suspended",
+         "singlestep": false,
+         "running": false
+        },
+        "id": 8
+       }
+      },
+      {
+       "request": {
+        "execute": "query-status",
+        "id": 9
+       },
+       "response": {
+        "return": {
+         "status": "suspended",
+         "singlestep": false,
+         "running": false
+        },
+        "id": 9
+       }
+      },
+      {
+       "request": {
+        "execute": "system_wakeup",
+        "id": 10
+       },
+       "response": {
+        "return": {},
+        "id": 10
+       }
+      }
+     ],
+     "events": [
+      "RTC_CHANGE",
+      "RTC_CHANGE",
+      "SUSPEND",
+      "WAKEUP",
+      "SUSPEND",
+      "WAKEUP",
+      "SUSPEND",
+      "WAKEUP"
+     ],
+     "observations": [
+      {
+       "cycle": 1,
+       "suspended": true,
+       "dwell_s": 0.5,
+       "serial_bytes": 516
+      },
+      {
+       "cycle": 2,
+       "suspended": true,
+       "dwell_s": 0.5,
+       "serial_bytes": 671
+      },
+      {
+       "cycle": 3,
+       "suspended": true,
+       "dwell_s": 0.5,
+       "serial_bytes": 826
+      }
+     ],
+     "error": null
+    }
+   },
+   "observed": {
+    "case": "cycles",
+    "wakeups": 3,
+    "real_mode_entry": "0x1000",
+    "protected_entry": "0x2000460",
+    "cycles": [
+     {
+      "pm1_status": "0x8101",
+      "sci_en": "RESTORED"
+     },
+     {
+      "pm1_status": "0x8101",
+      "sci_en": "RESTORED"
+     },
+     {
+      "pm1_status": "0x8101",
+      "sci_en": "RESTORED"
+     }
+    ]
+   }
+  },
+  "corrupt-facs": {
+   "schema_version": 1,
+   "case": "corrupt-facs",
+   "passed": true,
+   "scope": "QEMU 8.2 q35/OVMF TCG ACPI S3 by the own kernel: FACS-armed wake, QMP system_wakeup, own trampoline and post-wake checks; no AML _PTS/_WAK, devices, services, SMP, interrupts or physical hardware",
+   "source_sha256": "7710f46d313be1b46b3baf8969c7bda5af34cc62166454bdebb95c41aa8bcbe5",
+   "source_fingerprint_version": 3,
+   "manifest_sha256": "c2479a55b96e0dec5312b41ebdd8005bc366572d4edad9ff5d40559a0375167f",
+   "guest": {
+    "label": "sleep-corrupt-facs",
+    "started_utc": "2026-11-19T23:19:21.832328+00:00",
+    "duration_s": 2.31145414599996,
+    "timeout_s": 180,
+    "timed_out": false,
+    "raw_qemu_exit": 33,
+    "expected_exit": 33,
+    "required_markers": [
+     "BOOT:EBS_OK",
+     "KERNEL:ENTRY",
+     "BOOTINFO:OK",
+     "KS-01:PASS",
+     "KS-02:PASS",
+     "KS-03:PASS",
+     "M2:PASS",
+     "M1:PASS"
+    ],
+    "forbidden_markers": [
+     "M1:FAIL",
+     "M2:FAIL",
+     "M3:FAIL",
+     "M4:FAIL",
+     "M5:FAIL"
+    ],
+    "passed": true,
+    "command": [
+     "/usr/bin/qemu-system-x86_64",
+     "-machine",
+     "pc-q35-8.2",
+     "-accel",
+     "tcg,thread=single",
+     "-cpu",
+     "qemu64",
+     "-smp",
+     "1",
+     "-m",
+     "256M",
+     "-nodefaults",
+     "-display",
+     "none",
+     "-monitor",
+     "none",
+     "-serial",
+     "file:build/sleep-corrupt-facs/run/sleep-corrupt-facs-a95d5e81e2/s3-serial.bin",
+     "-nic",
+     "none",
+     "-no-reboot",
+     "-drive",
+     "if=pflash,unit=0,format=raw,readonly=on,file=build/sleep-corrupt-facs/run/sleep-corrupt-facs-a95d5e81e2/OVMF_CODE.fd",
+     "-drive",
+     "if=pflash,unit=1,format=raw,file=build/sleep-corrupt-facs/run/sleep-corrupt-facs-a95d5e81e2/OVMF_VARS.fd",
+     "-drive",
+     "if=virtio,index=0,format=raw,readonly=on,file=fat:build/sleep-corrupt-facs/run/sleep-corrupt-facs-a95d5e81e2/esp",
+     "-device",
+     "isa-debug-exit,iobase=0xf4,iosize=0x04",
+     "-qmp",
+     "stdio"
+    ],
+    "qemu_version": "QEMU emulator version 8.2.2 (Debian 1:8.2.2+ds-0ubuntu1.18)\nCopyright (c) 2003-2023 Fabrice Bellard and the QEMU Project developers",
+    "profile": "development-package; pc-q35-8.2/qemu64/TCG/1CPU/256MiB",
+    "base_commit": "db94d708305fe5ef1aa75592e3c400c6ea6c2ba5",
+    "source_fingerprint_version": 3,
+    "source_sha256": "7710f46d313be1b46b3baf8969c7bda5af34cc62166454bdebb95c41aa8bcbe5",
+    "artifact_sha256": {
+     "esp/kernel.elf": "db3c9094794d169cb8dc575b22689fd43738995ad4de57c1631f68232f49ec49",
+     "esp/EFI/BOOT/BOOTX64.EFI": "3d8db251365db229a25ff31665af129fb5d957ae93fda50296057ccb8e11ef1e",
+     "OVMF_CODE.fd": "ad23261d43116abc3747d59a7837fbf578c9586a8993f4eeba064cd07eccb083",
+     "OVMF_VARS.template.fd": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e"
+    },
+    "firmware_source": [
+     "/usr/share/OVMF/OVMF_CODE_4M.fd",
+     "/usr/share/OVMF/OVMF_VARS_4M.fd"
+    ],
+    "run_directory": "<CHECKOUT>/build/sleep-corrupt-facs/run/sleep-corrupt-facs-a95d5e81e2",
+    "stdout": "\u001b[2J\u001b[01;01H\u001b[=3h\u001b[2J\u001b[01;01H\u001b[2J\u001b[01;01H\u001b[=3h\u001b[2J\u001b[01;01HBdsDxe: loading Boot0001 \"UEFI Misc Device\" from PciRoot(0x0)/Pci(0x1,0x0)\r\nBdsDxe: starting Boot0001 \"UEFI Misc Device\" from PciRoot(0x0)/Pci(0x1,0x0)\r\nBOOT:EBS_OK\nKERNEL:ENTRY\nBOOTINFO:OK\nKS-01:PASS\nKS-02:PASS\nACPI:UNAVAILABLE:NO_DMAR\nDEVICE-EXECUTION:BLOCKED:ADAPTER_ABSENT\nKS-03:PASS\nM2:PASS\nM1:PASS\nPOWER:S3:REJECTED:InvalidSignature\n",
+    "stderr": "",
+    "expected_artifact_sha256": {
+     "esp/kernel.elf": "db3c9094794d169cb8dc575b22689fd43738995ad4de57c1631f68232f49ec49",
+     "esp/EFI/BOOT/BOOTX64.EFI": "3d8db251365db229a25ff31665af129fb5d957ae93fda50296057ccb8e11ef1e"
+    },
+    "artifact_binding_passed": true,
+    "s3_case": "corrupt-facs",
+    "s3_control": {
+     "trace": [
+      {
+       "request": {
+        "execute": "qmp_capabilities",
+        "id": 1
+       },
+       "response": {
+        "return": {},
+        "id": 1
+       }
+      }
+     ],
+     "events": [
+      "RTC_CHANGE",
+      "RTC_CHANGE"
+     ],
+     "observations": [],
+     "error": null
+    }
+   },
+   "observed": {
+    "case": "corrupt-facs",
+    "wakeups": 0,
+    "rejection": "POWER:S3:REJECTED:InvalidSignature"
+   }
+  },
+  "stale-token": {
+   "schema_version": 1,
+   "case": "stale-token",
+   "passed": true,
+   "scope": "QEMU 8.2 q35/OVMF TCG ACPI S3 by the own kernel: FACS-armed wake, QMP system_wakeup, own trampoline and post-wake checks; no AML _PTS/_WAK, devices, services, SMP, interrupts or physical hardware",
+   "source_sha256": "7710f46d313be1b46b3baf8969c7bda5af34cc62166454bdebb95c41aa8bcbe5",
+   "source_fingerprint_version": 3,
+   "manifest_sha256": "02e2e37efa5268668a90cc9224ab4697aa3413f1f5ab56adcfa85f992ed74125",
+   "guest": {
+    "label": "sleep-stale-token",
+    "started_utc": "2026-11-19T23:19:25.501444+00:00",
+    "duration_s": 2.771593424999992,
+    "timeout_s": 180,
+    "timed_out": false,
+    "raw_qemu_exit": 33,
+    "expected_exit": 33,
+    "required_markers": [
+     "BOOT:EBS_OK",
+     "KERNEL:ENTRY",
+     "BOOTINFO:OK",
+     "KS-01:PASS",
+     "KS-02:PASS",
+     "KS-03:PASS",
+     "M2:PASS",
+     "M1:PASS"
+    ],
+    "forbidden_markers": [
+     "M1:FAIL",
+     "M2:FAIL",
+     "M3:FAIL",
+     "M4:FAIL",
+     "M5:FAIL"
+    ],
+    "passed": true,
+    "command": [
+     "/usr/bin/qemu-system-x86_64",
+     "-machine",
+     "pc-q35-8.2",
+     "-accel",
+     "tcg,thread=single",
+     "-cpu",
+     "qemu64",
+     "-smp",
+     "1",
+     "-m",
+     "256M",
+     "-nodefaults",
+     "-display",
+     "none",
+     "-monitor",
+     "none",
+     "-serial",
+     "file:build/sleep-stale-token/run/sleep-stale-token-e311b575ad/s3-serial.bin",
+     "-nic",
+     "none",
+     "-no-reboot",
+     "-drive",
+     "if=pflash,unit=0,format=raw,readonly=on,file=build/sleep-stale-token/run/sleep-stale-token-e311b575ad/OVMF_CODE.fd",
+     "-drive",
+     "if=pflash,unit=1,format=raw,file=build/sleep-stale-token/run/sleep-stale-token-e311b575ad/OVMF_VARS.fd",
+     "-drive",
+     "if=virtio,index=0,format=raw,readonly=on,file=fat:build/sleep-stale-token/run/sleep-stale-token-e311b575ad/esp",
+     "-device",
+     "isa-debug-exit,iobase=0xf4,iosize=0x04",
+     "-qmp",
+     "stdio"
+    ],
+    "qemu_version": "QEMU emulator version 8.2.2 (Debian 1:8.2.2+ds-0ubuntu1.18)\nCopyright (c) 2003-2023 Fabrice Bellard and the QEMU Project developers",
+    "profile": "development-package; pc-q35-8.2/qemu64/TCG/1CPU/256MiB",
+    "base_commit": "db94d708305fe5ef1aa75592e3c400c6ea6c2ba5",
+    "source_fingerprint_version": 3,
+    "source_sha256": "7710f46d313be1b46b3baf8969c7bda5af34cc62166454bdebb95c41aa8bcbe5",
+    "artifact_sha256": {
+     "esp/kernel.elf": "8ce90d4efe3f72f52eb67dc851e648b580108065da4d9a952e61dc81fc47f6aa",
+     "esp/EFI/BOOT/BOOTX64.EFI": "3d8db251365db229a25ff31665af129fb5d957ae93fda50296057ccb8e11ef1e",
+     "OVMF_CODE.fd": "ad23261d43116abc3747d59a7837fbf578c9586a8993f4eeba064cd07eccb083",
+     "OVMF_VARS.template.fd": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e"
+    },
+    "firmware_source": [
+     "/usr/share/OVMF/OVMF_CODE_4M.fd",
+     "/usr/share/OVMF/OVMF_VARS_4M.fd"
+    ],
+    "run_directory": "<CHECKOUT>/build/sleep-stale-token/run/sleep-stale-token-e311b575ad",
+    "stdout": "\u001b[2J\u001b[01;01H\u001b[=3h\u001b[2J\u001b[01;01H\u001b[2J\u001b[01;01H\u001b[=3h\u001b[2J\u001b[01;01HBdsDxe: loading Boot0001 \"UEFI Misc Device\" from PciRoot(0x0)/Pci(0x1,0x0)\r\nBdsDxe: starting Boot0001 \"UEFI Misc Device\" from PciRoot(0x0)/Pci(0x1,0x0)\r\nBOOT:EBS_OK\nKERNEL:ENTRY\nBOOTINFO:OK\nKS-01:PASS\nKS-02:PASS\nACPI:UNAVAILABLE:NO_DMAR\nDEVICE-EXECUTION:BLOCKED:ADAPTER_ABSENT\nKS-03:PASS\nM2:PASS\nM1:PASS\nPOWER:S3:PLAN:PM1A=0x0604:SLP_TYP=1:PM1A_STS=0x0600:FACS_VERSION=0:REAL=0x1000:PM32=0x2000460:POLICY=Edk2Version0Extended\nPOWER:S3:ENTER:CYCLE=1:SCI_EN=1\nPOWER:S3:WAKE:REJECTED:TOKEN:ARMED=1:PAGE=0x5a5a0001\n",
+    "stderr": "",
+    "expected_artifact_sha256": {
+     "esp/kernel.elf": "8ce90d4efe3f72f52eb67dc851e648b580108065da4d9a952e61dc81fc47f6aa",
+     "esp/EFI/BOOT/BOOTX64.EFI": "3d8db251365db229a25ff31665af129fb5d957ae93fda50296057ccb8e11ef1e"
+    },
+    "artifact_binding_passed": true,
+    "s3_case": "stale-token",
+    "s3_control": {
+     "trace": [
+      {
+       "request": {
+        "execute": "qmp_capabilities",
+        "id": 1
+       },
+       "response": {
+        "return": {},
+        "id": 1
+       }
+      },
+      {
+       "request": {
+        "execute": "query-status",
+        "id": 2
+       },
+       "response": {
+        "return": {
+         "status": "suspended",
+         "singlestep": false,
+         "running": false
+        },
+        "id": 2
+       }
+      },
+      {
+       "request": {
+        "execute": "query-status",
+        "id": 3
+       },
+       "response": {
+        "return": {
+         "status": "suspended",
+         "singlestep": false,
+         "running": false
+        },
+        "id": 3
+       }
+      },
+      {
+       "request": {
+        "execute": "system_wakeup",
+        "id": 4
+       },
+       "response": {
+        "return": {},
+        "id": 4
+       }
+      }
+     ],
+     "events": [
+      "RTC_CHANGE",
+      "RTC_CHANGE",
+      "SUSPEND",
+      "WAKEUP"
+     ],
+     "observations": [
+      {
+       "cycle": 1,
+       "suspended": true,
+       "dwell_s": 0.5,
+       "serial_bytes": 516
+      }
+     ],
+     "error": null
+    }
+   },
+   "observed": {
+    "case": "stale-token",
+    "wakeups": 1,
+    "real_mode_entry": "0x1000",
+    "protected_entry": "0x2000460",
+    "rejection": "POWER:S3:WAKE:REJECTED:TOKEN:ARMED=1:PAGE=0x5a5a0001"
+   }
+  }
+ }
+}

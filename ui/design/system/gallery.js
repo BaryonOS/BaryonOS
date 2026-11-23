@@ -1,10 +1,12 @@
-// BaryonOS design system ds-1.0: component gallery behaviour. DESIGN ARTEFACT, 14 November 2026; not a working OS.
+// BaryonOS design system ds-1.1: component gallery behaviour. DESIGN ARTEFACT, 14 November 2026 (ds-1.1 15 November 2026); not a working OS.
 // Builds one specimen set per theme from <template id="tpl-panel"> ({p} = id prefix, {k} = Kern theme, the opposite
 // theme per MF1), renders icons with contract.js icon(), lists token swatches, and wires keyboard behaviour:
 // Tab/Shift+Tab (native), Space/Enter (native buttons), arrows for tabs, listbox rows and menu (radios are native),
-// Escape closes the menu, dialogs and tooltips. Query: ?only=dark|light|contrast|scale|ref ?motion=reduce ?measure=1
-import { icon, T, ask, setPrompt, grants, files, bus, destination } from '../prototype/contract.js'
+// Escape closes the menu, dialogs and tooltips. Query: ?only=dark|light|contrast|a11y|combos|scale|ref ?motion=reduce
+// ?theme=dark|light|contrast ?measure=1. ds-1.1: the Toegankelijkheid settings group drives #a11y-preview; #combo-host renders a pairwise set.
+import { icon, ask, setPrompt, grants, bus, createPermissions, appReason } from '../prototype/contract.js'
 import { ICONS } from './icons.js'
+import { TR, APP, esc, what, words, lines, viewOf, renderAsk, syncAsk, grantRows } from '../prototype/ask-view.js'
 
 const q = new URLSearchParams(location.search)
 const root = document.documentElement
@@ -13,6 +15,9 @@ const $$ = (s, el = document) => [...el.querySelectorAll(s)]
 const THEMES = [['dark', 'Donker', 'light'], ['light', 'Licht', 'dark'], ['contrast', 'Hoog contrast', 'contrast']]
 const KERN = Object.fromEntries(THEMES.map(([p, , k]) => [p, k]))
 if (q.get('motion') === 'reduce') root.dataset.motion = 'reduce'
+// polarity follows the device (prefers-color-scheme) unless the URL names a theme (ds-1.1 section 21.4)
+const deviceTheme = () => matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark'
+root.dataset.theme = ['dark', 'light', 'contrast'].includes(q.get('theme')) ? q.get('theme') : deviceTheme()
 
 const fill = (id, p, k) => document.getElementById(id).innerHTML.replaceAll('{p}', p).replaceAll('{k}', k)
 function hydrate(scope) {
@@ -34,94 +39,201 @@ for (const [p, name, k] of THEMES) {
   host.append(sec)
 }
 $('#scale-host').innerHTML = fill('tpl-scale', 's', 'light')
-const AB = { ongoing: 'ao', action: 'aa' }
-for (const h of $$('[data-ask]')) {
-  const p = h.closest('#scale-host') ? 's' : h.closest('.gal-panel').dataset.theme
-  h.innerHTML = fill(`tpl-ask-${h.dataset.ask}`, p, p === 's' ? 'light' : KERN[p])
+// ---------- ds-1.1 accessibility: preview, settings group and pairwise combinations (DESIGN-SYSTEM.md section 21) ----------
+const prev = $('#a11y-preview')
+prev.innerHTML = fill('tpl-preview', 'v', '')
+for (const c of prev.children) c.inert = true // illustrative: no Tab stops after the settings (repair-1); the group keeps its label
+const AXES = [['data-contrast', ['', 'increased']], ['data-transparency', ['', 'opaque']], ['data-light-intensity', ['', 'dimmed']], ['data-colour-perception', ['', 'protan', 'deutan', 'tritan']], ['data-stimulus', ['', 'calm', 'rich']], ['data-text-spacing', ['', 'wider']], ['data-line-length', ['', 'short']], ['data-targets', ['', '32', '44']], ['data-motion', ['', 'reduce']]]
+function pairwise() { // greedy covering array: every value pair of every two axes appears in at least one row; row 0 is the default
+  const key = (i, x, j, y) => i < j ? `${i}:${x}|${j}:${y}` : `${j}:${y}|${i}:${x}`
+  const need = new Set(); AXES.forEach(([, a], i) => AXES.forEach(([, b], j) => { if (j > i) a.forEach((_, x) => b.forEach((_, y) => need.add(key(i, x, j, y)))) }))
+  const total = need.size, rows = []
+  const cover = r => { rows.push(r); r.forEach((x, i) => r.forEach((y, j) => { if (j > i) need.delete(key(i, x, j, y)) })) }
+  cover(AXES.map(() => 0))
+  while (need.size) {
+    const [[i, x], [j, y]] = [...need][0].split('|').map(t => t.split(':').map(Number)), r = AXES.map(() => null); r[i] = x; r[j] = y
+    for (let k = 0; k < AXES.length; k++) if (r[k] === null) {
+      let best = 0, bg = -1
+      AXES[k][1].forEach((_, v) => { const g = r.filter((w, m) => w !== null && need.has(key(m, w, k, v))).length; if (g > bg) { bg = g; best = v } })
+      r[k] = best
+    }
+    cover(r)
+  }
+  return { rows, total, uncovered: need.size }
 }
+const PW = pairwise()
+$('#combo-host').innerHTML = PW.rows.map((r, n) => {
+  const attrs = r.map((v, k) => AXES[k][1][v] ? `${AXES[k][0]}="${AXES[k][1][v]}"` : '').filter(Boolean)
+  return `<div class="gal-combo-row"><p class="gal-tag">${n ? `${n}. ` + attrs.join(' · ') : '0. standaard (geen attribuut)'}</p>` +
+    THEMES.map(([p, name, k]) => `<div data-theme="${p}" ${attrs.join(' ')} inert aria-label="${name}">${fill('tpl-combo', p, k)}</div>`).join('') +
+    THEMES.map(([p, name, k]) => `<div class="gal-combo-read" data-theme="${p}" ${attrs.join(' ')} inert aria-label="${name}, leestekst">${fill('tpl-combo-read', p, k)}</div>`).join('') + '</div>'
+}).join('')
+const setKern = () => { $('[data-kern]', prev).dataset.theme = KERN[prev.dataset.theme] }
+const form = $('#a11y-form'), panel = $('#panel-a11y'), chips = $('#a11y-chips')
+function applyAxis(axis, v) {
+  if (axis === 'theme') prev.dataset.theme = v || deviceTheme()
+  else if (v) prev.setAttribute(`data-${axis}`, v); else prev.removeAttribute(`data-${axis}`)
+  if (axis === 'theme') { // the settings surface follows the chosen theme too (repair-2); each tile sample shows its own value in that theme
+    setKern(); panel.dataset.theme = prev.dataset.theme
+    for (const s of $$('.gal-sample:not([data-sample="theme"])', form)) s.dataset.theme = prev.dataset.theme
+    $('.gal-sample[data-follow]', form).dataset.theme = deviceTheme()
+  }
+  const inert = prev.dataset.theme === 'contrast' // these axes change nothing (contrast: only 2 px edges) in the contrast theme: say so where the choice is made
+  for (const n of $$('.gal-inert', form)) { n.hidden = !inert; const f = n.closest('fieldset'); if (inert) f.setAttribute('aria-describedby', n.id); else f.removeAttribute('aria-describedby') } // a hidden description would still be read
+}
+// Photosensitive safety (B8, WCAG 2.3.1): the radio selection follows focus at once, but the preview changes at most once per 400 ms,
+// so holding an arrow key (about 33 Hz auto-repeat) makes at most 3 changes, 1.5 flash pairs, in any second (the panel and preview).
+const GAP = 400, queued = new Map(); let lastApply = -Infinity, timer = 0
+function flush() { timer = 0; lastApply = performance.now(); for (const [a, v] of queued) applyAxis(a, v); queued.clear() }
+function queueAxis(axis, v) { queued.set(axis, v); if (timer) return; const wait = lastApply + GAP - performance.now(); if (wait <= 0) flush(); else timer = setTimeout(flush, wait) }
+form.addEventListener('change', (e) => { if (e.target.name?.startsWith('a11y-')) { queueAxis(e.target.name.slice(5), e.target.value); renderChips() } })
+// Actief (repair-2): one chip per axis that is not on its first value; a chip returns that axis alone, focus moves to the next chip
+const optText = (inp) => [...inp.parentElement.childNodes].filter(n => n.nodeType === 3).map(n => n.textContent).join('').trim()
+function renderChips() {
+  const on = $$('fieldset[data-axis]', form).filter(f => $('input:checked', f).value !== '')
+  const el = (tag, attrs, text) => { const n = document.createElement(tag); for (const [k, v] of attrs) n.setAttribute(k, v); if (text) n.textContent = text; return n }
+  // DOM text goes in as text, never as HTML (CodeQL js/xss-through-dom); attribute order matches the former markup
+  chips.replaceChildren(...(on.length ? on.map(f => {
+    const leg = $('legend', f).textContent, v = optText($('input:checked', f)), d = optText($('input', f))
+    const b = el('button', [['class', 'ds-btn'], ['data-variant', 'secondary'], ['type', 'button'], ['data-reset', f.dataset.axis], ['aria-label', `${leg}: ${v}. Terug naar ${d}`]], `${leg}: ${v}`)
+    b.append(el('i', [['data-icon', 'close']])); const li = el('li', []); li.append(b); return li
+  }) : [el('li', [['class', 'gal-tag']], 'Niets aangepast: je ziet BaryonOS zoals ontworpen, met de voorkeuren van je apparaat.')]))
+  hydrate(chips)
+}
+chips.addEventListener('click', (e) => {
+  const b = e.target.closest('[data-reset]'); if (!b) return
+  const f = $(`fieldset[data-axis="${b.dataset.reset}"]`, form), first = $('input', f), i = $$('[data-reset]', chips).indexOf(b)
+  first.checked = true; queueAxis(f.dataset.axis, ''); renderChips()
+  const rest = $$('[data-reset]', chips); (rest[Math.min(i, rest.length - 1)] || $('#a11y-reset')).focus()
+  $('#a11y-live').textContent = `${$('legend', f).textContent} staat weer op ${optText(first)}.`
+})
+matchMedia('(prefers-color-scheme: light)').addEventListener('change', () => { if (!qt) root.dataset.theme = deviceTheme(); $('.gal-sample[data-follow]', form).dataset.theme = deviceTheme(); if ($('input[name="a11y-theme"]:checked', form)?.value === '') queueAxis('theme', '') }) // the page, the Volg apparaat sample (always) and the preview (only while Volg apparaat is chosen) follow the device live; ?theme= pins the page (qt is set before any event runs)
+// liveness of a long busy state after its finite loops end: elapsed time as text every 5 s (not a live region, not motion)
+const t0 = performance.now()
+setInterval(() => { const s = Math.floor((performance.now() - t0) / 5000) * 5; for (const n of $$('[data-elapsed]')) n.textContent = `Nog bezig · ${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}` }, 5000)
+let undoState = null
+const formState = () => Object.fromEntries($$('fieldset[data-axis]', form).map(f => [f.dataset.axis, $('input:checked', f).value]))
+const setForm = (st) => { for (const [a, v] of Object.entries(st)) { $(`input[name="a11y-${a}"][value="${v}"]`, form).checked = true; queueAxis(a, v) } renderChips() }
+$('#a11y-reset').addEventListener('click', () => {
+  undoState = formState(); setForm(Object.fromEntries(Object.keys(undoState).map(a => [a, ''])))
+  $('#a11y-live').textContent = 'Alle toegankelijkheidsinstellingen staan weer op standaard; je apparaatvoorkeuren gelden weer.'
+  $('#a11y-undo').hidden = false
+})
+$('#a11y-undo').addEventListener('click', () => {
+  if (undoState) setForm(undoState)
+  undoState = null
+  $('#a11y-live').textContent = 'Je vorige toegankelijkheidsinstellingen zijn terug.'; $('#a11y-undo').hidden = true; $('#a11y-reset').focus()
+})
+const qt = ['dark', 'light', 'contrast'].includes(q.get('theme')) ? q.get('theme') : '' // ?theme= preselects Thema, so the group itself renders in that theme
+$(`input[name="a11y-theme"][value="${qt}"]`, form).checked = true
+applyAxis('theme', qt); renderChips()
 hydrate(document)
 
-// ---------- permission model (contract.js ask/grants; owner decision of 14 November 2026, DESIGN-SYSTEM.md §11) ----------
-const APP = { browser: T.apps.webvenster, notities: T.apps.notities }
-const APP_ICON = { browser: 'browser', notities: 'notities' }
-const REQ = {
-  ongoing: { kind: 'ongoing', app: 'browser', resource: 'tuinplanner.example', right: 'connect', scope: 'domain' },
-  action: { kind: 'action', app: 'browser', resource: 'tuinplan', right: 'send-copy', scope: 'document', to: 'tuinplanner.example' },
+// ---------- permission prompt (UX-C run 2; contract.js ask/grants; DESIGN-SYSTEM.md §11.1) ----------
+// PROTOTYPE: remembered and temporary decisions live in this page only; BaryonOS does not enforce them.
+// gallery sample requests: one per right; `name` is the exact item's display name
+const CASE = {
+  read: { kind: 'ongoing', app: 'notities', right: 'read', data: 'tuinplan', destination: null, scope: 'document' },
+  save: { kind: 'action', app: 'notities', right: 'save-copy', data: 'tuinplan', destination: null, scope: 'document' },
+  send: { kind: 'action', app: 'browser', right: 'send-copy', data: 'tuinplan', destination: 'tuinplanner.example', scope: 'document', irreversible: true },
+  combo: { kind: 'ongoing', app: 'browser', right: 'read-connect', data: 'tuinplan', destination: 'tuinplanner.example', scope: 'document' },
+  camera: { kind: 'ongoing', app: 'fotos', right: 'camera', data: 'camera', destination: null, scope: 'while-open', reason: 'Om een foto van je tuin bij je plan te zetten.' },
 }
-// gallery sample data (not strings.js copy; O-D1): the two requests' "what" and "done" fragments
-const WHAT ={ ongoing: 'verbinding maken met tuinplanner.example', action: 'een kopie van Tuinplan naar tuinplanner.example sturen' }
-const resultText = (kind, c) => {
-  const R = T.trusted.result
-  if (c === 'deny') return R.deny(APP.browser)
-  if (c === 'once') return R.once(APP.browser, 'een kopie van Tuinplan naar tuinplanner.example gestuurd')
-  return R[c](APP.browser, WHAT[kind])
+const caseName = (r) => Object.keys(CASE).find((n) => CASE[n].app === r.app && CASE[n].right === r.right) ?? 'read'
+// OQ-6: the app's text goes in as text, never as markup
+const fillReason = (scope, r) => { for (const n of $$('[data-reason]', scope)) n.textContent = appReason(r.reason) ?? '' }
+// specimens: four decision states (ongoing and single action x remember off and on; the eight outcomes are in the table),
+// the two OQ-1 states, the camera with an app reason and the compact repeat form. Illustrative: inert, no Tab stops.
+const SPECS = [
+  ['read', { on: false }, 'Voorbeeld · doorlopend · onthouden uit'],
+  ['read', { on: true }, 'Voorbeeld · doorlopend · onthouden aan'],
+  ['save', { on: false }, 'Voorbeeld · één handeling · onthouden uit'],
+  ['save', { on: true }, 'Voorbeeld · één handeling · onthouden aan'],
+  ['send', { on: true }, 'Voorbeeld · verzenden, onomkeerbaar · onthouden aan'],
+  ['combo', { on: true, confirm: true }, 'Voorbeeld · document en internet · extra bevestiging'],
+  ['camera', { on: false }, 'Voorbeeld · camera, met reden van de app'],
+  ['save', { on: false, compact: true }, 'Voorbeeld · korte herhaalvraag'],
+]
+function fillSpecs(host, p, k, list) {
+  host.innerHTML = list.map(([n, o, spec], i) => renderAsk(CASE[n], { p: `${p}-s${i}`, k, view: viewOf(CASE[n], o.compact), on: o.on, confirm: o.confirm, spec })).join('')
+  for (const a of host.children) a.inert = true
+  hydrate(host); fillReason(host, CASE.camera)
 }
-// labels and durations come from strings.js (each defined once); the template text is the no-script fallback
-function syncAsk(scope) {
-  for (const a of $$('.ds-ask[data-kind]', scope)) {
-    const kind = a.dataset.kind, terms = $$('.ds-ask-terms > li', a)
-    $$('[data-choice]', a).forEach((b, i) => {
-      const c = b.dataset.choice, d = T.trusted.duration[c]
-      b.textContent = T.trusted.choices[kind][c]
-      terms[i].innerHTML = `<strong>${b.textContent}.</strong> ${typeof d === 'function' ? d(APP.browser) : d}`
-    })
-  }
+for (const h of $$('[data-ask-specs]')) { const p = h.closest('.gal-panel').dataset.theme; fillSpecs(h, p, KERN[p], SPECS) }
+for (const h of $$('[data-ask-spec]')) fillSpecs(h, 's', 'light', [SPECS[0]])
+
+// the eight decision states, computed by running the model (not written by hand)
+const NEXT = { covered: 'Geen vraag: toegestaan tot de app sluit', remembered: 'Geen vraag: onthouden', 'temporary-deny': 'Geen vraag: stil geweigerd tot de app sluit', prompt: 'Opnieuw gevraagd', cancel: 'Opnieuw gevraagd' }
+const rows = []
+for (const n of ['read', 'save']) for (const choice of ['allow', 'deny']) for (const remember of [false, true]) {
+  const P = createPermissions(); let first = true
+  P.setPrompt(() => { const res = first ? { choice, remember } : { choice: 'cancel' }; first = false; return Promise.resolve(res) })
+  const r = CASE[n], res = await P.ask(r), again = await P.ask(r)
+  const L = lines(r, viewOf(r), remember)
+  rows.push(`<tr><th scope="row">${r.kind === 'ongoing' ? 'Doorlopend' : 'Eén handeling'} · ${TR.choices[choice]} · ${remember ? 'onthouden' : 'niet onthouden'}</th><td>${esc(choice === 'allow' ? L.allow : L.deny)}</td><td>${NEXT[again.via]}${res.remembered ? ' · in Appmachtigingen' : ''}</td></tr>`)
 }
-const collName = (id) => files.collections().find((c) => c.id === id)?.name
-const resName = (id) => files.get(id)?.name ?? (collName(id) ? `collectie ${collName(id)}` : id)
-// reach of a grant (design proposal for UX-E): the destination for a sending or connecting right, else every place where
-// the resource is kept (a collection: the union of its files). It names reach, not a promise: read + internet grants can
-// combine (LOCAL-PRIVACY-CONTRACT §4).
-const KEPT = { local: ['device'], nas: ['nas'], both: ['device', 'nas'] }
-const badge = (place, label) => `<span class="ds-place" data-place="${place}"><i class="ds-node" data-shape="${place}" aria-hidden="true"></i><i data-icon="${place}"></i>${label}</span>`
-function reachBadge(g) {
-  const to = destination(g)
-  if (to) return badge('internet', `${T.instellingen.privacy.internet} · ${to}`)
-  const kept = files.get(g.resource) ? [files.get(g.resource)] : files.list({ collection: g.resource })
-  const places = [...new Set(kept.flatMap((f) => KEPT[f.storage] ?? ['device']))]
-  return (places.length ? places : ['device']).map((p) => badge(p, T.instellingen.opslag[p])).join('')
-}
-// shape + icon + text: dashed chip + klok = ends at closing, solid chip + altijd (loop) = until revoked; the lock stays
-// reserved for the Kern band (C1 repair-2)
-const UNTIL_ICON = { close: 'klok', always: 'altijd' }
-// one grant's labels; Intrekken and the revocation message name all four key fields (strings.js trusted.grant.revokeName)
-function labels(g) {
-  const G = T.trusted.grant, app = APP[g.app] ?? g.app, res = resName(g.resource)
-  return { app, res, key: [app, G.target(res, g.to), G.rights[g.right] ?? g.right, G.scopes[g.scope] ?? g.scope] }
-}
+for (const t of $$('[data-ask-states]')) t.innerHTML = rows.join('')
+
+// Appmachtigingen: remembered allows AND remembered denials, each with "Precies:" (the prompt's key chips), change and forget
+grants.seedRemembered({ kind: 'ongoing', app: 'notities', right: 'read', data: 'plattegrond', destination: null, scope: 'document' }, 'allow')
+grants.seedRemembered({ ...CASE.send, destination: 'zaadruil.example' }, 'deny')
+// covered-request specimen: a request the seeded remembered grant already covers gets no prompt, only this quiet shell note
+{ const g = grants.remembered().find((x) => x.data === 'plattegrond' && x.decision === 'allow')
+  for (const n of $$('[data-ask-covered] > p')) n.innerHTML = `<strong>Voorbeeld · al onthouden, dus geen vraag:</strong> ${esc(TR.quiet.covered(APP[g.app], what(g)))} ${TR.prototype}` }
 function renderGrants() {
-  const G = T.trusted.grant, list = grants.all()
+  const list = grants.remembered()
   for (const host of $$('[data-grants]')) {
-    host.innerHTML = list.length ? list.map((g, i) => {
-      const { app, res, key } = labels(g)
-      const until = g.until === 'always' ? G.until.always : G.until.close(app)
-      return `<li class="ds-grant" data-until="${g.until}"><span class="ds-grant-app" aria-hidden="true"><i data-icon="${APP_ICON[g.app] ?? 'dot'}"></i></span>`
-        + `<div><p class="ds-grant-name">${app} · ${res}</p><p class="ds-grant-meta">${key[2]} · ${key[3]}</p>`
-        + `<p class="ds-grant-reach">${reachBadge(g)}<span class="ds-grant-until" data-until="${g.until}"><i data-icon="${UNTIL_ICON[g.until]}"></i>${until}</span></p></div>`
-        + `<button class="ds-btn" data-variant="secondary" data-revoke="${i}" aria-label="${G.revokeName(...key)}">${G.revoke}</button></li>`
-    }).join('') : `<li><p class="ds-grant-empty" tabindex="-1">${G.empty}</p></li>`
+    host.innerHTML = grantRows(list)
     hydrate(host)
   }
 }
-// The open prompt's resolver. A choice resolves it at click time; close or Escape resolves 'deny' only while it is still
-// unanswered, and a late 'close' event of an earlier prompt (the dialog is open again) is ignored (verify-0 minor).
-let pending = null, askPanel = null
-const answer = (c) => { const r = pending; pending = null; r?.(c) }
-// gallery specimens: earlier answers so the grant rows show every duration and place, including a send grant for another
-// destination (zaadruil.example) that does not cover the action prompt's tuinplanner.example
-let specimenAnswer = null
-setPrompt((req) => {
-  if (specimenAnswer) { const c = specimenAnswer; specimenAnswer = null; return Promise.resolve(c) }
-  return new Promise((resolve) => { answer('deny'); pending = resolve; openAskDialog(req.kind) })
-})
-for (const [req, c] of [
-  [{ kind: 'ongoing', app: 'notities', resource: 'tuin', right: 'read', scope: 'collection' }, 'always'],
-  [{ kind: 'ongoing', app: 'notities', resource: 'lofoten', right: 'read', scope: 'document' }, 'untilClose'],
-  [{ ...REQ.action, to: 'zaadruil.example' }, 'always'],
-]) { specimenAnswer = c; await ask(req) }
 renderGrants()
-bus.on('grants', renderGrants)
-syncAsk(document)
+bus.on('permission', (d) => { if (['remember', 'revoke', 'change'].includes(d.op)) renderGrants() })
+
+// the live prompt: present(request, view) opens #dlg-ask; Escape and closing without a choice cancel (owner decision 1)
+let askPanel = null, live = null, lastCase = 'read', retries = 0
+bus.on('permission', (d) => { if (d.op === 'quiet-deny') retries = d.retries })
+const presetOn = q.get('remember') === '1' // a URL preset for testing; the prompt says so visibly (R3 holds otherwise)
+const settle = (res) => { const l = live; live = null; l?.resolve(res) }
+// contract.js shows one prompt at a time (a distinct request waits its turn), so opening never cancels an open prompt (OQ-4)
+setPrompt((req, view) => new Promise((resolve) => {
+  const p = askPanel.dataset.theme, preset = presetOn && !view.compact
+  askDlg.innerHTML = renderAsk(req, { p: `m-${p}`, k: KERN[p], view, on: preset, preset })
+  hydrate(askDlg); fillReason(askDlg, req); placeOutcomes()
+  const inner = $('.ds-ask', askDlg) // one alertdialog: the <dialog> carries role, name and description
+  inner.setAttribute('role', 'none'); inner.removeAttribute('aria-labelledby'); inner.removeAttribute('aria-describedby')
+  askDlg.setAttribute('aria-labelledby', `m-${p}-t`); askDlg.setAttribute('aria-describedby', `m-${p}-f`)
+  live = { resolve, req, view }
+  openDialog(askDlg, $(`[data-open-ask="${caseName(req)}"]`, askPanel) ?? $('[data-open-ask]', askPanel), p, $('[data-initial-focus]', askDlg)) // focus: the question, never a choice (MF-4)
+}))
+// MF-1: the outcome sentences sit in the fixed decide row next to the answers. In a short viewport (200 % zoom of a common
+// window, 320 x 640) or with the page-zoom setting they move to the end of the scrolling body, so the question stays readable
+// and the checkbox and both answers stay reachable (WCAG 1.4.10, 2.4.11); aria-describedby links them either way.
+const shortView = matchMedia('(max-height: 40rem)')
+function placeOutcomes() {
+  const d = document.getElementById('dlg-ask'), ul = $('.ds-ask-main .ds-ask-outcomes', d); if (!ul) return
+  if (shortView.matches || root.dataset.scale === '2') $('.ds-ask-main .ds-ask-body', d).append(ul)
+  else $('.ds-ask-main .ds-ask-decide', d).insertBefore(ul, $('.ds-ask-main .ds-ask-choices', d))
+}
+shortView.addEventListener('change', placeOutcomes)
+new MutationObserver(placeOutcomes).observe(root, { attributes: true, attributeFilter: ['data-scale'] })
+function note(panel, text, choose) {
+  const n = $('[data-ask-note]', panel); if (!n) return
+  $('[data-ask-note-text]', n).textContent = text
+  const b = $('[data-choose]', n); b.hidden = !choose; if (choose) b.textContent = TR.quiet.choose(APP[CASE[lastCase].app])
+}
+async function request(name, panel, gesture) {
+  askPanel = panel; lastCase = name
+  const r = CASE[name], a = APP[r.app], w = what(r), res = await ask(r, { gesture })
+  const R = TR.result, Q = TR.quiet
+  if (res.via === 'remembered') return note(panel, res.answer === 'allow' ? Q.covered(a, w) : Q.deniedRemembered(a, w))
+  if (res.via === 'covered') return note(panel, R.allow['app-session'](a, w))
+  if (res.via === 'temporary-deny') return note(panel, Q.tempDeny(a, w, retries), true)
+  if (res.via === 'cancel') return note(panel, R.cancel(a), true)
+  if (res.via === 'error') return note(panel, R.error(a), true)
+  if (res.remembered) return note(panel, R.remembered(a, w, TR.grant.decision[res.answer]))
+  note(panel, res.answer === 'allow' ? R.allow[res.until](a, w) : R.deny(a), res.answer === 'deny')
+}
 
 const SW = {
   'Neutrale rollen': ['bg', 'surface-panel', 'surface', 'surface-raised', 'surface-inset', 'line', 'line-strong', 'text', 'text-muted', 'text-subtle', 'text-disabled', 'focus', 'selection', 'hover', 'hover-strong', 'blade', 'blade-glow', 'well', 'scrim', 'silver', 'rim-a', 'rim-b', 'rim-c', 'button-primary-bg', 'button-primary-bg-hover', 'button-primary-text', 'button-secondary-bg', 'pill-bg'].map(n => `--color-${n}`),
@@ -187,23 +299,6 @@ const step = (list, cur, key) => {
   return { ArrowDown: list[(i + 1) % n], ArrowRight: list[(i + 1) % n], ArrowUp: list[(i - 1 + n) % n], ArrowLeft: list[(i - 1 + n) % n], Home: list[0], End: list[n - 1] }[key]
 }
 
-// permission result: the panel's toast reports what happened (strings.js trusted.result.*)
-function report(panel, text) {
-  const toast = $('.ds-toast', panel)
-  if (!toast) return
-  $('.ds-toast-title', toast).textContent = 'Systeem'
-  $('.ds-toast-body', toast).textContent = text
-  toast.hidden = false
-  const show = $('[data-toast-show]', panel); if (show) show.hidden = true
-}
-// a covered request (same app, resource, right and scope) never prompts; answer = a click on an inline specimen
-async function request(kind, panel, given) {
-  if (grants.covering(REQ[kind])) return report(panel, T.trusted.result.covered(APP.browser, WHAT[kind]))
-  askPanel = panel; specimenAnswer = given ?? null
-  const choice = await ask(REQ[kind])
-  report(panel, resultText(kind, choice))
-}
-
 let opener = null
 const askDlg = $('#dlg-ask'), delDlg = $('#dlg-delete')
 function openDialog(dlg, from, theme, focus) {
@@ -214,25 +309,16 @@ function openDialog(dlg, from, theme, focus) {
   dlg.showModal()
   focus.focus()
 }
-function openAskDialog(kind) {
-  const p = askPanel.dataset.theme, id = `m-${p}-${AB[kind]}`
-  askDlg.innerHTML = fill(`tpl-ask-${kind}`, `m-${p}`, KERN[p]); hydrate(askDlg); syncAsk(askDlg)
-  // one alertdialog: the <dialog> carries role, name and description; the template's inner copy becomes presentational
-  const inner = $('.ds-ask', askDlg)
-  inner.setAttribute('role', 'none'); inner.removeAttribute('aria-labelledby'); inner.removeAttribute('aria-describedby')
-  askDlg.setAttribute('aria-labelledby', `${id}-t`); askDlg.setAttribute('aria-describedby', `${id}-w`)
-  // initial focus: the prompt title (tabindex=-1), never a choice (DESIGN-SYSTEM.md §11)
-  openDialog(askDlg, $(`[data-open-ask="${kind}"]`, askPanel), p, $('[data-initial-focus]', askDlg))
-}
 for (const dlg of [askDlg, delDlg]) {
-  dlg.addEventListener('cancel', () => { dlg.returnValue = dlg === askDlg ? 'deny' : 'cancel' })
+  dlg.addEventListener('cancel', () => { dlg.returnValue = 'cancel' })
   dlg.addEventListener('close', () => {
     if (dlg.open) return // a late event of an earlier open: this dialog shows a newer prompt
-    if (dlg === askDlg) answer('deny') // no-op when a choice already answered this open
-    if (opener) opener.focus()
+    if (dlg === askDlg) settle({ choice: 'cancel' }) // Escape or closing without a choice: fail closed, nothing stored (no-op once answered)
+    if (opener?.isConnected) opener.focus()
     opener = null
   })
 }
+askDlg.addEventListener('change', (e) => { if (e.target.matches('[data-remember]') && live) syncAsk($('.ds-ask', askDlg), live.req, live.view) })
 
 document.addEventListener('click', (e) => {
   const t = e.target
@@ -253,27 +339,42 @@ document.addEventListener('click', (e) => {
     const btn = document.querySelector(`[aria-controls="${item.closest('[role="menu"]').id}"]`)
     setMenu(btn, false); return btn.focus()
   }
-  const choice = t.closest('[data-choice]')
-  if (choice) {
-    const dlg = choice.closest('dialog')
-    if (dlg) { answer(choice.dataset.choice); return dlg.close(choice.dataset.choice) }
-    return request(choice.closest('.ds-ask').dataset.kind, choice.closest('.gal-panel'), choice.dataset.choice)
+  const choice = t.closest('#dlg-ask [data-choice]')
+  if (choice && live) {
+    const on = $('[data-remember]', askDlg).checked
+    if (choice.dataset.choice === 'allow' && on && live.view.confirmAllow) { // OQ-1: the extra confirmation, in the same dialog
+      $('.ds-ask-main', askDlg).hidden = true; $('.ds-ask-confirm', askDlg).hidden = false
+      askDlg.setAttribute('aria-labelledby', $('[data-confirm-focus]', askDlg).id); askDlg.setAttribute('aria-describedby', $('.ds-ask-confirm-text', askDlg).id)
+      return $('[data-confirm-focus]', askDlg).focus()
+    }
+    settle({ choice: choice.dataset.choice, remember: on }); return askDlg.close()
   }
-  const revoke = t.closest('[data-revoke]')
-  if (revoke) {
-    const host = revoke.closest('[data-grants]'), panel = revoke.closest('.gal-panel'), i = +revoke.dataset.revoke, g = grants.all()[i]
-    const G = T.trusted.grant, { key } = labels(g)
-    grants.revoke(g) // emits 'grants', which re-renders every list
-    const live = $('[data-grants-live]', panel) // looked up before the re-render detached the button
-    live.textContent = ''; setTimeout(() => { live.textContent = G.revoked(...key) }, 30)
-    // focus stays in the list: the next row's Intrekken, else the previous one, else the empty message
-    const btns = $$('[data-revoke]', host)
+  const conf = t.closest('#dlg-ask [data-confirm]')
+  if (conf && live) {
+    if (conf.dataset.confirm === 'ok') { settle({ choice: 'allow', remember: true, confirmed: true }); return askDlg.close() }
+    $('.ds-ask-confirm', askDlg).hidden = true; $('.ds-ask-main', askDlg).hidden = false
+    askDlg.setAttribute('aria-labelledby', $('[data-initial-focus]', askDlg).id); askDlg.setAttribute('aria-describedby', $('.ds-ask-facts', askDlg).id)
+    return $('[data-initial-focus]', askDlg).focus()
+  }
+  const g = t.closest('[data-forget], [data-change]')
+  if (g) {
+    const host = g.closest('[data-grants]'), panel = g.closest('.gal-panel') ?? document, i = +(g.dataset.forget ?? g.dataset.change), gr = grants.remembered()[i], key = words(gr).join(', ')
+    const msg = g.dataset.forget != null ? (grants.revoke(gr), TR.grant.forgotten(key)) : (grants.change(gr, g.dataset.to), TR.grant.changed(key, TR.grant.decision[g.dataset.to]))
+    const live2 = $('[data-grants-live]', panel); if (live2) { live2.textContent = ''; setTimeout(() => { live2.textContent = msg }, 30) }
+    const btns = $$('[data-forget]', host) // focus stays in the list: the same row's Vergeten, else the previous one, else the empty message
     return (btns[Math.min(i, btns.length - 1)] || $('.ds-grant-empty', host)).focus()
   }
-  if (t.closest('[data-close-app]')) { grants.appClosed('browser'); return report(t.closest('.gal-panel'), T.trusted.result.appClosed(APP.browser)) }
+  const end = t.closest('[data-ask-end]')
+  if (end) {
+    const panel = end.closest('.gal-panel'), op = end.dataset.askEnd, app = CASE[lastCase].app
+    grants[op](app); if (op !== 'windowHidden') retries = 0
+    return note(panel, op === 'windowHidden' ? TR.result.hidden(APP[app]) : op === 'appClosed' ? TR.result.appClosed(APP[app]) : TR.result[op])
+  }
+  if (t.closest('[data-auto-ask]')) return request(lastCase, t.closest('.gal-panel'), false) // an automatic re-request: no gesture
+  if (t.closest('[data-choose]')) return request(lastCase, t.closest('.gal-panel'), true) // the user chooses again: a new gesture
   if (t.closest('dialog button[value]')) return t.closest('dialog').close(t.closest('button').value)
   const openAsk = t.closest('[data-open-ask]')
-  if (openAsk) return request(openAsk.dataset.openAsk, openAsk.closest('.gal-panel'))
+  if (openAsk) return request(openAsk.dataset.openAsk, openAsk.closest('.gal-panel'), true)
   const openDel = t.closest('[data-open-delete]')
   if (openDel) return openDialog(delDlg, openDel, openDel.closest('.gal-panel').dataset.theme, $('[data-safe]', delDlg))
   const close = t.closest('[data-toast-close]')
@@ -288,6 +389,10 @@ document.addEventListener('click', (e) => {
 document.addEventListener('keydown', (e) => {
   const t = e.target
   const k = e.key
+  // B8 (WCAG 2.3.1, ds-1.1 run 3): one activation per physical key press. An auto-repeated Enter or Space never activates a
+  // control again, so no dialog, menu, toast or switch opener can flip open and closed at the key-repeat rate (about 30 Hz)
+  // when focus lands on a control that closes it (the delete dialog's Annuleren). Arrow keys and text fields keep their repeat.
+  if (e.repeat && (k === 'Enter' || k === ' ') && t.matches('button, [role="button"], [role="switch"], [role="menuitem"], [role="tab"], summary, input:is([type="button"], [type="submit"], [type="reset"])')) return e.preventDefault()
   const menu = t.closest('[role="menu"]')
   if (menu) {
     const btn = document.querySelector(`[aria-controls="${menu.id}"]`)
@@ -321,7 +426,7 @@ document.addEventListener('focusout', undismiss)
 document.addEventListener('mouseout', undismiss)
 
 // ---------- query: ?only and ?measure ----------
-const ONLY = { dark: '#panel-dark', light: '#panel-light', contrast: '#panel-contrast', scale: '#panel-scale', ref: '#panel-ref' }
+const ONLY = { dark: '#panel-dark', light: '#panel-light', contrast: '#panel-contrast', a11y: '#panel-a11y', combos: '#panel-combos', scale: '#panel-scale', ref: '#panel-ref' }
 if (ONLY[q.get('only')]) { root.dataset.only = q.get('only'); $(ONLY[q.get('only')]).dataset.show = '' }
 
 const rgb = (s) => {
@@ -338,6 +443,12 @@ function baseOf(el) {
     if (c && !/rgba\(.*,\s*0\)$/.test(c) && c !== 'transparent') return rgb(c)
   }
   return rgb(getComputedStyle(document.body).backgroundColor)
+}
+
+// the element's own fill, composited over the base below it when translucent (an inset focus ring sits on it)
+function ownBase(el) {
+  const m = (getComputedStyle(el).backgroundColor.match(/[\d.]+/g) || []).map(Number), a = m.length > 3 ? m[3] : 1, b = baseOf(el)
+  return !m.length || a === 0 ? b : m.slice(0, 3).map((v, i) => v * a + b[i] * (1 - a))
 }
 
 async function measure() {
@@ -363,22 +474,29 @@ async function measure() {
   const TY = { 13: ['18/400'], 15: ['22/400', '20/400', '22/600'], 16: ['26/400'], 22: ['28/600'], 48: ['56/400'] }
   const off = new Set(); let tn = 0
   for (const el of $$('body *')) {
-    if (el.closest('template, [data-scale], #out, svg, dialog:not([open])') || !el.getClientRects().length) continue
+    if (el.closest('template, [data-scale], #out, svg, dialog:not([open]), #a11y-preview, #combo-host, .gal-sample') || !el.getClientRects().length) continue // axis specimens and tile samples vary type on purpose (section 21)
     if (!el.matches('input:not([type="checkbox"], [type="radio"])') && ![...el.childNodes].some(c => c.nodeType === 3 && c.textContent.trim())) continue
     const c = getComputedStyle(el), sz = Math.round(parseFloat(c.fontSize)), lh = Math.round(parseFloat(c.lineHeight)), w = +c.fontWeight; tn++
     if (!/^"?Inter/.test(c.fontFamily) || !(TY[sz] || []).includes(`${lh}/${w}`)) off.add(`${el.tagName.toLowerCase()}.${el.className} ${c.fontFamily.split(',')[0]} ${sz}/${c.lineHeight}/${w}`)
   }
   out.type = { textElements: tn, offRole: [...off].slice(0, 20) }
   // focus ring: every interactive kind, in every theme; ring colour against the base it sits on
-  const KINDS = ['.ds-btn[data-variant="primary"]', '.ds-btn[data-variant="secondary"]', '.ds-btn[data-variant="danger"]', '.ds-input', '.ds-switch', '.ds-check > input', '.ds-radio > input', '.ds-row', '.ds-tab', '.ds-tabpanel', '.ds-window-ctl', '.ds-taskitem', '.ds-ask .ds-btn[data-choice="deny"]', '[aria-haspopup="menu"]']
+  const KINDS = ['.ds-btn[data-variant="primary"]', '.ds-btn[data-variant="secondary"]', '.ds-btn[data-variant="danger"]', '.ds-input', '.ds-switch', '.ds-check > input', '.ds-radio:not(.ds-seg > *) > input', '.ds-seg > .ds-radio > input', '.ds-row', '.ds-tab', '.ds-tabpanel', '.ds-window-ctl', '.ds-taskitem', '[aria-haspopup="menu"]']
   out.focus = {}
   for (const [p] of THEMES) for (const [h, host] of [['', ''], [' compact', ' [data-density="compact"]'], [' neutral', ' [data-surface="neutral"]']]) {
     out.focus[p + h] = [...KINDS, '.gal-canvas'].map(sel => {
       const el = $$(`#panel-${p}${host} ${sel}`).find(x => !x.closest('[inert]') && !x.disabled && x.getClientRects().length)
       if (!el) return `${sel}: none`
       el.focus({ focusVisible: true, preventScroll: true })
-      const c = getComputedStyle(el), ring = rgb(c.outlineColor)
-      return `${sel}: fv=${el.matches(':focus-visible')} ${c.outlineStyle} ${c.outlineWidth} off ${c.outlineOffset} ring:base ${ratio(ring, baseOf(el))}`
+      const box = el.closest('.ds-seg > .ds-radio') || el // a segmented tile draws the ring for its transparent radio (repair-2)
+      // a headless page without system focus never matches :focus-visible, so no ring was drawn and outline-color was the text
+      // colour (run-2 repair 1); the focus rules also accept [data-demo~="focus"], which draws the same ring
+      const fv = el.matches(':focus-visible'), demo = box.dataset.demo
+      if (!fv) box.dataset.demo = ((demo || '') + ' focus').trim()
+      const c = getComputedStyle(box), st = c.outlineStyle, w = c.outlineWidth, off = c.outlineOffset
+      const res = st === 'none' ? 'no ring rendered' : `ring:base ${ratio(rgb(c.outlineColor), parseFloat(off) < 0 ? ownBase(box) : baseOf(box))}` // inset ring: on the element's own fill
+      if (!fv) { if (demo === undefined) delete box.dataset.demo; else box.dataset.demo = demo }
+      return `${sel}: fv=${fv}${fv ? '' : ' via data-demo'} ${st} ${w} off ${off} ${res}`
     })
   }
   document.activeElement.blur()
@@ -410,9 +528,9 @@ async function measure() {
   mbtn.click()
   $('#panel-dark [data-open-ask]').click()
   await new Promise(r => setTimeout(r, 50))
-  out.askOpen = `open=${askDlg.open} activeIsTitle=${document.activeElement.matches('[data-initial-focus]')} kind=${$('.ds-ask', askDlg).dataset.kind} theme=${askDlg.dataset.theme} kern=${$('.ds-ask', askDlg).dataset.theme} labelledby=${!!document.getElementById(askDlg.getAttribute('aria-labelledby'))}`
-  askDlg.close('deny'); await new Promise(r => setTimeout(r, 50))
-  out.askClosed = `open=${askDlg.open} focusBack=${document.activeElement.matches('[data-open-ask]')} toast="${$('#panel-dark .ds-toast-body').textContent}"`
+  out.askOpen = `open=${askDlg.open} activeIsTitle=${document.activeElement.matches('[data-initial-focus]')} remember=${$('[data-remember]', askDlg).checked} kind=${$('.ds-ask', askDlg).dataset.kind} theme=${askDlg.dataset.theme} kern=${$('.ds-ask', askDlg).dataset.theme} labelledby=${!!document.getElementById(askDlg.getAttribute('aria-labelledby'))}`
+  askDlg.close(); await new Promise(r => setTimeout(r, 50))
+  out.askClosed = `open=${askDlg.open} focusBack=${document.activeElement.matches('[data-open-ask]')} note="${$('#panel-dark [data-ask-note-text]').textContent}" remembered=${grants.remembered().length}`
   $('#panel-dark [data-open-delete]').click()
   out.deleteOpen = `open=${delDlg.open} active=${document.activeElement.textContent.trim()}`
   delDlg.close('cancel'); await new Promise(r => setTimeout(r, 50)); document.activeElement.blur()
@@ -424,7 +542,34 @@ async function measure() {
   root.dataset.motion = 'reduce'; const a1 = anim()
   if (was) root.dataset.motion = was; else delete root.dataset.motion
   out.motion = { normal: a0, reduce: a1, media: matchMedia('(prefers-reduced-motion: reduce)').matches }
+  // 200 % specimens (repair-1, repair-2): no element of .ds-empty, a progress field, the privacy strip or a settings fieldset is wider
+  // than its box, and every label's text (Range rect) stays inside its box on both axes: scrollWidth cannot see vertical spill
+  const SC = '#scale-host :is(.ds-empty, .ds-progress-field, .ds-fieldset, .ds-privacy)'
+  const LB = `${SC} :is(.ds-btn, .ds-place, .ds-radio, .ds-empty-title, .ds-empty-place, .ds-progress-label > *, .ds-privacy-lbl, .ds-privacy-text > *)`
+  out.scaleClip = $$(`${SC} *`).filter(e => e.getClientRects().length && e.scrollWidth > e.clientWidth + 1 && getComputedStyle(e).overflowX !== 'visible').map(e => `${e.className || e.tagName} ${e.scrollWidth}>${e.clientWidth}`).slice(0, 20)
+  const lb = $$(LB).filter(b => b.getClientRects().length)
+  out.scaleTextFit = { checked: lb.length, outside: lb.map(b => {
+    const r = b.getBoundingClientRect(), g = document.createRange(); g.selectNodeContents(b); const t = g.getBoundingClientRect()
+    const dy = Math.max(0, r.top - t.top, t.bottom - r.bottom), dx = Math.max(0, r.left - t.left, t.right - r.right)
+    return dy > 1 || dx > 1 ? `${b.className} "${b.textContent.trim().slice(0, 24)}" x${Math.round(dx)} y${Math.round(dy)}` : ''
+  }).filter(Boolean) }
   out.scale = (() => { const r = $('#scale-host .ds-btn').getBoundingClientRect(); return `zoom=${getComputedStyle($('#scale-host')).zoom} btnHeight=${r.height}` })()
+  // ds-1.1 (matrix rows 24, 31): every animation in the gallery is finite, ends within 5 s and repeats at most every 1 s
+  const loops = []; let animated = 0
+  for (const el of $$('body *')) for (const pe of [null, '::before', '::after']) {
+    const c = getComputedStyle(el, pe); if (c.animationName === 'none') continue
+    const durs = c.animationDuration.split(','), its = c.animationIterationCount.split(',')
+    c.animationName.split(',').forEach((n, i) => {
+      animated++
+      const ds = durs[i % durs.length].trim(), d = parseFloat(ds) * (ds.endsWith('ms') ? 1 : 1000), it = its[i % its.length].trim()
+      const end = it === 'infinite' ? Infinity : d * +it
+      if (end > 5000 || (+it > 1 && d < 1000 && d > 0)) loops.push(`${el.className?.baseVal ?? el.className}${pe || ''} ${n} ${d}ms x ${it}`)
+    })
+  }
+  out.loops = { animated, over5sOrFast: loops.slice(0, 20) }
+  out.combos = { rows: PW.rows.length, specimens: $$('#combo-host .gal-combo').length, pairs: PW.total, uncovered: PW.uncovered }
+  const kern = $('#combo-host [data-theme="light"][data-contrast="increased"] .gal-kern')
+  out.axisCascade = kern ? `Kern in light+increased: data-theme=${kern.dataset.theme} --color-text=${getComputedStyle(kern).getPropertyValue('--color-text').trim()} --color-text-muted=${getComputedStyle(kern).getPropertyValue('--color-text-muted').trim()}` : 'none'
   out.errorsAfter = window.__errs.length
   $('#out').textContent = JSON.stringify(out, null, 1)
   document.title += ' [measured]'

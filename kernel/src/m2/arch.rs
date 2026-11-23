@@ -186,6 +186,18 @@ pub fn install() {
             };
             ptr::addr_of_mut!(IDT).cast::<Gate>().add(i).write(gate);
         }
+    }
+    load_tables();
+}
+
+/// Loads the permanent BSP GDT, segments, TR and IDT and zeroes the FS/GS/
+/// KERNEL_GS bases. Shared by `install` and the S3 resume path so the GS
+/// discipline (GS-9) keeps exactly one BSP selector load and one base reset.
+fn load_tables() {
+    // SAFETY: Single CPU, IF=0. GDT/IDT/TSS are the permanent statics that
+    // `install` initialized before its first call; the TSS descriptor is
+    // available (never busy) whenever this runs.
+    unsafe {
         let gdtr = Pointer {
             limit: 55,
             base: ptr::addr_of!(GDT) as u64,
@@ -203,6 +215,30 @@ pub fn install() {
             asm!("wrmsr",in("ecx") msr,in("eax") 0u32,in("edx") 0u32,options(nostack));
         }
     }
+}
+
+/// After an ACPI S3 wake the CPU comes out of reset: reload the unchanged
+/// kernel GDT/IDT/TR exactly as `install` left them. The only table write is
+/// clearing the TSS descriptor's busy bit that the boot-time `ltr` set, since
+/// `ltr` faults on a busy descriptor. Descriptor contents are otherwise
+/// untouched (no new gates, stacks or privileges).
+#[cfg(feature = "acpi-s3-core")]
+pub fn reload_after_resume() {
+    // SAFETY: Single BSP with IF=0 on the dedicated wake stack, before any
+    // other kernel code runs after the wake. GDT/IDT/TSS are the permanent
+    // statics initialized by `install`; entry 5 is the 64-bit TSS descriptor
+    // and only its type nibble changes from busy (0xb) back to available (0x9).
+    unsafe {
+        let tss = ptr::addr_of_mut!(GDT).cast::<u64>().add(5);
+        let descriptor = tss.read_volatile();
+        assert_eq!(
+            (descriptor >> 40) & 0xfd,
+            0x89,
+            "TSS descriptor type before resume reload"
+        );
+        tss.write_volatile(descriptor & !(0x2 << 40));
+    }
+    load_tables();
 }
 
 /// One AP's private descriptor tables: a GDT with the kernel's code/data

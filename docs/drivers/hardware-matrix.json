@@ -1,5 +1,118 @@
 {
-  "schema": 1,
+  "schema": 2,
+  "owner_decisions": [
+    {
+      "id": "OD-HW-TARGETS",
+      "decision": "Number, make and model of the HW-FR reference PC(s); this sets the HW-FR target identity (HW-AI remains a separate profile).",
+      "status": "open",
+      "blocks": [
+        "HW-INV",
+        "H05-S5",
+        "H05-S3",
+        "H02-USB",
+        "H03-AV",
+        "H04-NET",
+        "R03-INSTALL"
+      ]
+    },
+    {
+      "id": "OD-HW-BOOT",
+      "decision": "Authorization to boot a removable medium through the firmware one-time boot menu, and the Secure Boot policy for the unsigned test image (no key enrolment or setting change is implied).",
+      "status": "open",
+      "blocks": [
+        "HW-INV",
+        "H05-S5",
+        "H05-S3",
+        "H02-USB",
+        "H03-AV",
+        "H04-NET",
+        "R03-INSTALL"
+      ]
+    },
+    {
+      "id": "OD-HW-DISKS",
+      "decision": "Internal-disk handling during sessions: physically disconnected or left untouched in place.",
+      "status": "open",
+      "blocks": [
+        "HW-INV",
+        "H05-S5",
+        "H05-S3",
+        "H02-USB",
+        "H03-AV",
+        "H04-NET",
+        "R03-INSTALL"
+      ]
+    },
+    {
+      "id": "OD-HW-CAPTURE",
+      "decision": "Output capture route: COM1 null-modem cable to a second computer, or an on-screen route that is not yet demonstrated.",
+      "status": "open",
+      "blocks": [
+        "HW-INV",
+        "H05-S5",
+        "H05-S3",
+        "H02-USB",
+        "H03-AV",
+        "H04-NET",
+        "R03-INSTALL"
+      ]
+    },
+    {
+      "id": "OD-HW-SIGNERS",
+      "decision": "Owner signing key(s) for docs/drivers/hw-allowed-signers and the operators allowed to attest physical evidence.",
+      "status": "open",
+      "blocks": [
+        "HW-INV",
+        "H05-S5",
+        "H05-S3",
+        "H02-USB",
+        "H03-AV",
+        "H04-NET",
+        "R03-INSTALL"
+      ]
+    },
+    {
+      "id": "OD-HW-FAMILIES",
+      "decision": "Required device families on the reference PC(s), including whether Wi-Fi, Bluetooth and GPU acceleration are in scope, and which install-target transport R03-INSTALL must exercise (USB mass storage, a removable SATA/eSATA bay for AHCI, an external NVMe enclosure, or none, so that it proves only the install procedure).",
+      "status": "open",
+      "blocks": [
+        "H02-USB",
+        "H03-AV",
+        "H04-NET",
+        "R03-INSTALL"
+      ]
+    },
+    {
+      "id": "OD-HW-PUBLISH",
+      "decision": "Whether hardware inventories and serial logs (PCI IDs, MAC addresses, firmware strings) may be published in the repository or must be redacted.",
+      "status": "open",
+      "blocks": [
+        "HW-INV",
+        "H05-S5",
+        "H05-S3",
+        "H02-USB",
+        "H03-AV",
+        "H04-NET",
+        "R03-INSTALL"
+      ]
+    },
+    {
+      "id": "OD-HW-INV-ROUTE",
+      "decision": "Whether the native HW-INV inventory replaces the Linux live-USB lspci -nn step previously requested for HW-FR.",
+      "status": "open",
+      "blocks": [
+        "HW-INV"
+      ]
+    },
+    {
+      "id": "OD-HW-POWER",
+      "decision": "Physical power profile: S3 wake source (power button, RTC alarm or keyboard/USB), battery and thermal scope.",
+      "status": "open",
+      "blocks": [
+        "H05-S3"
+      ]
+    }
+  ],
   "profiles": [
     {
       "id": "VM-FR",
@@ -11,6 +124,7 @@
           "driver_path": "kernel/src/framebuffer.rs",
           "dma_posture": "trusted kernel transport",
           "status": "implemented",
+          "evidence_level": "none",
           "evidence": []
         },
         {
@@ -18,20 +132,27 @@
           "driver_path": "drivers/ps2/src/lib.rs",
           "dma_posture": "trusted kernel transport",
           "status": "implemented",
+          "evidence_level": "none",
           "evidence": []
         },
         {
           "id": "xhci",
           "driver_path": "drivers/xhci/src/lib.rs",
           "dma_posture": "unsupported",
-          "status": "pending",
-          "evidence": []
+          "status": "native-verified",
+          "evidence_level": "native-qemu",
+          "evidence": [
+            "docs/verification/issue42-native-input-20261114/README.md",
+            "docs/verification/issue42-native-input-20261114/reports/xhci-noop-report.json"
+          ],
+          "note": "Opt-in native QEMU qemu-xhci fixture with VT-d-contained bus mastering (native-xhci-probe, native-usb-hid-probe); no IRQ, hub or general hotplug support."
         },
         {
           "id": "nvme",
           "driver_path": null,
           "dma_posture": "unsupported",
           "status": "unsupported",
+          "evidence_level": "none",
           "evidence": []
         },
         {
@@ -39,6 +160,7 @@
           "driver_path": null,
           "dma_posture": "unsupported",
           "status": "unsupported",
+          "evidence_level": "none",
           "evidence": []
         },
         {
@@ -46,6 +168,7 @@
           "driver_path": null,
           "dma_posture": "unsupported",
           "status": "unsupported",
+          "evidence_level": "none",
           "evidence": []
         },
         {
@@ -53,20 +176,29 @@
           "driver_path": null,
           "dma_posture": "unsupported",
           "status": "unsupported",
+          "evidence_level": "none",
           "evidence": []
         },
         {
           "id": "acpi",
           "driver_path": "drivers/acpi-power/src/lib.rs",
           "dma_posture": "trusted kernel transport",
-          "status": "implemented",
-          "evidence": []
+          "status": "native-verified",
+          "evidence_level": "native-qemu",
+          "evidence": [
+            "docs/verification/h05-acpi-s5/README.md",
+            "docs/verification/h05-acpi-s5/native-report.json",
+            "docs/verification/h05-native-s3-20261119/README.md",
+            "docs/verification/h05-native-s3-20261119/native-report.json"
+          ],
+          "note": "Native QEMU S5 power-off (native-acpi-s5) and native QEMU S3 suspend/resume woken only by QMP system_wakeup under the QEMU/OVMF extended-vector policy (native-acpi-s3); native-verified binds to the S5 report. No physical evidence exists."
         },
         {
           "id": "rng",
           "driver_path": "drivers/virtio-rng/src/lib.rs",
           "dma_posture": "trusted kernel transport",
           "status": "implemented",
+          "evidence_level": "none",
           "evidence": []
         },
         {
@@ -74,6 +206,7 @@
           "driver_path": "kernel/src/m2/iommu.rs",
           "dma_posture": "unsupported",
           "status": "pending",
+          "evidence_level": "none",
           "evidence": []
         },
         {
@@ -81,6 +214,7 @@
           "driver_path": "drivers/virtio-blk/src/lib.rs",
           "dma_posture": "trusted kernel transport",
           "status": "implemented",
+          "evidence_level": "none",
           "evidence": []
         },
         {
@@ -88,6 +222,7 @@
           "driver_path": "drivers/virtio-net/src/lib.rs",
           "dma_posture": "trusted kernel transport",
           "status": "implemented",
+          "evidence_level": "none",
           "evidence": []
         },
         {
@@ -95,6 +230,7 @@
           "driver_path": "drivers/virtio-snd/src/lib.rs",
           "dma_posture": "trusted kernel transport",
           "status": "implemented",
+          "evidence_level": "none",
           "evidence": []
         }
       ]
@@ -109,6 +245,7 @@
           "driver_path": "kernel/src/framebuffer.rs",
           "dma_posture": "unsupported",
           "status": "pending",
+          "evidence_level": "none",
           "evidence": []
         },
         {
@@ -116,6 +253,7 @@
           "driver_path": "drivers/ps2/src/lib.rs",
           "dma_posture": "unsupported",
           "status": "pending",
+          "evidence_level": "none",
           "evidence": []
         },
         {
@@ -123,13 +261,16 @@
           "driver_path": "drivers/xhci/src/lib.rs",
           "dma_posture": "unsupported",
           "status": "pending",
-          "evidence": []
+          "evidence_level": "none",
+          "evidence": [],
+          "note": "kernel/src/m2/xhci.rs accepts only QEMU's qemu-xhci (1b36:000d) and maps its discovered BAR0 (at most 64 KiB, at or above 0x80000000, not overlapping the register window of the DMAR unit that native DMA would use, when one qualifies) at the fixed kernel virtual address 0x3f210000."
         },
         {
           "id": "nvme",
           "driver_path": null,
           "dma_posture": "unsupported",
           "status": "unsupported",
+          "evidence_level": "none",
           "evidence": []
         },
         {
@@ -137,6 +278,7 @@
           "driver_path": null,
           "dma_posture": "unsupported",
           "status": "unsupported",
+          "evidence_level": "none",
           "evidence": []
         },
         {
@@ -144,6 +286,7 @@
           "driver_path": null,
           "dma_posture": "unsupported",
           "status": "unsupported",
+          "evidence_level": "none",
           "evidence": []
         },
         {
@@ -151,6 +294,7 @@
           "driver_path": null,
           "dma_posture": "unsupported",
           "status": "unsupported",
+          "evidence_level": "none",
           "evidence": []
         },
         {
@@ -158,6 +302,7 @@
           "driver_path": "drivers/acpi-power/src/lib.rs",
           "dma_posture": "unsupported",
           "status": "pending",
+          "evidence_level": "none",
           "evidence": []
         },
         {
@@ -165,6 +310,7 @@
           "driver_path": "drivers/virtio-rng/src/lib.rs",
           "dma_posture": "unsupported",
           "status": "pending",
+          "evidence_level": "none",
           "evidence": []
         },
         {
@@ -172,6 +318,7 @@
           "driver_path": "kernel/src/m2/iommu.rs",
           "dma_posture": "unsupported",
           "status": "pending",
+          "evidence_level": "none",
           "evidence": []
         }
       ]
@@ -186,6 +333,7 @@
           "driver_path": "kernel/src/framebuffer.rs",
           "dma_posture": "unsupported",
           "status": "pending",
+          "evidence_level": "none",
           "evidence": []
         },
         {
@@ -193,6 +341,7 @@
           "driver_path": "drivers/ps2/src/lib.rs",
           "dma_posture": "unsupported",
           "status": "pending",
+          "evidence_level": "none",
           "evidence": []
         },
         {
@@ -200,13 +349,16 @@
           "driver_path": "drivers/xhci/src/lib.rs",
           "dma_posture": "unsupported",
           "status": "pending",
-          "evidence": []
+          "evidence_level": "none",
+          "evidence": [],
+          "note": "kernel/src/m2/xhci.rs accepts only QEMU's qemu-xhci (1b36:000d) and maps its discovered BAR0 (at most 64 KiB, at or above 0x80000000, not overlapping the register window of the DMAR unit that native DMA would use, when one qualifies) at the fixed kernel virtual address 0x3f210000; physical controllers are rejected."
         },
         {
           "id": "nvme",
           "driver_path": null,
           "dma_posture": "unsupported",
           "status": "unsupported",
+          "evidence_level": "none",
           "evidence": []
         },
         {
@@ -214,6 +366,7 @@
           "driver_path": null,
           "dma_posture": "unsupported",
           "status": "unsupported",
+          "evidence_level": "none",
           "evidence": []
         },
         {
@@ -221,6 +374,7 @@
           "driver_path": null,
           "dma_posture": "unsupported",
           "status": "unsupported",
+          "evidence_level": "none",
           "evidence": []
         },
         {
@@ -228,6 +382,7 @@
           "driver_path": null,
           "dma_posture": "unsupported",
           "status": "unsupported",
+          "evidence_level": "none",
           "evidence": []
         },
         {
@@ -235,6 +390,7 @@
           "driver_path": "drivers/acpi-power/src/lib.rs",
           "dma_posture": "unsupported",
           "status": "pending",
+          "evidence_level": "none",
           "evidence": []
         },
         {
@@ -242,6 +398,7 @@
           "driver_path": "drivers/virtio-rng/src/lib.rs",
           "dma_posture": "unsupported",
           "status": "pending",
+          "evidence_level": "none",
           "evidence": []
         },
         {
@@ -249,6 +406,7 @@
           "driver_path": "kernel/src/m2/iommu.rs",
           "dma_posture": "unsupported",
           "status": "pending",
+          "evidence_level": "none",
           "evidence": []
         }
       ]

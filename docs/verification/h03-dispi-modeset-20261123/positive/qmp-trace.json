@@ -1,0 +1,140 @@
+[
+  {
+    "request": {
+      "execute": "qmp_capabilities",
+      "id": 1
+    },
+    "response": {
+      "return": {},
+      "id": 1
+    }
+  },
+  {
+    "request": {
+      "execute": "screendump",
+      "id": 2,
+      "arguments": {
+        "filename": "/home/simon/projects/BaryonOS-worktrees/h03-dispi/build/h03t4fix/run/dispi-positive-5309e80cdb/mode-640x480.ppm"
+      }
+    },
+    "response": {
+      "return": {},
+      "id": 2
+    }
+  },
+  {
+    "request": {
+      "execute": "send-key",
+      "id": 3,
+      "arguments": {
+        "keys": [
+          {
+            "type": "qcode",
+            "data": "n"
+          }
+        ],
+        "hold-time": 30
+      }
+    },
+    "response": {
+      "return": {},
+      "id": 3
+    }
+  },
+  {
+    "request": {
+      "execute": "screendump",
+      "id": 4,
+      "arguments": {
+        "filename": "/home/simon/projects/BaryonOS-worktrees/h03-dispi/build/h03t4fix/run/dispi-positive-5309e80cdb/mode-800x600.ppm"
+      }
+    },
+    "response": {
+      "return": {},
+      "id": 4
+    }
+  },
+  {
+    "request": {
+      "execute": "send-key",
+      "id": 5,
+      "arguments": {
+        "keys": [
+          {
+            "type": "qcode",
+            "data": "n"
+          }
+        ],
+        "hold-time": 30
+      }
+    },
+    "response": {
+      "return": {},
+      "id": 5
+    }
+  },
+  {
+    "request": {
+      "execute": "screendump",
+      "id": 6,
+      "arguments": {
+        "filename": "/home/simon/projects/BaryonOS-worktrees/h03-dispi/build/h03t4fix/run/dispi-positive-5309e80cdb/mode-1024x768.ppm"
+      }
+    },
+    "response": {
+      "return": {},
+      "id": 6
+    }
+  },
+  {
+    "request": {
+      "execute": "send-key",
+      "id": 7,
+      "arguments": {
+        "keys": [
+          {
+            "type": "qcode",
+            "data": "n"
+          }
+        ],
+        "hold-time": 30
+      }
+    },
+    "response": {
+      "return": {},
+      "id": 7
+    }
+  },
+  {
+    "request": {
+      "execute": "screendump",
+      "id": 8,
+      "arguments": {
+        "filename": "/home/simon/projects/BaryonOS-worktrees/h03-dispi/build/h03t4fix/run/dispi-positive-5309e80cdb/mode-1280x720.ppm"
+      }
+    },
+    "response": {
+      "return": {},
+      "id": 8
+    }
+  },
+  {
+    "request": {
+      "execute": "send-key",
+      "id": 9,
+      "arguments": {
+        "keys": [
+          {
+            "type": "qcode",
+            "data": "n"
+          }
+        ],
+        "hold-time": 30
+      }
+    },
+    "response": {
+      "return": {},
+      "id": 9
+    }
+  }
+]
