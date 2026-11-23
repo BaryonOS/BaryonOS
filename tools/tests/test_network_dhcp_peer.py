@@ -15,8 +15,8 @@ from unittest.mock import patch
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from network_dhcp_peer import (BROADCAST_IP, BROADCAST_MAC, CLIENT_MAC, LEASES, PEER_IP, PEER_MAC,
-                               SPOOF_IP, ZERO_IP, DhcpMachine, ProtocolError, checksum, ipv4_header,
-                               validate_transcript)
+                               ROUTE_MASK, ROUTER_IP, ROUTER_MACS, SPOOF_IP, ZERO_IP, DhcpMachine,
+                               ProtocolError, checksum, ipv4_header, validate_transcript)
 from network_service_peer import ACK, FIN, PSH, REQUESTS, RESPONSES, SYN, MASK
 
 
@@ -45,17 +45,18 @@ def arp(sender_ip, target_ip, destination=BROADCAST_MAC):
             + CLIENT_MAC + sender_ip + b"\0" * 6 + target_ip).ljust(60, b"\0")
 
 
-def tcp(address, source, target, seq, ack, flags, payload=b"", tcp_opts=b""):
+def tcp(address, source, target, seq, ack, flags, payload=b"", tcp_opts=b"", destination=PEER_MAC):
     words = 5 + len(tcp_opts) // 4
     segment = (struct.pack("!HHIIBBHHH", source, target, seq & MASK, ack & MASK, words << 4, flags, 4096, 0, 0)
                + tcp_opts + payload)
     value = checksum(address + PEER_IP + struct.pack("!BBH", 0, 6, len(segment)) + segment)
     segment = segment[:16] + struct.pack("!H", value) + segment[18:]
     ip = ipv4_header(address, PEER_IP, 6, len(segment), 7)
-    return (PEER_MAC + CLIENT_MAC + b"\x08\x00" + ip + segment).ljust(60, b"\0")
+    return (destination + CLIENT_MAC + b"\x08\x00" + ip + segment).ljust(60, b"\0")
 
 
-def query(address, port, ident, name, *, flags=0x0100, kind=1, valid_checksum=True, labels=None):
+def query(address, port, ident, name, *, flags=0x0100, kind=1, valid_checksum=True, labels=None,
+          destination=PEER_MAC):
     """Guest A query in the exact layout of services/net-protocol dns.rs."""
     labels = name.split(".") if labels is None else labels
     qname = b"".join(bytes((len(label),)) + label.encode() for label in labels) + b"\0"
@@ -65,7 +66,7 @@ def query(address, port, ident, name, *, flags=0x0100, kind=1, valid_checksum=Tr
     if not valid_checksum:
         value ^= 0x0101
     udp = udp[:6] + struct.pack("!H", value) + udp[8:]
-    return (PEER_MAC + CLIENT_MAC + b"\x08\x00" + ipv4_header(address, PEER_IP, 17, len(udp), 3) + udp).ljust(60, b"\0")
+    return (destination + CLIENT_MAC + b"\x08\x00" + ipv4_header(address, PEER_IP, 17, len(udp), 3) + udp).ljust(60, b"\0")
 
 
 def answer(reply):
@@ -81,7 +82,8 @@ def answer(reply):
 def resolve_all(step, lease):
     """App A's queries on `lease`; returns the reply frames per name."""
     names = ("service.test", "missing.test") if lease == 0 else ("service.test",)
-    return {name: step(query(LEASES[lease], 50000 + 2 * i, 0x1200 + i + 16 * lease, name))
+    return {name: step(query(LEASES[lease], 50000 + 2 * i, 0x1200 + i + 16 * lease, name,
+                             destination=step.hops[lease]))
             for i, name in enumerate(names)}
 
 
@@ -94,9 +96,14 @@ def options(reply):
 
 
 class Recorder:
-    """Drives the machine like Peer._run and keeps the replayable transcript."""
-    def __init__(self):
-        self.machine, self.actions, self.sent = DhcpMachine(), [], 0
+    """Drives the machine like Peer._run and keeps the replayable transcript.
+
+    The expected router and per-lease next-hop MACs come from the fixture
+    constants, never from the machine under test."""
+    def __init__(self, case="dhcp"):
+        self.machine, self.actions, self.sent = DhcpMachine(case), [], 0
+        self.router = ROUTER_IP if case == "route" else PEER_IP
+        self.hops = ROUTER_MACS if case == "route" else (PEER_MAC, PEER_MAC)
 
     def __call__(self, frame):
         output = self.machine.handle(frame, float(len(self.actions)))
@@ -111,7 +118,7 @@ class Recorder:
         return result
 
 
-def acquire(step, lease, xid, announcements=1):
+def acquire(step, lease, xid, announcements=1, router_arp=True):
     offer, = step(dhcp(1, xid))
     assert offer[30:34] == BROADCAST_IP and offer[42 + 16:42 + 20] == LEASES[lease]
     ack, = step(dhcp(3, xid, requested=LEASES[lease], server=PEER_IP))
@@ -119,35 +126,51 @@ def acquire(step, lease, xid, announcements=1):
         assert step(arp(ZERO_IP, LEASES[lease])) == []
     for _ in range(announcements):
         assert step(arp(LEASES[lease], LEASES[lease])) == []
-    reply, = step(arp(LEASES[lease], PEER_IP))
-    assert reply[38:42] == LEASES[lease]
+    if router_arp:
+        reply, = step(arp(LEASES[lease], step.router))
+        hop = step.hops[lease]
+        assert (reply[6:12], reply[22:28], reply[28:32], reply[38:42]) == (hop, hop, step.router, LEASES[lease])
     return offer, ack
 
 
 def exchange(step, address, source, port, slot):
     server = (0x6e303200 + port * 0x100 + 1) & MASK
     isn = 1000 * port
-    syn_ack, = step(tcp(address, source, port, isn, 0, SYN))
+    hop = step.hops[LEASES.index(address)]
+    syn_ack, = step(tcp(address, source, port, isn, 0, SYN, destination=hop))
     assert struct.unpack_from("!I", syn_ack, 38)[0] == server - 1
-    assert step(tcp(address, source, port, isn + 1, server, ACK)) == []
-    data, = step(tcp(address, source, port, isn + 1, server, ACK | PSH, REQUESTS[slot]))
+    assert step(tcp(address, source, port, isn + 1, server, ACK, destination=hop)) == []
+    data, = step(tcp(address, source, port, isn + 1, server, ACK | PSH, REQUESTS[slot], destination=hop))
     assert data[54:54 + len(RESPONSES[slot])] == RESPONSES[slot]
     client = isn + 1 + len(REQUESTS[slot])
     end = server + len(RESPONSES[slot])
-    fin, = step(tcp(address, source, port, client, end, ACK))
+    fin, = step(tcp(address, source, port, client, end, ACK, destination=hop))
     assert fin[47] == FIN | ACK
-    final, = step(tcp(address, source, port, client, end + 1, FIN | ACK))
+    final, = step(tcp(address, source, port, client, end + 1, FIN | ACK, destination=hop))
     assert final[47] == ACK
 
 
-def first_lease(step):
-    acquire(step, 0, 0x11111111, announcements=2)
+def first_lease(step, router_arp=True):
+    acquire(step, 0, 0x11111111, announcements=2, router_arp=router_arp)
     resolve_all(step, 0)
     exchange(step, LEASES[0], 40000, 8080, 0)
     exchange(step, LEASES[0], 40001, 8090, 1)
     server = (0x6e303200 + 8081 * 0x100 + 1) & MASK
-    step(tcp(LEASES[0], 40002, 8081, 5, 0, SYN))
-    assert step(tcp(LEASES[0], 40002, 8081, 6, server, ACK)) == []
+    step(tcp(LEASES[0], 40002, 8081, 5, 0, SYN, destination=step.hops[0]))
+    assert step(tcp(LEASES[0], 40002, 8081, 6, server, ACK, destination=step.hops[0])) == []
+
+
+def full_run(case="dhcp", skip_router_arp=None):
+    """Acquire, DNS, three exchanges and the held connection, NAK, re-acquire,
+    lease-1 DNS and exchange; optionally without one lease's router ARP."""
+    step = Recorder(case)
+    first_lease(step, router_arp=skip_router_arp != 0)
+    nak, = step(dhcp(3, 0x22222222, ciaddr=LEASES[0]))
+    assert options(nak)[53] == bytes((6,))
+    acquire(step, 1, 0x33333333, router_arp=skip_router_arp != 1)
+    resolve_all(step, 1)
+    exchange(step, LEASES[1], 40004, 8082, 0)
+    return step
 
 
 class DhcpPeerTest(unittest.TestCase):
@@ -558,6 +581,157 @@ class LinkRunnerTest(unittest.TestCase):
             execute_native([sys.executable, "-c", "import time; time.sleep(60)"], dict(os.environ),
                            timeout=30, on_poll=hook)
         self.assertIsNotNone(seen[0].poll())
+
+
+def lease_of(address):
+    return LEASES.index(address)
+
+
+class RoutePeerTest(unittest.TestCase):
+    """N02-T5: 192.0.2.1 is off-link behind the DHCP router .65 (one MAC per lease)."""
+    def test_route_transcript_goes_through_the_router_and_replays(self):
+        step = full_run("route")
+        offer, ack = (bytes.fromhex(a["output"][0]) for a in step.actions[:2])
+        for reply in (offer, ack):
+            found = options(reply)
+            self.assertEqual((found[1], found[3], found[6], found[54]), (ROUTE_MASK, ROUTER_IP, PEER_IP, PEER_IP))
+        dhcp_frames = ip_frames = renewals = 0
+        for action in step.actions:
+            for frame, own in [(bytes.fromhex(action["input"]), 26)] + [(bytes.fromhex(p), 30) for p in action["output"]]:
+                if frame[12:14] != b"\x08\x00":
+                    continue
+                if 67 in struct.unpack_from("!HH", frame, 34):
+                    # DHCP never uses a router MAC; the unicast renewal goes to the
+                    # server's learned MAC (net-config service.rs server_neighbor).
+                    self.assertFalse({frame[:6], frame[6:12]} & set(ROUTER_MACS))
+                    renewals += own == 26 and frame[:6] == PEER_MAC
+                    dhcp_frames += 1
+                    continue
+                # Every DNS/TCP frame carries IP 192.0.2.1 and that lease's router MAC.
+                hop = ROUTER_MACS[lease_of(frame[own:own + 4])]
+                self.assertEqual(frame[:6] if own == 26 else frame[6:12], hop)
+                self.assertEqual(frame[30:34] if own == 26 else frame[26:30], PEER_IP)
+                ip_frames += 1
+        self.assertGreater(ip_frames, 20)
+        self.assertEqual((dhcp_frames, renewals), (10, 1))  # 2 x (DISCOVER, OFFER, REQUEST, ACK) + renewal + NAK
+        evidence = step.evidence()
+        self.assertTrue(evidence["complete"])
+        self.assertEqual((evidence["router_arps"], evidence["mask"], evidence["router"]),
+                         ([1, 1], "255.255.255.192", "192.0.2.65"))
+        self.assertEqual((evidence["counts"]["naks"], evidence["counts"]["dns_spoofs"]), (1, 2))
+        # The runner publishes and reloads the peer evidence before comparing it.
+        self.assertEqual(json.loads(json.dumps(evidence)), evidence)
+        self.assertEqual(validate_transcript(evidence)["router_arps"], [1, 1])
+        self.assertNotIn("router_arps", full_run().evidence())
+
+    def test_only_the_router_is_arped(self):
+        step = Recorder("route")
+        acquire(step, 0, 1)
+        for frame in (arp(LEASES[0], PEER_IP), arp(LEASES[0], PEER_IP, destination=PEER_MAC),
+                      arp(LEASES[0], ROUTER_IP, destination=PEER_MAC),
+                      arp(LEASES[0], ROUTER_IP, destination=ROUTER_MACS[1])):
+            with self.assertRaisesRegex(ProtocolError, "ARP request outside the bound lease"):
+                step(frame)
+        reply, = step(arp(LEASES[0], ROUTER_IP, destination=ROUTER_MACS[0]))
+        self.assertEqual((reply[22:28], reply[28:32]), (ROUTER_MACS[0], ROUTER_IP))
+        self.assertEqual(step.machine.router_arps, [2, 0])
+        step = Recorder()
+        acquire(step, 0, 1)
+        with self.assertRaisesRegex(ProtocolError, "ARP request outside the bound lease"):
+            step(arp(LEASES[0], ROUTER_IP))
+        self.assertEqual(len(step(arp(LEASES[0], PEER_IP))), 1)
+
+    def test_dns_and_tcp_need_the_current_router_mac(self):
+        step = Recorder("route")
+        acquire(step, 0, 1)
+        with self.assertRaisesRegex(ProtocolError, "DNS frame bound or Ethernet identity"):
+            step(query(LEASES[0], 50000, 1, "service.test"))
+        with self.assertRaisesRegex(ProtocolError, "TCP frame bound or Ethernet identity"):
+            step(tcp(LEASES[0], 40000, 8080, 1, 0, SYN))
+        self.assertEqual(len(step(query(LEASES[0], 50000, 1, "service.test", destination=ROUTER_MACS[0]))), 2)
+        self.assertEqual(len(step(tcp(LEASES[0], 40000, 8080, 1, 0, SYN, destination=ROUTER_MACS[0]))), 1)
+        step = Recorder("route")
+        first_lease(step)
+        step(dhcp(3, 0x22222222, ciaddr=LEASES[0]))
+        acquire(step, 1, 0x33333333)
+        for frame in (query(LEASES[1], 50000, 1, "service.test", destination=ROUTER_MACS[0]),
+                      tcp(LEASES[1], 40004, 8082, 1, 0, SYN, destination=ROUTER_MACS[0])):
+            with self.assertRaisesRegex(ProtocolError, "frame bound or Ethernet identity"):
+                step(frame)
+        self.assertEqual(len(step(query(LEASES[1], 50000, 1, "service.test", destination=ROUTER_MACS[1]))), 1)
+        self.assertEqual(len(step(tcp(LEASES[1], 40004, 8082, 1, 0, SYN, destination=ROUTER_MACS[1]))), 1)
+
+    def test_router_arp_must_come_from_the_bound_lease(self):
+        step = Recorder("route")
+        acquire(step, 0, 1)
+        for sender in (LEASES[1], bytes((192, 0, 2, 70))):
+            with self.subTest(sender), self.assertRaisesRegex(ProtocolError, "ARP request outside the bound lease"):
+                step(arp(sender, ROUTER_IP))
+        self.assertEqual(step.machine.router_arps, [1, 0])
+        self.assertEqual(len(step(arp(LEASES[0], ROUTER_IP))), 1)
+
+    def test_each_route_criterion_alone_makes_the_run_incomplete(self):
+        self.assertTrue(full_run("route").evidence()["complete"])
+        for lease in (0, 1):
+            with self.subTest(router_arp=lease):
+                step = full_run("route", skip_router_arp=lease)
+                self.assertEqual(step.machine.router_arps, [lease, 1 - lease])
+                self.assertFalse(step.evidence()["complete"])
+                with self.assertRaisesRegex(ProtocolError, "incomplete"):
+                    validate_transcript(step.evidence())
+                step.machine.router_arps = [1, 1]  # the missing ARP was the only failing criterion
+                self.assertTrue(step.evidence()["complete"])
+        for name, value in (("naks", 0), ("naks", 2), ("link_downs", 1)):
+            with self.subTest(name=name, value=value):
+                step = full_run("route")
+                step.machine.counts[name] = value
+                self.assertFalse(step.evidence()["complete"])
+
+    def test_route_case_naks_and_cases_cannot_be_swapped(self):
+        step = Recorder("route")
+        first_lease(step)
+        nak, = step(dhcp(3, 0x22222222, ciaddr=LEASES[0]))
+        self.assertEqual((nak[:6], options(nak)[53]), (BROADCAST_MAC, bytes((6,))))
+        for recorded, claimed in (("dhcp", "route"), ("route", "dhcp")):
+            with self.subTest(recorded=recorded):
+                evidence = full_run(recorded).evidence()
+                with self.assertRaisesRegex(ProtocolError, "server reply differs"):
+                    validate_transcript(dict(evidence, case=claimed))
+
+
+class RouteRunnerTest(unittest.TestCase):
+    """evaluate()'s route branch in isolation; validate_transcript and sequence are covered elsewhere."""
+    def setUp(self):
+        import run_network_dhcp as runner
+        self.runner = runner
+
+    def evaluate(self, peer):
+        counts = peer["counts"]
+        observed = dict(network=dict(NET_TX_COMPLETED=counts["client_frames"],
+                                     NET_RX_DELIVERED=counts["server_frames"]),
+                        processes=dict(SERVICE={"576": int.from_bytes(LEASES[0], "big"),
+                                                "584": int.from_bytes(LEASES[1], "big"),
+                                                "448": counts["dns_queries"], "512": counts["dns_spoofs"]}))
+        report = dict(raw_qemu_exit=33, timed_out=False, kernel_feature=self.runner.FEATURE, timeout_s=90,
+                      qemu_version="QEMU emulator version 9", duration_s=1.0, stdout="")
+        with patch.object(self.runner, "sequence", return_value=observed), \
+                patch.object(self.runner, "validate_transcript", side_effect=lambda p: p):
+            return self.runner.evaluate(report, dict(peer, passed=True, connected=True, error=None,
+                                                     rejected_frame=None), "route")
+
+    def test_route_branch_requires_nak_router_arps_and_lease(self):
+        self.assertEqual(self.runner.CASES["route"], self.runner.FEATURE)
+        self.assertEqual(len(set(self.runner.SUMMARIES.values())), 3)
+        good = full_run("route").evidence()
+        self.evaluate(good)
+        mutants = {"no nak": dict(counts=dict(good["counts"], naks=0)),
+                   "link drop": dict(counts=dict(good["counts"], link_downs=1)),
+                   "lease 1 not routed": dict(router_arps=[1, 0]), "one lease": dict(router_arps=[1]),
+                   "text count": dict(router_arps=["1", 1]), "missing": dict(router_arps=None),
+                   "/24": dict(mask="255.255.255.0"), "on-link router": dict(router="192.0.2.1")}
+        for name, change in mutants.items():
+            with self.subTest(name), self.assertRaisesRegex(ValueError, "route case"):
+                self.evaluate(dict(good, **change))
 
 
 class DhcpRunnerSummaryTest(unittest.TestCase):

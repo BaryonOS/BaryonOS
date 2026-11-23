@@ -14,6 +14,11 @@ driven through a private QMP socket (`qmp_capabilities` and `set_link net0`
 only): the service observes the kernel link epoch (test syscall 0x74),
 withdraws the lease on the down edge and acquires a fresh one after the up
 edge; the peer refuses any later frame from the old address.
+
+`--case route` (N02-T5) runs the dhcp case with the leases as /26 behind
+router 192.0.2.65, so the unchanged grant 192.0.2.1 is off-link: DNS and TCP
+must leave through the lease's router MAC and 192.0.2.1 is never ARPed.
+
 Images, user ELFs, firmware and serial bytes are refused unless the source
 fingerprint is the same before the build and after the run; an edit reverted
 in between is not detected.
@@ -37,12 +42,13 @@ from build_users import inspect_user
 from run_fpu import private_path, publish_json, load_json
 from run_system import check_esp, network_arguments
 from run_network_service import BOOT, FORBIDDEN, REQUIRED, execute_native, integer, record_streams
-from network_dhcp_peer import LEASES, Peer, validate_transcript
+from network_dhcp_peer import LEASES, ROUTE_MASK, ROUTER_IP, Peer, validate_transcript
 from run_net_link import NETDEV, LinkControl, check_qmp
 
 FEATURE = "test-net-service-dhcp"
-CASES = {"dhcp": FEATURE, "link": "test-net-service-link"}
-SUMMARIES = {"dhcp": "network-dhcp-report.json", "link": "network-dhcp-link-report.json"}
+CASES = {"dhcp": FEATURE, "link": "test-net-service-link", "route": FEATURE}
+SUMMARIES = {"dhcp": "network-dhcp-report.json", "link": "network-dhcp-link-report.json",
+             "route": "network-dhcp-route-report.json"}
 LAST_TICK = 6000
 OFFSETS = (240, 400, 408, 416, 424, 432, 440, 448, 456, 464, 472, 480, 488, 496, 504, 512, 520, 528,
            536, 544, 552, 560, 568, 576, 584, 592, 600, 608, 616, 624, 632, 640, 648, 656, 664)
@@ -260,6 +266,13 @@ def evaluate(report, peer, case="dhcp", control=None):
         check_qmp("link", control, {"toggles": [False, True]})
         if counts["naks"] or counts["link_downs"] != 1:
             raise ValueError("The link case withdrew the lease other than by one link drop")
+    if case == "route":
+        arps = peer.get("router_arps")
+        if (counts["naks"] != 1 or counts["link_downs"] != 0 or not isinstance(arps, list) or len(arps) != 2
+                or not all(type(n) is int and n >= 1 for n in arps)
+                or peer.get("mask") != ".".join(map(str, ROUTE_MASK))
+                or peer.get("router") != ".".join(map(str, ROUTER_IP))):
+            raise ValueError("The route case lacks the NAK, a per-lease router ARP or the /26 router lease")
     return observed
 
 
@@ -312,8 +325,14 @@ def run_network_dhcp(*, timeout=90, frozen=None, case="dhcp"):
     link_scope = ("three actual isolated ring-3 processes; one QMP set_link down/up on emulated virtio-net STATUS "
                   "withdraws the DHCPv4 lease and a fresh one is acquired, DNS re-resolved through the new lease "
                   "server; no NAK, repeated flapping, physical NIC, Wi-Fi or production link ABI claim")
+    dhcp_scope = ("three actual isolated ring-3 processes; DHCPv4 acquire/NAK withdrawal/re-acquire on synthetic "
+                  "localhost Ethernet; A-record DNS through the lease server with one synthetic responder; no link "
+                  "control, lease expiry, TCP DNS, DNSSEC, TLS or physical hardware claim")
+    scopes = {"dhcp": dhcp_scope, "link": link_scope,
+              "route": dhcp_scope + "; one default route via the DHCP router on a synthetic L2 peer (one Python "
+                       "process plays router, host and server): no forwarding, TTL, ICMP, static or multiple routes"}
     report = dict(schema_version=1, passed=False, case=case, kernel_feature=feature,
-                  scope=link_scope if case == "link" else "three actual isolated ring-3 processes; DHCPv4 acquire/NAK withdrawal/re-acquire on synthetic localhost Ethernet; A-record DNS through the lease server with one synthetic responder; no link control, lease expiry, TCP DNS, DNSSEC, TLS or physical hardware claim",
+                  scope=scopes[case],
                   source_commit=subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip(),
                   source_fingerprint_version=3, source_sha256=frozen, manifest=manifest,
                   run_directory=str(directory), timeout_s=timeout, started_utc=datetime.now(timezone.utc).isoformat(),
@@ -371,7 +390,8 @@ def main(argv=None):
     parser.add_argument("--timeout", type=int, default=90, help="host timeout seconds (default 90)")
     parser.add_argument("--no-build", action="store_true", help="require an existing source-matching build")
     parser.add_argument("--case", choices=tuple(CASES), default="dhcp",
-                        help="dhcp: DHCPNAK withdrawal (default); link: QMP link down/up withdrawal")
+                        help="dhcp: DHCPNAK withdrawal (default); link: QMP link down/up withdrawal; "
+                             "route: dhcp with 192.0.2.1 off-link behind the DHCP router")
     args = parser.parse_args(argv)
     feature = CASES[args.case]
     # The stable summary never outlives a newer attempt; each run keeps its own run directory.

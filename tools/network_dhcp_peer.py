@@ -10,8 +10,12 @@ app on that lease, answers the first renewal REQUEST after app A holds an idle
 connection with a DHCPNAK, then refuses (fails the run on) any frame still
 sourced from the withdrawn address. A fresh DISCOVER receives 192.0.2.67 and
 app A resolves service.test again (a new query: its cache was flushed) and
-repeats its exchange there. RFC 5227 probes and announcements are
-accepted only in their exact form and count. Every recorded reply is replayed
+repeats its exchange there. The route case (N02-T5) leases the same addresses
+as /26 with router 192.0.2.65, which answers ARP with its own MAC per lease, so
+192.0.2.1 is off-link: every DNS and TCP frame must carry IP destination
+192.0.2.1 to that lease's router MAC, and ARP for 192.0.2.1 fails the run.
+RFC 5227 probes and announcements are accepted only in their exact form and
+count. Every recorded reply is replayed
 against the actual triggering guest bytes. This is a test server, never an
 OS client, and it is not a general DHCP implementation.
 """
@@ -30,6 +34,11 @@ BROADCAST_MAC = b"\xff" * 6
 BROADCAST_IP = b"\xff" * 4
 ZERO_IP = b"\0" * 4
 SUBNET_MASK = bytes((255, 255, 255, 0))
+# N02-T5 route case: /26 puts 192.0.2.1 off-link behind router .65, whose MAC
+# differs per lease and from PEER_MAC, so a stale or on-link next hop is visible.
+ROUTE_MASK = bytes((255, 255, 255, 192))
+ROUTER_IP = bytes((192, 0, 2, 65))
+ROUTER_MACS = (bytes.fromhex("020000000041"), bytes.fromhex("020000000042"))
 LEASES = (bytes((192, 0, 2, 66)), bytes((192, 0, 2, 67)))
 LEASE_SECONDS = 3600
 # (T1, T2) per lease: the first renews soon enough to deliver the NAK inside
@@ -41,7 +50,7 @@ LINK_TIMES = ((1800, 3000), (1800, 3000))
 # Wall-clock silence after the first lease is ready before the link drop is
 # requested, so no frame of that lease is still in flight.
 QUIET_S = 0.5
-CASES = ("dhcp", "link")
+CASES = ("dhcp", "link", "route")
 COOKIE = bytes((99, 130, 83, 99))
 PARAMETERS = bytes((1, 3, 6, 51, 54, 58, 59))
 BOOTP_BYTES = 300
@@ -137,10 +146,10 @@ def parse_dhcp(frame):
     return message
 
 
-def dns_query(frame, client_ip):
+def dns_query(frame, client_ip, next_hop):
     """Strict guest A query as built by services/net-protocol dns.rs build_query,
     from slot 0's random DNS port (low bit 0) on the current lease to port 53."""
-    if not 14 + 20 + 8 + 12 <= len(frame) <= MAX_FRAME or frame[:6] != PEER_MAC or frame[6:12] != CLIENT_MAC:
+    if not 14 + 20 + 8 + 12 <= len(frame) <= MAX_FRAME or frame[:6] != next_hop or frame[6:12] != CLIENT_MAC:
         raise ProtocolError("DNS frame bound or Ethernet identity")
     ip = frame[14:]
     total = struct.unpack_from("!H", ip, 2)[0]
@@ -176,9 +185,9 @@ def encode_question(name):
     return b"".join(bytes((len(label),)) + label.encode("ascii") for label in name.split(".")) + b"\0\0\x01\0\x01"
 
 
-def tcp_segment(frame, client_ip):
+def tcp_segment(frame, client_ip, next_hop):
     """Strict guest TCP segment from the current lease to the peer."""
-    if not 54 <= len(frame) <= MAX_FRAME or frame[:6] != PEER_MAC or frame[6:12] != CLIENT_MAC:
+    if not 54 <= len(frame) <= MAX_FRAME or frame[:6] != next_hop or frame[6:12] != CLIENT_MAC:
         raise ProtocolError("TCP frame bound or Ethernet identity")
     ip = frame[14:]
     total = struct.unpack_from("!H", ip, 2)[0]
@@ -243,6 +252,10 @@ class DhcpMachine:
             raise ValueError("unknown DHCP peer case")
         self.case = case
         self.times = LINK_TIMES if case == "link" else TIMES
+        # Derived from the case, so transcript replay rebuilds the same lease.
+        self.mask = ROUTE_MASK if case == "route" else SUBNET_MASK
+        self.router = ROUTER_IP if case == "route" else PEER_IP
+        self.router_arps = [0, 0]
         # Link handshake with the runner thread: the peer asks for the drop,
         # the runner reports the QMP set_link off, the peer withdraws and
         # acknowledges before the runner may restore the link.
@@ -271,6 +284,14 @@ class DhcpMachine:
     def address(self):
         return LEASES[self.lease] if self.lease >= 0 else None
 
+    def next_hop_mac(self):
+        """Link-layer next hop for 192.0.2.1: the lease's router in the route case."""
+        if self.case != "route":
+            return PEER_MAC
+        if self.lease < 0:  # ROUTER_MACS[-1] would silently pick lease 1's router
+            raise ProtocolError("no router before a lease")
+        return ROUTER_MACS[self.lease]
+
     def event(self, direction, label, frame, **fields):
         if len(self.events) >= MAX_ACTIONS:
             raise ProtocolError("event budget exhausted")
@@ -278,10 +299,10 @@ class DhcpMachine:
                                 length=len(frame), frame_sha256=hashlib.sha256(frame).hexdigest(), **fields))
         self.counts["client_frames" if direction == "rx" else "server_frames"] += 1
 
-    def ipv4(self, target_mac, target_ip, protocol, payload):
+    def ipv4(self, target_mac, target_ip, protocol, payload, source_mac=PEER_MAC):
         header = ipv4_header(PEER_IP, target_ip, protocol, len(payload), self.ip_id)
         self.ip_id = (self.ip_id + 1) & 0xffff
-        return (target_mac + PEER_MAC + b"\x08\x00" + header + payload).ljust(60, b"\0")
+        return (target_mac + source_mac + b"\x08\x00" + header + payload).ljust(60, b"\0")
 
     def dhcp_reply(self, kind, message, *, broadcast):
         lease = self.lease
@@ -295,7 +316,7 @@ class DhcpMachine:
         if not nak:
             t1, t2 = self.times[lease]
             options += (bytes((51, 4)) + struct.pack("!I", LEASE_SECONDS) + bytes((58, 4)) + struct.pack("!I", t1)
-                        + bytes((59, 4)) + struct.pack("!I", t2) + bytes((1, 4)) + SUBNET_MASK + bytes((3, 4)) + PEER_IP
+                        + bytes((59, 4)) + struct.pack("!I", t2) + bytes((1, 4)) + self.mask + bytes((3, 4)) + self.router
                         # Every OFFER/ACK (renewals too) names the peer as DNS server.
                         + bytes((6, 4)) + PEER_IP)
         bootp = (bootp + options + b"\xff").ljust(BOOTP_BYTES, b"\0")
@@ -348,7 +369,7 @@ class DhcpMachine:
         self.xids.append(m["xid"])
         self.event("rx", "dhcp-renew", frame, xid=m["xid"])
         self.counts["renewals"] += 1
-        if self.case == "dhcp" and self.lease == 0 and self.ready_for_nak():
+        if self.case in ("dhcp", "route") and self.lease == 0 and self.ready_for_nak():
             self.withdrawn.add(self.address)
             self.phase = "withdrawn"
             self.counts["naks"] += 1
@@ -384,12 +405,17 @@ class DhcpMachine:
             self.counts["arp_announcements"] += 1
             self.event("rx", "arp-announcement", frame, lease=self.lease)
             return []
-        if (self.phase != "bound" or spa != self.address or tpa != PEER_IP
-                or frame[:6] not in (BROADCAST_MAC, PEER_MAC) or tha not in (b"\0" * 6, PEER_MAC, BROADCAST_MAC)):
+        # Only the router is ever ARPed: 192.0.2.1 itself in dhcp/link, .65 in
+        # route, where an ARP for the off-link 192.0.2.1 fails the run.
+        hop = self.next_hop_mac() if self.lease >= 0 else PEER_MAC
+        if (self.phase != "bound" or spa != self.address or tpa != self.router
+                or frame[:6] not in (BROADCAST_MAC, hop) or tha not in (b"\0" * 6, hop, BROADCAST_MAC)):
             raise ProtocolError("ARP request outside the bound lease")
         self.event("rx", "arp-request", frame, lease=self.lease)
-        packet = (CLIENT_MAC + PEER_MAC + b"\x08\x06" + struct.pack("!HHBBH", 1, 0x800, 6, 4, 2)
-                  + PEER_MAC + PEER_IP + CLIENT_MAC + spa).ljust(60, b"\0")
+        packet = (CLIENT_MAC + hop + b"\x08\x06" + struct.pack("!HHBBH", 1, 0x800, 6, 4, 2)
+                  + hop + self.router + CLIENT_MAC + spa).ljust(60, b"\0")
+        if self.case == "route":
+            self.router_arps[self.lease] += 1
         self.counts["arp_requests"] += 1
         self.counts["arp_replies"] += 1
         self.event("tx", "arp-reply", packet)
@@ -399,14 +425,14 @@ class DhcpMachine:
         udp = struct.pack("!HHHH", source, port, 8 + len(message), 0) + message
         value = checksum(PEER_IP + self.address + struct.pack("!BBH", 0, 17, len(udp)) + udp) or 0xffff
         udp = udp[:6] + struct.pack("!H", value) + udp[8:]
-        packet = self.ipv4(CLIENT_MAC, self.address, 17, udp)
+        packet = self.ipv4(CLIENT_MAC, self.address, 17, udp, self.next_hop_mac())
         self.event("tx", label, packet, port=port, source_port=source, dns_id=struct.unpack_from("!H", message)[0])
         return packet
 
     def dns(self, frame):
         if self.phase != "bound":
             raise ProtocolError("DNS outside a bound lease")
-        port, ident, name, question = dns_query(frame, self.address)
+        port, ident, name, question = dns_query(frame, self.address, self.next_hop_mac())
         key = (self.lease, name)
         # The joined name is for reporting only: the raw question must be the
         # exact label encoding, so a single label "service.test" never matches.
@@ -446,7 +472,7 @@ class DhcpMachine:
                           ((20 + len(options)) // 4) << 4, flags, 4096, 0, 0) + options + payload
         value = checksum(PEER_IP + c.address + struct.pack("!BBH", 0, 6, len(tcp)) + tcp)
         tcp = tcp[:16] + struct.pack("!H", value) + tcp[18:]
-        packet = self.ipv4(CLIENT_MAC, c.address, 6, tcp)
+        packet = self.ipv4(CLIENT_MAC, c.address, 6, tcp, self.next_hop_mac())
         self.event("tx", label, packet, port=c.port, seq=seq & MASK, ack=ack & MASK, flags=flags,
                    payload_length=len(payload))
         return packet
@@ -454,7 +480,7 @@ class DhcpMachine:
     def segment(self, frame):
         if self.phase != "bound":
             raise ProtocolError("TCP outside a bound lease")
-        s = tcp_segment(frame, self.address)
+        s = tcp_segment(frame, self.address, self.next_hop_mac())
         owner, lease, source = {**EXCHANGES, **HELD}.get(s.target, (None, None, None))
         if owner is None or lease != self.lease or s.source != source:
             raise ProtocolError("TCP tuple outside the selected lease")
@@ -594,18 +620,23 @@ class DhcpMachine:
                     # The first renewal of the first lease must be the NAK case;
                     # in the link case one link drop, and no renewal, withdraws it.
                     and (self.counts["naks"], self.counts["link_downs"]) == ((0, 1) if self.case == "link" else (1, 0))
-                    and (self.case == "dhcp" or self.counts["renewals"] == 0)
+                    and (self.case != "link" or self.counts["renewals"] == 0)
+                    # Route: each lease reached 192.0.2.1 through its own router.
+                    and (self.case != "route" or min(self.router_arps) >= 1)
                     and self.counts["early_renewal_acks"] == 0 and self.probes == [3, 3] and self.announcements[0] == 2
                     # The service may retire and exit before the second
                     # announcement of the final lease; the first makes it usable.
                     and self.announcements[1] in (1, 2)
                     and self.counts["client_fins_acked"] == 3 and self.counts["held"] == 1
                     and self.dns_seen == list(DNS_QUERIES) and self.counts["dns_spoofs"] == 2)
+        # Route-only keys, so the dhcp and link summaries stay unchanged.
+        route = (dict(router_arps=list(self.router_arps), mask=".".join(map(str, self.mask)),
+                      router=".".join(map(str, self.router))) if self.case == "route" else {})
         return dict(case=self.case, complete=complete, counts=dict(self.counts), cases=cases,
                     dns_queries=[[lease, name] for lease, name in self.dns_seen],
                     leases=[".".join(map(str, lease)) for lease in LEASES[:self.lease + 1]],
                     withdrawn=sorted(".".join(map(str, a)) for a in self.withdrawn),
-                    xids=len(self.xids), events=list(self.events))
+                    xids=len(self.xids), events=list(self.events), **route)
 
 
 def validate_transcript(evidence):
