@@ -10,7 +10,7 @@ publish = false
 [dependencies]
 nieuw-os-sdk-runtime = { path = "../runtime" }
 keyring-core = { path = "../../services/keyring" }
-zeroize = { version = "=1.9.1", default-features = false }
+zeroize = { version = "=1.9.2", default-features = false }
 
 [dev-dependencies]
 capability-core = { path = "../../crates/capability-core" }

@@ -10,7 +10,7 @@ nieuw-os-sdk-runtime = { path = "../../sdk/runtime" }
 nieuw-os-keyring-random-client = { path = "../../sdk/keyring-random-client" }
 rustls = { version = "=0.23.46", default-features = false, features = ["custom-provider"] }
 spin = { version = "=0.12.3", default-features = false, features = ["mutex", "spin_mutex"] }
-zeroize = { version = "=1.9.1", default-features = false }
+zeroize = { version = "=1.9.2", default-features = false }
 
 [workspace]
 members = ["."]
