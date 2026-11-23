@@ -208,8 +208,8 @@ instance.
     incarnation and no grants.
   - Accepted risk: non-reuse is then probabilistic, not absolute. Any one
     pair of boots collides with probability at most 2⁻¹²⁸. Across n cold
-    boots, the chance that any two values collide is at most n²/2¹²⁹, which
-    is below 2⁻⁶⁵ for 2³² boots. This proposal accepts that aggregate bound
+    boots, the chance that any two values collide is at most
+    n(n−1)/2¹²⁹, which is below 2⁻⁶⁵ for 2³² boots. This proposal accepts that aggregate bound
     as the residual risk. Absolute non-reuse would need a trusted,
     non-replayable counter, which is the anchor of option 5B and is not
     proposed now.
