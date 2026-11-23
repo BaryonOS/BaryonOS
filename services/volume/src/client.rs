@@ -680,8 +680,10 @@ impl<T: Transport> Client<T> {
 
     /// L2 INSTALL of `manifest` into the never-used own slot `object` in one
     /// commit. `fill(version, offset, buffer)` supplies content. On any
-    /// error except `Unknown` nothing was committed; a staged session is
-    /// aborted on a best-effort basis. Returns `(revision, request ID)`.
+    /// error except `Unknown` or `Protocol` nothing was committed; a staged
+    /// session is aborted on a best-effort basis unless the result is
+    /// `Unknown`. A malformed COMMIT reply can hide a committed install.
+    /// Returns `(revision, request ID)`.
     pub fn install(
         &mut self,
         object: u64,
@@ -701,6 +703,7 @@ impl<T: Transport> Client<T> {
     }
 
     /// INSTALL_BEGIN only; returns the request ID of the staged session.
+    /// A malformed reply triggers a best-effort abort using the sent ID.
     pub fn install_begin(
         &mut self,
         object: u64,
@@ -717,12 +720,20 @@ impl<T: Transport> Client<T> {
         begin.length = manifest.bytes() as u32;
         let mut data = [0; DATA];
         manifest.encode(&mut data);
-        let (reply, _) = self.exchange(&begin, &data[..manifest.bytes()])?;
-        Self::status(&reply)?;
-        if !install_begun(manifest, &reply) {
-            return Err(Status::Protocol);
+        let result = (|| {
+            let (reply, _) = self.exchange(&begin, &data[..manifest.bytes()])?;
+            Self::status(&reply)?;
+            if !install_begun(manifest, &reply) {
+                return Err(Status::Protocol);
+            }
+            Ok(id)
+        })();
+        if result == Err(Status::Protocol) {
+            // The v6 session ID is the request ID, not a reply field. A
+            // mismatched ID cannot abort another session on the service.
+            let _ = self.abort(object, 0, id);
         }
-        Ok(id)
+        result
     }
 
     /// INSTALL_COMMIT of a completely streamed install; returns revision `n`.

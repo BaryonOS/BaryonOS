@@ -1472,7 +1472,8 @@ pub fn export_v2<T: Transport>(
 
 /// Result of [`restore_native_l2`]. Destination values only: the recorded
 /// source values are in the `ArchiveV2` the caller passed in. Counts are a
-/// lower bound when the status is `Unknown`.
+/// lower bound when the status is `Unknown` or `Protocol`: the request may
+/// have committed without a valid reply.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub struct L2Report {
     /// Bit `s`: archive slot `s` installed (current version and its
@@ -1480,9 +1481,13 @@ pub struct L2Report {
     pub restored: u8,
     /// Bit `i - 1`: collection `i` installed.
     pub collections: u8,
-    /// INSTALL_COLLECTION and INSTALL_COMMIT commits. Zero after an error
-    /// means refused and untouched; otherwise the domain is used and a rerun
-    /// is refused (no resume, S09-L2-PROVENANCE section 5).
+    /// INSTALL_COLLECTION and INSTALL_COMMIT commits this restore confirmed.
+    /// Zero after an error other than `Unknown` or `Protocol` means this
+    /// restore committed nothing; it does not mean the domain was never used
+    /// (`Stale` can report an already-used domain). After `Unknown` or
+    /// `Protocol`, even zero is only a lower bound. Any confirmed commit
+    /// makes the domain used, so a rerun is refused (no resume,
+    /// S09-L2-PROVENANCE section 5).
     pub committed: usize,
     /// Versions after the first revision gap of a present object (R2).
     pub skipped: usize,

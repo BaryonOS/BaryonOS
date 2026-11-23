@@ -6,7 +6,7 @@ mod common;
 use common::{pattern, recover, Local, SimDisk};
 use volume_core::{
     archive::{self, Sink},
-    client::{self, Client, Provenance},
+    client::{self, Client, Provenance, Transport},
     service::{Service, Staged},
     table::{self, Table},
     upload,
@@ -721,6 +721,91 @@ fn first_commit_installs_three_versions_exactly_on_the_rule_r_bound() {
 }
 
 // --- 3. Refusals ---------------------------------------------------------------
+
+#[test]
+fn malformed_install_begin_replies_abort_only_their_own_request() {
+    struct Fault<T> {
+        inner: T,
+        byte: Option<usize>,
+        aborts: Vec<(u64, u64)>,
+    }
+    impl<T: Transport> Transport for Fault<T> {
+        fn call(&mut self, request: &[u8; wire::SIZE]) -> Result<[u8; wire::SIZE], Status> {
+            let header = wire::header(request);
+            if header.operation == wire::ABORT {
+                self.aborts.push((header.object, header.request_id));
+            }
+            let mut reply = self.inner.call(request)?;
+            if header.operation == wire::INSTALL_BEGIN {
+                if let Some(byte) = self.byte {
+                    reply[byte] ^= 1;
+                }
+            }
+            Ok(reply)
+        }
+    }
+
+    let object = 2;
+    let m = manifest(&[CHUNK + 1, 5], 4);
+    // Wrong request ID is rejected structurally; wrong chunk/length totals
+    // pass the structural bounds but fail the manifest-specific check.
+    for byte in [8, 52, 56] {
+        for whole_install in [false, true] {
+            let (mut s, mut d) = fresh();
+            let mut c = Client::new(
+                Fault {
+                    inner: Local {
+                        service: &mut s,
+                        disk: &mut d,
+                        domain: 0,
+                    },
+                    byte: Some(byte),
+                    aborts: Vec::new(),
+                },
+                EPOCH,
+                700,
+            );
+            let result = if whole_install {
+                c.install(object, &m, (0, 0, 0), fill(object))
+                    .map(|(_, id)| id)
+            } else {
+                c.install_begin(object, &m, (0, 0, 0))
+            };
+            assert_eq!(result, Err(Status::Protocol));
+            assert_eq!(c.transport.aborts, [(object, 700)], "use the sent ID");
+            assert!(c.transport.inner.service.staged(0).is_none());
+            c.transport.byte = None;
+            c.install(object, &m, (0, 0, 0), fill(object)).unwrap();
+        }
+    }
+
+    // A malformed Busy reply did not create a session. Its cleanup request
+    // must preserve an earlier session, even for the same object.
+    let (mut s, mut d) = fresh();
+    let id = client(&mut s, &mut d, 0)
+        .install_begin(object, &m, (0, 0, 0))
+        .unwrap();
+    let mut c = Client::new(
+        Fault {
+            inner: Local {
+                service: &mut s,
+                disk: &mut d,
+                domain: 0,
+            },
+            byte: Some(8),
+            aborts: Vec::new(),
+        },
+        EPOCH,
+        700,
+    );
+    assert_eq!(c.install_begin(object, &m, (0, 0, 0)), Err(Status::Protocol));
+    assert_eq!(c.transport.aborts, [(object, 700)]);
+    c.transport.byte = None;
+    assert_eq!(c.install_begin(object, &m, (0, 0, 0)), Err(Status::Busy));
+    assert_eq!(c.transport.aborts.len(), 1, "a valid refusal needs no abort");
+    c.abort(object, 0, id).unwrap();
+    c.install(object, &m, (0, 0, 0), fill(object)).unwrap();
+}
 
 #[test]
 fn install_begin_refuses_used_slots_absent_collections_and_capacity() {

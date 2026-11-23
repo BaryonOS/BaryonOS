@@ -55,6 +55,7 @@ struct Watch<T> {
     aborts: usize,
     old_service: bool,
     unknown_at: Option<u16>,
+    malformed_at: Option<u16>,
 }
 impl<T: Transport> Transport for Watch<T> {
     fn call(&mut self, request: &[u8; wire::SIZE]) -> Result<[u8; wire::SIZE], Status> {
@@ -78,7 +79,11 @@ impl<T: Transport> Transport for Watch<T> {
             let _ = self.inner.call(request);
             return Err(Status::Unknown);
         }
-        self.inner.call(request)
+        let mut reply = self.inner.call(request)?;
+        if self.malformed_at == Some(h.operation) {
+            reply[2] ^= 1; // the operation no longer matches the request
+        }
+        Ok(reply)
     }
 }
 
@@ -98,6 +103,7 @@ fn client<'a>(
             aborts: 0,
             old_service: false,
             unknown_at: None,
+            malformed_at: None,
         },
         EPOCH,
         100 + 1000 * domain as u64,
@@ -504,4 +510,23 @@ fn an_unknown_commit_outcome_stops_without_abort() {
     assert!(service.staged(DOMAIN).is_none());
     let t = recover(disk.settled()).unwrap();
     assert_eq!(t.entries.iter().filter(|e| e.installed != 0).count(), 1);
+}
+
+#[test]
+fn malformed_commit_replies_leave_only_confirmed_commits_in_the_report() {
+    for operation in [wire::INSTALL_COLLECTION, wire::INSTALL_COMMIT] {
+        let bytes = fixture("restore.bin");
+        let mut disk = SimDisk::new();
+        let mut service = Service::new(EPOCH, Table::EMPTY, false);
+        let mut c = client(&mut service, &mut disk, DOMAIN);
+        c.transport.malformed_at = Some(operation);
+        let (status, report) = restore(&bytes, &mut c, DOMAIN, None).unwrap_err();
+        assert_eq!(status, Status::Protocol);
+        assert_eq!(report.restored, 0, "the uncertain object is not claimed");
+        assert_eq!(archive::never_used(&mut c, DOMAIN), Ok(false));
+        let t = recover(disk.settled()).unwrap();
+        let committed = t.entries.iter().filter(|e| e.installed != 0).count()
+            + t.collections.iter().filter(|c| c.present).count();
+        assert_eq!(committed, report.committed + 1, "the rejected reply committed");
+    }
 }
