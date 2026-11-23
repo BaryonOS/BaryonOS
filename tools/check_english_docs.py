@@ -2,9 +2,10 @@
 """Flag active first-party Markdown that is still written mainly in Dutch.
 
 Issue #274 requires English active documentation. This check uses a stopword
-heuristic, the same method as the 11 November 2026 inventory on #274: prose
-outside code fences is classified Dutch when it holds more than 20 Dutch
-stopwords and more Dutch than half the English stopword count.
+heuristic close to the 11 November 2026 inventory on #274: a file is classified
+Dutch when it holds more than 20 Dutch stopwords and more Dutch than half the
+English stopword count. Code blocks are counted too, so Dutch text cannot hide
+in a fence; an English document with a short Dutch sample stays below the ratio.
 
 Dated evidence, history, audit snapshots, research notes and third-party
 material are excluded; they are records, not rewritten in place. The check
@@ -46,10 +47,6 @@ EXCLUDED_PREFIXES = (
 # Component evidence directories, for example drivers/usb/verification/.
 EXCLUDED_SEGMENT = "/verification/"
 
-# Block-quote markers, a fence line (three or more ` or ~) and a list item.
-_QUOTE = re.compile(r"(?: {0,3}> ?)*")
-_FENCE = re.compile(r"( *)(`{3,}|~{3,})(.*)$")
-_LIST_ITEM = re.compile(r"( *(?:[-*+]|\d{1,9}[.)]) +)\S")
 _WORD = re.compile(r"[a-z]+")
 
 
@@ -57,45 +54,8 @@ def is_excluded(path: str) -> bool:
     return path.startswith(EXCLUDED_PREFIXES) or EXCLUDED_SEGMENT in f"/{path}"
 
 
-def _indent(body: str) -> int:
-    return len(body) - len(body.lstrip(" "))
-
-
-def prose(text: str) -> str:
-    """Drop fenced code blocks, including those inside block quotes and list
-    items. A closing fence must use the opening character, be at least as long
-    and carry nothing but whitespace; an unclosed fence ends with its quote or
-    list item, or at the end of the document.
-
-    shortcut: approximates CommonMark containers (quote depth, last list item
-    column); swap in a full Markdown parser if a real document is misread."""
-    kept, fence, list_col = [], None, 0  # fence: (marker, quote depth, container column)
-    for line in text.splitlines():
-        prefix = _QUOTE.match(line)[0]
-        depth, body = prefix.count(">"), line[len(prefix):]
-        if body.strip():
-            if fence and (depth < fence[1] or _indent(body) < fence[2]):
-                fence = None  # the enclosing quote or list item ended
-            if fence is None:
-                item = _LIST_ITEM.match(body)
-                if item:
-                    list_col = len(item[1])
-                elif _indent(body) < list_col:
-                    list_col = 0
-        match = _FENCE.match(body)
-        if fence is None:
-            # A backtick fence whose info string holds a backtick is not a fence.
-            if match and not (match[2][0] == "`" and "`" in match[3]):
-                fence = (match[2], depth, list_col if list_col and len(match[1]) >= list_col else 0)
-            else:
-                kept.append(body)
-        elif match and match[2][0] == fence[0][0] and len(match[2]) >= len(fence[0]) and not match[3].strip():
-            fence = None
-    return "\n".join(kept)
-
-
 def counts(text: str) -> tuple[int, int]:
-    words = _WORD.findall(prose(text).lower())
+    words = _WORD.findall(text.lower())
     return sum(w in DUTCH for w in words), sum(w in ENGLISH for w in words)
 
 

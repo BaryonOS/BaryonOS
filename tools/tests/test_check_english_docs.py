@@ -36,41 +36,13 @@ class Classifier(unittest.TestCase):
         # Literal parser keys such as `Afhankelijk van:` must not trip the gate.
         self.assertFalse(checker.is_dutch(ENGLISH_TEXT + "Afhankelijk van: #1\nCriterium: X\n"))
 
-    def test_code_fences_are_ignored(self):
-        self.assertFalse(checker.is_dutch(ENGLISH_TEXT + "\n```\n" + DUTCH_TEXT + "\n```\n"))
+    def test_dutch_inside_a_fence_still_counts(self):
+        # Fences are not stripped, so a code block cannot hide Dutch prose.
+        self.assertTrue(checker.is_dutch("```\n" + DUTCH_TEXT + "\n```\n"))
 
-    def test_tilde_fences_are_ignored(self):
-        self.assertFalse(checker.is_dutch(ENGLISH_TEXT + "\n~~~text\n" + DUTCH_TEXT + "\n~~~\n"))
-
-    def test_longer_fence_does_not_hide_prose(self):
-        # A ``` line inside a ```` block neither closes it nor hides the prose after it.
-        text = "````md\n```\n````\n\n" + DUTCH_TEXT + "\n```text\nx\n```\n"
-        self.assertTrue(checker.is_dutch(text))
-
-    def test_mismatched_closing_fence_keeps_block_open(self):
-        text = ENGLISH_TEXT + "\n~~~\n" + DUTCH_TEXT + "\n```\nmore\n~~~\n"
-        self.assertFalse(checker.is_dutch(text))
-
-    def test_fence_inside_block_quote_is_ignored(self):
-        text = "> ~~~text\n> " + ("de " * 21) + "\n> ~~~\n"
-        self.assertFalse(checker.is_dutch(text))
-
-    def test_quoted_prose_outside_fence_counts(self):
-        self.assertTrue(checker.is_dutch("> " + DUTCH_TEXT + "\n"))
-
-    def test_unclosed_fence_ends_with_its_list_item(self):
-        text = "- Example\n\n  ~~~text\n  sample\n\n" + ("de " * 21)
-        self.assertTrue(checker.is_dutch(text))
-
-    def test_unclosed_fence_ends_with_its_block_quote(self):
-        self.assertTrue(checker.is_dutch("> ~~~\n> code\n\n" + DUTCH_TEXT))
-
-    def test_top_level_fence_keeps_less_indented_content(self):
-        text = ENGLISH_TEXT + "\n   ```\n" + DUTCH_TEXT + "\n   ```\n"
-        self.assertFalse(checker.is_dutch(text))
-
-    def test_unclosed_top_level_fence_runs_to_end(self):
-        self.assertFalse(checker.is_dutch(ENGLISH_TEXT + "\n```\n" + DUTCH_TEXT))
+    def test_short_dutch_sample_in_english_document_passes(self):
+        sample = "```text\nDit is een voorbeeld van de uitvoer.\n```\n"
+        self.assertFalse(checker.is_dutch(ENGLISH_TEXT + "\n" + sample))
 
     def test_evidence_and_third_party_paths_are_excluded(self):
         for path in (
