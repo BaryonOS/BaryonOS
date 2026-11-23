@@ -312,7 +312,11 @@ fn check_dhcp(service: &[u64; 33]) {
     // First resolution, held connection live, then lease withdrawn, then the
     // app observing its stale token and Resolve waiting, then the second
     // lease, the second resolution and the fresh exchange finishing no later
-    // than app A's recorded exit.
+    // than app A's recorded exit. `waiting < rebound` is strict: the service
+    // records `rebound` at the loop tick that first sees the new lease and
+    // handles requests at that same tick or later, and app A records
+    // `waiting` after its Again replies, so an Again from a leased Resolve or
+    // OpenTcp (a fresh upstream query) would give `waiting >= rebound`.
     let (held, withdrawn, stale, rebound, fresh) = (a[15], service[25], a[20], service[28], a[16]);
     let (resolved, waiting, reresolved) = (a[29], a[31], a[32]);
     require(
@@ -321,7 +325,7 @@ fn check_dhcp(service: &[u64; 33]) {
             && held <= withdrawn
             && withdrawn <= stale
             && stale <= waiting
-            && waiting <= rebound
+            && waiting < rebound
             && rebound <= reresolved
             && reresolved <= fresh
             && fresh <= evidence().exits[1],

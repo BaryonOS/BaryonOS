@@ -758,9 +758,12 @@ fn dhcp(session: &mut Session<NativeTransport>, slot: usize, first: u16) -> ! {
             76,
         );
         bump(504);
-        // Mostly the lease-none gate: Again before any cache lookup or query.
-        // The cache flush itself is proven by the peer, which then requires a
-        // fresh (lease 1, service.test) query instead of a cached answer.
+        // The lease-none gate: Again before any cache lookup or query. A
+        // leased first Resolve also answers Again (it starts a query), so the
+        // kernel's DHCP_ORDER requires the tick recorded at 640 below to be
+        // strictly before the service's new-lease tick (616); this also binds
+        // the OpenTcp check above. The cache flush itself is proven by the
+        // peer, which then requires a fresh (lease 1, service.test) query.
         let mut out = [[0; 4]; MAX_RESOLVED];
         check(
             session.resolve("service.test", &mut out) == Err(Error::Service(Status::Again)),
