@@ -64,9 +64,11 @@ class Oracle(unittest.TestCase):
 
     def test_malformed_screendump_is_rejected(self):
         raw = screendump(0)
-        for bad in (raw[:-1], b'P5' + raw[2:], b''):
+        # Trailing bytes must be refused by the exact-length P6 parse, never reach the pixel diff.
+        for bad in (raw[:-1], raw + b'\0', raw + b'\0' * 3, b'P5' + raw[2:], b''):
             result = dispi.check_screen(bad, 0)
             self.assertFalse(result['dimensions'] or result['pixels'])
+            self.assertIn('error', result)
 
 
 class Serial(unittest.TestCase):

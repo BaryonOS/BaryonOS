@@ -6,6 +6,7 @@
 #![no_std]
 #![forbid(unsafe_code)]
 
+pub mod a11y;
 pub mod controller;
 pub mod design;
 pub mod desktop;
