@@ -186,7 +186,7 @@ All measures are taken by a human observer and from host-side capture; see §6.
 | CT09 | Pasted text identical to the selection at the intended location |
 | CT10 | Start state, before each of the two runs (dock, then search): both app windows minimized, so neither "Rekenmachine" nor "Materiaal" is visible; the observer sets and records this state. End state: each window opened by the participant during the run is visible and focused after a dock click, respectively after choosing the result on "Zoeken en starten". The two app windows exist for the whole session and activation unhides and focuses an existing window (`Scene::select`, `scene.rs:1280-1292`), so without this start state focusing an already open window (for example Materiaal after CT03) would satisfy the task |
 | CT11 | Focus moved to the requested window with Alt+Tab ("WISSEL VAN VENSTER") or F6; the observer records which route was used |
-| CT12 | After "Afsluiten" the VM reaches the powered-off end state confirmed in the pilot. Content survival is a separate check, not part of this observer-verified end state: after power-off, the CT01 document is checked by a host-side disk oracle where the runner provides one, or reopened under observer control after a reboot of the same disk image, outside the timed task. If neither check is available, content survival is recorded as not verified and no no-loss result is claimed |
+| CT12 | After "Afsluiten" the VM reaches the powered-off end state confirmed in the pilot. Content survival is a separate check, not part of this observer-verified end state: after power-off, the CT01 document is checked by a host-side disk oracle where the runner provides one (for example the volume-image oracle of `tools/run_window_session.py`), outside the timed task. If no such check is available, for example on the Windows launcher, content survival is recorded as not verified and no no-loss result is claimed |
 
 The UI strings above are Dutch because the shell and app strings on `main` are Dutch;
 they are success keys, not translations to show participants (see §12
@@ -311,7 +311,7 @@ Consistent with [LOCAL-PRIVACY-CONTRACT.md](../LOCAL-PRIVACY-CONTRACT.md) §1 an
   Windows/WHPX row is a locally reported result that was not re-read from raw
   files. Interactive-bundle runtime evidence on Windows/WHPX, and every shell
   route cited in §1 and §2, therefore remain open until the pilot (§10) records
-  them on the frozen bundle.
+  them on the candidate bundle that is then frozen.
 
 ## 10. Procedure and evidence layout
 
@@ -332,8 +332,10 @@ Consistent with [LOCAL-PRIVACY-CONTRACT.md](../LOCAL-PRIVACY-CONTRACT.md) §1 an
      each route at runtime.
 3. **Pilot** with one or two people (not counted) on the candidate bundle, to
    check scripts and timing, and to confirm the CT01 status text, the CT04
-   non-overlap end state with "Ordenen", the CT12 powered-off end state and
-   the CT07–CT09 and CT12 routes.
+   non-overlap end state with "Ordenen", the CT10 start state with both app
+   windows minimized, the CT12 powered-off end state and the CT07–CT09 and
+   CT12 routes. The bundle is not rebuilt between pilot and freeze; after a
+   rebuild the pilot is repeated.
 4. **Preregistration freeze**, after the pilot: copy of this protocol with
    the agreed task set, success keys, budgets, analysis plan and bundle
    `manifest.json`; its SHA-256 is recorded before the first counted session, following the precedent of
