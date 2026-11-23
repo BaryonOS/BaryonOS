@@ -1,5 +1,6 @@
 use nieuw_os_acpi_power::{
-    fadt_facs_address, parse_s3, parse_s5, AcpiTableSnapshot, Error, S3Plan, TableSnapshot,
+    fadt_facs_address, parse_s3, parse_s5, store_within_extent, AcpiTableSnapshot, Error,
+    ExtendedVectorPolicy, Pm1Event, S3Plan, TableSnapshot, WakePlan,
 };
 
 const FADT: u64 = 0x1000;
@@ -32,8 +33,10 @@ fn fadt(legacy: u32, extended: u64) -> Vec<u8> {
     let mut bytes = vec![0; 148];
     bytes[36..40].copy_from_slice(&legacy.to_le_bytes());
     bytes[40..44].copy_from_slice(&(DSDT as u32).to_le_bytes());
+    bytes[56..60].copy_from_slice(&0x600u32.to_le_bytes());
     bytes[64..68].copy_from_slice(&0x604u32.to_le_bytes());
     bytes[68..72].copy_from_slice(&0x608u32.to_le_bytes());
+    bytes[88] = 4;
     bytes[89] = 2;
     bytes[132..140].copy_from_slice(&extended.to_le_bytes());
     finish(bytes, b"FACP")
@@ -260,8 +263,6 @@ fn validates_versions_flags_reserved_fields_and_vector_precedence() {
         assert_eq!(info.ospm_flags(), 1);
     }
     for (offset, value) in [
-        (32, 0),
-        (32, 1),
         (32, 4),
         (32, 255),
         (20, 4),
@@ -345,4 +346,288 @@ fn facs_discovery_validates_before_returning_any_address() {
         fadt_facs_address(&fadt(0, 0)),
         Err(Error::MissingFacsAddress)
     );
+}
+
+/// FACS exactly as observed in guest memory under QEMU 8.2.2 `pc-q35-8.2`
+/// with Ubuntu OVMF_CODE_4M.fd on 19 November 2026: an ACPI 1.0b structure
+/// (no version field), length 64, every other byte zero.
+fn qemu_acpi_1_0b_facs() -> Vec<u8> {
+    let mut bytes = vec![0; 64];
+    bytes[..4].copy_from_slice(b"FACS");
+    bytes[4..8].copy_from_slice(&64u32.to_le_bytes());
+    bytes
+}
+
+/// FADT revision 3, length 244, with the PM1 fields observed in the same
+/// QEMU/OVMF guest: PM1a_EVT_BLK 0x600 (X GAS width 32), PM1_EVT_LEN 4,
+/// PM1a_CNT_BLK 0x604 (X GAS width 16), FIRMWARE_CTRL only.
+fn qemu_fadt() -> Vec<u8> {
+    let mut bytes = vec![0; 244];
+    bytes[8] = 3;
+    bytes[36..40].copy_from_slice(&(FACS as u32).to_le_bytes());
+    bytes[40..44].copy_from_slice(&(DSDT as u32).to_le_bytes());
+    bytes[56..60].copy_from_slice(&0x600u32.to_le_bytes());
+    bytes[64..68].copy_from_slice(&0x604u32.to_le_bytes());
+    bytes[88] = 4;
+    bytes[89] = 2;
+    bytes[140..148].copy_from_slice(&DSDT.to_le_bytes());
+    bytes[148..152].copy_from_slice(&[1, 32, 0, 0]);
+    bytes[152..160].copy_from_slice(&0x600u64.to_le_bytes());
+    bytes[172..176].copy_from_slice(&[1, 16, 0, 0]);
+    bytes[176..184].copy_from_slice(&0x604u64.to_le_bytes());
+    finish(bytes, b"FACP")
+}
+
+fn qemu_s3_package() -> Vec<u8> {
+    // Name(_S3_, Package(4){One, One, Zero, Zero}) as in the QEMU q35 DSDT.
+    vec![
+        0x08, b'_', b'S', b'3', b'_', 0x12, 0x06, 0x04, 0x01, 0x01, 0x00, 0x00,
+    ]
+}
+
+#[test]
+fn accepts_observed_qemu_acpi_1_0b_facs_and_event_block() {
+    let d = dsdt(&qemu_s3_package());
+    let plan = parse(&qemu_fadt(), &d, &qemu_acpi_1_0b_facs()).unwrap();
+    assert_eq!(plan.pm1a().address(), 0x604);
+    assert_eq!(plan.pm1a().sleep_type(), 1);
+    assert_eq!(plan.pm1b(), None);
+    assert_eq!(plan.pm1a_event().status(), 0x600);
+    assert_eq!(plan.pm1a_event().enable(), 0x602);
+    assert_eq!(plan.pm1a_event().block_length(), 4);
+    assert_eq!(plan.pm1b_event(), None);
+    assert_eq!(Pm1Event::WAKE_STATUS, 0x8000);
+    let facs = plan.facs();
+    assert_eq!(facs.version(), 0);
+    assert_eq!(facs.hardware_signature(), 0);
+    assert_eq!(facs.waking_vector(), 0);
+    assert_eq!(facs.source_address(), FACS);
+}
+
+#[test]
+fn version_zero_and_one_reserve_the_fields_they_do_not_define() {
+    let f = fadt(FACS as u32, 0);
+    let d = dsdt(&name(b"_S3_", 1, 2));
+    // Version 0 (ACPI 1.0b): S4BIOS_F and a below-1-MiB vector are defined.
+    let mut v0 = qemu_acpi_1_0b_facs();
+    v0[20] = 1;
+    v0[12..16].copy_from_slice(&0x9000u32.to_le_bytes());
+    v0[8..12].copy_from_slice(&0x1234_5678u32.to_le_bytes());
+    let info = parse(&f, &d, &v0).unwrap().facs();
+    assert_eq!(
+        (info.version(), info.flags(), info.waking_vector()),
+        (0, 1, 0x9000)
+    );
+    assert_eq!(info.hardware_signature(), 0x1234_5678);
+    for (offset, value) in [
+        (20, 2),
+        (24, 1),
+        (31, 1),
+        (33, 1),
+        (36, 1),
+        (40, 1),
+        (63, 1),
+    ] {
+        let mut bad = qemu_acpi_1_0b_facs();
+        bad[offset] = value;
+        assert_eq!(
+            parse(&f, &d, &bad),
+            Err(Error::UnsupportedFacsFields),
+            "v0 offset {offset}"
+        );
+    }
+    let mut far = qemu_acpi_1_0b_facs();
+    far[12..16].copy_from_slice(&0x10_0000u32.to_le_bytes());
+    assert_eq!(parse(&f, &d, &far), Err(Error::UnsupportedFacsFields));
+
+    // Version 1 (ACPI 2.0/3.0): a 32-bit extended vector, no OSPM flags.
+    let mut v1 = qemu_acpi_1_0b_facs();
+    v1[32] = 1;
+    v1[24..32].copy_from_slice(&0xffff_f000u64.to_le_bytes());
+    let info = parse(&f, &d, &v1).unwrap().facs();
+    assert_eq!((info.version(), info.waking_vector()), (1, 0xffff_f000));
+    for (offset, value) in [(20, 2), (28, 1), (33, 1), (36, 1), (40, 1), (63, 1)] {
+        let mut bad = v1.clone();
+        bad[offset] = value;
+        assert_eq!(
+            parse(&f, &d, &bad),
+            Err(Error::UnsupportedFacsFields),
+            "v1 offset {offset}"
+        );
+    }
+}
+
+#[test]
+fn event_blocks_are_bounded_unaliased_system_io() {
+    let d = dsdt(&name(b"_S3_", 1, 2));
+    let mutate = |change: &dyn Fn(&mut Vec<u8>)| {
+        let mut f = qemu_fadt();
+        change(&mut f);
+        finish(f, b"FACP")
+    };
+    let facs = qemu_acpi_1_0b_facs();
+    let qemu_d = dsdt(&qemu_s3_package());
+    // Missing PM1a event block and invalid lengths.
+    let f = mutate(&|f| {
+        f[56..60].fill(0);
+        f[152..160].fill(0);
+    });
+    assert_eq!(parse(&f, &qemu_d, &facs), Err(Error::MissingPm1aEventBlock));
+    for length in [0u8, 2, 3, 5] {
+        let f = mutate(&|f| f[88] = length);
+        assert_eq!(
+            parse(&f, &qemu_d, &facs),
+            Err(Error::InvalidPm1EventLength),
+            "length {length}"
+        );
+    }
+    // X GAS must describe the whole block as 16-bit-accessible System I/O.
+    for (offset, value) in [(148, 0u8), (149, 16), (150, 1), (151, 3)] {
+        let f = mutate(&|f| f[offset] = value);
+        assert_eq!(parse(&f, &qemu_d, &facs), Err(Error::InvalidGas));
+    }
+    // Word access size is accepted; the X address supersedes the legacy one.
+    let f = mutate(&|f| {
+        f[151] = 2;
+        f[152..160].copy_from_slice(&0x640u64.to_le_bytes());
+    });
+    assert_eq!(
+        parse(&f, &qemu_d, &facs).unwrap().pm1a_event().status(),
+        0x640
+    );
+    // Beyond the 16-bit I/O space and aliasing a control register or PM1b.
+    let f = mutate(&|f| f[152..160].copy_from_slice(&0xfffeu64.to_le_bytes()));
+    assert_eq!(
+        parse(&f, &qemu_d, &facs),
+        Err(Error::InvalidRegisterAddress)
+    );
+    let f = mutate(&|f| f[152..160].copy_from_slice(&0x602u64.to_le_bytes()));
+    assert_eq!(parse(&f, &qemu_d, &facs), Err(Error::AliasedRegisters));
+    let f = mutate(&|f| {
+        f[60..64].copy_from_slice(&0x602u32.to_le_bytes());
+    });
+    assert_eq!(parse(&f, &qemu_d, &facs), Err(Error::AliasedRegisters));
+    let f = mutate(&|f| {
+        f[60..64].copy_from_slice(&0x610u32.to_le_bytes());
+    });
+    let plan = parse(&f, &qemu_d, &facs).unwrap();
+    assert_eq!(plan.pm1b_event().unwrap().status(), 0x610);
+    // A truncated X_PM1a_EVT_BLK GAS is a malformed FADT, not a fallback.
+    let mut short = qemu_fadt();
+    short.truncate(150);
+    let short = finish(short, b"FACP");
+    assert_eq!(parse(&short, &d, &facs), Err(Error::InvalidFadtLength));
+}
+
+#[test]
+fn wake_plans_follow_the_facs_version_and_explicit_policy() {
+    use ExtendedVectorPolicy::{Edk2Version0Extended as Quirk, Specification as Spec};
+    let f = fadt(FACS as u32, 0);
+    let d = dsdt(&name(b"_S3_", 1, 2));
+    let info = |version: u8, ospm: u8| {
+        let mut bytes = qemu_acpi_1_0b_facs();
+        bytes[32] = version;
+        if version >= 2 {
+            bytes[20] = 2;
+            bytes[36] = ospm;
+        }
+        parse(&f, &d, &bytes).unwrap().facs()
+    };
+    let fields = |plan: WakePlan| {
+        (
+            plan.legacy_vector(),
+            plan.extended_vector(),
+            plan.ospm_flags(),
+        )
+    };
+    // Version 0 under the specification: real-mode vector only.
+    let v0 = info(0, 0);
+    assert_eq!(
+        fields(v0.wake_plan(0x8000, None, Spec).unwrap()),
+        (0x8000, None, None)
+    );
+    assert_eq!(
+        v0.wake_plan(0x8000, Some(0x10_0000), Spec),
+        Err(Error::ExtendedVectorUndefined)
+    );
+    assert_eq!(fields(v0.disarmed_plan(Spec)), (0, None, None));
+    // Version 0 under the explicit edk2 profile policy: offset 24 is armed
+    // and restored to zero, never left holding an entry.
+    assert_eq!(
+        fields(v0.wake_plan(0x8000, Some(0x10_0010), Quirk).unwrap()),
+        (0x8000, Some(0x10_0010), None)
+    );
+    assert_eq!(
+        fields(v0.wake_plan(0x8000, None, Quirk).unwrap()),
+        (0x8000, Some(0), None)
+    );
+    assert_eq!(fields(v0.disarmed_plan(Quirk)), (0, Some(0), None));
+    // Versions 1 and 2 define the field: it is cleared or set either way.
+    let v1 = info(1, 0);
+    assert_eq!(
+        fields(v1.wake_plan(0x9ff0, None, Spec).unwrap()),
+        (0x9ff0, Some(0), None)
+    );
+    assert_eq!(
+        fields(v1.wake_plan(0x9ff0, Some(0xffff_fff0), Spec).unwrap()),
+        (0x9ff0, Some(0xffff_fff0), None)
+    );
+    let v2 = info(2, 1);
+    assert_eq!(
+        fields(v2.wake_plan(0x1000, Some(0x20_0000), Spec).unwrap()),
+        (0x1000, Some(0x20_0000), Some(0))
+    );
+    assert_eq!(fields(v2.disarmed_plan(Spec)), (0, Some(0), Some(0)));
+    // Entry validation for both vectors.
+    for entry in [0u64, 0x8001, 0x8008, 0xa_0000, 0x10_0000, !15u64] {
+        assert_eq!(
+            v0.wake_plan(entry, None, Spec),
+            Err(Error::InvalidWakeEntry),
+            "real-mode entry {entry:#x}"
+        );
+    }
+    for entry in [0u64, 0x10_0008, 0x1_0000_0000, !15u64] {
+        assert_eq!(
+            v1.wake_plan(0x8000, Some(entry), Spec),
+            Err(Error::InvalidWakeEntry),
+            "protected entry {entry:#x}"
+        );
+    }
+    assert_eq!(WakePlan::LEGACY_VECTOR_OFFSET, 12);
+    assert_eq!(WakePlan::EXTENDED_VECTOR_OFFSET, 24);
+    assert_eq!(WakePlan::OSPM_FLAGS_OFFSET, 36);
+}
+
+#[test]
+fn waking_vector_stores_stay_inside_the_proven_facs_extent() {
+    // Every planned field of a 64-byte FACS is inside it.
+    for (offset, len) in [
+        (WakePlan::LEGACY_VECTOR_OFFSET, 4),
+        (WakePlan::EXTENDED_VECTOR_OFFSET, 8),
+        (WakePlan::OSPM_FLAGS_OFFSET, 4),
+        (0, 64),
+        (64, 0),
+    ] {
+        assert!(
+            store_within_extent(FACS, 64, FACS + offset as u64, len),
+            "{offset}+{len}"
+        );
+    }
+    // Below, straddling either edge, past the end, no extent, or overflowing.
+    for (extent, extent_len, address, len) in [
+        (FACS, 64, FACS - 1, 1),
+        (FACS, 64, FACS - 1, 4),
+        (FACS, 64, FACS + 60, 8),
+        (FACS, 64, FACS + 64, 1),
+        (FACS, 0, FACS, 0),
+        (FACS, 0, FACS, 4),
+        (0, 0, 0, 1),
+        (FACS, 64, u64::MAX - 2, 4),
+        (u64::MAX - 8, 64, u64::MAX - 4, 4),
+    ] {
+        assert!(
+            !store_within_extent(extent, extent_len, address, len),
+            "{extent:#x}+{extent_len} {address:#x}+{len}"
+        );
+    }
 }

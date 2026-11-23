@@ -1,0 +1,1500 @@
+{
+ "schema_version": 1,
+ "task": "H04-T3",
+ "criterion": "H04",
+ "date": "2026-11-19",
+ "evidence_level": "native QEMU 8.2.2 q35/OVMF TCG, one CPU; host-side synthetic peer; no physical NIC",
+ "commands": [
+  "build-link exit=0 seconds=3 cmd=python3 -B tools/build.py --kernel-feature test-system-net-link",
+  "link-normal exit=0 seconds=68 cmd=python3 -B tools/run_net_link.py --case normal",
+  "link-nostatus exit=0 seconds=69 cmd=python3 -B tools/run_net_link.py --case nostatus",
+  "build-storm exit=0 seconds=3 cmd=python3 -B tools/build.py --kernel-feature test-system-net-link-storm",
+  "link-storm exit=0 seconds=145 cmd=python3 -B tools/run_net_link.py --case storm",
+  "build-net exit=0 seconds=3 cmd=python3 -B tools/build.py --kernel-feature native-system-net",
+  "net-normal exit=0 seconds=68 cmd=python3 -B tools/run_net_system.py --case normal",
+  "netsvc-normal exit=0 seconds=12 cmd=python3 -B tools/run_network_service.py --case normal",
+  "netsvc-device-reset exit=0 seconds=6 cmd=python3 -B tools/run_network_service.py --case device-reset",
+  "DONE"
+ ],
+ "link_cases": {
+  "normal": {
+   "case": "normal",
+   "kernel_feature": "test-system-net-link",
+   "nic_status": true,
+   "passed": true,
+   "link_gate": true,
+   "link_error": null,
+   "raw_qemu_exit": 33,
+   "timed_out": false,
+   "duration_s": 67.6,
+   "source_sha256": "59beb2c237b4cbd49711e92c6d9443c3cf8555ea1eed823f24f431a6467b3475",
+   "head_at_run": "9c707c8db0f4a2d9ec8ce0a40f2b00eb210233bf",
+   "qemu_version": "QEMU emulator version 8.2.2 (Debian 1:8.2.2+ds-0ubuntu1.18)\nCopyright (c) 2003-2023 Fabrice Bellard and the QEMU Project developers",
+   "run_directory": "<CHECKOUT>/build/h04-link/run/system-normal-40caeb66f9f24e33af9a775bd8fc32ec",
+   "serial_sha256": "afa475a31f9ed688763d2137d6427571cddc60636c89dad15424aa88a44a935f",
+   "kernel_sha256": "398d65a52ebe6c00a0d062eca4bb0c0cec68fda275ce4f87362d1d9448c595ca",
+   "net_probe_sha256": "0e4f1fe41a7b8751bfa98d2c909ce30edfc7c5e5b19cc1cb85817da36641426c",
+   "firmware_sha256": {
+    "code": "ad23261d43116abc3747d59a7837fbf578c9586a8993f4eeba064cd07eccb083",
+    "vars_template": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e"
+   },
+   "qemu_network_and_control": [
+    "none",
+    "-monitor",
+    "none",
+    "none",
+    "socket,id=net0,connect=127.0.0.1:54287",
+    "virtio-net-pci,netdev=net0,id=net,addr=0x7,disable-legacy=on,mac=02:00:00:00:00:07,romfile=",
+    "-qmp",
+    "unix:build/h04-link/run/system-normal-40caeb66f9f24e33af9a775bd8fc32ec/qmp.sock,server=on,wait=off"
+   ],
+   "link_markers": [
+    "NETLINK:ATTACH:STATUS",
+    "NETLINK:EVENT:UP:00000000000000000001",
+    "NETLINK:QUERY:UP:00000000000000000001",
+    "NETLINK:RX_HELD:00000000000000000001",
+    "NETLINK:RX_HELD:00000000000000000002",
+    "NETLINK:RX_HELD:00000000000000000003",
+    "NETLINK:RX_HELD:00000000000000000004",
+    "NETLINK:RX_HELD:00000000000000000005",
+    "NETLINK:RX_HELD:00000000000000000006",
+    "NETLINK:RX_HELD:00000000000000000007",
+    "NETLINK:RX_HELD:00000000000000000008",
+    "NETLINK:RX_DROPPED:00000000000000000001",
+    "NETLINK:WINDOW_OPEN_TX:00000000000000000009",
+    "NETLINK:WINDOW_OPEN_PUBLISHED:00000000000000589833",
+    "NETLINK:EVENT:DOWN:00000000000000000002",
+    "NETLINK:QUERY:DOWN:00000000000000000002",
+    "NETLINK:DOWN_REFUSED:00000000000000000002",
+    "NETLINK:WINDOW_CLOSE_TX:00000000000000000009",
+    "NETLINK:WINDOW_CLOSE_PUBLISHED:00000000000000589833",
+    "NETLINK:EVENT:UP:00000000000000000003",
+    "NETLINK:QUERY:UP:00000000000000000003",
+    "NETLINK:RX_HELD:00000000000000000009",
+    "NETLINK:RX_HELD:00000000000000000010"
+   ],
+   "final_markers": [
+    "SYSTEM:CASE:NORMAL:PASS",
+    "M1:PASS"
+   ],
+   "system_link_evidence": {
+    "NET_ARP_REPLIES": 1,
+    "NET_UDP_ECHOES": 1,
+    "NET_DNS_ANSWERS": 1,
+    "NET_APP_DENIED": 7,
+    "NET_TX_COMPLETIONS": 11,
+    "NET_RX_FRAMES": 9,
+    "NET_ARP_REJECTS": 2,
+    "NET_DNS_REJECTS": 2,
+    "NET_RX_TIMEOUTS": 1,
+    "NET_CACHE_INTACT": 1,
+    "NET_STALE_CAP": 1,
+    "NET_TX_SUBMITTED": 11,
+    "NET_TX_COMPLETED": 11,
+    "NET_RX_COMPLETED": 10,
+    "NET_RX_DELIVERED": 9,
+    "NET_DENIED": 12,
+    "NET_TX_TIMEOUTS": 0,
+    "NET_RESETS": 1,
+    "NET_RESET_ACKS": 1,
+    "NETLINK_SUPPORTED": 1,
+    "NETLINK_EPOCH": 3,
+    "NETLINK_EVENTS": 3,
+    "NETLINK_UPS": 2,
+    "NETLINK_DOWNS": 1,
+    "NETLINK_SYNTHETIC": 0,
+    "NETLINK_TX_REFUSED": 1,
+    "NETLINK_RX_REFUSED": 1,
+    "NETLINK_RX_DROPPED": 1,
+    "NETLINK_WINDOWS": 1,
+    "NETLINK_WINDOW_DELTA": 0,
+    "NETLINK_EXHAUSTED": 0,
+    "NETLINK_OBSERVATIONS": 6437,
+    "NETLINK_BUSY": 0,
+    "NETLINK_QUERIES": 11,
+    "NETLINK_PROBE_SUPPORTED": 1,
+    "NETLINK_PROBE_FIRST_EPOCH": 1,
+    "NETLINK_PROBE_DOWN_EPOCH": 2,
+    "NETLINK_PROBE_UP_EPOCH": 3,
+    "NETLINK_PROBE_TX_REFUSED": 1,
+    "NETLINK_PROBE_RX_REFUSED": 1,
+    "NETLINK_PROBE_STALE_ABSENT": 1,
+    "NETLINK_PROBE_ARP_REPLIES": 1,
+    "NETLINK_PROBE_UDP_ECHOES": 1,
+    "NETLINK_PROBE_DENIED": 3,
+    "NETLINK_PROBE_OFFLINE": 0,
+    "NETLINK_PROBE_PREDOWN": 1,
+    "NETLINK_PROBE_LAST_EPOCH": 3
+   },
+   "qmp_trace": [
+    {
+     "request": {
+      "execute": "qmp_capabilities",
+      "id": 1
+     },
+     "response": {
+      "return": {},
+      "id": 1
+     }
+    },
+    {
+     "request": {
+      "execute": "set_link",
+      "id": 2,
+      "arguments": {
+       "name": "net0",
+       "up": false
+      }
+     },
+     "response": {
+      "return": {},
+      "id": 2
+     }
+    },
+    {
+     "request": {
+      "execute": "set_link",
+      "id": 3,
+      "arguments": {
+       "name": "net0",
+       "up": true
+      }
+     },
+     "response": {
+      "return": {},
+      "id": 3
+     }
+    }
+   ],
+   "qmp_actions": [
+    {
+     "up": false,
+     "trigger": "NETLINK:RX_HELD:00000000000000000008",
+     "phase": "wait-held",
+     "completed_s": 67.163
+    },
+    {
+     "up": true,
+     "trigger": "NETLINK:DOWN_REFUSED:00000000000000000002",
+     "phase": "wait-refused",
+     "completed_s": 67.174
+    }
+   ],
+   "later_toggles_before_finish_s": null,
+   "host_timeline": [
+    [
+     2.697,
+     "NETLINK:ATTACH:STATUS"
+    ],
+    [
+     2.777,
+     "NETLINK:EVENT:UP:00000000000000000001"
+    ],
+    [
+     2.81,
+     "NETLINK:QUERY:UP:00000000000000000001"
+    ],
+    [
+     2.816,
+     "NETLINK:RX_HELD:00000000000000000001"
+    ],
+    [
+     2.824,
+     "NETLINK:RX_HELD:00000000000000000002"
+    ],
+    [
+     2.828,
+     "NETLINK:RX_HELD:00000000000000000003"
+    ],
+    [
+     2.831,
+     "NETLINK:RX_HELD:00000000000000000004"
+    ],
+    [
+     2.838,
+     "NETLINK:RX_HELD:00000000000000000005"
+    ],
+    [
+     2.841,
+     "NETLINK:RX_HELD:00000000000000000006"
+    ],
+    [
+     2.845,
+     "NETLINK:RX_HELD:00000000000000000007"
+    ],
+    [
+     67.16,
+     "NETLINK:RX_HELD:00000000000000000008"
+    ],
+    [
+     67.163,
+     "QMP:set_link:net0:off"
+    ],
+    [
+     67.167,
+     "NETLINK:RX_DROPPED:00000000000000000001"
+    ],
+    [
+     67.167,
+     "NETLINK:WINDOW_OPEN_TX:00000000000000000009"
+    ],
+    [
+     67.167,
+     "NETLINK:WINDOW_OPEN_PUBLISHED:00000000000000589833"
+    ],
+    [
+     67.167,
+     "NETLINK:EVENT:DOWN:00000000000000000002"
+    ],
+    [
+     67.168,
+     "NETLINK:QUERY:DOWN:00000000000000000002"
+    ],
+    [
+     67.17,
+     "NETLINK:DOWN_REFUSED:00000000000000000002"
+    ],
+    [
+     67.174,
+     "QMP:set_link:net0:on"
+    ],
+    [
+     67.175,
+     "NETLINK:WINDOW_CLOSE_TX:00000000000000000009"
+    ],
+    [
+     67.175,
+     "NETLINK:WINDOW_CLOSE_PUBLISHED:00000000000000589833"
+    ],
+    [
+     67.175,
+     "NETLINK:EVENT:UP:00000000000000000003"
+    ],
+    [
+     67.176,
+     "NETLINK:QUERY:UP:00000000000000000003"
+    ],
+    [
+     67.18,
+     "NETLINK:RX_HELD:00000000000000000009"
+    ],
+    [
+     67.183,
+     "NETLINK:RX_HELD:00000000000000000010"
+    ],
+    [
+     67.214,
+     "SYSTEM:BROKERS:PASS"
+    ]
+   ],
+   "peer_counts": {
+    "accepted_frames": 11,
+    "arp_requests": 4,
+    "arp_bad_sender_sent": 1,
+    "arp_wrong_target_sent": 1,
+    "arp_valid_sent": 1,
+    "udp_echo_requests": 3,
+    "udp_echo_replies": 1,
+    "dns_requests": 4,
+    "dns_wrong_id_sent": 1,
+    "dns_bad_name_sent": 1,
+    "dns_answers_sent": 1,
+    "dns_timeouts": 1,
+    "response_frames": 10,
+    "udp_predown_replies": 1,
+    "arp_reconnect_sent": 1,
+    "udp_reconnect_replies": 1
+   },
+   "peer_events": [
+    {
+     "sequence": 1,
+     "event": "arp_bad_sender_sent",
+     "request_sha256": "bf9aa49fb3ec6fbbec50310c3830f1abb08d237d0419c0610d3a300354246cc2",
+     "payload_sha256": null
+    },
+    {
+     "sequence": 2,
+     "event": "arp_wrong_target_sent",
+     "request_sha256": "bf9aa49fb3ec6fbbec50310c3830f1abb08d237d0419c0610d3a300354246cc2",
+     "payload_sha256": null
+    },
+    {
+     "sequence": 3,
+     "event": "arp_valid_sent",
+     "request_sha256": "bf9aa49fb3ec6fbbec50310c3830f1abb08d237d0419c0610d3a300354246cc2",
+     "payload_sha256": null
+    },
+    {
+     "sequence": 4,
+     "event": "udp_echo_replies",
+     "request_sha256": "b0c0148a928582e5c180016ab3693f5f04491730cef7d46320a8baaf47e8cbf4",
+     "payload_sha256": "9ede2fa4b7b8bc0b3590c4f8f6cf973e1462e9b79ecc2417f6fc3557ca5ff87e"
+    },
+    {
+     "sequence": 5,
+     "event": "dns_wrong_id_sent",
+     "request_sha256": "338f7e0fb908ef9fcc760edaa61fbb031736890d369c388bd9428d45f08534c4",
+     "payload_sha256": null
+    },
+    {
+     "sequence": 6,
+     "event": "dns_bad_name_sent",
+     "request_sha256": "338f7e0fb908ef9fcc760edaa61fbb031736890d369c388bd9428d45f08534c4",
+     "payload_sha256": null
+    },
+    {
+     "sequence": 7,
+     "event": "dns_answers_sent",
+     "request_sha256": "338f7e0fb908ef9fcc760edaa61fbb031736890d369c388bd9428d45f08534c4",
+     "payload_sha256": null
+    },
+    {
+     "sequence": 8,
+     "event": "dns_timeouts",
+     "request_sha256": "f850819241a0ee10d2f1e9e1ece0c43c2c5536cea71df7328fce1bf84365dc05",
+     "payload_sha256": null
+    },
+    {
+     "sequence": 9,
+     "event": "udp_predown_replies",
+     "request_sha256": "96d247791af61ee216e12182b86d4cecacc950cdfab28ca5eed373612c56d7ad",
+     "payload_sha256": "d0621b2f9bc428397f15df9e3253b509259f3deb6b286fb3e47fa874c85df393"
+    },
+    {
+     "sequence": 10,
+     "event": "arp_reconnect_sent",
+     "request_sha256": "bf9aa49fb3ec6fbbec50310c3830f1abb08d237d0419c0610d3a300354246cc2",
+     "payload_sha256": null
+    },
+    {
+     "sequence": 11,
+     "event": "udp_reconnect_replies",
+     "request_sha256": "c827802af9fcdae3a317de237f42ed4beac05c441be811963e0426e888303db6",
+     "payload_sha256": "619a81b4a57031b7c697e4628d1b9a4424da5bdb743e3da453b99dcd38c052f5"
+    }
+   ],
+   "markers_checked": {
+    "events": 3,
+    "queries": [
+     [
+      "UP",
+      1
+     ],
+     [
+      "DOWN",
+      2
+     ],
+     [
+      "UP",
+      3
+     ]
+    ],
+    "windows": [
+     [
+      9
+     ],
+     [
+      589833
+     ]
+    ]
+   }
+  },
+  "nostatus": {
+   "case": "nostatus",
+   "kernel_feature": "test-system-net-link",
+   "nic_status": false,
+   "passed": true,
+   "link_gate": true,
+   "link_error": null,
+   "raw_qemu_exit": 33,
+   "timed_out": false,
+   "duration_s": 68.7,
+   "source_sha256": "59beb2c237b4cbd49711e92c6d9443c3cf8555ea1eed823f24f431a6467b3475",
+   "head_at_run": "9c707c8db0f4a2d9ec8ce0a40f2b00eb210233bf",
+   "qemu_version": "QEMU emulator version 8.2.2 (Debian 1:8.2.2+ds-0ubuntu1.18)\nCopyright (c) 2003-2023 Fabrice Bellard and the QEMU Project developers",
+   "run_directory": "<CHECKOUT>/build/h04-link/run/system-normal-a53639bd1acb408694ac917dd743da00",
+   "serial_sha256": "2d99e272a440c2d98160cbe545d4b337e53e30ebfd09ab3f49ae1ee79bb44738",
+   "kernel_sha256": "398d65a52ebe6c00a0d062eca4bb0c0cec68fda275ce4f87362d1d9448c595ca",
+   "net_probe_sha256": "0e4f1fe41a7b8751bfa98d2c909ce30edfc7c5e5b19cc1cb85817da36641426c",
+   "firmware_sha256": {
+    "code": "ad23261d43116abc3747d59a7837fbf578c9586a8993f4eeba064cd07eccb083",
+    "vars_template": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e"
+   },
+   "qemu_network_and_control": [
+    "none",
+    "-monitor",
+    "none",
+    "none",
+    "socket,id=net0,connect=127.0.0.1:55395",
+    "virtio-net-pci,netdev=net0,id=net,addr=0x7,disable-legacy=on,mac=02:00:00:00:00:07,romfile=,status=off"
+   ],
+   "link_markers": [
+    "NETLINK:ATTACH:NO_STATUS"
+   ],
+   "final_markers": [
+    "SYSTEM:CASE:NORMAL:PASS",
+    "M1:PASS"
+   ],
+   "system_link_evidence": {
+    "NET_ARP_REPLIES": 1,
+    "NET_UDP_ECHOES": 1,
+    "NET_DNS_ANSWERS": 1,
+    "NET_APP_DENIED": 7,
+    "NET_TX_COMPLETIONS": 8,
+    "NET_RX_FRAMES": 7,
+    "NET_ARP_REJECTS": 2,
+    "NET_DNS_REJECTS": 2,
+    "NET_RX_TIMEOUTS": 1,
+    "NET_CACHE_INTACT": 1,
+    "NET_STALE_CAP": 1,
+    "NET_TX_SUBMITTED": 8,
+    "NET_TX_COMPLETED": 8,
+    "NET_RX_COMPLETED": 7,
+    "NET_RX_DELIVERED": 7,
+    "NET_DENIED": 11,
+    "NET_TX_TIMEOUTS": 0,
+    "NET_RESETS": 1,
+    "NET_RESET_ACKS": 1,
+    "NETLINK_SUPPORTED": 0,
+    "NETLINK_EPOCH": 0,
+    "NETLINK_EVENTS": 0,
+    "NETLINK_UPS": 0,
+    "NETLINK_DOWNS": 0,
+    "NETLINK_SYNTHETIC": 0,
+    "NETLINK_TX_REFUSED": 0,
+    "NETLINK_RX_REFUSED": 0,
+    "NETLINK_RX_DROPPED": 0,
+    "NETLINK_WINDOWS": 0,
+    "NETLINK_WINDOW_DELTA": 0,
+    "NETLINK_EXHAUSTED": 0,
+    "NETLINK_OBSERVATIONS": 0,
+    "NETLINK_BUSY": 0,
+    "NETLINK_QUERIES": 0,
+    "NETLINK_PROBE_SUPPORTED": 0,
+    "NETLINK_PROBE_FIRST_EPOCH": 0,
+    "NETLINK_PROBE_DOWN_EPOCH": 0,
+    "NETLINK_PROBE_UP_EPOCH": 0,
+    "NETLINK_PROBE_TX_REFUSED": 0,
+    "NETLINK_PROBE_RX_REFUSED": 0,
+    "NETLINK_PROBE_STALE_ABSENT": 0,
+    "NETLINK_PROBE_ARP_REPLIES": 0,
+    "NETLINK_PROBE_UDP_ECHOES": 0,
+    "NETLINK_PROBE_DENIED": 3,
+    "NETLINK_PROBE_OFFLINE": 0,
+    "NETLINK_PROBE_PREDOWN": 0,
+    "NETLINK_PROBE_LAST_EPOCH": 0
+   },
+   "qmp_trace": [],
+   "qmp_actions": [],
+   "later_toggles_before_finish_s": null,
+   "host_timeline": [],
+   "peer_counts": {
+    "accepted_frames": 8,
+    "arp_requests": 3,
+    "arp_bad_sender_sent": 1,
+    "arp_wrong_target_sent": 1,
+    "arp_valid_sent": 1,
+    "udp_echo_requests": 1,
+    "udp_echo_replies": 1,
+    "dns_requests": 4,
+    "dns_wrong_id_sent": 1,
+    "dns_bad_name_sent": 1,
+    "dns_answers_sent": 1,
+    "dns_timeouts": 1,
+    "response_frames": 7
+   },
+   "peer_events": [
+    {
+     "sequence": 1,
+     "event": "arp_bad_sender_sent",
+     "request_sha256": "bf9aa49fb3ec6fbbec50310c3830f1abb08d237d0419c0610d3a300354246cc2",
+     "payload_sha256": null
+    },
+    {
+     "sequence": 2,
+     "event": "arp_wrong_target_sent",
+     "request_sha256": "bf9aa49fb3ec6fbbec50310c3830f1abb08d237d0419c0610d3a300354246cc2",
+     "payload_sha256": null
+    },
+    {
+     "sequence": 3,
+     "event": "arp_valid_sent",
+     "request_sha256": "bf9aa49fb3ec6fbbec50310c3830f1abb08d237d0419c0610d3a300354246cc2",
+     "payload_sha256": null
+    },
+    {
+     "sequence": 4,
+     "event": "udp_echo_replies",
+     "request_sha256": "b0c0148a928582e5c180016ab3693f5f04491730cef7d46320a8baaf47e8cbf4",
+     "payload_sha256": "9ede2fa4b7b8bc0b3590c4f8f6cf973e1462e9b79ecc2417f6fc3557ca5ff87e"
+    },
+    {
+     "sequence": 5,
+     "event": "dns_wrong_id_sent",
+     "request_sha256": "338f7e0fb908ef9fcc760edaa61fbb031736890d369c388bd9428d45f08534c4",
+     "payload_sha256": null
+    },
+    {
+     "sequence": 6,
+     "event": "dns_bad_name_sent",
+     "request_sha256": "338f7e0fb908ef9fcc760edaa61fbb031736890d369c388bd9428d45f08534c4",
+     "payload_sha256": null
+    },
+    {
+     "sequence": 7,
+     "event": "dns_answers_sent",
+     "request_sha256": "338f7e0fb908ef9fcc760edaa61fbb031736890d369c388bd9428d45f08534c4",
+     "payload_sha256": null
+    },
+    {
+     "sequence": 8,
+     "event": "dns_timeouts",
+     "request_sha256": "f850819241a0ee10d2f1e9e1ece0c43c2c5536cea71df7328fce1bf84365dc05",
+     "payload_sha256": null
+    }
+   ],
+   "markers_checked": {
+    "events": 0,
+    "queries": [],
+    "windows": [
+     [],
+     []
+    ]
+   }
+  },
+  "storm": {
+   "case": "storm",
+   "kernel_feature": "test-system-net-link-storm",
+   "nic_status": true,
+   "passed": true,
+   "link_gate": true,
+   "link_error": null,
+   "raw_qemu_exit": 33,
+   "timed_out": false,
+   "duration_s": 145.1,
+   "source_sha256": "59beb2c237b4cbd49711e92c6d9443c3cf8555ea1eed823f24f431a6467b3475",
+   "head_at_run": "9c707c8db0f4a2d9ec8ce0a40f2b00eb210233bf",
+   "qemu_version": "QEMU emulator version 8.2.2 (Debian 1:8.2.2+ds-0ubuntu1.18)\nCopyright (c) 2003-2023 Fabrice Bellard and the QEMU Project developers",
+   "run_directory": "<CHECKOUT>/build/h04-storm/run/system-normal-78e7483144954f75b90528d40a7aba7a",
+   "serial_sha256": "8fcd6076ff664da09392a4c04c45cc870d84e9565ae30dc70c91912cb4c3a249",
+   "kernel_sha256": "f37fdb2f0ab81067c5358ab2fa76fa1702312b0090896dae5de9819fb66ead9e",
+   "net_probe_sha256": "0e4f1fe41a7b8751bfa98d2c909ce30edfc7c5e5b19cc1cb85817da36641426c",
+   "firmware_sha256": {
+    "code": "ad23261d43116abc3747d59a7837fbf578c9586a8993f4eeba064cd07eccb083",
+    "vars_template": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e"
+   },
+   "qemu_network_and_control": [
+    "none",
+    "-monitor",
+    "none",
+    "none",
+    "socket,id=net0,connect=127.0.0.1:45885",
+    "virtio-net-pci,netdev=net0,id=net,addr=0x7,disable-legacy=on,mac=02:00:00:00:00:07,romfile=",
+    "-qmp",
+    "unix:build/h04-storm/run/system-normal-78e7483144954f75b90528d40a7aba7a/qmp.sock,server=on,wait=off"
+   ],
+   "link_markers": [
+    "NETLINK:ATTACH:STATUS",
+    "NETLINK:EVENT:UP:00000000000000000001",
+    "NETLINK:QUERY:UP:00000000000000000001",
+    "NETLINK:RX_HELD:00000000000000000001",
+    "NETLINK:RX_HELD:00000000000000000002",
+    "NETLINK:RX_HELD:00000000000000000003",
+    "NETLINK:RX_HELD:00000000000000000004",
+    "NETLINK:RX_HELD:00000000000000000005",
+    "NETLINK:RX_HELD:00000000000000000006",
+    "NETLINK:RX_HELD:00000000000000000007",
+    "NETLINK:RX_HELD:00000000000000000008",
+    "NETLINK:RX_DROPPED:00000000000000000001",
+    "NETLINK:WINDOW_OPEN_TX:00000000000000000009",
+    "NETLINK:WINDOW_OPEN_PUBLISHED:00000000000000589833",
+    "NETLINK:EVENT:DOWN:00000000000000000002",
+    "NETLINK:QUERY:DOWN:00000000000000000002",
+    "NETLINK:WINDOW_CLOSE_TX:00000000000000000009",
+    "NETLINK:WINDOW_CLOSE_PUBLISHED:00000000000000589833",
+    "NETLINK:EVENT:UP:00000000000000000003",
+    "NETLINK:QUERY:UP:00000000000000000003",
+    "NETLINK:WINDOW_OPEN_TX:00000000000000000009",
+    "NETLINK:WINDOW_OPEN_PUBLISHED:00000000000000589833",
+    "NETLINK:EVENT:DOWN:00000000000000000004",
+    "NETLINK:QUERY:DOWN:00000000000000000004",
+    "NETLINK:WINDOW_CLOSE_TX:00000000000000000009",
+    "NETLINK:WINDOW_CLOSE_PUBLISHED:00000000000000589833",
+    "NETLINK:EVENT:UP:00000000000000000005",
+    "NETLINK:QUERY:UP:00000000000000000005",
+    "NETLINK:WINDOW_OPEN_TX:00000000000000000009",
+    "NETLINK:WINDOW_OPEN_PUBLISHED:00000000000000589833",
+    "NETLINK:EVENT:DOWN:00000000000000000006",
+    "NETLINK:QUERY:DOWN:00000000000000000006",
+    "NETLINK:WINDOW_CLOSE_TX:00000000000000000009",
+    "NETLINK:WINDOW_CLOSE_PUBLISHED:00000000000000589833",
+    "NETLINK:EVENT:UP:00000000000000000007",
+    "NETLINK:QUERY:UP:00000000000000000007",
+    "NETLINK:WINDOW_OPEN_TX:00000000000000000009",
+    "NETLINK:WINDOW_OPEN_PUBLISHED:00000000000000589833",
+    "NETLINK:EVENT:DOWN:00000000000000000008",
+    "NETLINK:QUERY:DOWN:00000000000000000008",
+    "NETLINK:WINDOW_CLOSE_TX:00000000000000000009",
+    "NETLINK:WINDOW_CLOSE_PUBLISHED:00000000000000589833",
+    "NETLINK:EVENT:UP:00000000000000000009",
+    "NETLINK:QUERY:UP:00000000000000000009",
+    "NETLINK:EXHAUSTED:00000000000000000009"
+   ],
+   "final_markers": [
+    "SYSTEM:CASE:NORMAL:PASS",
+    "M1:PASS"
+   ],
+   "system_link_evidence": {
+    "NET_ARP_REPLIES": 1,
+    "NET_UDP_ECHOES": 1,
+    "NET_DNS_ANSWERS": 1,
+    "NET_APP_DENIED": 7,
+    "NET_TX_COMPLETIONS": 9,
+    "NET_RX_FRAMES": 7,
+    "NET_ARP_REJECTS": 2,
+    "NET_DNS_REJECTS": 2,
+    "NET_RX_TIMEOUTS": 1,
+    "NET_CACHE_INTACT": 1,
+    "NET_STALE_CAP": 1,
+    "NET_TX_SUBMITTED": 9,
+    "NET_TX_COMPLETED": 9,
+    "NET_RX_COMPLETED": 8,
+    "NET_RX_DELIVERED": 7,
+    "NET_DENIED": 13,
+    "NET_TX_TIMEOUTS": 0,
+    "NET_RESETS": 2,
+    "NET_RESET_ACKS": 2,
+    "NETLINK_SUPPORTED": 1,
+    "NETLINK_EPOCH": 9,
+    "NETLINK_EVENTS": 9,
+    "NETLINK_UPS": 5,
+    "NETLINK_DOWNS": 4,
+    "NETLINK_SYNTHETIC": 0,
+    "NETLINK_TX_REFUSED": 0,
+    "NETLINK_RX_REFUSED": 0,
+    "NETLINK_RX_DROPPED": 1,
+    "NETLINK_WINDOWS": 4,
+    "NETLINK_WINDOW_DELTA": 0,
+    "NETLINK_EXHAUSTED": 1,
+    "NETLINK_OBSERVATIONS": 13880,
+    "NETLINK_BUSY": 0,
+    "NETLINK_QUERIES": 33,
+    "NETLINK_PROBE_SUPPORTED": 1,
+    "NETLINK_PROBE_FIRST_EPOCH": 1,
+    "NETLINK_PROBE_DOWN_EPOCH": 0,
+    "NETLINK_PROBE_UP_EPOCH": 0,
+    "NETLINK_PROBE_TX_REFUSED": 0,
+    "NETLINK_PROBE_RX_REFUSED": 0,
+    "NETLINK_PROBE_STALE_ABSENT": 0,
+    "NETLINK_PROBE_ARP_REPLIES": 0,
+    "NETLINK_PROBE_UDP_ECHOES": 0,
+    "NETLINK_PROBE_DENIED": 3,
+    "NETLINK_PROBE_OFFLINE": 2,
+    "NETLINK_PROBE_PREDOWN": 1,
+    "NETLINK_PROBE_LAST_EPOCH": 9
+   },
+   "qmp_trace": [
+    {
+     "request": {
+      "execute": "qmp_capabilities",
+      "id": 1
+     },
+     "response": {
+      "return": {},
+      "id": 1
+     }
+    },
+    {
+     "request": {
+      "execute": "set_link",
+      "id": 2,
+      "arguments": {
+       "name": "net0",
+       "up": false
+      }
+     },
+     "response": {
+      "return": {},
+      "id": 2
+     }
+    },
+    {
+     "request": {
+      "execute": "set_link",
+      "id": 3,
+      "arguments": {
+       "name": "net0",
+       "up": true
+      }
+     },
+     "response": {
+      "return": {},
+      "id": 3
+     }
+    },
+    {
+     "request": {
+      "execute": "set_link",
+      "id": 4,
+      "arguments": {
+       "name": "net0",
+       "up": false
+      }
+     },
+     "response": {
+      "return": {},
+      "id": 4
+     }
+    },
+    {
+     "request": {
+      "execute": "set_link",
+      "id": 5,
+      "arguments": {
+       "name": "net0",
+       "up": true
+      }
+     },
+     "response": {
+      "return": {},
+      "id": 5
+     }
+    },
+    {
+     "request": {
+      "execute": "set_link",
+      "id": 6,
+      "arguments": {
+       "name": "net0",
+       "up": false
+      }
+     },
+     "response": {
+      "return": {},
+      "id": 6
+     }
+    },
+    {
+     "request": {
+      "execute": "set_link",
+      "id": 7,
+      "arguments": {
+       "name": "net0",
+       "up": true
+      }
+     },
+     "response": {
+      "return": {},
+      "id": 7
+     }
+    },
+    {
+     "request": {
+      "execute": "set_link",
+      "id": 8,
+      "arguments": {
+       "name": "net0",
+       "up": false
+      }
+     },
+     "response": {
+      "return": {},
+      "id": 8
+     }
+    },
+    {
+     "request": {
+      "execute": "set_link",
+      "id": 9,
+      "arguments": {
+       "name": "net0",
+       "up": true
+      }
+     },
+     "response": {
+      "return": {},
+      "id": 9
+     }
+    },
+    {
+     "request": {
+      "execute": "set_link",
+      "id": 10,
+      "arguments": {
+       "name": "net0",
+       "up": false
+      }
+     },
+     "response": {
+      "return": {},
+      "id": 10
+     }
+    },
+    {
+     "request": {
+      "execute": "set_link",
+      "id": 11,
+      "arguments": {
+       "name": "net0",
+       "up": true
+      }
+     },
+     "response": {
+      "return": {},
+      "id": 11
+     }
+    },
+    {
+     "request": {
+      "execute": "set_link",
+      "id": 12,
+      "arguments": {
+       "name": "net0",
+       "up": false
+      }
+     },
+     "response": {
+      "return": {},
+      "id": 12
+     }
+    },
+    {
+     "request": {
+      "execute": "set_link",
+      "id": 13,
+      "arguments": {
+       "name": "net0",
+       "up": true
+      }
+     },
+     "response": {
+      "return": {},
+      "id": 13
+     }
+    }
+   ],
+   "qmp_actions": [
+    {
+     "up": false,
+     "trigger": "NETLINK:RX_HELD:00000000000000000008",
+     "phase": "wait-held",
+     "completed_s": 141.626
+    },
+    {
+     "up": true,
+     "trigger": "NETLINK:EVENT:DOWN:00000000000000000002",
+     "phase": "storm",
+     "completed_s": 141.629
+    },
+    {
+     "up": false,
+     "trigger": "NETLINK:EVENT:UP:00000000000000000003",
+     "phase": "storm",
+     "completed_s": 141.638
+    },
+    {
+     "up": true,
+     "trigger": "NETLINK:EVENT:DOWN:00000000000000000004",
+     "phase": "storm",
+     "completed_s": 141.65
+    },
+    {
+     "up": false,
+     "trigger": "NETLINK:EVENT:UP:00000000000000000005",
+     "phase": "storm",
+     "completed_s": 141.66
+    },
+    {
+     "up": true,
+     "trigger": "NETLINK:EVENT:DOWN:00000000000000000006",
+     "phase": "storm",
+     "completed_s": 141.67
+    },
+    {
+     "up": false,
+     "trigger": "NETLINK:EVENT:UP:00000000000000000007",
+     "phase": "storm",
+     "completed_s": 141.678
+    },
+    {
+     "up": true,
+     "trigger": "NETLINK:EVENT:DOWN:00000000000000000008",
+     "phase": "storm",
+     "completed_s": 141.689
+    },
+    {
+     "up": false,
+     "trigger": "NETLINK:EVENT:UP:00000000000000000009",
+     "phase": "storm",
+     "completed_s": 141.699
+    },
+    {
+     "up": true,
+     "trigger": "NETLINK:EXHAUSTED:00000000000000000009",
+     "phase": "later",
+     "completed_s": 141.71
+    },
+    {
+     "up": false,
+     "trigger": "NETLINK:EXHAUSTED:00000000000000000009",
+     "phase": "later",
+     "completed_s": 141.71
+    },
+    {
+     "up": true,
+     "trigger": "NETLINK:EXHAUSTED:00000000000000000009",
+     "phase": "later",
+     "completed_s": 141.711
+    }
+   ],
+   "later_toggles_before_finish_s": 3.001189501999761,
+   "host_timeline": [
+    [
+     2.715,
+     "NETLINK:ATTACH:STATUS"
+    ],
+    [
+     2.768,
+     "NETLINK:EVENT:UP:00000000000000000001"
+    ],
+    [
+     2.801,
+     "NETLINK:QUERY:UP:00000000000000000001"
+    ],
+    [
+     2.805,
+     "NETLINK:RX_HELD:00000000000000000001"
+    ],
+    [
+     2.811,
+     "NETLINK:RX_HELD:00000000000000000002"
+    ],
+    [
+     2.816,
+     "NETLINK:RX_HELD:00000000000000000003"
+    ],
+    [
+     2.823,
+     "NETLINK:RX_HELD:00000000000000000004"
+    ],
+    [
+     2.828,
+     "NETLINK:RX_HELD:00000000000000000005"
+    ],
+    [
+     2.833,
+     "NETLINK:RX_HELD:00000000000000000006"
+    ],
+    [
+     2.838,
+     "NETLINK:RX_HELD:00000000000000000007"
+    ],
+    [
+     141.619,
+     "NETLINK:RX_HELD:00000000000000000008"
+    ],
+    [
+     141.626,
+     "QMP:set_link:net0:off"
+    ],
+    [
+     141.629,
+     "NETLINK:RX_DROPPED:00000000000000000001"
+    ],
+    [
+     141.629,
+     "NETLINK:WINDOW_OPEN_TX:00000000000000000009"
+    ],
+    [
+     141.629,
+     "NETLINK:WINDOW_OPEN_PUBLISHED:00000000000000589833"
+    ],
+    [
+     141.629,
+     "NETLINK:EVENT:DOWN:00000000000000000002"
+    ],
+    [
+     141.629,
+     "QMP:set_link:net0:on"
+    ],
+    [
+     141.629,
+     "NETLINK:QUERY:DOWN:00000000000000000002"
+    ],
+    [
+     141.638,
+     "NETLINK:WINDOW_CLOSE_TX:00000000000000000009"
+    ],
+    [
+     141.638,
+     "NETLINK:WINDOW_CLOSE_PUBLISHED:00000000000000589833"
+    ],
+    [
+     141.638,
+     "NETLINK:EVENT:UP:00000000000000000003"
+    ],
+    [
+     141.638,
+     "QMP:set_link:net0:off"
+    ],
+    [
+     141.639,
+     "NETLINK:QUERY:UP:00000000000000000003"
+    ],
+    [
+     141.65,
+     "NETLINK:WINDOW_OPEN_TX:00000000000000000009"
+    ],
+    [
+     141.65,
+     "NETLINK:WINDOW_OPEN_PUBLISHED:00000000000000589833"
+    ],
+    [
+     141.65,
+     "NETLINK:EVENT:DOWN:00000000000000000004"
+    ],
+    [
+     141.65,
+     "QMP:set_link:net0:on"
+    ],
+    [
+     141.65,
+     "NETLINK:QUERY:DOWN:00000000000000000004"
+    ],
+    [
+     141.659,
+     "NETLINK:WINDOW_CLOSE_TX:00000000000000000009"
+    ],
+    [
+     141.659,
+     "NETLINK:WINDOW_CLOSE_PUBLISHED:00000000000000589833"
+    ],
+    [
+     141.659,
+     "NETLINK:EVENT:UP:00000000000000000005"
+    ],
+    [
+     141.66,
+     "QMP:set_link:net0:off"
+    ],
+    [
+     141.66,
+     "NETLINK:QUERY:UP:00000000000000000005"
+    ],
+    [
+     141.669,
+     "NETLINK:WINDOW_OPEN_TX:00000000000000000009"
+    ],
+    [
+     141.669,
+     "NETLINK:WINDOW_OPEN_PUBLISHED:00000000000000589833"
+    ],
+    [
+     141.669,
+     "NETLINK:EVENT:DOWN:00000000000000000006"
+    ],
+    [
+     141.67,
+     "QMP:set_link:net0:on"
+    ],
+    [
+     141.671,
+     "NETLINK:QUERY:DOWN:00000000000000000006"
+    ],
+    [
+     141.678,
+     "NETLINK:WINDOW_CLOSE_TX:00000000000000000009"
+    ],
+    [
+     141.678,
+     "NETLINK:WINDOW_CLOSE_PUBLISHED:00000000000000589833"
+    ],
+    [
+     141.678,
+     "NETLINK:EVENT:UP:00000000000000000007"
+    ],
+    [
+     141.678,
+     "QMP:set_link:net0:off"
+    ],
+    [
+     141.678,
+     "NETLINK:QUERY:UP:00000000000000000007"
+    ],
+    [
+     141.689,
+     "NETLINK:WINDOW_OPEN_TX:00000000000000000009"
+    ],
+    [
+     141.689,
+     "NETLINK:WINDOW_OPEN_PUBLISHED:00000000000000589833"
+    ],
+    [
+     141.689,
+     "NETLINK:EVENT:DOWN:00000000000000000008"
+    ],
+    [
+     141.689,
+     "QMP:set_link:net0:on"
+    ],
+    [
+     141.689,
+     "NETLINK:QUERY:DOWN:00000000000000000008"
+    ],
+    [
+     141.698,
+     "NETLINK:WINDOW_CLOSE_TX:00000000000000000009"
+    ],
+    [
+     141.698,
+     "NETLINK:WINDOW_CLOSE_PUBLISHED:00000000000000589833"
+    ],
+    [
+     141.698,
+     "NETLINK:EVENT:UP:00000000000000000009"
+    ],
+    [
+     141.699,
+     "QMP:set_link:net0:off"
+    ],
+    [
+     141.701,
+     "NETLINK:QUERY:UP:00000000000000000009"
+    ],
+    [
+     141.709,
+     "NETLINK:EXHAUSTED:00000000000000000009"
+    ],
+    [
+     141.71,
+     "QMP:set_link:net0:on"
+    ],
+    [
+     141.71,
+     "QMP:set_link:net0:off"
+    ],
+    [
+     141.711,
+     "QMP:set_link:net0:on"
+    ],
+    [
+     144.712,
+     "SYSTEM:BROKERS:PASS"
+    ]
+   ],
+   "peer_counts": {
+    "accepted_frames": 9,
+    "arp_requests": 3,
+    "arp_bad_sender_sent": 1,
+    "arp_wrong_target_sent": 1,
+    "arp_valid_sent": 1,
+    "udp_echo_requests": 2,
+    "udp_echo_replies": 1,
+    "dns_requests": 4,
+    "dns_wrong_id_sent": 1,
+    "dns_bad_name_sent": 1,
+    "dns_answers_sent": 1,
+    "dns_timeouts": 1,
+    "response_frames": 8,
+    "udp_predown_replies": 1
+   },
+   "peer_events": [
+    {
+     "sequence": 1,
+     "event": "arp_bad_sender_sent",
+     "request_sha256": "bf9aa49fb3ec6fbbec50310c3830f1abb08d237d0419c0610d3a300354246cc2",
+     "payload_sha256": null
+    },
+    {
+     "sequence": 2,
+     "event": "arp_wrong_target_sent",
+     "request_sha256": "bf9aa49fb3ec6fbbec50310c3830f1abb08d237d0419c0610d3a300354246cc2",
+     "payload_sha256": null
+    },
+    {
+     "sequence": 3,
+     "event": "arp_valid_sent",
+     "request_sha256": "bf9aa49fb3ec6fbbec50310c3830f1abb08d237d0419c0610d3a300354246cc2",
+     "payload_sha256": null
+    },
+    {
+     "sequence": 4,
+     "event": "udp_echo_replies",
+     "request_sha256": "b0c0148a928582e5c180016ab3693f5f04491730cef7d46320a8baaf47e8cbf4",
+     "payload_sha256": "9ede2fa4b7b8bc0b3590c4f8f6cf973e1462e9b79ecc2417f6fc3557ca5ff87e"
+    },
+    {
+     "sequence": 5,
+     "event": "dns_wrong_id_sent",
+     "request_sha256": "338f7e0fb908ef9fcc760edaa61fbb031736890d369c388bd9428d45f08534c4",
+     "payload_sha256": null
+    },
+    {
+     "sequence": 6,
+     "event": "dns_bad_name_sent",
+     "request_sha256": "338f7e0fb908ef9fcc760edaa61fbb031736890d369c388bd9428d45f08534c4",
+     "payload_sha256": null
+    },
+    {
+     "sequence": 7,
+     "event": "dns_answers_sent",
+     "request_sha256": "338f7e0fb908ef9fcc760edaa61fbb031736890d369c388bd9428d45f08534c4",
+     "payload_sha256": null
+    },
+    {
+     "sequence": 8,
+     "event": "dns_timeouts",
+     "request_sha256": "f850819241a0ee10d2f1e9e1ece0c43c2c5536cea71df7328fce1bf84365dc05",
+     "payload_sha256": null
+    },
+    {
+     "sequence": 9,
+     "event": "udp_predown_replies",
+     "request_sha256": "96d247791af61ee216e12182b86d4cecacc950cdfab28ca5eed373612c56d7ad",
+     "payload_sha256": "d0621b2f9bc428397f15df9e3253b509259f3deb6b286fb3e47fa874c85df393"
+    }
+   ],
+   "markers_checked": {
+    "events": 9,
+    "queries": [
+     [
+      "UP",
+      1
+     ],
+     [
+      "DOWN",
+      2
+     ],
+     [
+      "UP",
+      3
+     ],
+     [
+      "DOWN",
+      4
+     ],
+     [
+      "UP",
+      5
+     ],
+     [
+      "DOWN",
+      6
+     ],
+     [
+      "UP",
+      7
+     ],
+     [
+      "DOWN",
+      8
+     ],
+     [
+      "UP",
+      9
+     ]
+    ],
+    "windows": [
+     [
+      9,
+      9,
+      9,
+      9
+     ],
+     [
+      589833,
+      589833,
+      589833,
+      589833
+     ]
+    ]
+   }
+  }
+ },
+ "regressions": {
+  "native_system_net_normal": {
+   "kernel_feature": "native-system-net",
+   "passed": true,
+   "network_gate": true,
+   "raw_qemu_exit": 33,
+   "duration_s": 68.2,
+   "source_sha256": "59beb2c237b4cbd49711e92c6d9443c3cf8555ea1eed823f24f431a6467b3475",
+   "kernel_sha256": "8e3c106ee73f58cdd8df2269975440f74dbf4f0019c00cfa35b5341cf1021722",
+   "net_probe_sha256": "5f4c1544ab2a78ec80ab95f84df435697310290d628357c23f8098f62d4201cf",
+   "run_directory": "<CHECKOUT>/build/h04/run/system-normal-1badd6b430bf4e94971dd3f359489bc3",
+   "evidence": {
+    "NET_ARP_REPLIES": 1,
+    "NET_UDP_ECHOES": 1,
+    "NET_DNS_ANSWERS": 1,
+    "NET_APP_DENIED": 7,
+    "NET_TX_COMPLETIONS": 8,
+    "NET_RX_FRAMES": 7,
+    "NET_ARP_REJECTS": 2,
+    "NET_DNS_REJECTS": 2,
+    "NET_RX_TIMEOUTS": 1,
+    "NET_CACHE_INTACT": 1,
+    "NET_STALE_CAP": 1,
+    "NET_TX_SUBMITTED": 8,
+    "NET_TX_COMPLETED": 8,
+    "NET_RX_COMPLETED": 7,
+    "NET_RX_DELIVERED": 7,
+    "NET_DENIED": 7,
+    "NET_TX_TIMEOUTS": 0,
+    "NET_RESETS": 1,
+    "NET_RESET_ACKS": 1
+   }
+  },
+  "network_service_normal": {
+   "case": "normal",
+   "kernel_feature": "native-net-service",
+   "passed": true,
+   "raw_qemu_exit": 33,
+   "timed_out": false,
+   "source_sha256": "59beb2c237b4cbd49711e92c6d9443c3cf8555ea1eed823f24f431a6467b3475",
+   "run_directory": "<CHECKOUT>/build/h04-native-net-service/run/network-service-normal-0edb155551334dfe9e4647d3a0955463",
+   "duration_s": 7.5,
+   "kernel_sha256": "e618622aa76bc222222ce0197006321826ab1b3e96f79d063e59b89faea5ebde"
+  },
+  "network_service_device_reset": {
+   "case": "device-reset",
+   "kernel_feature": "test-net-service-device-reset",
+   "passed": true,
+   "raw_qemu_exit": 33,
+   "timed_out": false,
+   "source_sha256": "59beb2c237b4cbd49711e92c6d9443c3cf8555ea1eed823f24f431a6467b3475",
+   "run_directory": "<CHECKOUT>/build/h04-test-net-service-device-reset/run/network-service-device-reset-3c3acf973b7a4b3f9946589318944824",
+   "duration_s": 2.9,
+   "kernel_sha256": "67dcbb34420f789c49c3a1b5140e06f8009801f3ea3c172971d3196c157c15e8"
+  }
+ },
+ "feature_off_binary_comparison": {
+  "native-system-net kernel": {
+   "baseline_sha256": "d224a4e43194ec10e88acdb83ae1f59f84092f2681bf2d61b48a65f85b42f160",
+   "new_sha256": "8e3c106ee73f58cdd8df2269975440f74dbf4f0019c00cfa35b5341cf1021722",
+   "sections": {
+    ".text": {
+     "size": [
+      178947,
+      178947
+     ],
+     "identical": true
+    },
+    ".data": {
+     "size": [
+      1725248,
+      1725248
+     ],
+     "identical": true
+    },
+    ".rodata": {
+     "size": [
+      410675,
+      410675
+     ],
+     "identical": false,
+     "embedded_probe_offset": 337264,
+     "differing_u32_outside_probe": 53,
+     "max_abs_delta": 35,
+     "note": "small u32 deltas = panic Location line numbers shifted by inserted source lines"
+    }
+   }
+  },
+  "native-net-service kernel": {
+   "baseline_sha256": "e5d96f923da0a602f4875d4c3a0db4a739f7b024cf5e6efe4edd9b6d4aaaa49e",
+   "new_sha256": "e618622aa76bc222222ce0197006321826ab1b3e96f79d063e59b89faea5ebde",
+   "sections": {
+    ".text": {
+     "size": [
+      152979,
+      152979
+     ],
+     "identical": true
+    },
+    ".data": {
+     "size": [
+      1724936,
+      1724936
+     ],
+     "identical": true
+    },
+    ".rodata": {
+     "size": [
+      235067,
+      235067
+     ],
+     "identical": false,
+     "differing_u32_outside_probe": 27,
+     "max_abs_delta": 35,
+     "note": "small u32 deltas = panic Location line numbers shifted by inserted source lines"
+    }
+   }
+  },
+  "test-net-service-device-reset kernel": {
+   "baseline_sha256": "01d4517faa2b1698ab9e9bcc05d6096658994f7d8bd5d39deb4cab81e54f8dbd",
+   "new_sha256": "67dcbb34420f789c49c3a1b5140e06f8009801f3ea3c172971d3196c157c15e8",
+   "sections": {
+    ".text": {
+     "size": [
+      156243,
+      156243
+     ],
+     "identical": true
+    },
+    ".data": {
+     "size": [
+      1725008,
+      1725008
+     ],
+     "identical": true
+    },
+    ".rodata": {
+     "size": [
+      236131,
+      236131
+     ],
+     "identical": false,
+     "differing_u32_outside_probe": 37,
+     "max_abs_delta": 35,
+     "note": "small u32 deltas = panic Location line numbers shifted by inserted source lines"
+    }
+   }
+  },
+  "net-probe (cargo feature link off)": {
+   "baseline_sha256": "05bdf8824b2eecab5773d3a4c16357be0edf6e5461c69fc37364925026d645a1",
+   "new_sha256": "5f4c1544ab2a78ec80ab95f84df435697310290d628357c23f8098f62d4201cf",
+   "sections": {
+    ".text": {
+     "size": [
+      20853,
+      20853
+     ],
+     "identical": true
+    },
+    ".data": {
+     "size": [
+      1088,
+      1088
+     ],
+     "identical": true
+    },
+    ".rodata": {
+     "size": [
+      1792,
+      1792
+     ],
+     "identical": false,
+     "differing_u32_outside_probe": 8,
+     "max_abs_delta": 198,
+     "note": "small u32 deltas = panic Location line numbers shifted by inserted source lines"
+    }
+   }
+  }
+ },
+ "not_covered": [
+  "physical NIC, cable or link partner",
+  "Wi-Fi and Bluetooth (no QEMU 8.2.2 device model)",
+  "in-flight TX at a down edge",
+  "synthetic generation-only pair and Busy samples (host-tested only)",
+  "optional flap and reset cases"
+ ]
+}
