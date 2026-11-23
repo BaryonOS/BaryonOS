@@ -47,7 +47,8 @@ RANDOM_FEATURES = ("native-system-random", "test-system-random-sdk", "test-syste
 IMAGE_FEATURES = ("native-system-images",)
 SYSTEM_CLOCK_FEATURES = ("native-system-clock",)
 POWER_SYSTEM_FEATURES = ("native-system-power", "test-system-power-flush-error", "test-system-power-flush-timeout")
-SYSTEM_FEATURES = ("native-net-service", "test-net-service-client-exit", "test-net-service-revoke", "test-net-service-helper", "test-net-service-device-reset", "test-net-service-exhaustion", "test-net-service-dhcp", "native-cap-digest-bench", "native-system", "test-system-recover", "native-system-display-input", *NETWORK_SYSTEM_FEATURES, *TCP_SYSTEM_FEATURES, *RANDOM_FEATURES, *IMAGE_FEATURES, *SYSTEM_CLOCK_FEATURES)
+NETWORK_SERVICE_FEATURES = ("native-net-service", "test-net-service-client-exit", "test-net-service-revoke", "test-net-service-helper", "test-net-service-device-reset", "test-net-service-exhaustion", "test-net-service-dhcp")
+SYSTEM_FEATURES = (*NETWORK_SERVICE_FEATURES, "native-cap-digest-bench", "native-system", "test-system-recover", "native-system-display-input", *NETWORK_SYSTEM_FEATURES, *TCP_SYSTEM_FEATURES, *RANDOM_FEATURES, *IMAGE_FEATURES, *SYSTEM_CLOCK_FEATURES)
 SYSTEM_FEATURES += POWER_SYSTEM_FEATURES
 # PR 154 legacy SMP path (kernel/src/m2_legacy); every name enables native-smp-legacy and
 # needs the smp-handoff loader. K06 native-smp* profiles use the default loader.
@@ -149,6 +150,8 @@ def native_smp_handoff_required(kernel_feature):
 
 
 def build(loader_feature=None, kernel_feature=None, label="normal", image_version=None):
+    # Bind every compiled artifact to the source as it was before the first compile.
+    source_at_start = source_hash()
     if native_smp_handoff_required(kernel_feature):
         if loader_feature not in (None, "smp-handoff"):
             raise ValueError("native SMP needs the matching SMP handoff loader")
@@ -281,7 +284,7 @@ def build(loader_feature=None, kernel_feature=None, label="normal", image_versio
             run_logged([sys.executable, "-B", str(ROOT / f"sdk/examples/{probe}/build.py")],
                        "build-system-net-probe", extra_env={"CARGO_TARGET_DIR": str(net_target)})
             binaries["net_probe"] = net_target / f"x86_64-unknown-none/release/{probe}"
-        if kernel_feature in ("native-net-service", "test-net-service-client-exit", "test-net-service-revoke", "test-net-service-helper", "test-net-service-device-reset", "test-net-service-exhaustion", "test-net-service-dhcp"):
+        if kernel_feature in NETWORK_SERVICE_FEATURES:
             net_target = TARGET / "network-service"
             run_logged([sys.executable, "-B", str(ROOT / "sdk/examples/network-service/build.py")],
                        "build-network-service", extra_env={"CARGO_TARGET_DIR": str(net_target)})
@@ -390,11 +393,13 @@ def build(loader_feature=None, kernel_feature=None, label="normal", image_versio
             args[2] = "rustc"
             args += ["--", "-C", "link-arg=--strip-all"]
         run_logged(args, f"build-{label}-{package}", extra_env=extra_env if package == "os-kernel" else None)
+    if source_hash() != source_at_start:
+        raise ValueError("Source changed during the build; rebuild on an unchanged source")
     loader = TARGET / "x86_64-unknown-uefi/release/os-loader.efi"
     kernel = TARGET / "x86_64-unknown-none/release/os-kernel"
     manifest = {"schema_version": 1, "profile": label, "kernel_feature": kernel_feature,
                 "loader_feature": loader_feature, "source_fingerprint_version": 3,
-                "source_sha256": source_hash(), "loader": {"sha256": sha256(loader), **inspect_pe(loader)},
+                "source_sha256": source_at_start, "loader": {"sha256": sha256(loader), **inspect_pe(loader)},
                 "kernel": {"sha256": sha256(kernel), **inspect_elf(kernel)}}
     manifest["sdk_runtime"] = use_sdk
     manifest["document_session"] = use_document_session
@@ -419,7 +424,7 @@ def build(loader_feature=None, kernel_feature=None, label="normal", image_versio
             manifest["supervisor"] = qsim_report
         elif kernel_feature in SYSTEM_FEATURES:
             manifest["system"] = qsim_report
-            if kernel_feature in ("native-net-service", "test-net-service-client-exit", "test-net-service-revoke", "test-net-service-helper", "test-net-service-device-reset", "test-net-service-exhaustion", "test-net-service-dhcp"):
+            if kernel_feature in NETWORK_SERVICE_FEATURES:
                 manifest["network_service"] = {name: qsim_report[f"network_{name}"]
                                                for name in ("service", "client")}
             if kernel_feature in RANDOM_FEATURES:

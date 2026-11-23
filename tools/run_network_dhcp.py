@@ -128,11 +128,11 @@ def evaluate(report, peer):
     return observed
 
 
-def run_network_dhcp(*, timeout=90):
+def run_network_dhcp(*, timeout=90, frozen=None):
     if type(timeout) is not int or not 1 <= timeout <= 180:
         raise ValueError("Native timeout must be bounded 1..180 seconds")
     private_path(BUILD)
-    frozen = source_hash()
+    frozen = source_hash() if frozen is None else frozen
     manifest = validate_build(frozen)
     env = environment()
     qemu = shutil.which("qemu-system-x86_64", path=env["PATH"])
@@ -215,12 +215,29 @@ def run_network_dhcp(*, timeout=90):
     return report
 
 
-if __name__ == "__main__":
+def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--timeout", type=int, default=90, help="host timeout seconds (default 90)")
     parser.add_argument("--no-build", action="store_true", help="require an existing source-matching build")
-    args = parser.parse_args()
-    if not args.no_build:
-        from build import build
-        build(None, FEATURE, FEATURE)
-    raise SystemExit(0 if run_network_dhcp(timeout=args.timeout)["passed"] else 1)
+    args = parser.parse_args(argv)
+    # The stable summary never outlives a newer attempt; each run keeps its own run directory.
+    summary = BUILD / "network-dhcp-report.json"
+    private_path(BUILD).mkdir(parents=True, exist_ok=True)
+    failure = dict(schema_version=1, passed=False, case="dhcp", kernel_feature=FEATURE, network_dhcp_gate=False,
+                   error="N02 build/run did not complete")
+    publish_json(summary, failure)
+    try:
+        # Fingerprint before the build, so the post-run check compares against the build-start source.
+        frozen = source_hash()
+        if not args.no_build:
+            from build import build
+            build(None, FEATURE, FEATURE)
+        return 0 if run_network_dhcp(timeout=args.timeout, frozen=frozen)["passed"] else 1
+    except BaseException as error:
+        failure["error"] = f"{type(error).__name__}: {error}"
+        publish_json(summary, failure)
+        raise
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
