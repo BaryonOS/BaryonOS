@@ -535,6 +535,21 @@ fn a_slot_without_metadata_is_reported_restored_when_a_collection_fails() {
 }
 
 #[test]
+fn a_slot_without_metadata_is_reported_restored_when_a_later_write_fails() {
+    // restore.bin replays 6 versions, current versions last in slot order
+    // 1, 3, 4: the 6th BEGIN (slot 4) fails after slot 3's only WRITE.
+    let bytes = fixture("restore.bin");
+    let mut disk = SimDisk::new();
+    let mut service = Service::new(EPOCH, Table::EMPTY, false);
+    let mut c = client(&mut service, &mut disk, DOMAIN, Some(6));
+    let (status, report) = restore(&bytes, &mut c).unwrap_err();
+    assert_eq!(
+        (status, report.writes, report.committed, report.restored),
+        (Status::Io, 5, 5, 1 << 3)
+    );
+}
+
+#[test]
 fn replay_beyond_the_guaranteed_free_chunks_is_refused_before_any_write() {
     // The volume-wide free count is not observable; every other domain stays
     // within QUOTA, so only CHUNKS - QUOTA = 24 chunks are guaranteed free.

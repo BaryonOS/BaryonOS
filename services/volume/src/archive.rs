@@ -957,8 +957,9 @@ const _: () = assert!(GUARANTEED_FREE > 0);
 pub struct NativeReport {
     /// Bit `s`: archive slot `s` fully replayed (its replayable versions,
     /// see [`replayable`], and its metadata). Set once the last needed
-    /// commit is confirmed: after the WRITEs for a slot without metadata,
-    /// after its META otherwise, so a later failure keeps completed slots.
+    /// commit is confirmed: after the WRITE of its current version for a
+    /// slot without metadata, after its META otherwise, so a later failure,
+    /// also during the WRITE phase, keeps completed slots.
     pub restored: u8,
     /// Committed WRITEs.
     pub writes: usize,
@@ -1105,8 +1106,10 @@ pub fn restore_native<S: Source, T: Transport>(
         .map(|object| object.version_count - replayable(object))
         .sum();
     let mut revisions = [0u64; PER_DOMAIN];
+    let needs_meta = |o: &&ObjectV2| o.tags != 0 || o.kind != 0 || o.collection != 0;
     for depth in (0..=HISTORY).rev() {
         let mut writes = report.writes;
+        let mut restored = report.restored;
         let replayed = walk_v2(&mut open(), scratch, |object, index, content| {
             let Some(planned) = plan.object(object.slot) else {
                 return Err(Status::Corrupt);
@@ -1151,23 +1154,21 @@ pub fn restore_native<S: Source, T: Transport>(
             };
             writes += 1;
             revisions[object.slot] = revision;
+            // Index 0, the current version, is a slot's last WRITE: without
+            // metadata the slot is complete, even if a later request fails.
+            if index == 0 && !needs_meta(&planned) {
+                restored |= 1 << object.slot;
+            }
             Ok(())
         });
         report.writes = writes;
+        report.restored = restored;
         report.committed = writes;
         match replayed {
             Ok(again) if again == plan => {}
             Ok(_) => return Err((Status::Corrupt, report)),
             Err(status) => return Err((status, report)),
         }
-    }
-    let needs_meta = |o: &&ObjectV2| o.tags != 0 || o.kind != 0 || o.collection != 0;
-    // Every replayable version is now confirmed: a slot without metadata is complete.
-    for object in plan.objects[..plan.object_count]
-        .iter()
-        .filter(|o| o.present && !needs_meta(o))
-    {
-        report.restored |= 1 << object.slot;
     }
     // Collections before META: META with a collection index needs it to exist.
     for collection in &plan.collections[..plan.collection_count] {
