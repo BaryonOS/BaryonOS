@@ -2,11 +2,14 @@
 """Host tests for the strict N02 DHCP peer; no QEMU or native evidence."""
 from __future__ import annotations
 import struct
+import sys
 import unittest
+from pathlib import Path
 
-import network_dhcp_peer as peer
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
 from network_dhcp_peer import (BROADCAST_IP, BROADCAST_MAC, CLIENT_MAC, LEASES, PEER_IP, PEER_MAC,
-                               ZERO_IP, DhcpMachine, ProtocolError, checksum, ipv4_header,
+                               SPOOF_IP, ZERO_IP, DhcpMachine, ProtocolError, checksum, ipv4_header,
                                validate_transcript)
 from network_service_peer import ACK, FIN, PSH, REQUESTS, RESPONSES, SYN, MASK
 
@@ -36,8 +39,10 @@ def arp(sender_ip, target_ip, destination=BROADCAST_MAC):
             + CLIENT_MAC + sender_ip + b"\0" * 6 + target_ip).ljust(60, b"\0")
 
 
-def tcp(address, source, target, seq, ack, flags, payload=b""):
-    segment = struct.pack("!HHIIBBHHH", source, target, seq & MASK, ack & MASK, 5 << 4, flags, 4096, 0, 0) + payload
+def tcp(address, source, target, seq, ack, flags, payload=b"", tcp_opts=b""):
+    words = 5 + len(tcp_opts) // 4
+    segment = (struct.pack("!HHIIBBHHH", source, target, seq & MASK, ack & MASK, words << 4, flags, 4096, 0, 0)
+               + tcp_opts + payload)
     value = checksum(address + PEER_IP + struct.pack("!BBH", 0, 6, len(segment)) + segment)
     segment = segment[:16] + struct.pack("!H", value) + segment[18:]
     ip = ipv4_header(address, PEER_IP, 6, len(segment), 7)
@@ -129,7 +134,7 @@ def exchange(step, address, source, port, slot):
 
 
 def first_lease(step):
-    acquire(step, 0, 0x11111111)
+    acquire(step, 0, 0x11111111, announcements=2)
     resolve_all(step, 0)
     exchange(step, LEASES[0], 40000, 8080, 0)
     exchange(step, LEASES[0], 40001, 8090, 1)
@@ -150,7 +155,7 @@ class DhcpPeerTest(unittest.TestCase):
         spoof, real = replies["service.test"]
         self.assertEqual(answer(spoof)[:2], (50000, 53))
         self.assertEqual(struct.unpack_from("!H", answer(spoof)[2])[0], 0x1200 ^ 1)
-        self.assertEqual(answer(spoof)[2][-4:], peer.SPOOF_IP)
+        self.assertEqual(answer(spoof)[2][-4:], SPOOF_IP)
         port, source, message = answer(real)
         self.assertEqual((port, source), (50000, 53))
         self.assertEqual(struct.unpack_from("!HHHHHH", message), (0x1200, 0x8180, 1, 1, 0, 0))
@@ -159,7 +164,7 @@ class DhcpPeerTest(unittest.TestCase):
         spoof, real = replies["missing.test"]
         self.assertEqual(answer(spoof)[:2], (50002, 54))
         self.assertEqual(struct.unpack_from("!HH", answer(spoof)[2]), (0x1201, 0x8180))
-        self.assertEqual(answer(spoof)[2][-4:], peer.SPOOF_IP)
+        self.assertEqual(answer(spoof)[2][-4:], SPOOF_IP)
         self.assertEqual(struct.unpack_from("!HHHHHH", answer(real)[2]), (0x1201, 0x8183, 1, 0, 1, 0))
         exchange(step, LEASES[0], 40000, 8080, 0)
         exchange(step, LEASES[0], 40001, 8090, 1)
@@ -191,6 +196,40 @@ class DhcpPeerTest(unittest.TestCase):
         self.assertEqual(options(ack)[53], bytes((5,)))
         self.assertEqual((ack[:6], ack[30:34]), (CLIENT_MAC, LEASES[0]))
         self.assertEqual(step.machine.counts["naks"], 0)
+
+    def test_renewal_before_second_announcement_is_acked_not_nakked(self):
+        step = Recorder()
+        acquire(step, 0, 0x11111111)
+        exchange(step, LEASES[0], 40000, 8080, 0)
+        exchange(step, LEASES[0], 40001, 8090, 1)
+        server = (0x6e303200 + 8081 * 0x100 + 1) & MASK
+        step(tcp(LEASES[0], 40002, 8081, 5, 0, SYN))
+        step(tcp(LEASES[0], 40002, 8081, 6, server, ACK))
+        ack, = step(dhcp(3, 0x22222222, ciaddr=LEASES[0]))
+        self.assertEqual(options(ack)[53], bytes((5,)))
+        self.assertEqual(step.machine.counts["naks"], 0)
+        self.assertEqual(step(arp(LEASES[0], LEASES[0])), [])  # second announcement still accepted
+        nak, = step(dhcp(3, 0x22222223, ciaddr=LEASES[0]))
+        self.assertEqual(options(nak)[53], bytes((6,)))
+        self.assertEqual(step.machine.counts["naks"], 1)
+        acquire(step, 1, 0x33333333)
+        exchange(step, LEASES[1], 40004, 8082, 0)
+        # An ACKed early renewal means the NAK was not tested on the first renewal.
+        self.assertEqual(step.machine.counts["early_renewal_acks"], 1)
+        self.assertFalse(step.evidence()["complete"])
+
+    def test_illegal_tcp_option_lengths_are_refused(self):
+        for bad, reason in ((bytes((2, 0, 0, 0)), "option length"), (bytes((2, 1, 0, 0)), "option length"),
+                            (bytes((2, 3, 5, 0)), "MSS"), (bytes((2, 4, 0, 0)), "MSS"),
+                            (bytes((3, 5, 1, 1)), "option length"), (bytes((0, 0, 0, 1)), "padding")):
+            step = Recorder()
+            acquire(step, 0, 1, announcements=2)
+            with self.assertRaisesRegex(ProtocolError, reason):
+                step(tcp(LEASES[0], 40000, 8080, 1000 * 8080, 0, SYN, tcp_opts=bad))
+        for good in (bytes((2, 4, 5, 0xb4)), bytes((1, 1, 1, 0)), b""):
+            step = Recorder()
+            acquire(step, 0, 1, announcements=2)
+            self.assertEqual(len(step(tcp(LEASES[0], 40000, 8080, 1000 * 8080, 0, SYN, tcp_opts=good))), 1)
 
     def test_frames_from_withdrawn_address_are_refused(self):
         for late in (tcp(LEASES[0], 40002, 8081, 6, 0, ACK), arp(LEASES[0], PEER_IP),

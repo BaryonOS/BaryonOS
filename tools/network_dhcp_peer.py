@@ -21,9 +21,9 @@ import hashlib
 import re
 import struct
 
-import network_service_peer as base
-from network_service_peer import (ACK, CLIENT_MAC, FIN, MASK, MAX_FRAME, PEER_IP, PEER_MAC, PSH,
-                                  REQUESTS, RESPONSES, RST, SYN, ProtocolError, checksum)
+from network_service_peer import (ACK, CLIENT_MAC, FIN, MASK, MAX_FRAME, MAX_FRAMES, PEER_IP,
+                                  PEER_MAC, PSH, REQUESTS, RESPONSES, RST, SYN, Peer as BasePeer,
+                                  ProtocolError, _wire, checksum)
 
 BROADCAST_MAC = b"\xff" * 6
 BROADCAST_IP = b"\xff" * 4
@@ -178,7 +178,27 @@ def tcp_segment(frame, client_ip):
     if (offset & 15 or not 20 <= size <= min(60, len(tcp)) or flags & ~31 or urgent
             or len(tcp) - size > 1024 or checksum(client_ip + PEER_IP + struct.pack("!BBH", 0, 6, len(tcp)) + tcp)):
         raise ProtocolError("TCP checksum, flags or bounds")
-    return base._wire.Segment(source, target, seq, ack, flags, window, tcp[20:size], tcp[size:])
+    tcp_options(tcp[20:size])
+    return _wire.Segment(source, target, seq, ack, flags, window, tcp[20:size], tcp[size:])
+
+
+def tcp_options(options):
+    """RFC 9293 option lengths, as the N01 peer enforces them; EOL padding must be zero."""
+    at = 0
+    while at < len(options):
+        kind = options[at]
+        if kind == 0:
+            if any(options[at + 1:]):
+                raise ProtocolError("noncanonical TCP option padding")
+            return
+        if kind == 1:
+            at += 1
+            continue
+        if at + 2 > len(options) or options[at + 1] < 2 or at + options[at + 1] > len(options):
+            raise ProtocolError("illegal TCP option length")
+        if kind == 2 and (options[at + 1] != 4 or options[at + 2:at + 4] == b"\0\0"):
+            raise ProtocolError("invalid MSS option")
+        at += options[at + 1]
 
 
 @dataclass
@@ -217,7 +237,7 @@ class DhcpMachine:
         self.ip_id = 1
         self.dns_seen = []
         names = ("client_frames", "server_frames", "discovers", "offers", "selects", "acks",
-                 "renewals", "renewal_acks", "naks", "retransmissions", "arp_probes",
+                 "renewals", "renewal_acks", "early_renewal_acks", "naks", "retransmissions", "arp_probes",
                  "arp_announcements", "arp_requests", "arp_replies", "syns", "syn_acks",
                  "http_requests", "valid_data_sent", "fins_sent", "client_fins_acked", "held",
                  "dns_queries", "dns_answers", "dns_nxdomains", "dns_spoofs")
@@ -268,7 +288,8 @@ class DhcpMachine:
         done = all(self.connections.get(p) is not None and self.connections[p].closed
                    and self.connections[p].data_acked for p in (8080, 8090))
         held = self.connections.get(8081)
-        return done and held is not None and held.phase == "held"
+        return (done and held is not None and held.phase == "held"
+                and self.announcements[0] == 2)
 
     def dhcp(self, frame):
         m = parse_dhcp(frame)
@@ -309,6 +330,8 @@ class DhcpMachine:
             self.counts["naks"] += 1
             return [self.dhcp_reply(NAK, m, broadcast=True)]
         self.counts["renewal_acks"] += 1
+        if self.lease == 0:
+            self.counts["early_renewal_acks"] += 1
         self.counts["acks"] += 1
         return [self.dhcp_reply(ACK_TYPE, m, broadcast=False)]
 
@@ -484,7 +507,7 @@ class DhcpMachine:
         raise ProtocolError("unhandled TCP phase")
 
     def handle(self, frame, now=0.0):
-        if not 14 <= len(frame) <= MAX_FRAME or self.counts["client_frames"] >= base.MAX_FRAMES:
+        if not 14 <= len(frame) <= MAX_FRAME or self.counts["client_frames"] >= MAX_FRAMES:
             raise ProtocolError("input frame budget")
         if frame[6:12] != CLIENT_MAC:
             raise ProtocolError("wrong client MAC")
@@ -518,7 +541,8 @@ class DhcpMachine:
         complete = (exchanged and set(c) == set(EXCHANGES) | set(HELD) and c[8081].phase == "held"
                     and self.lease == 1 and self.phase == "bound" and self.withdrawn == {LEASES[0]}
                     and self.counts["discovers"] == 2 and self.counts["selects"] >= 2
-                    and self.counts["naks"] == 1 and self.probes == [3, 3] and self.announcements[0] == 2
+                    # The first renewal of the first lease must be the NAK case.
+                    and self.counts["naks"] == 1 and self.counts["early_renewal_acks"] == 0 and self.probes == [3, 3] and self.announcements[0] == 2
                     # The service may retire and exit before the second
                     # announcement of the final lease; the first makes it usable.
                     and self.announcements[1] in (1, 2)
@@ -563,7 +587,7 @@ def validate_transcript(evidence):
     return summary
 
 
-class Peer(base.Peer):
+class Peer(BasePeer):
     """The N01 socket loop with the DHCP machine and DHCP transcript replay."""
     def __init__(self, timeout=180):
         super().__init__(timeout, case="normal")

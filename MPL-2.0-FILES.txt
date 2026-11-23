@@ -781,7 +781,6 @@ tools/test_memory_system.py
 tools/test_milestones.py
 tools/test_nas.py
 tools/test_net_system.py
-tools/test_network_dhcp_peer.py
 tools/test_network_service_peer.py
 tools/test_resource_pressure.py
 tools/test_storage_resilience.py
@@ -805,6 +804,7 @@ tools/tests/test_materiaal_host_count.py
 tools/tests/test_materiaal_host_scenarios.py
 tools/tests/test_materiaal_preview.py
 tools/tests/test_materiaal_probe.py
+tools/tests/test_network_dhcp_peer.py
 tools/tests/test_package_windows_qemu.py
 tools/tests/test_random.py
 tools/tests/test_rtc.py
