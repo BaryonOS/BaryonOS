@@ -2,7 +2,7 @@
 
 ## Proposal and execution boundary
 
-This proposal for [issue #276](https://github.com/simonvanieperen/BaryonOS/issues/276)
+This proposal for [issue #276](https://github.com/BaryonOS/BaryonOS/issues/276)
 provides copy-ready GitHub Milestone titles and descriptions for the active
 phases in the [product roadmap](ROADMAP.md#technical-milestones). Merging this
 file does not create or update GitHub Milestone objects, assign issues, or
@@ -33,8 +33,8 @@ corruption handling, rollback/downgrade tests, independent disk checks
 **Decision gate:** Daily-use claims remain blocked without recovery and
 independent review
 
-**Canonical sources:** [Roadmap](https://github.com/simonvanieperen/BaryonOS/blob/main/docs/ROADMAP.md#technical-milestones)
-and [criteria and evidence](https://github.com/simonvanieperen/BaryonOS/blob/main/docs/PROGRESS.md).
+**Canonical sources:** [Roadmap](https://github.com/BaryonOS/BaryonOS/blob/main/docs/ROADMAP.md#technical-milestones)
+and [criteria and evidence](https://github.com/BaryonOS/BaryonOS/blob/main/docs/PROGRESS.md).
 
 ## M7 — Native Product Integration
 
@@ -49,8 +49,8 @@ interaction budgets
 **Decision gate:** Product direction follows user/task evidence; do not scale
 the app ecosystem before the core experience is usable
 
-**Canonical sources:** [Roadmap](https://github.com/simonvanieperen/BaryonOS/blob/main/docs/ROADMAP.md#technical-milestones)
-and [criteria and evidence](https://github.com/simonvanieperen/BaryonOS/blob/main/docs/PROGRESS.md).
+**Canonical sources:** [Roadmap](https://github.com/BaryonOS/BaryonOS/blob/main/docs/ROADMAP.md#technical-milestones)
+and [criteria and evidence](https://github.com/BaryonOS/BaryonOS/blob/main/docs/PROGRESS.md).
 
 ## M8 — Networking and Security Hardening
 
@@ -65,8 +65,8 @@ findings resolved
 **Decision gate:** No sensitive-data safety claim without scoped audit and
 published residual risks
 
-**Canonical sources:** [Roadmap](https://github.com/simonvanieperen/BaryonOS/blob/main/docs/ROADMAP.md#technical-milestones)
-and [criteria and evidence](https://github.com/simonvanieperen/BaryonOS/blob/main/docs/PROGRESS.md).
+**Canonical sources:** [Roadmap](https://github.com/BaryonOS/BaryonOS/blob/main/docs/ROADMAP.md#technical-milestones)
+and [criteria and evidence](https://github.com/BaryonOS/BaryonOS/blob/main/docs/PROGRESS.md).
 
 ## M9 — First Reference PC
 
@@ -80,8 +80,8 @@ hardware
 **Decision gate:** Support matrix must state exactly what is and is not
 supported
 
-**Canonical sources:** [Roadmap](https://github.com/simonvanieperen/BaryonOS/blob/main/docs/ROADMAP.md#technical-milestones)
-and [criteria and evidence](https://github.com/simonvanieperen/BaryonOS/blob/main/docs/PROGRESS.md).
+**Canonical sources:** [Roadmap](https://github.com/BaryonOS/BaryonOS/blob/main/docs/ROADMAP.md#technical-milestones)
+and [criteria and evidence](https://github.com/BaryonOS/BaryonOS/blob/main/docs/PROGRESS.md).
 
 ## M10 — Second Architecture
 
@@ -94,8 +94,8 @@ architecture-specific differences documented
 **Decision gate:** Generalize abstractions only after real architecture
 differences are observed
 
-**Canonical sources:** [Roadmap](https://github.com/simonvanieperen/BaryonOS/blob/main/docs/ROADMAP.md#technical-milestones)
-and [criteria and evidence](https://github.com/simonvanieperen/BaryonOS/blob/main/docs/PROGRESS.md).
+**Canonical sources:** [Roadmap](https://github.com/BaryonOS/BaryonOS/blob/main/docs/ROADMAP.md#technical-milestones)
+and [criteria and evidence](https://github.com/BaryonOS/BaryonOS/blob/main/docs/PROGRESS.md).
 
 ## M11 — Experimental Community Release
 
@@ -110,8 +110,8 @@ process
 **Decision gate:** Production classification follows evidence, not project
 ambition
 
-**Canonical sources:** [Roadmap](https://github.com/simonvanieperen/BaryonOS/blob/main/docs/ROADMAP.md#technical-milestones)
-and [criteria and evidence](https://github.com/simonvanieperen/BaryonOS/blob/main/docs/PROGRESS.md).
+**Canonical sources:** [Roadmap](https://github.com/BaryonOS/BaryonOS/blob/main/docs/ROADMAP.md#technical-milestones)
+and [criteria and evidence](https://github.com/BaryonOS/BaryonOS/blob/main/docs/PROGRESS.md).
 
 ## Migration of the existing rubric milestones
 
@@ -154,14 +154,14 @@ must be re-queried before assignment.
 
 | Issue | Primary milestone | Remaining scope before assignment |
 |---|---|---|
-| [#39](https://github.com/simonvanieperen/BaryonOS/issues/39) — residual native network hardening | M8, after explicit issue retitling or rescoping | N01 is accepted. The remaining work is the combined native retransmission, backpressure, capability-revocation, unexpected-NIC-reset, exhaustion, and cleanup matrix. |
-| [#41](https://github.com/simonvanieperen/BaryonOS/issues/41) — production update trust chain | M8 | B03 is accepted. The remaining work is production release anchors, rotation, expiry/revocation, release policy, and evidence for the real trust chain. |
-| [#42](https://github.com/simonvanieperen/BaryonOS/issues/42) — input and USB/hotplug | M9 | H02 remains open for the selected physical reference profile. |
-| [#274](https://github.com/simonvanieperen/BaryonOS/issues/274) — English documentation | M11 | Complete the remaining active technical and community documentation. |
-| [#277](https://github.com/simonvanieperen/BaryonOS/issues/277) — GitHub Wiki | M11 | Publish the human-readable Wiki layer; a source proposal alone does not complete it. |
-| [#278](https://github.com/simonvanieperen/BaryonOS/issues/278) — private vulnerability reporting | M11 | Enable the actual private reporting channel; this does not replace M8 security review. |
+| [#39](https://github.com/BaryonOS/BaryonOS/issues/39) — residual native network hardening | M8, after explicit issue retitling or rescoping | N01 is accepted. The remaining work is the combined native retransmission, backpressure, capability-revocation, unexpected-NIC-reset, exhaustion, and cleanup matrix. |
+| [#41](https://github.com/BaryonOS/BaryonOS/issues/41) — production update trust chain | M8 | B03 is accepted. The remaining work is production release anchors, rotation, expiry/revocation, release policy, and evidence for the real trust chain. |
+| [#42](https://github.com/BaryonOS/BaryonOS/issues/42) — input and USB/hotplug | M9 | H02 remains open for the selected physical reference profile. |
+| [#274](https://github.com/BaryonOS/BaryonOS/issues/274) — English documentation | M11 | Complete the remaining active technical and community documentation. |
+| [#277](https://github.com/BaryonOS/BaryonOS/issues/277) — GitHub Wiki | M11 | Publish the human-readable Wiki layer; a source proposal alone does not complete it. |
+| [#278](https://github.com/BaryonOS/BaryonOS/issues/278) — private vulnerability reporting | M11 | Enable the actual private reporting channel; this does not replace M8 security review. |
 
-Issue [#43](https://github.com/simonvanieperen/BaryonOS/issues/43) remains
+Issue [#43](https://github.com/BaryonOS/BaryonOS/issues/43) remains
 unassigned until its multiple product outcomes are split. Issue #276 is the
 governance operation itself and has no product milestone. No unrelated issue
 is assigned to M6, M7, or M10 merely to populate a phase.
