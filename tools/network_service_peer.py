@@ -38,24 +38,39 @@ BODIES = (b"Nieuw OS service A\n", b"Nieuw OS service B\n")
 RESPONSES = tuple(b"HTTP/1.1 200 OK\r\nContent-Length: 19\r\nConnection: close\r\n\r\n" + b for b in BODIES)
 UDP_PAYLOADS = (b"Nieuw OS UDP app A", b"Nieuw OS UDP app B")
 CORRUPT_DELAY = 0.25
-CASES = ("normal", "client-exit", "revoke", "device-reset", "exhaustion", "helper")
+CASES = ("normal", "client-exit", "revoke", "device-reset", "exhaustion", "helper", "port-sweep")
 RESET_PROBE = b"reset-probe"
 PORT_BUDGET = 12_768
 # One SYN/reset pair per allocated port, plus a finite ARP/retry allowance.
 # This larger bound applies only to the streaming exhaustion capture.
 MAX_EXHAUSTION_FRAMES = 2 * (PORT_BUDGET + 1) + 256
-# N04: every TCP port, before and after revoke, with four outstanding SYNs.
-# UDP is a finite unsolicited set: service ports plus common/reserved boundaries.
-PROBE_PORTS = 65_535
+# N04 revoke case: inbound SYNs to guest ports nobody listens on. The guest
+# must answer each with RST, never SYN-ACK (no implicit listening port).
+# Port 40000 (app A's aborted local port) is probed only after the revocation.
+PROBES = {22: 50000, 443: 50001, 40000: 50002}
+PROBE_ISN = 0x70726f00
+# N04 port-sweep case: every TCP port at two quiescent points (before any app
+# connection, and after revocation and the app checks) with four SYNs in
+# flight, then a finite unsolicited UDP set (service, common and boundary ports).
+SWEEP_PORTS = 65_535
 UDP_PROBE_PORTS = (1, 7, 9, 22, 53, 67, 68, 123, 443, 1023, 1024,
                    45000, 45001, 49151, 49152, 65535)
-PROBE_PEERS = (50000, 50001)
-PROBE_ISN = 0x70726f00
-PROBE_WINDOW = 4
-PROBE_QUIET = 0.1
-MAX_REVOKE_FRAMES = 2 * (PROBE_PORTS + len(UDP_PROBE_PORTS)) + MAX_FRAMES
-MAX_REVOKE_ACTIONS = MAX_REVOKE_FRAMES + MAX_EVENTS
-MAX_REVOKE_BYTES = 128 * 1024 * 1024
+SWEEP_PEERS = (50000, 50001)
+SWEEP_UDP_SOURCE = 53000
+SWEEP_WINDOW = 4
+# The guest has no neighbour entry before the first sweep, and smoltcp drops a
+# reply while resolving one. The peer's ARP request primes it; it is repeated
+# only until the booting guest first answers.
+SWEEP_ARP_RETRY = 0.5
+SWEEP_ARP_MAX = 240
+# App B's last check (UDP receive) needs about 25 ticks after the UDP burst;
+# the kernel independently fails a post sweep that starts before both apps wait.
+SWEEP_POST_DELAY = 2.0
+SWEEP_LIFETIME = 300
+MAX_SWEEP_FRAMES = 2 * (SWEEP_PORTS + len(UDP_PROBE_PORTS)) + MAX_FRAMES + SWEEP_ARP_MAX
+MAX_SWEEP_ACTIONS = MAX_SWEEP_FRAMES + MAX_EVENTS
+MAX_SWEEP_BYTES = 128 * 1024 * 1024
+SWEEP_LABELS = ("probe-syn", "probe-rst", "udp-probe", "sweep-arp-request", "sweep-arp-reply")
 
 def owner(port: int) -> tuple[int, int]:
     if port not in PORTS:
@@ -86,8 +101,11 @@ def tcp_segment(frame: bytes, probe: bool = False, *, exhaustion=False):
         if (probe or target not in (8080, 8090) or not 40000 <= source <= 65535
                 or source % 2 != int(target == 8090)):
             raise ProtocolError("exhaustion packet outside owner's source-port budget")
+    elif probe == "sweep":
+        if not 1 <= source <= SWEEP_PORTS or target not in SWEEP_PEERS:
+            raise ProtocolError("probe reply outside sweep tuple")
     elif probe:
-        if not 1 <= source <= PROBE_PORTS or target not in PROBE_PEERS:
+        if PROBES.get(source) != target:
             raise ProtocolError("probe reply outside probe tuple")
     else:
         owner(target)
@@ -143,16 +161,11 @@ class Machine:
             raise ValueError("unknown native service peer case")
         self.case = case
         self.ports = PORTS if case in ("normal", "helper") else (8084 if case == "client-exit" else 8080, *range(8090, 8095))
+        self.sweep = case == "port-sweep"
         self.slots = (0, 1) if case in ("normal", "helper") else (1,)
         if case == "device-reset":
             self.ports, self.slots = (8080,), ()
         self.probes = {}
-        self.sweep_phase = None
-        self.sweep_next = 1
-        self.sweep_udp = 0
-        self.sweep_due = None
-        self.sweep_counts = {phase: dict(syns=0, rsts=0, udp=0) for phase in ("pre", "post")}
-        self.held_udp = []
         self.connections = {}
         self.events = []
         self.udp = set()
@@ -163,11 +176,17 @@ class Machine:
                  "valid_data_acks", "fins_sent", "client_fins_acked", "udp_requests",
                  "udp_corrupt_sent", "udp_wrong_scope_sent", "udp_echo_sent", "udp_overflow_sent",
                  "udp_fragment_first_sent", "udp_fragment_tail_sent", "probe_syns", "probe_rsts",
-                 "held_requests", "revoke_rsts", "device_reset_probes", "probe_udp_sent",
-                 "probe_syn_acks", "probe_udp_replies")
+                 "held_requests", "revoke_rsts", "device_reset_probes")
+        if self.sweep:
+            names += ("probe_udp_sent", "probe_syn_acks", "probe_udp_replies",
+                      "sweep_arp_requests", "sweep_arp_replies")
+            self.sweep_phase, self.sweep_next, self.sweep_udp = None, 1, 0
+            self.sweep_counts = {phase: dict(syns=0, rsts=0, udp=0) for phase in ("pre", "post")}
+            self.arp_due, self.post_due = 0.0, None
         self.counts = dict.fromkeys(names, 0)
     def event(self, direction, label, frame, **fields):
-        if self.case == "revoke" and label in ("probe-syn", "probe-rst", "udp-probe"):
+        if self.sweep and label in SWEEP_LABELS:
+            # Sweep frames are proven by the streaming raw capture, not events.
             self.counts["client_frames" if direction == "rx" else "server_frames"] += 1
             return
         if len(self.events) >= MAX_EVENTS:
@@ -202,24 +221,41 @@ class Machine:
     def done(c):
         return c.closed or c.phase in ("refused", "reset", "blackhole", "revoked")
     def held(self, port):
-        return self.case in ("revoke", "device-reset") and port == 8080
+        return self.case in ("revoke", "device-reset", "port-sweep") and port == 8080
+    def probe(self, guest_port):
+        tcp = struct.pack("!HHIIBBHHH", PROBES[guest_port], guest_port, PROBE_ISN + guest_port, 0,
+                          5 << 4, SYN, 4096, 0, 0)
+        value = checksum(PEER_IP + CLIENT_IP + struct.pack("!BBH", 0, 6, len(tcp)) + tcp)
+        packet = self.ip(tcp[:16] + struct.pack("!H", value) + tcp[18:], 6)
+        self.probes[guest_port] = "sent"
+        self.counts["probe_syns"] += 1
+        self.event("tx", "probe-syn", packet, port=guest_port)
+        return packet
+    def probe_reply(self, frame):
+        s = tcp_segment(frame, probe=True)
+        if (self.probes.get(s.source) != "sent" or s.flags != RST | ACK or s.seq != 0 or s.payload
+                or s.ack != (PROBE_ISN + s.source + 1) & MASK):
+            raise ProtocolError("probe answered other than one exact RST")
+        self.probes[s.source] = "reset"
+        self.counts["probe_rsts"] += 1
+        self.event("rx", "probe-rst", frame, port=s.source)
+        return []
     def start_sweep(self, phase):
-        if (phase == "pre" and self.sweep_phase is not None
-                or phase == "post" and self.sweep_phase != "pre-done"):
+        if self.sweep_phase != {"pre": None, "post": "pre-done"}[phase]:
             raise ProtocolError("listener sweep phase out of order")
         self.sweep_phase, self.sweep_next, self.sweep_udp = phase, 1, 0
-        self.sweep_due = None
-        return self.advance_sweep(0.0)
-    def advance_sweep(self, now):
+        return self.advance_sweep()
+    def advance_sweep(self):
+        """Next bounded batch; every state change returns at least one frame."""
         phase = self.sweep_phase
         if phase not in ("pre", "post"):
             return []
         packets = []
-        while self.sweep_next <= PROBE_PORTS and len(self.probes) < PROBE_WINDOW:
+        while self.sweep_next <= SWEEP_PORTS and len(self.probes) < SWEEP_WINDOW:
             guest = self.sweep_next
             self.sweep_next += 1
-            isn = PROBE_ISN + PROBE_PORTS * int(phase == "post") + guest
-            tcp = struct.pack("!HHIIBBHHH", PROBE_PEERS[int(phase == "post")], guest, isn, 0,
+            isn = (PROBE_ISN + SWEEP_PORTS * int(phase == "post") + guest) & MASK
+            tcp = struct.pack("!HHIIBBHHH", SWEEP_PEERS[int(phase == "post")], guest, isn, 0,
                               5 << 4, SYN, 4096, 0, 0)
             value = checksum(PEER_IP + CLIENT_IP + struct.pack("!BBH", 0, 6, len(tcp)) + tcp)
             packet = self.ip(tcp[:16] + struct.pack("!H", value) + tcp[18:], 6)
@@ -230,10 +266,10 @@ class Machine:
             packets.append(packet)
         if self.probes:
             return packets
-        while self.sweep_udp < len(UDP_PROBE_PORTS) and len(packets) < PROBE_WINDOW:
+        while self.sweep_udp < len(UDP_PROBE_PORTS) and len(packets) < SWEEP_WINDOW:
             port = UDP_PROBE_PORTS[self.sweep_udp]
             self.sweep_udp += 1
-            udp = struct.pack("!HHHH", 53000, port, 8 + 16, 0) + b"unsolicited-port"
+            udp = struct.pack("!HHHH", SWEEP_UDP_SOURCE, port, 8 + 16, 0) + b"unsolicited-port"
             value = checksum(PEER_IP + CLIENT_IP + struct.pack("!BBH", 0, 17, len(udp)) + udp) or 0xffff
             packet = self.ip(udp[:6] + struct.pack("!H", value) + udp[8:], 17)
             self.counts["probe_udp_sent"] += 1
@@ -241,21 +277,16 @@ class Machine:
             self.event("tx", "udp-probe", packet)
             packets.append(packet)
         if self.sweep_udp == len(UDP_PROBE_PORTS):
-            if self.sweep_due is None:
-                self.sweep_due = now + PROBE_QUIET
-            elif now >= self.sweep_due and (phase == "pre" or self.held_udp):
-                self.sweep_phase = phase + "-done"
-                if phase == "pre":
-                    packets.append(self.syn_ack(self.connections[8080]))
-                elif self.held_udp:
-                    packets, self.held_udp = self.held_udp, []
+            # A later UDP reply or SYN-ACK still fails the whole run.
+            self.sweep_phase = phase + "-done"
         return packets
-    def probe_reply(self, frame, now):
-        s = tcp_segment(frame, probe=True)
+    def sweep_reply(self, frame):
+        s = tcp_segment(frame, probe="sweep")
         if s.flags & SYN:
             self.counts["probe_syn_acks"] += 1
+            raise ProtocolError("closed port answered SYN with SYN")
         if (self.sweep_phase not in ("pre", "post")
-                or s.target != PROBE_PEERS[int(self.sweep_phase == "post")]
+                or s.target != SWEEP_PEERS[int(self.sweep_phase == "post")]
                 or s.source not in self.probes or s.flags != RST | ACK or s.seq != 0 or s.payload
                 or s.ack != (self.probes[s.source] + 1) & MASK):
             raise ProtocolError("probe answered other than one exact RST")
@@ -263,7 +294,31 @@ class Machine:
         self.counts["probe_rsts"] += 1
         self.sweep_counts[self.sweep_phase]["rsts"] += 1
         self.event("rx", "probe-rst", frame)
-        return self.advance_sweep(now)
+        return self.advance_sweep()
+    def arp_prime(self):
+        if self.counts["sweep_arp_requests"] >= SWEEP_ARP_MAX:
+            raise ProtocolError("guest never answered the sweep ARP request")
+        packet = (b"\xff" * 6 + PEER_MAC + b"\x08\x06" + struct.pack("!HHBBH", 1, 0x800, 6, 4, 1)
+                  + PEER_MAC + PEER_IP + b"\0" * 6 + CLIENT_IP).ljust(60, b"\0")
+        self.counts["sweep_arp_requests"] += 1
+        self.event("tx", "sweep-arp-request", packet)
+        return [packet]
+    def arp_answer(self, frame):
+        if (len(frame) not in (42, 60) or frame[:6] != PEER_MAC
+                or frame[14:22] != struct.pack("!HHBBH", 1, 0x800, 6, 4, 2)
+                or frame[22:28] != CLIENT_MAC or frame[28:32] != CLIENT_IP
+                or frame[32:38] != PEER_MAC or frame[38:42] != PEER_IP or any(frame[42:])
+                or self.counts["sweep_arp_replies"] >= self.counts["sweep_arp_requests"]):
+            raise ProtocolError("invalid or unrequested guest ARP reply")
+        self.counts["sweep_arp_replies"] += 1
+        self.event("rx", "sweep-arp-reply", frame)
+        # Late duplicates of earlier requests are bounded and answer nothing.
+        return self.start_sweep("pre") if self.sweep_phase is None else []
+    def arm_post(self, now):
+        held = self.connections.get(8080)
+        if (self.sweep and self.post_due is None and 1 in self.udp
+                and held is not None and held.phase == "revoked"):
+            self.post_due = now + SWEEP_POST_DELAY
     def arp(self, frame):
         broadcast = frame[:6] == b"\xff" * 6 and frame[32:38] == b"\xff" * 6
         if (len(frame) not in (42, 60) or frame[:6] not in (b"\xff" * 6, PEER_MAC)
@@ -295,7 +350,7 @@ class Machine:
         self.event("tx", label, packet, slot=slot, payload_length=len(payload))
         self.counts[label.replace("-", "_") + "_sent"] += 1
         return packet
-    def udp_request(self, frame):
+    def udp_request(self, frame, now=0.0):
         ip = frame[14:]
         if len(ip) < 28:
             raise ProtocolError("short UDP frame")
@@ -322,30 +377,37 @@ class Machine:
         self.udp.add(slot)
         self.event("rx", "udp", frame, slot=slot, payload_length=len(udp) - 8)
         self.counts["udp_requests"] += 1
+        if self.sweep:
+            self.arm_post(now)
         payload = udp[8:]
-        packets = [self.udp_packet(slot, "udp-corrupt", payload, corrupt=True),
+        return [self.udp_packet(slot, "udp-corrupt", payload, corrupt=True),
                 self.udp_packet(slot, "udp-wrong-scope", payload, wrong=True),
                 self.udp_packet(slot, "udp-echo", payload),
                 self.udp_packet(slot, "udp-overflow", b"overflow must not replace echo")]
-        if self.case == "revoke" and self.sweep_phase != "post-done":
-            self.held_udp = packets
-            return []
-        return packets
     def handle(self, frame, now=0.0):
-        if not 14 <= len(frame) <= MAX_FRAME or self.counts["client_frames"] >= (MAX_REVOKE_FRAMES if self.case == "revoke" else MAX_FRAMES):
+        if not 14 <= len(frame) <= MAX_FRAME or self.counts["client_frames"] >= (MAX_SWEEP_FRAMES if self.sweep else MAX_FRAMES):
             raise ProtocolError("input frame budget")
         if frame[6:12] != CLIENT_MAC:
             raise ProtocolError("wrong client MAC")
+        if self.sweep:
+            ipv4 = len(frame) >= 38 and frame[12:14] == b"\x08\x00"
+            if frame[12:14] == b"\x08\x06" and len(frame) >= 22 and frame[20:22] == b"\0\x02":
+                return self.arp_answer(frame)
+            if ipv4 and frame[23] == 17 and struct.unpack_from("!H", frame, 36)[0] == SWEEP_UDP_SOURCE:
+                self.counts["probe_udp_replies"] += 1
+                raise ProtocolError("unsolicited UDP probe produced a reply")
+            if ipv4 and frame[23] == 6 and struct.unpack_from("!H", frame, 36)[0] in SWEEP_PEERS:
+                return self.sweep_reply(frame)
+            if self.sweep_phase not in ("pre-done", "post-done"):
+                # Quiescence: no app, ARP or other guest traffic during a sweep.
+                raise ProtocolError("guest traffic outside a quiescent sweep point")
         if frame[12:14] == b"\x08\x06":
             return self.arp(frame)
         if len(frame) > 23 and frame[12:14] == b"\x08\x00" and frame[23] == 17:
-            if self.case == "revoke" and len(frame) >= 38 and struct.unpack_from("!H", frame, 36)[0] == 53000:
-                self.counts["probe_udp_replies"] += 1
-                raise ProtocolError("unsolicited UDP probe produced a reply")
-            return self.udp_request(frame)
+            return self.udp_request(frame, now)
         if (self.case == "revoke" and len(frame) >= 38 and frame[12:14] == b"\x08\x00" and frame[23] == 6
-                and struct.unpack_from("!H", frame, 36)[0] in PROBE_PEERS):
-            return self.probe_reply(frame, now)
+                and PROBES.get(struct.unpack_from("!H", frame, 34)[0]) == struct.unpack_from("!H", frame, 36)[0]):
+            return self.probe_reply(frame)
         s = tcp_segment(frame)
         slot, relative = owner(s.target)
         expected_source = 40000 if self.case == "client-exit" and s.target == 8084 else 40000 + slot + 2 * relative
@@ -385,9 +447,9 @@ class Machine:
             if self.held(s.target):
                 if c.syns != 1:
                     raise ProtocolError("held connection SYN retransmitted")
-                if self.case == "device-reset":
+                if self.case in ("device-reset", "port-sweep"):
                     return [self.syn_ack(c)]
-                return self.start_sweep("pre")
+                return [self.probe(22), self.probe(443), self.syn_ack(c)]
             if case == 0 and c.syns == 1:
                 # Independent fragments precede the handshake so the existing
                 # four-frame UDP/backpressure burst and response bound stay intact.
@@ -397,7 +459,7 @@ class Machine:
             return [self.syn_ack(c)]
         if c is None or s.source != c.source:
             raise ProtocolError("TCP without bound tuple")
-        if s.flags & RST and self.case == "revoke" and self.held(s.target):
+        if s.flags & RST and self.case in ("revoke", "port-sweep") and self.held(s.target):
             # Revocation aborts the live, idle connection: the abort's RST|ACK
             # at the next client sequence, never data, FIN or a new SYN. If the
             # held ACK reaches the guest after the abort, the closed tuple may
@@ -410,8 +472,12 @@ class Machine:
             c.resets.add(s.flags)
             c.phase = "revoked"
             self.counts["revoke_rsts"] += 1
+            if self.sweep:
+                # The post sweep covers the aborted local port with every other.
+                self.arm_post(now)
+                return []
             # The aborted local port must not accept a new inbound connection.
-            return self.start_sweep("post") if first else []
+            return [self.probe(40000)] if first else []
         if s.flags & RST:
             if case not in (1, 2, 4) or s.payload or s.flags not in (RST, RST | ACK) or s.seq != c.client_next:
                 raise ProtocolError("unexpected client RST")
@@ -504,9 +570,15 @@ class Machine:
     def poll(self, now):
         packets = [self.valid_data(c) for c in self.connections.values()
                    if c.corrupt_due is not None and now >= c.corrupt_due]
-        # Keep the existing four-frame response bound even when a delayed
-        # ordinary response coincides with a sweep's next UDP batch.
-        return packets or self.advance_sweep(now)
+        if packets or not self.sweep:
+            return packets
+        # Every state change here returns frames, so a recorded poll replays it.
+        if self.sweep_phase is None and now >= self.arp_due:
+            self.arp_due = now + SWEEP_ARP_RETRY
+            return self.arp_prime()
+        if self.sweep_phase == "pre-done" and self.post_due is not None and now >= self.post_due:
+            return self.start_sweep("post")
+        return self.advance_sweep()
     def summary(self):
         cases = {str(p): dict(phase=c.phase, source=c.source, syns=c.syns, request_bytes=len(c.request),
                              request_sha256=hashlib.sha256(c.request).hexdigest(), data_acked=c.data_acked,
@@ -542,16 +614,25 @@ class Machine:
                         and bytes(held.request) == REQUESTS[0] and not held.data_acked
                         and self.counts["held_requests"] == 1 and RST | ACK in held.resets
                         and self.counts["revoke_rsts"] == len(held.resets)
-                        and not self.probes and self.sweep_phase == "post-done" and not self.held_udp
-                        and all(v == dict(syns=PROBE_PORTS, rsts=PROBE_PORTS, udp=len(UDP_PROBE_PORTS))
+                        and self.probes == {22: "reset", 443: "reset", 40000: "reset"}
+                        and self.counts["probe_syns"] == self.counts["probe_rsts"] == 3)
+        elif self.sweep:
+            held = self.connections.get(8080)
+            complete = (complete and held is not None and held.phase == "revoked"
+                        and bytes(held.request) == REQUESTS[0] and not held.data_acked
+                        and self.counts["held_requests"] == 1 and RST | ACK in held.resets
+                        and self.counts["revoke_rsts"] == len(held.resets)
+                        and not self.probes and self.sweep_phase == "post-done"
+                        and all(v == dict(syns=SWEEP_PORTS, rsts=SWEEP_PORTS, udp=len(UDP_PROBE_PORTS))
                                 for v in self.sweep_counts.values())
-                        and self.counts["probe_syns"] == self.counts["probe_rsts"] == 2 * PROBE_PORTS
+                        and self.counts["probe_syns"] == self.counts["probe_rsts"] == 2 * SWEEP_PORTS
                         and self.counts["probe_udp_sent"] == 2 * len(UDP_PROBE_PORTS)
-                        and self.counts["probe_syn_acks"] == self.counts["probe_udp_replies"] == 0)
+                        and self.counts["probe_syn_acks"] == self.counts["probe_udp_replies"] == 0
+                        and 1 <= self.counts["sweep_arp_replies"] <= self.counts["sweep_arp_requests"])
         elif self.probes or any(self.counts[k] for k in ("probe_syns", "probe_rsts", "held_requests", "revoke_rsts")):
             complete = False
-        return dict(case=self.case, complete=complete, counts=dict(self.counts), cases=cases, events=list(self.events),
-                    sweeps={phase: dict(values) for phase, values in self.sweep_counts.items()} if self.case == "revoke" else {},
+        extra = dict(sweeps={k: dict(v) for k, v in self.sweep_counts.items()}) if self.sweep else {}
+        return dict(case=self.case, complete=complete, counts=dict(self.counts), cases=cases, events=list(self.events), **extra,
                     request_sha256=[hashlib.sha256(r).hexdigest() for r in REQUESTS],
                     response_sha256=[hashlib.sha256(r).hexdigest() for r in RESPONSES],
                     udp_sha256=[hashlib.sha256(r).hexdigest() for r in UDP_PAYLOADS])
@@ -635,7 +716,7 @@ def validate_transcript(evidence, *, case=None):
         raise ProtocolError("peer transcript case binding changed")
     if selected == "exhaustion":
         return validate_discard(evidence)
-    if selected == "revoke":
+    if selected == "port-sweep":
         return validate_sweep(evidence)
     actions = evidence.get("actions")
     if not isinstance(actions, list) or not 1 <= len(actions) <= MAX_EVENTS:
@@ -677,28 +758,29 @@ def validate_sweep(evidence):
     path = evidence.get("raw_path")
     if not isinstance(path, str) or evidence.get("actions") != []:
         raise ProtocolError("listener sweep requires a streaming causal capture")
-    machine, last, actions, digest = Machine("revoke"), 0.0, 0, hashlib.sha256()
+    machine, last, actions, digest = Machine("port-sweep"), 0.0, 0, hashlib.sha256()
+    def packet(value):
+        if (not isinstance(value, str) or not 28 <= len(value) <= MAX_FRAME * 2 or len(value) % 2
+                or re.fullmatch("[0-9a-f]+", value) is None):
+            raise ProtocolError("malformed listener packet")
+        return bytes.fromhex(value)
     try:
         with os.fdopen(os.open(path, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK), "rb") as stream:
             info = os.fstat(stream.fileno())
-            if not stat.S_ISREG(info.st_mode) or not 1 <= info.st_size <= MAX_REVOKE_BYTES:
+            if not stat.S_ISREG(info.st_mode) or not 1 <= info.st_size <= MAX_SWEEP_BYTES:
                 raise ProtocolError("unbounded listener capture")
             while raw := stream.readline(16 * 1024 + 1):
                 actions += 1
-                if len(raw) > 16 * 1024 or not raw.endswith(b"\n") or actions > MAX_REVOKE_ACTIONS:
+                if len(raw) > 16 * 1024 or not raw.endswith(b"\n") or actions > MAX_SWEEP_ACTIONS:
                     raise ProtocolError("unbounded listener action")
                 digest.update(raw)
                 action = json.loads(raw)
                 if not isinstance(action, dict) or set(action) not in ({"kind", "at", "input", "output"}, {"kind", "at", "output"}):
                     raise ProtocolError("malformed listener action")
                 now = action["at"]
-                if type(now) not in (int, float) or not math.isfinite(now) or not last <= now <= 180:
+                if type(now) not in (int, float) or not math.isfinite(now) or not last <= now <= SWEEP_LIFETIME:
                     raise ProtocolError("listener action clock")
                 last = now
-                def packet(value):
-                    if not isinstance(value, str) or not 28 <= len(value) <= MAX_FRAME * 2 or len(value) % 2 or re.fullmatch("[0-9a-f]+", value) is None:
-                        raise ProtocolError("malformed listener packet")
-                    return bytes.fromhex(value)
                 outputs = action["output"]
                 if not isinstance(outputs, list) or len(outputs) > 4:
                     raise ProtocolError("unbounded listener output")
@@ -724,16 +806,17 @@ def validate_sweep(evidence):
 
 class Peer:
     def __init__(self, timeout=180, *, case="normal", raw_path=None):
-        if type(timeout) not in (int, float) or not 0 < timeout <= 180:
+        if type(timeout) not in (int, float) or not 0 < timeout <= (SWEEP_LIFETIME if case == "port-sweep" else 180):
             raise ValueError("bounded peer lifetime required")
-        if (case in ("exhaustion", "revoke")) != (raw_path is not None):
-            raise ValueError("exhaustion/revoke require a raw streaming capture path")
+        if (case in ("exhaustion", "port-sweep")) != (raw_path is not None):
+            raise ValueError("only exhaustion and port-sweep require a raw streaming capture path")
+        self.sweep = case == "port-sweep"
+        self.capture_bytes = self.capture_actions = 0
+        self.capture_digest = hashlib.sha256()
         self.raw_path = Path(raw_path) if raw_path is not None else None
         self.timeout, self.port = timeout, 0
         self.machine = DiscardMachine() if case == "exhaustion" else Machine(case)
         self.actions = []
-        self.capture_bytes = self.capture_actions = 0
-        self.capture_digest = hashlib.sha256()
         self.socket = self.thread = None
         self.stop = threading.Event()
         self.connected, self.error, self.rejected_frame = False, None, None
@@ -753,24 +836,31 @@ class Peer:
         started, connection, decoder = time.monotonic(), None, FrameDecoder()
         raw_capture = None
         def record(action):
-            if isinstance(self.machine, Machine) and self.machine.case == "revoke":
-                raw = (json.dumps(action, separators=(",", ":")) + "\n").encode("ascii")
-                self.capture_bytes += len(raw)
-                self.capture_actions += 1
-                if len(raw) > 16 * 1024 or self.capture_bytes > MAX_REVOKE_BYTES or self.capture_actions > MAX_REVOKE_ACTIONS:
-                    raise ProtocolError("listener capture budget exhausted")
-                raw_capture.write(raw)
-                self.capture_digest.update(raw)
-            else:
+            if not self.sweep:
                 self.actions.append(action)
                 if len(self.actions) > MAX_EVENTS:
                     raise ProtocolError("action budget exhausted")
+                return
+            raw = (json.dumps(action, separators=(",", ":")) + "\n").encode("ascii")
+            self.capture_bytes += len(raw)
+            self.capture_actions += 1
+            if (len(raw) > 16 * 1024 or self.capture_bytes > MAX_SWEEP_BYTES
+                    or self.capture_actions > MAX_SWEEP_ACTIONS):
+                raise ProtocolError("listener capture budget exhausted")
+            raw_capture.write(raw)
+            self.capture_digest.update(raw)
         def send(packets):
-            if len(packets) > 4:
-                raise ProtocolError("outbound packet batch exceeded bound")
-            if packets:
-                connection.sendall(b"".join(framed(p) for p in packets))
-                self.wire_frames_sent += len(packets)
+            if self.sweep:
+                # One write per bounded batch keeps the sweep window moving.
+                if len(packets) > 4:
+                    raise ProtocolError("outbound packet batch exceeded bound")
+                if packets:
+                    connection.sendall(b"".join(framed(p) for p in packets))
+                    self.wire_frames_sent += len(packets)
+                return
+            for p in packets:
+                connection.sendall(framed(p))
+                self.wire_frames_sent += 1
         try:
             if self.raw_path is not None:
                 raw_capture = self.raw_path.open("xb")
@@ -783,7 +873,8 @@ class Peer:
                     if address[0] != "127.0.0.1":
                         raise ProtocolError("nonlocal connection")
                     connection.settimeout(0.02)
-                    connection.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
+                    if self.sweep:
+                        connection.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
                     self.connected = True
                 try:
                     data = connection.recv(4096)
@@ -797,9 +888,9 @@ class Peer:
                 if not data:
                     decoder.finish()
                     break
-                if isinstance(self.machine, Machine) and self.machine.case == "revoke":
-                    # A 4096-byte chunk contains fewer than 256 minimum frames.
-                    # The sweep's cumulative limit is enforced by Machine.handle.
+                if self.sweep:
+                    # A 4096-byte chunk holds fewer than 256 minimum frames; the
+                    # sweep's cumulative input bound is enforced by Machine.handle.
                     decoder.count = 0
                 for frame in decoder.feed(data):
                     now = time.monotonic() - started
@@ -808,7 +899,7 @@ class Peer:
                     except ProtocolError:
                         self.rejected_frame = dict(length=len(frame), prefix_hex=frame[:128].hex())
                         raise
-                    if isinstance(self.machine, DiscardMachine):
+                    if raw_capture is not None and not self.sweep:
                         raw_capture.write(framed(frame))
                     else:
                         record(dict(kind="input", at=now, input=frame.hex(), output=[p.hex() for p in packets]))
@@ -838,11 +929,13 @@ class Peer:
         result.update(kind="synthetic Ethernet server; native client evidence required separately",
                       connected=self.connected, error=self.error, rejected_frame=self.rejected_frame,
                       wire_frames_sent=self.wire_frames_sent, actions=list(self.actions), passed=False)
-        if self.raw_path is not None:
-            result.update(raw_path=str(self.raw_path))
-            if isinstance(self.machine, Machine) and self.machine.case == "revoke":
-                result.update(capture=dict(actions=self.capture_actions, bytes=self.capture_bytes,
-                                           sha256=self.capture_digest.hexdigest()))
+        if self.sweep:
+            result.update(raw_path=str(self.raw_path),
+                          capture=dict(actions=self.capture_actions, bytes=self.capture_bytes,
+                                       sha256=self.capture_digest.hexdigest()))
+        elif self.raw_path is not None:
+            result.update(kind="synthetic discard peer; native allocator evidence required separately",
+                          raw_path=str(self.raw_path))
         if self.connected and self.error is None and result["complete"]:
             try:
                 validate_transcript(result)
