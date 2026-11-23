@@ -49,8 +49,13 @@ class Ledger(unittest.TestCase):
             ledger = root / "ledger.json"
             rr.save_ledger({"tasks": [task("A"), task("B")]}, ledger)
             controller = rr.Controller(rr.Config(), root / "state")
+
+            def preflight():
+                controller.callbacks = "cb"
+                return "a" * 40
             with unittest.mock.patch.object(rr, "LEDGER", ledger), \
-                    unittest.mock.patch.object(controller, "preflight", return_value="a" * 40):
+                    unittest.mock.patch.object(rr, "git_callbacks", return_value="cb"), \
+                    unittest.mock.patch.object(controller, "preflight", side_effect=preflight):
                 with self.assertRaisesRegex(rr.Stop, "lock"):
                     controller.prepare_manual()
                 controller.acquire()
@@ -62,6 +67,8 @@ class Ledger(unittest.TestCase):
                     self.assertIn("the lead runs the task's checks and gates", brief)
                     self.assertNotIn("the controller runs the task's checks", brief)
                     self.assertFalse(first["unattended_ready"])
+                    marker = json.loads((root / "state" / rr.CALLBACKS_MARKER).read_text())
+                    self.assertEqual(marker["baseline"], "cb")  # the next preflight compares, never adopts
                     with self.assertRaisesRegex(rr.Stop, "already active"):
                         controller.prepare_manual()
                 finally:
@@ -465,9 +472,14 @@ class Session(unittest.TestCase):
             (tools / "tests").mkdir()
             (tools / "tests" / "x.py").write_text("")
             rr.subprocess.run(["git", "-C", str(repo), "add", "tools/tests/x.py"], check=True, env=env)
-            (tools / "tests" / "scratch.py").write_text("")  # untracked, but not a top-level name
+            (tools / "tests" / "notes.md").write_text("")  # untracked, but not importable
+            (tools / "tests" / "__pycache__").mkdir()
+            (tools / "tests" / "__pycache__" / "x.cpython-313.pyc").write_bytes(b"")  # never read
             with unittest.mock.patch.dict("os.environ", env, clear=True):
                 self.assertEqual(rr.planted_modules(str(tools)), [])
+                (tools / "tests" / "scratch.py").write_text("")  # nested entries reach later test runs
+                self.assertEqual(rr.planted_modules(str(tools)), ["tests/scratch.py"])
+                (tools / "tests" / "scratch.py").unlink()
                 (tools / "yaml.py").write_text("")
                 (tools / "shlex").mkdir()
                 (tools / "shlex" / "__init__.py").write_text("")
@@ -651,6 +663,8 @@ class Session(unittest.TestCase):
                 fresh = rr.Controller(rr.Config(), root / "state")
                 no_worker = rr.subprocess.CompletedProcess([], 1, "", "")
                 with unittest.mock.patch.object(rr, "git_callbacks", return_value=later), \
+                        unittest.mock.patch.object(rr, "load_ledger", return_value={"tasks": []}), \
+                        unittest.mock.patch.object(rr, "planted_modules", return_value=[]), \
                         unittest.mock.patch.object(rr.subprocess, "run", return_value=no_worker), \
                         unittest.mock.patch.object(rr, "git", side_effect=rr.Stop("git reached")) as git:
                     with self.assertRaisesRegex(rr.Stop, "interrupted session" if stops else "git reached"):
@@ -719,6 +733,172 @@ class Session(unittest.TestCase):
                                                                            "verified")
         argv = [c.args[0] for c in run.call_args_list]
         self.assertEqual([a[1:4] for a in argv], [["-I", "-B", "tools/progress.py"]] * 2)
+
+
+class RunnerResiduals(unittest.TestCase):
+    """Negative tests for the roadmap-runner residuals of issue #416."""
+
+    def repo(self, tmp, ignore=""):
+        env = {k: v for k, v in __import__("os").environ.items() if not k.startswith("GIT_")}
+        repo = Path(tmp) / "repo"
+        repo.mkdir()
+        (repo / ".gitignore").write_text(ignore)
+        for argv in (["init", "-q"], ["config", "user.email", "t@example.invalid"], ["config", "user.name", "t"],
+                     ["add", ".gitignore"], ["commit", "-q", "--no-verify", "-m", "base"]):
+            rr.subprocess.run(["git", "-C", str(repo), *argv], check=True, env=env)
+        return repo, env
+
+    def test_controller_git_runs_no_repository_hook(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            repo, env = self.repo(tmp)
+            marker = Path(tmp) / "HOOK-RAN"
+            for name in ("pre-commit", "commit-msg", "post-commit", "post-checkout", "pre-push"):
+                hook = repo / ".git" / "hooks" / name
+                hook.write_text(f"#!/bin/sh\necho {name} >> {marker}\n")
+                hook.chmod(0o755)
+            (repo / "f.txt").write_text("a\n")
+            with unittest.mock.patch.object(rr, "ROOT", repo), \
+                    unittest.mock.patch.dict("os.environ", env, clear=True):
+                rr.git("add", "--", "f.txt")
+                rr.git("commit", "--no-verify", "-q", "-m", "x")
+                (repo / "f.txt").write_text("b\n")
+                rr.Controller(rr.Config(), Path(tmp) / "state").revert(["f.txt"])
+                before = rr.git_callbacks()
+                (repo / ".git" / "hooks" / "post-commit").write_text("#!/bin/sh\ntrue\n")
+                self.assertNotEqual(before, rr.git_callbacks())  # hooks stay fingerprinted
+            self.assertEqual((repo / "f.txt").read_text(), "a\n")
+            self.assertFalse(marker.exists())
+            self.assertIn("core.hooksPath=/dev/null", rr.CONTROLLER_GIT_CONFIG)
+
+    def test_push_and_commits_disable_hooks(self):
+        controller = rr.Controller(rr.Config(push=True), Path(tempfile.gettempdir()))
+        with unittest.mock.patch.object(rr.subprocess, "run") as run, unittest.mock.patch.object(rr.time, "sleep"):
+            run.return_value = rr.subprocess.CompletedProcess([], 0, "", "")
+            controller.push()
+        argv = run.call_args.args[0]
+        self.assertIn("core.hooksPath=/dev/null", argv)
+        self.assertIn("--no-verify", argv)
+        source = Path(rr.__file__).read_text()
+        self.assertNotIn('git("commit", "-q"', source)  # every controller commit passes --no-verify
+
+    def test_ignored_files_a_session_creates_are_out_of_scope(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            repo, env = self.repo(tmp, "build/\n*.log\n.tools/\n")
+            (repo / "build").mkdir()
+            (repo / "build" / "cache.bin").write_text("old")
+            state = repo / "build" / "roadmap-pipeline"
+            state.mkdir()
+            with unittest.mock.patch.object(rr, "ROOT", repo), \
+                    unittest.mock.patch.dict("os.environ", env, clear=True):
+                controller = rr.Controller(rr.Config(), state)
+                before = controller.ignored_files()
+                self.assertEqual(list(before), ["build/cache.bin"])  # controller state is excluded
+                (state / "lease.json").write_text("{}")
+                (repo / ".tools").mkdir()
+                (repo / ".tools" / "actionlint").write_text("#!/bin/sh\n")
+                (repo / "run.log").write_text("x")
+                planted = controller.new_ignored(before)
+                self.assertEqual(planted, [".tools/actionlint", "run.log"])
+                self.assertEqual(controller.changed(), [])  # git status alone never saw them
+                controller.revert(planted)
+                self.assertEqual(controller.new_ignored(before), [])
+                (repo / "build" / "cache.bin").write_text("planted")
+                with self.assertRaisesRegex(rr.Stop, "changed or removed ignored files"):
+                    controller.new_ignored(before)
+                (repo / "build" / "cache.bin").unlink()
+                with self.assertRaisesRegex(rr.Stop, "changed or removed ignored files"):
+                    controller.new_ignored(before)
+
+    def test_verifier_fingerprint_covers_ignored_files(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            repo, env = self.repo(tmp, "out/\n")
+            with unittest.mock.patch.object(rr, "ROOT", repo), \
+                    unittest.mock.patch.dict("os.environ", env, clear=True):
+                controller = rr.Controller(rr.Config(), Path(tmp) / "state")
+                before = controller.tree_fingerprint()
+                (repo / "out").mkdir()
+                (repo / "out" / "x").write_text("x")
+                self.assertNotEqual(before, controller.tree_fingerprint())
+
+    def test_preflight_refuses_planted_modules_before_every_session(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            no_worker = rr.subprocess.CompletedProcess([], 1, "", "")
+            with unittest.mock.patch.object(rr.subprocess, "run", return_value=no_worker), \
+                    unittest.mock.patch.object(rr, "load_ledger", return_value={"tasks": []}), \
+                    unittest.mock.patch.object(rr, "git_callbacks", return_value="cb"), \
+                    unittest.mock.patch.object(rr, "planted_modules", return_value=["tests/evil.py"]), \
+                    unittest.mock.patch.object(rr, "git") as git:
+                with self.assertRaisesRegex(rr.Stop, "tests/evil.py"):
+                    rr.Controller(rr.Config(), Path(tmp)).preflight()
+            git.assert_not_called()
+
+    def test_run_refuses_git_overrides_before_a_session_is_spent(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            controller = rr.Controller(rr.Config(), Path(tmp))
+            with unittest.mock.patch.dict("os.environ", {"GIT_EDITOR": "vi"}), \
+                    unittest.mock.patch.object(controller, "init_check") as init, \
+                    unittest.mock.patch.object(controller, "run_task") as run:
+                with self.assertRaisesRegex(rr.Stop, "controller environment refused"):
+                    controller.loop(1, True)
+            init.assert_not_called()  # not even the init session is spent
+            run.assert_not_called()
+
+    def test_a_path_that_survives_the_revert_stops_the_controller(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            repo, env = self.repo(tmp, "out/\n")
+            outside = Path(tmp) / "outside"
+            outside.write_text("x")
+            controller = rr.Controller(rr.Config(max_repairs=0), Path(tmp) / "state")
+
+            def worker(*args, **kwargs):
+                (repo / "out").mkdir()
+                (repo / "out" / "link").symlink_to(outside)  # revert() never follows it out of the checkout
+                return {"exit_code": 0, "is_error": False, "output": {"state": "implemented"}}
+            with unittest.mock.patch.object(rr, "ROOT", repo), \
+                    unittest.mock.patch.object(rr, "require_pipeline_release"), \
+                    unittest.mock.patch.dict("os.environ", env, clear=True), \
+                    unittest.mock.patch.object(controller, "preflight", return_value="a" * 40), \
+                    unittest.mock.patch.object(controller, "heartbeat"), \
+                    unittest.mock.patch.object(controller, "session", side_effect=worker), \
+                    unittest.mock.patch.object(controller, "run_checks") as checks:
+                with self.assertRaisesRegex(rr.Stop, "survived the revert"):
+                    controller.run_task(task("A"))
+            checks.assert_not_called()
+            self.assertTrue(outside.exists())
+
+    @unittest.mock.patch.object(rr, "controller_environment", return_value={})  # independent of GIT_* in the shell
+    def test_failed_init_check_oracles_stop_the_loop(self, _):
+        good = {"session_id": "s", "exit_code": 0, "transcript": {}, "output": {},
+                "deny_probe_file_absent": True, "checkout_clean_after": True}
+        for field, value in (("deny_probe_file_absent", False), ("checkout_clean_after", False), ("exit_code", 1)):
+            with self.subTest(field=field), tempfile.TemporaryDirectory() as tmp:
+                controller = rr.Controller(rr.Config(), Path(tmp))
+                with unittest.mock.patch.object(controller, "init_check", return_value=dict(good, **{field: value})), \
+                        unittest.mock.patch.object(rr, "load_ledger") as ledger:
+                    with self.assertRaisesRegex(rr.Stop, "init check failed"):
+                        controller.loop(1, True)
+                ledger.assert_not_called()  # no task selected after a failed check
+        with tempfile.TemporaryDirectory() as tmp:
+            controller = rr.Controller(rr.Config(), Path(tmp))
+            with unittest.mock.patch.object(controller, "init_check", return_value=good), \
+                    unittest.mock.patch.object(rr, "load_ledger", return_value={"tasks": []}):
+                self.assertEqual(controller.loop(1, True), "no-ready-task")
+
+    def test_active_manual_claim_keeps_its_baseline(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            state = Path(tmp)
+            marker = state / rr.CALLBACKS_MARKER
+            marker.write_text(json.dumps({"baseline": "cb", "session": "manual A"}))
+            no_worker = rr.subprocess.CompletedProcess([], 1, "", "")
+            with unittest.mock.patch.object(rr.subprocess, "run", return_value=no_worker), \
+                    unittest.mock.patch.object(rr, "load_ledger", return_value={"tasks": [task("A", "active")]}), \
+                    unittest.mock.patch.object(rr, "git_callbacks", return_value="cb") as callbacks, \
+                    unittest.mock.patch.object(rr, "git") as git:
+                with self.assertRaisesRegex(rr.Stop, "manual task"):
+                    rr.Controller(rr.Config(), state).preflight()
+            self.assertTrue(marker.exists())  # not retired while the manual session may run
+            callbacks.assert_not_called()
+            git.assert_not_called()
 
 
 if __name__ == "__main__":

@@ -46,10 +46,13 @@ from pathlib import Path
 sys.pycache_prefix = tempfile.mkdtemp(prefix="roadmap-pycache-")
 
 # Repository-location overrides inherited from a shell or hook would point Git at another
-# repository; other GIT_* variables (for example GIT_SSL_CAINFO for push) are kept.
+# repository. Other GIT_* variables are kept here, but an automated run refuses them before its
+# first session (common.controller_environment), because the isolated gate refuses them too.
 GIT_LOCATION_VARS = ("GIT_DIR", "GIT_WORK_TREE", "GIT_INDEX_FILE", "GIT_OBJECT_DIRECTORY",
                      "GIT_ALTERNATE_OBJECT_DIRECTORIES", "GIT_COMMON_DIR", "GIT_NAMESPACE", "GIT_PREFIX",
                      "GIT_CEILING_DIRECTORIES", "GIT_DISCOVERY_ACROSS_FILESYSTEM")
+# Controller Git runs with credentials over a tree the worker wrote: no fsmonitor and no hooks.
+CONTROLLER_GIT_CONFIG = ("-c", "core.fsmonitor=false", "-c", "core.hooksPath=/dev/null")
 
 
 def git_env() -> dict[str, str]:
@@ -57,20 +60,21 @@ def git_env() -> dict[str, str]:
 
 
 def planted_modules(tools: str = TOOLS_DIR) -> list[str]:
-    """Untracked or ignored importable entries directly under tools/: modules, sourceless
+    """Untracked or ignored importable entries anywhere under tools/: modules, sourceless
     bytecode, extension modules and package directories. The sibling imports below put tools/
-    first on sys.path, so such a file would shadow a library. Listed from the parent directory,
-    so a planted tools/.git cannot answer for it."""
+    on sys.path, so such a file would shadow a library, and a nested one would reach the lead's
+    later test runs. Listed from the parent directory, so a planted tools/.git cannot answer for it.
+    Checked at startup and again before every session."""
     parent, base = os.path.split(tools)
-    listed = subprocess.run(["git", "-c", "core.fsmonitor=false", "-C", parent, "ls-files", "-z", "--others",
+    listed = subprocess.run(["git", *CONTROLLER_GIT_CONFIG, "-C", parent, "ls-files", "-z", "--others",
                              "--directory", "--", base + "/"], capture_output=True, text=True, env=git_env())
     if listed.returncode:
         return [f"<git ls-files failed: {listed.stderr.strip()[-200:]}>"]
-    # Only entries directly in tools/ shadow a top-level import; tracked subdirectories do not.
     names = [p[len(base) + 1:] for p in listed.stdout.split("\0") if p.startswith(base + "/")]
     importable = tuple(importlib.machinery.all_suffixes())
-    found = sorted(n for n in names if n and "/" not in n.rstrip("/") and n != "__pycache__/"
-                   and (n.endswith("/") or n.endswith(importable) or "." not in n))
+    # Bytecode caches are never read (sys.pycache_prefix); every other importable name counts.
+    found = sorted(n for n in names if n and "__pycache__" not in n.split("/")
+                   and (n.endswith("/") or n.endswith(importable) or "." not in n.rsplit("/", 1)[-1]))
     return ([".git"] if os.path.lexists(os.path.join(tools, ".git")) else []) + found
 
 
@@ -79,7 +83,7 @@ if __name__ == "__main__" and (planted := planted_modules()):
 from agent_gate import (FAIL_EXIT as GATE_FAIL_EXIT, PROGRESS_CHECK, GatePlan,  # noqa: E402
                         resolve as resolve_gate, run_gate)
 from agent_pipeline import TaskError, is_protected, require_pipeline_release  # noqa: E402
-from common import agent_source_paths  # noqa: E402
+from common import agent_source_paths, controller_environment  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[1]
 LEDGER = ROOT / "docs" / "roadmap-pipeline" / "ledger.json"
@@ -385,7 +389,12 @@ def git_callbacks() -> str:
                             capture_output=True, text=True, env=git_env()).stdout
     parts = [config]
     for name in ("hooks", "info/attributes"):
-        path = Path(git("rev-parse", "--git-path", name).strip())
+        # Not git(): its hooksPath override would resolve `hooks` to /dev/null. rev-parse runs no hook.
+        located = subprocess.run(["git", "-c", "core.fsmonitor=false", "rev-parse", "--git-path", name], cwd=ROOT,
+                                 capture_output=True, text=True, env=git_env())
+        if located.returncode:
+            raise Stop(f"git rev-parse --git-path {name} failed: {located.stderr.strip()[-400:]}")
+        path = Path(located.stdout.strip())
         path = path if path.is_absolute() else ROOT / path
         files = sorted(path.rglob("*")) if path.is_dir() else [path]
         for file in files:
@@ -422,7 +431,7 @@ def gate_report(log: Path) -> tuple[str, str]:
 
 
 def git(*args: str, check: bool = True) -> str:
-    done = subprocess.run(["git", "-c", "core.fsmonitor=false", *args], cwd=ROOT, capture_output=True, text=True,
+    done = subprocess.run(["git", *CONTROLLER_GIT_CONFIG, *args], cwd=ROOT, capture_output=True, text=True,
                           env=git_env())
     if check and done.returncode:
         raise Stop(f"git {' '.join(args[:3])} failed ({done.returncode}): {done.stderr.strip()[-800:]}")
@@ -523,7 +532,12 @@ class Controller:
 
     def preflight(self) -> str:
         self.refuse_live_workers()
+        # A manual Codex session is not a tagged process: its claim keeps its baseline alive.
+        if active := [t["id"] for t in load_ledger(LEDGER)["tasks"] if t["status"] == "active"]:
+            raise Stop(f"manual task {active} is active; validate it and update the ledger first")
         self.check_saved_baseline(retire=True)  # no worker is alive any more
+        if planted := planted_modules():
+            raise Stop(f"untracked or ignored modules under tools/ could run as code: {planted}")
         self.callbacks = git_callbacks()
         branch = git("branch", "--show-current").strip()
         if branch != self.cfg.branch:
@@ -662,10 +676,35 @@ class Controller:
 
     # --- validation owned by the controller ---
     def tree_fingerprint(self) -> str:
-        return sha256(git("status", "--porcelain", "--untracked-files=all") + git("diff", "HEAD"))
+        return sha256(git("status", "--porcelain", "--untracked-files=all") + git("diff", "HEAD")
+                      + json.dumps(self.ignored_files(), sort_keys=True))
 
     def changed(self) -> list[str]:
         return parse_porcelain(git("status", "--porcelain", "--untracked-files=all"))
+
+    def ignored_files(self) -> dict[str, list[int]]:
+        """Ignored files outside the controller's own state, which `git status` never reports.
+        shortcut: lstat identity, not content hashes (target/ is large); upgrade if a session
+        gains a tool that can restore timestamps."""
+        try:
+            own = self.state.resolve().relative_to(ROOT.resolve()).as_posix() + "/"
+        except ValueError:
+            own = None  # state outside the checkout
+        snapshot = {}
+        for path in filter(None, git("ls-files", "-z", "--others", "--ignored", "--exclude-standard").split("\0")):
+            if own and path.startswith(own):
+                continue
+            with contextlib.suppress(FileNotFoundError):
+                info = (ROOT / path).lstat()
+                snapshot[path] = [info.st_mode, info.st_size, info.st_mtime_ns, info.st_ino]
+        return snapshot
+
+    def new_ignored(self, before: dict[str, list[int]]) -> list[str]:
+        """Ignored files a session created; one it changed or removed cannot be restored."""
+        after = self.ignored_files()
+        if altered := sorted(p for p in before if after.get(p) != before[p]):
+            raise Stop(f"a session changed or removed ignored files; review them: {altered[:20]}")
+        return sorted(set(after) - set(before))
 
     def revert(self, paths: list[str]) -> None:
         """Only for paths the worker created or edited in a checkout that was clean before."""
@@ -781,10 +820,10 @@ Rules (binding, in addition to AGENTS.md):
         if not self.lock_acquired:
             raise Stop("manual claim requires the controller lock")
         self.check_controls()
-        head = self.preflight()
         ledger = load_ledger(LEDGER)
         if any(task["status"] == "active" for task in ledger["tasks"]):
             raise Stop("a manual task is already active; validate or recover it first")
+        head = self.preflight()
         task = select_task(ledger)
         if task is None:
             raise Stop("no eligible READY task; preserve active/manual work")
@@ -802,6 +841,9 @@ Rules (binding, in addition to AGENTS.md):
                 "stdout": str(directory / "events.jsonl"), "stderr": str(directory / "stderr.log"),
                 "manual_required": True, "unattended_ready": False}
         atomic_write(directory / "dispatch.json", json.dumps(plan, indent=2))
+        # The manual session may change Git state: the next preflight compares, never adopts.
+        atomic_write(self.state / CALLBACKS_MARKER, json.dumps({"baseline": self.callbacks,
+                                                                "session": f"manual {task['id']}"}))
         update_task(task["id"], path=LEDGER, status="active", history={
             "at": now(), "event": "manual-codex-claim", "base": head,
             "dispatch": str(directory / "dispatch.json"), "brief_sha256": plan["brief_sha256"]})
@@ -876,16 +918,21 @@ Return the structured result.
             self.check_controls()
             adir = task_dir / f"attempt-{attempt}"
             adir.mkdir(parents=True, exist_ok=True)
+            ignored = self.ignored_files()
             worker = self.session("worker", task["id"], adir, self.worker_prompt(task, head, feedback),
                                   WORKER_SCHEMA, allow_rules(("Edit", "Write", "MultiEdit")),
                                   "acceptEdits", self.cfg.worker_timeout, effort=effort_for(self.cfg, task))
             record = {"attempt": attempt, "worker": worker}
             attempts.append(record)
             changed = self.changed()
-            if bad := [p for p in changed if not in_write_set(p, task["write_paths"])]:
+            # New ignored files are never in scope: nothing commits them and later runs may use them.
+            if bad := [p for p in changed if not in_write_set(p, task["write_paths"])] + self.new_ignored(ignored):
                 self.revert(bad)
                 record["reverted_out_of_scope"] = bad
                 changed = self.changed()
+                if leftover := [p for p in changed if not in_write_set(p, task["write_paths"])] \
+                        + self.new_ignored(ignored):  # e.g. a symlink revert() refuses to follow
+                    raise Stop(f"out-of-scope paths survived the revert; review them: {leftover[:20]}")
             out = worker.get("output") or {}
             if worker["exit_code"] != 0 or worker["is_error"]:
                 kind = "session"
@@ -957,7 +1004,7 @@ Return the structured result.
                    f"Criterion {task['criterion']}; verified by controller checks and an independent "
                    f"read-only session. Evidence level: {task.get('evidence_level')}. No acceptance "
                    f"change. Receipt: {rel}\n\n" + TRAILERS)
-        git("commit", "-q", "-m", message)
+        git("commit", "--no-verify", "-q", "-m", message)
         commit = git("rev-parse", "HEAD").strip()
         self.record_assessment(task, commit, "verified")
         self.push()
@@ -991,7 +1038,7 @@ Return the structured result.
         views = ["docs/progress.json", "README.md", "docs/PROGRESS.md", "docs/assets/progress.svg"]
         git("add", "--", *views)
         if git("diff", "--cached", "--name-only").strip():
-            git("commit", "-q", "-m", f"progress: assess roadmap task {task['id']} ({score}/100 unchanged)\n\n"
+            git("commit", "--no-verify", "-q", "-m", f"progress: assess roadmap task {task['id']} ({score}/100 unchanged)\n\n"
                 f"Assessment of {commit}; no criterion changed.\n\n" + TRAILERS)
 
     def push(self) -> None:
@@ -999,7 +1046,7 @@ Return the structured result.
             return
         for delay in (0, 2, 4, 8, 16):
             time.sleep(delay)
-            done = subprocess.run(["git", "-c", "core.fsmonitor=false", "push", "-q", "-u", "origin",
+            done = subprocess.run(["git", *CONTROLLER_GIT_CONFIG, "push", "--no-verify", "-q", "-u", "origin",
                                    self.cfg.branch], cwd=ROOT,
                                   capture_output=True, text=True, env=git_env())
             if done.returncode == 0:
@@ -1010,7 +1057,7 @@ Return the structured result.
         update_task(task_id, status=status, history={"at": now(), "event": status, "run": self.run_id,
                                                      "reason": reason})
         git("add", "--", str(LEDGER.relative_to(ROOT)))
-        git("commit", "-q", "-m", f"roadmap({task_id}): mark {status}\n\n{reason[:900]}\n\n" + TRAILERS)
+        git("commit", "--no-verify", "-q", "-m", f"roadmap({task_id}): mark {status}\n\n{reason[:900]}\n\n" + TRAILERS)
         task = next(t for t in load_ledger()["tasks"] if t["id"] == task_id)
         self.record_assessment(task, git("rev-parse", "HEAD").strip(), status)
         self.push()
@@ -1041,10 +1088,17 @@ Return the structured result.
             print(json.dumps({"at": now(), **fields}), flush=True)
 
         self.check_controls()  # a STOP from an earlier run must hold before any Git call
+        try:  # the isolated gate refuses this environment: fail before any session is spent
+            controller_environment()
+        except ValueError as error:
+            raise Stop(f"controller environment refused: {error}") from error
         if init:
             record = self.init_check()
             event(event="init-check", session=record["session_id"], exit=record["exit_code"],
                   transcript=record["transcript"], output=record["output"])
+            if not (record["exit_code"] == 0 and record["deny_probe_file_absent"] and record["checkout_clean_after"]):
+                raise Stop("init check failed: the session must exit 0, refuse the deny probe and "
+                           "leave the checkout clean")
         done = 0
         while done < max_tasks:
             self.check_controls()
