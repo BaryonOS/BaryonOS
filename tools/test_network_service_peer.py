@@ -18,7 +18,6 @@ from network_service_peer import (ACK, FIN, PSH, RST, SYN, CLIENT_IP, CLIENT_MAC
                                   FrameDecoder, Machine, DiscardMachine, Peer, ProtocolError, checksum,
                                   framed, validate_transcript, SWEEP_PEERS, SWEEP_PORTS, UDP_PROBE_PORTS,
                                   MAX_SWEEP_FRAMES)
-import run_network_service
 from run_network_service import (BOOT, HELPER_FENCE, HELPER_ROLES, OFFSETS, REVOKE_ROLES, ROLES, ROOT, evaluate, execute_native,
                                  native_limits, record_streams, sequence)
 
@@ -788,7 +787,7 @@ else:
                 doctored = dict(replay, counts=dict(replay["counts"], sweep_arp_requests=requests,
                                                     sweep_arp_replies=replies))
                 with (self.subTest(requests=requests, replies=replies),
-                      mock.patch.object(run_network_service, "validate_transcript", return_value=doctored),
+                      mock.patch("run_network_service.validate_transcript", return_value=doctored),
                       self.assertRaisesRegex(ValueError, "ARP prime accounting")):
                     evaluate(report(server - (requests - replies)), peer, case="port-sweep")
 
