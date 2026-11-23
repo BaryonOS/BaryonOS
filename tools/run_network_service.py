@@ -464,7 +464,13 @@ def evaluate(report, peer, *, case="normal"):
         return observed
     # Port sweep: ARP primes sent while the guest still boots may never reach
     # the service; every delivered prime is answered, so the gap is exact.
-    undelivered = counts["sweep_arp_requests"] - counts["sweep_arp_replies"] if case == "port-sweep" else 0
+    undelivered = 0
+    if case == "port-sweep":
+        requests, replies = counts["sweep_arp_requests"], counts["sweep_arp_replies"]
+        # The exact-gap premise fails closed: no answered prime, or more answers than primes.
+        if type(requests) is not int or type(replies) is not int or not 1 <= replies <= requests:
+            raise ValueError("Sweep ARP prime accounting cannot be exact")
+        undelivered = requests - replies
     if (net["NET_TX_COMPLETED"] != counts["client_frames"]
             or net["NET_RX_DELIVERED"] != counts["server_frames"] - undelivered
             or counts["udp_requests"] != (2 if case in ("normal", "helper") else 1)
