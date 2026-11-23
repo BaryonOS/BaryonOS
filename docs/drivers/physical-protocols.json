@@ -232,9 +232,9 @@
       },
       "status": "blocked",
       "blocking_reasons": [
-        "kernel/src/m2/xhci.rs accepts only QEMU's qemu-xhci controller (PCI 1b36:000d) at the fixed fixture MMIO address 0x3f210000; any physical xHCI controller is rejected before enumeration.",
+        "kernel/src/m2/xhci.rs accepts only QEMU's qemu-xhci controller (PCI 1b36:000d) at 0000:00:xx.0, maps its discovered BAR0 (at most 64 KiB, at or above 0x80000000) at the fixed kernel virtual address 0x3f210000, and rejects any physical xHCI controller before enumeration.",
         "Bus mastering is enabled only inside an established native VT-d domain; the DMAR/VT-d availability of the physical target is unknown until HW-INV has run.",
-        "No interrupt, hub, general hotplug or reattach support exists; the expected input sequence is currently driven by QEMU QMP injection in tools/run_usb_hid.py.",
+        "No interrupt, hub or general hotplug support exists. Same-port keyboard reattach is fixture-only: the QEMU native-usb-hid-reattach profile re-enumerates a keyboard on the same port and rejects stale work (docs/verification/h02-native-reattach-20261119), but no physical USB reattach is implemented or demonstrated. The expected input sequence is currently driven by QEMU QMP injection in tools/run_usb_hid.py.",
         "The terminal path writes QEMU's isa-debug-exit port 0xF4, which is undefined on physical PCs.",
         "No physical boot image exists, and the HW-FR target, signer and capture route are undecided (OD-HW-TARGETS, OD-HW-SIGNERS, OD-HW-CAPTURE)."
       ],
