@@ -6,6 +6,8 @@ publish = false
 
 [features]
 native = []
+# H04-T3: link-loss/reconnect phase for kernel feature test-system-net-link.
+link = ["native"]
 
 [dependencies]
 nieuw-os-sdk-runtime = { path = "../../runtime" }

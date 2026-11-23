@@ -34,6 +34,40 @@ const DNS_REJECTS: u64 = 456;
 const RX_TIMEOUTS: u64 = 464;
 const CACHE_INTACT: u64 = 472;
 const STALE_CAP: u64 = 480;
+// H04-T3 link phase (cargo feature `link`, kernel feature `test-system-net-link`).
+// Input: the kernel-written mode word. Output: evidence words read at exit.
+#[cfg(feature = "link")]
+const LINK_MODE: u64 = 592;
+#[cfg(feature = "link")]
+const LINK_SUPPORTED: u64 = 600;
+#[cfg(feature = "link")]
+const LINK_FIRST_EPOCH: u64 = 608;
+#[cfg(feature = "link")]
+const LINK_DOWN_EPOCH: u64 = 616;
+#[cfg(feature = "link")]
+const LINK_UP_EPOCH: u64 = 624;
+#[cfg(feature = "link")]
+const LINK_TX_REFUSED: u64 = 632;
+#[cfg(feature = "link")]
+const LINK_RX_REFUSED: u64 = 640;
+#[cfg(feature = "link")]
+const LINK_STALE_ABSENT: u64 = 648;
+#[cfg(feature = "link")]
+const LINK_ARP: u64 = 656;
+#[cfg(feature = "link")]
+const LINK_ECHO: u64 = 664;
+#[cfg(feature = "link")]
+const LINK_DENIED: u64 = 672;
+#[cfg(feature = "link")]
+const LINK_OFFLINE: u64 = 680;
+#[cfg(feature = "link")]
+const LINK_PREDOWN: u64 = 688;
+#[cfg(feature = "link")]
+const LINK_LAST_EPOCH: u64 = 696;
+/// Query budget while the host toggles the link; the kernel deadline and the
+/// runner timeout bound the wall time.
+#[cfg(feature = "link")]
+const LINK_POLLS: usize = 5_000_000;
 
 fn fail(step: u64) -> ! {
     support::put(240, step);
@@ -147,6 +181,168 @@ fn udp(payload: &[u8], ip: [u8; 4], port: u16, source_port: u16, output: &mut [u
     .unwrap_or_else(|_| fail(22))
 }
 
+#[cfg(feature = "link")]
+fn link_denied(result: Result<u64, Error>, code: i64, step: u64) {
+    check(result == Err(Error::Kernel(code)), step);
+    bump(LINK_DENIED);
+}
+
+/// Poll the kernel's (epoch, up) until `accept` holds. Again (-8) is only
+/// valid before the kernel's first sample; any other error fails the step.
+#[cfg(feature = "link")]
+fn wait_link(source: NetworkSource, step: u64, accept: impl Fn(u64, bool) -> bool) -> (u64, bool) {
+    support::put(240, step);
+    for _ in 0..LINK_POLLS {
+        tick();
+        match native::net_link(source) {
+            Ok((epoch, up)) => {
+                support::put(LINK_LAST_EPOCH, epoch);
+                if accept(epoch, up) {
+                    return (epoch, up);
+                }
+            }
+            Err(error) if error.is_again() => {}
+            Err(_) => fail(step),
+        }
+        let _ = native::yield_now();
+    }
+    fail(step)
+}
+
+/// Raw ABI checks, then wait for the first kernel link sample. Returns false
+/// when the device has no STATUS feature (-15): the link is assumed active.
+#[cfg(feature = "link")]
+fn link_start(source: NetworkSource, handle: Handle, wrong_type: u64) -> bool {
+    for offset in (LINK_SUPPORTED..=LINK_LAST_EPOCH).step_by(8) {
+        support::put(offset, 0);
+    }
+    link_denied(raw(0x74, [handle.raw(), 1, 0, 0, 0, 0]), -1, 50);
+    link_denied(raw(0x74, [wrong_type, 0, 0, 0, 0, 0]), -6, 51);
+    support::put(240, 52);
+    for _ in 0..LINK_POLLS {
+        tick();
+        match native::net_link(source) {
+            Ok((epoch, true)) => {
+                support::put(LINK_SUPPORTED, 1);
+                support::put(LINK_FIRST_EPOCH, epoch);
+                support::put(LINK_LAST_EPOCH, epoch);
+                return true;
+            }
+            Ok((_, false)) => {}
+            Err(Error::Kernel(-15)) => return false,
+            Err(error) if error.is_again() => {}
+            Err(_) => fail(53),
+        }
+        let _ = native::yield_now();
+    }
+    fail(54)
+}
+
+#[cfg(feature = "link")]
+fn link_payload(tag: &[u8], output: &mut [u8; 48]) -> usize {
+    output[..tag.len()].copy_from_slice(tag);
+    output[tag.len()..tag.len() + 8].copy_from_slice(&support::word(176).to_le_bytes());
+    tag.len() + 8
+}
+
+/// An echo whose reply stays undelivered. The runner turns the link off only
+/// after the kernel holds this reply; the kernel must destroy it at the down
+/// edge, so it can never surface in the next link epoch.
+#[cfg(feature = "link")]
+fn predown_echo(source: NetworkSource, tx: &mut [u8; 1514]) {
+    let mut payload = [0; 48];
+    let size = link_payload(b"nieuw-os-link/old:", &mut payload);
+    let length = udp(&payload[..size], PEER_IP, 9000, 49154, tx);
+    send(source, &tx[..length], 55);
+    bump(LINK_PREDOWN);
+}
+
+/// Down: both directions refused with -23. Up: no stale frame, a fresh ARP
+/// resolution in the new epoch and a fresh UDP echo with new bytes.
+#[cfg(feature = "link")]
+fn link_cycle(source: NetworkSource, tx: &mut [u8; 1514], rx: &mut [u8; 1514], clock: &mut u64) {
+    let first = support::word(LINK_FIRST_EPOCH);
+    let (down, _) = wait_link(source, 56, |epoch, up| !up && epoch > first);
+    support::put(LINK_DOWN_EPOCH, down);
+    let length = arp::build_request(LOCAL, PEER_IP, tx).unwrap_or_else(|_| fail(57));
+    check(
+        native::net_send(source, &tx[..length], 100) == Err(Error::Kernel(native::NET_LINK_DOWN)),
+        58,
+    );
+    bump(LINK_TX_REFUSED);
+    check(
+        native::net_receive(source, rx) == Err(Error::Kernel(native::NET_LINK_DOWN)),
+        59,
+    );
+    bump(LINK_RX_REFUSED);
+    let (up, _) = wait_link(source, 60, |epoch, up| up && epoch > down);
+    support::put(LINK_UP_EPOCH, up);
+    check(
+        native::net_receive(source, rx).is_err_and(|error| error.is_again()),
+        61,
+    );
+    support::put(LINK_STALE_ABSENT, 1);
+    // A new link epoch invalidates neighbour state: resolve from scratch.
+    let mut neighbor = NeighborSlot::new(LOCAL).unwrap_or_else(|_| fail(62));
+    check(neighbor.begin(PEER_IP, *clock, 1_000_000).is_ok(), 63);
+    check(neighbor.lookup(PEER_IP, *clock).is_none(), 64);
+    let length = arp::build_request(LOCAL, PEER_IP, tx).unwrap_or_else(|_| fail(65));
+    send(source, &tx[..length], 66);
+    let length = receive(source, rx, clock).unwrap_or_else(|| fail(67));
+    // The first frame of the new epoch is this reply, not the old echo.
+    check(
+        neighbor.accept_reply(&rx[..length], *clock, 1_000_000) == Ok(PEER_MAC),
+        68,
+    );
+    bump(LINK_ARP);
+    let mut payload = [0; 48];
+    let size = link_payload(b"nieuw-os-link/new:", &mut payload);
+    let length = udp(&payload[..size], PEER_IP, 9000, 49155, tx);
+    send(source, &tx[..length], 69);
+    let length = receive(source, rx, clock).unwrap_or_else(|| fail(70));
+    let echo = parse(&rx[..length]).unwrap_or_else(|_| fail(71));
+    check(
+        echo.source_address() == PEER_IP
+            && echo.destination_port() == 49155
+            && echo.payload() == &payload[..size],
+        72,
+    );
+    bump(LINK_ECHO);
+    let (epoch, link_up) = wait_link(source, 73, |_, _| true);
+    check(link_up && epoch == up, 74);
+}
+
+/// Watch the runner's handshaked toggles until the kernel latches the
+/// exhausted transition budget; Offline (-14) then refuses send and receive.
+#[cfg(feature = "link")]
+fn link_storm(source: NetworkSource, tx: &mut [u8; 1514], rx: &mut [u8; 1514]) {
+    support::put(240, 75);
+    let mut latched = false;
+    for _ in 0..LINK_POLLS {
+        tick();
+        match native::net_link(source) {
+            Ok((epoch, _)) => support::put(LINK_LAST_EPOCH, epoch),
+            Err(Error::Kernel(-14)) => {
+                latched = true;
+                break;
+            }
+            Err(_) => fail(76),
+        }
+        let _ = native::yield_now();
+    }
+    check(latched, 77);
+    check(
+        native::net_send(source, &tx[..60], 100) == Err(Error::Kernel(-14)),
+        78,
+    );
+    bump(LINK_OFFLINE);
+    check(
+        native::net_receive(source, rx) == Err(Error::Kernel(-14)),
+        79,
+    );
+    bump(LINK_OFFLINE);
+}
+
 #[no_mangle]
 #[link_section = ".text.entry"]
 pub extern "C" fn _start() -> ! {
@@ -182,6 +378,8 @@ fn main() -> ! {
         7,
     );
     denied(raw(0x71, [handle.raw(), 0, 0, 0, 0, 0]), -1, 8);
+    #[cfg(feature = "link")]
+    let supported = link_start(source, handle, wrong_type);
 
     let mut clock = 0u64; // Monotonic receive-poll steps, not wall-clock seconds.
     let mut neighbor = NeighborSlot::new(LOCAL).unwrap_or_else(|_| fail(9));
@@ -296,6 +494,24 @@ fn main() -> ! {
     bump(RX_TIMEOUTS);
     check(neighbor.lookup(PEER_IP, clock) == Some(PEER_MAC), 42);
     bump(CACHE_INTACT);
+    // Extra TX completions and RX frames of the link phase.
+    #[allow(unused_mut)]
+    let mut extra = (0, 0);
+    #[cfg(feature = "link")]
+    if supported {
+        predown_echo(source, &mut tx);
+        extra = match support::word(LINK_MODE) {
+            1 => {
+                link_cycle(source, &mut tx, &mut rx, &mut clock);
+                (3, 2)
+            }
+            2 => {
+                link_storm(source, &mut tx, &mut rx);
+                (1, 0)
+            }
+            _ => fail(80),
+        };
+    }
 
     check(native::close(handle).is_ok(), 43);
     denied(
@@ -304,10 +520,12 @@ fn main() -> ! {
         44,
     );
     bump(STALE_CAP);
+    #[cfg(feature = "link")]
+    link_denied(raw(0x74, [handle.raw(), 0, 0, 0, 0, 0]), -4, 81);
     check(
         support::word(DENIED) == 7
-            && support::word(TX_COMPLETIONS) == 8
-            && support::word(RX_FRAMES) == 7,
+            && support::word(TX_COMPLETIONS) == 8 + extra.0
+            && support::word(RX_FRAMES) == 7 + extra.1,
         45,
     );
     support::put(240, 0);
