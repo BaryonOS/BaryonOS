@@ -715,11 +715,11 @@ else:
             with self.assertRaises(ValueError):
                 Peer(181, case=case)
         with tempfile.TemporaryDirectory() as directory:
-            Peer(300, case="port-sweep", raw_path=Path(directory) / "sweep.jsonl")
+            Peer(360, case="port-sweep", raw_path=Path(directory) / "sweep.jsonl")
             with self.assertRaises(ValueError):
-                Peer(301, case="port-sweep", raw_path=Path(directory) / "sweep.jsonl")
+                Peer(361, case="port-sweep", raw_path=Path(directory) / "sweep.jsonl")
             with self.assertRaises(ValueError):
-                Peer(300, case="port-sweep")
+                Peer(360, case="port-sweep")
 
     def test_live_sweep_decoder_crosses_old_256_frame_budget_with_bounded_window(self):
         with tempfile.TemporaryDirectory() as directory:

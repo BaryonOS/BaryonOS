@@ -41,7 +41,7 @@ EXHAUSTION_TICK_DEADLINE = 12_000
 # about 1.4 s, so the host watchdog stays 40 s above the guest budget and the
 # kernel's own deadline fails the run first.
 PORT_SWEEP_TICK_DEADLINE = 32_000
-PORT_SWEEP_TIMEOUT = 360
+PORT_SWEEP_TIMEOUT = SWEEP_LIFETIME
 BOOT = ("BOOT:EBS_OK", "KERNEL:ENTRY", "BOOTINFO:OK", "KS-01:PASS", "KS-02:PASS", "KS-03:PASS", "M2:PASS")
 OFFSETS = (240, 400, 408, 416, 424, 432, 440, 448, 456, 464, 472, 480, 488, 496, 504, 512, 520, 528, 536, 544, 552)
 ROLES = ("SERVICE", "APP_A", "APP_B")
