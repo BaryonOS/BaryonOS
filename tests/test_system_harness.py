@@ -426,20 +426,20 @@ class PowerS3HarnessTests(unittest.TestCase):
                      power_transcript("power-flush-error") + "\n" + stray, 33, False)
         with self.assertRaisesRegex(ValueError, "outside"):
             evaluate("normal", transcript("normal") + "\n" + stray, 33, False)
-        import run_system as runner
+        from run_system import COLD_CASES, evaluate_cold
         with self.assertRaisesRegex(ValueError, "outside"):
-            runner.evaluate_cold(next(iter(runner.COLD_CASES)), stray, 33, False)
+            evaluate_cold(next(iter(COLD_CASES)), stray, 33, False)
 
     def test_wrong_machine_or_accelerator_is_refused_before_launch(self):
-        import run_system as runner
+        from run_system import run_system
         for env in ({"NOS_QEMU_MACHINE": "pc-q35-10.0"},):
             with self.subTest(env=env), unittest.mock.patch.dict(os.environ, env), \
                     self.assertRaisesRegex(ValueError, "power-s3 runs only"):
-                runner.run_system("power-s3")
+                run_system("power-s3")
         with unittest.mock.patch.dict(os.environ, {"NOS_QEMU_MACHINE": "pc-q35-8.2"}), \
-                unittest.mock.patch.object(runner, "qemu_accel", return_value="kvm"), \
+                unittest.mock.patch("run_system.qemu_accel", return_value="kvm"), \
                 self.assertRaisesRegex(ValueError, "power-s3 runs only"):
-            runner.run_system("power-s3")
+            run_system("power-s3")
 
     def test_a_passing_s3_image_of_the_same_source_may_recover(self):
         check_parent(dict(case="power-s3", passed=True, kernel_feature="test-system-s3",

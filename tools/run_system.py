@@ -404,10 +404,10 @@ def run_system(case: str, volume_dir: Path | None = None, *, timeout: int = MAX_
         raise ValueError("QMP link control and a STATUS-less NIC belong to the link profile only")
     wake, machine = None, None
     if case == "power-s3":
-        import run_sleep  # lazy: run_sleep's wake hook reuses run_net_link, which imports this module
+        from run_sleep import SystemWake  # lazy: run_sleep's wake hook reuses run_net_link, which imports this module
         # The S3 evidence boundary: the measured QEMU 8.2 q35/OVMF profile under TCG only.
         machine = s3_machine()
-        wake = run_sleep.SystemWake(time.monotonic() + timeout)
+        wake = SystemWake(time.monotonic() + timeout)
     use_tcp = selected == TCP_FEATURE.get(case)
     use_network = selected == network_feature or use_tcp or link
     if use_network != (type(network_port) is int and 1024 <= network_port <= 65535):
