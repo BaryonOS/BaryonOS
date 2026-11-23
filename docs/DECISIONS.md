@@ -86,9 +86,11 @@ and documentation checks (`tools/tests/test_agent_governance.py`,
 `tools/check_english_docs.py`, `tools/progress.py --check`) pass on this
 change; they do not prove that sessions follow the rule.
 
-**Migration and rollback:** to restore the previous model, the project owner
-revokes this ADR; workstreams then disable any armed auto-merge on their open
-pull requests and return to draft or "final" handoff to a single coordinator.
+**Migration and rollback:** to restore the previous model, workstreams first
+disable every armed auto-merge on their open pull requests
+(`gh pr merge <N> --disable-auto`) and do not re-enable it during the
+transition; only then does the project owner revoke this ADR. Workstreams
+return to draft or "final" handoff to a single coordinator.
 Pull requests already merged under this ADR stay merged and are judged on
 their recorded checks.
 
