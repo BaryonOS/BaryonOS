@@ -305,9 +305,12 @@ class RepositoryStateTests(unittest.TestCase):
         self.fixture = Fixture(self.root)
 
     def test_repository_protocols_follow_owner_decisions_and_signers(self):
-        """The live catalogue must agree with its recorded decisions; it is not required to stay blocked."""
+        """The live catalogue must agree with its recorded decisions and, until a recorded owner decision changes
+        the live state, every protocol stays blocked (pinned below)."""
         summary = hw_evidence.check()
         self.assertEqual(summary["protocols"], 7)
+        # Live-state pins: change them only together with the recorded owner decision that readies a protocol.
+        self.assertEqual(summary["ready"], [])
         protocols = hw_evidence.load_protocols()
         blockers = hw_evidence.open_blockers(json.loads((hw_evidence.ROOT / hw_evidence.MATRIX).read_text()))
         self.assertEqual(summary["ready"], sorted(i for i, p in protocols.items() if p["status"] == "ready"))
@@ -332,8 +335,10 @@ class RepositoryStateTests(unittest.TestCase):
             self.assertGreaterEqual(summary["signers"], 1)
             self.assertEqual(summary["signer_status"], "configured")
         for protocol in protocols.values():
+            self.assertTrue(protocol["blocking_reasons"])
             self.assertEqual(set(protocol["device_markers"]), set(protocol["devices"]))
             self.assertEqual(protocol["prerequisites"], list(hw_evidence.PREREQUISITES[protocol["id"]]))
+        self.assertEqual(protocols["R03-INSTALL"]["status"], "blocked")
 
     def test_all_open_decisions_keep_every_protocol_blocked(self):
         """Synthetic all-blocked state: no target, no signer, every owner decision open."""
@@ -1187,7 +1192,15 @@ class ProtocolEvidenceTests(unittest.TestCase):
                  "CPUID vendor"),
                 ("cpuid repeated", dict(lines=at(cpuid, lines[cpuid], lines[cpuid])), "repeats"),
                 ("cpuid malformed", dict(lines=at(cpuid, "HWINV:CPUID:VENDOR=Intel:HYPERVISOR=0")),
-                 "malformed HWINV:CPUID")):
+                 "malformed HWINV:CPUID"),
+                # Trailing bytes after a valid prefix: a prefix match would accept these.
+                ("secure boot trailing bytes", dict(lines=at(secure, "HWINV:SECUREBOOT=0X")),
+                 "malformed HWINV:SECUREBOOT"),
+                ("cpuid trailing bytes", dict(lines=at(cpuid, "HWINV:CPUID:VENDOR=GenuineIntel:HYPERVISOR=0junk")),
+                 "malformed HWINV:CPUID"),
+                ("log absent, inventory unknown, record enabled",
+                 dict(inventory=physical_inventory(secure_boot="unknown"), secure_boot="enabled",
+                      lines=at(secure, "HWINV:SECUREBOOT=ABSENT")), "Secure Boot")):
             with self.subTest(case=label):
                 self.rejects(self.signed(**changes), reason)
         # ABSENT maps to an unknown inventory state, never to disabled; the record keeps the operator observation.

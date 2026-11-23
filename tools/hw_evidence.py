@@ -775,6 +775,9 @@ def _validate_record(name: str, root: Path, active: frozenset[str]) -> dict:
     for line in secure_lines:
         secure = HWINV_SECUREBOOT.fullmatch(line)
         _require(secure is not None, f"malformed HWINV:SECUREBOOT marker {line!r}")
+        # Firmware without the SecureBoot variable cannot have enforced it, whatever the operator recorded.
+        _require(secure[1] != "ABSENT" or record["secure_boot"] != "enabled",
+                 "serial log Secure Boot observation ABSENT contradicts the record (secure_boot=enabled)")
         _require(inventory["secure_boot"] == SECUREBOOT_STATES[secure[1]],
                  f"serial log Secure Boot observation {secure[1]} contradicts the inventory "
                  f"(secure_boot={inventory['secure_boot']})")
