@@ -353,8 +353,9 @@ def _summary(receipt: dict) -> str:
     if not receipt["retained"]:
         lines += ["", "**WARNING: No eligible test evidence was found. The receipt is metadata only.**"]
     if receipt["unretained_required_paths"] and receipt["job_status_before_archive"] in ALREADY_FAILED:
-        lines += ["", "**ERROR: Required evidence was not retained. The job has already failed, "
-                  "so the reports that exist are kept for diagnosis.**"]
+        already_failed = ("**ERROR: Required evidence was not retained. The job has already failed, "
+                          "so the reports that exist are kept for diagnosis.**")
+        lines += ["", already_failed]
     elif receipt["unretained_required_paths"]:
         lines += ["", "**ERROR: Required evidence was not retained; this collection must fail.**"]
     if receipt["omitted_list_truncated_count"]:
