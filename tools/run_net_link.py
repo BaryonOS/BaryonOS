@@ -275,7 +275,8 @@ def check_markers(case: str, stdout: str, want: dict) -> dict:
         closes = [index for index, line in enumerate(lines) if line.startswith(f"NETLINK:WINDOW_CLOSE_{kind}:")]
         if not len(opens) == len(closes) == len(downs):
             raise ValueError(f"{len(opens)} {kind} down-windows for {len(downs)} down edges")
-        previous = -1
+        # The first window opens after the initial up edge too; with no up edge before the first down none can.
+        previous = max((index for index in ups if downs and index < downs[0]), default=len(lines))
         for opened, down, closed in zip(opens, downs, closes):
             up = next((index for index in ups if index > down), None)
             if up is None or not previous < opened < down < closed < up:

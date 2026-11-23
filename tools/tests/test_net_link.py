@@ -298,6 +298,13 @@ class VerifierTests(unittest.TestCase):
         with self.subTest(case="tx_only_late"):
             self.assert_rejected("normal", tx_only_late, "TX window closed after the link came back")
 
+        def before_first_up(_report, stdout, *_):  # first window opened before the initial up edge
+            up = m("NETLINK:EVENT:UP:", 1) + "\n"
+            return stdout.replace(block, "", 1).replace(up, block + up)
+        for case in ("normal", "storm"):
+            with self.subTest(case=f"before_first_up_{case}"):
+                self.assert_rejected(case, before_first_up, "window opened before the initial up edge")
+
         def storm_last_late(_report, stdout, *_):  # the last storm window closes after EVENT:UP:9
             up = m("NETLINK:EVENT:UP:", 9) + "\n"
             head, tail = stdout.rsplit(close + up, 1)
