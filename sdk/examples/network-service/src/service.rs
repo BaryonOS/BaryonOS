@@ -50,8 +50,11 @@ struct Pending {
     ticket: u64,
     length: usize,
 }
-/// DHCP XIDs and retry jitter come only from the entropy grant this service
-/// already holds; a failed read is an error, never a constant fallback.
+/// DHCP XIDs, retry jitter and DNS IDs/ports come only from the entropy grant
+/// this service already holds; a failed read is an error, never a constant
+/// fallback. One draw waits for at most 100,000 yielding polls or until the
+/// keyring's 64-tick device timeout, whichever ends first. After that timeout
+/// the keyring keeps the grant offline for the rest of the boot.
 struct Entropy {
     source: EntropySource,
     draws: u64,
@@ -117,8 +120,11 @@ impl Bridge {
                 .unwrap_or_else(|_| fail(33));
             // Recorded Resolve queries leave only with fresh IDs/ports drawn
             // from the same entropy grant; no entropy, no query. A failed draw
-            // skips DNS for this iteration so queued frames still drain; the
-            // unsent query is retried with a new draw on a later one.
+            // skips DNS for this iteration so queued frames still drain. Later
+            // iterations draw again only until the query's deadline: a busy or
+            // short keyring answer can clear, but an offline grant cannot, and
+            // the unsent query then ends as `Status::Timeout` for its caller.
+            // The next DHCP draw on an offline grant stops the service (33).
             match service.drive_dns(tick, random) {
                 Ok(_) | Err(DnsDriveError::Random(())) => {}
                 Err(DnsDriveError::Service(_)) => fail(40),

@@ -847,3 +847,31 @@ fn stored_outcome_is_bounded_by_the_query_deadline() {
         assert_eq!(resolve(s, 0, 5, "a.org", expired).status(), Status::Again);
     });
 }
+
+#[test]
+fn query_that_never_gets_entropy_ends_as_timeout_without_further_draws() {
+    with_service([grant(DNS, 53), grant(DNS, 53)], |s| {
+        let now = acquire(s, 0, 0x1234, true);
+        let mut rng = dns_random();
+        assert_eq!(resolve(s, 0, 1, "example.org", now).status(), Status::Again);
+        arp_dns(s, &mut rng, now);
+        // An offline grant fails every draw: the query never leaves.
+        let mut offline = Entropy(VecDeque::new());
+        for at in [now, now + 1] {
+            assert_eq!(
+                s.drive_dns(at, &mut offline),
+                Err(DnsDriveError::Random(()))
+            );
+            assert!(s.transmission_at(at).unwrap().is_none());
+        }
+        // From the deadline on no draw is attempted, and the caller gets a
+        // definite failure.
+        let at = now + DNS_TIMEOUT_TICKS;
+        assert_eq!(s.drive_dns(at, &mut offline), Ok(0));
+        assert!(s.transmission_at(at).unwrap().is_none());
+        assert_eq!(
+            resolve(s, 0, 2, "example.org", at).status(),
+            Status::Timeout
+        );
+    });
+}
