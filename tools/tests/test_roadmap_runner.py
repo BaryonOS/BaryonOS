@@ -1577,8 +1577,7 @@ class RunnerResiduals(unittest.TestCase):
                     with unittest.mock.patch.object(rr, "isolate_imports"), \
                             unittest.mock.patch.object(rr.sys, "argv", ["roadmap_runner.py", "stop"]), \
                             contextlib.redirect_stdout(io.StringIO()):
-                        rr.main()
-                    self.assertFalse((state / "STOP").is_symlink())  # replaced, not followed
+                        self.assertEqual(rr.main(), 2)  # refused by the state pin, never followed
                 else:
                     target = state / "x.json"
                     target.with_suffix(f".json.tmp{os.getpid()}").symlink_to(record)
@@ -1611,12 +1610,12 @@ class RunnerResiduals(unittest.TestCase):
                     link.mkdir(exist_ok=True)
                     state.symlink_to(link, target_is_directory=True)
                     if entry == "acquire":
-                        with self.assertRaisesRegex(rr.Stop, "remove the planted link"):
+                        with self.assertRaisesRegex(rr.Stop, "remove the link"):
                             controller.acquire()
                     else:
                         code, message = self.resume("--accept", digest)  # the reviewed digest
                         self.assertEqual(code, 2, message)
-                        self.assertIn("remove the planted link", message)
+                        self.assertIn("remove the link", message)
                     self.assertEqual(controller.manual_claim(), "L01-T3")  # the claim and its marker stand
                     self.assertTrue((sibling / rr.CALLBACKS_MARKER).exists())  # and the sibling's
                     self.assertFalse((link / "controller.lock").exists())
@@ -1628,7 +1627,7 @@ class RunnerResiduals(unittest.TestCase):
             state.rmdir()
             (repo / "build").rmdir()
             (repo / "build").symlink_to(sibling, target_is_directory=True)
-            with self.assertRaisesRegex(rr.Stop, "remove the planted link"):
+            with self.assertRaisesRegex(rr.Stop, "remove the link"):
                 controller.acquire()
             self.assertEqual(os.listdir(sibling), [])  # checked before mkdir followed the link
             # 213797e9: main() made the state directory first, and stop/pause wrote through the link.
@@ -1637,7 +1636,7 @@ class RunnerResiduals(unittest.TestCase):
                         unittest.mock.patch.object(rr.sys, "argv", ["roadmap_runner.py", command]), \
                         contextlib.redirect_stdout(io.StringIO()) as out:
                     self.assertEqual(rr.main(), 2, command)
-                self.assertIn("remove the planted link", out.getvalue())
+                self.assertIn("remove the link", out.getvalue())
                 self.assertEqual(os.listdir(sibling), [], command)
 
     def test_stop_and_pause_do_not_write_through_a_linked_state_directory(self):
@@ -1676,6 +1675,54 @@ class RunnerResiduals(unittest.TestCase):
             self.assertEqual(len(calls), 2)
             self.assertTrue((sibling / rr.CALLBACKS_MARKER).exists())
 
+    def test_a_link_inside_the_state_directory_carries_no_write(self):
+        # c2028873 pinned only the directory itself: manual/ or runs/ linked by an exited session took
+        # brief.md, dispatch.json and the run logs into another checkout's trusted home.
+        for planted in ("manual", "runs", "runs/<run>/<task>"):
+            with self.subTest(planted=planted), tempfile.TemporaryDirectory() as tmp, \
+                    self.live_state(tmp) as (repo, state, controller):
+                sibling = controller.marker().parent.parent / ("0" * 16)
+                sibling.mkdir(parents=True)
+                link = state / planted.replace("<run>", "r1").replace("<task>", "A")
+                link.parent.mkdir(parents=True, exist_ok=True)
+                link.symlink_to(sibling, target_is_directory=True)
+                with unittest.mock.patch.object(rr, "isolate_imports"), \
+                        unittest.mock.patch.object(rr.sys, "argv", ["roadmap_runner.py", "brief"]), \
+                        contextlib.redirect_stdout(io.StringIO()) as out:
+                    self.assertEqual(rr.main(), 2)
+                self.assertIn("links in the controller state", out.getvalue())
+                with self.assertRaisesRegex(rr.Stop, "links in the controller state"):
+                    controller.preflight()  # before every task of a running controller
+                self.assertEqual(os.listdir(sibling), [])
+
+    def test_a_refusal_inside_resume_reports_stop_as_still_present(self):
+        with tempfile.TemporaryDirectory() as tmp, self.live_state(tmp) as (repo, state, controller), \
+                unittest.mock.patch.object(rr.Controller, "unlink_in_state", side_effect=rr.Stop("refused")):
+            (state / "STOP").write_text("x")
+            code, message = self.resume()
+            self.assertEqual(code, 2)
+            self.assertIn("['STOP'] still present", message)
+            self.assertNotIn("stop/pause cleared", message)
+
+    def test_the_default_state_is_read_when_the_controller_is_made(self):
+        # Bound at class creation, `brief` under a patched STATE wrote the real checkout's lock.
+        with tempfile.TemporaryDirectory() as tmp, self.live_state(tmp) as (repo, state, controller):
+            self.assertEqual(rr.Controller(rr.Config()).state, state)
+
+    def test_resume_verifies_the_state_directory_without_proc(self):
+        with tempfile.TemporaryDirectory() as tmp, self.live_state(tmp) as (repo, state, controller):
+            real_readlink = os.readlink
+
+            def no_proc(path, *args, **kwargs):
+                if str(path).startswith("/proc/"):
+                    raise FileNotFoundError(2, "No such file or directory")
+                return real_readlink(path, *args, **kwargs)
+            (state / "STOP").write_text("x")
+            with unittest.mock.patch.object(rr.os, "readlink", no_proc):
+                code, message = self.resume()
+            self.assertEqual(code, 0, message)
+            self.assertFalse((state / "STOP").exists())
+
     def test_a_linked_legacy_marker_outside_the_checkout_is_refused(self):
         with tempfile.TemporaryDirectory() as tmp, self.live_state(tmp) as (repo, state, controller), \
                 unittest.mock.patch.object(rr.Controller, "refuse_live_workers"):
@@ -1686,7 +1733,7 @@ class RunnerResiduals(unittest.TestCase):
             (state / rr.CALLBACKS_MARKER).symlink_to(sibling / rr.CALLBACKS_MARKER)
             code, message = self.resume()
             self.assertEqual(code, 2, message)
-            self.assertIn("outside the checkout", message)
+            self.assertIn("links in the controller state", message)
             self.assertTrue((sibling / rr.CALLBACKS_MARKER).exists())
 
     def test_a_link_swapped_in_after_the_review_carries_no_unlink(self):
@@ -1755,18 +1802,20 @@ class RunnerResiduals(unittest.TestCase):
     def test_the_state_descriptor_holds_when_own_state_is_bypassed(self):
         # Second layer under own_state(): unlinks go through a verified descriptor of the directory.
         with tempfile.TemporaryDirectory() as tmp, self.live_state(tmp) as (repo, state, controller), \
-                unittest.mock.patch.object(rr.Controller, "own_state"):
+                unittest.mock.patch.object(rr, "pin_state"), unittest.mock.patch.object(rr.Controller, "own_state"):
             home = controller.marker().parent
             self.manual_marker(controller)
             state.rmdir()
             state.symlink_to(home, target_is_directory=True)
             code, message = self.resume()
             self.assertEqual(code, 2, message)
-            self.assertIn("planted link", message)
+            self.assertIn("opened as", message)
             self.assertEqual(controller.manual_claim(), "L01-T3")
 
     def test_acquire_does_not_follow_a_planted_controller_lock(self):
-        with tempfile.TemporaryDirectory() as tmp, self.live_state(tmp) as (repo, state, controller):
+        # The open itself, under the state pin (which refuses any link in the state directory first).
+        with tempfile.TemporaryDirectory() as tmp, self.live_state(tmp) as (repo, state, controller), \
+                unittest.mock.patch.object(rr, "pin_state"):
             home = controller.marker().parent
             home.mkdir(parents=True)
             (state / "controller.lock").symlink_to(home / rr.TRUSTED_RECORD)

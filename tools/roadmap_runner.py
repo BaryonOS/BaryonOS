@@ -546,8 +546,13 @@ def pin_state(state: Path) -> None:
         if create:
             state.mkdir(parents=True, exist_ok=True)
         if (resolved := state.resolve()) != expected:
-            raise Stop(f"the state directory {state} resolves to {resolved}, not {expected}; "
-                       "remove the planted link")
+            raise Stop(f"the state directory {state} resolves to {resolved}, not {expected}; it must lie "
+                       "inside the checkout: remove the link (planted, or a build tree moved elsewhere)")
+    # Below it, manual/, runs/ and their task directories are walked as paths: a link left there by
+    # an exited session would carry later mkdirs and writes out. The controller creates no links.
+    for directory, dirs, files in os.walk(state):  # never follows links
+        if links := [name for name in dirs + files if os.path.islink(os.path.join(directory, name))]:
+            raise Stop(f"links in the controller state {directory}: {brief(links)}; remove the link")
 
 
 class Controller:
@@ -586,11 +591,13 @@ class Controller:
         try:
             try:
                 opened = os.readlink(f"/proc/self/fd/{fd}")
-            except OSError as error:  # no /proc: the opened directory cannot be verified
-                raise Stop(f"cannot verify the state directory {self.state}: {error.strerror}") from error
+            except OSError:  # no /proc: compare identities instead
+                info, pinned_info = os.fstat(fd), os.stat(expected)
+                opened = expected if (info.st_dev, info.st_ino) == (pinned_info.st_dev, pinned_info.st_ino) \
+                    else f"another directory (inode {info.st_ino})"
             if opened != expected:
                 raise Stop(f"the state directory {self.state} opened as {opened}, not {expected}; "
-                           "remove the planted link")
+                           "remove the link")
             for name in names:
                 with contextlib.suppress(FileNotFoundError):
                     os.unlink(name, dir_fd=fd)
@@ -679,6 +686,7 @@ class Controller:
 
     def preflight(self) -> str:
         self.refuse_live_workers()
+        self.own_state()  # before every task: a session may have planted a link since acquire()
         # A manual Codex session is not a tagged process: its claim keeps its baseline alive.
         if active := [t["id"] for t in load_ledger(LEDGER)["tasks"] if t["status"] == "active"]:
             raise Stop(f"manual task {active} is active; validate it and update the ledger first")
@@ -749,14 +757,8 @@ class Controller:
 
     def legacy_marker(self) -> Path | None:
         legacy = self.state / CALLBACKS_MARKER
-        if legacy == self.marker() or not os.path.lexists(legacy):
-            return None
-        # Resolved, not as text: through a link the "legacy" file can be this or a sibling's marker.
-        if (real := legacy.resolve()) == self.marker().resolve():
-            return None
-        if ROOT.resolve() not in real.parents:
-            raise Stop(f"the legacy marker {legacy} resolves to {real}, outside the checkout; remove the link")
-        return legacy
+        # A text comparison suffices: own_state() pins the directory and refuses any link inside it.
+        return legacy if legacy != self.marker() and os.path.lexists(legacy) else None
 
     def marker(self) -> Path:
         return (self.baseline or baseline_home()) / CALLBACKS_MARKER
