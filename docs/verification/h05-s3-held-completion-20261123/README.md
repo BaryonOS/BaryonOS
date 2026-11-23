@@ -207,6 +207,19 @@ Each mutant against `c51ad0b7`, running
 | volume `advance`: uncounted `virtio_blk_driver::discover()` before the latch | `test_reachable_calls_follow_the_latch_and_are_counted` |
 | `reinit_fail`: `.filter(\|_\| validated)` dropped | `test_each_latch_returns_before_any_device_statement` |
 
+Verifier pass on `827e6a2b` found two survivors; both are closed by a
+test-only follow-up (`DEVICE_CALL` also matches bare calls of the drivers'
+free functions `discover`, `discover_function` and `rediscover`, and
+`following()` keeps attributes while the keyring latches may not be
+attribute-gated). Rerun against that follow-up, each exit 1:
+
+| Mutant | Failing test |
+|---|---|
+| keyring `advance`: imported bare `rediscover(&runtime().info)` before the latch | `test_reachable_calls_follow_the_latch_and_are_counted` |
+| keyring `advance`: `#[cfg(any())]` on the latch | `test_each_latch_returns_before_any_device_statement` |
+| keyring `call`: `#[cfg(any())]` on the 0x60 latch | `test_each_latch_returns_before_any_device_statement` |
+| keyring `advance`: `#[cfg(any())]` on the `return;` inside the latch | `test_each_latch_returns_before_any_device_statement` |
+
 Counter liveness (D): removing the `fetch_add` from volume `device_access()`
 fails the host oracle (`test_device_counters_must_be_live_at_the_wake`: a 0
 or a missing `IO_AT_WAKE` line is refused in all three S3 cases) and natively:

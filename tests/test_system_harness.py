@@ -644,7 +644,10 @@ PURE = {"validate", "negotiate_rng_features", "validate_used", "classify_bars", 
 DRIVER_FNS = {name for crate in ("virtio-rng", "virtio-blk") for name in re.findall(
     r"^\s*pub (?:unsafe )?fn (\w+)", (DRIVERS / crate / "src/lib.rs").read_text(), re.M)}
 DEVICE_METHODS = "|".join(sorted(DRIVER_FNS - PURE))
-DEVICE_CALL = re.compile(rf"\.(?:{DEVICE_METHODS})\(|::(?:{DEVICE_METHODS})\b")
+# Free functions (unindented `pub fn`) can also be imported and called bare.
+FREE_FNS = "|".join(sorted({name for crate in ("virtio-rng", "virtio-blk") for name in re.findall(
+    r"^pub (?:unsafe )?fn (\w+)", (DRIVERS / crate / "src/lib.rs").read_text(), re.M)} - PURE))
+DEVICE_CALL = re.compile(rf"\.(?:{DEVICE_METHODS})\(|::(?:{DEVICE_METHODS})\b|(?<![\w.:])(?:{FREE_FNS})\(")
 FUNCTION = re.compile(r"^\s*(?:pub(?:\([^)]*\))?\s+)?fn\s+(\w+)")
 
 
@@ -675,9 +678,10 @@ def device_calls(body):
 
 def following(body, marker):
     """The code statements after the first code line containing `marker`
-    (comments, blank lines and attributes skipped)."""
+    (comments and blank lines skipped). Attributes are kept, so a `#[cfg]`
+    on a guarded statement breaks the expected sequence."""
     code = [line.split("//")[0].strip() for _, line in body]
-    code = [line for line in code if line and not line.startswith("#[")]
+    code = [line for line in code if line]
     found = [i for i, line in enumerate(code) if marker in line]
     if not found:
         raise AssertionError(f"guard statement missing: {marker}")
@@ -719,6 +723,9 @@ class PostWakeLatchStructure(unittest.TestCase):
         for line in ("d.kick();", "virtio_blk_driver::discover()", "Device::initialize(", "x.submit(",
                      "virtio_blk_driver::discover_function(f)", "lane.device.as_ref().is_some_and(Device::reset_acknowledged)"):
             self.assertTrue(DEVICE_CALL.search(line), line)
+        self.assertEqual(set(FREE_FNS.split("|")), {"discover", "discover_function", "rediscover"})
+        for line in ("let b = rediscover(&info);", "discover()", "discover_function(f)"):
+            self.assertTrue(device_calls([(1, line)]), line)
         for line in ("device.pending()", "pool.validate(end)", "r.policy.request()", "// d.kick();"):
             self.assertFalse(device_calls([(1, line)]), line)
 
@@ -755,6 +762,12 @@ class PostWakeLatchStructure(unittest.TestCase):
         volume = functions(KERNEL / "m3/volume.rs")
         self.assertEqual(following(keyring["advance"], "if device_lost() {")[0], "return;")
         self.assertEqual(following(keyring["call"], "if device_lost() {")[0], "return Err(-14);")
+        # The keyring latches are compiled into every profile: no attribute may gate them out.
+        for fn in ("advance", "call"):
+            code = [line.split("//")[0].strip() for _, line in keyring[fn]]
+            code = [line for line in code if line]
+            at = next(i for i, line in enumerate(code) if "if device_lost() {" in line)
+            self.assertFalse(code[at - 1].startswith("#["), f"keyring {fn} latch is attribute-gated: {code[at - 1]}")
         # Every device call of `call` sits inside the 0x60 arm, after its latch.
         call = keyring["call"]
         arm = next(number for number, line in call if line.strip() == "0x60 => {")
