@@ -30,7 +30,7 @@ The edge set contains:
 
 ### Checked invariants
 
-The oracle is written from the rules in the crate source and is checked against the (mutated) input bytes.
+The oracle is written from the rules in the crate source, which is its primary source: `crates/elf-loader-core/src/lib.rs` (BaryonOS project, `parse` and its `Error` variants) at commit `2f4ac6ae814fac18bca52ff80d4b9f774d12bec2`, <https://github.com/BaryonOS/BaryonOS/blob/2f4ac6ae814fac18bca52ff80d4b9f774d12bec2/crates/elf-loader-core/src/lib.rs>. The policy-envelope oracle likewise derives from `crates/update-core/src/policy_envelope.rs` at the same commit. The oracle is checked against the (mutated) input bytes.
 
 - `parse` never panics within the enumerated inputs. Every call runs under `catch_unwind`, which reports the case that panicked.
 - A rejection is a typed `Error` value; a partial plan is never returned.
@@ -96,12 +96,12 @@ Inputs:
 | `fixture_layout_and_original_verifies` | The unmodified envelope verifies (version 1, one signer). |
 | `single_byte_mutations_get_the_exact_reject` | Every byte position × up to four values {0x00, 0xff, b^0x01, b^0x80}, skipping duplicates and the original value. This makes 21,760 cases with real Ed25519 and ML-DSA-65 verification. The work is split over at most eight threads. |
 | `every_truncation_and_append_is_a_format_reject` | Every length 0..5,493, plus 1..=16 appended bytes for each of four byte values. |
-| `any_other_root_is_rejected_before_signature_work` | A single-bit flip at each of the 1,984 root public-key bytes. |
+| `any_other_root_is_rejected_before_signature_work` | A flip of the least significant bit (`^= 1`) at each of the 1,984 root public-key bytes. |
 | `successor_accepts_only_strictly_newer_linked_policies` | All 16 ordered pairs of the four committed policies passed to `validate_successor`, compared with an oracle for its root, version/predecessor and revocation-retention conditions. |
 
 ### Checked invariants
 
-- Only the exact original canonical bytes verify. Every single-byte change gets the exact typed reject for its region:
+- Among the tested single-byte mutations, only the unmodified original verifies; this does not establish behaviour for multi-byte changes. Every tested single-byte change gets the exact typed reject for its region:
   - magic, format version, signer count and body length: `Format`;
   - target: `Target`;
   - a zero version or a zero minimum image version: `Format`;
@@ -112,7 +112,7 @@ Inputs:
 - Each reject class is reached at least once. The local run gave:
   - `Format` 60, `Target` 63, `Root` 128 and `SignerTable` 48;
   - `Core(Signature)` 13,399 in the signature region and 8,062 in the body.
-- A wrong root (any one-bit change to either public key) gives `Root`.
+- A wrong root gives `Root` for the tested change: the least significant bit (`^= 1`) of each of the 1,984 root public-key bytes. Other bit positions are not enumerated.
 - `verify_policy` itself has no version floor. Stale, replayed and unlinked versions are rejected by `validate_successor`, which accepts a pair only when all of these hold, checked in this order:
   1. the root identifier (body bytes 80..112) is equal, else `Root`;
   2. the next version is strictly greater and its predecessor digest equals the current digest, else `Successor`;
