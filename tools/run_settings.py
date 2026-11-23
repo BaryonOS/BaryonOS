@@ -262,9 +262,9 @@ def boot(build_dir: Path, run_dir: Path, image: Path, readonly: bool, timeout: i
             "-drive", f"if=virtio,index=0,format=raw,readonly=on,file=fat:{rel}/esp",
             "-device", "isa-debug-exit,iobase=0xf4,iosize=0x04",
             "-drive", f"if=none,id=volume,format=raw,cache=writeback,readonly={'on' if readonly else 'off'},"
-                      f"file={image_rel}",
+                      + f"file={image_rel}",
             "-device", "virtio-blk-pci,drive=volume,id=volblk,addr=0x5,disable-legacy=on,num-queues=1,"
-                       "queue-size=8,serial=NOS-M6E-TEST"]
+                       + "queue-size=8,serial=NOS-M6E-TEST"]
     rc, out, err, timed_out, _, _ = execute(args, env, timeout=timeout)
     version = subprocess.check_output([qemu, "--version"], text=True).strip()
     return args, version, rc, out, err, timed_out

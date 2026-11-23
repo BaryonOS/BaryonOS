@@ -6,7 +6,6 @@ oracle. Damage helpers run on synthetic volume images from tools/volume_disk.py.
 """
 from __future__ import annotations
 import hashlib
-import struct
 import sys
 import unittest
 from pathlib import Path
