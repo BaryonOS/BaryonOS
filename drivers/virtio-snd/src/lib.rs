@@ -5,9 +5,12 @@
 //!
 //! Pure byte encoding and validation only: no transport, queue, DMA, MMIO,
 //! device grant, broker, app permission or audio playback. Capture is never
-//! selected. Callers pass exactly the device-written used-length bytes.
+//! selected. Callers pass the device-written used-length bytes; the only
+//! exception is the PCM_INFO header-only case documented in
+//! `queue::pcm_info_chain`, where the full zeroed response buffer is passed.
 
 pub mod pcm;
+pub mod queue;
 
 pub const VIRTIO_SND_DEVICE_ID: u16 = 25;
 pub const VIRTIO_SND_PCI_DEVICE_ID: u16 = 0x1040 + VIRTIO_SND_DEVICE_ID;
@@ -155,7 +158,9 @@ impl Query {
             .ok_or(Error::Overflow)
     }
 
-    /// `bytes` must be exactly the validated used-length slice.
+    /// `bytes` must be the validated used-length slice, or for the PCM_INFO
+    /// header-only alternate (`queue::pcm_info_chain`) the full zeroed
+    /// `response_len()` buffer; any other length is `Length`.
     pub fn parse_response(self, bytes: &[u8]) -> Result<StreamInfos, Error> {
         if bytes.len() < HDR_BYTES {
             return Err(Error::Length);

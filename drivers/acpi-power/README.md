@@ -111,15 +111,16 @@ QEMU. Evidence and limitations are documented in
 Service- or user-initiated shutdown, H05 acceptance and physical-hardware
 verification remain outstanding.
 
-## Host-only S3 and FACS observations
+## S3, FACS and the waking-vector plan
 
 `parse_s3(tables, facs)` reuses the same bounded AML walk, SDT/DSDT binding
 and PM1 validation to select root `Name(_S3_, Package(...))`. `_S3_` and
 `_S5_` are selected independently; existing S5 interfaces and rejection
-behavior are preserved. `S3Plan` is opaque and exposes parsed PM1 settings
-and `FacsInfo` observations. Neither is an authority to enter sleep or jump
-to a waking vector. No kernel caller, trampoline, firmware method execution,
-FACS mutation, global-lock acquisition or I/O is implemented.
+behavior are preserved. `S3Plan` is opaque and exposes parsed PM1 control
+settings, the PM1a/PM1b **event blocks** (`Pm1Event`, status register first,
+enable register at `status + PM1_EVT_LEN / 2`, `WAKE_STATUS` = bit 15) and
+`FacsInfo` observations. None of these is an authority to enter sleep or to
+jump to a waking vector; this crate performs no I/O and no FACS store.
 
 `fadt_facs_address` resolves the validated FADT pointer so the trusted kernel
 reader can authorize and obtain the snapshot without duplicating pointer parsing.
@@ -131,29 +132,61 @@ prefers a nonzero extended pointer; this parser rejects contradictory
 nonzero FADT pointers instead. This rule does not apply to the two waking
 vectors: a nonzero extended waking vector supersedes the legacy value.
 
+The PM1 event blocks come from `PM1a_EVT_BLK`/`PM1b_EVT_BLK` (offsets 56/60)
+or their `X_` GAS (offsets 148/160), which supersede the legacy value when
+nonzero and must then describe System I/O, `bit_width == PM1_EVT_LEN * 8`,
+bit offset 0 and access size 0 or 2. `PM1_EVT_LEN` (offset 88) must be even
+and at least 4. A block past the 16-bit I/O space, a missing PM1a block, a
+truncated GAS, and any overlap with a PM1 control register or with the other
+event block are rejected.
+
 FACS is shared firmware state, **not a checksum-bearing SDT**. Its signature
 must be `FACS`, its declared length must equal the complete supplied extent,
 and the extent must be between 64 bytes and the existing 1 MiB parser bound.
-This profile accepts fixed-layout versions 2 and 3 only. Reserved bytes
-(including any extension beyond byte 64), global-lock reserved bits,
-unknown flags and unsupported versions are rejected. Hardware signature and
-global-lock pending/owned bits are not authentication or ownership evidence.
-Only FACS flag bits 0/1 and OSPM flag bit 0 are accepted; requesting 64-bit
-wake requires the firmware support bit. A selected legacy vector must be
-below 1 MiB; a selected extended vector above the 32-bit address range
-requires a supported 64-bit wake request. Zero vectors are accepted as
-unprepared state. These are field checks, not executable-memory, mapping,
-platform support or resume-readiness validation. Firmware can mutate FACS
-after a snapshot; future integration must provide its own synchronization,
-memory authorization and execution validation.
+Fields are validated per version:
+- **Version 0 (ACPI 1.0b).** Offsets 24..end are reserved and must be zero,
+  only `S4BIOS_F` may be set, and the legacy vector must be below 1 MiB.
+  QEMU 8.2.2 `pc-q35-8.2` with OVMF builds exactly this form (observed in
+  guest memory on 19 November 2026); `origin/main` before this change
+  rejected it with `UnsupportedFacsFields`.
+- **Version 1 (ACPI 2.0/3.0).** `X_Firmware_Waking_Vector` exists but must
+  fit 32 bits (no 64-bit wake), offsets 33..end must be zero and only
+  `S4BIOS_F` may be set.
+- **Versions 2 and 3.** Flag bits 0/1 and OSPM flag bit 0 only; a 64-bit
+  wake request requires the firmware support bit; offsets 33..36 and 40..end
+  must be zero.
+
+Global-lock reserved bits are rejected for every version. Hardware signature
+and global-lock pending/owned bits are observations, not authentication or
+ownership evidence. Zero vectors are accepted as unprepared state.
+
+`FacsInfo::wake_plan(real_mode_entry, protected_entry, policy)` returns the
+exact stores that arm the OSPM waking vectors, and `disarmed_plan(policy)`
+the stores that clear them again. The real-mode entry must be nonzero,
+16-byte aligned and below `0xA0000`; the optional 32-bit entry must be
+nonzero, 16-byte aligned and below 4 GiB. Offset 24 is written whenever the
+FACS version defines it (cleared without a 32-bit entry), and versions 2 and
+later get OSPM flags with `64BIT_WAKE_F` cleared, so firmware never enters
+the OS in long mode. `ExtendedVectorPolicy::Specification` refuses a 32-bit
+entry for a version-0 FACS. `ExtendedVectorPolicy::Edk2Version0Extended`,
+used only by the fixed QEMU/OVMF kernel profile, also stores it into the
+reserved, zero-validated offset 24 of a version-0 FACS and restores zero on
+disarm; see ADR-H05-S3-WAKE-20261119 for the measured reason.
 
 Primary layout references: [UEFI ACPI 6.6, sections 5.2.9 and 5.2.10](https://uefi.org/specs/ACPI/6.6/05_ACPI_Software_Programming_Model.html#firmware-acpi-control-structure-facs)
 (version 3) and [TianoCore EDK II ACPI 6.1 definitions](https://github.com/tianocore/edk2/blob/master/MdePkg/Include/IndustryStandard/Acpi61.h)
-(version 2). No specification or third-party implementation code was copied.
+(version 2). The edk2 resume behaviour was read in tag `edk2-stable202402`
+(`UefiCpuPkg/Universal/Acpi/S3Resume2Pei/S3Resume.c`,
+`MdeModulePkg/Universal/Acpi/BootScriptExecutorDxe/X64/S3Asm.nasm`). No
+specification or third-party implementation code was copied.
 
-`tests/s3_facs.rs` uses synthetic host fixtures for independent S3/S5
-selection, root-scope handling, malformed/missing/duplicate S3, FADT/FACS
-binding, exact extent and address bounds, versions, flags, reserved fields
-and vector precedence. Existing S5 tests remain unchanged. Host tests and
-freestanding compilation do not establish native S3 entry, physical
-sleep/wake, thermal/battery behavior or H05 acceptance.
+`tests/s3_facs.rs` covers independent S3/S5 selection, root-scope handling,
+malformed/missing/duplicate S3, FADT/FACS binding, exact extent and address
+bounds, every FACS version's reserved fields, flags and vector precedence,
+the observed QEMU/OVMF FACS and FADT PM1 layout, event-block validation and
+both wake-plan policies. The ignored external-fixture test additionally
+parses real FADT/DSDT/FACS bytes when `NOS_ACPI_FACS` is set. Host tests do
+not establish native S3; the native QEMU route is the kernel `native-acpi-s3`
+profile, documented in
+[`docs/verification/h05-native-s3-20261119`](../../docs/verification/h05-native-s3-20261119/README.md).
+Physical sleep/wake, thermal/battery behavior and H05 acceptance remain open.
