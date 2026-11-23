@@ -9,8 +9,8 @@
 //!
 //! Profile (ADR-028): TLS 1.3 only, X25519MLKEM768 only, TLS13_AES_256_GCM_SHA384
 //! only, fixed ALPN, mutual exact certificate + SPKI pinning, no resumption,
-//! tickets or 0-RTT, no classical fallback. The profile and pin verifier live in
-//! this test because `src/` does not yet provide them.
+//! tickets, 0-RTT or half-RTT data, no classical fallback. The profile and pin
+//! verifier live in this test because `src/` does not yet provide them.
 //!
 //! Credentials: TEST-ONLY Ed25519 keys and self-signed certificates generated at
 //! runtime by rcgen; nothing is committed, no trust root is created. Certificate
@@ -410,7 +410,15 @@ fn pump(outcome: &mut Outcome) {
     panic!("handshake did not settle");
 }
 
+/// Bytes a client queues before the handshake. rustls holds them until client
+/// traffic keys exist; negatives prove the server never releases them.
+const QUEUED: &[u8] = b"client data queued before the handshake";
+
 fn handshake(client: ClientConfig, server: ServerConfig) -> Outcome {
+    handshake_with(client, server, QUEUED)
+}
+
+fn handshake_with(client: ClientConfig, server: ServerConfig, queued: &[u8]) -> Outcome {
     let name = ServerName::try_from(SERVER_NAME).unwrap();
     let mut outcome = Outcome {
         client: ClientConnection::new(Arc::new(client), name)
@@ -420,6 +428,7 @@ fn handshake(client: ClientConfig, server: ServerConfig) -> Outcome {
         client_error: None,
         server_error: None,
     };
+    outcome.client.writer().write_all(queued).unwrap();
     pump(&mut outcome);
     outcome
 }
@@ -464,12 +473,16 @@ fn accepted(connection: &Connection, peer: &Pin) -> Result<(), &'static str> {
     }
 }
 
-/// Negative cases: no application plaintext on either side, gate refuses.
-fn assert_refused(outcome: &mut Outcome, server_pin: &Pin, client_pin: &Pin) {
-    assert!(
-        accepted(&outcome.client, server_pin).is_err()
-            || accepted(&outcome.server, client_pin).is_err()
-    );
+/// Negative cases: the server gate refuses, the client gate gives `client_gate`,
+/// and neither side released application plaintext (including `QUEUED`).
+fn assert_refused(
+    outcome: &mut Outcome,
+    server_pin: &Pin,
+    client_pin: &Pin,
+    client_gate: Result<(), &'static str>,
+) {
+    assert!(accepted(&outcome.server, client_pin).is_err());
+    assert_eq!(accepted(&outcome.client, server_pin), client_gate);
     assert!(plaintext(&mut outcome.client).is_empty());
     assert!(plaintext(&mut outcome.server).is_empty());
 }
@@ -514,7 +527,7 @@ fn profile_handshake_is_mutually_pinned_hybrid_tls13_and_uses_key_service_random
         &peers.server,
     )
     .unwrap();
-    let mut outcome = handshake(client, server);
+    let mut outcome = handshake_with(client, server, b"");
 
     assert!(outcome.client_error.is_none(), "{:?}", outcome.client_error);
     assert!(outcome.server_error.is_none(), "{:?}", outcome.server_error);
@@ -537,6 +550,29 @@ fn profile_handshake_is_mutually_pinned_hybrid_tls13_and_uses_key_service_random
     pump(&mut outcome);
     assert_eq!(plaintext(&mut outcome.server), b"client after acceptance");
     assert_eq!(plaintext(&mut outcome.client), b"server after acceptance");
+}
+
+#[test]
+fn queued_client_data_is_released_only_after_a_completed_handshake() {
+    // Control for the negatives: the same QUEUED bytes do arrive when both
+    // sides accept, so an empty server read in a negative is not vacuous.
+    let peers = Peers::new();
+    let (server_pin, client_pin) = (Pin::of(&peers.server), Pin::of(&peers.client));
+    let client = client_config(
+        &Side::profile(key_service_random(false).0),
+        server_pin.clone(),
+        Some(&peers.client),
+    )
+    .unwrap();
+    let server = server_config(
+        &Side::profile(key_service_random(false).0),
+        client_pin.clone(),
+        &peers.server,
+    )
+    .unwrap();
+    let mut outcome = handshake(client, server);
+    assert_eq!(accepted(&outcome.server, &client_pin), Ok(()));
+    assert_eq!(plaintext(&mut outcome.server), QUEUED);
 }
 
 // ---------------------------------------------------------------- negatives
@@ -585,7 +621,7 @@ fn classical_only_x25519_server_gets_no_fallback() {
         alert(&o.client_error),
         Some(AlertDescription::HandshakeFailure)
     );
-    assert_refused(&mut o, &sp, &cp);
+    assert_refused(&mut o, &sp, &cp, Err("handshaking"));
 }
 
 #[test]
@@ -604,7 +640,7 @@ fn classical_only_x25519_client_gets_no_fallback() {
         alert(&o.client_error),
         Some(AlertDescription::HandshakeFailure)
     );
-    assert_refused(&mut o, &sp, &cp);
+    assert_refused(&mut o, &sp, &cp, Err("handshaking"));
 }
 
 #[test]
@@ -623,7 +659,7 @@ fn other_cipher_suite_server_is_refused() {
         alert(&o.client_error),
         Some(AlertDescription::HandshakeFailure)
     );
-    assert_refused(&mut o, &sp, &cp);
+    assert_refused(&mut o, &sp, &cp, Err("handshaking"));
 }
 
 #[test]
@@ -644,7 +680,7 @@ fn tls12_only_server_is_refused() {
         alert(&o.client_error),
         Some(AlertDescription::ProtocolVersion)
     );
-    assert_refused(&mut o, &sp, &cp);
+    assert_refused(&mut o, &sp, &cp, Err("handshaking"));
 }
 
 #[test]
@@ -665,7 +701,7 @@ fn tls12_only_client_is_refused() {
         alert(&o.client_error),
         Some(AlertDescription::ProtocolVersion)
     );
-    assert_refused(&mut o, &sp, &cp);
+    assert_refused(&mut o, &sp, &cp, Err("handshaking"));
 }
 
 #[test]
@@ -688,7 +724,7 @@ fn wrong_server_pin_is_refused_before_any_plaintext() {
         ))
     );
     assert_eq!(alert(&o.server_error), Some(AlertDescription::AccessDenied));
-    assert_refused(&mut o, &expected_server, &client_pin);
+    assert_refused(&mut o, &expected_server, &client_pin, Err("handshaking"));
 }
 
 #[test]
@@ -711,7 +747,10 @@ fn wrong_client_pin_is_refused_by_the_server_before_any_plaintext() {
         ))
     );
     assert_eq!(alert(&o.client_error), Some(AlertDescription::AccessDenied));
-    assert_refused(&mut o, &server_pin, &expected_client);
+    // TLS 1.3: the client completes before the server rejects its certificate,
+    // so its own gate passes; only the later alert (asserted above) and the
+    // server's refusal to release QUEUED stop the exchange.
+    assert_refused(&mut o, &server_pin, &expected_client, Ok(()));
 }
 
 #[test]
@@ -731,7 +770,10 @@ fn missing_client_certificate_is_refused() {
         alert(&o.client_error),
         Some(AlertDescription::CertificateRequired)
     );
-    assert_refused(&mut o, &server_pin, &client_pin);
+    // TLS 1.3: the client completes before the server rejects its certificate,
+    // so its own gate passes; only the later alert (asserted above) and the
+    // server's refusal to release QUEUED stop the exchange.
+    assert_refused(&mut o, &server_pin, &client_pin, Ok(()));
 }
 
 #[test]
@@ -745,7 +787,7 @@ fn wrong_alpn_client_is_refused() {
         alert(&o.client_error),
         Some(AlertDescription::NoApplicationProtocol)
     );
-    assert_refused(&mut o, &sp, &cp);
+    assert_refused(&mut o, &sp, &cp, Err("handshaking"));
 }
 
 #[test]
@@ -754,10 +796,14 @@ fn server_without_alpn_is_refused_by_the_acceptance_gate() {
         alpn: None,
         ..Side::peer()
     });
-    // rustls itself tolerates a server that selects no ALPN; the gate must not.
+    // rustls itself tolerates a server that selects no ALPN; only the gate
+    // refuses it. Data queued before the gate already reached that server, so
+    // a profile consumer must run the gate before its first write or read.
     assert!(o.client_error.is_none() && o.server_error.is_none());
     assert_eq!(accepted(&o.client, &sp), Err("alpn"));
-    assert_refused(&mut o, &sp, &cp);
+    assert_eq!(accepted(&o.server, &cp), Err("alpn"));
+    assert!(plaintext(&mut o.client).is_empty());
+    assert_eq!(plaintext(&mut o.server), QUEUED);
 }
 
 #[test]
@@ -788,5 +834,5 @@ fn unavailable_certificate_time_fails_closed() {
     let server = server_config(&Side::peer(), client_pin.clone(), &peers.server).unwrap();
     let mut o = handshake(client, server);
     assert_eq!(o.client_error, Some(Error::FailedToGetCurrentTime));
-    assert_refused(&mut o, &server_pin, &client_pin);
+    assert_refused(&mut o, &server_pin, &client_pin, Err("handshaking"));
 }

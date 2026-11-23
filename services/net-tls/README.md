@@ -101,15 +101,23 @@ transport) is the rustls `SecureRandom` of every profile side, and
 `CertificateClock` is the rustls `TimeProvider` in the unavailable-time negative.
 The profile and pin verifier are test code because `src/` provides neither yet.
 
-Negative cases, each with an asserted specific error and no application
-plaintext on either side: X25519-only server and client (no fallback), other
-TLS 1.3 suite, TLS 1.2-only server and client, wrong server pin, wrong client pin,
-missing client certificate, wrong client ALPN, server that selects no ALPN
-(rustls accepts it; the gate refuses), Key-Service RNG denial
-(`FailedToGetRandomBytes`, exactly one request, no retry) and unavailable
-certificate time (`FailedToGetCurrentTime`). In TLS 1.3 the client completes
-before the server rejects its certificate; the test proves the server releases
-no plaintext, which a native design must preserve.
+Negative cases, each with an asserted specific error: X25519-only server and
+client (no fallback), other TLS 1.3 suite, TLS 1.2-only server and client, wrong
+server pin, wrong client pin, missing client certificate, wrong client ALPN,
+Key-Service RNG denial (`FailedToGetRandomBytes`, exactly one request, no retry)
+and unavailable certificate time (`FailedToGetCurrentTime`). In every handshake
+negative the client queues application data before the handshake; the server
+gate refuses and neither side releases any plaintext. A positive control shows
+the same queued bytes do arrive after a completed handshake, so the empty reads
+are not vacuous.
+
+Observed design findings for the native port: (1) in TLS 1.3 the client
+completes, and its own gate passes, before the server rejects a wrong or missing
+client certificate; only the later fatal alert ends it, so a consumer must treat
+a received alert as revoking the connection. (2) rustls completes a handshake
+with a server that selects no ALPN; only the gate refuses it, and data queued
+before the gate already reached that server. A profile consumer must therefore
+run the gate before its first write or read.
 
 Harness assumptions, not product properties: TEST-ONLY Ed25519 keys and
 self-signed certificates are generated at runtime by rcgen and never stored; no
@@ -128,7 +136,7 @@ freestanding build, whose crate list contains no aws-lc/rcgen):
 | rustls-webpki (dev feature `alloc`) | 0.103.16 | ISC | Existing transitive pin; used for SPKI extraction |
 | rcgen (`aws_lc_rs`, no default features) | 0.14.10 | MIT OR Apache-2.0 | `build = false`; no `ring` selected |
 | aws-lc-rs | 1.19.0 | ISC AND (Apache-2.0 OR ISC) | `build.rs`; github.com/aws/aws-lc-rs |
-| aws-lc-sys | 0.47.0 | ISC AND (Apache-2.0 OR ISC) AND Apache-2.0 AND MIT AND BSD-3-Clause AND (Apache-2.0 OR ISC OR MIT) AND (Apache-2.0 OR ISC OR MIT-0) | `builder/main.rs` compiles bundled AWS-LC C/assembly with `cc` (cmake builder as fallback); needs a host C compiler |
+| aws-lc-sys | 0.47.0 | ISC AND (Apache-2.0 OR ISC) AND Apache-2.0 AND MIT AND BSD-3-Clause AND (Apache-2.0 OR ISC OR MIT) AND (Apache-2.0 OR ISC OR MIT-0) | `builder/main.rs` compiles bundled AWS-LC C/assembly; local build script reported `Building with: CC` (cmake unused); needs a host C compiler |
 | cc, cmake, jobserver, shlex, find-msvc-tools, dunce, fs_extra, pkg-config, libc | lockfile | MIT OR Apache-2.0 family (dunce: CC0-1.0 OR MIT-0 OR Apache-2.0; fs_extra: MIT) | aws-lc-sys build helpers |
 | time, time-core, deranged, num-conv, powerfmt, yasna | lockfile | MIT OR Apache-2.0 | rcgen certificate encoding |
 
