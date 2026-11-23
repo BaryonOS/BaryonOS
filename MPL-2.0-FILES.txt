@@ -517,6 +517,20 @@ services/catalog/src/wire.rs
 services/catalog/tests/client.rs
 services/catalog/tests/core.rs
 services/catalog/tests/wire.rs
+services/destination/Cargo.toml
+services/destination/src/catalog.rs
+services/destination/src/device.rs
+services/destination/src/lib.rs
+services/destination/src/service.rs
+services/destination/src/wire.rs
+services/destination/tests/broker.rs
+services/destination/tests/catalog.rs
+services/destination/tests/checks.rs
+services/destination/tests/common/mod.rs
+services/destination/tests/crash.rs
+services/destination/tests/engine.rs
+services/destination/tests/ops.rs
+services/destination/tests/oracle_images.rs
 services/image-codec/Cargo.toml
 services/image-codec/diagnostics/Cargo.toml
 services/image-codec/diagnostics/src/main.rs
@@ -691,6 +705,7 @@ tests/test_tokenguard_hook.py
 tests/test_tokenguard_init.py
 tests/test_tokenguard_mcp.py
 tests/test_update_harness.py
+tests/test_volume_destination_disk.py
 tests/test_volume_disk.py
 tests/test_volume_harness.py
 tests/test_volume_runner.py
@@ -712,6 +727,7 @@ tools/capture_update.py
 tools/capture_volume.py
 tools/ci_evidence.py
 tools/common.py
+tools/destination_disk.py
 tools/dev.py
 tools/gate.sh
 tools/gate_contract.py
