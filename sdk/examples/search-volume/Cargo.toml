@@ -1,0 +1,24 @@
+[package]
+name = "nieuw-os-search-volume-example"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+nieuw-os-search-index = { path = "../../search-index" }
+volume-core = { path = "../../../services/volume" }
+
+[workspace]
+members = ["."]
+resolver = "2"
+
+[profile.dev]
+panic = "abort"
+
+[profile.release]
+panic = "abort"
+codegen-units = 1
+lto = false
