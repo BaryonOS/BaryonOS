@@ -17,6 +17,8 @@ use crate::MAX_RESPONSE_BYTES;
 pub const PAGE: u64 = 4096;
 /// Entries per active queue; QEMU 8.2 offers 64, the fixture needs at most 8.
 pub const QUEUE_SIZE: u16 = 8;
+// `check_visible` tracks heads in a `u16` bitmask.
+const _: () = assert!(QUEUE_SIZE as u32 <= u16::BITS);
 pub const CONTROLQ: u16 = 0;
 pub const EVENTQ: u16 = 1;
 pub const TXQ: u16 = 2;

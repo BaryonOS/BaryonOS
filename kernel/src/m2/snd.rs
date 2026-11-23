@@ -818,11 +818,10 @@ impl Device {
                 let element = elements + u64::from(entry) * 8;
                 (dma.r32(element), dma.r32(element + 4))
             })
-            .inspect_err(|error| {
-                if *error == queue::Error::UsedOverrun {
-                    decimal(b"SND:FAULT:USED:QUEUE=", index as u64, b"");
-                    decimal(b":INDEX=", device_index.into(), b"\n");
-                }
+            .inspect_err(|_| {
+                // Every visible-element fault names its queue and device index.
+                decimal(b"SND:FAULT:USED:QUEUE=", index as u64, b"");
+                decimal(b":INDEX=", device_index.into(), b"\n");
             })?;
         let publication = self.rings[index].publish_checked(device_index, chain)?;
         let table = self.pool.descriptors(queue)?;
