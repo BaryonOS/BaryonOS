@@ -2,13 +2,13 @@
   "schema_version": 1,
   "rubric_version": 1,
   "assessment": {
-    "date": "2026-11-19",
-    "source_commit": "a6afd1a2c6a87659bfb1471a0fd7aa166ef8981a",
+    "date": "2026-11-23",
+    "source_commit": "ec459716cbccf67456a120961a369fef4d8ae2dc",
     "assessment_basis": "parent_commit",
     "branch": "claude/baryon-os-design-pipeline-20261118",
-    "task": "UX-C accepted: informed-consent permission prompt in the design system (run 2, repair 2r, owner decision A correction)",
+    "task": "UX-E slice A accepted: connected prototype journey stations 1-4 (simulation)",
     "previous_score": 41,
-    "summary": "41/100 unchanged. UX-C (one-question permission prompt, native checkbox remember control, five-field key, OQ-1..6 and MF-1..6) was accepted by independent AI verification after targeted repair 2r and an owner-authorised lead correction; contract tests 29/29, check.mjs and the matrix checker exit 0. Design-system prototype evidence only: remembered decisions are not natively enforced, the ADR is Proposed, and no criterion, user test or human audit is accepted."
+    "summary": "41/100 unchanged. UX-E slice A (browser simulation of sign-in, desktop and Orbit, windows and search) was accepted by independent AI verification after two repairs; journey and contract tests 49/49, check.mjs and the matrix checker exit 0. Simulation only: no native shell, user test or human audit, and no criterion is accepted."
   },
   "tracks": [
     {
