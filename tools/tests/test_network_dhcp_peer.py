@@ -2,6 +2,7 @@
 """Host tests for the strict N02 DHCP peer, runner summary and build fingerprint; no QEMU or native evidence."""
 from __future__ import annotations
 import json
+import os
 import shutil
 import struct
 import subprocess
@@ -365,6 +366,145 @@ class DhcpPeerTest(unittest.TestCase):
         self.assertFalse(step.evidence()["complete"])
         with self.assertRaises(ProtocolError):
             validate_transcript(dict(step.evidence(), case="dhcp"))
+
+
+def link_ready(case="link"):
+    """First lease complete and quiet; the peer has asked for the link drop."""
+    step = Recorder()
+    step.machine = DhcpMachine(case)
+    step.machine.record = step.actions.append
+    first_lease(step)
+    step.machine.poll(float(len(step.actions)))
+    return step
+
+
+class LinkPeerTest(unittest.TestCase):
+    """N02-T3b: a link drop, not a NAK, withdraws the first lease."""
+    def test_link_drop_withdraws_and_reacquire_replays(self):
+        step = link_ready()
+        machine = step.machine
+        self.assertTrue(machine.want_down.is_set())
+        # Nothing is withdrawn until the runner reports the QMP set_link off.
+        machine.poll(float(len(step.actions)))
+        self.assertEqual((machine.phase, machine.counts["link_downs"]), ("bound", 0))
+        with self.assertRaises(ProtocolError):
+            machine.handle(dhcp(1, 0x33333333), float(len(step.actions)))
+        machine.link_off.set()
+        machine.poll(float(len(step.actions)))
+        self.assertTrue(machine.withdrawn_ack.is_set())
+        self.assertEqual(step.actions[-1], dict(kind="link", at=float(len(step.actions) - 1), up=False))
+        with self.assertRaisesRegex(ProtocolError, "withdrawn"):
+            machine.handle(arp(LEASES[0], PEER_IP), 99.0)
+        acquire(step, 1, 0x33333333)
+        resolve_all(step, 1)
+        exchange(step, LEASES[1], 40004, 8082, 0)
+        evidence = step.evidence()
+        self.assertTrue(evidence["complete"])
+        self.assertEqual((evidence["case"], evidence["counts"]["naks"], evidence["counts"]["renewals"]), ("link", 0, 0))
+        self.assertEqual(validate_transcript(evidence)["counts"]["link_downs"], 1)
+        link = step.actions.index(next(a for a in step.actions if a["kind"] == "link"))
+        for name, actions in (("moved first", [step.actions[link]] + step.actions[:link] + step.actions[link + 1:]),
+                              ("duplicated", step.actions[:link + 1] + step.actions[link:]),
+                              ("dropped", step.actions[:link] + step.actions[link + 1:]),
+                              ("up", step.actions[:link] + [dict(step.actions[link], up=True)] + step.actions[link + 1:]),
+                              ("extra key", step.actions[:link] + [dict(step.actions[link], output=[])]
+                               + step.actions[link + 1:])):
+            with self.subTest(name), self.assertRaises(ProtocolError):
+                validate_transcript(dict(evidence, actions=actions))
+        with self.assertRaises(ProtocolError):
+            validate_transcript(dict(evidence, case="dhcp"))
+
+    def test_link_case_never_naks_and_dhcp_case_never_drops_the_link(self):
+        step = link_ready()
+        ack, = step(dhcp(3, 0x22222222, ciaddr=LEASES[0]))
+        self.assertEqual(options(ack)[53], bytes((5,)))
+        self.assertEqual(struct.unpack_from("!I", options(ack)[58])[0], 1800)
+        self.assertEqual(step.machine.counts["naks"], 0)
+        step = link_ready("dhcp")
+        self.assertFalse(step.machine.want_down.is_set())
+        with self.assertRaisesRegex(ProtocolError, "link drop"):
+            step.machine.link_down(99.0)
+
+    def test_link_drop_waits_for_quiet_wire(self):
+        step = Recorder()
+        step.machine = DhcpMachine("link")
+        first_lease(step)
+        step.machine.poll(float(len(step.actions) - 1) + 0.4)
+        self.assertFalse(step.machine.want_down.is_set())
+
+
+class LinkRunnerTest(unittest.TestCase):
+    """Host checks of the link handshake, NETLINK grammar and on_poll hook; no QEMU."""
+    def setUp(self):
+        import run_network_dhcp as runner
+        self.runner = runner
+
+    def test_handshake_toggles_down_then_up_only_after_withdrawal_and_observation(self):
+        class Fake:
+            trace, calls = [], []
+            def command(self, name, arguments):
+                self.calls.append((name, arguments))
+                return {}
+            def close(self):
+                pass
+        fake, machine = Fake(), DhcpMachine("link")
+        control = self.runner.LinkHandshake(machine, Path("."), 0, connect=lambda *_: (fake, None))
+        seen = self.runner.DOWN_OBSERVED
+        control(seen, None)
+        self.assertEqual(fake.calls, [])
+        machine.want_down.set()
+        control(b"", None)
+        self.assertTrue(machine.link_off.is_set())
+        control(seen, None)  # peer has not withdrawn yet
+        machine.withdrawn_ack.set()
+        control(b"NETLINK:QUERY:DOWN:00000000000000000001\n", None)  # wrong epoch
+        self.assertEqual(len(fake.calls), 1)
+        control(seen, None)
+        control(seen, None)
+        self.assertEqual([a["up"] for _, a in fake.calls], [False, True])
+        self.assertEqual(control.phase, "done")
+        control.close()
+
+    def netlink(self):
+        m = self.runner.link_marker
+        return (["NETLINK:ATTACH:STATUS", m("EVENT:UP", 1), m("QUERY:UP", 1), m("RX_HELD", 1),
+                 "NETLINK:WINDOW_OPEN_TX:" + "0" * 19 + "5", "NETLINK:WINDOW_OPEN_PUBLISHED:" + "0" * 19 + "7",
+                 m("EVENT:DOWN", 2), m("DOWN_REFUSED", 2), m("QUERY:DOWN", 2),
+                 "NETLINK:WINDOW_CLOSE_TX:" + "0" * 19 + "5", "NETLINK:WINDOW_CLOSE_PUBLISHED:" + "0" * 19 + "7",
+                 m("EVENT:UP", 3), m("QUERY:UP", 3), m("RX_HELD", 2)])
+
+    def test_link_grammar_accepts_one_cycle_and_rejects_mutants(self):
+        summary = dict.fromkeys(self.runner.LINK_NAMES, 0)
+        good = self.netlink()
+        self.runner.link_sequence(good, summary, 2)
+        m = self.runner.link_marker
+        mutants = {
+            "missing query down": [line for line in good if line != m("QUERY:DOWN", 2)],
+            "rx inside window": good[:7] + [m("RX_HELD", 2)] + good[7:13],
+            "window mismatch": [line.replace("5", "6") if "CLOSE_TX" in line else line for line in good],
+            "synthetic": good + [m("SYNTHETIC:UP", 3)],
+            "rx dropped": good + [m("RX_DROPPED", 1)],
+            "refusal after up": [line for line in good if "DOWN_REFUSED" not in line] + [m("DOWN_REFUSED", 2)],
+            "two refusals": good[:8] + [m("DOWN_REFUSED", 2)] + good[8:],
+        }
+        for name, lines in mutants.items():
+            with self.subTest(name), self.assertRaises(ValueError):
+                self.runner.link_sequence(lines, summary, 2)
+        with self.assertRaises(ValueError):
+            self.runner.link_sequence(good, summary, 3)
+        with self.assertRaises(ValueError):
+            self.runner.link_sequence(good, {}, 2)
+
+    def test_on_poll_exception_kills_qemu_stand_in(self):
+        from run_network_service import execute_native
+        seen = []
+        def hook(stdout, process):
+            seen.append(process)
+            raise RuntimeError("hook failed")
+        with self.assertRaisesRegex(RuntimeError, "hook failed"):
+            execute_native([sys.executable, "-c", "import time; time.sleep(60)"], dict(os.environ),
+                           timeout=30, on_poll=hook)
+        self.assertIsNotNone(seen[0].poll())
 
 
 class DhcpRunnerSummaryTest(unittest.TestCase):

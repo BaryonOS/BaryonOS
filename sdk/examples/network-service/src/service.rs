@@ -33,6 +33,9 @@ fn handle(offset: u64) -> Handle {
 fn bump(offset: u64) {
     support::put(offset, support::word(offset).saturating_add(1))
 }
+fn link_down(error: nieuw_os_sdk_runtime::Error) -> bool {
+    error == nieuw_os_sdk_runtime::Error::Kernel(native::NET_LINK_DOWN)
+}
 fn now() -> u64 {
     native::monotonic_ticks().unwrap_or_else(|_| fail(3))
 }
@@ -75,11 +78,38 @@ struct Bridge {
     rx: [u8; 1514],
     /// Present only in the DHCP profile selected by the trusted manifest.
     dhcp: Option<Entropy>,
+    /// N02-T3b test profile: follow the kernel link state (syscall 0x74).
+    watch: bool,
+    /// Last `(epoch, up)` the service acted on; None before the first sample.
+    link: Option<(u64, bool)>,
 }
 impl Bridge {
     /// DHCP mode uses only the timestamped TX API; the legacy static calls
     /// below deliberately return nothing/refuse in that mode.
     fn step_dhcp(&mut self, service: &mut Service<'_>, tick: u64) {
+        if self.watch {
+            match native::net_link(self.source) {
+                // Any epoch change withdraws first: link_up itself withdraws a
+                // configuration, so a hidden down/up (epoch + 2) is covered.
+                Ok((epoch, up)) if self.link.map(|l| l.0) != Some(epoch) => {
+                    if up {
+                        service.link_up(tick)
+                    } else {
+                        service.link_down(tick)
+                    }
+                    .unwrap_or_else(|_| fail(41));
+                    bump(if up { 664 } else { 656 });
+                    self.link = Some((epoch, up));
+                }
+                Ok(_) => {}
+                // Before the kernel's first sample.
+                Err(e) if e.is_again() => {}
+                Err(_) => fail(42),
+            }
+        }
+        // Not yet observed or down: neither send nor receive. A pending TX
+        // ticket still completes below; 0x71 has no link gate.
+        let usable = !self.watch || self.link.is_some_and(|l| l.1);
         if let Some(p) = &self.pending {
             match native::net_poll_tx(self.source, p.ticket) {
                 Ok(n) => {
@@ -96,7 +126,7 @@ impl Bridge {
                 Err(_) => fail(12),
             }
         }
-        if service.can_receive_frame() {
+        if usable && service.can_receive_frame() {
             match native::net_receive(self.source, &mut self.rx) {
                 Ok(n) => {
                     match service.ingress(&self.rx[..n], tick) {
@@ -108,7 +138,9 @@ impl Bridge {
                     }
                     bump(424)
                 }
-                Err(e) if e.is_again() => {}
+                // The link went down since the last query; the next loop
+                // observes the new epoch.
+                Err(e) if e.is_again() || link_down(e) => {}
                 Err(_) => fail(15),
             }
         }
@@ -142,7 +174,12 @@ impl Bridge {
                     .discard_withheld_transmission_at(id, tick)
                     .unwrap_or_else(|_| fail(35));
             }
-            if let Some(frame) = service.transmission_at(tick).unwrap_or_else(|_| fail(36)) {
+            let frame = if usable {
+                service.transmission_at(tick).unwrap_or_else(|_| fail(36))
+            } else {
+                None
+            };
+            if let Some(frame) = frame {
                 match native::net_send(self.source, frame.bytes, 100) {
                     Ok(ticket) => {
                         self.pending = Some(Pending {
@@ -151,7 +188,8 @@ impl Bridge {
                             length: frame.bytes.len(),
                         })
                     }
-                    Err(e) if e.is_again() => {}
+                    // Refused before submission; the frame stays queued.
+                    Err(e) if e.is_again() || link_down(e) => {}
                     Err(_) => fail(13),
                 }
             }
@@ -289,9 +327,10 @@ fn run() -> ! {
         _ => fail(5),
     };
     // The trusted manifest selects the N02 DHCP profile; no app input can.
-    let dhcp = match support::word(176) {
-        0 => false,
-        1 => true,
+    let (dhcp, watch) = match support::word(176) {
+        0 => (false, false),
+        1 => (true, false),
+        2 => (true, true),
         _ => fail(37),
     };
     let ticket = native::entropy_request(entropy, 8).unwrap_or_else(|_| fail(6));
@@ -365,7 +404,7 @@ fn run() -> ! {
         )
     }
     .unwrap_or_else(|_| fail(9));
-    if dhcp {
+    if dhcp && !watch {
         // Startup link notification only; link control is out of this profile.
         service.link_up(now()).unwrap_or_else(|_| fail(38));
     }
@@ -377,6 +416,8 @@ fn run() -> ! {
             source: entropy,
             draws: 0,
         }),
+        watch,
+        link: None,
     };
     let mut leased: Option<u64> = None;
     let mut pending: [Option<wire::Packet>; 2] = [None, None];

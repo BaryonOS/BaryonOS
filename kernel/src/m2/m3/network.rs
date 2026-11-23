@@ -548,6 +548,13 @@ pub(super) fn device_reset_evidence() -> (u64, u64, u64) {
     }
     (r.fault.tick, r.fault.ticket, r.fault.rx_errors)
 }
+/// Link-down refusals also count as denied; zero outside the link profile.
+fn link_refused(_r: &Runtime) -> u64 {
+    #[cfg(feature = "test-net-service-link")]
+    return link::refused(_r);
+    #[cfg(not(feature = "test-net-service-link"))]
+    0
+}
 pub(super) fn print_and_check(tx: u64, rx: u64) {
     let r = runtime();
     assert_eq!(
@@ -577,6 +584,7 @@ pub(super) fn print_and_check(tx: u64, rx: u64) {
                 // Each app, plus the N04 policy process, proves it has no NIC.
                 2 + u64::from(cfg!(feature = "test-net-service-revoke"))
                     + u64::from(cfg!(feature = "test-net-service-helper"))
+                    + link_refused(r)
             } else {
                 1
             }
@@ -637,12 +645,15 @@ pub(super) mod link {
     /// so that later QMP toggles land while the guest still runs.
     #[cfg(feature = "test-system-net-link-storm")]
     const HOLD_TICKS: u64 = 300;
+    #[cfg(not(feature = "native-net-service"))]
     /// Probe evidence words (startup page offsets) observed at its exit.
     pub(in super::super) const PROBE_WORDS: [u64; 13] = [
         600, 608, 616, 624, 632, 640, 648, 656, 664, 672, 680, 688, 696,
     ];
+    #[cfg(not(feature = "native-net-service"))]
     /// Startup word that tells the probe which link phase to run.
     pub(in super::super) const MODE_WORD: u64 = 592;
+    #[cfg(not(feature = "native-net-service"))]
     pub(in super::super) const MODE: u64 = if cfg!(feature = "test-system-net-link-storm") {
         2
     } else {
@@ -674,6 +685,9 @@ pub(super) mod link {
         refused: (bool, bool, bool),
         exhausted: Option<u64>,
         counters: Counters,
+        /// Ticks of the last real down and up edges (N02-T3b ordering proof).
+        #[cfg(feature = "test-net-service-link")]
+        edge_ticks: (u64, u64),
     }
     impl Link {
         pub(super) const NEW: Self = Self {
@@ -698,6 +712,8 @@ pub(super) mod link {
                 window_delta: 0,
                 queries: 0,
             },
+            #[cfg(feature = "test-net-service-link")]
+            edge_ticks: (0, 0),
         };
     }
 
@@ -834,6 +850,14 @@ pub(super) mod link {
         r.link.counters.events += 1;
         r.link.counters.synthetic += u64::from(event.synthetic);
         r.link.state = Some((event.epoch, event.up));
+        #[cfg(feature = "test-net-service-link")]
+        if !event.synthetic {
+            if event.up {
+                r.link.edge_ticks.1 = now;
+            } else {
+                r.link.edge_ticks.0 = now;
+            }
+        }
         let published = r.device.as_ref().unwrap().publications();
         if event.up {
             r.link.counters.ups += 1;
@@ -938,6 +962,63 @@ pub(super) mod link {
         }
     }
 
+    /// -23 refusals; each one is also counted in `denied`.
+    #[cfg(feature = "test-net-service-link")]
+    pub(super) fn refused(r: &Runtime) -> u64 {
+        r.link.counters.tx_refused + r.link.counters.rx_refused
+    }
+
+    /// N02-T3b: exactly one real down/up cycle seen by the ring-3 service,
+    /// quiescent at the down edge. Returns the (down, up) edge ticks.
+    #[cfg(feature = "test-net-service-link")]
+    pub(in super::super) fn check_service() -> (u64, u64) {
+        let r = runtime();
+        let l = &r.link;
+        let c = l.counters;
+        let kernel = [
+            u64::from(l.supported),
+            l.state.map_or(0, |(epoch, _)| epoch),
+            c.events,
+            c.ups,
+            c.downs,
+            c.synthetic,
+            c.rx_dropped,
+            c.windows,
+            c.window_delta,
+            u64::from(l.exhausted.is_some()),
+        ];
+        let (down, up) = l.edge_ticks;
+        for (label, value) in [
+            (&b"SYSTEM:NETLINK_SUPPORTED:"[..], kernel[0]),
+            (b"SYSTEM:NETLINK_EPOCH:", kernel[1]),
+            (b"SYSTEM:NETLINK_EVENTS:", kernel[2]),
+            (b"SYSTEM:NETLINK_UPS:", kernel[3]),
+            (b"SYSTEM:NETLINK_DOWNS:", kernel[4]),
+            (b"SYSTEM:NETLINK_SYNTHETIC:", kernel[5]),
+            (b"SYSTEM:NETLINK_TX_REFUSED:", c.tx_refused),
+            (b"SYSTEM:NETLINK_RX_REFUSED:", c.rx_refused),
+            (b"SYSTEM:NETLINK_RX_DROPPED:", kernel[6]),
+            (b"SYSTEM:NETLINK_WINDOWS:", kernel[7]),
+            (b"SYSTEM:NETLINK_WINDOW_DELTA:", kernel[8]),
+            (b"SYSTEM:NETLINK_EXHAUSTED:", kernel[9]),
+            (b"SYSTEM:NETLINK_QUERIES:", c.queries),
+            (b"SYSTEM:NETLINK_DOWN_TICK:", down),
+            (b"SYSTEM:NETLINK_UP_TICK:", up),
+        ] {
+            print_number(label, value);
+        }
+        // supported, epoch, events, ups, downs, synthetic, rx dropped,
+        // windows, window delta, exhausted.
+        assert_eq!(
+            kernel,
+            [1, 3, 3, 2, 1, 0, 0, 1, 0, 0],
+            "service link evidence"
+        );
+        assert!(c.queries > 0 && 0 < down && down < up);
+        (down, up)
+    }
+
+    #[cfg(not(feature = "native-net-service"))]
     /// Kernel and probe link evidence after the probe exited.
     pub(in super::super) fn check_and_print(probe: [u64; 13]) {
         let r = runtime();

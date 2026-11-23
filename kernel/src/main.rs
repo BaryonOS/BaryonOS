@@ -89,6 +89,12 @@ compile_error!("native-rtc exclusively owns CMOS in the single-CPU IF0 bootstrap
 ))]
 compile_error!("native-acpi-s5 ends the single-CPU IF0 bootstrap; no other subsystem may run");
 #[cfg(all(
+    feature = "test-system-net-link",
+    feature = "native-net-service",
+    not(feature = "test-net-service-link")
+))]
+compile_error!("the link test module has a ring-3 service consumer only in test-net-service-link");
+#[cfg(all(
     feature = "native-acpi-s3",
     any(
         feature = "milestone-m3",
