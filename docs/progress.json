@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-23",
-    "source_commit": "a616980fa31565639c686be65a536e91bb2d7edc",
+    "source_commit": "e02ff67cf81a89bb5e3741eb0b90298408edaea2",
     "assessment_basis": "parent_commit",
     "branch": "ccr-38238c58-g8y1l6",
-    "task": "H03-T3a review fixes (CodeRabbit F8/F11, focused security review findings 1-3) and the H05-T4 design ADR",
+    "task": "H05-T4 test-profile S3 from the running native system (syscall 0x91 behind POWER and the storage gate)",
     "previous_score": 41,
-    "summary": "41/100 unchanged. The H03-T3a fixture gains the CodeRabbit F8/F11 fixes and the fixes for an independent security review's findings 1-3 (host-tested; hosted native-xhci.yml is the native evidence). ADR-H05-S3-SYSTEM-20261123 records the H05-T4 design; nothing is implemented for it yet. Physical acceptance for H02-H06 remains open."
+    "summary": "41/100 unchanged. H05-T4 adds test-system-s3: init's POWER capability obtains one S3 cycle in the running native system behind the storage gate, ring-3 processes continue after the wake (tick and stack checks), then S5 and a cold recovery pass (native QEMU/TCG, docs/verification/h05-s3-system-20261123/). H05 stays open: physical sleep/wake, device re-initialisation after a wake and the OD-HW-* owner decisions are outstanding; no criterion changes."
   },
   "tracks": [
     {

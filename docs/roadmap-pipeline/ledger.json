@@ -2132,7 +2132,7 @@
       "evidence_level": "native QEMU/TCG",
       "non_claimable": "Physical firmware/hardware, other wake sources, AML _PTS/_WAK, devices/services/SMP across sleep, thermal/battery and H05 acceptance stay open.",
       "source_commit": "887c446d8b530b17ba34a1e9798b6e3d012aedcc",
-      "next": "H05-T4: S3 from the native-system profile via the POWER capability behind the storage gate, with PIC/PIT re-init and resumed processes; reuse the QMP hook from H04-T3.",
+      "next": "H05-T4 verified 2026-11-23 (docs/verification/h05-s3-system-20261123/).",
       "lead_paths": [
         ".github/workflows/native-power.yml",
         "docs/DECISIONS.md",
@@ -2140,6 +2140,55 @@
         "docs/progress.json",
         "docs/roadmap-pipeline/ledger.json"
       ]
+    },
+    {
+      "id": "H05-T4",
+      "criterion": "H05",
+      "milestone": "M9",
+      "executor": "lead",
+      "status": "verified",
+      "title": "Test-profile S3 from the running native system (syscall 0x91 behind POWER and the storage gate)",
+      "goal": "One granted S3 cycle from init in the native-system profile under ADR-H05-S3-SYSTEM-20261123: authority/argument/gate refusals, synchronous sleep through the shared wake path, PIC/PIT re-arm, process audit, post-wake tick, one-shot -14, device requests refused after the wake, then the existing S5 gate and a cold recovery.",
+      "deps": [
+        "H05-T3"
+      ],
+      "write_paths": [
+        "kernel/Cargo.toml",
+        "kernel/src/main.rs",
+        "kernel/src/m2.rs",
+        "kernel/src/m2/{arch,paging,power,sleep,m3}.rs",
+        "kernel/src/m2/m3/{system,keyring,volume}.rs",
+        "sdk/runtime/src/native.rs",
+        "sdk/examples/system/src/init.rs",
+        "tools/build.py",
+        "tools/run_system.py",
+        "tools/run_sleep.py",
+        "tools/run_net_link.py",
+        "tools/run_volume.py",
+        "tools/test_power_system.py",
+        "tests/test_system_harness.py",
+        "tools/tests/test_sleep.py",
+        "docs/verification/h05-s3-system-20261123/"
+      ],
+      "checks": [
+        "NOS_QEMU_MACHINE=pc-q35-8.2 python3 -B tools/test_power_system.py",
+        "python3 -B tools/build.py --kernel-feature native-acpi-s3 && python3 -B tools/run_sleep.py --case cycles",
+        "python3 -B tools/build.py --kernel-feature test-acpi-s3-corrupt-facs && python3 -B tools/run_sleep.py --case corrupt-facs",
+        "python3 -B tools/build.py --kernel-feature test-acpi-s3-stale-token && python3 -B tools/run_sleep.py --case stale-token",
+        "python3 -B -m unittest discover -s tests -p test_system_harness.py",
+        "python3 -B -m unittest discover -s tools/tests -p test_sleep.py"
+      ],
+      "evidence_level": "native QEMU/TCG",
+      "non_claimable": "Physical sleep/wake, device re-initialisation after a wake, other wake sources, AML _PTS/_WAK, SMP/FPU across sleep, product suspend UX and H05 acceptance stay open.",
+      "source_commit": "e02ff67cf81a89bb5e3741eb0b90298408edaea2",
+      "history": [
+        {
+          "event": "verified",
+          "at": "2026-11-23",
+          "reason": "power gate 8/8 (power-s3 raw 0 + recover raw 33) and run_sleep cycles/corrupt-facs/stale-token raw 33 on e02ff67c, source v3 01fc98ba; adversarial review: no kernel/regression defect, four minor harness defects fixed."
+        }
+      ],
+      "next": "Hosted native-power.yml#power-system-gate on the pushed head; device re-initialisation after a wake is a separate slice."
     },
     {
       "id": "H06-T2",

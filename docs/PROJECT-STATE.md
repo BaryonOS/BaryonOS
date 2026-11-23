@@ -1,5 +1,36 @@
 # Current project status
 
+## NEXT AGENT HANDOFF — H-track lead: S3 from the running system (H05-T4) — 23 November 2026
+
+**Mandate:** project-owner H-track instruction (19 and 23 November 2026); this
+local session is the single writer of draft PR #409 (`ccr-38238c58-g8y1l6`). No merge.
+**Source:** `e02ff67c` (feature `31481f23`, review fixes `e02ff67c`) on top of the
+cloud session's merge `af1b650c` (its snd hardening was integrated, not overwritten).
+**Delivered (H05-T4, verified, not accepted):** `test-system-s3` adds syscall
+`0x91` SUSPEND under ADR-H05-S3-SYSTEM-20261123 (amended the same day to match
+the implementation). Init proves -8/-6/-4/-1, one granted S3 cycle, a ring-3
+stack pattern and a timer tick after the wake, the one-shot -14, then S5; a cold
+recovery boot of the image passes. The S3 path sits behind an internal
+`acpi-s3-core` feature; `sleep.rs` is split into `resolve` and `cycle` with
+unchanged native-acpi-s3 output.
+**Checks (exit 0):** `test_power_system.py` 8/8 including power-s3 (raw 0) and its
+recover (raw 33); `run_sleep.py` cycles/corrupt-facs/stale-token raw 33; host suites
+(system harness 61, test_sleep 17, CI workflows 28, CI evidence 38, GS discipline);
+fmt. `tools/tests` has 6 errors in `test_agent_isolation`/`test_agent_pipeline`
+("Git environment overrides require a verified controller adapter"), from this
+session's git environment, in files this slice does not touch.
+[Evidence](verification/h05-s3-system-20261123/README.md).
+**Limits:** QEMU/OVMF/TCG only; devices are lost across the wake (their -14
+refusal is code-reviewed, not exercised natively); no physical firmware, AML,
+SMP or FPU across sleep. Hosted `native-power.yml#power-system-gate` runs power-s3
+automatically through `test_power_system.py`; its step name still says "three"
+cases (protected file, cosmetic).
+**Next:** hosted CI on the pushed head; then H04 `flap`/`reset` link cases, H02 mouse
+reattach, or the H03 bochs DISPI mode-set fixture. Note: cloud session
+[9376d3] kept pushing to this branch after "This session leads"; every push here
+first verifies the remote head.
+**Score:** 41 → 41/100 (H05 needs physical acceptance).
+
 ## NEXT AGENT HANDOFF — H-track lead resumed — 23 November 2026
 
 **Mandate:** project-owner H-track instruction, renewed on 23 November 2026, on
