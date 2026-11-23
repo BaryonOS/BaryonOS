@@ -543,6 +543,36 @@ class Session(unittest.TestCase):
             self.assertIsInstance(outcome, rr.Stop)
             self.assertTrue((root / "state" / "STOP").exists())
 
+    def test_acquire_compares_the_saved_baseline_before_recover_runs_git(self):
+        for later, stops in (("after", True), ("before", False)):
+            with self.subTest(later=later), tempfile.TemporaryDirectory() as tmp:
+                state = Path(tmp) / "state"
+                state.mkdir()
+                marker = state / rr.CALLBACKS_MARKER
+                marker.write_text(json.dumps({"baseline": "before", "session": "s"}))
+                (state / "lease.json").write_text(json.dumps({"task": "A"}))  # crashed owner
+                controller = rr.Controller(rr.Config(), state)
+                try:
+                    with unittest.mock.patch.object(rr, "git_callbacks", return_value=later), \
+                            unittest.mock.patch.object(rr, "git", side_effect=rr.Stop("git reached")) as git:
+                        with self.assertRaisesRegex(rr.Stop, "interrupted session" if stops else "git reached"):
+                            controller.acquire()
+                finally:
+                    controller.release()
+                if stops:
+                    git.assert_not_called()  # recover()'s git status never ran
+                self.assertEqual((state / "STOP").exists(), stops)
+                self.assertTrue(marker.exists())  # retired only by preflight, once no worker lives
+
+    def test_push_ignores_inherited_repository_location(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            controller = rr.Controller(rr.Config(push=True), Path(tmp))
+            pushed = rr.subprocess.CompletedProcess([], 0, "", "")
+            with unittest.mock.patch.dict("os.environ", {"GIT_DIR": "/elsewhere/.git"}), \
+                    unittest.mock.patch.object(rr.subprocess, "run", return_value=pushed) as run:
+                controller.push()
+            self.assertNotIn("GIT_DIR", run.call_args.kwargs["env"])
+
     def test_interrupted_session_leaves_its_baseline_for_the_next_preflight(self):
         for later, stops in (("after", True), ("before", False)):
             with self.subTest(later=later), tempfile.TemporaryDirectory() as tmp:

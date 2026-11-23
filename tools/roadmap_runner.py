@@ -455,6 +455,7 @@ class Controller:
         self.lock_file.truncate()
         self.lock_file.write(json.dumps({"pid": os.getpid(), "run": self.run_id, "started": now()}))
         self.lock_file.flush()
+        self.check_saved_baseline(retire=False)  # recover() runs git status, which can run a filter
         self.recover()
 
     def release(self) -> None:
@@ -511,16 +512,7 @@ class Controller:
                                capture_output=True, text=True).stdout.split()
         if [p for p in alive if int(p) != os.getpid()]:
             raise Stop(f"a previous worker process is still alive: {alive}")
-        # Before any Git command that can run a hook. A session that never reached its own check
-        # (interrupt, crash, kill) left its baseline behind: compare with it, never adopt a change.
-        marker = self.state / CALLBACKS_MARKER
-        if marker.exists():
-            try:
-                self.callbacks = json.loads(marker.read_text())["baseline"]
-            except (ValueError, KeyError, TypeError):
-                self.callbacks = None  # unreadable baseline: fail closed
-            self.check_callbacks("an interrupted session")
-            marker.unlink()
+        self.check_saved_baseline(retire=True)  # no worker is alive any more
         self.callbacks = git_callbacks()
         branch = git("branch", "--show-current").strip()
         if branch != self.cfg.branch:
@@ -529,6 +521,21 @@ class Controller:
         if dirty:
             raise Stop(f"checkout is not clean; refusing to start a writer:\n{dirty[:2000]}")
         return git("rev-parse", "HEAD").strip()
+
+    def check_saved_baseline(self, *, retire: bool) -> None:
+        """Before any Git command that can run a hook or filter. A session that never reached its
+        own check (interrupt, crash, kill) left its baseline behind: compare with it, never adopt
+        a change. Retire it only once no worker can still change the callbacks."""
+        marker = self.state / CALLBACKS_MARKER
+        if not marker.exists():
+            return
+        try:
+            self.callbacks = json.loads(marker.read_text())["baseline"]
+        except (ValueError, KeyError, TypeError):
+            self.callbacks = None  # unreadable baseline: fail closed
+        self.check_callbacks("an interrupted session")
+        if retire:
+            marker.unlink()
 
     def check_callbacks(self, where: str) -> None:
         if git_callbacks() != self.callbacks:
@@ -982,7 +989,7 @@ Return the structured result.
         for delay in (0, 2, 4, 8, 16):
             time.sleep(delay)
             done = subprocess.run(["git", "push", "-q", "-u", "origin", self.cfg.branch], cwd=ROOT,
-                                  capture_output=True, text=True)
+                                  capture_output=True, text=True, env=git_env())
             if done.returncode == 0:
                 return
         raise Stop(f"push failed: {done.stderr.strip()[-600:]}")

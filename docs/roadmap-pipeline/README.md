@@ -175,10 +175,12 @@ and `info/attributes` (including symlinked hook targets) at preflight. After any
 session that changed them it writes the `STOP` file and stops, so a later run
 cannot adopt the change as its baseline. The baseline is persisted before each
 session and compared in a `finally` block, also when the session is interrupted;
-if the controller itself dies, the next preflight compares against the persisted
-baseline before any Git command that can run a callback. Workers may not edit
+if the controller itself dies, the next run compares against the persisted
+baseline right after taking the controller lock, before lease recovery or any other
+Git command that can run a hook or filter, and retires it only at preflight, once no
+worker process is alive. Workers may not edit
 `build/roadmap-pipeline/**`, which holds that baseline, `STOP` and the logs.
-Controller Git runs with `core.fsmonitor=false` and without inherited
+Controller Git (including `git push`) runs with `core.fsmonitor=false` and without inherited
 repository-location variables such as `GIT_DIR` or `GIT_WORK_TREE`. Task gates
 are resolved before the worker session, so a gate that cannot be resolved blocks
 the task without spending a session. `run` and `brief` check `STOP` before any Git command
