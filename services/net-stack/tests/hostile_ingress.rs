@@ -217,3 +217,104 @@ fn known_defect_half_space_segment_before_first_ack_panics_smoltcp() {
     stack.push_frame(&frame(MAC, IP, TCP, far)).unwrap();
     let _ = drain(&mut stack, 2);
 }
+
+const RST: u8 = 0x04;
+
+/// Unsolicited ARP request from the peer for our address; smoltcp caches the
+/// sender and answers, so a later connect needs no ARP round trip.
+fn arp_request_from_peer() -> Vec<u8> {
+    let mut f = vec![0u8; 42];
+    f[..6].copy_from_slice(&BROADCAST_MAC);
+    f[6..12].copy_from_slice(&PEER_MAC);
+    f[12..22].copy_from_slice(&[8, 6, 0, 1, 8, 0, 6, 4, 0, 1]);
+    f[22..28].copy_from_slice(&PEER_MAC);
+    f[28..32].copy_from_slice(&PEER_IP);
+    f[38..42].copy_from_slice(&IP);
+    f
+}
+
+fn syn_to_closed_port(port: u16) -> Vec<u8> {
+    let mut segment = tcp(0x2000_0000, 0, SYN, &[]);
+    segment[2..4].copy_from_slice(&port.to_be_bytes());
+    frame(MAC, IP, TCP, segment)
+}
+
+/// N04 fairness: with one TX slot, a continuous stream of SYNs to closed ports
+/// must not starve a pending client SYN. Bound K: the client SYN leaves before
+/// more than `K` flood frames have been consumed. No RST may be dropped or
+/// coalesced: deferred ingress waits in the RX slot (backpressure), so every
+/// accepted flood frame gets exactly one RST once the stream ends. Extra polls
+/// while the slot is still busy must not hand the next free slot to ingress.
+#[test]
+fn syn_flood_to_closed_ports_cannot_starve_pending_client_syn() {
+    for extra_polls in [0, 1, 3] {
+        // Entered right after an ingress reply (the ARP answer): SYN goes first.
+        syn_flood_case(extra_polls, false, 0);
+        // Entered from idle: the flood wins one slot, then the SYN gets the next.
+        syn_flood_case(extra_polls, true, 1);
+    }
+}
+
+fn syn_flood_case(extra_polls: usize, idle_first: bool, expected_after: usize) {
+    const K: usize = 2;
+    const FLOOD: usize = 16;
+    let mut storage = [SocketStorage::EMPTY];
+    let (mut rx, mut tx) = ([0; 1514], [0; 1514]);
+    let (mut rxb, mut txb) = ([0; 4096], [0; 4096]);
+    let config = Config {
+        mac: MAC,
+        ipv4: IP,
+        prefix_len: 24,
+        random_seed: 7,
+    };
+    let mut stack = Stack::new(config, &mut storage, &mut rx, &mut tx, 0).unwrap();
+    stack.push_frame(&arp_request_from_peer()).unwrap();
+    let arp = drain(&mut stack, 0).expect("ARP reply to peer");
+    assert_eq!(&arp[12..14], &[8, 6]);
+    if idle_first {
+        assert!(drain(&mut stack, 0).is_none());
+    }
+    let client = stack.add_client(&mut rxb, &mut txb).unwrap();
+    stack.connect(client, PEER_IP, 8080, 40000, 300).unwrap();
+
+    let (mut pushed, mut rsts, mut client_syn_after) = (0usize, 0usize, None);
+    // Ticks stay at 1 so no retransmission timer adds egress; extra polls let
+    // backpressured ingress drain after the stream ends.
+    for _ in 0..FLOOD * 3 {
+        if pushed < FLOOD && stack.can_receive_frame() {
+            stack
+                .push_frame(&syn_to_closed_port(50_000 + pushed as u16))
+                .unwrap();
+            pushed += 1;
+        }
+        for _ in 0..extra_polls {
+            stack.poll(1).unwrap();
+        }
+        let Some(out) = drain(&mut stack, 1) else {
+            continue;
+        };
+        assert_eq!(&out[12..14], &[8, 0], "only IPv4 egress expected");
+        let (src_port, flags) = (u16::from_be_bytes([out[34], out[35]]), out[47]);
+        if src_port == 40000 && flags & SYN_ACK == SYN {
+            assert!(client_syn_after.is_none(), "single client SYN");
+            client_syn_after = Some(rsts);
+        } else {
+            assert_eq!(flags & RST, RST, "flood reply must be RST");
+            assert_eq!(
+                usize::from(src_port),
+                50_000 + rsts,
+                "one RST per SYN, in order"
+            );
+            rsts += 1;
+        }
+    }
+    let after = client_syn_after.expect("client SYN starved by ingress flood");
+    assert!(
+        after <= K,
+        "client SYN only after {after} RSTs (K = {K}, extra polls {extra_polls})"
+    );
+    assert_eq!(after, expected_after, "idle first {idle_first}");
+    assert_eq!(pushed, FLOOD);
+    assert_eq!(rsts, FLOOD, "every flood SYN gets exactly one RST");
+    assert_eq!(stack.state(client).unwrap(), State::SynSent);
+}

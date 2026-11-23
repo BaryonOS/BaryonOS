@@ -10,7 +10,7 @@ import struct
 from common import ROOT, BUILD, run_logged, save_json, sha256
 
 
-SDK_DEPENDENCY_ID = "registry+https://github.com/rust-lang/crates.io-index#zeroize@1.9.1"
+SDK_DEPENDENCY_ID = "registry+https://github.com/rust-lang/crates.io-index#zeroize@1.9.2"
 
 
 def sdk_dependency_command(root, build):

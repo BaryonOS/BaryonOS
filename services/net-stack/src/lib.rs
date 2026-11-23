@@ -117,6 +117,8 @@ pub struct Stack<'a> {
     last_ticks: u64,
     configuration: Option<AddressConfiguration>,
     withheld_transmission: bool,
+    /// The last poll that found the TX slot free spent it on an ingress reply.
+    ingress_took_tx: bool,
 }
 
 fn instant(ticks: u64) -> Result<Instant, Error> {
@@ -214,6 +216,7 @@ impl<'a> Stack<'a> {
             last_ticks: ticks,
             configuration,
             withheld_transmission: false,
+            ingress_took_tx: false,
         })
     }
 
@@ -284,6 +287,8 @@ impl<'a> Stack<'a> {
         self.last_ticks = ticks;
         self.configuration = Some(configuration);
         self.withheld_transmission = false;
+        // A new configuration starts a fresh fairness turn.
+        self.ingress_took_tx = false;
         Ok(())
     }
 
@@ -294,6 +299,7 @@ impl<'a> Stack<'a> {
         let now = self.check_ticks(ticks);
         self.configuration = None;
         self.withheld_transmission = self.device.transmission().is_some();
+        self.ingress_took_tx = false;
         for (_, smoltcp::socket::Socket::Tcp(socket)) in self.sockets.iter_mut() {
             socket.abort();
         }
@@ -449,9 +455,15 @@ impl<'a> Stack<'a> {
         Ok(())
     }
 
-    /// A bounded step: maintenance, at most one ingress, one bounded egress pass
-    /// over at most two sockets. Caller must yield between steps and supply
-    /// actual boot-monotonic ticks; repeated equal ticks never advance timers.
+    /// A bounded step: maintenance, at most one ingress, at most two bounded
+    /// egress passes over at most two sockets. Caller must yield between steps
+    /// and supply actual boot-monotonic ticks; repeated equal ticks never
+    /// advance timers.
+    ///
+    /// Fairness (N04): when the previous free TX slot carried an ingress reply,
+    /// pending socket egress gets the next free slot first, so an ingress flood
+    /// can claim at most one of every two freed slots. Deferred ingress is not
+    /// dropped: it stays in the RX slot (backpressure) until TX is free.
     pub fn poll(&mut self, ticks: u64) -> Result<(), Error> {
         if ticks < self.last_ticks {
             return Err(Error::ClockWentBackwards);
@@ -462,8 +474,19 @@ impl<'a> Stack<'a> {
             return Ok(());
         }
         self.interface.poll_maintenance(now);
+        // Polls with a busy slot leave the turn untouched, so extra polls
+        // before completion cannot hand the next free slot back to ingress.
+        let slot_free = self.device.transmission().is_none();
+        if slot_free && self.ingress_took_tx {
+            self.interface
+                .poll_egress(now, &mut self.device, &mut self.sockets);
+        }
+        let free_before_ingress = self.device.transmission().is_none();
         self.interface
             .poll_ingress_single(now, &mut self.device, &mut self.sockets);
+        if slot_free {
+            self.ingress_took_tx = free_before_ingress && self.device.transmission().is_some();
+        }
         self.interface
             .poll_egress(now, &mut self.device, &mut self.sockets);
         Ok(())
