@@ -1,4 +1,4 @@
-//! Catalog layout, validator and mount rule (spec 2.6): N4, N8, N30.
+//! Catalog layout, validator and mount rule (spec 2.6): N4, N8, N30, N34.
 //!
 //! Crafted copies are built by an encoder written here from the byte offsets
 //! of 2.6, independent of the library encoder, so a layout error in the
@@ -149,6 +149,19 @@ fn validator_rejects_each_rule() {
             Box::new(|b| b[80..88].copy_from_slice(&525_329u64.to_le_bytes())),
         ),
         ("label length 0", Box::new(|b| b[104] = 0)),
+        // Sealing sequences (revision 3); `two()` seals at 2 and 3 under 3.
+        (
+            "sealing sequence 1",
+            Box::new(|b| b[96..104].copy_from_slice(&1u64.to_le_bytes())),
+        ),
+        (
+            "sealing sequence above copy",
+            Box::new(|b| b[176..184].copy_from_slice(&4u64.to_le_bytes())),
+        ),
+        (
+            "equal sealing sequences",
+            Box::new(|b| b[176..184].copy_from_slice(&2u64.to_le_bytes())),
+        ),
         ("label length 33", Box::new(|b| b[104] = 33)),
         ("label padding", Box::new(|b| b[112 + 10] = b'x')),
         ("record padding", Box::new(|b| b[106] = 1)),
@@ -197,6 +210,7 @@ fn validator_rejects_isolated_rules() {
     raw.records = (0..16u64).map(|i| (i + 1, 16 + i, 80, &b"l"[..])).collect();
     raw.next_entry = 17;
     raw.next_free = 32;
+    raw.sequence = 17; // sealing sequences 2..=17
     raw.count = 16;
     assert!(valid(&raw.bytes()), "sixteen entries are valid");
     raw.count = 17;
@@ -525,4 +539,78 @@ fn n8_read_error_in_reserved_area_is_never_blank() {
         assert_eq!(h.control(req(wire::FORMAT), &[]).status, Status::Io);
         assert_eq!(h.disk.writes, 0);
     }
+}
+
+/// N34 (2.6, revision 3): crafted copies, each valid except for one rule, are
+/// invalid; beside a valid copy the valid one is used, twice they are
+/// `Corrupt`. A valid copy mounts beside non-zero sectors 8-15. The same
+/// cases run in the Python oracle (`tests/test_volume_destination_disk.py`,
+/// `RecordAndCopyValidity`). Label content (O14) is undecided and not tested.
+/// Kills: a validator without any one of these rules; a rule on sectors 8-15.
+#[test]
+fn n34_record_and_copy_validity() {
+    let valid_copy = Raw::two().bytes();
+    let with = |tweak: &dyn Fn(&mut Raw)| {
+        let mut raw = Raw::two();
+        tweak(&mut raw);
+        raw.bytes()
+    };
+    let at = |b: &mut [u8; 2048], offset: usize, value: u64| {
+        b[offset..offset + 8].copy_from_slice(&value.to_le_bytes());
+        resum(b);
+    };
+    let mut cases: Vec<(&str, [u8; 2048])> = Vec::new();
+    let mut zero_records = Raw::new().bytes();
+    at(&mut zero_records, 32, 0);
+    cases.push(("zero records, copy sequence 0", zero_records));
+    let mut b = valid_copy;
+    at(&mut b, 64, 0);
+    cases.push(("entry ID 0", b));
+    cases.push(("label length 0", with(&|r| r.records[1].3 = b"")));
+    let mut b = valid_copy;
+    b[64 + 80 + 40] = 33;
+    b[64 + 80 + 48..64 + 160].fill(b'x');
+    resum(&mut b);
+    cases.push(("label length 33", b));
+    let mut b = valid_copy;
+    at(&mut b, 64 + 80 + 16, 79);
+    cases.push(("length 79", b));
+    let mut b = valid_copy;
+    at(&mut b, 64 + 16, 525_329);
+    cases.push(("length 525 329", b));
+    for (name, record, value) in [
+        ("sealing sequence 1", 0, 1),
+        ("sealing sequence above the copy's", 1, 4),
+        ("equal sealing sequences", 1, 2),
+    ] {
+        let mut b = valid_copy;
+        at(&mut b, 64 + record * 80 + 32, value);
+        cases.push((name, b));
+    }
+    let image = |a: &[u8; 2048], b: &[u8; 2048]| {
+        let mut image = vec![[0; SECTOR]; SECTORS as usize];
+        put_copy(&mut image, 0, a);
+        put_copy(&mut image, 1, b);
+        image
+    };
+    for (name, crafted) in cases {
+        assert!(!valid(&crafted), "{name}: invalid");
+        for (a, b) in [(&crafted, &valid_copy), (&valid_copy, &crafted)] {
+            let h = H::cold(image(a, b));
+            assert_eq!(h.svc.state(), State::Mounted, "{name} beside a valid copy");
+            assert_eq!(
+                h.svc.catalog().encode(),
+                valid_copy,
+                "{name}: valid one used"
+            );
+        }
+        let h = H::cold(image(&crafted, &crafted));
+        assert_eq!(h.svc.state(), State::Corrupt, "{name} twice");
+    }
+    // Sectors 8-15 are not a validity rule.
+    let mut reserved = image(&valid_copy, &valid_copy);
+    for sector in &mut reserved[8..16] {
+        sector.fill(0xa5);
+    }
+    assert_eq!(H::cold(reserved).svc.state(), State::Mounted);
 }

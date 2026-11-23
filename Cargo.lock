@@ -216,6 +216,7 @@ name = "destination-core"
 version = "0.1.0"
 dependencies = [
  "capability-core",
+ "destination-core",
 ]
 
 [[package]]

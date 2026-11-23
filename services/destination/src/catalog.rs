@@ -160,6 +160,7 @@ pub fn decode(bytes: &[u8; COPY], scope_sectors: u64) -> Option<Catalog> {
     }
     let mut end = DATA_START;
     let mut previous = 0;
+    let mut previous_sealed = 0;
     for index in 0..MAX_ENTRIES {
         let raw = &bytes[RECORDS_AT + index * RECORD..RECORDS_AT + (index + 1) * RECORD];
         if index >= count {
@@ -172,7 +173,13 @@ pub fn decode(bytes: &[u8; COPY], scope_sectors: u64) -> Option<Catalog> {
         let label_length = usize::from(record.label_length);
         // Entry IDs are never 0 (2.3) and strictly ascending; extents are
         // contiguous from sector 16, which also makes first sectors ascend.
+        // Sealing sequences: FORMAT commits sequence 1 without records and
+        // each SEAL adds one record at the new sequence, so they are >= 2,
+        // <= the copy's sequence and strictly ascending (revision 3).
         if record.id <= previous
+            || record.sealed_sequence < 2
+            || record.sealed_sequence > catalog.sequence
+            || record.sealed_sequence <= previous_sealed
             || record.id >= catalog.next_entry
             || record.first != end
             || record.length < MIN_ARCHIVE
@@ -186,6 +193,7 @@ pub fn decode(bytes: &[u8; COPY], scope_sectors: u64) -> Option<Catalog> {
         }
         end = record.end();
         previous = record.id;
+        previous_sealed = record.sealed_sequence;
         catalog.records[index] = record;
     }
     (catalog.next_free == end).then_some(catalog)

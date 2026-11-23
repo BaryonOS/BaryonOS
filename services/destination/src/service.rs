@@ -144,7 +144,9 @@ pub struct Service {
     /// Requests refused by checks 1-6 (`DEST:DENIALS=`, a service report).
     pub denials: u64,
     /// Test hook for N29: alters the encoded catalog copy before the
-    /// pre-write check of 2.7 step 4. Production code leaves it `None`.
+    /// pre-write check of 2.7 step 4. Exists only with the test-only
+    /// `test-hooks` feature; a product build has no such field.
+    #[cfg(feature = "test-hooks")]
     #[doc(hidden)]
     pub tamper: Option<fn(&mut [u8; COPY])>,
 }
@@ -167,6 +169,7 @@ impl Service {
             }; LANES],
             writing: None,
             denials: 0,
+            #[cfg(feature = "test-hooks")]
             tamper: None,
         };
         service.mount(broker);
@@ -190,17 +193,19 @@ impl Service {
     /// Mount rule of 2.6: FLUSH first, then read sectors 0-15; a failed
     /// FLUSH or read gives the failed-mount state and writes nothing.
     fn mount<B: Broker>(&mut self, broker: &mut B) {
-        let failed = |status: Status| State::Failed {
-            no_device: status == Status::NoDevice,
-        };
-        if let Err(status) = device::flush(broker) {
-            self.state = failed(status);
+        let mut broker = device::Watch::new(broker);
+        if device::flush(&mut broker).is_err() {
+            self.state = State::Failed {
+                no_device: broker.no_device,
+            };
             return;
         }
         let mut area = [[0; SECTOR]; AREA_SECTORS];
         for (sector, buffer) in area.iter_mut().enumerate() {
-            if let Err(status) = device::read(broker, sector as u64, buffer) {
-                self.state = failed(status);
+            if device::read(&mut broker, sector as u64, buffer).is_err() {
+                self.state = State::Failed {
+                    no_device: broker.no_device,
+                };
                 return;
             }
         }
@@ -504,7 +509,12 @@ impl Service {
             return Err(Status::Stale);
         }
         let total = writing.appended + data.len() as u64;
-        if total > MAX_ARCHIVE || writing.first + sectors_for(total) > scope {
+        // Order of 2.3: offset (`Stale`), archive bound (`Range`), scope end
+        // (`Full`); each refusal appends nothing and leaves the entry writing.
+        if total > MAX_ARCHIVE {
+            return Err(Status::Range);
+        }
+        if writing.first + sectors_for(total) > scope {
             return Err(Status::Full);
         }
         for byte in data {
@@ -593,7 +603,9 @@ impl Service {
         next.sequence = sequence;
         next.next_free = writing.first + sectors_for(writing.appended);
         next.next_entry = next_entry;
+        #[cfg_attr(not(feature = "test-hooks"), allow(unused_mut))]
         let mut bytes = next.encode();
+        #[cfg(feature = "test-hooks")]
         if let Some(tamper) = self.tamper {
             tamper(&mut bytes);
         }
@@ -601,6 +613,8 @@ impl Service {
             catalog::extends(&committed, copy)
                 && copy.count == committed.count + 1
                 && copy.sequence == sequence
+                // Pre-write check only, not the mount rule (2.6, 2.7 step 4).
+                && copy.records[committed.count].sealed_sequence == sequence
         }) else {
             self.discard();
             return Err(Status::Corrupt);
@@ -760,19 +774,17 @@ impl Service {
         env.entropy.fill(&mut id).map_err(|_| Status::Io)?;
         let fresh = Catalog::formatted(id, self.scope);
         let bytes = fresh.encode();
-        let written = write_copy(env.broker, 0, &bytes)
-            .and_then(|()| device::flush(env.broker))
-            .and_then(|()| write_copy(env.broker, 1, &bytes))
-            .and_then(|()| device::flush(env.broker));
+        let mut broker = device::Watch::new(&mut *env.broker);
+        let written = write_copy(&mut broker, 0, &bytes)
+            .and_then(|()| device::flush(&mut broker))
+            .and_then(|()| write_copy(&mut broker, 1, &bytes))
+            .and_then(|()| device::flush(&mut broker));
         if let Err(status) = written {
             self.state = State::Failed {
-                no_device: status == Status::NoDevice,
+                no_device: broker.no_device,
             };
-            return Err(if status == Status::Unknown {
-                Status::Unknown
-            } else {
-                Status::Io
-            });
+            // The write-or-flush status of "Device results" (2.5).
+            return Err(status);
         }
         self.selection = Selection::committed(fresh);
         self.state = State::Mounted;

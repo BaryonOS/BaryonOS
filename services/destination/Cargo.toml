@@ -7,5 +7,11 @@ publish = false
 [lib]
 path = "src/lib.rs"
 
+[features]
+# Test-only hooks (N29): never enabled by a product build. The self
+# dev-dependency below turns it on for this crate's own test targets only.
+test-hooks = []
+
 [dev-dependencies]
 capability-core = { path = "../../crates/capability-core" }
+destination-core = { path = ".", features = ["test-hooks"] }

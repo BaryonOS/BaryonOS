@@ -1,5 +1,5 @@
 //! Allocator-free core of the S09 backup destination service (route step R2
-//! of `docs/implementation/S09-DESTINATION-SERVICE.md`, revision 2).
+//! of `docs/implementation/S09-DESTINATION-SERVICE.md`, revision 3).
 //!
 //! The core is pure: it issues no system call. Block I/O goes through the
 //! [`device::Broker`] trait (submission, completion poll and a boot-monotonic

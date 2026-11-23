@@ -49,22 +49,52 @@ pub trait Broker {
     fn now(&mut self) -> u64;
 }
 
-/// Device result of a failed request, as the reply statuses of 2.5 use it.
-pub fn submit_error(code: i64) -> Status {
-    match code {
-        KERNEL_NO_DEVICE => Status::NoDevice,
-        // A submission refused for a quarantined (offline, -13) device is a
-        // device failure answered `Io` (5.3).
-        _ => Status::Io,
+/// Completion result other than success of a read (`mutating` false) or a
+/// write or flush, as "Device results" (2.5) maps it. Kernel -14 is never
+/// `NoDevice` here: after the boot mount it is a device fault (no runtime
+/// attachment, K1); [`Watch`] records it for the failed-mount state instead.
+pub fn poll_error(code: i64, mutating: bool) -> Status {
+    match (code, mutating) {
+        (KERNEL_TIMEOUT, false) => Status::Timeout,
+        (_, false) | (KERNEL_IO, true) => Status::Io,
+        // Admitted without a definite result (-13, -16, -14, undefined).
+        (_, true) => Status::Unknown,
     }
 }
 
-pub fn poll_error(code: i64) -> Status {
-    match code {
-        KERNEL_NO_DEVICE => Status::NoDevice,
-        KERNEL_TIMEOUT => Status::Timeout,
-        KERNEL_UNKNOWN => Status::Unknown,
-        _ => Status::Io,
+/// Broker view that records whether the kernel answered -14 (absent or
+/// offline) to any request: a mount, remount or FORMAT that fails on it
+/// enters the failed-mount state that INFO reports as `NoDevice` (2.6, 5.3),
+/// while the request itself is answered per "Device results" (2.5).
+pub struct Watch<'a, B> {
+    broker: &'a mut B,
+    pub no_device: bool,
+}
+
+impl<'a, B: Broker> Watch<'a, B> {
+    pub fn new(broker: &'a mut B) -> Self {
+        Self {
+            broker,
+            no_device: false,
+        }
+    }
+    fn note(&mut self, code: i64) -> i64 {
+        self.no_device |= code == KERNEL_NO_DEVICE;
+        code
+    }
+}
+
+impl<B: Broker> Broker for Watch<'_, B> {
+    fn submit(&mut self, request: Request<'_>) -> i64 {
+        let code = self.broker.submit(request);
+        self.note(code)
+    }
+    fn poll(&mut self, buffer: &mut [u8; SECTOR]) -> i64 {
+        let code = self.broker.poll(buffer);
+        self.note(code)
+    }
+    fn now(&mut self) -> u64 {
+        self.broker.now()
     }
 }
 
@@ -83,7 +113,9 @@ pub fn run<B: Broker>(
                     return Err(Status::Io);
                 }
             }
-            code => return Err(submit_error(code)),
+            // Any other submission result (-13, -14 or another error) was
+            // not admitted, whatever the request kind: `Io` (2.5).
+            _ => return Err(Status::Io),
         }
     }
     let submitted = broker.now();
@@ -99,7 +131,7 @@ pub fn run<B: Broker>(
                     });
                 }
             }
-            code => return Err(poll_error(code)),
+            code => return Err(poll_error(code, request.mutating())),
         }
     }
 }

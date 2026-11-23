@@ -11,6 +11,11 @@
 //! that follows a timed-out request. One request at most is outstanding; a
 //! submission while one is pending is answered -8, as the K5 broker does.
 //!
+//! Whether a device reset keeps or drops the volatile cache is not known for
+//! QEMU (O9), so the reset has two models (section 6, revision 3): the cache
+//! kept across the reset (default), or dropped at it. Rows whose outcome
+//! passes through a reset run under both with [`both_reset_models`].
+//!
 //! `TestVerifier` is a stand-in for `volume_core::archive::verify` over a
 //! simplified archive layout (64-byte header with the v1 magic, payload,
 //! 16-byte trailer with end magic and FNV-64); it is not the v1 format.
@@ -28,6 +33,22 @@ pub const DIALOG: u64 = 5;
 pub const OTHER: u64 = 9;
 pub const SECTORS: u64 = 96;
 pub const TEST_ID: [u8; ID] = *b"dest-test-id-001";
+
+std::thread_local! {
+    /// Reset model of every `SimDisk` created on this thread (each test runs
+    /// on its own thread): true drops the volatile cache at a reset.
+    static RESET_DROPS_CACHE: std::cell::Cell<bool> = const { std::cell::Cell::new(false) };
+}
+
+/// Run `body` once per reset model (cache kept, then cache dropped); every
+/// `SimDisk` the body creates, cold boots included, uses that model.
+pub fn both_reset_models(mut body: impl FnMut(bool)) {
+    for drops in [false, true] {
+        RESET_DROPS_CACHE.with(|model| model.set(drops));
+        body(drops);
+    }
+    RESET_DROPS_CACHE.with(|model| model.set(false));
+}
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Op {
@@ -78,7 +99,8 @@ pub struct Fault {
     /// Kernel error on submission (-14 absent/offline, -13 quarantined).
     pub submit: i64,
     /// -8 on submission: `Some(None)` forever for this and every later
-    /// request, `Some(Some(t))` for `t` ticks.
+    /// request, `Some(Some(t))` for `t` ticks, which models the device's own
+    /// reset (N26 (d)) and so drops the cache under the dropping model.
     pub again: Option<Option<u64>>,
     /// The completion poll returns -8 for this many ticks.
     pub pending: u64,
@@ -125,6 +147,10 @@ pub struct SimDisk {
     /// request fail and change nothing.
     pub crash_at: Option<usize>,
     pub crashed: bool,
+    /// Reset model: a reset drops the volatile cache instead of keeping it.
+    pub reset_drops_cache: bool,
+    /// Cached writes lost at resets under the dropping model (non-vacuity).
+    pub dropped: usize,
     current: Option<(Op, Fault, [u8; SECTOR])>,
     again_until: Option<u64>,
     again_forever: bool,
@@ -150,6 +176,8 @@ impl SimDisk {
             fault: None,
             crash_at: None,
             crashed: false,
+            reset_drops_cache: RESET_DROPS_CACHE.with(|model| model.get()),
+            dropped: 0,
             current: None,
             again_until: None,
             again_forever: false,
@@ -237,6 +265,12 @@ impl SimDisk {
             "SimDisk call budget exhausted (unbounded loop)"
         );
     }
+    fn drop_cache_at_reset(&mut self) {
+        if self.reset_drops_cache {
+            self.dropped += self.cache.len();
+            self.cache.clear();
+        }
+    }
     fn refuse(&mut self, op: Op) -> i64 {
         if self.log.last() != Some(&Event::Refused(op)) {
             self.log.push(Event::Refused(op));
@@ -311,7 +345,10 @@ impl Broker for SimDisk {
             };
             match fault.again {
                 Some(None) => self.again_forever = true,
-                Some(Some(ticks)) => self.again_until = Some(self.tick + ticks),
+                Some(Some(ticks)) => {
+                    self.again_until = Some(self.tick + ticks);
+                    self.drop_cache_at_reset();
+                }
                 None => {}
             }
             self.current = Some((op, fault, data));
@@ -372,6 +409,7 @@ impl Broker for SimDisk {
             // A timed-out request resets the device; nothing is admitted
             // before the reset is acknowledged (the 2.7 completion fence).
             self.resetting_until = Some(self.tick + RESET_TIMEOUT);
+            self.drop_cache_at_reset();
         }
         code
     }

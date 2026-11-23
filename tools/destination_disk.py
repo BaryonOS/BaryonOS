@@ -59,12 +59,19 @@ def _sectors_of(length: int) -> int:
 def decode_record(raw: bytes) -> dict:
     entry, first, length, trailer, sealed = struct.unpack_from("<5Q", raw, 0)
     label_length = raw[40]
+    if entry < 1:
+        raise Invalid("entry id 0")  # 2.3: entry ID 0 is invalid (revision 3 list)
     if not _zero(raw[41:48]):
         raise Invalid("record padding")
+    if label_length == 0:
+        raise Invalid("label length")  # 2.3: labels are 1-32 bytes
     if label_length > LABEL or not _zero(raw[48 + label_length:RECORD]):
         raise Invalid("label padding")
     if not MIN_ARCHIVE <= length <= MAX_ARCHIVE:
         raise Invalid("entry length")
+    if sealed < 2:
+        # FORMAT commits sequence 1 with no record, so no record is sealed below 2.
+        raise Invalid("sealing sequence")
     return {"id": entry, "first": first, "length": length, "sectors": _sectors_of(length),
             "end": first + _sectors_of(length), "trailer": trailer, "sealed_sequence": sealed,
             "label": raw[48:48 + label_length].hex()}
@@ -95,9 +102,13 @@ def decode_copy(raw: bytes, sectors: int) -> dict:
     end = DATA_START
     previous = None
     for record in records:
+        if record["sealed_sequence"] > sequence:
+            raise Invalid("sealing sequence above copy")
         if previous is not None and not (record["id"] > previous["id"]
                                          and record["first"] > previous["first"]):
             raise Invalid("ascending")
+        if previous is not None and record["sealed_sequence"] <= previous["sealed_sequence"]:
+            raise Invalid("sealing sequence ascending")
         if record["first"] != end:
             raise Invalid("contiguous")
         end = record["end"]
@@ -209,14 +220,17 @@ def seal_copy(raw: bytearray) -> bytearray:
     return raw
 
 
-def encode_record(record: dict) -> bytes:
+def encode_record(record: dict, index: int = 0) -> bytes:
+    """Encode one record; without "sealed_sequence" the record at `index` is
+    sealed at index + 2, as consecutive SEALs after FORMAT (sequence 1) seal
+    them, so a copy of sequence >= count + 1 is valid under spec 2.6."""
     label = bytes.fromhex(record.get("label", ""))
     if len(label) > LABEL:
         # A longer label would grow the record and shift every later field.
         raise ValueError("label over 32 bytes: patch byte 40 of a sealed copy instead")
     raw = bytearray(RECORD)
     struct.pack_into("<5QB", raw, 0, record["id"], record["first"], record["length"],
-                     record.get("trailer", 0), record.get("sealed_sequence", 1), len(label))
+                     record.get("trailer", 0), record.get("sealed_sequence", index + 2), len(label))
     raw[48:48 + len(label)] = label
     return bytes(raw)
 
@@ -229,7 +243,7 @@ def encode_copy(destination_id: bytes, sequence: int, next_entry_id: int, next_f
     raw[16:32] = destination_id
     struct.pack_into("<4Q", raw, 32, sequence, next_entry_id, next_free, formatted)
     for index, record in enumerate(records):
-        raw[RECORDS_AT + index * RECORD:RECORDS_AT + (index + 1) * RECORD] = encode_record(record)
+        raw[RECORDS_AT + index * RECORD:RECORDS_AT + (index + 1) * RECORD] = encode_record(record, index)
     if len(raw) != COPY:
         raise ValueError(f"encoded copy is {len(raw)} bytes, not {COPY}: too many records")
     return seal_copy(raw)

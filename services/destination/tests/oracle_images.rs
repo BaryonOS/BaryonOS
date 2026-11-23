@@ -6,7 +6,7 @@
 mod common;
 
 use common::*;
-use destination_core::{service::State, wire, Status, SECTOR};
+use destination_core::{fnv64, service::State, wire, Status, FNV_OFFSET, SECTOR};
 use std::{fmt::Write as _, fs, path::Path};
 
 fn hex(bytes: &[u8]) -> String {
@@ -112,4 +112,36 @@ fn oracle_images() {
     emit(dir, "format_torn", image);
 
     emit(dir, "blank", vec![[0; SECTOR]; SECTORS as usize]);
+
+    // N34 (revision 3): both copies of the two-entry image crafted to break
+    // one record rule (record 0 or 1 at byte `at`), and the valid copy beside
+    // non-zero reserved sectors 8-15.
+    let valid = h.disk.durable.clone();
+    for (name, record, at, value) in [
+        ("n34_entry_id_0", 0, 0, 0u64),
+        ("n34_label_length_0", 1, 40, 0),
+        ("n34_sealing_sequence_1", 0, 32, 1),
+        ("n34_sealing_sequence_above_copy", 1, 32, 4),
+        ("n34_equal_sealing_sequences", 1, 32, 2),
+    ] {
+        let mut copy = copy_of(&valid, 0);
+        let offset = 64 + record * 80 + at;
+        if at == 40 {
+            copy[offset] = value as u8;
+            copy[offset + 8..offset + 40].fill(0);
+        } else {
+            copy[offset..offset + 8].copy_from_slice(&value.to_le_bytes());
+        }
+        let sum = fnv64(FNV_OFFSET, &copy[..2040]);
+        copy[2040..].copy_from_slice(&sum.to_le_bytes());
+        let mut image = valid.clone();
+        put_copy(&mut image, 0, &copy);
+        put_copy(&mut image, 1, &copy);
+        emit(dir, name, image);
+    }
+    let mut reserved = valid;
+    for sector in &mut reserved[8..16] {
+        sector.fill(0xa5);
+    }
+    emit(dir, "n34_reserved_sectors_nonzero", reserved);
 }

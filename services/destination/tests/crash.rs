@@ -1,4 +1,6 @@
 //! Flush order and cache loss (spec 2.7, section 6): N11, N12, N13, N24, N25.
+//! N13 and N24 pass through a device reset and run under both reset models
+//! (cache kept, cache dropped; section 6, revision 3).
 //! Flush-order and cache-loss acceptance is host-only (section 6); every
 //! image is built from the durable sectors plus a subset of the unflushed
 //! cache, then mounted by a new instance (a cold boot).
@@ -194,7 +196,7 @@ enum Point {
 /// Lanes for N13: X export (the SEAL), Y export (bound, no CREATE), lane 3
 /// verify or restore of E1. Revision 2 lists four bound operation lanes but
 /// 2.8 allows three, so the verify and restore lanes run in separate passes.
-fn n13_case(point: Point, code: i64, lands: bool, remount_ok: bool, restore: bool) {
+fn n13_case(point: Point, code: i64, lands: bool, remount_ok: bool, restore: bool) -> usize {
     let context =
         format!("{point:?} code {code} lands {lands} remount {remount_ok} restore {restore}");
     let (mut h, e1, e1_bytes) = with_e1();
@@ -341,6 +343,7 @@ fn n13_case(point: Point, code: i64, lands: bool, remount_ok: bool, restore: boo
         mutations,
         "{context}: no device write or FLUSH retry"
     );
+    h.disk.dropped
 }
 
 /// N13: `Unknown` at SEAL for every device result at steps 4-5.
@@ -358,17 +361,21 @@ fn n13_unknown_at_seal() {
         Point::Step5(3),
         Point::Barrier3,
     ];
-    for point in points {
-        for code in [-12, -13, -16] {
-            for lands in [false, true] {
-                for remount_ok in [true, false] {
-                    for restore in [false, true] {
-                        n13_case(point, code, lands, remount_ok, restore);
+    both_reset_models(|drops| {
+        let mut dropped = 0;
+        for point in points {
+            for code in [-12, -13, -16] {
+                for lands in [false, true] {
+                    for remount_ok in [true, false] {
+                        for restore in [false, true] {
+                            dropped += n13_case(point, code, lands, remount_ok, restore);
+                        }
                     }
                 }
             }
         }
-    }
+        assert_eq!(drops, dropped > 0, "the dropping model lost cached writes");
+    });
 }
 
 /// SEAL whose step-4 write of sector `catalog_write` times out and lands
@@ -407,30 +414,35 @@ fn position(log: &[Event], wanted: impl Fn(&Event) -> bool) -> usize {
 /// (seen in the event order: FLUSH or SEAL's reply before the late landing).
 #[test]
 fn n24a_late_write_before_fence() {
-    for write in [0, 3] {
-        let (mut h, _, _, e2, _) = n24_seal(write, Late::AtResetAck);
-        let log = h.disk.log.clone();
-        let timeout = position(&log, |e| matches!(e, Event::Complete(Op::Write(_), -16)));
-        let ack = position(&log, |e| *e == Event::ResetAck);
-        let landed = position(&log, |e| matches!(e, Event::LateLand(_)));
-        let remount = timeout + position(&log[timeout..], |e| *e == Event::Submit(Op::Flush));
-        let handled = position(&log, |e| matches!(e, Event::Handled(wire::SEAL, _)));
-        assert!(
-            timeout < ack && ack < landed && landed < remount && remount < handled,
-            "{log:?}"
-        );
-        assert!(!log[timeout..remount]
-            .iter()
-            .any(|e| matches!(e, Event::Submit(_))));
-        assert_eq!(h.create(2, b"y").status, Status::Access);
-        let listed = !h.list_on(1, PORTAL).1.is_empty();
-        let cold = H::cold(h.disk.durable.clone())
-            .svc
-            .catalog()
-            .find(e2)
-            .is_some();
-        assert_eq!(listed, cold, "resolution matches the cold-boot catalog");
-    }
+    both_reset_models(|drops| {
+        let mut dropped = 0;
+        for write in [0, 3] {
+            let (mut h, _, _, e2, _) = n24_seal(write, Late::AtResetAck);
+            dropped += h.disk.dropped;
+            let log = h.disk.log.clone();
+            let timeout = position(&log, |e| matches!(e, Event::Complete(Op::Write(_), -16)));
+            let ack = position(&log, |e| *e == Event::ResetAck);
+            let landed = position(&log, |e| matches!(e, Event::LateLand(_)));
+            let remount = timeout + position(&log[timeout..], |e| *e == Event::Submit(Op::Flush));
+            let handled = position(&log, |e| matches!(e, Event::Handled(wire::SEAL, _)));
+            assert!(
+                timeout < ack && ack < landed && landed < remount && remount < handled,
+                "{log:?}"
+            );
+            assert!(!log[timeout..remount]
+                .iter()
+                .any(|e| matches!(e, Event::Submit(_))));
+            assert_eq!(h.create(2, b"y").status, Status::Access);
+            let listed = !h.list_on(1, PORTAL).1.is_empty();
+            let cold = H::cold(h.disk.durable.clone())
+                .svc
+                .catalog()
+                .find(e2)
+                .is_some();
+            assert_eq!(listed, cold, "resolution matches the cold-boot catalog");
+        }
+        assert_eq!(drops, dropped > 0, "the dropping model lost cached writes");
+    });
 }
 
 /// N24 (b): the late write lands after the remount FLUSH. Outside the
@@ -439,49 +451,59 @@ fn n24a_late_write_before_fence() {
 /// cold boot {E1} or {E1, E2} (or `Corrupt` with E1 byte-identical).
 #[test]
 fn n24b_late_write_after_remount_flush_recorded() {
-    for write in [0, 3] {
-        let (h, e1, e1_bytes, e2, e2_bytes) = n24_seal(write, Late::AfterNextFlush);
-        let resolved = h.svc.binding(1).unwrap().export;
-        let e1_record = *H::cold(h.disk.durable.clone())
-            .svc
-            .catalog()
-            .find(e1)
-            .unwrap();
-        for image in [h.disk.durable.clone(), h.disk.visible()] {
-            assert_eq!(extent(&image, &e1_record), e1_bytes);
-            let cold = H::cold(image.clone());
-            if cold.svc.state() == State::Corrupt {
-                eprintln!("N24(b) write {write}: Corrupt after cold boot (fail closed)");
-                continue;
+    both_reset_models(|drops| {
+        let mut dropped = 0;
+        for write in [0, 3] {
+            let (h, e1, e1_bytes, e2, e2_bytes) = n24_seal(write, Late::AfterNextFlush);
+            dropped += h.disk.dropped;
+            let resolved = h.svc.binding(1).unwrap().export;
+            let e1_record = *H::cold(h.disk.durable.clone())
+                .svc
+                .catalog()
+                .find(e1)
+                .unwrap();
+            for image in [h.disk.durable.clone(), h.disk.visible()] {
+                assert_eq!(extent(&image, &e1_record), e1_bytes);
+                let cold = H::cold(image.clone());
+                if cold.svc.state() == State::Corrupt {
+                    eprintln!("N24(b) write {write}: Corrupt after cold boot (fail closed)");
+                    continue;
+                }
+                let ids = check_cold(
+                    image,
+                    &[(e1, e1_bytes.clone()), (e2, e2_bytes.clone())],
+                    "N24(b)",
+                );
+                eprintln!(
+                    "N24(b) write {write}: in-boot {resolved:?}, cold boot {ids:?} (recorded)"
+                );
             }
-            let ids = check_cold(
-                image,
-                &[(e1, e1_bytes.clone()), (e2, e2_bytes.clone())],
-                "N24(b)",
-            );
-            eprintln!("N24(b) write {write}: in-boot {resolved:?}, cold boot {ids:?} (recorded)");
         }
-    }
+        assert_eq!(drops, dropped > 0, "the dropping model lost cached writes");
+    });
 }
 
 /// N24 (c): after a remount that resolved E2 as not sealed, CREATE and APPEND
 /// on another lane are refused before the late write lands, so it lands on
-/// no other entry's data.
+/// no other entry's data. (The cache is empty at this reset, so the two
+/// reset models do not differ here.)
 /// Kills: admitting CREATE after the resolution in the same boot.
 #[test]
 fn n24c_no_reuse_after_not_sealed() {
-    let (mut h, _, _, e2, _) = n24_seal(0, Late::Manual);
-    assert_eq!(h.svc.catalog().find(e2), None, "resolved as not sealed");
-    let writes = h.disk.writes;
-    assert_eq!(h.create(2, b"y").status, Status::Access);
-    assert_eq!(h.append(2, e2, 0, b"y").status, Status::Access);
-    assert_eq!(h.disk.writes, writes, "no device write");
-    assert!(h.disk.has_late());
-    h.disk.land_late();
-    let next_free = h.svc.catalog().next_free;
-    for (sector, _) in &h.disk.cache {
-        assert!(*sector < 8 || *sector >= next_free);
-    }
+    both_reset_models(|_| {
+        let (mut h, _, _, e2, _) = n24_seal(0, Late::Manual);
+        assert_eq!(h.svc.catalog().find(e2), None, "resolved as not sealed");
+        let writes = h.disk.writes;
+        assert_eq!(h.create(2, b"y").status, Status::Access);
+        assert_eq!(h.append(2, e2, 0, b"y").status, Status::Access);
+        assert_eq!(h.disk.writes, writes, "no device write");
+        assert!(h.disk.has_late());
+        h.disk.land_late();
+        let next_free = h.svc.catalog().next_free;
+        for (sector, _) in &h.disk.cache {
+            assert!(*sector < 8 || *sector >= next_free);
+        }
+    });
 }
 
 /// N24 (d): an entry write during APPEND times out and completes late, or
@@ -490,50 +512,56 @@ fn n24c_no_reuse_after_not_sealed() {
 /// or admits CREATE after the reset in the same boot.
 #[test]
 fn n24d_entry_write_failure() {
-    for (code, late, reply) in [
-        (-16, Some(Late::Manual), Status::Unknown),
-        (-12, None, Status::Io),
-    ] {
-        let (mut h, _, _) = with_e1();
-        let next_free = h.svc.catalog().next_free;
-        assert_eq!(h.bind(1, wire::BIND_EXPORT, 0), Status::Ok);
-        assert_eq!(h.bind(2, wire::BIND_EXPORT, 0), Status::Ok);
-        let entry = wire::header(&h.create(1, b"x").reply.unwrap()).entry;
-        h.disk.fault(move |op, _| {
-            matches!(op, Op::Write(_)).then_some(Fault {
-                code,
-                lands: true,
-                late,
-                ..Fault::default()
-            })
-        });
-        let chunk = [3u8; 160];
-        let mut offset = 0;
-        let status = loop {
-            let outcome = h.append(1, entry, offset, &chunk);
-            if outcome.status != Status::Ok {
-                break outcome.status;
-            }
-            offset += 160;
-        };
-        assert_eq!(status, reply);
-        h.disk.fault = None;
-        assert!(h.svc.safe_path());
-        assert_eq!(
-            h.append(1, entry, offset, &chunk).status,
-            Status::Access,
-            "entry discarded"
-        );
-        assert_eq!(h.create(2, b"y").status, Status::Access);
-        h.disk.land_late();
-        for (sector, _) in &h.disk.cache {
-            assert!(
-                *sector >= next_free,
-                "late entry write only in unallocated sectors"
+    both_reset_models(|drops| {
+        for (code, late, reply) in [
+            (-16, Some(Late::Manual), Status::Unknown),
+            (-12, None, Status::Io),
+        ] {
+            let (mut h, _, _) = with_e1();
+            let next_free = h.svc.catalog().next_free;
+            assert_eq!(h.bind(1, wire::BIND_EXPORT, 0), Status::Ok);
+            assert_eq!(h.bind(2, wire::BIND_EXPORT, 0), Status::Ok);
+            let entry = wire::header(&h.create(1, b"x").reply.unwrap()).entry;
+            // The second entry write fails: the first is cached and unflushed,
+            // so the dropping reset model has something to lose at a timeout.
+            h.disk.arm();
+            h.disk.fault(move |op, c| {
+                (matches!(op, Op::Write(_)) && c.writes >= 1).then_some(Fault {
+                    code,
+                    lands: true,
+                    late,
+                    ..Fault::default()
+                })
+            });
+            let chunk = [3u8; 160];
+            let mut offset = 0;
+            let status = loop {
+                let outcome = h.append(1, entry, offset, &chunk);
+                if outcome.status != Status::Ok {
+                    break outcome.status;
+                }
+                offset += 160;
+            };
+            assert_eq!(status, reply);
+            h.disk.fault = None;
+            assert!(h.svc.safe_path());
+            assert_eq!(
+                h.append(1, entry, offset, &chunk).status,
+                Status::Access,
+                "entry discarded"
             );
+            assert_eq!(h.create(2, b"y").status, Status::Access);
+            h.disk.land_late();
+            for (sector, _) in &h.disk.cache {
+                assert!(
+                    *sector >= next_free,
+                    "late entry write only in unallocated sectors"
+                );
+            }
+            assert_eq!(h.list_ids(0).1.len(), 1);
+            assert_eq!(drops && code == -16, h.disk.dropped > 0, "model exercised");
         }
-        assert_eq!(h.list_ids(0).1.len(), 1);
-    }
+    });
 }
 
 /// O1 (review R2): a device failure on the SEAL last-sector write or on

@@ -184,23 +184,73 @@ class CopyValidity(unittest.TestCase):
 
 
 class SpecGapPins(unittest.TestCase):
-    """Pinned current behaviour where 2.3 and 2.6 differ; flip when the owner decides.
+    """Pinned current behaviour where the spec is undecided; flip when the owner decides.
 
-    2.3 says entry ID 0 is invalid and labels follow valid_name (1-32 bytes),
-    but the 2.6 validity list names neither. The oracle follows 2.6's list; the
-    Rust core refuses entry ID 0 and label length 0 (divergence, reported).
+    Label content at mount is owner item O14 (2.6, revision 3): the oracle
+    checks only the label length and padding, not valid_name.
     """
 
-    def test_entry_id_zero_accepted_by_2_6_rules(self):
-        entries = records(700)
-        entries[0]["id"] = 0
-        self.assertIsNone(dd.check_copy(bytes(copy(entries)), SECTORS)[1])
-
-    def test_label_length_zero_and_content_unchecked(self):
-        for label in (b"", b"..", b"\xff\xfe"):
+    def test_label_content_unchecked_until_o14(self):
+        for label in (b"..", b"\xff\xfe", b"a\x07b", "x\u202e".encode()):
             entries = records(700)
             entries[0]["label"] = label.hex()
             self.assertIsNone(dd.check_copy(bytes(copy(entries)), SECTORS)[1])
+
+
+class RecordAndCopyValidity(unittest.TestCase):
+    """N34 (2.6, revision 3): crafted copies, each valid except for one rule.
+
+    Each is invalid; beside a valid copy the valid one is used, twice it is
+    corrupt; a valid copy mounts beside non-zero sectors 8-15. The Rust core
+    runs the same cases (services/destination/tests/catalog.rs,
+    n34_record_and_copy_validity).
+    """
+
+    def crafted(self) -> dict[str, tuple[bytearray, str]]:
+        base = copy(records(700, 1100))
+        cases = {
+            "zero records, copy sequence 0": (patched(copy([]), 32, "<Q", 0), "sequence"),
+            "entry ID 0": (patched(base, rec(0, 0), "<Q", 0), "entry id 0"),
+            "label length 0": (patched(base, rec(1, 40), "<B", 0), "label length"),
+            "length 79": (patched(base, rec(1, 16), "<Q", 79), "entry length"),
+            "length 525 329": (patched(base, rec(0, 16), "<Q", dd.MAX_ARCHIVE + 1), "entry length"),
+            "sealing sequence 1": (patched(base, rec(0, 32), "<Q", 1), "sealing sequence"),
+            "sealing sequence above the copy's": (patched(base, rec(1, 32), "<Q", 4),
+                                                  "sealing sequence above copy"),
+            "equal sealing sequences": (patched(base, rec(1, 32), "<Q", 2), "sealing sequence ascending"),
+        }
+        long_label = bytearray(base)
+        long_label[rec(1, 40)] = 33
+        long_label[rec(1, 48):rec(1, 80)] = b"x" * dd.LABEL
+        cases["label length 33"] = (dd.seal_copy(long_label), "label padding")
+        return cases
+
+    def test_each_crafted_copy_invalid_with_its_rule(self):
+        for name, (raw, rule) in self.crafted().items():
+            with self.subTest(name):
+                self.assertEqual(dd.check_copy(bytes(raw), SECTORS), (None, rule))
+
+    def test_mount_state_beside_valid_copy_and_twice(self):
+        valid = copy(records(700, 1100))
+        for name, (raw, _) in self.crafted().items():
+            with self.subTest(name):
+                for a, b, slot in ((raw, valid, "B"), (valid, raw, "A")):
+                    result = dd.mount(image(a, b), SECTORS)
+                    self.assertEqual((result["state"], result["slot"]), ("mounted", slot))
+                self.assertEqual(dd.mount(image(raw, raw), SECTORS)["state"], "corrupt")
+
+    def test_valid_copy_beside_nonzero_reserved_sectors(self):
+        a = copy(records(700))
+        area = image(a, a)
+        area[8 * dd.SECTOR:16 * dd.SECTOR] = b"\xa5" * (8 * dd.SECTOR)
+        self.assertEqual(dd.mount(area, SECTORS)["state"], "mounted")
+
+    def test_encoder_default_sealing_sequences_are_valid(self):
+        # OP-4: without explicit sealing sequences the encoder seals record i at i + 2.
+        plain = [{k: v for k, v in r.items() if k != "sealed_sequence"} for r in records(700, 1100, 300)]
+        catalog, why = dd.check_copy(bytes(copy(plain)), SECTORS)
+        self.assertIsNone(why)
+        self.assertEqual([r["sealed_sequence"] for r in catalog["entries"]], [2, 3, 4])
 
 
 class MountRule(unittest.TestCase):
