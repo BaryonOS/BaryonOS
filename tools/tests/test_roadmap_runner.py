@@ -57,6 +57,9 @@ class Ledger(unittest.TestCase):
                     first = controller.prepare_manual()
                     self.assertEqual(first["task_id"], "A")
                     self.assertEqual(first["brief_sha256"], rr.sha256(Path(first["stdin"]).read_text()))
+                    brief = Path(first["stdin"]).read_text()
+                    self.assertIn("the lead runs the task's checks and gates", brief)
+                    self.assertNotIn("the controller runs the task's checks", brief)
                     self.assertFalse(first["unattended_ready"])
                     with self.assertRaisesRegex(rr.Stop, "already active"):
                         controller.prepare_manual()
@@ -271,7 +274,9 @@ class Session(unittest.TestCase):
                     unittest.mock.patch.object(rr.subprocess, "run") as run, \
                     unittest.mock.patch.multiple(rr, **(patches or {"ROOT": rr.ROOT})):
                 outcome = controller.run_checks(checked, attempt)
-                log = (attempt / "checks.log").read_text() if (attempt / "checks.log").is_file() else ""
+                logs = list(attempt.glob("checks-*/checks.log"))
+                log = logs[0].read_text() if logs else ""
+                self.assertEqual(len(list(attempt.glob("checks-*"))), 1)  # a fresh directory per run
             host.assert_not_called()
             # Only read-only Git listing may run on the host; no check command does.
             self.assertEqual([c for c in run.call_args_list if not c.args[0][0].endswith("git")], [])
@@ -401,11 +406,21 @@ class Session(unittest.TestCase):
                 target.write_text("#!/bin/sh\ncurl evil\n")
                 self.assertNotEqual(before, rr.git_callbacks())
 
-    def test_main_drops_checkout_paths_from_imports(self):
+    def test_main_drops_checkout_paths_before_preloading_yaml(self):
         tools = str(rr.ROOT / "tools")
-        with unittest.mock.patch.object(rr.sys, "path", [tools, str(rr.ROOT), "/usr/lib/python3"]):
+        seen = []
+        real = __import__
+
+        def spy(name, *args, **kwargs):
+            if name == "yaml":
+                seen.append(list(rr.sys.path))
+            return real(name, *args, **kwargs)
+
+        with unittest.mock.patch.object(rr.sys, "path", [tools, str(rr.ROOT), "/usr/lib/python3"]), \
+                unittest.mock.patch("builtins.__import__", side_effect=spy):
             rr.isolate_imports()
             self.assertEqual(rr.sys.path, ["/usr/lib/python3"])
+        self.assertEqual(seen, [["/usr/lib/python3"]])
 
     def test_manual_brief_names_the_lead_as_check_runner(self):
         controller = rr.Controller(rr.Config(), Path("/nonexistent"))
@@ -413,6 +428,68 @@ class Session(unittest.TestCase):
         self.assertIn("Do\n  not build or run code: the lead runs the checks.", manual)
         self.assertNotIn("controller runs", manual)
         self.assertIn("the controller runs the task's checks", controller.worker_prompt(task("A"), "a" * 40, ""))
+
+    def test_fingerprint_sees_which_test_failed_and_ignores_durations(self):
+        stderr = "\n".join(f"   Compiling crate{i} v0.1.0" for i in range(30)) + "\nerror: test failed"
+        one = f"## stdout\ntest parser::rejects_overlong ... FAILED\n{stderr}"
+        two = f"## stdout\ntest parser::rejects_zero_len ... FAILED\n{stderr}"
+        self.assertNotEqual(rr.failure_fingerprint("checks", one), rr.failure_fingerprint("checks", two))
+        self.assertEqual(rr.failure_fingerprint("checks", "not ok 1\n# duration_ms 70.065339"),
+                         rr.failure_fingerprint("checks", "not ok 1\n# duration_ms 12.5"))
+        self.assertNotEqual(rr.failure_fingerprint("checks", "error[E0308]"),
+                            rr.failure_fingerprint("checks", "error[E0425]"))
+
+    def test_boundary_failure_output_reaches_feedback(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            log = Path(tmp) / "checks.log"
+            log.write_text("## step: check-1\n## BLOCKED: isolated command exited 1 before boundary cleanup failed\n")
+            (Path(tmp) / "checks.log.resource.stderr.log").write_text("thread panicked at overflow\n")
+            (Path(tmp) / "checks.log.planted").mkdir()  # never read, never crashes
+            digest, report = rr.gate_report(log)
+        self.assertIn("thread panicked at overflow", report)
+
+    def test_untracked_tools_modules_are_detected_before_sibling_imports(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            repo = Path(tmp)
+            env = {k: v for k, v in __import__("os").environ.items() if not k.startswith("GIT_")}
+            rr.subprocess.run(["git", "init", "-q", str(repo)], check=True, env=env)
+            tools = repo / "tools"
+            (tools / "__pycache__").mkdir(parents=True)
+            (tools / "agent_gate.py").write_text("")
+            rr.subprocess.run(["git", "-C", str(repo), "add", "tools/agent_gate.py"], check=True, env=env)
+            (tools / "notes.txt").write_text("")
+            (tools / "tests").mkdir()
+            (tools / "tests" / "x.py").write_text("")
+            rr.subprocess.run(["git", "-C", str(repo), "add", "tools/tests/x.py"], check=True, env=env)
+            (tools / "tests" / "scratch.py").write_text("")  # untracked, but not a top-level name
+            with unittest.mock.patch.dict("os.environ", env, clear=True):
+                self.assertEqual(rr.planted_modules(str(tools)), [])
+                (tools / "yaml.py").write_text("")
+                (tools / "shlex").mkdir()
+                (tools / "shlex" / "__init__.py").write_text("")
+                self.assertEqual(rr.planted_modules(str(tools)), ["shlex/", "yaml.py"])
+        self.assertEqual(rr.sys.path[-1], rr.TOOLS_DIR)  # the checkout resolves after libraries
+
+    def test_stop_file_holds_before_the_init_check(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            controller = rr.Controller(rr.Config(), Path(tmp))
+            (Path(tmp) / "STOP").write_text("callbacks changed\n")
+            with unittest.mock.patch.object(controller, "init_check") as init, \
+                    unittest.mock.patch.object(controller, "preflight") as preflight:
+                with self.assertRaisesRegex(rr.Stop, "stop file"):
+                    controller.loop(1, True)
+            init.assert_not_called()
+            preflight.assert_not_called()
+
+    def test_brief_honours_stop_before_any_git_call(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            (Path(tmp) / "STOP").write_text("x\n")
+            with unittest.mock.patch.object(rr, "STATE", Path(tmp)), \
+                    unittest.mock.patch.object(rr, "git") as git, \
+                    unittest.mock.patch.object(rr, "isolate_imports"), \
+                    unittest.mock.patch.object(rr.sys, "argv", ["roadmap_runner.py", "brief"]):
+                self.assertEqual(rr.main(), 2)
+            git.assert_not_called()
 
     def test_session_stops_when_git_callbacks_changed(self):
         with tempfile.TemporaryDirectory() as tmp:

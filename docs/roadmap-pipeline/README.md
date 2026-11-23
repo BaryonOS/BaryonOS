@@ -152,7 +152,9 @@ READY task whose dependencies are verified it:
    check commands, its gates and `tools/progress.py --check` run as one plan through
    `agent_gate.run_gate`, which stages the changed (including untracked) files into
    the isolated sandbox and records raw exit codes under one shared deadline (the
-   controller's check budget plus a resolved gate's own workflow budget); with the committed disabled policy this fails closed. Repair feedback
+   controller's check budget; `agent_gate.resolve()` currently sets no per-job
+   budget or finalizer, so none is added). The gate writes into a directory the
+   controller creates after the session; with the committed disabled policy this fails closed. Repair feedback
    inlines the failing raw streams, and the receipt hash covers them. The worker's
    JSON report is recorded, never trusted;
 5. starts a second fresh, read-only session that verifies the diff against the task
@@ -172,8 +174,11 @@ fingerprints `git config --list --show-scope --show-origin`, the hooks directory
 and `info/attributes` (including symlinked hook targets) at preflight. After any
 session that changed them it writes the `STOP` file and stops, so a later run
 cannot adopt the change as its baseline. Controller Git runs with
-`core.fsmonitor=false`. Controller Python removes the checkout from `sys.path`
-after its own imports, preloads PyYAML, never reads checkout bytecode
+`core.fsmonitor=false`. `run` and `brief` check `STOP` before their first Git
+call. Controller Python resolves the standard library and site-packages before
+`tools/`, refuses to start while untracked modules or package directories sit
+directly in `tools/` (the sibling imports put `tools/` first), removes the checkout
+from `sys.path` before preloading PyYAML, never reads checkout bytecode
 (`sys.pycache_prefix` is a private temporary directory) and runs
 `tools/progress.py` with `-I`. The fingerprint is compared after each session, so a
 change that a session makes and reverts before it ends is not detected, and only

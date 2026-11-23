@@ -16,18 +16,24 @@ imports nor reads bytecode from the checkout (progress.py runs with -I).
 """
 from __future__ import annotations
 
+import os
+import sys
+
+# Worker sessions can write tools/*.py. Resolve the standard library and site-packages
+# before the checkout (os and sys are built in or frozen, so they cannot be shadowed).
+TOOLS_DIR = os.path.dirname(os.path.realpath(__file__))
+sys.path[:] = [p for p in sys.path if os.path.realpath(p or ".") != TOOLS_DIR] + [TOOLS_DIR]
+
 import argparse
 import contextlib
 import datetime as dt
 import fcntl
 import hashlib
 import json
-import os
 import re
 import shutil
 import signal
 import subprocess
-import sys
 import tempfile
 import time
 import uuid
@@ -37,7 +43,21 @@ from pathlib import Path
 # Bytecode caches in the checkout are never read: a worker could plant them under
 # ignored __pycache__/ paths that its scope check does not see.
 sys.pycache_prefix = tempfile.mkdtemp(prefix="roadmap-pycache-")
-sys.path.insert(0, str(Path(__file__).resolve().parent))
+
+def planted_modules(tools: str = TOOLS_DIR) -> list[str]:
+    """Untracked or ignored modules and package directories directly under tools/. The sibling
+    imports below put tools/ first on sys.path, so such a file would shadow a library."""
+    listed = subprocess.run(["git", "-c", "core.fsmonitor=false", "-C", tools, "ls-files", "-z", "--others",
+                             "--directory", "--", "."], capture_output=True, text=True)
+    if listed.returncode:
+        return [f"<git ls-files failed: {listed.stderr.strip()[-200:]}>"]
+    # Only entries directly in tools/ shadow a top-level import; tracked subdirectories do not.
+    names = [p for p in listed.stdout.split("\0") if p and "/" not in p.rstrip("/")]
+    return sorted(n for n in names if n != "__pycache__/" and (n.endswith((".py", "/")) or "." not in n))
+
+
+if __name__ == "__main__" and (planted := planted_modules()):
+    sys.exit(f"refusing to start: untracked modules under tools/ could run as controller code: {planted}")
 from agent_gate import (FAIL_EXIT as GATE_FAIL_EXIT, PROGRESS_CHECK, GatePlan,  # noqa: E402
                         resolve as resolve_gate, run_gate)
 from agent_pipeline import TaskError, is_protected, require_pipeline_release  # noqa: E402
@@ -274,7 +294,9 @@ def codex_argv(result: Path) -> list[str]:
 
 
 def failure_fingerprint(kind: str, text: str) -> str:
-    lines = [re.sub(r"\d+(\.\d+)?(ms|s)\b", "<t>", l) for l in text.splitlines()[-20:]]
+    # The whole bounded text: a tail window misses which test failed when stderr ends the same.
+    lines = [re.sub(r"(duration_ms\s+)\d+(\.\d+)?", r"\1<t>", re.sub(r"\d+(\.\d+)?(ms|s)\b", "<t>", l))
+             for l in text.splitlines()]
     return sha256(kind + "\n" + "\n".join(lines))[:16]
 
 
@@ -360,7 +382,8 @@ GATE_VOLATILE = ("## resource:", "## scratch:", "## ephemeral scratch:", "## sou
 def gate_report(log: Path) -> tuple[str, str]:
     """Digest of the gate log and its raw stream files, and repair feedback that inlines the
     failing output without per-run resource evidence (which would defeat identical-failure detection)."""
-    files = [log, *sorted(log.parent.glob(log.name + ".*"))] if log.is_file() else []
+    # The log directory is created by the controller after the session, so only the gate writes here.
+    files = [f for f in [log, *sorted(log.parent.glob(log.name + ".*"))] if f.is_file() and not f.is_symlink()]
     digest = sha256(b"".join(f.name.encode() + b"\0" + f.read_bytes() + b"\0" for f in files))
     lines: list[str] = []
     for line in log.read_text(errors="replace").splitlines() if files else []:
@@ -371,6 +394,9 @@ def gate_report(log: Path) -> tuple[str, str]:
                     lines += [f"## {name}", *stream.read_text(errors="replace").splitlines()[-60:]]
         elif not line.startswith(GATE_VOLATILE):
             lines.append(line)
+    for stream in (log.with_name(f"{log.name}.resource.{s}.log") for s in ("stdout", "stderr")):
+        if stream in files:  # raw output saved when the sandbox boundary itself failed
+            lines += [f"## {stream.name}", *stream.read_text(errors="replace").splitlines()[-60:]]
     return digest, "\n".join(lines[-120:])
 
 
@@ -596,7 +622,8 @@ class Controller:
             fcntl.flock(lock, fcntl.LOCK_EX)
         try:
             self.heartbeat(phase="checks")
-            log = attempt_dir / "checks.log"
+            # A fresh directory the worker could not pre-seed with files bound into the receipt.
+            log = Path(tempfile.mkdtemp(prefix="checks-", dir=attempt_dir)) / "checks.log"
             commands = [(f"check-{i}", c, {}) for i, c in enumerate(task["checks"], 1)]
             try:
                 gate = resolve_gate(task["gates"], ROOT / ".github" / "workflows") if task.get("gates") else None
@@ -616,7 +643,8 @@ class Controller:
                 code = run_gate(plan, ROOT, log, os.environ.copy(), source_paths=sources)
             digest, report = gate_report(log)
             results.append({"name": "isolated-checks", "commands": [c[1] for c in commands],
-                            "gates": task.get("gates", []), "exit_code": code, "log_sha256": digest})
+                            "gates": task.get("gates", []), "exit_code": code, "log": str(log),
+                            "log_sha256": digest})
             if code:
                 return False, results, failure or report or f"isolated checks exited {code}"
             return True, results, ""
@@ -942,6 +970,7 @@ Return the structured result.
                 out.write(json.dumps({"at": now(), **fields}) + "\n")
             print(json.dumps({"at": now(), **fields}), flush=True)
 
+        self.check_controls()  # a STOP from an earlier run must hold before any Git call
         if init:
             record = self.init_check()
             event(event="init-check", session=record["session_id"], exit=record["exit_code"],
@@ -987,10 +1016,10 @@ def status(state: Path = STATE) -> int:
 def isolate_imports() -> None:
     """Worker sessions can write under the checkout: no later import, including lazy stdlib
     imports and agent_gate's PyYAML, may resolve a module from there."""
-    with contextlib.suppress(ImportError):
-        import yaml  # noqa: F401  (agent_gate imports it only after a worker session)
     checkout = {ROOT, ROOT / "tools"}
     sys.path[:] = [p for p in sys.path if Path(p or ".").resolve() not in checkout]
+    with contextlib.suppress(ImportError):
+        import yaml  # noqa: F401  (agent_gate imports it only after a worker session)
 
 
 def main() -> int:
@@ -1026,6 +1055,9 @@ def main() -> int:
         print("stop/pause cleared")
         return 0
     if args.cmd == "brief":
+        if (STATE / "STOP").exists():  # before any Git call, like the run loop
+            print("stop file present (build/roadmap-pipeline/STOP)")
+            return 2
         controller = Controller(Config(branch=git("branch", "--show-current").strip()))
         try:
             controller.acquire()
