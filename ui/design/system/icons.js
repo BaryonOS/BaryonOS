@@ -73,4 +73,7 @@ Object.assign(ICONS, {
   // lobe at the r 2.1 of internet's edge particle (on the crossing it merged with the strokes at 16 px), so the lock stays reserved for the Kern band and no
   // standing grant reads as "locked"
   altijd: '<path d="M12 12c-1.9-2.5-3.4-4-5.5-4a4 4 0 0 0 0 8c2.1 0 3.6-1.5 5.5-4s3.4-4 5.5-4a4 4 0 0 1 0 8c-2.1 0-3.6-1.5-5.5-4Z"/><circle cx="17.5" cy="8" r="2.1" class="pc" fill="currentColor" stroke="none"/>',
+  // UX-C run 2 (new symbols): camera and microphone are separate rights (LOCAL-PRIVACY-CONTRACT §4), so each has its own sign
+  camera: '<path d="M4 8.5A1.5 1.5 0 0 1 5.5 7h2.2l1.6-2h5.4l1.6 2h2.2A1.5 1.5 0 0 1 20 8.5v9a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 17.5Z"/><circle cx="12" cy="13" r="3.5"/><circle cx="17" cy="9.8" r="1" class="pc" fill="currentColor" stroke="none"/>',
+  microfoon: '<rect x="9" y="3.5" width="6" height="11" rx="3"/><path d="M6 11.5a6 6 0 0 0 12 0M12 17.5V20.5"/><circle cx="12" cy="20.5" r="1.2" class="pc" fill="currentColor" stroke="none"/>',
 })

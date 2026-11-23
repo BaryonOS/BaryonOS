@@ -34,6 +34,7 @@ import json
 import re
 import shutil
 import signal
+import stat
 import subprocess
 import tempfile
 import time
@@ -46,10 +47,34 @@ from pathlib import Path
 sys.pycache_prefix = tempfile.mkdtemp(prefix="roadmap-pycache-")
 
 # Repository-location overrides inherited from a shell or hook would point Git at another
-# repository; other GIT_* variables (for example GIT_SSL_CAINFO for push) are kept.
+# repository. Other GIT_* variables are kept here, but an automated run refuses them before its
+# first session (common.controller_environment), because the isolated gate refuses them too.
 GIT_LOCATION_VARS = ("GIT_DIR", "GIT_WORK_TREE", "GIT_INDEX_FILE", "GIT_OBJECT_DIRECTORY",
                      "GIT_ALTERNATE_OBJECT_DIRECTORIES", "GIT_COMMON_DIR", "GIT_NAMESPACE", "GIT_PREFIX",
                      "GIT_CEILING_DIRECTORIES", "GIT_DISCOVERY_ACROSS_FILESYSTEM")
+# Controller Git runs with credentials over a tree the worker wrote: no fsmonitor and no hooks.
+CONTROLLER_GIT_CONFIG = ("-c", "core.fsmonitor=false", "-c", "core.hooksPath=/dev/null")
+DIFF_HEAD = ("diff", "--no-ext-diff", "--no-textconv", "HEAD")
+
+
+def nested_git(root: Path) -> list[str]:
+    """Every .git below the checkout root. Git skips them, so status, ls-files, revert and the
+    callback fingerprint never see one; a planted nested .git/config can carry a callback."""
+    found = []
+    # An unreadable directory could hide one: report it instead of skipping it (fail closed).
+    unreadable = lambda error: found.append(f"unreadable: {os.path.relpath(error.filename, root)}")
+    for directory, dirs, files in os.walk(root, onerror=unreadable):  # never follows symlinks
+        if ".git" in dirs or ".git" in files:
+            if Path(directory) != root:
+                found.append(os.path.relpath(os.path.join(directory, ".git"), root))
+            dirs[:] = [d for d in dirs if d != ".git"]
+    return sorted(found)
+
+
+def brief(items: list[str], count: int = 20, chars: int = 2000) -> str:
+    """A bounded excerpt of a path list for a Stop message, saying when it is cut."""
+    text = json.dumps(items[:count]) + (f" (+{len(items) - count} more)" if len(items) > count else "")
+    return text if len(text) <= chars else text[:chars] + "...(cut)"
 
 
 def git_env() -> dict[str, str]:
@@ -57,20 +82,21 @@ def git_env() -> dict[str, str]:
 
 
 def planted_modules(tools: str = TOOLS_DIR) -> list[str]:
-    """Untracked or ignored importable entries directly under tools/: modules, sourceless
+    """Untracked or ignored importable entries anywhere under tools/: modules, sourceless
     bytecode, extension modules and package directories. The sibling imports below put tools/
-    first on sys.path, so such a file would shadow a library. Listed from the parent directory,
-    so a planted tools/.git cannot answer for it."""
+    on sys.path, so such a file would shadow a library, and a nested one would reach the lead's
+    later test runs. __pycache__ counts too: this controller never reads it, but a later lead run
+    imports bytecode whose recorded source metadata matches. Listed from the parent directory, so a
+    planted tools/.git cannot answer for it. Checked at startup and again before every session."""
     parent, base = os.path.split(tools)
-    listed = subprocess.run(["git", "-c", "core.fsmonitor=false", "-C", parent, "ls-files", "-z", "--others",
+    listed = subprocess.run(["git", *CONTROLLER_GIT_CONFIG, "-C", parent, "ls-files", "-z", "--others",
                              "--directory", "--", base + "/"], capture_output=True, text=True, env=git_env())
     if listed.returncode:
         return [f"<git ls-files failed: {listed.stderr.strip()[-200:]}>"]
-    # Only entries directly in tools/ shadow a top-level import; tracked subdirectories do not.
     names = [p[len(base) + 1:] for p in listed.stdout.split("\0") if p.startswith(base + "/")]
     importable = tuple(importlib.machinery.all_suffixes())
-    found = sorted(n for n in names if n and "/" not in n.rstrip("/") and n != "__pycache__/"
-                   and (n.endswith("/") or n.endswith(importable) or "." not in n))
+    found = sorted(n for n in names if n
+                   and (n.endswith("/") or n.endswith(importable) or "." not in n.rsplit("/", 1)[-1]))
     return ([".git"] if os.path.lexists(os.path.join(tools, ".git")) else []) + found
 
 
@@ -79,7 +105,7 @@ if __name__ == "__main__" and (planted := planted_modules()):
 from agent_gate import (FAIL_EXIT as GATE_FAIL_EXIT, PROGRESS_CHECK, GatePlan,  # noqa: E402
                         resolve as resolve_gate, run_gate)
 from agent_pipeline import TaskError, is_protected, require_pipeline_release  # noqa: E402
-from common import agent_source_paths  # noqa: E402
+from common import agent_source_paths, controller_environment  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[1]
 LEDGER = ROOT / "docs" / "roadmap-pipeline" / "ledger.json"
@@ -119,12 +145,14 @@ DENY = ["Bash(git push:*)", "Bash(git commit:*)", "Bash(git reset:*)", "Bash(git
         "Read(~/.claude/.credentials.json)", "Read(~/.ssh/**)", "Read(~/.config/gh/**)",
         "Read(~/.git-credentials)", "Read(//home/claude/**)", "Read(//root/.ccr/**)",
         # Paths the controller's scope check cannot see: Git state, caches, home.
-        "Edit(.git/**)", "Edit(**/__pycache__/**)", "Edit(**/*.pyc)", "Edit(.claude/**)",
+        "Edit(.git/**)", "Edit(**/.git/**)", "Edit(**/.git)", "Edit(**/__pycache__/**)", "Edit(**/*.pyc)", "Edit(.claude/**)",
         # Controller state: the callback baseline, STOP and session logs.
         "Edit(build/roadmap-pipeline/**)"]
 PROCESS_TAG = "roadmap-pipeline-"
 READ_ONLY_DISALLOWED = "Edit,Write,MultiEdit,NotebookEdit"
 CALLBACKS_MARKER = "callbacks-baseline.json"  # present while a session may change Git state
+REVIEW_NONCE = "review-nonce"  # issued by `resume`: no digest exists before the lead saw the review
+TRUSTED_RECORD = "trusted-checkout.json"  # this checkout's baselines have lived outside it since then
 INIT_DENY_PROBE = "build/roadmap-pipeline/DENY-PROBE"
 TRAILERS = ("Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>\n"
             "Claude-Session: https://claude.ai/code/session_01TJtT9VANihpE4RzPd4d8su\n")
@@ -309,8 +337,10 @@ def claude_argv(cfg: Config, name: str, session_id: str, settings: Path, schema:
 
 
 def codex_argv(result: Path) -> list[str]:
-    """Installed Codex 0.167.2 interface; retain user config, auth, MCP and hooks."""
-    return ["codex", "exec", "--ephemeral", "--strict-config", "--sandbox", "workspace-write",
+    """Installed Codex 0.167.2 interface. Auth stays; the user config, plugins and apps do not, so
+    the session gets no MCP server that could write outside the shell sandbox (the baseline home)."""
+    return ["codex", "exec", "--ephemeral", "--strict-config", "--ignore-user-config", "--disable", "plugins",
+            "--disable", "apps", "--cd", str(ROOT), "--sandbox", "workspace-write",
             "--json", "--output-last-message", str(result), "-"]
 
 
@@ -339,10 +369,30 @@ def blocking(findings: list[dict]) -> list[dict]:
 
 # ---------- state ----------
 
+def open_private(path: Path, mode: str = "a+"):
+    """Open a controller file without following a planted entry. Controller state lies in the
+    session-writable checkout: a symlink there could make the controller create or truncate a
+    file in the trusted state home (the trust record, the marker). Hard links and FIFOs are
+    refused too; truncation happens only after the checks."""
+    flags = {"a+": os.O_RDWR | os.O_APPEND, "a": os.O_WRONLY | os.O_APPEND, "w": os.O_WRONLY}[mode]
+    try:
+        fd = os.open(path, flags | os.O_CREAT | os.O_NOFOLLOW | os.O_NONBLOCK | os.O_CLOEXEC, 0o600)
+    except OSError as error:
+        raise Stop(f"refusing to open {path}: {error.strerror} (a planted symlink?)") from error
+    info = os.fstat(fd)
+    if not stat.S_ISREG(info.st_mode) or info.st_nlink != 1:
+        os.close(fd)
+        raise Stop(f"refusing to open {path}: not a private regular file")
+    if mode == "w":
+        os.ftruncate(fd, 0)
+    return os.fdopen(fd, mode)
+
+
 def atomic_write(path: Path, data: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     tmp = path.with_suffix(path.suffix + f".tmp{os.getpid()}")
-    tmp.write_text(data, encoding="utf-8")
+    with open_private(tmp, "w") as out:
+        out.write(data)
     os.replace(tmp, path)
 
 
@@ -385,7 +435,12 @@ def git_callbacks() -> str:
                             capture_output=True, text=True, env=git_env()).stdout
     parts = [config]
     for name in ("hooks", "info/attributes"):
-        path = Path(git("rev-parse", "--git-path", name).strip())
+        # Not git(): its hooksPath override would resolve `hooks` to /dev/null. rev-parse runs no hook.
+        located = subprocess.run(["git", "-c", "core.fsmonitor=false", "rev-parse", "--git-path", name], cwd=ROOT,
+                                 capture_output=True, text=True, env=git_env())
+        if located.returncode:
+            raise Stop(f"git rev-parse --git-path {name} failed: {located.stderr.strip()[-400:]}")
+        path = Path(located.stdout.strip())
         path = path if path.is_absolute() else ROOT / path
         files = sorted(path.rglob("*")) if path.is_dir() else [path]
         for file in files:
@@ -421,18 +476,119 @@ def gate_report(log: Path) -> tuple[str, str]:
     return digest, "\n".join(lines[-120:])
 
 
+def hidden_tracked() -> list[str]:
+    """Tracked paths whose index flags hide worktree edits from status, diff and revert:
+    assume-unchanged (lower-case tag) and skip-worktree (S)."""
+    return sorted(entry[2:] for entry in git("ls-files", "-v", "-z").split("\0")
+                  if entry and (entry[0].islower() or entry[0] == "S"))
+
+
+def tracked_changes() -> list[str]:
+    """Tracked paths whose content differs from HEAD, read through a throwaway index. The real
+    .git/index carries a stat cache a session could forge (a same-size edit then looks clean) and
+    assume-unchanged/skip-worktree flags; a fresh index has neither, so Git compares content.
+    Called only while no session runs, so the private temporary directory is not raced."""
+    with tempfile.TemporaryDirectory(prefix="roadmap-index-") as tmp:
+        env = dict(git_env(), GIT_INDEX_FILE=os.path.join(tmp, "index"))
+
+        def run(*args: str, check: bool = True) -> str:
+            done = subprocess.run(["git", *CONTROLLER_GIT_CONFIG, *args], cwd=ROOT, capture_output=True,
+                                  text=True, env=env)
+            if check and done.returncode:
+                raise Stop(f"git {args[0]} on a fresh index failed ({done.returncode}): {done.stderr.strip()[-400:]}")
+            return done.stdout
+        run("read-tree", "HEAD")
+        run("update-index", "-q", "--refresh", check=False)  # exits 1 when something differs
+        return sorted(filter(None, run("diff-files", "--name-only", "-z").split("\0")))
+
+
 def git(*args: str, check: bool = True) -> str:
-    done = subprocess.run(["git", "-c", "core.fsmonitor=false", *args], cwd=ROOT, capture_output=True, text=True,
+    done = subprocess.run(["git", *CONTROLLER_GIT_CONFIG, *args], cwd=ROOT, capture_output=True, text=True,
                           env=git_env())
     if check and done.returncode:
         raise Stop(f"git {' '.join(args[:3])} failed ({done.returncode}): {done.stderr.strip()[-800:]}")
     return done.stdout
 
 
+def baseline_home() -> Path:
+    """Where the saved session baseline lives: outside every root a session may write. A manual
+    Codex `workspace-write` session writes the checkout, /tmp and $TMPDIR, so it could delete or
+    forge a baseline kept in build/."""
+    xdg = os.environ.get("XDG_STATE_HOME", "")
+    # The XDG spec ignores a relative value; resolving it against the cwd would move the baseline.
+    base = Path(xdg if os.path.isabs(xdg) else Path.home() / ".local" / "state").resolve()
+    # Resolved whole: a symlinked component must not lead the checks past the real location.
+    home = (base / "baryonos-roadmap-pipeline" / sha256(str(ROOT.resolve()))[:16]).resolve()
+    for writable in dict.fromkeys([ROOT.resolve(), Path(tempfile.gettempdir()).resolve(), Path("/tmp").resolve()]):
+        if home == writable or writable in home.parents:
+            raise Stop(f"the session baseline directory {home} lies in the session-writable {writable}; "
+                       "set XDG_STATE_HOME elsewhere")
+    return home
+
+
+def expected_state(state: Path) -> Path | None:
+    """The resolved path an in-checkout state directory must have; None for one outside the
+    checkout (a test layout), which no session can relink."""
+    try:
+        return ROOT.resolve() / state.relative_to(ROOT)
+    except ValueError:
+        return None
+
+
+def pin_state(state: Path, walk: bool = True) -> None:
+    """The state directory lies in the checkout: a session can make it (or a component such as
+    build/) a link into any checkout's trusted home, and every controller write, mkdir and unlink
+    there would follow. Its resolved path must be exactly the in-checkout one, before and after mkdir.
+    Run again after every session: a link left by an exited session is refused before use. (Gate steps
+    see only a read-only staged copy, never the checkout.)"""
+    if (expected := expected_state(state)) is None:
+        state.mkdir(parents=True, exist_ok=True)
+        return
+    for create in (False, True):
+        try:
+            if create:
+                state.mkdir(parents=True, exist_ok=True)
+            resolved = state.resolve()
+        except (OSError, RuntimeError) as error:  # e.g. a self-loop link or a file in its place
+            raise Stop(f"the state directory {state} cannot be used ({error}); remove the planted entry") from error
+        if resolved != expected:
+            raise Stop(f"the state directory {state} resolves to {resolved}, not {expected}; it must lie "
+                       "inside the checkout: remove the link (planted, or a build tree moved elsewhere)")
+    if not walk:
+        return
+
+    def unreadable(error: OSError) -> None:  # an unlisted directory could hide a link: fail closed
+        raise Stop(f"unreadable controller state {error.filename}: {error.strerror}; restore its permissions")
+    # Below it, manual/, runs/ and their task directories are walked as paths: a link left there by
+    # an exited session would carry later mkdirs and writes out. The controller creates no links.
+    for directory, dirs, files in os.walk(state, onerror=unreadable):  # never follows links
+        if links := [name for name in dirs + files if os.path.islink(os.path.join(directory, name))]:
+            raise Stop(f"links in the controller state {directory}: {brief(links)}; remove the link")
+
+
+def open_state(state: Path) -> int:
+    """A descriptor of the in-checkout state directory, opened one component at a time without
+    following any link (no /proc needed): a link swapped in later cannot redirect what goes through it."""
+    root = ROOT.resolve()
+    fd = os.open(root, os.O_RDONLY | os.O_DIRECTORY | os.O_CLOEXEC)
+    try:
+        for part in expected_state(state).relative_to(root).parts:
+            fd, parent = os.open(part, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW | os.O_CLOEXEC, dir_fd=fd), fd
+            os.close(parent)
+    except OSError as error:
+        os.close(fd)
+        raise Stop(f"the state directory {state} cannot be opened without following a link "
+                   f"({error.strerror}); remove the link") from error
+    return fd
+
+
 class Controller:
-    def __init__(self, cfg: Config, state: Path = STATE):
+    def __init__(self, cfg: Config, state: Path | None = None, baseline: Path | None = None):
         self.cfg = cfg
+        state = STATE if state is None else state  # read at call time, not bound at class creation
         self.state = state
+        # A test state directory already lies outside the checkout; the real one does not.
+        self.baseline = baseline if baseline is not None else (None if state == STATE else state)
         self.lock_file = None
         self.lock_acquired = False
         self.lease_owned = False
@@ -441,11 +597,59 @@ class Controller:
         self.run_id = dt.datetime.now().strftime("%Y%m%dT%H%M%S") + f"-{os.getpid()}"
 
     # --- locking and lifecycle ---
+    def own_state(self) -> None:
+        if self.baseline is not None:  # a test layout: the state directory is its own baseline home
+            self.state.mkdir(parents=True, exist_ok=True)
+            return
+        pin_state(self.state)
+
+    def unlink_in_state(self, *names: str) -> None:
+        """Unlinks through one descriptor of the verified state directory: a link swapped in after
+        own_state() cannot carry the unlink into another checkout's home."""
+        if self.baseline is not None or expected_state(self.state) is None:
+            for name in names:
+                (self.state / name).unlink(missing_ok=True)
+            return
+        fd = open_state(self.state)
+        try:
+            for name in names:
+                try:
+                    os.unlink(name, dir_fd=fd)
+                except FileNotFoundError:
+                    pass
+                except OSError as error:  # e.g. a directory planted under the name
+                    raise Stop(f"refusing to remove {name} from the state: {error.strerror}") from error
+        finally:
+            os.close(fd)
+
+    def read_lease(self) -> dict | None:
+        """lease.json through a descriptor of the state directory (open_state() for the real one): no
+        link is followed, and a planted FIFO or other non-regular file is refused, never waited on."""
+        if self.baseline is not None or expected_state(self.state) is None:
+            try:
+                fd = os.open(self.state, os.O_RDONLY | os.O_DIRECTORY | os.O_CLOEXEC)
+            except FileNotFoundError:  # a test layout not created yet holds no lease
+                return None
+        else:
+            fd = open_state(self.state)
+        try:
+            lease = os.open("lease.json", os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK | os.O_CLOEXEC, dir_fd=fd)
+        except FileNotFoundError:
+            return None
+        except OSError as error:
+            raise Stop(f"refusing to read lease.json: {error.strerror} (a planted link?)") from error
+        finally:
+            os.close(fd)
+        with os.fdopen(lease, "rb") as handle:
+            if not stat.S_ISREG(os.fstat(handle.fileno()).st_mode):
+                raise Stop("refusing to read lease.json: not a regular file")
+            return json.loads(handle.read())
+
     def acquire(self) -> None:
-        self.state.mkdir(parents=True, exist_ok=True)
+        self.own_state()
         if (self.state / "STOP").exists():  # before recover() can run git status
             raise Stop("stop file present (build/roadmap-pipeline/STOP)")
-        self.lock_file = (self.state / "controller.lock").open("a+")
+        self.lock_file = open_private(self.state / "controller.lock")
         try:
             fcntl.flock(self.lock_file, fcntl.LOCK_EX | fcntl.LOCK_NB)
         except BlockingIOError as error:
@@ -456,13 +660,15 @@ class Controller:
         self.lock_file.write(json.dumps({"pid": os.getpid(), "run": self.run_id, "started": now()}))
         self.lock_file.flush()
         self.refuse_live_workers()  # a live worker could still change the callbacks
-        self.check_saved_baseline(retire=False)  # recover() runs git status, which can run a filter
+        self.check_saved_baseline()  # recover() runs git status, which can run a filter
         self.recover()
 
     def release(self) -> None:
         if self.lease_owned:
-            with contextlib.suppress(FileNotFoundError):
-                (self.state / "lease.json").unlink()
+            try:
+                self.unlink_in_state("lease.json")
+            except Stop as error:  # a relinked state: keep whatever lease is there; recover() blocks on it
+                print(f"lease left in place: {error}", file=sys.stderr)
         if self.lock_file:
             if self.lock_acquired:
                 fcntl.flock(self.lock_file, fcntl.LOCK_UN)
@@ -473,10 +679,8 @@ class Controller:
 
     def recover(self) -> None:
         """A lease without a live owner means an interrupted task: never auto-clean it."""
-        lease_path = self.state / "lease.json"
-        if not lease_path.exists():
+        if (lease := self.read_lease()) is None:
             return
-        lease = json.loads(lease_path.read_text())
         for pid in (lease.get("worker_pid"), lease.get("controller_pid")):
             if pid and pid != os.getpid() and pid_alive(pid):
                 raise Stop(f"lease owner pid {pid} still alive; refusing to start a second writer")
@@ -487,16 +691,15 @@ class Controller:
                            for t in load_ledger()["tasks"]):
             update_task(task_id, status="blocked", history={
                 "at": now(), "event": "interrupted", "lease": lease, "dirty_paths": parse_porcelain(dirty)})
-        lease_path.unlink()
+        self.unlink_in_state("lease.json")
         if dirty.strip():
             raise Stop("recovered an interrupted lease and the checkout has a partial diff; "
                        "review it before restarting (see ledger history)")
 
     def heartbeat(self, **fields) -> None:
-        lease_path = self.state / "lease.json"
-        lease = json.loads(lease_path.read_text()) if lease_path.exists() else {}
+        lease = self.read_lease() or {}
         lease.update(fields, controller_pid=os.getpid(), run=self.run_id, heartbeat=now())
-        atomic_write(lease_path, json.dumps(lease, indent=2))
+        atomic_write(self.state / "lease.json", json.dumps(lease, indent=2))
         self.lease_owned = True
 
     def check_controls(self) -> None:
@@ -523,7 +726,19 @@ class Controller:
 
     def preflight(self) -> str:
         self.refuse_live_workers()
-        self.check_saved_baseline(retire=True)  # no worker is alive any more
+        self.own_state()  # before every task: a session may have planted a link since acquire()
+        # A manual Codex session is not a tagged process: its claim keeps its baseline alive.
+        if active := [t["id"] for t in load_ledger(LEDGER)["tasks"] if t["status"] == "active"]:
+            raise Stop(f"manual task {active} is active; validate it and update the ledger first")
+        # The ledger lies in the checkout, where the session can mark its task done: the claim that
+        # counts is the one in the trusted marker, which only `resume --accept` ends.
+        if claim := self.manual_claim():
+            raise Stop(f"manual task {claim} holds the session baseline; validate its result, then run `resume`")
+        self.check_saved_baseline()
+        if not self.trusted():
+            raise Stop("this checkout has no trusted session baseline yet (an older controller may have kept "
+                       "it inside the checkout); review the checkout, then run `resume`")
+        self.refuse_invisible_changes()
         self.callbacks = git_callbacks()
         branch = git("branch", "--show-current").strip()
         if branch != self.cfg.branch:
@@ -531,22 +746,170 @@ class Controller:
         dirty = git("status", "--porcelain", "--untracked-files=all").strip()
         if dirty:
             raise Stop(f"checkout is not clean; refusing to start a writer:\n{dirty[:2000]}")
-        return git("rev-parse", "HEAD").strip()
+        if forged := tracked_changes():  # clean only according to the index's stat cache
+            raise Stop(f"tracked files differ from HEAD although the index calls them clean: {brief(forged)}")
+        head = git("rev-parse", "HEAD").strip()
+        # Last: a Stop above keeps the baseline, so what the lead removes next is still compared.
+        self.retire_baseline()
+        return head
 
-    def check_saved_baseline(self, *, retire: bool) -> None:
+    @staticmethod
+    def refuse_invisible_changes() -> None:
+        """What the baseline comparison cannot see: Git lists nothing inside a nested repository,
+        index flags hide tracked edits, and a planted module runs as controller code. Each one
+        keeps the baseline (preflight and `resume` alike), so it is compared again once removed."""
+        if planted := planted_modules():
+            raise Stop(f"untracked or ignored modules under tools/ could run as code: {brief(planted)}")
+        if nested := nested_git(ROOT):
+            raise Stop(f"nested .git paths can carry Git callbacks; remove them: {brief(nested)}")
+        if hidden := hidden_tracked():
+            raise Stop(f"tracked paths hide worktree edits (assume-unchanged or skip-worktree): {brief(hidden)}")
+
+    def check_saved_baseline(self) -> None:
         """Before any Git command that can run a hook or filter. A session that never reached its
-        own check (interrupt, crash, kill) left its baseline behind: compare with it, never adopt
-        a change. Retire it only once no worker can still change the callbacks."""
-        marker = self.state / CALLBACKS_MARKER
-        if not marker.exists():
-            return
+        own check (interrupt, crash, kill, Stop) left its baseline behind: compare with it, never
+        adopt a change. Retire it only once no worker can still change the callbacks."""
+        marker, legacy = self.marker(), self.legacy_marker()
+        if marker.exists():
+            saved = self.saved_baseline(marker)
+            self.callbacks, ignored = saved.get("baseline"), saved.get("ignored")
+            self.check_callbacks("an interrupted session")
+            delta = self.ignored_delta(ignored) if isinstance(ignored, dict) else (["unreadable baseline"], [])
+            if any(delta):
+                # Sticky like a callback change: `resume` shows the delta and retires only on --accept.
+                atomic_write(self.state / "STOP", "ignored files changed since a session's baseline\n")
+                raise Stop("ignored files changed since an interrupted or manual session's baseline "
+                           f"(created, changed or removed); review them, then run `resume`: "
+                           f"{[brief(paths) for paths in delta]}")
+        if legacy:
+            # Written before the baseline left the checkout: a session could have rewritten it.
+            atomic_write(self.state / "STOP", "a session baseline inside the checkout cannot be trusted\n")
+            raise Stop(f"{legacy} lies inside the checkout, where a session could forge it; review the "
+                       "ignored files and Git callbacks, then run `resume`")
+
+    @staticmethod
+    def saved_baseline(path: Path) -> dict:
         try:
-            self.callbacks = json.loads(marker.read_text())["baseline"]
-        except (ValueError, KeyError, TypeError):
-            self.callbacks = None  # unreadable baseline: fail closed
-        self.check_callbacks("an interrupted session")
-        if retire:
-            marker.unlink()
+            saved = json.loads(path.read_text())
+        except (OSError, ValueError):
+            saved = None
+        return saved if isinstance(saved, dict) else {}  # unreadable baseline: every check fails closed
+
+    def legacy_marker(self) -> Path | None:
+        legacy = self.state / CALLBACKS_MARKER
+        # A text comparison suffices: own_state() pins the directory and refuses any link inside it.
+        return legacy if legacy != self.marker() and os.path.lexists(legacy) else None
+
+    def marker(self) -> Path:
+        return (self.baseline or baseline_home()) / CALLBACKS_MARKER
+
+    def manual_claim(self) -> str | None:
+        marker = self.marker()
+        saved = self.saved_baseline(marker) if marker.exists() else {}
+        session = saved.get("session")
+        # A claim written by 3a24e2c4 carries no "manual" key, only its session name.
+        return saved.get("manual") or (session[len("manual "):] if isinstance(session, str)
+                                       and session.startswith("manual ") else None)
+
+    def trusted(self) -> bool:
+        """Whether this checkout's baseline history lies outside every session's reach. Without the
+        record, a session could have deleted an older in-checkout baseline and left no trace."""
+        return (self.marker().parent / TRUSTED_RECORD).exists() or self.marker().exists()
+
+    def retire_baseline(self) -> None:
+        """Only after the caller has validated the session's checkout, ignored files included."""
+        record = self.marker().parent / TRUSTED_RECORD
+        if not record.exists():
+            atomic_write(record, json.dumps({"since": now(), "root": str(ROOT)}))
+        self.marker().unlink(missing_ok=True)
+        (self.marker().parent / REVIEW_NONCE).unlink(missing_ok=True)
+
+    def read_checkout(self) -> tuple[str, dict[str, list[int]]]:
+        """One read of what the saved baseline covers. `resume` reviews, binds and saves this same
+        read, so a change after it stays a change for the next review or preflight."""
+        return git_callbacks(), self.ignored_files()
+
+    def baseline_review(self, read: tuple[str, dict[str, list[int]]]) -> dict | None:
+        """What retiring the saved baseline would adopt: the change since it was taken. With no
+        trusted baseline there is no delta to show: the lead reviews the checkout as a whole."""
+        callbacks, ignored_now = read
+        marker, legacy = self.marker(), self.legacy_marker()
+        if not marker.exists():
+            if legacy is None and self.trusted():
+                return None
+            return {"no_trusted_baseline": True, "legacy_marker_in_checkout": legacy is not None}
+        saved = self.saved_baseline(marker)
+        ignored = saved.get("ignored")
+        created, changed = (self.ignored_delta(ignored, ignored_now) if isinstance(ignored, dict)
+                            else (["unreadable baseline"], []))
+        return {"manual_claim": self.manual_claim(), "legacy_marker_in_checkout": legacy is not None,
+                "callbacks_changed": callbacks != saved.get("baseline"),
+                "created": created, "changed_or_removed": changed}
+
+    def review_digest(self, review: dict, read: tuple[str, dict[str, list[int]]]) -> str:
+        """Binds the acknowledgement to the exact state the lead reviewed: HEAD, the whole tree
+        fingerprint (status, tracked and untracked content), the Git callbacks, every ignored
+        file's identity (ctime and inode change on any later write), the changed files' content
+        and both markers. A later, different change gives a different digest."""
+        def content(path: Path) -> str | None:
+            try:
+                return os.readlink(path) if path.is_symlink() else sha256(path.read_bytes()) if path.is_file() else None
+            except OSError as error:
+                return f"unreadable: {error.errno}"
+        changed = review.get("created", []) + review.get("changed_or_removed", [])
+        markers = [self.marker(), self.state / CALLBACKS_MARKER]
+        nonce = self.marker().parent / REVIEW_NONCE
+        if not nonce.exists():
+            atomic_write(nonce, uuid.uuid4().hex)
+        bound = {"nonce": nonce.read_text(), "review": review, "head": git("rev-parse", "HEAD").strip(),
+                 "tree": self.tree_fingerprint(), "callbacks": read[0], "ignored": read[1],
+                 "hidden": hidden_tracked(), "content": {p: content(ROOT / p) for p in changed},
+                 "markers": [content(m) if os.path.lexists(m) else None for m in markers]}
+        return sha256(json.dumps(bound, sort_keys=True))[:16]
+
+    def resume(self, accept: str | None = None) -> str:
+        """Clear STOP and PAUSE. The saved baseline stays while anything may still change the
+        checkout (a running controller or worker, an active manual claim), and it is never
+        retired over a change the lead has not acknowledged by its digest."""
+        self.own_state()  # before any write or unlink can follow a planted link into a trusted home
+        self.unlink_in_state("STOP", "PAUSE")
+        self.lock_file = open_private(self.state / "controller.lock")
+        try:
+            fcntl.flock(self.lock_file, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except BlockingIOError:
+            return "stop/pause cleared; a controller is running, so the saved session baseline is kept"
+        self.lock_acquired = True
+        self.refuse_live_workers()
+        if active := [t["id"] for t in load_ledger(LEDGER)["tasks"] if t["status"] == "active"]:
+            return (f"stop/pause cleared; manual task {active} is active, so the saved session baseline "
+                    "is kept until it is validated")
+        read = self.read_checkout()
+        review = self.baseline_review(read)
+        if review is None:
+            return "stop/pause cleared; no saved session baseline"
+        # Before any digest: the review cannot show what lies inside a nested repository.
+        self.refuse_invisible_changes()
+        digest = self.review_digest(review, read)
+        # A manual claim always needs the lead's word: its session may still be running and plant
+        # something after an empty delta was shown.
+        if any(review.values()) and accept != digest:
+            shown = {k: (v[:50] + [f"... {len(v) - 50} more"] if len(v) > 50 else v) if isinstance(v, list) else v
+                     for k, v in review.items()}
+            note = (" Confirm that the manual session has ended and validate its result." if review.get("manual_claim")
+                    else " There is no trusted baseline to compare with: review the whole checkout, its ignored "
+                         "files and Git callbacks." if review.get("no_trusted_baseline") else "")
+            return ("stop/pause cleared; the saved session baseline is kept because retiring it would adopt "
+                    f"this change: {json.dumps(shown)}.{note} Review it (Git callbacks included), then run "
+                    f"`resume --accept {digest}`")
+        # The acknowledged state becomes the baseline, so a change made after it (a detached child of
+        # the session, say) is still compared by the next preflight, which retires it only last.
+        snapshot = {"baseline": read[0], "session": f"accepted {now()}", "ignored": read[1]}  # the reviewed read
+        self.own_state()  # again, before anything is retired: a link swapped in since would carry the unlink
+        self.unlink_in_state(CALLBACKS_MARKER)  # a legacy in-checkout baseline
+        self.retire_baseline()  # writes the trust record and drops the nonce
+        atomic_write(self.marker(), json.dumps(snapshot))
+        return ("stop/pause cleared; the reviewed state is now the saved session baseline (the next preflight "
+                "compares against it and retires it)")
 
     def check_callbacks(self, where: str) -> None:
         if git_callbacks() != self.callbacks:
@@ -564,7 +927,9 @@ class Controller:
             raise Stop(f"cumulative estimated cost {self.spent:.2f} USD reached the cap")
         session_id = str(uuid.uuid4())
         settings = attempt_dir / f"{kind}-settings.json"
-        atomic_write(settings, json.dumps({"permissions": {"allow": rules, "deny": DENY}}, indent=2))
+        # The baseline left build/, so Edit(build/roadmap-pipeline/**) no longer covers it.
+        deny = DENY + [f"Edit(/{(self.baseline or baseline_home()).parent}/**)"]
+        atomic_write(settings, json.dumps({"permissions": {"allow": rules, "deny": deny}}, indent=2))
         brief = attempt_dir / f"{kind}-brief.md"
         atomic_write(brief, prompt)
         argv = claude_argv(self.cfg, f"{PROCESS_TAG}{kind}-{task_id}", session_id, settings, schema, mode,
@@ -572,11 +937,13 @@ class Controller:
         atomic_write(attempt_dir / f"{kind}-argv.json", json.dumps(argv[:1] + argv[1:], indent=1))
         out, err = attempt_dir / f"{kind}-result.json", attempt_dir / f"{kind}-stderr.log"
         started = time.monotonic()
-        # Kept until this session is verified: an interrupted controller is checked against it later.
-        atomic_write(self.state / CALLBACKS_MARKER, json.dumps({"baseline": self.callbacks, "session": session_id}))
+        # Kept until the caller has validated this session (retire_baseline): a Stop or an interrupted
+        # controller before then is checked against it later.
+        atomic_write(self.marker(), json.dumps({"baseline": self.callbacks, "session": session_id,
+                                                "ignored": self.ignored_files()}))
         proc = None
         try:
-            with out.open("w") as stdout, err.open("w") as stderr, brief.open("rb") as stdin:
+            with open_private(out, "w") as stdout, open_private(err, "w") as stderr, brief.open("rb") as stdin:
                 proc = subprocess.Popen(argv, cwd=ROOT, env=worker_env(dict(os.environ)), stdin=stdin,
                                         stdout=stdout, stderr=stderr, start_new_session=True)
                 self.heartbeat(task=task_id, phase=kind, worker_pid=proc.pid, session_id=session_id)
@@ -603,6 +970,9 @@ class Controller:
             if proc is not None:
                 with contextlib.suppress(ProcessLookupError):
                     os.killpg(proc.pid, signal.SIGKILL)  # also on an exception path
+            # Before any write below or in the next attempt: a link the session left in the state
+            # (a relinked directory, a planted attempt-N) must not carry it out of the checkout.
+            self.own_state()
             self.check_callbacks(f"the {kind} session {session_id}")
         self.heartbeat(worker_pid=None)
         text = out.read_text(errors="replace")
@@ -622,7 +992,6 @@ class Controller:
             "output": structured(result),
         }
         atomic_write(attempt_dir / f"{kind}-record.json", json.dumps(record, indent=2))
-        (self.state / CALLBACKS_MARKER).unlink(missing_ok=True)  # verified in the finally clause
         blob = text + err.read_text(errors="replace")
         if code != 0 and RATE_LIMIT.search(blob):
             raise Stop(f"{kind} session hit a rate or usage limit; see {err}")
@@ -662,10 +1031,56 @@ class Controller:
 
     # --- validation owned by the controller ---
     def tree_fingerprint(self) -> str:
-        return sha256(git("status", "--porcelain", "--untracked-files=all") + git("diff", "HEAD"))
+        # Status and diff list an untracked file but not its content: hash that content too.
+        untracked = {}
+        for path in filter(None, git("ls-files", "-z", "--others", "--exclude-standard").split("\0")):
+            target = ROOT / path
+            with contextlib.suppress(FileNotFoundError):
+                untracked[path] = [target.lstat().st_mode, os.readlink(target) if target.is_symlink()
+                                   else sha256(target.read_bytes()) if target.is_file() else "other"]
+        # The index can call a tracked edit clean (flags, forged stat): hash what a fresh index sees.
+        tracked = {}
+        for path in tracked_changes():
+            target = ROOT / path
+            tracked[path] = (os.readlink(target) if target.is_symlink() else sha256(target.read_bytes())
+                             if target.is_file() else "missing" if not os.path.lexists(target) else "other")
+        return sha256(git("status", "--porcelain", "--untracked-files=all") + git(*DIFF_HEAD)
+                      + json.dumps([self.ignored_files(), nested_git(ROOT), hidden_tracked(), untracked, tracked],
+                                   sort_keys=True))
 
     def changed(self) -> list[str]:
-        return parse_porcelain(git("status", "--porcelain", "--untracked-files=all"))
+        return sorted(set(parse_porcelain(git("status", "--porcelain", "--untracked-files=all")))
+                      | set(tracked_changes()))
+
+    def ignored_files(self) -> dict[str, list[int]]:
+        """Ignored files outside the controller's own state, which `git status` never reports.
+        shortcut: lstat identity, not content hashes (target/ is large); upgrade if a session
+        gains a tool that can restore timestamps."""
+        try:
+            own = self.state.resolve().relative_to(ROOT.resolve()).as_posix() + "/"
+        except ValueError:
+            own = None  # state outside the checkout
+        snapshot = {}
+        for path in filter(None, git("ls-files", "-z", "--others", "--ignored", "--exclude-standard").split("\0")):
+            if own and path.startswith(own):
+                continue
+            with contextlib.suppress(FileNotFoundError):
+                info = (ROOT / path).lstat()
+                snapshot[path] = [info.st_mode, info.st_size, info.st_mtime_ns, info.st_ctime_ns, info.st_ino]
+        return snapshot
+
+    def ignored_delta(self, before: dict[str, list[int]],
+                      after: dict[str, list[int]] | None = None) -> tuple[list[str], list[str]]:
+        """(created, changed or removed) ignored files since the snapshot `before`."""
+        after = self.ignored_files() if after is None else after
+        return sorted(set(after) - set(before)), sorted(p for p in before if after.get(p) != before[p])
+
+    def new_ignored(self, before: dict[str, list[int]]) -> list[str]:
+        """Ignored files a session created; one it changed or removed cannot be restored."""
+        created, altered = self.ignored_delta(before)
+        if altered:
+            raise Stop(f"a session changed or removed ignored files; review them: {altered[:20]}")
+        return created
 
     def revert(self, paths: list[str]) -> None:
         """Only for paths the worker created or edited in a checkout that was clean before."""
@@ -674,14 +1089,16 @@ class Controller:
             if path in tracked:
                 git("checkout", "HEAD", "--", path, check=False)
             else:
-                target = (ROOT / path).resolve()
-                if ROOT in target.parents and target.exists():
-                    shutil.rmtree(target) if target.is_dir() else target.unlink()
+                # The entry itself, never what a symlink points at; its parent must lie inside ROOT.
+                target = ROOT / path
+                parent = target.parent.resolve()
+                if (parent == ROOT.resolve() or ROOT.resolve() in parent.parents) and os.path.lexists(target):
+                    shutil.rmtree(target) if target.is_dir() and not target.is_symlink() else target.unlink()
 
     def run_checks(self, task: dict, attempt_dir: Path) -> tuple[bool, list[dict], str]:
         require_pipeline_release()
         results, failure = [], ""
-        lock = (self.state / "qemu.lock").open("a+") if task.get("native") else None
+        lock = open_private(self.state / "qemu.lock") if task.get("native") else None
         if lock:
             fcntl.flock(lock, fcntl.LOCK_EX)
         try:
@@ -701,7 +1118,7 @@ class Controller:
                 sources = agent_source_paths(self.changed())
             except (KeyError, ValueError, ImportError, OSError, subprocess.SubprocessError) as error:
                 failure = f"gate blocked: {error}"
-                log.write_text(failure + "\n")
+                atomic_write(log, failure + "\n")
                 code = GATE_FAIL_EXIT
             else:
                 code = run_gate(plan, ROOT, log, os.environ.copy(), source_paths=sources)
@@ -781,10 +1198,10 @@ Rules (binding, in addition to AGENTS.md):
         if not self.lock_acquired:
             raise Stop("manual claim requires the controller lock")
         self.check_controls()
-        head = self.preflight()
         ledger = load_ledger(LEDGER)
         if any(task["status"] == "active" for task in ledger["tasks"]):
             raise Stop("a manual task is already active; validate or recover it first")
+        head = self.preflight()
         task = select_task(ledger)
         if task is None:
             raise Stop("no eligible READY task; preserve active/manual work")
@@ -798,10 +1215,14 @@ Rules (binding, in addition to AGENTS.md):
         atomic_write(directory / "brief.md", prompt)
         plan = {"task_id": task["id"], "base": head, "branch": self.cfg.branch,
                 "brief_sha256": sha256(prompt), "stdin": str(directory / "brief.md"),
-                "argv": codex_argv(directory / "final.json"),
+                "argv": codex_argv(directory / "final.json"), "cwd": str(ROOT),
                 "stdout": str(directory / "events.jsonl"), "stderr": str(directory / "stderr.log"),
                 "manual_required": True, "unattended_ready": False}
         atomic_write(directory / "dispatch.json", json.dumps(plan, indent=2))
+        # The manual session may change Git state: the next preflight compares, never adopts.
+        atomic_write(self.marker(), json.dumps({"baseline": self.callbacks, "manual": task["id"],
+                                                "session": f"manual {task['id']}",
+                                                "ignored": self.ignored_files()}))
         update_task(task["id"], path=LEDGER, status="active", history={
             "at": now(), "event": "manual-codex-claim", "base": head,
             "dispatch": str(directory / "dispatch.json"), "brief_sha256": plan["brief_sha256"]})
@@ -876,16 +1297,26 @@ Return the structured result.
             self.check_controls()
             adir = task_dir / f"attempt-{attempt}"
             adir.mkdir(parents=True, exist_ok=True)
+            ignored = self.ignored_files()
             worker = self.session("worker", task["id"], adir, self.worker_prompt(task, head, feedback),
                                   WORKER_SCHEMA, allow_rules(("Edit", "Write", "MultiEdit")),
                                   "acceptEdits", self.cfg.worker_timeout, effort=effort_for(self.cfg, task))
             record = {"attempt": attempt, "worker": worker}
             attempts.append(record)
+            if nested := nested_git(ROOT):  # invisible to the scope check and revert below
+                raise Stop(f"the worker session left nested .git paths; review them: {brief(nested)}")
+            if hidden := hidden_tracked():  # their edits are invisible to the scope check as well
+                raise Stop(f"the worker session hid tracked edits behind index flags: {brief(hidden)}")
             changed = self.changed()
-            if bad := [p for p in changed if not in_write_set(p, task["write_paths"])]:
+            # New ignored files are never in scope: nothing commits them and later runs may use them.
+            if bad := [p for p in changed if not in_write_set(p, task["write_paths"])] + self.new_ignored(ignored):
                 self.revert(bad)
                 record["reverted_out_of_scope"] = bad
                 changed = self.changed()
+                if leftover := [p for p in changed if not in_write_set(p, task["write_paths"])] \
+                        + self.new_ignored(ignored):  # e.g. a path revert() cannot remove
+                    raise Stop(f"out-of-scope paths survived the revert; review them: {leftover[:20]}")
+            self.retire_baseline()  # the worker's nested .git, ignored-file and scope checks passed
             out = worker.get("output") or {}
             if worker["exit_code"] != 0 or worker["is_error"]:
                 kind = "session"
@@ -902,7 +1333,7 @@ Return the structured result.
                 if not ok:
                     kind, detail = "checks", failure
                 else:
-                    diff = git("diff", "HEAD")
+                    diff = git(*DIFF_HEAD)
                     untracked = [p for p in changed if p not in set(git("ls-files", "--", *changed).split())]
                     before = self.tree_fingerprint()
                     verifier = self.session("verifier", task["id"], adir,
@@ -914,6 +1345,7 @@ Return the structured result.
                     record["verifier"] = verifier
                     if self.tree_fingerprint() != before:
                         raise Stop("the read-only verifier changed the working tree; stopping for review")
+                    self.retire_baseline()
                     verdict = verifier.get("output") or {}
                     findings = verdict.get("findings") or []
                     if verifier["exit_code"] == 0 and verdict.get("verdict") == "pass" and not blocking(findings):
@@ -957,7 +1389,7 @@ Return the structured result.
                    f"Criterion {task['criterion']}; verified by controller checks and an independent "
                    f"read-only session. Evidence level: {task.get('evidence_level')}. No acceptance "
                    f"change. Receipt: {rel}\n\n" + TRAILERS)
-        git("commit", "-q", "-m", message)
+        git("commit", "--no-verify", "-q", "-m", message)
         commit = git("rev-parse", "HEAD").strip()
         self.record_assessment(task, commit, "verified")
         self.push()
@@ -991,7 +1423,7 @@ Return the structured result.
         views = ["docs/progress.json", "README.md", "docs/PROGRESS.md", "docs/assets/progress.svg"]
         git("add", "--", *views)
         if git("diff", "--cached", "--name-only").strip():
-            git("commit", "-q", "-m", f"progress: assess roadmap task {task['id']} ({score}/100 unchanged)\n\n"
+            git("commit", "--no-verify", "-q", "-m", f"progress: assess roadmap task {task['id']} ({score}/100 unchanged)\n\n"
                 f"Assessment of {commit}; no criterion changed.\n\n" + TRAILERS)
 
     def push(self) -> None:
@@ -999,7 +1431,7 @@ Return the structured result.
             return
         for delay in (0, 2, 4, 8, 16):
             time.sleep(delay)
-            done = subprocess.run(["git", "-c", "core.fsmonitor=false", "push", "-q", "-u", "origin",
+            done = subprocess.run(["git", *CONTROLLER_GIT_CONFIG, "push", "--no-verify", "-q", "-u", "origin",
                                    self.cfg.branch], cwd=ROOT,
                                   capture_output=True, text=True, env=git_env())
             if done.returncode == 0:
@@ -1010,7 +1442,7 @@ Return the structured result.
         update_task(task_id, status=status, history={"at": now(), "event": status, "run": self.run_id,
                                                      "reason": reason})
         git("add", "--", str(LEDGER.relative_to(ROOT)))
-        git("commit", "-q", "-m", f"roadmap({task_id}): mark {status}\n\n{reason[:900]}\n\n" + TRAILERS)
+        git("commit", "--no-verify", "-q", "-m", f"roadmap({task_id}): mark {status}\n\n{reason[:900]}\n\n" + TRAILERS)
         task = next(t for t in load_ledger()["tasks"] if t["id"] == task_id)
         self.record_assessment(task, git("rev-parse", "HEAD").strip(), status)
         self.push()
@@ -1021,11 +1453,15 @@ Return the structured result.
         adir.mkdir(parents=True, exist_ok=True)
         probe = ROOT / INIT_DENY_PROBE
         probe.unlink(missing_ok=True)
+        ignored = self.ignored_files()
         record = self.session("init", "INIT-CHECK", adir, self.init_prompt(), INIT_SCHEMA,
                               allow_rules(), "default", 15 * 60,
                               disallowed=READ_ONLY_DISALLOWED, budget=self.cfg.verifier_budget_usd)
         record["head_expected"] = head
-        record["checkout_clean_after"] = not self.changed()
+        record["checkout_clean_after"] = not (self.changed() or any(self.ignored_delta(ignored)) or nested_git(ROOT)
+                                              or hidden_tracked())
+        if record["checkout_clean_after"]:  # otherwise the next run compares with the init baseline
+            self.retire_baseline()
         record["deny_probe_file_absent"] = not probe.exists()  # controller-side oracle
         probe.unlink(missing_ok=True)
         atomic_write(adir / "init-check.json", json.dumps(record, indent=2))
@@ -1036,15 +1472,22 @@ Return the structured result.
         log.parent.mkdir(parents=True, exist_ok=True)
 
         def event(**fields):
-            with log.open("a") as out:
+            with open_private(log, "a") as out:
                 out.write(json.dumps({"at": now(), **fields}) + "\n")
             print(json.dumps({"at": now(), **fields}), flush=True)
 
         self.check_controls()  # a STOP from an earlier run must hold before any Git call
+        try:  # the isolated gate refuses this environment: fail before any session is spent
+            controller_environment()
+        except ValueError as error:
+            raise Stop(f"controller environment refused: {error}") from error
         if init:
             record = self.init_check()
             event(event="init-check", session=record["session_id"], exit=record["exit_code"],
                   transcript=record["transcript"], output=record["output"])
+            if not (record["exit_code"] == 0 and record["deny_probe_file_absent"] and record["checkout_clean_after"]):
+                raise Stop("init check failed: the session must exit 0, refuse the deny probe and "
+                           "leave the checkout clean")
         done = 0
         while done < max_tasks:
             self.check_controls()
@@ -1060,7 +1503,7 @@ Return the structured result.
                 self.mark_blocked(task["id"], str(error))
                 event(event="blocked", task=task["id"], reason=str(error)[:600])
             done += 1
-            (self.state / "lease.json").unlink(missing_ok=True)
+            self.unlink_in_state("lease.json")
         event(event="stop", reason=f"max tasks {max_tasks} reached")
         return "max-tasks"
 
@@ -1106,10 +1549,18 @@ def main() -> int:
     run.add_argument("--model", default=Config.model)
     run.add_argument("--effort", default=Config.effort, help="security/high-risk tasks")
     run.add_argument("--routine-effort", default=Config.routine_effort, help="low/medium-risk tasks")
-    for name in ("status", "stop", "pause", "resume", "validate", "brief"):
+    for name in ("status", "stop", "pause", "validate", "brief"):
         sub.add_parser(name)
+    sub.add_parser("resume").add_argument(
+        "--accept", metavar="DIGEST", help="retire a saved baseline over the change `resume` reported")
     args = parser.parse_args()
-    STATE.mkdir(parents=True, exist_ok=True)
+    try:
+        # Before this mkdir or the stop/pause write could follow a planted link. The brake writes only
+        # at the top: a link deeper down (refused by every controller start) must not hold it back.
+        pin_state(STATE, walk=args.cmd not in ("stop", "pause"))
+    except Stop as error:
+        print(error)
+        return 2
     if args.cmd == "status":
         return status()
     if args.cmd == "validate":
@@ -1117,13 +1568,25 @@ def main() -> int:
         print("ledger ok")
         return 0
     if args.cmd in ("stop", "pause"):
-        (STATE / args.cmd.upper()).write_text(now())
+        try:
+            atomic_write(STATE / args.cmd.upper(), now())
+        except Stop as error:  # a planted temporary name: refused, never followed
+            print(error)
+            return 2
         print(f"{args.cmd} requested; the controller honours it before the next session")
         return 0
     if args.cmd == "resume":
-        for name in ("STOP", "PAUSE"):
-            (STATE / name).unlink(missing_ok=True)
-        print("stop/pause cleared")
+        # The lead has reviewed the reported change: a sticky STOP must not re-fire on the old baseline.
+        controller = Controller(Config(), STATE)
+        try:
+            print(controller.resume(args.accept))
+        except Stop as error:
+            held = [n for n in ("STOP", "PAUSE") if os.path.lexists(STATE / n)]  # a refusal can precede the clear
+            print(f"{'stop/pause cleared' if not held else f'{held} still present'}; "
+                  f"the saved session baseline is kept: {error}")
+            return 2
+        finally:
+            controller.release()
         return 0
     if args.cmd == "brief":
         if (STATE / "STOP").exists():  # before any Git call, like the run loop

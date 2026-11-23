@@ -1,0 +1,80 @@
+.............................................................................................s.............................................ssssssssssssss..............................................................................................................................................................................................................................Issue-driven execution is disabled pending the fully verified PR #355 security boundary.
+Issue-driven execution is disabled pending the fully verified PR #355 security boundary.
+.......................................................................................................................................................................................
+----------------------------------------------------------------------
+Ran 558 tests in 18.172s
+
+OK (skipped=15)
+#7: 
+CAPBENCH passed=False raw=33; /tmp/capbench-HOST_ONLY-pygglm4_/checkout/build/run/cap-bench-37937a81a71e4203b67be094fd1dc36e
+Frozen guest/archive input changed: inputs/system_app.elf
+CAPBENCH passed=False raw=33; /tmp/capbench-HOST_ONLY-znbspwa8/checkout/build/run/cap-bench-d23cebf473df4175bdbb8dedf772c30d
+Frozen guest/archive input changed: OVMF_CODE.fd
+CAPBENCH passed=True raw=33; /tmp/capbench-HOST_ONLY-mxcgjno_/checkout/build/run/cap-bench-de337e31fd6142be87f356a95997c0d7
+CAPBENCH passed=False raw=33; /tmp/capbench-HOST_ONLY-7iy28lmi/checkout/build/run/cap-bench-ebd442d3093a40038f9c7cdee560df17
+Symlink in FPU artifact path
+CAPBENCH passed=False raw=33; /tmp/capbench-HOST_ONLY-vv_wyei3/checkout/build/run/cap-bench-091042b3d2b84cdf9189d4717524d3a3
+Frozen source input changed: /tmp/capbench-HOST_ONLY-vv_wyei3/checkout/source-code.fd
+CAPBENCH passed=False raw=33; /tmp/capbench-HOST_ONLY-vv_wyei3/checkout/build/run/cap-bench-35d98b721c0f411f96e2b5361dda58d2
+Frozen source input changed: /tmp/capbench-HOST_ONLY-vv_wyei3/checkout/source-vars.fd
+CAPBENCH passed=False raw=33; /tmp/capbench-HOST_ONLY-vv_wyei3/checkout/build/run/cap-bench-7c7f99aa581a4a2985129ac932d4b787
+Frozen source input changed: /tmp/capbench-HOST_ONLY-vv_wyei3/checkout/qemu-system-x86_64
+CAPBENCH passed=False raw=33; /tmp/capbench-HOST_ONLY-vv_wyei3/checkout/build/run/cap-bench-3a4c53d23b204ff8b07f191378751ecb
+Frozen source input changed: /tmp/capbench-HOST_ONLY-vv_wyei3/checkout/build/manifest.json
+CAPBENCH passed=False raw=33; /tmp/capbench-HOST_ONLY-vv_wyei3/checkout/build/run/cap-bench-793b5412acad44a6ad4e8732266a67c9
+Frozen source input changed: /tmp/capbench-HOST_ONLY-vv_wyei3/checkout/build/esp/kernel.elf
+CAPBENCH passed=False raw=33; /tmp/capbench-HOST_ONLY-vv_wyei3/checkout/build/run/cap-bench-340b1a4f92284f019f5bf8f70031c416
+Frozen source input changed: /tmp/capbench-HOST_ONLY-vv_wyei3/checkout/build/esp/EFI/BOOT/BOOTX64.EFI
+CAPBENCH passed=False raw=33; /tmp/capbench-HOST_ONLY-vv_wyei3/checkout/build/run/cap-bench-0dba1d01bacb4af9a5e551c4be4a558c
+Frozen source input changed: /tmp/capbench-HOST_ONLY-vv_wyei3/checkout/target/system-system/x86_64-unknown-none/release/system-app
+CAPBENCH passed=False raw=33; /tmp/capbench-HOST_ONLY-vv_wyei3/checkout/build/run/cap-bench-2d5adeb8eb584f22bf7546e4fe92e47f
+Frozen source input changed: /tmp/capbench-HOST_ONLY-vv_wyei3/checkout/kernel/src/m2/m3/cap_bench.rs
+CAPBENCH passed=False raw=33; /tmp/capbench-HOST_ONLY-pkqbehlc/checkout/build/run/cap-bench-3676fdfd261b4a0db19c90d9e6f630c8
+Frozen guest/archive input changed: OVMF_VARS.template.fd
+CAPBENCH passed=False raw=33; /tmp/capbench-HOST_ONLY-pkqbehlc/checkout/build/run/cap-bench-a40973f02d4b4424b7eafa69e94a390e
+Frozen guest/archive input changed: inputs/manifest.json
+CAPBENCH passed=False raw=33; /tmp/capbench-HOST_ONLY-pkqbehlc/checkout/build/run/cap-bench-b546d06917fc4fcaa92fde63e7377994
+Frozen guest/archive input changed: inputs/frozen-inputs.json
+CAPBENCH passed=False raw=33; /tmp/capbench-HOST_ONLY-pkqbehlc/checkout/build/run/cap-bench-1e8fceb133cf4d549973158994171dc0
+Frozen guest/archive input changed: volume.img
+CAPBENCH passed=False raw=33; /tmp/capbench-HOST_ONLY-pkqbehlc/checkout/build/run/cap-bench-114457685b7a40debf5a3d44dcb91aa6
+Frozen guest/archive input changed: volume.json
+CAPBENCH passed=True raw=33; /tmp/capbench-HOST_ONLY-svz9bxdb/checkout/build/run/cap-bench-f40d8d7d294b4df1935679cfd5adbe00
+IMAGES normal: passed=False gate=False /tmp/tmprt7gdpvc/checkout/build/run/system-normal-11111111111111111111111111111111
+ValueError: changed serial
+IMAGES normal: passed=False gate=False /tmp/tmprt7gdpvc/checkout/build/run/system-normal-11111111111111111111111111111111
+ValueError: source, QEMU or firmware changed during image gate
+RANDOM raw: passed=False gate=False /tmp/tmpizh3fzp9/checkout/build/run/system-normal-11111111111111111111111111111111
+ValueError: changed serial
+RANDOM raw: passed=False gate=False /tmp/tmpizh3fzp9/checkout/build/run/system-normal-11111111111111111111111111111111
+ValueError: source, QEMU or firmware changed during RANDOM gate
+BOOT:EBS_OK
+KERNEL:ENTRY
+BOOTINFO:OK
+KS-01:PASS
+KS-02:PASS
+KS-03:PASS
+RTC:UTC:1793361600
+RTC:DATE:2026,10,30,12,0,0
+RTC:QUALITY:UNAUTHENTICATED
+RTC:NEGATIVE:PASS
+RTC:RESTORE:PASS
+RTC:PASS
+M2:PASS
+M1:PASS
+QEMU raw=33; expected=33; timeout=False; expectation_pass=True; /tmp/tmpizyq_1e2/build/run/smoke-a48d94f672
+BOOT:EBS_OK
+KERNEL:ENTRY
+BOOTINFO:OK
+KS-01:PASS
+KS-02:PASS
+KS-03:PASS
+RTC:UTC:1793361600
+RTC:DATE:2026,10,30,12,0,0
+RTC:QUALITY:UNAUTHENTICATED
+RTC:NEGATIVE:PASS
+RTC:RESTORE:PASS
+RTC:PASS
+M2:PASS
+M1:PASS
+QEMU raw=33; expected=33; timeout=False; expectation_pass=True; /tmp/tmpizyq_1e2/build/run/smoke-d772f74e49
