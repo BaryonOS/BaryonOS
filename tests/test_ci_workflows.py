@@ -879,7 +879,8 @@ cp -- "$ACTIONLINT_FIXTURE" "$output"
                 # The wait budget outlasts each waited job and stays below our own timeout.
                 self.assertGreater(wait_seconds, int(ci["jobs"][name]["timeout-minutes"]) * 60)
         self.assertLess(wait_seconds, int(job["timeout-minutes"]) * 60)
-        # Entries ahead count as finished once this job's own name completed on them.
+        # Entries ahead count as finished once this job's own name completed on them;
+        # the walk ahead stops only at one that succeeded (tools/tests/test_merge_hold.py).
         self.assertRegex(source, r'(?m)^AHEAD_CHECKS = WAIT_CHECKS \+ \("merge-hold",\)$')
         self.assertLess(int(job["timeout-minutes"]), 60)
         checkout, decide = job["steps"]

@@ -1033,9 +1033,10 @@ Queue entries without a commit or pull request behind the group are
 ignored; ahead of it they keep the run waiting and fail closed at the
 45-minute deadline. This holds only while `host-quality`, `qemu-smoke` and
 `merge-hold` are the only required checks; a later-finishing required check
-reopens the window. The queue ruleset must also keep "Only merge non-failing
-pull requests" set to Yes, so a failed entry cannot merge behind a later
-passing group; verify both settings when the queue is enabled. The behaviour rests on GitHub's merge queue documentation
+reopens the window. The queue ruleset must also have "Only merge non-failing
+pull requests" set to Yes, so an entry whose required checks failed cannot
+merge as part of a later group that passed; verify both settings when the
+queue is enabled. The behaviour rests on GitHub's merge queue documentation
 and unit tests with a mocked API; it has not yet run against a live queue.
 - Enforced: a hold set, or a release comment removed, before the final read
   blocks every group containing that pull request, including a later group that

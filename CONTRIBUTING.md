@@ -109,7 +109,7 @@ group, is not seen. Set the label before adding a pull request to the queue;
 to apply a hold to a pull request already queued, also remove it from the
 queue. If the wait exceeds 45 minutes the check fails closed and the group
 leaves the queue. This assumes the queue ruleset requires only `host-quality`,
-`qemu-smoke` and `merge-hold`, and keeps "Only merge non-failing pull requests"
+`qemu-smoke` and `merge-hold`, and has "Only merge non-failing pull requests"
 set to Yes.
 
 A label change made with a workflow's `GITHUB_TOKEN` starts no new

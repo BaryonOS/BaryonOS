@@ -284,26 +284,38 @@ class MergeGroupTests(TestCase):
         self.assertLabelsReadAfterWait(calls)
 
     def test_entry_ahead_whose_merge_hold_ended_early_does_not_end_the_wait(self):
-        # PR 9's merge-hold failed early (no wait), so PR 7 ahead of it may still
-        # run; a hold set on PR 7 meanwhile must be seen by this group.
-        early = {"check_runs": [{"name": name, "status": "completed", "conclusion": result}
-                                for name, result in (("host-quality", "success"),
-                                                     ("qemu-smoke", "success"),
-                                                     ("merge-hold", "failure"))]}
-        a1, a2 = "1" * 40, "2" * 40
+        # A merge-hold ahead that did not succeed may not have waited, so the
+        # entries ahead of it may still run; a hold set on PR 7 meanwhile must
+        # be seen by this group, however many such entries lie in between.
+        a1, a2, a3 = "1" * 40, "2" * 40, "3" * 40
+
+        def ended(conclusion):
+            run = {"name": "merge-hold", "status": "completed"}
+            if conclusion != "absent":
+                run["conclusion"] = conclusion
+            return {"check_runs": [run] + [{"name": name, "status": "completed",
+                                            "conclusion": "success"}
+                                           for name in merge_hold.WAIT_CHECKS]}
 
         def add_hold(labels, comments, nodes):
             labels[7] = [merge_hold.LABEL]
 
-        code, out, calls = self.run_group(
-            [entry(1, 7, a1, HEAD), entry(2, 9, a2, "9" * 40), entry(3, 8, GROUP, OTHER)],
-            commits={a2: [early], a1: [runs("in_progress", "in_progress", "in_progress"),
-                                       runs("completed", "completed", "in_progress"), DONE]},
-            on_sleep=add_hold)
-        self.assertEqual(code, 1, out)
-        self.assertIn("#7: ::error::", out)
-        self.assertEqual(calls.count("sleep"), 2)
-        self.assertLabelsReadAfterWait(calls)
+        head = [runs("in_progress", "in_progress", "in_progress"),
+                runs("completed", "completed", "in_progress"), DONE]
+        cases = [(c, [entry(1, 7, a1, HEAD), entry(2, 9, a2, "9" * 40),
+                      entry(3, 8, GROUP, OTHER)], {a2: [ended(c)], a1: head})
+                 for c in ("failure", "cancelled", "timed_out", "skipped", "neutral",
+                           "action_required", None, "absent")]
+        cases.append(("two hops", [entry(1, 7, a1, HEAD), entry(2, 9, a2, "9" * 40),
+                                   entry(3, 6, a3, "6" * 40), entry(4, 8, GROUP, OTHER)],
+                      {a3: [ended("cancelled")], a2: [ended("failure")], a1: head}))
+        for name, queue, commits in cases:
+            with self.subTest(conclusion=name):
+                code, out, calls = self.run_group(queue, commits=commits, on_sleep=add_hold)
+                self.assertEqual(code, 1, out)
+                self.assertIn("#7: ::error::", out)
+                self.assertEqual(calls.count("sleep"), 2)
+                self.assertLabelsReadAfterWait(calls)
 
     def test_successful_entry_ahead_ends_the_walk(self):
         a1, a2 = "1" * 40, "2" * 40
