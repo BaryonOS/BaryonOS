@@ -2,7 +2,7 @@
   "schema": 1,
   "namespace": "baryonos-hw-evidence",
   "allowed_signers": "docs/drivers/hw-allowed-signers",
-  "scope": "Prepared physical HW-FR test packages under docs/FULL-TEST-RELEASE.md (no authorization for physical operations is implied). No protocol has been executed on physical hardware. A protocol may only be run when its status is ready; every protocol is currently blocked for the reasons listed. tools/hw_evidence.py --check validates this file and every docs/verification/<new-directory>/hw-evidence*.json record.",
+  "scope": "Prepared physical HW-FR test packages under docs/FULL-TEST-RELEASE.md (no authorization for physical operations is implied). No protocol has been executed on physical hardware. A protocol may only be run when its status is ready; every protocol is currently blocked for the reasons listed. A record of a protocol with prerequisites is accepted only when an accepted, passing record of each prerequisite exists with the same target, source_sha256, source_commit and inventory SHA-256 as this record. tools/hw_evidence.py --check validates this file and every docs/verification/<new-directory>/hw-evidence*.json record.",
   "signing": {
     "record_location": "docs/verification/<new-directory>/hw-evidence*.json with the inventory and serial log in the same directory",
     "sign": "ssh-keygen -Y sign -f <owner-private-key> -n baryonos-hw-evidence <record>  (produces <record>.sig; the private key never enters the repository)",
@@ -53,13 +53,16 @@
   ],
   "inventory_format": {
     "file": "JSON object in the record directory, bound by inventory.sha256 in the signed record",
-    "keys": "schema=1, kind='baryonos-hw-inventory', cpuid={vendor: 12-character CPUID vendor string, hypervisor_bit: CPUID.1:ECX[31] as boolean}, secure_boot='enabled'|'disabled'|'unknown', pci=[{address: 'ssss:bb:dd.f', vendor, device: 4 lowercase hex digits, class, subclass, prog_if, revision: 2 lowercase hex digits}]",
-    "rejection": "A recorded hypervisor bit, or any PCI vendor 1af4 (virtio), 1b36 (QEMU), 1234 (QEMU/Bochs display), 15ad (VMware) or 80ee (VirtualBox), marks a virtual capture and the record is rejected."
+    "keys": "schema=2, kind='baryonos-hw-inventory', cpuid={vendor: 12-character CPUID vendor string, hypervisor_bit: CPUID.1:ECX[31] as boolean}, secure_boot='enabled'|'disabled'|'unknown', acpi={dmar: 'present'|'absent' (an ACPI DMAR table was found), drhd_units: integer 0..64, 0 when absent}, pci=[{address: 'ssss:bb:dd.f', vendor, device: 4 lowercase hex digits, class, subclass, prog_if, revision: 2 lowercase hex digits}]",
+    "dmar": "acpi.dmar records only that the firmware publishes a DMAR table with the given number of DRHD units (read-only table observation). It is never evidence of VT-d containment; only a run's own *:BUS_MASTER:CONTAINED marker is. Schema-1 inventories are rejected.",
+    "rejection": "A recorded hypervisor bit, or any PCI vendor 1af4 (virtio), 1b36 (QEMU), 1234 (QEMU/Bochs display), 15ad (VMware) or 80ee (VirtualBox), marks a virtual capture and the record is rejected.",
+    "log_binding": "The inventory must agree with the record's own serial log. pci must equal the HWINV:PCI:<...> lines exactly (lowercase hex, each function once, no PCI address twice) and the single HWINV:PCI:COUNT=<n> must equal their number; this applies to every HW-INV record and to any record whose serial log names HWINV:PCI. The HWINV:ACPI:DMAR line must equal acpi, and every kernel ACPI discovery marker must agree with it: ACPI:UNAVAILABLE:NO_DMAR needs dmar='absent', ACPI:UNAVAILABLE:NO_DMAR_UNITS needs dmar='present' with drhd_units=0, ACPI:DISCOVERY:MCFG_DMAR needs dmar='present' with drhd_units >= 1."
   },
   "hwinv_marker_format": [
     "HWINV:BEGIN",
     "HWINV:CPUID:VENDOR=<12 characters>:HYPERVISOR=<0|1>",
     "HWINV:SECUREBOOT=<0|1|ABSENT>",
+    "HWINV:ACPI:DMAR=<PRESENT|ABSENT>:DRHD=<n>",
     "HWINV:PCI:<ssss>:<bb>:<dd>.<f>:<vendor>:<device>:<class>:<subclass>:<prog_if>:<revision>",
     "HWINV:PCI:COUNT=<n>",
     "HWINV:PASS"
@@ -67,7 +70,7 @@
   "protocols": [
     {
       "id": "HW-INV",
-      "version": 1,
+      "version": 2,
       "criterion": "H06",
       "fr_rows": ["FR-H03", "FR-R03"],
       "title": "Read-only native hardware inventory of the reference PC",
@@ -94,6 +97,7 @@
         "The machine is powered off and on mains power; internal disks are disconnected or untouched according to OD-HW-DISKS.",
         "The capture route is connected and tested with the second computer before power-on."
       ],
+      "prerequisites": [],
       "steps": [
         {"id": "S1", "actor": "operator", "action": "Open firmware setup read-only, record the Secure Boot state, leave through 'discard changes and exit'; re-read the image SHA-256 from the removable medium and compare it with the recorded value.", "expect": "Secure Boot state recorded; hashes equal. If Secure Boot is enabled the unsigned image is expected to be refused: record the step as fail and stop."},
         {"id": "S2", "actor": "operator", "action": "Start capture on the second computer (COM1 at 115200 8N1 through a null-modem cable, or the decided on-screen route) and record the capture command.", "expect": "Capture running."},
@@ -102,8 +106,9 @@
         {"id": "S5", "actor": "operator", "action": "Hold the power button at least 10 s until the machine is off; remove the medium; reconnect internal disks if they were disconnected; power on normally.", "expect": "The previously installed system starts unchanged."},
         {"id": "S6", "actor": "host", "action": "Convert the HWINV lines into the inventory JSON, compute the SHA-256 of serial log and inventory, write the record in a new docs/verification child directory and sign it.", "expect": "tools/hw_evidence.py --check accepts the record."}
       ],
-      "required_markers": ["BOOT:EBS_OK", "KERNEL:ENTRY", "BOOTINFO:OK", "HWINV:BEGIN", "HWINV:CPUID:*", "HWINV:SECUREBOOT=*", "HWINV:PCI:COUNT=*", "HWINV:PASS"],
+      "required_markers": ["BOOT:EBS_OK", "KERNEL:ENTRY", "BOOTINFO:OK", "HWINV:BEGIN", "HWINV:CPUID:*", "HWINV:SECUREBOOT=*", "HWINV:ACPI:DMAR=*", "HWINV:PCI:COUNT=*", "HWINV:PASS"],
       "failure_markers": ["KERNEL_PANIC*", "M2:PANIC_LINE:*", "M1:FAIL*", "HWINV:FAIL*"],
+      "device_markers": {},
       "forbidden_actions": ["no-firmware-flash", "no-firmware-settings-save", "no-bootorder-change", "removable-media-only", "no-internal-disk-access", "no-secure-boot-key-change", "no-personal-data"],
       "recovery_route": [
         "If no expected marker appears within the step time limit, the screen stays dark or the machine reboots: hold the power button at least 10 s until the machine is off.",
@@ -136,10 +141,11 @@
       "markers_implemented": true,
       "preconditions": [
         "Owner decisions OD-HW-TARGETS, OD-HW-BOOT, OD-HW-DISKS, OD-HW-CAPTURE, OD-HW-SIGNERS and OD-HW-PUBLISH are recorded as decided.",
-        "A HW-INV record for the same target and source has been accepted by tools/hw_evidence.py; its inventory is reused for this record.",
+        "An HW-INV record with the same target, source_sha256, source_commit and inventory SHA-256 as this record has been accepted by tools/hw_evidence.py; its inventory is reused for this record.",
         "The image is built with the native-acpi-s5 kernel feature from a clean checkout of the recorded source commit; image SHA-256 and source fingerprint v3 are recorded.",
         "The machine is powered off and on mains power; internal disks are disconnected or untouched according to OD-HW-DISKS."
       ],
+      "prerequisites": ["HW-INV"],
       "steps": [
         {"id": "S1", "actor": "operator", "action": "Open firmware setup read-only, record the Secure Boot state, leave through 'discard changes and exit'; re-read and compare the image SHA-256 from the medium.", "expect": "Secure Boot state recorded; hashes equal."},
         {"id": "S2", "actor": "operator", "action": "Start capture on the second computer and record the capture command.", "expect": "Capture running."},
@@ -151,6 +157,7 @@
       ],
       "required_markers": ["BOOT:EBS_OK", "KERNEL:ENTRY", "BOOTINFO:OK", "KS-01:PASS", "KS-02:PASS", "KS-03:PASS", "M2:PASS", "M1:PASS", "POWER:S5:PM1A=*", "POWER:S5:WRITE"],
       "failure_markers": ["POWER:S5:REJECTED:*", "POWER:S5:UNAVAILABLE", "POWER:S5:UNREADABLE", "KERNEL_PANIC*", "M2:PANIC_LINE:*", "M1:FAIL*"],
+      "device_markers": {"acpi": ["POWER:S5:PM1A=*", "POWER:S5:WRITE"]},
       "forbidden_actions": ["no-firmware-flash", "no-firmware-settings-save", "no-bootorder-change", "removable-media-only", "no-internal-disk-access", "no-secure-boot-key-change", "no-personal-data"],
       "recovery_route": [
         "If the machine is still powered 30 s after POWER:S5:WRITE, or no expected marker appears within the step time limit: hold the power button at least 10 s until the machine is off.",
@@ -183,10 +190,11 @@
       "markers_implemented": false,
       "preconditions": [
         "Owner decisions OD-HW-TARGETS, OD-HW-BOOT, OD-HW-DISKS, OD-HW-CAPTURE, OD-HW-SIGNERS, OD-HW-PUBLISH and OD-HW-POWER are recorded as decided, including the wake source.",
-        "Accepted HW-INV and H05-S5 records exist for the same target and source.",
+        "Accepted HW-INV and H05-S5 records exist with the same target, source_sha256, source_commit and inventory SHA-256 as this record.",
         "The image is built with the native-acpi-s3 kernel feature from a clean checkout of the recorded source commit; image SHA-256 and source fingerprint v3 are recorded.",
         "The machine is powered off and on mains power; internal disks are disconnected or untouched according to OD-HW-DISKS."
       ],
+      "prerequisites": ["HW-INV", "H05-S5"],
       "steps": [
         {"id": "S1", "actor": "operator", "action": "Open firmware setup read-only, record the Secure Boot state, leave through 'discard changes and exit'; re-read and compare the image SHA-256 from the medium.", "expect": "Secure Boot state recorded; hashes equal."},
         {"id": "S2", "actor": "operator", "action": "Start capture on the second computer and record the capture command.", "expect": "Capture running."},
@@ -199,6 +207,7 @@
       ],
       "required_markers": ["BOOT:EBS_OK", "KERNEL:ENTRY", "BOOTINFO:OK", "M1:PASS", "POWER:S3:PM1A=*", "POWER:S3:ENTER", "POWER:S3:RESUME", "POWER:S3:PASS"],
       "failure_markers": ["POWER:S3:REJECTED:*", "POWER:S3:UNAVAILABLE", "POWER:S3:RESUME:FAIL*", "KERNEL_PANIC*", "M2:PANIC_LINE:*", "M1:FAIL*"],
+      "device_markers": {"acpi": ["POWER:S3:ENTER", "POWER:S3:RESUME", "POWER:S3:PASS"]},
       "forbidden_actions": ["no-firmware-flash", "no-firmware-settings-save", "no-bootorder-change", "removable-media-only", "no-internal-disk-access", "no-secure-boot-key-change", "no-personal-data", "no-unattended-sleep"],
       "recovery_route": [
         "If the machine does not wake within 30 s of the wake trigger, or POWER:S3:PASS does not appear within 60 s: hold the power button at least 10 s until the machine is off.",
@@ -210,7 +219,7 @@
     },
     {
       "id": "H02-USB",
-      "version": 1,
+      "version": 2,
       "criterion": "H02",
       "fr_rows": ["FR-H01"],
       "title": "USB keyboard and mouse through the native xHCI and USB-HID boot path",
@@ -232,10 +241,11 @@
       "markers_implemented": true,
       "preconditions": [
         "Owner decisions OD-HW-TARGETS, OD-HW-BOOT, OD-HW-DISKS, OD-HW-CAPTURE, OD-HW-SIGNERS, OD-HW-PUBLISH and OD-HW-FAMILIES are recorded as decided, including the named USB keyboard and mouse models.",
-        "An accepted HW-INV record for the same target and source shows the xHCI controller and a DMAR table.",
+        "An accepted HW-INV record with the same target, source_sha256, source_commit and inventory SHA-256 as this record exists; the bound inventory lists an xHCI function (PCI class 0c/03/30) and acpi.dmar='present' with drhd_units >= 1. DMAR presence is a table observation only and never evidence of VT-d containment, which only the USB:DOMAIN:PASS and USB:BUS_MASTER:CONTAINED markers of this run provide.",
         "The image is built with the native-usb-hid-probe kernel feature from a clean checkout of the recorded source commit; image SHA-256 and source fingerprint v3 are recorded.",
         "A USB boot-protocol keyboard and mouse are attached directly to root ports of the xHCI controller (no hub); internal disks are disconnected or untouched according to OD-HW-DISKS."
       ],
+      "prerequisites": ["HW-INV"],
       "steps": [
         {"id": "S1", "actor": "operator", "action": "Open firmware setup read-only, record the Secure Boot state, leave through 'discard changes and exit'; re-read and compare the image SHA-256 from the medium.", "expect": "Secure Boot state recorded; hashes equal."},
         {"id": "S2", "actor": "operator", "action": "Start capture on the second computer and record the capture command.", "expect": "Capture running."},
@@ -249,6 +259,7 @@
       ],
       "required_markers": ["BOOT:EBS_OK", "KERNEL:ENTRY", "BOOTINFO:OK", "KS-01:PASS", "KS-02:PASS", "XHCI:BEGIN", "USB:BEGIN", "USB:PAGING:PASS", "USB:DOMAIN:PASS", "USB:BUS_MASTER:CONTAINED", "USB:ENUM:KEYBOARD", "USB:ENUM:MOUSE", "USB:PROTOCOL:PASS", "USB:READY", "USB:KEY_DOWN", "USB:KEY_UP", "USB:MOUSE_DOWN", "USB:MOUSE_UP", "USB:HELD_KEY", "USB:UNPLUG_CLEAR:PASS", "USB:STALE_TOKEN:DENIED", "USB:REPORTS:PASS", "USB:GUARD:UNCHANGED", "USB:QUIESCE:PASS", "USB:PAGES:RETAINED", "USB:PASS", "XHCI:PASS"],
       "failure_markers": ["XHCI:FAIL*", "USB:FAIL*", "KERNEL_PANIC*", "M2:PANIC_LINE:*", "M1:FAIL*"],
+      "device_markers": {"xhci": ["XHCI:BEGIN", "XHCI:PASS"]},
       "forbidden_actions": ["no-firmware-flash", "no-firmware-settings-save", "no-bootorder-change", "removable-media-only", "no-internal-disk-access", "no-secure-boot-key-change", "no-personal-data"],
       "recovery_route": [
         "If no expected marker appears within the step time limit, the screen stays dark or the machine reboots: hold the power button at least 10 s until the machine is off.",
@@ -260,7 +271,7 @@
     },
     {
       "id": "H03-AV",
-      "version": 1,
+      "version": 2,
       "criterion": "H03",
       "fr_rows": ["FR-H02"],
       "title": "UEFI GOP framebuffer output and Intel HD Audio playback",
@@ -281,23 +292,26 @@
       "markers_implemented": false,
       "preconditions": [
         "Owner decisions OD-HW-TARGETS, OD-HW-BOOT, OD-HW-DISKS, OD-HW-CAPTURE, OD-HW-SIGNERS, OD-HW-PUBLISH and OD-HW-FAMILIES are recorded as decided.",
-        "An accepted HW-INV record for the same target and source shows the display controller and HD Audio controller.",
+        "An accepted HW-INV record with the same target, source_sha256, source_commit and inventory SHA-256 as this record shows the display controller and HD Audio controller.",
         "The image is built from a clean checkout of the recorded source commit with a profile that contains both the framebuffer and a native HD Audio driver; image SHA-256 and source fingerprint v3 are recorded.",
         "A display is connected to the firmware's primary output and speakers or headphones to the analogue output at low volume; internal disks are disconnected or untouched according to OD-HW-DISKS."
       ],
+      "prerequisites": ["HW-INV"],
       "steps": [
         {"id": "S1", "actor": "operator", "action": "Open firmware setup read-only, record the Secure Boot state, leave through 'discard changes and exit'; re-read and compare the image SHA-256 from the medium.", "expect": "Secure Boot state recorded; hashes equal."},
         {"id": "S2", "actor": "operator", "action": "Start capture on the second computer and record the capture command.", "expect": "Capture running."},
         {"id": "S3", "actor": "operator", "action": "Insert the removable medium, power on and select it once in the firmware one-time boot menu.", "expect": "Firmware starts the removable medium."},
         {"id": "S4", "actor": "serial", "action": "Wait at most 60 s for G0:READY.", "expect": "Framebuffer geometry reported and mappings accepted."},
-        {"id": "S5", "actor": "operator", "action": "Compare the screen with the reference scene and photograph it without personal surroundings.", "expect": "The native scene is visible without corruption."},
-        {"id": "S6", "actor": "serial", "action": "Wait at most 60 s for HDA:PLAYBACK:PASS or a failure marker.", "expect": "Codec enumerated and the test tone stream completed."},
-        {"id": "S7", "actor": "operator", "action": "Listen during the test tone.", "expect": "An audible tone without distortion is heard for the documented duration."},
-        {"id": "S8", "actor": "operator", "action": "Hold the power button at least 10 s until the machine is off; remove the medium; reconnect internal disks if they were disconnected; power on normally.", "expect": "The previously installed system starts unchanged."},
-        {"id": "S9", "actor": "host", "action": "Write the record with the SHA-256 of image, serial log and the reused inventory, and sign it.", "expect": "tools/hw_evidence.py --check accepts the record."}
+        {"id": "S5", "actor": "operator", "action": "From G0:READY, listen continuously at the analogue output until HDA:PLAYBACK:PASS or a failure marker appears; do not leave the listening position in that time.", "expect": "Between HDA:PLAYBACK:START and HDA:PLAYBACK:PASS an audible tone without distortion is heard for the duration reported in the START marker (MS=<n>), and no tone is heard outside that window. An unclear observation is recorded as fail."},
+        {"id": "S6", "actor": "serial", "action": "Wait at most 60 s for HDA:PLAYBACK:START or a failure marker.", "expect": "Codec enumerated and playback started while the operator was listening."},
+        {"id": "S7", "actor": "serial", "action": "Wait at most the duration reported in HDA:PLAYBACK:START plus 10 s for HDA:PLAYBACK:PASS or a failure marker.", "expect": "All required markers in order, no failure marker, and the test tone stream completed."},
+        {"id": "S8", "actor": "operator", "action": "Compare the screen with the reference scene and photograph it without personal surroundings.", "expect": "The native scene is visible without corruption."},
+        {"id": "S9", "actor": "operator", "action": "Hold the power button at least 10 s until the machine is off; remove the medium; reconnect internal disks if they were disconnected; power on normally.", "expect": "The previously installed system starts unchanged."},
+        {"id": "S10", "actor": "host", "action": "Write the record with the SHA-256 of image, serial log and the reused inventory, and sign it.", "expect": "tools/hw_evidence.py --check accepts the record."}
       ],
-      "required_markers": ["BOOT:EBS_OK", "KERNEL:ENTRY", "BOOTINFO:OK", "G0:FRAMEBUFFER:*", "G0:MAPPINGS:PASS", "G0:READY", "HDA:CODEC:*", "HDA:PLAYBACK:PASS"],
+      "required_markers": ["BOOT:EBS_OK", "KERNEL:ENTRY", "BOOTINFO:OK", "G0:FRAMEBUFFER:*", "G0:MAPPINGS:PASS", "G0:READY", "HDA:CODEC:*", "HDA:PLAYBACK:START:*", "HDA:PLAYBACK:PASS"],
       "failure_markers": ["G0:FAIL*", "HDA:FAIL*", "KERNEL_PANIC*", "M2:PANIC_LINE:*", "M1:FAIL*"],
+      "device_markers": {"gop": ["G0:FRAMEBUFFER:*", "G0:READY"], "hda": ["HDA:CODEC:*", "HDA:PLAYBACK:START:*", "HDA:PLAYBACK:PASS"]},
       "forbidden_actions": ["no-firmware-flash", "no-firmware-settings-save", "no-bootorder-change", "removable-media-only", "no-internal-disk-access", "no-secure-boot-key-change", "no-personal-data"],
       "recovery_route": [
         "If no expected marker appears within the step time limit, the screen stays dark or the machine reboots: hold the power button at least 10 s until the machine is off.",
@@ -330,10 +344,11 @@
       "markers_implemented": false,
       "preconditions": [
         "Owner decisions OD-HW-TARGETS, OD-HW-BOOT, OD-HW-DISKS, OD-HW-CAPTURE, OD-HW-SIGNERS, OD-HW-PUBLISH and OD-HW-FAMILIES are recorded as decided.",
-        "An accepted HW-INV record for the same target and source shows an Intel Ethernet controller of the e1000e family.",
+        "An accepted HW-INV record with the same target, source_sha256, source_commit and inventory SHA-256 as this record shows an Intel Ethernet controller of the e1000e family.",
         "The image is built with the native e1000e profile from a clean checkout of the recorded source commit; image SHA-256 and source fingerprint v3 are recorded.",
         "The Ethernet port is cabled only to an isolated test switch with a dedicated test peer running the project's test peer; internal disks are disconnected or untouched according to OD-HW-DISKS."
       ],
+      "prerequisites": ["HW-INV"],
       "steps": [
         {"id": "S1", "actor": "operator", "action": "Open firmware setup read-only, record the Secure Boot state, leave through 'discard changes and exit'; re-read and compare the image SHA-256 from the medium.", "expect": "Secure Boot state recorded; hashes equal."},
         {"id": "S2", "actor": "operator", "action": "Start capture on the second computer and the test peer on the isolated network; record both commands.", "expect": "Capture and peer running."},
@@ -346,6 +361,7 @@
       ],
       "required_markers": ["BOOT:EBS_OK", "KERNEL:ENTRY", "BOOTINFO:OK", "E1000E:LINK:UP", "E1000E:LINK:DOWN", "E1000E:LINK:UP", "NET:PEER:PASS"],
       "failure_markers": ["E1000E:FAIL*", "NET:FAIL*", "KERNEL_PANIC*", "M2:PANIC_LINE:*", "M1:FAIL*"],
+      "device_markers": {"e1000e": ["E1000E:LINK:UP", "NET:PEER:PASS"]},
       "forbidden_actions": ["no-firmware-flash", "no-firmware-settings-save", "no-bootorder-change", "removable-media-only", "no-internal-disk-access", "no-secure-boot-key-change", "no-personal-data", "isolated-test-network"],
       "recovery_route": [
         "If no expected marker appears within the step time limit, the screen stays dark or the machine reboots: hold the power button at least 10 s until the machine is off.",
@@ -357,7 +373,7 @@
     },
     {
       "id": "R03-INSTALL",
-      "version": 1,
+      "version": 2,
       "criterion": "R01",
       "fr_rows": ["FR-R03"],
       "title": "Installation onto and recovery from a disposable removable target",
@@ -373,15 +389,17 @@
         "No installer or recovery image exists, and no NVMe, AHCI or USB mass-storage class driver exists to write a target medium.",
         "Physical disk writes, firmware changes and boot-configuration changes on the physical device are not authorised (docs/FULL-TEST-RELEASE.md); this protocol therefore permits only a second disposable removable target, and internal-disk installation remains out of scope.",
         "The terminal path writes QEMU's isa-debug-exit port 0xF4, which is undefined on physical PCs.",
+        "The install-target transport is undecided (OD-HW-DISKS, OD-HW-FAMILIES): USB mass storage, a removable SATA/eSATA bay (AHCI) or an external NVMe enclosure. A run may list nvme or ahci only when the serial log carries that controller's own INSTALL:TARGET:NVME:* or INSTALL:TARGET:AHCI:* marker; an install to a USB or other removable target lists no storage device and proves only the install procedure.",
         "The HW-FR target, signer and capture route are undecided (OD-HW-TARGETS, OD-HW-SIGNERS, OD-HW-CAPTURE)."
       ],
       "markers_implemented": false,
       "preconditions": [
-        "Owner decisions OD-HW-TARGETS, OD-HW-BOOT, OD-HW-DISKS, OD-HW-CAPTURE, OD-HW-SIGNERS, OD-HW-PUBLISH and OD-HW-FAMILIES are recorded as decided, including a written authorization for writes to the named disposable target medium.",
-        "Accepted HW-INV, H02-USB and H05-S5 records exist for the same target and source.",
+        "Owner decisions OD-HW-TARGETS, OD-HW-BOOT, OD-HW-DISKS, OD-HW-CAPTURE, OD-HW-SIGNERS, OD-HW-PUBLISH and OD-HW-FAMILIES are recorded as decided, including a written authorization for writes to the named disposable target medium and the install-target transport.",
+        "Accepted HW-INV, H02-USB and H05-S5 records exist with the same target, source_sha256, source_commit and inventory SHA-256 as this record.",
         "The installer image is built from a clean checkout of the recorded source commit; image SHA-256 and source fingerprint v3 are recorded.",
         "A second, empty, labelled disposable removable medium is the only writable target; internal disks are disconnected or untouched according to OD-HW-DISKS."
       ],
+      "prerequisites": ["HW-INV", "H02-USB", "H05-S5"],
       "steps": [
         {"id": "S1", "actor": "operator", "action": "Open firmware setup read-only, record the Secure Boot state, leave through 'discard changes and exit'; re-read and compare the image SHA-256 from the medium.", "expect": "Secure Boot state recorded; hashes equal."},
         {"id": "S2", "actor": "operator", "action": "Start capture on the second computer and record the capture command.", "expect": "Capture running."},
@@ -394,6 +412,7 @@
       ],
       "required_markers": ["BOOT:EBS_OK", "KERNEL:ENTRY", "BOOTINFO:OK", "INSTALL:TARGET:*", "INSTALL:VERIFY:PASS", "BOOT:EBS_OK", "RECOVERY:BOOT:PASS"],
       "failure_markers": ["INSTALL:FAIL*", "RECOVERY:FAIL*", "KERNEL_PANIC*", "M2:PANIC_LINE:*", "M1:FAIL*"],
+      "device_markers": {"nvme": ["INSTALL:TARGET:NVME:*"], "ahci": ["INSTALL:TARGET:AHCI:*"]},
       "forbidden_actions": ["no-firmware-flash", "no-firmware-settings-save", "no-bootorder-change", "removable-media-only", "no-internal-disk-access", "no-secure-boot-key-change", "no-personal-data", "disposable-install-target-only"],
       "recovery_route": [
         "If no expected marker appears within the step time limit, the screen stays dark or the machine reboots unexpectedly: hold the power button at least 10 s until the machine is off.",

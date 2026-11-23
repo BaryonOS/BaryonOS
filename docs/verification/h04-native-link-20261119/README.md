@@ -170,3 +170,10 @@ ADR-H04-LINK-20261119 records the syscall and the error code.
 - Optional `flap` and `reset` cases were not implemented.
 - This is not a product link API: 0x74 and -23 exist only in the test profile
   and are not part of a published ABI version.
+
+## Later follow-up
+
+The 20 November 2026 security-review follow-up (harvest of a pending RX
+completion at link edges, `0x74` returning -14 after any stop) is recorded
+separately in [h04-link-review-20261120](../h04-link-review-20261120/README.md),
+because it ran on a different source version.

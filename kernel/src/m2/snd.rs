@@ -831,9 +831,11 @@ impl Device {
         Ok(self.dma.r16(self.pool.used(ACTIVE[index])? + 2))
     }
 
-    /// Consumes one validated used element: exact length, published head and
-    /// an index move bounded by the outstanding requests. Returns the head and
-    /// the reported used length.
+    /// Consumes one validated used element: a published head, an index move
+    /// bounded by the outstanding requests and the exact used length, except
+    /// for event heads published with `accept_short`, which may complete
+    /// shorter and are then counted by `pcm::handle_event`. Returns the head
+    /// and the reported used length.
     fn take_used(&mut self, index: usize) -> Result<Option<(u16, u32)>, Fault> {
         let device_index = self.used_index(index)?;
         if self.rings[index].pending(device_index)? == 0 {

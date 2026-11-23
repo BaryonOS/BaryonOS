@@ -229,8 +229,9 @@ not run here. H03 stays open.
 - F10 (`DEVICE_NEEDS_RESET` leading to a fence) was not induced natively or in
   host tests; QEMU 8.2.2 answers a repeated valid RELEASE with `OK`.
 - Builder checkpoint (`b033335`): xHCI `fault` and `no-dmar`, and USB HID
-  `readonly` and `reattach`, were not run; only xHCI `noop` and USB HID
-  `reports` were rerun for the cfg rename. No S3 case was run.
+  `readonly`, were not run; only xHCI `noop` and USB HID `reports` were rerun
+  for the cfg rename. No S3 case was run. (USB HID `reattach` did not exist
+  at that base; it arrived with H02-T3.)
 - Lead integration (`167c2bc`): xHCI `fault` and `no-dmar`, USB HID
   `readonly`, and S3 `corrupt-facs` and `stale-token` were not run.
 - `native-xhci.yml` runs all three xHCI cases and all three USB HID cases, and

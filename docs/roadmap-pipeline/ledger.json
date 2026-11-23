@@ -2029,7 +2029,8 @@
         "tools/tests/test_net_link.py",
         "docs/implementation/VIRTIO-NET.md",
         "docs/implementation/NATIVE-NET-PROBE.md",
-        "docs/verification/h04-native-link-20261119/"
+        "docs/verification/h04-native-link-20261119/",
+        "docs/verification/h04-link-review-20261120/"
       ],
       "checks": [
         "cargo +1.100.0 test --locked -p virtio-net-driver",
@@ -2054,6 +2055,11 @@
           "event": "verified",
           "at": "2026-11-20",
           "reason": "Builder commit 0bea209 merged by the H-track lead as 5bef53f (no conflicts; PR369 merged, no file overlap with open PR380). Rerun on that commit from a detached worktree outside the checkout: link normal/nostatus/storm, native-system-net, network-service normal/device-reset and the three-case POWER/cold-recovery gate all exit 0. ADR-H04-LINK-20261119 records 0x74 and -23."
+        },
+        {
+          "event": "review",
+          "at": "2026-11-20",
+          "reason": "AI security review confirmed F1 (old-epoch RX after a synthetic down/up pair) and F2 (0x74 forwarded the stop cause); fixed in f0d36a0 and, after a second review found the up-edge variant, 31b6c31 (harvest pending RX at every edge). Link normal/nostatus/storm and native-system-net pass on source v3 55a612aa; feature-off kernel byte-identical at the same build path. ADR-H04-LINK-20261119 amended (precedence wording, epoch isolation, sampling limit)."
         }
       ],
       "lead_paths": [
