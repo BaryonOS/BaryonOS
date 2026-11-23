@@ -437,13 +437,63 @@ class HardwareMatrixTests(MatrixCase):
         gop.update(dma_posture="VT-d contained", evidence_level="native-qemu",
                    evidence=[self.record(level="native", target=VM_TARGET)])
         self.rejects("VT-d containment")
+        # A hand-written legacy record naming the posture no longer binds a virtual row (it used to).
         self.record(level="native", target=VM_TARGET, dma_posture="VT-d contained")
-        self.assertTrue(self.check()["structurally_valid"])
+        self.rejects("VT-d containment lacks")
         profile, hw_gop = self.row("HW-FR", "gop")
         profile["target"] = "explicit-test-target"
         hw_gop.update(dma_posture="VT-d contained", evidence_level="host",
                       evidence=[self.record(target="explicit-test-target", dma_posture="VT-d contained")])
         self.rejects("VT-d containment")
+
+    def test_virtual_vtd_posture_needs_bound_contained_native_report(self):
+        _, xhci = self.row("VM-FR", "xhci")
+        committed = list(xhci["evidence"])
+        # The committed positive xHCI report requires and observes XHCI:BUS_MASTER:CONTAINED, so it binds.
+        xhci["dma_posture"] = "VT-d contained"
+        self.assertEqual(self.check()["native_verified"], 2)
+        xhci["evidence"] = [self.report("docs/verification/v/report.json", xhci_report())]
+        self.assertEqual(self.check()["native_verified"], 2)
+        # From here on the row is only `implemented`, so the posture check alone decides.
+        xhci["status"] = "implemented"
+        negative = [XHCI_REPORT.replace("noop", case) for case in ("no-dmar", "fault")]
+        for name in negative:
+            shutil.copyfile(hw_matrix.ROOT / name, self.root / name)
+        legacy = self.record(level="native", target=VM_TARGET, device="xhci", dma_posture="VT-d contained")
+        uncontained = ("XHCI:BEGIN", "XHCI:NOOP_COMPLETION:PASS", "XHCI:PASS")
+        for label, changes in (
+                ("hand-written record", dict(evidence=[legacy])),
+                ("prose only", dict(evidence=[committed[0]])),
+                ("negative profiles only", dict(evidence=negative)),
+                ("no contained marker", dict(evidence=[self.report(
+                    "docs/verification/v/uncontained.json",
+                    xhci_report(guest=guest(markers=uncontained), observed=dict(markers=list(uncontained))))])),
+                ("other machine", dict(evidence=[self.report("docs/verification/v/q35-10.json",
+                                                             xhci_report(guest=guest(machine="pc-q35-10.0")))])),
+                ("host level", dict(evidence_level="host", evidence=committed))):
+            matrix = copy.deepcopy(self.matrix)
+            self.row("VM-FR", "xhci", matrix)[1].update(changes)
+            with self.subTest(case=label):
+                self.rejects("VT-d containment lacks", matrix)
+        # A failed related run still rejects the row outright.
+        xhci["evidence"] = committed + [self.report("docs/verification/v/failed.json", xhci_report(passed=False))]
+        self.rejects("failed run")
+        xhci.update(status="native-verified", evidence=committed)
+        self.assertEqual(self.check()["native_verified"], 2)
+        # ACPI binds as native-verified, but its binding observes no bus-master containment marker.
+        _, acpi = self.row("VM-FR", "acpi")
+        acpi["dma_posture"] = "VT-d contained"
+        self.rejects("VT-d containment lacks")
+        acpi["dma_posture"] = "trusted kernel transport"
+        # VMware rows cannot claim it, even with a copy of a passing QEMU report.
+        _, vmw = self.row("VM-VMW", "xhci")
+        vmw.update(dma_posture="VT-d contained", evidence_level="vmware", evidence=[XHCI_REPORT])
+        self.rejects("VT-d containment lacks")
+        vmw.update(dma_posture="unsupported", evidence_level="none", evidence=[])
+        # A family without a native binding (vtd itself) cannot claim it through another family's report.
+        _, vtd = self.row("VM-FR", "vtd")
+        vtd.update(dma_posture="VT-d contained", evidence_level="native-qemu", evidence=[XHCI_REPORT])
+        self.rejects("VT-d containment lacks")
 
 
 @unittest.skipUnless(SSH_KEYGEN, NO_SSH)

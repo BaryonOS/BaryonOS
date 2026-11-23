@@ -133,7 +133,11 @@ is. Version 2 of `H03-AV` starts listening before playback and requires an
 `R03-INSTALL` lists `nvme` or `ahci` only with that controller's own
 `INSTALL:TARGET:NVME:*` or `INSTALL:TARGET:AHCI:*` marker; until the owner
 decides the transport, an install to a USB or other removable target lists no
-storage device.
+storage device. No marker pattern of one device may match a line that another
+device's pattern of the same protocol also matches (exact or wildcard overlap).
+A protocol with prerequisites is accepted only when an accepted, passing record
+of each prerequisite exists with the same target, `source_sha256`,
+`source_commit` and inventory SHA-256 as the dependent record.
 
 Common to every protocol:
 
@@ -175,14 +179,21 @@ inventory or serial-log SHA-256 does not match; whose image, source or commit
 identity is malformed; whose Secure Boot state contradicts the inventory; that
 lacks a confirmation for any forbidden action; that is a virtual capture (CPUID
 hypervisor bit, or PCI vendor `1af4`, `1b36`, `1234`, `15ad` or `80ee`, in the
-inventory or `HWINV:` lines); whose inventory is not schema 2 or whose
-`HWINV:ACPI:DMAR` line contradicts it; that claims `VT-d contained` without a
+inventory or `HWINV:` lines); whose inventory is not schema 2 or lists a PCI
+address twice; whose inventory PCI functions differ from the serial log's
+`HWINV:PCI:` lines (each function exactly once, lowercase hex) or from its
+single `HWINV:PCI:COUNT` (required for every `HW-INV` record and for any log
+that names `HWINV:PCI`); whose `HWINV:ACPI:DMAR` line, or kernel ACPI marker
+(`ACPI:UNAVAILABLE:NO_DMAR` needs no DMAR table, `ACPI:UNAVAILABLE:NO_DMAR_UNITS`
+a DMAR table with no DRHD unit, `ACPI:DISCOVERY:MCFG_DMAR` at least one DRHD
+unit), contradicts the inventory; that claims `VT-d contained` without a
 protocol `*:BUS_MASTER:CONTAINED` marker, or runs such a protocol on an
 inventory without a DMAR table and DRHD unit; that lists a device whose
 transport markers are absent from the serial log; that claims `passed` while a
 step failed, a required marker is missing or out of order, a failure marker
-appears, or `BOOT:EBS_OK` appears more or fewer times than the protocol
-requires (an unexpected restart); that is reached through a symlink or another
+appears, or `BOOT:EBS_OK` occurs more or fewer times anywhere in the log,
+including after firmware output on the same line, than the protocol requires
+(an unexpected restart); that is reached through a symlink or another
 aliased path; or for which no accepted, passing record of each prerequisite
 protocol exists for the same target, source hash, source commit and inventory
 digest (`precondition unmet`). Allowed-signers entries must carry a public-key
@@ -245,10 +256,14 @@ Each device row carries an explicit `evidence_level`: `none`, `host`,
   fixed fixture MMIO address.
 
 `trusted kernel transport` does not establish isolated userspace DMA.
-`unsupported` makes no DMA-containment claim. `VT-d contained` requires an
-archived passing target/device-bound record with that explicit posture: a
-validated signed physical record for HW-FR, or the structural legacy native
-record for a virtual profile. No current row claims it.
+`unsupported` makes no DMA-containment claim. `VT-d contained` requires
+target/device-bound evidence for that explicit posture: on HW-FR a validated,
+passing signed physical record with that posture; on a QEMU row `native-qemu`
+evidence with a passing, machine- and device-bound native report (the same
+binding as `native-verified`) for a family whose binding requires and observes
+a `*:BUS_MASTER:CONTAINED` marker, which today is only `xhci`. Hand-written
+JSON records no longer qualify, and VMware rows cannot claim it. No current row
+claims it.
 
 These checks do not establish owner authorization or hardware acceptance.
 Physical selection and execution remain with the project owner; H06 remains

@@ -30,8 +30,9 @@ WILDCARD_LINES = {
     "HWINV:CPUID:*": "HWINV:CPUID:VENDOR=GenuineIntel:HYPERVISOR=0",
     "HWINV:SECUREBOOT=*": "HWINV:SECUREBOOT=0",
     "HWINV:ACPI:DMAR=*": "HWINV:ACPI:DMAR=PRESENT:DRHD=1",
-    "HWINV:PCI:COUNT=*": "HWINV:PCI:COUNT=2",
 }
+# Firmware console output that can precede the loader's marker on the same serial line (from a QEMU/OVMF capture).
+FIRMWARE = '\x1b[2J\x1b[001;001HBdsDxe: starting Boot0002 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)'
 
 
 def key_blob(*fields: bytes) -> str:
@@ -78,6 +79,18 @@ def physical_inventory(**changes) -> dict:
                                subclass="03", prog_if="30", revision="11")])
     inventory.update(changes)
     return inventory
+
+
+def pci_lines(inventory: dict) -> list[str]:
+    """The HWINV:PCI lines and count a native inventory run emits for this inventory."""
+    pci = inventory.get("pci") or []
+    return ["HWINV:PCI:" + ":".join(str(f.get(k, "")) for k in hw_evidence.PCI_FIELDS) for f in pci] + [
+        f"HWINV:PCI:COUNT={len(pci)}"]
+
+
+def dmar_line(inventory: dict) -> str:
+    acpi = inventory.get("acpi") or {}
+    return f"HWINV:ACPI:DMAR={str(acpi.get('dmar', '')).upper()}:DRHD={acpi.get('drhd_units', '')}"
 
 
 def signer_state_problem(root: Path) -> str | None:
@@ -195,9 +208,18 @@ class Fixture:
         keytype, blob = key.with_suffix(".pub").read_text().split()[:2]
         self.allow([f"{principal} {options} {keytype} {blob}".replace("  ", " ")])
 
-    def serial_lines(self, ident: str | None = None) -> list[str]:
-        markers = self.get(ident or self.protocol_id)["required_markers"]
-        return [WILDCARD_LINES.get(m, m[:-1] + "1") if m.endswith("*") else m for m in markers]
+    def serial_lines(self, ident: str | None = None, inventory: dict | None = None) -> list[str]:
+        """A passing serial log; HWINV DMAR and PCI lines follow the inventory (default physical_inventory())."""
+        inventory = physical_inventory() if inventory is None else inventory
+        lines = []
+        for marker in self.get(ident or self.protocol_id)["required_markers"]:
+            if marker == hw_evidence.HWINV_PCI_COUNT_MARKER:
+                lines += pci_lines(inventory)
+            elif marker == hw_evidence.HWINV_DMAR_MARKER:
+                lines.append(dmar_line(inventory))
+            else:
+                lines.append(WILDCARD_LINES.get(marker, marker[:-1] + "1") if marker.endswith("*") else marker)
+        return lines
 
     @staticmethod
     def record_name(ident: str) -> str:
@@ -217,15 +239,15 @@ class Fixture:
         if name is None:
             name = RECORD if ident == self.protocol_id else self.record_name(ident)
         directory = name.rsplit("/", 1)[0]
+        inventory = physical_inventory() if inventory is None else inventory
         record = dict(
             schema=1, kind=NAMESPACE, protocol=dict(id=ident, version=spec["version"]),
             profile="HW-FR", target=TARGET, devices=list(spec["devices"]),
             image=dict(name="baryonos-test.img", sha256="1" * 64), source_sha256="2" * 64,
             source_commit="3" * 40,
-            inventory=self.write(f"{directory}/inventory.json",
-                                 json.dumps(physical_inventory() if inventory is None else inventory).encode()),
-            serial_log=self.write(f"{directory}/serial.log",
-                                  "\n".join(self.serial_lines(ident) if lines is None else lines).encode() + b"\n"),
+            inventory=self.write(f"{directory}/inventory.json", json.dumps(inventory).encode()),
+            serial_log=self.write(f"{directory}/serial.log", "\n".join(
+                self.serial_lines(ident, inventory) if lines is None else lines).encode() + b"\n"),
             secure_boot="disabled", operator="Test Operator", signer=SIGNER, date="2026-11-19",
             safety_confirmations={action: True for action in spec["forbidden_actions"]},
             steps=[dict(id=step["id"], result="pass") for step in spec["steps"]],
@@ -405,6 +427,9 @@ class RepositoryStateTests(unittest.TestCase):
         def share_marker(doc):
             protocol(doc, "H03-AV")["device_markers"]["hda"].append("G0:READY")
 
+        def device_markers(ident, **markers):
+            return lambda doc: protocol(doc, ident)["device_markers"].update(markers)
+
         for mutate, reason in (
                 # Flip whatever the catalogue states; the real Cargo.toml decides which is drift.
                 (lambda d: protocol(d, "H05-S3")["image"].update(
@@ -424,19 +449,53 @@ class RepositoryStateTests(unittest.TestCase):
                 (lambda d: protocol(d, "R03-INSTALL")["device_markers"].pop("nvme"), "device_markers must name"),
                 (lambda d: protocol(d, "H04-NET")["device_markers"].update(e1000e=[]), "device_markers"),
                 (share_marker, "shared between devices"),
+                # Wildcard overlap between devices, in both directions and against exact markers.
+                (device_markers("R03-INSTALL", nvme=["INSTALL:TARGET:*"]), "overlaps.*shared between devices"),
+                (device_markers("R03-INSTALL", ahci=["INSTALL:TARGET:*"]), "overlaps.*shared between devices"),
+                (device_markers("R03-INSTALL", ahci=["INSTALL:TARGET:NVME:0000*"]), "overlaps.*shared between"),
+                (device_markers("R03-INSTALL", ahci=["INSTALL:TARGET:NVME:0000:01:00.0"]), "overlaps.*shared"),
+                (device_markers("H03-AV", hda=["G0:READ*"]), "overlaps.*shared between devices"),
+                (device_markers("H03-AV", hda=["G0:FRAMEBUFFER:1024X768"]), "overlaps.*shared between devices"),
+                (device_markers("H03-AV", hda=["HDA:PLAYBACK:PASS", "HDA:PLAYBACK:PASS"]), "shared between"),
                 (lambda d: protocol(d, "H05-S5")["device_markers"].update(acpi=["BOOT:EBS_OK"]), "generic marker"),
                 (lambda d: protocol(d, "H05-S5")["device_markers"].update(acpi=["BOOT*"]), "generic marker"),
                 (lambda d: protocol(d, "H02-USB")["device_markers"].update(xhci=["xhci pass"]),
                  "invalid device marker"),
                 (lambda d: protocol(d, "HW-INV")["required_markers"].remove("HWINV:ACPI:DMAR=*"),
                  "HWINV:ACPI:DMAR"),
-                (lambda d: d["hwinv_marker_format"].remove(hw_evidence.HWINV_DMAR_FORMAT), "hwinv_marker_format")):
+                (lambda d: d["hwinv_marker_format"].remove(hw_evidence.HWINV_DMAR_FORMAT), "hwinv_marker_format"),
+                (lambda d: d["hwinv_marker_format"].remove(hw_evidence.HWINV_PCI_FORMATS[0]), "hwinv_marker_format"),
+                (lambda d: d["hwinv_marker_format"].remove(hw_evidence.HWINV_PCI_FORMATS[1]), "hwinv_marker_format"),
+                (lambda d: protocol(d, "HW-INV")["required_markers"].remove("HWINV:PCI:COUNT=*"),
+                 "HWINV:PCI:COUNT")):
             doc = copy.deepcopy(original)
             mutate(doc)
             self.fixture.protocols = doc
             self.fixture.write_protocols()
             with self.subTest(reason=reason), self.assertRaisesRegex(hw_evidence.EvidenceError, reason):
                 hw_evidence.load_protocols(self.root)
+
+    def test_marker_overlap_is_language_intersection(self):
+        for first, second, overlap in (
+                ("INSTALL:TARGET:*", "INSTALL:TARGET:AHCI:*", True),
+                ("INSTALL:TARGET:NVME:*", "INSTALL:TARGET:AHCI:*", False),
+                ("INSTALL:TARGET:NVME:*", "INSTALL:TARGET:NVMEX", False),
+                ("INSTALL:TARGET:NVME:*", "INSTALL:TARGET:NVME:", True),
+                ("G0:READY", "G0:READ*", True),
+                ("G0:READY", "G0:READY", True),
+                ("G0:READY", "G0:READ", False),
+                ("G0:READ*", "G0:READING*", True),
+                ("POWER:S5:PM1A=*", "POWER:S5:WRITE", False)):
+            with self.subTest(first=first, second=second):
+                self.assertEqual(hw_evidence._overlap(first, second), overlap)
+                self.assertEqual(hw_evidence._overlap(second, first), overlap)
+        # Distinct devices with disjoint patterns stay accepted.
+        protocols = copy.deepcopy(self.fixture.protocols)
+        install = next(p for p in protocols["protocols"] if p["id"] == "R03-INSTALL")
+        install["device_markers"].update(nvme=["INSTALL:TARGET:NVME:*", "NVME:READY"], ahci=["INSTALL:TARGET:AHCI:*"])
+        self.fixture.protocols = protocols
+        self.fixture.write_protocols()
+        hw_evidence.load_protocols(self.root)
 
     def test_ready_protocol_rejected_while_blocking_decision_open(self):
         hw_evidence.load_protocols(self.root)
@@ -503,6 +562,24 @@ class RepositoryStateTests(unittest.TestCase):
         self.assertEqual(lines.count("BOOT:EBS_OK"), 2)
         self.assertRegex(hw_evidence.outcome(protocol, lines + ["BOOT:EBS_OK"], steps), "exactly 2")
 
+    def test_restart_marker_counts_after_firmware_output_on_the_same_line(self):
+        """The loader writes BOOT:EBS_OK without a preceding newline, so firmware bytes can share its line."""
+        protocols = hw_evidence.load_protocols()
+        for ident in ("H05-S5", "R03-INSTALL", "HW-INV"):
+            protocol, lines = protocols[ident], self.fixture.serial_lines(ident)
+            steps = [dict(id=step["id"], result="pass") for step in protocol["steps"]]
+            expected = lines.count("BOOT:EBS_OK")
+            for hidden in (FIRMWARE + "BOOT:EBS_OK", "KERNEL:ENTRYBOOT:EBS_OK", FIRMWARE + "BOOT:EBS_OKBOOT:EBS_OK"):
+                with self.subTest(ident=ident, hidden=hidden):
+                    self.assertRegex(hw_evidence.outcome(protocol, lines + [hidden], steps),
+                                     f"appears {expected + hidden.count('BOOT:EBS_OK')} time.*exactly {expected} "
+                                     ".*unexpected restart")
+        protocol, lines = protocols["H05-S5"], self.fixture.serial_lines("H05-S5")
+        steps = [dict(id=step["id"], result="pass") for step in protocol["steps"]]
+        write = lines.index("POWER:S5:WRITE")
+        reset = lines[:write + 1] + [FIRMWARE + "BOOT:EBS_OK"] + lines[1:]
+        self.assertRegex(hw_evidence.outcome(protocol, reset, steps), "appears 2 time.*exactly 1")
+
     def test_inventory_requires_acpi_dmar_observation(self):
         hw_evidence._inventory(json.dumps(physical_inventory()).encode())
         no_acpi = physical_inventory()
@@ -516,7 +593,9 @@ class RepositoryStateTests(unittest.TestCase):
                 (physical_inventory(acpi=dict(dmar="present", drhd_units=65)), "inventory acpi"),
                 (physical_inventory(acpi=dict(dmar="absent", drhd_units=1)), "inventory acpi"),
                 (physical_inventory(acpi=dict(dmar="present")), "inventory acpi"),
-                (physical_inventory(acpi=dict(dmar="present", drhd_units=1, vtd="contained")), "inventory acpi")):
+                (physical_inventory(acpi=dict(dmar="present", drhd_units=1, vtd="contained")), "inventory acpi"),
+                (physical_inventory(pci=physical_inventory()["pci"] + [dict(physical_inventory()["pci"][1],
+                                                                            device="7ae1")]), "PCI address twice")):
             with self.subTest(inventory=inventory.get("acpi"), schema=inventory["schema"]):
                 with self.assertRaisesRegex(hw_evidence.EvidenceError, reason):
                     hw_evidence._inventory(json.dumps(inventory).encode())
@@ -552,6 +631,49 @@ class RepositoryStateTests(unittest.TestCase):
         self.assertRegex(" ".join(protocol_table_problems(stale, protocols)), "H05-S3: row denies")
         old_version = text.replace("| `H03-AV` v2 |", "| `H03-AV` v1 |")
         self.assertRegex(" ".join(protocol_table_problems(old_version, protocols)), "H03-AV: expected one row")
+
+    def test_pci_log_must_equal_inventory(self):
+        inventory = physical_inventory()
+        lines = pci_lines(inventory)
+        functions, count = lines[:-1], lines[-1]
+        extra = dict(address="0000:00:1f.3", vendor="8086", device="7ad0", **{"class": "04"}, subclass="03",
+                     prog_if="00", revision="11")
+        bigger = pci_lines(physical_inventory(pci=inventory["pci"] + [extra]))
+        for required in (True, False):
+            self.assertIsNone(hw_evidence.pci_log_problem(["M1:PASS", *lines], inventory["pci"], required=required))
+        self.assertIsNone(hw_evidence.pci_log_problem(["M1:PASS"], inventory["pci"], required=False))
+        for label, log, reason in (
+                ("no lines", ["M1:PASS"], "0 HWINV:PCI:COUNT"),
+                ("missing function", functions[1:] + ["HWINV:PCI:COUNT=2"], "absent from the log: 0000:00:00.0;"),
+                ("missing count", functions, "0 HWINV:PCI:COUNT"),
+                ("two counts", lines + [count], "2 HWINV:PCI:COUNT"),
+                ("extra log entry", bigger, "absent from the log: none; absent from the inventory: 0000:00:1f.3"),
+                ("count too high", functions + ["HWINV:PCI:COUNT=3"], "COUNT=3 differs from the 2"),
+                ("count too low", functions + ["HWINV:PCI:COUNT=1"], "COUNT=1 differs from the 2"),
+                ("duplicate line", [functions[0], *lines], "twice"),
+                ("changed field", [functions[0], functions[1].replace(":7ae0:", ":7ae1:"), count], "differ"),
+                ("upper-case hex", [functions[0], functions[1].upper(), count], "malformed"),
+                ("firmware prefix", [functions[0], FIRMWARE + functions[1], count], "malformed"),
+                ("bad count", lines[:-1] + ["HWINV:PCI:COUNT=02"], "malformed")):
+            with self.subTest(case=label):
+                self.assertRegex(hw_evidence.pci_log_problem(log, inventory["pci"], required=True) or "", reason)
+        # An inventory entry the log never listed is reported, whether or not the protocol requires the listing.
+        larger = inventory["pci"] + [extra]
+        for required in (True, False):
+            self.assertRegex(hw_evidence.pci_log_problem(lines, larger, required=required) or "",
+                             "absent from the log: 0000:00:1f.3;")
+
+    def test_preconditions_state_the_full_prerequisite_binding(self):
+        """Catalogue text matches the validator: target, source_sha256, source_commit and inventory SHA-256."""
+        binding = "with the same target, source_sha256, source_commit and inventory SHA-256 as this record"
+        for ident, protocol in hw_evidence.load_protocols().items():
+            required = hw_evidence.PREREQUISITES[ident]
+            stated = [text for text in protocol["preconditions"]
+                      if binding in text and all(prerequisite in text for prerequisite in required)]
+            with self.subTest(ident=ident):
+                self.assertEqual(len(stated), 1 if required else 0)
+                for text in protocol["preconditions"]:
+                    self.assertNotRegex(text, r"same target(,| and) source( and|$|\.)")
 
     def test_preconditions_name_their_blocking_decisions(self):
         for ident, protocol in hw_evidence.load_protocols().items():
@@ -666,6 +788,11 @@ class SignedEvidenceTests(unittest.TestCase):
         self.rejects(self.signed(lines=lines + ["BOOT:EBS_OK"]), "relabelled as passed: BOOT:EBS_OK appears 2")
         self.rejects(self.signed(lines=lines + lines), "exactly 1")
         self.rejects(self.signed(lines=["BOOT:EBS_OK"] + lines), "exactly 1")
+        # A reset whose marker follows firmware output on the same line, as the loader writes it without a newline.
+        self.rejects(self.signed(lines=lines + [FIRMWARE + "BOOT:EBS_OK", "KERNEL:ENTRY"]),
+                     "relabelled as passed: BOOT:EBS_OK appears 2 time.*exactly 1")
+        log = self.root / RECORD_DIR / "serial.log"
+        self.assertIn((FIRMWARE + "BOOT:EBS_OK\n").encode(), log.read_bytes())
 
         def fail_serial_step(record):
             record["steps"][3]["result"] = "fail"
@@ -768,9 +895,59 @@ class SignedEvidenceTests(unittest.TestCase):
     def test_s5_from_a_qemu_capture_needs_a_physical_inventory_record(self):
         report = json.loads((hw_evidence.ROOT / "docs/verification/h05-acpi-s5/native-report.json").read_text())
         stdout = report["profiles"]["native-acpi-s5"]["runs"][0]["guest"]["stdout"]
+        lines = [line.strip() for line in stdout.splitlines()]
+        self.assertIn("ACPI:UNAVAILABLE:NO_DMAR", lines)
+        # The QEMU log reports no DMAR table, so it contradicts the default inventory (DMAR present) ...
+        self.rejects(self.signed(lines=lines), "kernel ACPI marker ACPI:UNAVAILABLE:NO_DMAR .*contradicts")
+        # ... and with an agreeing inventory it still lacks an accepted HW-INV record of a physical machine.
         (self.root / self.prerequisites[0]).unlink()
-        name = self.signed(lines=[line.strip() for line in stdout.splitlines()])
+        name = self.signed(lines=lines, inventory=physical_inventory(acpi=dict(dmar="absent", drhd_units=0)))
         self.rejects(name, "precondition unmet.*HW-INV")
+
+    def test_kernel_acpi_marker_must_agree_with_inventory(self):
+        lines = self.fixture.serial_lines()
+        absent = physical_inventory(acpi=dict(dmar="absent", drhd_units=0))
+        empty = physical_inventory(acpi=dict(dmar="present", drhd_units=0))
+        present = physical_inventory()
+        two = physical_inventory(acpi=dict(dmar="present", drhd_units=2))
+        for marker, inventory, accepted in (
+                ("ACPI:UNAVAILABLE:NO_DMAR", absent, True),
+                ("ACPI:UNAVAILABLE:NO_DMAR", present, False),
+                ("ACPI:UNAVAILABLE:NO_DMAR", empty, False),
+                ("ACPI:UNAVAILABLE:NO_DMAR_UNITS", empty, True),
+                ("ACPI:UNAVAILABLE:NO_DMAR_UNITS", absent, False),
+                ("ACPI:UNAVAILABLE:NO_DMAR_UNITS", present, False),
+                ("ACPI:DISCOVERY:MCFG_DMAR", present, True),
+                ("ACPI:DISCOVERY:MCFG_DMAR", two, True),
+                ("ACPI:DISCOVERY:MCFG_DMAR", absent, False),
+                ("ACPI:DISCOVERY:MCFG_DMAR", empty, False),
+                # Firmware bytes before the marker do not hide it.
+                (FIRMWARE + "ACPI:UNAVAILABLE:NO_DMAR", present, False)):
+            # Prerequisites are re-signed with the same inventory, so only the marker decides.
+            self.fixture.prerequisites(self.key, inventory=inventory)
+            log = lines[:5] + [marker, "DEVICE-EXECUTION:BLOCKED:ADAPTER_ABSENT"] + lines[5:]
+            name = self.signed(lines=log, inventory=inventory)
+            with self.subTest(marker=marker, acpi=inventory["acpi"]):
+                if accepted:
+                    self.assertTrue(hw_evidence.validate_record(name, self.root)["passed"])
+                else:
+                    self.rejects(name, "kernel ACPI marker ACPI:.*contradicts the inventory")
+        # A failed run is held to the same rule, and so is a second boot that reports another ACPI outcome.
+        self.fixture.prerequisites(self.key, inventory=present)
+
+        def fail_step(record):
+            record["steps"][3]["result"] = "fail"
+        self.rejects(self.signed(lines=lines + ["ACPI:UNAVAILABLE:NO_DMAR"], passed=False, mutate=fail_step),
+                     "kernel ACPI marker ACPI:UNAVAILABLE:NO_DMAR .*contradicts")
+        self.rejects(self.signed(lines=["ACPI:DISCOVERY:MCFG_DMAR", *lines, "ACPI:UNAVAILABLE:NO_DMAR_UNITS"],
+                                 passed=False, mutate=fail_step), "NO_DMAR_UNITS .*contradicts")
+
+    def test_hwinv_pci_lines_in_other_protocol_logs_must_match(self):
+        lines = self.fixture.serial_lines()
+        listing = pci_lines(physical_inventory())
+        self.assertTrue(hw_evidence.validate_record(self.signed(lines=lines + listing), self.root)["passed"])
+        self.rejects(self.signed(lines=lines + listing[1:]), "not bound to the serial log.*absent from the log")
+        self.rejects(self.signed(lines=lines + [listing[-1]]), "not bound to the serial log.*absent from the log")
 
     def test_prerequisite_cycle_is_reported(self):
         self.fixture.get("HW-INV")["prerequisites"] = ["H05-S5"]
@@ -859,6 +1036,41 @@ class ProtocolEvidenceTests(unittest.TestCase):
         absent = physical_inventory(acpi=dict(dmar="absent", drhd_units=0))
         changed = lines[:dmar] + ["HWINV:ACPI:DMAR=ABSENT:DRHD=0"] + lines[dmar + 1:]
         self.assertTrue(hw_evidence.validate_record(self.signed(lines=changed, inventory=absent), self.root)["passed"])
+
+    def test_hw_inv_inventory_equals_serial_pci_lines(self):
+        self.use("HW-INV")
+        inventory = physical_inventory()
+        lines = self.fixture.serial_lines()
+        self.assertTrue(hw_evidence.validate_record(self.signed(), self.root)["passed"])
+        first = lines.index(pci_lines(inventory)[0])
+        count = lines.index("HWINV:PCI:COUNT=2")
+        extra = dict(address="0000:00:1f.3", vendor="8086", device="7ad0", **{"class": "04"}, subclass="03",
+                     prog_if="00", revision="11")
+        bigger = physical_inventory(pci=inventory["pci"] + [extra])
+
+        def fail_step(record):
+            record["steps"][3]["result"] = "fail"
+        for label, changes, reason in (
+                ("missing line", dict(lines=lines[:first] + lines[first + 1:]), "absent from the log: 0000:00:00.0;"),
+                ("no listing", dict(lines=lines[:first] + lines[count + 1:], passed=False, mutate=fail_step),
+                 "0 HWINV:PCI:COUNT"),
+                ("extra inventory entry", dict(inventory=bigger, lines=lines), "absent from the log: 0000:00:1f.3;"),
+                ("extra log line", dict(lines=self.fixture.serial_lines(inventory=bigger)),
+                 "absent from the log: none; absent from the inventory: 0000:00:1f.3"),
+                ("count mismatch", dict(lines=lines[:count] + ["HWINV:PCI:COUNT=3"] + lines[count + 1:]),
+                 "COUNT=3 differs"),
+                ("duplicate line", dict(lines=lines[:first + 1] + lines[first:]), "twice"),
+                ("malformed line", dict(lines=lines[:first + 1] + [lines[first + 1].upper()] + lines[first + 2:]),
+                 "malformed HWINV:PCI")):
+            with self.subTest(case=label):
+                self.rejects(self.signed(**changes), f"inventory not bound to the serial log: .*{reason}")
+        # A larger, agreeing listing is accepted.
+        self.assertTrue(hw_evidence.validate_record(
+            self.signed(inventory=bigger, lines=self.fixture.serial_lines(inventory=bigger)), self.root)["passed"])
+        # The kernel's own ACPI outcome in the same log must agree with the DMAR observation.
+        dmar = lines.index(WILDCARD_LINES["HWINV:ACPI:DMAR=*"])
+        self.rejects(self.signed(lines=lines[:dmar] + ["ACPI:UNAVAILABLE:NO_DMAR"] + lines[dmar:]),
+                     "kernel ACPI marker ACPI:UNAVAILABLE:NO_DMAR .*contradicts")
 
     def test_dmar_presence_is_not_containment(self):
         self.use("HW-INV")

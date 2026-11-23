@@ -2,7 +2,7 @@
   "schema": 1,
   "namespace": "baryonos-hw-evidence",
   "allowed_signers": "docs/drivers/hw-allowed-signers",
-  "scope": "Prepared physical HW-FR test packages under docs/FULL-TEST-RELEASE.md (no authorization for physical operations is implied). No protocol has been executed on physical hardware. A protocol may only be run when its status is ready; every protocol is currently blocked for the reasons listed. tools/hw_evidence.py --check validates this file and every docs/verification/<new-directory>/hw-evidence*.json record.",
+  "scope": "Prepared physical HW-FR test packages under docs/FULL-TEST-RELEASE.md (no authorization for physical operations is implied). No protocol has been executed on physical hardware. A protocol may only be run when its status is ready; every protocol is currently blocked for the reasons listed. A record of a protocol with prerequisites is accepted only when an accepted, passing record of each prerequisite exists with the same target, source_sha256, source_commit and inventory SHA-256 as this record. tools/hw_evidence.py --check validates this file and every docs/verification/<new-directory>/hw-evidence*.json record.",
   "signing": {
     "record_location": "docs/verification/<new-directory>/hw-evidence*.json with the inventory and serial log in the same directory",
     "sign": "ssh-keygen -Y sign -f <owner-private-key> -n baryonos-hw-evidence <record>  (produces <record>.sig; the private key never enters the repository)",
@@ -55,7 +55,8 @@
     "file": "JSON object in the record directory, bound by inventory.sha256 in the signed record",
     "keys": "schema=2, kind='baryonos-hw-inventory', cpuid={vendor: 12-character CPUID vendor string, hypervisor_bit: CPUID.1:ECX[31] as boolean}, secure_boot='enabled'|'disabled'|'unknown', acpi={dmar: 'present'|'absent' (an ACPI DMAR table was found), drhd_units: integer 0..64, 0 when absent}, pci=[{address: 'ssss:bb:dd.f', vendor, device: 4 lowercase hex digits, class, subclass, prog_if, revision: 2 lowercase hex digits}]",
     "dmar": "acpi.dmar records only that the firmware publishes a DMAR table with the given number of DRHD units (read-only table observation). It is never evidence of VT-d containment; only a run's own *:BUS_MASTER:CONTAINED marker is. Schema-1 inventories are rejected.",
-    "rejection": "A recorded hypervisor bit, or any PCI vendor 1af4 (virtio), 1b36 (QEMU), 1234 (QEMU/Bochs display), 15ad (VMware) or 80ee (VirtualBox), marks a virtual capture and the record is rejected."
+    "rejection": "A recorded hypervisor bit, or any PCI vendor 1af4 (virtio), 1b36 (QEMU), 1234 (QEMU/Bochs display), 15ad (VMware) or 80ee (VirtualBox), marks a virtual capture and the record is rejected.",
+    "log_binding": "The inventory must agree with the record's own serial log. pci must equal the HWINV:PCI:<...> lines exactly (lowercase hex, each function once, no PCI address twice) and the single HWINV:PCI:COUNT=<n> must equal their number; this applies to every HW-INV record and to any record whose serial log names HWINV:PCI. The HWINV:ACPI:DMAR line must equal acpi, and every kernel ACPI discovery marker must agree with it: ACPI:UNAVAILABLE:NO_DMAR needs dmar='absent', ACPI:UNAVAILABLE:NO_DMAR_UNITS needs dmar='present' with drhd_units=0, ACPI:DISCOVERY:MCFG_DMAR needs dmar='present' with drhd_units >= 1."
   },
   "hwinv_marker_format": [
     "HWINV:BEGIN",
@@ -140,7 +141,7 @@
       "markers_implemented": true,
       "preconditions": [
         "Owner decisions OD-HW-TARGETS, OD-HW-BOOT, OD-HW-DISKS, OD-HW-CAPTURE, OD-HW-SIGNERS and OD-HW-PUBLISH are recorded as decided.",
-        "A HW-INV record for the same target and source has been accepted by tools/hw_evidence.py; its inventory is reused for this record.",
+        "An HW-INV record with the same target, source_sha256, source_commit and inventory SHA-256 as this record has been accepted by tools/hw_evidence.py; its inventory is reused for this record.",
         "The image is built with the native-acpi-s5 kernel feature from a clean checkout of the recorded source commit; image SHA-256 and source fingerprint v3 are recorded.",
         "The machine is powered off and on mains power; internal disks are disconnected or untouched according to OD-HW-DISKS."
       ],
@@ -189,7 +190,7 @@
       "markers_implemented": false,
       "preconditions": [
         "Owner decisions OD-HW-TARGETS, OD-HW-BOOT, OD-HW-DISKS, OD-HW-CAPTURE, OD-HW-SIGNERS, OD-HW-PUBLISH and OD-HW-POWER are recorded as decided, including the wake source.",
-        "Accepted HW-INV and H05-S5 records exist for the same target and source.",
+        "Accepted HW-INV and H05-S5 records exist with the same target, source_sha256, source_commit and inventory SHA-256 as this record.",
         "The image is built with the native-acpi-s3 kernel feature from a clean checkout of the recorded source commit; image SHA-256 and source fingerprint v3 are recorded.",
         "The machine is powered off and on mains power; internal disks are disconnected or untouched according to OD-HW-DISKS."
       ],
@@ -240,7 +241,7 @@
       "markers_implemented": true,
       "preconditions": [
         "Owner decisions OD-HW-TARGETS, OD-HW-BOOT, OD-HW-DISKS, OD-HW-CAPTURE, OD-HW-SIGNERS, OD-HW-PUBLISH and OD-HW-FAMILIES are recorded as decided, including the named USB keyboard and mouse models.",
-        "An accepted HW-INV record for the same target, source and inventory exists; the bound inventory lists an xHCI function (PCI class 0c/03/30) and acpi.dmar='present' with drhd_units >= 1. DMAR presence is a table observation only and never evidence of VT-d containment, which only the USB:DOMAIN:PASS and USB:BUS_MASTER:CONTAINED markers of this run provide.",
+        "An accepted HW-INV record with the same target, source_sha256, source_commit and inventory SHA-256 as this record exists; the bound inventory lists an xHCI function (PCI class 0c/03/30) and acpi.dmar='present' with drhd_units >= 1. DMAR presence is a table observation only and never evidence of VT-d containment, which only the USB:DOMAIN:PASS and USB:BUS_MASTER:CONTAINED markers of this run provide.",
         "The image is built with the native-usb-hid-probe kernel feature from a clean checkout of the recorded source commit; image SHA-256 and source fingerprint v3 are recorded.",
         "A USB boot-protocol keyboard and mouse are attached directly to root ports of the xHCI controller (no hub); internal disks are disconnected or untouched according to OD-HW-DISKS."
       ],
@@ -291,7 +292,7 @@
       "markers_implemented": false,
       "preconditions": [
         "Owner decisions OD-HW-TARGETS, OD-HW-BOOT, OD-HW-DISKS, OD-HW-CAPTURE, OD-HW-SIGNERS, OD-HW-PUBLISH and OD-HW-FAMILIES are recorded as decided.",
-        "An accepted HW-INV record for the same target and source shows the display controller and HD Audio controller.",
+        "An accepted HW-INV record with the same target, source_sha256, source_commit and inventory SHA-256 as this record shows the display controller and HD Audio controller.",
         "The image is built from a clean checkout of the recorded source commit with a profile that contains both the framebuffer and a native HD Audio driver; image SHA-256 and source fingerprint v3 are recorded.",
         "A display is connected to the firmware's primary output and speakers or headphones to the analogue output at low volume; internal disks are disconnected or untouched according to OD-HW-DISKS."
       ],
@@ -343,7 +344,7 @@
       "markers_implemented": false,
       "preconditions": [
         "Owner decisions OD-HW-TARGETS, OD-HW-BOOT, OD-HW-DISKS, OD-HW-CAPTURE, OD-HW-SIGNERS, OD-HW-PUBLISH and OD-HW-FAMILIES are recorded as decided.",
-        "An accepted HW-INV record for the same target and source shows an Intel Ethernet controller of the e1000e family.",
+        "An accepted HW-INV record with the same target, source_sha256, source_commit and inventory SHA-256 as this record shows an Intel Ethernet controller of the e1000e family.",
         "The image is built with the native e1000e profile from a clean checkout of the recorded source commit; image SHA-256 and source fingerprint v3 are recorded.",
         "The Ethernet port is cabled only to an isolated test switch with a dedicated test peer running the project's test peer; internal disks are disconnected or untouched according to OD-HW-DISKS."
       ],
@@ -394,7 +395,7 @@
       "markers_implemented": false,
       "preconditions": [
         "Owner decisions OD-HW-TARGETS, OD-HW-BOOT, OD-HW-DISKS, OD-HW-CAPTURE, OD-HW-SIGNERS, OD-HW-PUBLISH and OD-HW-FAMILIES are recorded as decided, including a written authorization for writes to the named disposable target medium and the install-target transport.",
-        "Accepted HW-INV, H02-USB and H05-S5 records exist for the same target and source.",
+        "Accepted HW-INV, H02-USB and H05-S5 records exist with the same target, source_sha256, source_commit and inventory SHA-256 as this record.",
         "The installer image is built from a clean checkout of the recorded source commit; image SHA-256 and source fingerprint v3 are recorded.",
         "A second, empty, labelled disposable removable medium is the only writable target; internal disks are disconnected or untouched according to OD-HW-DISKS."
       ],

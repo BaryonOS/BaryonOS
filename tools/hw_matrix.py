@@ -4,11 +4,13 @@ Schema 2 records an explicit evidence level per device row. QEMU profiles can
 reach at most `native-verified`, and only with a referenced, passing native QEMU
 report bound to the profile's machine and to a device family listed in
 NATIVE_BINDINGS; VMware rows cannot reach it until a VMware report format exists
-in code. `supported` exists only for the physical profile and requires a passing
-record that tools/hw_evidence.py validates (owner-signed, protocol/target/hash-
-bound, not a virtual capture). Every referenced hw-evidence record must validate
-and bind its row. Schema 1 matrices remain readable, but can no longer express
-`supported`. The physical protocol catalogue is validated as well, so a `ready`
+in code. A `VT-d contained` posture on a QEMU row needs the same bound report from
+a family whose binding observes a `*:BUS_MASTER:CONTAINED` marker; hand-written
+records never bind it, and VMware rows cannot claim it. `supported` exists only
+for the physical profile and requires a passing record that tools/hw_evidence.py
+validates (owner-signed, protocol/target/hash-bound, not a virtual capture).
+Every referenced hw-evidence record must validate and bind its row. Schema 1
+matrices remain readable, but can no longer express `supported`. The physical protocol catalogue is validated as well, so a `ready`
 protocol with an open owner decision fails this check.
 """
 from __future__ import annotations
@@ -77,26 +79,6 @@ def local_file(root: Path, name: str) -> Path:
 
 def _verification(root: Path, path: Path) -> bool:
     return path.relative_to(root).parts[:2] == ("docs", "verification")
-
-
-def proof(root: Path, paths: list[Path], profile: dict, device: dict, *, dma=False) -> bool:
-    """Legacy structural record check, kept for VT-d posture on virtual profiles only."""
-    for path in paths:
-        if not _verification(root, path) or path.suffix != ".json":
-            continue
-        with path.open("rb") as stream:
-            raw = stream.read(1024 * 1024 + 1)
-        if len(raw) > 1024 * 1024:
-            raise ValueError("oversize hardware evidence")
-        record = json.loads(raw)
-        if (isinstance(record, dict) and record.get("passed") is True
-                and record.get("level") == "native"
-                and record.get("target") == profile["target"] and record.get("device") == device["id"]
-                and isinstance(record.get("source_sha256"), str)
-                and re.fullmatch(r"[0-9a-f]{64}", record["source_sha256"])
-                and (not dma or record.get("dma_posture") == "VT-d contained")):
-            return True
-    return False
 
 
 def physical(root: Path, paths: list[Path], profile: dict, device: dict, *, passed=False, dma=False) -> bool:
@@ -225,6 +207,21 @@ def native_bound(root: Path, paths: list[Path], profile: dict, device: dict) -> 
     return bound
 
 
+def contained_bound(root: Path, paths: list[Path], profile: dict, device: dict) -> bool:
+    """True when native QEMU evidence demonstrates a virtual row's `VT-d contained` posture.
+
+    The row needs `native-qemu` evidence, its family's native binding must require and observe a
+    `*:BUS_MASTER:CONTAINED` marker, and a referenced report must bind as for `native-verified` (passing run set,
+    profile machine, source hash, positive case). Hand-written records and VMware rows never qualify.
+    """
+    binding = NATIVE_BINDINGS.get(device["id"])
+    if (binding is None or device.get("evidence_level") != VIRTUAL_LEVEL.get(profile["kind"])
+            or not any(marker.endswith(hw_evidence.CONTAINED_SUFFIX) for marker in binding.observed)
+            or not any(marker.endswith(hw_evidence.CONTAINED_SUFFIX) for marker in binding.required)):
+        return False
+    return native_bound(root, paths, profile, device)
+
+
 def owner_decisions(decisions: object, hw_target: str | None) -> int:
     if not isinstance(decisions, list) or not decisions:
         raise ValueError("owner decisions missing")
@@ -344,9 +341,11 @@ def check(root: Path = ROOT) -> dict:
                     raise ValueError("supported device lacks a validated, passing, signed physical record")
             if posture == "VT-d contained":
                 bound = (physical(root, paths, profile, device, passed=True, dma=True) if kind == "hardware"
-                         else proof(root, paths, profile, device, dma=True))
+                         else contained_bound(root, paths, profile, device))
                 if target is None or not bound:
-                    raise ValueError("VT-d containment lacks target/device-bound evidence")
+                    raise ValueError("VT-d containment lacks target/device-bound evidence (a validated signed "
+                                     "physical record, or a passing machine- and device-bound native QEMU report "
+                                     "with a *:BUS_MASTER:CONTAINED marker)")
             totals[status] += 1
             count += 1
         if not FAMILIES <= names:
