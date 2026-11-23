@@ -33,6 +33,46 @@ fn detach_during_enumeration_retires_old_completion_and_releases_port() {
 }
 
 #[test]
+fn ticket_lifetime_names_the_session_identity_and_changes_on_reattach() {
+    let mut ports = Ports::new([1, 2], 3, 1).unwrap();
+    let keyboard = ports.attach(0).unwrap();
+    let mouse = ports.attach(1).unwrap();
+    let first = Lifetime {
+        device: 1,
+        generation: 1,
+    };
+    assert_eq!(keyboard.lifetime(), first);
+    assert_eq!(
+        mouse.lifetime(),
+        Lifetime {
+            device: 2,
+            generation: 1
+        }
+    );
+    assert_eq!(
+        ports.complete(keyboard, true),
+        Ok(Some(keyboard.lifetime()))
+    );
+    ports.detach(0).unwrap();
+    let again = ports.attach(0).unwrap();
+    assert_eq!(
+        again.lifetime(),
+        Lifetime {
+            device: 1,
+            generation: 2
+        }
+    );
+    // Reading an old ticket's identity does not revive its completion.
+    assert_eq!(keyboard.lifetime(), first);
+    assert_eq!(ports.complete(keyboard, true), Err(Error::Stale));
+    assert_eq!(ports.complete(again, true), Ok(Some(again.lifetime())));
+    assert_eq!(ports.complete(keyboard, true), Err(Error::Stale));
+    ports.detach(0).unwrap();
+    assert_eq!(ports.attach(0), Err(Error::Exhausted));
+    assert_eq!(ports.phase(0), Ok(Phase::Detached));
+}
+
+#[test]
 fn retry_requires_a_matched_failure_and_invalidates_the_earlier_attempt() {
     let mut ports = Ports::new([10], 1, u8::MAX).unwrap();
     let mut ticket = ports.attach(0).unwrap();

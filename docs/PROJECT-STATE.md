@@ -1,5 +1,204 @@
 # Current project status
 
+## NEXT AGENT HANDOFF — H-track lead: post-wake broker latches and quiescence gate (H05-R1) — 23 November 2026
+
+**Delivered (H05-R1, verified, not accepted):** after a validated S3 wake the volume broker's
+`reset`/`advance` and the keyring's `call` (0x60), `advance` and `quarantine_pending` return
+before any device access (keyring only until the validated re-init of `test-system-s3-reinit`).
+SUSPEND returns -8 while the volume broker is not quiescent (a held request, including an
+unconsumed completed result). Every broker device call site is counted; after CLEANUP the kernel
+requires zero post-wake accesses outside the accounted re-init path and live counters at the
+wake. New profile `test-system-s3-held-completion` provokes the volume `reset` latch through a
+labelled gate-defect injection (exact log `[-8,-6,-4,-1,-8,0,-14]`, one suppressed reset).
+[Evidence](verification/h05-s3-held-completion-20261123/README.md): `test_power_system.py`
+12/12 stages, five `run_sleep.py` cases raw 33/37/39/37/39 (local QEMU 10.2.1, pc-q35-8.2, TCG).
+Three independent AI reviews approve-with-minors, fixed; the verifier's two test survivors are
+closed with four mutants. ADR-H05-S3-SYSTEM amendment H05-R1.
+**CodeRabbit on #415:** the net-link counter-window check now also requires the first window to
+open after the initial up edge (`6c2d159b`).
+**Open:** the keyring latches and volume `advance` are checked by source shape and counter only;
+hosted `native-power.yml` runs all five S3 cases since `a5a378fd` (green on `b94be044`).
+**Score:** 41 → 41/100 (no criterion changes).
+
+## NEXT AGENT HANDOFF — H-track lead: S3 rejection exit and fixtures (H05-T6b), re-init review fixes — 23 November 2026
+
+**Delivered (H05-T6b, verified, not accepted):** in `native-acpi-s3` every refused S3 plan and
+every cleanly disarmed FACS store failure exits 0x13 (raw 39); `corrupt-facs` therefore moves
+from raw 33 to raw 39. New fixtures `test-acpi-s3-unarmed-wake` (raw 37; page token 0, so only
+the `ARMED == 0` clause refuses) and `test-acpi-s3-facs-end` (raw 39). The 32-bit wake stage
+loads CR3 from `NOS_S3_CR3` in the kernel image; wake-page offset 8 is reserved. Independent AI
+review: approve-with-minors, fixed in `04212e8d` (fixture token 0, third mutation) and the
+ADR-H05-S3-SYSTEM/ADR-H05-S3-WAKE amendments. [Evidence](verification/h05-s3-rejections-20261123/README.md):
+five `run_sleep.py` cases raw 33/37/39/37/39 (local QEMU 10.2.1, pc-q35-8.2, TCG).
+**CodeRabbit review 6023531102 (re-init):** `reinit_fail` no longer resets the device before
+`rediscover` validated the BARs, and stages 3–4 of `reinit_poll` hold no `REINIT` borrow across
+the 0x60/0x61 handlers (`8530dd14`); native `power-s3-reinit` passes.
+**Open:** hosted `native-power.yml` ran only cycles/corrupt-facs/stale-token at this checkpoint;
+`a5a378fd` later added the two new cases. R1 port and the
+CR415 tooling fixes are in flight.
+**Score:** 41 → 41/100 (no criterion changes).
+
+## NEXT AGENT HANDOFF — H-track lead: Bochs DISPI mode-set fixture (H03-T4) and #409 review follow-ups — 23 November 2026
+
+**Delivered (H03-T4, verified, not accepted):** draft PR #417 (`claude/h03-dispi-20261123`,
+head `009af7ad`, from `main` `035b44e5`). Profile `native-dispi-probe` binds exactly one
+1234:1111 display, checks that BAR0 (masked) equals the GOP base and that memory decode is
+enabled, sets four allowlisted 32-bpp modes through DISPI with full register readback, and
+verifies each mode pixel-exactly against a QEMU screendump; any other display device is
+refused fail-closed. [Evidence](https://github.com/BaryonOS/BaryonOS/blob/0f2b9881b23d74f6240e22c8fde2749e30b28381/docs/verification/h03-dispi-modeset-20261123/README.md) (on the #417 branch):
+positive raw 33, negative raw 35 (local QEMU 10.2.1, pc-q35-8.2, TCG). An independent AI
+review found no blocking or major findings; minors were fixed in `91bd4135`. The hosted
+`native-display-input.yml` step is queued with the integration manager, after #410 and #409.
+**#409 integration-review documentation items:** item 5 — the extended FACS vector policy is
+documented as QEMU/OVMF-only (ADR-H05-S3-WAKE-20261119, Decision item 3). Item 7 — the retired
+generation-1 DMA pages that stay mapped in the VT-d domain are documented as a fixture-only
+pattern (NATIVE-USB-HID.md, reattach step 7). Item 8 — the raw artifacts of
+`docs/verification/h05-s3-system-20261123/` are produced by the hosted `native-power.yml`
+job; the committed README summarises them and does not replace them.
+**In flight:** H05-T5b (virtio-rng re-initialisation after the wake), H05-T6 (#409 review
+items 1–4), H03-T3c (virtio-snd hardening), H-CR415 (CodeRabbit tooling findings on #415).
+**Next:** review and integrate each builder; then the queued items (APP-caller 0x91 negative,
+remaining CodeRabbit findings) and H02 mouse reattach. #415 is retargeted to `main` by this
+session after #409 merges.
+**Score:** 41 → 41/100 (no criterion changes; H03 and H05 need further native and physical evidence).
+
+## NEXT AGENT HANDOFF — H-track lead: post-wake device-loss refusal (H05-T5a) — 23 November 2026
+
+**Mandate:** project-owner H-track pipeline instruction of 23 November 2026. PR #409
+(`ccr-38238c58-g8y1l6`, head `02ef433f`, hosted checks green) has no established
+exclusive writer (idle local session plus idle cloud sessions [9376d3]/[89a9d2]), so it is
+left untouched; this work is on the dedicated branch `claude/h-track-20261123`, stacked
+on `02ef433f`, in a draft PR to `main`. No merge.
+**Delivered (H05-T5a, verified, not accepted):** in `test-system-s3` the post-wake -14
+refusal now precedes the authority lookup; init's 0x60 and 0x40 requests after the wake
+each return -14 and the kernel requires the exact tagged log (ADR-H05-S3-SYSTEM-20261123
+item 3 amended). Review fix `5baafc33`: stray `SYSTEM:SUSPEND*` evidence is refused in
+every non-S3 case. [Evidence](verification/h05-s3-wake-refusal-20261123/README.md).
+**Checks (exit 0):** `test_power_system.py` 8/8 on `5baafc33` (power-s3 raw 0, recover
+raw 33); `run_sleep.py --case cycles` raw 33; harness 29, test_sleep 17, CI workflows 28,
+CI evidence 38; preflight strict; fmt; `progress.py --check`.
+**Environment finding:** the six `tools/tests` errors in `test_agent_isolation` and
+`test_agent_pipeline` reproduce only with the inherited `GIT_EDITOR`; with every `GIT_*`
+variable unset, all 68 tests pass. They are a session-environment artefact (the tests fail
+closed by design), not a code defect.
+**In flight:** H03-T4 Bochs DISPI mode-set fixture on `claude/h03-dispi-20261123` (from
+`main` `035b44e5`, probe-first; hosted evidence needs a `.github` integration request).
+**Next:** H05-T5b virtio-rng re-initialisation after the wake (new `test-system-s3-reinit`
+profile; fail closed if BDF, IDs or BARs differ after OVMF resume); then H02 mouse reattach.
+**Score:** 41 → 41/100 (H05 needs device re-initialisation and physical acceptance).
+
+## NEXT AGENT HANDOFF — H-track lead: S3 from the running system (H05-T4) — 23 November 2026
+
+**Mandate:** project-owner H-track instruction (19 and 23 November 2026); this
+local session is the single writer of draft PR #409 (`ccr-38238c58-g8y1l6`). No merge.
+**Source:** `e02ff67c` (feature `31481f23`, review fixes `e02ff67c`) on top of the
+cloud session's merge `af1b650c` (its snd hardening was integrated, not overwritten).
+**Delivered (H05-T4, verified, not accepted):** `test-system-s3` adds syscall
+`0x91` SUSPEND under ADR-H05-S3-SYSTEM-20261123 (amended the same day to match
+the implementation). Init proves -8/-6/-4/-1, one granted S3 cycle, a ring-3
+stack pattern and a timer tick after the wake, the one-shot -14, then S5; a cold
+recovery boot of the image passes. The S3 path sits behind an internal
+`acpi-s3-core` feature; `sleep.rs` is split into `resolve` and `cycle` with
+unchanged native-acpi-s3 output.
+**Checks (exit 0):** `test_power_system.py` 8/8 including power-s3 (raw 0) and its
+recover (raw 33); `run_sleep.py` cycles/corrupt-facs/stale-token raw 33; host suites
+(system harness 61, test_sleep 17, CI workflows 28, CI evidence 38, GS discipline);
+fmt. `tools/tests` has 6 errors in `test_agent_isolation`/`test_agent_pipeline`
+("Git environment overrides require a verified controller adapter"), from this
+session's git environment, in files this slice does not touch.
+[Evidence](verification/h05-s3-system-20261123/README.md).
+**Limits:** QEMU/OVMF/TCG only; devices are lost across the wake (their -14
+refusal is code-reviewed, not exercised natively); no physical firmware, AML,
+SMP or FPU across sleep. Hosted `native-power.yml#power-system-gate` runs power-s3
+automatically through `test_power_system.py`; its step name still says "three"
+cases (protected file, cosmetic).
+**Next:** hosted CI on the pushed head; then H04 `flap`/`reset` link cases, H02 mouse
+reattach, or the H03 bochs DISPI mode-set fixture. Note: cloud session
+[9376d3] kept pushing to this branch after "This session leads"; every push here
+first verifies the remote head.
+**Score:** 41 → 41/100 (H05 needs physical acceptance).
+
+## NEXT AGENT HANDOFF — H-track lead resumed — 23 November 2026
+
+**Mandate:** project-owner H-track instruction, renewed on 23 November 2026, on
+branch `ccr-38238c58-g8y1l6` (draft PR #409). No merge or auto-merge.
+**Recovery:** the 19 November session ended on its usage limit after pushing
+`1dbf597c`; nothing else was found unpushed. The Codex H branches (#369, #371,
+#372, #384) were already merged into main. The main checkout holds about 920 staged
+files from another writer; they were left untouched.
+**Done this session (verified, not accepted):** CodeRabbit F8/F11 and the runner
+machine pin (`cc173d8e`); an unused import (`a616980f`); an independent focused
+security review of the snd fixture: no blocking finding, findings 1–3 fixed
+(the event loop is bounded per call, reset and BME-off happen before the fence
+bookkeeping, and BME-off is retried). Host checks pass. Local native snd is NOT RUN
+(QEMU 10.2.1 locally, the runner pins the 8.2 series); hosted `native-xhci.yml` is
+the native evidence. A local S3 baseline (`run_sleep.py --case cycles`,
+`pc-q35-8.2`, QEMU 10.2.1, OVMF 2025.11) gives raw 33 with 3 cycles.
+**Decided:** ADR-H05-S3-SYSTEM-20261123 (H05-T4 design: test-profile syscall 0x91
+SUSPEND behind POWER and the storage gate, a synchronous sleep, devices lost after
+a wake, then POWER_OFF).
+**Next:** implement H05-T4 under that ADR (`test-system-s3`: sleep.rs cycle
+refactor, 0x91 in m3/system.rs, an SDK wrapper, init calling suspend before
+power_off, a QMP wake in the system runner, then a `native-power.yml` case).
+Small QEMU follow-ups from read-only scoping: H04 `flap`/`reset` link cases, H02
+mouse reattach (16-page DMA budget), and an H03 bochs DISPI mode-set fixture
+with a screendump oracle. Not feasible in QEMU: Wi-Fi and Bluetooth.
+**Score:** 41 → 41/100. Every open H gate (H02–H06) requires physical reference
+hardware and the owner decisions OD-HW-*; nothing here is accepted.
+
+## NEXT AGENT HANDOFF — H-track lead: native ACPI S3 (H05-T3) — 19 November 2026
+
+**Mandate:** project-owner instruction of 19 November 2026 assigns the whole H track
+(H01–H06) to a Claude hardware-track lead on branch `ccr-38238c58-g8y1l6` (one draft PR).
+**Source:** `887c446d8b530b17ba34a1e9798b6e3d012aedcc` on base main `035b44e` (first slice `9c707c8`, then CI and review fixes).
+**Delivered (H05-T3, verified, not accepted):** the independent kernel suspends to RAM
+and resumes three times per boot through its own wake path (`native-acpi-s3`), with
+negative profiles `test-acpi-s3-corrupt-facs` and `test-acpi-s3-stale-token`.
+`parse_s3` now accepts the ACPI 1.0b FACS that QEMU 8.2.2/OVMF really builds (main
+rejected it). OVMF's real-mode S3 transfer stub cannot run under QEMU TCG (16-bit EIP
+truncation); the profile arms a 32-bit entry under the explicit `Edk2Version0Extended`
+policy and restores `SCI_EN`, which OVMF leaves clear (ADR-H05-S3-WAKE-20261119).
+**Checks (exit 0):** acpi-power test/clippy/fmt/freestanding build; root `fmt --all`;
+`test_sleep.py` 6 host counterexamples; `run_sleep.py` cycles/corrupt-facs/stale-token on
+source v3 `7710f46d…` (earlier rounds `ce3e3145…`, `e76b8fbf…`); S5 ×5 + corrupt-DSDT ×2, standard, M2 and M3 smokes; actionlint and
+CI workflow/evidence tests. [Evidence](verification/h05-native-s3-20261119/README.md).
+**Limits:** QEMU/TCG only; no physical firmware, other wake sources, AML `_PTS`/`_WAK`,
+devices/services/SMP across sleep, thermal or battery. Score 41 → 41/100.
+**Integrated H06-T4 (verified, host):** `docs/drivers/physical-protocols.json` (seven blocked
+physical protocols with safety constraints), `tools/hw_evidence.py` (OpenSSH-signed records bound
+to protocol/target/image/source/inventory; empty signer list fails closed), matrix schema 2 with
+nine open owner decisions; 25 tests with real ssh-keygen signatures (merge `839fb2c`, fix `9f66bf1`).
+**Integrated H02-T3 (verified, QEMU):** same-port USB keyboard reattach in the xHCI/USB-HID
+fixture: generation-2 re-enumeration with continued rings, replayed generation-1 event/token/ticket
+rejected, second unplug, budget-denied third attach (merge `af9b0bc`; reports/readonly/reattach
+raw 33 on source v3 `1ae4ed7f`; `native-xhci.yml` now runs `reattach`). Pitfall: a worktree nested
+in the checkout duplicates the kernel `rustflags` (linker script twice); run native gates from a
+non-nested checkout. The AI security review of the DMA/ring changes found no blocking issue;
+its low finding O1 (the native stale-ticket check was phase-based) is fixed by a generation-specific
+check while generation 2 is `Enumerating` (diagnostic 51), verified natively on source v3 `6ed7b9a2`
+with a mutation control; O2–O5 are informational and recorded in the H02 evidence README.
+**Integrated H03-T3a (verified, QEMU):** kernel-only virtio-snd PCM output fixture
+(`native-virtio-snd-probe`, IF0 M2, fixture 00:08.0, `-icount`) with an exact WAV oracle: normal,
+no-device, access-platform, fence-reinit and quarantine raw 33 on merge `167c2bc` (source v3
+`aadc6b7b`; WAV hashes equal the builder runs), plus xHCI/USB/S3/smoke/M2 regressions;
+`native-xhci.yml` runs the five cases. Three QEMU 8.2.2 deviations are recorded in
+ADR-H03-SND-FIXTURE-20261119 (PCM_INFO used length checked in the QEMU source). No ring-3 audio
+path: owner decisions B1, B2 and B4 stay open. A focused security review is running.
+**Integrated H04-T3 (verified, QEMU):** virtio-net link loss and reconnect with a fail-closed
+broker behind the test-profile link query 0x74 and refusal -23 (ADR-H04-LINK-20261119): link
+normal/nostatus/storm, native-system-net, network-service normal/device-reset and the POWER gate pass
+on merge `5bef53f`; `native-system.yml` runs the link cases. No product link API, Wi-Fi or Bluetooth.
+**In flight:** H06-T4 CodeRabbit findings (13 verified verdicts; implementation resumes); CodeRabbit
+review of `920b909` (snd used-ring and fence findings, runner machine default); focused security
+reviews of H03-T3a and H04-T3 (first attempts hit the usage limit). H05-T4 design is ready
+(synchronous S3 syscall 0x91 behind POWER and the storage gate). An independent AI review of the S3 diff
+found three low findings (all refuted for this profile, applied as hardening); hosted
+host-quality found two real defects (GS discipline, ledger protected path), both fixed.
+**Next:** H05-T4 (S3 from the native-system
+profile via the POWER capability behind the storage gate, PIC/PIT re-init, resumed
+processes) on top of H04-T3's QMP hook; H06-T3 inventory image. Physical acceptance
+needs owner decisions H06-T2 and authorized hardware.
+
 ## NEXT AGENT HANDOFF — owner decision package recorded — 19 November 2026
 
 **Source:** main `8f970866`. The project-owner decisions of 19 November 2026 are

@@ -3,12 +3,14 @@ import copy
 import hashlib
 import os
 from pathlib import Path
+import re
 import sys
 import tempfile
 import unittest
+import unittest.mock
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "tools"))
-from run_system import (KEYSTATE_HEADER, KEYSTATE_NAME, KEYSTATE_OBJECT, OPAQUE_OBJECTS, PERSIST_EXACT,
+from run_system import (DEVICE_ORDER, KEYSTATE_HEADER, KEYSTATE_NAME, KEYSTATE_OBJECT, OPAQUE_OBJECTS, PERSIST_EXACT,
                         SEALED_NAME, SEALED_OBJECT, check_disk, check_esp, check_image, check_parent,
                         S5_TAIL, COLD_CASES, cold_image, evaluate_cold, evaluate, expected_markers, record_plaintext)
 import volume_disk
@@ -325,20 +327,516 @@ class SystemHarnessTests(unittest.TestCase):
         self.assertNotIn("content_hex", oracle["objects"][0]["versions"][0])
 
 
+# Printed by the kernel between BROKERS:PASS and CLEANUP:PASS, and after it.
+TEARDOWN = ("LIVE_PROCESSES_AFTER", "FRAMES_RECOVERED")
+DEVICE = tuple(f"SUSPEND_{key}" for key in DEVICE_ORDER)
+AT_WAKE = dict(SUSPEND_DEVICE_IO_AT_WAKE_KEYRING=9, SUSPEND_DEVICE_IO_AT_WAKE_VOLUME=700)
+
+
 def power_transcript(case="power", tail=None, **changes):
-    """H05 power run: the normal flow plus refusal counters, then the S5 tail."""
-    values = dict(POWER_INIT_REFUSALS=3 if case == "power" else 4, POWER_APP_REFUSALS=2,
-                  POWER_NOT_DURABLE=0 if case == "power" else 1, DISK_FLUSHES=4)
+    """H05 power run in the kernel's real order: the wake evidence and the
+    counters, BROKERS, teardown, CLEANUP, the post-wake device evidence, then
+    the gate, case marker and S5 tail."""
+    ok = case in ("power", "power-s3", "power-s3-reinit", "power-s3-held-completion")
+    values = dict(POWER_INIT_REFUSALS=3 if ok else 4, POWER_APP_REFUSALS=2,
+                  POWER_NOT_DURABLE=0 if ok else 1, DISK_FLUSHES=4)
+    held = int(case == "power-s3-held-completion")
+    if case in ("power-s3", "power-s3-held-completion"):
+        values.update(SUSPEND_REFUSALS=5 + held, SUSPEND_GRANTED=1, SUSPEND_TICK_AFTER_WAKE=1,
+                      SUSPEND_HELD_REFUSALS=held, SUSPEND_LOST_ENTROPY=14, SUSPEND_LOST_BLOCK=14,
+                      **AT_WAKE, SUSPEND_DEVICE_IO_AFTER_WAKE=0, SUSPEND_DEVICE_SUPPRESSED=held)
+    if case == "power-s3-reinit":
+        values.update(SUSPEND_REFUSALS=5, SUSPEND_GRANTED=1, SUSPEND_TICK_AFTER_WAKE=1,
+                      SUSPEND_HELD_REFUSALS=0, SUSPEND_REINIT_ENTROPY=32, SUSPEND_REINIT_STALE_TICKET=1,
+                      SUSPEND_REINIT_ENTROPY_AUTH=6, SUSPEND_LOST_BLOCK=14,
+                      **AT_WAKE, SUSPEND_DEVICE_IO_AFTER_WAKE=0, SUSPEND_DEVICE_SUPPRESSED=0)
     values.update(changes)
-    body = transcript("normal", **values).replace("SYSTEM:CASE:NORMAL:PASS\nM1:PASS\n", "")
+    values = {key: value for key, value in values.items() if value is not None}
+    lines = transcript("normal", **values).replace(
+        "SYSTEM:BROKERS:PASS\nSYSTEM:CLEANUP:PASS\nSYSTEM:CASE:NORMAL:PASS\nM1:PASS\n", "").splitlines()
+    group = [[line for line in lines if line.split(":")[1] in keys] for keys in (TEARDOWN, DEVICE)]
+    body = "".join(f"{line}\n" for line in (
+        *(line for line in lines if line not in group[0] + group[1]), "SYSTEM:BROKERS:PASS",
+        *group[0], "SYSTEM:CLEANUP:PASS", *group[1]))
     marker = expected_markers(case)[-2]
-    if case == "power":
+    if ok:
         end = ["SYSTEM:POWER:GATE:PASS", marker, "M1:PASS", *S5_TAIL] if tail is None else tail
     else:
         fault = "FLUSH_ERROR" if case == "power-flush-error" else "FLUSH_TIMEOUT"
         end = [f"SYSTEM:FAULT_INJECTED:{fault}", "SYSTEM:POWER:REFUSED:NOT_DURABLE", marker,
                "M1:PASS"] if tail is None else tail
     return body + "\n".join(end) + "\n"
+
+
+S3_PLAN = ("POWER:S3:PLAN:PM1A=0x0604:SLP_TYP=1:PM1A_STS=0x0600:FACS_VERSION=0:"
+           "REAL=0x1000:PM32=0x2000510:POLICY=Edk2Version0Extended")
+S3_ENTER = "POWER:S3:ENTER:CYCLE=1:SCI_EN=1"
+S3_RESUMED = ("POWER:S3:RESUMED:CYCLE=1:ENTRY=PM32:PM1_STS=0x8101:WAK_STS=1:SCI_EN=RESTORED:"
+              "HWSIG=SAME:FACS=DISARMED:CANARY=PASS:CR3=SAME")
+
+
+def s3_transcript(s3=(S3_ENTER, S3_RESUMED), plan=S3_PLAN, case="power-s3", **changes):
+    """H05-T4 power-s3 in the kernel's real order: plan at bootstrap, the one
+    cycle inside init's run (after MANIFEST, before the broker evidence)."""
+    text = power_transcript(case, **changes)
+    before = (plan + "\n") if plan else ""
+    return text.replace("SYSTEM:MANIFEST:PASS\n",
+                        before + "SYSTEM:MANIFEST:PASS\n" + "".join(line + "\n" for line in s3), 1)
+
+
+class PowerS3HarnessTests(unittest.TestCase):
+    def test_passes_only_with_raw_exit_zero_and_parses_every_suspend_counter(self):
+        found = evaluate("power-s3", s3_transcript(), 0, False)
+        self.assertEqual((found["SUSPEND_REFUSALS"], found["SUSPEND_GRANTED"],
+                          found["SUSPEND_TICK_AFTER_WAKE"]), (5, 1, 1))
+        for raw, timed_out in ((33, False), (35, False), (None, True), (0, True)):
+            with self.subTest(raw=raw, timed_out=timed_out), self.assertRaises(ValueError):
+                evaluate("power-s3", s3_transcript(), raw, timed_out)
+
+    def test_exactly_one_planned_entered_resumed_cycle_in_order(self):
+        bad_resumes = [S3_RESUMED.replace(old, new) for old, new in (
+            ("CR3=SAME", "CR3=CHANGED"), ("CANARY=PASS", "CANARY=FAIL"), ("CYCLE=1", "CYCLE=2"),
+            ("FACS=DISARMED", "FACS=STORE_FAILED"), ("WAK_STS=1", "WAK_STS=0"),
+            ("ENTRY=PM32", "ENTRY=REAL"), ("HWSIG=SAME", "HWSIG=CHANGED"))]
+        cases = [dict(s3=(S3_ENTER,)), dict(s3=(S3_RESUMED,)), dict(s3=(S3_RESUMED, S3_ENTER)),
+                 dict(s3=(S3_ENTER, S3_ENTER, S3_RESUMED)), dict(s3=(S3_ENTER, S3_RESUMED, S3_RESUMED)),
+                 dict(plan=None), dict(s3=(S3_ENTER, S3_RESUMED, "POWER:S3:NO_TRANSITION:DISARMED")),
+                 *[dict(s3=(S3_ENTER, line)) for line in bad_resumes]]
+        for case in cases:
+            with self.subTest(case=case), self.assertRaises(ValueError):
+                evaluate("power-s3", s3_transcript(**case), 0, False)
+
+    def test_s3_lines_after_the_broker_evidence_are_refused(self):
+        text = s3_transcript(s3=()).replace("SYSTEM:BROKERS:PASS\n",
+                                            f"SYSTEM:BROKERS:PASS\n{S3_ENTER}\n{S3_RESUMED}\n")
+        with self.assertRaisesRegex(ValueError, "order"):
+            evaluate("power-s3", text, 0, False)
+
+    def test_suspend_and_power_counters_are_exact(self):
+        for change in (dict(SUSPEND_GRANTED=0), dict(SUSPEND_REFUSALS=4), dict(SUSPEND_TICK_AFTER_WAKE=0),
+                       dict(POWER_INIT_REFUSALS=4)):
+            with self.subTest(change=change), self.assertRaises(ValueError):
+                evaluate("power-s3", s3_transcript(**change), 0, False)
+        plain = s3_transcript().replace("SYSTEM:CASE:POWER_S3:PASS", "SYSTEM:CASE:POWER:PASS")
+        with self.assertRaises(ValueError):
+            evaluate("power-s3", plain, 0, False)
+
+    def test_post_wake_device_refusals_are_exact_and_ordered(self):
+        found = evaluate("power-s3", s3_transcript(), 0, False)
+        self.assertEqual((found["SUSPEND_LOST_ENTROPY"], found["SUSPEND_LOST_BLOCK"]), (14, 14))
+        # Missing refusal, a 0 instead of -14, or another refusal code.
+        for change in (dict(SUSPEND_LOST_ENTROPY=None), dict(SUSPEND_LOST_BLOCK=None),
+                       dict(SUSPEND_LOST_ENTROPY=0), dict(SUSPEND_LOST_BLOCK=0),
+                       dict(SUSPEND_LOST_ENTROPY=6), dict(SUSPEND_LOST_BLOCK=4)):
+            with self.subTest(change=change), self.assertRaises(ValueError):
+                evaluate("power-s3", s3_transcript(**change), 0, False)
+        entropy = "SYSTEM:SUSPEND_LOST_ENTROPY:" + "14".zfill(20)
+        block = "SYSTEM:SUSPEND_LOST_BLOCK:" + "14".zfill(20)
+        swapped = s3_transcript().replace(entropy, "SWAP").replace(block, entropy).replace("SWAP", block)
+        with self.assertRaisesRegex(ValueError, "order"):
+            evaluate("power-s3", swapped, 0, False)
+
+    def test_suspend_evidence_outside_power_s3_is_refused(self):
+        text = power_transcript("power", SUSPEND_LOST_ENTROPY=14)
+        with self.assertRaisesRegex(ValueError, "outside"):
+            evaluate("power", text, 0, False)
+        # Refused-power, normal and cold cases are checked too, not only "power".
+        stray = "SYSTEM:SUSPEND_LOST_BLOCK:" + "14".zfill(20)
+        with self.assertRaisesRegex(ValueError, "outside"):
+            evaluate("power-flush-error",
+                     power_transcript("power-flush-error") + "\n" + stray, 33, False)
+        with self.assertRaisesRegex(ValueError, "outside"):
+            evaluate("normal", transcript("normal") + "\n" + stray, 33, False)
+        from run_system import COLD_CASES, evaluate_cold
+        with self.assertRaisesRegex(ValueError, "outside"):
+            evaluate_cold(next(iter(COLD_CASES)), stray, 33, False)
+
+    def test_wrong_machine_or_accelerator_is_refused_before_launch(self):
+        from run_system import run_system
+        for env in ({"NOS_QEMU_MACHINE": "pc-q35-10.0"},):
+            with self.subTest(env=env), unittest.mock.patch.dict(os.environ, env), \
+                    self.assertRaisesRegex(ValueError, "power-s3 runs only"):
+                run_system("power-s3")
+        with unittest.mock.patch.dict(os.environ, {"NOS_QEMU_MACHINE": "pc-q35-8.2"}), \
+                unittest.mock.patch("run_system.qemu_accel", return_value="kvm"), \
+                self.assertRaisesRegex(ValueError, "power-s3 runs only"):
+            run_system("power-s3")
+
+    def test_a_passing_s3_image_of_the_same_source_may_recover(self):
+        check_parent(dict(case="power-s3", passed=True, kernel_feature="test-system-s3",
+                          source_sha256="source", after_sha256="disk"), "source", "disk", network=False)
+
+
+S3_REINIT = "KEYRING:S3:REINIT:BARS=RESTORED:STATUS=15:SELFTEST=32"
+
+
+def reinit_transcript(marker=S3_REINIT, **changes):
+    """H05-T5b power-s3-reinit: the re-init marker right after RESUMED."""
+    return s3_transcript(s3=(S3_ENTER, S3_RESUMED, *((marker,) if marker else ())),
+                         case="power-s3-reinit", **changes)
+
+
+class PowerS3ReinitHarnessTests(unittest.TestCase):
+    def test_passes_with_either_bar_state_and_parses_the_post_wake_evidence(self):
+        for state in ("RESTORED", "KEPT"):
+            with self.subTest(state=state):
+                found = evaluate("power-s3-reinit",
+                                 reinit_transcript(S3_REINIT.replace("RESTORED", state)), 0, False)
+                self.assertEqual((found["SUSPEND_REINIT_ENTROPY"], found["SUSPEND_REINIT_STALE_TICKET"],
+                                  found["SUSPEND_REINIT_ENTROPY_AUTH"], found["SUSPEND_LOST_BLOCK"]),
+                                 (32, 1, 6, 14))
+        for raw, timed_out in ((33, False), (17, False), (None, True)):
+            with self.subTest(raw=raw), self.assertRaises(ValueError):
+                evaluate("power-s3-reinit", reinit_transcript(), raw, timed_out)
+
+    def test_missing_duplicate_or_misplaced_reinit_marker_is_refused(self):
+        with self.assertRaisesRegex(ValueError, "re-init marker"):
+            evaluate("power-s3-reinit", reinit_transcript(marker=None), 0, False)
+        doubled = reinit_transcript().replace(S3_REINIT, S3_REINIT + "\n" + S3_REINIT)
+        with self.assertRaisesRegex(ValueError, "re-init marker"):
+            evaluate("power-s3-reinit", doubled, 0, False)
+        late = reinit_transcript().replace(S3_REINIT + "\n", "").replace(
+            "SYSTEM:BROKERS:PASS\n", f"SYSTEM:BROKERS:PASS\n{S3_REINIT}\n")
+        early = reinit_transcript().replace(S3_REINIT + "\n", "").replace(
+            S3_ENTER + "\n", f"{S3_REINIT}\n{S3_ENTER}\n")
+        for text in (late, early):
+            with self.assertRaisesRegex(ValueError, "order"):
+                evaluate("power-s3-reinit", text, 0, False)
+
+    def test_wrong_bar_state_status_or_self_test_token_is_refused(self):
+        for old, new in (("RESTORED", "CHANGED"), ("RESTORED", "NONE"), ("RESTORED", "KEPT|RESTORED"),
+                         ("STATUS=15", "STATUS=11"), ("STATUS=15", "STATUS=0"),
+                         ("SELFTEST=32", "SELFTEST=0"), ("SELFTEST=32", "SELFTEST=31")):
+            with self.subTest(new=new), self.assertRaisesRegex(ValueError, "re-init marker"):
+                evaluate("power-s3-reinit", reinit_transcript(S3_REINIT.replace(old, new)), 0, False)
+
+    def test_entropy_refused_after_reinit_is_refused(self):
+        # No delivery, a short one, the old -14 refusal, a redeemed pre-sleep
+        # ticket, or the base profile's LOST_ENTROPY line in place of the delivery.
+        for change in (dict(SUSPEND_REINIT_ENTROPY=0), dict(SUSPEND_REINIT_ENTROPY=None),
+                       dict(SUSPEND_REINIT_ENTROPY=31), dict(SUSPEND_REINIT_ENTROPY_AUTH=14),
+                       dict(SUSPEND_REINIT_ENTROPY_AUTH=None), dict(SUSPEND_REINIT_STALE_TICKET=0),
+                       dict(SUSPEND_REINIT_STALE_TICKET=None),
+                       dict(SUSPEND_REINIT_ENTROPY=None, SUSPEND_REINIT_STALE_TICKET=None,
+                            SUSPEND_REINIT_ENTROPY_AUTH=None, SUSPEND_LOST_ENTROPY=14)):
+            with self.subTest(change=change), self.assertRaises(ValueError):
+                evaluate("power-s3-reinit", reinit_transcript(**change), 0, False)
+
+    def test_post_wake_delivery_cannot_pad_the_entropy_bound(self):
+        self.assertEqual(evaluate("power-s3-reinit", reinit_transcript(ENTROPY_BYTES=288),
+                                  0, False)["ENTROPY_BYTES"], 288)
+        with self.assertRaisesRegex(ValueError, "before the sleep"):
+            evaluate("power-s3-reinit", reinit_transcript(ENTROPY_BYTES=287), 0, False)
+
+    def test_block_served_after_the_wake_is_refused(self):
+        for change in (dict(SUSPEND_LOST_BLOCK=0), dict(SUSPEND_LOST_BLOCK=None),
+                       dict(SUSPEND_LOST_BLOCK=6)):
+            with self.subTest(change=change), self.assertRaises(ValueError):
+                evaluate("power-s3-reinit", reinit_transcript(**change), 0, False)
+
+    def test_case_marker_and_profile_boundaries(self):
+        plain = reinit_transcript().replace("SYSTEM:CASE:POWER_S3_REINIT:PASS", "SYSTEM:CASE:POWER_S3:PASS")
+        with self.assertRaises(ValueError):
+            evaluate("power-s3-reinit", plain, 0, False)
+        # The base S3 oracle and every other case refuse a re-init marker.
+        with self.assertRaisesRegex(ValueError, "outside"):
+            evaluate("power-s3", s3_transcript(s3=(S3_ENTER, S3_RESUMED, S3_REINIT)), 0, False)
+        with self.assertRaisesRegex(ValueError, "outside"):
+            evaluate("power", power_transcript("power") + S3_REINIT + "\n", 0, False)
+        check_parent(dict(case="power-s3-reinit", passed=True, kernel_feature="test-system-s3-reinit",
+                          source_sha256="source", after_sha256="disk"), "source", "disk", network=False)
+
+
+def held_transcript(**changes):
+    """Review R1 power-s3-held-completion: the base S3 cycle plus the held -8."""
+    return s3_transcript(case="power-s3-held-completion", **changes)
+
+
+class PowerS3HeldCompletionHarnessTests(unittest.TestCase):
+    def test_passes_only_with_raw_exit_zero_and_exact_held_evidence(self):
+        found = evaluate("power-s3-held-completion", held_transcript(), 0, False)
+        self.assertEqual((found["SUSPEND_REFUSALS"], found["SUSPEND_HELD_REFUSALS"],
+                          found["SUSPEND_DEVICE_IO_AFTER_WAKE"], found["SUSPEND_DEVICE_SUPPRESSED"]),
+                         (6, 1, 0, 1))
+        for raw, timed_out in ((33, False), (None, True), (37, False)):
+            with self.subTest(raw=raw), self.assertRaises(ValueError):
+                evaluate("power-s3-held-completion", held_transcript(), raw, timed_out)
+
+    def test_post_wake_device_access_fails(self):
+        for case, text in (("power-s3-held-completion", held_transcript(SUSPEND_DEVICE_IO_AFTER_WAKE=1)),
+                           ("power-s3", s3_transcript(SUSPEND_DEVICE_IO_AFTER_WAKE=1)),
+                           ("power-s3-reinit", reinit_transcript(SUSPEND_DEVICE_IO_AFTER_WAKE=1)),
+                           ("power-s3-held-completion", held_transcript(SUSPEND_DEVICE_IO_AFTER_WAKE=None))):
+            with self.subTest(case=case), self.assertRaisesRegex(ValueError, "DEVICE_IO_AFTER_WAKE|out of order"):
+                evaluate(case, text, 0, False)
+
+    def test_missing_held_refusal_fails(self):
+        for change in (dict(SUSPEND_HELD_REFUSALS=0), dict(SUSPEND_HELD_REFUSALS=None),
+                       dict(SUSPEND_HELD_REFUSALS=2), dict(SUSPEND_REFUSALS=5),
+                       dict(SUSPEND_HELD_REFUSALS=0, SUSPEND_REFUSALS=5)):
+            with self.subTest(change=change), self.assertRaises(ValueError):
+                evaluate("power-s3-held-completion", held_transcript(**change), 0, False)
+        # A held refusal in the base profile is a gate that refused without cause.
+        with self.assertRaises(ValueError):
+            evaluate("power-s3", s3_transcript(SUSPEND_HELD_REFUSALS=1, SUSPEND_REFUSALS=6), 0, False)
+
+    def test_suppressed_must_equal_held(self):
+        for case, text in (("power-s3-held-completion", held_transcript(SUSPEND_DEVICE_SUPPRESSED=0)),
+                           ("power-s3-held-completion", held_transcript(SUSPEND_DEVICE_SUPPRESSED=2)),
+                           ("power-s3-held-completion", held_transcript(SUSPEND_DEVICE_SUPPRESSED=None)),
+                           ("power-s3", s3_transcript(SUSPEND_DEVICE_SUPPRESSED=1)),
+                           ("power-s3-reinit", reinit_transcript(SUSPEND_DEVICE_SUPPRESSED=1))):
+            with self.subTest(case=case), self.assertRaisesRegex(ValueError, "SUPPRESSED|out of order"):
+                evaluate(case, text, 0, False)
+
+    def test_device_evidence_order_and_profile_boundaries(self):
+        io = "SYSTEM:SUSPEND_DEVICE_IO_AFTER_WAKE:" + "0".zfill(20)
+        sup = "SYSTEM:SUSPEND_DEVICE_SUPPRESSED:" + "1".zfill(20)
+        swapped = held_transcript().replace(io, "SWAP").replace(sup, io).replace("SWAP", sup)
+        with self.assertRaisesRegex(ValueError, "out of order"):
+            evaluate("power-s3-held-completion", swapped, 0, False)
+        plain = held_transcript().replace("SYSTEM:CASE:POWER_S3_HELD_COMPLETION:PASS", "SYSTEM:CASE:POWER_S3:PASS")
+        with self.assertRaises(ValueError):
+            evaluate("power-s3-held-completion", plain, 0, False)
+        with self.assertRaisesRegex(ValueError, "outside"):
+            evaluate("power", power_transcript("power", SUSPEND_DEVICE_SUPPRESSED=1), 0, False)
+        check_parent(dict(case="power-s3-held-completion", passed=True,
+                          kernel_feature="test-system-s3-held-completion",
+                          source_sha256="source", after_sha256="disk"), "source", "disk", network=False)
+
+    def test_device_evidence_must_follow_cleanup_and_precede_the_case_marker(self):
+        # Review follow-up A: the kernel prints the wake evidence before CLEANUP
+        # and the device evidence after every teardown, before the case marker.
+        device = "".join(line + "\n" for line in held_transcript().splitlines()
+                         if line.split(":")[1] in DEVICE)
+        cleanup = "SYSTEM:CLEANUP:PASS\n"
+        case = "SYSTEM:CASE:POWER_S3_HELD_COMPLETION:PASS\n"
+        good = held_transcript()
+        self.assertIn(cleanup + device, good)
+        lost = next(line for line in good.splitlines() if line.startswith("SYSTEM:SUSPEND_LOST_BLOCK:")) + "\n"
+        for text in (good.replace(device, "").replace(cleanup, device + cleanup),  # device lines above CLEANUP
+                     good.replace(device, "").replace(case, case + device),  # after the case marker
+                     good.replace(lost, "").replace(cleanup, cleanup + lost)):  # wake evidence after CLEANUP
+            self.assertNotEqual(text, good)
+            with self.subTest(text=text[-600:]), self.assertRaisesRegex(ValueError, "order"):
+                evaluate("power-s3-held-completion", text, 0, False)
+
+    def test_device_counters_must_be_live_at_the_wake(self):
+        # Review follow-up D: a dead counter (no fetch_add) reads 0 at the wake.
+        found = evaluate("power-s3-held-completion", held_transcript(), 0, False)
+        self.assertGreater(found["SUSPEND_DEVICE_IO_AT_WAKE_KEYRING"], 0)
+        self.assertGreater(found["SUSPEND_DEVICE_IO_AT_WAKE_VOLUME"], 0)
+        for key in AT_WAKE:
+            for case, make in (("power-s3", s3_transcript), ("power-s3-reinit", reinit_transcript),
+                               ("power-s3-held-completion", held_transcript)):
+                with self.subTest(case=case, key=key), self.assertRaisesRegex(ValueError, f"{key}: expected a live"):
+                    evaluate(case, make(**{key: 0}), 0, False)
+                with self.subTest(case=case, key=key, missing=True), self.assertRaisesRegex(ValueError, "order"):
+                    evaluate(case, make(**{key: None}), 0, False)
+
+
+KERNEL = Path(__file__).resolve().parents[1] / "kernel/src/m2"
+DRIVERS = Path(__file__).resolve().parents[1] / "drivers"
+# Driver entry points that touch neither MMIO nor PCI config space: pool and
+# feature checks, used-ring validation, BAR classification, the in-memory
+# pending flag. Every other `pub fn` / `pub unsafe fn` is a device call.
+PURE = {"validate", "negotiate_rng_features", "validate_used", "classify_bars", "pending"}
+DRIVER_FNS = {name for crate in ("virtio-rng", "virtio-blk") for name in re.findall(
+    r"^\s*pub (?:unsafe )?fn (\w+)", (DRIVERS / crate / "src/lib.rs").read_text(), re.M)}
+DEVICE_METHODS = "|".join(sorted(DRIVER_FNS - PURE))
+# Free functions (unindented `pub fn`) can also be imported and called bare.
+FREE_FNS = "|".join(sorted({name for crate in ("virtio-rng", "virtio-blk") for name in re.findall(
+    r"^pub (?:unsafe )?fn (\w+)", (DRIVERS / crate / "src/lib.rs").read_text(), re.M)} - PURE))
+DEVICE_CALL = re.compile(rf"\.(?:{DEVICE_METHODS})\(|::(?:{DEVICE_METHODS})\b|(?<![\w.:])(?:{FREE_FNS})\(")
+FUNCTION = re.compile(r"^\s*(?:pub(?:\([^)]*\))?\s+)?fn\s+(\w+)")
+
+
+def functions(path: Path) -> dict[str, list[tuple[int, str]]]:
+    """`fn` bodies by name, first definition wins (brace matching on code)."""
+    lines = path.read_text().splitlines()
+    found = {}
+    for index, line in enumerate(lines):
+        match = FUNCTION.match(line)
+        if not match:
+            continue
+        depth, started, body = 0, False, []
+        for number in range(index, len(lines)):
+            code = lines[number].split("//")[0]
+            depth += code.count("{") - code.count("}")
+            started = started or "{" in code
+            body.append((number + 1, lines[number]))
+            if started and depth == 0:
+                break
+        found.setdefault(match.group(1), body)
+    return found
+
+
+def device_calls(body):
+    return [(number, line) for number, line in body
+            if DEVICE_CALL.search(line.split("//")[0]) and "policy.request(" not in line]
+
+
+def following(body, marker):
+    """The code statements after the first code line containing `marker`
+    (comments and blank lines skipped). Attributes are kept, so a `#[cfg]`
+    on a guarded statement breaks the expected sequence."""
+    code = [line.split("//")[0].strip() for _, line in body]
+    code = [line for line in code if line]
+    found = [i for i, line in enumerate(code) if marker in line]
+    if not found:
+        raise AssertionError(f"guard statement missing: {marker}")
+    return code[found[0] + 1:]
+
+
+class PostWakeLatchStructure(unittest.TestCase):
+    """STRUCTURAL ONLY (review R1/R3): source shape of the post-wake device
+    latch and the access counter of both system brokers. Natively only the
+    volume `reset` latch is provoked (power-s3-held-completion); this test keeps
+    a future edit from adding an unlatched or uncounted broker device call."""
+
+    # Reachable after the S3 wake in the system profile (broker ticks,
+    # submission syscalls, owner teardown): latched and counted.
+    REACHABLE = {"keyring.rs": {"call", "advance", "quarantine_pending"},
+                 "volume.rs": {"device_call", "reset", "advance"}}
+    LATCH = {"keyring.rs": "device_lost()", "volume.rs": "system::resumed()"}
+    # The validated re-init path (test-system-s3-reinit only): accounted.
+    REINIT = {"keyring.rs": {"reinit_poll", "reinit_fail"}, "volume.rs": set()}
+    # Boot-time setup, and standalone-profile fixtures whose `poll` is compiled
+    # only without native-system (checked below).
+    OTHER = {"keyring.rs": {"prepare", "restart_fixture", "finish"},
+             "volume.rs": {"prepare", "prepare_archive_device", "finish"}}
+
+    def counted(self, name, fn, body, counter):
+        previous = body[0][0]
+        for number, line in device_calls(body):
+            window = [text for at, text in body if previous <= at < number]
+            self.assertIn(f"{counter}();", [text.strip() for text in window[-8:]],
+                          f"uncounted device call at {name}:{number} in {fn}: {line.strip()}")
+            previous = number
+
+    def test_device_call_list_comes_from_the_drivers(self):
+        self.assertTrue(PURE <= DRIVER_FNS, PURE - DRIVER_FNS)
+        for name in ("kick", "submit", "discover", "discover_function", "rediscover", "initialize",
+                     "initialize_profile", "begin_reset", "reset_acknowledged", "poll", "request",
+                     "prepare_operation", "publish_prepared", "status"):
+            self.assertIn(name, DEVICE_METHODS.split("|"))
+        for line in ("d.kick();", "virtio_blk_driver::discover()", "Device::initialize(", "x.submit(",
+                     "virtio_blk_driver::discover_function(f)", "lane.device.as_ref().is_some_and(Device::reset_acknowledged)"):
+            self.assertTrue(DEVICE_CALL.search(line), line)
+        self.assertEqual(set(FREE_FNS.split("|")), {"discover", "discover_function", "rediscover"})
+        for line in ("let b = rediscover(&info);", "discover()", "discover_function(f)"):
+            self.assertTrue(device_calls([(1, line)]), line)
+        for line in ("device.pending()", "pool.validate(end)", "r.policy.request()", "// d.kick();"):
+            self.assertFalse(device_calls([(1, line)]), line)
+
+    def test_every_device_call_site_is_classified(self):
+        for name in self.REACHABLE:
+            bodies = functions(KERNEL / "m3" / name)
+            with_calls = {fn for fn, body in bodies.items() if device_calls(body)}
+            self.assertEqual(with_calls, self.REACHABLE[name] | self.REINIT[name] | self.OTHER[name], name)
+
+    def test_reachable_calls_follow_the_latch_and_are_counted(self):
+        for name, reachable in self.REACHABLE.items():
+            bodies = functions(KERNEL / "m3" / name)
+            for fn in sorted(reachable):
+                body = bodies[fn]
+                with self.subTest(file=name, fn=fn):
+                    latch = [number for number, line in body if self.LATCH[name] in line.split("//")[0]]
+                    self.assertTrue(latch and latch[0] < device_calls(body)[0][0], "latch not before the device call")
+                    self.counted(name, fn, body, "device_access")
+        # The keyring latch opens only after the validated re-init; the volume
+        # latches are compiled into every S3 profile and only there.
+        lost = "\n".join(line for _, line in functions(KERNEL / "m3/keyring.rs")["device_lost"])
+        self.assertIn('#[cfg(feature = "test-system-s3")]\n    let lost = super::system::resumed() && !reinitialised();',
+                      lost)
+        lines = (KERNEL / "m3/volume.rs").read_text().splitlines()
+        latches = [index for index, line in enumerate(lines) if "if super::system::resumed()" in line]
+        self.assertEqual(len(latches), 3)
+        for index in latches:
+            self.assertEqual(lines[index - 1].strip(), '#[cfg(feature = "test-system-s3")]')
+
+    def test_each_latch_returns_before_any_device_statement(self):
+        """The guarded statement itself, not only the latch text: each latch
+        returns, and each teardown binds the device only through its guard."""
+        keyring = functions(KERNEL / "m3/keyring.rs")
+        volume = functions(KERNEL / "m3/volume.rs")
+        self.assertEqual(following(keyring["advance"], "if device_lost() {")[0], "return;")
+        self.assertEqual(following(keyring["call"], "if device_lost() {")[0], "return Err(-14);")
+        # The keyring latches are compiled into every profile: no attribute may gate them out.
+        for fn in ("advance", "call"):
+            code = [line.split("//")[0].strip() for _, line in keyring[fn]]
+            code = [line for line in code if line]
+            at = next(i for i, line in enumerate(code) if "if device_lost() {" in line)
+            self.assertFalse(code[at - 1].startswith("#["), f"keyring {fn} latch is attribute-gated: {code[at - 1]}")
+        # Every device call of `call` sits inside the 0x60 arm, after its latch.
+        call = keyring["call"]
+        arm = next(number for number, line in call if line.strip() == "0x60 => {")
+        end = next(number for number, line in call if line.strip() == "0x61 => {")
+        latch = next(number for number, line in call if "if device_lost() {" in line.split("//")[0])
+        self.assertTrue(arm < latch < end)
+        for number, line in device_calls(call):
+            self.assertTrue(latch < number < end, f"keyring call device statement outside 0x60: {line.strip()}")
+        quarantine = keyring["quarantine_pending"]
+        bind = "if let Some(device) = r.device.as_mut().filter(|_| touch) {"
+        self.assertEqual(following(quarantine, "let r = runtime();")[0], "let touch = !device_lost();")
+        self.assertEqual(following(quarantine, bind)[:3], ["device_access();", "device.begin_reset();", "}"])
+        self.assertEqual([line.split("//")[0].strip() for _, line in quarantine if "r.device" in line], [bind])
+        self.assertEqual(following(volume["reset"], "if super::system::resumed() {")[:2],
+                         ["super::system::device_access_suppressed();", "return;"])
+        self.assertEqual(following(volume["advance"], "if super::system::resumed() {")[0], "return;")
+        self.assertEqual(following(volume["device_call"], "if super::system::resumed() {")[0], "return Err(-14);")
+        # Re-init: no MMIO before `rediscover` validated the BARs.
+        fail = keyring["reinit_fail"]
+        bind = "if let Some(device) = r.device.as_mut().filter(|_| validated) {"
+        self.assertEqual(following(fail, "fn reinit_fail")[0], "let validated = reinit_state().bars.is_some();")
+        self.assertEqual(following(fail, bind)[:2], ["reinit_access();", "device.begin_reset();"])
+        self.assertEqual([line.split("//")[0].strip() for _, line in fail if "r.device" in line], [bind])
+        poll = keyring["reinit_poll"]
+        stage0 = [(number, line) for number, line in poll
+                  if next(n for n, text in poll if text.strip() == "0 => {") <= number
+                  < next(n for n, text in poll if text.strip() == "1 => {")]
+        bars = next(number for number, line in stage0 if "p.bars = Some(" in line.split("//")[0])
+        reset = next(number for number, line in poll if "begin_reset" in line.split("//")[0])
+        self.assertLess(bars, reset)
+
+    def test_reinit_calls_are_accounted_and_reached_only_after_the_wake(self):
+        source = (KERNEL / "m3/keyring.rs").read_text().splitlines()
+        bodies = functions(KERNEL / "m3/keyring.rs")
+        for fn in sorted(self.REINIT["keyring.rs"]):
+            with self.subTest(fn=fn):
+                start = bodies[fn][0][0]
+                self.assertEqual(source[start - 2].strip(), '#[cfg(feature = "test-system-s3-reinit")]')
+                self.counted("keyring.rs", fn, bodies[fn], "reinit_access")
+        callers = {caller for caller, body in bodies.items() if caller != "reinit_fail"
+                   and any("reinit_fail(" in line for _, line in body)}
+        self.assertEqual(callers, {"reinit_require", "reinit_poll"})
+        poll = "\n".join(line for _, line in functions(KERNEL / "m3/system.rs")["poll"])
+        self.assertIn("if resumed() {\n        let handle = suspend_state().key_entropy;\n"
+                      "        keyring::reinit_poll(", poll)
+
+    def test_standalone_broker_fixtures_never_run_in_native_system(self):
+        m3 = (KERNEL / "m3.rs").read_text()
+        for call in ("keyring::poll(state)", "m5::poll(state)"):
+            before = m3[:m3.index(call)].splitlines()[-2]
+            self.assertIn('not(feature = "native-system")', before, call)
+        for name in self.OTHER:
+            bodies = functions(KERNEL / "m3" / name)
+            for fn in ("restart_fixture", "finish"):
+                callers = {caller for caller, body in bodies.items()
+                           if caller != fn and any(f"{fn}(s)" in line for _, line in body)}
+                self.assertTrue(callers <= {"poll"}, (name, fn, callers))
+
+    def test_s3_gate_refuses_a_held_request_before_the_transition(self):
+        body = "\n".join(line for _, line in functions(KERNEL / "m3/system.rs")["suspend"])
+        order = [body.index(text) for text in ("storage_closed()", "m5::sleep_quiescent()",
+                                               "sleep::suspend(", "p.io_at_wake = io;")]
+        self.assertEqual(order, sorted(order))
+        quiescent = "\n".join(line for _, line in functions(KERNEL / "m3/volume.rs")["sleep_quiescent"])
+        self.assertIn("r.policy.request().is_none()", quiescent)
+        finish = "\n".join(line for _, line in functions(KERNEL / "m3/system.rs")["finish"])
+        for term in ("&& keyring_at_wake > 0", "&& volume_at_wake > 0", "&& io_after == 0",
+                     "&& p.suppressed == suppressed"):
+            self.assertIn(term, finish)
 
 
 class PowerHarnessTests(unittest.TestCase):

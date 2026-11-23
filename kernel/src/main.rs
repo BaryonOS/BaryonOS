@@ -25,7 +25,8 @@ mod serial;
         feature = "native-smp-legacy",
         feature = "framebuffer",
         feature = "native-rtc",
-        feature = "native-acpi-s5"
+        feature = "native-acpi-s5",
+        feature = "native-acpi-s3"
     )
 ))]
 compile_error!("native-xhci-probe exclusively owns the single-CPU IF0 DMA fixture");
@@ -36,6 +37,27 @@ compile_error!("xHCI negative cases require separate boots");
     any(feature = "test-xhci-dma-fault", feature = "test-xhci-no-dmar")
 ))]
 compile_error!("USB HID and legacy xHCI negative cases require separate boots");
+#[cfg(all(
+    feature = "native-usb-hid-reattach",
+    feature = "test-usb-hid-readonly-fault"
+))]
+compile_error!("USB reattach and the read-only DMA fault require separate boots");
+#[cfg(all(
+    feature = "native-virtio-snd-probe",
+    any(
+        feature = "milestone-m3",
+        feature = "framebuffer",
+        feature = "native-smp",
+        feature = "native-rtc",
+        feature = "native-acpi-s5",
+        feature = "native-acpi-s3",
+        feature = "native-xhci-probe",
+        feature = "native-dispi-probe"
+    )
+))]
+compile_error!("native-virtio-snd-probe exclusively owns the single-CPU IF0 audio DMA fixture");
+#[cfg(all(feature = "test-snd-fence-reinit", feature = "test-snd-quarantine"))]
+compile_error!("virtio-snd fence cases require separate boots");
 #[cfg(all(
     feature = "native-dispi-probe",
     any(
@@ -67,6 +89,18 @@ compile_error!("native-rtc exclusively owns CMOS in the single-CPU IF0 bootstrap
 ))]
 compile_error!("native-acpi-s5 ends the single-CPU IF0 bootstrap; no other subsystem may run");
 #[cfg(all(
+    feature = "native-acpi-s3",
+    any(
+        feature = "milestone-m3",
+        feature = "framebuffer",
+        feature = "native-smp",
+        feature = "native-rtc",
+        feature = "native-acpi-s5",
+        feature = "native-system-power"
+    )
+))]
+compile_error!("native-acpi-s3 resumes only the single-CPU IF0 bootstrap; no device, AP or service state survives sleep");
+#[cfg(all(
     feature = "native-system-power",
     any(
         feature = "native-acpi-s5",
@@ -82,6 +116,36 @@ compile_error!("native-acpi-s5 ends the single-CPU IF0 bootstrap; no other subsy
     )
 ))]
 compile_error!("native-system-power gates S5 on exactly the base native-system brokers");
+#[cfg(all(
+    feature = "test-system-s3",
+    any(
+        feature = "test-system-power-flush-error",
+        feature = "test-system-power-flush-timeout",
+        feature = "fpu-context",
+        feature = "native-smp-m3",
+        feature = "native-acpi-s3"
+    )
+))]
+compile_error!("test-system-s3 suspends only the granted base native-system-power profile: no fault fixture, live FPU state or GS anchor survives the wake");
+// Explicit, not only through the native-system-power guard: the wake resets
+// every device, and only the block and entropy brokers refuse after it.
+#[cfg(all(
+    feature = "test-system-s3",
+    any(
+        feature = "native-system-net",
+        feature = "native-system-clock",
+        feature = "native-system-nas-probe",
+        feature = "native-system-random",
+        feature = "native-system-display-input",
+        feature = "native-window-session"
+    )
+))]
+compile_error!("test-system-s3 excludes the network, clock, NAS, random, display-input and window-session system profiles");
+#[cfg(all(
+    feature = "test-system-s3-held-completion",
+    feature = "test-system-s3-reinit"
+))]
+compile_error!("the S3 held-completion and re-init fixtures require separate boots");
 #[cfg(all(
     feature = "native-smp",
     not(feature = "native-smp-legacy"),

@@ -2,8 +2,10 @@
 
 Basis `ca45a7dabe6a040921de03bdc2fad3e5045a75ba`, Rust 1.90.0, crate-local
 lockfile, own `target/`. Logs and exit codes live next to this file;
-`SHA256SUMS` binds sources, lockfile and logs (`sha256sum -c SHA256SUMS`
-from `drivers/virtio-snd`).
+`SHA256SUMS` binds sources, lockfile and logs
+(`sha256sum -c verification/SHA256SUMS` from `drivers/virtio-snd`). It is
+historical evidence of that basis, not a current integrity gate; see the
+H03-T3a section for the exact drift.
 
 ```sh
 cargo +1.90.0 fmt --check
@@ -101,3 +103,62 @@ python3 verification/model-mutants.py
 Evidence boundary: host unit tests and a no_std crosscompile only. No QEMU
 guest, no audio, no transport, no control time-out, no physical hardware, no
 human audit. H03 stays open; this closes no FR row and earns no points.
+
+## H03-T3a kernel-only QEMU fixture (19 November 2026)
+
+`src/queue.rs` + `src/queue_tests.rs` (production, `no_std`,
+`forbid(unsafe_code)`, no heap, no dependency; `src/lib.rs` only gains
+`pub mod queue`) and the kernel fixture `kernel/src/m2/snd.rs`. Gates use the
+pinned Rust 1.100.0 toolchain of the root `rust-toolchain.toml`:
+
+```sh
+cargo +1.100.0 test --locked --manifest-path drivers/virtio-snd/Cargo.toml
+cargo +1.100.0 clippy --locked --manifest-path drivers/virtio-snd/Cargo.toml --all-targets -- -D warnings
+cargo +1.100.0 fmt --manifest-path drivers/virtio-snd/Cargo.toml -- --check
+cargo +1.100.0 build --locked --release --manifest-path drivers/virtio-snd/Cargo.toml --target x86_64-unknown-none
+```
+
+Commands, exit codes, native QEMU cases and their WAV hashes are recorded in
+`docs/verification/h03-virtio-snd-20261119/`, and only there. The runner
+`tools/run_virtio_snd.py` defaults to, and accepts only, the machine
+`pc-q35-8.2`; any other `NOS_QEMU_MACHINE` value is refused before a run
+directory is created.
+
+`SHA256SUMS` is historical evidence for the earlier codec/model basis, not a
+current integrity gate. From `drivers/virtio-snd`,
+`sha256sum -c verification/SHA256SUMS` exits 1. It reports exactly six
+mismatches, each with its cause:
+
+- `TRANSPORT.md`: the bound hash is the pre-translation file at basis
+  `8bb1530`; it already differs at `67d5859` (#346, the English translation).
+- `src/lib.rs`: differs since `fac5a86` (#356) and changed again in H03-T3a.
+- `README.md`: changed by H03-T3a.
+- `verification/README.md`: changed by H03-T3a; the file lists itself, so any
+  appended section breaks its own entry.
+- `src/pcm.rs` and `src/pcm_tests.rs`: changed by the H03-T3a review fixes
+  (period limit 2044, `handle_event`).
+
+One entry cannot be read in a clean checkout:
+`target/x86_64-unknown-none/release/libnieuw_os_virtio_snd.rlib`, an ignored
+Rust 1.90.0 release build output; a locally rebuilt rlib is not expected to
+match either. The other 24 entries must report OK; any other failed or
+unreadable entry is unexplained and counts as an integrity failure.
+`tools/tests/test_virtio_snd.py` (`HistoricalChecksums`) checks this list
+against the tree. A full pass would need the exact historical sources and the
+original rlib, which no single commit in the available history provides.
+
+Evidence boundary: QEMU 8.2.2/TCG emulator output of a kernel-only fixture;
+no broker, capability, syscall, audible or physical playback, latency or
+DMA-isolation claim. H03 stays open.
+
+### Review fixes (20 November 2026)
+
+Host tests added for paths QEMU 8.2.2 cannot trigger (`queue_tests`,
+`pcm_tests`): a used index that moved while idle is refused before
+publication (`Ring::publish_checked`, F8) and the index wrap at 65535; the
+fence baseline is bracketed around the acknowledging read-back and
+`finish_fence` needs a matching final observation (F11, I2); the largest
+accepted period fits one TX slot; a header-only PCM_INFO answer in the zeroed
+buffer fails closed; only event heads complete with a short used length,
+which `pcm::handle_event` counts (F17); one event poll handles at most
+`EVENTS_PER_POLL` completions. The gate commands above are unchanged.
