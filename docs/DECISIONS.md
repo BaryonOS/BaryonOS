@@ -89,7 +89,9 @@ change; they do not prove that sessions follow the rule.
 **Migration and rollback:** to restore the previous model, workstreams first
 disable every armed auto-merge on their open pull requests
 (`gh pr merge <N> --disable-auto`) and do not re-enable it during the
-transition; only then does the project owner revoke this ADR. Workstreams
+transition; the integration coordinator does the same for orphaned pull
+requests whose workstream is no longer active and confirms that no armed
+auto-merge remains; only then does the project owner revoke this ADR. Workstreams
 return to draft or "final" handoff to a single coordinator.
 Pull requests already merged under this ADR stay merged and are judged on
 their recorded checks.
