@@ -92,9 +92,12 @@ python3 -B tools/run_secure_boot.py --case all --evidence docs/verification/b04-
 The `--evidence` path must resolve to a direct child of `docs/verification/`
 that does not exist yet. The runner creates it before building anything and
 copies each case's `result.json` and `serial.txt` into it. An existing
-directory or any other path is refused with exit 1 and left unchanged. A run
-that fails after this point leaves the new directory behind; remove it before
-retrying.
+directory or any other path is refused with exit 1 and left unchanged. If the
+run stops before any report is written (for example while building), the
+runner removes the still-empty directory it created. A case that raises
+instead of completing does not stop the other cases: their reports are still
+written, the incomplete case is recorded as `passed: false` with the error,
+and the run exits 1. Remove a failed capture before retrying.
 
 The runner rebuilds and re-signs the B03 TEST images (`test_update.prepare_images`)
 when the source fingerprint changed. Such a rebuild rewrites `$NOS_BUILD_DIR/esp`

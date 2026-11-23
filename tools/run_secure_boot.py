@@ -324,14 +324,33 @@ def main(argv=None) -> int:
         except (ValueError, FileExistsError, FileNotFoundError) as error:
             print(f"refusing --evidence: {error}")
             return 1
-    images, loader, frozen = prepare()
-    cases = ORDER if args.case == "all" else (args.case,)
-    reports = [run_case(case, images, loader, frozen) for case in cases]
-    require_refusal_proof(reports)
-    for report in reports:
-        publish(report, evidence)
-    passed = all(report["passed"] for report in reports)
-    print(f"B04 secure-boot TEST chain: {sum(r['passed'] for r in reports)}/{len(reports)} as expected")
+    try:
+        images, loader, frozen = prepare()
+        cases = ORDER if args.case == "all" else (args.case,)
+        reports, crashed = [], []
+        for case in cases:
+            try:
+                reports.append(run_case(case, images, loader, frozen))
+            except Exception as error:  # one broken case must not discard the other cases' reports
+                crashed.append(dict(schema_version=1, case=case, expected=CASES[case][3], passed=False,
+                                    problems=[f"case did not complete: {type(error).__name__}: {error}"]))
+        require_refusal_proof(reports)
+        for report in reports:
+            publish(report, evidence)
+        for report in crashed:
+            if evidence is not None:
+                (evidence / report["case"]).mkdir()
+                save_json(evidence / report["case"] / "result.json", report)
+            print(f"B04 secure-boot {report['case']}: expected={report['expected']} passed=False")
+            print(f"  {report['problems'][0]}")
+    finally:
+        if evidence is not None:
+            try:
+                evidence.rmdir()  # only succeeds while still empty: never removes a recorded report
+            except OSError:
+                pass
+    passed = not crashed and all(report["passed"] for report in reports)
+    print(f"B04 secure-boot TEST chain: {sum(r['passed'] for r in reports)}/{len(cases)} as expected")
     return 0 if passed else 1
 
 

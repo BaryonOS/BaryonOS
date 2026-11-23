@@ -7,12 +7,12 @@ hosted CI and not acceptance of B04.
 
 ## Source and environment
 
-- Baseline commit: `76e7904f884a25c9b3eabc080e1d00256ef31a62` on branch
-  `claude/b04-secure-boot-test-20261123`, plus the uncommitted CodeRabbit
+- Baseline commit: `2b54755cb0908bb0f55b9ba733fa9f2e40e9222e` on branch
+  `claude/b04-secure-boot-test-20261123`, plus the uncommitted Graphify
   review fixes to `tools/run_secure_boot.py` and
   `tools/tests/test_run_secure_boot.py` that are committed together with this
   capture.
-- Source fingerprint v3 (`common.source_hash`): `5995b6460b4d4fa1bafe30ccb6c827e9a2206a8af65d5eb78b5021dfb4553d00`
+- Source fingerprint v3 (`common.source_hash`): `3b8d02c3756062aa87f253b1e11aef6af911c376d6de8712417a974789974ce5`
   (equal to `source_sha256` in every `result.json`).
 - QEMU: `QEMU emulator version 10.2.1 (Debian 1:10.2.1+ds-1ubuntu3.3)`, machine `pc-q35-10.0,smm=on`, TCG single-thread, secure pflash.
 - Firmware package: Ubuntu `ovmf 2025.11-3ubuntu7.3`
@@ -27,9 +27,9 @@ hosted CI and not acceptance of B04.
 
 ```
 export NOS_BUILD_DIR=$PWD/build NOS_TARGET_DIR=$PWD/target CARGO_TARGET_DIR=$PWD/target
-python3 -B tools/run_secure_boot.py --case all --evidence docs/verification/b04-secure-boot-20261123   # exit 0, 5/5
+python3 -B tools/run_secure_boot.py --case all --evidence docs/verification/b04-secure-boot-20261123   # exit 0, 5/5 (the directory must not exist yet; reserve_evidence refuses an existing one)
 python3 -B tools/run_secure_boot.py --case signed                                                     # exit 1 (unproven, by design)
-python3 -B -m unittest discover -s tools/tests -p 'test_run_secure_boot.py' -v                        # exit 0, 31 tests
+python3 -B -m unittest discover -s tools/tests -p 'test_run_secure_boot.py' -v                        # exit 0, 33 tests
 python3 -B -m compileall -q tools/run_secure_boot.py tools/tests/test_run_secure_boot.py              # exit 0
 ```
 
@@ -46,10 +46,10 @@ for this one.
 | Case | Loader sha256 | Host sbverify (snakeoil) | Raw QEMU exit | Host timeout | Duration | Observed | Verdict |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | unsigned | `5841d027…` | fail | -9 (host kill) | yes (120 s) | 120.0 s | BdsDxe `Access Denied -- rejected probably by Secure Boot`; no loader/kernel line; store unchanged | refused, as expected |
-| signed | `63a72fcc…` | pass | 33 | no | 3.7 s | `BOOT:FLOOR:0`, `BOOT:SLOT:B:REJECTED:FORMAT`, `BOOT:SLOT:A:VERSION:1`, `BOOT:SIGNED:OK`, `BOOT:EBS_OK` … `M1:PASS`; B03 `install` store oracle | booted, as expected |
-| wrong-key | `d8398c52…` | fail (own ephemeral cert: pass, required) | -9 (host kill) | yes (120 s) | 120.0 s | same denial line; no loader/kernel line; store unchanged | refused, as expected |
-| tampered | `a8199d83…` | fail | -9 (host kill) | yes (120 s) | 120.0 s | same denial line; COFF TimeDateStamp byte at file offset 128 flipped after signing; store unchanged | refused, as expected |
-| kernel-digest | `52713811…` | pass | 33 | no | 3.7 s | `BOOT:SLOT:B:REJECTED:DIGEST`, fallback `BOOT:SLOT:A:VERSION:1`, `BOOT:SIGNED:OK` … `M1:PASS`; B03 `bad-digest` store oracle | loader-side refusal under SB, as expected |
+| signed | `7c49628f…` | pass | 33 | no | 3.8 s | `BOOT:FLOOR:0`, `BOOT:SLOT:B:REJECTED:FORMAT`, `BOOT:SLOT:A:VERSION:1`, `BOOT:SIGNED:OK`, `BOOT:EBS_OK` … `M1:PASS`; B03 `install` store oracle | booted, as expected |
+| wrong-key | `10283323…` | fail (own ephemeral cert: pass, required) | -9 (host kill) | yes (120 s) | 120.0 s | same denial line; no loader/kernel line; store unchanged | refused, as expected |
+| tampered | `47d394f8…` | fail | -9 (host kill) | yes (120 s) | 120.0 s | same denial line; COFF TimeDateStamp byte at file offset 128 flipped after signing; store unchanged | refused, as expected |
+| kernel-digest | `abbf35b8…` | pass | 33 | no | 3.9 s | `BOOT:SLOT:B:REJECTED:DIGEST`, fallback `BOOT:SLOT:A:VERSION:1`, `BOOT:SIGNED:OK` … `M1:PASS`; B03 `bad-digest` store oracle | loader-side refusal under SB, as expected |
 
 Firmware identity is pinned in the runner and recorded per case: CODE
 `33c413a0…`, VARS template `a6b8ffac…`, per-run VARS before boot `a6b8ffac…`
@@ -59,6 +59,14 @@ cases of the same invocation with identical firmware hashes. Without such a
 case a boot verdict is reported as unproven and fails. Every denial line reads
 `BdsDxe: failed to load Boot0002 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0): Access Denied -- rejected probably by Secure Boot`
 and names the ESP boot option.
+
+Runner changes in this capture (Graphify review of PR #434): a case that
+raises instead of completing no longer discards the other cases' reports; it is
+recorded as `passed: false` and the run exits 1. A reserved `--evidence`
+directory that is still empty when the run stops is removed again. Guest
+markers in the refusal check stay unanchored substring matches: the committed
+refusal logs contain no such substring, and anchoring would miss a guest line
+that follows firmware escape sequences.
 
 Stricter refusal rule in this capture: a refusal case passes only when QEMU
 is still running at the 120 s host timeout. An earlier exit, even after the
@@ -76,10 +84,9 @@ Full per-case reports: `<case>/result.json`; raw serial: `<case>/serial.txt`.
 - The refusal cases end with a host kill after 120 s (about 30 times the
   signed boot time). The firmware does not exit by itself after a refusal.
 - The denial check depends on the BdsDxe wording of this firmware build.
-- One guest at a time: before the capture, `pgrep -a qemu-system` showed a
-  guest of another worktree (`n02-native-dhcp`); the capture waited until no
-  `qemu-system` process remained and started at 2026-11-23T17:02:34Z. The
-  `--case signed` check ran afterwards, also with no other guest.
+- One guest at a time: the capture waited until `pgrep qemu-system` found no
+  process and started at 2026-11-23T20:07:12Z. The `--case signed` check ran
+  afterwards, also with no other guest.
 - The snakeoil key passphrase (`snakeoil`) remains an assumption for the
   Ubuntu build: the host documentation does not state it. Public source for the
   Debian package: edk2 2025.02-8+deb13u1 `debian/tests/shell.py` passes it as

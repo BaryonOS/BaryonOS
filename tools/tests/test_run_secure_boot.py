@@ -1,5 +1,6 @@
 """Host-only checks for the B04 Secure Boot TEST runner; no QEMU, no signing."""
 import inspect
+import json
 from pathlib import Path
 import subprocess
 import sys
@@ -29,6 +30,19 @@ class RefusalTests(unittest.TestCase):
     def test_guest_marker_is_not_refusal(self):
         self.assertTrue(sb.classify_refusal(DENIED + "BOOT:FLOOR:0\n", -9, True))
         self.assertTrue(sb.classify_refusal(DENIED + "xxBOOT:EBS_OK\n", -9, True))
+
+    def test_real_firmware_output_is_no_guest_marker(self):
+        # Verbatim serial of the unsigned case (ovmf 2025.11-3ubuntu7.3), ANSI escapes and CRLF included.
+        screen = "\x1b[2J\x1b[001;001H\x1b[=3h\x1b[2J\x1b[001;001H\x1b[2J\x1b[001;001H\x1b[8;056;240t\x1b[2J\x1b[001;001H"
+        real = (screen + 'BdsDxe: loading Boot0002 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)\r\n'
+                'BdsDxe: failed to load Boot0002 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0): '
+                'Access Denied -- rejected probably by Secure Boot\r\n'
+                'BdsDxe: failed to load Boot0003 "UEFI Misc Device 2" from PciRoot(0x0)/Pci(0x5,0x0): Not Found\r\n'
+                "BdsDxe: No bootable option or device was found.\r\n"
+                "BdsDxe: Press any key to enter the Boot Manager Menu.\r\n")
+        self.assertEqual(sb.classify_refusal(real, -9, True), [])
+        # Unanchored on purpose: a guest line behind firmware escapes must still fail the refusal.
+        self.assertTrue(sb.classify_refusal(real + screen + "BOOT:FLOOR:0\r\n", -9, True))
 
     def test_silence_without_denial_is_not_refusal(self):
         # A hang or crash must not count as a firmware refusal.
@@ -288,12 +302,45 @@ class EvidenceDestinationTests(unittest.TestCase):
             self.assertFalse(path.resolve().exists() and path.resolve() != self.root, path)
         sb.prepare.assert_not_called()
 
-    def test_new_child_is_reserved_before_building(self):
+    def test_new_child_is_reserved_before_building_and_released_if_empty(self):
         target = self.root / "new-capture"
-        with self.assertRaisesRegex(AssertionError, "must not build"):
-            sb.main(["--case", "all", "--evidence", str(target)])
-        self.assertTrue(target.is_dir())
-        self.assertEqual(list(target.iterdir()), [])
+        seen = []
+
+        def failing_prepare():
+            seen.append(target.is_dir())
+            raise RuntimeError("build failed")
+
+        with unittest.mock.patch.object(sb, "prepare", side_effect=failing_prepare):
+            with self.assertRaisesRegex(RuntimeError, "build failed"):
+                sb.main(["--case", "all", "--evidence", str(target)])
+        self.assertEqual(seen, [True])
+        self.assertFalse(target.exists())
+
+    def test_crashed_case_keeps_other_reports_and_fails(self):
+        target = self.root / "partial-capture"
+        runs = self.root.parent / "runs"
+
+        def fake_run_case(case, *_):
+            if case == "wrong-key":
+                raise RuntimeError("boom")
+            run_dir = runs / case
+            run_dir.mkdir(parents=True)
+            (run_dir / "serial.txt").write_text(f"serial {case}")
+            expected = sb.CASES[case][3]
+            return dict(report(case, expected, True), run_directory=str(run_dir),
+                        raw_qemu_exit=33 if expected == "boot" else -9,
+                        timed_out=expected != "boot", duration_s=1.0)
+
+        with unittest.mock.patch.object(sb, "prepare", return_value=({}, Path("loader"), "f")), \
+                unittest.mock.patch.object(sb, "run_case", side_effect=fake_run_case):
+            self.assertEqual(sb.main(["--case", "all", "--evidence", str(target)]), 1)
+        self.assertEqual(sorted(p.name for p in target.iterdir()), sorted(sb.ORDER))
+        crashed = json.loads((target / "wrong-key" / "result.json").read_text())
+        self.assertFalse(crashed["passed"])
+        self.assertIn("RuntimeError: boom", crashed["problems"][0])
+        for case in ("unsigned", "signed", "tampered", "kernel-digest"):
+            self.assertTrue(json.loads((target / case / "result.json").read_text())["passed"], case)
+            self.assertEqual((target / case / "serial.txt").read_text(), f"serial {case}")
 
 
 if __name__ == "__main__":
