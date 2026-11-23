@@ -415,18 +415,61 @@ class MergeGroupTests(TestCase):
                 self.assertEqual(code, 1, out)
                 self.assertIn(error, out)
 
-    def test_group_that_left_the_queue_fails_at_once(self):
-        # Real wait budget: an ejected or rebuilt group can never merge, so it
-        # fails on the first well-formed read instead of polling to the deadline.
+    def test_group_that_left_the_queue_fails_after_two_reads(self):
+        # Real wait budget: an ejected or rebuilt group can never merge, so two
+        # consecutive well-formed reads lacking it, one poll apart, end the wait
+        # instead of polling to the deadline. Only the group's own pull request
+        # needs a built commit; unbuilt entries of other pull requests ahead or
+        # behind do not hide its absence.
         for queue in ([entry(1, 7, E, HEAD)],
-                      [entry(1, 7, E, HEAD), entry(2, 8, "f" * 40, OTHER)]):
+                      [entry(1, 7, E, HEAD), entry(2, 8, "f" * 40, OTHER)],
+                      [entry(1, 7, None, HEAD), entry(2, 9, None, "9" * 40)],
+                      [entry(1, 7, None, HEAD), entry(2, 8, "f" * 40, OTHER),
+                       entry(3, 9, None, "9" * 40)]):
             with self.subTest(queue=queue):
                 code, out, calls = self.run_group(queue)
                 self.assertEqual(code, 1, out)
                 self.assertIn("no longer in the merge queue", out)
-                self.assertEqual(calls.count("sleep"), 0)
-                self.assertEqual(len([url for url in calls if url.endswith("/graphql")]), 1)
+                self.assertEqual(calls.count("sleep"), 1)
+                self.assertEqual(len([url for url in calls if url.endswith("/graphql")]), 2)
                 self.assertFalse([url for url in calls if url.endswith("/labels")])
+
+    def test_one_absent_read_does_not_eject(self):
+        # A listing can lag: an absent read followed by one listing the group waits on.
+        group = entry(2, 8, GROUP, OTHER)
+
+        def reappear(labels, comments, nodes):
+            if group not in nodes:
+                nodes.insert(1, group)
+
+        code, out, calls = self.run_group([entry(1, 7, E, HEAD), entry(3, 9, "f" * 40, "9" * 40)],
+                                          on_sleep=reappear)
+        self.assertEqual(code, 0, out)
+        self.assertEqual(calls.count("sleep"), 1)
+
+    def test_absence_must_be_seen_on_consecutive_reads(self):
+        # Any poll that does not show absence resets the count: alternating
+        # reads, or an absent read, a failed read and another absent read.
+        group = entry(2, 8, GROUP, OTHER)
+        polls = merge_hold.WAIT_SECONDS // merge_hold.POLL_SECONDS
+
+        def toggle(labels, comments, nodes):
+            if group in nodes:
+                nodes.remove(group)
+            else:
+                nodes.insert(1, group)
+
+        code, out, calls = self.run_group([entry(1, 7, E, HEAD)], on_sleep=toggle,
+                                          ahead=[runs("in_progress")])
+        self.assertEqual(code, 1, out)
+        self.assertIn("did not complete in time", out)
+        self.assertNotIn("no longer in the merge queue", out)
+        self.assertEqual(calls.count("sleep"), polls)
+        code, out, calls = self.run_group([entry(1, 7, E, HEAD)],
+                                          checks=[DONE, OSError("HTTP 502"), DONE])
+        self.assertEqual(code, 1, out)
+        self.assertIn("no longer in the merge queue", out)
+        self.assertEqual(calls.count("sleep"), 3)
 
     def test_doubtful_queue_reads_are_not_taken_as_leaving(self):
         # Only a well-formed read that positively lacks the group ends the wait early.
@@ -437,6 +480,8 @@ class MergeGroupTests(TestCase):
             (None, {"data": {"repository": {"mergeQueue": None}}}),
             (None, {"data": {"repository": {"mergeQueue": {"entries": page}}}}),
             (self.QUEUE + [entry(4, 8, GROUP, OTHER)], None),
+            ([], None),
+            ([entry(1, 7, E, HEAD), entry(2, "8", "f" * 40, OTHER)], None),
             ([entry(1, 7, E, HEAD), entry(2, 8, None, OTHER)], None),
             ([entry(1, 7, E, HEAD), {"position": 2, "headCommit": None, "pullRequest": None}],
              None),

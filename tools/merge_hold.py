@@ -21,9 +21,11 @@ are therefore read close to this group's merge, not when its own checks end.
 A hold added after that final read, until GitHub merges the group, is not seen
 (ADR-MERGE-HOLD-20261113). The 45-minute deadline covers the group's
 own checks and the whole chain ahead, each position adding up to one poll.
-A group whose commit has left the queue (ejected or rebuilt) can never merge
-and fails at once. It then evaluates every pull request whose changes the
-merge-queue commit contains: the queue entry whose commit is the group head plus
+A group whose commit has left the queue (ejected or rebuilt) can never merge;
+once its own checks have completed, two consecutive well-formed reads, one
+poll apart, that both lack it end the wait with a failure. It then evaluates
+every pull request whose changes the merge-queue commit contains: the queue
+entry whose commit is the group head plus
 every entry ahead of it that has not merged yet (a merged one is already on
 `main`). Each must pass the same decision for its own head
 SHA. A released hold additionally requires the tree of that pull request's own
@@ -156,12 +158,14 @@ class LeftQueue(ValueError):
 def left_queue(nodes, head_sha, number):
     """True only if this well-formed queue read positively shows the group has left it.
 
-    No entry has head_sha, every entry names its pull request, and the group's
-    pull request is absent (ejected or merged) or has another built commit
-    (rebuilt). An entry of that pull request without a commit may still be this
-    group, so it is not proof of absence.
+    The list is not empty, no entry has head_sha, every entry names its pull
+    request by an integer number, and the group's pull request is absent
+    (ejected or merged) or has another built commit (rebuilt). An entry of that
+    pull request without a commit may still be this group, so it is not proof of
+    absence; unbuilt entries of other pull requests do not matter. An empty list
+    may be a lagging listing, so it is not proof either.
     """
-    if any(commit_oid(node) == head_sha for node in nodes):
+    if not nodes or any(commit_oid(node) == head_sha for node in nodes):
         return False
     pulls = [node.get("pullRequest") for node in nodes]
     if not all(isinstance(pull, dict) and isinstance(pull.get("number"), int) for pull in pulls):
@@ -277,16 +281,24 @@ def wait_for_checks(token, repo, sha, number):
     Only the timing depends on this: the decision afterwards reads the queue,
     labels and comments live and fails closed. API errors and unbuilt entries
     are retried, because waiting longer never weakens the hold. An entry ahead
-    that leaves the queue (merged or removed) no longer counts. A well-formed
-    read showing that this group itself has left the queue fails at once.
+    that leaves the queue (merged or removed) no longer counts. Two consecutive
+    polls whose well-formed reads both show that this group itself has left the
+    queue fail at once; any other poll in between resets that count, because a
+    single read may lag behind the queue.
     """
     deadline = time.monotonic() + WAIT_SECONDS
+    absent = 0
     while True:
         try:
             pending = still_running(token, repo, sha, number)
+            absent = 0
         except LeftQueue:
-            raise
+            absent += 1
+            if absent >= 2:
+                raise
+            pending = ["merge group commit not listed in the queue once; reading again"]
         except (KeyError, IndexError, ValueError, TypeError, AttributeError, OSError) as exc:
+            absent = 0
             pending = [f"queue or check-run read failed: {exc}"]
         if not pending:
             return
