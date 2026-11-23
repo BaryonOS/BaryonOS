@@ -81,6 +81,63 @@ The agreed probe profile remains TLS 1.3, X25519MLKEM768,
 TLS_AES_256_GCM_SHA384 and fixed ALPN, without classical fallback/session resumption/
 0-RTT mutations. No suitable native provider in this delivery.
 
+## N03-T2 host loopback oracle (host evidence only)
+
+Project-owner decision, 23 November 2026: "Host oracle first — allow aws-lc-rs
+as a host-only test dependency for the N03-T2 loopback handshake; the native
+provider choice stays open until the decision memo is reviewed."
+
+`tests/loopback.rs` runs a rustls client and server over an in-memory record
+pump. The profile side restricts the aws-lc-rs provider to TLS 1.3,
+X25519MLKEM768 and TLS13_AES_256_GCM_SHA384, uses the fixed test ALPN
+`baryon-n03-host-loopback/1`, disables resumption, tickets, 0-RTT and half-RTT
+data, and pins the peer's exact end-entity DER and SPKI with no intermediates.
+TLS 1.3 handshake signatures are still verified through the provider; TLS 1.2
+signatures are refused. Application data is written only after an acceptance
+gate re-checks version, group, suite, ALPN and peer pin on both sides.
+
+Project code exercised: `KeyServiceRandom` (over a synthetic Key-Service
+transport) is the rustls `SecureRandom` of every profile side, and
+`CertificateClock` is the rustls `TimeProvider` in the unavailable-time negative.
+The profile and pin verifier are test code because `src/` provides neither yet.
+
+Negative cases, each with an asserted specific error and no application
+plaintext on either side: X25519-only server and client (no fallback), other
+TLS 1.3 suite, TLS 1.2-only server and client, wrong server pin, wrong client pin,
+missing client certificate, wrong client ALPN, server that selects no ALPN
+(rustls accepts it; the gate refuses), Key-Service RNG denial
+(`FailedToGetRandomBytes`, exactly one request, no retry) and unavailable
+certificate time (`FailedToGetCurrentTime`). In TLS 1.3 the client completes
+before the server rejects its certificate; the test proves the server releases
+no plaintext, which a native design must preserve.
+
+Harness assumptions, not product properties: TEST-ONLY Ed25519 keys and
+self-signed certificates are generated at runtime by rcgen and never stored; no
+trust root is created. Certificate validity periods are not checked, and positive
+runs use a fixed test `TimeProvider`, because no trusted certificate-time
+authority exists. aws-lc generates the X25519MLKEM768 and signing randomness
+itself; that route does **not** pass through `KeyServiceRandom`.
+
+Host-only dev-dependencies (resolver 2 keeps them out of the library and
+`x86_64-unknown-none` graphs; checked with `cargo tree -e normal,build` and the
+freestanding build, whose crate list contains no aws-lc/rcgen):
+
+| Crate | Version | Licence (manifest) | Build script / note |
+|---|---|---|---|
+| rustls (dev features `aws_lc_rs,std,tls12`) | 0.23.46 | Apache-2.0 OR ISC OR MIT | Existing pin; normal graph stays `custom-provider` only |
+| rustls-webpki (dev feature `alloc`) | 0.103.16 | ISC | Existing transitive pin; used for SPKI extraction |
+| rcgen (`aws_lc_rs`, no default features) | 0.14.10 | MIT OR Apache-2.0 | `build = false`; no `ring` selected |
+| aws-lc-rs | 1.19.0 | ISC AND (Apache-2.0 OR ISC) | `build.rs`; github.com/aws/aws-lc-rs |
+| aws-lc-sys | 0.47.0 | ISC AND (Apache-2.0 OR ISC) AND Apache-2.0 AND MIT AND BSD-3-Clause AND (Apache-2.0 OR ISC OR MIT) AND (Apache-2.0 OR ISC OR MIT-0) | `builder/main.rs` compiles bundled AWS-LC C/assembly with `cc` (cmake builder as fallback); needs a host C compiler |
+| cc, cmake, jobserver, shlex, find-msvc-tools, dunce, fs_extra, pkg-config, libc | lockfile | MIT OR Apache-2.0 family (dunce: CC0-1.0 OR MIT-0 OR Apache-2.0; fs_extra: MIT) | aws-lc-sys build helpers |
+| time, time-core, deranged, num-conv, powerfmt, yasna | lockfile | MIT OR Apache-2.0 | rcgen certificate encoding |
+
+The lockfile also lists optional packages (for example x509-parser, ring
+helpers) that this feature selection does not build. Exact versions and
+checksums are in `Cargo.lock`. Not reviewed: a complete source audit of AWS-LC,
+advisories at release time, or a distribution notice set; this oracle is never
+linked into a Baryon OS image.
+
 ## Acceptance and evidence boundary
 
 For this step: targeted host tests, Clippy, formatting, `x86_64-unknown-none`
