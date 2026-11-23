@@ -4,6 +4,7 @@ from __future__ import annotations
 import hashlib
 import json
 import os
+import re
 from pathlib import Path
 import socket
 import struct
@@ -791,8 +792,17 @@ else:
                       self.assertRaisesRegex(ValueError, "ARP prime accounting")):
                     evaluate(report(server - (requests - replies)), peer, case="port-sweep")
 
+    def test_port_sweep_budget_matches_the_kernel_and_the_watchdog_outlasts_it(self):
+        source = (ROOT / "kernel/src/m2/m3/network_service.rs").read_text()
+        match = re.search(r"const PORT_SWEEP_TICK_DEADLINE: u64 = ([0-9_]+);", source)
+        kernel = int(match[1].replace("_", ""))
+        ceiling, watchdog = native_limits("port-sweep")
+        self.assertEqual(ceiling + 1, kernel)
+        # 100 Hz guest ticks: the kernel deadline must fail the run before the host kills QEMU.
+        self.assertGreaterEqual(watchdog, kernel // 100 + 30)
+
     def test_port_sweep_serial_requires_quiescent_phase_order(self):
-        self.assertEqual(native_limits("port-sweep"), (26_399, 300))
+        self.assertEqual(native_limits("port-sweep"), (31_999, 360))
         revoke = "NETSVC:REVOKE_TICKS:00000000000000000008\n"
         def serial(pre=5, base=20, post=25):
             return native_serial("revoke").replace(revoke, (
