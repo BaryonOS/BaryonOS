@@ -57,7 +57,13 @@ runs:
         from pathlib import Path
         root = Path('build/k06-smp-artifacts')
         names = sorted(p.name for p in root.iterdir()) if root.is_dir() else []
-        complete = names == ['smp-action-contract-a', 'smp-action-contract-b']
+        expected = ['smp-action-contract-a', 'smp-action-contract-b']
+        complete = names == expected
+        # Only listing lag may be retried: a strict subset of the expected artifacts, or the
+        # prefix-less extraction of a single match. Anything else is a filter defect.
+        lagged = set(names) < set(expected) or names == ['nested']
+        if not complete and not lagged:
+            raise SystemExit(f'unexpected artifact layout before retry: {names!r}')
         if not complete:
             print(f'::warning::Artifact listing lagged behind the uploads ({names!r}); retrying the download once.')
             shutil.rmtree(root, ignore_errors=True)

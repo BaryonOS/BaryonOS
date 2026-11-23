@@ -260,7 +260,8 @@ class SmpCiAggregationTests(unittest.TestCase):
                                          capture_output=True, text=True)
                 self.assertEqual(checked.returncode == 0, mutation is None, checked.stderr)
 
-        for layout, complete in (("both", True), ("flat", False), ("one", False), ("none", False)):
+        for layout, complete in (("both", True), ("flat", False), ("one", False), ("none", False),
+                                 ("unrelated", None), ("extra", None)):
             with self.subTest(listing=layout), tempfile.TemporaryDirectory() as directory:
                 root = Path(directory)
                 output = root / "build/k06-smp-artifacts"
@@ -271,11 +272,24 @@ class SmpCiAggregationTests(unittest.TestCase):
                     (output / "nested").mkdir(parents=True)
                 elif layout == "one":
                     (output / "smp-action-contract-a/nested").mkdir(parents=True)
+                elif layout == "unrelated":
+                    (output / "smp-action-contract-a/nested").mkdir(parents=True)
+                    (output / "unrelated-action-contract/nested").mkdir(parents=True)
+                elif layout == "extra":
+                    for name in ("a", "b", "c"):
+                        (output / f"smp-action-contract-{name}/nested").mkdir(parents=True)
                 github_output = root / "github-output"
                 listed = subprocess.run(
                     ["bash", "-euo", "pipefail", "-c", listing], cwd=root, capture_output=True, text=True,
                     env={**os.environ, "LISTING_RETRY_DELAY": "0", "GITHUB_OUTPUT": str(github_output)},
                 )
+                if complete is None:
+                    # A filter defect fails at once and keeps the evidence for diagnosis.
+                    self.assertNotEqual(listed.returncode, 0)
+                    self.assertIn("unexpected artifact layout", listed.stderr)
+                    self.assertFalse(github_output.exists())
+                    self.assertTrue(output.is_dir())
+                    continue
                 self.assertEqual(listed.returncode, 0, listed.stderr)
                 self.assertEqual(github_output.read_text(), f"complete={'true' if complete else 'false'}\n")
                 self.assertEqual(output.is_dir(), complete)
