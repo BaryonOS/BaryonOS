@@ -2018,7 +2018,7 @@
       "title": "virtio-snd hardening: stale-event tally, re-initialisation guard, visible-element check, marker order",
       "goal": "Close the snd addendum items 4/5 and CodeRabbit findings a-g of #415 without changing successful serial output.",
       "deps": [
-        "H03-T3b"
+        "H03-T3a"
       ],
       "write_paths": [
         "drivers/virtio-snd/",
