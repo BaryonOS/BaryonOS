@@ -104,14 +104,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "nieuw-os-usb-core"
+version = "0.1.0"
+
+[[package]]
 name = "noto-sans-mono-bitmap"
 version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "09b7b72dee69e4110d1b91fb8d497c1b74a54082da5738dff84136142c4f767b"
-
-[[package]]
-name = "nieuw-os-usb-core"
-version = "0.1.0"
 
 [[package]]
 name = "ui-core"
@@ -126,6 +126,6 @@ dependencies = [
 
 [[package]]
 name = "zeroize"
-version = "1.9.1"
+version = "1.9.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e13084392c5e4bc371903e2935a5eaeed24905a7511356b883835e18a78f6879"
+checksum = "85ccff8a4805aba1eaa4cd4afcd49f7557dd2cf5fd79ffc37f8959466effc5aa"

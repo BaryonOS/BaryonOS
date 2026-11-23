@@ -16,7 +16,7 @@ zeroize = ["digest/zeroize"]
 
 [dependencies]
 digest = { version = "=0.11.3", features = ["mac", "zeroize"] }
-zeroize = { version = "=1.9.1", default-features = false }
+zeroize = { version = "=1.9.2", default-features = false }
 hybrid-array = { version = "=0.4.15", default-features = false, features = ["zeroize"] }
 
 [dev-dependencies]

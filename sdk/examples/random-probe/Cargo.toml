@@ -10,7 +10,7 @@ native = []
 [dependencies]
 nieuw-os-sdk-runtime = { path = "../../runtime" }
 nieuw-os-keyring-random-client = { path = "../../keyring-random-client" }
-zeroize = { version = "=1.9.1", default-features = false }
+zeroize = { version = "=1.9.2", default-features = false }
 
 [dev-dependencies]
 keyring-core = { path = "../../../services/keyring" }
