@@ -24,9 +24,13 @@ XHCI_NO_DMAR = ("XHCI:BEGIN", "XHCI:NO_DMAR:BUS_MASTER_BLOCKED", "XHCI:PASS")
 
 
 def guest(machine="pc-q35-8.2", markers=XHCI_NOOP, source=SOURCE, exit_code=33, **changes) -> dict:
-    """One harness guest run shaped like the committed native reports (default: the positive xHCI no-op case)."""
+    """One harness guest run shaped like the committed native reports (default: the positive xHCI no-op case).
+
+    The captured serial output (stdout) holds the required markers, one per line.
+    """
+    required = ["BOOT:EBS_OK", "KERNEL:ENTRY", *markers]
     run = dict(passed=True, timed_out=False, raw_qemu_exit=exit_code, expected_exit=exit_code, source_sha256=source,
-               required_markers=["BOOT:EBS_OK", "KERNEL:ENTRY", *markers],
+               required_markers=required, stdout="".join(f"{marker}\n" for marker in required),
                command=["qemu-system-x86_64", "-machine", machine, "-cpu", "qemu64", "-nographic"])
     run.update(changes)
     return run
@@ -41,8 +45,10 @@ def xhci_report(**changes) -> dict:
 
 def acpi_report(runs=3, feature="native-acpi-s5", unit=None, run=None) -> dict:
     """A multi-run `profiles` report like docs/verification/h05-acpi-s5/native-report.json."""
-    entries = [dict(passed=True, guest=guest(markers=("M1:PASS",), exit_code=0),
-                    observed=["POWER:S5:PM1A=0x0604:SLP_TYP=0:SCI_EN=1", "POWER:S5:WRITE"]) for _ in range(runs)]
+    observed = ["POWER:S5:PM1A=0x0604:SLP_TYP=0:SCI_EN=1", "POWER:S5:WRITE"]
+    capture = "".join(f"{marker}\n" for marker in ["BOOT:EBS_OK", "KERNEL:ENTRY", "M1:PASS", *observed])
+    entries = [dict(passed=True, guest=guest(markers=("M1:PASS",), exit_code=0, stdout=capture),
+                    observed=list(observed)) for _ in range(runs)]
     if run is not None:
         run(entries)
     profile = dict(schema_version=1, passed=True, kernel_feature=feature, source_sha256=SOURCE, runs=entries)
@@ -302,6 +308,34 @@ class HardwareMatrixTests(MatrixCase):
             xhci["evidence"] = [XHCI_REPORT, self.report(f"docs/verification/c/{label.replace(' ', '-')}.json", report)]
             with self.subTest(case=label):
                 self.rejects("negative-case marker")
+
+    def test_observed_summary_must_agree_with_the_capture(self):
+        """A stale `observed` list never stands in for the captured serial output it summarises."""
+        _, xhci = self.row("VM-FR", "xhci")
+        _, acpi = self.row("VM-FR", "acpi")
+        without = [m for m in XHCI_NOOP if m != "XHCI:NOOP_COMPLETION:PASS"]
+        no_capture = guest()
+        no_capture.pop("stdout")
+        for label, row, report in (
+                ("summary claims an uncaptured marker", xhci,
+                 xhci_report(guest=guest(stdout="".join(f"{m}\n" for m in ["BOOT:EBS_OK", *without])))),
+                ("marker only inside a longer line", xhci,
+                 xhci_report(guest=guest(stdout="BOOT:EBS_OK\nX" + "\n".join(XHCI_NOOP) + "\n"))),
+                ("no capture", xhci, xhci_report(guest=no_capture)),
+                ("capture not text", xhci, xhci_report(guest=guest(stdout=["XHCI:PASS"]))),
+                ("acpi run without its write", acpi, acpi_report(run=lambda runs: runs[1]["guest"].update(
+                    stdout="BOOT:EBS_OK\nPOWER:S5:PM1A=0x0604:SLP_TYP=0:SCI_EN=1\n")))):
+            # Only the synthetic report is referenced, so committed evidence cannot mask the defect.
+            row["evidence"] = [self.report(f"docs/verification/o/{label.replace(' ', '-')}.json", report)]
+            with self.subTest(case=label):
+                self.rejects("native-verified lacks")
+        xhci["evidence"] = [self.report("docs/verification/o/fault-in-capture.json", xhci_report(
+            guest=guest(stdout="".join(f"{m}\n" for m in [*XHCI_NOOP, "XHCI:DMA_FAULT:WRITE_DENIED"]))))]
+        self.rejects("negative-case marker")
+        xhci["evidence"] = [self.report("docs/verification/o/crlf.json", xhci_report(
+            guest=guest(stdout="".join(f"{m}\r\n" for m in XHCI_NOOP))))]
+        acpi["evidence"] = [self.report("docs/verification/o/acpi.json", acpi_report())]
+        self.assertEqual(self.check()["native_verified"], 2)
 
     def test_native_report_size_and_format(self):
         _, xhci = self.row("VM-FR", "xhci")

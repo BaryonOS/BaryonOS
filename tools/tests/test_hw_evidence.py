@@ -26,10 +26,10 @@ RECORD_DIR = "docs/verification/hw-fixture"
 RECORD = f"{RECORD_DIR}/hw-evidence.json"
 FIXTURE_REFERENCE = "synthetic test fixture"
 # Plausible serial lines for wildcard markers whose content the validator parses or cross-checks.
+# The HWINV CPUID and Secure Boot lines follow the inventory (cpuid_line, secureboot_line).
 WILDCARD_LINES = {
-    "HWINV:CPUID:*": "HWINV:CPUID:VENDOR=GenuineIntel:HYPERVISOR=0",
-    "HWINV:SECUREBOOT=*": "HWINV:SECUREBOOT=0",
     "HWINV:ACPI:DMAR=*": "HWINV:ACPI:DMAR=PRESENT:DRHD=1",
+    "HDA:PLAYBACK:START:*": "HDA:PLAYBACK:START:MS=2000",
 }
 # Firmware console output that can precede the loader's marker on the same serial line (from a QEMU/OVMF capture).
 FIRMWARE = '\x1b[2J\x1b[001;001HBdsDxe: starting Boot0002 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)'
@@ -71,7 +71,7 @@ def fake_signature(namespace: str = NAMESPACE) -> str:
 
 def physical_inventory(**changes) -> dict:
     inventory = dict(schema=2, kind="baryonos-hw-inventory",
-                     cpuid=dict(vendor="GenuineIntel", hypervisor_bit=False), secure_boot="unknown",
+                     cpuid=dict(vendor="GenuineIntel", hypervisor_bit=False), secure_boot="disabled",
                      acpi=dict(dmar="present", drhd_units=1),
                      pci=[dict(address="0000:00:00.0", vendor="8086", device="4660", **{"class": "06"},
                                subclass="00", prog_if="00", revision="02"),
@@ -91,6 +91,16 @@ def pci_lines(inventory: dict) -> list[str]:
 def dmar_line(inventory: dict) -> str:
     acpi = inventory.get("acpi") or {}
     return f"HWINV:ACPI:DMAR={str(acpi.get('dmar', '')).upper()}:DRHD={acpi.get('drhd_units', '')}"
+
+
+def cpuid_line(inventory: dict) -> str:
+    return f"HWINV:CPUID:VENDOR={(inventory.get('cpuid') or {}).get('vendor', '')}:HYPERVISOR=0"
+
+
+def secureboot_line(inventory: dict) -> str:
+    value = inventory.get("secure_boot")
+    state = {"enabled": "1", "disabled": "0", "unknown": "ABSENT"}.get(value, "") if isinstance(value, str) else ""
+    return f"HWINV:SECUREBOOT={state}"
 
 
 def signer_state_problem(root: Path) -> str | None:
@@ -217,6 +227,10 @@ class Fixture:
                 lines += pci_lines(inventory)
             elif marker == hw_evidence.HWINV_DMAR_MARKER:
                 lines.append(dmar_line(inventory))
+            elif marker == "HWINV:CPUID:*":
+                lines.append(cpuid_line(inventory))
+            elif marker == "HWINV:SECUREBOOT=*":
+                lines.append(secureboot_line(inventory))
             else:
                 lines.append(WILDCARD_LINES.get(marker, marker[:-1] + "1") if marker.endswith("*") else marker)
         return lines
@@ -290,10 +304,22 @@ class RepositoryStateTests(unittest.TestCase):
         self.root.mkdir()
         self.fixture = Fixture(self.root)
 
-    def test_repository_protocols_blocked_and_signers_match_owner_decision(self):
+    def test_repository_protocols_follow_owner_decisions_and_signers(self):
+        """The live catalogue must agree with its recorded decisions; it is not required to stay blocked."""
         summary = hw_evidence.check()
         self.assertEqual(summary["protocols"], 7)
-        self.assertEqual(summary["ready"], [])
+        protocols = hw_evidence.load_protocols()
+        blockers = hw_evidence.open_blockers(json.loads((hw_evidence.ROOT / hw_evidence.MATRIX).read_text()))
+        self.assertEqual(summary["ready"], sorted(i for i, p in protocols.items() if p["status"] == "ready"))
+        self.assertEqual(summary["blocked"], sorted(i for i, p in protocols.items() if p["status"] == "blocked"))
+        for ident, protocol in protocols.items():
+            with self.subTest(ident=ident):
+                if blockers[ident]:
+                    self.assertEqual(protocol["status"], "blocked")
+                if protocol["status"] == "blocked":
+                    self.assertTrue(protocol["blocking_reasons"])
+                else:
+                    self.assertEqual((protocol["blocking_reasons"], blockers[ident]), ([], []))
         signers = hw_evidence.load_signers()
         self.assertIsNone(signer_state_problem(hw_evidence.ROOT))
         matrix = json.loads((hw_evidence.ROOT / hw_evidence.MATRIX).read_text())
@@ -305,12 +331,35 @@ class RepositoryStateTests(unittest.TestCase):
         else:
             self.assertGreaterEqual(summary["signers"], 1)
             self.assertEqual(summary["signer_status"], "configured")
-        protocols = hw_evidence.load_protocols()
         for protocol in protocols.values():
-            self.assertTrue(protocol["blocking_reasons"])
             self.assertEqual(set(protocol["device_markers"]), set(protocol["devices"]))
             self.assertEqual(protocol["prerequisites"], list(hw_evidence.PREREQUISITES[protocol["id"]]))
-        self.assertEqual(protocols["R03-INSTALL"]["status"], "blocked")
+
+    def test_all_open_decisions_keep_every_protocol_blocked(self):
+        """Synthetic all-blocked state: no target, no signer, every owner decision open."""
+        protocols = json.loads((self.root / hw_evidence.PROTOCOLS).read_text())
+        for protocol in protocols["protocols"]:
+            protocol["status"] = "blocked"
+            protocol["blocking_reasons"] = protocol["blocking_reasons"] or ["synthetic block"]
+        (self.root / hw_evidence.PROTOCOLS).write_text(json.dumps(protocols))
+        self.fixture.hw_profile["target"] = None
+        for decision in self.fixture.matrix["owner_decisions"]:
+            decision["status"] = "open"
+            decision.pop("reference", None)
+        self.fixture.write_matrix()
+        self.fixture.allow([])
+        summary = hw_evidence.check(self.root)
+        self.assertEqual((summary["ready"], summary["blocked"]), ([], sorted(hw_evidence.PROTOCOL_IDS)))
+        self.assertEqual(summary["signers"], 0)
+        self.assertTrue(summary["signer_status"].startswith("none"))
+        blockers = hw_evidence.open_blockers(self.fixture.matrix)
+        loaded = hw_evidence.load_protocols(self.root)
+        for ident in hw_evidence.PROTOCOL_IDS:
+            with self.subTest(ident=ident):
+                self.assertGreaterEqual(set(blockers[ident]),
+                                        {d for d, b in hw_evidence.REQUIRED_BLOCKS.items() if ident in b})
+                self.assertEqual(loaded[ident]["status"], "blocked")
+                self.assertTrue(loaded[ident]["blocking_reasons"])
 
     def test_signer_state_follows_owner_decision(self):
         self.fixture.reopen("OD-HW-SIGNERS")
@@ -529,7 +578,20 @@ class RepositoryStateTests(unittest.TestCase):
             (duplicate, committed["owner_decisions"][3]["id"]),
             (lambda m: m["owner_decisions"].append(dict(id="OD-HW-UNKNOWN", status="decided", reference="x")),
              "OD-HW-UNKNOWN"),
-            (lambda m: m["owner_decisions"].pop(1), committed["owner_decisions"][1]["id"])]
+            (lambda m: m["owner_decisions"].pop(1), committed["owner_decisions"][1]["id"]),
+            # A decided entry clears its blockers only when it is a valid matrix entry (hw_matrix rules).
+            (lambda m: next(d for d in m["owner_decisions"] if d["id"] == "OD-HW-BOOT").pop("blocks"),
+             "OD-HW-BOOT"),
+            (lambda m: next(d for d in m["owner_decisions"] if d["id"] == "OD-HW-BOOT")["blocks"].remove("H05-S5"),
+             "OD-HW-BOOT"),
+            (lambda m: next(d for d in m["owner_decisions"] if d["id"] == "OD-HW-SIGNERS").update(blocks=["H05-S5"]),
+             "OD-HW-SIGNERS"),
+            (lambda m: next(d for d in m["owner_decisions"] if d["id"] == "OD-HW-CAPTURE").pop("decision"),
+             "OD-HW-CAPTURE"),
+            (lambda m: next(d for d in m["owner_decisions"] if d["id"] == "OD-HW-TARGETS").update(extra=True),
+             "OD-HW-TARGETS"),
+            (lambda m: next(d for d in m["owner_decisions"] if d["id"] == "OD-HW-PUBLISH").update(
+                blocks=[*hw_evidence.PROTOCOL_IDS, "H05-S5"]), "OD-HW-PUBLISH")]
         for mutate, reason in cases:
             matrix = copy.deepcopy(committed)
             mutate(matrix)
@@ -579,6 +641,21 @@ class RepositoryStateTests(unittest.TestCase):
         write = lines.index("POWER:S5:WRITE")
         reset = lines[:write + 1] + [FIRMWARE + "BOOT:EBS_OK"] + lines[1:]
         self.assertRegex(hw_evidence.outcome(protocol, reset, steps), "appears 2 time.*exactly 1")
+
+    def test_single_prefixed_boot_satisfies_the_ordered_markers(self):
+        """The loader's BOOT:EBS_OK can follow firmware output on its line; only a line suffix counts as a boot."""
+        protocols = hw_evidence.load_protocols()
+        for ident in ("H05-S5", "R03-INSTALL", "HW-INV"):
+            protocol, lines = protocols[ident], self.fixture.serial_lines(ident)
+            steps = [dict(id=step["id"], result="pass") for step in protocol["steps"]]
+            prefixed = [FIRMWARE + line if line == "BOOT:EBS_OK" else line for line in lines]
+            with self.subTest(ident=ident):
+                self.assertIsNone(hw_evidence.outcome(protocol, prefixed, steps))
+                self.assertRegex(hw_evidence.outcome(protocol, prefixed + [FIRMWARE + "BOOT:EBS_OK"], steps),
+                                 "unexpected restart")
+                # The marker must end its line; trailing bytes are not a boot.
+                trailing = [line + " x" if line == "BOOT:EBS_OK" else line for line in lines]
+                self.assertRegex(hw_evidence.outcome(protocol, trailing, steps), "'BOOT:EBS_OK' missing")
 
     def test_inventory_requires_acpi_dmar_observation(self):
         hw_evidence._inventory(json.dumps(physical_inventory()).encode())
@@ -1007,6 +1084,14 @@ class ProtocolEvidenceTests(unittest.TestCase):
                      re.escape("relabelled as passed: required marker 'HDA:PLAYBACK:START:*' missing or out of order"))
         self.rejects(self.signed(lines=without + [start]), "missing or out of order")
         self.rejects(self.signed(protocol=dict(id="H03-AV", version=1)), "version mismatch")
+        # The START marker must report the playback duration that sets the completion deadline.
+        for bad in ("HDA:PLAYBACK:START:1", "HDA:PLAYBACK:START:MS=", "HDA:PLAYBACK:START:MS=0",
+                    "HDA:PLAYBACK:START:MS=02000", "HDA:PLAYBACK:START:MS=2000:EXTRA", "HDA:PLAYBACK:START:MS=x"):
+            with self.subTest(start=bad):
+                self.rejects(self.signed(lines=[bad if line == start else line for line in lines]),
+                             "malformed HDA:PLAYBACK:START marker")
+        self.rejects(self.signed(lines=[*lines[:-1], "HDA:PLAYBACK:START:MS=1", lines[-1]]),
+                     "malformed HDA:PLAYBACK:START marker|repeats")
         listen = next(i for i, s in enumerate(self.fixture.protocol["steps"]) if "listen" in s["action"])
 
         def unclear(record):
@@ -1072,6 +1157,58 @@ class ProtocolEvidenceTests(unittest.TestCase):
         self.rejects(self.signed(lines=lines[:dmar] + ["ACPI:UNAVAILABLE:NO_DMAR"] + lines[dmar:]),
                      "kernel ACPI marker ACPI:UNAVAILABLE:NO_DMAR .*contradicts")
 
+    def test_secure_boot_and_cpuid_bind_to_the_serial_log(self):
+        self.use("HW-INV")
+        lines = self.fixture.serial_lines()
+        self.assertTrue(hw_evidence.validate_record(self.signed(), self.root)["passed"])
+        secure = lines.index("HWINV:SECUREBOOT=0")
+        cpuid = lines.index("HWINV:CPUID:VENDOR=GenuineIntel:HYPERVISOR=0")
+
+        def at(index, *replacement):
+            return lines[:index] + list(replacement) + lines[index + 1:]
+        for label, changes, reason in (
+                ("log enabled, record and inventory disabled", dict(lines=at(secure, "HWINV:SECUREBOOT=1")),
+                 "Secure Boot"),
+                ("log absent, inventory disabled", dict(lines=at(secure, "HWINV:SECUREBOOT=ABSENT")), "Secure Boot"),
+                ("log disabled, inventory unknown",
+                 dict(inventory=physical_inventory(secure_boot="unknown"), lines=lines), "Secure Boot"),
+                ("repeated", dict(lines=at(secure, "HWINV:SECUREBOOT=0", "HWINV:SECUREBOOT=1")), "repeats"),
+                ("malformed", dict(lines=at(secure, "HWINV:SECUREBOOT=OFF")), "malformed HWINV:SECUREBOOT"),
+                ("lower case", dict(lines=at(secure, "HWINV:SECUREBOOT=absent")), "malformed HWINV:SECUREBOOT"),
+                ("vendor differs", dict(lines=at(cpuid, "HWINV:CPUID:VENDOR=AuthenticAMD:HYPERVISOR=0")),
+                 "CPUID vendor"),
+                ("cpuid repeated", dict(lines=at(cpuid, lines[cpuid], lines[cpuid])), "repeats"),
+                ("cpuid malformed", dict(lines=at(cpuid, "HWINV:CPUID:VENDOR=Intel:HYPERVISOR=0")),
+                 "malformed HWINV:CPUID")):
+            with self.subTest(case=label):
+                self.rejects(self.signed(**changes), reason)
+        # ABSENT maps to an unknown inventory state, never to disabled; the record keeps the operator observation.
+        unknown = physical_inventory(secure_boot="unknown")
+        self.assertTrue(hw_evidence.validate_record(self.signed(inventory=unknown), self.root)["passed"])
+        self.assertIn("HWINV:SECUREBOOT=ABSENT", self.fixture.serial_lines(inventory=unknown))
+        enabled = physical_inventory(secure_boot="enabled")
+        self.assertTrue(hw_evidence.validate_record(self.signed(inventory=enabled, secure_boot="enabled"),
+                                                    self.root)["passed"])
+        spaced = physical_inventory(cpuid=dict(vendor="  Shanghai  ", hypervisor_bit=False))
+        self.assertTrue(hw_evidence.validate_record(self.signed(inventory=spaced), self.root)["passed"])
+
+    def test_malformed_field_types_are_rejected_without_aborting_the_search(self):
+        self.use("H05-S5")
+        malformed = []
+        for label, changes in (
+                ("record secure_boot", dict(secure_boot=["disabled"])),
+                ("inventory secure_boot", dict(inventory=physical_inventory(secure_boot=["disabled"]))),
+                ("inventory acpi dmar", dict(inventory=physical_inventory(acpi=dict(dmar=["present"], drhd_units=1)))),
+                ("dma posture", dict(dma_posture={"unsupported": 1})),
+                ("step result", dict(mutate=lambda r: r["steps"][0].update(result=["pass"])))):
+            name = f"docs/verification/hw-inv-a-{label.replace(' ', '-').replace('_', '-')}/hw-evidence.json"
+            with self.subTest(case=label):
+                self.rejects(self.fixture.record(ident="HW-INV", key=self.key, name=name, **changes), "")
+            malformed.append(name)
+        # Every malformed candidate sorts before the valid HW-INV record, so the search must skip past them.
+        self.assertTrue(all(name < self.prerequisites[0] for name in malformed))
+        self.assertTrue(hw_evidence.validate_record(self.signed(), self.root)["passed"])
+
     def test_dmar_presence_is_not_containment(self):
         self.use("HW-INV")
         self.rejects(self.signed(dma_posture="VT-d contained"), "VT-d contained posture needs")
@@ -1113,6 +1250,12 @@ class ProtocolEvidenceTests(unittest.TestCase):
         self.assertEqual(hw_evidence.validate_record(self.signed(lines=usb, devices=[]), self.root)["devices"], [])
         self.rejects(self.signed(lines=usb, devices=["nvme"], passed=False, mutate=fail_step),
                      "device nvme listed without its transport marker")
+        # A later target marker (for example during recovery) cannot rebind the verified USB install to NVMe.
+        later = usb + ["INSTALL:TARGET:NVME:0000:01:00.0"]
+        self.rejects(self.signed(lines=later, devices=["nvme"]), "INSTALL:TARGET")
+        recovery = usb[:usb.index("RECOVERY:BOOT:PASS")] + ["INSTALL:TARGET:NVME:0000:01:00.0", "RECOVERY:BOOT:PASS"]
+        self.rejects(self.signed(lines=recovery, devices=["nvme"]), "INSTALL:TARGET")
+        self.rejects(self.signed(lines=recovery, devices=[]), "INSTALL:TARGET")
 
 
 if __name__ == "__main__":

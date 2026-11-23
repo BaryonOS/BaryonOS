@@ -59,8 +59,8 @@ NATIVE_BINDINGS = {
 }
 MAX_REPORT = 4 * 1024 * 1024
 HEX64 = re.compile(r"[0-9a-f]{64}")
-XHCI_LIMIT = ("kernel/src/m2/xhci.rs accepts only QEMU's qemu-xhci (PCI 1b36:000d) at a fixed fixture MMIO "
-              "address, so xHCI stays pending outside the QEMU profile")
+XHCI_LIMIT = ("kernel/src/m2/xhci.rs accepts only QEMU's qemu-xhci (PCI 1b36:000d) as the fixture controller "
+              "(BAR0 mapped at a fixed kernel virtual address), so xHCI stays pending outside the QEMU profile")
 
 
 def local_file(root: Path, name: str) -> Path:
@@ -116,6 +116,12 @@ def _observed(value: object) -> list | None:
     return value if isinstance(value, list) else None
 
 
+def _capture(guest: dict) -> set | None:
+    """The stripped lines of a guest's captured serial output (`stdout`), or None when it was not recorded."""
+    stdout = guest.get("stdout")
+    return {line.strip() for line in stdout.splitlines()} if isinstance(stdout, str) else None
+
+
 def _required(guest: dict) -> list:
     value = guest.get("required_markers")
     return value if isinstance(value, list) else []
@@ -161,14 +167,20 @@ def _run_set(unit: dict, machine: str, binding: Binding) -> str | None:
     if not all(marker in _required(g) for g in guests for marker in binding.required):
         return "other-case"
     observed = [_observed(found) for _, found, _ in runs]
-    markers = [m for g in guests for m in _required(g)] + [m for found in observed if found for m in found]
+    captures = [_capture(g) for g in guests]
+    markers = ([m for g in guests for m in _required(g)] + [m for found in observed if found for m in found]
+               + [line for capture in captures if capture for line in capture])
     if any(isinstance(m, str) and m.startswith(binding.forbidden) for m in markers):
         return "contradiction"
     source = unit.get("source_sha256")
     if (not isinstance(source, str) or not HEX64.fullmatch(source)
             or any(g.get("source_sha256") != source for g in guests)
             or any(found != [machine] for found in machines)
-            or any(found is None or any(m not in found for m in binding.observed) for found in observed)):
+            or any(found is None or any(m not in found for m in binding.observed) for found in observed)
+            # The `observed` summary binds only where the run's own captured serial output carries each marker
+            # as a whole line.
+            or any(capture is None or any(not isinstance(m, str) or m not in capture for m in found)
+                   for found, capture in zip(observed, captures))):
         return "incomplete"
     return "pass"
 
@@ -179,7 +191,8 @@ def native_bound(root: Path, paths: list[Path], profile: dict, device: dict) -> 
     A run set is the top-level report or one entry of its `profiles` object. It binds when the report and every
     run and guest passed (no timeout, raw exit equal to the expected exit), every guest ran with
     `-machine <profile machine>` and the report's source hash, and it is the family's positive case (see
-    NATIVE_BINDINGS). A related run set that failed raises: one failed run contradicts the claim. A passing related
+    NATIVE_BINDINGS), and every marker of its `observed` summary is a line of the guest's captured `stdout`. A
+    related run set that failed raises: one failed run contradicts the claim. A passing related
     negative profile does not bind, and a positive run set carrying a negative-case marker raises. Prose files and
     other machines never bind.
     """
@@ -227,26 +240,14 @@ def owner_decisions(decisions: object, hw_target: str | None) -> int:
         raise ValueError("owner decisions missing")
     seen, open_count = set(), 0
     for decision in decisions:
-        if (not isinstance(decision, dict) or not {"id", "decision", "status", "blocks"} <= set(decision)
-                or not set(decision) <= {"id", "decision", "status", "blocks", "reference"}):
-            raise ValueError("invalid owner decision")
-        ident, blocks = decision["id"], decision["blocks"]
-        if ident not in OWNER_DECISIONS or ident in seen:
+        # One per-entry rule set with tools/hw_evidence.py open_blockers(), so both checks agree.
+        problem = hw_evidence.decision_problem(decision)
+        if problem is not None:
+            raise ValueError(problem)
+        if decision["id"] in seen:
             raise ValueError("unknown or duplicate owner decision")
-        seen.add(ident)
-        if not isinstance(decision["decision"], str) or not decision["decision"].strip():
-            raise ValueError("owner decision lacks a question")
-        if (not isinstance(blocks, list) or not blocks or len(set(blocks)) != len(blocks)
-                or not set(blocks) <= hw_evidence.PROTOCOL_IDS):
-            raise ValueError("owner decision must block known physical protocols")
-        if not set(blocks) >= hw_evidence.REQUIRED_BLOCKS[ident]:
-            raise ValueError(f"{ident} blocks fewer protocols than the documented minimum "
-                             f"({', '.join(sorted(hw_evidence.REQUIRED_BLOCKS[ident]))})")
-        if decision["status"] == "open":
-            open_count += 1
-        elif decision["status"] != "decided" or not isinstance(decision.get("reference"), str) \
-                or not decision["reference"].strip():
-            raise ValueError("a decided owner decision needs a reference")
+        seen.add(decision["id"])
+        open_count += decision["status"] == "open"
     if seen != OWNER_DECISIONS:
         raise ValueError("required owner decision omitted")
     if hw_target is None and next(d for d in decisions if d["id"] == "OD-HW-TARGETS")["status"] != "open":
