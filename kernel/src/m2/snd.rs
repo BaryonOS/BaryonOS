@@ -996,9 +996,15 @@ impl Device {
     /// Re-posts consumed event buffers. F17 and the PR #197 advisory: every
     /// invalid event, including CTL_NOTIFY (`Unsupported`, CTLS is never
     /// negotiated), counts against the bound; the bound itself fences.
+    /// At most one ring's worth per call, so a device that completes every
+    /// re-posted buffer at once cannot keep the caller from its own status,
+    /// used-index and deadline checks.
     fn poll_events(&mut self, mut stream: Option<&mut pcm::Stream>) -> Result<(), Fault> {
         let config = self.config.ok_or(Fault::State)?;
-        while let Some((head, _)) = self.take_used(EVENTS)? {
+        for _ in 0..QUEUE_SIZE {
+            let Some((head, _)) = self.take_used(EVENTS)? else {
+                break;
+            };
             let address = self.pool.event(head)?;
             let mut bytes = [0u8; pcm::EVENT_BYTES];
             for (offset, byte) in bytes.iter_mut().enumerate() {
@@ -1165,13 +1171,15 @@ impl Device {
     /// epoch advances. Every miss quarantines; nothing is released selectively.
     fn fence(&mut self, budget_ms: u64, acknowledged: &[u8]) -> Result<u64, Fault> {
         let budget = budget_ms.saturating_mul(self.clock.per_ms);
+        // Reset and bus mastering off before any bookkeeping, so even a
+        // quarantine from `begin_fence` leaves the device stopped. Raw write:
+        // the acknowledgement below reads it back (and retries it).
+        self.common.w8(DEVICE_STATUS, 0);
+        let _ = self.pci.0.write_u16(FIXTURE, 4, MEMORY | INT_DISABLE);
         if self.life.begin_fence(rdtsc(), budget).is_err() {
             self.life.quarantine();
             return Err(Fault::Quarantined);
         }
-        self.common.w8(DEVICE_STATUS, 0);
-        // Raw write: the acknowledgement below reads it back.
-        let _ = self.pci.0.write_u16(FIXTURE, 4, MEMORY | INT_DISABLE);
         loop {
             // F11: used samples bracket the read-back that acknowledges; the
             // snapshot is taken only if nothing moved across it.
@@ -1179,7 +1187,12 @@ impl Device {
             let status = self.status();
             let bus_master = self.pci.bus_master();
             match self.life.poll_fence(rdtsc(), status, bus_master) {
-                FenceStep::Pending => spin_loop(),
+                FenceStep::Pending => {
+                    if bus_master {
+                        let _ = self.pci.0.write_u16(FIXTURE, 4, MEMORY | INT_DISABLE);
+                    }
+                    spin_loop();
+                }
                 FenceStep::Acknowledged => {
                     let after = self.used_snapshot();
                     if self.life.record_snapshot(before, after).is_err() {

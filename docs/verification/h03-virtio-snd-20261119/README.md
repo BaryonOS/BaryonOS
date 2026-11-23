@@ -133,3 +133,23 @@ of that job is the authoritative CI result.
   guest (QEMU refuses `streams` outside 1..10).
 - The other xHCI cases (`fault`, `no-dmar`, `readonly`); only `noop` and USB
   `reports` were rerun for the cfg rename.
+
+## Focused security review (23 November 2026)
+
+An independent, read-only AI security review of `kernel/src/m2/snd.rs`,
+`drivers/virtio-snd/src/queue.rs`, the codec and the paging helpers ran on
+`a616980f`. It found no blocking (high) issue. Findings and handling:
+
+| # | Severity | Finding | Handling |
+| --- | --- | --- | --- |
+| 1 | medium-low | `poll_events` re-posted valid events without a bound; a device completing every buffer at once could keep `play`/`idle` from their status, used-index and deadline checks | fixed: at most one ring (`QUEUE_SIZE`) per call |
+| 2 | low | a `begin_fence` quarantine returned before the reset and bus-master-off writes | fixed: both writes precede the bookkeeping |
+| 3 | low | the bus-master-off write was issued once | fixed: retried while the fence is pending |
+| 4 | info | an early (false) completion of an outstanding head cannot be detected | accepted: trusted-transport, no-IOMMU model (TRANSPORT.md §2, B3/B9) |
+| 5 | info | `nomem` port I/O and unserialised `rdtsc` | accepted: timing only |
+
+The earlier CodeRabbit F8/F11 findings were fixed in `cc173d8e`. These fixes
+change the kernel source after the recorded native runs above; the hosted
+`native-xhci.yml` run on the fix head is their native evidence (the local QEMU
+is 10.2.1 and the runner accepts only the 8.2 series). An AI review is not an
+independent human audit.
