@@ -7,12 +7,12 @@ hosted CI and not acceptance of B04.
 
 ## Source and environment
 
-- Baseline commit: `2b54755cb0908bb0f55b9ba733fa9f2e40e9222e` on branch
-  `claude/b04-secure-boot-test-20261123`, plus the uncommitted Graphify
-  review fixes to `tools/run_secure_boot.py` and
-  `tools/tests/test_run_secure_boot.py` that are committed together with this
+- Baseline commit: `c5560a16ec8da69e76b72f0bc1b71134e3cfeda8` on branch
+  `claude/b04-secure-boot-test-20261123`, plus the uncommitted verdict-timing
+  fix (CodeRabbit review 6028934196) to `tools/run_secure_boot.py` and
+  `tools/tests/test_run_secure_boot.py` that is committed together with this
   capture.
-- Source fingerprint v3 (`common.source_hash`): `3b8d02c3756062aa87f253b1e11aef6af911c376d6de8712417a974789974ce5`
+- Source fingerprint v3 (`common.source_hash`): `5a75dd9e522ba9c63156a5d512b18efc768871476f458260ee439ff6f33ba2b8`
   (equal to `source_sha256` in every `result.json`).
 - QEMU: `QEMU emulator version 10.2.1 (Debian 1:10.2.1+ds-1ubuntu3.3)`, machine `pc-q35-10.0,smm=on`, TCG single-thread, secure pflash.
 - Firmware package: Ubuntu `ovmf 2025.11-3ubuntu7.3`
@@ -29,7 +29,7 @@ hosted CI and not acceptance of B04.
 export NOS_BUILD_DIR=$PWD/build NOS_TARGET_DIR=$PWD/target CARGO_TARGET_DIR=$PWD/target
 python3 -B tools/run_secure_boot.py --case all --evidence docs/verification/b04-secure-boot-20261123   # exit 0, 5/5 (the directory must not exist yet; reserve_evidence refuses an existing one)
 python3 -B tools/run_secure_boot.py --case signed                                                     # exit 1 (unproven, by design)
-python3 -B -m unittest discover -s tools/tests -p 'test_run_secure_boot.py' -v                        # exit 0, 33 tests
+python3 -B -m unittest discover -s tools/tests -p 'test_run_secure_boot.py' -v                        # exit 0, 34 tests
 python3 -B -m compileall -q tools/run_secure_boot.py tools/tests/test_run_secure_boot.py              # exit 0
 ```
 
@@ -46,10 +46,10 @@ for this one.
 | Case | Loader sha256 | Host sbverify (snakeoil) | Raw QEMU exit | Host timeout | Duration | Observed | Verdict |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | unsigned | `5841d027…` | fail | -9 (host kill) | yes (120 s) | 120.0 s | BdsDxe `Access Denied -- rejected probably by Secure Boot`; no loader/kernel line; store unchanged | refused, as expected |
-| signed | `7c49628f…` | pass | 33 | no | 3.8 s | `BOOT:FLOOR:0`, `BOOT:SLOT:B:REJECTED:FORMAT`, `BOOT:SLOT:A:VERSION:1`, `BOOT:SIGNED:OK`, `BOOT:EBS_OK` … `M1:PASS`; B03 `install` store oracle | booted, as expected |
-| wrong-key | `10283323…` | fail (own ephemeral cert: pass, required) | -9 (host kill) | yes (120 s) | 120.0 s | same denial line; no loader/kernel line; store unchanged | refused, as expected |
-| tampered | `47d394f8…` | fail | -9 (host kill) | yes (120 s) | 120.0 s | same denial line; COFF TimeDateStamp byte at file offset 128 flipped after signing; store unchanged | refused, as expected |
-| kernel-digest | `abbf35b8…` | pass | 33 | no | 3.9 s | `BOOT:SLOT:B:REJECTED:DIGEST`, fallback `BOOT:SLOT:A:VERSION:1`, `BOOT:SIGNED:OK` … `M1:PASS`; B03 `bad-digest` store oracle | loader-side refusal under SB, as expected |
+| signed | `290d9c92…` | pass | 33 | no | 3.6 s | `BOOT:FLOOR:0`, `BOOT:SLOT:B:REJECTED:FORMAT`, `BOOT:SLOT:A:VERSION:1`, `BOOT:SIGNED:OK`, `BOOT:EBS_OK` … `M1:PASS`; B03 `install` store oracle | booted, as expected |
+| wrong-key | `c7f0d722…` | fail (own ephemeral cert: pass, required) | -9 (host kill) | yes (120 s) | 120.0 s | same denial line; no loader/kernel line; store unchanged | refused, as expected |
+| tampered | `4dfad814…` | fail | -9 (host kill) | yes (120 s) | 120.0 s | same denial line; COFF TimeDateStamp byte at file offset 128 flipped after signing; store unchanged | refused, as expected |
+| kernel-digest | `0445a832…` | pass | 33 | no | 3.8 s | `BOOT:SLOT:B:REJECTED:DIGEST`, fallback `BOOT:SLOT:A:VERSION:1`, `BOOT:SIGNED:OK` … `M1:PASS`; B03 `bad-digest` store oracle | loader-side refusal under SB, as expected |
 
 Firmware identity is pinned in the runner and recorded per case: CODE
 `33c413a0…`, VARS template `a6b8ffac…`, per-run VARS before boot `a6b8ffac…`
@@ -60,7 +60,14 @@ case a boot verdict is reported as unproven and fails. Every denial line reads
 `BdsDxe: failed to load Boot0002 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0): Access Denied -- rejected probably by Secure Boot`
 and names the ESP boot option.
 
-Runner changes in this capture (Graphify review of PR #434): a case that
+Runner change in this capture (CodeRabbit review 6028934196): `run_case` no
+longer writes `result.json` into its run directory. Only `publish()` writes it,
+after `require_refusal_proof` has checked the whole invocation, so an
+interrupted run cannot leave an unchecked `passed: true` under
+`$NOS_BUILD_DIR/run/`. A regression test asserts that `run_case` creates no
+`result.json` and that `publish()` does.
+
+Runner changes in the previous capture (Graphify review of PR #434): a case that
 raises instead of completing no longer discards the other cases' reports; it is
 recorded as `passed: false` and the run exits 1. A reserved `--evidence`
 directory that is still empty when the run stops is removed again. Guest
@@ -84,9 +91,15 @@ Full per-case reports: `<case>/result.json`; raw serial: `<case>/serial.txt`.
 - The refusal cases end with a host kill after 120 s (about 30 times the
   signed boot time). The firmware does not exit by itself after a refusal.
 - The denial check depends on the BdsDxe wording of this firmware build.
-- One guest at a time: the capture waited until `pgrep qemu-system` found no
-  process and started at 2026-11-23T20:07:12Z. The `--case signed` check ran
-  afterwards, also with no other guest.
+- One guest at a time was not fully achieved. The capture started at
+  2026-11-23T20:40:51Z after `pgrep qemu-system` had found no process for
+  30 s. A 2 s sampler then recorded another session's port-sweep guest from
+  20:46:34Z to 20:46:58Z: it overlapped the last 22 s of the `tampered`
+  refusal window (started 20:44:56Z, 120 s) and the `kernel-digest` boot
+  (started 20:46:56Z, 3.75 s). Both cases still passed with the same denial
+  line and boot markers as before. An earlier attempt at 20:32:48Z started
+  while such a guest was running and was discarded. The `--case signed`
+  check ran afterwards with no other guest.
 - The snakeoil key passphrase (`snakeoil`) remains an assumption for the
   Ubuntu build: the host documentation does not state it. Public source for the
   Debian package: edk2 2025.02-8+deb13u1 `debian/tests/shell.py` passes it as

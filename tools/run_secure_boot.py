@@ -261,7 +261,7 @@ def run_case(case: str, images: dict, loader: Path, frozen: str) -> dict:
                   store_after_sha256=run_update.disk.sha256(after),
                   run_directory=str(run_dir), passed=False, problems=list(pin_problems))
     judge(report, out, rc, timed_out, before, after, images, frozen)
-    save_json(run_dir / "result.json", report)
+    # No result.json here: only publish() writes it, after require_refusal_proof.
     return report
 
 
@@ -346,8 +346,8 @@ def main(argv=None) -> int:
     finally:
         if evidence is not None:
             try:
-                evidence.rmdir()  # only succeeds while still empty: never removes a recorded report
-            except OSError:
+                evidence.rmdir()
+            except OSError:  # directory holds reports: keep it (rmdir never removes a recorded report)
                 pass
     passed = not crashed and all(report["passed"] for report in reports)
     print(f"B04 secure-boot TEST chain: {sum(r['passed'] for r in reports)}/{len(cases)} as expected")

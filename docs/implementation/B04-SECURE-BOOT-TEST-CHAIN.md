@@ -82,7 +82,9 @@ python3 -B -m unittest discover -s tools/tests -p 'test_run_secure_boot.py' -v
 ```
 
 Every run writes `result.json`, `serial.txt` and `stderr.txt` to
-`$NOS_BUILD_DIR/run/secure-boot-<case>-<id>/`. To also capture repository
+`$NOS_BUILD_DIR/run/secure-boot-<case>-<id>/`. `result.json` is written only
+after the cross-case Secure Boot proof check, so an interrupted run leaves no
+unchecked verdict behind. To also capture repository
 evidence, add `--evidence docs/verification/<new-directory>`, for example:
 
 ```

@@ -269,6 +269,45 @@ class SecureBootProofTests(unittest.TestCase):
             self.assertEqual(sb.main(["--case", "signed"]), 1)
 
 
+class RunCaseVerdictTests(unittest.TestCase):
+    def test_verdict_written_only_after_refusal_proof(self):
+        # An interrupted run must not leave an unchecked passed:true in build/run.
+        with tempfile.TemporaryDirectory() as temp:
+            build = Path(temp)
+            (build / "esp" / "EFI" / "BOOT").mkdir(parents=True)
+            firmware = build / "firmware.fd"
+            firmware.write_bytes(b"fw")
+
+            def fake_loader(case, loader, work, env):
+                (work / "BOOTX64.EFI").write_bytes(b"MZ")
+                return {}
+
+            def fake_pack(stage, images, env, path):
+                path.write_bytes(b"store")
+
+            patches = [unittest.mock.patch.object(sb, name, value) for name, value in (
+                ("BUILD", build), ("SECBOOT_CODE", firmware), ("SNAKEOIL_VARS", firmware),
+                ("environment", lambda: {"PATH": ""}), ("make_loader", fake_loader),
+                ("qemu_machine", lambda: "m"), ("secure_boot_args", lambda args, _: args),
+                ("firmware_pin_problems", lambda *_: []),
+                ("judge", lambda report, *_: report.update(passed=True)))]
+            patches += [unittest.mock.patch.object(sb.shutil, "which", return_value="qemu"),
+                        unittest.mock.patch.object(sb.subprocess, "check_output", return_value="QEMU x\n"),
+                        unittest.mock.patch.object(sb.run_update, "pack_store", fake_pack),
+                        unittest.mock.patch.object(sb.run_update, "qemu_command", return_value=["qemu"]),
+                        unittest.mock.patch.object(sb.run_update, "execute",
+                                                   return_value=(-9, DENIED, "", True, False, False))]
+            for patcher in patches:
+                patcher.start()
+                self.addCleanup(patcher.stop)
+            result = sb.run_case("unsigned", {"kernels": {}, "manifests": {}}, firmware, "f")
+            run_dir = Path(result["run_directory"])
+            self.assertTrue((run_dir / "serial.txt").exists())
+            self.assertFalse((run_dir / "result.json").exists())
+            sb.publish(result, None)
+            self.assertTrue(json.loads((run_dir / "result.json").read_text())["passed"])
+
+
 class EvidenceDestinationTests(unittest.TestCase):
     """--evidence must claim a new direct child of docs/verification before anything is built."""
 
