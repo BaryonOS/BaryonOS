@@ -2,9 +2,13 @@
 #![no_main]
 #![deny(unsafe_op_in_unsafe_fn)]
 
+#[cfg(feature = "native-dispi-probe")]
+mod dispi;
 #[cfg(feature = "framebuffer")]
+#[cfg_attr(feature = "native-dispi-probe", allow(dead_code))]
 mod framebuffer;
 #[cfg(feature = "graphics-g0")]
+#[cfg_attr(feature = "native-dispi-probe", allow(dead_code))]
 mod graphics;
 #[cfg(all(feature = "milestone-m2", not(feature = "native-smp-legacy")))]
 mod m2;
@@ -47,12 +51,26 @@ compile_error!("USB reattach and the read-only DMA fault require separate boots"
         feature = "native-rtc",
         feature = "native-acpi-s5",
         feature = "native-acpi-s3",
-        feature = "native-xhci-probe"
+        feature = "native-xhci-probe",
+        feature = "native-dispi-probe"
     )
 ))]
 compile_error!("native-virtio-snd-probe exclusively owns the single-CPU IF0 audio DMA fixture");
 #[cfg(all(feature = "test-snd-fence-reinit", feature = "test-snd-quarantine"))]
 compile_error!("virtio-snd fence cases require separate boots");
+#[cfg(all(
+    feature = "native-dispi-probe",
+    any(
+        feature = "milestone-m3",
+        feature = "native-smp",
+        feature = "native-smp-legacy",
+        feature = "native-rtc",
+        feature = "native-acpi-s5",
+        feature = "native-xhci-probe",
+        feature = "display-input"
+    )
+))]
+compile_error!("native-dispi-probe exclusively owns the Bochs DISPI ports in the IF0 bootstrap");
 #[cfg(all(feature = "graphics-g0", feature = "milestone-m3"))]
 compile_error!("graphics-g0 is an IF0 bootstrap, not a ring-3/compositor profile");
 #[cfg(all(

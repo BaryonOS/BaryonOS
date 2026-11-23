@@ -245,7 +245,9 @@ extern "C" fn run() -> ! {
     if cfg!(feature = "test-m2-double-fault") {
         arch::double_fault_probe();
     }
-    #[cfg(feature = "graphics-g0")]
+    #[cfg(feature = "native-dispi-probe")]
+    crate::dispi::run();
+    #[cfg(all(feature = "graphics-g0", not(feature = "native-dispi-probe")))]
     crate::graphics::run();
     #[cfg(feature = "milestone-m3")]
     {

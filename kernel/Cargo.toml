@@ -120,6 +120,8 @@ native-system-materiaal-probe = ["native-system-materiaal"]
 test-system-materiaal-recover = ["native-system-materiaal-probe", "test-system-recover"]
 test-system-materiaal-scale200 = ["native-system-materiaal-probe"]
 graphics-g0 = ["framebuffer", "dep:ui-core"]
+# H03 IF0 Bochs DISPI mode-set fixture on the 1280x720 desktop-mode GOP framebuffer.
+native-dispi-probe = ["graphics-g0", "dep:pci-core"]
 test-m2-ro = ["milestone-m2"]
 test-m2-nx = ["milestone-m2"]
 test-m2-absent = ["milestone-m2"]

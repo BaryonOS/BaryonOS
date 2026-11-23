@@ -82,7 +82,7 @@ KERNEL_FEATURES = ["test-panic", "test-hang", "milestone-m2", "native-rtc",
                    "milestone-m6c", *(f"test-m6c-{case}" for case in M6C_CASES), "graphics-g0", "native-qsim", "native-qsim-job",
                    "native-sdk-app", "test-sdk-app-denied", "native-ipc-wait",
                    "native-tpm-crb", "test-tpm-crb-absent", *VOLUME_FEATURES, *SUPERVISOR_FEATURES,
-                   *KEYRING_FEATURES, *MATERIAAL_FEATURES, *NAS_FEATURES, *UPDATE_FEATURES, *SYSTEM_FEATURES, *MEMORY_FEATURES, "native-fpu", "test-fpu-wait", "framebuffer", "native-display-probe", "native-system-display-input"]
+                   *KEYRING_FEATURES, *MATERIAAL_FEATURES, *NAS_FEATURES, *UPDATE_FEATURES, *SYSTEM_FEATURES, *MEMORY_FEATURES, "native-fpu", "test-fpu-wait", "framebuffer", "native-display-probe", "native-system-display-input", "native-dispi-probe"]
 
 
 def inspect_elf(path):
@@ -165,6 +165,10 @@ def build(loader_feature=None, kernel_feature=None, label="normal", image_versio
         if loader_feature not in (None,wanted):
             raise ValueError("Window session requires its matching desktop loader")
         loader_feature=wanted
+    elif kernel_feature == "native-dispi-probe":
+        if loader_feature not in (None, "desktop-mode"):
+            raise ValueError("DISPI mode-set fixture requires the 1280x720 desktop-mode loader")
+        loader_feature = "desktop-mode"
     elif kernel_feature == "graphics-g0":
         if loader_feature not in (None, "graphics-g0"):
             raise ValueError("G0 requires its paired graphics loader")

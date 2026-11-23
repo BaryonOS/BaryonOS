@@ -1,0 +1,12 @@
+[
+  {
+    "request": {
+      "execute": "qmp_capabilities",
+      "id": 1
+    },
+    "response": {
+      "return": {},
+      "id": 1
+    }
+  }
+]
