@@ -634,8 +634,9 @@ separate `CARGO_TARGET_DIR`.
 - **Out of scope:** the ownership control and resume (3.2); a
   provenance-carrying archive.
 - **Native stage:** the `volume_disk.py` v3 decoder is in scope (section
-  3). A native INSTALL stage changes the protected 22-stage pin, so it needs
-  an integration request.
+  3). A native INSTALL stage changes the protected 22-stage pin; the
+  integration request is `S09-L2-INSTALL-STAGE-INTEGRATION-REQUEST.md`
+  (open, four planned stages, 22 → 26).
 
 ## 10. Review record
 
