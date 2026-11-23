@@ -278,8 +278,9 @@ class Serial(unittest.TestCase):
             with self.assertRaisesRegex(RuntimeError, "can't start new thread"):
                 gate.run_bounded([sys.executable, "-c", "import time; time.sleep(60)"], dict(os.environ), timeout=30)
         process = started[0]
-        self.addCleanup(lambda: (process.kill(), process.wait(), process.stdout.close(), process.stderr.close()))
+        self.addCleanup(lambda: (process.kill(), process.wait()))
         self.assertIsNotNone(process.poll(), "QEMU stand-in left running after Thread.start failed")
+        self.assertTrue(process.stdout.closed and process.stderr.closed, "pipes of unstarted readers left open")
 
 
 class FakePipe:

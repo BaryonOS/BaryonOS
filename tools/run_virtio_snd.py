@@ -394,9 +394,11 @@ def run_bounded(args: list[str], env: dict, *, timeout: float) -> tuple[int | No
             process.kill()
             killed = True
         process.wait()
-        for thread in threads:
+        for thread, pipe in zip(threads, (process.stdout, process.stderr)):
             if thread.ident is not None:  # join() raises for a thread whose start() failed
                 thread.join(timeout=10)
+            else:
+                pipe.close()  # only drain() closes a started thread's pipe
     if errors:
         raise errors[0]
     if any(thread.is_alive() for thread in threads):
