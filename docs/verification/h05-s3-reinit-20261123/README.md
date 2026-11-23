@@ -143,3 +143,39 @@ worktree; they are not committed.
 - Not run: hosted CI on this head; clippy on the kernel binary and
   `sdk/examples/system` (no workflow runs it). AI work only, no independent
   human audit.
+
+## Review follow-up
+
+Source commit `20f53dd4` addresses the four minor findings of the
+independent review:
+
+1. `system.rs`: test-system-s3-reinit records the broker's delivered bytes
+   and denials at the wake, before any post-wake request. `finish` checks
+   these pre-sleep values against the original bounds (>= 1024 bytes,
+   >= 1 denial) and requires the exact post-wake increments: 32 bytes for
+   the kernel-driven delivery and one denial for init's -6. On the host,
+   `run_system.py` subtracts `SUSPEND_REINIT_ENTROPY` before applying the
+   256-byte `ENTROPY_BYTES` bound, and a new harness test covers 287/288.
+   The default test-system-s3 checks are unchanged.
+2. `system.rs`: the Key Service's Entropy handle is copied into kernel
+   state at manifest time. Re-init no longer reads word 48 of the
+   writable startup page.
+3. `virtio-rng`: the last-slot 64-bit BAR test now uses
+   saved=`[0x1000,0,0,0,0,4]` and now=`[0,0,0,0,0,4]`, so the `i == 5`
+   check is what refuses it. With that branch temporarily removed, the
+   test failed (out-of-bounds panic at `now[i + 1]`). The branch was then
+   restored.
+4. `keyring.rs`: the BAR label matches `Some(Restored)` explicitly, and
+   `None` goes to `reinit_fail(NO_BAR_STATE)` before the marker is
+   written.
+
+Results (QEMU 10.2.1, `pc-q35-8.2`, separate `build/h05t5bfix`):
+`tools/test_power_system.py` exit 0, with 10/10 stages passing. power,
+power-s3 and power-s3-reinit each give raw 0. The flush-error and
+flush-timeout cases and all five recoveries give raw 33. power-s3
+still prints `SUSPEND_LOST_ENTROPY=14`. power-s3-reinit prints
+`ENTROPY_BYTES=1056`, which is 1024 before the sleep plus 32 after it.
+virtio-rng test and clippy, `cargo fmt --all --check`,
+`tests.test_system_harness` (37 tests) and `test_sleep.py` (17 tests)
+all pass, as does `preflight.py --strict` (exit 0). Hosted CI was not
+run.
