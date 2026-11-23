@@ -463,6 +463,9 @@ fn profile_handshake_is_mutually_pinned_hybrid_tls13_and_uses_key_service_random
     assert!(outcome.server_error.is_none(), "{:?}", outcome.server_error);
     assert_eq!(accepted(&outcome.client, &server_pin), Ok(()));
     assert_eq!(accepted(&outcome.server, &client_pin), Ok(()));
+    // The gate binds the peer: each side's own pin is not its peer's pin.
+    assert_eq!(accepted(&outcome.client, &client_pin), Err(Refusal::Peer));
+    assert_eq!(accepted(&outcome.server, &server_pin), Err(Refusal::Peer));
     // The rustls SecureRandom route reached the project's Key-Service adapter.
     assert!(client_sends.load(Ordering::SeqCst) > 0);
     assert!(server_sends.load(Ordering::SeqCst) > 0);

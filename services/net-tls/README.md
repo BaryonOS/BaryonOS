@@ -139,7 +139,7 @@ freestanding build, whose crate list contains no aws-lc/rcgen):
 | Crate | Version | Licence (manifest) | Build script / note |
 |---|---|---|---|
 | rustls (dev features `aws_lc_rs,std,tls12`) | 0.23.46 | Apache-2.0 OR ISC OR MIT | Existing pin; normal graph stays `custom-provider` only |
-| rustls-webpki (dev feature `alloc`) | 0.103.16 | ISC | Existing transitive pin; used for SPKI extraction |
+| rustls-webpki (dev feature `alloc`) | 0.103.16 | ISC | Existing transitive pin; no longer used by the tests since N03-T2c (SPKI now via rustls `ParsedCertificate`) |
 | rcgen (`aws_lc_rs`, no default features) | 0.14.10 | MIT OR Apache-2.0 | `build = false`; no `ring` selected |
 | aws-lc-rs | 1.19.0 | ISC AND (Apache-2.0 OR ISC) | `build.rs`; github.com/aws/aws-lc-rs |
 | aws-lc-sys | 0.47.0 | ISC AND (Apache-2.0 OR ISC) AND Apache-2.0 AND MIT AND BSD-3-Clause AND (Apache-2.0 OR ISC OR MIT) AND (Apache-2.0 OR ISC OR MIT-0) | `builder/main.rs` compiles bundled AWS-LC C/assembly; local build script reported `Building with: CC` (cmake unused); needs a host C compiler |
