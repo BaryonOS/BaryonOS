@@ -139,6 +139,28 @@ def consecutive_image_matcher():
     return matches
 
 
+def input_kind(name: str, arguments) -> str | None:
+    """Classify an injected QMP input command; None for non-input commands."""
+    if name == "send-key":
+        return "key"
+    if name != "input-send-event":
+        return None
+    kinds = {{"key": "key", "rel": "pointer", "abs": "pointer", "btn": "button"}.get(event["type"], "other")
+             for event in arguments["events"]}
+    return kinds.pop() if len(kinds) == 1 else "mixed"
+
+
+class InputTimedQmp(QmpPipe):
+    """Stamp every injected input, so a phase never inherits an older action's start."""
+    last_input = None
+
+    def command(self, name, arguments=None):
+        kind = input_kind(name, arguments)
+        if kind is not None:
+            self.last_input = (time.monotonic(), kind)
+        return super().command(name, arguments)
+
+
 def switcher_key_edge(control, move, current, physical: str, down: bool, scale: int):
     """Bind a key edge to an acknowledged marker and two pointer events."""
     width, _, _, _, _ = switcher_geometry(scale)
@@ -621,7 +643,7 @@ def run(*, timeout: int, bios_rom: Path, vga_rom: Path, smoke: bool = False,
         with (directory / "stderr.txt").open("xb") as stderr:
             cpu_before = os.times() if os.name == "posix" else None
             process = subprocess.Popen(command, cwd=directory, env=env, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=stderr, bufsize=0)
-            control = QmpPipe(process, deadline)
+            control = InputTimedQmp(process, deadline)
 
             implementation = Path(os.readlink(f"/proc/{process.pid}/exe"))
             implementation_hash = sha256(implementation)
@@ -645,7 +667,6 @@ def run(*, timeout: int, bios_rom: Path, vga_rom: Path, smoke: bool = False,
                         raise TimeoutError("Native input acknowledgement missing: " + label)
                     time.sleep(0.02)
 
-            action_started = [None]
             def wait(name, predicate, oracle=None, image_check=None):
                 while True:
                     raw = observed_serial()
@@ -665,9 +686,10 @@ def run(*, timeout: int, bios_rom: Path, vga_rom: Path, smoke: bool = False,
                         publish(final_path, image)
                         captured[name] = image
                         report["phases"][name] = {"seconds": time.monotonic() - start, "state": {r: s[-1] for r, s in state.items() if s}, "frame_sha256": sha256(final_path), "oracle": oracle}
-                        if oracle is not None and action_started[0] is not None:
-                            report["phases"][name]["last_input_to_verified_app_image_s"] = time.monotonic() - action_started[0]
-                            report["phases"][name]["latency_scope"] = "Conservative host/QMP/observation/capture interval from last key chord to exact full app-body oracle; not whole-screen/guest/scanout latency or U02 budget acceptance."
+                        if oracle is not None and control.last_input is not None:
+                            report["phases"][name]["last_input_to_verified_app_image_s"] = time.monotonic() - control.last_input[0]
+                            report["phases"][name]["last_input_kind"] = control.last_input[1]
+                            report["phases"][name]["latency_scope"] = "Host/QMP/observation/capture interval from the start of the last injected QMP input (key, pointer or button, including pointer parking) to exact full app-body oracle; not whole-screen/guest/scanout latency or U02 budget acceptance."
                         print("WINDOW phase " + name + " " + str(round(time.monotonic() - start, 2)), flush=True)
                         return state
                     if process.poll() is not None or time.monotonic() >= deadline:
@@ -682,7 +704,6 @@ def run(*, timeout: int, bios_rom: Path, vga_rom: Path, smoke: bool = False,
                 role = "CALCULATOR" if current["FOCUSED"] == 1 else "MATERIAL"
                 old_keys = numbers(raw, f"WINDOW:{role}:KEYS")[-1]
                 old_acks = numbers(raw, f"WINDOW:{role}:INPUT_ACKS")[-1]
-                action_started[0] = time.monotonic()
                 control.command("send-key", {"keys": [{"type": "qcode", "data": k} for k in keys], "hold-time": 1})
                 if keys == ("f6",):
                     observe("F6 focus", lambda raw: comp(raw).get("GENERATION") == group_generation[0] and comp(raw).get("FOCUSED") == 1-current["FOCUSED"])

@@ -46,6 +46,8 @@ struct Runtime {
     reset_acks: u64,
     #[cfg(feature = "test-net-service-device-reset")]
     fault: ResetFault,
+    #[cfg(feature = "test-system-net-link")]
+    link: link::Link,
 }
 static mut RUNTIME: Runtime = Runtime {
     device: None,
@@ -81,6 +83,8 @@ static mut RUNTIME: Runtime = Runtime {
         rx_errors: 0,
         rx_error_code: 0,
     },
+    #[cfg(feature = "test-system-net-link")]
+    link: link::Link::NEW,
 };
 fn runtime() -> &'static mut Runtime {
     // SAFETY: KERNEL held, IF=0, permanent service stack. No borrow survives
@@ -162,6 +166,8 @@ pub(super) fn prepare(frames: &mut Frames<FRAME_COUNT>, kernel: &mut Paging) {
         runtime().device = Some(device);
         return;
     }
+    #[cfg(feature = "test-system-net-link")]
+    link::attach(&mut runtime().link, &device);
     runtime().device = Some(device);
     runtime().offline = 0;
 }
@@ -243,6 +249,11 @@ pub(super) fn syscall(s: &mut State, slot: usize, number: u64, args: [u64; 6]) -
     match call(s, slot, number, args) {
         Ok(v) => (0, v),
         Err(code) => {
+            // The post-wake refusal in `call` updates no counter either.
+            #[cfg(feature = "test-system-s3")]
+            if code == -14 && matches!(number, 0x70..=0x72) && super::system::resumed() {
+                return (code, 0);
+            }
             if code != -8 {
                 runtime().denied += 1;
             }
@@ -256,14 +267,23 @@ pub(super) fn syscall(s: &mut State, slot: usize, number: u64, args: [u64; 6]) -
     }
 }
 fn call(s: &mut State, slot: usize, n: u64, a: [u64; 6]) -> Result<u64, i64> {
-    if !matches!(n, 0x70..=0x72) {
+    if !(matches!(n, 0x70..=0x72) || cfg!(feature = "test-system-net-link") && n == 0x74) {
         return Err(-2);
     }
     if a[4..].iter().any(|x| *x != 0)
         || n == 0x71 && a[2..4].iter().any(|x| *x != 0)
         || n == 0x72 && a[3] != 0
+        || cfg!(feature = "test-system-net-link") && n == 0x74 && a[1..4].iter().any(|x| *x != 0)
     {
         return Err(-1);
+    }
+    // ADR-H05-S3-SYSTEM-20261123: the wake reset the NIC. As for keyring and
+    // volume, refused after the shape checks and before authority, plans,
+    // copies, ring or device access. (main.rs currently forbids this profile
+    // combination, so this is defence in depth, never built by a gate.)
+    #[cfg(feature = "test-system-s3")]
+    if matches!(n, 0x70..=0x72) && super::system::resumed() {
+        return Err(-14);
     }
     let pid = s.processes[slot].pid;
     let key = authorize(pid, a[0])?;
@@ -280,6 +300,11 @@ fn call(s: &mut State, slot: usize, n: u64, a: [u64; 6]) -> Result<u64, i64> {
             let r = runtime();
             if r.offline != 0 {
                 return Err(r.offline);
+            }
+            // Before any publication, bounce-page (DMA) write or doorbell.
+            #[cfg(feature = "test-system-net-link")]
+            if !link::usable(r) {
+                return Err(link::refuse(r, false));
             }
             if r.pending.is_some() || r.completed.is_some() {
                 return Err(-8);
@@ -337,6 +362,11 @@ fn call(s: &mut State, slot: usize, n: u64, a: [u64; 6]) -> Result<u64, i64> {
             if r.offline != 0 {
                 return Err(r.offline);
             }
+            // Before any copy-out or repost; no old-epoch bytes are held here.
+            #[cfg(feature = "test-system-net-link")]
+            if !link::usable(r) {
+                return Err(link::refuse(r, true));
+            }
             if r.rx_length == 0 {
                 return Err(-8);
             }
@@ -355,6 +385,8 @@ fn call(s: &mut State, slot: usize, n: u64, a: [u64; 6]) -> Result<u64, i64> {
             }
             Ok(count as u64)
         }
+        #[cfg(feature = "test-system-net-link")]
+        0x74 => link::query(runtime()),
         _ => Err(-2),
     }
 }
@@ -362,6 +394,9 @@ fn stop(r: &mut Runtime, now: u64, code: i64) {
     if let Some(device) = r.device.as_mut() {
         device.begin_reset();
     }
+    // A requested reset ends the link lifetime: no later state or event.
+    #[cfg(feature = "test-system-net-link")]
+    link::latch(r);
     r.offline = code;
     // RX failures reset the same device as TX. Preserve every published TX's
     // binding and provide a terminal uncertain outcome instead of eternal Again.
@@ -406,6 +441,10 @@ pub(super) fn broker_tick(s: &State) {
     if r.offline != 0 {
         return;
     }
+    #[cfg(feature = "test-system-net-link")]
+    if link::poll(r, s.ticks) {
+        return;
+    }
     if let Some(binding) = r.pending {
         match r.device.as_mut().unwrap().poll_tx(s.ticks) {
             Ok(Some(length)) => {
@@ -430,6 +469,8 @@ pub(super) fn broker_tick(s: &State) {
             Ok(Some(length)) => {
                 r.rx_length = length;
                 r.rx_completed += 1;
+                #[cfg(feature = "test-system-net-link")]
+                link::received(r, s.ticks);
             }
             Ok(None) => {}
             Err(e) => stop(r, s.ticks, error(e)),
@@ -438,6 +479,10 @@ pub(super) fn broker_tick(s: &State) {
 }
 pub(super) fn finished() -> bool {
     let r = runtime();
+    #[cfg(feature = "test-system-net-link-storm")]
+    if !link::held(r) {
+        return false;
+    }
     r.owner.is_none()
         && r.pending.is_none()
         && r.completed.is_none()
@@ -445,6 +490,9 @@ pub(super) fn finished() -> bool {
         && !r.quarantined
         && if cfg!(feature = "test-net-service-device-reset") {
             (1..=2).contains(&r.reset_acks) && r.reset_acks == r.resets
+        } else if cfg!(feature = "test-system-net-link-storm") {
+            // Exhaustion reset, then the owner-exit reset: both acknowledged.
+            r.resets == 2 && r.reset_acks == 2
         } else {
             r.reset_acks == 1
         }
@@ -557,5 +605,420 @@ pub(super) fn print_and_check(tx: u64, rx: u64) {
         (b"SYSTEM:NET_RESET_ACKS:", r.reset_acks),
     ] {
         print_number(label, value);
+    }
+}
+
+/// H04-T3, test profile only: kernel-owned virtio-net link state for the
+/// NetworkSource owner. One coherent STATUS sample per PIT tick is numbered
+/// with kernel epochs (`virtio_net_driver::LinkMonitor`); 0x70/0x72 are
+/// refused while the link is down or not yet observed, before any copy-out,
+/// descriptor publication, bounce-page (DMA) write or doorbell; undelivered RX
+/// bytes, including a completion still in the RX used ring, are destroyed at
+/// every down and every up edge, so a completion that arrived while the kernel
+/// epoch was down or unknown is discarded, also when hidden changes collapse
+/// into one up edge. 0x74 exposes only `(epoch, up)`: no registers, MAC or
+/// rights. Without VIRTIO_NET_F_STATUS the link is assumed active (virtio
+/// 1.2, 5.1.4.2) and 0x74 reports Unsupported (-15), its only meaning.
+/// Exhaustion or any reset latches: stop() keeps the pinned DMA pages and
+/// waits for the reset ACK; 0x74 then reports Offline (-14), whatever the
+/// stop cause.
+#[cfg(feature = "test-system-net-link")]
+pub(super) mod link {
+    use super::*;
+    use virtio_net_driver::{LinkEvent, LinkMonitor};
+
+    /// Distinct refusal: the link is down or not yet observed. Not Offline
+    /// (-14, device unusable) and not Again (-8, retry without a state
+    /// change); -12..-22 are taken by device, storage, service and clock codes.
+    pub(super) const LINK_DOWN: i64 = -23;
+    /// Transitions after the first sample per device lifetime, never refilled.
+    const BUDGET: u32 = 8;
+    /// Storm profile: the latched broker stays observable this many PIT ticks
+    /// so that later QMP toggles land while the guest still runs.
+    #[cfg(feature = "test-system-net-link-storm")]
+    const HOLD_TICKS: u64 = 300;
+    /// Probe evidence words (startup page offsets) observed at its exit.
+    pub(in super::super) const PROBE_WORDS: [u64; 13] = [
+        600, 608, 616, 624, 632, 640, 648, 656, 664, 672, 680, 688, 696,
+    ];
+    /// Startup word that tells the probe which link phase to run.
+    pub(in super::super) const MODE_WORD: u64 = 592;
+    pub(in super::super) const MODE: u64 = if cfg!(feature = "test-system-net-link-storm") {
+        2
+    } else {
+        1
+    };
+
+    #[derive(Clone, Copy)]
+    struct Counters {
+        events: u64,
+        ups: u64,
+        downs: u64,
+        synthetic: u64,
+        busy: u64,
+        tx_refused: u64,
+        rx_refused: u64,
+        rx_dropped: u64,
+        windows: u64,
+        window_delta: u64,
+        queries: u64,
+    }
+    pub(super) struct Link {
+        monitor: Option<LinkMonitor>,
+        supported: bool,
+        state: Option<(u64, bool)>,
+        polled: Option<u64>,
+        reported: Option<(u64, bool)>,
+        // Open down window: TX submissions and (RX, TX) publications at its start.
+        window: Option<(u64, (u16, u16))>,
+        refused: (bool, bool, bool),
+        exhausted: Option<u64>,
+        counters: Counters,
+    }
+    impl Link {
+        pub(super) const NEW: Self = Self {
+            monitor: None,
+            supported: false,
+            state: None,
+            polled: None,
+            reported: None,
+            window: None,
+            refused: (false, false, false),
+            exhausted: None,
+            counters: Counters {
+                events: 0,
+                ups: 0,
+                downs: 0,
+                synthetic: 0,
+                busy: 0,
+                tx_refused: 0,
+                rx_refused: 0,
+                rx_dropped: 0,
+                windows: 0,
+                window_delta: 0,
+                queries: 0,
+            },
+        };
+    }
+
+    pub(super) fn attach(link: &mut Link, device: &Device) {
+        match LinkMonitor::new(device.negotiated_features(), BUDGET) {
+            Ok(monitor) => {
+                link.monitor = Some(monitor);
+                link.supported = true;
+                serial::write(b"NETLINK:ATTACH:STATUS\n");
+            }
+            Err(_) => serial::write(b"NETLINK:ATTACH:NO_STATUS\n"),
+        }
+    }
+
+    /// Unknown counts as unusable; without STATUS the link is assumed active.
+    pub(super) fn usable(r: &Runtime) -> bool {
+        !r.link.supported || r.link.state.is_some_and(|(_, up)| up)
+    }
+
+    pub(super) fn refuse(r: &mut Runtime, receive: bool) -> i64 {
+        let link = &mut r.link;
+        if receive {
+            link.counters.rx_refused += 1;
+            link.refused.1 = true;
+        } else {
+            link.counters.tx_refused += 1;
+            link.refused.0 = true;
+        }
+        // Handshake for the runner: both directions refused in this window.
+        if link.window.is_some() && link.refused.0 && link.refused.1 && !link.refused.2 {
+            link.refused.2 = true;
+            print_number(
+                b"NETLINK:DOWN_REFUSED:",
+                link.state.map_or(0, |(epoch, _)| epoch),
+            );
+        }
+        LINK_DOWN
+    }
+
+    pub(super) fn query(r: &mut Runtime) -> Result<u64, i64> {
+        // Any stop, quarantine or latched monitor is Offline (-14), never the
+        // stop cause (an Io or Protocol stop maps to -12 or -15), so that -15
+        // below means only "no VIRTIO_NET_F_STATUS".
+        let latched = r
+            .link
+            .monitor
+            .as_ref()
+            .is_some_and(|monitor| monitor.state().is_err());
+        if r.offline != 0 || r.quarantined || latched {
+            return Err(error(virtio_core::Error::Offline));
+        }
+        if !r.link.supported {
+            return Err(error(virtio_core::Error::Unsupported));
+        }
+        let (epoch, up) = r.link.state.ok_or(-8)?;
+        r.link.counters.queries += 1;
+        if r.link.reported != Some((epoch, up)) {
+            r.link.reported = Some((epoch, up));
+            print_number(
+                if up {
+                    b"NETLINK:QUERY:UP:"
+                } else {
+                    b"NETLINK:QUERY:DOWN:"
+                },
+                epoch,
+            );
+        }
+        // epoch <= BUDGET + 1: the shift cannot lose bits.
+        Ok(epoch << 1 | u64::from(up))
+    }
+
+    pub(super) fn latch(r: &mut Runtime) {
+        if let Some(monitor) = r.link.monitor.as_mut() {
+            monitor.latch_reset();
+        }
+    }
+
+    #[cfg(feature = "test-system-net-link-storm")]
+    pub(super) fn held(r: &Runtime) -> bool {
+        r.link
+            .exhausted
+            .is_some_and(|tick| r.now >= tick.saturating_add(HOLD_TICKS))
+    }
+
+    /// Destroy an undelivered old-epoch copy and hand the same pinned RX
+    /// buffer back to the device. Returns true when the broker stopped.
+    fn drop_rx(r: &mut Runtime, now: u64) -> bool {
+        if r.rx_length == 0 {
+            return false;
+        }
+        r.rx.fill(0);
+        r.rx_length = 0;
+        r.link.counters.rx_dropped += 1;
+        print_number(b"NETLINK:RX_DROPPED:", r.link.counters.rx_dropped);
+        if let Err(e) = r.device.as_mut().unwrap().post_rx() {
+            stop(r, now, error(e));
+            return true;
+        }
+        false
+    }
+
+    /// Copy a completion already in the RX used ring into the empty broker
+    /// buffer, so that the following drop_rx destroys it and reposts the
+    /// page. Used at every link edge. Returns true when the broker stopped.
+    fn harvest(r: &mut Runtime, now: u64) -> bool {
+        // While a copy is held the RX descriptor is not posted: nothing to take.
+        if r.rx_length != 0 {
+            return false;
+        }
+        match r.device.as_mut().unwrap().poll_rx(&mut r.rx) {
+            Ok(Some(length)) => {
+                r.rx_length = length;
+                r.rx_completed += 1;
+                false
+            }
+            Ok(None) => false,
+            Err(e) => {
+                stop(r, now, error(e));
+                true
+            }
+        }
+    }
+
+    /// After an RX completion was copied into the broker buffer.
+    pub(super) fn received(r: &mut Runtime, now: u64) {
+        if !usable(r) {
+            let _ = drop_rx(r, now);
+        } else if r.link.supported {
+            print_number(b"NETLINK:RX_HELD:", r.rx_completed);
+        }
+    }
+
+    fn apply(r: &mut Runtime, event: LinkEvent, now: u64) -> bool {
+        r.link.counters.events += 1;
+        r.link.counters.synthetic += u64::from(event.synthetic);
+        r.link.state = Some((event.epoch, event.up));
+        let published = r.device.as_ref().unwrap().publications();
+        if event.up {
+            r.link.counters.ups += 1;
+            if let Some((submitted, opened)) = r.link.window.take() {
+                // Nothing may have been published or rung while down.
+                let delta = r.tx_submitted.wrapping_sub(submitted)
+                    + u64::from(published.0.wrapping_sub(opened.0))
+                    + u64::from(published.1.wrapping_sub(opened.1));
+                r.link.counters.windows += 1;
+                r.link.counters.window_delta += delta;
+                print_number(b"NETLINK:WINDOW_CLOSE_TX:", r.tx_submitted);
+                print_number(
+                    b"NETLINK:WINDOW_CLOSE_PUBLISHED:",
+                    u64::from(published.0) << 16 | u64::from(published.1),
+                );
+            }
+            // A completion already in the used ring arrived while the kernel
+            // epoch was down or unknown. Hidden changes inside one tick (up,
+            // frame, down, up, seen from a down epoch) collapse into this one
+            // real up edge, and broker_tick polls RX only after the sample, so
+            // destroy it here and repost the page. This runs after the window
+            // closed: the repost is not a down-window publication. Cost: at
+            // most one legitimate frame (the single RX buffer) per up edge.
+            if harvest(r, now) || drop_rx(r, now) {
+                return true;
+            }
+            print_number(
+                if event.synthetic {
+                    b"NETLINK:SYNTHETIC:UP:"
+                } else {
+                    b"NETLINK:EVENT:UP:"
+                },
+                event.epoch,
+            );
+            return false;
+        }
+        r.link.counters.downs += 1;
+        // Epoch isolation: in-flight TX is not terminalized (QEMU drops it and
+        // completes the descriptor with used.len 0, which is ordinary TX).
+        // A completion still in the used ring may predate this edge. broker_tick
+        // polls RX only after the link sample, so after a generation-only
+        // sample (this synthetic down, then up) it would be delivered in the
+        // new epoch: take it now and destroy it with any held copy. Both happen
+        // before the window opens, so a repost is not a down-window publication.
+        if harvest(r, now) || drop_rx(r, now) {
+            return true;
+        }
+        let published = r.device.as_ref().unwrap().publications();
+        r.link.window = Some((r.tx_submitted, published));
+        r.link.refused = (false, false, false);
+        print_number(b"NETLINK:WINDOW_OPEN_TX:", r.tx_submitted);
+        print_number(
+            b"NETLINK:WINDOW_OPEN_PUBLISHED:",
+            u64::from(published.0) << 16 | u64::from(published.1),
+        );
+        print_number(
+            if event.synthetic {
+                b"NETLINK:SYNTHETIC:DOWN:"
+            } else {
+                b"NETLINK:EVENT:DOWN:"
+            },
+            event.epoch,
+        );
+        false
+    }
+
+    /// At most one coherent sample (<= LINK_READ_ATTEMPTS reads) and two
+    /// events per PIT tick. Returns true when the broker stopped.
+    pub(super) fn poll(r: &mut Runtime, now: u64) -> bool {
+        if r.link.monitor.is_none() || r.link.polled == Some(now) {
+            return false;
+        }
+        r.link.polled = Some(now);
+        let sample = r.device.as_ref().unwrap().link_status();
+        let monitor = r.link.monitor.as_mut().unwrap();
+        let result = match sample {
+            Ok((generation, up)) => monitor.observe(generation, up),
+            Err(virtio_core::Error::Busy) => {
+                r.link.counters.busy += 1;
+                return false;
+            }
+            Err(e) => Err(e),
+        };
+        match result {
+            Ok(events) => events
+                .into_iter()
+                .flatten()
+                .any(|event| apply(r, event, now)),
+            Err(virtio_core::Error::Exhausted) => {
+                r.link.exhausted = Some(now);
+                print_number(
+                    b"NETLINK:EXHAUSTED:",
+                    r.link.state.map_or(0, |(epoch, _)| epoch),
+                );
+                stop(r, now, -14);
+                true
+            }
+            Err(e) => {
+                stop(r, now, error(e));
+                true
+            }
+        }
+    }
+
+    /// Kernel and probe link evidence after the probe exited.
+    pub(in super::super) fn check_and_print(probe: [u64; 13]) {
+        let r = runtime();
+        let l = &r.link;
+        let c = l.counters;
+        let epoch = l.state.map_or(0, |(epoch, _)| epoch);
+        let observations = l.monitor.as_ref().map_or(0, LinkMonitor::observations);
+        let kernel = [
+            u64::from(l.supported),
+            epoch,
+            c.events,
+            c.ups,
+            c.downs,
+            c.synthetic,
+            c.tx_refused,
+            c.rx_refused,
+            c.rx_dropped,
+            c.windows,
+            c.window_delta,
+            u64::from(l.exhausted.is_some()),
+        ];
+        for (label, value) in [
+            (&b"SYSTEM:NETLINK_SUPPORTED:"[..], kernel[0]),
+            (b"SYSTEM:NETLINK_EPOCH:", kernel[1]),
+            (b"SYSTEM:NETLINK_EVENTS:", kernel[2]),
+            (b"SYSTEM:NETLINK_UPS:", kernel[3]),
+            (b"SYSTEM:NETLINK_DOWNS:", kernel[4]),
+            (b"SYSTEM:NETLINK_SYNTHETIC:", kernel[5]),
+            (b"SYSTEM:NETLINK_TX_REFUSED:", kernel[6]),
+            (b"SYSTEM:NETLINK_RX_REFUSED:", kernel[7]),
+            (b"SYSTEM:NETLINK_RX_DROPPED:", kernel[8]),
+            (b"SYSTEM:NETLINK_WINDOWS:", kernel[9]),
+            (b"SYSTEM:NETLINK_WINDOW_DELTA:", kernel[10]),
+            (b"SYSTEM:NETLINK_EXHAUSTED:", kernel[11]),
+            (b"SYSTEM:NETLINK_OBSERVATIONS:", observations),
+            (b"SYSTEM:NETLINK_BUSY:", c.busy),
+            (b"SYSTEM:NETLINK_QUERIES:", c.queries),
+            (b"SYSTEM:NETLINK_PROBE_SUPPORTED:", probe[0]),
+            (b"SYSTEM:NETLINK_PROBE_FIRST_EPOCH:", probe[1]),
+            (b"SYSTEM:NETLINK_PROBE_DOWN_EPOCH:", probe[2]),
+            (b"SYSTEM:NETLINK_PROBE_UP_EPOCH:", probe[3]),
+            (b"SYSTEM:NETLINK_PROBE_TX_REFUSED:", probe[4]),
+            (b"SYSTEM:NETLINK_PROBE_RX_REFUSED:", probe[5]),
+            (b"SYSTEM:NETLINK_PROBE_STALE_ABSENT:", probe[6]),
+            (b"SYSTEM:NETLINK_PROBE_ARP_REPLIES:", probe[7]),
+            (b"SYSTEM:NETLINK_PROBE_UDP_ECHOES:", probe[8]),
+            (b"SYSTEM:NETLINK_PROBE_DENIED:", probe[9]),
+            (b"SYSTEM:NETLINK_PROBE_OFFLINE:", probe[10]),
+            (b"SYSTEM:NETLINK_PROBE_PREDOWN:", probe[11]),
+            (b"SYSTEM:NETLINK_PROBE_LAST_EPOCH:", probe[12]),
+        ] {
+            print_number(label, value);
+        }
+        // supported, epoch, events, ups, downs, synthetic, tx/rx refused,
+        // rx dropped, windows, window delta, exhausted.
+        let (expected, probe_expected): ([u64; 12], [u64; 12]) =
+            if cfg!(feature = "test-system-net-link-storm") {
+                (
+                    [1, 9, 9, 5, 4, 0, 0, 0, 1, 4, 0, 1],
+                    [1, 1, 0, 0, 0, 0, 0, 0, 0, 3, 2, 1],
+                )
+            } else if l.supported {
+                (
+                    [1, 3, 3, 2, 1, 0, 1, 1, 1, 1, 0, 0],
+                    [1, 1, 2, 3, 1, 1, 1, 1, 1, 3, 0, 1],
+                )
+            } else {
+                ([0; 12], [0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 0, 0])
+            };
+        assert_eq!(kernel, expected, "kernel link evidence");
+        assert_eq!(probe[..12], probe_expected, "probe link evidence");
+        // The probe only reports epochs the kernel actually handed out.
+        let last = probe[12];
+        assert!(if l.supported {
+            (1..=epoch).contains(&last)
+        } else {
+            last == 0
+        });
+        if !cfg!(feature = "test-system-net-link-storm") {
+            assert_eq!(last, epoch);
+        }
+        assert!(observations >= c.events && (!l.supported || c.queries > 0));
     }
 }
