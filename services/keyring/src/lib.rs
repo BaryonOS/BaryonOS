@@ -198,6 +198,16 @@ pub struct Service {
     key_generation: u64,
     /// A persistent snapshot binds this instance to one volume lineage.
     persistent_volume: Option<[u8; 16]>,
+    /// Write-ahead mode (B02 item 4): set by the first durable operation;
+    /// legacy GENERATE/REVOKE/RESTORE and `restore_persistent` are refused
+    /// afterwards.
+    write_ahead: bool,
+    /// Allocated indices whose snapshot is not yet durably committed.
+    pending: [u16; DOMAINS],
+    /// Revocations in effect locally but not yet durably committed.
+    revoke_pending: [u16; DOMAINS],
+    /// A commit returned `Unknown`; no further durable operation is attempted.
+    uncertain: bool,
     operations: u32,
     random: random::Pool,
     pub counters: Counters,
@@ -236,6 +246,10 @@ impl Service {
             }; DOMAINS],
             key_generation: 0,
             persistent_volume: None,
+            write_ahead: false,
+            pending: [0; DOMAINS],
+            revoke_pending: [0; DOMAINS],
+            uncertain: false,
             operations: 0,
             random: random::Pool::new(),
             counters: Counters {
@@ -344,6 +358,10 @@ impl Service {
         if table.revoked & (1 << index) != 0 {
             return Err(Status::Revoked);
         }
+        // Write-ahead: no seal or unseal until the allocation is durable.
+        if self.pending[domain] & (1 << index) != 0 {
+            return Err(Status::NotReady);
+        }
         Ok(derive_key(&self.master, domain as u8, index))
     }
 
@@ -352,6 +370,13 @@ impl Service {
         domain: usize,
         source: &mut impl EntropySource,
     ) -> Result<u8, Status> {
+        if self.write_ahead {
+            return Err(Status::Invalid);
+        }
+        self.allocate(domain, source)
+    }
+
+    fn allocate(&mut self, domain: usize, source: &mut impl EntropySource) -> Result<u8, Status> {
         self.account(source)?;
         let table = self.domains.get_mut(domain).ok_or(Status::Invalid)?;
         if usize::from(table.created) >= KEYS_PER_DOMAIN {
@@ -446,6 +471,13 @@ impl Service {
     }
 
     pub fn revoke(&mut self, domain: usize, index: u8) -> Result<(), Status> {
+        if self.write_ahead {
+            return Err(Status::Invalid);
+        }
+        self.revoke_entry(domain, index)
+    }
+
+    fn revoke_entry(&mut self, domain: usize, index: u8) -> Result<(), Status> {
         if !matches!(self.state, State::Ready | State::Degraded) {
             return Err(Status::NotReady);
         }
@@ -506,6 +538,10 @@ impl Service {
         blob: &[u8; RECOVERY_BLOB],
         source: &mut impl EntropySource,
     ) -> Result<usize, Status> {
+        // Legacy restore marks every index allocated without a durable commit.
+        if self.write_ahead {
+            return Err(Status::Invalid);
+        }
         self.account(source)?;
         let wrap = Zeroizing::new(recovery_key(secret));
         let cipher = XChaCha20Poly1305::new((&*wrap).into());
