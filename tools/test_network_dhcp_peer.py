@@ -150,6 +150,7 @@ class DhcpPeerTest(unittest.TestCase):
         spoof, real = replies["service.test"]
         self.assertEqual(answer(spoof)[:2], (50000, 53))
         self.assertEqual(struct.unpack_from("!H", answer(spoof)[2])[0], 0x1200 ^ 1)
+        self.assertEqual(answer(spoof)[2][-4:], peer.SPOOF_IP)
         port, source, message = answer(real)
         self.assertEqual((port, source), (50000, 53))
         self.assertEqual(struct.unpack_from("!HHHHHH", message), (0x1200, 0x8180, 1, 1, 0, 0))
@@ -157,7 +158,8 @@ class DhcpPeerTest(unittest.TestCase):
         self.assertEqual(message[12:12 + 18], query(LEASES[0], 50000, 0x1200, "service.test")[54:72])
         spoof, real = replies["missing.test"]
         self.assertEqual(answer(spoof)[:2], (50002, 54))
-        self.assertEqual(answer(spoof)[2], answer(real)[2])
+        self.assertEqual(struct.unpack_from("!HH", answer(spoof)[2]), (0x1201, 0x8180))
+        self.assertEqual(answer(spoof)[2][-4:], peer.SPOOF_IP)
         self.assertEqual(struct.unpack_from("!HHHHHH", answer(real)[2]), (0x1201, 0x8183, 1, 0, 1, 0))
         exchange(step, LEASES[0], 40000, 8080, 0)
         exchange(step, LEASES[0], 40001, 8090, 1)

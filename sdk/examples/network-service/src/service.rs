@@ -231,10 +231,10 @@ pub extern "C" fn _start() -> ! {
 /// Separate frame so the cache temporary is gone before `run` takes its stack.
 #[inline(never)]
 fn init_dns() {
-    // SAFETY: called once from `_start` on this single-threaded process before
-    // `run`, so no reference to DNS exists yet; the write initializes it.
     // Writing the constructor result directly avoids a second 22 KiB copy.
     match DnsCache::new() {
+        // SAFETY: called once from `_start` on this single-threaded process
+        // before `run`, so no reference to DNS exists yet; this initializes it.
         Ok(cache) => unsafe { ptr::addr_of_mut!(DNS).cast::<DnsCache>().write(cache) },
         Err(_) => fail(9),
     }

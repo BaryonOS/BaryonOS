@@ -47,6 +47,9 @@ MAX_ACTIONS = 512
 DNS_QUERIES = {(0, "service.test"): "a", (0, "missing.test"): "nxdomain", (1, "service.test"): "a"}
 DNS_TTL, NEGATIVE_TTL = 300, 60
 DNS_PORT_FIRST = 49152
+# Spoofs carry a different positive answer, so accepting one would change
+# the app's result instead of hiding behind the identical real reply.
+SPOOF_IP = bytes((192, 0, 2, 99))
 
 
 def ipv4_header(source, target, protocol, payload_length, identification):
@@ -363,9 +366,11 @@ class DhcpMachine:
         self.dns_seen.append(key)
         self.counts["dns_queries"] += 1
         self.event("rx", "dns-query", frame, port=port, dns_id=ident, name=name, lease=self.lease)
+        def positive(dns_id, address):
+            return (struct.pack("!HHHHHH", dns_id, 0x8180, 1, 1, 0, 0) + question
+                    + b"\xc0\x0c" + struct.pack("!HHIH", 1, 1, DNS_TTL, 4) + address)
         if DNS_QUERIES[key] == "a":
-            reply = (struct.pack("!HHHHHH", ident, 0x8180, 1, 1, 0, 0) + question
-                     + b"\xc0\x0c" + struct.pack("!HHIH", 1, 1, DNS_TTL, 4) + PEER_IP)
+            reply = positive(ident, PEER_IP)
             self.counts["dns_answers"] += 1
             label = "dns-answer"
         else:
@@ -376,12 +381,13 @@ class DhcpMachine:
             label = "dns-nxdomain"
         packets = []
         if self.lease == 0:
-            # One deterministic spoof first: wrong ID for the answer, wrong
-            # source port for the NXDOMAIN. The guest must drop and count it.
+            # One deterministic poisoned spoof first: wrong ID for the answer,
+            # wrong source port for the NXDOMAIN, each claiming SPOOF_IP. The
+            # guest must drop and count it.
             if DNS_QUERIES[key] == "a":
-                packets.append(self.dns_reply(port, struct.pack("!H", ident ^ 1) + reply[2:], "dns-spoof-id"))
+                packets.append(self.dns_reply(port, positive(ident ^ 1, SPOOF_IP), "dns-spoof-id"))
             else:
-                packets.append(self.dns_reply(port, reply, "dns-spoof-port", source=54))
+                packets.append(self.dns_reply(port, positive(ident, SPOOF_IP), "dns-spoof-port", source=54))
             self.counts["dns_spoofs"] += 1
         packets.append(self.dns_reply(port, reply, label))
         return packets

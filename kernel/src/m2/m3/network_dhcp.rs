@@ -252,8 +252,10 @@ fn check_dhcp(service: &[u64; 33]) {
     let [_, a, b] = evidence().snapshots.map(Option::unwrap);
     // UDP is DNS only: service.test on each lease and missing.test once (the
     // cached NXDOMAIN is not re-queried); the two peer spoofs are malformed.
-    // Rejections are deterministic request refusals of both apps, including
-    // app B's one refused Resolve (observed 12 in two runs).
+    // Rejected requests, none from polling (Again/Busy/Closed are not counted):
+    // A = malformed 1 + Access 1 + NotFound 2 + Stale 4 (two wrong tokens, the
+    // withdrawn held token, the old token); B = malformed 1 + Access 1 +
+    // refused Resolve 1 + wrong token 1.
     require(
         service[6] == 12
             && service[7] == 3
