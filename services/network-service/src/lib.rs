@@ -25,6 +25,8 @@ use wire::{ConnectionState, Operation, Packet, Status, DATA, MAX_NAME, MAX_RESOL
 pub const CLIENTS: usize = 2;
 pub const SOCKET_BYTES: usize = 4096;
 /// Upstream DNS queries one slot may start per lease configuration epoch.
+/// shortcut: no refill on renewal, so a long unchanged lease can exhaust it;
+/// replace with a time-based refill once native callers resolve routinely.
 pub const DNS_QUERY_BUDGET: u16 = 32;
 /// Monotonic ticks (`MONOTONIC_HZ`) from Resolve to Timeout, sent or not.
 pub const DNS_TIMEOUT_TICKS: u64 = 3 * nieuw_os_net_stack::MONOTONIC_HZ;
@@ -1120,34 +1122,43 @@ impl Service<'_> {
             return Ok((Status::Access, 0));
         };
         let owner = &mut self.owners[slot];
-        let (status, addresses, length) = if let Some(query) = &mut owner.dns {
-            if query.name != name {
-                return Ok((Status::Busy, 0));
+        let (status, addresses, length) = match &mut owner.dns {
+            Some(query) if query.name == name => {
+                if let Some(outcome) = query.outcome.take() {
+                    owner.dns = None;
+                    outcome
+                } else if now >= query.deadline {
+                    owner.dns = None;
+                    return Ok((Status::Timeout, 0));
+                } else {
+                    return Ok((Status::Again, 0));
+                }
             }
-            if let Some(outcome) = query.outcome.take() {
-                owner.dns = None;
-                outcome
-            } else if now >= query.deadline {
-                owner.dns = None;
-                return Ok((Status::Timeout, 0));
-            } else {
-                return Ok((Status::Again, 0));
+            pending => {
+                if let Some(cached) =
+                    cache.resolvers[slot].lookup(name, QueryType::A, cache.epoch, now)
+                {
+                    answer(cached)
+                } else if pending
+                    .as_ref()
+                    .is_some_and(|q| q.outcome.is_none() && now < q.deadline)
+                {
+                    // One live upstream query per slot; a finished or expired
+                    // one for another name is abandoned and replaced.
+                    return Ok((Status::Busy, 0));
+                } else if owner.dns_budget == 0 {
+                    return Ok((Status::Exhausted, 0));
+                } else {
+                    owner.dns_budget -= 1;
+                    owner.dns = Some(DnsQuery {
+                        name,
+                        deadline: now.checked_add(DNS_TIMEOUT_TICKS).ok_or(Fault::Clock)?,
+                        sent: None,
+                        outcome: None,
+                    });
+                    return Ok((Status::Again, 0));
+                }
             }
-        } else if let Some(cached) =
-            cache.resolvers[slot].lookup(name, QueryType::A, cache.epoch, now)
-        {
-            answer(cached)
-        } else if owner.dns_budget == 0 {
-            return Ok((Status::Exhausted, 0));
-        } else {
-            owner.dns_budget -= 1;
-            owner.dns = Some(DnsQuery {
-                name,
-                deadline: now.checked_add(DNS_TIMEOUT_TICKS).ok_or(Fault::Clock)?,
-                sent: None,
-                outcome: None,
-            });
-            return Ok((Status::Again, 0));
         };
         out[..length].copy_from_slice(&addresses[..length]);
         Ok((status, length as u32))

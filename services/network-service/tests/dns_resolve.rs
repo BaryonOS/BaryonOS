@@ -16,6 +16,7 @@ const ADDRESS: [u8; 4] = [192, 0, 2, 42];
 const SERVER: [u8; 4] = [192, 0, 2, 1];
 const DNS: [u8; 4] = [192, 0, 2, 53];
 const ROGUE: [u8; 4] = [192, 0, 2, 54];
+const SECOND_DNS: [u8; 4] = [192, 0, 2, 55];
 const RESOLVED: [u8; 4] = [203, 0, 113, 7];
 
 fn grant(ipv4: [u8; 4], udp_port: u16) -> Destination {
@@ -81,7 +82,7 @@ fn dns_random() -> Entropy {
     )
 }
 
-fn dhcp_reply(kind: u8, xid: u32, dns: bool) -> Vec<u8> {
+fn dhcp_reply(kind: u8, xid: u32, dns: &[[u8; 4]]) -> Vec<u8> {
     let mut message = vec![0; 240];
     message[..3].copy_from_slice(&[2, 1, 6]);
     message[4..8].copy_from_slice(&xid.to_be_bytes());
@@ -90,11 +91,13 @@ fn dhcp_reply(kind: u8, xid: u32, dns: bool) -> Vec<u8> {
     message[236..240].copy_from_slice(&[99, 130, 83, 99]);
     message.extend_from_slice(&[53, 1, kind, 54, 4]);
     message.extend_from_slice(&SERVER);
-    message.extend_from_slice(&[51, 4, 0, 0, 0, 80, 1, 4, 255, 255, 255, 0, 3, 4]);
-    message.extend_from_slice(&SERVER);
-    if dns {
-        message.extend_from_slice(&[6, 4]);
-        message.extend_from_slice(&DNS);
+    if kind != 6 {
+        message.extend_from_slice(&[51, 4, 0, 0, 0, 80, 1, 4, 255, 255, 255, 0, 3, 4]);
+        message.extend_from_slice(&SERVER);
+        if !dns.is_empty() {
+            message.extend_from_slice(&[6, 4 * dns.len() as u8]);
+            message.extend_from_slice(dns.concat().as_slice());
+        }
     }
     message.push(255);
     udp(SERVER_MAC, SERVER, [255; 4], 67, 68, &message)
@@ -146,13 +149,14 @@ fn acquire(s: &mut Service<'_>, start: u64, xid: u32, dns: bool) -> u64 {
         Ok(DriveOutcome::Published(_))
     ));
     complete(s, now);
-    s.ingress(&dhcp_reply(2, xid, dns), now).unwrap();
+    let servers: &[[u8; 4]] = if dns { &[DNS] } else { &[] };
+    s.ingress(&dhcp_reply(2, xid, servers), now).unwrap();
     assert!(matches!(
         s.drive_dhcp(now, &mut rng),
         Ok(DriveOutcome::Published(_))
     ));
     complete(s, now);
-    s.ingress(&dhcp_reply(5, xid, dns), now).unwrap();
+    s.ingress(&dhcp_reply(5, xid, servers), now).unwrap();
     for tick in [now, now + 100, now + 200] {
         s.poll(tick).unwrap();
         complete(s, tick);
@@ -633,4 +637,75 @@ fn reused_cache_storage_is_flushed_for_a_new_service() {
             }
         });
     }
+}
+
+#[test]
+fn renewal_dns_server_change_and_nak_flush_the_cache() {
+    for nak in [false, true] {
+        with_service([grant(DNS, 53), grant(DNS, 53)], |s| {
+            let now = acquire(s, 0, 0x1234, true);
+            let mut rng = dns_random();
+            assert_eq!(resolve(s, 0, 1, "example.org", now).status(), Status::Again);
+            arp_dns(s, &mut rng, now);
+            let (id, port, _) = sent_query(s, &mut rng, now);
+            s.ingress(&from_dns(port, &positive(id, "example.org", RESOLVED)), now)
+                .unwrap();
+            assert_eq!(resolve(s, 0, 2, "example.org", now).data(), &RESOLVED);
+            // Real renewal REQUEST at T1; same address, router and grant.
+            let renew = 4100;
+            let mut dhcp = Entropy([0x5678, 101_000].into());
+            assert!(matches!(
+                s.drive_dhcp(renew, &mut dhcp),
+                Ok(DriveOutcome::Published(_))
+            ));
+            complete(s, renew);
+            if nak {
+                s.ingress(&dhcp_reply(6, 0x5678, &[]), renew).unwrap();
+                assert!(s.dhcp_configuration(renew).unwrap().is_none());
+                assert_eq!(
+                    resolve(s, 0, 3, "example.org", renew).status(),
+                    Status::Again
+                );
+                let ready = acquire(s, renew, 0xabcd, true);
+                assert_eq!(
+                    resolve(s, 0, 4, "example.org", ready).status(),
+                    Status::Again
+                );
+            } else {
+                // Only the DNS server list changes; it still names our server.
+                s.ingress(&dhcp_reply(5, 0x5678, &[SECOND_DNS, DNS]), renew)
+                    .unwrap();
+                let lease = s.dhcp_configuration(renew).unwrap().unwrap();
+                assert_eq!(lease.address, ADDRESS);
+                assert_eq!(lease.dns_servers(), &[SECOND_DNS, DNS]);
+                assert_eq!(
+                    resolve(s, 0, 3, "example.org", renew).status(),
+                    Status::Again
+                );
+            }
+        });
+    }
+}
+
+#[test]
+fn abandoned_query_does_not_block_cache_hits_or_later_names() {
+    with_service([grant(DNS, 53), grant(DNS, 53)], |s| {
+        let now = acquire(s, 0, 0x1234, true);
+        let mut rng = dns_random();
+        assert_eq!(resolve(s, 0, 1, "example.org", now).status(), Status::Again);
+        arp_dns(s, &mut rng, now);
+        let (id, port, _) = sent_query(s, &mut rng, now);
+        s.ingress(&from_dns(port, &positive(id, "example.org", RESOLVED)), now)
+            .unwrap();
+        assert_eq!(resolve(s, 0, 2, "example.org", now).data(), &RESOLVED);
+        // Ask once for another name, then never come back for it.
+        assert_eq!(resolve(s, 0, 3, "a.org", now).status(), Status::Again);
+        // Cached names are still served while that query is live.
+        assert_eq!(resolve(s, 0, 4, "example.org", now).data(), &RESOLVED);
+        assert_eq!(resolve(s, 0, 5, "b.org", now).status(), Status::Busy);
+        // After the deadline the abandoned query no longer blocks the slot.
+        let later = now + DNS_TIMEOUT_TICKS;
+        assert_eq!(resolve(s, 0, 6, "b.org", later).status(), Status::Again);
+        assert_eq!(resolve(s, 0, 7, "a.org", later).status(), Status::Busy);
+    });
 }
