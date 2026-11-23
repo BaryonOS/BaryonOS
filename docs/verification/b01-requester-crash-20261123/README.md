@@ -12,7 +12,7 @@ the three existing host commands plus `unittest discover -s tools/tests -p
 fingerprint: normal, no-device, stuck, timeout, restart, requester-crash,
 no-reset-ack. Every stage: raw QEMU exit 33, the controlled marker sequence
 and no `FAIL`/`PANIC` line. Captured with `tools/capture_keyring.py`.
-QEMU 10.2.1 (Debian), TCG, qemu64, 1 CPU, 256 MiB.
+QEMU 10.2.1 (Ubuntu package `1:10.2.1+ds-1ubuntu3.3`), TCG, qemu64, 1 CPU, 256 MiB.
 
 ## What the two new cases show
 
@@ -41,6 +41,11 @@ bytes. On QEMU 10.2.1 the unchanged timeout case gives `[255, 1, 255, 1]`
 with one kernel ticket, so the host check accepts only whole `[255, 1]`
 pairs and an unanswered backend; the number of guest submissions is pinned
 kernel-side by `DEVICE_SUBMISSIONS=1`, not by the transcript.
+This whole-pair rule now also applies to the existing `timeout` case, which
+previously required only a non-empty transcript; the hosted runner's QEMU
+build has not yet been observed under the new rule. The harness's
+`response_bytes` field is a constant 0 (the fixture never answers), so its
+host check is a contract assertion, not a measurement.
 
 ## Evidence limits
 
