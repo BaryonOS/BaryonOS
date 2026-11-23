@@ -99,7 +99,7 @@ explicit product requirement.
 
 **Historical implementation:** Baryon OS, *image-viewer: render_tile*, version
 `d269f9b4` (3 November 2026), still draws raw decoded pixels
-([primary renderer source](https://github.com/simonvanieperen/nieuw-os/blob/d269f9b45a54576b39629b36de94f9cdbb9f6f71/sdk/examples/image-viewer/src/lib.rs)).
+([primary renderer source](https://github.com/BaryonOS/BaryonOS/blob/d269f9b45a54576b39629b36de94f9cdbb9f6f71/sdk/examples/image-viewer/src/lib.rs)).
 EXIF correction in `rgba8_into` therefore does not prove an oriented viewer
 or native user flow.
 
@@ -114,8 +114,8 @@ startup, the object portal and user flow remain open.
 **Test evidence:** Baryon OS, *viewer fixture and small image integration slice*,
 version `d269f9b4` (3 November 2026): the fixture was updated for the new
 `Image` fields and tested separately
-([primary test source](https://github.com/simonvanieperen/nieuw-os/blob/d269f9b45a54576b39629b36de94f9cdbb9f6f71/sdk/examples/image-viewer/tests/viewer.rs),
-[commands and results](https://github.com/simonvanieperen/nieuw-os/blob/d269f9b45a54576b39629b36de94f9cdbb9f6f71/docs/verification/integration-sprint-20261103-image.md)).
+([primary test source](https://github.com/BaryonOS/BaryonOS/blob/d269f9b45a54576b39629b36de94f9cdbb9f6f71/sdk/examples/image-viewer/tests/viewer.rs),
+[commands and results](https://github.com/BaryonOS/BaryonOS/blob/d269f9b45a54576b39629b36de94f9cdbb9f6f71/docs/verification/integration-sprint-20261103-image.md)).
 
 An initial instruction screen found only individual stack adjustments up to
 4 KiB. That was insufficient: the actual decoder frame reserved a cumulative
