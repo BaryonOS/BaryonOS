@@ -419,6 +419,16 @@ class PowerS3HarnessTests(unittest.TestCase):
         text = power_transcript("power", SUSPEND_LOST_ENTROPY=14)
         with self.assertRaisesRegex(ValueError, "outside"):
             evaluate("power", text, 0, False)
+        # Refused-power, normal and cold cases are checked too, not only "power".
+        stray = "SYSTEM:SUSPEND_LOST_BLOCK:" + "14".zfill(20)
+        with self.assertRaisesRegex(ValueError, "outside"):
+            evaluate("power-flush-error",
+                     power_transcript("power-flush-error") + "\n" + stray, 33, False)
+        with self.assertRaisesRegex(ValueError, "outside"):
+            evaluate("normal", transcript("normal") + "\n" + stray, 33, False)
+        import run_system as runner
+        with self.assertRaisesRegex(ValueError, "outside"):
+            runner.evaluate_cold(next(iter(runner.COLD_CASES)), stray, 33, False)
 
     def test_wrong_machine_or_accelerator_is_refused_before_launch(self):
         import run_system as runner

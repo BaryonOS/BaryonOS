@@ -176,6 +176,12 @@ def check_suspend(lines: list[str]) -> None:
         raise ValueError("power-s3 S3 markers are out of order")
 
 
+def refuse_stray_suspend(case: str, stdout: str) -> None:
+    """Every case except power-s3 must carry no SYSTEM:SUSPEND* evidence at all."""
+    if case != "power-s3" and any(line.startswith("SYSTEM:SUSPEND") for line in stdout.splitlines()):
+        raise ValueError("suspend evidence outside the power-s3 profile")
+
+
 SUSPEND_ORDER = ("REFUSALS", "GRANTED", "TICK_AFTER_WAKE", "LOST_ENTROPY", "LOST_BLOCK")
 
 
@@ -195,8 +201,6 @@ def check_power(case: str, stdout: str, found: dict) -> None:
             suspend = [line.split(":")[1] for line in lines if line.startswith("SYSTEM:SUSPEND")]
             if suspend != [f"SUSPEND_{key}" for key in SUSPEND_ORDER]:
                 raise ValueError(f"power-s3 suspend evidence out of order: {suspend}")
-        elif any(line.startswith("SYSTEM:SUSPEND") for line in lines):
-            raise ValueError("suspend evidence outside the power-s3 profile")
     else:
         fault = "FLUSH_ERROR" if case == "power-flush-error" else "FLUSH_TIMEOUT"
         if (any(line.startswith("POWER:") for line in lines)
@@ -224,6 +228,7 @@ def evaluate(case: str, stdout: str, raw_exit: int | None, timed_out: bool) -> d
         raise ValueError(f"raw exit {raw_exit}, timed_out {timed_out}")
     if any("PANIC" in line or "FAIL" in line for line in stdout.splitlines()):
         raise ValueError("guest failure marker")
+    refuse_stray_suspend(case, stdout)
     found = {}
     for line in stdout.splitlines():
         match = re.fullmatch(r"SYSTEM:([A-Z_]+):([0-9]{20})", line)
@@ -357,6 +362,7 @@ def cold_image(raw: bytes, case: str) -> bytes:
 def evaluate_cold(case: str, stdout: str, raw_exit: int | None, timed_out: bool) -> dict:
     if case not in COLD_CASES:
         raise ValueError("unknown cold case")
+    refuse_stray_suspend(case, stdout)
     lines = stdout.splitlines()
     marker = f"SYSTEM:COLD:REFUSED:{case}"
     controlled = [line for line in lines if line.startswith("SYSTEM:COLD:")]

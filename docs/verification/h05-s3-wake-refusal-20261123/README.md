@@ -108,3 +108,19 @@ they are not committed.
   wake remains a separate slice. AI review only, no independent human audit.
 - Not run: hosted CI on this head; clippy (no workflow runs clippy on the
   kernel binary or `sdk/examples/system`).
+- Any non-init process that issues `0x60` or `0x40`–`0x43` after the wake
+  makes `finish` fail the suspend evidence (`other` must stay 0). This is
+  deliberate fail-closed behaviour in a test profile; it is not a product
+  device-loss policy.
+
+## Independent review
+
+A fresh AI reviewer read the candidate diff `02ef433f..5e8c800d` against
+ADR-H05-S3-SYSTEM-20261123: no blocking or major finding. The cfg confinement,
+the absence of device, pointer or ring access before the refusal, and the log
+bounds were confirmed by reading. Minor finding 1 (a stray `SYSTEM:SUSPEND*`
+line passed in the refused-power, normal and cold cases) is fixed: the check now
+runs for every case except `power-s3` (`refuse_stray_suspend` in
+`tools/run_system.py`), with a host test that fails when the check is disabled.
+Minor findings 2 and 3 are the limits recorded above. This is AI review, not an
+independent human audit.
