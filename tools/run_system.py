@@ -74,6 +74,14 @@ TCP_FEATURE = {"normal": "native-system-tcp", "recover": "test-system-tcp-recove
 LINK_FEATURES = ("test-system-net-link", "test-system-net-link-storm")
 BOOT = ("BOOT:EBS_OK", "KERNEL:ENTRY", "BOOTINFO:OK")
 COLD_CASES = ("keystate", "record-tag", "swapped-blocks", "withheld-secret")
+# A refusing cold boot stops before any broker run, case verdict or persistence;
+# any of these in a cold log means the guest went further than a refusal.
+COLD_FORBIDDEN = ("SYSTEM:CASE:", "M1:PASS", "SYSTEM:BROKERS:", "SYSTEM:CLEANUP:", "SYSTEM:RECORD_",
+                  "SYSTEM:POWER:", "SYSTEM:KEYSTATE_")
+# Old-generation replay is a documented open boundary, never a COLD_CASES pass.
+COLD_ANTIROLLBACK = {"status": "UNPROTECTED", "replay": (
+    "NOT_DETECTABLE: cold restore uses minimum_generation 0; older A/B slot (generation 2) has no "
+    "key-state object; equal-generation stale image with same VOLUME_ID is accepted")}
 MAX_TIMEOUT = 180
 
 
@@ -422,6 +430,8 @@ def evaluate_cold(case: str, stdout: str, raw_exit: int | None, timed_out: bool)
     controlled = [line for line in lines if line.startswith("SYSTEM:COLD:")]
     if controlled != [marker] or raw_exit != 33 or timed_out:
         raise ValueError("cold refusal case/exit mismatch")
+    if any(token in line for line in lines for token in COLD_FORBIDDEN):
+        raise ValueError("cold log carries a success, case or persistence marker")
     if any("FAIL" in line or "PANIC" in line or "PLAINTEXT" in line and
            line != "SYSTEM:COLD_PLAINTEXT_REPLIES:00000000000000000000" for line in lines):
         raise ValueError("cold refusal exposed plaintext or failed")
@@ -436,6 +446,19 @@ def evaluate_cold(case: str, stdout: str, raw_exit: int | None, timed_out: bool)
     if [line for line in lines if line in BOOT] != list(BOOT) or lines.count("SYSTEM:MANIFEST:PASS") != 1:
         raise ValueError("cold boot/manifest evidence missing")
     return found
+
+
+def check_cold_binding(cold_case: str, env_value: str | None, parent_before: str | None,
+                       parent_after: str | None) -> None:
+    """Bind the runner's fixture environment and the unchanged parent normal image to this run.
+
+    env_value is the runner's NOS_SYSTEM_COLD_CASE, not proof of what the kernel was compiled
+    with (option_env! is build-time); that binding is the exact SYSTEM:COLD:REFUSED:<case> marker.
+    """
+    if cold_case not in COLD_CASES or env_value != cold_case:
+        raise ValueError("NOS_SYSTEM_COLD_CASE does not match --cold-case")
+    if not parent_before or parent_before != parent_after:
+        raise ValueError("cold run changed or lost the parent normal image")
 
 
 def run_system(case: str, volume_dir: Path | None = None, *, timeout: int = MAX_TIMEOUT,
@@ -516,6 +539,7 @@ def run_system(case: str, volume_dir: Path | None = None, *, timeout: int = MAX_
         check_parent(previous, frozen, sha256(volume_dir / "volume.img"), network=use_network, tcp=use_tcp)
     if cold_case is not None:
         parent_dir = volume_dir
+        parent_before = sha256(parent_dir / "volume.img")
         volume_dir = run_dir / "cold-image"
         volume_dir.mkdir()
         (volume_dir / "volume.img").write_bytes(cold_image((parent_dir / "volume.img").read_bytes(), cold_case))
@@ -573,6 +597,7 @@ def run_system(case: str, volume_dir: Path | None = None, *, timeout: int = MAX_
     (run_dir / "serial.txt").write_text(stdout)
     (run_dir / "stderr.txt").write_text(stderr)
     after = sha256(image)
+    parent_after = sha256(parent_dir / "volume.img") if cold_case is not None else None
     report = dict(schema_version=1, case=case, source_commit=subprocess.check_output(
         ["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip(), source_fingerprint_version=3,
         source_sha256=frozen, kernel_feature=selected, started_utc=started,
@@ -596,7 +621,10 @@ def run_system(case: str, volume_dir: Path | None = None, *, timeout: int = MAX_
     try:
         report["cold_case"] = cold_case
         report["fixture_environment"] = {"NOS_SYSTEM_COLD_CASE": os.environ.get("NOS_SYSTEM_COLD_CASE")}
-        report["cold_antirollback"] = "UNPROTECTED: no independently trusted cold generation floor"
+        report["cold_antirollback"] = dict(COLD_ANTIROLLBACK)
+        if cold_case is not None:
+            report["parent_before_sha256"], report["parent_after_sha256"] = parent_before, parent_after
+            check_cold_binding(cold_case, os.environ.get("NOS_SYSTEM_COLD_CASE"), parent_before, parent_after)
         report["evidence"] = (evaluate_cold(cold_case, stdout, rc, timed_out) if cold_case is not None
                               else evaluate(case, stdout, rc, timed_out))
         if wake is not None:
