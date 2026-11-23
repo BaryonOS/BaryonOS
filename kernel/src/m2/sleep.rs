@@ -6,11 +6,11 @@
 //! - The wake page below 1 MiB is a Kernel-owned ConventionalMemory frame,
 //!   reserved first-fit before any table allocation and written once through
 //!   the firmware identity map before the CR3 switch, as the SMP SIPI page.
-//!   It holds 16-bit code, the kernel CR3 and a per-cycle arm token. The
+//!   It holds 16-bit code and a per-cycle arm token. The
 //!   kernel tables map it supervisor RW/NX only to update that token; it is
 //!   executed solely with paging disabled, so W^X is unchanged.
-//! - The 32/64-bit stages, their GDT and the wake stack live in the
-//!   identity-mapped kernel image, as in `smp`.
+//! - The 32/64-bit stages, their GDT, the wake stack and the kernel CR3 the
+//!   32-bit stage loads live in the identity-mapped kernel image, as in `smp`.
 //! - The FACS waking vector is stored only into the FACS extent that
 //!   discovery validated (`parse_s3`) and proved to be UEFI ACPI NVS;
 //!   `paging::write_firmware` refuses every store outside that extent. It is
@@ -48,7 +48,6 @@ const WAKE_STACK: usize = 16 * 1024;
 /// Bounded spin after SLP_EN; reaching its end means no transition happened.
 const NO_TRANSITION_SPIN: u32 = 50_000_000;
 // Wake page layout, see the trampoline below.
-const PAGE_CR3: u64 = 8;
 const PAGE_TOKEN: u64 = 32;
 const MSR_EFER: u32 = 0xc000_0080;
 const MSR_PAT: u32 = 0x277;
@@ -70,6 +69,10 @@ static mut NOS_S3_WAKE_STACK: Stack = Stack([0; WAKE_STACK]);
 static mut NOS_S3_SAVED_RSP: u64 = 0;
 /// Wake page base for the extended entry, which has no CS-derived base.
 static mut NOS_S3_PAGE32: u32 = 0;
+/// Kernel root the 32-bit stage loads into CR3, written once by `prepare`;
+/// kept in the kernel image, not the low wake page, so no wake-page byte
+/// selects the page tables used before the ARMED check.
+static mut NOS_S3_CR3: u32 = 0;
 /// Which firmware transfer reached the kernel: 1 real-mode vector, 2 the
 /// 32-bit extended vector; cleared by the kernel before every sleep.
 static mut NOS_S3_ENTRY_PATH: u32 = 0;
@@ -96,7 +99,7 @@ const WAKE_REJECTED_EXIT: u32 = 0x12;
 const PLAN_REJECTED_EXIT: u32 = 0x13;
 
 // Wake page layout (offsets inside the copied page):
-//   0  cli; short jmp to code      8  CR3 (patched once)
+//   0  cli; short jmp to code      8  reserved (zero)
 //  16  GDTR (limit, base32)       24  far pointer to entry32 (selector 0x08)
 //  32  arm token (patched per cycle)
 //  48  16-bit code, ESI = page linear base for the 32-bit stage
@@ -177,7 +180,8 @@ global_asm!(
     "    movl 32(%esi), %edi",
     "    movl $0x20, %eax",
     "    movl %eax, %cr4",
-    "    movl 8(%esi), %eax",
+    // CR3 comes from the kernel image (DS is flat now), not the wake page.
+    "    movl {cr3}, %eax",
     "    movl %eax, %cr3",
     "    movl $0xc0000080, %ecx",
     "    rdmsr",
@@ -256,6 +260,7 @@ global_asm!(
     ".popsection",
     stack = sym NOS_S3_WAKE_STACK,
     page32 = sym NOS_S3_PAGE32,
+    cr3 = sym NOS_S3_CR3,
     path = sym NOS_S3_ENTRY_PATH,
     stack_size = const WAKE_STACK,
     wake = sym s3_wake,
@@ -394,12 +399,13 @@ pub fn prepare(
     }
     // SAFETY: `page` is an exclusive Kernel-owned ConventionalMemory frame below
     // 1 MiB; the firmware CR3 that is still active identity-maps it. The source
-    // is our own read-only image. Exactly `length` <= one page is copied, then
-    // the aligned CR3 slot inside it is written.
+    // is our own read-only image. Exactly `length` <= one page is copied. The
+    // two u32 statics are written once here on the single BSP before any
+    // wake stage can read them; `root < 4 GiB` was checked above.
     unsafe {
         ptr::copy_nonoverlapping(start as *const u8, page as *mut u8, length as usize);
-        ((page + PAGE_CR3) as *mut u32).write_volatile(root as u32);
         ptr::addr_of_mut!(NOS_S3_PAGE32).write(page as u32);
+        ptr::addr_of_mut!(NOS_S3_CR3).write(root as u32);
     }
     paging.map(frames, page, page, true, false);
     let mut canary = [0u64; CANARY_FRAMES];
