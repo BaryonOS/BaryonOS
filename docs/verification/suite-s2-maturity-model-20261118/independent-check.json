@@ -1,0 +1,77 @@
+{
+  "source_checks": [
+    {
+      "url": "https://csse.canterbury.ac.nz/andrew.cockburn/papers/blur.pdf",
+      "verdict": "supported",
+      "note": "Opened on 18 November 2026; text extracted locally to build/design-evidence/suite-s2/verify-2/sources/E1-blur.txt. The source is Scarr, Cockburn, Gutwin and Quinn, 'Dips and Ceilings', CHI 2011. The abstract says 'few users switch'. The paper names a 'beginner mode' with a low performance ceiling, satisficing on 'good enough' strategies and the performance dip, and gives the three goals (maximise the likelihood of a switch, minimise its cost, enable a high ceiling). Blur's calm notification 'provides transitory feedback revealing the command name that is equivalent to each mouse initiated action'. Within each match class, command recommendations are 'sorted by frequency of use'. Every claim in S2 holds."
+    },
+    {
+      "url": "https://research.autodesk.com/app/uploads/2023/03/a-survey-of-software.pdf_recqWPTEYd6nsP0r8.pdf",
+      "verdict": "supported",
+      "note": "Opened and extracted to verify-2/sources/E2-grossman.txt. The source is Grossman, Fitzmaurice and Attar, CHI 2009. Initial learnability is 'Initial performance with the system' and extended learnability is change in performance over time. The paper defines T1, T2, T4, T5 and C2 and has a 'Documentation Metrics' category. It names the five issue categories and gives the guideline 'help systems which guide by demonstration, in the context of the user's own interface'. The study was 'an initial study with only ten participants' in AutoCAD. The stated limitation is accurate."
+    },
+    {
+      "url": "https://www.cs.ubc.ca/labs/edapt/papers/findlater2004.pdf",
+      "verdict": "supported",
+      "note": "Opened and extracted to verify-2/sources/E3-findlater.txt. The source is Findlater and McGrenere, CHI 2004: 27 subjects; 'The static menu was found to be significantly faster than the adaptive menu'; '15 subjects specified adaptable as their most preferred menu type'. The S2 wording matches."
+    },
+    {
+      "url": "https://www.dgp.toronto.edu/public_user/RMB/papers/p28.pdf",
+      "verdict": "partly",
+      "note": "Opened and extracted to verify-2/sources/E4-mcgrenere.txt. The source is McGrenere, Baecker and Booth, CHI 2002: 20 participants over about six weeks, with a personal interface that can be toggled with the full one, compared against adaptive menus. Navigation and learning improved for both participant groups. The results section says satisfaction and control 'were dominated by interactions': only the feature-shy participants improved (control significant; satisfaction 'borderline significant', p<.10), and the feature-keen showed no significant difference. S2's unqualified claim of improved 'satisfaction and control' (RULE-7, E4 row) echoes the abstract but overgeneralises the detailed results."
+    },
+    {
+      "url": "https://www.cs.umd.edu/~ben/ACM-CUU2003.pdf",
+      "verdict": "supported",
+      "note": "Opened and extracted to verify-2/sources/E5-shneiderman.txt. The source is Shneiderman, CUU'03 (Vancouver, November 2003). It says novices 'begin with a limited set of features at layer 1' and 'move up to higher layers when needed'. Critics 'caution that mature users adopt strongly different subsets of features', and the paper asks 'How can compatibility of output across layers be ensured?'. It reports that a six-week study of 20 participants 'dramatically favor user control' over adaptive menus. Position paper; the stated limitation is accurate."
+    },
+    {
+      "url": "https://www.nngroup.com/articles/progressive-disclosure/",
+      "verdict": "supported",
+      "note": "Read through the WebFetch summarising fetch, as S2 itself discloses. The source is Nielsen, 3 December 2006. It 'defers advanced or rarely used features to a secondary screen' and says 'designs that go beyond 2 disclosure levels typically have low usability'. It also advises placing the advanced-features button 'in a clearly visible spot'."
+    },
+    {
+      "url": "https://www.nngroup.com/articles/response-times-3-important-limits/",
+      "verdict": "supported",
+      "note": "Read through the summarising fetch. The source is Nielsen: the 1993 book text with a 2014 update. It gives the 0.1 s, 1 s and 10 s limits. Beyond 10 s it advises a percent-done indicator and 'a clearly signposted way for the user to interrupt the operation'. The 1 s progress rule in D06.L1 is S2's own proposed budget, which the D06 introduction labels a judgement."
+    },
+    {
+      "url": "https://www.w3.org/TR/WCAG22/",
+      "verdict": "supported",
+      "note": "Read through the summarising fetch, in two windows. WCAG 2.2 is a W3C Recommendation of 12 December 2024. It contains SC 2.1.1 (A), 2.1.4 (A; turn off, remap, or active only on focus), 2.5.7 (AA), 2.5.8 (AA), 3.2.6 Consistent Help (A; same relative order across pages; S2 cites it 'by analogy') and 3.3.4 (AA; reversible, checked or confirmed)."
+    },
+    {
+      "url": "https://www.w3.org/WAI/WCAG22/Understanding/error-prevention-legal-financial-data.html",
+      "verdict": "supported",
+      "note": "Read through the summarising fetch. The page is informative ('not required to meet WCAG'). It covers modifying or deleting user-controllable data ('mass loss of data such as deleting a file or record') and states 'It is not the intent to require a confirmation for each save command.'"
+    }
+  ],
+  "findings": [
+    {
+      "severity": "minor",
+      "location": "docs/design/suite/MATURITY-MODEL.md section 7, AC-5.1 and AC-X.6 'Cells and rules tested' (lines 913 and 922); section 8.2 item 14 (lines 995-1001); cell D05.L5 (line 225)",
+      "problem": "D05.L5's 'system must provide' has three clauses: (1) a scripting interface under capability limits in isolated processes, (2) 'recorded actions and scripted batches in graphics', and (3) the D05.L1 rule on embedded automation. Only AC-5.1 and AC-X.6 name D05.L5, and both name it without '(part)'. AC-5.1 exercises clause 1 and AC-X.6 exercises clause 3. No criterion that names D05.L5 runs a recorded action or scripted batch in graphics. AC-5.2 records an automation but names D05.L4, not D05.L5. By S2's own rule (a cell is marked '(part)' when the criteria naming it leave one of its clauses unexercised), D05.L5 is tested only in part. It is missing from item 14, so the clause (b) verifiability statement is overstated for this cell. This came from a manual pass of S2's rule over all 34 cells named without '(part)'. D05.L5 was the only clear case; D07.L3's 'attributed' qualifier is borderline and is not reported.",
+      "fix": "Mark D05.L5 '(part)' in AC-5.1 and AC-X.6 and add it to the 'Cells tested only in part' list of item 14. Alternatively, extend AC-5.1 or AC-5.2 with a graphics step that records an action and runs a scripted batch, and name D05.L5 there."
+    },
+    {
+      "severity": "minor",
+      "location": "docs/design/suite/MATURITY-MODEL.md section 7, AC-X.2 measure (line 918), against RULE-7 (lines 389-390) and AC-1.1 (line 878)",
+      "problem": "AC-X.2's measure 'with aids off no usage is recorded' is absolute. RULE-7 permits 'a separate, clearable group of recent commands' in the palette without saying it is a RULE-8 aid that is off by default. AC-1.1 relies on 'recent items', which NAMING-AND-IA §5 calls 'Verder waar je was (recent files)'. Both are records of the user's usage, so a storage inspection under AC-X.2 as written would fail on features that other parts of S2 require or permit. The intent (no usage-derived aid data) is clear, but the measure contradicts RULE-7 and AC-1.1.",
+      "fix": "Narrow the measure, for example: 'with aids off, no usage-derived aid data (frequency counts, suggestion state) is recorded; recent-item lists are excluded, stay on the device and are clearable.' Also state in RULE-7 whether the recent-commands group is a RULE-8 aid, off by default, or a recent-item list."
+    },
+    {
+      "severity": "minor",
+      "location": "docs/design/suite/MATURITY-MODEL.md section 5 RULE-7 (lines 386-389) and section 9, row E4 (line 1100)",
+      "problem": "S2 says the personal interface of [E4] improved 'perceived navigation, learning, satisfaction and control' compared with adaptive menus. The paper's results show that navigation and learning improved for both groups. Satisfaction and control improved only for the feature-shy participants, and the satisfaction gain was only borderline significant (p<.10); the feature-keen showed no significant difference. The paper summarises this as 'improved satisfaction and sense of control for the feature-shy without negatively affecting the feature-keen'. The S2 wording repeats the abstract but overgeneralises the results. RULE-7's conclusion does not depend on the overstated part.",
+      "fix": "Reword RULE-7 and the E4 row: 'improved perceived navigation and learning for all participants, and satisfaction and control for feature-shy participants (satisfaction borderline), compared with adaptive menus'."
+    },
+    {
+      "severity": "minor",
+      "location": "docs/design/suite/MATURITY-MODEL.md section 9 project sources (lines 1079-1081) against section 8.2 item 16 (lines 1035-1038)",
+      "problem": "Section 9 records that S1 was read with 'full rows for WP, SS01–SS03 and XC'. For every other row it lists only the identifier, name, Beginner path, Professional depth, support, evidence level and priority, which excludes the Professional expectation column. Item 16 nevertheless cites the Professional expectation of SS17 ('comments and concurrent editing') and UX10 ('comments and multi-user editing'). Both citations are correct against S1, but the provenance record understates what was read.",
+      "fix": "Extend the S1 read-scope note in section 9 to include the Professional expectation column of SS17 and UX10, or of every row the document cites."
+    }
+  ],
+  "boundary": "$ git rev-parse --abbrev-ref HEAD\nclaude/baryon-os-suite-20261118\n$ git rev-parse --short HEAD\n862d29d7\n$ git status --short\n?? docs/design/suite/MATURITY-MODEL.md\n$ git diff --stat HEAD\n(empty)\n$ sha256sum -c build/design-evidence/suite-s2/verify-2/s2.sha256.before   (recorded before running the writer tool's check mode)\ndocs/design/suite/MATURITY-MODEL.md: OK\nVerifier scratch (ignored build/ directory, not in git status): build/design-evidence/suite-s2/verify-2/ (v2check.py, basis.py, crit.py, rows.json, s2_tool-check.txt, s2.sha256.before, sources/E1–E5 text extracts).",
+  "summary": "Round 2 adversarial verification of docs/design/suite/MATURITY-MODEL.md (S2) at 862d29d7 on claude/baryon-os-suite-20261118 found no blocker or major issue and 4 minor ones.\n\nCompleteness: sections 1-9 are present, and the status line matches the spec. Five behaviour-defined levels are given, none defined by persona or diagnosis. All 15 dimensions × 5 levels (75 cells) have a 'user can' and a 'system must provide' column. RULE-1 to RULE-12 cover no hidden data, no safety switched off, reversible preferences, and local-only, user-controlled aids with no telemetry profiling. Section 6 covers all 13 S1 disciplines (§3.1.1-§3.7). Section 7 has 46 criteria across L1-L5 and 'All levels', each labelled proposed with a user-test column. Section 8.1 records owner decisions without making them, and section 9 lists URLs, retrieval dates and what each source supports.\n\nConsistency, from my own scripts in build/design-evidence/suite-s2/verify-2/ rather than the writer tool:\n- All 216 S1 rows appear exactly once, with names, evidence levels and S1 sections unchanged (14 prototyped (host), 202 proposed).\n- The summary tables match the row tables.\n- The '—' Beginner paths are exactly WP25, SS09, GR13 and TD16.\n- The figures '102 rows at L1, 89 proposed' and 'every discipline's L1 minimum contains a proposed row' are correct.\n- All 56 S1 citations in section 4 Basis cells carry a column tag at or below the cell's level, with correct 'from Lk' marks.\n- The lists in items 14, 15 and 17 match the tables.\n\nThe content I cross-read was consistent with S0 (D1-D9, open items 5, 7 and 10), with ds-1.1 (§11, §21.1-§21.5: B3, B8, B10, B11, O-A7, the Regellengte inert case), with ADR-058 and with ADR-DESIGN-OWNER-20261115 D1-D3. That covers the two-choice prompt with the five-field key, B8 read under D3, and the systematic review kept as a separate task. It also matched the privacy contract (§1, §2, §4, §4.1, LP-13, LP-30), NAMING-AND-IA §5-§6, DESIGN-AMBITION's additions of 14 and 15 November, addendum §1, §2, §4-§8, and the criterion statuses in progress.json and S1 §4.2. The XC09 mismatch is disclosed and governed by D2. No name is decided: the P-NAMES-1 vocabulary is inherited from ds and S1 under the status-line disclaimer.\n\nEvidence: no BaryonOS capability is claimed beyond stored evidence. WP17 restore-as-new-revision matches S1's host evidence, accepted criteria are cited only as bases, and the document concludes that no application serves L1 today. Criteria that need participants say so. Judgements are labelled, and AI review is not presented as user evidence.\n\nConstraints: no vendor trade dress or documentation text was found; the only vendor word is 'Apple-keyboard', from S0 open item 5. There is no OS telemetry, profiling is local and user-controlled, the accessibility baseline does not depend on level, and installation grants nothing.\n\nSources: S2 cites 9 external sources, fewer than 12, so all 9 were opened ('all if fewer'). E1-E5 were read as locally extracted PDF text; E6-E9 only through a summarising fetch. Eight support their claims and E4 is partly supported: satisfaction and control improved only for feature-shy participants.\n\nBoundary: clean. Only MATURITY-MODEL.md is untracked, diff --stat HEAD is empty, and the S2 hash was unchanged after the writer tool's check mode ran (it printed PASS).\n\nNot checked: DESKTOP-SHELL and PROFILES-AND-USERS were only grepped for the cited passages. Coverage of cells marked '(part)' was not re-judged. D07.L3's 'attributed' qualifier is a borderline, unreported possible '(part)'."
+}

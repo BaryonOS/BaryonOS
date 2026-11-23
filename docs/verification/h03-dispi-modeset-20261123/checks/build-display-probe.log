@@ -1,0 +1,47 @@
+{"command": ["cargo", "+1.100.0", "build", "--offline", "--locked", "--release", "--manifest-path", "/home/simon/projects/BaryonOS-worktrees/h03-dispi/sdk/examples/display-input-probe/Cargo.toml", "--features", "native", "--bins", "--target", "x86_64-unknown-none"], "target_dir": "/home/simon/projects/BaryonOS-worktrees/h03-dispi/target/display-probe-apps", "app_toolchain": "1.100.0", "linker": "/home/simon/.rustup/toolchains/1.100.0-x86_64-unknown-linux-gnu/lib/rustlib/x86_64-unknown-linux-gnu/bin/rust-lld"}
+{"passed": true, "native_runtime_performed": false, "extra_env": {"NOS_DISPLAY_PROBE_ELF": "/home/simon/projects/BaryonOS-worktrees/h03-dispi/target/display-probe-apps/x86_64-unknown-none/release/display-probe", "NOS_INPUT_PROBE_ELF": "/home/simon/projects/BaryonOS-worktrees/h03-dispi/target/display-probe-apps/x86_64-unknown-none/release/input-probe", "NOS_DISPLAY_INTRUDER_ELF": "/home/simon/projects/BaryonOS-worktrees/h03-dispi/target/display-probe-apps/x86_64-unknown-none/release/display-intruder-probe"}, "artifacts": {"display_probe": {"sha256": "5cf20725def1827d4482c59d6bc07902a5aea1de60b8a8a5cc24405cf22e5abd", "elf": {"entry": 1073741824, "segments": [{"flags": 5, "address": 1073741824, "offset": 4096, "filesz": 6, "memsz": 6, "page_start": 1073741824, "page_end": 1073745920}, {"flags": 6, "address": 1073807360, "offset": 8192, "filesz": 1080, "memsz": 1080, "page_start": 1073807360, "page_end": 1073811456}, {"flags": 4, "address": 1073823744, "offset": 12288, "filesz": 888, "memsz": 888, "page_start": 1073823744, "page_end": 1073827840}, {"flags": 5, "address": 1073872896, "offset": 16384, "filesz": 7605, "memsz": 7605, "page_start": 1073872896, "page_end": 1073881088}]}}, "input_probe": {"sha256": "7fdd2101d8f0dda963e277b98f8e29f9603abd714c391842c39521f4bdfcf34d", "elf": {"entry": 1073741824, "segments": [{"flags": 5, "address": 1073741824, "offset": 4096, "filesz": 6, "memsz": 6, "page_start": 1073741824, "page_end": 1073745920}, {"flags": 6, "address": 1073807360, "offset": 8192, "filesz": 1080, "memsz": 1080, "page_start": 1073807360, "page_end": 1073811456}, {"flags": 4, "address": 1073823744, "offset": 12288, "filesz": 776, "memsz": 776, "page_start": 1073823744, "page_end": 1073827840}, {"flags": 5, "address": 1073872896, "offset": 16384, "filesz": 7125, "memsz": 7125, "page_start": 1073872896, "page_end": 1073881088}]}}, "display_intruder": {"sha256": "378012c9aa78b598c051adcc15aae65d4ee6038bba90a1d6af46668d1731fe54", "elf": {"entry": 1073741824, "segments": [{"flags": 5, "address": 1073741824, "offset": 4096, "filesz": 6, "memsz": 6, "page_start": 1073741824, "page_end": 1073745920}, {"flags": 6, "address": 1073807360, "offset": 8192, "filesz": 1040, "memsz": 1040, "page_start": 1073807360, "page_end": 1073811456}, {"flags": 4, "address": 1073823744, "offset": 12288, "filesz": 152, "memsz": 152, "page_start": 1073823744, "page_end": 1073827840}, {"flags": 5, "address": 1073872896, "offset": 16384, "filesz": 1212, "memsz": 1212, "page_start": 1073872896, "page_end": 1073876992}]}}}}
+    Finished `release` profile [optimized] target(s) in 0.00s
+    Finished `release` profile [optimized] target(s) in 0.00s
+   Compiling os-kernel v0.1.0 (/home/simon/projects/BaryonOS-worktrees/h03-dispi/kernel)
+warning: methods `level`, `owner`, and `lock_pair` are never used
+   --> kernel/src/m2/lock.rs:146:12
+    |
+130 | impl<T> IrqLock<T> {
+    | ------------------ methods in this implementation
+...
+146 |     pub fn level(&self) -> u8 {
+    |            ^^^^^
+...
+156 |     pub fn owner(&self) -> Option<u8> {
+    |            ^^^^^
+...
+178 |     pub fn lock_pair<'a>(&'a self, other: &'a Self) -> (IrqGuard<'a, T>, IrqGuard<'a, T>) {
+    |            ^^^^^^^^^
+    |
+    = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: function `hex` is never used
+   --> kernel/src/serial.rs:184:8
+    |
+184 | pub fn hex(label: &[u8], value: u64) {
+    |        ^^^
+
+warning: `os-kernel` (bin "os-kernel") generated 2 warnings
+warning: unused dependency `block-protocol`
+   --> kernel/Cargo.toml:354:1
+    |
+354 | block-protocol = { path = "../services/block" }
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: `cargo::unused_dependencies` is set to `warn` by default
+help: consider removing the dependency on `block-protocol`
+warning: unused dependency `virtio-blk-driver`
+   --> kernel/Cargo.toml:351:1
+    |
+351 | virtio-blk-driver = { path = "../drivers/virtio-blk" }
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+help: consider removing the dependency on `virtio-blk-driver`
+warning: `os-kernel` (manifest) generated 2 warnings
+    Finished `release` profile [optimized] target(s) in 0.74s
+Built and inspected native-display-probe: 3 ELF load segments
