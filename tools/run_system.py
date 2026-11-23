@@ -450,7 +450,11 @@ def evaluate_cold(case: str, stdout: str, raw_exit: int | None, timed_out: bool)
 
 def check_cold_binding(cold_case: str, env_value: str | None, parent_before: str | None,
                        parent_after: str | None) -> None:
-    """The kernel's compiled cold case and the parent normal image stay bound to this run."""
+    """Bind the runner's fixture environment and the unchanged parent normal image to this run.
+
+    env_value is the runner's NOS_SYSTEM_COLD_CASE, not proof of what the kernel was compiled
+    with (option_env! is build-time); that binding is the exact SYSTEM:COLD:REFUSED:<case> marker.
+    """
     if cold_case not in COLD_CASES or env_value != cold_case:
         raise ValueError("NOS_SYSTEM_COLD_CASE does not match --cold-case")
     if not parent_before or parent_before != parent_after:
