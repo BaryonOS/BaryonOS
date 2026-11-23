@@ -436,6 +436,8 @@ class Session(unittest.TestCase):
         self.assertNotEqual(rr.failure_fingerprint("checks", one), rr.failure_fingerprint("checks", two))
         self.assertEqual(rr.failure_fingerprint("checks", "not ok 1\n# duration_ms 70.065339"),
                          rr.failure_fingerprint("checks", "not ok 1\n# duration_ms 12.5"))
+        self.assertEqual(rr.failure_fingerprint("checks", "not ok 1\n  duration_ms: 2.083117"),
+                         rr.failure_fingerprint("checks", "not ok 1\n  duration_ms: 1.829266"))
         self.assertNotEqual(rr.failure_fingerprint("checks", "error[E0308]"),
                             rr.failure_fingerprint("checks", "error[E0425]"))
 
@@ -468,6 +470,19 @@ class Session(unittest.TestCase):
                 (tools / "shlex").mkdir()
                 (tools / "shlex" / "__init__.py").write_text("")
                 self.assertEqual(rr.planted_modules(str(tools)), ["shlex/", "yaml.py"])
+                for name in ("yaml.py", "shlex/__init__.py"):
+                    (tools / name).unlink()
+                (tools / "shlex").rmdir()
+                (repo / ".gitignore").write_text("*.pyc\n*.so\n")  # ignored files still count
+                (tools / "secrets.pyc").write_bytes(b"")
+                (tools / "secrets.abi3.so").write_bytes(b"")
+                self.assertEqual(rr.planted_modules(str(tools)), ["secrets.abi3.so", "secrets.pyc"])
+                for name in ("secrets.pyc", "secrets.abi3.so"):
+                    (tools / name).unlink()
+                (tools / "secrets.py").write_text("")
+                rr.subprocess.run(["git", "init", "-q", str(tools)], check=True, env=env)
+                rr.subprocess.run(["git", "-C", str(tools), "add", "-A"], check=True, env=env)
+                self.assertEqual(rr.planted_modules(str(tools)), [".git", "secrets.py"])
         self.assertEqual(rr.sys.path[-1], rr.TOOLS_DIR)  # the checkout resolves after libraries
 
     def test_stop_file_holds_before_the_init_check(self):
@@ -480,6 +495,18 @@ class Session(unittest.TestCase):
                     controller.loop(1, True)
             init.assert_not_called()
             preflight.assert_not_called()
+
+    def test_stop_holds_before_recovering_a_stale_lease(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            state = Path(tmp)
+            (state / "STOP").write_text("x\n")
+            (state / "lease.json").write_text(json.dumps({"controller_pid": 2 ** 22 + 1, "worker_pid": 2 ** 22 + 2}))
+            controller = rr.Controller(rr.Config(), state)
+            with unittest.mock.patch.object(rr, "git") as git:
+                with self.assertRaisesRegex(rr.Stop, "stop file"):
+                    controller.acquire()
+                controller.release()
+            git.assert_not_called()
 
     def test_brief_honours_stop_before_any_git_call(self):
         with tempfile.TemporaryDirectory() as tmp:

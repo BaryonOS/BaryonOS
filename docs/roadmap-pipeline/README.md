@@ -174,9 +174,11 @@ fingerprints `git config --list --show-scope --show-origin`, the hooks directory
 and `info/attributes` (including symlinked hook targets) at preflight. After any
 session that changed them it writes the `STOP` file and stops, so a later run
 cannot adopt the change as its baseline. Controller Git runs with
-`core.fsmonitor=false`. `run` and `brief` check `STOP` before their first Git
-call. Controller Python resolves the standard library and site-packages before
-`tools/`, refuses to start while untracked modules or package directories sit
+`core.fsmonitor=false`. `run` and `brief` check `STOP` before any Git command
+that can run a callback; only the startup module check (`git ls-files` with
+fsmonitor disabled) runs earlier. Controller Python resolves the standard library and site-packages before
+`tools/`, refuses to start while untracked or ignored importable entries
+(modules, bytecode, extension modules, package directories or a nested `.git`) sit
 directly in `tools/` (the sibling imports put `tools/` first), removes the checkout
 from `sys.path` before preloading PyYAML, never reads checkout bytecode
 (`sys.pycache_prefix` is a private temporary directory) and runs

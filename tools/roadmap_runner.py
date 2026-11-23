@@ -29,6 +29,7 @@ import contextlib
 import datetime as dt
 import fcntl
 import hashlib
+import importlib.machinery
 import json
 import re
 import shutil
@@ -45,15 +46,21 @@ from pathlib import Path
 sys.pycache_prefix = tempfile.mkdtemp(prefix="roadmap-pycache-")
 
 def planted_modules(tools: str = TOOLS_DIR) -> list[str]:
-    """Untracked or ignored modules and package directories directly under tools/. The sibling
-    imports below put tools/ first on sys.path, so such a file would shadow a library."""
-    listed = subprocess.run(["git", "-c", "core.fsmonitor=false", "-C", tools, "ls-files", "-z", "--others",
-                             "--directory", "--", "."], capture_output=True, text=True)
+    """Untracked or ignored importable entries directly under tools/: modules, sourceless
+    bytecode, extension modules and package directories. The sibling imports below put tools/
+    first on sys.path, so such a file would shadow a library. Listed from the parent directory,
+    so a planted tools/.git cannot answer for it."""
+    parent, base = os.path.split(tools)
+    listed = subprocess.run(["git", "-c", "core.fsmonitor=false", "-C", parent, "ls-files", "-z", "--others",
+                             "--directory", "--", base + "/"], capture_output=True, text=True)
     if listed.returncode:
         return [f"<git ls-files failed: {listed.stderr.strip()[-200:]}>"]
     # Only entries directly in tools/ shadow a top-level import; tracked subdirectories do not.
-    names = [p for p in listed.stdout.split("\0") if p and "/" not in p.rstrip("/")]
-    return sorted(n for n in names if n != "__pycache__/" and (n.endswith((".py", "/")) or "." not in n))
+    names = [p[len(base) + 1:] for p in listed.stdout.split("\0") if p.startswith(base + "/")]
+    importable = tuple(importlib.machinery.all_suffixes())
+    found = sorted(n for n in names if n and "/" not in n.rstrip("/") and n != "__pycache__/"
+                   and (n.endswith("/") or n.endswith(importable) or "." not in n))
+    return ([".git"] if os.path.lexists(os.path.join(tools, ".git")) else []) + found
 
 
 if __name__ == "__main__" and (planted := planted_modules()):
@@ -295,7 +302,7 @@ def codex_argv(result: Path) -> list[str]:
 
 def failure_fingerprint(kind: str, text: str) -> str:
     # The whole bounded text: a tail window misses which test failed when stderr ends the same.
-    lines = [re.sub(r"(duration_ms\s+)\d+(\.\d+)?", r"\1<t>", re.sub(r"\d+(\.\d+)?(ms|s)\b", "<t>", l))
+    lines = [re.sub(r"(duration_ms:?\s+)\d+(\.\d+)?", r"\1<t>", re.sub(r"\d+(\.\d+)?(ms|s)\b", "<t>", l))
              for l in text.splitlines()]
     return sha256(kind + "\n" + "\n".join(lines))[:16]
 
@@ -421,6 +428,8 @@ class Controller:
     # --- locking and lifecycle ---
     def acquire(self) -> None:
         self.state.mkdir(parents=True, exist_ok=True)
+        if (self.state / "STOP").exists():  # before recover() can run git status
+            raise Stop("stop file present (build/roadmap-pipeline/STOP)")
         self.lock_file = (self.state / "controller.lock").open("a+")
         try:
             fcntl.flock(self.lock_file, fcntl.LOCK_EX | fcntl.LOCK_NB)
