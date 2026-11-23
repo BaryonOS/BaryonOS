@@ -531,6 +531,7 @@ services/destination/tests/crash.rs
 services/destination/tests/engine.rs
 services/destination/tests/ops.rs
 services/destination/tests/oracle_images.rs
+services/destination/tests/sim_contract.rs
 services/image-codec/Cargo.toml
 services/image-codec/diagnostics/Cargo.toml
 services/image-codec/diagnostics/src/main.rs

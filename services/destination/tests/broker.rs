@@ -1,5 +1,6 @@
 //! Kernel -8 and the service's own wait bounds (spec 2.7): N26; the
-//! "Device results" mapping of 2.5 (revision 3): N33.
+//! "Device results" mapping of 2.5 (revision 3): N33; the SEAL content check
+//! of 2.7 step 3 (O17 (a)): N37 (a), (b).
 //! `SimDisk` advances its clock by one tick per submission and per poll.
 //! N26 runs under both reset models (section 6, revision 3); only (d)
 //! reaches a reset that drops cached data, and (a), (b), (c), (e) and (f)
@@ -8,9 +9,10 @@ mod common;
 
 use common::*;
 use destination_core::{
+    catalog::Record,
     device::{POLL_BOUND, RESET_TIMEOUT, SUBMIT_BOUND, TIMEOUT},
-    service::{Outcome, State},
-    wire, Status, SECTOR,
+    service::{Export, Outcome, State},
+    wire, Status, DATA_START, SECTOR,
 };
 
 /// Slack for the ticks spent on the requests around the bounded one.
@@ -107,7 +109,8 @@ fn n26c_append_write_again_forever() {
 /// `Io`, no safe path. Under the cache-dropping reset model the reset loses
 /// the unflushed SEAL tail write, so the step-3 readback refuses the extent
 /// (`Corrupt`, nothing listed) and barrier 2 is never reached; the pending
-/// poll half is then covered by the cache-kept model only.
+/// poll half is then covered by the cache-kept model only; no catalog
+/// sector is written (revision 4).
 /// Kills: a bound shorter than one legitimate reset; the submission bound
 /// applied to the pending poll; a SEAL that seals without the readback
 /// (dropping model lists an entry that fails VERIFY).
@@ -135,6 +138,7 @@ fn n26d_legitimate_waits_complete() {
         if drops {
             assert!(h.disk.dropped > 0, "the reset dropped the tail write");
             assert_eq!(sealed, Status::Corrupt);
+            assert_eq!(h.disk.counts.catalog_writes, 0, "no catalog write");
             assert_eq!(h.list_ids(0).1, Vec::<u64>::new());
         } else {
             assert_eq!(sealed, Status::Ok);
@@ -533,26 +537,169 @@ fn n33_read_timeout_with_unflushed_append() {
     });
 }
 
-/// N33 OP-6, recorded variant (spec finding, not a pass criterion): the free
-/// space holds a *valid* archive of exactly the same, sector-aligned length
-/// (no tail write at SEAL). Under the cache-dropping model the readback
-/// passes over the stale archive and SEAL is `Ok`: the listed entry verifies
-/// (the stated invariant holds), but it holds the stale bytes, and only the
-/// SEAL reply's trailer (`aux`) differs from the archive the portal sent.
+fn trailer(bytes: &[u8]) -> u64 {
+    u64::from_le_bytes(bytes[bytes.len() - 8..].try_into().unwrap())
+}
+
+/// N37 under O17 (a): SEAL `Corrupt` -18, no catalog write, nothing listed
+/// but E1, the writing entry discarded, no safe path, and a later CREATE on
+/// a new binding of `lane` runs.
+fn refused_without_latch(h: &mut H, sealed: &Outcome, e1: u64, lane: usize, context: &str) {
+    assert_eq!(sealed.status, Status::Corrupt, "{context}");
+    assert_eq!(
+        h.disk.counts.catalog_writes, 0,
+        "{context}: no catalog write"
+    );
+    assert_eq!(h.list_ids(0).1, vec![e1], "{context}: nothing listed");
+    assert_eq!(h.info().0, Status::Ok, "{context}: INFO");
+    assert_eq!(
+        h.svc.binding(lane).unwrap().export,
+        Export::NotSealed,
+        "{context}: discarded"
+    );
+    assert!(!h.svc.safe_path(), "{context}: no safe path");
+    assert_eq!(h.unbind(lane), Status::Ok);
+    assert_eq!(h.bind(lane, wire::BIND_EXPORT, 0), Status::Ok);
+    assert_eq!(
+        h.create(lane, b"next").status,
+        Status::Ok,
+        "{context}: CREATE"
+    );
+}
+
+/// SEAL `Ok` and its `aux` is the trailer of the archive the portal sent.
+fn sealed_as_sent(h: &mut H, sealed: &Outcome, bytes: &[u8], context: &str) {
+    assert_eq!(sealed.status, Status::Ok, "{context}");
+    let aux = wire::header(&sealed.reply.unwrap()).aux;
+    assert_eq!(aux, trailer(bytes), "{context}: aux is the sent trailer");
+    assert_eq!(h.list_ids(0).1.len(), 2, "{context}");
+    assert!(!h.svc.safe_path(), "{context}");
+}
+
+/// N33 (iii) and N37 (a), read-timeout variant (O17 (a)): the free space
+/// holds a *valid* archive of exactly the same, sector-aligned length (no
+/// tail write at SEAL), and a READ or VERIFY on lane 3 times out and resets
+/// the device while lane 2's APPEND writes are unflushed. Cache dropped: the
+/// readback passes `archive::verify` over the stale archive, and only the
+/// content check refuses it (`Corrupt`, nothing listed, no catalog write,
+/// no safe path, a later CREATE runs). Cache kept: SEAL `Ok`, `aux` equals
+/// the sent trailer, the entry verifies.
+/// Kills: a SEAL without the content check (the cache-dropped model lists
+/// the stale archive, the earlier recorded outcome).
 #[test]
-fn n33_read_timeout_over_stale_valid_archive_recorded() {
+fn n37a_read_timeout_over_stale_valid_archive() {
     both_reset_models(|drops| {
-        let bytes = archive(2, 1, 944, 5);
-        let stale = archive(7, 3, 944, 77);
-        assert_eq!((bytes.len(), stale.len()), (1024, 1024));
-        let (mut h, e1, _) = with_stale(&stale);
-        let sealed = seal_after_read_timeout(&mut h, e1, &bytes, false);
-        assert_eq!(sealed.status, Status::Ok, "drops {drops}");
-        let aux = wire::header(&sealed.reply.unwrap()).aux;
-        let trailer = |b: &[u8]| u64::from_le_bytes(b[b.len() - 8..].try_into().unwrap());
-        let expected = if drops { &stale } else { &bytes };
-        assert_eq!(aux, trailer(expected), "drops {drops}");
-        listed_entries_verify(&mut h);
-        eprintln!("N33 OP-6 stale valid archive, drops {drops}: SEAL Ok, aux {aux:#x} (recorded)");
+        for verify in [false, true] {
+            let context = format!("drops {drops} verify {verify}");
+            let bytes = archive(2, 1, 944, 5);
+            let stale = archive(7, 3, 944, 77);
+            assert_eq!((bytes.len(), stale.len()), (1024, 1024));
+            let (mut h, e1, _) = with_stale(&stale);
+            let sealed = seal_after_read_timeout(&mut h, e1, &bytes, verify);
+            assert_eq!(drops, h.disk.dropped > 0, "{context}: model exercised");
+            if drops {
+                refused_without_latch(&mut h, &sealed, e1, 2, &context);
+            } else {
+                sealed_as_sent(&mut h, &sealed, &bytes, &context);
+            }
+            listed_entries_verify(&mut h);
+        }
     });
+}
+
+/// N37 (a), barrier-1 variant (as N26 (d)): disk 1's own reset during the
+/// barrier-1 submission, over a stale valid archive of the same length,
+/// here not sector-aligned (under the dropping model every unflushed write
+/// of the entry, the SEAL tail included, is lost). Outcomes as above.
+/// Kills: a SEAL without the content check.
+#[test]
+fn n37a_own_reset_at_barrier1_over_stale_valid_archive() {
+    both_reset_models(|drops| {
+        let context = format!("drops {drops}");
+        let bytes = archive(2, 1, 1000, 5);
+        let stale = archive(7, 3, 1000, 77);
+        assert_eq!((bytes.len(), stale.len()), (1080, 1080));
+        let (mut h, e1, _) = with_stale(&stale);
+        assert_eq!(h.bind(2, wire::BIND_EXPORT, 0), Status::Ok);
+        let entry = h.write_all(2, &bytes);
+        h.disk.arm();
+        h.disk.fault(|op, c| {
+            (op == Op::Flush && c.flushes == 0).then(|| Fault {
+                again: Some(Some(RESET_TIMEOUT)),
+                ..Fault::default()
+            })
+        });
+        let sealed = h.seal(2, entry, bytes.len() as u64);
+        h.disk.fault = None;
+        assert_eq!(drops, h.disk.dropped > 0, "{context}: model exercised");
+        if drops {
+            refused_without_latch(&mut h, &sealed, e1, 2, &context);
+        } else {
+            sealed_as_sent(&mut h, &sealed, &bytes, &context);
+        }
+        listed_entries_verify(&mut h);
+    });
+}
+
+/// N37 (b): without a reset, the disk reports success for every write of
+/// the entry and for barrier 1 but stores none of them, so the stale valid
+/// archive stays whole: SEAL `Corrupt`, nothing listed, no catalog write,
+/// no safe path, a later CREATE runs. No reset occurs, so both models agree.
+/// Kills: a SEAL without the content check (it lists the stale archive).
+#[test]
+fn n37b_unstored_entry_writes_over_stale_valid_archive() {
+    both_reset_models(|drops| {
+        let context = format!("drops {drops}");
+        let bytes = archive(2, 1, 1000, 5);
+        let stale = archive(7, 3, 1000, 77);
+        let (mut h, e1, first) = with_stale(&stale);
+        assert_eq!(h.bind(2, wire::BIND_EXPORT, 0), Status::Ok);
+        h.disk.arm();
+        h.disk.fault(|op, _| {
+            matches!(op, Op::Write(sector) if sector >= DATA_START).then(|| Fault {
+                silent: true,
+                ..Fault::default()
+            })
+        });
+        let entry = h.write_all(2, &bytes);
+        let sealed = h.seal(2, entry, bytes.len() as u64);
+        h.disk.fault = None;
+        assert_eq!(h.disk.counts.entry_writes, 3, "{context}: writes answered");
+        let record = Record {
+            first,
+            length: bytes.len() as u64,
+            ..Record::EMPTY
+        };
+        assert_eq!(extent(&h.disk.visible(), &record), stale, "{context}");
+        assert_eq!(h.disk.dropped, 0, "{context}: no reset");
+        refused_without_latch(&mut h, &sealed, e1, 2, &context);
+        listed_entries_verify(&mut h);
+    });
+}
+
+/// O17 (a): the content digest covers only APPENDs answered `Ok`; a refused
+/// APPEND (`Stale`, `Full`) appends nothing, so SEAL still matches.
+/// Kills: a digest updated before the offset check or before the scope-end
+/// check (SEAL `Corrupt`).
+#[test]
+fn n37_digest_covers_only_appends_answered_ok() {
+    let mut h = H::boot(SimDisk::new(24));
+    assert_eq!(h.control(req(wire::FORMAT), &[]).status, Status::Ok);
+    assert_eq!(h.bind(1, wire::BIND_EXPORT, 0), Status::Ok);
+    // 4080 bytes: the eight free sectors; one more APPEND of 160 is `Full`.
+    let bytes = archive(1, 1, 4000, 1);
+    let entry = wire::header(&h.create(1, b"x").reply.unwrap()).entry;
+    let (head, rest) = bytes.split_at(4000);
+    for (index, chunk) in head.chunks(wire::DATA).enumerate() {
+        let offset = (index * wire::DATA) as u64;
+        assert_eq!(h.append(1, entry, offset, chunk).status, Status::Ok);
+        if index == 3 {
+            assert_eq!(h.append(1, entry, 0, &[9; 160]).status, Status::Stale);
+        }
+    }
+    assert_eq!(h.append(1, entry, 4000, &[9; 160]).status, Status::Full);
+    assert_eq!(h.append(1, entry, 4000, rest).status, Status::Ok);
+    let sealed = h.seal(1, entry, bytes.len() as u64);
+    assert_eq!(sealed.status, Status::Ok);
+    assert_eq!(wire::header(&sealed.reply.unwrap()).aux, trailer(&bytes));
 }

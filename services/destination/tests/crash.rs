@@ -1,5 +1,5 @@
 //! Flush order and cache loss (spec 2.7, section 6): N11, N12, N13, N24, N25;
-//! remount against the committed catalog (O16): N35.
+//! remount against the committed and the encoded catalog (O16, O18): N35.
 //! N13 and N24 pass through a device reset and run under both reset models
 //! (cache kept, cache dropped; section 6, revision 3).
 //! Flush-order and cache-loss acceptance is host-only (section 6); every
@@ -11,6 +11,7 @@ use common::*;
 use destination_core::{
     catalog::{self, Catalog, Record},
     device::{Broker, Request},
+    sectors_for,
     service::{Env, Export, Meta, Outcome, State},
     wire::{self, Header},
     Status, SECTOR,
@@ -696,8 +697,11 @@ fn n35_setup() -> (H, u64, u64, u64) {
 /// provisional record (E1 changed; the new record under another ID; two new
 /// records; the new record at copy sequence + 2; the committed records under
 /// another destination ID; the committed records at copy sequence + 1);
-/// (d) a non-blank layout that is no valid catalog.
-/// (a)-(c): failed-mount state, INFO `Io`, export-lane LIST `Unknown` with
+/// (d) a non-blank layout that is no valid catalog; (e) (O18) a valid
+/// catalog that passes the step-4 extension check against the committed copy
+/// and carries the provisional entry ID, but differs from the copy encoded
+/// in step 4 in the new record's length, trailer or label, or in next entry ID.
+/// (a)-(c) and (e): failed-mount state, INFO `Io`, export-lane LIST `Unknown` with
 /// zero records, VERIFY and FORMAT `Io`; (d): `Corrupt` for all, never a
 /// record. In every case no device write follows the failed one and the
 /// binding never resolves as sealed.
@@ -707,7 +711,14 @@ fn n35_setup() -> (H, u64, u64, u64) {
 /// the copy-sequence clause of the comparison; weakening the committed-copy
 /// equality to the records, or ignoring its ID or sequence. Dropping only
 /// its count clause is an equivalent mutant: a second new record would need
-/// a sealing sequence above the copy's, which no valid copy has.
+/// a sealing sequence above the copy's, which no valid copy has. Under O18,
+/// the extension-based *sealed* resolution ((e) resolves sealed: the binding
+/// is `Sealed`, not `Unknown`); adding the extension check back beside the
+/// byte equality is an equivalent mutant, which the equality implies.
+/// Comparing with the encoded catalog before its step-4 decode instead of
+/// the decoded, checked copy is equivalent in every build without
+/// `test-hooks`, where decoding a copy that passed the validator returns it
+/// unchanged; it differs only under the N29 tamper hook.
 #[test]
 fn n35_remount_contradicting_committed_catalog() {
     // The catalog a successful SEAL commits, from an identical run.
@@ -748,6 +759,21 @@ fn n35_remount_contradicting_committed_catalog() {
     two_more.sequence += 1;
     two_more.next_free += 1;
     two_more.next_entry += 1;
+    // (e): extension-passing copies with the provisional ID, each differing
+    // from the encoded copy in one field only.
+    let new = committed.count;
+    let mut longer = sealed;
+    longer.records[new].length += 1;
+    let mut other_trailer = sealed;
+    other_trailer.records[new].trailer ^= 1;
+    let mut other_label = sealed;
+    other_label.records[new].label[0] ^= 1;
+    let mut later_next_entry = sealed;
+    later_next_entry.next_entry += 1;
+    for c in [&longer, &other_trailer, &other_label, &later_next_entry] {
+        assert!(catalog::extends_by_one(&committed, c) && c.records[new].id == entry);
+        assert_eq!(sectors_for(c.records[new].length), sectors_for(length));
+    }
     let area_of = |c: &Catalog| {
         let bytes = c.encode();
         assert!(
@@ -782,6 +808,10 @@ fn n35_remount_contradicting_committed_catalog() {
             area_of(&committed_later),
             false,
         ),
+        ("(e) new record's length", area_of(&longer), false),
+        ("(e) new record's trailer", area_of(&other_trailer), false),
+        ("(e) new record's label", area_of(&other_label), false),
+        ("(e) next entry ID", area_of(&later_next_entry), false),
         ("(d) not a valid catalog", foreign, true),
     ];
     for (name, area, corrupt) in cases {

@@ -8,9 +8,9 @@
 use crate::{
     catalog::{self, Catalog, Mount, Record, Selection, AREA_SECTORS, COPY, COPY_SECTORS},
     device::{self, Broker},
-    put64, sectors_for,
+    fnv64, put64, sectors_for,
     wire::{self, Header, CONTROL, DATA, LANES, SIZE},
-    Status, ID, LABEL, MAX_ARCHIVE, MAX_ENTRIES, SECTOR,
+    Status, FNV_OFFSET, ID, LABEL, MAX_ARCHIVE, MAX_ENTRIES, SECTOR,
 };
 
 /// Kernel-provided metadata of one received message.
@@ -68,8 +68,9 @@ pub struct Env<'a, B, V, E> {
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum State {
     Mounted,
-    /// Failed mount or remount, a failed FORMAT, or a remount that contradicts
-    /// the committed catalog (O16); terminal for the instance.
+    /// Failed mount or remount, a failed FORMAT, or a remount that mounts
+    /// neither the committed nor the encoded copy (O16, O18); terminal for
+    /// the instance.
     Failed {
         no_device: bool,
     },
@@ -95,7 +96,8 @@ pub enum Export {
     /// Aborted, discarded, or resolved as not sealed after a remount.
     NotSealed,
     /// SEAL answered `Unknown` and no completed remount FLUSH resolved it;
-    /// also after a remount that contradicted the committed catalog (O16).
+    /// also after a remount that mounted neither the committed nor the
+    /// encoded copy (O16, O18).
     Unknown,
 }
 
@@ -122,6 +124,10 @@ struct Writing {
     id: u64,
     first: u64,
     appended: u64,
+    /// FNV-64 of the bytes of every APPEND answered `Ok`, in order: the
+    /// content check of SEAL step 3 (O17 (a), 2.7). The running form covers
+    /// every byte independently of the archive verifier's trailer rule.
+    digest: u64,
     /// Buffered partial last sector, zero beyond `appended % SECTOR`.
     tail: [u8; SECTOR],
     label_length: u8,
@@ -465,6 +471,7 @@ impl Service {
             id,
             first: catalog.next_free,
             appended: 0,
+            digest: FNV_OFFSET,
             tail: [0; SECTOR],
             label_length: label.len() as u8,
             label: stored,
@@ -533,6 +540,7 @@ impl Service {
                 }
             }
         }
+        writing.digest = fnv64(writing.digest, data);
         reply.header.offset = total;
         Ok(())
     }
@@ -570,12 +578,15 @@ impl Service {
         }
         let trailer = match check_extent(env.broker, env.verifier, writing.first, writing.appended)
         {
-            Ok((_, trailer)) => trailer,
-            Err(status) => {
-                // A failed readback starts no safe path: no write is
-                // outstanding after barrier 1 has completed.
+            // O17 (a): the extent must also hold the bytes appended, not
+            // merely *a* valid archive, such as a stale one left in free
+            // space when unflushed or unstored writes were lost (2.7).
+            Ok((_, trailer, digest)) if digest == writing.digest => trailer,
+            result => {
+                // A failed readback or content check starts no safe path:
+                // no write is outstanding after barrier 1 has completed.
                 self.discard();
-                return Err(status);
+                return Err(result.err().unwrap_or(Status::Corrupt));
             }
         };
         // Step 4: encode, then validate before any write. The sequence and
@@ -625,7 +636,7 @@ impl Service {
             .and_then(|()| write_copy(env.broker, 1 - target, &bytes))
             .and_then(|()| device::flush(env.broker));
         if written.is_err() {
-            return Err(self.catalog_failure(env.broker, lane, writing.id, &committed));
+            return Err(self.catalog_failure(env.broker, lane, writing.id, &committed, &checked));
         }
         self.selection = Selection::committed(checked);
         self.writing = None;
@@ -639,14 +650,16 @@ impl Service {
     /// A device result other than success in SEAL steps 4-5: reply `Unknown`,
     /// drop in-memory catalog and writing state, latch the safe path and
     /// remount before the next request. Only a remount whose FLUSH completed
-    /// and that mounted `committed` or `committed` plus exactly the
-    /// provisional record resolves the export binding, once (O16, 2.7).
+    /// and that mounted `committed` (not sealed) or exactly `encoded`, the
+    /// copy encoded and checked in step 4 (sealed, O18), resolves the export
+    /// binding, once (O16, 2.7).
     fn catalog_failure<B: Broker>(
         &mut self,
         broker: &mut B,
         lane: usize,
         id: u64,
         committed: &Catalog,
+        encoded: &Catalog,
     ) -> Status {
         self.writing = None;
         self.safe_path = true;
@@ -655,15 +668,13 @@ impl Service {
         let remounted = self.selection.catalog;
         let resolved = match self.state {
             State::Mounted if remounted == *committed => Some(Export::NotSealed),
-            State::Mounted
-                if catalog::extends_by_one(committed, &remounted)
-                    && remounted.records[committed.count].id == id =>
-            {
-                Some(Export::Sealed(id))
-            }
-            // O16: a blank candidate or another catalog contradicts the
-            // catalog mounted earlier in this boot: failed mount, binding
-            // unknown. `Corrupt` and a failed FLUSH or read stay as they are.
+            // O18: full equality, which for valid copies is equality of the
+            // 2048 bytes (2.6); a copy that only passes the extension check
+            // with the provisional ID is another catalog.
+            State::Mounted if remounted == *encoded => Some(Export::Sealed(id)),
+            // O16, O18: a blank candidate or another catalog contradicts the
+            // catalogs this boot wrote: failed mount, binding unknown.
+            // `Corrupt` and a failed FLUSH or read stay as they are.
             State::Mounted | State::Blank => {
                 self.state = State::Failed { no_device: false };
                 None
@@ -695,7 +706,7 @@ impl Service {
             .catalog
             .find(h.entry)
             .ok_or(Status::NotFound)?;
-        let (summary, _) = check_extent(env.broker, env.verifier, record.first, record.length)?;
+        let (summary, ..) = check_extent(env.broker, env.verifier, record.first, record.length)?;
         reply.header.aux = summary.generation;
         reply.header.count = summary.objects as u32;
         Ok(())
@@ -832,8 +843,9 @@ fn write_copy<B: Broker>(broker: &mut B, slot: usize, bytes: &[u8; COPY]) -> Res
     Ok(())
 }
 
-/// Stream an extent through the verifier. Returns the summary and the last
-/// eight bytes of the extent (the archive trailer FNV). A device error is
+/// Stream an extent through the verifier. Returns the summary, the last
+/// eight bytes of the extent (the archive trailer FNV) and the FNV-64 of its
+/// `length` bytes (the SEAL content check, O17 (a)). A device error is
 /// returned as such; any other failure, including an archive that does not
 /// end exactly at the extent end, is `Corrupt`.
 fn check_extent<B: Broker, V: Verifier>(
@@ -841,7 +853,7 @@ fn check_extent<B: Broker, V: Verifier>(
     verifier: &mut V,
     first: u64,
     length: u64,
-) -> Result<(Summary, u64), Status> {
+) -> Result<(Summary, u64, u64), Status> {
     let mut extent = Extent {
         broker,
         first,
@@ -850,13 +862,16 @@ fn check_extent<B: Broker, V: Verifier>(
         buffer: [0; SECTOR],
         error: None,
         last: [0; 8],
+        digest: FNV_OFFSET,
     };
     let verified = verifier.verify(&mut extent);
     if let Some(status) = extent.error {
         return Err(status);
     }
     match verified {
-        Ok(summary) if extent.position == length => Ok((summary, u64::from_le_bytes(extent.last))),
+        Ok(summary) if extent.position == length => {
+            Ok((summary, u64::from_le_bytes(extent.last), extent.digest))
+        }
         _ => Err(Status::Corrupt),
     }
 }
@@ -869,6 +884,7 @@ struct Extent<'a, B> {
     buffer: [u8; SECTOR],
     error: Option<Status>,
     last: [u8; 8],
+    digest: u64,
 }
 
 impl<B: Broker> Source for Extent<'_, B> {
@@ -893,6 +909,7 @@ impl<B: Broker> Source for Extent<'_, B> {
             .min((self.length - self.position) as usize);
         let bytes = &self.buffer[within..within + count];
         buffer[..count].copy_from_slice(bytes);
+        self.digest = fnv64(self.digest, bytes);
         if count >= 8 {
             self.last.copy_from_slice(&bytes[count - 8..]);
         } else {

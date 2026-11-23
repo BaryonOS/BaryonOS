@@ -10,6 +10,7 @@
 //! device, pending polls, late completion of a timed-out write, and the reset
 //! that follows a timed-out request. One request at most is outstanding; a
 //! submission while one is pending is answered -8, as the K5 broker does.
+//! `tests/sim_contract.rs` checks it against the broker contract of 2.7 (P12).
 //!
 //! Whether a device reset keeps or drops the volatile cache is not known for
 //! QEMU (O9), so the reset has two models (section 6, revision 3): the cache
@@ -109,6 +110,8 @@ pub struct Fault {
     /// A failed write still reaches the cache; a failed flush still drains it.
     pub lands: bool,
     pub late: Option<Late>,
+    /// A write that reports success but stores nothing (N37 (b)).
+    pub silent: bool,
 }
 
 impl Fault {
@@ -374,7 +377,11 @@ impl Broker for SimDisk {
     fn poll(&mut self, buffer: &mut [u8; SECTOR]) -> i64 {
         self.budget();
         self.tick += 1;
-        let (op, fault, data, ready) = self.inflight.expect("poll without request");
+        // Property 3 (2.7): a delivered result is not delivered again. With
+        // no request outstanding the M3 broker answers `WrongTicket` -1.
+        let Some((op, fault, data, ready)) = self.inflight else {
+            return -1;
+        };
         if self.tick < ready {
             return -8;
         }
@@ -387,7 +394,7 @@ impl Broker for SimDisk {
             Op::Write(sector) => {
                 if let (Some(late), false) = (fault.late, self.crashed) {
                     self.late = Some((sector, data, late));
-                } else if effect {
+                } else if effect && !fault.silent {
                     self.cache.push((sector, data));
                 }
             }

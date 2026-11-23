@@ -213,14 +213,15 @@ pub fn extends(lower: &Catalog, higher: &Catalog) -> bool {
 }
 
 /// The extension check of 2.7 step 4: `next` is `committed` plus exactly one
-/// record, at sequence + 1 and sealed at that sequence. The pre-write check
-/// of SEAL and the remount comparison of O16 (2.7) both use it.
+/// record, at sequence + 1 and sealed at that sequence: the pre-write check
+/// of SEAL step 4 (2.7). The remount after a failed catalog write compares
+/// with the encoded copy itself instead (O18), which implies this check.
 pub fn extends_by_one(committed: &Catalog, next: &Catalog) -> bool {
     committed.sequence.checked_add(1).is_some_and(|sequence| {
         extends(committed, next)
             && next.count == committed.count + 1
             && next.sequence == sequence
-            // Pre-write and remount only, not the mount rule (2.6).
+            // Pre-write check only, not the mount rule (2.6).
             && next.records[committed.count].sealed_sequence == sequence
     })
 }
