@@ -949,8 +949,10 @@ pub fn verify_v2<S: Source>(
 pub const GUARANTEED_FREE: usize = CHUNKS - (DOMAINS - 1) * QUOTA;
 const _: () = assert!(GUARANTEED_FREE > 0);
 
-/// Result of [`restore_native`]. Counts are a lower bound when the status is
-/// `Unknown`: that request may have committed without a reply.
+/// Result of [`restore_native`]. A lost reply is resolved by reading state
+/// back and counted only when the request demonstrably committed; counts are
+/// a lower bound when the status is still `Unknown`: that request may have
+/// committed without a reply.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub struct NativeReport {
     /// Bit `s`: archive slot `s` fully replayed (its replayable versions,
@@ -959,8 +961,11 @@ pub struct NativeReport {
     /// Committed WRITEs.
     pub writes: usize,
     /// Every commit that made the domain used (WRITE, COLLECTION, META).
-    /// Zero after an error means refused and untouched, so the domain is
-    /// still never used; otherwise it is used and a retry is refused.
+    /// Zero after an error other than `Unknown` or `Protocol` means refused
+    /// and untouched, so the domain is still never used; otherwise it is used
+    /// and a retry is refused. After an unresolved `Unknown`, or a malformed
+    /// reply (`Protocol`), the domain may be used even at zero: [`never_used`]
+    /// decides on retry.
     pub committed: usize,
     /// Versions of present objects not replayed because they follow a
     /// revision gap and may predate a DELETE (owner decision, 19 November
@@ -1024,8 +1029,13 @@ pub fn never_used<T: Transport>(client: &mut Client<T>, domain: usize) -> Result
 /// observable through the protocol, so a replay needing more than
 /// [`GUARANTEED_FREE`] chunks is refused with `Full` before the first write.
 /// The first mutation is always a BEGIN: every WRITE comes first, then the
-/// collections, then each object's META from the verified plan. A failure
-/// with `report.committed == 0` left the domain untouched; any later
+/// collections, then each object's META from the verified plan. A lost
+/// reply (`Unknown`) is resolved by STAT or COLLECTION_STAT and accepted only
+/// when the state is exactly what was sent. A failure with
+/// `report.committed == 0` and a status other than `Unknown` or `Protocol`
+/// left the domain untouched; an unresolved `Unknown` or a malformed reply
+/// (`Protocol`) may have committed, so the domain must
+/// then be treated as used ([`never_used`] decides on retry). Any other later
 /// failure leaves it used, and a retry is then refused. The
 /// caller must be the only writer of the destination domain meanwhile: a
 /// concurrent write to a slot the archive does not use, after the
@@ -1097,13 +1107,30 @@ pub fn restore_native<S: Source, T: Transport>(
             }
             let version = &object.versions[index];
             let target = (domain * PER_DOMAIN + object.slot) as u64;
-            let (revision, _) = client.write(
+            let expected = revisions[object.slot];
+            let written = client.write(
                 target,
-                revisions[object.slot],
+                expected,
                 version.name(),
                 content.len(),
                 |offset, chunk| chunk.copy_from_slice(&content[offset..offset + chunk.len()]),
-            )?;
+            );
+            let revision = match written {
+                Ok((revision, _)) => revision,
+                // The commit may have landed: accept it only if it is exactly ours.
+                Err(Status::Unknown) => match client.stat(target) {
+                    Ok(stat)
+                        if Some(stat.revision) == expected.checked_add(1)
+                            && stat.name[..stat.name_length] == *version.name()
+                            && stat.length == content.len()
+                            && stat.content_sum == version.content_sum =>
+                    {
+                        stat.revision
+                    }
+                    _ => return Err(Status::Unknown),
+                },
+                Err(status) => return Err(status),
+            };
             writes += 1;
             revisions[object.slot] = revision;
             Ok(())
@@ -1119,9 +1146,19 @@ pub fn restore_native<S: Source, T: Transport>(
     // Collections before META: META with a collection index needs it to exist.
     for collection in &plan.collections[..plan.collection_count] {
         if collection.present {
-            client
-                .collection(domain, collection.index, 0, collection.name())
-                .map_err(|(status, _)| (status, report))?;
+            match client.collection(domain, collection.index, 0, collection.name()) {
+                Ok(_) => {}
+                // Created from revision 0: exactly ours means revision 1.
+                Err((Status::Unknown, _)) => match client.collection_stat(domain, collection.index)
+                {
+                    Ok(info)
+                        if info.present
+                            && info.revision == 1
+                            && info.name() == collection.name() => {}
+                    _ => return Err((Status::Unknown, report)),
+                },
+                Err((status, _)) => return Err((status, report)),
+            }
             report.committed += 1;
         }
     }
@@ -1130,15 +1167,19 @@ pub fn restore_native<S: Source, T: Transport>(
         .filter(|o| o.present)
     {
         if object.tags != 0 || object.kind != 0 || object.collection != 0 {
-            client
-                .meta(
-                    (domain * PER_DOMAIN + object.slot) as u64,
-                    revisions[object.slot],
-                    object.tags,
-                    object.kind,
-                    object.collection,
-                )
-                .map_err(|(status, _)| (status, report))?;
+            let target = (domain * PER_DOMAIN + object.slot) as u64;
+            let expected = revisions[object.slot];
+            let meta = (object.tags, object.kind, object.collection);
+            match client.meta(target, expected, meta.0, meta.1, meta.2) {
+                Ok(_) => {}
+                Err((Status::Unknown, _)) => match client.stat(target) {
+                    Ok(stat)
+                        if Some(stat.revision) == expected.checked_add(1)
+                            && (stat.tags, stat.kind, stat.collection) == meta => {}
+                    _ => return Err((Status::Unknown, report)),
+                },
+                Err((status, _)) => return Err((status, report)),
+            }
             report.committed += 1;
         }
         report.restored |= 1 << object.slot;

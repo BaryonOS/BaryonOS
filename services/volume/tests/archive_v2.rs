@@ -709,3 +709,133 @@ fn versions_after_a_revision_gap_are_not_replayed() {
         assert!(entry.versions().all(|v| v.length <= CHUNK));
     }
 }
+
+/// Loses the reply to the `nth` request of `operation` (1-based) like a dead
+/// link; with `forward` the request still reached the service and committed.
+/// `skew` then alters the first STAT or COLLECTION_STAT reply after that loss.
+struct Lossy<'a> {
+    inner: Local<'a>,
+    operation: u16,
+    nth: usize,
+    forward: bool,
+    seen: usize,
+    skew: Option<fn(&mut [u8; wire::SIZE])>,
+}
+impl Transport for Lossy<'_> {
+    fn call(&mut self, request: &[u8; wire::SIZE]) -> Result<[u8; wire::SIZE], Status> {
+        let operation = wire::header(request).operation;
+        if self.seen >= self.nth && matches!(operation, wire::STAT | wire::COLLECTION_STAT) {
+            if let Some(skew) = self.skew.take() {
+                let mut reply = self.inner.call(request)?;
+                skew(&mut reply);
+                return Ok(reply);
+            }
+        }
+        if operation == self.operation {
+            self.seen += 1;
+            if self.seen == self.nth {
+                if self.forward {
+                    self.inner.call(request)?;
+                }
+                return Err(Status::Unknown);
+            }
+        }
+        self.inner.call(request)
+    }
+}
+
+fn lossy_restore(
+    operation: u16,
+    nth: usize,
+    forward: bool,
+    skew: Option<fn(&mut [u8; wire::SIZE])>,
+) -> Result<NativeReport, (Status, NativeReport)> {
+    let bytes = fixture("restore.bin");
+    let mut disk = SimDisk::new();
+    let mut service = Service::new(EPOCH, Table::EMPTY, false);
+    let mut c = Client::new(
+        Lossy {
+            inner: Local {
+                service: &mut service,
+                disk: &mut disk,
+                domain: DOMAIN,
+            },
+            operation,
+            nth,
+            forward,
+            seen: 0,
+            skew,
+        },
+        EPOCH,
+        100,
+    );
+    let result = restore(&bytes, &mut c).map(|(report, _)| report);
+    assert!(c.transport.seen >= nth, "fault injected");
+    assert!(c.transport.skew.is_none(), "skew applied");
+    result
+}
+
+#[test]
+fn a_lost_write_reply_is_resolved_by_stat() {
+    // The first COMMIT landed: the replay continues and counts it.
+    let report = lossy_restore(wire::COMMIT, 1, true, None).unwrap();
+    assert_eq!(
+        (report.restored, report.writes, report.committed),
+        (0b0001_1010, 6, 10)
+    );
+    // The first COMMIT never arrived: STAT shows no new revision, so the
+    // outcome stays Unknown and nothing is claimed.
+    let (status, report) = lossy_restore(wire::COMMIT, 1, false, None).unwrap_err();
+    assert_eq!(
+        (status, report.writes, report.committed),
+        (Status::Unknown, 0, 0)
+    );
+    // A later lost COMMIT that did not land: earlier WRITEs are counted.
+    let (status, report) = lossy_restore(wire::COMMIT, 3, false, None).unwrap_err();
+    assert_eq!((status, report.committed), (Status::Unknown, 2));
+}
+
+#[test]
+fn a_lost_collection_or_meta_reply_is_resolved_by_reading_back() {
+    for operation in [wire::COLLECTION, wire::META] {
+        let report = lossy_restore(operation, 1, true, None).unwrap();
+        assert_eq!((report.restored, report.committed), (0b0001_1010, 10));
+    }
+    let (status, report) = lossy_restore(wire::COLLECTION, 1, false, None).unwrap_err();
+    assert_eq!((status, report.committed), (Status::Unknown, 6));
+    let (status, report) = lossy_restore(wire::META, 2, false, None).unwrap_err();
+    assert_eq!((status, report.committed), (Status::Unknown, 9));
+}
+
+// Reply byte offsets: revision 32, length (aux) 56, name 64, STAT content sum 96.
+fn bump_revision(reply: &mut [u8; wire::SIZE]) {
+    reply[32] += 1;
+}
+fn skew_name(reply: &mut [u8; wire::SIZE]) {
+    reply[64] ^= 1;
+}
+fn skew_length(reply: &mut [u8; wire::SIZE]) {
+    reply[56] += 1;
+}
+fn skew_content_sum(reply: &mut [u8; wire::SIZE]) {
+    reply[96] ^= 1;
+}
+
+#[test]
+fn a_landed_commit_that_stat_shows_differently_is_not_claimed() {
+    // Each field of the exact-match rule on its own: one differing field
+    // means the landed revision is not demonstrably ours.
+    let skews: [fn(&mut [u8; wire::SIZE]); 4] =
+        [bump_revision, skew_name, skew_length, skew_content_sum];
+    for skew in skews {
+        let (status, report) = lossy_restore(wire::COMMIT, 1, true, Some(skew)).unwrap_err();
+        assert_eq!(
+            (status, report.writes, report.committed),
+            (Status::Unknown, 0, 0)
+        );
+    }
+    for skew in [bump_revision, skew_name] {
+        let (status, report) = lossy_restore(wire::COLLECTION, 1, true, Some(skew)).unwrap_err();
+        assert_eq!((status, report.committed), (Status::Unknown, 6));
+    }
+}
