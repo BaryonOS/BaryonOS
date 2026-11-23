@@ -263,7 +263,7 @@
           "status": "pending",
           "evidence_level": "none",
           "evidence": [],
-          "note": "kernel/src/m2/xhci.rs accepts only QEMU's qemu-xhci (1b36:000d) at a fixed fixture MMIO address."
+          "note": "kernel/src/m2/xhci.rs accepts only QEMU's qemu-xhci (1b36:000d) and maps its discovered BAR0 (at most 64 KiB, at or above 0x80000000, not overlapping its DMAR unit) at the fixed kernel virtual address 0x3f210000."
         },
         {
           "id": "nvme",
@@ -351,7 +351,7 @@
           "status": "pending",
           "evidence_level": "none",
           "evidence": [],
-          "note": "kernel/src/m2/xhci.rs accepts only QEMU's qemu-xhci (1b36:000d) at a fixed fixture MMIO address; physical controllers are rejected."
+          "note": "kernel/src/m2/xhci.rs accepts only QEMU's qemu-xhci (1b36:000d) and maps its discovered BAR0 (at most 64 KiB, at or above 0x80000000, not overlapping its DMAR unit) at the fixed kernel virtual address 0x3f210000; physical controllers are rejected."
         },
         {
           "id": "nvme",

@@ -118,7 +118,7 @@ protocol has been executed; all seven are **blocked**:
 | `HW-INV` v2 | H06 / FR-H03, FR-R03 | `native-hw-inventory` profile absent (H06-T3); no physical image; `0xF4` exit path; owner decisions |
 | `H05-S5` v1 | H05 / FR-S04 | no physical image; rejection paths exit through `0xF4`; no `SMI_CMD`/`ACPI_ENABLE`, `_PTS`/`_TTS`; owner decisions |
 | `H05-S3` v1 | H05 / FR-S05 | QEMU-native S3 entry/resume exists (`native-acpi-s3`, [h05-native-s3-20261119](../verification/h05-native-s3-20261119/README.md)) but is woken only by QMP `system_wakeup` under the QEMU/OVMF `Edk2Version0Extended` vector policy; physical firmware path (FACS version, real-mode or extended vector, `_PTS`/`_WAK`) unverified; no physical wake source (`OD-HW-POWER`); protocol markers not yet emitted in the specified form; must not rely on `0xF4`; owner decisions |
-| `H02-USB` v2 | H02 / FR-H01 | xHCI accepts only QEMU `1b36:000d` at a fixed MMIO address; VT-d availability unknown until `HW-INV` records the DMAR table; no IRQ/hub/hotplug; `0xF4` exit |
+| `H02-USB` v2 | H02 / FR-H01 | xHCI accepts only QEMU `1b36:000d` and maps its BAR0 at a fixed kernel virtual address; VT-d availability unknown until `HW-INV` records the DMAR table; no IRQ/hub/hotplug; `0xF4` exit |
 | `H03-AV` v2 | H03 / FR-H02 | no HD Audio driver; GOP evidence is QEMU-only; GPU scope undefined; `0xF4` exit |
 | `H04-NET` v1 | H04 / FR-H03 | no e1000e driver; Wi-Fi/Bluetooth excluded pending `OD-HW-FAMILIES`; `0xF4` exit |
 | `R03-INSTALL` v2 | R01 / FR-R03 | no installer image; no NVMe, AHCI or USB mass-storage driver; install-target transport undecided (`OD-HW-DISKS`, `OD-HW-FAMILIES`); physical disk writes not authorised |
@@ -252,8 +252,9 @@ Each device row carries an explicit `evidence_level`: `none`, `host`,
   path through a symlinked directory is rejected. Unsigned legacy JSON records
   no longer qualify, and a schema-1 matrix cannot express `supported`.
 - xHCI stays `pending` outside the QEMU profile because
-  `kernel/src/m2/xhci.rs` accepts only QEMU's `qemu-xhci` (`1b36:000d`) at a
-  fixed fixture MMIO address.
+  `kernel/src/m2/xhci.rs` accepts only QEMU's `qemu-xhci` (`1b36:000d`). It
+  maps the discovered BAR0 (at most 64 KiB, at or above `0x80000000`, not
+  overlapping its DMAR unit) at the fixed kernel virtual address `0x3f210000`.
 
 `trusted kernel transport` does not establish isolated userspace DMA.
 `unsupported` makes no DMA-containment claim. `VT-d contained` requires
