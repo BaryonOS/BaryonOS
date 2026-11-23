@@ -982,6 +982,16 @@ class SignedEvidenceTests(unittest.TestCase):
             record["steps"][4]["result"] = "fail"
         self.rejects(self.signed(passed=False, mutate=fail_s5), unmet)
 
+    def test_dependent_record_cannot_claim_enabled_over_an_unknown_inventory(self):
+        """The dependent log has no HWINV:SECUREBOOT line, so only the inventory check can stop the claim."""
+        unknown = physical_inventory(secure_boot="unknown")
+        inv = self.fixture.record(ident="HW-INV", key=self.key, inventory=unknown)
+        self.assertIn("HWINV:SECUREBOOT=ABSENT", (self.root / inv).parent.joinpath("serial.log").read_text())
+        self.assertTrue(hw_evidence.validate_record(inv, self.root)["passed"])
+        self.assertTrue(hw_evidence.validate_record(self.signed(inventory=unknown), self.root)["passed"])
+        self.rejects(self.signed(inventory=unknown, secure_boot="enabled"),
+                     "Secure Boot state differs between record and inventory")
+
     def test_s5_from_a_qemu_capture_needs_a_physical_inventory_record(self):
         report = json.loads((hw_evidence.ROOT / "docs/verification/h05-acpi-s5/native-report.json").read_text())
         stdout = report["profiles"]["native-acpi-s5"]["runs"][0]["guest"]["stdout"]
@@ -1200,6 +1210,9 @@ class ProtocolEvidenceTests(unittest.TestCase):
                  "malformed HWINV:CPUID"),
                 ("log absent, inventory unknown, record enabled",
                  dict(inventory=physical_inventory(secure_boot="unknown"), secure_boot="enabled",
+                      lines=at(secure, "HWINV:SECUREBOOT=ABSENT")), "Secure Boot state differs"),
+                ("log absent, inventory and record enabled",
+                 dict(inventory=physical_inventory(secure_boot="enabled"), secure_boot="enabled",
                       lines=at(secure, "HWINV:SECUREBOOT=ABSENT")), "ABSENT contradicts the record")):
             with self.subTest(case=label):
                 self.rejects(self.signed(**changes), reason)

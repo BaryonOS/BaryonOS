@@ -11,7 +11,8 @@ The inventory must agree with the run's own serial log: its PCI functions with
 the ``HWINV:PCI`` lines and count, its DMAR observation with the
 ``HWINV:ACPI:DMAR`` line and the kernel's ACPI discovery marker, its CPUID vendor with the single
 ``HWINV:CPUID`` line and its Secure Boot state with the single ``HWINV:SECUREBOOT`` line (``1`` enabled,
-``0`` disabled, ``ABSENT`` unknown, which also forbids a record claiming ``enabled``). A protocol may
+``0`` disabled, ``ABSENT`` unknown). An unknown inventory state forbids every record that binds that
+inventory from claiming ``enabled``. A protocol may
 be ``ready`` only while none of the owner decisions that block it is open, and a
 record is accepted only when the accepted records its protocol requires exist
 with the same target, ``source_sha256``, ``source_commit`` and inventory
@@ -730,7 +731,9 @@ def _validate_record(name: str, root: Path, active: frozenset[str]) -> dict:
     log = _sha256_ref(root, path.parent, record["serial_log"], "serial log").decode("utf-8", "replace")
     lines = [line.strip() for line in log.splitlines()]
     _require(_member(record["secure_boot"], {"enabled", "disabled"}), "secure_boot must be enabled or disabled")
-    _require(inventory["secure_boot"] in {"unknown", record["secure_boot"]},
+    # An unknown inventory state cannot support an enabled claim in any record, whatever its own log shows.
+    _require(inventory["secure_boot"] == record["secure_boot"]
+             or (inventory["secure_boot"] == "unknown" and record["secure_boot"] == "disabled"),
              "Secure Boot state differs between record and inventory")
     _require(isinstance(record["operator"], str) and 0 < len(record["operator"].strip()) <= 128
              and record["operator"].isprintable(), "operator identity missing")
