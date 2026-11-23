@@ -17,6 +17,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 import struct
+import unicodedata
 
 from volume_disk import fnv
 
@@ -38,6 +39,8 @@ LABEL = 32
 MIN_ARCHIVE = 80
 MAX_ARCHIVE = 525_328
 SLOTS = ("A", "B")
+# Bidirectional overrides and isolates (spec 2.3): U+202A-U+202E, U+2066-U+2069.
+BIDI = frozenset(range(0x202A, 0x202F)) | frozenset(range(0x2066, 0x206A))
 
 
 class Invalid(ValueError):
@@ -56,6 +59,20 @@ def _sectors_of(length: int) -> int:
     return -(-length // SECTOR)
 
 
+def valid_label(label: bytes) -> bool:
+    """Spec 2.3 label rule, applied at mount under O14 (2.6): valid UTF-8 of
+    1-32 bytes, not "." or "..", and no control character (Unicode category
+    Cc), "/", "\\", or bidirectional override or isolate."""
+    if not 1 <= len(label) <= LABEL:
+        return False
+    try:
+        text = label.decode("utf-8", errors="strict")
+    except UnicodeDecodeError:
+        return False
+    return text not in (".", "..") and not any(
+        unicodedata.category(ch) == "Cc" or ch in "/\\" or ord(ch) in BIDI for ch in text)
+
+
 def decode_record(raw: bytes) -> dict:
     entry, first, length, trailer, sealed = struct.unpack_from("<5Q", raw, 0)
     label_length = raw[40]
@@ -67,6 +84,8 @@ def decode_record(raw: bytes) -> dict:
         raise Invalid("label length")  # 2.3: labels are 1-32 bytes
     if label_length > LABEL or not _zero(raw[48 + label_length:RECORD]):
         raise Invalid("label padding")
+    if not valid_label(raw[48:48 + label_length]):
+        raise Invalid("label content")  # O14: the CREATE rule of 2.3 also at mount
     if not MIN_ARCHIVE <= length <= MAX_ARCHIVE:
         raise Invalid("entry length")
     if sealed < 2:

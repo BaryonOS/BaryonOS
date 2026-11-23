@@ -68,7 +68,8 @@ pub struct Env<'a, B, V, E> {
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum State {
     Mounted,
-    /// Failed mount or remount, or a failed FORMAT; terminal for the instance.
+    /// Failed mount or remount, a failed FORMAT, or a remount that contradicts
+    /// the committed catalog (O16); terminal for the instance.
     Failed {
         no_device: bool,
     },
@@ -93,7 +94,8 @@ pub enum Export {
     Sealed(u64),
     /// Aborted, discarded, or resolved as not sealed after a remount.
     NotSealed,
-    /// SEAL answered `Unknown` and no completed remount FLUSH resolved it.
+    /// SEAL answered `Unknown` and no completed remount FLUSH resolved it;
+    /// also after a remount that contradicted the committed catalog (O16).
     Unknown,
 }
 
@@ -352,8 +354,9 @@ impl Service {
                 Err(Status::Corrupt)
             }
             State::Blank => match h.operation {
-                // A remount after the 2.7 trigger can end blank (a changed
-                // device); the latch still forbids every write this boot.
+                // Unreachable since O16: the latch is set only in a mounted
+                // instance and a remount never ends blank (2.7). Kept as a
+                // defence: the latch forbids every write for the boot.
                 wire::FORMAT if self.safe_path => Err(Status::Access),
                 wire::FORMAT | wire::UNBIND => self.run(lane, h, body, env, reply),
                 wire::INFO => {
@@ -609,13 +612,9 @@ impl Service {
         if let Some(tamper) = self.tamper {
             tamper(&mut bytes);
         }
-        let Some(checked) = catalog::decode(&bytes, self.scope).filter(|copy| {
-            catalog::extends(&committed, copy)
-                && copy.count == committed.count + 1
-                && copy.sequence == sequence
-                // Pre-write check only, not the mount rule (2.6, 2.7 step 4).
-                && copy.records[committed.count].sealed_sequence == sequence
-        }) else {
+        let Some(checked) = catalog::decode(&bytes, self.scope)
+            .filter(|copy| catalog::extends_by_one(&committed, copy))
+        else {
             self.discard();
             return Err(Status::Corrupt);
         };
@@ -626,7 +625,7 @@ impl Service {
             .and_then(|()| write_copy(env.broker, 1 - target, &bytes))
             .and_then(|()| device::flush(env.broker));
         if written.is_err() {
-            return Err(self.catalog_failure(env.broker, lane, writing.id));
+            return Err(self.catalog_failure(env.broker, lane, writing.id, &committed));
         }
         self.selection = Selection::committed(checked);
         self.writing = None;
@@ -640,22 +639,39 @@ impl Service {
     /// A device result other than success in SEAL steps 4-5: reply `Unknown`,
     /// drop in-memory catalog and writing state, latch the safe path and
     /// remount before the next request. Only a remount whose FLUSH completed
-    /// resolves the export binding, once.
-    fn catalog_failure<B: Broker>(&mut self, broker: &mut B, lane: usize, id: u64) -> Status {
+    /// and that mounted `committed` or `committed` plus exactly the
+    /// provisional record resolves the export binding, once (O16, 2.7).
+    fn catalog_failure<B: Broker>(
+        &mut self,
+        broker: &mut B,
+        lane: usize,
+        id: u64,
+        committed: &Catalog,
+    ) -> Status {
         self.writing = None;
         self.safe_path = true;
         self.set_export(lane, Export::Unknown);
         self.mount(broker);
-        if self.state == State::Mounted {
-            let sealed = self.selection.catalog.find(id).is_some();
-            self.set_export(
-                lane,
-                if sealed {
-                    Export::Sealed(id)
-                } else {
-                    Export::NotSealed
-                },
-            );
+        let remounted = self.selection.catalog;
+        let resolved = match self.state {
+            State::Mounted if remounted == *committed => Some(Export::NotSealed),
+            State::Mounted
+                if catalog::extends_by_one(committed, &remounted)
+                    && remounted.records[committed.count].id == id =>
+            {
+                Some(Export::Sealed(id))
+            }
+            // O16: a blank candidate or another catalog contradicts the
+            // catalog mounted earlier in this boot: failed mount, binding
+            // unknown. `Corrupt` and a failed FLUSH or read stay as they are.
+            State::Mounted | State::Blank => {
+                self.state = State::Failed { no_device: false };
+                None
+            }
+            State::Corrupt | State::Failed { .. } => None,
+        };
+        if let Some(export) = resolved {
+            self.set_export(lane, export);
         }
         Status::Unknown
     }

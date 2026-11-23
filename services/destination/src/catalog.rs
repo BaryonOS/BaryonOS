@@ -188,6 +188,9 @@ pub fn decode(bytes: &[u8; COPY], scope_sectors: u64) -> Option<Catalog> {
             || label_length > LABEL
             || raw[41..48].iter().any(|byte| *byte != 0)
             || record.label[label_length..].iter().any(|byte| *byte != 0)
+            // O14: label content at mount, the CREATE rule of 2.3 in full.
+            // After the length clauses, so the slice is within the label.
+            || !crate::valid_name(&record.label[..label_length])
         {
             return None;
         }
@@ -207,6 +210,19 @@ pub fn extends(lower: &Catalog, higher: &Catalog) -> bool {
         && higher.records[..lower.count] == lower.records[..lower.count]
         && higher.next_free >= lower.next_free
         && higher.next_entry >= lower.next_entry
+}
+
+/// The extension check of 2.7 step 4: `next` is `committed` plus exactly one
+/// record, at sequence + 1 and sealed at that sequence. The pre-write check
+/// of SEAL and the remount comparison of O16 (2.7) both use it.
+pub fn extends_by_one(committed: &Catalog, next: &Catalog) -> bool {
+    committed.sequence.checked_add(1).is_some_and(|sequence| {
+        extends(committed, next)
+            && next.count == committed.count + 1
+            && next.sequence == sequence
+            // Pre-write and remount only, not the mount rule (2.6).
+            && next.records[committed.count].sealed_sequence == sequence
+    })
 }
 
 /// A mounted catalog with what step 4 of 2.7 needs to pick its target slot.

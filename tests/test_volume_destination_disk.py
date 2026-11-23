@@ -183,35 +183,38 @@ class CopyValidity(unittest.TestCase):
         self.assertIsNone(dd.check_copy(bytes(copy(records(700), next_entry=9)), SECTORS)[1])
 
 
-class SpecGapPins(unittest.TestCase):
-    """Pinned current behaviour where the spec is undecided; flip when the owner decides.
-
-    Label content at mount is owner item O14 (2.6, revision 3): the oracle
-    checks only the label length and padding, not valid_name.
-    """
-
-    def test_label_content_unchecked_until_o14(self):
-        for label in (b"..", b"\xff\xfe", b"a\x07b", "x\u202e".encode()):
-            entries = records(700)
-            entries[0]["label"] = label.hex()
-            self.assertIsNone(dd.check_copy(bytes(copy(entries)), SECTORS)[1])
-
-
 class RecordAndCopyValidity(unittest.TestCase):
     """N34 (2.6, revision 3): crafted copies, each valid except for one rule.
 
     Each is invalid; beside a valid copy the valid one is used, twice it is
     corrupt; a valid copy mounts beside non-zero sectors 8-15. The Rust core
     runs the same cases (services/destination/tests/catalog.rs,
-    n34_record_and_copy_validity).
+    n34_record_and_copy_validity). Under O14 (2.6) a label that fails the 2.3
+    rule makes the copy invalid ("label content").
     """
+
+    LABELS = {
+        "label '.'": b".",
+        "label '..'": b"..",
+        "label invalid UTF-8": b"a\xff\xfe",
+        "label UTF-16 surrogate": b"\xed\xa0\x80",
+        "label control character": b"a\x07b",
+        "label DEL": b"a\x7fb",
+        "label U+0085": "a\u0085b".encode(),
+        "label '/'": b"a/b",
+        "label backslash": b"a\\b",
+        "label U+202A": "x\u202a".encode(),
+        "label U+202E": "x\u202e".encode(),
+        "label U+2066": "x\u2066".encode(),
+        "label U+2069": "x\u2069".encode(),
+    }
 
     def crafted(self) -> dict[str, tuple[bytearray, str]]:
         base = copy(records(700, 1100))
         cases = {
             "zero records, copy sequence 0": (patched(copy([]), 32, "<Q", 0), "sequence"),
             "entry ID 0": (patched(base, rec(0, 0), "<Q", 0), "entry id 0"),
-            "label length 0": (patched(base, rec(1, 40), "<B", 0), "label length"),
+            "label length 0": (self.label_length_0(base), "label length"),
             "length 79": (patched(base, rec(1, 16), "<Q", 79), "entry length"),
             "length 525 329": (patched(base, rec(0, 16), "<Q", dd.MAX_ARCHIVE + 1), "entry length"),
             "sealing sequence 1": (patched(base, rec(0, 32), "<Q", 1), "sealing sequence"),
@@ -223,7 +226,27 @@ class RecordAndCopyValidity(unittest.TestCase):
         long_label[rec(1, 40)] = 33
         long_label[rec(1, 48):rec(1, 80)] = b"x" * dd.LABEL
         cases["label length 33"] = (dd.seal_copy(long_label), "label padding")
+        for name, label in self.LABELS.items():
+            entries = records(700, 1100)
+            entries[1]["label"] = label.hex()
+            cases[name] = (copy(entries), "label content")
         return cases
+
+    @staticmethod
+    def label_length_0(base: bytes) -> bytearray:
+        # Label bytes zeroed too, so only the label-length rule is broken (F3).
+        raw = bytearray(base)
+        raw[rec(1, 40)] = 0
+        raw[rec(1, 48):rec(1, 80)] = bytes(dd.LABEL)
+        return dd.seal_copy(raw)
+
+    def test_label_content_accepts_valid_names(self):
+        # The last four sit just outside the bidi ranges U+202A-U+202E and U+2066-U+2069.
+        for label in ("caf\u00e9 ..".encode(), b"a.b", b"L" * dd.LABEL,
+                      "x\u2029".encode(), "x\u202f".encode(), "x\u2065".encode(), "x\u206a".encode()):
+            entries = records(700, 1100)
+            entries[1]["label"] = label.hex()
+            self.assertIsNone(dd.check_copy(bytes(copy(entries)), SECTORS)[1], label)
 
     def test_each_crafted_copy_invalid_with_its_rule(self):
         for name, (raw, rule) in self.crafted().items():

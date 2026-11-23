@@ -1,7 +1,9 @@
 //! Kernel -8 and the service's own wait bounds (spec 2.7): N26; the
 //! "Device results" mapping of 2.5 (revision 3): N33.
 //! `SimDisk` advances its clock by one tick per submission and per poll.
-//! N26 runs under both reset models (section 6, revision 3).
+//! N26 runs under both reset models (section 6, revision 3); only (d)
+//! reaches a reset that drops cached data, and (a), (b), (c), (e) and (f)
+//! assert that none was dropped (review F2).
 mod common;
 
 use common::*;
@@ -36,6 +38,8 @@ fn n26a_mount_flush_again_forever() {
         assert_eq!(h.unbind(1), Status::Io);
         assert_eq!(h.disk.tick, start, "UNBIND issues no device request");
         assert_eq!(h.disk.writes, 0);
+        // F2: no reset that drops the cache is reached, so both models agree.
+        assert_eq!(h.disk.dropped, 0);
     });
 }
 
@@ -63,6 +67,8 @@ fn n26b_barrier2_again_forever() {
         );
         assert_eq!(h.info().0, Status::Io);
         assert_eq!(h.mutations(), mutations, "no device write follows");
+        // F2: no reset that drops the cache is reached, so both models agree.
+        assert_eq!(h.disk.dropped, 0);
     });
 }
 
@@ -91,6 +97,8 @@ fn n26c_append_write_again_forever() {
         assert_eq!(h.unbind(1), Status::Ok);
         assert!(h.disk.tick - start <= SUBMIT_BOUND + SLACK);
         assert_eq!(h.create(2, b"y").status, Status::Access);
+        // F2: no reset that drops the cache is reached, so both models agree.
+        assert_eq!(h.disk.dropped, 0);
     });
 }
 
@@ -162,6 +170,8 @@ fn n26e_poll_beyond_bound_is_unknown() {
         assert_eq!(status, Status::Unknown);
         assert!(h.disk.tick - start <= POLL_BOUND + SLACK);
         assert!(h.svc.safe_path());
+        // F2: no reset that drops the cache is reached, so both models agree.
+        assert_eq!(h.disk.dropped, 0);
     });
 }
 
@@ -222,6 +232,8 @@ fn n26f_remount_after_expired_poll_bound() {
         assert_eq!(h.info().0, Status::Io);
         assert_eq!(h.list_ids(1), (Status::Unknown, vec![]));
         assert_eq!(h.mutations(), mutations, "no device write follows");
+        // F2: no reset that drops the cache is reached, so both models agree.
+        assert_eq!(h.disk.dropped, 0);
     });
 }
 

@@ -1,4 +1,5 @@
-//! Flush order and cache loss (spec 2.7, section 6): N11, N12, N13, N24, N25.
+//! Flush order and cache loss (spec 2.7, section 6): N11, N12, N13, N24, N25;
+//! remount against the committed catalog (O16): N35.
 //! N13 and N24 pass through a device reset and run under both reset models
 //! (cache kept, cache dropped; section 6, revision 3).
 //! Flush-order and cache-loss acceptance is host-only (section 6); every
@@ -8,8 +9,9 @@ mod common;
 
 use common::*;
 use destination_core::{
+    catalog::{self, Catalog, Record},
     device::{Broker, Request},
-    service::{Env, Meta, Outcome, State},
+    service::{Env, Export, Meta, Outcome, State},
     wire::{self, Header},
     Status, SECTOR,
 };
@@ -609,11 +611,13 @@ fn o1_seal_step3_failure_latches_safe_path() {
     }
 }
 
-/// Wraps the disk as a device that reads all zero once a FLUSH has failed:
-/// the remount after a SEAL catalog failure then ends blank.
+/// Wraps the disk as a device whose sectors 0-15 read as `area` once a write
+/// or FLUSH has failed: the remount after a SEAL catalog failure then reads
+/// a layout that contradicts the committed catalog (a changed device, O16).
 struct Swapped<'a> {
     disk: &'a mut SimDisk,
-    blank: &'a mut bool,
+    area: &'a [[u8; SECTOR]],
+    swapped: &'a mut bool,
     last: Option<Op>,
 }
 
@@ -629,8 +633,10 @@ impl Broker for Swapped<'_> {
     fn poll(&mut self, buffer: &mut [u8; SECTOR]) -> i64 {
         let code = self.disk.poll(buffer);
         match self.last {
-            Some(Op::Flush) if code != 0 && code != -8 => *self.blank = true,
-            Some(Op::Read(_)) if code == 0 && *self.blank => *buffer = [0; SECTOR],
+            Some(Op::Read(sector)) if code == 0 && *self.swapped && sector < 16 => {
+                *buffer = self.area[sector as usize];
+            }
+            Some(op) if op.mutating() && code != 0 && code != -8 => *self.swapped = true,
             _ => {}
         }
         code
@@ -640,7 +646,14 @@ impl Broker for Swapped<'_> {
     }
 }
 
-fn via(h: &mut H, blank: &mut bool, lane: usize, sender: u64, header: Header) -> Outcome {
+fn via(
+    h: &mut H,
+    area: &[[u8; SECTOR]],
+    swapped: &mut bool,
+    lane: usize,
+    sender: u64,
+    header: Header,
+) -> Outcome {
     let mut header = header;
     h.next_id[lane] += 1;
     header.request_id = h.next_id[lane];
@@ -648,7 +661,8 @@ fn via(h: &mut H, blank: &mut bool, lane: usize, sender: u64, header: Header) ->
     let body = wire::encode(&header, &[]);
     let mut broker = Swapped {
         disk: &mut h.disk,
-        blank,
+        area,
+        swapped,
         last: None,
     };
     let mut env = Env {
@@ -664,38 +678,169 @@ fn via(h: &mut H, blank: &mut bool, lane: usize, sender: u64, header: Header) ->
     h.svc.handle(meta, &body, &mut env)
 }
 
-/// O7 (review R2): a remount after a SEAL catalog failure that reads sectors
-/// 0-15 as zero leaves a blank candidate with the safe path latched. FORMAT
-/// is then `Access` with no device write: the latch forbids every write for
-/// the rest of the boot (2.7), whatever state the remount ends in.
-/// Kills: a safe-path latch consulted only in the mounted state.
-#[test]
-fn o7_safe_path_refuses_format_after_blank_remount() {
-    let (mut h, _, _) = with_e1();
+/// E1 sealed; export lane 1 has written E2 and is about to SEAL; verify lane
+/// 2 is bound to E1. Returns the harness, E1, E2's provisional ID and length.
+fn n35_setup() -> (H, u64, u64, u64) {
+    let (mut h, e1, _) = with_e1();
     assert_eq!(h.bind(1, wire::BIND_EXPORT, 0), Status::Ok);
+    assert_eq!(h.bind(2, wire::BIND_VERIFY, e1), Status::Ok);
     let bytes = archive(2, 1, 300, 2);
     let entry = h.write_all(1, &bytes);
-    h.disk.arm();
-    // Flushes after arm: barrier 1 (0), barrier 2 (1) fails, remount (2).
-    h.disk
-        .fault(|op, c| (op == Op::Flush && c.flushes == 1).then(|| Fault::code(-12)));
-    let mut blank = false;
-    let mut seal = req(wire::SEAL);
-    seal.entry = entry;
-    seal.offset = bytes.len() as u64;
-    assert_eq!(
-        via(&mut h, &mut blank, 1, PORTAL, seal).status,
-        Status::Unknown
-    );
-    h.disk.fault = None;
-    assert!(blank);
-    assert_eq!(h.svc.state(), State::Blank);
-    assert!(h.svc.safe_path());
-    let mutations = h.mutations();
-    assert_eq!(
-        via(&mut h, &mut blank, 0, DIALOG, req(wire::FORMAT)).status,
-        Status::Access
-    );
-    assert_eq!(h.mutations(), mutations, "no device write");
-    assert_eq!(h.svc.state(), State::Blank);
+    (h, e1, entry, bytes.len() as u64)
+}
+
+/// N35 (O16; 2.6, 2.7): the SEAL step-4 catalog write fails and the remount
+/// then reads (a) all zero in sectors 0-15; (b) a valid catalog with another
+/// destination ID that lists the provisional entry ID; (c) any other valid
+/// catalog that is neither the committed copy nor that copy plus exactly the
+/// provisional record (E1 changed; the new record under another ID; two new
+/// records; the new record at copy sequence + 2; the committed records under
+/// another destination ID; the committed records at copy sequence + 1);
+/// (d) a non-blank layout that is no valid catalog.
+/// (a)-(c): failed-mount state, INFO `Io`, export-lane LIST `Unknown` with
+/// zero records, VERIFY and FORMAT `Io`; (d): `Corrupt` for all, never a
+/// record. In every case no device write follows the failed one and the
+/// binding never resolves as sealed.
+/// Kills: a remount that ends blank (FORMAT `Access` or a FORMAT that
+/// writes); a remount that mounts another catalog and resolves the binding
+/// ((b) as sealed: LIST returns a record); dropping the provisional-ID or
+/// the copy-sequence clause of the comparison; weakening the committed-copy
+/// equality to the records, or ignoring its ID or sequence. Dropping only
+/// its count clause is an equivalent mutant: a second new record would need
+/// a sealing sequence above the copy's, which no valid copy has.
+#[test]
+fn n35_remount_contradicting_committed_catalog() {
+    // The catalog a successful SEAL commits, from an identical run.
+    let (mut ok, _, entry, length) = n35_setup();
+    let committed = *ok.svc.catalog();
+    assert_eq!(ok.seal(1, entry, length).status, Status::Ok);
+    let sealed = *ok.svc.catalog();
+    assert!(catalog::extends_by_one(&committed, &sealed));
+    assert_eq!(sealed.records[committed.count].id, entry);
+
+    let mut other_id = sealed;
+    other_id.id[0] ^= 1;
+    // The committed records under another ID or at a later copy sequence:
+    // only the exact committed copy resolves the binding as not sealed.
+    let mut committed_other_id = committed;
+    committed_other_id.id[0] ^= 1;
+    let mut committed_later = committed;
+    committed_later.sequence += 1;
+    let mut e1_changed = sealed;
+    e1_changed.records[0].trailer ^= 1;
+    let mut other_entry = sealed;
+    other_entry.records[committed.count].id = entry + 1;
+    other_entry.next_entry = entry + 2;
+    let mut sequence_skipped = sealed;
+    sequence_skipped.sequence += 1;
+    let mut two_more = sealed;
+    two_more.records[sealed.count] = Record {
+        id: entry + 1,
+        first: sealed.next_free,
+        length: 80,
+        trailer: 0,
+        sealed_sequence: sealed.sequence + 1,
+        label_length: 1,
+        label: [0; 32],
+    };
+    two_more.records[sealed.count].label[0] = b'z';
+    two_more.count += 1;
+    two_more.sequence += 1;
+    two_more.next_free += 1;
+    two_more.next_entry += 1;
+    let area_of = |c: &Catalog| {
+        let bytes = c.encode();
+        assert!(
+            catalog::decode(&bytes, SECTORS).is_some(),
+            "crafted catalog valid"
+        );
+        let mut area = vec![[0; SECTOR]; 16];
+        put_copy(&mut area, 0, &bytes);
+        put_copy(&mut area, 1, &bytes);
+        area
+    };
+    let mut foreign = vec![[0; SECTOR]; 16];
+    foreign[0] = [0xa5; SECTOR];
+    let cases = [
+        ("(a) all zero", vec![[0; SECTOR]; 16], false),
+        ("(b) other destination ID", area_of(&other_id), false),
+        ("(c) E1 changed", area_of(&e1_changed), false),
+        (
+            "(c) new record under another ID",
+            area_of(&other_entry),
+            false,
+        ),
+        ("(c) two new records", area_of(&two_more), false),
+        ("(c) copy sequence + 2", area_of(&sequence_skipped), false),
+        (
+            "(c) committed records, other destination ID",
+            area_of(&committed_other_id),
+            false,
+        ),
+        (
+            "(c) committed records at copy sequence + 1",
+            area_of(&committed_later),
+            false,
+        ),
+        ("(d) not a valid catalog", foreign, true),
+    ];
+    for (name, area, corrupt) in cases {
+        let (mut h, e1, entry, length) = n35_setup();
+        let mut swapped = false;
+        h.disk.arm();
+        h.disk.fault(|op, c| {
+            (matches!(op, Op::Write(sector) if sector < 8) && c.catalog_writes == 0)
+                .then(|| Fault::code(-12))
+        });
+        let mut seal = req(wire::SEAL);
+        seal.entry = entry;
+        seal.offset = length;
+        assert_eq!(
+            via(&mut h, &area, &mut swapped, 1, PORTAL, seal).status,
+            Status::Unknown,
+            "{name}"
+        );
+        h.disk.fault = None;
+        assert!(swapped, "{name}: the step-4 write failed");
+        let failed = position(
+            &h.disk.log,
+            |event| matches!(event, Event::Complete(Op::Write(sector), code) if *sector < 8 && *code != 0),
+        );
+        assert!(
+            !h.disk.log[failed..]
+                .iter()
+                .any(|event| matches!(event, Event::Submit(Op::Write(_)))),
+            "{name}: no write after the failed one"
+        );
+        let (state, refusal) = if corrupt {
+            (State::Corrupt, Status::Corrupt)
+        } else {
+            (State::Failed { no_device: false }, Status::Io)
+        };
+        assert_eq!(h.svc.state(), state, "{name}");
+        assert_eq!(h.svc.binding(1).unwrap().export, Export::Unknown, "{name}");
+        let mutations = h.mutations();
+        let info = via(&mut h, &area, &mut swapped, 0, DIALOG, req(wire::INFO));
+        assert_eq!(info.status, refusal, "{name}: INFO");
+        let list = via(&mut h, &area, &mut swapped, 1, PORTAL, req(wire::LIST));
+        let listed = if corrupt {
+            Status::Corrupt
+        } else {
+            Status::Unknown
+        };
+        assert_eq!(list.status, listed, "{name}: export LIST");
+        assert_eq!(
+            wire::header(&list.reply.unwrap()).length,
+            0,
+            "{name}: no record"
+        );
+        let mut verify = req(wire::VERIFY);
+        verify.entry = e1;
+        let verified = via(&mut h, &area, &mut swapped, 2, PORTAL, verify).status;
+        assert_eq!(verified, refusal, "{name}: VERIFY");
+        let format = via(&mut h, &area, &mut swapped, 0, DIALOG, req(wire::FORMAT)).status;
+        assert_eq!(format, refusal, "{name}: FORMAT");
+        assert_eq!(h.mutations(), mutations, "{name}: no device write");
+        assert_eq!(h.svc.binding(1).unwrap().export, Export::Unknown, "{name}");
+    }
 }

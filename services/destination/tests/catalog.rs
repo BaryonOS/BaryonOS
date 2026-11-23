@@ -545,8 +545,11 @@ fn n8_read_error_in_reserved_area_is_never_blank() {
 /// invalid; beside a valid copy the valid one is used, twice they are
 /// `Corrupt`. A valid copy mounts beside non-zero sectors 8-15. The same
 /// cases run in the Python oracle (`tests/test_volume_destination_disk.py`,
-/// `RecordAndCopyValidity`). Label content (O14) is undecided and not tested.
-/// Kills: a validator without any one of these rules; a rule on sectors 8-15.
+/// `RecordAndCopyValidity`). Under O14 a label that fails `valid_name` (2.3)
+/// makes the copy invalid: invalid UTF-8, `.`, `..`, a control character
+/// (category Cc, also U+007F and U+0085), `/`, `\`, a bidi override or isolate.
+/// Kills: a validator without any one of these rules (the label content rule
+/// included, or any one of its clauses); a rule on sectors 8-15.
 #[test]
 fn n34_record_and_copy_validity() {
     let valid_copy = Raw::two().bytes();
@@ -572,6 +575,36 @@ fn n34_record_and_copy_validity() {
     b[64 + 80 + 48..64 + 160].fill(b'x');
     resum(&mut b);
     cases.push(("label length 33", b));
+    // O14: label content, each with a valid length and zero padding.
+    let labels: [(&str, &'static [u8]); 13] = [
+        ("label `.`", b"."),
+        ("label `..`", b".."),
+        ("label invalid UTF-8", b"a\xff\xfe"),
+        ("label UTF-16 surrogate", b"\xed\xa0\x80"),
+        ("label control character", b"a\x07b"),
+        ("label DEL", b"a\x7fb"),
+        ("label U+0085", "a\u{85}b".as_bytes()),
+        ("label `/`", b"a/b"),
+        ("label backslash", b"a\\b"),
+        ("label U+202A", "x\u{202a}".as_bytes()),
+        ("label U+202E", "x\u{202e}".as_bytes()),
+        ("label U+2066", "x\u{2066}".as_bytes()),
+        ("label U+2069", "x\u{2069}".as_bytes()),
+    ];
+    for (name, label) in labels {
+        cases.push((name, with(&|r| r.records[1].3 = label)));
+    }
+    assert!(
+        valid(&with(&|r| r.records[1].3 = "caf\u{e9} ..".as_bytes())),
+        "non-ASCII UTF-8 and dots inside a label are valid"
+    );
+    // Just outside the bidi ranges U+202A-U+202E and U+2066-U+2069.
+    for label in ["x\u{2029}", "x\u{202f}", "x\u{2065}", "x\u{206a}"] {
+        assert!(
+            valid(&with(&|r| r.records[1].3 = label.as_bytes())),
+            "{label:?} is valid"
+        );
+    }
     let mut b = valid_copy;
     at(&mut b, 64 + 80 + 16, 79);
     cases.push(("length 79", b));
