@@ -5,6 +5,50 @@ This document distinguishes the decisions and authority of the project owner
 from those of the executing roles. Source quotations retain their original
 wording and speaker.
 
+## ADR-H05-S3-SYSTEM-20261123 — Test-profile S3 from the system profile: syscall 0x91 behind POWER and the storage gate
+
+**Status:** technical decision of the executing hardware-track lead on
+23 November 2026, inside the H05 implementation mandate (H05-T4). It is not a
+project-owner approval and not a product power API. It exists only behind the
+opt-in test feature `test-system-s3`; no published ABI version contains it.
+Physical sleep, product suspend UX and device re-initialisation stay open.
+
+**Context.** H05-T3 (ADR-H05-S3-WAKE-20261119) suspends and resumes only the
+single-CPU IF0 bootstrap. H05 requires sleep/wake that is recoverable for a
+running system: ring-3 processes must continue after a wake. QEMU resets every
+device on wake (the CPU and all PCI functions restart; OVMF then transfers to
+the waking vector), so no virtio device state survives. The M3 scheduler counts
+PIT ticks; the TSC is used only for saturating diagnostics.
+
+**Decision.**
+1. **Syscall `0x91` SUSPEND(power handle, 0, 0, 0, 0, 0)**, the next number
+   after `0x90` (POWER_OFF), allocated like `0x74` in ADR-H04-LINK-20261119.
+   Validation order equals POWER_OFF: zero reserved arguments (-1), the
+   non-delegable init-only POWER object (`check_power`), an S3 plan that
+   discovery accepted with the FACS proven ACPI NVS (-14 otherwise), then the
+   same storage gate as S5 (`storage_closed`: volume shut down, no block
+   object, entropy broker idle; -8 retry, -16 never). One granted suspend per
+   boot; a second request returns -14.
+2. **Synchronous sleep in the caller's syscall.** IF stays 0. The kernel reuses
+   the H05-T3 wake page, token, FACS arm/disarm, canary and post-wake checks,
+   additionally saves and restores the caller's CR3, reloads the GDT/IDT/TR
+   through the shared loader and reprograms the PIC and PIT exactly as at
+   boot. Only after every check passes does the syscall return 0 to the
+   caller; any failed check stops the VM (fail closed, no partial resume).
+3. **Devices are lost, not resumed.** Because the storage gate already closed
+   every block authority and the entropy broker is idle, no DMA can be in
+   flight. After a wake the kernel marks the system as resumed: every later
+   device-backed request (block, entropy, network) is refused, and the only
+   way forward that the profile exercises is POWER_OFF (S5), which re-runs the
+   storage gate. Device re-initialisation after a wake is a separate slice.
+4. **Time.** Sleep time does not advance the tick clock; deadlines therefore
+   pause across S3. This is recorded, not hidden.
+
+**Evidence boundary.** QEMU `pc-q35-8.2`/OVMF/TCG only, wake only through QMP
+`system_wakeup`; no AML `_PTS`/`_WAK`, no SMP, no device survival, no
+physical firmware. Exit 33 plus the kernel markers and the harness's QMP
+`SUSPEND`/`WAKEUP` events are the oracle.
+
 ## ADR-H04-LINK-20261119 — Test-profile NIC link query 0x74 and link-down refusal -23
 
 **Status:** technical decision of the executing hardware-track lead on
