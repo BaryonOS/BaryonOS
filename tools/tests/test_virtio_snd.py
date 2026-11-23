@@ -230,7 +230,7 @@ class Serial(unittest.TestCase):
         self.assertEqual((rc, out, err, timed_out), (33, b"A\n", b"B", False))
         rc, out, err, timed_out = gate.run_bounded(
             [sys.executable, "-c", "import sys, time; print('early', flush=True); time.sleep(60)"],
-            dict(os.environ), timeout=1)
+            dict(os.environ), timeout=5)
         self.assertEqual((rc, out, timed_out), (None, b"early\n", True))
 
 

@@ -360,6 +360,13 @@ class RepositoryStateTests(unittest.TestCase):
                                         {d for d, b in hw_evidence.REQUIRED_BLOCKS.items() if ident in b})
                 self.assertEqual(loaded[ident]["status"], "blocked")
                 self.assertTrue(loaded[ident]["blocking_reasons"])
+        # With every decision open, no protocol can be marked ready.
+        for ident in hw_evidence.PROTOCOL_IDS:
+            changed = copy.deepcopy(protocols)
+            next(p for p in changed["protocols"] if p["id"] == ident).update(status="ready", blocking_reasons=[])
+            (self.root / hw_evidence.PROTOCOLS).write_text(json.dumps(changed))
+            with self.subTest(ready=ident), self.assertRaisesRegex(hw_evidence.EvidenceError, f"{ident}: ready"):
+                hw_evidence.load_protocols(self.root)
 
     def test_signer_state_follows_owner_decision(self):
         self.fixture.reopen("OD-HW-SIGNERS")
@@ -591,7 +598,8 @@ class RepositoryStateTests(unittest.TestCase):
             (lambda m: next(d for d in m["owner_decisions"] if d["id"] == "OD-HW-TARGETS").update(extra=True),
              "OD-HW-TARGETS"),
             (lambda m: next(d for d in m["owner_decisions"] if d["id"] == "OD-HW-PUBLISH").update(
-                blocks=[*hw_evidence.PROTOCOL_IDS, "H05-S5"]), "OD-HW-PUBLISH")]
+                blocks=[*hw_evidence.PROTOCOL_IDS, "H05-S5"]), "OD-HW-PUBLISH"),
+            (lambda m: next(p for p in m["profiles"] if p["id"] == "HW-FR").update(target=None), "OD-HW-TARGETS")]
         for mutate, reason in cases:
             matrix = copy.deepcopy(committed)
             mutate(matrix)
@@ -1203,7 +1211,9 @@ class ProtocolEvidenceTests(unittest.TestCase):
                 ("step result", dict(mutate=lambda r: r["steps"][0].update(result=["pass"])))):
             name = f"docs/verification/hw-inv-a-{label.replace(' ', '-').replace('_', '-')}/hw-evidence.json"
             with self.subTest(case=label):
-                self.rejects(self.fixture.record(ident="HW-INV", key=self.key, name=name, **changes), "")
+                self.rejects(self.fixture.record(ident="HW-INV", key=self.key, name=name, **changes),
+                             "secure_boot must be|inventory Secure Boot state invalid|inventory acpi must be"
+                             "|unknown DMA posture|steps must list")
             malformed.append(name)
         # Every malformed candidate sorts before the valid HW-INV record, so the search must skip past them.
         self.assertTrue(all(name < self.prerequisites[0] for name in malformed))
@@ -1252,10 +1262,10 @@ class ProtocolEvidenceTests(unittest.TestCase):
                      "device nvme listed without its transport marker")
         # A later target marker (for example during recovery) cannot rebind the verified USB install to NVMe.
         later = usb + ["INSTALL:TARGET:NVME:0000:01:00.0"]
-        self.rejects(self.signed(lines=later, devices=["nvme"]), "INSTALL:TARGET")
+        self.rejects(self.signed(lines=later, devices=["nvme"]), "repeats INSTALL:TARGET")
         recovery = usb[:usb.index("RECOVERY:BOOT:PASS")] + ["INSTALL:TARGET:NVME:0000:01:00.0", "RECOVERY:BOOT:PASS"]
-        self.rejects(self.signed(lines=recovery, devices=["nvme"]), "INSTALL:TARGET")
-        self.rejects(self.signed(lines=recovery, devices=[]), "INSTALL:TARGET")
+        self.rejects(self.signed(lines=recovery, devices=["nvme"]), "repeats INSTALL:TARGET")
+        self.rejects(self.signed(lines=recovery, devices=[]), "repeats INSTALL:TARGET")
 
 
 if __name__ == "__main__":

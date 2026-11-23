@@ -9,7 +9,9 @@ and one confirmation per forbidden action. Signatures are checked only by the
 standard ``ssh-keygen -Y verify`` tool; this module implements no cryptography.
 The inventory must agree with the run's own serial log: its PCI functions with
 the ``HWINV:PCI`` lines and count, its DMAR observation with the
-``HWINV:ACPI:DMAR`` line and the kernel's ACPI discovery marker. A protocol may
+``HWINV:ACPI:DMAR`` line and the kernel's ACPI discovery marker, its CPUID vendor with the single
+``HWINV:CPUID`` line and its Secure Boot state with the single ``HWINV:SECUREBOOT`` line (``1`` enabled,
+``0`` disabled, ``ABSENT`` unknown). A protocol may
 be ``ready`` only while none of the owner decisions that block it is open, and a
 record is accepted only when the accepted records its protocol requires exist
 with the same target, ``source_sha256``, ``source_commit`` and inventory
@@ -277,8 +279,12 @@ def load_protocols(root: Path = ROOT) -> dict[str, dict]:
              and {HWINV_DMAR_FORMAT, *HWINV_PCI_FORMATS} <= set(formats),
              f"hwinv_marker_format must list {HWINV_DMAR_FORMAT} and {' and '.join(HWINV_PCI_FORMATS)}")
     matrix = _matrix(root)
-    _, devices = matrix_profile(root, matrix)
+    target, devices = matrix_profile(root, matrix)
     blockers = open_blockers(matrix)
+    if target is None:  # as in tools/hw_matrix.py: OD-HW-TARGETS cannot be decided without a selected target
+        for found in blockers.values():
+            if "OD-HW-TARGETS" not in found:
+                found.append("OD-HW-TARGETS")
     features = _kernel_features(root)
     protocols: dict[str, dict] = {}
     _require(isinstance(doc["protocols"], list), "protocols must be a list")
