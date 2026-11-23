@@ -22,6 +22,8 @@ pub const HEADER_BYTES: usize = 12;
 pub const BUFFER_BYTES: usize = HEADER_BYTES + MAX_FRAME_BYTES;
 pub const FEATURE_MAC: u64 = 1 << 5;
 pub const FEATURE_STATUS: u64 = 1 << 16;
+/// Upper bound on generation-bracketed config reads per link sample.
+pub const LINK_READ_ATTEMPTS: usize = 16;
 const RAM_END: u64 = 256 * 1024 * 1024;
 const RX: usize = 0;
 const TX: usize = 1;
@@ -300,6 +302,14 @@ impl<T: Io> Engine<T> {
     }
 
     fn link_up(&self) -> Result<bool, Error> {
+        self.link_status().map(|(_, up)| up)
+    }
+
+    /// One coherent `(config_generation, LINK_UP)` sample with at most
+    /// `LINK_READ_ATTEMPTS` generation-bracketed reads. Read-only: no status
+    /// write, reset request, queue access or DMA. The u8 generation is only a
+    /// change hint for the caller, never a transition count.
+    fn link_status(&self) -> Result<(u8, bool), Error> {
         if !self.ready {
             return Err(Error::Offline);
         }
@@ -309,11 +319,11 @@ impl<T: Io> Engine<T> {
         if self.features & FEATURE_STATUS == 0 {
             return Err(Error::Unsupported);
         }
-        for _ in 0..16 {
+        for _ in 0..LINK_READ_ATTEMPTS {
             let generation = self.io.read8(self.common + 21);
             let status = self.io.read16(self.device + 6);
             if generation == self.io.read8(self.common + 21) {
-                return Ok(status & 1 != 0);
+                return Ok((generation, status & 1 != 0));
             }
         }
         Err(Error::Busy)
@@ -497,6 +507,97 @@ impl<T: Io> Engine<T> {
     }
 }
 
+/// One link event with a kernel-owned, strictly increasing epoch.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct LinkEvent {
+    pub epoch: u64,
+    pub up: bool,
+    /// The opposite state inserted for a generation change without a bit
+    /// change; always followed by the actual state in the same sample.
+    pub synthetic: bool,
+}
+
+/// Pure adapter from coherent `(u8 config_generation, LINK_UP)` samples to
+/// [`link::Tracker`] events. The caller (kernel) owns the strictly increasing
+/// observation serial and link epoch; the wrapping u8 generation is only a
+/// change hint and is never used as a count or a serial. A generation change
+/// without a bit change means the device changed state at least twice since
+/// the previous sample: exactly one conservative synthetic opposite/actual
+/// pair is recorded (epoch + 2, two budget units), however large the u8 delta.
+/// Generation equality after exactly 256 changes is undetectable by design.
+/// A latched tracker (reset or exhausted budget) exposes no state at all.
+pub struct LinkMonitor {
+    tracker: link::Tracker,
+    serial: u64,
+    epoch: u64,
+    hint: Option<u8>,
+    up: bool,
+}
+
+impl LinkMonitor {
+    pub fn new(negotiated_features: u64, transition_budget: u32) -> Result<Self, Error> {
+        Ok(Self {
+            tracker: link::Tracker::new(negotiated_features, transition_budget)?,
+            serial: 0,
+            epoch: 0,
+            hint: None,
+            up: false,
+        })
+    }
+
+    /// `(epoch, up)` after the first sample; `None` before it; an error once
+    /// the tracker latched.
+    pub fn state(&self) -> Result<Option<(u64, bool)>, Error> {
+        self.tracker.state()?;
+        Ok(self.hint.map(|_| (self.epoch, self.up)))
+    }
+
+    /// Number of accepted samples, including synthetic ones.
+    pub fn observations(&self) -> u64 {
+        self.serial
+    }
+
+    /// The device lifetime ends (reset requested): no later state or event.
+    pub fn latch_reset(&mut self) {
+        if self.tracker.state().is_ok() {
+            // The resetting branch latches before any serial comparison.
+            let _ = self.tracker.observe(self.serial.saturating_add(1), 0, true);
+        }
+    }
+
+    /// Consume one coherent sample: at most two events. On an error the
+    /// sample's events are discarded and the tracker is latched or unchanged.
+    pub fn observe(&mut self, generation: u8, up: bool) -> Result<[Option<LinkEvent>; 2], Error> {
+        self.tracker.state()?;
+        let hinted = self.hint.is_some_and(|hint| hint != generation);
+        let events = if self.hint.is_some() && up == self.up && hinted {
+            [self.step(!up, true)?, self.step(up, false)?]
+        } else {
+            [self.step(up, false)?, None]
+        };
+        self.hint = Some(generation);
+        Ok(events)
+    }
+
+    fn step(&mut self, up: bool, synthetic: bool) -> Result<Option<LinkEvent>, Error> {
+        let serial = self.serial.checked_add(1).ok_or(Error::Exhausted)?;
+        let event = self.tracker.observe(serial, u16::from(up), false)?;
+        self.serial = serial;
+        Ok(match event {
+            Some(_) => {
+                self.epoch = self.epoch.checked_add(1).ok_or(Error::Exhausted)?;
+                self.up = up;
+                Some(LinkEvent {
+                    epoch: self.epoch,
+                    up,
+                    synthetic,
+                })
+            }
+            None => None,
+        })
+    }
+}
+
 pub struct Device {
     engine: Engine<Hardware>,
 }
@@ -526,6 +627,23 @@ impl Device {
     }
     pub fn link_up(&self) -> Result<bool, Error> {
         self.engine.link_up()
+    }
+    /// Feature bits accepted at initialization (fixed for this lifetime).
+    pub fn negotiated_features(&self) -> u64 {
+        self.engine.features
+    }
+    /// Coherent `(config_generation, LINK_UP)` read; see [`LinkMonitor`].
+    pub fn link_status(&self) -> Result<(u8, bool), Error> {
+        self.engine.link_status()
+    }
+    /// Wrapping available indices `(RX, TX)`. Each descriptor publication
+    /// increments exactly one of them and rings that queue's doorbell once,
+    /// so an unchanged pair proves no publication and no notify in between.
+    pub fn publications(&self) -> (u16, u16) {
+        (
+            self.engine.queues[RX].available,
+            self.engine.queues[TX].available,
+        )
     }
     pub fn post_rx(&mut self) -> Result<(), Error> {
         self.engine.post_rx()

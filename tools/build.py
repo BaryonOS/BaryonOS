@@ -38,6 +38,8 @@ KEYRING_CASES = ("no-device", "stuck", "timeout", "restart")
 KEYRING_FEATURES = ("native-keyring", *(f"test-keyring-{case}" for case in KEYRING_CASES))
 UPDATE_FEATURES = ("native-update", "test-update-cut", "native-update-policy-probe")
 NETWORK_SYSTEM_FEATURES = ("native-system-net", "test-system-net-recover")
+# H04-T3 link loss/reconnect test profiles (normal/nostatus share the first build).
+NETWORK_LINK_FEATURES = ("test-system-net-link", "test-system-net-link-storm")
 TCP_SYSTEM_FEATURES = ("native-system-tcp", "test-system-tcp-recover")
 MEMORY_FEATURES = ("native-memory", "native-memory-nx", "native-memory-guard", "native-memory-peer", "native-memory-oom")
 WINDOW_FEATURES = ("native-window-session", "native-window-session-probe", "native-window-session-hidpi", "native-window-session-hidpi-probe", "native-session-route", "native-hid-input-probe")
@@ -46,22 +48,25 @@ NAS_FEATURES = ("native-system-nas-probe", "test-system-nas-recover")
 RANDOM_FEATURES = ("native-system-random", "test-system-random-sdk", "test-system-random-unknown", "test-system-random-wrong-caller")
 IMAGE_FEATURES = ("native-system-images",)
 SYSTEM_CLOCK_FEATURES = ("native-system-clock",)
-POWER_SYSTEM_FEATURES = ("native-system-power", "test-system-power-flush-error", "test-system-power-flush-timeout")
+POWER_SYSTEM_FEATURES = ("native-system-power", "test-system-power-flush-error", "test-system-power-flush-timeout", "test-system-s3", "test-system-s3-reinit", "test-system-s3-held-completion")
 NETWORK_SERVICE_FEATURES = ("native-net-service", "test-net-service-client-exit", "test-net-service-revoke", "test-net-service-helper", "test-net-service-device-reset", "test-net-service-exhaustion", "test-net-service-dhcp")
-SYSTEM_FEATURES = (*NETWORK_SERVICE_FEATURES, "native-cap-digest-bench", "native-system", "test-system-recover", "native-system-display-input", *NETWORK_SYSTEM_FEATURES, *TCP_SYSTEM_FEATURES, *RANDOM_FEATURES, *IMAGE_FEATURES, *SYSTEM_CLOCK_FEATURES)
+SYSTEM_FEATURES = (*NETWORK_SERVICE_FEATURES, "native-cap-digest-bench", "native-system", "test-system-recover", "native-system-display-input", *NETWORK_SYSTEM_FEATURES, *NETWORK_LINK_FEATURES, *TCP_SYSTEM_FEATURES, *RANDOM_FEATURES, *IMAGE_FEATURES, *SYSTEM_CLOCK_FEATURES)
 SYSTEM_FEATURES += POWER_SYSTEM_FEATURES
 # PR 154 legacy SMP path (kernel/src/m2_legacy); every name enables native-smp-legacy and
 # needs the smp-handoff loader. K06 native-smp* profiles use the default loader.
 LEGACY_SMP_FEATURES = ("native-smp-legacy", "native-smp-legacy-m3", "native-smp-m3-exit", "native-smp-m3-tlb-reuse",
                        "native-smp-m3-lock-contention", "native-smp-m4", "native-smp-m4-revoke")
 KERNEL_FEATURES = ["test-panic", "test-hang", "milestone-m2", "native-rtc",
-                   "native-xhci-probe", "test-xhci-dma-fault", "test-xhci-no-dmar", "native-usb-hid-probe", "test-usb-hid-readonly-fault",
+                   "native-xhci-probe", "test-xhci-dma-fault", "test-xhci-no-dmar", "native-usb-hid-probe", "native-usb-hid-reattach", "test-usb-hid-readonly-fault",
+                   "native-virtio-snd-probe", "test-snd-fence-reinit", "test-snd-quarantine",
                    "native-smp-m3-ipc", "native-smp-m3-migrate", "test-smp-m3-canary",
                    "native-smp-m3-load", "native-smp-m3-soak", "native-smp-m4-quotas", "native-smp-qsim", "native-smp-m3-kill",
                    "native-smp-m3-unmap", "test-smp-m3-no-shootdown",
                    "test-smp-m3-recovery",
                    "native-smp", "test-smp-ap-stall", "test-smp-ap-mismatch", "test-smp-ap-nmi",
-                   "native-acpi-s5", "test-acpi-s5-corrupt-dsdt", *LEGACY_SMP_FEATURES,
+                   "native-acpi-s5", "test-acpi-s5-corrupt-dsdt", "native-acpi-s3", "test-acpi-s3-corrupt-facs",
+                   "test-acpi-s3-stale-token", "test-acpi-s3-unarmed-wake", "test-acpi-s3-facs-end",
+                   *LEGACY_SMP_FEATURES,
                    "test-smp-ap-double-fault", "test-smp-ap-ipi-deaf", "test-smp-ap-shootdown-deaf",
                    "test-smp-shootdown-skipped", "test-smp-ap-timer-dead", "test-smp-lockdep-order", "test-smp-spin-irq-off", "test-smp-held-across-switch", "test-smp-double-run", "test-smp-resched-deaf", "test-smp-gs-user", "test-smp-gs-iret-fault", "test-smp-gs-nmi-user", "test-smp-shared-scratch", "test-smp-lock-in-handler", "test-smp-lockpair-order", "test-smp-icr-race", "test-smp-quarantine-lock-held", "test-smp-quarantine-lock-pending", "test-smp-quarantine-sched-busy", "test-smp-bsp-spin-irq-off", "test-smp-proc-shootdown-deaf", "test-smp-proc-no-shootdown", "test-smp-lock-stuck", "test-smp-serial-unlocked",
                    "test-smp-sync-stall", "test-smp-sync-slow", "test-smp-sync-lost-update",
@@ -78,7 +83,7 @@ KERNEL_FEATURES = ["test-panic", "test-hang", "milestone-m2", "native-rtc",
                    "milestone-m6c", *(f"test-m6c-{case}" for case in M6C_CASES), "graphics-g0", "native-qsim", "native-qsim-job",
                    "native-sdk-app", "test-sdk-app-denied", "native-ipc-wait",
                    "native-tpm-crb", "test-tpm-crb-absent", *VOLUME_FEATURES, *SUPERVISOR_FEATURES,
-                   *KEYRING_FEATURES, *MATERIAAL_FEATURES, *NAS_FEATURES, *UPDATE_FEATURES, *SYSTEM_FEATURES, *MEMORY_FEATURES, "native-fpu", "test-fpu-wait", "framebuffer", "native-display-probe", "native-system-display-input"]
+                   *KEYRING_FEATURES, *MATERIAAL_FEATURES, *NAS_FEATURES, *UPDATE_FEATURES, *SYSTEM_FEATURES, *MEMORY_FEATURES, "native-fpu", "test-fpu-wait", "framebuffer", "native-display-probe", "native-system-display-input", "native-dispi-probe"]
 
 
 def inspect_elf(path):
@@ -172,6 +177,10 @@ def build(loader_feature=None, kernel_feature=None, label="normal", image_versio
         if loader_feature not in (None,wanted):
             raise ValueError("Window session requires its matching desktop loader")
         loader_feature=wanted
+    elif kernel_feature == "native-dispi-probe":
+        if loader_feature not in (None, "desktop-mode"):
+            raise ValueError("DISPI mode-set fixture requires the 1280x720 desktop-mode loader")
+        loader_feature = "desktop-mode"
     elif kernel_feature == "graphics-g0":
         if loader_feature not in (None, "graphics-g0"):
             raise ValueError("G0 requires its paired graphics loader")
@@ -287,10 +296,11 @@ def build(loader_feature=None, kernel_feature=None, label="normal", image_versio
             for name in names:
                 binary = component_target / f"x86_64-unknown-none/release/{component}-{name}"
                 binaries[f"{component}_{name}"] = binary
-        if kernel_feature in NETWORK_SYSTEM_FEATURES + TCP_SYSTEM_FEATURES:
+        if kernel_feature in NETWORK_SYSTEM_FEATURES + NETWORK_LINK_FEATURES + TCP_SYSTEM_FEATURES:
             probe = "tcp-probe" if kernel_feature in TCP_SYSTEM_FEATURES else "net-probe"
-            net_target = TARGET / f"system-{probe}"
-            run_logged([sys.executable, "-B", str(ROOT / f"sdk/examples/{probe}/build.py")],
+            link = kernel_feature in NETWORK_LINK_FEATURES
+            net_target = TARGET / f"system-{probe}{'-link' if link else ''}"
+            run_logged([sys.executable, "-B", str(ROOT / f"sdk/examples/{probe}/build.py"), *(["--link"] if link else [])],
                        "build-system-net-probe", extra_env={"CARGO_TARGET_DIR": str(net_target)})
             binaries["net_probe"] = net_target / f"x86_64-unknown-none/release/{probe}"
         if kernel_feature in NETWORK_SERVICE_FEATURES:

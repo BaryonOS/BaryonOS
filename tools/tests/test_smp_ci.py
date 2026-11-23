@@ -1,5 +1,6 @@
 import ast
 import json
+import os
 import importlib.util
 import shutil
 from pathlib import Path
@@ -226,10 +227,15 @@ class SmpCiAggregationTests(unittest.TestCase):
         downloads = [s for s in contract if s.get("uses", "").startswith("actions/download-artifact@")]
         aggregate_download, = [s for s in workflow["jobs"]["smp-matrix-aggregate"]["steps"]
                                if s.get("uses", "").startswith("actions/download-artifact@")]
-        self.assertEqual(len(downloads), 1)
-        for key in ("uses", "with"):
-            self.assertEqual(downloads[0][key], aggregate_download[key])
-        create, check = [s["run"] for s in contract if "run" in s]
+        # One aggregate-identical download plus one identical retry after listing lag (#421).
+        self.assertEqual(len(downloads), 2)
+        for download in downloads:
+            for key in ("uses", "with"):
+                self.assertEqual(download[key], aggregate_download[key])
+        self.assertNotIn("if", downloads[0])
+        self.assertEqual(downloads[1]["if"], "${{ steps.listing.outputs.complete != 'true' }}")
+        create, listing, check = [s["run"] for s in contract if "run" in s]
+        self.assertEqual([s.get("id") for s in contract if "run" in s][1], "listing")
         for mutation in (None, "bytes", "layout", "nonmatching", "missing"):
             with self.subTest(mutation=mutation), tempfile.TemporaryDirectory() as directory:
                 root = Path(directory)
@@ -253,6 +259,40 @@ class SmpCiAggregationTests(unittest.TestCase):
                 checked = subprocess.run(["bash", "-euo", "pipefail", "-c", check], cwd=root,
                                          capture_output=True, text=True)
                 self.assertEqual(checked.returncode == 0, mutation is None, checked.stderr)
+
+        for layout, complete in (("both", True), ("flat", False), ("one", False), ("none", False),
+                                 ("unrelated", None), ("extra", None)):
+            with self.subTest(listing=layout), tempfile.TemporaryDirectory() as directory:
+                root = Path(directory)
+                output = root / "build/k06-smp-artifacts"
+                if layout == "both":
+                    for name in ("a", "b"):
+                        (output / f"smp-action-contract-{name}/nested").mkdir(parents=True)
+                elif layout == "flat":
+                    (output / "nested").mkdir(parents=True)
+                elif layout == "one":
+                    (output / "smp-action-contract-a/nested").mkdir(parents=True)
+                elif layout == "unrelated":
+                    (output / "smp-action-contract-a/nested").mkdir(parents=True)
+                    (output / "unrelated-action-contract/nested").mkdir(parents=True)
+                elif layout == "extra":
+                    for name in ("a", "b", "c"):
+                        (output / f"smp-action-contract-{name}/nested").mkdir(parents=True)
+                github_output = root / "github-output"
+                listed = subprocess.run(
+                    ["bash", "-euo", "pipefail", "-c", listing], cwd=root, capture_output=True, text=True,
+                    env={**os.environ, "LISTING_RETRY_DELAY": "0", "GITHUB_OUTPUT": str(github_output)},
+                )
+                if complete is None:
+                    # A filter defect fails at once and keeps the evidence for diagnosis.
+                    self.assertNotEqual(listed.returncode, 0)
+                    self.assertIn("unexpected artifact layout", listed.stderr)
+                    self.assertFalse(github_output.exists())
+                    self.assertTrue(output.is_dir())
+                    continue
+                self.assertEqual(listed.returncode, 0, listed.stderr)
+                self.assertEqual(github_output.read_text(), f"complete={'true' if complete else 'false'}\n")
+                self.assertEqual(output.is_dir(), complete)
 
     def test_rejects_failed_run_hidden_by_summary(self):
         with tempfile.TemporaryDirectory() as directory:

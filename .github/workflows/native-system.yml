@@ -24,7 +24,7 @@ concurrency:
 jobs:
   native-system:
     runs-on: ubuntu-24.04
-    timeout-minutes: 40
+    timeout-minutes: 55
     env:
       NOS_QEMU_MACHINE: pc-q35-8.2
       OS_OVMF_CODE: /usr/share/OVMF/OVMF_CODE_4M.fd
@@ -96,6 +96,20 @@ jobs:
         env:
           NOS_BUILD_DIR: ${{ github.workspace }}/build/system-net-ci
         run: python3 -B tools/capture_system.py --network --destination docs/verification/full-release-network-ci
+      - name: Native virtio-net link loss, reconnect, no-STATUS and budget exhaustion (H04-T3)
+        env:
+          NOS_TARGET_DIR: ${{ github.workspace }}/target/system-net-ci
+          CARGO_TARGET_DIR: ${{ github.workspace }}/target/system-net-ci
+        run: |
+          set -euo pipefail
+          python3 -B -m unittest tools.tests.test_net_link
+          export NOS_BUILD_DIR="$GITHUB_WORKSPACE/build/net-link-ci"
+          python3 -B tools/build.py --kernel-feature test-system-net-link
+          python3 -B -u tools/run_net_link.py --case normal
+          python3 -B -u tools/run_net_link.py --case nostatus
+          export NOS_BUILD_DIR="$GITHUB_WORKSPACE/build/net-link-storm-ci"
+          python3 -B tools/build.py --kernel-feature test-system-net-link-storm
+          python3 -B -u tools/run_net_link.py --case storm
       - name: Actual x87 SSE process state and monotonic clock isolation
         env:
           NOS_BUILD_DIR: ${{ github.workspace }}/build/fpu-ci
@@ -139,7 +153,23 @@ jobs:
           required-paths: |
             build/tcp-ci/tcp-system-gate.json
             build/tcp-loss-ci/tcp-system-gate.json
+            build/net-link-ci/manifest.json
+            build/net-link-storm-ci/manifest.json
           path: |
+            build/net-link-ci/manifest.json
+            build/net-link-ci/logs/
+            build/net-link-ci/run/system-*/result.json
+            build/net-link-ci/run/system-*/network-peer.json
+            build/net-link-ci/run/system-*/link-control.json
+            build/net-link-ci/run/system-*/serial.txt
+            build/net-link-ci/run/system-*/stderr.txt
+            build/net-link-storm-ci/manifest.json
+            build/net-link-storm-ci/logs/
+            build/net-link-storm-ci/run/system-*/result.json
+            build/net-link-storm-ci/run/system-*/network-peer.json
+            build/net-link-storm-ci/run/system-*/link-control.json
+            build/net-link-storm-ci/run/system-*/serial.txt
+            build/net-link-storm-ci/run/system-*/stderr.txt
             build/ipc-wait-ci/
             build/tpm-ci/tpm-*-report.json
             build/tpm-ci/manifest.json
