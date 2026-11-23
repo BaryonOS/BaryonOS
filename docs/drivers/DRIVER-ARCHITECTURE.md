@@ -88,7 +88,8 @@ register offsets according to the Intel xHCI Requirements Specification 1.2c,
 opt-in kernel fixture in `kernel/src/m2/xhci.rs` accepts only QEMU's
 `qemu-xhci` controller (PCI `1b36:000d`) at segment 0, bus 0, function 0. It
 uses the BAR0 address that PCI discovery reports (at most 64 KiB, at or above
-`0x80000000`, not overlapping its DMAR unit's registers) and maps that BAR at the fixed
+`0x80000000`, not overlapping the register window of the DMAR unit that native DMA would
+use, when one qualifies) and maps that BAR at the fixed
 kernel virtual address `0x3f210000`; the virtual address is a kernel mapping
 choice, not a property of the controller. The fixture enables bus mastering only
 inside an established native VT-d domain. Physical xHCI controllers are therefore rejected; the

@@ -254,7 +254,8 @@ Each device row carries an explicit `evidence_level`: `none`, `host`,
 - xHCI stays `pending` outside the QEMU profile because
   `kernel/src/m2/xhci.rs` accepts only QEMU's `qemu-xhci` (`1b36:000d`). It
   maps the discovered BAR0 (at most 64 KiB, at or above `0x80000000`, not
-  overlapping its DMAR unit) at the fixed kernel virtual address `0x3f210000`.
+  overlapping the register window of the DMAR unit that native DMA would use,
+  when one qualifies) at the fixed kernel virtual address `0x3f210000`.
 
 `trusted kernel transport` does not establish isolated userspace DMA.
 `unsupported` makes no DMA-containment claim. `VT-d contained` requires
