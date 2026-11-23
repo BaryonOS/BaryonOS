@@ -1,0 +1,311 @@
+//! N02 acceptance manifest: the unchanged N01 grants (one raw NIC for the
+//! ring-3 network service, IPC-only apps), but the service acquires its
+//! address by DHCP on the wire and must withdraw it on DHCPNAK.
+use super::*;
+use capability_core::{PROCESS_EXITED, RECV, SEND};
+
+const EPOCH: u64 = 1;
+const OFFSETS: [u64; 29] = [
+    240, 400, 408, 416, 424, 432, 440, 448, 456, 464, 472, 480, 488, 496, 504, 512, 520, 528, 536,
+    544, 552, 560, 568, 576, 584, 592, 600, 608, 616,
+];
+pub(super) const PROCESSES: usize = 3;
+struct Evidence {
+    snapshots: [Option<[u64; 29]>; 3],
+    kernel_tables: usize,
+    exits: [u64; 3],
+}
+static mut EVIDENCE: Evidence = Evidence {
+    snapshots: [None; 3],
+    kernel_tables: 0,
+    exits: [0; 3],
+};
+fn evidence() -> &'static mut Evidence {
+    // SAFETY: KERNEL held, IF=0; no borrow survives a scheduling point or cleanup.
+    unsafe { &mut *ptr::addr_of_mut!(EVIDENCE) }
+}
+fn fail(reason: &[u8]) -> ! {
+    serial::write(b"NETSVC:FAIL:");
+    serial::write(reason);
+    serial::write(b"\n");
+    serial::exit(0x11)
+}
+fn require(ok: bool, reason: &[u8]) {
+    if !ok {
+        fail(reason)
+    }
+}
+fn put(s: &State, slot: usize, at: u64, value: u64) {
+    write_word(s.processes[slot].physical(DATA + at), value);
+}
+fn word(s: &State, slot: usize, at: u64) -> u64 {
+    read_word(s.processes[slot].physical(DATA + at))
+}
+pub(super) fn process_elf(slot: usize) -> &'static [u8] {
+    match slot {
+        0 => NETWORK_SERVICE_ELF,
+        1 | 2 => NETWORK_CLIENT_ELF,
+        _ => panic!("N02 starts one service and two clients"),
+    }
+}
+// No launch capability is issued in this manifest.
+pub(super) fn image_elf(_: u32) -> Option<&'static [u8]> {
+    None
+}
+fn channel(e: &mut capability_core::Engine, receiver: u64, sender: u64) -> (u64, u64) {
+    let root = e.create_endpoint(receiver).unwrap();
+    let receive = e.derive(receiver, root, RECV).unwrap();
+    let send = e.bootstrap_delegate(receiver, root, sender, SEND).unwrap();
+    e.close(receiver, root).unwrap();
+    (receive, send)
+}
+pub(super) fn manifest(s: &mut State) {
+    require(
+        s.amount == MAX
+            && s.processes[..PROCESSES]
+                .iter()
+                .all(|p| p.status != Status::Dead)
+            && s.processes[PROCESSES..]
+                .iter()
+                .all(|p| p.status == Status::Dead),
+        b"MANIFEST_STATE",
+    );
+    let ids = [s.processes[0].pid, s.processes[1].pid, s.processes[2].pid];
+    let [service, app_a, app_b] = ids;
+    let e = m4::engine();
+    for pid in ids {
+        e.register(pid).unwrap();
+    }
+    // Exactly the N01 grants: DHCP adds no capability, only the existing
+    // NIC and entropy handles of the service are used.
+    let network = e.create_network(service).unwrap();
+    let key = e.check_network(service, network).unwrap();
+    network::bind(service, network, key);
+    let entropy = e.create_entropy(service).unwrap();
+    for (at, value) in [
+        (32, u64::from_le_bytes(*b"NETSVC01")),
+        (40, EPOCH),
+        (48, network),
+        (104, entropy),
+        (112, service),
+        (120, 8080),
+        (128, 8090),
+        (136, 9000),
+        (144, 9001),
+        (176, 1),
+    ] {
+        put(s, 0, at, value);
+    }
+    for (index, app) in [app_a, app_b].into_iter().enumerate() {
+        let slot = index + 1;
+        let (ingress, send) = channel(e, service, app);
+        let (reply, response) = channel(e, app, service);
+        let at = 56 + index as u64 * 24;
+        for (offset, value) in [(at, ingress), (at + 8, response), (at + 16, app)] {
+            put(s, 0, offset, value);
+        }
+        for (offset, value) in [
+            (32, u64::from_le_bytes(*b"NETAPP01")),
+            (40, EPOCH),
+            (48, send),
+            (56, reply),
+            (64, service),
+            (72, index as u64),
+            (80, app),
+            (88, 8080 + index as u64 * 10),
+            (96, 9000 + index as u64),
+            (104, 6),
+        ] {
+            put(s, slot, offset, value);
+        }
+        for handle in [send, reply] {
+            require(
+                e.check_network(app, handle).is_err()
+                    && e.check_entropy(app, handle).is_err()
+                    && e.check_launch(app, handle).is_err()
+                    && e.check_block(app, handle, capability_core::BLOCK_READ)
+                        .is_err(),
+                b"APP_AUTHORITY",
+            );
+        }
+        require(
+            e.check_network(app, network).is_err() && e.check_entropy(app, entropy).is_err(),
+            b"FOREIGN_HANDLE",
+        );
+    }
+    require(e.check_invariants(), b"ENGINE");
+    let releasable: usize = s.processes[..PROCESSES]
+        .iter()
+        .map(|p| p.count + p.kernel_frames.len() + p.paging.as_ref().unwrap().owned_table_count())
+        .sum();
+    s.free_baseline = s.free_count().checked_add(releasable).unwrap();
+    evidence().kernel_tables = s.kernel.owned_table_count();
+    serial::write(b"NETSVC:MANIFEST:PASS\n");
+}
+pub(super) fn observe_exit(s: &mut State, slot: usize, _: u64) {
+    require(
+        slot < PROCESSES && evidence().snapshots[slot].is_none(),
+        b"EXIT_SLOT",
+    );
+    let mut values = [0; 29];
+    for (i, at) in OFFSETS.iter().enumerate() {
+        values[i] = word(s, slot, *at);
+    }
+    let label: &[u8] = match slot {
+        0 => b"NETSVC:SERVICE:",
+        1 => b"NETSVC:APP_A:",
+        _ => b"NETSVC:APP_B:",
+    };
+    // Snapshot and emit before generic cleanup destroys the process mapping.
+    for (at, value) in OFFSETS.iter().zip(values) {
+        print_field(label, *at, value);
+    }
+    if s.last_event.code != 0 || values[0] != 0 || values[1] != 1 || values[17] != 1 {
+        print_number(b"NETSVC:EXIT_SLOT:", slot as u64);
+        fail(b"USER_RESULT");
+    }
+    evidence().snapshots[slot] = Some(values);
+    evidence().exits[slot] = s.ticks;
+    if slot == 1 {
+        print_number(b"NETSVC:APP_A_EXIT_TICKS:", s.ticks);
+    }
+    if slot == 2 {
+        print_number(b"NETSVC:APP_B_EXIT_TICKS:", s.ticks);
+    }
+    m4::engine().process_died(s.processes[slot].pid, PROCESS_EXITED, 0);
+}
+fn print_field(label: &[u8], at: u64, value: u64) {
+    serial::write(label);
+    let mut number = at;
+    let mut bytes = [b'0'; 20];
+    for byte in bytes.iter_mut().rev() {
+        *byte = b'0' + (number % 10) as u8;
+        number /= 10;
+    }
+    serial::write(&bytes);
+    serial::write(b":");
+    print_number(b"", value);
+}
+pub(super) fn observe_fault(_: &mut State, _: usize, _: &[u64; 22], _: u64) {
+    fail(b"USER_FAULT")
+}
+pub(super) fn poll(s: &mut State) -> Option<*const u64> {
+    keyring::broker_tick(s);
+    network::broker_tick(s);
+    require(!s.unexpected, b"UNEXPECTED_EVENT");
+    if s.ticks > 6000 {
+        for slot in 0..PROCESSES {
+            if s.processes[slot].status != Status::Dead {
+                print_number(b"NETSVC:TIMEOUT_SLOT:", slot as u64);
+                print_number(b"NETSVC:TIMEOUT_STEP:", word(s, slot, 240));
+            }
+        }
+        fail(b"TIMEOUT");
+    }
+    if evidence().snapshots.iter().any(Option::is_none) || !network::finished() {
+        return None;
+    }
+    let service = evidence().snapshots[0].unwrap();
+    check_dhcp(&service);
+    network::print_and_check(service[3], service[4]);
+    let (bytes, denied, healthy) = keyring::broker_summary();
+    // The 8-byte stack seed plus one 4-byte draw per DHCP random sample.
+    require(
+        denied == 0 && healthy && Some(bytes) == service[26].checked_mul(4).map(|b| b + 8),
+        b"ENTROPY_EVIDENCE",
+    );
+    let stats = m4::engine().stats();
+    require(
+        stats.processes == 0
+            && stats.handles == 0
+            && stats.nodes == 0
+            && stats.endpoints == 0
+            && stats.queued_messages == 0
+            && stats.network_objects == 0
+            && stats.entropy_objects == 0
+            && m4::engine().check_invariants(),
+        b"ENGINE_CLEANUP",
+    );
+    let grown = s
+        .kernel
+        .owned_table_count()
+        .checked_sub(evidence().kernel_tables)
+        .unwrap();
+    require(
+        s.free_count().checked_add(grown) == Some(s.free_baseline),
+        b"FRAME_CLEANUP",
+    );
+    print_number(b"NETSVC:ENTROPY_BYTES:", bytes);
+    serial::write(b"NETSVC:CLEANUP:PASS\nNETSVC:PASS\nM1:PASS\n");
+    serial::exit(0x10)
+}
+fn subnet_host(address: u64) -> bool {
+    address >> 8 == 0xc000_02 && !matches!(address & 0xff, 0 | 1 | 255)
+}
+/// Two leases, exactly one NAK withdrawal, no app traffic outside a lease and
+/// a fresh token after re-acquisition, ordered on one boot-monotonic clock.
+fn check_dhcp(service: &[u64; 29]) {
+    let [_, a, b] = evidence().snapshots.map(Option::unwrap);
+    require(
+        service[7] == 0
+            && service[8] == 0
+            && service[9] == 4
+            && service[13] == 3
+            && service[14] == 0
+            && service[15] == 0
+            && service[16] == 0
+            && service[18] == 0
+            && service[19] == 0
+            && service[20] == 0,
+        b"DHCP_SERVICE_EVIDENCE",
+    );
+    require(
+        service[21] == 2
+            && service[22] == 1
+            && subnet_host(service[23])
+            && subnet_host(service[24])
+            && service[23] != service[24]
+            && service[26] > 0
+            && service[27] == 0,
+        b"DHCP_LEASE_EVIDENCE",
+    );
+    require(
+        a[2] == 2
+            && a[3] == 0
+            && a[4] == 1
+            && a[5] == 3
+            && a[6] == 1
+            && a[9] == 2
+            && a[10] == 1
+            && a[11] == 1
+            && a[14] == 1
+            && a[19] == 1,
+        b"DHCP_APP_A_EVIDENCE",
+    );
+    require(
+        b[2] == 1
+            && b[3] == 0
+            && b[4] == 1
+            && b[5] == 1
+            && b[6] == 1
+            && b[9] == 1
+            && b[10] == 0
+            && b[11] == 1
+            && b[14] == 0
+            && b[19] == 0,
+        b"DHCP_APP_B_EVIDENCE",
+    );
+    // Held connection live, then lease withdrawn, then the app observing its
+    // stale token, then the second lease, then the fresh exchange finishing
+    // no later than app A's recorded exit.
+    let (held, withdrawn, stale, rebound, fresh) = (a[15], service[25], a[20], service[28], a[16]);
+    require(
+        held != 0
+            && held <= withdrawn
+            && withdrawn <= stale
+            && stale <= rebound
+            && rebound <= fresh
+            && fresh <= evidence().exits[1],
+        b"DHCP_ORDER",
+    );
+}
