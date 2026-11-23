@@ -371,6 +371,82 @@ class MergeGroupTests(TestCase):
                 self.assertIn("::error::", out)
                 self.assertFalse([url for url in calls if url.endswith("/labels")])
 
+    def test_entry_ahead_without_a_commit_keeps_the_run_waiting(self):
+        # Real wait budget: the run polls until the entry ahead is built, and a
+        # hold set on that pull request meanwhile is seen.
+        pr7 = entry(1, 7, E, HEAD)["pullRequest"]
+
+        def build(labels, comments, nodes):
+            nodes[0]["headCommit"] = {"oid": E}
+            labels[7] = [merge_hold.LABEL]
+
+        code, out, calls = self.run_group(
+            [{"position": 1, "headCommit": None, "pullRequest": pr7}, entry(2, 8, GROUP, OTHER)],
+            on_sleep=build)
+        self.assertEqual(code, 1, out)
+        self.assertIn("#7: ::error::", out)
+        self.assertEqual(calls.count("sleep"), 1)
+        self.assertLabelsReadAfterWait(calls)
+
+    def test_merged_entry_ahead_counts_as_already_on_main(self):
+        # GitHub may still list an entry ahead as MERGED right after its
+        # merge-hold succeeds; it is on main, so it neither blocks nor counts.
+        code, out, calls = self.run_group(
+            [entry(1, 7, E, HEAD, state="MERGED"), entry(2, 8, GROUP, OTHER)],
+            labels={7: [merge_hold.LABEL]})
+        self.assertEqual(code, 0, out)
+        self.assertNotIn("#7:", out)
+        self.assertIn("#8:", out)
+        self.assertEqual(calls.count("sleep"), 0)
+        self.assertFalse([url for url in calls if "/issues/7/" in url])
+
+    def test_merged_entry_skip_stays_narrow(self):
+        merged_ahead = entry(1, 6, "1" * 40, "6" * 40, state="MERGED")
+        for queue, error in (
+            ([entry(1, 8, GROUP, OTHER, state="MERGED")], "::error::merge-hold"),
+            ([entry(1, 7, E, HEAD, state="MERGED", base="release"),
+              entry(2, 8, GROUP, OTHER)], "::error::merge-hold"),
+            ([entry(1, 7, E, HEAD, state="CLOSED"), entry(2, 8, GROUP, OTHER)],
+             "::error::merge-hold"),
+            ([merged_ahead, entry(2, 7, E, HEAD), entry(3, 8, GROUP, OTHER)], "#7: ::error::"),
+        ):
+            with self.subTest(queue=queue), mock.patch.object(merge_hold, "WAIT_SECONDS", 0):
+                code, out, _ = self.run_group(queue, labels={7: [merge_hold.LABEL]})
+                self.assertEqual(code, 1, out)
+                self.assertIn(error, out)
+
+    def test_group_that_left_the_queue_fails_at_once(self):
+        # Real wait budget: an ejected or rebuilt group can never merge, so it
+        # fails on the first well-formed read instead of polling to the deadline.
+        for queue in ([entry(1, 7, E, HEAD)],
+                      [entry(1, 7, E, HEAD), entry(2, 8, "f" * 40, OTHER)]):
+            with self.subTest(queue=queue):
+                code, out, calls = self.run_group(queue)
+                self.assertEqual(code, 1, out)
+                self.assertIn("no longer in the merge queue", out)
+                self.assertEqual(calls.count("sleep"), 0)
+                self.assertEqual(len([url for url in calls if url.endswith("/graphql")]), 1)
+                self.assertFalse([url for url in calls if url.endswith("/labels")])
+
+    def test_doubtful_queue_reads_are_not_taken_as_leaving(self):
+        # Only a well-formed read that positively lacks the group ends the wait early.
+        page = {"pageInfo": {"hasNextPage": True}, "nodes": [entry(1, 7, E, HEAD)]}
+        polls = merge_hold.WAIT_SECONDS // merge_hold.POLL_SECONDS
+        for nodes, answer in (
+            (None, {"errors": [{"message": "denied"}]}),
+            (None, {"data": {"repository": {"mergeQueue": None}}}),
+            (None, {"data": {"repository": {"mergeQueue": {"entries": page}}}}),
+            (self.QUEUE + [entry(4, 8, GROUP, OTHER)], None),
+            ([entry(1, 7, E, HEAD), entry(2, 8, None, OTHER)], None),
+            ([entry(1, 7, E, HEAD), {"position": 2, "headCommit": None, "pullRequest": None}],
+             None),
+        ):
+            with self.subTest(nodes=nodes, answer=answer):
+                code, out, calls = self.run_group(nodes, answer=answer)
+                self.assertEqual(code, 1, out)
+                self.assertNotIn("no longer in the merge queue", out)
+                self.assertEqual(calls.count("sleep"), polls)
+
     def test_own_entry_without_pull_request_fails_closed(self):
         code, out, _ = self.run_group([{"position": 1, "headCommit": {"oid": GROUP},
                                         "pullRequest": None}])

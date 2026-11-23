@@ -21,9 +21,11 @@ are therefore read close to this group's merge, not when its own checks end.
 A hold added after that final read, until GitHub merges the group, is not seen
 (ADR-MERGE-HOLD-20261113). The 45-minute deadline covers the group's
 own checks and the whole chain ahead, each position adding up to one poll.
-It then evaluates every pull request whose changes the merge-queue commit
-contains: the queue entry whose commit is the group head plus every entry ahead
-of it. Each must pass the same decision for its own head
+A group whose commit has left the queue (ejected or rebuilt) can never merge
+and fails at once. It then evaluates every pull request whose changes the
+merge-queue commit contains: the queue entry whose commit is the group head plus
+every entry ahead of it that has not merged yet (a merged one is already on
+`main`). Each must pass the same decision for its own head
 SHA. A released hold additionally requires the tree of that pull request's own
 queue entry commit (the commit `main` moves to when it merges) to equal the
 released head tree, so acceptance never carries over to a tree it did not run on.
@@ -147,8 +149,32 @@ def queue_nodes(token, repo):
     return entries["nodes"]
 
 
-def own_position(nodes, head_sha):
+class LeftQueue(ValueError):
+    """This group's commit is no longer in the merge queue, so the group can never merge."""
+
+
+def left_queue(nodes, head_sha, number):
+    """True only if this well-formed queue read positively shows the group has left it.
+
+    No entry has head_sha, every entry names its pull request, and the group's
+    pull request is absent (ejected or merged) or has another built commit
+    (rebuilt). An entry of that pull request without a commit may still be this
+    group, so it is not proof of absence.
+    """
+    if any(commit_oid(node) == head_sha for node in nodes):
+        return False
+    pulls = [node.get("pullRequest") for node in nodes]
+    if not all(isinstance(pull, dict) and isinstance(pull.get("number"), int) for pull in pulls):
+        return False
+    return all(SHA.fullmatch(commit_oid(node) or "")
+               for node, pull in zip(nodes, pulls) if pull["number"] == number)
+
+
+def own_position(nodes, head_sha, number):
     """Position of the single entry whose commit is head_sha (other entries may be unbuilt)."""
+    if left_queue(nodes, head_sha, number):
+        raise LeftQueue(f"merge group commit {head_sha} is no longer in the merge queue "
+                        "(ejected or rebuilt), so this group can never merge")
     own = [node for node in nodes if commit_oid(node) == head_sha]
     if len(own) != 1:
         raise ValueError(f"no single queue entry has commit {head_sha}")
@@ -159,23 +185,36 @@ def own_position(nodes, head_sha):
 
 
 def group_members(token, repo, head_ref, head_sha):
-    """Return the open queue entries whose changes the group commit contains."""
+    """Return the open queue entries whose changes the group commit contains.
+
+    An entry ahead whose pull request has already MERGED into main is skipped:
+    it is on main, so no decision here can hold it back, and failing on it
+    would only eject this group when GitHub merges the entry ahead just as its
+    merge-hold succeeds. Every unmerged entry is still evaluated.
+    """
     match = QUEUE_REF.fullmatch(head_ref)
     if not match or not SHA.fullmatch(head_sha):
         raise ValueError(f"unexpected merge group ref {head_ref!r} or SHA {head_sha!r}")
     nodes = queue_nodes(token, repo)
-    own, position = own_position(nodes, head_sha)
+    own, position = own_position(nodes, head_sha, int(match.group(1)))
     if (own.get("pullRequest") or {}).get("number") != int(match.group(1)):
         raise ValueError(f"no single queue entry matches {head_ref} at {head_sha}")
-    members = [node for node in nodes if node["position"] <= position]
-    for node in members:
+    members = []
+    for node in nodes:
+        if node["position"] > position:
+            continue
         pull = node.get("pullRequest")
         if not pull:
             raise ValueError(f"queue entry at position {node['position']} has no pull request")
-        if pull["state"] != "OPEN" or pull["baseRefName"] != "main":
+        if pull["baseRefName"] != "main":
+            raise ValueError(f"queued pull request #{pull['number']} is not an open PR to main")
+        if pull["state"] == "MERGED" and node is not own:
+            continue
+        if pull["state"] != "OPEN":
             raise ValueError(f"queued pull request #{pull['number']} is not an open PR to main")
         if not SHA.fullmatch(commit_oid(node) or ""):
             raise ValueError(f"queue entry for #{pull['number']} has no commit")
+        members.append(node)
     return members
 
 
@@ -199,7 +238,7 @@ def unfinished(token, repo, sha, names):
     return [f"{name} on {sha}" for name in names if name not in done]
 
 
-def still_running(token, repo, sha):
+def still_running(token, repo, sha, number):
     """What this group still waits for: its own checks, then the entries ahead.
 
     Entries ahead are walked from the nearest outward. The walk stops at the
@@ -217,7 +256,7 @@ def still_running(token, repo, sha):
     if pending:
         return pending
     nodes = queue_nodes(token, repo)
-    _, position = own_position(nodes, sha)
+    _, position = own_position(nodes, sha, number)
     ahead = [node for node in nodes if node["position"] < position]
     for node in sorted(ahead, key=lambda node: node["position"], reverse=True):
         oid = commit_oid(node)
@@ -232,18 +271,21 @@ def still_running(token, repo, sha):
     return []
 
 
-def wait_for_checks(token, repo, sha):
+def wait_for_checks(token, repo, sha, number):
     """Block until this group's checks and the entries ahead have finished; raise at the deadline.
 
     Only the timing depends on this: the decision afterwards reads the queue,
     labels and comments live and fails closed. API errors and unbuilt entries
     are retried, because waiting longer never weakens the hold. An entry ahead
-    that leaves the queue (merged or removed) no longer counts.
+    that leaves the queue (merged or removed) no longer counts. A well-formed
+    read showing that this group itself has left the queue fails at once.
     """
     deadline = time.monotonic() + WAIT_SECONDS
     while True:
         try:
-            pending = still_running(token, repo, sha)
+            pending = still_running(token, repo, sha, number)
+        except LeftQueue:
+            raise
         except (KeyError, IndexError, ValueError, TypeError, AttributeError, OSError) as exc:
             pending = [f"queue or check-run read failed: {exc}"]
         if not pending:
@@ -259,11 +301,12 @@ def merge_group_hold(token, repo):
     if os.environ["MERGE_GROUP_BASE_REF"] != "refs/heads/main":
         raise ValueError("merge group does not target main")
     head_ref = os.environ["MERGE_GROUP_HEAD_REF"]
-    if not QUEUE_REF.fullmatch(head_ref) or not SHA.fullmatch(head_sha):
+    match = QUEUE_REF.fullmatch(head_ref)
+    if not match or not SHA.fullmatch(head_sha):
         raise ValueError(f"unexpected merge group ref {head_ref!r} or SHA {head_sha!r}")
     # Decide last: labels and comments are read only after this group's checks
     # and every entry ahead (which merge first) have finished.
-    wait_for_checks(token, repo, head_sha)
+    wait_for_checks(token, repo, head_sha, int(match.group(1)))
     members = group_members(token, repo, head_ref, head_sha)
     ok, lines = True, []
     for node in members:
