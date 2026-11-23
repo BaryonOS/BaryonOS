@@ -27,8 +27,10 @@ VOLUME_ARCHIVE_CASES = ("archive-export", "archive-restore", "archive-corrupt", 
                         # S09 test-only second disk (kernel feature test-volume-archive-device).
                         "archive-disk-export", "archive-disk-restore", "archive-disk-absent",
                         "archive-disk-small", "archive-disk-wrong", "archive-disk-cut", "archive-disk-verify")
+# U05-N1 settings app replaces volume-app in these cases (tools/run_settings.py).
+VOLUME_SETTINGS_CASES = ("settings", "settings-recover")
 VOLUME_CASES = ("recover", "cut-data", "cut-table", "recover-cut", "corrupt", "foreign", "cut-txn",
-                *VOLUME_ARCHIVE_CASES)
+                *VOLUME_ARCHIVE_CASES, *VOLUME_SETTINGS_CASES)
 VOLUME_FEATURES = ("native-volume", *(f"test-volume-{case}" for case in VOLUME_CASES))
 SUPERVISOR_CASES = ("crash", "denied", "parent-exit", "quota", "wait")
 SUPERVISOR_FEATURES = ("native-supervisor", *(f"test-supervisor-{case}" for case in SUPERVISOR_CASES),
@@ -322,6 +324,12 @@ def build(loader_feature=None, kernel_feature=None, label="normal", image_versio
                        extra_env={"CARGO_TARGET_DIR": str(portal_target),
                                   "CARGO_PROFILE_RELEASE_OPT_LEVEL": "s"})
             app = portal_target / "x86_64-unknown-none/release/volume-app"
+        elif kernel_feature in (f"test-volume-{case}" for case in VOLUME_SETTINGS_CASES):
+            # U05-N1 settings app (own workspace and target dir); same volume service.
+            settings_target = TARGET / "settings-volume"
+            run_logged([sys.executable, "-B", str(ROOT / "sdk/examples/settings-volume/build.py")],
+                       "build-settings-volume", extra_env={"CARGO_TARGET_DIR": str(settings_target)})
+            app = settings_target / "x86_64-unknown-none/release/settings-app"
         qsim_report = {
             "app_sha256": sha256(app), "app_elf": inspect_user(app),
             "service_sha256": sha256(service), "service_elf": inspect_user(service),
