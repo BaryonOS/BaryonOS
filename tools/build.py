@@ -42,7 +42,7 @@ NETWORK_SYSTEM_FEATURES = ("native-system-net", "test-system-net-recover")
 NETWORK_LINK_FEATURES = ("test-system-net-link", "test-system-net-link-storm")
 TCP_SYSTEM_FEATURES = ("native-system-tcp", "test-system-tcp-recover")
 MEMORY_FEATURES = ("native-memory", "native-memory-nx", "native-memory-guard", "native-memory-peer", "native-memory-oom")
-WINDOW_FEATURES = ("native-window-session", "native-window-session-probe", "native-window-session-hidpi", "native-window-session-hidpi-probe", "native-session-route", "native-hid-input-probe")
+WINDOW_FEATURES = ("native-window-session", "native-window-session-probe", "native-window-session-hidpi", "native-window-session-hidpi-probe", "native-session-route", "native-hid-input-probe", "test-window-session-readonly")
 MATERIAAL_FEATURES = (*WINDOW_FEATURES, "native-system-materiaal", "native-system-session-preview", "native-system-materiaal-probe", "test-system-materiaal-recover", "test-system-materiaal-scale200")
 NAS_FEATURES = ("native-system-nas-probe", "test-system-nas-recover")
 RANDOM_FEATURES = ("native-system-random", "test-system-random-sdk", "test-system-random-unknown", "test-system-random-wrong-caller")
@@ -211,7 +211,7 @@ def build(loader_feature=None, kernel_feature=None, label="normal", image_versio
         extra_env, qsim_report = build_nas_users()
     elif kernel_feature in MATERIAAL_FEATURES:
         from build_materiaal import build_users as build_materiaal_users
-        extra_env, qsim_report = build_materiaal_users(probe=kernel_feature not in ("native-system-materiaal", "native-system-session-preview", *WINDOW_FEATURES), window_session=kernel_feature in WINDOW_FEATURES, fault_injection=kernel_feature in ("native-window-session-probe", "native-window-session-hidpi-probe"), session_preview=kernel_feature=="native-session-route", hid_probe=kernel_feature=="native-hid-input-probe")
+        extra_env, qsim_report = build_materiaal_users(probe=kernel_feature not in ("native-system-materiaal", "native-system-session-preview", *WINDOW_FEATURES), window_session=kernel_feature in WINDOW_FEATURES, fault_injection=kernel_feature in ("native-window-session-probe", "native-window-session-hidpi-probe", "test-window-session-readonly"), session_preview=kernel_feature=="native-session-route", hid_probe=kernel_feature=="native-hid-input-probe")
     elif kernel_feature == "native-display-probe":
         from run_display_probe import build_users as build_display_users
         extra_env, qsim_report = build_display_users()
