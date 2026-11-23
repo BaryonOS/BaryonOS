@@ -4,8 +4,12 @@
 wake); this slice adds an opt-in exception for one device. **Profile:** kernel
 feature `test-system-s3-reinit = ["test-system-s3"]` (opt-in test profile, not
 a published ABI). **Status:** verified in QEMU, not accepted; H05 stays open.
-`test-system-s3` and every other profile keep their behaviour: every kernel
-change is gated on the new feature.
+Every kernel change is gated on the new feature. Two shared changes are not:
+`discover()` now calls the extracted `quiesce_interrupts` (same writes, same
+order), and init reads word 624, which only this profile sets (the init ELF
+is embedded in every system-profile kernel). Rebuilt and run here: the four
+power-gate profiles, `test-system-recover` and `native-acpi-s3`; the other
+profiles are unchanged by construction, not by a run or a byte diff.
 
 ## Probe (step 1)
 
@@ -46,7 +50,8 @@ not measured; the oracle therefore accepts `KEPT` and `RESTORED`.
   (status 0, bus mastering off), checks that the three pool pages are still
   kernel-owned, clears pending/completed/bytes, initialises (bus mastering is
   set only there; ACCESS_PLATFORM stays refused) and polls a 32-byte
-  self-test whose bytes are zeroed and never counted. `next_ticket` is kept.
+  self-test whose bytes are discarded (cleared in the driver's bounce page,
+never copied to the broker) and never counted. `next_ticket` is kept.
   Word 616 (the post-wake tick for init) is set only after this completes.
   Until then 0x60 still returns -14; block requests always do.
 - **Served post-wake request (labelled kernel-driven fixture).** No ring-3
@@ -81,11 +86,11 @@ the tree that became `b51f04d8`; its recomputed fingerprint is the same.
 | `python3 -B -u tools/test_power_system.py` | 0 | 10/10 stages: power (raw 0) + recover (33), power-flush-error (33) + recover, power-flush-timeout (33) + recover, power-s3 (raw 0, 5.2 s) + recover, **power-s3-reinit (raw 0, 5.2 s) + recover (33)** |
 | `python3 -B tools/build.py --kernel-feature native-acpi-s3` | 0 | — |
 | `python3 -B -u tools/run_sleep.py --case cycles` | 0 | raw 33, 3 cycles, `POWER:S3:PASS` |
-| `python3 -B -m unittest tests.test_system_harness` | 0 | 35 tests, incl. 6 re-init oracle tests |
+| `python3 -B -m unittest tests.test_system_harness` | 0 | 35 tests, incl. 6 re-init oracle tests (re-run on the final tree) |
 | `python3 -B -m unittest discover -s tests -p 'test_system_*.py'` | 0 | 69 tests |
 | `python3 -B -m unittest discover -s tools/tests -p test_sleep.py` | 0 | 17 tests |
 | `python3 -B -m unittest discover -s tests -p test_ci_workflows.py` / `'test_ci_evidence*.py'` | 0 | 28 / 38 tests |
-| `cargo +1.90.0 test --locked -p virtio-rng-driver` (also `+1.100.0`) | 0 | 6 tests |
+| `cargo +1.90.0 test --locked -p virtio-rng-driver` (also `+1.100.0`) | 0 | 6 tests (re-run after rustfmt) |
 | `cargo +1.90.0 clippy --locked -p virtio-rng-driver --all-targets -- -D warnings` (also `+1.100.0`) | 0 | — |
 | `cargo +1.90.0 fmt --all -- --check` (also `+1.100.0`), and `--manifest-path sdk/examples/system/Cargo.toml` | 0 | — |
 | `python3 -B tools/preflight.py --strict` | 0 | — |
