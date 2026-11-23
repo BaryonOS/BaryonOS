@@ -107,8 +107,8 @@ measured (the fixture overwrites every visible pixel). Whole-directory
 `tests/` discovery is not a defined gate; the build-feature tests in `tests/`
 were run individually.
 
-Physical hardware; other display adapters (virtio-vga, QXL, ramfb); hosted CI
-on QEMU 8.2; byte-for-byte comparison of other profiles' kernel ELFs against
+Physical hardware; other display adapters (virtio-vga, QXL, ramfb); hosted
+QEMU 8.2 runs on any commit other than `0f2b9881`; byte-for-byte comparison of other profiles' kernel ELFs against
 the base commit (only their native gates were rerun); 1920×1080; mode changes
 requested by a ring-3 display service; EDID and monitor timing. A QEMU pass is
 not H03 hardware acceptance.

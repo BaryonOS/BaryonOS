@@ -95,8 +95,9 @@ line, and raw exit 35.
 
 Evidence for one source commit is in
 `docs/verification/h03-dispi-modeset-20261123/`. The local runs used QEMU
-10.2.1 with the `pc-q35-8.2` machine type; hosted CI pins QEMU 8.2 and has not
-run this fixture. Not exercised: physical hardware, other display adapters,
+10.2.1 with the `pc-q35-8.2` machine type; hosted CI pins QEMU 8.2 and ran this
+fixture once, in run 45192411259 on commit `0f2b9881` (positive raw 33, negative
+raw 35; recorded in the verification README). Not exercised: physical hardware, other display adapters,
 EDID or monitor timing, mode switching by ring-3 services, the compositor and
 1920×1080.
 
