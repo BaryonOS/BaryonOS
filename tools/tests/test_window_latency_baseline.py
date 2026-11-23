@@ -81,6 +81,16 @@ class BaselineTests(unittest.TestCase):
                 baseline.summarise(path)
             self.assertEqual(baseline.main([str(path[0])]), 1)
 
+    def test_rejects_non_string_machine_or_accel_cleanly(self):
+        for option in ("-machine", "-accel"):
+            for bad in (None, 1, ["tcg"], {"a": 1}):
+                data = report(0, {"editor": 0.1})
+                data["command"][data["command"].index(option) + 1] = bad
+                path = self.write(data)
+                with self.subTest(option=option, bad=bad), self.assertRaisesRegex(ValueError, "must be strings"):
+                    baseline.summarise(path)
+                self.assertEqual(baseline.main([str(path[0])]), 1)
+
     def test_rejects_reused_run_or_duplicate_report(self):
         with self.assertRaisesRegex(ValueError, "Duplicate"):
             baseline.summarise(self.write(report(0, {"editor": 0.1}), report(0, {"editor": 0.2})))

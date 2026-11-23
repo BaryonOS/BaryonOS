@@ -51,6 +51,8 @@ def load(path: Path) -> tuple[dict, str]:
     # Derived from the recorded command so samples pool only within one QEMU profile.
     report["qemu_machine"] = command[command.index("-machine") + 1]
     report["qemu_accel"] = command[command.index("-accel") + 1]
+    if type(report["qemu_machine"]) is not str or type(report["qemu_accel"]) is not str:
+        raise ValueError(f"{path}: -machine and -accel values must be strings")
     if report["qemu_accel"].split(",")[0] != "tcg":
         raise ValueError(f"{path}: this baseline covers TCG only, not {report['qemu_accel']}")
     return report, hashlib.sha256(raw).hexdigest()
