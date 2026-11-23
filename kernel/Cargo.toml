@@ -225,6 +225,10 @@ test-keyring-no-device = ["native-keyring"]
 test-keyring-stuck = ["native-keyring"]
 test-keyring-timeout = ["native-keyring"]
 test-keyring-restart = ["native-keyring"]
+# test-keyring-timeout is implied only for the three-process slot count in m3.rs;
+# keyring.rs case() tests these two features first.
+test-keyring-requester-crash = ["native-keyring", "test-keyring-timeout"]
+test-keyring-no-reset-ack = ["native-keyring", "test-keyring-timeout"]
 test-m3-peer-read = ["milestone-m3"]
 test-m3-peer-write = ["milestone-m3"]
 test-m3-kernel-write = ["milestone-m3"]

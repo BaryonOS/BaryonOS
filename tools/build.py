@@ -34,7 +34,7 @@ SUPERVISOR_CASES = ("crash", "denied", "parent-exit", "quota", "wait")
 SUPERVISOR_FEATURES = ("native-supervisor", *(f"test-supervisor-{case}" for case in SUPERVISOR_CASES),
                        # K06 5d-2 §4: the same six cases on SMP through an explicit profile.
                        "native-smp-supervisor", *(f"test-smp-supervisor-{case}" for case in SUPERVISOR_CASES))
-KEYRING_CASES = ("no-device", "stuck", "timeout", "restart")
+KEYRING_CASES = ("no-device", "stuck", "timeout", "restart", "requester-crash", "no-reset-ack")
 KEYRING_FEATURES = ("native-keyring", *(f"test-keyring-{case}" for case in KEYRING_CASES))
 UPDATE_FEATURES = ("native-update", "test-update-cut", "native-update-policy-probe")
 NETWORK_SYSTEM_FEATURES = ("native-system-net", "test-system-net-recover")

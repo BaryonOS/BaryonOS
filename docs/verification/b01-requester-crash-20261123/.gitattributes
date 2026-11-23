@@ -1,0 +1,4 @@
+# Keep recorded serial/console bytes identical to their evidence hashes.
+*.txt -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+*.json -text
+SHA256SUMS -text

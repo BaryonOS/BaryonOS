@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
-"""Complete B01 gate: host tests, then five real QEMU invocations (normal,
-no-device, stuck, timeout, restart) on one frozen source fingerprint. The host
-test inputs under tests/ are frozen separately and re-checked before the
-verdict. Only the final summary with passed=true counts as a green gate."""
+"""Complete B01 gate: host tests, then seven real QEMU invocations (normal,
+no-device, stuck, timeout, restart, requester-crash, no-reset-ack) on one frozen
+source fingerprint. The host test inputs under tests/ and tools/tests/ are
+frozen separately and re-checked before the verdict. Only the final summary
+with passed=true counts as a green gate."""
 from __future__ import annotations
 import hashlib
 import subprocess
@@ -16,13 +17,15 @@ HOST = [
     ["cargo", "+1.100.0", "test", "--locked", "-p", "capability-core", "-p", "virtio-rng-driver", "-p", "keyring-core"],
     ["cargo", "+1.100.0", "test", "--locked", "--manifest-path", "sdk/Cargo.toml", "-p", "nieuw-os-sdk-runtime"],
     [sys.executable, "-B", "-m", "unittest", "discover", "-s", "tests", "-p", TEST_INPUTS],
+    [sys.executable, "-B", "-m", "unittest", "discover", "-s", "tools/tests", "-p", TEST_INPUTS],
 ]
-PLAN = ("normal", "no-device", "stuck", "timeout", "restart")
+PLAN = ("normal", "no-device", "stuck", "timeout", "restart", "requester-crash", "no-reset-ack")
 
 
 def test_inputs() -> dict[str, str]:
     tests = ROOT / "tests"
     paths = set(tests.rglob(TEST_INPUTS)) | set(tests.rglob("__init__.py"))
+    paths |= set((ROOT / "tools/tests").glob(TEST_INPUTS))
     return {path.relative_to(ROOT).as_posix(): hashlib.sha256(path.read_bytes()).hexdigest()
             for path in sorted(paths)}
 

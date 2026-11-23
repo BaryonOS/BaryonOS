@@ -1,0 +1,38 @@
+{
+  "schema_version": 1,
+  "checks": [
+    {
+      "command": "python3 -B -m unittest discover -s tests -p 'test_system_*.py'",
+      "exit": 0,
+      "result": "Ran 87 tests, OK",
+      "note": "84 at 297d7bfc plus 3 new ColdHarnessTests; new negatives failed on the pre-change run_system.py (28 failures, 2 import errors)"
+    },
+    {
+      "command": "python3 -m compileall -q tools/run_system.py",
+      "exit": 0
+    },
+    {
+      "command": "git diff --check",
+      "exit": 0
+    },
+    {
+      "command": "python3 -B -m unittest discover -s tools/tests",
+      "exit": 1,
+      "result": "Ran 800, failures=2, errors=9, skipped=15",
+      "note": "all 11 in test_agent_isolation/test_agent_pipeline/test_roadmap_runner (untouched); caused by GIT_EDITOR=true in the session environment"
+    },
+    {
+      "command": "cd tools/tests && env -u GIT_EDITOR python3 -B -m unittest test_agent_isolation test_agent_pipeline test_roadmap_runner",
+      "exit": 0,
+      "result": "OK"
+    },
+    {
+      "command": "tools/test_system.py host stage: unittest test_system_*.py",
+      "exit": 0
+    },
+    {
+      "command": "tools/test_system.py host stage: cargo +1.100.0 test --locked -p nieuw-os-sdk-runtime",
+      "exit": 0
+    }
+  ]
+}
