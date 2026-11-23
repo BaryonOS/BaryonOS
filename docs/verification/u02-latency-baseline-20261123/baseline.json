@@ -5,10 +5,13 @@
     "clipboard_requested": true,
     "kernel_feature": "native-window-session-probe",
     "library_requested": false,
+    "qemu_accel": "tcg,thread=single",
+    "qemu_machine": "pc-q35-8.2",
     "qemu_sha256": "fa552a45c337a88fe71e1e1af9ebace875f30e88685a6986d9406c92efaf44cb",
     "scale": 1,
     "session_route_requested": false,
     "source_commit": "bc1f76b856900a3a6b0563c4c83ea4bce5d6c8de",
+    "source_fingerprint_version": 3,
     "source_sha256": "dc8e67dfb268c9cedef7ff0aa9684797ad7aaa4ef4d864861e188a8d6daec823",
     "switcher_requested": false,
     "viewport": [

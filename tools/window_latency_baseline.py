@@ -19,8 +19,8 @@ from window_latency import _quantile  # noqa: E402
 
 FIELD = "last_input_to_verified_app_image_s"
 # Every report must share these, so samples come from one source and profile.
-IDENTITY = ("source_commit", "source_sha256", "kernel_feature", "scale", "viewport",
-            "qemu_sha256", "clipboard_requested", "workspace_requested",
+IDENTITY = ("source_commit", "source_sha256", "source_fingerprint_version", "kernel_feature",
+            "scale", "viewport", "qemu_sha256", "qemu_machine", "qemu_accel", "clipboard_requested", "workspace_requested",
             "switcher_requested", "library_requested", "session_route_requested")
 SCOPE = ("TCG host-observed baseline, not U02 acceptance, no budget. Each interval "
          "runs from the start of the last injected QMP input to an exact full "
@@ -36,6 +36,17 @@ def load(path: Path) -> tuple[dict, str]:
         raise ValueError(f"{path}: report did not pass (passed/raw exit 33/error)")
     if type(report.get("phases")) is not dict or not report["phases"]:
         raise ValueError(f"{path}: report has no verified phases")
+    command = report.get("command")
+    if type(command) is not list or not report.get("source_fingerprint_version"):
+        raise ValueError(f"{path}: report lacks its command or source fingerprint version")
+    for option in ("-machine", "-accel"):
+        if command.count(option) != 1 or command.index(option) + 1 >= len(command):
+            raise ValueError(f"{path}: command must name exactly one {option}")
+    # Derived from the recorded command so samples pool only within one QEMU profile.
+    report["qemu_machine"] = command[command.index("-machine") + 1]
+    report["qemu_accel"] = command[command.index("-accel") + 1]
+    if report["qemu_accel"].split(",")[0] != "tcg":
+        raise ValueError(f"{path}: this baseline covers TCG only, not {report['qemu_accel']}")
     return report, hashlib.sha256(raw).hexdigest()
 
 

@@ -16,6 +16,8 @@ def report(run, values, **changes):
             "clipboard_requested": True, "workspace_requested": True,
             "switcher_requested": False, "library_requested": False,
             "session_route_requested": False, "run_directory": f"/run/{run}",
+            "source_fingerprint_version": 3,
+            "command": ["qemu-system-x86_64", "-machine", "pc-q35-8.2", "-accel", "tcg,thread=single"],
             "duration_s": 100.0 + run,
             "phases": {"boot": {"seconds": 1.0},
                        **{name: {"seconds": 2.0, baseline.FIELD: value, "last_input_kind": "key"}
@@ -82,6 +84,21 @@ class BaselineTests(unittest.TestCase):
                 baseline.summarise(self.write(*(report(run, {"editor": 0.1}, **{key: None}) for run in range(2))))
         with self.assertRaisesRegex(ValueError, "present in 1 of 2"):
             baseline.summarise(self.write(report(0, {"editor": 0.1, "dirty": 0.2}), report(1, {"editor": 0.1})))
+
+    def test_pools_only_one_tcg_qemu_profile(self):
+        kvm = ["qemu-system-x86_64", "-machine", "pc-q35-8.2", "-accel", "kvm"]
+        with self.assertRaisesRegex(ValueError, "TCG only"):
+            baseline.summarise(self.write(report(0, {"editor": 0.1}, command=kvm)))
+        other = ["qemu-system-x86_64", "-machine", "pc-q35-9.0", "-accel", "tcg"]
+        with self.assertRaisesRegex(ValueError, "qemu_machine differs"):
+            baseline.summarise(self.write(report(0, {"editor": 0.1}), report(1, {"editor": 0.1}, command=other)))
+        for changes in ({"command": ["qemu-system-x86_64"]}, {"source_fingerprint_version": None},
+                        {"command": "qemu -accel tcg"}):
+            with self.subTest(changes=changes), self.assertRaises(ValueError):
+                baseline.summarise(self.write(report(0, {"editor": 0.1}, **changes)))
+        with self.assertRaisesRegex(ValueError, "source_fingerprint_version differs"):
+            baseline.summarise(self.write(report(0, {"editor": 0.1}),
+                                          report(1, {"editor": 0.1}, source_fingerprint_version=4)))
 
     def test_records_report_base_names_only(self):
         summary = baseline.summarise(self.write(*(report(run, {"editor": 0.1}) for run in range(2))))
