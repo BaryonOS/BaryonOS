@@ -248,11 +248,14 @@ fn syn_to_closed_port(port: u16) -> Vec<u8> {
 #[test]
 fn syn_flood_to_closed_ports_cannot_starve_pending_client_syn() {
     for extra_polls in [0, 1, 3] {
-        syn_flood_case(extra_polls);
+        // Entered right after an ingress reply (the ARP answer): SYN goes first.
+        syn_flood_case(extra_polls, false, 0);
+        // Entered from idle: the flood wins one slot, then the SYN gets the next.
+        syn_flood_case(extra_polls, true, 1);
     }
 }
 
-fn syn_flood_case(extra_polls: usize) {
+fn syn_flood_case(extra_polls: usize, idle_first: bool, expected_after: usize) {
     const K: usize = 2;
     const FLOOD: usize = 16;
     let mut storage = [SocketStorage::EMPTY];
@@ -268,6 +271,9 @@ fn syn_flood_case(extra_polls: usize) {
     stack.push_frame(&arp_request_from_peer()).unwrap();
     let arp = drain(&mut stack, 0).expect("ARP reply to peer");
     assert_eq!(&arp[12..14], &[8, 6]);
+    if idle_first {
+        assert!(drain(&mut stack, 0).is_none());
+    }
     let client = stack.add_client(&mut rxb, &mut txb).unwrap();
     stack.connect(client, PEER_IP, 8080, 40000, 300).unwrap();
 
@@ -307,6 +313,7 @@ fn syn_flood_case(extra_polls: usize) {
         after <= K,
         "client SYN only after {after} RSTs (K = {K}, extra polls {extra_polls})"
     );
+    assert_eq!(after, expected_after, "idle first {idle_first}");
     assert_eq!(pushed, FLOOD);
     assert_eq!(rsts, FLOOD, "every flood SYN gets exactly one RST");
     assert_eq!(stack.state(client).unwrap(), State::SynSent);
