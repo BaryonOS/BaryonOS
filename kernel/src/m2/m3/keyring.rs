@@ -1353,8 +1353,11 @@ pub(super) fn reinit_evidence() -> Option<(u64, i64)> {
 #[cfg(feature = "test-system-s3-reinit")]
 fn reinit_fail(reason: &[u8]) -> ! {
     // Stop the device first; the VM exits next, so no page is ever reused.
+    // Only after `rediscover` validated the BARs does the pre-sleep register
+    // mapping name this device; before that no MMIO is issued at all.
+    let validated = reinit_state().bars.is_some();
     let r = runtime();
-    if let Some(device) = r.device.as_mut() {
+    if let Some(device) = r.device.as_mut().filter(|_| validated) {
         reinit_access();
         device.begin_reset();
     }
@@ -1475,9 +1478,13 @@ pub(super) fn reinit_poll(s: &mut State, key: usize, handle: u64) {
             // Served normally: the Key Service's own capability through the
             // real 0x60 handler (labelled kernel-driven fixture, as B01's lease
             // fixture). The first post-wake ticket continues the sequence.
+            // `call` re-enters `reinitialised`, which borrows REINIT again:
+            // no borrow of it is live across the call.
+            let floor = p.ticket_floor;
             let ticket = call(s, key, 0x60, [handle, 32, 0, 0, 0, 0])
                 .unwrap_or_else(|_| reinit_fail(b"SERVED_REQUEST"));
-            reinit_require(ticket == p.ticket_floor, b"TICKET_ORDER");
+            reinit_require(ticket == floor, b"TICKET_ORDER");
+            let p = reinit_state();
             p.deadline = s.ticks + TIMEOUT;
             p.stage = 4;
         }
@@ -1487,18 +1494,15 @@ pub(super) fn reinit_poll(s: &mut State, key: usize, handle: u64) {
                 return;
             };
             reinit_require(completed.result == Ok(32), b"SERVED_RESULT");
+            // As in stage 3, no REINIT borrow is live across `call`.
+            let floor = p.ticket_floor;
             // A pre-sleep ticket can never redeem the post-wake answer.
-            p.stale = call(
-                s,
-                key,
-                0x61,
-                [handle, p.ticket_floor - 1, DELIVERY, 32, 0, 0],
-            )
-            .err()
-            .unwrap_or(0);
-            reinit_require(p.stale == -1, b"STALE_TICKET");
+            let stale = call(s, key, 0x61, [handle, floor - 1, DELIVERY, 32, 0, 0])
+                .err()
+                .unwrap_or(0);
+            reinit_require(stale == -1, b"STALE_TICKET");
             reinit_require(
-                call(s, key, 0x61, [handle, p.ticket_floor, DELIVERY, 32, 0, 0]) == Ok(32),
+                call(s, key, 0x61, [handle, floor, DELIVERY, 32, 0, 0]) == Ok(32),
                 b"DELIVERY",
             );
             let mut any = 0;
@@ -1512,6 +1516,8 @@ pub(super) fn reinit_poll(s: &mut State, key: usize, handle: u64) {
                 any != 0 && r.completed.is_none() && r.pending.is_none(),
                 b"DELIVERED_BYTES",
             );
+            let p = reinit_state();
+            p.stale = stale;
             p.delivered_after = r.delivered_bytes;
             reinit_require(
                 p.delivered_after - p.delivered_before == 32,

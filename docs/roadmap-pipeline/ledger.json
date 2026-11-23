@@ -2374,7 +2374,44 @@
           "reason": "builder b00f9b21/a99b56ed; independent AI review approve-with-minors; lead fix 7c5201b6 (extent load order); run_sleep cycles 33, stale-token 37, corrupt-facs 33; power gate 8/8 on the merged tree."
         }
       ],
-      "next": "H05-T6b: dedicated plan-rejection exit, unarmed-wake and out-of-extent fixtures, CR3 from a static."
+      "next": "Done in H05-T6b."
+    },
+    {
+      "id": "H05-T6b",
+      "criterion": "H05",
+      "milestone": "M9",
+      "executor": "lead",
+      "status": "verified",
+      "title": "S3 follow-up: dedicated plan-rejection exit, unarmed-wake and FACS-end fixtures, CR3 from the kernel image",
+      "goal": "No S3 rejection in native-acpi-s3 reaches the pass code, and the ARMED-first refusal order and FACS extent refusal are exercised natively.",
+      "deps": [
+        "H05-T6"
+      ],
+      "write_paths": [
+        "kernel/Cargo.toml",
+        "tools/build.py",
+        "tools/run.py",
+        "kernel/src/m2/sleep.rs",
+        "tools/run_sleep.py",
+        "tools/tests/test_sleep.py",
+        "docs/verification/h05-s3-rejections-20261123/"
+      ],
+      "checks": [
+        "python3 -B tools/run_sleep.py --case cycles|stale-token|corrupt-facs|unarmed-wake|facs-end (raw 33/37/39/37/39)",
+        "python3 -B -m unittest discover -s tools/tests -p 'test_sleep.py'",
+        "mutation: removing armed == 0 fails unarmed-wake (raw -9)"
+      ],
+      "evidence_level": "native QEMU/TCG (local QEMU 10.2.1, pc-q35-8.2); hosted native-power runs only cycles/corrupt-facs/stale-token until the integration request adds the two new cases",
+      "non_claimable": "Only the facs-end boundary is native; UNAVAILABLE/UNREADABLE/FacsNotNvs/FacsExtent/Pm1bUnsupported raw 39 follows by construction; the wake page's 16-bit code, GDTR and far pointer still run before the ARMED check; no physical firmware.",
+      "source_commit": "04212e8d",
+      "history": [
+        {
+          "event": "verified",
+          "at": "2026-11-23",
+          "reason": "builder ef355dad/d806d9ed/d0b3eac3; independent AI review approve-with-minors (fixture token 0, ADR wording, CI gap); lead fix 04212e8d with five native reruns and a third mutation; ADR amendments H05-T6b."
+        }
+      ],
+      "next": "Integration session adds the unarmed-wake and facs-end steps to native-power.yml; hosted run on the #415 head."
     },
     {
       "id": "H06-T2",

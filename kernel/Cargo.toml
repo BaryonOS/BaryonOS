@@ -37,6 +37,8 @@ acpi-s3-core = ["dep:nieuw-os-acpi-power"]
 native-acpi-s3 = ["milestone-m2", "acpi-s3-core"]
 test-acpi-s3-corrupt-facs = ["native-acpi-s3"]
 test-acpi-s3-stale-token = ["native-acpi-s3"]
+test-acpi-s3-unarmed-wake = ["native-acpi-s3"]
+test-acpi-s3-facs-end = ["native-acpi-s3"]
 # K06 step 1: opt-in AP bring-up profile. APs run a bounded sync self-test and
 # park; no scheduler, allocator, paging or IPC state is shared with them.
 native-smp = ["milestone-m2"]

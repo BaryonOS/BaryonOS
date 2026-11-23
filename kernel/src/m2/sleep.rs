@@ -6,11 +6,11 @@
 //! - The wake page below 1 MiB is a Kernel-owned ConventionalMemory frame,
 //!   reserved first-fit before any table allocation and written once through
 //!   the firmware identity map before the CR3 switch, as the SMP SIPI page.
-//!   It holds 16-bit code, the kernel CR3 and a per-cycle arm token. The
+//!   It holds 16-bit code and a per-cycle arm token. The
 //!   kernel tables map it supervisor RW/NX only to update that token; it is
 //!   executed solely with paging disabled, so W^X is unchanged.
-//! - The 32/64-bit stages, their GDT and the wake stack live in the
-//!   identity-mapped kernel image, as in `smp`.
+//! - The 32/64-bit stages, their GDT, the wake stack and the kernel CR3 the
+//!   32-bit stage loads live in the identity-mapped kernel image, as in `smp`.
 //! - The FACS waking vector is stored only into the FACS extent that
 //!   discovery validated (`parse_s3`) and proved to be UEFI ACPI NVS;
 //!   `paging::write_firmware` refuses every store outside that extent. It is
@@ -48,7 +48,6 @@ const WAKE_STACK: usize = 16 * 1024;
 /// Bounded spin after SLP_EN; reaching its end means no transition happened.
 const NO_TRANSITION_SPIN: u32 = 50_000_000;
 // Wake page layout, see the trampoline below.
-const PAGE_CR3: u64 = 8;
 const PAGE_TOKEN: u64 = 32;
 const MSR_EFER: u32 = 0xc000_0080;
 const MSR_PAT: u32 = 0x277;
@@ -70,6 +69,10 @@ static mut NOS_S3_WAKE_STACK: Stack = Stack([0; WAKE_STACK]);
 static mut NOS_S3_SAVED_RSP: u64 = 0;
 /// Wake page base for the extended entry, which has no CS-derived base.
 static mut NOS_S3_PAGE32: u32 = 0;
+/// Kernel root the 32-bit stage loads into CR3, written once by `prepare`;
+/// kept in the kernel image, not the low wake page, so no wake-page byte
+/// selects the page tables used before the ARMED check.
+static mut NOS_S3_CR3: u32 = 0;
 /// Which firmware transfer reached the kernel: 1 real-mode vector, 2 the
 /// 32-bit extended vector; cleared by the kernel before every sleep.
 static mut NOS_S3_ENTRY_PATH: u32 = 0;
@@ -88,9 +91,15 @@ static ARMED: AtomicU32 = AtomicU32::new(0);
 /// profile; no other kernel or loader path writes it, so it is neither the
 /// pass (0x10, raw 33) nor a generic failure (0x11, raw 35).
 const WAKE_REJECTED_EXIT: u32 = 0x12;
+/// isa-debug-exit value of a refused S3 plan in `native-acpi-s3` (raw QEMU
+/// exit 39): every `resolve` rejection and a cleanly disarmed FACS store
+/// failure, none of which performed a PM1 write. No other kernel or loader
+/// path writes it, so a refused plan can never end with the pass (0x10).
+#[cfg(feature = "native-acpi-s3")]
+const PLAN_REJECTED_EXIT: u32 = 0x13;
 
 // Wake page layout (offsets inside the copied page):
-//   0  cli; short jmp to code      8  CR3 (patched once)
+//   0  cli; short jmp to code      8  reserved (zero)
 //  16  GDTR (limit, base32)       24  far pointer to entry32 (selector 0x08)
 //  32  arm token (patched per cycle)
 //  48  16-bit code, ESI = page linear base for the 32-bit stage
@@ -171,7 +180,8 @@ global_asm!(
     "    movl 32(%esi), %edi",
     "    movl $0x20, %eax",
     "    movl %eax, %cr4",
-    "    movl 8(%esi), %eax",
+    // CR3 comes from the kernel image (DS is flat now), not the wake page.
+    "    movl {cr3}, %eax",
     "    movl %eax, %cr3",
     "    movl $0xc0000080, %ecx",
     "    rdmsr",
@@ -250,6 +260,7 @@ global_asm!(
     ".popsection",
     stack = sym NOS_S3_WAKE_STACK,
     page32 = sym NOS_S3_PAGE32,
+    cr3 = sym NOS_S3_CR3,
     path = sym NOS_S3_ENTRY_PATH,
     stack_size = const WAKE_STACK,
     wake = sym s3_wake,
@@ -388,12 +399,13 @@ pub fn prepare(
     }
     // SAFETY: `page` is an exclusive Kernel-owned ConventionalMemory frame below
     // 1 MiB; the firmware CR3 that is still active identity-maps it. The source
-    // is our own read-only image. Exactly `length` <= one page is copied, then
-    // the aligned CR3 slot inside it is written.
+    // is our own read-only image. Exactly `length` <= one page is copied. The
+    // two u32 statics are written once here on the single BSP before any
+    // wake stage can read them; `root < 4 GiB` was checked above.
     unsafe {
         ptr::copy_nonoverlapping(start as *const u8, page as *mut u8, length as usize);
-        ((page + PAGE_CR3) as *mut u32).write_volatile(root as u32);
         ptr::addr_of_mut!(NOS_S3_PAGE32).write(page as u32);
+        ptr::addr_of_mut!(NOS_S3_CR3).write(root as u32);
     }
     paging.map(frames, page, page, true, false);
     let mut canary = [0u64; CANARY_FRAMES];
@@ -602,25 +614,54 @@ fn cycle(
     // Pre-sleep: clear WAK_STS, fill the canary, arm token and FACS.
     clear_status(event, Pm1Event::WAKE_STATUS);
     canary(&ctx.canary, cycle, true);
-    // SAFETY: Single CPU; SAVED is written before the generation is armed,
-    // so s3_wake reads it only for a token this cycle authorized.
-    unsafe {
-        ptr::addr_of_mut!(SAVED).write(Saved {
+    // Negative fixture: SAVED is poisoned (all-ones faults on any restore),
+    // no generation is armed and the page token is 0, so token == ARMED and
+    // only the `armed == 0` clause in s3_wake stands before a faulting restore.
+    let unarmed = cfg!(feature = "test-acpi-s3-unarmed-wake");
+    let saved = if unarmed {
+        Saved {
+            cr0: u64::MAX,
+            cr4: u64::MAX,
+            efer: u64::MAX,
+            pat: u64::MAX,
+        }
+    } else {
+        Saved {
             cr0: cr(false),
             cr4: cr(true),
             efer: rdmsr(MSR_EFER),
             pat: rdmsr(MSR_PAT),
-        });
-    }
-    ARMED.store(cycle, Ordering::Release);
+        }
+    };
+    // SAFETY: Single CPU; SAVED is written before the generation is armed,
+    // so s3_wake reads it only for a token this cycle authorized.
+    unsafe { ptr::addr_of_mut!(SAVED).write(saved) };
+    ARMED.store(if unarmed { 0 } else { cycle }, Ordering::Release);
     let page_token = if cfg!(feature = "test-acpi-s3-stale-token") {
         // Negative fixture: the page carries another generation's token.
         cycle ^ 0x5a5a_0000
+    } else if unarmed {
+        0
     } else {
         cycle
     };
     set_token(ctx.page, page_token);
-    if !store_facs(paging, facs, length, ctx.wake, copy) {
+    let stored = if cfg!(feature = "test-acpi-s3-facs-end") {
+        // Negative fixture: one byte at facs+length, just past the recorded
+        // extent, stands in for the wake stores and must be refused.
+        // SAFETY: Deliberately outside the caller contract: write_firmware
+        // checks the recorded extent before any mapping or store and returns
+        // Permission for this span; any other result stops the VM below.
+        let refused = unsafe { paging.write_firmware(facs + length as u64, &[0]) };
+        if refused != Err(kernel_core::Error::Permission) {
+            serial::fail(b"S3_FACS_END_NOT_REFUSED");
+        }
+        serial::write(b"POWER:S3:STORE:FACS_END:REFUSED:Permission\n");
+        false
+    } else {
+        store_facs(paging, facs, length, ctx.wake, copy)
+    };
+    if !stored {
         // Never leave a partially armed vector behind.
         ARMED.store(0, Ordering::Release);
         set_token(ctx.page, 0);
@@ -713,15 +754,17 @@ fn cycle(
 }
 
 /// Runs the bounded S3 cycles after M2 passed; returns only after the last
-/// validated wake or after a reported rejection that performed no PM1 write.
+/// validated wake. A reported rejection that performed no PM1 write stops
+/// the VM with `PLAN_REJECTED_EXIT`, never the M2 pass exit.
 #[cfg(feature = "native-acpi-s3")]
 pub fn run(frames: &Frames<FRAME_COUNT>, paging: &mut paging::Paging, prepared: Preparation) {
     let Some(ctx) = resolve(prepared) else {
-        return;
+        serial::exit(PLAN_REJECTED_EXIT);
     };
     for generation in 1..=CYCLES {
         if !cycle(Some(frames), paging, &ctx, generation) {
-            return serial::write(b"POWER:S3:REJECTED:FacsStore:DISARMED\n");
+            serial::write(b"POWER:S3:REJECTED:FacsStore:DISARMED\n");
+            serial::exit(PLAN_REJECTED_EXIT);
         }
     }
     serial::write(b"POWER:S3:PASS\n");

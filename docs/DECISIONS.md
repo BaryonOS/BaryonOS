@@ -31,7 +31,10 @@ PIT ticks; the TSC is used only for saturating diagnostics.
    boot; a second request returns -14.
 2. **Synchronous sleep in the caller's syscall.** IF stays 0. The kernel reuses
    the H05-T3 wake page, token, FACS arm/disarm, canary and post-wake checks.
-   The handler runs under the kernel root CR3 (the one the wake page holds);
+   The handler runs under the kernel root CR3 (amendment H05-T6b: the one the
+   32-bit wake stage loads from the static `NOS_S3_CR3` in the identity-mapped
+   kernel image, written once by `prepare`; wake-page offset 8 is reserved and
+   unread);
    the wake path verifies that root, and the normal scheduler path reloads
    the caller's process CR3 on return. It reloads the GDT/IDT/TR through the
    shared loader, reprograms the PIC and PIT exactly as at boot and audits
@@ -85,7 +88,17 @@ validates the ARMED token before it reads `SAVED` or restores any register, a
 rejected wake exits the dedicated code 0x12 instead of 0x11 (or 0x10 in
 `native-acpi-s3`), and FACS stores outside the extent recorded from the
 validated plan are refused with `Permission` before any mapping
-(docs/verification/h05-hardening-20261123/).
+(docs/verification/h05-hardening-20261123/). Amendment H05-T6b (23 November
+2026): in `native-acpi-s3`, a refused S3 plan and a cleanly disarmed FACS store
+failure exit the dedicated code 0x13 (raw 39), so no rejection reaches the pass
+code 0x10; `test-system-s3` is unchanged (SUSPEND returns -14 without a plan).
+The fixtures `test-acpi-s3-unarmed-wake` (raw 37, page token 0 so only the
+`ARMED == 0` clause refuses) and `test-acpi-s3-facs-end` (raw 39) exercise the
+refusal order natively (docs/verification/h05-s3-rejections-20261123/); hosted CI
+runs them only after `native-power.yml` gains their steps. Loading CR3 from the
+kernel image moves one field off the wake page; the page's 16-bit code, GDTR and
+far pointer still decide execution before the ARMED check, so the wake page's
+trust is unchanged.
 
 ## ADR-H04-LINK-20261119 — Test-profile NIC link query 0x74 and link-down refusal -23
 
@@ -264,7 +277,10 @@ session on QEMU 8.2.2 `pc-q35-8.2` with Ubuntu `OVMF_CODE_4M.fd` under TCG:
    `Specification` policy (integration review of #409, 23 November 2026).
 4. Both entries converge on one 32-bit stage and one 64-bit token check: only
    the armed generation resumes the saved context; any other wake is reported
-   and stops the VM.
+   and stops the VM (exit 0x12, raw 37, since H05-T6). Amendment H05-T6b
+   (23 November 2026): a plan that discovery or `resolve` refuses, or a FACS
+   store that fails and disarms, exits 0x13 (raw 39) instead of the pass code
+   (ADR-H05-S3-SYSTEM-20261123, evidence boundary).
 5. After a wake the kernel restores `SCI_EN` when it was set before sleep,
    matching Linux's documented "bug compatibility" behaviour, and reports
    whether it had to.

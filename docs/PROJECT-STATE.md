@@ -1,5 +1,23 @@
 # Current project status
 
+## NEXT AGENT HANDOFF — H-track lead: S3 rejection exit and fixtures (H05-T6b), re-init review fixes — 23 November 2026
+
+**Delivered (H05-T6b, verified, not accepted):** in `native-acpi-s3` every refused S3 plan and
+every cleanly disarmed FACS store failure exits 0x13 (raw 39); `corrupt-facs` therefore moves
+from raw 33 to raw 39. New fixtures `test-acpi-s3-unarmed-wake` (raw 37; page token 0, so only
+the `ARMED == 0` clause refuses) and `test-acpi-s3-facs-end` (raw 39). The 32-bit wake stage
+loads CR3 from `NOS_S3_CR3` in the kernel image; wake-page offset 8 is reserved. Independent AI
+review: approve-with-minors, fixed in `04212e8d` (fixture token 0, third mutation) and the
+ADR-H05-S3-SYSTEM/ADR-H05-S3-WAKE amendments. [Evidence](verification/h05-s3-rejections-20261123/README.md):
+five `run_sleep.py` cases raw 33/37/39/37/39 (local QEMU 10.2.1, pc-q35-8.2, TCG).
+**CodeRabbit review 6023531102 (re-init):** `reinit_fail` no longer resets the device before
+`rediscover` validated the BARs, and stages 3–4 of `reinit_poll` hold no `REINIT` borrow across
+the 0x60/0x61 handlers (`8530dd14`); native `power-s3-reinit` passes.
+**Open:** hosted `native-power.yml` runs only cycles/corrupt-facs/stale-token until the
+integration session adds the two new cases (request sent with exact steps). R1 port and the
+CR415 tooling fixes are in flight.
+**Score:** 41 → 41/100 (no criterion changes).
+
 ## NEXT AGENT HANDOFF — H-track lead: Bochs DISPI mode-set fixture (H03-T4) and #409 review follow-ups — 23 November 2026
 
 **Delivered (H03-T4, verified, not accepted):** draft PR #417 (`claude/h03-dispi-20261123`,
