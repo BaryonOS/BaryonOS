@@ -21,7 +21,7 @@
   "kernel_sha256": "80d6f1c894dd9ca73fcca539f6dc788956550d9e518ab3dd54997dbb426833d3",
   "loader_sha256": "45fde8411d97105efe0a5f81506a22534f20e7aa9642e8ce3be8d9625aa8748d",
   "source_fingerprint_version": 3,
-  "source_sha256": "6126fd9963bc665f183e9dab341775372985e34aade9b6896da3a216e7a0a9f8",
-  "source_commit": "04b5b8bc1def5ce2b4004b176552e0ad5cebaff9",
+  "source_sha256": "2b72b62e2ebe8472890ff29c925c893d4dee4fab0c60fff17ec922549b421777",
+  "source_commit": "f99b4c5809a145873f0af96fab856a869eaffaa4",
   "clean_checkout": true
 }
