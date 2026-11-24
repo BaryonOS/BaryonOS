@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-24",
-    "source_commit": "ea59c6fc430fb2481dd5d331ac2763235535f110",
-    "assessment_basis": "source_bound_branch",
-    "branch": "claude/s09-l2-restore-cut",
-    "task": "S09 native power cut inside an L2 restore and its cold recovery (cases 29-30)",
+    "source_commit": "f99b4c5809a145873f0af96fab856a869eaffaa4",
+    "assessment_basis": "parent_commit",
+    "branch": "claude/h06-t6-hwinv-image-20261124",
+    "task": "H06-T6 removable-media HW-INV image (QEMU-booted)",
     "previous_score": 43,
-    "summary": "43/100, unchanged: S09 adds the test-only native stages l2-restore-cut (the host terminates QEMU, a simulated power cut, inside the seventh table commit (object 4's INSTALL_COMMIT) of a cold L2 restore) and recover-l2-cut (cold read-only boot: objects 1-3 and collections 1-3 fully installed with plan provenance, objects 4-5 exactly never-used, a second restore Stale) with an independent host oracle; the local 32-stage native volume gate passes at ea59c6fc. S09 stays open: the native path is a test-only fixture, and a user-facing production copy/restore/export chain, owner decisions and a human audit remain. The delivery-review inventory stays bound to its 2eb1c63 snapshot; evidence: docs/verification/s09-l2-restore-cut-20261124/README.md."
+    "summary": "43/100 unchanged. H06-T6 adds tools/hw_inventory_image.py, a deterministic raw GPT disk image with one FAT32 ESP for the native-hw-inventory build with a recorded SHA-256, and a QEMU image case that boots it as a disk with the plain-case oracles; sgdisk, fsck.fat and mtools agree with the payload. No physical boot, USB medium or signed record exists, the layout awaits OD-HW-BOOT and the loader is not yet reproducible, so H06 earns no points; evidence: docs/verification/h06-hwinv-image-20261124/README.md."
   },
   "tracks": [
     {
@@ -906,7 +906,7 @@
             "verification": [
               "native"
             ],
-            "observation": "All HW-FR entries are pending or unsupported with evidence_level none; H06-T4 prepares protocols and signature validation only. H06-T3 adds a read-only native-hw-inventory kernel/loader pair that emits the HW-INV markers; it passes two QEMU configurations against QMP query-pci and configured CPUID/DMAR,, and its inventory is rejected as a virtual capture. H06-T5 makes every terminal path of that pair halt without port 0xF4 (four QEMU fixtures).",
+            "observation": "All HW-FR entries are pending or unsupported with evidence_level none; H06-T4 prepares protocols and signature validation only. H06-T3 adds a read-only native-hw-inventory kernel/loader pair that emits the HW-INV markers; it passes two QEMU configurations against QMP query-pci and configured CPUID/DMAR, and its inventory is rejected as a virtual capture. H06-T5 makes every terminal path of that pair halt without port 0xF4 (four QEMU fixtures). H06-T6 packs it into a deterministic raw GPT/FAT32 image with a recorded SHA-256 that boots in QEMU as a disk.",
             "remaining": "Physical operators, authorization and signed actual runs remain missing; host validation of evidence format proves no device support.",
             "evidence": [
               "docs/drivers/hardware-matrix.json",
