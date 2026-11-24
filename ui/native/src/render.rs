@@ -1914,8 +1914,10 @@ pub fn status_label(status: Status) -> &'static str {
         Status::Failed(UiError::Storage(S::Service(volume_core::Status::Quota))) => {
             "Je opslagruimte is opgebruikt. Niet opgeslagen. Je tekst blijft open."
         }
+        // Io also reaches here from READ (open, metadata), so the copy must not
+        // claim a save happened; Full and Quota only arise from writes.
         Status::Failed(UiError::Storage(S::Service(volume_core::Status::Io))) => {
-            "Opslaan mislukt. Je wijzigingen zijn niet bevestigd."
+            "Lezen of opslaan mislukt. Er is niets bevestigd."
         }
         Status::Failed(_) => "Handeling mislukt. Je tekst blijft open.",
     }
