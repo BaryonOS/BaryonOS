@@ -8,8 +8,8 @@ record and not H06 acceptance.
 
 | Item | Value |
 |---|---|
-| Source commit | `48cccf410795a3558541351a87036d49576fce53` (branch `claude/h06-t6-hwinv-image-20261124` with main `9f0eb19e` merged in), clean checkout |
-| Source fingerprint (v3) | `c86c88f212670ac5…` (full value in the result files) |
+| Source commit | `6bd748680bb5787496ee48da8dda91415687993e` (branch `claude/h06-t6-hwinv-image-20261124` with main `ef0a7015` merged in), clean checkout |
+| Source fingerprint (v3) | `05b0174390ccb5e8…` (full value in the result files) |
 | Emulator | local QEMU 10.2.1, machine `pc-q35-10.0`, TCG, one CPU, 256 MiB, OVMF without enrolled keys, `isa-debug-exit` at `0xf4` attached |
 | Image | `tools/hw_inventory_image.py`: 64 MiB raw GPT disk, one FAT32 EFI system partition at LBA 2048–131038, one sector per cluster, 8.3 upper-case names, timestamps 1980-01-01, GUIDs and volume serial derived from the payload |
 | Image SHA-256 | `a4ca34eb088294df74b3839bdd32dde990d9d98aaddd4859982697dcae15c3ed` (67 108 864 bytes), [image-record.json](image-record.json) |
@@ -44,7 +44,7 @@ same hash, sgdisk/fsck.fat/mtools agreed and the FAT32/GPT layout was reviewed
 against the specifications without format defects. Its kernel SHA-256 equalled
 this build's, but its loader differed (`c8e1baf6…`), so its image hash was
 `d716f697…`: the expected effect of the not-yet-reproducible loader. It found
-two defects, both fixed in `872322d5` (re-captured after review fixes and at merge commit `48cccf41` with main `9f0eb19e`): the `test_hw_evidence` "ready requires"
+two defects, both fixed in `872322d5` (re-captured after review fixes, last at `6bd74868`: one ESP snapshot for the image and its hashes, no symbolic link followed at the output paths): the `test_hw_evidence` "ready requires"
 mutation no longer reached its check, and the image tool did not enforce the
 exact ESP file set.
 
