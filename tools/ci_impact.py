@@ -377,7 +377,8 @@ def validate(catalogue):
         if not isinstance(jobs, list) or not jobs:
             add(f"{where}: at least one [[workflow.job]] is required")
             continue
-        job_ids = [job.get("id") for job in jobs if isinstance(job, dict)]
+        # Only string ids are compared; any other type is reported per job below.
+        job_ids = [job["id"] for job in jobs if isinstance(job, dict) and isinstance(job.get("id"), str)]
         if len(set(job_ids)) != len(job_ids):
             add(f"{where}: duplicate job ids")
         graph = {}
@@ -430,7 +431,8 @@ def validate(catalogue):
                 if not isinstance(variants, list) or not variants:
                     add(f"{jwhere}: variant must be a non-empty array of tables")
                     variants = []
-                ids = [variant.get("id") for variant in variants if isinstance(variant, dict)]
+                ids = [variant["id"] for variant in variants
+                       if isinstance(variant, dict) and isinstance(variant.get("id"), str)]
                 if len(set(ids)) != len(ids):
                     add(f"{jwhere}: duplicate variant ids")
                 for variant in variants:

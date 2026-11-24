@@ -846,6 +846,9 @@ class CatalogueValidationTests(TestCase):
             (lambda c: wf(c, 0)["job"][0].update(id="a b"), "invalid job id"),
             (lambda c: wf(c, 0)["job"][0].update(id="-x"), "invalid job id"),
             (lambda c: wf(c, 1)["job"][0]["variant"][0].update(id="x|y"), "invalid variant id"),
+            (lambda c: wf(c, 0)["job"][1].update(id=["upload"]), "invalid job id"),
+            (lambda c: wf(c, 1)["job"][0]["variant"][0].update(id=["viewer"]), "invalid variant id"),
+            (lambda c: wf(c, 1)["job"][0]["variant"][0].update(id={"a": 1}), "invalid variant id"),
             (lambda c: wf(c, 0).update(path=".github/workflows/a|b.yml"), "path must be"),
             (lambda c: wf(c, 0).update(path=".github/workflows/sub/a.yml"), "path must be"),
         ]
