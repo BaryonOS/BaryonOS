@@ -43,6 +43,11 @@ GRANULARITIES = ("variant", "job", "workflow")
 POLICY_MODES = ("shadow", "enforce", "select", "full")
 EVENT_POLICIES = ("select", "full", "manual")
 ESCAPE_WHEN = ("always", "root")
+# Tool configuration cargo, rustfmt and clippy read from any ancestor directory.
+REQUIRED_ALWAYS_FULL = (
+    "rustfmt.toml", "**/rustfmt.toml", ".rustfmt.toml", "**/.rustfmt.toml",
+    "clippy.toml", "**/clippy.toml", ".clippy.toml", "**/.clippy.toml",
+    "rust-toolchain*", "**/rust-toolchain*", ".cargo/**", "**/.cargo/**")
 EVENT_FULL_CODES = {"merge_group": "merge-group", "push": "push-main", "schedule": "schedule"}
 METADATA = "@metadata"
 ZERO_SHA = "0" * 40
@@ -253,6 +258,10 @@ def validate(catalogue):
         add(f"policy.mode must be one of {', '.join(POLICY_MODES)}")
     for key in ("always_full", "inert", "core_only"):
         globs(f"policy.{key}", policy.get(key), required=True)
+    if isinstance(policy.get("always_full"), list):
+        for pattern in REQUIRED_ALWAYS_FULL:
+            if pattern not in policy["always_full"]:
+                add(f"policy.always_full must include {pattern!r}")
     events = policy.get("events")
     if not isinstance(events, dict):
         add("policy.events table missing")
@@ -495,6 +504,10 @@ def cargo_closure(roots, read, escapes):
     """Return (globs, crate dirs) for root manifests; `read(path)` gives bytes or None."""
     globs, dirs, seen = set(), set(), set()
     root_dirs = {posixpath.dirname(root) for root in roots}
+    for ancestor in root_dirs:
+        while ancestor:  # cargo also reads every ancestor manifest (a workspace root)
+            ancestor = posixpath.dirname(ancestor)
+            globs.add(posixpath.join(ancestor, "Cargo.toml"))
     queue = list(roots)
     while queue:
         manifest = queue.pop(0)

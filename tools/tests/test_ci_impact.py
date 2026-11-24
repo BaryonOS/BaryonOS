@@ -31,7 +31,10 @@ revision = 1
 [policy]
 mode = "shadow"
 always_full = [".github/**", "tools/ci_impact.py", "Cargo.lock", "**/Cargo.lock",
-               "rust-toolchain.toml", "tools/build.py"]
+               "rust-toolchain.toml", "tools/build.py",
+               "rustfmt.toml", "**/rustfmt.toml", ".rustfmt.toml", "**/.rustfmt.toml",
+               "clippy.toml", "**/clippy.toml", ".clippy.toml", "**/.clippy.toml",
+               "rust-toolchain*", "**/rust-toolchain*", ".cargo/**", "**/.cargo/**"]
 inert = ["docs/**", "**.md"]
 core_only = ["LICENSE"]
 
@@ -368,6 +371,16 @@ class SelectionTests(FixtureTestCase):
         plan = self.plan(self.branch(remove=["apps/deck/src/extra.rs"]))
         self.assertSelect(plan, {"leaves#quality/deck"})
 
+    def test_ancestor_manifest_selects_the_roots_below_it(self):
+        plan = self.plan(self.branch({"apps/Cargo.toml": "[workspace]\n"}))
+        self.assertSelect(plan, {"leaves#quality/" + v for v in ("viewer", "crop", "sheet", "deck", "solo")})
+
+    def test_nested_tool_configuration_forces_full(self):
+        for path in ("kernel/rustfmt.toml", "kernel/.rustfmt.toml", "kernel/clippy.toml",
+                     "kernel/.clippy.toml", "kernel/rust-toolchain", "kernel/.cargo/config.toml"):
+            with self.subTest(path=path):
+                self.assertFull(self.plan(self.branch({path: "# x\n"}, message=path)), "always-full")
+
     def test_extra_target_sources_select_their_consumers(self):
         cases = {"ui/tokens.css": {"leaves#quality/sheet", "window#a", "window#b", "window#c"},
                  "shared/main.rs": {"leaves#quality/solo"},
@@ -699,6 +712,7 @@ class CatalogueValidationTests(TestCase):
             (lambda c: c["policy"]["always_full"].append("../x"), "'..' segment"),
             (lambda c: c["policy"]["inert"].append("/abs"), "leading '/'"),
             (lambda c: c["policy"]["core_only"].append("!neg"), "leading '/', '!'"),
+            (lambda c: c["policy"]["always_full"].remove("**/clippy.toml"), "always_full must include"),
             (lambda c: wf(c, 0)["job"][0].update(**{"class": "x"}), "class must be one of"),
             (lambda c: wf(c, 0)["job"][0].update(condition="${{ x }}"), "core job must not have a condition"),
             (lambda c: wf(c, 0)["job"][0].update(activation="dispatch"), "core jobs must be automatic"),
@@ -730,7 +744,9 @@ revision = 1
 
 [policy]
 mode = "shadow"
-always_full = [".github/**"]
+always_full = [".github/**", "rustfmt.toml", "**/rustfmt.toml", ".rustfmt.toml", "**/.rustfmt.toml",
+               "clippy.toml", "**/clippy.toml", ".clippy.toml", "**/.clippy.toml",
+               "rust-toolchain*", "**/rust-toolchain*", ".cargo/**", "**/.cargo/**"]
 inert = ["docs/**", "**.md"]
 core_only = []
 

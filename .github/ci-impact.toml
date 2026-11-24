@@ -12,7 +12,7 @@
 # max_parallel, matrix, check_name, evidence) are verbatim copies of the YAML.
 
 schema_version = 1
-revision = 1
+revision = 2
 
 [policy]
 mode = "shadow"
@@ -27,6 +27,17 @@ always_full = [
   "sdk/Cargo.toml",
   "rust-toolchain.toml",
   ".cargo/**",
+  "**/.cargo/**",
+  "rust-toolchain*",
+  "**/rust-toolchain*",
+  "rustfmt.toml",
+  "**/rustfmt.toml",
+  ".rustfmt.toml",
+  "**/.rustfmt.toml",
+  "clippy.toml",
+  "**/clippy.toml",
+  ".clippy.toml",
+  "**/.clippy.toml",
   ".gitattributes",
   "tools/build.py",
   "tools/build_users.py",

@@ -53,8 +53,11 @@ are rejected.
   switch: every plan becomes full with fallback `policy-rollback`.
 - `always_full`: globs whose change forces a full plan (all of `.github/**`,
   every `Cargo.lock`, `rust-toolchain.toml`, root `Cargo.toml`,
-  `sdk/Cargo.toml`, `.cargo/**`, `.gitattributes`, the build helpers, the
-  selector and the catalogue).
+  `sdk/Cargo.toml`, `.gitattributes`, the build helpers, the selector and the
+  catalogue). `validate` requires the tool configuration that cargo, rustfmt
+  and clippy read from any ancestor directory, in root and `**/` form:
+  `rustfmt.toml`, `.rustfmt.toml`, `clippy.toml`, `.clippy.toml`,
+  `rust-toolchain*` and `.cargo/**`.
 - `inert`: metadata globs; equal to the workflows' metadata `paths-ignore`
   and referenced from triggers as `"@metadata"`.
 - `core_only`: globs read only by the always-running core gates.
@@ -97,7 +100,14 @@ of its `cargo` roots. The closure is derived, not listed:
   each contributing `<crate dir>/**`;
 - manifest target paths outside the crate (`lib`, `package.build`, and for
   roots also `bin`, `test`, `example` and `bench`);
-- registered crate escapes for `#[path]`, `include_str!` and `include_bytes!`.
+- registered crate escapes for `#[path]`, `include_str!` and `include_bytes!`;
+- every ancestor `Cargo.toml` of a root directory up to the repository root,
+  because cargo reads it as a potential workspace root.
+
+A declared path dependency contributes `<dir>/**` even where its manifest is
+absent. A root manifest absent at the merge base, base and head gives
+`cargo-manifest-missing`; a git read error (not absence) gives
+`git-read-failed`.
 
 The closure is the union over the merge base, the base tip and the head, so an
 added or removed dependency is followed either way. `workspace = true`
