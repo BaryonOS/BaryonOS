@@ -1533,16 +1533,6 @@ impl<'a> Frame<'a> {
                         None,
                         true,
                     );
-                    push(
-                        SemanticId::RestoreHistory,
-                        parent,
-                        Role::Button,
-                        "Herstel als nieuwe versie",
-                        None,
-                        l.form_confirm,
-                        Some(Focus::RestoreHistory),
-                        workspace.preview().is_some() && self.view.can_save,
-                    );
                 }
                 if self.view.screen == Screen::Filter {
                     for i in 0..volume_core::COLLECTIONS + 2 {
@@ -1579,7 +1569,19 @@ impl<'a> Frame<'a> {
                     Some(Focus::FormCancel),
                     true,
                 );
-                // The footer reads Cancel (left) before Confirm (right).
+                // The footer reads Cancel (left) before Confirm/Restore (right).
+                if self.view.screen == Screen::History {
+                    push(
+                        SemanticId::RestoreHistory,
+                        parent,
+                        Role::Button,
+                        "Herstel als nieuwe versie",
+                        None,
+                        l.form_confirm,
+                        Some(Focus::RestoreHistory),
+                        workspace.preview().is_some() && self.view.can_save,
+                    );
+                }
                 if matches!(self.view.screen, Screen::Rename | Screen::Organize) {
                     push(
                         SemanticId::FormConfirm,

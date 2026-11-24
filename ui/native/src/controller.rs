@@ -1620,21 +1620,18 @@ impl<'a, T: Transport> Controller<'a, T> {
                 count + 1
             }
             Screen::History => {
-                choices[0] = Focus::HistoryVersion(self.workspace.selected_history);
-                let mut count = 1;
-                if self.workspace.preview_complete && self.view().can_save {
-                    choices[count] = Focus::RestoreHistory;
+                // Version slots left to right, then the footer: Cancel (left)
+                // before Restore (right), as in the semantic tree (#447).
+                let mut count = 0;
+                let versions = self.workspace.metadata.map_or(0, |s| s.history_count);
+                for i in 1..=versions {
+                    choices[count] = Focus::HistoryVersion(i);
                     count += 1;
                 }
                 choices[count] = Focus::FormCancel;
                 count += 1;
-                if self.workspace.metadata.is_some_and(|s| s.history_count > 1) {
-                    choices[count] =
-                        Focus::HistoryVersion(if self.workspace.selected_history == 1 {
-                            2
-                        } else {
-                            1
-                        });
+                if self.workspace.preview().is_some() && self.view().can_save {
+                    choices[count] = Focus::RestoreHistory;
                     count += 1;
                 }
                 count
