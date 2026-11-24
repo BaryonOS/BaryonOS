@@ -120,6 +120,22 @@ optional findings, which are deferred to the next revision (section 9,
 "Review 11"). The status record of review 11 itself was added by the lead
 after it and has not been reviewed. An AI review is not a human audit.
 
+**Status note (24 November 2026, task S-20261124-5).** The R2 core
+(`services/destination`) and the R3 oracle (`tools/destination_disk.py`) are
+on `main` since the integration PR #477 (`ab9414c`); the labels *[PR #413]*
+below record where each claim was first made. The R5 precondition "the service
+links `volume_core::archive::verify`" (2.3, "Archive verifier") now has a host
+implementation: the `volume-verifier` feature of `destination-core` provides
+`archive_verifier::VolumeVerifier`, which runs `archive::verify` and returns a
+source error unchanged. `services/destination/tests/real_verifier.rs` runs
+N7 and N10 through the service with that adapter on real v1 archives written
+by `volume_core::archive::export`, and checks acceptance, the summary,
+refusal of flipped, truncated and extended archives and of the stand-in
+layout, and source-error passthrough for every status. The stand-in rows
+remain for the other tests. This is host evidence only: no native service
+links the adapter yet, and the other R5 preconditions (O4 (a)–(c), the
+hosted R3 cross-check and reverse differential, the K5 broker) are unchanged.
+
 **Evidence labels used below.** *[main]* means present on `main` at `035b44e5`.
 Most such claims were checked by review 1 or by the verification of it for this
 revision; the `sdk/task-grant-core` and `services/net-broker` claims of 3.3 and
