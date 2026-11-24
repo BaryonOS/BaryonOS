@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-24",
-    "source_commit": "1fc9b8ca8ac472960e97dcc67bc082c540affb00",
-    "assessment_basis": "reviewed_main_commit",
-    "branch": "claude/s09-l2-slice-b-main",
-    "task": "S09 phase 3 slice B: L2 portal build and measurement",
+    "source_commit": "16ae48a8bd611ed7a6ba86bfff4126739cb31fc1",
+    "assessment_basis": "parent_commit",
+    "branch": "claude/h06-hw-inventory-20261124",
+    "task": "H06-T3 native read-only HW-INV inventory profile (QEMU-tested)",
     "previous_score": 43,
-    "summary": "43/100, unchanged: S09 phase 3 slice B adds the test-only l2-portal build of volume-app, measured within every linker bound with a 21 688-byte static direct-call stack bound, and the 26-stage native volume gate still passes. No guest runs the L2 portal flows yet, so S09 gains no points; slices C and D (native L2 stages and pins) remain. The delivery-review inventory stays bound to its 2eb1c63 snapshot; slice B evidence: docs/verification/s09-l2-native-export-20261124/SLICE-B.md."
+    "summary": "43/100 unchanged. H06-T3 adds the paired native-hw-inventory kernel and hw-inventory loader that emit HW-INV v2 markers (CPUID, loader-observed SecureBoot, DMAR presence, segment-0 PCI identity) and halt without port 0xF4 on pass; both QEMU cases match QMP query-pci. No physical PC, image or signed record exists and owner decisions remain open, so H06 earns no points."
   },
   "tracks": [
     {
@@ -259,7 +259,9 @@
           "points": 1,
           "status": "open",
           "acceptance": "Several predefined representative PC configurations pass the documented hardware matrix; DMA/IOMMU boundaries and limitations are explicit.",
-          "evidence": []
+          "evidence": [
+            "docs/verification/h06-hw-inventory-20261124/README.md"
+          ]
         }
       ]
     },
@@ -901,8 +903,10 @@
           {
             "description": "Each configuration passes the hardware matrix",
             "implementation": "missing",
-            "verification": [],
-            "observation": "All HW-FR entries are pending or unsupported with evidence_level none; H06-T4 prepares protocols and signature validation only.",
+            "verification": [
+              "native"
+            ],
+            "observation": "All HW-FR entries are pending or unsupported with evidence_level none; H06-T4 prepares protocols and signature validation only. H06-T3 adds a read-only native-hw-inventory kernel/loader pair that emits the HW-INV markers; it passes two QEMU configurations against QMP query-pci and configured CPUID/DMAR, and its inventory is rejected as a virtual capture.",
             "remaining": "Physical operators, authorization and signed actual runs remain missing; host validation of evidence format proves no device support.",
             "evidence": [
               "docs/drivers/hardware-matrix.json",
