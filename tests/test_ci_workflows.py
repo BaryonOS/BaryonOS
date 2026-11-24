@@ -1358,48 +1358,79 @@ cp -- "$ACTIONLINT_FIXTURE" "$output"
 
 
 WINDOW_WORKFLOW = ".github/workflows/native-window-session.yml"
-# Every report assertion of the native window gates (CI-EVIDENCE, U02-U06).
-# Parallel legs may move these lines between jobs but must not drop any.
-WINDOW_ASSERTS = {
-    'assert report["passed"] is True and report["native_gate"] is True',
-    'assert report["clipboard_requested"] is True and report["clipboard_gate"] is True',
-    'assert report["workspace_requested"] is True and report["workspace_gate"] is True',
-    'assert report["document_tools_gate"] is True',
-    'assert report["document_menu_gate"] is True',
-    'assert report["pointer_leave_gate"] is True',
-    'assert report["app_high_contrast_gate"] is True',
-    'assert report["window_states_gate"] is True',
-    'assert report["keyboard_window_move_gate"] is True',
-    'assert report["notification_panel_gate"] is True',
-    'assert report["trusted_lock_gate"] is True',
-    'assert report["locked_f7_gate"] is True',
-    'assert report["smoke_only"] is False and report["raw_qemu_exit"] == 33',
-    'assert report["kernel_feature"] == os.environ["NOS_WINDOW_PROBE_FEATURE"]',
-    'assert report["scale"] == int(os.environ["NOS_WINDOW_SCALE"])',
-    'assert report["native_scale200_gate"] is (report["scale"] == 2)',
-    'assert report["passed"] is True and report["library_gate"] is True',
-    'assert report["library_cold"] is False and report["native_gate"] is False',
-    'assert report["raw_qemu_exit"] == 33 and len(report["phases"]) == 10',
-    'assert report["library_cold"] is True and report["native_gate"] is False',
-    'assert report["raw_qemu_exit"] == 33 and len(report["phases"]) == 4',
-    'assert report["volume_sha256"] == report["library_parent"]["volume_sha256"]',
-    'assert report["passed"] is True and report["switcher_gate"] is True',
-    'assert report["native_gate"] is False and report["scale"] == scale',
-    'assert report["raw_qemu_exit"] == 33 and len(report["phases"]) == 18',
-    'assert report["source_commit"] == os.environ["GITHUB_SHA"]',
+# Every report assertion of the native window gates (CI-EVIDENCE, U02-U06),
+# keyed by the run content that selects its own step. Parallel legs may move
+# steps between jobs but must not drop or exchange an assertion.
+WINDOW_STEP_ASSERTS = {
+    "--clipboard": {
+        'assert report["passed"] is True and report["native_gate"] is True',
+        'assert report["clipboard_requested"] is True and report["clipboard_gate"] is True',
+        'assert report["workspace_requested"] is True and report["workspace_gate"] is True',
+        'assert report["document_tools_gate"] is True',
+        'assert report["document_menu_gate"] is True',
+        'assert report["pointer_leave_gate"] is True',
+        'assert report["app_high_contrast_gate"] is True',
+        'assert report["window_states_gate"] is True',
+        'assert report["keyboard_window_move_gate"] is True',
+        'assert report["notification_panel_gate"] is True',
+        'assert report["trusted_lock_gate"] is True',
+        'assert report["locked_f7_gate"] is True',
+        'assert report["smoke_only"] is False and report["raw_qemu_exit"] == 33',
+        'assert report["kernel_feature"] == os.environ["NOS_WINDOW_PROBE_FEATURE"]',
+        'assert report["scale"] == int(os.environ["NOS_WINDOW_SCALE"])',
+        'assert report["native_scale200_gate"] is (report["scale"] == 2)',
+    },
+    "library-write.txt": {
+        'assert report["passed"] is True and report["library_gate"] is True',
+        'assert report["library_cold"] is False and report["native_gate"] is False',
+        'assert report["raw_qemu_exit"] == 33 and len(report["phases"]) == 10',
+    },
+    "--library-cold-parent": {
+        'assert report["passed"] is True and report["library_gate"] is True',
+        'assert report["library_cold"] is True and report["native_gate"] is False',
+        'assert report["raw_qemu_exit"] == 33 and len(report["phases"]) == 4',
+        'assert report["volume_sha256"] == report["library_parent"]["volume_sha256"]',
+    },
+    "--switcher": {
+        'assert report["passed"] is True and report["switcher_gate"] is True',
+        'assert report["native_gate"] is False and report["scale"] == scale',
+        'assert report["raw_qemu_exit"] == 33 and len(report["phases"]) == 18',
+        'assert report["source_commit"] == os.environ["GITHUB_SHA"]',
+    },
 }
-# Fail-closed rules of the immutable proof locator.
-WINDOW_LOCATOR_RULES = (
-    "path.is_symlink() or path.parent.is_symlink()",
-    'not re.fullmatch(r"window-[0-9a-f]{32}", path.parent.name)',
-    "not path.resolve().is_relative_to(root)",
-    "path.stat().st_size > 4 * 1024 * 1024",
-    'report.get("source_commit") != os.environ["GITHUB_SHA"]',
-    'Path(report["run_directory"]).resolve() != path.parent.resolve()',
-    "if len(matches) > 1:",
-    'if missing and os.environ["CI_JOB_STATUS"] == "success":',
-    'volume.relative_to(Path.cwd()).as_posix()',
-)
+# Fail-closed rules, keyed like WINDOW_STEP_ASSERTS: the immutable proof
+# locator and the full gate's volume digest record.
+WINDOW_STEP_RULES = {
+    "Unsafe or oversized native proof path": (
+        "path.is_symlink() or path.parent.is_symlink()",
+        'not re.fullmatch(r"window-[0-9a-f]{32}", path.parent.name)',
+        "not path.resolve().is_relative_to(root)",
+        "path.stat().st_size > 4 * 1024 * 1024",
+        'report.get("source_commit") != os.environ["GITHUB_SHA"]',
+        'Path(report["run_directory"]).resolve() != path.parent.resolve()',
+        "if len(matches) > 1:",
+        'if missing and os.environ["CI_JOB_STATUS"] == "success":',
+    ),
+    "--clipboard": ('volume.relative_to(Path.cwd()).as_posix()',),
+}
+
+
+def window_step_problems(jobs):
+    """List assertions or rules missing from the single step that owns them."""
+    problems = []
+    for needle, required in list(WINDOW_STEP_ASSERTS.items()) + list(WINDOW_STEP_RULES.items()):
+        found = [step for job in jobs.values() for step in job["steps"] if needle in step.get("run", "")]
+        if len(found) != 1:
+            problems.append(f"{needle}: {len(found)} owning steps")
+            continue
+        run = found[0]["run"]
+        lines = {line.strip() for line in run.splitlines()}
+        for item in required:
+            if (item not in lines) if item.startswith("assert ") else (item not in run):
+                problems.append(f"{needle}: {item}")
+    return problems
+
+
 WINDOW_PROOF_NAMES = {
     "native-window-scale-1-proof", "native-window-scale-2-proof",
     "native-window-library-write-proof", "native-window-library-cold-proof",
@@ -1422,8 +1453,9 @@ WINDOW_LEGS = {
     "switcher-scale2": ("switcher", "2", "native-window-session-hidpi-probe", "native-window-switcher-scale2-proof", 1800),
 }
 # Setup, locked fetch, probe build and evidence took about two minutes on run
-# 45424451804; ten minutes is the smallest accepted allowance above a harness deadline.
-WINDOW_SETUP_MINUTES = 10
+# 45424451804, and fixture generation runs cargo tests (timeout 180 s each) before
+# the harness deadline starts; 15 minutes is the smallest accepted allowance.
+WINDOW_SETUP_MINUTES = 15
 
 
 def matrix_combinations(job):
@@ -1442,6 +1474,23 @@ def matrix_combinations(job):
 def render_matrix(text, combination):
     """Replace plain `${{ matrix.key }}` references with one combination's values."""
     return re.sub(r"\$\{\{ matrix\.(\w+) \}\}", lambda match: combination[match.group(1)], text)
+
+
+def packaging_gate_problems(jobs):
+    """Packaging may start only after every gate passed: full needs, no job-level override."""
+    job = jobs["normal-and-package"]
+    problems = sorted({"host-checks", "native-window-session", "readonly-compile"} - set(job.get("needs", [])))
+    if "if" in job:
+        problems.append("job-level if: " + job["if"])
+    return problems
+
+
+FETCH_ACTION = ".github/actions/fetch-locked-deps/action.yml"
+FETCH_MANIFESTS = {
+    "sdk/Cargo.toml", "sdk/examples/materiaal/Cargo.toml", "sdk/examples/input-service/Cargo.toml",
+    "sdk/examples/window-session/Cargo.toml", "sdk/examples/calculator/Cargo.toml",
+    "ui/graphics/Cargo.toml", "ui/native/Cargo.toml", "ui/surface-protocol/Cargo.toml",
+}
 
 
 class NativeWindowSessionLayoutTests(unittest.TestCase):
@@ -1465,12 +1514,19 @@ class NativeWindowSessionLayoutTests(unittest.TestCase):
         self.assertEqual(len(found), 1, needle)
         return found[0]
 
-    def test_every_report_assertion_and_locator_rule_is_kept(self):
-        lines = {line.strip() for line in self.runs().splitlines() if line.strip().startswith("assert ")}
-        self.assertLessEqual(WINDOW_ASSERTS, lines)
-        for rule in WINDOW_LOCATOR_RULES:
-            with self.subTest(rule=rule):
-                self.assertIn(rule, self.runs())
+    def test_every_report_assertion_and_locator_rule_stays_in_its_step(self):
+        self.assertEqual(window_step_problems(self.jobs), [])
+
+    def test_assertion_moved_between_steps_is_rejected(self):
+        """Swapping the library write and cold phase counts must fail."""
+        ten = 'len(report["phases"]) == 10'
+        four = 'len(report["phases"]) == 4'
+        self.assertEqual((self.text.count(ten), self.text.count(four)), (1, 1))
+        swapped = self.text.replace(ten, "@@TEN@@").replace(four, ten).replace("@@TEN@@", four)
+        jobs = yaml.load(swapped, Loader=UniqueKeyLoader)["jobs"]
+        problems = window_step_problems(jobs)
+        self.assertIn("library-write.txt: assert report[\"raw_qemu_exit\"] == 33 and " + ten, problems)
+        self.assertIn("--library-cold-parent: assert report[\"raw_qemu_exit\"] == 33 and " + four, problems)
 
     def test_harness_flag_sets_are_unchanged(self):
         invocations = set()
@@ -1571,7 +1627,7 @@ class NativeWindowSessionLayoutTests(unittest.TestCase):
 
     def test_packaging_waits_for_every_gate_and_uses_only_the_normal_build(self):
         job = self.jobs["normal-and-package"]
-        self.assertLessEqual({"host-checks", "native-window-session", "readonly-compile"}, set(job["needs"]))
+        self.assertEqual(packaging_gate_problems(self.jobs), [])
         self.assertEqual(job["strategy"]["matrix"]["scale"], ["1", "2"])
         self.assertEqual(job["env"]["NOS_WINDOW_NORMAL_FEATURE"],
                          "${{ matrix.scale == 2 && 'native-window-session-hidpi' || 'native-window-session' }}")
@@ -1585,6 +1641,41 @@ class NativeWindowSessionLayoutTests(unittest.TestCase):
         self.assertNotIn("--build-dir", package["run"])
         self.assertLess(job["steps"].index(build), job["steps"].index(package))
         self.assertGreaterEqual(int(job["timeout-minutes"]), WINDOW_SETUP_MINUTES)
+
+    def test_packaging_override_after_failed_gate_is_rejected(self):
+        """An `always()` job condition would package after a failed native leg."""
+        header = "  normal-and-package:\n"
+        self.assertEqual(self.text.count(header), 1)
+        mutated = self.text.replace(header, header + "    if: ${{ always() }}\n")
+        jobs = yaml.load(mutated, Loader=UniqueKeyLoader)["jobs"]
+        self.assertEqual(packaging_gate_problems(jobs), ["job-level if: ${{ always() }}"])
+
+    def test_every_offline_job_fetches_through_the_one_shared_action(self):
+        """The locked manifest list exists once; each job fetches before offline work."""
+        action = yaml.load((ROOT / FETCH_ACTION).read_text(encoding="utf-8"), Loader=UniqueKeyLoader)
+        step, = action["runs"]["steps"]
+        self.assertEqual(step["shell"], "bash")
+        lines = [line.strip().rstrip("\\").strip() for line in step["run"].splitlines()]
+        self.assertEqual(lines[0], "cargo +1.100.0 fetch --locked")
+        manifests = lines[lines.index("for manifest in") + 1:lines.index("do")]
+        self.assertEqual(len(manifests), len(set(manifests)))
+        self.assertEqual(set(manifests), FETCH_MANIFESTS)
+        self.assertIn('cargo +1.100.0 fetch --locked --manifest-path "$manifest"', lines)
+        self.assertNotIn("fetch --locked", self.text)
+        for job_id, job in self.jobs.items():
+            with self.subTest(job=job_id):
+                steps = job["steps"]
+                uses = [item.get("uses") for item in steps]
+                self.assertEqual(uses.count("./.github/actions/fetch-locked-deps"), 1)
+                fetch = uses.index("./.github/actions/fetch-locked-deps")
+                rust = next(index for index, item in enumerate(steps)
+                            if "rustup toolchain install 1.100.0" in item.get("run", ""))
+                offline = [index for index, item in enumerate(steps)
+                           if "--offline" in item.get("run", "")
+                           or item.get("env", {}).get("CARGO_NET_OFFLINE") == "true"]
+                self.assertTrue(offline)
+                self.assertLess(rust, fetch)
+                self.assertLess(fetch, min(offline))
 
     def test_readonly_compile_is_standalone(self):
         job = self.jobs["readonly-compile"]

@@ -94,20 +94,7 @@ jobs:
       - name: Strict preflight
         run: python3 -B tools/preflight.py --strict | tee "$CI_EVIDENCE_DIR/preflight.json"
       - name: Fetch every locked app dependency before offline builders
-        run: |
-          cargo +1.100.0 fetch --locked
-          for manifest in \
-            sdk/Cargo.toml \
-            sdk/examples/materiaal/Cargo.toml \
-            sdk/examples/input-service/Cargo.toml \
-            sdk/examples/window-session/Cargo.toml \
-            sdk/examples/calculator/Cargo.toml \
-            ui/graphics/Cargo.toml \
-            ui/native/Cargo.toml \
-            ui/surface-protocol/Cargo.toml
-          do
-            cargo +1.100.0 fetch --locked --manifest-path "$manifest"
-          done
+        uses: ./.github/actions/fetch-locked-deps
       - name: Runner and Windows packager counterexamples
         run: |
           python3 -B tools/test_window_session.py 2>&1 | tee "$CI_EVIDENCE_DIR/runner-host.txt"
@@ -256,20 +243,7 @@ jobs:
           dpkg-query -W qemu-system-x86 ovmf seabios > "$CI_EVIDENCE_DIR/packages.txt"
           qemu-system-x86_64 --version > "$CI_EVIDENCE_DIR/qemu.txt"
       - name: Fetch every locked app dependency before offline builders
-        run: |
-          cargo +1.100.0 fetch --locked
-          for manifest in \
-            sdk/Cargo.toml \
-            sdk/examples/materiaal/Cargo.toml \
-            sdk/examples/input-service/Cargo.toml \
-            sdk/examples/window-session/Cargo.toml \
-            sdk/examples/calculator/Cargo.toml \
-            ui/graphics/Cargo.toml \
-            ui/native/Cargo.toml \
-            ui/surface-protocol/Cargo.toml
-          do
-            cargo +1.100.0 fetch --locked --manifest-path "$manifest"
-          done
+        uses: ./.github/actions/fetch-locked-deps
       - name: Build the eight-process native window probe
         # No image/target cache: the existing builder inspects and embeds all
         # eight fresh CPL3 ELFs plus the current own kernel and UEFI loader.
@@ -558,20 +532,7 @@ jobs:
             ~/.cargo/registry/cache
           key: cargo-downloads-v1-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('**/Cargo.lock') }}
       - name: Fetch every locked app dependency before offline builders
-        run: |
-          cargo +1.100.0 fetch --locked
-          for manifest in \
-            sdk/Cargo.toml \
-            sdk/examples/materiaal/Cargo.toml \
-            sdk/examples/input-service/Cargo.toml \
-            sdk/examples/window-session/Cargo.toml \
-            sdk/examples/calculator/Cargo.toml \
-            ui/graphics/Cargo.toml \
-            ui/native/Cargo.toml \
-            ui/surface-protocol/Cargo.toml
-          do
-            cargo +1.100.0 fetch --locked --manifest-path "$manifest"
-          done
+        uses: ./.github/actions/fetch-locked-deps
       - name: Cross-build the read-only grant profile (U03-T3 part 1)
         env:
           CARGO_NET_OFFLINE: 'true'
@@ -678,20 +639,7 @@ jobs:
           dpkg-query -W qemu-system-x86 ovmf seabios > "$CI_EVIDENCE_DIR/packages.txt"
           qemu-system-x86_64 --version > "$CI_EVIDENCE_DIR/qemu.txt"
       - name: Fetch every locked app dependency before offline builders
-        run: |
-          cargo +1.100.0 fetch --locked
-          for manifest in \
-            sdk/Cargo.toml \
-            sdk/examples/materiaal/Cargo.toml \
-            sdk/examples/input-service/Cargo.toml \
-            sdk/examples/window-session/Cargo.toml \
-            sdk/examples/calculator/Cargo.toml \
-            ui/graphics/Cargo.toml \
-            ui/native/Cargo.toml \
-            ui/surface-protocol/Cargo.toml
-          do
-            cargo +1.100.0 fetch --locked --manifest-path "$manifest"
-          done
+        uses: ./.github/actions/fetch-locked-deps
       - name: Build the normal window session only after native acceptance
         env:
           CARGO_NET_OFFLINE: 'true'
