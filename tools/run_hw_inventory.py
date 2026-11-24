@@ -12,6 +12,11 @@ own ACPI marker, and set equality of the PCI functions with `query-pci`
 (address, vendor, device, class, subclass). The converted inventory must agree
 with the log under `hw_evidence.pci_log_problem` and must be rejected by
 `hw_evidence` as a virtual capture. QEMU evidence only; not physical hardware.
+
+H06-T5 terminal fixtures boot the `plain` configuration with one injected
+failure each (kernel panic, M2 kernel exception, HWINV:FAIL, missing kernel
+file). Each must print its markers, be recognised as a protocol failure and
+leave QEMU running: no terminal path may write the isa-debug-exit port.
 """
 from __future__ import annotations
 
@@ -41,6 +46,14 @@ CASES = {
                            "-device", "pcie-root-port,id=rp1,bus=pcie.0,chassis=1,addr=0x6",
                            "-device", "qemu-xhci,id=inv-xhci,bus=rp1"],
                   dmar="HWINV:ACPI:DMAR=PRESENT:DRHD=1", acpi="ACPI:DISCOVERY:MCFG_DMAR"),
+}
+# Fixture -> (kernel feature of its build, ordered marker prefixes, ESP file to remove).
+FIXTURES = {
+    "panic": ("test-hwinv-panic", ("BOOTINFO:OK", "M2:PANIC_LINE:", "M1:FAIL:KERNEL_PANIC"), None),
+    "m2-fault": ("test-hwinv-m2-fault", ("M2:FAULT:KERNEL_UD:PASS", "M2:FAIL:KERNEL_EXCEPTION"), None),
+    "hwinv-fail": ("test-hwinv-fail", ("M2:PASS", "HWINV:BEGIN", "HWINV:FAIL:FIXTURE"), None),
+    # Loader M1:FAIL before ExitBootServices, on the unmodified production build.
+    "missing-kernel": ("native-hw-inventory", ("M1:FAIL:KERNEL_OPEN",), "kernel.elf"),
 }
 REQUIRED = ("BOOT:EBS_OK", "KERNEL:ENTRY", "BOOTINFO:OK", "M2:PASS", "HWINV:BEGIN", "HWINV:PASS")
 TIMEOUT_S = 120  # protocol HW-INV step S4
@@ -97,19 +110,36 @@ def evaluate(text: str, case: str, qmp_pci: set | None, alive_at_pass: bool) -> 
     return checks, inventory, None
 
 
+def evaluate_fixture(text: str, fixture: str, alive: bool) -> dict:
+    """Checks for one terminal-fixture log: markers in order, failure seen, no exit port."""
+    lines = text.replace("\r", "").splitlines()
+    positions = [next((i for i, line in enumerate(lines) if line.startswith(marker)), -1)
+                 for marker in FIXTURES[fixture][1]]
+    try:
+        inventory_from_log(text)
+        rejected = False
+    except InventoryLogError as error:
+        rejected = str(error).startswith("log reports ")
+    return {"fixture_markers_in_order": -1 not in positions and positions == sorted(positions),
+            "no_hwinv_pass": "HWINV:PASS" not in lines,
+            "protocol_failure_recognised": rejected,
+            "halted_without_exit_port": alive}
+
+
 def run_case(case: str, *, build_directory: Path = BUILD, run_root: Path | None = None,
              machine: str | None = None) -> dict:
-    if case not in CASES:
+    if case not in CASES and case not in FIXTURES:
         raise ValueError("Unknown HW-INV case")
+    feature, _, removed = FIXTURES.get(case, ("native-hw-inventory", (), None))
     machine = qemu_machine(machine)
     build_directory = Path(build_directory).resolve(strict=True)
     run_root = (build_directory / "run") if run_root is None else Path(run_root).resolve()
     frozen = source_hash()
     manifest = json.loads((build_directory / "manifest.json").read_text())
-    if (manifest.get("kernel_feature") != "native-hw-inventory"
+    if (manifest.get("kernel_feature") != feature
             or manifest.get("loader_feature") != "hw-inventory"
             or manifest.get("source_sha256") != frozen):
-        raise ValueError("Build the paired native-hw-inventory profile on the current source first")
+        raise ValueError(f"Build the paired {feature} profile on the current source first")
     directory = run_root / f"hwinv-{case}-{uuid.uuid4().hex[:10]}"
     if len(os.fsencode(directory / "qmp.sock")) >= 104:
         raise ValueError("Private QMP socket path too long; choose a short --run-root")
@@ -118,6 +148,8 @@ def run_case(case: str, *, build_directory: Path = BUILD, run_root: Path | None 
     if (sha256(directory / "esp/kernel.elf") != manifest["kernel"]["sha256"]
             or sha256(directory / "esp/EFI/BOOT/BOOTX64.EFI") != manifest["loader"]["sha256"]):
         raise ValueError("HW-INV build artifacts changed")
+    if removed is not None:
+        (directory / "esp" / removed).unlink()
     save_json(directory / "build-manifest.json", manifest)
     code, variables = firmware()
     for source, name in ((code, "OVMF_CODE.fd"), (variables, "OVMF_VARS.fd")):
@@ -126,7 +158,7 @@ def run_case(case: str, *, build_directory: Path = BUILD, run_root: Path | None 
     qemu = shutil.which("qemu-system-x86_64", path=env["PATH"])
     if qemu is None:
         raise RuntimeError("Missing QEMU")
-    spec = CASES[case]
+    spec = CASES.get(case, CASES["plain"])
     arguments = [qemu, "-machine", machine, "-accel", "tcg,thread=single", "-cpu", spec["cpu"],
                  "-smp", "1", "-m", "256M", "-nodefaults", "-display", "none", "-monitor", "none",
                  "-serial", "stdio", "-nic", "none", "-no-reboot", *spec["devices"],
@@ -151,15 +183,16 @@ def run_case(case: str, *, build_directory: Path = BUILD, run_root: Path | None 
             control = Qmp(directory / "qmp.sock", deadline, process)
             while True:
                 lines = (directory / "serial.txt").read_bytes().decode("utf-8", "replace").splitlines()
-                if any(line.rstrip("\r") == "HWINV:PASS" or "HWINV:FAIL" in line for line in lines):
+                if any(line.rstrip("\r") == "HWINV:PASS" or any(m in line for m in FAILURES) for line in lines):
                     break
                 if time.monotonic() >= deadline or process.poll() is not None:
-                    raise RuntimeError("HW-INV did not reach HWINV:PASS or HWINV:FAIL")
+                    raise RuntimeError("HW-INV did not reach HWINV:PASS or a failure marker")
                 time.sleep(0.05)
             time.sleep(1.0)  # a halted guest stays up; an exit-port write would end QEMU here
             alive_at_pass = process.poll() is None
             if alive_at_pass:
-                qmp_pci = qmp_functions(control.command("query-pci"))
+                if case in CASES:
+                    qmp_pci = qmp_functions(control.command("query-pci"))
                 control.command("quit")
             rc = process.wait(timeout=max(0.1, deadline - time.monotonic()))
         except Exception as error:  # recorded in the report; the case fails
@@ -173,7 +206,10 @@ def run_case(case: str, *, build_directory: Path = BUILD, run_root: Path | None 
                 trace = control.trace
                 control.close()
     text = (directory / "serial.txt").read_bytes().decode("utf-8", "replace")
-    checks, inventory, error = evaluate(text, case, qmp_pci, alive_at_pass)
+    if case in CASES:
+        checks, inventory, error = evaluate(text, case, qmp_pci, alive_at_pass)
+    else:
+        checks, inventory, error = evaluate_fixture(text, case, alive_at_pass), None, None
     checks["source_unchanged"] = source_hash() == frozen
     checks["clean_exit_after_quit"] = rc == 0  # QMP quit ends QEMU with 0; crash/signal/exit port do not
     if inventory is not None:
@@ -181,7 +217,7 @@ def run_case(case: str, *, build_directory: Path = BUILD, run_root: Path | None 
     save_json(directory / "qmp-trace.json", trace)
     report = dict(
         scope="QEMU HW-INV inventory by the own IF0 kernel; not physical hardware or a hardware record",
-        case=case, passed=failure is None and error is None and all(checks.values()), checks=checks,
+        case=case, kernel_feature=feature, removed_esp_file=removed, passed=failure is None and error is None and all(checks.values()), checks=checks,
         error=failure, inventory_error=error, qmp_pci=sorted(qmp_pci) if qmp_pci is not None else None,
         command=arguments, machine=machine, raw_qemu_exit=rc, duration_s=time.monotonic() - start,
         source_fingerprint_version=3, source_sha256=frozen,
@@ -204,7 +240,8 @@ def run_case(case: str, *, build_directory: Path = BUILD, run_root: Path | None 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--case", choices=("all", *CASES), default="all")
+    parser.add_argument("--case", choices=("all", *CASES, *FIXTURES), default="all",
+                        help="all = the inventory cases; each fixture needs its own build")
     parser.add_argument("--run-root", type=Path, default=None)
     parser.add_argument("--machine", default=None)
     args = parser.parse_args()
