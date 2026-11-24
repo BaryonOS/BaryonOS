@@ -48,6 +48,10 @@ REQUIRED_ALWAYS_FULL = (
     "rustfmt.toml", "**/rustfmt.toml", ".rustfmt.toml", "**/.rustfmt.toml",
     "clippy.toml", "**/clippy.toml", ".clippy.toml", "**/.clippy.toml",
     "rust-toolchain*", "**/rust-toolchain*", ".cargo/**", "**/.cargo/**")
+# Ids reach Markdown summaries and check lookups; keep them to inert characters.
+WORKFLOW_PATH_RE = re.compile(r"\.github/workflows/[A-Za-z0-9_][A-Za-z0-9_-]*\.ya?ml")
+JOB_ID_RE = re.compile(r"[A-Za-z_][A-Za-z0-9_-]*")
+VARIANT_ID_RE = re.compile(r"[A-Za-z0-9_.*-]+")
 EVENT_FULL_CODES = {"merge_group": "merge-group", "push": "push-main", "schedule": "schedule"}
 METADATA = "@metadata"
 ZERO_SHA = "0" * 40
@@ -319,9 +323,8 @@ def validate(catalogue):
         where = f"workflow {path!r}"
         for key in sorted(set(workflow) - WORKFLOW_KEYS):
             add(f"{where}: unknown key: {key}")
-        if not isinstance(path, str) or not path.startswith(".github/workflows/") \
-                or not path.endswith((".yml", ".yaml")) or glob_problem(path):
-            add(f"{where}: path must be a .github/workflows/*.yml file")
+        if not isinstance(path, str) or not WORKFLOW_PATH_RE.fullmatch(path):
+            add(f"{where}: path must be .github/workflows/<id>.yml, id of [A-Za-z0-9_-]")
             continue
         if path in seen_paths:
             add(f"{where}: registered twice")
@@ -377,8 +380,8 @@ def validate(catalogue):
             jwhere = f"{stem(path)}#{job.get('id')}"
             for key in sorted(set(job) - JOB_KEYS):
                 add(f"{jwhere}: unknown key: {key}")
-            if not isinstance(job.get("id"), str) or not job.get("id"):
-                add(f"{jwhere}: id required")
+            if not isinstance(job.get("id"), str) or not JOB_ID_RE.fullmatch(job["id"]):
+                add(f"{where}: invalid job id {job.get('id')!r}")
                 continue
             klass, activation = job.get("class"), job.get("activation")
             if klass not in CLASSES:
@@ -429,8 +432,8 @@ def validate(catalogue):
                     vwhere = f"{jwhere}/{variant.get('id')}"
                     for key in sorted(set(variant) - VARIANT_KEYS):
                         add(f"{vwhere}: unknown key: {key}")
-                    if not isinstance(variant.get("id"), str) or not variant.get("id"):
-                        add(f"{vwhere}: id required")
+                    if not isinstance(variant.get("id"), str) or not VARIANT_ID_RE.fullmatch(variant["id"]):
+                        add(f"{jwhere}: invalid variant id {variant.get('id')!r}")
                     if not isinstance(variant.get("check_name"), str) or not variant.get("check_name"):
                         add(f"{vwhere}: check_name required")
                     if variant.get("dynamic", False) is not (variant.get("id") == "*"):
@@ -915,6 +918,15 @@ def minimal_full_plan(event, code):
     return plan
 
 
+def md_cell(value):
+    """Escape a value for a Markdown table cell: no links, HTML, code spans or extra cells."""
+    text = str(value).replace("&", "&amp;")
+    for char, entity in (("|", "&#124;"), ("<", "&lt;"), (">", "&gt;"), ("[", "&#91;"),
+                         ("]", "&#93;"), ("`", "&#96;")):
+        text = text.replace(char, entity)
+    return " ".join(text.split())
+
+
 def summary_markdown(plan):
     fallback = (plan.get("fallback") or {}).get("code")
     lines = ["## CI impact plan (shadow; does not change which jobs run)", "",
@@ -930,10 +942,10 @@ def summary_markdown(plan):
     lines += ["", "| execution | class | selected | blocked by filter |", "|---|---|---|---|"]
     for row in plan.get("selected", []):
         if row["class"] == "rwa":
-            lines.append(f"| {json.dumps(row['id'])} | rwa | yes | {row['blocked_by_filter']} |")
+            lines.append(f"| {md_cell(row['id'])} | rwa | yes | {md_cell(row['blocked_by_filter'])} |")
     for row in plan.get("excluded", []):
         if row["class"] == "rwa":
-            lines.append(f"| {json.dumps(row['id'])} | rwa | no ({row['reason']}) | |")
+            lines.append(f"| {md_cell(row['id'])} | rwa | no ({md_cell(row['reason'])}) | |")
     return "\n".join(lines) + "\n"
 
 

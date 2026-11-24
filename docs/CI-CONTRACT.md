@@ -88,6 +88,13 @@ binaries), `inputs` (globs) and `evidence` (`file:line`).
 `evidence`. A runtime matrix is one variant with `id = "*"` and
 `dynamic = true`.
 
+Workflow paths are `.github/workflows/<id>.yml` (or `.yaml`) with an id of
+`[A-Za-z0-9_][A-Za-z0-9_-]*`; job ids match `[A-Za-z_][A-Za-z0-9_-]*` and
+variant ids `[A-Za-z0-9_.*-]+`. The step summary escapes every table cell
+(`&`, `|`, `<`, `>`, `[`, `]` and backticks become HTML entities), so even a
+hostile head catalogue listed in a bootstrap plan cannot inject Markdown or
+HTML.
+
 Execution ids are `<workflow stem>#<job id>[/<variant id>]`, for example
 `component-leaves#component-quality/image-viewer`. Execution ids and rendered
 check names are unique across the catalogue.

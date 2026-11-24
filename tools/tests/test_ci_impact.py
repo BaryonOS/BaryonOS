@@ -611,6 +611,23 @@ class FallbackTests(FixtureTestCase):
         self.assertIn("bootstrap-no-base-catalogue", summary.read_text())
 
 
+    def test_hostile_head_catalogue_ids_never_reach_the_summary(self):
+        hostile = 'x|<img src=x onerror=alert(1)>[a](https://example.invalid)'
+        self.repo.git("checkout", "-q", "--detach", self.base)
+        base = self.repo.commit("no catalogue", remove=[".github/ci-impact.toml"])
+        head = self.repo.commit("hostile", {".github/ci-impact.toml": CATALOGUE.replace(
+            '"broker"', f"'{hostile}'")})
+        summary = ci_impact.summary_markdown(self.plan(head, base=base))
+        self.assertNotIn("<img", summary)
+        self.assertNotIn("](https", summary)
+
+    def test_summary_cells_are_escaped(self):
+        plan = {"mode": "select", "plan_id": "sha256:0", "fallback": None, "excluded": [],
+                "selected": [{"id": "a|b<c>[d](e)`f`&g\nh", "class": "rwa", "blocked_by_filter": False}]}
+        row = ci_impact.summary_markdown(plan).splitlines()[-1]
+        self.assertEqual(row, "| a&#124;b&lt;c&gt;&#91;d&#93;(e)&#96;f&#96;&amp;g h | rwa | yes | False |")
+
+
 class DeterminismAndRobustnessTests(FixtureTestCase):
     def test_plan_is_byte_identical_and_id_tracks_inputs(self):
         head = self.branch({"apps/solo/src/lib.rs": "// solo 2\n"})
@@ -742,6 +759,11 @@ class CatalogueValidationTests(TestCase):
             (lambda c: c["workflow"].append(copy.deepcopy(wf(c, 0))), "registered twice"),
             (lambda c: c["crate_escape"][0].update(when="sometimes"), "when must be"),
             (lambda c: wf(c, 0)["job"][0].update(surprise=True), "unknown key: surprise"),
+            (lambda c: wf(c, 0)["job"][0].update(id="a b"), "invalid job id"),
+            (lambda c: wf(c, 0)["job"][0].update(id="-x"), "invalid job id"),
+            (lambda c: wf(c, 1)["job"][0]["variant"][0].update(id="x|y"), "invalid variant id"),
+            (lambda c: wf(c, 0).update(path=".github/workflows/a|b.yml"), "path must be"),
+            (lambda c: wf(c, 0).update(path=".github/workflows/sub/a.yml"), "path must be"),
         ]
         for change, fragment in cases:
             with self.subTest(fragment=fragment):
