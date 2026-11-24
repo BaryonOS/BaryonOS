@@ -78,7 +78,9 @@ are rejected.
 in a closure; `root`: only when it is the gate's own root, for tests and
 binaries), `inputs` (globs) and `evidence` (`file:line`).
 
-`[[workflow]]`: `path`, `owner` (default `ci-owner`), `granularity`
+`[[workflow]]`: `path`, `owner` (required, a non-empty string; `validate`
+rejects a workflow without it; the current convention is `owner = "ci-owner"`),
+`granularity`
 (`variant`, `job` or `workflow`), `events` (exact `on` keys), `obligation`
 (a list of `{ cite = "file:line", anchor = "<text on that line>" }`; `cite`
 may be a `file:first-last` range) and `trigger.<event>` for `pull_request`,
