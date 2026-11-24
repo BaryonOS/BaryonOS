@@ -56,6 +56,10 @@ POWER_SYSTEM_FEATURES = ("native-system-power", "test-system-power-flush-error",
 NETWORK_SERVICE_FEATURES = ("native-net-service", "test-net-service-client-exit", "test-net-service-revoke", "test-net-service-helper", "test-net-service-device-reset", "test-net-service-exhaustion", "test-net-service-port-sweep", "test-net-service-dhcp", "test-net-service-link")
 SYSTEM_FEATURES = (*NETWORK_SERVICE_FEATURES, "native-cap-digest-bench", "native-system", "test-system-recover", "native-system-display-input", *NETWORK_SYSTEM_FEATURES, *NETWORK_LINK_FEATURES, *TCP_SYSTEM_FEATURES, *RANDOM_FEATURES, *IMAGE_FEATURES, *SYSTEM_CLOCK_FEATURES)
 SYSTEM_FEATURES += POWER_SYSTEM_FEATURES
+# B02-T4 (ADR-B02-KEY1-RELAY-20261123): the key-state relay cases and the red manifest case.
+RELAY_FEATURES = ("test-system-keystate-relay", "test-system-keystate-relay-not-committed",
+                  "test-system-keystate-relay-timeout", "test-system-keystate-relay-leak")
+SYSTEM_FEATURES += RELAY_FEATURES
 # PR 154 legacy SMP path (kernel/src/m2_legacy); every name enables native-smp-legacy and
 # needs the smp-handoff loader. K06 native-smp* profiles use the default loader.
 LEGACY_SMP_FEATURES = ("native-smp-legacy", "native-smp-legacy-m3", "native-smp-m3-exit", "native-smp-m3-tlb-reuse",

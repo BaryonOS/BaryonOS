@@ -190,6 +190,12 @@ test-smp-supervisor-wait = ["native-smp-supervisor", "test-supervisor-wait"]
 native-cap-digest-bench = ["native-system", "capability-core/diagnostic-bench"]
 native-system = ["native-volume", "native-keyring", "native-supervisor"]
 test-system-recover = ["native-system"]
+# B02-T4 (ADR-B02-KEY1-RELAY-20261123): test-only key-state commit ingress to init.
+test-system-keystate-relay = ["native-system", "monotonic-clock"]
+test-system-keystate-relay-not-committed = ["test-system-keystate-relay"]
+test-system-keystate-relay-timeout = ["test-system-keystate-relay"]
+# Red manifest case: the app also receives a commit SEND; boot must stop.
+test-system-keystate-relay-leak = ["test-system-keystate-relay"]
 # H05 step 2: init's non-delegable POWER capability; S5 only behind the kernel storage gate.
 native-system-power = ["native-system", "dep:nieuw-os-acpi-power"]
 test-system-power-flush-error = ["native-system-power"]

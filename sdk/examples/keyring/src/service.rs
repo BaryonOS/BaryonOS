@@ -18,7 +18,8 @@ compile_error!("keyring-service is only for the Nieuw OS x86_64-unknown-none tar
 mod support;
 
 use keyring_core::{
-    wire::{self, Header},
+    persistent::{KeyStateStore, StoreError, PERSISTENT_BLOB},
+    wire::{self, Header, HeldSecret},
     EntropySource, Service, State, Status,
 };
 use nieuw_os_sdk_runtime::{
@@ -66,6 +67,143 @@ const RANDOM_REPLY_TICKS: u64 = 100;
 const CASE_REQUESTER_CRASH: u64 = 5;
 const CRASH_ROLE: u64 = 424;
 const RELEASE: u64 = 432;
+// ADR-B02-KEY1-RELAY-20261123 (test profile): only the kernel's relay branch
+// writes these three startup words; all zero keeps every existing path.
+const RELAY_COMMIT_SEND: u64 = 496;
+const RELAY_REPLY_RECEIVE: u64 = 504;
+const RELAY_INIT_PID: u64 = 512;
+const EV_COMMIT_REQUESTS: u64 = 440;
+const EV_COMMIT_OK: u64 = 448;
+const EV_COMMIT_NOT_COMMITTED: u64 = 456;
+const EV_COMMIT_UNKNOWN: u64 = 464;
+const EV_COMMIT_LAST_GENERATION: u64 = 472;
+const EV_SECRET_SUPPLIED: u64 = 480;
+const EV_SECRET_REFUSED: u64 = 488;
+const EV_COMMIT_MAX_TICKS: u64 = 520;
+/// The profile's volume identity (ADR-B02-KEY1-RELAY item 5). A compile-time
+/// constant: the first durable bind can only be to this volume.
+const RELAY_VOLUME: [u8; wire::VOLUME_ID] = *b"NOS-SYSTEM-VOL01";
+
+/// Write-ahead store backed by init's key-state commit ingress. One commit per
+/// call, synchronous and bounded by `wire::COMMIT_TICKS`; every ambiguous
+/// result (timeout, transport error, malformed or foreign reply) is `Unknown`.
+struct RelayStore {
+    send: SendEndpoint,
+    receive: ReceiveEndpoint,
+    init: u64,
+}
+
+fn bump(at: u64) {
+    support::put(at, support::word(at).saturating_add(1));
+}
+
+impl RelayStore {
+    fn exchange(
+        &mut self,
+        generation: u64,
+        blob: &[u8; PERSISTENT_BLOB],
+        deadline: u64,
+    ) -> Result<(), StoreError> {
+        let request = wire::commit_request(generation, blob).ok_or(StoreError::Unknown)?;
+        let message = Outgoing::new(wire::TAG, &request).map_err(|_| StoreError::Unknown)?;
+        let expired = || !matches!(native::monotonic_ticks(), Ok(now) if now < deadline);
+        loop {
+            tick();
+            match native::send(self.send, &message) {
+                Ok(()) => break,
+                Err(error) if error.is_again() && !expired() => {
+                    let _ = native::yield_now();
+                }
+                Err(_) => return Err(StoreError::Unknown),
+            }
+        }
+        loop {
+            tick();
+            match native::receive(self.receive) {
+                Ok(reply) => {
+                    if reply.cap_count() != 0 {
+                        let _ = native::close_received_caps(&reply);
+                        return Err(StoreError::Unknown);
+                    }
+                    if reply.sender() != self.init
+                        || reply.tag() != wire::TAG
+                        || reply.payload().len() != wire::SIZE
+                    {
+                        return Err(StoreError::Unknown);
+                    }
+                    return wire::commit_outcome(generation, reply.payload());
+                }
+                Err(error) if error.is_again() && !expired() => {
+                    let _ = native::yield_now();
+                }
+                Err(_) => return Err(StoreError::Unknown),
+            }
+        }
+    }
+}
+
+impl KeyStateStore for RelayStore {
+    fn commit(&mut self, generation: u64, blob: &[u8; PERSISTENT_BLOB]) -> Result<(), StoreError> {
+        bump(EV_COMMIT_REQUESTS);
+        let Ok(start) = native::monotonic_ticks() else {
+            bump(EV_COMMIT_UNKNOWN);
+            return Err(StoreError::Unknown);
+        };
+        let result = match start.checked_add(wire::COMMIT_TICKS) {
+            Some(deadline) => self.exchange(generation, blob, deadline),
+            None => Err(StoreError::Unknown),
+        };
+        let elapsed = native::monotonic_ticks()
+            .map(|now| now.saturating_sub(start))
+            .unwrap_or(u64::MAX);
+        if elapsed > support::word(EV_COMMIT_MAX_TICKS) {
+            support::put(EV_COMMIT_MAX_TICKS, elapsed);
+        }
+        match result {
+            Ok(()) => {
+                bump(EV_COMMIT_OK);
+                support::put(EV_COMMIT_LAST_GENERATION, generation);
+            }
+            Err(StoreError::Failed) => bump(EV_COMMIT_NOT_COMMITTED),
+            Err(StoreError::Unknown) => bump(EV_COMMIT_UNKNOWN),
+        }
+        result
+    }
+}
+
+/// Relay configuration from the startup page. Any partial, overlapping or
+/// unsupported combination stops the service before it serves anything.
+fn relay_store(admin: Option<&AdminIngress>, random: bool) -> Option<RelayStore> {
+    let words = [
+        support::word(RELAY_COMMIT_SEND),
+        support::word(RELAY_REPLY_RECEIVE),
+        support::word(RELAY_INIT_PID),
+    ];
+    if words.iter().all(|value| *value == 0) {
+        return None;
+    }
+    let others = [48, 56, 80, 88, 96, 104].map(support::word);
+    let Some(admin) = admin else {
+        startup_error(12);
+    };
+    if words.contains(&0)
+        || random
+        || words[0] == words[1]
+        || others.contains(&words[0])
+        || others.contains(&words[1])
+        || words[2] != admin.caller
+        || native::monotonic_ticks().is_err()
+    {
+        startup_error(12);
+    }
+    let send = Handle::from_raw(words[0]).unwrap_or_else(|_| startup_error(12));
+    let receive = Handle::from_raw(words[1]).unwrap_or_else(|_| startup_error(12));
+    Some(RelayStore {
+        send: SendEndpoint::from_handle(send),
+        receive: ReceiveEndpoint::from_handle(receive),
+        init: words[2],
+    })
+}
 
 /// Recovery and persistence ingress. Only the single manifest-named
 /// caller (a supervisor/recovery agent) may use it, and it dispatches
@@ -287,7 +425,12 @@ fn admin_evidence(ingress: &AdminIngress) {
 
 /// One administrative request per turn. Sender, capability count, tag and
 /// header are checked before request bytes reach the recovery/persistence code.
-fn poll_admin(service: &mut Service, broker: &mut Broker, ingress: &mut AdminIngress) {
+fn poll_admin(
+    service: &mut Service,
+    broker: &mut Broker,
+    ingress: &mut AdminIngress,
+    held: Option<&mut Option<HeldSecret>>,
+) {
     let message = match native::receive(ingress.receive) {
         Ok(message) => message,
         Err(_) => return,
@@ -315,6 +458,34 @@ fn poll_admin(service: &mut Service, broker: &mut Broker, ingress: &mut AdminIng
         return;
     };
     let body = &message.payload()[wire::HEADER..wire::HEADER + usize::from(header.length)];
+    if let Some(held) = held {
+        // Relay mode: one SUPPLY_SECRET per instance; every other opcode,
+        // including EXPORT/RESTORE_PERSISTENT, is refused without dispatch.
+        let accepted = if header.op == wire::SUPPLY_SECRET && held.is_none() {
+            wire::decode_supply_secret(&header, body)
+                .ok()
+                .map(|secret| *held = Some(secret))
+                .is_some()
+        } else {
+            false
+        };
+        if accepted {
+            support::put(EV_SECRET_SUPPLIED, 1);
+        } else {
+            if header.op == wire::SUPPLY_SECRET {
+                bump(EV_SECRET_REFUSED);
+            }
+            ingress.denied = ingress.denied.saturating_add(1);
+        }
+        let status = if accepted {
+            Status::Ok
+        } else {
+            Status::Invalid
+        };
+        admin_evidence(ingress);
+        send(ingress.reply, &wire::reply(&header, status, &[]));
+        return;
+    }
     let mut reply = wire::dispatch_management(service, broker, &header, body);
     let status = Header::decode(&reply).map(|h| h.status);
     if status == Some(Status::Ok.code()) {
@@ -511,6 +682,8 @@ fn main() -> ! {
     }
     let mut random = random_ingress(&ingress, reply_to);
     let mut admin = admin_ingress(&ingress, reply_to);
+    let mut relay = relay_store(admin.as_ref(), random.is_some());
+    let mut held: Option<HeldSecret> = None;
     // The administrative and RANDOM ingresses never share an endpoint handle.
     if let (Some(admin), Some(random)) = (&admin, &random) {
         let admin_handles = [admin.receive.handle(), admin.reply.handle()];
@@ -539,6 +712,15 @@ fn main() -> ! {
     }
     let (mut legacy_polls, mut legacy_poll_errors) = (0u64, 0u64);
     loop {
+        // Relay: no domain receive until init supplied the secret.
+        if relay.is_some() && held.is_none() {
+            if let Some(ingress) = &mut admin {
+                poll_admin(&mut service, &mut broker, ingress, Some(&mut held));
+            }
+            tick();
+            let _ = native::yield_now();
+            continue;
+        }
         let mut received_any = false;
         for (domain, endpoint) in ingress.iter().enumerate() {
             tick();
@@ -569,7 +751,26 @@ fn main() -> ! {
                 continue;
             };
             let body = &message.payload()[wire::HEADER..wire::HEADER + usize::from(header.length)];
-            let reply = wire::dispatch_domain(&mut service, &mut broker, domain, &header, body);
+            let reply = if let Some(store) = &mut relay {
+                let Some(secret) = &held else {
+                    startup_error(12);
+                };
+                let mut durable = wire::Durable {
+                    volume: &RELAY_VOLUME,
+                    secret: secret.secret(),
+                    store,
+                };
+                wire::dispatch_domain_durable(
+                    &mut service,
+                    &mut broker,
+                    domain,
+                    &header,
+                    body,
+                    &mut durable,
+                )
+            } else {
+                wire::dispatch_domain(&mut service, &mut broker, domain, &header, body)
+            };
             evidence(&service);
             send(reply_to, &reply);
         }
@@ -577,7 +778,12 @@ fn main() -> ! {
             poll_random(&mut service, &mut broker, ingress);
         }
         if let Some(ingress) = &mut admin {
-            poll_admin(&mut service, &mut broker, ingress);
+            let relay_held = if relay.is_some() {
+                Some(&mut held)
+            } else {
+                None
+            };
+            poll_admin(&mut service, &mut broker, ingress, relay_held);
         }
         if idle_wait && !received_any {
             let deadline = native::monotonic_ticks()

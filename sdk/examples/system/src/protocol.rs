@@ -135,6 +135,53 @@ pub fn exchange<const N: usize>(
     }
     fail(86)
 }
+/// The same exchange bounded by monotonic ticks instead of a poll count, for
+/// a peer whose reply may legitimately take a full relay commit timeout.
+pub fn exchange_by<const N: usize>(
+    send: SendEndpoint,
+    receive: ReceiveEndpoint,
+    peer: u64,
+    tag: u64,
+    request: &[u8; N],
+    ticks: u64,
+) -> [u8; N] {
+    let start = native::monotonic_ticks().unwrap_or_else(|_| fail(87));
+    let deadline = start.checked_add(ticks).unwrap_or_else(|| fail(87));
+    let expired = || !matches!(native::monotonic_ticks(), Ok(now) if now < deadline);
+    let out = Outgoing::new(tag, request).unwrap_or_else(|_| fail(80));
+    loop {
+        tick();
+        match native::send(send, &out) {
+            Ok(()) => break,
+            Err(e) if e.is_again() && !expired() => {
+                let _ = native::yield_now();
+            }
+            Err(_) => fail(82),
+        }
+    }
+    loop {
+        tick();
+        match native::receive(receive) {
+            Ok(reply) => {
+                if reply.cap_count() != 0 {
+                    let _ = native::close_received_caps(&reply);
+                    fail(83);
+                }
+                check(
+                    reply.sender() == peer && reply.tag() == tag && reply.payload().len() == N,
+                    84,
+                );
+                let mut bytes = [0; N];
+                bytes.copy_from_slice(reply.payload());
+                return bytes;
+            }
+            Err(e) if e.is_again() && !expired() => {
+                let _ = native::yield_now();
+            }
+            Err(_) => fail(86),
+        }
+    }
+}
 /// Legacy v6 volume transport over one granted endpoint pair.
 pub struct VolumeTransport {
     pub send: SendEndpoint,
