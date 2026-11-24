@@ -104,9 +104,11 @@ check names are unique across the catalogue.
 
 Globs use the GitHub path-filter dialect restricted to `*` (within one path
 segment) and `**` (across segments); `validate` rejects `?`, `[`, `]`, `+`, a
-leading `/` or `!`, backslashes and `.` or `..` segments. A `**/` prefix needs
-at least one directory: `**/rustfmt.toml` does not match a root-level
-`rustfmt.toml`, so root and nested forms are listed separately.
+leading `/` or `!`, backslashes and `.` or `..` segments. As in GitHub, a `**/`
+at the start of a segment matches zero or more whole directories:
+`**/rustfmt.toml` matches `rustfmt.toml` and `a/b/rustfmt.toml`, and
+`a/**/b.rs` matches `a/b.rs`. A single `*` never crosses `/`. The root forms
+that `validate` also requires are therefore redundant but harmless.
 
 ## Input derivation
 

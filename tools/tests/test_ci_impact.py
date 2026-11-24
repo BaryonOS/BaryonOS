@@ -722,10 +722,17 @@ def valid_catalogue():
 
 
 class GlobTests(TestCase):
-    def test_double_star_prefix_does_not_match_the_root(self):
-        self.assertFalse(ci_impact.github_path_filter_matches("**/x.toml", "x.toml"))
-        self.assertTrue(ci_impact.github_path_filter_matches("**/x.toml", "a/b/x.toml"))
-        self.assertTrue(ci_impact.github_path_filter_matches("a/**", "a/b/c"))
+    def test_double_star_slash_matches_zero_or_more_directories(self):
+        match = ci_impact.github_path_filter_matches
+        for pattern, path in (("**/x.toml", "x.toml"), ("**/x.toml", "a/b/x.toml"), ("a/**/b.rs", "a/b.rs"),
+                              ("a/**/b.rs", "a/c/d/b.rs"), ("a/**", "a/b/c"), ("**", "a/b"),
+                              ("**.md", "docs/a.md")):
+            with self.subTest(pattern=pattern, path=path):
+                self.assertTrue(match(pattern, path))
+        for pattern, path in (("**/x.toml", "ax.toml"), ("a/**/b.rs", "ab.rs"), ("a/*.rs", "a/b/c.rs"),
+                              ("*.md", "docs/a.md")):
+            with self.subTest(pattern=pattern, path=path):
+                self.assertFalse(match(pattern, path))
 
 
 class CatalogueValidationTests(TestCase):

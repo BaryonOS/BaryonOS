@@ -95,7 +95,10 @@ class Full(Exception):
 def _glob_regex(pattern):
     regex, i = "", 0
     while i < len(pattern):
-        if pattern.startswith("**", i):
+        if pattern.startswith("**/", i) and (i == 0 or pattern[i - 1] == "/"):
+            regex += "(?:.*/)?"  # zero or more whole directories, as in GitHub's '**/README.md'
+            i += 3
+        elif pattern.startswith("**", i):
             regex += ".*"
             i += 2
         elif pattern[i] == "*":
