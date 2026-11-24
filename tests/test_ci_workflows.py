@@ -1868,9 +1868,14 @@ class CiImpactShadowTests(unittest.TestCase):
             self.assertEqual(result.returncode, 0, result.stderr)
             self.assertEqual(outputs["mode"], "full")
 
-    def test_real_catalogue_coverage_is_clean(self):
+    def test_real_catalogue_coverage_has_no_structural_drift(self):
         report = load_selector().coverage(str(ROOT), ".github/ci-impact.toml")
-        self.assertEqual(report["status"], "clean", report.get("problems"))
+        # Citation line drift stays a report: one line added to a generated file such as
+        # docs/PROGRESS.md moves every citation below it.
+        problems = [problem for problem in report.get("problems", [])
+                    if not problem.startswith("citation-")]
+        self.assertEqual(problems, [])
+        self.assertEqual(report["counts"]["unclassified_paths"], 0, report.get("unclassified"))
 
 
 if __name__ == "__main__":
