@@ -3,7 +3,7 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-24",
-    "source_commit": "2a96d3dde3a1da2507a6659edfe6bf890e344a1f",
+    "source_commit": "48cccf410795a3558541351a87036d49576fce53",
     "assessment_basis": "parent_commit",
     "branch": "claude/h06-t6-hwinv-image-20261124",
     "task": "H06-T6 removable-media HW-INV image (QEMU-booted)",
