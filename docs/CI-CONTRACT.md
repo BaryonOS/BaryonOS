@@ -191,6 +191,11 @@ ASCII escapes (control characters in paths never reach logs raw):
 In full mode `selected` is informational; `mode = "full"` itself means every
 automatic core and rwa gate runs.
 
+When the planner itself fails (`selector-error:<Type>`) or an output cannot
+be written (`output-error:<Type>`), the command emits an emergency plan with
+every field above: `mode = "full"`, `selector.trusted = false`, the SHAs from
+the command line, no listed executions and `filter_eval_uncertain = true`.
+
 ## Commands
 
 ```sh

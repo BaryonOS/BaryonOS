@@ -936,9 +936,16 @@ def make_plan(repo, event, base, head, tested=None, catalogue_path=CATALOGUE_PAT
     return Planner(repo, event, base, head, tested, catalogue_path, selector_bytes, allow_fetch).run()
 
 
-def minimal_full_plan(event, code):
-    plan = {"schema": PLAN_SCHEMA, "schema_version": SCHEMA_VERSION, "event": event, "mode": "full",
-            "fallback": {"code": code, "detail": [], "reasons": [code]}, "selected": [], "excluded": []}
+def minimal_full_plan(event, code, base="", head="", tested=""):
+    """A full plan with every v1 field, for when no planner result can be used."""
+    plan = {"schema": PLAN_SCHEMA, "schema_version": SCHEMA_VERSION,
+            "catalogue": {"path": CATALOGUE_PATH, "source_sha": None, "blob": None, "revision": None},
+            "selector": {"blob": None, "base_blob": None, "trusted": False},
+            "event": event, "policy_mode": None, "mode": "full",
+            "fallback": {"code": code, "detail": [], "reasons": [code]},
+            "shas": {"base": base or "", "merge_base": None, "head": head or "", "tested": tested or head or ""},
+            "changes": {"count": 0, "digest": paths_digest([]), "paths": []},
+            "filter_eval_uncertain": True, "selected": [], "excluded": []}
     plan["plan_id"] = "sha256:" + hashlib.sha256(canonical(plan).encode("ascii")).hexdigest()
     return plan
 
@@ -1331,7 +1338,8 @@ def main(argv=None):
         plan = make_plan(args.repo, args.event, args.base_sha, args.head_sha, args.tested_sha,
                          args.catalogue, selector_bytes, allow_fetch=not args.no_fetch)
     except Exception as error:
-        plan = minimal_full_plan(args.event, f"selector-error:{type(error).__name__}")
+        plan = minimal_full_plan(args.event, f"selector-error:{type(error).__name__}",
+                                 args.base_sha, args.head_sha, args.tested_sha)
     text = json.dumps(plan, indent=2, sort_keys=True, ensure_ascii=True) + "\n"
     try:
         if args.out == "-":

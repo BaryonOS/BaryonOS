@@ -719,6 +719,18 @@ class DeterminismAndRobustnessTests(FixtureTestCase):
         self.assertEqual(code, 0)
         self.assertEqual(json.loads(out.getvalue())["fallback"]["code"], "selector-error:MemoryError")
 
+    def test_emergency_plan_has_every_v1_field(self):
+        normal = self.plan(self.branch({"apps/solo/src/lib.rs": "// solo 2\n"}))
+        with mock.patch.object(ci_impact, "make_plan", side_effect=MemoryError):
+            with contextlib.redirect_stdout(io.StringIO()) as out, contextlib.redirect_stderr(io.StringIO()):
+                ci_impact.main(["plan", "--event", "push", "--base-sha", "a" * 40, "--head-sha", "b" * 40])
+        emergency = json.loads(out.getvalue())
+        self.assertEqual(sorted(emergency), sorted(normal))
+        for key in ("catalogue", "selector", "shas", "changes"):
+            self.assertEqual(sorted(emergency[key]), sorted(normal[key]), key)
+        self.assertIs(emergency["selector"]["trusted"], False)
+        self.assertEqual(emergency["shas"]["head"], "b" * 40)
+
     def test_invalid_sha_and_unknown_event_are_full(self):
         self.assertFull(self.plan("not-a-sha"), "invalid-sha")
         self.assertFull(self.plan(self.base, event="release"), "unknown-event")
