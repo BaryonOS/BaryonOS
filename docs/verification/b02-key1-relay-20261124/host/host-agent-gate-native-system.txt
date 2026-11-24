@@ -1,0 +1,12 @@
+Traceback (most recent call last):
+  File "~/projects/BaryonOS-worktrees/b-cycle-20261124/tools/agent_gate.py", line 323, in <module>
+    raise SystemExit(main())
+                     ~~~~^^
+  File "~/projects/BaryonOS-worktrees/b-cycle-20261124/tools/agent_gate.py", line 308, in main
+    plan = resolve(args.job, ROOT / ".github" / "workflows")
+  File "~/projects/BaryonOS-worktrees/b-cycle-20261124/tools/agent_gate.py", line 124, in resolve
+    commands += job_steps(path, job)
+                ~~~~~~~~~^^^^^^^^^^^
+  File "~/projects/BaryonOS-worktrees/b-cycle-20261124/tools/agent_gate.py", line 101, in job_steps
+    raise ValueError(f"{where}: uses step needs an explicit local adapter")
+ValueError: native-system.yml#native-system/actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1: uses step needs an explicit local adapter

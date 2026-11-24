@@ -1,0 +1,24 @@
+step	command	exit	seconds
+build-normal	python3 -B tools/build.py --kernel-feature native-system	0	2
+run-normal	python3 -B -u tools/run_system.py --case normal	0	5
+build-relay	python3 -B tools/build.py --kernel-feature test-system-keystate-relay	0	1
+run-relay	python3 -B -u tools/run_system.py --case relay	0	5
+build-relay-not-committed	python3 -B tools/build.py --kernel-feature test-system-keystate-relay-not-committed	0	1
+run-relay-not-committed	python3 -B -u tools/run_system.py --case relay-not-committed	0	5
+build-relay-timeout	python3 -B tools/build.py --kernel-feature test-system-keystate-relay-timeout	0	1
+run-relay-timeout	python3 -B -u tools/run_system.py --case relay-timeout	0	20
+build-relay-leak	python3 -B tools/build.py --kernel-feature test-system-keystate-relay-leak	0	2
+run-relay-leak	python3 -B -u tools/run_system.py --case relay-leak	0	2
+test-system	python3 -B -u tools/test_system.py	0	50
+test-keyring	python3 -B -u tools/test_keyring.py	0	21
+done
+fmt-root	cargo +1.100.0 fmt --all -- --check	0	1
+fmt-sdk	cargo +1.100.0 fmt --manifest-path sdk/Cargo.toml --all -- --check	0	1
+keyring-core-test	cargo +1.100.0 test --locked -p keyring-core	0	0
+keyring-core-clippy	cargo +1.100.0 clippy --locked -p keyring-core --all-targets -- -D warnings	0	1
+native-clippy	env RUSTFLAGS=--cfg chacha20_backend="soft" --cfg poly1305_backend="soft" --cfg sha2_backend="soft" -C no-redzone=yes CARGO_TARGET_DIR=~/projects/BaryonOS-scratch/b/relay-20261124/cargo/native-clippy cargo +1.100.0 clippy --manifest-path sdk/Cargo.toml --locked -p nieuw-os-keyring-example -p nieuw-os-system-example --features nieuw-os-keyring-example/native,nieuw-os-system-example/native --bins --target x86_64-unknown-none -- -D warnings	0	0
+system-harness	python3 -B -m unittest tests.test_system_harness	0	0
+tools-tests	env -u GIT_EDITOR -u GIT_SEQUENCE_EDITOR python3 -B -m unittest discover -s tools/tests -p test_*.py	0	33
+compileall	python3 -m compileall -q tools tests	0	0
+agent-gate-native-system	python3 -B tools/agent_gate.py --job native-system.yml#native-system --list	1	1
+agent-gate-host-quality	python3 -B tools/agent_gate.py --job ci.yml#host-quality --list	1	0

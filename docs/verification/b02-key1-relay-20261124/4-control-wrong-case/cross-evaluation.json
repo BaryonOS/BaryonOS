@@ -1,0 +1,71 @@
+{
+  "source": "5-gate/system-gate.json relay_wrong_case",
+  "evaluations": [
+    {
+      "log": "relay",
+      "evaluator": "relay-not-committed",
+      "error": "system marker sequence mismatch: ['BOOT:EBS_OK', 'KERNEL:ENTRY', 'BOOTINFO:OK', 'SYSTEM:MANIFEST:PASS', 'SYSTEM:BROKERS:PASS', 'SYSTEM:CLEANUP:PASS', 'SYSTEM:CASE:RELAY:PASS', 'M1:PASS']"
+    },
+    {
+      "log": "relay",
+      "evaluator": "relay-not-committed",
+      "relabelled": true,
+      "error": "KEYSTATE_RELAY_REQUESTS: expected 5, found 3"
+    },
+    {
+      "log": "relay",
+      "evaluator": "relay-timeout",
+      "error": "system marker sequence mismatch: ['BOOT:EBS_OK', 'KERNEL:ENTRY', 'BOOTINFO:OK', 'SYSTEM:MANIFEST:PASS', 'SYSTEM:BROKERS:PASS', 'SYSTEM:CLEANUP:PASS', 'SYSTEM:CASE:RELAY:PASS', 'M1:PASS']"
+    },
+    {
+      "log": "relay",
+      "evaluator": "relay-timeout",
+      "relabelled": true,
+      "error": "KEYSTATE_RELAY_REQUESTS: expected 4, found 3"
+    },
+    {
+      "log": "relay-not-committed",
+      "evaluator": "relay",
+      "error": "system marker sequence mismatch: ['BOOT:EBS_OK', 'KERNEL:ENTRY', 'BOOTINFO:OK', 'SYSTEM:MANIFEST:PASS', 'SYSTEM:BROKERS:PASS', 'SYSTEM:CLEANUP:PASS', 'SYSTEM:CASE:RELAY_NOT_COMMITTED:PASS', 'M1:PASS']"
+    },
+    {
+      "log": "relay-not-committed",
+      "evaluator": "relay",
+      "relabelled": true,
+      "error": "KEYSTATE_RELAY_REQUESTS: expected 3, found 5"
+    },
+    {
+      "log": "relay-not-committed",
+      "evaluator": "relay-timeout",
+      "error": "system marker sequence mismatch: ['BOOT:EBS_OK', 'KERNEL:ENTRY', 'BOOTINFO:OK', 'SYSTEM:MANIFEST:PASS', 'SYSTEM:BROKERS:PASS', 'SYSTEM:CLEANUP:PASS', 'SYSTEM:CASE:RELAY_NOT_COMMITTED:PASS', 'M1:PASS']"
+    },
+    {
+      "log": "relay-not-committed",
+      "evaluator": "relay-timeout",
+      "relabelled": true,
+      "error": "KEYSTATE_RELAY_REQUESTS: expected 4, found 5"
+    },
+    {
+      "log": "relay-timeout",
+      "evaluator": "relay",
+      "error": "system marker sequence mismatch: ['BOOT:EBS_OK', 'KERNEL:ENTRY', 'BOOTINFO:OK', 'SYSTEM:MANIFEST:PASS', 'SYSTEM:BROKERS:PASS', 'SYSTEM:CLEANUP:PASS', 'SYSTEM:CASE:RELAY_TIMEOUT:PASS', 'M1:PASS']"
+    },
+    {
+      "log": "relay-timeout",
+      "evaluator": "relay",
+      "relabelled": true,
+      "error": "KEYSTATE_RELAY_REQUESTS: expected 3, found 4"
+    },
+    {
+      "log": "relay-timeout",
+      "evaluator": "relay-not-committed",
+      "error": "system marker sequence mismatch: ['BOOT:EBS_OK', 'KERNEL:ENTRY', 'BOOTINFO:OK', 'SYSTEM:MANIFEST:PASS', 'SYSTEM:BROKERS:PASS', 'SYSTEM:CLEANUP:PASS', 'SYSTEM:CASE:RELAY_TIMEOUT:PASS', 'M1:PASS']"
+    },
+    {
+      "log": "relay-timeout",
+      "evaluator": "relay-not-committed",
+      "relabelled": true,
+      "error": "KEYSTATE_RELAY_REQUESTS: expected 5, found 4"
+    }
+  ]
+}
