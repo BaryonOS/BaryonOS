@@ -480,6 +480,14 @@ class FallbackTests(FixtureTestCase):
         self.assertEqual(plan["changes"]["count"], 1)
         self.assertEqual(self.selected(plan), CORE)  # only ci has merge_group among core/rwa
 
+    def test_merge_group_is_full_even_if_policy_says_select(self):
+        base = self.repo.commit("select queue", {".github/ci-impact.toml": CATALOGUE.replace(
+            'merge_group = "full"', 'merge_group = "select"')})
+        self.repo.git("checkout", "-q", "-b", "topic", base)
+        head = self.repo.commit("leaf", {"apps/solo/src/lib.rs": "// solo 2\n"})
+        with mock.patch.object(ci_impact, "validate", return_value=[]):
+            self.assertFull(self.plan(head, base=base, event="merge_group"), "merge-group")
+
     def test_policy_changes_force_full(self):
         for path in (".github/ci-impact.toml", "tools/ci_impact.py", ".github/workflows/net.yml"):
             with self.subTest(path=path):
@@ -709,6 +717,9 @@ class CatalogueValidationTests(TestCase):
             (lambda c: c.update(extra=1), "unknown top-level key"),
             (lambda c: c["policy"]["events"].pop("merge_group"), "policy.events.merge_group"),
             (lambda c: c["policy"].update(mode="loose"), "policy.mode"),
+            (lambda c: c["policy"]["events"].update(merge_group="select"), "merge_group must be 'full'"),
+            (lambda c: c["policy"]["events"].update(push="manual"), "push must be 'full'"),
+            (lambda c: c["policy"]["events"].update(schedule="select"), "schedule must be 'full'"),
             (lambda c: c["policy"]["always_full"].append("../x"), "'..' segment"),
             (lambda c: c["policy"]["inert"].append("/abs"), "leading '/'"),
             (lambda c: c["policy"]["core_only"].append("!neg"), "leading '/', '!'"),

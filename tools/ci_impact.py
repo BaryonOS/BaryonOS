@@ -267,7 +267,10 @@ def validate(catalogue):
         add("policy.events table missing")
         events = {}
     for event in EVENTS:
-        if events.get(event) not in EVENT_POLICIES:
+        if event in EVENT_FULL_CODES:
+            if events.get(event) != "full":
+                add(f"policy.events.{event} must be 'full'")
+        elif events.get(event) not in EVENT_POLICIES:
             add(f"policy.events.{event} must be one of {', '.join(EVENT_POLICIES)}")
     for event in sorted(set(events) - set(EVENTS)):
         add(f"policy.events: unknown event {event}")
@@ -756,7 +759,7 @@ class Planner:
         if event_policy == "manual":
             self.manual = True
             return
-        if event_policy == "full":
+        if event_policy == "full" or self.event == "merge_group":  # the queue is never narrowed
             self.full(EVENT_FULL_CODES.get(self.event, "event-policy-full"), [self.event])
         self.merge_base = find_merge_base(self.repo, self.base, self.head, self.allow_fetch)
         changed = changed_paths(self.repo, self.merge_base, self.head)

@@ -61,8 +61,11 @@ are rejected.
 - `inert`: metadata globs; equal to the workflows' metadata `paths-ignore`
   and referenced from triggers as `"@metadata"`.
 - `core_only`: globs read only by the always-running core gates.
-- `[policy.events]`: `select`, `full` or `manual` for `pull_request`,
-  `merge_group`, `push`, `schedule` and `workflow_dispatch`.
+- `[policy.events]`: one entry per event. `merge_group`, `push` and
+  `schedule` must be `full`; `validate` rejects anything else, and the
+  selector also hard-codes `merge_group` as full. `pull_request` and
+  `workflow_dispatch` may be
+  `select`, `full` or `manual`.
 
 `[input_sets]`: named glob lists. `native` covers the integrated QEMU suites.
 
