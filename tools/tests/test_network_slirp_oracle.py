@@ -108,6 +108,9 @@ class PcapTest(unittest.TestCase):
             with self.subTest(name):
                 summary = self.parse(pcap([bytes(bad)]))
                 self.assertEqual((summary["other_ip"], summary["http_syns"]), (1, 0))
+        for name, bad in (("short ipv4", good[:30]), ("ipv6", good[:12] + b"\x86\xdd" + good[14:])):
+            with self.subTest(name):
+                self.assertEqual(self.parse(pcap([bad]))["other_ip"], 1)
 
     def test_dns_answers_follow_the_guest_resolver_rules(self):
         def message(records):

@@ -101,7 +101,7 @@ class SlirpOracle:
                         if connection.recv(1):
                             self.result["error"] = "bytes after app B's request"
                     except socket.timeout:
-                        pass
+                        pass  # no byte and no EOF within the deadline: nothing extra was sent
                 except OSError as error:
                     self.result["error"] = f"exchange: {error}"
 
@@ -205,13 +205,14 @@ def parse_pcap(path: Path) -> dict:
             slirp += 1
         else:
             other += 1
-        if ethertype != 0x0800 or len(frame) < 34:
+        if ethertype == 0x0806:
             continue
-        ihl = (frame[14] & 0xf) * 4
-        # IPv4 only, a sane header length and no fragments; anything else is not parsed further.
-        if frame[14] >> 4 != 4 or ihl < 20 or len(frame) < 14 + ihl or struct.unpack("!H", frame[20:22])[0] & 0x3fff:
+        # Only ARP and unfragmented IPv4 with a sane header are expected; count anything else.
+        if (ethertype != 0x0800 or len(frame) < 34 or frame[14] >> 4 != 4 or (frame[14] & 0xf) < 5
+                or len(frame) < 14 + (frame[14] & 0xf) * 4 or struct.unpack("!H", frame[20:22])[0] & 0x3fff):
             other_ip += 1
             continue
+        ihl = (frame[14] & 0xf) * 4
         protocol, src, dst = frame[23], socket.inet_ntoa(frame[26:30]), socket.inet_ntoa(frame[30:34])
         body = frame[14 + ihl:]
         if source == GUEST_MAC and src != "0.0.0.0" and (ipaddress.ip_address(src) not in network
