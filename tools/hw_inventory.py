@@ -18,7 +18,7 @@ from hw_evidence import (HWINV_CPUID, HWINV_DMAR, HWINV_PCI_COUNT, HWINV_PCI_LIN
 
 
 # Protocol HW-INV failure markers; any of them anywhere in the log fails the boot.
-FAILURES = ("KERNEL_PANIC", "M2:PANIC_LINE:", "M1:FAIL", "HWINV:FAIL")
+FAILURES = ("KERNEL_PANIC", "M2:PANIC_LINE:", "M1:FAIL", "M2:FAIL", "HWINV:FAIL")
 
 
 class InventoryLogError(ValueError):

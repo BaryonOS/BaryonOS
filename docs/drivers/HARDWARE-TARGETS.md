@@ -153,7 +153,7 @@ protocol has been executed; all seven are **blocked**:
 
 | Protocol | Criterion / rows | Concrete blocking reasons |
 |---|---|---|
-| `HW-INV` v2 | H06 / FR-H03, FR-R03 | `native-hw-inventory` profile present and QEMU-tested (H06-T3); no physical image; `0xF4` panic/failure exit paths; owner decisions |
+| `HW-INV` v3 | H06 / FR-H03, FR-R03 | `native-hw-inventory` profile present and QEMU-tested (H06-T3); every terminal path halts without `0xF4` (H06-T5, QEMU fixtures); no physical image; owner decisions |
 | `H05-S5` v1 | H05 / FR-S04 | no physical image; rejection paths exit through `0xF4`; no `SMI_CMD`/`ACPI_ENABLE`, `_PTS`/`_TTS`; owner decisions |
 | `H05-S3` v1 | H05 / FR-S05 | QEMU-native S3 entry/resume exists (`native-acpi-s3`, [h05-native-s3-20261119](../verification/h05-native-s3-20261119/README.md)) but is woken only by QMP `system_wakeup` under the QEMU/OVMF `Edk2Version0Extended` vector policy; physical firmware path (FACS version, real-mode or extended vector, `_PTS`/`_WAK`) unverified; no physical wake source (`OD-HW-POWER`); protocol markers not yet emitted in the specified form; must not rely on `0xF4`; owner decisions |
 | `H02-USB` v2 | H02 / FR-H01 | xHCI accepts only QEMU `1b36:000d` and maps its BAR0 at a fixed kernel virtual address; VT-d availability unknown until `HW-INV` records the DMAR table; no IRQ/hub/hotplug; `0xF4` exit |
@@ -161,7 +161,8 @@ protocol has been executed; all seven are **blocked**:
 | `H04-NET` v1 | H04 / FR-H03 | no e1000e driver; Wi-Fi/Bluetooth excluded pending `OD-HW-FAMILIES`; `0xF4` exit |
 | `R03-INSTALL` v2 | R01 / FR-R03 | no installer image; no NVMe, AHCI or USB mass-storage driver; install-target transport undecided (`OD-HW-DISKS`, `OD-HW-FAMILIES`); physical disk writes not authorised |
 
-Version 2 of `HW-INV` adds the read-only `HWINV:ACPI:DMAR=<PRESENT|ABSENT>:DRHD=<n>`
+Version 3 of `HW-INV` adds the `M2:FAIL*` failure marker (H06-T5: the M2 kernel
+exception path of the profile). Version 2 of `HW-INV` adds the read-only `HWINV:ACPI:DMAR=<PRESENT|ABSENT>:DRHD=<n>`
 observation and inventory schema 2 (`acpi.dmar`, `acpi.drhd_units`); version 2
 of `H02-USB` requires that observation (DMAR present, at least one DRHD unit)
 and an xHCI function (`0c/03/30`) in the bound inventory. A DMAR table is never

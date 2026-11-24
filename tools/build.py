@@ -60,7 +60,10 @@ SYSTEM_FEATURES += POWER_SYSTEM_FEATURES
 # needs the smp-handoff loader. K06 native-smp* profiles use the default loader.
 LEGACY_SMP_FEATURES = ("native-smp-legacy", "native-smp-legacy-m3", "native-smp-m3-exit", "native-smp-m3-tlb-reuse",
                        "native-smp-m3-lock-contention", "native-smp-m4", "native-smp-m4-revoke")
+# H06-T3/T5: the HW-INV profile and its terminal fixtures; each pairs with the hw-inventory loader.
+HWINV_FEATURES = ("native-hw-inventory", "test-hwinv-panic", "test-hwinv-m2-fault", "test-hwinv-fail")
 KERNEL_FEATURES = ["test-panic", "test-hang", "milestone-m2", "native-rtc", "native-hw-inventory",
+                   "test-hwinv-panic", "test-hwinv-m2-fault", "test-hwinv-fail",
                    "native-xhci-probe", "test-xhci-dma-fault", "test-xhci-no-dmar", "native-usb-hid-probe", "native-usb-hid-reattach", "native-usb-hid-mouse-reattach", "test-usb-hid-readonly-fault",
                    "native-virtio-snd-probe", "test-snd-fence-reinit", "test-snd-quarantine",
                    "native-smp-m3-ipc", "native-smp-m3-migrate", "test-smp-m3-canary",
@@ -195,9 +198,9 @@ def build(loader_feature=None, kernel_feature=None, label="normal", image_versio
         loader_feature = "framebuffer"
     elif loader_feature in ("graphics-g0", "framebuffer", "desktop-mode", "desktop-hidpi"):
         raise ValueError("Graphics loader requires a matching framebuffer kernel")
-    if kernel_feature != "native-hw-inventory" and "native-hw-inventory" in (kernel_feature or "").split(","):
+    if kernel_feature not in HWINV_FEATURES and set(HWINV_FEATURES) & set((kernel_feature or "").split(",")):
         raise ValueError("native-hw-inventory is a single-feature profile")
-    if kernel_feature == "native-hw-inventory":
+    if kernel_feature in HWINV_FEATURES:
         if loader_feature not in (None, "hw-inventory"):
             raise ValueError("native-hw-inventory requires the hw-inventory loader (SecureBoot handoff)")
         loader_feature = "hw-inventory"
