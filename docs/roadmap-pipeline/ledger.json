@@ -3210,6 +3210,44 @@
       ]
     },
     {
+      "id": "H06-T8",
+      "criterion": "H06",
+      "milestone": "M9",
+      "executor": "lead",
+      "status": "active",
+      "title": "Exact-line matching for full-line HW-INV fixture markers (host oracle)",
+      "goal": "evaluate_fixture in tools/run_hw_inventory.py matched every fixture marker as a line prefix, so M2:PASSED or HWINV:BEGIN_X satisfied M2:PASS or HWINV:BEGIN. Markers ending in ':' carry a value and keep prefix matching with a non-empty value; every other marker must be the whole line.",
+      "deps": [
+        "H06-T7"
+      ],
+      "write_paths": [
+        "tools/run_hw_inventory.py",
+        "tools/tests/test_hw_inventory.py"
+      ],
+      "checks": [
+        "python3 -B -m unittest discover -s tools/tests -p 'test_hw_*.py' -v",
+        "python3 -B tools/build.py --kernel-feature native-hw-inventory && python3 -B tools/run_hw_inventory.py --case all|missing-kernel",
+        "python3 -B tools/build.py --kernel-feature test-hwinv-<panic|m2-fault|fail|serial-timeout> && python3 -B tools/run_hw_inventory.py --case <fixture>"
+      ],
+      "acceptance": [
+        "host tests reject M2:PASSED, HWINV:BEGIN_X, HWINV:FAIL:FIXTURE2, BOOTINFO:OK_X, M1:FAIL:KERNEL_OPEN_X and an empty M2:PANIC_LINE: value",
+        "mutant: reverting to startswith fails the new host tests",
+        "all native HW-INV cases and the five terminal fixtures still pass on the new source fingerprint"
+      ],
+      "non_claimable": "Host oracle hardening plus a QEMU rerun; no physical hardware, signed record or H06 acceptance.",
+      "risk": "low",
+      "size": "XS",
+      "evidence_level": "host + native QEMU/TCG",
+      "next": "Owner decisions OD-HW-*; image hash reproduction after B04 (#493).",
+      "history": [
+        {
+          "event": "active",
+          "at": "2026-11-24",
+          "reason": "Cloud H session; deferred CodeRabbit findings 6047166675, 6047799391 and 6048042333 on #500. Stacked on #500 head 1e341d58."
+        }
+      ]
+    },
+    {
       "id": "H06-T4",
       "criterion": "H06",
       "milestone": "M9",
