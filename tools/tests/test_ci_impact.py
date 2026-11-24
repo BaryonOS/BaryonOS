@@ -492,6 +492,8 @@ class FallbackTests(FixtureTestCase):
         run = lambda *args: subprocess.run(["git", *args], check=True, env=GIT_ENV, capture_output=True)  # noqa: E731
         run("clone", "-q", "--no-local", "--depth=1", "--branch", "merge", f"file://{self.repo.root}", str(clone))
         run("-C", str(clone), "fetch", "-q", "--depth=1", "origin", "main", "topic")
+        # The selector's own fetch reads global config; pin the file transport in the clone.
+        run("-C", str(clone), "config", "protocol.file.allow", "always")
         self.assertEqual(run("-C", str(clone), "rev-list", "--parents", "-n", "1", tested).stdout.split()[1:], [])
         plan = ci_impact.make_plan(str(clone), "pull_request", self.base, head, tested,
                                    selector_bytes=SELECTOR.read_bytes(), allow_fetch=True)
