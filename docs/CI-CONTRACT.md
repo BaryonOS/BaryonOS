@@ -96,7 +96,11 @@ may be a `file:first-last` range) and `trigger.<event>` for `pull_request`,
 `[[workflow.job.variant]]` (or an inline `variant = [...]` array): `id`, rendered
 `check_name`, verbatim `matrix`, optional `cargo`, `input_sets`, `inputs` and
 `evidence`. A runtime matrix is one variant with `id = "*"` and
-`dynamic = true`.
+`dynamic = true`. Its `matrix` is the verbatim table with expression axes, or,
+when the workflow gives the whole matrix as one expression (for example
+`matrix: ${{ fromJSON(needs.prepare.outputs.matrix) }}`), that expression
+string; `coverage` compares either form with the workflow. A static variant's
+`matrix` must be a table.
 
 Workflow paths are `.github/workflows/<id>.yml` (or `.yaml`) with an id of
 `[A-Za-z0-9_][A-Za-z0-9_-]*`; job ids match `[A-Za-z_][A-Za-z0-9_-]*` and

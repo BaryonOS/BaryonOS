@@ -448,8 +448,11 @@ def validate(catalogue):
                         add(f"{vwhere}: check_name required")
                     if variant.get("dynamic", False) is not (variant.get("id") == "*"):
                         add(f"{vwhere}: id '*' if and only if dynamic = true")
-                    if not isinstance(variant.get("matrix", {}), dict):
-                        add(f"{vwhere}: matrix must be a table")
+                    matrix = variant.get("matrix", {})
+                    # A runtime matrix may be one whole expression, e.g. ${{ fromJSON(...) }}.
+                    if not isinstance(matrix, dict) and not (
+                            variant.get("dynamic") is True and isinstance(matrix, str)):
+                        add(f"{vwhere}: matrix must be a table (an expression string only when dynamic = true)")
                     _validate_inputs(add, vwhere, variant, input_sets)
                     if not _list_of_str(variant.get("evidence", [])):
                         add(f"{vwhere}: evidence must be a list of strings")

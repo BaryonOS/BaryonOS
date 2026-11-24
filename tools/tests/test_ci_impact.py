@@ -1092,6 +1092,25 @@ class CoverageTests(TestCase):
                 problems = ci_impact.workflow_problems(workflows, catalogue)
                 self.assertEqual([p.split(":")[0] for p in problems], expected, problems)
 
+    def test_whole_matrix_expression_only_for_a_dynamic_variant(self):
+        expression = "${{ fromJSON(needs.prepare.outputs.matrix) }}"
+        old = """variant = [
+  { id = "1", check_name = "pair (1)", matrix = { scale = 1 } },
+  { id = "2", check_name = "pair (2)", matrix = { scale = 2 } },
+]"""
+        catalogue = tomllib.loads(COVERAGE_CATALOGUE.replace(old, (
+            'variant = [{ id = "*", dynamic = true, check_name = "pair (*)", matrix = "%s" }]' % expression)))
+        self.assertEqual(ci_impact.validate(catalogue), [])
+        workflows = copy.deepcopy(COVERAGE_WORKFLOWS)
+        workflows[".github/workflows/ci.yml"]["jobs"]["pair"] = {"strategy": {"matrix": expression}}
+        self.assertEqual(ci_impact.workflow_problems(workflows, catalogue), [])
+        workflows[".github/workflows/ci.yml"]["jobs"]["pair"]["strategy"]["matrix"] = "${{ fromJSON(inputs.x) }}"
+        self.assertEqual(ci_impact.workflow_problems(workflows, catalogue),
+                         ["matrix-mismatch: .github/workflows/ci.yml#pair/*"])
+        static = tomllib.loads(COVERAGE_CATALOGUE.replace("matrix = { scale = 1 }", 'matrix = "%s"' % expression))
+        self.assertIn("ci#pair/1: matrix must be a table (an expression string only when dynamic = true)",
+                      ci_impact.validate(static))
+
     def test_activation_must_match_the_workflow_events(self):
         problem = ci_impact.activation_problem
         on = ["workflow_dispatch", "schedule", "pull_request"]
