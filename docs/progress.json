@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-24",
-    "source_commit": "16ae48a8bd611ed7a6ba86bfff4126739cb31fc1",
-    "assessment_basis": "parent_commit",
-    "branch": "claude/h06-hw-inventory-20261124",
-    "task": "H06-T3 native read-only HW-INV inventory profile (QEMU-tested)",
+    "source_commit": "61349b1fd051c6b1954cf8aac1a37c92a331ff0b",
+    "assessment_basis": "source_bound_branch",
+    "branch": "claude/s09-l2-slice-cd",
+    "task": "S09 phase 3 slices C and D: native L2 export and cold restore stages",
     "previous_score": 43,
-    "summary": "43/100 unchanged. H06-T3 adds the paired native-hw-inventory kernel and hw-inventory loader that emit HW-INV v2 markers (CPUID, loader-observed SecureBoot, DMAR presence, segment-0 PCI identity) and halt without port 0xF4 on pass; both QEMU cases match QMP query-pci. No physical PC, image or signed record exists and owner decisions remain open, so H06 earns no points."
+    "summary": "43/100, unchanged: S09 phase 3 slices C and D add the test-only native L2 stages l2-export, l2-restore, l2-corrupt and l2-used (kernel cases 25-28) with a host oracle that enforces the discrimination invariant on the real archive, and the local 30-stage native volume gate passes at 61349b1f. S09 stays open: the native path is a test-only fixture, and a user-facing production copy/restore/export chain, owner decisions and a human audit remain. The delivery-review inventory stays bound to its 2eb1c63 snapshot; evidence: docs/verification/s09-l2-slices-cd-20261124/README.md."
   },
   "tracks": [
     {
