@@ -26,22 +26,16 @@ defaults:
     shell: bash
 
 jobs:
-  native-window-session:
+  host-checks:
     runs-on: ubuntu-24.04
-    # Independent workspace profiles; scale 1 also runs library recovery,
-    # both switcher profiles and Windows bundle packaging.
-    timeout-minutes: 110
-    strategy:
-      fail-fast: false
-      matrix:
-        scale: [1, 2]
+    # Scale-independent host gate: no step reads NOS_WINDOW_SCALE or a window
+    # feature, so it runs once. Run 45424451804 measured about 1.5 min of setup
+    # and 7-9 min of host checks.
+    timeout-minutes: 30
     env:
-      NOS_WINDOW_SCALE: ${{ matrix.scale }}
-      NOS_WINDOW_PROBE_FEATURE: ${{ matrix.scale == 2 && 'native-window-session-hidpi-probe' || 'native-window-session-probe' }}
-      NOS_WINDOW_NORMAL_FEATURE: ${{ matrix.scale == 2 && 'native-window-session-hidpi' || 'native-window-session' }}
       NOS_QEMU_MACHINE: pc-q35-8.2
-      NOS_BUILD_DIR: ${{ github.workspace }}/build/window-session-ci/probe
-      NOS_TARGET_DIR: ${{ github.workspace }}/target/window-session-ci-native
+      NOS_BUILD_DIR: ${{ github.workspace }}/build/window-session-ci/host
+      NOS_TARGET_DIR: ${{ github.workspace }}/target/window-session-ci-host-native
       CARGO_TARGET_DIR: ${{ github.workspace }}/target/window-session-ci-host
       CI_EVIDENCE_DIR: ${{ github.workspace }}/build/window-session-ci/evidence
       OS_OVMF_CODE: /usr/share/OVMF/OVMF_CODE_4M.fd
@@ -130,6 +124,152 @@ jobs:
             cargo +1.100.0 clippy --offline --locked --manifest-path "sdk/examples/$crate/Cargo.toml" --all-targets -- -D warnings 2>&1 | tee "$CI_EVIDENCE_DIR/$crate-clippy.txt"
             cargo +1.100.0 fmt --manifest-path "sdk/examples/$crate/Cargo.toml" -- --check
           done
+      - name: Preserve tracked source integrity
+        run: |
+          git diff --exit-code
+          test -z "$(git status --porcelain)"
+      - name: Record the job outcome even on failure
+        if: ${{ always() }}
+        env:
+          CI_JOB_STATUS: ${{ job.status }}
+        run: |
+          mkdir -p "$CI_EVIDENCE_DIR"
+          printf '%s\n' "$CI_JOB_STATUS" > "$CI_EVIDENCE_DIR/job-status.txt"
+      - name: Preserve compact evidence and report archive availability
+        if: ${{ always() }}
+        uses: ./.github/actions/preserve-evidence
+        with:
+          job-status: ${{ job.status }}
+          full-evidence: ${{ github.event_name == 'workflow_dispatch' && inputs.full_evidence }}
+          name: native-window-session-host-checks-evidence
+          required-paths: |
+            build/window-session-ci/evidence/source.json
+            build/window-session-ci/evidence/preflight.json
+            build/window-session-ci/evidence/runner-host.txt
+            build/window-session-ci/evidence/package-host.txt
+          path: |
+            build/window-session-ci/evidence/
+
+  native-window-session:
+    name: native-window-session (${{ matrix.leg }})
+    runs-on: ubuntu-24.04
+    # Independent legs: no needs on host-checks, no artifact hand-off. Each leg
+    # builds its own probe in its own build/target directories and keeps its
+    # own proof. Timeout = harness deadline(s) + 15 min for setup, locked fetch,
+    # probe build and evidence (about 2 min on run 45424451804).
+    timeout-minutes: ${{ matrix.timeout }}
+    strategy:
+      fail-fast: false
+      max-parallel: 3
+      matrix:
+        include:
+          - leg: native-scale1
+            mode: native
+            scale: 1
+            probe_feature: native-window-session-probe
+            proof: native-window-scale-1-proof
+            timeout: 45 # 1800 s harness + 15 min
+          - leg: native-scale2
+            mode: native
+            scale: 2
+            probe_feature: native-window-session-hidpi-probe
+            proof: native-window-scale-2-proof
+            timeout: 60 # 2700 s harness (ADR-WINDOW-SCALE2-DEADLINE-20261112) + 15 min
+          - leg: library
+            mode: library
+            scale: 1
+            probe_feature: native-window-session-probe
+            proof: native-window-library-write-proof
+            timeout: 75 # 2 x 1800 s harness (write, then cold) + 15 min
+          - leg: switcher-scale1
+            mode: switcher
+            scale: 1
+            probe_feature: native-window-session-probe
+            proof: native-window-switcher-scale1-proof
+            timeout: 45 # 1800 s harness + 15 min
+          - leg: switcher-scale2
+            mode: switcher
+            scale: 2
+            probe_feature: native-window-session-hidpi-probe
+            proof: native-window-switcher-scale2-proof
+            timeout: 45 # 1800 s harness + 15 min
+    env:
+      NOS_WINDOW_LEG: ${{ matrix.leg }}
+      NOS_WINDOW_SCALE: ${{ matrix.scale }}
+      NOS_WINDOW_PROBE_FEATURE: ${{ matrix.probe_feature }}
+      NOS_QEMU_MACHINE: pc-q35-8.2
+      NOS_BUILD_DIR: ${{ github.workspace }}/build/window-session-ci/${{ matrix.leg }}
+      NOS_TARGET_DIR: ${{ github.workspace }}/target/window-session-ci-${{ matrix.leg }}-native
+      CARGO_TARGET_DIR: ${{ github.workspace }}/target/window-session-ci-${{ matrix.leg }}-host
+      CI_EVIDENCE_DIR: ${{ github.workspace }}/build/window-session-ci/evidence
+      OS_OVMF_CODE: /usr/share/OVMF/OVMF_CODE_4M.fd
+      OS_OVMF_VARS: /usr/share/OVMF/OVMF_VARS_4M.fd
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Pinned Python
+        uses: ./.github/actions/setup-python
+      - name: Prepare source-bound evidence
+        run: |
+          mkdir -p "$CI_EVIDENCE_DIR" "$NOS_BUILD_DIR/logs"
+          python3 -B - <<'PY' > "$CI_EVIDENCE_DIR/source.json"
+          import json, subprocess, sys
+          sys.path.insert(0, "tools")
+          from common import source_hash
+          print(json.dumps({
+              "source_commit": subprocess.check_output(["git", "rev-parse", "HEAD"], text=True).strip(),
+              "source_sha256": source_hash(),
+              "source_fingerprint_version": 3,
+          }, indent=2))
+          PY
+      - name: Pinned Rust, lint tools and real targets
+        run: |
+          rustup toolchain install 1.100.0 --profile minimal
+          rustup component add --toolchain 1.100.0 rustfmt clippy
+          rustup target add --toolchain 1.100.0 x86_64-unknown-none x86_64-unknown-uefi
+          rustc +1.100.0 -vV > "$CI_EVIDENCE_DIR/rustc.txt"
+          cargo +1.100.0 --version > "$CI_EVIDENCE_DIR/cargo.txt"
+      - name: Cache Cargo downloads only
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: |
+            ~/.cargo/registry/index
+            ~/.cargo/registry/cache
+          key: cargo-downloads-v1-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('**/Cargo.lock') }}
+      - name: Pinned QEMU and OVMF
+        uses: ./.github/actions/setup-qemu
+      - name: Ubuntu emulator package diagnostics
+        if: ${{ runner.os == 'Linux' }}
+        shell: bash
+        run: |
+          for path in \
+            "$OS_OVMF_CODE" "$OS_OVMF_VARS" \
+            /usr/share/seabios/bios-256k.bin \
+            /usr/share/seabios/vgabios-stdvga.bin \
+            /usr/share/doc/ovmf/copyright \
+            /usr/share/doc/seabios/copyright
+          do
+            test -f "$path"
+          done
+          dpkg-query -W qemu-system-x86 ovmf seabios > "$CI_EVIDENCE_DIR/packages.txt"
+          qemu-system-x86_64 --version > "$CI_EVIDENCE_DIR/qemu.txt"
+      - name: Fetch every locked app dependency before offline builders
+        run: |
+          cargo +1.100.0 fetch --locked
+          for manifest in \
+            sdk/Cargo.toml \
+            sdk/examples/materiaal/Cargo.toml \
+            sdk/examples/input-service/Cargo.toml \
+            sdk/examples/window-session/Cargo.toml \
+            sdk/examples/calculator/Cargo.toml \
+            ui/graphics/Cargo.toml \
+            ui/native/Cargo.toml \
+            ui/surface-protocol/Cargo.toml
+          do
+            cargo +1.100.0 fetch --locked --manifest-path "$manifest"
+          done
       - name: Build the eight-process native window probe
         # No image/target cache: the existing builder inspects and embeds all
         # eight fresh CPL3 ELFs plus the current own kernel and UEFI loader.
@@ -138,6 +278,7 @@ jobs:
         run: python3 -B -u tools/build.py --kernel-feature "$NOS_WINDOW_PROBE_FEATURE" 2>&1 | tee "$CI_EVIDENCE_DIR/probe-build.txt"
       - name: Actual input, unmasked pixels, isolation, crash recovery and disk
         id: native-gate
+        if: ${{ matrix.mode == 'native' }}
         run: |
           # Scale 1 keeps the preregistered 1800 s; scale 2 needs a wider
           # harness deadline on slower hosted runners (ADR-WINDOW-SCALE2-DEADLINE-20261112).
@@ -179,7 +320,7 @@ jobs:
           PY
       - name: Native material names, collections, search and revision recovery
         # Library walkthrough and cold parent are 100%-profile gates.
-        if: ${{ matrix.scale == 1 }}
+        if: ${{ matrix.mode == 'library' }}
         run: |
           python3 -B -u tools/run_window_session.py \
             --library --timeout 1800 \
@@ -199,8 +340,8 @@ jobs:
           (output / "library-parent.txt").write_text(report["run_directory"] + "\n")
           PY
       - name: Cold reopen the source-bound disposable library image
-        # Library walkthrough and cold parent are 100%-profile gates.
-        if: ${{ matrix.scale == 1 }}
+        # Reopens the parent written by the previous step of this same leg.
+        if: ${{ matrix.mode == 'library' }}
         run: |
           read -r library_parent < "$CI_EVIDENCE_DIR/library-parent.txt"
           python3 -B -u tools/run_window_session.py \
@@ -219,28 +360,16 @@ jobs:
           assert report["volume_sha256"] == report["library_parent"]["volume_sha256"]
           (Path(os.environ["CI_EVIDENCE_DIR"]) / "library-cold-report.json").write_bytes(path.read_bytes())
           PY
-      - name: Native window-switcher partial gate at 100% and 200%
-        if: ${{ matrix.scale == 1 }}
-        env:
-          CARGO_NET_OFFLINE: 'true'
+      - name: Native window-switcher partial gate at 100% or 200%
+        if: ${{ matrix.mode == 'switcher' }}
         run: |
           set -euo pipefail
-          for scale in 1 2; do
-            if [ "$scale" -eq 1 ]; then
-              feature=native-window-session-probe
-            else
-              feature=native-window-session-hidpi-probe
-            fi
-            export NOS_BUILD_DIR="$GITHUB_WORKSPACE/build/window-session-ci/switcher-scale$scale"
-            export NOS_TARGET_DIR="$GITHUB_WORKSPACE/target/window-session-ci-switcher-scale$scale"
-            python3 -B -u tools/build.py --kernel-feature "$feature" \
-              2>&1 | tee "$CI_EVIDENCE_DIR/switcher-build-scale$scale.txt"
-            python3 -B -u tools/run_window_session.py \
-              --switcher --scale "$scale" --timeout 1800 \
-              --bios-rom /usr/share/seabios/bios-256k.bin \
-              --vga-rom /usr/share/seabios/vgabios-stdvga.bin \
-              2>&1 | tee "$CI_EVIDENCE_DIR/switcher-native-scale$scale.txt"
-            python3 - "$scale" <<'PY'
+          python3 -B -u tools/run_window_session.py \
+            --switcher --scale "$NOS_WINDOW_SCALE" --timeout 1800 \
+            --bios-rom /usr/share/seabios/bios-256k.bin \
+            --vga-rom /usr/share/seabios/vgabios-stdvga.bin \
+            2>&1 | tee "$CI_EVIDENCE_DIR/switcher-native-scale$NOS_WINDOW_SCALE.txt"
+          python3 - "$NOS_WINDOW_SCALE" <<'PY'
           import json, os, sys
           from pathlib import Path
           scale = int(sys.argv[1])
@@ -253,43 +382,6 @@ jobs:
           output = Path(os.environ["CI_EVIDENCE_DIR"])
           (output / f"switcher-native-scale{scale}.json").write_bytes(path.read_bytes())
           PY
-          done
-      - name: Build the normal window session only after native acceptance
-        if: ${{ success() && steps.native-gate.outcome == 'success' }}
-        env:
-          NOS_BUILD_DIR: ${{ github.workspace }}/build/window-session-ci/normal
-          CARGO_NET_OFFLINE: 'true'
-        # Separate build directories retain the probe manifest and every tested
-        # input. Packaging never substitutes the fault-injection probe image.
-        run: python3 -B -u tools/build.py --kernel-feature "$NOS_WINDOW_NORMAL_FEATURE" 2>&1 | tee "$CI_EVIDENCE_DIR/normal-build.txt"
-      - name: Package the reviewable Windows QEMU bundle
-        if: ${{ success() && steps.native-gate.outcome == 'success' && matrix.scale == 1 }}
-        env:
-          NOS_BUILD_DIR: ${{ github.workspace }}/build/window-session-ci/normal
-        # Ubuntu packaging and Linux native execution do not claim Windows
-        # runtime acceptance. The package manifest keeps that boundary explicit.
-        run: |
-          python3 -B -u tools/package_windows_qemu.py \
-            --output "$CI_EVIDENCE_DIR/NieuwOS-Venstersessie-Windows-QEMU.zip" \
-            --ovmf-code "$OS_OVMF_CODE" \
-            --ovmf-vars "$OS_OVMF_VARS" \
-            --seabios-bios /usr/share/seabios/bios-256k.bin \
-            --vga-rom /usr/share/seabios/vgabios-stdvga.bin \
-            --ovmf-license /usr/share/doc/ovmf/copyright \
-            --seabios-license /usr/share/doc/seabios/copyright \
-            --ovmf-version "$(dpkg-query -W -f='${Version}' ovmf)" \
-            --seabios-version "$(dpkg-query -W -f='${Version}' seabios)" \
-            2>&1 | tee "$CI_EVIDENCE_DIR/package.json"
-          sha256sum "$CI_EVIDENCE_DIR/NieuwOS-Venstersessie-Windows-QEMU.zip" > "$CI_EVIDENCE_DIR/package.sha256"
-      - name: Cross-build the read-only grant profile (U03-T3 part 1)
-        if: ${{ matrix.scale == 1 }}
-        env:
-          NOS_BUILD_DIR: ${{ github.workspace }}/build/window-session-ci/readonly-compile
-          NOS_TARGET_DIR: ${{ github.workspace }}/target/window-session-ci-readonly-compile
-          CARGO_NET_OFFLINE: 'true'
-        # Compile the cfg-gated kernel checks. The service-refusal walkthrough
-        # belongs to part 2 and is not exercised or accepted by this step.
-        run: python3 -B -u tools/build.py --kernel-feature test-window-session-readonly 2>&1 | tee "$CI_EVIDENCE_DIR/readonly-profile-compile.txt"
       - name: Preserve tracked source integrity
         run: |
           git diff --exit-code
@@ -304,13 +396,16 @@ jobs:
           import json, os, re
           from pathlib import Path
           root = Path(os.environ["GITHUB_WORKSPACE"]).resolve()
+          leg = os.environ["NOS_WINDOW_LEG"]
           scale = int(os.environ["NOS_WINDOW_SCALE"])
-          plans = {"native": ("probe", scale, "native")}
-          if scale == 1:
-              plans.update({"library-write": ("probe", 1, "library-write"),
-                            "library-cold": ("probe", 1, "library-cold"),
-                            "switcher-scale1": ("switcher-scale1", 1, "switcher"),
-                            "switcher-scale2": ("switcher-scale2", 2, "switcher")})
+          # Each leg owns one build directory; the library leg holds two runs.
+          plans = {"native-scale1": {"primary": (1, "native")},
+                   "native-scale2": {"primary": (2, "native")},
+                   "library": {"primary": (1, "library-write"), "library-cold": (1, "library-cold")},
+                   "switcher-scale1": {"primary": (1, "switcher")},
+                   "switcher-scale2": {"primary": (2, "switcher")}}[leg]
+          if any(expected_scale != scale for expected_scale, _ in plans.values()):
+              raise SystemExit("Leg scale differs from its proof plan: " + leg)
           def mode(report):
               if report.get("library_requested") is True:
                   return "library-cold" if report.get("library_cold") is True else "library-write"
@@ -320,9 +415,9 @@ jobs:
                   return "native"
               return "other"
           outputs, missing = {}, []
-          for role, (profile, expected_scale, expected_mode) in plans.items():
+          for role, (expected_scale, expected_mode) in plans.items():
               matches = []
-              for path in sorted((root / "build/window-session-ci" / profile / "run").glob("window-*/result.json")):
+              for path in sorted((root / "build/window-session-ci" / leg / "run").glob("window-*/result.json")):
                   if (path.is_symlink() or path.parent.is_symlink()
                           or not re.fullmatch(r"window-[0-9a-f]{32}", path.parent.name)
                           or not path.resolve().is_relative_to(root)
@@ -336,18 +431,15 @@ jobs:
                       raise SystemExit("Native proof source or run directory differs: " + str(path))
                   matches.append(path.parent.relative_to(root).as_posix())
               if len(matches) > 1:
-                  raise SystemExit("Ambiguous native proof for " + role)
+                  raise SystemExit("Ambiguous native proof for " + leg + "/" + expected_mode)
               if not matches:
-                  missing.append(role)
+                  missing.append(leg + "/" + expected_mode)
               # Missing paths remain required. Failed jobs retain whatever exists;
               # successful jobs cannot silently turn missing evidence into a pass.
-              run = matches[0] if matches else "build/window-session-ci/missing/" + role
+              run = matches[0] if matches else "build/window-session-ci/missing/" + expected_mode
               outputs[role + "-report"] = run + "/result.json"
               outputs[role + "-serial"] = run + "/serial.txt"
-          common = ["evidence/source.json", "probe/manifest.json", "normal/manifest.json"]
-          if scale == 1:
-              common += ["evidence/package.json", "evidence/package.sha256",
-                         "readonly-compile/manifest.json", "evidence/readonly-profile-compile.txt"]
+          common = ["evidence/source.json", leg + "/manifest.json"]
           with Path(os.environ["GITHUB_OUTPUT"]).open("a") as target:
               for key, value in outputs.items():
                   target.write(key + "=" + value + "\n")
@@ -366,34 +458,19 @@ jobs:
         if: ${{ always() }}
         uses: ./.github/actions/preserve-evidence
         with:
-          name: native-window-scale-${{ matrix.scale }}-proof
+          name: ${{ matrix.proof }}
           job-status: ${{ job.status }}
           full-evidence: 'false'
           max-file-bytes: '4194304'
           path: |
-            ${{ steps.window-proof-paths.outputs.native-report }}
-            ${{ steps.window-proof-paths.outputs.native-serial }}
+            ${{ steps.window-proof-paths.outputs.primary-report }}
+            ${{ steps.window-proof-paths.outputs.primary-serial }}
           required-paths: |
-            ${{ steps.window-proof-paths.outputs.native-report }}
-            ${{ steps.window-proof-paths.outputs.native-serial }}
-      - name: Preserve complete library write proof
-        id: window-library-write-proof
-        if: ${{ always() && matrix.scale == 1 }}
-        uses: ./.github/actions/preserve-evidence
-        with:
-          name: native-window-library-write-proof
-          job-status: ${{ job.status }}
-          full-evidence: 'false'
-          max-file-bytes: '4194304'
-          path: |
-            ${{ steps.window-proof-paths.outputs.library-write-report }}
-            ${{ steps.window-proof-paths.outputs.library-write-serial }}
-          required-paths: |
-            ${{ steps.window-proof-paths.outputs.library-write-report }}
-            ${{ steps.window-proof-paths.outputs.library-write-serial }}
+            ${{ steps.window-proof-paths.outputs.primary-report }}
+            ${{ steps.window-proof-paths.outputs.primary-serial }}
       - name: Preserve complete library cold proof
         id: window-library-cold-proof
-        if: ${{ always() && matrix.scale == 1 }}
+        if: ${{ always() && matrix.mode == 'library' }}
         uses: ./.github/actions/preserve-evidence
         with:
           name: native-window-library-cold-proof
@@ -406,36 +483,242 @@ jobs:
           required-paths: |
             ${{ steps.window-proof-paths.outputs.library-cold-report }}
             ${{ steps.window-proof-paths.outputs.library-cold-serial }}
-      - name: Preserve complete switcher scale 1 proof
-        id: window-switcher-scale1-proof
-        if: ${{ always() && matrix.scale == 1 }}
+      - name: Record the job outcome even on failure
+        if: ${{ always() }}
+        env:
+          CI_JOB_STATUS: ${{ job.status }}
+        run: |
+          mkdir -p "$CI_EVIDENCE_DIR"
+          printf '%s\n' "$CI_JOB_STATUS" > "$CI_EVIDENCE_DIR/job-status.txt"
+      - name: Preserve compact evidence and report archive availability
+        if: ${{ always() }}
         uses: ./.github/actions/preserve-evidence
         with:
-          name: native-window-switcher-scale1-proof
           job-status: ${{ job.status }}
-          full-evidence: 'false'
-          max-file-bytes: '4194304'
+          full-evidence: ${{ github.event_name == 'workflow_dispatch' && inputs.full_evidence }}
+          name: native-window-session-${{ matrix.leg }}-evidence
+          required-paths: ${{ steps.window-proof-paths.outputs.common-required }}
           path: |
-            ${{ steps.window-proof-paths.outputs.switcher-scale1-report }}
-            ${{ steps.window-proof-paths.outputs.switcher-scale1-serial }}
-          required-paths: |
-            ${{ steps.window-proof-paths.outputs.switcher-scale1-report }}
-            ${{ steps.window-proof-paths.outputs.switcher-scale1-serial }}
-      - name: Preserve complete switcher scale 2 proof
-        id: window-switcher-scale2-proof
-        if: ${{ always() && matrix.scale == 1 }}
+            build/window-session-ci/evidence/
+            build/window-session-ci/${{ matrix.leg }}/manifest.json
+            build/window-session-ci/${{ matrix.leg }}/users/materiaal/build-report.json
+            build/window-session-ci/${{ matrix.leg }}/logs/
+            build/window-session-ci/${{ matrix.leg }}/esp/
+            build/window-session-ci/${{ matrix.leg }}/window-session-report.json
+            build/window-session-ci/${{ matrix.leg }}/run/window-*/result.json
+            build/window-session-ci/${{ matrix.leg }}/run/window-*/serial.txt
+            build/window-session-ci/${{ matrix.leg }}/run/window-*/stderr.txt
+            build/window-session-ci/${{ matrix.leg }}/run/window-*/volume.img
+            build/window-session-ci/${{ matrix.leg }}/run/window-*/*.ppm
+            build/window-session-ci/${{ matrix.leg }}/window-fixture-*/fixture.json
+            build/window-session-ci/${{ matrix.leg }}/window-fixture-*/generator.log
+            build/window-session-ci/${{ matrix.leg }}/window-fixture-*/*.ppm
+
+  readonly-compile:
+    runs-on: ubuntu-24.04
+    # Compile only: 15 s build plus about 2 min setup on run 45424451804.
+    timeout-minutes: 20
+    env:
+      NOS_BUILD_DIR: ${{ github.workspace }}/build/window-session-ci/readonly-compile
+      NOS_TARGET_DIR: ${{ github.workspace }}/target/window-session-ci-readonly-compile
+      CARGO_TARGET_DIR: ${{ github.workspace }}/target/window-session-ci-readonly-compile-host
+      CI_EVIDENCE_DIR: ${{ github.workspace }}/build/window-session-ci/evidence
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Pinned Python
+        uses: ./.github/actions/setup-python
+      - name: Prepare source-bound evidence
+        run: |
+          mkdir -p "$CI_EVIDENCE_DIR" "$NOS_BUILD_DIR/logs"
+          python3 -B - <<'PY' > "$CI_EVIDENCE_DIR/source.json"
+          import json, subprocess, sys
+          sys.path.insert(0, "tools")
+          from common import source_hash
+          print(json.dumps({
+              "source_commit": subprocess.check_output(["git", "rev-parse", "HEAD"], text=True).strip(),
+              "source_sha256": source_hash(),
+              "source_fingerprint_version": 3,
+          }, indent=2))
+          PY
+      - name: Pinned Rust, lint tools and real targets
+        run: |
+          rustup toolchain install 1.100.0 --profile minimal
+          rustup component add --toolchain 1.100.0 rustfmt clippy
+          rustup target add --toolchain 1.100.0 x86_64-unknown-none x86_64-unknown-uefi
+          rustc +1.100.0 -vV > "$CI_EVIDENCE_DIR/rustc.txt"
+          cargo +1.100.0 --version > "$CI_EVIDENCE_DIR/cargo.txt"
+      - name: Cache Cargo downloads only
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: |
+            ~/.cargo/registry/index
+            ~/.cargo/registry/cache
+          key: cargo-downloads-v1-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('**/Cargo.lock') }}
+      - name: Fetch every locked app dependency before offline builders
+        run: |
+          cargo +1.100.0 fetch --locked
+          for manifest in \
+            sdk/Cargo.toml \
+            sdk/examples/materiaal/Cargo.toml \
+            sdk/examples/input-service/Cargo.toml \
+            sdk/examples/window-session/Cargo.toml \
+            sdk/examples/calculator/Cargo.toml \
+            ui/graphics/Cargo.toml \
+            ui/native/Cargo.toml \
+            ui/surface-protocol/Cargo.toml
+          do
+            cargo +1.100.0 fetch --locked --manifest-path "$manifest"
+          done
+      - name: Cross-build the read-only grant profile (U03-T3 part 1)
+        env:
+          CARGO_NET_OFFLINE: 'true'
+        # Compile the cfg-gated kernel checks. The service-refusal walkthrough
+        # belongs to part 2 and is not exercised or accepted by this step.
+        run: python3 -B -u tools/build.py --kernel-feature test-window-session-readonly 2>&1 | tee "$CI_EVIDENCE_DIR/readonly-profile-compile.txt"
+      - name: Preserve tracked source integrity
+        run: |
+          git diff --exit-code
+          test -z "$(git status --porcelain)"
+      - name: Record the job outcome even on failure
+        if: ${{ always() }}
+        env:
+          CI_JOB_STATUS: ${{ job.status }}
+        run: |
+          mkdir -p "$CI_EVIDENCE_DIR"
+          printf '%s\n' "$CI_JOB_STATUS" > "$CI_EVIDENCE_DIR/job-status.txt"
+      - name: Preserve compact evidence and report archive availability
+        if: ${{ always() }}
         uses: ./.github/actions/preserve-evidence
         with:
-          name: native-window-switcher-scale2-proof
           job-status: ${{ job.status }}
-          full-evidence: 'false'
-          max-file-bytes: '4194304'
-          path: |
-            ${{ steps.window-proof-paths.outputs.switcher-scale2-report }}
-            ${{ steps.window-proof-paths.outputs.switcher-scale2-serial }}
+          full-evidence: ${{ github.event_name == 'workflow_dispatch' && inputs.full_evidence }}
+          name: native-window-session-readonly-compile-evidence
           required-paths: |
-            ${{ steps.window-proof-paths.outputs.switcher-scale2-report }}
-            ${{ steps.window-proof-paths.outputs.switcher-scale2-serial }}
+            build/window-session-ci/evidence/source.json
+            build/window-session-ci/readonly-compile/manifest.json
+            build/window-session-ci/evidence/readonly-profile-compile.txt
+          path: |
+            build/window-session-ci/evidence/
+            build/window-session-ci/readonly-compile/manifest.json
+            build/window-session-ci/readonly-compile/logs/
+
+  normal-and-package:
+    # Normal profiles are built and packaged only after every host, native and
+    # read-only gate passed. Packaging reads only this job's normal build
+    # directory; it never sees the fault-injection probe image.
+    needs: [host-checks, native-window-session, readonly-compile]
+    runs-on: ubuntu-24.04
+    # Normal build (4 s) and packaging (1 s) plus about 2 min setup on run 45424451804.
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        scale: [1, 2]
+    env:
+      NOS_WINDOW_SCALE: ${{ matrix.scale }}
+      NOS_WINDOW_NORMAL_FEATURE: ${{ matrix.scale == 2 && 'native-window-session-hidpi' || 'native-window-session' }}
+      NOS_BUILD_DIR: ${{ github.workspace }}/build/window-session-ci/normal
+      NOS_TARGET_DIR: ${{ github.workspace }}/target/window-session-ci-normal
+      CARGO_TARGET_DIR: ${{ github.workspace }}/target/window-session-ci-normal-host
+      CI_EVIDENCE_DIR: ${{ github.workspace }}/build/window-session-ci/evidence
+      OS_OVMF_CODE: /usr/share/OVMF/OVMF_CODE_4M.fd
+      OS_OVMF_VARS: /usr/share/OVMF/OVMF_VARS_4M.fd
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Pinned Python
+        uses: ./.github/actions/setup-python
+      - name: Prepare source-bound evidence
+        run: |
+          mkdir -p "$CI_EVIDENCE_DIR" "$NOS_BUILD_DIR/logs"
+          python3 -B - <<'PY' > "$CI_EVIDENCE_DIR/source.json"
+          import json, subprocess, sys
+          sys.path.insert(0, "tools")
+          from common import source_hash
+          print(json.dumps({
+              "source_commit": subprocess.check_output(["git", "rev-parse", "HEAD"], text=True).strip(),
+              "source_sha256": source_hash(),
+              "source_fingerprint_version": 3,
+          }, indent=2))
+          PY
+      - name: Pinned Rust, lint tools and real targets
+        run: |
+          rustup toolchain install 1.100.0 --profile minimal
+          rustup component add --toolchain 1.100.0 rustfmt clippy
+          rustup target add --toolchain 1.100.0 x86_64-unknown-none x86_64-unknown-uefi
+          rustc +1.100.0 -vV > "$CI_EVIDENCE_DIR/rustc.txt"
+          cargo +1.100.0 --version > "$CI_EVIDENCE_DIR/cargo.txt"
+      - name: Cache Cargo downloads only
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: |
+            ~/.cargo/registry/index
+            ~/.cargo/registry/cache
+          key: cargo-downloads-v1-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('**/Cargo.lock') }}
+      - name: Pinned QEMU and OVMF
+        uses: ./.github/actions/setup-qemu
+      - name: Ubuntu emulator package diagnostics
+        if: ${{ runner.os == 'Linux' }}
+        shell: bash
+        run: |
+          for path in \
+            "$OS_OVMF_CODE" "$OS_OVMF_VARS" \
+            /usr/share/seabios/bios-256k.bin \
+            /usr/share/seabios/vgabios-stdvga.bin \
+            /usr/share/doc/ovmf/copyright \
+            /usr/share/doc/seabios/copyright
+          do
+            test -f "$path"
+          done
+          dpkg-query -W qemu-system-x86 ovmf seabios > "$CI_EVIDENCE_DIR/packages.txt"
+          qemu-system-x86_64 --version > "$CI_EVIDENCE_DIR/qemu.txt"
+      - name: Fetch every locked app dependency before offline builders
+        run: |
+          cargo +1.100.0 fetch --locked
+          for manifest in \
+            sdk/Cargo.toml \
+            sdk/examples/materiaal/Cargo.toml \
+            sdk/examples/input-service/Cargo.toml \
+            sdk/examples/window-session/Cargo.toml \
+            sdk/examples/calculator/Cargo.toml \
+            ui/graphics/Cargo.toml \
+            ui/native/Cargo.toml \
+            ui/surface-protocol/Cargo.toml
+          do
+            cargo +1.100.0 fetch --locked --manifest-path "$manifest"
+          done
+      - name: Build the normal window session only after native acceptance
+        env:
+          CARGO_NET_OFFLINE: 'true'
+        # Separate jobs retain the probe manifest and every tested input.
+        # Packaging never substitutes the fault-injection probe image.
+        run: python3 -B -u tools/build.py --kernel-feature "$NOS_WINDOW_NORMAL_FEATURE" 2>&1 | tee "$CI_EVIDENCE_DIR/normal-build.txt"
+      - name: Package the reviewable Windows QEMU bundle
+        if: ${{ success() && matrix.scale == 1 }}
+        # Ubuntu packaging and Linux native execution do not claim Windows
+        # runtime acceptance. The package manifest keeps that boundary explicit.
+        run: |
+          python3 -B -u tools/package_windows_qemu.py \
+            --output "$CI_EVIDENCE_DIR/NieuwOS-Venstersessie-Windows-QEMU.zip" \
+            --ovmf-code "$OS_OVMF_CODE" \
+            --ovmf-vars "$OS_OVMF_VARS" \
+            --seabios-bios /usr/share/seabios/bios-256k.bin \
+            --vga-rom /usr/share/seabios/vgabios-stdvga.bin \
+            --ovmf-license /usr/share/doc/ovmf/copyright \
+            --seabios-license /usr/share/doc/seabios/copyright \
+            --ovmf-version "$(dpkg-query -W -f='${Version}' ovmf)" \
+            --seabios-version "$(dpkg-query -W -f='${Version}' seabios)" \
+            2>&1 | tee "$CI_EVIDENCE_DIR/package.json"
+          sha256sum "$CI_EVIDENCE_DIR/NieuwOS-Venstersessie-Windows-QEMU.zip" > "$CI_EVIDENCE_DIR/package.sha256"
+      - name: Preserve tracked source integrity
+        run: |
+          git diff --exit-code
+          test -z "$(git status --porcelain)"
       - name: Record the job outcome even on failure
         if: ${{ always() }}
         env:
@@ -451,23 +734,13 @@ jobs:
           job-status: ${{ job.status }}
           full-evidence: ${{ github.event_name == 'workflow_dispatch' && inputs.full_evidence }}
           name: native-window-session-scale-${{ matrix.scale }}-evidence-and-windows-bundle
-          required-paths: ${{ steps.window-proof-paths.outputs.common-required }}
+          required-paths: |
+            build/window-session-ci/evidence/source.json
+            build/window-session-ci/normal/manifest.json
+            ${{ matrix.scale == 1 && 'build/window-session-ci/evidence/package.json' || '' }}
+            ${{ matrix.scale == 1 && 'build/window-session-ci/evidence/package.sha256' || '' }}
           path: |
             build/window-session-ci/evidence/
-            build/window-session-ci/probe/manifest.json
-            build/window-session-ci/probe/users/materiaal/build-report.json
-            build/window-session-ci/probe/logs/
-            build/window-session-ci/probe/esp/
-            build/window-session-ci/probe/window-session-report.json
-            build/window-session-ci/probe/run/window-*/result.json
-            build/window-session-ci/probe/run/window-*/serial.txt
-            build/window-session-ci/probe/run/window-*/stderr.txt
-            build/window-session-ci/probe/run/window-*/volume.img
-            build/window-session-ci/probe/run/window-*/*.ppm
-            build/window-session-ci/probe/window-fixture-*/fixture.json
-            build/window-session-ci/probe/window-fixture-*/generator.log
-            build/window-session-ci/probe/window-fixture-*/*.ppm
             build/window-session-ci/normal/manifest.json
             build/window-session-ci/normal/users/materiaal/build-report.json
             build/window-session-ci/normal/logs/
-            build/window-session-ci/readonly-compile/manifest.json
