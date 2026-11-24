@@ -3,7 +3,7 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-24",
-    "source_commit": "dfca280a35a78d4f1f00b143bb5198ab733bfd87",
+    "source_commit": "e5ab3693f7b1d22b5a1eaa2d845183bd47f263ab",
     "assessment_basis": "reviewed_main_commit",
     "branch": "claude/ui-u-recovery-copy-20261124",
     "task": "U05: specific Full/Quota/known-I/O save-failure copy and room for long compact status labels (UX-SR07, UX-SR11)",
@@ -906,7 +906,7 @@
             "verification": [
               "native"
             ],
-            "observation": "All HW-FR entries are pending or unsupported with evidence_level none; H06-T4 prepares protocols and signature validation only. H06-T3 adds a read-only native-hw-inventory kernel/loader pair that emits the HW-INV markers; it passes two QEMU configurations against QMP query-pci and configured CPUID/DMAR, and its inventory is rejected as a virtual capture.",
+            "observation": "All HW-FR entries are pending or unsupported with evidence_level none; H06-T4 prepares protocols and signature validation only. H06-T3 adds a read-only native-hw-inventory kernel/loader pair that emits the HW-INV markers; it passes two QEMU configurations against QMP query-pci and configured CPUID/DMAR,, and its inventory is rejected as a virtual capture. H06-T5 makes every terminal path of that pair halt without port 0xF4 (four QEMU fixtures).",
             "remaining": "Physical operators, authorization and signed actual runs remain missing; host validation of evidence format proves no device support.",
             "evidence": [
               "docs/drivers/hardware-matrix.json",

@@ -70,7 +70,7 @@
   "protocols": [
     {
       "id": "HW-INV",
-      "version": 2,
+      "version": 3,
       "criterion": "H06",
       "fr_rows": ["FR-H03", "FR-R03"],
       "title": "Read-only native hardware inventory of the reference PC",
@@ -84,7 +84,6 @@
       "status": "blocked",
       "blocking_reasons": [
         "No physical boot image exists: tools/build.py exports an ESP directory for QEMU's virtual FAT backend and tools/repro_check.py compares only that ESP payload manifest, so there is no removable-media image or image SHA-256 to bind.",
-        "The native-hw-inventory pass and HWINV:FAIL paths halt with CLI/HLT and never write port 0xF4, but kernel panics and the shared M1/M2 failure paths still call exit() in kernel/src/serial.rs, which writes QEMU's isa-debug-exit port 0xF4; that port is undefined on physical PCs, so a physical image first needs a halt-based terminal path for those paths too.",
         "The HW-FR target is null and docs/drivers/hw-allowed-signers lists no signer (owner decisions OD-HW-TARGETS and OD-HW-SIGNERS).",
         "The output capture route is undecided (OD-HW-CAPTURE): COM1 output needs a physical serial port and a cable to a second computer; on-screen output of the markers is not demonstrated."
       ],
@@ -106,7 +105,7 @@
         {"id": "S6", "actor": "host", "action": "Convert the HWINV lines into the inventory JSON, compute the SHA-256 of serial log and inventory, write the record in a new docs/verification child directory and sign it.", "expect": "tools/hw_evidence.py --check accepts the record."}
       ],
       "required_markers": ["BOOT:EBS_OK", "KERNEL:ENTRY", "BOOTINFO:OK", "HWINV:BEGIN", "HWINV:CPUID:*", "HWINV:SECUREBOOT=*", "HWINV:ACPI:DMAR=*", "HWINV:PCI:COUNT=*", "HWINV:PASS"],
-      "failure_markers": ["KERNEL_PANIC*", "M2:PANIC_LINE:*", "M1:FAIL*", "HWINV:FAIL*"],
+      "failure_markers": ["KERNEL_PANIC*", "M2:PANIC_LINE:*", "M1:FAIL*", "M2:FAIL*", "HWINV:FAIL*"],
       "device_markers": {},
       "forbidden_actions": ["no-firmware-flash", "no-firmware-settings-save", "no-bootorder-change", "removable-media-only", "no-internal-disk-access", "no-secure-boot-key-change", "no-personal-data"],
       "recovery_route": [

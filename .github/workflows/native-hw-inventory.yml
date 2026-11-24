@@ -28,7 +28,7 @@ defaults:
 jobs:
   native-hw-inventory:
     runs-on: ubuntu-24.04
-    timeout-minutes: 15
+    timeout-minutes: 25
     env:
       NOS_QEMU_MACHINE: pc-q35-8.2
       NOS_BUILD_DIR: ${{ github.workspace }}/build/hwinv-native
@@ -67,6 +67,17 @@ jobs:
           python3 -B tools/build.py --kernel-feature native-hw-inventory
       - name: Plain and VT-d inventory boots against QMP query-pci
         run: python3 -B tools/run_hw_inventory.py --case all --run-root "$NOS_BUILD_DIR/runs"
+      - name: Missing-kernel loader failure halts without port 0xF4
+        run: python3 -B tools/run_hw_inventory.py --case missing-kernel --run-root "$NOS_BUILD_DIR/runs"
+      - name: Panic, M2 exception and HWINV:FAIL fixtures halt without port 0xF4
+        run: |
+          base="$NOS_BUILD_DIR"
+          for pair in panic:test-hwinv-panic m2-fault:test-hwinv-m2-fault hwinv-fail:test-hwinv-fail; do
+            fixture="${pair%%:*}"
+            export NOS_BUILD_DIR="$base/fixture-$fixture"
+            python3 -B tools/build.py --kernel-feature "${pair#*:}"
+            python3 -B tools/run_hw_inventory.py --case "$fixture" --run-root "$base/runs"
+          done
       - name: Preserve compact evidence and report archive availability
         if: ${{ always() }}
         uses: ./.github/actions/preserve-evidence
