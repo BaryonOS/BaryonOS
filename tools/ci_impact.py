@@ -338,8 +338,8 @@ def validate(catalogue):
             add(f"{where}: events must be a non-empty list of unique strings")
             wf_events = []
         obligation = workflow.get("obligation", [])
-        if not _list_of_str(obligation) or any(not CITATION_RE.fullmatch(c) for c in obligation):
-            add(f"{where}: obligation must be a list of 'file:line' citations")
+        if not isinstance(obligation, list) or not all(_citation_ok(c) for c in obligation):
+            add(f"{where}: obligation must be a list of {{ cite = 'file:line', anchor = '<text on that line>' }}")
             obligation = []
         trigger = workflow.get("trigger", {})
         if not isinstance(trigger, dict):
@@ -458,6 +458,12 @@ def validate(catalogue):
                 add(f"check name {execution['check_name']!r} used by {other} and {execution['id']}")
             seen_checks[execution["check_name"]] = execution["id"]
     return problems
+
+
+def _citation_ok(citation):
+    return isinstance(citation, dict) and set(citation) == {"cite", "anchor"} \
+        and isinstance(citation["cite"], str) and CITATION_RE.fullmatch(citation["cite"]) is not None \
+        and isinstance(citation["anchor"], str) and citation["anchor"].strip() != ""
 
 
 def _has_inputs(table):
@@ -1136,6 +1142,25 @@ def scan_escapes(repo, crate_dirs):
     return found
 
 
+def citation_problem(repo, citation, slack=5):
+    """None when the anchor text is on the cited line(s); otherwise a report string."""
+    cite, anchor = citation["cite"], citation["anchor"]
+    file, _, lines = cite.rpartition(":")
+    first, _, last = lines.partition("-")
+    first, last = int(first), int(last or first)
+    try:
+        with open(os.path.join(repo, file), "rb") as handle:
+            text = handle.read().decode("utf-8", "replace").split("\n")
+    except OSError:
+        return f"citation-missing: {cite}"
+    if any(anchor in line for line in text[first - 1:last]):
+        return None
+    for number in range(max(1, first - slack), min(len(text), last + slack) + 1):
+        if anchor in text[number - 1]:
+            return f"citation-moved: {cite} -> {file}:{number}"
+    return f"citation-anchor-missing: {cite}"
+
+
 def coverage(repo, catalogue_file):
     report = {"schema": COVERAGE_SCHEMA, "schema_version": SCHEMA_VERSION}
     try:
@@ -1156,15 +1181,10 @@ def coverage(repo, catalogue_file):
     problems += workflow_problems(workflows, catalogue)
     for workflow in catalogue["workflow"]:
         for citation in workflow.get("obligation", []):
-            file, _, lines = citation.rpartition(":")
-            last = int(lines.split("-")[-1])
-            try:
-                with open(os.path.join(repo, file), "rb") as handle:
-                    length = handle.read().count(b"\n") + 1
-            except OSError:
-                length = 0
-            if last > length:
-                problems.append(f"citation-missing: {workflow['path']}: {citation}")
+            problem = citation_problem(repo, citation)
+            if problem:
+                kind, _, detail = problem.partition(": ")
+                problems.append(f"{kind}: {workflow['path']}: {detail}")
 
     def read_disk(path):
         try:

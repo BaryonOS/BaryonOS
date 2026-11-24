@@ -74,8 +74,10 @@ binaries), `inputs` (globs) and `evidence` (`file:line`).
 
 `[[workflow]]`: `path`, `owner` (default `ci-owner`), `granularity`
 (`variant`, `job` or `workflow`), `events` (exact `on` keys), `obligation`
-(`file:line` list) and `trigger.<event>` for `pull_request`, `push` and
-`merge_group` with verbatim `types`, `branches`, `paths` or `paths_ignore`.
+(a list of `{ cite = "file:line", anchor = "<text on that line>" }`; `cite`
+may be a `file:first-last` range) and `trigger.<event>` for `pull_request`,
+`push` and `merge_group` with verbatim `types`, `branches`, `paths` or
+`paths_ignore`.
 
 `[[workflow.job]]`: `id`, verbatim `name`, `class`, `activation` (`automatic`,
 `dispatch`, `schedule`, `label:<name>` or `push-branch:<branch>`), verbatim
@@ -192,7 +194,10 @@ python3 -B tools/ci_impact.py coverage   # JSON drift report, always exit 0
 compares the catalogue with `.github/workflows/*.y*ml` (workflows, events,
 trigger filters, jobs, names, conditions, needs, timeouts, max-parallel,
 rendered matrix variants and check names, evidence names), checks obligation
-citations and Cargo roots, scans closure crates for unregistered source
+citations (the anchor must occur on the cited line or range; within five
+lines it reports `citation-moved` with the new line, otherwise
+`citation-anchor-missing` or `citation-missing`) and Cargo roots, scans
+closure crates for unregistered source
 escapes, and classifies every `git ls-files` path. It is a report, not an
 enforcement; enforcement in host-quality is a later phase.
 

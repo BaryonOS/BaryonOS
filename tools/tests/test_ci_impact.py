@@ -63,7 +63,7 @@ path = ".github/workflows/ci.yml"
 owner = "ci-owner"
 granularity = "job"
 events = ["pull_request", "merge_group", "push"]
-obligation = ["README.md:1"]
+obligation = [{ cite = "README.md:1", anchor = "fixture" }]
 
 [[workflow.job]]
 id = "host-quality"
@@ -81,7 +81,7 @@ path = ".github/workflows/leaves.yml"
 owner = "ci-owner"
 granularity = "variant"
 events = ["pull_request", "push", "workflow_dispatch"]
-obligation = ["README.md:1"]
+obligation = [{ cite = "README.md:1", anchor = "fixture" }]
 trigger.pull_request = { paths_ignore = "@metadata" }
 
 [[workflow.job]]
@@ -103,7 +103,7 @@ path = ".github/workflows/net.yml"
 owner = "ci-owner"
 granularity = "job"
 events = ["pull_request", "push"]
-obligation = ["README.md:1"]
+obligation = [{ cite = "README.md:1", anchor = "fixture" }]
 
 [[workflow.job]]
 id = "broker"
@@ -123,7 +123,7 @@ path = ".github/workflows/window.yml"
 owner = "ci-owner"
 granularity = "workflow"
 events = ["pull_request", "push"]
-obligation = ["README.md:1"]
+obligation = [{ cite = "README.md:1", anchor = "fixture" }]
 
 [[workflow.job]]
 id = "a"
@@ -149,7 +149,7 @@ path = ".github/workflows/storage.yml"
 owner = "ci-owner"
 granularity = "workflow"
 events = ["pull_request"]
-obligation = ["README.md:1"]
+obligation = [{ cite = "README.md:1", anchor = "fixture" }]
 trigger.pull_request = { paths = ["kernel/**"] }
 
 [[workflow.job]]
@@ -745,7 +745,10 @@ class CatalogueValidationTests(TestCase):
             (lambda c: wf(c, 0)["job"][0].update(activation="dispatch"), "core jobs must be automatic"),
             (lambda c: wf(c, 2)["job"][0].pop("cargo"), "rwa requires inputs"),
             (lambda c: wf(c, 2).update(obligation=[]), "rwa requires a workflow obligation"),
-            (lambda c: wf(c, 2).update(obligation=["no-line"]), "file:line"),
+            (lambda c: wf(c, 2).update(obligation=[{"cite": "no-line", "anchor": "a"}]), "file:line"),
+            (lambda c: wf(c, 2).update(obligation=["README.md:1"]), "file:line"),
+            (lambda c: wf(c, 2).update(obligation=[{"cite": "README.md:1"}]), "anchor"),
+            (lambda c: wf(c, 2).update(obligation=[{"cite": "README.md:1", "anchor": " "}]), "anchor"),
             (lambda c: wf(c, 2)["job"][1].update(needs=["ghost"]), "needs unknown job ghost"),
             (lambda c: wf(c, 2)["job"][1].update(needs=["merge-hold"]), "no job may need merge-hold"),
             (lambda c: wf(c, 3)["job"][0].update(needs=["c"]), "needs cycle"),
@@ -794,7 +797,7 @@ path = ".github/workflows/ci.yml"
 owner = "ci-owner"
 granularity = "job"
 events = ["pull_request", "push"]
-obligation = ["README.md:1"]
+obligation = [{ cite = "README.md:1", anchor = "fixture" }]
 trigger.pull_request = { types = ["opened"] }
 trigger.push = { branches = ["main"], paths_ignore = "@metadata" }
 
@@ -911,7 +914,7 @@ class CoverageTests(TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             repo = Repo(tmp)
             repo.commit("base", {".github/ci-impact.toml": COVERAGE_CATALOGUE,
-                                 ".github/workflows/ci.yml": COVERAGE_YAML, "README.md": "x\n",
+                                 ".github/workflows/ci.yml": COVERAGE_YAML, "README.md": "fixture\n",
                                  "src/a/lib.rs": "// a\n"})
             report = ci_impact.coverage(tmp, ".github/ci-impact.toml")
             self.assertEqual(report["status"], "clean", report)
@@ -924,6 +927,18 @@ class CoverageTests(TestCase):
             with contextlib.redirect_stdout(io.StringIO()) as out:
                 self.assertEqual(ci_impact.main(["coverage", "--repo", tmp]), 0)
             self.assertEqual(json.loads(out.getvalue())["status"], "drift")
+
+    def test_citation_anchors_are_checked(self):
+        lines = ["one", "two", "three", "the fixture rule", "five", "six", "seven", "eight", "nine"]
+        with tempfile.TemporaryDirectory() as tmp:
+            Path(tmp, "R.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
+            check = lambda cite, anchor: ci_impact.citation_problem(tmp, {"cite": cite, "anchor": anchor})  # noqa: E731
+            self.assertIsNone(check("R.md:4", "fixture rule"))
+            self.assertIsNone(check("R.md:2-5", "fixture rule"))
+            self.assertEqual(check("R.md:8", "fixture rule"), "citation-moved: R.md:8 -> R.md:4")
+            self.assertEqual(check("R.md:1", "absent"), "citation-anchor-missing: R.md:1")
+            self.assertEqual(check("R.md:99", "absent"), "citation-anchor-missing: R.md:99")
+            self.assertEqual(check("gone.md:1", "x"), "citation-missing: gone.md:1")
 
     def test_coverage_without_yaml_is_unavailable(self):
         with mock.patch.dict(sys.modules, {"yaml": None}):
