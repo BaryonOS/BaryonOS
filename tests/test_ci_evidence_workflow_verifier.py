@@ -121,8 +121,11 @@ class WorkflowVerifierTests(unittest.TestCase):
                 self.assertEqual(len(parts), 2 if "base" in name else 5)
                 before = ("      - name: " + name).join(parts[:occurrence])
                 block = ("      - name: " + name).join(parts[occurrence:])
-                block = block.replace("if: ${{ always() }}", "if: ${{ always() && matrix.mode == 'library' }}", 1)
-                path.write_text(before + "      - name: " + name + block)
+                # Mutate only this step's own condition, never a later step's.
+                step, marker, rest = block.partition("\n      - name: ")
+                self.assertIn("if: ${{ always() }}", step)
+                step = step.replace("if: ${{ always() }}", "if: ${{ always() && matrix.mode == 'library' }}", 1)
+                path.write_text(before + "      - name: " + name + step + marker + rest)
                 report = self.report()
                 self.assertFalse(report["passed"])
                 self.assertIn("preservation-invocation:.github/workflows/native-window-session.yml",
