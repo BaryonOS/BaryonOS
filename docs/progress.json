@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-24",
-    "source_commit": "68596f82abf0a7370f8aeed6310c829eadc4c0c7",
-    "assessment_basis": "reviewed_main_commit",
-    "branch": "claude/s09-slice-e-review",
-    "task": "S09 independent review of merged slice E (cases 29-30)",
+    "source_commit": "52cff56858c8721c102780a6a72ac7dfe1a34d9d",
+    "assessment_basis": "parent_commit",
+    "branch": "claude/n02-slirp-negative-dns-20261124",
+    "task": "N02-T6 NXDOMAIN against the real resolver via libslirp",
     "previous_score": 43,
-    "summary": "43/100, unchanged: an independent read-only AI code review of the merged S09 slice E (68596f82, native cut inside an L2 restore and its cold recovery) returned APPROVE with no required change; the spec now marks the unasserted 'appended but not published' state as design inference and lists the optional hardening items as open. No code, stage or criterion change. S09 stays open: the native path is a test-only fixture, and a user-facing production copy/restore/export chain, owner decisions and a human audit remain. The delivery-review inventory stays bound to its 2eb1c63 snapshot; evidence: docs/verification/s09-slice-e-review-20261124/REVIEW-1.md."
+    "summary": "43/100 unchanged. The libslirp case now also resolves the reserved name missing.invalid: app A gets NotFound in-guest, the kernel pins two UDP queries and one additional rejected request, and the runner requires exactly one NXDOMAIN without addresses bound to that query on the wire. The resolver is the host-configured one reached through QEMU user networking; no physical NIC, timeout, truncation or stale-response case is covered, so N02 remains open and earns no points."
   },
   "tracks": [
     {
@@ -1267,8 +1267,8 @@
             "verification": [
               "native"
             ],
-            "observation": "Lease-supplied A resolver with bounded TTL/negative cache/epoch invalidation; native A,NXDOMAIN,wrong-ID/wrong-port refusals and re-resolution after changed lease demonstrated. Later than the 2eb1c63 snapshot, PR #485 (N02-T6) hosted libslirp case: example.com resolved through the CI runner's real resolver; answer bound to the guest's own query ID/port in the pcap.",
-            "remaining": "Real authorized resolver/interoperability scenario not established.",
+            "observation": "Lease-supplied A resolver with bounded TTL/negative cache/epoch invalidation; native A,NXDOMAIN,wrong-ID/wrong-port refusals and re-resolution after changed lease demonstrated. Later than the 2eb1c63 snapshot, PR #485 (N02-T6) hosted libslirp case: example.com resolved through the CI runner's real resolver; answer bound to the guest's own query ID/port in the pcap. N02-T6 NXDOMAIN slice (branch claude/n02-slirp-negative-dns-20261124): the reserved name missing.invalid returns NotFound in-guest and exactly one rcode-3 response without addresses, bound to its own query and name, appears on the wire; NXDOMAIN versus empty NOERROR is distinguished only by the pcap. The answer comes from the host-configured resolver via libslirp.",
+            "remaining": "Real authorized resolver/interoperability scenario not established; DNS timeout, truncation and stale-response cases against a real resolver not run.",
             "evidence": [
               "services/net-protocol/src/resolver.rs",
               "services/network-service/tests/dns_resolve.rs",
