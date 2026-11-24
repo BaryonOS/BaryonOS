@@ -32,6 +32,9 @@ test-usb-hid-readonly-fault = ["native-usb-hid-probe"]
 test-xhci-dma-fault = ["native-xhci-probe"]
 test-xhci-no-dmar = ["native-xhci-probe"]
 native-rtc = ["milestone-m2", "dep:nieuw-os-rtc"]
+# H06-T3: read-only HW-INV inventory (CPUID, SecureBoot, DMAR, PCI identity);
+# no device writes, ends in a halt loop instead of the isa-debug-exit port.
+native-hw-inventory = ["milestone-m2", "dep:pci-core"]
 # H05 step: IF0 M2 profile that ends in a validated ACPI S5 poweroff.
 native-acpi-s5 = ["milestone-m2", "dep:nieuw-os-acpi-power"]
 test-acpi-s5-corrupt-dsdt = ["native-acpi-s5"]

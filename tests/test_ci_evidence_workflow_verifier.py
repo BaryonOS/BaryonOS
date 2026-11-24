@@ -52,12 +52,12 @@ class WorkflowVerifierTests(unittest.TestCase):
                     if check["name"] == key)
 
     def test_integrated_workflows_preserve_all_reporting_cases(self):
-        """A valid baseline retains 20 workflow files and 39 preservation calls."""
+        """A valid baseline retains 21 workflow files and 40 preservation calls."""
         report = self.report()
         self.assertTrue(report["passed"], report["failed_checks"])
-        self.assertEqual(report["archive_workflow_count"], 20)
-        self.assertEqual(len(report["archive_workflows"]), 20)
-        for name in ("native-xhci.yml", "native-hid-input.yml"):
+        self.assertEqual(report["archive_workflow_count"], 21)
+        self.assertEqual(len(report["archive_workflows"]), 21)
+        for name in ("native-xhci.yml", "native-hid-input.yml", "native-hw-inventory.yml"):
             self.assertIn(".github/workflows/" + name, report["archive_workflows"])
         self.assertEqual(report["local_snapshot_baseline"], self.baseline)
         self.assertEqual(report["repository_path"], ".")
@@ -74,8 +74,9 @@ class WorkflowVerifierTests(unittest.TestCase):
             # H02 adds one xHCI and one HID workflow/preservation invocation.
             # Native network extensions add their own DHCP/link/route/sweep reports.
             # Window gates retain five original report/serial pairs separately.
+            # H06 adds one HW-INV inventory workflow/preservation invocation.
             self.assertEqual(sum(check["name"].startswith(prefix)
-                                 for check in report["checks"]), 39)
+                                 for check in report["checks"]), 40)
         self.assertEqual(sum(check["name"].startswith("report-shell:")
                              for check in report["checks"]), 28)
         self.assertEqual(sum(check["name"].startswith("package-check:")

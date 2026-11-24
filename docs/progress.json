@@ -3,7 +3,7 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-24",
-    "source_commit": "16ae48a8bd611ed7a6ba86bfff4126739cb31fc1",
+    "source_commit": "bf0d336abc57d4d850c3a31f7cd0aac5b323921a",
     "assessment_basis": "reviewed_main_commit",
     "branch": "claude/ui-u-recovery-copy-20261124",
     "task": "U05: specific Full/Quota/known-I/O save-failure copy and room for long compact status labels (UX-SR07, UX-SR11)",
@@ -259,7 +259,9 @@
           "points": 1,
           "status": "open",
           "acceptance": "Several predefined representative PC configurations pass the documented hardware matrix; DMA/IOMMU boundaries and limitations are explicit.",
-          "evidence": []
+          "evidence": [
+            "docs/verification/h06-hw-inventory-20261124/README.md"
+          ]
         }
       ]
     },
@@ -901,8 +903,10 @@
           {
             "description": "Each configuration passes the hardware matrix",
             "implementation": "missing",
-            "verification": [],
-            "observation": "All HW-FR entries are pending or unsupported with evidence_level none; H06-T4 prepares protocols and signature validation only.",
+            "verification": [
+              "native"
+            ],
+            "observation": "All HW-FR entries are pending or unsupported with evidence_level none; H06-T4 prepares protocols and signature validation only. H06-T3 adds a read-only native-hw-inventory kernel/loader pair that emits the HW-INV markers; it passes two QEMU configurations against QMP query-pci and configured CPUID/DMAR, and its inventory is rejected as a virtual capture.",
             "remaining": "Physical operators, authorization and signed actual runs remain missing; host validation of evidence format proves no device support.",
             "evidence": [
               "docs/drivers/hardware-matrix.json",

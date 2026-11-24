@@ -48,6 +48,26 @@ mod serial;
     )
 ))]
 compile_error!("native-xhci-probe exclusively owns the single-CPU IF0 DMA fixture");
+// Other native profiles reach this list through milestone-m3, framebuffer,
+// native-smp, native-xhci-probe or acpi-s3-core; a new profile that implies none
+// of them must be added here.
+#[cfg(all(
+    feature = "native-hw-inventory",
+    any(
+        feature = "milestone-m3",
+        feature = "framebuffer",
+        feature = "native-smp",
+        feature = "native-rtc",
+        feature = "native-acpi-s5",
+        feature = "acpi-s3-core",
+        feature = "native-xhci-probe",
+        feature = "native-virtio-snd-probe",
+        feature = "native-dispi-probe"
+    )
+))]
+compile_error!(
+    "native-hw-inventory is a read-only single-CPU IF0 profile; no other subsystem may run"
+);
 #[cfg(all(feature = "test-xhci-dma-fault", feature = "test-xhci-no-dmar"))]
 compile_error!("xHCI negative cases require separate boots");
 #[cfg(all(

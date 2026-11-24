@@ -99,9 +99,47 @@ machine itself does not receive COM1 output, and no USB serial driver exists.
 
 The COM1 `UNSUPPORTED:PCI` inventory described in earlier revisions of this
 document and of [DRIVER-ARCHITECTURE](DRIVER-ARCHITECTURE.md) was never
-implemented; no code emits that marker. Its replacement is the planned
-read-only `native-hw-inventory` profile (slice H06-T3), specified as protocol
-`HW-INV` with `HWINV:` markers.
+implemented; no code emits that marker. Its replacement is the read-only
+`native-hw-inventory` profile (slice H06-T3), specified as protocol `HW-INV`
+with `HWINV:` markers. The profile exists and is tested in QEMU only; see
+[HW-INV measurement package](#hw-inv-measurement-package).
+
+## HW-INV measurement package
+
+`python3 -B tools/build.py --kernel-feature native-hw-inventory` builds the
+paired kernel and the `hw-inventory` loader; one without the other is refused.
+The loader records the UEFI `SecureBoot` variable in a 16-byte firmware-facts
+extension at BootInfo offset 256 (`crates/boot-protocol/src/firmware.rs`);
+`EFI_NOT_FOUND` is reported as `ABSENT`, never as disabled. The kernel runs the
+normal IF0 M2 discovery, prints `M2:PASS`/`M1:PASS`, then the `HWINV:` block,
+and stops in a `CLI`/`HLT` loop. PCI identity is read only from configuration
+offsets `0x00`, `0x08` and `0x0C` of every present segment-0 function, through
+legacy mechanism 1; no BAR, command register or bus master is touched. Panic and
+M1/M2 failure paths still use port `0xF4`.
+
+`python3 -B tools/hw_inventory.py --log <serial> --out <inventory.json>` turns
+one complete, passing `HWINV:` block into the schema-2 inventory JSON consumed
+by `tools/hw_evidence.py`; it rejects failure markers, reordered or duplicated
+lines, count mismatches and an absent DMAR table with units.
+
+QEMU reference configurations (`python3 -B tools/run_hw_inventory.py --case all`,
+`pc-q35-8.2`, TCG, one CPU, 256 MiB, OVMF without enrolled keys):
+
+| Case | CPU | Devices | Expected |
+|---|---|---|---|
+| `plain` | `qemu64,vendor=AuthenticAMD,-hypervisor` | default q35 | `VENDOR=AuthenticAMD:HYPERVISOR=0`, `DMAR=ABSENT:DRHD=0`, kernel `ACPI:UNAVAILABLE:NO_DMAR` |
+| `iommu` | `qemu64,vendor=GenuineIntel` | `intel-iommu`, `pcie-root-port` at `00:06.0`, `qemu-xhci` behind it | `VENDOR=GenuineIntel:HYPERVISOR=1`, `DMAR=PRESENT:DRHD=1`, kernel `ACPI:DISCOVERY:MCFG_DMAR` |
+
+Each case passes only when the `HWINV:` PCI set equals QMP `query-pci` (address,
+vendor, device, class, subclass, including functions behind bridges), QEMU is
+still running one second after `HWINV:PASS` (no exit-port write), no failure
+marker appears, `SECUREBOOT` is not `1`, the inventory binds to its own log, and
+`hw_evidence` rejects it as a virtual capture. Evidence limits: QEMU/TCG only;
+no physical PC, removable-media image or signed record; `SECUREBOOT=0`/`1` is
+host-tested only; QEMU's `query-pci` is an oracle for QEMU, not for firmware on
+real hardware. A physical run still requires the owner decisions listed in
+[hardware-matrix.json](hardware-matrix.json) and the protocol in
+[physical-protocols.json](physical-protocols.json).
 
 ## Physical test protocols
 
@@ -115,7 +153,7 @@ protocol has been executed; all seven are **blocked**:
 
 | Protocol | Criterion / rows | Concrete blocking reasons |
 |---|---|---|
-| `HW-INV` v2 | H06 / FR-H03, FR-R03 | `native-hw-inventory` profile absent (H06-T3); no physical image; `0xF4` exit path; owner decisions |
+| `HW-INV` v2 | H06 / FR-H03, FR-R03 | `native-hw-inventory` profile present and QEMU-tested (H06-T3); no physical image; `0xF4` panic/failure exit paths; owner decisions |
 | `H05-S5` v1 | H05 / FR-S04 | no physical image; rejection paths exit through `0xF4`; no `SMI_CMD`/`ACPI_ENABLE`, `_PTS`/`_TTS`; owner decisions |
 | `H05-S3` v1 | H05 / FR-S05 | QEMU-native S3 entry/resume exists (`native-acpi-s3`, [h05-native-s3-20261119](../verification/h05-native-s3-20261119/README.md)) but is woken only by QMP `system_wakeup` under the QEMU/OVMF `Edk2Version0Extended` vector policy; physical firmware path (FACS version, real-mode or extended vector, `_PTS`/`_WAK`) unverified; no physical wake source (`OD-HW-POWER`); protocol markers not yet emitted in the specified form; must not rely on `0xF4`; owner decisions |
 | `H02-USB` v2 | H02 / FR-H01 | xHCI accepts only QEMU `1b36:000d` and maps its BAR0 at a fixed kernel virtual address; VT-d availability unknown until `HW-INV` records the DMAR table; no IRQ/hub/hotplug; `0xF4` exit |
