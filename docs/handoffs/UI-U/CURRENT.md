@@ -50,6 +50,9 @@ ledger. Newer ADRs and live repository evidence take precedence over this file.
   the row while a failure shows, add vertical screen scrolling (the save
   recovery spec rules out hiding and overlap), or approve shorter compact copy.
   The SR11 test in `ui/native/tests/recovery_matrix.rs` stays ignored for this.
+  The same clipping occurs where a long wrapped list name fills the free space
+  (for example 320x350 with 32-byte names); the status then keeps its one-line
+  rect rather than overlap the name.
 - The compact save-progress bar is drawn at `Layout::status.y + 24`, which is
   the bottom edge of a 240-high compact viewport; verify and fix it with the
   owner decision above.
