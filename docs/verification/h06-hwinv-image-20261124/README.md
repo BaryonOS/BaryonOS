@@ -8,8 +8,8 @@ record and not H06 acceptance.
 
 | Item | Value |
 |---|---|
-| Source commit | `0a221bb77acf903de0ded3d3b3f46b54d7cb9985` (branch `claude/h06-t6-hwinv-image-20261124` with main `68596f82` merged in), clean checkout |
-| Source fingerprint (v3) | `47bfee511af8a329…` (full value in the result files) |
+| Source commit | `04b5b8bc1def5ce2b4004b176552e0ad5cebaff9` (branch `claude/h06-t6-hwinv-image-20261124`, main `68596f82` merged in), clean checkout |
+| Source fingerprint (v3) | `6126fd9963bc665f…` (full value in the result files) |
 | Emulator | local QEMU 10.2.1, machine `pc-q35-10.0`, TCG, one CPU, 256 MiB, OVMF without enrolled keys, `isa-debug-exit` at `0xf4` attached |
 | Image | `tools/hw_inventory_image.py`: 64 MiB raw GPT disk, one FAT32 EFI system partition at LBA 2048–131038, one sector per cluster, 8.3 upper-case names, timestamps 1980-01-01, GUIDs and volume serial derived from the payload |
 | Image SHA-256 | `a4ca34eb088294df74b3839bdd32dde990d9d98aaddd4859982697dcae15c3ed` (67 108 864 bytes), [image-record.json](image-record.json) |
@@ -44,14 +44,14 @@ same hash, sgdisk/fsck.fat/mtools agreed and the FAT32/GPT layout was reviewed
 against the specifications without format defects. Its kernel SHA-256 equalled
 this build's, but its loader differed (`c8e1baf6…`), so its image hash was
 `d716f697…`: the expected effect of the not-yet-reproducible loader. It found
-two defects, both fixed in `872322d5` (re-captured after review fixes, last fix `6bd74868`, final run at merge `0a221bb7`: one ESP snapshot for the image and its hashes, no symbolic link followed at the output paths): the `test_hw_evidence` "ready requires"
+two defects, both fixed in `872322d5` (re-captured after review fixes, last fix `6bd74868`, final run at `04b5b8bc`: one ESP snapshot for the image and its hashes, no symbolic link followed at the output paths, image and record published together so a failed write leaves no stale pair): the `test_hw_evidence` "ready requires"
 mutation no longer reached its check, and the image tool did not enforce the
 exact ESP file set.
 
 Commands: `tools/build.py --kernel-feature native-hw-inventory` (exit 0);
 `tools/hw_inventory_image.py` twice (exit 0, same hash);
 `tools/run_hw_inventory.py --case all --run-root <short dir>` (exit 0);
-`python3 -B -m unittest discover -s tools/tests -p 'test_hw_*.py'` (92 tests,
+`python3 -B -m unittest discover -s tools/tests -p 'test_hw_*.py'` (93 tests,
 OK); `tools/hw_evidence.py --check`, `tools/hw_matrix.py --check` (exit 0).
 
 Not run: a physical boot or USB mass-storage boot; OVMF boot from a USB

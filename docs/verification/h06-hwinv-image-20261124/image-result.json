@@ -25,8 +25,8 @@
     "kernel_sha256": "80d6f1c894dd9ca73fcca539f6dc788956550d9e518ab3dd54997dbb426833d3",
     "loader_sha256": "45fde8411d97105efe0a5f81506a22534f20e7aa9642e8ce3be8d9625aa8748d",
     "source_fingerprint_version": 3,
-    "source_sha256": "47bfee511af8a329f217db33d65d17f9bb5159d9112d85b4e46dc6d8d625c627",
-    "source_commit": "0a221bb77acf903de0ded3d3b3f46b54d7cb9985",
+    "source_sha256": "6126fd9963bc665f183e9dab341775372985e34aade9b6896da3a216e7a0a9f8",
+    "source_commit": "04b5b8bc1def5ce2b4004b176552e0ad5cebaff9",
     "clean_checkout": true
   },
   "removed_esp_file": null,
@@ -122,26 +122,26 @@
   ],
   "machine": "pc-q35-10.0",
   "raw_qemu_exit": 0,
-  "duration_s": 2.311541082999611,
+  "duration_s": 2.3075008130035712,
   "source_fingerprint_version": 3,
-  "source_sha256": "47bfee511af8a329f217db33d65d17f9bb5159d9112d85b4e46dc6d8d625c627",
-  "base_commit": "0a221bb77acf903de0ded3d3b3f46b54d7cb9985",
+  "source_sha256": "6126fd9963bc665f183e9dab341775372985e34aade9b6896da3a216e7a0a9f8",
+  "base_commit": "04b5b8bc1def5ce2b4004b176552e0ad5cebaff9",
   "qemu_version": "QEMU emulator version 10.2.1 (Debian 1:10.2.1+ds-1ubuntu3.3)\nCopyright (c) 2003-2025 Fabrice Bellard and the QEMU Project developers",
   "firmware": {
     "code": "/usr/share/OVMF/OVMF_CODE_4M.fd",
     "code_sha256": "874f15a7c9110e78a89db159f0f68fc97e9076b74777520de1c235426f758aa7"
   },
-  "run_directory": "/home/simon/projects/BaryonOS-scratch/h/r8/hwinv-image-0ff9cf6912",
+  "run_directory": "/home/simon/projects/BaryonOS-scratch/h/r9/hwinv-image-d225d5b52a",
   "stdout": "\u001b[2J\u001b[001;001H\u001b[=3h\u001b[2J\u001b[001;001H\u001b[2J\u001b[001;001H\u001b[8;056;240t\u001b[2J\u001b[001;001HBdsDxe: loading Boot0002 \"UEFI Misc Device\" from PciRoot(0x0)/Pci(0x1,0x0)\r\nBdsDxe: starting Boot0002 \"UEFI Misc Device\" from PciRoot(0x0)/Pci(0x1,0x0)\r\nBOOT:EBS_OK\nKERNEL:ENTRY\nBOOTINFO:OK\nKS-01:PASS\nKS-02:PASS\nACPI:UNAVAILABLE:NO_DMAR\nDEVICE-EXECUTION:BLOCKED:ADAPTER_ABSENT\nKS-03:PASS\nM2:PASS\nM1:PASS\nHWINV:BEGIN\nHWINV:CPUID:VENDOR=AuthenticAMD:HYPERVISOR=0\nHWINV:SECUREBOOT=ABSENT\nHWINV:ACPI:DMAR=ABSENT:DRHD=0\nHWINV:PCI:0000:00:00.0:8086:29c0:06:00:00:00\nHWINV:PCI:0000:00:01.0:1af4:1001:01:00:00:00\nHWINV:PCI:0000:00:1f.0:8086:2918:06:01:00:02\nHWINV:PCI:0000:00:1f.2:8086:2922:01:06:01:02\nHWINV:PCI:0000:00:1f.3:8086:2930:0c:05:00:02\nHWINV:PCI:COUNT=5\nHWINV:PASS\n",
   "artifacts": {
     "OVMF_CODE.fd": "874f15a7c9110e78a89db159f0f68fc97e9076b74777520de1c235426f758aa7",
     "qmp-trace.json": "370619f7a19793f3bffd83bf5b2746829ef683f453e0cb25f902be98486dda69",
     "hw-inventory.img": "a4ca34eb088294df74b3839bdd32dde990d9d98aaddd4859982697dcae15c3ed",
     "OVMF_VARS.fd": "fe5058b3460a9aee0051e1b5971a75c692ba0c27d697c348f79691c18098b6f8",
-    "build-manifest.json": "9955c359f60ac1db70e6bf52b2e9cddf16b408d29be5aaa5251b475b2985f1fe",
+    "build-manifest.json": "3e1bddf2e253e676e68a156d294f6e0584d0086c03c424f497dd8ea2980e1c15",
     "serial.txt": "c3f960228e8f16f815964a522c6c5b45ac52af28310843a83983a079fbb37859",
     "stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
     "inventory.json": "ece4d1d240c5538f1b33d21f32b4d574f08f17700640b1dec403b3f0ec936daf",
-    "hw-inventory-image.json": "152a18080635d7d4ef1ef153f1f1f7e00b5fe628d04e6ebcddf5615163dfe84d"
+    "hw-inventory-image.json": "0fe2b6f209bf889804705be13a58a368a0c39aa99d150fee81c92e2ca88da5a1"
   }
 }

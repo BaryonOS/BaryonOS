@@ -9,7 +9,7 @@ reported in the PR comment `HANDOFF H <cycle_id>`, not here.
 | Task | H06-T6 removable-media HW-INV image (raw GPT/FAT32, QEMU-booted) |
 | Branch | `claude/h06-t6-hwinv-image-20261124` (base main `e5ab3693`) |
 | PR | see the `HANDOFF H h06-t6-20261124` comment |
-| Tested source | `0a221bb7` (merge with main `68596f82`; source fingerprint `47bfee51…`), clean checkout; later commits add docs, evidence, ledger and progress only |
+| Tested source | `04b5b8bc` (after merge with main `68596f82`; source fingerprint `6126fd99…`), clean checkout; later commits add docs, evidence, ledger and progress only |
 | Evidence | [h06-hwinv-image-20261124](../../verification/h06-hwinv-image-20261124/README.md): image SHA-256 `a4ca34eb…` (64 MiB); `image`, `plain` and `iommu` cases pass; sgdisk, fsck.fat and mtools agree; an image without `kernel.elf` stops at `M1:FAIL:KERNEL_OPEN` |
 | NOT RUN | physical or USB boot; image-hash reproduction (an independent clean clone gave `d716f697…`: same kernel, different loader, until B04 lands); native `SECUREBOOT=0/1`; local `actionlint` |
 | Score | 43/100 unchanged; H06 stays open |
