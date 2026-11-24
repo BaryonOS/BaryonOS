@@ -772,11 +772,11 @@ class Planner:
         if policy["mode"] == "full":
             self.full("policy-rollback")
         event_policy = policy["events"][self.event]
-        if event_policy == "manual":
+        if event_policy == "full" or self.event in EVENT_FULL_CODES:  # never narrowed, whatever the catalogue says
+            self.full(EVENT_FULL_CODES.get(self.event, "event-policy-full"), [self.event])
+        elif event_policy == "manual":
             self.manual = True
             return
-        if event_policy == "full" or self.event == "merge_group":  # the queue is never narrowed
-            self.full(EVENT_FULL_CODES.get(self.event, "event-policy-full"), [self.event])
         self.merge_base = find_merge_base(self.repo, self.base, self.head, self.allow_fetch)
         changed = changed_paths(self.repo, self.merge_base, self.head)
         self.changed = changed

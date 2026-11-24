@@ -480,13 +480,16 @@ class FallbackTests(FixtureTestCase):
         self.assertEqual(plan["changes"]["count"], 1)
         self.assertEqual(self.selected(plan), CORE)  # only ci has merge_group among core/rwa
 
-    def test_merge_group_is_full_even_if_policy_says_select(self):
-        base = self.repo.commit("select queue", {".github/ci-impact.toml": CATALOGUE.replace(
-            'merge_group = "full"', 'merge_group = "select"')})
-        self.repo.git("checkout", "-q", "-b", "topic", base)
-        head = self.repo.commit("leaf", {"apps/solo/src/lib.rs": "// solo 2\n"})
-        with mock.patch.object(ci_impact, "validate", return_value=[]):
-            self.assertFull(self.plan(head, base=base, event="merge_group"), "merge-group")
+    def test_forced_full_events_ignore_a_select_or_manual_policy(self):
+        for event, code in (("merge_group", "merge-group"), ("push", "push-main")):
+            for policy in ("select", "manual"):
+                with self.subTest(event=event, policy=policy):
+                    self.repo.git("checkout", "-q", "--detach", self.base)
+                    base = self.repo.commit(policy, {".github/ci-impact.toml": CATALOGUE.replace(
+                        f'{event} = "full"', f'{event} = "{policy}"')})
+                    head = self.repo.commit("leaf", {"apps/solo/src/lib.rs": "// solo 2\n"})
+                    with mock.patch.object(ci_impact, "validate", return_value=[]):
+                        self.assertFull(self.plan(head, base=base, event=event), code)
 
     def test_policy_changes_force_full(self):
         for path in (".github/ci-impact.toml", "tools/ci_impact.py", ".github/workflows/net.yml"):

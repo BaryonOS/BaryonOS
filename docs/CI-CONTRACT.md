@@ -63,8 +63,9 @@ are rejected.
 - `core_only`: globs read only by the always-running core gates.
 - `[policy.events]`: one entry per event. `merge_group`, `push` and
   `schedule` must be `full`; `validate` rejects anything else, and the
-  selector also hard-codes `merge_group` as full. `workflow_dispatch` must be
-  `full` or `manual`. `pull_request` may be `select`, `full` or `manual`.
+  selector also plans these three events as full whatever the catalogue
+  says. `workflow_dispatch` must be `full` or `manual`. `pull_request` may
+  be `select`, `full` or `manual`.
 
 `[input_sets]`: named glob lists. `native` covers the integrated QEMU suites.
 
