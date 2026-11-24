@@ -236,19 +236,6 @@ impl Bridge {
             service
                 .discard_revoked_unpublished()
                 .unwrap_or_else(|_| fail(32));
-            if let Some(frame) = service.transmission() {
-                match native::net_send(self.source, frame.bytes, 100) {
-                    Ok(ticket) => {
-                        self.pending = Some(Pending {
-                            id: frame.id,
-                            ticket,
-                            length: frame.bytes.len(),
-                        })
-                    }
-                    Err(e) if e.is_again() => {}
-                    Err(_) => fail(13),
-                }
-            }
         }
         if service.can_receive_frame() {
             match native::net_receive(self.source, &mut self.rx) {
@@ -280,6 +267,23 @@ impl Bridge {
             }
         }
         service.poll(tick).unwrap_or_else(|_| fail(16));
+        // Publish a reply produced by this bounded poll before yielding. Keep
+        // the slot bound to its matching native completion.
+        if self.pending.is_none() {
+            if let Some(frame) = service.transmission() {
+                match native::net_send(self.source, frame.bytes, 100) {
+                    Ok(ticket) => {
+                        self.pending = Some(Pending {
+                            id: frame.id,
+                            ticket,
+                            length: frame.bytes.len(),
+                        })
+                    }
+                    Err(e) if e.is_again() => {}
+                    Err(_) => fail(13),
+                }
+            }
+        }
     }
 }
 #[no_mangle]
