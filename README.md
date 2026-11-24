@@ -58,11 +58,19 @@ The codebase already contains an independent boot chain, process and capability 
 <a id="voortgang-naar-een-volwaardig-zelfstandig-os"></a>
 ## Progress toward a complete independent OS
 
-![Baryon OS: 41% of the fixed product roadmap](docs/assets/progress.svg)
+![Baryon OS: 43% of the fixed product roadmap](docs/assets/progress.svg)
 
-**41/100 weighted acceptance points.** This is a planning metric for demonstrably accepted functionality, not a time estimate, security guarantee, or claim of parity with existing operating systems.
+**43/100 weighted acceptance points.** This is a planning metric for demonstrably accepted functionality, not a time estimate, security guarantee, or claim of parity with existing operating systems.
 
-[Criteria and evidence](docs/PROGRESS.md) · [Roadmap](docs/ROADMAP.md) · [Current project status](docs/PROJECT-STATE.md)
+| View | Recorded result |
+|---|---|
+| Formal acceptance, whole roadmap | **43/100 weighted points** |
+| Implementation, 30 reassessed criteria | **19 implemented**, 76 partial, 17 missing, 1 unknown scoped requirements |
+| Verification, same inventory | **52 requirements with native QEMU evidence**; 26 with host-test evidence; 2 with target-build evidence; 0 with physical-hardware evidence; 0 with human-evaluation evidence |
+
+Implementation and verification are a descriptive snapshot from **2026-11-24**, source [`2eb1c63`](https://github.com/BaryonOS/BaryonOS/tree/2eb1c63d2afdf658f0e71d31f3542e320a7dd041). Requirements differ in size, and evidence levels can overlap. These counts are not percentages of OS completion or proof that a whole criterion is accepted.
+
+[Implementation, verification and remaining gaps](docs/PROGRESS.md#implementation-and-verification-snapshot) · [Acceptance criteria](docs/PROGRESS.md#fixed-criteria-register) · [Current project status](docs/PROJECT-STATE.md)
 <!-- OS-PROGRESS:END -->
 
 ## Build and test

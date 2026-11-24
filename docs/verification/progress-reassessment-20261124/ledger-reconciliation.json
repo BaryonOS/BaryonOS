@@ -1,0 +1,788 @@
+{
+  "schema_version": 1,
+  "date": "2026-11-24",
+  "source_commit": "2eb1c63d2afdf658f0e71d31f3542e320a7dd041",
+  "scope": "Manual retrospective reconciliation of existing task records. Task verification is not criterion acceptance. Historic receipt/source fields and all previous history entries are preserved. No controller or background worker is started.",
+  "original_counts": {
+    "verified": 36,
+    "blocked": 39,
+    "active": 1
+  },
+  "current_counts": {
+    "verified": 45,
+    "blocked": 31
+  },
+  "changes": [
+    {
+      "id": "B01-T1",
+      "before": {
+        "status": "verified",
+        "blocker": null,
+        "next": "Lead acceptance review of B01; then B01-T2 after PR #333 releases tools/build.py."
+      },
+      "after": {
+        "status": "verified",
+        "blocker": null,
+        "next": "B01 is eligible for criterion acceptance on exact main2eb1c63: management positive/negative authorization and seven-case native gate passed. B01-T2 is also implemented and natively verified."
+      },
+      "reason": "B01 is eligible for criterion acceptance on exact main2eb1c63: management positive/negative authorization and seven-case native gate passed. B01-T2 is also implemented and natively verified.",
+      "evidence": [
+        "services/keyring/src/lib.rs",
+        "services/keyring/src/health.rs",
+        "kernel/src/m2/m3/keyring.rs",
+        "tools/test_keyring.py",
+        "https://github.com/BaryonOS/BaryonOS/actions/runs/45328884511/job/138224957782",
+        "services/keyring/src/wire.rs",
+        "sdk/examples/keyring/src/service.rs",
+        "sdk/examples/keyring/src/app.rs",
+        "tools/run_keyring.py",
+        "docs/verification/b01-management-recovery-20261118/checks.json"
+      ]
+    },
+    {
+      "id": "B01-T2",
+      "before": {
+        "status": "blocked",
+        "blocker": "PR333 is merged. Current requester-crash/reset fixture write set overlaps open integration-owned PR364 (kernel m3/keyring, SDK keyring app and keyring harness); wait for explicit write ownership release, not CI polling.",
+        "next": null
+      },
+      "after": {
+        "status": "verified",
+        "blocker": null,
+        "next": "verified: requester-crash and missing-reset-ACK fixtures integrated via#470/#476; exact-main seven-case hosted B01 gate passed raw33, with quarantine/refusal counters. Fixtures simulate crash/reset-ACK fault paths; physical device behaviour unclaimed."
+      },
+      "reason": "verified: requester-crash and missing-reset-ACK fixtures integrated via#470/#476; exact-main seven-case hosted B01 gate passed raw33, with quarantine/refusal counters. Fixtures simulate crash/reset-ACK fault paths; physical device behaviour unclaimed.",
+      "evidence": [
+        "services/keyring/src/lib.rs",
+        "services/keyring/src/health.rs",
+        "kernel/src/m2/m3/keyring.rs",
+        "tools/test_keyring.py",
+        "https://github.com/BaryonOS/BaryonOS/actions/runs/45328884511/job/138224957782",
+        "services/keyring/src/wire.rs",
+        "sdk/examples/keyring/src/service.rs",
+        "sdk/examples/keyring/src/app.rs",
+        "tools/run_keyring.py",
+        "docs/verification/b01-management-recovery-20261118/checks.json"
+      ]
+    },
+    {
+      "id": "B02-T2",
+      "before": {
+        "status": "blocked",
+        "blocker": null,
+        "next": "B02-T1 native tamper and key-loss cases."
+      },
+      "after": {
+        "status": "verified",
+        "blocker": null,
+        "next": "verified at host level: generate_durable/revoke_durable plus durable KEY1 dispatch and crash-boundary/Unknown tests integrated via#427/#457/#476. Native relay/store remains separate open implementation under ADR-B02-KEY1-RELAY-20261123."
+      },
+      "reason": "verified at host level: generate_durable/revoke_durable plus durable KEY1 dispatch and crash-boundary/Unknown tests integrated via#427/#457/#476. Native relay/store remains separate open implementation under ADR-B02-KEY1-RELAY-20261123.",
+      "evidence": [
+        "docs/implementation/B02-SECURE-RECORDS.md",
+        "sdk/examples/system/src/app.rs",
+        "sdk/examples/system/src/init.rs",
+        "docs/verification/b02-tamper-20261123/system-gate.json",
+        "services/keyring/src/records.rs",
+        "docs/verification/b02-tamper-20261123/README.md",
+        "docs/verification/b02-tamper-20261123/runs.json",
+        "tools/run_system.py",
+        "kernel/src/m2/m3/system.rs",
+        "services/keyring/src/persistent.rs",
+        "services/keyring/tests/secure_records.rs",
+        "services/keyring/src/wire.rs",
+        "services/keyring/tests/write_ahead.rs",
+        "docs/DECISIONS.md",
+        "https://github.com/BaryonOS/BaryonOS/actions/runs/45328884511/job/138224957782"
+      ]
+    },
+    {
+      "id": "B02-T1",
+      "before": {
+        "status": "blocked",
+        "blocker": "Native byte/tag/ciphertext-block/withheld-secret negatives delivered. True multi-record chunk swap needs a larger fixture; old-generation native replay observation NOT RUN. Cold antirollback unprotected. Full task remains partial.",
+        "next": "B02-T3 after the owner rollback ADR."
+      },
+      "after": {
+        "status": "blocked",
+        "blocker": "Keep blocked/partial; advance evidence reference to docs/verification/b02-tamper-20261123 (source18643f7, integrated#456/#476). Four native refusals plus wrong-case negative and normal/recover pass. True multi-chunk swap and native stale-image replay still missing; cold rollback remains UNPROTECTED.",
+        "next": "Keep blocked/partial; advance evidence reference to docs/verification/b02-tamper-20261123 (source18643f7, integrated#456/#476). Four native refusals plus wrong-case negative and normal/recover pass. True multi-chunk swap and native stale-image replay still missing; cold rollback remains UNPROTECTED."
+      },
+      "reason": "Keep blocked/partial; advance evidence reference to docs/verification/b02-tamper-20261123 (source18643f7, integrated#456/#476). Four native refusals plus wrong-case negative and normal/recover pass. True multi-chunk swap and native stale-image replay still missing; cold rollback remains UNPROTECTED.",
+      "evidence": [
+        "docs/implementation/B02-SECURE-RECORDS.md",
+        "sdk/examples/system/src/app.rs",
+        "sdk/examples/system/src/init.rs",
+        "docs/verification/b02-tamper-20261123/system-gate.json",
+        "services/keyring/src/records.rs",
+        "docs/verification/b02-tamper-20261123/README.md",
+        "docs/verification/b02-tamper-20261123/runs.json",
+        "tools/run_system.py",
+        "kernel/src/m2/m3/system.rs",
+        "services/keyring/src/persistent.rs",
+        "services/keyring/tests/secure_records.rs",
+        "services/keyring/src/wire.rs",
+        "services/keyring/tests/write_ahead.rs",
+        "docs/DECISIONS.md",
+        "https://github.com/BaryonOS/BaryonOS/actions/runs/45328884511/job/138224957782"
+      ]
+    },
+    {
+      "id": "B04-T2",
+      "before": {
+        "status": "verified",
+        "blocker": null,
+        "next": "B04-T3 after owner decisions D1-D7."
+      },
+      "after": {
+        "status": "verified",
+        "blocker": null,
+        "next": "B04-T3 TEST experiment has executed under adopted ADR-B03-B04-TARGET-20261119. Retain B04-T2 as verified checker delivery, explicitly not a reproducible build: loader/image_payload differ and actual check exits1."
+      },
+      "reason": "B04-T3 TEST experiment has executed under adopted ADR-B03-B04-TARGET-20261119. Retain B04-T2 as verified checker delivery, explicitly not a reproducible build: loader/image_payload differ and actual check exits1.",
+      "evidence": [
+        "docs/implementation/B04-SECURE-BOOT-TEST-CHAIN.md",
+        "tools/run_secure_boot.py",
+        "docs/verification/b04-secure-boot-20261123/README.md",
+        "docs/verification/b04-secure-boot-20261123/signed/result.json",
+        "docs/DECISIONS.md",
+        "crates/update-core/src/policy_envelope.rs",
+        "boot/loader/src/signed.rs",
+        "docs/DEPENDENCIES.md",
+        "tools/repro_check.py",
+        "docs/roadmap-pipeline/receipts/B04-T2.json",
+        "https://github.com/BaryonOS/BaryonOS/pull/476#issuecomment-7117370183",
+        "docs/implementation/B04-SECURE-BOOT-CI-INTEGRATION-REQUEST.md"
+      ]
+    },
+    {
+      "id": "B04-T3",
+      "before": {
+        "status": "blocked",
+        "blocker": "Owner D1-D7/D5 trust-root decision; PR #336 owns signed.rs.",
+        "next": null
+      },
+      "after": {
+        "status": "verified",
+        "blocker": null,
+        "next": "verified only for TEST disposable-QEMU task: five Secure Boot cases captured on1a07a521 and integrated via#434/#476. No hosted B04 job, production firmware chain/rotation or full B04 acceptance."
+      },
+      "reason": "verified only for TEST disposable-QEMU task: five Secure Boot cases captured on1a07a521 and integrated via#434/#476. No hosted B04 job, production firmware chain/rotation or full B04 acceptance.",
+      "evidence": [
+        "docs/implementation/B04-SECURE-BOOT-TEST-CHAIN.md",
+        "tools/run_secure_boot.py",
+        "docs/verification/b04-secure-boot-20261123/README.md",
+        "docs/verification/b04-secure-boot-20261123/signed/result.json",
+        "docs/DECISIONS.md",
+        "crates/update-core/src/policy_envelope.rs",
+        "boot/loader/src/signed.rs",
+        "docs/DEPENDENCIES.md",
+        "tools/repro_check.py",
+        "docs/roadmap-pipeline/receipts/B04-T2.json",
+        "https://github.com/BaryonOS/BaryonOS/pull/476#issuecomment-7117370183",
+        "docs/implementation/B04-SECURE-BOOT-CI-INTEGRATION-REQUEST.md"
+      ]
+    },
+    {
+      "id": "N02-T1",
+      "before": {
+        "status": "verified",
+        "blocker": null,
+        "next": "N02-T2 net-config integration."
+      },
+      "after": {
+        "status": "verified",
+        "blocker": null,
+        "next": "Host coordinator integration and native DHCP/DNS/link/default-route cases now implemented and executed. Remaining N02 product blocker is real authorized connection evidence."
+      },
+      "reason": "Host coordinator integration and native DHCP/DNS/link/default-route cases now implemented and executed. Remaining N02 product blocker is real authorized connection evidence.",
+      "evidence": [
+        "services/net-config/src/automatic.rs",
+        "services/network-service/tests/dhcp_config.rs",
+        "sdk/examples/network-service/src/service.rs",
+        "docs/verification/n04-successor-20261124/network-dhcp-report.json",
+        "https://github.com/BaryonOS/BaryonOS/actions/runs/45328884633/job/138225243776",
+        "services/net-protocol/src/resolver.rs",
+        "services/network-service/tests/dns_resolve.rs",
+        "tools/run_network_dhcp.py",
+        "docs/verification/n04-successor-20261124/network-dhcp-route-report.json",
+        "docs/verification/n04-successor-20261124/network-dhcp-link-report.json",
+        "docs/verification/n04-successor-20261124/README.md",
+        "https://github.com/BaryonOS/BaryonOS/actions/runs/45328884633/job/138225243516"
+      ]
+    },
+    {
+      "id": "N02-T2",
+      "before": {
+        "status": "blocked",
+        "blocker": "Required Rust1.91.1 is not installed (rustup toolchain list 18 November:1.90.0,1.100.0,stable,beta,nightly). No installation attempted in this bounded delivery pass; exact required tests NOT RUN. Resume with installed1.91.1; no source changed.",
+        "next": "N02-T3 native DHCP case after PR #333."
+      },
+      "after": {
+        "status": "verified",
+        "blocker": null,
+        "next": "verified at host/native-integration level: current Rust1.100 workflow passes, DHCP coordinator wired; dhcp_config host tests cover NAK/expiry/link-down/no-default-DNS and unchanged service behavior. Exact-main native DHCP/DNS cases pass."
+      },
+      "reason": "verified at host/native-integration level: current Rust1.100 workflow passes, DHCP coordinator wired; dhcp_config host tests cover NAK/expiry/link-down/no-default-DNS and unchanged service behavior. Exact-main native DHCP/DNS cases pass.",
+      "evidence": [
+        "services/net-config/src/automatic.rs",
+        "services/network-service/tests/dhcp_config.rs",
+        "sdk/examples/network-service/src/service.rs",
+        "docs/verification/n04-successor-20261124/network-dhcp-report.json",
+        "https://github.com/BaryonOS/BaryonOS/actions/runs/45328884633/job/138225243776",
+        "services/net-protocol/src/resolver.rs",
+        "services/network-service/tests/dns_resolve.rs",
+        "tools/run_network_dhcp.py",
+        "docs/verification/n04-successor-20261124/network-dhcp-route-report.json",
+        "docs/verification/n04-successor-20261124/network-dhcp-link-report.json",
+        "docs/verification/n04-successor-20261124/README.md",
+        "https://github.com/BaryonOS/BaryonOS/actions/runs/45328884633/job/138225243516"
+      ]
+    },
+    {
+      "id": "N02-T3",
+      "before": {
+        "status": "blocked",
+        "blocker": "PR333 is merged. Currentmain still has static native network configuration; the missing DHCP coordinator wiring is pending integration-owned PR370. Rebuilding it here would duplicate that work.",
+        "next": null
+      },
+      "after": {
+        "status": "verified",
+        "blocker": null,
+        "next": "verified at native-QEMU level: DHCP acquire/NAK/reacquire, DNS, actual QMP link down/up and off-link default-route cases integrated#478; all pass on exact main2eb1c63. Synthetic peer scope retained; no real authorized connection acceptance."
+      },
+      "reason": "verified at native-QEMU level: DHCP acquire/NAK/reacquire, DNS, actual QMP link down/up and off-link default-route cases integrated#478; all pass on exact main2eb1c63. Synthetic peer scope retained; no real authorized connection acceptance.",
+      "evidence": [
+        "services/net-config/src/automatic.rs",
+        "services/network-service/tests/dhcp_config.rs",
+        "sdk/examples/network-service/src/service.rs",
+        "docs/verification/n04-successor-20261124/network-dhcp-report.json",
+        "https://github.com/BaryonOS/BaryonOS/actions/runs/45328884633/job/138225243776",
+        "services/net-protocol/src/resolver.rs",
+        "services/network-service/tests/dns_resolve.rs",
+        "tools/run_network_dhcp.py",
+        "docs/verification/n04-successor-20261124/network-dhcp-route-report.json",
+        "docs/verification/n04-successor-20261124/network-dhcp-link-report.json",
+        "docs/verification/n04-successor-20261124/README.md",
+        "https://github.com/BaryonOS/BaryonOS/actions/runs/45328884633/job/138225243516"
+      ]
+    },
+    {
+      "id": "N03-T1",
+      "before": {
+        "status": "blocked",
+        "blocker": "Provider/RNG/platform and trusted certificate/signing/bootstrap contracts unresolved; exact candidate manifest/build-script/maintenance evaluation incomplete. Version-specific primary docs inaccessible; no fallback selected.",
+        "next": null
+      },
+      "after": {
+        "status": "verified",
+        "blocker": null,
+        "next": "verified as evaluation/proposal only:23November refresh supplies version-specific provenance/licence/build-script/maintenance and no_std/RNG inspection. Native provider decision remains open; no candidate target execution inferred."
+      },
+      "reason": "verified as evaluation/proposal only:23November refresh supplies version-specific provenance/licence/build-script/maintenance and no_std/RNG inspection. Native provider decision remains open; no candidate target execution inferred.",
+      "evidence": [
+        "services/net-tls/Cargo.toml",
+        "services/net-tls/src/profile.rs",
+        "services/net-tls/tests/profile.rs",
+        "https://github.com/BaryonOS/BaryonOS/actions/runs/45328884560/job/138224958178",
+        "services/net-tls/README.md",
+        "services/net-tls/tests/loopback.rs",
+        "services/net-tls/src/random.rs",
+        "docs/implementation/N03-PROVIDER-DECISION-PROPOSAL.md"
+      ]
+    },
+    {
+      "id": "N03-T2",
+      "before": {
+        "status": "blocked",
+        "blocker": "Owner/SEC ADR on provider and test peer pinning.",
+        "next": null
+      },
+      "after": {
+        "status": "verified",
+        "blocker": null,
+        "next": "verified as host-only oracle/profile delivery: project-owner reported host-first choice, aws-lc-rs dev-only loopback,17 handshake+8 profile tests executed exact main. Native provider/time/trust choices remain open; host RNG/pinning exceptions explicitly bounded."
+      },
+      "reason": "verified as host-only oracle/profile delivery: project-owner reported host-first choice, aws-lc-rs dev-only loopback,17 handshake+8 profile tests executed exact main. Native provider/time/trust choices remain open; host RNG/pinning exceptions explicitly bounded.",
+      "evidence": [
+        "services/net-tls/Cargo.toml",
+        "services/net-tls/src/profile.rs",
+        "services/net-tls/tests/profile.rs",
+        "https://github.com/BaryonOS/BaryonOS/actions/runs/45328884560/job/138224958178",
+        "services/net-tls/README.md",
+        "services/net-tls/tests/loopback.rs",
+        "services/net-tls/src/random.rs",
+        "docs/implementation/N03-PROVIDER-DECISION-PROPOSAL.md"
+      ]
+    },
+    {
+      "id": "N03-T3",
+      "before": {
+        "status": "blocked",
+        "blocker": "N03-T2; TLS principal and time authority; PR #333.",
+        "next": null
+      },
+      "after": {
+        "status": "blocked",
+        "blocker": "Host N03-T2 is implemented/verified. Remaining: selected native provider and RNG route, TLS principal/bootstrap, peer policy and trusted certificate-time authority, then native handshake/negative gates.",
+        "next": "Host N03-T2 is implemented/verified. Remaining: selected native provider and RNG route, TLS principal/bootstrap, peer policy and trusted certificate-time authority, then native handshake/negative gates."
+      },
+      "reason": "Host N03-T2 is implemented/verified. Remaining: selected native provider and RNG route, TLS principal/bootstrap, peer policy and trusted certificate-time authority, then native handshake/negative gates.",
+      "evidence": [
+        "services/net-tls/Cargo.toml",
+        "services/net-tls/src/profile.rs",
+        "services/net-tls/tests/profile.rs",
+        "https://github.com/BaryonOS/BaryonOS/actions/runs/45328884560/job/138224958178",
+        "services/net-tls/README.md",
+        "services/net-tls/tests/loopback.rs",
+        "services/net-tls/src/random.rs",
+        "docs/implementation/N03-PROVIDER-DECISION-PROPOSAL.md"
+      ]
+    },
+    {
+      "id": "N04-T1",
+      "before": {
+        "status": "verified",
+        "blocker": null,
+        "next": "N04-T2 issuer and delegation contract."
+      },
+      "after": {
+        "status": "verified",
+        "blocker": null,
+        "next": "N04-T2 proposal already exists. Continue with reviewed issuer/delegation/regrant/durable-revocation implementation and native cases; full-sweep task remains verified."
+      },
+      "reason": "N04-T2 proposal already exists. Continue with reviewed issuer/delegation/regrant/durable-revocation implementation and native cases; full-sweep task remains verified.",
+      "evidence": [
+        "services/network-service/src/lib.rs",
+        "sdk/examples/network-service/src/service.rs",
+        "docs/verification/n04-successor-20261124/network-service-normal-report.json",
+        "https://github.com/BaryonOS/BaryonOS/actions/runs/45328884633/job/138225243516",
+        "docs/verification/n04-native-revoke-20261105/README.md",
+        "docs/verification/n04-successor-20261124/network-service-revoke-report.json",
+        "docs/verification/n04-helper-20261114/README.md",
+        "docs/verification/n04-successor-20261124/network-service-helper-report.json",
+        "docs/implementation/N04-ISSUER-DELEGATION.md",
+        "docs/verification/n04-successor-20261124/network-service-port-sweep-report.json",
+        "docs/roadmap-pipeline/receipts/N04-T1-successor-20261124.json",
+        "tools/network_service_peer.py",
+        "tools/test_network_service_peer.py",
+        "https://github.com/BaryonOS/BaryonOS/actions/runs/45328884633/job/138225243776"
+      ]
+    },
+    {
+      "id": "N04-T3",
+      "before": {
+        "status": "blocked",
+        "blocker": "N04-T2 review; PR #333 for new cases.",
+        "next": null
+      },
+      "after": {
+        "status": "blocked",
+        "blocker": "PR333 is no longer a blocker. N04-T2 remains a proposal: production issuer/delegation, generation-bound regrant and durable-revocation authority/storage design and implementation are still needed.",
+        "next": "PR333 is no longer a blocker. N04-T2 remains a proposal: production issuer/delegation, generation-bound regrant and durable-revocation authority/storage design and implementation are still needed."
+      },
+      "reason": "PR333 is no longer a blocker. N04-T2 remains a proposal: production issuer/delegation, generation-bound regrant and durable-revocation authority/storage design and implementation are still needed.",
+      "evidence": [
+        "services/network-service/src/lib.rs",
+        "sdk/examples/network-service/src/service.rs",
+        "docs/verification/n04-successor-20261124/network-service-normal-report.json",
+        "https://github.com/BaryonOS/BaryonOS/actions/runs/45328884633/job/138225243516",
+        "docs/verification/n04-native-revoke-20261105/README.md",
+        "docs/verification/n04-successor-20261124/network-service-revoke-report.json",
+        "docs/verification/n04-helper-20261114/README.md",
+        "docs/verification/n04-successor-20261124/network-service-helper-report.json",
+        "docs/implementation/N04-ISSUER-DELEGATION.md",
+        "docs/verification/n04-successor-20261124/network-service-port-sweep-report.json",
+        "docs/roadmap-pipeline/receipts/N04-T1-successor-20261124.json",
+        "tools/network_service_peer.py",
+        "tools/test_network_service_peer.py",
+        "https://github.com/BaryonOS/BaryonOS/actions/runs/45328884633/job/138225243776"
+      ]
+    },
+    {
+      "id": "B05-T2",
+      "before": {
+        "status": "verified",
+        "blocker": null,
+        "next": "B05-T1 review scope packet."
+      },
+      "after": {
+        "status": "verified",
+        "blocker": null,
+        "next": "B05-T1 scope packet and B05-T4 bounded parser/policy checks now exist; external human examination B05-T3 remains open."
+      },
+      "reason": "B05-T1 scope packet and B05-T4 bounded parser/policy checks now exist; external human examination B05-T3 remains open.",
+      "evidence": [
+        "docs/security-review/B05-REVIEW-SCOPE.md",
+        "docs/security-review/scope.json",
+        "tools/b05_scope_check.py",
+        "docs/roadmap-pipeline/ledger.json",
+        "crates/capability-core/tests/exhaustive_revocation.rs",
+        "docs/roadmap-pipeline/receipts/B05-T2.json",
+        "docs/security-review/B05-T4-INVARIANTS.md",
+        "crates/elf-loader-core/tests/bounded_parser_invariants.rs",
+        "crates/update-core/tests/bounded_policy_envelope_invariants.rs"
+      ]
+    },
+    {
+      "id": "B06-T1",
+      "before": {
+        "status": "verified",
+        "blocker": null,
+        "next": "B06-T2 LP-13 egress oracle."
+      },
+      "after": {
+        "status": "verified",
+        "blocker": null,
+        "next": "Default matrix revision20261123:1 partial native core denial(LP10),30 none; LP12 update-only partial evidence. Do not interpret as one complete LP scenario or native privacy acceptance."
+      },
+      "reason": "Default matrix revision20261123:1 partial native core denial(LP10),30 none; LP12 update-only partial evidence. Do not interpret as one complete LP scenario or native privacy acceptance.",
+      "evidence": [
+        "docs/verification/b06-lp-matrix-20261123/README.md",
+        "docs/verification/b06-lp-matrix-20261123/matrix.json",
+        "tools/lp_matrix.py",
+        "docs/LOCAL-PRIVACY-CONTRACT.md",
+        "docs/roadmap-pipeline/ledger.json",
+        "docs/verification/n04-successor-20261124/network-service-helper-report.json"
+      ]
+    },
+    {
+      "id": "B06-T3",
+      "before": {
+        "status": "blocked",
+        "blocker": "L, P and A components do not exist yet.",
+        "next": null
+      },
+      "after": {
+        "status": "blocked",
+        "blocker": "Native local AI/model-loader, NAS/provider/download and required permission/LP29 scenarios are absent or incomplete; existing host/partial native component work must not be described as nonexistent wholesale.",
+        "next": "Native local AI/model-loader, NAS/provider/download and required permission/LP29 scenarios are absent or incomplete; existing host/partial native component work must not be described as nonexistent wholesale."
+      },
+      "reason": "Native local AI/model-loader, NAS/provider/download and required permission/LP29 scenarios are absent or incomplete; existing host/partial native component work must not be described as nonexistent wholesale.",
+      "evidence": [
+        "docs/verification/b06-lp-matrix-20261123/README.md",
+        "docs/verification/b06-lp-matrix-20261123/matrix.json",
+        "tools/lp_matrix.py",
+        "docs/LOCAL-PRIVACY-CONTRACT.md",
+        "docs/roadmap-pipeline/ledger.json",
+        "docs/verification/n04-successor-20261124/network-service-helper-report.json"
+      ]
+    },
+    {
+      "id": "U05-T1",
+      "before": {
+        "status": "blocked",
+        "blocker": "Standalone core delivered; pending SDK workspace membership in shared manifest/lock owned by Integration Manager PR366. Reconcile only after ownership release, remove standalone [workspace], add member and run SDK gates. No owner confirmation needed.",
+        "next": "U05-T3 native service."
+      },
+      "after": {
+        "status": "verified",
+        "blocker": null,
+        "next": "Original host-core integration is complete; sdk/Cargo.toml contains settings-core, standalone nested workspace removed, lock contains package, current host-quality covers SDK. Report native six-boot U05-N1 as separate later delivered work. U05 itself stays open."
+      },
+      "reason": "Original host-core integration is complete; sdk/Cargo.toml contains settings-core, standalone nested workspace removed, lock contains package, current host-quality covers SDK. Report native six-boot U05-N1 as separate later delivered work. U05 itself stays open.",
+      "evidence": [
+        "sdk/Cargo.toml",
+        "sdk/Cargo.lock",
+        "sdk/settings-core/Cargo.toml",
+        ".github/workflows/ci.yml",
+        "https://github.com/BaryonOS/BaryonOS/actions/runs/45318640604/job/138191502669",
+        "https://github.com/BaryonOS/BaryonOS/pull/480#issuecomment-7122327749"
+      ]
+    },
+    {
+      "id": "U05-T2",
+      "before": {
+        "status": "blocked",
+        "blocker": "Standalone core delivered; shared SDK manifest/lock membership remains owned by Integration Manager PR366. After ownership release remove nested workspace/add member and run SDK gates. No source/core blocker.",
+        "next": "U05-T3 native service."
+      },
+      "after": {
+        "status": "verified",
+        "blocker": null,
+        "next": "Original host-index integration is complete in SDK. S1 volume adapter and S2 target build landed; replace old blocker with actual S3 kernel/build/native-oracle execution and UI work."
+      },
+      "reason": "Original host-index integration is complete in SDK. S1 volume adapter and S2 target build landed; replace old blocker with actual S3 kernel/build/native-oracle execution and UI work.",
+      "evidence": [
+        "sdk/Cargo.toml",
+        "sdk/Cargo.lock",
+        "sdk/search-index/Cargo.toml",
+        "sdk/examples/search-volume/README.md",
+        "tools/run_search.py",
+        "https://github.com/BaryonOS/BaryonOS/pull/480#issuecomment-7122327749"
+      ]
+    },
+    {
+      "id": "A03-T2",
+      "before": {
+        "status": "blocked",
+        "blocker": "UX-C consent design (UI/UX pipeline) not started.",
+        "next": null
+      },
+      "after": {
+        "status": "blocked",
+        "blocker": "UX-C run2 and UX-E sliceB design/prototype work exist and are AI-verified. Current blocker is native trusted dialog/broker/authenticated per-object binding, not absence of design.",
+        "next": "UX-C run2 and UX-E sliceB design/prototype work exist and are AI-verified. Current blocker is native trusted dialog/broker/authenticated per-object binding, not absence of design."
+      },
+      "reason": "UX-C run2 and UX-E sliceB design/prototype work exist and are AI-verified. Current blocker is native trusted dialog/broker/authenticated per-object binding, not absence of design.",
+      "evidence": [
+        "docs/verification/uxc-run2-20261119/README.md",
+        "docs/verification/uxe-sliceB-20261123/README.md",
+        "sdk/task-grant-core/README.md"
+      ]
+    },
+    {
+      "id": "U03-T3",
+      "before": {
+        "status": "blocked",
+        "blocker": "The native read-only fixture needs the window-session kernel manifest (kernel/src/m2/m3/window_session.rs, PR #333) and ui/native (UI/UX pipeline UX-G); confirm ownership first.",
+        "next": null
+      },
+      "after": {
+        "status": "blocked",
+        "blocker": "Part1 manifest/profile landed via #455/#480 and target build passes; current concrete gap is part2 actual service refusals, live counters, UI denial and unchanged-disk evidence.",
+        "next": "Part1 manifest/profile landed via #455/#480 and target build passes; current concrete gap is part2 actual service refusals, live counters, UI denial and unchanged-disk evidence."
+      },
+      "reason": "Part1 manifest/profile landed via #455/#480 and target build passes; current concrete gap is part2 actual service refusals, live counters, UI denial and unchanged-disk evidence.",
+      "evidence": [
+        "kernel/Cargo.toml",
+        "kernel/src/m2/m3/window_session.rs",
+        ".github/workflows/native-window-session.yml",
+        "https://github.com/BaryonOS/BaryonOS/pull/480#issuecomment-7122327749"
+      ]
+    },
+    {
+      "id": "L01-T3",
+      "before": {
+        "status": "active",
+        "blocker": null,
+        "next": null
+      },
+      "after": {
+        "status": "blocked",
+        "blocker": "Paused at the recorded partial reference-forward checkpoint; no live/background worker is implied. Dense, ReLU, RMSNorm and SwiGLU host primitives exist. Attention, RoPE, KV state and a complete forward pass remain unfinished; resume as a fresh manual task.",
+        "next": "Paused at the recorded partial reference-forward checkpoint; no live/background worker is implied. Dense, ReLU, RMSNorm and SwiGLU host primitives exist. Attention, RoPE, KV state and a complete forward pass remain unfinished; resume as a fresh manual task."
+      },
+      "reason": "Paused at the recorded partial reference-forward checkpoint; no live/background worker is implied. Dense, ReLU, RMSNorm and SwiGLU host primitives exist. Attention, RoPE, KV state and a complete forward pass remain unfinished; resume as a fresh manual task.",
+      "evidence": [
+        "docs/roadmap-pipeline/ledger.json",
+        "docs/roadmap-pipeline/receipts/L01-T3.json",
+        "experiments/ai/reference-forward/README.md"
+      ]
+    },
+    {
+      "id": "U02-T2",
+      "before": {
+        "status": "blocked",
+        "blocker": "Owner/ADR decision on budgets and reference profile.",
+        "next": null
+      },
+      "after": {
+        "status": "blocked",
+        "blocker": "Budget decision remains genuinely open, but append delivered three-run native TCG host-observed baseline; budget:null/accepted:null and n=3 remain explicit.",
+        "next": "Budget decision remains genuinely open, but append delivered three-run native TCG host-observed baseline; budget:null/accepted:null and n=3 remain explicit."
+      },
+      "reason": "Budget decision remains genuinely open, but append delivered three-run native TCG host-observed baseline; budget:null/accepted:null and n=3 remain explicit.",
+      "evidence": [
+        "docs/verification/u02-latency-baseline-20261123/README.md",
+        "docs/verification/u02-latency-baseline-20261123/baseline.json"
+      ]
+    },
+    {
+      "id": "U06-T1",
+      "before": {
+        "status": "blocked",
+        "blocker": "Human participants and owner approval.",
+        "next": null
+      },
+      "after": {
+        "status": "blocked",
+        "blocker": "Protocol/task matrix and proposed budgets delivered; current next steps are approve/freeze candidate, verify routes, pilot, preregister and run real participants. Do not mark study complete.",
+        "next": "Protocol/task matrix and proposed budgets delivered; current next steps are approve/freeze candidate, verify routes, pilot, preregister and run real participants. Do not mark study complete."
+      },
+      "reason": "Protocol/task matrix and proposed budgets delivered; current next steps are approve/freeze candidate, verify routes, pilot, preregister and run real participants. Do not mark study complete.",
+      "evidence": [
+        "docs/implementation/U06-USABILITY-PROTOCOL.md"
+      ]
+    },
+    {
+      "id": "H02-T4",
+      "before": {
+        "status": "verified",
+        "blocker": null,
+        "next": "MSI/MSI-X with VT-d interrupt remapping (own security design/ADR) or the long-lived input-policy handoff."
+      },
+      "after": {
+        "status": "verified",
+        "blocker": null,
+        "next": "PR480 native-xhci covers reattach-mouse and all12 cases on accepted merge tree. Update current next/evidence summary; preserve historical local report."
+      },
+      "reason": "PR480 native-xhci covers reattach-mouse and all12 cases on accepted merge tree. Update current next/evidence summary; preserve historical local report.",
+      "evidence": [
+        "https://github.com/BaryonOS/BaryonOS/actions/runs/45318640648/job/138191503697",
+        "https://github.com/BaryonOS/BaryonOS/pull/480#issuecomment-7122327749"
+      ]
+    },
+    {
+      "id": "H03-T3c",
+      "before": {
+        "status": "verified",
+        "blocker": null,
+        "next": "Hosted native-xhci.yml on the #415 head."
+      },
+      "after": {
+        "status": "verified",
+        "blocker": null,
+        "next": "Hosted native-xhci passed at #415 and again PR480; all five virtio-snd cases raw33. Remove pending-CI blocker; retain F10a and host-only specific negatives."
+      },
+      "reason": "Hosted native-xhci passed at #415 and again PR480; all five virtio-snd cases raw33. Remove pending-CI blocker; retain F10a and host-only specific negatives.",
+      "evidence": [
+        "https://github.com/BaryonOS/BaryonOS/actions/runs/45318640648/job/138191503697",
+        "https://github.com/BaryonOS/BaryonOS/actions/runs/45206306149/job/137802851472"
+      ]
+    },
+    {
+      "id": "H05-T5b",
+      "before": {
+        "status": "verified",
+        "blocker": null,
+        "next": "R1 port (held completion, post-wake broker latches) onto #415; hosted native-power with the 10-stage gate."
+      },
+      "after": {
+        "status": "verified",
+        "blocker": null,
+        "next": "PR480 power-system gate passed12 stages including reinit and held-completion. Update evidence/current next; retain kernel-driven delivery and physical/block-reinit gaps. Do not claim BARS=KEPT branch without the raw marker."
+      },
+      "reason": "PR480 power-system gate passed12 stages including reinit and held-completion. Update evidence/current next; retain kernel-driven delivery and physical/block-reinit gaps. Do not claim BARS=KEPT branch without the raw marker.",
+      "evidence": [
+        "https://github.com/BaryonOS/BaryonOS/actions/runs/45318640387/job/138191502229"
+      ]
+    },
+    {
+      "id": "H05-R1",
+      "before": {
+        "status": "verified",
+        "blocker": null,
+        "next": "Hosted power-system-gate on the #415 head; integration through the integration session."
+      },
+      "after": {
+        "status": "verified",
+        "blocker": null,
+        "next": "PR480 same-tree power-system gate passed12 stages. Mark hosted follow-up complete; retain source-only/counter-only latches and no physical device-survival claim."
+      },
+      "reason": "PR480 same-tree power-system gate passed12 stages. Mark hosted follow-up complete; retain source-only/counter-only latches and no physical device-survival claim.",
+      "evidence": [
+        "https://github.com/BaryonOS/BaryonOS/actions/runs/45318640387/job/138191502229"
+      ]
+    },
+    {
+      "id": "H05-T6",
+      "before": {
+        "status": "verified",
+        "blocker": null,
+        "next": "Done in H05-T6b."
+      },
+      "after": {
+        "status": "verified",
+        "blocker": null,
+        "next": "Successor H05-T6b implements those fixtures/refusal exits and kernel-image CR3; all five S3 cases pass hosted. Current summary should point to successor while keeping historical checkpoint intact."
+      },
+      "reason": "Successor H05-T6b implements those fixtures/refusal exits and kernel-image CR3; all five S3 cases pass hosted. Current summary should point to successor while keeping historical checkpoint intact.",
+      "evidence": [
+        "https://github.com/BaryonOS/BaryonOS/actions/runs/45318640387/job/138191502025",
+        "docs/verification/h05-s3-rejections-20261123/README.md"
+      ]
+    },
+    {
+      "id": "P04-T1",
+      "before": {
+        "status": "blocked",
+        "blocker": "Shares files with P04-T2; run after it.",
+        "next": null
+      },
+      "after": {
+        "status": "blocked",
+        "blocker": "P04-T2 dependency and current native NAS normal/cold gate are verified. Native LP-25 interrupted purge is still unimplemented. Before execution, a fresh manual task must define the interruption/recovery acceptance checks and claim its write set; this skeletal row has no executable checks or gates. The unattended execution hold remains in force.",
+        "next": "P04-T2 dependency and current native NAS normal/cold gate are verified. Native LP-25 interrupted purge is still unimplemented. Before execution, a fresh manual task must define the interruption/recovery acceptance checks and claim its write set; this skeletal row has no executable checks or gates. The unattended execution hold remains in force."
+      },
+      "reason": "P04-T2 dependency and current native NAS normal/cold gate are verified. Native LP-25 interrupted purge is still unimplemented. Before execution, a fresh manual task must define the interruption/recovery acceptance checks and claim its write set; this skeletal row has no executable checks or gates. The unattended execution hold remains in force.",
+      "evidence": [
+        "docs/roadmap-pipeline/receipts/P04-T2.json",
+        "https://github.com/BaryonOS/BaryonOS/actions/runs/45318640708/job/138191503999"
+      ]
+    },
+    {
+      "id": "P02-T3",
+      "before": {
+        "status": "blocked",
+        "blocker": "NASP Head opcode; N02/N03/N04.",
+        "next": null
+      },
+      "after": {
+        "status": "blocked",
+        "blocker": "Service::head and reconcile_latest already exist; NASP Op enum still has no Head opcode. Narrow blocker to wire/native integration and persistence; do not remove the actual missing opcode requirement.",
+        "next": "Service::head and reconcile_latest already exist; NASP Op enum still has no Head opcode. Narrow blocker to wire/native integration and persistence; do not remove the actual missing opcode requirement."
+      },
+      "reason": "Service::head and reconcile_latest already exist; NASP Op enum still has no Head opcode. Narrow blocker to wire/native integration and persistence; do not remove the actual missing opcode requirement.",
+      "evidence": [
+        "services/nas/native-core/src/lib.rs",
+        "services/nas/native-client/src/lib.rs",
+        "services/nas/native-probe/src/lib.rs"
+      ]
+    },
+    {
+      "id": "R01-T3",
+      "before": {
+        "status": "blocked",
+        "blocker": "tools/run.py owned by PR #333; U05 UI.",
+        "next": null
+      },
+      "after": {
+        "status": "blocked",
+        "blocker": "The user-facing U05 settings/recovery UI remains a dependency for the native installer/recovery task. PR333 is merged and no longer owns tools/run.py; practical preserve/wipe installation and recovery acceptance are still missing.",
+        "next": "The user-facing U05 settings/recovery UI remains a dependency for the native installer/recovery task. PR333 is merged and no longer owns tools/run.py; practical preserve/wipe installation and recovery acceptance are still missing."
+      },
+      "reason": "The user-facing U05 settings/recovery UI remains a dependency for the native installer/recovery task. PR333 is merged and no longer owns tools/run.py; practical preserve/wipe installation and recovery acceptance are still missing.",
+      "evidence": [
+        "docs/roadmap-pipeline/ledger.json",
+        "docs/STATUS.md"
+      ]
+    },
+    {
+      "id": "P01-T3",
+      "before": {
+        "status": "blocked",
+        "blocker": "P01-T2, B01, B02, N03, owner pairing ADR; tools/build.py owned by PR #333.",
+        "next": null
+      },
+      "after": {
+        "status": "blocked",
+        "blocker": "Native NAS encryption/identity integration still depends on P01-T2, B02, N03 and an adopted pairing authority design. Generic B01 is now accepted, but that does not implement the NAS keyring/encryption join. PR333 is merged and is no longer the build-tool owner; claim the actual current write set before implementation.",
+        "next": "Native NAS encryption/identity integration still depends on P01-T2, B02, N03 and an adopted pairing authority design. Generic B01 is now accepted, but that does not implement the NAS keyring/encryption join. PR333 is merged and is no longer the build-tool owner; claim the actual current write set before implementation."
+      },
+      "reason": "Native NAS encryption/identity integration still depends on P01-T2, B02, N03 and an adopted pairing authority design. Generic B01 is now accepted, but that does not implement the NAS keyring/encryption join. PR333 is merged and is no longer the build-tool owner; claim the actual current write set before implementation.",
+      "evidence": [
+        "docs/roadmap-pipeline/ledger.json",
+        "docs/STATUS.md"
+      ]
+    },
+    {
+      "id": "H03-T3",
+      "before": {
+        "status": "blocked",
+        "blocker": "Owner/release decisions B1 (AUDIO right), B2 (syscall number) and B4 (reserved VM-FR device address) stay open for the full VM-SND-1 gate. PR #333 is merged, so it no longer owns the kernel wiring. The kernel-only transport slice H03-T3a is verified separately.",
+        "next": null
+      },
+      "after": {
+        "status": "blocked",
+        "blocker": "The kernel-only transport slice and hosted virtio-snd hardening are verified separately. Full VM-SND-1 remains blocked on the AUDIO capability right (B1), syscall number (B2), reserved VM-FR device address (B4) and product broker integration. PR333 is merged and is no longer an ownership blocker.",
+        "next": "The kernel-only transport slice and hosted virtio-snd hardening are verified separately. Full VM-SND-1 remains blocked on the AUDIO capability right (B1), syscall number (B2), reserved VM-FR device address (B4) and product broker integration. PR333 is merged and is no longer an ownership blocker."
+      },
+      "reason": "The kernel-only transport slice and hosted virtio-snd hardening are verified separately. Full VM-SND-1 remains blocked on the AUDIO capability right (B1), syscall number (B2), reserved VM-FR device address (B4) and product broker integration. PR333 is merged and is no longer an ownership blocker.",
+      "evidence": [
+        "docs/roadmap-pipeline/ledger.json",
+        "docs/STATUS.md"
+      ]
+    }
+  ]
+}

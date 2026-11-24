@@ -4,7 +4,7 @@
   "branch": "codex/roadmap-codex",
   "base": "6f29b6720b51aecad5714faa48b445afd6e2f5a9",
   "score": {
-    "accepted": 41,
+    "accepted": 43,
     "of": 100,
     "source": "docs/progress.json",
     "rule": "A verified task never changes the score; only the lead records acceptance with the required evidence level and owner/external approvals."
@@ -219,7 +219,7 @@
       "size": "M",
       "evidence_level": "native-QEMU (TCG)",
       "rollback": "Revert the commit; the new process exists only in the native-keyring test profile.",
-      "next": "Lead acceptance review of B01; then B01-T2 after PR #333 releases tools/build.py.",
+      "next": "B01 is eligible for criterion acceptance on exact main2eb1c63: management positive/negative authorization and seven-case native gate passed. B01-T2 is also implemented and natively verified.",
       "history": [
         {
           "at": "2026-11-18T19:57:13+00:00",
@@ -241,8 +241,24 @@
           "source_commit": "3847e9f",
           "pr": 364,
           "reason": "Verified task on preserved source branch; no full criterion acceptance or main integration inferred."
+        },
+        {
+          "at": "2026-11-24T08:10:49+00:00",
+          "event": "lead-evidence-reassessment",
+          "source_commit": "2eb1c63d2afdf658f0e71d31f3542e320a7dd041",
+          "from_status": "verified",
+          "status": "verified",
+          "receipt": "docs/verification/progress-reassessment-20261124/ledger-reconciliation.json",
+          "reason": "B01 is eligible for criterion acceptance on exact main2eb1c63: management positive/negative authorization and seven-case native gate passed. B01-T2 is also implemented and natively verified."
         }
-      ]
+      ],
+      "blocker": null,
+      "reassessment": {
+        "date": "2026-11-24",
+        "source_commit": "2eb1c63d2afdf658f0e71d31f3542e320a7dd041",
+        "receipt": "docs/verification/progress-reassessment-20261124/ledger-reconciliation.json",
+        "summary": "B01 is eligible for criterion acceptance on exact main2eb1c63: management positive/negative authorization and seven-case native gate passed. B01-T2 is also implemented and natively verified."
+      }
     },
     {
       "id": "N02-T1",
@@ -290,7 +306,7 @@
       "size": "M",
       "evidence_level": "host",
       "rollback": "Revert the commit.",
-      "next": "N02-T2 net-config integration.",
+      "next": "Host coordinator integration and native DHCP/DNS/link/default-route cases now implemented and executed. Remaining N02 product blocker is real authorized connection evidence.",
       "history": [
         {
           "at": "2026-11-18T20:08:23+00:00",
@@ -305,15 +321,31 @@
           "source_commit": "138d48de9f351836956db79f2d30dbd93814c59e",
           "receipt": "docs/roadmap-pipeline/receipts/N02-T1.json",
           "summary": "79 host tests and Clippy/fmt/freestanding build pass; no native resolver or N02 acceptance."
+        },
+        {
+          "at": "2026-11-24T08:10:49+00:00",
+          "event": "lead-evidence-reassessment",
+          "source_commit": "2eb1c63d2afdf658f0e71d31f3542e320a7dd041",
+          "from_status": "verified",
+          "status": "verified",
+          "receipt": "docs/verification/progress-reassessment-20261124/ledger-reconciliation.json",
+          "reason": "Host coordinator integration and native DHCP/DNS/link/default-route cases now implemented and executed. Remaining N02 product blocker is real authorized connection evidence."
         }
-      ]
+      ],
+      "blocker": null,
+      "reassessment": {
+        "date": "2026-11-24",
+        "source_commit": "2eb1c63d2afdf658f0e71d31f3542e320a7dd041",
+        "receipt": "docs/verification/progress-reassessment-20261124/ledger-reconciliation.json",
+        "summary": "Host coordinator integration and native DHCP/DNS/link/default-route cases now implemented and executed. Remaining N02 product blocker is real authorized connection evidence."
+      }
     },
     {
       "id": "B02-T2",
       "criterion": "B02",
       "milestone": "M8",
       "executor": "worker",
-      "status": "blocked",
+      "status": "verified",
       "title": "Keyring write-ahead contract: no seal or revoke confirmation before durable commit (host)",
       "goal": "Implement spec item 4 of B02-SECURE-RECORDS.md in keyring-core on the host: a newly generated handle cannot seal until snapshot generation G is committed; revocation is confirmed only after commit; crash points never reissue an index; Unknown I/O is never confirmed or retried.",
       "why_now": "The B02 spec marks this as still to be built; host-first, offline and covered by host-quality.",
@@ -350,7 +382,7 @@
       "size": "M",
       "evidence_level": "host",
       "rollback": "Revert the commit.",
-      "next": "B02-T1 native tamper and key-loss cases.",
+      "next": "verified at host level: generate_durable/revoke_durable plus durable KEY1 dispatch and crash-boundary/Unknown tests integrated via#427/#457/#476. Native relay/store remains separate open implementation under ADR-B02-KEY1-RELAY-20261123.",
       "history": [
         {
           "at": "2026-11-18",
@@ -366,8 +398,24 @@
           "at": "2026-11-18T20:08:23+00:00",
           "event": "ownership-block",
           "reason": "S09-NEXT remains Claude-owned; owner decision pending."
+        },
+        {
+          "at": "2026-11-24T08:10:49+00:00",
+          "event": "lead-evidence-reassessment",
+          "source_commit": "2eb1c63d2afdf658f0e71d31f3542e320a7dd041",
+          "from_status": "blocked",
+          "status": "verified",
+          "receipt": "docs/verification/progress-reassessment-20261124/ledger-reconciliation.json",
+          "reason": "verified at host level: generate_durable/revoke_durable plus durable KEY1 dispatch and crash-boundary/Unknown tests integrated via#427/#457/#476. Native relay/store remains separate open implementation under ADR-B02-KEY1-RELAY-20261123."
         }
-      ]
+      ],
+      "blocker": null,
+      "reassessment": {
+        "date": "2026-11-24",
+        "source_commit": "2eb1c63d2afdf658f0e71d31f3542e320a7dd041",
+        "receipt": "docs/verification/progress-reassessment-20261124/ledger-reconciliation.json",
+        "summary": "verified at host level: generate_durable/revoke_durable plus durable KEY1 dispatch and crash-boundary/Unknown tests integrated via#427/#457/#476. Native relay/store remains separate open implementation under ADR-B02-KEY1-RELAY-20261123."
+      }
     },
     {
       "id": "N04-T2",
@@ -520,7 +568,7 @@
       "size": "M",
       "evidence_level": "native-QEMU (TCG)",
       "rollback": "Revert the commit.",
-      "next": "N04-T2 issuer and delegation contract.",
+      "next": "N04-T2 proposal already exists. Continue with reviewed issuer/delegation/regrant/durable-revocation implementation and native cases; full-sweep task remains verified.",
       "history": [
         {
           "event": "active",
@@ -546,11 +594,26 @@
             "https://github.com/BaryonOS/BaryonOS/actions/runs/45308625592/job/138158768933",
             "https://github.com/BaryonOS/BaryonOS/actions/runs/45308625592/job/138158768805"
           ]
+        },
+        {
+          "at": "2026-11-24T08:10:49+00:00",
+          "event": "lead-evidence-reassessment",
+          "source_commit": "2eb1c63d2afdf658f0e71d31f3542e320a7dd041",
+          "from_status": "verified",
+          "status": "verified",
+          "receipt": "docs/verification/progress-reassessment-20261124/ledger-reconciliation.json",
+          "reason": "N04-T2 proposal already exists. Continue with reviewed issuer/delegation/regrant/durable-revocation implementation and native cases; full-sweep task remains verified."
         }
       ],
       "source_commit": "863541014d92de0108b2c29063b04a012acbe8db",
       "receipt": "docs/roadmap-pipeline/receipts/N04-T1-successor-20261124.json",
-      "blocker": null
+      "blocker": null,
+      "reassessment": {
+        "date": "2026-11-24",
+        "source_commit": "2eb1c63d2afdf658f0e71d31f3542e320a7dd041",
+        "receipt": "docs/verification/progress-reassessment-20261124/ledger-reconciliation.json",
+        "summary": "N04-T2 proposal already exists. Continue with reviewed issuer/delegation/regrant/durable-revocation implementation and native cases; full-sweep task remains verified."
+      }
     },
     {
       "id": "B02-T1",
@@ -591,7 +654,7 @@
       "size": "M",
       "evidence_level": "native-QEMU (TCG)",
       "rollback": "Revert the commit.",
-      "next": "B02-T3 after the owner rollback ADR.",
+      "next": "Keep blocked/partial; advance evidence reference to docs/verification/b02-tamper-20261123 (source18643f7, integrated#456/#476). Four native refusals plus wrong-case negative and normal/recover pass. True multi-chunk swap and native stale-image replay still missing; cold rollback remains UNPROTECTED.",
       "history": [
         {
           "event": "active",
@@ -609,11 +672,26 @@
           "at": "2026-11-18T22:14:41.787813+00:00",
           "source_commit": "c8ae69094abf91e96e52a18510a430fa9d7312d9",
           "reason": "Native byte/tag/ciphertext-block/withheld-secret negatives delivered. True multi-record chunk swap needs a larger fixture; old-generation native replay observation NOT RUN. Cold antirollback unprotected. Full task remains partial. Partial slice preserved in draft PR382."
+        },
+        {
+          "at": "2026-11-24T08:10:49+00:00",
+          "event": "lead-evidence-reassessment",
+          "source_commit": "2eb1c63d2afdf658f0e71d31f3542e320a7dd041",
+          "from_status": "blocked",
+          "status": "blocked",
+          "receipt": "docs/verification/progress-reassessment-20261124/ledger-reconciliation.json",
+          "reason": "Keep blocked/partial; advance evidence reference to docs/verification/b02-tamper-20261123 (source18643f7, integrated#456/#476). Four native refusals plus wrong-case negative and normal/recover pass. True multi-chunk swap and native stale-image replay still missing; cold rollback remains UNPROTECTED."
         }
       ],
       "source_commit": "c8ae69094abf91e96e52a18510a430fa9d7312d9",
       "receipt": "docs/roadmap-pipeline/receipts/B02-T1.json",
-      "blocker": "Native byte/tag/ciphertext-block/withheld-secret negatives delivered. True multi-record chunk swap needs a larger fixture; old-generation native replay observation NOT RUN. Cold antirollback unprotected. Full task remains partial."
+      "blocker": "Keep blocked/partial; advance evidence reference to docs/verification/b02-tamper-20261123 (source18643f7, integrated#456/#476). Four native refusals plus wrong-case negative and normal/recover pass. True multi-chunk swap and native stale-image replay still missing; cold rollback remains UNPROTECTED.",
+      "reassessment": {
+        "date": "2026-11-24",
+        "source_commit": "2eb1c63d2afdf658f0e71d31f3542e320a7dd041",
+        "receipt": "docs/verification/progress-reassessment-20261124/ledger-reconciliation.json",
+        "summary": "Keep blocked/partial; advance evidence reference to docs/verification/b02-tamper-20261123 (source18643f7, integrated#456/#476). Four native refusals plus wrong-case negative and normal/recover pass. True multi-chunk swap and native stale-image replay still missing; cold rollback remains UNPROTECTED."
+      }
     },
     {
       "id": "B05-T2",
@@ -645,7 +723,7 @@
       "size": "M",
       "evidence_level": "host",
       "rollback": "Revert the commit.",
-      "next": "B05-T1 review scope packet.",
+      "next": "B05-T1 scope packet and B05-T4 bounded parser/policy checks now exist; external human examination B05-T3 remains open.",
       "history": [
         {
           "event": "active",
@@ -657,17 +735,33 @@
           "event": "verified",
           "source_commit": "4517279e819314fc226ec8b34fec2e9d7a3a3890",
           "reason": "Exhaustive host test over7^5 words,19607 nonempty prefixes, three processes: creation, restricted delegation, queued transfer, receive, close, revoke and amplification attempts. Independent lifetime/right/generation model; explicit regrant after revoke stays valid. Targeted test/Clippy/fmt exit0; isolated revoke-marking mutant fails101 at stale handle assertion. Bounded five-step host exploration only, not unbounded verification/native acceptance/external human audit. Production engine unchanged. N04-T1 draftPR380 remains BLOCKED on native throughput; optional unsupported IPC wait removed. Score41/100 unchanged."
+        },
+        {
+          "at": "2026-11-24T08:10:49+00:00",
+          "event": "lead-evidence-reassessment",
+          "source_commit": "2eb1c63d2afdf658f0e71d31f3542e320a7dd041",
+          "from_status": "verified",
+          "status": "verified",
+          "receipt": "docs/verification/progress-reassessment-20261124/ledger-reconciliation.json",
+          "reason": "B05-T1 scope packet and B05-T4 bounded parser/policy checks now exist; external human examination B05-T3 remains open."
         }
       ],
       "source_commit": "4517279e819314fc226ec8b34fec2e9d7a3a3890",
-      "receipt": "docs/roadmap-pipeline/receipts/B05-T2.json"
+      "receipt": "docs/roadmap-pipeline/receipts/B05-T2.json",
+      "blocker": null,
+      "reassessment": {
+        "date": "2026-11-24",
+        "source_commit": "2eb1c63d2afdf658f0e71d31f3542e320a7dd041",
+        "receipt": "docs/verification/progress-reassessment-20261124/ledger-reconciliation.json",
+        "summary": "B05-T1 scope packet and B05-T4 bounded parser/policy checks now exist; external human examination B05-T3 remains open."
+      }
     },
     {
       "id": "U05-T1",
       "criterion": "U05",
       "milestone": "M7",
       "executor": "worker",
-      "status": "blocked",
+      "status": "verified",
       "title": "settings-core: typed, versioned, revertible settings with A/B persistence (host model)",
       "goal": "Create sdk/settings-core (no_std): typed versioned schema; validate, set and revert; A/B persistence over a media trait with SHA-256 for integrity only; fail closed on corruption or I/O error; never confirm a failed write; add it to the sdk workspace.",
       "why_now": "U05 needs a real settings service behind the shell's fixed Settings page; this is the smallest host-testable core and has no dependency on open PRs.",
@@ -701,7 +795,7 @@
       "size": "M",
       "evidence_level": "host",
       "rollback": "Revert the commit and the sdk workspace member line.",
-      "next": "U05-T3 native service.",
+      "next": "Original host-core integration is complete; sdk/Cargo.toml contains settings-core, standalone nested workspace removed, lock contains package, current host-quality covers SDK. Report native six-boot U05-N1 as separate later delivered work. U05 itself stays open.",
       "history": [
         {
           "event": "active",
@@ -713,11 +807,26 @@
           "event": "blocked",
           "source_commit": "1c3696d22d87fed1ef9e554febc690d443dbb568",
           "reason": "Standalone typed appearance/accessibility settings core, integrity-only A/B persistence, explicit recovery and persistent new-generation revert.14 host tests including every0..96 torn-write offset pass. Full U05-T1 remains BLOCKED on shared SDK membership owned by integration PR366; no shared SDK files changed/matrix rerun. No native/UI/encryption/antirollback/hardware acceptance."
+        },
+        {
+          "at": "2026-11-24T08:10:49+00:00",
+          "event": "lead-evidence-reassessment",
+          "source_commit": "2eb1c63d2afdf658f0e71d31f3542e320a7dd041",
+          "from_status": "blocked",
+          "status": "verified",
+          "receipt": "docs/verification/progress-reassessment-20261124/ledger-reconciliation.json",
+          "reason": "Original host-core integration is complete; sdk/Cargo.toml contains settings-core, standalone nested workspace removed, lock contains package, current host-quality covers SDK. Report native six-boot U05-N1 as separate later delivered work. U05 itself stays open."
         }
       ],
       "source_commit": "1c3696d22d87fed1ef9e554febc690d443dbb568",
       "receipt": "docs/roadmap-pipeline/receipts/U05-T1.json",
-      "blocker": "Standalone core delivered; pending SDK workspace membership in shared manifest/lock owned by Integration Manager PR366. Reconcile only after ownership release, remove standalone [workspace], add member and run SDK gates. No owner confirmation needed."
+      "blocker": null,
+      "reassessment": {
+        "date": "2026-11-24",
+        "source_commit": "2eb1c63d2afdf658f0e71d31f3542e320a7dd041",
+        "receipt": "docs/verification/progress-reassessment-20261124/ledger-reconciliation.json",
+        "summary": "Original host-core integration is complete; sdk/Cargo.toml contains settings-core, standalone nested workspace removed, lock contains package, current host-quality covers SDK. Report native six-boot U05-N1 as separate later delivered work. U05 itself stays open."
+      }
     },
     {
       "id": "P02-T1",
@@ -793,7 +902,7 @@
       "criterion": "N03",
       "milestone": "M8",
       "executor": "worker",
-      "status": "blocked",
+      "status": "verified",
       "title": "Native TLS CryptoProvider evaluation for the fixed PQC profile (design)",
       "goal": "Write docs/implementation/N03-NATIVE-TLS-PROVIDER.md: provenance, licence, no_std, build-script and maintenance evaluation of rustls CryptoProvider candidates for TLS 1.3 X25519MLKEM768 with TLS_AES_256_GCM_SHA384, with RNG-route binding; no custom cryptography and no trust root.",
       "why_now": "Implementation of the next step is blocked on an owner or review decision that needs an evidence-based basis first.",
@@ -829,11 +938,27 @@
           "event": "blocked",
           "source_commit": "526aca548c0ee22025f80401d017f779c8d59179",
           "reason": "Bounded source/primary-source provider evaluation records fixed TLS profile, existing Rustls pins and random/time adapter limits. No provider selected; version-specific manifests/build scripts and maintenance evaluation incomplete after inaccessible primary endpoints. Local paths/symbol and progress checks pass. Proposed design only; accepted native provider/RNG/platform, calendar/signing/bootstrap boundaries remain unresolved. No cryptographic dependency or trust root adopted; no native handshake/hardware/audit evidence. Task remains BLOCKED and41/100 unchanged."
+        },
+        {
+          "at": "2026-11-24T08:10:49+00:00",
+          "event": "lead-evidence-reassessment",
+          "source_commit": "2eb1c63d2afdf658f0e71d31f3542e320a7dd041",
+          "from_status": "blocked",
+          "status": "verified",
+          "receipt": "docs/verification/progress-reassessment-20261124/ledger-reconciliation.json",
+          "reason": "verified as evaluation/proposal only:23November refresh supplies version-specific provenance/licence/build-script/maintenance and no_std/RNG inspection. Native provider decision remains open; no candidate target execution inferred."
         }
       ],
       "source_commit": "526aca548c0ee22025f80401d017f779c8d59179",
       "receipt": "docs/roadmap-pipeline/receipts/N03-T1.json",
-      "blocker": "Provider/RNG/platform and trusted certificate/signing/bootstrap contracts unresolved; exact candidate manifest/build-script/maintenance evaluation incomplete. Version-specific primary docs inaccessible; no fallback selected."
+      "blocker": null,
+      "next": "verified as evaluation/proposal only:23November refresh supplies version-specific provenance/licence/build-script/maintenance and no_std/RNG inspection. Native provider decision remains open; no candidate target execution inferred.",
+      "reassessment": {
+        "date": "2026-11-24",
+        "source_commit": "2eb1c63d2afdf658f0e71d31f3542e320a7dd041",
+        "receipt": "docs/verification/progress-reassessment-20261124/ledger-reconciliation.json",
+        "summary": "verified as evaluation/proposal only:23November refresh supplies version-specific provenance/licence/build-script/maintenance and no_std/RNG inspection. Native provider decision remains open; no candidate target execution inferred."
+      }
     },
     {
       "id": "H02-T2",
@@ -1007,7 +1132,7 @@
       "criterion": "U05",
       "milestone": "M7",
       "executor": "worker",
-      "status": "blocked",
+      "status": "verified",
       "title": "search-index core with grant-scoped results (host model)",
       "goal": "Create sdk/search-index (no_std): per-domain index of names, collections, metadata and UTF-8 tokens with object/revision identity; update and delete; rebuild from a catalogue snapshot; results only from currently granted domains; bounded memory; add it to the sdk workspace.",
       "why_now": "U05 local search is a fixed list today; a scoped index is host-testable now.",
@@ -1038,7 +1163,7 @@
       "size": "M",
       "evidence_level": "host",
       "rollback": "Revert the commit and the sdk workspace member line.",
-      "next": "U05-T3 native service.",
+      "next": "Original host-index integration is complete in SDK. S1 volume adapter and S2 target build landed; replace old blocker with actual S3 kernel/build/native-oracle execution and UI work.",
       "history": [
         {
           "event": "active",
@@ -1050,11 +1175,26 @@
           "event": "blocked",
           "source_commit": "9bb822db5e2e80c62ca85d7e508567995fb813a8",
           "reason": "Standalone bounded domain/object/revision search index with UTF8 tokens, update/delete tombstones, atomic catalogue rebuild, current grant epochs and accidental-corruption checks.11 host tests pass; bounds precede untrusted text scanning. Full U05-T2 remains BLOCKED on shared SDK membership owned by integration PR366. Host model only; trusted catalogue/service identity and grant authentication remain external, no native search/UI acceptance."
+        },
+        {
+          "at": "2026-11-24T08:10:49+00:00",
+          "event": "lead-evidence-reassessment",
+          "source_commit": "2eb1c63d2afdf658f0e71d31f3542e320a7dd041",
+          "from_status": "blocked",
+          "status": "verified",
+          "receipt": "docs/verification/progress-reassessment-20261124/ledger-reconciliation.json",
+          "reason": "Original host-index integration is complete in SDK. S1 volume adapter and S2 target build landed; replace old blocker with actual S3 kernel/build/native-oracle execution and UI work."
         }
       ],
       "source_commit": "9bb822db5e2e80c62ca85d7e508567995fb813a8",
       "receipt": "docs/roadmap-pipeline/receipts/U05-T2.json",
-      "blocker": "Standalone core delivered; shared SDK manifest/lock membership remains owned by Integration Manager PR366. After ownership release remove nested workspace/add member and run SDK gates. No source/core blocker."
+      "blocker": null,
+      "reassessment": {
+        "date": "2026-11-24",
+        "source_commit": "2eb1c63d2afdf658f0e71d31f3542e320a7dd041",
+        "receipt": "docs/verification/progress-reassessment-20261124/ledger-reconciliation.json",
+        "summary": "Original host-index integration is complete in SDK. S1 volume adapter and S2 target build landed; replace old blocker with actual S3 kernel/build/native-oracle execution and UI work."
+      }
     },
     {
       "id": "L01-T2",
@@ -1200,7 +1340,7 @@
       "size": "S",
       "evidence_level": "host",
       "rollback": "Revert the commit.",
-      "next": "B04-T3 after owner decisions D1-D7.",
+      "next": "B04-T3 TEST experiment has executed under adopted ADR-B03-B04-TARGET-20261119. Retain B04-T2 as verified checker delivery, explicitly not a reproducible build: loader/image_payload differ and actual check exits1.",
       "history": [
         {
           "event": "active",
@@ -1212,10 +1352,26 @@
           "event": "verified",
           "source_commit": "2b47d4ffb72f885686790885aec97f7a28c3c05c",
           "reason": "Repro checker runs two isolated default builds and verifies kernel/loader plus canonical ESP payload against manifests.8 unit tests pass. Real comparison exit1: kernel identical, loader/image_payload differ; tool reports red honestly. Same-host tooling only; actual build is NOT reproducible here and no B04 acceptance granted. ESP is a virtual-FAT payload directory, not a byte-identical disk image. No QEMU/hardware/independent environment run."
+        },
+        {
+          "at": "2026-11-24T08:10:49+00:00",
+          "event": "lead-evidence-reassessment",
+          "source_commit": "2eb1c63d2afdf658f0e71d31f3542e320a7dd041",
+          "from_status": "verified",
+          "status": "verified",
+          "receipt": "docs/verification/progress-reassessment-20261124/ledger-reconciliation.json",
+          "reason": "B04-T3 TEST experiment has executed under adopted ADR-B03-B04-TARGET-20261119. Retain B04-T2 as verified checker delivery, explicitly not a reproducible build: loader/image_payload differ and actual check exits1."
         }
       ],
       "source_commit": "2b47d4ffb72f885686790885aec97f7a28c3c05c",
-      "receipt": "docs/roadmap-pipeline/receipts/B04-T2.json"
+      "receipt": "docs/roadmap-pipeline/receipts/B04-T2.json",
+      "blocker": null,
+      "reassessment": {
+        "date": "2026-11-24",
+        "source_commit": "2eb1c63d2afdf658f0e71d31f3542e320a7dd041",
+        "receipt": "docs/verification/progress-reassessment-20261124/ledger-reconciliation.json",
+        "summary": "B04-T3 TEST experiment has executed under adopted ADR-B03-B04-TARGET-20261119. Retain B04-T2 as verified checker delivery, explicitly not a reproducible build: loader/image_payload differ and actual check exits1."
+      }
     },
     {
       "id": "B06-T1",
@@ -1248,7 +1404,7 @@
       "size": "S",
       "evidence_level": "host",
       "rollback": "Revert the commit.",
-      "next": "B06-T2 LP-13 egress oracle.",
+      "next": "Default matrix revision20261123:1 partial native core denial(LP10),30 none; LP12 update-only partial evidence. Do not interpret as one complete LP scenario or native privacy acceptance.",
       "history": [
         {
           "event": "active",
@@ -1260,10 +1416,26 @@
           "event": "verified",
           "source_commit": "f0b99f764c20f8c894259e78b63ceaa6e44da7b2",
           "reason": "Working31-ID LP reference checker and residual list; strict IDs/statuses, contained canonical paths, SHA256 and archived source-bound QEMU record checks for native tier. Four grouped adversarial tests and actual --check pass; verified bytes parsed once. No historic evidence audit or acceptance promotion. Structural mapping only, not evidence authenticity/privacy acceptance. All31 complete-scenario rows remain explicitly unmapped; existing partial evidence is not discarded. B02 partial native slice PR382 and N04 blocked prototype PR380 preserved. No OS code change/native rerun; score41/100 unchanged."
+        },
+        {
+          "at": "2026-11-24T08:10:49+00:00",
+          "event": "lead-evidence-reassessment",
+          "source_commit": "2eb1c63d2afdf658f0e71d31f3542e320a7dd041",
+          "from_status": "verified",
+          "status": "verified",
+          "receipt": "docs/verification/progress-reassessment-20261124/ledger-reconciliation.json",
+          "reason": "Default matrix revision20261123:1 partial native core denial(LP10),30 none; LP12 update-only partial evidence. Do not interpret as one complete LP scenario or native privacy acceptance."
         }
       ],
       "source_commit": "f0b99f764c20f8c894259e78b63ceaa6e44da7b2",
-      "receipt": "docs/roadmap-pipeline/receipts/B06-T1.json"
+      "receipt": "docs/roadmap-pipeline/receipts/B06-T1.json",
+      "blocker": null,
+      "reassessment": {
+        "date": "2026-11-24",
+        "source_commit": "2eb1c63d2afdf658f0e71d31f3542e320a7dd041",
+        "receipt": "docs/verification/progress-reassessment-20261124/ledger-reconciliation.json",
+        "summary": "Default matrix revision20261123:1 partial native core denial(LP10),30 none; LP12 update-only partial evidence. Do not interpret as one complete LP scenario or native privacy acceptance."
+      }
     },
     {
       "id": "H06-T1",
@@ -1442,7 +1614,7 @@
       "criterion": "N02",
       "milestone": "M8",
       "executor": "worker",
-      "status": "blocked",
+      "status": "verified",
       "title": "Host-integrate the net-config coordinator into network-service (DHCP replaces static config)",
       "goal": "Make DHCP-acquired address, route and DNS settings from services/net-config replace the static Config on the same Stack and PacketDevice in services/network-service; NAK, lease expiry and link-down withdraw them and later OpenTcp is refused; no default DNS when the option is absent; reconnect keeps no old sockets.",
       "why_now": "Prerequisite for any native DHCP case; reuses the reviewed coordinator.",
@@ -1475,7 +1647,7 @@
       "size": "L",
       "evidence_level": "host",
       "rollback": "Revert the commit.",
-      "next": "N02-T3 native DHCP case after PR #333.",
+      "next": "verified at host/native-integration level: current Rust1.100 workflow passes, DHCP coordinator wired; dhcp_config host tests cover NAK/expiry/link-down/no-default-DNS and unchanged service behavior. Exact-main native DHCP/DNS cases pass.",
       "history": [
         {
           "at": "2026-11-18T20:46:54.925806+00:00",
@@ -1487,11 +1659,26 @@
           "event": "verified",
           "source_commit": "ed44d77c32d0d19e0b6fab51398b169a962f9409",
           "reason": "Environment blocker resolved;58 host tests, both crates Clippy/fmt, freestanding lib build and locked static SDK native check pass. No native DHCP acceptance."
+        },
+        {
+          "at": "2026-11-24T08:10:49+00:00",
+          "event": "lead-evidence-reassessment",
+          "source_commit": "2eb1c63d2afdf658f0e71d31f3542e320a7dd041",
+          "from_status": "blocked",
+          "status": "verified",
+          "receipt": "docs/verification/progress-reassessment-20261124/ledger-reconciliation.json",
+          "reason": "verified at host/native-integration level: current Rust1.100 workflow passes, DHCP coordinator wired; dhcp_config host tests cover NAK/expiry/link-down/no-default-DNS and unchanged service behavior. Exact-main native DHCP/DNS cases pass."
         }
       ],
-      "blocker": "Required Rust1.91.1 is not installed (rustup toolchain list 18 November:1.90.0,1.100.0,stable,beta,nightly). No installation attempted in this bounded delivery pass; exact required tests NOT RUN. Resume with installed1.91.1; no source changed.",
+      "blocker": null,
       "source_commit": "ed44d77c32d0d19e0b6fab51398b169a962f9409",
-      "receipt": "docs/roadmap-pipeline/receipts/N02-T2.json"
+      "receipt": "docs/roadmap-pipeline/receipts/N02-T2.json",
+      "reassessment": {
+        "date": "2026-11-24",
+        "source_commit": "2eb1c63d2afdf658f0e71d31f3542e320a7dd041",
+        "receipt": "docs/verification/progress-reassessment-20261124/ledger-reconciliation.json",
+        "summary": "verified at host/native-integration level: current Rust1.100 workflow passes, DHCP coordinator wired; dhcp_config host tests cover NAK/expiry/link-down/no-default-DNS and unchanged service behavior. Exact-main native DHCP/DNS cases pass."
+      }
     },
     {
       "id": "P01-T1",
@@ -1781,8 +1968,25 @@
       "deps": [],
       "write_paths": [],
       "checks": [],
-      "blocker": "UX-C consent design (UI/UX pipeline) not started.",
-      "history": []
+      "blocker": "UX-C run2 and UX-E sliceB design/prototype work exist and are AI-verified. Current blocker is native trusted dialog/broker/authenticated per-object binding, not absence of design.",
+      "history": [
+        {
+          "at": "2026-11-24T08:10:49+00:00",
+          "event": "lead-evidence-reassessment",
+          "source_commit": "2eb1c63d2afdf658f0e71d31f3542e320a7dd041",
+          "from_status": "blocked",
+          "status": "blocked",
+          "receipt": "docs/verification/progress-reassessment-20261124/ledger-reconciliation.json",
+          "reason": "UX-C run2 and UX-E sliceB design/prototype work exist and are AI-verified. Current blocker is native trusted dialog/broker/authenticated per-object binding, not absence of design."
+        }
+      ],
+      "next": "UX-C run2 and UX-E sliceB design/prototype work exist and are AI-verified. Current blocker is native trusted dialog/broker/authenticated per-object binding, not absence of design.",
+      "reassessment": {
+        "date": "2026-11-24",
+        "source_commit": "2eb1c63d2afdf658f0e71d31f3542e320a7dd041",
+        "receipt": "docs/verification/progress-reassessment-20261124/ledger-reconciliation.json",
+        "summary": "UX-C run2 and UX-E sliceB design/prototype work exist and are AI-verified. Current blocker is native trusted dialog/broker/authenticated per-object binding, not absence of design."
+      }
     },
     {
       "id": "A04-T2",
@@ -1817,13 +2021,13 @@
       "criterion": "B01",
       "milestone": "M8",
       "executor": "worker",
-      "status": "blocked",
+      "status": "verified",
       "title": "Native requester-crash and reset-ACK cases",
       "goal": "Native requester-crash and reset-ACK cases",
       "deps": [],
       "write_paths": [],
       "checks": [],
-      "blocker": "PR333 is merged. Current requester-crash/reset fixture write set overlaps open integration-owned PR364 (kernel m3/keyring, SDK keyring app and keyring harness); wait for explicit write ownership release, not CI polling.",
+      "blocker": null,
       "history": [
         {
           "event": "blocked",
@@ -1834,8 +2038,24 @@
           "event": "blocked",
           "at": "2026-11-18",
           "reason": "PR333 is merged. Current requester-crash/reset fixture write set overlaps open integration-owned PR364 (kernel m3/keyring, SDK keyring app and keyring harness); wait for explicit write ownership release, not CI polling."
+        },
+        {
+          "at": "2026-11-24T08:10:49+00:00",
+          "event": "lead-evidence-reassessment",
+          "source_commit": "2eb1c63d2afdf658f0e71d31f3542e320a7dd041",
+          "from_status": "blocked",
+          "status": "verified",
+          "receipt": "docs/verification/progress-reassessment-20261124/ledger-reconciliation.json",
+          "reason": "verified: requester-crash and missing-reset-ACK fixtures integrated via#470/#476; exact-main seven-case hosted B01 gate passed raw33, with quarantine/refusal counters. Fixtures simulate crash/reset-ACK fault paths; physical device behaviour unclaimed."
         }
-      ]
+      ],
+      "next": "verified: requester-crash and missing-reset-ACK fixtures integrated via#470/#476; exact-main seven-case hosted B01 gate passed raw33, with quarantine/refusal counters. Fixtures simulate crash/reset-ACK fault paths; physical device behaviour unclaimed.",
+      "reassessment": {
+        "date": "2026-11-24",
+        "source_commit": "2eb1c63d2afdf658f0e71d31f3542e320a7dd041",
+        "receipt": "docs/verification/progress-reassessment-20261124/ledger-reconciliation.json",
+        "summary": "verified: requester-crash and missing-reset-ACK fixtures integrated via#470/#476; exact-main seven-case hosted B01 gate passed raw33, with quarantine/refusal counters. Fixtures simulate crash/reset-ACK fault paths; physical device behaviour unclaimed."
+      }
     },
     {
       "id": "B02-T3",
@@ -1856,14 +2076,31 @@
       "criterion": "B04",
       "milestone": "M8",
       "executor": "worker",
-      "status": "blocked",
+      "status": "verified",
       "title": "OVMF Secure Boot TEST chain",
       "goal": "OVMF Secure Boot TEST chain",
       "deps": [],
       "write_paths": [],
       "checks": [],
-      "blocker": "Owner D1-D7/D5 trust-root decision; PR #336 owns signed.rs.",
-      "history": []
+      "blocker": null,
+      "history": [
+        {
+          "at": "2026-11-24T08:10:49+00:00",
+          "event": "lead-evidence-reassessment",
+          "source_commit": "2eb1c63d2afdf658f0e71d31f3542e320a7dd041",
+          "from_status": "blocked",
+          "status": "verified",
+          "receipt": "docs/verification/progress-reassessment-20261124/ledger-reconciliation.json",
+          "reason": "verified only for TEST disposable-QEMU task: five Secure Boot cases captured on1a07a521 and integrated via#434/#476. No hosted B04 job, production firmware chain/rotation or full B04 acceptance."
+        }
+      ],
+      "next": "verified only for TEST disposable-QEMU task: five Secure Boot cases captured on1a07a521 and integrated via#434/#476. No hosted B04 job, production firmware chain/rotation or full B04 acceptance.",
+      "reassessment": {
+        "date": "2026-11-24",
+        "source_commit": "2eb1c63d2afdf658f0e71d31f3542e320a7dd041",
+        "receipt": "docs/verification/progress-reassessment-20261124/ledger-reconciliation.json",
+        "summary": "verified only for TEST disposable-QEMU task: five Secure Boot cases captured on1a07a521 and integrated via#434/#476. No hosted B04 job, production firmware chain/rotation or full B04 acceptance."
+      }
     },
     {
       "id": "B05-T3",
@@ -1890,8 +2127,25 @@
       "deps": [],
       "write_paths": [],
       "checks": [],
-      "blocker": "L, P and A components do not exist yet.",
-      "history": []
+      "blocker": "Native local AI/model-loader, NAS/provider/download and required permission/LP29 scenarios are absent or incomplete; existing host/partial native component work must not be described as nonexistent wholesale.",
+      "history": [
+        {
+          "at": "2026-11-24T08:10:49+00:00",
+          "event": "lead-evidence-reassessment",
+          "source_commit": "2eb1c63d2afdf658f0e71d31f3542e320a7dd041",
+          "from_status": "blocked",
+          "status": "blocked",
+          "receipt": "docs/verification/progress-reassessment-20261124/ledger-reconciliation.json",
+          "reason": "Native local AI/model-loader, NAS/provider/download and required permission/LP29 scenarios are absent or incomplete; existing host/partial native component work must not be described as nonexistent wholesale."
+        }
+      ],
+      "next": "Native local AI/model-loader, NAS/provider/download and required permission/LP29 scenarios are absent or incomplete; existing host/partial native component work must not be described as nonexistent wholesale.",
+      "reassessment": {
+        "date": "2026-11-24",
+        "source_commit": "2eb1c63d2afdf658f0e71d31f3542e320a7dd041",
+        "receipt": "docs/verification/progress-reassessment-20261124/ledger-reconciliation.json",
+        "summary": "Native local AI/model-loader, NAS/provider/download and required permission/LP29 scenarios are absent or incomplete; existing host/partial native component work must not be described as nonexistent wholesale."
+      }
     },
     {
       "id": "H02-T3",
@@ -1980,6 +2234,15 @@
           "event": "verified",
           "at": "2026-11-23",
           "reason": "PR #461 (head 6c8d74b1, source fe8959dd): reattach-mouse raw 33 twice plus a lead rerun, keyboard reattach/reports/readonly raw 33 on local QEMU 10.2.1; mutation control fails (raw 35). Independent AI review approve-with-minors, fixed; re-review approve. Hosted native-xhci row added via the lead-scoped integration change folded into #461; acceptance-pending until it passes on QEMU 8.2.2."
+        },
+        {
+          "at": "2026-11-24T08:10:49+00:00",
+          "event": "lead-evidence-reassessment",
+          "source_commit": "2eb1c63d2afdf658f0e71d31f3542e320a7dd041",
+          "from_status": "verified",
+          "status": "verified",
+          "receipt": "docs/verification/progress-reassessment-20261124/ledger-reconciliation.json",
+          "reason": "PR480 native-xhci covers reattach-mouse and all12 cases on accepted merge tree. Update current next/evidence summary; preserve historical local report."
         }
       ],
       "lead_paths": [
@@ -1988,7 +2251,14 @@
       "evidence_level": "native QEMU/TCG (local QEMU 10.2.1); hosted 8.2.2 run pending on #461",
       "non_claimable": "Physical hotplug/reset, IRQs, hubs, wheel bytes, malformed devices, the long-lived input-policy handoff and H02 acceptance stay open; retired-page canaries detect but do not prevent late writes; Engine::next() still drops port events during command waits.",
       "source_commit": "fe8959dd8327cbce393d395755f956da226b07c5",
-      "next": "MSI/MSI-X with VT-d interrupt remapping (own security design/ADR) or the long-lived input-policy handoff."
+      "next": "PR480 native-xhci covers reattach-mouse and all12 cases on accepted merge tree. Update current next/evidence summary; preserve historical local report.",
+      "blocker": null,
+      "reassessment": {
+        "date": "2026-11-24",
+        "source_commit": "2eb1c63d2afdf658f0e71d31f3542e320a7dd041",
+        "receipt": "docs/verification/progress-reassessment-20261124/ledger-reconciliation.json",
+        "summary": "PR480 native-xhci covers reattach-mouse and all12 cases on accepted merge tree. Update current next/evidence summary; preserve historical local report."
+      }
     },
     {
       "id": "H03-T3",
@@ -2001,14 +2271,30 @@
       "deps": [],
       "write_paths": [],
       "checks": [],
-      "blocker": "Owner/release decisions B1 (AUDIO right), B2 (syscall number) and B4 (reserved VM-FR device address) stay open for the full VM-SND-1 gate. PR #333 is merged, so it no longer owns the kernel wiring. The kernel-only transport slice H03-T3a is verified separately.",
+      "blocker": "The kernel-only transport slice and hosted virtio-snd hardening are verified separately. Full VM-SND-1 remains blocked on the AUDIO capability right (B1), syscall number (B2), reserved VM-FR device address (B4) and product broker integration. PR333 is merged and is no longer an ownership blocker.",
       "history": [
         {
           "event": "split",
           "at": "2026-11-19",
           "reason": "Kernel-only transport slice H03-T3a carved out (no capability, syscall or app path). The full ring-3 VM-SND-1 gate remains blocked on B1, B2 and B4."
+        },
+        {
+          "at": "2026-11-24T08:10:49+00:00",
+          "event": "lead-evidence-reassessment",
+          "source_commit": "2eb1c63d2afdf658f0e71d31f3542e320a7dd041",
+          "from_status": "blocked",
+          "status": "blocked",
+          "receipt": "docs/verification/progress-reassessment-20261124/ledger-reconciliation.json",
+          "reason": "The kernel-only transport slice and hosted virtio-snd hardening are verified separately. Full VM-SND-1 remains blocked on the AUDIO capability right (B1), syscall number (B2), reserved VM-FR device address (B4) and product broker integration. PR333 is merged and is no longer an ownership blocker."
         }
-      ]
+      ],
+      "next": "The kernel-only transport slice and hosted virtio-snd hardening are verified separately. Full VM-SND-1 remains blocked on the AUDIO capability right (B1), syscall number (B2), reserved VM-FR device address (B4) and product broker integration. PR333 is merged and is no longer an ownership blocker.",
+      "reassessment": {
+        "date": "2026-11-24",
+        "source_commit": "2eb1c63d2afdf658f0e71d31f3542e320a7dd041",
+        "receipt": "docs/verification/progress-reassessment-20261124/ledger-reconciliation.json",
+        "summary": "The kernel-only transport slice and hosted virtio-snd hardening are verified separately. Full VM-SND-1 remains blocked on the AUDIO capability right (B1), syscall number (B2), reserved VM-FR device address (B4) and product broker integration. PR333 is merged and is no longer an ownership blocker."
+      }
     },
     {
       "id": "H03-T3a",
@@ -2097,9 +2383,25 @@
           "event": "verified",
           "at": "2026-11-23",
           "reason": "builder 557e7668/3562f868/5ac86ba1; independent AI review approve-with-minors; lead fixes 18d293a5; virtio-snd tests 81 on 1.90.0 and 1.100.0, clippy, three snd kernel profiles build, test_virtio_snd OK."
+        },
+        {
+          "at": "2026-11-24T08:10:49+00:00",
+          "event": "lead-evidence-reassessment",
+          "source_commit": "2eb1c63d2afdf658f0e71d31f3542e320a7dd041",
+          "from_status": "verified",
+          "status": "verified",
+          "receipt": "docs/verification/progress-reassessment-20261124/ledger-reconciliation.json",
+          "reason": "Hosted native-xhci passed at #415 and again PR480; all five virtio-snd cases raw33. Remove pending-CI blocker; retain F10a and host-only specific negatives."
         }
       ],
-      "next": "Hosted native-xhci.yml on the #415 head."
+      "next": "Hosted native-xhci passed at #415 and again PR480; all five virtio-snd cases raw33. Remove pending-CI blocker; retain F10a and host-only specific negatives.",
+      "blocker": null,
+      "reassessment": {
+        "date": "2026-11-24",
+        "source_commit": "2eb1c63d2afdf658f0e71d31f3542e320a7dd041",
+        "receipt": "docs/verification/progress-reassessment-20261124/ledger-reconciliation.json",
+        "summary": "Hosted native-xhci passed at #415 and again PR480; all five virtio-snd cases raw33. Remove pending-CI blocker; retain F10a and host-only specific negatives."
+      }
     },
     {
       "id": "H03-T4",
@@ -2392,9 +2694,25 @@
           "event": "verified",
           "at": "2026-11-23",
           "reason": "builder b51f04d8/c4f898a1/b6c76c08; independent AI review approve-with-minors (ADR amendment required); fixer 20f53dd4/37b8ff0a/4988e6cc; lead ADR amendment; power gate 10/10 on the merged tree."
+        },
+        {
+          "at": "2026-11-24T08:10:49+00:00",
+          "event": "lead-evidence-reassessment",
+          "source_commit": "2eb1c63d2afdf658f0e71d31f3542e320a7dd041",
+          "from_status": "verified",
+          "status": "verified",
+          "receipt": "docs/verification/progress-reassessment-20261124/ledger-reconciliation.json",
+          "reason": "PR480 power-system gate passed12 stages including reinit and held-completion. Update evidence/current next; retain kernel-driven delivery and physical/block-reinit gaps. Do not claim BARS=KEPT branch without the raw marker."
         }
       ],
-      "next": "R1 port (held completion, post-wake broker latches) onto #415; hosted native-power with the 10-stage gate."
+      "next": "PR480 power-system gate passed12 stages including reinit and held-completion. Update evidence/current next; retain kernel-driven delivery and physical/block-reinit gaps. Do not claim BARS=KEPT branch without the raw marker.",
+      "blocker": null,
+      "reassessment": {
+        "date": "2026-11-24",
+        "source_commit": "2eb1c63d2afdf658f0e71d31f3542e320a7dd041",
+        "receipt": "docs/verification/progress-reassessment-20261124/ledger-reconciliation.json",
+        "summary": "PR480 power-system gate passed12 stages including reinit and held-completion. Update evidence/current next; retain kernel-driven delivery and physical/block-reinit gaps. Do not claim BARS=KEPT branch without the raw marker."
+      }
     },
     {
       "id": "H05-T6",
@@ -2430,9 +2748,25 @@
           "event": "verified",
           "at": "2026-11-23",
           "reason": "builder b00f9b21/a99b56ed; independent AI review approve-with-minors; lead fix 7c5201b6 (extent load order); run_sleep cycles 33, stale-token 37, corrupt-facs 33; power gate 8/8 on the merged tree."
+        },
+        {
+          "at": "2026-11-24T08:10:49+00:00",
+          "event": "lead-evidence-reassessment",
+          "source_commit": "2eb1c63d2afdf658f0e71d31f3542e320a7dd041",
+          "from_status": "verified",
+          "status": "verified",
+          "receipt": "docs/verification/progress-reassessment-20261124/ledger-reconciliation.json",
+          "reason": "Successor H05-T6b implements those fixtures/refusal exits and kernel-image CR3; all five S3 cases pass hosted. Current summary should point to successor while keeping historical checkpoint intact."
         }
       ],
-      "next": "Done in H05-T6b."
+      "next": "Successor H05-T6b implements those fixtures/refusal exits and kernel-image CR3; all five S3 cases pass hosted. Current summary should point to successor while keeping historical checkpoint intact.",
+      "blocker": null,
+      "reassessment": {
+        "date": "2026-11-24",
+        "source_commit": "2eb1c63d2afdf658f0e71d31f3542e320a7dd041",
+        "receipt": "docs/verification/progress-reassessment-20261124/ledger-reconciliation.json",
+        "summary": "Successor H05-T6b implements those fixtures/refusal exits and kernel-image CR3; all five S3 cases pass hosted. Current summary should point to successor while keeping historical checkpoint intact."
+      }
     },
     {
       "id": "H05-T6b",
@@ -2507,9 +2841,25 @@
           "event": "verified",
           "at": "2026-11-23",
           "reason": "builder 8343d2fa/0c1a163c/31bdcd08; three independent AI reviews approve-with-minors; follow-up a4f3c040/c51ad0b7/df6dc2da/827e6a2b (A-E); verifier found two test survivors, closed by lead 63d134e8 with four mutants; ADR-H05-S3-SYSTEM amendment H05-R1."
+        },
+        {
+          "at": "2026-11-24T08:10:49+00:00",
+          "event": "lead-evidence-reassessment",
+          "source_commit": "2eb1c63d2afdf658f0e71d31f3542e320a7dd041",
+          "from_status": "verified",
+          "status": "verified",
+          "receipt": "docs/verification/progress-reassessment-20261124/ledger-reconciliation.json",
+          "reason": "PR480 same-tree power-system gate passed12 stages. Mark hosted follow-up complete; retain source-only/counter-only latches and no physical device-survival claim."
         }
       ],
-      "next": "Hosted power-system-gate on the #415 head; integration through the integration session."
+      "next": "PR480 same-tree power-system gate passed12 stages. Mark hosted follow-up complete; retain source-only/counter-only latches and no physical device-survival claim.",
+      "blocker": null,
+      "reassessment": {
+        "date": "2026-11-24",
+        "source_commit": "2eb1c63d2afdf658f0e71d31f3542e320a7dd041",
+        "receipt": "docs/verification/progress-reassessment-20261124/ledger-reconciliation.json",
+        "summary": "PR480 same-tree power-system gate passed12 stages. Mark hosted follow-up complete; retain source-only/counter-only latches and no physical device-survival claim."
+      }
     },
     {
       "id": "H06-T2",
@@ -2580,7 +2930,7 @@
       "criterion": "L01",
       "milestone": "M8",
       "executor": "worker",
-      "status": "active",
+      "status": "blocked",
       "title": "no_std f32 reference forward pass",
       "goal": "no_std f32 reference forward pass",
       "deps": [],
@@ -2588,7 +2938,7 @@
         "experiments/ai/reference-forward/"
       ],
       "checks": [],
-      "blocker": null,
+      "blocker": "Paused at the recorded partial reference-forward checkpoint; no live/background worker is implied. Dense, ReLU, RMSNorm and SwiGLU host primitives exist. Attention, RoPE, KV state and a complete forward pass remain unfinished; resume as a fresh manual task.",
       "history": [
         {
           "event": "active",
@@ -2600,10 +2950,26 @@
           "at": "2026-11-18T23:58:53.277824+01:00",
           "source_commit": "4a9a44ac4046dcfd69df1abb73f428522e703f65",
           "reason": "Delivered partial reference primitives: dense/ReLU, RMSNorm, SwiGLU, exact f32 decode;7hosttests and scalar compile pass. libm0.2.16 inspected/pinned. User explicitly requests session finish; no background worker. Full L01-T3 unfinished, next slice attention/RoPE/KV; preserve exclusive branch ownership until resume/integration handoff."
+        },
+        {
+          "at": "2026-11-24T08:10:49+00:00",
+          "event": "lead-evidence-reassessment",
+          "source_commit": "2eb1c63d2afdf658f0e71d31f3542e320a7dd041",
+          "from_status": "active",
+          "status": "blocked",
+          "receipt": "docs/verification/progress-reassessment-20261124/ledger-reconciliation.json",
+          "reason": "Paused at the recorded partial reference-forward checkpoint; no live/background worker is implied. Dense, ReLU, RMSNorm and SwiGLU host primitives exist. Attention, RoPE, KV state and a complete forward pass remain unfinished; resume as a fresh manual task."
         }
       ],
       "source_commit": "4a9a44ac4046dcfd69df1abb73f428522e703f65",
-      "receipt": "docs/roadmap-pipeline/receipts/L01-T3.json"
+      "receipt": "docs/roadmap-pipeline/receipts/L01-T3.json",
+      "next": "Paused at the recorded partial reference-forward checkpoint; no live/background worker is implied. Dense, ReLU, RMSNorm and SwiGLU host primitives exist. Attention, RoPE, KV state and a complete forward pass remain unfinished; resume as a fresh manual task.",
+      "reassessment": {
+        "date": "2026-11-24",
+        "source_commit": "2eb1c63d2afdf658f0e71d31f3542e320a7dd041",
+        "receipt": "docs/verification/progress-reassessment-20261124/ledger-reconciliation.json",
+        "summary": "Paused at the recorded partial reference-forward checkpoint; no live/background worker is implied. Dense, ReLU, RMSNorm and SwiGLU host primitives exist. Attention, RoPE, KV state and a complete forward pass remain unfinished; resume as a fresh manual task."
+      }
     },
     {
       "id": "L01-T4",
@@ -2624,13 +2990,13 @@
       "criterion": "N02",
       "milestone": "M8",
       "executor": "worker",
-      "status": "blocked",
+      "status": "verified",
       "title": "Native DHCP and link-transition case",
       "goal": "Native DHCP and link-transition case",
       "deps": [],
       "write_paths": [],
       "checks": [],
-      "blocker": "PR333 is merged. Currentmain still has static native network configuration; the missing DHCP coordinator wiring is pending integration-owned PR370. Rebuilding it here would duplicate that work.",
+      "blocker": null,
       "history": [
         {
           "event": "blocked",
@@ -2641,22 +3007,55 @@
           "event": "blocked",
           "at": "2026-11-18",
           "reason": "PR333 is merged. Currentmain still has static native network configuration; the missing DHCP coordinator wiring is pending integration-owned PR370. Rebuilding it here would duplicate that work."
+        },
+        {
+          "at": "2026-11-24T08:10:49+00:00",
+          "event": "lead-evidence-reassessment",
+          "source_commit": "2eb1c63d2afdf658f0e71d31f3542e320a7dd041",
+          "from_status": "blocked",
+          "status": "verified",
+          "receipt": "docs/verification/progress-reassessment-20261124/ledger-reconciliation.json",
+          "reason": "verified at native-QEMU level: DHCP acquire/NAK/reacquire, DNS, actual QMP link down/up and off-link default-route cases integrated#478; all pass on exact main2eb1c63. Synthetic peer scope retained; no real authorized connection acceptance."
         }
-      ]
+      ],
+      "next": "verified at native-QEMU level: DHCP acquire/NAK/reacquire, DNS, actual QMP link down/up and off-link default-route cases integrated#478; all pass on exact main2eb1c63. Synthetic peer scope retained; no real authorized connection acceptance.",
+      "reassessment": {
+        "date": "2026-11-24",
+        "source_commit": "2eb1c63d2afdf658f0e71d31f3542e320a7dd041",
+        "receipt": "docs/verification/progress-reassessment-20261124/ledger-reconciliation.json",
+        "summary": "verified at native-QEMU level: DHCP acquire/NAK/reacquire, DNS, actual QMP link down/up and off-link default-route cases integrated#478; all pass on exact main2eb1c63. Synthetic peer scope retained; no real authorized connection acceptance."
+      }
     },
     {
       "id": "N03-T2",
       "criterion": "N03",
       "milestone": "M8",
       "executor": "worker",
-      "status": "blocked",
+      "status": "verified",
       "title": "Host rustls provider loopback handshake",
       "goal": "Host rustls provider loopback handshake",
       "deps": [],
       "write_paths": [],
       "checks": [],
-      "blocker": "Owner/SEC ADR on provider and test peer pinning.",
-      "history": []
+      "blocker": null,
+      "history": [
+        {
+          "at": "2026-11-24T08:10:49+00:00",
+          "event": "lead-evidence-reassessment",
+          "source_commit": "2eb1c63d2afdf658f0e71d31f3542e320a7dd041",
+          "from_status": "blocked",
+          "status": "verified",
+          "receipt": "docs/verification/progress-reassessment-20261124/ledger-reconciliation.json",
+          "reason": "verified as host-only oracle/profile delivery: project-owner reported host-first choice, aws-lc-rs dev-only loopback,17 handshake+8 profile tests executed exact main. Native provider/time/trust choices remain open; host RNG/pinning exceptions explicitly bounded."
+        }
+      ],
+      "next": "verified as host-only oracle/profile delivery: project-owner reported host-first choice, aws-lc-rs dev-only loopback,17 handshake+8 profile tests executed exact main. Native provider/time/trust choices remain open; host RNG/pinning exceptions explicitly bounded.",
+      "reassessment": {
+        "date": "2026-11-24",
+        "source_commit": "2eb1c63d2afdf658f0e71d31f3542e320a7dd041",
+        "receipt": "docs/verification/progress-reassessment-20261124/ledger-reconciliation.json",
+        "summary": "verified as host-only oracle/profile delivery: project-owner reported host-first choice, aws-lc-rs dev-only loopback,17 handshake+8 profile tests executed exact main. Native provider/time/trust choices remain open; host RNG/pinning exceptions explicitly bounded."
+      }
     },
     {
       "id": "N03-T3",
@@ -2669,8 +3068,25 @@
       "deps": [],
       "write_paths": [],
       "checks": [],
-      "blocker": "N03-T2; TLS principal and time authority; PR #333.",
-      "history": []
+      "blocker": "Host N03-T2 is implemented/verified. Remaining: selected native provider and RNG route, TLS principal/bootstrap, peer policy and trusted certificate-time authority, then native handshake/negative gates.",
+      "history": [
+        {
+          "at": "2026-11-24T08:10:49+00:00",
+          "event": "lead-evidence-reassessment",
+          "source_commit": "2eb1c63d2afdf658f0e71d31f3542e320a7dd041",
+          "from_status": "blocked",
+          "status": "blocked",
+          "receipt": "docs/verification/progress-reassessment-20261124/ledger-reconciliation.json",
+          "reason": "Host N03-T2 is implemented/verified. Remaining: selected native provider and RNG route, TLS principal/bootstrap, peer policy and trusted certificate-time authority, then native handshake/negative gates."
+        }
+      ],
+      "next": "Host N03-T2 is implemented/verified. Remaining: selected native provider and RNG route, TLS principal/bootstrap, peer policy and trusted certificate-time authority, then native handshake/negative gates.",
+      "reassessment": {
+        "date": "2026-11-24",
+        "source_commit": "2eb1c63d2afdf658f0e71d31f3542e320a7dd041",
+        "receipt": "docs/verification/progress-reassessment-20261124/ledger-reconciliation.json",
+        "summary": "Host N03-T2 is implemented/verified. Remaining: selected native provider and RNG route, TLS principal/bootstrap, peer policy and trusted certificate-time authority, then native handshake/negative gates."
+      }
     },
     {
       "id": "N04-T3",
@@ -2683,8 +3099,25 @@
       "deps": [],
       "write_paths": [],
       "checks": [],
-      "blocker": "N04-T2 review; PR #333 for new cases.",
-      "history": []
+      "blocker": "PR333 is no longer a blocker. N04-T2 remains a proposal: production issuer/delegation, generation-bound regrant and durable-revocation authority/storage design and implementation are still needed.",
+      "history": [
+        {
+          "at": "2026-11-24T08:10:49+00:00",
+          "event": "lead-evidence-reassessment",
+          "source_commit": "2eb1c63d2afdf658f0e71d31f3542e320a7dd041",
+          "from_status": "blocked",
+          "status": "blocked",
+          "receipt": "docs/verification/progress-reassessment-20261124/ledger-reconciliation.json",
+          "reason": "PR333 is no longer a blocker. N04-T2 remains a proposal: production issuer/delegation, generation-bound regrant and durable-revocation authority/storage design and implementation are still needed."
+        }
+      ],
+      "next": "PR333 is no longer a blocker. N04-T2 remains a proposal: production issuer/delegation, generation-bound regrant and durable-revocation authority/storage design and implementation are still needed.",
+      "reassessment": {
+        "date": "2026-11-24",
+        "source_commit": "2eb1c63d2afdf658f0e71d31f3542e320a7dd041",
+        "receipt": "docs/verification/progress-reassessment-20261124/ledger-reconciliation.json",
+        "summary": "PR333 is no longer a blocker. N04-T2 remains a proposal: production issuer/delegation, generation-bound regrant and durable-revocation authority/storage design and implementation are still needed."
+      }
     },
     {
       "id": "P01-T2",
@@ -2711,8 +3144,25 @@
       "deps": [],
       "write_paths": [],
       "checks": [],
-      "blocker": "P01-T2, B01, B02, N03, owner pairing ADR; tools/build.py owned by PR #333.",
-      "history": []
+      "blocker": "Native NAS encryption/identity integration still depends on P01-T2, B02, N03 and an adopted pairing authority design. Generic B01 is now accepted, but that does not implement the NAS keyring/encryption join. PR333 is merged and is no longer the build-tool owner; claim the actual current write set before implementation.",
+      "history": [
+        {
+          "at": "2026-11-24T08:10:49+00:00",
+          "event": "lead-evidence-reassessment",
+          "source_commit": "2eb1c63d2afdf658f0e71d31f3542e320a7dd041",
+          "from_status": "blocked",
+          "status": "blocked",
+          "receipt": "docs/verification/progress-reassessment-20261124/ledger-reconciliation.json",
+          "reason": "Native NAS encryption/identity integration still depends on P01-T2, B02, N03 and an adopted pairing authority design. Generic B01 is now accepted, but that does not implement the NAS keyring/encryption join. PR333 is merged and is no longer the build-tool owner; claim the actual current write set before implementation."
+        }
+      ],
+      "next": "Native NAS encryption/identity integration still depends on P01-T2, B02, N03 and an adopted pairing authority design. Generic B01 is now accepted, but that does not implement the NAS keyring/encryption join. PR333 is merged and is no longer the build-tool owner; claim the actual current write set before implementation.",
+      "reassessment": {
+        "date": "2026-11-24",
+        "source_commit": "2eb1c63d2afdf658f0e71d31f3542e320a7dd041",
+        "receipt": "docs/verification/progress-reassessment-20261124/ledger-reconciliation.json",
+        "summary": "Native NAS encryption/identity integration still depends on P01-T2, B02, N03 and an adopted pairing authority design. Generic B01 is now accepted, but that does not implement the NAS keyring/encryption join. PR333 is merged and is no longer the build-tool owner; claim the actual current write set before implementation."
+      }
     },
     {
       "id": "P02-T3",
@@ -2725,8 +3175,25 @@
       "deps": [],
       "write_paths": [],
       "checks": [],
-      "blocker": "NASP Head opcode; N02/N03/N04.",
-      "history": []
+      "blocker": "Service::head and reconcile_latest already exist; NASP Op enum still has no Head opcode. Narrow blocker to wire/native integration and persistence; do not remove the actual missing opcode requirement.",
+      "history": [
+        {
+          "at": "2026-11-24T08:10:49+00:00",
+          "event": "lead-evidence-reassessment",
+          "source_commit": "2eb1c63d2afdf658f0e71d31f3542e320a7dd041",
+          "from_status": "blocked",
+          "status": "blocked",
+          "receipt": "docs/verification/progress-reassessment-20261124/ledger-reconciliation.json",
+          "reason": "Service::head and reconcile_latest already exist; NASP Op enum still has no Head opcode. Narrow blocker to wire/native integration and persistence; do not remove the actual missing opcode requirement."
+        }
+      ],
+      "next": "Service::head and reconcile_latest already exist; NASP Op enum still has no Head opcode. Narrow blocker to wire/native integration and persistence; do not remove the actual missing opcode requirement.",
+      "reassessment": {
+        "date": "2026-11-24",
+        "source_commit": "2eb1c63d2afdf658f0e71d31f3542e320a7dd041",
+        "receipt": "docs/verification/progress-reassessment-20261124/ledger-reconciliation.json",
+        "summary": "Service::head and reconcile_latest already exist; NASP Op enum still has no Head opcode. Narrow blocker to wire/native integration and persistence; do not remove the actual missing opcode requirement."
+      }
     },
     {
       "id": "P03-T2",
@@ -2753,8 +3220,25 @@
       "deps": [],
       "write_paths": [],
       "checks": [],
-      "blocker": "Shares files with P04-T2; run after it.",
-      "history": []
+      "blocker": "P04-T2 dependency and current native NAS normal/cold gate are verified. Native LP-25 interrupted purge is still unimplemented. Before execution, a fresh manual task must define the interruption/recovery acceptance checks and claim its write set; this skeletal row has no executable checks or gates. The unattended execution hold remains in force.",
+      "history": [
+        {
+          "at": "2026-11-24T08:10:49+00:00",
+          "event": "lead-evidence-reassessment",
+          "source_commit": "2eb1c63d2afdf658f0e71d31f3542e320a7dd041",
+          "from_status": "blocked",
+          "status": "blocked",
+          "receipt": "docs/verification/progress-reassessment-20261124/ledger-reconciliation.json",
+          "reason": "P04-T2 dependency and current native NAS normal/cold gate are verified. Native LP-25 interrupted purge is still unimplemented. Before execution, a fresh manual task must define the interruption/recovery acceptance checks and claim its write set; this skeletal row has no executable checks or gates. The unattended execution hold remains in force."
+        }
+      ],
+      "next": "P04-T2 dependency and current native NAS normal/cold gate are verified. Native LP-25 interrupted purge is still unimplemented. Before execution, a fresh manual task must define the interruption/recovery acceptance checks and claim its write set; this skeletal row has no executable checks or gates. The unattended execution hold remains in force.",
+      "reassessment": {
+        "date": "2026-11-24",
+        "source_commit": "2eb1c63d2afdf658f0e71d31f3542e320a7dd041",
+        "receipt": "docs/verification/progress-reassessment-20261124/ledger-reconciliation.json",
+        "summary": "P04-T2 dependency and current native NAS normal/cold gate are verified. Native LP-25 interrupted purge is still unimplemented. Before execution, a fresh manual task must define the interruption/recovery acceptance checks and claim its write set; this skeletal row has no executable checks or gates. The unattended execution hold remains in force."
+      }
     },
     {
       "id": "R01-T3",
@@ -2767,8 +3251,25 @@
       "deps": [],
       "write_paths": [],
       "checks": [],
-      "blocker": "tools/run.py owned by PR #333; U05 UI.",
-      "history": []
+      "blocker": "The user-facing U05 settings/recovery UI remains a dependency for the native installer/recovery task. PR333 is merged and no longer owns tools/run.py; practical preserve/wipe installation and recovery acceptance are still missing.",
+      "history": [
+        {
+          "at": "2026-11-24T08:10:49+00:00",
+          "event": "lead-evidence-reassessment",
+          "source_commit": "2eb1c63d2afdf658f0e71d31f3542e320a7dd041",
+          "from_status": "blocked",
+          "status": "blocked",
+          "receipt": "docs/verification/progress-reassessment-20261124/ledger-reconciliation.json",
+          "reason": "The user-facing U05 settings/recovery UI remains a dependency for the native installer/recovery task. PR333 is merged and no longer owns tools/run.py; practical preserve/wipe installation and recovery acceptance are still missing."
+        }
+      ],
+      "next": "The user-facing U05 settings/recovery UI remains a dependency for the native installer/recovery task. PR333 is merged and no longer owns tools/run.py; practical preserve/wipe installation and recovery acceptance are still missing.",
+      "reassessment": {
+        "date": "2026-11-24",
+        "source_commit": "2eb1c63d2afdf658f0e71d31f3542e320a7dd041",
+        "receipt": "docs/verification/progress-reassessment-20261124/ledger-reconciliation.json",
+        "summary": "The user-facing U05 settings/recovery UI remains a dependency for the native installer/recovery task. PR333 is merged and no longer owns tools/run.py; practical preserve/wipe installation and recovery acceptance are still missing."
+      }
     },
     {
       "id": "R02-L1",
@@ -2795,8 +3296,25 @@
       "deps": [],
       "write_paths": [],
       "checks": [],
-      "blocker": "Owner/ADR decision on budgets and reference profile.",
-      "history": []
+      "blocker": "Budget decision remains genuinely open, but append delivered three-run native TCG host-observed baseline; budget:null/accepted:null and n=3 remain explicit.",
+      "history": [
+        {
+          "at": "2026-11-24T08:10:49+00:00",
+          "event": "lead-evidence-reassessment",
+          "source_commit": "2eb1c63d2afdf658f0e71d31f3542e320a7dd041",
+          "from_status": "blocked",
+          "status": "blocked",
+          "receipt": "docs/verification/progress-reassessment-20261124/ledger-reconciliation.json",
+          "reason": "Budget decision remains genuinely open, but append delivered three-run native TCG host-observed baseline; budget:null/accepted:null and n=3 remain explicit."
+        }
+      ],
+      "next": "Budget decision remains genuinely open, but append delivered three-run native TCG host-observed baseline; budget:null/accepted:null and n=3 remain explicit.",
+      "reassessment": {
+        "date": "2026-11-24",
+        "source_commit": "2eb1c63d2afdf658f0e71d31f3542e320a7dd041",
+        "receipt": "docs/verification/progress-reassessment-20261124/ledger-reconciliation.json",
+        "summary": "Budget decision remains genuinely open, but append delivered three-run native TCG host-observed baseline; budget:null/accepted:null and n=3 remain explicit."
+      }
     },
     {
       "id": "U03-T2",
@@ -2823,8 +3341,25 @@
       "deps": [],
       "write_paths": [],
       "checks": [],
-      "blocker": "The native read-only fixture needs the window-session kernel manifest (kernel/src/m2/m3/window_session.rs, PR #333) and ui/native (UI/UX pipeline UX-G); confirm ownership first.",
-      "history": []
+      "blocker": "Part1 manifest/profile landed via #455/#480 and target build passes; current concrete gap is part2 actual service refusals, live counters, UI denial and unchanged-disk evidence.",
+      "history": [
+        {
+          "at": "2026-11-24T08:10:49+00:00",
+          "event": "lead-evidence-reassessment",
+          "source_commit": "2eb1c63d2afdf658f0e71d31f3542e320a7dd041",
+          "from_status": "blocked",
+          "status": "blocked",
+          "receipt": "docs/verification/progress-reassessment-20261124/ledger-reconciliation.json",
+          "reason": "Part1 manifest/profile landed via #455/#480 and target build passes; current concrete gap is part2 actual service refusals, live counters, UI denial and unchanged-disk evidence."
+        }
+      ],
+      "next": "Part1 manifest/profile landed via #455/#480 and target build passes; current concrete gap is part2 actual service refusals, live counters, UI denial and unchanged-disk evidence.",
+      "reassessment": {
+        "date": "2026-11-24",
+        "source_commit": "2eb1c63d2afdf658f0e71d31f3542e320a7dd041",
+        "receipt": "docs/verification/progress-reassessment-20261124/ledger-reconciliation.json",
+        "summary": "Part1 manifest/profile landed via #455/#480 and target build passes; current concrete gap is part2 actual service refusals, live counters, UI denial and unchanged-disk evidence."
+      }
     },
     {
       "id": "U04-T3",
@@ -2879,8 +3414,25 @@
       "deps": [],
       "write_paths": [],
       "checks": [],
-      "blocker": "Human participants and owner approval.",
-      "history": []
+      "blocker": "Protocol/task matrix and proposed budgets delivered; current next steps are approve/freeze candidate, verify routes, pilot, preregister and run real participants. Do not mark study complete.",
+      "history": [
+        {
+          "at": "2026-11-24T08:10:49+00:00",
+          "event": "lead-evidence-reassessment",
+          "source_commit": "2eb1c63d2afdf658f0e71d31f3542e320a7dd041",
+          "from_status": "blocked",
+          "status": "blocked",
+          "receipt": "docs/verification/progress-reassessment-20261124/ledger-reconciliation.json",
+          "reason": "Protocol/task matrix and proposed budgets delivered; current next steps are approve/freeze candidate, verify routes, pilot, preregister and run real participants. Do not mark study complete."
+        }
+      ],
+      "next": "Protocol/task matrix and proposed budgets delivered; current next steps are approve/freeze candidate, verify routes, pilot, preregister and run real participants. Do not mark study complete.",
+      "reassessment": {
+        "date": "2026-11-24",
+        "source_commit": "2eb1c63d2afdf658f0e71d31f3542e320a7dd041",
+        "receipt": "docs/verification/progress-reassessment-20261124/ledger-reconciliation.json",
+        "summary": "Protocol/task matrix and proposed budgets delivered; current next steps are approve/freeze candidate, verify routes, pilot, preregister and run real participants. Do not mark study complete."
+      }
     }
   ]
 }

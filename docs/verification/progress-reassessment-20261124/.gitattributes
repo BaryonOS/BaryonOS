@@ -1,0 +1,2 @@
+# Keep the downloaded serial evidence byte-for-byte, including firmware CRLF.
+b01/build/run/*/serial.txt -text

@@ -1,6 +1,83 @@
 # Current project status
 
-## Current handoff — PR integration checkpoint — 24 November 2026
+## Current handoff — progress reassessment — 24 November 2026
+
+**Assessment: 41 → 43/100.** All 30 previously open criteria were reassessed
+against main `2eb1c63d2afdf658f0e71d31f3542e320a7dd041`. B01 meets every
+clause of its unchanged entropy/key-management criterion and earns its existing
+two points. The other 29 remain open with concrete remaining requirements.
+The 21 previously accepted criteria retain their existing evidence. No criterion
+ID, weight or acceptance text was changed; no partial points were introduced.
+
+The [B01 acceptance record](verification/progress-reassessment-20261124/B01-ACCEPTANCE.md)
+preserves the actual main job's seven-case gate and original serial/results.
+All seven native QEMU cases pass with raw exit 33, including manifest-bound
+management recovery and ordinary-app refusals. The archive checksum and all
+15 report/log hashes and sizes were verified. This accepts roadmap B01, not the
+broader FR-B01 release condition, physical entropy or an external human audit.
+
+### Visible implementation and verification
+
+The existing progress register/generator now exposes a source-bound snapshot
+beside formal acceptance. Across **113 explicitly scoped requirements** in the
+30 reviewed criteria, **19 are implemented, 76 partial, 17 missing and 1 unknown**.
+The inventory records **52 requirements with native QEMU evidence**, 26 with
+host-test evidence and 2 with target-build evidence. No physical/human evidence
+is credited in this inventory. These unequal, unweighted rows are not a second
+OS completion percentage or an estimate of remaining effort.
+
+The [generated matrix](PROGRESS.md#implementation-and-verification-snapshot)
+shows what is delivered and the remaining gap for each row. Local source links
+are pinned to the snapshot commit. Updating a task assessment does not silently
+refresh that snapshot. Current native achievements include six settings cold
+boots, document/library recovery, window/switcher scaling, USB mouse reattach,
+DHCP/DNS/link/default-route tests, power recovery and bounded NAS management.
+Search S3, read-only refusal part 2, native TLS/AI, physical support and human
+acceptance remain explicit follow-ups.
+
+### Reconciled task records
+
+[The reconciliation receipt](verification/progress-reassessment-20261124/ledger-reconciliation.json)
+records 34 updates to existing ledger entries. Nine stale blocked tasks are now
+verified: B01-T2, B02-T2, B04-T3, N02-T2, N02-T3, N03-T1, N03-T2, U05-T1 and U05-T2,
+at their individual host/native/design evidence scope. L01-T3 is a paused partial
+checkpoint, not an active background worker. The ledger now has **45 verified
+and 31 blocked tasks**, compared with 36 verified, 39 blocked and 1 stale active
+entry. This subset is not the full roadmap and does not determine acceptance.
+
+All previous history entries, task goals, dependencies and historical receipt/
+source fields are preserved. Genuine audio, pairing and recovery-UI dependencies
+remain. P04-T1 no longer waits for P04-T2; it still needs a scoped interruption/
+recovery check plan before execution. The unattended controller remains disabled
+and execution-held; no new worker is launched by this reporting change.
+
+### Verification and handoff
+
+Branch: `audit/progress-evidence-20261124`; lead is the sole writer. Three
+read-only evidence audits covered the open criteria. A separate workstream
+reviewed the protected reporting diff and reproduced reference-validation issues;
+canonical paths, immutable snapshot links and literal prose rendering repair them.
+
+- `python3 -B -m unittest tools.tests.test_progress tools.tests.test_agent_pipeline tools.tests.test_roadmap_runner tests.test_ci_workflows`: **246 tests pass**, exit 0, including 12 new reporting tests.
+- `python3 -B -m compileall -q tools`: exit 0.
+- `python3 -B tools/progress.py --write` and `--check`: **43/100**, consistent.
+- Original rubric-field, artifact-hash and history-preservation checks pass.
+
+The first ledger test rejected making skeletal P04-T1 ready without checks; it
+remains blocked with the actual preparation gap. No tests or requirements were
+weakened. The local CodeRabbit installation was blocked by automatic approval
+review over an analytics connection to PostHog; no local CodeRabbit result is
+claimed. Repository-integrated review and mandatory hosted status belong to the
+containing PR and must pass before landing.
+
+No OS runtime, dependency, native runner or native test input changed. Reused
+evidence remains bound to its recorded source; the broad source fingerprint also
+includes reporting tools, so the new reporting commit is not claimed to have the
+same whole-tree fingerprint. Required current-head checks remain mandatory.
+The next execution session starts with the relevant concrete remaining row and
+one manual ownership claim, not an automatic continuation of the dormant queue.
+
+## Previous checkpoint — PR integration — 24 November 2026
 
 **Start here.** Fetch main, read AGENTS.md and [STATUS.md](STATUS.md), then compare
 the intended change with current files and the relevant contracts. The original
