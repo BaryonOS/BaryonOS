@@ -140,8 +140,14 @@ def git(repo, *args, timeout=GIT_TIMEOUT):
 
 
 def git_blob(repo, sha, path):
+    """Blob bytes, or None when `path` is absent at `sha`. A git error is never absence."""
     code, out = git(repo, "cat-file", "blob", f"{sha}:{path}")
-    return out if code == 0 else None
+    if code == 0:
+        return out
+    code, listing = git(repo, "ls-tree", "-z", "--full-tree", sha, "--", path)
+    if code == 0 and not listing:
+        return None
+    raise Full("git-read-failed", [f"{sha}:{path}"])
 
 
 def has_commit(repo, sha):
@@ -525,6 +531,7 @@ def cargo_closure(roots, read, escapes):
                         raise Full("cargo-workspace-inheritance", [manifest])
                     if isinstance(spec.get("path"), str):
                         dep = repo_join(directory, spec["path"], manifest)
+                        globs.add(f"{dep}/**")  # declared, even where its manifest is absent
                         queue.append(f"{dep}/Cargo.toml")
         targets = []
         lib = doc.get("lib")
@@ -561,8 +568,11 @@ def execution_static_globs(execution, catalogue):
     return result
 
 
-def attach_globs(catalogue, execs, readers):
-    """Attach `globs` to every execution, union over all manifest readers."""
+def attach_globs(catalogue, execs, readers, require_roots=True):
+    """Attach `globs` to every execution, union over all manifest readers.
+
+    A cargo root absent at every reader raises Full: a typo must widen, never narrow.
+    """
     escapes = catalogue.get("crate_escape", [])
     cache = {}
     for execution in execs:
@@ -575,6 +585,9 @@ def attach_globs(catalogue, execs, readers):
                     found, found_dirs = cargo_closure(roots, read, escapes)
                     combined |= found
                     dirs |= found_dirs
+                missing = [root for root in roots if posixpath.dirname(root) not in dirs]
+                if missing and require_roots:
+                    raise Full("cargo-manifest-missing", missing)
                 cache[roots] = (combined, dirs)
             globs |= cache[roots][0]
             execution["crate_dirs"] = sorted(cache[roots][1])
@@ -1134,7 +1147,7 @@ def coverage(repo, catalogue_file):
             if read_disk(root) is None:
                 problems.append(f"cargo-root-missing: {execution['id']}: {root}")
     try:
-        attach_globs(catalogue, execs, [read_disk])
+        attach_globs(catalogue, execs, [read_disk], require_roots=False)  # reported above
     except Full as reason:
         problems.append(f"closure-failed: {reason.code}: {reason.detail}")
         return report | {"status": "drift", "problems": problems}

@@ -540,6 +540,32 @@ class FallbackTests(FixtureTestCase):
             "solo", extra='\n[patch.crates-io]\nx = { path = "../../crates/codec" }\n')}))
         self.assertFull(plan, "cargo-patch-unresolved")
 
+    def test_missing_cargo_root_is_full_not_narrowed(self):
+        base = self.repo.commit("typo", {".github/ci-impact.toml": CATALOGUE.replace(
+            'cargo = ["svc/stack/Cargo.toml"]', 'cargo = ["svc/stak/Cargo.toml"]')})
+        self.repo.git("checkout", "-q", "-b", "topic", base)
+        head = self.repo.commit("stack", {"svc/stack/src/lib.rs": "// stack 2\n"})
+        plan = self.plan(head, base=base)
+        self.assertFull(plan, "cargo-manifest-missing")
+        self.assertEqual(plan["fallback"]["detail"], ["svc/stak/Cargo.toml"])
+        self.assertIn("net#broker", self.selected(plan))
+
+    def test_git_read_errors_are_not_absence(self):
+        self.assertIsNone(ci_impact.git_blob(self.repo.root, self.base, "no/such/Cargo.toml"))
+        with self.assertRaises(ci_impact.Full) as raised:
+            ci_impact.git_blob(self.repo.root, "e" * 40, "README.md")
+        self.assertEqual(raised.exception.code, "git-read-failed")
+        real = ci_impact.git
+
+        def failing(repo, *args, **kwargs):
+            if args[0] in ("cat-file", "ls-tree") and args[-1].endswith("Cargo.toml"):
+                return 124, b""
+            return real(repo, *args, **kwargs)
+
+        head = self.branch({"apps/solo/src/lib.rs": "// solo 2\n"})
+        with mock.patch.object(ci_impact, "git", side_effect=failing):
+            self.assertFull(self.plan(head), "git-read-failed")
+
     def test_bootstrap_without_base_catalogue_or_selector_is_full(self):
         for removed in (".github/ci-impact.toml", "tools/ci_impact.py"):
             with self.subTest(removed=removed):
