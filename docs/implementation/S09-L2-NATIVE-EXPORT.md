@@ -182,7 +182,7 @@ All four stages run in the backup portal (slot 1, domain 0) and use device 1
 
 | `PLAN` entry | Parent | Case | Preparation: disk 0 | Preparation: disk 1 | Service | Device-1 grant | What the stage proves |
 |---|---|---|---|---|---|---|---|
-| `l2-export` | `archive-export` | 25 | `outside_archive(parent)`; no v1 reference | fresh canary disk (2048 sectors) | writable | R\|W\|F | After S1–S4, `export_v2` writes a v2 archive to device 1. It reads back through `verify_v2` equal to the export summary. (Revision 1 also required a refused write here; with a writable service that cannot hold, so slice B dropped it.) |
+| `l2-export` | `archive-export` | 25 | `outside_archive(parent)`; no v1 reference | fresh canary disk (2048 sectors) | writable | R\|W\|F | After S1–S5, `export_v2` writes a v2 archive to device 1. It reads back through `verify_v2` equal to the export summary. (Revision 1 also required a refused write here; with a writable service that cannot hold, so slice B dropped it.) |
 | `l2-restore` | `l2-export` | 26 | source loss: fresh empty image | parent's `archive.img`, `readonly=on` | writable | READ | Cold `restore_native_l2` into the never-used domain 0 returns the expected `L2Report`. The guest then reads every slot's `provenance()` and every collection's `collection_provenance()` and counts mismatches against the verified plan; zero are expected. |
 | `l2-corrupt` | `l2-export` | 27 | source loss: fresh empty image | parent's archive with one content byte of the largest object flipped (offset computed from `parse_v2` and recorded); `readonly=on` | writable | READ | `restore_native_l2` returns `Corrupt` before any service mutation. Disk 0 stays byte-identical to the fresh empty image. |
 | `l2-used` | `l2-restore` | 28 | keep the parent's restored `volume.img`, `readonly=on` (device level, added to `read_only()`; optional item 2) | keep the parent's `archive.img`, `readonly=on` | read-only | READ | After a cold boot, provenance read through `PROVENANCE_STAT` still matches the plan. A second `restore_native_l2` into the now-used domain returns `Stale` with `committed = 0`. Both disks are byte-identical. |
@@ -255,7 +255,7 @@ The portal builds each reader from a new `NativeDisk { device }`;
   links:
   - `export_v2`, `verify_v2` and `restore_native_l2`;
   - the install and provenance client methods;
-  - the mutating client calls of S1–S4.
+  - the mutating client calls of S1–S5.
 
   It does not link the v1 export, restore or ustar flows.
 - **v1 portal.** The v1 portal (`archive-portal`) keeps its flows, but it now
@@ -347,12 +347,12 @@ covers U05's cases (optional item 6).
   walks `PLAN` and verifies that every new stage's parent is the stage that
   last wrote that directory.
 
-**Pieces that do not exist yet:**
+**Oracle pieces** (implemented in slices C and D and passed in the local native gate; the hosted `m6e-native-volume` run on the final head is still pending, see section 9):
 
 1. **v2 extraction.** `stored_archive_in` and `disk_archive` dispatch on the
    header version, through `volume_archive.stored_length_v2` and `parse_v2`.
    A v2 archive is never read with the v1 length.
-2. **`expected_source(parent)`.** It applies S1–S4 to the frozen v2 analysis
+2. **`expected_source(parent)`.** It applies S1–S5 to the frozen v2 analysis
    of the parent's disk 0. The `l2-export` disk 0 after the run must equal it
    (frozen v2 reader, `opaque` for object 2's zero-length versions). The
    device-0 archive range must still hold its canaries.
