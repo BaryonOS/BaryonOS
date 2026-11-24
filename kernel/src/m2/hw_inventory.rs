@@ -20,6 +20,9 @@ const MAX_FUNCTIONS: u32 = 1024;
 
 pub(super) fn run(info: &BootInfo, discovery: &Discovery) -> ! {
     serial::write(b"HWINV:BEGIN\n");
+    if cfg!(feature = "test-hwinv-fail") {
+        halt(b"HWINV:FAIL:FIXTURE\n");
+    }
     let Some(vendor) = cpu_vendor() else {
         halt(b"HWINV:FAIL:CPUID\n")
     };

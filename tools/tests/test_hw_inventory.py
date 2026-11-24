@@ -82,6 +82,32 @@ class ConvertTest(unittest.TestCase):
                 hw_inventory.inventory_from_log(text)
 
 
+class FixtureTest(unittest.TestCase):
+    """H06-T5 terminal fixtures: markers in order, protocol failure, no exit port."""
+    PANIC = "BOOT:EBS_OK\nKERNEL:ENTRY\nBOOTINFO:OK\nM2:PANIC_LINE:0000000310\nM1:FAIL:KERNEL_PANIC\n"
+    M2 = "BOOT:EBS_OK\nKERNEL:ENTRY\nBOOTINFO:OK\nM2:FAULT:KERNEL_UD:PASS\nM2:FAIL:KERNEL_EXCEPTION\n"
+
+    def failed(self, text, fixture, alive=True):
+        return {n for n, ok in run_hw_inventory.evaluate_fixture(text, fixture, alive).items() if not ok}
+
+    def test_expected_terminal_logs_pass(self):
+        self.assertEqual(self.failed(self.PANIC, "panic"), set())
+        self.assertEqual(self.failed(self.M2, "m2-fault"), set())
+        self.assertEqual(self.failed("M2:PASS\nM1:PASS\nHWINV:BEGIN\nHWINV:FAIL:FIXTURE\n", "hwinv-fail"), set())
+        self.assertEqual(self.failed("BdsDxe: loading\nM1:FAIL:KERNEL_OPEN\n", "missing-kernel"), set())
+
+    def test_each_check_detects_its_own_deviation(self):
+        self.assertEqual(self.failed(self.PANIC, "panic", alive=False), {"halted_without_exit_port"})
+        self.assertEqual(self.failed(self.PANIC.replace("M2:PANIC_LINE:0000000310\n", ""), "panic"),
+                         {"fixture_markers_in_order"})
+        self.assertEqual(self.failed(self.PANIC + "HWINV:PASS\n", "panic"), {"no_hwinv_pass"})
+        # M2:FAIL is a protocol failure marker since HW-INV v3.
+        self.assertNotIn("protocol_failure_recognised", self.failed(self.M2, "m2-fault"))
+        self.assertIn("M2:FAIL", hw_inventory.FAILURES)
+        self.assertEqual(self.failed("M2:FAULT:KERNEL_UD:PASS\nM2:FAIL_X\n".replace("M2:FAIL_X", "OTHER"), "m2-fault"),
+                         {"fixture_markers_in_order", "protocol_failure_recognised"})
+
+
 class EvaluateTest(unittest.TestCase):
     def test_captured_iommu_log_passes_every_oracle(self):
         checks, inventory, error = run_hw_inventory.evaluate(LOG, "iommu", QMP, True)
