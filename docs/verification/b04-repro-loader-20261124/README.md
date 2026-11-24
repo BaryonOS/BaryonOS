@@ -28,21 +28,21 @@ The PDB contains each run's absolute target-dir path and a random rustc temporar
 name, and its hash feeds the build identifier. All 20 differing bytes are timestamp/REPRO or RSDS fields.
 
 Primary source: LLVM Project (organisation), `lld` COFF linker source, release 23.1.5 (toolchain
-`rustc +1.100.0 -vV` reports LLVM 23.1.5; tag `llvmorg-23.1.5`, commit
-`604d7ddfacefc074968a9ba0d88c667ab31b42bd`), read 24 November 2026:
+`rustc +1.100.0 -vV` reports LLVM 23.1.5; tag `llvmorg-23.1.5` (tag object `604d7ddf`), commit
+`392dfff97d29b59d77e5cac6d4b6ef2585fe7117`), read 24 November 2026:
 
-- [`lld/COFF/Driver.cpp` L2003–L2021](https://github.com/llvm/llvm-project/blob/604d7ddfacefc074968a9ba0d88c667ab31b42bd/lld/COFF/Driver.cpp#L2003-L2021):
+- [`lld/COFF/Driver.cpp` L2003–L2021](https://github.com/llvm/llvm-project/blob/392dfff97d29b59d77e5cac6d4b6ef2585fe7117/lld/COFF/Driver.cpp#L2003-L2021):
   `config->timestamp` is `0` or `time(nullptr)`;
-  [L2604–L2628](https://github.com/llvm/llvm-project/blob/604d7ddfacefc074968a9ba0d88c667ab31b42bd/lld/COFF/Driver.cpp#L2604-L2628)
+  [L2604–L2628](https://github.com/llvm/llvm-project/blob/392dfff97d29b59d77e5cac6d4b6ef2585fe7117/lld/COFF/Driver.cpp#L2604-L2628)
   select `BuildIDHash::PDB` when a PDB is linked.
-- [`lld/COFF/PDB.cpp` L1618–L1620](https://github.com/llvm/llvm-project/blob/604d7ddfacefc074968a9ba0d88c667ab31b42bd/lld/COFF/PDB.cpp#L1618-L1620):
+- [`lld/COFF/PDB.cpp` L1618–L1620](https://github.com/llvm/llvm-project/blob/392dfff97d29b59d77e5cac6d4b6ef2585fe7117/lld/COFF/PDB.cpp#L1618-L1620):
   after the PDB is committed, its GUID is copied into the CodeView
   record (`PDB70.Signature`), so PDB content (including run paths) determines the GUID.
-- [`lld/COFF/Writer.cpp` L2692–L2716](https://github.com/llvm/llvm-project/blob/604d7ddfacefc074968a9ba0d88c667ab31b42bd/lld/COFF/Writer.cpp#L2692-L2716)
+- [`lld/COFF/Writer.cpp` L2692–L2716](https://github.com/llvm/llvm-project/blob/392dfff97d29b59d77e5cac6d4b6ef2585fe7117/lld/COFF/Writer.cpp#L2692-L2716)
   (`Writer::writeBuildId`): with `config->repro` the COFF header and
   debug-directory timestamps become `xxh3_64bits` of the output, which already contains that GUID;
   otherwise they are `config->timestamp`.
-  [L108–L114](https://github.com/llvm/llvm-project/blob/604d7ddfacefc074968a9ba0d88c667ab31b42bd/lld/COFF/Writer.cpp#L108-L114):
+  [L108–L114](https://github.com/llvm/llvm-project/blob/392dfff97d29b59d77e5cac6d4b6ef2585fe7117/lld/COFF/Writer.cpp#L108-L114):
   `/Brepro` adds a data-less
   `IMAGE_DEBUG_TYPE_REPRO` debug-directory entry.
 
