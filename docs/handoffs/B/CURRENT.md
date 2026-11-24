@@ -15,6 +15,17 @@ tasks live in `docs/roadmap-pipeline/ledger.json` and criteria in `docs/progress
 - TEST keys/profiles grant no release signing, production anchors or new trust boundaries.
 - Extra AI review is not external human audit (B05).
 
+## Project metadata agreement (project owner, via the PR guardian, 24 Nov)
+
+- Maintain project 5 membership, labels, Status, Subsystem, Work Type and milestone
+  (B02: M6; B04–B06: M8). Priority/Start/Target are org issue fields; Start date only
+  when proven, Target only for a real deadline. Effort (1/2/3/5/8) only on leaf issues.
+- Record real issue–PR, parent/sub and blocked-by links; closing keywords only for the
+  scoped issue a PR fully resolves. Merged = Done, other closure = Closed. A merge is not
+  criterion acceptance. No schema/permission changes, no artificial issues.
+- Gap on #486: the local gh token lacks `read:project`, so project 5 membership and
+  fields are not set; owner action needed.
+
 ## Current cycle
 
 - cycle_id: b02-key1-relay-20261124
