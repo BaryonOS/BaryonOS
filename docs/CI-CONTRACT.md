@@ -235,6 +235,27 @@ phase.
 
 Then run `validate` and `coverage`; both must be clean, and bump `revision`.
 
+## Known limits before enforcement
+
+Phase 2a plans are shadow information. The following gaps are known and must
+be closed, or shown not to apply, before phase 3 (enforce) or phase 4
+(select) relies on a plan:
+
+- **Event applicability ignores the target branch.** `applicable` checks the
+  event name and, for `push`, a `branches` list containing `main`. It does
+  not compare `pull_request` or `merge_group` branch filters with the pull
+  request's base branch, nor a pushed ref with the filter. A stacked pull
+  request onto a non-`main` branch can therefore be planned with a gate such
+  as `codeql.yml` (`branches: [main]`) that GitHub will not start.
+- **The escape scanner sees only literal compile-time paths.** `scan_escapes`
+  finds `#[path = "..."]` and `include*!` arguments. It does not model
+  runtime paths built from `env!("CARGO_MANIFEST_DIR")` with `join("..")`,
+  nor `concat!(env!("CARGO_MANIFEST_DIR"), "/../x")`. Examples:
+  `services/nas/native-volume/tests/volume.rs:206` runs a script outside the
+  crate, and `tools/update-tool/tests/roundtrip.rs:305` reads
+  `../update-keys`. Such inputs must be registered as `[[crate_escape]]`
+  entries by hand until the scanner, or an equivalent check, covers them.
+
 ## Phases
 
 - **2a (this change):** catalogue, selector, tests and this contract. No CI
