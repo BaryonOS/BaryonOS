@@ -591,7 +591,7 @@ Resolution of its findings:
 | Finding | Resolution |
 |---|---|
 | "Appended but not published" is not asserted (section 5 of the review) | Section 4.1 now marks it as design inference |
-| Optional 1: host check does not itself pin the interrupted slot or chunk count | Open (section 10); the host unit test `CutCheck.test_cut_state` pins it on the shared fixture |
+| Optional 1: host check does not itself pin the interrupted slot or chunk count | Open (section 10); the host unit test `CutCheck.test_cut_state` pins only the installed prefix (objects 1–3) and the never-used set (objects 4–5) on the shared fixture, not which object the seventh commit targets |
 | Optional 2: check object 4's chunks in the data region | Open (section 10) |
 | Optional 3: partial collection check uses `revision == 0` only | Open (section 10); the host disk oracle covers the raw state |
 | Optional 4: `L2_CUT_COMMITS`/`L2_CUT_TORN` duplicated in kernel and host | No change; drift fails closed on the host, and both sides cross-reference each other |
