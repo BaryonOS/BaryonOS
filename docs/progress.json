@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-24",
-    "source_commit": "e5ab3693f7b1d22b5a1eaa2d845183bd47f263ab",
+    "source_commit": "9f0eb19ee0fd6db4ad615a7eafeef1a2fbdd47f9",
     "assessment_basis": "reviewed_main_commit",
-    "branch": "claude/ui-u-recovery-copy-20261124",
-    "task": "U05: specific Full/Quota/known-I/O save-failure copy and room for long compact status labels (UX-SR07, UX-SR11)",
+    "branch": "claude/ui-u-keyboard-only-20261124",
+    "task": "U04-K1: keyboard-only reachability and activation host test for the window-session shell",
     "previous_score": 43,
-    "summary": "43/100: unchanged. Save failures for Service(Full), Service(Quota) and a known Service(Io) now show the approved UX-SR07 copy instead of the generic label, and a wrapped status grows upward into verified free space on the editor and library screens without changing one-line frames or the frozen fingerprints. U05 stays open: deny copy (U03-T3 part 2), the library at logical height 240 (owner decision), Settings accounts/recovery, Search S3 and native evidence for these failure rows are still missing. The delivery-review snapshot remains pinned to its own commit."
+    "summary": "43/100: unchanged. A host test now checks that Tab reaches every shell control in reading order, Shift+Tab reverses without a trap, and Enter/Space activate each control like a pointer click at scales 1 and 2. Three keyboard defects are pinned by ignored tests (held Enter/Space repeats activation, Space on a focused search result types instead of activating, Notifications page only reachable by pointer). U04 stays open: these defects, native keyboard evidence, the screen-reader chain (TTS/braille owner decision) and human trials are missing. The delivery-review snapshot remains pinned to its own commit."
   },
   "tracks": [
     {
