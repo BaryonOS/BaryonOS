@@ -757,6 +757,7 @@ class Planner:
         self.hits, self.manual = {}, False
         self.policy_mode = None
         self.filter_uncertain = False
+        self.blobs = {}  # (sha, path) -> manifest bytes or None, owned by this planner
 
     def full(self, code, detail=()):
         self.reasons.append((code, list(detail)[:MAX_DETAIL]))
@@ -846,9 +847,10 @@ class Planner:
         if unknown:
             self.full("unknown-path", unknown)
 
-    @functools.lru_cache(maxsize=None)  # noqa: B019 - one planner per process
     def _read_at(self, sha, path):
-        return git_blob(self.repo, sha, path)
+        if (sha, path) not in self.blobs:
+            self.blobs[sha, path] = git_blob(self.repo, sha, path)
+        return self.blobs[sha, path]
 
     def _bootstrap_listing(self):
         """Best effort: list executions from the head catalogue for a full plan."""
