@@ -231,10 +231,7 @@ def _publish(pairs: list[tuple[Path, bytes]]) -> None:
         raise ImageError(f"could not write {[str(path) for path, _ in pairs]}: {error}") from error
     finally:
         for name in temporaries:
-            try:
-                os.unlink(name)
-            except FileNotFoundError:
-                pass
+            Path(name).unlink(missing_ok=True)  # already renamed into place on success
 
 
 def write_image(build_directory: Path = BUILD, output: Path | None = None) -> dict:
