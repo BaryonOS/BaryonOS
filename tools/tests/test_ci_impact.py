@@ -618,6 +618,13 @@ class FallbackTests(FixtureTestCase):
         with mock.patch.object(ci_impact, "git", side_effect=failing):
             self.assertFull(self.plan(head), "git-read-failed")
 
+    def test_ancestor_patch_tables_are_not_guessed(self):
+        for table in ("[patch.crates-io]\nx = { path = \"../crates/codec\" }\n", "[replace]\n"):
+            with self.subTest(table=table):
+                plan = self.plan(self.branch({"apps/Cargo.toml": "[workspace]\n" + table}, message=table))
+                self.assertFull(plan, "cargo-patch-unresolved")
+                self.assertEqual(plan["fallback"]["detail"], ["apps/Cargo.toml"])
+
     def test_bootstrap_without_base_catalogue_or_selector_is_full(self):
         for removed in (".github/ci-impact.toml", "tools/ci_impact.py"):
             with self.subTest(removed=removed):

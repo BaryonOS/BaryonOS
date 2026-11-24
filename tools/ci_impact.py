@@ -544,9 +544,21 @@ def repo_join(directory, relative, manifest):
     return joined
 
 
+def _manifest(data, manifest):
+    try:
+        return tomllib.loads(data.decode("utf-8"))
+    except (UnicodeDecodeError, tomllib.TOMLDecodeError):
+        raise Full("cargo-unreadable", [manifest]) from None
+
+
+def _patches(data, manifest):
+    doc = _manifest(data, manifest)
+    return "patch" in doc or "replace" in doc
+
+
 def cargo_closure(roots, read, escapes):
     """Return (globs, crate dirs) for root manifests; `read(path)` gives bytes or None."""
-    globs, dirs, seen = set(), set(), set()
+    globs, dirs, seen, ancestors = set(), set(), set(), set()
     root_dirs = {posixpath.dirname(root) for root in roots}
 
     def add_ancestors(ancestor):
@@ -554,7 +566,14 @@ def cargo_closure(roots, read, escapes):
         # [workspace.package] / [workspace.lints] fields of a dependency crate
         while ancestor:
             ancestor = posixpath.dirname(ancestor)
-            globs.add(posixpath.join(ancestor, "Cargo.toml"))
+            manifest = posixpath.join(ancestor, "Cargo.toml")
+            globs.add(manifest)
+            if manifest not in ancestors:
+                ancestors.add(manifest)
+                data = read(manifest)
+                if data is not None and _patches(data, manifest):
+                    # a workspace root's [patch] or [replace] applies to every member
+                    raise Full("cargo-patch-unresolved", [manifest])
 
     for ancestor in root_dirs:
         add_ancestors(ancestor)
@@ -569,10 +588,7 @@ def cargo_closure(roots, read, escapes):
         data = read(manifest)
         if data is None:
             continue
-        try:
-            doc = tomllib.loads(data.decode("utf-8"))
-        except (UnicodeDecodeError, tomllib.TOMLDecodeError):
-            raise Full("cargo-unreadable", [manifest]) from None
+        doc = _manifest(data, manifest)
         if "patch" in doc or "replace" in doc:
             # shortcut: patched sources are not resolved; no tracked manifest uses them today.
             raise Full("cargo-patch-unresolved", [manifest])

@@ -137,7 +137,9 @@ absent. A root manifest absent at the merge base, base and head gives
 The closure is the union over the merge base, the base tip and the head, so an
 added or removed dependency is followed either way. `workspace = true`
 dependencies and `[patch]` or `[replace]` tables are not resolved and force a
-full plan (`cargo-workspace-inheritance`, `cargo-patch-unresolved`).
+full plan (`cargo-workspace-inheritance`, `cargo-patch-unresolved`). Ancestor
+manifests are read at every revision too, because a workspace root's
+`[patch]` or `[replace]` applies to all its members.
 
 ## Plan algorithm and precedence
 
