@@ -1378,6 +1378,11 @@ def check_l2(case: str, before: bytes, after: bytes, disk1_before: bytes, disk1_
         if (evidence["VOLUME:SERVICE:COMMITS:"], evidence["VOLUME:SERVICE:GENERATION:"]) != (
                 len(L2_SOURCE_STEP), source["generation"]):
             raise ValueError("service commits differ from the source step")
+        # The parent volume is already format-marked: exactly one table copy per commit.
+        steps = len(L2_SOURCE_STEP)
+        if (evidence["VOLUME:SERVICE:TABLE_WRITES:"], evidence["VOLUME:BROKER:TABLE_SECTOR_WRITES:"]) != (
+                steps, steps * volume_disk.TABLE_SECTORS):
+            raise ValueError("table writes differ from one table copy per source-step commit")
         if [evidence["VOLUME:A:DIGEST:"], evidence["VOLUME:B:DIGEST:"]] != source["digests"]:
             raise ValueError("guest-reported digests differ from the disk oracle")
         oracle = source

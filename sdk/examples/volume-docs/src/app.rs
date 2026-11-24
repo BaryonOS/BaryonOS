@@ -1565,6 +1565,10 @@ fn l2_restore(app: &mut App, device: BlockDevice, scratch: &mut [u8; MAX_LENGTH]
 #[cfg(feature = "l2-portal")]
 #[inline(never)]
 fn l2_used(app: &mut App, device: BlockDevice, scratch: &mut [u8; MAX_LENGTH]) {
+    // Reach a READY service before the first archive read: the broker serves
+    // one block request at a time across both disks, so an archive read
+    // during the service's recovery fails that recovery (as in `l2_restore`).
+    check(app.list(0, 728).1 == 5, 729);
     let plan = archive::verify_v2(
         &mut DiskSource::new(NativeDisk { device }, ARCHIVE_SECTORS),
         scratch,

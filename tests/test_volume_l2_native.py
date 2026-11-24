@@ -203,6 +203,8 @@ class Fixture:
         return {**device_evidence("l2-export", [5, end, 1]),
                 **words(skipped=rv.matches_volume_v2(self.archive, self.source), length=len(self.archive_bytes)),
                 "VOLUME:SERVICE:COMMITS:": len(self.steps), "VOLUME:SERVICE:GENERATION:": self.source["generation"],
+                "VOLUME:SERVICE:TABLE_WRITES:": len(self.steps),
+                "VOLUME:BROKER:TABLE_SECTOR_WRITES:": len(self.steps) * vd.TABLE_SECTORS,
                 "VOLUME:BROKER:VOLUME_DISK_WRITES:": 99, "VOLUME:BROKER:VOLUME_DISK_FLUSHES:": 9,
                 "VOLUME:A:DIGEST:": self.source["digests"][0], "VOLUME:B:DIGEST:": self.source["digests"][1]}
 
@@ -303,6 +305,14 @@ class ExportCheck(unittest.TestCase):
     def run_export(self, fixture, after=None, disk1=None, evidence=None):
         return rv.check_l2("l2-export", fixture.before, after or fixture.after, fixture.disk1_before,
                            disk1 or fixture.disk1, evidence or fixture.export_evidence())
+
+    def test_extra_export_table_writes_are_refused(self):
+        fixture = Fixture()
+        for key, extra in (("VOLUME:SERVICE:TABLE_WRITES:", 1), ("VOLUME:BROKER:TABLE_SECTOR_WRITES:", 1)):
+            evidence = fixture.export_evidence()
+            evidence[key] += extra
+            with self.assertRaisesRegex(ValueError, "table writes"):
+                self.run_export(fixture, evidence=evidence)
 
     def test_guest_export_is_accepted(self):
         oracle = self.run_export(Fixture())

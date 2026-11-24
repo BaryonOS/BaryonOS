@@ -983,7 +983,7 @@ fn device_call(s: &mut State, slot: usize, n: u64, a: [u64; 6]) -> Result<u64, i
     };
     let auth = m4::engine().check_block(pid, a[0], rights).map_err(|e| {
         // Test-profile count only: a right the portal's archive grant lacks.
-        #[cfg(not(feature = "native-system"))]
+        #[cfg(all(feature = "test-volume-archive-device", not(feature = "native-system")))]
         if on_archive(s, slot, a[0]) {
             runtime().archive_rights_refusals += 1;
         }
