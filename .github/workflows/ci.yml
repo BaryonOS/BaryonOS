@@ -56,6 +56,13 @@ jobs:
         uses: ./.github/actions/setup-python
         with:
           host-dependencies: 'true'
+      # Phase 3 of #494: merge-hold enforces plans from this catalogue, so drift
+      # between it and the workflows or sources must fail here, not narrow a plan.
+      - name: CI impact catalogue is valid and matches the workflows
+        shell: bash
+        run: |
+          python3 -B tools/ci_impact.py validate .github/ci-impact.toml
+          python3 -B tools/ci_impact.py coverage --strict
       - name: Node 24.22.1
         uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
