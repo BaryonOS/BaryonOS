@@ -1316,7 +1316,7 @@ class EnforcementPrerequisiteTests(FixtureTestCase):
         self.assertEqual(reasons["window#c"], "condition-false")  # needs a, which GitHub skips
         self.assertIn("window#b", self.selected(plan))
         push = self.plan(head, event="push")
-        self.assertTrue({"window#a", "window#c"} <= self.selected(push))
+        self.assertLessEqual({"window#a", "window#c"}, self.selected(push))
         # In select mode a job whose condition is false is not selected either.
         select = self.plan(self.branch({"ui/x.css": "x\n"}))
         self.assertEqual(select["mode"], "select")
@@ -1345,7 +1345,7 @@ class EnforcementPrerequisiteTests(FixtureTestCase):
                  for ref in ("", "main", "refs/heads/main", "release/1.0", "feature/x")}
         for ref in ("", "main", "refs/heads/main", "release/1.0"):
             with self.subTest(ref=ref):
-                self.assertTrue({"net#broker", "net#native"} <= self.selected(plans[ref]))
+                self.assertLessEqual({"net#broker", "net#native"}, self.selected(plans[ref]))
         reasons = {row["id"]: row["reason"] for row in plans["feature/x"]["excluded"]}
         self.assertEqual(reasons["net#broker"], "event-not-applicable")
         self.assertEqual(plans["feature/x"]["ref"], "feature/x")
