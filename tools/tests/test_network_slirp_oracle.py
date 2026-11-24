@@ -60,6 +60,12 @@ def response(addresses, name=slirp.NAME, rcode=0):
                  ip(slirp.DNS, slirp.DHCP_START, 17, udp(53, 50000, message)))
 
 
+def aaaa(dns_frame):
+    """Same frame with the question type changed from A to AAAA."""
+    at = dns_frame.index(b"\0\x01\0\x01", 42 + 12)
+    return dns_frame[:at] + b"\0\x1c" + dns_frame[at + 2:]
+
+
 def syn(target=slirp.HOST, port=slirp.HTTP_PORT):
     segment = struct.pack("!HHIIBBHHH", 40000, port, 1, 0, 5 << 4, 0x02, 4096, 0, 0)
     return frame(SLIRP_MAC, slirp.GUEST_MAC, ip(slirp.DHCP_START, target, 6, segment))
@@ -101,7 +107,12 @@ class PcapTest(unittest.TestCase):
     def test_answers_must_match_the_question_of_their_query(self):
         for name, frames in (("negative answer to positive query", [query(), response([], name=slirp.NEGATIVE, rcode=3)]),
                              ("unbound negative", [response([], name=slirp.NEGATIVE, rcode=3)]),
-                             ("other name", [query(name="other.example"), response(["1.2.3.4"], name="other.example")])):
+                             ("other name", [query(name="other.example"), response(["1.2.3.4"], name="other.example")]),
+                             ("aaaa query", [aaaa(query(name=slirp.NEGATIVE)), response([], name=slirp.NEGATIVE, rcode=3)]),
+                             ("aaaa answer", [query(name=slirp.NEGATIVE), aaaa(response([], name=slirp.NEGATIVE, rcode=3))]),
+                             ("response as query", [query(name=slirp.NEGATIVE, ident=9)[:44] + b"\x81"
+                                                    + query(name=slirp.NEGATIVE, ident=9)[45:],
+                                                    response([], name=slirp.NEGATIVE, rcode=3)])):
             with self.subTest(name):
                 self.assertEqual(self.parse(pcap(frames))["dns_responses"], [])
 

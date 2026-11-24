@@ -138,7 +138,7 @@ def dns_answers(payload: bytes, question: str):
             return None
         labels, at = name(12)
         at += 4
-        if ".".join(labels) != question:
+        if ".".join(labels) != question or payload[at - 4:at] != b"\0\x01\0\x01":
             return None
         records = []
         for _ in range(an):
@@ -170,12 +170,13 @@ def dns_answers(payload: bytes, question: str):
 
 
 def _qname(payload: bytes):
-    """Lower-case question name of an uncompressed one-question DNS query, else None."""
+    """Lower-case question name of an uncompressed one-question class-IN A query, else None."""
     labels, at = [], 12
     while at < len(payload) and payload[at] and payload[at] < 64:
         labels.append(payload[at + 1:at + 1 + payload[at]].decode("ascii", "replace").lower())
         at += 1 + payload[at]
-    if at >= len(payload) or payload[at] or len(payload) < 12 or struct.unpack("!H", payload[4:6])[0] != 1:
+    if (at + 5 > len(payload) or payload[at] or payload[2] & 0x80 or struct.unpack("!H", payload[4:6])[0] != 1
+            or payload[at + 1:at + 5] != b"\0\x01\0\x01"):
         return None
     return ".".join(labels)
 
