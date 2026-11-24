@@ -13,7 +13,8 @@ import sys
 
 from build import build
 from common import ROOT, BUILD, environment, save_json, source_hash
-from run_system import FEATURE, run_system
+from run_system import (FEATURE, RELAY, RELAY_EXACT, RELAY_FEATURE, RELAY_RED, evaluate, expected_markers,
+                        run_system)
 
 
 def inputs() -> dict[str, str]:
@@ -23,6 +24,51 @@ def inputs() -> dict[str, str]:
                     *(ROOT / "tests").glob("test_tcp_*.py"),
                     ROOT / "sdk/examples/tcp-probe/test_peer.py"})
     return {p.relative_to(ROOT).as_posix(): hashlib.sha256(p.read_bytes()).hexdigest() for p in files}
+
+
+def relay_logs(summary: dict, path: Path) -> None:
+    """B02-T4 (ADR-B02-KEY1-RELAY-20261123): three relay cases on fresh disks,
+    the red manifest case, then each relay log against the other evaluators.
+    Kept out of `stages`, whose exact [normal, recover] shape capture_system checks."""
+    summary.update(relay_stages=[], relay_red=[], relay_wrong_case=[])
+    serial = {}
+    for case, feature in (*RELAY_FEATURE.items(), *RELAY_RED.items()):
+        build(None, feature, feature)
+        result, _ = run_system(case, None)
+        record = {key: result[key] for key in ("case", "passed", "run_directory", "raw_qemu_exit",
+                                               "before_sha256", "after_sha256", "duration_s")}
+        record["relay"] = {key: value for key, value in result.get("evidence", {}).items()
+                           if key.startswith(RELAY) or case in RELAY_RED}
+        summary["relay_red" if case in RELAY_RED else "relay_stages"].append(record)
+        save_json(path, summary)
+        if not result["passed"]:
+            raise RuntimeError(result.get("error", f"{case} failed"))
+        serial[case] = (Path(result["run_directory"]) / "serial.txt").read_text(), result["raw_qemu_exit"]
+    for actual, (text, raw) in ((case, serial[case]) for case in RELAY_FEATURE):
+        for claimed in RELAY_FEATURE:
+            if claimed == actual:
+                continue
+            try:
+                evaluate(claimed, text, raw, False)
+            except ValueError as error:
+                summary["relay_wrong_case"].append(dict(log=actual, evaluator=claimed, error=str(error)))
+            else:
+                raise ValueError(f"{actual} log passed the {claimed} evaluator")
+            # Relabelled: with the case marker and number rewritten, the counters alone must reject.
+            relabelled = text.replace(expected_markers(actual)[-2], expected_markers(claimed)[-2]).replace(
+                f"SYSTEM:{RELAY}CASE:{case_number(actual):020d}", f"SYSTEM:{RELAY}CASE:{case_number(claimed):020d}")
+            try:
+                evaluate(claimed, relabelled, raw, False)
+            except ValueError as error:
+                summary["relay_wrong_case"].append(dict(log=actual, evaluator=claimed, relabelled=True,
+                                                        error=str(error)))
+            else:
+                raise ValueError(f"relabelled {actual} log passed the {claimed} evaluator")
+    save_json(path, summary)
+
+
+def case_number(case: str) -> int:
+    return RELAY_EXACT[case][RELAY + "CASE"]
 
 
 def main() -> int:
@@ -61,6 +107,7 @@ def main() -> int:
             save_json(path, summary)
             if not result["passed"]:
                 raise RuntimeError(result.get("error", f"{case} failed"))
+        relay_logs(summary, path)
         final = build(None, FEATURE["normal"], FEATURE["normal"])
         if final["kernel"]["sha256"] != normal_hash:
             raise ValueError("final joint-system artifact differs from the actually tested normal kernel")

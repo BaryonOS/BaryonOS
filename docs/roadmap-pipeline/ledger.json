@@ -418,6 +418,69 @@
       }
     },
     {
+      "id": "B02-T4",
+      "criterion": "B02",
+      "milestone": "M8",
+      "executor": "worker",
+      "status": "active",
+      "title": "Native KEY1 key-state commit ingress relayed by init (ADR-B02-KEY1-RELAY-20261123)",
+      "goal": "Wire native KEY1 GENERATE/REVOKE through the durable write-ahead API: the Key Service commits each sealed snapshot through a kernel commit ingress received only by init, which writes key-state object 8 before the domain caller receives Ok.",
+      "deps": [
+        "B02-T2"
+      ],
+      "write_paths": [
+        "kernel/src/m2/m3/system.rs",
+        "kernel/src/m2/m3/keyring.rs",
+        "kernel/Cargo.toml",
+        "tools/build.py",
+        "sdk/examples/keyring/src/",
+        "sdk/examples/system/src/",
+        "services/keyring/src/wire.rs",
+        "tools/run_system.py",
+        "tools/test_system.py",
+        "tests/test_system_harness.py",
+        "docs/implementation/B02-SECURE-RECORDS.md",
+        "docs/verification/b02-key1-relay-20261124/",
+        "docs/handoffs/B/CURRENT.md"
+      ],
+      "checks": [
+        "cargo +1.100.0 test --locked -p keyring-core",
+        "python3 -B tools/test_system.py",
+        "python3 -B -u tools/test_keyring.py"
+      ],
+      "gates": [
+        "native-system.yml#native-system",
+        "entropy-keys.yml",
+        "ci.yml#host-quality"
+      ],
+      "acceptance": [
+        "normal commit: acknowledged generation is on disk in object 8",
+        "NOT_COMMITTED before any write maps to NotReady and leaves the image unchanged",
+        "commit timeout latches Degraded and leaves the image unchanged",
+        "no process other than the Key Service holds the commit SEND handle (manifest), and a weakened-manifest mutant (commit SEND in the app) goes red",
+        "init is the only receiver of the commit ingress (manifest)",
+        "existing host write-ahead tests and the B01 keyring gate stay green"
+      ],
+      "out_of_scope": [
+        "cold rollback anchor and trusted generation floor (B02-T3)",
+        "encrypted names/manifests/indexes",
+        "production secret custody"
+      ],
+      "non_claimable": "TEST profile only; B02 stays open (the ADR grants no credit).",
+      "risk": "security",
+      "size": "L",
+      "evidence_level": "native",
+      "rollback": "Revert the squash commit.",
+      "blocker": null,
+      "history": [
+        {
+          "at": "2026-11-24",
+          "event": "manual-claim",
+          "reason": "Specialist B cycle b02-key1-relay-20261124 on branch claude/b02-key1-relay-native-20261124."
+        }
+      ]
+    },
+    {
       "id": "N04-T2",
       "criterion": "N04",
       "milestone": "M8",

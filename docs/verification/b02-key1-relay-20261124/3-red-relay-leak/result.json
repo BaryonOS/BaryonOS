@@ -1,0 +1,724 @@
+{
+  "schema_version": 1,
+  "case": "relay-leak",
+  "source_commit": "07a8879f1cfaf69941952e026a26960c7acbba5b",
+  "source_fingerprint_version": 3,
+  "source_sha256": "ef8f2718d8bf70e30a356fb445db29640c33cd8020a50e018a43f51a48c1daab",
+  "kernel_feature": "test-system-keystate-relay-leak",
+  "started_utc": "2026-11-24T11:50:28.023745+00:00",
+  "duration_s": 1.7503560559998732,
+  "timeout_s": 180,
+  "raw_qemu_exit": 35,
+  "timed_out": false,
+  "command": [
+    "/usr/bin/qemu-system-x86_64",
+    "-machine",
+    "pc-q35-10.0",
+    "-accel",
+    "tcg,thread=single",
+    "-cpu",
+    "qemu64",
+    "-smp",
+    "1",
+    "-m",
+    "256M",
+    "-nodefaults",
+    "-display",
+    "none",
+    "-monitor",
+    "none",
+    "-serial",
+    "stdio",
+    "-nic",
+    "none",
+    "-no-reboot",
+    "-drive",
+    "if=pflash,unit=0,format=raw,readonly=on,file=build/relay-20261124/run/system-relay-leak-0d82ab7cc48a4e849db22a829fb74323/OVMF_CODE.fd",
+    "-drive",
+    "if=pflash,unit=1,format=raw,file=build/relay-20261124/run/system-relay-leak-0d82ab7cc48a4e849db22a829fb74323/OVMF_VARS.fd",
+    "-drive",
+    "if=virtio,index=0,format=raw,readonly=on,file=fat:build/relay-20261124/run/system-relay-leak-0d82ab7cc48a4e849db22a829fb74323/esp",
+    "-device",
+    "isa-debug-exit,iobase=0xf4,iosize=0x04",
+    "-drive",
+    "if=none,id=volume,format=raw,cache=writeback,readonly=off,file=build/relay-20261124/run/system-image-1568e2d690b54e9f8760ef3018a9ae1f/volume.img",
+    "-device",
+    "virtio-blk-pci,drive=volume,id=volblk,addr=0x5,disable-legacy=on,num-queues=1,queue-size=8,serial=NOS-SYSTEM-TEST",
+    "-object",
+    "rng-random,id=rng0,filename=/dev/urandom",
+    "-device",
+    "virtio-rng-pci,rng=rng0,id=rng,addr=0x6,disable-legacy=on,max-bytes=1048576,period=1000"
+  ],
+  "qemu_version": "QEMU emulator version 10.2.1 (Debian 1:10.2.1+ds-1ubuntu3.3)\nCopyright (c) 2003-2025 Fabrice Bellard and the QEMU Project developers",
+  "manifest": {
+    "schema_version": 1,
+    "profile": "test-system-keystate-relay-leak",
+    "kernel_feature": "test-system-keystate-relay-leak",
+    "loader_feature": null,
+    "source_fingerprint_version": 3,
+    "source_sha256": "ef8f2718d8bf70e30a356fb445db29640c33cd8020a50e018a43f51a48c1daab",
+    "loader": {
+      "sha256": "9a430e7728537170f2edfe4afd11013ceff015cdacf5ea1dbe65f0f21aeac6c3",
+      "format": "AMD64 PE32+",
+      "subsystem": "EFI_APPLICATION",
+      "imports": 0
+    },
+    "kernel": {
+      "sha256": "f2d1e2996b5d820e2e7b4ccf3d6ba849ab9aab55d5565f18681ed2dc7f2f3898",
+      "entry": 33554432,
+      "segments": [
+        {
+          "flags": 5,
+          "offset": 4096,
+          "address": 33554432,
+          "filesz": 158819,
+          "memsz": 158819,
+          "page_start": 33554432,
+          "page_end": 33714176
+        },
+        {
+          "flags": 4,
+          "offset": 163840,
+          "address": 33714176,
+          "filesz": 382699,
+          "memsz": 382699,
+          "page_start": 33714176,
+          "page_end": 34099200
+        },
+        {
+          "flags": 6,
+          "offset": 548864,
+          "address": 34099200,
+          "filesz": 1723000,
+          "memsz": 5395416,
+          "page_start": 34099200,
+          "page_end": 39497728
+        }
+      ],
+      "sections": [
+        {
+          "name": "",
+          "type": 0,
+          "flags": 0,
+          "size": 0
+        },
+        {
+          "name": ".text",
+          "type": 1,
+          "flags": 6,
+          "size": 158819
+        },
+        {
+          "name": ".rodata",
+          "type": 1,
+          "flags": 50,
+          "size": 382699
+        },
+        {
+          "name": ".data",
+          "type": 1,
+          "flags": 3,
+          "size": 1723000
+        },
+        {
+          "name": ".bss",
+          "type": 8,
+          "flags": 3,
+          "size": 3671000
+        },
+        {
+          "name": ".symtab",
+          "type": 2,
+          "flags": 0,
+          "size": 8664
+        },
+        {
+          "name": ".shstrtab",
+          "type": 3,
+          "flags": 0,
+          "size": 52
+        },
+        {
+          "name": ".strtab",
+          "type": 3,
+          "flags": 0,
+          "size": 20056
+        }
+      ]
+    },
+    "sdk_runtime": false,
+    "document_session": false,
+    "system": {
+      "system_init": {
+        "sha256": "86184abe24893a2929716856afaf78133c3404a1f158223b570c0b8cebbe1038",
+        "elf": {
+          "entry": 1073741824,
+          "segments": [
+            {
+              "flags": 5,
+              "address": 1073741824,
+              "offset": 4096,
+              "filesz": 6,
+              "memsz": 6,
+              "page_start": 1073741824,
+              "page_end": 1073745920
+            },
+            {
+              "flags": 6,
+              "address": 1073807360,
+              "offset": 8192,
+              "filesz": 1088,
+              "memsz": 1088,
+              "page_start": 1073807360,
+              "page_end": 1073811456
+            },
+            {
+              "flags": 4,
+              "address": 1073823744,
+              "offset": 12288,
+              "filesz": 1960,
+              "memsz": 1960,
+              "page_start": 1073823744,
+              "page_end": 1073827840
+            },
+            {
+              "flags": 5,
+              "address": 1073872896,
+              "offset": 16384,
+              "filesz": 27397,
+              "memsz": 27397,
+              "page_start": 1073872896,
+              "page_end": 1073901568
+            }
+          ]
+        }
+      },
+      "system_app": {
+        "sha256": "960ef068289fed2cfebad71bb5a14eec2428cd6e84645bafe47ace780612405b",
+        "elf": {
+          "entry": 1073741824,
+          "segments": [
+            {
+              "flags": 5,
+              "address": 1073741824,
+              "offset": 4096,
+              "filesz": 6,
+              "memsz": 6,
+              "page_start": 1073741824,
+              "page_end": 1073745920
+            },
+            {
+              "flags": 6,
+              "address": 1073807360,
+              "offset": 8192,
+              "filesz": 1112,
+              "memsz": 1112,
+              "page_start": 1073807360,
+              "page_end": 1073811456
+            },
+            {
+              "flags": 4,
+              "address": 1073823744,
+              "offset": 12288,
+              "filesz": 4075,
+              "memsz": 4075,
+              "page_start": 1073823744,
+              "page_end": 1073827840
+            },
+            {
+              "flags": 5,
+              "address": 1073872896,
+              "offset": 16384,
+              "filesz": 55813,
+              "memsz": 55813,
+              "page_start": 1073872896,
+              "page_end": 1073930240
+            }
+          ]
+        }
+      },
+      "system_worker": {
+        "sha256": "29a772588938d8217131b8250b857f54f5c6a7806a948f7382293ec45df67515",
+        "elf": {
+          "entry": 1073741824,
+          "segments": [
+            {
+              "flags": 5,
+              "address": 1073741824,
+              "offset": 4096,
+              "filesz": 322,
+              "memsz": 322,
+              "page_start": 1073741824,
+              "page_end": 1073745920
+            },
+            {
+              "flags": 6,
+              "address": 1073807360,
+              "offset": 8192,
+              "filesz": 1040,
+              "memsz": 1040,
+              "page_start": 1073807360,
+              "page_end": 1073811456
+            },
+            {
+              "flags": 5,
+              "address": 1073872896,
+              "offset": 12288,
+              "filesz": 580,
+              "memsz": 580,
+              "page_start": 1073872896,
+              "page_end": 1073876992
+            }
+          ]
+        }
+      },
+      "keyring_service": {
+        "sha256": "1827aa7a6263990e84de904944ed5a350a855f0f565c171b94dbd11ea4135c8a",
+        "elf": {
+          "entry": 1073741824,
+          "segments": [
+            {
+              "flags": 5,
+              "address": 1073741824,
+              "offset": 4096,
+              "filesz": 6,
+              "memsz": 6,
+              "page_start": 1073741824,
+              "page_end": 1073745920
+            },
+            {
+              "flags": 6,
+              "address": 1073807360,
+              "offset": 8192,
+              "filesz": 1144,
+              "memsz": 1144,
+              "page_start": 1073807360,
+              "page_end": 1073811456
+            },
+            {
+              "flags": 4,
+              "address": 1073823744,
+              "offset": 12288,
+              "filesz": 2347,
+              "memsz": 2347,
+              "page_start": 1073823744,
+              "page_end": 1073827840
+            },
+            {
+              "flags": 5,
+              "address": 1073872896,
+              "offset": 16384,
+              "filesz": 78147,
+              "memsz": 78147,
+              "page_start": 1073872896,
+              "page_end": 1073954816
+            }
+          ]
+        }
+      },
+      "volume_service": {
+        "sha256": "55b997f29008fa759919316c04cf229c74cb26acb149ff803b8356d024771aa1",
+        "elf": {
+          "entry": 1073741824,
+          "segments": [
+            {
+              "flags": 5,
+              "address": 1073741824,
+              "offset": 4096,
+              "filesz": 50053,
+              "memsz": 50053,
+              "page_start": 1073741824,
+              "page_end": 1073795072
+            },
+            {
+              "flags": 6,
+              "address": 1073807360,
+              "offset": 57344,
+              "filesz": 1096,
+              "memsz": 1096,
+              "page_start": 1073807360,
+              "page_end": 1073811456
+            },
+            {
+              "flags": 4,
+              "address": 1073823744,
+              "offset": 61440,
+              "filesz": 21176,
+              "memsz": 21176,
+              "page_start": 1073823744,
+              "page_end": 1073848320
+            }
+          ]
+        }
+      }
+    }
+  },
+  "run_directory": "/home/simon/projects/BaryonOS-worktrees/b-cycle-20261124/build/relay-20261124/run/system-relay-leak-0d82ab7cc48a4e849db22a829fb74323",
+  "volume_directory": "/home/simon/projects/BaryonOS-worktrees/b-cycle-20261124/build/relay-20261124/run/system-image-1568e2d690b54e9f8760ef3018a9ae1f",
+  "before_sha256": "49c40c316234e2e4e4c8dd681a057b1b36611648896dcacba1794263b711c266",
+  "after_sha256": "49c40c316234e2e4e4c8dd681a057b1b36611648896dcacba1794263b711c266",
+  "firmware_sha256": {
+    "code": "874f15a7c9110e78a89db159f0f68fc97e9076b74777520de1c235426f758aa7",
+    "vars_template": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e"
+  },
+  "esp_sha256": {
+    "esp/kernel.elf": "f2d1e2996b5d820e2e7b4ccf3d6ba849ab9aab55d5565f18681ed2dc7f2f3898",
+    "esp/EFI/BOOT/BOOTX64.EFI": "9a430e7728537170f2edfe4afd11013ceff015cdacf5ea1dbe65f0f21aeac6c3"
+  },
+  "passed": true,
+  "cold_case": null,
+  "fixture_environment": {
+    "NOS_SYSTEM_COLD_CASE": null
+  },
+  "cold_antirollback": {
+    "status": "UNPROTECTED",
+    "replay": "NOT_DETECTABLE: cold restore uses minimum_generation 0; older A/B slot (generation 2) has no key-state object; equal-generation stale image with same VOLUME_ID is accepted"
+  },
+  "evidence": {
+    "fail": "SYSTEM:FAIL:APP_COMMIT_HANDLE",
+    "raw_exit": 35
+  },
+  "expected_fail": true,
+  "oracle": {
+    "generation": 0,
+    "clocks": [
+      0,
+      0
+    ],
+    "objects": [
+      {
+        "object": 0,
+        "revision": 0,
+        "present": false,
+        "collection": 0,
+        "tags": 0,
+        "kind": 0,
+        "created": 0,
+        "modified": 0,
+        "request_id": 0,
+        "versions": []
+      },
+      {
+        "object": 1,
+        "revision": 0,
+        "present": false,
+        "collection": 0,
+        "tags": 0,
+        "kind": 0,
+        "created": 0,
+        "modified": 0,
+        "request_id": 0,
+        "versions": []
+      },
+      {
+        "object": 2,
+        "revision": 0,
+        "present": false,
+        "collection": 0,
+        "tags": 0,
+        "kind": 0,
+        "created": 0,
+        "modified": 0,
+        "request_id": 0,
+        "versions": []
+      },
+      {
+        "object": 3,
+        "revision": 0,
+        "present": false,
+        "collection": 0,
+        "tags": 0,
+        "kind": 0,
+        "created": 0,
+        "modified": 0,
+        "request_id": 0,
+        "versions": []
+      },
+      {
+        "object": 4,
+        "revision": 0,
+        "present": false,
+        "collection": 0,
+        "tags": 0,
+        "kind": 0,
+        "created": 0,
+        "modified": 0,
+        "request_id": 0,
+        "versions": []
+      },
+      {
+        "object": 5,
+        "revision": 0,
+        "present": false,
+        "collection": 0,
+        "tags": 0,
+        "kind": 0,
+        "created": 0,
+        "modified": 0,
+        "request_id": 0,
+        "versions": []
+      },
+      {
+        "object": 6,
+        "revision": 0,
+        "present": false,
+        "collection": 0,
+        "tags": 0,
+        "kind": 0,
+        "created": 0,
+        "modified": 0,
+        "request_id": 0,
+        "versions": []
+      },
+      {
+        "object": 7,
+        "revision": 0,
+        "present": false,
+        "collection": 0,
+        "tags": 0,
+        "kind": 0,
+        "created": 0,
+        "modified": 0,
+        "request_id": 0,
+        "versions": []
+      },
+      {
+        "object": 8,
+        "revision": 0,
+        "present": false,
+        "collection": 0,
+        "tags": 0,
+        "kind": 0,
+        "created": 0,
+        "modified": 0,
+        "request_id": 0,
+        "versions": []
+      },
+      {
+        "object": 9,
+        "revision": 0,
+        "present": false,
+        "collection": 0,
+        "tags": 0,
+        "kind": 0,
+        "created": 0,
+        "modified": 0,
+        "request_id": 0,
+        "versions": []
+      },
+      {
+        "object": 10,
+        "revision": 0,
+        "present": false,
+        "collection": 0,
+        "tags": 0,
+        "kind": 0,
+        "created": 0,
+        "modified": 0,
+        "request_id": 0,
+        "versions": []
+      },
+      {
+        "object": 11,
+        "revision": 0,
+        "present": false,
+        "collection": 0,
+        "tags": 0,
+        "kind": 0,
+        "created": 0,
+        "modified": 0,
+        "request_id": 0,
+        "versions": []
+      },
+      {
+        "object": 12,
+        "revision": 0,
+        "present": false,
+        "collection": 0,
+        "tags": 0,
+        "kind": 0,
+        "created": 0,
+        "modified": 0,
+        "request_id": 0,
+        "versions": []
+      },
+      {
+        "object": 13,
+        "revision": 0,
+        "present": false,
+        "collection": 0,
+        "tags": 0,
+        "kind": 0,
+        "created": 0,
+        "modified": 0,
+        "request_id": 0,
+        "versions": []
+      },
+      {
+        "object": 14,
+        "revision": 0,
+        "present": false,
+        "collection": 0,
+        "tags": 0,
+        "kind": 0,
+        "created": 0,
+        "modified": 0,
+        "request_id": 0,
+        "versions": []
+      },
+      {
+        "object": 15,
+        "revision": 0,
+        "present": false,
+        "collection": 0,
+        "tags": 0,
+        "kind": 0,
+        "created": 0,
+        "modified": 0,
+        "request_id": 0,
+        "versions": []
+      }
+    ],
+    "collections": [
+      {
+        "index": 1,
+        "domain": 0,
+        "present": false,
+        "revision": 0,
+        "name": ""
+      },
+      {
+        "index": 2,
+        "domain": 0,
+        "present": false,
+        "revision": 0,
+        "name": ""
+      },
+      {
+        "index": 3,
+        "domain": 0,
+        "present": false,
+        "revision": 0,
+        "name": ""
+      },
+      {
+        "index": 4,
+        "domain": 0,
+        "present": false,
+        "revision": 0,
+        "name": ""
+      },
+      {
+        "index": 1,
+        "domain": 1,
+        "present": false,
+        "revision": 0,
+        "name": ""
+      },
+      {
+        "index": 2,
+        "domain": 1,
+        "present": false,
+        "revision": 0,
+        "name": ""
+      },
+      {
+        "index": 3,
+        "domain": 1,
+        "present": false,
+        "revision": 0,
+        "name": ""
+      },
+      {
+        "index": 4,
+        "domain": 1,
+        "present": false,
+        "revision": 0,
+        "name": ""
+      }
+    ],
+    "chunks_used": 0,
+    "slots": [
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    ],
+    "slot_markers": [
+      false,
+      false
+    ],
+    "digests": [
+      10252960164691450465,
+      10252960164691450465
+    ]
+  }
+}
