@@ -52,7 +52,7 @@ class WorkflowVerifierTests(unittest.TestCase):
                     if check["name"] == key)
 
     def test_integrated_workflows_preserve_all_reporting_cases(self):
-        """A valid baseline retains 21 workflow files and 41 preservation calls."""
+        """A valid baseline retains 21 workflow files and 42 preservation calls."""
         report = self.report()
         self.assertTrue(report["passed"], report["failed_checks"])
         self.assertEqual(report["archive_workflow_count"], 21)
@@ -78,8 +78,9 @@ class WorkflowVerifierTests(unittest.TestCase):
             # static calls: host, leg proof, library cold, leg compact,
             # read-only and packaging collections.
             # H06 adds one HW-INV inventory workflow/preservation invocation.
+            # The ci-impact-shadow job adds one plan call in ci.yml.
             self.assertEqual(sum(check["name"].startswith(prefix)
-                                 for check in report["checks"]), 41)
+                                 for check in report["checks"]), 42)
         self.assertEqual(sum(check["name"].startswith("report-shell:")
                              for check in report["checks"]), 28)
         self.assertEqual(sum(check["name"].startswith("package-check:")

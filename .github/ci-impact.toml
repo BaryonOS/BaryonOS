@@ -1,7 +1,8 @@
 # CI impact catalogue (schema 1). Contract: docs/CI-CONTRACT.md.
 #
-# Phase 2a: data only. Nothing in .github/workflows reads this file yet, so it
-# does not change which CI runs.
+# Phase 2b: the advisory ci-impact-shadow job in ci.yml records a plan from
+# the base copy of this file; nothing consumes the plan, so it does not change
+# which CI runs.
 # `python3 -B tools/ci_impact.py validate .github/ci-impact.toml` checks its
 # structure; `python3 -B tools/ci_impact.py coverage` reports drift against the
 # workflows and the tracked paths.
@@ -13,7 +14,7 @@
 # max_parallel, matrix, check_name, evidence) are verbatim copies of the YAML.
 
 schema_version = 1
-revision = 5
+revision = 7
 
 [policy]
 mode = "shadow"
@@ -235,6 +236,14 @@ activation = "automatic"
 condition = "${{ !cancelled() && needs.host-quality.result == 'success' && github.event_name != 'merge_group' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) }}"
 needs = ["host-quality"]
 evidence = []
+
+[[workflow.job]]
+id = "ci-impact-shadow"
+name = "ci-impact-shadow"
+class = "advisory"
+activation = "automatic"
+timeout_minutes = 10
+evidence = ["ci-impact-plan"]
 
 [[workflow]]
 path = ".github/workflows/clear-stale-actions.yml"
@@ -962,6 +971,15 @@ timeout_minutes = 20
 input_sets = ["native"]
 evidence = ["native-network-extensions-evidence"]
 
+[[workflow.job]]
+# N02-T6 (#485): depends on the runner's real DNS and internet; non-required by design.
+id = "native-network-slirp"
+class = "advisory"
+activation = "automatic"
+needs = ["net-broker-quality"]
+timeout_minutes = 15
+evidence = ["native-network-slirp-evidence"]
+
 [[workflow]]
 path = ".github/workflows/net-tls-quality.yml"
 owner = "ci-owner"
@@ -1083,7 +1101,7 @@ owner = "ci-owner"
 granularity = "workflow"
 events = ["workflow_dispatch", "pull_request"]
 obligation = [{ cite = "docs/PROGRESS.md:76", anchor = "General storage recovery after failures**" }, { cite = "AGENTS.md:160", anchor = "**Merge conditions:**" }]
-trigger.pull_request = { paths = ["tools/**", "kernel/**", "boot/**", "userspace/**", "services/**", "drivers/**", "crates/**", ".cargo/**", "Cargo.toml", "Cargo.lock", "rust-toolchain.toml", ".github/workflows/storage-resilience.yml", ".github/actions/preserve-evidence/**"] }
+trigger.pull_request = { paths = ["tools/**", "kernel/**", "boot/**", "userspace/**", "services/**", "drivers/**", "crates/**", ".cargo/**", "sdk/**", "Cargo.toml", "Cargo.lock", "rust-toolchain.toml", ".github/workflows/storage-resilience.yml", ".github/actions/**", ".github/actions/preserve-evidence/**"] }
 
 [[workflow.job]]
 id = "s08"
@@ -1100,7 +1118,7 @@ owner = "ci-owner"
 granularity = "workflow"
 events = ["workflow_dispatch", "pull_request"]
 obligation = [{ cite = "docs/PROGRESS.md:72", anchor = "Space reuse and scalable volumes**" }, { cite = "tests/test_ci_workflows.py:675", anchor = "self.workflows[\".github/workflows/volume-acceptance.yml\"][\"jobs\"][\"m6e\"]" }]
-trigger.pull_request = { paths = ["tools/**", "kernel/**", "boot/**", "userspace/**", "services/**", "drivers/**", "crates/**", ".cargo/**", "sdk/**", "Cargo.toml", "Cargo.lock", "rust-toolchain.toml", ".github/workflows/volume-acceptance.yml", ".github/actions/preserve-evidence/**"] }
+trigger.pull_request = { paths = ["tools/**", "kernel/**", "boot/**", "userspace/**", "services/**", "drivers/**", "crates/**", ".cargo/**", "sdk/**", "Cargo.toml", "Cargo.lock", "rust-toolchain.toml", ".github/workflows/volume-acceptance.yml", ".github/actions/**", ".github/actions/preserve-evidence/**"] }
 
 [[workflow.job]]
 id = "m6e"

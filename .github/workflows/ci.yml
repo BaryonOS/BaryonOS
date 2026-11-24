@@ -459,3 +459,57 @@ jobs:
           file: build/coverage-raw/node/report/cobertura-coverage.xml
           language: JavaScript
           label: code-coverage-agent
+
+  ci-impact-shadow:
+    # Phase 2b shadow plan (docs/CI-CONTRACT.md): independent, informative and
+    # never required. No job consumes the plan yet.
+    name: ci-impact-shadow
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          # Full history: the merge base never depends on a shallow clone.
+          fetch-depth: 0
+      - uses: ./.github/actions/setup-python
+        with:
+          # PyYAML for the report-only catalogue coverage step.
+          host-dependencies: 'true'
+      - name: Plan the CI impact of this change (shadow)
+        id: select
+        uses: ./.github/actions/select-ci
+        with:
+          event-name: ${{ github.event_name }}
+          tested-sha: ${{ github.sha }}
+          head-sha: ${{ github.event.pull_request.head.sha || github.event.merge_group.head_sha || github.sha }}
+          # Empty on pull_request (the action uses the merge ref's first parent) and on dispatch.
+          base-sha: ${{ github.event.merge_group.base_sha || (github.event_name == 'push' && github.event.before) || '' }}
+      - name: Report catalogue coverage (shadow, never a gate)
+        run: |
+          set -euo pipefail
+          python3 -B -I tools/ci_impact.py coverage --repo "$GITHUB_WORKSPACE" > build/ci-impact/coverage.json
+          python3 -B -I - build/ci-impact/coverage.json >> "$GITHUB_STEP_SUMMARY" <<'PY'
+          import json
+          import sys
+
+          report = json.load(open(sys.argv[1], encoding="ascii"))
+          problems = report.get("problems", [])
+          print(f"\nCatalogue coverage: `{report.get('status')}`, {len(problems)} problem(s).")
+          for problem in problems[:50]:
+              print(f"- {json.dumps(problem)}")
+          PY
+      - name: Preserve the CI impact plan
+        if: ${{ always() }}
+        uses: ./.github/actions/preserve-evidence
+        with:
+          name: ci-impact-plan
+          job-status: ${{ job.status }}
+          if-no-files-found: error
+          path: |
+            build/ci-impact/plan.json
+            build/ci-impact/coverage.json
+          required-paths: build/ci-impact/plan.json
