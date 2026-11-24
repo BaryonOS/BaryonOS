@@ -12,7 +12,8 @@ separate, non-required job.
 The oracle is (1) one HTTP server on 127.0.0.1:8090 that accepts exactly one
 connection, checks app B's exact request and answers app B's exact response,
 and (2) a bounded parser of the netdev's filter-dump pcap, which is the wire
-record the runner binds to the broker counters and to app A's DNS answer.
+record the runner binds to the broker counters and to app A's DNS answers
+(the positive one for NAME and the NXDOMAIN for NEGATIVE).
 """
 from __future__ import annotations
 import ipaddress
@@ -27,6 +28,8 @@ NET, HOST, DNS, DHCP_START = "192.0.2.0/24", "192.0.2.1", "192.0.2.3", "192.0.2.
 GUEST_MAC = bytes.fromhex("020000000007")
 HTTP_PORT = 8090
 NAME = "example.com"
+# RFC 6761 reserves .invalid: a conforming resolver answers NXDOMAIN without an address.
+NEGATIVE = "missing.invalid"
 MAX_PCAP_BYTES = 4 * 1024 * 1024
 MAX_FRAMES = 4096
 
@@ -135,7 +138,7 @@ def dns_answers(payload: bytes, question: str):
             return None
         labels, at = name(12)
         at += 4
-        if ".".join(labels) != question:
+        if ".".join(labels) != question or payload[at - 4:at] != b"\0\x01\0\x01":
             return None
         records = []
         for _ in range(an):
@@ -166,6 +169,18 @@ def dns_answers(payload: bytes, question: str):
         return None
 
 
+def _qname(payload: bytes):
+    """Lower-case question name of an uncompressed one-question class-IN A query, else None."""
+    labels, at = [], 12
+    while at < len(payload) and payload[at] and payload[at] < 64:
+        labels.append(payload[at + 1:at + 1 + payload[at]].decode("ascii", "replace").lower())
+        at += 1 + payload[at]
+    if (at + 5 > len(payload) or payload[at] or payload[2] & 0x80 or struct.unpack("!H", payload[4:6])[0] != 1
+            or payload[at + 1:at + 5] != b"\0\x01\0\x01"):
+        return None
+    return ".".join(labels)
+
+
 def _options(payload: bytes) -> dict:
     options, i = {}, 240
     while i + 1 < len(payload) and payload[i] != 255:
@@ -187,7 +202,7 @@ def parse_pcap(path: Path) -> dict:
         raise ValueError("pcap link type is not Ethernet")
     at, frames, guest, slirp, other = 24, 0, 0, 0, 0
     acks, dns, http_syns, foreign = [], [], 0, []
-    queries, other_ip = set(), 0
+    queries, other_ip = {}, 0
     network = ipaddress.ip_network(NET)
     while at < len(data):
         if at + 16 > len(data):
@@ -234,12 +249,13 @@ def parse_pcap(path: Path) -> dict:
                                  mask=four(1), lease_s=struct.unpack("!I", options[51])[0]
                                  if len(options.get(51, b"")) == 4 else None))
         elif dport == 53 and dst == DNS and source == GUEST_MAC and len(payload) >= 2:
-            queries.add((payload[:2], sport))
+            queries[(payload[:2], sport)] = _qname(payload)
         elif sport == 53 and src == DNS and destination == GUEST_MAC:
-            answer = dns_answers(payload, NAME)
-            # Bind each answer to a guest query seen earlier: same ID and port.
-            if answer is not None and (payload[:2], dport) in queries:
-                dns.append(dict(rcode=answer[0], addresses=answer[1]))
+            # Bind each answer to a guest query seen earlier: same ID, port and name.
+            question = queries.get((payload[:2], dport))
+            answer = dns_answers(payload, question) if question in (NAME, NEGATIVE) else None
+            if answer is not None:
+                dns.append(dict(name=question, rcode=answer[0], addresses=answer[1]))
     return dict(frames=frames, guest_frames=guest, slirp_frames=slirp, other_frames=other,
                 dhcp_acks=acks, dns_responses=dns, http_syns=http_syns, foreign=foreign,
                 other_ip=other_ip)

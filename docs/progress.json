@@ -1267,8 +1267,8 @@
             "verification": [
               "native"
             ],
-            "observation": "Lease-supplied A resolver with bounded TTL/negative cache/epoch invalidation; native A,NXDOMAIN,wrong-ID/wrong-port refusals and re-resolution after changed lease demonstrated. Later than the 2eb1c63 snapshot, PR #485 (N02-T6) hosted libslirp case: example.com resolved through the CI runner's real resolver; answer bound to the guest's own query ID/port in the pcap.",
-            "remaining": "Real authorized resolver/interoperability scenario not established.",
+            "observation": "Lease-supplied A resolver with bounded TTL/negative cache/epoch invalidation; native A,NXDOMAIN,wrong-ID/wrong-port refusals and re-resolution after changed lease demonstrated. Later than the 2eb1c63 snapshot, PR #485 (N02-T6) hosted libslirp case: example.com resolved through the CI runner's real resolver; answer bound to the guest's own query ID/port in the pcap. N02-T6 NXDOMAIN slice (branch claude/n02-slirp-negative-dns-20261124): the reserved name missing.invalid returns NotFound in-guest and exactly one rcode-3 response without addresses, bound to its own query and name, appears on the wire; NXDOMAIN versus empty NOERROR is distinguished only by the pcap. The answer comes from the host-configured resolver via libslirp.",
+            "remaining": "Real authorized resolver/interoperability scenario not established; DNS timeout, truncation and stale-response cases against a real resolver not run.",
             "evidence": [
               "services/net-protocol/src/resolver.rs",
               "services/network-service/tests/dns_resolve.rs",
