@@ -3057,7 +3057,7 @@
       "criterion": "H06",
       "milestone": "M9",
       "executor": "lead",
-      "status": "active",
+      "status": "verified",
       "title": "Halt-based HW-INV terminal paths (QEMU fixtures)",
       "goal": "Every terminal path of the native-hw-inventory kernel and hw-inventory loader (kernel panic, M1/M2 failure, M2 kernel exception, HWINV:FAIL, serial timeout, loader M1:FAIL, loader handoff return) halts with CLI/HLT instead of writing QEMU's isa-debug-exit port 0xF4; HW-INV v3 adds the M2:FAIL* failure marker; one native QEMU fixture per failure marker.",
       "deps": [
@@ -3102,6 +3102,57 @@
           "event": "active",
           "at": "2026-11-24",
           "reason": "Specialist H cycle h06-t5-20261124 on branch claude/h06-t5-halt-terminals-20261124 from main bf0d336a."
+        },
+        {
+          "event": "verified",
+          "at": "2026-11-24",
+          "reason": "PR #491 squash-merged as e5ab3693; hosted native-hw-inventory green on the tested head 76bfaf13."
+        }
+      ],
+      "source_commit": "e5ab3693f7b1d22b5a1eaa2d845183bd47f263ab"
+    },
+    {
+      "id": "H06-T6",
+      "criterion": "H06",
+      "milestone": "M9",
+      "executor": "lead",
+      "status": "active",
+      "title": "Removable-media HW-INV image with recorded SHA-256 (QEMU-booted)",
+      "goal": "Pack the paired native-hw-inventory ESP into a deterministic raw GPT disk image with one FAT32 EFI system partition (8.3 names, fixed timestamps, payload-derived GUIDs) and record its SHA-256, byte length, file hashes, source fingerprint, commit and clean-checkout flag; boot it in QEMU as a disk instead of the virtual FAT directory with the plain-case oracles, so protocol HW-INV can bind an image hash.",
+      "deps": [
+        "H06-T5"
+      ],
+      "write_paths": [
+        "tools/hw_inventory_image.py",
+        "tools/tests/test_hw_inventory_image.py",
+        "tools/run_hw_inventory.py",
+        "docs/drivers/physical-protocols.json",
+        "docs/drivers/HARDWARE-TARGETS.md"
+      ],
+      "checks": [
+        "python3 -B -m unittest discover -s tools/tests -p 'test_hw_*.py' -v",
+        "python3 -B tools/hw_evidence.py --check",
+        "python3 -B tools/hw_matrix.py --check",
+        "python3 -B tools/build.py --kernel-feature native-hw-inventory",
+        "python3 -B tools/hw_inventory_image.py (twice, identical SHA-256)",
+        "python3 -B tools/run_hw_inventory.py --case all"
+      ],
+      "acceptance": [
+        "same ESP payload gives byte-identical images; sgdisk -v, fsck.fat -n and mtools read-back agree with the payload",
+        "image case: full HWINV block, QMP query-pci equal, halted without exit port, image SHA-256 unchanged after the run",
+        "negative control: an image without kernel.elf stops at loader M1:FAIL:KERNEL_OPEN",
+        "plain and iommu cases unchanged"
+      ],
+      "non_claimable": "QEMU virtio disk only; no physical boot, USB medium, signed record or H06 acceptance. GPT/FAT32 is an assumption pending OD-HW-BOOT; the loader is not bit-reproducible until B04 lands, so an independent rebuild may give another image hash. Other protocols' kernel features have no image.",
+      "risk": "low",
+      "size": "S",
+      "evidence_level": "native QEMU/TCG",
+      "next": "Owner decisions OD-HW-TARGETS/-BOOT/-CAPTURE/-SIGNERS/-INV-ROUTE, then a physical HW-INV run from the recorded image.",
+      "history": [
+        {
+          "event": "active",
+          "at": "2026-11-24",
+          "reason": "Specialist H cycle h06-t6-20261124 on branch claude/h06-t6-hwinv-image-20261124 from main e5ab3693."
         }
       ]
     },
