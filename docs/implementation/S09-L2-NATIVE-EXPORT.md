@@ -171,7 +171,7 @@ parsed archive, and the host tests pin it.
 
 ## 4. Stages
 
-All four stages run in the backup portal (slot 1, domain 0) and use device 1
+All six stages run in the backup portal (slot 1, domain 0) and use device 1
 (`00:06.0`, serial `NOS-S09-ARCHIVE`).
 
 - **Case numbers** start at 25, because the U-track's U05 (#436) takes 23 and
@@ -207,7 +207,8 @@ Negative coverage:
   - a v1 archive given to `restore_native_l2`;
   - a `TOMBSTONES` archive;
   - quota and `Full`;
-  - an interrupted restore (no resume);
+  - an interrupted restore (no resume), except the power cut inside an
+    INSTALL_COMMIT copy, which is native since slice E (section 4.1);
   - a lost INSTALL reply;
   - a revision gap inside an archive given to the restore (`skipped`, R2).
 
@@ -314,8 +315,8 @@ The portal builds each reader from a new `NativeDisk { device }`;
 
   | Word | Value |
   |---|---|
-  | 520 | `L2Report.restored` |
-  | 528 | `L2Report.collections` |
+  | 520 | `L2Report.restored`; case 30: the observed mask of fully installed objects |
+  | 528 | `L2Report.collections`; case 30: the observed mask of installed collections |
   | 536 | `L2Report.committed`: confirmed INSTALL_COLLECTION and INSTALL_COMMIT commits only (since #477 an ambiguous COMMIT is not counted) |
   | 544 | `L2Report.skipped`, or `ExportV2.omitted` for case 25 |
   | 552 | provenance mismatches, 0 expected |

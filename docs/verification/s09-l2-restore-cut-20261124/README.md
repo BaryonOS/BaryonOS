@@ -51,7 +51,7 @@ gate. Task S-20261124-3-B1, branch `claude/s09-l2-restore-cut`, based on
 | — host step `cargo +1.100.0 test --locked -p volume-core` | 0 | inside the gate |
 | — host step `cargo +1.100.0 test --locked --manifest-path sdk/Cargo.toml -p nieuw-os-sdk-runtime` | 0 | inside the gate |
 | — host step `python3 -B -m unittest discover -s tests -p 'test_volume_*.py'` | 0 | 199 tests, OK (1 skipped) |
-| `python3 -B -m unittest discover -s tests -p 'test_ci_workflows.py'` | 0 | 39 tests, OK (both pins at 32) |
+| `python3 -B -m unittest discover -s tests -p '<pattern>'` for every `ci.yml#host-quality` group (`test_common.py`, `test_preflight.py`, `test_build_paths.py`, `test_guest_harness.py`, `test_m1_artifact_binding.py`, `test_m6c_*.py`, `test_ci_evidence*.py`, `test_ci_workflows.py`, `test_document_session_*.py`, `test_security_alerts_summary.py`, `test_system_*.py`, `test_tokenguard*.py`, `test_volume_*.py`), run unpiped after the gate | 0 each | `test_ci_workflows.py` 39 tests (both pins at 32); `test_volume_*.py` 199 tests |
 | `python3 -B -m unittest discover -s tools/tests -p 'test_*.py'` | 1 | 996 tests; 2 failures and 9 errors in `test_agent_isolation`, `test_agent_pipeline` and `test_roadmap_runner`, identical to the unchanged base (`git stash`), unrelated to this change |
 | `python3 -m compileall -q tools` | 0 | |
 | `cargo +1.100.0 fmt --all -- --check`; `cargo +1.100.0 fmt --manifest-path sdk/Cargo.toml --all -- --check` | 0; 0 | |
@@ -91,7 +91,12 @@ l2-corrupt, l2-used, **l2-restore-cut** (raw -9, host kill of a live guest),
 - Hosted `m6e-native-volume` and `kvm-pilot` on this head: no push was made
   (builder task).
 - Kernel clippy: the kernel is built only through `tools/build.py`; its
-  build passed for both new features without new warnings.
+  build passed for both new features. The three warnings it prints (unused
+  `level`/`owner`/`lock_pair`, unused `hex`, unused `block-protocol`
+  dependency) are in code this change does not touch; no baseline build was
+  compared.
+- `actionlint -shellcheck= -pyflakes=`: not installed on this host. The two
+  workflow edits change only a number each; `test_ci_workflows.py` passed.
 - Independent review of the slice: pending. Human audit: not done.
 - Cut points other than inside an INSTALL_COMMIT copy (inside
   INSTALL_COLLECTION, between INSTALL_APPEND writes) are not native; they
