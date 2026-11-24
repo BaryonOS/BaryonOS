@@ -92,6 +92,7 @@ skipped) and three `PT_LOAD` headers, RX, R and RW, at 0x40000000, 0x40001000 an
 | `parse_segment_field_edge_pairs` | for each `PT_LOAD`, every pair of offset, vaddr, filesz, memsz and align over a 26-value edge set | 20,280 |
 | `parse_header_entry_phoff_phnum_edges` | 8 entries × 11 e_phoff values × 10 e_phnum values {0, 1, 2, 3, 4, 5, 31, 32, 33, 0xffff} | 880 |
 | `parse_segment_count_edges` | 1..=12 one-page `PT_LOAD` segments | 12 |
+| `parse_quota_boundary_is_exact` | total pages 2014..=2018 summed over the three `PT_LOAD` headers (RW segment grows) | 5 |
 
 The edge set is 0, 1, 16, 0xfff, 0x1000, 0x1001, 0x2000, 0x3000, the file
 length −16, length and length+1, 0x3fffffff, the window start, +0x1000 and +0x2000,
@@ -121,6 +122,9 @@ Checked invariants for every accepted image, against the input bytes:
 - Unused segment slots stay empty, and `parse` is deterministic.
 - `parse` never panics within the enumerated inputs (each call runs under
   `catch_unwind` in the debug profile with overflow checks on).
+- The quota edge is exact: a total of 2016 pages is accepted with
+  `pages == 2016`, and 2017 and 2018 pages are rejected with `Quota`, not
+  `Range` or `Overlap`.
 - No truncation is accepted. Exactly 1..=8 segments are accepted and 9..=12 are
   rejected with `Range`.
 
@@ -133,6 +137,7 @@ Observed outcome counts:
 | Segment edges | 293 | 24 | 19,569 | 329 | 65 |
 | Header | 26 | 366 | 488 | 0 | 0 |
 | Segment count | 8 | 0 | 4 | 0 | 0 |
+| Quota boundary | 3 | 0 | 0 | 0 | 2 |
 
 Each test asserts its case total and that its targeted reject classes occur.
 
@@ -164,6 +169,13 @@ after), and `git diff --exit-code` was clean (exit 0).
 | `bounded_copy_plan`: `\|\| page.owner != pid` removed | both copy tests fail: `copy 0x40000000+1 … ForeignAll: got Ok(…), expected Err(Foreign)` |
 | `return_flags`: mask widened from 0x8d5 to 0x9d5 (TF) | flags test fails: `flags 0x100 bit 8` |
 | `parse`: flags check widened from `4..=6` to `4..=7` | single-byte test fails: `byte 236=0x07: flags 7` |
+| `parse`: quota check `>` changed to `>=` (off-by-one, rejects the edge) | quota-boundary test fails: `2016 pages: rejected at or below the quota` |
+| `parse`: quota limit `USER_QUOTA - 32` changed to `USER_QUOTA - 31` (accepts one page more) | quota-boundary test fails at the shared image check (`2017 pages: quota`) |
+
+The first independent verifier pass found that the `>=` quota mutant
+survived the original ten tests: no enumerated image had a total of exactly
+2016 pages. `parse_quota_boundary_is_exact` closes that gap. Before it was
+added, that mutant left all ten tests passing (exit 0).
 
 ## Evidence
 
@@ -173,8 +185,8 @@ directory and are not committed.
 
 | Command | Exit |
 | --- | --- |
-| `cargo +1.100.0 test --locked -p kernel-core --test bounded_user_abi_invariants` | 0 (10 tests) |
-| `cargo +1.100.0 test --locked -p kernel-core` | 0 (59 unit and 10 integration tests) |
+| `cargo +1.100.0 test --locked -p kernel-core --test bounded_user_abi_invariants` | 0 (11 tests) |
+| `cargo +1.100.0 test --locked -p kernel-core` | 0 (59 unit and 11 integration tests) |
 | `cargo +1.100.0 clippy --locked -p kernel-core --all-targets -- -D warnings` | 0 |
 | `cargo +1.100.0 fmt --all -- --check` | 0 |
 | `python3 -B tools/b05_scope_check.py` | 0 |

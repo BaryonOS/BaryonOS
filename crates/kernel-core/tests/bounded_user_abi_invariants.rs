@@ -739,6 +739,35 @@ fn parse_header_entry_phoff_phnum_edges() {
 }
 
 /// n one-page PT_LOAD segments (first RX, rest R) behind n program headers.
+/// Total page count exactly around the quota edge `USER_QUOTA - 32`. The RX
+/// and R segments keep one page each; the RW segment grows to `total - 2`
+/// pages, so the limit is crossed only by the running sum over all three
+/// `PT_LOAD` headers. The edge itself must be accepted and one page more must
+/// be rejected with `Quota` (not `Range` or `Overlap`).
+#[test]
+fn parse_quota_boundary_is_exact() {
+    let limit = USER_QUOTA - 32;
+    let mut tally = BTreeMap::new();
+    for total in limit - 2..=limit + 2 {
+        let mut b = fixture();
+        let rw = PHOFF + 3 * PHENT;
+        put64(&mut b, rw + 40, (total as u64 - 2) * PAGE);
+        let label = format!("{total} pages");
+        run_parse(&label, &b, &mut tally);
+        match parse(&b) {
+            Ok(image) => {
+                assert!(total <= limit, "{label}: accepted above the quota");
+                assert_eq!(image.pages, total, "{label}: page count");
+            }
+            Err(e) => {
+                assert!(total > limit, "{label}: rejected at or below the quota");
+                assert_eq!(format!("{e:?}"), "Quota", "{label}: reject class");
+            }
+        }
+    }
+    expect_classes("quota boundary", &tally, 5, &["Ok", "Quota"]);
+}
+
 fn n_segments(n: usize) -> Vec<u8> {
     let mut b = vec![0; (n + 1) * PAGE as usize];
     b[..64].copy_from_slice(&fixture()[..64]);
