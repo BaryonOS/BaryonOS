@@ -20,17 +20,17 @@ in `docs/progress.json`, the S09 specifications and GitHub.
 
 ## Current cycle
 
-- **cycle_id:** S-20261124-2
-- **Task:** S09 phase 3 slices C and D: kernel cases 25–28, runner and
-  oracle, the 30-stage native gate and both stage-count pins
-  (`docs/implementation/S09-L2-NATIVE-EXPORT.md` section 9).
-- **Branch:** `claude/s09-l2-slice-cd`.
+- **cycle_id:** S-20261124-3
+- **Task:** close the first open item of section 10 of
+  `docs/implementation/S09-L2-NATIVE-EXPORT.md`: a native power cut inside
+  an L2 restore (`l2-restore-cut`, kernel case 29) and its cold read-only
+  recovery (`recover-l2-cut`, case 30). The cut fires inside the seventh
+  INSTALL_COMMIT (table-sector write 209 on the fresh image).
+- **Branch:** `claude/s09-l2-restore-cut`.
 - **PR and tested head:** recorded in the pull request.
-- **Evidence:** `docs/verification/s09-l2-slices-cd-20261124/README.md`
-  (local native gate 30/30 at `61349b1f`; host tests).
-- **Pins:** the project owner instructed on 24 November 2026 that there is
-  no integration coordinator; S moves the pins its own change needs, in the
-  same PR.
+- **Evidence:** `docs/verification/s09-l2-restore-cut-20261124/README.md`
+  (local native gate 32/32 at `ea59c6fc`; host tests).
+- **Pins:** both stage-count pins move 30 → 32 in this PR.
 - **Blockers:** none.
 
 ## Lessons
@@ -50,9 +50,13 @@ in `docs/progress.json`, the S09 specifications and GitHub.
    <stage> --volume <copy>`. The parent check binds the source fingerprint,
    so a diagnostic kernel build needs the copied `last-stage.json` updated.
 
+6. The L2 restore order on a fresh image is: the format marker sector, then
+   34 table sectors per commit (collections 1–3, then objects 1–5 in slot
+   order). A cut is placed by counting lane-0 table-sector writes.
+
 ## Next executable task
 
-After the slice-C/D PR merges: S09 stays open. Pick the next S09 gap from
+After the restore-cut PR merges: S09 stays open. Pick the next S09 gap from
 `docs/progress.json` (`delivery_review`, criterion S09): the user-facing
 production copy/restore/export chain (production destination service,
 trusted selection/portal and per-operation enforcement), or the open items
