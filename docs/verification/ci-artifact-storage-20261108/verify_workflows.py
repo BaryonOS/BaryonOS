@@ -25,23 +25,21 @@ import yaml
 
 
 DEFAULT_BASELINE = "338bec8ca34ba8eb2451eb660a0f1790c194efd2"
-WINDOW_SCALE1_PROOF_STEPS = {
-    "window-library-write-proof": "Preserve complete library write proof",
-    "window-library-cold-proof": "Preserve complete library cold proof",
-    "window-switcher-scale1-proof": "Preserve complete switcher scale 1 proof",
-    "window-switcher-scale2-proof": "Preserve complete switcher scale 2 proof",
-}
+# The library leg is the only window leg with a second (cold reopen) proof.
+WINDOW_LIBRARY_COLD_PROOF = (
+    "window-library-cold-proof",
+    "Preserve complete library cold proof",
+    "${{ always() && matrix.mode == 'library' }}",
+)
 
 
 def preservation_condition(path, job_id, step):
-    """Keep failure evidence unconditional except four scale-one-only window gates."""
+    """Keep failure evidence unconditional except the library leg's second proof."""
     if step.get("if") == "${{ always() }}":
         return True
     return (path == ".github/workflows/native-window-session.yml"
             and job_id == "native-window-session"
-            and step.get("id") in WINDOW_SCALE1_PROOF_STEPS
-            and step.get("name") == WINDOW_SCALE1_PROOF_STEPS[step["id"]]
-            and step.get("if") == "${{ always() && matrix.scale == 1 }}")
+            and (step.get("id"), step.get("name"), step.get("if")) == WINDOW_LIBRARY_COLD_PROOF)
 
 
 class UniqueLoader(yaml.BaseLoader):
