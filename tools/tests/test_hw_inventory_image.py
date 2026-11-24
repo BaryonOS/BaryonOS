@@ -1,9 +1,11 @@
 """HW-INV removable-media image (H06-T6): determinism, fail-closed names and independent readers."""
+import json
 import shutil
 import subprocess
 import sys
 import tempfile
 import unittest
+import unittest.mock
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
@@ -62,14 +64,12 @@ class ImageTest(unittest.TestCase):
             image.build_image(self.esp)
 
     def test_write_image_refuses_a_leftover_esp_file(self):
-        import json
-        from unittest import mock
         (self.esp / "EMPTY").unlink()
         manifest = dict(kernel_feature="native-hw-inventory", loader_feature="hw-inventory", source_sha256="s",
                         kernel=dict(sha256=image.sha256_bytes((self.esp / "kernel.elf").read_bytes())),
                         loader=dict(sha256=image.sha256_bytes((self.esp / "EFI/BOOT/BOOTX64.EFI").read_bytes())))
         (self.tmp / "manifest.json").write_text(json.dumps(manifest))
-        with mock.patch.object(image, "source_hash", return_value="s"):
+        with unittest.mock.patch.object(image, "source_hash", return_value="s"):
             self.assertEqual(image.checked_esp(self.tmp)[0], self.esp)
             (self.esp / "STALE.EFI").write_bytes(b"x")
             with self.assertRaises(image.ImageError):
