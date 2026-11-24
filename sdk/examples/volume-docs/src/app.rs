@@ -24,7 +24,7 @@ use volume_core::archive::{self, DiskSink, DiskSource, Report};
 use volume_core::{
     checksum_update,
     client::{Client, HistoryInfo, Stat, Transport},
-    wire::{self, Header, ListEntry, SubOp},
+    wire::{self, Header, ListEntry, Manifest, SubOp},
     Status, CHUNK, COLLECTIONS, FNV_OFFSET, MAX_LENGTH, PER_DOMAIN,
 };
 #[cfg(feature = "archive-portal")]
@@ -40,6 +40,28 @@ const CUT_TABLE: u64 = 3;
 const RECOVER_CUT: u64 = 4;
 const CORRUPT: u64 = 5;
 const CUT_TXN: u64 = 6;
+// S09 L2 install cases (never 7..=19: those are the archive-portal cases).
+const INSTALL: u64 = 20;
+const INSTALL_RECOVER: u64 = 21;
+const INSTALL_CUT: u64 = 22;
+
+// S09 L2 INSTALL fixture, mirrored by INSTALL_* in tools/run_volume.py (the
+// host oracle; tests/test_volume_runner.py checks both copies agree). Domain 0
+// installs object index 0 with these versions, current first: version i has
+// revision n - i, content byte(object, n - i, ..) and origin INSTALL_ORIGIN_0 - i.
+// INSTALL_COLLECTION is installed first, so the object's clock is 2 (rule R).
+const INSTALL_VERSIONS: [(&str, usize); 3] = [
+    ("Versie drie", 5000),
+    ("Versie twee", 300),
+    ("Versie een", 0),
+];
+/// Object origin: (origin_revision, origin_created, origin_modified).
+const INSTALL_ORIGIN: (u64, u64, u64) = (40, 7, 31);
+const INSTALL_ORIGIN_0: u64 = 40;
+/// (tags, kind, collection) of the installed object.
+const INSTALL_META: (u32, u16, u8) = (0x5a, 2, 1);
+/// (index, name, origin) of the collection INSTALL_COLLECTION creates.
+const INSTALL_COLLECTION: (usize, &str, u64) = (1, "Import", 12);
 // S09 archive cases: slot 1 is the backup portal, slot 2 an ordinary app.
 #[cfg(feature = "archive-portal")]
 const ARCHIVE_EXPORT: u64 = 7;
@@ -812,7 +834,14 @@ fn recover_cut(app: &mut App) {
         app.report(12);
         return;
     }
-    let first = app.stat(0, 20);
+    // One build serves every parent: object 0 never-used or at the install's
+    // revision n is the install-cut parent (the other parents leave 1 or 2).
+    let first = match app.client.stat(app.object(0)) {
+        Ok(stat) if stat.revision != INSTALL_VERSIONS.len() as u64 => stat,
+        Ok(_) => return recover_install(app, true),
+        Err((Status::NotFound, 0)) => return recover_install(app, false),
+        Err(_) => fail(20),
+    };
     check(first.revision == 1 || first.revision == 2, 21);
     let length = if first.revision == 1 {
         9000
@@ -835,6 +864,193 @@ fn recover_cut(app: &mut App) {
     app.report(30);
 }
 
+fn install_manifest() -> Manifest {
+    let (origin_revision, origin_created, origin_modified) = INSTALL_ORIGIN;
+    let mut manifest = Manifest {
+        origin_revision,
+        origin_created,
+        origin_modified,
+        count: INSTALL_VERSIONS.len(),
+        ..Manifest::default()
+    };
+    for (index, (version, (name, length))) in manifest
+        .versions
+        .iter_mut()
+        .zip(INSTALL_VERSIONS)
+        .enumerate()
+    {
+        version.origin = INSTALL_ORIGIN_0 - index as u64;
+        version.length = length;
+        version.name_length = name.len();
+        version.name[..name.len()].copy_from_slice(name.as_bytes());
+    }
+    manifest
+}
+
+/// The installed collection, present at revision 1 with its fixture origin.
+fn install_collection_is(app: &mut App, step: u64) {
+    let (index, name, origin) = INSTALL_COLLECTION;
+    app.collection_is(0, index, Some(name), 1, step);
+    check(
+        app.client.collection_provenance(0, index, 1) == Ok(origin),
+        step + 2,
+    );
+}
+
+/// The complete installed state of object 0: STAT, VERSION_STAT for every
+/// version, every version's bytes, PROVENANCE_STAT and the collection.
+fn installed(app: &mut App, step: u64) {
+    let n = INSTALL_VERSIONS.len() as u64;
+    let object = app.object(0);
+    let stat = app.stat(0, step);
+    let (_, clock) = app.client.domain_stat(0).unwrap_or_else(|_| fail(step + 1));
+    let (tags, kind, collection) = INSTALL_META;
+    check(
+        stat.revision == n
+            && stat.history_count == INSTALL_VERSIONS.len() - 1
+            && (stat.tags, stat.kind, stat.collection) == (tags, kind, collection)
+            && stat.created == clock
+            && stat.modified == clock
+            && stat.name[..stat.name_length] == *INSTALL_VERSIONS[0].0.as_bytes(),
+        step + 2,
+    );
+    for (selector, (name, length)) in INSTALL_VERSIONS.into_iter().enumerate() {
+        let revision = n - selector as u64;
+        let info = if selector == 0 {
+            HistoryInfo {
+                revision: stat.version_revision,
+                length: stat.length,
+                content_sum: stat.content_sum,
+            }
+        } else {
+            stat.history[selector - 1]
+        };
+        check(info.revision == revision && info.length == length, step + 3);
+        let version = app
+            .client
+            .version_stat(object, n, selector)
+            .unwrap_or_else(|_| fail(step + 4));
+        check(
+            if selector == 0 {
+                version.present && version.created == clock && version.modified == clock
+            } else {
+                version.version_revision == revision && version.name() == name.as_bytes()
+            },
+            step + 5,
+        );
+        app.verify_version(0, n, selector, info, revision, step + 6);
+    }
+    let provenance = app
+        .client
+        .provenance(object, n)
+        .unwrap_or_else(|_| fail(step + 7));
+    check(
+        provenance.revision == n
+            && provenance.installed == INSTALL_VERSIONS.len()
+            && (
+                provenance.origin_revision,
+                provenance.origin_created,
+                provenance.origin_modified,
+            ) == INSTALL_ORIGIN
+            && provenance.version_count == INSTALL_VERSIONS.len()
+            && (0..INSTALL_VERSIONS.len())
+                .all(|i| provenance.versions[i] == INSTALL_ORIGIN_0 - i as u64),
+        step + 8,
+    );
+    install_collection_is(app, step + 10);
+    support::put(480, stat.revision);
+    support::put(488, u64::from(stat.collection));
+    support::put(496, provenance.installed as u64);
+}
+
+/// S09 L2: INSTALL_COLLECTION, then INSTALL of the fixture into never-used
+/// slots (install, install-cut), or their cold read-only re-check.
+fn install_flow(app: &mut App, case: u64) {
+    if app.domain == 1 {
+        let (_, count) = app.list(0, 10);
+        check(count == 0, 11);
+        if case != INSTALL_CUT {
+            app.report(12);
+        }
+        return;
+    }
+    let manifest = install_manifest();
+    if case == INSTALL_RECOVER {
+        installed(app, 200);
+        check(
+            app.client
+                .install_begin(app.object(1), &manifest, INSTALL_META)
+                == Err(Status::Access),
+            230,
+        );
+        check(
+            app.client.install_collection(0, 2, b"Nee", 1) == Err((Status::Access, 0)),
+            231,
+        );
+        app.report(240);
+        return;
+    }
+    let (index, name, origin) = INSTALL_COLLECTION;
+    check(
+        app.client
+            .install_collection(0, index, name.as_bytes(), origin)
+            == Ok(1),
+        200,
+    );
+    app.commits += 1;
+    // Never-used slot, absent collection: Range before any reservation.
+    let (tags, kind, _) = INSTALL_META;
+    check(
+        app.client
+            .install_begin(app.object(1), &manifest, (tags, kind, 2))
+            == Err(Status::Range),
+        201,
+    );
+    if case == INSTALL_CUT {
+        // Only after the collection commit is durable: the kernel then
+        // kills the VM inside the INSTALL_COMMIT table write below.
+        app.phase(1);
+    }
+    let object = app.object(0);
+    let n = INSTALL_VERSIONS.len() as u64;
+    let result = app.client.install(
+        object,
+        &manifest,
+        INSTALL_META,
+        |version, offset, buffer| {
+            for (index, value) in buffer.iter_mut().enumerate() {
+                *value = byte(object, n - version as u64, offset + index);
+            }
+        },
+    );
+    check(case != INSTALL_CUT, 202);
+    check(matches!(result, Ok((revision, _)) if revision == n), 203);
+    app.commits += 1;
+    installed(app, 210);
+    // The slot is used now: Stale, with no table write (kernel INSTALL_RESULT).
+    check(
+        app.client.install_begin(object, &manifest, INSTALL_META) == Err(Status::Stale),
+        232,
+    );
+    app.report(240);
+}
+
+/// recover-cut after install-cut: exactly never-used or fully installed.
+fn recover_install(app: &mut App, complete: bool) {
+    if complete {
+        installed(app, 300);
+    } else {
+        install_collection_is(app, 320);
+    }
+    check(
+        app.client
+            .install_begin(app.object(1), &install_manifest(), INSTALL_META)
+            == Err(Status::Access),
+        330,
+    );
+    app.report(340);
+}
+
 /// The portal's verify-then-restore flow (spec: the trailer follows the last
 /// object, so restore may only run on bytes that `verify` accepted).
 #[cfg(feature = "archive-portal")]
@@ -843,7 +1059,7 @@ fn verified_restore(
     scratch: &mut [u8; MAX_LENGTH],
     app: &mut App,
 ) -> Result<Report, (Status, Report)> {
-    archive::verify(&mut DiskSource::new(disk, ARCHIVE_SECTORS), scratch)
+    archive::verify(&mut DiskSource::new(&mut *disk, ARCHIVE_SECTORS), scratch)
         .map_err(|status| (status, Report::default()))?;
     archive::restore(
         &mut DiskSource::new(disk, ARCHIVE_SECTORS),
@@ -1154,6 +1370,8 @@ fn run() {
         CUT_DATA | CUT_TABLE | CUT_TXN => cut(&mut app, case),
         #[cfg(not(feature = "archive-portal"))]
         RECOVER_CUT => recover_cut(&mut app),
+        #[cfg(not(feature = "archive-portal"))]
+        INSTALL | INSTALL_RECOVER | INSTALL_CUT => install_flow(&mut app, case),
         #[cfg(feature = "archive-portal")]
         ARCHIVE_EXPORT | ARCHIVE_RESTORE | ARCHIVE_CORRUPT | ARCHIVE_CONFLICT | ARCHIVE_FULL
         | ARCHIVE_USTAR | ARCHIVE_ABSENT | ARCHIVE_CUT

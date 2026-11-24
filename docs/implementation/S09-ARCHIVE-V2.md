@@ -2,10 +2,20 @@
 
 **Status:** specification plus an independent host reader
 (`tools/volume_archive.py`: `parse_v2`, `parse_any`, `stored_length_v2`) and
-its host tests (`tests/test_volume_archive_v2.py`). There is **no writer**, no
-wire extension, no restore mode and nothing native. No v2 archive produced by
-`volume-core` has been parsed. This document makes **no claim of recovery
-fidelity**; it defines what a v2 archive records and what a reader must refuse.
+its host tests (`tests/test_volume_archive_v2.py`), a Rust reader
+(`walk_v2`/`verify_v2` in `services/volume/src/archive.rs`) checked against
+fixtures produced by the Python encoder
+(`services/volume/tests/fixtures/archive-v2/`), and an L1 `restore_native`
+host model tested against the real service (`services/volume/tests/archive_v2.rs`),
+and since 19 November 2026 a **writer** (`export_v2` in
+`services/volume/src/archive.rs`) over two reviewed own-domain wire reads
+(DOMAIN_STAT, VERSION_STAT; [S09-OWN-DOMAIN-READS.md](S09-OWN-DOMAIN-READS.md)).
+Writer output built through the real service is accepted by the Rust reader
+and, as committed fixtures (`services/volume/tests/fixtures/archive-v2-written/`),
+by the independent Python reader with values derived from the source table
+(`tests/test_volume_archive_v2_written.py`), and round-trips through
+`restore_native`. Everything is host-only; nothing native was run. This document makes **no claim of
+recovery fidelity**; it defines what a v2 archive records and what a reader must refuse.
 Format v1 ([S09-BACKUP-ARCHIVE.md](S09-BACKUP-ARCHIVE.md)) and its restore rule
 remain the only implemented recovery path and are unchanged.
 
@@ -171,6 +181,30 @@ collections exist only so that the generation check applies; (c) a
 content-free record carries the source `created`/`modified` stamps as
 historical data; (d) a purged slot and an excluded tombstone are not
 distinguished. A restore treats every content-free record as absent.
+For L1 the native restore (`restore_native`) refuses any archive with
+`TOMBSTONES` set, before its first write, rather than replaying tombstones;
+replaying them would recreate deleted content in the destination.
+
+**Versions from before a delete: decided by the project owner on
+19 November 2026 — refused** (answer to "may `restore_native` replay
+versions from before a delete?": "Nee, weigeren"). A DELETE moves the current
+version into history and raises the entry revision; a later COMMIT on the
+absent entry does not push history (`push_history` is a no-op while absent,
+`table.rs:199`), so pre-delete versions become history of the rewritten
+object, and nothing in the archive or on the wire marks the delete. A
+committed version's revision equals the entry revision after that commit,
+and DELETE, RENAME, META and TRANSACT each raise the entry revision without
+a new version; RESTORE creates a current version at the next revision. A
+step of exactly 1 therefore excludes an intervening DELETE, but does not
+prove that no operation occurred (the newer version may come from a
+RESTORE). L1 therefore replays, per present object, only the
+longest prefix of its versions (current first, history newest first) whose
+consecutive revisions differ by exactly 1; every version after the first gap
+is not replayed and is counted in `NativeReport.skipped`, and the capacity
+checks count replayed versions only. L1 cannot distinguish a DELETE gap from
+a META or RENAME gap, so a gap caused only by metadata also drops the older
+versions (conservative). The reader still verifies every version; only the
+replay is limited.
 
 **Source identity: decided by the project owner on 19 November 2026 — no
 source identifier is recorded.** The archive records no volume or domain
@@ -191,7 +225,10 @@ yet in `docs/DECISIONS.md` on `main` or on this branch.
 **R3: decided by the project owner on 19 November 2026.** Native restore
 targets only a demonstrably never-used domain; existing domains are neither
 overwritten nor merged. This is restore policy, not archive state; the format
-has no field for it and needs none.
+has no field for it and needs none. The L1 host model proves "never used"
+with existing operations only: every slot's STAT reports `NotFound` with
+revision 0 and every collection's COLLECTION_STAT reports revision 0 (every
+publish path raises at least one such revision and none decreases).
 
 **R4: decided by the project owner on 19 November 2026.** A destination range
 for one archive is sized for the maximum archive of 494 416 bytes
@@ -257,9 +294,39 @@ clock bounds its own revisions and stamps (`table.rs:644-666`).
   content. L1 replay allocates fresh chunks for every WRITE
   (`service.rs:410-420`), so a source whose versions share chunks can still
   stop with `Quota` on replay and leave a partly restored slot that no
-  in-domain operation clears (fidelity analysis 3.2, "Interruption"). A future
-  `restore_native` must therefore check destination capacity for the full
-  replay before its first write; that is not an archive rule.
+  in-domain operation clears (fidelity analysis 3.2, "Interruption").
+  Capacity is therefore checked by `restore_native`, not by the reader:
+  before its first write it sums ⌈length / 4096⌉ over every version to be
+  replayed and refuses more than `QUOTA` (`Quota`; exact, because a
+  never-used domain holds no chunks and at most `HISTORY + 1` versions per
+  object all stay referenced) and more than
+  `GUARANTEED_FREE = CHUNKS − (DOMAINS − 1) × QUOTA = 24` (`Full`; the
+  volume-wide free count is not observable, but BEGIN keeps every other
+  domain's committed plus staged chunks within `QUOTA`). All WRITEs come
+  first, then COLLECTION creates, then META, so a refusal or a failed first
+  BEGIN commits nothing in the domain, and its report counts every commit
+  of this restore that it confirmed (`committed`) so a caller can tell
+  "refused, unchanged by this restore" from "failed, used". The count is a
+  lower bound after `Unknown` (a lost reply that read-back could not
+  confirm) or `Protocol` (a malformed reply): that request may have
+  committed even at `committed == 0`, so the domain must then be treated as
+  possibly used, and `never_used` decides on a retry. `committed == 0` does not mean the
+  domain is never used: `Stale` reports an already used domain with zero.
+  The zero count covers committed state only. If a BEGIN reaches the
+  service but its reply is lost, or an upload is interrupted before its
+  COMMIT, a staged upload may remain and reserve chunks until it is
+  replaced; `never_used` observes committed revisions, not staged uploads.
+  The first mutation is a BEGIN only when a version is replayed; a
+  token-bound upload staged in the domain then makes it `Busy` before any
+  commit, while a legacy (token 0) staged upload is replaced by that BEGIN,
+  as for any legacy BEGIN. An archive with no replayable version but a present collection
+  starts with COLLECTION, which a staged upload does not refuse: that
+  restore succeeds and makes the domain used, and the staged upload can
+  still COMMIT afterwards because COLLECTION leaves object revisions
+  unchanged. No read operation exposes staged uploads, so `restore_native`
+  cannot detect this; it falls under the existing precondition that the
+  caller is the only writer of the destination domain
+  (`a_collection_only_restore_is_not_refused_by_a_staged_upload`).
 - `modified` versus the object revision: the table has no such relation.
 - Uniqueness of names: the volume does not enforce it (v1 likewise).
 
@@ -322,38 +389,50 @@ implies `CONTENT_V2`.
 
 | Field | L1 (history replay, client-side) | L2 (immutable provenance, table v3) |
 |---|---|---|
-| slot, state | target slot; tombstone ⇒ replay then DELETE | same |
-| version records (oldest first: content, name, length) | one WRITE per version, in order | written by INSTALL |
+| slot, state | target slot; archives with `TOMBSTONES` refused (R2) | target slot; tombstone ⇒ install then DELETE only if a reviewed decision permits `TOMBSTONES` |
+| version records (oldest first: content, name, length) | one WRITE per version, in order, for the consecutive-revision prefix only; versions after the first revision gap may predate a DELETE and are skipped (owner decision, section 3) | written by INSTALL |
 | version revision | reported as source value only | `origin_revision` per version |
 | object revision | reported as source value only | `origin_revision` per object |
 | created / modified | reported as source values only | `origin_created` / `origin_modified` |
-| tags, kind, collection | META after the last WRITE | same |
-| collection index, name, state | mapping and COLLECTION create | same |
+| tags, kind, collection | META after every WRITE of the archive and the COLLECTION creates | same |
+| collection index, name, state | COLLECTION create at the same index (present only) | same |
 | collection revision | reported as source value only | `origin_revision` per collection |
 | source clock | validation bound (S6–S8) | same; not installed as a live clock |
 | domain generation, `ACCOUNTED` | S9 consistency check; without `ACCOUNTED` reported as an unchecked recorded value | same |
 | content-free records, deleted collections | not replayed; S9 only | not installed; S9 only |
-| `TOMBSTONES` | permits tombstone replay | same |
+| `TOMBSTONES` | archive refused before the first write (R2) | permits tombstone install only after a separately reviewed decision |
 
 In both levels destination-assigned live revisions and clocks stay separate
 from the recorded source values; L2 stores the latter as immutable fields and
 never feeds them into `touch` (`service.rs:603-618`).
 
+**Status.** L1 is `archive::restore_native`. L2 is implemented on host as
+`archive::restore_native_l2` over table v3 (S09-L2-PROVENANCE section 11):
+the `TOMBSTONES` row stays a refusal (`Invalid`), no reviewed decision
+permits tombstone install, and no source identifier is recorded. The native
+volume-docs service is built with the L2 operations at opt-level "s"; the NAS
+`nas-volume` binary is built without them and answers with `NoSys`.
+
 ## 8. Not done here (later steps)
 
-- Wire extensions (step 2): the own domain clock and history version names are
-  not exposed today, so **no writer can fill a v2 archive yet**; the fields
-  exist in the format only. Two caveats from the fidelity analysis (3.3)
-  apply: exposing a domain's own clock to that domain does not appear to
-  contradict the cross-domain property in `service.rs:591-593` (a domain
-  cannot observe how many commits another domain makes), but this needs
-  review; and the proposed STAT history extension discloses the caller's own
-  retained history after a DELETE, which R2 limits to content-free records and needs separate review.
-- `restore_native` must check destination capacity for the full replay
-  before its first write (section 4.3).
-- Writer (`export` with a v2 selector), native reader dispatch in `walk`,
-  `restore_native`, host property tests against the real service, native QEMU
-  stage, and L2 (table v3, INSTALL, STAT extension, recovery and crash tests).
+- Wire extensions (step 2): **done on host.** DOMAIN_STAT returns the
+  caller's own clock and generation (never the global generation);
+  VERSION_STAT returns stamps of any own slot and names only within a present
+  object's consecutive-revision prefix, so no pre-delete version is named
+  (independent AI security review, not a human audit; see
+  S09-OWN-DOMAIN-READS section 8). The writer exports with `ACCOUNTED` set,
+  `TOMBSTONES` clear, content-free records only for absent slots with a
+  non-zero revision and deleted collections (S9), and only the
+  consecutive-revision prefix of each present object.
+- Replays of 25 to 40 chunks are refused with `Full` even when they would
+  fit (section 4.3); lifting that needs a reviewed free-count read.
+- L2 (table v3, INSTALL, INSTALL_COLLECTION, PROVENANCE_STAT, recovery
+  and crash tests): **done on host**, implementation review open
+  (S09-L2-PROVENANCE section 11). A re-exported installed domain records
+  live values; no provenance-carrying archive is decided.
+- Native writer and reader dispatch in `walk`, the native QEMU stage, and a native L2 INSTALL stage (the
+  native volume-docs service links the L2 operations at opt-level "s"; a
+  new stage needs an integration request for the protected stage pin).
 - The destination range size of PR #396 has not been checked against
   966 sectors.
 

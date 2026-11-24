@@ -5,6 +5,8 @@
 //! the state before or after the step, with every retained version readable.
 //! First-format crashes are tested separately: an unrecognized torn marker
 //! must be rejected, never silently reformatted.
+// The L2 steps are only exercised when the service has its L2 operations.
+#![cfg_attr(not(feature = "l2-install"), allow(dead_code))]
 mod common;
 
 use common::{fill, pattern, Local, Op, SimDisk};
@@ -49,6 +51,16 @@ enum Step {
     Transact {
         a: u64,
         b: u64,
+    },
+    /// L2 INSTALL of a never-used slot: version `i` holds the content of
+    /// revision `n - i`, so the retained-content check applies unchanged.
+    Install {
+        object: u64,
+        lengths: &'static [usize],
+    },
+    InstallCollection {
+        domain: usize,
+        index: usize,
     },
 }
 
@@ -113,6 +125,61 @@ const SCENARIO: &[Step] = &[
     },
 ];
 
+/// L2: installs mixed with normal use of the installed objects.
+const L2_SCENARIO: &[Step] = &[
+    Step::Write {
+        object: 0,
+        length: 700,
+    },
+    Step::Install {
+        object: 3,
+        lengths: &[700, 2 * CHUNK + 5, 0],
+    },
+    Step::InstallCollection {
+        domain: 0,
+        index: 2,
+    },
+    Step::Install {
+        object: 9,
+        lengths: &[CHUNK],
+    },
+    Step::Write {
+        object: 3,
+        length: CHUNK + 1,
+    },
+    Step::Restore {
+        object: 3,
+        selector: 2,
+    },
+    Step::Install {
+        object: 4,
+        lengths: &[3 * CHUNK, 1, MAX_LENGTH - 7 * CHUNK],
+    },
+    Step::Delete { object: 3 },
+    Step::Purge { object: 3 },
+    Step::Write {
+        object: 3,
+        length: 513,
+    },
+];
+
+/// L2: INSTALL_COLLECTION is the v2 to v3 upgrade commit.
+#[cfg(feature = "l2-install")]
+const L2_COLLECTION_UPGRADE: &[Step] = &[
+    Step::Write {
+        object: 0,
+        length: 700,
+    },
+    Step::InstallCollection {
+        domain: 0,
+        index: 2,
+    },
+    Step::Write {
+        object: 0,
+        length: CHUNK + 1,
+    },
+];
+
 fn domain(object: u64) -> usize {
     (object / 8) as usize
 }
@@ -127,7 +194,10 @@ fn apply(service: &mut Service, disk: &mut SimDisk, step: Step) -> Result<(), St
         | Step::Purge { object }
         | Step::Meta { object, .. } => (object, domain(object)),
         Step::Transact { a, .. } => (a, domain(a)),
-        Step::Collection { domain, .. } => ((domain * 8) as u64, domain),
+        Step::Install { object, .. } => (object, domain(object)),
+        Step::Collection { domain, .. } | Step::InstallCollection { domain, .. } => {
+            ((domain * 8) as u64, domain)
+        }
     };
     let table = *service.table();
     let current = table.entries[object as usize].revision;
@@ -179,6 +249,33 @@ fn apply(service: &mut Service, disk: &mut SimDisk, step: Step) -> Result<(), St
             )
             .map(|_| ())
         }
+        Step::Install { object, lengths } => {
+            let n = lengths.len();
+            let mut manifest = wire::Manifest {
+                origin_revision: 90,
+                origin_created: 40,
+                origin_modified: 80,
+                count: n,
+                ..wire::Manifest::default()
+            };
+            for (index, length) in lengths.iter().enumerate() {
+                manifest.versions[index] = wire::ManifestVersion {
+                    origin: 80 - index as u64,
+                    length: *length,
+                    name_length: 1,
+                    name: [0; volume_core::NAME],
+                };
+                manifest.versions[index].name[0] = b'v';
+            }
+            c.install(object, &manifest, (0, 0, 0), |index, offset, buffer| {
+                fill(object, (n - index) as u64)(offset, buffer)
+            })
+            .map(|_| ())
+        }
+        Step::InstallCollection { domain, index } => c
+            .install_collection(domain, index, b"Oud", 17)
+            .map(|_| ())
+            .map_err(|(s, _)| s),
     }
 }
 
@@ -288,6 +385,44 @@ fn first_format_crashes_reject_unrecognized_marker_prefixes_without_writes() {
 
 #[test]
 fn every_crash_point_recovers_to_before_or_after() {
+    let checked = crash_every_step(SCENARIO);
+    assert!(checked > 2000, "only {checked} crash images checked");
+    eprintln!(
+        "checked {checked} document crash images with before/after and retained-content assertions"
+    );
+}
+
+#[test]
+#[cfg(feature = "l2-install")]
+fn every_install_crash_point_recovers_to_before_or_after() {
+    let checked = crash_every_step(L2_SCENARIO);
+    assert!(checked > 1000, "only {checked} crash images checked");
+    eprintln!("checked {checked} L2 crash images");
+}
+
+#[test]
+#[cfg(feature = "l2-install")]
+fn install_collection_upgrade_crash_points_recover_to_before_or_after() {
+    let mut disk = SimDisk::new();
+    let mut service = Service::new(EPOCH, Table::EMPTY, false);
+    let formats: Vec<u16> = L2_COLLECTION_UPGRADE
+        .iter()
+        .map(|step| {
+            apply(&mut service, &mut disk, *step).unwrap();
+            service.table().format
+        })
+        .collect();
+    assert_eq!(
+        formats,
+        [table::VERSION, table::VERSION_V3, table::VERSION_V3]
+    );
+    let checked = crash_every_step(L2_COLLECTION_UPGRADE);
+    assert!(checked > 100, "only {checked} crash images checked");
+}
+
+/// Crash every mutating disk operation of every step; returns the number of
+/// durable images checked.
+fn crash_every_step(scenario: &[Step]) -> usize {
     // Document recovery starts after durable format identification; see the
     // separate exhaustive first-format test above.
     let mut disk = SimDisk::new();
@@ -297,7 +432,7 @@ fn every_crash_point_recovers_to_before_or_after() {
     let mut images = vec![disk.settled()];
     let mut tables = vec![Table::EMPTY];
     let mut mutating = vec![];
-    for step in SCENARIO {
+    for step in scenario {
         let start = disk.mutating_ops;
         apply(&mut service, &mut disk, *step).unwrap_or_else(|e| panic!("{step:?}: {e:?}"));
         mutating.push(disk.mutating_ops - start);
@@ -306,7 +441,7 @@ fn every_crash_point_recovers_to_before_or_after() {
         tables.push(*service.table());
     }
     let mut checked = 0usize;
-    for (index, step) in SCENARIO.iter().enumerate() {
+    for (index, step) in scenario.iter().enumerate() {
         for crash in 0..=mutating[index] {
             let mut disk = SimDisk::from_image(images[index].clone());
             let mut service = Service::new(EPOCH, tables[index], false);
@@ -364,10 +499,7 @@ fn every_crash_point_recovers_to_before_or_after() {
             }
         }
     }
-    assert!(checked > 2000, "only {checked} crash images checked");
-    eprintln!(
-        "checked {checked} document crash images with before/after and retained-content assertions"
-    );
+    checked
 }
 
 #[test]

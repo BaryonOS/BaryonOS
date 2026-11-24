@@ -25,6 +25,9 @@ def main() -> int:
              "-C", "link-arg=--build-id=none", "-C", "link-arg=-zmax-page-size=0x1000"]
     environment["CARGO_ENCODED_RUSTFLAGS"] = "\x1f".join(flags)
     environment.setdefault("CARGO_TARGET_DIR", str(ROOT / "build/sdk-volume-docs"))
+    # opt-level "s": with the S09 L2 operations (volume-core default feature
+    # l2-install) linked in, opt-level 3 text exceeds the 64 KiB app text bound.
+    environment.setdefault("CARGO_PROFILE_RELEASE_OPT_LEVEL", "s")
     command = ["cargo", "build", "--offline", "--locked", "--release",
                "--manifest-path", str(ROOT / "sdk/Cargo.toml"),
                "-p", "nieuw-os-volume-docs-example", "--features", features,

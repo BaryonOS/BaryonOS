@@ -21,12 +21,28 @@ use crate::{
 pub const MAGIC: &[u8; 8] = b"NOSVOL02";
 const FORMAT_MARKER_MAGIC: &[u8; 8] = b"NOSFMT02";
 const FORMAT_MARKER_VERSION: u16 = 1;
+/// Base table version; also the version the format marker records (it means
+/// "claimed by the NOSVOL writer", whatever table version follows).
 pub const VERSION: u16 = 2;
+/// Table v3 (S09-L2-PROVENANCE): v2 plus immutable provenance in bytes v2
+/// requires to be zero. Written only from the first INSTALL commit on.
+pub const VERSION_V3: u16 = 3;
 pub const VERSION_BYTES: usize = 216;
 pub const COLLECTION_BYTES: usize = 56;
 pub const TABLE_SECTORS_USIZE: usize = TABLE_SECTORS as usize;
 const TRAILER: usize = 488;
 const HEAD: usize = 64;
+/// v3 header: one collection `origin_revision` per collection slot, right
+/// after the domain clocks.
+const COLLECTION_ORIGINS: usize = CLOCKS + 8 * DOMAINS;
+const COLLECTION_ORIGINS_END: usize = COLLECTION_ORIGINS + 8 * DOMAINS * COLLECTIONS;
+/// v3 head sector: `installed`, three object origins, current version origin.
+const INSTALLED: usize = HEAD + VERSION_BYTES;
+const OBJECT_ORIGINS: usize = INSTALLED + 8;
+const HEAD_END: usize = OBJECT_ORIGINS + 32;
+/// v3 history sector: one origin per history version after the records.
+const HISTORY_ORIGINS: usize = HISTORY * VERSION_BYTES;
+const HISTORY_END: usize = HISTORY_ORIGINS + 8 * HISTORY;
 
 /// One immutable content + name snapshot of an object.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -40,6 +56,9 @@ pub struct Version {
     pub content_sum: u64,
     pub chunks: [u16; MAX_CHUNKS],
     pub sums: [u64; MAX_CHUNKS],
+    /// v3: recorded source revision of this content (0 = none). Immutable
+    /// provenance, moved with the version, never a live revision.
+    pub origin: u64,
 }
 
 impl Version {
@@ -52,6 +71,7 @@ impl Version {
         content_sum: 0,
         chunks: [NO_CHUNK; MAX_CHUNKS],
         sums: [0; MAX_CHUNKS],
+        origin: 0,
     };
 
     pub fn name(&self) -> &[u8] {
@@ -87,6 +107,7 @@ impl Version {
             content_sum: get64(bytes, 16),
             chunks: [NO_CHUNK; MAX_CHUNKS],
             sums: [0; MAX_CHUNKS],
+            origin: 0,
         };
         version.name.copy_from_slice(&bytes[24..56]);
         for index in 0..MAX_CHUNKS {
@@ -143,6 +164,16 @@ pub struct Entry {
     pub current: Version,
     /// Newest first. Deleting moves `current` here, so deletes are undoable.
     pub history: [Version; HISTORY],
+    /// v3: number of versions the INSTALL that created this slot wrote
+    /// (0 = never installed). Never cleared: it is the durable clock bound
+    /// of rule R, not a provenance claim.
+    pub installed: u8,
+    /// v3: recorded source object revision and stamps (0 = none). Zeroed
+    /// when the installed incarnation ends (PURGE of an absent entry, or a
+    /// COMMIT that re-creates it); never fed into `touch`, CAS or quota.
+    pub origin_revision: u64,
+    pub origin_created: u64,
+    pub origin_modified: u64,
 }
 
 impl Entry {
@@ -158,7 +189,24 @@ impl Entry {
         history_count: 0,
         current: Version::EMPTY,
         history: [Version::EMPTY; HISTORY],
+        installed: 0,
+        origin_revision: 0,
+        origin_created: 0,
+        origin_modified: 0,
     };
+
+    /// Rule R: INSTALL of `n` versions raises the revision by `n` in one
+    /// commit, so the v2 bound `revision <= clock` relaxes by `n - 1`.
+    pub fn excess(&self) -> u64 {
+        u64::from(self.installed.saturating_sub(1))
+    }
+
+    /// Drop the object provenance when the installed incarnation ends.
+    pub fn end_incarnation(&mut self) {
+        self.origin_revision = 0;
+        self.origin_created = 0;
+        self.origin_modified = 0;
+    }
 
     pub fn name(&self) -> &[u8] {
         self.current.name()
@@ -230,15 +278,24 @@ impl Entry {
         out[39] = self.collection;
         out[40] = self.history_count as u8;
         self.current.encode(&mut out[HEAD..HEAD + VERSION_BYTES]);
+        // All zero unless installed, so a v2 copy stays byte-identical.
+        out[INSTALLED] = self.installed;
+        put64(out, OBJECT_ORIGINS, self.origin_revision);
+        put64(out, OBJECT_ORIGINS + 8, self.origin_created);
+        put64(out, OBJECT_ORIGINS + 16, self.origin_modified);
+        put64(out, OBJECT_ORIGINS + 24, self.current.origin);
     }
 
     fn encode_history(&self, out: &mut [u8]) {
         for (index, version) in self.history.iter().enumerate() {
             version.encode(&mut out[index * VERSION_BYTES..(index + 1) * VERSION_BYTES]);
+            put64(out, HISTORY_ORIGINS + 8 * index, version.origin);
         }
     }
 
-    fn decode_head(&mut self, bytes: &[u8], generation: u64) -> Result<(), Status> {
+    /// `v3`: the header of this copy says version 3. In a version-2 copy every
+    /// byte after the current version (v3 fields included) must be zero.
+    fn decode_head(&mut self, bytes: &[u8], generation: u64, v3: bool) -> Result<(), Status> {
         self.revision = get64(bytes, 0);
         self.request_id = get64(bytes, 8);
         self.created = get64(bytes, 16);
@@ -253,13 +310,20 @@ impl Entry {
         self.collection = bytes[39];
         self.history_count = usize::from(bytes[40]);
         self.current = Version::decode(&bytes[HEAD..HEAD + VERSION_BYTES])?;
+        self.installed = bytes[INSTALLED];
+        self.origin_revision = get64(bytes, OBJECT_ORIGINS);
+        self.origin_created = get64(bytes, OBJECT_ORIGINS + 8);
+        self.origin_modified = get64(bytes, OBJECT_ORIGINS + 16);
+        self.current.origin = get64(bytes, OBJECT_ORIGINS + 24);
+        let reserved = if v3 { HEAD_END } else { INSTALLED };
         if bytes[41..HEAD].iter().any(|byte| *byte != 0)
-            || bytes[HEAD + VERSION_BYTES..TRAILER]
+            || bytes[INSTALLED + 1..OBJECT_ORIGINS]
                 .iter()
                 .any(|byte| *byte != 0)
+            || bytes[reserved..TRAILER].iter().any(|byte| *byte != 0)
             || self.history_count > HISTORY
             || usize::from(self.collection) > COLLECTIONS
-            || self.revision > generation
+            || self.revision > generation.saturating_add(self.excess())
             || self.modified > generation
             || self.created > self.modified
         {
@@ -268,16 +332,15 @@ impl Entry {
         Ok(())
     }
 
-    fn decode_history(&mut self, bytes: &[u8]) -> Result<(), Status> {
-        if bytes[HISTORY * VERSION_BYTES..TRAILER]
-            .iter()
-            .any(|byte| *byte != 0)
-        {
+    fn decode_history(&mut self, bytes: &[u8], v3: bool) -> Result<(), Status> {
+        let reserved = if v3 { HISTORY_END } else { HISTORY_ORIGINS };
+        if bytes[reserved..TRAILER].iter().any(|byte| *byte != 0) {
             return Err(Status::Corrupt);
         }
         for index in 0..HISTORY {
             self.history[index] =
                 Version::decode(&bytes[index * VERSION_BYTES..(index + 1) * VERSION_BYTES])?;
+            self.history[index].origin = get64(bytes, HISTORY_ORIGINS + 8 * index);
         }
         Ok(())
     }
@@ -313,6 +376,7 @@ impl Entry {
                 ok &= *version == Version::EMPTY;
             }
         }
+        ok &= self.validate_provenance();
         // Versions of one object may share a chunk only at the same position
         // with the same checksum (a restore re-references, never rewrites).
         let mut positions = [(u8::MAX, 0u64); CHUNKS];
@@ -329,6 +393,39 @@ impl Entry {
         }
         ok
     }
+
+    /// v3 invariants 2-4 (S09-L2-PROVENANCE 2.1). Empty versions carry no
+    /// origin: `validate` compares them with `Version::EMPTY` in full.
+    fn validate_provenance(&self) -> bool {
+        let mut origins = [0u64; HISTORY + 1];
+        origins[0] = self.current.origin;
+        for (index, version) in self.history.iter().enumerate() {
+            origins[index + 1] = version.origin;
+        }
+        let object = [
+            self.origin_revision,
+            self.origin_created,
+            self.origin_modified,
+        ];
+        if self.installed == 0 {
+            return object.iter().chain(&origins).all(|origin| *origin == 0);
+        }
+        let mut ok = usize::from(self.installed) <= HISTORY + 1
+            && self.revision >= u64::from(self.installed)
+            && (self.origin_revision == 0) == (self.origin_created == 0)
+            && if self.origin_revision == 0 {
+                self.origin_modified == 0
+            } else {
+                self.origin_created <= self.origin_modified
+            };
+        for (index, origin) in origins.iter().enumerate() {
+            if *origin != 0 {
+                ok &= origins[..index].iter().all(|other| other != origin)
+                    && (self.origin_revision == 0 || *origin <= self.origin_revision);
+            }
+        }
+        ok
+    }
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -338,6 +435,9 @@ pub struct Collection {
     pub present: bool,
     pub name_length: usize,
     pub name: [u8; NAME],
+    /// v3: recorded source collection revision (0 = none); stored in the
+    /// header sector, zeroed when the collection is deleted.
+    pub origin_revision: u64,
 }
 
 impl Collection {
@@ -347,6 +447,7 @@ impl Collection {
         present: false,
         name_length: 0,
         name: [0; NAME],
+        origin_revision: 0,
     };
 
     pub fn name(&self) -> &[u8] {
@@ -368,6 +469,7 @@ impl Collection {
             present: false,
             name_length: usize::from(bytes[16]),
             name: [0; NAME],
+            origin_revision: 0,
         };
         collection.name.copy_from_slice(&bytes[24..56]);
         collection.present = match bytes[17] {
@@ -397,6 +499,9 @@ impl Collection {
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct Table {
+    /// Table version of this copy: `VERSION` (2) or `VERSION_V3` (3). Sticky:
+    /// once 3, every later copy is 3.
+    pub format: u16,
     pub generation: u64,
     pub request_id: u64,
     /// Per-domain logical clock: the number of commits made by that domain.
@@ -416,6 +521,7 @@ const CLOCKS: usize = 40;
 /// clocks plus the replacement objects and collections.
 #[derive(Clone, Copy)]
 pub struct Next<'a> {
+    pub format: u16,
     pub generation: u64,
     pub request_id: u64,
     pub clocks: [u64; DOMAINS],
@@ -438,6 +544,7 @@ pub const fn object_sectors(object: usize) -> (u64, u64) {
 impl Table {
     /// An all-zero volume is the empty generation-0 state; nothing is formatted.
     pub const EMPTY: Self = Self {
+        format: VERSION,
         generation: 0,
         request_id: 0,
         clocks: [0; DOMAINS],
@@ -479,6 +586,7 @@ impl Table {
 
     pub fn encode_sector(&self, index: u64) -> [u8; SECTOR] {
         let next = Next {
+            format: self.format,
             generation: self.generation,
             request_id: self.request_id,
             clocks: self.clocks,
@@ -518,7 +626,7 @@ impl Table {
         match index {
             0 => {
                 sector[..8].copy_from_slice(MAGIC);
-                put16(&mut sector, 8, VERSION);
+                put16(&mut sector, 8, next.format);
                 put16(&mut sector, 10, OBJECTS as u16);
                 put16(&mut sector, 12, CHUNKS as u16);
                 put16(&mut sector, 14, crate::CHUNK_SECTORS as u16);
@@ -530,6 +638,13 @@ impl Table {
                 sector[37] = COLLECTIONS as u8;
                 for (domain, clock) in next.clocks.iter().enumerate() {
                     put64(&mut sector, CLOCKS + 8 * domain, *clock);
+                }
+                for (index, collection) in collections.iter().enumerate() {
+                    put64(
+                        &mut sector,
+                        COLLECTION_ORIGINS + 8 * index,
+                        collection.origin_revision,
+                    );
                 }
             }
             1 => {
@@ -592,9 +707,15 @@ impl Table {
     ) -> Result<(), Status> {
         match index {
             0 => {
+                // Only the header carries the version; the copy's other
+                // sectors are checked against it (one write attempt, one format).
+                let reserved = match get16(bytes, 8) {
+                    VERSION => COLLECTION_ORIGINS,
+                    VERSION_V3 => COLLECTION_ORIGINS_END,
+                    _ => return Err(Status::Corrupt),
+                };
                 if Self::slot(generation) != slot
                     || &bytes[..8] != MAGIC
-                    || get16(bytes, 8) != VERSION
                     || get16(bytes, 10) != OBJECTS as u16
                     || get16(bytes, 12) != CHUNKS as u16
                     || get16(bytes, 14) != crate::CHUNK_SECTORS as u16
@@ -605,11 +726,13 @@ impl Table {
                     || usize::from(bytes[36]) != HISTORY
                     || usize::from(bytes[37]) != COLLECTIONS
                     || bytes[38..CLOCKS].iter().any(|byte| *byte != 0)
-                    || bytes[CLOCKS + 8 * DOMAINS..TRAILER]
-                        .iter()
-                        .any(|byte| *byte != 0)
+                    || bytes[reserved..TRAILER].iter().any(|byte| *byte != 0)
                 {
                     return Err(Status::Corrupt);
+                }
+                self.format = get16(bytes, 8);
+                for (index, collection) in self.collections.iter_mut().enumerate() {
+                    collection.origin_revision = get64(bytes, COLLECTION_ORIGINS + 8 * index);
                 }
                 self.generation = generation;
                 self.request_id = get64(bytes, 24);
@@ -623,18 +746,22 @@ impl Table {
                     return Err(Status::Corrupt);
                 }
                 for (index, collection) in self.collections.iter_mut().enumerate() {
+                    // The origin came from the header sector decoded before.
+                    let origin = collection.origin_revision;
                     *collection = Collection::decode(
                         &bytes[index * COLLECTION_BYTES..(index + 1) * COLLECTION_BYTES],
                         generation,
                     )?;
+                    collection.origin_revision = origin;
                 }
             }
             _ => {
                 let object = (index as usize - 2) / 2;
+                let v3 = self.format == VERSION_V3;
                 if index.is_multiple_of(2) {
-                    self.entries[object].decode_head(bytes, generation)?;
+                    self.entries[object].decode_head(bytes, generation, v3)?;
                 } else {
-                    self.entries[object].decode_history(bytes)?;
+                    self.entries[object].decode_history(bytes, v3)?;
                 }
             }
         }
@@ -658,10 +785,23 @@ impl Table {
         {
             return Err(Status::Corrupt);
         }
+        // v3 invariant 6: a collection origin needs a present collection
+        // (present implies revision != 0, `Collection::decode`). A v2 copy
+        // carries no provenance: `decode_sector` requires those bytes zero.
+        if self
+            .collections
+            .iter()
+            .any(|collection| collection.origin_revision != 0 && !collection.present)
+        {
+            return Err(Status::Corrupt);
+        }
         let mut owner = [u8::MAX; CHUNKS];
         for (object, entry) in self.entries.iter().enumerate() {
             let clock = self.clocks[domain_of(object)];
-            if !entry.validate() || entry.revision > clock || entry.modified > clock {
+            if !entry.validate()
+                || entry.revision > clock.saturating_add(entry.excess())
+                || entry.modified > clock
+            {
                 return Err(Status::Corrupt);
             }
             if entry.collection != 0
@@ -754,6 +894,8 @@ pub struct SlotScan {
     pub format_marker: bool,
     /// Generation of a completely valid copy.
     pub valid: Option<u64>,
+    /// Table version of that valid copy (`choose` keeps the format sticky).
+    pub format: u16,
 }
 
 impl SlotScan {
@@ -777,6 +919,7 @@ impl SlotScan {
             states,
             format_marker,
             valid: None,
+            format: 0,
         };
         if scan.uniform() {
             let mut io = Ok(());
@@ -793,6 +936,7 @@ impl SlotScan {
             );
             io?;
             scan.valid = decoded.ok().map(|()| scratch.generation);
+            scan.format = scratch.format;
         }
         Ok(scan)
     }
@@ -842,6 +986,11 @@ pub fn choose(slots: [SlotScan; 2]) -> Result<Option<u64>, Status> {
     match (zero.valid, one.valid) {
         (Some(a), Some(b)) => {
             if a.min(b).checked_add(1) == Some(a.max(b)) {
+                // Sticky format: no writer goes back from v3 to v2.
+                let (newer, older) = if a > b { (zero, one) } else { (one, zero) };
+                if newer.format < older.format {
+                    return Err(Status::Corrupt);
+                }
                 Ok(Some(Table::slot(a.max(b))))
             } else {
                 Err(Status::Corrupt)
