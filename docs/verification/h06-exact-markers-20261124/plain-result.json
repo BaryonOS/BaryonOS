@@ -1,0 +1,118 @@
+{
+ "scope": "QEMU HW-INV inventory by the own IF0 kernel; not physical hardware or a hardware record",
+ "case": "plain",
+ "kernel_feature": "native-hw-inventory",
+ "image": null,
+ "removed_esp_file": null,
+ "passed": true,
+ "checks": {
+  "required_markers_in_order": true,
+  "single_ebs": true,
+  "no_failure_marker": true,
+  "kernel_acpi_marker": true,
+  "halted_without_exit_port": true,
+  "inventory_converted": true,
+  "cpuid_matches_configuration": true,
+  "secure_boot_not_claimed": true,
+  "dmar_matches_configuration": true,
+  "log_binding": true,
+  "pci_equals_qmp_query_pci": true,
+  "rejected_as_virtual_capture": true,
+  "source_unchanged": true,
+  "clean_exit_after_quit": true
+ },
+ "error": null,
+ "inventory_error": null,
+ "qmp_pci": [
+  [
+   "0000:00:00.0",
+   "8086",
+   "29c0",
+   "06",
+   "00"
+  ],
+  [
+   "0000:00:01.0",
+   "1af4",
+   "1001",
+   "01",
+   "00"
+  ],
+  [
+   "0000:00:1f.0",
+   "8086",
+   "2918",
+   "06",
+   "01"
+  ],
+  [
+   "0000:00:1f.2",
+   "8086",
+   "2922",
+   "01",
+   "06"
+  ],
+  [
+   "0000:00:1f.3",
+   "8086",
+   "2930",
+   "0c",
+   "05"
+  ]
+ ],
+ "command": [
+  "/usr/bin/qemu-system-x86_64",
+  "-machine",
+  "pc-q35-8.2",
+  "-accel",
+  "tcg,thread=single",
+  "-cpu",
+  "qemu64,vendor=AuthenticAMD,-hypervisor",
+  "-smp",
+  "1",
+  "-m",
+  "256M",
+  "-nodefaults",
+  "-display",
+  "none",
+  "-monitor",
+  "none",
+  "-serial",
+  "stdio",
+  "-nic",
+  "none",
+  "-no-reboot",
+  "-qmp",
+  "unix:qmp.sock,server=on,wait=off",
+  "-drive",
+  "if=pflash,unit=0,format=raw,readonly=on,file=OVMF_CODE.fd",
+  "-drive",
+  "if=pflash,unit=1,format=raw,file=OVMF_VARS.fd",
+  "-drive",
+  "if=virtio,index=0,format=raw,readonly=on,file=fat:esp",
+  "-device",
+  "isa-debug-exit,iobase=0xf4,iosize=0x04"
+ ],
+ "machine": "pc-q35-8.2",
+ "raw_qemu_exit": 0,
+ "duration_s": 3.935779165999975,
+ "source_fingerprint_version": 3,
+ "source_sha256": "74c732d26d3454ca6a9ea9d1cd5d77ffc9be37f0ce538a041b7228f053b45559",
+ "base_commit": "013b60ada53a0969f5d829828627d17043e990d7",
+ "qemu_version": "QEMU emulator version 8.2.2 (Debian 1:8.2.2+ds-0ubuntu1.18)\nCopyright (c) 2003-2023 Fabrice Bellard and the QEMU Project developers",
+ "firmware": {
+  "code": "/usr/share/OVMF/OVMF_CODE_4M.fd",
+  "code_sha256": "ad23261d43116abc3747d59a7837fbf578c9586a8993f4eeba064cd07eccb083"
+ },
+ "run_directory": "build/r/hwinv-plain-545cce01e2",
+ "stdout": "\u001b[2J\u001b[01;01H\u001b[=3h\u001b[2J\u001b[01;01H\u001b[2J\u001b[01;01H\u001b[=3h\u001b[2J\u001b[01;01HBdsDxe: loading Boot0001 \"UEFI Misc Device\" from PciRoot(0x0)/Pci(0x1,0x0)\r\nBdsDxe: starting Boot0001 \"UEFI Misc Device\" from PciRoot(0x0)/Pci(0x1,0x0)\r\nBOOT:EBS_OK\nKERNEL:ENTRY\nBOOTINFO:OK\nKS-01:PASS\nKS-02:PASS\nACPI:UNAVAILABLE:NO_DMAR\nDEVICE-EXECUTION:BLOCKED:ADAPTER_ABSENT\nKS-03:PASS\nM2:PASS\nM1:PASS\nHWINV:BEGIN\nHWINV:CPUID:VENDOR=AuthenticAMD:HYPERVISOR=0\nHWINV:SECUREBOOT=ABSENT\nHWINV:ACPI:DMAR=ABSENT:DRHD=0\nHWINV:PCI:0000:00:00.0:8086:29c0:06:00:00:00\nHWINV:PCI:0000:00:01.0:1af4:1001:01:00:00:00\nHWINV:PCI:0000:00:1f.0:8086:2918:06:01:00:02\nHWINV:PCI:0000:00:1f.2:8086:2922:01:06:01:02\nHWINV:PCI:0000:00:1f.3:8086:2930:0c:05:00:02\nHWINV:PCI:COUNT=5\nHWINV:PASS\n",
+ "artifacts": {
+  "inventory.json": "ece4d1d240c5538f1b33d21f32b4d574f08f17700640b1dec403b3f0ec936daf",
+  "serial.txt": "12b8f741494d9f85d312d144228d8edf2824d8ee5f537dcbd73993769f798f29",
+  "stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "qmp-trace.json": "370619f7a19793f3bffd83bf5b2746829ef683f453e0cb25f902be98486dda69",
+  "OVMF_VARS.fd": "bf62103e00ecddc0147ae92b591f7b4aaf1e42dee5ad65ccf60ba90ee0f3780f",
+  "OVMF_CODE.fd": "ad23261d43116abc3747d59a7837fbf578c9586a8993f4eeba064cd07eccb083",
+  "build-manifest.json": "e60fb7262391d0073c9699d568cf5f12e6c5a317699b13123e24a4fa620af0df"
+ }
+}

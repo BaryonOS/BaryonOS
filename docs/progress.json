@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-24",
-    "source_commit": "25360a2cf5aad02498a29a6de595b3043e86519a",
+    "source_commit": "013b60ada53a0969f5d829828627d17043e990d7",
     "assessment_basis": "parent_commit",
-    "branch": "claude/h06-t7-serial-timeout-20261124",
-    "task": "H06-T7 serial-timeout HW-INV terminal fixture (QEMU)",
+    "branch": "claude/sweet-franklin-ljra1f",
+    "task": "H06-T8 exact-line matching for full-line HW-INV fixture markers",
     "previous_score": 43,
-    "summary": "43/100 unchanged. H06-T7 adds the test-hwinv-serial-timeout fixture: a labelled injection makes the UART report busy, the real bounded wait expires and the HW-INV kernel halts silently (HLT=1, no port 0xF4); the truncated block is rejected, every terminal fixture now requires HLT=1 and three mutants fail. QEMU only with a software-injected busy UART; no physical evidence, so H06 earns no points; evidence: docs/verification/h06-serial-timeout-20261124/README.md."
+    "summary": "43/100 unchanged. H06-T8 makes the HW-INV fixture oracle require whole lines for full-line markers (M2:PASS, HWINV:BEGIN, HWINV:FAIL:FIXTURE and others) and a non-empty value for value markers such as M2:PANIC_LINE:; host tests and a startswith mutant cover it, and every native HW-INV case and terminal fixture passed again on the new source in QEMU/TCG (pc-q35-8.2). Host oracle plus QEMU only; no physical evidence, so H06 earns no points; evidence: docs/verification/h06-exact-markers-20261124/README.md."
   },
   "tracks": [
     {
