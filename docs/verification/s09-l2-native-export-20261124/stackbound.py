@@ -18,7 +18,8 @@ for line in dis.splitlines():
     if m: funcs[cur] += int(m.group(1), 0)
     m = re.search(r"\t(call|jmp)\s+[0-9a-f]+ <([^>+]+)>", line)
     if m:
-        if m.group(2) != cur: calls[cur].add(m.group(2))
+        # A same-function jmp is a local loop; a same-function call is recursion and must stay.
+        if m.group(1) == "call" or m.group(2) != cur: calls[cur].add(m.group(2))
     elif re.search(r"\tcall\s", line): indirect.add(cur)
 root = sys.argv[2] if len(sys.argv) > 2 else "_start"
 if root not in funcs:
