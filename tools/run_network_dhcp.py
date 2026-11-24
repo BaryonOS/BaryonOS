@@ -304,7 +304,7 @@ def evaluate_slirp(report, oracle, observed):
     wire, net = report.get("wire") or {}, observed["network"]
     processes = observed["processes"]
     service, app_a = processes["SERVICE"], processes["APP_A"]
-    if (wire.get("other_frames") != 0 or wire.get("foreign") != [] or wire.get("http_syns", 0) < 1
+    if (wire.get("other_frames") != 0 or wire.get("other_ip") != 0 or wire.get("foreign") != [] or wire.get("http_syns", 0) < 1
             or net["NET_TX_COMPLETED"] != wire.get("guest_frames")
             or net["NET_RX_DELIVERED"] != wire.get("slirp_frames")):
         raise ValueError("libslirp wire capture contradicts broker TX/RX counts or scope")

@@ -163,6 +163,7 @@ def parse_pcap(path: Path) -> dict:
         raise ValueError("pcap link type is not Ethernet")
     at, frames, guest, slirp, other = 24, 0, 0, 0, 0
     acks, dns, http_syns, foreign = [], [], 0, []
+    queries, other_ip = set(), 0
     network = ipaddress.ip_network(NET)
     while at < len(data):
         if at + 16 > len(data):
@@ -183,6 +184,10 @@ def parse_pcap(path: Path) -> dict:
         if ethertype != 0x0800 or len(frame) < 34:
             continue
         ihl = (frame[14] & 0xf) * 4
+        # IPv4 only, a sane header length and no fragments; anything else is not parsed further.
+        if frame[14] >> 4 != 4 or ihl < 20 or len(frame) < 14 + ihl or struct.unpack("!H", frame[20:22])[0] & 0x3fff:
+            other_ip += 1
+            continue
         protocol, src, dst = frame[23], socket.inet_ntoa(frame[26:30]), socket.inet_ntoa(frame[30:34])
         body = frame[14 + ihl:]
         if source == GUEST_MAC and src != "0.0.0.0" and (ipaddress.ip_address(src) not in network
@@ -203,9 +208,13 @@ def parse_pcap(path: Path) -> dict:
                 acks.append(dict(address=socket.inet_ntoa(payload[16:20]), router=four(3), dns=four(6),
                                  mask=four(1), lease_s=struct.unpack("!I", options[51])[0]
                                  if len(options.get(51, b"")) == 4 else None))
+        elif dport == 53 and dst == DNS and source == GUEST_MAC and len(payload) >= 2:
+            queries.add((payload[:2], sport))
         elif sport == 53 and src == DNS and destination == GUEST_MAC:
             answer = dns_answers(payload, NAME)
-            if answer is not None:
+            # Bind each answer to a guest query seen earlier: same ID and port.
+            if answer is not None and (payload[:2], dport) in queries:
                 dns.append(dict(rcode=answer[0], addresses=answer[1]))
     return dict(frames=frames, guest_frames=guest, slirp_frames=slirp, other_frames=other,
-                dhcp_acks=acks, dns_responses=dns, http_syns=http_syns, foreign=foreign)
+                dhcp_acks=acks, dns_responses=dns, http_syns=http_syns, foreign=foreign,
+                other_ip=other_ip)

@@ -42,9 +42,18 @@ def ack(router=slirp.HOST, dns=slirp.DNS, address=LEASE):
     return frame(slirp.GUEST_MAC, SLIRP_MAC, ip(slirp.HOST, slirp.DHCP_START, 17, udp(67, 68, bootp + options)))
 
 
+def qname(name=slirp.NAME):
+    return b"".join(bytes((len(p),)) + p.encode() for p in name.split(".")) + b"\0"
+
+
+def query(ident=7, port=50000):
+    message = struct.pack("!HHHHHH", ident, 0x0100, 1, 0, 0, 0) + qname() + struct.pack("!HH", 1, 1)
+    return frame(bytes.fromhex("5255c0000203"), slirp.GUEST_MAC,
+                 ip(slirp.DHCP_START, slirp.DNS, 17, udp(port, 53, message)))
+
+
 def response(addresses, name=slirp.NAME, rcode=0):
-    qname = b"".join(bytes((len(p),)) + p.encode() for p in name.split(".")) + b"\0"
-    message = struct.pack("!HHHHHH", 7, 0x8180 | rcode, 1, len(addresses), 0, 0) + qname + struct.pack("!HH", 1, 1)
+    message = struct.pack("!HHHHHH", 7, 0x8180 | rcode, 1, len(addresses), 0, 0) + qname(name) + struct.pack("!HH", 1, 1)
     for address in addresses:
         message += b"\xc0\x0c" + struct.pack("!HHIH", 1, 1, 60, 4) + socket.inet_aton(address)
     return frame(slirp.GUEST_MAC, bytes.fromhex("5255c0000203"),
@@ -72,17 +81,33 @@ class PcapTest(unittest.TestCase):
             return slirp.parse_pcap(path)
 
     def test_summary_counts_and_extracts_lease_dns_and_syn(self):
-        summary = self.parse(pcap([syn(), ack(), response(["93.184.215.14", "96.7.128.198"])]))
-        self.assertEqual((summary["guest_frames"], summary["slirp_frames"], summary["other_frames"]), (1, 2, 0))
+        summary = self.parse(pcap([syn(), ack(), query(), response(["93.184.215.14", "96.7.128.198"])]))
+        self.assertEqual((summary["guest_frames"], summary["slirp_frames"], summary["other_frames"]), (2, 2, 0))
+        self.assertEqual(summary["other_ip"], 0)
         self.assertEqual(summary["dhcp_acks"], [dict(address=slirp.DHCP_START, router=slirp.HOST, dns=slirp.DNS,
                                                      mask="255.255.255.0", lease_s=86400)])
         self.assertEqual(summary["dns_responses"], [dict(rcode=0, addresses=["93.184.215.14", "96.7.128.198"])])
         self.assertEqual((summary["http_syns"], summary["foreign"]), (1, []))
 
     def test_other_questions_and_off_net_guest_traffic_are_not_hidden(self):
-        summary = self.parse(pcap([response(["1.2.3.4"], name="other.example"), syn(target="198.51.100.9")]))
+        summary = self.parse(pcap([query(), response(["1.2.3.4"], name="other.example"), syn(target="198.51.100.9")]))
         self.assertEqual(summary["dns_responses"], [])
         self.assertEqual(summary["foreign"], [f"{slirp.DHCP_START}->198.51.100.9"])
+
+    def test_answers_without_a_matching_guest_query_are_ignored(self):
+        for name, frames in (("no query", [response(["1.2.3.4"])]), ("other id", [query(ident=8), response(["1.2.3.4"])]),
+                             ("other port", [query(port=50001), response(["1.2.3.4"])])):
+            with self.subTest(name):
+                self.assertEqual(self.parse(pcap(frames))["dns_responses"], [])
+
+    def test_bad_ipv4_headers_and_fragments_are_counted_not_parsed(self):
+        good = syn()
+        for name, patch_at, value in (("ihl", 14, 0x44), ("version", 14, 0x65), ("fragment", 20, 0x20)):
+            bad = bytearray(good)
+            bad[patch_at] = value
+            with self.subTest(name):
+                summary = self.parse(pcap([bytes(bad)]))
+                self.assertEqual((summary["other_ip"], summary["http_syns"]), (1, 0))
 
     def test_malformed_captures_are_refused(self):
         for name, data in (("magic", pcap([ack()], magic=b"\xa1\xb2\xc3\xd4")), ("linktype", pcap([ack()], linktype=0)),
@@ -129,7 +154,7 @@ class SlirpRunnerTest(unittest.TestCase):
 
     def report(self, **wire):
         pcap_rel = self.RUN.relative_to(runner.ROOT).as_posix() + "/slirp.pcap"
-        good = dict(guest_frames=20, slirp_frames=18, other_frames=0, foreign=[], http_syns=1,
+        good = dict(guest_frames=20, slirp_frames=18, other_frames=0, other_ip=0, foreign=[], http_syns=1,
                     dhcp_acks=[dict(address=slirp.DHCP_START, router=slirp.HOST, dns=slirp.DNS,
                                     mask="255.255.255.0", lease_s=86400)],
                     dns_responses=[dict(rcode=0, addresses=["93.184.215.14", "96.7.128.198"])])
@@ -155,6 +180,7 @@ class SlirpRunnerTest(unittest.TestCase):
             "tx count": (self.report(guest_frames=21), {}),
             "rx count": (self.report(slirp_frames=17), {}),
             "other frame": (self.report(other_frames=1), {}),
+            "other ip": (self.report(other_ip=1), {}),
             "foreign": (self.report(foreign=["192.0.2.15->198.51.100.9"]), {}),
             "no http": (self.report(http_syns=0), {}),
             "two acks": (self.report(dhcp_acks=[first_ack, first_ack]), {}),
