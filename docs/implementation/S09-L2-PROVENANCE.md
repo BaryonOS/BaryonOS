@@ -443,22 +443,48 @@ New `client::validate_reply` arms:
 - **PROVENANCE_STAT, collection:** `revision` = request `revision`;
   `length = name_length = 0`; `count ≤ 1`; `(count = 1) ⇔ (aux ≠ 0)`.
 
-**Unconfirmed BEGIN recovery.** Legacy request IDs are correlation values,
+**Explicit INSTALL recovery.** Legacy request IDs are correlation values,
 not ownership credentials; separate clients may use the same ID for the same
 object. A lost or malformed Busy reply therefore cannot justify an automatic
-ABORT. `Client::install_begin` retains the sent epoch, object, request ID and
-error in `Client::unconfirmed_install`, returns the original `Unknown` or
-`Protocol`, and sends no ABORT or retry. The convenience install and L2 restore
-keep this record on the caller's Client. Further BEGIN/restore attempts stop
-before writing, and reads do not discard the record.
+ABORT. The provided INSTALL helpers retain the sent epoch, object, request ID,
+error and failed operation in `Client::unconfirmed_install`. `InstallPhase`
+distinguishes `Begin`, `Append`, `Commit`, `Collection { index }` and `Abort`.
+Collection records identify the domain base plus collection index, not a
+staged object session.
 
-The original confirmed session owner or a trusted domain shutdown/restart must
-reconcile the state. Only then may the caller acknowledge that exact record
-with `acknowledge_install_recovery`. Acknowledgement clears local bookkeeping
-only, sends no request and proves no ownership. A failed cleanup is not
-recovery. This is explicit bounded failure handling, not guaranteed immediate
-stage reclamation or a new v6 ownership boundary. Cleanup after a confirmed
-successful BEGIN retains its existing session semantics.
+`Unknown` or `Protocol` from BEGIN, APPEND, COMMIT or INSTALL_COLLECTION retains
+that record and returns the original error without automatic ABORT or retry.
+The convenience installer and L2 restore keep it on the caller's Client after
+returning, including when the failed APPEND followed a confirmed BEGIN. A lost
+or malformed COMMIT or collection response can hide an already durable change;
+its record must not be interpreted as proof that nothing committed.
+
+`begin_confirmed` is true only when this Client previously received a valid
+BEGIN for the same epoch, object and request ID. BEGIN and collection records
+never claim that confirmation. A low-level continuation with an arbitrary ID
+does not acquire it. Confirmation is historical correlation, not a new service
+authorization check or evidence that a COMMIT did not take effect. Matching
+bookkeeping clears after successful COMMIT, successful ABORT or explicit
+recovery acknowledgement.
+
+After a confirmed BEGIN, definite operation or archive-source failures still
+attempt cleanup. If ABORT fails, the confirmed correlation is retained with
+phase `Abort` and the cleanup status; the high-level call keeps returning its
+original operation/source error. A successful cleanup allows a later attempt.
+An explicit ABORT while recovery is already pending never consumes or replaces
+that record, whether cleanup succeeds or fails.
+
+The INSTALL_BEGIN, APPEND, COMMIT and collection helpers and L2 restore refuse
+further writes while recovery is pending. Reads preserve the record. This is
+caller-side recovery bookkeeping, not a new security boundary over public raw
+exchange or transport access. The caller must retain its Client and reconcile
+the state through the original confirmed owner or trusted domain recovery.
+Only then may it acknowledge that exact record with
+`acknowledge_install_recovery`. A stale or mismatched acknowledgement changes
+nothing; a matching acknowledgement clears local bookkeeping only, sends no
+request and proves no ownership. A failed cleanup is not recovery. This does
+not promise immediate stage reclamation, APPEND resume or blind COMMIT replay.
+A partially committed restore still requires a fresh destination domain.
 
 The Transport contract distinguishes delivery phases: a timeout or other
 definite transport failure requires proof that the request was not delivered.
@@ -469,7 +495,8 @@ reported as proof that no commit occurred.
 ## 5. Restore mode L2 (`restore_native_l2`, client, `archive.rs`)
 
 This is a separate function beside `restore` (v1) and `restore_native` (L1).
-Before the first write it checks, in this order:
+An invalid domain or pending Client recovery record stops it before the archive
+is opened or any remote write is attempted. It then checks, in this order:
 1. `verify_v2`: a v1 or corrupt archive gives `Corrupt`;
 2. `TOMBSTONES` gives `Invalid` (R2);
 3. `never_used`, otherwise `Stale` (R3);

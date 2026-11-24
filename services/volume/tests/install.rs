@@ -789,6 +789,9 @@ fn ambiguous_begin_with_colliding_ids_never_aborts_an_existing_session() {
                     Status::Unknown
                 })
             );
+            let pending = other.unconfirmed_install().unwrap();
+            assert_eq!(pending.phase, client::InstallPhase::Begin);
+            assert!(!pending.begin_confirmed);
             assert_eq!(
                 other.transport.aborts, 0,
                 "a colliding ID proves no ownership"
@@ -803,6 +806,386 @@ fn ambiguous_begin_with_colliding_ids_never_aborts_an_existing_session() {
                 .install_stream(object, id, &m, 0..m.count, &mut fill(object))
                 .unwrap();
             owner.install_commit(object, id, &m).unwrap();
+        }
+    }
+}
+
+/// Deliver an install request, then lose or corrupt only its response.
+struct InstallReplyFault<T> {
+    inner: T,
+    fault: Option<(u16, bool)>,
+    abort_error: Option<Status>,
+    refuse_at: Option<u16>,
+    operations: Vec<u16>,
+}
+impl<T: Transport> Transport for InstallReplyFault<T> {
+    fn call(&mut self, request: &[u8; wire::SIZE]) -> Result<[u8; wire::SIZE], Status> {
+        let h = wire::header(request);
+        self.operations.push(h.operation);
+        if h.operation == wire::ABORT {
+            if let Some(status) = self.abort_error {
+                return Err(status);
+            }
+        }
+        if self.refuse_at == Some(h.operation) {
+            let reply = Header {
+                status: Status::Range as i32,
+                ..Header::new(h.operation, h.request_id, h.epoch, h.object)
+            };
+            return Ok(wire::encode(&reply, &[]));
+        }
+        let mut reply = self.inner.call(request)?;
+        if let Some((at, malformed)) = self.fault {
+            if h.operation == at {
+                if malformed {
+                    reply[2] ^= 1;
+                } else {
+                    return Err(Status::Unknown);
+                }
+            }
+        }
+        Ok(reply)
+    }
+}
+
+#[test]
+fn a_lost_append_retains_the_confirmed_install_for_explicit_recovery() {
+    for malformed in [false, true] {
+        let (mut s, mut d) = fresh();
+        let object = 2;
+        let m = manifest(&[CHUNK + 1, 5], 4);
+        let mut c = Client::new(
+            InstallReplyFault {
+                inner: Local {
+                    service: &mut s,
+                    disk: &mut d,
+                    domain: 0,
+                },
+                fault: Some((wire::INSTALL_APPEND, malformed)),
+                abort_error: None,
+                refuse_at: None,
+                operations: Vec::new(),
+            },
+            EPOCH,
+            700,
+        );
+        let expected = if malformed {
+            Status::Protocol
+        } else {
+            Status::Unknown
+        };
+        assert_eq!(
+            c.install(object, &m, (0, 0, 0), fill(object)),
+            Err(expected)
+        );
+        let pending = c
+            .unconfirmed_install()
+            .expect("lost APPEND must retain its confirmed session");
+        assert_eq!(
+            (
+                pending.epoch,
+                pending.object,
+                pending.request_id,
+                pending.status
+            ),
+            (EPOCH, object, 700, expected)
+        );
+        assert_eq!(pending.phase, client::InstallPhase::Append);
+        assert!(pending.begin_confirmed);
+        assert_eq!(
+            c.transport.operations,
+            [wire::INSTALL_BEGIN, wire::INSTALL_APPEND]
+        );
+        assert!(c.transport.inner.service.staged(0).is_some());
+        let before = c.transport.operations.len();
+        assert_eq!(
+            c.install(object, &m, (0, 0, 0), fill(object)),
+            Err(expected)
+        );
+        assert_eq!(
+            c.install_stream(
+                object,
+                pending.request_id,
+                &m,
+                0..m.count,
+                &mut fill(object)
+            ),
+            Err(expected)
+        );
+        assert_eq!(
+            c.install_commit(object, pending.request_id, &m),
+            Err(expected)
+        );
+        assert_eq!(c.install_collection(0, 1, b"Later", 1), Err((expected, 0)));
+        assert_eq!(
+            c.transport.operations.len(),
+            before,
+            "no automatic retry or continuation"
+        );
+        assert_eq!(c.stat(object), Err((Status::NotFound, 0)));
+        assert_eq!(
+            c.unconfirmed_install(),
+            Some(pending),
+            "reads preserve recovery"
+        );
+        for wrong in [
+            client::UnconfirmedInstall {
+                request_id: pending.request_id + 1,
+                ..pending
+            },
+            client::UnconfirmedInstall {
+                phase: client::InstallPhase::Commit,
+                ..pending
+            },
+            client::UnconfirmedInstall {
+                begin_confirmed: false,
+                ..pending
+            },
+        ] {
+            assert!(!c.acknowledge_install_recovery(wrong));
+            assert_eq!(c.unconfirmed_install(), Some(pending));
+        }
+        c.transport.abort_error = Some(Status::Io);
+        assert_eq!(c.abort(object, 0, pending.request_id), Err(Status::Io));
+        assert_eq!(
+            c.unconfirmed_install(),
+            Some(pending),
+            "failed cleanup is not recovery"
+        );
+        c.transport.abort_error = None;
+        c.transport.fault = None;
+        // This Client received the successful BEGIN; its owner may reconcile the stage.
+        c.abort(object, 0, pending.request_id).unwrap();
+        assert_eq!(c.unconfirmed_install(), Some(pending));
+        assert!(c.acknowledge_install_recovery(pending));
+        assert!(
+            !c.acknowledge_install_recovery(pending),
+            "stale acknowledgement"
+        );
+        c.install(object, &m, (0, 0, 0), fill(object)).unwrap();
+    }
+}
+
+#[test]
+fn an_uncertain_install_commit_retains_phase_without_replay_or_abort() {
+    for malformed in [false, true] {
+        let (mut s, mut d) = fresh();
+        let object = 2;
+        let m = manifest(&[7, 5], 4);
+        let mut c = Client::new(
+            InstallReplyFault {
+                inner: Local {
+                    service: &mut s,
+                    disk: &mut d,
+                    domain: 0,
+                },
+                fault: Some((wire::INSTALL_COMMIT, malformed)),
+                abort_error: None,
+                refuse_at: None,
+                operations: Vec::new(),
+            },
+            EPOCH,
+            700,
+        );
+        let expected = if malformed {
+            Status::Protocol
+        } else {
+            Status::Unknown
+        };
+        assert_eq!(
+            c.install(object, &m, (0, 0, 0), fill(object)),
+            Err(expected)
+        );
+        let pending = c.unconfirmed_install().unwrap();
+        assert_eq!(
+            (pending.phase, pending.request_id, pending.begin_confirmed),
+            (client::InstallPhase::Commit, 700, true)
+        );
+        assert_eq!(
+            c.transport
+                .operations
+                .iter()
+                .filter(|op| **op == wire::INSTALL_COMMIT)
+                .count(),
+            1
+        );
+        assert!(!c.transport.operations.contains(&wire::ABORT));
+        let before = c.transport.operations.len();
+        assert_eq!(
+            c.install_commit(object, pending.request_id, &m),
+            Err(expected)
+        );
+        assert_eq!(
+            c.install(object, &m, (0, 0, 0), fill(object)),
+            Err(expected)
+        );
+        assert_eq!(
+            c.transport.operations.len(),
+            before,
+            "never replay an uncertain COMMIT"
+        );
+        assert_eq!(c.stat(object).unwrap().revision, m.count as u64);
+        let durable = recover(c.transport.inner.disk.settled()).unwrap();
+        assert_eq!(durable.entries[object as usize].installed, m.count as u8);
+        assert_eq!(c.unconfirmed_install(), Some(pending));
+        // Reconcile the already durable commit; ABORT cannot undo this result.
+        assert!(c.acknowledge_install_recovery(pending));
+        assert!(!c.acknowledge_install_recovery(pending));
+        c.transport.fault = None;
+        assert_eq!(
+            c.install(object, &m, (0, 0, 0), fill(object)),
+            Err(Status::Stale)
+        );
+        assert!(c.unconfirmed_install().is_none());
+    }
+}
+
+#[test]
+fn failed_cleanup_retains_the_session_and_preserves_the_original_refusal() {
+    for operation in [wire::INSTALL_APPEND, wire::INSTALL_COMMIT] {
+        for cleanup_error in [
+            None,
+            Some(Status::Io),
+            Some(Status::Unknown),
+            Some(Status::Protocol),
+            Some(Status::Invalid),
+        ] {
+            let (mut s, mut d) = fresh();
+            let object = 2;
+            let m = manifest(&[7], 4);
+            let mut c = Client::new(
+                InstallReplyFault {
+                    inner: Local {
+                        service: &mut s,
+                        disk: &mut d,
+                        domain: 0,
+                    },
+                    fault: None,
+                    abort_error: cleanup_error,
+                    refuse_at: Some(operation),
+                    operations: Vec::new(),
+                },
+                EPOCH,
+                700,
+            );
+            assert_eq!(
+                c.install(object, &m, (0, 0, 0), fill(object)),
+                Err(Status::Range)
+            );
+            assert_eq!(
+                c.transport
+                    .operations
+                    .iter()
+                    .filter(|op| **op == wire::ABORT)
+                    .count(),
+                1
+            );
+            if let Some(status) = cleanup_error {
+                let pending = c
+                    .unconfirmed_install()
+                    .expect("failed cleanup must retain the confirmed session");
+                assert_eq!(
+                    (
+                        pending.phase,
+                        pending.status,
+                        pending.request_id,
+                        pending.begin_confirmed
+                    ),
+                    (client::InstallPhase::Abort, status, 700, true)
+                );
+                assert!(c.transport.inner.service.staged(0).is_some());
+                let before = c.transport.operations.len();
+                assert_eq!(c.install(object, &m, (0, 0, 0), fill(object)), Err(status));
+                assert_eq!(c.transport.operations.len(), before);
+                c.transport.abort_error = None;
+                c.abort(object, 0, pending.request_id).unwrap();
+                assert_eq!(c.unconfirmed_install(), Some(pending));
+                assert!(c.acknowledge_install_recovery(pending));
+            } else {
+                assert!(
+                    c.unconfirmed_install().is_none(),
+                    "confirmed cleanup permits a later install"
+                );
+                assert!(c.transport.inner.service.staged(0).is_none());
+            }
+            c.transport.refuse_at = None;
+            c.install(object, &m, (0, 0, 0), fill(object)).unwrap();
+        }
+    }
+}
+
+#[test]
+fn low_level_continuations_do_not_invent_a_confirmed_begin() {
+    for completed in [0, 1, 2, 3] {
+        for operation in [wire::INSTALL_APPEND, wire::INSTALL_COMMIT] {
+            let (mut s, mut d) = fresh();
+            let object = 2;
+            let m = manifest(&[7], 4);
+            let mut c = Client::new(
+                InstallReplyFault {
+                    inner: Local {
+                        service: &mut s,
+                        disk: &mut d,
+                        domain: 0,
+                    },
+                    fault: None,
+                    abort_error: None,
+                    refuse_at: None,
+                    operations: Vec::new(),
+                },
+                EPOCH,
+                700,
+            );
+            let id = if completed == 0 {
+                700
+            } else {
+                c.install_begin(object, &m, (0, 0, 0)).unwrap()
+            };
+            match completed {
+                0 => {} // Arbitrary low-level ID; this Client received no BEGIN.
+                1 => {
+                    c.install_stream(object, id, &m, 0..1, &mut fill(object))
+                        .unwrap();
+                    c.install_commit(object, id, &m).unwrap();
+                }
+                2 => c.abort(object, 0, id).unwrap(),
+                3 => {
+                    c.transport.fault = Some((wire::INSTALL_APPEND, false));
+                    assert_eq!(
+                        c.install_stream(object, id, &m, 0..1, &mut fill(object)),
+                        Err(Status::Unknown)
+                    );
+                    let pending = c.unconfirmed_install().unwrap();
+                    assert!(pending.begin_confirmed);
+                    // Reconcile outside this Client, then acknowledge. The private
+                    // historical BEGIN tuple must not survive the acknowledgement.
+                    let abort = Header::new(wire::ABORT, id, EPOCH, object);
+                    let reply = c.transport.inner.call(&wire::encode(&abort, &[])).unwrap();
+                    assert_eq!(status(&wire::header(&reply)), Status::Ok);
+                    assert!(c.acknowledge_install_recovery(pending));
+                }
+                _ => unreachable!(),
+            }
+            c.transport.fault = Some((operation, false));
+            let result = if operation == wire::INSTALL_APPEND {
+                c.install_stream(object, id, &m, 0..1, &mut fill(object))
+            } else {
+                c.install_commit(object, id, &m).map(|_| ())
+            };
+            assert_eq!(result, Err(Status::Unknown));
+            let pending = c.unconfirmed_install().unwrap();
+            assert!(
+                !pending.begin_confirmed,
+                "no live confirmation remains after mode {completed}"
+            );
+            assert_eq!(
+                pending.phase,
+                if operation == wire::INSTALL_APPEND {
+                    client::InstallPhase::Append
+                } else {
+                    client::InstallPhase::Commit
+                }
+            );
         }
     }
 }
@@ -858,6 +1241,8 @@ fn malformed_install_begin_replies_preserve_recovery_without_guessing_ownership(
             };
             assert_eq!(result, Err(Status::Protocol));
             let pending = c.unconfirmed_install().unwrap();
+            assert_eq!(pending.phase, client::InstallPhase::Begin);
+            assert!(!pending.begin_confirmed);
             assert_eq!(
                 (pending.epoch, pending.object, pending.request_id),
                 (EPOCH, object, 700)
@@ -918,6 +1303,8 @@ fn malformed_install_begin_replies_preserve_recovery_without_guessing_ownership(
         Err(Status::Protocol)
     );
     let pending = c.unconfirmed_install().unwrap();
+    assert_eq!(pending.phase, client::InstallPhase::Begin);
+    assert!(!pending.begin_confirmed);
     assert!(c.transport.aborts.is_empty());
     c.transport.byte = None;
     assert_eq!(
@@ -984,6 +1371,8 @@ fn lost_install_begin_replies_preserve_recovery_until_explicit_reconciliation() 
             };
             assert_eq!(result, Err(Status::Unknown), "preserve the original error");
             let pending = c.unconfirmed_install().unwrap();
+            assert_eq!(pending.phase, client::InstallPhase::Begin);
+            assert!(!pending.begin_confirmed);
             assert_eq!(
                 (pending.epoch, pending.object, pending.request_id),
                 (EPOCH, object, 700)
@@ -1029,6 +1418,8 @@ fn lost_install_begin_replies_preserve_recovery_until_explicit_reconciliation() 
     );
     assert_eq!(c.install_begin(object, &m, (0, 0, 0)), Err(Status::Unknown));
     let pending = c.unconfirmed_install().unwrap();
+    assert_eq!(pending.phase, client::InstallPhase::Begin);
+    assert!(!pending.begin_confirmed);
     assert!(c.transport.aborts.is_empty());
     let Some(Staged::Install(session)) = c.transport.inner.service.staged(0) else {
         panic!("the earlier install must remain staged");

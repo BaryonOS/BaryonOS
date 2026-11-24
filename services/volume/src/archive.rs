@@ -1521,12 +1521,14 @@ pub fn l2_manifest(object: &ObjectV2) -> Manifest {
 /// archive into a never-used `domain`, one INSTALL commit per present
 /// object, preserving the archive revisions and stamps as immutable
 /// provenance beside destination-assigned live revisions and clocks.
-/// An unconfirmed BEGIN retains its correlation on
-/// [`Client::unconfirmed_install`]. Restore stops without automatic ABORT or
-/// retry; the original session owner or trusted domain recovery must reconcile
-/// that state before [`Client::acknowledge_install_recovery`] permits a retry.
+/// An uncertain collection, BEGIN, APPEND or COMMIT retains its phase and
+/// correlation on [`Client::unconfirmed_install`], without automatic ABORT or
+/// retry. Failed cleanup after a definite error also retains recovery state.
+/// The original session owner or trusted domain recovery must reconcile that
+/// state before [`Client::acknowledge_install_recovery`] permits a retry.
 ///
-/// Refused before the first write, in this order: a corrupt or v1 archive
+/// After the domain/recovery guard, refused before the first write in this
+/// order: a corrupt or v1 archive
 /// (`Corrupt`), `TOMBSTONES` (`Invalid`, R2), a used domain (`Stale`, R3),
 /// a replay over `QUOTA` (`Quota`) or over [`GUARANTEED_FREE`] (`Full`), and
 /// a manifest the service would refuse (`Corrupt`). Then every present
@@ -1639,8 +1641,8 @@ pub fn restore_native_l2<S: Source, T: Transport>(
         };
         client.install_stream(target, id, &manifest, index..index + 1, &mut fill)?;
         if index + 1 == keep {
-            // An unanswered commit leaves `staged` set; the service keeps an
-            // incomplete session, so it is aborted below (not on Unknown).
+            // An unanswered or malformed COMMIT may already be durable.
+            // Its retained recovery record prevents automatic ABORT or replay.
             done.revisions[object.slot] = client.install_commit(target, id, &manifest)?;
             staged = None;
             done.restored |= 1 << object.slot;
@@ -1655,7 +1657,7 @@ pub fn restore_native_l2<S: Source, T: Transport>(
         Err(status) => status,
     };
     if let Some((target, id)) = staged {
-        if status != Status::Unknown {
+        if client.unconfirmed_install().is_none() {
             let _ = client.abort(target, 0, id);
         }
     }
