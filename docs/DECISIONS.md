@@ -12,8 +12,11 @@ wording and speaker.
 **Problem:** protocol `HW-INV` v2 needed a kernel profile that reports the
 hardware facts required by `tools/hw_evidence.py` without changing device state
 and without ending through QEMU's `isa-debug-exit` port, which is undefined on
-physical PCs. The `SecureBoot` state is only visible to the loader before
-ExitBootServices.
+physical PCs. UEFI defines `SecureBoot` as a boot-service and runtime variable
+(UEFI Forum, *UEFI Specification* 2.10, section 3.3 "Globally Defined
+Variables", https://uefi.org/specs/UEFI/2.10/03_Boot_Manager.html), but the
+kernel calls no UEFI runtime services, so this profile captures it in the
+loader and passes the observation to the kernel.
 
 **Decision:**
 

@@ -2958,7 +2958,7 @@
         "docs/drivers/DRIVER-ARCHITECTURE.md"
       ],
       "checks": [
-        "cargo +1.90.0 test --locked -p pci-core -p boot-protocol",
+        "cargo +1.100.0 test --locked -p pci-core -p boot-protocol",
         "python3 -B -m unittest discover -s tools/tests -p 'test_hw_*.py' -v",
         "python3 -B tools/build.py --kernel-feature native-hw-inventory",
         "python3 -B tools/run_hw_inventory.py --case all",

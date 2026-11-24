@@ -912,8 +912,7 @@
               "docs/drivers/hardware-matrix.json",
               "docs/drivers/physical-protocols.json",
               "tools/hw_evidence.py",
-              "docs/roadmap-pipeline/ledger.json",
-              "docs/verification/h06-hw-inventory-20261124/README.md"
+              "docs/roadmap-pipeline/ledger.json"
             ]
           },
           {

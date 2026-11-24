@@ -176,6 +176,7 @@ def run_case(case: str, *, build_directory: Path = BUILD, run_root: Path | None 
     text = (directory / "serial.txt").read_bytes().decode("utf-8", "replace")
     checks, inventory, error = evaluate(text, case, qmp_pci, alive_at_pass)
     checks["source_unchanged"] = source_hash() == frozen
+    checks["clean_exit_after_quit"] = rc == 0  # QMP quit ends QEMU with 0; crash/signal/exit port do not
     if inventory is not None:
         save_json(directory / "inventory.json", inventory)
     save_json(directory / "qmp-trace.json", trace)
