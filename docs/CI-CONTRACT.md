@@ -37,6 +37,11 @@ Files:
 | `operational` | Repository maintenance (schedules, queue cleanup). | Never selected. |
 | `publication` | Publishes or uploads (coverage upload, history audit). | Never selected; not acceptance evidence. |
 
+A `core` or `rwa` job must not need, directly or through other jobs, a job
+of a class that is never selected: GitHub would skip the selected gate when
+its prerequisite does not run. `validate` rejects such a catalogue; no real
+job does this today.
+
 `experimental-m3-m4-smp` in `native-smp.yml` is automatic and blocking despite
 its name, so it is registered as `rwa`. `windows-qemu-test-version.yml` is
 registered as `advisory`; the project owner may promote it.

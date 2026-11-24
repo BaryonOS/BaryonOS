@@ -458,6 +458,21 @@ def validate(catalogue):
                 add(f"{jwhere}: rwa requires inputs (cargo, inputs or input_sets)")
         for cycle_job in _cycle_members(graph):
             add(f"{stem(path)}#{cycle_job}: needs cycle")
+        # A selected gate whose prerequisite is never selected would be skipped by GitHub.
+        classes = {job["id"]: job.get("class") for job in jobs
+                   if isinstance(job, dict) and isinstance(job.get("id"), str) and job["id"] in graph}
+        for job_id, klass in classes.items():
+            if klass not in SELECTABLE:
+                continue
+            seen, stack = set(), list(graph[job_id])
+            while stack:
+                need = stack.pop()
+                if need in seen or need not in graph:
+                    continue
+                seen.add(need)
+                stack += graph[need]
+                if classes[need] not in SELECTABLE:
+                    add(f"{stem(path)}#{job_id}: needs {need}, which is never selected ({classes[need]})")
     if not problems:
         for execution in executions(catalogue):
             if execution["id"] in seen_ids:
