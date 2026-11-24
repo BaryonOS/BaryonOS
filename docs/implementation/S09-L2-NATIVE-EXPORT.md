@@ -229,8 +229,10 @@ this count (`1 + 8·34`). Case 29 stops the guest when the table-sector write
 count reaches `1 + 6·34 + 4` (`L2_CUT_TABLE_WRITES`), the fourth sector of
 commit 7, which is object 4's INSTALL_COMMIT. The count is taken from boot of
 a fresh image, which is equivalent to a base latched at the format marker.
-At that point object 4's content (5000 bytes, two chunks) has been appended
-but not published. The point is chosen so that the installed prefix includes
+By design, object 4's content (5000 bytes, two chunks) has then been appended
+but not published. Neither the host oracle nor the kernel asserts that these
+chunks are present on disk; the native check covers the six published commits,
+the torn seventh table copy and the never-used remainder. The point is chosen so that the installed prefix includes
 object 3 (five chunks; origin revision 42 against live revision 1), and so
 that one object with written but unpublished content and one untouched
 object remain.
@@ -521,7 +523,11 @@ Each slice gets an independent AI review before the next begins. Hosted CI
   cases 29 and 30). One cut point is covered natively: inside an
   INSTALL_COMMIT table copy. Cuts inside INSTALL_COLLECTION, between
   INSTALL_APPEND writes, or after the last commit remain covered only by the
-  host tests and the generic table-recovery stages.
+  host tests and the generic table-recovery stages. Open hardening from
+  review 2: make the native host check pin the interrupted slot and the
+  installed prefix's chunk count itself, verify object 4's appended chunks
+  in the data region, and use the object-style `(NotFound, 0)` test for
+  never-used collections in `l2_mismatches(partial=true)`.
 - A revision gap inside an archive given to the restore (`skipped`, R2)
   remains host-only: `export_v2` never writes such an archive, so a native
   stage would need a crafted archive disk.
@@ -573,6 +579,22 @@ Optional items 1–7 were taken over:
 `claude/s09-l2-restore-cut` by the builder of task S-20261124-3-B1. Before
 implementation, a reviewer model checked the plan in an advisory capacity
 (it moved the cut point from object 3 to object 4, so that the installed
-prefix holds a multi-chunk object). An independent review of the implemented slice is
-pending. Native evidence is recorded in the
+prefix holds a multi-chunk object). Native evidence is recorded in the
 [slice E README](../verification/s09-l2-restore-cut-20261124/README.md).
+
+**Review 2 (slice E):** an independent, read-only AI code review of the merged
+slice at `68596f82` (task S-20261124-4). It was static reading only; nothing
+was executed. Verdict: APPROVE, no required changes. The verbatim text is in
+[REVIEW-1.md](../verification/s09-slice-e-review-20261124/REVIEW-1.md).
+Resolution of its findings:
+
+| Finding | Resolution |
+|---|---|
+| "Appended but not published" is not asserted (section 5 of the review) | Section 4.1 now marks it as design inference |
+| Optional 1: host check does not itself pin the interrupted slot or chunk count | Open (section 10); the host unit test `CutCheck.test_cut_state` pins it on the shared fixture |
+| Optional 2: check object 4's chunks in the data region | Open (section 10) |
+| Optional 3: partial collection check uses `revision == 0` only | Open (section 10); the host disk oracle covers the raw state |
+| Optional 4: `L2_CUT_COMMITS`/`L2_CUT_TORN` duplicated in kernel and host | No change; drift fails closed on the host, and both sides cross-reference each other |
+| Optional 5: gate exit status not captured in the slice E README | Closed by the hosted `m6e-native-volume` pass on the merged head `5d873a13` (HANDOFF of PR #492) |
+
+An AI review is not a human audit.

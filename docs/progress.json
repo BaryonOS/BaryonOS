@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-24",
-    "source_commit": "ea59c6fc430fb2481dd5d331ac2763235535f110",
-    "assessment_basis": "source_bound_branch",
-    "branch": "claude/s09-l2-restore-cut",
-    "task": "S09 native power cut inside an L2 restore and its cold recovery (cases 29-30)",
+    "source_commit": "68596f82abf0a7370f8aeed6310c829eadc4c0c7",
+    "assessment_basis": "reviewed_main_commit",
+    "branch": "claude/s09-slice-e-review",
+    "task": "S09 independent review of merged slice E (cases 29-30)",
     "previous_score": 43,
-    "summary": "43/100, unchanged: S09 adds the test-only native stages l2-restore-cut (the host terminates QEMU, a simulated power cut, inside the seventh table commit (object 4's INSTALL_COMMIT) of a cold L2 restore) and recover-l2-cut (cold read-only boot: objects 1-3 and collections 1-3 fully installed with plan provenance, objects 4-5 exactly never-used, a second restore Stale) with an independent host oracle; the local 32-stage native volume gate passes at ea59c6fc. S09 stays open: the native path is a test-only fixture, and a user-facing production copy/restore/export chain, owner decisions and a human audit remain. The delivery-review inventory stays bound to its 2eb1c63 snapshot; evidence: docs/verification/s09-l2-restore-cut-20261124/README.md."
+    "summary": "43/100, unchanged: an independent read-only AI code review of the merged S09 slice E (68596f82, native cut inside an L2 restore and its cold recovery) returned APPROVE with no required change; the spec now marks the unasserted 'appended but not published' state as design inference and lists the optional hardening items as open. No code, stage or criterion change. S09 stays open: the native path is a test-only fixture, and a user-facing production copy/restore/export chain, owner decisions and a human audit remain. The delivery-review inventory stays bound to its 2eb1c63 snapshot; evidence: docs/verification/s09-slice-e-review-20261124/REVIEW-1.md."
   },
   "tracks": [
     {

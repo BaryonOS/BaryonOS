@@ -20,18 +20,17 @@ in `docs/progress.json`, the S09 specifications and GitHub.
 
 ## Current cycle
 
-- **cycle_id:** S-20261124-3
-- **Task:** close the first open item of section 10 of
-  `docs/implementation/S09-L2-NATIVE-EXPORT.md`: a native power cut inside
-  an L2 restore (`l2-restore-cut`, kernel case 29) and its cold read-only
-  recovery (`recover-l2-cut`, case 30). The cut fires inside the seventh
-  table commit, object 4's INSTALL_COMMIT (table-sector write 209 on the
-  fresh image).
-- **Branch:** `claude/s09-l2-restore-cut`.
+- **cycle_id:** S-20261124-4
+- **Task:** independent review of the merged slice E (`68596f82`, PR #492,
+  cases 29 and 30), which section 11 of
+  `docs/implementation/S09-L2-NATIVE-EXPORT.md` still listed as pending.
+  Verdict APPROVE with no required change; the cycle is documentation-only
+  (review record, one claim marked as design inference, open hardening
+  items in section 10). No code or native stage changes.
+- **Branch:** `claude/s09-slice-e-review`.
 - **PR and tested head:** recorded in the pull request.
-- **Evidence:** `docs/verification/s09-l2-restore-cut-20261124/README.md`
-  (local native gate 32/32 at `ea59c6fc`; host tests).
-- **Pins:** both stage-count pins move 30 → 32 in this PR.
+- **Evidence:** `docs/verification/s09-slice-e-review-20261124/REVIEW-1.md`.
+- **Pins:** unchanged (32 stages).
 - **Blockers:** none.
 
 ## Lessons
@@ -54,10 +53,16 @@ in `docs/progress.json`, the S09 specifications and GitHub.
 6. The L2 restore order on a fresh image is: the format marker sector, then
    34 table sectors per commit (collections 1–3, then objects 1–5 in slot
    order). A cut is placed by counting lane-0 table-sector writes.
+7. After a merged slice, record its independent review in a new
+   `docs/verification/` child directory; merged evidence directories are
+   historical and protected.
 
 ## Next executable task
 
-After the restore-cut PR merges: S09 stays open. Pick the next S09 gap from
+After the review PR merges: S09 stays open. The open review-2 hardening
+items in section 10 (host check pins the interrupted slot and chunk count,
+object 4's appended chunks, collection never-used test) are a small native
+follow-up. Pick the next S09 gap from
 `docs/progress.json` (`delivery_review`, criterion S09): the user-facing
 production copy/restore/export chain (production destination service,
 trusted selection/portal and per-operation enforcement), or the open items
