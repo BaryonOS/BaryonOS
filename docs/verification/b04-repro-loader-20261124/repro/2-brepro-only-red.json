@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "source_sha256": "dfe13d2cc03cb87400982144e59122f248829d086091752301fb58d9e098e902",
+  "image_kind": "canonical ESP payload manifest, not a FAT disk image",
+  "runs": [
+    {
+      "build": "<worktree>/build/repro-check/run-t821x91j/a/build",
+      "target": "<worktree>/build/repro-check/run-t821x91j/a/target",
+      "sha256": {
+        "kernel": "71c3d9e36f34c40f491de40096ea64f1b3af3c1eac7d358fd9f111159983dc13",
+        "loader": "2bf33a6b13b7b835d1ee6a83956005af1c7893ccdf7f3e5c1ab86e01e3d98d31",
+        "image_payload": "a27ab50e3b8f356a3ece0370d3356cc82216bd62b90c801c01424eba936c0c58"
+      }
+    },
+    {
+      "build": "<worktree>/build/repro-check/run-t821x91j/b/build",
+      "target": "<worktree>/build/repro-check/run-t821x91j/b/target",
+      "sha256": {
+        "kernel": "71c3d9e36f34c40f491de40096ea64f1b3af3c1eac7d358fd9f111159983dc13",
+        "loader": "9d349b77ea9e5a6884dcd630cd29c04328cce41a566e643e2279e7c2d8d616d3",
+        "image_payload": "96387dd357c217b7dbf9f86bc13fb68a2f85cee12efb66255083e9f07405c4c9"
+      }
+    }
+  ],
+  "differences": [
+    "loader",
+    "image_payload"
+  ],
+  "passed": false
+}
