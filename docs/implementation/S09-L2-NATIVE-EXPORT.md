@@ -195,9 +195,9 @@ Negative coverage:
   - a write by the portal outside the granted rights: a device-1 write
     under the READ-only grant (26, 27, 28) and a volume WRITE to the
     read-only service (28);
-  - a revision gap: `export_v2` omits the version behind it (25). Word 544
-    reports `omitted`, but no stage checks it yet (planned for slice C,
-    section 10);
+  - a revision gap: `export_v2` omits the version behind it (25). The guest
+    requires word 544 (`omitted`) to be 1, and the host compares
+    `VOLUME:ARCHIVE:SKIPPED` with its own omitted-version count;
   - the scope and escape probes, which apply to every device-1 grant
     (`ARCHIVE_ESCAPE`, the past-the-end probe).
 - **On the host only** (already in `services/volume/tests`):
