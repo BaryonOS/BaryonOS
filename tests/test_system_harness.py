@@ -924,5 +924,131 @@ class PowerHarnessTests(unittest.TestCase):
             check_parent({**previous, "network_gate": True}, "source", "disk", network=True)
 
 
+from run_system import (RELAY, RELAY_EXACT, RELAY_FEATURE, RELAY_RED, RELAY_TICKS,  # noqa: E402
+                        check_disk_relay, evaluate_red)
+
+RELAY_SUM = 0x1234_5678_9ABC_DEF0
+
+
+def relay_transcript(case="relay", ticks=None, **changes):
+    """Relay transcript: the normal flow with relay persistence evidence and
+    the case's relay counters, in the kernel's marker order."""
+    values = dict(APP_READY=2, APP_DOCS=1, APP_REVISION=1, APP_BYTES=4096, APP_DENIED=3,
+                  APP_CONTENT_SUM=volume_disk.fnv(volume_disk.fixture(0, 1, 4096)),
+                  WORKER_SPAWNS=2, WORKER_FAULTS=1, WORKER_RESTARTS=1, WORKER_KILLS=1,
+                  LIVE_PROCESSES_AFTER=0, FRAMES_RECOVERED=1, DISK_READS=2352, DISK_WRITES=183,
+                  DISK_FLUSHES=12, ENTROPY_BYTES=1024, RECORD_SEAL=1, RECORD_UNSEAL=1,
+                  RECORD_CONTEXT_DENIED=10, RECORD_REVOKED_DENIED=2, **PERSIST_EXACT["relay"],
+                  **RELAY_EXACT[case])
+    values[RELAY + "MAX_COMMIT_TICKS"] = RELAY_TICKS[case].start if ticks is None else ticks
+    values[RELAY + "SUM"] = RELAY_SUM
+    values.update(changes)
+    return "\n".join(expected_markers(case)) + "\n" + "\n".join(
+        f"SYSTEM:{key}:{value:020d}" for key, value in values.items()) + "\n"
+
+
+def relay_oracle() -> dict:
+    """Relay disk shape on top of the normal fixture: key-state revisions 3, 2, 1."""
+    oracle = volume_disk.analyse(system_image(), OPAQUE_OBJECTS)
+    blobs = [KEYSTATE_HEADER + bytes([n]) * 24 + bytes((i * 31 + n) & 0xFF for i in range(64))
+             for n in (3, 2, 1)]
+    item = oracle["objects"][KEYSTATE_OBJECT]
+    template = item["versions"][0]
+    item.update(revision=3, versions=[dict(template, revision=n, content_hex=blob.hex())
+                                      for n, blob in zip((3, 2, 1), blobs)])
+    oracle.update(generation=5, chunks_used=5, clocks=[2, 3])
+    return oracle, volume_disk.fnv(blobs[0])
+
+
+class RelayHarnessTests(unittest.TestCase):
+    """ADR-B02-KEY1-RELAY host counterexamples for the relay verifier."""
+
+    def test_good_relay_transcripts(self):
+        for case in RELAY_FEATURE:
+            with self.subTest(case=case):
+                found = evaluate(case, relay_transcript(case), 33, False)
+                self.assertEqual(found[RELAY + "OK"], 3)
+
+    def test_each_relay_log_fails_every_other_case(self):
+        for actual in RELAY_FEATURE:
+            for claimed in RELAY_FEATURE:
+                if claimed != actual:
+                    with self.subTest(actual=actual, claimed=claimed), self.assertRaises(ValueError):
+                        evaluate(claimed, relay_transcript(actual), 33, False)
+
+    def test_relay_markers_outside_the_relay_profile_are_rejected(self):
+        extra = f"SYSTEM:{RELAY}CASE:{1:020d}\n"
+        with self.assertRaises(ValueError):
+            evaluate("normal", transcript() + extra, 33, False)
+
+    def test_every_relay_counter_is_exact(self):
+        for case in RELAY_FEATURE:
+            for key, value in RELAY_EXACT[case].items():
+                for wrong in (value - 1, value + 1):
+                    if wrong < 0:
+                        continue
+                    with self.subTest(case=case, key=key, wrong=wrong), self.assertRaises(ValueError):
+                        evaluate(case, relay_transcript(case, **{key: wrong}), 33, False)
+            ticks = RELAY_TICKS[case]
+            for wrong in (ticks.start - 1, ticks.stop):
+                with self.subTest(case=case, ticks=wrong), self.assertRaises(ValueError):
+                    evaluate(case, relay_transcript(case, ticks=wrong), 33, False)
+        for key in ("CRYPTO_TAMPER_DENIED", "ADMIN_REQUESTS", "KEYSTATE_EXPORTS"):
+            with self.subTest(key=key), self.assertRaises(ValueError):
+                evaluate("relay", relay_transcript(**{key: PERSIST_EXACT["normal"][key]}), 33, False)
+        with self.assertRaises(ValueError):
+            evaluate("relay", relay_transcript(**{RELAY + "SUM": 0}), 33, False)
+        missing = relay_transcript().replace(f"SYSTEM:{RELAY}SUM:{RELAY_SUM:020d}\n", "")
+        with self.assertRaises(ValueError):
+            evaluate("relay", missing, 33, False)
+
+    def test_relay_disk_oracle(self):
+        good, checksum = relay_oracle()
+        check_disk_relay(good, checksum)
+        def revision_two(oracle):
+            oracle["objects"][KEYSTATE_OBJECT]["revision"] = 2
+            oracle["objects"][KEYSTATE_OBJECT]["versions"].pop(0)
+        def duplicate_nonce(oracle):
+            versions = oracle["objects"][KEYSTATE_OBJECT]["versions"]
+            versions[1]["content_hex"] = versions[0]["content_hex"]
+        for name, mutate, value in (
+                ("revision 2", revision_two, checksum),
+                ("missing version", lambda o: o["objects"][KEYSTATE_OBJECT]["versions"].pop(), checksum),
+                ("sum mismatch", lambda o: None, checksum ^ 1),
+                ("duplicate nonce", duplicate_nonce, checksum),
+                ("wrong clocks", lambda o: o.update(clocks=[2, 4]), checksum),
+                ("wrong generation", lambda o: o.update(generation=6), checksum),
+                ("other object", lambda o: o["objects"][9].update(present=True), checksum),
+                ("wrong header", lambda o: o["objects"][KEYSTATE_OBJECT]["versions"][2].update(
+                    content_hex=(b"NOSKEY02" + bytes(112)).hex()), checksum)):
+            bad = copy.deepcopy(good)
+            mutate(bad)
+            with self.subTest(name), self.assertRaises(ValueError):
+                check_disk_relay(bad, value)
+
+    def test_red_manifest_case(self):
+        good = "\n".join(BOOT_LINES) + "\nSYSTEM:FAIL:APP_COMMIT_HANDLE\n"
+        self.assertEqual(evaluate_red("relay-leak", good, 35, False, "a", "a")["raw_exit"], 35)
+        for text, raw, before, after in (
+                (good + "SYSTEM:MANIFEST:PASS\n", 35, "a", "a"),
+                (good + "SYSTEM:BROKERS:PASS\n", 35, "a", "a"),
+                (good + "SYSTEM:CLEANUP:PASS\n", 35, "a", "a"),
+                (good + "SYSTEM:CASE:RELAY_LEAK:PASS\n", 35, "a", "a"),
+                (good + "M1:PASS\n", 35, "a", "a"),
+                (good.replace("APP_COMMIT_HANDLE", "APP_HANDLE_COUNT"), 35, "a", "a"),
+                (good + f"SYSTEM:{RELAY}CASE:{1:020d}\n", 35, "a", "a"),
+                (good, 33, "a", "a"),
+                (good, 35, "a", "b"),
+                (good.replace("BOOT:EBS_OK\n", ""), 35, "a", "a")):
+            with self.subTest(text=text[-40:], raw=raw, after=after), self.assertRaises(ValueError):
+                evaluate_red("relay-leak", text, raw, False, before, after)
+        with self.assertRaises(ValueError):
+            evaluate_red("relay-leak", good, 35, True, "a", "a")
+        self.assertEqual(tuple(RELAY_RED), ("relay-leak",))
+
+
+BOOT_LINES = ("BOOT:EBS_OK", "KERNEL:ENTRY", "BOOTINFO:OK")
+
+
 if __name__ == "__main__":
     unittest.main()

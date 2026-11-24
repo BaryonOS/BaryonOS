@@ -1,0 +1,245 @@
+{
+  "schema_version": 1,
+  "source_fingerprint_version": 3,
+  "source_sha256": "ef8f2718d8bf70e30a356fb445db29640c33cd8020a50e018a43f51a48c1daab",
+  "test_inputs": {
+    "sdk/examples/tcp-probe/test_peer.py": "8d1c5467c135c35dc528b46d852befeee3401b01621ab47e294e2fcf538d46a3",
+    "tests/test_net_peer.py": "34e6a2f6afa4c96e3edeb697ebe7a9ba9fda7477946fa5c02d1585ba1710023c",
+    "tests/test_system_capture.py": "880f024d75a165f52bd51d0247b5b0b632e764970ff7fd4222f13b6333c4665b",
+    "tests/test_system_harness.py": "30fa302cc28653b09e6beb2d3295a35d132ae5efd6c0e86c2539b6f5d6b74ac3",
+    "tests/test_tcp_harness.py": "05ef2ba3375962a81209c1c945a1aa9eaff09fac1dfa0f555d2422a3ad185dfc",
+    "tests/test_tcp_transcript.py": "4d3d74cd7065d49d3e914951a53356a9805c9e34632b808af36cd6940771a0b4"
+  },
+  "status": "completed",
+  "passed": true,
+  "host": [
+    {
+      "command": [
+        "/usr/bin/python3",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tests",
+        "-p",
+        "test_system_*.py"
+      ],
+      "exit": 0,
+      "stdout": "/home/simon/projects/BaryonOS-worktrees/b-cycle-20261124/build/relay-20261124/logs/system-host-0.stdout.txt",
+      "stderr": "/home/simon/projects/BaryonOS-worktrees/b-cycle-20261124/build/relay-20261124/logs/system-host-0.stderr.txt"
+    },
+    {
+      "command": [
+        "cargo",
+        "+1.100.0",
+        "test",
+        "--locked",
+        "--manifest-path",
+        "sdk/Cargo.toml",
+        "-p",
+        "nieuw-os-sdk-runtime"
+      ],
+      "exit": 0,
+      "stdout": "/home/simon/projects/BaryonOS-worktrees/b-cycle-20261124/build/relay-20261124/logs/system-host-1.stdout.txt",
+      "stderr": "/home/simon/projects/BaryonOS-worktrees/b-cycle-20261124/build/relay-20261124/logs/system-host-1.stderr.txt"
+    }
+  ],
+  "stages": [
+    {
+      "case": "normal",
+      "passed": true,
+      "run_directory": "/home/simon/projects/BaryonOS-worktrees/b-cycle-20261124/build/relay-20261124/run/system-normal-b3eda1eb567b4329821b6101bb4103d2",
+      "raw_qemu_exit": 33,
+      "before_sha256": "49c40c316234e2e4e4c8dd681a057b1b36611648896dcacba1794263b711c266",
+      "after_sha256": "6882879a36e6416eb065975bd5a186f1c2b351c49783832a34baef84c9654eb2",
+      "duration_s": 4.519039910999709
+    },
+    {
+      "case": "recover",
+      "passed": true,
+      "run_directory": "/home/simon/projects/BaryonOS-worktrees/b-cycle-20261124/build/relay-20261124/run/system-recover-e90606aa8fe748aea3e1581e9005a878",
+      "raw_qemu_exit": 33,
+      "before_sha256": "6882879a36e6416eb065975bd5a186f1c2b351c49783832a34baef84c9654eb2",
+      "after_sha256": "6882879a36e6416eb065975bd5a186f1c2b351c49783832a34baef84c9654eb2",
+      "duration_s": 2.829194986999937
+    }
+  ],
+  "relay_stages": [
+    {
+      "case": "relay",
+      "passed": true,
+      "run_directory": "/home/simon/projects/BaryonOS-worktrees/b-cycle-20261124/build/relay-20261124/run/system-relay-2c49d5e3cf564c409b33b3e1a7294389",
+      "raw_qemu_exit": 33,
+      "before_sha256": "49c40c316234e2e4e4c8dd681a057b1b36611648896dcacba1794263b711c266",
+      "after_sha256": "37240260f5605191c2c7a334284fb15885446d5df5fc27b479f497d64e28078c",
+      "duration_s": 4.577088948999517,
+      "relay": {
+        "KEYSTATE_RELAY_CASE": 1,
+        "KEYSTATE_RELAY_REQUESTS": 3,
+        "KEYSTATE_RELAY_OK": 3,
+        "KEYSTATE_RELAY_NOT_COMMITTED": 0,
+        "KEYSTATE_RELAY_UNKNOWN": 0,
+        "KEYSTATE_RELAY_LAST_GENERATION": 3,
+        "KEYSTATE_RELAY_SECRET_SUPPLIED": 1,
+        "KEYSTATE_RELAY_SECRET_REFUSED": 1,
+        "KEYSTATE_RELAY_MAX_COMMIT_TICKS": 5,
+        "KEYSTATE_RELAY_INIT_RECEIVED": 3,
+        "KEYSTATE_RELAY_INIT_COMMITTED": 3,
+        "KEYSTATE_RELAY_INIT_REFUSED": 0,
+        "KEYSTATE_RELAY_INIT_WITHHELD": 0,
+        "KEYSTATE_RELAY_INIT_BEGUN": 3,
+        "KEYSTATE_RELAY_INIT_REVISION": 3,
+        "KEYSTATE_RELAY_INIT_GENERATION": 3,
+        "KEYSTATE_RELAY_SUM": 13478807208751798338,
+        "KEYSTATE_RELAY_APP_FIRST": 0,
+        "KEYSTATE_RELAY_APP_SECOND": 0
+      }
+    },
+    {
+      "case": "relay-not-committed",
+      "passed": true,
+      "run_directory": "/home/simon/projects/BaryonOS-worktrees/b-cycle-20261124/build/relay-20261124/run/system-relay-not-committed-7f14fbeab90f42e7ba598ecf82627a44",
+      "raw_qemu_exit": 33,
+      "before_sha256": "49c40c316234e2e4e4c8dd681a057b1b36611648896dcacba1794263b711c266",
+      "after_sha256": "00c36fa0249c600a81b7eae3c19f18aaec5e76be0e2d41bc2594812b7203575e",
+      "duration_s": 4.584213833999456,
+      "relay": {
+        "KEYSTATE_RELAY_CASE": 2,
+        "KEYSTATE_RELAY_REQUESTS": 5,
+        "KEYSTATE_RELAY_OK": 3,
+        "KEYSTATE_RELAY_NOT_COMMITTED": 2,
+        "KEYSTATE_RELAY_UNKNOWN": 0,
+        "KEYSTATE_RELAY_LAST_GENERATION": 3,
+        "KEYSTATE_RELAY_SECRET_SUPPLIED": 1,
+        "KEYSTATE_RELAY_SECRET_REFUSED": 1,
+        "KEYSTATE_RELAY_MAX_COMMIT_TICKS": 5,
+        "KEYSTATE_RELAY_INIT_RECEIVED": 5,
+        "KEYSTATE_RELAY_INIT_COMMITTED": 3,
+        "KEYSTATE_RELAY_INIT_REFUSED": 2,
+        "KEYSTATE_RELAY_INIT_WITHHELD": 0,
+        "KEYSTATE_RELAY_INIT_BEGUN": 3,
+        "KEYSTATE_RELAY_INIT_REVISION": 3,
+        "KEYSTATE_RELAY_INIT_GENERATION": 3,
+        "KEYSTATE_RELAY_SUM": 13641874829077358224,
+        "KEYSTATE_RELAY_APP_FIRST": 1,
+        "KEYSTATE_RELAY_APP_SECOND": 1
+      }
+    },
+    {
+      "case": "relay-timeout",
+      "passed": true,
+      "run_directory": "/home/simon/projects/BaryonOS-worktrees/b-cycle-20261124/build/relay-20261124/run/system-relay-timeout-80d19e71375a4f4c80b6362f288f5f29",
+      "raw_qemu_exit": 33,
+      "before_sha256": "49c40c316234e2e4e4c8dd681a057b1b36611648896dcacba1794263b711c266",
+      "after_sha256": "65485cdcd77d96cc2718b270cb1306029428efa9d4986cdb3a35b13c84ec0656",
+      "duration_s": 19.613952588999382,
+      "relay": {
+        "KEYSTATE_RELAY_CASE": 3,
+        "KEYSTATE_RELAY_REQUESTS": 4,
+        "KEYSTATE_RELAY_OK": 3,
+        "KEYSTATE_RELAY_NOT_COMMITTED": 0,
+        "KEYSTATE_RELAY_UNKNOWN": 1,
+        "KEYSTATE_RELAY_LAST_GENERATION": 3,
+        "KEYSTATE_RELAY_SECRET_SUPPLIED": 1,
+        "KEYSTATE_RELAY_SECRET_REFUSED": 1,
+        "KEYSTATE_RELAY_MAX_COMMIT_TICKS": 1500,
+        "KEYSTATE_RELAY_INIT_RECEIVED": 4,
+        "KEYSTATE_RELAY_INIT_COMMITTED": 3,
+        "KEYSTATE_RELAY_INIT_REFUSED": 0,
+        "KEYSTATE_RELAY_INIT_WITHHELD": 1,
+        "KEYSTATE_RELAY_INIT_BEGUN": 3,
+        "KEYSTATE_RELAY_INIT_REVISION": 3,
+        "KEYSTATE_RELAY_INIT_GENERATION": 3,
+        "KEYSTATE_RELAY_SUM": 12027055585378858777,
+        "KEYSTATE_RELAY_APP_FIRST": 7,
+        "KEYSTATE_RELAY_APP_SECOND": 7
+      }
+    }
+  ],
+  "relay_red": [
+    {
+      "case": "relay-leak",
+      "passed": true,
+      "run_directory": "/home/simon/projects/BaryonOS-worktrees/b-cycle-20261124/build/relay-20261124/run/system-relay-leak-0d82ab7cc48a4e849db22a829fb74323",
+      "raw_qemu_exit": 35,
+      "before_sha256": "49c40c316234e2e4e4c8dd681a057b1b36611648896dcacba1794263b711c266",
+      "after_sha256": "49c40c316234e2e4e4c8dd681a057b1b36611648896dcacba1794263b711c266",
+      "duration_s": 1.7503560559998732,
+      "relay": {
+        "fail": "SYSTEM:FAIL:APP_COMMIT_HANDLE",
+        "raw_exit": 35
+      }
+    }
+  ],
+  "relay_wrong_case": [
+    {
+      "log": "relay",
+      "evaluator": "relay-not-committed",
+      "error": "system marker sequence mismatch: ['BOOT:EBS_OK', 'KERNEL:ENTRY', 'BOOTINFO:OK', 'SYSTEM:MANIFEST:PASS', 'SYSTEM:BROKERS:PASS', 'SYSTEM:CLEANUP:PASS', 'SYSTEM:CASE:RELAY:PASS', 'M1:PASS']"
+    },
+    {
+      "log": "relay",
+      "evaluator": "relay-not-committed",
+      "relabelled": true,
+      "error": "KEYSTATE_RELAY_REQUESTS: expected 5, found 3"
+    },
+    {
+      "log": "relay",
+      "evaluator": "relay-timeout",
+      "error": "system marker sequence mismatch: ['BOOT:EBS_OK', 'KERNEL:ENTRY', 'BOOTINFO:OK', 'SYSTEM:MANIFEST:PASS', 'SYSTEM:BROKERS:PASS', 'SYSTEM:CLEANUP:PASS', 'SYSTEM:CASE:RELAY:PASS', 'M1:PASS']"
+    },
+    {
+      "log": "relay",
+      "evaluator": "relay-timeout",
+      "relabelled": true,
+      "error": "KEYSTATE_RELAY_REQUESTS: expected 4, found 3"
+    },
+    {
+      "log": "relay-not-committed",
+      "evaluator": "relay",
+      "error": "system marker sequence mismatch: ['BOOT:EBS_OK', 'KERNEL:ENTRY', 'BOOTINFO:OK', 'SYSTEM:MANIFEST:PASS', 'SYSTEM:BROKERS:PASS', 'SYSTEM:CLEANUP:PASS', 'SYSTEM:CASE:RELAY_NOT_COMMITTED:PASS', 'M1:PASS']"
+    },
+    {
+      "log": "relay-not-committed",
+      "evaluator": "relay",
+      "relabelled": true,
+      "error": "KEYSTATE_RELAY_REQUESTS: expected 3, found 5"
+    },
+    {
+      "log": "relay-not-committed",
+      "evaluator": "relay-timeout",
+      "error": "system marker sequence mismatch: ['BOOT:EBS_OK', 'KERNEL:ENTRY', 'BOOTINFO:OK', 'SYSTEM:MANIFEST:PASS', 'SYSTEM:BROKERS:PASS', 'SYSTEM:CLEANUP:PASS', 'SYSTEM:CASE:RELAY_NOT_COMMITTED:PASS', 'M1:PASS']"
+    },
+    {
+      "log": "relay-not-committed",
+      "evaluator": "relay-timeout",
+      "relabelled": true,
+      "error": "KEYSTATE_RELAY_REQUESTS: expected 4, found 5"
+    },
+    {
+      "log": "relay-timeout",
+      "evaluator": "relay",
+      "error": "system marker sequence mismatch: ['BOOT:EBS_OK', 'KERNEL:ENTRY', 'BOOTINFO:OK', 'SYSTEM:MANIFEST:PASS', 'SYSTEM:BROKERS:PASS', 'SYSTEM:CLEANUP:PASS', 'SYSTEM:CASE:RELAY_TIMEOUT:PASS', 'M1:PASS']"
+    },
+    {
+      "log": "relay-timeout",
+      "evaluator": "relay",
+      "relabelled": true,
+      "error": "KEYSTATE_RELAY_REQUESTS: expected 3, found 4"
+    },
+    {
+      "log": "relay-timeout",
+      "evaluator": "relay-not-committed",
+      "error": "system marker sequence mismatch: ['BOOT:EBS_OK', 'KERNEL:ENTRY', 'BOOTINFO:OK', 'SYSTEM:MANIFEST:PASS', 'SYSTEM:BROKERS:PASS', 'SYSTEM:CLEANUP:PASS', 'SYSTEM:CASE:RELAY_TIMEOUT:PASS', 'M1:PASS']"
+    },
+    {
+      "log": "relay-timeout",
+      "evaluator": "relay-not-committed",
+      "relabelled": true,
+      "error": "KEYSTATE_RELAY_REQUESTS: expected 5, found 4"
+    }
+  ],
+  "final_kernel_sha256": "e713b3f04a06aefb899cc81a1202ac0e9a727707c502b375f475e562f35f8539",
+  "final_manifest": "/home/simon/projects/BaryonOS-worktrees/b-cycle-20261124/build/relay-20261124/manifest.json"
+}

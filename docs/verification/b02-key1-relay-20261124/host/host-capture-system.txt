@@ -1,0 +1,1 @@
+captured two revalidated system runs into ~/projects/BaryonOS-worktrees/b-cycle-20261124/docs/verification/full-release-relay-capture-check

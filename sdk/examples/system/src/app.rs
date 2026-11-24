@@ -94,6 +94,10 @@ const RECORD_RESTORED_REVOKED_DENIED: u64 = 544;
 const RECORD_RESTORED_TAMPER_DENIED: u64 = 552;
 const RECORD_ADMIN_DENIED: u64 = 560;
 const RECORD_OBJECT_REVISION: u64 = 568;
+// ADR-B02-KEY1-RELAY evidence (kernel system.rs RELAY_APP_WORDS).
+const RELAY_FIRST: u64 = 736;
+const RELAY_SECOND: u64 = 744;
+const RELAY_CASE: u64 = 752;
 
 /// Context of the persisted record: bound to this volume identity, the exact
 /// domain-0 object and the revision that the commit below creates.
@@ -129,6 +133,42 @@ fn admin_ops_denied_on_domain_endpoint(probe: &mut RawKeyProbe) {
         .unwrap_or_else(|| fail(45));
     probe.reply(&restore, KeyStatus::Invalid);
     bump(RECORD_ADMIN_DENIED);
+}
+
+/// ADR-B02-KEY1-RELAY fault probe (relay cases 2 and 3): two raw GENERATEs
+/// after the three acknowledged commits. NOT_COMMITTED must reach the app as
+/// NotReady both times; a withheld commit must time out to Degraded, and the
+/// latched instance must refuse the second without another commit.
+#[inline(never)]
+fn relay_fault_probe(probe: &mut RawKeyProbe, case: u64) {
+    let expected = match case {
+        2 => KeyStatus::NotReady,
+        3 => KeyStatus::Degraded,
+        _ => fail(110),
+    };
+    for at in [RELAY_FIRST, RELAY_SECOND] {
+        let id = probe.next;
+        probe.next += 1;
+        let request = kw::request(kw::GENERATE, 0, id, &[]).unwrap_or_else(|| fail(111));
+        let reply = exchange_by(
+            probe.send,
+            probe.receive,
+            probe.peer,
+            kw::TAG,
+            &request,
+            2 * kw::COMMIT_TICKS + 500,
+        );
+        let h = kw::Header::decode(&reply).unwrap_or_else(|| fail(112));
+        check(
+            h.op == (kw::GENERATE | kw::REPLY)
+                && h.index == 0
+                && h.request == id
+                && h.length == 0
+                && h.status == expected.code(),
+            112,
+        );
+        support::put(at, u64::from(h.status.unsigned_abs()));
+    }
 }
 
 /// Normal run: allocate a second key and seal one record in memory. Init must
@@ -770,6 +810,10 @@ fn main() -> ! {
     }
     support::put(240, 10);
     let digest = document(recover, &mut sealed);
+    let relay = support::word(RELAY_CASE);
+    if relay >= 2 {
+        relay_fault_probe(&mut probe, relay);
+    }
     if recover {
         support::put(240, 23);
         restored_record(&mut keys, &mut probe, &sealed);
