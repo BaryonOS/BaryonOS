@@ -1250,14 +1250,15 @@
             "verification": [
               "native"
             ],
-            "observation": "DHCP DISCOVER/OFFER/SELECT/ACK applies lease through same transport; NAK withdraws and fresh lease acquired. Host expiry/no-default-DNS cases exist; three native extension cases pass exact main.",
+            "observation": "DHCP DISCOVER/OFFER/SELECT/ACK applies lease through same transport; NAK withdraws and fresh lease acquired. Host expiry/no-default-DNS cases exist; three native extension cases pass exact main. Later than the 2eb1c63 snapshot, PR #485 (N02-T6) hosted libslirp case: QEMU's independent DHCP server leases the guest address (one ACK bound to the pcap).",
             "remaining": "Current execution uses controlled synthetic Ethernet peer.",
             "evidence": [
               "services/net-config/src/automatic.rs",
               "services/network-service/tests/dhcp_config.rs",
               "sdk/examples/network-service/src/service.rs",
               "docs/verification/n04-successor-20261124/network-dhcp-report.json",
-              "https://github.com/BaryonOS/BaryonOS/actions/runs/45328884633/job/138225243776"
+              "https://github.com/BaryonOS/BaryonOS/actions/runs/45328884633/job/138225243776",
+              "https://github.com/BaryonOS/BaryonOS/actions/runs/45380865796/job/138399840052"
             ]
           },
           {
@@ -1266,13 +1267,14 @@
             "verification": [
               "native"
             ],
-            "observation": "Lease-supplied A resolver with bounded TTL/negative cache/epoch invalidation; native A,NXDOMAIN,wrong-ID/wrong-port refusals and re-resolution after changed lease demonstrated.",
+            "observation": "Lease-supplied A resolver with bounded TTL/negative cache/epoch invalidation; native A,NXDOMAIN,wrong-ID/wrong-port refusals and re-resolution after changed lease demonstrated. Later than the 2eb1c63 snapshot, PR #485 (N02-T6) hosted libslirp case: example.com resolved through the CI runner's real resolver; answer bound to the guest's own query ID/port in the pcap.",
             "remaining": "Real authorized resolver/interoperability scenario not established.",
             "evidence": [
               "services/net-protocol/src/resolver.rs",
               "services/network-service/tests/dns_resolve.rs",
               "docs/verification/n04-successor-20261124/network-dhcp-report.json",
-              "https://github.com/BaryonOS/BaryonOS/actions/runs/45328884633/job/138225243776"
+              "https://github.com/BaryonOS/BaryonOS/actions/runs/45328884633/job/138225243776",
+              "https://github.com/BaryonOS/BaryonOS/actions/runs/45380865796/job/138399840052"
             ]
           },
           {
@@ -1281,12 +1283,13 @@
             "verification": [
               "native"
             ],
-            "observation": "Native off-link case uses DHCP router/default route and router MAC, with real guest packets verified by controlled peer.",
+            "observation": "Native off-link case uses DHCP router/default route and router MAC, with real guest packets verified by controlled peer. Later than the 2eb1c63 snapshot, PR #485 (N02-T6) hosted libslirp case: libslirp is router and DNS forwarder; HTTP to the router alias reaches a host-loopback oracle.",
             "remaining": "Single Python peer plays router/host/server; actual forwarding path not exercised.",
             "evidence": [
               "tools/run_network_dhcp.py",
               "docs/verification/n04-successor-20261124/network-dhcp-route-report.json",
-              "https://github.com/BaryonOS/BaryonOS/actions/runs/45328884633/job/138225243776"
+              "https://github.com/BaryonOS/BaryonOS/actions/runs/45328884633/job/138225243776",
+              "https://github.com/BaryonOS/BaryonOS/actions/runs/45380865796/job/138399840052"
             ]
           },
           {
@@ -1309,13 +1312,14 @@
             "verification": [
               "native"
             ],
-            "observation": "Native IPv4/ARP/TCP/UDP/DHCP/DNS and HTTP fixture traffic execute; current reports explicitly scope synthetic localhost Ethernet.",
-            "remaining": "No real authorized router/resolver/internet endpoint path and evidence; this is the remaining literal acceptance blocker.",
+            "observation": "Native IPv4/ARP/TCP/UDP/DHCP/DNS and HTTP fixture traffic execute; current reports explicitly scope synthetic localhost Ethernet. Later than the 2eb1c63 snapshot, PR #485 (N02-T6) hosted libslirp case adds DHCP, real-resolver DNS and HTTP through QEMU user networking (restrict=off, owner decision 24 Nov 2026, non-required job).",
+            "remaining": "libslirp is QEMU user networking on the same host, not a physical or operator network; internet HTTP, NXDOMAIN/timeout against a real resolver and real connection transitions remain unproven.",
             "evidence": [
               "docs/verification/n04-successor-20261124/README.md",
               "docs/verification/n04-successor-20261124/network-dhcp-route-report.json",
               "https://github.com/BaryonOS/BaryonOS/actions/runs/45328884633/job/138225243776",
-              "https://github.com/BaryonOS/BaryonOS/actions/runs/45328884633/job/138225243516"
+              "https://github.com/BaryonOS/BaryonOS/actions/runs/45328884633/job/138225243516",
+              "https://github.com/BaryonOS/BaryonOS/actions/runs/45380865796/job/138399840052"
             ]
           }
         ]
