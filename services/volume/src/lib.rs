@@ -100,6 +100,20 @@ pub trait Disk {
     fn flush(&mut self) -> Result<(), Status>;
 }
 
+/// A borrowed disk is a disk, so owning adapters such as `DiskSource` also
+/// accept `&mut disk`.
+impl<D: Disk> Disk for &mut D {
+    fn read(&mut self, sector: u64, buffer: &mut [u8; SECTOR]) -> Result<(), Status> {
+        (**self).read(sector, buffer)
+    }
+    fn write(&mut self, sector: u64, buffer: &[u8; SECTOR]) -> Result<(), Status> {
+        (**self).write(sector, buffer)
+    }
+    fn flush(&mut self) -> Result<(), Status> {
+        (**self).flush()
+    }
+}
+
 pub const fn domain_of(object: usize) -> usize {
     object / PER_DOMAIN
 }

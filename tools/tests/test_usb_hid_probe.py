@@ -21,7 +21,9 @@ class OracleTests(unittest.TestCase):
         for case in probe.FEATURES:
             result = probe.evaluate(case, transcript(case), 33, False)
             self.assertEqual(result["usb_reports"], case != "readonly")
-            self.assertEqual(result["same_port_reattach"], case == "reattach")
+            self.assertEqual(result["same_port_reattach"], case in ("reattach", "reattach-mouse"))
+            self.assertEqual(result["reattach_device"],
+                             {"reattach": "keyboard", "reattach-mouse": "mouse"}.get(case))
             self.assertFalse(result["input_policy_authority"])
             for other in probe.FEATURES:
                 if other != case:
@@ -58,6 +60,46 @@ class OracleTests(unittest.TestCase):
                         transcript("reattach") + "USB-DIAG:REJECT:45\n"):
             with self.assertRaises(ValueError):
                 probe.evaluate("reattach", corrupt, 33, False)
+
+    def test_mouse_reattach_markers_are_mandatory_unique_and_ordered(self):
+        self.assertEqual(probe.FEATURES["reattach-mouse"], "native-usb-hid-mouse-reattach")
+        good = transcript("reattach-mouse")
+        expected = probe.markers("reattach-mouse")
+        self.assertEqual(expected, probe.START + probe.REPORTS + probe.REATTACH_MOUSE + probe.END)
+        self.assertEqual(probe.evaluate("reattach-mouse", good, 33, False)["markers"], list(expected))
+        for marker in probe.REATTACH_MOUSE:
+            with self.subTest(missing=marker), self.assertRaises(ValueError):
+                probe.evaluate("reattach-mouse", good.replace(marker + "\n", ""), 33, False)
+            with self.subTest(duplicate=marker), self.assertRaises(ValueError):
+                probe.evaluate("reattach-mouse", good.replace(marker + "\n", marker + "\n" + marker + "\n"),
+                               33, False)
+        swaps = [("USB:REPORTS:PASS", "USB:REATTACH:HELD_BUTTON"),
+                 ("USB:REATTACH:HELD_BUTTON", "USB:REATTACH:DETACHED"),
+                 ("USB:REATTACH:DETACHED", "USB:REATTACH:ENUM:MOUSE"),
+                 ("USB:REATTACH:MOUSE_DOWN", "USB:REATTACH:MOUSE_UP"),
+                 ("USB:REATTACH:UNPLUG:PASS", "USB:ATTACH:BUDGET_DENIED")]
+        for first, second in swaps:
+            swapped = good.replace(first + "\n" + second, second + "\n" + first)
+            self.assertNotEqual(swapped, good)
+            with self.subTest(swap=first), self.assertRaises(ValueError):
+                probe.evaluate("reattach-mouse", swapped, 33, False)
+        # Only reuse of the retired keyboard's slot is the accepted observation.
+        slot = "USB:REATTACH:SLOT_REUSED:KEYBOARD\n"
+        corrupt = [good.replace(slot, "USB:REATTACH:SLOT_NEW\n"),
+                   good.replace(slot, "USB:REATTACH:SLOT_REUSED:MOUSE\n"),
+                   good.replace(slot, "USB:REATTACH:SLOT_REUSED\n"),
+                   good.replace("USB:REATTACH:ENUM:MOUSE\n", "USB:REATTACH:ENUM:KEYBOARD\n")]
+        for extra in ("USB:ENUM:MOUSE", "USB:REATTACH:ENUM:MOUSE", "USB:ENUM:KEYBOARD"):
+            corrupt.append(good.replace("USB:ATTACH:BUDGET_DENIED\n", "USB:ATTACH:BUDGET_DENIED\n" + extra + "\n"))
+        corrupt += [good + f"USB-DIAG:REJECT:{code}\n" for code in range(52, 57)]
+        corrupt.append(good.replace("USB:REATTACH:MOUSE_DOWN\n", "USB:REATTACH:KEY_DOWN\n"))
+        for value in corrupt:
+            self.assertNotEqual(value, good)
+            with self.subTest(corrupt=value[-80:]), self.assertRaises(ValueError):
+                probe.evaluate("reattach-mouse", value, 33, False)
+        for exit_code, timed_out in ((0, False), (33, True)):
+            with self.assertRaises(ValueError):
+                probe.evaluate("reattach-mouse", good, exit_code, timed_out)
 
     def test_all_mandatory_markers_are_required(self):
         for marker in probe.BOOT + ("XHCI:BEGIN",) + probe.markers("reports") + ("XHCI:PASS",):
@@ -135,6 +177,10 @@ class FailingAddQmp(FakeQmp):
     fail = ("device_add", "hid-kbd-g2")
 
 
+class FailingMouseAddQmp(FakeQmp):
+    fail = ("device_add", "hid-mouse-g2")
+
+
 def waits(seen, fail=None):
     def wait(process, path, marker, deadline):
         seen.append(marker)
@@ -147,6 +193,12 @@ REATTACH_WAITS = ["USB:READY", "USB:KEY_DOWN", "USB:KEY_UP", "USB:MOUSE_DOWN", "
                   "USB:HELD_KEY", "USB:STALE_TOKEN:DENIED", "USB:REATTACH:DETACHED",
                   "USB:REATTACH:READY", "USB:REATTACH:KEY_DOWN", "USB:REATTACH:KEY_UP",
                   "USB:REATTACH:UNPLUG:PASS"]
+
+
+MOUSE_WAITS = REATTACH_WAITS[:7] + ["USB:REPORTS:PASS", "USB:REATTACH:HELD_BUTTON",
+                                     "USB:REATTACH:DETACHED", "USB:REATTACH:READY",
+                                     "USB:REATTACH:MOUSE_DOWN", "USB:REATTACH:MOUSE_UP",
+                                     "USB:REATTACH:UNPLUG:PASS"]
 
 
 class LifecycleTests(unittest.TestCase):
@@ -203,14 +255,14 @@ class LifecycleTests(unittest.TestCase):
             self.assertTrue(result["timed_out"])
             self.assertTrue(process.killed and process.reaped)
 
-    def _reattach(self, process, qmp, fail=None):
+    def _reattach(self, process, qmp, fail=None, case="reattach"):
         seen = []
         with tempfile.TemporaryDirectory() as directory, \
                 patch.object(probe.subprocess, "Popen", return_value=process), \
                 patch.object(probe, "QmpPipe", qmp), \
                 patch.object(probe, "_wait_marker", side_effect=waits(seen, fail)):
             result = probe.controlled_guest(["qemu", "-serial", "stdio"], cwd=directory, env={}, timeout=5,
-                                            run_dir=directory, case="reattach")
+                                            run_dir=directory, case=case)
         requests = [(entry["request"]["execute"], entry["request"]["arguments"]) for entry in result["trace"]]
         return result, seen, requests
 
@@ -250,6 +302,63 @@ class LifecycleTests(unittest.TestCase):
                 result, _, requests = self._reattach(process, FakeQmp, fail)
                 self.assertIn("Guest rejected", result["error"])
                 self.assertEqual(requests[-1], ("input-send-event", {"events": [probe._key(held, False)]}))
+                self.assertTrue(process.killed and process.reaped)
+
+    def test_mouse_reattach_sequence_is_exact_and_ends_with_a_refused_attach(self):
+        process = ExitingProcess()
+        result, seen, requests = self._reattach(process, FakeQmp, case="reattach-mouse")
+        self.assertIsNone(result["error"])
+        self.assertEqual(result["returncode"], 33)
+        self.assertEqual(seen, MOUSE_WAITS)
+        self.assertEqual(len(requests), 15)
+        self.assertEqual(requests, [
+            ("input-send-event", {"events": [probe._key("a", True)]}),
+            ("input-send-event", {"events": [probe._key("a", False)]}),
+            ("input-send-event", {"events": [probe._move("x", 7), probe._move("y", -3), probe._button(True)]}),
+            ("input-send-event", {"events": [probe._button(False)]}),
+            ("input-send-event", {"events": [probe._key("b", True)]}),
+            ("device_del", {"id": "hid-kbd"}),
+            ("input-send-event", {"events": [probe._key("b", False)]}),
+            ("input-send-event", {"events": [probe._button(True)]}),
+            ("device_del", {"id": "hid-mouse"}),
+            ("input-send-event", {"events": [probe._button(False)]}),
+            ("device_add", probe._mouse("hid-mouse-g2")),
+            ("input-send-event", {"events": [probe._move("x", -4), probe._move("y", 6), probe._button(True)]}),
+            ("input-send-event", {"events": [probe._button(False)]}),
+            ("device_del", {"id": "hid-mouse-g2"}),
+            ("device_add", probe._mouse("hid-mouse-g3"))])
+        self.assertEqual(probe._mouse("hid-mouse-g3"), {"driver": "usb-mouse", "id": "hid-mouse-g3",
+                                                        "bus": "xhci.0", "port": "2", "usb_version": 1})
+        self.assertFalse(process.killed)
+        self.assertTrue(process.reaped)
+
+    def test_mouse_reattach_device_add_failure_reaps_without_further_input(self):
+        process = FakeProcess()
+        result, seen, requests = self._reattach(process, FailingMouseAddQmp, case="reattach-mouse")
+        self.assertIn("QMP command failed", result["error"])
+        self.assertEqual(seen[-1], "USB:REATTACH:DETACHED")
+        # The button was already released; nothing is held, so no cleanup input.
+        self.assertEqual(requests[-1], ("device_add", probe._mouse("hid-mouse-g2")))
+        self.assertNotIn(("device_add", probe._mouse("hid-mouse-g3")), requests)
+        self.assertTrue(process.killed and process.reaped)
+
+    def test_mouse_reattach_failures_release_every_held_input(self):
+        released_b = ("input-send-event", {"events": [probe._key("b", False)]})
+        released_left = ("input-send-event", {"events": [probe._button(False)]})
+        for fail, cleanup in (("USB:STALE_TOKEN:DENIED", released_b),
+                              # B was released by the sequence; nothing is held yet.
+                              ("USB:REPORTS:PASS", released_b),
+                              ("USB:REATTACH:HELD_BUTTON", released_left),
+                              ("USB:REATTACH:DETACHED", released_left),
+                              ("USB:REATTACH:MOUSE_DOWN", released_left)):
+            with self.subTest(fail=fail):
+                process = FakeProcess()
+                result, _, requests = self._reattach(process, FakeQmp, fail, case="reattach-mouse")
+                self.assertIn("Guest rejected", result["error"])
+                self.assertEqual(requests[-1], cleanup)
+                if fail == "USB:REPORTS:PASS":
+                    # Only the sequence's own release: no extra cleanup input.
+                    self.assertEqual(requests.count(released_b), 1)
                 self.assertTrue(process.killed and process.reaped)
 
     def test_failed_manifest_leaves_failed_report(self):

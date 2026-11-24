@@ -5,6 +5,332 @@ This document distinguishes the decisions and authority of the project owner
 from those of the executing roles. Source quotations retain their original
 wording and speaker.
 
+## ADR-PROJECT-LIFECYCLE-20261124 — Preserve specialist status and truthful closure
+
+**Status:** accepted on the project owner's instruction of 24 November 2026.
+This revises the Status and Priority rules of ADR-PROJECT-SYNC-20261111.
+
+**Problem:** recurring classification could overwrite a specialist's active
+workflow status from a PR draft flag or label change. Unmerged PR closures and
+non-completed issue closures could remain in an active column, while a missing
+issue closure reason was incorrectly treated as completed. The old Priority
+mapping also described project options no longer used by Project #5.
+
+**Decision:** retain every existing nonterminal Status, including Backlog,
+Ready, In Progress, In Review and Blocked. Draft flags and explicit blocked
+labels initialise empty statuses or reset Done/Closed when an item reopens;
+they do not continuously manage a specialist's chosen status. Reopened issues
+default to Backlog, with Todo/To do retained as compatibility alternatives.
+
+A merged PR or an issue explicitly closed as COMPLETED becomes Done regardless
+of its prior project status. An unmerged closed PR or any other closed issue
+becomes Closed, meaning closed without confirmed completion. An absent or
+unknown closure reason never implies completion. The generic native
+Item closed → Done rule must remain disabled; merge-specific automation may
+still record Done.
+
+**Primary sources:**
+
+- GitHub. (n.d.). [*GraphQL API reference: Issues (IssueStateReason)*](https://docs.github.com/en/graphql/reference/issues).
+  Retrieved 24 November 2026.
+- GitHub. (n.d.). [*GraphQL API reference: Pull requests (PullRequestState)*](https://docs.github.com/en/graphql/reference/pulls).
+  Retrieved 24 November 2026.
+- GitHub. (n.d.). [*Using the built-in automations*](https://docs.github.com/en/issues/planning-and-tracking-with-projects/automating-your-project/using-the-built-in-automations).
+  Retrieved 24 November 2026.
+
+Work Type and Subsystem remain fill-only and require unambiguous recognised
+signals. Exact scopes hw/hardware/drivers map to Hardware, and
+net/network/networking to Networking. Priority and planning dates are
+organisation issue fields; Effort is a numeric project field. Specialists
+maintain these values; this single-select project writer does not infer or
+write them. If no supported target or compatibility option exists, the update
+is skipped. The writer never creates schema options or substitutes Done for
+Closed. Existing scan/addition bounds, credentials and daily/manual workflow
+entry points remain unchanged.
+
+**Consequences:** project lifecycle is organisational metadata. Done does not
+establish an OS criterion, required-check result or release acceptance.
+Specialists own ongoing state and estimates; the existing sync reconciles
+observable terminal facts and fills supported empty metadata.
+
+**Review when:** project field types/options, lifecycle ownership or GitHub
+closure semantics change.
+
+## ADR-HWINV-20261124 — Native read-only HW-INV inventory profile
+
+**Status:** implemented by the H specialist (H06-T3); QEMU evidence only.
+
+**Problem:** protocol `HW-INV` v2 needed a kernel profile that reports the
+hardware facts required by `tools/hw_evidence.py` without changing device state
+and without ending through QEMU's `isa-debug-exit` port, which is undefined on
+physical PCs. UEFI defines `SecureBoot` as a boot-service and runtime variable
+(UEFI Forum, *UEFI Specification* 2.10, section 3.3 "Globally Defined
+Variables", https://uefi.org/specs/UEFI/2.10/03_Boot_Manager.html), but the
+kernel calls no UEFI runtime services, so this profile captures it in the
+loader and passes the observation to the kernel.
+
+**Decision:**
+
+- A paired build: kernel feature `native-hw-inventory` (IF0 M2 profile, one
+  CPU, mutually exclusive with every other native subsystem profile) and loader
+  feature `hw-inventory`. `tools/build.py` refuses either half alone.
+- Only the `hw-inventory` loader writes a 16-byte firmware-facts extension at
+  BootInfo offset 256 (magic `NOSFWF`, version 1, size 16, one state byte,
+  zero reserved bytes). The BootInfo flags and ABI are unchanged; every other
+  loader leaves the bytes zero, which never validates. `EFI_NOT_FOUND` becomes
+  `ABSENT`; any other non-boolean result becomes `Unreadable`, which the kernel
+  reports as `HWINV:FAIL:SECUREBOOT`. The value is an observation, never
+  evidence of a verified boot chain.
+- PCI identity is read through legacy mechanism 1 from configuration offsets
+  `0x00`, `0x08` and `0x0C` only, for every present segment-0 function of any
+  header type. No configuration write, BAR mapping, command-register change or
+  driver start occurs.
+- The DMAR observation restates the kernel's ACPI discovery result; it is table
+  presence and DRHD count, not evidence of DMA containment.
+- Pass and `HWINV:FAIL:*` paths end in a `CLI`/`HLT` loop. Panic and M1/M2
+  failure paths still use port `0xF4`; this remains a protocol blocker.
+
+**Evidence limit:** the QEMU runner compares the block with the configured
+CPUID vendor/hypervisor bit, the emulated VT-d unit and QMP `query-pci`, and
+`hw_evidence` rejects the result as a virtual capture. No physical PC, image,
+signed record or H06 acceptance is claimed; `SECUREBOOT=0`/`1` is host-tested
+only.
+
+## ADR-PROGRESS-EVIDENCE-20261124 — Show delivered work alongside fixed acceptance
+
+**Status:** scoped implementation of the project owner's 24 November request to
+reassess progress and expose implementation and verification separately.
+
+**Problem:** the binary score can stay constant while substantial parts of open
+criteria are implemented and tested. Old task blockers and repeated score-only
+updates can also conceal a criterion whose original evidence requirements are
+now satisfied. Work volume itself does not justify acceptance points.
+
+**Decision:** preserve rubric v1, all criterion IDs, weights and acceptance text.
+Add a versioned, dated, source-bound `delivery_review` inventory to the existing
+`docs/progress.json`. The existing generator renders its scoped requirements,
+implementation states, distinct evidence levels and remaining acceptance gaps in
+README/PROGRESS. This is a reporting view of the same criteria, not a second
+queue, execution controller or weighted completion score.
+
+Requirement counts are descriptive, unweighted and unequal in size. A host core,
+target build or native fixture is credited only within its recorded scope. No
+conversion to an OS implementation percentage, release probability or remaining
+time is defined. The snapshot date/source stay independent of later task updates;
+changing them requires reassessment of the covered rows. Historic evidence and
+task events remain intact; superseding facts are recorded explicitly.
+
+**Acceptance consequence:** the 30 previously open criteria were reassessed on
+main `2eb1c63d2afdf658f0e71d31f3542e320a7dd041`. B01 earns its existing two
+points because the exact-source seven-case native gate now demonstrates all
+literal entropy, lifecycle and management/ordinary-app authorization clauses.
+The original artifact and clause mapping are retained under
+`verification/progress-reassessment-20261124/`. No criterion is broadened or
+weakened, and the other open criteria receive no partial points.
+
+**Validation and review:** generator negative/round-trip tests, preservation of
+all original rubric fields except B01 status/evidence, independent review of
+the protected-file diff, and required hosted checks. Revise the reporting method
+if its requirement boundaries or evidence vocabulary change; never treat a
+reference-presence check as an evidence-content audit.
+
+## ADR-MERGE-DELEGATION-20261123 — Workstreams handle their own pull requests end to end
+
+**Status:** decided by the project owner on 23 November 2026. It supersedes the
+merge-approval part of the decision of 13 November 2026 for the six named
+workstream sessions only. `ADR-MERGE-HOLD-20261113` stays in force.
+
+**Context:** routine repair and merging of every pull request ran through one
+integration coordinator. That made the coordinator an approval bottleneck and
+produced conflicting writers on the same branches.
+
+**Decision:** the six workstream sessions (S09, U, N, UI/UX design, B and H)
+handle their own pull requests end to end, including pull requests that were
+already open, without further approval. Each may:
+
+- address review feedback;
+- resolve merge conflicts and failing checks;
+- verify, commit and push;
+- squash-merge;
+- confirm the merge result and update its own progress assessment.
+
+**Clarification of 24 November 2026:** the owner's autonomous backlog-drain
+assignment permits necessary repository repair, review handling, integration,
+auto-merge and guarded squash merges. An applicable explicit mandate already
+supplies permission; it does not prove tests or acceptance. The following procedure
+also preserves continuous progress by future workstream sessions.
+
+A workstream may merge only when all of these hold:
+
+- Required checks and acceptance gates applicable to the changed behaviour pass
+  for the current head or validated merge group. Respect the CodeQL ruleset.
+- Blocking feedback is handled; threads are resolved with an explanation and
+  evidence. Optional checks are assessed for real defects, but an unrelated check
+  or review-bot quota failure is not an independent reason to stop integration.
+- Dependencies are integrated in order. A source PR merged only into an integration
+  branch remains unfinished until the combined work is verified on `main`.
+- Acceptance outside the required checks carries `acceptance-pending` until a
+  trusted `acceptance-released: <sha>` comment links passing evidence on the exact
+  head. The label is not removed to bypass acceptance. Reused content evidence
+  requires matching relevant source, dependencies, inputs, configuration and
+  environment; required hosted status reporting still applies to the current head.
+
+Before every mutation, re-check the head, base and ownership. Direct merges use
+`gh pr merge <N> --squash --match-head-commit <sha>` or the equivalent expected-head
+API. Auto-merge is permitted after content review, dependency integration, feedback
+handling and applicable non-required acceptance are complete, while required checks
+or the controlled merge order finish. Disable it before pushing changes or changing
+the base; a changed head requires delta review and renewed applicable evidence before
+re-enabling it. This relies on single-writer ownership, branch protection and the
+exact-head acceptance hold; it does not give an unreviewed later push approval.
+
+Waiting for a PR merge or CI does not suspend the entire workstream. Continue
+independent work in a separate branch, or create a correctly stacked dependent
+branch. Record its original delta before a parent squash/rebase to avoid losing
+child changes or reintroducing parent changes. Return to pending integrations and
+verify actual main inclusion; a draft, armed auto-merge or queue entry is unfinished.
+
+**Limits:**
+
+- One active writer per branch or worktree, with explicit handover before a
+  different writer starts.
+- No direct push to `main`, no force-push, no `--admin`, no bypass of
+  protections, and no weakening of tests or evidence to make a pull request
+  pass.
+- Files on the Protected files list in `AGENTS.md` still change only through
+  a lead-scoped pull request reviewed by someone other than the merging
+  workstream. The exceptions are a new child directory for new evidence and
+  the workstream's own progress assessment, which this decision delegates.
+- Unattended pipeline workers keep the draft-only rule and execution hold. Other
+  sessions need an applicable explicit owner mandate, which may include integration.
+
+**Coordinator role:** the integration coordinator handles only cross-stream
+dependencies, ownership conflicts, orphaned pull requests and escalations that
+a workstream cannot resolve itself. It is not an approval step.
+
+**Alternatives:** keep one integration coordinator as the only merger (rejected:
+it serialised about 35 open pull requests and invited competing writers on the
+same branches); allow every session and pipeline worker to merge (rejected:
+too broad for unattended workers that must not change their own evaluators).
+
+**Rationale:** the workstream that wrote and verified a change has the best
+context to repair and merge it. Branch protection (required checks, strict
+up-to-date base, squash only, resolved threads) and `merge-hold` remain the
+technical boundary, so the delegation moves only the decision, not the gate.
+
+**Consequences:** each workstream carries its own review, CI and merge
+workload. The coordinator stops being a queue and keeps only exceptions.
+Writer conflicts shrink because one session owns each branch; stacked pull
+requests across workstreams still need explicit coordination.
+
+**Security invariant:** no merge without the required checks, the applicable
+acceptance hold and resolved threads on the exact merged head; no bypass of
+branch protection; files on the Protected files list stay lead-scoped.
+
+**Test evidence:** none applies to a governance text change. The governance
+and documentation checks (`tools/tests/test_agent_governance.py`,
+`tools/check_english_docs.py`, `tools/progress.py --check`) pass on this
+change; they do not prove that sessions follow the rule.
+
+**Migration and rollback:** to restore the previous model, the project owner
+announces the rollback; from then on workstreams and their pull-request
+workers issue no further `gh pr merge` calls, stop their merge drivers and
+hand their open pull requests back to a single coordinator in draft or
+"final" state. As a safety check, workstreams and the coordinator (for
+orphaned pull requests) disable any auto-merge found armed
+(`gh pr merge <N> --disable-auto`) and confirm that none remains; only then
+does the project owner revoke this ADR.
+Pull requests already merged under this ADR stay merged and are judged on
+their recorded checks.
+
+**Refutation and review criteria:** review this decision if a pull request
+merges with a failing or pending required check or applicable acceptance gate, an unresolved finding, a
+bypassed protection or a merge-hold released without its acceptance; if two
+writers collide on one branch; or if a merge reaches `main` from a head that
+was not reassessed after a push. Any such case is recorded and may restore
+owner approval per merge.
+
+**Owner:** project owner (decision); each workstream for its own pull requests;
+the lead agent for integration and decision management.
+
+## ADR-B02-KEY1-RELAY-20261123 — Write-ahead key state committed by init on behalf of the Key Service
+
+**Status:** project-owner decision of 23 November 2026, given in the B-track
+session as two answers: "Init relays commits" (who writes the key-state
+snapshot) and "Service holds it (Recommended)" (who keeps the external
+secret). The option "Supersede ADR-051" (a block/volume right for the Key
+Service) was offered and not chosen. The owner did not decide rollback
+anchoring, a trusted generation floor, product secret custody or production
+use; they stay open. This ADR authorises a TEST-profile implementation only.
+
+**Context.** B02-T2 added a host-only write-ahead contract:
+`Service::generate_durable`/`revoke_durable` and `wire::dispatch_domain_durable`
+reply `Ok` to GENERATE/REVOKE only after a `KeyStateStore` committed the
+sealed 120-byte snapshot in the same call (`services/keyring`, tests in
+`services/keyring/tests/write_ahead.rs`). No native store exists, because
+ADR-051 gives the Key Service no volume right and keeps the external secret
+outside the service. Until now the init/app protocol (`KEYS_READY` →
+commit → `PERSISTED`) orders key state before ciphertext, and an
+uncooperative app can bypass it.
+
+**Decision.**
+1. **Commit ingress.** A new kernel endpoint, the key-state commit ingress,
+   is received only by init. The Key Service holds the only SEND handle; no
+   app, worker or other service holds it. The FR-I01 manifest checks this as
+   it checks `APP_ADMIN_HANDLE` (INT3-FU-116): object comparison per handle
+   across every non-init handle table plus an exact count. The Key Service
+   still has no block or volume right, so alternative (a) of ADR-051 stays
+   rejected.
+2. **Secret custody (amends ADR-051).** Init supplies the external secret to
+   the Key Service once per instance through administrative ingress: with the
+   existing RESTORE_PERSISTENT on a cold start, or with one new admin-only
+   opcode on a fresh instance. The opcode number is allocated in the
+   implementation change. Domain and RANDOM ingress reject it before any
+   processing, as they reject opcodes 11/12. The service keeps the secret in
+   zeroizing memory for the lifetime of the instance. It never returns,
+   logs or re-exports it. A second supply with any secret is refused, and
+   the secret is wiped when the instance ends. This replaces the sentence of
+   ADR-051 that the secret "is not retained by the service"; the remainder of
+   ADR-051 stands.
+3. **Commit protocol.** For GENERATE or REVOKE on a write-ahead domain
+   ingress, the service seals generation n+1 bound to the volume identity.
+   It then sends `(generation, blob)` to the commit ingress in a synchronous,
+   bounded call. Init writes the blob to key-state object 8 in one
+   crash-consistent volume transaction in domain 1, flushes, and replies
+   `COMMITTED(generation)` or `NOT_COMMITTED`. Mapping to
+   `StoreError`/`WriteAheadError`:
+   - `COMMITTED` with the same generation: commit succeeded; the domain caller receives `Ok`.
+   - `NOT_COMMITTED`: `Failed`, which replies `NotReady` and allows an explicit retry. Init may send it only when it has not begun the transaction.
+   - Any other outcome: `Unknown`, which replies `Degraded` and latches the instance. This covers a timeout, a restart of init, a mismatched generation, a malformed reply and a failure after the transaction began.
+4. **Authority and ordering.** Init accepts a commit by the kernel endpoint
+   object, never by a payload field or PID. The service trusts only the reply
+   to its own call. Init completes RESTORE or the secret supply before the
+   Key Service accepts domain traffic. After that, init makes no blocking
+   call into the Key Service while a commit request can be outstanding, so
+   the synchronous commit cannot deadlock against administrative ingress.
+   Every wait is bounded; expiry is `Unknown`. The `KEYS_READY`/`PERSISTED`
+   cooperation may stay in the test profile as additional evidence. The
+   enforcement point becomes the Key Service's `Ok`.
+5. **Limits.** The secret remains the compile-time test constant in the
+   init ELF of the disposable image (ADR-051). There is one writer and one
+   instance, and the volume identity remains the profile constant
+   `NOS-SYSTEM-VOL01`. Cold rollback anchoring and a trusted generation
+   floor stay out of scope (B02-T3, which needs a separate owner decision).
+
+**Consequences and residual risk.** The service process now holds both the
+master and the wrapping secret. Someone who can read that process memory
+already has every key. Retaining the secret adds the ability to produce
+snapshots that init accepts for the next cold start, which forges lineage.
+The cost was accepted to keep the KEY1 ABI unchanged. The other option
+offered, init keeping the secret, needs a pending status or deferred domain
+reply and per-operation exports; the owner did not choose it. B02 earns no
+credit from this ADR. Acceptance needs native QEMU evidence of:
+- a normal commit
+- `NOT_COMMITTED` before any write, mapped to `NotReady`
+- a commit timeout that latches `Degraded`
+- an app without commit SEND (manifest)
+- the existing host tests
+
 ## ADR-H05-S3-SYSTEM-20261123 — Test-profile S3 from the system profile: syscall 0x91 behind POWER and the storage gate
 
 **Status:** technical decision of the executing hardware-track lead on
@@ -1067,8 +1393,77 @@ Status: accepted, 13 November 2026, on the project owner's instruction after
   contract test pins the trigger, the permissions and the absence of `if`,
   `defaults` and filters.
 
+**Amendment, 23 November 2026 (merge queue preparation, not yet enabled):**
+`merge-hold` and the required `ci.yml` checks also run on `merge_group`. The
+merge-group run evaluates the group's pull request and every unmerged entry ahead,
+each on its own head SHA; a released hold also requires that entry's queue
+commit to land the released tree. It decides last: it waits until the group's
+`host-quality` and `qemu-smoke` have completed, then walks the entries ahead
+from the nearest outward: each must have left the queue or completed
+`host-quality`, `qemu-smoke` and `merge-hold` on its own commit. The walk ends
+at the first entry whose `merge-hold` concluded `success`, because only a
+successful run waited the same way; a `merge-hold` that failed early, was
+cancelled or lost its runner proves nothing about the entries ahead of it.
+This shortcut does not recheck an earlier predecessor whose check is rerun
+after that successful entry. Before enabling a live queue, either invalidate
+and rebuild all affected successor groups when a predecessor check is rerun,
+or implement and verify a full predecessor reevaluation. Until one of those
+controls is in place, the shortcut is preparation only and the queue must
+remain disabled.
+Queue entries behind the group are not evaluated, and one without a commit
+does not delay the run; an entry anywhere in the queue without a pull request
+(or without an integer pull request number) disables the fast stale-group
+detection below, so the run is retried until the deadline. Ahead of the group,
+an entry without a commit keeps the run waiting, and fails closed at the
+45-minute deadline, only while the wait walk reaches it; beyond the nearest
+entry ahead whose `merge-hold` concluded `success` the walk stops, and the
+final evaluation fails closed at once on that entry unless its pull request
+has already merged. An entry ahead with a commit but no pull request fails
+closed at once when the group is evaluated. The wait walk does not skip an
+entry ahead whose pull request has already merged; only the final evaluation
+skips it, because it is on `main`. Fast stale-group detection applies only
+after the group's own `host-quality` and `qemu-smoke` have completed: a group
+whose own commit two consecutive well-formed, non-empty queue reads, one poll
+interval apart, both no longer list (ejected or rebuilt) fails at once. Any
+other poll in between restarts that count, and a failed, malformed or empty
+read is retried until the deadline. This holds
+only while `host-quality`, `qemu-smoke` and `merge-hold` are the only required
+checks; a later-finishing required check reopens the window. The queue
+ruleset must also have "Only merge non-failing pull requests" set to Yes, so
+an entry whose required checks failed cannot merge as part of a later group
+that passed; a minimum group size of 1 with no merge-limit wait, so the
+window after the final read is not lengthened; each pull request built
+separately (no batching), so every entry has its own commit and its own
+`merge-hold` run; and a merge queue status check timeout of at least 60
+minutes, so GitHub does not remove a group while `merge-hold` still waits (up
+to 45 minutes, inside a job `timeout-minutes` of 50). Verify these five
+settings and the predecessor-rerun control above before enabling the queue. On
+`merge_group` the workflow and `tools/merge_hold.py` come from the group
+commit, which includes the entries ahead, so a queued pull request ahead can
+change the script that decides a pull request behind it; this is the same
+trust boundary as a pull request changing its own script, and review of
+`tools/merge_hold.py` and `.github/**` remains the control. The behaviour rests on GitHub's merge queue documentation
+and unit tests with a mocked API; it has not yet run against a live queue.
+- Enforced: a hold set, or a release comment removed, before the final read
+  blocks every group containing that pull request, including a later group that
+  merges the entries ahead with it.
+- Not enforced: a hold set after the final read, while GitHub concludes the job
+  and merges the group. With the predecessor-rerun prerequisite satisfied,
+  the window does not depend on other entries' check durations, but it is
+  not bounded by the project; a merge-limit wait time or
+  a minimum group size above 1 in the queue ruleset would lengthen it, which
+  is why both are preconditions above. Owners set the label before queueing and
+  remove a pull request from the queue to apply a late hold.
+- Automatic removal from the queue on a late label (GraphQL
+  `dequeuePullRequest` from the `pull_request` run) was not adopted: its
+  required token permission is not stated in the GraphQL pull request
+  reference or the GITHUB_TOKEN permissions page, it would give a write token to
+  a job that runs the pull request's own script, it cannot act for fork pull
+  requests, and it races the merge on runner start-up latency. It needs a
+  separate owner decision.
+
 **Revise when:** a reliable, always-reporting aggregate of out-of-band
-acceptance becomes available, or the merge queue is adopted.
+acceptance becomes available, or the merge queue is enabled.
 
 ## ADR-WINDOW-SCALE2-DEADLINE-20261112 — Per-scale harness deadline for the native window gate
 

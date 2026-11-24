@@ -22,11 +22,23 @@ native-virtio-snd-probe = ["milestone-m2", "if0-device-window", "dep:pci-core", 
 test-snd-fence-reinit = ["native-virtio-snd-probe"]
 test-snd-quarantine = ["native-virtio-snd-probe"]
 native-usb-hid-probe = ["native-xhci-probe", "dep:nieuw-os-usb-core"]
-native-usb-hid-reattach = ["native-usb-hid-probe"]
+# Internal: the shared same-port USB reattach path; selected only through the
+# keyboard and mouse reattach profiles below.
+usb-hid-reattach-core = ["native-usb-hid-probe"]
+native-usb-hid-reattach = ["usb-hid-reattach-core"]
+# H02-T4: same-port USB mouse reattach; a separate boot from the keyboard profile.
+native-usb-hid-mouse-reattach = ["usb-hid-reattach-core"]
 test-usb-hid-readonly-fault = ["native-usb-hid-probe"]
 test-xhci-dma-fault = ["native-xhci-probe"]
 test-xhci-no-dmar = ["native-xhci-probe"]
 native-rtc = ["milestone-m2", "dep:nieuw-os-rtc"]
+# H06-T3: read-only HW-INV inventory (CPUID, SecureBoot, DMAR, PCI identity);
+# no device writes, ends in a halt loop instead of the isa-debug-exit port.
+native-hw-inventory = ["milestone-m2", "dep:pci-core"]
+# H06-T5: HW-INV terminal fixtures, one boot each; every one must halt without port 0xF4.
+test-hwinv-panic = ["native-hw-inventory", "test-panic"]
+test-hwinv-m2-fault = ["native-hw-inventory", "test-m2-kernel-fault"]
+test-hwinv-fail = ["native-hw-inventory"]
 # H05 step: IF0 M2 profile that ends in a validated ACPI S5 poweroff.
 native-acpi-s5 = ["milestone-m2", "dep:nieuw-os-acpi-power"]
 test-acpi-s5-corrupt-dsdt = ["native-acpi-s5"]
@@ -111,6 +123,7 @@ native-system-materiaal = ["native-system-display-input", "ipc-wait"]
 native-system-session-preview = ["native-system-materiaal"]
 native-window-session = ["native-system-materiaal"]
 native-window-session-probe = ["native-window-session"]
+test-window-session-readonly = ["native-window-session-probe"]
 native-hid-input-probe = ["native-window-session"]
 native-window-session-hidpi = ["native-window-session"]
 native-window-session-hidpi-probe = ["native-window-session-probe", "native-window-session-hidpi"]
@@ -184,6 +197,12 @@ test-smp-supervisor-wait = ["native-smp-supervisor", "test-supervisor-wait"]
 native-cap-digest-bench = ["native-system", "capability-core/diagnostic-bench"]
 native-system = ["native-volume", "native-keyring", "native-supervisor"]
 test-system-recover = ["native-system"]
+# B02-T4 (ADR-B02-KEY1-RELAY-20261123): test-only key-state commit ingress to init.
+test-system-keystate-relay = ["native-system", "monotonic-clock"]
+test-system-keystate-relay-not-committed = ["test-system-keystate-relay"]
+test-system-keystate-relay-timeout = ["test-system-keystate-relay"]
+# Red manifest case: the app also receives a commit SEND; boot must stop.
+test-system-keystate-relay-leak = ["test-system-keystate-relay"]
 # H05 step 2: init's non-delegable POWER capability; S5 only behind the kernel storage gate.
 native-system-power = ["native-system", "dep:nieuw-os-acpi-power"]
 test-system-power-flush-error = ["native-system-power"]
@@ -218,6 +237,15 @@ test-net-service-helper = ["native-net-service"]
 test-net-service-device-reset = ["native-net-service", "virtio-net-driver/test-device-reset"]
 # The idle owner uses the existing bounded wait ABI; other profiles are unchanged.
 test-net-service-exhaustion = ["native-net-service", "ipc-wait"]
+# N02: the service acquires its address by DHCP and withdraws it on NAK.
+test-net-service-dhcp = ["native-net-service"]
+# N02-T3b: a QMP link down/up withdraws and re-acquires the DHCP lease.
+test-net-service-link = ["test-net-service-dhcp", "test-system-net-link"]
+# N02-T6: one DHCP lease, DNS and HTTP through QEMU's libslirp router.
+test-net-service-slirp = ["test-net-service-dhcp"]
+# N04: the revoke manifest plus a full listener sweep at two quiescent points;
+# idle processes use the existing bounded wait ABI. The revoke case is unchanged.
+test-net-service-port-sweep = ["test-net-service-revoke", "ipc-wait"]
 test-system-tcp-recover = ["native-system-tcp", "test-system-recover"]
 # B01 entropy broker + Key Service profile: virtio-rng broker, two services, one app.
 native-keyring = ["milestone-m4", "dep:virtio-rng-driver"]
@@ -225,6 +253,10 @@ test-keyring-no-device = ["native-keyring"]
 test-keyring-stuck = ["native-keyring"]
 test-keyring-timeout = ["native-keyring"]
 test-keyring-restart = ["native-keyring"]
+# test-keyring-timeout is implied only for the three-process slot count in m3.rs;
+# keyring.rs case() tests these two features first.
+test-keyring-requester-crash = ["native-keyring", "test-keyring-timeout"]
+test-keyring-no-reset-ack = ["native-keyring", "test-keyring-timeout"]
 test-m3-peer-read = ["milestone-m3"]
 test-m3-peer-write = ["milestone-m3"]
 test-m3-kernel-write = ["milestone-m3"]
@@ -342,6 +374,9 @@ test-volume-recover-cut = ["native-volume"]
 test-volume-corrupt = ["native-volume"]
 test-volume-foreign = ["native-volume"]
 test-volume-cut-txn = ["native-volume"]
+test-volume-install = ["native-volume"]
+test-volume-install-recover = ["native-volume"]
+test-volume-install-cut = ["native-volume"]
 test-volume-archive-export = ["native-volume"]
 test-volume-archive-restore = ["native-volume"]
 test-volume-archive-corrupt = ["native-volume"]
@@ -357,6 +392,17 @@ test-volume-archive-disk-small = ["test-volume-archive-device"]
 test-volume-archive-disk-wrong = ["test-volume-archive-device"]
 test-volume-archive-disk-cut = ["test-volume-archive-device"]
 test-volume-archive-disk-verify = ["test-volume-archive-device"]
+# S09 phase 3 L2 export/restore on the device-1 archive disk (cases 25-28).
+test-volume-l2-export = ["test-volume-archive-device"]
+test-volume-l2-restore = ["test-volume-archive-device"]
+test-volume-l2-corrupt = ["test-volume-archive-device"]
+test-volume-l2-used = ["test-volume-archive-device"]
+# A power cut inside an L2 restore and its cold read-only recovery (cases 29-30).
+test-volume-l2-restore-cut = ["test-volume-archive-device"]
+test-volume-recover-l2-cut = ["test-volume-archive-device"]
+# U05-N1 settings persistence through the volume service (own app ELF).
+test-volume-settings = ["native-volume"]
+test-volume-settings-recover = ["native-volume"]
 
 # B03 signed updates: generic broker over the slot store, one ring-3 update
 # service; the kernel's own version comes from the build env NOS_IMAGE_VERSION.

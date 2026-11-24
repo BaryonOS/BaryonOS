@@ -32,12 +32,39 @@ selection refuses while that task is active; the lead must validate results and 
 claim before the next task. Interrupted manual work stays active for explicit recovery,
 never automatic cleanup or blind replay.
 
-The plan contains literal Codex argv and stdin/stdout/stderr paths. Codex 0.167.2
-supports `exec --ephemeral --strict-config --sandbox workspace-write --json
---output-last-message ... -`. The lead launches the command with the brief on stdin,
-retaining existing user config, authentication, MCP and hooks. No resume/fork, Claude
-flag translation, permission bypass, config replacement or silent fallback is used.
-Do not pass task output as shell code. Full local events identify the fresh session.
+The plan contains the launcher argv
+`python3 -B <checkout>/tools/roadmap_runner.py manual-run -- <Codex argv>` and the
+stdin/stdout/stderr paths. The Codex argv targets the installed Codex 0.167.2:
+`exec --ephemeral --strict-config --ignore-user-config --disable plugins --disable apps
+--cd <checkout> --sandbox workspace-write --json --output-last-message ... -`. The lead
+launches the planned command with the brief on stdin. Codex authentication is retained;
+the user config, plugins and apps are not, so the session gets no MCP server that could
+write outside the shell sandbox. No resume/fork, Claude flag translation, permission
+bypass or silent fallback is used. Do not pass task output as shell code. Full local
+events identify the fresh session.
+
+`manual-run` (Linux only) makes the session observable to the controller:
+
+- It runs only the exact argv that `brief` planned (its sha256 is in the trusted claim
+  marker), as a child subreaper. Every descendant, including double-forked or `setsid`
+  processes, is reparented to it and reaped before it writes a completion record.
+- It holds a lock in the trusted state home outside the checkout until then. It forwards
+  SIGINT, SIGTERM, SIGHUP and SIGQUIT to the session's process group, except signals it
+  inherited as ignored (`nohup`), which stay ignored. Ctrl-Z is ignored for the session (a
+  session that resets SIGTSTP can still stop itself).
+- `brief`, `run` and `resume --accept` refuse, and plain `resume` keeps the saved baseline,
+  while the lock is held, while the claim has no completion record, or while a process
+  carries the claim's environment marker. A claim whose launcher never completed therefore
+  stays refused. A bare Codex session started after or alongside a completed launcher run of
+  the same claim is not detected.
+- If the launcher itself ends early (SIGKILL, a crash), its claim stays refused, and a
+  later `manual-run` cannot clear it. The lead ends every process of that session,
+  using the recorded child pid and process group in the refusal message, then runs
+  `python3 -B tools/roadmap_runner.py resume --accept-orphans <claim>`, followed by `resume`
+  to review the result. A session that could not start (exit 127) needs the same
+  acknowledgement. The runner cannot
+  enumerate a survivor that left the process group and cleared its environment, nor a
+  process started through another service manager (`systemd-run`, at/cron, a user daemon).
 
 Automatic `run`, direct worker sessions, task transactions and controller-run checks
 remain blocked by the shared source hold. A prepared plan is **manual fallback**, not
@@ -212,6 +239,7 @@ python3 -B tools/roadmap_runner.py run --init-check --max-tasks 3
 python3 -B tools/roadmap_runner.py pause       # wait before the next session
 python3 -B tools/roadmap_runner.py stop        # exit before the next session
 python3 -B tools/roadmap_runner.py resume      # clear stop/pause
+python3 -B tools/roadmap_runner.py resume --accept-orphans <claim>  # after a launcher ended early
 ```
 
 A lease whose owner process is gone marks its task `blocked` with the dirty paths

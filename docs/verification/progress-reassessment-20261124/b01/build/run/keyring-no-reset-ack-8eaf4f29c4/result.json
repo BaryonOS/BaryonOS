@@ -1,0 +1,192 @@
+{
+  "schema_version": 1,
+  "case": "no-reset-ack",
+  "kernel_feature": "test-keyring-no-reset-ack",
+  "started_utc": "2026-11-24T04:49:39.483161+00:00",
+  "duration_s": 3.163894935000002,
+  "timeout_s": 180,
+  "timed_out": false,
+  "raw_qemu_exit": 33,
+  "command": [
+    "/usr/bin/qemu-system-x86_64",
+    "-machine",
+    "pc-q35-8.2",
+    "-accel",
+    "tcg,thread=single",
+    "-cpu",
+    "qemu64",
+    "-smp",
+    "1",
+    "-m",
+    "256M",
+    "-nodefaults",
+    "-display",
+    "none",
+    "-monitor",
+    "none",
+    "-serial",
+    "file:build/run/keyring-no-reset-ack-8eaf4f29c4/serial.raw",
+    "-nic",
+    "none",
+    "-no-reboot",
+    "-drive",
+    "if=pflash,unit=0,format=raw,readonly=on,file=build/run/keyring-no-reset-ack-8eaf4f29c4/OVMF_CODE.fd",
+    "-drive",
+    "if=pflash,unit=1,format=raw,file=build/run/keyring-no-reset-ack-8eaf4f29c4/OVMF_VARS.fd",
+    "-drive",
+    "if=virtio,index=0,format=raw,readonly=on,file=fat:build/run/keyring-no-reset-ack-8eaf4f29c4/esp",
+    "-device",
+    "isa-debug-exit,iobase=0xf4,iosize=0x04",
+    "-chardev",
+    "socket,id=rng-channel,path=/tmp/nieuw-os-rng-p94c1682/egd.sock",
+    "-object",
+    "rng-egd,id=rng0,chardev=rng-channel",
+    "-device",
+    "virtio-rng-pci,rng=rng0,id=rng,addr=0x6,disable-legacy=on,max-bytes=1048576,period=1000"
+  ],
+  "qemu_version": "QEMU emulator version 8.2.2 (Debian 1:8.2.2+ds-0ubuntu1.18)\nCopyright (c) 2003-2023 Fabrice Bellard and the QEMU Project developers",
+  "source_fingerprint_version": 3,
+  "source_sha256": "2c6ff5ea3ba23b1b76605598095266039358993ac00e93354871caa7aa6d0c6d",
+  "run_directory": "/home/runner/work/BaryonOS/BaryonOS/build/run/keyring-no-reset-ack-8eaf4f29c4",
+  "kernel_sha256": "8ce7161cde1b2c6330c86bcf5a857d6dd16e7976d49095f8bab2df91096fcea7",
+  "keyring": {
+    "service_sha256": "d9638b7bbe574ce36350d2380bb9ffd67dd0ff1cc6bdc3bf3511564d9acf1477",
+    "app_sha256": "c3260a648a17f7d06c40717e4c39701b3f29695ddad1e9da21e57585721f17df",
+    "service_elf": {
+      "entry": 1073741824,
+      "segments": [
+        {
+          "flags": 5,
+          "address": 1073741824,
+          "offset": 4096,
+          "filesz": 6,
+          "memsz": 6,
+          "page_start": 1073741824,
+          "page_end": 1073745920
+        },
+        {
+          "flags": 6,
+          "address": 1073807360,
+          "offset": 8192,
+          "filesz": 1144,
+          "memsz": 1144,
+          "page_start": 1073807360,
+          "page_end": 1073811456
+        },
+        {
+          "flags": 4,
+          "address": 1073823744,
+          "offset": 12288,
+          "filesz": 2043,
+          "memsz": 2043,
+          "page_start": 1073823744,
+          "page_end": 1073827840
+        },
+        {
+          "flags": 5,
+          "address": 1073872896,
+          "offset": 16384,
+          "filesz": 75827,
+          "memsz": 75827,
+          "page_start": 1073872896,
+          "page_end": 1073950720
+        }
+      ]
+    },
+    "app_elf": {
+      "entry": 1073741824,
+      "segments": [
+        {
+          "flags": 5,
+          "address": 1073741824,
+          "offset": 4096,
+          "filesz": 6,
+          "memsz": 6,
+          "page_start": 1073741824,
+          "page_end": 1073745920
+        },
+        {
+          "flags": 6,
+          "address": 1073807360,
+          "offset": 8192,
+          "filesz": 1080,
+          "memsz": 1080,
+          "page_start": 1073807360,
+          "page_end": 1073811456
+        },
+        {
+          "flags": 4,
+          "address": 1073823744,
+          "offset": 12288,
+          "filesz": 624,
+          "memsz": 624,
+          "page_start": 1073823744,
+          "page_end": 1073827840
+        },
+        {
+          "flags": 5,
+          "address": 1073872896,
+          "offset": 16384,
+          "filesz": 15221,
+          "memsz": 15221,
+          "page_start": 1073872896,
+          "page_end": 1073889280
+        }
+      ]
+    }
+  },
+  "esp_sha256": {
+    "esp/kernel.elf": "8ce7161cde1b2c6330c86bcf5a857d6dd16e7976d49095f8bab2df91096fcea7",
+    "esp/EFI/BOOT/BOOTX64.EFI": "a5e19c36f9dc6fcce5af72764cf36dc5d02bda46c4fafe002185a34c064372b7"
+  },
+  "stdout": "\u001b[2J\u001b[01;01H\u001b[=3h\u001b[2J\u001b[01;01H\u001b[2J\u001b[01;01H\u001b[=3h\u001b[2J\u001b[01;01HBdsDxe: loading Boot0001 \"UEFI Misc Device\" from PciRoot(0x0)/Pci(0x1,0x0)\nBdsDxe: starting Boot0001 \"UEFI Misc Device\" from PciRoot(0x0)/Pci(0x1,0x0)\nBOOT:EBS_OK\nKERNEL:ENTRY\nBOOTINFO:OK\nKS-01:PASS\nKS-02:PASS\nACPI:UNAVAILABLE:NO_DMAR\nDEVICE-EXECUTION:BLOCKED:ADAPTER_ABSENT\nKS-03:PASS\nM2:PASS\nKEYRING:MANIFEST:PASS\nKEYRING:DIAG:APP_STATUS:00000000000000000001\nKEYRING:DIAG:APP_STEP:00000000000000000000\nKEYRING:DIAG:SERVICE_A_STATE:00000000000000000002\nKEYRING:DIAG:SERVICE_A_REASON:00000000000000000001\nKEYRING:DIAG:SERVICE_B_STATE:00000000000000000002\nKEYRING:DIAG:SERVICE_B_REASON:00000000000000000001\nKEYRING:DIAG:REQUESTS:00000000000000001129\nKEYRING:DIAG:DELIVERED:00000000000000000000\nKEYRING:DIAG:OFFLINE_ERRORS:00000000000000000001\nKEYRING:DIAG:TIMEOUTS:00000000000000000001\nKEYRING:DIAG:IO_ERRORS:00000000000000000000\nKEYRING:READY\nKEYRING:REQUESTS:00000000000000001129\nKEYRING:DELIVERED_BYTES:00000000000000000000\nKEYRING:DENIED:00000000000000000001\nKEYRING:OFFLINE_ERRORS:00000000000000000001\nKEYRING:BUSY:00000000000000001127\nKEYRING:TIMEOUTS:00000000000000000001\nKEYRING:RESET_ACKS:00000000000000000000\nKEYRING:QUARANTINED:00000000000000000001\nKEYRING:RESTARTED_BYTES:00000000000000000000\nKEYRING:LEASE_RECLAIMS:00000000000000000000\nKEYRING:SERVICE_A_STATE:00000000000000000002\nKEYRING:SERVICE_B_STATE:00000000000000000002\nKEYRING:SERVICE_A_REASON:00000000000000000001\nKEYRING:SERVICE_B_REASON:00000000000000000001\nKEYRING:SERVICE_A_KEYS:00000000000000000000\nKEYRING:SERVICE_B_KEYS:00000000000000000000\nKEYRING:SERVICE_A_ENTROPY_BYTES:00000000000000000000\nKEYRING:SERVICE_B_ENTROPY_BYTES:00000000000000000000\nKEYRING:APP_GENERATED:00000000000000000000\nKEYRING:APP_SEALED:00000000000000000000\nKEYRING:APP_UNSEALED:00000000000000000000\nKEYRING:APP_TAMPER_DENIED:00000000000000000000\nKEYRING:APP_CROSS_DENIED:00000000000000000000\nKEYRING:APP_REVOKED_DENIED:00000000000000000000\nKEYRING:APP_QUOTA_DENIED:00000000000000000000\nKEYRING:APP_RECOVERY_EXPORT_DENIED:00000000000000000000\nKEYRING:APP_RECOVERY_RESTORE_DENIED:00000000000000000000\nKEYRING:APP_NOT_READY:00000000000000000002\nKEYRING:APP_ENTROPY_DENIED:00000000000000000001\nKEYRING:TICKS:00000000000000000075\nKEYRING:REPEAT_REFUSED:00000000000000000002\nKEYRING:DEVICE_SUBMISSIONS:00000000000000000001\nKEYRING:CASE:NO_RESET_ACK:PASS\nKEYRING:RESOURCES:PASS\nKEYRING:PASS\nM1:PASS\n",
+  "stderr": "",
+  "passed": true,
+  "fault_fixture": {
+    "backend": "silent-local-egd",
+    "requested_lengths": [
+      255,
+      1,
+      255,
+      1
+    ],
+    "firmware_requested_lengths": [],
+    "firmware_response_bytes": 0,
+    "response_bytes": 0,
+    "error": null
+  },
+  "evidence": {
+    "REQUESTS": 1129,
+    "DELIVERED_BYTES": 0,
+    "DENIED": 1,
+    "OFFLINE_ERRORS": 1,
+    "BUSY": 1127,
+    "TIMEOUTS": 1,
+    "RESET_ACKS": 0,
+    "QUARANTINED": 1,
+    "RESTARTED_BYTES": 0,
+    "LEASE_RECLAIMS": 0,
+    "SERVICE_A_STATE": 2,
+    "SERVICE_B_STATE": 2,
+    "SERVICE_A_REASON": 1,
+    "SERVICE_B_REASON": 1,
+    "SERVICE_A_KEYS": 0,
+    "SERVICE_B_KEYS": 0,
+    "SERVICE_A_ENTROPY_BYTES": 0,
+    "SERVICE_B_ENTROPY_BYTES": 0,
+    "APP_GENERATED": 0,
+    "APP_SEALED": 0,
+    "APP_UNSEALED": 0,
+    "APP_TAMPER_DENIED": 0,
+    "APP_CROSS_DENIED": 0,
+    "APP_REVOKED_DENIED": 0,
+    "APP_QUOTA_DENIED": 0,
+    "APP_RECOVERY_EXPORT_DENIED": 0,
+    "APP_RECOVERY_RESTORE_DENIED": 0,
+    "APP_NOT_READY": 2,
+    "APP_ENTROPY_DENIED": 1,
+    "TICKS": 75,
+    "REPEAT_REFUSED": 2,
+    "DEVICE_SUBMISSIONS": 1
+  }
+}

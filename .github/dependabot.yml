@@ -77,6 +77,8 @@ updates:
       - /sdk/examples/network-service
       - /sdk/examples/presentation
       - /sdk/examples/random-probe
+      - /sdk/examples/search-volume
+      - /sdk/examples/settings-volume
       - /sdk/examples/spreadsheet
       - /sdk/examples/table-editor
       - /sdk/examples/tcp-probe

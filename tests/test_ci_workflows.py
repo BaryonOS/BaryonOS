@@ -311,16 +311,23 @@ class WorkflowContractTests(unittest.TestCase):
                 yield path, job_id, job
 
     def test_rust_coverage_report_survives_the_actual_collection_step(self):
-        """Archive a synthetic XML of the observed failing size through CI's shell step."""
+        self.assert_coverage_report_retained("Rust", 2349735, 4 * 1024 * 1024)
+
+    def test_python_coverage_report_survives_the_actual_collection_step(self):
+        self.assert_coverage_report_retained("Python", 1057659, 2 * 1024 * 1024)
+
+    def assert_coverage_report_retained(self, language, observed_size, file_limit):
+        """Archive an observed failing XML size through the actual caller and shell step."""
         steps = self.workflows[".github/workflows/ci.yml"]["jobs"]["host-quality"]["steps"]
-        caller = next(step for step in steps if step.get("name") == "Preserve Rust coverage artifact")
+        caller = next(step for step in steps
+                      if step.get("name") == f"Preserve {language} coverage artifact")
         action = self.actions[EVIDENCE_ACTION]
         inputs = {name: spec.get("default", "") for name, spec in action["inputs"].items()}
         inputs.update(caller["with"])
         inputs["job-status"] = "success"
         collect = next(step for step in action["runs"]["steps"] if step.get("id") == "collect")
         header, footer = b'<coverage><packages/>', b'</coverage>\n'
-        original = header + b" " * (2349735 - len(header) - len(footer)) + footer
+        original = header + b" " * (observed_size - len(header) - len(footer)) + footer
         with tempfile.TemporaryDirectory(prefix="coverage-evidence-") as directory:
             root = Path(directory)
             workspace, runner = root / "workspace", root / "runner"
@@ -341,14 +348,269 @@ class WorkflowContractTests(unittest.TestCase):
             self.assertEqual(result.returncode, 0, result.stderr)
             outputs = dict(line.split("=", 1) for line in (root / "outputs").read_text().splitlines())
             retained = Path(outputs["path"]) / inputs["path"]
-            self.assertTrue(retained.is_file(), "The Rust XML was omitted from compact evidence")
+            self.assertTrue(retained.is_file(), f"The {language} XML was omitted from compact evidence")
             self.assertEqual(retained.read_bytes(), original)
             receipt = json.loads((Path(outputs["path"]) / "_meta/receipt.json").read_text())
             self.assertEqual(receipt["retained"][0]["sha256"], hashlib.sha256(original).hexdigest())
-            self.assertEqual(receipt["limits"]["file_bytes"], 4 * 1024 * 1024)
+            self.assertEqual(receipt["limits"]["file_bytes"], file_limit)
             self.assertEqual(receipt["limits"]["total_bytes_including_receipt"], 8 * 1024 * 1024)
             self.assertEqual(receipt["required_paths"], [inputs["path"]])
             self.assertEqual(outputs["required-files"], "true")
+
+    def window_job(self):
+        """Return the five-leg native window matrix job."""
+        return self.workflows[WINDOW_WORKFLOW]["jobs"]["native-window-session"]
+
+    def window_evidence_fixture(self, leg, *, serial_size=4 * 1024 * 1024):
+        """Make synthetic archive inputs for one leg, never a native execution or acceptance report."""
+        temporary = tempfile.TemporaryDirectory(prefix="window-evidence-")
+        self.addCleanup(temporary.cleanup)
+        root = Path(temporary.name)
+        workspace, runner = root / "workspace", root / "runner"
+        (workspace / "tools").mkdir(parents=True)
+        runner.mkdir()
+        (workspace / "tools/ci_evidence.py").write_bytes((ROOT / "tools/ci_evidence.py").read_bytes())
+        source = "a" * 40
+        combination, = [entry for entry in matrix_combinations(self.window_job()) if entry["leg"] == leg]
+        scale = int(combination["scale"])
+        env = dict(os.environ, GITHUB_WORKSPACE=str(workspace), RUNNER_TEMP=str(runner),
+                   GITHUB_SHA=source, NOS_WINDOW_LEG=leg, NOS_WINDOW_SCALE=combination["scale"],
+                   CI_JOB_STATUS="success", GITHUB_OUTPUT=str(root / "index-output"))
+        roles = {"native": ["native"], "library": ["library-write", "library-cold"],
+                 "switcher": ["switcher"]}[combination["mode"]]
+        expected = {}
+        reports = {}
+        serial_line = b"Synthetic archive-size fixture; not QEMU evidence.\n"
+        serial = (serial_line * (serial_size // len(serial_line) + 1))[:serial_size]
+        self.assertEqual(len(serial), serial_size)
+        for number, role in enumerate(roles, 1):
+            run = workspace / f"build/window-session-ci/{leg}/run/window-{number:032x}"
+            run.mkdir(parents=True)
+            report = dict(source_commit=source, run_directory=str(run), scale=scale,
+                          workspace_requested=role == "native", clipboard_requested=role == "native",
+                          library_requested=role.startswith("library-"), library_cold=role == "library-cold",
+                          switcher_requested=role == "switcher", passed=True,
+                          serial_sha256=hashlib.sha256(serial).hexdigest(),
+                          qmp_trace=[{"synthetic_archive_fixture": role}])
+            data = json.dumps(report).encode()
+            # Exact failed scale-2 report size from hosted artifact 14884099633.
+            data += b" " * (1553981 - len(data))
+            for name, content in (("result.json", data), ("serial.txt", serial)):
+                path = run / name
+                path.write_bytes(content)
+                expected[path.relative_to(workspace).as_posix()] = content
+            reports[role] = run / "result.json"
+            # Existing summary/copy paths deliberately duplicate complete reports.
+            (workspace / f"build/window-session-ci/{leg}/window-session-report.json").write_bytes(data)
+            if role != "native":
+                name = f"switcher-native-scale{scale}.json" if role == "switcher" else role + "-report.json"
+                copy = workspace / "build/window-session-ci/evidence" / name
+                copy.parent.mkdir(parents=True, exist_ok=True)
+                copy.write_bytes(data)
+        for relative in ("evidence/source.json", leg + "/manifest.json"):
+            path = workspace / "build/window-session-ci" / relative
+            path.parent.mkdir(parents=True, exist_ok=True)
+            data = b'{"synthetic_archive_metadata": true}\n'
+            path.write_bytes(data)
+            expected[path.relative_to(workspace).as_posix()] = data
+        return workspace, env, reports, expected, combination
+
+    @staticmethod
+    def action_outputs(path):
+        """Read the runner's single-line and delimited output-file formats."""
+        result = {}
+        lines = iter(path.read_text().splitlines())
+        for line in lines:
+            if "<<" in line:
+                key, delimiter = line.split("<<", 1)
+                value = []
+                for item in lines:
+                    if item == delimiter:
+                        break
+                    value.append(item)
+                result[key] = "\n".join(value)
+            else:
+                key, value = line.split("=", 1)
+                result[key] = value
+        return result
+
+    def window_index(self, workspace, env):
+        """Run the real proof-locator step of the native window matrix."""
+        index, = [step for step in self.window_job()["steps"] if step.get("id") == "window-proof-paths"]
+        return subprocess.run(["bash", "-e", "-o", "pipefail", "-c", index["run"]],
+                              cwd=workspace, env=env, capture_output=True, text=True, check=False)
+
+    def preserve_inputs(self, step, combination, env, outputs=None):
+        """Render one preserve-evidence call for a matrix combination and step outputs."""
+        action = self.actions[EVIDENCE_ACTION]
+        inputs = {name: spec.get("default", "") for name, spec in action["inputs"].items()}
+        inputs.update(step["with"])
+        inputs["job-status"] = env["CI_JOB_STATUS"]
+        inputs["full-evidence"] = "false"  # Ordinary PR fixture; no uploads are executed.
+        for key in ("path", "required-paths", "name", "package-path"):
+            value = render_matrix(inputs[key], combination)
+            value = re.sub(r"\$\{\{ matrix\.scale == 1 && '([^']+)' \|\| '' \}\}",
+                           lambda match: match.group(1) if combination["scale"] == "1" else "", value)
+            value = re.sub(r"\$\{\{ steps\.window-proof-paths\.outputs\.([\w-]+) \}\}",
+                           lambda match: outputs[match.group(1)], value)
+            self.assertNotIn("${{", value)
+            inputs[key] = value
+        return inputs
+
+    def window_evidence_callers(self, workspace, env, combination):
+        """Run the real path-index step and render this leg's preservation inputs."""
+        result = self.window_index(workspace, env)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        outputs = self.action_outputs(Path(env["GITHUB_OUTPUT"]))
+        callers = []
+        for step in self.window_job()["steps"]:
+            if step.get("uses") != "./.github/actions/preserve-evidence":
+                continue
+            if step.get("if") == "${{ always() && matrix.mode == 'library' }}" and combination["mode"] != "library":
+                continue
+            callers.append((step.get("id", "final"), self.preserve_inputs(step, combination, env, outputs)))
+        return callers
+
+    def collect_window_fixture(self, workspace, base_env, inputs, name):
+        """Execute the actual composite collector shell, with its unchanged bounds."""
+        collect = next(step for step in self.actions[EVIDENCE_ACTION]["runs"]["steps"]
+                       if step.get("id") == "collect")
+        output = workspace.parent / (name + ".outputs")
+        env = dict(base_env, GITHUB_OUTPUT=str(output),
+                   GITHUB_STEP_SUMMARY=str(workspace.parent / (name + ".summary")))
+        for key, expression in collect["env"].items():
+            match = re.fullmatch(r"\$\{\{ inputs\.([\w-]+) \}\}", expression)
+            self.assertIsNotNone(match)
+            env[key] = str(inputs[match.group(1)])
+        result = subprocess.run(["bash", "-e", "-o", "pipefail", "-c", collect["run"]],
+                                cwd=workspace, env=env, capture_output=True, text=True, check=False)
+        outputs = self.action_outputs(output)
+        directory = Path(outputs["path"])
+        receipt = json.loads((directory / "_meta/receipt.json").read_text())
+        return result, directory, receipt, outputs
+
+    def test_window_every_leg_retains_its_original_proof_pairs(self):
+        for leg in WINDOW_LEGS:
+            with self.subTest(leg=leg):
+                self.assert_window_evidence_plan(leg)
+
+    def test_window_observed_scale2_report_and_serial_are_not_omitted(self):
+        self.assert_window_evidence_plan("native-scale2", serial_size=1556536)
+
+    def assert_window_evidence_plan(self, leg, **options):
+        """Large independent runs must not compete with duplicates in one 7 MiB payload."""
+        workspace, env, reports, expected, combination = self.window_evidence_fixture(leg, **options)
+        retained = {}
+        proof_count = 0
+        for name, inputs in self.window_evidence_callers(workspace, env, combination):
+            result, directory, receipt, outputs = self.collect_window_fixture(workspace, env, inputs, name)
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertEqual(receipt["limits"]["total_bytes_including_receipt"], 8 * 1024 * 1024)
+            self.assertLessEqual(sum(item["size_bytes"] for item in receipt["retained"]), 7 * 1024 * 1024)
+            self.assertEqual(receipt["unretained_required_paths"], [])
+            for item in receipt["retained"]:
+                data = (directory / item["path"]).read_bytes()
+                self.assertEqual(hashlib.sha256(data).hexdigest(), item["sha256"])
+                retained[item["path"]] = data
+            if name != "final":
+                proof_count += 1
+                self.assertEqual(len(receipt["required_paths"]), 2)
+                self.assertEqual(set(receipt["required_paths"]),
+                                 {item["path"] for item in receipt["retained"]})
+                self.assertEqual(receipt["limits"]["file_bytes"], 4 * 1024 * 1024)
+                self.assertEqual(outputs["required-files"], "true")
+                self.assertEqual(inputs["full-evidence"], "false")
+                self.assertEqual(inputs["package-path"], "")
+        for path, content in expected.items():
+            self.assertIn(path, retained, "Required native proof was omitted: " + path)
+            self.assertEqual(retained[path], content)
+        self.assertEqual(proof_count, len(reports))
+
+    def test_window_required_proof_omissions_fail_the_actual_collector(self):
+        """Missing, oversized and aggregate-excess evidence must fail a successful job."""
+        for cause in ("missing", "per-file", "aggregate"):
+            with self.subTest(cause=cause):
+                workspace, env, reports, _, combination = self.window_evidence_fixture("native-scale2")
+                callers = dict(self.window_evidence_callers(workspace, env, combination))
+                inputs = callers["window-native-proof"]
+                serial = reports["native"].with_name("serial.txt")
+                if cause == "missing":
+                    serial.unlink()
+                elif cause == "per-file":
+                    serial.write_bytes(b"x" * (4 * 1024 * 1024 + 1))
+                else:
+                    report = reports["native"]
+                    report.write_bytes(report.read_bytes().ljust(4 * 1024 * 1024, b" "))
+                result, _, receipt, outputs = self.collect_window_fixture(workspace, env, inputs, cause)
+                self.assertEqual(result.returncode, 2, result.stderr)
+                self.assertEqual(outputs["required-files"], "false")
+                self.assertIn(serial.relative_to(workspace).as_posix(), receipt["unretained_required_paths"])
+
+    def test_window_failed_run_and_first_library_run_remain_diagnostic_evidence(self):
+        """A later failed case does not discard earlier proof or invent a job pass."""
+        workspace, env, reports, _, combination = self.window_evidence_fixture("library")
+        env["CI_JOB_STATUS"] = "failure"
+        raw = json.loads(reports["library-cold"].read_text())
+        raw["passed"] = False
+        reports["library-cold"].write_text(json.dumps(raw))
+        callers = dict(self.window_evidence_callers(workspace, env, combination))
+        for identifier, role in (("window-native-proof", "library-write"),
+                                 ("window-library-cold-proof", "library-cold")):
+            result, _, receipt, _ = self.collect_window_fixture(workspace, env, callers[identifier], role)
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertEqual(receipt["job_status_before_archive"], "failure")
+            self.assertEqual(receipt["unretained_required_paths"], [])
+            self.assertIn(reports[role].relative_to(workspace).as_posix(),
+                          {item["path"] for item in receipt["retained"]})
+        # A failed leg without any run keeps its index (and failure) instead of crashing.
+        workspace, env, reports, _, combination = self.window_evidence_fixture("switcher-scale2")
+        env["CI_JOB_STATUS"] = "failure"
+        reports["switcher"].unlink()
+        self.window_evidence_callers(workspace, env, combination)
+
+    def test_window_missing_normal_manifest_fails_despite_other_retained_proof(self):
+        """The packaging job's collection binds the normal build it packaged."""
+        workspace, env, _, _, _ = self.window_evidence_fixture("native-scale2")
+        job = self.workflows[WINDOW_WORKFLOW]["jobs"]["normal-and-package"]
+        preserve, = [step for step in job["steps"] if step.get("uses") == "./.github/actions/preserve-evidence"]
+        prefix = "build/window-session-ci/"
+        self.assertEqual(set(self.preserve_inputs(preserve, {"scale": "1"}, env)["required-paths"].split()), {
+            prefix + "evidence/source.json", prefix + "normal/manifest.json",
+            prefix + "evidence/package.json", prefix + "evidence/package.sha256"})
+        inputs = self.preserve_inputs(preserve, {"scale": "2"}, env)
+        missing = prefix + "normal/manifest.json"
+        result, _, receipt, _ = self.collect_window_fixture(workspace, env, inputs, "missing-normal")
+        self.assertEqual(result.returncode, 2, result.stderr)
+        self.assertEqual(receipt["unretained_required_paths"], [missing])
+        (workspace / missing).parent.mkdir(parents=True)
+        (workspace / missing).write_bytes(b'{"synthetic_archive_metadata": true}\n')
+        result, _, receipt, _ = self.collect_window_fixture(workspace, env, inputs, "present-normal")
+        self.assertEqual(result.returncode, 0, result.stderr)
+
+    def test_window_proof_index_rejects_stale_or_ambiguous_source(self):
+        """A previous head or two matching run directories cannot supply current proof."""
+        for cause in ("stale", "ambiguous", "missing"):
+            with self.subTest(cause=cause):
+                workspace, env, reports, _, _ = self.window_evidence_fixture("native-scale2")
+                self.assertEqual(self.window_index(workspace, env).returncode, 0)
+                report = reports["native"]
+                if cause == "stale":
+                    data = json.loads(report.read_text())
+                    data["source_commit"] = "b" * 40
+                    report.write_text(json.dumps(data))
+                elif cause == "ambiguous":
+                    other = report.parent.with_name("window-" + "f" * 32)
+                    other.mkdir()
+                    data = json.loads(report.read_text())
+                    data["run_directory"] = str(other)
+                    (other / "result.json").write_text(json.dumps(data))
+                else:
+                    report.unlink()
+                result = self.window_index(workspace, env)
+                self.assertNotEqual(result.returncode, 0, result.stdout)
+                expected = {"stale": "source or run directory differs", "ambiguous": "Ambiguous native proof",
+                            "missing": "Missing native proof"}[cause]
+                self.assertIn(expected, result.stderr)
 
     def steps(self):
         """Include nested local-action steps in supply-chain and error checks."""
@@ -781,12 +1043,19 @@ cp -- "$ACTIONLINT_FIXTURE" "$output"
     def test_required_gates_are_unfiltered_and_independent(self):
         """Required check names always exist and run without a serial dependency."""
         workflow = self.workflows[".github/workflows/ci.yml"]
-        for event in ("pull_request", "push"):
+        for event in ("pull_request", "merge_group", "push"):
             trigger = workflow["on"][event]
             with self.subTest(event=event):
                 self.assertNotIn("paths", trigger)
                 self.assertNotIn("paths-ignore", trigger)
+        self.assertEqual(workflow["on"]["merge_group"], {"types": ["checks_requested"]})
         self.assertIn("main", workflow["on"]["push"]["branches"])
+        # Merge groups have unique refs, so concurrent groups never cancel each other.
+        self.assertIn("${{ github.ref }}", workflow["concurrency"]["group"])
+        for job_id in ("upload-coverage-rust", "upload-coverage-python",
+                       "upload-coverage-javascript"):
+            with self.subTest(job=job_id):
+                self.assertIn("github.event_name != 'merge_group'", workflow["jobs"][job_id]["if"])
         for job_id in ("host-quality", "qemu-smoke"):
             job = workflow["jobs"][job_id]
             with self.subTest(job=job_id):
@@ -833,7 +1102,13 @@ cp -- "$ACTIONLINT_FIXTURE" "$output"
         path = ".github/workflows/merge-hold.yml"
         workflow = self.workflows[path]
         trigger = workflow["on"]["pull_request"]
-        self.assertEqual(set(workflow["on"]), {"pull_request"})
+        self.assertEqual(set(workflow["on"]), {"pull_request", "merge_group"})
+        self.assertEqual(workflow["on"]["merge_group"], {"types": ["checks_requested"]})
+        self.assertEqual(
+            workflow["concurrency"]["group"],
+            "merge-hold-${{ github.event_name }}-"
+            "${{ github.event.pull_request.number || github.ref }}",
+        )
         self.assertEqual(
             set(trigger["types"]),
             {"opened", "synchronize", "reopened", "labeled", "unlabeled"},
@@ -846,11 +1121,30 @@ cp -- "$ACTIONLINT_FIXTURE" "$output"
         self.assertEqual(job["name"], "merge-hold")
         self.assertEqual(
             job["permissions"],
-            {"contents": "read", "issues": "read", "pull-requests": "read"},
+            {"checks": "read", "contents": "read", "issues": "read", "pull-requests": "read"},
         )
         for key in ("if", "needs", "continue-on-error", "strategy", "defaults",
                     "container", "services"):
             self.assertNotIn(key, job)
+        # On merge_group the hold waits for these ci.yml checks, then decides.
+        # A rename would make every queue group time out, so pin the names.
+        source = (ROOT / "tools/merge_hold.py").read_text(encoding="utf-8")
+        waited = ast.literal_eval(re.search(r"^WAIT_CHECKS = (.+)$", source, re.M).group(1))
+        minutes = re.search(r"^WAIT_SECONDS = ([0-9]+) \* 60$", source, re.M)
+        wait_seconds = int(minutes.group(1)) * 60
+        ci = self.workflows[".github/workflows/ci.yml"]
+        self.assertEqual(set(waited), {"host-quality", "qemu-smoke"})
+        for name in waited:
+            with self.subTest(waited=name):
+                self.assertEqual(ci["jobs"][name].get("name", name), name)
+                self.assertNotIn("if", ci["jobs"][name])
+                # The wait budget outlasts each waited job and stays below our own timeout.
+                self.assertGreater(wait_seconds, int(ci["jobs"][name]["timeout-minutes"]) * 60)
+        self.assertLess(wait_seconds, int(job["timeout-minutes"]) * 60)
+        # Entries ahead count as finished once this job's own name completed on them;
+        # the walk ahead stops only at one that succeeded (tools/tests/test_merge_hold.py).
+        self.assertRegex(source, r'(?m)^AHEAD_CHECKS = WAIT_CHECKS \+ \("merge-hold",\)$')
+        self.assertLess(int(job["timeout-minutes"]), 60)
         checkout, decide = job["steps"]
         self.assertTrue(checkout["uses"].startswith("actions/checkout@"))
         self.assertEqual(checkout["with"], {"persist-credentials": "false"})
@@ -863,8 +1157,12 @@ cp -- "$ACTIONLINT_FIXTURE" "$output"
         self.assertEqual(decide["env"], {
             "GH_TOKEN": "${{ github.token }}",
             "REPO": "${{ github.repository }}",
+            "EVENT_NAME": "${{ github.event_name }}",
             "PR_NUMBER": "${{ github.event.pull_request.number }}",
             "HEAD_SHA": "${{ github.event.pull_request.head.sha }}",
+            "MERGE_GROUP_HEAD_SHA": "${{ github.event.merge_group.head_sha }}",
+            "MERGE_GROUP_HEAD_REF": "${{ github.event.merge_group.head_ref }}",
+            "MERGE_GROUP_BASE_REF": "${{ github.event.merge_group.base_ref }}",
         })
 
     def test_only_artifact_uploads_can_tolerate_errors(self):
@@ -882,10 +1180,11 @@ cp -- "$ACTIONLINT_FIXTURE" "$output"
     def test_window_matrix_requires_package_only_for_scale_one(self):
         """Scale two must retain evidence without requiring or colliding on a scale-one bundle."""
         workflow = self.workflows[".github/workflows/native-window-session.yml"]
-        job = workflow["jobs"]["native-window-session"]
-        preserve = next(
+        job = workflow["jobs"]["normal-and-package"]
+        preserve, = (
             step for step in job["steps"]
             if step.get("uses") == "./.github/actions/preserve-evidence"
+            and step.get("with", {}).get("package-path")
         )
         inputs = preserve["with"]
         self.assertEqual(
@@ -901,8 +1200,42 @@ cp -- "$ACTIONLINT_FIXTURE" "$output"
         )
         self.assertIn("matrix.scale == 1", package["if"])
 
+    def test_materiaal_measurement_is_opt_in_without_weaker_native_bounds(self):
+        """A selected PR head can run the real gate without enabling it globally."""
+        workflow = self.workflows[".github/workflows/materiaal-probe.yml"]
+        self.assertEqual(set(workflow["on"]), {"workflow_dispatch", "pull_request"})
+        self.assertEqual(workflow["on"]["pull_request"], {
+            "branches": ["main"],
+            "types": ["opened", "reopened", "synchronize", "labeled", "ready_for_review"],
+        })
+        self.assertEqual(workflow["on"]["workflow_dispatch"]["inputs"]["full_evidence"]["default"],
+                         "false")
+        self.assertEqual(workflow["permissions"], {"contents": "read"})
+        self.assertEqual(set(workflow["jobs"]), {"materiaal-probe"})
+        job = workflow["jobs"]["materiaal-probe"]
+        # Pin the guard as configuration; actionlint checks GitHub expression syntax.
+        # This test does not emulate GitHub's event delivery or expression engine.
+        self.assertEqual(" ".join(job["if"].split()),
+                         "${{ github.event_name == 'workflow_dispatch' || "
+                         "contains(github.event.pull_request.labels.*.name, 'acceptance-materiaal-probe') }}")
+        self.assertEqual(int(job["timeout-minutes"]), 40)
+        self.assertNotIn("continue-on-error", job)
+        for step in job["steps"]:
+            self.assertNotIn("continue-on-error", step)
+        native, = [step for step in job["steps"]
+                   if step.get("name") == "Actual QMP keys, mouse and exact pixels for the Materiaal chain"]
+        self.assertNotIn("if", native)
+        self.assertEqual(int(native["timeout-minutes"]), 10)
+        self.assertIn("--case normal", native["run"])
+        self.assertIn("--timeout 240", native["run"])
+        self.assertNotIn("||", native["run"])
+        preserve, = [step for step in job["steps"]
+                     if step.get("uses") == "./.github/actions/preserve-evidence"]
+        self.assertEqual(preserve["with"]["full-evidence"],
+                         "${{ github.event_name == 'workflow_dispatch' && inputs.full_evidence }}")
+
     def test_pr_lifecycle_runs_once_without_skipping_drafts(self):
-        """Draft changes are tested already, so becoming ready need not repeat them."""
+        """Automatic gates test drafts; explicit measurement has its own lifecycle."""
         for path, workflow in self.workflows.items():
             if "pull_request" not in workflow["on"]:
                 continue
@@ -910,12 +1243,17 @@ cp -- "$ACTIONLINT_FIXTURE" "$output"
             types = trigger.get("types", ["opened", "synchronize", "reopened"])
             with self.subTest(path=path):
                 self.assertLessEqual({"opened", "synchronize", "reopened"}, set(types))
-                self.assertNotIn("ready_for_review", types)
+                if path == ".github/workflows/materiaal-probe.yml":
+                    # The opt-in measurement is separately guarded above; ready
+                    # is an explicit opportunity to measure a selected final head.
+                    self.assertIn("ready_for_review", types)
+                else:
+                    self.assertNotIn("ready_for_review", types)
                 for job in workflow["jobs"].values():
                     self.assertNotIn("draft", job.get("if", ""))
 
     def test_deduplication_keeps_host_and_scalar_component_coverage(self):
-        """Both removed matrix entries retain tests, lint and scalar target builds."""
+        """Dedicated gates retain existing and new standalone component coverage."""
         matrix = self.workflows[".github/workflows/component-leaves.yml"]["jobs"][
             "component-quality"
         ]["strategy"]["matrix"]["include"]
@@ -925,6 +1263,8 @@ cp -- "$ACTIONLINT_FIXTURE" "$output"
         for filename, job_id, component in [
             ("artifact-store-quality.yml", "artifact-store-core", "artifact-store-core"),
             ("native-display-input.yml", "native-display-input", "ui/native/Cargo.toml"),
+            ("native-display-input.yml", "native-display-input", "sdk/examples/settings-volume/Cargo.toml"),
+            ("native-display-input.yml", "native-display-input", "sdk/examples/search-volume/Cargo.toml"),
         ]:
             job = self.workflows[f".github/workflows/{filename}"]["jobs"][job_id]
             relevant = [step for step in job["steps"] if component in step.get("run", "")]
@@ -948,6 +1288,45 @@ cp -- "$ACTIONLINT_FIXTURE" "$output"
                     self.assertIn("no-redzone=yes", flags)
                     self.assertIn("-sse2", flags)
                     self.assertIn("-avx2", flags)
+
+    def test_settings_and_search_oracles_run_in_display_gate(self):
+        """Standalone adapters need independent oracle checks beside Rust coverage."""
+        job = self.workflows[".github/workflows/native-display-input.yml"]["jobs"][
+            "native-display-input"
+        ]
+        commands = "\n".join(step.get("run", "") for step in job["steps"])
+        for module in ("tests.test_settings_oracle", "tests.test_search_oracle",
+                       "tools.tests.test_run_search"):
+            with self.subTest(module=module):
+                self.assertRegex(commands, rf"python3 -B -m unittest[^\n]*\b{re.escape(module)}\b")
+
+    def test_settings_native_gate_and_search_compile_keep_separate_evidence(self):
+        """Settings has a six-boot gate; search is still an S2 target binary."""
+        job = self.workflows[".github/workflows/native-display-input.yml"]["jobs"][
+            "native-display-input"
+        ]
+        commands = "\n".join(step.get("run", "") for step in job["steps"])
+        self.assertIn("for case in settings settings-recover", commands)
+        self.assertIn('tools/build.py --kernel-feature "test-volume-$case"', commands)
+        self.assertIn('tools/run_settings.py', commands)
+        self.assertIn('--settings-build "$NOS_BUILD_DIR/settings"', commands)
+        self.assertIn('--recover-build "$NOS_BUILD_DIR/settings-recover"', commands)
+        self.assertIn('"--bin", "search-app"', commands)
+        self.assertIn('"--target", "x86_64-unknown-none"', commands)
+        self.assertIn('sdk/examples/volume-docs/linker.ld', commands)
+        self.assertNotIn('tools/run_search.py', commands)
+
+    def test_readonly_window_profile_has_a_separate_compile_only_step(self):
+        """The new cfg path compiles without claiming a service-refusal run."""
+        job = self.workflows[".github/workflows/native-window-session.yml"]["jobs"][
+            "readonly-compile"
+        ]
+        step = next(step for step in job["steps"]
+                    if "--kernel-feature test-window-session-readonly" in step.get("run", ""))
+        self.assertNotIn("if", step)
+        self.assertIn("readonly-compile", job["env"]["NOS_BUILD_DIR"])
+        self.assertIn("readonly-compile", job["env"]["NOS_TARGET_DIR"])
+        self.assertNotIn("run_window_session.py", step["run"])
 
     def test_artifact_build_preserves_target_rustflags(self):
         """Scalar CI additions must merge with the mandatory target contract."""
@@ -976,6 +1355,528 @@ cp -- "$ACTIONLINT_FIXTURE" "$output"
                     "Cargo.toml", "Cargo.lock", "rust-toolchain.toml", ".cargo/**",
                     ".github/actions/**", "crates/artifact-store-core/**",
                 }, set(workflow["on"][event]["paths"]))
+
+
+WINDOW_WORKFLOW = ".github/workflows/native-window-session.yml"
+# Every report assertion of the native window gates (CI-EVIDENCE, U02-U06),
+# keyed by the run content that selects its own step. Parallel legs may move
+# steps between jobs but must not drop or exchange an assertion.
+WINDOW_STEP_ASSERTS = {
+    "--clipboard": {
+        'assert report["passed"] is True and report["native_gate"] is True',
+        'assert report["clipboard_requested"] is True and report["clipboard_gate"] is True',
+        'assert report["workspace_requested"] is True and report["workspace_gate"] is True',
+        'assert report["document_tools_gate"] is True',
+        'assert report["document_menu_gate"] is True',
+        'assert report["pointer_leave_gate"] is True',
+        'assert report["app_high_contrast_gate"] is True',
+        'assert report["window_states_gate"] is True',
+        'assert report["keyboard_window_move_gate"] is True',
+        'assert report["notification_panel_gate"] is True',
+        'assert report["trusted_lock_gate"] is True',
+        'assert report["locked_f7_gate"] is True',
+        'assert report["smoke_only"] is False and report["raw_qemu_exit"] == 33',
+        'assert report["kernel_feature"] == os.environ["NOS_WINDOW_PROBE_FEATURE"]',
+        'assert report["scale"] == int(os.environ["NOS_WINDOW_SCALE"])',
+        'assert report["native_scale200_gate"] is (report["scale"] == 2)',
+    },
+    "library-write.txt": {
+        'assert report["passed"] is True and report["library_gate"] is True',
+        'assert report["library_cold"] is False and report["native_gate"] is False',
+        'assert report["raw_qemu_exit"] == 33 and len(report["phases"]) == 10',
+    },
+    "--library-cold-parent": {
+        'assert report["passed"] is True and report["library_gate"] is True',
+        'assert report["library_cold"] is True and report["native_gate"] is False',
+        'assert report["raw_qemu_exit"] == 33 and len(report["phases"]) == 4',
+        'assert report["volume_sha256"] == report["library_parent"]["volume_sha256"]',
+    },
+    "--switcher": {
+        'assert report["passed"] is True and report["switcher_gate"] is True',
+        'assert report["native_gate"] is False and report["scale"] == scale',
+        'assert report["raw_qemu_exit"] == 33 and len(report["phases"]) == 18',
+        'assert report["source_commit"] == os.environ["GITHUB_SHA"]',
+    },
+}
+# Fail-closed rules, keyed like WINDOW_STEP_ASSERTS: the immutable proof
+# locator and the full gate's volume digest record.
+WINDOW_STEP_RULES = {
+    "Unsafe or oversized native proof path": (
+        "path.is_symlink() or path.parent.is_symlink()",
+        'not re.fullmatch(r"window-[0-9a-f]{32}", path.parent.name)',
+        "not path.resolve().is_relative_to(root)",
+        "path.stat().st_size > 4 * 1024 * 1024",
+        'report.get("source_commit") != os.environ["GITHUB_SHA"]',
+        'Path(report["run_directory"]).resolve() != path.parent.resolve()',
+        "if len(matches) > 1:",
+        'if missing and os.environ["CI_JOB_STATUS"] == "success":',
+    ),
+    "--clipboard": ('volume.relative_to(Path.cwd()).as_posix()',),
+}
+
+
+def window_step_problems(jobs):
+    """List assertions or rules missing from the single step that owns them."""
+    problems = []
+    for needle, required in list(WINDOW_STEP_ASSERTS.items()) + list(WINDOW_STEP_RULES.items()):
+        found = [step for job in jobs.values() for step in job["steps"] if needle in step.get("run", "")]
+        if len(found) != 1:
+            problems.append(f"{needle}: {len(found)} owning steps")
+            continue
+        run = found[0]["run"]
+        lines = {line.strip() for line in run.splitlines()}
+        for item in required:
+            if (item not in lines) if item.startswith("assert ") else (item not in run):
+                problems.append(f"{needle}: {item}")
+    return problems
+
+
+WINDOW_PROOF_NAMES = {
+    "native-window-scale-1-proof", "native-window-scale-2-proof",
+    "native-window-library-write-proof", "native-window-library-cold-proof",
+    "native-window-switcher-scale1-proof", "native-window-switcher-scale2-proof",
+}
+ROMS = {"--bios-rom", "--vga-rom", "--timeout"}
+# Harness flag sets per mode (U02-U06 window gates).
+WINDOW_INVOCATIONS = {
+    frozenset({"--clipboard", "--workspace", "--scale"} | ROMS),
+    frozenset({"--library"} | ROMS),
+    frozenset({"--library", "--library-cold-parent"} | ROMS),
+    frozenset({"--switcher", "--scale"} | ROMS),
+}
+# leg: (mode, scale, probe feature, primary proof artifact, harness seconds).
+WINDOW_LEGS = {
+    "native-scale1": ("native", "1", "native-window-session-probe", "native-window-scale-1-proof", 1800),
+    "native-scale2": ("native", "2", "native-window-session-hidpi-probe", "native-window-scale-2-proof", 2700),
+    "library": ("library", "1", "native-window-session-probe", "native-window-library-write-proof", 2 * 1800),
+    "switcher-scale1": ("switcher", "1", "native-window-session-probe", "native-window-switcher-scale1-proof", 1800),
+    "switcher-scale2": ("switcher", "2", "native-window-session-hidpi-probe", "native-window-switcher-scale2-proof", 1800),
+}
+# Setup, locked fetch, probe build and evidence took about two minutes on run
+# 45424451804, and fixture generation runs cargo tests (timeout 180 s each) before
+# the harness deadline starts; 15 minutes is the smallest accepted allowance.
+WINDOW_SETUP_MINUTES = 15
+
+
+def matrix_combinations(job):
+    """Expand a job's static matrix (include-only or list product) into combinations."""
+    matrix = job.get("strategy", {}).get("matrix")
+    if not matrix:
+        return [{}]
+    if set(matrix) == {"include"}:
+        return [dict(entry) for entry in matrix["include"]]
+    combinations = [{}]
+    for key, values in matrix.items():
+        combinations = [dict(combo, **{key: value}) for combo in combinations for value in values]
+    return combinations
+
+
+def render_matrix(text, combination):
+    """Replace plain `${{ matrix.key }}` references with one combination's values."""
+    return re.sub(r"\$\{\{ matrix\.(\w+) \}\}", lambda match: combination[match.group(1)], text)
+
+
+def packaging_gate_problems(jobs):
+    """Packaging may start only after every gate passed: full needs, no job-level override."""
+    job = jobs["normal-and-package"]
+    problems = sorted({"host-checks", "native-window-session", "readonly-compile"} - set(job.get("needs", [])))
+    if "if" in job:
+        problems.append("job-level if: " + job["if"])
+    return problems
+
+
+FETCH_ACTION = ".github/actions/fetch-locked-deps/action.yml"
+FETCH_MANIFESTS = {
+    "sdk/Cargo.toml", "sdk/examples/materiaal/Cargo.toml", "sdk/examples/input-service/Cargo.toml",
+    "sdk/examples/window-session/Cargo.toml", "sdk/examples/calculator/Cargo.toml",
+    "ui/graphics/Cargo.toml", "ui/native/Cargo.toml", "ui/surface-protocol/Cargo.toml",
+}
+
+
+class NativeWindowSessionLayoutTests(unittest.TestCase):
+    """CI-EVIDENCE: parallel window legs keep every gate, proof and isolation rule."""
+
+    @classmethod
+    def setUpClass(cls):
+        """Load the actual workflow once."""
+        cls.text = (ROOT / WINDOW_WORKFLOW).read_text(encoding="utf-8")
+        cls.workflow = yaml.load(cls.text, Loader=UniqueKeyLoader)
+        cls.jobs = cls.workflow["jobs"]
+
+    def runs(self, job=None):
+        """Join the run scripts of one job, or of the whole workflow."""
+        jobs = [self.jobs[job]] if job else self.jobs.values()
+        return "\n".join(step.get("run", "") for item in jobs for step in item["steps"])
+
+    def step(self, job, needle):
+        """Return the single step whose run script contains the needle."""
+        found = [step for step in self.jobs[job]["steps"] if needle in step.get("run", "")]
+        self.assertEqual(len(found), 1, needle)
+        return found[0]
+
+    def test_every_report_assertion_and_locator_rule_stays_in_its_step(self):
+        self.assertEqual(window_step_problems(self.jobs), [])
+
+    def test_assertion_moved_between_steps_is_rejected(self):
+        """Swapping the library write and cold phase counts must fail."""
+        ten = 'len(report["phases"]) == 10'
+        four = 'len(report["phases"]) == 4'
+        self.assertEqual((self.text.count(ten), self.text.count(four)), (1, 1))
+        swapped = self.text.replace(ten, "@@TEN@@").replace(four, ten).replace("@@TEN@@", four)
+        jobs = yaml.load(swapped, Loader=UniqueKeyLoader)["jobs"]
+        problems = window_step_problems(jobs)
+        self.assertIn("library-write.txt: assert report[\"raw_qemu_exit\"] == 33 and " + ten, problems)
+        self.assertIn("--library-cold-parent: assert report[\"raw_qemu_exit\"] == 33 and " + four, problems)
+
+    def test_harness_flag_sets_are_unchanged(self):
+        invocations = set()
+        for segment in self.runs().replace("\\\n", " ").split("tools/run_window_session.py")[1:]:
+            command = segment.split("2>&1", 1)[0]
+            invocations.add(frozenset(token for token in shlex.split(command) if token.startswith("--")))
+        self.assertEqual(invocations, WINDOW_INVOCATIONS)
+
+    def test_six_proof_artifacts_keep_unique_names(self):
+        names = []
+        for job in self.jobs.values():
+            for combination in matrix_combinations(job):
+                for step in job["steps"]:
+                    guard = re.search(r"matrix\.(\w+) == '?([\w-]+)'?", step.get("if", ""))
+                    if guard and combination[guard.group(1)] != guard.group(2):
+                        continue
+                    if step.get("uses") == "./.github/actions/preserve-evidence":
+                        names.append(render_matrix(step["with"]["name"], combination))
+        self.assertLessEqual(WINDOW_PROOF_NAMES, set(names))
+        self.assertEqual(len(names), len(set(names)), "artifact names must be unique per run")
+
+    def test_every_job_checks_tracked_source_integrity(self):
+        for job_id, job in self.jobs.items():
+            with self.subTest(job=job_id):
+                commands = "\n".join(step.get("run", "") for step in job["steps"])
+                self.assertIn("git diff --exit-code", commands)
+                self.assertIn('test -z "$(git status --porcelain)"', commands)
+
+    def test_layout_is_host_native_readonly_and_packaging(self):
+        self.assertEqual(set(self.jobs), {"host-checks", "native-window-session",
+                                          "readonly-compile", "normal-and-package"})
+        self.assertNotIn("actions/download-artifact", self.text)
+        self.assertNotIn("actions/upload-artifact", self.text)
+
+    def test_host_checks_run_once_without_scale_variants(self):
+        job = self.jobs["host-checks"]
+        self.assertNotIn("strategy", job)
+        self.assertNotIn("needs", job)
+        self.assertNotIn("NOS_WINDOW", json.dumps(job))
+        commands = self.runs("host-checks")
+        for required in ("tools/test_window_session.py", "tools.tests.test_package_windows_qemu",
+                         "tools/preflight.py --strict", "sdk/examples/window-session/Cargo.toml",
+                         "ui/surface-protocol/Cargo.toml", "ui/graphics/Cargo.toml",
+                         "for crate in materiaal calculator", "dpkg-query -W qemu-system-x86 ovmf seabios"):
+            with self.subTest(required=required):
+                self.assertIn(required, commands)
+        for operation in ("test", "clippy", "fmt"):
+            self.assertRegex(commands, rf"cargo \+1\.100\.0 {operation}\b")
+        self.assertNotIn("run_window_session.py", commands)
+        self.assertNotIn("tools/build.py", commands)
+
+    def test_native_legs_are_independent_isolated_and_bounded(self):
+        job = self.jobs["native-window-session"]
+        self.assertNotIn("needs", job)
+        self.assertEqual(job["strategy"]["max-parallel"], "3")
+        self.assertEqual(job["strategy"]["fail-fast"], "false")
+        self.assertEqual(job["timeout-minutes"], "${{ matrix.timeout }}")
+        legs = {entry["leg"]: entry for entry in matrix_combinations(job)}
+        self.assertEqual(set(legs), set(WINDOW_LEGS))
+        directories = {key: set() for key in ("NOS_BUILD_DIR", "NOS_TARGET_DIR", "CARGO_TARGET_DIR")}
+        for leg, (mode, scale, feature, proof, harness) in WINDOW_LEGS.items():
+            entry = legs[leg]
+            with self.subTest(leg=leg):
+                self.assertEqual((entry["mode"], entry["scale"], entry["probe_feature"], entry["proof"]),
+                                 (mode, scale, feature, proof))
+                self.assertGreaterEqual(int(entry["timeout"]), harness // 60 + WINDOW_SETUP_MINUTES)
+                for key, seen in directories.items():
+                    seen.add(render_matrix(job["env"][key], entry))
+        for key, seen in directories.items():
+            self.assertEqual(len(seen), len(WINDOW_LEGS), key)
+        self.assertEqual(len(set().union(*directories.values())), 3 * len(WINDOW_LEGS))
+        self.assertEqual(job["env"]["NOS_WINDOW_SCALE"], "${{ matrix.scale }}")
+        self.assertEqual(job["env"]["NOS_WINDOW_PROBE_FEATURE"], "${{ matrix.probe_feature }}")
+        build = self.step("native-window-session", '--kernel-feature "$NOS_WINDOW_PROBE_FEATURE"')
+        self.assertNotIn("if", build)
+        self.assertIn("actions/cache@", json.dumps(job["steps"]))
+        native = self.step("native-window-session", "--clipboard")
+        self.assertEqual(native["if"], "${{ matrix.mode == 'native' }}")
+        self.assertIn("gate_timeout=1800", native["run"])
+        self.assertIn('if [ "$NOS_WINDOW_SCALE" = 2 ]; then gate_timeout=2700; fi', native["run"])
+        switcher = self.step("native-window-session", "--switcher")
+        self.assertEqual(switcher["if"], "${{ matrix.mode == 'switcher' }}")
+        self.assertIn("--timeout 1800", switcher["run"])
+
+    def test_library_cold_reopens_the_parent_written_in_the_same_leg(self):
+        steps = self.jobs["native-window-session"]["steps"]
+        write = self.step("native-window-session", "library-write.txt")
+        cold = self.step("native-window-session", "--library-cold-parent")
+        self.assertLess(steps.index(write), steps.index(cold))
+        for step in (write, cold):
+            self.assertEqual(step["if"], "${{ matrix.mode == 'library' }}")
+            self.assertIn("--timeout 1800", step["run"])
+            self.assertNotIn("env", step)
+        self.assertIn('(output / "library-parent.txt").write_text(report["run_directory"] + "\\n")', write["run"])
+        self.assertIn('read -r library_parent < "$CI_EVIDENCE_DIR/library-parent.txt"', cold["run"])
+        between = steps[steps.index(write) + 1:steps.index(cold)]
+        self.assertEqual(between, [])
+
+    def test_packaging_waits_for_every_gate_and_uses_only_the_normal_build(self):
+        job = self.jobs["normal-and-package"]
+        self.assertEqual(packaging_gate_problems(self.jobs), [])
+        self.assertEqual(job["strategy"]["matrix"]["scale"], ["1", "2"])
+        self.assertEqual(job["env"]["NOS_WINDOW_NORMAL_FEATURE"],
+                         "${{ matrix.scale == 2 && 'native-window-session-hidpi' || 'native-window-session' }}")
+        self.assertTrue(job["env"]["NOS_BUILD_DIR"].endswith("/build/window-session-ci/normal"))
+        commands = self.runs("normal-and-package")
+        self.assertNotIn("probe", commands)
+        self.assertNotIn("run_window_session.py", commands)
+        build = self.step("normal-and-package", '--kernel-feature "$NOS_WINDOW_NORMAL_FEATURE"')
+        package = self.step("normal-and-package", "tools/package_windows_qemu.py")
+        self.assertIn("matrix.scale == 1", package["if"])
+        self.assertNotIn("--build-dir", package["run"])
+        self.assertLess(job["steps"].index(build), job["steps"].index(package))
+        self.assertGreaterEqual(int(job["timeout-minutes"]), WINDOW_SETUP_MINUTES)
+
+    def test_packaging_override_after_failed_gate_is_rejected(self):
+        """An `always()` job condition would package after a failed native leg."""
+        header = "  normal-and-package:\n"
+        self.assertEqual(self.text.count(header), 1)
+        mutated = self.text.replace(header, header + "    if: ${{ always() }}\n")
+        jobs = yaml.load(mutated, Loader=UniqueKeyLoader)["jobs"]
+        self.assertEqual(packaging_gate_problems(jobs), ["job-level if: ${{ always() }}"])
+
+    def test_every_offline_job_fetches_through_the_one_shared_action(self):
+        """The locked manifest list exists once; each job fetches before offline work."""
+        action = yaml.load((ROOT / FETCH_ACTION).read_text(encoding="utf-8"), Loader=UniqueKeyLoader)
+        step, = action["runs"]["steps"]
+        self.assertEqual(step["shell"], "bash")
+        lines = [line.strip().rstrip("\\").strip() for line in step["run"].splitlines()]
+        self.assertEqual(lines[0], "cargo +1.100.0 fetch --locked")
+        manifests = lines[lines.index("for manifest in") + 1:lines.index("do")]
+        self.assertEqual(len(manifests), len(set(manifests)))
+        self.assertEqual(set(manifests), FETCH_MANIFESTS)
+        self.assertIn('cargo +1.100.0 fetch --locked --manifest-path "$manifest"', lines)
+        self.assertNotIn("fetch --locked", self.text)
+        for job_id, job in self.jobs.items():
+            with self.subTest(job=job_id):
+                steps = job["steps"]
+                uses = [item.get("uses") for item in steps]
+                self.assertEqual(uses.count("./.github/actions/fetch-locked-deps"), 1)
+                fetch = uses.index("./.github/actions/fetch-locked-deps")
+                rust = next(index for index, item in enumerate(steps)
+                            if "rustup toolchain install 1.100.0" in item.get("run", ""))
+                offline = [index for index, item in enumerate(steps)
+                           if "--offline" in item.get("run", "")
+                           or item.get("env", {}).get("CARGO_NET_OFFLINE") == "true"]
+                self.assertTrue(offline)
+                self.assertLess(rust, fetch)
+                self.assertLess(fetch, min(offline))
+
+    def test_readonly_compile_is_standalone(self):
+        job = self.jobs["readonly-compile"]
+        self.assertNotIn("needs", job)
+        self.assertIn("readonly-compile", job["env"]["NOS_BUILD_DIR"])
+        self.assertNotIn("run_window_session.py", self.runs("readonly-compile"))
+        self.step("readonly-compile", "--kernel-feature test-window-session-readonly")
+        self.assertGreaterEqual(int(job["timeout-minutes"]), WINDOW_SETUP_MINUTES)
+
+
+
+SHADOW_SELECTOR = ROOT / "tools/ci_impact.py"
+SELECT_ACTION = ".github/actions/select-ci/action.yml"
+SHADOW_CATALOGUE = """\
+schema_version = 1
+revision = 1
+
+[policy]
+mode = "shadow"
+always_full = [".github/**", "tools/ci_impact.py",
+               "rustfmt.toml", "**/rustfmt.toml", ".rustfmt.toml", "**/.rustfmt.toml",
+               "clippy.toml", "**/clippy.toml", ".clippy.toml", "**/.clippy.toml",
+               "rust-toolchain*", "**/rust-toolchain*", ".cargo/**", "**/.cargo/**"]
+inert = ["docs/**", "README.md"]
+core_only = []
+
+[policy.events]
+pull_request = "select"
+merge_group = "full"
+push = "full"
+schedule = "full"
+workflow_dispatch = "manual"
+
+[[workflow]]
+path = ".github/workflows/ci.yml"
+owner = "ci-owner"
+granularity = "job"
+events = ["workflow_dispatch", "pull_request", "merge_group", "push"]
+obligation = [{ cite = "README.md:1", anchor = "fixture readme" }]
+
+[[workflow.job]]
+id = "host-quality"
+class = "core"
+activation = "automatic"
+"""
+
+
+class CiImpactShadowTests(unittest.TestCase):
+    """CI-IMPACT phase 2b: the shadow plan is independent, read-only and base-trusted."""
+
+    @classmethod
+    def setUpClass(cls):
+        load = lambda path: yaml.load((ROOT / path).read_text(encoding="utf-8"),
+                                      Loader=UniqueKeyLoader)
+        cls.ci = load(".github/workflows/ci.yml")
+        cls.action = load(SELECT_ACTION)
+
+    def test_shadow_job_is_independent_read_only_and_preserves_its_plan(self):
+        jobs = self.ci["jobs"]
+        job = jobs["ci-impact-shadow"]
+        self.assertEqual(job["name"], "ci-impact-shadow")
+        self.assertEqual(job["runs-on"], "ubuntu-24.04")
+        self.assertEqual(job["timeout-minutes"], "10")
+        self.assertEqual(job["permissions"], {"contents": "read"})
+        for key in ("needs", "if", "continue-on-error", "strategy"):
+            self.assertNotIn(key, job)
+        for job_id, other in jobs.items():
+            with self.subTest(consumer=job_id):
+                needs = other.get("needs", [])
+                self.assertNotIn("ci-impact-shadow", [needs] if isinstance(needs, str) else needs)
+        steps = job["steps"]
+        checkout = steps[0]
+        host_checkout = next(step for step in jobs["host-quality"]["steps"]
+                             if step.get("uses", "").startswith("actions/checkout@"))
+        self.assertEqual(checkout["uses"], host_checkout["uses"])
+        self.assertEqual(checkout["with"], {"persist-credentials": "false", "fetch-depth": "0"})
+        select = next(step for step in steps if step.get("uses") == "./.github/actions/select-ci")
+        self.assertEqual(set(select["with"]), {"event-name", "tested-sha", "head-sha", "base-sha"})
+        self.assertNotIn("pull_request.base.sha", select["with"]["base-sha"])
+        preserve, = [step for step in steps if step.get("uses") == "./.github/actions/preserve-evidence"]
+        self.assertEqual(preserve["if"], "${{ always() }}")
+        self.assertEqual(preserve["with"], {
+            "name": "ci-impact-plan", "job-status": "${{ job.status }}",
+            "if-no-files-found": "error",
+            "path": "build/ci-impact/plan.json\nbuild/ci-impact/coverage.json\n",
+            "required-paths": "build/ci-impact/plan.json"})
+        # Catalogue coverage is a report in this non-required job, never an assertion in host-quality.
+        coverage, = [step for step in steps if "ci_impact.py coverage" in step.get("run", "")]
+        self.assertNotIn("${{", coverage["run"])
+        self.assertNotIn("continue-on-error", coverage)
+        self.assertEqual(steps[1]["with"], {"host-dependencies": "true"})
+
+    def test_select_action_passes_expressions_only_through_env(self):
+        steps = self.action["runs"]["steps"]
+        self.assertEqual(self.action["runs"]["using"], "composite")
+        self.assertEqual(set(self.action["inputs"]), {"event-name", "tested-sha", "head-sha", "base-sha"})
+        self.assertEqual(set(self.action["outputs"]), {"plan-id", "mode", "plan-path"})
+        for step in steps:
+            with self.subTest(step=step.get("name")):
+                self.assertNotIn("${{", step.get("run", ""))
+                self.assertNotIn("continue-on-error", step)
+                for value in step.get("env", {}).values():
+                    self.assertRegex(value, r"^\$\{\{ inputs\.[a-z-]+ \}\}$")
+        run = steps[0]["run"]
+        self.assertIn('git cat-file blob "${BASE_SHA}:tools/ci_impact.py"', run)
+        self.assertIn('python3 -B -I "$selector" plan', run)
+        self.assertIn('--summary "$GITHUB_STEP_SUMMARY"', run)
+        self.assertIn("set -euo pipefail", run)
+
+    def run_action(self, repo, env, label):
+        """Execute the action's script as a composite step would, against `repo`."""
+        temp = Path(repo).parent / label
+        temp.mkdir()
+        files = {name: temp / name for name in ("summary.md", "output.txt")}
+        for path in files.values():
+            path.write_text("", encoding="utf-8")
+        environment = {key: value for key, value in os.environ.items() if not key.startswith("GIT_")}
+        environment.update(GIT_CONFIG_NOSYSTEM="1", GIT_CONFIG_GLOBAL=os.devnull,
+                           GITHUB_WORKSPACE=str(repo), RUNNER_TEMP=str(temp),
+                           GITHUB_STEP_SUMMARY=str(files["summary.md"]),
+                           GITHUB_OUTPUT=str(files["output.txt"]), **env)
+        result = subprocess.run(["bash", "-c", self.action["runs"]["steps"][0]["run"]], cwd=repo,
+                                env=environment, capture_output=True, text=True, check=False)
+        outputs = dict(line.split("=", 1) for line in
+                       files["output.txt"].read_text(encoding="utf-8").splitlines())
+        return result, outputs
+
+    def test_select_action_runs_the_base_selector_and_never_narrows_without_one(self):
+        def git(*args):
+            return subprocess.run(
+                ["git", "-c", "user.name=fixture", "-c", "user.email=fixture@example.invalid",
+                 "-c", "commit.gpgsign=false", *args], cwd=repo, check=True, capture_output=True,
+                text=True, env={**{k: v for k, v in os.environ.items() if not k.startswith("GIT_")},
+                                "GIT_CONFIG_NOSYSTEM": "1", "GIT_CONFIG_GLOBAL": os.devnull},
+            ).stdout.strip()
+
+        with tempfile.TemporaryDirectory() as directory:
+            repo = Path(directory) / "repo"
+            (repo / "tools").mkdir(parents=True)
+            (repo / ".github/workflows").mkdir(parents=True)
+            (repo / "docs").mkdir()
+            (repo / "README.md").write_text("fixture readme\n", encoding="utf-8")
+            (repo / ".github/workflows/ci.yml").write_text("name: ci\n", encoding="utf-8")
+            (repo / ".github/ci-impact.toml").write_text(SHADOW_CATALOGUE, encoding="utf-8")
+            (repo / "tools/ci_impact.py").write_bytes(SHADOW_SELECTOR.read_bytes())
+            git("init", "-q", "-b", "main")
+            git("add", "-A")
+            git("commit", "-q", "-m", "base")
+            base = git("rev-parse", "HEAD")
+            git("checkout", "-q", "-b", "topic")
+            (repo / "docs/note.md").write_text("note\n", encoding="utf-8")
+            git("add", "-A")
+            git("commit", "-q", "-m", "head")
+            head = git("rev-parse", "HEAD")
+            git("checkout", "-q", "main")
+            git("merge", "-q", "--no-ff", "-m", "merge", "topic")
+            tested = git("rev-parse", "HEAD")
+            # A hostile checkout copy must not run when the base has a selector.
+            (repo / "tools/ci_impact.py").write_text("raise SystemExit(9)\n", encoding="utf-8")
+
+            result, outputs = self.run_action(repo, {
+                "EVENT_NAME": "pull_request", "TESTED_SHA": tested, "HEAD_SHA": head,
+                "BASE_SHA": ""}, "pull-request")
+            self.assertEqual(result.returncode, 0, result.stderr)
+            plan = json.loads((repo / outputs["plan-path"]).read_text(encoding="ascii"))
+            self.assertEqual((outputs["mode"], plan["mode"], plan["fallback"]), ("select", "select", None))
+            self.assertTrue(plan["selector"]["trusted"])
+            self.assertEqual(plan["shas"], {"base": base, "merge_base": base, "head": head,
+                                            "tested": tested})
+            self.assertEqual(outputs["plan-id"], plan["plan_id"])
+
+            # Without a base, the checkout copy runs and the output is forced to full.
+            (repo / "tools/ci_impact.py").write_bytes(SHADOW_SELECTOR.read_bytes())
+            result, outputs = self.run_action(repo, {
+                "EVENT_NAME": "workflow_dispatch", "TESTED_SHA": tested, "HEAD_SHA": tested,
+                "BASE_SHA": ""}, "dispatch")
+            self.assertEqual(result.returncode, 0, result.stderr)
+            plan = json.loads((repo / outputs["plan-path"]).read_text(encoding="ascii"))
+            self.assertEqual((outputs["mode"], plan["fallback"]["code"]), ("full", "no-trusted-base"))
+            self.assertFalse(plan["selector"]["trusted"])
+
+            # A hostile checkout copy that claims select is overridden when no base selector ran.
+            (repo / "tools/ci_impact.py").write_text(
+                "import json, os, sys\n"
+                "out = sys.argv[sys.argv.index('--out') + 1]\n"
+                "os.makedirs(os.path.dirname(out), exist_ok=True)\n"
+                "json.dump({'plan_id': 'sha256:' + '0' * 64, 'mode': 'select'}, open(out, 'w'))\n",
+                encoding="utf-8")
+            result, outputs = self.run_action(repo, {
+                "EVENT_NAME": "workflow_dispatch", "TESTED_SHA": tested, "HEAD_SHA": tested,
+                "BASE_SHA": ""}, "hostile-checkout")
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertEqual(outputs["mode"], "full")
+            (repo / "tools/ci_impact.py").write_bytes(SHADOW_SELECTOR.read_bytes())
+
+            # A malformed base is rejected before it reaches git; the plan widens.
+            result, outputs = self.run_action(repo, {
+                "EVENT_NAME": "push", "TESTED_SHA": tested, "HEAD_SHA": tested,
+                "BASE_SHA": "--output=/dev/null"}, "push-bad-base")
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertEqual(outputs["mode"], "full")
 
 
 if __name__ == "__main__":

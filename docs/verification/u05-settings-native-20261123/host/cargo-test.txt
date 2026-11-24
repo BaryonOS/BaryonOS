@@ -1,0 +1,21 @@
+   Compiling nieuw-os-settings-volume-example v0.1.0 (/home/simon/projects/BaryonOS-worktrees/u05-settings-native/sdk/examples/settings-volume)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.14s
+     Running unittests src/lib.rs (target-u05n/debug/build/nieuw-os-settings-volume-example/73e3a06272f2f8a7/out/nieuw_os_settings_volume_example-73e3a06272f2f8a7)
+
+running 7 tests
+test tests::report_encodings_are_fixed ... ok
+test tests::absent_objects_read_as_blank_and_recover_refuses ... ok
+test tests::failed_commit_poisons_flush_and_later_writes ... ok
+test tests::wrong_length_object_is_refused ... ok
+test tests::domains_are_independent_and_foreign_objects_refused ... ok
+test tests::initialize_set_recover_revert_survive_new_stores ... ok
+test tests::read_only_service_recovers_without_writing ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests nieuw_os_settings_volume_example
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

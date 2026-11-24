@@ -1,30 +1,43 @@
 #![no_std]
 #![no_main]
 #![deny(unsafe_op_in_unsafe_fn)]
-// The archive-portal build keeps only the S09 portal path so app text stays
-// within the 64 KiB startup boundary; the fixture code it leaves out is unused.
-#![cfg_attr(feature = "archive-portal", allow(dead_code, unused_imports))]
+// The portal builds (archive-portal: v1; l2-portal: S09 phase 3) keep only
+// their S09 portal path so app text stays within the 64 KiB startup
+// boundary; the fixture code they leave out is unused.
+#![cfg_attr(
+    any(feature = "archive-portal", feature = "l2-portal"),
+    allow(dead_code, unused_imports)
+)]
 //! Native M6e document app. Two instances run in separate address spaces,
 //! each with only a send/reply endpoint pair to the volume service. All
 //! results are app-reported evidence; the host disk oracle checks the image.
 
 #[cfg(not(all(target_arch = "x86_64", target_os = "none")))]
 compile_error!("volume-app is only for the Nieuw OS x86_64-unknown-none target");
+#[cfg(all(feature = "archive-portal", feature = "l2-portal"))]
+compile_error!("archive-portal and l2-portal are separate portal builds");
 
-#[cfg_attr(not(feature = "archive-portal"), allow(dead_code))]
+#[cfg_attr(
+    not(any(feature = "archive-portal", feature = "l2-portal")),
+    allow(dead_code)
+)]
 mod disk;
 mod support;
 
 use disk::tick;
-#[cfg(feature = "archive-portal")]
+#[cfg(any(feature = "archive-portal", feature = "l2-portal"))]
 use disk::NativeDisk;
 use nieuw_os_sdk_runtime::{native, BlockDevice, Handle, Outgoing, ReceiveEndpoint, SendEndpoint};
 #[cfg(feature = "archive-portal")]
-use volume_core::archive::{self, DiskSink, DiskSource, Report};
+use volume_core::archive::Report;
+#[cfg(any(feature = "archive-portal", feature = "l2-portal"))]
+use volume_core::archive::{self, DiskSink, DiskSource};
+#[cfg(feature = "l2-portal")]
+use volume_core::archive::{ArchiveV2, L2Report};
 use volume_core::{
     checksum_update,
     client::{Client, HistoryInfo, Stat, Transport},
-    wire::{self, Header, ListEntry, SubOp},
+    wire::{self, Header, ListEntry, Manifest, SubOp},
     Status, CHUNK, COLLECTIONS, FNV_OFFSET, MAX_LENGTH, PER_DOMAIN,
 };
 #[cfg(feature = "archive-portal")]
@@ -40,6 +53,28 @@ const CUT_TABLE: u64 = 3;
 const RECOVER_CUT: u64 = 4;
 const CORRUPT: u64 = 5;
 const CUT_TXN: u64 = 6;
+// S09 L2 install cases (never 7..=19: those are the archive-portal cases).
+const INSTALL: u64 = 20;
+const INSTALL_RECOVER: u64 = 21;
+const INSTALL_CUT: u64 = 22;
+
+// S09 L2 INSTALL fixture, mirrored by INSTALL_* in tools/run_volume.py (the
+// host oracle; tests/test_volume_runner.py checks both copies agree). Domain 0
+// installs object index 0 with these versions, current first: version i has
+// revision n - i, content byte(object, n - i, ..) and origin INSTALL_ORIGIN_0 - i.
+// INSTALL_COLLECTION is installed first, so the object's clock is 2 (rule R).
+const INSTALL_VERSIONS: [(&str, usize); 3] = [
+    ("Versie drie", 5000),
+    ("Versie twee", 300),
+    ("Versie een", 0),
+];
+/// Object origin: (origin_revision, origin_created, origin_modified).
+const INSTALL_ORIGIN: (u64, u64, u64) = (40, 7, 31);
+const INSTALL_ORIGIN_0: u64 = 40;
+/// (tags, kind, collection) of the installed object.
+const INSTALL_META: (u32, u16, u8) = (0x5a, 2, 1);
+/// (index, name, origin) of the collection INSTALL_COLLECTION creates.
+const INSTALL_COLLECTION: (usize, &str, u64) = (1, "Import", 12);
 // S09 archive cases: slot 1 is the backup portal, slot 2 an ordinary app.
 #[cfg(feature = "archive-portal")]
 const ARCHIVE_EXPORT: u64 = 7;
@@ -60,11 +95,49 @@ const ARCHIVE_USTAR: u64 = 12;
 const ARCHIVE_ABSENT: u64 = 15;
 #[cfg(feature = "archive-portal")]
 const ARCHIVE_CUT: u64 = 18;
+// S09 phase 3 L2 cases (docs/implementation/S09-L2-NATIVE-EXPORT.md section
+// 4): slot 1 is the backup portal on the device-1 archive disk.
+#[cfg(feature = "l2-portal")]
+const L2_EXPORT: u64 = 25;
+#[cfg(feature = "l2-portal")]
+const L2_RESTORE: u64 = 26;
+#[cfg(feature = "l2-portal")]
+const L2_CORRUPT: u64 = 27;
+#[cfg(feature = "l2-portal")]
+const L2_USED: u64 = 28;
+// A power cut inside the L2 restore (29) and its cold read-only recovery (30).
+#[cfg(feature = "l2-portal")]
+const L2_RESTORE_CUT: u64 = 29;
+#[cfg(feature = "l2-portal")]
+const RECOVER_L2_CUT: u64 = 30;
+/// Evidence words of the L2 cases (spec section 5.2), read by the kernel.
+#[cfg(feature = "l2-portal")]
+const L2_WORDS: L2Words = L2Words {
+    restored: 520,
+    collections: 528,
+    committed: 536,
+    skipped: 544,
+    mismatches: 552,
+    length: 560,
+    status: 568,
+};
+#[cfg(feature = "l2-portal")]
+struct L2Words {
+    restored: u64,
+    collections: u64,
+    committed: u64,
+    /// `L2Report.skipped`, or `ExportV2.omitted` for the export case.
+    skipped: u64,
+    mismatches: u64,
+    length: u64,
+    status: u64,
+}
+
 /// Startup word with the portal's archive range capability (slot 1, archive
 /// cases only); the range size must equal the kernel manifest's scope.
-#[cfg(feature = "archive-portal")]
+#[cfg(any(feature = "archive-portal", feature = "l2-portal"))]
 const ARCHIVE_HANDLE: u64 = 504;
-#[cfg(feature = "archive-portal")]
+#[cfg(any(feature = "archive-portal", feature = "l2-portal"))]
 const ARCHIVE_SECTORS: u64 = 1040;
 /// Scope of the full-target case, below the 180 sectors the export needs.
 #[cfg(feature = "archive-portal")]
@@ -95,9 +168,9 @@ impl Disk for Shifted {
 }
 /// Private, zeroed 64 KiB RW/NX heap the kernel maps for every process
 /// before entry; the portal's only use is the archive content scratch.
-#[cfg(feature = "archive-portal")]
+#[cfg(any(feature = "archive-portal", feature = "l2-portal"))]
 const HEAP: usize = 0x6000_0000;
-#[cfg(feature = "archive-portal")]
+#[cfg(any(feature = "archive-portal", feature = "l2-portal"))]
 const _: () = assert!(MAX_LENGTH == 0x10000);
 
 fn fail(step: u64) -> ! {
@@ -812,7 +885,14 @@ fn recover_cut(app: &mut App) {
         app.report(12);
         return;
     }
-    let first = app.stat(0, 20);
+    // One build serves every parent: object 0 never-used or at the install's
+    // revision n is the install-cut parent (the other parents leave 1 or 2).
+    let first = match app.client.stat(app.object(0)) {
+        Ok(stat) if stat.revision != INSTALL_VERSIONS.len() as u64 => stat,
+        Ok(_) => return recover_install(app, true),
+        Err((Status::NotFound, 0)) => return recover_install(app, false),
+        Err(_) => fail(20),
+    };
     check(first.revision == 1 || first.revision == 2, 21);
     let length = if first.revision == 1 {
         9000
@@ -835,6 +915,193 @@ fn recover_cut(app: &mut App) {
     app.report(30);
 }
 
+fn install_manifest() -> Manifest {
+    let (origin_revision, origin_created, origin_modified) = INSTALL_ORIGIN;
+    let mut manifest = Manifest {
+        origin_revision,
+        origin_created,
+        origin_modified,
+        count: INSTALL_VERSIONS.len(),
+        ..Manifest::default()
+    };
+    for (index, (version, (name, length))) in manifest
+        .versions
+        .iter_mut()
+        .zip(INSTALL_VERSIONS)
+        .enumerate()
+    {
+        version.origin = INSTALL_ORIGIN_0 - index as u64;
+        version.length = length;
+        version.name_length = name.len();
+        version.name[..name.len()].copy_from_slice(name.as_bytes());
+    }
+    manifest
+}
+
+/// The installed collection, present at revision 1 with its fixture origin.
+fn install_collection_is(app: &mut App, step: u64) {
+    let (index, name, origin) = INSTALL_COLLECTION;
+    app.collection_is(0, index, Some(name), 1, step);
+    check(
+        app.client.collection_provenance(0, index, 1) == Ok(origin),
+        step + 2,
+    );
+}
+
+/// The complete installed state of object 0: STAT, VERSION_STAT for every
+/// version, every version's bytes, PROVENANCE_STAT and the collection.
+fn installed(app: &mut App, step: u64) {
+    let n = INSTALL_VERSIONS.len() as u64;
+    let object = app.object(0);
+    let stat = app.stat(0, step);
+    let (_, clock) = app.client.domain_stat(0).unwrap_or_else(|_| fail(step + 1));
+    let (tags, kind, collection) = INSTALL_META;
+    check(
+        stat.revision == n
+            && stat.history_count == INSTALL_VERSIONS.len() - 1
+            && (stat.tags, stat.kind, stat.collection) == (tags, kind, collection)
+            && stat.created == clock
+            && stat.modified == clock
+            && stat.name[..stat.name_length] == *INSTALL_VERSIONS[0].0.as_bytes(),
+        step + 2,
+    );
+    for (selector, (name, length)) in INSTALL_VERSIONS.into_iter().enumerate() {
+        let revision = n - selector as u64;
+        let info = if selector == 0 {
+            HistoryInfo {
+                revision: stat.version_revision,
+                length: stat.length,
+                content_sum: stat.content_sum,
+            }
+        } else {
+            stat.history[selector - 1]
+        };
+        check(info.revision == revision && info.length == length, step + 3);
+        let version = app
+            .client
+            .version_stat(object, n, selector)
+            .unwrap_or_else(|_| fail(step + 4));
+        check(
+            if selector == 0 {
+                version.present && version.created == clock && version.modified == clock
+            } else {
+                version.version_revision == revision && version.name() == name.as_bytes()
+            },
+            step + 5,
+        );
+        app.verify_version(0, n, selector, info, revision, step + 6);
+    }
+    let provenance = app
+        .client
+        .provenance(object, n)
+        .unwrap_or_else(|_| fail(step + 7));
+    check(
+        provenance.revision == n
+            && provenance.installed == INSTALL_VERSIONS.len()
+            && (
+                provenance.origin_revision,
+                provenance.origin_created,
+                provenance.origin_modified,
+            ) == INSTALL_ORIGIN
+            && provenance.version_count == INSTALL_VERSIONS.len()
+            && (0..INSTALL_VERSIONS.len())
+                .all(|i| provenance.versions[i] == INSTALL_ORIGIN_0 - i as u64),
+        step + 8,
+    );
+    install_collection_is(app, step + 10);
+    support::put(480, stat.revision);
+    support::put(488, u64::from(stat.collection));
+    support::put(496, provenance.installed as u64);
+}
+
+/// S09 L2: INSTALL_COLLECTION, then INSTALL of the fixture into never-used
+/// slots (install, install-cut), or their cold read-only re-check.
+fn install_flow(app: &mut App, case: u64) {
+    if app.domain == 1 {
+        let (_, count) = app.list(0, 10);
+        check(count == 0, 11);
+        if case != INSTALL_CUT {
+            app.report(12);
+        }
+        return;
+    }
+    let manifest = install_manifest();
+    if case == INSTALL_RECOVER {
+        installed(app, 200);
+        check(
+            app.client
+                .install_begin(app.object(1), &manifest, INSTALL_META)
+                == Err(Status::Access),
+            230,
+        );
+        check(
+            app.client.install_collection(0, 2, b"Nee", 1) == Err((Status::Access, 0)),
+            231,
+        );
+        app.report(240);
+        return;
+    }
+    let (index, name, origin) = INSTALL_COLLECTION;
+    check(
+        app.client
+            .install_collection(0, index, name.as_bytes(), origin)
+            == Ok(1),
+        200,
+    );
+    app.commits += 1;
+    // Never-used slot, absent collection: Range before any reservation.
+    let (tags, kind, _) = INSTALL_META;
+    check(
+        app.client
+            .install_begin(app.object(1), &manifest, (tags, kind, 2))
+            == Err(Status::Range),
+        201,
+    );
+    if case == INSTALL_CUT {
+        // Only after the collection commit is durable: the kernel then
+        // kills the VM inside the INSTALL_COMMIT table write below.
+        app.phase(1);
+    }
+    let object = app.object(0);
+    let n = INSTALL_VERSIONS.len() as u64;
+    let result = app.client.install(
+        object,
+        &manifest,
+        INSTALL_META,
+        |version, offset, buffer| {
+            for (index, value) in buffer.iter_mut().enumerate() {
+                *value = byte(object, n - version as u64, offset + index);
+            }
+        },
+    );
+    check(case != INSTALL_CUT, 202);
+    check(matches!(result, Ok((revision, _)) if revision == n), 203);
+    app.commits += 1;
+    installed(app, 210);
+    // The slot is used now: Stale, with no table write (kernel INSTALL_RESULT).
+    check(
+        app.client.install_begin(object, &manifest, INSTALL_META) == Err(Status::Stale),
+        232,
+    );
+    app.report(240);
+}
+
+/// recover-cut after install-cut: exactly never-used or fully installed.
+fn recover_install(app: &mut App, complete: bool) {
+    if complete {
+        installed(app, 300);
+    } else {
+        install_collection_is(app, 320);
+    }
+    check(
+        app.client
+            .install_begin(app.object(1), &install_manifest(), INSTALL_META)
+            == Err(Status::Access),
+        330,
+    );
+    app.report(340);
+}
+
 /// The portal's verify-then-restore flow (spec: the trailer follows the last
 /// object, so restore may only run on bytes that `verify` accepted).
 #[cfg(feature = "archive-portal")]
@@ -843,7 +1110,7 @@ fn verified_restore(
     scratch: &mut [u8; MAX_LENGTH],
     app: &mut App,
 ) -> Result<Report, (Status, Report)> {
-    archive::verify(&mut DiskSource::new(disk, ARCHIVE_SECTORS), scratch)
+    archive::verify(&mut DiskSource::new(&mut *disk, ARCHIVE_SECTORS), scratch)
         .map_err(|status| (status, Report::default()))?;
     archive::restore(
         &mut DiskSource::new(disk, ARCHIVE_SECTORS),
@@ -1105,6 +1372,261 @@ fn portal(app: &mut App, case: u64) {
     app.report(750);
 }
 
+/// Writable source step S1-S5 of the export case (spec section 3.2), so that
+/// archive origins differ from the values a destination assigns. S1 and S2
+/// read the current revision first; S3 and S4 expect the collection
+/// revisions of the `archive-export` parent (1, 1, absent) and fail closed
+/// otherwise. The host oracle derives the source state from that image.
+#[cfg(feature = "l2-portal")]
+fn l2_source_step(app: &mut App) {
+    // S1: two consecutive zero-length WRITEs to object 2 ("Leeg"): no chunk.
+    let stat = app.stat(2, 900);
+    let mut name = [0; volume_core::NAME];
+    let length = stat.name_length;
+    name[..length].copy_from_slice(&stat.name[..length]);
+    check(stat.length == 0, 901);
+    let revision = app.write(2, stat.revision, &name[..length], 0, 902);
+    app.write(2, revision, &name[..length], 0, 906);
+    // S2: META on object 5 (tags change only).
+    let stat = app.stat(5, 910);
+    app.meta(
+        5,
+        stat.revision,
+        stat.tags ^ 1,
+        stat.kind,
+        stat.collection,
+        911,
+    );
+    app.commits += 1;
+    // S3: rename collections 1 and 2; S4: create collection 3, rename it.
+    // Steps start at 916: `meta` above reports 911 and 912 (`step + 1`).
+    for (index, expected, new_name, step) in [
+        (1, 1, &b"Werkmap"[..], 916),
+        (2, 1, &b"Thuis"[..], 917),
+        (3, 0, &b"Nieuw"[..], 918),
+        (3, 1, &b"Nieuwer"[..], 919),
+    ] {
+        check(
+            app.client.collection(0, index, expected, new_name) == Ok(expected + 1),
+            step,
+        );
+        app.commits += 1;
+    }
+    // S5: a zero-length WRITE, then RESTORE of the older version, on objects 1
+    // and 5: each gets a two-version chain, so no archive origin equals the
+    // live value a destination assigns (discrimination invariant, spec
+    // section 2). Chunk-neutral. `write` reports up to `step + 4` here.
+    for (index, step) in [(1, 920), (5, 930)] {
+        let stat = app.stat(index, step);
+        let length = stat.name_length;
+        name = [0; volume_core::NAME];
+        name[..length].copy_from_slice(&stat.name[..length]);
+        let revision = app.write(index, stat.revision, &name[..length], 0, step + 1);
+        check(
+            app.client.restore(app.object(index), revision, 1) == Ok(revision + 1),
+            step + 5,
+        );
+        app.commits += 1;
+    }
+}
+
+/// Provenance of the restored domain against the verified plan: the number
+/// of objects and collections whose installed origins differ from the
+/// archive values (0 expected). An absent archive slot must stay never-used,
+/// exactly `(NotFound, 0)` as in the host oracle. Content, metadata and
+/// deleted collections are host-checked. With `partial` (an interrupted
+/// restore, case 30), a planned object or collection may instead be exactly
+/// never-used, as `archive::never_used` defines it; the returned masks name
+/// the fully installed objects (by slot) and collections (bit index - 1).
+#[cfg(feature = "l2-portal")]
+fn l2_mismatches(app: &mut App, plan: &ArchiveV2, partial: bool) -> (u64, u64, u64) {
+    let (mut mismatches, mut restored, mut collections) = (0, 0, 0);
+    for c in plan.collections[..plan.collection_count]
+        .iter()
+        .filter(|c| c.present)
+    {
+        if partial
+            && app
+                .client
+                .collection_stat(0, c.index)
+                .is_ok_and(|stat| stat.revision == 0)
+        {
+            continue;
+        }
+        let origin = app.client.collection_provenance(0, c.index, 1);
+        mismatches += u64::from(origin != Ok(c.revision));
+        collections |= 1 << (c.index - 1);
+    }
+    for o in &plan.objects[..plan.object_count] {
+        let object = app.object(o.slot as u64);
+        let n = archive::replayable(o);
+        let never_used =
+            |app: &mut App| matches!(app.client.stat(object), Err((Status::NotFound, 0)));
+        if n == 0 {
+            mismatches += u64::from(!never_used(app));
+            continue;
+        }
+        if partial && never_used(app) {
+            continue;
+        }
+        restored |= 1 << o.slot;
+        let equal = match app.client.provenance(object, n as u64) {
+            Ok(p) => {
+                p.installed == n
+                    && p.version_count == n
+                    && (p.origin_revision, p.origin_created, p.origin_modified)
+                        == (o.revision, o.created, o.modified)
+                    && (0..n).all(|i| p.versions[i] == o.versions[i].revision)
+            }
+            Err(_) => false,
+        };
+        mismatches += u64::from(!equal);
+    }
+    (mismatches, restored, collections)
+}
+
+#[cfg(feature = "l2-portal")]
+fn l2_report(report: &L2Report, result: Status) {
+    support::put(L2_WORDS.restored, u64::from(report.restored));
+    support::put(L2_WORDS.collections, u64::from(report.collections));
+    support::put(L2_WORDS.committed, report.committed as u64);
+    support::put(L2_WORDS.skipped, report.skipped as u64);
+    support::put(L2_WORDS.status, result as i32 as u64);
+}
+
+/// S09 phase 3 backup portal on the device-1 archive disk: v2 export with
+/// a writable source step (25), cold L2 restore (26), a corrupt archive
+/// (27) and a used domain after a cold boot (28). Each case runs in its own
+/// non-inlined function, so its `ArchiveV2` copies leave the stack before
+/// the next phase and never stay in the frame of `run` (spec section 5.2).
+#[cfg(feature = "l2-portal")]
+#[inline(never)]
+fn l2_portal(app: &mut App, case: u64) {
+    let device = BlockDevice::from_handle(
+        Handle::from_raw(support::word(ARCHIVE_HANDLE)).unwrap_or_else(|_| fail(700)),
+    );
+    // The capability ends at its scope: the first sector past it is refused.
+    check(
+        native::block_read(device, ARCHIVE_SECTORS, 0, 128).is_err(),
+        701,
+    );
+    // SAFETY: the kernel maps HEAP..HEAP+64 KiB private, zeroed RW/NX for this
+    // process before entry and nothing else here uses it; this is the only
+    // reference, held for the rest of the portal run on one thread.
+    let scratch = unsafe { &mut *(HEAP as *mut [u8; MAX_LENGTH]) };
+    // Archive I/O never overlaps another app's service I/O: slot 2 waits for
+    // phase 2 (kernel gate), as in the v1 portal.
+    app.phase(1);
+    if case != L2_EXPORT {
+        // A READ-only grant: the capability check refuses the write with
+        // capability-core `Error::Access` (-5), before any broker state.
+        check(
+            native::block_write(device, 0, &[0; 512])
+                == Err(nieuw_os_sdk_runtime::Error::Kernel(-5)),
+            702,
+        );
+    }
+    match case {
+        L2_EXPORT => l2_export(app, device, scratch),
+        // 29 runs the intact restore; the kernel cuts the power inside it.
+        L2_RESTORE | L2_RESTORE_CUT | L2_CORRUPT => {
+            l2_restore(app, device, scratch, case != L2_CORRUPT)
+        }
+        L2_USED | RECOVER_L2_CUT => l2_used(app, device, scratch, case == RECOVER_L2_CUT),
+        _ => fail(769),
+    }
+    app.phase(2);
+    app.report(750);
+}
+
+/// Case 25: S1-S4, then a v2 export to the device-1 disk, read back and
+/// verified through the same capability.
+#[cfg(feature = "l2-portal")]
+#[inline(never)]
+fn l2_export(app: &mut App, device: BlockDevice, scratch: &mut [u8; MAX_LENGTH]) {
+    l2_source_step(app);
+    let mut disk = NativeDisk { device };
+    let mut sink = DiskSink::new(&mut disk, ARCHIVE_SECTORS);
+    let export = archive::export_v2(&mut app.client, 0, &mut sink).unwrap_or_else(|_| fail(710));
+    let length = sink.finish().unwrap_or_else(|_| fail(711));
+    let plan = archive::verify_v2(&mut DiskSource::new(&mut disk, ARCHIVE_SECTORS), scratch)
+        .unwrap_or_else(|_| fail(712));
+    check(plan == export.archive, 713);
+    support::put(L2_WORDS.skipped, export.omitted as u64);
+    support::put(L2_WORDS.length, length);
+}
+
+/// Cases 26 and 27: a cold L2 restore into a fresh volume (source loss);
+/// a damaged archive is refused at verification, before any service request.
+#[cfg(feature = "l2-portal")]
+#[inline(never)]
+fn l2_restore(app: &mut App, device: BlockDevice, scratch: &mut [u8; MAX_LENGTH], intact: bool) {
+    check(app.list(0, 720).1 == 0, 721);
+    let mut plan = ArchiveV2::default();
+    let result = archive::restore_native_l2(
+        || DiskSource::new(NativeDisk { device }, ARCHIVE_SECTORS),
+        scratch,
+        &mut app.client,
+        0,
+        &mut plan,
+    );
+    if intact {
+        let report = result.unwrap_or_else(|_| fail(722));
+        l2_report(&report, Status::Ok);
+        app.commits += report.committed as u64;
+        support::put(L2_WORDS.mismatches, l2_mismatches(app, &plan, false).0);
+    } else {
+        let (status, report) = result.err().unwrap_or_else(|| fail(723));
+        check(status == Status::Corrupt && report.committed == 0, 724);
+        l2_report(&report, status);
+        check(app.list(0, 725).1 == 0, 726);
+    }
+}
+
+/// Case 28: the restored domain after a cold boot, both disks read-only.
+/// Provenance still matches, and a second restore is refused as `Stale`.
+/// Case 30 (`partial`): the domain a power cut interrupted mid-restore; each
+/// planned object and collection is fully installed or exactly never-used,
+/// and the observed masks go to words 520/528 (the kernel and host check them).
+#[cfg(feature = "l2-portal")]
+#[inline(never)]
+fn l2_used(app: &mut App, device: BlockDevice, scratch: &mut [u8; MAX_LENGTH], partial: bool) {
+    // Reach a READY service before the first archive read: the broker serves
+    // one block request at a time across both disks, so an archive read
+    // during the service's recovery fails that recovery (as in `l2_restore`).
+    let listed = app.list(0, 728).1;
+    check(partial || listed == 5, 729);
+    let plan = archive::verify_v2(
+        &mut DiskSource::new(NativeDisk { device }, ARCHIVE_SECTORS),
+        scratch,
+    )
+    .unwrap_or_else(|_| fail(730));
+    let (mismatches, restored, collections) = l2_mismatches(app, &plan, partial);
+    check(restored.count_ones() as usize == listed, 734);
+    support::put(L2_WORDS.mismatches, mismatches);
+    let object = app.object(7);
+    check(
+        app.client.write(object, 0, b"Nee", 1, fill(object, 1)) == Err(Status::Access),
+        731,
+    );
+    let (status, report) = archive::restore_native_l2(
+        || DiskSource::new(NativeDisk { device }, ARCHIVE_SECTORS),
+        scratch,
+        &mut app.client,
+        0,
+        &mut ArchiveV2::default(),
+    )
+    .err()
+    .unwrap_or_else(|| fail(732));
+    check(status == Status::Stale && report.committed == 0, 733);
+    l2_report(&report, status);
+    if partial {
+        // After l2_report: the refused restore's empty masks must not hide them.
+        support::put(L2_WORDS.restored, restored);
+        support::put(L2_WORDS.collections, collections);
+    }
+}
+
 fn run() {
     check(native::check_abi().is_ok(), 1);
     let slot = support::word(0);
@@ -1144,16 +1666,18 @@ fn run() {
         commits: 0,
     };
     match case {
-        #[cfg(not(feature = "archive-portal"))]
+        #[cfg(not(any(feature = "archive-portal", feature = "l2-portal")))]
         NORMAL if domain == 0 => normal_a(&mut app),
-        #[cfg(not(feature = "archive-portal"))]
+        #[cfg(not(any(feature = "archive-portal", feature = "l2-portal")))]
         NORMAL => normal_b(&mut app),
-        #[cfg(not(feature = "archive-portal"))]
+        #[cfg(not(any(feature = "archive-portal", feature = "l2-portal")))]
         RECOVER => recover(&mut app),
-        #[cfg(not(feature = "archive-portal"))]
+        #[cfg(not(any(feature = "archive-portal", feature = "l2-portal")))]
         CUT_DATA | CUT_TABLE | CUT_TXN => cut(&mut app, case),
-        #[cfg(not(feature = "archive-portal"))]
+        #[cfg(not(any(feature = "archive-portal", feature = "l2-portal")))]
         RECOVER_CUT => recover_cut(&mut app),
+        #[cfg(not(any(feature = "archive-portal", feature = "l2-portal")))]
+        INSTALL | INSTALL_RECOVER | INSTALL_CUT => install_flow(&mut app, case),
         #[cfg(feature = "archive-portal")]
         ARCHIVE_EXPORT | ARCHIVE_RESTORE | ARCHIVE_CORRUPT | ARCHIVE_CONFLICT | ARCHIVE_FULL
         | ARCHIVE_USTAR | ARCHIVE_ABSENT | ARCHIVE_CUT
@@ -1166,6 +1690,18 @@ fn run() {
         #[cfg(feature = "archive-portal")]
         ARCHIVE_EXPORT | ARCHIVE_RESTORE | ARCHIVE_CORRUPT | ARCHIVE_CONFLICT | ARCHIVE_FULL
         | ARCHIVE_USTAR | ARCHIVE_ABSENT | ARCHIVE_CUT => {
+            app.phase(1);
+            app.wait_gate(2);
+            app.report(760)
+        }
+        #[cfg(feature = "l2-portal")]
+        L2_EXPORT | L2_RESTORE | L2_CORRUPT | L2_USED | L2_RESTORE_CUT | RECOVER_L2_CUT
+            if domain == 0 =>
+        {
+            l2_portal(&mut app, case)
+        }
+        #[cfg(feature = "l2-portal")]
+        L2_EXPORT | L2_RESTORE | L2_CORRUPT | L2_USED | L2_RESTORE_CUT | RECOVER_L2_CUT => {
             app.phase(1);
             app.wait_gate(2);
             app.report(760)

@@ -1,0 +1,372 @@
+{"command": ["cargo", "build", "--offline", "--locked", "--release", "--manifest-path", "~/projects/BaryonOS-worktrees/b-cycle-20261124/sdk/Cargo.toml", "-p", "nieuw-os-keyring-example", "--features", "native", "--bins", "--target", "x86_64-unknown-none"], "target_dir": "~/projects/BaryonOS-scratch/b/relay-20261124/target/keyring"}
+    Finished `release` profile [optimized] target(s) in 0.01s
+    Finished `release` profile [optimized] target(s) in 0.00s
+warning: methods `level`, `owner`, and `lock_pair` are never used
+   --> kernel/src/m2/lock.rs:146:12
+    |
+130 | impl<T> IrqLock<T> {
+    | ------------------ methods in this implementation
+...
+146 |     pub fn level(&self) -> u8 {
+    |            ^^^^^
+...
+156 |     pub fn owner(&self) -> Option<u8> {
+    |            ^^^^^
+...
+178 |     pub fn lock_pair<'a>(&'a self, other: &'a Self) -> (IrqGuard<'a, T>, IrqGuard<'a, T>) {
+    |            ^^^^^^^^^
+    |
+    = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: function `hex` is never used
+   --> kernel/src/serial.rs:184:8
+    |
+184 | pub fn hex(label: &[u8], value: u64) {
+    |        ^^^
+
+warning: `os-kernel` (bin "os-kernel") generated 2 warnings
+warning: unused dependency `block-protocol`
+   --> kernel/Cargo.toml:415:1
+    |
+415 | block-protocol = { path = "../services/block" }
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: `cargo::unused_dependencies` is set to `warn` by default
+help: consider removing the dependency on `block-protocol`
+warning: unused dependency `virtio-blk-driver`
+   --> kernel/Cargo.toml:412:1
+    |
+412 | virtio-blk-driver = { path = "../drivers/virtio-blk" }
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+help: consider removing the dependency on `virtio-blk-driver`
+warning: `os-kernel` (manifest) generated 2 warnings
+    Finished `release` profile [optimized] target(s) in 0.00s
+Built and inspected native-keyring: 3 ELF load segments
+B01 normal: passed=True raw=33 duration=2.7s ~/projects/BaryonOS-worktrees/b-cycle-20261124/build/relay-20261124/run/keyring-normal-e997bcc821
+{"command": ["cargo", "build", "--offline", "--locked", "--release", "--manifest-path", "~/projects/BaryonOS-worktrees/b-cycle-20261124/sdk/Cargo.toml", "-p", "nieuw-os-keyring-example", "--features", "native", "--bins", "--target", "x86_64-unknown-none"], "target_dir": "~/projects/BaryonOS-scratch/b/relay-20261124/target/keyring"}
+    Finished `release` profile [optimized] target(s) in 0.00s
+    Finished `release` profile [optimized] target(s) in 0.00s
+warning: methods `level`, `owner`, and `lock_pair` are never used
+   --> kernel/src/m2/lock.rs:146:12
+    |
+130 | impl<T> IrqLock<T> {
+    | ------------------ methods in this implementation
+...
+146 |     pub fn level(&self) -> u8 {
+    |            ^^^^^
+...
+156 |     pub fn owner(&self) -> Option<u8> {
+    |            ^^^^^
+...
+178 |     pub fn lock_pair<'a>(&'a self, other: &'a Self) -> (IrqGuard<'a, T>, IrqGuard<'a, T>) {
+    |            ^^^^^^^^^
+    |
+    = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: function `hex` is never used
+   --> kernel/src/serial.rs:184:8
+    |
+184 | pub fn hex(label: &[u8], value: u64) {
+    |        ^^^
+
+warning: `os-kernel` (bin "os-kernel") generated 2 warnings
+warning: unused dependency `block-protocol`
+   --> kernel/Cargo.toml:415:1
+    |
+415 | block-protocol = { path = "../services/block" }
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: `cargo::unused_dependencies` is set to `warn` by default
+help: consider removing the dependency on `block-protocol`
+warning: unused dependency `virtio-blk-driver`
+   --> kernel/Cargo.toml:412:1
+    |
+412 | virtio-blk-driver = { path = "../drivers/virtio-blk" }
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+help: consider removing the dependency on `virtio-blk-driver`
+warning: `os-kernel` (manifest) generated 2 warnings
+    Finished `release` profile [optimized] target(s) in 0.00s
+Built and inspected test-keyring-no-device: 3 ELF load segments
+B01 no-device: passed=True raw=33 duration=1.2s ~/projects/BaryonOS-worktrees/b-cycle-20261124/build/relay-20261124/run/keyring-no-device-459842621d
+{"command": ["cargo", "build", "--offline", "--locked", "--release", "--manifest-path", "~/projects/BaryonOS-worktrees/b-cycle-20261124/sdk/Cargo.toml", "-p", "nieuw-os-keyring-example", "--features", "native", "--bins", "--target", "x86_64-unknown-none"], "target_dir": "~/projects/BaryonOS-scratch/b/relay-20261124/target/keyring"}
+    Finished `release` profile [optimized] target(s) in 0.00s
+    Finished `release` profile [optimized] target(s) in 0.00s
+warning: methods `level`, `owner`, and `lock_pair` are never used
+   --> kernel/src/m2/lock.rs:146:12
+    |
+130 | impl<T> IrqLock<T> {
+    | ------------------ methods in this implementation
+...
+146 |     pub fn level(&self) -> u8 {
+    |            ^^^^^
+...
+156 |     pub fn owner(&self) -> Option<u8> {
+    |            ^^^^^
+...
+178 |     pub fn lock_pair<'a>(&'a self, other: &'a Self) -> (IrqGuard<'a, T>, IrqGuard<'a, T>) {
+    |            ^^^^^^^^^
+    |
+    = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: function `hex` is never used
+   --> kernel/src/serial.rs:184:8
+    |
+184 | pub fn hex(label: &[u8], value: u64) {
+    |        ^^^
+
+warning: `os-kernel` (bin "os-kernel") generated 2 warnings
+warning: unused dependency `block-protocol`
+   --> kernel/Cargo.toml:415:1
+    |
+415 | block-protocol = { path = "../services/block" }
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: `cargo::unused_dependencies` is set to `warn` by default
+help: consider removing the dependency on `block-protocol`
+warning: unused dependency `virtio-blk-driver`
+   --> kernel/Cargo.toml:412:1
+    |
+412 | virtio-blk-driver = { path = "../drivers/virtio-blk" }
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+help: consider removing the dependency on `virtio-blk-driver`
+warning: `os-kernel` (manifest) generated 2 warnings
+    Finished `release` profile [optimized] target(s) in 0.00s
+Built and inspected test-keyring-stuck: 3 ELF load segments
+B01 stuck: passed=True raw=33 duration=1.3s ~/projects/BaryonOS-worktrees/b-cycle-20261124/build/relay-20261124/run/keyring-stuck-728ebeda6b
+{"command": ["cargo", "build", "--offline", "--locked", "--release", "--manifest-path", "~/projects/BaryonOS-worktrees/b-cycle-20261124/sdk/Cargo.toml", "-p", "nieuw-os-keyring-example", "--features", "native", "--bins", "--target", "x86_64-unknown-none"], "target_dir": "~/projects/BaryonOS-scratch/b/relay-20261124/target/keyring"}
+    Finished `release` profile [optimized] target(s) in 0.00s
+    Finished `release` profile [optimized] target(s) in 0.00s
+warning: methods `level`, `owner`, and `lock_pair` are never used
+   --> kernel/src/m2/lock.rs:146:12
+    |
+130 | impl<T> IrqLock<T> {
+    | ------------------ methods in this implementation
+...
+146 |     pub fn level(&self) -> u8 {
+    |            ^^^^^
+...
+156 |     pub fn owner(&self) -> Option<u8> {
+    |            ^^^^^
+...
+178 |     pub fn lock_pair<'a>(&'a self, other: &'a Self) -> (IrqGuard<'a, T>, IrqGuard<'a, T>) {
+    |            ^^^^^^^^^
+    |
+    = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: function `hex` is never used
+   --> kernel/src/serial.rs:184:8
+    |
+184 | pub fn hex(label: &[u8], value: u64) {
+    |        ^^^
+
+warning: `os-kernel` (bin "os-kernel") generated 2 warnings
+warning: unused dependency `block-protocol`
+   --> kernel/Cargo.toml:415:1
+    |
+415 | block-protocol = { path = "../services/block" }
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: `cargo::unused_dependencies` is set to `warn` by default
+help: consider removing the dependency on `block-protocol`
+warning: unused dependency `virtio-blk-driver`
+   --> kernel/Cargo.toml:412:1
+    |
+412 | virtio-blk-driver = { path = "../drivers/virtio-blk" }
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+help: consider removing the dependency on `virtio-blk-driver`
+warning: `os-kernel` (manifest) generated 2 warnings
+    Finished `release` profile [optimized] target(s) in 0.00s
+Built and inspected test-keyring-timeout: 3 ELF load segments
+B01 timeout: passed=True raw=33 duration=1.9s ~/projects/BaryonOS-worktrees/b-cycle-20261124/build/relay-20261124/run/keyring-timeout-0fad6b499c
+{"command": ["cargo", "build", "--offline", "--locked", "--release", "--manifest-path", "~/projects/BaryonOS-worktrees/b-cycle-20261124/sdk/Cargo.toml", "-p", "nieuw-os-keyring-example", "--features", "native", "--bins", "--target", "x86_64-unknown-none"], "target_dir": "~/projects/BaryonOS-scratch/b/relay-20261124/target/keyring"}
+    Finished `release` profile [optimized] target(s) in 0.00s
+    Finished `release` profile [optimized] target(s) in 0.00s
+warning: methods `level`, `owner`, and `lock_pair` are never used
+   --> kernel/src/m2/lock.rs:146:12
+    |
+130 | impl<T> IrqLock<T> {
+    | ------------------ methods in this implementation
+...
+146 |     pub fn level(&self) -> u8 {
+    |            ^^^^^
+...
+156 |     pub fn owner(&self) -> Option<u8> {
+    |            ^^^^^
+...
+178 |     pub fn lock_pair<'a>(&'a self, other: &'a Self) -> (IrqGuard<'a, T>, IrqGuard<'a, T>) {
+    |            ^^^^^^^^^
+    |
+    = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: function `hex` is never used
+   --> kernel/src/serial.rs:184:8
+    |
+184 | pub fn hex(label: &[u8], value: u64) {
+    |        ^^^
+
+warning: `os-kernel` (bin "os-kernel") generated 2 warnings
+warning: unused dependency `block-protocol`
+   --> kernel/Cargo.toml:415:1
+    |
+415 | block-protocol = { path = "../services/block" }
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: `cargo::unused_dependencies` is set to `warn` by default
+help: consider removing the dependency on `block-protocol`
+warning: unused dependency `virtio-blk-driver`
+   --> kernel/Cargo.toml:412:1
+    |
+412 | virtio-blk-driver = { path = "../drivers/virtio-blk" }
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+help: consider removing the dependency on `virtio-blk-driver`
+warning: `os-kernel` (manifest) generated 2 warnings
+    Finished `release` profile [optimized] target(s) in 0.00s
+Built and inspected test-keyring-restart: 3 ELF load segments
+B01 restart: passed=True raw=33 duration=1.3s ~/projects/BaryonOS-worktrees/b-cycle-20261124/build/relay-20261124/run/keyring-restart-cc503f67dd
+{"command": ["cargo", "build", "--offline", "--locked", "--release", "--manifest-path", "~/projects/BaryonOS-worktrees/b-cycle-20261124/sdk/Cargo.toml", "-p", "nieuw-os-keyring-example", "--features", "native", "--bins", "--target", "x86_64-unknown-none"], "target_dir": "~/projects/BaryonOS-scratch/b/relay-20261124/target/keyring"}
+    Finished `release` profile [optimized] target(s) in 0.02s
+    Finished `release` profile [optimized] target(s) in 0.00s
+warning: methods `level`, `owner`, and `lock_pair` are never used
+   --> kernel/src/m2/lock.rs:146:12
+    |
+130 | impl<T> IrqLock<T> {
+    | ------------------ methods in this implementation
+...
+146 |     pub fn level(&self) -> u8 {
+    |            ^^^^^
+...
+156 |     pub fn owner(&self) -> Option<u8> {
+    |            ^^^^^
+...
+178 |     pub fn lock_pair<'a>(&'a self, other: &'a Self) -> (IrqGuard<'a, T>, IrqGuard<'a, T>) {
+    |            ^^^^^^^^^
+    |
+    = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: function `hex` is never used
+   --> kernel/src/serial.rs:184:8
+    |
+184 | pub fn hex(label: &[u8], value: u64) {
+    |        ^^^
+
+warning: `os-kernel` (bin "os-kernel") generated 2 warnings
+warning: unused dependency `block-protocol`
+   --> kernel/Cargo.toml:415:1
+    |
+415 | block-protocol = { path = "../services/block" }
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: `cargo::unused_dependencies` is set to `warn` by default
+help: consider removing the dependency on `block-protocol`
+warning: unused dependency `virtio-blk-driver`
+   --> kernel/Cargo.toml:412:1
+    |
+412 | virtio-blk-driver = { path = "../drivers/virtio-blk" }
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+help: consider removing the dependency on `virtio-blk-driver`
+warning: `os-kernel` (manifest) generated 2 warnings
+    Finished `release` profile [optimized] target(s) in 0.00s
+Built and inspected test-keyring-requester-crash: 3 ELF load segments
+B01 requester-crash: passed=True raw=33 duration=1.3s ~/projects/BaryonOS-worktrees/b-cycle-20261124/build/relay-20261124/run/keyring-requester-crash-29fb76e735
+{"command": ["cargo", "build", "--offline", "--locked", "--release", "--manifest-path", "~/projects/BaryonOS-worktrees/b-cycle-20261124/sdk/Cargo.toml", "-p", "nieuw-os-keyring-example", "--features", "native", "--bins", "--target", "x86_64-unknown-none"], "target_dir": "~/projects/BaryonOS-scratch/b/relay-20261124/target/keyring"}
+    Finished `release` profile [optimized] target(s) in 0.00s
+    Finished `release` profile [optimized] target(s) in 0.00s
+warning: methods `level`, `owner`, and `lock_pair` are never used
+   --> kernel/src/m2/lock.rs:146:12
+    |
+130 | impl<T> IrqLock<T> {
+    | ------------------ methods in this implementation
+...
+146 |     pub fn level(&self) -> u8 {
+    |            ^^^^^
+...
+156 |     pub fn owner(&self) -> Option<u8> {
+    |            ^^^^^
+...
+178 |     pub fn lock_pair<'a>(&'a self, other: &'a Self) -> (IrqGuard<'a, T>, IrqGuard<'a, T>) {
+    |            ^^^^^^^^^
+    |
+    = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: function `hex` is never used
+   --> kernel/src/serial.rs:184:8
+    |
+184 | pub fn hex(label: &[u8], value: u64) {
+    |        ^^^
+
+warning: `os-kernel` (bin "os-kernel") generated 2 warnings
+warning: unused dependency `block-protocol`
+   --> kernel/Cargo.toml:415:1
+    |
+415 | block-protocol = { path = "../services/block" }
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: `cargo::unused_dependencies` is set to `warn` by default
+help: consider removing the dependency on `block-protocol`
+warning: unused dependency `virtio-blk-driver`
+   --> kernel/Cargo.toml:412:1
+    |
+412 | virtio-blk-driver = { path = "../drivers/virtio-blk" }
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+help: consider removing the dependency on `virtio-blk-driver`
+warning: `os-kernel` (manifest) generated 2 warnings
+    Finished `release` profile [optimized] target(s) in 0.00s
+Built and inspected test-keyring-no-reset-ack: 3 ELF load segments
+B01 no-reset-ack: passed=True raw=33 duration=2.0s ~/projects/BaryonOS-worktrees/b-cycle-20261124/build/relay-20261124/run/keyring-no-reset-ack-ccbadfc9b3
+    Finished `release` profile [optimized] target(s) in 0.00s
+warning: function `hex` is never used
+   --> kernel/src/serial.rs:184:8
+    |
+184 | pub fn hex(label: &[u8], value: u64) {
+    |        ^^^
+    |
+    = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: `os-kernel` (bin "os-kernel") generated 1 warning
+warning: unused dependency `block-protocol`
+   --> kernel/Cargo.toml:415:1
+    |
+415 | block-protocol = { path = "../services/block" }
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: `cargo::unused_dependencies` is set to `warn` by default
+help: consider removing the dependency on `block-protocol`
+warning: unused dependency `capability-core`
+   --> kernel/Cargo.toml:410:1
+    |
+410 | capability-core = { path = "../crates/capability-core" }
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+help: consider removing the dependency on `capability-core`
+warning: unused dependency `kernel-core`
+   --> kernel/Cargo.toml:408:1
+    |
+408 | kernel-core = { path = "../crates/kernel-core" }
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+help: consider removing the dependency on `kernel-core`
+warning: unused dependency `smp-lock`
+   --> kernel/Cargo.toml:409:1
+    |
+409 | smp-lock = { path = "../crates/smp-lock" }
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+help: consider removing the dependency on `smp-lock`
+warning: unused dependency `virtio-blk-driver`
+   --> kernel/Cargo.toml:412:1
+    |
+412 | virtio-blk-driver = { path = "../drivers/virtio-blk" }
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+help: consider removing the dependency on `virtio-blk-driver`
+warning: `os-kernel` (manifest) generated 5 warnings
+    Finished `release` profile [optimized] target(s) in 0.00s
+Built and inspected normal: 3 ELF load segments
+B01 gate passed=True stages=7

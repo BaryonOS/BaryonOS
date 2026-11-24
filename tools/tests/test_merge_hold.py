@@ -12,7 +12,15 @@ import merge_hold
 
 HEAD = "a" * 40
 OTHER = "b" * 40
-ENV = {"GH_TOKEN": "x", "REPO": "o/r", "PR_NUMBER": "7", "HEAD_SHA": HEAD}
+ENV = {"GH_TOKEN": "x", "REPO": "o/r", "EVENT_NAME": "pull_request",
+       "PR_NUMBER": "7", "HEAD_SHA": HEAD}
+GROUP = "c" * 40
+BASE = "d" * 40
+GROUP_ENV = {"GH_TOKEN": "x", "REPO": "o/r", "EVENT_NAME": "merge_group",
+             "PR_NUMBER": "", "HEAD_SHA": "",
+             "MERGE_GROUP_HEAD_SHA": GROUP,
+             "MERGE_GROUP_HEAD_REF": f"refs/heads/gh-readonly-queue/main/pr-8-{BASE}",
+             "MERGE_GROUP_BASE_REF": "refs/heads/main"}
 
 
 def comment(body, association="MEMBER"):
@@ -97,12 +105,457 @@ class MainTests(TestCase):
         self.assertEqual(self.run_main(env, lambda t, u: [])[0], 1)
         env = dict(ENV, PR_NUMBER="seven")
         self.assertEqual(self.run_main(env, lambda t, u: [])[0], 1)
+        for event in (None, "push", "pull_request_target"):
+            with self.subTest(event=event):
+                env = {k: v for k, v in ENV.items() if k != "EVENT_NAME"}
+                if event:
+                    env["EVENT_NAME"] = event
+                self.assertEqual(self.run_main(env, lambda t, u: [])[0], 1)
 
     def test_unexpected_payload_fails_closed(self):
         def odd(token, url):
             raise TypeError("Unexpected API response")
 
         self.assertEqual(self.run_main(ENV, odd)[0], 1)
+
+
+def entry(position, number, commit, head, state="OPEN", base="main"):
+    return {"position": position, "headCommit": {"oid": commit},
+            "pullRequest": {"number": number, "state": state,
+                            "baseRefName": base, "headRefOid": head}}
+
+
+def runs(*states):
+    """Check-run list answer: one run per AHEAD_CHECKS name with the given status."""
+    return {"check_runs": [{"name": name, "status": state,
+                            "conclusion": "success" if state == "completed" else None}
+                           for name, state in zip(merge_hold.AHEAD_CHECKS, states)]}
+
+
+DONE = runs("completed", "completed", "completed")
+E = "e" * 40
+
+
+class MergeGroupTests(TestCase):
+    """PR 7 is ahead of PR 8; group commit GROUP contains both."""
+
+    def run_group(self, nodes, labels=None, comments=None, trees=None,
+                  env=None, answer=None, checks=None, ahead=None, on_sleep=None,
+                  commits=None):
+        """checks answer polls of the group commit, commits[sha] those of sha, ahead the rest."""
+        labels, comments, trees = labels or {}, comments or {}, trees or {}
+        polls = {sha: list(answers) for sha, answers in (commits or {}).items()}
+        polls[GROUP], polls[None] = list(checks or [DONE]), list(ahead or [DONE])
+        calls = []
+
+        def fetch(token, url):
+            calls.append(url)
+            number = int(url.split("/")[-2])
+            if url.endswith("/labels"):
+                return [{"name": name} for name in labels.get(number, [])]
+            return comments.get(number, [])
+
+        def call(token, url, payload=None):
+            calls.append(url)
+            if "/check-runs?" in url:
+                queue = polls.get(url.split("/commits/")[1].split("/")[0], polls[None])
+                answer_ = queue.pop(0) if len(queue) > 1 else queue[0]
+                if isinstance(answer_, Exception):
+                    raise answer_
+                return answer_
+            if url.endswith("/graphql"):
+                self.assertEqual(payload["variables"], {"owner": "o", "name": "r"})
+                return answer if answer is not None else {"data": {"repository": {
+                    "mergeQueue": {"entries": {"pageInfo": {"hasNextPage": False},
+                                               "nodes": nodes}}}}}
+            sha = url.rsplit("/", 1)[1]
+            return {"tree": {"sha": trees.get(sha, sha)}}
+
+        clock = [0.0]
+
+        def sleep(seconds):
+            # Fake clock: each poll advances time, so the deadline ends any wait.
+            clock[0] += seconds
+            calls.append("sleep")
+            if on_sleep:
+                on_sleep(labels, comments, nodes)
+
+        out = io.StringIO()
+        with mock.patch.dict(os.environ, env or GROUP_ENV, clear=True), \
+                mock.patch.object(merge_hold, "fetch_all", fetch), \
+                mock.patch.object(merge_hold, "call", call), \
+                mock.patch.object(merge_hold.time, "sleep", sleep), \
+                mock.patch.object(merge_hold.time, "monotonic", lambda: clock[0]), \
+                contextlib.redirect_stdout(out):
+            return merge_hold.main(), out.getvalue(), calls
+
+    QUEUE = [entry(1, 7, "e" * 40, HEAD), entry(2, 8, GROUP, OTHER),
+             entry(3, 9, "f" * 40, "9" * 40)]
+
+    def test_unheld_group_passes_and_checks_every_contained_pr(self):
+        code, out, _ = self.run_group(self.QUEUE)
+        self.assertEqual(code, 0, out)
+        self.assertIn("#7:", out)
+        self.assertIn("#8:", out)
+        self.assertNotIn("#9:", out)
+
+    def test_released_pr_with_the_landing_tree_passes(self):
+        code, out, _ = self.run_group(
+            [entry(1, 8, GROUP, OTHER)],
+            labels={8: [merge_hold.LABEL]},
+            comments={8: [comment("acceptance-released: " + OTHER)]},
+            trees={GROUP: "1" * 40, OTHER: "1" * 40})
+        self.assertEqual(code, 0, out)
+
+    def test_released_hold_rejects_matching_malformed_tree_ids(self):
+        # Unknown trees must never count as the same accepted tree, even if
+        # both REST replies contain the same malformed value.
+        for invalid in (None, "", "not-a-tree-sha", "1" * 39, "1" * 41, 123):
+            with self.subTest(tree_sha=invalid):
+                code, out, _ = self.run_group(
+                    [entry(1, 8, GROUP, OTHER)],
+                    labels={8: [merge_hold.LABEL]},
+                    comments={8: [comment("acceptance-released: " + OTHER)]},
+                    trees={GROUP: invalid, OTHER: invalid})
+                self.assertEqual(code, 1, out)
+                self.assertIn("tree SHA", out)
+
+    def test_unreleased_pending_pr_ahead_in_the_group_fails(self):
+        code, out, _ = self.run_group(self.QUEUE, labels={7: [merge_hold.LABEL]})
+        self.assertEqual(code, 1)
+        self.assertIn("#7: ::error::", out)
+
+    def test_release_does_not_cover_a_different_landing_tree(self):
+        code, out, _ = self.run_group(
+            self.QUEUE,
+            labels={8: [merge_hold.LABEL]},
+            comments={8: [comment("acceptance-released: " + OTHER)]},
+            trees={GROUP: "1" * 40, OTHER: "2" * 40})
+        self.assertEqual(code, 1)
+        self.assertIn("#8: ::error::", out)
+
+    def test_released_pr_ahead_does_not_block_an_unheld_pr_behind_it(self):
+        # PR 7's own entry commit (group 1) has PR 7's tree; group 2 adds PR 8.
+        queue = [entry(1, 7, "e" * 40, HEAD), entry(2, 8, GROUP, OTHER)]
+        code, out, _ = self.run_group(
+            queue,
+            labels={7: [merge_hold.LABEL]},
+            comments={7: [comment("acceptance-released: " + HEAD)]},
+            trees={"e" * 40: "1" * 40, HEAD: "1" * 40, GROUP: "2" * 40})
+        self.assertEqual(code, 0, out)
+
+    def test_released_pr_ahead_whose_own_entry_lands_another_tree_fails(self):
+        queue = [entry(1, 7, "e" * 40, HEAD), entry(2, 8, GROUP, OTHER)]
+        code, out, _ = self.run_group(
+            queue,
+            labels={7: [merge_hold.LABEL]},
+            comments={7: [comment("acceptance-released: " + HEAD)]},
+            trees={"e" * 40: "1" * 40, HEAD: "2" * 40, GROUP: "3" * 40})
+        self.assertEqual(code, 1)
+        self.assertIn("#7: ::error::", out)
+
+    def test_waits_for_required_checks_before_reading_labels(self):
+        def add_hold(labels, comments, nodes):
+            labels[8] = [merge_hold.LABEL]
+
+        code, out, calls = self.run_group(
+            self.QUEUE,
+            checks=[runs("in_progress", "completed"), runs("completed", "queued"), DONE],
+            on_sleep=add_hold)
+        self.assertEqual(code, 1, out)
+        self.assertIn("#8: ::error::", out)
+        polls = [i for i, url in enumerate(calls) if f"/commits/{GROUP}/check-runs?" in url]
+        self.assertEqual(len(polls), 3)
+        self.assertEqual(calls.count("sleep"), 2)
+        # The queue is read only once the group's own checks are done.
+        self.assertGreater(min(i for i, url in enumerate(calls) if url.endswith("/graphql")),
+                           polls[-1])
+        self.assertLabelsReadAfterWait(calls)
+        poll = calls[polls[0]]
+        self.assertIn(f"/commits/{GROUP}/check-runs?", poll)
+        self.assertIn(f"app_id={merge_hold.ACTIONS_APP_ID}", poll)
+
+    def assertLabelsReadAfterWait(self, calls):
+        last_poll = max(i for i, url in enumerate(calls) if "/check-runs?" in url)
+        first_label = min(i for i, url in enumerate(calls) if url.endswith("/labels"))
+        self.assertGreater(first_label, last_poll)
+
+    def test_waits_for_the_entry_ahead_before_reading_labels(self):
+        # PR 7 ahead still runs merge-hold; a hold set on PR 8 meanwhile is seen.
+        def add_hold(labels, comments, nodes):
+            labels[8] = [merge_hold.LABEL]
+
+        code, out, calls = self.run_group(
+            self.QUEUE,
+            ahead=[runs("completed", "completed", "in_progress"),
+                   {"check_runs": []}, DONE],
+            on_sleep=add_hold)
+        self.assertEqual(code, 1, out)
+        self.assertIn("#8: ::error::", out)
+        self.assertEqual(calls.count("sleep"), 2)
+        self.assertEqual(len([url for url in calls if f"/commits/{E}/check-runs?" in url]), 3)
+        self.assertFalse([url for url in calls if "/commits/" + "f" * 40 in url])
+        self.assertLabelsReadAfterWait(calls)
+
+    def test_entry_ahead_whose_merge_hold_ended_early_does_not_end_the_wait(self):
+        # A merge-hold ahead that did not succeed may not have waited, so the
+        # entries ahead of it may still run; a hold set on PR 7 meanwhile must
+        # be seen by this group, however many such entries lie in between.
+        a1, a2, a3 = "1" * 40, "2" * 40, "3" * 40
+
+        def ended(conclusion):
+            run = {"name": "merge-hold", "status": "completed"}
+            if conclusion != "absent":
+                run["conclusion"] = conclusion
+            return {"check_runs": [run] + [{"name": name, "status": "completed",
+                                            "conclusion": "success"}
+                                           for name in merge_hold.WAIT_CHECKS]}
+
+        def add_hold(labels, comments, nodes):
+            labels[7] = [merge_hold.LABEL]
+
+        head = [runs("in_progress", "in_progress", "in_progress"),
+                runs("completed", "completed", "in_progress"), DONE]
+        cases = [(c, [entry(1, 7, a1, HEAD), entry(2, 9, a2, "9" * 40),
+                      entry(3, 8, GROUP, OTHER)], {a2: [ended(c)], a1: head})
+                 for c in ("failure", "cancelled", "timed_out", "skipped", "neutral",
+                           "action_required", None, "absent")]
+        cases.append(("two hops", [entry(1, 7, a1, HEAD), entry(2, 9, a2, "9" * 40),
+                                   entry(3, 6, a3, "6" * 40), entry(4, 8, GROUP, OTHER)],
+                      {a3: [ended("cancelled")], a2: [ended("failure")], a1: head}))
+        for name, queue, commits in cases:
+            with self.subTest(conclusion=name):
+                code, out, calls = self.run_group(queue, commits=commits, on_sleep=add_hold)
+                self.assertEqual(code, 1, out)
+                self.assertIn("#7: ::error::", out)
+                self.assertEqual(calls.count("sleep"), 2)
+                self.assertLabelsReadAfterWait(calls)
+
+    def test_successful_entry_ahead_ends_the_walk(self):
+        a1, a2 = "1" * 40, "2" * 40
+        code, out, calls = self.run_group(
+            [entry(1, 7, a1, HEAD), entry(2, 9, a2, "9" * 40), entry(3, 8, GROUP, OTHER)],
+            commits={a2: [DONE], a1: [runs("in_progress", "in_progress", "in_progress")]})
+        self.assertEqual(code, 0, out)
+        self.assertEqual(calls.count("sleep"), 0)
+        self.assertFalse([url for url in calls if f"/commits/{a1}/" in url])
+
+    def test_entry_ahead_that_leaves_the_queue_ends_the_wait(self):
+        def merged(labels, comments, nodes):
+            del nodes[0]
+
+        code, out, calls = self.run_group(
+            [entry(1, 7, E, HEAD), entry(2, 8, GROUP, OTHER)],
+            ahead=[runs("completed", "completed", "in_progress")], on_sleep=merged)
+        self.assertEqual(code, 0, out)
+        self.assertNotIn("#7:", out)
+        self.assertEqual(calls.count("sleep"), 1)
+
+    def test_unfinished_entry_ahead_fails_closed_at_the_deadline(self):
+        for ahead in ([runs("completed", "completed", "queued")], [{"check_runs": []}],
+                      [OSError("HTTP 403 rate limited")]):
+            with self.subTest(ahead=ahead), mock.patch.object(merge_hold, "WAIT_SECONDS", 0):
+                code, out, calls = self.run_group(self.QUEUE, ahead=ahead)
+                self.assertEqual(code, 1, out)
+                self.assertIn("::error::", out)
+                self.assertFalse([url for url in calls if url.endswith("/labels")])
+
+    def test_unbuilt_entries_behind_the_group_are_ignored(self):
+        # headCommit and pullRequest are nullable in GraphQL (MergeQueueEntry).
+        queue = [entry(1, 7, E, HEAD), entry(2, 8, GROUP, OTHER),
+                 {"position": 3, "headCommit": None, "pullRequest": None},
+                 {"position": 4, "headCommit": None,
+                  "pullRequest": {"number": 9, "state": "OPEN", "baseRefName": "main",
+                                  "headRefOid": "9" * 40}},
+                 {"position": 5, "headCommit": {"oid": None}, "pullRequest": None}]
+        code, out, _ = self.run_group(queue)
+        self.assertEqual(code, 0, out)
+        self.assertIn("#7:", out)
+        self.assertIn("#8:", out)
+        self.assertNotIn("#9:", out)
+
+    def test_entry_ahead_with_missing_data_fails_closed(self):
+        for ahead in ({"position": 1, "headCommit": None, "pullRequest": None},
+                      {"position": 1, "headCommit": None,
+                       "pullRequest": entry(1, 7, E, HEAD)["pullRequest"]},
+                      {"position": 1, "headCommit": {"oid": E}, "pullRequest": None}):
+            with self.subTest(ahead=ahead), mock.patch.object(merge_hold, "WAIT_SECONDS", 0):
+                code, out, calls = self.run_group([ahead, entry(2, 8, GROUP, OTHER)])
+                self.assertEqual(code, 1, out)
+                self.assertIn("::error::", out)
+                self.assertFalse([url for url in calls if url.endswith("/labels")])
+
+    def test_entry_ahead_without_a_commit_keeps_the_run_waiting(self):
+        # Real wait budget: the run polls until the entry ahead is built, and a
+        # hold set on that pull request meanwhile is seen.
+        pr7 = entry(1, 7, E, HEAD)["pullRequest"]
+
+        def build(labels, comments, nodes):
+            nodes[0]["headCommit"] = {"oid": E}
+            labels[7] = [merge_hold.LABEL]
+
+        code, out, calls = self.run_group(
+            [{"position": 1, "headCommit": None, "pullRequest": pr7}, entry(2, 8, GROUP, OTHER)],
+            on_sleep=build)
+        self.assertEqual(code, 1, out)
+        self.assertIn("#7: ::error::", out)
+        self.assertEqual(calls.count("sleep"), 1)
+        self.assertLabelsReadAfterWait(calls)
+
+    def test_merged_entry_ahead_counts_as_already_on_main(self):
+        # GitHub may still list an entry ahead as MERGED right after its
+        # merge-hold succeeds; it is on main, so it neither blocks nor counts.
+        code, out, calls = self.run_group(
+            [entry(1, 7, E, HEAD, state="MERGED"), entry(2, 8, GROUP, OTHER)],
+            labels={7: [merge_hold.LABEL]})
+        self.assertEqual(code, 0, out)
+        self.assertNotIn("#7:", out)
+        self.assertIn("#8:", out)
+        self.assertEqual(calls.count("sleep"), 0)
+        self.assertFalse([url for url in calls if "/issues/7/" in url])
+
+    def test_merged_entry_skip_stays_narrow(self):
+        merged_ahead = entry(1, 6, "1" * 40, "6" * 40, state="MERGED")
+        for queue, error in (
+            ([entry(1, 8, GROUP, OTHER, state="MERGED")], "::error::merge-hold"),
+            ([entry(1, 7, E, HEAD, state="MERGED", base="release"),
+              entry(2, 8, GROUP, OTHER)], "::error::merge-hold"),
+            ([entry(1, 7, E, HEAD, state="CLOSED"), entry(2, 8, GROUP, OTHER)],
+             "::error::merge-hold"),
+            ([merged_ahead, entry(2, 7, E, HEAD), entry(3, 8, GROUP, OTHER)], "#7: ::error::"),
+        ):
+            with self.subTest(queue=queue), mock.patch.object(merge_hold, "WAIT_SECONDS", 0):
+                code, out, _ = self.run_group(queue, labels={7: [merge_hold.LABEL]})
+                self.assertEqual(code, 1, out)
+                self.assertIn(error, out)
+
+    def test_group_that_left_the_queue_fails_after_two_reads(self):
+        # Real wait budget: an ejected or rebuilt group can never merge, so two
+        # consecutive well-formed reads lacking it, one poll apart, end the wait
+        # instead of polling to the deadline. Only the group's own pull request
+        # needs a built commit; unbuilt entries of other pull requests ahead or
+        # behind do not hide its absence.
+        for queue in ([entry(1, 7, E, HEAD)],
+                      [entry(1, 7, E, HEAD), entry(2, 8, "f" * 40, OTHER)],
+                      [entry(1, 7, None, HEAD), entry(2, 9, None, "9" * 40)],
+                      [entry(1, 7, None, HEAD), entry(2, 8, "f" * 40, OTHER),
+                       entry(3, 9, None, "9" * 40)]):
+            with self.subTest(queue=queue):
+                code, out, calls = self.run_group(queue)
+                self.assertEqual(code, 1, out)
+                self.assertIn("no longer in the merge queue", out)
+                self.assertEqual(calls.count("sleep"), 1)
+                self.assertEqual(len([url for url in calls if url.endswith("/graphql")]), 2)
+                self.assertFalse([url for url in calls if url.endswith("/labels")])
+
+    def test_one_absent_read_does_not_eject(self):
+        # A listing can lag: an absent read followed by one listing the group waits on.
+        group = entry(2, 8, GROUP, OTHER)
+
+        def reappear(labels, comments, nodes):
+            if group not in nodes:
+                nodes.insert(1, group)
+
+        code, out, calls = self.run_group([entry(1, 7, E, HEAD), entry(3, 9, "f" * 40, "9" * 40)],
+                                          on_sleep=reappear)
+        self.assertEqual(code, 0, out)
+        self.assertEqual(calls.count("sleep"), 1)
+
+    def test_absence_must_be_seen_on_consecutive_reads(self):
+        # Any poll that does not show absence resets the count: alternating
+        # reads, or an absent read, a failed read and another absent read.
+        group = entry(2, 8, GROUP, OTHER)
+        polls = merge_hold.WAIT_SECONDS // merge_hold.POLL_SECONDS
+
+        def toggle(labels, comments, nodes):
+            if group in nodes:
+                nodes.remove(group)
+            else:
+                nodes.insert(1, group)
+
+        code, out, calls = self.run_group([entry(1, 7, E, HEAD)], on_sleep=toggle,
+                                          ahead=[runs("in_progress")])
+        self.assertEqual(code, 1, out)
+        self.assertIn("did not complete in time", out)
+        self.assertNotIn("no longer in the merge queue", out)
+        self.assertEqual(calls.count("sleep"), polls)
+        code, out, calls = self.run_group([entry(1, 7, E, HEAD)],
+                                          checks=[DONE, OSError("HTTP 502"), DONE])
+        self.assertEqual(code, 1, out)
+        self.assertIn("no longer in the merge queue", out)
+        self.assertEqual(calls.count("sleep"), 3)
+
+    def test_doubtful_queue_reads_are_not_taken_as_leaving(self):
+        # Only a well-formed read that positively lacks the group ends the wait early.
+        page = {"pageInfo": {"hasNextPage": True}, "nodes": [entry(1, 7, E, HEAD)]}
+        polls = merge_hold.WAIT_SECONDS // merge_hold.POLL_SECONDS
+        for nodes, answer in (
+            (None, {"errors": [{"message": "denied"}]}),
+            (None, {"data": {"repository": {"mergeQueue": None}}}),
+            (None, {"data": {"repository": {"mergeQueue": {"entries": page}}}}),
+            (self.QUEUE + [entry(4, 8, GROUP, OTHER)], None),
+            ([], None),
+            ([entry(1, 7, E, HEAD), entry(2, "8", "f" * 40, OTHER)], None),
+            ([entry(1, 7, E, HEAD), entry(2, 8, None, OTHER)], None),
+            ([entry(1, 7, E, HEAD), {"position": 2, "headCommit": None, "pullRequest": None}],
+             None),
+        ):
+            with self.subTest(nodes=nodes, answer=answer):
+                code, out, calls = self.run_group(nodes, answer=answer)
+                self.assertEqual(code, 1, out)
+                self.assertNotIn("no longer in the merge queue", out)
+                self.assertEqual(calls.count("sleep"), polls)
+
+    def test_own_entry_without_pull_request_fails_closed(self):
+        code, out, _ = self.run_group([{"position": 1, "headCommit": {"oid": GROUP},
+                                        "pullRequest": None}])
+        self.assertEqual(code, 1, out)
+        self.assertIn("::error::", out)
+
+    def test_absent_check_runs_and_api_errors_keep_waiting(self):
+        code, out, calls = self.run_group(
+            self.QUEUE,
+            checks=[{"check_runs": []}, runs("completed"), OSError("HTTP 502"),
+                    {"message": "odd"}, DONE])
+        self.assertEqual(code, 0, out)
+        self.assertEqual(calls.count("sleep"), 4)
+
+    def test_wait_deadline_fails_closed_without_reading_labels(self):
+        with mock.patch.object(merge_hold, "WAIT_SECONDS", 0):
+            code, out, calls = self.run_group(self.QUEUE, checks=[runs("in_progress", "completed")])
+        self.assertEqual(code, 1)
+        self.assertIn("::error::", out)
+        self.assertFalse([url for url in calls if url.endswith("/labels")])
+
+    def test_malformed_or_unknown_head_ref_fails_closed(self):
+        for ref in ("", "refs/heads/main", "refs/heads/gh-readonly-queue/main/pr-8",
+                    f"refs/heads/gh-readonly-queue/other/pr-8-{BASE}",
+                    f"refs/heads/gh-readonly-queue/main/pr-8-{BASE}x",
+                    f"refs/heads/gh-readonly-queue/main/pr-9-{BASE}"):
+            with self.subTest(ref=ref):
+                code, out, _ = self.run_group(self.QUEUE, env=dict(GROUP_ENV, MERGE_GROUP_HEAD_REF=ref))
+                self.assertEqual(code, 1, out)
+
+    def test_unidentifiable_group_fails_closed(self):
+        page = {"pageInfo": {"hasNextPage": True}, "nodes": self.QUEUE}
+        for nodes, answer, env in (
+            ([entry(1, 8, "e" * 40, OTHER)], None, None),
+            (self.QUEUE + [entry(4, 8, GROUP, OTHER)], None, None),
+            ([entry(1, 7, "e" * 40, HEAD, state="CLOSED"), entry(2, 8, GROUP, OTHER)], None, None),
+            ([entry(1, 8, GROUP, OTHER, base="release")], None, None),
+            ([entry("1", 8, GROUP, OTHER)], None, None),
+            ([entry(1, 7, None, HEAD), entry(2, 8, GROUP, OTHER)], None, None),
+            (None, {"errors": [{"message": "denied"}]}, None),
+            (None, {"data": {"repository": {"mergeQueue": None}}}, None),
+            (None, {"data": {"repository": {"mergeQueue": {"entries": page}}}}, None),
+            (self.QUEUE, None, dict(GROUP_ENV, MERGE_GROUP_BASE_REF="refs/heads/dev")),
+            (self.QUEUE, None, dict(GROUP_ENV, MERGE_GROUP_HEAD_SHA="")),
+            (self.QUEUE, None, {k: v for k, v in GROUP_ENV.items() if k != "MERGE_GROUP_HEAD_REF"}),
+        ):
+            with self.subTest(nodes=nodes, answer=answer, env=env):
+                code, out, _ = self.run_group(nodes, answer=answer, env=env)
+                self.assertEqual(code, 1, out)
+                self.assertIn("::error::", out)
 
 
 class FetchTests(TestCase):

@@ -10,7 +10,14 @@ nieuw-os-sdk-runtime = { path = "../../sdk/runtime" }
 nieuw-os-keyring-random-client = { path = "../../sdk/keyring-random-client" }
 rustls = { version = "=0.23.46", default-features = false, features = ["custom-provider"] }
 spin = { version = "=0.12.3", default-features = false, features = ["mutex", "spin_mutex"] }
-zeroize = { version = "=1.9.1", default-features = false }
+zeroize = { version = "=1.9.2", default-features = false }
+
+# Host-only test oracle for N03-T2 (owner decision 2026-11-23). Resolver 2 keeps
+# these features out of the library and x86_64-unknown-none graphs.
+[dev-dependencies]
+rustls = { version = "=0.23.46", default-features = false, features = ["aws_lc_rs", "std", "tls12"] }
+webpki = { package = "rustls-webpki", version = "=0.103.16", default-features = false, features = ["alloc"] }
+rcgen = { version = "=0.14.10", default-features = false, features = ["aws_lc_rs"] }
 
 [workspace]
 members = ["."]

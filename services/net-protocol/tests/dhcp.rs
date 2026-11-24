@@ -330,6 +330,17 @@ fn rejects_unsupported_overload_bad_padding_and_bad_network_values() {
         Err(Error::InvalidAddress)
     );
 
+    for router in [[0, 0, 0, 0], [127, 0, 0, 1], [224, 0, 0, 1], [255; 4]] {
+        let mut bad_router = reply(2);
+        let (start, _) = option_range(&bad_router, 3);
+        bad_router[start + 2..start + 6].copy_from_slice(&router);
+        assert_eq!(
+            dhcp::parse_reply(&bad_router, CLIENT),
+            Err(Error::InvalidAddress),
+            "router {router:?}"
+        );
+    }
+
     let mut too_many_routers = reply(2);
     let (start, end) = option_range(&too_many_routers, 3);
     let mut replacement = vec![3, 20];

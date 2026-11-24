@@ -361,6 +361,66 @@ fn invalid_configuration_never_replaces_selected_offer_or_active_lease() {
     assert_eq!(accept(&mut client, 5, 9, SERVER, 44), Ok(Phase::Bound));
 }
 
+// Router option 3 value is bytes 263..267, the subnet mask value 257..261.
+const ROUTER_MUTATIONS: [(usize, &[u8]); 5] = [
+    (266, &[42]),                 // router is the client itself
+    (265, &[3]),                  // 192.0.3.1 is off the /24
+    (266, &[0]),                  // network address
+    (266, &[255]),                // subnet broadcast address
+    (257, &[255, 255, 255, 255]), // /32 lease that still names a router
+];
+
+fn router_mutant(kind: u8, xid: u32, offset: usize, value: &[u8]) -> Vec<u8> {
+    let mut bytes = message(kind, xid, SERVER);
+    assert_eq!(
+        &bytes[255..267],
+        &[1, 4, 255, 255, 255, 0, 3, 4, 192, 0, 2, 1]
+    );
+    bytes[offset..offset + value.len()].copy_from_slice(value);
+    frame(&bytes, SERVER, [255; 4])
+}
+
+#[test]
+fn invalid_router_never_replaces_active_lease_on_renewal() {
+    let mut client = bound(0);
+    let previous = client.lease(4).unwrap().unwrap();
+    client.begin_renewal(9, 42).unwrap();
+    client.build(&mut [0; 576], 42).unwrap();
+    for (offset, value) in ROUTER_MUTATIONS {
+        let bytes = router_mutant(5, 9, offset, value);
+        assert_eq!(
+            client.accept(&parse(&bytes).unwrap(), 43),
+            Err(Error::InvalidConfiguration),
+            "router mutation at {offset}"
+        );
+        assert_eq!(client.lease(43).unwrap(), Some(previous));
+        assert_eq!(client.tick(43), Ok(Phase::Renewing));
+    }
+    assert_eq!(accept(&mut client, 5, 9, SERVER, 44), Ok(Phase::Bound));
+}
+
+#[test]
+fn invalid_router_offer_is_not_selected() {
+    let mut client = selecting(0);
+    for (offset, value) in ROUTER_MUTATIONS {
+        let bytes = router_mutant(2, XID, offset, value);
+        assert_eq!(
+            client.accept(&parse(&bytes).unwrap(), 1),
+            Err(Error::InvalidConfiguration),
+            "router mutation at {offset}"
+        );
+        assert_eq!(client.tick(1), Ok(Phase::Selecting));
+        // Still DISCOVER, so no offer was stored for a REQUEST.
+        let mut out = [0; 576];
+        client.build(&mut out, 1).unwrap();
+        assert_eq!(out[242], 1);
+    }
+    assert_eq!(
+        accept(&mut client, 2, XID, SERVER, 2),
+        Ok(Phase::Requesting)
+    );
+}
+
 #[test]
 fn clock_overflow_and_infinite_lease_do_not_publish_a_candidate() {
     let start = u64::MAX - 150;

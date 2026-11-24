@@ -1,0 +1,2 @@
+    Checking nieuw-os-settings-volume-example v0.1.0 (/home/simon/projects/BaryonOS-worktrees/u05-settings-native/sdk/examples/settings-volume)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.06s

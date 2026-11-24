@@ -1,6 +1,6 @@
 //! Controlled IPC transport model; not a native NIC/kernel authentication test.
 use nieuw_os_catalog_client::Transport;
-use nieuw_os_net_client::{Connection, Error, Session, Status, DATA};
+use nieuw_os_net_client::{Connection, Error, Session, Status, DATA, MAX_NAME, MAX_RESOLVED};
 use nieuw_os_network_protocol::{Operation, Packet, TAG};
 use nieuw_os_sdk_runtime::{
     Capability, Error as RuntimeError, Handle, Outgoing, ReceiveEndpoint, Received, Rights,
@@ -48,7 +48,12 @@ impl Transport for Port {
             Operation::SendTcp | Operation::SendUdp => h.argument,
             _ => 0,
         };
-        let p = Packet::response(h, Status::Ok, arg, &[]);
+        let p = if h.operation == Operation::Resolve {
+            assert_eq!(request.data(), b"example.org");
+            Packet::response(h, Status::Ok, 8, &[192, 0, 2, 9, 192, 0, 2, 10])
+        } else {
+            Packet::response(h, Status::Ok, arg, &[])
+        };
         let mut message = Outgoing::new(TAG, p.bytes()).unwrap();
         if matches!(model.fault, Fault::Caps) {
             message
@@ -172,4 +177,20 @@ fn connection_and_explicit_retirement_use_the_bound_service() {
     assert!(s.is_closed());
     assert_eq!(m.borrow().sends, 3);
     assert_eq!(m.borrow().closed.len(), 2);
+}
+#[test]
+fn resolve_validates_names_locally_and_decodes_bound_addresses() {
+    let (mut s, m) = make(Fault::None);
+    let mut out = [[0; 4]; MAX_RESOLVED];
+    let long = "a".repeat(MAX_NAME + 1);
+    let label = format!("{}.org", "a".repeat(64));
+    for bad in [
+        "", ".", "a..b", "-a.org", "a-.org", "a_b.org", &long, &label,
+    ] {
+        assert_eq!(s.resolve(bad, &mut out), Err(Error::Buffer), "{bad}");
+    }
+    assert_eq!(m.borrow().sends, 0);
+    assert_eq!(s.resolve("example.org", &mut out), Ok(2));
+    assert_eq!(&out[..2], &[[192, 0, 2, 9], [192, 0, 2, 10]]);
+    assert_eq!(m.borrow().sends, 1);
 }

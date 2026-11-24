@@ -1,0 +1,41 @@
+# U05-T3 shared search vectors: read by sdk/examples/search-volume/src/tests.rs
+# and tests/test_search_oracle.py. Tab-separated; text fields are UTF-8 hex;
+# '-' is an empty list. Lines starting with '#' are comments. Regenerate by hand only.
+# ws: Unicode White_Space code points (Rust char::is_whitespace).
+ws	9,a,b,c,d,20,85,a0,1680,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,200a,2028,2029,202f,205f,3000
+# token <field> <tokens...>: Rust split_whitespace of one field.
+token	61e3808062	61,62	# 'a\u3000b'
+token	611f62	611f62	# 'a\x1fb'
+token	c28578c2a079e280a87a	78,79,7a	# '\x85x\xa0y\u2028z'
+token	2020	-	# '  '
+token	436166c3a9206d656e75	436166c3a9,6d656e75	# 'Café menu'
+token	71e280af72e2819f73e19a8074	71,72,73,74	# 'q\u202fr\u205fs\u1680t'
+# label <collection> <text>: domain 0 collections, each created once (revision 1).
+label	1	576f726b	# 'Work'
+label	2	6120622063206420652066206720682069206a206b206c206d206e206f2070	# 'a b c d e f g h i j k l m n o p'
+label	4	417263686976652032303236	# 'Archive 2026'
+# record <object> <revision> <name> <collection>: write is revision 1, META to a collection 2.
+record	0	2	4d656574696e67206e6f746573	1	# 'Meeting notes'
+record	1	1	627564676574e380805134	0	# 'budget\u3000Q4'
+record	2	2	436166c3a9206d656e75	4	# 'Café menu'
+record	3	2	7120722073207420752076207720782079207a204120422043204420452046	2	# 'q r s t u v w x y z A B C D E F'
+record	4	1	c389434f4c45c2a0706c616e	0	# 'ÉCOLE\xa0plan'
+record	5	1	6b656c76696ee284aa	0	# 'kelvinK'
+# query <text> <objects>: hits of the record set above, in object order.
+query	6d656574696e67	0	# 'meeting'
+query	574f524b206e6f746573	0	# 'WORK notes'
+query	627564676574207134	1	# 'budget q4'
+query	627564676574e380807134	1	# 'budget\u3000q4'
+query	636166c3a9	2	# 'café'
+query	434146c389	-	# 'CAFÉ'
+query	617263686976652032303236	2	# 'archive 2026'
+query	612070	3	# 'a p'
+query	712046	3	# 'q F'
+query	66	3	# 'f'
+query	c3a9636f6c65	-	# 'école'
+query	c389434f4c4520706c616e	4	# 'ÉCOLE plan'
+query	6b656c76696e6b	-	# 'kelvink'
+query	6b656c76696ee284aa	5	# 'kelvinK'
+query	6d656574696e6720627564676574	-	# 'meeting budget'
+# digest: FNV-64 chained over every query's hits as LE u64 (object, revision).
+digest	94d4497010c3e4a5

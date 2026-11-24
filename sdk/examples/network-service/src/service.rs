@@ -5,13 +5,23 @@
 //! authenticate each owner; NET1 never accepts a caller-supplied reply handle.
 #[path = "../../system/src/support.rs"]
 mod support;
-use nieuw_os_net_stack::{Config, SocketStorage};
-use nieuw_os_network_service::{wire, Buffers, Configuration, Destination, Service};
+use core::ptr;
+use nieuw_os_net_stack::{Config, LinkConfig, SocketStorage};
+use nieuw_os_network_service::{
+    wire, Buffers, Configuration, Destination, DhcpConfiguration, DnsCache, DnsDriveError, Fault,
+    ProbeTiming, RandomSource, Service,
+};
 use nieuw_os_sdk_runtime::{
     native, EntropySource, Handle, NetworkSource, Outgoing, ReceiveEndpoint, SendEndpoint,
 };
 const MAGIC: u64 = u64::from_le_bytes(*b"NETSVC01");
 const CONTROL: u64 = u64::from_le_bytes(*b"NETCTL01");
+/// Per-slot resolver caches (~22 KiB) are const-initialised in the image's
+/// data segment, never built on the 64 KiB stack.
+static mut DNS: DnsCache = match DnsCache::new() {
+    Ok(cache) => cache,
+    Err(_) => panic!("DNS cache configuration"),
+};
 fn fail(code: u64) -> ! {
     support::put(240, code);
     support::put(504, code);
@@ -22,6 +32,9 @@ fn handle(offset: u64) -> Handle {
 }
 fn bump(offset: u64) {
     support::put(offset, support::word(offset).saturating_add(1))
+}
+fn link_down(error: nieuw_os_sdk_runtime::Error) -> bool {
+    error == nieuw_os_sdk_runtime::Error::Kernel(native::NET_LINK_DOWN)
 }
 fn now() -> u64 {
     native::monotonic_ticks().unwrap_or_else(|_| fail(3))
@@ -40,13 +53,160 @@ struct Pending {
     ticket: u64,
     length: usize,
 }
+/// DHCP XIDs, retry jitter and DNS IDs/ports come only from the entropy grant
+/// this service already holds; a failed read is an error, never a constant
+/// fallback. One draw waits for at most 100,000 yielding polls or until the
+/// keyring's 64-tick device timeout, whichever ends first. After that timeout
+/// the keyring broker stays offline for every grant for the rest of the boot.
+struct Entropy {
+    source: EntropySource,
+    draws: u64,
+}
+impl RandomSource for Entropy {
+    type Error = ();
+    fn random_u32(&mut self) -> Result<u32, ()> {
+        let ticket = native::entropy_request(self.source, 4).map_err(|_| ())?;
+        let mut bytes = [0; 4];
+        native::entropy_wait(self.source, ticket, &mut bytes, 100_000).map_err(|_| ())?;
+        self.draws += 1;
+        Ok(u32::from_le_bytes(bytes))
+    }
+}
 struct Bridge {
     source: NetworkSource,
     pending: Option<Pending>,
     rx: [u8; 1514],
+    /// Present only in the DHCP profile selected by the trusted manifest.
+    dhcp: Option<Entropy>,
+    /// N02-T3b test profile: follow the kernel link state (syscall 0x74).
+    watch: bool,
+    /// Last `(epoch, up)` the service acted on; None before the first sample.
+    link: Option<(u64, bool)>,
+    /// A changed `(epoch, up)` sampled before the loop read its clock.
+    seen: Option<(u64, bool)>,
 }
 impl Bridge {
+    /// Queries the link before the loop reads its clock, so the tick handed to
+    /// link_down/link_up is never earlier than the kernel's edge tick.
+    fn observe_link(&mut self) {
+        if !self.watch {
+            return;
+        }
+        match native::net_link(self.source) {
+            Ok(sample) if self.link.map(|l| l.0) != Some(sample.0) => self.seen = Some(sample),
+            Ok(_) => {}
+            // Before the kernel's first sample.
+            Err(e) if e.is_again() => {}
+            Err(_) => fail(42),
+        }
+    }
+    /// DHCP mode uses only the timestamped TX API; the legacy static calls
+    /// below deliberately return nothing/refuse in that mode.
+    fn step_dhcp(&mut self, service: &mut Service<'_>, tick: u64) {
+        // Any epoch change withdraws first: link_up itself withdraws a
+        // configuration, so a hidden down/up (epoch + 2) is covered.
+        if let Some((epoch, up)) = self.seen.take() {
+            if up {
+                service.link_up(tick)
+            } else {
+                service.link_down(tick)
+            }
+            .unwrap_or_else(|_| fail(41));
+            bump(if up { 664 } else { 656 });
+            self.link = Some((epoch, up));
+        }
+        // Not yet observed or down: neither send nor receive. A pending TX
+        // ticket still completes below; 0x71 has no link gate.
+        let usable = !self.watch || self.link.is_some_and(|l| l.1);
+        if let Some(p) = &self.pending {
+            match native::net_poll_tx(self.source, p.ticket) {
+                Ok(n) => {
+                    if n != p.length.max(60) {
+                        fail(10)
+                    }
+                    service
+                        .complete_transmission_at(p.id, tick)
+                        .unwrap_or_else(|_| fail(11));
+                    self.pending = None;
+                    bump(416)
+                }
+                Err(e) if e.is_again() => {}
+                Err(_) => fail(12),
+            }
+        }
+        if usable && service.can_receive_frame() {
+            match native::net_receive(self.source, &mut self.rx) {
+                Ok(n) => {
+                    match service.ingress(&self.rx[..n], tick) {
+                        Ok(()) => {}
+                        // A foreign or stale DHCP/ARP frame is refused and
+                        // counted; it must not take the shared service down.
+                        Err(Fault::Dhcp(_)) => bump(608),
+                        Err(_) => fail(14),
+                    }
+                    bump(424)
+                }
+                // The link went down since the last query; the next loop
+                // observes the new epoch.
+                Err(e) if e.is_again() || link_down(e) => {}
+                Err(_) => fail(15),
+            }
+        }
+        // Once both owners retired no configuration is needed any more.
+        if service.retired_mask() != 3 {
+            let random = self.dhcp.as_mut().unwrap_or_else(|| fail(33));
+            service
+                .drive_dhcp(tick, random)
+                .unwrap_or_else(|_| fail(33));
+            // Recorded Resolve queries leave only with fresh IDs/ports drawn
+            // from the same entropy grant; no entropy, no query. A failed draw
+            // skips DNS for this iteration so queued frames still drain. Later
+            // iterations draw again only until the query's deadline: a busy or
+            // short keyring answer can clear, but an offline broker cannot, and
+            // the unsent query then ends as `Status::Timeout` for its caller.
+            // The next DHCP draw on an offline broker stops the service (33).
+            match service.drive_dns(tick, random) {
+                Ok(_) | Err(DnsDriveError::Random(())) => {}
+                Err(DnsDriveError::Service(_)) => fail(40),
+            }
+        }
+        service.poll(tick).unwrap_or_else(|_| fail(16));
+        if self.pending.is_none() {
+            // Nothing is outstanding at the broker, so a frame withheld by a
+            // lease withdrawal was never submitted and may be released.
+            if let Some(id) = service
+                .withheld_transmission_at(tick)
+                .unwrap_or_else(|_| fail(34))
+            {
+                service
+                    .discard_withheld_transmission_at(id, tick)
+                    .unwrap_or_else(|_| fail(35));
+            }
+            let frame = if usable {
+                service.transmission_at(tick).unwrap_or_else(|_| fail(36))
+            } else {
+                None
+            };
+            if let Some(frame) = frame {
+                match native::net_send(self.source, frame.bytes, 100) {
+                    Ok(ticket) => {
+                        self.pending = Some(Pending {
+                            id: frame.id,
+                            ticket,
+                            length: frame.bytes.len(),
+                        })
+                    }
+                    // Refused before submission; the frame stays queued.
+                    Err(e) if e.is_again() || link_down(e) => {}
+                    Err(_) => fail(13),
+                }
+            }
+        }
+    }
     fn step(&mut self, service: &mut Service<'_>, tick: u64) {
+        if self.dhcp.is_some() {
+            return self.step_dhcp(service, tick);
+        }
         if let Some(p) = &self.pending {
             match native::net_poll_tx(self.source, p.ticket) {
                 Ok(n) => {
@@ -76,19 +236,6 @@ impl Bridge {
             service
                 .discard_revoked_unpublished()
                 .unwrap_or_else(|_| fail(32));
-            if let Some(frame) = service.transmission() {
-                match native::net_send(self.source, frame.bytes, 100) {
-                    Ok(ticket) => {
-                        self.pending = Some(Pending {
-                            id: frame.id,
-                            ticket,
-                            length: frame.bytes.len(),
-                        })
-                    }
-                    Err(e) if e.is_again() => {}
-                    Err(_) => fail(13),
-                }
-            }
         }
         if service.can_receive_frame() {
             match native::net_receive(self.source, &mut self.rx) {
@@ -120,6 +267,23 @@ impl Bridge {
             }
         }
         service.poll(tick).unwrap_or_else(|_| fail(16));
+        // Publish a reply produced by this bounded poll before yielding. Keep
+        // the slot bound to its matching native completion.
+        if self.pending.is_none() {
+            if let Some(frame) = service.transmission() {
+                match native::net_send(self.source, frame.bytes, 100) {
+                    Ok(ticket) => {
+                        self.pending = Some(Pending {
+                            id: frame.id,
+                            ticket,
+                            length: frame.bytes.len(),
+                        })
+                    }
+                    Err(e) if e.is_again() => {}
+                    Err(_) => fail(13),
+                }
+            }
+        }
     }
 }
 #[no_mangle]
@@ -174,6 +338,13 @@ fn run() -> ! {
         }
         _ => fail(5),
     };
+    // The trusted manifest selects the N02 DHCP profile; no app input can.
+    let (dhcp, watch) = match support::word(176) {
+        0 => (false, false),
+        1 => (true, false),
+        2 => (true, true),
+        _ => fail(37),
+    };
     let ticket = native::entropy_request(entropy, 8).unwrap_or_else(|_| fail(6));
     let mut seed = [0; 8];
     native::entropy_wait(entropy, ticket, &mut seed, 100_000).unwrap_or_else(|_| fail(7));
@@ -188,55 +359,117 @@ fn run() -> ! {
             .filter(|p| *p != 0)
             .unwrap_or_else(|| fail(8))
     };
-    let mut service = Service::new(
-        Configuration {
-            epoch,
-            pids,
-            link: Config {
-                mac: [2, 0, 0, 0, 0, 7],
-                ipv4: [192, 0, 2, 2],
-                prefix_len: 24,
-                random_seed,
+    let mac = [2, 0, 0, 0, 0, 7];
+    // Optional trusted per-slot destination (N02-T6); 0 keeps 192.0.2.1.
+    let ipv4 = |offset: u64| match u32::try_from(support::word(offset)) {
+        Ok(0) => [192, 0, 2, 1],
+        Ok(address) => address.to_be_bytes(),
+        Err(_) => fail(8),
+    };
+    let destinations = [
+        Destination {
+            ipv4: ipv4(184),
+            tcp_first: port(120),
+            tcp_count: 5,
+            udp_port: port(136),
+        },
+        Destination {
+            ipv4: ipv4(192),
+            tcp_first: port(128),
+            tcp_count: 5,
+            udp_port: port(144),
+        },
+    ];
+    let buffers = Buffers {
+        storage: &mut storage,
+        rx_frame: &mut rx,
+        tx_frame: &mut tx,
+        rx_sockets: [&mut ra, &mut rb],
+        tx_sockets: [&mut ta, &mut tb],
+    };
+    let mut service = if dhcp {
+        // DHCP supplies address, router and DNS servers; the destination grants
+        // stay the trusted startup values above.
+        Service::new_dhcp(
+            DhcpConfiguration {
+                epoch,
+                pids,
+                link: LinkConfig { mac, random_seed },
+                destinations,
             },
-            destinations: [
-                Destination {
-                    ipv4: [192, 0, 2, 1],
-                    tcp_first: port(120),
-                    tcp_count: 5,
-                    udp_port: port(136),
+            buffers,
+            ProbeTiming::new(0, 100, 100).unwrap_or_else(|_| fail(9)),
+            // SAFETY: DNS is const-initialised; this is the only reference
+            // ever taken, kept for the process lifetime, one thread.
+            unsafe { &mut *ptr::addr_of_mut!(DNS) },
+            now(),
+        )
+    } else {
+        Service::new(
+            Configuration {
+                epoch,
+                pids,
+                link: Config {
+                    mac,
+                    ipv4: [192, 0, 2, 2],
+                    prefix_len: 24,
+                    random_seed,
                 },
-                Destination {
-                    ipv4: [192, 0, 2, 1],
-                    tcp_first: port(128),
-                    tcp_count: 5,
-                    udp_port: port(144),
-                },
-            ],
-        },
-        Buffers {
-            storage: &mut storage,
-            rx_frame: &mut rx,
-            tx_frame: &mut tx,
-            rx_sockets: [&mut ra, &mut rb],
-            tx_sockets: [&mut ta, &mut tb],
-        },
-        now(),
-    )
+                destinations,
+            },
+            buffers,
+            now(),
+        )
+    }
     .unwrap_or_else(|_| fail(9));
+    if dhcp && !watch {
+        // Startup link notification only; link control is out of this profile.
+        service.link_up(now()).unwrap_or_else(|_| fail(38));
+    }
     let mut bridge = Bridge {
         source,
         pending: None,
         rx: [0; 1514],
+        dhcp: dhcp.then_some(Entropy {
+            source: entropy,
+            draws: 0,
+        }),
+        watch,
+        link: None,
+        seen: None,
     };
+    let mut leased: Option<u64> = None;
     let mut pending: [Option<wire::Packet>; 2] = [None, None];
     let mut disabled = [false; 2];
     let mut drain = false;
     let mut revoked_at = 0;
     support::put(400, 1);
     loop {
+        bridge.observe_link();
         let tick = now();
         bridge.step(&mut service, tick);
         bump(408);
+        if dhcp {
+            let address = service
+                .dhcp_configuration(tick)
+                .unwrap_or_else(|_| fail(39))
+                .map(|lease| u64::from(u32::from_be_bytes(lease.address)));
+            if address != leased {
+                if let Some(address) = address {
+                    bump(560);
+                    if support::word(576) == 0 {
+                        support::put(576, address);
+                    }
+                    support::put(584, address);
+                    support::put(616, tick);
+                } else {
+                    bump(568);
+                    support::put(592, tick);
+                }
+                leased = address;
+            }
+            support::put(600, bridge.dhcp.as_ref().map_or(0, |e| e.draws));
+        }
         if let Some((endpoint, pid)) = control {
             match native::receive(endpoint) {
                 Ok(message) => {

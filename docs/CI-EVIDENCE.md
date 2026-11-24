@@ -7,7 +7,7 @@ collector remains an error.
 
 ## Normal runs
 
-The sixteen workflows that preserve evidence use
+The workflows that preserve evidence use
 `.github/actions/preserve-evidence/action.yml`. The action reads only the
 explicitly selected existing evidence and performs the following steps:
 
@@ -32,6 +32,34 @@ The Rust Cobertura report in `ci.yml` explicitly uses `max-file-bytes: '4194304'
 (4 MiB) and is a required exact path. Run `43594581854` generated a
 2,349,735-byte report that exceeded the default. This allowance preserves the
 complete XML; it does not truncate the report or change coverage measurements.
+The Python Cobertura caller also requires its exact path and explicitly permits
+2 MiB. Run `45311246616` produced a 1,057,659-byte report; its tests passed, but
+the previous 1 MiB allowance correctly failed to preserve the required evidence.
+The caller repair retains the complete original XML and does not change coverage
+measurements or missing-evidence failure.
+
+The native window workflow preserves each phase's original `result.json` and
+`serial.txt` in a separate compact proof collection. Each file is limited to
+4 MiB, and the pair must fit within the unchanged 7 MiB payload budget plus
+1 MiB receipt reserve. The workflow runs five independent native legs, each
+on its own runner with its own probe build: `native-scale1`, `native-scale2`,
+`library` (library write, then cold recovery of that write's parent image in the
+same leg), `switcher-scale1` and `switcher-scale2`. Each leg preserves its own
+proof pair; the `library` leg preserves the write and cold pairs separately.
+Required proof cannot be silently omitted for a missing file, individual-file
+limit or aggregate-budget limit. Each leg's final collection,
+`native-window-session-<leg>-evidence`, holds that leg's logs and manifests and
+offers its optional full archive. Host checks, the read-only compile and the
+normal build with the Windows package keep their own collections. Phase
+collections add no duplicate raw archive or package upload.
+
+This separation addresses run `45311246725`: its successful scale-2 native job
+produced a 1,553,981-byte result and 1,556,536-byte serial log that exceeded the
+old per-file default. Runtime success remained distinct from the unavailable
+complete report. Copies of one report and other phases must not compete with a
+required original result/serial pair for the same compact budget. An uploaded
+receipt or hash alone does not supply omitted report bytes for revalidation.
+
 Other callers keep the 1 MiB default. The collector accepts per-call limits
 up to 7 MiB, always reserving a fixed 1 MiB for the receipt within the unchanged
 8 MiB total budget. Receipt metadata records the actual selected file limit.
@@ -53,8 +81,18 @@ artefact name, with **one-day** retention. The compact record is retained
 for this run as well.
 
 Use this route when raw disk images, pixels or build bytes are needed for
-independent revalidation, as with
-`docs/verification/materiaal-library-20261102/verify-ci-artifact.py`.
+independent revalidation. In `native-window-session.yml`, `full_evidence`
+still enables the full archive, but each native leg now uploads its own archive
+as `native-window-session-<leg>-evidence`, containing only that leg's build
+directory `build/window-session-ci/<leg>/`. Download the archive of every leg
+the revalidation requires, all from the same run, so that every archive is
+bound to the same source commit. The library write and cold runs are both in
+the `library` leg; the switcher profiles are in `switcher-scale1` and
+`switcher-scale2`.
+`docs/verification/materiaal-library-20261102/verify-ci-artifact.py` is a
+historical example: it expects the earlier fixed `build/library-ci-640/data`
+layout, its source fingerprint and the former shared `probe/` directory, and
+does not apply to the per-leg layout unchanged.
 Download the required archive before it expires. Compact reports and hashes
 do not replace raw bytes. A failed full upload means that archive is
 unavailable; a green test job does not demonstrate otherwise. Acceptance

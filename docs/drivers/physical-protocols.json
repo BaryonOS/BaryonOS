@@ -70,7 +70,7 @@
   "protocols": [
     {
       "id": "HW-INV",
-      "version": 2,
+      "version": 3,
       "criterion": "H06",
       "fr_rows": ["FR-H03", "FR-R03"],
       "title": "Read-only native hardware inventory of the reference PC",
@@ -78,18 +78,16 @@
       "devices": [],
       "image": {
         "kernel_feature": "native-hw-inventory",
-        "kernel_feature_present": false,
-        "physical_image": "missing"
+        "kernel_feature_present": true,
+        "physical_image": "available"
       },
       "status": "blocked",
       "blocking_reasons": [
-        "The native-hw-inventory kernel profile does not exist (planned slice H06-T3); no code emits HWINV markers. The COM1 UNSUPPORTED:PCI inventory described in earlier documentation was never implemented.",
-        "No physical boot image exists: tools/build.py exports an ESP directory for QEMU's virtual FAT backend and tools/repro_check.py compares only that ESP payload manifest, so there is no removable-media image or image SHA-256 to bind.",
-        "Every milestone-m2 terminal path calls exit() in kernel/src/serial.rs, which writes QEMU's isa-debug-exit port 0xF4; that port is undefined on physical PCs, so a physical image first needs a halt-based terminal path.",
+        "The removable-media image from tools/hw_inventory_image.py (raw GPT disk with one FAT32 ESP, SHA-256 and byte length recorded) has booted only in QEMU from a virtio disk; its GPT/FAT32 layout is an assumption until OD-HW-BOOT is decided, and the loader is not yet bit-reproducible (B04), so an image hash binds one recorded build rather than an independent rebuild.",
         "The HW-FR target is null and docs/drivers/hw-allowed-signers lists no signer (owner decisions OD-HW-TARGETS and OD-HW-SIGNERS).",
         "The output capture route is undecided (OD-HW-CAPTURE): COM1 output needs a physical serial port and a cable to a second computer; on-screen output of the markers is not demonstrated."
       ],
-      "markers_implemented": false,
+      "markers_implemented": true,
       "preconditions": [
         "Owner decisions OD-HW-TARGETS, OD-HW-BOOT, OD-HW-DISKS, OD-HW-CAPTURE, OD-HW-SIGNERS, OD-HW-PUBLISH and OD-HW-INV-ROUTE are recorded as decided.",
         "The image is built from a clean checkout of the recorded source commit; the image SHA-256 and the source fingerprint v3 (source_hash in tools/common.py) are recorded before the session.",
@@ -107,7 +105,7 @@
         {"id": "S6", "actor": "host", "action": "Convert the HWINV lines into the inventory JSON, compute the SHA-256 of serial log and inventory, write the record in a new docs/verification child directory and sign it.", "expect": "tools/hw_evidence.py --check accepts the record."}
       ],
       "required_markers": ["BOOT:EBS_OK", "KERNEL:ENTRY", "BOOTINFO:OK", "HWINV:BEGIN", "HWINV:CPUID:*", "HWINV:SECUREBOOT=*", "HWINV:ACPI:DMAR=*", "HWINV:PCI:COUNT=*", "HWINV:PASS"],
-      "failure_markers": ["KERNEL_PANIC*", "M2:PANIC_LINE:*", "M1:FAIL*", "HWINV:FAIL*"],
+      "failure_markers": ["KERNEL_PANIC*", "M2:PANIC_LINE:*", "M1:FAIL*", "M2:FAIL*", "HWINV:FAIL*"],
       "device_markers": {},
       "forbidden_actions": ["no-firmware-flash", "no-firmware-settings-save", "no-bootorder-change", "removable-media-only", "no-internal-disk-access", "no-secure-boot-key-change", "no-personal-data"],
       "recovery_route": [

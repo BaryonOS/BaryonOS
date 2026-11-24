@@ -75,8 +75,15 @@ Coverage output is written under `build/coverage-raw/`, which is already ignored
 
 ### Holding a pull request for native acceptance
 
-Merging requires the project owner's explicit approval. Auto-merge is not
-enabled by sessions (owner decision of 13 November 2026). The `merge-hold`
+Merging requires the project owner's explicit approval, except that the six
+workstream sessions (S09, U, N, UI/UX design, B and H) may squash-merge their
+own pull requests once the conditions of `ADR-MERGE-DELEGATION-20261123` hold.
+An explicit integration assignment also supplies authority within its scope.
+Direct merges use an expected-head guard. Auto-merge may be enabled after review,
+dependencies, feedback and non-required acceptance are complete, while required
+checks finish. Disable it before a push or base change and reassess a changed
+head before re-enabling it. These permissions do not waive any acceptance gate
+(owner decisions of 23 and 24 November 2026). The `merge-hold`
 check enforces the remaining case: a pull request whose merge condition
 includes acceptance outside the required checks, for example a dispatch-only
 native matrix, soak or final gate. A job skipped by its `if` condition reports
@@ -86,7 +93,8 @@ success and does not block a merge on its own.
   before any merge request.
 - After that acceptance has passed, not been skipped, on the current head
   commit, a participant with write access comments the exact line
-  `acceptance-released: <40-character head SHA>` and re-runs `merge-hold`.
+  `acceptance-released: <40-character head SHA>`, with a link to the passing
+  run on that head in the same comment, and re-runs `merge-hold`.
 - A new push changes the head SHA, so the hold applies again until a new
   release comment names the new head.
 
@@ -98,10 +106,51 @@ gh api -X POST repos/BaryonOS/BaryonOS/issues/<PR>/labels -f 'labels[]=acceptanc
 gh api -X DELETE repos/BaryonOS/BaryonOS/issues/<PR>/labels/acceptance-pending
 ```
 
+Removing the label does not release a hold: the `DELETE` command only corrects
+a label that was set in error, never one whose acceptance has not passed.
+
+In a merge queue, `merge-hold` also runs on every merge group. It waits until
+the group's `host-quality` and `qemu-smoke` have completed and every entry
+ahead has left the queue or finished its own required checks (an entry whose
+`merge-hold` failed early does not count as proof for the entries ahead of
+it), then reads the
+labels and comments of every pull request the group contains. A hold set before
+that read blocks the merge; a hold set after it, while GitHub is merging the
+group, is not seen. Set the label before adding a pull request to the queue;
+to apply a hold to a pull request already queued, also remove it from the
+queue. A pull request ahead that has already merged is on `main` and is not
+evaluated again. Once the group's own `host-quality` and `qemu-smoke` have
+completed, a group whose commit has left the queue (ejected or rebuilt) fails
+as soon as two consecutive queue reads, one poll apart, no longer list it; if
+the wait exceeds 45 minutes the check also fails closed and the group leaves
+the queue.
+
+A released hold passes in the queue only when that pull request's own queue
+entry lands exactly the released tree. Release it on a head that is up to date
+with `main`, and let the entries ahead of it merge first; a released pull
+request queued behind others usually lands a different tree and fails until it
+is updated and released again.
+
+This assumes five queue ruleset settings: it requires only `host-quality`,
+`qemu-smoke` and `merge-hold`; has "Only merge non-failing pull requests" set
+to Yes; uses a minimum group size of 1 with no merge-limit wait; builds each
+pull request separately (no batching); and sets the status check timeout to at
+least 60 minutes, above the 45-minute `merge-hold` wait and its 50-minute job
+timeout. Before enabling a live queue, verify these five settings and handle
+reruns of predecessor checks: either invalidate and rebuild all affected
+successor groups on every rerun, or implement and verify reevaluation of all
+predecessors instead of trusting the nearest successful `merge-hold` shortcut.
+The shortcut alone cannot detect a newly pending check beyond that entry.
+The queue remains disabled until this prerequisite is met and tested.
+
 A label change made with a workflow's `GITHUB_TOKEN` starts no new
 `merge-hold` run. `merge-hold` becomes a required status check only after its
 workflow is on `main` and verifiably reports on pull requests (see
 ADR-MERGE-HOLD-20261113).
+
+Waiting for a PR merge does not stop a workstream. Continue independent work in
+a separate branch or a correctly stacked dependent branch; preserve the child
+delta when its parent is squash-merged. Return to verify the actual main landing.
 
 CodeRabbit and other automated review systems are additional review layers. They do not change the acceptance criteria and do not replace required runtime tests or independent human review.
 

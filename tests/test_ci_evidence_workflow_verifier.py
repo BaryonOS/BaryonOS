@@ -52,12 +52,12 @@ class WorkflowVerifierTests(unittest.TestCase):
                     if check["name"] == key)
 
     def test_integrated_workflows_preserve_all_reporting_cases(self):
-        """A valid baseline retains 20 workflow files and 33 preservation calls."""
+        """A valid baseline retains 21 workflow files and 42 preservation calls."""
         report = self.report()
         self.assertTrue(report["passed"], report["failed_checks"])
-        self.assertEqual(report["archive_workflow_count"], 20)
-        self.assertEqual(len(report["archive_workflows"]), 20)
-        for name in ("native-xhci.yml", "native-hid-input.yml"):
+        self.assertEqual(report["archive_workflow_count"], 21)
+        self.assertEqual(len(report["archive_workflows"]), 21)
+        for name in ("native-xhci.yml", "native-hid-input.yml", "native-hw-inventory.yml"):
             self.assertIn(".github/workflows/" + name, report["archive_workflows"])
         self.assertEqual(report["local_snapshot_baseline"], self.baseline)
         self.assertEqual(report["repository_path"], ".")
@@ -72,12 +72,67 @@ class WorkflowVerifierTests(unittest.TestCase):
             # Code coverage reporting adds three calls in ci.yml (Rust, Python,
             # JavaScript), each counted by both prefixes.
             # H02 adds one xHCI and one HID workflow/preservation invocation.
+            # Native network extensions add their own DHCP/link/route/sweep reports;
+            # N02-T6 adds one libslirp evidence call.
+            # Window gates retain six report/serial proof artifacts from six
+            # static calls: host, leg proof, library cold, leg compact,
+            # read-only and packaging collections.
+            # H06 adds one HW-INV inventory workflow/preservation invocation.
+            # The ci-impact-shadow job adds one plan call in ci.yml.
             self.assertEqual(sum(check["name"].startswith(prefix)
-                                 for check in report["checks"]), 33)
+                                 for check in report["checks"]), 42)
         self.assertEqual(sum(check["name"].startswith("report-shell:")
                              for check in report["checks"]), 28)
         self.assertEqual(sum(check["name"].startswith("package-check:")
                              for check in report["checks"]), 6)
+
+    def test_only_the_library_cold_proof_may_be_leg_conditional(self):
+        """The exact exception cannot suppress base, final, other legs' or another job's evidence."""
+        workflow = ".github/workflows/native-window-session.yml"
+        step = {"id": "window-library-cold-proof", "name": "Preserve complete library cold proof",
+                "if": "${{ always() && matrix.mode == 'library' }}"}
+        self.assertTrue(VERIFIER.preservation_condition(workflow, "native-window-session", step))
+        for path, job, changed in (
+            (".github/workflows/native-display-input.yml", "native-window-session", step),
+            (workflow, "another-job", step),
+            (workflow, "normal-and-package", step),
+            (workflow, "native-window-session", dict(step, name="Different step")),
+            (workflow, "native-window-session", dict(step, id="window-native-proof")),
+            (workflow, "native-window-session", dict(step, id="window-library-write-proof")),
+            (workflow, "native-window-session", dict(step, id="window-switcher-scale2-proof")),
+            (workflow, "native-window-session", dict(step, id="final")),
+            (workflow, "native-window-session", dict(step, **{"if": "${{ success() && matrix.mode == 'library' }}"})),
+            (workflow, "native-window-session", dict(step, **{"if": "${{ always() && matrix.mode == 'native' }}"})),
+            (workflow, "native-window-session", dict(step, **{"if": "${{ always() && matrix.scale == 1 }}"})),
+        ):
+            with self.subTest(path=path, job=job, step=changed):
+                self.assertFalse(VERIFIER.preservation_condition(path, job, changed))
+
+    def test_unconditional_window_collections_cannot_be_restricted(self):
+        """Run the actual verifier on attempts to restrict either unconditional caller."""
+        path = self.repo / ".github/workflows/native-window-session.yml"
+        original = path.read_text()
+        for name, occurrence in (("Preserve complete base native proof", 1),
+                                 # Host, native-leg, read-only and packaging collections.
+                                 ("Preserve compact evidence and report archive availability", 1),
+                                 ("Preserve compact evidence and report archive availability", 2),
+                                 ("Preserve compact evidence and report archive availability", 3),
+                                 ("Preserve compact evidence and report archive availability", 4)):
+            with self.subTest(name=name, occurrence=occurrence):
+                parts = original.split("      - name: " + name)
+                self.assertEqual(len(parts), 2 if "base" in name else 5)
+                before = ("      - name: " + name).join(parts[:occurrence])
+                block = ("      - name: " + name).join(parts[occurrence:])
+                # Mutate only this step's own condition, never a later step's.
+                step, marker, rest = block.partition("\n      - name: ")
+                self.assertIn("if: ${{ always() }}", step)
+                step = step.replace("if: ${{ always() }}", "if: ${{ always() && matrix.mode == 'library' }}", 1)
+                path.write_text(before + "      - name: " + name + step + marker + rest)
+                report = self.report()
+                self.assertFalse(report["passed"])
+                self.assertIn("preservation-invocation:.github/workflows/native-window-session.yml",
+                              report["failed_checks"])
+        path.write_text(original)
 
     def test_compact_only_accepts_empty_or_absent_manual_trigger(self):
         """No full-evidence selector is needed when every call fixes it false."""

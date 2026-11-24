@@ -1,0 +1,214 @@
+{
+  "schema_version": 1,
+  "step": 3,
+  "case": "settings",
+  "image_source": "previous",
+  "kernel_feature": "test-volume-settings",
+  "started_utc": "2026-11-23T16:53:49.668182+00:00",
+  "duration_s": 2.529548924001574,
+  "raw_qemu_exit": 33,
+  "timed_out": false,
+  "command": [
+    "/usr/bin/qemu-system-x86_64",
+    "-machine",
+    "pc-q35-8.2",
+    "-accel",
+    "tcg,thread=single",
+    "-cpu",
+    "qemu64",
+    "-smp",
+    "1",
+    "-m",
+    "256M",
+    "-nodefaults",
+    "-display",
+    "none",
+    "-monitor",
+    "none",
+    "-serial",
+    "stdio",
+    "-nic",
+    "none",
+    "-no-reboot",
+    "-drive",
+    "if=pflash,unit=0,format=raw,readonly=on,file=build-u05n/test-volume-settings/run/settings-3-633479b3e8/OVMF_CODE.fd",
+    "-drive",
+    "if=pflash,unit=1,format=raw,file=build-u05n/test-volume-settings/run/settings-3-633479b3e8/OVMF_VARS.fd",
+    "-drive",
+    "if=virtio,index=0,format=raw,readonly=on,file=fat:build-u05n/test-volume-settings/run/settings-3-633479b3e8/esp",
+    "-device",
+    "isa-debug-exit,iobase=0xf4,iosize=0x04",
+    "-drive",
+    "if=none,id=volume,format=raw,cache=writeback,readonly=off,file=build-u05n/test-volume-settings/run/settings-chain-007826fb2f/step3.img",
+    "-device",
+    "virtio-blk-pci,drive=volume,id=volblk,addr=0x5,disable-legacy=on,num-queues=1,queue-size=8,serial=NOS-M6E-TEST"
+  ],
+  "qemu_version": "QEMU emulator version 10.2.1 (Debian 1:10.2.1+ds-1ubuntu3.3)\nCopyright (c) 2003-2025 Fabrice Bellard and the QEMU Project developers",
+  "source_sha256": "be030a90ac63b9da0eb7684698c45dc0f40792b5b91737881d03e8640cd6312f",
+  "kernel_sha256": "57cde59c6d2571273025e601e5dfdf13a9a409f8efe0bd39d5a09d84004e6fbe",
+  "app": {
+    "app_sha256": "3dccc51957ddd43cd5355f992f7a7d3122a0cb2e670935667671f70661eb067d",
+    "app_elf": {
+      "entry": 1073741824,
+      "segments": [
+        {
+          "flags": 5,
+          "address": 1073741824,
+          "offset": 4096,
+          "filesz": 27717,
+          "memsz": 27717,
+          "page_start": 1073741824,
+          "page_end": 1073770496
+        },
+        {
+          "flags": 6,
+          "address": 1073807360,
+          "offset": 32768,
+          "filesz": 1088,
+          "memsz": 1088,
+          "page_start": 1073807360,
+          "page_end": 1073811456
+        },
+        {
+          "flags": 4,
+          "address": 1073823744,
+          "offset": 36864,
+          "filesz": 1664,
+          "memsz": 1664,
+          "page_start": 1073823744,
+          "page_end": 1073827840
+        }
+      ]
+    },
+    "service_sha256": "a85788aab87921329524f09a8563937206e5e63c4ceeb82a00799f740a26db10",
+    "service_elf": {
+      "entry": 1073741824,
+      "segments": [
+        {
+          "flags": 5,
+          "address": 1073741824,
+          "offset": 4096,
+          "filesz": 60693,
+          "memsz": 60693,
+          "page_start": 1073741824,
+          "page_end": 1073803264
+        },
+        {
+          "flags": 6,
+          "address": 1073807360,
+          "offset": 65536,
+          "filesz": 1096,
+          "memsz": 1096,
+          "page_start": 1073807360,
+          "page_end": 1073811456
+        },
+        {
+          "flags": 4,
+          "address": 1073823744,
+          "offset": 69632,
+          "filesz": 18168,
+          "memsz": 18168,
+          "page_start": 1073823744,
+          "page_end": 1073844224
+        }
+      ]
+    }
+  },
+  "before_sha256": "53f3e394e0b3d0baaed0e6b1bbd14c892622c07f8f55f8c6adc478a7352c3d1b",
+  "after_sha256": "3ddcd0b21be628bd0ebbc2f3876d8e4f1716c9cb16e15ddd032fe99e732d0dcc",
+  "run_directory": "/home/simon/projects/BaryonOS-worktrees/u05-settings-native/build-u05n/test-volume-settings/run/settings-3-633479b3e8",
+  "expected": {
+    "0": [
+      3,
+      6553601,
+      0
+    ],
+    "1": [
+      3,
+      8192000,
+      0
+    ]
+  },
+  "passed": true,
+  "evidence": {
+    "VOLUME:BROKER:MAX_COMPLETION_TICKS:": 1,
+    "VOLUME:BROKER:TIMEOUTS:": 0,
+    "VOLUME:A:DOCS:": 0,
+    "VOLUME:A:BYTES:": 0,
+    "VOLUME:A:COMMITS:": 0,
+    "VOLUME:A:DIGEST:": 0,
+    "VOLUME:A:REQUESTS:": 22,
+    "VOLUME:A:RECOVERED_REVISION:": 3,
+    "VOLUME:A:RECOVERED_COLLECTION:": 6553601,
+    "VOLUME:A:RECOVERED_SECOND:": 0,
+    "VOLUME:B:DOCS:": 0,
+    "VOLUME:B:BYTES:": 0,
+    "VOLUME:B:COMMITS:": 0,
+    "VOLUME:B:DIGEST:": 0,
+    "VOLUME:B:REQUESTS:": 23,
+    "VOLUME:B:RECOVERED_REVISION:": 3,
+    "VOLUME:B:RECOVERED_COLLECTION:": 8192000,
+    "VOLUME:B:RECOVERED_SECOND:": 0,
+    "VOLUME:SERVICE:GENERATION:": 6,
+    "VOLUME:SERVICE:COMMITS:": 2,
+    "VOLUME:SERVICE:CHUNK_ALLOCATIONS:": 2,
+    "VOLUME:SERVICE:DATA_SECTORS:": 2,
+    "VOLUME:SERVICE:TABLE_WRITES:": 2,
+    "VOLUME:SERVICE:FLUSHES:": 5,
+    "VOLUME:SERVICE:READ_SECTORS:": 18,
+    "VOLUME:SERVICE:REJECTED:": 1,
+    "VOLUME:SERVICE:ABORTED:": 0,
+    "VOLUME:SERVICE:UNKNOWN:": 0,
+    "VOLUME:SERVICE:TRANSACTIONS:": 0,
+    "VOLUME:SERVICE:RESTORES:": 0,
+    "VOLUME:BROKER:READS:": 752,
+    "VOLUME:BROKER:WRITES:": 70,
+    "VOLUME:BROKER:FLUSHES:": 5,
+    "VOLUME:BROKER:TABLE_SECTOR_WRITES:": 68,
+    "VOLUME:BROKER:DATA_SECTOR_WRITES:": 2,
+    "VOLUME:APP_DEVICE_DENIALS:": 6
+  },
+  "reported": {
+    "0": [
+      3,
+      6553601,
+      0
+    ],
+    "1": [
+      3,
+      8192000,
+      0
+    ]
+  },
+  "records": {
+    "0": [
+      [
+        "good",
+        3,
+        6553601,
+        9830658
+      ],
+      [
+        "good",
+        2,
+        9830658,
+        6553601
+      ]
+    ],
+    "1": [
+      [
+        "good",
+        3,
+        8192000,
+        13107457
+      ],
+      [
+        "good",
+        2,
+        13107457,
+        8192000
+      ]
+    ],
+    "generation": 6
+  }
+}

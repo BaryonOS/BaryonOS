@@ -76,6 +76,8 @@ jobs:
             sdk/display-client/Cargo.toml \
             ui/native/Cargo.toml \
             ui/surface-protocol/Cargo.toml \
+            sdk/examples/settings-volume/Cargo.toml \
+            sdk/examples/search-volume/Cargo.toml \
             sdk/examples/input-service/Cargo.toml \
             sdk/examples/display-input-probe/Cargo.toml
           do
@@ -88,6 +90,8 @@ jobs:
             sdk/display-client/Cargo.toml \
             ui/native/Cargo.toml \
             ui/surface-protocol/Cargo.toml \
+            sdk/examples/settings-volume/Cargo.toml \
+            sdk/examples/search-volume/Cargo.toml \
             sdk/examples/input-service/Cargo.toml
           do
             cargo +1.100.0 test --offline --locked --manifest-path "$manifest" 2>&1 | tee -a "$NOS_BUILD_DIR/logs/standalone-host.txt"
@@ -103,10 +107,42 @@ jobs:
             drivers/ps2/Cargo.toml \
             sdk/display-client/Cargo.toml \
             ui/native/Cargo.toml \
-            ui/surface-protocol/Cargo.toml
+            ui/surface-protocol/Cargo.toml \
+            sdk/examples/settings-volume/Cargo.toml \
+            sdk/examples/search-volume/Cargo.toml
           do
             cargo +1.100.0 build --offline --locked --release --lib --target x86_64-unknown-none --manifest-path "$manifest" 2>&1 | tee -a "$NOS_BUILD_DIR/logs/standalone-scalar.txt"
           done
+      - name: Settings and search independent oracle regressions
+        # Host models and runner counterexamples only; search S3 native wiring
+        # remains a separate acceptance step.
+        run: python3 -B -m unittest tests.test_settings_oracle tests.test_search_oracle tools.tests.test_run_search
+      - name: Cross-build and lint the search app (S2, no native execution)
+        # S3 has no kernel case yet. Match the documented S2 user ELF flags;
+        # never inherit the kernel linker script for this userspace binary.
+        env:
+          CARGO_TARGET_DIR: ${{ github.workspace }}/target/display-input-ci-search
+        run: |
+          python3 -B - <<'PY'
+          import os
+          from pathlib import Path
+          import subprocess
+          root = Path.cwd()
+          flags = ["-C", "code-model=small", "-C", "relocation-model=static",
+                   "-C", "no-redzone=yes", "-C", "linker=rust-lld",
+                   "-C", f"link-arg=-T{root / 'sdk/examples/volume-docs/linker.ld'}",
+                   "-C", "link-arg=--no-pie", "-C", "link-arg=--build-id=none",
+                   "-C", "link-arg=-zmax-page-size=0x1000"]
+          env = {**os.environ, "CARGO_ENCODED_RUSTFLAGS": "\x1f".join(flags)}
+          for action in ("build", "clippy"):
+              command = ["cargo", "+1.100.0", action, "--offline", "--locked", "--release",
+                         "--manifest-path", "sdk/examples/search-volume/Cargo.toml",
+                         "--features", "native", "--bin", "search-app",
+                         "--target", "x86_64-unknown-none"]
+              if action == "clippy":
+                  command += ["--", "-D", "warnings"]
+              subprocess.run(command, env=env, check=True)
+          PY
       - name: Cross-build isolated input daemon executables
         env:
           CARGO_TARGET_DIR: ${{ github.workspace }}/target/display-input-ci-daemon
@@ -133,6 +169,18 @@ jobs:
           python3 -B -u tools/build.py --kernel-feature native-dispi-probe
           python3 -B -u tools/run_dispi.py --case positive 2>&1 | tee "$NOS_BUILD_DIR/logs/dispi-positive.txt"
           python3 -B -u tools/run_dispi.py --case negative 2>&1 | tee "$NOS_BUILD_DIR/logs/dispi-negative.txt"
+      - name: Native per-domain settings persistence and cold recovery
+        # Six disposable cold boots exercise initialization, recovery, revert,
+        # corruption fallback and version refusal. This is the U05-N1 slice,
+        # not full U05 acceptance or user authentication/encryption evidence.
+        run: |
+          for case in settings settings-recover; do
+            NOS_BUILD_DIR="$NOS_BUILD_DIR/$case" python3 -B -u tools/build.py --kernel-feature "test-volume-$case"
+          done
+          python3 -B -u tools/run_settings.py \
+            --settings-build "$NOS_BUILD_DIR/settings" \
+            --recover-build "$NOS_BUILD_DIR/settings-recover" \
+            --timeout 120 2>&1 | tee "$NOS_BUILD_DIR/logs/settings-native.txt"
       - name: Preserve clean tracked sources and standalone output paths
         run: |
           git diff --exit-code

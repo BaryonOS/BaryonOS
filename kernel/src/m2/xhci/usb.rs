@@ -6,14 +6,17 @@
 //! Rings never wrap, all waits are bounded, and every page remains pinned.
 //! Device lifetimes come from the bounded `hotplug::Ports` tracker. The opt-in
 //! `native-usb-hid-reattach` profile re-enumerates one same-port keyboard as a
-//! new generation and rejects generation-1 work after slot reuse.
+//! new generation and rejects generation-1 work after slot reuse. The separate
+//! `native-usb-hid-mouse-reattach` profile does the same for the mouse, after
+//! the keyboard is retired, so its generation 2 can reuse the keyboard's slot.
 use super::*;
 use nieuw_os_usb_core::{
+    boot::MouseChanges,
     boot_interface::{Protocol, Speed},
     boot_session::{Changes, CompletionStatus, Lifetime, Session, Token},
     hotplug::{Ports, Ticket},
 };
-#[cfg(feature = "native-usb-hid-reattach")]
+#[cfg(feature = "usb-hid-reattach-core")]
 use nieuw_os_usb_core::{
     boot_session::Error as SessionError,
     hotplug::{Error as PortError, Phase},
@@ -21,9 +24,9 @@ use nieuw_os_usb_core::{
 
 // Every grant exists before the fixed domain is established; none is added
 // later. The reattach profile uses the single spare page of the 16-page limit.
-#[cfg(not(feature = "native-usb-hid-reattach"))]
+#[cfg(not(feature = "usb-hid-reattach-core"))]
 const COUNT: usize = 15;
-#[cfg(feature = "native-usb-hid-reattach")]
+#[cfg(feature = "usb-hid-reattach-core")]
 const COUNT: usize = 16;
 const COMMAND_RING: usize = 0;
 const EVENT_RING: usize = 1;
@@ -36,19 +39,33 @@ const INPUT_RING: usize = 9;
 const DESCRIPTOR: usize = 11;
 const REPORT: usize = 12;
 const GUARD: usize = 14;
-/// Generation-2 keyboard page, readable and writable by the device: its output
+/// Index of the device the reattach profile re-enumerates: 0 = keyboard on
+/// root port 1, 1 = mouse on root port 2.
+#[cfg(feature = "usb-hid-reattach-core")]
+const TARGET: usize = if cfg!(feature = "native-usb-hid-mouse-reattach") {
+    1
+} else {
+    0
+};
+#[cfg(feature = "usb-hid-reattach-core")]
+const TARGET_PROTOCOL: Protocol = if TARGET == 1 {
+    Protocol::Mouse
+} else {
+    Protocol::Keyboard
+};
+/// Generation-2 device page, readable and writable by the device: its output
 /// device context at offset 0 (1 KiB with the required 32-byte contexts) and
 /// its report buffer at `SPARE_REPORT`. It holds only zeroed, xHC-maintained
 /// context and report bytes.
-#[cfg(feature = "native-usb-hid-reattach")]
+#[cfg(feature = "usb-hid-reattach-core")]
 const SPARE: usize = 15;
-#[cfg(feature = "native-usb-hid-reattach")]
+#[cfg(feature = "usb-hid-reattach-core")]
 const SPARE_REPORT: usize = 0x800;
 /// Fill for retired generation-1 pages that stay mapped in the fixed domain.
 /// Comparing it at the end detects a stray device write; it cannot prevent one.
-#[cfg(feature = "native-usb-hid-reattach")]
+#[cfg(feature = "usb-hid-reattach-core")]
 const RETIRED: u8 = 0x3c;
-#[cfg(feature = "native-usb-hid-reattach")]
+#[cfg(feature = "usb-hid-reattach-core")]
 const QUIET_POLLS: usize = 3_000_000;
 const REPORT_BYTES: usize = 8;
 const INPUT_POLLS: usize = 30_000_000;
@@ -105,7 +122,7 @@ fn bytes<const N: usize>(pa: u64, offset: usize) -> [u8; N] {
     })
 }
 
-#[cfg(feature = "native-usb-hid-reattach")]
+#[cfg(feature = "usb-hid-reattach-core")]
 fn fill(pa: u64, value: u8) {
     paging::physical(pa, |p| {
         // SAFETY: One pinned page whose device work is retired by a completed
@@ -114,7 +131,7 @@ fn fill(pa: u64, value: u8) {
     });
 }
 
-#[cfg(feature = "native-usb-hid-reattach")]
+#[cfg(feature = "usb-hid-reattach-core")]
 fn filled(pa: u64, value: u8) -> bool {
     paging::physical_read(pa, |p| {
         // SAFETY: Retained pinned page, exactly one page of bounded volatile
@@ -533,7 +550,7 @@ impl Engine<'_> {
         // While the new generation is Enumerating, the phase check passes, so
         // only the lifetime and attempt can refuse the retired ticket. The
         // new ticket is accepted below in the same phase.
-        #[cfg(feature = "native-usb-hid-reattach")]
+        #[cfg(feature = "usb-hid-reattach-core")]
         {
             if let Some(old) = retired {
                 if ports.complete(old, true) != Err(PortError::Stale)
@@ -544,7 +561,7 @@ impl Engine<'_> {
                 }
             }
         }
-        #[cfg(not(feature = "native-usb-hid-reattach"))]
+        #[cfg(not(feature = "usb-hid-reattach-core"))]
         let _ = retired;
         let result = self.enumerate(index, port, ticket.lifetime(), output, report);
         let completed = ports.complete(ticket, result.is_ok());
@@ -608,9 +625,10 @@ impl Engine<'_> {
     }
 
     /// After an observed disconnect: correlated Stop Endpoint, then Disable
-    /// Slot, then terminal Session detach releasing exactly `released`.
+    /// Slot, then terminal Session detach releasing exactly the held `keys`
+    /// (keyboard) or `buttons` (mouse) and nothing else.
     /// Returns the detached work so its token can be checked as stale.
-    fn disconnect(&mut self, hid: &mut Hid, released: &[u8]) -> Result<Pending, Error> {
+    fn disconnect(&mut self, hid: &mut Hid, keys: &[u8], buttons: u8) -> Result<Pending, Error> {
         let offset = self.port_offset(hid.port)?;
         if self.controller.read(offset) & 1 != 0 {
             return Err(bad(24));
@@ -649,10 +667,24 @@ impl Engine<'_> {
             return Err(bad(26));
         }
         self.command(10, hid.slot, 0, 0)?; // Disable Slot after endpoint quiescence
-        let cleared = hid.session.detach();
-        if !matches!(cleared, Changes::Keyboard(changes) if changes.released() == released
-            && changes.pressed().is_empty() && changes.modifiers_released == 0 && changes.modifiers_pressed == 0)
-        {
+        let released = match hid.session.detach() {
+            Changes::Keyboard(changes) => {
+                buttons == 0
+                    && changes.released() == keys
+                    && changes.pressed().is_empty()
+                    && changes.modifiers_released == 0
+                    && changes.modifiers_pressed == 0
+            }
+            Changes::Mouse(changes) => {
+                keys.is_empty()
+                    && changes
+                        == MouseChanges {
+                            buttons_released: buttons,
+                            ..Default::default()
+                        }
+            }
+        };
+        if !released {
             return Err(bad(27));
         }
         Ok(pending)
@@ -660,11 +692,15 @@ impl Engine<'_> {
 
     /// The detached token cannot complete, and repeated detach releases nothing.
     fn deny_stale(hid: &mut Hid, pending: Pending) -> Result<(), Error> {
+        let idle = match hid.session.binding().protocol {
+            Protocol::Keyboard => Changes::Keyboard(Default::default()),
+            Protocol::Mouse => Changes::Mouse(Default::default()),
+        };
         if hid
             .session
             .complete_input(pending.token, CompletionStatus::Success, &[0; REPORT_BYTES])
             .is_ok()
-            || !matches!(hid.session.detach(), Changes::Keyboard(changes) if changes == Default::default())
+            || hid.session.detach() != idle
         {
             return Err(bad(28));
         }
@@ -695,7 +731,7 @@ impl Engine<'_> {
                     if phase != 5 || port != keyboard.port {
                         return Err(bad(30));
                     }
-                    let pending = self.disconnect(keyboard, &[5])?;
+                    let pending = self.disconnect(keyboard, &[5], 0)?;
                     serial::write(b"USB:UNPLUG_CLEAR:PASS\n");
                     Self::deny_stale(keyboard, pending)?;
                     serial::write(b"USB:STALE_TOKEN:DENIED\n");
@@ -705,7 +741,7 @@ impl Engine<'_> {
                         event: captured,
                     });
                 }
-                if cfg!(feature = "native-usb-hid-reattach") {
+                if cfg!(feature = "usb-hid-reattach-core") {
                     // This profile admits a connect only in its Detached wait.
                     return Err(bad(40));
                 }
@@ -777,7 +813,7 @@ impl Engine<'_> {
 
     /// Ports detach after the completed Disable Slot. The xHC no longer owns
     /// the slot, so its DCBAA entry is cleared before any later Enable Slot.
-    #[cfg(feature = "native-usb-hid-reattach")]
+    #[cfg(feature = "usb-hid-reattach-core")]
     fn retire(&mut self, ports: &mut Ports<2>, hid: &Hid) -> Result<(), Error> {
         ports.detach(hid.index).map_err(|_| bad(41))?;
         write32(self.pages[DCBAA], usize::from(hid.slot) * 2, &[0, 0]);
@@ -786,8 +822,8 @@ impl Engine<'_> {
     }
 
     /// While Detached, only a connect on `port` with PED=0 may start attach.
-    #[cfg(feature = "native-usb-hid-reattach")]
-    fn await_connect(&mut self, ports: &Ports<2>, port: u8) -> Result<(), Error> {
+    #[cfg(feature = "usb-hid-reattach-core")]
+    fn await_connect(&mut self, ports: &Ports<2>, index: usize, port: u8) -> Result<(), Error> {
         for _ in 0..INPUT_POLLS {
             let Some(event) = self.poll()? else {
                 core::hint::spin_loop();
@@ -801,7 +837,7 @@ impl Engine<'_> {
             if changed != port
                 || state & 1 == 0
                 || state & 2 != 0
-                || ports.phase(0) != Ok(Phase::Detached)
+                || ports.phase(index) != Ok(Phase::Detached)
             {
                 return Err(bad(42));
             }
@@ -810,68 +846,147 @@ impl Engine<'_> {
         Err(Error::Timeout)
     }
 
-    /// Same-port keyboard reattach after the generation-1 unplug. `old` is the
-    /// detached generation-1 keyboard; `spare` is the (page, IOVA) pair of the
-    /// generation-2 page granted before domain establishment.
-    #[cfg(feature = "native-usb-hid-reattach")]
+    /// Mouse profile, after `reports()`: wait for the generation-1 left press,
+    /// then for the port-2 unplug while it is held. Detach must release exactly
+    /// that button. The mouse is not retired here; `reattach()` owns that.
+    #[cfg(feature = "native-usb-hid-mouse-reattach")]
+    fn hold_and_unplug_mouse(&mut self, mouse: &mut Hid) -> Result<Retired, Error> {
+        let mut held = false;
+        let mut captured = None;
+        for _ in 0..INPUT_POLLS {
+            let Some(event) = self.poll()? else {
+                core::hint::spin_loop();
+                continue;
+            };
+            if event.kind() == 34 {
+                let port = self.port_event(event)?;
+                let connected = self.controller.read(self.port_offset(port)?) & 1 != 0;
+                if !held || port != mouse.port || connected {
+                    return Err(bad(52));
+                }
+                let pending = self.disconnect(mouse, &[], 1)?;
+                Self::deny_stale(mouse, pending)?;
+                return Ok(Retired {
+                    pending,
+                    event: captured,
+                });
+            }
+            if event.slot() != mouse.slot {
+                return Err(bad(54));
+            }
+            let Changes::Mouse(change) = self.complete(mouse, event)? else {
+                return Err(bad(53));
+            };
+            captured = Some(event);
+            if change != MouseChanges::default() {
+                let press = MouseChanges {
+                    buttons_pressed: 1,
+                    ..Default::default()
+                };
+                if held || change != press {
+                    return Err(bad(53));
+                }
+                held = true;
+                serial::write(b"USB:REATTACH:HELD_BUTTON\n");
+            }
+            self.submit(mouse)?;
+        }
+        Err(Error::Timeout)
+    }
+
+    /// Same-port reattach of the `TARGET` device after its generation-1
+    /// unplug. `old` is the detached generation-1 device; `spare` is the
+    /// (page, IOVA) pair of the generation-2 page granted before domain
+    /// establishment. Each `replay` entry is a real generation-1 completion and
+    /// the slot it came from; `stale` lists generation-1 Session tokens beyond
+    /// `retired`'s own, all of which the generation-2 Session must refuse.
+    #[cfg(feature = "usb-hid-reattach-core")]
+    #[allow(clippy::too_many_arguments)]
     fn reattach(
         &mut self,
         ports: &mut Ports<2>,
         old_ticket: Ticket,
         old: &Hid,
         retired: Retired,
+        replay: &[(Event, u8)],
+        stale: &[Token],
         spare: (u64, u64),
     ) -> Result<(), Error> {
-        let captured = retired.event.ok_or_else(|| bad(43))?;
-        if old.index != 0 || old.session.binding().protocol != Protocol::Keyboard {
+        if old.index != TARGET || old.session.binding().protocol != TARGET_PROTOCOL {
             return Err(bad(43));
         }
         self.retire(ports, old)?;
         fill(self.pages[OUTPUT_CONTEXT + old.index], RETIRED);
         fill(old.report.page, RETIRED);
         serial::write(b"USB:REATTACH:DETACHED\n");
-        self.await_connect(ports, old.port)?;
+        self.await_connect(ports, old.index, old.port)?;
         let (page, io) = spare;
         let report = Buffer {
             page,
             offset: SPARE_REPORT,
             io: io + SPARE_REPORT as u64,
         };
-        let (mut keyboard, ticket) =
+        let (mut hid, ticket) =
             self.attach(ports, old.index, old.port, io, report, Some(old_ticket))?;
         let (before, after) = (old_ticket.lifetime(), ticket.lifetime());
-        if keyboard.session.binding().protocol != Protocol::Keyboard
+        if hid.session.binding().protocol != TARGET_PROTOCOL
             || after.device != before.device
             || before.generation.checked_add(1) != Some(after.generation)
         {
             return Err(bad(44));
         }
-        serial::write(b"USB:REATTACH:ENUM:KEYBOARD\n");
-        let reused = keyboard.slot == old.slot;
-        serial::write(if reused {
+        serial::write(match TARGET_PROTOCOL {
+            Protocol::Keyboard => b"USB:REATTACH:ENUM:KEYBOARD\n".as_slice(),
+            Protocol::Mouse => b"USB:REATTACH:ENUM:MOUSE\n".as_slice(),
+        });
+        #[cfg(not(feature = "native-usb-hid-mouse-reattach"))]
+        serial::write(if hid.slot == old.slot {
             b"USB:REATTACH:SLOT_REUSED\n".as_slice()
         } else {
             b"USB:REATTACH:SLOT_NEW\n".as_slice()
         });
-        self.submit(&mut keyboard)?;
-        let pending = keyboard.pending.ok_or_else(|| bad(45))?;
-        // Replayed captured completion, not a hardware-generated event: the
-        // last real generation-1 Transfer Event must not match generation-2
-        // work. With a reused slot only the never-reused TRB address differs.
-        // The generation-1 token and ticket are rejected without consuming the
-        // generation-2 pending transfer, which must later accept its real event.
-        if Self::accepts(&keyboard, pending, captured)
-            || (reused && (captured.slot() != keyboard.slot || captured.endpoint() != keyboard.dci))
-            || !matches!(
-                keyboard.session.complete_input(
-                    retired.pending.token,
-                    CompletionStatus::Success,
-                    &[0; REPORT_BYTES]
-                ),
-                Err(SessionError::UnexpectedCompletion)
-            )
+        // The mouse profile's replay lists the generation-1 keyboard first.
+        #[cfg(feature = "native-usb-hid-mouse-reattach")]
+        serial::write(
+            match replay.iter().position(|&(_, source)| source == hid.slot) {
+                Some(0) => b"USB:REATTACH:SLOT_REUSED:KEYBOARD\n".as_slice(),
+                Some(_) => b"USB:REATTACH:SLOT_REUSED:MOUSE\n".as_slice(),
+                None => b"USB:REATTACH:SLOT_NEW\n".as_slice(),
+            },
+        );
+        self.submit(&mut hid)?;
+        let pending = hid.pending.ok_or_else(|| bad(45))?;
+        // Replayed captured completions, not hardware-generated events: each
+        // real generation-1 Transfer Event must not match generation-2 work.
+        // The source whose slot was reused must pass every other accepts()
+        // field once its TRB address is substituted, so only the never-reused
+        // TRB address rejects it. Generation-1 tokens and the ticket are
+        // rejected without consuming the generation-2 pending transfer, which
+        // must later accept its real event.
+        let replayed = replay.iter().all(|&(event, source)| {
+            event.slot() == source
+                && !Self::accepts(&hid, pending, event)
+                && (source != hid.slot
+                    || Self::accepts(
+                        &hid,
+                        Pending {
+                            pointer: event.parameter,
+                            ..pending
+                        },
+                        event,
+                    ))
+        });
+        let refused = core::iter::once(&retired.pending.token)
+            .chain(stale)
+            .all(|&token| {
+                hid.session
+                    .complete_input(token, CompletionStatus::Success, &[0; REPORT_BYTES])
+                    == Err(SessionError::UnexpectedCompletion)
+            });
+        if !replayed
+            || !refused
             || ports.complete(old_ticket, true) != Err(PortError::Stale)
-            || keyboard.pending != Some(pending)
+            || hid.pending != Some(pending)
         {
             return Err(bad(45));
         }
@@ -886,18 +1001,18 @@ impl Engine<'_> {
                 let port = self.port_event(event)?;
                 let state = self.controller.read(self.port_offset(port)?);
                 match (phase, state & 1 != 0) {
-                    (2, false) if port == keyboard.port => {
-                        let detached = self.disconnect(&mut keyboard, &[])?;
-                        Self::deny_stale(&mut keyboard, detached)?;
-                        self.retire(ports, &keyboard)?;
+                    (2, false) if port == hid.port => {
+                        let detached = self.disconnect(&mut hid, &[], 0)?;
+                        Self::deny_stale(&mut hid, detached)?;
+                        self.retire(ports, &hid)?;
                         phase = 3;
                         serial::write(b"USB:REATTACH:UNPLUG:PASS\n");
                     }
-                    (3, true) if port == keyboard.port => {
+                    (3, true) if port == hid.port => {
                         // The instance attach budget refuses a third identity:
                         // no port reset, no Enable Slot, and the port stays PED=0.
-                        if ports.phase(0) != Ok(Phase::Detached)
-                            || ports.attach(0) != Err(PortError::Exhausted)
+                        if ports.phase(hid.index) != Ok(Phase::Detached)
+                            || ports.attach(hid.index) != Err(PortError::Exhausted)
                             || state & 2 != 0
                         {
                             return Err(bad(46));
@@ -921,30 +1036,65 @@ impl Engine<'_> {
                 }
                 continue;
             }
-            if phase >= 3 || event.slot() != keyboard.slot {
+            if phase >= 3 || event.slot() != hid.slot {
                 return Err(event.rejected());
             }
-            let Changes::Keyboard(keys) = self.complete(&mut keyboard, event)? else {
-                return Err(bad(48));
-            };
-            if keys.status.is_some() || keys.modifiers_pressed != 0 || keys.modifiers_released != 0
+            let changes = self.complete(&mut hid, event)?;
+            #[cfg(not(feature = "native-usb-hid-mouse-reattach"))]
             {
-                return Err(bad(48));
-            }
-            if !keys.pressed().is_empty() || !keys.released().is_empty() {
-                match phase {
-                    0 if keys.pressed() == [6] && keys.released().is_empty() => {
-                        phase = 1;
-                        serial::write(b"USB:REATTACH:KEY_DOWN\n");
+                let Changes::Keyboard(keys) = changes else {
+                    return Err(bad(48));
+                };
+                if keys.status.is_some()
+                    || keys.modifiers_pressed != 0
+                    || keys.modifiers_released != 0
+                {
+                    return Err(bad(48));
+                }
+                if !keys.pressed().is_empty() || !keys.released().is_empty() {
+                    match phase {
+                        0 if keys.pressed() == [6] && keys.released().is_empty() => {
+                            phase = 1;
+                            serial::write(b"USB:REATTACH:KEY_DOWN\n");
+                        }
+                        1 if keys.released() == [6] && keys.pressed().is_empty() => {
+                            phase = 2;
+                            serial::write(b"USB:REATTACH:KEY_UP\n");
+                        }
+                        _ => return Err(bad(49)),
                     }
-                    1 if keys.released() == [6] && keys.pressed().is_empty() => {
-                        phase = 2;
-                        serial::write(b"USB:REATTACH:KEY_UP\n");
-                    }
-                    _ => return Err(bad(49)),
                 }
             }
-            self.submit(&mut keyboard)?;
+            #[cfg(feature = "native-usb-hid-mouse-reattach")]
+            {
+                let Changes::Mouse(change) = changes else {
+                    return Err(bad(55));
+                };
+                let down = MouseChanges {
+                    dx: -4,
+                    dy: 6,
+                    buttons_pressed: 1,
+                    buttons_released: 0,
+                };
+                let up = MouseChanges {
+                    buttons_released: 1,
+                    ..Default::default()
+                };
+                if change != MouseChanges::default() {
+                    match phase {
+                        0 if change == down => {
+                            phase = 1;
+                            serial::write(b"USB:REATTACH:MOUSE_DOWN\n");
+                        }
+                        1 if change == up => {
+                            phase = 2;
+                            serial::write(b"USB:REATTACH:MOUSE_UP\n");
+                        }
+                        _ => return Err(bad(55)),
+                    }
+                }
+            }
+            self.submit(&mut hid)?;
         }
         Err(Error::Timeout)
     }
@@ -973,13 +1123,13 @@ struct Hid {
     report: Buffer,
 }
 
-/// Generation-1 keyboard evidence retained after its detach.
-#[cfg_attr(not(feature = "native-usb-hid-reattach"), allow(dead_code))]
+/// Generation-1 device evidence retained after its detach.
+#[cfg_attr(not(feature = "usb-hid-reattach-core"), allow(dead_code))]
 #[derive(Clone, Copy)]
 struct Retired {
     /// Submitted work whose token belongs to the detached session.
     pending: Pending,
-    /// The last real completion the controller published for that keyboard.
+    /// The last real completion the controller published for that device.
     event: Option<Event>,
 }
 
@@ -1013,7 +1163,7 @@ pub(super) fn execute(
         let direction = match index {
             EVENT_RING | DESCRIPTOR | REPORT | 13 => device::DmaDirection::DeviceWrites,
             OUTPUT_CONTEXT | 6 => device::DmaDirection::DeviceReadsWrites,
-            #[cfg(feature = "native-usb-hid-reattach")]
+            #[cfg(feature = "usb-hid-reattach-core")]
             SPARE => device::DmaDirection::DeviceReadsWrites,
             _ => device::DmaDirection::DeviceReads,
         };
@@ -1098,21 +1248,48 @@ pub(super) fn execute(
         let (mut keyboard, keyboard_ticket) =
             engine.attach(&mut ports, 0, 1, io[OUTPUT_CONTEXT], report(0), None)?;
         announce(&keyboard);
-        let (mut mouse, _) =
+        let (mut mouse, mouse_ticket) =
             engine.attach(&mut ports, 1, 2, io[OUTPUT_CONTEXT + 1], report(1), None)?;
         announce(&mouse);
         serial::write(b"USB:PROTOCOL:PASS\n");
         let retired = engine.reports(&mut keyboard, &mut mouse)?;
         #[cfg(feature = "native-usb-hid-reattach")]
-        engine.reattach(
-            &mut ports,
-            keyboard_ticket,
-            &keyboard,
-            retired,
-            (pages[SPARE], io[SPARE]),
-        )?;
-        #[cfg(not(feature = "native-usb-hid-reattach"))]
-        let _ = (keyboard_ticket, retired);
+        {
+            let _ = mouse_ticket;
+            let captured = retired.event.ok_or_else(|| bad(43))?;
+            engine.reattach(
+                &mut ports,
+                keyboard_ticket,
+                &keyboard,
+                retired,
+                &[(captured, keyboard.slot)],
+                &[],
+                (pages[SPARE], io[SPARE]),
+            )?;
+        }
+        #[cfg(feature = "native-usb-hid-mouse-reattach")]
+        {
+            let _ = keyboard_ticket;
+            let keyboard_event = retired.event.ok_or_else(|| bad(43))?;
+            // QEMU may hand the keyboard's slot to a later Enable Slot, so its
+            // DCBAA entry is cleared and its pages filled before any attach.
+            engine.retire(&mut ports, &keyboard)?;
+            fill(pages[OUTPUT_CONTEXT], RETIRED);
+            fill(pages[REPORT], RETIRED);
+            let mouse_retired = engine.hold_and_unplug_mouse(&mut mouse)?;
+            let mouse_event = mouse_retired.event.ok_or_else(|| bad(43))?;
+            engine.reattach(
+                &mut ports,
+                mouse_ticket,
+                &mouse,
+                mouse_retired,
+                &[(keyboard_event, keyboard.slot), (mouse_event, mouse.slot)],
+                &[retired.pending.token],
+                (pages[SPARE], io[SPARE]),
+            )?;
+        }
+        #[cfg(not(feature = "usb-hid-reattach-core"))]
+        let _ = (keyboard_ticket, mouse_ticket, retired);
         if domain.fault().map_err(|_| Error::Isolation)?.is_some() {
             return Err(Error::Isolation);
         }
@@ -1127,9 +1304,14 @@ pub(super) fn execute(
     denied?;
     // Detection only: the retired generation-1 output context and report pages
     // stayed mapped in the fixed domain until bus mastering was cleared.
-    #[cfg(feature = "native-usb-hid-reattach")]
+    #[cfg(feature = "usb-hid-reattach-core")]
     {
-        if !filled(pages[OUTPUT_CONTEXT], RETIRED) || !filled(pages[REPORT], RETIRED) {
+        let retired: &[usize] = if TARGET == 1 {
+            &[OUTPUT_CONTEXT, REPORT, OUTPUT_CONTEXT + 1, REPORT + 1]
+        } else {
+            &[OUTPUT_CONTEXT, REPORT]
+        };
+        if retired.iter().any(|&page| !filled(pages[page], RETIRED)) {
             return Err(Error::Guard);
         }
         serial::write(b"USB:RETIRED:UNCHANGED\n");

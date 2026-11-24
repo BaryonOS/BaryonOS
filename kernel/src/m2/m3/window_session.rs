@@ -215,7 +215,12 @@ pub(super) fn manifest(s: &mut State) {
     let root = e.create_endpoint(volume).unwrap();
     let other_doc = e.derive(volume, root, RECV).unwrap();
     e.close(volume, root).unwrap();
-    let readonly = cfg!(feature = "test-system-recover");
+    // U03-T3: the read-only profile downgrades only the service and block grant;
+    // Material stays EditMode::ReadWrite so a real save reaches the service.
+    let readonly = cfg!(any(
+        feature = "test-system-recover",
+        feature = "test-window-session-readonly"
+    ));
     let block = e
         .create_block_device_with_rights(
             volume,
@@ -231,6 +236,13 @@ pub(super) fn manifest(s: &mut State) {
             },
         )
         .unwrap();
+    #[cfg(feature = "test-window-session-readonly")]
+    require(
+        e.check_block(volume, block, BLOCK_READ).is_ok()
+            && e.check_block(volume, block, BLOCK_WRITE).is_err()
+            && e.check_block(volume, block, BLOCK_FLUSH).is_err(),
+        b"READONLY_GRANT",
+    );
     let entropy = e.create_entropy(key).unwrap();
     // Unconnected legacy key endpoints stay wholly within the key principal.
     let unused_key_ingress = |e: &mut Engine| {
@@ -297,7 +309,7 @@ pub(super) fn manifest(s: &mut State) {
     for (at, value) in [
         (72, doc_reply),
         (80, app_document),
-        (112, u64::from(readonly)),
+        (112, u64::from(cfg!(feature = "test-system-recover"))),
         (168, volume),
     ] {
         put(s, MATERIAL, at, value);
@@ -894,6 +906,32 @@ pub(super) fn poll(s: &mut State) {
         entropy_idle && block_idle && submitted == completed,
         b"BROKERS_NOT_IDLE",
     );
+    // Read the volume evidence words before the service is torn down.
+    #[cfg(feature = "test-window-session-readonly")]
+    {
+        require(
+            s.processes[VOLUME].status != Status::Dead,
+            b"READONLY_VOLUME_DEAD",
+        );
+        // Word 120 is read back from the live VOLUME image, not the manifest constant.
+        let read_only = word(s, VOLUME, 120);
+        let commits = word(s, VOLUME, 304);
+        for (label, value) in [
+            (b"WINDOW:VOLUME:READ_ONLY:".as_slice(), read_only),
+            (b"WINDOW:VOLUME:REJECTED:", word(s, VOLUME, 352)),
+            (b"WINDOW:VOLUME:COMMITS:", commits),
+            (b"WINDOW:VOLUME:UNKNOWN:", word(s, VOLUME, 368)),
+            (b"WINDOW:VOLUME:UNCERTAIN:", word(s, VOLUME, 376)),
+            (b"WINDOW:BLOCK:WRITES:", submitted[1]),
+            (b"WINDOW:BLOCK:FLUSHES:", submitted[2]),
+        ] {
+            print_number(label, value);
+        }
+        require(
+            read_only == 1 && commits == 0 && submitted[1..] == [0, 0],
+            b"READONLY_MUTATED",
+        );
+    }
     for role in [COMP, SOURCE, POLICY, KEY, VOLUME] {
         if s.processes[role].status != Status::Dead {
             let pid = s.processes[role].pid;
