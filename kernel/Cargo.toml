@@ -228,6 +228,8 @@ test-net-service-exhaustion = ["native-net-service", "ipc-wait"]
 test-net-service-dhcp = ["native-net-service"]
 # N02-T3b: a QMP link down/up withdraws and re-acquires the DHCP lease.
 test-net-service-link = ["test-net-service-dhcp", "test-system-net-link"]
+# N02-T6: one DHCP lease, DNS and HTTP through QEMU's libslirp router.
+test-net-service-slirp = ["test-net-service-dhcp"]
 # N04: the revoke manifest plus a full listener sweep at two quiescent points;
 # idle processes use the existing bounded wait ABI. The revoke case is unchanged.
 test-net-service-port-sweep = ["test-net-service-revoke", "ipc-wait"]

@@ -15,6 +15,13 @@ only): the service observes the kernel link epoch (test syscall 0x74),
 withdraws the lease on the down edge and acquires a fresh one after the up
 edge; the peer refuses any later frame from the old address.
 
+`--case slirp` (N02-T6) replaces the synthetic peer by QEMU's libslirp user
+network: its own DHCP server, ARP, DNS forwarding to the host's real resolver
+and TCP translation of 192.0.2.1:8090 to a host-loopback HTTP oracle. One
+lease, no NAK; app A resolves a public name, app B fetches over HTTP. The
+filter-dump pcap of the netdev is bound to the broker counters and to app A's
+DNS answer (tools/network_slirp_oracle.py).
+
 `--case route` (N02-T5) runs the dhcp case with the leases as /26 behind
 router 192.0.2.65, so the unchanged grant 192.0.2.1 is off-link: DNS and TCP
 must leave through the lease's router MAC and 192.0.2.1 is never ARPed.
@@ -26,6 +33,7 @@ in between is not detected.
 from __future__ import annotations
 import argparse
 import hashlib
+import ipaddress
 from datetime import datetime, timezone
 import math
 import os
@@ -44,11 +52,12 @@ from run_system import check_esp, network_arguments
 from run_network_service import BOOT, FORBIDDEN, REQUIRED, execute_native, integer, record_streams
 from network_dhcp_peer import LEASES, ROUTE_MASK, ROUTER_IP, Peer, validate_transcript
 from run_net_link import NETDEV, LinkControl, check_qmp
+import network_slirp_oracle as slirp
 
 FEATURE = "test-net-service-dhcp"
-CASES = {"dhcp": FEATURE, "link": "test-net-service-link", "route": FEATURE}
+CASES = {"dhcp": FEATURE, "link": "test-net-service-link", "route": FEATURE, "slirp": "test-net-service-slirp"}
 SUMMARIES = {"dhcp": "network-dhcp-report.json", "link": "network-dhcp-link-report.json",
-             "route": "network-dhcp-route-report.json"}
+             "route": "network-dhcp-route-report.json", "slirp": "network-dhcp-slirp-report.json"}
 LAST_TICK = 6000
 OFFSETS = (240, 400, 408, 416, 424, 432, 440, 448, 456, 464, 472, 480, 488, 496, 504, 512, 520, 528,
            536, 544, 552, 560, 568, 576, 584, 592, 600, 608, 616, 624, 632, 640, 648, 656, 664)
@@ -197,8 +206,11 @@ def sequence(stdout, case="dhcp"):
             or set(exit_ticks) != {"APP_A", "APP_B"} or entropy is None):
         raise ValueError("Incomplete native process, broker, exit or entropy evidence")
     service = found["SERVICE"]
-    if (service[560] != 2 or service[568] != 1 or service[608] != 0
-            or entropy != 8 + 4 * service[600] or not 0 < service[592] <= service[616] <= LAST_TICK):
+    # libslirp leases once and never withdraws; the other cases lease twice.
+    leases, withdrawals = (1, 0) if case == "slirp" else (2, 1)
+    if (service[560] != leases or service[568] != withdrawals or service[608] != 0
+            or entropy != 8 + 4 * service[600] or not 0 < service[616] <= LAST_TICK
+            or not (service[592] == 0 if case == "slirp" else 0 < service[592] <= service[616])):
         raise ValueError("Native DHCP lease/withdrawal/entropy evidence differs")
     observed = {"processes": {r: {str(k): v for k, v in values.items()} for r, values in found.items()},
                 "network": network, "entropy_bytes": entropy, "exit_ticks": exit_ticks}
@@ -245,6 +257,8 @@ def evaluate(report, peer, case="dhcp", control=None):
             or not 0 <= report["duration_s"] <= report["timeout_s"] + 5):
         raise ValueError("Native QEMU exit/lifetime/profile evidence failed")
     observed = sequence(report["stdout"], case)
+    if case == "slirp":
+        return evaluate_slirp(report, peer, observed)
     if (peer.get("case") != case or peer.get("passed") is not True or peer.get("connected") is not True
             or peer.get("error") is not None or peer.get("rejected_frame") is not None):
         raise ValueError("Actual synthetic DHCP peer failed: " + str(peer.get("error")))
@@ -273,6 +287,40 @@ def evaluate(report, peer, case="dhcp", control=None):
                 or peer.get("mask") != ".".join(map(str, ROUTE_MASK))
                 or peer.get("router") != ".".join(map(str, ROUTER_IP))):
             raise ValueError("The route case lacks the NAK, a per-lease router ARP or the /26 router lease")
+    return observed
+
+
+def evaluate_slirp(report, oracle, observed):
+    """Bind the native evidence to the libslirp wire capture and the oracle."""
+    command = report.get("command", [])
+    netdevs = [command[i + 1] for i, item in enumerate(command[:-1]) if item in ("-netdev", "-nic", "-net")]
+    pcap = Path(report["run_directory"]).relative_to(ROOT).as_posix() + "/slirp.pcap"
+    if (netdevs != ["none", slirp.arguments(pcap)[7]] or command.count("-object") != 2
+            or slirp.arguments(pcap)[9] not in command or any("fwd" in str(item) for item in command)):
+        raise ValueError("unexpected QEMU network: only the pinned libslirp netdev and its dump are allowed")
+    if (oracle.get("connections") != 1 or oracle.get("request_ok") is not True
+            or oracle.get("response_sent") is not True or oracle.get("error") is not None):
+        raise ValueError("Host HTTP oracle did not see exactly app B's exchange: " + str(oracle.get("error")))
+    wire, net = report.get("wire") or {}, observed["network"]
+    processes = observed["processes"]
+    service, app_a = processes["SERVICE"], processes["APP_A"]
+    if (wire.get("other_frames") != 0 or wire.get("foreign") != [] or wire.get("http_syns", 0) < 1
+            or net["NET_TX_COMPLETED"] != wire.get("guest_frames")
+            or net["NET_RX_DELIVERED"] != wire.get("slirp_frames")):
+        raise ValueError("libslirp wire capture contradicts broker TX/RX counts or scope")
+    acks = wire.get("dhcp_acks")
+    lease = dict(address=slirp.DHCP_START, router=slirp.HOST, dns=slirp.DNS, mask="255.255.255.0")
+    if (not isinstance(acks, list) or len(acks) != 1 or {k: acks[0].get(k) for k in lease} != lease
+            or service["576"] != service["584"] or service["576"] != int(ipaddress.ip_address(slirp.DHCP_START))):
+        raise ValueError("Native lease differs from the one libslirp DHCPACK on the wire")
+    first = str(ipaddress.ip_address(app_a["656"])) if 0 < app_a["656"] < 2 ** 32 else None
+    if not any(r.get("rcode") == 0 and r.get("addresses", [None])[:1] == [first]
+               and app_a["664"] == min(len(r["addresses"]), 8) for r in wire.get("dns_responses", [])):
+        raise ValueError("App A's resolved address/count is not a DNS answer seen on the wire")
+    if len(wire.get("dns_responses", [])) != service["448"]:
+        raise ValueError("DNS answers on the wire differ from the service's one UDP query")
+    if not ipaddress.ip_address(first).is_global:
+        raise ValueError("App A's resolved address is not a public unicast address")
     return observed
 
 
@@ -328,7 +376,11 @@ def run_network_dhcp(*, timeout=90, frozen=None, case="dhcp"):
     dhcp_scope = ("three actual isolated ring-3 processes; DHCPv4 acquire/NAK withdrawal/re-acquire on synthetic "
                   "localhost Ethernet; A-record DNS through the lease server with one synthetic responder; no link "
                   "control, lease expiry, TCP DNS, DNSSEC, TLS or physical hardware claim")
-    scopes = {"dhcp": dhcp_scope, "link": link_scope,
+    slirp_scope = ("three actual isolated ring-3 processes; QEMU libslirp user network as the only L2 neighbour "
+                   "(its DHCP server, ARP, DNS forwarding to the host's real resolver, TCP translation of "
+                   "192.0.2.1:8090 to a host-loopback oracle); one lease, one public A lookup, one HTTP exchange; "
+                   "NAT and resolver are the host's, no physical NIC, Wi-Fi, TLS or internet HTTP claim")
+    scopes = {"dhcp": dhcp_scope, "link": link_scope, "slirp": slirp_scope,
               "route": dhcp_scope + "; one default route via the DHCP router on a synthetic L2 peer (one Python "
                        "process plays router, host and server): no forwarding, TTL, ICMP, static or multiple routes"}
     report = dict(schema_version=1, passed=False, case=case, kernel_feature=feature,
@@ -339,8 +391,8 @@ def run_network_dhcp(*, timeout=90, frozen=None, case="dhcp"):
                   qemu_sha256=qemu_hash, firmware_sha256=original_firmware, snapshot_sha256=snapshots,
                   qemu_version=subprocess.check_output([qemu, "--version"], env=env, text=True, timeout=10).strip())
     control = None
-    with Peer(timeout=timeout, case=case) as peer:
-        command += network_arguments(peer.port)
+    with (slirp.SlirpOracle(timeout) if case == "slirp" else Peer(timeout=timeout, case=case)) as peer:
+        command += slirp.arguments(f"{rel}/slirp.pcap") if case == "slirp" else network_arguments(peer.port)
         begin = time.monotonic()
         if case == "link":
             control = LinkHandshake(peer.machine, directory, begin + timeout)
@@ -357,6 +409,12 @@ def run_network_dhcp(*, timeout=90, frozen=None, case="dhcp"):
     evidence = peer.finish()
     publish_json(directory / "network-peer.json", evidence)
     report["peer"] = evidence
+    if case == "slirp":
+        try:
+            capture = private_path(directory / "slirp.pcap", regular=True)
+            report.update(wire=slirp.parse_pcap(capture), pcap_sha256=sha256(capture))
+        except (ValueError, OSError) as error:
+            report["wire"] = dict(error=f"{type(error).__name__}: {error}")
     if control is not None:
         report["link_control"] = control.evidence()
     try:
@@ -391,7 +449,8 @@ def main(argv=None):
     parser.add_argument("--no-build", action="store_true", help="require an existing source-matching build")
     parser.add_argument("--case", choices=tuple(CASES), default="dhcp",
                         help="dhcp: DHCPNAK withdrawal (default); link: QMP link down/up withdrawal; "
-                             "route: dhcp with 192.0.2.1 off-link behind the DHCP router")
+                             "route: dhcp with 192.0.2.1 off-link behind the DHCP router; "
+                             "slirp: one lease, real DNS and HTTP through QEMU's libslirp router")
     args = parser.parse_args(argv)
     feature = CASES[args.case]
     # The stable summary never outlives a newer attempt; each run keeps its own run directory.

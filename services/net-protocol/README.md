@@ -107,7 +107,7 @@ simulated connection successes. This does **not** close N01/N02/N03.
 
 | Interface | Behaviour and boundary |
 |---|---|
-| `arp::parse` | Ethernet/IPv4 request/reply, source MAC bound to Ethernet header; reply target equal in both headers; 42 bytes without padding or a full 60-byte frame, no FCS. |
+| `arp::parse` | Ethernet/IPv4 request/reply, source MAC bound to Ethernet header; reply target equal in both headers; 42 bytes up to the 1514-byte Ethernet maximum, padding ignored, no FCS. |
 | `arp::build_request/build_reply` | Writes a real RFC 826 frame with zero padding; all errors before writing; reply only for the configured local interface. |
 | `arp::NeighborSlot` | One explicitly started request; only a matching reply before the monotonic deadline fills the slot. Cancellation, exclusive expiry time and checked clock overflow. |
 | `dns::Name/Question/build_query` | Canonical ASCII hostname, IN/A or IN/AAAA, one question and RD; at most 255 wire bytes. Unicode/IDNA conversion remains a separate input layer. |
