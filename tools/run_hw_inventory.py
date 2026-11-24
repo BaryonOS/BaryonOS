@@ -17,6 +17,11 @@ H06-T5 terminal fixtures boot the `plain` configuration with one injected
 failure each (kernel panic, M2 kernel exception, HWINV:FAIL, missing kernel
 file). Each must print its markers, be recognised as a protocol failure and
 leave QEMU running: no terminal path may write the isa-debug-exit port.
+
+H06-T6 case `image` boots the `plain` configuration from the removable-media
+raw GPT/FAT32 image (tools/hw_inventory_image.py) on the same virtio-blk slot
+instead of the virtual FAT directory, with the same oracles; the image SHA-256
+must equal the recorded value before and after the run.
 """
 from __future__ import annotations
 
@@ -31,6 +36,7 @@ import uuid
 
 from common import ROOT, BUILD, environment, firmware, qemu_machine, save_json, sha256, source_hash
 from hw_evidence import EvidenceError, _inventory, pci_log_problem
+from hw_inventory_image import write_image
 from hw_inventory import FAILURES, InventoryLogError, hwinv_lines, inventory_from_log
 from run_graphics import Qmp
 
@@ -47,6 +53,7 @@ CASES = {
                            "-device", "qemu-xhci,id=inv-xhci,bus=rp1"],
                   dmar="HWINV:ACPI:DMAR=PRESENT:DRHD=1", acpi="ACPI:DISCOVERY:MCFG_DMAR"),
 }
+CASES["image"] = CASES["plain"]  # same machine; only the boot medium differs
 # Fixture -> (kernel feature of its build, ordered marker prefixes, ESP file to remove).
 FIXTURES = {
     "panic": ("test-hwinv-panic", ("BOOTINFO:OK", "M2:PANIC_LINE:", "M1:FAIL:KERNEL_PANIC"), None),
@@ -148,6 +155,11 @@ def run_case(case: str, *, build_directory: Path = BUILD, run_root: Path | None 
     if (sha256(directory / "esp/kernel.elf") != manifest["kernel"]["sha256"]
             or sha256(directory / "esp/EFI/BOOT/BOOTX64.EFI") != manifest["loader"]["sha256"]):
         raise ValueError("HW-INV build artifacts changed")
+    medium = "fat:esp"
+    image = None
+    if case == "image":
+        image = write_image(build_directory, directory / "hw-inventory.img")
+        medium = "hw-inventory.img"
     if removed is not None:
         (directory / "esp" / removed).unlink()
     save_json(directory / "build-manifest.json", manifest)
@@ -165,7 +177,7 @@ def run_case(case: str, *, build_directory: Path = BUILD, run_root: Path | None 
                  "-qmp", "unix:qmp.sock,server=on,wait=off",
                  "-drive", "if=pflash,unit=0,format=raw,readonly=on,file=OVMF_CODE.fd",
                  "-drive", "if=pflash,unit=1,format=raw,file=OVMF_VARS.fd",
-                 "-drive", "if=virtio,index=0,format=raw,readonly=on,file=fat:esp",
+                 "-drive", f"if=virtio,index=0,format=raw,readonly=on,file={medium}",
                  # Present only so an unexpected exit-port write ends QEMU and fails the case.
                  "-device", "isa-debug-exit,iobase=0xf4,iosize=0x04"]
     start = time.monotonic()
@@ -211,13 +223,15 @@ def run_case(case: str, *, build_directory: Path = BUILD, run_root: Path | None 
     else:
         checks, inventory, error = evaluate_fixture(text, case, alive_at_pass), None, None
     checks["source_unchanged"] = source_hash() == frozen
+    if image is not None:
+        checks["image_unchanged"] = sha256(directory / "hw-inventory.img") == image["image_sha256"]
     checks["clean_exit_after_quit"] = rc == 0  # QMP quit ends QEMU with 0; crash/signal/exit port do not
     if inventory is not None:
         save_json(directory / "inventory.json", inventory)
     save_json(directory / "qmp-trace.json", trace)
     report = dict(
         scope="QEMU HW-INV inventory by the own IF0 kernel; not physical hardware or a hardware record",
-        case=case, kernel_feature=feature, removed_esp_file=removed, passed=failure is None and error is None and all(checks.values()), checks=checks,
+        case=case, kernel_feature=feature, image=image, removed_esp_file=removed, passed=failure is None and error is None and all(checks.values()), checks=checks,
         error=failure, inventory_error=error, qmp_pci=sorted(qmp_pci) if qmp_pci is not None else None,
         command=arguments, machine=machine, raw_qemu_exit=rc, duration_s=time.monotonic() - start,
         source_fingerprint_version=3, source_sha256=frozen,
