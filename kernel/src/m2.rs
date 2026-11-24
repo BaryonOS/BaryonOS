@@ -2,6 +2,8 @@
 //! Copies boot input before any frame reuse. The old loader allocations are retained.
 mod acpi;
 mod arch;
+#[cfg(feature = "native-hw-inventory")]
+mod hw_inventory;
 #[cfg(feature = "native-xhci-probe")]
 mod iommu;
 #[cfg(any(feature = "native-smp", feature = "milestone-m3"))]
@@ -263,6 +265,10 @@ extern "C" fn run() -> ! {
         sleep::run(frames, &mut paging, s3_prepared);
         #[cfg(feature = "native-acpi-s5")]
         power::off();
+        // Halts instead of using the isa-debug-exit port (undefined on physical PCs).
+        #[cfg(feature = "native-hw-inventory")]
+        hw_inventory::run(info, _discovery);
+        #[cfg(not(feature = "native-hw-inventory"))]
         serial::exit(0x10)
     }
 }

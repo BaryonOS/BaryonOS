@@ -19,6 +19,8 @@ signed-boot = ["dep:update-core"]
 signed-boot-test = ["signed-boot", "update-core/test-signing-anchors"]
 # Read-only authentication probe with public synthetic inputs; no policy activation.
 signed-policy-probe-test = ["signed-boot-test", "update-core/test-policy-envelope-probe"]
+# H06-T3: record the UEFI SecureBoot variable for the read-only HW-INV inventory.
+hw-inventory = []
 
 [dependencies]
 r-efi = { version = "=7.2.0", default-features = false }

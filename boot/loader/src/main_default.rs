@@ -55,7 +55,10 @@ fn page_round(n: u64) -> Result<u64> {
 struct Firmware {
     services: *mut efi::BootServices,
     acpi_handoff: AcpiHandoff,
-    #[cfg_attr(not(feature = "signed-boot"), allow(dead_code))]
+    #[cfg_attr(
+        not(any(feature = "signed-boot", feature = "hw-inventory")),
+        allow(dead_code)
+    )]
     runtime: *mut efi::RuntimeServices,
 }
 
@@ -110,8 +113,9 @@ impl Firmware {
         unsafe { &*self.services }
     }
 
-    /// Variable services, used before ExitBootServices only (version floor).
-    #[cfg(feature = "signed-boot")]
+    /// Variable services, used before ExitBootServices only (version floor,
+    /// HW-INV SecureBoot observation).
+    #[cfg(any(feature = "signed-boot", feature = "hw-inventory"))]
     fn runtime(&self) -> &efi::RuntimeServices {
         // SAFETY: Validated at construction; the live phase ends at freeze.
         unsafe { &*self.runtime }
@@ -578,6 +582,16 @@ fn prepare(fw: Firmware, image: efi::Handle) -> Result<()> {
     unsafe {
         ((info_address + HANDOFF_OFFSET) as *mut AcpiHandoff).write(fw.acpi_handoff);
     }
+    #[cfg(feature = "hw-inventory")]
+    {
+        use boot_protocol::firmware::{encode, FACTS_OFFSET, FACTS_SIZE};
+        let facts = encode(capture_secure_boot(&fw));
+        // SAFETY: The zeroed, retained BootInfo page has room for this 16-byte
+        // extension at offset 256, after the ACPI extension (192..256).
+        unsafe {
+            ((info_address + FACTS_OFFSET) as *mut [u8; FACTS_SIZE]).write(facts);
+        }
+    }
 
     let (needed, stride) = fw.map_size()?;
     let mut capacity = map_capacity(needed, stride)?;
@@ -657,6 +671,38 @@ fn prepare(fw: Firmware, image: efi::Handle) -> Result<()> {
     #[cfg(not(feature = "test-ebs-retry"))]
     let initial = None;
     fw.freeze().transfer(image, info_address, entry, initial)
+}
+
+/// Reads the UEFI global `SecureBoot` variable before ExitBootServices. A value
+/// that is not exactly one byte of 0 or 1 is reported as unreadable, never guessed.
+#[cfg(feature = "hw-inventory")]
+fn capture_secure_boot(fw: &Firmware) -> boot_protocol::firmware::SecureBoot {
+    use boot_protocol::firmware::SecureBoot;
+    let mut name: [efi::Char16; 11] = [
+        b'S' as u16, b'e' as u16, b'c' as u16, b'u' as u16, b'r' as u16, b'e' as u16,
+        b'B' as u16, b'o' as u16, b'o' as u16, b't' as u16, 0,
+    ];
+    let mut guid = efi::GLOBAL_VARIABLE;
+    let mut attributes = 0u32;
+    // Two bytes, so an oversized one-byte variable is detected rather than truncated.
+    let mut value = [0u8; 2];
+    let mut size = value.len();
+    // SAFETY: Live runtime services before EBS; all outputs are valid locals and
+    // `size` bounds the firmware's write into `value`.
+    let status = unsafe {
+        (fw.runtime().get_variable)(
+            name.as_mut_ptr(),
+            &mut guid,
+            &mut attributes,
+            &mut size,
+            value.as_mut_ptr().cast(),
+        )
+    };
+    if status == efi::Status::NOT_FOUND {
+        return SecureBoot::Absent;
+    }
+    let success = status == efi::Status::SUCCESS;
+    SecureBoot::from_variable(true, success, value.get(..size).unwrap_or(&[]))
 }
 
 fn capture_acpi_handoff(table: &efi::SystemTable) -> AcpiHandoff {

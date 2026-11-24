@@ -78,18 +78,17 @@
       "devices": [],
       "image": {
         "kernel_feature": "native-hw-inventory",
-        "kernel_feature_present": false,
+        "kernel_feature_present": true,
         "physical_image": "missing"
       },
       "status": "blocked",
       "blocking_reasons": [
-        "The native-hw-inventory kernel profile does not exist (planned slice H06-T3); no code emits HWINV markers. The COM1 UNSUPPORTED:PCI inventory described in earlier documentation was never implemented.",
         "No physical boot image exists: tools/build.py exports an ESP directory for QEMU's virtual FAT backend and tools/repro_check.py compares only that ESP payload manifest, so there is no removable-media image or image SHA-256 to bind.",
-        "Every milestone-m2 terminal path calls exit() in kernel/src/serial.rs, which writes QEMU's isa-debug-exit port 0xF4; that port is undefined on physical PCs, so a physical image first needs a halt-based terminal path.",
+        "The native-hw-inventory pass and HWINV:FAIL paths halt with CLI/HLT and never write port 0xF4, but kernel panics and the shared M1/M2 failure paths still call exit() in kernel/src/serial.rs, which writes QEMU's isa-debug-exit port 0xF4; that port is undefined on physical PCs, so a physical image first needs a halt-based terminal path for those paths too.",
         "The HW-FR target is null and docs/drivers/hw-allowed-signers lists no signer (owner decisions OD-HW-TARGETS and OD-HW-SIGNERS).",
         "The output capture route is undecided (OD-HW-CAPTURE): COM1 output needs a physical serial port and a cable to a second computer; on-screen output of the markers is not demonstrated."
       ],
-      "markers_implemented": false,
+      "markers_implemented": true,
       "preconditions": [
         "Owner decisions OD-HW-TARGETS, OD-HW-BOOT, OD-HW-DISKS, OD-HW-CAPTURE, OD-HW-SIGNERS, OD-HW-PUBLISH and OD-HW-INV-ROUTE are recorded as decided.",
         "The image is built from a clean checkout of the recorded source commit; the image SHA-256 and the source fingerprint v3 (source_hash in tools/common.py) are recorded before the session.",

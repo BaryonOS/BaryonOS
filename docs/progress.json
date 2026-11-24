@@ -259,7 +259,9 @@
           "points": 1,
           "status": "open",
           "acceptance": "Several predefined representative PC configurations pass the documented hardware matrix; DMA/IOMMU boundaries and limitations are explicit.",
-          "evidence": []
+          "evidence": [
+            "docs/verification/h06-hw-inventory-20261124/README.md"
+          ]
         }
       ]
     },
@@ -901,8 +903,10 @@
           {
             "description": "Each configuration passes the hardware matrix",
             "implementation": "missing",
-            "verification": [],
-            "observation": "All HW-FR entries are pending or unsupported with evidence_level none; H06-T4 prepares protocols and signature validation only.",
+            "verification": [
+              "native"
+            ],
+            "observation": "All HW-FR entries are pending or unsupported with evidence_level none; H06-T4 prepares protocols and signature validation only. H06-T3 adds a read-only native-hw-inventory kernel/loader pair that emits the HW-INV markers; it passes two QEMU configurations against QMP query-pci and configured CPUID/DMAR, and its inventory is rejected as a virtual capture.",
             "remaining": "Physical operators, authorization and signed actual runs remain missing; host validation of evidence format proves no device support.",
             "evidence": [
               "docs/drivers/hardware-matrix.json",
