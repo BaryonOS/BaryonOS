@@ -238,6 +238,12 @@ fn runtime() -> &'static mut Runtime {
     unsafe { &mut *ptr::addr_of_mut!(RUNTIME) }
 }
 
+// The power tracker below is global and its FLUSH clears `dirty` for any
+// lane; that is sound only while the power profile has lane 0 alone (K5
+// review O3).
+#[cfg(all(feature = "native-system-power", feature = "test-volume-archive-device"))]
+compile_error!("the H05 power tracker is lane-0 only; it cannot be built with the archive device");
+
 /// H05 power gate (ADR-076): storage durability exactly as this broker
 /// observes it. `dirty` = a WRITE was published after the last successful
 /// FLUSH; any failed or timed-out request keeps publications != completions.
@@ -317,11 +323,15 @@ pub(super) fn power_gate() -> Result<(), i64> {
 #[cfg(feature = "test-system-s3")]
 pub(super) fn sleep_quiescent() -> bool {
     let r = runtime();
+    // A lane without a device (lane 1 outside the archive fixture) never
+    // admitted a request and stays Offline; it is quiescent. Every lane with
+    // a device, also a quarantined one, must be Ready with nothing held.
     r.lanes.iter().all(|lane| {
         lane.policy.request().is_none()
-            && lane.policy.phase() == Phase::Ready
             && lane.error.is_none()
             && !lane.resetting
+            && (lane.policy.phase() == Phase::Ready
+                || (lane.device.is_none() && lane.policy.phase() == Phase::Offline))
     })
 }
 /// H05 evidence (review R3): one count per broker access to a virtio-blk
@@ -499,10 +509,14 @@ fn broker_diagnostic(r: &Runtime) {
         r.max_completion_ticks,
     );
     print_number(b"VOLUME:BROKER:TIMEOUTS:", r.timeouts);
-    for lane in &r.lanes {
+    for (index, lane) in r.lanes.iter().enumerate() {
         if lane.policy.phase() == Phase::Published {
             print_number(
-                b"VOLUME:BROKER:OUTSTANDING_TICKS:",
+                if index == 0 {
+                    b"VOLUME:BROKER:OUTSTANDING_TICKS:"
+                } else {
+                    b"VOLUME:BROKER:OUTSTANDING_TICKS_DISK1:"
+                },
                 r.now.saturating_sub(lane.published_at),
             );
         }
@@ -1056,7 +1070,7 @@ fn device_call(s: &mut State, slot: usize, n: u64, a: [u64; 6]) -> Result<u64, i
         if let Some((_, code)) = lane.error.take() {
             if lane.policy.peek(binding, a[1]).is_ok() {
                 let _ = lane.policy.consume(binding, a[1]);
-            } else if !request.operation.is_mutating() {
+            } else if lane.resetting && !request.operation.is_mutating() {
                 // Property 3: the read was ended by a reset that is still
                 // running; the Policy drops it at reset completion. Until
                 // then a further poll must see no request (-1).
