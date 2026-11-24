@@ -5,6 +5,43 @@ This document distinguishes the decisions and authority of the project owner
 from those of the executing roles. Source quotations retain their original
 wording and speaker.
 
+## ADR-HWINV-20261124 — Native read-only HW-INV inventory profile
+
+**Status:** implemented by the H specialist (H06-T3); QEMU evidence only.
+
+**Problem:** protocol `HW-INV` v2 needed a kernel profile that reports the
+hardware facts required by `tools/hw_evidence.py` without changing device state
+and without ending through QEMU's `isa-debug-exit` port, which is undefined on
+physical PCs. The `SecureBoot` state is only visible to the loader before
+ExitBootServices.
+
+**Decision:**
+
+- A paired build: kernel feature `native-hw-inventory` (IF0 M2 profile, one
+  CPU, mutually exclusive with every other native subsystem profile) and loader
+  feature `hw-inventory`. `tools/build.py` refuses either half alone.
+- Only the `hw-inventory` loader writes a 16-byte firmware-facts extension at
+  BootInfo offset 256 (magic `NOSFWF`, version 1, size 16, one state byte,
+  zero reserved bytes). The BootInfo flags and ABI are unchanged; every other
+  loader leaves the bytes zero, which never validates. `EFI_NOT_FOUND` becomes
+  `ABSENT`; any other non-boolean result becomes `Unreadable`, which the kernel
+  reports as `HWINV:FAIL:SECUREBOOT`. The value is an observation, never
+  evidence of a verified boot chain.
+- PCI identity is read through legacy mechanism 1 from configuration offsets
+  `0x00`, `0x08` and `0x0C` only, for every present segment-0 function of any
+  header type. No configuration write, BAR mapping, command-register change or
+  driver start occurs.
+- The DMAR observation restates the kernel's ACPI discovery result; it is table
+  presence and DRHD count, not evidence of DMA containment.
+- Pass and `HWINV:FAIL:*` paths end in a `CLI`/`HLT` loop. Panic and M1/M2
+  failure paths still use port `0xF4`; this remains a protocol blocker.
+
+**Evidence limit:** the QEMU runner compares the block with the configured
+CPUID vendor/hypervisor bit, the emulated VT-d unit and QMP `query-pci`, and
+`hw_evidence` rejects the result as a virtual capture. No physical PC, image,
+signed record or H06 acceptance is claimed; `SECUREBOOT=0`/`1` is host-tested
+only.
+
 ## ADR-PROGRESS-EVIDENCE-20261124 — Show delivered work alongside fixed acceptance
 
 **Status:** scoped implementation of the project owner's 24 November request to
