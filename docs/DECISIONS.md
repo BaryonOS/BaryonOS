@@ -5,6 +5,37 @@ This document distinguishes the decisions and authority of the project owner
 from those of the executing roles. Source quotations retain their original
 wording and speaker.
 
+## ADR-CI-SELECTION-20261124 — Targeted pull request selection for component gates
+
+**Status:** accepted under the project owner's CI mandate for issue #494 (phase
+4, 24 November 2026). It builds on ADR-CI-GATE-ENFORCEMENT-20261124.
+
+**Problem:** `component-leaves.yml` ran all 15 leaf variants on every non-metadata
+pull request. App-management and net-tls ran on every such pull request too,
+even when none of their inputs changed.
+
+**Decision:** on `pull_request`, under `policy.mode = "select"`, these three
+workflows run only what the trusted base plan selects:
+
+- component leaves per variant;
+- app-management and net-tls per job.
+
+Each workflow gets a `select` job that renders the plan into job conditions
+and, for the leaves, into the matrix. The catalogue becomes the single source
+of the leaves matrix.
+
+The integrated native suites, CodeQL and `ci.yml` stay unselected. `push`,
+`merge_group`, `schedule` and `workflow_dispatch` always run in full. merge-hold
+remains the decision point: it does not trust the `select` jobs and blocks when
+an expected gate did not pass.
+
+**Consequences:** a pull request that touches no leaf, app-management or net-tls
+input skips those jobs. A pull request that touches one leaf runs that leaf
+only.
+
+**Rollback:** set `policy.mode = "full"` on `main`. All jobs and variants then
+run again, and enforcement continues. Measured results are recorded on #494.
+
 ## ADR-CI-GATE-ENFORCEMENT-20261124 — merge-hold enforces the applicable CI gates
 
 **Status:** accepted under the project owner's CI mandate for issue #494 (phases 3

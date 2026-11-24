@@ -1,7 +1,11 @@
 # CI contract: impact catalogue and selector
 
-Status: phase 3 of issue #494 (current, ADR-CI-GATE-ENFORCEMENT-20261124).
-**Phase 3 enforces, but does not yet save any test run.** The required
+Status: phase 4 of issue #494 (current, ADR-CI-SELECTION-20261124 on top of
+ADR-CI-GATE-ENFORCEMENT-20261124). `policy.mode = "select"`: on pull requests,
+`component-leaves.yml` runs only the selected leaf variants, and
+`app-management-quality.yml` and `net-tls-quality.yml` run only when selected
+(see "Selection"). Every other workflow still runs everything its triggers
+start. Phase 3 introduced the enforcement below, which stays unchanged: the required
 `merge-hold` check recomputes the plan from base-side code and blocks until
 every applicable automatic gate has passed on the pull request head (see
 "Enforcement"). `host-quality` fails on an invalid catalogue or on drift
@@ -538,10 +542,11 @@ label change). A positive budget polls once a minute until no gate is pending,
 a gate failed or the budget ends. Native gates can take longer than any budget
 below the job timeout, and a waiting job holds a runner, so the default is not
 to wait. A failure ends the wait at once. API use per decision is about one
-pull request read, one or two run-list pages and one job list per completed
-workflow run that matters (expected gates, or a conclusion other than
-success), well inside the 1,000 requests per hour per repository of
-`GITHUB_TOKEN`.
+pull request read, one or two run-list pages, and one job list and one re-read
+per counted workflow run (about 30 today). A successful run without an
+expected gate is listed too, because a job with job-level `continue-on-error`
+can fail inside a run that concludes success. This stays well inside the
+1,000 requests per hour per repository of `GITHUB_TOKEN`.
 
 **merge_group.** The merge queue is not active on `main`, and only `ci.yml`,
 `codeql.yml` and `merge-hold.yml` have a `merge_group` trigger; the selected
@@ -570,9 +575,69 @@ enforcement machinery itself is broken (for example after an incompatible API
 change), only the project owner's ruleset bypass can land the repair. The CI
 owner never uses that bypass.
 
+## Selection (phase 4)
+
+**Scope.** Three workflows narrow, on `pull_request` only:
+`component-leaves.yml` per variant (15 registered leaves),
+`app-management-quality.yml` and `net-tls-quality.yml` per job. The integrated
+native suites, CodeQL, `ci.yml` and every other workflow run as before:
+their input relations are not provable more narrowly (the `native` input set
+covers almost all code). `push`, `merge_group`, `schedule` and
+`workflow_dispatch` always run everything.
+
+**Mechanism.** Each of the three workflows has a `select` job (class `core`,
+check name `<workflow> select`, no `needs`, no `if`, `contents: read`). It
+runs `./.github/actions/select-ci` (the trusted base selector, now with
+`base-ref`) and then `tools/ci_impact.py jobs` from the checkout, which writes
+`run-<job>` and, for a variant job, `matrix-<job>`. A gated job has
+`needs: select` and `if: ${{ needs.select.outputs.run-<job> == 'true' }}`;
+`component-quality` takes `strategy.matrix` from
+`${{ fromJSON(needs.select.outputs.matrix-component-quality) }}`.
+
+`jobs` narrows only when select-ci's `mode` output is `select` (forced to
+`full` when the base selector did not run) and the plan is a trusted
+(`selector.trusted`) `pull_request` plan in `mode = "select"` under
+`policy_mode = "select"`, for this run's `github.sha` and target branch, computed
+from the base catalogue (`catalogue.source_sha` equals `shas.base`). Otherwise,
+including a missing or malformed plan file, every job and variant runs. A job or
+variant the base plan does not know (added by this pull request) always runs.
+When nothing of a job is selected, `run-<job>` is `false` and the job is
+skipped; its matrix stays the full list, so GitHub never sees an empty matrix.
+
+**Matrix source.** For `component-quality` the catalogue is the only source of
+the matrix: each variant's `matrix` table (component, manifest, toolchain,
+features). Add or change a leaf in `.github/ci-impact.toml`, not in the
+workflow. `coverage` checks the wiring (`matrix-mismatch`, `select-wiring`,
+rendered check names, evidence names) instead of comparing YAML combinations.
+
+**Verification.** merge-hold (phase 3) recomputes its own plan. Every gate it
+expects must have succeeded, so a `select` job that chose too little, failed,
+or was edited by the pull request blocks the merge; a skipped job is fine only
+when merge-hold's plan does not expect it. A `select` failure skips the gated
+jobs, and merge-hold then blocks on them (fail closed). Running more than the
+plan needs is harmless. The `jobs` rendering runs the checkout's own copy of
+`tools/ci_impact.py`, so it is untrusted convenience, not a control; only
+merge-hold decides. `validate` accepts a select output only in the exact form
+`${{ needs.select.outputs.run-<own job id> == 'true' }}` with `needs: select`.
+
+**Limit (push and dispatch).** Before phase 4 the leaves ran unconditionally on
+`push` to `main`. They now depend on the `select` job. select-ci turns selector
+uncertainty into a full plan rather than a failure, so only an infrastructure
+failure (checkout, Python setup) can fail `select`. A red `<workflow> select`
+on `main` therefore means that workflow's gated jobs did **not** run; re-run the
+workflow. The repository rule that only artifact uploads may tolerate errors
+(`continue-on-error`) is kept, so this is documented rather than masked.
+
+**Rollback to full.** Set `policy.mode = "full"` (or `enforce`) in
+`.github/ci-impact.toml` on `main`. The `select` jobs then output `true` for
+every job and the full matrix, so all three workflows run everything again,
+while merge-hold keeps verifying every applicable gate. host-quality,
+qemu-smoke, CodeQL and the acceptance hold do not depend on the mode. Removing
+the `select` jobs is not needed for a rollback.
+
 ## Known limits
 
-Status after phase 3. Limits marked closed have tests in
+Status after phase 3; phase 4 adds no new limit beyond "Selection". Limits marked closed have tests in
 `tools/tests/test_ci_impact.py`, `tools/tests/test_merge_hold.py` or
 `tests/test_ci_workflows.py`.
 
@@ -589,8 +654,8 @@ Status after phase 3. Limits marked closed have tests in
 - **K2, command-line generations: managed.** merge-hold calls a selector of
   its own generation. `select-ci` (head) calls the base selector, so a new
   `plan` flag reaches `select-ci` only after the selector that knows it is on
-  `main`; `--base-ref` is added in phase 3 and used by `select-ci` from
-  phase 4.
+  `main`; `--base-ref` was added in phase 3 and is passed by `select-ci`
+  (only when set) from phase 4.
 - **K3, shadow plans are not evidence: unchanged by design.**
 - **K4, branch-blind applicability: closed.** `--base-ref`, see "Plan
   algorithm and precedence".
@@ -619,10 +684,11 @@ Status after phase 3. Limits marked closed have tests in
 - **2b (PR #501, merged):** the `ci-impact-shadow` job and the `select-ci`
   action run the trusted base copy of the selector on every event and preserve
   the plan; a report-only step preserves the catalogue coverage report.
-- **3 (current, enforce):** merge-hold recomputes the plan from base-side code
+- **3 (enforce, merged):** merge-hold recomputes the plan from base-side code
   and blocks until every applicable gate passed on the pull request head;
   host-quality asserts catalogue consistency; limits K4, K6, K7 and K8 closed.
-- **4 (select):** workflows run only the selected executions.
+- **4 (current, select):** component leaves per variant, app-management and
+  net-tls per job; see "Selection".
 - **Rollback:** setting `policy.mode = "full"` in the catalogue on the base
   branch makes every plan full immediately: every workflow runs everything
   while merge-hold keeps verifying every applicable gate, and host-quality,

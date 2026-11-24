@@ -593,6 +593,14 @@ def validate(catalogue):
             for key in ("name", "condition"):
                 if key in job and not isinstance(job[key], str):
                     add(f"{jwhere}: {key} must be a string")
+            # Phase 4: a select output gates only its own job, in exactly one form; the
+            # evaluator answers every select key alike and cannot model anything else.
+            if isinstance(job.get("condition"), str) and SELECT_OUTPUT in job["condition"]:
+                if job["condition"] != f"${{{{ needs.select.outputs.run-{job['id']} == 'true' }}}}":
+                    add(f"{jwhere}: select-condition must be "
+                        f"${{{{ needs.select.outputs.run-{job['id']} == 'true' }}}}")
+                if "select" not in (job.get("needs") or []):
+                    add(f"{jwhere}: select-condition needs the select job")
             for key in ("timeout_minutes", "max_parallel"):
                 if key in job and not isinstance(job[key], (int, str)):
                     add(f"{jwhere}: {key} must be an integer or an expression string")
@@ -840,6 +848,9 @@ def cargo_closure(roots, read, escapes):
             path = repo_join(directory, target, manifest)
             if not path.startswith(f"{directory}/"):
                 globs.add(path)
+                # Its `mod` files resolve relative to it, outside this crate: cover the directory.
+                if posixpath.dirname(path):
+                    globs.add(posixpath.dirname(path) + "/**")
         for escape in escapes:
             if escape["crate"] == directory and (escape["when"] == "always" or directory in root_dirs):
                 globs.update(escape["inputs"])
@@ -1285,11 +1296,20 @@ def _norm(value):
     return value
 
 
+SELECT_MATRIX_RE = re.compile(r"\$\{\{ fromJSON\(needs\.select\.outputs\.matrix-(?P<job>[A-Za-z0-9_-]+)\) \}\}")
+
+
 def yaml_matrix(job):
-    """Return ('static', [combinations]) or ('dynamic', matrix) or ('unsupported', matrix)."""
+    """Return ('static', [combinations]), ('catalogue', job id), ('dynamic', matrix) or ('unsupported', matrix).
+
+    'catalogue' is the phase-4 selected matrix: the workflow takes its combinations
+    from the `select` job, which renders the catalogue's static variants.
+    """
     matrix = (job.get("strategy") or {}).get("matrix") if isinstance(job.get("strategy"), dict) else None
     if matrix is None:
         return "none", None
+    if isinstance(matrix, str) and SELECT_MATRIX_RE.fullmatch(matrix):
+        return "catalogue", SELECT_MATRIX_RE.fullmatch(matrix).group("job")
     if not isinstance(matrix, dict):
         return "dynamic", matrix
     if any(isinstance(value, str) for value in matrix.values()):
@@ -1407,6 +1427,25 @@ def workflow_problems(workflows, catalogue):
             if kind == "unsupported":
                 add(f"matrix-unsupported: {where}")
                 continue
+            if kind == "catalogue":
+                # The catalogue is the only source of these combinations (phase 4).
+                if matrix != job_id:
+                    add(f"matrix-mismatch: {where}: selects the matrix of {matrix}")
+                if "select" not in (record.get("needs") or []):
+                    add(f"select-wiring: {where}: a selected matrix needs the select job")
+                if record.get("condition") != f"${{{{ needs.select.outputs.run-{job_id} == 'true' }}}}":
+                    add(f"select-wiring: {where}: condition must be the run-{job_id} output")
+                if not variants or any(v.get("dynamic") for v in variants):
+                    add(f"variant-unregistered: {where}: a selected matrix needs static variants")
+                for variant in variants:
+                    actual_ev = yaml_evidence(job, variant.get("matrix") or {})
+                    wanted_ev = sorted(set(record.get("evidence", [])) | set(variant.get("evidence", [])))
+                    if actual_ev != wanted_ev:
+                        add(f"evidence-mismatch: {where}: {variant.get('check_name')}: "
+                            f"catalogue={wanted_ev} workflow={actual_ev}")
+                    if default_check_name(record_named, variant.get("matrix") or {}) != variant.get("check_name"):
+                        add(f"matrix-mismatch: {where}: {variant.get('check_name')}: rendered name differs")
+                continue
             if kind == "dynamic":
                 dynamic = [v for v in variants if v.get("dynamic")]
                 if not dynamic:
@@ -1471,7 +1510,7 @@ def _manifest_dir_target(crate, literal):
     return target
 
 
-def scan_escapes(repo, crate_dirs, tracked, root_targets=frozenset()):
+def scan_escapes(repo, crate_dirs, tracked, root_targets=frozenset(), external=None):
     """Find source escapes of closure crates: (crate, target or None, origin, root_only).
 
     Compile-time escapes are literal or widened `include*!` and `#[path]`
@@ -1481,7 +1520,9 @@ def scan_escapes(repo, crate_dirs, tracked, root_targets=frozenset()):
     `OUT_DIR` is build output. Only tracked `.rs` files are read, so build
     output such as `target/` cannot report an escape. `root_only` is true when
     the origin is compiled only for the crate as a gate root (tests, benches,
-    examples, binaries) or was reached from such a file.
+    examples, binaries) or was reached from such a file. `external` maps a crate
+    to the directories of its declared targets outside the crate; their tracked
+    sources are scanned for that crate as root-only.
     shortcut: a heuristic, not a Rust parser. Paths computed in other ways (a
     variable, a path built over several statements) stay a known limit, and
     #[path] inside an inline `mod {}` block is not modelled.
@@ -1491,6 +1532,9 @@ def scan_escapes(repo, crate_dirs, tracked, root_targets=frozenset()):
     for crate in sorted(crate_dirs):
         queue = [(path, _root_only(crate, path, root_targets))
                  for path in sorted(sources) if path.startswith(f"{crate}/")]
+        for directory in (external or {}).get(crate, []):
+            queue += [(path, True) for path in sorted(sources)
+                      if path.startswith(f"{directory}/") and not path.startswith(f"{crate}/")]
         seen = set()
         while queue:
             source, root_only = queue.pop(0)
@@ -1525,6 +1569,8 @@ def scan_escapes(repo, crate_dirs, tracked, root_targets=frozenset()):
                         # A library file can pull in e.g. tests/helper.rs: it is then library source too.
                         queue.append((target, False))
                     continue
+                if any(target.startswith(f"{directory}/") for directory in (external or {}).get(crate, [])):
+                    continue  # inside an external target's directory, already an input of the crate
                 found.append((crate, target, f"{source}:{line}", root_only))
                 if target in sources:
                     queue.append((target, root_only))
@@ -1566,13 +1612,6 @@ def _runtime_escapes(crate, text):
     return sorted({(target, line) for _distance, target, line in nearest.values()})
 
 
-def _parents(path):
-    while path:
-        path = posixpath.dirname(path)
-        if path:
-            yield path
-
-
 def root_target_paths(read, crate_dirs):
     """Repository paths of bin, test, example and bench targets declared in crate manifests."""
     paths = set()
@@ -1591,18 +1630,46 @@ def root_target_paths(read, crate_dirs):
     return frozenset(paths)
 
 
-def escape_problem(escapes, crate, target, origin, root_only, is_dir=False):
+def external_root_targets(read, crate_dirs):
+    """{crate: [directory]} of declared bin, test, example and bench targets outside the crate.
+
+    Such a target and the `mod` files beside it are compiled for the declaring crate
+    only, so their escapes belong to that crate, root-only.
+    """
+    result = {}
+    for crate in crate_dirs:
+        data = read(posixpath.join(crate, "Cargo.toml"))
+        if data is None:
+            continue
+        try:
+            doc = tomllib.loads(data.decode("utf-8"))
+        except (UnicodeDecodeError, tomllib.TOMLDecodeError):
+            continue
+        for kind in ROOT_ONLY_TARGETS:
+            for entry in doc.get(kind) or []:
+                if isinstance(entry, dict) and isinstance(entry.get("path"), str):
+                    path = posixpath.normpath(posixpath.join(crate, entry["path"]))
+                    if not path.startswith(f"{crate}/") and not path.startswith("../"):
+                        result.setdefault(crate, set()).add(posixpath.dirname(path))
+    return {crate: sorted(dirs) for crate, dirs in result.items()}
+
+
+def escape_problem(escapes, crate, target, origin, root_only, descendants=()):
     """None when a registration covers the escape in the right scope; else a report.
 
-    A file target must match an input glob itself; only a directory target (one
-    with tracked paths below it) may be covered by a glob over its contents.
+    A file target must match an input glob itself. A directory target (with
+    tracked `descendants`) is covered when every tracked path below it matches.
+    An enumerated list of today's files therefore covers the directory; a file
+    added later is uncovered again, and `coverage --strict` in the required
+    host-quality check reports it on that pull request. A directory without
+    tracked files is treated as a file target.
     """
     # Evidence alone registers only an unresolvable target: a known target must be in the inputs,
     # or an include that changed its target on the same line would keep an outdated registration.
     matching = [escape for escape in escapes if escape["crate"] == crate and (
         (target is None and origin in escape.get("evidence", []))
-        or (target is not None and (first_match(escape["inputs"], target)
-                                    or (is_dir and first_match(escape["inputs"], target + "/x")))))]
+        or (target is not None and (first_match(escape["inputs"], target) or (
+            descendants and all(first_match(escape["inputs"], path) for path in descendants)))))]
     if not matching:
         return f"escape-unregistered: {crate} -> {target} ({origin})"
     if not root_only and all(escape["when"] == "root" for escape in matching):
@@ -1715,10 +1782,10 @@ def coverage(repo, catalogue_file):
     tracked = sorted(set(tracked))  # one entry per path, also during a merge conflict
     escapes = catalogue.get("crate_escape", [])
     root_targets = root_target_paths(read_disk, crate_dirs)
-    directories = {posixpath.dirname(path) for path in tracked}
-    directories |= {parent for path in directories for parent in _parents(path)}
-    for crate, target, origin, root_only in scan_escapes(repo, crate_dirs, tracked, root_targets):
-        problem = escape_problem(escapes, crate, target, origin, root_only, is_dir=target in directories)
+    external = external_root_targets(read_disk, crate_dirs)
+    for crate, target, origin, root_only in scan_escapes(repo, crate_dirs, tracked, root_targets, external):
+        below = [path for path in tracked if target and path.startswith(target + "/")]
+        problem = escape_problem(escapes, crate, target, origin, root_only, descendants=below)
         if problem:
             problems.append(problem)
     all_globs = sorted({pattern for execution in execs for pattern in execution["globs"]})
@@ -1759,6 +1826,14 @@ def build_parser():
     plan.add_argument("--out", default="-", help="plan JSON file, '-' for stdout")
     plan.add_argument("--summary", default="", help="append a Markdown summary to this file")
     plan.add_argument("--no-fetch", action="store_true", help="never run git fetch")
+    jobs = sub.add_parser("jobs", help="GitHub outputs for one workflow's select job (phase 4)")
+    jobs.add_argument("--plan", required=True, help="plan JSON from the trusted base selector")
+    jobs.add_argument("--workflow", required=True, help=".github/workflows/<id>.yml")
+    jobs.add_argument("--tested-sha", required=True, help="github.sha of the calling run")
+    jobs.add_argument("--catalogue", default=CATALOGUE_PATH, help="the checkout's catalogue (matrix data)")
+    jobs.add_argument("--mode", default="", help="select-ci's mode output; only 'select' may narrow")
+    jobs.add_argument("--base-ref", default="", help="target branch the plan must describe")
+    jobs.add_argument("--repo", default=".")
     report = sub.add_parser("coverage", help="report catalogue drift as JSON (exit 0 unless --strict)")
     report.add_argument("--repo", default=".")
     report.add_argument("--catalogue", default=CATALOGUE_PATH)
@@ -1780,6 +1855,26 @@ def main(argv=None):
         if not problems:
             print("ci-impact: catalogue valid")
         return 1 if problems else 0
+    if args.command == "jobs":
+        try:
+            with open(args.plan, encoding="ascii") as handle:
+                plan = json.load(handle)
+        except (OSError, ValueError) as error:
+            # No usable plan (for example a failed planner step) never narrows: everything runs.
+            print(f"ci-impact: jobs: no usable plan ({type(error).__name__}: {error}); "
+                  "running every job and variant", file=sys.stderr)
+            plan = {}
+        try:
+            with open(os.path.join(args.repo, args.catalogue), "rb") as handle:
+                catalogue = tomllib.load(handle)
+            outputs = select_outputs(plan, catalogue, args.workflow, args.tested_sha, args.mode, args.base_ref)
+        except (OSError, ValueError, KeyError, TypeError, AttributeError, tomllib.TOMLDecodeError) as error:
+            # The select job fails; GitHub then skips its dependents and merge-hold blocks.
+            print(f"ci-impact: jobs: {type(error).__name__}: {error}", file=sys.stderr)
+            return 1
+        for key, value in outputs.items():
+            print(f"{key}={value}")
+        return 0
     if args.command == "coverage":
         try:
             report = coverage(args.repo, args.catalogue)
@@ -1823,6 +1918,57 @@ def main(argv=None):
             sys.stdout.write(plan_text(plan))
     print(f"ci-impact: mode={plan['mode']} plan_id={plan['plan_id']}", file=sys.stderr)
     return 0
+
+
+def select_outputs(plan, catalogue, workflow_path, tested_sha, mode="", base_ref=""):
+    """Outputs of a workflow's `select` job: run-<job> and, for variant jobs, matrix-<job>.
+
+    The plan decides only when it may narrow: a trusted, pull_request, select-mode
+    plan under policy mode `select`, made for this run's tested commit. Otherwise
+    (full plans, rollback `policy.mode = "full"`, `enforce`, push, dispatch, an
+    untrusted selector or a stale plan) every job and variant runs. An execution
+    the base catalogue does not know yet (a new job or variant) always runs.
+    The matrix data comes from this checkout's catalogue, validated by host-quality;
+    merge-hold judges the result against its own base-side plan.
+
+    `mode` is select-ci's mode output (forced to full when the base selector did
+    not run) and `base_ref` the target branch; the plan must agree with both and
+    come from the base catalogue. This rendering runs the checkout's own copy of
+    this file, so it is a convenience, not a control: only merge-hold decides.
+    """
+    problems = validate(catalogue)
+    if problems:
+        raise ValueError(f"invalid catalogue: {problems[:3]}")
+    workflow = next((wf for wf in catalogue["workflow"] if wf["path"] == workflow_path), None)
+    if workflow is None:
+        raise ValueError(f"{workflow_path} is not registered")
+    if not isinstance(plan, dict):
+        plan = {}
+    shas = plan.get("shas") if isinstance(plan.get("shas"), dict) else {}
+    source = plan.get("catalogue") if isinstance(plan.get("catalogue"), dict) else {}
+    narrow = (mode == "select" and plan.get("event") == "pull_request" and plan.get("mode") == "select"
+              and plan.get("policy_mode") == "select"
+              and (plan.get("selector") or {}).get("trusted") is True
+              and bool(base_ref) and plan.get("ref") == base_ref
+              and shas.get("tested") == tested_sha
+              and SHA_RE.fullmatch(str(shas.get("base") or "")) is not None
+              and source.get("source_sha") == shas.get("base"))
+    selected = {row["id"] for row in plan.get("selected", [])} if narrow else set()
+    known = selected | {row["id"] for row in plan.get("excluded", [])} if narrow else set()
+    outputs = {"narrowed": "true" if narrow else "false", "plan-id": str(plan.get("plan_id"))}
+    by_job = {}
+    for execution in executions(catalogue):
+        if execution["workflow"] is workflow:
+            by_job.setdefault(execution["job"]["id"], []).append(execution)
+    for job_id, execs in by_job.items():
+        if job_id == "select":
+            continue
+        chosen = [x for x in execs if not narrow or x["id"] in selected or x["id"] not in known]
+        outputs[f"run-{job_id}"] = "true" if chosen else "false"
+        variants = [x["variant"] for x in (chosen or execs) if x["variant"] is not None]
+        if variants:
+            outputs[f"matrix-{job_id}"] = canonical({"include": [v["matrix"] for v in variants]})
+    return outputs
 
 
 def discard_stale_plan(out, plan):

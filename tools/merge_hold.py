@@ -488,8 +488,8 @@ def gate_report(token, repo, pull, head_sha, plan):
             continue
         where = f"run {run['id']} attempt {run.get('run_attempt')}"
         running = run.get("status") != "completed"
-        if not running and not wanted and run.get("conclusion") == "success":
-            continue  # no expected gate and nothing failed in it
+        # Every run's jobs are read, also a successful one without an expected gate: a job
+        # with job-level continue-on-error can fail inside a run that concludes success.
         # A running run is listed too: a gate GitHub started must finish even when
         # the plan did not select it, or its later failure would go unseen.
         jobs = [job for job in fetch_listing(
