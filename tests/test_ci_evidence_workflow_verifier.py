@@ -74,7 +74,9 @@ class WorkflowVerifierTests(unittest.TestCase):
             # H02 adds one xHCI and one HID workflow/preservation invocation.
             # Native network extensions add their own DHCP/link/route/sweep reports;
             # N02-T6 adds one libslirp evidence call.
-            # Window gates retain five original report/serial pairs separately.
+            # Window gates retain six report/serial proof artifacts from six
+            # static calls: host, leg proof, library cold, leg compact,
+            # read-only and packaging collections.
             # H06 adds one HW-INV inventory workflow/preservation invocation.
             self.assertEqual(sum(check["name"].startswith(prefix)
                                  for check in report["checks"]), 41)
@@ -83,41 +85,48 @@ class WorkflowVerifierTests(unittest.TestCase):
         self.assertEqual(sum(check["name"].startswith("package-check:")
                              for check in report["checks"]), 6)
 
-    def test_only_four_window_proof_steps_may_be_scale_one_only(self):
-        """The exact exception cannot suppress base, final or another job's evidence."""
+    def test_only_the_library_cold_proof_may_be_leg_conditional(self):
+        """The exact exception cannot suppress base, final, other legs' or another job's evidence."""
         workflow = ".github/workflows/native-window-session.yml"
-        allowed = {
-            "window-library-write-proof": "Preserve complete library write proof",
-            "window-library-cold-proof": "Preserve complete library cold proof",
-            "window-switcher-scale1-proof": "Preserve complete switcher scale 1 proof",
-            "window-switcher-scale2-proof": "Preserve complete switcher scale 2 proof",
-        }
-        condition = "${{ always() && matrix.scale == 1 }}"
-        for identifier, name in allowed.items():
-            step = {"id": identifier, "name": name, "if": condition}
-            self.assertTrue(VERIFIER.preservation_condition(workflow, "native-window-session", step))
-            for path, job, changed in (
-                (".github/workflows/native-display-input.yml", "native-window-session", step),
-                (workflow, "another-job", step),
-                (workflow, "native-window-session", dict(step, name="Different step")),
-                (workflow, "native-window-session", dict(step, id="window-native-proof")),
-                (workflow, "native-window-session", dict(step, id="final")),
-                (workflow, "native-window-session", dict(step, **{"if": "${{ success() && matrix.scale == 1 }}"})),
-                (workflow, "native-window-session", dict(step, **{"if": "${{ always() && matrix.scale == 2 }}"})),
-            ):
-                with self.subTest(identifier=identifier, path=path, job=job, step=changed):
-                    self.assertFalse(VERIFIER.preservation_condition(path, job, changed))
+        step = {"id": "window-library-cold-proof", "name": "Preserve complete library cold proof",
+                "if": "${{ always() && matrix.mode == 'library' }}"}
+        self.assertTrue(VERIFIER.preservation_condition(workflow, "native-window-session", step))
+        for path, job, changed in (
+            (".github/workflows/native-display-input.yml", "native-window-session", step),
+            (workflow, "another-job", step),
+            (workflow, "normal-and-package", step),
+            (workflow, "native-window-session", dict(step, name="Different step")),
+            (workflow, "native-window-session", dict(step, id="window-native-proof")),
+            (workflow, "native-window-session", dict(step, id="window-library-write-proof")),
+            (workflow, "native-window-session", dict(step, id="window-switcher-scale2-proof")),
+            (workflow, "native-window-session", dict(step, id="final")),
+            (workflow, "native-window-session", dict(step, **{"if": "${{ success() && matrix.mode == 'library' }}"})),
+            (workflow, "native-window-session", dict(step, **{"if": "${{ always() && matrix.mode == 'native' }}"})),
+            (workflow, "native-window-session", dict(step, **{"if": "${{ always() && matrix.scale == 1 }}"})),
+        ):
+            with self.subTest(path=path, job=job, step=changed):
+                self.assertFalse(VERIFIER.preservation_condition(path, job, changed))
 
-    def test_base_and_final_window_collections_cannot_hide_scale_two_evidence(self):
+    def test_unconditional_window_collections_cannot_be_restricted(self):
         """Run the actual verifier on attempts to restrict either unconditional caller."""
         path = self.repo / ".github/workflows/native-window-session.yml"
         original = path.read_text()
-        for name in ("Preserve complete base native proof",
-                     "Preserve compact evidence and report archive availability"):
-            with self.subTest(name=name):
-                before, block = original.split("      - name: " + name, 1)
-                block = block.replace("if: ${{ always() }}", "if: ${{ always() && matrix.scale == 1 }}", 1)
-                path.write_text(before + "      - name: " + name + block)
+        for name, occurrence in (("Preserve complete base native proof", 1),
+                                 # Host, native-leg, read-only and packaging collections.
+                                 ("Preserve compact evidence and report archive availability", 1),
+                                 ("Preserve compact evidence and report archive availability", 2),
+                                 ("Preserve compact evidence and report archive availability", 3),
+                                 ("Preserve compact evidence and report archive availability", 4)):
+            with self.subTest(name=name, occurrence=occurrence):
+                parts = original.split("      - name: " + name)
+                self.assertEqual(len(parts), 2 if "base" in name else 5)
+                before = ("      - name: " + name).join(parts[:occurrence])
+                block = ("      - name: " + name).join(parts[occurrence:])
+                # Mutate only this step's own condition, never a later step's.
+                step, marker, rest = block.partition("\n      - name: ")
+                self.assertIn("if: ${{ always() }}", step)
+                step = step.replace("if: ${{ always() }}", "if: ${{ always() && matrix.mode == 'library' }}", 1)
+                path.write_text(before + "      - name: " + name + step + marker + rest)
                 report = self.report()
                 self.assertFalse(report["passed"])
                 self.assertIn("preservation-invocation:.github/workflows/native-window-session.yml",
