@@ -8,7 +8,7 @@
     "branch": "claude/ui-u-keyboard-only-20261124",
     "task": "U04-K1: keyboard-only reachability and activation host test for the window-session shell",
     "previous_score": 43,
-    "summary": "43/100: unchanged. A host test now checks that Tab reaches every shell control in reading order, Shift+Tab reverses without a trap, and Enter/Space activate each control like a pointer click at scales 1 and 2. Three keyboard defects are pinned by ignored tests (held Enter/Space repeats activation, Space on a focused search result types instead of activating, Notifications page only reachable by pointer). U04 stays open: these defects, native keyboard evidence, the screen-reader chain (TTS/braille owner decision) and human trials are missing. The delivery-review snapshot remains pinned to its own commit."
+    "summary": "43/100: unchanged. Test evidence (host only): passing tests show that on the Lock, Users, Auth, Search, Settings, Session, Notifications and Capability pages Tab visits each listed control in reading order, Shift+Tab reverses without a trap, Escape returns to Lock or Desktop, and at scales 1 and 2 Enter matches a pointer click on every control except the search text field (where Enter launches the first result), while Space matches a click on every page except Search. Known defects, pinned by ignored tests and not covered by the passing evidence: held Enter/Space repeats activation, Space on a focused search result types instead of activating, and the Notifications page has no keyboard route from the Desktop. U04 stays open: these defects, native keyboard evidence, the screen-reader chain (TTS/braille owner decision) and human trials are missing. The delivery-review snapshot remains pinned to its own commit."
   },
   "tracks": [
     {
