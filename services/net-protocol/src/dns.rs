@@ -431,9 +431,6 @@ fn parse_reply(
     if flags & 0xf840 != 0x8000 {
         return Err(Error::InvalidFlags);
     }
-    if flags & 0x0200 != 0 {
-        return Err(Error::TruncatedResponse);
-    }
     if word(message, 4)? != 1 {
         return Err(Error::WrongQuestion);
     }
@@ -443,6 +440,11 @@ fn parse_reply(
         || word(message, question_end + 2)? != 1
     {
         return Err(Error::WrongQuestion);
+    }
+    // TC only after the question matched (RFC 5452 section 9.1): a reply
+    // that merely guesses the ID must stay ignorable, never a final outcome.
+    if flags & 0x0200 != 0 {
+        return Err(Error::TruncatedResponse);
     }
     let rcode = (flags & 15) as u8;
     if rcode != 0 && !(allow_negative && rcode == 3) {

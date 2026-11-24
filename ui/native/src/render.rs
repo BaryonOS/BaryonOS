@@ -242,15 +242,28 @@ impl Layout {
     }
     pub fn for_screen(viewport: Viewport, screen: Screen) -> Self {
         let mut layout = Self::new(viewport);
-        if viewport.logical_width() >= 700 && viewport.logical_width() < 784 {
+        if viewport.logical_width() >= 700 {
             layout.rename.x = d::PAD;
             layout.organize.x = d::PAD + 128;
             layout.history.x = d::PAD + 240;
             layout.rename.y = 80;
             layout.organize.y = 80;
             layout.history.y = 80;
-            layout.editor.y += 56;
-            layout.editor.height = layout.editor.height.saturating_sub(56);
+            if viewport.logical_width() >= 784 && viewport.logical_height() < 360 {
+                // The title moves to the top row (`editor_title`), so the editor
+                // starts under the Rename row and keeps one full text line.
+                let bottom = layout.editor.y + layout.editor.height;
+                layout.editor.y = layout.rename.y + layout.rename.height + 8;
+                layout.editor.height = bottom
+                    .saturating_sub(layout.editor.y)
+                    .max(32 + d::LINE_HEIGHT);
+            } else {
+                // shortcut: at 700..783 and heights below 288 this still leaves
+                // no full text line; those frames are frozen by the UI/UX ruling
+                // until a follow-up may change them.
+                layout.editor.y += 56;
+                layout.editor.height = layout.editor.height.saturating_sub(56);
+            }
         }
         let (width, height) = (viewport.logical_width(), viewport.logical_height());
         let compact = height < 360;
@@ -335,6 +348,39 @@ impl Layout {
     pub fn text_left(self) -> u32 {
         self.editor.x + 20
     }
+    /// The document title on the editor screens: origin, usable width and
+    /// line height, in logical pixels.
+    pub fn editor_title(self) -> Rect {
+        let compact = self.height < 360;
+        let size = if compact { Size::Body } else { Size::Title };
+        let line = Font::new(size, Weight::Semibold, self.scale == Scale::Percent200).height()
+            / self.scale.factor();
+        if compact && self.width >= 784 {
+            // Between Tool and Save on the top row, clear of the Rename row.
+            let x = self.tool.x + self.tool.width + 12;
+            return Rect {
+                x,
+                y: self.back.y + self.back.height.saturating_sub(line) / 2,
+                width: self.save.x.saturating_sub(x + 12),
+                height: line,
+            };
+        }
+        Rect {
+            x: d::PAD,
+            y: if compact {
+                76
+            } else if self.width >= 700 {
+                140
+            } else {
+                84
+            },
+            width: self
+                .editor
+                .width
+                .min(self.context_menu.x.saturating_sub(d::PAD + 12)),
+            height: line,
+        }
+    }
     pub fn text_top(self) -> u32 {
         self.editor.y + 16
     }
@@ -374,6 +420,87 @@ pub struct Frame<'a> {
     caret: text::VisualPosition,
 }
 impl<'a> Frame<'a> {
+    /// Painted status area, bottom-anchored on `Layout::status`. A label that
+    /// wraps beyond that rect grows upward only on screens whose content
+    /// provably ends above it (UX-SR11); other screens keep the layout rect,
+    /// so one-line statuses paint exactly as before.
+    pub fn status_area(&self) -> Rect {
+        let (layout, view) = (self.layout, self.view);
+        let base = layout.status;
+        let width = |x: u32| view.viewport.logical_width().saturating_sub(x + d::PAD);
+        let lines = |label, width| wrapped_lines(label, width, view.viewport.scale());
+        let status_x = if view.screen == Screen::Material {
+            base.x
+        } else {
+            d::PAD
+        };
+        let needed = lines(status_label(view.status), width(status_x)) * d::LINE_HEIGHT;
+        if needed <= base.height {
+            return base;
+        }
+        let floor = match view.screen {
+            Screen::Editor => layout.editor.y + layout.editor.height,
+            Screen::Material if !view.list_loaded => {
+                let label = if matches!(view.status, Status::Failed(_)) {
+                    "Je materiaal kon niet worden geladen."
+                } else {
+                    "Je materiaal wordt geladen."
+                };
+                layout.list_top + lines(label, width(layout.content_left)) * d::LINE_HEIGHT
+            }
+            // Mirrors the empty-state geometry in `render_tile`.
+            Screen::Material if view.objects.is_empty() => {
+                let available = width(layout.content_left);
+                let body = if available >= 360 {
+                    "Maak een document om aan de slag te gaan."
+                } else {
+                    "Maak je eerste document."
+                };
+                let top = layout.list_top
+                    + if view.viewport.logical_height() > 480 {
+                        40
+                    } else {
+                        8
+                    };
+                top + 32 + lines(body, available.saturating_sub(52)) * d::LINE_HEIGHT
+            }
+            Screen::Material => {
+                let shown = view
+                    .objects
+                    .len()
+                    .saturating_sub(view.list_scroll)
+                    .min(layout.list_rows());
+                let last = layout.object(shown.saturating_sub(1));
+                // A long name wraps past its row (`render_tile` row painting).
+                let names = (0..shown)
+                    .map(|row| {
+                        let rect = layout.object(row);
+                        let object = &view.objects[view.list_scroll + row];
+                        let name = object
+                            .name
+                            .get(..object.name_length)
+                            .and_then(|b| core::str::from_utf8(b).ok())
+                            .unwrap_or("Naam niet leesbaar");
+                        rect.y + 6 + lines(name, rect.width.saturating_sub(96)) * d::LINE_HEIGHT
+                    })
+                    .max()
+                    .unwrap_or(0);
+                (last.y + last.height + 1).max(names)
+            }
+            _ => return base,
+        };
+        let bottom = base.y + base.height;
+        // The divider sits 8 px above the text and keeps 8 px from the content.
+        match bottom.checked_sub(needed) {
+            Some(top) if top >= floor + 16 => Rect {
+                x: base.x,
+                y: top,
+                width: base.width,
+                height: needed,
+            },
+            _ => base,
+        }
+    }
     pub fn new(view: View<'a>) -> Self {
         let layout = Layout::for_screen(view.viewport, view.screen);
         let mut frame = Self {
@@ -736,20 +863,14 @@ impl<'a> Frame<'a> {
                     );
                 }
                 let title = core::str::from_utf8(self.view.title).unwrap_or("Naam niet leesbaar");
+                // shortcut: compact 700..783 keeps its frozen y 76 overlap with
+                // the Rename row until its frames may change.
+                let place = layout.editor_title();
                 paint.elided(
-                    d::PAD,
-                    if viewport.logical_height() < 360 {
-                        76
-                    } else if viewport.logical_width() >= 700 && viewport.logical_width() < 784 {
-                        140
-                    } else {
-                        84
-                    },
+                    place.x,
+                    place.y,
                     title,
-                    layout
-                        .editor
-                        .width
-                        .min(layout.context_menu.x.saturating_sub(d::PAD + 12)),
+                    place.width,
                     (
                         if viewport.logical_height() < 360 {
                             Size::Body
@@ -784,7 +905,7 @@ impl<'a> Frame<'a> {
                     );
                     paint.small(
                         d::PAD,
-                        if viewport.logical_width() >= 700 && viewport.logical_width() < 784 {
+                        if viewport.logical_width() >= 700 {
                             184
                         } else {
                             128
@@ -875,10 +996,11 @@ impl<'a> Frame<'a> {
             d::PAD
         };
         let status_width = viewport.logical_width() - status_x - d::PAD;
+        let status_y = self.status_area().y;
         paint.fill(
             Rect {
                 x: status_x,
-                y: layout.status.y.saturating_sub(8),
+                y: status_y.saturating_sub(8),
                 width: status_width,
                 height: 1,
             },
@@ -886,7 +1008,7 @@ impl<'a> Frame<'a> {
         );
         paint.wrapped(
             status_x,
-            layout.status.y,
+            status_y,
             status_label(self.view.status),
             status_width,
             if matches!(self.view.status, Status::Failed(_)) {
@@ -1143,7 +1265,7 @@ impl<'a> Frame<'a> {
                 parent: Some(SemanticId::Window),
                 role: Role::Status,
                 label: status_label(self.view.status),
-                bounds: self.layout.status.physical(self.view.viewport.scale()),
+                bounds: self.status_area().physical(self.view.viewport.scale()),
                 enabled: true,
                 ..SemanticNode::EMPTY
             });
@@ -1219,6 +1341,29 @@ impl<'a> Frame<'a> {
                     None,
                     true,
                 );
+                // Pagination sits on the title row, so it is read first.
+                if self.view.list_scroll > 0 || self.view.objects.len() > l.list_rows() {
+                    push(
+                        SemanticId::PreviousPage,
+                        Some(SemanticId::Window),
+                        Role::Button,
+                        "Vorige materialen",
+                        None,
+                        l.list_previous,
+                        Some(Focus::Previous),
+                        self.view.list_scroll > 0,
+                    );
+                    push(
+                        SemanticId::NextPage,
+                        Some(SemanticId::Window),
+                        Role::Button,
+                        "Volgende materialen",
+                        None,
+                        l.list_next,
+                        Some(Focus::Next),
+                        self.view.list_scroll + l.list_rows() < self.view.objects.len(),
+                    );
+                }
                 push(
                     SemanticId::NewDocument,
                     Some(SemanticId::Window),
@@ -1274,28 +1419,6 @@ impl<'a> Frame<'a> {
                     None,
                     true,
                 );
-                if self.view.list_scroll > 0 || self.view.objects.len() > l.list_rows() {
-                    push(
-                        SemanticId::PreviousPage,
-                        Some(SemanticId::Window),
-                        Role::Button,
-                        "Vorige materialen",
-                        None,
-                        l.list_previous,
-                        Some(Focus::Previous),
-                        self.view.list_scroll > 0,
-                    );
-                    push(
-                        SemanticId::NextPage,
-                        Some(SemanticId::Window),
-                        Role::Button,
-                        "Volgende materialen",
-                        None,
-                        l.list_next,
-                        Some(Focus::Next),
-                        self.view.list_scroll + l.list_rows() < self.view.objects.len(),
-                    );
-                }
                 for (index, entry) in self
                     .view
                     .objects
@@ -1326,6 +1449,46 @@ impl<'a> Frame<'a> {
                 }
             }
             Screen::Editor => {
+                // Reading order: Back, Tool, Save on the top row, then the
+                // Rename/Organize/History row with the menu button, then text.
+                push(
+                    SemanticId::Back,
+                    Some(SemanticId::Window),
+                    Role::Button,
+                    "Terug naar materiaal",
+                    None,
+                    l.back,
+                    Some(Focus::Back),
+                    true,
+                );
+                push(
+                    SemanticId::DocumentTool,
+                    Some(SemanticId::Window),
+                    Role::Button,
+                    tool_action(self.view.tool),
+                    None,
+                    l.tool,
+                    Some(Focus::Tool),
+                    !self.view.saving,
+                );
+                push(
+                    SemanticId::Save,
+                    Some(SemanticId::Window),
+                    Role::Button,
+                    if self.view.saving {
+                        "Opslaan annuleren"
+                    } else {
+                        "Opslaan"
+                    },
+                    None,
+                    l.save,
+                    Some(if self.view.saving {
+                        Focus::CancelSave
+                    } else {
+                        Focus::Save
+                    }),
+                    self.view.can_save || self.view.saving,
+                );
                 if self.view.viewport.logical_width() >= 700 {
                     for (id, focus, bounds, label) in [
                         (
@@ -1363,44 +1526,6 @@ impl<'a> Frame<'a> {
                         );
                     }
                 }
-                push(
-                    SemanticId::Back,
-                    Some(SemanticId::Window),
-                    Role::Button,
-                    "Terug naar materiaal",
-                    None,
-                    l.back,
-                    Some(Focus::Back),
-                    true,
-                );
-                push(
-                    SemanticId::Save,
-                    Some(SemanticId::Window),
-                    Role::Button,
-                    if self.view.saving {
-                        "Opslaan annuleren"
-                    } else {
-                        "Opslaan"
-                    },
-                    None,
-                    l.save,
-                    Some(if self.view.saving {
-                        Focus::CancelSave
-                    } else {
-                        Focus::Save
-                    }),
-                    self.view.can_save || self.view.saving,
-                );
-                push(
-                    SemanticId::DocumentTool,
-                    Some(SemanticId::Window),
-                    Role::Button,
-                    tool_action(self.view.tool),
-                    None,
-                    l.tool,
-                    Some(Focus::Tool),
-                    !self.view.saving,
-                );
                 push(
                     SemanticId::DocumentMenu,
                     Some(SemanticId::Window),
@@ -1440,20 +1565,6 @@ impl<'a> Frame<'a> {
                         Some(Focus::FormInput),
                         true,
                     );
-                    push(
-                        SemanticId::FormConfirm,
-                        parent,
-                        Role::Button,
-                        if self.view.screen == Screen::Rename {
-                            "Naam toepassen"
-                        } else {
-                            "Bewaren in collectie"
-                        },
-                        None,
-                        l.form_confirm,
-                        Some(Focus::FormConfirm),
-                        self.view.can_save && !workspace.form().is_empty(),
-                    );
                 }
                 if self.view.screen == Screen::Organize {
                     for i in 0..volume_core::COLLECTIONS {
@@ -1477,7 +1588,7 @@ impl<'a> Frame<'a> {
                 }
                 if self.view.screen == Screen::History {
                     if let Some(stat) = workspace.metadata() {
-                        for i in 1..=stat.history_count {
+                        for i in 1..=stat.history_count.min(volume_core::HISTORY) {
                             push(
                                 SemanticId::HistoryVersion(i),
                                 parent,
@@ -1503,16 +1614,6 @@ impl<'a> Frame<'a> {
                         l.preview,
                         None,
                         true,
-                    );
-                    push(
-                        SemanticId::RestoreHistory,
-                        parent,
-                        Role::Button,
-                        "Herstel als nieuwe versie",
-                        None,
-                        l.form_confirm,
-                        Some(Focus::RestoreHistory),
-                        workspace.preview().is_some() && self.view.can_save,
                     );
                 }
                 if self.view.screen == Screen::Filter {
@@ -1550,6 +1651,35 @@ impl<'a> Frame<'a> {
                     Some(Focus::FormCancel),
                     true,
                 );
+                // The footer reads Cancel (left) before Confirm/Restore (right).
+                if self.view.screen == Screen::History {
+                    push(
+                        SemanticId::RestoreHistory,
+                        parent,
+                        Role::Button,
+                        "Herstel als nieuwe versie",
+                        None,
+                        l.form_confirm,
+                        Some(Focus::RestoreHistory),
+                        workspace.preview().is_some() && self.view.can_save,
+                    );
+                }
+                if matches!(self.view.screen, Screen::Rename | Screen::Organize) {
+                    push(
+                        SemanticId::FormConfirm,
+                        parent,
+                        Role::Button,
+                        if self.view.screen == Screen::Rename {
+                            "Naam toepassen"
+                        } else {
+                            "Bewaren in collectie"
+                        },
+                        None,
+                        l.form_confirm,
+                        Some(Focus::FormConfirm),
+                        self.view.can_save && !workspace.form().is_empty(),
+                    );
+                }
             }
             Screen::ConfirmClose => {
                 push(
@@ -1600,7 +1730,7 @@ impl<'a> Frame<'a> {
             Role::Status,
             status_label(self.view.status),
             None,
-            l.status,
+            self.status_area(),
             None,
             true,
         );
@@ -1790,6 +1920,19 @@ pub fn status_label(status: Status) -> &'static str {
             "Opslagverbinding verbroken. Tekst blijft open."
         }
         Status::Failed(UiError::Storage(S::Busy)) => "Opslaan loopt al. Je tekst blijft open.",
+        // UX-SR07 copy from UX-MATERIAAL-SAVE-RECOVERY.md; Access (deny) stays
+        // generic until U03-T3 part 2 proves a real deny path.
+        Status::Failed(UiError::Storage(S::Service(volume_core::Status::Full))) => {
+            "Opslagruimte vol. Niet opgeslagen. Je tekst blijft open."
+        }
+        Status::Failed(UiError::Storage(S::Service(volume_core::Status::Quota))) => {
+            "Je opslagruimte is opgebruikt. Niet opgeslagen. Je tekst blijft open."
+        }
+        // Io also reaches here from READ (open, metadata), so the copy must not
+        // claim a save happened; Full and Quota only arise from writes.
+        Status::Failed(UiError::Storage(S::Service(volume_core::Status::Io))) => {
+            "Lezen of opslaan mislukt. Er is niets bevestigd."
+        }
         Status::Failed(_) => "Handeling mislukt. Je tekst blijft open.",
     }
 }
@@ -3305,6 +3448,35 @@ impl Paint<'_> {
     fn title_color(&mut self, x: u32, y: u32, title: &str, color: u32) {
         self.ui_text(x, y, title, Size::Title, Weight::Semibold, color);
     }
+}
+/// Line count of `Paint::wrapped` for a body-text label; keep both in step.
+fn wrapped_lines(label: &str, width: u32, scale: Scale) -> u32 {
+    let font = Font::new(Size::Body, Weight::Regular, scale == Scale::Percent200);
+    let (mut rest, mut lines) = (label, 0);
+    while !rest.is_empty() {
+        let mut take = rest.len();
+        let mut space = None;
+        for (index, ch) in rest.char_indices() {
+            if ch == '\n' {
+                take = index;
+                break;
+            }
+            if ch.is_whitespace() {
+                space = Some(index);
+            }
+            if font
+                .measure(&rest[..index + ch.len_utf8()])
+                .div_ceil(scale.factor())
+                > width
+            {
+                take = space.filter(|i| *i > 0).unwrap_or(index.max(ch.len_utf8()));
+                break;
+            }
+        }
+        rest = rest[take..].trim_start_matches(char::is_whitespace);
+        lines += 1;
+    }
+    lines
 }
 fn blend(front: u32, back: u32, alpha: u8) -> u32 {
     let a = u32::from(alpha);

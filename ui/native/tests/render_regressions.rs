@@ -1,9 +1,10 @@
 use nieuw_os_document_session::volume::{Error as StorageError, ListEntry};
+use nieuw_os_graphics::{Font, Size, Weight};
 use nieuw_os_materiaal::{
     controller::{Error as UiError, Focus, Screen, Status, View},
     design,
     desktop::{Desktop, Page, Target},
-    render::{Frame, Role, SemanticId, SemanticNode},
+    render::{status_label, Frame, Layout, Role, SemanticId, SemanticNode},
     Scale, Viewport, TILE_HEIGHT, TILE_PIXELS, TILE_WIDTH,
 };
 
@@ -443,5 +444,257 @@ fn orbit_dock_is_bounded_on_tiny_viewports() {
         assert!(bar.width <= width, "{width}");
         assert!(bar.x <= width, "{width}");
         assert!(bar.x + bar.width <= width, "{width}");
+    }
+}
+
+/// Wide Editor (784 logical px and up), compact heights included: the box
+/// holds one full text line, keeps the non-compact gap above the status
+/// row, and the title clears both the Rename row and the editor.
+#[test]
+fn wide_editor_keeps_one_line_inside_the_box_at_every_height() {
+    let overlaps = |a: nieuw_os_materiaal::Rect, b: nieuw_os_materiaal::Rect| {
+        a.x < b.x + b.width && b.x < a.x + a.width && a.y < b.y + b.height && b.y < a.y + a.height
+    };
+    // Gap the regular (non-compact) layout keeps between editor and status.
+    let reference = Layout::for_screen(
+        Viewport::new(960, 540, Scale::Percent100, 1).unwrap(),
+        Screen::Editor,
+    );
+    let gap = reference.status.y - (reference.editor.y + reference.editor.height);
+    assert_eq!(gap, 16);
+    let mut checked = 0;
+    for w in [784, 800, 880, 960, 1024, 1280] {
+        for h in [240, 250, 260, 287, 288, 300, 359, 360, 510, 540, 720] {
+            for scale in [Scale::Percent100, Scale::Percent200] {
+                let k = scale.factor();
+                let Ok(viewport) = Viewport::new(w * k, h * k, scale, 1) else {
+                    continue;
+                };
+                let l = Layout::for_screen(viewport, Screen::Editor);
+                let name = format!("{w}x{h} {scale:?}");
+                let (editor, bottom) = (l.editor, l.editor.y + l.editor.height);
+                assert!(
+                    editor.height >= 32 + design::LINE_HEIGHT,
+                    "{name}: {editor:?}"
+                );
+                assert!(l.rows() >= 1, "{name}");
+                assert!(l.text_top() + design::LINE_HEIGHT <= bottom, "{name}");
+                assert!(
+                    bottom + gap <= l.status.y,
+                    "{name}: {editor:?} {:?}",
+                    l.status
+                );
+                let title = l.editor_title();
+                assert!(title.width > 0 && title.height > 0, "{name}: {title:?}");
+                for button in [l.rename, l.organize, l.history] {
+                    // The Rename/Organize/History row, at full width.
+                    let row = nieuw_os_materiaal::Rect {
+                        x: 0,
+                        width: w,
+                        ..button
+                    };
+                    assert!(
+                        !overlaps(title, row),
+                        "{name}: title {title:?} on row {row:?}"
+                    );
+                    assert!(editor.y >= button.y + button.height, "{name}");
+                }
+                assert!(
+                    !overlaps(title, editor),
+                    "{name}: title {title:?} in {editor:?}"
+                );
+                checked += 1;
+            }
+        }
+    }
+    assert!(checked >= 66, "only {checked} viewports were valid");
+}
+
+/// Independent of the renderer's own counter: the break rules of
+/// `Paint::wrapped` for body text.
+fn wrapped_lines(label: &str, width: u32, scale: Scale) -> u32 {
+    let font = Font::new(Size::Body, Weight::Regular, scale == Scale::Percent200);
+    let measure = |s: &str| font.measure(s).div_ceil(scale.factor());
+    let (mut rest, mut lines) = (label, 0);
+    while !rest.is_empty() {
+        let mut take = rest.len();
+        let mut space = None;
+        for (index, ch) in rest.char_indices() {
+            if ch.is_whitespace() {
+                space = Some(index);
+            }
+            if measure(&rest[..index + ch.len_utf8()]) > width {
+                take = space.filter(|i| *i > 0).unwrap_or(index.max(ch.len_utf8()));
+                break;
+            }
+        }
+        rest = rest[take..].trim_start_matches(char::is_whitespace);
+        lines += 1;
+    }
+    lines
+}
+
+fn failures() -> impl Iterator<Item = Status> {
+    use volume_core::Status as V;
+    [
+        StorageError::Uncertain,
+        StorageError::Conflict,
+        StorageError::Closed,
+        StorageError::Busy,
+        StorageError::ReadOnly,
+        StorageError::ContentTooLarge,
+        StorageError::Service(V::Full),
+        StorageError::Service(V::Quota),
+        StorageError::Service(V::Io),
+        StorageError::Service(V::Access),
+    ]
+    .map(|error| Status::Failed(UiError::Storage(error)))
+    .into_iter()
+    .chain(
+        [
+            UiError::NoFreeObject,
+            UiError::InvalidUtf8,
+            UiError::InvalidInput,
+        ]
+        .map(Status::Failed),
+    )
+}
+
+/// Compact (< 360 logical px high) viewports, where `Layout::status` holds one line.
+const COMPACT: [(u32, u32, Scale); 4] = [
+    (320, 240, Scale::Percent100),
+    (640, 480, Scale::Percent200),
+    (800, 600, Scale::Percent200),
+    (1120, 660, Scale::Percent200),
+];
+
+/// UX-SR11: the failure status fits, stays on screen and changes no pixel
+/// outside its divider and text band compared with a one-line failure.
+fn assert_status_fits(state: View<'_>, x: u32, floor: u32) {
+    let viewport = state.viewport;
+    let factor = viewport.scale().factor();
+    let (width, height) = (viewport.width(), viewport.height());
+    let base = Layout::for_screen(viewport, state.screen).status;
+    let mut one_line = state;
+    one_line.status = Status::Failed(UiError::Storage(StorageError::Busy));
+    let baseline = image(&Frame::new(one_line), width, height);
+    for status in failures() {
+        let mut view = state;
+        view.status = status;
+        let frame = Frame::new(view);
+        let area = frame.status_area();
+        let label = status_label(status);
+        let lines = wrapped_lines(
+            label,
+            viewport.logical_width() - x - design::PAD,
+            viewport.scale(),
+        );
+        let at = format!("{width}x{height} {:?} {status:?}", state.screen);
+        assert!(
+            lines * design::LINE_HEIGHT <= area.height,
+            "{at}: {lines} lines clipped"
+        );
+        assert_eq!(
+            area.y + area.height,
+            base.y + base.height,
+            "{at}: not bottom-anchored"
+        );
+        assert!(area.y + area.height <= viewport.logical_height(), "{at}");
+        assert!(
+            area.y >= floor + 16,
+            "{at}: status meets the content above it"
+        );
+        let mut nodes = [SemanticNode::EMPTY; 64];
+        let count = frame.semantics(&mut nodes).unwrap();
+        let node = nodes[..count]
+            .iter()
+            .find(|n| n.id == SemanticId::Status)
+            .unwrap();
+        assert_eq!(node.bounds, area.physical(viewport.scale()), "{at}");
+        let rendered = image(&frame, width, height);
+        let top = area.y.min(base.y).saturating_sub(8) * factor;
+        for (index, (before, after)) in baseline.iter().zip(&rendered).enumerate() {
+            if before != after {
+                let y = index as u32 / width;
+                assert!(
+                    y >= top,
+                    "{at}: pixel changed above the status band at y {y}"
+                );
+            }
+        }
+    }
+}
+
+#[test]
+fn sr11_editor_failure_status_fits_in_compact_layouts() {
+    for (width, height, scale) in COMPACT {
+        let viewport = Viewport::new(width, height, scale, 1).unwrap();
+        let mut state = view(viewport, &[]);
+        state.screen = Screen::Editor;
+        state.focus = Focus::Document;
+        state.contents = Some("Tekst");
+        let editor = Layout::for_screen(viewport, Screen::Editor).editor;
+        assert_status_fits(state, design::PAD, editor.y + editor.height);
+    }
+}
+
+#[test]
+fn sr11_library_failure_status_fits_below_the_rows() {
+    let mut objects = [ListEntry::EMPTY; 8];
+    for (index, object) in objects.iter_mut().enumerate() {
+        object.object = index as u64;
+        object.name[0] = b'A' + index as u8;
+        object.name_length = 1;
+    }
+    let mut long = objects;
+    for object in &mut long {
+        object.name = [b'W'; 32];
+        object.name_length = 32;
+    }
+    // Logical 240 high (320x240, 640x480 @ 200 %) is excluded: its single list
+    // row leaves no room for a second status line (ignored SR11 test).
+    let viewports = COMPACT[2..]
+        .iter()
+        .chain(&[(320, 300, Scale::Percent100), (320, 350, Scale::Percent100)]);
+    for (width, height, scale) in viewports {
+        let viewport = Viewport::new(*width, *height, *scale, 1).unwrap();
+        let layout = Layout::for_screen(viewport, Screen::Material);
+        let rows = layout.list_rows();
+        let last = layout.object(rows - 1);
+        let row_floor = last.y + last.height + 1;
+        assert_status_fits(view(viewport, &objects), layout.status.x, row_floor);
+        // An unbreakable name wraps past its row: the status grows only below
+        // it, else keeps its layout rect (no free space, as at height 240).
+        let name = core::str::from_utf8(&long[0].name).unwrap();
+        let names = (0..rows)
+            .map(|row| {
+                let rect = layout.object(row);
+                rect.y + 6 + wrapped_lines(name, rect.width - 96, *scale) * design::LINE_HEIGHT
+            })
+            .max()
+            .unwrap();
+        for status in failures() {
+            let mut state = view(viewport, &long);
+            state.status = status;
+            let area = Frame::new(state).status_area();
+            assert!(
+                area == layout.status || area.y >= names.max(row_floor) + 16,
+                "{width}x{height} {status:?}: status meets a wrapped name"
+            );
+        }
+    }
+}
+
+#[test]
+fn sr11_status_keeps_its_rect_where_no_space_is_free() {
+    let objects = [ListEntry::EMPTY; 1];
+    for (width, height, scale) in &COMPACT[..2] {
+        let viewport = Viewport::new(*width, *height, *scale, 1).unwrap();
+        let mut state = view(viewport, &objects);
+        state.status = Status::Failed(UiError::Storage(StorageError::Conflict));
+        assert_eq!(
+            Frame::new(state).status_area(),
+            Layout::for_screen(viewport, Screen::Material).status
+        );
     }
 }

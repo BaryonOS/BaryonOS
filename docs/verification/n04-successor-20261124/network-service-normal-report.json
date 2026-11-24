@@ -1,0 +1,2125 @@
+{
+  "schema_version": 1,
+  "passed": true,
+  "case": "normal",
+  "kernel_feature": "native-net-service",
+  "scope": "three actual isolated ring-3 processes; bounded IPC TCP/UDP; synthetic localhost Ethernet; no TLS or physical hardware claim",
+  "source_commit": "4faa2b40c18257fb8bf5ba85bfef78d49d240a53",
+  "source_fingerprint_version": 3,
+  "source_sha256": "ea1d1128137f01e8dec9cf4557325fa07588dc515815352bfbb0cf1c9feb4e15",
+  "manifest": {
+    "schema_version": 1,
+    "profile": "native-net-service",
+    "kernel_feature": "native-net-service",
+    "loader_feature": null,
+    "source_fingerprint_version": 3,
+    "source_sha256": "ea1d1128137f01e8dec9cf4557325fa07588dc515815352bfbb0cf1c9feb4e15",
+    "loader": {
+      "sha256": "3d8adba2b4d61a3f47f66af6e59bbbeb3fafafd1cbadf70b8accb088a7455639",
+      "format": "AMD64 PE32+",
+      "subsystem": "EFI_APPLICATION",
+      "imports": 0
+    },
+    "kernel": {
+      "sha256": "9920df73b469eacdeb446c3a501ef23ab55a0e16f0a16811e7f2820353b22ea5",
+      "entry": 33554432,
+      "segments": [
+        {
+          "flags": 5,
+          "offset": 4096,
+          "address": 33554432,
+          "filesz": 152995,
+          "memsz": 152995,
+          "page_start": 33554432,
+          "page_end": 33710080
+        },
+        {
+          "flags": 4,
+          "offset": 159744,
+          "address": 33710080,
+          "filesz": 291235,
+          "memsz": 291235,
+          "page_start": 33710080,
+          "page_end": 34004992
+        },
+        {
+          "flags": 6,
+          "offset": 454656,
+          "address": 34004992,
+          "filesz": 1725032,
+          "memsz": 5408184,
+          "page_start": 34004992,
+          "page_end": 39415808
+        }
+      ],
+      "sections": [
+        {
+          "name": "",
+          "type": 0,
+          "flags": 0,
+          "size": 0
+        },
+        {
+          "name": ".text",
+          "type": 1,
+          "flags": 6,
+          "size": 152995
+        },
+        {
+          "name": ".rodata",
+          "type": 1,
+          "flags": 50,
+          "size": 291235
+        },
+        {
+          "name": ".data",
+          "type": 1,
+          "flags": 3,
+          "size": 1725032
+        },
+        {
+          "name": ".bss",
+          "type": 8,
+          "flags": 3,
+          "size": 3679672
+        },
+        {
+          "name": ".symtab",
+          "type": 2,
+          "flags": 0,
+          "size": 8856
+        },
+        {
+          "name": ".shstrtab",
+          "type": 3,
+          "flags": 0,
+          "size": 52
+        },
+        {
+          "name": ".strtab",
+          "type": 3,
+          "flags": 0,
+          "size": 20380
+        }
+      ]
+    },
+    "sdk_runtime": false,
+    "document_session": false,
+    "system": {
+      "system_init": {
+        "sha256": "1bb7eedf2fa8598a629d0738e223fb8e8eecdbf870643c9025f2ea3c84650311",
+        "elf": {
+          "entry": 1073741824,
+          "segments": [
+            {
+              "flags": 5,
+              "address": 1073741824,
+              "offset": 4096,
+              "filesz": 6,
+              "memsz": 6,
+              "page_start": 1073741824,
+              "page_end": 1073745920
+            },
+            {
+              "flags": 6,
+              "address": 1073807360,
+              "offset": 8192,
+              "filesz": 1080,
+              "memsz": 1080,
+              "page_start": 1073807360,
+              "page_end": 1073811456
+            },
+            {
+              "flags": 4,
+              "address": 1073823744,
+              "offset": 12288,
+              "filesz": 1712,
+              "memsz": 1712,
+              "page_start": 1073823744,
+              "page_end": 1073827840
+            },
+            {
+              "flags": 5,
+              "address": 1073872896,
+              "offset": 16384,
+              "filesz": 22021,
+              "memsz": 22021,
+              "page_start": 1073872896,
+              "page_end": 1073897472
+            }
+          ]
+        }
+      },
+      "system_app": {
+        "sha256": "c37d8bb85069c9f8712bd68d1468894cb0e86f6fff11cf3f389f7965d1739cdc",
+        "elf": {
+          "entry": 1073741824,
+          "segments": [
+            {
+              "flags": 5,
+              "address": 1073741824,
+              "offset": 4096,
+              "filesz": 6,
+              "memsz": 6,
+              "page_start": 1073741824,
+              "page_end": 1073745920
+            },
+            {
+              "flags": 6,
+              "address": 1073807360,
+              "offset": 8192,
+              "filesz": 1112,
+              "memsz": 1112,
+              "page_start": 1073807360,
+              "page_end": 1073811456
+            },
+            {
+              "flags": 4,
+              "address": 1073823744,
+              "offset": 12288,
+              "filesz": 3867,
+              "memsz": 3867,
+              "page_start": 1073823744,
+              "page_end": 1073827840
+            },
+            {
+              "flags": 5,
+              "address": 1073872896,
+              "offset": 16384,
+              "filesz": 54549,
+              "memsz": 54549,
+              "page_start": 1073872896,
+              "page_end": 1073930240
+            }
+          ]
+        }
+      },
+      "system_worker": {
+        "sha256": "77bf5f23534f55b5fba2dd307110fad7cd39a1e259a85b963a07201827830d03",
+        "elf": {
+          "entry": 1073741824,
+          "segments": [
+            {
+              "flags": 5,
+              "address": 1073741824,
+              "offset": 4096,
+              "filesz": 322,
+              "memsz": 322,
+              "page_start": 1073741824,
+              "page_end": 1073745920
+            },
+            {
+              "flags": 6,
+              "address": 1073807360,
+              "offset": 8192,
+              "filesz": 1040,
+              "memsz": 1040,
+              "page_start": 1073807360,
+              "page_end": 1073811456
+            },
+            {
+              "flags": 5,
+              "address": 1073872896,
+              "offset": 12288,
+              "filesz": 580,
+              "memsz": 580,
+              "page_start": 1073872896,
+              "page_end": 1073876992
+            }
+          ]
+        }
+      },
+      "keyring_service": {
+        "sha256": "d9638b7bbe574ce36350d2380bb9ffd67dd0ff1cc6bdc3bf3511564d9acf1477",
+        "elf": {
+          "entry": 1073741824,
+          "segments": [
+            {
+              "flags": 5,
+              "address": 1073741824,
+              "offset": 4096,
+              "filesz": 6,
+              "memsz": 6,
+              "page_start": 1073741824,
+              "page_end": 1073745920
+            },
+            {
+              "flags": 6,
+              "address": 1073807360,
+              "offset": 8192,
+              "filesz": 1144,
+              "memsz": 1144,
+              "page_start": 1073807360,
+              "page_end": 1073811456
+            },
+            {
+              "flags": 4,
+              "address": 1073823744,
+              "offset": 12288,
+              "filesz": 2043,
+              "memsz": 2043,
+              "page_start": 1073823744,
+              "page_end": 1073827840
+            },
+            {
+              "flags": 5,
+              "address": 1073872896,
+              "offset": 16384,
+              "filesz": 75827,
+              "memsz": 75827,
+              "page_start": 1073872896,
+              "page_end": 1073950720
+            }
+          ]
+        }
+      },
+      "volume_service": {
+        "sha256": "53ba1116758deda9d8a77700394a0f9b3bc8ac4902759e5bd14807904b1e6c25",
+        "elf": {
+          "entry": 1073741824,
+          "segments": [
+            {
+              "flags": 5,
+              "address": 1073741824,
+              "offset": 4096,
+              "filesz": 50053,
+              "memsz": 50053,
+              "page_start": 1073741824,
+              "page_end": 1073795072
+            },
+            {
+              "flags": 6,
+              "address": 1073807360,
+              "offset": 57344,
+              "filesz": 1096,
+              "memsz": 1096,
+              "page_start": 1073807360,
+              "page_end": 1073811456
+            },
+            {
+              "flags": 4,
+              "address": 1073823744,
+              "offset": 61440,
+              "filesz": 21072,
+              "memsz": 21072,
+              "page_start": 1073823744,
+              "page_end": 1073848320
+            }
+          ]
+        }
+      },
+      "network_service": {
+        "sha256": "1efd59353a1d5a12788bb796214f9f71bbfac8e9788eab50e9ba8b2a027e4fe8",
+        "elf": {
+          "entry": 1073741824,
+          "segments": [
+            {
+              "flags": 5,
+              "address": 1073741824,
+              "offset": 4096,
+              "filesz": 6,
+              "memsz": 6,
+              "page_start": 1073741824,
+              "page_end": 1073745920
+            },
+            {
+              "flags": 6,
+              "address": 1073807360,
+              "offset": 8192,
+              "filesz": 1024,
+              "memsz": 1024,
+              "page_start": 1073807360,
+              "page_end": 1073811456
+            },
+            {
+              "flags": 4,
+              "address": 1073872896,
+              "offset": 12288,
+              "filesz": 12795,
+              "memsz": 12795,
+              "page_start": 1073872896,
+              "page_end": 1073889280
+            },
+            {
+              "flags": 6,
+              "address": 1074200576,
+              "offset": 28672,
+              "filesz": 21968,
+              "memsz": 21968,
+              "page_start": 1074200576,
+              "page_end": 1074225152
+            },
+            {
+              "flags": 5,
+              "address": 1074462720,
+              "offset": 53248,
+              "filesz": 100899,
+              "memsz": 100899,
+              "page_start": 1074462720,
+              "page_end": 1074565120
+            }
+          ]
+        }
+      },
+      "network_client": {
+        "sha256": "82c6658935378c3a2a601f9505608a6dac12e412d62f295a484b64ae9a10441e",
+        "elf": {
+          "entry": 1073741824,
+          "segments": [
+            {
+              "flags": 5,
+              "address": 1073741824,
+              "offset": 4096,
+              "filesz": 6,
+              "memsz": 6,
+              "page_start": 1073741824,
+              "page_end": 1073745920
+            },
+            {
+              "flags": 6,
+              "address": 1073807360,
+              "offset": 8192,
+              "filesz": 1024,
+              "memsz": 1024,
+              "page_start": 1073807360,
+              "page_end": 1073811456
+            },
+            {
+              "flags": 4,
+              "address": 1073872896,
+              "offset": 12288,
+              "filesz": 2616,
+              "memsz": 2616,
+              "page_start": 1073872896,
+              "page_end": 1073876992
+            },
+            {
+              "flags": 6,
+              "address": 1074200576,
+              "offset": 16384,
+              "filesz": 80,
+              "memsz": 80,
+              "page_start": 1074200576,
+              "page_end": 1074204672
+            },
+            {
+              "flags": 5,
+              "address": 1074462720,
+              "offset": 20480,
+              "filesz": 27411,
+              "memsz": 27411,
+              "page_start": 1074462720,
+              "page_end": 1074491392
+            }
+          ]
+        }
+      }
+    },
+    "network_service": {
+      "service": {
+        "sha256": "1efd59353a1d5a12788bb796214f9f71bbfac8e9788eab50e9ba8b2a027e4fe8",
+        "elf": {
+          "entry": 1073741824,
+          "segments": [
+            {
+              "flags": 5,
+              "address": 1073741824,
+              "offset": 4096,
+              "filesz": 6,
+              "memsz": 6,
+              "page_start": 1073741824,
+              "page_end": 1073745920
+            },
+            {
+              "flags": 6,
+              "address": 1073807360,
+              "offset": 8192,
+              "filesz": 1024,
+              "memsz": 1024,
+              "page_start": 1073807360,
+              "page_end": 1073811456
+            },
+            {
+              "flags": 4,
+              "address": 1073872896,
+              "offset": 12288,
+              "filesz": 12795,
+              "memsz": 12795,
+              "page_start": 1073872896,
+              "page_end": 1073889280
+            },
+            {
+              "flags": 6,
+              "address": 1074200576,
+              "offset": 28672,
+              "filesz": 21968,
+              "memsz": 21968,
+              "page_start": 1074200576,
+              "page_end": 1074225152
+            },
+            {
+              "flags": 5,
+              "address": 1074462720,
+              "offset": 53248,
+              "filesz": 100899,
+              "memsz": 100899,
+              "page_start": 1074462720,
+              "page_end": 1074565120
+            }
+          ]
+        }
+      },
+      "client": {
+        "sha256": "82c6658935378c3a2a601f9505608a6dac12e412d62f295a484b64ae9a10441e",
+        "elf": {
+          "entry": 1073741824,
+          "segments": [
+            {
+              "flags": 5,
+              "address": 1073741824,
+              "offset": 4096,
+              "filesz": 6,
+              "memsz": 6,
+              "page_start": 1073741824,
+              "page_end": 1073745920
+            },
+            {
+              "flags": 6,
+              "address": 1073807360,
+              "offset": 8192,
+              "filesz": 1024,
+              "memsz": 1024,
+              "page_start": 1073807360,
+              "page_end": 1073811456
+            },
+            {
+              "flags": 4,
+              "address": 1073872896,
+              "offset": 12288,
+              "filesz": 2616,
+              "memsz": 2616,
+              "page_start": 1073872896,
+              "page_end": 1073876992
+            },
+            {
+              "flags": 6,
+              "address": 1074200576,
+              "offset": 16384,
+              "filesz": 80,
+              "memsz": 80,
+              "page_start": 1074200576,
+              "page_end": 1074204672
+            },
+            {
+              "flags": 5,
+              "address": 1074462720,
+              "offset": 20480,
+              "filesz": 27411,
+              "memsz": 27411,
+              "page_start": 1074462720,
+              "page_end": 1074491392
+            }
+          ]
+        }
+      }
+    }
+  },
+  "run_directory": "/home/runner/work/BaryonOS/BaryonOS/build/n01-ci-normal/run/network-service-normal-285f02db1f764b56b52d9c4309248ca7",
+  "timeout_s": 90,
+  "started_utc": "2026-11-24T01:58:39.373642+00:00",
+  "qemu_sha256": "8a35ccba41582fc6c38b9df85fc9e35fa1d42f414d2d7d8090ee9b2f5e7c0854",
+  "firmware_sha256": {
+    "code": "ad23261d43116abc3747d59a7837fbf578c9586a8993f4eeba064cd07eccb083",
+    "vars_template": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e"
+  },
+  "snapshot_sha256": {
+    "OVMF_CODE.fd": "ad23261d43116abc3747d59a7837fbf578c9586a8993f4eeba064cd07eccb083",
+    "OVMF_VARS.template.fd": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e",
+    "esp/kernel.elf": "9920df73b469eacdeb446c3a501ef23ab55a0e16f0a16811e7f2820353b22ea5",
+    "esp/EFI/BOOT/BOOTX64.EFI": "3d8adba2b4d61a3f47f66af6e59bbbeb3fafafd1cbadf70b8accb088a7455639"
+  },
+  "qemu_version": "QEMU emulator version 8.2.2 (Debian 1:8.2.2+ds-0ubuntu1.18)\nCopyright (c) 2003-2023 Fabrice Bellard and the QEMU Project developers",
+  "command": [
+    "/usr/bin/qemu-system-x86_64",
+    "-machine",
+    "pc-q35-8.2",
+    "-accel",
+    "tcg,thread=single",
+    "-cpu",
+    "qemu64",
+    "-smp",
+    "1",
+    "-m",
+    "256M",
+    "-nodefaults",
+    "-display",
+    "none",
+    "-monitor",
+    "none",
+    "-serial",
+    "stdio",
+    "-nic",
+    "none",
+    "-no-reboot",
+    "-drive",
+    "if=pflash,unit=0,format=raw,readonly=on,file=build/n01-ci-normal/run/network-service-normal-285f02db1f764b56b52d9c4309248ca7/OVMF_CODE.fd",
+    "-drive",
+    "if=pflash,unit=1,format=raw,file=build/n01-ci-normal/run/network-service-normal-285f02db1f764b56b52d9c4309248ca7/OVMF_VARS.fd",
+    "-drive",
+    "if=virtio,index=0,format=raw,readonly=on,file=fat:build/n01-ci-normal/run/network-service-normal-285f02db1f764b56b52d9c4309248ca7/esp",
+    "-device",
+    "isa-debug-exit,iobase=0xf4,iosize=0x04",
+    "-object",
+    "rng-random,id=rng0,filename=/dev/urandom",
+    "-device",
+    "virtio-rng-pci,rng=rng0,id=rng,addr=0x6,disable-legacy=on,max-bytes=1048576,period=1000",
+    "-fw_cfg",
+    "name=opt/org.tianocore/VirtioNetSupport,string=no",
+    "-fw_cfg",
+    "name=opt/org.tianocore/IPv4Support,string=no",
+    "-fw_cfg",
+    "name=opt/org.tianocore/IPv6Support,string=no",
+    "-netdev",
+    "socket,id=net0,connect=127.0.0.1:49229",
+    "-device",
+    "virtio-net-pci,netdev=net0,id=net,addr=0x7,disable-legacy=on,mac=02:00:00:00:00:07,romfile="
+  ],
+  "duration_s": 6.835628641999989,
+  "raw_qemu_exit": 33,
+  "timed_out": false,
+  "output_overflow": false,
+  "stdout_sha256": "b5905d2650d784fc6c310fb36c026b6a4d1ce96cb1a64d622233236fd8846780",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stdout_bytes": 4399,
+  "stderr_bytes": 0,
+  "peer": {
+    "case": "normal",
+    "complete": true,
+    "counts": {
+      "client_frames": 45,
+      "server_frames": 39,
+      "arp_requests": 3,
+      "arp_replies": 3,
+      "syns": 14,
+      "syn_acks": 6,
+      "refusals": 2,
+      "resets_after_get": 2,
+      "first_syn_dropped": 2,
+      "retry_syns": 2,
+      "blackhole_syns": 4,
+      "blackhole_rsts": 2,
+      "corrupt_data_sent": 2,
+      "valid_data_sent": 4,
+      "http_requests": 6,
+      "valid_data_acks": 4,
+      "fins_sent": 4,
+      "client_fins_acked": 4,
+      "udp_requests": 2,
+      "udp_corrupt_sent": 2,
+      "udp_wrong_scope_sent": 2,
+      "udp_echo_sent": 2,
+      "udp_overflow_sent": 2,
+      "udp_fragment_first_sent": 2,
+      "udp_fragment_tail_sent": 2,
+      "probe_syns": 0,
+      "probe_rsts": 0,
+      "held_requests": 0,
+      "revoke_rsts": 0,
+      "device_reset_probes": 0
+    },
+    "cases": {
+      "8080": {
+        "phase": "closed",
+        "source": 40000,
+        "syns": 1,
+        "request_bytes": 65,
+        "request_sha256": "281c316cb88b92a9f39d4f83c0745cb41e6b6c8b62e49ee3dfb44408094d123b",
+        "data_acked": true,
+        "fin_sent": true,
+        "closed": true
+      },
+      "8090": {
+        "phase": "closed",
+        "source": 40001,
+        "syns": 1,
+        "request_bytes": 65,
+        "request_sha256": "013ed8666fcda1f31a2532e244519f40d3175ba07d1656165fbe46fbced10c69",
+        "data_acked": true,
+        "fin_sent": true,
+        "closed": true
+      },
+      "8091": {
+        "phase": "refused",
+        "source": 40003,
+        "syns": 1,
+        "request_bytes": 0,
+        "request_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "data_acked": false,
+        "fin_sent": false,
+        "closed": false
+      },
+      "8081": {
+        "phase": "refused",
+        "source": 40002,
+        "syns": 1,
+        "request_bytes": 0,
+        "request_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "data_acked": false,
+        "fin_sent": false,
+        "closed": false
+      },
+      "8092": {
+        "phase": "reset",
+        "source": 40005,
+        "syns": 1,
+        "request_bytes": 65,
+        "request_sha256": "013ed8666fcda1f31a2532e244519f40d3175ba07d1656165fbe46fbced10c69",
+        "data_acked": false,
+        "fin_sent": false,
+        "closed": false
+      },
+      "8082": {
+        "phase": "reset",
+        "source": 40004,
+        "syns": 1,
+        "request_bytes": 65,
+        "request_sha256": "281c316cb88b92a9f39d4f83c0745cb41e6b6c8b62e49ee3dfb44408094d123b",
+        "data_acked": false,
+        "fin_sent": false,
+        "closed": false
+      },
+      "8093": {
+        "phase": "closed",
+        "source": 40007,
+        "syns": 2,
+        "request_bytes": 65,
+        "request_sha256": "013ed8666fcda1f31a2532e244519f40d3175ba07d1656165fbe46fbced10c69",
+        "data_acked": true,
+        "fin_sent": true,
+        "closed": true
+      },
+      "8083": {
+        "phase": "closed",
+        "source": 40006,
+        "syns": 2,
+        "request_bytes": 65,
+        "request_sha256": "281c316cb88b92a9f39d4f83c0745cb41e6b6c8b62e49ee3dfb44408094d123b",
+        "data_acked": true,
+        "fin_sent": true,
+        "closed": true
+      },
+      "8084": {
+        "phase": "blackhole",
+        "source": 40008,
+        "syns": 2,
+        "request_bytes": 0,
+        "request_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "data_acked": false,
+        "fin_sent": false,
+        "closed": false
+      },
+      "8094": {
+        "phase": "blackhole",
+        "source": 40009,
+        "syns": 2,
+        "request_bytes": 0,
+        "request_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "data_acked": false,
+        "fin_sent": false,
+        "closed": false
+      }
+    },
+    "events": [
+      {
+        "sequence": 1,
+        "direction": "rx",
+        "event": "arp-request",
+        "length": 60,
+        "frame_sha256": "5caf2d3aa4a720449a268e6a177171f8dcc864e1dabde8060798e45e64d06e1e"
+      },
+      {
+        "sequence": 2,
+        "direction": "tx",
+        "event": "arp-reply",
+        "length": 60,
+        "frame_sha256": "de816388cafa8e9b91fde11dc099c4043551a19983c6b41ef2fb852ee2434313"
+      },
+      {
+        "sequence": 3,
+        "direction": "rx",
+        "event": "tcp",
+        "length": 66,
+        "frame_sha256": "1fb12b802ca4558f7a47090103fb1e15822b46b3cb64c935e2d3f16ab430f631",
+        "port": 8080,
+        "seq": 4169375257,
+        "ack": 0,
+        "flags": 2,
+        "payload_length": 0
+      },
+      {
+        "sequence": 4,
+        "direction": "tx",
+        "event": "udp-fragment-first",
+        "length": 60,
+        "frame_sha256": "30d550bfa2b77b23221e9087a8eb7dd764ac41ac9313bfff3eecb386538445cf",
+        "slot": 0,
+        "payload_length": 18
+      },
+      {
+        "sequence": 5,
+        "direction": "tx",
+        "event": "udp-fragment-tail",
+        "length": 60,
+        "frame_sha256": "8c7725133ca15e4a3b142449abf486d49dce93ab9d0cefe935b47494dfb96a75",
+        "slot": 0,
+        "payload_length": 18
+      },
+      {
+        "sequence": 6,
+        "direction": "tx",
+        "event": "syn-ack",
+        "length": 60,
+        "frame_sha256": "af27bd387614dbf3fe1b90d121057fc555f7576d2a8f969af1fa49b34e9e9ca8",
+        "port": 8080,
+        "seq": 1852797696,
+        "ack": 4169375258,
+        "flags": 18,
+        "payload_length": 0
+      },
+      {
+        "sequence": 7,
+        "direction": "rx",
+        "event": "tcp",
+        "length": 66,
+        "frame_sha256": "346e7331cab07eb85dac2da205fe6879a204c8a2783d1ee19303101bf7c4c348",
+        "port": 8090,
+        "seq": 2156198793,
+        "ack": 0,
+        "flags": 2,
+        "payload_length": 0
+      },
+      {
+        "sequence": 8,
+        "direction": "tx",
+        "event": "udp-fragment-first",
+        "length": 60,
+        "frame_sha256": "2372e338068ee77c8597e4b2d3e7c2f246b4f341393ee14ae7cd6798bbcf3825",
+        "slot": 1,
+        "payload_length": 18
+      },
+      {
+        "sequence": 9,
+        "direction": "tx",
+        "event": "udp-fragment-tail",
+        "length": 60,
+        "frame_sha256": "3f3a5f6c06974ff1c4f8077dd405a7a53949be907bd1558058f42eb78d7d3f8c",
+        "slot": 1,
+        "payload_length": 18
+      },
+      {
+        "sequence": 10,
+        "direction": "tx",
+        "event": "syn-ack",
+        "length": 60,
+        "frame_sha256": "d8e71c0d57b6374e573133f44b560504f1ad8ea8e35baafe27ccbcd10362deba",
+        "port": 8090,
+        "seq": 1852818176,
+        "ack": 2156198794,
+        "flags": 18,
+        "payload_length": 0
+      },
+      {
+        "sequence": 11,
+        "direction": "rx",
+        "event": "tcp",
+        "length": 60,
+        "frame_sha256": "e610e5bf6d54fc48bfdf7b211cc5ed052b78aaefd4059e9161c62e75fc56b6d1",
+        "port": 8080,
+        "seq": 4169375258,
+        "ack": 1852797697,
+        "flags": 16,
+        "payload_length": 0
+      },
+      {
+        "sequence": 12,
+        "direction": "rx",
+        "event": "tcp",
+        "length": 60,
+        "frame_sha256": "620ae3d4d156e9cd46a109ce958c529c92c7bb2834c849845eb10ea1908e593f",
+        "port": 8090,
+        "seq": 2156198794,
+        "ack": 1852818177,
+        "flags": 16,
+        "payload_length": 0
+      },
+      {
+        "sequence": 13,
+        "direction": "rx",
+        "event": "tcp",
+        "length": 119,
+        "frame_sha256": "f5b9b1162ffee4f722f793a3b5befd848f680d5a84d62a0080f6a161bfc44cfa",
+        "port": 8080,
+        "seq": 4169375258,
+        "ack": 1852797697,
+        "flags": 24,
+        "payload_length": 65
+      },
+      {
+        "sequence": 14,
+        "direction": "tx",
+        "event": "bad-tcp-checksum",
+        "length": 131,
+        "frame_sha256": "3e06cda0e2e89cc7664c26edc0b03b3166cae0fedb2216872315ae0606da8cdf",
+        "port": 8080,
+        "seq": 1852797697,
+        "ack": 4169375323,
+        "flags": 24,
+        "payload_length": 77
+      },
+      {
+        "sequence": 15,
+        "direction": "rx",
+        "event": "tcp",
+        "length": 119,
+        "frame_sha256": "e8830ba9408afa6ac0be8a035168703a139f66edcecf1c571d424191dcd626ce",
+        "port": 8090,
+        "seq": 2156198794,
+        "ack": 1852818177,
+        "flags": 24,
+        "payload_length": 65
+      },
+      {
+        "sequence": 16,
+        "direction": "tx",
+        "event": "bad-tcp-checksum",
+        "length": 131,
+        "frame_sha256": "3324ae4dd83e23ebb6d228dbedd74ff41d317f1d8951f27afe65c2e9d8b710ab",
+        "port": 8090,
+        "seq": 1852818177,
+        "ack": 2156198859,
+        "flags": 24,
+        "payload_length": 77
+      },
+      {
+        "sequence": 17,
+        "direction": "tx",
+        "event": "http-data",
+        "length": 131,
+        "frame_sha256": "53c873df2f96a3cdcea1fa926a26bee69cd399da18c372f6a7a903d5c30699af",
+        "port": 8080,
+        "seq": 1852797697,
+        "ack": 4169375323,
+        "flags": 24,
+        "payload_length": 77
+      },
+      {
+        "sequence": 18,
+        "direction": "tx",
+        "event": "http-data",
+        "length": 131,
+        "frame_sha256": "dfe34692d7da06b84f4818fea20fe84c6eb566f7d6fd855f91cc9d11419a9576",
+        "port": 8090,
+        "seq": 1852818177,
+        "ack": 2156198859,
+        "flags": 24,
+        "payload_length": 77
+      },
+      {
+        "sequence": 19,
+        "direction": "rx",
+        "event": "tcp",
+        "length": 60,
+        "frame_sha256": "3333fb197b16a3c7b72011bf92020924f5d61d58f41931abb3212a41303bc8b3",
+        "port": 8080,
+        "seq": 4169375323,
+        "ack": 1852797774,
+        "flags": 16,
+        "payload_length": 0
+      },
+      {
+        "sequence": 20,
+        "direction": "tx",
+        "event": "server-fin",
+        "length": 60,
+        "frame_sha256": "b6fed9064bb6c3216b7db49e0c21304de46e41a4913051f2687787be58018ea7",
+        "port": 8080,
+        "seq": 1852797774,
+        "ack": 4169375323,
+        "flags": 17,
+        "payload_length": 0
+      },
+      {
+        "sequence": 21,
+        "direction": "rx",
+        "event": "tcp",
+        "length": 60,
+        "frame_sha256": "2a731deffd27a20b802170fb5965656ef23fdd5984dd88709d1d3f5ed82b20cb",
+        "port": 8090,
+        "seq": 2156198859,
+        "ack": 1852818254,
+        "flags": 16,
+        "payload_length": 0
+      },
+      {
+        "sequence": 22,
+        "direction": "tx",
+        "event": "server-fin",
+        "length": 60,
+        "frame_sha256": "be4cc79702063177c0c34b087f0145708f7ae050f5fe065c4c585f46a1fdc80a",
+        "port": 8090,
+        "seq": 1852818254,
+        "ack": 2156198859,
+        "flags": 17,
+        "payload_length": 0
+      },
+      {
+        "sequence": 23,
+        "direction": "rx",
+        "event": "tcp",
+        "length": 60,
+        "frame_sha256": "c0f1d7d103230c58c3fb729f0785bec94a7bdd00a639799a51a1d5ffeaccca29",
+        "port": 8080,
+        "seq": 4169375323,
+        "ack": 1852797775,
+        "flags": 16,
+        "payload_length": 0
+      },
+      {
+        "sequence": 24,
+        "direction": "rx",
+        "event": "tcp",
+        "length": 60,
+        "frame_sha256": "bc621c406ed762391b7cbc6c3c95407a5354b05d0aa1bb1f5ebf771735f3572e",
+        "port": 8090,
+        "seq": 2156198859,
+        "ack": 1852818255,
+        "flags": 16,
+        "payload_length": 0
+      },
+      {
+        "sequence": 25,
+        "direction": "rx",
+        "event": "tcp",
+        "length": 60,
+        "frame_sha256": "d22aead25038d7fb11fc23cd013b5beeab36bd62d5baab10baaa60a9489fc2e6",
+        "port": 8090,
+        "seq": 2156198859,
+        "ack": 1852818255,
+        "flags": 17,
+        "payload_length": 0
+      },
+      {
+        "sequence": 26,
+        "direction": "tx",
+        "event": "client-fin-ack",
+        "length": 60,
+        "frame_sha256": "b9985fd2dc85849c4c54f122c7b126289ec349212fff21e5bb1c44fa7f3a95bf",
+        "port": 8090,
+        "seq": 1852818255,
+        "ack": 2156198860,
+        "flags": 16,
+        "payload_length": 0
+      },
+      {
+        "sequence": 27,
+        "direction": "rx",
+        "event": "tcp",
+        "length": 60,
+        "frame_sha256": "5ff646a230e5b71f3a7150080f4f1f981dcbc48d21d69bf5a979fc0eb8a3dc4c",
+        "port": 8080,
+        "seq": 4169375323,
+        "ack": 1852797775,
+        "flags": 17,
+        "payload_length": 0
+      },
+      {
+        "sequence": 28,
+        "direction": "tx",
+        "event": "client-fin-ack",
+        "length": 60,
+        "frame_sha256": "ce41a604460f12d0fdc512a21c0f6ee8cde899fd982efe2929617a4c542b3faf",
+        "port": 8080,
+        "seq": 1852797775,
+        "ack": 4169375324,
+        "flags": 16,
+        "payload_length": 0
+      },
+      {
+        "sequence": 29,
+        "direction": "rx",
+        "event": "tcp",
+        "length": 66,
+        "frame_sha256": "16c96857b50ed749bea0c466aa36655ec19c015ca3246e6f4fdfd8f82aa637b9",
+        "port": 8091,
+        "seq": 1145042963,
+        "ack": 0,
+        "flags": 2,
+        "payload_length": 0
+      },
+      {
+        "sequence": 30,
+        "direction": "tx",
+        "event": "connection-refused",
+        "length": 60,
+        "frame_sha256": "c7f32562e2e4f46fea6aa6ecc32b0af6fb385fb5d9e71ac1dd36d57397346258",
+        "port": 8091,
+        "seq": 0,
+        "ack": 1145042964,
+        "flags": 20,
+        "payload_length": 0
+      },
+      {
+        "sequence": 31,
+        "direction": "rx",
+        "event": "tcp",
+        "length": 66,
+        "frame_sha256": "c8108c33e50ec079d2e40a3a72306efa80246d6027794910efb5bc8ea2197ee4",
+        "port": 8081,
+        "seq": 3425253318,
+        "ack": 0,
+        "flags": 2,
+        "payload_length": 0
+      },
+      {
+        "sequence": 32,
+        "direction": "tx",
+        "event": "connection-refused",
+        "length": 60,
+        "frame_sha256": "e4455ec2794d9a3d32c6de1e18def160f674e74868e9b84010896f7114271210",
+        "port": 8081,
+        "seq": 0,
+        "ack": 3425253319,
+        "flags": 20,
+        "payload_length": 0
+      },
+      {
+        "sequence": 33,
+        "direction": "rx",
+        "event": "tcp",
+        "length": 66,
+        "frame_sha256": "4166c6204272a396efaec1d99c2eb17079bbd565f781ea820939f51d105b706c",
+        "port": 8092,
+        "seq": 2192641707,
+        "ack": 0,
+        "flags": 2,
+        "payload_length": 0
+      },
+      {
+        "sequence": 34,
+        "direction": "tx",
+        "event": "syn-ack",
+        "length": 60,
+        "frame_sha256": "37a4683ff56b7933e53fccdc85623e8dd60e12c7e45c02aae0c02f656f17071c",
+        "port": 8092,
+        "seq": 1852826368,
+        "ack": 2192641708,
+        "flags": 18,
+        "payload_length": 0
+      },
+      {
+        "sequence": 35,
+        "direction": "rx",
+        "event": "tcp",
+        "length": 60,
+        "frame_sha256": "e18d1d8f02534de5807e45fae70f91437a6266d307c4918d4a41c3b44cbfc73d",
+        "port": 8092,
+        "seq": 2192641708,
+        "ack": 1852826369,
+        "flags": 16,
+        "payload_length": 0
+      },
+      {
+        "sequence": 36,
+        "direction": "rx",
+        "event": "tcp",
+        "length": 66,
+        "frame_sha256": "e279aab1428773e99c4bd808ecc214db15125eaf78263922a29b17d606fdffc9",
+        "port": 8082,
+        "seq": 1015336774,
+        "ack": 0,
+        "flags": 2,
+        "payload_length": 0
+      },
+      {
+        "sequence": 37,
+        "direction": "tx",
+        "event": "syn-ack",
+        "length": 60,
+        "frame_sha256": "0c1e499221211e6ce189e098d7ad3899248ac114b001c9d1ae948dcc26b73cc0",
+        "port": 8082,
+        "seq": 1852805888,
+        "ack": 1015336775,
+        "flags": 18,
+        "payload_length": 0
+      },
+      {
+        "sequence": 38,
+        "direction": "rx",
+        "event": "tcp",
+        "length": 60,
+        "frame_sha256": "bf736cc2c92400f732ef5e60b9aacbae533f109b881ba826bc9c1b335892f2c7",
+        "port": 8082,
+        "seq": 1015336775,
+        "ack": 1852805889,
+        "flags": 16,
+        "payload_length": 0
+      },
+      {
+        "sequence": 39,
+        "direction": "rx",
+        "event": "tcp",
+        "length": 119,
+        "frame_sha256": "cf8b873b85ed17a3ee756552f3b819e55363e005f57a1214e14100d3a89fc51f",
+        "port": 8092,
+        "seq": 2192641708,
+        "ack": 1852826369,
+        "flags": 24,
+        "payload_length": 65
+      },
+      {
+        "sequence": 40,
+        "direction": "tx",
+        "event": "reset-after-get",
+        "length": 60,
+        "frame_sha256": "0a0e8243c665cc7a1031373f23aab31e39db99310d3a1ae8c35e6bf8ab7a6984",
+        "port": 8092,
+        "seq": 1852826369,
+        "ack": 2192641773,
+        "flags": 20,
+        "payload_length": 0
+      },
+      {
+        "sequence": 41,
+        "direction": "rx",
+        "event": "tcp",
+        "length": 119,
+        "frame_sha256": "e8b9e4a2eafb8399dc92e4ce6b3ee702118205518871f954d1f51c53edff89fa",
+        "port": 8082,
+        "seq": 1015336775,
+        "ack": 1852805889,
+        "flags": 24,
+        "payload_length": 65
+      },
+      {
+        "sequence": 42,
+        "direction": "tx",
+        "event": "reset-after-get",
+        "length": 60,
+        "frame_sha256": "a575ffabd06899c27dd6190fc69e4fda4572d56e5928a1b8f3a32b2400bd1134",
+        "port": 8082,
+        "seq": 1852805889,
+        "ack": 1015336840,
+        "flags": 20,
+        "payload_length": 0
+      },
+      {
+        "sequence": 43,
+        "direction": "rx",
+        "event": "tcp",
+        "length": 66,
+        "frame_sha256": "d8903833b326804bbe8838518f64f3120dd2ad80bbb0cf601d61c035a89ee12d",
+        "port": 8093,
+        "seq": 3919887286,
+        "ack": 0,
+        "flags": 2,
+        "payload_length": 0
+      },
+      {
+        "sequence": 44,
+        "direction": "rx",
+        "event": "tcp",
+        "length": 66,
+        "frame_sha256": "9d978843ef8bf355e4a0703dd2c2d6649f577e3cb20630ddacb617ba8d2bb916",
+        "port": 8083,
+        "seq": 2882424907,
+        "ack": 0,
+        "flags": 2,
+        "payload_length": 0
+      },
+      {
+        "sequence": 45,
+        "direction": "rx",
+        "event": "tcp",
+        "length": 66,
+        "frame_sha256": "d8903833b326804bbe8838518f64f3120dd2ad80bbb0cf601d61c035a89ee12d",
+        "port": 8093,
+        "seq": 3919887286,
+        "ack": 0,
+        "flags": 2,
+        "payload_length": 0
+      },
+      {
+        "sequence": 46,
+        "direction": "tx",
+        "event": "syn-ack",
+        "length": 60,
+        "frame_sha256": "e8b71f76937fd34cb650eb9c701e49cb59a8b3e589c8da8a9244c60fbd861564",
+        "port": 8093,
+        "seq": 1852830464,
+        "ack": 3919887287,
+        "flags": 18,
+        "payload_length": 0
+      },
+      {
+        "sequence": 47,
+        "direction": "rx",
+        "event": "tcp",
+        "length": 60,
+        "frame_sha256": "eea2118584e2b5234bcb824aeec3e60c7fcf1366c45309e918f932fdd811a98b",
+        "port": 8093,
+        "seq": 3919887287,
+        "ack": 1852830465,
+        "flags": 16,
+        "payload_length": 0
+      },
+      {
+        "sequence": 48,
+        "direction": "rx",
+        "event": "tcp",
+        "length": 66,
+        "frame_sha256": "9d978843ef8bf355e4a0703dd2c2d6649f577e3cb20630ddacb617ba8d2bb916",
+        "port": 8083,
+        "seq": 2882424907,
+        "ack": 0,
+        "flags": 2,
+        "payload_length": 0
+      },
+      {
+        "sequence": 49,
+        "direction": "tx",
+        "event": "syn-ack",
+        "length": 60,
+        "frame_sha256": "0bd4a470f0121bac195a13ef82e4f86b1fd8f72436a8f831cf9e610bdc208615",
+        "port": 8083,
+        "seq": 1852809984,
+        "ack": 2882424908,
+        "flags": 18,
+        "payload_length": 0
+      },
+      {
+        "sequence": 50,
+        "direction": "rx",
+        "event": "tcp",
+        "length": 60,
+        "frame_sha256": "56f74b9a8a51a78bfb94966568cf0965af1a1dc5b1f2b37bf82cc15adf456738",
+        "port": 8083,
+        "seq": 2882424908,
+        "ack": 1852809985,
+        "flags": 16,
+        "payload_length": 0
+      },
+      {
+        "sequence": 51,
+        "direction": "rx",
+        "event": "tcp",
+        "length": 119,
+        "frame_sha256": "d81f955a0645530ed589563f7dd10401fbec6c4162b5f510c3c17b01fd75fb85",
+        "port": 8093,
+        "seq": 3919887287,
+        "ack": 1852830465,
+        "flags": 24,
+        "payload_length": 65
+      },
+      {
+        "sequence": 52,
+        "direction": "tx",
+        "event": "http-data",
+        "length": 131,
+        "frame_sha256": "0f695e55313ce0c3b3f588b817ea1f6c26ff70cd22315908526f0838540fdc9e",
+        "port": 8093,
+        "seq": 1852830465,
+        "ack": 3919887352,
+        "flags": 24,
+        "payload_length": 77
+      },
+      {
+        "sequence": 53,
+        "direction": "rx",
+        "event": "tcp",
+        "length": 60,
+        "frame_sha256": "5f1fc3774209d51afc31be7f6cf1b83b9c402b0940ee5fba4b2bf029dc86218b",
+        "port": 8093,
+        "seq": 3919887352,
+        "ack": 1852830542,
+        "flags": 16,
+        "payload_length": 0
+      },
+      {
+        "sequence": 54,
+        "direction": "tx",
+        "event": "server-fin",
+        "length": 60,
+        "frame_sha256": "aaed6ef75cc8a21af01390ee4df49f82d2ecf920bf4af04d4179d6c5db7ff271",
+        "port": 8093,
+        "seq": 1852830542,
+        "ack": 3919887352,
+        "flags": 17,
+        "payload_length": 0
+      },
+      {
+        "sequence": 55,
+        "direction": "rx",
+        "event": "tcp",
+        "length": 119,
+        "frame_sha256": "c7055176193a0f744d823ae39e29e42472098644fd23b65aac1c75749a49a533",
+        "port": 8083,
+        "seq": 2882424908,
+        "ack": 1852809985,
+        "flags": 24,
+        "payload_length": 65
+      },
+      {
+        "sequence": 56,
+        "direction": "tx",
+        "event": "http-data",
+        "length": 131,
+        "frame_sha256": "4a971b7c9b2aaac70f70808dc2eddbda94d1c83ab13506f4a2e841d8814a3c62",
+        "port": 8083,
+        "seq": 1852809985,
+        "ack": 2882424973,
+        "flags": 24,
+        "payload_length": 77
+      },
+      {
+        "sequence": 57,
+        "direction": "rx",
+        "event": "tcp",
+        "length": 60,
+        "frame_sha256": "0856eb5f5a3a28fe49542037f8531abd9309c7745d455fbee9fb29d98ec2a932",
+        "port": 8083,
+        "seq": 2882424973,
+        "ack": 1852810062,
+        "flags": 16,
+        "payload_length": 0
+      },
+      {
+        "sequence": 58,
+        "direction": "tx",
+        "event": "server-fin",
+        "length": 60,
+        "frame_sha256": "ed7b535a8bf862ac88435ce1f561ba2acfbdcc916c0b8d10ab5c0083626bc211",
+        "port": 8083,
+        "seq": 1852810062,
+        "ack": 2882424973,
+        "flags": 17,
+        "payload_length": 0
+      },
+      {
+        "sequence": 59,
+        "direction": "rx",
+        "event": "tcp",
+        "length": 60,
+        "frame_sha256": "cbd08ea02b5adcbeb55a2535e08448b575dcc349bd4157ca9e748fcb6fb48fad",
+        "port": 8083,
+        "seq": 2882424973,
+        "ack": 1852810063,
+        "flags": 16,
+        "payload_length": 0
+      },
+      {
+        "sequence": 60,
+        "direction": "rx",
+        "event": "tcp",
+        "length": 60,
+        "frame_sha256": "6fb8bcbae91ac2483acc525554c353b07890e9a90b0fa7b3c2834d9f547411a0",
+        "port": 8093,
+        "seq": 3919887352,
+        "ack": 1852830543,
+        "flags": 16,
+        "payload_length": 0
+      },
+      {
+        "sequence": 61,
+        "direction": "rx",
+        "event": "tcp",
+        "length": 60,
+        "frame_sha256": "f0b7ea0a8337ffd59299b8d5cee6493039842b638766f7f53dcf7e426467fecd",
+        "port": 8083,
+        "seq": 2882424973,
+        "ack": 1852810063,
+        "flags": 17,
+        "payload_length": 0
+      },
+      {
+        "sequence": 62,
+        "direction": "tx",
+        "event": "client-fin-ack",
+        "length": 60,
+        "frame_sha256": "8f228619ab0d32dfb13ed5333d80b1176a173609f8c7e541eb1ca4eb39e9cbe0",
+        "port": 8083,
+        "seq": 1852810063,
+        "ack": 2882424974,
+        "flags": 16,
+        "payload_length": 0
+      },
+      {
+        "sequence": 63,
+        "direction": "rx",
+        "event": "tcp",
+        "length": 60,
+        "frame_sha256": "bf84f4c9243b5ae1b526f02c7dcdc95949f8e10d07cd7caacd0cae539400c2c5",
+        "port": 8093,
+        "seq": 3919887352,
+        "ack": 1852830543,
+        "flags": 17,
+        "payload_length": 0
+      },
+      {
+        "sequence": 64,
+        "direction": "tx",
+        "event": "client-fin-ack",
+        "length": 60,
+        "frame_sha256": "db2fdec3f1dc8708fb3f3e51e53355fd3d851dbc839fcf512a355e73c2871a67",
+        "port": 8093,
+        "seq": 1852830543,
+        "ack": 3919887353,
+        "flags": 16,
+        "payload_length": 0
+      },
+      {
+        "sequence": 65,
+        "direction": "rx",
+        "event": "tcp",
+        "length": 66,
+        "frame_sha256": "1f83e11325a67258728fbc181188136b2ce933cd8a8f456d5154f29823f7224a",
+        "port": 8084,
+        "seq": 1700689382,
+        "ack": 0,
+        "flags": 2,
+        "payload_length": 0
+      },
+      {
+        "sequence": 66,
+        "direction": "rx",
+        "event": "tcp",
+        "length": 66,
+        "frame_sha256": "e13ce820be44d05bb7c4e6416fb86573e77e05d7c50bec33474c59892849060c",
+        "port": 8094,
+        "seq": 3730330258,
+        "ack": 0,
+        "flags": 2,
+        "payload_length": 0
+      },
+      {
+        "sequence": 67,
+        "direction": "rx",
+        "event": "tcp",
+        "length": 66,
+        "frame_sha256": "1f83e11325a67258728fbc181188136b2ce933cd8a8f456d5154f29823f7224a",
+        "port": 8084,
+        "seq": 1700689382,
+        "ack": 0,
+        "flags": 2,
+        "payload_length": 0
+      },
+      {
+        "sequence": 68,
+        "direction": "rx",
+        "event": "tcp",
+        "length": 66,
+        "frame_sha256": "e13ce820be44d05bb7c4e6416fb86573e77e05d7c50bec33474c59892849060c",
+        "port": 8094,
+        "seq": 3730330258,
+        "ack": 0,
+        "flags": 2,
+        "payload_length": 0
+      },
+      {
+        "sequence": 69,
+        "direction": "rx",
+        "event": "tcp",
+        "length": 60,
+        "frame_sha256": "a8f0e42da3ed28a3ecbf2457ac27aed67fc7349832abea820b4a798abb3e39ac",
+        "port": 8084,
+        "seq": 1700689383,
+        "ack": 0,
+        "flags": 20,
+        "payload_length": 0
+      },
+      {
+        "sequence": 70,
+        "direction": "rx",
+        "event": "arp-request",
+        "length": 60,
+        "frame_sha256": "bf9aa49fb3ec6fbbec50310c3830f1abb08d237d0419c0610d3a300354246cc2"
+      },
+      {
+        "sequence": 71,
+        "direction": "tx",
+        "event": "arp-reply",
+        "length": 60,
+        "frame_sha256": "de816388cafa8e9b91fde11dc099c4043551a19983c6b41ef2fb852ee2434313"
+      },
+      {
+        "sequence": 72,
+        "direction": "rx",
+        "event": "tcp",
+        "length": 60,
+        "frame_sha256": "fc91bb4efb27bfe15b2f42cb58aa518a926230134bc15a2348448764628a8db7",
+        "port": 8094,
+        "seq": 3730330259,
+        "ack": 0,
+        "flags": 20,
+        "payload_length": 0
+      },
+      {
+        "sequence": 73,
+        "direction": "rx",
+        "event": "udp",
+        "length": 60,
+        "frame_sha256": "b29ed8e8116692e887cb3d489400e273801e3d2d6d1a17b488d43a34747ff7cc",
+        "slot": 0,
+        "payload_length": 18
+      },
+      {
+        "sequence": 74,
+        "direction": "tx",
+        "event": "udp-corrupt",
+        "length": 60,
+        "frame_sha256": "8c24ea44fd693323d2610ca17b44aa1528aa956e3f758639a96a8c31bb839379",
+        "slot": 0,
+        "payload_length": 18
+      },
+      {
+        "sequence": 75,
+        "direction": "tx",
+        "event": "udp-wrong-scope",
+        "length": 60,
+        "frame_sha256": "621ebc115743dd0815e3ede5933c6aba3cf9d9c112477de8e947d248f5c2ae21",
+        "slot": 0,
+        "payload_length": 18
+      },
+      {
+        "sequence": 76,
+        "direction": "tx",
+        "event": "udp-echo",
+        "length": 60,
+        "frame_sha256": "02b6548ebae96c631c68afc5aaa51236c420b05e68b53e05478cb22337cd236a",
+        "slot": 0,
+        "payload_length": 18
+      },
+      {
+        "sequence": 77,
+        "direction": "tx",
+        "event": "udp-overflow",
+        "length": 72,
+        "frame_sha256": "b41e50e1fdedf939bec41fefed5a4fbad29616a300e62669684177fcddc2713f",
+        "slot": 0,
+        "payload_length": 30
+      },
+      {
+        "sequence": 78,
+        "direction": "rx",
+        "event": "arp-request",
+        "length": 60,
+        "frame_sha256": "bf9aa49fb3ec6fbbec50310c3830f1abb08d237d0419c0610d3a300354246cc2"
+      },
+      {
+        "sequence": 79,
+        "direction": "tx",
+        "event": "arp-reply",
+        "length": 60,
+        "frame_sha256": "de816388cafa8e9b91fde11dc099c4043551a19983c6b41ef2fb852ee2434313"
+      },
+      {
+        "sequence": 80,
+        "direction": "rx",
+        "event": "udp",
+        "length": 60,
+        "frame_sha256": "469def550cb8832269a58069bbcf524aff399f12918933489cd2fc106c7ab73c",
+        "slot": 1,
+        "payload_length": 18
+      },
+      {
+        "sequence": 81,
+        "direction": "tx",
+        "event": "udp-corrupt",
+        "length": 60,
+        "frame_sha256": "996bd231b712ea436405dd3fefb49cff77b2cf1aa7658f911674d9fcf3a9231a",
+        "slot": 1,
+        "payload_length": 18
+      },
+      {
+        "sequence": 82,
+        "direction": "tx",
+        "event": "udp-wrong-scope",
+        "length": 60,
+        "frame_sha256": "13582c9c8b44abd5efe627d1cfe882bf6c1848c8da276c3b7932ae72b61eb92f",
+        "slot": 1,
+        "payload_length": 18
+      },
+      {
+        "sequence": 83,
+        "direction": "tx",
+        "event": "udp-echo",
+        "length": 60,
+        "frame_sha256": "56a9834cfe12a672911e0bdae524e0cd199edb35169a7e27d11154307e179a74",
+        "slot": 1,
+        "payload_length": 18
+      },
+      {
+        "sequence": 84,
+        "direction": "tx",
+        "event": "udp-overflow",
+        "length": 72,
+        "frame_sha256": "3e45bbee50ccda7970946c6ec50d5177159ccbab4da1dc3f51c4ceb07d3d2f51",
+        "slot": 1,
+        "payload_length": 30
+      }
+    ],
+    "request_sha256": [
+      "281c316cb88b92a9f39d4f83c0745cb41e6b6c8b62e49ee3dfb44408094d123b",
+      "013ed8666fcda1f31a2532e244519f40d3175ba07d1656165fbe46fbced10c69"
+    ],
+    "response_sha256": [
+      "90643d9b628582103a563e34b6d48daa4657cd4aff0c332ab2d793dbe1a72a37",
+      "60c750867ee1fe6cd54733f59f782e1eba1203efda168921e8b64534e159f4d9"
+    ],
+    "udp_sha256": [
+      "dd51fff31b841db107bc9733edcdb8aef31beff1971a3095ee2e335875a895f4",
+      "05555e5e86d541400b07d7395d6fbeaa6a18a5ca6c0623abc495e359a235d4a7"
+    ],
+    "kind": "synthetic Ethernet server; native client evidence required separately",
+    "connected": true,
+    "error": null,
+    "rejected_frame": null,
+    "wire_frames_sent": 39,
+    "actions": [
+      {
+        "kind": "input",
+        "at": 1.973354544999978,
+        "input": "ffffffffffff02000000000708060001080006040001020000000007c0000202ffffffffffffc0000201000000000000000000000000000000000000",
+        "output": [
+          "02000000000702000000000108060001080006040002020000000001c0000201020000000007c0000202000000000000000000000000000000000000"
+        ]
+      },
+      {
+        "kind": "input",
+        "at": 1.9806174869999893,
+        "input": "020000000001020000000007080045000034000040004006b6c0c0000202c00002019c401f90f8839e1900000000800205b696ef0000020405b40303000402000000",
+        "output": [
+          "020000000007020000000001080045000024000120004011d6c4c0000201c00002022328afc8001a18bb4e69657577204f5300000000000000000000",
+          "02000000000702000000000108004500001e000200024011f6c7c0000201c00002022055445020617070204100000000000000000000000000000000",
+          "02000000000702000000000108004500002c000340004006b6c5c0000201c00002021f909c406e6f7300f8839e1a60121000d0330000020405b40000"
+        ]
+      },
+      {
+        "kind": "input",
+        "at": 1.984427280999995,
+        "input": "020000000001020000000007080045000034000040004006b6c0c0000202c00002019c411f9a8084fb8900000000800205b6b1730000020405b40303000402000000",
+        "output": [
+          "020000000007020000000001080045000024000420004011d6c1c0000201c00002022329afc9001a18b84e69657577204f5300000000000000000000",
+          "02000000000702000000000108004500001e000500024011f6c4c0000201c00002022055445020617070204200000000000000000000000000000000",
+          "02000000000702000000000108004500002c000640004006b6c2c0000201c00002021f9a9c416e6fc3008084fb8a601210009ab70000020405b40000"
+        ]
+      },
+      {
+        "kind": "input",
+        "at": 1.991595120999989,
+        "input": "020000000001020000000007080045000028000040004006b6ccc0000202c00002019c401f90f8839e1a6e6f7301501005c2f22e0000000000000000",
+        "output": []
+      },
+      {
+        "kind": "input",
+        "at": 2.0007123890000003,
+        "input": "020000000001020000000007080045000028000040004006b6ccc0000202c00002019c411f9a8084fb8a6e6fc301501005c2bcb20000000000000000",
+        "output": []
+      },
+      {
+        "kind": "input",
+        "at": 2.0046834599999954,
+        "input": "020000000001020000000007080045000069000040004006b68bc0000202c00002019c401f90f8839e1a6e6f7301501805c20da90000474554202f6170702d6120485454502f312e310d0a486f73743a20666978747572652e696e76616c69640d0a436f6e6e656374696f6e3a20636c6f73650d0a0d0a",
+        "output": [
+          "020000000007020000000001080045000075000740004006b678c0000201c00002021f909c406e6f7301f8839e5b50181000c7990000585454502f312e3120323030204f4b0d0a436f6e74656e742d4c656e6774683a2031390d0a436f6e6e656374696f6e3a20636c6f73650d0a0d0a4e69657577204f53207365727669636520410a"
+        ]
+      },
+      {
+        "kind": "input",
+        "at": 2.0115459249999788,
+        "input": "020000000001020000000007080045000069000040004006b68bc0000202c00002019c411f9a8084fb8a6e6fc301501805c2d82b0000474554202f6170702d6220485454502f312e310d0a486f73743a20666978747572652e696e76616c69640d0a436f6e6e656374696f6e3a20636c6f73650d0a0d0a",
+        "output": [
+          "020000000007020000000001080045000075000840004006b677c0000201c00002021f9a9c416e6fc3018084fbcb50181000921a0000585454502f312e3120323030204f4b0d0a436f6e74656e742d4c656e6774683a2031390d0a436f6e6e656374696f6e3a20636c6f73650d0a0d0a4e69657577204f53207365727669636520420a"
+        ]
+      },
+      {
+        "kind": "poll",
+        "at": 2.272706501999977,
+        "output": [
+          "020000000007020000000001080045000075000940004006b676c0000201c00002021f909c406e6f7301f8839e5b50181000d7980000485454502f312e3120323030204f4b0d0a436f6e74656e742d4c656e6774683a2031390d0a436f6e6e656374696f6e3a20636c6f73650d0a0d0a4e69657577204f53207365727669636520410a",
+          "020000000007020000000001080045000075000a40004006b675c0000201c00002021f9a9c416e6fc3018084fbcb50181000a21b0000485454502f312e3120323030204f4b0d0a436f6e74656e742d4c656e6774683a2031390d0a436f6e6e656374696f6e3a20636c6f73650d0a0d0a4e69657577204f53207365727669636520420a"
+        ]
+      },
+      {
+        "kind": "input",
+        "at": 2.2756372849999877,
+        "input": "020000000001020000000007080045000028000040004006b6ccc0000202c00002019c401f90f8839e5b6e6f734e501005c2f1a00000000000000000",
+        "output": [
+          "020000000007020000000001080045000028000b40004006b6c1c0000201c00002021f909c406e6f734ef8839e5b50111000e7610000000000000000"
+        ]
+      },
+      {
+        "kind": "input",
+        "at": 2.279740684999979,
+        "input": "020000000001020000000007080045000028000040004006b6ccc0000202c00002019c411f9a8084fbcb6e6fc34e501005c2bc240000000000000000",
+        "output": [
+          "020000000007020000000001080045000028000c40004006b6c0c0000201c00002021f9a9c416e6fc34e8084fbcb50111000b1e50000000000000000"
+        ]
+      },
+      {
+        "kind": "input",
+        "at": 2.2832993569999758,
+        "input": "020000000001020000000007080045000028000040004006b6ccc0000202c00002019c401f90f8839e5b6e6f734f501005c2f19f0000000000000000",
+        "output": []
+      },
+      {
+        "kind": "input",
+        "at": 2.286773368999974,
+        "input": "020000000001020000000007080045000028000040004006b6ccc0000202c00002019c411f9a8084fbcb6e6fc34f501005c2bc230000000000000000",
+        "output": []
+      },
+      {
+        "kind": "input",
+        "at": 2.3005511069999898,
+        "input": "020000000001020000000007080045000028000040004006b6ccc0000202c00002019c411f9a8084fbcb6e6fc34f501105c2bc220000000000000000",
+        "output": [
+          "020000000007020000000001080045000028000d40004006b6bfc0000201c00002021f9a9c416e6fc34f8084fbcc50101000b1e40000000000000000"
+        ]
+      },
+      {
+        "kind": "input",
+        "at": 2.30651125,
+        "input": "020000000001020000000007080045000028000040004006b6ccc0000202c00002019c401f90f8839e5b6e6f734f501105c2f19e0000000000000000",
+        "output": [
+          "020000000007020000000001080045000028000e40004006b6bec0000201c00002021f909c406e6f734ff8839e5c50101000e7600000000000000000"
+        ]
+      },
+      {
+        "kind": "input",
+        "at": 2.3124501419999888,
+        "input": "020000000001020000000007080045000034000040004006b6c0c0000202c00002019c431f9b443ff81300000000800205b6f12b0000020405b40303000402000000",
+        "output": [
+          "020000000007020000000001080045000028000f40004006b6bdc0000201c00002021f9b9c4300000000443ff81450141000239a0000000000000000"
+        ]
+      },
+      {
+        "kind": "input",
+        "at": 2.3176763019999953,
+        "input": "020000000001020000000007080045000034000040004006b6c0c0000202c00002019c421f91cc2937c600000000800205b6299a0000020405b40303000402000000",
+        "output": [
+          "020000000007020000000001080045000028001040004006b6bcc0000201c00002021f919c4200000000cc2937c7501410005c080000000000000000"
+        ]
+      },
+      {
+        "kind": "input",
+        "at": 2.3334021119999875,
+        "input": "020000000001020000000007080045000034000040004006b6c0c0000202c00002019c451f9c82b10eab00000000800205b69c1f0000020405b40303000402000000",
+        "output": [
+          "02000000000702000000000108004500002c001140004006b6b7c0000201c00002021f9c9c456e6fe30082b10eac6012100065630000020405b40000"
+        ]
+      },
+      {
+        "kind": "input",
+        "at": 2.3367291019999925,
+        "input": "020000000001020000000007080045000028000040004006b6ccc0000202c00002019c451f9c82b10eac6e6fe301501005c2875e0000000000000000",
+        "output": []
+      },
+      {
+        "kind": "input",
+        "at": 2.3396070889999976,
+        "input": "020000000001020000000007080045000034000040004006b6c0c0000202c00002019c441f923c84cf4600000000800205b621bc0000020405b40303000402000000",
+        "output": [
+          "02000000000702000000000108004500002c001240004006b6b6c0000201c00002021f929c446e6f93003c84cf47601210003b000000020405b40000"
+        ]
+      },
+      {
+        "kind": "input",
+        "at": 2.343789240999996,
+        "input": "020000000001020000000007080045000028000040004006b6ccc0000202c00002019c441f923c84cf476e6f9301501005c25cfb0000000000000000",
+        "output": []
+      },
+      {
+        "kind": "input",
+        "at": 2.356519832999993,
+        "input": "020000000001020000000007080045000069000040004006b68bc0000202c00002019c451f9c82b10eac6e6fe301501805c2a2d70000474554202f6170702d6220485454502f312e310d0a486f73743a20666978747572652e696e76616c69640d0a436f6e6e656374696f6e3a20636c6f73650d0a0d0a",
+        "output": [
+          "020000000007020000000001080045000028001340004006b6b9c0000201c00002021f9c9c456e6fe30182b10eed501410007cdb0000000000000000"
+        ]
+      },
+      {
+        "kind": "input",
+        "at": 2.362949323999999,
+        "input": "020000000001020000000007080045000069000040004006b68bc0000202c00002019c441f923c84cf476e6f9301501805c278750000474554202f6170702d6120485454502f312e310d0a486f73743a20666978747572652e696e76616c69640d0a436f6e6e656374696f6e3a20636c6f73650d0a0d0a",
+        "output": [
+          "020000000007020000000001080045000028001440004006b6b8c0000201c00002021f929c446e6f93013c84cf885014100052780000000000000000"
+        ]
+      },
+      {
+        "kind": "input",
+        "at": 2.3732674799999813,
+        "input": "020000000001020000000007080045000034000040004006b6c0c0000202c00002019c471f9de9a4bbb600000000800205b6881d0000020405b40303000402000000",
+        "output": []
+      },
+      {
+        "kind": "input",
+        "at": 2.3795770779999827,
+        "input": "020000000001020000000007080045000034000040004006b6c0c0000202c00002019c461f93abce504b00000000800205b6316a0000020405b40303000402000000",
+        "output": []
+      },
+      {
+        "kind": "input",
+        "at": 3.369367596999979,
+        "input": "020000000001020000000007080045000034000040004006b6c0c0000202c00002019c471f9de9a4bbb600000000800205b6881d0000020405b40303000402000000",
+        "output": [
+          "02000000000702000000000108004500002c001540004006b6b3c0000201c00002021f9d9c476e6ff300e9a4bbb76012100041610000020405b40000"
+        ]
+      },
+      {
+        "kind": "input",
+        "at": 3.3722771309999757,
+        "input": "020000000001020000000007080045000028000040004006b6ccc0000202c00002019c471f9de9a4bbb76e6ff301501005c2635c0000000000000000",
+        "output": []
+      },
+      {
+        "kind": "input",
+        "at": 3.380433322999977,
+        "input": "020000000001020000000007080045000034000040004006b6c0c0000202c00002019c461f93abce504b00000000800205b6316a0000020405b40303000402000000",
+        "output": [
+          "02000000000702000000000108004500002c001640004006b6b2c0000201c00002021f939c466e6fa300abce504c601210003aae0000020405b40000"
+        ]
+      },
+      {
+        "kind": "input",
+        "at": 3.384033747999979,
+        "input": "020000000001020000000007080045000028000040004006b6ccc0000202c00002019c461f93abce504c6e6fa301501005c25ca90000000000000000",
+        "output": []
+      },
+      {
+        "kind": "input",
+        "at": 3.3869788159999814,
+        "input": "020000000001020000000007080045000069000040004006b68bc0000202c00002019c471f9de9a4bbb76e6ff301501805c27ed50000474554202f6170702d6220485454502f312e310d0a486f73743a20666978747572652e696e76616c69640d0a436f6e6e656374696f6e3a20636c6f73650d0a0d0a",
+        "output": [
+          "020000000007020000000001080045000075001740004006b668c0000201c00002021f9d9c476e6ff301e9a4bbf85018100048c50000485454502f312e3120323030204f4b0d0a436f6e74656e742d4c656e6774683a2031390d0a436f6e6e656374696f6e3a20636c6f73650d0a0d0a4e69657577204f53207365727669636520420a"
+        ]
+      },
+      {
+        "kind": "input",
+        "at": 3.390984529999997,
+        "input": "020000000001020000000007080045000028000040004006b6ccc0000202c00002019c471f9de9a4bbf86e6ff34e501005c262ce0000000000000000",
+        "output": [
+          "020000000007020000000001080045000028001840004006b6b4c0000201c00002021f9d9c476e6ff34ee9a4bbf850111000588f0000000000000000"
+        ]
+      },
+      {
+        "kind": "input",
+        "at": 3.3942195489999847,
+        "input": "020000000001020000000007080045000069000040004006b68bc0000202c00002019c461f93abce504c6e6fa301501805c278230000474554202f6170702d6120485454502f312e310d0a486f73743a20666978747572652e696e76616c69640d0a436f6e6e656374696f6e3a20636c6f73650d0a0d0a",
+        "output": [
+          "020000000007020000000001080045000075001940004006b666c0000201c00002021f939c466e6fa301abce508d5018100042130000485454502f312e3120323030204f4b0d0a436f6e74656e742d4c656e6774683a2031390d0a436f6e6e656374696f6e3a20636c6f73650d0a0d0a4e69657577204f53207365727669636520410a"
+        ]
+      },
+      {
+        "kind": "input",
+        "at": 3.3984322289999795,
+        "input": "020000000001020000000007080045000028000040004006b6ccc0000202c00002019c461f93abce508d6e6fa34e501005c25c1b0000000000000000",
+        "output": [
+          "020000000007020000000001080045000028001a40004006b6b2c0000201c00002021f939c466e6fa34eabce508d5011100051dc0000000000000000"
+        ]
+      },
+      {
+        "kind": "input",
+        "at": 3.4014026749999857,
+        "input": "020000000001020000000007080045000028000040004006b6ccc0000202c00002019c461f93abce508d6e6fa34f501005c25c1a0000000000000000",
+        "output": []
+      },
+      {
+        "kind": "input",
+        "at": 3.4047842089999847,
+        "input": "020000000001020000000007080045000028000040004006b6ccc0000202c00002019c471f9de9a4bbf86e6ff34f501005c262cd0000000000000000",
+        "output": []
+      },
+      {
+        "kind": "input",
+        "at": 3.4176415969999994,
+        "input": "020000000001020000000007080045000028000040004006b6ccc0000202c00002019c461f93abce508d6e6fa34f501105c25c190000000000000000",
+        "output": [
+          "020000000007020000000001080045000028001b40004006b6b1c0000201c00002021f939c466e6fa34fabce508e5010100051db0000000000000000"
+        ]
+      },
+      {
+        "kind": "input",
+        "at": 3.4208359489999793,
+        "input": "020000000001020000000007080045000028000040004006b6ccc0000202c00002019c471f9de9a4bbf86e6ff34f501105c262cc0000000000000000",
+        "output": [
+          "020000000007020000000001080045000028001c40004006b6b0c0000201c00002021f9d9c476e6ff34fe9a4bbf950101000588e0000000000000000"
+        ]
+      },
+      {
+        "kind": "input",
+        "at": 3.429252338999987,
+        "input": "020000000001020000000007080045000034000040004006b6c0c0000202c00002019c481f94655e75e600000000800205b6523c0000020405b40303000402000000",
+        "output": []
+      },
+      {
+        "kind": "input",
+        "at": 3.441999280999994,
+        "input": "020000000001020000000007080045000034000040004006b6c0c0000202c00002019c491f9ede58529200000000800205b6fc8a0000020405b40303000402000000",
+        "output": []
+      },
+      {
+        "kind": "input",
+        "at": 4.428911757999998,
+        "input": "020000000001020000000007080045000034000040004006b6c0c0000202c00002019c481f94655e75e600000000800205b6523c0000020405b40303000402000000",
+        "output": []
+      },
+      {
+        "kind": "input",
+        "at": 4.438818181999977,
+        "input": "020000000001020000000007080045000034000040004006b6c0c0000202c00002019c491f9ede58529200000000800205b6fc8a0000020405b40303000402000000",
+        "output": []
+      },
+      {
+        "kind": "input",
+        "at": 6.422458120999977,
+        "input": "020000000001020000000007080045000028000040004006b6ccc0000202c00002019c481f94655e75e700000000501405c28ee80000000000000000",
+        "output": []
+      },
+      {
+        "kind": "input",
+        "at": 6.438029594,
+        "input": "ffffffffffff02000000000708060001080006040001020000000007c0000202000000000000c0000201000000000000000000000000000000000000",
+        "output": [
+          "02000000000702000000000108060001080006040002020000000001c0000201020000000007c0000202000000000000000000000000000000000000"
+        ]
+      },
+      {
+        "kind": "input",
+        "at": 6.441092881999992,
+        "input": "020000000001020000000007080045000028000040004006b6ccc0000202c00002019c491f9ede58529300000000501405c239370000000000000000",
+        "output": []
+      },
+      {
+        "kind": "input",
+        "at": 6.448959277,
+        "input": "02000000000102000000000708004500002e000040004011b6bbc0000202c0000201afc82328001a18bb4e69657577204f5320554450206170702041",
+        "output": [
+          "02000000000702000000000108004500002e001d40004011b69ec0000201c00002022328afc8001a18ba4e69657577204f5320554450206170702041",
+          "02000000000702000000000108004500002e001e40004011b69dc0000201c0000202238cafc8001a18574e69657577204f5320554450206170702041",
+          "02000000000702000000000108004500002e001f40004011b69cc0000201c00002022328afc8001a18bb4e69657577204f5320554450206170702041",
+          "02000000000702000000000108004500003a002040004011b68fc0000201c00002022328afc800269a276f766572666c6f77206d757374206e6f74207265706c616365206563686f"
+        ]
+      },
+      {
+        "kind": "input",
+        "at": 6.458658048999979,
+        "input": "ffffffffffff02000000000708060001080006040001020000000007c0000202000000000000c0000201000000000000000000000000000000000000",
+        "output": [
+          "02000000000702000000000108060001080006040002020000000001c0000201020000000007c0000202000000000000000000000000000000000000"
+        ]
+      },
+      {
+        "kind": "input",
+        "at": 6.502004565999982,
+        "input": "02000000000102000000000708004500002e000140004011b6bac0000202c0000201afc92329001a18b84e69657577204f5320554450206170702042",
+        "output": [
+          "02000000000702000000000108004500002e002140004011b69ac0000201c00002022329afc9001a18b94e69657577204f5320554450206170702042",
+          "02000000000702000000000108004500002e002240004011b699c0000201c0000202238dafc9001a18544e69657577204f5320554450206170702042",
+          "02000000000702000000000108004500002e002340004011b698c0000201c00002022329afc9001a18b84e69657577204f5320554450206170702042",
+          "02000000000702000000000108004500003a002440004011b68bc0000201c00002022329afc900269a256f766572666c6f77206d757374206e6f74207265706c616365206563686f"
+        ]
+      }
+    ],
+    "passed": true
+  },
+  "stdout": "\u001b[2J\u001b[01;01H\u001b[=3h\u001b[2J\u001b[01;01H\u001b[2J\u001b[01;01H\u001b[=3h\u001b[2J\u001b[01;01HBdsDxe: loading Boot0001 \"UEFI Misc Device\" from PciRoot(0x0)/Pci(0x1,0x0)\r\nBdsDxe: starting Boot0001 \"UEFI Misc Device\" from PciRoot(0x0)/Pci(0x1,0x0)\r\nBOOT:EBS_OK\nKERNEL:ENTRY\nBOOTINFO:OK\nKS-01:PASS\nKS-02:PASS\nACPI:UNAVAILABLE:NO_DMAR\nDEVICE-EXECUTION:BLOCKED:ADAPTER_ABSENT\nKS-03:PASS\nM2:PASS\nNETSVC:MANIFEST:PASS\nNETSVC:APP_A:00000000000000000240:00000000000000000000\nNETSVC:APP_A:00000000000000000400:00000000000000000001\nNETSVC:APP_A:00000000000000000408:00000000000000000002\nNETSVC:APP_A:00000000000000000416:00000000000000000001\nNETSVC:APP_A:00000000000000000424:00000000000000000001\nNETSVC:APP_A:00000000000000000432:00000000000000000009\nNETSVC:APP_A:00000000000000000440:00000000000000000001\nNETSVC:APP_A:00000000000000000448:00000000000000000003\nNETSVC:APP_A:00000000000000000456:00000000000000000077\nNETSVC:APP_A:00000000000000000464:00000000000000000002\nNETSVC:APP_A:00000000000000000472:00000000000000000004\nNETSVC:APP_A:00000000000000000480:00000000000000000001\nNETSVC:APP_A:00000000000000000488:00000000000000000001\nNETSVC:APP_A:00000000000000000496:00000000000000000001\nNETSVC:APP_A:00000000000000000504:00000000000000000001\nNETSVC:APP_A:00000000000000000512:00000000000000000001\nNETSVC:APP_A:00000000000000000520:00000000000000000002\nNETSVC:APP_A:00000000000000000528:00000000000000000001\nNETSVC:APP_A:00000000000000000536:00000000000000000000\nNETSVC:APP_A:00000000000000000544:00000000000000000000\nNETSVC:APP_A:00000000000000000552:00000000000000000000\nNETSVC:APP_A_EXIT_TICKS:00000000000000000476\nNETSVC:APP_B:00000000000000000240:00000000000000000000\nNETSVC:APP_B:00000000000000000400:00000000000000000001\nNETSVC:APP_B:00000000000000000408:00000000000000000002\nNETSVC:APP_B:00000000000000000416:00000000000000000001\nNETSVC:APP_B:00000000000000000424:00000000000000000001\nNETSVC:APP_B:00000000000000000432:00000000000000000009\nNETSVC:APP_B:00000000000000000440:00000000000000000001\nNETSVC:APP_B:00000000000000000448:00000000000000000003\nNETSVC:APP_B:00000000000000000456:00000000000000000077\nNETSVC:APP_B:00000000000000000464:00000000000000000002\nNETSVC:APP_B:00000000000000000472:00000000000000000004\nNETSVC:APP_B:00000000000000000480:00000000000000000001\nNETSVC:APP_B:00000000000000000488:00000000000000000001\nNETSVC:APP_B:00000000000000000496:00000000000000000001\nNETSVC:APP_B:00000000000000000504:00000000000000000001\nNETSVC:APP_B:00000000000000000512:00000000000000000001\nNETSVC:APP_B:00000000000000000520:00000000000000000002\nNETSVC:APP_B:00000000000000000528:00000000000000000001\nNETSVC:APP_B:00000000000000000536:00000000000000000000\nNETSVC:APP_B:00000000000000000544:00000000000000000000\nNETSVC:APP_B:00000000000000000552:00000000000000000000\nNETSVC:APP_B_EXIT_TICKS:00000000000000000481\nNETSVC:SERVICE:00000000000000000240:00000000000000000000\nNETSVC:SERVICE:00000000000000000400:00000000000000000001\nNETSVC:SERVICE:00000000000000000408:00000000000000002262\nNETSVC:SERVICE:00000000000000000416:00000000000000000045\nNETSVC:SERVICE:00000000000000000424:00000000000000000039\nNETSVC:SERVICE:00000000000000000432:00000000000000002002\nNETSVC:SERVICE:00000000000000000440:00000000000000000022\nNETSVC:SERVICE:00000000000000000448:00000000000000000002\nNETSVC:SERVICE:00000000000000000456:00000000000000000002\nNETSVC:SERVICE:00000000000000000464:00000000000000000010\nNETSVC:SERVICE:00000000000000000472:00000000000000000390\nNETSVC:SERVICE:00000000000000000480:00000000000000000308\nNETSVC:SERVICE:00000000000000000488:00000000000000000004\nNETSVC:SERVICE:00000000000000000496:00000000000000000003\nNETSVC:SERVICE:00000000000000000504:00000000000000000000\nNETSVC:SERVICE:00000000000000000512:00000000000000000008\nNETSVC:SERVICE:00000000000000000520:00000000000000000002\nNETSVC:SERVICE:00000000000000000528:00000000000000000001\nNETSVC:SERVICE:00000000000000000536:00000000000000000000\nNETSVC:SERVICE:00000000000000000544:00000000000000000000\nNETSVC:SERVICE:00000000000000000552:00000000000000000000\nSYSTEM:NET_TX_SUBMITTED:00000000000000000045\nSYSTEM:NET_TX_COMPLETED:00000000000000000045\nSYSTEM:NET_RX_COMPLETED:00000000000000000039\nSYSTEM:NET_RX_DELIVERED:00000000000000000039\nSYSTEM:NET_DENIED:00000000000000000002\nSYSTEM:NET_TX_TIMEOUTS:00000000000000000000\nSYSTEM:NET_RESETS:00000000000000000001\nSYSTEM:NET_RESET_ACKS:00000000000000000001\nNETSVC:ENTROPY_BYTES:00000000000000000008\nNETSVC:CLEANUP:PASS\nNETSVC:PASS\nM1:PASS\n",
+  "stderr": "",
+  "observed": {
+    "processes": {
+      "SERVICE": {
+        "240": 0,
+        "400": 1,
+        "408": 2262,
+        "416": 45,
+        "424": 39,
+        "432": 2002,
+        "440": 22,
+        "448": 2,
+        "456": 2,
+        "464": 10,
+        "472": 390,
+        "480": 308,
+        "488": 4,
+        "496": 3,
+        "504": 0,
+        "512": 8,
+        "520": 2,
+        "528": 1,
+        "536": 0,
+        "544": 0,
+        "552": 0
+      },
+      "APP_A": {
+        "240": 0,
+        "400": 1,
+        "408": 2,
+        "416": 1,
+        "424": 1,
+        "432": 9,
+        "440": 1,
+        "448": 3,
+        "456": 77,
+        "464": 2,
+        "472": 4,
+        "480": 1,
+        "488": 1,
+        "496": 1,
+        "504": 1,
+        "512": 1,
+        "520": 2,
+        "528": 1,
+        "536": 0,
+        "544": 0,
+        "552": 0
+      },
+      "APP_B": {
+        "240": 0,
+        "400": 1,
+        "408": 2,
+        "416": 1,
+        "424": 1,
+        "432": 9,
+        "440": 1,
+        "448": 3,
+        "456": 77,
+        "464": 2,
+        "472": 4,
+        "480": 1,
+        "488": 1,
+        "496": 1,
+        "504": 1,
+        "512": 1,
+        "520": 2,
+        "528": 1,
+        "536": 0,
+        "544": 0,
+        "552": 0
+      }
+    },
+    "network": {
+      "NET_TX_SUBMITTED": 45,
+      "NET_TX_COMPLETED": 45,
+      "NET_RX_COMPLETED": 39,
+      "NET_RX_DELIVERED": 39,
+      "NET_DENIED": 2,
+      "NET_TX_TIMEOUTS": 0,
+      "NET_RESETS": 1,
+      "NET_RESET_ACKS": 1
+    },
+    "entropy_bytes": 8,
+    "exit_ticks": {
+      "APP_A": 476,
+      "APP_B": 481
+    },
+    "revoke_ticks": null
+  },
+  "network_service_gate": true
+}

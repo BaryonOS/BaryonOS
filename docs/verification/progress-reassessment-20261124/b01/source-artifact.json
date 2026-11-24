@@ -1,0 +1,12 @@
+{
+  "retrieved_date": "2026-11-24",
+  "repository": "BaryonOS/BaryonOS",
+  "source_commit": "2eb1c63d2afdf658f0e71d31f3542e320a7dd041",
+  "run_id": 45328884511,
+  "job_id": 138224957782,
+  "artifact_id": 14890773076,
+  "artifact_zip_sha256": "8f7626b019383b480cb5fac83b2db3d6c3efde711380c98c2a852633b5dfcebd",
+  "artifact_zip_bytes": 31934,
+  "job_url": "https://github.com/BaryonOS/BaryonOS/actions/runs/45328884511/job/138224957782",
+  "preservation": "Original UTF-8 JSON and serial files extracted without modification; archive SHA256 and every retained file size/hash verified against the original collector receipt. This reassessment did not rerun the OS."
+}

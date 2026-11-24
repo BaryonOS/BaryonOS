@@ -3,8 +3,8 @@
 //! Two owned IPC endpoints to a separately authorized native service. A token
 //! is owner/epoch-bound by that service; constructing an integer grants nothing.
 use nieuw_os_catalog_client::Transport;
-pub use nieuw_os_network_protocol::{ConnectionState, Status, DATA};
-use nieuw_os_network_protocol::{HeaderFields, Operation, Packet, TAG};
+use nieuw_os_network_protocol::{valid_name, HeaderFields, Operation, Packet, TAG};
+pub use nieuw_os_network_protocol::{ConnectionState, Status, DATA, MAX_NAME, MAX_RESOLVED};
 use nieuw_os_sdk_runtime::{Error as RuntimeError, Outgoing, ReceiveEndpoint, SendEndpoint};
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct Connection(u64);
@@ -234,6 +234,26 @@ impl<T: Transport> Session<T> {
         let n = reply.data().len();
         out[..n].copy_from_slice(reply.data());
         Ok(n)
+    }
+    /// IPv4 addresses for `hostname` through the service's lease-provided DNS
+    /// server this app is granted. `Service(Again)` means ask again later.
+    /// An address grants no access: connecting still needs its own grant.
+    pub fn resolve(
+        &mut self,
+        hostname: &str,
+        out: &mut [[u8; 4]; MAX_RESOLVED],
+    ) -> Result<usize, Error> {
+        let name = hostname.as_bytes();
+        if !valid_name(name) {
+            return Err(Error::Buffer);
+        }
+        let reply = self.call(Operation::Resolve, 0, name.len() as u32, [0; 4], 0, name)?;
+        let mut count = 0;
+        for (slot, address) in out.iter_mut().zip(reply.data().as_chunks::<4>().0) {
+            *slot = *address;
+            count += 1;
+        }
+        Ok(count)
     }
     pub fn retire(&mut self) -> Result<(), Error> {
         self.call(Operation::Retire, 0, 0, [0; 4], 0, &[])?;

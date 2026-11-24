@@ -3,6 +3,8 @@
 #![no_std]
 #![forbid(unsafe_code)]
 
+pub mod volume_transport;
+
 use nieuw_os_nas_core::{
     Error, Invitation, Principal, Service, Session, Storage, Upload, Usage, TOKEN_BYTES,
 };

@@ -1,0 +1,22 @@
+build-normal	0		python3 -B tools/build.py --kernel-feature native-system
+kernel build-normal native-system 42d44a0cd83d17ed4b07205945019e824f49d9b3d48985c4658e6e50f7fe8eaa
+run-normal	0	/home/simon/projects/BaryonOS-worktrees/b02-tamper-native/build/run/system-normal-94ef3fff36d5408b965f923bd6703470	python3 -B tools/run_system.py --case normal
+parent /home/simon/projects/BaryonOS-worktrees/b02-tamper-native/build/run/system-image-167e9d8dcc174d33b67141ecf4affa1e
+build-keystate	0		python3 -B tools/build.py --kernel-feature test-system-recover
+kernel build-keystate test-system-recover 6593004a91f945e1c975a204894bbbe4ae50a5d055066bb064268d0cd7f3fbba
+cold-keystate	0	/home/simon/projects/BaryonOS-worktrees/b02-tamper-native/build/run/system-recover-3b0f1e54e11c4327ad8654345c95064a	python3 -B tools/run_system.py --case recover --cold-case keystate --volume /home/simon/projects/BaryonOS-worktrees/b02-tamper-native/build/run/system-image-167e9d8dcc174d33b67141ecf4affa1e
+build-record-tag	0		python3 -B tools/build.py --kernel-feature test-system-recover
+kernel build-record-tag test-system-recover 3c27d1af59677feaa79daa6cc3e0b4da042e1978c819963f8a6fe1a70f2af5d3
+cold-record-tag	0	/home/simon/projects/BaryonOS-worktrees/b02-tamper-native/build/run/system-recover-e9d7474df48d4f46b7d46062d886ed44	python3 -B tools/run_system.py --case recover --cold-case record-tag --volume /home/simon/projects/BaryonOS-worktrees/b02-tamper-native/build/run/system-image-167e9d8dcc174d33b67141ecf4affa1e
+build-swapped-blocks	0		python3 -B tools/build.py --kernel-feature test-system-recover
+kernel build-swapped-blocks test-system-recover 669a86dbca2960d96f8f063ceda17842c4ef516fb2947ff70783daef261b762d
+cold-swapped-blocks	0	/home/simon/projects/BaryonOS-worktrees/b02-tamper-native/build/run/system-recover-667d861d24084af382bbe9104b9d009e	python3 -B tools/run_system.py --case recover --cold-case swapped-blocks --volume /home/simon/projects/BaryonOS-worktrees/b02-tamper-native/build/run/system-image-167e9d8dcc174d33b67141ecf4affa1e
+build-withheld-secret	0		python3 -B tools/build.py --kernel-feature test-system-recover
+kernel build-withheld-secret test-system-recover 5299bd14997c986dbc31f142c5bfc64cf00711e41e76e43549a3862eb5029569
+cold-withheld-secret	0	/home/simon/projects/BaryonOS-worktrees/b02-tamper-native/build/run/system-recover-107c14ccbe694b609689c0524380fd1b	python3 -B tools/run_system.py --case recover --cold-case withheld-secret --volume /home/simon/projects/BaryonOS-worktrees/b02-tamper-native/build/run/system-image-167e9d8dcc174d33b67141ecf4affa1e
+control-wrong-case	1	/home/simon/projects/BaryonOS-worktrees/b02-tamper-native/build/run/system-recover-e79cb35252d246adb1dc1b1bfd29273e	python3 -B tools/run_system.py --case recover --cold-case keystate --volume /home/simon/projects/BaryonOS-worktrees/b02-tamper-native/build/run/system-image-167e9d8dcc174d33b67141ecf4affa1e
+build-recover	0		python3 -B tools/build.py --kernel-feature test-system-recover
+kernel build-recover test-system-recover c57d169658ba1dbc04be378fb7ece109a75d7514b56129dce4055a32edbe5b28
+run-recover	0	/home/simon/projects/BaryonOS-worktrees/b02-tamper-native/build/run/system-recover-7e030d70adcb4061bd60e34c75e040f7	python3 -B tools/run_system.py --case recover --volume /home/simon/projects/BaryonOS-worktrees/b02-tamper-native/build/run/system-image-167e9d8dcc174d33b67141ecf4affa1e
+test-system	0	/home/simon/projects/BaryonOS-worktrees/b02-tamper-native/build/run/system-recover-e5067aeba2b74821ab3edf88e16ecf49	python3 -B -u tools/test_system.py
+DONE

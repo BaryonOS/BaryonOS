@@ -4,7 +4,7 @@ use nieuw_os_net_protocol::{arp, build_udp_ipv4, parse, UdpIpv4Tx};
 use nieuw_os_net_stack::{LinkConfig, SocketStorage, FRAME_BYTES};
 use nieuw_os_network_service::{
     wire::{HeaderFields, Operation, Packet, Status},
-    Buffers, Destination, DhcpConfiguration, Fault, Service,
+    Buffers, Destination, DhcpConfiguration, DnsCache, Fault, Service,
 };
 use std::collections::VecDeque;
 
@@ -19,6 +19,7 @@ fn with_service(f: impl FnOnce(&mut Service<'_>)) {
     let mut storage = [SocketStorage::EMPTY, SocketStorage::EMPTY];
     let (mut rx, mut tx) = ([0; FRAME_BYTES], [0; FRAME_BYTES]);
     let (mut ra, mut rb, mut ta, mut tb) = ([0; 4096], [0; 4096], [0; 4096], [0; 4096]);
+    let mut dns = DnsCache::new().unwrap();
     let mut service = Service::new_dhcp(
         DhcpConfiguration {
             epoch: 19,
@@ -42,6 +43,7 @@ fn with_service(f: impl FnOnce(&mut Service<'_>)) {
             tx_sockets: [&mut ta, &mut tb],
         },
         ProbeTiming::new(0, 100, 100).unwrap(),
+        &mut dns,
         0,
     )
     .unwrap();
@@ -60,7 +62,7 @@ fn random(xid: u32) -> Entropy {
 }
 
 // Same real BOOTP/options + IPv4/UDP construction as net-config/tests/service.rs.
-fn reply(kind: u8, xid: u32, dns: bool, gateway: [u8; 4]) -> Vec<u8> {
+fn reply(kind: u8, xid: u32, dns: bool, gateway: Option<[u8; 4]>) -> Vec<u8> {
     let mut message = vec![0; 240];
     message[..3].copy_from_slice(&[2, 1, 6]);
     message[4..8].copy_from_slice(&xid.to_be_bytes());
@@ -70,8 +72,11 @@ fn reply(kind: u8, xid: u32, dns: bool, gateway: [u8; 4]) -> Vec<u8> {
     message.extend_from_slice(&[53, 1, kind, 54, 4]);
     message.extend_from_slice(&SERVER);
     if kind != 6 {
-        message.extend_from_slice(&[51, 4, 0, 0, 0, 80, 1, 4, 255, 255, 255, 0, 3, 4]);
-        message.extend_from_slice(&gateway);
+        message.extend_from_slice(&[51, 4, 0, 0, 0, 80, 1, 4, 255, 255, 255, 0]);
+        if let Some(gateway) = gateway {
+            message.extend_from_slice(&[3, 4]);
+            message.extend_from_slice(&gateway);
+        }
         if dns {
             message.extend_from_slice(&[6, 4, 192, 0, 2, 53]);
         }
@@ -159,6 +164,15 @@ fn rpc(
         .unwrap()
 }
 fn acquire(s: &mut Service<'_>, start: u64, xid: u32, dns: bool) -> u64 {
+    acquire_via(s, start, xid, dns, Some(SERVER))
+}
+fn acquire_via(
+    s: &mut Service<'_>,
+    start: u64,
+    xid: u32,
+    dns: bool,
+    gateway: Option<[u8; 4]>,
+) -> u64 {
     s.link_up(start).unwrap();
     let mut rng = random(xid);
     assert_eq!(
@@ -174,14 +188,14 @@ fn acquire(s: &mut Service<'_>, start: u64, xid: u32, dns: bool) -> u64 {
     let packet = parse(&discover).unwrap();
     assert_eq!(packet.source_address(), [0; 4]);
     assert_eq!(&packet.payload()[240..243], &[53, 1, 1]);
-    s.ingress(&reply(2, xid, dns, SERVER), now).unwrap();
+    s.ingress(&reply(2, xid, dns, gateway), now).unwrap();
     assert!(matches!(
         s.drive_dhcp(now, &mut rng),
         Ok(DriveOutcome::Published(_))
     ));
     let request = complete(s, now);
     assert_eq!(&parse(&request).unwrap().payload()[240..243], &[53, 1, 3]);
-    s.ingress(&reply(5, xid, dns, SERVER), now).unwrap();
+    s.ingress(&reply(5, xid, dns, gateway), now).unwrap();
     assert!(s.dhcp_configuration(now).unwrap().is_none());
     for tick in [now, now + 100, now + 200] {
         s.poll(tick).unwrap();
@@ -206,7 +220,7 @@ fn acquire(s: &mut Service<'_>, start: u64, xid: u32, dns: bool) -> u64 {
     assert_eq!(&announcement[28..32], &ADDRESS);
     let lease = s.dhcp_configuration(now + 400).unwrap().unwrap();
     assert_eq!(lease.address, ADDRESS);
-    assert_eq!(lease.routers(), &[SERVER]);
+    assert_eq!(lease.routers(), gateway.as_slice());
     assert_eq!(
         lease.dns_servers(),
         if dns { &[[192, 0, 2, 53]][..] } else { &[] }
@@ -275,7 +289,9 @@ fn dhcp_probes_gate_same_transport_and_dns_has_no_fallback() {
 
 #[test]
 fn nak_expiry_and_link_down_withdraw_and_reconnect_never_reuses_tokens() {
-    for loss in 0..3 {
+    // loss 3: a down/up pair hidden between two link queries arrives as a
+    // new up epoch only (N02-T3b); link_up alone must withdraw the lease.
+    for loss in 0..4 {
         with_service(|s| {
             let now = acquire(s, 0, 0x1234, true);
             let opened = rpc(s, 0, Operation::OpenTcp, 1, 0, now);
@@ -292,9 +308,12 @@ fn nak_expiry_and_link_down_withdraw_and_reconnect_never_reuses_tokens() {
                 let mut rng = Entropy([0x5678, 101_000].into());
                 s.drive_dhcp(lost, &mut rng).unwrap();
                 complete(s, lost);
-                s.ingress(&reply(6, 0x5678, true, SERVER), lost).unwrap();
+                s.ingress(&reply(6, 0x5678, true, Some(SERVER)), lost)
+                    .unwrap();
             } else if loss == 2 {
                 s.link_down(lost).unwrap();
+            } else if loss == 3 {
+                s.link_up(lost).unwrap();
             }
             // Expiry is observed by the RPC, without requiring a preceding poll.
             assert_eq!(
@@ -313,7 +332,9 @@ fn nak_expiry_and_link_down_withdraw_and_reconnect_never_reuses_tokens() {
             assert!(s.transmission_at(lost).unwrap().is_none());
             if loss != 0 {
                 // Withdrawal hid the real pending frame but did not release its slot.
-                s.link_up(lost).unwrap();
+                if loss != 3 {
+                    s.link_up(lost).unwrap();
+                }
                 let mut rng = random(0xabcd);
                 assert_eq!(s.drive_dhcp(lost, &mut rng), Ok(DriveOutcome::Backpressure));
                 s.complete_transmission_at(pending, lost).unwrap();
@@ -408,7 +429,8 @@ fn renewal_preserves_tokens_only_while_route_epoch_is_unchanged() {
             assert_eq!(&parse(&request).unwrap().payload()[240..243], &[53, 1, 3]);
         };
         renew(s, 4100, 0x5678);
-        s.ingress(&reply(5, 0x5678, false, SERVER), 4100).unwrap();
+        s.ingress(&reply(5, 0x5678, false, Some(SERVER)), 4100)
+            .unwrap();
         assert!(s
             .dhcp_configuration(4100)
             .unwrap()
@@ -424,7 +446,8 @@ fn renewal_preserves_tokens_only_while_route_epoch_is_unchanged() {
         s.poll(8100).unwrap();
         let pending = s.transmission_at(8100).unwrap().unwrap().id;
         let gateway = [192, 0, 2, 9];
-        s.ingress(&reply(5, 0xabcd, true, gateway), 8100).unwrap();
+        s.ingress(&reply(5, 0xabcd, true, Some(gateway)), 8100)
+            .unwrap();
         assert!(s.dhcp_configuration(8100).unwrap().is_none());
         assert_eq!(
             rpc(s, 0, Operation::OpenTcp, 3, 0, 8100).status(),
@@ -538,5 +561,166 @@ fn offered_frame_cannot_be_discarded() {
         assert_eq!(s.withheld_transmission_at(now).unwrap(), None);
         assert!(s.discard_withheld_transmission_at(pending, now).is_err());
         assert_eq!(s.transmission_at(now).unwrap().unwrap().id, pending);
+    });
+}
+
+fn answer(probe: &[u8], mac: [u8; 6], ipv4: [u8; 4]) -> Vec<u8> {
+    let mut frame = [0; 60];
+    let n = arp::build_reply(
+        arp::Interface { mac, ipv4 },
+        &arp::parse(probe).unwrap(),
+        &mut frame,
+    )
+    .unwrap();
+    frame[..n].to_vec()
+}
+
+#[test]
+fn offlink_grant_without_router_never_transmits() {
+    with_service(|s| {
+        let now = acquire_via(s, 0, 0x1234, false, None);
+        let sent = s.counters().udp_sent;
+        // Ticks stay below renewal and more than one ARP timeout apart.
+        for (request, tick) in [(1, now), (2, now + 150), (3, now + 300)] {
+            let lease = s.dhcp_configuration(tick).unwrap().unwrap();
+            assert!(lease.routers().is_empty());
+            assert!(s.transmission_at(tick).unwrap().is_none());
+            // REMOTE is off-link and no router exists: no ARP, no datagram.
+            assert_eq!(
+                rpc(s, 1, Operation::SendUdp, request, 0, tick).status(),
+                Status::Again
+            );
+            assert!(s.transmission_at(tick).unwrap().is_none());
+            s.poll(tick).unwrap();
+            assert!(s.transmission_at(tick).unwrap().is_none());
+            assert_eq!(s.counters().udp_sent, sent);
+        }
+    });
+}
+
+#[test]
+fn router_address_grants_nothing() {
+    with_service(|s| {
+        // A router granted to no slot: reaching it would need a grant DHCP never gives.
+        let router = [192, 0, 2, 9];
+        let now = acquire_via(s, 0, 0x1234, false, Some(router));
+        let lease = s.dhcp_configuration(now).unwrap().unwrap();
+        assert_eq!(lease.routers(), &[router]);
+        let rejected = s.counters().rejected;
+        for (slot, request, operation, port, data) in [
+            (0, 1, Operation::OpenTcp, 8080, &[][..]),
+            (0, 2, Operation::SendUdp, 9000, &b"private"[..]),
+            (1, 3, Operation::OpenTcp, 8080, &[][..]),
+            (1, 4, Operation::SendUdp, 9000, &b"private"[..]),
+        ] {
+            let packet = Packet::request(
+                HeaderFields {
+                    operation,
+                    request,
+                    epoch: 19,
+                    connection: 0,
+                    argument: if operation == Operation::OpenTcp {
+                        300
+                    } else {
+                        data.len() as u32
+                    },
+                    address: router,
+                    port,
+                },
+                data,
+            )
+            .unwrap();
+            assert_eq!(
+                s.handle(slot, 11 + slot as u64, 0, packet.bytes(), now)
+                    .unwrap()
+                    .unwrap()
+                    .status(),
+                Status::Access
+            );
+            assert!(s.transmission_at(now).unwrap().is_none());
+        }
+        assert_eq!(s.counters().rejected, rejected + 4);
+    });
+}
+
+#[test]
+fn gateway_change_flushes_udp_neighbor() {
+    const ROUTER_MAC: [u8; 6] = [2, 0, 0, 0, 0, 9];
+    let gateway = [192, 0, 2, 9];
+    with_service(|s| {
+        let now = acquire(s, 0, 0x1234, false);
+        let request = std::cell::Cell::new(0);
+        let send = |s: &mut Service<'_>, slot, tick| {
+            request.set(request.get() + 1);
+            assert!(s.transmission_at(tick).unwrap().is_none());
+            rpc(s, slot, Operation::SendUdp, request.get(), 0, tick).status()
+        };
+        let datagram = |s: &mut Service<'_>, slot: usize, tick, mac| {
+            let frame = complete(s, tick);
+            let packet = parse(&frame).unwrap();
+            assert_eq!(packet.destination_mac(), mac);
+            assert_eq!(packet.destination_address(), [SERVER, REMOTE][slot]);
+            assert_eq!(packet.payload(), b"private");
+        };
+        // Slot 0's next hop is SERVER on-link; slot 1 reaches REMOTE via SERVER.
+        let learn = |s: &mut Service<'_>, tick| {
+            for slot in [0, 1] {
+                assert_eq!(send(s, slot, tick), Status::Again);
+                let probe = complete(s, tick);
+                assert_eq!(&probe[38..42], &SERVER);
+                s.ingress(&answer(&probe, SERVER_MAC, SERVER), tick)
+                    .unwrap();
+                // The shared stack holds one RX frame until polled.
+                s.poll(tick).unwrap();
+                assert_eq!(send(s, slot, tick), Status::Ok);
+                datagram(s, slot, tick, SERVER_MAC);
+            }
+        };
+        let renew = |s: &mut Service<'_>, tick, xid, dns, router| {
+            let mut rng = Entropy([xid, 101_000].into());
+            assert!(matches!(
+                s.drive_dhcp(tick, &mut rng),
+                Ok(DriveOutcome::Published(_))
+            ));
+            let request = complete(s, tick);
+            assert_eq!(&parse(&request).unwrap().payload()[240..243], &[53, 1, 3]);
+            s.ingress(&reply(5, xid, dns, Some(router)), tick).unwrap();
+            s.poll(tick).unwrap();
+            let lease = s.dhcp_configuration(tick).unwrap().unwrap();
+            assert_eq!(lease.routers(), &[router]);
+            // The DNS toggle proves this ACK was applied.
+            assert_eq!(lease.dns_servers().is_empty(), !dns);
+        };
+        assert!(now < 4100);
+        // Neighbor entries live 2000 ticks: learn at the renewal tick itself.
+        learn(s, 4100);
+        renew(s, 4100, 0x5678, true, SERVER);
+        // Same router: both cached next hops survive and send without ARP.
+        for slot in [0, 1] {
+            assert_eq!(send(s, slot, 4100), Status::Ok);
+            datagram(s, slot, 4100, SERVER_MAC);
+        }
+        learn(s, 8100);
+        renew(s, 8100, 0xabcd, false, gateway);
+        // Changed router: slot 0's still-live SERVER entry was flushed too.
+        assert_eq!(send(s, 0, 8100), Status::Again);
+        let probe = complete(s, 8100);
+        assert_eq!(&probe[38..42], &SERVER);
+        assert_eq!(send(s, 1, 8100), Status::Again);
+        let probe = complete(s, 8100);
+        assert_eq!(&probe[38..42], &gateway);
+        // A reply from REMOTE (not the pending next hop) fills nothing.
+        let mut forged = answer(&probe, ROUTER_MAC, gateway);
+        forged[28..32].copy_from_slice(&REMOTE);
+        assert_eq!(arp::parse(&forged).unwrap().sender_ipv4(), REMOTE);
+        s.ingress(&forged, 8100).unwrap();
+        s.poll(8100).unwrap();
+        assert_eq!(send(s, 1, 8100), Status::Again);
+        assert!(s.transmission_at(8100).unwrap().is_none());
+        s.ingress(&answer(&probe, ROUTER_MAC, gateway), 8100)
+            .unwrap();
+        s.poll(8100).unwrap();
+        assert_eq!(send(s, 1, 8100), Status::Ok);
+        datagram(s, 1, 8100, ROUTER_MAC);
     });
 }

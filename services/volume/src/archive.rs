@@ -13,10 +13,11 @@
 //! data and must only go to a destination the user chose (B02/P01 open).
 //! Only current versions are exported; local history is not a backup.
 use crate::client::{Client, CollectionInfo, Transport};
-use crate::wire::ListEntry;
+use crate::wire::{ListEntry, Manifest, ManifestVersion};
 use crate::{
-    checksum_update, get16, get32, get64, put16, put32, put64, valid_name, Disk, Status,
-    COLLECTIONS, DOMAINS, FNV_OFFSET, MAX_LENGTH, NAME, PER_DOMAIN, SECTOR,
+    checksum_update, chunks_for, get16, get32, get64, put16, put32, put64, valid_name, Disk,
+    Status, CHUNK, CHUNKS, COLLECTIONS, DOMAINS, FNV_OFFSET, HISTORY, MAX_LENGTH, NAME, PER_DOMAIN,
+    QUOTA, SECTOR,
 };
 
 pub const MAGIC: [u8; 8] = *b"NOSBAK\x00\x01";
@@ -560,11 +561,14 @@ impl<D: Disk> Sink for DiskSink<'_, D> {
     }
 }
 
-/// Reads an archive written by `DiskSink`. The range is untrusted: a header
-/// whose counts imply more bytes than the range holds is `Corrupt`; any other
-/// deviation is left to `walk`.
-pub struct DiskSource<'a, D: Disk> {
-    disk: &'a mut D,
+/// Reads an archive (format v1 or v2) written by `DiskSink`. The range is
+/// untrusted: a header with another format version, or whose counts imply more
+/// bytes than the range (or a v2 archive) can hold, is `Corrupt`; any other
+/// deviation is left to `walk` / `walk_v2`. It owns its disk, so a caller
+/// that needs a fresh reader per pass (`restore_native_l2`) can build one from
+/// a copyable handle; pass `&mut disk` to borrow instead.
+pub struct DiskSource<D: Disk> {
+    disk: D,
     sectors: u64,
     length: Option<u64>,
     position: u64,
@@ -572,8 +576,8 @@ pub struct DiskSource<'a, D: Disk> {
     loaded: Option<u64>,
 }
 
-impl<'a, D: Disk> DiskSource<'a, D> {
-    pub fn new(disk: &'a mut D, sectors: u64) -> Self {
+impl<D: Disk> DiskSource<D> {
+    pub fn new(disk: D, sectors: u64) -> Self {
         Self {
             disk,
             sectors,
@@ -594,7 +598,7 @@ impl<'a, D: Disk> DiskSource<'a, D> {
     }
 }
 
-impl<D: Disk> Source for DiskSource<'_, D> {
+impl<D: Disk> Source for DiskSource<D> {
     fn get(&mut self, out: &mut [u8]) -> Result<usize, Status> {
         let length = match self.length {
             Some(length) => length,
@@ -604,10 +608,26 @@ impl<D: Disk> Source for DiskSource<'_, D> {
                 }
                 self.load(0)?;
                 let header = &self.buffer;
-                let records = u64::from(header[13]) * COLLECTION_RECORD as u64
-                    + u64::from(header[12]) * OBJECT_RECORD as u64;
-                let length = ((HEADER + TRAILER) as u64 + records)
+                // v2: the range adapter bound of S09-ARCHIVE-V2 section 4.4 (R4).
+                let (fixed, limit) = match get16(header, 8) {
+                    VERSION => (
+                        (HEADER + TRAILER) as u64
+                            + u64::from(header[13]) * COLLECTION_RECORD as u64
+                            + u64::from(header[12]) * OBJECT_RECORD as u64,
+                        u64::MAX,
+                    ),
+                    VERSION_V2 => (
+                        (HEADER_V2 + TRAILER) as u64
+                            + u64::from(header[13]) * COLLECTION_RECORD_V2 as u64
+                            + u64::from(header[12]) * OBJECT_RECORD_V2 as u64
+                            + u64::from(get16(header, 14)) * VERSION_RECORD_V2 as u64,
+                        MAX_ARCHIVE_V2,
+                    ),
+                    _ => return Err(Status::Corrupt),
+                };
+                let length = fixed
                     .checked_add(get64(header, 24))
+                    .filter(|length| *length <= limit)
                     .filter(|length| *length <= self.sectors.saturating_mul(SECTOR as u64))
                     .ok_or(Status::Corrupt)?;
                 self.length = Some(length);
@@ -625,4 +645,1021 @@ impl<D: Disk> Source for DiskSource<'_, D> {
         self.position += take as u64;
         Ok(take)
     }
+}
+
+// --- Format v2 (`docs/implementation/S09-ARCHIVE-V2.md`): writer over the
+// own-domain reads, reader and L1 history replay. v1 above is unchanged.
+
+pub const VERSION_V2: u16 = 2;
+pub const HEADER_V2: usize = 64;
+pub const COLLECTION_RECORD_V2: usize = 64;
+pub const OBJECT_RECORD_V2: usize = 128;
+pub const VERSION_RECORD_V2: usize = 64;
+/// Version records per archive: every slot with its current version and history.
+pub const VERSIONS_V2: usize = PER_DOMAIN * (HISTORY + 1);
+pub const TOMBSTONES: u8 = 0x01;
+pub const ACCOUNTED: u8 = 0x02;
+/// Every version's chunks lie within its object's, and a domain holds at most `QUOTA` chunks.
+pub const CONTENT_V2: u64 = ((HISTORY + 1) * QUOTA * CHUNK) as u64;
+pub const MAX_ARCHIVE_V2: u64 = (HEADER_V2
+    + COLLECTIONS * COLLECTION_RECORD_V2
+    + PER_DOMAIN * OBJECT_RECORD_V2
+    + VERSIONS_V2 * VERSION_RECORD_V2
+    + TRAILER) as u64
+    + CONTENT_V2;
+
+/// One validated version record (its content is checked against `content_sum`).
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub struct VersionV2 {
+    pub revision: u64,
+    pub length: usize,
+    pub content_sum: u64,
+    pub name_length: usize,
+    pub name: [u8; NAME],
+}
+
+impl VersionV2 {
+    pub fn name(&self) -> &[u8] {
+        &self.name[..self.name_length]
+    }
+}
+
+/// One validated object record with its versions, current first (present
+/// objects), then history newest first. Revisions and stamps are recorded
+/// source values only.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub struct ObjectV2 {
+    pub slot: usize,
+    pub present: bool,
+    pub collection: u8,
+    pub kind: u16,
+    pub tags: u32,
+    pub revision: u64,
+    pub created: u64,
+    pub modified: u64,
+    pub version_count: usize,
+    pub versions: [VersionV2; HISTORY + 1],
+}
+
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub struct CollectionV2 {
+    pub index: usize,
+    pub present: bool,
+    pub revision: u64,
+    pub name_length: usize,
+    pub name: [u8; NAME],
+}
+
+impl CollectionV2 {
+    pub fn name(&self) -> &[u8] {
+        &self.name[..self.name_length]
+    }
+}
+
+/// Everything a verified v2 archive records except content, in archive order.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub struct ArchiveV2 {
+    pub tombstones: bool,
+    /// With `accounted` clear, `generation` is an unchecked recorded value
+    /// (S9 not performed) and must be reported as such.
+    pub accounted: bool,
+    pub generation: u64,
+    /// The exporting domain's own clock: a validation bound, never installed.
+    pub clock: u64,
+    pub content_bytes: u64,
+    pub collection_count: usize,
+    pub collections: [CollectionV2; COLLECTIONS],
+    pub object_count: usize,
+    pub objects: [ObjectV2; PER_DOMAIN],
+}
+
+impl ArchiveV2 {
+    pub fn object(&self, slot: usize) -> Option<&ObjectV2> {
+        self.objects[..self.object_count]
+            .iter()
+            .find(|object| object.slot == slot)
+    }
+}
+
+/// Parse and check a complete v2 archive (every rule of section 4, S1–S10).
+/// `version(object, i, content)` is called for version `i` of `object` once
+/// its record and content checked out (`object.versions[..=i]` filled). The
+/// per-object chunk rule, the trailer and S9 are checked later, so callers
+/// that act on versions must verify the archive first.
+pub fn walk_v2<S: Source>(
+    source: &mut S,
+    scratch: &mut [u8; MAX_LENGTH],
+    mut version: impl FnMut(&ObjectV2, usize, &[u8]) -> Result<(), Status>,
+) -> Result<ArchiveV2, Status> {
+    let mut input = In {
+        source,
+        sum: FNV_OFFSET,
+    };
+    let mut header = [0; HEADER_V2];
+    input.exact(&mut header)?;
+    let flags = header[10];
+    let count = usize::from(header[12]);
+    let collection_count = usize::from(header[13]);
+    let version_count = usize::from(get16(&header, 14));
+    let content_bytes = get64(&header, 24);
+    let clock = get64(&header, 32);
+    if header[..8] != MAGIC
+        || get16(&header, 8) != VERSION_V2
+        || flags & !(TOMBSTONES | ACCOUNTED) != 0
+        || header[11] != 0
+        || !zero(&header[40..56])
+        || count > PER_DOMAIN
+        || collection_count > COLLECTIONS
+        || version_count > VERSIONS_V2
+        || content_bytes > (version_count * MAX_LENGTH) as u64
+        || content_bytes > CONTENT_V2
+        || !sealed(&header)
+    {
+        return Err(Status::Corrupt);
+    }
+    let mut archive = ArchiveV2 {
+        tombstones: flags & TOMBSTONES != 0,
+        accounted: flags & ACCOUNTED != 0,
+        generation: get64(&header, 16),
+        clock,
+        content_bytes,
+        ..ArchiveV2::default()
+    };
+    let mut present_collections = [false; COLLECTIONS];
+    let mut previous = 0;
+    let mut revisions = 0u64;
+    for position in 0..collection_count {
+        let mut record = [0; COLLECTION_RECORD_V2];
+        input.exact(&mut record)?;
+        let index = usize::from(record[0]);
+        let present = record[1];
+        let length = usize::from(record[2]);
+        let revision = get64(&record, 8);
+        let valid = sealed(&record)
+            && index > previous
+            && index <= COLLECTIONS
+            && present <= 1
+            && length <= NAME
+            && zero(&record[3..8])
+            && zero(&record[16 + length..56])
+            && revision != 0
+            && if present == 1 {
+                valid_name(&record[16..16 + length])
+            } else {
+                length == 0
+            };
+        // Deleted collections exist only for the S9 check (R2).
+        if !valid || (present == 0 && !archive.accounted) || revision > clock {
+            return Err(Status::Corrupt);
+        }
+        previous = index;
+        present_collections[index - 1] = present == 1;
+        revisions = revisions.wrapping_add(revision);
+        let mut name = [0; NAME];
+        name[..length].copy_from_slice(&record[16..16 + length]);
+        archive.collections[position] = CollectionV2 {
+            index,
+            present: present == 1,
+            revision,
+            name_length: length,
+            name,
+        };
+    }
+    archive.collection_count = collection_count;
+    let mut next_slot = 0;
+    let mut total = 0u64;
+    let mut versions_seen = 0usize;
+    let mut chunks = 0usize;
+    for position in 0..count {
+        let mut record = [0; OBJECT_RECORD_V2];
+        input.exact(&mut record)?;
+        let present = record[1];
+        let collection = usize::from(record[2]);
+        let history_count = usize::from(record[3]);
+        let mut object = ObjectV2 {
+            slot: usize::from(record[0]),
+            present: present == 1,
+            collection: record[2],
+            kind: get16(&record, 4),
+            tags: get32(&record, 8),
+            revision: get64(&record, 16),
+            created: get64(&record, 24),
+            modified: get64(&record, 32),
+            ..ObjectV2::default()
+        };
+        let valid = sealed(&record)
+            && object.slot >= next_slot
+            && object.slot < PER_DOMAIN
+            && present <= 1
+            && history_count <= HISTORY
+            && zero(&record[6..8])
+            && zero(&record[12..16])
+            && zero(&record[40..120])
+            && object.revision != 0
+            && (collection == 0
+                || (collection <= COLLECTIONS && present_collections[collection - 1]))
+            && (object.present || (collection == 0 && object.kind == 0 && object.tags == 0));
+        let tombstone = !object.present && history_count != 0;
+        let content_free = !object.present && history_count == 0;
+        // Flag gating (section 3), then S4, S5, S6 and S7.
+        if !valid
+            || (tombstone && !archive.tombstones)
+            || (content_free && !archive.accounted)
+            || object.created == 0
+            || object.created > object.modified
+            || object.modified > clock
+            || object.revision > clock
+        {
+            return Err(Status::Corrupt);
+        }
+        next_slot = object.slot + 1;
+        object.version_count = usize::from(present) + history_count;
+        let mut largest = 0;
+        for index in 0..object.version_count {
+            let mut record = [0; VERSION_RECORD_V2];
+            input.exact(&mut record)?;
+            let name_length = usize::from(record[0]);
+            let length = get32(&record, 4) as usize;
+            let revision = get64(&record, 8);
+            let valid = sealed(&record)
+                && name_length <= NAME
+                && valid_name(&record[24..24 + name_length])
+                && zero(&record[1..4])
+                && zero(&record[24 + name_length..56])
+                && length <= MAX_LENGTH;
+            // S2 bounds the newest version by the object revision; S3 makes
+            // the chain strictly decreasing (S1 keeps the subtraction in range).
+            let bound = if index == 0 {
+                object.revision
+            } else {
+                object.versions[index - 1].revision - 1
+            };
+            versions_seen += 1;
+            total = total.checked_add(length as u64).ok_or(Status::Corrupt)?;
+            if !valid
+                || revision == 0
+                || revision > bound
+                || versions_seen > version_count
+                || total > content_bytes
+            {
+                return Err(Status::Corrupt);
+            }
+            let mut name = [0; NAME];
+            name[..name_length].copy_from_slice(&record[24..24 + name_length]);
+            object.versions[index] = VersionV2 {
+                revision,
+                length,
+                content_sum: get64(&record, 16),
+                name_length,
+                name,
+            };
+            let content = &mut scratch[..length];
+            input.exact(content)?;
+            if checksum_update(FNV_OFFSET, content) != object.versions[index].content_sum {
+                return Err(Status::Corrupt);
+            }
+            version(&object, index, content)?;
+            largest = largest.max(chunks_for(length));
+        }
+        // S10: an object's unique chunks are at least its largest version's.
+        chunks += largest;
+        if chunks > QUOTA {
+            return Err(Status::Corrupt);
+        }
+        revisions = revisions.wrapping_add(object.revision);
+        archive.objects[position] = object;
+    }
+    archive.object_count = count;
+    let expected = input.sum;
+    let mut trailer = [0; TRAILER];
+    input.exact(&mut trailer)?;
+    if total != content_bytes
+        || versions_seen != version_count
+        || trailer[..8] != END
+        || get64(&trailer, 8) != expected
+    {
+        return Err(Status::Corrupt);
+    }
+    let mut extra = [0; 1];
+    let got = input.source.get(&mut extra)?;
+    if got > extra.len() {
+        return Err(Status::Protocol);
+    }
+    if got != 0 {
+        return Err(Status::Corrupt);
+    }
+    // S9: a wrapping sum like the table's; detects accidental omission only.
+    if archive.accounted && revisions != archive.generation {
+        return Err(Status::Corrupt);
+    }
+    Ok(archive)
+}
+
+/// Check a complete v2 archive without side effects.
+pub fn verify_v2<S: Source>(
+    source: &mut S,
+    scratch: &mut [u8; MAX_LENGTH],
+) -> Result<ArchiveV2, Status> {
+    walk_v2(source, scratch, |_, _, _| Ok(()))
+}
+
+/// Chunks free for a never-used domain whatever the other domains hold:
+/// BEGIN keeps every domain's committed plus staged chunks within `QUOTA`.
+pub const GUARANTEED_FREE: usize = CHUNKS - (DOMAINS - 1) * QUOTA;
+const _: () = assert!(GUARANTEED_FREE > 0);
+
+/// Result of [`restore_native`]. A lost reply is resolved by reading state
+/// back and counted only when the request demonstrably committed; counts are
+/// a lower bound when the status is still `Unknown` or is `Protocol` (a
+/// malformed reply): that request may have committed without a valid reply.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub struct NativeReport {
+    /// Bit `s`: archive slot `s` fully replayed (its replayable versions,
+    /// see [`replayable`], and its metadata). Set once the last needed
+    /// commit is confirmed: after the WRITE of its current version for a
+    /// slot without metadata, after its META otherwise, so a later failure,
+    /// also during the WRITE phase, keeps completed slots.
+    pub restored: u8,
+    /// Committed WRITEs this restore confirmed (a lower bound after
+    /// `Unknown` or `Protocol`, see above).
+    pub writes: usize,
+    /// Every commit this restore made (WRITE, COLLECTION, META). Zero after
+    /// an error other than `Unknown` or `Protocol` means this restore
+    /// committed nothing: the domain's committed state is as it was, never
+    /// used only if it was before (not after `Stale`, which reports an
+    /// already used domain). A failed BEGIN whose reply was lost, or an
+    /// upload interrupted before its COMMIT, may still leave a staged upload
+    /// that reserves chunks until it is replaced; [`never_used`] observes
+    /// committed revisions only, not staged uploads. Non-zero
+    /// means this restore made the domain used and a retry is refused. After
+    /// an unresolved `Unknown`, or a malformed reply (`Protocol`), this
+    /// restore may have committed even at zero: [`never_used`] decides on
+    /// retry.
+    pub committed: usize,
+    /// Versions of present objects not replayed because they follow a
+    /// revision gap and may predate a DELETE (owner decision, 19 November
+    /// 2026). Content-free records are excluded separately and not counted.
+    /// Set as soon as the archive is verified, so a later refusal (`Invalid`,
+    /// `Stale`, `Quota`, `Full`) reports it too.
+    pub skipped: usize,
+}
+
+/// Number of `object`'s versions (current first, then history newest first)
+/// that L1 replays: the longest prefix whose consecutive revisions differ by
+/// exactly 1. A committed version's revision equals the entry revision after
+/// that commit; DELETE, RENAME, META and TRANSACT raise the entry revision
+/// without a version, while RESTORE creates a current version at the next
+/// revision. A step of 1 therefore excludes an intervening DELETE (or any
+/// other revision-only operation); it does not prove that no operation
+/// occurred, since the newer version may come from a RESTORE. The archive
+/// cannot tell a DELETE gap from a META or RENAME gap; both stop the prefix
+/// (conservative). Absent objects replay nothing.
+pub fn replayable(object: &ObjectV2) -> usize {
+    if !object.present {
+        return 0;
+    }
+    let versions = &object.versions[..object.version_count];
+    1 + versions
+        .windows(2)
+        .take_while(|pair| pair[1].revision.checked_add(1) == Some(pair[0].revision))
+        .count()
+}
+
+/// Is `domain` demonstrably never used (R3)? Every publish path raises at
+/// least one object or collection revision of the domain and revisions never
+/// decrease, so all revisions zero means nothing was ever committed there.
+/// STAT reports the revision of absent objects too: `(NotFound, 0)` only.
+pub fn never_used<T: Transport>(client: &mut Client<T>, domain: usize) -> Result<bool, Status> {
+    for slot in 0..PER_DOMAIN {
+        match client.stat((domain * PER_DOMAIN + slot) as u64) {
+            Err((Status::NotFound, 0)) => {}
+            Ok(_) | Err((Status::NotFound, _)) => return Ok(false),
+            Err((status, _)) => return Err(status),
+        }
+    }
+    for index in 1..=COLLECTIONS {
+        if client.collection_stat(domain, index)?.revision != 0 {
+            return Ok(false);
+        }
+    }
+    Ok(true)
+}
+
+/// L1 native restore: replay a v2 archive's history into a never-used
+/// `domain` through ordinary WRITE/META/COLLECTION requests (spec section 7).
+///
+/// `open` must return a fresh reader of the same archive on each call: the
+/// archive is verified completely in a first pass, then read once per history
+/// depth so every object is written oldest version first. In every replay
+/// pass each object record is compared with the verified plan before its
+/// WRITE; the rest of the pass (header, collections, trailer, trailing bytes)
+/// is compared only after that pass's WRITEs, so such a mismatch returns
+/// `Corrupt` with `committed > 0` and leaves the domain used.
+/// Refused before the first write: a corrupt or v1 archive (`Corrupt`), an
+/// archive with `TOMBSTONES` set (`Invalid`, R2), a domain that was ever used
+/// (`Stale`, R3) and a replay that exceeds the domain quota (`Quota`; L1
+/// allocates fresh chunks for every WRITE). Content-free records and deleted
+/// collections are never replayed, nor are versions after the first
+/// revision gap of an object ([`replayable`], counted in `skipped`); the
+/// capacity checks count replayed versions only. The volume-wide free chunk count is not
+/// observable through the protocol, so a replay needing more than
+/// [`GUARANTEED_FREE`] chunks is refused with `Full` before the first write.
+/// Every WRITE comes first, then the collections, then each object's META
+/// from the verified plan, so the first mutation is a BEGIN whenever a
+/// version is replayed; a token-bound upload staged in the domain then makes
+/// it `Busy` before anything commits (a legacy, token-0 staged upload is
+/// instead replaced by that BEGIN, as for any legacy BEGIN). A restore with no replayable version
+/// but a present collection starts with COLLECTION, which a staged upload
+/// does not refuse: it succeeds, the domain becomes used, and the staged
+/// upload can still COMMIT afterwards (its object revision is unchanged).
+/// No read operation exposes staged uploads, so this is not detected. A lost
+/// reply (`Unknown`) is resolved by STAT or COLLECTION_STAT and accepted only
+/// when the state is exactly what was sent. A failure with
+/// `report.committed == 0` and a status other than `Unknown` or `Protocol`
+/// means this restore committed nothing (after `Stale` the domain was
+/// already used), although a failed or interrupted upload may leave a staged
+/// upload that reserves chunks until it is replaced; an unresolved `Unknown` or a malformed reply (`Protocol`) may have
+/// committed, so the domain must then be treated as used ([`never_used`]
+/// decides on retry). Any other later failure leaves it used, and a retry is
+/// then refused. The caller must be the only writer of the destination
+/// domain meanwhile: a concurrent write to a slot the archive does not use,
+/// after the never-used check, is not detected.
+///
+/// `source` receives the verified archive before anything is written: the
+/// recorded source revisions, stamps, clock and generation are reported only
+/// there; the destination assigns its own revisions and clock.
+pub fn restore_native<S: Source, T: Transport>(
+    mut open: impl FnMut() -> S,
+    scratch: &mut [u8; MAX_LENGTH],
+    client: &mut Client<T>,
+    domain: usize,
+    source: &mut ArchiveV2,
+) -> Result<NativeReport, (Status, NativeReport)> {
+    let mut report = NativeReport::default();
+    if domain >= DOMAINS {
+        return Err((Status::Invalid, report));
+    }
+    let plan = verify_v2(&mut open(), scratch).map_err(|status| (status, report))?;
+    *source = plan;
+    report.skipped = plan.objects[..plan.object_count]
+        .iter()
+        .filter(|object| object.present)
+        .map(|object| object.version_count - replayable(object))
+        .sum();
+    if plan.tombstones {
+        return Err((Status::Invalid, report));
+    }
+    match never_used(client, domain) {
+        Ok(true) => {}
+        Ok(false) => return Err((Status::Stale, report)),
+        Err(status) => return Err((status, report)),
+    }
+    // A never-used domain holds no chunks, and at most HISTORY + 1 versions
+    // per object means every replayed version stays referenced.
+    let needed: usize = plan.objects[..plan.object_count]
+        .iter()
+        .flat_map(|object| object.versions[..replayable(object)].iter())
+        .map(|version| chunks_for(version.length))
+        .sum();
+    if needed > QUOTA {
+        return Err((Status::Quota, report));
+    }
+    // The volume-wide free count is not observable. shortcut: refuses
+    // replays of 25..=40 chunks that might fit; lift once a reviewed
+    // free-count read exists.
+    if needed > GUARANTEED_FREE {
+        return Err((Status::Full, report));
+    }
+    let mut revisions = [0u64; PER_DOMAIN];
+    let needs_meta = |o: &&ObjectV2| o.tags != 0 || o.kind != 0 || o.collection != 0;
+    for depth in (0..=HISTORY).rev() {
+        let mut writes = report.writes;
+        let mut restored = report.restored;
+        let replayed = walk_v2(&mut open(), scratch, |object, index, content| {
+            let Some(planned) = plan.object(object.slot) else {
+                return Err(Status::Corrupt);
+            };
+            // The source is read again: act only on what the first pass verified.
+            let same = ObjectV2 {
+                versions: object.versions,
+                ..*planned
+            } == *object
+                && planned.versions[..=index] == object.versions[..=index];
+            if !same {
+                return Err(Status::Corrupt);
+            }
+            if index != depth || index >= replayable(planned) {
+                return Ok(());
+            }
+            let version = &object.versions[index];
+            let target = (domain * PER_DOMAIN + object.slot) as u64;
+            let expected = revisions[object.slot];
+            let written = client.write(
+                target,
+                expected,
+                version.name(),
+                content.len(),
+                |offset, chunk| chunk.copy_from_slice(&content[offset..offset + chunk.len()]),
+            );
+            let revision = match written {
+                Ok((revision, _)) => revision,
+                // The commit may have landed: accept it only if it is exactly ours.
+                Err(Status::Unknown) => match client.stat(target) {
+                    Ok(stat)
+                        if Some(stat.revision) == expected.checked_add(1)
+                            && stat.name[..stat.name_length] == *version.name()
+                            && stat.length == content.len()
+                            && stat.content_sum == version.content_sum =>
+                    {
+                        stat.revision
+                    }
+                    _ => return Err(Status::Unknown),
+                },
+                Err(status) => return Err(status),
+            };
+            writes += 1;
+            revisions[object.slot] = revision;
+            // Index 0, the current version, is a slot's last WRITE: without
+            // metadata the slot is complete, even if a later request fails.
+            if index == 0 && !needs_meta(&planned) {
+                restored |= 1 << object.slot;
+            }
+            Ok(())
+        });
+        report.writes = writes;
+        report.restored = restored;
+        report.committed = writes;
+        match replayed {
+            Ok(again) if again == plan => {}
+            Ok(_) => return Err((Status::Corrupt, report)),
+            Err(status) => return Err((status, report)),
+        }
+    }
+    // Collections before META: META with a collection index needs it to exist.
+    for collection in &plan.collections[..plan.collection_count] {
+        if collection.present {
+            match client.collection(domain, collection.index, 0, collection.name()) {
+                Ok(_) => {}
+                // Created from revision 0: exactly ours means revision 1.
+                Err((Status::Unknown, _)) => match client.collection_stat(domain, collection.index)
+                {
+                    Ok(info)
+                        if info.present
+                            && info.revision == 1
+                            && info.name() == collection.name() => {}
+                    _ => return Err((Status::Unknown, report)),
+                },
+                Err((status, _)) => return Err((status, report)),
+            }
+            report.committed += 1;
+        }
+    }
+    for object in plan.objects[..plan.object_count]
+        .iter()
+        .filter(|o| o.present && needs_meta(o))
+    {
+        let target = (domain * PER_DOMAIN + object.slot) as u64;
+        let expected = revisions[object.slot];
+        let meta = (object.tags, object.kind, object.collection);
+        match client.meta(target, expected, meta.0, meta.1, meta.2) {
+            Ok(_) => {}
+            Err((Status::Unknown, _)) => match client.stat(target) {
+                Ok(stat)
+                    if Some(stat.revision) == expected.checked_add(1)
+                        && (stat.tags, stat.kind, stat.collection) == meta => {}
+                _ => return Err((Status::Unknown, report)),
+            },
+            Err((status, _)) => return Err((status, report)),
+        }
+        report.committed += 1;
+        report.restored |= 1 << object.slot;
+    }
+    Ok(report)
+}
+
+/// Result of [`export_v2`]: what the archive records (no content), and the
+/// number of retained history versions left out because they follow a
+/// revision gap and may predate a DELETE (R2, owner decision).
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub struct ExportV2 {
+    pub archive: ArchiveV2,
+    pub omitted: usize,
+}
+
+fn put_version_v2<S: Sink>(out: &mut Out<'_, S>, version: &VersionV2) -> Result<(), Status> {
+    let mut record = [0; VERSION_RECORD_V2];
+    record[0] = version.name_length as u8;
+    put32(&mut record, 4, version.length as u32);
+    put64(&mut record, 8, version.revision);
+    put64(&mut record, 16, version.content_sum);
+    record[24..24 + version.name_length].copy_from_slice(version.name());
+    seal(&mut record);
+    out.put(&record)
+}
+
+/// Export `domain` (the client must be bound to it) as a v2 archive.
+///
+/// Policy (S09-ARCHIVE-V2 section 3, S09-OWN-DOMAIN-READS section 3):
+/// `TOMBSTONES` is never set (R2); `ACCOUNTED` is always set, and the only
+/// content-free records are those S9 needs: one per absent slot with a
+/// non-zero revision (deleted, tombstoned or purged; stamps from
+/// VERSION_STAT, no content, no name) and every deleted collection. A present
+/// object carries only its consecutive-revision prefix of versions, the same
+/// prefix L1 replays; later versions are counted in `omitted`. Every recorded
+/// value is a source value read from the service; nothing is synthesised and
+/// no source identifier exists. DOMAIN_STAT is the first request, so an older
+/// service (`NoSys`) gets nothing written. The final DOMAIN_STAT must equal
+/// the first, otherwise `Stale` and no trailer: on any error the caller must
+/// discard the output (and may retry).
+pub fn export_v2<T: Transport>(
+    client: &mut Client<T>,
+    domain: usize,
+    sink: &mut impl Sink,
+) -> Result<ExportV2, Status> {
+    if domain >= DOMAINS {
+        return Err(Status::Invalid);
+    }
+    let first = client.domain_stat(domain)?;
+    let (generation, clock) = first;
+    let mut archive = ArchiveV2 {
+        accounted: true,
+        generation,
+        clock,
+        ..ArchiveV2::default()
+    };
+    let mut omitted = 0;
+    for index in 1..=COLLECTIONS {
+        let info = client.collection_stat(domain, index)?;
+        if info.revision == 0 {
+            continue;
+        }
+        // A bound violation under a fixed clock means a concurrent change.
+        if info.revision > clock {
+            return Err(Status::Stale);
+        }
+        archive.collections[archive.collection_count] = CollectionV2 {
+            index,
+            present: info.present,
+            revision: info.revision,
+            name_length: info.name_length,
+            name: info.name,
+        };
+        archive.collection_count += 1;
+    }
+    for slot in 0..PER_DOMAIN {
+        let object = (domain * PER_DOMAIN + slot) as u64;
+        let mut o = ObjectV2 {
+            slot,
+            ..ObjectV2::default()
+        };
+        match client.stat(object) {
+            Ok(stat) => {
+                let collected = stat.collection == 0
+                    || archive.collections[..archive.collection_count]
+                        .iter()
+                        .any(|c| c.present && c.index == usize::from(stat.collection));
+                if !collected {
+                    return Err(Status::Stale);
+                }
+                o.present = true;
+                o.collection = stat.collection;
+                o.kind = stat.kind;
+                o.tags = stat.tags;
+                o.revision = stat.revision;
+                o.created = stat.created;
+                o.modified = stat.modified;
+                o.versions[0] = VersionV2 {
+                    revision: stat.version_revision,
+                    length: stat.length,
+                    content_sum: stat.content_sum,
+                    name_length: stat.name_length,
+                    name: stat.name,
+                };
+                for (version, info) in o.versions[1..].iter_mut().zip(&stat.history) {
+                    version.revision = info.revision;
+                    version.length = info.length;
+                    version.content_sum = info.content_sum;
+                }
+                o.version_count = 1 + stat.history_count;
+                let keep = replayable(&o);
+                omitted += o.version_count - keep;
+                o.version_count = keep;
+                o.versions[keep..].fill(VersionV2::default());
+                for (selector, version) in o.versions[..keep].iter_mut().enumerate().skip(1) {
+                    let named = client
+                        .version_stat(object, stat.revision, selector)
+                        .map_err(|(status, _)| status)?;
+                    if named.version_revision != version.revision {
+                        return Err(Status::Corrupt);
+                    }
+                    version.name_length = named.name_length;
+                    version.name = named.name;
+                }
+            }
+            Err((Status::NotFound, 0)) => continue,
+            Err((Status::NotFound, revision)) => {
+                let stamps = client
+                    .version_stat(object, revision, 0)
+                    .map_err(|(status, _)| status)?;
+                if stamps.present {
+                    return Err(Status::Corrupt);
+                }
+                o.revision = revision;
+                o.created = stamps.created;
+                o.modified = stamps.modified;
+            }
+            Err((status, _)) => return Err(status),
+        }
+        if o.modified > clock {
+            return Err(Status::Stale);
+        }
+        if o.revision > clock {
+            // Rule R (S09-L2-PROVENANCE section 5): an INSTALL of n versions
+            // may exceed the clock by up to n - 1 for a while. Inside the
+            // snapshot that is a format limit (Range, not retried), anything
+            // else a concurrent change (Stale). An older service: NoSys.
+            let installed = match client.provenance(object, o.revision) {
+                Ok(p) => p.installed as u64,
+                Err((Status::NoSys, _)) => 0,
+                Err((status, _)) => return Err(status),
+            };
+            let window = installed >= 1 && o.revision - clock < installed;
+            if window && client.domain_stat(domain)? == first {
+                return Err(Status::Range);
+            }
+            return Err(Status::Stale);
+        }
+        archive.objects[archive.object_count] = o;
+        archive.object_count += 1;
+    }
+    let objects = &archive.objects[..archive.object_count];
+    let version_count: usize = objects.iter().map(|o| o.version_count).sum();
+    archive.content_bytes = objects
+        .iter()
+        .flat_map(|o| &o.versions[..o.version_count])
+        .map(|v| v.length as u64)
+        .sum();
+
+    let mut out = Out {
+        sink,
+        sum: FNV_OFFSET,
+    };
+    let mut header = [0; HEADER_V2];
+    header[..8].copy_from_slice(&MAGIC);
+    put16(&mut header, 8, VERSION_V2);
+    header[10] = ACCOUNTED;
+    header[12] = archive.object_count as u8;
+    header[13] = archive.collection_count as u8;
+    put16(&mut header, 14, version_count as u16);
+    put64(&mut header, 16, generation);
+    put64(&mut header, 24, archive.content_bytes);
+    put64(&mut header, 32, clock);
+    seal(&mut header);
+    out.put(&header)?;
+    for c in &archive.collections[..archive.collection_count] {
+        let mut record = [0; COLLECTION_RECORD_V2];
+        record[0] = c.index as u8;
+        record[1] = u8::from(c.present);
+        record[2] = c.name_length as u8;
+        put64(&mut record, 8, c.revision);
+        record[16..16 + c.name_length].copy_from_slice(c.name());
+        seal(&mut record);
+        out.put(&record)?;
+    }
+    for o in &archive.objects[..archive.object_count] {
+        let mut record = [0; OBJECT_RECORD_V2];
+        record[0] = o.slot as u8;
+        record[1] = u8::from(o.present);
+        record[2] = o.collection;
+        record[3] = (o.version_count - usize::from(o.present)) as u8;
+        put16(&mut record, 4, o.kind);
+        put32(&mut record, 8, o.tags);
+        put64(&mut record, 16, o.revision);
+        put64(&mut record, 24, o.created);
+        put64(&mut record, 32, o.modified);
+        seal(&mut record);
+        out.put(&record)?;
+        let object = (domain * PER_DOMAIN + o.slot) as u64;
+        for (selector, version) in o.versions[..o.version_count].iter().enumerate() {
+            put_version_v2(&mut out, version)?;
+            let mut failed = None;
+            let mut sum = FNV_OFFSET;
+            let read =
+                client.read_version(object, o.revision, selector, version.length, |_, chunk| {
+                    sum = checksum_update(sum, chunk);
+                    if failed.is_none() {
+                        failed = out.put(chunk).err();
+                    }
+                })?;
+            if let Some(status) = failed {
+                return Err(status);
+            }
+            if read != version.length || sum != version.content_sum {
+                return Err(Status::Corrupt);
+            }
+        }
+    }
+    // Snapshot rule: an unchanged own clock proves no own commit happened.
+    if client.domain_stat(domain)? != first {
+        return Err(Status::Stale);
+    }
+    let mut trailer = [0; TRAILER];
+    trailer[..8].copy_from_slice(&END);
+    put64(&mut trailer, 8, out.sum);
+    out.sink.put(&trailer)?;
+    Ok(ExportV2 { archive, omitted })
+}
+
+/// Result of [`restore_native_l2`]. Destination values only: the recorded
+/// source values are in the `ArchiveV2` the caller passed in. Counts are a
+/// lower bound when the status is `Unknown` or `Protocol`: the request may
+/// have committed without a valid reply.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub struct L2Report {
+    /// Bit `s`: archive slot `s` installed (current version and its
+    /// replayable history, metadata and provenance) in one commit.
+    pub restored: u8,
+    /// Bit `i - 1`: collection `i` installed.
+    pub collections: u8,
+    /// INSTALL_COLLECTION and INSTALL_COMMIT commits this restore confirmed.
+    /// Zero after an error other than `Unknown` or `Protocol` means this
+    /// restore committed nothing; it does not mean the domain was never used
+    /// (`Stale` can report an already-used domain). After `Unknown` or
+    /// `Protocol`, even zero is only a lower bound. Any confirmed commit
+    /// makes the domain used, so a rerun is refused (no resume,
+    /// S09-L2-PROVENANCE section 5).
+    pub committed: usize,
+    /// Versions after the first revision gap of a present object (R2).
+    pub skipped: usize,
+    /// Live revisions the destination assigned, per slot.
+    pub revisions: [u64; PER_DOMAIN],
+}
+
+/// The INSTALL manifest of a present archive object: its replayable prefix,
+/// with every value copied from the archive, never derived.
+pub fn l2_manifest(object: &ObjectV2) -> Manifest {
+    let count = replayable(object);
+    let mut manifest = Manifest {
+        origin_revision: object.revision,
+        origin_created: object.created,
+        origin_modified: object.modified,
+        count,
+        ..Manifest::default()
+    };
+    for (out, version) in manifest.versions.iter_mut().zip(&object.versions[..count]) {
+        *out = ManifestVersion {
+            origin: version.revision,
+            length: version.length,
+            name_length: version.name_length,
+            name: version.name,
+        };
+    }
+    manifest
+}
+
+/// L2 native restore (S09-L2-PROVENANCE section 5): install a verified v2
+/// archive into a never-used `domain`, one INSTALL commit per present
+/// object, preserving the archive revisions and stamps as immutable
+/// provenance beside destination-assigned live revisions and clocks.
+/// An uncertain collection, BEGIN, APPEND or COMMIT retains its phase and
+/// correlation on [`Client::unconfirmed_install`], without automatic ABORT or
+/// retry. Failed cleanup after a definite error also retains recovery state.
+/// The original session owner or trusted domain recovery must reconcile that
+/// state before [`Client::acknowledge_install_recovery`] permits a retry.
+///
+/// After the domain/recovery guard, refused before the first write in this
+/// order: a corrupt or v1 archive
+/// (`Corrupt`), `TOMBSTONES` (`Invalid`, R2), a used domain (`Stale`, R3),
+/// a replay over `QUOTA` (`Quota`) or over [`GUARANTEED_FREE`] (`Full`), and
+/// a manifest the service would refuse (`Corrupt`). Then every present
+/// collection is installed, then every present object over its
+/// [`replayable`] prefix. A staged session in the destination makes the first
+/// INSTALL operation `Busy`, without committing a collection or object.
+/// Content streams from a fresh `open()` in archive
+/// order and every version is compared with the verified plan (FNV-64,
+/// `Corrupt` and ABORT on a mismatch). An older service answers the first
+/// INSTALL operation with `NoSys` and nothing is committed. There is no
+/// resume: after the first commit a rerun is `Stale`, and an interrupted
+/// restore is repeated into a fresh domain. Provenance is asserted by the
+/// own domain, without authority or authenticity (FNV-64 is not
+/// authentication), and the caller must be the only writer meanwhile.
+pub fn restore_native_l2<S: Source, T: Transport>(
+    mut open: impl FnMut() -> S,
+    scratch: &mut [u8; MAX_LENGTH],
+    client: &mut Client<T>,
+    domain: usize,
+    source: &mut ArchiveV2,
+) -> Result<L2Report, (Status, L2Report)> {
+    let mut report = L2Report::default();
+    if domain >= DOMAINS {
+        return Err((Status::Invalid, report));
+    }
+    if let Some(pending) = client.unconfirmed_install() {
+        return Err((pending.status, report));
+    }
+    let plan = verify_v2(&mut open(), scratch).map_err(|status| (status, report))?;
+    *source = plan;
+    if plan.tombstones {
+        return Err((Status::Invalid, report));
+    }
+    match never_used(client, domain) {
+        Ok(true) => {}
+        Ok(false) => return Err((Status::Stale, report)),
+        Err(status) => return Err((status, report)),
+    }
+    let objects = &plan.objects[..plan.object_count];
+    let needed: usize = objects
+        .iter()
+        .flat_map(|object| object.versions[..replayable(object)].iter())
+        .map(|version| chunks_for(version.length))
+        .sum();
+    if needed > QUOTA {
+        return Err((Status::Quota, report));
+    }
+    if needed > GUARANTEED_FREE {
+        return Err((Status::Full, report));
+    }
+    // A mid-restore Invalid would leave a used domain with no resume.
+    if objects
+        .iter()
+        .any(|object| object.present && !l2_manifest(object).valid())
+    {
+        return Err((Status::Corrupt, report));
+    }
+    report.skipped = objects
+        .iter()
+        .filter(|object| object.present)
+        .map(|object| object.version_count - replayable(object))
+        .sum();
+    for collection in &plan.collections[..plan.collection_count] {
+        if collection.present {
+            client
+                .install_collection(
+                    domain,
+                    collection.index,
+                    collection.name(),
+                    collection.revision,
+                )
+                .map_err(|(status, _)| (status, report))?;
+            report.committed += 1;
+            report.collections |= 1 << (collection.index - 1);
+        }
+    }
+    let mut staged: Option<(u64, u64)> = None;
+    let mut done = report;
+    let installed = walk_v2(&mut open(), scratch, |object, index, content| {
+        let Some(planned) = plan.object(object.slot) else {
+            return Err(Status::Corrupt);
+        };
+        // The source is read again: act only on what the first pass verified.
+        let same = ObjectV2 {
+            versions: object.versions,
+            ..*planned
+        } == *object
+            && planned.versions[..=index] == object.versions[..=index];
+        let keep = replayable(planned);
+        if !same {
+            return Err(Status::Corrupt);
+        }
+        if index >= keep {
+            return Ok(());
+        }
+        if checksum_update(FNV_OFFSET, content) != planned.versions[index].content_sum {
+            return Err(Status::Corrupt);
+        }
+        let target = (domain * PER_DOMAIN + object.slot) as u64;
+        let manifest = l2_manifest(planned);
+        if index == 0 {
+            let meta = (planned.tags, planned.kind, planned.collection);
+            staged = Some((target, client.install_begin(target, &manifest, meta)?));
+        }
+        let Some((_, id)) = staged.filter(|(staged, _)| *staged == target) else {
+            return Err(Status::Corrupt);
+        };
+        let mut fill = |_: usize, offset: usize, chunk: &mut [u8]| {
+            chunk.copy_from_slice(&content[offset..offset + chunk.len()]);
+        };
+        client.install_stream(target, id, &manifest, index..index + 1, &mut fill)?;
+        if index + 1 == keep {
+            // An unanswered or malformed COMMIT may already be durable.
+            // Its retained recovery record prevents automatic ABORT or replay.
+            done.revisions[object.slot] = client.install_commit(target, id, &manifest)?;
+            staged = None;
+            done.restored |= 1 << object.slot;
+            done.committed += 1;
+        }
+        Ok(())
+    });
+    report = done;
+    let status = match installed {
+        Ok(again) if again == plan => return Ok(report),
+        Ok(_) => Status::Corrupt,
+        Err(status) => status,
+    };
+    if let Some((target, id)) = staged {
+        if client.unconfirmed_install().is_none() {
+            let _ = client.abort(target, 0, id);
+        }
+    }
+    Err((status, report))
 }

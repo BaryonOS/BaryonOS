@@ -11,8 +11,9 @@ before mapping; the existing transports retain their own I/O and DMA logic.
 A separate `drivers/xhci` crate matches the USB host-controller class and
 inspects controller registers; only the opt-in, QEMU-only `native-xhci-probe`
 and `native-usb-hid-probe` kernel profiles use it, for one fixture controller,
-together with the profiles built on the latter (`native-usb-hid-reattach`, a
-QEMU-only same-port keyboard reattach fixture, and the
+together with the profiles built on the latter (`native-usb-hid-reattach` and
+`native-usb-hid-mouse-reattach`, QEMU-only same-port keyboard and mouse
+reattach fixtures, and the
 `test-usb-hid-readonly-fault` negative profile).
 No NVMe crate exists: earlier revisions of this document described an NVMe
 probe crate that is not present in the repository. A shared heterogeneous
@@ -46,15 +47,15 @@ ECAM, segments other than 0, bridge topology or hotplug.
 implemented.** Earlier revisions of this section stated that M5 kernel profiles
 report unmatched functions on COM1 as `UNSUPPORTED:PCI`. No code emits that
 marker; `git log -S'UNSUPPORTED:PCI'` finds documentation changes only. A
-separate read-only native inventory profile (`native-hw-inventory`, planned
-slice H06-T3) is specified as protocol `HW-INV` in
-[physical-protocols.json](physical-protocols.json), with its planned `HWINV:`
+separate read-only native inventory profile (`native-hw-inventory`, slice
+H06-T3, QEMU-tested only) is specified as protocol `HW-INV` in
+[physical-protocols.json](physical-protocols.json), with its `HWINV:`
 markers, including a read-only ACPI DMAR table observation
 (`HWINV:ACPI:DMAR=...`) that records table presence only and is not evidence of
 VT-d containment. `tools/hw_evidence.py` binds the inventory JSON of a record to
 that record's own `HWINV:PCI:` lines and `HWINV:PCI:COUNT`, and its DMAR
-observation to the kernel's `ACPI:` discovery marker. Until the profile exists,
-no PCI inventory is available on COM1, on QEMU or on physical hardware. The RNG
+observation to the kernel's `ACPI:` discovery marker. The profile emits that
+inventory on COM1 in QEMU; no physical inventory has been captured. The RNG
 driver is now also started through segment-0 enumeration and a registered
 factory; the current QEMU fixture uses BDF `00:06.0`, but the driver does not
 require that location.

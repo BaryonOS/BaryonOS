@@ -1,0 +1,10 @@
+warning: unused dependency `nieuw-os-sdk-runtime`
+  --> examples/supervisor/Cargo.toml:11:1
+   |
+11 | nieuw-os-sdk-runtime = { path = "../../runtime" }
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `cargo::unused_dependencies` is set to `warn` by default
+help: consider removing the dependency on `nieuw-os-sdk-runtime`
+warning: `nieuw-os-supervisor-example` (manifest) generated 1 warning
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.02s

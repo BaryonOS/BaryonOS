@@ -1,7 +1,7 @@
 //! Opt-in v7 envelope for service-issued, principal-bound upload tokens.
 //! Ordinary operations keep the v6 payload/semantics. The four bytes at
-//! offset 4 carry a token only for a successful BEGIN reply and subsequent
-//! APPEND/COMMIT/ABORT. A token is correlation within granted domain authority,
+//! offset 4 carry a token only for a successful BEGIN or INSTALL_BEGIN reply
+//! and subsequent APPEND/COMMIT/ABORT/INSTALL_APPEND/INSTALL_COMMIT. A token is correlation within granted domain authority,
 //! never an object capability or a caller-chosen authorization identity.
 use crate::{client, get32, put32, wire, Status};
 
@@ -40,7 +40,10 @@ pub fn validate_request(
     let canonical = legacy(body)?;
     let h = wire::validate_request(&canonical, epoch, domain)?;
     let token = token(body);
-    let required = matches!(h.operation, wire::APPEND | wire::COMMIT | wire::ABORT);
+    let required = matches!(
+        h.operation,
+        wire::APPEND | wire::COMMIT | wire::ABORT | wire::INSTALL_APPEND | wire::INSTALL_COMMIT
+    );
     if (token != 0) != required {
         return Err(Status::Invalid);
     }
@@ -56,7 +59,9 @@ pub fn validate_reply(
     let canonical = legacy(body).map_err(|_| Status::Protocol)?;
     let h = client::validate_reply(request, &canonical, epoch)?;
     let response_token = token(body);
-    if request.operation == wire::BEGIN && h.status == Status::Ok as i32 {
+    if matches!(request.operation, wire::BEGIN | wire::INSTALL_BEGIN)
+        && h.status == Status::Ok as i32
+    {
         if response_token == 0 {
             return Err(Status::Protocol);
         }

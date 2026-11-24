@@ -99,9 +99,52 @@ machine itself does not receive COM1 output, and no USB serial driver exists.
 
 The COM1 `UNSUPPORTED:PCI` inventory described in earlier revisions of this
 document and of [DRIVER-ARCHITECTURE](DRIVER-ARCHITECTURE.md) was never
-implemented; no code emits that marker. Its replacement is the planned
-read-only `native-hw-inventory` profile (slice H06-T3), specified as protocol
-`HW-INV` with `HWINV:` markers.
+implemented; no code emits that marker. Its replacement is the read-only
+`native-hw-inventory` profile (slice H06-T3), specified as protocol `HW-INV`
+with `HWINV:` markers. The profile exists and is tested in QEMU only; see
+[HW-INV measurement package](#hw-inv-measurement-package).
+
+## HW-INV measurement package
+
+`python3 -B tools/build.py --kernel-feature native-hw-inventory` builds the
+paired kernel and the `hw-inventory` loader; one without the other is refused.
+The loader records the UEFI `SecureBoot` variable in a 16-byte firmware-facts
+extension at BootInfo offset 256 (`crates/boot-protocol/src/firmware.rs`);
+`EFI_NOT_FOUND` is reported as `ABSENT`, never as disabled. The kernel runs the
+normal IF0 M2 discovery, prints `M2:PASS`/`M1:PASS`, then the `HWINV:` block,
+and stops in a `CLI`/`HLT` loop. PCI identity is read only from configuration
+offsets `0x00`, `0x08` and `0x0C` of every present segment-0 function, through
+legacy mechanism 1; no BAR, command register or bus master is touched. Since
+H06-T5 every terminal path of the pair (panic, M1/M2 failure, M2 exception,
+`HWINV:FAIL`, serial timeout, loader `M1:FAIL` and the loader handoff return)
+halts without writing port `0xF4`; QEMU fixtures in
+[h06-halt-terminals-20261124](../verification/h06-halt-terminals-20261124/README.md).
+
+`python3 -B tools/hw_inventory.py --log <serial> --out <inventory.json>` turns
+one complete, passing `HWINV:` block into the schema-2 inventory JSON consumed
+by `tools/hw_evidence.py`; it rejects failure markers, reordered or duplicated
+lines, count mismatches and an absent DMAR table with units.
+
+QEMU reference configurations (`python3 -B tools/run_hw_inventory.py --case all`,
+`pc-q35-8.2`, TCG, one CPU, 256 MiB, OVMF without enrolled keys):
+
+| Case | CPU | Devices | Expected |
+|---|---|---|---|
+| `plain` | `qemu64,vendor=AuthenticAMD,-hypervisor` | default q35 | `VENDOR=AuthenticAMD:HYPERVISOR=0`, `DMAR=ABSENT:DRHD=0`, kernel `ACPI:UNAVAILABLE:NO_DMAR` |
+| `iommu` | `qemu64,vendor=GenuineIntel` | `intel-iommu`, `pcie-root-port` at `00:06.0`, `qemu-xhci` behind it | `VENDOR=GenuineIntel:HYPERVISOR=1`, `DMAR=PRESENT:DRHD=1`, kernel `ACPI:DISCOVERY:MCFG_DMAR` |
+| `image` | as `plain` | as `plain`; boots the removable-media image as a raw virtio disk instead of the virtual FAT directory | as `plain`, and the image SHA-256 equals its record before and after the run |
+
+Each case passes only when the `HWINV:` PCI set equals QMP `query-pci` (address,
+vendor, device, class, subclass, including functions behind bridges), QEMU is
+still running one second after `HWINV:PASS` (no exit-port write), no failure
+marker appears, `SECUREBOOT` is not `1`, the inventory binds to its own log, and
+`hw_evidence` rejects it as a virtual capture. Evidence limits: QEMU/TCG only;
+no physical PC or signed record, and the removable-media image has booted only
+in QEMU; `SECUREBOOT=0`/`1` is
+host-tested only; QEMU's `query-pci` is an oracle for QEMU, not for firmware on
+real hardware. A physical run still requires the owner decisions listed in
+[hardware-matrix.json](hardware-matrix.json) and the protocol in
+[physical-protocols.json](physical-protocols.json).
 
 ## Physical test protocols
 
@@ -115,7 +158,7 @@ protocol has been executed; all seven are **blocked**:
 
 | Protocol | Criterion / rows | Concrete blocking reasons |
 |---|---|---|
-| `HW-INV` v2 | H06 / FR-H03, FR-R03 | `native-hw-inventory` profile absent (H06-T3); no physical image; `0xF4` exit path; owner decisions |
+| `HW-INV` v3 | H06 / FR-H03, FR-R03 | `native-hw-inventory` profile present and QEMU-tested (H06-T3); every terminal path halts without `0xF4` (H06-T5, QEMU fixtures); removable-media image built and QEMU-booted (H06-T6) but never booted physically, and its GPT/FAT32 layout awaits `OD-HW-BOOT`; owner decisions |
 | `H05-S5` v1 | H05 / FR-S04 | no physical image; rejection paths exit through `0xF4`; no `SMI_CMD`/`ACPI_ENABLE`, `_PTS`/`_TTS`; owner decisions |
 | `H05-S3` v1 | H05 / FR-S05 | QEMU-native S3 entry/resume exists (`native-acpi-s3`, [h05-native-s3-20261119](../verification/h05-native-s3-20261119/README.md)) but is woken only by QMP `system_wakeup` under the QEMU/OVMF `Edk2Version0Extended` vector policy; physical firmware path (FACS version, real-mode or extended vector, `_PTS`/`_WAK`) unverified; no physical wake source (`OD-HW-POWER`); protocol markers not yet emitted in the specified form; must not rely on `0xF4`; owner decisions |
 | `H02-USB` v2 | H02 / FR-H01 | xHCI accepts only QEMU `1b36:000d` and maps its BAR0 at a fixed kernel virtual address; VT-d availability unknown until `HW-INV` records the DMAR table; no IRQ/hub/hotplug; `0xF4` exit |
@@ -123,7 +166,8 @@ protocol has been executed; all seven are **blocked**:
 | `H04-NET` v1 | H04 / FR-H03 | no e1000e driver; Wi-Fi/Bluetooth excluded pending `OD-HW-FAMILIES`; `0xF4` exit |
 | `R03-INSTALL` v2 | R01 / FR-R03 | no installer image; no NVMe, AHCI or USB mass-storage driver; install-target transport undecided (`OD-HW-DISKS`, `OD-HW-FAMILIES`); physical disk writes not authorised |
 
-Version 2 of `HW-INV` adds the read-only `HWINV:ACPI:DMAR=<PRESENT|ABSENT>:DRHD=<n>`
+Version 3 of `HW-INV` adds the `M2:FAIL*` failure marker (H06-T5: the M2 kernel
+exception path of the profile). Version 2 of `HW-INV` adds the read-only `HWINV:ACPI:DMAR=<PRESENT|ABSENT>:DRHD=<n>`
 observation and inventory schema 2 (`acpi.dmar`, `acpi.drhd_units`); version 2
 of `H02-USB` requires that observation (DMAR present, at least one DRHD unit)
 and an xHCI function (`0c/03/30`) in the bound inventory. A DMAR table is never
@@ -142,12 +186,21 @@ of each prerequisite exists with the same target, `source_sha256`,
 Common to every protocol:
 
 - The image is a **removable-media** image whose SHA-256 is recorded and
-  re-read from the medium. No such image can be built yet: `tools/build.py`
-  exports an ESP directory for QEMU's virtual FAT backend, and
-  `tools/repro_check.py` compares only that ESP payload manifest.
-- Every milestone-m2 terminal path calls `exit()` in `kernel/src/serial.rs`,
-  which writes QEMU's `isa-debug-exit` port `0xF4`. That port is undefined on
-  physical PCs; a physical image first needs a halt-based terminal path.
+  re-read from the medium. `tools/hw_inventory_image.py` builds one only for
+  `HW-INV`: a fixed 64 MiB raw GPT disk with one FAT32 EFI system partition
+  (8.3 upper-case names, timestamps fixed at 1980-01-01, GUIDs and volume
+  serial derived from the payload), so the same ESP payload yields the same
+  bytes. It writes a regular file in the build directory and records
+  `image_sha256` and `image_bytes`; on a larger medium step S1 compares the
+  first `image_bytes` bytes. The GPT backup header then sits inside the medium
+  rather than at its end. The layout is an assumption until `OD-HW-BOOT` is
+  decided, and the loader is not yet bit-reproducible (B04), so a rebuild from
+  a clean checkout can produce a different image hash. The other protocols'
+  kernel features still have no image.
+- Outside the `native-hw-inventory` profile, every milestone-m2 terminal path
+  calls `exit()` in `kernel/src/serial.rs`, which writes QEMU's `isa-debug-exit`
+  port `0xF4`. That port is undefined on physical PCs; each such profile first
+  needs a halt-based terminal path, as `native-hw-inventory` has since H06-T5.
 - Forbidden: firmware flashing, saving firmware settings, `BootOrder` or other
   persistent UEFI variable changes, Secure Boot key or state changes, internal
   disk access, and personal data. Boot only through the firmware one-time boot

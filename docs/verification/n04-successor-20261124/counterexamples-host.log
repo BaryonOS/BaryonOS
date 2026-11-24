@@ -1,0 +1,21 @@
+source={"local_commit": "831d841cc023e05b81621c31cf8b130cd1ab093c", "tree": "d7d113f8970ffe0f968591efa0ea0b5a77835d85", "published_head": "863541014d92de0108b2c29063b04a012acbe8db"}
+test_port_sweep_rejects_listeners_replies_and_traffic_during_sweeps (test_network_service_peer.PeerChecks.test_port_sweep_rejects_listeners_replies_and_traffic_during_sweeps) ... negative_control={"expected": "ProtocolError", "input": {"name": "syn-ack"}, "passed": true}
+negative_control={"expected": "ProtocolError", "input": {"name": "wrong-ack"}, "passed": true}
+negative_control={"expected": "ProtocolError", "input": {"name": "bare-rst"}, "passed": true}
+negative_control={"expected": "ProtocolError", "input": {"name": "ack-only"}, "passed": true}
+negative_control={"expected": "ProtocolError", "input": {"name": "rst-ack-fin"}, "passed": true}
+negative_control={"expected": "ProtocolError", "input": {"name": "rst-without-ack"}, "passed": true}
+negative_control={"expected": "ProtocolError", "input": {"name": "post-peer"}, "passed": true}
+negative_control={"expected": "ProtocolError", "input": {"name": "unsent-port"}, "passed": true}
+negative_control={"expected": "ProtocolError", "input": {"name": "twice"}, "passed": true}
+negative_control={"expected": "ProtocolError", "input": {"name": "app-syn"}, "passed": true}
+negative_control={"expected": "ProtocolError", "input": {"name": "guest-arp-request"}, "passed": true}
+negative_control={"expected": "ProtocolError", "input": {"name": "unrequested-arp-reply"}, "passed": true}
+negative_control={"expected": "ProtocolError", "input": {"name": "udp-reply"}, "passed": true}
+negative_control={"expected": "ProtocolError", "input": {"name": "app-udp"}, "passed": true}
+ok
+
+----------------------------------------------------------------------
+Ran 1 test in 0.001s
+
+OK

@@ -1,0 +1,60 @@
+{
+  "schema": 2,
+  "kind": "baryonos-hw-inventory",
+  "cpuid": {
+    "vendor": "AuthenticAMD",
+    "hypervisor_bit": false
+  },
+  "secure_boot": "unknown",
+  "acpi": {
+    "dmar": "absent",
+    "drhd_units": 0
+  },
+  "pci": [
+    {
+      "address": "0000:00:00.0",
+      "vendor": "8086",
+      "device": "29c0",
+      "class": "06",
+      "subclass": "00",
+      "prog_if": "00",
+      "revision": "00"
+    },
+    {
+      "address": "0000:00:01.0",
+      "vendor": "1af4",
+      "device": "1001",
+      "class": "01",
+      "subclass": "00",
+      "prog_if": "00",
+      "revision": "00"
+    },
+    {
+      "address": "0000:00:1f.0",
+      "vendor": "8086",
+      "device": "2918",
+      "class": "06",
+      "subclass": "01",
+      "prog_if": "00",
+      "revision": "02"
+    },
+    {
+      "address": "0000:00:1f.2",
+      "vendor": "8086",
+      "device": "2922",
+      "class": "01",
+      "subclass": "06",
+      "prog_if": "01",
+      "revision": "02"
+    },
+    {
+      "address": "0000:00:1f.3",
+      "vendor": "8086",
+      "device": "2930",
+      "class": "0c",
+      "subclass": "05",
+      "prog_if": "00",
+      "revision": "02"
+    }
+  ]
+}

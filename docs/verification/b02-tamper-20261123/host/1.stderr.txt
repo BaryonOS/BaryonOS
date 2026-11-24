@@ -1,0 +1,9 @@
+   Compiling zeroize v1.9.1
+   Compiling capability-core v0.1.0 (/home/simon/projects/BaryonOS-worktrees/b02-tamper-native/crates/capability-core)
+   Compiling nieuw-os-sdk-runtime v0.1.0 (/home/simon/projects/BaryonOS-worktrees/b02-tamper-native/sdk/runtime)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.36s
+     Running unittests src/lib.rs (target/debug/build/nieuw-os-sdk-runtime/1a38cc93d976eeab/out/nieuw_os_sdk_runtime-1a38cc93d976eeab)
+     Running tests/message.rs (target/debug/build/nieuw-os-sdk-runtime/572f88b4869b297d/out/message-572f88b4869b297d)
+     Running tests/process.rs (target/debug/build/nieuw-os-sdk-runtime/04b5b886ced9df10/out/process-04b5b886ced9df10)
+     Running tests/tls_time.rs (target/debug/build/nieuw-os-sdk-runtime/36cd8d45cff398fa/out/tls_time-36cd8d45cff398fa)
+   Doc-tests nieuw_os_sdk_runtime

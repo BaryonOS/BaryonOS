@@ -39,6 +39,14 @@ fn evidence(service: &Service) {
     support::put(376, u64::from(service.uncertain()));
 }
 
+// Keep recovery's table copies out of the long-lived serving frame: inlined,
+// they stay on the private stack under every request, and with the S09 L2
+// install session linked in the deepest commit path then overflows it.
+#[inline(never)]
+fn recover(epoch: u64, read_only: bool, disk: &mut NativeDisk) -> Result<Service, Status> {
+    Service::recover(epoch, read_only, disk)
+}
+
 fn startup_error(code: Status) -> ! {
     support::put(232, code as i32 as i64 as u64);
     support::put(192, 9);
@@ -100,11 +108,49 @@ pub extern "C" fn _start() -> ! {
         startup_error(Status::Invalid);
     }
     let mut disk = NativeDisk { device };
-    let mut service = match Service::recover(epoch, read_only, &mut disk) {
+    // Borrow the service inside the Result: moving it out keeps a second
+    // ~20 KiB copy in this frame for the whole life of the process.
+    let mut recovered = recover(epoch, read_only, &mut disk);
+    let service = match &mut recovered {
         Ok(service) => service,
-        Err(error) => startup_error(error),
+        Err(error) => startup_error(*error),
     };
-    evidence(&service);
+    serve(
+        service,
+        &mut disk,
+        ServeContext {
+            epoch,
+            idle_wait,
+            roots,
+            conditions,
+            replies,
+            clients,
+        },
+    )
+}
+
+struct ServeContext {
+    epoch: u64,
+    idle_wait: bool,
+    roots: [ReceiveEndpoint; 2],
+    conditions: [WaitCondition; 2],
+    replies: [SendEndpoint; 2],
+    clients: [u64; 2],
+}
+
+// The serving loop gets its own frame, separate from recovery's temporaries
+// in `_start`, so every request runs on the shallowest possible stack.
+#[inline(never)]
+fn serve(service: &mut Service, disk: &mut NativeDisk, context: ServeContext) -> ! {
+    let ServeContext {
+        epoch,
+        idle_wait,
+        roots,
+        conditions,
+        replies,
+        clients,
+    } = context;
+    evidence(service);
     support::put(232, 0);
     support::put(192, 1);
     loop {
@@ -156,11 +202,11 @@ pub extern "C" fn _start() -> ! {
             } else if token_bound {
                 // Sender is kernel-delivered envelope metadata, already
                 // matched to this ingress's authorized client above.
-                service.handle_for(domain, message.sender(), &body, &mut disk)
+                service.handle_for(domain, message.sender(), &body, disk)
             } else {
-                service.handle(domain, &body, &mut disk)
+                service.handle(domain, &body, disk)
             };
-            evidence(&service);
+            evidence(service);
             send(
                 replies[domain],
                 if token_bound { upload::TAG } else { wire::TAG },

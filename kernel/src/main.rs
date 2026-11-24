@@ -15,6 +15,24 @@ mod m2;
 #[cfg(feature = "native-smp-legacy")]
 #[path = "m2_legacy/mod.rs"]
 mod m2;
+// The legacy keyring has no B01-T2 cases; it would silently run another case.
+#[cfg(all(
+    feature = "native-smp-legacy",
+    any(
+        feature = "test-keyring-requester-crash",
+        feature = "test-keyring-no-reset-ack"
+    )
+))]
+compile_error!("B01-T2 keyring cases exist only in the current m2 kernel");
+// The B01-T2 fixtures change shared broker paths; keep them out of the system profile.
+#[cfg(all(
+    feature = "native-system",
+    any(
+        feature = "test-keyring-requester-crash",
+        feature = "test-keyring-no-reset-ack"
+    )
+))]
+compile_error!("B01-T2 keyring fixtures are only for the native-keyring profile");
 mod memory;
 mod serial;
 #[cfg(all(
@@ -30,6 +48,26 @@ mod serial;
     )
 ))]
 compile_error!("native-xhci-probe exclusively owns the single-CPU IF0 DMA fixture");
+// Other native profiles reach this list through milestone-m3, framebuffer,
+// native-smp, native-xhci-probe or acpi-s3-core; a new profile that implies none
+// of them must be added here.
+#[cfg(all(
+    feature = "native-hw-inventory",
+    any(
+        feature = "milestone-m3",
+        feature = "framebuffer",
+        feature = "native-smp",
+        feature = "native-rtc",
+        feature = "native-acpi-s5",
+        feature = "acpi-s3-core",
+        feature = "native-xhci-probe",
+        feature = "native-virtio-snd-probe",
+        feature = "native-dispi-probe"
+    )
+))]
+compile_error!(
+    "native-hw-inventory is a read-only single-CPU IF0 profile; no other subsystem may run"
+);
 #[cfg(all(feature = "test-xhci-dma-fault", feature = "test-xhci-no-dmar"))]
 compile_error!("xHCI negative cases require separate boots");
 #[cfg(all(
@@ -38,10 +76,23 @@ compile_error!("xHCI negative cases require separate boots");
 ))]
 compile_error!("USB HID and legacy xHCI negative cases require separate boots");
 #[cfg(all(
-    feature = "native-usb-hid-reattach",
+    feature = "usb-hid-reattach-core",
     feature = "test-usb-hid-readonly-fault"
 ))]
 compile_error!("USB reattach and the read-only DMA fault require separate boots");
+#[cfg(all(
+    feature = "native-usb-hid-reattach",
+    feature = "native-usb-hid-mouse-reattach"
+))]
+compile_error!("USB keyboard and mouse reattach require separate boots");
+#[cfg(all(
+    feature = "usb-hid-reattach-core",
+    not(any(
+        feature = "native-usb-hid-reattach",
+        feature = "native-usb-hid-mouse-reattach"
+    ))
+))]
+compile_error!("usb-hid-reattach-core is internal; select a reattach profile");
 #[cfg(all(
     feature = "native-virtio-snd-probe",
     any(
@@ -88,6 +139,12 @@ compile_error!("native-rtc exclusively owns CMOS in the single-CPU IF0 bootstrap
     )
 ))]
 compile_error!("native-acpi-s5 ends the single-CPU IF0 bootstrap; no other subsystem may run");
+#[cfg(all(
+    feature = "test-system-net-link",
+    feature = "native-net-service",
+    not(feature = "test-net-service-link")
+))]
+compile_error!("the link test module has a ring-3 service consumer only in test-net-service-link");
 #[cfg(all(
     feature = "native-acpi-s3",
     any(

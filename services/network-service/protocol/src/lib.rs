@@ -6,6 +6,11 @@ pub const VERSION: u16 = 1;
 pub const SIZE: usize = 256;
 pub const HEADER: usize = 48;
 pub const DATA: usize = SIZE - HEADER;
+/// Longest Resolve hostname: bounded by one request body, not the 253-byte
+/// DNS maximum. shortcut: longer names need a multi-message request format.
+pub const MAX_NAME: usize = DATA;
+/// At most this many IPv4 addresses (4 bytes each) in one Resolve reply.
+pub const MAX_RESOLVED: usize = 8;
 const REPLY: u16 = 0x8000;
 #[repr(u16)]
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -18,6 +23,8 @@ pub enum Operation {
     SendUdp = 6,
     ReceiveUdp = 7,
     Retire = 8,
+    /// IPv4 lookup through the caller's granted, lease-provided DNS server.
+    Resolve = 9,
 }
 impl Operation {
     fn decode(value: u16) -> Result<Self, Error> {
@@ -30,6 +37,7 @@ impl Operation {
             6 => Self::SendUdp,
             7 => Self::ReceiveUdp,
             8 => Self::Retire,
+            9 => Self::Resolve,
             _ => return Err(Error::Operation),
         })
     }
@@ -48,6 +56,10 @@ pub enum Status {
     Timeout = 8,
     Uncertain = 9,
     Exhausted = 10,
+    /// Authoritative NXDOMAIN or no address of the requested type.
+    NotFound = 11,
+    /// SERVFAIL, truncation (no TCP fallback) or another server refusal.
+    ServerFailure = 12,
 }
 impl Status {
     fn decode(value: u32) -> Result<Self, Error> {
@@ -63,6 +75,8 @@ impl Status {
             8 => Self::Timeout,
             9 => Self::Uncertain,
             10 => Self::Exhausted,
+            11 => Self::NotFound,
+            12 => Self::ServerFailure,
             _ => return Err(Error::Status),
         })
     }
@@ -125,6 +139,21 @@ fn get32(bytes: &[u8], at: usize) -> u32 {
 fn get64(bytes: &[u8], at: usize) -> u64 {
     u64::from_le_bytes(bytes[at..at + 8].try_into().unwrap())
 }
+/// ASCII LDH hostname, optional trailing dot, labels of 1..=63 bytes that
+/// start and end alphanumeric. Checked again by the service's DNS encoder.
+pub fn valid_name(name: &[u8]) -> bool {
+    let text = name.strip_suffix(b".").unwrap_or(name);
+    !text.is_empty()
+        && name.len() <= MAX_NAME
+        && text.split(|b| *b == b'.').all(|label| {
+            (1..=63).contains(&label.len())
+                && label[0].is_ascii_alphanumeric()
+                && label[label.len() - 1].is_ascii_alphanumeric()
+                && label
+                    .iter()
+                    .all(|b| b.is_ascii_alphanumeric() || *b == b'-')
+        })
+}
 impl HeaderFields {
     fn encode(self, status: Status, reply: bool) -> [u8; SIZE] {
         let mut b = [0; SIZE];
@@ -152,7 +181,9 @@ impl Packet {
             bytes: header.encode(Status::Ok, false),
         };
         let length = match header.operation {
-            Operation::SendTcp | Operation::SendUdp => header.argument as usize,
+            Operation::SendTcp | Operation::SendUdp | Operation::Resolve => {
+                header.argument as usize
+            }
             _ => 0,
         };
         if data.len() != length || length > DATA {
@@ -169,7 +200,7 @@ impl Packet {
         if status == Status::Ok
             && matches!(
                 header.operation,
-                Operation::ReceiveTcp | Operation::ReceiveUdp
+                Operation::ReceiveTcp | Operation::ReceiveUdp | Operation::Resolve
             )
         {
             assert_eq!(data.len(), argument as usize);
@@ -222,6 +253,13 @@ impl Packet {
                 }
                 0
             }
+            Operation::Resolve => {
+                let length = h.argument as usize;
+                if length > MAX_NAME || !valid_name(&p.bytes[HEADER..HEADER + length]) {
+                    return Err(Error::Argument);
+                }
+                length
+            }
             _ => {
                 if h.argument != 0 {
                     return Err(Error::Argument);
@@ -236,7 +274,11 @@ impl Packet {
         }
         if matches!(
             h.operation,
-            Operation::OpenTcp | Operation::SendUdp | Operation::ReceiveUdp | Operation::Retire
+            Operation::OpenTcp
+                | Operation::SendUdp
+                | Operation::ReceiveUdp
+                | Operation::Retire
+                | Operation::Resolve
         ) && h.connection != 0
         {
             return Err(Error::Reserved);
@@ -259,8 +301,10 @@ impl Packet {
             return Err(Error::Binding);
         }
         let length = if p.status() == Status::Ok
-            && matches!(h.operation, Operation::ReceiveTcp | Operation::ReceiveUdp)
-        {
+            && matches!(
+                h.operation,
+                Operation::ReceiveTcp | Operation::ReceiveUdp | Operation::Resolve
+            ) {
             h.argument as usize
         } else {
             0
@@ -290,6 +334,11 @@ impl Packet {
                     if h.argument != 0 {
                         return Err(Error::Argument);
                     }
+                }
+                Operation::Resolve
+                    if length == 0 || length % 4 != 0 || length > 4 * MAX_RESOLVED =>
+                {
+                    return Err(Error::Argument);
                 }
                 _ => {}
             }
@@ -333,7 +382,11 @@ impl Packet {
         let h = self.header();
         let length = if matches!(
             h.operation,
-            Operation::SendTcp | Operation::SendUdp | Operation::ReceiveTcp | Operation::ReceiveUdp
+            Operation::SendTcp
+                | Operation::SendUdp
+                | Operation::ReceiveTcp
+                | Operation::ReceiveUdp
+                | Operation::Resolve
         ) {
             h.argument as usize
         } else {

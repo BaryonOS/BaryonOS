@@ -8,18 +8,23 @@ PHDRS {
 }
 SECTIONS {
   . = 0x02000000;
-  __kernel_start = .;
   .text : ALIGN(4096) { KEEP(*(.text.entry)) *(.text .text.*) } :text
   . = ALIGN(4096);
-  __text_end = .;
   .rodata : { *(.rodata .rodata.*) } :rodata
   . = ALIGN(4096);
-  __rodata_end = .;
   /* LLVM emits a small GOT with link-time resolved pointers between Rust crates.
      Include it explicitly; the build inspector rejects all runtime relocations. */
   .data : { *(.data .data.*) *(.got .got.*) } :data
   .bss (NOLOAD) : ALIGN(16) { *(.bss .bss.*) *(COMMON) } :data
-  __kernel_end = ALIGN(4096);
   /DISCARD/ : { *(.eh_frame*) *(.comment) *(.note*) }
+  /* Boundaries derive from section addresses, not the location counter: cargo
+     merges an enclosing checkout's .cargo/config.toml, passing this script twice,
+     and lld then resolved `sym = .` assignments to the base address. */
+  __kernel_start = ADDR(.text);
+  __text_end = ADDR(.rodata);
+  __rodata_end = ADDR(.data);
+  __kernel_end = ALIGN(ADDR(.bss) + SIZEOF(.bss), 4096);
+  ASSERT(__kernel_start < __text_end && __text_end <= __rodata_end && __rodata_end < __kernel_end,
+         "kernel layout symbols out of order")
   ASSERT(__kernel_end <= 0x03000000, "kernel exceeds reserved span")
 }

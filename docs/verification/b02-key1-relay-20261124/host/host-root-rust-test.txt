@@ -1,0 +1,1311 @@
+   Compiling subtle v2.6.1
+   Compiling typenum v1.20.1
+   Compiling catalog-core v0.1.0 (~/projects/BaryonOS-worktrees/b-cycle-20261124/services/catalog)
+   Compiling proc-macro2 v1.0.107
+   Compiling unicode-ident v1.0.27
+   Compiling quote v1.0.47
+   Compiling autocfg v1.5.1
+   Compiling semver v1.0.28
+   Compiling cmov v0.5.4
+   Compiling zeroize v1.9.2
+   Compiling cfg-if v1.0.5
+   Compiling destination-core v0.1.0 (~/projects/BaryonOS-worktrees/b-cycle-20261124/services/destination)
+   Compiling sponge-cursor v0.1.0
+   Compiling cpufeatures v0.3.1
+   Compiling boot-protocol v0.1.0 (~/projects/BaryonOS-worktrees/b-cycle-20261124/crates/boot-protocol)
+   Compiling cpufeatures v0.2.17
+   Compiling driver-core v0.1.0 (~/projects/BaryonOS-worktrees/b-cycle-20261124/crates/driver-core)
+   Compiling object-core v0.1.0 (~/projects/BaryonOS-worktrees/b-cycle-20261124/services/objects)
+   Compiling ui-core v0.1.0 (~/projects/BaryonOS-worktrees/b-cycle-20261124/crates/ui-core)
+   Compiling kernel-core v0.1.0 (~/projects/BaryonOS-worktrees/b-cycle-20261124/crates/kernel-core)
+   Compiling block-protocol v0.1.0 (~/projects/BaryonOS-worktrees/b-cycle-20261124/services/block)
+   Compiling keccak v0.2.2
+   Compiling virtio-net-driver v0.1.0 (~/projects/BaryonOS-worktrees/b-cycle-20261124/drivers/virtio-net)
+   Compiling virtio-blk-driver v0.1.0 (~/projects/BaryonOS-worktrees/b-cycle-20261124/drivers/virtio-blk)
+   Compiling hybrid-array v0.4.15
+   Compiling digest v0.10.7
+   Compiling virtio-core v0.1.0 (~/projects/BaryonOS-worktrees/b-cycle-20261124/crates/virtio-core)
+   Compiling pci-core v0.1.0 (~/projects/BaryonOS-worktrees/b-cycle-20261124/crates/pci-core)
+   Compiling ctutils v0.4.7
+   Compiling volume-core v0.1.0 (~/projects/BaryonOS-worktrees/b-cycle-20261124/services/volume)
+   Compiling rustc_version v0.4.1
+   Compiling elf-loader-core v0.1.0 (~/projects/BaryonOS-worktrees/b-cycle-20261124/crates/elf-loader-core)
+   Compiling sha2 v0.10.9
+   Compiling hmac v0.12.1
+   Compiling num-traits v0.2.19
+   Compiling hkdf v0.12.4
+   Compiling curve25519-dalek v5.0.0
+   Compiling syn v2.0.119
+   Compiling crypto-common v0.2.2
+   Compiling block-buffer v0.12.1
+   Compiling inout v0.2.6
+   Compiling generic-array v0.14.7
+   Compiling module-lattice v0.2.4
+   Compiling block-buffer v0.10.4
+   Compiling crypto-common v0.1.7
+   Compiling digest v0.11.3
+   Compiling cipher v0.5.2
+   Compiling universal-hash v0.6.1
+   Compiling aead v0.6.1
+   Compiling poly1305 v0.9.1
+   Compiling sha2 v0.11.1
+   Compiling hmac v0.13.0 (~/projects/BaryonOS-worktrees/b-cycle-20261124/services/keyring/vendor/hmac-0.13.0)
+   Compiling signature v3.0.0
+   Compiling shake v0.1.0
+   Compiling ed25519 v3.0.0
+   Compiling ml-dsa v0.1.2
+   Compiling chacha20 v0.10.2
+   Compiling hkdf v0.13.0 (~/projects/BaryonOS-worktrees/b-cycle-20261124/services/keyring/vendor/hkdf-0.13.0)
+   Compiling chacha20poly1305 v0.11.0
+   Compiling keyring-core v0.1.0 (~/projects/BaryonOS-worktrees/b-cycle-20261124/services/keyring)
+   Compiling curve25519-dalek-derive v0.1.1
+   Compiling ed25519-dalek v3.0.0
+   Compiling update-core v0.1.0 (~/projects/BaryonOS-worktrees/b-cycle-20261124/crates/update-core)
+   Compiling update-tool v0.1.0 (~/projects/BaryonOS-worktrees/b-cycle-20261124/tools/update-tool)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 2.68s
+     Running unittests src/lib.rs (~/projects/BaryonOS-scratch/b/relay-20261124/cargo/debug/build/block-protocol/073d699304e6df72/out/block_protocol-073d699304e6df72)
+
+running 20 tests
+test journal::tests::cas_full_and_append_preserve_previous_record ... ok
+test journal::tests::checksum_does_not_replace_structural_validation ... ok
+test journal::tests::no_implicit_format_for_empty_or_corrupt_volume ... ok
+test m6_wire::tests::get_put_rights_and_zero_request_data ... ok
+test journal::tests::exact_format_and_roundtrip ... ok
+test journal::tests::invalid_tail_can_be_replaced_after_recovery ... ok
+test m6_wire::tests::malformed_fields_and_epoch_never_validate ... ok
+test m6_wire::tests::put_length_generation_bounds ... ok
+test journal::tests::prefix256_tail_recovers_old_while_full_record_recovers_new ... ok
+test m6_wire::tests::reply_ack_and_errors_are_zero_and_correlated ... ok
+test wire::tests::error_reply_is_empty_and_cannot_smuggle_old_data ... ok
+test wire::tests::exact_header_offsets_and_valid_boundary ... ok
+test wire::tests::bad_version_flags_status_reserved_and_request_data ... ok
+test wire::tests::four_slices_accumulate_same_diagnostic_checksum_as_one_sector ... ok
+test wire::tests::reply_correlation_epoch_and_tail_are_checked ... ok
+test wire::tests::reply_uses_only_supplied_slice_and_zeroes_all_unused_bytes ... ok
+test wire::tests::stale_epoch_is_rejected_without_returning_a_valid_request ... ok
+test wire::tests::unsupported_write_and_unknown_opcode_have_no_read_request ... ok
+test wire::tests::zero_oversized_overflow_and_cross_scope_ranges ... ok
+test journal::tests::every_single_byte_corruption_is_detected_for_this_record ... ok
+
+test result: ok. 20 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/lib.rs (~/projects/BaryonOS-scratch/b/relay-20261124/cargo/debug/build/boot-protocol/07cc61270a080275/out/boot_protocol-07cc61270a080275)
+
+running 33 tests
+test acpi::tests::a_second_madt_makes_the_processor_inventory_ambiguous ... ok
+test acpi::tests::discovers_bounded_mcfg_and_dmar_but_never_enables_dma ... ok
+test acpi::tests::handoff_states_and_fixed_wire_shape_are_checked ... ok
+test acpi::tests::accepts_valid_dmar_flags_and_drhd_size_but_rejects_reserved_bits ... ok
+test acpi::tests::madt_inventory_keeps_only_enabled_unique_processors ... ok
+test acpi::tests::native_dma_profile_rejects_unsupported_or_ambiguous_inventory ... ok
+test acpi::tests::missing_madt_is_explicit_and_other_inventory_survives ... ok
+test acpi::tests::malformed_dmar_scope_never_establishes_requester_coverage ... ok
+test acpi::tests::native_dma_profile_requires_actual_requester_coverage ... ok
+test acpi::tests::no_dmar_is_an_explicit_unavailable_state ... ok
+test acpi::tests::rejects_bad_rsdp_checksum_and_untrusted_handoff ... ok
+test acpi::tests::rejects_bad_checksums_lengths_addresses_and_mcfg_overlap ... ok
+test acpi::tests::rejects_dmar_register_and_reserved_memory_ranges_outside_bounds ... ok
+test acpi::tests::rejects_root_shape_short_headers_duplicate_mcfg_and_extended_checksum ... ok
+test acpi::tests::rsdt_root_uses_four_byte_entries_and_checks_their_shape ... ok
+test acpi::tests::reused_result_never_keeps_a_stale_inventory ... ok
+test acpi::tests::single_fadt_address_is_recorded_and_duplicates_fail_closed ... ok
+test acpi::tests::unsupported_dmar_structures_remain_visible_to_native_profile ... ok
+test acpi::tests::single_local_apic_address_override_replaces_the_base ... ok
+test acpi::tests::unreadable_madt_body_fails_only_smp_closed ... ok
+test graphics::tests::framebuffer_bounds_formats_and_checked_span ... ok
+test acpi::tests::malformed_processor_inventory_fails_only_smp_closed ... ok
+test graphics::tests::framebuffer_cannot_overlap_ram_of_any_ordinary_type ... ok
+test graphics::tests::framebuffer_hole_adjacency_and_rounded_last_page_are_checked ... ok
+test graphics::tests::graphics_header_is_exact_opt_in_and_preserves_legacy_rejection ... ok
+test graphics::tests::graphics_map_keeps_all_five_owned_retained_allocations ... ok
+test stable::tests::explicit_wire_fixture_and_offsets ... ok
+test stable::tests::invalid_header_and_received_pointer_are_rejected ... ok
+test stable::tests::map_shape_and_stride_are_checked ... ok
+test stable::tests::overlap_overflow_and_zero_pages_rejected_unknown_memory_reserved ... ok
+test stable::tests::ranges_must_be_aligned_bounded_nonoverlapping ... ok
+test stable::tests::unsorted_extended_stride_and_adjacent_descriptors_cover_allocations ... ok
+test acpi::tests::mutated_madt_never_panics_and_valid_results_keep_invariants ... ok
+
+test result: ok. 33 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/lib.rs (~/projects/BaryonOS-scratch/b/relay-20261124/cargo/debug/build/capability-core/70427b25c01b6e2e/out/capability_core-70427b25c01b6e2e)
+
+running 80 tests
+test digest_differential::host_microbenchmark_reference_and_optimized ... ignored, host cost/ratio only; invoke explicitly, never native performance evidence
+test manifest_handle_count_tests::every_slot_except_zero_is_counted_until_the_table_is_full ... ok
+test digest_differential::zero_runs_compose_exactly_across_boundaries_for_all_table_lengths ... ok
+test manifest_handle_count_tests::manifest_equation_is_exact_and_detects_a_seventh_app_handle ... ok
+test snapshot_tests::snapshot_storage_rejects_reentrancy_and_releases_on_scope_exit ... ok
+test tests::exact_public_error_numbers_match_the_syscall_contract ... ok
+test snapshot_tests::snapshot_message_erasure_covers_all_headers_descriptors_and_payload_bytes ... ok
+test tests::endpoint_replacement_preflight_keeps_remote_leaves_and_ignores_stale_handles ... ok
+test tests::endpoint_replacement_preflight_conservatively_retains_queued_capabilities ... ok
+test tests::ks10_wire_exact_offsets_canonical_fields_and_misaligned_byte_source ... ok
+test tests::closed_object_tombstones_hold_global_capacity_without_retargeting ... ok
+test tests::display_input_generation_exhaustion_retires_sole_object_without_wrap ... ok
+test tests::console_source_rejects_unknown_selector_without_mutation ... ok
+test tests::ks11_snapshot_fifo_and_queue_quota ... ok
+test tests::k05_spawner_exit_ends_grandchildren_iteratively ... ok
+test tests::b01_entropy_authorization_distinguishes_reused_handles_and_objects ... ok
+test tests::k05_rights_constants_and_known_mask ... ok
+test tests::ks13_all_transfer_authority_precedes_any_depth_resource_failure ... ok
+test tests::k05_invalid_death_states_and_duplicate_children_are_rejected ... ok
+test tests::display_input_creation_checks_slot_node_and_pid_quota_atomically ... ok
+test tests::ks10_bounded_wire_bit_fuzz_never_panics_or_mutates_on_reject ... ok
+test tests::ks15_slot_node_object_max_generation_retire_without_aba ... ok
+test tests::k05_launch_is_typed_non_derivable_non_transferable_and_closable ... ok
+test tests::b01_entropy_capability_is_typed_exclusive_and_bounded ... ok
+test tests::ks15_depth_eight_parent_retention_and_reclamation ... ok
+test tests::k05_running_child_without_handles_stays_an_orphan_candidate ... ok
+test digest_differential::dense_private_corruptions_cover_every_table_field_and_inactive_queue ... ok
+test tests::ks16_exit_revokes_received_and_issued_descendants_and_queued_caps ... ok
+test tests::global_stats_report_capacity_and_reclaim_after_queue_exhaustion_and_exit ... ok
+test tests::ks14_revocation_after_delivery_and_close_do_not_recall_bytes ... ok
+test tests::ks12_process_local_numeric_collision_and_stale_handles ... ok
+test tests::ks10_message_rejection_and_endpoint_priority_are_atomic ... ok
+test tests::ks14_revoke_cancels_whole_queued_transfer_but_preserves_fifo ... ok
+test tests::ks13_attenuation_transfer_and_zero_rights ... ok
+test tests::endpoint_object_identifies_shared_endpoints_without_granting_anything ... ok
+test tests::m5_block_scope_invalid_masks_error_order_and_generation_retirement ... ok
+test tests::k05_process_object_reports_lifecycle_to_its_spawner_only ... ok
+test tests::m5_block_transfer_revoke_and_owner_exit_use_common_lifetimes ... ok
+test tests::ks14_revoke_is_not_array_order_dependent_and_preserves_own_node ... ok
+test tests::power_close_and_exit_reclaim_without_restoring_stale_handle ... ok
+test tests::m6_writable_objects_do_not_reduce_endpoint_or_separate_block_quota ... ok
+test tests::endpoint_owner_and_global_quotas_recover_after_close ... ok
+test tests::power_cannot_derive_delegate_transfer_or_revoke ... ok
+test tests::k05_launch_quota_and_owner_exit_close_objects ... ok
+test tests::display_input_close_reuse_exit_never_restore_stale_source ... ok
+test tests::display_input_sources_cannot_derive_transfer_revoke_or_escalate ... ok
+test snapshot_tests::snapshots_preserve_failed_operation_and_detect_unexpected_error_write ... ok
+test tests::m5_block_quota_is_separate_from_all_64_endpoint_objects ... ok
+test tests::m5_revoked_queued_block_cap_cancels_complete_mixed_type_message ... ok
+test tests::display_input_sources_are_sole_typed_manifest_authorities ... ok
+test tests::ks15_receive_reserves_both_slots_before_commit ... ok
+test tests::m6_explicit_write_flush_roots_preserve_legacy_rights_and_type_boundary ... ok
+test tests::m5_block_type_scope_and_admin_close_are_enforced ... ok
+test tests::k05_delegation_precheck_matches_bootstrap_rules ... ok
+test tests::ks16_last_receive_close_tombstone_and_revoked_before_closed ... ok
+test tests::monotone_process_identity_quota_and_process_row_reuse ... ok
+test tests::k05_process_quota_and_capacity_probes ... ok
+test digest_differential::every_message_wire_bit_including_invalid_and_trailing_bytes_is_preserved ... ok
+test tests::m6_queued_write_authority_revoke_exit_and_generation_remain_bounded ... ok
+test tests::manifest_capacity_queries_count_only_reusable_objects_without_mutation ... ok
+test tests::process_usage_charges_ipc_queue_to_receiver_owner_and_releases_it ... ok
+test tests::process_usage_is_read_only_scoped_and_accounts_owned_capability_resources ... ok
+test tests::power_generation_exhaustion_retires_sole_object_without_wrap ... ok
+test tests::source_recreation_preflight_checks_owner_and_terminal_generation ... ok
+test wait_readiness_tests::queued_data_can_be_ready_while_cap_slot_quota_still_refuses_receive ... ok
+test tests::raw_network_close_exit_and_reissue_do_not_resurrect_authority ... ok
+test tests::power_is_sole_typed_manifest_authority ... ok
+test tests::ks15_two_cap_send_global_node_exhaustion_has_no_partial_node ... ok
+test tests::raw_network_authority_is_typed_private_and_cannot_be_delegated ... ok
+test wait_readiness_tests::revoked_queued_transfers_can_make_send_space_ready ... ok
+test snapshot_tests::every_authority_field_and_inactive_message_is_compared_exactly ... ok
+test wait_readiness_tests::capless_readiness_only_promises_infallible_queue_operations ... ok
+test wait_readiness_tests::revocation_wakes_full_sender_without_queue_progress_and_precedes_closed ... ok
+test wait_readiness_tests::existing_type_rights_and_full_handle_errors_are_preserved ... ok
+test tests::m6_manifest_masks_and_subset_failures_are_transactional ... ok
+test snapshot_tests::snapshots_match_full_clone_and_fresh_oracles_through_real_lifecycle ... ok
+test tests::bounded_transaction_state_machine_fuzz_preserves_error_atomicity ... ok
+test wait_readiness_tests::queue_empty_full_wrap_queries_are_read_only ... ok
+test digest_differential::zero_corrupt_states_and_single_inactive_trailing_bytes_match_reference ... ok
+test digest_differential::real_lifecycle_failures_revoke_transfer_and_queue_wrap_match_reference ... ok
+
+test result: ok. 79 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.41s
+
+     Running tests/exhaustive_revocation.rs (~/projects/BaryonOS-scratch/b/relay-20261124/cargo/debug/build/capability-core/621b811c3ccfd40e/out/exhaustive_revocation-621b811c3ccfd40e)
+
+running 1 test
+test exhaustive_three_process_revocation ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.10s
+
+     Running tests/native_wait.rs (~/projects/BaryonOS-scratch/b/relay-20261124/cargo/debug/build/capability-core/1b1809916781377a/out/native_wait-1b1809916781377a)
+
+running 7 tests
+test wait::tests::scalar_arguments_and_every_interest_are_checked_before_registration ... ok
+test wait::tests::absolute_expiration_horizon_and_clock_rollback_are_not_renewed ... ok
+test wait::tests::copied_snapshot_pid_and_handle_generation_cannot_rebind ... ok
+test wait::tests::multiple_senders_observe_space_without_a_reservation ... ok
+test wait::tests::all_caps_are_validated_even_after_an_earlier_ready_condition_or_expiry ... ok
+test wait::tests::real_queue_changes_between_poll_and_registration_are_observed ... ok
+test wait::tests::full_sender_is_woken_by_revocation_without_queue_progress ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/window_retirement.rs (~/projects/BaryonOS-scratch/b/relay-20261124/cargo/debug/build/capability-core/84a6964c1b9bf730/out/window_retirement-84a6964c1b9bf730)
+
+running 3 tests
+test absent_second_app_fails_before_any_first_app_handle_changes ... ok
+test retirement_requires_exact_init_launch_dead_process_and_canonical_phase_without_mutation ... ok
+test dead_peer_does_not_close_app_reply_but_explicit_retirement_does_without_other_authority_changes ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/lib.rs (~/projects/BaryonOS-scratch/b/relay-20261124/cargo/debug/build/catalog-core/79ffec82b5c76213/out/catalog_core-79ffec82b5c76213)
+
+running 1 test
+test client::tests::request_id_exhaustion_does_not_wrap_or_reopen ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/client.rs (~/projects/BaryonOS-scratch/b/relay-20261124/cargo/debug/build/catalog-core/ffd7f5f5a8d33db6/out/client-ffd7f5f5a8d33db6)
+
+running 14 tests
+test envelope_sender_tag_size_caps_and_all_padding_are_bound ... ok
+test empty_and_maximum_documents_are_not_truncated ... ok
+test catalog_open_edit_save_rename_delete_and_recover_use_existing_core ... ok
+test invalid_catalog_is_never_an_empty_or_cross_domain_result ... ok
+test only_one_request_is_pending_and_duplicate_or_unsolicited_replies_are_not_accepted ... ok
+test invalid_configuration_and_requests_never_start_transport ... ok
+test outgoing_envelope_is_bounded_and_contains_no_authority ... ok
+test timeout_and_transport_error_preserve_mutation_uncertainty_and_reject_late_ack ... ok
+test ordinary_rejections_allow_an_explicit_fresh_request_with_a_new_id ... ok
+test wrong_ack_revision_cannot_turn_a_save_into_success ... ok
+test full_core_journal_reports_full_without_changing_the_last_value ... ok
+test unknown_and_terminal_service_errors_close_without_replay ... ok
+test wire_version_request_id_epoch_object_operation_status_and_payload_are_bound ... ok
+test every_truncated_envelope_and_oversized_envelope_is_rejected_without_panicking ... ok
+
+test result: ok. 14 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/core.rs (~/projects/BaryonOS-scratch/b/relay-20261124/cargo/debug/build/catalog-core/c8dbd376b0d0e031/out/core-c8dbd376b0d0e031)
+
+running 15 tests
+test catalog_sorted_filtered_and_tombstone_revision_is_local ... ok
+test empty_catalog_has_no_global_activity_or_invalid_domain ... ok
+test duplicate_labels_and_byte_distinct_unicode_keep_id_identity ... ok
+test prepared_commit_is_bound_to_complete_prior_state ... ok
+test recovery_checks_rename_predecessor_and_content_despite_valid_checksum ... ok
+test recovery_rejects_revision_jump_and_invalid_utf8_with_new_checksum ... ok
+test stale_mutation_cannot_resurrect_deleted_object ... ok
+test mixed_lifecycle_roundtrips_all_records_and_deleted_metadata_is_cleared ... ok
+test recovery_requires_complete_contiguous_scan_and_stays_failed ... ok
+test valid_legacy_v1_record_is_rejected_without_modifying_it ... ok
+test state_rejects_bad_operation_id_bounds_name_and_rename_value ... ok
+test full_preserves_latest_name_and_content_without_wrap ... ok
+test zero_length_content_is_a_live_named_object ... ok
+test rename_is_atomic_preserves_all_content_and_has_no_early_commit ... ok
+test recovery_rejects_all_single_byte_damage_and_noncanonical_rehashed_fields ... ok
+
+test result: ok. 15 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/wire.rs (~/projects/BaryonOS-scratch/b/relay-20261124/cargo/debug/build/catalog-core/ba6ecba66e1fa6aa/out/wire-ba6ecba66e1fa6aa)
+
+running 15 tests
+test all_five_valid_requests_are_accepted_only_in_their_endpoint_domain ... ok
+test constructors_never_truncate_oversize_values_or_names ... ok
+test error_replies_scrub_all_data_and_only_authorized_notfound_keeps_revision ... ok
+test get_reply_contains_canonical_name_and_value_including_empty_content ... ok
+test arbitrary_external_lengths_never_create_out_of_bounds_slices ... ok
+test list_rejects_foreign_ids_unsorted_duplicate_or_forged_revisions ... ok
+test list_empty_zero_generation_and_deleted_generation_are_valid ... ok
+test malformed_catalog_constructor_fails_closed_without_panicking ... ok
+test list_roundtrip_preserves_sorted_metadata_and_no_contents ... ok
+test mutation_acks_have_no_data_and_are_bound_to_next_revision ... ok
+test names_validate_bytes_utf8_controls_bidi_and_path_punctuation ... ok
+test operation_specific_fields_reject_impossible_requests ... ok
+test replies_bind_request_epoch_operation_object_and_status ... ok
+test list_rejects_bad_count_lengths_names_and_all_padding ... ok
+test request_identity_epoch_version_and_every_padding_byte_are_checked ... ok
+
+test result: ok. 15 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/lib.rs (~/projects/BaryonOS-scratch/b/relay-20261124/cargo/debug/build/destination-core/bca2743f75957e7d/out/destination_core-bca2743f75957e7d)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/broker.rs (~/projects/BaryonOS-scratch/b/relay-20261124/cargo/debug/build/destination-core/a19fe3dbe7c119dd/out/broker-a19fe3dbe7c119dd)
+
+running 16 tests
+test n26a_mount_flush_again_forever ... ok
+test kernel_offline_on_write ... ok
+test n26e_poll_beyond_bound_is_unknown ... ok
+test n26c_append_write_again_forever ... ok
+test n26b_barrier2_again_forever ... ok
+test n26d_legitimate_waits_complete ... ok
+test q6_extra_poll_after_result_is_counted ... ok
+test n37_digest_covers_only_appends_answered_ok ... ok
+test n26f_remount_after_expired_poll_bound ... ok
+test n37b_unstored_entry_writes_over_stale_valid_archive ... ok
+test n37a_own_reset_at_barrier1_over_stale_valid_archive ... ok
+test n33_no_device_reaches_failed_mount_state ... ok
+test n37a_read_timeout_over_stale_valid_archive ... ok
+test n33_read_timeout_with_unflushed_append ... ok
+test n33_device_results_reads ... ok
+test n33_device_results_writes ... ok
+
+test result: ok. 16 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/catalog.rs (~/projects/BaryonOS-scratch/b/relay-20261124/cargo/debug/build/destination-core/b593003a9a099a7a/out/catalog-b593003a9a099a7a)
+
+running 14 tests
+test golden_layout ... ok
+test n4_write_paths_refuse_out_of_region ... ok
+test n4_crafted_zero_entry_catalogs_invalid ... ok
+test n8_read_error_in_reserved_area_is_never_blank ... ok
+test validator_rejects_isolated_rules ... ok
+test mount_rule_single_and_identical_copies ... ok
+test n4_export_never_touches_sealed_extent ... ok
+test n8_both_copies_damaged_is_corrupt ... ok
+test n8_one_copy_damaged_uses_other ... ok
+test n8_zeroed_catalog_with_entry_data_is_blank_but_unformattable ... ok
+test validator_rejects_each_rule ... ok
+test n30_mixed_copies ... ok
+test n8_read_error_on_newer_copy_is_failed_mount ... ok
+test n34_record_and_copy_validity ... ok
+
+test result: ok. 14 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/checks.rs (~/projects/BaryonOS-scratch/b/relay-20261124/cargo/debug/build/destination-core/5331291454e25e0a/out/checks-5331291454e25e0a)
+
+running 13 tests
+test n17_check7_refusal_advances_mark_in_safe_path ... ok
+test n21_second_writer_busy ... ok
+test n28_check_order_control_lane ... ok
+test n22_dialog_on_bound_lane ... ok
+test n17_replay_and_rebind ... ok
+test n17_rebind_with_equal_or_lower_generation_while_append_queued ... ok
+test n31_wrong_entry_in_failed_mount_is_access ... ok
+test o3_check_order_extra_pairs ... ok
+test o2_check2_field_rules ... ok
+test n31_binding_limits_and_list_scope ... ok
+test n3_read_bounds ... ok
+test n28_check_order_operation_lane ... ok
+test n31_operation_by_lane ... ok
+
+test result: ok. 13 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests/crash.rs (~/projects/BaryonOS-scratch/b/relay-20261124/cargo/debug/build/destination-core/42246ecce7e58340/out/crash-42246ecce7e58340)
+
+running 12 tests
+test n24c_no_reuse_after_not_sealed ... ok
+test n35_sealed_resolution_uses_checked_copy ... ok
+test n24d_entry_write_failure ... ok
+test o1_seal_step3_failure_latches_safe_path ... ok
+test n24a_late_write_before_fence ... ok
+test n24b_late_write_after_remount_flush_recorded ... ok
+test n11_power_cut_during_append ... ok
+test n25_format_write_failure ... ok
+test n35_remount_contradicting_committed_catalog ... ok
+test n25_power_cut_during_format ... ok
+test n12_power_cut_during_seal ... ok
+test n13_unknown_at_seal ... ok
+
+test result: ok. 12 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.07s
+
+     Running tests/engine.rs (~/projects/BaryonOS-scratch/b/relay-20261124/cargo/debug/build/destination-core/6b52ffe9494524b0/out/engine-6b52ffe9494524b0)
+
+running 5 tests
+test n5_revoked_before_operation ... ok
+test n22_no_reply_to_portal_for_dialog_requests ... ok
+test n6b_service_exit ... ok
+test n27_transferred_capability_closed ... ok
+test n6_revoked_during_export ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/ops.rs (~/projects/BaryonOS-scratch/b/relay-20261124/cargo/debug/build/destination-core/cd11ca201db8fbd0/out/ops-cd11ca201db8fbd0)
+
+running 12 tests
+test n36_create_order_while_writing ... ok
+test n23_data_beyond_catalog_area ... ok
+test n9_incomplete_write ... ok
+test n10_non_archive_bytes ... ok
+test n7_corrupted_entry ... ok
+test n15_destination_full ... ok
+test n29_prewrite_sealing_sequence_accepted_by_validity_rules ... ok
+test n14_wrong_foreign_absent_device ... ok
+test f1_seal_with_saturated_catalog_counters ... ok
+test n36_create_order_when_full ... ok
+test n29_prewrite_check ... ok
+test n36_append_past_largest_archive ... ok
+
+test result: ok. 12 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests/oracle_images.rs (~/projects/BaryonOS-scratch/b/relay-20261124/cargo/debug/build/destination-core/7ec9df79c08cb77e/out/oracle_images-7ec9df79c08cb77e)
+
+running 1 test
+test oracle_images ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/sim_contract.rs (~/projects/BaryonOS-scratch/b/relay-20261124/cargo/debug/build/destination-core/071e93fdbd68ff93/out/sim_contract-071e93fdbd68ff93)
+
+running 11 tests
+test p12_1_one_request_admitted ... ok
+test deadline_tripwire_flags_overdue_request - should panic ... ok
+test deadline_tripwire_flags_overdue_sparse_poll - should panic ... ok
+test p12_4_admission_time_and_reset_fence ... ok
+test stray_poll_tripwire - should panic ... ok
+test p12_3_answered_exactly_once ... ok
+test p12_5_quarantined_or_offline_not_admitted ... ok
+test p12_2_refused_submission_changes_nothing ... ok
+test p12_4_deadline_decided_by_ready_time ... ok
+test p12_4_deadline_answers_and_resets ... ok
+test p12_5_quarantine_and_offline_until_reboot ... ok
+
+test result: ok. 11 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/lib.rs (~/projects/BaryonOS-scratch/b/relay-20261124/cargo/debug/build/driver-core/9c1b7426cd479c9f/out/driver_core-9c1b7426cd479c9f)
+
+running 11 tests
+test tests::display_frame_length_checks_stride_and_overflow ... ok
+test tests::factory_registry_returns_initializer_for_selected_registration ... ok
+test tests::equally_specific_matches_fail_closed ... ok
+test tests::malformed_or_wildcard_selectors_are_rejected ... ok
+test tests::registry_rejects_duplicate_ids_and_capacity_overflow ... ok
+test tests::pci_match_checks_all_identity_and_class_fields ... ok
+test tests::registry_selects_most_specific_match_not_registration_order ... ok
+test tests::type0_header_decodes_identity_and_subsystem_fields ... ok
+test tests::subsystem_match_outranks_device_and_class_matches ... ok
+test tests::type0_header_rejects_absent_functions_invalid_bdf_and_other_headers ... ok
+test tests::unknown_device_has_no_match ... ok
+
+test result: ok. 11 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/lib.rs (~/projects/BaryonOS-scratch/b/relay-20261124/cargo/debug/build/elf-loader-core/c3aa0c3a1fb82edd/out/elf_loader_core-c3aa0c3a1fb82edd)
+
+running 7 tests
+test tests::arithmetic_and_file_bounds_fail_closed ... ok
+test tests::nonexecuting_metadata_allowed_executable_stack_denied ... ok
+test tests::entry_must_be_in_rx_file_bytes_not_bss_or_metadata ... ok
+test tests::permissions_alignment_addresses_and_page_overlap_fail ... ok
+test tests::wrong_headers_and_program_types_fail ... ok
+test tests::valid_plan_keeps_bss_and_does_not_modify_input ... ok
+test tests::every_truncation_before_required_file_end_fails ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests/bounded_parser_invariants.rs (~/projects/BaryonOS-scratch/b/relay-20261124/cargo/debug/build/elf-loader-core/6fd40207f7b93020/out/bounded_parser_invariants-6fd40207f7b93020)
+
+running 6 tests
+test fixture_is_accepted ... ok
+test every_header_and_program_header_byte ... ok
+test header_entry_phoff_phnum_edges ... ok
+test two_segment_placement_grid ... ok
+test every_truncation_rejects ... ok
+test segment_field_edge_products ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.64s
+
+     Running unittests src/lib.rs (~/projects/BaryonOS-scratch/b/relay-20261124/cargo/debug/build/kernel-core/0e12b8835e7f529f/out/kernel_core-0e12b8835e7f529f)
+
+running 59 tests
+test device_execution::tests::abandoned_match_releases_its_address_without_hardware ... ok
+test device_execution::tests::bidirectional_context_grant_does_not_change_other_buffer_directions ... ok
+test device_execution::tests::bar_and_config_grants_are_bounded_and_read_only ... ok
+test device_execution::tests::bus_master_requires_match_authority_and_dma_and_rolls_back ... ok
+test device_execution::tests::dma_is_allocator_issued_direction_tagged_and_pinned_until_quiescence ... ok
+test device_execution::tests::dma_resource_failure_preserves_existing_pins_records_and_zero_count ... ok
+test device_execution::tests::completed_quiescence_releases_only_the_original_grant_once ... ok
+test device_execution::tests::drained_invalid_route_is_forgotten_even_when_masking_failed ... ok
+test device_execution::tests::config_reads_align_the_absolute_register_not_the_grant_offset ... ok
+test device_execution::tests::grants_do_not_cross_leases_from_different_registries ... ok
+test device_execution::tests::interrupt_binding_is_device_bound_and_teardown_must_drain ... ok
+test device_execution::tests::kernel_probe_rejects_overlapping_bars_in_one_address_space ... ok
+test device_execution::tests::lease_without_dma_reaches_released_after_quiescence ... ok
+test device_execution::tests::exact_match_generation_and_function_bounds ... ok
+test device_execution::tests::failed_quiescence_keeps_dma_pages_quarantined ... ok
+test device_execution::tests::drained_route_is_forgotten_even_when_masking_failed ... ok
+test device_execution::tests::live_dma_cannot_be_freed_reallocated_or_readmitted_by_generic_frame_operations ... ok
+test device_execution::tests::grants_from_a_retired_lease_are_rejected_by_its_successor ... ok
+test device_execution::tests::lost_dma_grants_are_freed_only_after_quiescence ... ok
+test device_execution::tests::only_observed_reset_busmaster_off_and_irq_drain_allow_reuse ... ok
+test device_execution::tests::out_of_range_arguments_report_range ... ok
+test device_execution::tests::quiesce_disables_bus_master_before_reset_and_interrupt_drain ... ok
+test device_execution::tests::invalid_interrupt_routes_remain_tracked_until_teardown_succeeds ... ok
+test device_execution::tests::dma_release_checks_record_identity_even_when_frame_addresses_match ... ok
+test device_execution::tests::release_all_dma_is_refused_while_ready ... ok
+test device_execution::tests::second_live_lease_for_the_same_function_is_refused ... ok
+test device_execution::tests::release_all_dma_preflights_every_record_before_freeing_any ... ok
+test pressure::tests::invalid_free_frame_count_is_rejected ... ok
+test device_execution::tests::stale_dma_and_mmio_grants_do_not_cross_device_generations ... ok
+test pressure::tests::physical_watermarks_scale_with_managed_frames_and_include_boundaries ... ok
+test pressure::tests::reclaim_budget_grants_exactly_one_critical_opportunity ... ok
+test smp::tests::bringup_transitions_are_ordered_and_failure_is_terminal ... ok
+test smp::tests::inventory_rejects_empty_oversized_duplicate_and_missing_bsp_topologies ... ok
+test smp::tests::inventory_accepts_sparse_ids_and_marks_only_the_bsp_online ... ok
+test smp::tests::rendezvous_rejects_invalid_or_repeated_configuration ... ok
+test smp::tests::rendezvous_timeout_poison_prevents_late_reuse ... ok
+test tests::availability_counts_only_admitted_frames_and_tracks_reclaim ... ok
+test tests::checked_ranges ... ok
+test tests::fragmented_batch_is_sorted_zeroed_once_and_rollback_reclaims_every_frame ... ok
+test tests::batch_resource_errors_preserve_owners_aliases_output_and_zero_count ... ok
+test tests::ovmf_cache_capabilities_are_not_special_memory ... ok
+test tests::physical_alias_wx_and_mapped_free ... ok
+test tests::physical_page_width_and_overflow_fail_closed ... ok
+test tests::readmission_preserves_existing_owners_and_reserved_mappings ... ok
+test tests::batch_quota_is_total_per_pid_and_failure_is_atomic ... ok
+test tests::unmap_mismatched_alias_is_atomic_and_cannot_free_executable ... ok
+test tests::reserved_and_special_memory ... ok
+test user::tests::copy_plan_checks_entire_range_before_any_copy ... ok
+test tests::unique_exhaustion_ownership_and_zero_order ... ok
+test user::tests::overflow_offset_and_page_overlap ... ok
+test user::tests::pids_survive_16bit_boundary_and_never_wrap ... ok
+test user::tests::return_flags_strip_authority ... ok
+test user::tests::legal_large_image_and_exact_user_mapping_budget ... ok
+test user::tests::user_return_layout_rejects_untrusted_stack_and_noncanonical_alias ... ok
+test user::tests::sector_input_validates_second_page_owner_and_preserves_ipc_limit ... ok
+test user::tests::valid_and_wx_entry_checks ... ok
+test smp::tests::rendezvous_releases_all_participants_for_repeated_generations ... ok
+test tests::batch_scan_cost_is_measured_separately_from_native_performance ... ok
+test tests::quota_no_partial_allocation ... ok
+
+test result: ok. 59 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+
+     Running unittests src/lib.rs (~/projects/BaryonOS-scratch/b/relay-20261124/cargo/debug/build/keyring-core/23cc21e0ffe6a2f4/out/keyring_core-23cc21e0ffe6a2f4)
+
+running 7 tests
+test wire::relay_tests::commit_outcome_maps_only_ok_and_not_ready_to_certain_results ... ok
+test wire::relay_tests::commit_request_round_trips_and_refuses_zero_or_dirty ... ok
+test wire::relay_tests::supply_decode_refuses_noncanonical_requests ... ok
+test wire::relay_tests::relay_opcodes_are_refused_by_every_service_dispatch_without_state_change ... ok
+test wire::relay_tests::first_bind_fixes_the_relay_volume ... ok
+test wire::relay_tests::unknown_commit_latches_degraded_without_further_store_calls ... ok
+test wire::relay_tests::failed_commit_replies_not_ready_and_a_retry_commits ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/core.rs (~/projects/BaryonOS-scratch/b/relay-20261124/cargo/debug/build/keyring-core/766d0867654b6c59/out/core-766d0867654b6c59)
+
+running 15 tests
+test health_tests_pass_varied_input_and_catch_stuck_or_biased_sources ... ok
+test continuous_rct_spans_startup_and_first_reseed ... ok
+test continuous_apt_spans_two_reseeds_and_blocks_further_key_operations ... ok
+test hkdf_sha256_rfc5869_test_case_1 ... ok
+test continuous_rct_spans_consecutive_reseeds ... ok
+test revoke_and_quota_are_permanent_per_domain ... ok
+test wire_headers_are_canonical_and_bounded ... ok
+test service_blocks_without_source_or_with_stuck_source_and_never_makes_keys ... ok
+test reseed_after_budget_and_degradation_when_the_source_fails_later ... ok
+test xchacha20poly1305_draft_irtf_cfrg_xchacha_03_a_3_1 ... ok
+test drbg_is_deterministic_per_seed_erases_keys_and_never_repeats_blocks ... ok
+test older_recovery_preserves_revocations_and_cannot_reissue_indices ... ok
+test seal_unseal_round_trip_binds_domain_index_and_rejects_tampering ... ok
+test recovery_restores_keys_and_revocations_into_another_instance ... ok
+test used_service_rejects_another_master_without_losing_revocation_history ... ok
+
+test result: ok. 15 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/kdf_hygiene.rs (~/projects/BaryonOS-scratch/b/relay-20261124/cargo/debug/build/keyring-core/fe39837d7bf61223/out/kdf_hygiene-fe39837d7bf61223)
+
+running 6 tests
+test actual_selected_hash_hmac_hkdf_drop_chain_is_required ... ok
+test protected_hkdf_matches_published_rfc5869_cases_one_and_three ... ok
+test hmac_rfc4231_and_all_reset_variants_preserve_short_and_long_key_results ... ok
+test actual_random_seed_reseed_and_principal_labels_match_legacy_hkdf_bytes ... ok
+test existing_drbg_entropy_and_reseed_keep_byte_exact_legacy_outputs ... ok
+test patched_hkdf_matches_legacy_at_hash_block_and_maximum_output_boundaries ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.12s
+
+     Running tests/persistent_wire.rs (~/projects/BaryonOS-scratch/b/relay-20261124/cargo/debug/build/keyring-core/322686dbe0eef15e/out/persistent_wire-322686dbe0eef15e)
+
+running 8 tests
+test ordinary_domain_cannot_export_or_restore_recovery_material ... ok
+test snapshot_info_round_trips_and_rejects_other_lengths ... ok
+test persistence_dispatch_refuses_every_other_opcode_and_malformed_request ... ok
+test pre_migration_persistent_blob_restores_record_key_in_a_cold_instance ... ok
+test persistence_respects_service_readiness ... ok
+test management_ingress_can_export_and_restore_legacy_recovery ... ok
+test export_restores_exact_state_and_record_keys_into_a_cold_instance ... ok
+test wrong_secret_floor_and_foreign_volume_are_refused_without_namespace_changes ... ok
+
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/random.rs (~/projects/BaryonOS-scratch/b/relay-20261124/cargo/debug/build/keyring-core/a6c689e8f482ec22/out/random-a6c689e8f482ec22)
+
+running 11 tests
+test maintained_rng_matches_published_chacha20_zero_key_stream ... ok
+test readiness_has_no_fallback_and_never_modifies_failed_output ... ok
+test random_wire_rejects_noncanonical_context_before_any_generation ... ok
+test bad_domains_lengths_replays_and_clocks_do_not_advance_a_generator ... ok
+test wire_maximum_fits_exactly_and_each_legacy_opcode_is_denied_on_random_ingress ... ok
+test identical_healthy_source_bytes_are_separated_by_principal ... ok
+test required_reseed_runs_health_checks_not_just_source_success ... ok
+test real_tick_window_and_reseed_call_budget_are_separate ... ok
+test byte_quota_is_checked_before_reading_entropy_and_output ... ok
+test seed_failures_degrade_all_random_domains_without_revoking_confirmed_keys ... ok
+test all_lengths_preserve_tails_and_domains_and_requests_are_distinct ... ok
+
+test result: ok. 11 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/record_wire.rs (~/projects/BaryonOS-scratch/b/relay-20261124/cargo/debug/build/keyring-core/fa78bcf9074e64a8/out/record_wire-fa78bcf9074e64a8)
+
+running 8 tests
+test context_can_never_enable_operations_before_service_readiness ... ok
+test canonical_context_round_trips_all_kinds_without_carrying_a_domain ... ok
+test context_rejects_noncanonical_fields_lengths_and_ingress_domains ... ok
+test builders_and_bounds_cover_every_record_length_and_preserve_legacy_operations ... ok
+test ingress_domain_is_authoritative_and_cross_domain_decrypt_returns_no_plaintext ... ok
+test dispatch_preserves_authentication_failure_bad_handle_and_revocation_errors ... ok
+test dispatch_rejects_bad_lengths_reserved_context_status_and_reply_opcodes ... ok
+test dispatcher_round_trips_the_actual_record_service_at_all_chunk_sizes ... ok
+
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+
+     Running tests/secure_records.rs (~/projects/BaryonOS-scratch/b/relay-20261124/cargo/debug/build/keyring-core/de019a5de2ee39b3/out/secure_records-de019a5de2ee39b3)
+
+running 23 tests
+test fully_allocated_and_revoked_domain_survives_persistent_restore ... ok
+test old_persistent_snapshot_cannot_undo_live_allocations_or_revocations ... ok
+test legacy_and_record_ciphertexts_are_not_interchangeable ... ok
+test persistent_calls_do_not_bypass_service_readiness_or_mutate_failed_output ... ok
+test generation_overflow_never_partially_allocates_or_revokes ... ok
+test importing_an_older_divergent_branch_advances_the_current_generation ... ok
+test persistence_requires_the_external_generation_floor_to_reject_cold_replay ... ok
+test record_lengths_and_caller_domains_are_checked_before_accounting ... ok
+test record_revision_replay_requires_a_trusted_current_context ... ok
+test merging_divergent_revocations_creates_a_new_generation_without_resurrection ... ok
+test persistent_lengths_and_volume_are_exactly_validated ... ok
+test persistent_nonce_is_fresh_and_allocation_metadata_is_encrypted ... ok
+test persistent_snapshot_preserves_exact_allocations_revocations_and_record_keys ... ok
+test records_reject_all_truncations_extra_bytes_and_declared_length_changes ... ok
+test persistent_empty_snapshot_still_binds_volume_and_master_lineage ... ok
+test union_generation_overflow_does_not_commit_half_of_an_import ... ok
+test authenticated_invalid_allocations_and_unallocated_revocations_fail_atomically ... ok
+test records_authenticate_every_identity_field_and_key_handle ... ok
+test equally_sized_names_metadata_and_content_are_not_interchangeable ... ok
+test record_operations_obey_key_revocation_and_entropy_failure ... ok
+test records_round_trip_every_supported_length_with_fresh_nonces_and_untouched_tails ... ok
+test every_persistent_bitflip_and_wrong_secret_preserve_the_namespace ... ok
+test every_record_bitflip_is_rejected_without_plaintext_or_namespace_changes ... ok
+
+test result: ok. 23 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.05s
+
+     Running tests/write_ahead.rs (~/projects/BaryonOS-scratch/b/relay-20261124/cargo/debug/build/keyring-core/749044177635e19c/out/write_ahead-749044177635e19c)
+
+running 24 tests
+test durable_dispatch_refuses_malformed_key_mutation_without_store_call ... ok
+test durable_dispatch_never_reaches_persistence_or_legacy ... ok
+test legacy_api_is_unchanged_until_write_ahead_is_used ... ok
+test durable_dispatch_takes_domain_from_adapter_not_payload ... ok
+test failed_generate_consumes_index_without_ciphertext ... ok
+test durable_dispatch_generate_is_ok_only_after_store_commit ... ok
+test revoke_retry_after_unrelated_commit_is_idempotent ... ok
+test unknown_is_never_confirmed_or_retried_when_write_was_lost ... ok
+test durable_dispatch_revoke_reply_matches_durable_state ... ok
+test rejected_write_ahead_call_changes_nothing ... ok
+test seal_before_commit_is_refused_for_every_record_operation ... ok
+test errors_and_blobs_leak_no_secret_or_plaintext ... ok
+test unknown_is_never_confirmed_or_retried_when_write_landed ... ok
+test restore_in_write_ahead_mode_cannot_fake_a_durable_revocation ... ok
+test recovery_export_is_refused_while_write_ahead_state_is_pending ... ok
+test revoke_retry_is_not_ok_unless_settled ... ok
+test revocation_is_not_confirmed_before_commit ... ok
+test already_revoked_index_is_confirmed_only_through_the_passed_store ... ok
+test persistent_export_is_refused_while_write_ahead_state_is_unsettled ... ok
+test degraded_durable_revoke_binds_volume_and_never_confirms ... ok
+test failed_export_before_binding_leaves_instance_unbound ... ok
+test first_durable_commit_failing_before_binding_still_binds_volume ... ok
+test crash_at_every_revoke_boundary_keeps_confirmed_revocations ... ok
+test crash_at_every_generate_boundary_never_reissues ... ok
+
+test result: ok. 24 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running unittests src/lib.rs (~/projects/BaryonOS-scratch/b/relay-20261124/cargo/debug/build/object-core/97107f0c7a9f1c19/out/object_core-97107f0c7a9f1c19)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/core.rs (~/projects/BaryonOS-scratch/b/relay-20261124/cargo/debug/build/object-core/2954acb2fc05dbdc/out/core-2954acb2fc05dbdc)
+
+running 13 tests
+test empty_value_is_a_real_object_distinct_from_absent_and_tombstone ... ok
+test four_object_values_and_revisions_survive_complete_streaming_scan ... ok
+test gaps_duplicate_slots_wrong_order_and_incomplete_scan_fail_closed ... ok
+test prepared_mutation_cannot_be_committed_to_a_different_equal_sequence_state ... ok
+test malformed_commands_and_stale_replays_leave_every_object_unchanged ... ok
+test prepared_mutation_does_not_change_live_state_and_cannot_commit_twice ... ok
+test malformed_tail_poison_is_sticky_and_never_guesses_an_older_success ... ok
+test resealed_revision_skip_and_delete_of_never_created_object_are_rejected ... ok
+test valid_checksum_never_replaces_structure_sequence_or_revision_validation ... ok
+test zero_volume_is_valid_empty_state_but_out_of_range_scan_is_invalid ... ok
+test full_log_never_overwrites_an_old_record_or_wraps_revisions ... ok
+test tombstone_revision_prevents_replay_and_allows_explicit_cas_recreation ... ok
+test every_single_byte_corruption_in_an_occupied_record_is_rejected ... ok
+
+test result: ok. 13 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/wire.rs (~/projects/BaryonOS-scratch/b/relay-20261124/cargo/debug/build/object-core/e06fdf0667f7275c/out/wire-e06fdf0667f7275c)
+
+running 9 tests
+test all_objects_require_the_endpoint_bound_domain_for_every_operation ... ok
+test exact_offsets_and_domain_binding_are_canonical ... ok
+test empty_put_is_valid_but_get_and_delete_cannot_smuggle_payloads ... ok
+test get_can_return_a_present_empty_object_but_never_revision_zero ... ok
+test failure_replies_never_leak_object_revision_or_data ... ok
+test reserved_fields_zero_tail_and_epoch_are_enforced ... ok
+test notfound_exposes_tombstone_revision_only_for_authorized_get_or_delete ... ok
+test sizes_large_integers_and_invalid_opcodes_are_bounded ... ok
+test successful_replies_bind_object_request_epoch_revision_and_payload ... ok
+
+test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/lib.rs (~/projects/BaryonOS-scratch/b/relay-20261124/cargo/debug/build/pci-core/ebda6b44c96033ca/out/pci_core-ebda6b44c96033ca)
+
+running 8 tests
+test tests::matched_bar_probe_handles_64_bit_bars_and_skips_unimplemented_bars ... ok
+test tests::matched_bar_probe_rejects_malformed_ranges_and_restores_bar_registers ... ok
+test tests::matched_bar_probe_returns_bounded_device_and_driver_grant ... ok
+test tests::matched_configuration_access_is_bound_to_the_selected_function ... ok
+test tests::matched_configuration_binding_rejects_stale_or_unmatched_identity ... ok
+test tests::does_not_probe_nonzero_functions_without_multifunction_header ... ok
+test tests::enumerates_multiple_devices_and_multifunction_endpoints ... ok
+test tests::safely_skips_non_type0_headers ... ok
+
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/lib.rs (~/projects/BaryonOS-scratch/b/relay-20261124/cargo/debug/build/ui-core/b03b8a4b974eab00/out/ui_core-b03b8a4b974eab00)
+
+running 26 tests
+test keyboard::tests::all_standard_key_positions_emit_unique_physical_events_and_release ... ok
+test keyboard::tests::make_repeat_break_and_distinct_extended_keys ... ok
+test keyboard::tests::malformed_input_resets_pressed_state_instead_of_sticking_modifiers ... ok
+test keyboard::tests::both_modifier_sides_release_independently_and_locks_ignore_repeat ... ok
+test mouse::tests::button_transitions_survive_overflow_without_guessed_movement ... ok
+test keyboard::tests::printscreen_fake_shifts_and_pause_are_bounded ... ok
+test mouse::tests::cursor_clamps_and_inverts_y_without_unsigned_wrap ... ok
+test mouse::tests::decoded_button_bits_reject_reserved_flags_instead_of_masking_them ... ok
+test mouse::tests::nine_bit_signed_extremes_are_not_truncated_to_i8 ... ok
+test mouse::tests::split_packets_payload_header_bits_and_explicit_resynchronization ... ok
+test routing::tests::button_drag_release_cannot_be_inherited_by_another_focus ... ok
+test routing::tests::device_reset_invalidates_queue_and_clears_held_input ... ok
+test routing::tests::previous_focus_modifiers_are_removed_from_new_focus_chords ... ok
+test routing::tests::generation_exhaustion_fails_closed_without_token_reuse ... ok
+test routing::tests::queued_events_and_held_keys_do_not_cross_focus_even_to_same_owner ... ok
+test routing::tests::reset_does_not_turn_known_held_input_into_new_presses ... ok
+test tests::both_modifier_sides_are_tracked_independently_and_reset_is_safe ... ok
+test tests::clipping_preserves_row_padding_and_outer_canaries_in_both_formats ... ok
+test tests::empty_and_offscreen_rects_leave_canvas_untouched ... ok
+test tests::geometry_rejects_zero_oversize_stride_and_short_buffers ... ok
+test tests::extended_keys_pause_and_printscreen_do_not_leave_fake_shift_pressed ... ok
+test tests::original_glyph_has_expected_pixels_and_clips_safely ... ok
+test tests::release_modifier_chords_and_caps_repeat_do_not_insert_unexpected_text ... ok
+test tests::text_limit_backspace_submit_and_zero_capacity_are_explicit ... ok
+test tests::arbitrary_scancode_streams_never_overflow_or_emit_control_sequences ... ok
+test tests::scene_row_and_canvas_keep_padding_and_typed_input_changes_only_input_area ... ok
+
+test result: ok. 26 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+
+     Running tests/input_reset.rs (~/projects/BaryonOS-scratch/b/relay-20261124/cargo/debug/build/ui-core/1f74b826d0c7328f/out/input_reset-1f74b826d0c7328f)
+
+running 5 tests
+test held_without_focus_cannot_become_new_press_after_decoder_reset ... ok
+test nofocus_modifier_repeat_cannot_create_chord_after_reset ... ok
+test release_directly_after_decoder_reset_allows_first_fresh_press ... ok
+test nofocus_break_after_reset_clears_physical_marker_without_repeat ... ok
+test orphan_breaks_and_pause_pulses_never_create_held_ownership ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/lib.rs (~/projects/BaryonOS-scratch/b/relay-20261124/cargo/debug/build/update-core/b87662fc19272390/out/update_core-b87662fc19272390)
+
+running 8 tests
+test tests::header_round_trips_and_pins_the_fixed_table ... ok
+test tests::ed25519_rfc8032_test_vector_1_verifies_with_the_same_api ... ok
+test tests::install_decisions_never_target_the_active_slot_or_go_backwards ... ok
+test tests::out_of_range_active_slot_fails_closed ... ok
+test tests::structural_rejections_come_before_any_signature_check ... ok
+test tests::mldsa65_sizes_match_fips_204_and_signing_is_deterministic ... ok
+test tests::selection_prefers_active_falls_back_and_enforces_the_floor ... ok
+test tests::manifest_round_trips_and_both_signatures_are_required ... ok
+
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.16s
+
+     Running tests/bounded_policy_envelope_invariants.rs (~/projects/BaryonOS-scratch/b/relay-20261124/cargo/debug/build/update-core/88b71f6e03a1b57f/out/bounded_policy_envelope_invariants-88b71f6e03a1b57f)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/key_policy.rs (~/projects/BaryonOS-scratch/b/relay-20261124/cargo/debug/build/update-core/38d6971e5f00e2fc/out/key_policy-38d6971e5f00e2fc)
+
+running 6 tests
+test invalid_policy_and_duplicate_pairs_fail_closed_independent_of_order ... ok
+test key_pair_cannot_be_mixed_or_selected_from_untrusted_data ... ok
+test version_tampering_cannot_move_a_signature_into_the_valid_window ... ok
+test rejected_authority_never_becomes_an_install_or_boot_choice ... ok
+test rotation_accepts_current_and_successor_with_both_signatures ... ok
+test revocation_and_release_version_validity_are_distinct ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.36s
+
+     Running unittests src/main.rs (~/projects/BaryonOS-scratch/b/relay-20261124/cargo/debug/build/update-tool/8d0079c2fbdb8875/out/update_tool-8d0079c2fbdb8875)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/roundtrip.rs (~/projects/BaryonOS-scratch/b/relay-20261124/cargo/debug/build/update-tool/7d0db882d63d5106/out/roundtrip-7d0db882d63d5106)
+
+running 4 tests
+test keygen_seeds_are_private_even_with_permissive_umask ... ok
+test keygen_rejects_live_and_dangling_output_symlinks ... ok
+test keygen_sign_verify_pack_round_trip ... ok
+test pinned_policy_cli_distinguishes_valid_signatures_from_authority ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.42s
+
+     Running unittests src/lib.rs (~/projects/BaryonOS-scratch/b/relay-20261124/cargo/debug/build/virtio-blk-driver/2669e55faa51d828/out/virtio_blk_driver-2669e55faa51d828)
+
+running 1 test
+test tests::only_two_fixed_functions_are_reachable ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/lib.rs (~/projects/BaryonOS-scratch/b/relay-20261124/cargo/debug/build/virtio-core/339ebe0d440663d6/out/virtio_core-339ebe0d440663d6)
+
+running 21 tests
+test tests::descriptor_chain_is_fixed_and_confined_to_distinct_pinned_page_plan ... ok
+test tests::m6_owner_exit_discards_results_without_unquarantining_or_implying_rollback ... ok
+test tests::m6_device_failures_are_unknown_and_completed_results_do_not_expire ... ok
+test tests::m6_unknown_poll_during_reset_or_quarantine_never_releases_pool ... ok
+test tests::m6_mutation_epoch_exhaustion_retains_unknown_and_ticket_never_wraps ... ok
+test tests::feature_negotiation_is_readonly_modern_without_platform_claim ... ok
+test tests::maximum_epoch_and_ticket_do_not_wrap ... ok
+test tests::pci_bar_io_wide_upper_half_and_absolute_overflow ... ok
+test tests::pending_bindings_and_consume_are_transactional ... ok
+test tests::pci_chain_cycle_alignment_length_and_bounds_fail_closed ... ok
+test tests::pci_regions_and_checked_notify_address ... ok
+test tests::request_bounds_and_overflow_do_not_publish ... ok
+test tests::timeout_requires_reset_ack_and_never_frees_quarantine ... ok
+test tests::m6_published_unknown_survives_reset_and_cannot_replay ... ok
+test tests::software_epoch_separates_old_tickets_after_acknowledged_reset ... ok
+test tests::m6_prepared_rejection_has_no_publication_and_failures_are_atomic ... ok
+test tests::m6_used_completion_is_operation_specific_never_decodes_unknown ... ok
+test tests::used_validation_delta_head_length_and_status ... ok
+test tests::m6_writable_feature_profile_cannot_weaken_m5_or_assume_flush ... ok
+test tests::m6_exact_operation_chains_headers_and_all_descriptor_mutations ... ok
+test tests::pci_bounded_single_byte_mutations_never_index_outside_snapshot ... ok
+
+test result: ok. 21 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/lib.rs (~/projects/BaryonOS-scratch/b/relay-20261124/cargo/debug/build/virtio-net-driver/65c2111ad16319df/out/virtio_net_driver-65c2111ad16319df)
+
+running 31 tests
+test tests::generation_change_without_bit_change_is_one_synthetic_pair_never_a_count ... ok
+test tests::invalid_dma_pages_and_forged_discovery_fail_before_any_io ... ok
+test tests::link_monitor_budget_exhaustion_latches_and_hides_every_state ... ok
+test tests::link_monitor_reset_latch_is_terminal ... ok
+test tests::link_monitor_numbers_real_transitions_with_kernel_epochs ... ok
+test tests::link_tracker_budget_counts_only_transitions_and_latches_exhaustion ... ok
+test tests::link_tracker_requires_status_and_rejects_stale_up_after_down ... ok
+test tests::link_tracker_reset_never_returns_an_old_up_or_recovers_implicitly ... ok
+test tests::link_tracker_serials_never_wrap_and_status_uses_the_negotiated_link_bit ... ok
+test tests::feature_profile_does_not_enable_offloads_or_iommu ... ok
+test tests::model_initialization_programs_two_isolated_queues_and_features ... ok
+test tests::tx_publication_has_real_bytes_zero_header_padding_and_no_early_completion ... ok
+test tests::unsupported_rx_offloads_and_multibuffer_headers_are_not_accepted ... ok
+test tests::link_status_is_a_bounded_read_only_coherent_sample ... ok
+test tests::wrapping_queue_indices_do_not_confuse_stale_or_duplicate_completions ... ok
+test tests::status_generation_and_link_changes_are_observed_with_a_bound ... ok
+test tests::tx_errors_never_publish_or_change_bounce_data ... ok
+test tests::publications_count_every_descriptor_publication_and_doorbell ... ok
+test tests::rx_completion_pending_at_a_real_up_edge_is_harvested_there ... ok
+test tests::rx_copies_only_valid_completed_frame_and_preserves_output_tail ... ok
+test tests::rx_completion_pending_at_a_synthetic_down_edge_is_harvested_there ... ok
+test tests::reset_request_is_not_acknowledgement_and_pinned_memory_is_not_reused ... ok
+test tests::unexpected_status_reset_leaves_pending_software_until_health_detects_it ... ok
+test tests::tx_writable_length_and_max_rx_frame_are_validated ... ok
+test tests::stale_used_entry_while_idle_cannot_become_a_new_request_completion ... ok
+test tests::model_initialization_refusals_are_bounded_and_never_report_ready ... ok
+test tests::link_status_needs_negotiated_status_and_a_live_device ... ok
+test tests::tx_timeout_and_device_reset_request_fail_closed_with_no_replay ... ok
+test tests::late_completions_before_reset_ack_cannot_copy_replay_or_reuse_pages ... ok
+test tests::acknowledged_reset_clears_late_completions_before_fresh_rx_and_tx ... ok
+test tests::malformed_used_ring_snapshots_reset_without_partial_rx_copy ... ok
+
+test result: ok. 31 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.04s
+
+     Running unittests src/lib.rs (~/projects/BaryonOS-scratch/b/relay-20261124/cargo/debug/build/virtio-rng-driver/b22e7302d18f14ba/out/virtio_rng_driver-b22e7302d18f14ba)
+
+running 6 tests
+test tests::bars_are_kept_or_restored_only_from_the_cleared_state ... ok
+test tests::pool_pages_must_be_distinct_aligned_ram_pages ... ok
+test tests::features_accept_only_version_1_without_platform_access ... ok
+test tests::used_elements_are_validated_and_empty_answers_are_io_errors ... ok
+test tests::every_wrapping_index_delta_accepts_only_one_completion ... ok
+test tests::every_request_size_preserves_short_reply_lengths_and_rejects_overruns ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/lib.rs (~/projects/BaryonOS-scratch/b/relay-20261124/cargo/debug/build/volume-core/cfba7761a5d33daf/out/volume_core-cfba7761a5d33daf)
+
+running 2 tests
+test service::upload_token_tests::exhausted_token_counter_never_wraps_or_stages_a_new_upload ... ok
+test service::install_commit_tests::commit_rechecks_that_the_slot_is_still_never_used ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/archive.rs (~/projects/BaryonOS-scratch/b/relay-20261124/cargo/debug/build/volume-core/4468b1b032104d4e/out/archive-4468b1b032104d4e)
+
+running 43 tests
+test overlong_source_count_is_a_protocol_error ... ok
+test export_rejects_content_that_contradicts_the_service_sum ... ok
+test archive_on_the_wrong_device_or_offset_is_refused ... ok
+test invalid_domain_is_rejected ... ok
+test overlong_count_at_end_of_stream_is_a_protocol_error ... ok
+test resealed_non_canonical_records_are_rejected ... ok
+test duplicate_source_names_round_trip ... ok
+test uncollected_object_without_metadata_stays_at_revision_one ... ok
+test failed_metadata_is_reported_as_bare ... ok
+test deleted_destination_slot_is_restored_over_its_tombstone ... ok
+test ustar_case_fold_is_at_least_as_coarse_as_core_case_mapping ... ok
+test ustar_names_agree_with_the_shared_fixture ... ok
+test concurrent_change_makes_export_stale ... ok
+test ustar_export_refuses_a_file_where_a_directory_is ... ok
+test unverified_truncated_restore_commits_only_checked_objects ... ok
+test ustar_export_refuses_windows_characters ... ok
+test ustar_export_reports_every_refused_name_at_once ... ok
+test unknown_commit_with_another_content_sum_is_not_claimed ... ok
+test ustar_export_refuses_windows_device_names ... ok
+test ustar_export_refuses_characters_outside_the_checked_set ... ok
+test restore_never_overwrites_objects_names_or_collections ... ok
+test ustar_export_refuses_the_pax_entry_name_at_the_root ... ok
+test independent_backup_device_restores_after_source_loss_and_cold_restarts ... ok
+test unknown_commit_is_resolved_by_stat ... ok
+test restore_after_source_loss_and_cold_recovery ... ok
+test ustar_export_refuses_trailing_dots_and_spaces ... ok
+test ustar_export_judges_names_again_and_refuses_another_source ... ok
+test restore_creates_no_collection_for_a_conflicting_object ... ok
+test disk_range_round_trip_keeps_bytes_and_untouched_sectors ... ok
+test export_never_confirms_an_uncertain_or_detached_backup_device ... ok
+test restore_from_a_vanishing_backup_device_resumes_without_overwriting ... ok
+test ustar_export_refuses_names_equal_under_case_folding ... ok
+test full_target_leaves_no_archive_and_a_later_export_over_it_verifies ... ok
+test disk_sink_reports_full_at_the_exact_boundary_and_device_errors ... ok
+test destination_quota_stops_restore_without_touching_existing_data ... ok
+test full_or_failing_destination_never_reports_success ... ok
+test disk_source_refuses_empty_oversized_and_damaged_ranges ... ok
+test ustar_export_ends_only_after_the_whole_archive_checked_out ... ok
+test ustar_export_accepts_latin_names_and_dingbats ... ok
+test ustar_export_opens_with_a_standard_reader ... ok
+test every_truncation_flip_and_trailing_byte_is_rejected ... ok
+test ustar_case_fold_matches_unicode_case_within_the_checked_set ... ok
+test power_cut_during_export_over_an_older_archive_leaves_it_the_new_one_or_nothing ... ok
+
+test result: ok. 43 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.09s
+
+     Running tests/archive_v2.rs (~/projects/BaryonOS-scratch/b/relay-20261124/cargo/debug/build/volume-core/4db3d80d383e1a70/out/archive_v2-4db3d80d383e1a70)
+
+running 27 tests
+test replay_beyond_the_guaranteed_free_chunks_is_refused_before_any_write ... ok
+test replay_passes_must_match_the_verified_archive ... ok
+test a_malformed_reply_to_a_landed_commit_is_a_lower_bound ... ok
+test disk_source_refuses_a_short_range_and_an_unknown_version_after_one_read ... ok
+test restore_native_checks_the_domain_quota_before_the_first_write ... ok
+test a_staged_upload_in_the_destination_makes_the_first_begin_busy ... ok
+test a_pass_differing_after_its_records_is_corrupt_after_its_writes ... ok
+test a_collection_only_restore_is_not_refused_by_a_staged_upload ... ok
+test a_failed_replay_leaves_the_domain_used_and_a_retry_is_refused ... ok
+test a_refusal_reports_the_skipped_versions_of_the_verified_archive ... ok
+test restore_native_leaves_the_other_domain_alone ... ok
+test a_slot_without_metadata_is_reported_restored_when_a_later_write_fails ... ok
+test restore_native_refuses_tombstones_corruption_and_v1 ... ok
+test restore_native_refuses_a_used_domain ... ok
+test a_slot_without_metadata_is_reported_restored_when_a_collection_fails ... ok
+test a_lost_write_reply_is_resolved_by_stat ... ok
+test restore_native_l2_reads_an_archive_range_through_owned_sources ... ok
+test restore_native_replays_history_into_a_fresh_domain ... ok
+test accepted_boundaries_restore ... ok
+test versions_after_a_revision_gap_are_not_replayed ... ok
+test reader_agrees_with_the_oracle_manifest ... ok
+test a_lost_collection_or_meta_reply_is_resolved_by_reading_back ... ok
+test replay_within_the_guaranteed_free_chunks_succeeds_beside_a_full_domain ... ok
+test disk_source_reads_every_v2_fixture_exactly_as_stored ... ok
+test exactly_the_guaranteed_free_chunks_restore_beside_a_full_domain ... ok
+test a_landed_commit_that_stat_shows_differently_is_not_claimed ... ok
+test every_bit_flip_truncation_and_trailing_byte_is_refused ... ok
+
+test result: ok. 27 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.38s
+
+     Running tests/archive_v2_writer.rs (~/projects/BaryonOS-scratch/b/relay-20261124/cargo/debug/build/volume-core/e38d069fcd72957f/out/archive_v2_writer-e38d069fcd72957f)
+
+running 5 tests
+test an_old_service_gets_no_bytes_written ... ok
+test exported_archives_verify_and_match_the_committed_differential_fixtures ... ok
+test disk_source_reads_v1_and_v2_archives_of_one_domain ... ok
+test round_trip_into_a_fresh_domain_of_a_fresh_volume ... ok
+test a_concurrent_own_commit_discards_the_export ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.29s
+
+     Running tests/crash.rs (~/projects/BaryonOS-scratch/b/relay-20261124/cargo/debug/build/volume-core/469e9c19be01f72f/out/crash-469e9c19be01f72f)
+
+running 7 tests
+test mixed_attempts_for_one_generation_are_never_combined ... ok
+test recovery_makes_the_chosen_copy_durable_before_writing ... ok
+test recovered_instance_continues_after_interrupted_commit ... ok
+test first_format_crashes_reject_unrecognized_marker_prefixes_without_writes ... ok
+test install_collection_upgrade_crash_points_recover_to_before_or_after ... ok
+test every_install_crash_point_recovers_to_before_or_after ... ok
+test every_crash_point_recovers_to_before_or_after ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 20.62s
+
+     Running tests/history.rs (~/projects/BaryonOS-scratch/b/relay-20261124/cargo/debug/build/volume-core/7cf1aef39d6c0960/out/history-7cf1aef39d6c0960)
+
+running 8 tests
+test malformed_s06_requests_are_rejected ... ok
+test restoring_the_newest_history_version_keeps_the_oldest ... ok
+test read_only_refuses_every_s06_mutation ... ok
+test collections_metadata_and_filtered_listing ... ok
+test transactions_are_all_or_nothing ... ok
+test stamps_do_not_reveal_other_domain_commits ... ok
+test collection_state_is_readable_and_resolves_unknown ... ok
+test history_restore_undelete_and_purge ... ok
+
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/independent_copy.rs (~/projects/BaryonOS-scratch/b/relay-20261124/cargo/debug/build/volume-core/19818d65c80192dc/out/independent_copy-19818d65c80192dc)
+
+running 3 tests
+test stale_source_does_not_start_or_overwrite_destination ... ok
+test independent_copy_survives_source_loss_and_cold_destination_recovery ... ok
+test quota_and_full_destination_preserve_existing_copy ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+
+     Running tests/install.rs (~/projects/BaryonOS-scratch/b/relay-20261124/cargo/debug/build/volume-core/b1bf1eebca1b98e1/out/install-b1bf1eebca1b98e1)
+
+running 29 tests
+test install_requests_are_validated_field_by_field ... ok
+test provenance_reply_validation ... ok
+test staged_session_size_is_pinned ... ok
+test install_tokens_share_the_upload_counter_and_are_required_in_v7 ... ok
+test read_only_refuses_install_operations_and_allows_provenance_stat ... ok
+test staged_chunks_of_another_domain_are_never_handed_out ... ok
+test v1_export_of_an_installed_domain ... ok
+test absent_collection_at_commit_is_range_without_a_table_write ... ok
+test lifecycle_delete_restore_undelete_hides_versions_behind_the_gap ... ok
+test object_provenance_refuses_a_wrong_revision_and_a_never_used_slot ... ok
+test first_commit_installs_three_versions_exactly_on_the_rule_r_bound ... ok
+test continuation_refusals_and_zero_length_versions ... ok
+test a_lost_append_retains_the_confirmed_install_for_explicit_recovery ... ok
+test export_v2_refuses_with_range_inside_the_excess_window_then_exports_live_values ... ok
+test collection_install_provenance_and_delete ... ok
+test installs_leave_the_other_domain_unobservable_and_foreign_selectors_are_refused ... ok
+test lifecycle_recreate_zeroes_object_origins_and_old_versions_keep_theirs ... ok
+test shutdown_and_detach_drop_staged_installs ... ok
+test an_uncertain_install_commit_retains_phase_without_replay_or_abort ... ok
+test ambiguous_begin_with_colliding_ids_never_aborts_an_existing_session ... ok
+test normal_use_after_install_and_provenance_travel_with_versions ... ok
+test low_level_continuations_do_not_invent_a_confirmed_begin ... ok
+test io_during_install_is_a_certain_abort_and_releases_the_chunks ... ok
+test lost_install_begin_replies_preserve_recovery_until_explicit_reconciliation ... ok
+test lifecycle_purge_and_transact ... ok
+test malformed_install_begin_replies_preserve_recovery_without_guessing_ownership ... ok
+test failed_cleanup_retains_the_session_and_preserves_the_original_refusal ... ok
+test install_begin_refuses_used_slots_absent_collections_and_capacity ... ok
+test session_matrix_every_cell ... ok
+
+test result: ok. 29 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.04s
+
+     Running tests/l2_restore.rs (~/projects/BaryonOS-scratch/b/relay-20261124/cargo/debug/build/volume-core/23fbe0e7f3179543/out/l2_restore-23fbe0e7f3179543)
+
+running 14 tests
+test an_older_service_answers_nosys_and_nothing_is_committed ... ok
+test a_different_archive_on_the_second_read_installs_nothing ... ok
+test refusals_before_the_first_write ... ok
+test restore_leaves_the_other_domain_alone ... ok
+test an_unknown_commit_outcome_stops_without_abort ... ok
+test an_unconfirmed_begin_retains_recovery_and_blocks_another_restore ... ok
+test a_lost_append_retains_restore_recovery_before_another_write ... ok
+test versions_behind_a_revision_gap_are_skipped ... ok
+test restore_installs_every_present_object_with_its_provenance ... ok
+test a_content_mismatch_on_the_second_read_aborts_and_stops ... ok
+test source_uncertainty_after_begin_keeps_definite_cleanup_semantics ... ok
+test malformed_commit_replies_leave_only_confirmed_commits_in_the_report ... ok
+test a_staged_session_refuses_restore_before_any_collection_commit ... ok
+test failed_restore_cleanup_preserves_the_confirmed_id_and_original_error ... ok
+
+test result: ok. 14 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests/service.rs (~/projects/BaryonOS-scratch/b/relay-20261124/cargo/debug/build/volume-core/a9df25f886c406bd/out/service-a9df25f886c406bd)
+
+running 36 tests
+test adjacent_generation_checks_do_not_wrap_or_panic ... ok
+test client_rejects_forged_collection_stat_replies ... ok
+test malformed_own_reads_are_rejected_before_any_state_or_io ... ok
+test malformed_requests_are_rejected_without_io ... ok
+test format_marker_preserves_recovery_of_a_torn_first_table ... ok
+test malformed_shutdown_requests_are_rejected_without_io ... ok
+test shutdown_of_a_read_only_instance_is_refused_without_io ... ok
+test client_rejects_tampered_replies ... ok
+test empty_volume_recovers_as_generation_zero ... ok
+test supplied_generation_does_not_skip_foreign_volume_admission ... ok
+test client_rejects_forged_own_read_replies ... ok
+test direct_service_constructor_cannot_claim_a_foreign_volume ... ok
+test nonzero_unrecognized_data_is_not_admitted_as_an_empty_volume ... ok
+test certain_io_failures_abort_without_closing ... ok
+test shutdown_flush_failure_is_unknown_and_closes_instance ... ok
+test first_upload_marks_the_empty_volume_before_staging_content ... ok
+test own_reads_on_read_only_uncertain_and_token_bound_instances ... ok
+test domains_are_isolated_and_listing_is_paged ... ok
+test committed_generation_one_with_zero_companion_is_preserved ... ok
+test client_rejects_inconsistent_stat_and_list_replies ... ok
+test read_only_instance_refuses_mutations ... ok
+test shutdown_flushes_once_and_refuses_later_mutations ... ok
+test version_stat_names_only_the_consecutive_revision_prefix ... ok
+test streaming_protocol_rules ... ok
+test delete_rename_and_tombstones ... ok
+test domain_stat_reveals_only_the_own_clock_and_generation ... ok
+test version_stat_never_names_a_version_from_before_a_delete ... ok
+test large_document_roundtrip_beyond_old_128_byte_limit ... ok
+test unmarked_nonzero_table_sectors_are_not_admitted_as_empty ... ok
+test delete_at_last_tombstone_revision_is_refused_before_publishing ... ok
+test corrupted_content_and_tables_fail_closed ... ok
+test quota_and_full_are_reported_before_any_io ... ok
+test deleted_object_revision_from_disk_does_not_overflow ... ok
+test table_sector_layout_is_canonical ... ok
+test table_write_failure_is_unknown_and_closes_instance ... ok
+test space_is_reused_far_beyond_record_and_capacity_limits ... ok
+
+test result: ok. 36 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.07s
+
+     Running tests/table_v3.rs (~/projects/BaryonOS-scratch/b/relay-20261124/cargo/debug/build/volume-core/a34850f1a840e63f/out/table_v3-a34850f1a840e63f)
+
+running 12 tests
+test first_v3_copy_comes_from_the_table_api_and_later_commits_stay_v3 ... ok
+test v3_entry_on_the_rule_r_bound_mounts_and_one_less_excess_fails ... ok
+test rule_r_bound_is_computed_without_overflow_near_u64_max ... ok
+test table_validate_bounds_the_revision_by_the_domain_clock_plus_excess ... ok
+test revision_u64_max_on_a_crafted_image_is_full_without_a_write ... ok
+test admission_compares_the_format_and_the_provenance_fields ... ok
+test non_install_commits_are_byte_identical_to_the_837619ef_encoder ... ok
+test unknown_table_versions_are_refused_on_a_plain_copy ... ok
+test mixed_pairs_keep_the_format_sticky ... ok
+test torn_v3_attempt_next_to_v2_recovers_the_v2_generation ... ok
+test nonzero_reserved_and_v2_provenance_bytes_are_refused ... ok
+test corrupt_provenance_fields_are_refused_on_mount ... ok
+
+test result: ok. 12 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.08s
+
+     Running tests/uploads.rs (~/projects/BaryonOS-scratch/b/relay-20261124/cargo/debug/build/volume-core/584adb3be1ffe12c/out/uploads-584adb3be1ffe12c)
+
+running 8 tests
+test reply_token_mismatch_and_zero_begin_token_are_protocol_errors ... ok
+test domain_counters_are_independent_and_equal_tokens_keep_distinct_owners ... ok
+test same_id_and_revision_cannot_replace_another_editor_or_principal ... ok
+test wrong_domain_and_malformed_token_envelopes_never_touch_staging ... ok
+test legacy_and_token_bound_uploads_cannot_take_over_each_other ... ok
+test trusted_detach_releases_only_owner_and_never_reuses_old_token ... ok
+test stale_token_cannot_abort_or_append_a_later_upload_with_identical_id ... ok
+test uncertainty_precedes_legacy_guard_and_cannot_resume_token_upload ... ok
+
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests block_protocol
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests boot_protocol
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests capability_core
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests catalog_core
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests destination_core
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests driver_core
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests elf_loader_core
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests kernel_core
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests keyring_core
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests object_core
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests pci_core
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests ui_core
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests update_core
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests virtio_blk_driver
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests virtio_core
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests virtio_net_driver
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests virtio_rng_driver
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests volume_core
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

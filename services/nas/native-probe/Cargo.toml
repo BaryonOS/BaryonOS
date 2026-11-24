@@ -22,7 +22,7 @@ required-features = ["native"]
 nieuw-os-nas-core = { version = "=0.1.0", path = "../native-core" }
 nieuw-os-nas-volume = { version = "=0.1.0", path = "../native-volume" }
 nieuw-os-sdk-runtime = { version = "=0.1.0", path = "../../../sdk/runtime" }
-volume-core = { version = "=0.1.0", path = "../../volume" }
+volume-core = { version = "=0.1.0", path = "../../volume", default-features = false }
 
 [workspace]
 members = ["."]

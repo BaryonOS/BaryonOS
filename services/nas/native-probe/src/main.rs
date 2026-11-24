@@ -13,7 +13,9 @@ mod support;
 use nieuw_os_nas_core::{
     Entropy, Error as NasError, NamespaceStatus, Service, Session, Upload, Workspace, TOKEN_BYTES,
 };
-use nieuw_os_nas_probe::{dispatch, Frame, Ingress, LocalBinding, Op, RequestContext, SIZE, TAG};
+use nieuw_os_nas_probe::{
+    dispatch, volume_transport, Frame, Ingress, LocalBinding, Op, RequestContext, SIZE, TAG,
+};
 use nieuw_os_nas_volume::VolumeStorage;
 use nieuw_os_sdk_runtime::{
     entropy::EntropySource, memory, native, Error, Handle, Outgoing, ReceiveEndpoint, SendEndpoint,
@@ -189,11 +191,10 @@ impl Rpc {
 }
 impl Transport for Rpc {
     fn call(&mut self, bytes: &[u8; wire::SIZE]) -> Result<[u8; wire::SIZE], Status> {
-        self.exchange(wire::TAG, bytes)
-            .map_err(|error| match error {
-                Error::Kernel(code) => Status::from_code(code),
-                _ => Status::Protocol,
-            })
+        volume_transport::exchange(
+            || send(self.send, wire::TAG, bytes),
+            || receive(self.receive, self.peer, wire::TAG),
+        )
     }
 }
 

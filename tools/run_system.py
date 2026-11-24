@@ -36,6 +36,14 @@ POWER_FEATURE = {"power": "native-system-power", "power-flush-error": "test-syst
                  # keeps the held request's teardown reset off the device.
                  "power-s3-held-completion": "test-system-s3-held-completion"}
 POWER_CASES = tuple(POWER_FEATURE)
+# B02-T4 (ADR-B02-KEY1-RELAY-20261123): the Key Service commits key state through
+# init's commit ingress. Kept out of FEATURE (capture/gate iterate it as FR-I01).
+RELAY_FEATURE = {"relay": "test-system-keystate-relay",
+                 "relay-not-committed": "test-system-keystate-relay-not-committed",
+                 "relay-timeout": "test-system-keystate-relay-timeout"}
+# Red manifest case: the app also holds a commit SEND; the boot must stop.
+RELAY_RED = {"relay-leak": "test-system-keystate-relay-leak"}
+RELAY_CASES = (*RELAY_FEATURE, *RELAY_RED)
 S3_CASES = ("power-s3", "power-s3-reinit", "power-s3-held-completion")
 # The single re-init marker; CI's QEMU 8.2.2 may keep the BARs that 10.2.1 clears.
 REINIT = re.compile(r"KEYRING:S3:REINIT:BARS=(KEPT|RESTORED):STATUS=15:SELFTEST=32")
@@ -62,7 +70,34 @@ PERSIST_EXACT = {
                 "KEYSTATE_GENERATION": 3, "ADMIN_REQUESTS": 4, "ADMIN_DENIED": 3,
                 "RECORD_PERSISTED": 0, "RECORD_RESTORED_UNSEAL": 1, "RECORD_RESTORED_REVOKED_DENIED": 1,
                 "RECORD_RESTORED_TAMPER_DENIED": 1, "RECORD_ADMIN_DENIED": 2, "RECORD_OBJECT_REVISION": 1},
+    # Relay: init supplies the secret once (second supply and admin GENERATE
+    # refused), never exports or restores; the Key Service's Ok now waits for
+    # init's commit, so there is no wrong-secret restore (one tamper fewer).
+    "relay": {"CRYPTO_SEAL": 3, "CRYPTO_UNSEAL": 2, "CRYPTO_TAMPER_DENIED": 9, "CRYPTO_RESTORES": 0,
+              "KEYSTATE_EXPORTS": 0, "KEYSTATE_RESTORES": 0, "KEYSTATE_WRONG_SECRET_DENIED": 0,
+              "KEYSTATE_FLOOR_DENIED": 0, "KEYSTATE_ADMIN_OP_DENIED": 1, "KEYSTATE_BYTES": 120,
+              "KEYSTATE_GENERATION": 3, "ADMIN_REQUESTS": 3, "ADMIN_DENIED": 2,
+              "RECORD_PERSISTED": 1, "RECORD_RESTORED_UNSEAL": 0, "RECORD_RESTORED_REVOKED_DENIED": 0,
+              "RECORD_RESTORED_TAMPER_DENIED": 0, "RECORD_ADMIN_DENIED": 2, "RECORD_OBJECT_REVISION": 1},
 }
+RELAY = "KEYSTATE_RELAY_"
+# Exact per-case relay counters (Key Service, init, app); all three cases end
+# with the same three acknowledged commits (generation 3, revision 3).
+_RELAY_COMMON = {"OK": 3, "LAST_GENERATION": 3, "SECRET_SUPPLIED": 1, "SECRET_REFUSED": 1,
+                 "INIT_COMMITTED": 3, "INIT_BEGUN": 3, "INIT_REVISION": 3, "INIT_GENERATION": 3}
+RELAY_EXACT = {case: {RELAY + key: value for key, value in {**_RELAY_COMMON, **values}.items()} for case, values in {
+    "relay": {"CASE": 1, "REQUESTS": 3, "NOT_COMMITTED": 0, "UNKNOWN": 0, "INIT_RECEIVED": 3,
+              "INIT_REFUSED": 0, "INIT_WITHHELD": 0, "APP_FIRST": 0, "APP_SECOND": 0},
+    "relay-not-committed": {"CASE": 2, "REQUESTS": 5, "NOT_COMMITTED": 2, "UNKNOWN": 0, "INIT_RECEIVED": 5,
+                            "INIT_REFUSED": 2, "INIT_WITHHELD": 0, "APP_FIRST": 1, "APP_SECOND": 1},
+    "relay-timeout": {"CASE": 3, "REQUESTS": 4, "NOT_COMMITTED": 0, "UNKNOWN": 1, "INIT_RECEIVED": 4,
+                      "INIT_REFUSED": 0, "INIT_WITHHELD": 1, "APP_FIRST": 7, "APP_SECOND": 7},
+}.items()}
+# wire::COMMIT_TICKS: an answered commit stays below it, a withheld one reaches it.
+RELAY_COMMIT_TICKS = 1500
+# 0 is legal for answered commits: on a fast (KVM) host each one can finish within one tick.
+RELAY_TICKS = {"relay": range(0, RELAY_COMMIT_TICKS), "relay-not-committed": range(0, RELAY_COMMIT_TICKS),
+               "relay-timeout": range(RELAY_COMMIT_TICKS, 2 * RELAY_COMMIT_TICKS)}
 
 
 def record_plaintext() -> bytes:
@@ -74,6 +109,16 @@ TCP_FEATURE = {"normal": "native-system-tcp", "recover": "test-system-tcp-recove
 LINK_FEATURES = ("test-system-net-link", "test-system-net-link-storm")
 BOOT = ("BOOT:EBS_OK", "KERNEL:ENTRY", "BOOTINFO:OK")
 COLD_CASES = ("keystate", "record-tag", "swapped-blocks", "withheld-secret")
+# Relay disk: generation, chunks used, (domain 0, domain 1) clocks.
+RELAY_VOLUME_STATE = (5, 5, [2, 3])
+# A refusing cold boot stops before any broker run, case verdict or persistence;
+# any of these in a cold log means the guest went further than a refusal.
+COLD_FORBIDDEN = ("SYSTEM:CASE:", "M1:PASS", "SYSTEM:BROKERS:", "SYSTEM:CLEANUP:", "SYSTEM:RECORD_",
+                  "SYSTEM:POWER:", "SYSTEM:KEYSTATE_")
+# Old-generation replay is a documented open boundary, never a COLD_CASES pass.
+COLD_ANTIROLLBACK = {"status": "UNPROTECTED", "replay": (
+    "NOT_DETECTABLE: cold restore uses minimum_generation 0; older A/B slot (generation 2) has no "
+    "key-state object; equal-generation stale image with same VOLUME_ID is accepted")}
 MAX_TIMEOUT = 180
 
 
@@ -155,7 +200,7 @@ def check_parent(previous: dict, frozen: str, image_sha256: str, *, network: boo
 
 
 def expected_markers(case: str) -> tuple[str, ...]:
-    if case not in FEATURE and case not in POWER_FEATURE:
+    if case not in FEATURE and case not in POWER_FEATURE and case not in RELAY_FEATURE:
         raise ValueError("unknown system case")
     return BOOT + ("SYSTEM:MANIFEST:PASS", "SYSTEM:BROKERS:PASS",
                    "SYSTEM:CLEANUP:PASS", f"SYSTEM:CASE:{case.upper().replace('-', '_')}:PASS", "M1:PASS")
@@ -283,6 +328,9 @@ def evaluate(case: str, stdout: str, raw_exit: int | None, timed_out: bool) -> d
     if any("PANIC" in line or "FAIL" in line for line in stdout.splitlines()):
         raise ValueError("guest failure marker")
     refuse_stray_suspend(case, stdout)
+    relay = case in RELAY_FEATURE
+    if not relay and any(line.startswith(f"SYSTEM:{RELAY}") for line in stdout.splitlines()):
+        raise ValueError("key-state relay evidence outside the relay profile")
     found = {}
     for line in stdout.splitlines():
         match = re.fullmatch(r"SYSTEM:([A-Z_]+):([0-9]{20})", line)
@@ -299,7 +347,8 @@ def evaluate(case: str, stdout: str, raw_exit: int | None, timed_out: bool) -> d
              "LIVE_PROCESSES_AFTER": 0, "FRAMES_RECOVERED": 1,
              "RECORD_SEAL": 1, "RECORD_UNSEAL": 1,
              "RECORD_CONTEXT_DENIED": 10, "RECORD_REVOKED_DENIED": 2,
-             **PERSIST_EXACT["recover" if case == "recover" else "normal"]}
+             **PERSIST_EXACT["recover" if case == "recover" else "relay" if relay else "normal"],
+             **RELAY_EXACT.get(case, {})}
     minimum = {"APP_DENIED": 3, "DISK_READS": 1, "ENTROPY_BYTES": 256,
                "CRYPTO_SEAL": 1, "CRYPTO_UNSEAL": 1, "CRYPTO_TAMPER_DENIED": 1}
     for key, value in exact.items():
@@ -318,6 +367,14 @@ def evaluate(case: str, stdout: str, raw_exit: int | None, timed_out: bool) -> d
         raise ValueError("wrong durability/readonly flush evidence")
     if case in POWER_CASES:
         check_power(case, stdout, found)
+    if relay:
+        relay_keys = {key for key in found if key.startswith(RELAY)}
+        if relay_keys != {*RELAY_EXACT[case], RELAY + "MAX_COMMIT_TICKS", RELAY + "SUM"}:
+            raise ValueError(f"relay evidence set differs: {sorted(relay_keys)}")
+        if found[RELAY + "MAX_COMMIT_TICKS"] not in RELAY_TICKS[case]:
+            raise ValueError(f"relay commit latency {found[RELAY + 'MAX_COMMIT_TICKS']} outside {RELAY_TICKS[case]}")
+        if found[RELAY + "SUM"] == 0:
+            raise ValueError("relay committed-blob checksum missing")
     expected_sum = volume_disk.fnv(volume_disk.fixture(0, 1, 4096))
     if found.get("APP_CONTENT_SUM") != expected_sum:
         raise ValueError("guest read content differs from the independent fixture")
@@ -373,6 +430,70 @@ def check_disk(oracle: dict) -> None:
         raise ValueError("unexpected volume generation, allocation or domain clock")
 
 
+def check_disk_relay(oracle: dict, checksum: int) -> None:
+    """Disk oracle shared by all three relay cases: exactly the three
+    acknowledged key-state generations (revisions 3, 2, 1 retained with
+    HISTORY = 2), the current one matching init's reported FNV sum, and
+    nothing written for a NOT_COMMITTED or withheld commit."""
+    objects = oracle["objects"]
+    _single_version(objects[0], "system document",
+                    {"revision": 1, "length": 4096, "name": "systeemproef", "content_revision": 1})
+    sealed = _opaque_bytes(_single_version(objects[SEALED_OBJECT], "sealed record",
+                                           {"revision": 1, "length": SEALED_LENGTH, "name": SEALED_NAME}),
+                           SEALED_LENGTH, "sealed record")
+    plaintext = record_plaintext()
+    if plaintext in sealed or sealed[24:24 + len(plaintext)] == plaintext or not any(sealed[:24]):
+        raise ValueError("sealed record stores recognizable plaintext or an empty nonce")
+    item = objects[KEYSTATE_OBJECT]
+    if not item["present"] or item["revision"] != 3 or (item["collection"], item["tags"], item["kind"]) != (0, 0, 0):
+        raise ValueError("relay key-state object is not at revision 3")
+    versions = item["versions"]
+    if [version.get("revision") for version in versions] != [3, 2, 1]:
+        raise ValueError(f"relay key-state versions differ: {[v.get('revision') for v in versions]}")
+    blobs = []
+    for version in versions:
+        if version.get("length") != KEYSTATE_LENGTH or version.get("name") != KEYSTATE_NAME:
+            raise ValueError("relay key-state version length/name differ")
+        blob = _opaque_bytes(version, KEYSTATE_LENGTH, "key-state snapshot")
+        if blob[:len(KEYSTATE_HEADER)] != KEYSTATE_HEADER:
+            raise ValueError("key-state snapshot header/volume binding is wrong")
+        blobs.append(blob)
+    nonces = [blob[32:56] for blob in blobs]
+    if not all(any(nonce) for nonce in nonces) or len(set(nonces)) != len(nonces):
+        raise ValueError("key-state snapshot nonces are empty or repeated")
+    if volume_disk.fnv(blobs[0]) != checksum:
+        raise ValueError("current key-state snapshot differs from init's acknowledged commit")
+    untouched = [obj for index, obj in enumerate(objects) if index not in (0, SEALED_OBJECT, KEYSTATE_OBJECT)]
+    if any(obj["present"] or obj["revision"] for obj in untouched):
+        raise ValueError("guest touched another object or domain")
+    if any(collection["present"] or collection["revision"] for collection in oracle["collections"]):
+        raise ValueError("guest changed an unrelated collection")
+    # Five commits: three key-state generations (domain 1), document and record (domain 0).
+    if (oracle["generation"], oracle["chunks_used"], oracle["clocks"]) != RELAY_VOLUME_STATE:
+        raise ValueError("unexpected relay volume generation, allocation or domain clock")
+
+
+def evaluate_red(case: str, stdout: str, raw_exit: int | None, timed_out: bool,
+                 before: str, after: str) -> dict:
+    """relay-leak: the manifest check must stop the boot before anything runs."""
+    if case not in RELAY_RED:
+        raise ValueError("unknown red relay case")
+    lines = stdout.splitlines()
+    fails = [line for line in lines if line.startswith("SYSTEM:FAIL:")]
+    if fails != ["SYSTEM:FAIL:APP_COMMIT_HANDLE"]:
+        raise ValueError(f"red relay case stopped for another reason: {fails}")
+    if any(line.startswith(f"SYSTEM:{RELAY}") or (line.startswith("SYSTEM:") and line.endswith(":PASS"))
+           or line == "M1:PASS" for line in lines):
+        raise ValueError("red relay case passed a system stage or produced relay evidence")
+    if [line for line in lines if line in BOOT] != list(BOOT):
+        raise ValueError("red relay case lacks the boot markers")
+    if timed_out or raw_exit != 35:
+        raise ValueError(f"red relay case raw exit {raw_exit}, timed_out {timed_out}")
+    if before != after:
+        raise ValueError("red relay case changed the disk")
+    return {"fail": fails[0], "raw_exit": raw_exit}
+
+
 def cold_image(raw: bytes, case: str) -> bytes:
     """Mutate AEAD bytes while repairing the noncryptographic volume checksums.
 
@@ -422,6 +543,8 @@ def evaluate_cold(case: str, stdout: str, raw_exit: int | None, timed_out: bool)
     controlled = [line for line in lines if line.startswith("SYSTEM:COLD:")]
     if controlled != [marker] or raw_exit != 33 or timed_out:
         raise ValueError("cold refusal case/exit mismatch")
+    if any(token in line for line in lines for token in COLD_FORBIDDEN):
+        raise ValueError("cold log carries a success, case or persistence marker")
     if any("FAIL" in line or "PANIC" in line or "PLAINTEXT" in line and
            line != "SYSTEM:COLD_PLAINTEXT_REPLIES:00000000000000000000" for line in lines):
         raise ValueError("cold refusal exposed plaintext or failed")
@@ -438,11 +561,24 @@ def evaluate_cold(case: str, stdout: str, raw_exit: int | None, timed_out: bool)
     return found
 
 
+def check_cold_binding(cold_case: str, env_value: str | None, parent_before: str | None,
+                       parent_after: str | None) -> None:
+    """Bind the runner's fixture environment and the unchanged parent normal image to this run.
+
+    env_value is the runner's NOS_SYSTEM_COLD_CASE, not proof of what the kernel was compiled
+    with (option_env! is build-time); that binding is the exact SYSTEM:COLD:REFUSED:<case> marker.
+    """
+    if cold_case not in COLD_CASES or env_value != cold_case:
+        raise ValueError("NOS_SYSTEM_COLD_CASE does not match --cold-case")
+    if not parent_before or parent_before != parent_after:
+        raise ValueError("cold run changed or lost the parent normal image")
+
+
 def run_system(case: str, volume_dir: Path | None = None, *, timeout: int = MAX_TIMEOUT,
                kernel_feature: str | None = None, network_port: int | None = None,
                rtc_base: str | None = None, cold_case: str | None = None,
                nic_status: bool = True, qmp_hook=None):
-    cases = {**FEATURE, **POWER_FEATURE}
+    cases = {**FEATURE, **POWER_FEATURE, **RELAY_FEATURE, **RELAY_RED}
     if case not in cases or not 0 < timeout <= MAX_TIMEOUT:
         raise ValueError("unknown case or unbounded timeout")
     if cold_case is not None and (case != "recover" or cold_case not in COLD_CASES or kernel_feature is not None):
@@ -516,6 +652,7 @@ def run_system(case: str, volume_dir: Path | None = None, *, timeout: int = MAX_
         check_parent(previous, frozen, sha256(volume_dir / "volume.img"), network=use_network, tcp=use_tcp)
     if cold_case is not None:
         parent_dir = volume_dir
+        parent_before = sha256(parent_dir / "volume.img")
         volume_dir = run_dir / "cold-image"
         volume_dir.mkdir()
         (volume_dir / "volume.img").write_bytes(cold_image((parent_dir / "volume.img").read_bytes(), cold_case))
@@ -573,6 +710,7 @@ def run_system(case: str, volume_dir: Path | None = None, *, timeout: int = MAX_
     (run_dir / "serial.txt").write_text(stdout)
     (run_dir / "stderr.txt").write_text(stderr)
     after = sha256(image)
+    parent_after = sha256(parent_dir / "volume.img") if cold_case is not None else None
     report = dict(schema_version=1, case=case, source_commit=subprocess.check_output(
         ["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip(), source_fingerprint_version=3,
         source_sha256=frozen, kernel_feature=selected, started_utc=started,
@@ -596,15 +734,26 @@ def run_system(case: str, volume_dir: Path | None = None, *, timeout: int = MAX_
     try:
         report["cold_case"] = cold_case
         report["fixture_environment"] = {"NOS_SYSTEM_COLD_CASE": os.environ.get("NOS_SYSTEM_COLD_CASE")}
-        report["cold_antirollback"] = "UNPROTECTED: no independently trusted cold generation floor"
-        report["evidence"] = (evaluate_cold(cold_case, stdout, rc, timed_out) if cold_case is not None
-                              else evaluate(case, stdout, rc, timed_out))
+        report["cold_antirollback"] = dict(COLD_ANTIROLLBACK)
+        if cold_case is not None:
+            report["parent_before_sha256"], report["parent_after_sha256"] = parent_before, parent_after
+            check_cold_binding(cold_case, os.environ.get("NOS_SYSTEM_COLD_CASE"), parent_before, parent_after)
+        if case in RELAY_RED:
+            report["evidence"] = evaluate_red(case, stdout, rc, timed_out, before, after)
+            report["expected_fail"] = True
+        else:
+            report["evidence"] = (evaluate_cold(cold_case, stdout, rc, timed_out) if cold_case is not None
+                                  else evaluate(case, stdout, rc, timed_out))
         if wake is not None:
             wake.check()
         if case == "recover" and before != after:
             raise ValueError("read-only cold recovery changed the disk")
         oracle = volume_disk.analyse(image.read_bytes(), OPAQUE_OBJECTS)
-        if cold_case is None:
+        if case in RELAY_FEATURE:
+            check_disk_relay(oracle, report["evidence"][RELAY + "SUM"])
+        elif case in RELAY_RED:
+            pass  # unchanged empty image, compared byte-for-byte above
+        elif cold_case is None:
             check_disk(oracle)
         report["oracle"] = oracle
         if source_hash() != frozen:
@@ -623,7 +772,7 @@ def run_system(case: str, volume_dir: Path | None = None, *, timeout: int = MAX_
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--case", choices=(*FEATURE, *POWER_FEATURE), required=True)
+    parser.add_argument("--case", choices=(*FEATURE, *POWER_FEATURE, *RELAY_CASES), required=True)
     parser.add_argument("--volume", type=Path)
     parser.add_argument("--cold-case", choices=COLD_CASES)
     parser.add_argument("--timeout", type=int, default=MAX_TIMEOUT)

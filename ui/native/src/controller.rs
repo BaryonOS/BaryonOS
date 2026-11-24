@@ -909,7 +909,7 @@ impl<'a, T: Transport> Controller<'a, T> {
             }
             Screen::History => {
                 if let Some(stat) = self.workspace.metadata {
-                    for i in 1..=stat.history_count {
+                    for i in 1..=stat.history_count.min(volume_core::HISTORY) {
                         visit(Focus::HistoryVersion(i), l.history_slot(i), true);
                     }
                 }
@@ -1539,16 +1539,11 @@ impl<'a, T: Transport> Controller<'a, T> {
     }
     fn tab(&mut self, reverse: bool) -> Result<(), Error> {
         let mut choices = [Focus::New; PER_DOMAIN + 12];
+        // Every list below is the screen's visual reading order (row by row,
+        // left to right) and equals the enabled controls of its semantic tree.
         let count = match self.screen {
             Screen::Material => {
-                let mut prefix = if self.editable {
-                    choices[0] = Focus::New;
-                    choices[1] = Focus::Refresh;
-                    2
-                } else {
-                    choices[0] = Focus::Refresh;
-                    1
-                };
+                let mut prefix = 0;
                 if self.list_scroll > 0 {
                     choices[prefix] = Focus::Previous;
                     prefix += 1;
@@ -1557,6 +1552,14 @@ impl<'a, T: Transport> Controller<'a, T> {
                     choices[prefix] = Focus::Next;
                     prefix += 1;
                 }
+                if self.editable {
+                    choices[prefix] = Focus::New;
+                    prefix += 1;
+                }
+                choices[prefix] = Focus::Refresh;
+                choices[prefix + 1] = Focus::Search;
+                choices[prefix + 2] = Focus::Filter;
+                prefix += 3;
                 for (i, choice) in choices[prefix..]
                     .iter_mut()
                     .take(self.object_count)
@@ -1564,56 +1567,44 @@ impl<'a, T: Transport> Controller<'a, T> {
                 {
                     *choice = Focus::Object(i);
                 }
-                let end = self.object_count + prefix;
-                choices[end] = Focus::Search;
-                choices[end + 1] = Focus::Filter;
-                end + 2
+                prefix + self.object_count
             }
             Screen::Editor => {
-                choices[0] = Focus::Back;
-                choices[1] = Focus::Document;
-                choices[2] = if self.document.is_saving() {
-                    Focus::CancelSave
-                } else {
-                    Focus::Save
-                };
-                let count = if self.view().can_save || self.document.is_saving() {
-                    if self.viewport.logical_width() >= 700 {
-                        choices[3] = Focus::Rename;
-                        choices[4] = Focus::Organize;
-                        choices[5] = Focus::History;
-                        6
-                    } else {
-                        3
+                let saving = self.document.is_saving();
+                let view = self.view();
+                let wide = self.viewport.logical_width() >= 700;
+                let mut count = 0;
+                let mut add = |focus, enabled: bool| {
+                    if enabled {
+                        choices[count] = focus;
+                        count += 1;
                     }
-                } else if self.viewport.logical_width() >= 700 && self.view().can_inspect {
-                    choices[2] = Focus::History;
-                    3
-                } else {
-                    2
                 };
-                if self.document.is_saving() {
-                    count
-                } else {
-                    choices[count] = Focus::Tool;
-                    choices[count + 1] = Focus::ContextMenu;
-                    count + 2
-                }
+                add(Focus::Back, true);
+                add(Focus::Tool, !saving);
+                add(Focus::CancelSave, saving);
+                add(Focus::Save, !saving && view.can_save);
+                add(Focus::Rename, wide && !saving && view.can_save);
+                add(Focus::Organize, wide && !saving && view.can_save);
+                add(Focus::History, wide && !saving && view.can_inspect);
+                add(Focus::ContextMenu, !saving);
+                add(Focus::Document, !saving);
+                count
             }
             Screen::Rename | Screen::Organize => {
                 choices[0] = Focus::FormInput;
                 let mut count = 1;
-                if !self.workspace.form().is_empty() && self.view().can_save {
-                    choices[count] = Focus::FormConfirm;
-                    count += 1;
-                }
-                choices[count] = Focus::FormCancel;
-                count += 1;
                 if self.screen == Screen::Organize {
                     for i in 0..volume_core::COLLECTIONS {
                         choices[count] = Focus::CollectionSlot(i);
                         count += 1;
                     }
+                }
+                choices[count] = Focus::FormCancel;
+                count += 1;
+                if !self.workspace.form().is_empty() && self.view().can_save {
+                    choices[count] = Focus::FormConfirm;
+                    count += 1;
                 }
                 count
             }
@@ -1629,21 +1620,22 @@ impl<'a, T: Transport> Controller<'a, T> {
                 count + 1
             }
             Screen::History => {
-                choices[0] = Focus::HistoryVersion(self.workspace.selected_history);
-                let mut count = 1;
-                if self.workspace.preview_complete && self.view().can_save {
-                    choices[count] = Focus::RestoreHistory;
+                // Version slots left to right, then the footer: Cancel (left)
+                // before Restore (right), as in the semantic tree (#447).
+                let mut count = 0;
+                // history_count is a decoded reply byte; never exceed the two slots.
+                let versions = self
+                    .workspace
+                    .metadata
+                    .map_or(0, |s| s.history_count.min(volume_core::HISTORY));
+                for i in 1..=versions {
+                    choices[count] = Focus::HistoryVersion(i);
                     count += 1;
                 }
                 choices[count] = Focus::FormCancel;
                 count += 1;
-                if self.workspace.metadata.is_some_and(|s| s.history_count > 1) {
-                    choices[count] =
-                        Focus::HistoryVersion(if self.workspace.selected_history == 1 {
-                            2
-                        } else {
-                            1
-                        });
+                if self.workspace.preview().is_some() && self.view().can_save {
+                    choices[count] = Focus::RestoreHistory;
                     count += 1;
                 }
                 count
@@ -2216,7 +2208,9 @@ impl<'a, T: Transport> Controller<'a, T> {
                 }
                 if input.changed.right()
                     && input.buttons.right()
-                    && Layout::new(self.viewport).editor.contains(x, y)
+                    && Layout::for_screen(self.viewport, self.screen)
+                        .editor
+                        .contains(x, y)
                 {
                     return self.open_document_menu(Some((x, y)));
                 }

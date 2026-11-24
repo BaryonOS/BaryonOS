@@ -5,9 +5,12 @@ use crate::{
     get32, get64, valid_name, wire, Status, CHUNK, COLLECTIONS, HISTORY, MAX_LENGTH, NAME, OBJECTS,
     PER_DOMAIN, TRANSACT_MAX,
 };
-use wire::{Header, SubOp, DATA, SIZE};
+use wire::{Header, Manifest, SubOp, DATA, INSTALL_MAX, SIZE};
 
 /// One synchronous request/response exchange with the volume service.
+/// After a request was queued, failure to obtain a matching reply must return
+/// `Unknown`. Definite transport errors (including `Timeout`) require proof
+/// that the request was not delivered; service refusals are encoded replies.
 pub trait Transport {
     fn call(&mut self, request: &[u8; SIZE]) -> Result<[u8; SIZE], Status>;
 }
@@ -123,6 +126,26 @@ pub fn validate_reply(request: &Header, body: &[u8; SIZE], epoch: u64) -> Result
                     length == 0
                 }
         }
+        // Own clock in `aux`, own generation in `revision`; no commit, no sum.
+        wire::DOMAIN_STAT => bare && h.count == 0 && (h.aux != 0 || h.revision == 0),
+        wire::VERSION_STAT if request.name_length == 0 => {
+            let (created, modified) = (get64(body, 64), get64(body, 72));
+            h.revision == request.revision
+                && length == 16
+                && h.name_length == 0
+                && h.aux == 0
+                && h.count < 2
+                && created != 0
+                && created <= modified
+        }
+        wire::VERSION_STAT => {
+            h.revision == request.revision
+                && h.count == 0
+                && h.name_length as usize == length
+                && named(body, length)
+                && h.aux != 0
+                && h.aux < h.revision
+        }
         wire::ABORT | wire::SHUTDOWN => {
             h.revision == request.revision && bare && h.count == 0 && h.aux == 0
         }
@@ -132,6 +155,46 @@ pub fn validate_reply(request: &Header, body: &[u8; SIZE], epoch: u64) -> Result
                 && h.length <= request.count
                 && h.name_length == 0
                 && h.count == 0
+        }
+        // Exact Σ lengths and Σ chunks need the manifest, which the header
+        // does not carry: `Client::install` checks them (`install_begun`).
+        wire::INSTALL_BEGIN => {
+            h.revision == 0
+                && bare
+                && h.aux <= (INSTALL_MAX * MAX_LENGTH) as u64
+                && h.count as usize <= INSTALL_MAX * crate::MAX_CHUNKS
+        }
+        wire::INSTALL_APPEND => {
+            h.revision == 0
+                && bare
+                && h.count == request.count
+                && h.aux == request.aux + u64::from(request.length)
+        }
+        wire::INSTALL_COMMIT => {
+            h.revision == u64::from(request.count) && h.aux == request.aux && h.count == 0 && bare
+        }
+        wire::INSTALL_COLLECTION => h.revision == 1 && h.aux == request.aux && h.count == 0 && bare,
+        wire::PROVENANCE_STAT if request.count == 1 => {
+            h.revision == request.revision && bare && h.count <= 1 && (h.count == 1) == (h.aux != 0)
+        }
+        wire::PROVENANCE_STAT => {
+            let versions = h.name_length as usize;
+            let (revision, created, modified) = (get64(body, 64), get64(body, 72), get64(body, 80));
+            h.revision == request.revision
+                && h.aux == 0
+                && h.count as usize <= INSTALL_MAX
+                && if h.count == 0 {
+                    bare
+                } else {
+                    versions <= INSTALL_MAX
+                        && length == 24 + 8 * versions
+                        && (revision == 0) == (created == 0)
+                        && if revision == 0 {
+                            modified == 0
+                        } else {
+                            created <= modified
+                        }
+                }
         }
         wire::LIST => {
             let count = h.count as usize;
@@ -203,6 +266,46 @@ pub struct Stat {
     pub history: [HistoryInfo; HISTORY],
 }
 
+/// VERSION_STAT reply. Selector 0: `present`, `created`, `modified`.
+/// Selector `s >= 1`: `version_revision` and the name of history version `s`.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub struct VersionStat {
+    pub revision: u64,
+    pub present: bool,
+    pub created: u64,
+    pub modified: u64,
+    pub version_revision: u64,
+    pub name_length: usize,
+    pub name: [u8; NAME],
+}
+
+impl VersionStat {
+    pub fn name(&self) -> &[u8] {
+        &self.name[..self.name_length]
+    }
+}
+
+/// PROVENANCE_STAT of an object: what the own domain installed. Zero
+/// origins mean none (never installed, or the incarnation ended).
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub struct Provenance {
+    pub revision: u64,
+    /// Versions the creating INSTALL wrote (0 = never installed).
+    pub installed: usize,
+    pub origin_revision: u64,
+    pub origin_created: u64,
+    pub origin_modified: u64,
+    /// Origins of the versions in the consecutive-revision prefix, current
+    /// first (present objects only; 0 = no origin).
+    pub version_count: usize,
+    pub versions: [u64; INSTALL_MAX],
+}
+
+/// Exact INSTALL_BEGIN reply check against the manifest that was sent.
+pub fn install_begun(manifest: &Manifest, reply: &Header) -> bool {
+    manifest.total() == Some(reply.aux as usize) && manifest.chunks() == reply.count as usize
+}
+
 /// One collection of the caller's domain as reported by COLLECTION_STAT.
 /// `revision == 0` means the collection was never created.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
@@ -220,10 +323,42 @@ impl CollectionInfo {
     }
 }
 
+/// The operation that requires explicit INSTALL recovery, not a resume point.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum InstallPhase {
+    /// BEGIN was not confirmed; its request ID proves no ownership.
+    Begin,
+    Append,
+    /// The object may already be durably installed.
+    Commit,
+    /// A collection may already be durable; `object` is its domain base.
+    Collection {
+        index: usize,
+    },
+    /// Cleanup failed; the enclosing operation still returns its original error.
+    Abort,
+}
+
+/// Correlation for an uncertain INSTALL operation or unsuccessful cleanup.
+/// Legacy request IDs are not ownership credentials. `begin_confirmed` only
+/// records that this Client received a valid BEGIN for this tuple; it does not
+/// establish current ownership or prove that a COMMIT did not take effect.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct UnconfirmedInstall {
+    pub epoch: u64,
+    pub object: u64,
+    pub request_id: u64,
+    pub status: Status,
+    pub phase: InstallPhase,
+    pub begin_confirmed: bool,
+}
+
 pub struct Client<T: Transport> {
     pub transport: T,
     pub epoch: u64,
     next_request: u64,
+    unconfirmed_install: Option<UnconfirmedInstall>,
+    confirmed_install: Option<(u64, u64, u64)>,
 }
 
 impl<T: Transport> Client<T> {
@@ -233,11 +368,78 @@ impl<T: Transport> Client<T> {
             transport,
             epoch,
             next_request: first_request.max(1),
+            unconfirmed_install: None,
+            confirmed_install: None,
         }
     }
 
     pub fn next_request_id(&self) -> u64 {
         self.next_request
+    }
+
+    /// Inspect retained recovery without consuming it. The provided INSTALL
+    /// helpers stop until explicit reconciliation is acknowledged; reads remain
+    /// available. This is not a boundary over public raw exchange/transport access.
+    pub fn unconfirmed_install(&self) -> Option<UnconfirmedInstall> {
+        self.unconfirmed_install
+    }
+
+    /// Acknowledge recovery by the original session owner or a trusted domain
+    /// shutdown/restart. This only clears local bookkeeping and sends no request.
+    /// The caller must establish that recovery independently: the matching record
+    /// is correlation, not authority to abort a possibly different client's stage.
+    /// A failed cleanup is not recovery. A stale acknowledgement changes nothing.
+    pub fn acknowledge_install_recovery(&mut self, pending: UnconfirmedInstall) -> bool {
+        if self.unconfirmed_install != Some(pending) {
+            return false;
+        }
+        self.unconfirmed_install = None;
+        if self.confirmed_install == Some((pending.epoch, pending.object, pending.request_id)) {
+            self.confirmed_install = None;
+        }
+        true
+    }
+
+    fn retain_install_failure(
+        &mut self,
+        object: u64,
+        id: u64,
+        phase: InstallPhase,
+        status: Status,
+    ) {
+        // An explicit cleanup attempt must not overwrite the original uncertainty.
+        if self.unconfirmed_install.is_none() {
+            self.unconfirmed_install = Some(UnconfirmedInstall {
+                epoch: self.epoch,
+                object,
+                request_id: id,
+                status,
+                phase,
+                begin_confirmed: !matches!(
+                    phase,
+                    InstallPhase::Begin | InstallPhase::Collection { .. }
+                ) && self.confirmed_install == Some((self.epoch, object, id)),
+            });
+        }
+    }
+
+    fn install_reply(
+        &mut self,
+        header: &Header,
+        data: &[u8],
+        phase: InstallPhase,
+    ) -> Result<Header, Status> {
+        if let Some(pending) = self.unconfirmed_install {
+            return Err(pending.status);
+        }
+        let result = self.exchange(header, data).and_then(|(reply, _)| {
+            Self::status(&reply)?;
+            Ok(reply)
+        });
+        if let Err(status @ (Status::Protocol | Status::Unknown)) = result {
+            self.retain_install_failure(header.object, header.request_id, phase, status);
+        }
+        result
     }
 
     fn fresh(&mut self) -> u64 {
@@ -350,8 +552,9 @@ impl<T: Transport> Client<T> {
 
     /// Stream a new revision. `fill(offset, buffer)` supplies content bytes so
     /// no client needs a document-sized buffer. On any error the upload is not
-    /// committed unless the error is `Unknown` (resolve with `stat`, never by
-    /// blindly repeating). Returns `(new revision, request ID)`.
+    /// committed unless the error is `Unknown`, or `Protocol` from a malformed
+    /// COMMIT reply (resolve with `stat`, never by blindly repeating). Returns
+    /// `(new revision, request ID)`.
     pub fn write(
         &mut self,
         object: u64,
@@ -385,11 +588,22 @@ impl<T: Transport> Client<T> {
         Ok(id)
     }
 
+    /// Abort an explicitly identified session. Failed cleanup of this Client's
+    /// confirmed INSTALL retains its correlation; an existing recovery record is
+    /// never consumed or overwritten, including after a successful ABORT.
     pub fn abort(&mut self, object: u64, expected: u64, id: u64) -> Result<(), Status> {
         let mut header = Header::new(wire::ABORT, id, self.epoch, object);
         header.revision = expected;
-        let (reply, _) = self.exchange(&header, &[])?;
-        Self::status(&reply)
+        let result = self
+            .exchange(&header, &[])
+            .and_then(|(reply, _)| Self::status(&reply));
+        if expected == 0 && self.confirmed_install == Some((self.epoch, object, id)) {
+            match result {
+                Ok(()) => self.confirmed_install = None,
+                Err(status) => self.retain_install_failure(object, id, InstallPhase::Abort, status),
+            }
+        }
+        result
     }
 
     /// Final flush on the domain's base object; the service then refuses
@@ -536,6 +750,255 @@ impl<T: Transport> Client<T> {
             name_length: length,
             name,
         })
+    }
+
+    /// The caller's own `(generation, clock)`; allowed on a read-only mount.
+    /// An older service answers `NoSys`.
+    pub fn domain_stat(&mut self, domain: usize) -> Result<(u64, u64), Status> {
+        let object = (domain * PER_DOMAIN) as u64;
+        let header = Header::new(wire::DOMAIN_STAT, self.fresh(), self.epoch, object);
+        let (reply, _) = self.exchange(&header, &[])?;
+        Self::status(&reply)?;
+        Ok((reply.revision, reply.aux))
+    }
+
+    /// VERSION_STAT of `object` at object `revision` (see [`VersionStat`]).
+    /// Returns `Err((NotFound, revision))` like STAT.
+    pub fn version_stat(
+        &mut self,
+        object: u64,
+        revision: u64,
+        selector: usize,
+    ) -> Result<VersionStat, (Status, u64)> {
+        let mut header = Header::new(wire::VERSION_STAT, self.fresh(), self.epoch, object);
+        header.revision = revision;
+        header.name_length = selector as u32;
+        let (reply, body) = self.exchange(&header, &[]).map_err(|status| (status, 0))?;
+        Self::status(&reply).map_err(|status| (status, reply.revision))?;
+        let mut out = VersionStat {
+            revision: reply.revision,
+            ..VersionStat::default()
+        };
+        if selector == 0 {
+            out.present = reply.count == 1;
+            out.created = get64(&body, 64);
+            out.modified = get64(&body, 72);
+        } else {
+            out.version_revision = reply.aux;
+            out.name_length = reply.length as usize;
+            out.name[..out.name_length].copy_from_slice(wire::data(&body, out.name_length));
+        }
+        Ok(out)
+    }
+
+    /// L2 INSTALL of `manifest` into the never-used own slot `object` in one
+    /// commit. `fill(version, offset, buffer)` supplies content. On any
+    /// error except `Unknown` or `Protocol` nothing was committed. Either
+    /// error retains the failing phase and correlation in
+    /// [`Self::unconfirmed_install`] without ABORT or retry. A BEGIN record does
+    /// not prove ownership; an uncertain COMMIT may already be durable. After a
+    /// confirmed BEGIN, definite failures attempt cleanup. Failed cleanup retains
+    /// an Abort record while the original error is returned. Reconcile the
+    /// recorded state before acknowledging recovery and attempting a new install.
+    /// Returns `(revision, request ID)`.
+    pub fn install(
+        &mut self,
+        object: u64,
+        manifest: &Manifest,
+        meta: (u32, u16, u8),
+        mut fill: impl FnMut(usize, usize, &mut [u8]),
+    ) -> Result<(u64, u64), Status> {
+        let id = self.install_begin(object, manifest, meta)?;
+        let result = (|| {
+            self.install_stream(object, id, manifest, 0..manifest.count, &mut fill)?;
+            Ok((self.install_commit(object, id, manifest)?, id))
+        })();
+        if result.is_err() && self.unconfirmed_install.is_none() {
+            let _ = self.abort(object, 0, id);
+        }
+        result
+    }
+
+    /// INSTALL_BEGIN only; returns the request ID of the staged session.
+    /// Lost (`Unknown`) or malformed (`Protocol`) replies retain the sent
+    /// correlation in [`Self::unconfirmed_install`] and return the original
+    /// error. They never trigger an automatic ABORT: a lost Busy reply can refer
+    /// to another client's stage with the same legacy ID. Explicit owner/domain
+    /// recovery is required before acknowledging that record and retrying.
+    pub fn install_begin(
+        &mut self,
+        object: u64,
+        manifest: &Manifest,
+        (tags, kind, collection): (u32, u16, u8),
+    ) -> Result<u64, Status> {
+        if let Some(pending) = self.unconfirmed_install {
+            return Err(pending.status);
+        }
+        if !manifest.valid() {
+            return Err(Status::Invalid);
+        }
+        let id = self.fresh();
+        let mut begin = Header::new(wire::INSTALL_BEGIN, id, self.epoch, object);
+        begin.count = manifest.count as u32;
+        begin.aux = wire::meta(tags, kind, collection);
+        begin.length = manifest.bytes() as u32;
+        let mut data = [0; DATA];
+        manifest.encode(&mut data);
+        let result = (|| {
+            let reply =
+                self.install_reply(&begin, &data[..manifest.bytes()], InstallPhase::Begin)?;
+            if !install_begun(manifest, &reply) {
+                return Err(Status::Protocol);
+            }
+            Ok(id)
+        })();
+        match result {
+            Ok(_) => self.confirmed_install = Some((self.epoch, object, id)),
+            Err(status @ (Status::Protocol | Status::Unknown)) => {
+                self.retain_install_failure(object, id, InstallPhase::Begin, status);
+            }
+            Err(_) => {}
+        }
+        result
+    }
+
+    /// INSTALL_COMMIT of a completely streamed install; returns revision `n`.
+    /// Unknown/Protocol retains a Commit recovery record; do not replay it.
+    pub fn install_commit(
+        &mut self,
+        object: u64,
+        id: u64,
+        manifest: &Manifest,
+    ) -> Result<u64, Status> {
+        if let Some(pending) = self.unconfirmed_install {
+            return Err(pending.status);
+        }
+        let mut commit = Header::new(wire::INSTALL_COMMIT, id, self.epoch, object);
+        commit.count = manifest.count as u32;
+        commit.aux = manifest.total().ok_or(Status::Invalid)? as u64;
+        let reply = self.install_reply(&commit, &[], InstallPhase::Commit)?;
+        if self.confirmed_install == Some((self.epoch, object, id)) {
+            self.confirmed_install = None;
+        }
+        Ok(reply.revision)
+    }
+
+    /// Stream `versions` of a staged install, in order (the service accepts
+    /// only the lowest-index incomplete version). Unknown/Protocol retains the
+    /// session correlation with phase Append; automatic resume is not supported.
+    pub fn install_stream(
+        &mut self,
+        object: u64,
+        id: u64,
+        manifest: &Manifest,
+        versions: core::ops::Range<usize>,
+        fill: &mut impl FnMut(usize, usize, &mut [u8]),
+    ) -> Result<(), Status> {
+        if let Some(pending) = self.unconfirmed_install {
+            return Err(pending.status);
+        }
+        let mut buffer = [0; DATA];
+        let versions = versions.start.min(manifest.count)..versions.end.min(manifest.count);
+        for index in versions {
+            let version = &manifest.versions[index];
+            let mut offset = 0;
+            while offset < version.length {
+                let amount = core::cmp::min(DATA, version.length - offset);
+                fill(index, offset, &mut buffer[..amount]);
+                let mut append = Header::new(wire::INSTALL_APPEND, id, self.epoch, object);
+                append.count = index as u32;
+                append.aux = offset as u64;
+                append.length = amount as u32;
+                self.install_reply(&append, &buffer[..amount], InstallPhase::Append)?;
+                offset += amount;
+            }
+        }
+        Ok(())
+    }
+
+    /// Create never-used collection `index` of `domain` with a recorded
+    /// source revision `origin` (≠ 0). Returns the new revision (1).
+    pub fn install_collection(
+        &mut self,
+        domain: usize,
+        index: usize,
+        name: &[u8],
+        origin: u64,
+    ) -> Result<u64, (Status, u64)> {
+        if let Some(pending) = self.unconfirmed_install {
+            return Err((pending.status, 0));
+        }
+        if name.is_empty() || name.len() > NAME {
+            return Err((Status::Invalid, 0));
+        }
+        let mut header = Header::new(
+            wire::INSTALL_COLLECTION,
+            self.fresh(),
+            self.epoch,
+            (domain * PER_DOMAIN) as u64,
+        );
+        header.aux = index as u64;
+        header.name_length = name.len() as u32;
+        header.length = name.len() as u32 + 8;
+        let mut data = [0; NAME + 8];
+        data[..name.len()].copy_from_slice(name);
+        data[name.len()..name.len() + 8].copy_from_slice(&origin.to_le_bytes());
+        let result = self.simple(&header, &data[..name.len() + 8]);
+        if let Err((status @ (Status::Protocol | Status::Unknown), _)) = result {
+            self.retain_install_failure(
+                header.object,
+                header.request_id,
+                InstallPhase::Collection { index },
+                status,
+            );
+        }
+        result
+    }
+
+    /// PROVENANCE_STAT of `object` at live `revision`. `Err((NotFound, r))`
+    /// like STAT; an older service answers `NoSys`.
+    pub fn provenance(&mut self, object: u64, revision: u64) -> Result<Provenance, (Status, u64)> {
+        let mut header = Header::new(wire::PROVENANCE_STAT, self.fresh(), self.epoch, object);
+        header.revision = revision;
+        let (reply, body) = self.exchange(&header, &[]).map_err(|status| (status, 0))?;
+        Self::status(&reply).map_err(|status| (status, reply.revision))?;
+        let mut out = Provenance {
+            revision: reply.revision,
+            installed: reply.count as usize,
+            ..Provenance::default()
+        };
+        if reply.count != 0 {
+            out.origin_revision = get64(&body, 64);
+            out.origin_created = get64(&body, 72);
+            out.origin_modified = get64(&body, 80);
+            out.version_count = reply.name_length as usize;
+            for (index, origin) in out.versions[..out.version_count].iter_mut().enumerate() {
+                *origin = get64(&body, 88 + 8 * index);
+            }
+        }
+        Ok(out)
+    }
+
+    /// Recorded source revision of collection `index` of `domain` at live
+    /// `revision` (0 = none).
+    pub fn collection_provenance(
+        &mut self,
+        domain: usize,
+        index: usize,
+        revision: u64,
+    ) -> Result<u64, (Status, u64)> {
+        let mut header = Header::new(
+            wire::PROVENANCE_STAT,
+            self.fresh(),
+            self.epoch,
+            (domain * PER_DOMAIN) as u64,
+        );
+        header.revision = revision;
+        header.count = 1;
+        header.aux = index as u64;
+        let (reply, _) = self.exchange(&header, &[]).map_err(|status| (status, 0))?;
+        Self::status(&reply).map_err(|status| (status, reply.revision))?;
+        Ok(reply.aux)
     }
 
     /// Apply up to four sub-operations atomically. Returns the domain change

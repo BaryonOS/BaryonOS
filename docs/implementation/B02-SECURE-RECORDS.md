@@ -5,6 +5,8 @@ building on B01/ADR-043 and `services/volume`. Status: **core, wire and
 native persistence slice implemented and proven under QEMU in the FR-I01
 profile (see FR-B02P below); cold rollback anchoring, write-ahead in the
 service and full B02 acceptance remain open**.
+A host-only write-ahead contract and a durable KEY1 domain dispatch exist
+(B02-T2, below); no native key-state store is wired to the service.
 There is no new kernel cryptography or dependency. The existing
 KEY1 opcodes/ABI are preserved; FR-B02N adds compatible record opcodes.
 
@@ -328,3 +330,195 @@ generation floor, write-ahead per GENERATE/REVOKE within the service, loss or
 compromise of the external secret (= attacker-chosen master at cold
 start), multiple writers, a native counterexample for the
 admin sender check, physical hardware.
+
+B02-T2 (host only): `Service::generate_durable`/`revoke_durable` commit
+the sealed key-state snapshot through a caller-supplied `KeyStateStore`
+before confirming, and `wire::dispatch_domain_durable` routes KEY1
+GENERATE/REVOKE of a domain ingress through them. `Ok` is replied only
+after a successful commit in that call; a certain store failure replies
+`NotReady` (explicit retry allowed) and an uncertain one replies
+`Degraded` and latches the instance. The volume, secret and store come
+from the service adapter, never from the request. Host tests:
+`services/keyring/tests/write_ahead.rs`. Still open: a native store
+for the keyring service (ADR-051 gives it no volume right and keeps the
+secret outside the service), so no QEMU profile exercises this path.
+
+## FR-B02R — KEY1 key-state commits relayed through init (B02-T4)
+
+24 November 2026, ADR-B02-KEY1-RELAY-20261123, branch
+`claude/b02-key1-relay-native-20261124`. TEST profile only
+(`test-system-keystate-relay*`); the `native-system` and `test-system-recover`
+profiles are unchanged. This closes the "no native store" gap of B02-T2 for a
+single instance; it is not full B02 acceptance.
+
+### Wire (`services/keyring/src/wire.rs`)
+
+| Opcode | Direction | Request body | Reply |
+|---|---|---|---|
+| `SUPPLY_SECRET = 13` | init → Key Service admin ingress | secret[32], index 0, status 0 | `Ok`, empty |
+| `COMMIT_KEYSTATE = 14` | Key Service → init commit ingress | blob[120]; header `request` = generation ≠ 0 | op `0x8E`, index 0, `request` = generation, length 0; status `Ok` (`COMMITTED`) or `NotReady` (`NOT_COMMITTED`) |
+
+Neither opcode is in `body_bounds`. The host test
+`relay_opcodes_are_refused_by_every_service_dispatch_without_state_change`
+shows that `dispatch_domain`, `dispatch_persistent` and `dispatch_management`
+answer `Invalid` without state change. RANDOM ingress never reaches
+`dispatch_random` with them, because `poll_random` refuses any opcode other
+than RANDOM first (`sdk/examples/keyring/src/service.rs`). The native probe
+still sends only opcodes 11 and 12 on the domain endpoint; a native refusal of
+13 and 14 there is not measured.
+`commit_outcome` maps only a canonical `Ok` reply to success and only a
+canonical `NotReady` reply to `StoreError::Failed`; every other reply,
+including a different generation, a dirty tail, a nonzero index or any other
+status, is `StoreError::Unknown`. `COMMIT_TICKS = 1500` monotonic ticks bounds
+one commit (send plus reply).
+
+### Reply matching by generation
+
+The commit reply channel carries one reply per request and has no separate
+request identifier, so the service matches the reply to its own call by the
+generation in the header `request` field. This is sufficient because:
+
+- A generation is sent at most once while no certain answer exists. A
+  `GENERATE` after `NOT_COMMITTED` allocates the next generation; a `REVOKE`
+  retried after `NOT_COMMITTED` re-commits the same generation, but the earlier
+  attempt was answered with a certain `NotReady`, so no reply for it is still in
+  flight (host test `failed_commit_replies_not_ready_and_a_retry_commits`,
+  generations `[1, 2, 3, 3]`).
+- The only outcome that can leave a late reply in the channel is `Unknown`
+  (timeout, transport error, malformed reply). `Unknown` latches the instance in
+  `Degraded` before any further store call
+  (`unknown_commit_latches_degraded_without_further_store_calls`), so a late
+  reply is never read as the answer to a later commit.
+- A reply from a sender other than init's PID (startup word 512, which must
+  equal the admin caller), with capabilities, with a different tag or with a
+  non-256-byte payload is `Unknown` before decoding.
+
+### Volume binding
+
+The Key Service binds write-ahead state to `RELAY_VOLUME =
+b"NOS-SYSTEM-VOL01"`, a compile-time constant in
+`sdk/examples/keyring/src/service.rs`, never to a request field. Edge cases:
+
+- In relay mode the admin ingress serves only one `SUPPLY_SECRET`; `EXPORT`,
+  `RESTORE`, a second supply and every other opcode are answered `Invalid`
+  without reaching `dispatch_management`. No admin request can therefore bind
+  `persistent_volume` to another volume before the first durable commit.
+- The first durable `GENERATE`/`REVOKE` binds `persistent_volume` to
+  `RELAY_VOLUME` before sealing; `check_write_ahead` (unchanged
+  `persistent.rs`) refuses any later call with a different volume with
+  `Invalid` and no store call (`first_bind_fixes_the_relay_volume`).
+- Init independently checks that the blob header carries `NOSKEY01`, version 1,
+  suite 1 and the same volume ID before it begins a transaction, and refuses
+  the commit with `NOT_COMMITTED` otherwise.
+
+### Native adapter and manifest
+
+- Key Service startup words 496 (commit SEND), 504 (commit reply RECEIVE) and
+  512 (init PID). All zero keeps every existing path. A partial set, RANDOM
+  ingress present, equal handles, a relay handle equal to any other ingress
+  handle (words 48/56/80/88/96/104), an init PID different from the admin
+  caller, a missing admin ingress or an unavailable monotonic clock stops the
+  service with startup error 12 before it serves anything.
+- Until init supplies the secret the service polls only the admin ingress, so
+  no domain request can be served without a store. Each domain
+  `GENERATE`/`REVOKE` then goes through `dispatch_domain_durable` with the held
+  secret, `RELAY_VOLUME` and the `RelayStore`. The secret is held in
+  `Zeroizing` memory (`HeldSecret`, no `Clone`/`Debug`).
+- Init (words 192/200/208) receives commits by the kernel endpoint object (it
+  alone holds RECEIVE on the commit ingress); it additionally checks the sender
+  PID against the Key Service. It writes the blob to object 8 in domain 1 with
+  `expected_revision` = its last acknowledged revision, and replies `COMMITTED`
+  only when the volume returns exactly revision + 1; any other volume result
+  after the transaction began is answered `Degraded`, which the service maps to
+  `Unknown`. Init makes no blocking call into the Key Service while commits are
+  outstanding: after `GO` it waits on the registry with a tick-bounded loop that
+  polls the commit ingress.
+- Manifest checks (`kernel/src/m2/m3/system.rs`), in order:
+  `APP_COMMIT_HANDLE` (no app handle refers to the commit ingress or its reply
+  channel, by endpoint object), `VOLUME_COMMIT_HANDLE`, `VOLUME_HANDLE_COUNT`
+  (exactly 5), `KEY_COMMIT_HANDLE`, `KEY_HANDLE_COUNT` (exactly 8),
+  `KEY_COMMIT_RIGHTS` and `INIT_COMMIT_RIGHTS` (the Key Service holds only SEND
+  on the commit ingress and only RECEIVE on the reply channel, init the
+  converse; none of the four handles is delegable). Init's commit handles also
+  pass `INIT_AUTHORITY`. The exact counts list every handle: the volume service
+  holds block, its ingress, the second ingress, the reply SEND and the second
+  reply endpoint (5); the Key Service holds entropy, domain ingress, second
+  ingress, reply SEND, admin ingress, admin reply, commit SEND and commit reply
+  RECEIVE (8). Workers are spawned at runtime and receive only handles that init
+  delegates; init's commit handles carry no TRANSFER, so no worker can obtain
+  them.
+- Durability before `COMMITTED`: init replies only after the volume service has
+  returned the new revision of object 8, and the volume service acknowledges a
+  write only after its crash-consistent transaction (data flush, table write,
+  flush) completed (`services/volume/src/lib.rs`).
+
+### Pinned expected values and derivation
+
+Common to the three passing cases (`tools/run_system.py` `RELAY_EXACT`,
+`PERSIST_EXACT["relay"]`, kernel `relay_check_and_print`):
+
+| Value | Expected | Derivation |
+|---|---|---|
+| `OK`, `INIT_COMMITTED`, `INIT_BEGUN` | 3 | The app's key flow is GENERATE key 0, REVOKE key 0, GENERATE key 1: three durable operations, each committed once. |
+| `LAST_GENERATION`, `INIT_GENERATION`, `KEYSTATE_GENERATION` | 3 | Generations 1, 2, 3 for those three operations; word 472 changes only on `Ok`. |
+| `INIT_REVISION` | 3 | Object 8 is new; each commit uses expected revision n and yields n + 1. |
+| `SECRET_SUPPLIED` / `SECRET_REFUSED` | 1 / 1 | Init supplies once and then sends a second supply with a wrong secret, which must be refused. |
+| `ADMIN_REQUESTS` / `ADMIN_DENIED` / `KEYSTATE_ADMIN_OP_DENIED` | 3 / 2 / 1 | Supply, refused second supply, refused admin GENERATE. |
+| `KEYSTATE_EXPORTS`, `KEYSTATE_RESTORES`, `CRYPTO_RESTORES`, wrong-secret and floor denials | 0 | Relay mode never exports or restores. |
+| `CRYPTO_TAMPER_DENIED` | 9 | The normal profile's 10 includes one AEAD rejection from the wrong-secret RESTORE, which relay mode does not perform. |
+| `COMMIT_TICKS` | 1500 | Bound for one commit including the volume write. The measured answered commit takes 5 ticks, so the bound leaves a margin of about 300× for a slower host while keeping the timeout case under 20 s of TCG time. |
+| `MAX_COMMIT_TICKS` | 0..1499 (answered; 0 occurs under KVM when every commit finishes within one tick), 1500..2999 (timeout) | An answered commit returns before `COMMIT_TICKS`; a withheld one returns at the first tick check at or after the deadline (measured exactly 1500). The upper bound 2 × `COMMIT_TICKS` rejects a wait that ignored the deadline while tolerating scheduling delay after it. |
+| `SUM` | ≠ 0, equals FNV of the current object 8 version on disk | Init's checksum of the last acknowledged blob; random nonces make the value differ per run. |
+| Disk: object 8 | revision 3, versions [3, 2, 1], 120 bytes, `sleutelstatus`, header bound to `NOS-SYSTEM-VOL01`, three distinct nonzero nonces | Three commits; volume `HISTORY = 2` keeps all three. |
+| Disk: volume state | generation 5, 5 chunks, domain clocks [2, 3] | Five volume commits: document and sealed record in domain 0, three key-state versions in domain 1. |
+
+Per case:
+
+| Case | `REQUESTS` = `INIT_RECEIVED` | `NOT_COMMITTED` = `INIT_REFUSED` | `UNKNOWN` = `INIT_WITHHELD` | `APP_FIRST`, `APP_SECOND` | Derivation |
+|---|---|---|---|---|---|
+| `relay` | 3 | 0 | 0 | 0, 0 | No fault probe. |
+| `relay-not-committed` | 5 | 2 | 0 | 1, 1 | After the record, the app sends two raw GENERATEs; init refuses commits 4 and 5 before any write, so both answer `NotReady` (1) and the volume is unchanged. |
+| `relay-timeout` | 4 | 0 | 1 | 7, 7 | Init withholds the reply to commit 4; the service reaches `COMMIT_TICKS`, latches, answers `Degraded` (7), and answers the second GENERATE `Degraded` without a store call. |
+
+Red case `relay-leak`: the manifest also gives the app a SEND to the commit
+ingress. Exactly one `SYSTEM:FAIL:APP_COMMIT_HANDLE`, no
+`SYSTEM:MANIFEST:PASS`, no relay markers, the three boot markers, raw QEMU exit
+35 and an unchanged disk image are required (`run_system.evaluate_red`).
+
+### Execution
+
+Source `d4db823e`, QEMU 10.2.1 TCG, `docs/verification/b02-key1-relay-20261124/`:
+`relay` 4.6 s, `relay-not-committed` 4.6 s, `relay-timeout` 19.6 s (raw 33
+each), `relay-leak` 1.8 s (raw 35). Maximum commit latency 5 ticks for answered
+commits and 1500 for the withheld one. `tools/test_system.py` and
+`tools/test_keyring.py` pass. The `agent_gate.py` prefilter could not resolve
+either job locally (NOT RUN); hosted CI is not run.
+
+### Residuals
+
+- Cold rollback anchoring and a trusted generation floor remain open (B02-T3).
+  Deviation from ADR item 2: in relay mode the admin ingress refuses
+  `EXPORT_PERSISTENT` and `RESTORE_PERSISTENT`, so a relay instance cannot
+  cold-start with RESTORE plus secret supply. Only the fresh-instance supply
+  (`SUPPLY_SECRET`) is implemented; the cold-start half depends on B02-T3.
+- The disk oracle proves that the current object 8 bytes equal the blob init
+  acknowledged and that the header binds `NOS-SYSTEM-VOL01`; it does not prove
+  that generation 3 inside the AEAD restores.
+- The wait for the secret supply before domain traffic has no deadline. It
+  fails closed (no domain request is served), and the kernel's system bound ends
+  the run; the ADR's bounded-wait rule is applied to commit waits.
+- Only `relay-leak` (commit SEND in the app) is a red manifest control; the
+  volume-held, rights and handle-count conditions have no red case.
+- The secret is the compile-time test constant in init (ADR-051). The service
+  now retains it, so a reader of Key Service memory can forge lineage (ADR
+  consequence). `main` never returns, so `HeldSecret`'s
+  drop does not run; the wipe at instance end comes from the kernel zeroing
+  freed frames (`paging::zero_dynamic` via the heap release path); wiping
+  of the SDK `Received` envelope copy of the supply request is not separately
+  verified.
+- The timeout case withholds the reply before any write, so a timeout after
+  the volume transaction began is not exercised natively (it maps to the same
+  `Unknown` by construction; init replies `Degraded` for a failed write).
+- One writer, one instance, one volume identity. The init PID check is defence
+  in depth; authority comes from the endpoint object.
+- Evidence is QEMU TCG only; no hardware, no human audit.

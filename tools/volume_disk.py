@@ -1,11 +1,17 @@
 #!/usr/bin/env python3
-"""Synthetic M6e volume images and an independent host disk oracle (format v2).
+"""Synthetic M6e volume images and an independent host disk oracle (format v2,
+and table v3 with S09 L2 provenance when a caller passes `allow_v3=True`).
 
 This is a separate Python implementation of the volume-core v2 on-disk rules
 (table copies, sector seals with attempt digest, cross-copy choice, objects
 with metadata and history, collections, chunk checksums and the app fixture
 content). It never trusts guest output: the runner compares guest-reported
 digests with the digests computed here from the raw image.
+
+Table v3 (docs/implementation/S09-L2-PROVENANCE.md section 2) only adds
+fields in bytes v2 requires to be zero. The default `allow_v3=False` is the
+frozen v2 reader: it refuses a v3 copy as it always did, so a v2-only
+reader stays testable beside the v3-capable decoders.
 """
 from __future__ import annotations
 import hashlib
@@ -44,6 +50,14 @@ FORMAT_MARKER_VERSION = 1
 FNV_OFFSET = 0xCBF29CE484222325
 FNV_PRIME = 0x100000001B3
 MASK = (1 << 64) - 1
+# Table v3 provenance offsets.
+HEADER_ORIGINS = 56          # header: one u64 per collection, domain * 4 + i - 1
+HEADER_ORIGINS_END = HEADER_ORIGINS + 8 * DOMAINS * COLLECTIONS
+INSTALLED = HEAD + VERSION_BYTES  # head 280: u8 installed (0..=3)
+OBJECT_ORIGINS = 288         # head: origin_revision, origin_created, origin_modified, current origin
+OBJECT_ORIGINS_END = 320
+HISTORY_ORIGINS = HISTORY * VERSION_BYTES  # history 432: one u64 per history version
+HISTORY_ORIGINS_END = HISTORY_ORIGINS + 8 * HISTORY
 
 
 def fnv(data: bytes, value: int = FNV_OFFSET) -> int:
@@ -145,21 +159,45 @@ def decode_version(raw: bytes):
     return version
 
 
-def decode_object(head: bytes, history: bytes, generation: int):
+def excess(installed: int) -> int:
+    """Rule R: an INSTALL of n versions may exceed the clock by n - 1."""
+    return max(installed - 1, 0)
+
+
+def decode_provenance(head: bytes, history: bytes):
+    """v3 fields of one object: (installed, object origins, version origins)."""
+    if any(head[INSTALLED + 1:OBJECT_ORIGINS]) or any(head[OBJECT_ORIGINS_END:TRAILER]) \
+            or any(history[HISTORY_ORIGINS_END:TRAILER]):
+        raise ValueError("v3 reserved bytes")
+    installed = head[INSTALLED]
+    origin = struct.unpack_from("<3Q", head, OBJECT_ORIGINS)
+    versions = [struct.unpack_from("<Q", head, OBJECT_ORIGINS + 24)[0]] + \
+        list(struct.unpack_from(f"<{HISTORY}Q", history, HISTORY_ORIGINS))
+    return installed, origin, versions
+
+
+def decode_object(head: bytes, history: bytes, generation: int, v3: bool = False):
     revision, request_id, created, modified, tags, kind, present, collection, depth = \
         struct.unpack_from("<QQQQIHBBB", head, 0)
-    if present not in (0, 1) or any(head[41:HEAD]) or any(head[HEAD + VERSION_BYTES:TRAILER]):
+    if v3:
+        installed, origin, origins = decode_provenance(head, history)
+    elif any(head[HEAD + VERSION_BYTES:TRAILER]) or any(history[HISTORY * VERSION_BYTES:TRAILER]):
         raise ValueError("object head padding")
-    if depth > HISTORY or collection > COLLECTIONS or revision > generation or modified > generation \
+    else:
+        installed, origin, origins = 0, (0, 0, 0), [0] * (HISTORY + 1)
+    if present not in (0, 1) or any(head[41:HEAD]):
+        raise ValueError("object head padding")
+    if depth > HISTORY or collection > COLLECTIONS or revision > generation + excess(installed) or modified > generation \
             or created > modified:
         raise ValueError("object head range")
-    if any(history[HISTORY * VERSION_BYTES:TRAILER]):
-        raise ValueError("history padding")
     current = decode_version(head[HEAD:HEAD + VERSION_BYTES])
     versions = [decode_version(history[i * VERSION_BYTES:(i + 1) * VERSION_BYTES]) for i in range(HISTORY)]
     entry = {"revision": revision, "request_id": request_id, "created": created, "modified": modified,
              "tags": tags, "kind": kind, "present": bool(present), "collection": collection,
              "current": current, "history": versions[:depth]}
+    if v3:
+        check_provenance(entry, installed, origin, origins, current, versions)
+        entry.update(installed=installed, origin=origin, origins=origins)
     if revision == 0:
         if request_id or created or modified or tags or kind or present or collection or depth \
                 or current != empty_version() or any(v != empty_version() for v in versions):
@@ -193,6 +231,31 @@ def decode_object(head: bytes, history: bytes, generation: int):
     return entry
 
 
+def check_provenance(entry, installed, origin, origins, current, versions):
+    """S09-L2-PROVENANCE 2.1 invariants 2-4 for one decoded v3 object."""
+    if installed > HISTORY + 1:
+        raise ValueError("installed above HISTORY + 1")
+    if installed == 0 and (any(origin) or any(origins)):
+        raise ValueError("origins without an install")
+    if installed and entry["revision"] < installed:
+        raise ValueError("revision below installed")
+    origin_revision, origin_created, origin_modified = origin
+    if (origin_revision == 0) != (origin_created == 0):
+        raise ValueError("object origin revision and stamp disagree")
+    if origin_revision and (origin_created > origin_modified or not installed):
+        raise ValueError("object origin stamps")
+    if not origin_revision and origin_modified:
+        raise ValueError("origin modified without origin revision")
+    for version, version_origin in zip([current] + versions, origins):
+        if version_origin and version == empty_version():
+            raise ValueError("origin on an empty version")
+    nonzero = [o for o in origins if o]
+    if len(set(nonzero)) != len(nonzero):
+        raise ValueError("version origins repeat")
+    if origin_revision and any(o > origin_revision for o in nonzero):
+        raise ValueError("version origin above the object origin")
+
+
 def retained(entry):
     return ([entry["current"]] if entry["present"] else []) + entry["history"]
 
@@ -215,7 +278,7 @@ def decode_collection(raw: bytes, generation: int):
             "name": name[:name_length]}
 
 
-def decode_table(slot: int, sectors: list[bytes]):
+def decode_table(slot: int, sectors: list[bytes], allow_v3: bool = False):
     states = [classify(slot, i, s) for i, s in enumerate(sectors)]
     seals = {(g, a) for kind, g, a in states if kind == "valid"}
     if any(kind != "valid" for kind, _, _ in states) or len(seals) != 1:
@@ -226,10 +289,16 @@ def decode_table(slot: int, sectors: list[bytes]):
     header = sectors[0]
     fields = struct.unpack_from("<8sHHHHQQHHBB", header, 0)
     clocks = list(struct.unpack_from(f"<{DOMAINS}Q", header, CLOCKS))
-    if (generation % 2 != slot or fields[0] != MAGIC or fields[1:5] != (2, OBJECTS, CHUNKS, CHUNK_SECTORS)
+    fmt = fields[1]
+    v3 = allow_v3 and fmt == 3
+    origins_end = HEADER_ORIGINS_END if v3 else CLOCKS + 8 * DOMAINS
+    if (generation % 2 != slot or fields[0] != MAGIC or fmt not in ((2, 3) if allow_v3 else (2,))
+            or fields[2:5] != (OBJECTS, CHUNKS, CHUNK_SECTORS)
             or fields[5] != generation or fields[6] == 0 or fields[7:11] != (MAX_CHUNKS, QUOTA, HISTORY, COLLECTIONS)
-            or any(header[38:CLOCKS]) or any(header[CLOCKS + 8 * DOMAINS:TRAILER])):
+            or any(header[38:CLOCKS]) or any(header[origins_end:TRAILER])):
         raise ValueError("table header")
+    collection_origins = list(struct.unpack_from(f"<{DOMAINS * COLLECTIONS}Q", header, HEADER_ORIGINS)) \
+        if v3 else [0] * (DOMAINS * COLLECTIONS)
     # One commit advances exactly one domain clock; object and collection
     # revisions and stamps never exceed their own domain's clock.
     if sum(clocks) != generation:
@@ -238,8 +307,14 @@ def decode_table(slot: int, sectors: list[bytes]):
         raise ValueError("collection sector padding")
     collections = [decode_collection(sectors[1][i * COLLECTION_BYTES:(i + 1) * COLLECTION_BYTES], generation)
                    for i in range(DOMAINS * COLLECTIONS)]
-    entries = [decode_object(sectors[2 + 2 * o], sectors[3 + 2 * o], generation) for o in range(OBJECTS)]
-    if any(e["revision"] > clocks[o // PER_DOMAIN] or e["modified"] > clocks[o // PER_DOMAIN]
+    for collection, origin in zip(collections, collection_origins):
+        if origin and not (collection["revision"] and collection["present"]):
+            raise ValueError("collection origin on an absent collection")
+        if v3:
+            collection["origin"] = origin
+    entries = [decode_object(sectors[2 + 2 * o], sectors[3 + 2 * o], generation, v3) for o in range(OBJECTS)]
+    if any(e["revision"] > clocks[o // PER_DOMAIN] + excess(e.get("installed", 0))
+           or e["modified"] > clocks[o // PER_DOMAIN]
            for o, e in enumerate(entries)) or \
             any(c["revision"] > clocks[i // COLLECTIONS] for i, c in enumerate(collections)):
         raise ValueError("revision or stamp beyond its domain clock")
@@ -258,7 +333,7 @@ def decode_table(slot: int, sectors: list[bytes]):
     if not reflected:
         raise ValueError("commit request not reflected")
     return {"generation": generation, "request_id": fields[6], "clocks": clocks, "entries": entries,
-            "collections": collections}
+            "collections": collections, "format": fmt}
 
 
 def compatible(states, g: int, uniform_invalid: bool) -> bool:
@@ -277,7 +352,7 @@ def empty_table():
     collections = [{"revision": 0, "request_id": 0, "present": False, "name": b""}
                    for _ in range(DOMAINS * COLLECTIONS)]
     return {"generation": 0, "request_id": 0, "clocks": [0] * DOMAINS, "entries": entries,
-            "collections": collections}
+            "collections": collections, "format": 2}
 
 
 def slot_states(volume: bytes, slot: int):
@@ -286,12 +361,12 @@ def slot_states(volume: bytes, slot: int):
     return sectors, [classify(slot, i, s) for i, s in enumerate(sectors)]
 
 
-def choose(volume: bytes):
+def choose(volume: bytes, allow_v3: bool = False):
     scans = []
     for slot in range(2):
         sectors, states = slot_states(volume, slot)
         try:
-            table = decode_table(slot, sectors)
+            table = decode_table(slot, sectors, allow_v3)
         except ValueError:
             table = None
         uniform = states[0][0] == "valid" and all(s == states[0] for s in states)
@@ -303,6 +378,8 @@ def choose(volume: bytes):
         newer, older = sorted((a["table"], b["table"]), key=lambda t: -t["generation"])
         if newer["generation"] != older["generation"] + 1:
             raise ValueError("two tables with unrelated generations")
+        if newer["format"] < older["format"]:
+            raise ValueError("table format downgraded")
         return newer
     for mine, other in ((a, b), (b, a)):
         if mine["table"] and not other["table"]:
@@ -421,17 +498,23 @@ def empty_entry():
             "present": False, "collection": 0, "current": empty_version(), "history": []}
 
 
-def encode_table(generation: int, request_id: int, entries, collections=None, clocks=None) -> list[bytes]:
+def encode_table(generation: int, request_id: int, entries, collections=None, clocks=None,
+                 fmt: int = 2) -> list[bytes]:
     """Test/fixture encoder (independent of the Rust encoder). Without explicit
-    `clocks`, every commit is attributed to domain 0."""
+    `clocks`, every commit is attributed to domain 0. With `fmt=3`, the
+    optional provenance keys (`installed`, `origin`, `origins` per entry,
+    `origin` per collection) are written in the v3 fields."""
     clocks = clocks or [generation] + [0] * (DOMAINS - 1)
     collections = collections or [{"revision": 0, "request_id": 0, "present": False, "name": b""}
                                   for _ in range(DOMAINS * COLLECTIONS)]
     slot = generation % 2
     header = bytearray(SECTOR)
-    struct.pack_into("<8sHHHHQQHHBB", header, 0, MAGIC, 2, OBJECTS, CHUNKS, CHUNK_SECTORS,
+    struct.pack_into("<8sHHHHQQHHBB", header, 0, MAGIC, fmt, OBJECTS, CHUNKS, CHUNK_SECTORS,
                      generation, request_id, MAX_CHUNKS, QUOTA, HISTORY, COLLECTIONS)
     struct.pack_into(f"<{DOMAINS}Q", header, CLOCKS, *clocks)
+    if fmt == 3:
+        struct.pack_into(f"<{DOMAINS * COLLECTIONS}Q", header, HEADER_ORIGINS,
+                         *[c.get("origin", 0) for c in collections])
     sectors = [header]
     sector = bytearray(SECTOR)
     for index, c in enumerate(collections):
@@ -448,6 +531,11 @@ def encode_table(generation: int, request_id: int, entries, collections=None, cl
         for index in range(HISTORY):
             version = e["history"][index] if index < len(e["history"]) else empty_version()
             history[index * VERSION_BYTES:(index + 1) * VERSION_BYTES] = encode_version(version)
+        if fmt == 3:
+            origins = list(e.get("origins", [0] * (HISTORY + 1)))
+            head[INSTALLED] = e.get("installed", 0)
+            struct.pack_into("<4Q", head, OBJECT_ORIGINS, *e.get("origin", (0, 0, 0)), origins[0])
+            struct.pack_into(f"<{HISTORY}Q", history, HISTORY_ORIGINS, *origins[1:])
         sectors += [head, history]
     attempt = attempt_digest(sectors)
     for index, sector in enumerate(sectors):
