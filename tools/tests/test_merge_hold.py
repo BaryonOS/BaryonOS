@@ -160,7 +160,8 @@ DONE = runs("completed", "completed", "completed")
 def gate_run(head, conclusion="success", run_id=1, status="completed", path=".github/workflows/merge-hold.yml"):
     """A pull_request merge-hold run on a member's head (the merge_group gate rule)."""
     return {"id": run_id, "path": path, "head_sha": head, "status": status, "conclusion": conclusion,
-            "event": "pull_request", "repository": {"full_name": "o/r"}}
+            "event": "pull_request", "repository": {"full_name": "o/r"},
+            "created_at": f"2026-11-24T20:{run_id % 60:02d}:00Z"}
 E = "e" * 40
 
 
@@ -696,6 +697,7 @@ def plan_fixture(**over):
 def wf_run(run_id, path, status="completed", conclusion="success", attempt=1, **over):
     run = {"id": run_id, "path": path, "status": status, "conclusion": conclusion, "run_attempt": attempt,
            "event": "pull_request", "head_sha": HEAD, "head_branch": "topic",
+           "created_at": f"2026-11-24T20:{run_id % 60:02d}:00Z",
            "repository": {"full_name": "o/r"}, "head_repository": {"full_name": "o/r"}}
     run.update(over)
     return run
@@ -920,6 +922,29 @@ class GateTests(TestCase):
         self.assertIn("Passed: quality (viewer): success in run 2", out)
         self.assertIn("quality (crop): queued in run 2", out)
 
+    def test_a_running_gate_workflow_is_pending_even_when_every_listed_job_finished(self):
+        """Delta review SF1: jobs waiting on `needs` or a runtime matrix may not be listed yet."""
+        native = ".github/workflows/native.yml"
+        plan = plan_fixture(excluded=plan_fixture()["excluded"] + [
+            {"id": "native#n", "class": "rwa", "workflow": native, "job": "n", "check_name": "native",
+             "reason": "no-input-match"}])
+        runs_ = GOOD_RUNS + [wf_run(7, native, "in_progress", None)]
+        passed, out, _ = self.decide(plan=plan, runs_=runs_, jobs={**GOOD_JOBS, 7: [job(71, 7, "native")]})
+        self.assertFalse(passed)
+        self.assertIn("native.yml: run 7 attempt 1 is still in_progress", out)
+        # A running workflow without any gate (advisory only) does not hold merge-hold.
+        advisory = ".github/workflows/advice.yml"
+        plan = plan_fixture(excluded=plan_fixture()["excluded"] + [
+            {"id": "advice#a", "class": "advisory", "workflow": advisory, "job": "a", "check_name": "a",
+             "reason": "advisory"}])
+        runs_ = GOOD_RUNS + [wf_run(8, advisory, "in_progress", None)]
+        self.assertTrue(self.decide(plan=plan, runs_=runs_, jobs={**GOOD_JOBS, 8: []})[0])
+
+    def test_runs_without_any_time_cannot_be_ordered(self):
+        runs_ = [wf_run(1, CI), dict(wf_run(2, LEAVES), created_at=None)]
+        with self.assertRaises(ValueError):
+            self.decide(runs_=runs_)
+
     def test_runs_of_another_pull_request_or_base_do_not_count(self):
         """Review N1: a listed pull request must be this one, targeting this base."""
         own = [{"number": 7, "base": {"ref": "main"}}]
@@ -947,6 +972,11 @@ class GateTests(TestCase):
                                  job(22, 2, "DIAGNOSTIC margins (b)", "failure")]}
         self.assertFalse(self.decide(plan=plan, jobs=jobs)[0])
         self.assertFalse(self.decide(plan=plan, jobs={**GOOD_JOBS, 2: []})[0])
+        running = [wf_run(1, CI), wf_run(2, LEAVES, "in_progress", None)]
+        jobs = {**GOOD_JOBS, 2: [job(21, 2, "DIAGNOSTIC margins (a)"), job(22, 2, "DIAGNOSTIC margins (b)")]}
+        passed, out, _ = self.decide(plan=plan, runs_=running, jobs=jobs)
+        self.assertFalse(passed)  # more variants may still be created
+        self.assertNotIn("Passed: DIAGNOSTIC", out)
 
 
 class RecomputeTests(TestCase):

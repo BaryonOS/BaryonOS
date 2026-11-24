@@ -436,8 +436,14 @@ def run_matches(run, repo, pull, head_sha):
 
 
 def run_order(run):
-    """Newest first by the start of the latest attempt, then id: a later re-run of an older run counts."""
-    return (run.get("run_started_at") or "", run["id"])
+    """Newest first by the start of the latest attempt, then id: a later re-run of an older run counts.
+
+    Without a start time the creation time is used; without both the run cannot be ordered.
+    """
+    started = run.get("run_started_at") or run.get("created_at")
+    if not isinstance(started, str) or not started:
+        raise ValueError(f"run {run.get('id')} has no start or creation time")
+    return (started, run["id"])
 
 
 def job_matches(row, job):
@@ -452,6 +458,10 @@ def gate_report(token, repo, pull, head_sha, plan):
     """Return (passed, pending, failed) lines for the applicable gates of this head."""
     expected = expected_gates(plan)
     rows = plan["selected"] + plan["excluded"]
+    # Workflows with a gate GitHub may start: a running run of one must finish, because jobs
+    # waiting on `needs` or a runtime matrix may not be listed yet.
+    gated = {row["workflow"] for row in rows if row.get("class") in SELECTABLE
+             and row.get("reason") not in ("event-not-applicable", "condition-false")}
     classes = {row["check_name"]: row["class"] for row in rows if row.get("check_name")}
     workflows = sorted({row["workflow"] for row in rows if row.get("workflow")} - {GATE_WORKFLOW})
     url = f"{API}/repos/{repo}/actions/runs?head_sha={head_sha}&event=pull_request"
@@ -460,7 +470,8 @@ def gate_report(token, repo, pull, head_sha, plan):
         path = run.get("path")
         if path in workflows and run_matches(run, repo, pull, head_sha):
             # The newest run decides: an older success never masks a newer run.
-            if path not in newest or run_order(run) > run_order(newest[path]):
+            order = run_order(run)  # every counted run must be orderable
+            if path not in newest or order > run_order(newest[path]):
                 newest[path] = run
     passed, pending, failed = [], [], []
     for workflow in workflows:
@@ -478,6 +489,9 @@ def gate_report(token, repo, pull, head_sha, plan):
         jobs = [job for job in fetch_listing(
             token, f"{API}/repos/{repo}/actions/runs/{run['id']}/jobs?filter=latest", "jobs")
             if job.get("run_id") == run["id"]]
+        if running and workflow in gated:
+            pending.append(f"{workflow}: {where} is still {run.get('status')}; its gates must finish, "
+                           "including jobs GitHub has not created yet")
         claimed = set()
         for row in wanted:
             found = [job for job in jobs if job_matches(row, job)]
@@ -489,7 +503,7 @@ def gate_report(token, repo, pull, head_sha, plan):
             elif any(job.get("status") != "completed" for job in found):
                 pending.append(f"{row['check_name']}: still running in {where}")
             elif all(job.get("conclusion") == "success" for job in found) and (
-                    len(found) == 1 or row.get("variant") == "*"):
+                    len(found) == 1 or (row.get("variant") == "*" and not running)):
                 passed.append(f"{row['check_name']}: success in {where}")
             else:
                 outcome = ", ".join(sorted({str(job.get("conclusion")) for job in found}))
@@ -568,7 +582,7 @@ def pull_request_gates_passed(token, repo, pr_head):
             and (run.get("repository") or {}).get("full_name") == repo]
     if not runs:
         return False
-    newest = max(runs, key=lambda run: run["id"])
+    newest = max(runs, key=run_order)
     return newest.get("status") == "completed" and newest.get("conclusion") == "success"
 
 

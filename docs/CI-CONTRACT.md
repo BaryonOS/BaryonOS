@@ -513,6 +513,11 @@ matrix (`id = "*"`) needs at least one matching job, all successful. Then:
   workflow that the plan did not expect: **pending** while it runs, and
   **failed** if it then fails. A gate GitHub started must finish, so a
   selector miss cannot merge past a running gate.
+- a running run of a workflow that has any applicable `core` or `rwa`
+  execution: **pending** as a whole, because jobs waiting on `needs` or a
+  runtime matrix may not be listed yet; a runtime-matrix row never passes
+  while its run is running. A running run of an advisory-only workflow does
+  not hold merge-hold.
   Advisory, manual, operational and publication jobs never block, and
   merge-hold's own earlier runs are ignored.
 
@@ -542,8 +547,8 @@ with more than one pull request ahead fail closed. Activating the queue, with
 
 **Bootstrap.** The pull request that introduces this enforcement is judged by
 the base copy that predates it, so its own merge-hold checks only the
-acceptance hold. Its applicable gates were verified by hand on the final head
-before the merge (run links on the pull request). Every later pull request
+acceptance hold. Its applicable gates must therefore be verified by hand on the
+final head before the merge, with the run links posted on the pull request. Every later pull request
 runs the new base copy; one still carrying the old `merge-hold.yml` fails
 closed (missing `BASE_SHA`) until it is updated, which the strict up-to-date
 rule requires anyway.
@@ -589,6 +594,9 @@ Status after phase 3. Limits marked closed have tests in
   `tools/update-tool/tests/roundtrip.rs:305` are registered. Paths built in
   other ways (variables, several statements, Python harnesses reading files)
   remain a limit; integrated native suites keep the broad `native` input set.
+  A tracked `.rs` file reached through a `CARGO_MANIFEST_DIR` join is scanned
+  as source even when a test only reads it as data; that can over-report an
+  escape (a false block in host-quality, never a narrower plan).
 - **K6, root-scoped library escapes: closed.** `escape-scope-mismatch`; the
   zune-jpeg test-image includes are now `always`.
 - **K7, job conditions: closed.** See "Job conditions".
