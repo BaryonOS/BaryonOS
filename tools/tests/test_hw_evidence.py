@@ -496,7 +496,8 @@ class RepositoryStateTests(unittest.TestCase):
                 (lambda d: protocol(d, "H05-S3")["image"].update(
                     kernel_feature_present=not protocol(d, "H05-S3")["image"]["kernel_feature_present"]),
                  "disagrees"),
-                (lambda d: protocol(d, "HW-INV").update(status="ready", blocking_reasons=[]), "ready requires"),
+                (lambda d: (protocol(d, "HW-INV").update(status="ready", blocking_reasons=[]),
+                            protocol(d, "HW-INV")["image"].update(physical_image="missing")), "ready requires"),
                 (lambda d: protocol(d, "H05-S3").update(blocking_reasons=[]), "blocking_reasons"),
                 (lambda d: protocol(d, "H02-USB")["forbidden_actions"].remove("no-bootorder-change"), "baseline"),
                 (lambda d: protocol(d, "H04-NET")["evidence_fields"].remove("signer"), "evidence_fields"),
