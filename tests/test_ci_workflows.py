@@ -1723,16 +1723,6 @@ activation = "automatic"
 """
 
 
-def load_selector():
-    """Import the self-contained selector without adding tools/ to sys.path."""
-    import importlib.util  # local: a top-level import would shift cited line numbers
-
-    spec = importlib.util.spec_from_file_location("ci_impact_shadow", SHADOW_SELECTOR)
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
-    return module
-
-
 class CiImpactShadowTests(unittest.TestCase):
     """CI-IMPACT phase 2b: the shadow plan is independent, read-only and base-trusted."""
 
@@ -1769,8 +1759,14 @@ class CiImpactShadowTests(unittest.TestCase):
         self.assertEqual(preserve["if"], "${{ always() }}")
         self.assertEqual(preserve["with"], {
             "name": "ci-impact-plan", "job-status": "${{ job.status }}",
-            "if-no-files-found": "error", "path": "build/ci-impact/plan.json",
+            "if-no-files-found": "error",
+            "path": "build/ci-impact/plan.json\nbuild/ci-impact/coverage.json\n",
             "required-paths": "build/ci-impact/plan.json"})
+        # Catalogue coverage is a report in this non-required job, never an assertion in host-quality.
+        coverage, = [step for step in steps if "ci_impact.py coverage" in step.get("run", "")]
+        self.assertNotIn("${{", coverage["run"])
+        self.assertNotIn("continue-on-error", coverage)
+        self.assertEqual(steps[1]["with"], {"host-dependencies": "true"})
 
     def test_select_action_passes_expressions_only_through_env(self):
         steps = self.action["runs"]["steps"]
@@ -1861,21 +1857,26 @@ class CiImpactShadowTests(unittest.TestCase):
             self.assertEqual((outputs["mode"], plan["fallback"]["code"]), ("full", "no-trusted-base"))
             self.assertFalse(plan["selector"]["trusted"])
 
+            # A hostile checkout copy that claims select is overridden when no base selector ran.
+            (repo / "tools/ci_impact.py").write_text(
+                "import json, os, sys\n"
+                "out = sys.argv[sys.argv.index('--out') + 1]\n"
+                "os.makedirs(os.path.dirname(out), exist_ok=True)\n"
+                "json.dump({'plan_id': 'sha256:' + '0' * 64, 'mode': 'select'}, open(out, 'w'))\n",
+                encoding="utf-8")
+            result, outputs = self.run_action(repo, {
+                "EVENT_NAME": "workflow_dispatch", "TESTED_SHA": tested, "HEAD_SHA": tested,
+                "BASE_SHA": ""}, "hostile-checkout")
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertEqual(outputs["mode"], "full")
+            (repo / "tools/ci_impact.py").write_bytes(SHADOW_SELECTOR.read_bytes())
+
             # A malformed base is rejected before it reaches git; the plan widens.
             result, outputs = self.run_action(repo, {
                 "EVENT_NAME": "push", "TESTED_SHA": tested, "HEAD_SHA": tested,
                 "BASE_SHA": "--output=/dev/null"}, "push-bad-base")
             self.assertEqual(result.returncode, 0, result.stderr)
             self.assertEqual(outputs["mode"], "full")
-
-    def test_real_catalogue_coverage_has_no_structural_drift(self):
-        report = load_selector().coverage(str(ROOT), ".github/ci-impact.toml")
-        # Citation line drift stays a report: one line added to a generated file such as
-        # docs/PROGRESS.md moves every citation below it.
-        problems = [problem for problem in report.get("problems", [])
-                    if not problem.startswith("citation-")]
-        self.assertEqual(problems, [])
-        self.assertEqual(report["counts"]["unclassified_paths"], 0, report.get("unclassified"))
 
 
 if __name__ == "__main__":
