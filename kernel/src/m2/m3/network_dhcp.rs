@@ -360,16 +360,18 @@ fn check_dhcp(service: &[u64; 35]) {
 }
 /// N02-T6: exactly one libslirp lease, never withdrawn; app A resolved the
 /// public name once (address and count recorded for the harness, which binds
-/// them to the DNS answer on the wire) and app B was refused DNS and finished
-/// one HTTP exchange through the libslirp translation.
+/// them to the DNS answer on the wire) and got NotFound for a reserved
+/// .invalid name (the harness requires NXDOMAIN on the wire); app B was
+/// refused DNS and finished one HTTP exchange through the libslirp translation.
 fn check_slirp(service: &[u64; 35]) {
     let [_, a, b] = evidence().snapshots.map(Option::unwrap);
-    // One UDP datagram (app A's query), one TCP connection (app B), no
-    // malformed or dropped frame. Rejected: A = malformed 1 + Access 1; B =
-    // malformed 1 + Access 1 + refused Resolve 1 + wrong token 1.
+    // Two UDP datagrams (app A's public and .invalid queries), one TCP
+    // connection (app B), no malformed or dropped frame. Rejected: A =
+    // malformed 1 + Access 1 + NotFound 1; B = malformed 1 + Access 1 +
+    // refused Resolve 1 + wrong token 1.
     require(
-        service[6] == 6
-            && service[7] == 1
+        service[6] == 7
+            && service[7] == 2
             && service[8] == 0
             && service[9] == 1
             && service[13] == 3

@@ -46,8 +46,8 @@ def qname(name=slirp.NAME):
     return b"".join(bytes((len(p),)) + p.encode() for p in name.split(".")) + b"\0"
 
 
-def query(ident=7, port=50000):
-    message = struct.pack("!HHHHHH", ident, 0x0100, 1, 0, 0, 0) + qname() + struct.pack("!HH", 1, 1)
+def query(ident=7, port=50000, name=slirp.NAME):
+    message = struct.pack("!HHHHHH", ident, 0x0100, 1, 0, 0, 0) + qname(name) + struct.pack("!HH", 1, 1)
     return frame(bytes.fromhex("5255c0000203"), slirp.GUEST_MAC,
                  ip(slirp.DHCP_START, slirp.DNS, 17, udp(port, 53, message)))
 
@@ -58,6 +58,12 @@ def response(addresses, name=slirp.NAME, rcode=0):
         message += b"\xc0\x0c" + struct.pack("!HHIH", 1, 1, 60, 4) + socket.inet_aton(address)
     return frame(slirp.GUEST_MAC, bytes.fromhex("5255c0000203"),
                  ip(slirp.DNS, slirp.DHCP_START, 17, udp(53, 50000, message)))
+
+
+def aaaa(dns_frame):
+    """Same frame with the question type changed from A to AAAA."""
+    at = dns_frame.index(b"\0\x01\0\x01", 42 + 12)
+    return dns_frame[:at] + b"\0\x1c" + dns_frame[at + 2:]
 
 
 def syn(target=slirp.HOST, port=slirp.HTTP_PORT):
@@ -86,8 +92,29 @@ class PcapTest(unittest.TestCase):
         self.assertEqual(summary["other_ip"], 0)
         self.assertEqual(summary["dhcp_acks"], [dict(address=slirp.DHCP_START, router=slirp.HOST, dns=slirp.DNS,
                                                      mask="255.255.255.0", lease_s=86400)])
-        self.assertEqual(summary["dns_responses"], [dict(rcode=0, addresses=["93.184.215.14", "96.7.128.198"])])
+        self.assertEqual(summary["dns_responses"],
+                         [dict(name=slirp.NAME, rcode=0, addresses=["93.184.215.14", "96.7.128.198"])])
         self.assertEqual((summary["http_syns"], summary["foreign"]), (1, []))
+
+    def test_nxdomain_for_the_negative_name_is_recorded(self):
+        frames = [query(ident=7), response(["1.2.3.4"]), query(ident=8, name=slirp.NEGATIVE)]
+        negative = bytearray(response([], name=slirp.NEGATIVE, rcode=3))
+        negative[42:44] = struct.pack("!H", 8)
+        summary = self.parse(pcap(frames + [bytes(negative)]))
+        self.assertEqual(summary["dns_responses"], [dict(name=slirp.NAME, rcode=0, addresses=["1.2.3.4"]),
+                                                    dict(name=slirp.NEGATIVE, rcode=3, addresses=[])])
+
+    def test_answers_must_match_the_question_of_their_query(self):
+        for name, frames in (("negative answer to positive query", [query(), response([], name=slirp.NEGATIVE, rcode=3)]),
+                             ("unbound negative", [response([], name=slirp.NEGATIVE, rcode=3)]),
+                             ("other name", [query(name="other.example"), response(["1.2.3.4"], name="other.example")]),
+                             ("aaaa query", [aaaa(query(name=slirp.NEGATIVE)), response([], name=slirp.NEGATIVE, rcode=3)]),
+                             ("aaaa answer", [query(name=slirp.NEGATIVE), aaaa(response([], name=slirp.NEGATIVE, rcode=3))]),
+                             ("response as query", [query(name=slirp.NEGATIVE)[:44] + b"\x81"
+                                                    + query(name=slirp.NEGATIVE)[45:],
+                                                    response([], name=slirp.NEGATIVE, rcode=3)])):
+            with self.subTest(name):
+                self.assertEqual(self.parse(pcap(frames))["dns_responses"], [])
 
     def test_other_questions_and_off_net_guest_traffic_are_not_hidden(self):
         summary = self.parse(pcap([query(), response(["1.2.3.4"], name="other.example"), syn(target="198.51.100.9")]))
@@ -179,6 +206,10 @@ class OracleTest(unittest.TestCase):
         self.assertEqual((evidence["request_ok"], evidence["error"]), (False, "request differs from app B's request"))
 
 
+NEGATIVE = dict(name=slirp.NEGATIVE, rcode=3, addresses=[])
+POSITIVE = dict(name=slirp.NAME, rcode=0, addresses=["93.184.215.14", "96.7.128.198"])
+
+
 class SlirpRunnerTest(unittest.TestCase):
     """evaluate_slirp() in isolation; sequence() and the pcap parser are covered elsewhere."""
     RUN = runner.ROOT / "build/run/network-dhcp-x"
@@ -188,14 +219,15 @@ class SlirpRunnerTest(unittest.TestCase):
         good = dict(guest_frames=20, slirp_frames=18, other_frames=0, other_ip=0, foreign=[], http_syns=1,
                     dhcp_acks=[dict(address=slirp.DHCP_START, router=slirp.HOST, dns=slirp.DNS,
                                     mask="255.255.255.0", lease_s=86400)],
-                    dns_responses=[dict(rcode=0, addresses=["93.184.215.14", "96.7.128.198"])])
+                    dns_responses=[dict(name=slirp.NAME, rcode=0, addresses=["93.184.215.14", "96.7.128.198"]),
+                                   NEGATIVE])
         command = ["qemu", "-nic", "none", "-object", "rng-random,id=rng0"] + slirp.arguments(pcap_rel)
         return dict(command=command, run_directory=str(self.RUN), wire=dict(good, **wire))
 
-    def evaluate(self, report, oracle=None, a656=None, a664=2, address=None):
+    def evaluate(self, report, oracle=None, a656=None, a664=2, address=None, queries=2):
         lease = int.from_bytes(LEASE, "big") if address is None else address
         observed = dict(network=dict(NET_TX_COMPLETED=20, NET_RX_DELIVERED=18),
-                        processes=dict(SERVICE={"576": lease, "584": lease, "448": 1},
+                        processes=dict(SERVICE={"576": lease, "584": lease, "448": queries},
                                        APP_A={"656": int.from_bytes(socket.inet_aton("93.184.215.14"), "big")
                                               if a656 is None else a656, "664": a664}))
         oracle = dict(connections=1, request_ok=True, response_sent=True, error=None) if oracle is None else oracle
@@ -219,12 +251,18 @@ class SlirpRunnerTest(unittest.TestCase):
             "lease": (self.report(), dict(address=0xc0000210)),
             "unseen answer": (self.report(), dict(a656=0x01020304)),
             "count": (self.report(), dict(a664=1)),
-            "second answer": (self.report(dns_responses=[dict(rcode=0, addresses=["93.184.215.14", "96.7.128.198"])] * 2), {}),
-            "nxdomain": (self.report(dns_responses=[dict(rcode=3, addresses=["93.184.215.14", "96.7.128.198"])]), {}),
-            "private answer": (self.report(dns_responses=[dict(rcode=0, addresses=["10.0.0.1"])]),
+            "second answer": (self.report(dns_responses=[POSITIVE, POSITIVE, NEGATIVE]), {}),
+            "nxdomain": (self.report(dns_responses=[dict(POSITIVE, rcode=3), NEGATIVE]), {}),
+            "private answer": (self.report(dns_responses=[dict(POSITIVE, addresses=["10.0.0.1"]), NEGATIVE]),
                                dict(a656=0x0a000001, a664=1)),
-            "multicast answer": (self.report(dns_responses=[dict(rcode=0, addresses=["224.0.0.1"])]),
+            "multicast answer": (self.report(dns_responses=[dict(POSITIVE, addresses=["224.0.0.1"]), NEGATIVE]),
                                  dict(a656=0xe0000001, a664=1)),
+            "no negative answer": (self.report(dns_responses=[POSITIVE]), dict(queries=1)),
+            "negative hijacked": (self.report(dns_responses=[POSITIVE, dict(NEGATIVE, rcode=0, addresses=["1.2.3.4"])]), {}),
+            "negative nodata": (self.report(dns_responses=[POSITIVE, dict(NEGATIVE, rcode=0)]), {}),
+            "negative servfail": (self.report(dns_responses=[POSITIVE, dict(NEGATIVE, rcode=2)]), {}),
+            "negative twice": (self.report(dns_responses=[POSITIVE, NEGATIVE, NEGATIVE]), dict(queries=3)),
+            "query count": (self.report(), dict(queries=3)),
             "oracle": (self.report(), dict(oracle=dict(connections=2, request_ok=True, response_sent=True,
                                                        error="more than one connection reached the oracle"))),
         }
