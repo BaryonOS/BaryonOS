@@ -66,7 +66,7 @@ The codebase already contains an independent boot chain, process and capability 
 |---|---|
 | Formal acceptance, whole roadmap | **43/100 weighted points** |
 | Implementation, 30 reassessed criteria | **19 implemented**, 75 partial, 18 missing, 1 unknown scoped requirements |
-| Verification, same inventory | **52 requirements with native QEMU evidence**; 26 with host-test evidence; 2 with target-build evidence; 0 with physical-hardware evidence; 0 with human-evaluation evidence |
+| Verification, same inventory | **53 requirements with native QEMU evidence**; 26 with host-test evidence; 2 with target-build evidence; 0 with physical-hardware evidence; 0 with human-evaluation evidence |
 
 Implementation and verification are a descriptive snapshot from **2026-11-24**, source [`2eb1c63`](https://github.com/BaryonOS/BaryonOS/tree/2eb1c63d2afdf658f0e71d31f3542e320a7dd041). Requirements differ in size, and evidence levels can overlap. These counts are not percentages of OS completion or proof that a whole criterion is accepted.
 
