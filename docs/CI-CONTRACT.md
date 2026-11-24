@@ -101,6 +101,12 @@ Execution ids are `<workflow stem>#<job id>[/<variant id>]`, for example
 `component-leaves#component-quality/image-viewer`. Execution ids and rendered
 check names are unique across the catalogue.
 
+Globs use the GitHub path-filter dialect restricted to `*` (within one path
+segment) and `**` (across segments); `validate` rejects `?`, `[`, `]`, `+`, a
+leading `/` or `!`, backslashes and `.` or `..` segments. A `**/` prefix needs
+at least one directory: `**/rustfmt.toml` does not match a root-level
+`rustfmt.toml`, so root and nested forms are listed separately.
+
 ## Input derivation
 
 An execution's inputs are its `inputs`, its input sets and the Cargo closure

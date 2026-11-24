@@ -701,6 +701,13 @@ def valid_catalogue():
     return tomllib.loads(CATALOGUE)
 
 
+class GlobTests(TestCase):
+    def test_double_star_prefix_does_not_match_the_root(self):
+        self.assertFalse(ci_impact.github_path_filter_matches("**/x.toml", "x.toml"))
+        self.assertTrue(ci_impact.github_path_filter_matches("**/x.toml", "a/b/x.toml"))
+        self.assertTrue(ci_impact.github_path_filter_matches("a/**", "a/b/c"))
+
+
 class CatalogueValidationTests(TestCase):
     def assertProblem(self, catalogue, fragment):
         problems = ci_impact.validate(catalogue)
@@ -739,6 +746,10 @@ class CatalogueValidationTests(TestCase):
             (lambda c: c["policy"]["always_full"].append("../x"), "'..' segment"),
             (lambda c: c["policy"]["inert"].append("/abs"), "leading '/'"),
             (lambda c: c["policy"]["core_only"].append("!neg"), "leading '/', '!'"),
+            (lambda c: c["input_sets"]["native"].append("kernel/a?.rs"), "unsupported glob syntax"),
+            (lambda c: c["input_sets"]["native"].append("kernel/[ab].rs"), "unsupported glob syntax"),
+            (lambda c: c["input_sets"]["native"].append("kernel/x].rs"), "unsupported glob syntax"),
+            (lambda c: c["input_sets"]["native"].append("kernel/a+.rs"), "unsupported glob syntax"),
             (lambda c: c["policy"]["always_full"].remove("**/clippy.toml"), "always_full must include"),
             (lambda c: wf(c, 0)["job"][0].update(**{"class": "x"}), "class must be one of"),
             (lambda c: wf(c, 0)["job"][0].update(condition="${{ x }}"), "core job must not have a condition"),

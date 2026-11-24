@@ -127,6 +127,9 @@ def glob_problem(pattern):
         return "leading '/', '!' or a backslash"
     if any(part in ("..", ".") for part in pattern.split("/")):
         return "'.' or '..' segment"
+    if any(char in pattern for char in "?[]+"):
+        # GitHub gives these meaning; the matcher here models only '*' and '**'.
+        return "unsupported glob syntax ('?', '[', ']' or '+')"
     return None
 
 
