@@ -31,10 +31,11 @@ tasks live in `docs/roadmap-pipeline/ledger.json` and criteria in `docs/progress
 - cycle_id: b02-key1-relay-20261124
 - task: B02-T4 (ledger), native KEY1 key-state commit ingress per ADR-B02-KEY1-RELAY-20261123
 - branch: claude/b02-key1-relay-native-20261124
-- PR: draft PR on this branch (number in GitHub)
+- PR: #486 (ready for review; auto-merge off)
 - tested source SHA: recorded in the PR body, not here
-- state: RESUME_REQUIRED (pushed as draft PR; independent security and evidence verifiers
-  returned MERGE with low findings, addressed in 49b1557d; hosted gates, CodeRabbit and merge pending)
+- state: RESUME_REQUIRED. Independent security and evidence verifiers returned MERGE; their
+  low findings and all CodeRabbit findings are fixed (49b1557d, 07a8879f) and confirmed.
+  Main is integrated by merge commits; hosted gates on the current head and the merge remain.
 
 ## Evidence / NOT RUN
 
@@ -67,11 +68,13 @@ tasks live in `docs/roadmap-pipeline/ledger.json` and criteria in `docs/progress
 
 ## Lessons
 
-1. `git merge-base --is-ancestor` says nothing under squash merges; check file presence on main.
-2. `tools.tests.test_roadmap_runner` has 5 pre-existing failures while build/roadmap-pipeline/STOP exists.
-3. With `GIT_EDITOR=true` in the environment, git-driven `tools/tests` fail (2 failures, 9 errors); run them with it unset.
-4. `tools/run_system.py` requires `NOS_BUILD_DIR` inside the checkout (`private_path`).
+1. `tools.tests.test_roadmap_runner` has 5 pre-existing failures while build/roadmap-pipeline/STOP exists.
+2. With `GIT_EDITOR=true` in the environment, git-driven `tools/tests` fail (2 failures, 9 errors); run them with it unset.
+3. `tools/run_system.py` requires `NOS_BUILD_DIR` inside the checkout (`private_path`).
 
 ## Next executable task
 
-- Push B02-T4 and open the draft PR after lead review. After merge: B04 build divergence (loader/image_payload) diagnosis without normalising differences away.
+- Finish #486: confirm hosted checks green on the current head (integrate main again if it
+  moved), run the SHA-bound acceptance release and let merge-hold revalidate, squash-merge
+  with the expected head, verify on main, then post `HANDOFF B b02-key1-relay-20261124` on #486.
+- After that cycle: B04 build divergence (loader/image_payload) diagnosis without normalising differences away.
