@@ -110,8 +110,8 @@ class PcapTest(unittest.TestCase):
                              ("other name", [query(name="other.example"), response(["1.2.3.4"], name="other.example")]),
                              ("aaaa query", [aaaa(query(name=slirp.NEGATIVE)), response([], name=slirp.NEGATIVE, rcode=3)]),
                              ("aaaa answer", [query(name=slirp.NEGATIVE), aaaa(response([], name=slirp.NEGATIVE, rcode=3))]),
-                             ("response as query", [query(name=slirp.NEGATIVE, ident=9)[:44] + b"\x81"
-                                                    + query(name=slirp.NEGATIVE, ident=9)[45:],
+                             ("response as query", [query(name=slirp.NEGATIVE)[:44] + b"\x81"
+                                                    + query(name=slirp.NEGATIVE)[45:],
                                                     response([], name=slirp.NEGATIVE, rcode=3)])):
             with self.subTest(name):
                 self.assertEqual(self.parse(pcap(frames))["dns_responses"], [])
