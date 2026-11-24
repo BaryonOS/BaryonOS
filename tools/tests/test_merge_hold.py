@@ -4,10 +4,12 @@ import contextlib
 import io
 import os
 import sys
+import tempfile
 from pathlib import Path
 from unittest import TestCase, main, mock
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 import merge_hold
 
 HEAD = "a" * 40
@@ -66,12 +68,32 @@ class DecisionTests(TestCase):
 
 
 class MainTests(TestCase):
-    def run_main(self, env, fetch):
+    def run_main(self, env, fetch, gates=(True, ["gates verified"])):
         out = io.StringIO()
         with mock.patch.dict(os.environ, env, clear=True), \
                 mock.patch.object(merge_hold, "fetch_all", fetch), \
+                mock.patch.object(merge_hold, "pull_request_gates", lambda *args: gates), \
                 contextlib.redirect_stdout(out):
             return merge_hold.main(), out.getvalue()
+
+    def test_gate_verdict_joins_the_hold_verdict(self):
+        no_label = lambda token, url: []  # noqa: E731
+        code, out = self.run_main(ENV, no_label, gates=(False, ["::error::Failed: x"]))
+        self.assertEqual(code, 1)
+        self.assertIn("No acceptance hold is set.", out)
+        self.assertIn("::error::Failed: x", out)
+        self.assertEqual(self.run_main(ENV, no_label)[0], 0)
+
+        def broken(*args):
+            raise merge_hold.subprocess.TimeoutExpired("selector", 600)
+
+        out = io.StringIO()
+        with mock.patch.dict(os.environ, ENV, clear=True), \
+                mock.patch.object(merge_hold, "fetch_all", no_label), \
+                mock.patch.object(merge_hold, "pull_request_gates", broken), \
+                contextlib.redirect_stdout(out):
+            self.assertEqual(merge_hold.main(), 1)
+        self.assertIn("failing closed", out.getvalue())
 
     def test_reads_live_labels_and_comments(self):
         calls = []
@@ -133,6 +155,12 @@ def runs(*states):
 
 
 DONE = runs("completed", "completed", "completed")
+
+
+def gate_run(head, conclusion="success", run_id=1, status="completed", path=".github/workflows/merge-hold.yml"):
+    """A pull_request merge-hold run on a member's head (the merge_group gate rule)."""
+    return {"id": run_id, "path": path, "head_sha": head, "status": status, "conclusion": conclusion,
+            "event": "pull_request", "repository": {"full_name": "o/r"}}
 E = "e" * 40
 
 
@@ -141,7 +169,7 @@ class MergeGroupTests(TestCase):
 
     def run_group(self, nodes, labels=None, comments=None, trees=None,
                   env=None, answer=None, checks=None, ahead=None, on_sleep=None,
-                  commits=None):
+                  commits=None, gate_runs=None):
         """checks answer polls of the group commit, commits[sha] those of sha, ahead the rest."""
         labels, comments, trees = labels or {}, comments or {}, trees or {}
         polls = {sha: list(answers) for sha, answers in (commits or {}).items()}
@@ -163,13 +191,17 @@ class MergeGroupTests(TestCase):
                 if isinstance(answer_, Exception):
                     raise answer_
                 return answer_
+            if "/actions/runs?" in url:
+                head = url.split("head_sha=")[1].split("&")[0]
+                listed = (gate_runs or {}).get(head, [gate_run(head)])
+                return {"total_count": len(listed), "workflow_runs": listed}
             if url.endswith("/graphql"):
                 self.assertEqual(payload["variables"], {"owner": "o", "name": "r"})
                 return answer if answer is not None else {"data": {"repository": {
                     "mergeQueue": {"entries": {"pageInfo": {"hasNextPage": False},
                                                "nodes": nodes}}}}}
             sha = url.rsplit("/", 1)[1]
-            return {"tree": {"sha": trees.get(sha, sha)}}
+            return {"tree": {"sha": trees.get(sha, "1" * 40)}}
 
         clock = [0.0]
 
@@ -198,6 +230,33 @@ class MergeGroupTests(TestCase):
         self.assertIn("#7:", out)
         self.assertIn("#8:", out)
         self.assertNotIn("#9:", out)
+
+    def test_member_needs_its_own_gate_verdict_and_the_landing_tree(self):
+        one = [entry(1, 8, GROUP, OTHER)]
+        code, out, _ = self.run_group(one, trees={GROUP: "1" * 40, OTHER: "2" * 40})
+        self.assertEqual(code, 1)
+        self.assertIn("do not run on merge_group", out)
+        for runs_, why in (([], "no run"), ([gate_run(OTHER, "failure")], "failed"),
+                           ([gate_run(OTHER, run_id=1), gate_run(OTHER, "failure", run_id=2)], "newer failed"),
+                           ([gate_run(OTHER, None, status="in_progress")], "running"),
+                           ([gate_run(OTHER, path=".github/workflows/ci.yml")], "other workflow")):
+            with self.subTest(why=why):
+                code, out, _ = self.run_group(one, gate_runs={OTHER: runs_})
+                self.assertEqual(code, 1, out)
+                self.assertIn("No successful pull_request merge-hold", out)
+        code, out, _ = self.run_group(one, gate_runs={OTHER: [gate_run(OTHER, "failure", run_id=1),
+                                                              gate_run(OTHER, run_id=2)]})
+        self.assertEqual(code, 0, out)  # a newer successful re-run decides
+
+    def test_merge_group_budget_comes_from_the_base_catalogue(self):
+        catalogue = '[policy.budgets]\nmerge_group_wait_minutes = 5\n'
+        with mock.patch.object(merge_hold, "git", return_value=(0, catalogue)):
+            self.assertEqual(merge_hold.base_wait_seconds(BASE), 300)
+        for answer in ((0, "[policy]\n"), (128, ""), (0, "not toml ["),
+                       (0, '[policy.budgets]\nmerge_group_wait_minutes = 99\n'),
+                       (0, '[policy.budgets]\nmerge_group_wait_minutes = true\n')):
+            with self.subTest(answer=answer), mock.patch.object(merge_hold, "git", return_value=answer):
+                self.assertEqual(merge_hold.base_wait_seconds(BASE), merge_hold.WAIT_SECONDS)
 
     def test_released_pr_with_the_landing_tree_passes(self):
         code, out, _ = self.run_group(
@@ -241,8 +300,17 @@ class MergeGroupTests(TestCase):
             queue,
             labels={7: [merge_hold.LABEL]},
             comments={7: [comment("acceptance-released: " + HEAD)]},
-            trees={"e" * 40: "1" * 40, HEAD: "1" * 40, GROUP: "2" * 40})
+            trees={"e" * 40: "1" * 40, HEAD: "1" * 40, GROUP: "2" * 40, OTHER: "2" * 40})
         self.assertEqual(code, 0, out)
+        # Phase 3: PR 8's gates ran on its own head. If its entry lands another tree
+        # (PR 7's change on top), the selected workflows never tested that tree.
+        code, out, _ = self.run_group(
+            queue,
+            labels={7: [merge_hold.LABEL]},
+            comments={7: [comment("acceptance-released: " + HEAD)]},
+            trees={"e" * 40: "1" * 40, HEAD: "1" * 40, GROUP: "2" * 40, OTHER: "3" * 40})
+        self.assertEqual(code, 1, out)
+        self.assertIn("#8: ::error::The applicable gates ran on", out)
 
     def test_released_pr_ahead_whose_own_entry_lands_another_tree_fails(self):
         queue = [entry(1, 7, "e" * 40, HEAD), entry(2, 8, GROUP, OTHER)]
@@ -591,6 +659,298 @@ class FetchTests(TestCase):
         with mock.patch.object(merge_hold.request, "urlopen", urlopen), \
                 self.assertRaises(ValueError):
             merge_hold.fetch_all("t", "https://api.example/x")
+
+
+
+MERGE = "9" * 40
+LEAVES = ".github/workflows/leaves.yml"
+CI = ".github/workflows/ci.yml"
+STORAGE = ".github/workflows/storage.yml"
+PULL = {"head": {"sha": HEAD, "ref": "topic", "repo": {"full_name": "o/r"}}, "base": {"ref": "main"}}
+GATE_ENV = dict(ENV, BASE_SHA=BASE, TESTED_SHA=MERGE, GITHUB_RUN_ID="123")
+
+
+def row(xid, workflow, check, klass="rwa", variant=None, blocked=False):
+    return {"id": xid, "workflow": workflow, "job": xid.split("#")[1].split("/")[0], "variant": variant,
+            "check_name": check, "class": klass, "blocked_by_filter": blocked}
+
+
+def plan_fixture(**over):
+    plan = {"event": "pull_request", "ref": "main",
+            "shas": {"base": BASE, "merge_base": BASE, "head": HEAD, "tested": MERGE},
+            "selector": {"trusted": True}, "catalogue": {"source_sha": BASE, "blob": "f" * 40},
+            "mode": "select", "policy_mode": "enforce", "fallback": None, "plan_id": "sha256:" + "0" * 64,
+            "budgets": {"pull_request_wait_minutes": 0, "merge_group_wait_minutes": 45},
+            "selected": [row("ci#host-quality", CI, "host-quality", "core"),
+                         row("merge-hold#merge-hold", merge_hold.GATE_WORKFLOW, "merge-hold", "core"),
+                         row("leaves#quality/viewer", LEAVES, "quality (viewer)", variant="viewer"),
+                         row("storage#s", STORAGE, "s", blocked=True)],
+            "excluded": [{"id": "leaves#quality/crop", "class": "rwa", "workflow": LEAVES, "job": "quality",
+                          "check_name": "quality (crop)", "reason": "no-input-match"},
+                         {"id": "ci#advice", "class": "advisory", "workflow": CI, "job": "advice",
+                          "check_name": "advice", "reason": "advisory"}]}
+    plan.update(over)
+    return plan
+
+
+def wf_run(run_id, path, status="completed", conclusion="success", attempt=1, **over):
+    run = {"id": run_id, "path": path, "status": status, "conclusion": conclusion, "run_attempt": attempt,
+           "event": "pull_request", "head_sha": HEAD, "head_branch": "topic",
+           "repository": {"full_name": "o/r"}, "head_repository": {"full_name": "o/r"}}
+    run.update(over)
+    return run
+
+
+def job(job_id, run_id, name, conclusion="success", status="completed"):
+    return {"id": job_id, "run_id": run_id, "name": name, "status": status, "conclusion": conclusion}
+
+
+GOOD_RUNS = [wf_run(1, CI), wf_run(2, LEAVES)]
+GOOD_JOBS = {1: [job(11, 1, "host-quality"), job(12, 1, "advice")], 2: [job(21, 2, "quality (viewer)")]}
+
+
+class GateTests(TestCase):
+    """Phase 3: the pull_request path verifies every applicable gate from base-side code."""
+
+    def decide(self, plan=None, runs_=None, jobs=None, pull=None, ancestor=0, page_size=100, totals=None,
+               polls=None):
+        plan = plan or plan_fixture()
+        state = {"poll": 0, "calls": [], "sleeps": 0}
+        clock = [0.0]
+
+        def call(token, url, payload=None):
+            state["calls"].append(url)
+            if url.endswith("/pulls/7"):
+                return pull or PULL
+            page = int(url.rsplit("page=", 1)[1])
+            if "/jobs?" in url:
+                listed = (jobs or GOOD_JOBS).get(int(url.split("/runs/")[1].split("/")[0]), [])
+                key = "jobs"
+            else:
+                listed = runs_ if runs_ is not None else GOOD_RUNS
+                if polls:
+                    listed = polls[min(state["poll"], len(polls) - 1)]
+                key = "workflow_runs"
+            chunk = listed[(page - 1) * page_size:page * page_size]
+            total = (totals or {}).get(key, len(listed))
+            return {"total_count": total, key: chunk}
+
+        def sleep(seconds):
+            clock[0] += seconds
+            state["poll"] += 1
+            state["sleeps"] += 1
+
+        with mock.patch.dict(os.environ, GATE_ENV, clear=True), \
+                mock.patch.object(merge_hold, "call", call), \
+                mock.patch.object(merge_hold, "recompute_plan", lambda *a: plan), \
+                mock.patch.object(merge_hold, "git", return_value=(ancestor, "")), \
+                mock.patch.object(merge_hold.time, "sleep", sleep), \
+                mock.patch.object(merge_hold.time, "monotonic", lambda: clock[0]):
+            passed, lines = merge_hold.pull_request_gates("x", "o/r", 7, HEAD)
+        return passed, "\n".join(lines), state
+
+    def test_all_applicable_gates_passed(self):
+        passed, out, _ = self.decide()
+        self.assertTrue(passed, out)
+        self.assertIn("2 applicable gate(s) passed; 1 filtered out; 0 pending; 0 failed.", out)
+        self.assertIn("Not a pass: s: not applicable (path filter)", out)
+        self.assertIn("Plan sha256:" + "0" * 64, out)
+
+    def test_missing_or_running_runs_are_pending_and_block(self):
+        for runs_, fragment in (([wf_run(1, CI)], "no .github/workflows/leaves.yml run"),
+                                ([wf_run(1, CI), wf_run(2, LEAVES, "in_progress", None)], "is in_progress"),
+                                ([wf_run(1, CI), wf_run(2, LEAVES, "queued", None)], "is queued")):
+            with self.subTest(fragment=fragment):
+                passed, out, _ = self.decide(runs_=runs_)
+                self.assertFalse(passed)
+                self.assertIn(fragment, out)
+                self.assertIn("gh run rerun 123 --failed", out)
+
+    def test_expected_job_outcomes_other_than_success_block(self):
+        for conclusion in ("failure", "cancelled", "timed_out", "skipped", "action_required", "neutral", None):
+            with self.subTest(conclusion=conclusion):
+                jobs = {**GOOD_JOBS, 2: [job(21, 2, "quality (viewer)", conclusion)]}
+                passed, out, _ = self.decide(jobs=jobs)
+                self.assertFalse(passed)
+                self.assertIn(f"Failed: quality (viewer): {conclusion}", out)
+
+    def test_missing_or_duplicate_matrix_variant_blocks(self):
+        for jobs_, fragment in (([], "missing from run 2"),
+                                ([job(22, 2, "quality (crop)")], "missing from run 2"),
+                                ([job(21, 2, "quality (viewer)"), job(23, 2, "quality (viewer)")],
+                                 "Failed: quality (viewer): success")):
+            with self.subTest(jobs=jobs_):
+                passed, out, _ = self.decide(jobs={**GOOD_JOBS, 2: jobs_})
+                self.assertFalse(passed)
+                self.assertIn(fragment, out)
+
+    def test_the_newest_run_decides(self):
+        older_success = [wf_run(1, CI), wf_run(2, LEAVES), wf_run(3, LEAVES, "completed", "failure")]
+        jobs = {**GOOD_JOBS, 3: [job(31, 3, "quality (viewer)", "failure")]}
+        passed, out, _ = self.decide(runs_=older_success, jobs=jobs)
+        self.assertFalse(passed)
+        self.assertIn("quality (viewer): failure in run 3", out)
+        running = [wf_run(1, CI), wf_run(2, LEAVES), wf_run(3, LEAVES, "in_progress", None)]
+        self.assertFalse(self.decide(runs_=running)[0])
+        rerun = [wf_run(1, CI), wf_run(2, LEAVES, conclusion="success", attempt=2)]
+        jobs = {**GOOD_JOBS, 2: [job(24, 2, "quality (viewer)")]}
+        passed, out, _ = self.decide(runs_=rerun, jobs=jobs)
+        self.assertTrue(passed, out)
+        self.assertIn("run 2 attempt 2", out)
+
+    def test_runs_without_matching_provenance_are_ignored(self):
+        for over in ({"head_branch": "other"}, {"head_repository": {"full_name": "fork/r"}},
+                     {"repository": {"full_name": "x/r"}}, {"event": "push"}, {"head_sha": OTHER},
+                     {"path": ".github/workflows/leaves.yml@refs/heads/x"}):
+            with self.subTest(over=over):
+                passed, out, _ = self.decide(runs_=[wf_run(1, CI), dict(wf_run(2, LEAVES), **over)])
+                self.assertFalse(passed)
+                self.assertIn("no .github/workflows/leaves.yml run", out)
+        fork = dict(PULL, head={"sha": HEAD, "ref": "topic", "repo": {"full_name": "fork/r"}})
+        runs_ = [wf_run(1, CI, head_repository={"full_name": "fork/r"}),
+                 wf_run(2, LEAVES, head_repository={"full_name": "fork/r"})]
+        self.assertTrue(self.decide(runs_=runs_, pull=fork)[0])
+        jobs = {**GOOD_JOBS, 2: [dict(job(21, 2, "quality (viewer)"), run_id=99)]}
+        self.assertFalse(self.decide(jobs=jobs)[0])  # a job of another run is not this run's result
+
+    def test_unexpected_gate_failures_block_and_advisory_ones_do_not(self):
+        jobs = {**GOOD_JOBS, 2: [job(21, 2, "quality (viewer)"), job(22, 2, "quality (crop)", "failure")]}
+        passed, out, _ = self.decide(runs_=[wf_run(1, CI), wf_run(2, LEAVES, conclusion="failure")], jobs=jobs)
+        self.assertFalse(passed)
+        self.assertIn("quality (crop): failure in run 2", out)
+        self.assertIn("not expected by the plan", out)
+        jobs = {**GOOD_JOBS, 1: [job(11, 1, "host-quality"), job(12, 1, "advice", "failure")]}
+        self.assertTrue(self.decide(runs_=[wf_run(1, CI, conclusion="failure"), wf_run(2, LEAVES)], jobs=jobs)[0])
+        jobs = {**GOOD_JOBS, 1: [job(11, 1, "host-quality"), job(13, 1, "renamed", "cancelled")]}
+        passed, out, _ = self.decide(runs_=[wf_run(1, CI, conclusion="cancelled"), wf_run(2, LEAVES)], jobs=jobs)
+        self.assertFalse(passed)
+        self.assertIn("renamed: cancelled", out)
+        # A merge-hold run of its own workflow never counts, whatever it concluded.
+        runs_ = GOOD_RUNS + [wf_run(5, merge_hold.GATE_WORKFLOW, conclusion="failure")]
+        self.assertTrue(self.decide(runs_=runs_)[0])
+
+    def test_paginated_listings_are_read_completely(self):
+        filler = [wf_run(100 + index, ".github/workflows/other.yml") for index in range(150)]
+        passed, out, state = self.decide(runs_=filler + GOOD_RUNS, page_size=100)
+        self.assertTrue(passed, out)
+        self.assertEqual(sum("/actions/runs?" in url for url in state["calls"]), 2)
+        many = [job(1000 + index, 2, f"other {index}") for index in range(120)] + [job(21, 2, "quality (viewer)")]
+        self.assertTrue(self.decide(jobs={**GOOD_JOBS, 2: many})[0])
+        with self.assertRaises(ValueError):
+            self.decide(totals={"workflow_runs": 500})  # fewer items than the reported total
+
+    def test_plan_must_be_trusted_and_bound_to_this_pull_request(self):
+        bad = [
+            {"shas": {"base": BASE, "head": OTHER, "tested": MERGE}},
+            {"shas": {"base": BASE, "head": HEAD, "tested": OTHER}},
+            {"shas": {"base": OTHER, "head": HEAD, "tested": MERGE}},
+            {"ref": "release"},
+            {"event": "push"},
+            {"selector": {"trusted": False}},
+            {"catalogue": {"source_sha": HEAD, "blob": "f" * 40}},
+            {"catalogue": {"source_sha": BASE, "blob": None}},
+            {"mode": "full", "fallback": {"code": "merge-ref-mismatch"}},
+            {"mode": "full", "fallback": {"code": "selector-error:KeyError"}},
+            {"mode": "full", "fallback": {"code": "invalid-trusted-catalogue"}},
+            {"mode": "manual"},
+            {"plan_id": "x"},
+            {"selected": [row("leaves#quality/viewer", LEAVES, "quality (viewer)")]},
+        ]
+        for over in bad:
+            with self.subTest(over=over), self.assertRaises(ValueError):
+                self.decide(plan=plan_fixture(**over))
+        self.assertTrue(self.decide(plan=plan_fixture(mode="full", fallback={"code": "always-full"}))[0])
+
+    def test_head_that_moved_or_misses_the_base_tip_fails(self):
+        with self.assertRaises(ValueError):
+            self.decide(pull=dict(PULL, head={"sha": OTHER, "ref": "topic", "repo": {"full_name": "o/r"}}))
+        passed, out, _ = self.decide(ancestor=1)
+        self.assertFalse(passed)
+        self.assertIn("does not contain the base tip", out)
+
+    def test_shadow_policy_reports_without_blocking(self):
+        passed, out, _ = self.decide(plan=plan_fixture(policy_mode="shadow"), runs_=[wf_run(1, CI)])
+        self.assertTrue(passed)
+        self.assertIn("::warning::(shadow, not blocking) Pending:", out)
+
+    def test_wait_budget_polls_until_the_gates_finish_or_the_deadline(self):
+        plan = plan_fixture(budgets={"pull_request_wait_minutes": 3, "merge_group_wait_minutes": 45})
+        polls = [[wf_run(1, CI)], [wf_run(1, CI), wf_run(2, LEAVES, "in_progress", None)], GOOD_RUNS]
+        passed, out, state = self.decide(plan=plan, polls=polls)
+        self.assertTrue(passed, out)
+        self.assertEqual(state["sleeps"], 2)
+        passed, _, state = self.decide(plan=plan, polls=[[wf_run(1, CI)]])
+        self.assertFalse(passed)
+        self.assertEqual(state["sleeps"], 3)  # 3 minutes at one poll per minute, then it decides
+        passed, _, state = self.decide(polls=[[wf_run(1, CI)]])
+        self.assertFalse(passed)
+        self.assertEqual(state["sleeps"], 0)  # budget 0: decide at once
+
+    def test_failure_ends_the_wait_at_once(self):
+        plan = plan_fixture(budgets={"pull_request_wait_minutes": 10, "merge_group_wait_minutes": 45})
+        runs_ = [wf_run(1, CI, conclusion="failure"), wf_run(2, LEAVES, "queued", None)]
+        jobs = {**GOOD_JOBS, 1: [job(11, 1, "host-quality", "failure")]}
+        passed, _, state = self.decide(plan=plan, runs_=runs_, jobs=jobs)
+        self.assertFalse(passed)
+        self.assertEqual(state["sleeps"], 0)
+
+    def test_runtime_matrix_rows_match_their_template(self):
+        dynamic = row("smp#margin/*", LEAVES, "DIAGNOSTIC margins (${{ matrix.case }})", variant="*")
+        plan = plan_fixture(selected=plan_fixture()["selected"][:2] + [dynamic])
+        jobs = {**GOOD_JOBS, 2: [job(21, 2, "DIAGNOSTIC margins (a)"), job(22, 2, "DIAGNOSTIC margins (b)")]}
+        self.assertTrue(self.decide(plan=plan, jobs=jobs)[0])
+        jobs = {**GOOD_JOBS, 2: [job(21, 2, "DIAGNOSTIC margins (a)"),
+                                 job(22, 2, "DIAGNOSTIC margins (b)", "failure")]}
+        self.assertFalse(self.decide(plan=plan, jobs=jobs)[0])
+        self.assertFalse(self.decide(plan=plan, jobs={**GOOD_JOBS, 2: []})[0])
+
+
+class RecomputeTests(TestCase):
+    """The base copy of the selector runs isolated, with the target branch, next to merge_hold.py."""
+
+    def test_selector_next_to_merge_hold_runs_isolated_with_every_input(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            Path(tmp, "ci_impact.py").write_text(
+                "import json, sys\n"
+                "out = [a.split('=', 1)[1] for a in sys.argv if a.startswith('--out=')][0]\n"
+                "json.dump({'argv': sys.argv[1:], 'isolated': sys.flags.isolated}, open(out, 'w'))\n")
+            with mock.patch.object(merge_hold, "__file__", str(Path(tmp, "merge_hold.py"))):
+                plan = merge_hold.recompute_plan(BASE, HEAD, MERGE, "main", repo_dir=tmp)
+        self.assertEqual(plan["isolated"], 1)
+        self.assertEqual(plan["argv"][:7], ["plan", "--event=pull_request", f"--base-sha={BASE}",
+                                            f"--head-sha={HEAD}", f"--tested-sha={MERGE}", "--base-ref=main",
+                                            f"--repo={tmp}"])
+
+    def test_missing_or_failing_selector_fails_closed(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            with mock.patch.object(merge_hold, "__file__", str(Path(tmp, "merge_hold.py"))):
+                with self.assertRaises(ValueError):
+                    merge_hold.recompute_plan(BASE, HEAD, MERGE, "main")
+                Path(tmp, "ci_impact.py").write_text("import sys\nsys.exit(2)\n")
+                with self.assertRaises(ValueError):
+                    merge_hold.recompute_plan(BASE, HEAD, MERGE, "main")
+
+    def test_real_selector_of_the_same_generation_accepts_the_interface(self):
+        import test_ci_impact as fixture  # noqa: PLC0415 - shared git fixture
+
+        with tempfile.TemporaryDirectory() as tmp:
+            repo = fixture.Repo(tmp)
+            files = dict(fixture.BASE_FILES)
+            files[".github/ci-impact.toml"] = fixture.CATALOGUE
+            files["tools/ci_impact.py"] = fixture.SELECTOR.read_bytes()
+            base = repo.commit("base", files)
+            repo.git("checkout", "-q", "-b", "topic")
+            head = repo.commit("leaf", {"apps/solo/src/lib.rs": "// solo 2\n"})
+            repo.git("checkout", "-q", "--detach", base)
+            repo.git("-c", "user.name=f", "-c", "user.email=f@example.invalid",
+                     "merge", "-q", "--no-ff", "-m", "merge", "topic")
+            tested = repo.git("rev-parse", "HEAD")
+            with mock.patch.object(merge_hold, "__file__", str(fixture.SELECTOR.parent / "merge_hold.py")):
+                plan = merge_hold.recompute_plan(base, head, tested, "main", repo_dir=tmp)
+        merge_hold.check_plan(plan, base, head, tested, "main")
+        self.assertEqual(plan["mode"], "select")
+        self.assertEqual([row["id"] for row in merge_hold.expected_gates(plan)],
+                         ["ci#host-quality", "leaves#quality/solo"])
 
 
 if __name__ == "__main__":

@@ -43,6 +43,10 @@ push = "full"
 schedule = "full"
 workflow_dispatch = "manual"
 
+[policy.budgets]
+pull_request_wait_minutes = 0
+merge_group_wait_minutes = 45
+
 [input_sets]
 native = ["kernel/**", "tools/native/**"]
 
@@ -993,6 +997,10 @@ push = "full"
 schedule = "full"
 workflow_dispatch = "manual"
 
+[policy.budgets]
+pull_request_wait_minutes = 0
+merge_group_wait_minutes = 45
+
 [[workflow]]
 path = ".github/workflows/ci.yml"
 owner = "ci-owner"
@@ -1238,7 +1246,7 @@ class CoverageTests(TestCase):
             Path(tmp, "shared").mkdir()
             Path(tmp, "shared/x.rs").write_text('const D: &str = include_str!("../tokens.css");\n')
             tracked = ["app/src/lib.rs", "shared/x.rs"]
-            found = {(crate, target) for crate, target, _ in ci_impact.scan_escapes(tmp, {"app"}, tracked)}
+            found = {(crate, target) for crate, target, *_ in ci_impact.scan_escapes(tmp, {"app"}, tracked)}
         self.assertEqual(found, {("app", "shared/x.rs"), ("app", "data/a.bin"), ("app", "fix/**"),
                                  ("app", "tokens.css")})
 
@@ -1258,6 +1266,212 @@ class CoverageTests(TestCase):
             repo.git("add", "-f", "src/a/target/gen.rs")
             repo.git("commit", "-q", "-m", "track")
             self.assertIn(escape, ci_impact.coverage(tmp, ".github/ci-impact.toml")["problems"])
+
+
+class EnforcementPrerequisiteTests(FixtureTestCase):
+    """Phase 3: limits K4-K7 of docs/CI-CONTRACT.md, closed before merge-hold enforces a plan."""
+
+    def rebase_catalogue(self, text):
+        self.repo.git("checkout", "-q", "main")
+        self.base = self.repo.commit("catalogue", {".github/ci-impact.toml": text})
+
+    def test_condition_subset_is_evaluated_and_everything_else_is_undecidable(self):
+        smp = ("${{ !inputs.clock_diagnostic && !inputs.margin_diagnostic && "
+               "(github.event_name != 'workflow_dispatch' || !inputs.full_matrix) }}")
+        select = "${{ needs.select.outputs.run-quality == 'true' }}"
+        cases = [
+            ("", "pull_request", True, True),
+            (None, "push", True, True),
+            ("${{ github.event_name != 'workflow_dispatch' }}", "pull_request", True, True),
+            ("${{ github.event_name != 'workflow_dispatch' }}", "workflow_dispatch", True, False),
+            ("github.event_name == 'PUSH'", "push", True, True),
+            ("github.event_name == 'push'", "merge_group", True, False),
+            (smp, "pull_request", True, True),
+            (smp, "merge_group", True, True),
+            (smp, "workflow_dispatch", True, None),
+            (select, "pull_request", True, True),
+            (select, "pull_request", False, False),
+            (select, "pull_request", None, None),
+            ("${{ always() }}", "pull_request", True, None),
+            ("!cancelled()", "push", True, None),
+            ("contains(github.event.pull_request.labels.*.name, 'x')", "pull_request", True, None),
+            ("github.event.pull_request.head.repo.full_name == github.repository", "pull_request", True, None),
+            ("inputs.mode == 'x'", "pull_request", True, None),
+            ("(github.event_name == 'push'", "push", True, None),
+            ("github.event_name == 'push' ${{ x }}", "push", True, None),
+            ("github.event_name ==", "push", True, None),
+        ]
+        for condition, event, selection, expected in cases:
+            with self.subTest(condition=condition, event=event, selection=selection):
+                self.assertIs(ci_impact.condition_value(condition, event, selection), expected)
+
+    def test_condition_false_jobs_and_their_dependents_are_excluded(self):
+        self.rebase_catalogue(CATALOGUE.replace(
+            'id = "a"\nclass = "rwa"', 'id = "a"\ncondition = "${{ github.event_name == \'push\' }}"\nclass = "rwa"'))
+        head = self.branch({"stray.txt": "x\n"})
+        plan = self.plan(head)
+        self.assertFull(plan, "unknown-path")
+        reasons = {row["id"]: row["reason"] for row in plan["excluded"]}
+        self.assertEqual(reasons["window#a"], "condition-false")
+        self.assertEqual(reasons["window#c"], "condition-false")  # needs a, which GitHub skips
+        self.assertIn("window#b", self.selected(plan))
+        push = self.plan(head, event="push")
+        self.assertTrue({"window#a", "window#c"} <= self.selected(push))
+        # In select mode a job whose condition is false is not selected either.
+        select = self.plan(self.branch({"ui/x.css": "x\n"}))
+        self.assertEqual(select["mode"], "select")
+        self.assertNotIn("window#a", self.selected(select))
+
+    def test_undecidable_conditions_of_selected_jobs_are_rejected(self):
+        catalogue = valid_catalogue()
+        catalogue["workflow"][3]["job"][0]["condition"] = "${{ always() }}"
+        problems = ci_impact.validate(catalogue)
+        self.assertTrue(any("window#a: condition-undecidable on pull_request" in p for p in problems), problems)
+        # A dependent inherits an undecidable prerequisite.
+        self.assertTrue(any("window#c: condition-undecidable" in p for p in problems), problems)
+        catalogue = valid_catalogue()
+        catalogue["workflow"][5]["job"][2]["condition"] = "${{ always() }}"  # advisory: never selected
+        self.assertEqual(ci_impact.validate(catalogue), [])
+
+    def test_branch_filters_follow_the_target_branch(self):
+        self.rebase_catalogue(CATALOGUE.replace(
+            'path = ".github/workflows/net.yml"\nowner = "ci-owner"\ngranularity = "job"\n'
+            'events = ["pull_request", "push"]\n',
+            'path = ".github/workflows/net.yml"\nowner = "ci-owner"\ngranularity = "job"\n'
+            'events = ["pull_request", "push"]\ntrigger.pull_request = { branches = ["main", "release/**"] }\n'
+            'trigger.push = { branches = ["main"] }\n'))
+        head = self.branch({"stray.txt": "x\n"})
+        plans = {ref: self.plan(head, base_ref=ref)
+                 for ref in ("", "main", "refs/heads/main", "release/1.0", "feature/x")}
+        for ref in ("", "main", "refs/heads/main", "release/1.0"):
+            with self.subTest(ref=ref):
+                self.assertTrue({"net#broker", "net#native"} <= self.selected(plans[ref]))
+        reasons = {row["id"]: row["reason"] for row in plans["feature/x"]["excluded"]}
+        self.assertEqual(reasons["net#broker"], "event-not-applicable")
+        self.assertEqual(plans["feature/x"]["ref"], "feature/x")
+        self.assertNotEqual(plans["main"]["plan_id"], plans["feature/x"]["plan_id"])
+        push = self.plan(head, event="push", base=self.base, base_ref="topic")
+        self.assertNotIn("net#broker", self.selected(push))
+        self.assertIn("net#broker", self.selected(self.plan(head, event="push", base=self.base)))
+
+    def test_base_ref_reaches_the_plan_through_the_cli(self):
+        head = self.branch({"stray.txt": "x\n"})
+        out = Path(self._tmp.name, "plan.json")
+        with contextlib.redirect_stderr(io.StringIO()):
+            code = ci_impact.main(["plan", "--event=pull_request", f"--base-sha={self.base}", f"--head-sha={head}",
+                                   f"--repo={self.repo.root}", "--base-ref=main", "--no-fetch", f"--out={out}"])
+        self.assertEqual(code, 0)
+        self.assertEqual(json.loads(out.read_text())["ref"], "main")
+
+    def test_branch_patterns_that_are_not_modelled_are_rejected(self):
+        for pattern in ("!main", "rel?ase", "[ab]", ""):
+            catalogue = valid_catalogue()
+            catalogue["workflow"][2]["trigger"] = {"pull_request": {"branches": [pattern]}}
+            with self.subTest(pattern=pattern):
+                self.assertTrue(any("unsupported branch pattern" in p for p in ci_impact.validate(catalogue)))
+
+    def test_budgets_are_required_and_bounded(self):
+        for change, fragment in (
+            (lambda b: b.clear(), "policy.budgets.pull_request_wait_minutes"),
+            (lambda b: b.update(merge_group_wait_minutes=46), "merge_group_wait_minutes must be"),
+            (lambda b: b.update(pull_request_wait_minutes=True), "pull_request_wait_minutes must be"),
+            (lambda b: b.update(pull_request_wait_minutes=-1), "pull_request_wait_minutes must be"),
+            (lambda b: b.update(extra=1), "policy.budgets: unknown key: extra"),
+        ):
+            catalogue = valid_catalogue()
+            change(catalogue["policy"]["budgets"])
+            with self.subTest(fragment=fragment):
+                self.assertTrue(any(fragment in p for p in ci_impact.validate(catalogue)))
+        catalogue = valid_catalogue()
+        del catalogue["policy"]["budgets"]
+        self.assertIn("policy.budgets table missing", ci_impact.validate(catalogue))
+
+    def test_trusted_plans_carry_budgets_and_excluded_check_names(self):
+        plan = self.plan(self.branch({"apps/solo/src/lib.rs": "// solo 2\n"}))
+        self.assertEqual(plan["budgets"], {"pull_request_wait_minutes": 0, "merge_group_wait_minutes": 45})
+        excluded = {row["id"]: row for row in plan["excluded"]}
+        self.assertEqual(excluded["leaves#quality/viewer"]["check_name"], "quality (viewer)")
+        self.assertEqual(excluded["leaves#quality/viewer"]["workflow"], ".github/workflows/leaves.yml")
+        self.assertEqual(excluded["leaves#quality/viewer"]["job"], "quality")
+        untrusted = self.plan(self.base, base="", event="workflow_dispatch")
+        self.assertEqual(untrusted["budgets"], {})
+
+
+class EscapeScopeTests(TestCase):
+    """K5 (runtime escapes) and K6 (root-scoped library escapes)."""
+
+    def scan(self, files, crates=("app",), manifests=None):
+        with tempfile.TemporaryDirectory() as tmp:
+            for path, text in files.items():
+                Path(tmp, path).parent.mkdir(parents=True, exist_ok=True)
+                Path(tmp, path).write_text(text)
+
+            def read(path):
+                full = Path(tmp, path)
+                return full.read_bytes() if full.exists() else None
+
+            roots = ci_impact.root_target_paths(read, set(crates))
+            return ci_impact.scan_escapes(tmp, set(crates), sorted(files), roots)
+
+    def test_runtime_manifest_dir_joins_are_found(self):
+        found = self.scan({
+            "app/Cargo.toml": '[package]\nname = "app"\n\n[[test]]\nname = "c"\npath = "checks/c.rs"\n',
+            "app/src/lib.rs": 'fn a() -> String {\n    format!("{}/../data/x.bin", env!("CARGO_MANIFEST_DIR"))\n}\n'
+                              'const B: &[u8] = include_bytes!(concat!(env!("CARGO_MANIFEST_DIR"), "/../fix/y"));\n'
+                              'include!(concat!(env!("OUT_DIR"), "/gen.rs"));\n'
+                              'const C: &str = include_str!(env!("SOME_PATH"));\n'
+                              'fn d() { std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/own"); }\n',
+            "app/tests/t.rs": 'fn k() {\n    let keys = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../keys");\n}\n',
+            "app/checks/c.rs": 'fn k() { PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../probe/p.py"); }\n',
+        })
+        rows = {(target, origin, root_only) for _crate, target, origin, root_only in found}
+        self.assertEqual(rows, {
+            ("data/x.bin", "app/src/lib.rs:2", False),
+            ("fix/y", "app/src/lib.rs:4", False),
+            (None, "app/src/lib.rs:6", False),
+            ("keys", "app/tests/t.rs:2", True),
+            ("probe/p.py", "app/checks/c.rs:1", True),
+        })
+
+    def test_build_output_is_not_an_input(self):
+        found = self.scan({"a/b/tests/t.rs": 'fn o() { Path::new(env!("CARGO_MANIFEST_DIR")).join("../../build/x"); }\n'},
+                          crates=("a/b",))
+        self.assertEqual(found, [])
+
+    def test_root_scope_is_rejected_for_library_source(self):
+        root = [{"crate": "app", "when": "root", "inputs": ["data/**"], "evidence": []}]
+        always = [{"crate": "app", "when": "always", "inputs": ["data/**"], "evidence": []}]
+        problem = ci_impact.escape_problem
+        self.assertTrue(problem(root, "app", "data/x.bin", "app/src/lib.rs:2", False)
+                        .startswith("escape-scope-mismatch: app -> data/x.bin"))
+        self.assertIsNone(problem(root, "app", "data/x.bin", "app/tests/t.rs:2", True))
+        self.assertIsNone(problem(always, "app", "data/x.bin", "app/src/lib.rs:2", False))
+        self.assertTrue(problem([], "app", "data/x.bin", "app/src/lib.rs:2", False)
+                        .startswith("escape-unregistered"))
+        directory = [{"crate": "app", "when": "always", "inputs": ["keys/**"], "evidence": []}]
+        self.assertIsNone(problem(directory, "app", "keys", "app/tests/t.rs:2", True))
+        cited = [{"crate": "app", "when": "always", "inputs": ["x/**"], "evidence": ["app/src/lib.rs:6"]}]
+        self.assertIsNone(problem(cited, "app", None, "app/src/lib.rs:6", False))
+        self.assertTrue(problem(cited, "app", None, "app/src/lib.rs:7", False).startswith("escape-unregistered"))
+
+    @skipUnless(HAVE_YAML, "PyYAML is not importable")
+    def test_strict_coverage_exit_status(self):
+        catalogue = COVERAGE_CATALOGUE.replace('inputs = ["src/a/**"] }',
+                                               'inputs = ["src/a/**"], cargo = ["src/a/Cargo.toml"] }')
+        with tempfile.TemporaryDirectory() as tmp:
+            repo = Repo(tmp)
+            repo.commit("base", {".github/ci-impact.toml": catalogue, ".github/workflows/ci.yml": COVERAGE_YAML,
+                                 "README.md": "fixture readme\n", "src/a/Cargo.toml": '[package]\nname = "a"\n',
+                                 "src/a/lib.rs": "// a\n"})
+            args = ["coverage", "--repo", tmp, "--strict"]
+            with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()):
+                self.assertEqual(ci_impact.main(args), 0)
+                # Citation drift is reported but never fails --strict: citations never change a plan.
+                repo.commit("shift", {"README.md": "\n" * 20 + "fixture readme\n"})
+                self.assertEqual(ci_impact.main(args), 0)
+                repo.commit("escape", {"src/a/lib.rs": 'const X: &str = include_str!("../../outside.txt");\n'})
+                self.assertEqual(ci_impact.main(args), 1)
+                self.assertEqual(ci_impact.main(args[:-1]), 0)  # without --strict it stays a report
 
 
 if __name__ == "__main__":

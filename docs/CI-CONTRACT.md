@@ -1,18 +1,21 @@
 # CI contract: impact catalogue and selector
 
-Status: phase 2b of issue #494 (current). **Phase 2b does not change which CI
-runs.** The advisory `ci-impact-shadow` job in `ci.yml` runs the selector on
-every event and preserves the plan and a catalogue coverage report; no job,
-required check or merge-hold reads either. Existing triggers and required
-gates behave as before, except that two positive path filters were widened
-(see "Shadow-mode wiring"). Phase 2a (PR #499) added the data model and the
-selector described below.
+Status: phase 3 of issue #494 (current, ADR-CI-GATE-ENFORCEMENT-20261124).
+**Phase 3 enforces, but does not yet save any test run.** The required
+`merge-hold` check recomputes the plan from base-side code and blocks until
+every applicable automatic gate has passed on the pull request head (see
+"Enforcement"). `host-quality` fails on an invalid catalogue or on drift
+between the catalogue, the workflows and the sources. Every workflow still
+starts on its own triggers and path filters. Phase 2a (PR #499) added the data
+model and the selector; phase 2b (PR #501) recorded shadow plans in CI.
 
 Files:
 
 - `.github/ci-impact.toml`: the catalogue (data only).
 - `tools/ci_impact.py`: the selector, one self-contained standard-library file.
 - `tools/tests/test_ci_impact.py`: unit tests with temporary git repositories.
+- `tools/merge_hold.py` and `tools/tests/test_merge_hold.py`: the enforcing
+  required check (phase 3) and its tests with a fake API.
 
 ## Invariants
 
@@ -24,6 +27,12 @@ Files:
   `publication` executions.
 - Policy comes from the trusted base: the catalogue is read from the base
   commit, never from the change under test.
+- A pull request cannot shrink its own expected gate set: merge-hold runs the
+  base commit's `tools/merge_hold.py` and `tools/ci_impact.py`, never the
+  pull request's copies.
+- "Not applicable" (filtered out, another target branch, a false job
+  condition) is reported and never counts as a pass. A plan proves no gate
+  result; only the gate's own successful run does.
 - Selection is separate from evidence collection (`tools/ci_evidence.py`).
   Selection decides before anything runs and widens on error; evidence
   collection runs afterwards and fails the job on error.
@@ -59,8 +68,19 @@ are rejected.
 
 `[policy]`
 
-- `mode`: `shadow`, `enforce`, `select` or `full`. `full` is the rollback
-  switch: every plan becomes full with fallback `policy-rollback`.
+- `mode`: `shadow`, `enforce`, `select` or `full`.
+  - `shadow`: merge-hold reports the applicable gates but does not block on
+    them (emergency switch for the enforcement itself).
+  - `enforce` (phase 3): merge-hold blocks on the applicable gates; workflows
+    run everything their own triggers start.
+  - `select` (phase 4): as `enforce`, and workflows with a `select` job skip
+    executions the plan does not select.
+  - `full`: the selection rollback. Every plan becomes full with fallback
+    `policy-rollback`, so every workflow runs everything, while merge-hold
+    still verifies every applicable gate.
+- `[policy.budgets]` (required): `pull_request_wait_minutes` and
+  `merge_group_wait_minutes`, integers from 0 to 45 (below the 50-minute
+  merge-hold timeout). merge-hold reads them from the trusted base.
 - `always_full`: globs whose change forces a full plan (all of `.github/**`,
   every `Cargo.lock`, `rust-toolchain.toml`, root `Cargo.toml`,
   `sdk/Cargo.toml`, `.gitattributes`, the build helpers, the selector and the
@@ -81,7 +101,12 @@ are rejected.
 
 `[[crate_escape]]`: `crate` (directory), `when` (`always`: whenever the crate is
 in a closure; `root`: only when it is the gate's own root, for tests and
-binaries), `inputs` (globs) and `evidence` (`file:line`).
+binaries), `inputs` (globs) and `evidence` (`file:line`). `root` is allowed
+only when the escaping file is compiled for the crate as a root alone: under
+`tests/`, `benches/`, `examples/` or `src/bin/`, `src/main.rs`, a declared
+`[[bin]]`, `[[test]]`, `[[example]]` or `[[bench]]` path, or a file reached
+only from those. Library source needs `always`, even inside `#[cfg(test)]`,
+which `coverage` cannot see; it reports `escape-scope-mismatch` otherwise.
 
 `[[workflow]]`: `path`, `owner` (required, a non-empty string; `validate`
 rejects a workflow without it; the current convention is `owner = "ci-owner"`),
@@ -94,7 +119,9 @@ may be a `file:first-last` range) and `trigger.<event>` for `pull_request`,
 
 `[[workflow.job]]`: `id`, verbatim `name`, `class`, `activation` (`automatic`,
 `dispatch`, `schedule`, `label:<name>` or `push-branch:<branch>`), verbatim
-`condition` (the job `if`), `needs`, `timeout_minutes`, `max_parallel`,
+`condition` (the job `if`; for a `core` or `rwa` job it must be decidable on
+every automatic event of its workflow, see "Job conditions"), `needs`,
+`timeout_minutes`, `max_parallel`,
 `cargo` (root manifests), `input_sets`, `inputs`, `evidence`
 (preserve-evidence `name` values) and `ruleset_required`.
 
@@ -126,6 +153,26 @@ at the start of a segment matches zero or more whole directories:
 `a/**/b.rs` matches `a/b.rs`. A single `*` never crosses `/`. The root forms
 that `validate` also requires are therefore redundant but harmless.
 
+### Job conditions
+
+`condition_value` evaluates a small subset of GitHub expressions, not the
+full language: `github.event_name` compared with a string literal
+(case-insensitive, as GitHub compares strings), `inputs.<name>` as a truth
+value (null outside `workflow_dispatch`), `needs.select.outputs.<key>`
+compared with a literal (the phase-4 selection output), `!`, `&&`, `||` and
+parentheses, optionally inside `${{ }}`. Anything else, including status
+functions such as `always()` and `!cancelled()`, `contains()` and other
+contexts, is undecidable. A `core` or `rwa` job runs on an event when its own
+condition holds and every `needs` prerequisite runs. `validate` rejects a
+`core` or `rwa` job whose start is undecidable on any of `pull_request`,
+`push` or `merge_group` in its workflow (`condition-undecidable`). The plan
+excludes a job whose condition, or a prerequisite's, is false on the event
+(`condition-false`), so merge-hold never expects a job GitHub skips by design.
+
+Branch filters (`trigger.<event>.branches`) use the path glob dialect: `*`
+within one segment, `**` across segments. Negation (`!`) and `?`, `[`, `]`,
+`+` are rejected; `branches-ignore` and tag filters are not modelled.
+
 ## Input derivation
 
 An execution's inputs are its `inputs`, its input sets and the Cargo closure
@@ -136,7 +183,8 @@ of its `cargo` roots. The closure is derived, not listed:
   each contributing `<crate dir>/**`;
 - manifest target paths outside the crate (`lib`, `package.build`, and for
   roots also `bin`, `test`, `example` and `bench`);
-- registered crate escapes for `#[path]`, `include_str!` and `include_bytes!`;
+- registered crate escapes for `#[path]`, `include_str!`, `include_bytes!` and
+  runtime `env!("CARGO_MANIFEST_DIR")` joins;
 - every ancestor `Cargo.toml` of a root directory up to the repository root,
   because cargo reads it as a potential workspace root.
 
@@ -159,6 +207,11 @@ manifests are read at every revision too, because a workspace root's
 
 ## Plan algorithm and precedence
 
+0. Applicability: a workflow applies when it has the event and, if it has a
+   `branches` filter for that event, the target branch matches it:
+   `--base-ref` for `pull_request` and `merge_group` (without one the filter
+   is unknown and the workflow counts as applicable, which only widens a
+   listing), `--base-ref` or `main` for `push`.
 1. Event: `workflow_dispatch` with a base and a `manual` policy gives
    `mode = "manual"` (nothing selected).
    `merge_group`, `push` and `schedule` are full by policy (`merge-group`,
@@ -204,7 +257,10 @@ ASCII escapes (control characters in paths never reach logs raw):
 
 - `catalogue`: `path`, `source_sha`, `blob`, `revision`;
 - `selector`: `blob` of the executing file, `base_blob`, `trusted` (equal);
-- `event`, `policy_mode`, `mode` (`select`, `full` or `manual`);
+- `event`, `ref` (the `--base-ref`, possibly empty), `policy_mode`, `mode`
+  (`select`, `full` or `manual`);
+- `budgets`: the trusted base catalogue's `policy.budgets`, or `{}` when the
+  catalogue is not the base one;
 - `fallback`: `null` or `{code, detail, reasons}`;
 - `shas`: `base`, `merge_base`, `head`, `tested`;
 - `changes`: `count`, `digest` (`sha256` over the sorted, NUL-joined paths),
@@ -212,11 +268,12 @@ ASCII escapes (control characters in paths never reach logs raw):
 - `selected`: `id`, `workflow`, `job`, `variant`, `check_name`, `class`,
   `reasons` (at most three `[glob, path]` pairs), `reason_count`,
   `blocked_by_filter` (`true`, `false` or `null` for unknown);
-- `excluded`: `id`, `class`, `reason` (class name, `not-automatic`,
-  `event-not-applicable`, `no-input-match` or `manual-event`);
+- `excluded`: `id`, `class`, `workflow`, `job`, `check_name`, `reason` (class
+  name, `not-automatic`, `event-not-applicable`, `condition-false`,
+  `no-input-match` or `manual-event`);
 - `plan_id`: `sha256` over the schema version, catalogue blob and revision,
-  selector blob, event, mode, fallback code, SHAs, changes digest and selected
-  ids. The same inputs always give the same id.
+  selector blob, event, ref, mode, fallback code, SHAs, changes digest and
+  selected ids. The same inputs always give the same id.
 
 In full mode `selected` is informational; `mode = "full"` itself means every
 automatic core and rwa gate runs.
@@ -232,11 +289,14 @@ the command line, no listed executions and `filter_eval_uncertain = true`.
 python3 -B tools/ci_impact.py validate .github/ci-impact.toml   # exit 0 valid, 1 invalid
 python3 -B tools/ci_impact.py plan --event pull_request \
   --base-sha "$BASE_SHA" --head-sha "$HEAD_SHA" --out plan.json
-python3 -B tools/ci_impact.py coverage   # JSON drift report, always exit 0
+python3 -B tools/ci_impact.py coverage            # JSON drift report, exit 0
+python3 -B tools/ci_impact.py coverage --strict   # exit 1 on drift (host-quality)
 ```
 
 Optional `plan` flags: `--tested-sha "$MERGE_SHA"` (the commit under test,
-default the head), `--summary "$GITHUB_STEP_SUMMARY"` (append a Markdown
+default the head), `--base-ref <branch>` (target branch, phase 3; a caller
+from another base/head generation may use it only once that selector is on
+`main`), `--summary "$GITHUB_STEP_SUMMARY"` (append a Markdown
 summary), `--repo <dir>`, `--catalogue <path>` and `--no-fetch`. `--out`
 defaults to standard output. The summary is written first and the plan file
 is published last, atomically (temporary file, then rename). If any output
@@ -267,14 +327,26 @@ matrix, the unexpanded evidence name templates). It also checks:
   `citation-anchor-missing` or `citation-missing`;
 - that Cargo roots exist, and scans the git-tracked `.rs` files of closure
   crates for unregistered source escapes (untracked build output such as
-  `target/` is ignored);
+  `target/` is ignored): literal and widened `#[path]`/`include*!` targets,
+  `include*!` of an environment variable other than `OUT_DIR` (registered by
+  citing its `file:line` in `evidence`), and string literals with a `..`
+  segment in the statement of a `env!("CARGO_MANIFEST_DIR")` join, within
+  three lines; targets under `build/` or `target/` are output and ignored. It
+  reports `escape-unregistered` and, for a `root` registration of library
+  source, `escape-scope-mismatch`;
 - that no tracked symlink (mode 120000) lies in an execution's inputs
   (`symlink-input`), since its target can change without a diff inside them;
 - every `git ls-files` path is classified.
 
-It is a report, not an enforcement. From phase 2b the `ci-impact-shadow` job
-runs it on every event and preserves `coverage.json`; catalogue drift does not
-fail any gate, including `host-quality`, before phase 3.
+From phase 3, `host-quality` runs `validate` and `coverage --strict` on the
+checkout, so an invalid catalogue or any drift that can change a plan fails a
+required check (`strict_status`). Obligation citation drift
+(`citation-moved`, `citation-anchor-missing`, `citation-missing`) is reported
+in `status` and as a warning, but does not fail: citations document why a gate
+exists and never change a plan, and their lines move whenever an ADR is added
+at the top of docs/DECISIONS.md. The
+`ci-impact-shadow` job keeps its report-only copy and preserves
+`coverage.json`.
 
 ## Registering changes
 
@@ -284,15 +356,19 @@ fail any gate, including `host-quality`, before phase 3.
 - **New job or matrix variant:** copy `name`, `if`, `needs`,
   `timeout-minutes`, `max-parallel`, the matrix entry, the rendered check name
   and the preserve-evidence names verbatim.
-- **New crate escape:** when a closure crate compiles a file outside its
-  directory through `#[path]`, `include_str!` or `include_bytes!`, add a
-  `[[crate_escape]]` with the target glob and the `file:line` evidence. A
-  non-literal argument widens to the directory of its literal prefix plus
-  `/**`.
+- **New crate escape:** when a closure crate compiles or reads a file outside
+  its directory through `#[path]`, `include_str!`, `include_bytes!` or a
+  `CARGO_MANIFEST_DIR` join, add a `[[crate_escape]]` with the target glob and
+  the `file:line` evidence, with `when = "always"` unless the origin is
+  root-only (see the schema). A non-literal argument widens to the directory
+  of its literal prefix plus `/**`.
+- **New job condition on a `core` or `rwa` job:** keep it within the subset of
+  "Job conditions", or `validate` rejects the catalogue.
 - **New tracked path outside every input:** add it to an input, `core_only` or
   `inert`; otherwise every plan that touches it is full.
 
-Then run `validate` and `coverage`; both must be clean, and bump `revision`.
+Then run `validate` and `coverage --strict`; both must pass (host-quality runs
+them on every pull request), and bump `revision`.
 
 ## Shadow-mode wiring (phase 2b)
 
@@ -376,73 +452,145 @@ malformed base gives `full`. It does not run `coverage`, so catalogue drift
 never fails `host-quality` in phase 2b; it appears in the shadow job's
 coverage report.
 
-## Known limits before enforcement
+## Enforcement (phase 3)
 
-Phase 2a and 2b plans are shadow information. The following gaps are known
-and must be closed, or shown not to apply, before phase 3 (enforce) or phase
-4 (select) relies on a plan:
+**Where.** The required `merge-hold` check (`.github/workflows/merge-hold.yml`)
+decides; no new optional summary check is involved. Its checkout has full
+history. A load step takes GitHub's merge commit, checks that its parents are
+exactly the base tip and the pull request head, and extracts
+`tools/merge_hold.py` and `tools/ci_impact.py` from the **base** commit into
+`$RUNNER_TEMP`; the decision step runs that copy with `python3 -B -I`. The
+selector is the copy next to it, so both come from one generation. The
+workflow file itself still comes from the pull request side (see the limits
+below). merge-hold.yml may add environment variables, but must keep every one
+an older base `merge_hold.py` reads; `tests/test_ci_workflows.py` pins them.
 
-- **Only the selector and catalogue are base-trusted.** On `pull_request`,
-  the `ci-impact-shadow` job and `.github/actions/select-ci` come from the
-  pull request side; only `tools/ci_impact.py` and `.github/ci-impact.toml`
-  are read from the base commit. The coverage step also runs the checkout
-  copy. A pull request can therefore change how the plan is produced,
-  reported and preserved. This is acceptable while nothing consumes the
-  plan. Phase 3 must recompute or verify the plan from base-side code (for
-  example in merge-hold) and must not trust the pull-request-side action
-  outputs or the preserved artifact.
-- **The plan command line spans one base/head generation.** The action from
-  the head calls the selector from the base, so a pull request that adds a
-  `plan` flag to both makes the base selector fail with a usage error (exit
-  2). A new flag lands in the selector first and is used by the action only
-  after that selector is on `main`.
-- **Shadow plans are not acceptance evidence.** A preserved plan records what
-  the selector would have chosen; it proves no gate result.
+**Plan identity.** merge-hold recomputes the plan with `--event=pull_request`,
+the base tip, the head, the merge commit as `--tested-sha` and the pull
+request's base branch as `--base-ref`. It fails closed unless the plan
+describes exactly those SHAs, event and branch, was computed by the trusted
+base selector from the base catalogue, has a usable `mode` and `plan_id`,
+lists at least one `core` gate, and did not fall back for a reason that can
+leave the listing incomplete (`merge-ref-mismatch`, `invalid-sha`,
+`fetch-failed`, `invalid-trusted-catalogue`, `bootstrap-no-base-catalogue`,
+`no-trusted-base`, `unknown-event`, `selector-error:*`, `output-error:*`).
+Plans published by pull-request-side jobs (the shadow job, phase-4 `select`
+jobs) are never trusted; merge-hold's own recomputation is the reference.
 
-- **Event applicability ignores the target branch.** `applicable` checks the
-  event name and, for `push`, a `branches` list containing `main`. It does
-  not compare `pull_request` or `merge_group` branch filters with the pull
-  request's base branch, nor a pushed ref with the filter. A stacked pull
-  request onto a non-`main` branch can therefore be planned with a gate such
-  as `codeql.yml` (`branches: [main]`) that GitHub will not start.
-- **The escape scanner sees only literal compile-time paths.** `scan_escapes`
-  finds `#[path = "..."]` and `include*!` arguments. It does not model
-  runtime paths built from `env!("CARGO_MANIFEST_DIR")` with `join("..")`,
-  nor `concat!(env!("CARGO_MANIFEST_DIR"), "/../x")`. Examples:
-  `services/nas/native-volume/tests/volume.rs:206` runs a script outside the
-  crate, and `tools/update-tool/tests/roundtrip.rs:305` reads
-  `../update-keys`. Such inputs must be registered as `[[crate_escape]]`
-  entries by hand until the scanner, or an equivalent check, covers them.
-- **A root-scoped escape of a library crate is not attached to dependents.**
-  `cargo_closure` adds a `[[crate_escape]]` with `when = "root"` only to a gate
-  whose own root is that crate, but `coverage` accepts any registration whose
-  target glob matches, whatever its `when`. When a library crate's source
-  leaves the crate and the escape is registered only with `when = "root"`, a
-  gate that uses the crate as a dependency does not receive the target as an
-  input; if another gate covers the file, a change to it alone omits that
-  gate. Library escapes must use `when = "always"`, and `coverage` must report
-  a scope mismatch, before a plan is enforced.
-- **Job-level `if` is not evaluated.** The planner selects a job and its
-  `needs` prerequisites without evaluating their job-level `if` for the event.
-  When a prerequisite's condition is false, GitHub skips it and then skips the
-  dependent selected job unless that job's own `if` overrides the skip, while
-  the plan still lists the job as selected. The planner must evaluate the
-  condition for the event, or reject such a selection, before merge-hold
-  enforcement reads the plan.
+**Expected set.** Every selected `core` or `rwa` execution except merge-hold
+itself whose `blocked_by_filter` is not `true`. In full mode that is every
+automatic `core` and `rwa` gate whose workflow applies. `blocked_by_filter =
+null` (filter result unknown, more than 300 changed files) keeps the gate
+expected: fail closed.
 
-Both of the last two limits must be closed before merge-hold enforcement
-(phase 3).
+**Results.** merge-hold lists the Actions runs for the pull request head
+(`/actions/runs?head_sha=<head>&event=pull_request`, every page, by id, with a
+check that the count reaches `total_count`). A run counts only with the
+pull_request event, that head SHA, the pull request's head branch, this
+repository and the pull request's head repository, and the workflow `path`.
+Per workflow the **newest** run (highest id) decides, so an older success
+never masks a newer running or failed run. Its jobs come from
+`/actions/runs/<id>/jobs?filter=latest` (every page, `run_id` checked), which
+reflects the latest attempt after a re-run. Per expected execution exactly one
+job with the rendered check name must have concluded `success`; a runtime
+matrix (`id = "*"`) needs at least one matching job, all successful. Then:
+
+- no run yet, or a run or job still queued or in progress: **pending**;
+- missing job (also an empty or partly skipped matrix), `failure`,
+  `cancelled`, `timed_out`, `skipped`, `action_required`, `neutral`, `stale`,
+  or a duplicate name: **failed**;
+- a `core`, `rwa` or unregistered job in the newest run of a catalogue
+  workflow that failed although the plan did not expect it: **failed** too.
+  Advisory, manual, operational and publication jobs never block, and
+  merge-hold's own earlier runs are ignored.
+
+The pull request also fails when its head does not contain the base tip: the
+gates then did not test the tree that would merge. GitHub's strict
+required-check rule forces such an update anyway.
+
+**Waiting.** With `pull_request_wait_minutes = 0` (the current value)
+merge-hold decides once, lists the pending gates and fails; re-run the failed
+merge-hold job after they finish (`gh run rerun <run id> --failed`, or any
+label change). A positive budget polls once a minute until no gate is pending,
+a gate failed or the budget ends. Native gates can take longer than any budget
+below the job timeout, and a waiting job holds a runner, so the default is not
+to wait. A failure ends the wait at once. API use per decision is about one
+pull request read, one or two run-list pages and one job list per completed
+workflow run that matters (expected gates, or a conclusion other than
+success), well inside the 1,000 requests per hour per repository of
+`GITHUB_TOKEN`.
+
+**merge_group.** The merge queue is not active on `main`, and only `ci.yml`,
+`codeql.yml` and `merge-hold.yml` have a `merge_group` trigger; the selected
+workflows do not run on a queue commit. So each queue member needs, besides
+its hold decision, a successful newest `pull_request` merge-hold run on its own
+head and a queue entry whose tree equals that head tree. This makes a queue
+with more than one pull request ahead fail closed. Activating the queue, with
+`merge_group` triggers on the selected workflows, is outside #494.
+
+**Not applicable is not a pass.** The summary lists filtered gates separately
+("Not a pass"). A plan or a merge-hold success says that the required runs
+succeeded; native acceptance evidence stays with those runs.
+
+**Emergency.** `policy.mode = "shadow"` in the base catalogue turns gate
+failures into warnings, while the acceptance hold stays enforced. A pull
+request that sets it is itself judged by the enforcing base copy, so if the
+enforcement machinery itself is broken (for example after an incompatible API
+change), only the project owner's ruleset bypass can land the repair. The CI
+owner never uses that bypass.
+
+## Known limits
+
+Status after phase 3. Limits marked closed have tests in
+`tools/tests/test_ci_impact.py`, `tools/tests/test_merge_hold.py` or
+`tests/test_ci_workflows.py`.
+
+- **K1, plan production on the pull request side: closed for the decision.**
+  The shadow job, `select-ci` and its artifact still come from the pull
+  request side, but merge-hold recomputes the plan with the base copies of
+  `merge_hold.py` and `ci_impact.py` and trusts nothing a pull-request-side
+  job publishes. **Residual:** under `pull_request` GitHub reads the workflow
+  file itself, including `merge-hold.yml`, from the merge commit, so a pull
+  request that edits `merge-hold.yml` or a gate's workflow can still change
+  what runs. Review of `.github/**` (Protected files) is the control; a
+  ruleset that requires an independent review of `.github/**` changes, or a
+  base-side `pull_request_target` check, is an owner decision outside #494.
+- **K2, command-line generations: managed.** merge-hold calls a selector of
+  its own generation. `select-ci` (head) calls the base selector, so a new
+  `plan` flag reaches `select-ci` only after the selector that knows it is on
+  `main`; `--base-ref` is added in phase 3 and used by `select-ci` from
+  phase 4.
+- **K3, shadow plans are not evidence: unchanged by design.**
+- **K4, branch-blind applicability: closed.** `--base-ref`, see "Plan
+  algorithm and precedence".
+- **K5, runtime escapes: narrowed.** `coverage` reports
+  `env!("CARGO_MANIFEST_DIR")` joins with a `..` literal and `include*!` of an
+  environment variable; `services/nas/native-volume/tests/volume.rs:207` and
+  `tools/update-tool/tests/roundtrip.rs:305` are registered. Paths built in
+  other ways (variables, several statements, Python harnesses reading files)
+  remain a limit; integrated native suites keep the broad `native` input set.
+- **K6, root-scoped library escapes: closed.** `escape-scope-mismatch`; the
+  zune-jpeg test-image includes are now `always`.
+- **K7, job conditions: closed.** See "Job conditions".
+- **K8, protected files: closed.** `tools/ci_impact.py` and
+  `tools/merge_hold.py` are on the Protected files list in `AGENTS.md`;
+  `.github/ci-impact.toml` already was (`.github/**`).
+- **K9, activation OR-guard heuristic: unchanged, report only.** Activation
+  correctness is not inferred from it; merge-hold judges actual results.
 
 ## Phases
 
 - **2a (PR #499, merged):** catalogue, selector, tests and this contract. No
   CI wiring.
-- **2b (current):** the `ci-impact-shadow` job and the `select-ci` action run
-  the trusted base copy of the selector on every event and preserve the plan;
-  a report-only step preserves the catalogue coverage report. Shadow plans
-  and coverage are recorded, never enforced.
-- **3 (enforce):** per-workflow `select` and `final` jobs and merge-hold verify
-  that every selected gate passed, bound to the `plan_id`.
+- **2b (PR #501, merged):** the `ci-impact-shadow` job and the `select-ci`
+  action run the trusted base copy of the selector on every event and preserve
+  the plan; a report-only step preserves the catalogue coverage report.
+- **3 (current, enforce):** merge-hold recomputes the plan from base-side code
+  and blocks until every applicable gate passed on the pull request head;
+  host-quality asserts catalogue consistency; limits K4, K6, K7 and K8 closed.
 - **4 (select):** workflows run only the selected executions.
 - **Rollback:** setting `policy.mode = "full"` in the catalogue on the base
-  branch makes every plan full immediately.
+  branch makes every plan full immediately: every workflow runs everything
+  while merge-hold keeps verifying every applicable gate, and host-quality,
+  qemu-smoke, CodeQL and the acceptance hold are unchanged. `shadow` (above)
+  is the separate emergency switch for the enforcement itself.
