@@ -524,6 +524,22 @@ class FallbackTests(FixtureTestCase):
         self.assertEqual(plan["selected"], [])
         self.assertIsNone(plan["fallback"])
 
+    def test_events_without_a_base_follow_their_policy(self):
+        plan = self.plan(self.base, base="", event="workflow_dispatch")
+        self.assertEqual(plan["mode"], "manual")
+        self.assertIsNone(plan["fallback"])
+        plan = self.plan(self.base, base="", event="schedule")
+        self.assertFull(plan, "schedule")
+        self.assertEqual(plan["changes"]["count"], 0)
+        self.assertEqual(self.selected(plan), set())  # no fixture core/rwa workflow is scheduled
+        self.assertEqual({r["id"]: r["reason"] for r in plan["excluded"]}["ci#host-quality"],
+                         "event-not-applicable")
+
+    def test_cargo_patch_tables_are_not_guessed(self):
+        plan = self.plan(self.branch({"apps/solo/Cargo.toml": manifest(
+            "solo", extra='\n[patch.crates-io]\nx = { path = "../../crates/codec" }\n')}))
+        self.assertFull(plan, "cargo-patch-unresolved")
+
     def test_bootstrap_without_base_catalogue_or_selector_is_full(self):
         for removed in (".github/ci-impact.toml", "tools/ci_impact.py"):
             with self.subTest(removed=removed):

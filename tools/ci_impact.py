@@ -504,6 +504,9 @@ def cargo_closure(roots, read, escapes):
             doc = tomllib.loads(data.decode("utf-8"))
         except (UnicodeDecodeError, tomllib.TOMLDecodeError):
             raise Full("cargo-unreadable", [manifest]) from None
+        if "patch" in doc or "replace" in doc:
+            # shortcut: patched sources are not resolved; no tracked manifest uses them today.
+            raise Full("cargo-patch-unresolved", [manifest])
         directory = posixpath.dirname(manifest)
         dirs.add(directory)
         globs.add(f"{directory}/**" if directory else "**")
@@ -692,6 +695,8 @@ class Planner:
     def _run(self):
         if self.event not in EVENTS:
             raise Full("unknown-event", [self.event])
+        if self.event in ("workflow_dispatch", "schedule") and not self.base:
+            self.base = self.head  # these events have no base; policy still applies
         for label, sha in (("head", self.head), ("tested", self.tested)):
             if not SHA_RE.fullmatch(sha):
                 raise Full("invalid-sha", [label])

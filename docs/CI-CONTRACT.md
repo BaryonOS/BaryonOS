@@ -101,8 +101,8 @@ of its `cargo` roots. The closure is derived, not listed:
 
 The closure is the union over the merge base, the base tip and the head, so an
 added or removed dependency is followed either way. `workspace = true`
-dependencies are not resolved and force a full plan
-(`cargo-workspace-inheritance`).
+dependencies and `[patch]` or `[replace]` tables are not resolved and force a
+full plan (`cargo-workspace-inheritance`, `cargo-patch-unresolved`).
 
 ## Plan algorithm and precedence
 
@@ -110,6 +110,7 @@ dependencies are not resolved and force a full plan
    `merge_group`, `push` and `schedule` are full by policy (`merge-group`,
    `push-main`, `schedule`); the diff is still recorded. A push whose `before`
    is empty, all zeros or not an ancestor gives `push-unknown-before`.
+   `workflow_dispatch` and `schedule` need no base; the head is used.
 2. Trusted policy: the base commit must contain both the catalogue and
    `tools/ci_impact.py`; otherwise the plan is full with
    `bootstrap-no-base-catalogue` (the introducing pull request) and lists the
