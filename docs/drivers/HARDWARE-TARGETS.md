@@ -132,13 +132,15 @@ QEMU reference configurations (`python3 -B tools/run_hw_inventory.py --case all`
 |---|---|---|---|
 | `plain` | `qemu64,vendor=AuthenticAMD,-hypervisor` | default q35 | `VENDOR=AuthenticAMD:HYPERVISOR=0`, `DMAR=ABSENT:DRHD=0`, kernel `ACPI:UNAVAILABLE:NO_DMAR` |
 | `iommu` | `qemu64,vendor=GenuineIntel` | `intel-iommu`, `pcie-root-port` at `00:06.0`, `qemu-xhci` behind it | `VENDOR=GenuineIntel:HYPERVISOR=1`, `DMAR=PRESENT:DRHD=1`, kernel `ACPI:DISCOVERY:MCFG_DMAR` |
+| `image` | as `plain` | as `plain`; boots the removable-media image as a raw virtio disk instead of the virtual FAT directory | as `plain`, and the image SHA-256 equals its record before and after the run |
 
 Each case passes only when the `HWINV:` PCI set equals QMP `query-pci` (address,
 vendor, device, class, subclass, including functions behind bridges), QEMU is
 still running one second after `HWINV:PASS` (no exit-port write), no failure
 marker appears, `SECUREBOOT` is not `1`, the inventory binds to its own log, and
 `hw_evidence` rejects it as a virtual capture. Evidence limits: QEMU/TCG only;
-no physical PC, removable-media image or signed record; `SECUREBOOT=0`/`1` is
+no physical PC or signed record, and the removable-media image has booted only
+in QEMU; `SECUREBOOT=0`/`1` is
 host-tested only; QEMU's `query-pci` is an oracle for QEMU, not for firmware on
 real hardware. A physical run still requires the owner decisions listed in
 [hardware-matrix.json](hardware-matrix.json) and the protocol in
@@ -184,9 +186,17 @@ of each prerequisite exists with the same target, `source_sha256`,
 Common to every protocol:
 
 - The image is a **removable-media** image whose SHA-256 is recorded and
-  re-read from the medium. No such image can be built yet: `tools/build.py`
-  exports an ESP directory for QEMU's virtual FAT backend, and
-  `tools/repro_check.py` compares only that ESP payload manifest.
+  re-read from the medium. `tools/hw_inventory_image.py` builds one only for
+  `HW-INV`: a fixed 64 MiB raw GPT disk with one FAT32 EFI system partition
+  (8.3 upper-case names, timestamps fixed at 1980-01-01, GUIDs and volume
+  serial derived from the payload), so the same ESP payload yields the same
+  bytes. It writes a regular file in the build directory and records
+  `image_sha256` and `image_bytes`; on a larger medium step S1 compares the
+  first `image_bytes` bytes. The GPT backup header then sits inside the medium
+  rather than at its end. The layout is an assumption until `OD-HW-BOOT` is
+  decided, and the loader is not yet bit-reproducible (B04), so a rebuild from
+  a clean checkout can produce a different image hash. The other protocols'
+  kernel features still have no image.
 - Outside the `native-hw-inventory` profile, every milestone-m2 terminal path
   calls `exit()` in `kernel/src/serial.rs`, which writes QEMU's `isa-debug-exit`
   port `0xF4`. That port is undefined on physical PCs; each such profile first

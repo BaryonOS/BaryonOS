@@ -79,11 +79,11 @@
       "image": {
         "kernel_feature": "native-hw-inventory",
         "kernel_feature_present": true,
-        "physical_image": "missing"
+        "physical_image": "available"
       },
       "status": "blocked",
       "blocking_reasons": [
-        "No physical boot image exists: tools/build.py exports an ESP directory for QEMU's virtual FAT backend and tools/repro_check.py compares only that ESP payload manifest, so there is no removable-media image or image SHA-256 to bind.",
+        "The removable-media image from tools/hw_inventory_image.py (raw GPT disk with one FAT32 ESP, SHA-256 and byte length recorded) has booted only in QEMU from a virtio disk; its GPT/FAT32 layout is an assumption until OD-HW-BOOT is decided, and the loader is not yet bit-reproducible (B04), so an image hash binds one recorded build rather than an independent rebuild.",
         "The HW-FR target is null and docs/drivers/hw-allowed-signers lists no signer (owner decisions OD-HW-TARGETS and OD-HW-SIGNERS).",
         "The output capture route is undecided (OD-HW-CAPTURE): COM1 output needs a physical serial port and a cable to a second computer; on-screen output of the markers is not demonstrated."
       ],
