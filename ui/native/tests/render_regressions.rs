@@ -646,18 +646,42 @@ fn sr11_library_failure_status_fits_below_the_rows() {
         object.name[0] = b'A' + index as u8;
         object.name_length = 1;
     }
+    let mut long = objects;
+    for object in &mut long {
+        object.name = [b'W'; 32];
+        object.name_length = 32;
+    }
     // Logical 240 high (320x240, 640x480 @ 200 %) is excluded: its single list
     // row leaves no room for a second status line (ignored SR11 test).
-    for (width, height, scale) in &COMPACT[2..] {
+    let viewports = COMPACT[2..]
+        .iter()
+        .chain(&[(320, 300, Scale::Percent100), (320, 350, Scale::Percent100)]);
+    for (width, height, scale) in viewports {
         let viewport = Viewport::new(*width, *height, *scale, 1).unwrap();
         let layout = Layout::for_screen(viewport, Screen::Material);
         let rows = layout.list_rows();
         let last = layout.object(rows - 1);
-        assert_status_fits(
-            view(viewport, &objects),
-            layout.status.x,
-            last.y + last.height + 1,
-        );
+        let row_floor = last.y + last.height + 1;
+        assert_status_fits(view(viewport, &objects), layout.status.x, row_floor);
+        // An unbreakable name wraps past its row: the status grows only below
+        // it, else keeps its layout rect (no free space, as at height 240).
+        let name = core::str::from_utf8(&long[0].name).unwrap();
+        let names = (0..rows)
+            .map(|row| {
+                let rect = layout.object(row);
+                rect.y + 6 + wrapped_lines(name, rect.width - 96, *scale) * design::LINE_HEIGHT
+            })
+            .max()
+            .unwrap();
+        for status in failures() {
+            let mut state = view(viewport, &long);
+            state.status = status;
+            let area = Frame::new(state).status_area();
+            assert!(
+                area == layout.status || area.y >= names.max(row_floor) + 16,
+                "{width}x{height} {status:?}: status meets a wrapped name"
+            );
+        }
     }
 }
 

@@ -471,7 +471,21 @@ impl<'a> Frame<'a> {
                     .saturating_sub(view.list_scroll)
                     .min(layout.list_rows());
                 let last = layout.object(shown.saturating_sub(1));
-                last.y + last.height + 1
+                // A long name wraps past its row (`render_tile` row painting).
+                let names = (0..shown)
+                    .map(|row| {
+                        let rect = layout.object(row);
+                        let object = &view.objects[view.list_scroll + row];
+                        let name = object
+                            .name
+                            .get(..object.name_length)
+                            .and_then(|b| core::str::from_utf8(b).ok())
+                            .unwrap_or("Naam niet leesbaar");
+                        rect.y + 6 + lines(name, rect.width.saturating_sub(96)) * d::LINE_HEIGHT
+                    })
+                    .max()
+                    .unwrap_or(0);
+                (last.y + last.height + 1).max(names)
             }
             _ => return base,
         };
