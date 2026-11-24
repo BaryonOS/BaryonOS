@@ -270,6 +270,9 @@ def validate(catalogue):
         if event in EVENT_FULL_CODES:
             if events.get(event) != "full":
                 add(f"policy.events.{event} must be 'full'")
+        elif event == "workflow_dispatch":
+            if events.get(event) not in ("full", "manual"):
+                add(f"policy.events.{event} must be 'full' or 'manual'")
         elif events.get(event) not in EVENT_POLICIES:
             add(f"policy.events.{event} must be one of {', '.join(EVENT_POLICIES)}")
     for event in sorted(set(events) - set(EVENTS)):
@@ -724,11 +727,12 @@ class Planner:
     def _run(self):
         if self.event not in EVENTS:
             raise Full("unknown-event", [self.event])
-        if self.event in ("workflow_dispatch", "schedule") and not self.base:
-            self.base = self.head  # these events have no base; policy still applies
         for label, sha in (("head", self.head), ("tested", self.tested)):
             if not SHA_RE.fullmatch(sha):
                 raise Full("invalid-sha", [label])
+        if self.event in ("workflow_dispatch", "schedule") and not self.base:
+            self._bootstrap_listing()  # no trusted catalogue exists without a base
+            raise Full("no-trusted-base")
         if self.event == "push" and (not SHA_RE.fullmatch(self.base) or self.base == ZERO_SHA):
             self._bootstrap_listing()
             raise Full("push-unknown-before")

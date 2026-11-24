@@ -63,9 +63,8 @@ are rejected.
 - `core_only`: globs read only by the always-running core gates.
 - `[policy.events]`: one entry per event. `merge_group`, `push` and
   `schedule` must be `full`; `validate` rejects anything else, and the
-  selector also hard-codes `merge_group` as full. `pull_request` and
-  `workflow_dispatch` may be
-  `select`, `full` or `manual`.
+  selector also hard-codes `merge_group` as full. `workflow_dispatch` must be
+  `full` or `manual`. `pull_request` may be `select`, `full` or `manual`.
 
 `[input_sets]`: named glob lists. `native` covers the integrated QEMU suites.
 
@@ -119,11 +118,14 @@ full plan (`cargo-workspace-inheritance`, `cargo-patch-unresolved`).
 
 ## Plan algorithm and precedence
 
-1. Event: `workflow_dispatch` gives `mode = "manual"` (nothing selected).
+1. Event: `workflow_dispatch` with a base and a `manual` policy gives
+   `mode = "manual"` (nothing selected).
    `merge_group`, `push` and `schedule` are full by policy (`merge-group`,
    `push-main`, `schedule`); the diff is still recorded. A push whose `before`
    is empty, all zeros or not an ancestor gives `push-unknown-before`.
-   `workflow_dispatch` and `schedule` need no base; the head is used.
+   A `workflow_dispatch` or `schedule` run without a base has no trusted
+   catalogue: the plan is full with `no-trusted-base`, `selector.trusted` is
+   false, and the head catalogue only lists the executions.
 2. Trusted policy: the base commit must contain both the catalogue and
    `tools/ci_impact.py`; otherwise the plan is full with
    `bootstrap-no-base-catalogue` (the introducing pull request) and lists the

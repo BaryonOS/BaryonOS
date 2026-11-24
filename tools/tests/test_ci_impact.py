@@ -545,16 +545,13 @@ class FallbackTests(FixtureTestCase):
         self.assertEqual(plan["selected"], [])
         self.assertIsNone(plan["fallback"])
 
-    def test_events_without_a_base_follow_their_policy(self):
-        plan = self.plan(self.base, base="", event="workflow_dispatch")
-        self.assertEqual(plan["mode"], "manual")
-        self.assertIsNone(plan["fallback"])
-        plan = self.plan(self.base, base="", event="schedule")
-        self.assertFull(plan, "schedule")
-        self.assertEqual(plan["changes"]["count"], 0)
-        self.assertEqual(self.selected(plan), set())  # no fixture core/rwa workflow is scheduled
-        self.assertEqual({r["id"]: r["reason"] for r in plan["excluded"]}["ci#host-quality"],
-                         "event-not-applicable")
+    def test_events_without_a_base_are_full_and_untrusted(self):
+        for event in ("workflow_dispatch", "schedule"):
+            with self.subTest(event=event):
+                plan = self.plan(self.base, base="", event=event)
+                self.assertFull(plan, "no-trusted-base")
+                self.assertFalse(plan["selector"]["trusted"])
+                self.assertEqual(plan["catalogue"]["source_sha"], self.base)  # listing only
 
     def test_cargo_patch_tables_are_not_guessed(self):
         plan = self.plan(self.branch({"apps/solo/Cargo.toml": manifest(
@@ -720,6 +717,8 @@ class CatalogueValidationTests(TestCase):
             (lambda c: c["policy"]["events"].update(merge_group="select"), "merge_group must be 'full'"),
             (lambda c: c["policy"]["events"].update(push="manual"), "push must be 'full'"),
             (lambda c: c["policy"]["events"].update(schedule="select"), "schedule must be 'full'"),
+            (lambda c: c["policy"]["events"].update(workflow_dispatch="select"),
+             "workflow_dispatch must be 'full' or 'manual'"),
             (lambda c: c["policy"]["always_full"].append("../x"), "'..' segment"),
             (lambda c: c["policy"]["inert"].append("/abs"), "leading '/'"),
             (lambda c: c["policy"]["core_only"].append("!neg"), "leading '/', '!'"),
