@@ -515,9 +515,8 @@ def single_rule_copies() -> dict[str, tuple[bytearray, int]]:
     entries = records(700, 700)
     entries[1]["first"] += 1
     out["gap between extents"] = (copy(entries, next_free=entries[1]["first"] + 2), SECTORS)
-    entries = records(700, 1100)
-    entries[0]["id"] = 2
-    out["entry ID not below next entry"] = (copy(entries, next_entry=2), SECTORS)
+    # IDs 1 and 2 stay ascending, so only the next-entry bound is broken.
+    out["entry ID not below next entry"] = (copy(records(700, 1100), next_entry=2), SECTORS)
     for name, (raw, _) in RecordAndCopyValidity().crafted().items():
         out.setdefault(f"N34 {name}", (raw, SECTORS))
     return out
