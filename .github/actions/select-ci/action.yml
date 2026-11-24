@@ -1,0 +1,82 @@
+name: Select CI (impact plan)
+description: >-
+  Run the trusted base copy of tools/ci_impact.py and write a shadow plan
+  (docs/CI-CONTRACT.md). Selector uncertainty yields mode=full, never a failure;
+  only a usage error or an unreadable plan fails the step.
+inputs:
+  event-name:
+    description: github.event_name of the calling run.
+    required: true
+  tested-sha:
+    description: The commit under test (github.sha; the merge ref on pull_request).
+    required: true
+  head-sha:
+    description: The change head (pull request head, merge-group head or pushed commit).
+    required: true
+  base-sha:
+    description: >-
+      Merge-group base or push 'before'. Leave empty on pull_request: the base is
+      the tested merge commit's first parent. Empty otherwise means no trusted base.
+    default: ''
+outputs:
+  plan-id:
+    description: The plan's plan_id.
+    value: ${{ steps.plan.outputs.plan-id }}
+  mode:
+    description: select, full or manual; always full when no base copy of the selector ran.
+    value: ${{ steps.plan.outputs.mode }}
+  plan-path:
+    description: Repository-relative path of the plan JSON.
+    value: ${{ steps.plan.outputs.plan-path }}
+runs:
+  using: composite
+  steps:
+    - name: Plan with the trusted base selector
+      id: plan
+      shell: bash
+      env:
+        EVENT_NAME: ${{ inputs.event-name }}
+        TESTED_SHA: ${{ inputs.tested-sha }}
+        HEAD_SHA: ${{ inputs.head-sha }}
+        BASE_SHA: ${{ inputs.base-sha }}
+      run: |
+        set -euo pipefail
+        sha_re='^[0-9a-f]{40}$'
+        # GitHub's merge ref has parents [base tip, head]; the payload's base.sha can be stale.
+        if [[ "$EVENT_NAME" == pull_request && -z "$BASE_SHA" && "$TESTED_SHA" =~ $sha_re ]]; then
+          read -r -a parents < <(git rev-list --parents -n 1 "$TESTED_SHA" 2>/dev/null) || true
+          if (( ${#parents[@]} == 3 )); then BASE_SHA="${parents[1]}"; fi
+        fi
+        # Only the base commit's selector is trusted. Without one the checkout copy
+        # runs; the selector itself then reports no-trusted-base, push-unknown-before
+        # or bootstrap-no-base-catalogue, and the mode output is forced to full.
+        selector="$GITHUB_WORKSPACE/tools/ci_impact.py"
+        source=checkout
+        if [[ "$BASE_SHA" =~ $sha_re ]] && git cat-file -e "${BASE_SHA}:tools/ci_impact.py" 2>/dev/null; then
+          selector="$RUNNER_TEMP/ci_impact_trusted.py"
+          git cat-file blob "${BASE_SHA}:tools/ci_impact.py" > "$selector"
+          source=base
+        fi
+        plan_path=build/ci-impact/plan.json
+        # `--flag=value`: a value starting with '-' must not parse as an option (exit 2).
+        python3 -B -I "$selector" plan --repo "$GITHUB_WORKSPACE" --event="$EVENT_NAME" \
+          --base-sha="$BASE_SHA" --head-sha="$HEAD_SHA" --tested-sha="$TESTED_SHA" \
+          --out "$plan_path" --summary "$GITHUB_STEP_SUMMARY"
+        printf '\nSelector source: `%s`. Shadow plan only; it does not change which CI runs.\n' \
+          "$source" >> "$GITHUB_STEP_SUMMARY"
+        python3 -B -I - "$plan_path" "$source" >> "$GITHUB_OUTPUT" <<'PY'
+        import json
+        import re
+        import sys
+
+        path, source = sys.argv[1:3]
+        with open(path, encoding="ascii") as handle:
+            plan = json.load(handle)
+        plan_id, mode = plan.get("plan_id"), plan.get("mode")
+        if not isinstance(plan_id, str) or not re.fullmatch(r"sha256:[0-9a-f]{64}", plan_id) \
+                or mode not in ("select", "full", "manual"):
+            sys.exit("ci-impact: the plan has no valid plan_id or mode")
+        if source != "base":
+            mode = "full"  # an untrusted selector copy never narrows
+        print(f"plan-id={plan_id}\nmode={mode}\nplan-path={path}")
+        PY

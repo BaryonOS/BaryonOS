@@ -836,12 +836,25 @@ class DeterminismAndRobustnessTests(FixtureTestCase):
         with mock.patch.object(ci_impact.os, "unlink", side_effect=PermissionError("read-only dir")):
             ci_impact.discard_stale_plan(str(out), plan)
         self.assertFull(json.loads(out.read_text()), "output-error:OSError")
-        real_open = open
+        real_open = os.open
         with mock.patch.object(ci_impact.os, "unlink", side_effect=PermissionError("read-only dir")), \
-                mock.patch("builtins.open", side_effect=lambda *a, **k: (_ for _ in ()).throw(
+                mock.patch.object(ci_impact.os, "open", side_effect=lambda *a, **k: (_ for _ in ()).throw(
                     PermissionError("read-only file")) if a and str(a[0]) == str(out) else real_open(*a, **k)), \
                 contextlib.redirect_stderr(io.StringIO()) as stderr:
             ci_impact.discard_stale_plan(str(out), plan)
+        self.assertIn("ci-impact: stale-plan-not-removed:", stderr.getvalue())
+
+    def test_stale_plan_overwrite_never_follows_a_symlink(self):
+        victim = Path(self._tmp.name) / "victim.txt"
+        victim.write_text("keep me\n")
+        out = Path(self._tmp.name) / "plan.json"
+        out.symlink_to(victim)
+        plan = ci_impact.minimal_full_plan("pull_request", "output-error:OSError", None, None, None)
+        with mock.patch.object(ci_impact.os, "unlink", side_effect=PermissionError("read-only dir")), \
+                contextlib.redirect_stderr(io.StringIO()) as stderr:
+            ci_impact.discard_stale_plan(str(out), plan)
+        self.assertEqual(victim.read_text(), "keep me\n")
+        self.assertTrue(out.is_symlink())
         self.assertIn("ci-impact: stale-plan-not-removed:", stderr.getvalue())
 
     def test_invalid_sha_and_unknown_event_are_full(self):
@@ -1224,9 +1237,27 @@ class CoverageTests(TestCase):
                 'const B: &[u8] = include_bytes!(concat!("../../fix/", "b"));\nconst C: &str = include_str!("own.txt");\n')
             Path(tmp, "shared").mkdir()
             Path(tmp, "shared/x.rs").write_text('const D: &str = include_str!("../tokens.css");\n')
-            found = {(crate, target) for crate, target, _ in ci_impact.scan_escapes(tmp, {"app"})}
+            tracked = ["app/src/lib.rs", "shared/x.rs"]
+            found = {(crate, target) for crate, target, _ in ci_impact.scan_escapes(tmp, {"app"}, tracked)}
         self.assertEqual(found, {("app", "shared/x.rs"), ("app", "data/a.bin"), ("app", "fix/**"),
                                  ("app", "tokens.css")})
+
+    @skipUnless(HAVE_YAML, "PyYAML is not importable")
+    def test_escape_scanner_ignores_untracked_generated_sources(self):
+        catalogue = COVERAGE_CATALOGUE.replace('inputs = ["src/a/**"] }',
+                                               'inputs = ["src/a/**"], cargo = ["src/a/Cargo.toml"] }')
+        escape = "escape-unregistered: src/a -> outside.rs (src/a/target/gen.rs:1)"
+        with tempfile.TemporaryDirectory() as tmp:
+            repo = Repo(tmp)
+            repo.commit("base", {".github/ci-impact.toml": catalogue, ".github/workflows/ci.yml": COVERAGE_YAML,
+                                 "README.md": "fixture readme\n", "src/a/Cargo.toml": '[package]\nname = "a"\n',
+                                 "src/a/lib.rs": "// a\n"})
+            repo.write("src/a/target/gen.rs", '#[path = "../../../outside.rs"]\nmod x;\n')  # untracked build output
+            report = ci_impact.coverage(tmp, ".github/ci-impact.toml")
+            self.assertEqual(report["problems"], [], report)
+            repo.git("add", "-f", "src/a/target/gen.rs")
+            repo.git("commit", "-q", "-m", "track")
+            self.assertIn(escape, ci_impact.coverage(tmp, ".github/ci-impact.toml")["problems"])
 
 
 if __name__ == "__main__":
