@@ -5,6 +5,44 @@ This document distinguishes the decisions and authority of the project owner
 from those of the executing roles. Source quotations retain their original
 wording and speaker.
 
+## ADR-PROGRESS-EVIDENCE-20261124 — Show delivered work alongside fixed acceptance
+
+**Status:** scoped implementation of the project owner's 24 November request to
+reassess progress and expose implementation and verification separately.
+
+**Problem:** the binary score can stay constant while substantial parts of open
+criteria are implemented and tested. Old task blockers and repeated score-only
+updates can also conceal a criterion whose original evidence requirements are
+now satisfied. Work volume itself does not justify acceptance points.
+
+**Decision:** preserve rubric v1, all criterion IDs, weights and acceptance text.
+Add a versioned, dated, source-bound `delivery_review` inventory to the existing
+`docs/progress.json`. The existing generator renders its scoped requirements,
+implementation states, distinct evidence levels and remaining acceptance gaps in
+README/PROGRESS. This is a reporting view of the same criteria, not a second
+queue, execution controller or weighted completion score.
+
+Requirement counts are descriptive, unweighted and unequal in size. A host core,
+target build or native fixture is credited only within its recorded scope. No
+conversion to an OS implementation percentage, release probability or remaining
+time is defined. The snapshot date/source stay independent of later task updates;
+changing them requires reassessment of the covered rows. Historic evidence and
+task events remain intact; superseding facts are recorded explicitly.
+
+**Acceptance consequence:** the 30 previously open criteria were reassessed on
+main `2eb1c63d2afdf658f0e71d31f3542e320a7dd041`. B01 earns its existing two
+points because the exact-source seven-case native gate now demonstrates all
+literal entropy, lifecycle and management/ordinary-app authorization clauses.
+The original artifact and clause mapping are retained under
+`verification/progress-reassessment-20261124/`. No criterion is broadened or
+weakened, and the other open criteria receive no partial points.
+
+**Validation and review:** generator negative/round-trip tests, preservation of
+all original rubric fields except B01 status/evidence, independent review of
+the protected-file diff, and required hosted checks. Revise the reporting method
+if its requirement boundaries or evidence vocabulary change; never treat a
+reference-presence check as an evidence-content audit.
+
 ## ADR-MERGE-DELEGATION-20261123 — Workstreams handle their own pull requests end to end
 
 **Status:** decided by the project owner on 23 November 2026. It supersedes the

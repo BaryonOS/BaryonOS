@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-24",
-    "source_commit": "b3a5c24911e4bdaa09fb0276913b0b6f71ed809e",
-    "assessment_basis": "parent_commit",
-    "branch": "integration/drain-ui-final",
-    "task": "PR backlog integration and final UI/input source checkpoint",
+    "source_commit": "2eb1c63d2afdf658f0e71d31f3542e320a7dd041",
+    "assessment_basis": "reviewed_main_commit",
+    "branch": "audit/progress-evidence-20261124",
+    "task": "Reassess all open criteria and expose implementation and verification evidence",
     "previous_score": 41,
-    "summary": "41/100 unchanged. This checkpoint records the integrated PR contributions and their source-bound evidence; it changes no criterion state, weight, acceptance description or evidence. Search S3, the read-only service-refusal walkthrough, the specified UI defects and physical/human acceptance remain open. Native acceptance and main inclusion are established separately by the integration PR receipts."
+    "summary": "43/100: B01 earns its existing two points after exact-main seven-case native entropy/key-lifecycle and manifest-bound management-recovery evidence. All original IDs, weights and acceptance text are unchanged. The other 29 open criteria retain explicit gaps; a separate source-bound inventory records implementation and evidence without partial acceptance points."
   },
   "tracks": [
     {
@@ -381,9 +381,13 @@
           "id": "B01",
           "title": "Entropy and key management",
           "points": 2,
-          "status": "open",
+          "status": "accepted",
           "acceptance": "Native cryptographic entropy and key lifecycle, with recovery restricted to manifest-bound management ingress. Native positive management recovery and negative ordinary-app authorization tests remain required.",
-          "evidence": []
+          "evidence": [
+            "docs/verification/progress-reassessment-20261124/B01-ACCEPTANCE.md",
+            "docs/verification/progress-reassessment-20261124/b01/build/keyring-gate.json",
+            "docs/verification/progress-reassessment-20261124/b01/_meta/receipt.json"
+          ]
         },
         {
           "id": "B02",
@@ -567,5 +571,1857 @@
         }
       ]
     }
-  ]
+  ],
+  "delivery_review": {
+    "method_version": 1,
+    "date": "2026-11-24",
+    "source_commit": "2eb1c63d2afdf658f0e71d31f3542e320a7dd041",
+    "scope": "All 30 criteria open at the reviewed main source are covered below. The 21 previously accepted criteria retain their existing acceptance evidence and are outside this implementation inventory. B01 is accepted by this reassessment; the other 29 remain open. This inventory records delivered slices and remaining clauses, not release readiness or all remaining engineering effort.",
+    "criteria": [
+      {
+        "id": "S09",
+        "remaining": "Substantial native independent-copy and recovery work is proven, but a user-facing production copy/restore/export chain and full L2 integration remain incomplete. No S09 acceptance increase is justified.",
+        "requirements": [
+          {
+            "description": "Create and verify an independent recovery copy",
+            "implementation": "partial",
+            "verification": [
+              "native"
+            ],
+            "observation": "v1 archive export to a second disposable virtio disk, host verification and source-disk checks pass in the 26-stage native gate. Destination service core and independent disk oracle exist on main.",
+            "remaining": "The available native path is an explicitly test-only fixture. Production destination service, trusted selection/portal and per-operation enforcement are not connected natively.",
+            "evidence": [
+              "services/volume/src/archive.rs",
+              "services/destination/src/lib.rs",
+              "tools/destination_disk.py",
+              "tools/test_volume.py",
+              "docs/implementation/S09-DESTINATION-SERVICE.md",
+              "https://github.com/BaryonOS/BaryonOS/pull/477#issuecomment-7119252774"
+            ]
+          },
+          {
+            "description": "Restore recovery copies with the documented fidelity",
+            "implementation": "partial",
+            "verification": [
+              "native"
+            ],
+            "observation": "v1 cold restore with the original source disk absent is native-tested; native INSTALL preserves source provenance for its fixed fixture. Host restore_native_l2 implements multi-version/provenance restoration and uncertain-outcome handling.",
+            "remaining": "Full L2 archive export/cold-restore pipeline has no native caller. Planned l2-export/l2-restore/l2-corrupt/l2-used stages are absent from PLAN; L2 live revisions/stamps remain destination-local by the approved rule.",
+            "evidence": [
+              "services/volume/src/archive.rs",
+              "services/volume/tests/l2_restore.rs",
+              "tools/test_volume.py",
+              "docs/implementation/S09-L2-NATIVE-EXPORT.md",
+              "docs/implementation/S09-L2-NATIVE-STAGE-INTEGRATION-REQUEST.md",
+              "https://github.com/BaryonOS/BaryonOS/pull/477#issuecomment-7119252774"
+            ]
+          },
+          {
+            "description": "Export in documented independent/interchange formats",
+            "implementation": "partial",
+            "verification": [
+              "native"
+            ],
+            "observation": "Native v1 archive and ustar export are implemented with independent Python decoding; archive v2 format and host code add bounded history/provenance support.",
+            "remaining": "User-facing export destination workflow is missing; ustar is intentionally lossy and does not substitute for native history/provenance restore.",
+            "evidence": [
+              "services/volume/src/ustar.rs",
+              "tools/volume_archive.py",
+              "docs/implementation/S09-BACKUP-ARCHIVE.md",
+              "docs/implementation/S09-ARCHIVE-V2.md",
+              "tools/test_volume.py",
+              "https://github.com/BaryonOS/BaryonOS/pull/477#issuecomment-7119252774"
+            ]
+          },
+          {
+            "description": "Test loss and conflict scenarios",
+            "implementation": "partial",
+            "verification": [
+              "native"
+            ],
+            "observation": "26-stage gate includes corrupted archive, occupied/conflicting destination, full/absent/small/wrong archive disk, intentional cuts and cold recovery; host regressions preserve uncertainty after BEGIN/APPEND/COMMIT/collection/cleanup.",
+            "remaining": "Negative evidence covers bounded fixtures and host destination core, not the still-missing production destination/portal boundary or planned L2 archive cold-restore workflow.",
+            "evidence": [
+              "tools/test_volume.py",
+              "services/volume/tests/install.rs",
+              "services/volume/tests/l2_restore.rs",
+              "docs/implementation/S09-DESTINATION-SERVICE.md",
+              "https://github.com/BaryonOS/BaryonOS/pull/477#issuecomment-7119252774"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "H02",
+        "remaining": "Define and test the reference device set and physical controller support; cover applicable error/hotplug paths on that set.",
+        "requirements": [
+          {
+            "description": "Common keyboard and mouse input on the documented reference profile",
+            "implementation": "partial",
+            "verification": [
+              "native"
+            ],
+            "observation": "Native display/input and USB boot-protocol keyboard/mouse reports pass in the defined QEMU fixture.",
+            "remaining": "HW-FR target is unset; physical controllers are rejected by the current qemu-xhci allowlist.",
+            "evidence": [
+              "drivers/ps2/src/lib.rs",
+              "kernel/src/m2/xhci/usb.rs",
+              "docs/implementation/NATIVE-USB-HID.md",
+              "https://github.com/BaryonOS/BaryonOS/actions/runs/45318640604/job/138191502669",
+              "https://github.com/BaryonOS/BaryonOS/actions/runs/45318640648/job/138191503697"
+            ]
+          },
+          {
+            "description": "Bounded unplug and hotplug without stale authority",
+            "implementation": "partial",
+            "verification": [
+              "native"
+            ],
+            "observation": "Both keyboard and mouse same-port reattach pass. Mouse unplug with a held button, generation retirement, slot reuse and stale work rejection are covered by PR480's USB cases.",
+            "remaining": "Only bounded QEMU root-port fixtures; general hubs, IRQ operation, controller reset and long-lived product policy handoff remain outside acceptance.",
+            "evidence": [
+              "kernel/src/m2/xhci/usb.rs",
+              "tools/run_usb_hid.py",
+              "https://github.com/BaryonOS/BaryonOS/actions/runs/45318640648/job/138191503697",
+              "docs/verification/h02-native-mouse-reattach-20261123/README.md"
+            ]
+          },
+          {
+            "description": "Invalid device responses and DMA remain bounded",
+            "implementation": "partial",
+            "verification": [
+              "native"
+            ],
+            "observation": "xHCI fault/no-DMAR/read-only cases and strict descriptor/report parsing exist; the fixture retains retired pages and checks canaries.",
+            "remaining": "Physical invalid-response matrix is absent; some malformed responses have host-only evidence; canaries detect writes and do not themselves prevent them.",
+            "evidence": [
+              "drivers/usb/src/lib.rs",
+              "kernel/src/m2/xhci.rs",
+              "kernel/src/m2/iommu.rs",
+              "https://github.com/BaryonOS/BaryonOS/actions/runs/45318640648/job/138191503697",
+              "docs/verification/issue42-native-input-20261114/README.md"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "H03",
+        "remaining": "Complete product audio/GPU interfaces and agreed budgets, then physical measurement and practical usability trials.",
+        "requirements": [
+          {
+            "description": "Native graphics output",
+            "implementation": "partial",
+            "verification": [
+              "native"
+            ],
+            "observation": "GOP framebuffer display and four DISPI modes have pixel-oracle evidence; PR480 repeats positive raw33 and expected unsupported-device refusal raw35.",
+            "remaining": "No physical GPU/display test, EDID/timing coverage or product ring-3 mode-change service.",
+            "evidence": [
+              "kernel/src/framebuffer.rs",
+              "docs/implementation/NATIVE-DISPI-MODESET.md",
+              "https://github.com/BaryonOS/BaryonOS/actions/runs/45318640604/job/138191502669",
+              "docs/verification/h03-dispi-modeset-20261123/README.md"
+            ]
+          },
+          {
+            "description": "Required GPU functionality on reference hardware",
+            "implementation": "missing",
+            "verification": [
+              "source"
+            ],
+            "observation": "The reference contract treats GOP as baseline while required acceleration/device families still need selection.",
+            "remaining": "Required GPU feature set and physical target are not decided; no hardware acceptance.",
+            "evidence": [
+              "docs/drivers/HARDWARE-TARGETS.md",
+              "docs/drivers/hardware-matrix.json"
+            ]
+          },
+          {
+            "description": "Native audio including bounded failure/recovery",
+            "implementation": "partial",
+            "verification": [
+              "native"
+            ],
+            "observation": "All five kernel-only virtio-snd cases pass at PR480: normal, no-device, access-platform refusal, fence-reinit and quarantine, each raw33. H03-T3c source hardening is included.",
+            "remaining": "PCM/WAV emulator output is not audible hardware playback; ring-3 audio broker/app capability and native audio service remain absent. Configuration changes after DRIVER_OK remain open.",
+            "evidence": [
+              "kernel/src/m2/snd.rs",
+              "drivers/virtio-snd/src/queue.rs",
+              "drivers/virtio-snd/src/pcm.rs",
+              "https://github.com/BaryonOS/BaryonOS/actions/runs/45318640648/job/138191503697",
+              "docs/verification/h03-virtio-snd-20261119/README.md",
+              "docs/verification/h03-snd-hardening-20261123/README.md"
+            ]
+          },
+          {
+            "description": "Usability and latency budgets on physical reference hardware",
+            "implementation": "missing",
+            "verification": [],
+            "observation": "No physical budget acceptance record exists in the hardware matrix.",
+            "remaining": "Freeze budgets and measure actual output, workload/underrun behavior, latency and usability on the selected physical configuration.",
+            "evidence": [
+              "docs/drivers/hardware-matrix.json",
+              "docs/FULL-TEST-RELEASE.md"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "H04",
+        "remaining": "Native virtual networking advances must be retained as evidence; H04 still requires named supported physical hardware and the agreed connection families.",
+        "requirements": [
+          {
+            "description": "Ethernet on supported hardware",
+            "implementation": "partial",
+            "verification": [
+              "native"
+            ],
+            "observation": "virtio-net provides real native packets in the QEMU profile; no accepted physical NIC is recorded.",
+            "remaining": "A supported physical NIC and driver remain required; e1000e is unsupported in the current matrix and no e1000e driver path exists.",
+            "evidence": [
+              "drivers/virtio-net/src/lib.rs",
+              "kernel/src/m2/m3/network.rs",
+              "docs/drivers/hardware-matrix.json",
+              "docs/verification/h04-native-link-20261119/README.md"
+            ]
+          },
+          {
+            "description": "Wi-Fi and agreed Bluetooth functions",
+            "implementation": "missing",
+            "verification": [
+              "source"
+            ],
+            "observation": "These device families remain owner scope decisions and have no supported driver rows.",
+            "remaining": "Select chipsets, firmware/licensing and exact Bluetooth scope; implement and test physical paths.",
+            "evidence": [
+              "docs/drivers/HARDWARE-TARGETS.md",
+              "docs/drivers/hardware-matrix.json"
+            ]
+          },
+          {
+            "description": "Disconnect, resume and driver-failure paths preserve bounded behavior",
+            "implementation": "partial",
+            "verification": [
+              "native"
+            ],
+            "observation": "Native link down/up clears retained RX, preserves down-window no-send invariants and reacquires a fresh neighbor; link-storm exhaustion resets/latches the device. Network integration adds reconnect/configuration work.",
+            "remaining": "Hardware unplug/cable/radio/sleep-resume is untested; the original link fixture does not exercise in-flight TX at the down edge.",
+            "evidence": [
+              "tools/run_net_link.py",
+              "docs/implementation/VIRTIO-NET.md",
+              "docs/verification/h04-native-link-20261119/README.md",
+              "https://github.com/BaryonOS/BaryonOS/actions/runs/45308625592/job/138158768805",
+              "https://github.com/BaryonOS/BaryonOS/actions/runs/45308625592/job/138158768933"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "H05",
+        "remaining": "Preserve the completed QEMU work while requiring physical firmware, power/battery scope and complete product resume evidence.",
+        "requirements": [
+          {
+            "description": "ACPI shutdown and safe flush/recovery",
+            "implementation": "partial",
+            "verification": [
+              "native"
+            ],
+            "observation": "Latest native-power performs five S5 shutdowns and corrupted-DSDT refusal; the power-system gate includes normal, flush-error and flush-timeout plus cold recovery.",
+            "remaining": "Physical ACPI firmware and app-level save/discard/cancel shutdown flows are not accepted.",
+            "evidence": [
+              "drivers/acpi-power/src/lib.rs",
+              "tools/test_power_system.py",
+              "https://github.com/BaryonOS/BaryonOS/actions/runs/45318640387/job/138191502025",
+              "https://github.com/BaryonOS/BaryonOS/actions/runs/45318640387/job/138191502229",
+              "docs/verification/h05-acpi-s5/README.md"
+            ]
+          },
+          {
+            "description": "Sleep/wake, rejected wake and power-plan recovery",
+            "implementation": "partial",
+            "verification": [
+              "native"
+            ],
+            "observation": "PR480 covers three S3 cycles plus corrupt FACS, stale-token, unarmed-wake and FACS-end refusal. Expected exits are33/39/37/37/39, all without timeout.",
+            "remaining": "QMP wake under one QEMU/OVMF policy only; physical wake sources, AML _PTS/_WAK, wider firmware and SMP/FPU product resume remain unverified.",
+            "evidence": [
+              "kernel/src/m2/sleep.rs",
+              "tools/run_sleep.py",
+              "https://github.com/BaryonOS/BaryonOS/actions/runs/45318640387/job/138191502025",
+              "docs/verification/h05-s3-rejections-20261123/README.md"
+            ]
+          },
+          {
+            "description": "Post-wake devices and services remain usable or fail closed",
+            "implementation": "partial",
+            "verification": [
+              "native"
+            ],
+            "observation": "Current 12-stage power gate passes S3 loss refusal, RNG reinit and held-completion quiescence plus cold recovery; broker device-access latches/counters are present.",
+            "remaining": "The entropy delivery demonstration is kernel-driven; block reinitialization and complete product device/session survival are not established. Some latches are source/counter checks only.",
+            "evidence": [
+              "kernel/src/m2/m3/keyring.rs",
+              "kernel/src/m2/m3/volume.rs",
+              "kernel/src/m2/m3/system.rs",
+              "https://github.com/BaryonOS/BaryonOS/actions/runs/45318640387/job/138191502229",
+              "docs/verification/h05-s3-reinit-20261123/README.md",
+              "docs/verification/h05-s3-held-completion-20261123/README.md"
+            ]
+          },
+          {
+            "description": "Thermal/battery and physical power measurements",
+            "implementation": "missing",
+            "verification": [],
+            "observation": "OD-HW-POWER and HW-FR remain open; no measured thermal or battery support record exists.",
+            "remaining": "Define the hardware power profile and measure thermal/battery, wake reliability and energy on physical devices.",
+            "evidence": [
+              "docs/drivers/hardware-matrix.json",
+              "docs/drivers/physical-protocols.json"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "H06",
+        "remaining": "No point can be awarded for protocols or emulation alone; multiple named physical configurations must pass.",
+        "requirements": [
+          {
+            "description": "Several predefined representative physical PC configurations",
+            "implementation": "missing",
+            "verification": [
+              "source"
+            ],
+            "observation": "No representative physical PC configurations have been selected: HW-FR target is null. VM-FR and VM-VMW are emulation profiles; nine hardware owner decisions remain open.",
+            "remaining": "Select the representative PC set and settle required device families and measurement/capture arrangements.",
+            "evidence": [
+              "docs/drivers/hardware-matrix.json",
+              "docs/drivers/HARDWARE-TARGETS.md"
+            ]
+          },
+          {
+            "description": "Each configuration passes the hardware matrix",
+            "implementation": "missing",
+            "verification": [],
+            "observation": "All HW-FR entries are pending or unsupported with evidence_level none; H06-T4 prepares protocols and signature validation only.",
+            "remaining": "Physical operators, authorization and signed actual runs remain missing; host validation of evidence format proves no device support.",
+            "evidence": [
+              "docs/drivers/hardware-matrix.json",
+              "docs/drivers/physical-protocols.json",
+              "tools/hw_evidence.py",
+              "docs/roadmap-pipeline/ledger.json"
+            ]
+          },
+          {
+            "description": "DMA/IOMMU boundaries and limitations are explicit",
+            "implementation": "partial",
+            "verification": [
+              "native"
+            ],
+            "observation": "The matrix names trusted kernel transport versus unsupported isolation. VT-d-contained qemu-xhci exercises bounded DMA and refusal fixtures.",
+            "remaining": "No general physical DMA/IOMMU acceptance or user-driver isolation across the representative configurations.",
+            "evidence": [
+              "docs/drivers/DRIVER-ARCHITECTURE.md",
+              "kernel/src/m2/iommu.rs",
+              "docs/drivers/hardware-matrix.json",
+              "https://github.com/BaryonOS/BaryonOS/actions/runs/45318640648/job/138191503697"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "U02",
+        "remaining": "Core input/clipboard/switching now has strong native evidence, but the original acceptance also requires measured budget compliance, which has not been established.",
+        "requirements": [
+          {
+            "description": "Native keyboard, pointer and focus operation",
+            "implementation": "implemented",
+            "verification": [
+              "native"
+            ],
+            "observation": "Current #480 source passes 66-phase window sessions at 100% and 200%, including fault/restart and input/focus checks.",
+            "remaining": "These runs prove the supported QEMU session, with interaction-budget compliance still a separate unmet clause.",
+            "evidence": [
+              "sdk/examples/window-session/src/main.rs",
+              "sdk/examples/window-session/src/scene.rs",
+              ".github/workflows/native-window-session.yml",
+              "https://github.com/BaryonOS/BaryonOS/actions/runs/45318640704/job/138191630466",
+              "https://github.com/BaryonOS/BaryonOS/actions/runs/45318640704/job/138191630768",
+              "https://github.com/BaryonOS/BaryonOS/pull/480#issuecomment-7122327749"
+            ]
+          },
+          {
+            "description": "Native clipboard and application switching",
+            "implementation": "implemented",
+            "verification": [
+              "native"
+            ],
+            "observation": "The source-bound window gate covers clipboard behavior, recovery and peer operation; both 18-phase switcher100/200 runs pass raw33.",
+            "remaining": "No additional functional blocker is identified in the bounded tested slice; usability/performance-budget completion is not inferred from passing scripted cases.",
+            "evidence": [
+              "docs/implementation/NATIVE-CLIPBOARD.md",
+              "tools/run_window_session.py",
+              ".github/workflows/native-window-session.yml",
+              "https://github.com/BaryonOS/BaryonOS/actions/runs/45318640704/job/138191630466",
+              "https://github.com/BaryonOS/BaryonOS/pull/480#issuecomment-7122327749"
+            ]
+          },
+          {
+            "description": "Meet measured interaction budgets",
+            "implementation": "partial",
+            "verification": [
+              "native"
+            ],
+            "observation": "u02-latency-baseline-20261123 records three successful native TCG runs and host-observed input-to-verified-image intervals.",
+            "remaining": "No interaction budget or reference profile is preregistered. n=3 per phase does not meet the documented 20-samples-per-stratum rule; timings include QMP, polling and screendumps, not guest scanout latency.",
+            "evidence": [
+              "docs/verification/u02-latency-baseline-20261123/README.md",
+              "docs/verification/u02-latency-baseline-20261123/baseline.json",
+              "docs/roadmap-pipeline/ledger.json"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "U03",
+        "remaining": "Real native document/library operations are delivered; native permission refusal part2 and remaining understandable-history/error behavior prevent whole-criterion acceptance.",
+        "requirements": [
+          {
+            "description": "Open, edit, rename and organize real native documents",
+            "implementation": "implemented",
+            "verification": [
+              "native"
+            ],
+            "observation": "Current #480 library-write gate runs ten phases, then cold-reopen runs four phases with independent disk/image and source binding; standard Materiaal/window evidence also passes.",
+            "remaining": "The demonstrated scope is real native documents in the supported fixture session; it does not confer complete permission or human-understanding acceptance.",
+            "evidence": [
+              "docs/implementation/NATIVE-MATERIAL-LIBRARY.md",
+              "sdk/examples/materiaal/src/main.rs",
+              "tools/window_library.py",
+              ".github/workflows/native-window-session.yml",
+              "https://github.com/BaryonOS/BaryonOS/actions/runs/45318640704/job/138191630466",
+              "https://github.com/BaryonOS/BaryonOS/pull/480#issuecomment-7122327749"
+            ]
+          },
+          {
+            "description": "Show and enforce correct understandable document permissions",
+            "implementation": "partial",
+            "verification": [
+              "target"
+            ],
+            "observation": "#455/#480 part1 adds the native read-only grant/profile and compiles it in CI. Host tests cover read-only and denied mutations.",
+            "remaining": "Part2 service-refusal execution, live request counters, denied-copy UI and unchanged-disk oracle remain open. Compilation cannot establish refusal at the actual native service boundary.",
+            "evidence": [
+              "kernel/Cargo.toml",
+              "kernel/src/m2/m3/window_session.rs",
+              ".github/workflows/native-window-session.yml",
+              "ui/native/tests/recovery_matrix.rs",
+              "docs/roadmap-pipeline/ledger.json",
+              "https://github.com/BaryonOS/BaryonOS/pull/480#issuecomment-7122327749"
+            ]
+          },
+          {
+            "description": "Keep history and location correct and understandable",
+            "implementation": "partial",
+            "verification": [
+              "native"
+            ],
+            "observation": "Native library flow exercises actual collections, names, revision history and restoration, backed by cold disk verification.",
+            "remaining": "History dialog semantic reading order remains an ignored defect, and denied/recovery copy is still generic in cases. Human understanding is not established by pixel/script checks.",
+            "evidence": [
+              "docs/implementation/NATIVE-MATERIAL-LIBRARY.md",
+              "tools/window_library.py",
+              "ui/native/tests/accessibility_semantics.rs",
+              "ui/native/tests/recovery_matrix.rs",
+              "https://github.com/BaryonOS/BaryonOS/actions/runs/45318640704/job/138191630466",
+              "https://github.com/BaryonOS/BaryonOS/pull/480#issuecomment-7122327749"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "U04",
+        "remaining": "Native HiDPI/input progress is real and should be reported. Missing screen-reader chain, known compact/semantic defects and absent human task evidence keep U04 open.",
+        "requirements": [
+          {
+            "description": "Keyboard-only operation and focus",
+            "implementation": "partial",
+            "verification": [
+              "native"
+            ],
+            "observation": "Materiaal/window sessions have keyboard paths and native automated coverage; local semantics expose roles, focus and action descriptions.",
+            "remaining": "Coverage is a bounded app/session subset, not all required native task flows; known History semantic order remains unresolved.",
+            "evidence": [
+              "ui/native/README.md",
+              "ui/native/tests/accessibility_semantics.rs",
+              "sdk/examples/window-session/src/main.rs",
+              "https://github.com/BaryonOS/BaryonOS/actions/runs/45318640704/job/138191630466",
+              "https://github.com/BaryonOS/BaryonOS/pull/480#issuecomment-7122327749"
+            ]
+          },
+          {
+            "description": "Native screen reader support",
+            "implementation": "missing",
+            "verification": [
+              "source"
+            ],
+            "observation": "ui/native provides an app-local bounded semantics tree, explicitly preparation for a future broker.",
+            "remaining": "No OS-wide native accessibility broker/event channel and working screen reader chain is demonstrated; TTS/braille path and native task use remain open.",
+            "evidence": [
+              "ui/native/README.md",
+              "ui/native/src/render.rs",
+              "docs/roadmap-pipeline/ledger.json",
+              "docs/implementation/U06-USABILITY-PROTOCOL.md"
+            ]
+          },
+          {
+            "description": "Scaling/zoom in the native chain",
+            "implementation": "partial",
+            "verification": [
+              "native"
+            ],
+            "observation": "Current 100%/200% native window/switcher evidence passes; scale2 66 phases has full retained report and serial.",
+            "remaining": "Compact error status at 640x480@200% has a deliberately ignored clipping defect; these successful profiles do not establish every required layout.",
+            "evidence": [
+              ".github/workflows/native-window-session.yml",
+              "ui/native/tests/recovery_matrix.rs",
+              "https://github.com/BaryonOS/BaryonOS/actions/runs/45318640704/job/138191630768",
+              "https://github.com/BaryonOS/BaryonOS/actions/runs/45318640704/job/138191630466",
+              "https://github.com/BaryonOS/BaryonOS/pull/480#issuecomment-7122327749"
+            ]
+          },
+          {
+            "description": "Contrast and reduced motion in the native chain",
+            "implementation": "partial",
+            "verification": [
+              "host"
+            ],
+            "observation": "Native rendering has bounded appearance/semantics tests; browser UX-E contrast/media emulation is measured and explicitly simulation-only. Shell shows reduced motion fixed on.",
+            "remaining": "No complete native/user-task acceptance for contrast and configurable reduced motion; browser CDP measurements cannot supply it.",
+            "evidence": [
+              "ui/native/README.md",
+              "sdk/examples/window-session/src/shell.rs",
+              "docs/verification/uxe-sliceA-20261123/README.md",
+              "docs/verification/uxe-sliceB-20261123/README.md"
+            ]
+          },
+          {
+            "description": "Record accessibility user task tests",
+            "implementation": "missing",
+            "verification": [],
+            "observation": "An explicit protocol and task register exist.",
+            "remaining": "No recorded representative human/native screen-reader task outcomes or resolution/retest evidence were found.",
+            "evidence": [
+              "docs/implementation/U06-USABILITY-PROTOCOL.md",
+              "docs/roadmap-pipeline/ledger.json"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "U05",
+        "remaining": "The native six-boot settings persistence success supersedes old blockers, but search S3, actual accounts/settings UI and known recovery text/layout defects remain functional gaps.",
+        "requirements": [
+          {
+            "description": "Native settings work and persist consistently",
+            "implementation": "partial",
+            "verification": [
+              "native"
+            ],
+            "observation": "Typed/revertible settings core is now an SDK workspace member. The volume adapter passes six cold boots: initialize/update, read-only recover, revert, damaged-newest fallback, both copies corrupt, unsupported schema refusal; unchanged read-only images and zero writes/flushes.",
+            "remaining": "No user-changeable Settings app/UI or authenticated per-user scope. The shell's quick-settings page remains fixed/notices. Native persistence is a delivered subrequirement, not all system settings.",
+            "evidence": [
+              "sdk/Cargo.toml",
+              "sdk/settings-core/src/lib.rs",
+              "sdk/examples/settings-volume/README.md",
+              "sdk/examples/window-session/src/shell.rs",
+              ".github/workflows/native-display-input.yml",
+              "https://github.com/BaryonOS/BaryonOS/actions/runs/45318640604/job/138191502669",
+              "https://github.com/BaryonOS/BaryonOS/pull/480#issuecomment-7122327749"
+            ]
+          },
+          {
+            "description": "Local indexed search works natively",
+            "implementation": "partial",
+            "verification": [
+              "target"
+            ],
+            "observation": "SDK search core and 23-test volume adapter are integrated; S2 native binary/build and independent oracle/draft runner are present and CI-covered.",
+            "remaining": "S3 has no kernel feature/case/build override. Current require_wiring exits1 naming those three missing edits. No native execution, native revocation, content tokens or interactive indexed-file search UI.",
+            "evidence": [
+              "sdk/Cargo.toml",
+              "sdk/examples/search-volume/README.md",
+              "sdk/examples/search-volume/src/main.rs",
+              "tools/run_search.py",
+              "kernel/Cargo.toml",
+              "tools/build.py",
+              ".github/workflows/native-display-input.yml",
+              "https://github.com/BaryonOS/BaryonOS/pull/480#issuecomment-7122327749"
+            ]
+          },
+          {
+            "description": "Account and session management work consistently",
+            "implementation": "partial",
+            "verification": [
+              "native"
+            ],
+            "observation": "Native shell has lock/guest routes and explicitly refuses local-user authentication instead of accepting credentials.",
+            "remaining": "Real account service, personal authentication/unlock, profile/key separation and account management are absent. Guest route is not personal session acceptance.",
+            "evidence": [
+              "sdk/examples/window-session/src/shell.rs",
+              "docs/implementation/PROFILES-AND-USERS.md",
+              "docs/implementation/U06-USABILITY-PROTOCOL.md",
+              "https://github.com/BaryonOS/BaryonOS/pull/480#issuecomment-7122327749"
+            ]
+          },
+          {
+            "description": "Understandable error and recovery paths",
+            "implementation": "partial",
+            "verification": [
+              "host"
+            ],
+            "observation": "#472 contributes five active recovery cases covering uncertain/interrupted saves. Existing native recovery gates continue to pass.",
+            "remaining": "Four deliberately ignored current defects: distinct Full/Quota text, known I/O text, Access/denial text, and compact200% failure-status clipping. The inherited History-order ignore is separate.",
+            "evidence": [
+              "ui/native/tests/recovery_matrix.rs",
+              "ui/native/tests/accessibility_semantics.rs",
+              "ui/native/src/render.rs",
+              "https://github.com/BaryonOS/BaryonOS/pull/480#issuecomment-7122327749"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "U06",
+        "remaining": "A study plan is delivered, but real participants, approved budgets and measured resolution are the missing original acceptance, not merely a paperwork refresh.",
+        "requirements": [
+          {
+            "description": "Agree and preregister representative core tasks and budgets",
+            "implementation": "partial",
+            "verification": [
+              "source"
+            ],
+            "observation": "U06-USABILITY-PROTOCOL.md provides tasks, success keys, proposed budgets, participant/privacy plan and route-validation/pilot rules.",
+            "remaining": "Budgets/task-set approval, frozen candidate bundle, route verification and pilot are not completed; some core tasks remain not yet testable.",
+            "evidence": [
+              "docs/implementation/U06-USABILITY-PROTOCOL.md",
+              "docs/roadmap-pipeline/ledger.json"
+            ]
+          },
+          {
+            "description": "Representative users complete the agreed native tasks",
+            "implementation": "missing",
+            "verification": [],
+            "observation": "Native script evidence supplies a candidate subset of document/window tasks; browser UX-E is explicitly AI-only simulation verification.",
+            "remaining": "No representative human study results were found. AI/CDP/QMP execution cannot count as participants completing tasks.",
+            "evidence": [
+              "docs/implementation/U06-USABILITY-PROTOCOL.md",
+              "docs/verification/uxe-sliceA-20261123/README.md",
+              "docs/verification/uxe-sliceB-20261123/README.md",
+              "https://github.com/BaryonOS/BaryonOS/pull/480#issuecomment-7122327749"
+            ]
+          },
+          {
+            "description": "Measure and resolve friction, errors and visual inconsistency within budgets",
+            "implementation": "partial",
+            "verification": [
+              "host"
+            ],
+            "observation": "Protocol defines findings and retest records; host/native automated tests expose specific present defects.",
+            "remaining": "No human measurement aggregates, accepted budget comparisons or human retest closure. Five ignored UI specs remain recorded functional issues.",
+            "evidence": [
+              "docs/implementation/U06-USABILITY-PROTOCOL.md",
+              "ui/native/tests/recovery_matrix.rs",
+              "ui/native/tests/accessibility_semantics.rs"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "N02",
+        "remaining": "Real authorized connection end-to-end evidence.",
+        "requirements": [
+          {
+            "description": "Address configuration",
+            "implementation": "implemented",
+            "verification": [
+              "native"
+            ],
+            "observation": "DHCP DISCOVER/OFFER/SELECT/ACK applies lease through same transport; NAK withdraws and fresh lease acquired. Host expiry/no-default-DNS cases exist; three native extension cases pass exact main.",
+            "remaining": "Current execution uses controlled synthetic Ethernet peer.",
+            "evidence": [
+              "services/net-config/src/automatic.rs",
+              "services/network-service/tests/dhcp_config.rs",
+              "sdk/examples/network-service/src/service.rs",
+              "docs/verification/n04-successor-20261124/network-dhcp-report.json",
+              "https://github.com/BaryonOS/BaryonOS/actions/runs/45328884633/job/138225243776"
+            ]
+          },
+          {
+            "description": "Name resolution",
+            "implementation": "implemented",
+            "verification": [
+              "native"
+            ],
+            "observation": "Lease-supplied A resolver with bounded TTL/negative cache/epoch invalidation; native A,NXDOMAIN,wrong-ID/wrong-port refusals and re-resolution after changed lease demonstrated.",
+            "remaining": "Real authorized resolver/interoperability scenario not established.",
+            "evidence": [
+              "services/net-protocol/src/resolver.rs",
+              "services/network-service/tests/dns_resolve.rs",
+              "docs/verification/n04-successor-20261124/network-dhcp-report.json",
+              "https://github.com/BaryonOS/BaryonOS/actions/runs/45328884633/job/138225243776"
+            ]
+          },
+          {
+            "description": "Routing",
+            "implementation": "implemented",
+            "verification": [
+              "native"
+            ],
+            "observation": "Native off-link case uses DHCP router/default route and router MAC, with real guest packets verified by controlled peer.",
+            "remaining": "Single Python peer plays router/host/server; actual forwarding path not exercised.",
+            "evidence": [
+              "tools/run_network_dhcp.py",
+              "docs/verification/n04-successor-20261124/network-dhcp-route-report.json",
+              "https://github.com/BaryonOS/BaryonOS/actions/runs/45328884633/job/138225243776"
+            ]
+          },
+          {
+            "description": "Network transitions",
+            "implementation": "implemented",
+            "verification": [
+              "native"
+            ],
+            "observation": "Actual QMP link down/up changes virtio-net STATUS; old configuration withdrawn, fresh lease and DNS acquired; transmit window checked unchanged while down.",
+            "remaining": "Bounded single transition under emulation; real authorized connection transition not recorded.",
+            "evidence": [
+              "sdk/examples/network-service/src/service.rs",
+              "docs/verification/n04-successor-20261124/network-dhcp-link-report.json",
+              "https://github.com/BaryonOS/BaryonOS/actions/runs/45328884633/job/138225243776"
+            ]
+          },
+          {
+            "description": "Required protocols operate on real authorized connections",
+            "implementation": "partial",
+            "verification": [
+              "native"
+            ],
+            "observation": "Native IPv4/ARP/TCP/UDP/DHCP/DNS and HTTP fixture traffic execute; current reports explicitly scope synthetic localhost Ethernet.",
+            "remaining": "No real authorized router/resolver/internet endpoint path and evidence; this is the remaining literal acceptance blocker.",
+            "evidence": [
+              "docs/verification/n04-successor-20261124/README.md",
+              "docs/verification/n04-successor-20261124/network-dhcp-route-report.json",
+              "https://github.com/BaryonOS/BaryonOS/actions/runs/45328884633/job/138225243776",
+              "https://github.com/BaryonOS/BaryonOS/actions/runs/45328884633/job/138225243516"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "N03",
+        "remaining": "Native provider and service/bootstrap; Native-authorized crypto randomness; Native peer/time policy and complete negative handshake evidence.",
+        "requirements": [
+          {
+            "description": "Maintained TLS and fixed hybrid profile implemented",
+            "implementation": "partial",
+            "verification": [
+              "host"
+            ],
+            "observation": "rustls0.23.46 profile module restricts TLS1.3/X25519MLKEM768/TLS13_AES_256_GCM_SHA384/ALPN;17 loopback+8 profile tests pass exact main; native-compatible library compiles.",
+            "remaining": "No selected working native crypto provider/service/bootstrap; no native handshake.",
+            "evidence": [
+              "services/net-tls/Cargo.toml",
+              "services/net-tls/src/profile.rs",
+              "services/net-tls/tests/profile.rs",
+              "https://github.com/BaryonOS/BaryonOS/actions/runs/45328884560/job/138224958178"
+            ]
+          },
+          {
+            "description": "Peer verification",
+            "implementation": "partial",
+            "verification": [
+              "host"
+            ],
+            "observation": "Exact DER/SPKI pins, mutual CertificateVerify proof of private-key possession, extra-chain rejection and ALPN gate exercised. Host positives use fixed time; pin is identity, hostname/roots/validity not consulted.",
+            "remaining": "Native trusted time/peer model and certificate-validity/hostname requirements not implemented/proven.",
+            "evidence": [
+              "services/net-tls/README.md",
+              "services/net-tls/src/profile.rs",
+              "services/net-tls/tests/loopback.rs",
+              "https://github.com/BaryonOS/BaryonOS/actions/runs/45328884560/job/138224958178"
+            ]
+          },
+          {
+            "description": "Negative handshakes",
+            "implementation": "partial",
+            "verification": [
+              "host"
+            ],
+            "observation": "Wrong pins,impostor keys,missing client cert,wrong suite/ALPN,TLS1.2,unavailable time and RNG denial all pass host negatives; no released plaintext on negative handshake paths.",
+            "remaining": "Execute required native handshakes, malformed/expired certificate cases on actual native TLS principal.",
+            "evidence": [
+              "services/net-tls/tests/loopback.rs",
+              "services/net-tls/tests/profile.rs",
+              "https://github.com/BaryonOS/BaryonOS/actions/runs/45328884560/job/138224958178"
+            ]
+          },
+          {
+            "description": "No silent insecure fallback and native-authorized randomness",
+            "implementation": "partial",
+            "verification": [
+              "host"
+            ],
+            "observation": "Classical-only server/client refused; library cannot configure missing hybrid group/suite. KeyServiceRandom covers rustls random calls in synthetic host tests; AWS-LC KEM/signing randomness bypasses it as host-only oracle.",
+            "remaining": "Native provider RNG/platform route and fail-closed full-profile handshake absent.",
+            "evidence": [
+              "services/net-tls/src/profile.rs",
+              "services/net-tls/src/random.rs",
+              "services/net-tls/README.md",
+              "docs/implementation/N03-PROVIDER-DECISION-PROPOSAL.md",
+              "https://github.com/BaryonOS/BaryonOS/actions/runs/45328884560/job/138224958178"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "N04",
+        "remaining": "Production issuer/permission route; Durable revocation and generation-bound regrant; Delegated helper subgrants.",
+        "requirements": [
+          {
+            "description": "Per-process and destination permissions enforced natively",
+            "implementation": "partial",
+            "verification": [
+              "native"
+            ],
+            "observation": "Two actual app principals have kernel-bound ingress and restricted destination grants; wrong destinations/caller requests denied; packet oracle rejects unexpected traffic.",
+            "remaining": "Production issuer/user permission route is absent; current manifest-fixed clients/grants only.",
+            "evidence": [
+              "services/network-service/src/lib.rs",
+              "sdk/examples/network-service/src/service.rs",
+              "docs/verification/n04-successor-20261124/network-service-normal-report.json",
+              "https://github.com/BaryonOS/BaryonOS/actions/runs/45328884633/job/138225243516"
+            ]
+          },
+          {
+            "description": "Revocation enforced on active/new operations and visible in traffic",
+            "implementation": "partial",
+            "verification": [
+              "native"
+            ],
+            "observation": "Native revoke sends authenticated policy command, aborts live appA TCP and denies five retained-handle operations; peer observes RST and no further unauthorized appA frames; appB unaffected.",
+            "remaining": "Durable revocation across service restart and generation-bound explicit regrant remain absent under existing N04 contract.",
+            "evidence": [
+              "docs/verification/n04-native-revoke-20261105/README.md",
+              "docs/verification/n04-successor-20261124/network-service-revoke-report.json",
+              "https://github.com/BaryonOS/BaryonOS/actions/runs/45328884633/job/138225243516"
+            ]
+          },
+          {
+            "description": "Helper routes cannot bypass authority",
+            "implementation": "partial",
+            "verification": [
+              "native"
+            ],
+            "observation": "Unregistered helper sends six well-formed app-endpoint requests; actual sender rejected before decoded/backend/traffic effect; both legitimate clients subsequently succeed. Historical sender-bypass mutant fails raw35.",
+            "remaining": "Positive delegated helper with attenuated subgrant and descendant revocation not implemented; proposal only.",
+            "evidence": [
+              "docs/verification/n04-helper-20261114/README.md",
+              "docs/verification/n04-successor-20261124/network-service-helper-report.json",
+              "docs/implementation/N04-ISSUER-DELEGATION.md",
+              "https://github.com/BaryonOS/BaryonOS/actions/runs/45328884633/job/138225243516"
+            ]
+          },
+          {
+            "description": "No unintended listening ports in observed native profile",
+            "implementation": "implemented",
+            "verification": [
+              "native"
+            ],
+            "observation": "Separate full-sweep successor verifies65535 TCP ports plus16 bounded UDP ports before/after revoke; totals131070 exact RSTs,zero SYN-ACK/UDP replies. Exact-main extension rerun passes raw33; negative peer controls detect synthetic forbidden replies.",
+            "remaining": "Native TCP sweep complete in tested profile; UDP sweep is explicitly bounded16 ports, not exhaustive protocol assurance.",
+            "evidence": [
+              "docs/verification/n04-successor-20261124/network-service-port-sweep-report.json",
+              "docs/roadmap-pipeline/receipts/N04-T1-successor-20261124.json",
+              "tools/network_service_peer.py",
+              "tools/test_network_service_peer.py",
+              "https://github.com/BaryonOS/BaryonOS/actions/runs/45328884633/job/138225243776"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "B01",
+        "remaining": "None within the unchanged B01 criterion. Native QEMU acceptance is recorded; physical entropy, persistent storage rollback and external human audit retain their separate scopes.",
+        "requirements": [
+          {
+            "description": "Native cryptographic entropy with readiness and fail-closed source handling",
+            "implementation": "implemented",
+            "verification": [
+              "native"
+            ],
+            "observation": "Virtio-rng broker; each key service receives1024 startup bytes through continuous health checks. Same-main normal, no-device, stuck, timeout, restart, requester-crash and no-reset-ACK all pass raw33.",
+            "remaining": "None within this scoped requirement.",
+            "evidence": [
+              "services/keyring/src/lib.rs",
+              "services/keyring/src/health.rs",
+              "kernel/src/m2/m3/keyring.rs",
+              "tools/test_keyring.py",
+              "https://github.com/BaryonOS/BaryonOS/actions/runs/45328884511/job/138224957782"
+            ]
+          },
+          {
+            "description": "Native key lifecycle, domain isolation and monotonic revocation",
+            "implementation": "implemented",
+            "verification": [
+              "native"
+            ],
+            "observation": "Current normal generates17 keys; seal/unseal succeeds; tamper4, cross-domain3, revoked2 and quota1 refusals are measured. Maintained crypto and old-recovery/revocation merge tests remain in the host stage.",
+            "remaining": "None within this scoped requirement.",
+            "evidence": [
+              "services/keyring/src/lib.rs",
+              "services/keyring/src/wire.rs",
+              "kernel/src/m2/m3/keyring.rs",
+              "https://github.com/BaryonOS/BaryonOS/actions/runs/45328884511/job/138224957782"
+            ]
+          },
+          {
+            "description": "Recovery authority comes exclusively from manifest-bound management ingress",
+            "implementation": "implemented",
+            "verification": [
+              "native"
+            ],
+            "observation": "Kernel provisions separate management PID and private reply/ingress handles; startup word168 is not user payload. admin_ingress rejects ordinary-client/self identity; poll_admin checks actual IPC sender before decoding/management dispatch. Normal gate checks exact manifest/handle equation.",
+            "remaining": "None within this scoped requirement.",
+            "evidence": [
+              "kernel/src/m2/m3/keyring.rs",
+              "sdk/examples/keyring/src/service.rs",
+              "services/keyring/src/wire.rs",
+              "https://github.com/BaryonOS/BaryonOS/actions/runs/45328884511/job/138224957782"
+            ]
+          },
+          {
+            "description": "Positive native management export and recovery",
+            "implementation": "implemented",
+            "verification": [
+              "native"
+            ],
+            "observation": "Current normal has MGMT_EXPORTS=1,MGMT_RESTORES=1,B_UNSEAL_OK=1. Kernel requires actual admin exit and A-export/B-restore service counters; restored B decrypts A ciphertext.",
+            "remaining": "None within this scoped requirement.",
+            "evidence": [
+              "sdk/examples/keyring/src/app.rs",
+              "kernel/src/m2/m3/keyring.rs",
+              "tools/run_keyring.py",
+              "https://github.com/BaryonOS/BaryonOS/actions/runs/45328884511/job/138224957782"
+            ]
+          },
+          {
+            "description": "Native ordinary-app authorization negatives",
+            "implementation": "implemented",
+            "verification": [
+              "native"
+            ],
+            "observation": "Ordinary ingress EXPORT_RECOVERY and RESTORE denied; app SEND alias at management endpoint produces ADMIN_BAD_CALLER=1 without reply; wrong management secret and GENERATE denied. Historical one-line sender-bypass mutation turns native gate red.",
+            "remaining": "None within this scoped requirement.",
+            "evidence": [
+              "services/keyring/src/wire.rs",
+              "sdk/examples/keyring/src/service.rs",
+              "kernel/src/m2/m3/keyring.rs",
+              "docs/verification/b01-management-recovery-20261118/checks.json",
+              "https://github.com/BaryonOS/BaryonOS/actions/runs/45328884511/job/138224957782"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "B02",
+        "remaining": "Native metadata coverage; Trusted cold rollback floor/anchor and native replay evidence; Native durable key-state commit path; Remaining tamper cases.",
+        "requirements": [
+          {
+            "description": "Native authenticated content persistence and cold reopen",
+            "implementation": "implemented",
+            "verification": [
+              "native"
+            ],
+            "observation": "Existing native-system path seals a128-byte content record, persists ciphertext and120-byte exact key-state blob, then reopens and decrypts on a read-only cold boot with revoked index preserved.",
+            "remaining": "Bounded fixture only; full storage criterion remains incomplete.",
+            "evidence": [
+              "docs/implementation/B02-SECURE-RECORDS.md",
+              "sdk/examples/system/src/app.rs",
+              "sdk/examples/system/src/init.rs",
+              "docs/verification/b02-tamper-20261123/system-gate.json"
+            ]
+          },
+          {
+            "description": "Sensitive names/manifests/index metadata protected on the native storage path",
+            "implementation": "partial",
+            "verification": [
+              "source"
+            ],
+            "observation": "RecordKind separates Content,Name,ObjectMetadata,VolumeManifest,SearchIndex and native cross-kind refusal exists; current persistence fixture stores Content and exact key state, not full encrypted names/manifests/indexes.",
+            "remaining": "Complete native encrypted metadata integration and corresponding persistence/reopen evidence absent.",
+            "evidence": [
+              "services/keyring/src/records.rs",
+              "sdk/examples/system/src/app.rs",
+              "docs/implementation/B02-SECURE-RECORDS.md"
+            ]
+          },
+          {
+            "description": "Native tampering and key-loss refusal",
+            "implementation": "partial",
+            "verification": [
+              "native"
+            ],
+            "observation": "Nov23 native keystate-byte,record-tag,same-chunk swapped-blocks and withheld-secret cases all raw33 with exact refusal; no successful seal/unseal and no read-only writes. Wrong-case control is red.",
+            "remaining": "True multi-chunk/object swaps not exercised; mutating-case kernel against unmutated image causal control not run. Constant COLD_PLAINTEXT_REPLIES=0 is not itself a measured oracle.",
+            "evidence": [
+              "docs/verification/b02-tamper-20261123/README.md",
+              "docs/verification/b02-tamper-20261123/runs.json",
+              "tools/run_system.py",
+              "kernel/src/m2/m3/system.rs"
+            ]
+          },
+          {
+            "description": "Replay/rollback resistance and tests within declared cold-storage threat model",
+            "implementation": "partial",
+            "verification": [
+              "host"
+            ],
+            "observation": "Generation comparison and live revocation merge exist; cold minimum_generation0 and replay of matching old context are explicitly UNPROTECTED. No native stale-image observation.",
+            "remaining": "Trusted cold generation anchor/floor and native replay/rollback cases absent.",
+            "evidence": [
+              "services/keyring/src/persistent.rs",
+              "services/keyring/tests/secure_records.rs",
+              "docs/implementation/B02-SECURE-RECORDS.md",
+              "docs/verification/b02-tamper-20261123/README.md"
+            ]
+          },
+          {
+            "description": "Durable key-allocation/revocation ordering on native storage",
+            "implementation": "partial",
+            "verification": [
+              "host"
+            ],
+            "observation": "generate_durable/revoke_durable and dispatch_domain_durable exist; host crash-boundary tests enforce no ciphertext before commit, no false revoke confirmation and no Unknown retry. ADR authorizes TEST init relay.",
+            "remaining": "Native key-state store/relay not wired; current init/app KEYS_READY/PERSISTED ordering can be bypassed by an uncooperative app.",
+            "evidence": [
+              "services/keyring/src/persistent.rs",
+              "services/keyring/src/wire.rs",
+              "services/keyring/tests/write_ahead.rs",
+              "docs/DECISIONS.md",
+              "docs/implementation/B02-SECURE-RECORDS.md",
+              "https://github.com/BaryonOS/BaryonOS/actions/runs/45328884511/job/138224957782"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "B04",
+        "remaining": "Release chain/rotation implementation and evidence; Build divergence and complete provenance; Complete independent release-profile review.",
+        "requirements": [
+          {
+            "description": "Verified firmware-to-loader and loader-to-image chain",
+            "implementation": "partial",
+            "verification": [
+              "native"
+            ],
+            "observation": "Five disposable-QEMU TEST cases executed: unsigned,foreign-key and tampered loaders refused with firmware denial; signed loader and kernel-digest fallback pass raw33. Cross-case proof required.",
+            "remaining": "TEST anchors/firmware only; complete release chain/enrolment not established. Hosted integration request remains unwired; ordinary B03 job is not B04 execution.",
+            "evidence": [
+              "docs/implementation/B04-SECURE-BOOT-TEST-CHAIN.md",
+              "tools/run_secure_boot.py",
+              "docs/verification/b04-secure-boot-20261123/README.md",
+              "docs/verification/b04-secure-boot-20261123/signed/result.json"
+            ]
+          },
+          {
+            "description": "Key rotation and revocation bounded for release profile",
+            "implementation": "partial",
+            "verification": [
+              "source"
+            ],
+            "observation": "Target architecture D1-D7 adopted; canonical policy/successor validation and TEST probe exist. Secure Boot runner explicitly excludes PK/KEK/db/dbx updates/rotation and rollback.",
+            "remaining": "End-to-end release-profile key rotation/revocation/trust-failure execution and custodians/anchor decisions not complete.",
+            "evidence": [
+              "docs/DECISIONS.md",
+              "crates/update-core/src/policy_envelope.rs",
+              "boot/loader/src/signed.rs",
+              "docs/verification/b04-secure-boot-20261123/README.md"
+            ]
+          },
+          {
+            "description": "Dependency and build provenance with bounded reproduction",
+            "implementation": "partial",
+            "verification": [
+              "host"
+            ],
+            "observation": "Pinned manifests/lockfiles/provenance records and repro checker exist. Actual recorded double build finished but loader/image_payload differ; exit1 is correct detection, not reproducibility success.",
+            "remaining": "Resolve recorded build divergence and complete release provenance evidence; no independent-environment reproducibility result.",
+            "evidence": [
+              "docs/DEPENDENCIES.md",
+              "tools/repro_check.py",
+              "docs/roadmap-pipeline/receipts/B04-T2.json"
+            ]
+          },
+          {
+            "description": "Independent review of complete release-chain bounds",
+            "implementation": "partial",
+            "verification": [
+              "source"
+            ],
+            "observation": "Runner and combined integration received AI/code reviews; PR476 landing clarifies preserved source-bound Secure Boot evidence and unexecuted hosted gate.",
+            "remaining": "No recorded independent assessment covering the complete release-profile chain, rotation and provenance.",
+            "evidence": [
+              "https://github.com/BaryonOS/BaryonOS/pull/476#issuecomment-7117370183",
+              "docs/implementation/B04-SECURE-BOOT-CI-INTEGRATION-REQUEST.md",
+              "docs/verification/b04-secure-boot-20261123/README.md"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "B05",
+        "remaining": "External expert examination; Blocking-finding disposition/retest; Review-appropriate invariant coverage.",
+        "requirements": [
+          {
+            "description": "Kernel/service/DMA/parser/capability examination scope",
+            "implementation": "implemented",
+            "verification": [
+              "host"
+            ],
+            "observation": "Seven-boundary scope inventory and path checker exist; checker verifies paths/inventory only.",
+            "remaining": "Inventory is preparation; it does not establish the examination.",
+            "evidence": [
+              "docs/security-review/B05-REVIEW-SCOPE.md",
+              "docs/security-review/scope.json",
+              "tools/b05_scope_check.py"
+            ]
+          },
+          {
+            "description": "External experts perform bounded examination",
+            "implementation": "missing",
+            "verification": [],
+            "observation": "Scope explicitly says no external review commissioned/performed; AI reviews are not human external audit.",
+            "remaining": "External reviewer engagement and report required.",
+            "evidence": [
+              "docs/security-review/B05-REVIEW-SCOPE.md",
+              "docs/roadmap-pipeline/ledger.json"
+            ]
+          },
+          {
+            "description": "Blocking external-review findings resolved and retested",
+            "implementation": "unknown",
+            "verification": [],
+            "observation": "No external report or corresponding final finding disposition exists in the scoped evidence.",
+            "remaining": "Cannot establish absence/resolution of blocking findings before examination and retest.",
+            "evidence": [
+              "docs/security-review/B05-REVIEW-SCOPE.md"
+            ]
+          },
+          {
+            "description": "Selected invariants checked by machine within explicit bounds",
+            "implementation": "partial",
+            "verification": [
+              "host"
+            ],
+            "observation": "Capability enumeration covers19607 nonempty prefixes of7 actions through depth5 with revoke-weakened mutant red; ELF and policy-envelope bounded parser checks and mutation controls added.",
+            "remaining": "Bounded tests are not unbounded/formal proofs; external review must determine which additional invariants require stronger verification.",
+            "evidence": [
+              "crates/capability-core/tests/exhaustive_revocation.rs",
+              "docs/roadmap-pipeline/receipts/B05-T2.json",
+              "docs/security-review/B05-T4-INVARIANTS.md",
+              "crates/elf-loader-core/tests/bounded_parser_invariants.rs",
+              "crates/update-core/tests/bounded_policy_envelope_invariants.rs"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "B06",
+        "remaining": "Complete applicable LP scenarios; Native local AI/model/download routes; No-telemetry/fallback scenario evidence.",
+        "requirements": [
+          {
+            "description": "Applicable LP scenarios pass natively on independent OS",
+            "implementation": "partial",
+            "verification": [
+              "native"
+            ],
+            "observation": "31-row evidence matrix exists. Current mapping has1 native core denial(LP10) and30 none; LP10 is partial network-handle scenario, not a full31-scenario or even complete LP10 acceptance. LP12 has only update-path evidence.",
+            "remaining": "Complete applicable LP scenarios unproved; structural checker does not establish semantic coverage or authenticity.",
+            "evidence": [
+              "docs/verification/b06-lp-matrix-20261123/README.md",
+              "docs/verification/b06-lp-matrix-20261123/matrix.json",
+              "tools/lp_matrix.py"
+            ]
+          },
+          {
+            "description": "No telemetry or silent cloud/relay fallback in native product flows",
+            "implementation": "partial",
+            "verification": [
+              "source"
+            ],
+            "observation": "Binding privacy contract forbids telemetry/fallback; LP13 remains no mapped complete-scenario evidence. Existing bounded network packet oracles do not cover all installation/periodic product activity.",
+            "remaining": "Native whole-scenario egress/absence-of-fallback evidence missing.",
+            "evidence": [
+              "docs/LOCAL-PRIVACY-CONTRACT.md",
+              "docs/verification/b06-lp-matrix-20261123/matrix.json"
+            ]
+          },
+          {
+            "description": "Local AI executes on independent OS with no inference network authority",
+            "implementation": "missing",
+            "verification": [],
+            "observation": "Matrix and B06-T3 state native model-loader/AI rows remain blocked; host work does not establish native inference.",
+            "remaining": "Native local AI runtime/model validation and corresponding LP scenarios missing.",
+            "evidence": [
+              "docs/verification/b06-lp-matrix-20261123/README.md",
+              "docs/roadmap-pipeline/ledger.json",
+              "docs/LOCAL-PRIVACY-CONTRACT.md"
+            ]
+          },
+          {
+            "description": "App/download permissions separated and enforced in applicable native scenarios",
+            "implementation": "partial",
+            "verification": [
+              "native"
+            ],
+            "observation": "Network app isolation/revocation and signed-update refusal have bounded native evidence. Model/package/update are three distinct paths; only OS update denial is mapped.",
+            "remaining": "Native downloader/app/model integration and all required permission negatives absent.",
+            "evidence": [
+              "docs/verification/b06-lp-matrix-20261123/README.md",
+              "docs/verification/n04-successor-20261124/network-service-helper-report.json",
+              "docs/LOCAL-PRIVACY-CONTRACT.md"
+            ]
+          },
+          {
+            "description": "Remaining privacy risks published",
+            "implementation": "implemented",
+            "verification": [
+              "source"
+            ],
+            "observation": "Each matrix row records explicit residual scope; native mapping meaning and limitations documented.",
+            "remaining": "None within this scoped requirement.",
+            "evidence": [
+              "docs/verification/b06-lp-matrix-20261123/README.md",
+              "docs/verification/b06-lp-matrix-20261123/matrix.json"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "A02",
+        "remaining": "Host package/installer and provenance mechanisms exist, but no native end-to-end package lifecycle/authority enforcement exists.",
+        "requirements": [
+          {
+            "description": "Support multiple selected package sources with provenance checks",
+            "implementation": "partial",
+            "verification": [
+              "host"
+            ],
+            "observation": "SourceRegistry supports explicit sources, generation-checked add/rotate/revoke and dual Ed25519/ML-DSA-65 package verification tied to image/ELF policy.",
+            "remaining": "Durable authenticated source registry, authorized actor and publisher-anchor recovery are not implemented; policy remains an in-memory core.",
+            "evidence": [
+              "crates/app-package-core/src/lib.rs",
+              "docs/implementation/APP-PACKAGES.md",
+              "docs/contracts/APP-SOURCE-RECOVERY.md",
+              "docs/roadmap-pipeline/receipts/A02-T1.json"
+            ]
+          },
+          {
+            "description": "Install, remove and update applications natively",
+            "implementation": "partial",
+            "verification": [
+              "host"
+            ],
+            "observation": "Installer composes verifier, immutable artifact transaction, catalogue and journal; A02-T1 source/test hashes match receipt and 38+10 host test evidence.",
+            "remaining": "No persistent native store adapter, installer service, dynamic authenticated app-image loading/launch chain or native recovery execution.",
+            "evidence": [
+              "sdk/app-management/src/installer.rs",
+              "sdk/app-management/src/catalog.rs",
+              "sdk/app-management/src/journal.rs",
+              "sdk/app-management/tests/installer.rs",
+              "docs/implementation/APP-PACKAGES.md",
+              "docs/roadmap-pipeline/receipts/A02-T1.json"
+            ]
+          },
+          {
+            "description": "Installation grants no broad capabilities",
+            "implementation": "partial",
+            "verification": [
+              "host"
+            ],
+            "observation": "Package metadata has no rights declaration; verification returns a loading description without launch authority and installer contract confers no authority.",
+            "remaining": "An actual native installation/launch path and negative enforcement tests are missing, so the complete runtime property cannot be accepted.",
+            "evidence": [
+              "crates/app-package-core/src/lib.rs",
+              "sdk/app-management/src/installer.rs",
+              "docs/implementation/APP-PACKAGES.md",
+              "sdk/AGENTS.md"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "A03",
+        "remaining": "Native objects and grant-policy/prototype design work exist; actual native visible revocation and authenticated helper boundaries remain incomplete.",
+        "requirements": [
+          {
+            "description": "Native applications use Material objects",
+            "implementation": "implemented",
+            "verification": [
+              "native"
+            ],
+            "observation": "Native Materiaal uses real volume documents and endpoint/domain isolation; library and cold reopen flow pass on current main.",
+            "remaining": "This supplies data access, not a dynamic visible per-object grant system.",
+            "evidence": [
+              "sdk/examples/materiaal/src/main.rs",
+              "docs/implementation/NATIVE-MATERIAL-LIBRARY.md",
+              "https://github.com/BaryonOS/BaryonOS/actions/runs/45318640704/job/138191630466",
+              "https://github.com/BaryonOS/BaryonOS/pull/480#issuecomment-7122327749"
+            ]
+          },
+          {
+            "description": "Visible, revocable task permissions",
+            "implementation": "partial",
+            "verification": [
+              "host"
+            ],
+            "observation": "Task-grant core binds app/process incarnation/object/revision/rights, revokes on lifecycle events and has host tests/target compilation. UX-C/UX-E consent and revocation interaction designs are implemented in browser simulation.",
+            "remaining": "Future trusted adapter must own Grants and authenticate actor/object/lifecycle on every operation. No connected native grant broker/trusted dialog/per-object volume enforcement; U03 readonly profile is only part1 target compilation.",
+            "evidence": [
+              "sdk/task-grant-core/README.md",
+              "sdk/task-grant-core/src/lib.rs",
+              "docs/roadmap-pipeline/receipts/A03-T1.json",
+              "docs/verification/uxc-run2-20261119/README.md",
+              "docs/verification/uxe-sliceB-20261123/README.md",
+              "https://github.com/BaryonOS/BaryonOS/pull/480#issuecomment-7122327749"
+            ]
+          },
+          {
+            "description": "Helpers and extensions cannot bypass permissions",
+            "implementation": "partial",
+            "verification": [
+              "host"
+            ],
+            "observation": "Host grant model has no delegation/inheritance/transfer API and fails stale actor/session/object identities.",
+            "remaining": "No end-to-end native hostile helper/extension test through the real trusted adapter. Host-supplied IDs and handles are not authentication.",
+            "evidence": [
+              "sdk/task-grant-core/README.md",
+              "sdk/task-grant-core/src/tests.rs",
+              "docs/roadmap-pipeline/receipts/A03-T1.json"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "A04",
+        "remaining": "Document editing is native-proven; internet/media/file-exchange apps and realistic suite-wide task evidence remain incomplete.",
+        "requirements": [
+          {
+            "description": "Internet use through a native application or controlled port",
+            "implementation": "missing",
+            "verification": [
+              "source"
+            ],
+            "observation": "Native network/service foundations are separate work; ledger identifies browser/controlled-port engine choice as open.",
+            "remaining": "No user-facing native browser/controlled port and realistic internet application task evidence found.",
+            "evidence": [
+              "docs/roadmap-pipeline/ledger.json",
+              "docs/implementation/U06-USABILITY-PROTOCOL.md"
+            ]
+          },
+          {
+            "description": "Native document editing",
+            "implementation": "implemented",
+            "verification": [
+              "native"
+            ],
+            "observation": "Materiaal editing/save/library/cold reopen operates on actual native documents and passes current source-bound QEMU gates.",
+            "remaining": "General app-suite/format interchange and human task validation are separate unresolved clauses.",
+            "evidence": [
+              "sdk/examples/materiaal/src/main.rs",
+              "docs/implementation/NATIVE-MATERIAL-LIBRARY.md",
+              "https://github.com/BaryonOS/BaryonOS/actions/runs/45318640704/job/138191630466",
+              "https://github.com/BaryonOS/BaryonOS/pull/480#issuecomment-7122327749"
+            ]
+          },
+          {
+            "description": "Native media use",
+            "implementation": "partial",
+            "verification": [
+              "host"
+            ],
+            "observation": "Image decoding/viewer and WAV clipping components exist with host/target evidence. Kernel-only virtio-snd fixture exists with QEMU output evidence, separately from apps.",
+            "remaining": "Image-viewer native portal/window integration is open; WAV leaf is not playback; no ring3 audio application path. Do not equate codec/driver fixtures to a usable media app.",
+            "evidence": [
+              "docs/implementation/NATIVE-IMAGES.md",
+              "sdk/examples/image-viewer/README.md",
+              "sdk/examples/audio-clip/README.md",
+              "docs/PROJECT-STATE.md"
+            ]
+          },
+          {
+            "description": "Native file exchange",
+            "implementation": "partial",
+            "verification": [
+              "host"
+            ],
+            "observation": "DOCX plain-text import/export and media file transforms produce bounded real host files. Native S09 archive/ustar fixture export is additional low-level progress.",
+            "remaining": "Native deliberate open/save/export portal and end-to-end app/file-exchange integration are absent; host CLI conversion is not native app usability.",
+            "evidence": [
+              "sdk/examples/document-import/README.md",
+              "sdk/examples/document-export/README.md",
+              "sdk/examples/audio-clip/README.md",
+              "tools/test_volume.py",
+              "https://github.com/BaryonOS/BaryonOS/pull/477#issuecomment-7119252774"
+            ]
+          },
+          {
+            "description": "Realistic user tasks across the minimum application set",
+            "implementation": "missing",
+            "verification": [],
+            "observation": "U06 defines testable and unavailable tasks without shrinking the required scope.",
+            "remaining": "No representative native application-set human task completion evidence; media, indexed search, account and permission tasks are unavailable in interactive bundles.",
+            "evidence": [
+              "docs/implementation/U06-USABILITY-PROTOCOL.md"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "P01",
+        "remaining": "P01 requires the encryption, identity and native-network joins; existing core/storage proofs are meaningful but insufficient.",
+        "requirements": [
+          {
+            "description": "Native client and NAS roles pair with verified identity",
+            "implementation": "partial",
+            "verification": [
+              "native"
+            ],
+            "observation": "Native NAS core/probe uses kernel-supplied local principals and bounded invite/accept operations; fresh normal/cold probe passes.",
+            "remaining": "Local fingerprints/principals are not authenticated remote identities; two-OS transport, verified peer/account binding and native pairing UX remain missing.",
+            "evidence": [
+              "services/nas/native-core/src/lib.rs",
+              "services/nas/native-probe/src/lib.rs",
+              "services/nas/native-probe/CONTRACT.md",
+              "https://github.com/BaryonOS/BaryonOS/actions/runs/45318640708/job/138191503999"
+            ]
+          },
+          {
+            "description": "Names and content are unreadable to the administrator",
+            "implementation": "missing",
+            "verification": [
+              "source"
+            ],
+            "observation": "The management core stores only opaque input; keyring sealed records and the NAS consumer mapping are separate. NAS-SEAL-LIFECYCLE is explicitly a proposal.",
+            "remaining": "Implement authorized client encryption for content/names/manifests, peer/namespace-to-volume authority mapping and the bounded record/wire join. Synthetic opaque bytes do not prove E2EE.",
+            "evidence": [
+              "services/nas/native-core/README.md",
+              "docs/implementation/NAS-SEAL-LIFECYCLE.md"
+            ]
+          },
+          {
+            "description": "Failure and attack paths preserve confidentiality and authority",
+            "implementation": "partial",
+            "verification": [
+              "native"
+            ],
+            "observation": "Local management/volume probes reject stale/replayed handles and retain Unknown outcomes; normal/cold NAS passes on the accepted merge tree.",
+            "remaining": "Execute end-to-end ciphertext tampering, identity/invite attacks, administrator-capture, crash and rollback tests on the real native encryption/transport chain.",
+            "evidence": [
+              "services/nas/native-probe/src/volume_transport.rs",
+              "services/nas/native-volume/src/lib.rs",
+              "https://github.com/BaryonOS/BaryonOS/actions/runs/45318640708/job/138191503999"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "P02",
+        "remaining": "Retain P02-T1/T2 as completed building blocks; native transport, durable client persistence and conflict/resume integration still block the gate.",
+        "requirements": [
+          {
+            "description": "Previously authorized peers resume automatically",
+            "implementation": "partial",
+            "verification": [
+              "host"
+            ],
+            "observation": "Client::reconcile_latest uses Service::head and a revision-checked read in one session; checkpoints restore unfinished work as NeedsReconcile without live session/upload handles.",
+            "remaining": "No native sync agent or remote Head wire opcode. Peer authentication, atomic durable checkpoints and trusted freshness remain required.",
+            "evidence": [
+              "services/nas/native-client/src/lib.rs",
+              "services/nas/native-core/src/lib.rs",
+              "docs/roadmap-pipeline/receipts/P02-T1.json",
+              "https://github.com/BaryonOS/BaryonOS/actions/runs/45318640708/job/138191504211",
+              "https://github.com/BaryonOS/BaryonOS/actions/runs/45318640708/job/138191504376"
+            ]
+          },
+          {
+            "description": "Offline edits and conflicts do not silently lose data",
+            "implementation": "partial",
+            "verification": [
+              "host"
+            ],
+            "observation": "Four-entry bounded queue retains local and observed remote ciphertext, enforces CAS conflicts and never treats Unknown as an ACK; canonical codec rejects malformed state/padding/duplicates.",
+            "remaining": "Host queue bytes are not authenticated durable disk state; native offline-edit/cold-restart/reconcile and practical conflict UI are unverified.",
+            "evidence": [
+              "services/nas/native-client/src/checkpoint.rs",
+              "services/nas/native-client/README.md",
+              "docs/roadmap-pipeline/receipts/P02-T2.json",
+              "https://github.com/BaryonOS/BaryonOS/actions/runs/45318640708/job/138191504211"
+            ]
+          },
+          {
+            "description": "LAN/internet transitions preserve the same permissions",
+            "implementation": "missing",
+            "verification": [
+              "source"
+            ],
+            "observation": "Contracts require peer-bound authorization and forbid implicit provider/fallback selection; current client calls a local core and NASP has no remote sync route.",
+            "remaining": "Implement and exercise native transport switching/reconnect with unchanged peer/scope authority and loss handling.",
+            "evidence": [
+              "services/nas/native-client/README.md",
+              "services/nas/native-probe/src/lib.rs",
+              "docs/implementation/NAS-SHARING-AND-INTERNET.md"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "P03",
+        "remaining": "No multi-device gate acceptance until enrollment/rotation/recovery are integrated and run natively.",
+        "requirements": [
+          {
+            "description": "Securely add and revoke devices",
+            "implementation": "partial",
+            "verification": [
+              "source"
+            ],
+            "observation": "The proposed lifecycle names verified identities, enrollment generations and separate admin/content authority; local NAS revokes guest namespaces, not device enrollment.",
+            "remaining": "Adopt and implement owner/security decisions for initial/secondary enrollment authority, device identities and trust transfer; then native negative tests.",
+            "evidence": [
+              "docs/implementation/NAS-DEVICE-KEYS-PROPOSAL.md",
+              "services/nas/native-core/src/lib.rs",
+              "docs/roadmap-pipeline/receipts/P03-T1.json"
+            ]
+          },
+          {
+            "description": "Key rotation and concurrent writers",
+            "implementation": "partial",
+            "verification": [
+              "host"
+            ],
+            "observation": "Native-core CAS rejects conflicting revisions; native-client retains both sides. Device key hierarchy, rotation distribution and publication remain proposed.",
+            "remaining": "No native multi-device rotation or concurrent writer recovery across encrypted key generations.",
+            "evidence": [
+              "services/nas/native-core/src/lib.rs",
+              "services/nas/native-client/src/lib.rs",
+              "docs/implementation/NAS-DEVICE-KEYS-PROPOSAL.md",
+              "https://github.com/BaryonOS/BaryonOS/actions/runs/45318640708/job/138191504376",
+              "https://github.com/BaryonOS/BaryonOS/actions/runs/45318640708/job/138191504211"
+            ]
+          },
+          {
+            "description": "Recovery without vendor escrow",
+            "implementation": "partial",
+            "verification": [
+              "source"
+            ],
+            "observation": "Keyring persistent export/restore provides an existing bounded high-entropy-secret route; the proposed NAS device design prohibits provider escrow.",
+            "remaining": "Define authorized device recovery and independent cold freshness; execute lost/revoked device, wrong secret, stale snapshot and interrupted rotation scenarios.",
+            "evidence": [
+              "services/keyring/src/persistent.rs",
+              "docs/implementation/NAS-DEVICE-KEYS-PROPOSAL.md"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "P04",
+        "remaining": "Finish authenticated product administration, native interrupted purge/recovery and end-to-end revoked remote-session refusal; keep all completed local native evidence visible.",
+        "requirements": [
+          {
+            "description": "Native NAS administrator manages quotas",
+            "implementation": "partial",
+            "verification": [
+              "native"
+            ],
+            "observation": "SetQuota uses the separate admin principal, counts published and reserved bytes and works with a full guest quota; native P04-T2 workload exercises full/cancel/retry/quota increase.",
+            "remaining": "No product native administration identity/LP-21 screen or authenticated remote guest integration.",
+            "evidence": [
+              "services/nas/native-core/src/lib.rs",
+              "services/nas/native-probe/CONTRACT.md",
+              "docs/roadmap-pipeline/receipts/P04-T2.json",
+              "https://github.com/BaryonOS/BaryonOS/actions/runs/45318640708/job/138191503999"
+            ]
+          },
+          {
+            "description": "Revoke guest authority and remove local copies without consent or content keys",
+            "implementation": "partial",
+            "verification": [
+              "native"
+            ],
+            "observation": "Revoke persists a higher-epoch tombstone before handle retirement; evict performs a second durable transaction. P04-T2 revokes/evicts a second guest only after kernel-observed guest exit.",
+            "remaining": "P04-T1 interrupted native LP-25 purge is not complete; adapter temporary snapshots/history and exact logical-deletion coverage still need acceptance. No physical secure-erase claim.",
+            "evidence": [
+              "services/nas/native-core/src/lib.rs",
+              "services/nas/native-probe/CONTRACT.md",
+              "https://github.com/BaryonOS/BaryonOS/actions/runs/45318640708/job/138191503999",
+              "docs/roadmap-pipeline/receipts/P04-T2.json"
+            ]
+          },
+          {
+            "description": "Old sessions/uploads cannot revive after revocation or restart",
+            "implementation": "partial",
+            "verification": [
+              "native"
+            ],
+            "observation": "Sessions/uploads are boot/epoch bound and not restored; the current normal/cold probe passes with cold_disk_unchanged true and source-bound captured replay checks.",
+            "remaining": "Remote authenticated old sessions and production administration across restart are not demonstrated; fixture principal and capacity limits remain.",
+            "evidence": [
+              "services/nas/native-core/src/lib.rs",
+              "services/nas/native-probe/disk_oracle.py",
+              "tools/test_nas.py",
+              "https://github.com/BaryonOS/BaryonOS/actions/runs/45318640708/job/138191503999"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "L01",
+        "remaining": "Useful host/target AI foundations exist, but there is no native inference task or native denial/failure-path acceptance.",
+        "requirements": [
+          {
+            "description": "Agreed core AI tasks execute locally",
+            "implementation": "partial",
+            "verification": [
+              "host"
+            ],
+            "observation": "Verified artifact reader, safetensors parser and f32 dense/ReLU/RMSNorm/SwiGLU numerical building blocks exist. L01-T2/T3 receipts show host tests and scalar target compilation.",
+            "remaining": "No approved complete engine/model/tokenizer route or transformer attention/RoPE/KV graph; no native inference or actual task outputs/quality acceptance.",
+            "evidence": [
+              "experiments/ai/model-store-contract/README.md",
+              "experiments/ai/model-format/README.md",
+              "experiments/ai/reference-forward/src/lib.rs",
+              "experiments/ai/reference-forward/README.md",
+              "docs/roadmap-pipeline/receipts/L01-T2.json",
+              "docs/roadmap-pipeline/receipts/L01-T3.json"
+            ]
+          },
+          {
+            "description": "Bound context and resource usage",
+            "implementation": "partial",
+            "verification": [
+              "host"
+            ],
+            "observation": "Reader/parser/numerical work are bounded and fail explicitly; reference forward caps multiply-accumulate work at 1,048,576. Proposed context/KV/VM budgets are documented.",
+            "remaining": "No native complete inference allocation/context/cancellation implementation or measured memory/latency/quality against agreed task budgets.",
+            "evidence": [
+              "experiments/ai/reference-forward/src/lib.rs",
+              "experiments/ai/model-store-contract/README.md",
+              "docs/implementation/LOCAL-AI-L01-PROPOSAL.md"
+            ]
+          },
+          {
+            "description": "Separate model downloading and tested inference network denial",
+            "implementation": "partial",
+            "verification": [
+              "source"
+            ],
+            "observation": "Contracts separate downloader authority from inference and forbid personal-data grants/fallback.",
+            "remaining": "No downloader/model installation integration or native AI-role direct/delegated-helper/subprocess network-denial probe. N04 foundations alone cannot establish an AI process path that is not wired.",
+            "evidence": [
+              "experiments/ai/model-store-contract/README.md",
+              "docs/implementation/LOCAL-AI-L01-PROPOSAL.md",
+              "docs/roadmap-pipeline/ledger.json"
+            ]
+          },
+          {
+            "description": "Resource failure never silently falls back to cloud",
+            "implementation": "partial",
+            "verification": [
+              "host"
+            ],
+            "observation": "Bounded components report explicit errors; product contract and experiment proposal forbid fallback.",
+            "remaining": "No complete native inference request path to test missing model, oversized context/KV, OOM and cancellation with observed zero egress and no false success.",
+            "evidence": [
+              "experiments/ai/reference-forward/src/lib.rs",
+              "experiments/ai/model-store-contract/README.md",
+              "docs/implementation/LOCAL-AI-L01-PROPOSAL.md"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "R01",
+        "remaining": "Complete and test the real installer/recovery chain; do not confuse app INSTALL transactions or a Windows QEMU bundle with OS installation.",
+        "requirements": [
+          {
+            "description": "User installs the OS using controlled preserve/wipe choices",
+            "implementation": "missing",
+            "verification": [
+              "source"
+            ],
+            "observation": "The complete OS installer is explicitly a proposal; current INSTALL APIs are app/storage transactions and do not implement physical OS partition installation.",
+            "remaining": "Implement native disk inventory/GPT/plan execution, stable target identity, preserve/wipe authorization and accessible installer flow.",
+            "evidence": [
+              "docs/product/new-os-installer-spec.md",
+              "docs/roadmap-pipeline/ledger.json",
+              "sdk/app-management/src/installer.rs"
+            ]
+          },
+          {
+            "description": "User upgrades and recovers without losing preserved data",
+            "implementation": "partial",
+            "verification": [
+              "native"
+            ],
+            "observation": "Existing B03 signed update slots, interrupted-update and cold volume recovery have bounded native evidence; PR477/480 preserve uncertain storage outcomes.",
+            "remaining": "These isolated fixtures do not prove an integrated installed product, independent recovery medium or preserve/wipe recovery on physical hardware.",
+            "evidence": [
+              "boot/loader/src/signed.rs",
+              "docs/implementation/B03-SIGNED-UPDATES.md",
+              "docs/verification/B03-ACCEPTANCE.md",
+              "docs/verification/B03-KEY-POLICY-1.md",
+              "https://github.com/BaryonOS/BaryonOS/actions/runs/45304894273/job/138146193206"
+            ]
+          },
+          {
+            "description": "Practical independent recovery test on supported hardware",
+            "implementation": "missing",
+            "verification": [],
+            "observation": "HW-FR target and physical install protocol owner decisions remain open.",
+            "remaining": "Named hardware, authorized physical installation and user practical recovery task are required.",
+            "evidence": [
+              "docs/drivers/physical-protocols.json",
+              "docs/drivers/hardware-matrix.json",
+              "docs/FULL-TEST-RELEASE.md"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "R02",
+        "remaining": "Define budgets, finish a stable combined product image and run the specified endurance and physical measurements.",
+        "requirements": [
+          {
+            "description": "Predefine duration, workload, energy, memory and latency budgets",
+            "implementation": "partial",
+            "verification": [
+              "source"
+            ],
+            "observation": "FR-R02 prescribes 100 cold starts and 24 hours of combined product use; workload/p50/p95/energy/memory/latency values still require a release decision (R02-L1).",
+            "remaining": "Freeze the complete numerical budgets and final workload before measuring.",
+            "evidence": [
+              "docs/FULL-TEST-RELEASE.md",
+              "docs/roadmap-pipeline/ledger.json"
+            ]
+          },
+          {
+            "description": "Meet endurance and data-integrity budgets on physical hardware",
+            "implementation": "missing",
+            "verification": [],
+            "observation": "Component/native cold recovery and repeated S3/S5 demonstrate bounded tests only; HW-FR has no accepted physical evidence.",
+            "remaining": "No one-image 100-cold-start/24-hour physical combined-workload evidence, energy measurements or product-wide leak/integrity assessment.",
+            "evidence": [
+              "docs/drivers/hardware-matrix.json",
+              "tools/test_power_system.py",
+              "https://github.com/BaryonOS/BaryonOS/actions/runs/45318640387/job/138191502025",
+              "https://github.com/BaryonOS/BaryonOS/actions/runs/45318640387/job/138191502229"
+            ]
+          },
+          {
+            "description": "Meet latency/usability targets with no blocking defects",
+            "implementation": "partial",
+            "verification": [
+              "native"
+            ],
+            "observation": "PR480 passes the scripted native window-session gates at scales 1 and 2 on merge checkout 4677238. These automated interaction and recovery checks do not establish product latency, physical performance or human usability acceptance. Separately, the historical Windows/WHPX A/B study measures idle CPU use on its own frozen sources.",
+            "remaining": "Current-source physical performance and human usability acceptance are absent; retained ignored UX tests/known limitations must be resolved or scoped by the fixed contract.",
+            "evidence": [
+              "docs/implementation/VM-HARDWARE-AND-PERFORMANCE.md",
+              "docs/implementation/GUI-IDLE-WAIT.md",
+              "docs/STATUS.md",
+              "docs/verification/gui-idle-20261102/windows-ab/README.md",
+              "https://github.com/BaryonOS/BaryonOS/actions/runs/45318640704/job/138191630466",
+              "https://github.com/BaryonOS/BaryonOS/actions/runs/45318640704/job/138191630768"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "R03",
+        "remaining": "Retain the implemented governance foundations, but complete SBOM, reproducibility, supported maintenance and concrete product obligations before accepting R03.",
+        "requirements": [
+          {
+            "description": "Independent reproducible release build",
+            "implementation": "partial",
+            "verification": [
+              "host"
+            ],
+            "observation": "tools/repro_check.py compares two isolated default builds on one host. The recorded actual run completed but returned exit1 because loader and ESP payload differed.",
+            "remaining": "Resolve nondeterminism and reproduce a final release independently with complete source/tool/firmware/input binding; same-host payload comparison is not disk-image reproduction.",
+            "evidence": [
+              "tools/repro_check.py",
+              "tools/tests/test_repro_check.py",
+              "docs/roadmap-pipeline/receipts/B04-T2.json"
+            ]
+          },
+          {
+            "description": "Licenses and release-bound machine-readable SBOM",
+            "implementation": "partial",
+            "verification": [
+              "source"
+            ],
+            "observation": "MPL-2.0 scope and third-party notices are applied; R03-T1 SBOM generator is still blocked and tools/sbom.py is absent.",
+            "remaining": "Complete SBOM for the actual image, direct/transitive crates, vendored patches, tools, firmware, fonts and models with verified license records.",
+            "evidence": [
+              "LICENSE",
+              "LICENSING.md",
+              "MPL-2.0-FILES.txt",
+              "THIRD-PARTY.md",
+              "docs/roadmap-pipeline/ledger.json"
+            ]
+          },
+          {
+            "description": "Concrete release, patch and support policy",
+            "implementation": "partial",
+            "verification": [
+              "source"
+            ],
+            "observation": "SECURITY.md describes active main development and explicitly no supported production release, structured older-version support or guaranteed remediation deadline.",
+            "remaining": "Establish supported release/version periods, patch/advisory roles, production signing/key compromise recovery and maintenance responsibilities.",
+            "evidence": [
+              "SECURITY.md",
+              "docs/implementation/EUROPE-AND-RELEASE.md"
+            ]
+          },
+          {
+            "description": "Responsible reporting channel",
+            "implementation": "implemented",
+            "verification": [
+              "source"
+            ],
+            "observation": "SECURITY.md provides the concrete GitHub private vulnerability-report URL, report contents, private follow-up and disclosure process.",
+            "remaining": "No reporting-channel test or guaranteed response time was established here; full release triage/patch capability remains separate.",
+            "evidence": [
+              "SECURITY.md"
+            ]
+          },
+          {
+            "description": "Applicable accessibility and privacy obligations",
+            "implementation": "partial",
+            "verification": [
+              "source"
+            ],
+            "observation": "Release requirements and privacy/accessibility design baselines are documented; the document explicitly disclaims implementation/certification/legal conformity.",
+            "remaining": "Determine concrete distribution/role applicability and produce product accessibility/privacy/data-flow and human validation evidence. This audit makes no current legal conclusion.",
+            "evidence": [
+              "docs/implementation/EUROPE-AND-RELEASE.md",
+              "docs/LOCAL-PRIVACY-CONTRACT.md",
+              "docs/FULL-TEST-RELEASE.md"
+            ]
+          }
+        ]
+      }
+    ]
+  }
 }

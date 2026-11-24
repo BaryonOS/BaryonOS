@@ -1,0 +1,106 @@
+{
+  "collected_at": "2026-11-24T04:49:44.426321+00:00",
+  "evidence_state": "compact-reports-retained",
+  "job_status_before_archive": "success",
+  "limits": {
+    "file_bytes": 1048576,
+    "files_including_receipt": 500,
+    "total_bytes_including_receipt": 8388608
+  },
+  "missing_patterns": [],
+  "name": "b01-supervisor-reports",
+  "omitted": [],
+  "omitted_count": 0,
+  "omitted_list_truncated_count": 0,
+  "omitted_reason_counts": {},
+  "required_paths": [],
+  "retained": [
+    {
+      "path": "build/keyring-gate.json",
+      "sha256": "34d23d3c5b49d86c921780e894cca11087b763573a0023023db6bd24ecdc2c50",
+      "size_bytes": 38836
+    },
+    {
+      "path": "build/run/keyring-no-device-866aa1f29c/result.json",
+      "sha256": "dd6cf4ab4a59634fa5aee6ea2b4f8901414e375d9c99ccac6e276bb826650754",
+      "size_bytes": 7039
+    },
+    {
+      "path": "build/run/keyring-no-reset-ack-8eaf4f29c4/result.json",
+      "sha256": "a8074c658e9dd76a380f406e261526ac8a714a2d0ebad5fad7ecd0354dba2f65",
+      "size_bytes": 7765
+    },
+    {
+      "path": "build/run/keyring-normal-a67cc4cb92/result.json",
+      "sha256": "317e9b255f107e82b4929b928eef9c0f47785e101e5a5ddb2a81bb9b1bab2b62",
+      "size_bytes": 7729
+    },
+    {
+      "path": "build/run/keyring-requester-crash-72510e0cdf/result.json",
+      "sha256": "352891f9be9c05f93b684c7fde0eabd93b468af73faf25defd3ade049af91b9d",
+      "size_bytes": 7920
+    },
+    {
+      "path": "build/run/keyring-restart-83fa56b340/result.json",
+      "sha256": "f5a3f93681f1a0d72b216ea579dc8564fb2db8b6be453505138776d48a764254",
+      "size_bytes": 7211
+    },
+    {
+      "path": "build/run/keyring-stuck-2483e0fb35/result.json",
+      "sha256": "d039b20f635b935b10e9ce7a0d53bbdbf6d43086845d3dbce7768dcc25e493fa",
+      "size_bytes": 7190
+    },
+    {
+      "path": "build/run/keyring-timeout-ffadd4da2d/result.json",
+      "sha256": "4013392734bb4886fbf8c3b208b52583b982f1e92f1ff647e155ef6ac29cc004",
+      "size_bytes": 7578
+    },
+    {
+      "path": "build/run/keyring-no-device-866aa1f29c/serial.txt",
+      "sha256": "c348161f05d8d3bf63f274ab1158b3c9c5446584af0531b573a15624ce0d1f59",
+      "size_bytes": 2307
+    },
+    {
+      "path": "build/run/keyring-no-reset-ack-8eaf4f29c4/serial.txt",
+      "sha256": "6c5631d41dfd72e93b14e5cbb114c12f06522967442f80871af0b3883f44e663",
+      "size_bytes": 2400
+    },
+    {
+      "path": "build/run/keyring-normal-a67cc4cb92/serial.txt",
+      "sha256": "0fc8e7ca5bf1b1cd3ddeb6aef629d764794b2488b0d2779fe8326a5317fb1232",
+      "size_bytes": 2631
+    },
+    {
+      "path": "build/run/keyring-requester-crash-72510e0cdf/serial.txt",
+      "sha256": "53825b063edbfdc01ac27d023082e662d476a467448764f545c391eab303ed7d",
+      "size_bytes": 2500
+    },
+    {
+      "path": "build/run/keyring-restart-83fa56b340/serial.txt",
+      "sha256": "f31ead1c0babcec4b0d3c4b9a2cb121a65dfea88d1c169912516864ef65a1031",
+      "size_bytes": 2305
+    },
+    {
+      "path": "build/run/keyring-stuck-2483e0fb35/serial.txt",
+      "sha256": "d77434a9e326c7e9aa764327d4b7893883c53eedb0c40a09d34a4841eb200f13",
+      "size_bytes": 2303
+    },
+    {
+      "path": "build/run/keyring-timeout-ffadd4da2d/serial.txt",
+      "sha256": "9625423849dc052be6cca7152881e58c87e98ea5fcbe99237cf6f49bf325726b",
+      "size_bytes": 2303
+    }
+  ],
+  "retained_bytes": 108017,
+  "schema_version": 1,
+  "scope": "Compact reports only; binary/raw-image retention and upload availability are separate.",
+  "source": {
+    "checkout_sha": "2eb1c63d2afdf658f0e71d31f3542e320a7dd041",
+    "github_sha": "2eb1c63d2afdf658f0e71d31f3542e320a7dd041",
+    "job": "b01-native-supervisor",
+    "run_attempt": "1",
+    "run_id": "45328884511"
+  },
+  "unretained_required_paths": [],
+  "warnings": []
+}
