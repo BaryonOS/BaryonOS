@@ -26,7 +26,7 @@ import uuid
 
 from common import ROOT, BUILD, environment, firmware, qemu_machine, save_json, sha256, source_hash
 from hw_evidence import EvidenceError, _inventory, pci_log_problem
-from hw_inventory import InventoryLogError, hwinv_lines, inventory_from_log
+from hw_inventory import FAILURES, InventoryLogError, hwinv_lines, inventory_from_log
 from run_graphics import Qmp
 
 IOMMU = "intel-iommu,caching-mode=on,intremap=off,device-iotlb=off,aw-bits=39"
@@ -43,7 +43,6 @@ CASES = {
                   dmar="HWINV:ACPI:DMAR=PRESENT:DRHD=1", acpi="ACPI:DISCOVERY:MCFG_DMAR"),
 }
 REQUIRED = ("BOOT:EBS_OK", "KERNEL:ENTRY", "BOOTINFO:OK", "M2:PASS", "HWINV:BEGIN", "HWINV:PASS")
-FAILURES = ("KERNEL_PANIC", "M2:PANIC_LINE:", "M1:FAIL", "HWINV:FAIL")
 TIMEOUT_S = 120  # protocol HW-INV step S4
 
 

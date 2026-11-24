@@ -17,6 +17,10 @@ from hw_evidence import (HWINV_CPUID, HWINV_DMAR, HWINV_PCI_COUNT, HWINV_PCI_LIN
                          PCI_FIELDS, SECUREBOOT_STATES)
 
 
+# Protocol HW-INV failure markers; any of them anywhere in the log fails the boot.
+FAILURES = ("KERNEL_PANIC", "M2:PANIC_LINE:", "M1:FAIL", "HWINV:FAIL")
+
+
 class InventoryLogError(ValueError):
     """The serial log does not hold one complete, passing HWINV block."""
 
@@ -29,8 +33,9 @@ def inventory_from_log(text: str) -> dict:
     if any("HWINV:" in line and not line.startswith("HWINV:") for line in text.replace("\r", "").splitlines()):
         raise InventoryLogError("an HWINV marker shares a line with other output")
     lines = hwinv_lines(text)
-    if "HWINV:FAIL" in text:  # anywhere: firmware output can share the marker's line
-        raise InventoryLogError("log reports HWINV:FAIL")
+    failure = next((marker for marker in FAILURES if marker in text), None)
+    if failure is not None:  # anywhere: firmware output can share the marker's line
+        raise InventoryLogError(f"log reports {failure}")
     if lines.count("HWINV:BEGIN") != 1 or lines.count("HWINV:PASS") != 1:
         raise InventoryLogError("log needs exactly one HWINV:BEGIN and one HWINV:PASS")
     if len(lines) < 7 or lines[0] != "HWINV:BEGIN" or lines[-1] != "HWINV:PASS":

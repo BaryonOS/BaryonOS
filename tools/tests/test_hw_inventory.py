@@ -63,6 +63,9 @@ class ConvertTest(unittest.TestCase):
         cases = {
             "failure marker": LOG + "HWINV:FAIL:PCI_LIMIT\n",
             "prefixed failure marker": LOG + "fw: HWINV:FAIL:PCI_LIMIT\n",
+            "kernel panic": LOG + "firmware: KERNEL_PANIC\n",
+            "m1 failure": LOG + "M1:FAIL:X\n",
+            "m2 panic line": LOG + "M2:PANIC_LINE:42\n",
             "embedded PCI marker": LOG + "fw: HWINV:PCI:0000:02:00.0:8086:1234:02:00:00:00\n",
             "count mismatch": edit("COUNT=7", "COUNT=6"),
             "duplicate address": edit("HWINV:PCI:0000:00:1f.3:8086:2930", "HWINV:PCI:0000:00:1f.2:8086:2930"),
