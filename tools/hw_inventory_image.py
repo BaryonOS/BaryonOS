@@ -21,6 +21,7 @@ import os
 import re
 import struct
 import subprocess
+import tempfile
 import uuid
 import zlib
 from pathlib import Path
@@ -205,14 +206,35 @@ def checked_esp(build_directory: Path) -> tuple[Path, dict, str]:
     return build_directory / "esp", manifest, frozen
 
 
-def _write_regular(path: Path, data: bytes) -> None:
-    """Create or replace a regular file without following a symbolic link at `path`."""
+def _publish(pairs: list[tuple[Path, bytes]]) -> None:
+    """Replace each regular file only after every new file is fully written; never follow a link.
+
+    Old outputs are removed before any rename, so a failure leaves no earlier record
+    beside new image bytes (or the reverse): either the new pair, a partial set without
+    its partner, or nothing.
+    """
+    temporaries: list[str] = []
     try:
-        fd = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_TRUNC | os.O_NOFOLLOW, 0o644)
+        for path, data in pairs:
+            if path.is_symlink() or (path.exists() and not path.is_file()):
+                raise ImageError(f"{path} is not a writable regular file")
+            fd, name = tempfile.mkstemp(dir=path.parent, prefix=f".{path.name}.")
+            temporaries.append(name)
+            with os.fdopen(fd, "wb") as stream:
+                os.fchmod(stream.fileno(), 0o644)
+                stream.write(data)
+        for path, _ in pairs:
+            path.unlink(missing_ok=True)
+        for (path, _), name in zip(pairs, temporaries):
+            os.replace(name, path)
     except OSError as error:
-        raise ImageError(f"{path} is not a writable regular file: {error}") from error
-    with os.fdopen(fd, "wb") as stream:
-        stream.write(data)
+        raise ImageError(f"could not write {[str(path) for path, _ in pairs]}: {error}") from error
+    finally:
+        for name in temporaries:
+            try:
+                os.unlink(name)
+            except FileNotFoundError:
+                pass
 
 
 def write_image(build_directory: Path = BUILD, output: Path | None = None) -> dict:
@@ -226,7 +248,6 @@ def write_image(build_directory: Path = BUILD, output: Path | None = None) -> di
         raise ImageError("HW-INV ESP changed while it was read")
     image = _image(tree)
     output = build_directory / "hw-inventory.img" if output is None else Path(output)
-    _write_regular(output, image)
 
     def git(*arguments: str) -> str:
         return subprocess.check_output(["git", *arguments], cwd=ROOT, text=True).strip()
@@ -240,8 +261,8 @@ def write_image(build_directory: Path = BUILD, output: Path | None = None) -> di
         loader_feature=manifest["loader_feature"], kernel_sha256=manifest["kernel"]["sha256"],
         loader_sha256=manifest["loader"]["sha256"], source_fingerprint_version=3, source_sha256=frozen,
         source_commit=git("rev-parse", "HEAD"), clean_checkout=git("status", "--porcelain") == "")
-    _write_regular(output.with_name(output.stem + "-image.json"),
-                   (json.dumps(record, indent=2, ensure_ascii=False) + "\n").encode("utf-8"))
+    _publish([(output, image), (output.with_name(output.stem + "-image.json"),
+                                (json.dumps(record, indent=2, ensure_ascii=False) + "\n").encode("utf-8"))])
     return record
 
 

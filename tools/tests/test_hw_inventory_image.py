@@ -106,6 +106,31 @@ class ImageTest(unittest.TestCase):
         self.assertEqual(json.loads((self.tmp / "hw-inventory-image.json").read_text())["image_sha256"],
                          record["image_sha256"])
 
+    def test_failed_record_write_never_leaves_an_old_record_beside_new_image_bytes(self):
+        (self.esp / "EMPTY").unlink()
+        manifest = dict(kernel_feature="native-hw-inventory", loader_feature="hw-inventory", source_sha256="s",
+                        kernel=dict(sha256=image.sha256_bytes((self.esp / "kernel.elf").read_bytes())),
+                        loader=dict(sha256=image.sha256_bytes((self.esp / "EFI/BOOT/BOOTX64.EFI").read_bytes())))
+        (self.tmp / "manifest.json").write_text(json.dumps(manifest))
+        disk, record = self.tmp / "hw-inventory.img", self.tmp / "hw-inventory-image.json"
+        real_replace = image.os.replace
+
+        def fail_second(source, target):
+            if Path(target) == record:
+                raise OSError("disk full")
+            real_replace(source, target)
+
+        disk.write_bytes(b"old image")
+        record.write_text(json.dumps(dict(image_sha256=image.sha256_bytes(b"old image"))))
+        with unittest.mock.patch.object(image, "source_hash", return_value="s"), \
+                unittest.mock.patch.object(image.subprocess, "check_output", return_value="x"), \
+                unittest.mock.patch.object(image.os, "replace", side_effect=fail_second):
+            with self.assertRaises(image.ImageError):
+                image.write_image(self.tmp)
+        if record.exists():
+            self.assertEqual(json.loads(record.read_text())["image_sha256"], image.sha256_bytes(disk.read_bytes()))
+        self.assertEqual([p.name for p in self.tmp.iterdir() if p.name.startswith(".")], [])
+
     @unittest.skipUnless(shutil.which("sgdisk"), "NOT RUN: sgdisk absent")
     def test_gpt_verified_by_sgdisk(self):
         disk = self.build()
