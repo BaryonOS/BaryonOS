@@ -1,7 +1,8 @@
 # CI impact catalogue (schema 1). Contract: docs/CI-CONTRACT.md.
 #
-# Phase 2a: data only. Nothing in .github/workflows reads this file yet, so it
-# does not change which CI runs.
+# Phase 2b: the advisory ci-impact-shadow job in ci.yml records a plan from
+# the base copy of this file; nothing consumes the plan, so it does not change
+# which CI runs.
 # `python3 -B tools/ci_impact.py validate .github/ci-impact.toml` checks its
 # structure; `python3 -B tools/ci_impact.py coverage` reports drift against the
 # workflows and the tracked paths.
@@ -13,7 +14,7 @@
 # max_parallel, matrix, check_name, evidence) are verbatim copies of the YAML.
 
 schema_version = 1
-revision = 5
+revision = 6
 
 [policy]
 mode = "shadow"
@@ -235,6 +236,14 @@ activation = "automatic"
 condition = "${{ !cancelled() && needs.host-quality.result == 'success' && github.event_name != 'merge_group' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) }}"
 needs = ["host-quality"]
 evidence = []
+
+[[workflow.job]]
+id = "ci-impact-shadow"
+name = "ci-impact-shadow"
+class = "advisory"
+activation = "automatic"
+timeout_minutes = 10
+evidence = ["ci-impact-plan"]
 
 [[workflow]]
 path = ".github/workflows/clear-stale-actions.yml"

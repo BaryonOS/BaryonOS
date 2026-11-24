@@ -78,6 +78,7 @@ class WorkflowVerifierTests(unittest.TestCase):
             # static calls: host, leg proof, library cold, leg compact,
             # read-only and packaging collections.
             # H06 adds one HW-INV inventory workflow/preservation invocation.
+            # The ci-impact-shadow job adds one plan call in ci.yml.
             self.assertEqual(sum(check["name"].startswith(prefix)
                                  for check in report["checks"]), 41)
         self.assertEqual(sum(check["name"].startswith("report-shell:")

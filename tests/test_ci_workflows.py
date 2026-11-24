@@ -1686,5 +1686,192 @@ class NativeWindowSessionLayoutTests(unittest.TestCase):
         self.assertGreaterEqual(int(job["timeout-minutes"]), WINDOW_SETUP_MINUTES)
 
 
+
+SHADOW_SELECTOR = ROOT / "tools/ci_impact.py"
+SELECT_ACTION = ".github/actions/select-ci/action.yml"
+SHADOW_CATALOGUE = """\
+schema_version = 1
+revision = 1
+
+[policy]
+mode = "shadow"
+always_full = [".github/**", "tools/ci_impact.py",
+               "rustfmt.toml", "**/rustfmt.toml", ".rustfmt.toml", "**/.rustfmt.toml",
+               "clippy.toml", "**/clippy.toml", ".clippy.toml", "**/.clippy.toml",
+               "rust-toolchain*", "**/rust-toolchain*", ".cargo/**", "**/.cargo/**"]
+inert = ["docs/**", "README.md"]
+core_only = []
+
+[policy.events]
+pull_request = "select"
+merge_group = "full"
+push = "full"
+schedule = "full"
+workflow_dispatch = "manual"
+
+[[workflow]]
+path = ".github/workflows/ci.yml"
+owner = "ci-owner"
+granularity = "job"
+events = ["workflow_dispatch", "pull_request", "merge_group", "push"]
+obligation = [{ cite = "README.md:1", anchor = "fixture readme" }]
+
+[[workflow.job]]
+id = "host-quality"
+class = "core"
+activation = "automatic"
+"""
+
+
+def load_selector():
+    """Import the self-contained selector without adding tools/ to sys.path."""
+    import importlib.util  # local: a top-level import would shift cited line numbers
+
+    spec = importlib.util.spec_from_file_location("ci_impact_shadow", SHADOW_SELECTOR)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+class CiImpactShadowTests(unittest.TestCase):
+    """CI-IMPACT phase 2b: the shadow plan is independent, read-only and base-trusted."""
+
+    @classmethod
+    def setUpClass(cls):
+        load = lambda path: yaml.load((ROOT / path).read_text(encoding="utf-8"),
+                                      Loader=UniqueKeyLoader)
+        cls.ci = load(".github/workflows/ci.yml")
+        cls.action = load(SELECT_ACTION)
+
+    def test_shadow_job_is_independent_read_only_and_preserves_its_plan(self):
+        jobs = self.ci["jobs"]
+        job = jobs["ci-impact-shadow"]
+        self.assertEqual(job["name"], "ci-impact-shadow")
+        self.assertEqual(job["runs-on"], "ubuntu-24.04")
+        self.assertEqual(job["timeout-minutes"], "10")
+        self.assertEqual(job["permissions"], {"contents": "read"})
+        for key in ("needs", "if", "continue-on-error", "strategy"):
+            self.assertNotIn(key, job)
+        for job_id, other in jobs.items():
+            with self.subTest(consumer=job_id):
+                needs = other.get("needs", [])
+                self.assertNotIn("ci-impact-shadow", [needs] if isinstance(needs, str) else needs)
+        steps = job["steps"]
+        checkout = steps[0]
+        host_checkout = next(step for step in jobs["host-quality"]["steps"]
+                             if step.get("uses", "").startswith("actions/checkout@"))
+        self.assertEqual(checkout["uses"], host_checkout["uses"])
+        self.assertEqual(checkout["with"], {"persist-credentials": "false", "fetch-depth": "0"})
+        select = next(step for step in steps if step.get("uses") == "./.github/actions/select-ci")
+        self.assertEqual(set(select["with"]), {"event-name", "tested-sha", "head-sha", "base-sha"})
+        self.assertNotIn("pull_request.base.sha", select["with"]["base-sha"])
+        preserve, = [step for step in steps if step.get("uses") == "./.github/actions/preserve-evidence"]
+        self.assertEqual(preserve["if"], "${{ always() }}")
+        self.assertEqual(preserve["with"], {
+            "name": "ci-impact-plan", "job-status": "${{ job.status }}",
+            "if-no-files-found": "error", "path": "build/ci-impact/plan.json",
+            "required-paths": "build/ci-impact/plan.json"})
+
+    def test_select_action_passes_expressions_only_through_env(self):
+        steps = self.action["runs"]["steps"]
+        self.assertEqual(self.action["runs"]["using"], "composite")
+        self.assertEqual(set(self.action["inputs"]), {"event-name", "tested-sha", "head-sha", "base-sha"})
+        self.assertEqual(set(self.action["outputs"]), {"plan-id", "mode", "plan-path"})
+        for step in steps:
+            with self.subTest(step=step.get("name")):
+                self.assertNotIn("${{", step.get("run", ""))
+                self.assertNotIn("continue-on-error", step)
+                for value in step.get("env", {}).values():
+                    self.assertRegex(value, r"^\$\{\{ inputs\.[a-z-]+ \}\}$")
+        run = steps[0]["run"]
+        self.assertIn('git cat-file blob "${BASE_SHA}:tools/ci_impact.py"', run)
+        self.assertIn('python3 -B -I "$selector" plan', run)
+        self.assertIn('--summary "$GITHUB_STEP_SUMMARY"', run)
+        self.assertIn("set -euo pipefail", run)
+
+    def run_action(self, repo, env, label):
+        """Execute the action's script as a composite step would, against `repo`."""
+        temp = Path(repo).parent / label
+        temp.mkdir()
+        files = {name: temp / name for name in ("summary.md", "output.txt")}
+        for path in files.values():
+            path.write_text("", encoding="utf-8")
+        environment = {key: value for key, value in os.environ.items() if not key.startswith("GIT_")}
+        environment.update(GIT_CONFIG_NOSYSTEM="1", GIT_CONFIG_GLOBAL=os.devnull,
+                           GITHUB_WORKSPACE=str(repo), RUNNER_TEMP=str(temp),
+                           GITHUB_STEP_SUMMARY=str(files["summary.md"]),
+                           GITHUB_OUTPUT=str(files["output.txt"]), **env)
+        result = subprocess.run(["bash", "-c", self.action["runs"]["steps"][0]["run"]], cwd=repo,
+                                env=environment, capture_output=True, text=True, check=False)
+        outputs = dict(line.split("=", 1) for line in
+                       files["output.txt"].read_text(encoding="utf-8").splitlines())
+        return result, outputs
+
+    def test_select_action_runs_the_base_selector_and_never_narrows_without_one(self):
+        def git(*args):
+            return subprocess.run(
+                ["git", "-c", "user.name=fixture", "-c", "user.email=fixture@example.invalid",
+                 "-c", "commit.gpgsign=false", *args], cwd=repo, check=True, capture_output=True,
+                text=True, env={**{k: v for k, v in os.environ.items() if not k.startswith("GIT_")},
+                                "GIT_CONFIG_NOSYSTEM": "1", "GIT_CONFIG_GLOBAL": os.devnull},
+            ).stdout.strip()
+
+        with tempfile.TemporaryDirectory() as directory:
+            repo = Path(directory) / "repo"
+            (repo / "tools").mkdir(parents=True)
+            (repo / ".github/workflows").mkdir(parents=True)
+            (repo / "docs").mkdir()
+            (repo / "README.md").write_text("fixture readme\n", encoding="utf-8")
+            (repo / ".github/workflows/ci.yml").write_text("name: ci\n", encoding="utf-8")
+            (repo / ".github/ci-impact.toml").write_text(SHADOW_CATALOGUE, encoding="utf-8")
+            (repo / "tools/ci_impact.py").write_bytes(SHADOW_SELECTOR.read_bytes())
+            git("init", "-q", "-b", "main")
+            git("add", "-A")
+            git("commit", "-q", "-m", "base")
+            base = git("rev-parse", "HEAD")
+            git("checkout", "-q", "-b", "topic")
+            (repo / "docs/note.md").write_text("note\n", encoding="utf-8")
+            git("add", "-A")
+            git("commit", "-q", "-m", "head")
+            head = git("rev-parse", "HEAD")
+            git("checkout", "-q", "main")
+            git("merge", "-q", "--no-ff", "-m", "merge", "topic")
+            tested = git("rev-parse", "HEAD")
+            # A hostile checkout copy must not run when the base has a selector.
+            (repo / "tools/ci_impact.py").write_text("raise SystemExit(9)\n", encoding="utf-8")
+
+            result, outputs = self.run_action(repo, {
+                "EVENT_NAME": "pull_request", "TESTED_SHA": tested, "HEAD_SHA": head,
+                "BASE_SHA": ""}, "pull-request")
+            self.assertEqual(result.returncode, 0, result.stderr)
+            plan = json.loads((repo / outputs["plan-path"]).read_text(encoding="ascii"))
+            self.assertEqual((outputs["mode"], plan["mode"], plan["fallback"]), ("select", "select", None))
+            self.assertTrue(plan["selector"]["trusted"])
+            self.assertEqual(plan["shas"], {"base": base, "merge_base": base, "head": head,
+                                            "tested": tested})
+            self.assertEqual(outputs["plan-id"], plan["plan_id"])
+
+            # Without a base, the checkout copy runs and the output is forced to full.
+            (repo / "tools/ci_impact.py").write_bytes(SHADOW_SELECTOR.read_bytes())
+            result, outputs = self.run_action(repo, {
+                "EVENT_NAME": "workflow_dispatch", "TESTED_SHA": tested, "HEAD_SHA": tested,
+                "BASE_SHA": ""}, "dispatch")
+            self.assertEqual(result.returncode, 0, result.stderr)
+            plan = json.loads((repo / outputs["plan-path"]).read_text(encoding="ascii"))
+            self.assertEqual((outputs["mode"], plan["fallback"]["code"]), ("full", "no-trusted-base"))
+            self.assertFalse(plan["selector"]["trusted"])
+
+            # A malformed base is rejected before it reaches git; the plan widens.
+            result, outputs = self.run_action(repo, {
+                "EVENT_NAME": "push", "TESTED_SHA": tested, "HEAD_SHA": tested,
+                "BASE_SHA": "--output=/dev/null"}, "push-bad-base")
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertEqual(outputs["mode"], "full")
+
+    def test_real_catalogue_coverage_is_clean(self):
+        report = load_selector().coverage(str(ROOT), ".github/ci-impact.toml")
+        self.assertEqual(report["status"], "clean", report.get("problems"))
+
+
 if __name__ == "__main__":
     unittest.main()
