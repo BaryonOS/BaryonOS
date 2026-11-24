@@ -20,24 +20,23 @@ in `docs/progress.json`, the S09 specifications and GitHub.
 
 ## Current cycle
 
-- **cycle_id:** S-20261124-6 (cloud session). PR #505 (production archive
-  verifier) merged as `9dfff70c`; the branch was restarted from it.
-- **Task:** (1) record the owner decisions of 24 November 2026 on O4 (a)–(c),
-  O11, O12 and O13 in `docs/implementation/S09-DESTINATION-SERVICE.md`;
-  (2) the R3 reverse differential (spec 8.2 R3), host only.
-- **Branch / PR:** `claude/brave-feynman-jbiz6x`, PR #509 (draft); tested
-  head is recorded in the PR. S-owned files only; self-merge allowed once
-  `host-quality`, `qemu-smoke` and `merge-hold` pass on the head.
-- **Results:** reverse differential 182 images agree; forward cross-check
-  30 images agree; both mutations killed; fmt, clippy, all destination tests
-  and the oracle suite pass locally.
-- **Pins:** unchanged; no workflow change.
-- **Handed to the integration coordinator (not S-owned):** the ADR
-  `ADR-S09-R5-DECISIONS-20261124` text in the PR #509 body for
-  `docs/DECISIONS.md`; a hosted CI step that runs both cross-check
-  directions (forward: `DEST_ORACLE_OUT`, oracle_images then RustCrossCheck;
-  reverse: `DEST_REVERSE_OUT` ReverseDifferential then `DEST_REVERSE_IN`
-  reverse_differential).
+- **cycle_id:** S-20261124-6 (cloud session).
+- **Owner decisions:** packages 1 and 2 of 24 November 2026 (O1–O13; O14–O18
+  confirmed) are recorded in `docs/implementation/S09-DESTINATION-SERVICE.md`
+  (header note, 8.1). ADR text and CI/K5 needs: `COORDINATOR-REQUEST-20261124.md`
+  (C1–C5) beside this file.
+- **Branch / PR:** `claude/brave-feynman-jbiz6x`, PR #509 (draft until the
+  required checks pass on its head). Contents: decisions, R3 reverse
+  differential (host), R2 status, K5 step 1 (`kernel/src/m2/m3/volume.rs`).
+- **Evidence on `04b06de2` (local):** native volume gate 32/32
+  (`build/k5c-volume.log`), H05 power gate 12/12 with S3, S3 re-init and
+  held completion (`build/k5c-power/power-system-gate.json`); destination
+  tests, oracle suite, reverse differential 182 and forward 30 images.
+- **Review:** K5-REVIEW-1 (independent AI security review) REQUEST_CHANGES,
+  R1 (S3 quiescence with an absent lane) fixed in `04b06de2`; O1–O3 applied;
+  O4 (tickets restart per lane) noted, no consumer found.
+- **Hosted:** `native-hw-inventory` failed once on `409614d4` with "Missing
+  QMP greeting" in the plain boot (doc-only head; not attributed; commented).
 
 ## Lessons
 
@@ -74,24 +73,18 @@ in `docs/progress.json`, the S09 specifications and GitHub.
 
 ## Next executable task
 
-1. Land PR #509 (verify head, required checks, squash-merge with expected
-   head) and confirm the result on `main`.
-2. K5 per-device broker state (owner-approved under O4 (a)): read
-   `kernel/src/m2/m3/volume.rs` broker (`Policy`, `resetting`, `error`,
-   `active`, data buffer, around `:877-1014`), the 2.7 broker contract and
-   section 4.3 K5 of the S09 destination spec; design the per-device split
-   including property 3 (a further poll after a read ended by a reset
-   returns -1), with native timeout fixtures. Kernel change: one small step,
-   with an os-security-reviewer pass.
-3. Open R2 item: property-3 device-state snapshot in `SimDisk`
-   (`p12_3_answered_exactly_once`, review 7 RQ7-2) and the CODE-DELTA
-   revision 5 rows.
+1. PR #509: confirm `host-quality`, `qemu-smoke`, `merge-hold` (and
+   `native-hw-inventory`) on the head, then squash-merge with the expected
+   head and confirm on `main`.
+2. Native K5 fixtures (new test stage; pins by the CI owner, C4/C5):
+   disk-1 admitted while disk 0 is in flight; no disk-1 request between a
+   disk-1 timeout and the acknowledged reset.
+3. O13 kernel write latch in the per-device broker (trigger and service
+   interface first, then a native test; keeps READ and remount FLUSH).
 4. O12 owner-binding design (catalog version, trusted identity, access
-   checks, recovery route) against PROFILES-AND-USERS and the key and
-   encryption contracts, before R7; O13 kernel write latch spec and native
-   test before R8.
+   checks, recovery without the original disk) with B and the user/session
+   owner; O1 remembered-VERIFY store; O3/O5 catalog extension.
+5. R5: destination service binary in the test profile on disk 1 with the
+   deterministic `DEST:ID:TEST-ONLY` ID and a scripted dialog.
 
-Also open (S09 stays open): the review-2 hardening items in section 10 of
-`docs/implementation/S09-L2-NATIVE-EXPORT.md`. Owner decisions D1–D5 and a
-human audit remain outside S's authority.
-
+Owner decisions D1–D5 and a human audit remain outside S's authority.
