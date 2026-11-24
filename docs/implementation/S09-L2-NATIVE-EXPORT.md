@@ -187,8 +187,9 @@ Negative coverage:
   - a write by the portal outside the granted rights: a device-1 write
     under the READ-only grant (26, 27, 28) and a volume WRITE to the
     read-only service (28);
-  - a revision gap: `export_v2` omits the version behind it (25,
-    `omitted = 1`);
+  - a revision gap: `export_v2` omits the version behind it (25). Word 544
+    reports `omitted`, but no stage checks it yet (planned for slice C,
+    section 10);
   - the scope and escape probes, which apply to every device-1 grant
     (`ARCHIVE_ESCAPE`, the past-the-end probe).
 - **On the host only** (already in `services/volume/tests`):
@@ -482,8 +483,9 @@ Each slice gets an independent AI review before the next begins. Hosted CI
 - The final S1–S4 set depends on the slice-C discrimination computation.
   If slice C keeps S1, the guest should also check `omitted == 1` (word 544
   is reported, not checked, in slice B).
-- The provenance self-check (word 552) covers the archive slots only; that
-  slots outside the archive stay never-used is host-checked.
+- The provenance self-check (word 552) covers the archive slots only. A
+  host-oracle check that slots outside the archive stay never-used is
+  planned for slice C; it does not exist yet.
 - The merge order against U05 #436: whichever lands second resolves the
   appended lines in `case()`, `read_only()`, `marker()`, `kernel/Cargo.toml`
   and `tools/build.py`.

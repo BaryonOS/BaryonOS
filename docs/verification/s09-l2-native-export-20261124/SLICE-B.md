@@ -42,11 +42,14 @@ Every bound holds. The linker asserts them, so a violation is a link error.
 
 `stackbound.py` adds, per function, 8 bytes of return address, 8 bytes per
 `push` and every `sub rsp` immediate. It takes the maximum over direct-call
-paths from `_start`. It does **not** follow indirect calls, and it reports
-recursion as zero extra depth. It is an estimate of the direct-call bound,
-not a proof of the worst case.
+paths from `_start`. It follows direct tail jumps (`jmp` to another
+function) conservatively, as if they were calls. It does **not** follow
+indirect calls or jumps. An unknown root or a recursive cycle makes it exit
+1 without a bound; none of the measured binaries has one. It is an estimate
+of the direct-call bound, not a proof of the worst case. Counting tail jumps
+(review finding on #482) left every bound below unchanged.
 
-| Binary | Variant | Bound from `_start` | Largest frames |
+| Binary | Variant | Bound from `_start` (exit 0) | Largest frames |
 |---|---|---:|---|
 | `volume-app` | default | 6 888 | `run` 1 520 |
 | `volume-app` | `archive-portal` | 9 952 | `run` 3 824 |
