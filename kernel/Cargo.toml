@@ -386,6 +386,11 @@ test-volume-archive-disk-small = ["test-volume-archive-device"]
 test-volume-archive-disk-wrong = ["test-volume-archive-device"]
 test-volume-archive-disk-cut = ["test-volume-archive-device"]
 test-volume-archive-disk-verify = ["test-volume-archive-device"]
+# S09 phase 3 L2 export/restore on the device-1 archive disk (cases 25-28).
+test-volume-l2-export = ["test-volume-archive-device"]
+test-volume-l2-restore = ["test-volume-archive-device"]
+test-volume-l2-corrupt = ["test-volume-archive-device"]
+test-volume-l2-used = ["test-volume-archive-device"]
 # U05-N1 settings persistence through the volume service (own app ELF).
 test-volume-settings = ["native-volume"]
 test-volume-settings-recover = ["native-volume"]

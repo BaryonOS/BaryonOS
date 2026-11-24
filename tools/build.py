@@ -27,12 +27,14 @@ VOLUME_ARCHIVE_CASES = ("archive-export", "archive-restore", "archive-corrupt", 
                         # S09 test-only second disk (kernel feature test-volume-archive-device).
                         "archive-disk-export", "archive-disk-restore", "archive-disk-absent",
                         "archive-disk-small", "archive-disk-wrong", "archive-disk-cut", "archive-disk-verify")
+# S09 phase 3 L2 portal on the device-1 disk (docs/implementation/S09-L2-NATIVE-EXPORT.md).
+VOLUME_L2_CASES = ("l2-export", "l2-restore", "l2-corrupt", "l2-used")
 # U05-N1 settings app replaces volume-app in these cases (tools/run_settings.py).
 VOLUME_SETTINGS_CASES = ("settings", "settings-recover")
 VOLUME_CASES = ("recover", "cut-data", "cut-table", "recover-cut", "corrupt", "foreign", "cut-txn",
                 # S09 L2 install stages (plain volume-docs app, not the portal).
                 "install", "install-recover", "install-cut",
-                *VOLUME_ARCHIVE_CASES, *VOLUME_SETTINGS_CASES)
+                *VOLUME_ARCHIVE_CASES, *VOLUME_L2_CASES, *VOLUME_SETTINGS_CASES)
 VOLUME_FEATURES = ("native-volume", *(f"test-volume-{case}" for case in VOLUME_CASES))
 SUPERVISOR_CASES = ("crash", "denied", "parent-exit", "quota", "wait")
 SUPERVISOR_FEATURES = ("native-supervisor", *(f"test-supervisor-{case}" for case in SUPERVISOR_CASES),
@@ -357,6 +359,14 @@ def build(loader_feature=None, kernel_feature=None, label="normal", image_versio
             portal_target = TARGET / "volume-docs-portal"
             run_logged([sys.executable, "-B", str(ROOT / "sdk/examples/volume-docs/build.py"),
                         "--archive-portal"], "build-volume-docs-portal",
+                       extra_env={"CARGO_TARGET_DIR": str(portal_target),
+                                  "CARGO_PROFILE_RELEASE_OPT_LEVEL": "s"})
+            app = portal_target / "x86_64-unknown-none/release/volume-app"
+        elif kernel_feature in (f"test-volume-{case}" for case in VOLUME_L2_CASES):
+            # S09 phase 3 L2 portal (separate target dir, same opt-level reason).
+            portal_target = TARGET / "volume-docs-l2portal"
+            run_logged([sys.executable, "-B", str(ROOT / "sdk/examples/volume-docs/build.py"),
+                        "--l2-portal"], "build-volume-docs-l2portal",
                        extra_env={"CARGO_TARGET_DIR": str(portal_target),
                                   "CARGO_PROFILE_RELEASE_OPT_LEVEL": "s"})
             app = portal_target / "x86_64-unknown-none/release/volume-app"
