@@ -29,6 +29,15 @@ unknown closure reason never implies completion. The generic native
 Item closed → Done rule must remain disabled; merge-specific automation may
 still record Done.
 
+**Primary sources:**
+
+- GitHub. (n.d.). [*GraphQL API reference: Issues (IssueStateReason)*](https://docs.github.com/en/graphql/reference/issues).
+  Retrieved 24 November 2026.
+- GitHub. (n.d.). [*GraphQL API reference: Pull requests (PullRequestState)*](https://docs.github.com/en/graphql/reference/pulls).
+  Retrieved 24 November 2026.
+- GitHub. (n.d.). [*Using the built-in automations*](https://docs.github.com/en/issues/planning-and-tracking-with-projects/automating-your-project/using-the-built-in-automations).
+  Retrieved 24 November 2026.
+
 Work Type and Subsystem remain fill-only and require unambiguous recognised
 signals. Exact scopes hw/hardware/drivers map to Hardware, and
 net/network/networking to Networking. Priority and planning dates are
