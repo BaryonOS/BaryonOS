@@ -2,7 +2,7 @@
 
 Task: B02-T4, native KEY1 key-state commit ingress under
 ADR-B02-KEY1-RELAY-20261123 (TEST profile only). This directory holds the
-native runs and host checks at one frozen source. Volume images and binaries
+native runs and host checks at the source commits listed per artefact below. Volume images and binaries
 are not copied. `SHA256SUMS` covers every other file here. Design, pinned
 values and their derivation: `docs/implementation/B02-SECURE-RECORDS.md`,
 section FR-B02R.
@@ -11,8 +11,9 @@ section FR-B02R.
 
 | Item | Value |
 |---|---|
-| Source commit (recorded by every `result.json`) | `d4db823e6d80afee937f5d5af71cef96dfe098ee` (branch `claude/b02-key1-relay-native-20261124`, base `006fb93c`) |
-| Source fingerprint (`source_sha256`, v3) | `e6d90fbf49e2…` (full value in each `result.json`) |
+| Source of `0-relay`, `1-relay-not-committed`, `2-relay-timeout`, `3-red-relay-leak`, `4-control-wrong-case`, `5-gate`, `6-b01` | `07a8879f1cfaf69941952e026a26960c7acbba5b` (fingerprint `ef8f2718d8bf…`, v3; full value in each `result.json`, `5-gate/system-gate.json` and `6-b01/keyring-gate.json`) |
+| Source of `7-regression-normal` and `host/` | `d4db823e6d80afee937f5d5af71cef96dfe098ee` (fingerprint `e6d90fbf49e2…`, v3) |
+| Branch | `claude/b02-key1-relay-native-20261124`, claim base `006fb93c` |
 | Rust toolchain | `1.100.0` (`rust-toolchain.toml`; `tools/build.py` invokes `cargo +1.100.0 build --locked`) |
 | QEMU | 10.2.1 (Debian 1:10.2.1+ds-1ubuntu3.3), `-machine pc-q35-8.2`, `-accel tcg,thread=single`, OVMF |
 | Isolation | `NOS_BUILD_DIR=<worktree>/build/relay-20261124` (inside the checkout because `run_system` requires that), `NOS_TARGET_DIR`/`CARGO_TARGET_DIR` in a scratch directory outside the worktree; one QEMU guest at a time |
