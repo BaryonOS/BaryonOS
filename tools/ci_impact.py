@@ -463,10 +463,14 @@ def validate(catalogue):
     return problems
 
 
+MIN_ANCHOR = 8  # a short anchor would match almost any line
+
+
 def _citation_ok(citation):
     return isinstance(citation, dict) and set(citation) == {"cite", "anchor"} \
         and isinstance(citation["cite"], str) and CITATION_RE.fullmatch(citation["cite"]) is not None \
-        and isinstance(citation["anchor"], str) and citation["anchor"].strip() != ""
+        and isinstance(citation["anchor"], str) \
+        and len(citation["anchor"].strip()) >= MIN_ANCHOR
 
 
 def _has_inputs(table):
@@ -522,10 +526,16 @@ def cargo_closure(roots, read, escapes):
     """Return (globs, crate dirs) for root manifests; `read(path)` gives bytes or None."""
     globs, dirs, seen = set(), set(), set()
     root_dirs = {posixpath.dirname(root) for root in roots}
-    for ancestor in root_dirs:
-        while ancestor:  # cargo also reads every ancestor manifest (a workspace root)
+
+    def add_ancestors(ancestor):
+        # cargo reads every ancestor manifest: a workspace root, or inherited
+        # [workspace.package] / [workspace.lints] fields of a dependency crate
+        while ancestor:
             ancestor = posixpath.dirname(ancestor)
             globs.add(posixpath.join(ancestor, "Cargo.toml"))
+
+    for ancestor in root_dirs:
+        add_ancestors(ancestor)
     queue = list(roots)
     while queue:
         manifest = queue.pop(0)
@@ -546,6 +556,7 @@ def cargo_closure(roots, read, escapes):
             raise Full("cargo-patch-unresolved", [manifest])
         directory = posixpath.dirname(manifest)
         dirs.add(directory)
+        add_ancestors(directory)
         globs.add(f"{directory}/**" if directory else "**")
         tables = [doc] + [table for table in (doc.get("target") or {}).values()
                           if isinstance(table, dict)]

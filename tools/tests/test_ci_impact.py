@@ -63,7 +63,7 @@ path = ".github/workflows/ci.yml"
 owner = "ci-owner"
 granularity = "job"
 events = ["pull_request", "merge_group", "push"]
-obligation = [{ cite = "README.md:1", anchor = "fixture" }]
+obligation = [{ cite = "README.md:1", anchor = "fixture readme" }]
 
 [[workflow.job]]
 id = "host-quality"
@@ -81,7 +81,7 @@ path = ".github/workflows/leaves.yml"
 owner = "ci-owner"
 granularity = "variant"
 events = ["pull_request", "push", "workflow_dispatch"]
-obligation = [{ cite = "README.md:1", anchor = "fixture" }]
+obligation = [{ cite = "README.md:1", anchor = "fixture readme" }]
 trigger.pull_request = { paths_ignore = "@metadata" }
 
 [[workflow.job]]
@@ -103,7 +103,7 @@ path = ".github/workflows/net.yml"
 owner = "ci-owner"
 granularity = "job"
 events = ["pull_request", "push"]
-obligation = [{ cite = "README.md:1", anchor = "fixture" }]
+obligation = [{ cite = "README.md:1", anchor = "fixture readme" }]
 
 [[workflow.job]]
 id = "broker"
@@ -123,7 +123,7 @@ path = ".github/workflows/window.yml"
 owner = "ci-owner"
 granularity = "workflow"
 events = ["pull_request", "push"]
-obligation = [{ cite = "README.md:1", anchor = "fixture" }]
+obligation = [{ cite = "README.md:1", anchor = "fixture readme" }]
 
 [[workflow.job]]
 id = "a"
@@ -149,7 +149,7 @@ path = ".github/workflows/storage.yml"
 owner = "ci-owner"
 granularity = "workflow"
 events = ["pull_request"]
-obligation = [{ cite = "README.md:1", anchor = "fixture" }]
+obligation = [{ cite = "README.md:1", anchor = "fixture readme" }]
 trigger.pull_request = { paths = ["kernel/**"] }
 
 [[workflow.job]]
@@ -200,7 +200,7 @@ def manifest(name, deps=(), extra=""):
 
 
 BASE_FILES = {
-    "README.md": "fixture\n",
+    "README.md": "fixture readme\n",
     "LICENSE": "fixture licence\n",
     "docs/guide.md": "guide\n",
     "Cargo.lock": "# lock\n",
@@ -384,6 +384,17 @@ class SelectionTests(FixtureTestCase):
         self.assertEqual(plan["mode"], "select", plan["fallback"])
         apps = {"leaves#quality/" + v for v in ("viewer", "crop", "sheet", "deck", "solo")}
         self.assertTrue(apps <= self.selected(plan), self.selected(plan))
+
+    def test_dependency_ancestor_manifest_selects_its_dependents(self):
+        # workspace.package / workspace.lints inheritance in a dependency reads this manifest
+        base = self.repo.commit("native crates", {".github/ci-impact.toml": CATALOGUE.replace(
+            'native = ["kernel/**", "tools/native/**"]', 'native = ["kernel/**", "tools/native/**", "crates/**"]')})
+        self.repo.git("checkout", "-q", "-b", "topic", base)
+        head = self.repo.commit("workspace", {"crates/Cargo.toml": "[workspace.package]\nedition = \"2021\"\n"})
+        plan = self.plan(head, base=base)
+        self.assertEqual(plan["mode"], "select", plan["fallback"])
+        self.assertTrue({"leaves#quality/viewer", "leaves#quality/crop"} <= self.selected(plan),
+                        self.selected(plan))
 
     def test_nested_tool_configuration_forces_full(self):
         for path in ("kernel/rustfmt.toml", "kernel/.rustfmt.toml", "kernel/clippy.toml",
@@ -821,7 +832,7 @@ path = ".github/workflows/ci.yml"
 owner = "ci-owner"
 granularity = "job"
 events = ["pull_request", "push"]
-obligation = [{ cite = "README.md:1", anchor = "fixture" }]
+obligation = [{ cite = "README.md:1", anchor = "fixture readme" }]
 trigger.pull_request = { types = ["opened"] }
 trigger.push = { branches = ["main"], paths_ignore = "@metadata" }
 
@@ -956,7 +967,7 @@ class CoverageTests(TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             repo = Repo(tmp)
             repo.commit("base", {".github/ci-impact.toml": COVERAGE_CATALOGUE,
-                                 ".github/workflows/ci.yml": COVERAGE_YAML, "README.md": "fixture\n",
+                                 ".github/workflows/ci.yml": COVERAGE_YAML, "README.md": "fixture readme\n",
                                  "src/a/lib.rs": "// a\n"})
             report = ci_impact.coverage(tmp, ".github/ci-impact.toml")
             self.assertEqual(report["status"], "clean", report)
@@ -991,7 +1002,7 @@ class CoverageTests(TestCase):
             os.symlink("../../README.md", Path(tmp, "src/a/link.rs"))
             os.symlink("../README.md", Path(tmp, "docs/link.md"))
             repo.commit("base", {".github/ci-impact.toml": COVERAGE_CATALOGUE,
-                                 ".github/workflows/ci.yml": COVERAGE_YAML, "README.md": "fixture\n"})
+                                 ".github/workflows/ci.yml": COVERAGE_YAML, "README.md": "fixture readme\n"})
             problems = ci_impact.coverage(tmp, ".github/ci-impact.toml")["problems"]
         self.assertIn("symlink-input: src/a/link.rs", problems)
         self.assertFalse(any("docs/link.md" in p for p in problems), problems)
