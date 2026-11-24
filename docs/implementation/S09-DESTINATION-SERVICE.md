@@ -172,6 +172,19 @@ evidence and does not close S09. In short:
 The same task adds the R3 reverse differential on the host (8.2 R3, status of
 24 November 2026); its hosted run remains open with the forward cross-check.
 
+**Owner decision package 2 (24 November 2026).** The project owner then
+decided O1–O3 and O5–O10, added detail to O4 (a), (b), O12 and O13, and
+confirmed O14–O18, D1–D6, the restore-fidelity decisions, the independent
+kernel and the Security Floor unchanged. Each decision is recorded in 8.1
+under "Decided on 24 November 2026 (package 2)" or "Package 2 additions".
+Ownership for the work that follows: S holds the storage contract, the
+destination service, backup, restore and the integration of the S09 chain; B
+holds user keys, metadata, encryption, authenticity and its security review;
+the owner of the user and session facilities holds trusted profile identity,
+session limits and recovery of owner rights; UI/UX holds the shared system
+screens; the integration coordinator holds shared kernel interfaces,
+protected policy files, ADR integration and workflow changes.
+
 The ADR text that records these decisions in `docs/DECISIONS.md`, which is
 lead-owned, is proposed to the integration coordinator in the pull request
 that carries this note; until it lands, this note is the S-owned record.
@@ -1353,7 +1366,8 @@ collection counts), the destination (device label, capacity, free space, the
 number of existing backups, and whether it is already a Baryon OS destination),
 the statement that the backup is not encrypted and is suitable only for the
 user's own local device, and an action button "Back up". An option "Remember
-this destination for future backups" is shown unchecked. Errors are reported in
+this destination" is shown unchecked; it stores a user preference only and
+grants no export right (O1, decided 24 November 2026). Errors are reported in
 plain words (destination full, destination not found, destination damaged).
 
 For verify: the selected backup (label, entry ID, size) and the result.
@@ -1376,18 +1390,21 @@ incarnation and an object revision, with durations `UntilClose` and `Session`
 only; `services/net-broker` binds grants with an instance, slot and generation
 *[main]*. Neither has a persisted grant. This design therefore uses two levels:
 
-1. **Remembered permission** *[design; needs O1]*: a persisted record
-   `{principal = backup portal, destination ID, operations ⊆ {export, verify},
-   revocation generation}` held by the trusted dialog's store. It authorizes the
+1. **Remembered permission** *[design; O1 decided on 24 November 2026]*: a
+   persisted record `{owner, principal = backup portal, destination ID,
+   operations ⊆ {verify}, revocation generation}` held in protected,
+   profile-bound storage of the trusted consent facility. For the unencrypted
+   v1 route only VERIFY may be remembered, the option is unchecked by default,
+   and export, restore, format and destructive management are never
+   remembered; a remembered destination is a preference without rights. It authorizes the
    dialog to issue a new per-operation grant for normal repetition without
    asking again. Revoking it increments the revocation generation and revokes
    every live lane bound to that destination, together with the portal's
    volume-side binding (4.1, 4.2) for each operation on those lanes. The record
    keys on the destination ID, which is not authenticated (5.4): an attacker
    with physical access who presents a clone of the catalog would receive
-   automatic plaintext exports under a remembered export permission. This is an
-   input to O1, not a design change. Restore is not remembered by
-   default; whether it may be is O1. Persisting this record needs a new
+   automatic plaintext exports under a remembered export permission, which is
+   why O1 excludes export from remembered rights. Persisting this record needs a new
    `Duration` and storage in `task-grant-core` or a new store, which is an SDK
    change, not a kernel change. It extends, rather than follows, the existing
    permission model named in D2 (a) (section 8, O1).
@@ -1868,11 +1885,41 @@ hosted gate runs. No human audit.
   under D2. Input for the decision: the record keys on the unauthenticated
   destination ID (3.3, 5.4), so a cloned catalog could receive automatic
   plaintext exports under a remembered export permission.
+  **Decided on 24 November 2026 (package 2):** for the unencrypted v1 route only VERIFY may be
+  remembered, and the option is unchecked by default. A chosen destination may
+  be remembered as a user preference that grants no export, restore, erase or
+  format right. Every new plaintext backup needs explicit consent for that
+  operation; a copied destination ID receives no automatic export. A
+  remembered right lives in protected, profile-bound storage of the trusted
+  consent facility, bound to owner, portal, destination, permitted operation
+  and revocation generation; revoking it also ends the live bindings and
+  volume-side rights (4.1). RESTORE, FORMAT and destructive management are
+  never remembered. Automatic backups remain a product goal, to be designed
+  with B under the key and encryption contracts with a proven recipient and
+  owner binding; a destination ID or FNV check is not authentication, and no
+  unattended plaintext export is activated as a stand-in.
 - **O2** Formatting: whether a non-blank device may ever be erased into a
   destination (proposed: no in v1; blank devices only).
+  **Decided on 24 November 2026 (package 2):** FORMAT accepts only a scope that passes the full
+  blank check of 2.6; a zero header or some zero sectors do not prove a blank
+  scope. A non-blank device is never erased automatically or taken as a new
+  medium. For the product, a separate trusted preparation flow is approved as a
+  development direction (trusted target selection, visible device identity and
+  capacity, a check against the source and system disk, explicit confirmation
+  of data loss), designed and tested separately. This grants no permission to
+  erase real disks during development.
 - **O3** Retention: v1 has no deletion, so `Full` is terminal for a destination.
   Deleting or rotating old entries needs a decision, a catalog operation and its
   own crash tests.
+  **Decided on 24 November 2026 (package 2):** v1 stays append-only: no deletion, no reuse of
+  freed space, no automatic rotation; at `Full` a new backup stops with a clear
+  message and existing backups stay intact. For the product, controlled
+  deletion of a user's own backups and optional, explicitly configured
+  retention are decided; automatic deletion is off by default, and no default
+  period or count is invented without product grounds. It is a separate,
+  versioned extension with catalog, mount, restore, ownership and revocation
+  rules and crash tests, and a retention policy must never silently delete a
+  user's last proven restorable backup.
 - **O4** (a) Approval of kernel changes K1–K5 as needed (K4 and K5 are required
   for any product profile; K1–K3 can wait). Revision 2 widens K5 from one
   `Policy` per device to per-device broker state (4.3), because only that
@@ -1905,15 +1952,50 @@ hosted gate runs. No human audit.
   activation, no real host disks. (c) The deterministic ID is permitted only
   in the explicit test profile with `DEST:ID:TEST-ONLY`; product builds must
   not use it; the real entropy route needs native evidence before R8.
+  **Package 2 additions (24 November 2026):** K5 separates per device at
+  least the `Policy`, the reset state, the reset deadline, the error state, the
+  active request and the data buffer, so that a fault on the destination disk
+  does not needlessly block the source disk; K5 comes first for R5, and the O13
+  kernel write latch belongs to the further K5 work. K4 is built for the
+  product profile. "Present at boot" must not become a permanent product
+  limit; hot-plug stays product work. Quotas and concurrency limits are not
+  raised without shown need. Under (b) the block handle carries no DERIVE,
+  TRANSFER or REVOKE and the portal gets no raw disk rights; bounded devices
+  and DMA remain.
 - **O5** Time display: whether any wall-clock time is shown for an entry. The
   catalog stores none, and v1 object times are a per-domain logical clock,
   not wall-clock time ([S09-BACKUP-ARCHIVE.md](S09-BACKUP-ARCHIVE.md)).
+  **Decided on 24 November 2026 (package 2):** no date or time is invented, and a logical
+  counter is never shown as wall-clock time. Existing v1 entries show label,
+  order, size and, where needed, "date unknown". New product metadata carries
+  a usable backup date and time in the versioned catalog extension, taken from
+  the trusted system clock with a stated meaning and shown in the local time
+  zone; uncertain or missing clock time is shown as such. Wall-clock time
+  replaces no monotonic deadline, generation or other security or recovery
+  rule.
 - **O6** (lead-owned) workflow stage-count pins for new destination stages, or a
   separate gate.
+  **Decided on 24 November 2026 (package 2):** a separately recognisable destination acceptance
+  gate for the new native destination stages, beside the existing applicable
+  volume regression tests. The CI owner changes the protected workflows and any
+  stage-count pins, with expectations derived from the actual test plans, not
+  copied historical counts. The hosted R3 cross-check, the reverse
+  differential and the P10 lint of the `no_std` library must actually run as
+  specified; which gate belongs to which change and milestone is recorded. The
+  acceptance-hold and exact-head procedures apply; a skipped, running or
+  unexecuted relevant test is not a passed acceptance.
 - **O7** Whether the dialog may hold the lane issuing roots (section 4.3) or
   D4 (a) requires them in the portal. With the sender check of 4.3 the dialog's
   residual authority on an operation lane is to bind, transfer and revoke, not
   to perform an operation.
+  **Decided on 24 November 2026 (package 2):** the proposed separation is kept: the trusted
+  dialog holds the issuing roots and the control lane, the portal receives only
+  the temporary SEND rights for the permitted operation, and the destination
+  service checks the kernel-stamped sender, binding and generation. Negative
+  tests must show that the dialog cannot perform backup operations as a
+  portal with its remaining rights. Identity must not rest on an unproven
+  assumption about process-ID reuse: the needed invariant is proven, or a
+  reviewed incarnation or generation contract is used.
 - **O8** (withdrawn in revision 1) In-boot restart after the failed-mount
   state. Revision 0 named a service restart as a recovery route. Under the
   proposed once-per-boot grant rule (2.1, O13), no instance in the same boot
@@ -1924,6 +2006,12 @@ hosted gate runs. No human audit.
   per-device broker become owner decisions together; neither is assumed here.
   How the portal reports "reboot required" to the user remains a UI detail of
   R7.
+  **Decided on 24 November 2026 (package 2):** the withdrawal of the in-boot restart route is
+  kept; a service restart never clears the safe state or the write latch or
+  regains write rights. A safe automatic restart may be designed later, keeping
+  kernel state, revocation and recovery rules; until it is shown, the current
+  recovery route applies and the UI states honestly when further recovery is
+  needed.
 - **O9** Completion fence (2.7): whether a write that the device accepted
   before an acknowledged reset can still reach the backing medium after the
   reset and the remount FLUSH, for QEMU and its host storage stack; whether the
@@ -1979,11 +2067,28 @@ hosted gate runs. No human audit.
     version, backend or options other than the runner's; any claim about
     physical media. The K4/K5 broker fence still needs its own native timeout
     fixture (R5). N24 and E1/E2 are planned tests, not evidence.
+  **Decided on 24 November 2026 (package 2):** the empirical E1 and E2 trials and the matching
+  native broker trials are approved for scheduling and execution once the
+  implementation and markers exist, with the exact recorded QEMU and backend
+  configurations and isolated disposable images only; host and guest
+  observations are kept and conclusions are reported per tested configuration.
+  The approval proves no completion fence, safe warm reboot or physical-media
+  behaviour. Until fitting evidence exists the fail-closed rules and the
+  bounded safe path stay, and O17 is not changed on assumptions. If a result
+  refutes a security contract, the affected route stops and its correction is
+  worked out.
 - **O10** `Corrupt` after an interrupted FORMAT (2.6, N25): the policy by
   which a product distinguishes a FORMAT interrupted before its first copy
   was durable from a damaged existing destination, and whether any recovery
   other than external re-zeroing of a disposable image is offered. Not
   specified; until decided the service never formats a `Corrupt` scope.
+  **Decided on 24 November 2026 (package 2):** a `Corrupt` destination is never reformatted,
+  repaired or treated as "probably blank" automatically. In v1 the operation
+  stays refused and the medium is kept; a test harness may only recreate its
+  own disposable image. A product diagnosis and recovery route is to be
+  designed: recovery rests only on provably valid data and the current owner
+  rights; erase and re-preparation fall under the explicit O2 flow and are
+  never presented as data recovery.
 - **O11** (new in revision 1) **Owner question:** must a v1 destination be a
   block device of its own (proposed, 2.1), or may it be a partition whose
   scope is disjoint from every other block scope, accepting that it shares
@@ -2008,6 +2113,16 @@ hosted gate runs. No human audit.
   trusted identity, access checks and recovery route to be designed and
   checked against the profile, key and encryption contracts (3.3); R5 and R6
   may use one profile; an owner field is not evidence of encryption.
+  **Package 2 additions (24 November 2026):** the owner identity comes
+  from the trusted user and session facility, never from an app-supplied name
+  or ID. Showing backups and metadata, reading, VERIFY, export, restore and
+  management are checked against owner rights. A reissued account ID does not
+  inherit old backup rights. Recovery without the original source disk or
+  computer is designed so that the rightful owner regains access through the
+  current recovery facility and no other user does. Product privacy, including
+  protection of names and metadata, follows the key and encryption contracts
+  with B. The archive-v1 payload is not changed silently; a new format gets an
+  explicit version, compatibility rules and tests.
 - **O13** (new in revision 2) **Owner question:** is the in-memory latch of the
   single service instance accepted as the carrier of the read-only safe path,
   on the condition of the proposed once-per-boot grant rule (2.1: the
@@ -2026,6 +2141,14 @@ hosted gate runs. No human audit.
   **Decided on 24 November 2026:** the kernel write latch, which a restart,
   rebind or newly granted capability does not bypass; implemented and tested
   natively before R8; the once-per-boot rule and N32 are kept (2.1, 2.7).
+  **Package 2 additions (24 November 2026):** after the trigger the
+  kernel refuses new WRITE requests to that destination scope for the rest of
+  the boot, whatever service restart, rebind, new block object or new handle;
+  it is limited to that destination and keeps READ and the remount FLUSH as the
+  recovery protocol needs them, so it does not silently become a ban on all
+  I/O. N32 stays and the latch gets its own native test. O17 stays: a digest
+  mismatch alone does not set the latch without a new decision based on O9
+  evidence.
 - **O14** (new in revision 3) **Owner question:** does the copy validator of
   2.6 apply `valid_name` (2.3) in full to every record's label at mount
   (proposed), so that one label with invalid UTF-8, a control character, `/`,
