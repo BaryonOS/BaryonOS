@@ -9,7 +9,17 @@ import re
 
 ROOT = Path(__file__).resolve().parents[1]
 CONTRACT = Path("docs/LOCAL-PRIVACY-CONTRACT.md")
-MATRIX = Path("docs/verification/b06-lp-matrix-20261115/matrix.json")
+# Default is the newest revision; earlier revisions stay readable through --matrix.
+MATRIX = Path("docs/verification/b06-lp-matrix-20261123/matrix.json")
+MAX_BYTES = 1024 * 1024
+
+
+def bounded_read(path: Path) -> bytes:
+    with path.open("rb") as stream:
+        data = stream.read(MAX_BYTES + 1)
+    if len(data) > MAX_BYTES:
+        raise ValueError(f"{path.name} exceeds {MAX_BYTES} bytes")
+    return data
 
 
 def evidence_file(root: Path, reference: dict) -> tuple[Path, bytes]:
@@ -22,22 +32,28 @@ def evidence_file(root: Path, reference: dict) -> tuple[Path, bytes]:
     if relative.is_absolute() or relative.as_posix() != name or ".." in relative.parts or "\\" in name or ":" in name:
         raise ValueError("noncanonical evidence path")
     path = (root / name).resolve(strict=True)
-    if not path.is_relative_to(root) or not path.is_file() or path.stat().st_size > 1024 * 1024:
+    if not path.is_relative_to(root) or not path.is_file() or path.stat().st_size > MAX_BYTES:
         raise ValueError("evidence must be a bounded repository file")
-    with path.open("rb") as stream:
-        data = stream.read(1024 * 1024 + 1)
-    if len(data) > 1024 * 1024 or hashlib.sha256(data).hexdigest() != digest:
+    data = bounded_read(path)
+    if hashlib.sha256(data).hexdigest() != digest:
         raise ValueError("evidence digest changed")
     return path, data
 
 
-def check(root: Path = ROOT) -> dict:
+def check(root: Path = ROOT, matrix: Path = MATRIX) -> dict:
     root = root.resolve(strict=True)
+    matrix_path = (root / matrix).resolve(strict=True)
+    # Only archived matrix revisions: docs/verification/<revision>/matrix.json, bounded like evidence.
+    if (not matrix_path.is_relative_to(root) or not matrix_path.is_file()
+            or matrix_path.relative_to(root).parts[:2] != ("docs", "verification")
+            or len(matrix_path.relative_to(root).parts) != 4 or matrix_path.name != "matrix.json"
+            or matrix_path.stat().st_size > MAX_BYTES):
+        raise ValueError("matrix must be a bounded docs/verification/<revision>/matrix.json file")
     ids = re.findall(r"^\| (LP-[0-9]{2}) \|", (root / CONTRACT).read_text(), re.MULTILINE)
     expected = {f"LP-{i:02}" for i in range(1, 32)}
     if len(ids) != 31 or set(ids) != expected:
         raise ValueError("contract must contain 31 unique LP IDs")
-    data = json.loads((root / MATRIX).read_text())
+    data = json.loads(bounded_read(matrix_path))
     if not isinstance(data, dict) or set(data) != {"schema", "rows"} or type(data["schema"]) is not int or data["schema"] != 1:
         raise ValueError("unknown LP matrix schema")
     rows = data["rows"]
@@ -69,21 +85,28 @@ def check(root: Path = ROOT) -> dict:
                         or type(report.get("raw_qemu_exit")) is not int or report["raw_qemu_exit"] != 33
                         or not isinstance(report.get("source_sha256"), str)
                         or not re.fullmatch(r"[0-9a-f]{64}", report["source_sha256"])):
-                    raise ValueError("native reference is not a passing source-bound QEMU record")
+                    raise ValueError("native reference is not a passing QEMU record with a source_sha256 tag")
         counts[status] += 1
         risks.append({"id": ident, "status": status, "remaining": row["remaining"]})
-    return {"structurally_valid": True, "counts": counts, "residual_coverage": risks,
-            "limit": "Reference validation only; no evidence authenticity, complete-scenario or privacy acceptance."}
+    return {"matrix": matrix_path.relative_to(root).as_posix(), "structurally_valid": True,
+            "counts": counts, "residual_coverage": risks,
+            "limit": ("Reference validation only; no evidence authenticity, complete-scenario or privacy acceptance. "
+                      "A native row only means that its evidence is an archived QEMU record with passed, "
+                      "timed_out, raw_qemu_exit 33 and source_sha256 fields as required; this tool does not "
+                      "inspect what that run exercised. Whether it exercised the row's core denial is the "
+                      "human-reviewed mapping in the matrix revision's README and the row's residual text, "
+                      "and a native row does not mean that the complete LP scenario is covered.")}
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--check", action="store_true", required=True)
-    parser.parse_args()
+    parser.add_argument("--matrix", type=Path, default=MATRIX, help="repository-relative matrix revision")
+    args = parser.parse_args()
     try:
-        print(json.dumps(check(), indent=2))
+        print(json.dumps(check(matrix=args.matrix), indent=2))
     except (ValueError, OSError, RuntimeError, TypeError) as error:
-        print(f"LP matrix: {error}")
+        print(f"LP matrix {args.matrix.as_posix()}: {error}")
         return 1
     return 0
 

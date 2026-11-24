@@ -50,7 +50,7 @@ no allocator or external dependencies, and `forbid(unsafe_code)` in the core.
 The native adapter uses existing fixed syscall buffers and a justified
 unsafe boundary. That historical M6b baseline retained `r-efi 7.1.0`. The current loader pin is `r-efi 7.2.0`; its registry checksum, VCS reference, unchanged feature/dependency set and retained MIT notice are recorded in [the current boot dependency inventory](third-party/README.md).
 
-The SDK runtime now directly uses `zeroize 1.9.1` (exactly pinned,
+The SDK runtime now directly uses `zeroize 1.9.2` (exactly pinned,
 `default-features = false`) to erase IPC envelopes. This is the same
 RustCrypto dependency already used in `services/keyring`; the pinned crate
 is `no_std`, has no transitive dependency or build script in this
@@ -74,6 +74,7 @@ with the component.
 | `smoltcp =0.14.0` | `services/net-stack`, `services/net-broker` | smoltcp-rs/smoltcp; 0BSD | `default-features = false`, Ethernet/IPv4/TCP only; transitive `managed`, `heapless`, `hash32`, `byteorder`, `bitflags`, `cfg-if`, `stable_deref_trait` under the lockfile | ADR-046 in `DECISIONS.md`, `services/net-stack/THIRD-PARTY.md` |
 | `rustls =0.23.46` | `services/net-tls` | rustls/rustls; Apache-2.0 OR ISC OR MIT | `custom-provider` only, no `std`/ring/AWS-LC; transitive `rustls-webpki`, `rustls-pki-types`, `once_cell`, `subtle`, `untrusted`, `zeroize` | `services/net-tls/README.md` (dependency review) |
 | `spin =0.12.3` | `services/net-tls` | zesterer/spin; MIT | `mutex,spin_mutex` only; no dependencies or build script | `services/net-tls/README.md` |
+| Dev-dependencies only: `rustls =0.23.46` features `aws_lc_rs,std,tls12`; `rcgen =0.14.10` (`aws_lc_rs`, no defaults); `rustls-webpki =0.103.16` (`alloc`); transitive `aws-lc-rs 1.19.0`, `aws-lc-sys 0.47.0` | `services/net-tls/tests/loopback.rs` (N03-T2 host test oracle, owner decision 23 November 2026) | aws/aws-lc-rs; aws-lc-rs ISC AND (Apache-2.0 OR ISC); aws-lc-sys ISC AND (Apache-2.0 OR ISC) AND Apache-2.0 AND MIT AND BSD-3-Clause AND (Apache-2.0 OR ISC OR MIT) AND (Apache-2.0 OR ISC OR MIT-0); rustls/rcgen MIT OR Apache-2.0 | Host-only; never in the normal or `x86_64-unknown-none` graph (`cargo tree -e normal,build`). aws-lc-sys build script compiles bundled C/assembly with a host C compiler. Not a native provider selection | `services/net-tls/README.md` (N03-T2 section) |
 
 Unselected optional or platform packages (such as `ring`, `windows-*`) may
 appear in `services/net-tls/Cargo.lock`; only the feature tree and compiler

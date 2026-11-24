@@ -2,12 +2,13 @@ mod common;
 
 use common::{fill, pattern, recover, Local, Op, SimDisk};
 use volume_core::{
-    client::{validate_reply, Client},
+    client::{validate_reply, Client, VersionStat},
     service::Service,
     table::{self, SectorState, Table},
+    upload,
     wire::{self, Header},
-    Status, CHUNK, CHUNKS, DATA_START, MAX_LENGTH, PER_DOMAIN, QUOTA, SECTOR, TABLE_SECTORS,
-    VOLUME_SECTORS,
+    Status, CHUNK, CHUNKS, DATA_START, MAX_LENGTH, NAME, OBJECTS, PER_DOMAIN, QUOTA, SECTOR,
+    TABLE_SECTORS, VOLUME_SECTORS,
 };
 
 const EPOCH: u64 = 7;
@@ -167,11 +168,13 @@ fn adjacent_generation_checks_do_not_wrap_or_panic() {
         states: [SectorState::Valid(2, 7); table::TABLE_SECTORS_USIZE],
         format_marker: false,
         valid: Some(2),
+        format: table::VERSION,
     };
     let mut mixed = table::SlotScan {
         states: [SectorState::Zero; table::TABLE_SECTORS_USIZE],
         format_marker: false,
         valid: None,
+        format: table::VERSION,
     };
     mixed.states[0] = SectorState::Valid(u64::MAX, 8);
     assert_eq!(table::choose([valid, mixed]), Err(Status::Corrupt));
@@ -179,6 +182,7 @@ fn adjacent_generation_checks_do_not_wrap_or_panic() {
         states: [SectorState::Valid(u64::MAX, 8); table::TABLE_SECTORS_USIZE],
         format_marker: false,
         valid: Some(u64::MAX),
+        format: table::VERSION,
     };
     assert_eq!(table::choose([maximum, maximum]), Err(Status::Corrupt));
     mixed.states.fill(SectorState::Invalid);
@@ -835,7 +839,7 @@ fn malformed_shutdown_requests_are_rejected_without_io() {
     let mut h = shutdown(0);
     h.aux = 1;
     cases.push((h, Status::Invalid));
-    cases.push((Header::new(wire::SHUTDOWN + 1, 5, EPOCH, 0), Status::NoSys));
+    cases.push((Header::new(wire::LAST + 1, 5, EPOCH, 0), Status::NoSys));
     for (header, status) in &cases {
         let reply = service.handle(0, &wire::encode(header, &[]), &mut disk);
         assert_eq!(wire::header(&reply).status, *status as i32, "{header:?}");
@@ -1036,4 +1040,380 @@ fn table_sector_layout_is_canonical() {
             core::array::from_fn(|i| wrong.encode_sector(i as u64));
         assert_eq!(decode(1, &sectors), Err(Status::Corrupt), "{what}");
     }
+}
+
+// --- S09 own-domain reads (docs/implementation/S09-OWN-DOMAIN-READS.md) ---
+
+fn domain_stat_header(object: u64) -> Header {
+    Header::new(wire::DOMAIN_STAT, 9, EPOCH, object)
+}
+
+fn version_stat_header(object: u64, revision: u64, selector: u32) -> Header {
+    let mut h = Header::new(wire::VERSION_STAT, 9, EPOCH, object);
+    h.revision = revision;
+    h.name_length = selector;
+    h
+}
+
+fn status_of(reply: &[u8; wire::SIZE]) -> i32 {
+    wire::header(reply).status
+}
+
+#[test]
+fn malformed_own_reads_are_rejected_before_any_state_or_io() {
+    let mut disk = SimDisk::new();
+    let mut service = Service::new(EPOCH, Table::EMPTY, false);
+    let mut cases = vec![
+        (domain_stat_header(1), Status::Invalid),
+        (domain_stat_header(PER_DOMAIN as u64), Status::Access),
+        (domain_stat_header(PER_DOMAIN as u64 + 3), Status::Access),
+        (domain_stat_header(OBJECTS as u64), Status::Range),
+        (version_stat_header(0, 0, 0), Status::Invalid),
+        (version_stat_header(0, 1, 3), Status::Invalid),
+        (
+            version_stat_header(PER_DOMAIN as u64 + 2, 1, 0),
+            Status::Access,
+        ),
+        (version_stat_header(OBJECTS as u64, 1, 0), Status::Range),
+        (Header::new(wire::LAST + 1, 9, EPOCH, 0), Status::NoSys),
+    ];
+    for field in 0..4 {
+        let mut h = domain_stat_header(0);
+        match field {
+            0 => h.revision = 1,
+            1 => h.name_length = 1,
+            2 => h.count = 1,
+            _ => h.aux = 1,
+        }
+        cases.push((h, Status::Invalid));
+    }
+    for field in 0..2 {
+        let mut h = version_stat_header(0, 1, 0);
+        match field {
+            0 => h.count = 1,
+            _ => h.aux = 1,
+        }
+        cases.push((h, Status::Invalid));
+    }
+    let mut wrong_epoch = domain_stat_header(0);
+    wrong_epoch.epoch = EPOCH + 1;
+    cases.push((wrong_epoch, Status::Invalid));
+    for (header, status) in &cases {
+        let reply = service.handle(0, &wire::encode(header, &[]), &mut disk);
+        assert_eq!(status_of(&reply), *status as i32, "{header:?}");
+        assert_eq!(wire::header(&reply).revision, 0, "{header:?}");
+    }
+    // Data bytes: a length, or trailing bytes without one.
+    for header in [domain_stat_header(0), version_stat_header(0, 1, 0)] {
+        let mut h = header;
+        h.length = 1;
+        let reply = service.handle(0, &wire::encode(&h, b"a"), &mut disk);
+        assert_eq!(status_of(&reply), Status::Invalid as i32);
+        let mut body = wire::encode(&header, &[]);
+        body[64] = 1;
+        assert_eq!(
+            status_of(&service.handle(0, &body, &mut disk)),
+            Status::Invalid as i32
+        );
+        let mut body = wire::encode(&header, &[]);
+        body[5] = 1;
+        assert_eq!(
+            status_of(&service.handle(0, &body, &mut disk)),
+            Status::Invalid as i32
+        );
+        // Token-bound ingress: a token on a non-upload operation is refused,
+        // and principal 0 is refused before any state is read.
+        let reply = service.handle_for(0, 7, &upload::encode(&header, &[], 3), &mut disk);
+        assert_eq!(status_of(&reply), Status::Invalid as i32);
+        let reply = service.handle_for(0, 0, &upload::encode(&header, &[], 0), &mut disk);
+        assert_eq!(status_of(&reply), Status::Access as i32);
+    }
+    assert!(disk.log.is_empty(), "no disk access");
+    let counters = service.counters;
+    assert_eq!(
+        counters.commits + counters.table_writes + counters.flushes,
+        0
+    );
+    assert_eq!(counters.read_sectors, 0);
+}
+
+#[test]
+fn domain_stat_reveals_only_the_own_clock_and_generation() {
+    let mut disk = SimDisk::new();
+    let mut service = Service::new(EPOCH, Table::EMPTY, false);
+    assert_eq!(
+        client(&mut service, &mut disk, 0).domain_stat(0),
+        Ok((0, 0))
+    );
+    let mut a = client(&mut service, &mut disk, 0);
+    a.write(0, 0, b"a", 10, fill(0, 1)).unwrap();
+    a.write(1, 0, b"b", 10, fill(1, 1)).unwrap();
+    // A collection-only commit raises the clock without touching any stamp.
+    a.collection(0, 1, 0, b"Map").unwrap();
+    assert_eq!(a.domain_stat(0), Ok((3, 3)));
+    let (before_domain, before_version) = (
+        service.handle(0, &wire::encode(&domain_stat_header(0), &[]), &mut disk),
+        service.handle(
+            0,
+            &wire::encode(&version_stat_header(0, 1, 0), &[]),
+            &mut disk,
+        ),
+    );
+    let mut b = client(&mut service, &mut disk, 1);
+    let base = PER_DOMAIN as u64;
+    let mut revision = 0;
+    for _ in 0..4 {
+        revision = b.write(base, revision, b"x", 5, fill(base, 1)).unwrap().0;
+    }
+    b.collection(1, 2, 0, b"Ander").unwrap();
+    assert_eq!(b.domain_stat(1), Ok((5, 5)));
+    assert_eq!(
+        service.handle(0, &wire::encode(&domain_stat_header(0), &[]), &mut disk),
+        before_domain,
+        "another domain's commits are invisible"
+    );
+    assert_eq!(
+        service.handle(
+            0,
+            &wire::encode(&version_stat_header(0, 1, 0), &[]),
+            &mut disk
+        ),
+        before_version
+    );
+    assert_eq!(service.table().clocks, [3, 5]);
+    assert_eq!(service.table().generation, 8);
+    let mut list = [wire::ListEntry::EMPTY; PER_DOMAIN];
+    let mut a = client(&mut service, &mut disk, 0);
+    assert_eq!(a.list(0, &mut list).unwrap().1, a.domain_stat(0).unwrap().0);
+    let recovered = Service::recover(EPOCH, true, &mut disk.clone()).unwrap();
+    let mut copy = disk.clone();
+    let mut recovered = recovered;
+    assert_eq!(
+        client(&mut recovered, &mut copy, 0).domain_stat(0),
+        Ok((3, 3)),
+        "the clock survives a restart"
+    );
+}
+
+#[test]
+fn version_stat_names_only_the_consecutive_revision_prefix() {
+    let mut disk = SimDisk::new();
+    let mut service = Service::new(EPOCH, Table::EMPTY, false);
+    let mut c = client(&mut service, &mut disk, 0);
+    for (expected, name) in [(0, &b"een"[..]), (1, b"twee"), (2, b"drie")] {
+        c.write(
+            0,
+            expected,
+            name,
+            10 + expected as usize,
+            fill(0, expected + 1),
+        )
+        .unwrap();
+    }
+    let stat = c.stat(0).unwrap();
+    let stamps = c.version_stat(0, 3, 0).unwrap();
+    assert_eq!(
+        (
+            stamps.present,
+            stamps.created,
+            stamps.modified,
+            stamps.revision
+        ),
+        (true, stat.created, stat.modified, 3)
+    );
+    for (selector, name) in [(1, &b"twee"[..]), (2, b"een")] {
+        let v = c.version_stat(0, 3, selector).unwrap();
+        assert_eq!(v.name(), name, "the name at push time");
+        assert_eq!(v.version_revision, stat.history[selector - 1].revision);
+    }
+    // Name reply: no length, checksum or count; zero bytes after the name.
+    let reply = c.transport.service.handle(
+        0,
+        &wire::encode(&version_stat_header(0, 3, 1), &[]),
+        c.transport.disk,
+    );
+    let h = wire::header(&reply);
+    assert_eq!((h.length, h.name_length, h.count, h.aux), (4, 4, 0, 2));
+    assert!(reply[68..].iter().all(|byte| *byte == 0));
+    assert_eq!(c.version_stat(0, 2, 1), Err((Status::Stale, 0)));
+    assert_eq!(c.version_stat(0, 4, 0), Err((Status::Stale, 0)));
+    assert_eq!(c.version_stat(5, 1, 0), Err((Status::NotFound, 0)));
+    // RENAME raises the entry revision without a version: the next commit
+    // leaves a gap, and nothing behind it is named any more.
+    c.rename(0, 3, b"vier").unwrap();
+    c.write(0, 4, b"vijf", 3, fill(0, 5)).unwrap();
+    assert_eq!(c.stat(0).unwrap().history[0].revision, 3);
+    assert_eq!(c.version_stat(0, 5, 1), Err((Status::NotFound, 5)));
+    assert_eq!(c.version_stat(0, 5, 2), Err((Status::NotFound, 5)));
+    // META likewise.
+    c.write(1, 0, b"a", 1, fill(1, 1)).unwrap();
+    c.meta(1, 1, 1, 0, 0).unwrap();
+    c.write(1, 2, b"b", 1, fill(1, 3)).unwrap();
+    assert_eq!(c.version_stat(1, 3, 1), Err((Status::NotFound, 3)));
+    let bytes_before = c.transport.disk.mutating_ops;
+    let counters = c.transport.service.counters;
+    assert_eq!(c.version_stat(0, 5, 0).map(|v| v.present), Ok(true));
+    assert_eq!(
+        c.domain_stat(0).map(|d| d.1),
+        Ok(c.transport.service.table().clocks[0])
+    );
+    assert_eq!(c.transport.disk.mutating_ops, bytes_before);
+    assert_eq!(
+        c.transport.service.counters, counters,
+        "reads change no counter"
+    );
+}
+
+#[test]
+fn version_stat_never_names_a_version_from_before_a_delete() {
+    let mut disk = SimDisk::new();
+    let mut service = Service::new(EPOCH, Table::EMPTY, false);
+    let mut c = client(&mut service, &mut disk, 0);
+    c.write(0, 0, b"plan.txt", 4, fill(0, 1)).unwrap();
+    c.write(0, 1, b"plan-2.txt", 4, fill(0, 2)).unwrap();
+    assert_eq!(c.delete(0, 2), Ok(3));
+    // Deleted, not purged: stamps only, no history field (R2).
+    let stamps = c.version_stat(0, 3, 0).unwrap();
+    assert!(!stamps.present && stamps.created != 0 && stamps.created <= stamps.modified);
+    for selector in 1..=2 {
+        assert_eq!(c.version_stat(0, 3, selector), Err((Status::NotFound, 3)));
+    }
+    let reply = c.transport.service.handle(
+        0,
+        &wire::encode(&version_stat_header(0, 3, 1), &[]),
+        c.transport.disk,
+    );
+    assert!(reply[56..].iter().all(|byte| *byte == 0), "no data");
+    // Re-created: the deleted versions are history again, but behind a gap.
+    c.write(0, 3, b"nieuw", 4, fill(0, 4)).unwrap();
+    let stat = c.stat(0).unwrap();
+    assert_eq!((stat.history_count, stat.history[0].revision), (2, 2));
+    assert_eq!(c.version_stat(0, 4, 1), Err((Status::NotFound, 4)));
+    assert_eq!(c.version_stat(0, 4, 2), Err((Status::NotFound, 4)));
+    // Every mutation invalidates the old revision.
+    assert_eq!(c.version_stat(0, 3, 0), Err((Status::Stale, 0)));
+    c.write(1, 0, b"x", 1, fill(1, 1)).unwrap();
+    assert_eq!(c.delete(1, 1), Ok(2));
+    assert_eq!(c.restore(1, 2, 1), Ok(3));
+    assert_eq!(c.version_stat(1, 2, 0), Err((Status::Stale, 0)));
+    assert_eq!(c.meta(1, 3, 1, 0, 0), Ok(4));
+    assert_eq!(c.version_stat(1, 3, 0), Err((Status::Stale, 0)));
+    assert_eq!(c.delete(1, 4), Ok(5));
+    assert_eq!(c.purge(1, 5), Ok(6));
+    assert_eq!(c.version_stat(1, 5, 0), Err((Status::Stale, 0)));
+    // Purged: stamps remain, history is gone.
+    assert!(!c.version_stat(1, 6, 0).unwrap().present);
+    assert_eq!(c.version_stat(1, 6, 1), Err((Status::NotFound, 6)));
+}
+
+#[test]
+fn own_reads_on_read_only_uncertain_and_token_bound_instances() {
+    let mut disk = SimDisk::new();
+    let mut service = Service::new(EPOCH, Table::EMPTY, false);
+    client(&mut service, &mut disk, 0)
+        .write(0, 0, b"Doc", 10, fill(0, 1))
+        .unwrap();
+    // Read-only mount: answered, no write or flush.
+    let mut ro = Service::recover(EPOCH, true, &mut disk).unwrap();
+    let mutating = disk.mutating_ops;
+    let mut c = client(&mut ro, &mut disk, 0);
+    assert_eq!(c.domain_stat(0), Ok((1, 1)));
+    assert!(c.version_stat(0, 1, 0).unwrap().present);
+    assert_eq!(disk.mutating_ops, mutating);
+    // An active token-bound upload is neither consulted nor disturbed.
+    let mut begin = Header::new(wire::BEGIN, 40, EPOCH, 1);
+    begin.length = 1;
+    begin.name_length = 1;
+    begin.aux = 1;
+    let reply = service.handle_for(0, 7, &upload::encode(&begin, b"u", 0), &mut disk);
+    assert_eq!(status_of(&reply), Status::Ok as i32);
+    let session = *service.session(0).unwrap();
+    let counters = service.counters;
+    for header in [domain_stat_header(0), version_stat_header(0, 1, 0)] {
+        let reply = service.handle_for(0, 7, &upload::encode(&header, &[], 0), &mut disk);
+        assert_eq!(status_of(&reply), Status::Ok as i32);
+        assert_eq!(upload::token(&reply), 0);
+    }
+    assert_eq!(*service.session(0).unwrap(), session);
+    assert_eq!(service.counters, counters);
+    // Uncertain instance: Unknown, no state.
+    let mut c = client(&mut service, &mut disk, 0);
+    c.transport.disk.fail_once_at = Some(c.transport.disk.mutating_ops);
+    assert_eq!(c.shutdown(0), Err(Status::Unknown));
+    assert_eq!(c.domain_stat(0), Err(Status::Unknown));
+    assert_eq!(c.version_stat(0, 1, 0), Err((Status::Unknown, 0)));
+}
+
+#[test]
+fn client_rejects_forged_own_read_replies() {
+    let mut disk = SimDisk::new();
+    let mut service = Service::new(EPOCH, Table::EMPTY, false);
+    let mut c = client(&mut service, &mut disk, 0);
+    for (expected, name) in [(0, &b"a"[..]), (1, b"b")] {
+        c.write(0, expected, name, 1, fill(0, 1)).unwrap();
+    }
+    let mut ask = |header: &Header| service.handle(0, &wire::encode(header, &[]), &mut disk);
+    let domain = domain_stat_header(0);
+    let stamps = version_stat_header(0, 2, 0);
+    let named = version_stat_header(0, 2, 1);
+    let replies = [
+        (domain, ask(&domain)),
+        (stamps, ask(&stamps)),
+        (named, ask(&named)),
+    ];
+    for (request, reply) in &replies {
+        assert!(validate_reply(request, reply, EPOCH).is_ok(), "{request:?}");
+    }
+    let forge = |index: usize, edit: &dyn Fn(&mut [u8; wire::SIZE])| {
+        let (request, reply) = replies[index];
+        let mut bad = reply;
+        edit(&mut bad);
+        assert_eq!(validate_reply(&request, &bad, EPOCH), Err(Status::Protocol));
+    };
+    // DOMAIN_STAT: data, count, name length, clock 0 with a generation.
+    forge(0, &|b| b[52] = 1);
+    forge(0, &|b| b[48] = 1);
+    forge(0, &|b| {
+        b[40] = 1;
+        b[64] = 1;
+    });
+    forge(0, &|b| b[56..64].fill(0));
+    // Selector 0: revision, length, count, name length, aux, stamps.
+    forge(1, &|b| b[32] ^= 1);
+    forge(1, &|b| b[52] = 2);
+    forge(1, &|b| b[48] = 1);
+    forge(1, &|b| b[56] = 1);
+    forge(1, &|b| b[64..72].fill(0));
+    forge(1, &|b| b[64..72].copy_from_slice(&u64::MAX.to_le_bytes()));
+    forge(1, &|b| {
+        b[40] = 15;
+        b[79] = 0;
+    });
+    // Selector >= 1: revision, count, name length, invalid name, aux bounds.
+    forge(2, &|b| b[32] ^= 1);
+    forge(2, &|b| b[52] = 1);
+    forge(2, &|b| b[48] = 2);
+    forge(2, &|b| b[64] = 0xff);
+    forge(2, &|b| b[56..64].fill(0));
+    forge(2, &|b| b[56..64].copy_from_slice(&2u64.to_le_bytes()));
+    forge(2, &|b| {
+        b[40] = 0;
+        b[48] = 0;
+        b[64] = 0;
+    });
+    // The parsed value is what the service holds.
+    let mut c = client(&mut service, &mut disk, 0);
+    let v = c.version_stat(0, 2, 1).unwrap();
+    let mut name = [0; NAME];
+    name[0] = b'a';
+    assert_eq!(
+        v,
+        VersionStat {
+            revision: 2,
+            version_revision: 1,
+            name_length: 1,
+            name,
+            ..VersionStat::default()
+        }
+    );
 }

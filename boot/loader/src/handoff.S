@@ -10,9 +10,11 @@ handoff:
     xor ebp, ebp
     mov rdi, rdx
     call rcx
+.if {halt_only} == 0
     mov dx, 0xf4
     mov eax, 0x11
     out dx, eax
+.endif
 1:
     cli
     hlt

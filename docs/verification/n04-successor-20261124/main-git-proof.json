@@ -1,0 +1,24 @@
+{
+  "observed_at": "2026-11-24T02:08:30Z",
+  "method": "Read-only Git ref/object/tree verification after the integration coordinator fetched actual origin/main",
+  "observed_ref": "refs/remotes/origin/main",
+  "observed_ref_sha": "c3afc04ac2bc92228f2201af02ab69148c47e596",
+  "main_commit": "c3afc04ac2bc92228f2201af02ab69148c47e596",
+  "main_tree": "d7d113f8970ffe0f968591efa0ea0b5a77835d85",
+  "main_parents": [
+    "ab9414cc37154525de9d38f99abb12328e1900b1"
+  ],
+  "commit_timestamp": "2026-11-24T03:06:46+01:00",
+  "published_head": "863541014d92de0108b2c29063b04a012acbe8db",
+  "published_and_tested_tree": "d7d113f8970ffe0f968591efa0ea0b5a77835d85",
+  "tested_commit": "4faa2b40c18257fb8bf5ba85bfef78d49d240a53",
+  "tree_content_difference_exit_code": 0,
+  "pull_request": 478,
+  "main_commit_url": "https://github.com/BaryonOS/BaryonOS/commit/c3afc04ac2bc92228f2201af02ab69148c47e596",
+  "coordinator_pr_merge_observation": {
+    "merged_at": "2026-11-24T02:06:48Z",
+    "merge_commit_sha": "c3afc04ac2bc92228f2201af02ab69148c47e596",
+    "route": "SHA-guarded squash; actual GitHub merged state and commit confirmed by the integration coordinator"
+  },
+  "limits": "Native acceptance remains bounded to the recorded source and profiles; no criterion or score upgrade."
+}

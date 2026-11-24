@@ -144,3 +144,164 @@ jobs:
             build/n01-ci-*/run/network-service-*/stderr.txt
             build/n01-ci-*/run/network-service-*/network-peer.json
             build/n01-ci-*/run/network-service-*/network-discard.bin
+
+  native-network-extensions:
+    needs: net-broker-quality
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      NOS_QEMU_MACHINE: pc-q35-8.2
+      NOS_TARGET_DIR: ${{ github.workspace }}/target/n02-n04-ci-native
+      CARGO_TARGET_DIR: ${{ github.workspace }}/target/n02-n04-ci-host
+      OS_OVMF_CODE: /usr/share/OVMF/OVMF_CODE_4M.fd
+      OS_OVMF_VARS: /usr/share/OVMF/OVMF_VARS_4M.fd
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Pinned Python
+        uses: ./.github/actions/setup-python
+      - name: Pinned kernel and service compilers
+        run: |
+          rustup toolchain install 1.100.0 --profile minimal
+          rustup target add --toolchain 1.100.0 x86_64-unknown-none x86_64-unknown-uefi
+      - name: Pinned QEMU and OVMF
+        uses: ./.github/actions/setup-qemu
+      - name: Fetch locked inputs before offline native builders
+        run: |
+          cargo +1.100.0 fetch --locked
+          for manifest in \
+            sdk/Cargo.toml \
+            sdk/examples/system/Cargo.toml \
+            sdk/examples/keyring/Cargo.toml \
+            sdk/examples/volume-docs/Cargo.toml \
+            services/network-service/protocol/Cargo.toml \
+            sdk/net-client/Cargo.toml \
+            sdk/examples/network-service/Cargo.toml
+          do
+            cargo +1.100.0 fetch --locked --manifest-path "$manifest"
+          done
+      - name: DHCP DNS link route and sweep counterexamples
+        run: |
+          python3 -B -m unittest discover -s tools/tests -p test_network_dhcp_peer.py
+          python3 -B -m unittest discover -s tools -p test_network_service_peer.py
+      - name: Native DHCP DNS link recovery and off-link route
+        env:
+          CARGO_NET_OFFLINE: 'true'
+        run: |
+          NOS_BUILD_DIR="$GITHUB_WORKSPACE/build/n02-ci-dhcp" \
+            python3 -B -u tools/run_network_dhcp.py --case dhcp
+          NOS_BUILD_DIR="$GITHUB_WORKSPACE/build/n02-ci-link" \
+            python3 -B -u tools/run_network_dhcp.py --case link
+          NOS_BUILD_DIR="$GITHUB_WORKSPACE/build/n02-ci-route" \
+            python3 -B -u tools/run_network_dhcp.py --case route
+      - name: Native full-port sweep before and after revocation
+        env:
+          CARGO_NET_OFFLINE: 'true'
+        run: |
+          NOS_BUILD_DIR="$GITHUB_WORKSPACE/build/n04-ci-port-sweep" \
+            python3 -B -u tools/run_network_service.py --case port-sweep
+      - name: Preserve tracked source integrity
+        run: |
+          git diff --exit-code
+          test -z "$(git status --porcelain)"
+      - name: Preserve compact evidence and report archive availability
+        if: ${{ always() }}
+        uses: ./.github/actions/preserve-evidence
+        with:
+          job-status: ${{ job.status }}
+          full-evidence: ${{ github.event_name == 'workflow_dispatch' && inputs.full_evidence }}
+          name: native-network-extensions-evidence
+          required-paths: |
+            build/n02-ci-dhcp/network-dhcp-report.json
+            build/n02-ci-link/network-dhcp-link-report.json
+            build/n02-ci-route/network-dhcp-route-report.json
+            build/n04-ci-port-sweep/network-service-port-sweep-report.json
+          path: |
+            build/n02-ci-*/manifest.json
+            build/n02-ci-*/network-dhcp*-report.json
+            build/n02-ci-*/logs/
+            build/n02-ci-*/run/network-dhcp-*/result.json
+            build/n02-ci-*/run/network-dhcp-*/serial.txt
+            build/n02-ci-*/run/network-dhcp-*/stderr.txt
+            build/n02-ci-*/run/network-dhcp-*/network-peer.json
+            build/n04-ci-port-sweep/manifest.json
+            build/n04-ci-port-sweep/network-service-port-sweep-report.json
+            build/n04-ci-port-sweep/logs/
+            build/n04-ci-port-sweep/run/network-service-*/result.json
+            build/n04-ci-port-sweep/run/network-service-*/serial.txt
+            build/n04-ci-port-sweep/run/network-service-*/stderr.txt
+            build/n04-ci-port-sweep/run/network-service-*/network-peer.json
+            build/n04-ci-port-sweep/run/network-service-*/network-sweep.jsonl
+
+  # N02-T6: QEMU's libslirp as router, DHCP server and DNS forwarder to the
+  # runner's real resolver (restrict=off, owner-approved 24 November 2026).
+  # Depends on runner DNS and internet, so it is a separate non-required job.
+  native-network-slirp:
+    needs: net-broker-quality
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    env:
+      NOS_QEMU_MACHINE: pc-q35-8.2
+      NOS_TARGET_DIR: ${{ github.workspace }}/target/n02-slirp-ci-native
+      CARGO_TARGET_DIR: ${{ github.workspace }}/target/n02-slirp-ci-host
+      OS_OVMF_CODE: /usr/share/OVMF/OVMF_CODE_4M.fd
+      OS_OVMF_VARS: /usr/share/OVMF/OVMF_VARS_4M.fd
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Pinned Python
+        uses: ./.github/actions/setup-python
+      - name: Pinned kernel and service compilers
+        run: |
+          rustup toolchain install 1.100.0 --profile minimal
+          rustup target add --toolchain 1.100.0 x86_64-unknown-none x86_64-unknown-uefi
+      - name: Pinned QEMU and OVMF
+        uses: ./.github/actions/setup-qemu
+      - name: Fetch locked inputs before offline native builders
+        run: |
+          cargo +1.100.0 fetch --locked
+          for manifest in \
+            sdk/Cargo.toml \
+            sdk/examples/system/Cargo.toml \
+            sdk/examples/keyring/Cargo.toml \
+            sdk/examples/volume-docs/Cargo.toml \
+            services/network-service/protocol/Cargo.toml \
+            sdk/net-client/Cargo.toml \
+            sdk/examples/network-service/Cargo.toml
+          do
+            cargo +1.100.0 fetch --locked --manifest-path "$manifest"
+          done
+      - name: libslirp oracle and pcap counterexamples
+        run: python3 -B -m unittest discover -s tools/tests -p test_network_slirp_oracle.py
+      - name: Native DHCP, real DNS and HTTP through libslirp
+        env:
+          CARGO_NET_OFFLINE: 'true'
+        run: |
+          NOS_BUILD_DIR="$GITHUB_WORKSPACE/build/n02-ci-slirp" \
+            python3 -B -u tools/run_network_dhcp.py --case slirp
+      - name: Preserve tracked source integrity
+        run: |
+          git diff --exit-code
+          test -z "$(git status --porcelain)"
+      - name: Preserve compact evidence and report archive availability
+        if: ${{ always() }}
+        uses: ./.github/actions/preserve-evidence
+        with:
+          job-status: ${{ job.status }}
+          full-evidence: ${{ github.event_name == 'workflow_dispatch' && inputs.full_evidence }}
+          name: native-network-slirp-evidence
+          required-paths: |
+            build/n02-ci-slirp/network-dhcp-slirp-report.json
+          path: |
+            build/n02-ci-slirp/manifest.json
+            build/n02-ci-slirp/network-dhcp-slirp-report.json
+            build/n02-ci-slirp/logs/
+            build/n02-ci-slirp/run/network-dhcp-*/result.json
+            build/n02-ci-slirp/run/network-dhcp-*/serial.txt
+            build/n02-ci-slirp/run/network-dhcp-*/stderr.txt
+            build/n02-ci-slirp/run/network-dhcp-*/network-peer.json
+            build/n02-ci-slirp/run/network-dhcp-*/slirp.pcap

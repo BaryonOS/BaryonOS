@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Complete M6e/S06 gate: host tests, then twenty-two real QEMU invocations in order.
+"""Complete M6e/S06 gate: host tests, then thirty-two real QEMU invocations in order.
 
 normal -> cold read-only recover (same image) -> S09 archive export into a
 disjoint range of that image (volume mounted read-only) -> restore of only that
@@ -13,7 +13,17 @@ wrong disk granted, and a power cut during an export over the older archive
 followed by a cold verify that must report Corrupt;
 cut-data (real kill) -> cold
 recover; cut-table (real kill) -> cold recover; cut-txn (real kill inside a
-multi-object transaction) -> cold recover; corrupt image refused.
+multi-object transaction) -> cold recover; corrupt image refused;
+S09 L2: install (INSTALL_COLLECTION, then INSTALL of one object with three
+fixture versions, into never-used slots) -> cold read-only install-recover;
+install-cut (real kill inside the INSTALL_COMMIT table write) -> cold
+recover-cut, which must find the object never-used or fully installed;
+S09 phase 3 on the device-1 disk: l2-export (writable source step, then a
+v2 export) -> cold L2 restore without the source disk, a corrupt archive
+refused, and the restored domain after a cold boot refusing a second restore;
+l2-restore-cut (real kill inside an INSTALL_COMMIT of that restore) -> cold
+recover-l2-cut, which must find every planned object fully installed or
+never-used, exactly the commits before the cut, and refuse a second restore.
 Every stage is bound to one frozen source fingerprint. The host test inputs
 under tests/ fall outside that fingerprint, so they are frozen separately and
 re-checked before the verdict. Only the final summary with passed=true counts
@@ -55,7 +65,11 @@ PLAN = [("normal", None), ("recover", "normal"), ("archive-export", "recover"),
         ("archive-disk-wrong", "archive-disk-export"), ("archive-disk-cut", "archive-disk-export"),
         ("archive-disk-verify", "archive-disk-cut"),
         ("cut-data", None), ("recover-cut", "cut-data"), ("cut-table", None),
-        ("recover-cut", "cut-table"), ("cut-txn", None), ("recover-cut", "cut-txn"), ("corrupt", None)]
+        ("recover-cut", "cut-table"), ("cut-txn", None), ("recover-cut", "cut-txn"), ("corrupt", None),
+        ("install", None), ("install-recover", "install"), ("install-cut", None),
+        ("recover-cut", "install-cut"),
+        ("l2-export", "archive-export"), ("l2-restore", "l2-export"), ("l2-corrupt", "l2-export"),
+        ("l2-used", "l2-restore"), ("l2-restore-cut", "l2-export"), ("recover-l2-cut", "l2-restore-cut")]
 
 
 def main() -> int:

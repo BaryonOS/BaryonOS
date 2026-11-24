@@ -12,13 +12,15 @@ name: Native Materiaal probe acceptance
 # keys/mouse, exact pixel checks, plaintext fixture volume). No keyboard or
 # recover case, no FR, physical-hardware or human acceptance.
 
-# Measurement mode (manual) for now. A second local run on the integration
+# Measurement mode (explicit opt-in) for now. A second local run on the integration
 # branch (2 November 2026, 4 vCPU Xeon @ 2.80 GHz, QEMU 8.2.2) hit the guest
 # watchdog after 208 s in phase 5 of 6, with the same tile counts as the
 # passing 178.8 s run: the ~200 s guest limit leaves no reliable margin on
-# slower CPUs. Promote to pull_request/push only after several measured
-# GitHub runs pass with margin, or after an explicit decision on the probe's
-# watchdog. No automatic retry or continue-on-error: that would hide timing.
+# slower CPUs. Dispatch remains available; the acceptance-materiaal-probe label
+# requests the same measurement on a PR targeting main, including later heads.
+# This is not promotion to an automatic gate for every PR or push. Such promotion
+# still needs several measured runs with margin, or an explicit watchdog decision.
+# No automatic retry or continue-on-error: that would hide timing.
 on:
   workflow_dispatch:
     inputs:
@@ -26,6 +28,11 @@ on:
         description: 'Also retain raw images, frames and builds for 1 day'
         type: boolean
         default: false
+  pull_request:
+    branches: [main]
+    types: [opened, reopened, synchronize, labeled, ready_for_review]
+    # Explicitly requested measurements also apply to metadata-only heads.
+    # This optional job is not a required check; unlabelled PRs skip safely.
 
 permissions:
   contents: read
@@ -40,6 +47,9 @@ defaults:
 
 jobs:
   materiaal-probe:
+    if: >-
+      ${{ github.event_name == 'workflow_dispatch' ||
+          contains(github.event.pull_request.labels.*.name, 'acceptance-materiaal-probe') }}
     runs-on: ubuntu-24.04
     # Bounded but generous. Two VM limits apply, and the guest one fires
     # first: the probe kernel's watchdog fails after 20,000 PIT ticks at

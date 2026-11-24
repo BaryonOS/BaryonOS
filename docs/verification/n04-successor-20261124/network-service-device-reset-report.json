@@ -1,0 +1,891 @@
+{
+  "schema_version": 1,
+  "passed": true,
+  "case": "device-reset",
+  "kernel_feature": "test-net-service-device-reset",
+  "scope": "three actual isolated ring-3 processes; bounded IPC TCP/UDP; synthetic localhost Ethernet; no TLS or physical hardware claim",
+  "source_commit": "4faa2b40c18257fb8bf5ba85bfef78d49d240a53",
+  "source_fingerprint_version": 3,
+  "source_sha256": "ea1d1128137f01e8dec9cf4557325fa07588dc515815352bfbb0cf1c9feb4e15",
+  "manifest": {
+    "schema_version": 1,
+    "profile": "test-net-service-device-reset",
+    "kernel_feature": "test-net-service-device-reset",
+    "loader_feature": null,
+    "source_fingerprint_version": 3,
+    "source_sha256": "ea1d1128137f01e8dec9cf4557325fa07588dc515815352bfbb0cf1c9feb4e15",
+    "loader": {
+      "sha256": "3d8adba2b4d61a3f47f66af6e59bbbeb3fafafd1cbadf70b8accb088a7455639",
+      "format": "AMD64 PE32+",
+      "subsystem": "EFI_APPLICATION",
+      "imports": 0
+    },
+    "kernel": {
+      "sha256": "71c03ae40d159a585d49078e8c8167ec679116dc815fe847b82971dfca82e030",
+      "entry": 33554432,
+      "segments": [
+        {
+          "flags": 5,
+          "offset": 4096,
+          "address": 33554432,
+          "filesz": 156259,
+          "memsz": 156259,
+          "page_start": 33554432,
+          "page_end": 33714176
+        },
+        {
+          "flags": 4,
+          "offset": 163840,
+          "address": 33714176,
+          "filesz": 292299,
+          "memsz": 292299,
+          "page_start": 33714176,
+          "page_end": 34009088
+        },
+        {
+          "flags": 6,
+          "offset": 458752,
+          "address": 34009088,
+          "filesz": 1725104,
+          "memsz": 5408192,
+          "page_start": 34009088,
+          "page_end": 39419904
+        }
+      ],
+      "sections": [
+        {
+          "name": "",
+          "type": 0,
+          "flags": 0,
+          "size": 0
+        },
+        {
+          "name": ".text",
+          "type": 1,
+          "flags": 6,
+          "size": 156259
+        },
+        {
+          "name": ".rodata",
+          "type": 1,
+          "flags": 50,
+          "size": 292299
+        },
+        {
+          "name": ".data",
+          "type": 1,
+          "flags": 3,
+          "size": 1725104
+        },
+        {
+          "name": ".bss",
+          "type": 8,
+          "flags": 3,
+          "size": 3679680
+        },
+        {
+          "name": ".symtab",
+          "type": 2,
+          "flags": 0,
+          "size": 9120
+        },
+        {
+          "name": ".shstrtab",
+          "type": 3,
+          "flags": 0,
+          "size": 52
+        },
+        {
+          "name": ".strtab",
+          "type": 3,
+          "flags": 0,
+          "size": 21141
+        }
+      ]
+    },
+    "sdk_runtime": false,
+    "document_session": false,
+    "system": {
+      "system_init": {
+        "sha256": "1bb7eedf2fa8598a629d0738e223fb8e8eecdbf870643c9025f2ea3c84650311",
+        "elf": {
+          "entry": 1073741824,
+          "segments": [
+            {
+              "flags": 5,
+              "address": 1073741824,
+              "offset": 4096,
+              "filesz": 6,
+              "memsz": 6,
+              "page_start": 1073741824,
+              "page_end": 1073745920
+            },
+            {
+              "flags": 6,
+              "address": 1073807360,
+              "offset": 8192,
+              "filesz": 1080,
+              "memsz": 1080,
+              "page_start": 1073807360,
+              "page_end": 1073811456
+            },
+            {
+              "flags": 4,
+              "address": 1073823744,
+              "offset": 12288,
+              "filesz": 1712,
+              "memsz": 1712,
+              "page_start": 1073823744,
+              "page_end": 1073827840
+            },
+            {
+              "flags": 5,
+              "address": 1073872896,
+              "offset": 16384,
+              "filesz": 22021,
+              "memsz": 22021,
+              "page_start": 1073872896,
+              "page_end": 1073897472
+            }
+          ]
+        }
+      },
+      "system_app": {
+        "sha256": "c37d8bb85069c9f8712bd68d1468894cb0e86f6fff11cf3f389f7965d1739cdc",
+        "elf": {
+          "entry": 1073741824,
+          "segments": [
+            {
+              "flags": 5,
+              "address": 1073741824,
+              "offset": 4096,
+              "filesz": 6,
+              "memsz": 6,
+              "page_start": 1073741824,
+              "page_end": 1073745920
+            },
+            {
+              "flags": 6,
+              "address": 1073807360,
+              "offset": 8192,
+              "filesz": 1112,
+              "memsz": 1112,
+              "page_start": 1073807360,
+              "page_end": 1073811456
+            },
+            {
+              "flags": 4,
+              "address": 1073823744,
+              "offset": 12288,
+              "filesz": 3867,
+              "memsz": 3867,
+              "page_start": 1073823744,
+              "page_end": 1073827840
+            },
+            {
+              "flags": 5,
+              "address": 1073872896,
+              "offset": 16384,
+              "filesz": 54549,
+              "memsz": 54549,
+              "page_start": 1073872896,
+              "page_end": 1073930240
+            }
+          ]
+        }
+      },
+      "system_worker": {
+        "sha256": "77bf5f23534f55b5fba2dd307110fad7cd39a1e259a85b963a07201827830d03",
+        "elf": {
+          "entry": 1073741824,
+          "segments": [
+            {
+              "flags": 5,
+              "address": 1073741824,
+              "offset": 4096,
+              "filesz": 322,
+              "memsz": 322,
+              "page_start": 1073741824,
+              "page_end": 1073745920
+            },
+            {
+              "flags": 6,
+              "address": 1073807360,
+              "offset": 8192,
+              "filesz": 1040,
+              "memsz": 1040,
+              "page_start": 1073807360,
+              "page_end": 1073811456
+            },
+            {
+              "flags": 5,
+              "address": 1073872896,
+              "offset": 12288,
+              "filesz": 580,
+              "memsz": 580,
+              "page_start": 1073872896,
+              "page_end": 1073876992
+            }
+          ]
+        }
+      },
+      "keyring_service": {
+        "sha256": "d9638b7bbe574ce36350d2380bb9ffd67dd0ff1cc6bdc3bf3511564d9acf1477",
+        "elf": {
+          "entry": 1073741824,
+          "segments": [
+            {
+              "flags": 5,
+              "address": 1073741824,
+              "offset": 4096,
+              "filesz": 6,
+              "memsz": 6,
+              "page_start": 1073741824,
+              "page_end": 1073745920
+            },
+            {
+              "flags": 6,
+              "address": 1073807360,
+              "offset": 8192,
+              "filesz": 1144,
+              "memsz": 1144,
+              "page_start": 1073807360,
+              "page_end": 1073811456
+            },
+            {
+              "flags": 4,
+              "address": 1073823744,
+              "offset": 12288,
+              "filesz": 2043,
+              "memsz": 2043,
+              "page_start": 1073823744,
+              "page_end": 1073827840
+            },
+            {
+              "flags": 5,
+              "address": 1073872896,
+              "offset": 16384,
+              "filesz": 75827,
+              "memsz": 75827,
+              "page_start": 1073872896,
+              "page_end": 1073950720
+            }
+          ]
+        }
+      },
+      "volume_service": {
+        "sha256": "53ba1116758deda9d8a77700394a0f9b3bc8ac4902759e5bd14807904b1e6c25",
+        "elf": {
+          "entry": 1073741824,
+          "segments": [
+            {
+              "flags": 5,
+              "address": 1073741824,
+              "offset": 4096,
+              "filesz": 50053,
+              "memsz": 50053,
+              "page_start": 1073741824,
+              "page_end": 1073795072
+            },
+            {
+              "flags": 6,
+              "address": 1073807360,
+              "offset": 57344,
+              "filesz": 1096,
+              "memsz": 1096,
+              "page_start": 1073807360,
+              "page_end": 1073811456
+            },
+            {
+              "flags": 4,
+              "address": 1073823744,
+              "offset": 61440,
+              "filesz": 21072,
+              "memsz": 21072,
+              "page_start": 1073823744,
+              "page_end": 1073848320
+            }
+          ]
+        }
+      },
+      "network_service": {
+        "sha256": "1efd59353a1d5a12788bb796214f9f71bbfac8e9788eab50e9ba8b2a027e4fe8",
+        "elf": {
+          "entry": 1073741824,
+          "segments": [
+            {
+              "flags": 5,
+              "address": 1073741824,
+              "offset": 4096,
+              "filesz": 6,
+              "memsz": 6,
+              "page_start": 1073741824,
+              "page_end": 1073745920
+            },
+            {
+              "flags": 6,
+              "address": 1073807360,
+              "offset": 8192,
+              "filesz": 1024,
+              "memsz": 1024,
+              "page_start": 1073807360,
+              "page_end": 1073811456
+            },
+            {
+              "flags": 4,
+              "address": 1073872896,
+              "offset": 12288,
+              "filesz": 12795,
+              "memsz": 12795,
+              "page_start": 1073872896,
+              "page_end": 1073889280
+            },
+            {
+              "flags": 6,
+              "address": 1074200576,
+              "offset": 28672,
+              "filesz": 21968,
+              "memsz": 21968,
+              "page_start": 1074200576,
+              "page_end": 1074225152
+            },
+            {
+              "flags": 5,
+              "address": 1074462720,
+              "offset": 53248,
+              "filesz": 100899,
+              "memsz": 100899,
+              "page_start": 1074462720,
+              "page_end": 1074565120
+            }
+          ]
+        }
+      },
+      "network_client": {
+        "sha256": "82c6658935378c3a2a601f9505608a6dac12e412d62f295a484b64ae9a10441e",
+        "elf": {
+          "entry": 1073741824,
+          "segments": [
+            {
+              "flags": 5,
+              "address": 1073741824,
+              "offset": 4096,
+              "filesz": 6,
+              "memsz": 6,
+              "page_start": 1073741824,
+              "page_end": 1073745920
+            },
+            {
+              "flags": 6,
+              "address": 1073807360,
+              "offset": 8192,
+              "filesz": 1024,
+              "memsz": 1024,
+              "page_start": 1073807360,
+              "page_end": 1073811456
+            },
+            {
+              "flags": 4,
+              "address": 1073872896,
+              "offset": 12288,
+              "filesz": 2616,
+              "memsz": 2616,
+              "page_start": 1073872896,
+              "page_end": 1073876992
+            },
+            {
+              "flags": 6,
+              "address": 1074200576,
+              "offset": 16384,
+              "filesz": 80,
+              "memsz": 80,
+              "page_start": 1074200576,
+              "page_end": 1074204672
+            },
+            {
+              "flags": 5,
+              "address": 1074462720,
+              "offset": 20480,
+              "filesz": 27411,
+              "memsz": 27411,
+              "page_start": 1074462720,
+              "page_end": 1074491392
+            }
+          ]
+        }
+      }
+    },
+    "network_service": {
+      "service": {
+        "sha256": "1efd59353a1d5a12788bb796214f9f71bbfac8e9788eab50e9ba8b2a027e4fe8",
+        "elf": {
+          "entry": 1073741824,
+          "segments": [
+            {
+              "flags": 5,
+              "address": 1073741824,
+              "offset": 4096,
+              "filesz": 6,
+              "memsz": 6,
+              "page_start": 1073741824,
+              "page_end": 1073745920
+            },
+            {
+              "flags": 6,
+              "address": 1073807360,
+              "offset": 8192,
+              "filesz": 1024,
+              "memsz": 1024,
+              "page_start": 1073807360,
+              "page_end": 1073811456
+            },
+            {
+              "flags": 4,
+              "address": 1073872896,
+              "offset": 12288,
+              "filesz": 12795,
+              "memsz": 12795,
+              "page_start": 1073872896,
+              "page_end": 1073889280
+            },
+            {
+              "flags": 6,
+              "address": 1074200576,
+              "offset": 28672,
+              "filesz": 21968,
+              "memsz": 21968,
+              "page_start": 1074200576,
+              "page_end": 1074225152
+            },
+            {
+              "flags": 5,
+              "address": 1074462720,
+              "offset": 53248,
+              "filesz": 100899,
+              "memsz": 100899,
+              "page_start": 1074462720,
+              "page_end": 1074565120
+            }
+          ]
+        }
+      },
+      "client": {
+        "sha256": "82c6658935378c3a2a601f9505608a6dac12e412d62f295a484b64ae9a10441e",
+        "elf": {
+          "entry": 1073741824,
+          "segments": [
+            {
+              "flags": 5,
+              "address": 1073741824,
+              "offset": 4096,
+              "filesz": 6,
+              "memsz": 6,
+              "page_start": 1073741824,
+              "page_end": 1073745920
+            },
+            {
+              "flags": 6,
+              "address": 1073807360,
+              "offset": 8192,
+              "filesz": 1024,
+              "memsz": 1024,
+              "page_start": 1073807360,
+              "page_end": 1073811456
+            },
+            {
+              "flags": 4,
+              "address": 1073872896,
+              "offset": 12288,
+              "filesz": 2616,
+              "memsz": 2616,
+              "page_start": 1073872896,
+              "page_end": 1073876992
+            },
+            {
+              "flags": 6,
+              "address": 1074200576,
+              "offset": 16384,
+              "filesz": 80,
+              "memsz": 80,
+              "page_start": 1074200576,
+              "page_end": 1074204672
+            },
+            {
+              "flags": 5,
+              "address": 1074462720,
+              "offset": 20480,
+              "filesz": 27411,
+              "memsz": 27411,
+              "page_start": 1074462720,
+              "page_end": 1074491392
+            }
+          ]
+        }
+      }
+    }
+  },
+  "run_directory": "/home/runner/work/BaryonOS/BaryonOS/build/n01-ci-device-reset/run/network-service-device-reset-ba5671c8c01e499499d739b2e04de48c",
+  "timeout_s": 90,
+  "started_utc": "2026-11-24T01:59:17.876345+00:00",
+  "qemu_sha256": "8a35ccba41582fc6c38b9df85fc9e35fa1d42f414d2d7d8090ee9b2f5e7c0854",
+  "firmware_sha256": {
+    "code": "ad23261d43116abc3747d59a7837fbf578c9586a8993f4eeba064cd07eccb083",
+    "vars_template": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e"
+  },
+  "snapshot_sha256": {
+    "OVMF_CODE.fd": "ad23261d43116abc3747d59a7837fbf578c9586a8993f4eeba064cd07eccb083",
+    "OVMF_VARS.template.fd": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e",
+    "esp/kernel.elf": "71c03ae40d159a585d49078e8c8167ec679116dc815fe847b82971dfca82e030",
+    "esp/EFI/BOOT/BOOTX64.EFI": "3d8adba2b4d61a3f47f66af6e59bbbeb3fafafd1cbadf70b8accb088a7455639"
+  },
+  "qemu_version": "QEMU emulator version 8.2.2 (Debian 1:8.2.2+ds-0ubuntu1.18)\nCopyright (c) 2003-2023 Fabrice Bellard and the QEMU Project developers",
+  "command": [
+    "/usr/bin/qemu-system-x86_64",
+    "-machine",
+    "pc-q35-8.2",
+    "-accel",
+    "tcg,thread=single",
+    "-cpu",
+    "qemu64",
+    "-smp",
+    "1",
+    "-m",
+    "256M",
+    "-nodefaults",
+    "-display",
+    "none",
+    "-monitor",
+    "none",
+    "-serial",
+    "stdio",
+    "-nic",
+    "none",
+    "-no-reboot",
+    "-drive",
+    "if=pflash,unit=0,format=raw,readonly=on,file=build/n01-ci-device-reset/run/network-service-device-reset-ba5671c8c01e499499d739b2e04de48c/OVMF_CODE.fd",
+    "-drive",
+    "if=pflash,unit=1,format=raw,file=build/n01-ci-device-reset/run/network-service-device-reset-ba5671c8c01e499499d739b2e04de48c/OVMF_VARS.fd",
+    "-drive",
+    "if=virtio,index=0,format=raw,readonly=on,file=fat:build/n01-ci-device-reset/run/network-service-device-reset-ba5671c8c01e499499d739b2e04de48c/esp",
+    "-device",
+    "isa-debug-exit,iobase=0xf4,iosize=0x04",
+    "-object",
+    "rng-random,id=rng0,filename=/dev/urandom",
+    "-device",
+    "virtio-rng-pci,rng=rng0,id=rng,addr=0x6,disable-legacy=on,max-bytes=1048576,period=1000",
+    "-fw_cfg",
+    "name=opt/org.tianocore/VirtioNetSupport,string=no",
+    "-fw_cfg",
+    "name=opt/org.tianocore/IPv4Support,string=no",
+    "-fw_cfg",
+    "name=opt/org.tianocore/IPv6Support,string=no",
+    "-netdev",
+    "socket,id=net0,connect=127.0.0.1:35101",
+    "-device",
+    "virtio-net-pci,netdev=net0,id=net,addr=0x7,disable-legacy=on,mac=02:00:00:00:00:07,romfile="
+  ],
+  "duration_s": 2.4952680490000034,
+  "raw_qemu_exit": 33,
+  "timed_out": false,
+  "output_overflow": false,
+  "stdout_sha256": "7d5b26d9f62a0f41a36200c0f0a6486a4f1374a47dda11dbb7893e712400a4a2",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stdout_bytes": 4963,
+  "stderr_bytes": 0,
+  "peer": {
+    "case": "device-reset",
+    "complete": true,
+    "counts": {
+      "client_frames": 5,
+      "server_frames": 3,
+      "arp_requests": 1,
+      "arp_replies": 1,
+      "syns": 1,
+      "syn_acks": 1,
+      "refusals": 0,
+      "resets_after_get": 0,
+      "first_syn_dropped": 0,
+      "retry_syns": 0,
+      "blackhole_syns": 0,
+      "blackhole_rsts": 0,
+      "corrupt_data_sent": 0,
+      "valid_data_sent": 0,
+      "http_requests": 1,
+      "valid_data_acks": 0,
+      "fins_sent": 0,
+      "client_fins_acked": 0,
+      "udp_requests": 0,
+      "udp_corrupt_sent": 0,
+      "udp_wrong_scope_sent": 0,
+      "udp_echo_sent": 0,
+      "udp_overflow_sent": 0,
+      "udp_fragment_first_sent": 0,
+      "udp_fragment_tail_sent": 0,
+      "probe_syns": 0,
+      "probe_rsts": 0,
+      "held_requests": 1,
+      "revoke_rsts": 0,
+      "device_reset_probes": 1
+    },
+    "cases": {
+      "8080": {
+        "phase": "reset-probe",
+        "source": 40000,
+        "syns": 1,
+        "request_bytes": 65,
+        "request_sha256": "281c316cb88b92a9f39d4f83c0745cb41e6b6c8b62e49ee3dfb44408094d123b",
+        "data_acked": false,
+        "fin_sent": false,
+        "closed": false
+      }
+    },
+    "events": [
+      {
+        "sequence": 1,
+        "direction": "rx",
+        "event": "arp-request",
+        "length": 60,
+        "frame_sha256": "5caf2d3aa4a720449a268e6a177171f8dcc864e1dabde8060798e45e64d06e1e"
+      },
+      {
+        "sequence": 2,
+        "direction": "tx",
+        "event": "arp-reply",
+        "length": 60,
+        "frame_sha256": "de816388cafa8e9b91fde11dc099c4043551a19983c6b41ef2fb852ee2434313"
+      },
+      {
+        "sequence": 3,
+        "direction": "rx",
+        "event": "tcp",
+        "length": 66,
+        "frame_sha256": "17682db44ecfecb05067e1e8b32800c58d5f9eacd29aa59d8266224692e63316",
+        "port": 8080,
+        "seq": 3467397362,
+        "ack": 0,
+        "flags": 2,
+        "payload_length": 0
+      },
+      {
+        "sequence": 4,
+        "direction": "tx",
+        "event": "syn-ack",
+        "length": 60,
+        "frame_sha256": "74dffbb3334fef196010f0363083870311e145d56fca1a7166b389df25a0a64f",
+        "port": 8080,
+        "seq": 1852797696,
+        "ack": 3467397363,
+        "flags": 18,
+        "payload_length": 0
+      },
+      {
+        "sequence": 5,
+        "direction": "rx",
+        "event": "tcp",
+        "length": 60,
+        "frame_sha256": "d8a7a6f78d82a581a91e2d15a101103b77de530b0b48d4710f24ab62d62a05f3",
+        "port": 8080,
+        "seq": 3467397363,
+        "ack": 1852797697,
+        "flags": 16,
+        "payload_length": 0
+      },
+      {
+        "sequence": 6,
+        "direction": "rx",
+        "event": "tcp",
+        "length": 119,
+        "frame_sha256": "4f2615562c09a26f4dd9b2c8802e7b5bb7ce757aec9fdf4f8c00a74aaf39c02b",
+        "port": 8080,
+        "seq": 3467397363,
+        "ack": 1852797697,
+        "flags": 24,
+        "payload_length": 65
+      },
+      {
+        "sequence": 7,
+        "direction": "tx",
+        "event": "request-held-ack",
+        "length": 60,
+        "frame_sha256": "6e6a04eda636b110517f7e8e5cb402d122cc0034a8e585a25b6ad1c5f9f96096",
+        "port": 8080,
+        "seq": 1852797697,
+        "ack": 3467397428,
+        "flags": 16,
+        "payload_length": 0
+      },
+      {
+        "sequence": 8,
+        "direction": "rx",
+        "event": "tcp",
+        "length": 65,
+        "frame_sha256": "036c9e80b6db33e89fdd43a047ddf0123242039d5631f84646aa1d1d366e5ce1",
+        "port": 8080,
+        "seq": 3467397428,
+        "ack": 1852797697,
+        "flags": 24,
+        "payload_length": 11
+      }
+    ],
+    "request_sha256": [
+      "281c316cb88b92a9f39d4f83c0745cb41e6b6c8b62e49ee3dfb44408094d123b",
+      "013ed8666fcda1f31a2532e244519f40d3175ba07d1656165fbe46fbced10c69"
+    ],
+    "response_sha256": [
+      "90643d9b628582103a563e34b6d48daa4657cd4aff0c332ab2d793dbe1a72a37",
+      "60c750867ee1fe6cd54733f59f782e1eba1203efda168921e8b64534e159f4d9"
+    ],
+    "udp_sha256": [
+      "dd51fff31b841db107bc9733edcdb8aef31beff1971a3095ee2e335875a895f4",
+      "05555e5e86d541400b07d7395d6fbeaa6a18a5ca6c0623abc495e359a235d4a7"
+    ],
+    "kind": "synthetic Ethernet server; native client evidence required separately",
+    "connected": true,
+    "error": null,
+    "rejected_frame": null,
+    "wire_frames_sent": 3,
+    "actions": [
+      {
+        "kind": "input",
+        "at": 1.8985996310000246,
+        "input": "ffffffffffff02000000000708060001080006040001020000000007c0000202ffffffffffffc0000201000000000000000000000000000000000000",
+        "output": [
+          "02000000000702000000000108060001080006040002020000000001c0000201020000000007c0000202000000000000000000000000000000000000"
+        ]
+      },
+      {
+        "kind": "input",
+        "at": 1.9030533810000065,
+        "input": "020000000001020000000007080045000034000040004006b6c0c0000202c00002019c401f90ceac48f200000000800205b615ee0000020405b40303000402000000",
+        "output": [
+          "02000000000702000000000108004500002c000140004006b6c7c0000201c00002021f909c406e6f7300ceac48f3601210004f320000020405b40000"
+        ]
+      },
+      {
+        "kind": "input",
+        "at": 1.9071118490000174,
+        "input": "020000000001020000000007080045000028000040004006b6ccc0000202c00002019c401f90ceac48f36e6f7301501005c2712d0000000000000000",
+        "output": []
+      },
+      {
+        "kind": "input",
+        "at": 1.9144590770000036,
+        "input": "020000000001020000000007080045000069000040004006b68bc0000202c00002019c401f90ceac48f36e6f7301501805c28ca70000474554202f6170702d6120485454502f312e310d0a486f73743a20666978747572652e696e76616c69640d0a436f6e6e656374696f6e3a20636c6f73650d0a0d0a",
+        "output": [
+          "020000000007020000000001080045000028000240004006b6cac0000201c00002021f909c406e6f7301ceac49345010100066ae0000000000000000"
+        ]
+      },
+      {
+        "kind": "input",
+        "at": 2.417964296000008,
+        "input": "020000000001020000000007080045000033000040004006b6c1c0000202c00002019c401f90ceac49346e6f7301501805c2d20b000072657365742d70726f6265",
+        "output": []
+      }
+    ],
+    "passed": true
+  },
+  "stdout": "\u001b[2J\u001b[01;01H\u001b[=3h\u001b[2J\u001b[01;01H\u001b[2J\u001b[01;01H\u001b[=3h\u001b[2J\u001b[01;01HBdsDxe: loading Boot0001 \"UEFI Misc Device\" from PciRoot(0x0)/Pci(0x1,0x0)\r\nBdsDxe: starting Boot0001 \"UEFI Misc Device\" from PciRoot(0x0)/Pci(0x1,0x0)\r\nBOOT:EBS_OK\nKERNEL:ENTRY\nBOOTINFO:OK\nKS-01:PASS\nKS-02:PASS\nACPI:UNAVAILABLE:NO_DMAR\nDEVICE-EXECUTION:BLOCKED:ADAPTER_ABSENT\nKS-03:PASS\nM2:PASS\nNETSVC:MANIFEST:PASS\nNETSVC:SERVICE:00000000000000000240:00000000000000000012\nNETSVC:SERVICE:00000000000000000400:00000000000000000001\nNETSVC:SERVICE:00000000000000000408:00000000000000000534\nNETSVC:SERVICE:00000000000000000416:00000000000000000004\nNETSVC:SERVICE:00000000000000000424:00000000000000000003\nNETSVC:SERVICE:00000000000000000432:00000000000000000008\nNETSVC:SERVICE:00000000000000000440:00000000000000000004\nNETSVC:SERVICE:00000000000000000448:00000000000000000000\nNETSVC:SERVICE:00000000000000000456:00000000000000000000\nNETSVC:SERVICE:00000000000000000464:00000000000000000001\nNETSVC:SERVICE:00000000000000000472:00000000000000000076\nNETSVC:SERVICE:00000000000000000480:00000000000000000000\nNETSVC:SERVICE:00000000000000000488:00000000000000000000\nNETSVC:SERVICE:00000000000000000496:00000000000000000000\nNETSVC:SERVICE:00000000000000000504:00000000000000000012\nNETSVC:SERVICE:00000000000000000512:00000000000000000000\nNETSVC:SERVICE:00000000000000000520:00000000000000000000\nNETSVC:SERVICE:00000000000000000528:00000000000000000000\nNETSVC:SERVICE:00000000000000000536:00000000000000000055\nNETSVC:SERVICE:00000000000000000544:00000000000000000012\nNETSVC:SERVICE:00000000000000000552:00000000000000000005\nNETSVC:APP_A:00000000000000000240:00000000000000000000\nNETSVC:APP_A:00000000000000000400:00000000000000000001\nNETSVC:APP_A:00000000000000000408:00000000000000000000\nNETSVC:APP_A:00000000000000000416:00000000000000000000\nNETSVC:APP_A:00000000000000000424:00000000000000000001\nNETSVC:APP_A:00000000000000000432:00000000000000000000\nNETSVC:APP_A:00000000000000000440:00000000000000000001\nNETSVC:APP_A:00000000000000000448:00000000000000000002\nNETSVC:APP_A:00000000000000000456:00000000000000000000\nNETSVC:APP_A:00000000000000000464:00000000000000000000\nNETSVC:APP_A:00000000000000000472:00000000000000000000\nNETSVC:APP_A:00000000000000000480:00000000000000000001\nNETSVC:APP_A:00000000000000000488:00000000000000000000\nNETSVC:APP_A:00000000000000000496:00000000000000000000\nNETSVC:APP_A:00000000000000000504:00000000000000000057\nNETSVC:APP_A:00000000000000000512:00000000000000000000\nNETSVC:APP_A:00000000000000000520:00000000000000000000\nNETSVC:APP_A:00000000000000000528:00000000000000000001\nNETSVC:APP_A:00000000000000000536:00000000000000000010\nNETSVC:APP_A:00000000000000000544:00000000000000000001\nNETSVC:APP_A:00000000000000000552:00000000000000000055\nNETSVC:APP_A_EXIT_TICKS:00000000000000000057\nNETSVC:APP_B:00000000000000000240:00000000000000000000\nNETSVC:APP_B:00000000000000000400:00000000000000000001\nNETSVC:APP_B:00000000000000000408:00000000000000000000\nNETSVC:APP_B:00000000000000000416:00000000000000000000\nNETSVC:APP_B:00000000000000000424:00000000000000000001\nNETSVC:APP_B:00000000000000000432:00000000000000000000\nNETSVC:APP_B:00000000000000000440:00000000000000000001\nNETSVC:APP_B:00000000000000000448:00000000000000000000\nNETSVC:APP_B:00000000000000000456:00000000000000000000\nNETSVC:APP_B:00000000000000000464:00000000000000000000\nNETSVC:APP_B:00000000000000000472:00000000000000000000\nNETSVC:APP_B:00000000000000000480:00000000000000000001\nNETSVC:APP_B:00000000000000000488:00000000000000000000\nNETSVC:APP_B:00000000000000000496:00000000000000000000\nNETSVC:APP_B:00000000000000000504:00000000000000000057\nNETSVC:APP_B:00000000000000000512:00000000000000000000\nNETSVC:APP_B:00000000000000000520:00000000000000000000\nNETSVC:APP_B:00000000000000000528:00000000000000000001\nNETSVC:APP_B:00000000000000000536:00000000000000000010\nNETSVC:APP_B:00000000000000000544:00000000000000000000\nNETSVC:APP_B:00000000000000000552:00000000000000000000\nNETSVC:APP_B_EXIT_TICKS:00000000000000000058\nSYSTEM:NET_FAULT_TICK:00000000000000000055\nSYSTEM:NET_FAULT_TICKET:00000000000000000005\nSYSTEM:NET_FAULT_TX:00000000000000000005\nSYSTEM:NET_FAULT_RX:00000000000000000003\nSYSTEM:NET_FAULT_STATUS_BEFORE:00000000000000000015\nSYSTEM:NET_FAULT_STATUS_AFTER:00000000000000000000\nSYSTEM:NET_FAULT_BME_BEFORE:00000000000000000001\nSYSTEM:NET_FAULT_BME_AFTER:00000000000000000001\nSYSTEM:NET_TERMINAL_READS:00000000000000000001\nSYSTEM:NET_FAULT_RX_ERRORS:00000000000000000000\nSYSTEM:NET_FAULT_RX_ERROR_CODE:00000000000000000000\nSYSTEM:NET_TERMINAL_ERROR:00000000000000000012\nSYSTEM:NET_TX_SUBMITTED:00000000000000000005\nSYSTEM:NET_TX_COMPLETED:00000000000000000004\nSYSTEM:NET_RX_COMPLETED:00000000000000000003\nSYSTEM:NET_RX_DELIVERED:00000000000000000003\nSYSTEM:NET_DENIED:00000000000000000003\nSYSTEM:NET_TX_TIMEOUTS:00000000000000000000\nSYSTEM:NET_RESETS:00000000000000000002\nSYSTEM:NET_RESET_ACKS:00000000000000000002\nNETSVC:ENTROPY_BYTES:00000000000000000008\nNETSVC:CLEANUP:PASS\nNETSVC:PASS\nM1:PASS\n",
+  "stderr": "",
+  "observed": {
+    "processes": {
+      "SERVICE": {
+        "240": 12,
+        "400": 1,
+        "408": 534,
+        "416": 4,
+        "424": 3,
+        "432": 8,
+        "440": 4,
+        "448": 0,
+        "456": 0,
+        "464": 1,
+        "472": 76,
+        "480": 0,
+        "488": 0,
+        "496": 0,
+        "504": 12,
+        "512": 0,
+        "520": 0,
+        "528": 0,
+        "536": 55,
+        "544": 12,
+        "552": 5
+      },
+      "APP_A": {
+        "240": 0,
+        "400": 1,
+        "408": 0,
+        "416": 0,
+        "424": 1,
+        "432": 0,
+        "440": 1,
+        "448": 2,
+        "456": 0,
+        "464": 0,
+        "472": 0,
+        "480": 1,
+        "488": 0,
+        "496": 0,
+        "504": 57,
+        "512": 0,
+        "520": 0,
+        "528": 1,
+        "536": 10,
+        "544": 1,
+        "552": 55
+      },
+      "APP_B": {
+        "240": 0,
+        "400": 1,
+        "408": 0,
+        "416": 0,
+        "424": 1,
+        "432": 0,
+        "440": 1,
+        "448": 0,
+        "456": 0,
+        "464": 0,
+        "472": 0,
+        "480": 1,
+        "488": 0,
+        "496": 0,
+        "504": 57,
+        "512": 0,
+        "520": 0,
+        "528": 1,
+        "536": 10,
+        "544": 0,
+        "552": 0
+      }
+    },
+    "network": {
+      "NET_FAULT_TICK": 55,
+      "NET_FAULT_TICKET": 5,
+      "NET_FAULT_TX": 5,
+      "NET_FAULT_RX": 3,
+      "NET_FAULT_STATUS_BEFORE": 15,
+      "NET_FAULT_STATUS_AFTER": 0,
+      "NET_FAULT_BME_BEFORE": 1,
+      "NET_FAULT_BME_AFTER": 1,
+      "NET_TERMINAL_READS": 1,
+      "NET_FAULT_RX_ERRORS": 0,
+      "NET_FAULT_RX_ERROR_CODE": 0,
+      "NET_TERMINAL_ERROR": 12,
+      "NET_TX_SUBMITTED": 5,
+      "NET_TX_COMPLETED": 4,
+      "NET_RX_COMPLETED": 3,
+      "NET_RX_DELIVERED": 3,
+      "NET_DENIED": 3,
+      "NET_TX_TIMEOUTS": 0,
+      "NET_RESETS": 2,
+      "NET_RESET_ACKS": 2
+    },
+    "entropy_bytes": 8,
+    "exit_ticks": {
+      "APP_A": 57,
+      "APP_B": 58
+    },
+    "reset_tick": 55
+  },
+  "network_service_gate": true
+}

@@ -1,0 +1,39 @@
+{
+  "scope": "Independent source/native artifact acceptance review and actual main-tree inclusion verification",
+  "verdict": "pass",
+  "reviewer": "/root/policy_review (independent integration reviewer)",
+  "reviewed_at": "2026-11-24T02:06:27Z",
+  "published_head": "863541014d92de0108b2c29063b04a012acbe8db",
+  "published_tree": "d7d113f8970ffe0f968591efa0ea0b5a77835d85",
+  "tested_commit": "4faa2b40c18257fb8bf5ba85bfef78d49d240a53",
+  "source_sha256": "ea1d1128137f01e8dec9cf4557325fa07588dc515815352bfbb0cf1c9feb4e15",
+  "repaired_service_sha256": "2c8b66325bce20696dcaa1294561c0030dc349b9ce66bb8d5c3c741bbe2bb772",
+  "checks": [
+    "All ten report hashes, retained serial/peer/result bytes and source manifests match",
+    "Actual API jobs/steps succeeded; artifact API digests match downloaded ZIPs",
+    "Seven service serial reports independently recomputed with the exact-source pure sequence parser",
+    "Both full sweep phases and zero listener/UDP-response negatives match",
+    "Actual hosted37-test peer suite and14 targeted refusal subcases pass on the current source",
+    "Source fingerprint independently recomputed from the reviewed d7d113f8 tree",
+    "Historical160153 failure remains failed; old380 receipt remains immutable"
+  ],
+  "report_sha256": {
+    "network-service-port-sweep-report.json": "6421aba717ae9c1a98c3607fb32f270cd8696e14cd274d5a3cecc5f950bd74c9",
+    "network-service-normal-report.json": "ca7e5f7d6109b7f7b9d43400b159faecde5aa4122db485bb843a7b28cb8053ba",
+    "network-service-client-exit-report.json": "9ed40065b5ec7ea6c1fa1bfc098daa69e7451dd90e39d57ec698049ca9067515",
+    "network-service-revoke-report.json": "5dfe8cc04e6fec8159b568c0db69af010ea3ef2cbacfa5afb86137ec34f30de1",
+    "network-service-helper-report.json": "97346002002d88520047e6276b6563c98524f914ef43fe80ddea3df4788b3077",
+    "network-service-device-reset-report.json": "9523fcfed34023fb80388a6118ad37f4d99e281afc8e6674a52e8652a308cc58",
+    "network-service-exhaustion-report.json": "5e85bfc10d111ecf1d044b9cd4b6fc32138f5f14178122c12a9d16f372753bec",
+    "network-dhcp-report.json": "90eef14a1ff31408d912a6176f169534d0b142cca11826b47c00c38e42975514",
+    "network-dhcp-link-report.json": "ce84e8818d93416ecfe922dffe120a660a10e2ec3aa1d4173769fb6d87d63be0",
+    "network-dhcp-route-report.json": "01531d10c7c0e119dbfea4d19e89ab103a01c62a2710af70f8f063884ecd2f0f"
+  },
+  "public_acceptance_reference": "https://github.com/BaryonOS/BaryonOS/pull/478#issuecomment-7119750537",
+  "raw_capture_replayed_locally": false,
+  "major_or_blocking_findings": [],
+  "main_commit": "c3afc04ac2bc92228f2201af02ab69148c47e596",
+  "main_tree": "d7d113f8970ffe0f968591efa0ea0b5a77835d85",
+  "main_verified_at": "2026-11-24T02:08:30Z",
+  "main_proof": "docs/verification/n04-successor-20261124/main-git-proof.json"
+}

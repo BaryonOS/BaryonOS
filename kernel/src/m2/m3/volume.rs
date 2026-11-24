@@ -43,7 +43,7 @@ const _: () = assert!(FIRST_SECTOR + SECTORS <= ARCHIVE_FIRST_SECTOR);
 /// the exported fixture archive needs (180).
 const FULL_SECTORS: u64 = 100;
 const _: () = assert!(FULL_SECTORS < ARCHIVE_SECTORS);
-/// Test-only second disk (S09 archive device cases 13..=19): its one BAR is
+/// Test-only second disk (S09 archive device cases 13..=19, 25..=30): its one BAR is
 /// mapped compactly in the free MMIO window above the device-0 BAR windows
 /// (0x3f000000 + index * 64 KiB, at most 0x3f060000) and below the keyring
 /// rng windows (0x3f080000..). The portal's archive scope on that disk starts
@@ -57,6 +57,21 @@ const _: () = assert!(
 /// Completed archive-device writes after which the power-cut case stops the
 /// guest: the header sector has landed, the archive (about 180 sectors) has not.
 const ARCHIVE_CUT_WRITES: u64 = 20;
+/// S09 L2 export (25): service commits of the source step S1-S5 in
+/// `l2_source_step`: two WRITE COMMITs (S1), one META (S2), two COLLECTION
+/// renames (S3), one COLLECTION create and one rename (S4), and a WRITE plus a
+/// RESTORE on objects 1 and 5 (S5); one publish each.
+const L2_SOURCE_COMMITS: u64 = 11;
+/// S09 L2 restore (26): INSTALL_COLLECTION x3 plus INSTALL_COMMIT x5 (spec 3.3).
+const L2_RESTORE_COMMITS: u64 = 8;
+/// S09 L2 restore cut (29): the commits that land before the power cut, the
+/// three collections and objects 1-3; the cut falls inside the next publish,
+/// object 4's INSTALL_COMMIT table copy, after its content was appended.
+const L2_CUT_COMMITS: u64 = 6;
+/// Table-sector writes after which case 29 stops the guest: on the fresh
+/// image the one-sector format marker, one full copy per landed commit (case
+/// 26 pins the same count), then four sectors of the torn copy.
+const L2_CUT_TABLE_WRITES: u64 = 1 + L2_CUT_COMMITS * (TABLE_REGION / 2) + 4;
 
 #[derive(Clone, Copy)]
 struct AppEvidence {
@@ -75,6 +90,9 @@ struct AppEvidence {
     recovered_second: u64,
     phase: u64,
     ustar_bytes: u64,
+    /// S09 L2 portal words 520..=568 (spec 5.2): restored, collections,
+    /// committed, skipped/omitted, provenance mismatches, length, status.
+    l2: [u64; 7],
 }
 const NO_APP: AppEvidence = AppEvidence {
     exited: false,
@@ -92,6 +110,7 @@ const NO_APP: AppEvidence = AppEvidence {
     recovered_second: 0,
     phase: 0,
     ustar_bytes: 0,
+    l2: [0; 7],
 };
 
 /// One virtio-blk device of the broker: lane 0 is 00:05.0 (every profile),
@@ -160,6 +179,9 @@ struct Runtime {
     device1_denials: u64,
     /// Portal requests past the end of its archive scope, refused by the scope.
     scope_refusals: u64,
+    /// Portal requests on its own archive object refused for a right the
+    /// grant lacks (S09 L2: the device-1 write under READ, step 702).
+    archive_rights_refusals: u64,
 }
 static mut RUNTIME: Runtime = Runtime {
     lanes: [NO_LANE, NO_LANE],
@@ -194,6 +216,7 @@ static mut RUNTIME: Runtime = Runtime {
     device1_writes: 0,
     device1_denials: 0,
     scope_refusals: 0,
+    archive_rights_refusals: 0,
 };
 fn runtime() -> &'static mut Runtime {
     // SAFETY: Entered with KERNEL held and IF0 on the permanent kernel stack.
@@ -345,13 +368,37 @@ fn case() -> u64 {
         18
     } else if cfg!(feature = "test-volume-archive-disk-verify") {
         19
+    } else if cfg!(feature = "test-volume-install") {
+        // S09 L2 install cases: outside archive_case(), so no archive grant or I/O.
+        20
+    } else if cfg!(feature = "test-volume-install-recover") {
+        21
+    } else if cfg!(feature = "test-volume-install-cut") {
+        22
+    } else if cfg!(feature = "test-volume-settings") {
+        23
+    } else if cfg!(feature = "test-volume-settings-recover") {
+        24
+    } else if cfg!(feature = "test-volume-l2-export") {
+        // S09 phase 3 L2 cases on the device-1 archive disk; flow == case.
+        25
+    } else if cfg!(feature = "test-volume-l2-restore") {
+        26
+    } else if cfg!(feature = "test-volume-l2-corrupt") {
+        27
+    } else if cfg!(feature = "test-volume-l2-used") {
+        28
+    } else if cfg!(feature = "test-volume-l2-restore-cut") {
+        29
+    } else if cfg!(feature = "test-volume-recover-l2-cut") {
+        30
     } else {
         0
     }
 }
 /// Device-level read-only mount (emulator, virtio negotiation and service).
 fn read_only() -> bool {
-    cfg!(feature = "test-system-recover") || matches!(case(), 1 | 4 | 5)
+    cfg!(feature = "test-system-recover") || matches!(case(), 1 | 4 | 5 | 21 | 24 | 28 | 30)
 }
 /// Archive export (also into a too-small target, or followed by the ustar
 /// export) writes only the archive range: the device stays writable, but the
@@ -375,12 +422,17 @@ fn flow() -> u64 {
 /// wrong-device case (17), where device 1 holds the archive but the portal
 /// is granted the device-0 archive range.
 fn archive_device() -> bool {
-    matches!(case(), 13..=16 | 18 | 19)
+    matches!(case(), 13..=16 | 18 | 19 | 25..=30)
 }
-/// Device 1 negotiates writes in the export, too-small and power-cut cases;
-/// restore, wrong-device and verify attach it read-only.
+/// Cases with an archive grant to the portal: the S09 v1 archive cases and
+/// the L2 cases; the install and settings cases (20..=24) keep zero archive I/O.
+fn archive_case() -> bool {
+    matches!(case(), 7..=19 | 25..=30)
+}
+/// Device 1 negotiates writes in the export, too-small, power-cut and L2
+/// export cases; restore, wrong-device, verify and L2 26..=30 attach it read-only.
 fn device1_writable() -> bool {
-    matches!(case(), 13 | 15 | 16 | 18)
+    matches!(case(), 13 | 15 | 16 | 18 | 25)
 }
 fn marker() -> &'static [u8] {
     match case() {
@@ -400,6 +452,15 @@ fn marker() -> &'static [u8] {
         16 => b"VOLUME:CASE:ARCHIVE_DISK_SMALL:PASS\n",
         17 => b"VOLUME:CASE:ARCHIVE_DISK_WRONG:PASS\n",
         19 => b"VOLUME:CASE:ARCHIVE_DISK_VERIFY:PASS\n",
+        20 => b"VOLUME:CASE:INSTALL:PASS\n",
+        21 => b"VOLUME:CASE:INSTALL_RECOVER:PASS\n",
+        23 => b"VOLUME:CASE:SETTINGS:PASS\n",
+        24 => b"VOLUME:CASE:SETTINGS_RECOVER:PASS\n",
+        25 => b"VOLUME:CASE:L2_EXPORT:PASS\n",
+        26 => b"VOLUME:CASE:L2_RESTORE:PASS\n",
+        27 => b"VOLUME:CASE:L2_CORRUPT:PASS\n",
+        28 => b"VOLUME:CASE:L2_USED:PASS\n",
+        30 => b"VOLUME:CASE:RECOVER_L2_CUT:PASS\n",
         _ => b"VOLUME:FAIL:CUT_NOT_OBSERVED\n",
     }
 }
@@ -703,7 +764,7 @@ pub fn manifest(s: &mut State) {
     {
         fail(b"READONLY_RIGHTS");
     }
-    if matches!(case(), 7..=19) {
+    if archive_case() {
         archive_grant(s, e, service, clients, block);
     }
     if !e.check_invariants() {
@@ -726,7 +787,7 @@ pub fn manifest(s: &mut State) {
 /// sector 0 instead and never the device-0 archive range; the wrong-device
 /// case (17) grants the device-0 range while device 1 holds the archive.
 fn archive_grant(s: &mut State, e: &mut Engine, service: u64, clients: [u64; 2], block: u64) {
-    let writes = matches!(case(), 7 | 11 | 12 | 13 | 15 | 16 | 18);
+    let writes = matches!(case(), 7 | 11 | 12 | 13 | 15 | 16 | 18 | 25);
     let device = u32::from(archive_device());
     let scope = BlockScope {
         device,
@@ -891,6 +952,17 @@ fn on_archive(s: &State, slot: usize, handle: u64) -> bool {
     })
 }
 
+/// 0x40 scalar checks: length 1..=128 (-11), offset + length within the sector (-1).
+fn read_range(a: [u64; 6]) -> Result<(), i64> {
+    if a[3] == 0 || a[3] > 128 {
+        return Err(-11);
+    }
+    if a[2].checked_add(a[3]).filter(|v| *v <= 512).is_none() {
+        return Err(-1);
+    }
+    Ok(())
+}
+
 /// Generic broker: authority, scope, ticket binding and bounded copies only.
 fn device_call(s: &mut State, slot: usize, n: u64, a: [u64; 6]) -> Result<u64, i64> {
     if !matches!(n, 0x40..=0x43) {
@@ -905,6 +977,12 @@ fn device_call(s: &mut State, slot: usize, n: u64, a: [u64; 6]) -> Result<u64, i
     // ADR-H05-S3-SYSTEM-20261123: the wake reset the device. Every later
     // request is refused after the shape checks, before authority, policy,
     // copies or device access; the storage gate left no block authority.
+    // After the wake the scalar 0x40 checks keep their codes without an
+    // authority check; before the wake they run after authority, unchanged.
+    #[cfg(feature = "test-system-s3")]
+    if n == 0x40 && super::system::resumed() {
+        read_range(a)?;
+    }
     #[cfg(feature = "test-system-s3")]
     if super::system::resumed() {
         return Err(-14);
@@ -916,9 +994,14 @@ fn device_call(s: &mut State, slot: usize, n: u64, a: [u64; 6]) -> Result<u64, i
         0x43 => BLOCK_FLUSH,
         _ => 0,
     };
-    let auth = m4::engine()
-        .check_block(pid, a[0], rights)
-        .map_err(|e| e.code())?;
+    let auth = m4::engine().check_block(pid, a[0], rights).map_err(|e| {
+        // Test-profile count only: a right the portal's archive grant lacks.
+        #[cfg(all(feature = "test-volume-archive-device", not(feature = "native-system")))]
+        if on_archive(s, slot, a[0]) {
+            runtime().archive_rights_refusals += 1;
+        }
+        e.code()
+    })?;
     let dev = match auth.scope().device {
         0 => 0,
         1 if cfg!(feature = "test-volume-archive-device") => 1,
@@ -980,11 +1063,8 @@ fn device_call(s: &mut State, slot: usize, n: u64, a: [u64; 6]) -> Result<u64, i
     let op = if n == 0x43 {
         Operation::Flush
     } else {
-        if n == 0x40 && (a[3] == 0 || a[3] > 128) {
-            return Err(-11);
-        }
-        if n == 0x40 && a[2].checked_add(a[3]).filter(|v| *v <= 512).is_none() {
-            return Err(-1);
+        if n == 0x40 {
+            read_range(a)?;
         }
         if a[1] >= auth.scope().sector_count {
             let r = runtime();
@@ -1234,9 +1314,13 @@ fn advance(s: &State) {
                 } else {
                     r.data_writes += 1;
                 }
+                // S09 L2 restore cut: inside object 4's INSTALL_COMMIT copy.
+                if case() == 29 && r.table_writes >= L2_CUT_TABLE_WRITES {
+                    cut(b"VOLUME:CUT:L2_RESTORE\n");
+                }
                 // Crash fixtures: once app A started its second upload, kill
                 // after completed content writes or inside the table write.
-                if matches!(case(), 2 | 3 | 6) && r.apps[0].phase >= 1 {
+                if matches!(case(), 2 | 3 | 6 | 22) && r.apps[0].phase >= 1 {
                     let base = *r.cut_base.get_or_insert((r.data_writes, r.table_writes));
                     if case() == 2 && r.data_writes >= base.0 + 40 {
                         cut(b"VOLUME:CUT:DATA\n");
@@ -1246,6 +1330,12 @@ fn advance(s: &State) {
                     }
                     if case() == 6 && r.table_writes >= base.1 + 4 {
                         cut(b"VOLUME:CUT:TXN\n");
+                    }
+                    // S09 L2: phase 1 follows the durable INSTALL_COLLECTION,
+                    // so the base latches on an INSTALL_APPEND data sector and
+                    // the only later table writes are the INSTALL_COMMIT copy.
+                    if case() == 22 && r.table_writes >= base.1 + 4 {
+                        cut(b"VOLUME:CUT:INSTALL\n");
                     }
                 }
             }
@@ -1305,6 +1395,9 @@ fn snapshot(s: &State, slot: usize) {
     app.recovered_collection = word(s, slot, 488);
     app.recovered_second = word(s, slot, 496);
     app.ustar_bytes = word(s, slot, 512);
+    for (index, value) in app.l2.iter_mut().enumerate() {
+        *value = word(s, slot, 520 + 8 * index as u64);
+    }
 }
 
 pub fn observe_exit(s: &mut State, slot: usize) {
@@ -1451,6 +1544,45 @@ fn finish(s: &mut State) -> ! {
             15 => a == [0; 3] && d[1] == [0; 3] && d[0][1..] == [0, 0] && r.lanes[1].offline == -14,
             16 => a[0] > 0 && a[1..] == [FULL_SECTORS, 0] && d[1] == a && d[0][1..] == [0, 0],
             17 => a[0] > 0 && a[1..] == [0, 0] && d[1] == [0; 3],
+            // S09 L2 (spec 5.3). Every L2 archive operation went to device 1;
+            // 26..=28 and 30 add exactly the portal's refused device-1 write (702).
+            25 => {
+                a[0] > 0
+                    && a[1] > 0
+                    && a[2] > 0
+                    && d[1] == a
+                    && word(s, 0, 304) == L2_SOURCE_COMMITS
+                    && r.archive_rights_refusals == 0
+            }
+            // The service installs into the fresh image: the one-sector format
+            // marker plus one full table copy per publish (as check_install).
+            26 => {
+                a[0] > 0
+                    && a[1..] == [0, 0]
+                    && d[1] == a
+                    && word(s, 0, 304) == L2_RESTORE_COMMITS
+                    && word(s, 0, 328) == L2_RESTORE_COMMITS
+                    && r.table_writes == 1 + L2_RESTORE_COMMITS * (TABLE_REGION / 2)
+                    && r.archive_rights_refusals == 1
+            }
+            // Refused before any service request: lane 0 sees only the startup
+            // flush of the writable Service::recover (no SHUTDOWN is sent).
+            27 => {
+                a[0] > 0
+                    && a[1..] == [0, 0]
+                    && d[1] == a
+                    && d[0][1..] == [0, 1]
+                    && word(s, 0, 304) == 0
+                    && word(s, 0, 328) == 0
+                    && r.archive_rights_refusals == 1
+            }
+            28 | 30 => {
+                a[0] > 0
+                    && a[1..] == [0, 0]
+                    && d[1] == a
+                    && d[0][1..] == [0, 0]
+                    && r.archive_rights_refusals == 1
+            }
             _ => a == [0; 3],
         };
         if !archive {
@@ -1471,6 +1603,31 @@ fn finish(s: &mut State) -> ! {
         {
             fail(b"NORMAL_RESULT");
         }
+    }
+    // S09 L2 install: exactly the INSTALL_COLLECTION and INSTALL_COMMIT
+    // publishes; the Range and Stale INSTALL_BEGIN refusals wrote no table.
+    if case() == 20 && (word(s, 0, 304) != 2 || r.apps[0].recovered_revision != 3) {
+        fail(b"INSTALL_RESULT");
+    }
+    // S09 L2 portal words (spec 3.3, 5.2): [restored, collections, committed,
+    // skipped/omitted, mismatches, length, status]. Status codes from
+    // services/volume/src/lib.rs: Stale = -10, Corrupt = -18.
+    let l2 = r.apps[0].l2;
+    let status = l2[6] as i64;
+    let l2_result = match case() {
+        // ExportV2.omitted: S1's version 1 lies behind a revision gap.
+        25 => l2[3] == 1 && l2[5] != 0,
+        26 => l2[..5] == [0b0011_1110, 0b111, L2_RESTORE_COMMITS, 0, 0] && status == 0,
+        27 => status == -18 && l2[2] == 0,
+        28 => status == -10 && l2[2] == 0 && l2[4] == 0,
+        // After the cut: collections and objects 1-3 fully installed with
+        // their provenance, objects 4 and 5 never-used (words 520/528 are the
+        // portal's observed masks); a second restore is Stale.
+        30 => l2[..3] == [0b0000_1110, 0b111, 0] && l2[4] == 0 && status == -10,
+        _ => true,
+    };
+    if !l2_result {
+        fail(b"L2_RESULT");
     }
     serial::write(b"VOLUME:READY\n");
     for (index, app) in r.apps.iter().enumerate() {
@@ -1502,6 +1659,10 @@ fn finish(s: &mut State) -> ! {
         if index == 0 {
             print_number(b"VOLUME:A:RECOVERED_COLLECTION:", app.recovered_collection);
             print_number(b"VOLUME:A:RECOVERED_SECOND:", app.recovered_second);
+        } else if matches!(case(), 23 | 24) {
+            // Settings cases: slot B's encoded value and status words.
+            print_number(b"VOLUME:B:RECOVERED_COLLECTION:", app.recovered_collection);
+            print_number(b"VOLUME:B:RECOVERED_SECOND:", app.recovered_second);
         }
     }
     for (label, offset) in [
@@ -1525,12 +1686,12 @@ fn finish(s: &mut State) -> ! {
     print_number(b"VOLUME:BROKER:FLUSHES:", r.publications[2]);
     print_number(b"VOLUME:BROKER:TABLE_SECTOR_WRITES:", r.table_writes);
     print_number(b"VOLUME:BROKER:DATA_SECTOR_WRITES:", r.data_writes);
-    if matches!(case(), 7..=19) {
+    if archive_case() {
         print_number(b"VOLUME:ARCHIVE:READS:", r.archive_ops[0]);
         print_number(b"VOLUME:ARCHIVE:WRITES:", r.archive_ops[1]);
         print_number(b"VOLUME:ARCHIVE:FLUSHES:", r.archive_ops[2]);
     }
-    if matches!(case(), 13..=19) {
+    if matches!(case(), 13..=19 | 25..=28 | 30) {
         print_number(b"VOLUME:ARCHIVE:DEVICE:", u64::from(archive_device()));
         print_number(
             b"VOLUME:ARCHIVE:DISK_FOUND:",
@@ -1550,6 +1711,24 @@ fn finish(s: &mut State) -> ! {
     }
     if case() == 12 {
         print_number(b"VOLUME:ARCHIVE:USTAR_BYTES:", r.apps[0].ustar_bytes);
+    }
+    if matches!(case(), 25..=28 | 30) {
+        // RESULT is the raw i64 status word as u64 (two's complement).
+        for (label, value) in [
+            (&b"VOLUME:ARCHIVE:RESTORED:"[..], l2[0]),
+            (b"VOLUME:ARCHIVE:COLLECTIONS:", l2[1]),
+            (b"VOLUME:ARCHIVE:COMMITTED:", l2[2]),
+            (b"VOLUME:ARCHIVE:SKIPPED:", l2[3]),
+            (b"VOLUME:ARCHIVE:PROVENANCE_MISMATCHES:", l2[4]),
+            (b"VOLUME:ARCHIVE:LENGTH:", l2[5]),
+            (b"VOLUME:ARCHIVE:RESULT:", l2[6]),
+            (
+                b"VOLUME:ARCHIVE:RIGHTS_REFUSALS:",
+                r.archive_rights_refusals,
+            ),
+        ] {
+            print_number(label, value);
+        }
     }
     print_number(
         b"VOLUME:APP_DEVICE_DENIALS:",

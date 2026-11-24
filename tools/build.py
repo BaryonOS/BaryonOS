@@ -27,14 +27,20 @@ VOLUME_ARCHIVE_CASES = ("archive-export", "archive-restore", "archive-corrupt", 
                         # S09 test-only second disk (kernel feature test-volume-archive-device).
                         "archive-disk-export", "archive-disk-restore", "archive-disk-absent",
                         "archive-disk-small", "archive-disk-wrong", "archive-disk-cut", "archive-disk-verify")
+# S09 phase 3 L2 portal on the device-1 disk (docs/implementation/S09-L2-NATIVE-EXPORT.md).
+VOLUME_L2_CASES = ("l2-export", "l2-restore", "l2-corrupt", "l2-used", "l2-restore-cut", "recover-l2-cut")
+# U05-N1 settings app replaces volume-app in these cases (tools/run_settings.py).
+VOLUME_SETTINGS_CASES = ("settings", "settings-recover")
 VOLUME_CASES = ("recover", "cut-data", "cut-table", "recover-cut", "corrupt", "foreign", "cut-txn",
-                *VOLUME_ARCHIVE_CASES)
+                # S09 L2 install stages (plain volume-docs app, not the portal).
+                "install", "install-recover", "install-cut",
+                *VOLUME_ARCHIVE_CASES, *VOLUME_L2_CASES, *VOLUME_SETTINGS_CASES)
 VOLUME_FEATURES = ("native-volume", *(f"test-volume-{case}" for case in VOLUME_CASES))
 SUPERVISOR_CASES = ("crash", "denied", "parent-exit", "quota", "wait")
 SUPERVISOR_FEATURES = ("native-supervisor", *(f"test-supervisor-{case}" for case in SUPERVISOR_CASES),
                        # K06 5d-2 §4: the same six cases on SMP through an explicit profile.
                        "native-smp-supervisor", *(f"test-smp-supervisor-{case}" for case in SUPERVISOR_CASES))
-KEYRING_CASES = ("no-device", "stuck", "timeout", "restart")
+KEYRING_CASES = ("no-device", "stuck", "timeout", "restart", "requester-crash", "no-reset-ack")
 KEYRING_FEATURES = ("native-keyring", *(f"test-keyring-{case}" for case in KEYRING_CASES))
 UPDATE_FEATURES = ("native-update", "test-update-cut", "native-update-policy-probe")
 NETWORK_SYSTEM_FEATURES = ("native-system-net", "test-system-net-recover")
@@ -42,21 +48,29 @@ NETWORK_SYSTEM_FEATURES = ("native-system-net", "test-system-net-recover")
 NETWORK_LINK_FEATURES = ("test-system-net-link", "test-system-net-link-storm")
 TCP_SYSTEM_FEATURES = ("native-system-tcp", "test-system-tcp-recover")
 MEMORY_FEATURES = ("native-memory", "native-memory-nx", "native-memory-guard", "native-memory-peer", "native-memory-oom")
-WINDOW_FEATURES = ("native-window-session", "native-window-session-probe", "native-window-session-hidpi", "native-window-session-hidpi-probe", "native-session-route", "native-hid-input-probe")
+WINDOW_FEATURES = ("native-window-session", "native-window-session-probe", "native-window-session-hidpi", "native-window-session-hidpi-probe", "native-session-route", "native-hid-input-probe", "test-window-session-readonly")
 MATERIAAL_FEATURES = (*WINDOW_FEATURES, "native-system-materiaal", "native-system-session-preview", "native-system-materiaal-probe", "test-system-materiaal-recover", "test-system-materiaal-scale200")
 NAS_FEATURES = ("native-system-nas-probe", "test-system-nas-recover")
 RANDOM_FEATURES = ("native-system-random", "test-system-random-sdk", "test-system-random-unknown", "test-system-random-wrong-caller")
 IMAGE_FEATURES = ("native-system-images",)
 SYSTEM_CLOCK_FEATURES = ("native-system-clock",)
 POWER_SYSTEM_FEATURES = ("native-system-power", "test-system-power-flush-error", "test-system-power-flush-timeout", "test-system-s3", "test-system-s3-reinit", "test-system-s3-held-completion")
-SYSTEM_FEATURES = ("native-net-service", "test-net-service-client-exit", "test-net-service-revoke", "test-net-service-helper", "test-net-service-device-reset", "test-net-service-exhaustion", "native-cap-digest-bench", "native-system", "test-system-recover", "native-system-display-input", *NETWORK_SYSTEM_FEATURES, *NETWORK_LINK_FEATURES, *TCP_SYSTEM_FEATURES, *RANDOM_FEATURES, *IMAGE_FEATURES, *SYSTEM_CLOCK_FEATURES)
+NETWORK_SERVICE_FEATURES = ("native-net-service", "test-net-service-client-exit", "test-net-service-revoke", "test-net-service-helper", "test-net-service-device-reset", "test-net-service-exhaustion", "test-net-service-port-sweep", "test-net-service-dhcp", "test-net-service-link", "test-net-service-slirp")
+SYSTEM_FEATURES = (*NETWORK_SERVICE_FEATURES, "native-cap-digest-bench", "native-system", "test-system-recover", "native-system-display-input", *NETWORK_SYSTEM_FEATURES, *NETWORK_LINK_FEATURES, *TCP_SYSTEM_FEATURES, *RANDOM_FEATURES, *IMAGE_FEATURES, *SYSTEM_CLOCK_FEATURES)
 SYSTEM_FEATURES += POWER_SYSTEM_FEATURES
+# B02-T4 (ADR-B02-KEY1-RELAY-20261123): the key-state relay cases and the red manifest case.
+RELAY_FEATURES = ("test-system-keystate-relay", "test-system-keystate-relay-not-committed",
+                  "test-system-keystate-relay-timeout", "test-system-keystate-relay-leak")
+SYSTEM_FEATURES += RELAY_FEATURES
 # PR 154 legacy SMP path (kernel/src/m2_legacy); every name enables native-smp-legacy and
 # needs the smp-handoff loader. K06 native-smp* profiles use the default loader.
 LEGACY_SMP_FEATURES = ("native-smp-legacy", "native-smp-legacy-m3", "native-smp-m3-exit", "native-smp-m3-tlb-reuse",
                        "native-smp-m3-lock-contention", "native-smp-m4", "native-smp-m4-revoke")
-KERNEL_FEATURES = ["test-panic", "test-hang", "milestone-m2", "native-rtc",
-                   "native-xhci-probe", "test-xhci-dma-fault", "test-xhci-no-dmar", "native-usb-hid-probe", "native-usb-hid-reattach", "test-usb-hid-readonly-fault",
+# H06-T3/T5: the HW-INV profile and its terminal fixtures; each pairs with the hw-inventory loader.
+HWINV_FEATURES = ("native-hw-inventory", "test-hwinv-panic", "test-hwinv-m2-fault", "test-hwinv-fail")
+KERNEL_FEATURES = ["test-panic", "test-hang", "milestone-m2", "native-rtc", "native-hw-inventory",
+                   "test-hwinv-panic", "test-hwinv-m2-fault", "test-hwinv-fail",
+                   "native-xhci-probe", "test-xhci-dma-fault", "test-xhci-no-dmar", "native-usb-hid-probe", "native-usb-hid-reattach", "native-usb-hid-mouse-reattach", "test-usb-hid-readonly-fault",
                    "native-virtio-snd-probe", "test-snd-fence-reinit", "test-snd-quarantine",
                    "native-smp-m3-ipc", "native-smp-m3-migrate", "test-smp-m3-canary",
                    "native-smp-m3-load", "native-smp-m3-soak", "native-smp-m4-quotas", "native-smp-qsim", "native-smp-m3-kill",
@@ -153,7 +167,18 @@ def native_smp_handoff_required(kernel_feature):
     ))
 
 
+def ensure_lockfile():
+    """Cargo.lock is a fingerprinted input: create it before any fingerprint is taken."""
+    if not (ROOT / "Cargo.lock").exists():
+        run_logged(["cargo", "+1.100.0", "generate-lockfile"], "lockfile")
+
+
 def build(loader_feature=None, kernel_feature=None, label="normal", image_version=None):
+    ensure_lockfile()
+    # Refuse a build whose source differs between the first compile and the manifest.
+    # shortcut: equal start and end fingerprints miss an edit reverted mid-build;
+    # build from a private source snapshot if this must bind the compiled bytes.
+    source_at_start = source_hash()
     if native_smp_handoff_required(kernel_feature):
         if loader_feature not in (None, "smp-handoff"):
             raise ValueError("native SMP needs the matching SMP handoff loader")
@@ -179,6 +204,14 @@ def build(loader_feature=None, kernel_feature=None, label="normal", image_versio
         loader_feature = "framebuffer"
     elif loader_feature in ("graphics-g0", "framebuffer", "desktop-mode", "desktop-hidpi"):
         raise ValueError("Graphics loader requires a matching framebuffer kernel")
+    if kernel_feature not in HWINV_FEATURES and set(HWINV_FEATURES) & set((kernel_feature or "").split(",")):
+        raise ValueError("native-hw-inventory is a single-feature profile")
+    if kernel_feature in HWINV_FEATURES:
+        if loader_feature not in (None, "hw-inventory"):
+            raise ValueError("native-hw-inventory requires the hw-inventory loader (SecureBoot handoff)")
+        loader_feature = "hw-inventory"
+    elif loader_feature == "hw-inventory":
+        raise ValueError("hw-inventory loader requires the native-hw-inventory kernel")
     if kernel_feature in UPDATE_FEATURES:
         # B03: these update kernels are test profiles with explicit TEST anchors.
         wanted = "signed-policy-probe-test" if kernel_feature == "native-update-policy-probe" else "signed-boot-test"
@@ -211,7 +244,7 @@ def build(loader_feature=None, kernel_feature=None, label="normal", image_versio
         extra_env, qsim_report = build_nas_users()
     elif kernel_feature in MATERIAAL_FEATURES:
         from build_materiaal import build_users as build_materiaal_users
-        extra_env, qsim_report = build_materiaal_users(probe=kernel_feature not in ("native-system-materiaal", "native-system-session-preview", *WINDOW_FEATURES), window_session=kernel_feature in WINDOW_FEATURES, fault_injection=kernel_feature in ("native-window-session-probe", "native-window-session-hidpi-probe"), session_preview=kernel_feature=="native-session-route", hid_probe=kernel_feature=="native-hid-input-probe")
+        extra_env, qsim_report = build_materiaal_users(probe=kernel_feature not in ("native-system-materiaal", "native-system-session-preview", *WINDOW_FEATURES), window_session=kernel_feature in WINDOW_FEATURES, fault_injection=kernel_feature in ("native-window-session-probe", "native-window-session-hidpi-probe", "test-window-session-readonly"), session_preview=kernel_feature=="native-session-route", hid_probe=kernel_feature=="native-hid-input-probe")
     elif kernel_feature == "native-display-probe":
         from run_display_probe import build_users as build_display_users
         extra_env, qsim_report = build_display_users()
@@ -291,7 +324,7 @@ def build(loader_feature=None, kernel_feature=None, label="normal", image_versio
             run_logged([sys.executable, "-B", str(ROOT / f"sdk/examples/{probe}/build.py"), *(["--link"] if link else [])],
                        "build-system-net-probe", extra_env={"CARGO_TARGET_DIR": str(net_target)})
             binaries["net_probe"] = net_target / f"x86_64-unknown-none/release/{probe}"
-        if kernel_feature in ("native-net-service", "test-net-service-client-exit", "test-net-service-revoke", "test-net-service-helper", "test-net-service-device-reset", "test-net-service-exhaustion"):
+        if kernel_feature in NETWORK_SERVICE_FEATURES:
             net_target = TARGET / "network-service"
             run_logged([sys.executable, "-B", str(ROOT / "sdk/examples/network-service/build.py")],
                        "build-network-service", extra_env={"CARGO_TARGET_DIR": str(net_target)})
@@ -332,6 +365,20 @@ def build(loader_feature=None, kernel_feature=None, label="normal", image_versio
                        extra_env={"CARGO_TARGET_DIR": str(portal_target),
                                   "CARGO_PROFILE_RELEASE_OPT_LEVEL": "s"})
             app = portal_target / "x86_64-unknown-none/release/volume-app"
+        elif kernel_feature in (f"test-volume-{case}" for case in VOLUME_L2_CASES):
+            # S09 phase 3 L2 portal (separate target dir, same opt-level reason).
+            portal_target = TARGET / "volume-docs-l2portal"
+            run_logged([sys.executable, "-B", str(ROOT / "sdk/examples/volume-docs/build.py"),
+                        "--l2-portal"], "build-volume-docs-l2portal",
+                       extra_env={"CARGO_TARGET_DIR": str(portal_target),
+                                  "CARGO_PROFILE_RELEASE_OPT_LEVEL": "s"})
+            app = portal_target / "x86_64-unknown-none/release/volume-app"
+        elif kernel_feature in (f"test-volume-{case}" for case in VOLUME_SETTINGS_CASES):
+            # U05-N1 settings app (own workspace and target dir); same volume service.
+            settings_target = TARGET / "settings-volume"
+            run_logged([sys.executable, "-B", str(ROOT / "sdk/examples/settings-volume/build.py")],
+                       "build-settings-volume", extra_env={"CARGO_TARGET_DIR": str(settings_target)})
+            app = settings_target / "x86_64-unknown-none/release/settings-app"
         qsim_report = {
             "app_sha256": sha256(app), "app_elf": inspect_user(app),
             "service_sha256": sha256(service), "service_elf": inspect_user(service),
@@ -389,8 +436,6 @@ def build(loader_feature=None, kernel_feature=None, label="normal", image_versio
         if "m6c" in kernel_feature:
             extra_env["NOS_M6C_ELF"] = str(build_users("m6c", sdk_runtime=use_sdk,
                 document_session=use_document_session).resolve())
-    if not (ROOT / "Cargo.lock").exists():
-        run_logged(["cargo", "+1.100.0", "generate-lockfile"], "lockfile")
     for package, target, feature in (("os-loader", "x86_64-unknown-uefi", loader_feature), ("os-kernel", "x86_64-unknown-none", kernel_feature)):
         args = ["cargo", "+1.100.0", "build", "--locked", "--release", "--target-dir", str(TARGET), "-p", package, "--target", target]
         if feature:
@@ -400,11 +445,13 @@ def build(loader_feature=None, kernel_feature=None, label="normal", image_versio
             args[2] = "rustc"
             args += ["--", "-C", "link-arg=--strip-all"]
         run_logged(args, f"build-{label}-{package}", extra_env=extra_env if package == "os-kernel" else None)
+    if source_hash() != source_at_start:
+        raise ValueError("Source changed during the build; rebuild on an unchanged source")
     loader = TARGET / "x86_64-unknown-uefi/release/os-loader.efi"
     kernel = TARGET / "x86_64-unknown-none/release/os-kernel"
     manifest = {"schema_version": 1, "profile": label, "kernel_feature": kernel_feature,
                 "loader_feature": loader_feature, "source_fingerprint_version": 3,
-                "source_sha256": source_hash(), "loader": {"sha256": sha256(loader), **inspect_pe(loader)},
+                "source_sha256": source_at_start, "loader": {"sha256": sha256(loader), **inspect_pe(loader)},
                 "kernel": {"sha256": sha256(kernel), **inspect_elf(kernel)}}
     manifest["sdk_runtime"] = use_sdk
     manifest["document_session"] = use_document_session
@@ -429,7 +476,7 @@ def build(loader_feature=None, kernel_feature=None, label="normal", image_versio
             manifest["supervisor"] = qsim_report
         elif kernel_feature in SYSTEM_FEATURES:
             manifest["system"] = qsim_report
-            if kernel_feature in ("native-net-service", "test-net-service-client-exit", "test-net-service-revoke", "test-net-service-helper", "test-net-service-device-reset", "test-net-service-exhaustion"):
+            if kernel_feature in NETWORK_SERVICE_FEATURES:
                 manifest["network_service"] = {name: qsim_report[f"network_{name}"]
                                                for name in ("service", "client")}
             if kernel_feature in RANDOM_FEATURES:
@@ -459,7 +506,7 @@ def build(loader_feature=None, kernel_feature=None, label="normal", image_versio
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--loader-feature", choices=["test-ebs-retry", "graphics-g0", "framebuffer", "signed-boot-test", "signed-policy-probe-test", "signed-boot", "smp-handoff"])
+    parser.add_argument("--loader-feature", choices=["test-ebs-retry", "graphics-g0", "framebuffer", "signed-boot-test", "signed-policy-probe-test", "signed-boot", "smp-handoff", "hw-inventory"])
     parser.add_argument("--image-version", type=int, help="B03: NOS_IMAGE_VERSION of an update kernel")
     parser.add_argument("--kernel-feature", choices=KERNEL_FEATURES)
     args = parser.parse_args()

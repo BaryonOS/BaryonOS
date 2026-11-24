@@ -16,7 +16,7 @@ from common import BUILD, save_json, sha256, source_hash
 from run_graphics import QmpPipe
 
 FEATURES = {"reports": "native-usb-hid-probe", "readonly": "test-usb-hid-readonly-fault",
-            "reattach": "native-usb-hid-reattach"}
+            "reattach": "native-usb-hid-reattach", "reattach-mouse": "native-usb-hid-mouse-reattach"}
 BOOT = ("BOOT:EBS_OK", "KERNEL:ENTRY", "BOOTINFO:OK", "KS-01:PASS", "KS-02:PASS")
 START = ("USB:BEGIN", "USB:PAGING:PASS", "USB:DOMAIN:PASS", "USB:BUS_MASTER:CONTAINED")
 REPORTS = ("USB:ENUM:KEYBOARD", "USB:ENUM:MOUSE", "USB:PROTOCOL:PASS", "USB:READY",
@@ -28,6 +28,13 @@ REATTACH = ("USB:REATTACH:DETACHED", "USB:REATTACH:ENUM:KEYBOARD", "USB:REATTACH
             "USB:REATTACH:STALE_DENIED", "USB:REATTACH:READY", "USB:REATTACH:KEY_DOWN",
             "USB:REATTACH:KEY_UP", "USB:REATTACH:UNPLUG:PASS", "USB:ATTACH:BUDGET_DENIED",
             "USB:RETIRED:UNCHANGED")
+# The keyboard is retired first, so QEMU's lowest-free Enable Slot is expected
+# to give the generation-2 mouse the keyboard's slot. SLOT_REUSED:MOUSE and
+# SLOT_NEW are different, unaccepted observations for this oracle.
+REATTACH_MOUSE = ("USB:REATTACH:HELD_BUTTON", "USB:REATTACH:DETACHED", "USB:REATTACH:ENUM:MOUSE",
+                  "USB:REATTACH:SLOT_REUSED:KEYBOARD", "USB:REATTACH:STALE_DENIED",
+                  "USB:REATTACH:READY", "USB:REATTACH:MOUSE_DOWN", "USB:REATTACH:MOUSE_UP",
+                  "USB:REATTACH:UNPLUG:PASS", "USB:ATTACH:BUDGET_DENIED", "USB:RETIRED:UNCHANGED")
 END = ("USB:GUARD:UNCHANGED", "USB:QUIESCE:PASS", "USB:PAGES:RETAINED", "USB:PASS")
 MAX_OUTPUT = 4 * 1024 * 1024
 
@@ -35,7 +42,7 @@ MAX_OUTPUT = 4 * 1024 * 1024
 def markers(case: str) -> tuple[str, ...]:
     if case not in FEATURES:
         raise ValueError("Unknown USB HID fixture case")
-    body = {"reports": REPORTS, "reattach": REPORTS + REATTACH,
+    body = {"reports": REPORTS, "reattach": REPORTS + REATTACH, "reattach-mouse": REPORTS + REATTACH_MOUSE,
             "readonly": ("USB:READONLY:WRITE_DENIED",)}[case]
     return START + body + END
 
@@ -43,6 +50,11 @@ def markers(case: str) -> tuple[str, ...]:
 def _keyboard(device_id: str) -> dict:
     # Same root port and USB 1.1 profile as the boot-time keyboard.
     return {"driver": "usb-kbd", "id": device_id, "bus": "xhci.0", "port": "1", "usb_version": 1}
+
+
+def _mouse(device_id: str) -> dict:
+    # Same root port and USB 1.1 profile as the boot-time mouse.
+    return {"driver": "usb-mouse", "id": device_id, "bus": "xhci.0", "port": "2", "usb_version": 1}
 
 
 def _key(name: str, down: bool) -> dict:
@@ -108,7 +120,7 @@ def controlled_guest(args: list[str], *, cwd, env, timeout, run_dir, case: str) 
                                        stdout=subprocess.PIPE, stderr=stderr)
             control = QmpPipe(process, deadline)
             trace = control.trace
-            if case in ("reports", "reattach"):
+            if case in ("reports", "reattach", "reattach-mouse"):
                 _wait_marker(process, stdout_path, "USB:READY", deadline)
                 # Track before sending: even an unacknowledged command may
                 # have delivered input and therefore needs terminal cleanup.
@@ -147,6 +159,32 @@ def controlled_guest(args: list[str], *, cwd, env, timeout, run_dir, case: str) 
                 _wait_marker(process, stdout_path, "USB:REATTACH:UNPLUG:PASS", deadline)
                 # The guest must refuse this third identity by attach budget.
                 control.command("device_add", _keyboard("hid-kbd-g3"))
+            if case == "reattach-mouse":
+                _wait_marker(process, stdout_path, "USB:STALE_TOKEN:DENIED", deadline)
+                control.command("input-send-event", {"events": [_key("b", False)]})
+                held_keys.remove("b")
+                _wait_marker(process, stdout_path, "USB:REPORTS:PASS", deadline)
+                held_button = True
+                control.command("input-send-event", {"events": [_button(True)]})
+                _wait_marker(process, stdout_path, "USB:REATTACH:HELD_BUTTON", deadline)
+                control.command("device_del", {"id": "hid-mouse"})
+                _wait_marker(process, stdout_path, "USB:REATTACH:DETACHED", deadline)
+                # The removed mouse no longer receives it; the release only
+                # ends QEMU's held-button state before a new mouse exists.
+                control.command("input-send-event", {"events": [_button(False)]})
+                held_button = False
+                control.command("device_add", _mouse("hid-mouse-g2"))
+                _wait_marker(process, stdout_path, "USB:REATTACH:READY", deadline)
+                held_button = True
+                control.command("input-send-event", {"events": [_move("x", -4), _move("y", 6), _button(True)]})
+                _wait_marker(process, stdout_path, "USB:REATTACH:MOUSE_DOWN", deadline)
+                control.command("input-send-event", {"events": [_button(False)]})
+                held_button = False
+                _wait_marker(process, stdout_path, "USB:REATTACH:MOUSE_UP", deadline)
+                control.command("device_del", {"id": "hid-mouse-g2"})
+                _wait_marker(process, stdout_path, "USB:REATTACH:UNPLUG:PASS", deadline)
+                # The guest must refuse this third identity by attach budget.
+                control.command("device_add", _mouse("hid-mouse-g3"))
             process.wait(timeout=max(0, deadline - time.monotonic()))
         except (TimeoutError, subprocess.TimeoutExpired) as exc:
             timed_out = True
@@ -194,9 +232,11 @@ def evaluate(case: str, stdout: str, raw_exit: int | None, timed_out: bool) -> d
     controlled = tuple(line for line in lines if line.startswith(("USB:", "XHCI:")))
     if controlled != ("XHCI:BEGIN",) + expected + ("XHCI:PASS",):
         raise ValueError("Wrong case, duplicate, unknown or reordered USB evidence")
-    return {"markers": list(expected), "usb_reports": case in ("reports", "reattach"),
+    return {"markers": list(expected), "usb_reports": case != "readonly",
             "readonly_write_denied": case == "readonly",
-            "same_port_reattach": case == "reattach", "input_policy_authority": False}
+            "same_port_reattach": case in ("reattach", "reattach-mouse"),
+            "reattach_device": {"reattach": "keyboard", "reattach-mouse": "mouse"}.get(case),
+            "input_policy_authority": False}
 
 
 def run_case(case: str) -> dict:
@@ -205,7 +245,7 @@ def run_case(case: str) -> dict:
     destination = BUILD / f"usb-hid-{case}-report.json"
     report = {"schema_version": 1, "case": case, "passed": False,
               "scope": "QEMU native USB2 HID completions and directional VT-d; no IPC broker, IRQ or physical acceptance"}
-    if case == "reattach":
+    if case in ("reattach", "reattach-mouse"):
         report["scope"] += "; same-port reattach uses QEMU device_add/device_del, not physical hotplug"
     save_json(destination, report)
     try:

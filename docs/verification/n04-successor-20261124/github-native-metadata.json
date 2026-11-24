@@ -1,0 +1,730 @@
+{
+  "expected_head": "863541014d92de0108b2c29063b04a012acbe8db",
+  "expected_tree": "d7d113f8970ffe0f968591efa0ea0b5a77835d85",
+  "checkout_api": {
+    "sha": "4faa2b40c18257fb8bf5ba85bfef78d49d240a53",
+    "node_id": "C_kwDOVZC91toAKDRmYWEyYjQwYzE4MjU3ZmI4YmY1YmE4NWJmZWY3OGQ0OWQyNDBhNTM",
+    "url": "https://api.github.com/repos/BaryonOS/BaryonOS/git/commits/4faa2b40c18257fb8bf5ba85bfef78d49d240a53",
+    "html_url": "https://github.com/BaryonOS/BaryonOS/commit/4faa2b40c18257fb8bf5ba85bfef78d49d240a53",
+    "author": {
+      "name": "Simon",
+      "email": "205651656+simonvanieperen@users.noreply.github.com",
+      "date": "2026-11-24T01:55:43Z"
+    },
+    "committer": {
+      "name": "GitHub",
+      "email": "noreply@github.com",
+      "date": "2026-11-24T01:55:43Z"
+    },
+    "tree": {
+      "sha": "d7d113f8970ffe0f968591efa0ea0b5a77835d85",
+      "url": "https://api.github.com/repos/BaryonOS/BaryonOS/git/trees/d7d113f8970ffe0f968591efa0ea0b5a77835d85"
+    },
+    "message": "Merge 863541014d92de0108b2c29063b04a012acbe8db into ab9414cc37154525de9d38f99abb12328e1900b1",
+    "parents": [
+      {
+        "sha": "ab9414cc37154525de9d38f99abb12328e1900b1",
+        "url": "https://api.github.com/repos/BaryonOS/BaryonOS/git/commits/ab9414cc37154525de9d38f99abb12328e1900b1",
+        "html_url": "https://github.com/BaryonOS/BaryonOS/commit/ab9414cc37154525de9d38f99abb12328e1900b1"
+      },
+      {
+        "sha": "863541014d92de0108b2c29063b04a012acbe8db",
+        "url": "https://api.github.com/repos/BaryonOS/BaryonOS/git/commits/863541014d92de0108b2c29063b04a012acbe8db",
+        "html_url": "https://github.com/BaryonOS/BaryonOS/commit/863541014d92de0108b2c29063b04a012acbe8db"
+      }
+    ],
+    "verification": {
+      "verified": true,
+      "reason": "valid",
+      "signature": "-----BEGIN PGP SIGNATURE-----\n\nwsFcBAABCAAQBQJrBO6fCRC1aQ7uu5UhlAAArlMQAHpj0mioFazpRTLUUJ/WXTVF\nhmRxk+fl83vNhMNhgd+miAQOtKFbvxS/gIGOnO9YSxb7ip2SHguLnYu/rluAQT0w\n/db4y4FyVRD9SN54MbD1SBukg/hXW7A9cM77kawRcNpsCPt+9B2N5GWZArx/ZflO\nt9Ft5xzQglhCqqHdFfbA3h5rwn/5xWbfau0GAjAD/BfQOqMmrc7df/8Pz/iFvbz+\n1F05D0jyK1NG15qG4ZzO5+N8hNAJnvQFhOOwG3Kphok6Ot6zhDA3FTD8jP24RzwR\nFVf6UF794D5xtdF5m01ehVxaVeaYlwcbCr5irhnG0s0FXclBXM1sFaKlcnGb5Yy9\nQZg9jGnDeNJ/CSfrilETrM9ZSZc5l8iNQP9bJm0TAAWCYRQV/9AOz6IWQXU52t4z\n4N7p6SfDLIGBQLawH/40DJASkLXJfwBJU5xEh9AhmFIlAdKOPht34//tRBVbcMWG\nCzpZt1lFYO4i6SKoDz/OsJoUPdNueHpnQUdlAUvfqjgnQJvDKGZTAzmNZqchZbq5\na0awl/FfnaRHh+j3fIfSJHSNN2M8tpFavT4Fd9f/X0xTUM8UQa1pjj8mXKHM2JTN\nOYeqrhlscHQ4w7EBSbcoOF3SxgWRik2sHX4nmLPiw7cIK2hbyfYR6klDpCDKpsUs\nW8lDKJiQ4yBiD8zCbvGv\n=PinG\n-----END PGP SIGNATURE-----\n",
+      "payload": "tree d7d113f8970ffe0f968591efa0ea0b5a77835d85\nparent ab9414cc37154525de9d38f99abb12328e1900b1\nparent 863541014d92de0108b2c29063b04a012acbe8db\nauthor Simon <205651656+simonvanieperen@users.noreply.github.com> 1795485343 +0000\ncommitter GitHub <noreply@github.com> 1795485343 +0000\n\nMerge 863541014d92de0108b2c29063b04a012acbe8db into ab9414cc37154525de9d38f99abb12328e1900b1\n",
+      "verified_at": "2026-11-24T01:55:43Z"
+    }
+  },
+  "run_api": {
+    "id": 45308625592,
+    "name": "Network broker quality",
+    "node_id": "WFR_kwLOVZC91s8AAAAKjJrCuA",
+    "head_branch": "integration/drain-batch-4",
+    "head_sha": "863541014d92de0108b2c29063b04a012acbe8db",
+    "path": ".github/workflows/net-broker-quality.yml",
+    "display_title": "chore(integration): PR backlog drain batch 4 (network)",
+    "run_number": 1758,
+    "event": "pull_request",
+    "status": "completed",
+    "conclusion": "success",
+    "workflow_id": 402091032,
+    "check_suite_id": 122603687256,
+    "check_suite_node_id": "CS_kwDOVZC91s8AAAAci7_NWA",
+    "url": "https://api.github.com/repos/BaryonOS/BaryonOS/actions/runs/45308625592",
+    "html_url": "https://github.com/BaryonOS/BaryonOS/actions/runs/45308625592",
+    "pull_requests": [
+      {
+        "url": "https://api.github.com/repos/BaryonOS/BaryonOS/pulls/478",
+        "id": 5463166851,
+        "number": 478,
+        "head": {
+          "ref": "integration/drain-batch-4",
+          "sha": "863541014d92de0108b2c29063b04a012acbe8db",
+          "repo": {
+            "id": 1435549142,
+            "url": "https://api.github.com/repos/BaryonOS/BaryonOS",
+            "name": "BaryonOS"
+          }
+        },
+        "base": {
+          "ref": "main",
+          "sha": "ab9414cc37154525de9d38f99abb12328e1900b1",
+          "repo": {
+            "id": 1435549142,
+            "url": "https://api.github.com/repos/BaryonOS/BaryonOS",
+            "name": "BaryonOS"
+          }
+        }
+      }
+    ],
+    "created_at": "2026-11-24T01:55:45Z",
+    "updated_at": "2026-11-24T02:02:55Z",
+    "actor": {
+      "login": "simonvanieperen",
+      "id": 205651656,
+      "node_id": "U_kgDODEH-yA",
+      "avatar_url": "https://avatars.githubusercontent.com/u/205651656?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/simonvanieperen",
+      "html_url": "https://github.com/simonvanieperen",
+      "followers_url": "https://api.github.com/users/simonvanieperen/followers",
+      "following_url": "https://api.github.com/users/simonvanieperen/following{/other_user}",
+      "gists_url": "https://api.github.com/users/simonvanieperen/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/simonvanieperen/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/simonvanieperen/subscriptions",
+      "organizations_url": "https://api.github.com/users/simonvanieperen/orgs",
+      "repos_url": "https://api.github.com/users/simonvanieperen/repos",
+      "events_url": "https://api.github.com/users/simonvanieperen/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/simonvanieperen/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "run_attempt": 1,
+    "referenced_workflows": [],
+    "run_started_at": "2026-11-24T01:55:45Z",
+    "triggering_actor": {
+      "login": "simonvanieperen",
+      "id": 205651656,
+      "node_id": "U_kgDODEH-yA",
+      "avatar_url": "https://avatars.githubusercontent.com/u/205651656?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/simonvanieperen",
+      "html_url": "https://github.com/simonvanieperen",
+      "followers_url": "https://api.github.com/users/simonvanieperen/followers",
+      "following_url": "https://api.github.com/users/simonvanieperen/following{/other_user}",
+      "gists_url": "https://api.github.com/users/simonvanieperen/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/simonvanieperen/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/simonvanieperen/subscriptions",
+      "organizations_url": "https://api.github.com/users/simonvanieperen/orgs",
+      "repos_url": "https://api.github.com/users/simonvanieperen/repos",
+      "events_url": "https://api.github.com/users/simonvanieperen/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/simonvanieperen/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "jobs_url": "https://api.github.com/repos/BaryonOS/BaryonOS/actions/runs/45308625592/jobs",
+    "logs_url": "https://api.github.com/repos/BaryonOS/BaryonOS/actions/runs/45308625592/logs",
+    "check_suite_url": "https://api.github.com/repos/BaryonOS/BaryonOS/check-suites/122603687256",
+    "artifacts_url": "https://api.github.com/repos/BaryonOS/BaryonOS/actions/runs/45308625592/artifacts",
+    "cancel_url": "https://api.github.com/repos/BaryonOS/BaryonOS/actions/runs/45308625592/cancel",
+    "rerun_url": "https://api.github.com/repos/BaryonOS/BaryonOS/actions/runs/45308625592/rerun",
+    "previous_attempt_url": null,
+    "workflow_url": "https://api.github.com/repos/BaryonOS/BaryonOS/actions/workflows/402091032",
+    "head_commit": {
+      "id": "863541014d92de0108b2c29063b04a012acbe8db",
+      "tree_id": "d7d113f8970ffe0f968591efa0ea0b5a77835d85",
+      "message": "fix(network): publish static replies before the service yield\n\nMove static TX publication after the bounded ingress/poll, retaining completion and revocation cleanup before it. Preserve all deadlines, ticket semantics, yields and limits. Also account for the added native evidence invocation in the explicit CI contract inventory.\n\nIndependent source review passed; 42 service tests, 40 evidence tests, host/native Clippy and native ELF builds passed. Fresh native matrix remains required; the prior 160153 sweep timed out.",
+      "timestamp": "2026-11-24T01:55:36Z",
+      "author": {
+        "name": "Simon",
+        "email": "205651656+simonvanieperen@users.noreply.github.com"
+      },
+      "committer": {
+        "name": "Simon",
+        "email": "205651656+simonvanieperen@users.noreply.github.com"
+      }
+    },
+    "repository": {
+      "id": 1435549142,
+      "node_id": "R_kgDOVZC91g",
+      "name": "BaryonOS",
+      "full_name": "BaryonOS/BaryonOS",
+      "private": false,
+      "owner": {
+        "login": "BaryonOS",
+        "id": 354856779,
+        "node_id": "O_kgDOFSavSw",
+        "avatar_url": "https://avatars.githubusercontent.com/u/354856779?v=4",
+        "gravatar_id": "",
+        "url": "https://api.github.com/users/BaryonOS",
+        "html_url": "https://github.com/BaryonOS",
+        "followers_url": "https://api.github.com/users/BaryonOS/followers",
+        "following_url": "https://api.github.com/users/BaryonOS/following{/other_user}",
+        "gists_url": "https://api.github.com/users/BaryonOS/gists{/gist_id}",
+        "starred_url": "https://api.github.com/users/BaryonOS/starred{/owner}{/repo}",
+        "subscriptions_url": "https://api.github.com/users/BaryonOS/subscriptions",
+        "organizations_url": "https://api.github.com/users/BaryonOS/orgs",
+        "repos_url": "https://api.github.com/users/BaryonOS/repos",
+        "events_url": "https://api.github.com/users/BaryonOS/events{/privacy}",
+        "received_events_url": "https://api.github.com/users/BaryonOS/received_events",
+        "type": "Organization",
+        "user_view_type": "public",
+        "site_admin": false
+      },
+      "html_url": "https://github.com/BaryonOS/BaryonOS",
+      "description": "Baryon OS: Rust kernel. Experimental; not a production OS.",
+      "fork": false,
+      "url": "https://api.github.com/repos/BaryonOS/BaryonOS",
+      "forks_url": "https://api.github.com/repos/BaryonOS/BaryonOS/forks",
+      "keys_url": "https://api.github.com/repos/BaryonOS/BaryonOS/keys{/key_id}",
+      "collaborators_url": "https://api.github.com/repos/BaryonOS/BaryonOS/collaborators{/collaborator}",
+      "teams_url": "https://api.github.com/repos/BaryonOS/BaryonOS/teams",
+      "hooks_url": "https://api.github.com/repos/BaryonOS/BaryonOS/hooks",
+      "issue_events_url": "https://api.github.com/repos/BaryonOS/BaryonOS/issues/events{/number}",
+      "events_url": "https://api.github.com/repos/BaryonOS/BaryonOS/events",
+      "assignees_url": "https://api.github.com/repos/BaryonOS/BaryonOS/assignees{/user}",
+      "branches_url": "https://api.github.com/repos/BaryonOS/BaryonOS/branches{/branch}",
+      "tags_url": "https://api.github.com/repos/BaryonOS/BaryonOS/tags",
+      "blobs_url": "https://api.github.com/repos/BaryonOS/BaryonOS/git/blobs{/sha}",
+      "git_tags_url": "https://api.github.com/repos/BaryonOS/BaryonOS/git/tags{/sha}",
+      "git_refs_url": "https://api.github.com/repos/BaryonOS/BaryonOS/git/refs{/sha}",
+      "trees_url": "https://api.github.com/repos/BaryonOS/BaryonOS/git/trees{/sha}",
+      "statuses_url": "https://api.github.com/repos/BaryonOS/BaryonOS/statuses/{sha}",
+      "languages_url": "https://api.github.com/repos/BaryonOS/BaryonOS/languages",
+      "stargazers_url": "https://api.github.com/repos/BaryonOS/BaryonOS/stargazers",
+      "contributors_url": "https://api.github.com/repos/BaryonOS/BaryonOS/contributors",
+      "subscribers_url": "https://api.github.com/repos/BaryonOS/BaryonOS/subscribers",
+      "subscription_url": "https://api.github.com/repos/BaryonOS/BaryonOS/subscription",
+      "commits_url": "https://api.github.com/repos/BaryonOS/BaryonOS/commits{/sha}",
+      "git_commits_url": "https://api.github.com/repos/BaryonOS/BaryonOS/git/commits{/sha}",
+      "comments_url": "https://api.github.com/repos/BaryonOS/BaryonOS/comments{/number}",
+      "issue_comment_url": "https://api.github.com/repos/BaryonOS/BaryonOS/issues/comments{/number}",
+      "contents_url": "https://api.github.com/repos/BaryonOS/BaryonOS/contents/{+path}",
+      "compare_url": "https://api.github.com/repos/BaryonOS/BaryonOS/compare/{base}...{head}",
+      "merges_url": "https://api.github.com/repos/BaryonOS/BaryonOS/merges",
+      "archive_url": "https://api.github.com/repos/BaryonOS/BaryonOS/{archive_format}{/ref}",
+      "downloads_url": "https://api.github.com/repos/BaryonOS/BaryonOS/downloads",
+      "issues_url": "https://api.github.com/repos/BaryonOS/BaryonOS/issues{/number}",
+      "pulls_url": "https://api.github.com/repos/BaryonOS/BaryonOS/pulls{/number}",
+      "milestones_url": "https://api.github.com/repos/BaryonOS/BaryonOS/milestones{/number}",
+      "notifications_url": "https://api.github.com/repos/BaryonOS/BaryonOS/notifications{?since,all,participating}",
+      "labels_url": "https://api.github.com/repos/BaryonOS/BaryonOS/labels{/name}",
+      "releases_url": "https://api.github.com/repos/BaryonOS/BaryonOS/releases{/id}",
+      "deployments_url": "https://api.github.com/repos/BaryonOS/BaryonOS/deployments"
+    },
+    "head_repository": {
+      "id": 1435549142,
+      "node_id": "R_kgDOVZC91g",
+      "name": "BaryonOS",
+      "full_name": "BaryonOS/BaryonOS",
+      "private": false,
+      "owner": {
+        "login": "BaryonOS",
+        "id": 354856779,
+        "node_id": "O_kgDOFSavSw",
+        "avatar_url": "https://avatars.githubusercontent.com/u/354856779?v=4",
+        "gravatar_id": "",
+        "url": "https://api.github.com/users/BaryonOS",
+        "html_url": "https://github.com/BaryonOS",
+        "followers_url": "https://api.github.com/users/BaryonOS/followers",
+        "following_url": "https://api.github.com/users/BaryonOS/following{/other_user}",
+        "gists_url": "https://api.github.com/users/BaryonOS/gists{/gist_id}",
+        "starred_url": "https://api.github.com/users/BaryonOS/starred{/owner}{/repo}",
+        "subscriptions_url": "https://api.github.com/users/BaryonOS/subscriptions",
+        "organizations_url": "https://api.github.com/users/BaryonOS/orgs",
+        "repos_url": "https://api.github.com/users/BaryonOS/repos",
+        "events_url": "https://api.github.com/users/BaryonOS/events{/privacy}",
+        "received_events_url": "https://api.github.com/users/BaryonOS/received_events",
+        "type": "Organization",
+        "user_view_type": "public",
+        "site_admin": false
+      },
+      "html_url": "https://github.com/BaryonOS/BaryonOS",
+      "description": "Baryon OS: Rust kernel. Experimental; not a production OS.",
+      "fork": false,
+      "url": "https://api.github.com/repos/BaryonOS/BaryonOS",
+      "forks_url": "https://api.github.com/repos/BaryonOS/BaryonOS/forks",
+      "keys_url": "https://api.github.com/repos/BaryonOS/BaryonOS/keys{/key_id}",
+      "collaborators_url": "https://api.github.com/repos/BaryonOS/BaryonOS/collaborators{/collaborator}",
+      "teams_url": "https://api.github.com/repos/BaryonOS/BaryonOS/teams",
+      "hooks_url": "https://api.github.com/repos/BaryonOS/BaryonOS/hooks",
+      "issue_events_url": "https://api.github.com/repos/BaryonOS/BaryonOS/issues/events{/number}",
+      "events_url": "https://api.github.com/repos/BaryonOS/BaryonOS/events",
+      "assignees_url": "https://api.github.com/repos/BaryonOS/BaryonOS/assignees{/user}",
+      "branches_url": "https://api.github.com/repos/BaryonOS/BaryonOS/branches{/branch}",
+      "tags_url": "https://api.github.com/repos/BaryonOS/BaryonOS/tags",
+      "blobs_url": "https://api.github.com/repos/BaryonOS/BaryonOS/git/blobs{/sha}",
+      "git_tags_url": "https://api.github.com/repos/BaryonOS/BaryonOS/git/tags{/sha}",
+      "git_refs_url": "https://api.github.com/repos/BaryonOS/BaryonOS/git/refs{/sha}",
+      "trees_url": "https://api.github.com/repos/BaryonOS/BaryonOS/git/trees{/sha}",
+      "statuses_url": "https://api.github.com/repos/BaryonOS/BaryonOS/statuses/{sha}",
+      "languages_url": "https://api.github.com/repos/BaryonOS/BaryonOS/languages",
+      "stargazers_url": "https://api.github.com/repos/BaryonOS/BaryonOS/stargazers",
+      "contributors_url": "https://api.github.com/repos/BaryonOS/BaryonOS/contributors",
+      "subscribers_url": "https://api.github.com/repos/BaryonOS/BaryonOS/subscribers",
+      "subscription_url": "https://api.github.com/repos/BaryonOS/BaryonOS/subscription",
+      "commits_url": "https://api.github.com/repos/BaryonOS/BaryonOS/commits{/sha}",
+      "git_commits_url": "https://api.github.com/repos/BaryonOS/BaryonOS/git/commits{/sha}",
+      "comments_url": "https://api.github.com/repos/BaryonOS/BaryonOS/comments{/number}",
+      "issue_comment_url": "https://api.github.com/repos/BaryonOS/BaryonOS/issues/comments{/number}",
+      "contents_url": "https://api.github.com/repos/BaryonOS/BaryonOS/contents/{+path}",
+      "compare_url": "https://api.github.com/repos/BaryonOS/BaryonOS/compare/{base}...{head}",
+      "merges_url": "https://api.github.com/repos/BaryonOS/BaryonOS/merges",
+      "archive_url": "https://api.github.com/repos/BaryonOS/BaryonOS/{archive_format}{/ref}",
+      "downloads_url": "https://api.github.com/repos/BaryonOS/BaryonOS/downloads",
+      "issues_url": "https://api.github.com/repos/BaryonOS/BaryonOS/issues{/number}",
+      "pulls_url": "https://api.github.com/repos/BaryonOS/BaryonOS/pulls{/number}",
+      "milestones_url": "https://api.github.com/repos/BaryonOS/BaryonOS/milestones{/number}",
+      "notifications_url": "https://api.github.com/repos/BaryonOS/BaryonOS/notifications{?since,all,participating}",
+      "labels_url": "https://api.github.com/repos/BaryonOS/BaryonOS/labels{/name}",
+      "releases_url": "https://api.github.com/repos/BaryonOS/BaryonOS/releases{/id}",
+      "deployments_url": "https://api.github.com/repos/BaryonOS/BaryonOS/deployments"
+    }
+  },
+  "jobs_api": {
+    "total_count": 3,
+    "jobs": [
+      {
+        "id": 138158486924,
+        "run_id": 45308625592,
+        "workflow_name": "Network broker quality",
+        "head_branch": "integration/drain-batch-4",
+        "run_url": "https://api.github.com/repos/BaryonOS/BaryonOS/actions/runs/45308625592",
+        "run_attempt": 1,
+        "node_id": "CR_kwDOVZC91s8AAAAgKuM1jA",
+        "head_sha": "863541014d92de0108b2c29063b04a012acbe8db",
+        "url": "https://api.github.com/repos/BaryonOS/BaryonOS/actions/jobs/138158486924",
+        "html_url": "https://github.com/BaryonOS/BaryonOS/actions/runs/45308625592/job/138158486924",
+        "status": "completed",
+        "conclusion": "success",
+        "created_at": "2026-11-24T01:55:46Z",
+        "started_at": "2026-11-24T01:55:49Z",
+        "completed_at": "2026-11-24T01:56:29Z",
+        "name": "net-broker-quality",
+        "steps": [
+          {
+            "name": "Set up job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 1,
+            "started_at": "2026-11-24T01:55:49Z",
+            "completed_at": "2026-11-24T01:55:51Z"
+          },
+          {
+            "name": "Checkout",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 2,
+            "started_at": "2026-11-24T01:55:51Z",
+            "completed_at": "2026-11-24T01:55:56Z"
+          },
+          {
+            "name": "Pinned Python",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 3,
+            "started_at": "2026-11-24T01:55:56Z",
+            "completed_at": "2026-11-24T01:56:05Z"
+          },
+          {
+            "name": "Rust 1.100.0",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 4,
+            "started_at": "2026-11-24T01:56:05Z",
+            "completed_at": "2026-11-24T01:56:14Z"
+          },
+          {
+            "name": "Broker and transport host gates",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 5,
+            "started_at": "2026-11-24T01:56:14Z",
+            "completed_at": "2026-11-24T01:56:23Z"
+          },
+          {
+            "name": "Allocator-free baremetal library",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 6,
+            "started_at": "2026-11-24T01:56:23Z",
+            "completed_at": "2026-11-24T01:56:26Z"
+          },
+          {
+            "name": "No generated source changes",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 7,
+            "started_at": "2026-11-24T01:56:26Z",
+            "completed_at": "2026-11-24T01:56:27Z"
+          },
+          {
+            "name": "Post Pinned Python",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 13,
+            "started_at": "2026-11-24T01:56:27Z",
+            "completed_at": "2026-11-24T01:56:27Z"
+          },
+          {
+            "name": "Post Checkout",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 14,
+            "started_at": "2026-11-24T01:56:27Z",
+            "completed_at": "2026-11-24T01:56:27Z"
+          },
+          {
+            "name": "Complete job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 15,
+            "started_at": "2026-11-24T01:56:27Z",
+            "completed_at": "2026-11-24T01:56:27Z"
+          }
+        ],
+        "check_run_url": "https://api.github.com/repos/BaryonOS/BaryonOS/check-runs/138158486924",
+        "labels": [
+          "ubuntu-24.04"
+        ],
+        "runner_id": 1000039954,
+        "runner_name": "GitHub Actions 1000039954",
+        "runner_group_id": 0,
+        "runner_group_name": "GitHub Actions"
+      },
+      {
+        "id": 138158768805,
+        "run_id": 45308625592,
+        "workflow_name": "Network broker quality",
+        "head_branch": "integration/drain-batch-4",
+        "run_url": "https://api.github.com/repos/BaryonOS/BaryonOS/actions/runs/45308625592",
+        "run_attempt": 1,
+        "node_id": "CR_kwDOVZC91s8AAAAgKueCpQ",
+        "head_sha": "863541014d92de0108b2c29063b04a012acbe8db",
+        "url": "https://api.github.com/repos/BaryonOS/BaryonOS/actions/jobs/138158768805",
+        "html_url": "https://github.com/BaryonOS/BaryonOS/actions/runs/45308625592/job/138158768805",
+        "status": "completed",
+        "conclusion": "success",
+        "created_at": "2026-11-24T01:56:29Z",
+        "started_at": "2026-11-24T01:56:32Z",
+        "completed_at": "2026-11-24T02:02:54Z",
+        "name": "native-network-extensions",
+        "steps": [
+          {
+            "name": "Set up job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 1,
+            "started_at": "2026-11-24T01:56:33Z",
+            "completed_at": "2026-11-24T01:56:35Z"
+          },
+          {
+            "name": "Checkout",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 2,
+            "started_at": "2026-11-24T01:56:35Z",
+            "completed_at": "2026-11-24T01:56:42Z"
+          },
+          {
+            "name": "Pinned Python",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 3,
+            "started_at": "2026-11-24T01:56:42Z",
+            "completed_at": "2026-11-24T01:56:50Z"
+          },
+          {
+            "name": "Pinned kernel and service compilers",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 4,
+            "started_at": "2026-11-24T01:56:50Z",
+            "completed_at": "2026-11-24T01:57:01Z"
+          },
+          {
+            "name": "Pinned QEMU and OVMF",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 5,
+            "started_at": "2026-11-24T01:57:01Z",
+            "completed_at": "2026-11-24T01:57:37Z"
+          },
+          {
+            "name": "Fetch locked inputs before offline native builders",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 6,
+            "started_at": "2026-11-24T01:57:37Z",
+            "completed_at": "2026-11-24T01:57:38Z"
+          },
+          {
+            "name": "DHCP DNS link route and sweep counterexamples",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 7,
+            "started_at": "2026-11-24T01:57:38Z",
+            "completed_at": "2026-11-24T01:58:01Z"
+          },
+          {
+            "name": "Native DHCP DNS link recovery and off-link route",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 8,
+            "started_at": "2026-11-24T01:58:01Z",
+            "completed_at": "2026-11-24T01:59:41Z"
+          },
+          {
+            "name": "Native full-port sweep before and after revocation",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 9,
+            "started_at": "2026-11-24T01:59:41Z",
+            "completed_at": "2026-11-24T02:02:46Z"
+          },
+          {
+            "name": "Preserve tracked source integrity",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 10,
+            "started_at": "2026-11-24T02:02:46Z",
+            "completed_at": "2026-11-24T02:02:47Z"
+          },
+          {
+            "name": "Preserve compact evidence and report archive availability",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 11,
+            "started_at": "2026-11-24T02:02:47Z",
+            "completed_at": "2026-11-24T02:02:50Z"
+          },
+          {
+            "name": "Post Pinned Python",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 21,
+            "started_at": "2026-11-24T02:02:50Z",
+            "completed_at": "2026-11-24T02:02:51Z"
+          },
+          {
+            "name": "Post Checkout",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 22,
+            "started_at": "2026-11-24T02:02:51Z",
+            "completed_at": "2026-11-24T02:02:51Z"
+          },
+          {
+            "name": "Complete job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 23,
+            "started_at": "2026-11-24T02:02:51Z",
+            "completed_at": "2026-11-24T02:02:51Z"
+          }
+        ],
+        "check_run_url": "https://api.github.com/repos/BaryonOS/BaryonOS/check-runs/138158768805",
+        "labels": [
+          "ubuntu-24.04"
+        ],
+        "runner_id": 1000039972,
+        "runner_name": "GitHub Actions 1000039972",
+        "runner_group_id": 0,
+        "runner_group_name": "GitHub Actions"
+      },
+      {
+        "id": 138158768933,
+        "run_id": 45308625592,
+        "workflow_name": "Network broker quality",
+        "head_branch": "integration/drain-batch-4",
+        "run_url": "https://api.github.com/repos/BaryonOS/BaryonOS/actions/runs/45308625592",
+        "run_attempt": 1,
+        "node_id": "CR_kwDOVZC91s8AAAAgKueDJQ",
+        "head_sha": "863541014d92de0108b2c29063b04a012acbe8db",
+        "url": "https://api.github.com/repos/BaryonOS/BaryonOS/actions/jobs/138158768933",
+        "html_url": "https://github.com/BaryonOS/BaryonOS/actions/runs/45308625592/job/138158768933",
+        "status": "completed",
+        "conclusion": "success",
+        "created_at": "2026-11-24T01:56:29Z",
+        "started_at": "2026-11-24T01:56:32Z",
+        "completed_at": "2026-11-24T02:00:31Z",
+        "name": "native-network-service",
+        "steps": [
+          {
+            "name": "Set up job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 1,
+            "started_at": "2026-11-24T01:56:33Z",
+            "completed_at": "2026-11-24T01:56:35Z"
+          },
+          {
+            "name": "Checkout",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 2,
+            "started_at": "2026-11-24T01:56:35Z",
+            "completed_at": "2026-11-24T01:56:41Z"
+          },
+          {
+            "name": "Pinned Python",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 3,
+            "started_at": "2026-11-24T01:56:41Z",
+            "completed_at": "2026-11-24T01:56:51Z"
+          },
+          {
+            "name": "Pinned kernel and service compilers",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 4,
+            "started_at": "2026-11-24T01:56:51Z",
+            "completed_at": "2026-11-24T01:57:11Z"
+          },
+          {
+            "name": "Pinned QEMU and OVMF",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 5,
+            "started_at": "2026-11-24T01:57:11Z",
+            "completed_at": "2026-11-24T01:58:01Z"
+          },
+          {
+            "name": "Ubuntu emulator package diagnostics",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 6,
+            "started_at": "2026-11-24T01:58:01Z",
+            "completed_at": "2026-11-24T01:58:01Z"
+          },
+          {
+            "name": "Fetch locked inputs before offline native builders",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 7,
+            "started_at": "2026-11-24T01:58:01Z",
+            "completed_at": "2026-11-24T01:58:03Z"
+          },
+          {
+            "name": "Wire protocol, client and controlled peer counterexamples",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 8,
+            "started_at": "2026-11-24T01:58:03Z",
+            "completed_at": "2026-11-24T01:58:27Z"
+          },
+          {
+            "name": "Native packets lifetimes helper isolation revocation reset and exhaustion",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 9,
+            "started_at": "2026-11-24T01:58:27Z",
+            "completed_at": "2026-11-24T02:00:23Z"
+          },
+          {
+            "name": "Preserve tracked source integrity",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 10,
+            "started_at": "2026-11-24T02:00:23Z",
+            "completed_at": "2026-11-24T02:00:24Z"
+          },
+          {
+            "name": "Preserve compact evidence and report archive availability",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 11,
+            "started_at": "2026-11-24T02:00:24Z",
+            "completed_at": "2026-11-24T02:00:27Z"
+          },
+          {
+            "name": "Post Pinned Python",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 21,
+            "started_at": "2026-11-24T02:00:27Z",
+            "completed_at": "2026-11-24T02:00:27Z"
+          },
+          {
+            "name": "Post Checkout",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 22,
+            "started_at": "2026-11-24T02:00:27Z",
+            "completed_at": "2026-11-24T02:00:27Z"
+          },
+          {
+            "name": "Complete job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 23,
+            "started_at": "2026-11-24T02:00:27Z",
+            "completed_at": "2026-11-24T02:00:27Z"
+          }
+        ],
+        "check_run_url": "https://api.github.com/repos/BaryonOS/BaryonOS/check-runs/138158768933",
+        "labels": [
+          "ubuntu-24.04"
+        ],
+        "runner_id": 1000039973,
+        "runner_name": "GitHub Actions 1000039973",
+        "runner_group_id": 0,
+        "runner_group_name": "GitHub Actions"
+      }
+    ]
+  },
+  "artifacts_api": {
+    "total_count": 2,
+    "artifacts": [
+      {
+        "id": 14882815932,
+        "node_id": "MDg6QXJ0aWZhY3QxNDg4MjgxNTkzMg==",
+        "name": "native-network-service-evidence-reports",
+        "size_in_bytes": 211178,
+        "url": "https://api.github.com/repos/BaryonOS/BaryonOS/actions/artifacts/14882815932",
+        "archive_download_url": "https://api.github.com/repos/BaryonOS/BaryonOS/actions/artifacts/14882815932/zip",
+        "expired": false,
+        "digest": "sha256:aa62367f55964a4e4e238c49be7489c509dd70d55a1e337f00d82bad729c36a1",
+        "created_at": "2026-11-24T02:00:27Z",
+        "updated_at": "2026-11-24T02:00:27Z",
+        "expires_at": "2026-11-27T02:00:25Z",
+        "workflow_run": {
+          "id": 45308625592,
+          "repository_id": 1435549142,
+          "head_repository_id": 1435549142,
+          "head_branch": "integration/drain-batch-4",
+          "head_sha": "863541014d92de0108b2c29063b04a012acbe8db"
+        }
+      },
+      {
+        "id": 14882456494,
+        "node_id": "MDg6QXJ0aWZhY3QxNDg4MjQ1NjQ5NA==",
+        "name": "native-network-extensions-evidence-reports",
+        "size_in_bytes": 155732,
+        "url": "https://api.github.com/repos/BaryonOS/BaryonOS/actions/artifacts/14882456494",
+        "archive_download_url": "https://api.github.com/repos/BaryonOS/BaryonOS/actions/artifacts/14882456494/zip",
+        "expired": false,
+        "digest": "sha256:549ae1d9117ae790063f64f2645d75f88b3ddd705b8170129009befa9500be2e",
+        "created_at": "2026-11-24T02:02:50Z",
+        "updated_at": "2026-11-24T02:02:50Z",
+        "expires_at": "2026-11-27T02:02:48Z",
+        "workflow_run": {
+          "id": 45308625592,
+          "repository_id": 1435549142,
+          "head_repository_id": 1435549142,
+          "head_branch": "integration/drain-batch-4",
+          "head_sha": "863541014d92de0108b2c29063b04a012acbe8db"
+        }
+      }
+    ]
+  }
+}

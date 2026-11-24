@@ -132,6 +132,98 @@ where
     Ok(())
 }
 
+/// Identity of one present PCI function, any header type, for an inventory.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub struct InventoryFunction {
+    /// Segment-zero address of the function.
+    pub address: PciAddress,
+    /// Vendor ID (configuration offset 0x00).
+    pub vendor: u16,
+    /// Device ID (configuration offset 0x02).
+    pub device: u16,
+    /// Revision ID (offset 0x08).
+    pub revision: u8,
+    /// Programming interface (offset 0x09).
+    pub prog_if: u8,
+    /// Subclass (offset 0x0a).
+    pub subclass: u8,
+    /// Base class (offset 0x0b).
+    pub class: u8,
+    /// Header type without the multifunction bit (offset 0x0e).
+    pub header_type: u8,
+}
+
+/// Lists every present segment-zero function of any header type, in bus,
+/// device and function order, for a read-only hardware inventory.
+///
+/// Only the aligned configuration dwords at offsets 0x00, 0x08 and 0x0c are
+/// read; nothing is written, enabled, mapped or started. Functions 1-7 are
+/// visited only when function 0 sets the multifunction bit, as in
+/// [`enumerate`]. A configuration error aborts the listing so a partial
+/// inventory is never reported as complete.
+pub fn inventory<A, F>(access: &mut A, mut visit: F) -> Result<u32, ConfigError>
+where
+    A: PciConfigAccess,
+    F: FnMut(InventoryFunction),
+{
+    let mut count = 0u32;
+    for bus in 0..BUS_COUNT {
+        for device in 0..DEVICES_PER_BUS {
+            let function0 = PciAddress {
+                segment: 0,
+                bus: bus as u8,
+                device,
+                function: 0,
+            };
+            let Some((first, header)) = inventory_function(access, function0)? else {
+                continue;
+            };
+            visit(first);
+            count += 1;
+            if header & 0x80 != 0 {
+                for function in 1..FUNCTIONS_PER_DEVICE {
+                    let address = PciAddress {
+                        function,
+                        ..function0
+                    };
+                    if let Some((entry, _)) = inventory_function(access, address)? {
+                        visit(entry);
+                        count += 1;
+                    }
+                }
+            }
+        }
+    }
+    Ok(count)
+}
+
+/// Reads one function's identity; `None` when absent (vendor 0xffff). The
+/// second value is the raw header-type byte including the multifunction bit.
+fn inventory_function<A: PciConfigAccess>(
+    access: &mut A,
+    address: PciAddress,
+) -> Result<Option<(InventoryFunction, u8)>, ConfigError> {
+    let id = access.read_u32(address, 0)?;
+    if id as u16 == u16::MAX {
+        return Ok(None);
+    }
+    let class = access.read_u32(address, 0x08)?.to_le_bytes();
+    let header = (access.read_u32(address, 0x0c)? >> 16) as u8;
+    Ok(Some((
+        InventoryFunction {
+            address,
+            vendor: id as u16,
+            device: (id >> 16) as u16,
+            revision: class[0],
+            prog_if: class[1],
+            subclass: class[2],
+            class: class[3],
+            header_type: header & 0x7f,
+        },
+        header,
+    )))
+}
+
 /// Legacy x86 PCI configuration mechanism 1 (CF8/CFC), segment zero only.
 ///
 /// The object does not serialize access against other CF8/CFC users. Construct
@@ -552,14 +644,14 @@ mod tests {
 
     #[derive(Clone)]
     struct MockConfig {
-        functions: [Option<MockFunction>; 3],
+        functions: [Option<MockFunction>; 4],
         reads: u32,
     }
 
     impl MockConfig {
         fn new() -> Self {
             Self {
-                functions: [None; 3],
+                functions: [None; 4],
                 reads: 0,
             }
         }
@@ -945,6 +1037,114 @@ mod tests {
             )
             .err(),
             Some(BindError::DescriptorChanged)
+        );
+    }
+
+    /// Read-only adapter: any write fails the test, and the read offsets are recorded.
+    struct ReadOnly<'a> {
+        inner: &'a mut MockConfig,
+        offsets: [bool; 64],
+        fail_at: Option<PciAddress>,
+    }
+
+    impl PciConfigAccess for ReadOnly<'_> {
+        fn read_u32(&mut self, address: PciAddress, offset: u8) -> Result<u32, ConfigError> {
+            if self.fail_at == Some(address) {
+                return Err(ConfigError::UnsupportedSegment);
+            }
+            self.offsets[usize::from(offset / 4)] = true;
+            self.inner.read_u32(address, offset)
+        }
+        fn write_u32(&mut self, _: PciAddress, _: u8, _: u32) -> Result<(), ConfigError> {
+            panic!("inventory must not write configuration space")
+        }
+        fn write_u16(&mut self, _: PciAddress, _: u8, _: u16) -> Result<(), ConfigError> {
+            panic!("inventory must not write configuration space")
+        }
+    }
+
+    fn inventory_mock() -> MockConfig {
+        let mut mock = MockConfig::new();
+        // 00:01.0 multifunction PCI-to-PCI bridge (header type 1).
+        let bridge = mock.add(address(1, 0), 0x8086, 0x1234);
+        bridge[0x08..0x0c].copy_from_slice(&[0x02, 0x00, 0x04, 0x06]);
+        bridge[0x0e] = 0x81;
+        // 00:01.2 type-0 function of the same device.
+        let usb = mock.add(address(1, 2), 0x8086, 0x5678);
+        usb[0x08..0x0c].copy_from_slice(&[0x10, 0x30, 0x03, 0x0c]);
+        // 00:02.0 single-function device; its phantom 00:02.1 must not be listed.
+        mock.add(address(2, 0), 0x10ec, 0x8168)[0x08..0x0c]
+            .copy_from_slice(&[0x15, 0x00, 0x00, 0x02]);
+        mock.add(address(2, 1), 0x10ec, 0x8169);
+        mock
+    }
+
+    #[test]
+    fn inventory_lists_every_present_function_of_any_header_type_read_only() {
+        let mut mock = inventory_mock();
+        let mut access = ReadOnly {
+            inner: &mut mock,
+            offsets: [false; 64],
+            fail_at: None,
+        };
+        let mut listed = [None; 4];
+        let mut index = 0;
+        let count = inventory(&mut access, |function| {
+            listed[index] = Some(function);
+            index += 1;
+        })
+        .unwrap();
+        assert_eq!(count, 3);
+        let listed = listed.map(|entry| entry.map(|f| (f.address, f.vendor, f.device)));
+        assert_eq!(
+            listed,
+            [
+                Some((address(1, 0), 0x8086, 0x1234)),
+                Some((address(1, 2), 0x8086, 0x5678)),
+                Some((address(2, 0), 0x10ec, 0x8168)),
+                None,
+            ]
+        );
+        let read: [usize; 3] = [0, 2, 3];
+        for (slot, used) in access.offsets.iter().enumerate() {
+            assert_eq!(*used, read.contains(&slot), "offset {:#x}", slot * 4);
+        }
+    }
+
+    #[test]
+    fn inventory_decodes_class_revision_and_header_type() {
+        let mut mock = inventory_mock();
+        let mut first = None;
+        inventory(&mut mock, |function| {
+            first.get_or_insert(function);
+        })
+        .unwrap();
+        assert_eq!(
+            first,
+            Some(InventoryFunction {
+                address: address(1, 0),
+                vendor: 0x8086,
+                device: 0x1234,
+                revision: 0x02,
+                prog_if: 0x00,
+                subclass: 0x04,
+                class: 0x06,
+                header_type: 1,
+            })
+        );
+    }
+
+    #[test]
+    fn inventory_aborts_on_a_configuration_error() {
+        let mut mock = inventory_mock();
+        let mut access = ReadOnly {
+            inner: &mut mock,
+            offsets: [false; 64],
+            fail_at: Some(address(1, 2)),
+        };
+        assert_eq!(
+            inventory(&mut access, |_| {}),
+            Err(ConfigError::UnsupportedSegment)
         );
     }
 }

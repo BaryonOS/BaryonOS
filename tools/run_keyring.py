@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 """B01 QEMU runner: one native-keyring case per disposable guest. The normal
 and stuck/restart cases attach a virtio-rng-pci device fed by the host's urandom;
-the timeout case uses a silent local EGD backend and no-device boots without it.
-The kernel prints evidence numbers and PASS
-markers; this host side checks the marker sequence, raw exit and numbers."""
+the timeout, requester-crash and no-reset-ack cases use a silent local EGD
+backend and no-device boots without it. The kernel prints evidence numbers and
+PASS markers; this host side checks the marker sequence, raw exit, numbers and
+the silent backend's request transcript."""
 from __future__ import annotations
 import argparse
 from contextlib import nullcontext
@@ -25,7 +26,10 @@ BOOT = ("BOOT:EBS_OK", "KERNEL:ENTRY", "BOOTINFO:OK")
 FAILURES = ("PANIC", "FAIL")
 FEATURE = {"normal": "native-keyring", "no-device": "test-keyring-no-device",
            "stuck": "test-keyring-stuck", "timeout": "test-keyring-timeout",
-           "restart": "test-keyring-restart"}
+           "restart": "test-keyring-restart", "requester-crash": "test-keyring-requester-crash",
+           "no-reset-ack": "test-keyring-no-reset-ack"}
+# Cases whose virtio-rng backend never answers after the kernel manifest.
+SILENT = {"timeout", "requester-crash", "no-reset-ack"}
 CASE_MARKER = {case: case.upper().replace("-", "_") for case in FEATURE}
 MAX_TIMEOUT = 180
 RNG_DEVICE = ["-object", "rng-random,id=rng0,filename=/dev/urandom",
@@ -63,6 +67,21 @@ AT_LEAST = {
                 "APP_ENTROPY_DENIED": 1, "DENIED": 1},
 }
 AT_LEAST["restart"] = dict(AT_LEAST["normal"])
+# B01-T2: service B dies (#UD) with its request pending; A is released only
+# after the kernel verified the quarantine. One device submission in total.
+EXPECT["requester-crash"] = {
+    "SERVICE_A_STATE": 2, "SERVICE_A_REASON": 1, "SERVICE_B_STATE": 0, "SERVICE_B_REASON": 0,
+    "SERVICE_A_KEYS": 0, "SERVICE_B_KEYS": 0, "SERVICE_A_ENTROPY_BYTES": 0,
+    "SERVICE_B_ENTROPY_BYTES": 0, "DELIVERED_BYTES": 0, "APP_GENERATED": 0, "APP_SEALED": 0,
+    "TIMEOUTS": 0, "RESET_ACKS": 0, "QUARANTINED": 1, "RESTARTED_BYTES": 0, "LEASE_RECLAIMS": 0,
+    "REQUESTER_CRASHES": 1, "CRASH_TICKET_REFUSED": 1, "REPEAT_REFUSED": 2,
+    "DEVICE_SUBMISSIONS": 1}
+AT_LEAST["requester-crash"] = {"OFFLINE_ERRORS": 1, "REQUESTS": 2, "APP_NOT_READY": 2,
+                               "APP_ENTROPY_DENIED": 1, "DENIED": 1}
+# B01-T2: the timeout flow with the reset acknowledgement treated as missing.
+EXPECT["no-reset-ack"] = {**EXPECT["timeout"], "RESET_ACKS": 0, "QUARANTINED": 1,
+                          "REPEAT_REFUSED": 2, "DEVICE_SUBMISSIONS": 1}
+AT_LEAST["no-reset-ack"] = dict(AT_LEAST["timeout"])
 # Recovery is exercised only in normal; the other manifests stay unchanged.
 EXPECT["normal"].update({"SERVICE_B_KEYS": 32, "MGMT_EXPORTS": 1,
                        "MGMT_RESTORES": 1, "B_UNSEAL_OK": 1,
@@ -70,6 +89,9 @@ EXPECT["normal"].update({"SERVICE_B_KEYS": 32, "MGMT_EXPORTS": 1,
 AT_LEAST["normal"]["ADMIN_BAD_CALLER"] = 1
 # Native lease fixture: two abandoned answers reclaimed; one authority-loss quarantine.
 EXPECT["normal"].update({"LEASE_RECLAIMS": 2, "AUTHORITY_QUARANTINE": 1})
+
+
+DRAIN_SECONDS = 1.0  # must stay below the 2 s worker join in SilentEgd.__exit__
 
 
 class SilentEgd:
@@ -112,10 +134,17 @@ class SilentEgd:
             with self._connection as connection:
                 connection.settimeout(0.1)
                 pending = b""
-                while not self._stop.is_set():
+                drain_until = None
+                while True:
+                    # QEMU writes 255 and 1 separately; after stop, keep reading
+                    # to EOF (bounded below the 2 s join) so a pair is never cut.
+                    if drain_until is None and self._stop.is_set():
+                        drain_until = time.monotonic() + DRAIN_SECONDS
                     try:
                         data = connection.recv(256)
                     except socket.timeout:
+                        if drain_until is not None and time.monotonic() >= drain_until:
+                            break
                         continue
                     if not data:
                         break
@@ -203,6 +232,24 @@ def evaluate(case: str, stdout: str, rc, timed_out: bool) -> dict[str, int]:
     return found
 
 
+def check_fixture(case: str, evidence: dict) -> None:
+    """The silent backend saw a real pending request and answered nothing.
+
+    QEMU forwards one 256-byte guest buffer as EGD requests of 255 and 1 bytes.
+    QEMU 10.2.1 was observed to repeat that pair host-side while the buffer stays
+    pending: the unchanged timeout case gives [255, 1, 255, 1] with one kernel
+    ticket. Only whole pairs are accepted here; the number of guest submissions
+    is pinned kernel-side by DEVICE_SUBMISSIONS, not by this transcript.
+    """
+    lengths = evidence.get("requested_lengths")
+    if evidence.get("error") is not None or not lengths:
+        raise ValueError(f"{case}: silent EGD did not observe a real pending request")
+    if len(lengths) % 2 or any(lengths[i:i + 2] != [255, 1] for i in range(0, len(lengths), 2)):
+        raise ValueError(f"{case}: unexpected EGD request transcript {lengths}")
+    if evidence.get("response_bytes") != 0:
+        raise ValueError(f"{case}: silent EGD answered after the manifest")
+
+
 def qemu_arguments(case: str, qemu: str, rel: str, rng_socket: Path | None = None) -> list[str]:
     args = [qemu, "-machine", qemu_machine(), "-accel", "tcg,thread=single", "-cpu", "qemu64",
             "-smp", "1", "-m", "256M", "-nodefaults", "-display", "none", "-monitor", "none",
@@ -211,9 +258,9 @@ def qemu_arguments(case: str, qemu: str, rel: str, rng_socket: Path | None = Non
             "-drive", f"if=pflash,unit=1,format=raw,file={rel}/OVMF_VARS.fd",
             "-drive", f"if=virtio,index=0,format=raw,readonly=on,file=fat:{rel}/esp",
             "-device", "isa-debug-exit,iobase=0xf4,iosize=0x04"]
-    if case == "timeout":
+    if case in SILENT:
         if rng_socket is None:
-            raise ValueError("timeout requires the silent EGD fixture")
+            raise ValueError(f"{case} requires the silent EGD fixture")
         args += ["-chardev", f"socket,id=rng-channel,path={rng_socket}",
                  "-object", "rng-egd,id=rng0,chardev=rng-channel", *RNG_DEVICE[2:]]
         args[args.index("-serial") + 1] = f"file:{rel}/serial.raw"
@@ -239,7 +286,7 @@ def run_keyring(case: str, *, timeout=MAX_TIMEOUT):
     shutil.copytree(BUILD / "esp", run_dir / "esp")
     shutil.copy2(variables, run_dir / "OVMF_VARS.fd")
     shutil.copy2(code, run_dir / "OVMF_CODE.fd")
-    fixture = SilentEgd(run_dir / "serial.raw") if case == "timeout" else None
+    fixture = SilentEgd(run_dir / "serial.raw") if case in SILENT else None
     with fixture if fixture is not None else nullcontext():
         args = qemu_arguments(case, qemu, run_dir.relative_to(ROOT).as_posix(),
                               fixture.path if fixture else None)
@@ -269,9 +316,7 @@ def run_keyring(case: str, *, timeout=MAX_TIMEOUT):
     try:
         report["evidence"] = evaluate(case, stdout, rc, timed_out)
         if fixture is not None:
-            evidence = report["fault_fixture"]
-            if evidence["error"] is not None or not evidence["requested_lengths"]:
-                raise ValueError("silent EGD did not observe a real pending request")
+            check_fixture(case, report["fault_fixture"])
         report["passed"] = source_hash() == frozen
         if not report["passed"]:
             raise ValueError("source changed during run")

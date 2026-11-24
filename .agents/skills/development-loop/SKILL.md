@@ -34,8 +34,15 @@ GitHub Copilot; client adapters add tool constraints, never authority.
 8. Checkpoint coherent work: exact source, commands, raw exit codes, local log paths,
    NOT RUN reasons, blocker and executable next step. Update the existing progress
    assessment without awarding unaccepted criteria. Commit, push and open/update a
-   draft PR under the current mandate. Manual squash needs mandatory checks and
-   current owner authorization; never auto-merge or bypass protection.
+   draft PR under the current mandate. The six workstreams hold the merge mandate
+   for their own PRs under ADR-MERGE-DELEGATION-20261123; an explicit assignment can
+   also delegate integration. No repeated approval is required within that scope.
+   Squash-merge with an expected-head guard once applicable acceptance and required
+   checks pass. Auto-merge may wait for required checks only after substantive review
+   and other acceptance are complete; disable it before a push or base change, then
+   reassess the new head. Never bypass protections or release an unproved hold.
+   While a PR waits, continue independent work or a correctly stacked dependent
+   branch. Verify actual main inclusion before marking the source task complete.
 9. Record one durable lesson in shared Graphify memory when useful; changing task
    state belongs in existing checkpoints, never AGENTS.md. Continue the next disjoint
    eligible task. External blockers do not stop independent implementation. At a hard

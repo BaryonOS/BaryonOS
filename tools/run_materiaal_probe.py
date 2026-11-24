@@ -227,6 +227,11 @@ def qmp_groups(directory: Path, case: str) -> list[tuple[str, list[dict]]]:
         return {"execute": "send-key", "arguments": {"keys": [{"type": "qcode", "data": c} for c in codes], "hold-time": 30}}
     def shot(name):
         return {"execute": "screendump", "arguments": {"filename": str(directory / f"{name}.ppm")}}
+    # Material's visual/semantic order is New (when writable), Refresh, Search,
+    # Filter, Object(0). Target the object itself; Enter on an empty Search also
+    # opens it, but would not prove the native list-item keyboard path (#449).
+    reopen = [key("tab") for _ in range(4 if case in WRITABLE_CASES else 3)]
+    reopen += [key("ret"), shot("reopened")]
     groups = [("ready", [shot("ready")])]
     if case in WRITABLE_CASES:
         if case == "keyboard":
@@ -234,7 +239,7 @@ def qmp_groups(directory: Path, case: str) -> list[tuple[str, list[dict]]]:
                        ("dirty", [key("spc" if c == " " else c) for c in TEXT.decode()] + [shot("dirty")]),
                        ("saved", [key("ctrl", "s"), shot("saved")]),
                        ("list", [key("esc"), shot("list")]),
-                       ("reopened", [key("tab"), key("tab"), key("ret"), shot("reopened")])]
+                       ("reopened", reopen)]
             return groups + [("close", [key("f12")])]
         # The source-checked ui-core Cursor::new starts at global (0,0). Move
         # without buttons, in bounded relative steps, before a fresh click.
@@ -252,9 +257,9 @@ def qmp_groups(directory: Path, case: str) -> list[tuple[str, list[dict]]]:
                    ("dirty", [key("spc" if c == " " else c) for c in TEXT.decode()] + [shot("dirty")]),
                    ("saved", [key("ctrl", "s"), shot("saved")]),
                    ("list", [key("esc"), shot("list")]),
-                   ("reopened", [key("tab"), key("tab"), key("ret"), shot("reopened")])]
+                   ("reopened", reopen)]
     else:
-        groups += [("reopened", [key("tab"), key("ret"), shot("reopened")]),
+        groups += [("reopened", reopen),
                    ("readonly", [key("ctrl", "s"), shot("readonly")])]
     groups.append(("close", [key("f12")]))
     return groups

@@ -17,7 +17,7 @@ zeroize = ["hmac/zeroize"]
 
 [dependencies]
 hmac = { path = "../hmac-0.13.0", version = "=0.13.0", default-features = false, features = ["zeroize"] }
-zeroize = { version = "=1.9.1", default-features = false }
+zeroize = { version = "=1.9.2", default-features = false }
 hybrid-array = { version = "=0.4.15", default-features = false, features = ["zeroize"] }
 kdf = { version = "0.1", optional = true }
 

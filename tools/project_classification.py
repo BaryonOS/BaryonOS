@@ -1,14 +1,16 @@
 #!/usr/bin/env python3
 """Conservatively classify and synchronise existing GitHub Projects V2 items.
 
-Work Type, Subsystem and Priority come only from unambiguous conventional
-title prefixes and explicit labels; existing values are never overwritten.
+Work Type and Subsystem come only from unambiguous conventional title prefixes
+and explicit labels; existing values are never overwritten. Priority, Effort and
+planning dates remain specialist-owned. This writer only supports project
+single-select fields.
 
-Status is derived from GitHub facts (issue/PR state, draft flag and an explicit
-``blocked`` label). Terminal facts win: a merged PR or an issue closed as
-completed becomes Done. Manually chosen statuses outside the managed set are
-left untouched. Project Status is organisational only; it never replaces a
-GitHub Actions result.
+Terminal GitHub facts win: a merged PR or an issue explicitly closed as completed
+becomes Done; other closed items become Closed. Existing nonterminal statuses
+remain specialist-owned. Draft flags and an explicit ``blocked`` label only
+initialise empty statuses or reset a terminal status after reopening. Project
+Status is organisational only; it never replaces a GitHub Actions result.
 
 Open issues and pull requests of the repository that are missing from the
 project are added (bounded per run). Nothing is added when the project scan was
@@ -46,6 +48,12 @@ SUBSYSTEM_SCOPES = {
     "volume": "Storage",
     "services": "Services",
     "service": "Services",
+    "hw": "Hardware",
+    "hardware": "Hardware",
+    "drivers": "Hardware",
+    "net": "Networking",
+    "network": "Networking",
+    "networking": "Networking",
     "ui": "UI",
     "veld": "UI",
     "materiaal": "UI",
@@ -56,12 +64,6 @@ SUBSYSTEM_SCOPES = {
     "docs": "Documentation",
     "documentation": "Documentation",
 }
-PRIORITIES = {
-    "p0": "P0 Critical",
-    "p1": "P1 High",
-    "p2": "P2 Normal",
-    "p3": "P3 Low",
-}
 TITLE_PATTERN = re.compile(
     r"^\s*(feat|fix|security|refactor|test|docs|chore|build|ci|research)"
     r"(?:\(([a-z0-9_.-]+)\))?!?:", re.IGNORECASE
@@ -69,18 +71,17 @@ TITLE_PATTERN = re.compile(
 
 STATUS_FIELD = "Status"
 BLOCKED_LABELS = {"blocked", "status:blocked"}
-# Statuses this tool may move a pull request between. A PR with any other
-# (manually chosen) status keeps it.
-MANAGED_PR_STATUSES = {"todo", "in progress", "in review", "blocked", "done"}
-# Open issues are only filled or corrected from these values.
-CORRECTABLE_ISSUE_STATUSES = {"", "blocked", "done"}
+# Open items keep every selected nonterminal status, including Blocked.
+# Removing a label or changing draft state is not a specialist's status decision.
+CORRECTABLE_OPEN_STATUSES = {"", "done", "closed"}
 # Candidate option names in order of preference; the first existing one wins.
 STATUS_CANDIDATES = {
-    "todo": ("Todo", "To do", "Backlog"),
+    "todo": ("Backlog", "Todo", "To do"),
     "in progress": ("In Progress",),
     "in review": ("In Review", "In Progress"),
     "blocked": ("Blocked",),
     "done": ("Done",),
+    "closed": ("Closed",),
 }
 MAX_ADDS_PER_RUN = 50
 MAX_OPEN_CONTENT = 500
@@ -167,7 +168,7 @@ def unique(values):
 def classify(title, labels):
     """Compute suggestions, without estimating effort or inferring urgency."""
     suggestions = {}
-    type_values, subsystem_values, priority_values = [], [], []
+    type_values, subsystem_values = [], []
     match = TITLE_PATTERN.match(title or "")
     if match:
         prefix, scope = (part.lower() if part else None for part in match.groups())
@@ -188,15 +189,10 @@ def classify(title, labels):
             scope = label.split(":", 1)[1].strip()
             if scope in SUBSYSTEM_SCOPES:
                 subsystem_values.append(SUBSYSTEM_SCOPES[scope])
-        elif label.startswith("priority:"):
-            priority = label.split(":", 1)[1].strip()
-            if priority in PRIORITIES:
-                priority_values.append(PRIORITIES[priority])
 
     for field, values in (
         ("Work Type", type_values),
         ("Subsystem", subsystem_values),
-        ("Priority", priority_values),
     ):
         chosen = unique(values)
         if chosen is not None:
@@ -205,7 +201,7 @@ def classify(title, labels):
 
 
 def derive_status(content, labels, current):
-    """Return the managed status key derived from GitHub facts, or None.
+    """Return a terminal fact or an initial/reopened status key, or None.
 
     ``current`` is the item's present Status option name ("" when empty).
     """
@@ -214,24 +210,23 @@ def derive_status(content, labels, current):
     current = (current or "").casefold()
     blocked = any(label.lower().strip() in BLOCKED_LABELS for label in labels)
     if kind == "PullRequest":
-        if current and current not in MANAGED_PR_STATUSES:
-            return None
         if state == "MERGED":
             return "done"
-        if state != "OPEN":
-            return None  # closed without merge: a human decision
+        if state == "CLOSED":
+            return "closed"
+        if state != "OPEN" or current not in CORRECTABLE_OPEN_STATUSES:
+            return None
         if blocked:
             return "blocked"
         return "in progress" if content.get("isDraft") else "in review"
     if kind == "Issue":
         if state == "CLOSED":
-            reason = content.get("stateReason") or "COMPLETED"
-            return "done" if reason == "COMPLETED" else None
-        if state != "OPEN":
+            return "done" if content.get("stateReason") == "COMPLETED" else "closed"
+        if state != "OPEN" or current not in CORRECTABLE_OPEN_STATUSES:
             return None
         if blocked:
             return "blocked"
-        return "todo" if current in CORRECTABLE_ISSUE_STATUSES else None
+        return "todo"
     return None
 
 

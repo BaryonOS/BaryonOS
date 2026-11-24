@@ -74,7 +74,8 @@ def walkthrough(*, key, wait, cold: bool) -> None:
     checkpoint("library-revision-saved", contents=EDITED, dirty=0, saves=2)
     key("alt", "h")
     checkpoint("library-history", contents=EDITED, dirty=0, saves=2)
-    key("tab"); key("ret")
+    # History reads Version, Cancel, Restore (#447): two Tabs reach Restore.
+    key("tab"); key("tab"); key("ret")
     checkpoint("library-restored", contents=ORIGINAL, dirty=0, saves=2)
     key("esc"); key("ctrl", "f"); text("reis")
     checkpoint("library-search", contents=ORIGINAL, dirty=0, saves=2)

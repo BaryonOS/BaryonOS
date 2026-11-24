@@ -41,9 +41,10 @@ pub struct Resolver {
 }
 
 impl Resolver {
-    pub fn new(epoch: u64, ticks_per_second: u64) -> Result<Self, Error> {
+    /// `const` so callers can place a cache in a static without a stack temporary.
+    pub const fn new(epoch: u64, ticks_per_second: u64) -> Result<Self, Error> {
         if ticks_per_second == 0 {
-            return Err(dns::Error::InvalidLifetime.into());
+            return Err(Error::Dns(dns::Error::InvalidLifetime));
         }
         Ok(Self {
             entries: [const { None }; CACHE_CAPACITY],

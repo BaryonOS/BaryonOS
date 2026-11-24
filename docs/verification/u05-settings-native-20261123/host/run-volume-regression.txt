@@ -1,0 +1,80 @@
+{"command": ["cargo", "build", "--offline", "--locked", "--release", "--manifest-path", "/home/simon/projects/BaryonOS-worktrees/u05-settings-native/sdk/Cargo.toml", "-p", "nieuw-os-volume-docs-example", "--features", "native", "--bins", "--target", "x86_64-unknown-none"], "target_dir": "/home/simon/projects/BaryonOS-worktrees/u05-settings-native/target-u05n-k/volume-docs"}
+    Finished `release` profile [optimized] target(s) in 0.00s
+    Finished `release` profile [optimized] target(s) in 0.01s
+warning: methods `level`, `owner`, and `lock_pair` are never used
+   --> kernel/src/m2/lock.rs:146:12
+    |
+130 | impl<T> IrqLock<T> {
+    | ------------------ methods in this implementation
+...
+146 |     pub fn level(&self) -> u8 {
+    |            ^^^^^
+...
+156 |     pub fn owner(&self) -> Option<u8> {
+    |            ^^^^^
+...
+178 |     pub fn lock_pair<'a>(&'a self, other: &'a Self) -> (IrqGuard<'a, T>, IrqGuard<'a, T>) {
+    |            ^^^^^^^^^
+    |
+    = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: function `hex` is never used
+   --> kernel/src/serial.rs:184:8
+    |
+184 | pub fn hex(label: &[u8], value: u64) {
+    |        ^^^
+
+warning: `os-kernel` (bin "os-kernel") generated 2 warnings
+warning: unused dependency `block-protocol`
+   --> kernel/Cargo.toml:355:1
+    |
+355 | block-protocol = { path = "../services/block" }
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: `cargo::unused_dependencies` is set to `warn` by default
+help: consider removing the dependency on `block-protocol`
+warning: `os-kernel` (manifest) generated 1 warning
+    Finished `release` profile [optimized] target(s) in 0.01s
+Built and inspected normal: 3 ELF load segments
+M6e normal: passed=True raw=33 duration=45.2s /home/simon/projects/BaryonOS-worktrees/u05-settings-native/build-u05n/regression/run/volume-normal-9cbaab45b9
+{"command": ["cargo", "build", "--offline", "--locked", "--release", "--manifest-path", "/home/simon/projects/BaryonOS-worktrees/u05-settings-native/sdk/Cargo.toml", "-p", "nieuw-os-volume-docs-example", "--features", "native", "--bins", "--target", "x86_64-unknown-none"], "target_dir": "/home/simon/projects/BaryonOS-worktrees/u05-settings-native/target-u05n-k/volume-docs"}
+    Finished `release` profile [optimized] target(s) in 0.00s
+    Finished `release` profile [optimized] target(s) in 0.01s
+   Compiling os-kernel v0.1.0 (/home/simon/projects/BaryonOS-worktrees/u05-settings-native/kernel)
+warning: methods `level`, `owner`, and `lock_pair` are never used
+   --> kernel/src/m2/lock.rs:146:12
+    |
+130 | impl<T> IrqLock<T> {
+    | ------------------ methods in this implementation
+...
+146 |     pub fn level(&self) -> u8 {
+    |            ^^^^^
+...
+156 |     pub fn owner(&self) -> Option<u8> {
+    |            ^^^^^
+...
+178 |     pub fn lock_pair<'a>(&'a self, other: &'a Self) -> (IrqGuard<'a, T>, IrqGuard<'a, T>) {
+    |            ^^^^^^^^^
+    |
+    = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: function `hex` is never used
+   --> kernel/src/serial.rs:184:8
+    |
+184 | pub fn hex(label: &[u8], value: u64) {
+    |        ^^^
+
+warning: `os-kernel` (bin "os-kernel") generated 2 warnings
+warning: unused dependency `block-protocol`
+   --> kernel/Cargo.toml:355:1
+    |
+355 | block-protocol = { path = "../services/block" }
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: `cargo::unused_dependencies` is set to `warn` by default
+help: consider removing the dependency on `block-protocol`
+warning: `os-kernel` (manifest) generated 1 warning
+    Finished `release` profile [optimized] target(s) in 0.84s
+Built and inspected normal: 3 ELF load segments
+M6e recover: passed=True raw=33 duration=26.2s /home/simon/projects/BaryonOS-worktrees/u05-settings-native/build-u05n/regression/run/volume-recover-5060eb7158
+REGRESSION OK

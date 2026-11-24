@@ -73,7 +73,7 @@ def run_guest(label="smoke", *, esp=None, timeout=60, required_markers=MARKERS,
     if not hid_input_probe and vga_rom is not None:
         raise ValueError("VGA ROM belongs only to the HID input fixture")
     if usb_hid_case is not None and (
-            usb_hid_case not in ("reports", "readonly", "reattach") or cpus != 1
+            usb_hid_case not in ("reports", "readonly", "reattach", "reattach-mouse") or cpus != 1
             or tcg_threads != "single" or memory_mib != 256 or m5_case is not None
             or rtc_base is not None or tpm_socket is not None or acpi_tables
             or reboot_on_reset or xhci_case is not None or hid_input_probe):
