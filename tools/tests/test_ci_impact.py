@@ -473,6 +473,20 @@ class FallbackTests(FixtureTestCase):
         self.assertEqual(len(git("merge-base", "--all", x2, y2).split()), 2)
         self.assertFull(self.plan(y2, base=x2), "ambiguous-merge-base")
 
+    def test_shallow_merge_ref_keeps_its_recorded_parents(self):
+        head = self.branch({"apps/solo/src/lib.rs": "// solo 2\n"})
+        self.repo.git("checkout", "-q", "-B", "merge", self.base)
+        self.repo.git("merge", "-q", "--no-ff", "--no-edit", head)
+        tested = self.repo.git("rev-parse", "HEAD")
+        clone = Path(self._tmp.name) / "shallow"
+        run = lambda *args: subprocess.run(["git", *args], check=True, env=GIT_ENV, capture_output=True)  # noqa: E731
+        run("clone", "-q", "--no-local", "--depth=1", "--branch", "merge", f"file://{self.repo.root}", str(clone))
+        run("-C", str(clone), "fetch", "-q", "--depth=1", "origin", "main", "topic")
+        self.assertEqual(run("-C", str(clone), "rev-list", "--parents", "-n", "1", tested).stdout.split()[1:], [])
+        plan = ci_impact.make_plan(str(clone), "pull_request", self.base, head, tested,
+                                   selector_bytes=SELECTOR.read_bytes(), allow_fetch=True)
+        self.assertSelect(plan, {"leaves#quality/solo"})
+
     def test_fetch_failure_falls_back_to_full(self):
         plan = self.plan("e" * 40)
         self.assertFull(plan, "fetch-failed")

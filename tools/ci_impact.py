@@ -809,8 +809,11 @@ class Planner:
             self._bootstrap_listing()
             raise Full("push-unknown-before")
         if self.event == "pull_request" and self.tested != self.head:
-            code, out = git(self.repo, "rev-list", "--parents", "-n", "1", self.tested)
-            if code != 0 or out.decode("ascii", "replace").split()[1:] != [self.base, self.head]:
+            # The stored commit object, not rev-list, which hides parents behind shallow grafts.
+            code, out = git(self.repo, "cat-file", "commit", self.tested)
+            header = out.decode("ascii", "replace").split("\n\n", 1)[0].split("\n")
+            parents = [line.split()[1] for line in header if line.startswith("parent ")]
+            if code != 0 or parents != [self.base, self.head]:
                 raise Full("merge-ref-mismatch")
         base_selector = git_blob(self.repo, self.base, SELECTOR_PATH)
         if base_selector is not None:
