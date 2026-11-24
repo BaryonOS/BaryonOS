@@ -1917,7 +1917,7 @@ pub fn status_label(status: Status) -> &'static str {
         Status::Failed(UiError::Storage(S::Service(volume_core::Status::Io))) => {
             "Opslaan mislukt. Je wijzigingen zijn niet bevestigd."
         }
-        Status::Failed(_) =>"Handeling mislukt. Je tekst blijft open.",
+        Status::Failed(_) => "Handeling mislukt. Je tekst blijft open.",
     }
 }
 enum ButtonStyle {
