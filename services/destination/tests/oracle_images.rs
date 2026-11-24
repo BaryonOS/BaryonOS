@@ -8,53 +8,13 @@ mod common;
 use common::*;
 use destination_core::{
     catalog::{self, Catalog, Record, COPY},
-    fnv64,
-    service::State,
-    wire, Status, DATA_START, FNV_OFFSET, LABEL, SECTOR,
+    fnv64, wire, Status, DATA_START, FNV_OFFSET, LABEL, SECTOR,
 };
-use std::{fmt::Write as _, fs, path::Path};
-
-fn hex(bytes: &[u8]) -> String {
-    bytes.iter().fold(String::new(), |mut out, byte| {
-        let _ = write!(out, "{byte:02x}");
-        out
-    })
-}
+use std::{fs, path::Path};
 
 /// Write `<name>.img` and `<name>.expect` (what a cold boot of the core sees).
 fn emit(dir: &Path, name: &str, image: Vec<[u8; SECTOR]>) {
-    let h = H::cold(image.clone());
-    let state = match h.svc.state() {
-        State::Mounted => "mounted",
-        State::Blank => "blank",
-        State::Corrupt => "corrupt",
-        State::Failed { .. } => "failed",
-    };
-    let mut expect = format!("state={state}\n");
-    if h.svc.state() == State::Mounted {
-        let c = h.svc.catalog();
-        let _ = writeln!(
-            expect,
-            "id={}\nsequence={}\nnext_entry={}\nnext_free={}\nformatted={}",
-            hex(&c.id),
-            c.sequence,
-            c.next_entry,
-            c.next_free,
-            c.formatted
-        );
-        for r in c.entries() {
-            let _ = writeln!(
-                expect,
-                "record={},{},{},{},{},{}",
-                r.id,
-                r.first,
-                r.length,
-                r.trailer,
-                r.sealed_sequence,
-                hex(&r.label[..r.label_length as usize])
-            );
-        }
-    }
+    let expect = cold_verdict(&image);
     fs::write(dir.join(format!("{name}.img")), image.concat()).unwrap();
     fs::write(dir.join(format!("{name}.expect")), expect).unwrap();
 }
