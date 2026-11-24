@@ -418,12 +418,26 @@ def fetch_listing(token, url, key):
 
 
 def run_matches(run, repo, pull, head_sha):
-    """Provenance of a workflow run: this repository, this pull request head, the pull_request event."""
+    """Provenance of a workflow run: this repository, this pull request head, the pull_request event.
+
+    GitHub lists the run's pull requests only for same-repository heads; when it
+    does, this pull request (number and base branch) must be among them. A fork
+    run has an empty list and is bound by head SHA, branch and head repository.
+    """
     head = pull["head"]
+    pulls = run.get("pull_requests") or []
     return (run.get("event") == "pull_request" and run.get("head_sha") == head_sha
             and run.get("head_branch") == head["ref"]
             and (run.get("repository") or {}).get("full_name") == repo
-            and (run.get("head_repository") or {}).get("full_name") == (head.get("repo") or {}).get("full_name"))
+            and (run.get("head_repository") or {}).get("full_name") == (head.get("repo") or {}).get("full_name")
+            and (not pulls or any(item.get("number") == pull.get("number")
+                                  and ((item.get("base") or {}).get("ref")) == pull["base"]["ref"]
+                                  for item in pulls)))
+
+
+def run_order(run):
+    """Newest first by the start of the latest attempt, then id: a later re-run of an older run counts."""
+    return (run.get("run_started_at") or "", run["id"])
 
 
 def job_matches(row, job):
@@ -446,7 +460,7 @@ def gate_report(token, repo, pull, head_sha, plan):
         path = run.get("path")
         if path in workflows and run_matches(run, repo, pull, head_sha):
             # The newest run decides: an older success never masks a newer run.
-            if path not in newest or run["id"] > newest[path]["id"]:
+            if path not in newest or run_order(run) > run_order(newest[path]):
                 newest[path] = run
     passed, pending, failed = [], [], []
     for workflow in workflows:
@@ -456,11 +470,11 @@ def gate_report(token, repo, pull, head_sha, plan):
             pending += [f"{row['check_name']}: no {workflow} run for {head_sha} yet" for row in wanted]
             continue
         where = f"run {run['id']} attempt {run.get('run_attempt')}"
-        if run.get("status") != "completed":
-            pending += [f"{row['check_name']}: {where} is {run.get('status')}" for row in wanted]
-            continue
-        if not wanted and run.get("conclusion") == "success":
+        running = run.get("status") != "completed"
+        if not running and not wanted and run.get("conclusion") == "success":
             continue  # no expected gate and nothing failed in it
+        # A running run is listed too: a gate GitHub started must finish even when
+        # the plan did not select it, or its later failure would go unseen.
         jobs = [job for job in fetch_listing(
             token, f"{API}/repos/{repo}/actions/runs/{run['id']}/jobs?filter=latest", "jobs")
             if job.get("run_id") == run["id"]]
@@ -468,7 +482,9 @@ def gate_report(token, repo, pull, head_sha, plan):
         for row in wanted:
             found = [job for job in jobs if job_matches(row, job)]
             claimed.update(job["id"] for job in found)
-            if not found:
+            if not found and running:
+                pending.append(f"{row['check_name']}: not started yet in {where}, which is {run.get('status')}")
+            elif not found:
                 failed.append(f"{row['check_name']}: missing from {where} ({workflow})")
             elif any(job.get("status") != "completed" for job in found):
                 pending.append(f"{row['check_name']}: still running in {where}")
@@ -479,8 +495,13 @@ def gate_report(token, repo, pull, head_sha, plan):
                 outcome = ", ".join(sorted({str(job.get("conclusion")) for job in found}))
                 failed.append(f"{row['check_name']}: {outcome} in {where} ({workflow})")
         for job in jobs:
-            if job["id"] not in claimed and job.get("conclusion") in BLOCKING_CONCLUSIONS \
-                    and classes.get(job.get("name"), "unregistered") in SELECTABLE + ("unregistered",):
+            if job["id"] in claimed or classes.get(job.get("name"), "unregistered") not in SELECTABLE + (
+                    "unregistered",):
+                continue
+            if job.get("status") != "completed":
+                pending.append(f"{job.get('name')}: {job.get('status')} in {where} ({workflow}); "
+                               "not expected by the plan, but a started gate must finish")
+            elif job.get("conclusion") in BLOCKING_CONCLUSIONS:
                 failed.append(f"{job.get('name')}: {job.get('conclusion')} in {where} ({workflow}); "
                               "not expected by the plan, but a failed gate is never ignored")
     return passed, pending, failed

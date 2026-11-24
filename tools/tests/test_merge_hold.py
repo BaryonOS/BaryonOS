@@ -758,8 +758,8 @@ class GateTests(TestCase):
 
     def test_missing_or_running_runs_are_pending_and_block(self):
         for runs_, fragment in (([wf_run(1, CI)], "no .github/workflows/leaves.yml run"),
-                                ([wf_run(1, CI), wf_run(2, LEAVES, "in_progress", None)], "is in_progress"),
-                                ([wf_run(1, CI), wf_run(2, LEAVES, "queued", None)], "is queued")):
+                                ([wf_run(1, CI), wf_run(3, LEAVES, "in_progress", None)], "which is in_progress"),
+                                ([wf_run(1, CI), wf_run(3, LEAVES, "queued", None)], "which is queued")):
             with self.subTest(fragment=fragment):
                 passed, out, _ = self.decide(runs_=runs_)
                 self.assertFalse(passed)
@@ -875,7 +875,7 @@ class GateTests(TestCase):
 
     def test_wait_budget_polls_until_the_gates_finish_or_the_deadline(self):
         plan = plan_fixture(budgets={"pull_request_wait_minutes": 3, "merge_group_wait_minutes": 45})
-        polls = [[wf_run(1, CI)], [wf_run(1, CI), wf_run(2, LEAVES, "in_progress", None)], GOOD_RUNS]
+        polls = [[wf_run(1, CI)], [wf_run(1, CI), wf_run(3, LEAVES, "in_progress", None)], GOOD_RUNS]
         passed, out, state = self.decide(plan=plan, polls=polls)
         self.assertTrue(passed, out)
         self.assertEqual(state["sleeps"], 2)
@@ -893,6 +893,50 @@ class GateTests(TestCase):
         passed, _, state = self.decide(plan=plan, runs_=runs_, jobs=jobs)
         self.assertFalse(passed)
         self.assertEqual(state["sleeps"], 0)
+
+    def test_started_gates_the_plan_did_not_select_must_finish(self):
+        """Review B1: an unselected gate that is still running is awaited, not ignored."""
+        native = ".github/workflows/native.yml"
+        plan = plan_fixture(excluded=plan_fixture()["excluded"] + [
+            {"id": "native#n", "class": "rwa", "workflow": native, "job": "n", "check_name": "native",
+             "reason": "no-input-match"},
+            {"id": "native#diag", "class": "manual", "workflow": native, "job": "diag", "check_name": "diag",
+             "reason": "manual"}])
+        runs_ = GOOD_RUNS + [wf_run(7, native, "in_progress", None)]
+        jobs = {**GOOD_JOBS, 7: [job(71, 7, "native", None, "in_progress"), job(72, 7, "diag", None, "queued")]}
+        passed, out, _ = self.decide(plan=plan, runs_=runs_, jobs=jobs)
+        self.assertFalse(passed)
+        self.assertIn("native: in_progress in run 7", out)
+        self.assertNotIn("diag:", out)  # a manual job never blocks
+        jobs = {**GOOD_JOBS, 7: [job(71, 7, "native", "failure"), job(72, 7, "diag", None, "queued")]}
+        passed, out, _ = self.decide(plan=plan, runs_=runs_, jobs=jobs)
+        self.assertFalse(passed)
+        self.assertIn("native: failure in run 7", out)
+        # An expected job that already succeeded counts while the rest of its run goes on.
+        jobs = {**GOOD_JOBS, 2: [job(21, 2, "quality (viewer)"), job(22, 2, "quality (crop)", None, "queued")]}
+        runs_ = [wf_run(1, CI), wf_run(2, LEAVES, "in_progress", None)]
+        passed, out, _ = self.decide(runs_=runs_, jobs=jobs)
+        self.assertFalse(passed)
+        self.assertIn("Passed: quality (viewer): success in run 2", out)
+        self.assertIn("quality (crop): queued in run 2", out)
+
+    def test_runs_of_another_pull_request_or_base_do_not_count(self):
+        """Review N1: a listed pull request must be this one, targeting this base."""
+        own = [{"number": 7, "base": {"ref": "main"}}]
+        for pulls, passes in (([], True), (own, True), ([{"number": 8, "base": {"ref": "main"}}], False),
+                              ([{"number": 7, "base": {"ref": "release"}}], False)):
+            with self.subTest(pulls=pulls):
+                runs_ = [dict(wf_run(1, CI), pull_requests=own), dict(wf_run(2, LEAVES), pull_requests=pulls)]
+                self.assertIs(self.decide(runs_=runs_, pull=dict(PULL, number=7))[0], passes)
+
+    def test_a_later_rerun_of_an_older_run_decides(self):
+        """Review N3: newest by the start of the latest attempt, not by id alone."""
+        runs_ = [wf_run(1, CI), wf_run(2, LEAVES, conclusion="failure", attempt=2, run_started_at="2026-11-24T22:00:00Z"),
+                 wf_run(3, LEAVES, run_started_at="2026-11-24T21:00:00Z")]
+        jobs = {**GOOD_JOBS, 2: [job(21, 2, "quality (viewer)", "failure")], 3: [job(31, 3, "quality (viewer)")]}
+        passed, out, _ = self.decide(runs_=runs_, jobs=jobs)
+        self.assertFalse(passed)
+        self.assertIn("quality (viewer): failure in run 2 attempt 2", out)
 
     def test_runtime_matrix_rows_match_their_template(self):
         dynamic = row("smp#margin/*", LEAVES, "DIAGNOSTIC margins (${{ matrix.case }})", variant="*")

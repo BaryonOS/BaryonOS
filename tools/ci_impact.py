@@ -329,13 +329,17 @@ def condition_value(condition, event, selection=True):
 def job_runs(jobs_by_id, job_id, event, selection=True, seen=()):
     """Will GitHub start this job on `event`? True, False or None (undecidable).
 
-    A job runs when its condition holds and every `needs` prerequisite runs;
-    validate() rejects status functions, so a skipped prerequisite skips the job.
+    A job runs when its condition holds and every `needs` prerequisite runs.
+    An undecidable own condition (for example a status function such as
+    `always()`, which runs a job even after a skipped prerequisite) is None
+    before any prerequisite is looked at, so validate() rejects it for a gate.
     """
     job = jobs_by_id.get(job_id)
     if job is None or job_id in seen:
         return None
     value = condition_value(job.get("condition"), event, selection)
+    if value is None:
+        return None
     if value is False:
         return False
     for need in job.get("needs", []):
@@ -629,6 +633,10 @@ def validate(catalogue):
                         add(f"{vwhere}: check_name required")
                     if variant.get("dynamic", False) is not (variant.get("id") == "*"):
                         add(f"{vwhere}: id '*' if and only if dynamic = true")
+                    if variant.get("dynamic") and klass in SELECTABLE and isinstance(variant.get("check_name"), str) \
+                            and not re.sub(r"\$\{\{.*?\}\}", "", variant["check_name"]).strip():
+                        # merge-hold matches a runtime matrix by its template; a bare template matches every job.
+                        add(f"{vwhere}: a dynamic check_name of a {klass} job needs literal text")
                     matrix = variant.get("matrix", {})
                     # A runtime matrix may be one whole expression, e.g. ${{ fromJSON(...) }}.
                     if not isinstance(matrix, dict) and not (

@@ -1332,6 +1332,26 @@ class EnforcementPrerequisiteTests(FixtureTestCase):
         catalogue = valid_catalogue()
         catalogue["workflow"][5]["job"][2]["condition"] = "${{ always() }}"  # advisory: never selected
         self.assertEqual(ci_impact.validate(catalogue), [])
+        # Review S1: a status function runs the job after a skipped prerequisite, so a false
+        # prerequisite must not turn it into condition-false; it stays undecidable.
+        catalogue = valid_catalogue()
+        catalogue["workflow"][2]["events"] = ["pull_request"]
+        catalogue["workflow"][2]["job"][0]["condition"] = "${{ github.event_name == 'push' }}"
+        catalogue["workflow"][2]["job"][1]["condition"] = "${{ always() }}"
+        problems = ci_impact.validate(catalogue)
+        self.assertTrue(any("net#native: condition-undecidable on pull_request" in p for p in problems), problems)
+        jobs = {job["id"]: job for job in catalogue["workflow"][2]["job"]}
+        self.assertIsNone(ci_impact.job_runs(jobs, "native", "pull_request"))
+
+    def test_dynamic_gate_check_names_need_literal_text(self):
+        """Review N2: a bare template would match every job of the run in merge-hold."""
+        catalogue = valid_catalogue()
+        catalogue["workflow"][1]["job"][0]["variant"] = [
+            {"id": "*", "dynamic": True, "check_name": "${{ matrix.component }}", "matrix": "${{ fromJSON(x) }}",
+             "cargo": ["apps/viewer/Cargo.toml"]}]
+        self.assertTrue(any("needs literal text" in p for p in ci_impact.validate(catalogue)))
+        catalogue["workflow"][1]["job"][0]["variant"][0]["check_name"] = "quality (${{ matrix.component }})"
+        self.assertEqual(ci_impact.validate(catalogue), [])
 
     def test_branch_filters_follow_the_target_branch(self):
         self.rebase_catalogue(CATALOGUE.replace(

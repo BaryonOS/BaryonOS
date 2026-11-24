@@ -50,7 +50,9 @@ request could change the scripts that judge it.
 required checks. A pull request's first merge-hold run normally fails with a
 pending list and needs one re-run. A merge queue with several entries fails
 closed until the selected workflows gain `merge_group` triggers, which is
-outside #494. Under `pull_request`, GitHub still reads workflow files from the
+outside #494. A started gate that the plan did not select must still finish
+before merge-hold passes. The introducing pull request is judged by the older
+base copy, so its gates were verified by hand. Under `pull_request`, GitHub still reads workflow files from the
 pull request side, so review of `.github/**` remains the control for workflow
 edits. Details and the remaining limits are in docs/CI-CONTRACT.md
 ("Enforcement", "Known limits").

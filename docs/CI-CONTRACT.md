@@ -163,7 +163,12 @@ compared with a literal (the phase-4 selection output), `!`, `&&`, `||` and
 parentheses, optionally inside `${{ }}`. Anything else, including status
 functions such as `always()` and `!cancelled()`, `contains()` and other
 contexts, is undecidable. A `core` or `rwa` job runs on an event when its own
-condition holds and every `needs` prerequisite runs. `validate` rejects a
+condition holds and every `needs` prerequisite runs; an undecidable own
+condition makes the job undecidable whatever its prerequisites do (a status
+function such as `always()` runs a job after a skipped prerequisite). A
+runtime-matrix (`dynamic`) check name of a `core` or `rwa` job needs literal
+text besides its `${{ }}` parts, so merge-hold's template match cannot match
+every job of a run. `validate` rejects a
 `core` or `rwa` job whose start is undecidable on any of `pull_request`,
 `push` or `merge_group` in its workflow (`condition-undecidable`). The plan
 excludes a job whose condition, or a prerequisite's, is false on the event
@@ -487,20 +492,27 @@ expected: fail closed.
 (`/actions/runs?head_sha=<head>&event=pull_request`, every page, by id, with a
 check that the count reaches `total_count`). A run counts only with the
 pull_request event, that head SHA, the pull request's head branch, this
-repository and the pull request's head repository, and the workflow `path`.
-Per workflow the **newest** run (highest id) decides, so an older success
-never masks a newer running or failed run. Its jobs come from
+repository and the pull request's head repository, and the workflow `path`;
+when GitHub lists the run's pull requests (same-repository heads), this pull
+request's number and base branch must be among them. Per workflow the
+**newest** run decides, by the start of its latest attempt and then by id, so
+an older success never masks a newer running or failed run, and a later
+re-run of an older run counts. Its jobs come from
 `/actions/runs/<id>/jobs?filter=latest` (every page, `run_id` checked), which
 reflects the latest attempt after a re-run. Per expected execution exactly one
 job with the rendered check name must have concluded `success`; a runtime
 matrix (`id = "*"`) needs at least one matching job, all successful. Then:
 
-- no run yet, or a run or job still queued or in progress: **pending**;
+- no run yet, or an expected job not started or still queued or in progress:
+  **pending**; an expected job that already succeeded counts while the rest
+  of its run goes on;
 - missing job (also an empty or partly skipped matrix), `failure`,
   `cancelled`, `timed_out`, `skipped`, `action_required`, `neutral`, `stale`,
   or a duplicate name: **failed**;
 - a `core`, `rwa` or unregistered job in the newest run of a catalogue
-  workflow that failed although the plan did not expect it: **failed** too.
+  workflow that the plan did not expect: **pending** while it runs, and
+  **failed** if it then fails. A gate GitHub started must finish, so a
+  selector miss cannot merge past a running gate.
   Advisory, manual, operational and publication jobs never block, and
   merge-hold's own earlier runs are ignored.
 
@@ -527,6 +539,14 @@ its hold decision, a successful newest `pull_request` merge-hold run on its own
 head and a queue entry whose tree equals that head tree. This makes a queue
 with more than one pull request ahead fail closed. Activating the queue, with
 `merge_group` triggers on the selected workflows, is outside #494.
+
+**Bootstrap.** The pull request that introduces this enforcement is judged by
+the base copy that predates it, so its own merge-hold checks only the
+acceptance hold. Its applicable gates were verified by hand on the final head
+before the merge (run links on the pull request). Every later pull request
+runs the new base copy; one still carrying the old `merge-hold.yml` fails
+closed (missing `BASE_SHA`) until it is updated, which the strict up-to-date
+rule requires anyway.
 
 **Not applicable is not a pass.** The summary lists filtered gates separately
 ("Not a pass"). A plan or a merge-hold success says that the required runs
