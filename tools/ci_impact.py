@@ -592,6 +592,10 @@ def cargo_closure(roots, read, escapes):
         if "patch" in doc or "replace" in doc:
             # shortcut: patched sources are not resolved; no tracked manifest uses them today.
             raise Full("cargo-patch-unresolved", [manifest])
+        package = doc.get("package")
+        if isinstance(package, dict) and "workspace" in package:
+            # shortcut: the explicit root may lie outside the ancestor walk; no tracked manifest sets it today.
+            raise Full("cargo-explicit-workspace", [manifest])
         directory = posixpath.dirname(manifest)
         dirs.add(directory)
         add_ancestors(directory)

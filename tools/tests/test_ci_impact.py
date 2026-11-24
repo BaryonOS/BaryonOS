@@ -618,6 +618,13 @@ class FallbackTests(FixtureTestCase):
             "solo", extra='\n[patch.crates-io]\nx = { path = "../../crates/codec" }\n')}))
         self.assertFull(plan, "cargo-patch-unresolved")
 
+    def test_explicit_package_workspace_is_not_guessed(self):
+        # The workspace root lies outside the ancestor walk; a change to it alone would be missed.
+        solo = manifest("solo").replace('version = "0.1.0"', 'version = "0.1.0"\nworkspace = "../../ws"')
+        plan = self.plan(self.branch({"apps/solo/Cargo.toml": solo, "ws/Cargo.toml": "[workspace]\n"}))
+        self.assertFull(plan, "cargo-explicit-workspace")
+        self.assertEqual(plan["fallback"]["detail"], ["apps/solo/Cargo.toml"])
+
     def test_missing_cargo_root_is_full_not_narrowed(self):
         base = self.repo.commit("typo", {".github/ci-impact.toml": CATALOGUE.replace(
             'cargo = ["svc/stack/Cargo.toml"]', 'cargo = ["svc/stak/Cargo.toml"]')})
