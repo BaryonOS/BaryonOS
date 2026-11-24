@@ -141,7 +141,7 @@ def evaluate_fixture(text: str, fixture: str, alive: bool) -> dict:
               "halted_without_exit_port": alive}
     if fixture == "serial-timeout":
         # Nothing may follow the armed marker: the next write is the one that timed out.
-        checks["silent_after_injection"] = SERIAL_TIMEOUT_ARMED in lines and lines[-1] == SERIAL_TIMEOUT_ARMED
+        checks["silent_after_injection"] = lines.count(SERIAL_TIMEOUT_ARMED) == 1 and lines[-1] == SERIAL_TIMEOUT_ARMED
     return checks
 
 

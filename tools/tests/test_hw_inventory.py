@@ -126,6 +126,9 @@ class SerialTimeoutFixtureTest(unittest.TestCase):
         # A failure marker is not the expected rejection reason for a silent timeout.
         self.assertEqual(self.failed(self.LOG + "HWINV:FAIL:X\n"),
                          {"silent_after_injection", "protocol_failure_recognised"})
+        # A repeated armed marker must not hide output that followed the first one.
+        self.assertEqual(self.failed(self.LOG + "HWINV:CPUID:X\nHWINV:FIXTURE:SERIAL_TIMEOUT_ARMED\n"),
+                         {"silent_after_injection"})
         self.assertEqual(self.failed(self.LOG.replace("HWINV:FIXTURE:SERIAL_TIMEOUT_ARMED\n", "")),
                          {"fixture_markers_in_order", "silent_after_injection"})
 
