@@ -5,7 +5,7 @@ use common::{controller, Host, Port, INPUT_EPOCH};
 use nieuw_os_document_session::{volume::Buffers, EditMode};
 use nieuw_os_input_core::Event;
 use nieuw_os_materiaal::{
-    controller::{Controller, InputEnvelope},
+    controller::{Controller, Focus, InputEnvelope},
     render::Frame,
     Scale, Viewport, TILE_HEIGHT, TILE_PIXELS, TILE_WIDTH,
 };
@@ -189,7 +189,10 @@ fn native_library_walkthrough_and_cold_controller_oracles() {
                 snapshot(&ui, "library-revision-saved", directory.as_deref());
                 key(&mut ui, &mut seq, PhysicalKey::H, false, false, true);
                 snapshot(&ui, "library-history", directory.as_deref());
+                // One earlier version: Version, Cancel, Restore (reading order, #447).
                 plain(&mut ui, &mut seq, PhysicalKey::Tab);
+                plain(&mut ui, &mut seq, PhysicalKey::Tab);
+                assert_eq!(ui.view().focus, Focus::RestoreHistory);
                 plain(&mut ui, &mut seq, PhysicalKey::Enter);
                 assert_eq!(ui.view().contents, Some(ORIGINAL));
                 assert!(!ui.document().is_dirty());
