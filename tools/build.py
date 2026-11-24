@@ -195,6 +195,8 @@ def build(loader_feature=None, kernel_feature=None, label="normal", image_versio
         loader_feature = "framebuffer"
     elif loader_feature in ("graphics-g0", "framebuffer", "desktop-mode", "desktop-hidpi"):
         raise ValueError("Graphics loader requires a matching framebuffer kernel")
+    if kernel_feature != "native-hw-inventory" and "native-hw-inventory" in (kernel_feature or "").split(","):
+        raise ValueError("native-hw-inventory is a single-feature profile")
     if kernel_feature == "native-hw-inventory":
         if loader_feature not in (None, "hw-inventory"):
             raise ValueError("native-hw-inventory requires the hw-inventory loader (SecureBoot handoff)")

@@ -48,6 +48,9 @@ mod serial;
     )
 ))]
 compile_error!("native-xhci-probe exclusively owns the single-CPU IF0 DMA fixture");
+// Other native profiles reach this list through milestone-m3, framebuffer,
+// native-smp, native-xhci-probe or acpi-s3-core; a new profile that implies none
+// of them must be added here.
 #[cfg(all(
     feature = "native-hw-inventory",
     any(
