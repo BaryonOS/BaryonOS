@@ -301,6 +301,25 @@ be closed, or shown not to apply, before phase 3 (enforce) or phase 4
   crate, and `tools/update-tool/tests/roundtrip.rs:305` reads
   `../update-keys`. Such inputs must be registered as `[[crate_escape]]`
   entries by hand until the scanner, or an equivalent check, covers them.
+- **A root-scoped escape of a library crate is not attached to dependents.**
+  `cargo_closure` adds a `[[crate_escape]]` with `when = "root"` only to a gate
+  whose own root is that crate, but `coverage` accepts any registration whose
+  target glob matches, whatever its `when`. When a library crate's source
+  leaves the crate and the escape is registered only with `when = "root"`, a
+  gate that uses the crate as a dependency does not receive the target as an
+  input; if another gate covers the file, a change to it alone omits that
+  gate. Library escapes must use `when = "always"`, and `coverage` must report
+  a scope mismatch, before a plan is enforced.
+- **Job-level `if` is not evaluated.** The planner selects a job and its
+  `needs` prerequisites without evaluating their job-level `if` for the event.
+  When a prerequisite's condition is false, GitHub skips it and then skips the
+  dependent selected job unless that job's own `if` overrides the skip, while
+  the plan still lists the job as selected. The planner must evaluate the
+  condition for the event, or reject such a selection, before merge-hold
+  enforcement reads the plan.
+
+Both of the last two limits must be closed before merge-hold enforcement
+(phase 3).
 
 ## Phases
 
