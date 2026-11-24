@@ -82,6 +82,30 @@ class ImageTest(unittest.TestCase):
                 image.write_image(self.tmp)
         self.assertFalse((self.tmp / "hw-inventory.img").exists())
 
+    def test_write_image_does_not_follow_a_link_at_the_output_path(self):
+        (self.esp / "EMPTY").unlink()
+        manifest = dict(kernel_feature="native-hw-inventory", loader_feature="hw-inventory", source_sha256="s",
+                        kernel=dict(sha256=image.sha256_bytes((self.esp / "kernel.elf").read_bytes())),
+                        loader=dict(sha256=image.sha256_bytes((self.esp / "EFI/BOOT/BOOTX64.EFI").read_bytes())))
+        (self.tmp / "manifest.json").write_text(json.dumps(manifest))
+        victim = self.tmp / "victim"
+        victim.write_bytes(b"keep")
+        for name in ("hw-inventory.img", "hw-inventory-image.json"):
+            with self.subTest(name):
+                link = self.tmp / name
+                link.symlink_to(victim)
+                with unittest.mock.patch.object(image, "source_hash", return_value="s"), \
+                        unittest.mock.patch.object(image.subprocess, "check_output", return_value="x"):
+                    with self.assertRaises(image.ImageError):
+                        image.write_image(self.tmp)
+                self.assertEqual(victim.read_bytes(), b"keep")
+                link.unlink()
+        with unittest.mock.patch.object(image, "source_hash", return_value="s"), \
+                unittest.mock.patch.object(image.subprocess, "check_output", return_value="x"):
+            record = image.write_image(self.tmp)
+        self.assertEqual(json.loads((self.tmp / "hw-inventory-image.json").read_text())["image_sha256"],
+                         record["image_sha256"])
+
     @unittest.skipUnless(shutil.which("sgdisk"), "NOT RUN: sgdisk absent")
     def test_gpt_verified_by_sgdisk(self):
         disk = self.build()

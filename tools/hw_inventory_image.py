@@ -17,6 +17,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import os
 import re
 import struct
 import subprocess
@@ -24,7 +25,7 @@ import uuid
 import zlib
 from pathlib import Path
 
-from common import BUILD, ROOT, save_json, sha256_bytes, source_hash
+from common import BUILD, ROOT, sha256_bytes, source_hash
 from package_windows_qemu import check_esp
 
 SECTOR = 512
@@ -204,6 +205,16 @@ def checked_esp(build_directory: Path) -> tuple[Path, dict, str]:
     return build_directory / "esp", manifest, frozen
 
 
+def _write_regular(path: Path, data: bytes) -> None:
+    """Create or replace a regular file without following a symbolic link at `path`."""
+    try:
+        fd = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_TRUNC | os.O_NOFOLLOW, 0o644)
+    except OSError as error:
+        raise ImageError(f"{path} is not a writable regular file: {error}") from error
+    with os.fdopen(fd, "wb") as stream:
+        stream.write(data)
+
+
 def write_image(build_directory: Path = BUILD, output: Path | None = None) -> dict:
     """Write the image (default <build>/hw-inventory.img) and its <stem>-image.json record."""
     build_directory = Path(build_directory).resolve(strict=True)
@@ -215,7 +226,7 @@ def write_image(build_directory: Path = BUILD, output: Path | None = None) -> di
         raise ImageError("HW-INV ESP changed while it was read")
     image = _image(tree)
     output = build_directory / "hw-inventory.img" if output is None else Path(output)
-    output.write_bytes(image)
+    _write_regular(output, image)
 
     def git(*arguments: str) -> str:
         return subprocess.check_output(["git", *arguments], cwd=ROOT, text=True).strip()
@@ -229,7 +240,8 @@ def write_image(build_directory: Path = BUILD, output: Path | None = None) -> di
         loader_feature=manifest["loader_feature"], kernel_sha256=manifest["kernel"]["sha256"],
         loader_sha256=manifest["loader"]["sha256"], source_fingerprint_version=3, source_sha256=frozen,
         source_commit=git("rev-parse", "HEAD"), clean_checkout=git("status", "--porcelain") == "")
-    save_json(output.with_name(output.stem + "-image.json"), record)
+    _write_regular(output.with_name(output.stem + "-image.json"),
+                   (json.dumps(record, indent=2, ensure_ascii=False) + "\n").encode("utf-8"))
     return record
 
 
