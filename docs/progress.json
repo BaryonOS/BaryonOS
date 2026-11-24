@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-24",
-    "source_commit": "f99b4c5809a145873f0af96fab856a869eaffaa4",
+    "source_commit": "6d923b55c604cb44f4debf7885f5dca7c7fe903c",
     "assessment_basis": "parent_commit",
-    "branch": "claude/h06-t6-hwinv-image-20261124",
-    "task": "H06-T6 removable-media HW-INV image (QEMU-booted)",
+    "branch": "claude/h06-t7-serial-timeout-20261124",
+    "task": "H06-T7 serial-timeout HW-INV terminal fixture (QEMU)",
     "previous_score": 43,
-    "summary": "43/100 unchanged. H06-T6 adds tools/hw_inventory_image.py, a deterministic raw GPT disk image with one FAT32 ESP for the native-hw-inventory build with a recorded SHA-256, and a QEMU image case that boots it as a disk with the plain-case oracles; sgdisk, fsck.fat and mtools agree with the payload. No physical boot, USB medium or signed record exists, the layout awaits OD-HW-BOOT and the loader is not yet reproducible, so H06 earns no points; evidence: docs/verification/h06-hwinv-image-20261124/README.md."
+    "summary": "43/100 unchanged. H06-T7 adds the test-hwinv-serial-timeout fixture: a labelled injection makes the UART report busy, the real bounded wait expires and the HW-INV kernel halts silently (HLT=1, no port 0xF4); the truncated block is rejected, every terminal fixture now requires HLT=1 and three mutants fail. QEMU only with a software-injected busy UART; no physical evidence, so H06 earns no points; evidence: docs/verification/h06-serial-timeout-20261124/README.md."
   },
   "tracks": [
     {
@@ -906,7 +906,7 @@
             "verification": [
               "native"
             ],
-            "observation": "All HW-FR entries are pending or unsupported with evidence_level none; H06-T4 prepares protocols and signature validation only. H06-T3 adds a read-only native-hw-inventory kernel/loader pair that emits the HW-INV markers; it passes two QEMU configurations against QMP query-pci and configured CPUID/DMAR, and its inventory is rejected as a virtual capture. H06-T5 makes every terminal path of that pair halt without port 0xF4 (four QEMU fixtures). H06-T6 packs it into a deterministic raw GPT/FAT32 image with a recorded SHA-256 that boots in QEMU as a disk.",
+            "observation": "All HW-FR entries are pending or unsupported with evidence_level none; H06-T4 prepares protocols and signature validation only. H06-T3 adds a read-only native-hw-inventory kernel/loader pair that emits the HW-INV markers; it passes two QEMU configurations against QMP query-pci and configured CPUID/DMAR, and its inventory is rejected as a virtual capture. H06-T5 makes every terminal path of that pair halt without port 0xF4 (four QEMU fixtures). H06-T6 packs it into a deterministic raw GPT/FAT32 image with a recorded SHA-256 that boots in QEMU as a disk. H06-T7 adds the serial-timeout fixture and an HLT=1 check for every terminal fixture.",
             "remaining": "Physical operators, authorization and signed actual runs remain missing; host validation of evidence format proves no device support.",
             "evidence": [
               "docs/drivers/hardware-matrix.json",

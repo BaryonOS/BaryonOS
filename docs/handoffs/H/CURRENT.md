@@ -5,13 +5,13 @@ reported in the PR comment `HANDOFF H <cycle_id>`, not here.
 
 | Field | Value |
 |---|---|
-| cycle_id | `h06-t6-20261124` |
-| Task | H06-T6 removable-media HW-INV image (raw GPT/FAT32, QEMU-booted) |
-| Branch | `claude/h06-t6-hwinv-image-20261124` (base main `e5ab3693`) |
-| PR | see the `HANDOFF H h06-t6-20261124` comment |
-| Tested source | `f99b4c58` (after merge with main `68596f82`; source fingerprint `2b72b62e…`), clean checkout; later commits add docs, evidence, ledger and progress only |
-| Evidence | [h06-hwinv-image-20261124](../../verification/h06-hwinv-image-20261124/README.md): image SHA-256 `a4ca34eb…` (64 MiB); `image`, `plain` and `iommu` cases pass; sgdisk, fsck.fat and mtools agree; an image without `kernel.elf` stops at `M1:FAIL:KERNEL_OPEN` |
-| NOT RUN | physical or USB boot; image-hash reproduction (an independent clean clone gave `d716f697…`: same kernel, different loader, until B04 lands); native `SECUREBOOT=0/1`; local `actionlint` |
+| cycle_id | `h06-t7-20261124` |
+| Task | H06-T7 serial-timeout HW-INV terminal fixture and HLT oracle (QEMU); ledger H06-T6 → `verified` |
+| Branch | `claude/h06-t7-serial-timeout-20261124` (base main `4ab40610`) |
+| PR | see the `HANDOFF H h06-t7-20261124` comment |
+| Tested source | `6d923b55` (source fingerprint `16374a07…`), clean tree; later commits add docs, evidence, ledger and progress only |
+| Evidence | [h06-serial-timeout-20261124](../../verification/h06-serial-timeout-20261124/README.md): serial-timeout fixture passes (`HLT=0` while polling, then `HLT=1`); every terminal fixture now requires `HLT=1`; three mutants fail (exit port raw 35, injection skipped, spin) |
+| NOT RUN | physical boot; local `actionlint`; hosted run on the `pc-q35-8.2` pin until CI on the PR |
 | Score | 43/100 unchanged; H06 stays open |
 
 ## Blockers
@@ -31,10 +31,12 @@ reported in the PR comment `HANDOFF H <cycle_id>`, not here.
 4. A raw QEMU exit of 35 from an HW-INV fixture means a `0xF4` write (`0x11`); a halted guest ends only through QMP `quit` (raw 0).
 5. Locally, five `test_roadmap_runner.Session` tests also fail on unmodified main (environment); the ledger validity test is the relevant one.
 6. `fsck.fat` drops a boot-sector volume label that has no matching root-directory label entry; the image uses `NO NAME`. `fsck.fat -v` prints "32 bit entries", not "FAT32".
+7. HMP `info cpus` no longer reports `(halted)` in current QEMU; `info registers` still prints `HLT=1`.
+8. A bash gate helper that sets a global `name` clobbers the caller's variable: use `local` in step/mutant functions, or mutant runs silently target the wrong build directory.
 
 ## Next task
 
-Ledger H06-T6 → `verified` in the next H PR. Then the next eligible H task from
-`docs/roadmap-pipeline/ledger.json`; physical H06 work stays blocked on the owner
-decisions above. Candidates without owner input: a serial-timeout fixture, or
-recording the image hash reproduction once B04 (#493) is merged.
+The next eligible H task from `docs/roadmap-pipeline/ledger.json`, starting with
+ledger H06-T7 → `verified` once its PR merges. Physical H06 work stays blocked
+on the owner decisions above. Candidate without owner input: record the image
+hash reproduction once B04 (#493) is merged.
