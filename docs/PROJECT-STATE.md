@@ -1,5 +1,117 @@
 # Current project status
 
+## Current handoff — PR integration checkpoint — 24 November 2026
+
+**Start here.** Fetch main, read AGENTS.md and [STATUS.md](STATUS.md), then compare
+the intended change with current files and the relevant contracts. The original
+workstream chats have stopped. Continue independent work while PR checks run;
+dependent work needs an explicit base and preservation of its original child
+delta after a squash merge. Keep one writer per branch or shared file.
+
+### Incorporated work
+
+The first four batches below have verified main landings. This checkpoint is
+included with the final UI/input contribution; its actual native acceptance and
+eventual squash commit are recorded on the containing integration PR. The batch
+bodies and landing comments retain exact original source heads and mappings.
+
+| Batch | Main commit | Preserved source PRs |
+|---|---|---|
+| [#476](https://github.com/BaryonOS/BaryonOS/pull/476) | `f5edc6aad2a80942c3ef57f587999933a595b573` | #427, #457, #470, #456, #434 |
+| [#479](https://github.com/BaryonOS/BaryonOS/pull/479) | `aa19ff241272e6554fdc12164e5e17317c18cf66` | #452, #473, #465 |
+| [#477](https://github.com/BaryonOS/BaryonOS/pull/477) | `ab9414cc37154525de9d38f99abb12328e1900b1` | #407, #408, #411, #459, #462, #413, #414 |
+| [#478](https://github.com/BaryonOS/BaryonOS/pull/478) | `c3afc04ac2bc92228f2201af02ab69148c47e596` | #426, #440, #428, #431, #444, #468, #474, #445; #380 replaced by the verified successor |
+| Final UI/input contribution | Included in this source | #436, #441, #455, #463, #469, #472, #461 |
+
+The volume chain #407 → #408 → #411 → #459 → #462 and destination chain
+#413 → #414 were preserved in order. Network combines #426 → #440 and
+#444 → #468 → #474 with the related #428/#431 work. Search preserves
+#463 → #469, including #463's complete starting head
+`b79503818cf70f6da60bac4cfdd1015a7519dab9`. #441's #433 prerequisite was already
+represented on main. An integration-branch merge alone is not main inclusion.
+
+### Repairs and verified evidence
+
+Volume INSTALL now retains phase and correlation after an uncertain BEGIN,
+APPEND, COMMIT or collection write, and after failed cleanup. A confirmed BEGIN
+is historical correlation, not ownership authority. A missing/malformed COMMIT
+or collection reply may hide a durable change. No blind ABORT or replay follows
+uncertainty; explicit ABORT does not consume an existing recovery record. Exact
+acknowledgement is valid only after independently established reconciliation.
+Archive-source failures remain distinct from uncertain RPC outcomes, and restore
+reports count confirmed commits only. See the [S09 L2 contract](implementation/S09-L2-PROVENANCE.md).
+The native NAS adapter likewise preserves post-delivery uncertainty.
+
+The repaired source passed 194 volume and 11 NAS host tests, Clippy/formatting and
+native compilation/ELF bounds. Hosted acceptance used the new lifecycle head
+`4bcc6f8d67e35940054fb1a9f8f0116aceab1623`; earlier receipts were superseded.
+
+| Native observation | Verified evidence |
+|---|---|
+| Volume: all 26 stages, including deliberate cuts and recovery; no timeout | [M6e volume gate](https://github.com/BaryonOS/BaryonOS/actions/runs/45304894273/job/138146193206) |
+| NAS: normal and cold recovery raw 33; recovery disk unchanged with zero writes/flushes | [Normal/cold gate](https://github.com/BaryonOS/BaryonOS/actions/runs/45304894343/job/138146193719), [probe host/target](https://github.com/BaryonOS/BaryonOS/actions/runs/45304894343/job/138146194095) |
+| Network: DHCP/DNS, link withdrawal/reacquisition, off-link route and full bounded port sweep | [Extension gate](https://github.com/BaryonOS/BaryonOS/actions/runs/45308625592/job/138158768805) |
+| Network: existing six cases, including ordinary revoke | [Baseline gate](https://github.com/BaryonOS/BaryonOS/actions/runs/45308625592/job/138158768933) |
+
+#445's separate sweep checks all 65,535 TCP ports and 16 bounded UDP ports before
+traffic and after revoke/app checks. Its reviewed 320-second guest/360-second
+host budget does not retroactively make #380's 180-second prototype successful.
+The static bridge now publishes replies after its bounded ingress/poll, avoiding
+an extra service-loop delay. Matching completion and the revoked-unpublished
+fence remain before poll; pending tickets, yields and every limit are preserved.
+The initial integrated native timeout prompted this repair; it was not accepted
+as passing evidence. The CI evidence inventory also explicitly accounts for the
+additional network preservation call (34 calls, with all checks retained).
+The [original failed receipt](https://github.com/BaryonOS/BaryonOS/blob/70140ffcfb142e7728725458aa205869c448cc16/docs/roadmap-pipeline/receipts/N04-T1.json)
+remains immutable. The distinct [manual successor receipt](roadmap-pipeline/receipts/N04-T1-successor-20261124.json)
+and [retained evidence](verification/n04-successor-20261124/README.md) record N04-T1
+as verified after independent native/source/main review. No controller session is
+claimed. This replacement does not accept the global N04 criterion.
+
+The UI integration aligns settings/search locks with SDK zeroize 1.9.2, adds the
+six-boot settings sequence, retains separate search/read-only builds, and corrects
+the Materiaal probe's Tab route with a real-controller regression. Its release
+requires final-head display/settings, window-session scales 1/2, USB mouse
+reattach and the explicitly selected Materiaal QMP/pixel measurement, alongside
+required checks and CodeQL. The PR's final acceptance receipt supplies those
+results; this source checkpoint does not predeclare a future run. The Materiaal
+opt-in route preserves manual dispatch and all existing watchdogs.
+
+### Bounded follow-up work
+
+- **Search:** #463's 23-test host adapter and #469's S2 binary/build/draft runner
+  are included. S3 kernel/build wiring and native execution with the independent
+  volume-image oracle remain open; the draft runner refuses missing wiring.
+- **Read-only profile:** #455 delivers U03-T3 part 1. Part 2 must demonstrate
+  actual service refusals and live counters. Isolated compilation is not that
+  observation.
+- **UI:** #472 adds five active recovery rows and four deliberately ignored
+  specifications for existing Full/Quota, I/O, Deny-copy and compact clipping
+  defects. It promises no production fixes. The fifth ignored case is inherited
+  History order (#447); related compact-layout work (#448), human task studies
+  and screen-reader acceptance remain open.
+- **Hardware and network:** QEMU results remain tied to their source/profile.
+  Physical hotplug/reference hardware, production issuer/delegation, durable
+  revocation and broad TLS interoperability remain separate acceptance work.
+- **Governance:** #473 prepares `merge_group` handling. Keep the queue disabled
+  until predecessor reruns invalidate/rebuild affected groups or trigger a fully
+  verified reevaluation, and the required checks/rulesets and actual operation
+  are validated. Integration batches remain available. The issue controller
+  remains `enabled: false` and under source-enforced `EXECUTION_HOLD`.
+
+Select one bounded continuation, read [FULL-TEST-RELEASE.md](FULL-TEST-RELEASE.md)
+and its relevant contracts, and work in an isolated branch/worktree. Current
+delegated authority replaces obsolete permission loops; substantive acceptance
+and branch protections remain. A revert reopens the source obligations it removes.
+Historical handoffs below are records, not current ownership assignments.
+
+**Assessment:** **41 → 41/100**. Criterion states, weights, acceptance descriptions
+and existing evidence are unchanged. The assessment identifies the published
+code parent `855f6509e2a2cf126f6245ef4571721c0a3610d6`, whose tree matches the reviewed code, rather than
+the later checkpoint or squash commit. Updating metadata accepts no criterion.
+
+## Historical source-bound handoffs
+
 ## NEXT AGENT HANDOFF — H-track lead: H02 mouse reattach and S3 review follow-ups — 23 November 2026
 
 **Delivered (H02-T4, verified, not accepted):** PR #461 adds the exclusive

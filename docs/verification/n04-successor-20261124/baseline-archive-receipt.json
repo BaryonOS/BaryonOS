@@ -1,0 +1,796 @@
+{
+  "collected_at": "2026-11-24T02:00:25.255479+00:00",
+  "evidence_state": "compact-reports-retained",
+  "job_status_before_archive": "success",
+  "limits": {
+    "file_bytes": 1048576,
+    "files_including_receipt": 500,
+    "total_bytes_including_receipt": 8388608
+  },
+  "missing_patterns": [],
+  "name": "native-network-service-evidence",
+  "omitted": [
+    {
+      "path": "build/n01-ci-exhaustion/run/network-service-exhaustion-d4c1b34d6e23431db01c6e3f7ec31f3d/network-discard.bin",
+      "reason": "not-compact-report-type",
+      "size_bytes": 3712
+    }
+  ],
+  "omitted_count": 1,
+  "omitted_list_truncated_count": 0,
+  "omitted_reason_counts": {
+    "not-compact-report-type": 1
+  },
+  "required_paths": [
+    "build/n01-ci-normal/network-service-normal-report.json",
+    "build/n01-ci-client-exit/network-service-client-exit-report.json",
+    "build/n01-ci-revoke/network-service-revoke-report.json",
+    "build/n01-ci-helper/network-service-helper-report.json",
+    "build/n01-ci-device-reset/network-service-device-reset-report.json",
+    "build/n01-ci-exhaustion/network-service-exhaustion-report.json"
+  ],
+  "retained": [
+    {
+      "path": "build/n01-ci-client-exit/logs/build-network-service.json",
+      "sha256": "d07dc5742b05f0172a43d7b3d746bdf33c390cd9c47cac027b8d19715636fbcf",
+      "size_bytes": 314
+    },
+    {
+      "path": "build/n01-ci-client-exit/logs/build-system-keyring.json",
+      "sha256": "dbebea15c099dcfc7fc254a6fc42d1528605c9ce28ce761f8f022800039e9ea0",
+      "size_bytes": 306
+    },
+    {
+      "path": "build/n01-ci-client-exit/logs/build-system-system.json",
+      "sha256": "0df67b194bfbd20c207bf60aba6ff7f117c9f8f672da140676a1b451bc8e9d39",
+      "size_bytes": 304
+    },
+    {
+      "path": "build/n01-ci-client-exit/logs/build-system-volume.json",
+      "sha256": "784e4b90f25588b2c079453139ff93a1a5124fd618af0b56ff820ce951695627",
+      "size_bytes": 310
+    },
+    {
+      "path": "build/n01-ci-client-exit/logs/build-test-net-service-client-exit-manifest.json",
+      "sha256": "78243bfa5a159f9b4829008b078570459bcd52e233737b4bbc8281384a600f54",
+      "size_bytes": 13040
+    },
+    {
+      "path": "build/n01-ci-client-exit/logs/build-test-net-service-client-exit-os-kernel.json",
+      "sha256": "b087b961a888cacd0e505c6e8e0303d36d7e786cac5970ccb3fd6bf124a3a696",
+      "size_bytes": 469
+    },
+    {
+      "path": "build/n01-ci-client-exit/logs/build-test-net-service-client-exit-os-loader.json",
+      "sha256": "635fe6503c09bbffc438fa28c522342384f391438ec69a00b44b78f0d04dc99a",
+      "size_bytes": 416
+    },
+    {
+      "path": "build/n01-ci-client-exit/manifest.json",
+      "sha256": "78243bfa5a159f9b4829008b078570459bcd52e233737b4bbc8281384a600f54",
+      "size_bytes": 13040
+    },
+    {
+      "path": "build/n01-ci-client-exit/network-service-client-exit-report.json",
+      "sha256": "9ed40065b5ec7ea6c1fa1bfc098daa69e7451dd90e39d57ec698049ca9067515",
+      "size_bytes": 50748
+    },
+    {
+      "path": "build/n01-ci-client-exit/run/network-service-client-exit-f44a0a380c1642359fef78752c6605f5/network-peer.json",
+      "sha256": "730ec1a0ea545f88e79b96d1bd1b24abb633ad45f7e2dd71d2b7f34a7b11e55e",
+      "size_bytes": 25521
+    },
+    {
+      "path": "build/n01-ci-client-exit/run/network-service-client-exit-f44a0a380c1642359fef78752c6605f5/result.json",
+      "sha256": "9ed40065b5ec7ea6c1fa1bfc098daa69e7451dd90e39d57ec698049ca9067515",
+      "size_bytes": 50748
+    },
+    {
+      "path": "build/n01-ci-device-reset/logs/build-network-service.json",
+      "sha256": "7f06262c4c76e9863e600de488fe4f434acb4dbb2f3904c706c181b485217432",
+      "size_bytes": 314
+    },
+    {
+      "path": "build/n01-ci-device-reset/logs/build-system-keyring.json",
+      "sha256": "0c035a4acb77cf2fdfce95278474fb4da7ca367cc2a4aa2841abb2c44ad968db",
+      "size_bytes": 306
+    },
+    {
+      "path": "build/n01-ci-device-reset/logs/build-system-system.json",
+      "sha256": "63c90e25cea0dabdb7747449f21ab157fd45cb8e7b7df0fee5a04c03b12e4ce4",
+      "size_bytes": 304
+    },
+    {
+      "path": "build/n01-ci-device-reset/logs/build-system-volume.json",
+      "sha256": "6ce9e1437ad4b286502efac7e3ca07241604edd2f9cc47d226cd79f1ba3def82",
+      "size_bytes": 309
+    },
+    {
+      "path": "build/n01-ci-device-reset/logs/build-test-net-service-device-reset-manifest.json",
+      "sha256": "88abf12d59f7114492402f9e535115de59def2a2072d8d3ac42704a16995f3b0",
+      "size_bytes": 13042
+    },
+    {
+      "path": "build/n01-ci-device-reset/logs/build-test-net-service-device-reset-os-kernel.json",
+      "sha256": "51c933e4be2b15e46bb9202cdfda6c446002868ff672443f29224e1a02f608bc",
+      "size_bytes": 471
+    },
+    {
+      "path": "build/n01-ci-device-reset/logs/build-test-net-service-device-reset-os-loader.json",
+      "sha256": "90c824dcf0812db28746852eecbd8598e1763f4308a8cd7444995fbff6c600ad",
+      "size_bytes": 418
+    },
+    {
+      "path": "build/n01-ci-device-reset/manifest.json",
+      "sha256": "88abf12d59f7114492402f9e535115de59def2a2072d8d3ac42704a16995f3b0",
+      "size_bytes": 13042
+    },
+    {
+      "path": "build/n01-ci-device-reset/network-service-device-reset-report.json",
+      "sha256": "9523fcfed34023fb80388a6118ad37f4d99e281afc8e6674a52e8652a308cc58",
+      "size_bytes": 30713
+    },
+    {
+      "path": "build/n01-ci-device-reset/run/network-service-device-reset-ba5671c8c01e499499d739b2e04de48c/network-peer.json",
+      "sha256": "5c79225e279568e00da5f9e2e77f62ab67f72c9d1c3e91507e2e5e6ce9d4a18d",
+      "size_bytes": 5767
+    },
+    {
+      "path": "build/n01-ci-device-reset/run/network-service-device-reset-ba5671c8c01e499499d739b2e04de48c/result.json",
+      "sha256": "9523fcfed34023fb80388a6118ad37f4d99e281afc8e6674a52e8652a308cc58",
+      "size_bytes": 30713
+    },
+    {
+      "path": "build/n01-ci-exhaustion/logs/build-network-service.json",
+      "sha256": "8b4427eb804acfe645bb23d2690dc410f41da1aa6127b36f04f5b844a1584f71",
+      "size_bytes": 314
+    },
+    {
+      "path": "build/n01-ci-exhaustion/logs/build-system-keyring.json",
+      "sha256": "ae6159f9e288bdf0e4279461f45c26ceb35e0273a40a43f08ef034db8889c9b1",
+      "size_bytes": 306
+    },
+    {
+      "path": "build/n01-ci-exhaustion/logs/build-system-system.json",
+      "sha256": "00f7ef59d60bcae31f69c6c6c934746cc94c7d93a85161c0639703035fd0a605",
+      "size_bytes": 305
+    },
+    {
+      "path": "build/n01-ci-exhaustion/logs/build-system-volume.json",
+      "sha256": "ab42f6b583a8c668f1127fce4b9882aef332a0bcf9762b711eee1ee85984109e",
+      "size_bytes": 310
+    },
+    {
+      "path": "build/n01-ci-exhaustion/logs/build-test-net-service-exhaustion-manifest.json",
+      "sha256": "ea30657e994a69bd216387ae3c06c9e861efc6869329589b25160b363afa4eab",
+      "size_bytes": 13038
+    },
+    {
+      "path": "build/n01-ci-exhaustion/logs/build-test-net-service-exhaustion-os-kernel.json",
+      "sha256": "97f99c50a817e5fceb60183172d65ede4a3d70375a2c0088ab595edb97b27905",
+      "size_bytes": 469
+    },
+    {
+      "path": "build/n01-ci-exhaustion/logs/build-test-net-service-exhaustion-os-loader.json",
+      "sha256": "3abeeeb3983bad9774efc9d41cc785d08795b75bde20fb59ca3aac7e56f6e628",
+      "size_bytes": 416
+    },
+    {
+      "path": "build/n01-ci-exhaustion/manifest.json",
+      "sha256": "ea30657e994a69bd216387ae3c06c9e861efc6869329589b25160b363afa4eab",
+      "size_bytes": 13038
+    },
+    {
+      "path": "build/n01-ci-exhaustion/network-service-exhaustion-report.json",
+      "sha256": "5e85bfc10d111ecf1d044b9cd4b6fc32138f5f14178122c12a9d16f372753bec",
+      "size_bytes": 24447
+    },
+    {
+      "path": "build/n01-ci-exhaustion/run/network-service-exhaustion-d4c1b34d6e23431db01c6e3f7ec31f3d/network-peer.json",
+      "sha256": "1ee8f6af6e18937ca8a753081bd60acc4504a47c155ffeacf6aa7a80b3b7eb81",
+      "size_bytes": 712
+    },
+    {
+      "path": "build/n01-ci-exhaustion/run/network-service-exhaustion-d4c1b34d6e23431db01c6e3f7ec31f3d/result.json",
+      "sha256": "5e85bfc10d111ecf1d044b9cd4b6fc32138f5f14178122c12a9d16f372753bec",
+      "size_bytes": 24447
+    },
+    {
+      "path": "build/n01-ci-helper/logs/build-network-service.json",
+      "sha256": "3450c9f0a80d189f18176eebc818e8d50ecc24c0d7447b6476520f9d531c3dfe",
+      "size_bytes": 314
+    },
+    {
+      "path": "build/n01-ci-helper/logs/build-system-keyring.json",
+      "sha256": "d9be3547b8a83621945b3ba75d6c299425311990a9c779e54b6882b4867ac14f",
+      "size_bytes": 306
+    },
+    {
+      "path": "build/n01-ci-helper/logs/build-system-system.json",
+      "sha256": "a857d25cc0c8652c824f5be67cfe9cf33d4de8596b9b8e96fc30f39a66e9a4e4",
+      "size_bytes": 305
+    },
+    {
+      "path": "build/n01-ci-helper/logs/build-system-volume.json",
+      "sha256": "b3f9291f696ddc8b22f30aa4e3e14bd19d6c2e4a3fabb5f9a8e5b7f53c23f617",
+      "size_bytes": 310
+    },
+    {
+      "path": "build/n01-ci-helper/logs/build-test-net-service-helper-manifest.json",
+      "sha256": "1a2617f37444b3aaad1a635a1a6a887af3aeba4c4f4d4a81be44bf28689fc410",
+      "size_bytes": 13030
+    },
+    {
+      "path": "build/n01-ci-helper/logs/build-test-net-service-helper-os-kernel.json",
+      "sha256": "81c926ac44ddb9e187e9bb95955654a74a283118e70cc113930dcc65ac30564b",
+      "size_bytes": 465
+    },
+    {
+      "path": "build/n01-ci-helper/logs/build-test-net-service-helper-os-loader.json",
+      "sha256": "4749ab9d961a3cdef0d09d86f7cbf2fa943515de423120c59de9a17748695b6c",
+      "size_bytes": 417
+    },
+    {
+      "path": "build/n01-ci-helper/manifest.json",
+      "sha256": "1a2617f37444b3aaad1a635a1a6a887af3aeba4c4f4d4a81be44bf28689fc410",
+      "size_bytes": 13030
+    },
+    {
+      "path": "build/n01-ci-helper/network-service-helper-report.json",
+      "sha256": "97346002002d88520047e6276b6563c98524f914ef43fe80ddea3df4788b3077",
+      "size_bytes": 75044
+    },
+    {
+      "path": "build/n01-ci-helper/run/network-service-helper-4d82a53146ad4751987ca791f3700afc/network-peer.json",
+      "sha256": "07889ebc245aae1753b93ab379cb2d66f70e9b57a0866432420911672e658fda",
+      "size_bytes": 46040
+    },
+    {
+      "path": "build/n01-ci-helper/run/network-service-helper-4d82a53146ad4751987ca791f3700afc/result.json",
+      "sha256": "97346002002d88520047e6276b6563c98524f914ef43fe80ddea3df4788b3077",
+      "size_bytes": 75044
+    },
+    {
+      "path": "build/n01-ci-normal/logs/build-native-net-service-manifest.json",
+      "sha256": "db16aeca94a866487b33eb21d377c3088678358f1e35213a02a6bfca6b32776e",
+      "size_bytes": 13020
+    },
+    {
+      "path": "build/n01-ci-normal/logs/build-native-net-service-os-kernel.json",
+      "sha256": "13fcfe4bdd92da8c048c383764c9967fe0512a5927a72eda996d76a9c4745cef",
+      "size_bytes": 459
+    },
+    {
+      "path": "build/n01-ci-normal/logs/build-native-net-service-os-loader.json",
+      "sha256": "b30c3a760870d8302e33333f94ae10aa9842b4a4f72a4072e3ad33e3bd7731b1",
+      "size_bytes": 414
+    },
+    {
+      "path": "build/n01-ci-normal/logs/build-network-service.json",
+      "sha256": "7969bc4cb838df43b3da1f5fabd1c72b0b74493e7277ab0915fcd04e0adf434c",
+      "size_bytes": 312
+    },
+    {
+      "path": "build/n01-ci-normal/logs/build-system-keyring.json",
+      "sha256": "52c494acaaf954d4fc75f463031814ef2ce3c0623bbad0198a841086749ada74",
+      "size_bytes": 304
+    },
+    {
+      "path": "build/n01-ci-normal/logs/build-system-system.json",
+      "sha256": "27672c20ae50bbc23dacecf980b68a3b7428c8278f79004961428fdd9f3413b4",
+      "size_bytes": 304
+    },
+    {
+      "path": "build/n01-ci-normal/logs/build-system-volume.json",
+      "sha256": "220ffb68084fe1e5e79689c1a2c56c096f9029a76daf912ef4e13e68bd9d6a07",
+      "size_bytes": 309
+    },
+    {
+      "path": "build/n01-ci-normal/manifest.json",
+      "sha256": "db16aeca94a866487b33eb21d377c3088678358f1e35213a02a6bfca6b32776e",
+      "size_bytes": 13020
+    },
+    {
+      "path": "build/n01-ci-normal/network-service-normal-report.json",
+      "sha256": "ca7e5f7d6109b7f7b9d43400b159faecde5aa4122db485bb843a7b28cb8053ba",
+      "size_bytes": 72361
+    },
+    {
+      "path": "build/n01-ci-normal/run/network-service-normal-285f02db1f764b56b52d9c4309248ca7/network-peer.json",
+      "sha256": "598a145432cbd1f99a87300b35032d5a73aff8b49f5e30f9cc6f283c3ffbdc28",
+      "size_bytes": 45948
+    },
+    {
+      "path": "build/n01-ci-normal/run/network-service-normal-285f02db1f764b56b52d9c4309248ca7/result.json",
+      "sha256": "ca7e5f7d6109b7f7b9d43400b159faecde5aa4122db485bb843a7b28cb8053ba",
+      "size_bytes": 72361
+    },
+    {
+      "path": "build/n01-ci-revoke/logs/build-network-service.json",
+      "sha256": "d7c0b5afb9fdec1579776cb6cf1de8c3bee65f9636e80114697ed695328b9feb",
+      "size_bytes": 314
+    },
+    {
+      "path": "build/n01-ci-revoke/logs/build-system-keyring.json",
+      "sha256": "53c187532b85a43b7dd9a4e457cb9029426d5baa407d916863d529b8851cbeed",
+      "size_bytes": 306
+    },
+    {
+      "path": "build/n01-ci-revoke/logs/build-system-system.json",
+      "sha256": "ccf8336c920f52bd3a9a090a1016d62d191a05e53a92c1591ce6d7c54b727cc4",
+      "size_bytes": 305
+    },
+    {
+      "path": "build/n01-ci-revoke/logs/build-system-volume.json",
+      "sha256": "1371843a0b82998ccee7e0fad7d53b3a9ca4a30689925f3d2a71420d84bf2c40",
+      "size_bytes": 310
+    },
+    {
+      "path": "build/n01-ci-revoke/logs/build-test-net-service-revoke-manifest.json",
+      "sha256": "9a2648cc73aa78611ce03bf301599af01b28c87bd4505dc6feaea73ec02c7ccc",
+      "size_bytes": 13030
+    },
+    {
+      "path": "build/n01-ci-revoke/logs/build-test-net-service-revoke-os-kernel.json",
+      "sha256": "aae10484e4375a6a1a2a31f5171a50095da292001d6de1c3889b6f222638f96f",
+      "size_bytes": 465
+    },
+    {
+      "path": "build/n01-ci-revoke/logs/build-test-net-service-revoke-os-loader.json",
+      "sha256": "ed8ed5f6fd7133ee2cfbcab3e1cc4f2bdef4df9a5d958b95db05cb37ccae25a6",
+      "size_bytes": 417
+    },
+    {
+      "path": "build/n01-ci-revoke/manifest.json",
+      "sha256": "9a2648cc73aa78611ce03bf301599af01b28c87bd4505dc6feaea73ec02c7ccc",
+      "size_bytes": 13030
+    },
+    {
+      "path": "build/n01-ci-revoke/network-service-revoke-report.json",
+      "sha256": "5dfe8cc04e6fec8159b568c0db69af010ea3ef2cbacfa5afb86137ec34f30de1",
+      "size_bytes": 57061
+    },
+    {
+      "path": "build/n01-ci-revoke/run/network-service-revoke-398ffdb5b8aa4ffaa978ae6c8cf9b8cf/network-peer.json",
+      "sha256": "27e1f3a216c25e58068955daad41df34c8873d028eaac4546305621e07e21b0f",
+      "size_bytes": 29983
+    },
+    {
+      "path": "build/n01-ci-revoke/run/network-service-revoke-398ffdb5b8aa4ffaa978ae6c8cf9b8cf/result.json",
+      "sha256": "5dfe8cc04e6fec8159b568c0db69af010ea3ef2cbacfa5afb86137ec34f30de1",
+      "size_bytes": 57061
+    },
+    {
+      "path": "build/n01-ci-client-exit/logs/build-network-service.stderr.txt",
+      "sha256": "6bfa9e18ffdef821c711a542cfebd7db0982665615563e5a191285e489609c6f",
+      "size_bytes": 62
+    },
+    {
+      "path": "build/n01-ci-client-exit/logs/build-network-service.stdout.txt",
+      "sha256": "97adeaecf4f16588e969014f7df433afa11964d1c2486778fbc97485600f1c4b",
+      "size_bytes": 2453
+    },
+    {
+      "path": "build/n01-ci-client-exit/logs/build-system-keyring.stderr.txt",
+      "sha256": "6bfa9e18ffdef821c711a542cfebd7db0982665615563e5a191285e489609c6f",
+      "size_bytes": 62
+    },
+    {
+      "path": "build/n01-ci-client-exit/logs/build-system-keyring.stdout.txt",
+      "sha256": "4c6b0f7ed8bbed0f77559a00e140b6f741231c5e1993b8d7911ccb3d610e7dbc",
+      "size_bytes": 335
+    },
+    {
+      "path": "build/n01-ci-client-exit/logs/build-system-system.stderr.txt",
+      "sha256": "6bfa9e18ffdef821c711a542cfebd7db0982665615563e5a191285e489609c6f",
+      "size_bytes": 62
+    },
+    {
+      "path": "build/n01-ci-client-exit/logs/build-system-system.stdout.txt",
+      "sha256": "7e829970c87df39942d426981d03108d7cfe92ac752980182adebbfa4f54db08",
+      "size_bytes": 333
+    },
+    {
+      "path": "build/n01-ci-client-exit/logs/build-system-volume.stderr.txt",
+      "sha256": "6bfa9e18ffdef821c711a542cfebd7db0982665615563e5a191285e489609c6f",
+      "size_bytes": 62
+    },
+    {
+      "path": "build/n01-ci-client-exit/logs/build-system-volume.stdout.txt",
+      "sha256": "9cbae8c6dbe4f25fe12bd7c74e6ef0d1386ad350c1fa91745e9e7bfa621c175d",
+      "size_bytes": 338
+    },
+    {
+      "path": "build/n01-ci-client-exit/logs/build-test-net-service-client-exit-os-kernel.stderr.txt",
+      "sha256": "bd42dbf0432bc8eb22c31a2ae6f5d72d1b4a0ab5a738ff1f1fdfeb2052bc1765",
+      "size_bytes": 1253
+    },
+    {
+      "path": "build/n01-ci-client-exit/logs/build-test-net-service-client-exit-os-kernel.stdout.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "build/n01-ci-client-exit/logs/build-test-net-service-client-exit-os-loader.stderr.txt",
+      "sha256": "6bfa9e18ffdef821c711a542cfebd7db0982665615563e5a191285e489609c6f",
+      "size_bytes": 62
+    },
+    {
+      "path": "build/n01-ci-client-exit/logs/build-test-net-service-client-exit-os-loader.stdout.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "build/n01-ci-client-exit/run/network-service-client-exit-f44a0a380c1642359fef78752c6605f5/serial.txt",
+      "sha256": "6908c3ba844b2281a621f84ca48ca55f9875092caf8688c9066ca4c2e43aa672",
+      "size_bytes": 4399
+    },
+    {
+      "path": "build/n01-ci-client-exit/run/network-service-client-exit-f44a0a380c1642359fef78752c6605f5/stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "build/n01-ci-device-reset/logs/build-network-service.stderr.txt",
+      "sha256": "376a48f02bf305a0c383aa68e8f2d8c5df3ec64cbee6a09491a649aa453baba9",
+      "size_bytes": 62
+    },
+    {
+      "path": "build/n01-ci-device-reset/logs/build-network-service.stdout.txt",
+      "sha256": "97adeaecf4f16588e969014f7df433afa11964d1c2486778fbc97485600f1c4b",
+      "size_bytes": 2453
+    },
+    {
+      "path": "build/n01-ci-device-reset/logs/build-system-keyring.stderr.txt",
+      "sha256": "6bfa9e18ffdef821c711a542cfebd7db0982665615563e5a191285e489609c6f",
+      "size_bytes": 62
+    },
+    {
+      "path": "build/n01-ci-device-reset/logs/build-system-keyring.stdout.txt",
+      "sha256": "4c6b0f7ed8bbed0f77559a00e140b6f741231c5e1993b8d7911ccb3d610e7dbc",
+      "size_bytes": 335
+    },
+    {
+      "path": "build/n01-ci-device-reset/logs/build-system-system.stderr.txt",
+      "sha256": "6bfa9e18ffdef821c711a542cfebd7db0982665615563e5a191285e489609c6f",
+      "size_bytes": 62
+    },
+    {
+      "path": "build/n01-ci-device-reset/logs/build-system-system.stdout.txt",
+      "sha256": "7e829970c87df39942d426981d03108d7cfe92ac752980182adebbfa4f54db08",
+      "size_bytes": 333
+    },
+    {
+      "path": "build/n01-ci-device-reset/logs/build-system-volume.stderr.txt",
+      "sha256": "6bfa9e18ffdef821c711a542cfebd7db0982665615563e5a191285e489609c6f",
+      "size_bytes": 62
+    },
+    {
+      "path": "build/n01-ci-device-reset/logs/build-system-volume.stdout.txt",
+      "sha256": "9cbae8c6dbe4f25fe12bd7c74e6ef0d1386ad350c1fa91745e9e7bfa621c175d",
+      "size_bytes": 338
+    },
+    {
+      "path": "build/n01-ci-device-reset/logs/build-test-net-service-device-reset-os-kernel.stderr.txt",
+      "sha256": "227fd8b899103f6d5220ecf52f08975df8723de50127c60d4fb3bd89168c42d9",
+      "size_bytes": 1348
+    },
+    {
+      "path": "build/n01-ci-device-reset/logs/build-test-net-service-device-reset-os-kernel.stdout.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "build/n01-ci-device-reset/logs/build-test-net-service-device-reset-os-loader.stderr.txt",
+      "sha256": "6bfa9e18ffdef821c711a542cfebd7db0982665615563e5a191285e489609c6f",
+      "size_bytes": 62
+    },
+    {
+      "path": "build/n01-ci-device-reset/logs/build-test-net-service-device-reset-os-loader.stdout.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "build/n01-ci-device-reset/run/network-service-device-reset-ba5671c8c01e499499d739b2e04de48c/serial.txt",
+      "sha256": "7d5b26d9f62a0f41a36200c0f0a6486a4f1374a47dda11dbb7893e712400a4a2",
+      "size_bytes": 4963
+    },
+    {
+      "path": "build/n01-ci-device-reset/run/network-service-device-reset-ba5671c8c01e499499d739b2e04de48c/stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "build/n01-ci-exhaustion/logs/build-network-service.stderr.txt",
+      "sha256": "376a48f02bf305a0c383aa68e8f2d8c5df3ec64cbee6a09491a649aa453baba9",
+      "size_bytes": 62
+    },
+    {
+      "path": "build/n01-ci-exhaustion/logs/build-network-service.stdout.txt",
+      "sha256": "97adeaecf4f16588e969014f7df433afa11964d1c2486778fbc97485600f1c4b",
+      "size_bytes": 2453
+    },
+    {
+      "path": "build/n01-ci-exhaustion/logs/build-system-keyring.stderr.txt",
+      "sha256": "6bfa9e18ffdef821c711a542cfebd7db0982665615563e5a191285e489609c6f",
+      "size_bytes": 62
+    },
+    {
+      "path": "build/n01-ci-exhaustion/logs/build-system-keyring.stdout.txt",
+      "sha256": "4c6b0f7ed8bbed0f77559a00e140b6f741231c5e1993b8d7911ccb3d610e7dbc",
+      "size_bytes": 335
+    },
+    {
+      "path": "build/n01-ci-exhaustion/logs/build-system-system.stderr.txt",
+      "sha256": "6bfa9e18ffdef821c711a542cfebd7db0982665615563e5a191285e489609c6f",
+      "size_bytes": 62
+    },
+    {
+      "path": "build/n01-ci-exhaustion/logs/build-system-system.stdout.txt",
+      "sha256": "7e829970c87df39942d426981d03108d7cfe92ac752980182adebbfa4f54db08",
+      "size_bytes": 333
+    },
+    {
+      "path": "build/n01-ci-exhaustion/logs/build-system-volume.stderr.txt",
+      "sha256": "6bfa9e18ffdef821c711a542cfebd7db0982665615563e5a191285e489609c6f",
+      "size_bytes": 62
+    },
+    {
+      "path": "build/n01-ci-exhaustion/logs/build-system-volume.stdout.txt",
+      "sha256": "9cbae8c6dbe4f25fe12bd7c74e6ef0d1386ad350c1fa91745e9e7bfa621c175d",
+      "size_bytes": 338
+    },
+    {
+      "path": "build/n01-ci-exhaustion/logs/build-test-net-service-exhaustion-os-kernel.stderr.txt",
+      "sha256": "4dbd42165b4a9dd422893e1deafa0cdf446ce82c9f96f71f70ec66aa699fbc52",
+      "size_bytes": 1253
+    },
+    {
+      "path": "build/n01-ci-exhaustion/logs/build-test-net-service-exhaustion-os-kernel.stdout.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "build/n01-ci-exhaustion/logs/build-test-net-service-exhaustion-os-loader.stderr.txt",
+      "sha256": "6bfa9e18ffdef821c711a542cfebd7db0982665615563e5a191285e489609c6f",
+      "size_bytes": 62
+    },
+    {
+      "path": "build/n01-ci-exhaustion/logs/build-test-net-service-exhaustion-os-loader.stdout.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "build/n01-ci-exhaustion/run/network-service-exhaustion-d4c1b34d6e23431db01c6e3f7ec31f3d/serial.txt",
+      "sha256": "678391f7d83f1d09130292fb46b0cb07e22a2d5312ac9e037c91142e5383e68a",
+      "size_bytes": 4452
+    },
+    {
+      "path": "build/n01-ci-exhaustion/run/network-service-exhaustion-d4c1b34d6e23431db01c6e3f7ec31f3d/stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "build/n01-ci-helper/logs/build-network-service.stderr.txt",
+      "sha256": "376a48f02bf305a0c383aa68e8f2d8c5df3ec64cbee6a09491a649aa453baba9",
+      "size_bytes": 62
+    },
+    {
+      "path": "build/n01-ci-helper/logs/build-network-service.stdout.txt",
+      "sha256": "97adeaecf4f16588e969014f7df433afa11964d1c2486778fbc97485600f1c4b",
+      "size_bytes": 2453
+    },
+    {
+      "path": "build/n01-ci-helper/logs/build-system-keyring.stderr.txt",
+      "sha256": "6bfa9e18ffdef821c711a542cfebd7db0982665615563e5a191285e489609c6f",
+      "size_bytes": 62
+    },
+    {
+      "path": "build/n01-ci-helper/logs/build-system-keyring.stdout.txt",
+      "sha256": "4c6b0f7ed8bbed0f77559a00e140b6f741231c5e1993b8d7911ccb3d610e7dbc",
+      "size_bytes": 335
+    },
+    {
+      "path": "build/n01-ci-helper/logs/build-system-system.stderr.txt",
+      "sha256": "6bfa9e18ffdef821c711a542cfebd7db0982665615563e5a191285e489609c6f",
+      "size_bytes": 62
+    },
+    {
+      "path": "build/n01-ci-helper/logs/build-system-system.stdout.txt",
+      "sha256": "7e829970c87df39942d426981d03108d7cfe92ac752980182adebbfa4f54db08",
+      "size_bytes": 333
+    },
+    {
+      "path": "build/n01-ci-helper/logs/build-system-volume.stderr.txt",
+      "sha256": "6bfa9e18ffdef821c711a542cfebd7db0982665615563e5a191285e489609c6f",
+      "size_bytes": 62
+    },
+    {
+      "path": "build/n01-ci-helper/logs/build-system-volume.stdout.txt",
+      "sha256": "9cbae8c6dbe4f25fe12bd7c74e6ef0d1386ad350c1fa91745e9e7bfa621c175d",
+      "size_bytes": 338
+    },
+    {
+      "path": "build/n01-ci-helper/logs/build-test-net-service-helper-os-kernel.stderr.txt",
+      "sha256": "611ea11698b02f01ba1cccb508657cf79a1b56c53a408b85db4b43d3486fd812",
+      "size_bytes": 1253
+    },
+    {
+      "path": "build/n01-ci-helper/logs/build-test-net-service-helper-os-kernel.stdout.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "build/n01-ci-helper/logs/build-test-net-service-helper-os-loader.stderr.txt",
+      "sha256": "6bfa9e18ffdef821c711a542cfebd7db0982665615563e5a191285e489609c6f",
+      "size_bytes": 62
+    },
+    {
+      "path": "build/n01-ci-helper/logs/build-test-net-service-helper-os-loader.stdout.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "build/n01-ci-helper/run/network-service-helper-4d82a53146ad4751987ca791f3700afc/serial.txt",
+      "sha256": "758ecca1284379a4f9d269bb3583dd58ba9c3b803ae1c4b20e4451e97093f448",
+      "size_bytes": 6290
+    },
+    {
+      "path": "build/n01-ci-helper/run/network-service-helper-4d82a53146ad4751987ca791f3700afc/stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "build/n01-ci-normal/logs/build-native-net-service-os-kernel.stderr.txt",
+      "sha256": "5383ba2a7d782bed4c1a83b00e316ff9dd3ce846433934470d3755b251f09b5e",
+      "size_bytes": 2077
+    },
+    {
+      "path": "build/n01-ci-normal/logs/build-native-net-service-os-kernel.stdout.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "build/n01-ci-normal/logs/build-native-net-service-os-loader.stderr.txt",
+      "sha256": "91be2bcf0cd4d9ca1bd3bedce6147ccffb1d9366ad4c8969d57df677b389dc27",
+      "size_bytes": 358
+    },
+    {
+      "path": "build/n01-ci-normal/logs/build-native-net-service-os-loader.stdout.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "build/n01-ci-normal/logs/build-network-service.stderr.txt",
+      "sha256": "b207d67a3ed695805f3f57ad669d476d487ba56ba5a6ce50391be8aa0abc1afd",
+      "size_bytes": 1342
+    },
+    {
+      "path": "build/n01-ci-normal/logs/build-network-service.stdout.txt",
+      "sha256": "97adeaecf4f16588e969014f7df433afa11964d1c2486778fbc97485600f1c4b",
+      "size_bytes": 2453
+    },
+    {
+      "path": "build/n01-ci-normal/logs/build-system-keyring.stderr.txt",
+      "sha256": "f9f36b68d4fcde8efe0574728ee8283ccc43b41de6df69f58a7f5fcf66691b0d",
+      "size_bytes": 1111
+    },
+    {
+      "path": "build/n01-ci-normal/logs/build-system-keyring.stdout.txt",
+      "sha256": "4c6b0f7ed8bbed0f77559a00e140b6f741231c5e1993b8d7911ccb3d610e7dbc",
+      "size_bytes": 335
+    },
+    {
+      "path": "build/n01-ci-normal/logs/build-system-system.stderr.txt",
+      "sha256": "ad3e0ad4e0457cce78f50d14fb66275287d495e4e8c67b629a07ff83434ace3c",
+      "size_bytes": 1590
+    },
+    {
+      "path": "build/n01-ci-normal/logs/build-system-system.stdout.txt",
+      "sha256": "7e829970c87df39942d426981d03108d7cfe92ac752980182adebbfa4f54db08",
+      "size_bytes": 333
+    },
+    {
+      "path": "build/n01-ci-normal/logs/build-system-volume.stderr.txt",
+      "sha256": "629316b2175a27dd744165a6de2deb45e66997a4140be81e0a6ef2282ffdff0f",
+      "size_bytes": 467
+    },
+    {
+      "path": "build/n01-ci-normal/logs/build-system-volume.stdout.txt",
+      "sha256": "9cbae8c6dbe4f25fe12bd7c74e6ef0d1386ad350c1fa91745e9e7bfa621c175d",
+      "size_bytes": 338
+    },
+    {
+      "path": "build/n01-ci-normal/run/network-service-normal-285f02db1f764b56b52d9c4309248ca7/serial.txt",
+      "sha256": "b5905d2650d784fc6c310fb36c026b6a4d1ce96cb1a64d622233236fd8846780",
+      "size_bytes": 4399
+    },
+    {
+      "path": "build/n01-ci-normal/run/network-service-normal-285f02db1f764b56b52d9c4309248ca7/stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "build/n01-ci-revoke/logs/build-network-service.stderr.txt",
+      "sha256": "6bfa9e18ffdef821c711a542cfebd7db0982665615563e5a191285e489609c6f",
+      "size_bytes": 62
+    },
+    {
+      "path": "build/n01-ci-revoke/logs/build-network-service.stdout.txt",
+      "sha256": "97adeaecf4f16588e969014f7df433afa11964d1c2486778fbc97485600f1c4b",
+      "size_bytes": 2453
+    },
+    {
+      "path": "build/n01-ci-revoke/logs/build-system-keyring.stderr.txt",
+      "sha256": "6bfa9e18ffdef821c711a542cfebd7db0982665615563e5a191285e489609c6f",
+      "size_bytes": 62
+    },
+    {
+      "path": "build/n01-ci-revoke/logs/build-system-keyring.stdout.txt",
+      "sha256": "4c6b0f7ed8bbed0f77559a00e140b6f741231c5e1993b8d7911ccb3d610e7dbc",
+      "size_bytes": 335
+    },
+    {
+      "path": "build/n01-ci-revoke/logs/build-system-system.stderr.txt",
+      "sha256": "6bfa9e18ffdef821c711a542cfebd7db0982665615563e5a191285e489609c6f",
+      "size_bytes": 62
+    },
+    {
+      "path": "build/n01-ci-revoke/logs/build-system-system.stdout.txt",
+      "sha256": "7e829970c87df39942d426981d03108d7cfe92ac752980182adebbfa4f54db08",
+      "size_bytes": 333
+    },
+    {
+      "path": "build/n01-ci-revoke/logs/build-system-volume.stderr.txt",
+      "sha256": "6bfa9e18ffdef821c711a542cfebd7db0982665615563e5a191285e489609c6f",
+      "size_bytes": 62
+    },
+    {
+      "path": "build/n01-ci-revoke/logs/build-system-volume.stdout.txt",
+      "sha256": "9cbae8c6dbe4f25fe12bd7c74e6ef0d1386ad350c1fa91745e9e7bfa621c175d",
+      "size_bytes": 338
+    },
+    {
+      "path": "build/n01-ci-revoke/logs/build-test-net-service-revoke-os-kernel.stderr.txt",
+      "sha256": "1767914f9bb7725768e1ae4d8b17236a14961ce936357385e87d8bbc39e2b347",
+      "size_bytes": 1253
+    },
+    {
+      "path": "build/n01-ci-revoke/logs/build-test-net-service-revoke-os-kernel.stdout.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "build/n01-ci-revoke/logs/build-test-net-service-revoke-os-loader.stderr.txt",
+      "sha256": "6bfa9e18ffdef821c711a542cfebd7db0982665615563e5a191285e489609c6f",
+      "size_bytes": 62
+    },
+    {
+      "path": "build/n01-ci-revoke/logs/build-test-net-service-revoke-os-loader.stdout.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "build/n01-ci-revoke/run/network-service-revoke-398ffdb5b8aa4ffaa978ae6c8cf9b8cf/serial.txt",
+      "sha256": "028c9f118274791c1637ebf66415fbff5e72cfa8d27b6bb857ae29e1d7f20a60",
+      "size_bytes": 5616
+    },
+    {
+      "path": "build/n01-ci-revoke/run/network-service-revoke-398ffdb5b8aa4ffaa978ae6c8cf9b8cf/stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    }
+  ],
+  "retained_bytes": 1009544,
+  "schema_version": 1,
+  "scope": "Compact reports only; binary/raw-image retention and upload availability are separate.",
+  "source": {
+    "checkout_sha": "4faa2b40c18257fb8bf5ba85bfef78d49d240a53",
+    "github_sha": "4faa2b40c18257fb8bf5ba85bfef78d49d240a53",
+    "job": "native-network-service",
+    "run_attempt": "1",
+    "run_id": "45308625592"
+  },
+  "unretained_required_paths": [],
+  "warnings": []
+}

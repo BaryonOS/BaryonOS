@@ -2,13 +2,13 @@
   "schema_version": 1,
   "rubric_version": 1,
   "assessment": {
-    "date": "2026-11-23",
-    "source_commit": "c24e7a74f6ca87d6adf6532971b5aaa1a11b5a4c",
+    "date": "2026-11-24",
+    "source_commit": "855f6509e2a2cf126f6245ef4571721c0a3610d6",
     "assessment_basis": "parent_commit",
-    "branch": "claude/h05-cr-followup-20261123",
-    "task": "H02-T4 native USB mouse reattach (PR #461) and CodeRabbit S3 follow-ups (review 6022999851: volume 0x40 post-wake codes, init probes after the tick)",
+    "branch": "integration/drain-ui-final",
+    "task": "PR backlog integration and final UI/input source checkpoint",
     "previous_score": 41,
-    "summary": "41/100 unchanged. H02-T4 adds a native same-port mouse reattach with cross-device slot reuse in QEMU; hosted QEMU 8.2.2 acceptance and physical hotplug evidence remain open. The S3 follow-ups tighten the post-wake volume codes and the tick ordering of init's probes; H02 and H05 still need hosted runs and physical acceptance, so no criterion changes."
+    "summary": "41/100 unchanged. This checkpoint records the integrated PR contributions and their source-bound evidence; it changes no criterion state, weight, acceptance description or evidence. Search S3, the read-only service-refusal walkthrough, the specified UI defects and physical/human acceptance remain open. Native acceptance and main inclusion are established separately by the integration PR receipts."
   },
   "tracks": [
     {

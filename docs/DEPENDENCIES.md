@@ -50,7 +50,7 @@ no allocator or external dependencies, and `forbid(unsafe_code)` in the core.
 The native adapter uses existing fixed syscall buffers and a justified
 unsafe boundary. That historical M6b baseline retained `r-efi 7.1.0`. The current loader pin is `r-efi 7.2.0`; its registry checksum, VCS reference, unchanged feature/dependency set and retained MIT notice are recorded in [the current boot dependency inventory](third-party/README.md).
 
-The SDK runtime now directly uses `zeroize 1.9.1` (exactly pinned,
+The SDK runtime now directly uses `zeroize 1.9.2` (exactly pinned,
 `default-features = false`) to erase IPC envelopes. This is the same
 RustCrypto dependency already used in `services/keyring`; the pinned crate
 is `no_std`, has no transitive dependency or build script in this

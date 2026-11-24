@@ -1,0 +1,544 @@
+{
+  "collected_at": "2026-11-24T02:02:48.593591+00:00",
+  "evidence_state": "compact-reports-retained",
+  "job_status_before_archive": "success",
+  "limits": {
+    "file_bytes": 1048576,
+    "files_including_receipt": 500,
+    "total_bytes_including_receipt": 8388608
+  },
+  "missing_patterns": [],
+  "name": "native-network-extensions-evidence",
+  "omitted": [
+    {
+      "path": "build/n04-ci-port-sweep/run/network-service-port-sweep-e7ba6c19aaa14228b8d18fc812e694dc/network-sweep.jsonl",
+      "reason": "not-compact-report-type",
+      "size_bytes": 39890212
+    }
+  ],
+  "omitted_count": 1,
+  "omitted_list_truncated_count": 0,
+  "omitted_reason_counts": {
+    "not-compact-report-type": 1
+  },
+  "required_paths": [
+    "build/n02-ci-dhcp/network-dhcp-report.json",
+    "build/n02-ci-link/network-dhcp-link-report.json",
+    "build/n02-ci-route/network-dhcp-route-report.json",
+    "build/n04-ci-port-sweep/network-service-port-sweep-report.json"
+  ],
+  "retained": [
+    {
+      "path": "build/n02-ci-dhcp/logs/build-network-service.json",
+      "sha256": "5a9c3c91060c95528ea85e34b8d23f23243dd0089a0059fcc9abf44bb96fa5d0",
+      "size_bytes": 311
+    },
+    {
+      "path": "build/n02-ci-dhcp/logs/build-system-keyring.json",
+      "sha256": "e2bbac82a210e6e7bac675a08f6d955ee36f6f9ec5131d4f97da11a48dcb8e74",
+      "size_bytes": 304
+    },
+    {
+      "path": "build/n02-ci-dhcp/logs/build-system-system.json",
+      "sha256": "018bf1c75fe69e0fbc2a300528f765093b723fc8902ba8688309a0d1f5eea439",
+      "size_bytes": 304
+    },
+    {
+      "path": "build/n02-ci-dhcp/logs/build-system-volume.json",
+      "sha256": "d4349c526913bf057cff59a6ad0958b40f6509a375826e369b4bd05684ecc6c4",
+      "size_bytes": 308
+    },
+    {
+      "path": "build/n02-ci-dhcp/logs/build-test-net-service-dhcp-manifest.json",
+      "sha256": "4a29788230236d9f8534530ce0bc7cf35711be1463e13a89a6ec1f4fa838e6ab",
+      "size_bytes": 13026
+    },
+    {
+      "path": "build/n02-ci-dhcp/logs/build-test-net-service-dhcp-os-kernel.json",
+      "sha256": "0f234402af4b6902b8b0fdbbfc239aeeb63e9fd3ceb6dee670129372a2aecc21",
+      "size_bytes": 467
+    },
+    {
+      "path": "build/n02-ci-dhcp/logs/build-test-net-service-dhcp-os-loader.json",
+      "sha256": "719f8ceb722b575356bf60a61bf3b8918429751840a971a9d5f0f89ccd76753b",
+      "size_bytes": 420
+    },
+    {
+      "path": "build/n02-ci-dhcp/manifest.json",
+      "sha256": "4a29788230236d9f8534530ce0bc7cf35711be1463e13a89a6ec1f4fa838e6ab",
+      "size_bytes": 13026
+    },
+    {
+      "path": "build/n02-ci-dhcp/network-dhcp-report.json",
+      "sha256": "90eef14a1ff31408d912a6176f169534d0b142cca11826b47c00c38e42975514",
+      "size_bytes": 67312
+    },
+    {
+      "path": "build/n02-ci-dhcp/run/network-dhcp-c0910b2f9df74ea7833e2033a62ceb79/network-peer.json",
+      "sha256": "026b80681f9fab1558e40c70c402f2ed2c4dc6b0f28f1d795e89aabc8ef8b83e",
+      "size_bytes": 38434
+    },
+    {
+      "path": "build/n02-ci-dhcp/run/network-dhcp-c0910b2f9df74ea7833e2033a62ceb79/result.json",
+      "sha256": "90eef14a1ff31408d912a6176f169534d0b142cca11826b47c00c38e42975514",
+      "size_bytes": 67312
+    },
+    {
+      "path": "build/n02-ci-link/logs/build-network-service.json",
+      "sha256": "27f6eee95c6396b3ff8d57a8a1c550f5b9298dcfc60a6b4643d43e43305f811f",
+      "size_bytes": 314
+    },
+    {
+      "path": "build/n02-ci-link/logs/build-system-keyring.json",
+      "sha256": "01ec8f384532d724709281fa54625a5e53d300ebb7d9559fd788a9fbec6f7f87",
+      "size_bytes": 305
+    },
+    {
+      "path": "build/n02-ci-link/logs/build-system-system.json",
+      "sha256": "b99062179cca9a2ac3777d3b4771f3a36075be6f2f9c0532d611769e1c8ae642",
+      "size_bytes": 305
+    },
+    {
+      "path": "build/n02-ci-link/logs/build-system-volume.json",
+      "sha256": "7eb771f5b4ea8140e0756fc5675101795b88b866f743cb9601a8de5385a6ed69",
+      "size_bytes": 310
+    },
+    {
+      "path": "build/n02-ci-link/logs/build-test-net-service-link-manifest.json",
+      "sha256": "1283298296b505be8da374346d56b73222fa43e9fe26568ca1d003aaaa3cb3ed",
+      "size_bytes": 13026
+    },
+    {
+      "path": "build/n02-ci-link/logs/build-test-net-service-link-os-kernel.json",
+      "sha256": "213789409c7a98cf0681a70e0cec3ec28a1725eea051d79672a5d3d47cdf3e35",
+      "size_bytes": 467
+    },
+    {
+      "path": "build/n02-ci-link/logs/build-test-net-service-link-os-loader.json",
+      "sha256": "d21ca2ae5532f030e8ac3018801d636c9b4476bbc8dca98af0713f3f730fff2b",
+      "size_bytes": 421
+    },
+    {
+      "path": "build/n02-ci-link/manifest.json",
+      "sha256": "1283298296b505be8da374346d56b73222fa43e9fe26568ca1d003aaaa3cb3ed",
+      "size_bytes": 13026
+    },
+    {
+      "path": "build/n02-ci-link/network-dhcp-link-report.json",
+      "sha256": "ce84e8818d93416ecfe922dffe120a660a10e2ec3aa1d4173769fb6d87d63be0",
+      "size_bytes": 70647
+    },
+    {
+      "path": "build/n02-ci-link/run/network-dhcp-1e27765c91674020a2f54b626e07e767/network-peer.json",
+      "sha256": "a09e2beea1600e415884285d4855ff3f6f90f0b7db21d554149cddc6a8cb55fb",
+      "size_bytes": 36530
+    },
+    {
+      "path": "build/n02-ci-link/run/network-dhcp-1e27765c91674020a2f54b626e07e767/result.json",
+      "sha256": "ce84e8818d93416ecfe922dffe120a660a10e2ec3aa1d4173769fb6d87d63be0",
+      "size_bytes": 70647
+    },
+    {
+      "path": "build/n02-ci-route/logs/build-network-service.json",
+      "sha256": "a31397c513c8f12432f8d83dc70c4ab169a7e234bcf7556e12bae1f687e24226",
+      "size_bytes": 314
+    },
+    {
+      "path": "build/n02-ci-route/logs/build-system-keyring.json",
+      "sha256": "7efc9cbfcace9dcb3e978eda79478f0b57ce2439e041aad65273825d68850485",
+      "size_bytes": 305
+    },
+    {
+      "path": "build/n02-ci-route/logs/build-system-system.json",
+      "sha256": "bdac841b9746e3ff636f7d69290a429c3a9ff74a0883c0faf55678e2f3cabc26",
+      "size_bytes": 305
+    },
+    {
+      "path": "build/n02-ci-route/logs/build-system-volume.json",
+      "sha256": "8629a66be14fe3fa3e63ee96e090a05d7e0658d5e6bddd546d7c2bbf790f1529",
+      "size_bytes": 310
+    },
+    {
+      "path": "build/n02-ci-route/logs/build-test-net-service-dhcp-manifest.json",
+      "sha256": "4a29788230236d9f8534530ce0bc7cf35711be1463e13a89a6ec1f4fa838e6ab",
+      "size_bytes": 13026
+    },
+    {
+      "path": "build/n02-ci-route/logs/build-test-net-service-dhcp-os-kernel.json",
+      "sha256": "eae2365807def38aa50536fe38fd002a1d439a5b036ef3de5cd419ee7c63cdba",
+      "size_bytes": 467
+    },
+    {
+      "path": "build/n02-ci-route/logs/build-test-net-service-dhcp-os-loader.json",
+      "sha256": "177e90673d9d77b76cc5e20b8256b70f420240718dae58c190e9c062bb11e81c",
+      "size_bytes": 420
+    },
+    {
+      "path": "build/n02-ci-route/manifest.json",
+      "sha256": "4a29788230236d9f8534530ce0bc7cf35711be1463e13a89a6ec1f4fa838e6ab",
+      "size_bytes": 13026
+    },
+    {
+      "path": "build/n02-ci-route/network-dhcp-route-report.json",
+      "sha256": "01531d10c7c0e119dbfea4d19e89ab103a01c62a2710af70f8f063884ecd2f0f",
+      "size_bytes": 67573
+    },
+    {
+      "path": "build/n02-ci-route/run/network-dhcp-8881bb7ab33b4a2a8cab59a208cd9208/network-peer.json",
+      "sha256": "712b77ee764f54a6c5374c0c5598b5df1fa0c4ca84ef2c03e5b87f495b0e7d09",
+      "size_bytes": 38513
+    },
+    {
+      "path": "build/n02-ci-route/run/network-dhcp-8881bb7ab33b4a2a8cab59a208cd9208/result.json",
+      "sha256": "01531d10c7c0e119dbfea4d19e89ab103a01c62a2710af70f8f063884ecd2f0f",
+      "size_bytes": 67573
+    },
+    {
+      "path": "build/n04-ci-port-sweep/logs/build-network-service.json",
+      "sha256": "6d67822dfeccbbc5837cfef57ed21efa1565ec38a6a9985d641c56531f5a42b5",
+      "size_bytes": 314
+    },
+    {
+      "path": "build/n04-ci-port-sweep/logs/build-system-keyring.json",
+      "sha256": "1d1156fae002c0ea827088ec180fdc47d06727dda18227143282e70e39bf1a71",
+      "size_bytes": 306
+    },
+    {
+      "path": "build/n04-ci-port-sweep/logs/build-system-system.json",
+      "sha256": "46b477c3ddee9c33b9bb4c141df685e24c3788843d4071a5d7441a7b8ed5cf2f",
+      "size_bytes": 304
+    },
+    {
+      "path": "build/n04-ci-port-sweep/logs/build-system-volume.json",
+      "sha256": "80e3955ec6b943d21f87833c286e2678365b505161511cbad56e53a64c3451ac",
+      "size_bytes": 310
+    },
+    {
+      "path": "build/n04-ci-port-sweep/logs/build-test-net-service-port-sweep-manifest.json",
+      "sha256": "3e3ca8c4a9352dd524de30e7bcdd3ea8822289ae4fd9bfd724d4ad9a842e813f",
+      "size_bytes": 13038
+    },
+    {
+      "path": "build/n04-ci-port-sweep/logs/build-test-net-service-port-sweep-os-kernel.json",
+      "sha256": "0ebabe63b89bb9267667af56360d90d94107daf74bc9644fcc876d24d6294261",
+      "size_bytes": 473
+    },
+    {
+      "path": "build/n04-ci-port-sweep/logs/build-test-net-service-port-sweep-os-loader.json",
+      "sha256": "577e3727627198e4982a93c7e96d4e73f32b6768f67bc3ae12de6a37cf5ff9f7",
+      "size_bytes": 421
+    },
+    {
+      "path": "build/n04-ci-port-sweep/manifest.json",
+      "sha256": "3e3ca8c4a9352dd524de30e7bcdd3ea8822289ae4fd9bfd724d4ad9a842e813f",
+      "size_bytes": 13038
+    },
+    {
+      "path": "build/n04-ci-port-sweep/network-service-port-sweep-report.json",
+      "sha256": "6421aba717ae9c1a98c3607fb32f270cd8696e14cd274d5a3cecc5f950bd74c9",
+      "size_bytes": 44570
+    },
+    {
+      "path": "build/n04-ci-port-sweep/run/network-service-port-sweep-e7ba6c19aaa14228b8d18fc812e694dc/network-peer.json",
+      "sha256": "abea0e3aa595ad25f09897799b8f4e702e91bd5d4476ed252c5e9dc23837bb34",
+      "size_bytes": 17671
+    },
+    {
+      "path": "build/n04-ci-port-sweep/run/network-service-port-sweep-e7ba6c19aaa14228b8d18fc812e694dc/result.json",
+      "sha256": "6421aba717ae9c1a98c3607fb32f270cd8696e14cd274d5a3cecc5f950bd74c9",
+      "size_bytes": 44570
+    },
+    {
+      "path": "build/n02-ci-dhcp/logs/build-network-service.stderr.txt",
+      "sha256": "b50c0ad426281d04c5f690abccbe24de23cedc750e97f01b9393460c2a103af5",
+      "size_bytes": 1342
+    },
+    {
+      "path": "build/n02-ci-dhcp/logs/build-network-service.stdout.txt",
+      "sha256": "91bf3936582e4389efb6afa1fc6eb0f8dcfd89ed22ae1dcf7302adb848f06fb8",
+      "size_bytes": 2465
+    },
+    {
+      "path": "build/n02-ci-dhcp/logs/build-system-keyring.stderr.txt",
+      "sha256": "cb99d1c9d3e62f91dae4f4228f8b73745409b00ff9b391148fa32e073cb97a1b",
+      "size_bytes": 1111
+    },
+    {
+      "path": "build/n02-ci-dhcp/logs/build-system-keyring.stdout.txt",
+      "sha256": "4a95f5acc6a2eaf1bc6ff376880d6ddcc8193d06d15b328b2ce348bbbbf28d1e",
+      "size_bytes": 339
+    },
+    {
+      "path": "build/n02-ci-dhcp/logs/build-system-system.stderr.txt",
+      "sha256": "3bc51893a0e9c2b9e322777dd7ade138ad05d067aee2c63ff71f5e350d464982",
+      "size_bytes": 1590
+    },
+    {
+      "path": "build/n02-ci-dhcp/logs/build-system-system.stdout.txt",
+      "sha256": "d366ced3d78a8d44a427d796b09e72918e494edaae2567ceb113e92f6bdecd0d",
+      "size_bytes": 337
+    },
+    {
+      "path": "build/n02-ci-dhcp/logs/build-system-volume.stderr.txt",
+      "sha256": "9ef750ff7d2464ad17770add10f89c550054a1d249526d798fb3725e3643da21",
+      "size_bytes": 467
+    },
+    {
+      "path": "build/n02-ci-dhcp/logs/build-system-volume.stdout.txt",
+      "sha256": "a511e54ab82e8658d63fe128a9a3ff62a816dc13979ff28bdb42b03548e81d5f",
+      "size_bytes": 342
+    },
+    {
+      "path": "build/n02-ci-dhcp/logs/build-test-net-service-dhcp-os-kernel.stderr.txt",
+      "sha256": "24d71e98f3c68354bca6e829051b5c4e5b76d029c2fc93d027988270c4b1eb7e",
+      "size_bytes": 2077
+    },
+    {
+      "path": "build/n02-ci-dhcp/logs/build-test-net-service-dhcp-os-kernel.stdout.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "build/n02-ci-dhcp/logs/build-test-net-service-dhcp-os-loader.stderr.txt",
+      "sha256": "cd16f52b126a45c6e21dfd7ad9c29281392c914961f64f02731fc0c827067e5b",
+      "size_bytes": 358
+    },
+    {
+      "path": "build/n02-ci-dhcp/logs/build-test-net-service-dhcp-os-loader.stdout.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "build/n02-ci-dhcp/run/network-dhcp-c0910b2f9df74ea7833e2033a62ceb79/serial.txt",
+      "sha256": "9cf6f1263fe821b37a2c9f186bbae0d5a6508c88fa8e9b604e49bc83d32035fb",
+      "size_bytes": 6737
+    },
+    {
+      "path": "build/n02-ci-dhcp/run/network-dhcp-c0910b2f9df74ea7833e2033a62ceb79/stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "build/n02-ci-link/logs/build-network-service.stderr.txt",
+      "sha256": "6bfa9e18ffdef821c711a542cfebd7db0982665615563e5a191285e489609c6f",
+      "size_bytes": 62
+    },
+    {
+      "path": "build/n02-ci-link/logs/build-network-service.stdout.txt",
+      "sha256": "91bf3936582e4389efb6afa1fc6eb0f8dcfd89ed22ae1dcf7302adb848f06fb8",
+      "size_bytes": 2465
+    },
+    {
+      "path": "build/n02-ci-link/logs/build-system-keyring.stderr.txt",
+      "sha256": "6bfa9e18ffdef821c711a542cfebd7db0982665615563e5a191285e489609c6f",
+      "size_bytes": 62
+    },
+    {
+      "path": "build/n02-ci-link/logs/build-system-keyring.stdout.txt",
+      "sha256": "4a95f5acc6a2eaf1bc6ff376880d6ddcc8193d06d15b328b2ce348bbbbf28d1e",
+      "size_bytes": 339
+    },
+    {
+      "path": "build/n02-ci-link/logs/build-system-system.stderr.txt",
+      "sha256": "6bfa9e18ffdef821c711a542cfebd7db0982665615563e5a191285e489609c6f",
+      "size_bytes": 62
+    },
+    {
+      "path": "build/n02-ci-link/logs/build-system-system.stdout.txt",
+      "sha256": "d366ced3d78a8d44a427d796b09e72918e494edaae2567ceb113e92f6bdecd0d",
+      "size_bytes": 337
+    },
+    {
+      "path": "build/n02-ci-link/logs/build-system-volume.stderr.txt",
+      "sha256": "6bfa9e18ffdef821c711a542cfebd7db0982665615563e5a191285e489609c6f",
+      "size_bytes": 62
+    },
+    {
+      "path": "build/n02-ci-link/logs/build-system-volume.stdout.txt",
+      "sha256": "a511e54ab82e8658d63fe128a9a3ff62a816dc13979ff28bdb42b03548e81d5f",
+      "size_bytes": 342
+    },
+    {
+      "path": "build/n02-ci-link/logs/build-test-net-service-link-os-kernel.stderr.txt",
+      "sha256": "ffa7106151d490c282f3e2948e6a622b421c00142b7ad3251f95399e96a95a8c",
+      "size_bytes": 1253
+    },
+    {
+      "path": "build/n02-ci-link/logs/build-test-net-service-link-os-kernel.stdout.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "build/n02-ci-link/logs/build-test-net-service-link-os-loader.stderr.txt",
+      "sha256": "6bfa9e18ffdef821c711a542cfebd7db0982665615563e5a191285e489609c6f",
+      "size_bytes": 62
+    },
+    {
+      "path": "build/n02-ci-link/logs/build-test-net-service-link-os-loader.stdout.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "build/n02-ci-link/run/network-dhcp-1e27765c91674020a2f54b626e07e767/serial.txt",
+      "sha256": "2b6ce0e9c11b1c1d3fd643e690baa1a22d68cede9e9904fb7056e57da755bf9f",
+      "size_bytes": 8744
+    },
+    {
+      "path": "build/n02-ci-link/run/network-dhcp-1e27765c91674020a2f54b626e07e767/stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "build/n02-ci-route/logs/build-network-service.stderr.txt",
+      "sha256": "6bfa9e18ffdef821c711a542cfebd7db0982665615563e5a191285e489609c6f",
+      "size_bytes": 62
+    },
+    {
+      "path": "build/n02-ci-route/logs/build-network-service.stdout.txt",
+      "sha256": "91bf3936582e4389efb6afa1fc6eb0f8dcfd89ed22ae1dcf7302adb848f06fb8",
+      "size_bytes": 2465
+    },
+    {
+      "path": "build/n02-ci-route/logs/build-system-keyring.stderr.txt",
+      "sha256": "6bfa9e18ffdef821c711a542cfebd7db0982665615563e5a191285e489609c6f",
+      "size_bytes": 62
+    },
+    {
+      "path": "build/n02-ci-route/logs/build-system-keyring.stdout.txt",
+      "sha256": "4a95f5acc6a2eaf1bc6ff376880d6ddcc8193d06d15b328b2ce348bbbbf28d1e",
+      "size_bytes": 339
+    },
+    {
+      "path": "build/n02-ci-route/logs/build-system-system.stderr.txt",
+      "sha256": "6bfa9e18ffdef821c711a542cfebd7db0982665615563e5a191285e489609c6f",
+      "size_bytes": 62
+    },
+    {
+      "path": "build/n02-ci-route/logs/build-system-system.stdout.txt",
+      "sha256": "d366ced3d78a8d44a427d796b09e72918e494edaae2567ceb113e92f6bdecd0d",
+      "size_bytes": 337
+    },
+    {
+      "path": "build/n02-ci-route/logs/build-system-volume.stderr.txt",
+      "sha256": "6bfa9e18ffdef821c711a542cfebd7db0982665615563e5a191285e489609c6f",
+      "size_bytes": 62
+    },
+    {
+      "path": "build/n02-ci-route/logs/build-system-volume.stdout.txt",
+      "sha256": "a511e54ab82e8658d63fe128a9a3ff62a816dc13979ff28bdb42b03548e81d5f",
+      "size_bytes": 342
+    },
+    {
+      "path": "build/n02-ci-route/logs/build-test-net-service-dhcp-os-kernel.stderr.txt",
+      "sha256": "ff0758cac2968baeb08fd20ccabad916776614b13f753596859d14cf74e26ccf",
+      "size_bytes": 1253
+    },
+    {
+      "path": "build/n02-ci-route/logs/build-test-net-service-dhcp-os-kernel.stdout.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "build/n02-ci-route/logs/build-test-net-service-dhcp-os-loader.stderr.txt",
+      "sha256": "6bfa9e18ffdef821c711a542cfebd7db0982665615563e5a191285e489609c6f",
+      "size_bytes": 62
+    },
+    {
+      "path": "build/n02-ci-route/logs/build-test-net-service-dhcp-os-loader.stdout.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "build/n02-ci-route/run/network-dhcp-8881bb7ab33b4a2a8cab59a208cd9208/serial.txt",
+      "sha256": "a4c575fddb1d4274458451287fc47b8be205b46b6c7b572a36c561c082458e0d",
+      "size_bytes": 6737
+    },
+    {
+      "path": "build/n02-ci-route/run/network-dhcp-8881bb7ab33b4a2a8cab59a208cd9208/stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "build/n04-ci-port-sweep/logs/build-network-service.stderr.txt",
+      "sha256": "6bfa9e18ffdef821c711a542cfebd7db0982665615563e5a191285e489609c6f",
+      "size_bytes": 62
+    },
+    {
+      "path": "build/n04-ci-port-sweep/logs/build-network-service.stdout.txt",
+      "sha256": "91bf3936582e4389efb6afa1fc6eb0f8dcfd89ed22ae1dcf7302adb848f06fb8",
+      "size_bytes": 2465
+    },
+    {
+      "path": "build/n04-ci-port-sweep/logs/build-system-keyring.stderr.txt",
+      "sha256": "6bfa9e18ffdef821c711a542cfebd7db0982665615563e5a191285e489609c6f",
+      "size_bytes": 62
+    },
+    {
+      "path": "build/n04-ci-port-sweep/logs/build-system-keyring.stdout.txt",
+      "sha256": "4a95f5acc6a2eaf1bc6ff376880d6ddcc8193d06d15b328b2ce348bbbbf28d1e",
+      "size_bytes": 339
+    },
+    {
+      "path": "build/n04-ci-port-sweep/logs/build-system-system.stderr.txt",
+      "sha256": "6bfa9e18ffdef821c711a542cfebd7db0982665615563e5a191285e489609c6f",
+      "size_bytes": 62
+    },
+    {
+      "path": "build/n04-ci-port-sweep/logs/build-system-system.stdout.txt",
+      "sha256": "d366ced3d78a8d44a427d796b09e72918e494edaae2567ceb113e92f6bdecd0d",
+      "size_bytes": 337
+    },
+    {
+      "path": "build/n04-ci-port-sweep/logs/build-system-volume.stderr.txt",
+      "sha256": "6bfa9e18ffdef821c711a542cfebd7db0982665615563e5a191285e489609c6f",
+      "size_bytes": 62
+    },
+    {
+      "path": "build/n04-ci-port-sweep/logs/build-system-volume.stdout.txt",
+      "sha256": "a511e54ab82e8658d63fe128a9a3ff62a816dc13979ff28bdb42b03548e81d5f",
+      "size_bytes": 342
+    },
+    {
+      "path": "build/n04-ci-port-sweep/logs/build-test-net-service-port-sweep-os-kernel.stderr.txt",
+      "sha256": "d69232949d427d9df2a6617754cc3aee3d66716a40702bbd7d5b2e3b74778820",
+      "size_bytes": 1253
+    },
+    {
+      "path": "build/n04-ci-port-sweep/logs/build-test-net-service-port-sweep-os-kernel.stdout.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "build/n04-ci-port-sweep/logs/build-test-net-service-port-sweep-os-loader.stderr.txt",
+      "sha256": "6bfa9e18ffdef821c711a542cfebd7db0982665615563e5a191285e489609c6f",
+      "size_bytes": 62
+    },
+    {
+      "path": "build/n04-ci-port-sweep/logs/build-test-net-service-port-sweep-os-loader.stdout.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "build/n04-ci-port-sweep/run/network-service-port-sweep-e7ba6c19aaa14228b8d18fc812e694dc/serial.txt",
+      "sha256": "608af1f1b66fffd5284a2b26fbe6d900a15397647df680d0e0112428c6839dae",
+      "size_bytes": 5771
+    },
+    {
+      "path": "build/n04-ci-port-sweep/run/network-service-port-sweep-e7ba6c19aaa14228b8d18fc812e694dc/stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    }
+  ],
+  "retained_bytes": 797624,
+  "schema_version": 1,
+  "scope": "Compact reports only; binary/raw-image retention and upload availability are separate.",
+  "source": {
+    "checkout_sha": "4faa2b40c18257fb8bf5ba85bfef78d49d240a53",
+    "github_sha": "4faa2b40c18257fb8bf5ba85bfef78d49d240a53",
+    "job": "native-network-extensions",
+    "run_attempt": "1",
+    "run_id": "45308625592"
+  },
+  "unretained_required_paths": [],
+  "warnings": []
+}

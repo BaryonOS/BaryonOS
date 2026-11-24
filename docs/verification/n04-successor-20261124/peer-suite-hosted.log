@@ -1,0 +1,81 @@
+2026-11-24T01:58:03.7057879Z ##[group]Run cargo +1.100.0 test --offline --locked --manifest-path services/network-service/protocol/Cargo.toml
+2026-11-24T01:58:03.7058784Z [36;1mcargo +1.100.0 test --offline --locked --manifest-path services/network-service/protocol/Cargo.toml[0m
+2026-11-24T01:58:03.7059494Z [36;1mcargo +1.100.0 test --offline --locked --manifest-path sdk/net-client/Cargo.toml[0m
+2026-11-24T01:58:03.7060195Z [36;1mpython3 -B -m unittest discover -s tools -p test_network_service_peer.py[0m
+2026-11-24T01:58:03.7088537Z shell: /usr/bin/bash -e {0}
+2026-11-24T01:58:03.7088842Z env:
+2026-11-24T01:58:03.7089090Z   NOS_QEMU_MACHINE: pc-q35-8.2
+2026-11-24T01:58:03.7089437Z   NOS_TARGET_DIR: /home/runner/work/BaryonOS/BaryonOS/target/n01-ci-native
+2026-11-24T01:58:03.7089846Z   CARGO_TARGET_DIR: /home/runner/work/BaryonOS/BaryonOS/target/n01-ci-host
+2026-11-24T01:58:03.7090258Z   OS_OVMF_CODE: /usr/share/OVMF/OVMF_CODE_4M.fd
+2026-11-24T01:58:03.7090700Z   OS_OVMF_VARS: /usr/share/OVMF/OVMF_VARS_4M.fd
+2026-11-24T01:58:03.7091131Z   pythonLocation: /opt/hostedtoolcache/Python/3.12.12/x64
+2026-11-24T01:58:03.7091607Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.12.12/x64/lib/pkgconfig
+2026-11-24T01:58:03.7092105Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.12/x64
+2026-11-24T01:58:03.7092598Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.12/x64
+2026-11-24T01:58:03.7093222Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.12/x64
+2026-11-24T01:58:03.7093653Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.12.12/x64/lib
+2026-11-24T01:58:03.7093956Z ##[endgroup]
+2026-11-24T01:58:03.7417267Z    Compiling nieuw-os-network-protocol v0.1.0 (/home/runner/work/BaryonOS/BaryonOS/services/network-service/protocol)
+2026-11-24T01:58:04.0093578Z     Finished `test` profile [unoptimized + debuginfo] target(s) in 0.28s
+2026-11-24T01:58:04.0096219Z      Running unittests src/lib.rs (target/n01-ci-host/debug/build/nieuw-os-network-protocol/e753a26756cf2644/out/nieuw_os_network_protocol-e753a26756cf2644)
+2026-11-24T01:58:04.0103768Z 
+2026-11-24T01:58:04.0104014Z running 0 tests
+2026-11-24T01:58:04.0104214Z 
+2026-11-24T01:58:04.0104505Z test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+2026-11-24T01:58:04.0104792Z 
+2026-11-24T01:58:04.0105242Z      Running tests/wire.rs (target/n01-ci-host/debug/build/nieuw-os-network-protocol/dc53db11fbefe1f1/out/wire-dc53db11fbefe1f1)
+2026-11-24T01:58:04.0111545Z 
+2026-11-24T01:58:04.0111663Z running 5 tests
+2026-11-24T01:58:04.0113843Z test every_reply_is_bound_to_the_full_request ... ok
+2026-11-24T01:58:04.0114580Z test negative_replies_cannot_smuggle_data_or_unknown_state ... ok
+2026-11-24T01:58:04.0115147Z test requests_cannot_set_result_status_or_open_with_a_token ... ok
+2026-11-24T01:58:04.0115946Z test resolve_names_and_address_replies_are_strictly_bounded ... ok
+2026-11-24T01:58:04.0117632Z test payload_and_reserved_boundaries_are_checked_before_use ... ok
+2026-11-24T01:58:04.0117997Z 
+2026-11-24T01:58:04.0118197Z test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+2026-11-24T01:58:04.0118558Z 
+2026-11-24T01:58:04.0118958Z    Doc-tests nieuw_os_network_protocol
+2026-11-24T01:58:04.0241147Z 
+2026-11-24T01:58:04.0241524Z running 0 tests
+2026-11-24T01:58:04.0241772Z 
+2026-11-24T01:58:04.0242010Z test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+2026-11-24T01:58:04.0242373Z 
+2026-11-24T01:58:04.0386077Z    Compiling zeroize v1.9.2
+2026-11-24T01:58:04.0386835Z    Compiling catalog-core v0.1.0 (/home/runner/work/BaryonOS/BaryonOS/services/catalog)
+2026-11-24T01:58:04.0387838Z    Compiling nieuw-os-network-protocol v0.1.0 (/home/runner/work/BaryonOS/BaryonOS/services/network-service/protocol)
+2026-11-24T01:58:04.0388557Z    Compiling capability-core v0.1.0 (/home/runner/work/BaryonOS/BaryonOS/crates/capability-core)
+2026-11-24T01:58:04.1338547Z    Compiling nieuw-os-sdk-runtime v0.1.0 (/home/runner/work/BaryonOS/BaryonOS/sdk/runtime)
+2026-11-24T01:58:04.2059046Z    Compiling nieuw-os-catalog-client v0.1.0 (/home/runner/work/BaryonOS/BaryonOS/sdk/catalog-client)
+2026-11-24T01:58:04.2267277Z    Compiling nieuw-os-net-client v0.1.0 (/home/runner/work/BaryonOS/BaryonOS/sdk/net-client)
+2026-11-24T01:58:04.4643018Z     Finished `test` profile [unoptimized + debuginfo] target(s) in 0.43s
+2026-11-24T01:58:04.4645895Z      Running unittests src/lib.rs (target/n01-ci-host/debug/build/nieuw-os-net-client/a8d30b35d3e75092/out/nieuw_os_net_client-a8d30b35d3e75092)
+2026-11-24T01:58:04.4652957Z 
+2026-11-24T01:58:04.4653064Z running 0 tests
+2026-11-24T01:58:04.4653256Z 
+2026-11-24T01:58:04.4653490Z test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+2026-11-24T01:58:04.4653859Z 
+2026-11-24T01:58:04.4654820Z      Running tests/client.rs (target/n01-ci-host/debug/build/nieuw-os-net-client/037ae38043572b95/out/client-037ae38043572b95)
+2026-11-24T01:58:04.4661867Z 
+2026-11-24T01:58:04.4662175Z running 7 tests
+2026-11-24T01:58:04.4663125Z test buffers_are_rejected_before_any_exchange ... ok
+2026-11-24T01:58:04.4665261Z test eagain_is_bounded_and_never_becomes_success ... ok
+2026-11-24T01:58:04.4666157Z test connection_and_explicit_retirement_use_the_bound_service ... ok
+2026-11-24T01:58:04.4666698Z test malformed_syscall_and_unknown_send_stop_the_session ... ok
+2026-11-24T01:58:04.4667380Z test peer_tag_request_and_received_caps_are_not_trusted ... ok
+2026-11-24T01:58:04.4667843Z test queued_mutation_is_never_resent_after_lost_reply ... ok
+2026-11-24T01:58:04.4668403Z test resolve_validates_names_locally_and_decodes_bound_addresses ... ok
+2026-11-24T01:58:04.4668743Z 
+2026-11-24T01:58:04.4668951Z test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+2026-11-24T01:58:04.4669227Z 
+2026-11-24T01:58:04.4669360Z    Doc-tests nieuw_os_net_client
+2026-11-24T01:58:04.4784240Z 
+2026-11-24T01:58:04.4784841Z running 0 tests
+2026-11-24T01:58:04.4785062Z 
+2026-11-24T01:58:04.4785408Z test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+2026-11-24T01:58:04.4785957Z 
+2026-11-24T01:58:27.1781316Z .....................................
+2026-11-24T01:58:27.1781972Z ----------------------------------------------------------------------
+2026-11-24T01:58:27.1782446Z Ran 37 tests in 22.493s
+2026-11-24T01:58:27.1782667Z 
+2026-11-24T01:58:27.1782799Z OK

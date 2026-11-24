@@ -485,11 +485,11 @@
       "criterion": "N04",
       "milestone": "M8",
       "executor": "worker",
-      "status": "blocked",
+      "status": "verified",
       "native": true,
       "title": "Native full TCP and bounded UDP listener sweep before and after revoke",
       "goal": "Validate the separate test-net-service-port-sweep profile from successor #445 through integration #478: sweep all 65,535 guest TCP ports and 16 bounded UDP ports before app traffic and after revocation/app checks, with exact RST refusals, no SYN-ACK or UDP payload, and bounded frame/time budgets. Preserve the ordinary revoke case as a separate regression; the blocked #380 prototype is superseded by this test-only profile.",
-      "why_now": "Closes the N04 'no unintended listening ports' clause using an existing kernel feature; only three TCP ports and no UDP are probed today.",
+      "why_now": "The separate successor profile now supplies the full pre/post listener sweep; ordinary revoke retains its bounded regression role. This verified source-bound engineering task does not accept the complete N04 product criterion.",
       "deps": [],
       "write_paths": [
         "tools/network_service_peer.py",
@@ -532,11 +532,25 @@
           "at": "2026-11-18T22:05:48.497612+00:00",
           "source_commit": "5acd07961bd12d389987fc2251f4f7834faae97d",
           "reason": "Full streaming sweep host prototype passes32 tests; native full sweep not demonstrated within finite budget. Unsupported optional IPC wait removed; no feature/rights activation. Continue B05-T2. Preserved in draft PR380."
+        },
+        {
+          "event": "verified",
+          "at": "2026-11-24T02:11:17.455474+00:00",
+          "source_commit": "863541014d92de0108b2c29063b04a012acbe8db",
+          "main_commit": "c3afc04ac2bc92228f2201af02ab69148c47e596",
+          "receipt": "docs/roadmap-pipeline/receipts/N04-T1-successor-20261124.json",
+          "reason": "Manual integration receipt after independent review of all six baseline and four extension native reports, meaningful synthetic refusal controls, exact source/tree binding and actual main inclusion. The old prototype receipt and failed160153 diagnostic remain historical; no controller invocation or global criterion acceptance is claimed.",
+          "evidence": [
+            "https://github.com/BaryonOS/BaryonOS/pull/478#issuecomment-7119750537",
+            "https://github.com/BaryonOS/BaryonOS/pull/478#issuecomment-7119782101",
+            "https://github.com/BaryonOS/BaryonOS/actions/runs/45308625592/job/138158768933",
+            "https://github.com/BaryonOS/BaryonOS/actions/runs/45308625592/job/138158768805"
+          ]
         }
       ],
-      "source_commit": "5acd07961bd12d389987fc2251f4f7834faae97d",
-      "receipt": null,
-      "blocker": "Final integration-head native evidence is still required for #445's separate port-sweep implementation in #478 and the ordinary revoke regression. Host tests and source-branch native runs do not release this hold; status remains blocked and receipt remains null until the lead verifies the hosted final-head results. Original failed #380 prototype receipt (status blocked, source_matches_final_native false): https://github.com/BaryonOS/BaryonOS/blob/70140ffcfb142e7728725458aa205869c448cc16/docs/roadmap-pipeline/receipts/N04-T1.json . This supersession does not accept the global N04 criterion."
+      "source_commit": "863541014d92de0108b2c29063b04a012acbe8db",
+      "receipt": "docs/roadmap-pipeline/receipts/N04-T1-successor-20261124.json",
+      "blocker": null
     },
     {
       "id": "B02-T1",
