@@ -1142,15 +1142,15 @@ def expected_source(parent, steps=L2_SOURCE_STEP):
     clock = state["clocks"][0]
     for step in steps:
         clock += 1
-        kind = step[0]
+        kind, *args = step
         if kind == "collection":
-            _, index, expected, name = step
+            index, expected, name = args
             item = next(c for c in state["collections"] if (c["domain"], c["index"]) == (0, index))
             if item["revision"] != expected:
                 raise ValueError(f"source step expects collection {index} at {expected}")
             item.update(revision=expected + 1, present=True, name=name, request_id=None)
             continue
-        _, obj, value = step
+        obj, value = args
         item = state["objects"][obj]
         if not 0 <= obj < volume_disk.PER_DOMAIN or not item["present"]:
             raise ValueError(f"source step on absent object {obj}")
