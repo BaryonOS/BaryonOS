@@ -61,7 +61,7 @@ an extra service-loop delay. Matching completion and the revoked-unpublished
 fence remain before poll; pending tickets, yields and every limit are preserved.
 The initial integrated native timeout prompted this repair; it was not accepted
 as passing evidence. The CI evidence inventory also explicitly accounts for the
-additional network preservation call (34 calls, with all checks retained).
+additional network preservation call (34 calls at that landing, with all checks retained).
 The [original failed receipt](https://github.com/BaryonOS/BaryonOS/blob/70140ffcfb142e7728725458aa205869c448cc16/docs/roadmap-pipeline/receipts/N04-T1.json)
 remains immutable. The distinct [manual successor receipt](roadmap-pipeline/receipts/N04-T1-successor-20261124.json)
 and [retained evidence](verification/n04-successor-20261124/README.md) record N04-T1
@@ -76,6 +76,16 @@ reattach and the explicitly selected Materiaal QMP/pixel measurement, alongside
 required checks and CodeQL. The PR's final acceptance receipt supplies those
 results; this source checkpoint does not predeclare a future run. The Materiaal
 opt-in route preserves manual dispatch and all existing watchdogs.
+The S2 search fixture refreshes its full snapshot after incremental rename/delete
+before requiring an unchanged-generation refusal. The Python coverage caller
+retains the complete XML under a 2 MiB per-file bound with an explicit required
+path; missing-evidence failure and the total archive bound remain unchanged.
+The window workflow also preserves each phase's original result and serial log
+in its own bounded proof collection. This repairs an observed archive omission:
+a successful scale-2 run produced reports larger than the former 1 MiB file cap.
+The omitted report was not reconstructed or accepted as available proof. Required
+phase files must be retained completely within the existing aggregate limit;
+native commands and deadlines remain unchanged. See [CI-EVIDENCE.md](CI-EVIDENCE.md).
 
 ### Bounded follow-up work
 
@@ -107,7 +117,7 @@ Historical handoffs below are records, not current ownership assignments.
 
 **Assessment:** **41 → 41/100**. Criterion states, weights, acceptance descriptions
 and existing evidence are unchanged. The assessment identifies the published
-code parent `855f6509e2a2cf126f6245ef4571721c0a3610d6`, whose tree matches the reviewed code, rather than
+code parent `f3ab2bdc911b082571a4a0e0a3d47c6240eaaeca`, whose tree matches the reviewed code, rather than
 the later checkpoint or squash commit. Updating metadata accepts no criterion.
 
 ## Historical source-bound handoffs

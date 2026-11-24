@@ -250,7 +250,9 @@ fn run() {
     if search.rename((other * PER_DOMAIN) as u64, 1, b"x") == Err(Error::Foreign) {
         negatives |= 1 << 10;
     }
-    // A rebuild without a change has no newer generation; nothing changes.
+    // Incremental rename/delete leave the full-snapshot generation unchanged.
+    // First refresh that snapshot, then prove another rebuild is stale.
+    check(search.rebuild().is_ok(), 27);
     if search.rebuild() == Err(Error::StaleGeneration)
         && same(&query(&search, b"final", 26), &[(draft, 2)])
     {

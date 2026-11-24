@@ -294,6 +294,148 @@ jobs:
         run: |
           git diff --exit-code
           test -z "$(git status --porcelain)"
+      - name: Locate immutable native proof for each attempted gate
+        id: window-proof-paths
+        if: ${{ always() }}
+        env:
+          CI_JOB_STATUS: ${{ job.status }}
+        run: |
+          python3 -B - <<'PY'
+          import json, os, re
+          from pathlib import Path
+          root = Path(os.environ["GITHUB_WORKSPACE"]).resolve()
+          scale = int(os.environ["NOS_WINDOW_SCALE"])
+          plans = {"native": ("probe", scale, "native")}
+          if scale == 1:
+              plans.update({"library-write": ("probe", 1, "library-write"),
+                            "library-cold": ("probe", 1, "library-cold"),
+                            "switcher-scale1": ("switcher-scale1", 1, "switcher"),
+                            "switcher-scale2": ("switcher-scale2", 2, "switcher")})
+          def mode(report):
+              if report.get("library_requested") is True:
+                  return "library-cold" if report.get("library_cold") is True else "library-write"
+              if report.get("switcher_requested") is True:
+                  return "switcher"
+              if report.get("workspace_requested") is True and report.get("clipboard_requested") is True:
+                  return "native"
+              return "other"
+          outputs, missing = {}, []
+          for role, (profile, expected_scale, expected_mode) in plans.items():
+              matches = []
+              for path in sorted((root / "build/window-session-ci" / profile / "run").glob("window-*/result.json")):
+                  if (path.is_symlink() or path.parent.is_symlink()
+                          or not re.fullmatch(r"window-[0-9a-f]{32}", path.parent.name)
+                          or not path.resolve().is_relative_to(root)
+                          or path.stat().st_size > 4 * 1024 * 1024):
+                      raise SystemExit("Unsafe or oversized native proof path: " + str(path))
+                  report = json.loads(path.read_text())
+                  if mode(report) != expected_mode or report.get("scale") != expected_scale:
+                      continue
+                  if (report.get("source_commit") != os.environ["GITHUB_SHA"]
+                          or Path(report["run_directory"]).resolve() != path.parent.resolve()):
+                      raise SystemExit("Native proof source or run directory differs: " + str(path))
+                  matches.append(path.parent.relative_to(root).as_posix())
+              if len(matches) > 1:
+                  raise SystemExit("Ambiguous native proof for " + role)
+              if not matches:
+                  missing.append(role)
+              # Missing paths remain required. Failed jobs retain whatever exists;
+              # successful jobs cannot silently turn missing evidence into a pass.
+              run = matches[0] if matches else "build/window-session-ci/missing/" + role
+              outputs[role + "-report"] = run + "/result.json"
+              outputs[role + "-serial"] = run + "/serial.txt"
+          common = ["evidence/source.json", "probe/manifest.json", "normal/manifest.json"]
+          if scale == 1:
+              common += ["evidence/package.json", "evidence/package.sha256",
+                         "readonly-compile/manifest.json", "evidence/readonly-profile-compile.txt"]
+          with Path(os.environ["GITHUB_OUTPUT"]).open("a") as target:
+              for key, value in outputs.items():
+                  target.write(key + "=" + value + "\n")
+              target.write("common-required<<WINDOW_REQUIRED\n")
+              target.write("\n".join("build/window-session-ci/" + path for path in common))
+              target.write("\nWINDOW_REQUIRED\n")
+          if missing and os.environ["CI_JOB_STATUS"] == "success":
+              raise SystemExit("Missing native proof: " + ", ".join(missing))
+          PY
+      # Independent original report/serial pairs avoid duplicate summaries and
+      # unrelated gates competing for the unchanged 7 MiB payload/1 MiB receipt.
+      # The observed scale-2 report is 1,553,981 B; serial is bounded at 4 MiB by
+      # the runner. Required paths fail closed if either allowance is exceeded.
+      - name: Preserve complete base native proof
+        id: window-native-proof
+        if: ${{ always() }}
+        uses: ./.github/actions/preserve-evidence
+        with:
+          name: native-window-scale-${{ matrix.scale }}-proof
+          job-status: ${{ job.status }}
+          full-evidence: 'false'
+          max-file-bytes: '4194304'
+          path: |
+            ${{ steps.window-proof-paths.outputs.native-report }}
+            ${{ steps.window-proof-paths.outputs.native-serial }}
+          required-paths: |
+            ${{ steps.window-proof-paths.outputs.native-report }}
+            ${{ steps.window-proof-paths.outputs.native-serial }}
+      - name: Preserve complete library write proof
+        id: window-library-write-proof
+        if: ${{ always() && matrix.scale == 1 }}
+        uses: ./.github/actions/preserve-evidence
+        with:
+          name: native-window-library-write-proof
+          job-status: ${{ job.status }}
+          full-evidence: 'false'
+          max-file-bytes: '4194304'
+          path: |
+            ${{ steps.window-proof-paths.outputs.library-write-report }}
+            ${{ steps.window-proof-paths.outputs.library-write-serial }}
+          required-paths: |
+            ${{ steps.window-proof-paths.outputs.library-write-report }}
+            ${{ steps.window-proof-paths.outputs.library-write-serial }}
+      - name: Preserve complete library cold proof
+        id: window-library-cold-proof
+        if: ${{ always() && matrix.scale == 1 }}
+        uses: ./.github/actions/preserve-evidence
+        with:
+          name: native-window-library-cold-proof
+          job-status: ${{ job.status }}
+          full-evidence: 'false'
+          max-file-bytes: '4194304'
+          path: |
+            ${{ steps.window-proof-paths.outputs.library-cold-report }}
+            ${{ steps.window-proof-paths.outputs.library-cold-serial }}
+          required-paths: |
+            ${{ steps.window-proof-paths.outputs.library-cold-report }}
+            ${{ steps.window-proof-paths.outputs.library-cold-serial }}
+      - name: Preserve complete switcher scale 1 proof
+        id: window-switcher-scale1-proof
+        if: ${{ always() && matrix.scale == 1 }}
+        uses: ./.github/actions/preserve-evidence
+        with:
+          name: native-window-switcher-scale1-proof
+          job-status: ${{ job.status }}
+          full-evidence: 'false'
+          max-file-bytes: '4194304'
+          path: |
+            ${{ steps.window-proof-paths.outputs.switcher-scale1-report }}
+            ${{ steps.window-proof-paths.outputs.switcher-scale1-serial }}
+          required-paths: |
+            ${{ steps.window-proof-paths.outputs.switcher-scale1-report }}
+            ${{ steps.window-proof-paths.outputs.switcher-scale1-serial }}
+      - name: Preserve complete switcher scale 2 proof
+        id: window-switcher-scale2-proof
+        if: ${{ always() && matrix.scale == 1 }}
+        uses: ./.github/actions/preserve-evidence
+        with:
+          name: native-window-switcher-scale2-proof
+          job-status: ${{ job.status }}
+          full-evidence: 'false'
+          max-file-bytes: '4194304'
+          path: |
+            ${{ steps.window-proof-paths.outputs.switcher-scale2-report }}
+            ${{ steps.window-proof-paths.outputs.switcher-scale2-serial }}
+          required-paths: |
+            ${{ steps.window-proof-paths.outputs.switcher-scale2-report }}
+            ${{ steps.window-proof-paths.outputs.switcher-scale2-serial }}
       - name: Record the job outcome even on failure
         if: ${{ always() }}
         env:
@@ -309,6 +451,7 @@ jobs:
           job-status: ${{ job.status }}
           full-evidence: ${{ github.event_name == 'workflow_dispatch' && inputs.full_evidence }}
           name: native-window-session-scale-${{ matrix.scale }}-evidence-and-windows-bundle
+          required-paths: ${{ steps.window-proof-paths.outputs.common-required }}
           path: |
             build/window-session-ci/evidence/
             build/window-session-ci/probe/manifest.json
@@ -327,3 +470,4 @@ jobs:
             build/window-session-ci/normal/manifest.json
             build/window-session-ci/normal/users/materiaal/build-report.json
             build/window-session-ci/normal/logs/
+            build/window-session-ci/readonly-compile/manifest.json

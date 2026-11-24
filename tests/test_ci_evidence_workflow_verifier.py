@@ -52,7 +52,7 @@ class WorkflowVerifierTests(unittest.TestCase):
                     if check["name"] == key)
 
     def test_integrated_workflows_preserve_all_reporting_cases(self):
-        """A valid baseline retains 20 workflow files and 34 preservation calls."""
+        """A valid baseline retains 20 workflow files and 39 preservation calls."""
         report = self.report()
         self.assertTrue(report["passed"], report["failed_checks"])
         self.assertEqual(report["archive_workflow_count"], 20)
@@ -73,12 +73,54 @@ class WorkflowVerifierTests(unittest.TestCase):
             # JavaScript), each counted by both prefixes.
             # H02 adds one xHCI and one HID workflow/preservation invocation.
             # Native network extensions add their own DHCP/link/route/sweep reports.
+            # Window gates retain five original report/serial pairs separately.
             self.assertEqual(sum(check["name"].startswith(prefix)
-                                 for check in report["checks"]), 34)
+                                 for check in report["checks"]), 39)
         self.assertEqual(sum(check["name"].startswith("report-shell:")
                              for check in report["checks"]), 28)
         self.assertEqual(sum(check["name"].startswith("package-check:")
                              for check in report["checks"]), 6)
+
+    def test_only_four_window_proof_steps_may_be_scale_one_only(self):
+        """The exact exception cannot suppress base, final or another job's evidence."""
+        workflow = ".github/workflows/native-window-session.yml"
+        allowed = {
+            "window-library-write-proof": "Preserve complete library write proof",
+            "window-library-cold-proof": "Preserve complete library cold proof",
+            "window-switcher-scale1-proof": "Preserve complete switcher scale 1 proof",
+            "window-switcher-scale2-proof": "Preserve complete switcher scale 2 proof",
+        }
+        condition = "${{ always() && matrix.scale == 1 }}"
+        for identifier, name in allowed.items():
+            step = {"id": identifier, "name": name, "if": condition}
+            self.assertTrue(VERIFIER.preservation_condition(workflow, "native-window-session", step))
+            for path, job, changed in (
+                (".github/workflows/native-display-input.yml", "native-window-session", step),
+                (workflow, "another-job", step),
+                (workflow, "native-window-session", dict(step, name="Different step")),
+                (workflow, "native-window-session", dict(step, id="window-native-proof")),
+                (workflow, "native-window-session", dict(step, id="final")),
+                (workflow, "native-window-session", dict(step, **{"if": "${{ success() && matrix.scale == 1 }}"})),
+                (workflow, "native-window-session", dict(step, **{"if": "${{ always() && matrix.scale == 2 }}"})),
+            ):
+                with self.subTest(identifier=identifier, path=path, job=job, step=changed):
+                    self.assertFalse(VERIFIER.preservation_condition(path, job, changed))
+
+    def test_base_and_final_window_collections_cannot_hide_scale_two_evidence(self):
+        """Run the actual verifier on attempts to restrict either unconditional caller."""
+        path = self.repo / ".github/workflows/native-window-session.yml"
+        original = path.read_text()
+        for name in ("Preserve complete base native proof",
+                     "Preserve compact evidence and report archive availability"):
+            with self.subTest(name=name):
+                before, block = original.split("      - name: " + name, 1)
+                block = block.replace("if: ${{ always() }}", "if: ${{ always() && matrix.scale == 1 }}", 1)
+                path.write_text(before + "      - name: " + name + block)
+                report = self.report()
+                self.assertFalse(report["passed"])
+                self.assertIn("preservation-invocation:.github/workflows/native-window-session.yml",
+                              report["failed_checks"])
+        path.write_text(original)
 
     def test_compact_only_accepts_empty_or_absent_manual_trigger(self):
         """No full-evidence selector is needed when every call fixes it false."""
