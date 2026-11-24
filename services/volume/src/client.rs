@@ -8,6 +8,9 @@ use crate::{
 use wire::{Header, Manifest, SubOp, DATA, INSTALL_MAX, SIZE};
 
 /// One synchronous request/response exchange with the volume service.
+/// After a request was queued, failure to obtain a matching reply must return
+/// `Unknown`. Definite transport errors (including `Timeout`) require proof
+/// that the request was not delivered; service refusals are encoded replies.
 pub trait Transport {
     fn call(&mut self, request: &[u8; SIZE]) -> Result<[u8; SIZE], Status>;
 }
@@ -320,10 +323,42 @@ impl CollectionInfo {
     }
 }
 
+/// The operation that requires explicit INSTALL recovery, not a resume point.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum InstallPhase {
+    /// BEGIN was not confirmed; its request ID proves no ownership.
+    Begin,
+    Append,
+    /// The object may already be durably installed.
+    Commit,
+    /// A collection may already be durable; `object` is its domain base.
+    Collection {
+        index: usize,
+    },
+    /// Cleanup failed; the enclosing operation still returns its original error.
+    Abort,
+}
+
+/// Correlation for an uncertain INSTALL operation or unsuccessful cleanup.
+/// Legacy request IDs are not ownership credentials. `begin_confirmed` only
+/// records that this Client received a valid BEGIN for this tuple; it does not
+/// establish current ownership or prove that a COMMIT did not take effect.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct UnconfirmedInstall {
+    pub epoch: u64,
+    pub object: u64,
+    pub request_id: u64,
+    pub status: Status,
+    pub phase: InstallPhase,
+    pub begin_confirmed: bool,
+}
+
 pub struct Client<T: Transport> {
     pub transport: T,
     pub epoch: u64,
     next_request: u64,
+    unconfirmed_install: Option<UnconfirmedInstall>,
+    confirmed_install: Option<(u64, u64, u64)>,
 }
 
 impl<T: Transport> Client<T> {
@@ -333,11 +368,78 @@ impl<T: Transport> Client<T> {
             transport,
             epoch,
             next_request: first_request.max(1),
+            unconfirmed_install: None,
+            confirmed_install: None,
         }
     }
 
     pub fn next_request_id(&self) -> u64 {
         self.next_request
+    }
+
+    /// Inspect retained recovery without consuming it. The provided INSTALL
+    /// helpers stop until explicit reconciliation is acknowledged; reads remain
+    /// available. This is not a boundary over public raw exchange/transport access.
+    pub fn unconfirmed_install(&self) -> Option<UnconfirmedInstall> {
+        self.unconfirmed_install
+    }
+
+    /// Acknowledge recovery by the original session owner or a trusted domain
+    /// shutdown/restart. This only clears local bookkeeping and sends no request.
+    /// The caller must establish that recovery independently: the matching record
+    /// is correlation, not authority to abort a possibly different client's stage.
+    /// A failed cleanup is not recovery. A stale acknowledgement changes nothing.
+    pub fn acknowledge_install_recovery(&mut self, pending: UnconfirmedInstall) -> bool {
+        if self.unconfirmed_install != Some(pending) {
+            return false;
+        }
+        self.unconfirmed_install = None;
+        if self.confirmed_install == Some((pending.epoch, pending.object, pending.request_id)) {
+            self.confirmed_install = None;
+        }
+        true
+    }
+
+    fn retain_install_failure(
+        &mut self,
+        object: u64,
+        id: u64,
+        phase: InstallPhase,
+        status: Status,
+    ) {
+        // An explicit cleanup attempt must not overwrite the original uncertainty.
+        if self.unconfirmed_install.is_none() {
+            self.unconfirmed_install = Some(UnconfirmedInstall {
+                epoch: self.epoch,
+                object,
+                request_id: id,
+                status,
+                phase,
+                begin_confirmed: !matches!(
+                    phase,
+                    InstallPhase::Begin | InstallPhase::Collection { .. }
+                ) && self.confirmed_install == Some((self.epoch, object, id)),
+            });
+        }
+    }
+
+    fn install_reply(
+        &mut self,
+        header: &Header,
+        data: &[u8],
+        phase: InstallPhase,
+    ) -> Result<Header, Status> {
+        if let Some(pending) = self.unconfirmed_install {
+            return Err(pending.status);
+        }
+        let result = self.exchange(header, data).and_then(|(reply, _)| {
+            Self::status(&reply)?;
+            Ok(reply)
+        });
+        if let Err(status @ (Status::Protocol | Status::Unknown)) = result {
+            self.retain_install_failure(header.object, header.request_id, phase, status);
+        }
+        result
     }
 
     fn fresh(&mut self) -> u64 {
@@ -486,11 +588,22 @@ impl<T: Transport> Client<T> {
         Ok(id)
     }
 
+    /// Abort an explicitly identified session. Failed cleanup of this Client's
+    /// confirmed INSTALL retains its correlation; an existing recovery record is
+    /// never consumed or overwritten, including after a successful ABORT.
     pub fn abort(&mut self, object: u64, expected: u64, id: u64) -> Result<(), Status> {
         let mut header = Header::new(wire::ABORT, id, self.epoch, object);
         header.revision = expected;
-        let (reply, _) = self.exchange(&header, &[])?;
-        Self::status(&reply)
+        let result = self
+            .exchange(&header, &[])
+            .and_then(|(reply, _)| Self::status(&reply));
+        if expected == 0 && self.confirmed_install == Some((self.epoch, object, id)) {
+            match result {
+                Ok(()) => self.confirmed_install = None,
+                Err(status) => self.retain_install_failure(object, id, InstallPhase::Abort, status),
+            }
+        }
+        result
     }
 
     /// Final flush on the domain's base object; the service then refuses
@@ -680,8 +793,14 @@ impl<T: Transport> Client<T> {
 
     /// L2 INSTALL of `manifest` into the never-used own slot `object` in one
     /// commit. `fill(version, offset, buffer)` supplies content. On any
-    /// error except `Unknown` nothing was committed; a staged session is
-    /// aborted on a best-effort basis. Returns `(revision, request ID)`.
+    /// error except `Unknown` or `Protocol` nothing was committed. Either
+    /// error retains the failing phase and correlation in
+    /// [`Self::unconfirmed_install`] without ABORT or retry. A BEGIN record does
+    /// not prove ownership; an uncertain COMMIT may already be durable. After a
+    /// confirmed BEGIN, definite failures attempt cleanup. Failed cleanup retains
+    /// an Abort record while the original error is returned. Reconcile the
+    /// recorded state before acknowledging recovery and attempting a new install.
+    /// Returns `(revision, request ID)`.
     pub fn install(
         &mut self,
         object: u64,
@@ -694,19 +813,27 @@ impl<T: Transport> Client<T> {
             self.install_stream(object, id, manifest, 0..manifest.count, &mut fill)?;
             Ok((self.install_commit(object, id, manifest)?, id))
         })();
-        if matches!(result, Err(status) if status != Status::Unknown) {
+        if result.is_err() && self.unconfirmed_install.is_none() {
             let _ = self.abort(object, 0, id);
         }
         result
     }
 
     /// INSTALL_BEGIN only; returns the request ID of the staged session.
+    /// Lost (`Unknown`) or malformed (`Protocol`) replies retain the sent
+    /// correlation in [`Self::unconfirmed_install`] and return the original
+    /// error. They never trigger an automatic ABORT: a lost Busy reply can refer
+    /// to another client's stage with the same legacy ID. Explicit owner/domain
+    /// recovery is required before acknowledging that record and retrying.
     pub fn install_begin(
         &mut self,
         object: u64,
         manifest: &Manifest,
         (tags, kind, collection): (u32, u16, u8),
     ) -> Result<u64, Status> {
+        if let Some(pending) = self.unconfirmed_install {
+            return Err(pending.status);
+        }
         if !manifest.valid() {
             return Err(Status::Invalid);
         }
@@ -717,31 +844,48 @@ impl<T: Transport> Client<T> {
         begin.length = manifest.bytes() as u32;
         let mut data = [0; DATA];
         manifest.encode(&mut data);
-        let (reply, _) = self.exchange(&begin, &data[..manifest.bytes()])?;
-        Self::status(&reply)?;
-        if !install_begun(manifest, &reply) {
-            return Err(Status::Protocol);
+        let result = (|| {
+            let reply =
+                self.install_reply(&begin, &data[..manifest.bytes()], InstallPhase::Begin)?;
+            if !install_begun(manifest, &reply) {
+                return Err(Status::Protocol);
+            }
+            Ok(id)
+        })();
+        match result {
+            Ok(_) => self.confirmed_install = Some((self.epoch, object, id)),
+            Err(status @ (Status::Protocol | Status::Unknown)) => {
+                self.retain_install_failure(object, id, InstallPhase::Begin, status);
+            }
+            Err(_) => {}
         }
-        Ok(id)
+        result
     }
 
     /// INSTALL_COMMIT of a completely streamed install; returns revision `n`.
+    /// Unknown/Protocol retains a Commit recovery record; do not replay it.
     pub fn install_commit(
         &mut self,
         object: u64,
         id: u64,
         manifest: &Manifest,
     ) -> Result<u64, Status> {
+        if let Some(pending) = self.unconfirmed_install {
+            return Err(pending.status);
+        }
         let mut commit = Header::new(wire::INSTALL_COMMIT, id, self.epoch, object);
         commit.count = manifest.count as u32;
         commit.aux = manifest.total().ok_or(Status::Invalid)? as u64;
-        let (reply, _) = self.exchange(&commit, &[])?;
-        Self::status(&reply)?;
+        let reply = self.install_reply(&commit, &[], InstallPhase::Commit)?;
+        if self.confirmed_install == Some((self.epoch, object, id)) {
+            self.confirmed_install = None;
+        }
         Ok(reply.revision)
     }
 
     /// Stream `versions` of a staged install, in order (the service accepts
-    /// only the lowest-index incomplete version).
+    /// only the lowest-index incomplete version). Unknown/Protocol retains the
+    /// session correlation with phase Append; automatic resume is not supported.
     pub fn install_stream(
         &mut self,
         object: u64,
@@ -750,6 +894,9 @@ impl<T: Transport> Client<T> {
         versions: core::ops::Range<usize>,
         fill: &mut impl FnMut(usize, usize, &mut [u8]),
     ) -> Result<(), Status> {
+        if let Some(pending) = self.unconfirmed_install {
+            return Err(pending.status);
+        }
         let mut buffer = [0; DATA];
         let versions = versions.start.min(manifest.count)..versions.end.min(manifest.count);
         for index in versions {
@@ -762,8 +909,7 @@ impl<T: Transport> Client<T> {
                 append.count = index as u32;
                 append.aux = offset as u64;
                 append.length = amount as u32;
-                let (reply, _) = self.exchange(&append, &buffer[..amount])?;
-                Self::status(&reply)?;
+                self.install_reply(&append, &buffer[..amount], InstallPhase::Append)?;
                 offset += amount;
             }
         }
@@ -779,6 +925,9 @@ impl<T: Transport> Client<T> {
         name: &[u8],
         origin: u64,
     ) -> Result<u64, (Status, u64)> {
+        if let Some(pending) = self.unconfirmed_install {
+            return Err((pending.status, 0));
+        }
         if name.is_empty() || name.len() > NAME {
             return Err((Status::Invalid, 0));
         }
@@ -794,7 +943,16 @@ impl<T: Transport> Client<T> {
         let mut data = [0; NAME + 8];
         data[..name.len()].copy_from_slice(name);
         data[name.len()..name.len() + 8].copy_from_slice(&origin.to_le_bytes());
-        self.simple(&header, &data[..name.len() + 8])
+        let result = self.simple(&header, &data[..name.len() + 8]);
+        if let Err((status @ (Status::Protocol | Status::Unknown), _)) = result {
+            self.retain_install_failure(
+                header.object,
+                header.request_id,
+                InstallPhase::Collection { index },
+                status,
+            );
+        }
+        result
     }
 
     /// PROVENANCE_STAT of `object` at live `revision`. `Err((NotFound, r))`

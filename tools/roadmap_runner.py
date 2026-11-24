@@ -26,12 +26,14 @@ sys.path[:] = [p for p in sys.path if os.path.realpath(p or ".") != TOOLS_DIR] +
 
 import argparse
 import contextlib
+import ctypes
 import datetime as dt
 import fcntl
 import hashlib
 import importlib.machinery
 import json
 import re
+import shlex
 import shutil
 import signal
 import stat
@@ -75,6 +77,24 @@ def brief(items: list[str], count: int = 20, chars: int = 2000) -> str:
     """A bounded excerpt of a path list for a Stop message, saying when it is cut."""
     text = json.dumps(items[:count]) + (f" (+{len(items) - count} more)" if len(items) > count else "")
     return text if len(text) <= chars else text[:chars] + "...(cut)"
+
+
+# The worktree layout of tools/agent_pipeline.py: still refused (fail closed), only named as such.
+# A session chooses these names: only a plain token is ever turned into a command.
+PIPELINE_WORKTREE_GIT = re.compile(r"build/agent-pipeline/([A-Za-z0-9._-]+)/worktree/\.git")
+
+
+def nested_git_cleanup(nested: list[str]) -> str:
+    """The nested .git paths as data (JSON, bounded like every other Stop list), and a quoted
+    `git worktree remove` only for a pipeline worktree whose task directory is a plain token."""
+    commands = [f"`git -C {shlex.quote(str(ROOT))} worktree remove {shlex.quote(os.path.dirname(p))}`"
+                for p in nested if (m := PIPELINE_WORKTREE_GIT.fullmatch(p)) and m.group(1) not in (".", "..")]
+    text = f"{brief(nested)}. Any other nested .git: remove it after review"
+    if commands:
+        text += ("; a pipeline worktree: once that pipeline task is finished, run " + "; ".join(commands[:5])
+                 + (f" (+{len(commands) - 5} more)" if len(commands) > 5 else "")
+                 + ", or run the roadmap session from a separate checkout without live pipeline worktrees")
+    return text
 
 
 def git_env() -> dict[str, str]:
@@ -153,6 +173,10 @@ READ_ONLY_DISALLOWED = "Edit,Write,MultiEdit,NotebookEdit"
 CALLBACKS_MARKER = "callbacks-baseline.json"  # present while a session may change Git state
 REVIEW_NONCE = "review-nonce"  # issued by `resume`: no digest exists before the lead saw the review
 TRUSTED_RECORD = "trusted-checkout.json"  # this checkout's baselines have lived outside it since then
+MANUAL_LOCK = "manual-run.lock"  # held by `manual-run` until every descendant of the manual session is reaped
+MANUAL_RECORD = "manual-run.json"  # the launcher's start, then (only after ECHILD) its completion
+MANUAL_ENV = "BARYONOS_ROADMAP_MANUAL"  # carries the claim id into the manual session's environment
+PR_SET_CHILD_SUBREAPER = 36
 INIT_DENY_PROBE = "build/roadmap-pipeline/DENY-PROBE"
 TRAILERS = ("Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>\n"
             "Claude-Session: https://claude.ai/code/session_01TJtT9VANihpE4RzPd4d8su\n")
@@ -429,6 +453,65 @@ def pid_alive(pid: int) -> bool:
     return True
 
 
+def manual_processes(claim: str) -> list[int]:
+    """Supplementary only: env -i or a rewritten environment hides a process from this scan."""
+    needle = f"{MANUAL_ENV}={claim}".encode()
+    try:
+        pids = [int(name) for name in os.listdir("/proc") if name.isdigit()]
+    except OSError:
+        return []
+    found = []
+    for pid in pids:
+        try:
+            environ = Path(f"/proc/{pid}/environ").read_bytes()
+        except OSError:  # another user's process, or gone
+            continue
+        if needle in environ.split(b"\0") and pid != os.getpid():
+            found.append(pid)
+    return found
+
+
+def read_private(path: Path, what: str, remedy: str = "remove it") -> bytes | None:
+    """Opened like the launcher lock: a planted link, FIFO or directory is refused without being
+    followed or blocking. None: missing."""
+    try:
+        fd = os.open(path, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK | os.O_CLOEXEC)
+    except FileNotFoundError:
+        return None
+    except OSError as error:
+        raise Stop(f"refusing {what} {path}: {error.strerror} (a planted link?); {remedy}") from error
+    try:
+        if not stat.S_ISREG(os.fstat(fd).st_mode):
+            raise Stop(f"refusing {what} {path}: not a regular file; {remedy}")
+        with open(fd, "rb", closefd=False) as handle:
+            return handle.read()
+    finally:
+        os.close(fd)
+
+
+def read_record(path: Path, claim: str, invalid_ok: bool = False) -> dict:
+    """The launcher record of `claim`. Missing: {}. Present but no JSON object: a Stop, since it could
+    be a start record a later launcher would overwrite (`invalid_ok`: {}, for the acknowledgement)."""
+    if (data := read_private(path, "the launcher record")) is None:
+        return {}
+    try:
+        saved = json.loads(data)
+    except ValueError:
+        saved = None
+    if isinstance(saved, dict) or invalid_ok:
+        return saved if isinstance(saved, dict) else {}
+    raise Stop(f"unreadable launcher record {path}; review it, then run `resume --accept-orphans {claim}`")
+
+
+def orphan_hint(record: dict) -> str:
+    """What the lead can look for before `resume --accept-orphans`, and what the runner cannot see."""
+    pid, group = record.get("child_pid"), record.get("child_pgid")
+    known = (f"the launcher started pid {pid} in process group {group}: look for that group (`pgrep -g {group}`) "
+             "and its descendants" if type(pid) is int and type(group) is int else "no child pid was recorded")
+    return (f" ({known}). The runner cannot enumerate a survivor that left that group with setsid and cleared "
+            "its environment; check for one yourself before acknowledging")
+
+
 def git_callbacks() -> str:
     """Fingerprint of every Git setting and hook that could run code on a later Git call."""
     config = subprocess.run(["git", "config", "--list", "--show-scope", "--show-origin"], cwd=ROOT,
@@ -582,6 +665,12 @@ def open_state(state: Path) -> int:
     return fd
 
 
+def require_manual_host() -> None:
+    if sys.platform != "linux":
+        raise Stop("manual dispatch needs Linux (PR_SET_CHILD_SUBREAPER); run `brief` and `manual-run` "
+                   "on a Linux host")
+
+
 class Controller:
     def __init__(self, cfg: Config, state: Path | None = None, baseline: Path | None = None):
         self.cfg = cfg
@@ -615,7 +704,7 @@ class Controller:
             for name in names:
                 try:
                     os.unlink(name, dir_fd=fd)
-                except FileNotFoundError:
+                except FileNotFoundError:  # safe: a missing entry is already the wanted end state
                     pass
                 except OSError as error:  # e.g. a directory planted under the name
                     raise Stop(f"refusing to remove {name} from the state: {error.strerror}") from error
@@ -660,6 +749,7 @@ class Controller:
         self.lock_file.write(json.dumps({"pid": os.getpid(), "run": self.run_id, "started": now()}))
         self.lock_file.flush()
         self.refuse_live_workers()  # a live worker could still change the callbacks
+        self.refuse_live_manual()  # so could a manual session: no baseline verdict (or STOP) while it runs
         self.check_saved_baseline()  # recover() runs git status, which can run a filter
         self.recover()
 
@@ -724,9 +814,216 @@ class Controller:
         if alive:
             raise Stop(f"a previous worker process is still alive: {alive}")
 
+    def manual_launch(self) -> str | None:
+        """The claim id of an active manual claim made to run under `manual-run`; None for no claim
+        or a claim from before the launcher (those keep the digest acknowledgement of `resume`)."""
+        marker = self.marker()
+        saved = self.saved_baseline(marker) if marker.exists() else {}
+        return saved.get("claim") if saved.get("launcher") and self.manual_claim() else None
+
+    def refuse_live_manual(self, acknowledge: str | None = None) -> None:
+        """A manual session is not a tagged process, so pgrep cannot see it. `manual-run` is a child
+        subreaper that holds its lock until os.wait() reports ECHILD and only then writes the completion
+        record: a held lock, or a launcher-required claim without its completion record, means a process
+        of the session may live. No lock is never read as no process (the session may have started
+        without the launcher). Limit: a process started through another service manager (systemd-run,
+        at/cron, a user daemon) is no descendant of the launcher and is not covered; neither is a session
+        started bare (without the launcher) alongside a launcher run, which leaves no lock, record or
+        environment marker that could be told apart from that run. With `acknowledge`
+        (the claim of `resume --accept-orphans`), the completion record is not required: the lock and
+        environment checks still run, and the acknowledgement is written while the probe lock is held."""
+        lock = self.marker().parent / MANUAL_LOCK
+        try:
+            fd = os.open(lock, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK | os.O_CLOEXEC)
+        except FileNotFoundError:
+            fd = None
+        except OSError as error:
+            raise Stop(f"refusing the launcher lock {lock}: {error.strerror} (a planted link?); remove it") from error
+        if fd is not None:
+            try:
+                if not stat.S_ISREG(os.fstat(fd).st_mode):
+                    raise Stop(f"refusing the launcher lock {lock}: not a regular file; remove it")
+                try:
+                    fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+                except BlockingIOError as error:
+                    raise Stop("a `manual-run` launcher is still running, so a process of the manual session "
+                               "may be alive; wait until the launcher exits, then retry") from error
+                self.check_manual(acknowledge)  # under the probe lock: no launcher can start meanwhile
+            finally:
+                os.close(fd)  # drops the probe's own lock
+        else:
+            self.check_manual(acknowledge)
+
+    def check_manual(self, acknowledge: str | None) -> None:
+        claim = self.manual_launch()
+        if acknowledge is not None and acknowledge != claim:
+            raise Stop(f"{acknowledge!r} is not the active launcher claim ({claim}); nothing acknowledged")
+        if not claim:
+            return
+        record_path = self.marker().parent / MANUAL_RECORD
+        # The acknowledgement replaces an unreadable record: the lead's word stands in for its completion.
+        record = read_record(record_path, claim, invalid_ok=acknowledge is not None)
+        done = record.get("claim") == claim and ("exit" in record or "acknowledged" in record)
+        if acknowledge is None and not done:
+            raise Stop(f"manual task {self.manual_claim()} has no `manual-run` completion record, so a process of "
+                       "its session may be alive: start the session only through the `manual-run` command that "
+                       "`brief` printed and wait until the launcher exits. If a launcher ended early or the "
+                       "session ran without it, end every process of that session first, then run "
+                       f"`resume --accept-orphans {claim}`"
+                       + orphan_hint(record if record.get("claim") == claim else {}))
+        if alive := manual_processes(claim):
+            raise Stop(f"processes {alive} still carry {MANUAL_ENV} of manual task {self.manual_claim()}; end them")
+        if acknowledge is not None:
+            if done:
+                raise Stop(f"manual claim {claim} already has a completion record; nothing to acknowledge")
+            atomic_write(record_path, json.dumps({"claim": claim, "acknowledged": now()}))
+
+    def accept_orphans(self, claim: str) -> str:
+        """`resume --accept-orphans <claim>`: the lead's word that no process of a manual session whose
+        launcher left no completion record survives. Under resume's lock discipline."""
+        if not claim:
+            raise Stop("--accept-orphans needs the claim id the refusal named; nothing acknowledged")
+        self.own_state()
+        self.lock_file = open_private(self.state / "controller.lock")
+        try:
+            fcntl.flock(self.lock_file, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except BlockingIOError as error:
+            raise Stop("a controller is running; nothing acknowledged") from error
+        self.lock_acquired = True
+        self.refuse_live_workers()
+        self.refuse_live_manual(acknowledge=claim)
+        return (f"manual claim {claim} acknowledged as ended without a completion record; run `resume` "
+                "to review its result")
+
+    def manual_run(self, argv: list[str]) -> int:
+        """`manual-run -- <argv>`: run the manual session as a child subreaper, so every descendant,
+        double-forked or setsid'd ones included, is reparented here and waited for. The completion record
+        is written only after ECHILD; the lock is held until then. Returns the child's exit status."""
+        require_manual_host()
+        if not argv:
+            raise Stop("manual-run needs the session command after --")
+        libc = ctypes.CDLL(None, use_errno=True)
+        if libc.prctl(PR_SET_CHILD_SUBREAPER, 1, 0, 0, 0) != 0:
+            raise Stop(f"manual-run cannot become a child subreaper: {os.strerror(ctypes.get_errno())}")
+        home = self.marker().parent
+        home.mkdir(parents=True, exist_ok=True)
+        lock = open_private(home / MANUAL_LOCK)
+        try:
+            try:
+                fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            except BlockingIOError as error:
+                raise Stop("another `manual-run` launcher holds the launcher lock; refusing a second one") from error
+            # After our own lock: a `resume` that starts later sees it; one already running holds this one.
+            with open_private(self.state / "controller.lock") as controller_lock:
+                try:
+                    fcntl.flock(controller_lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+                except BlockingIOError as error:
+                    raise Stop("a controller or `resume` holds controller.lock; retry once it exits") from error
+            if not (claim := self.manual_launch()):
+                raise Stop("manual-run needs an active manual claim made by `brief`")
+            # Bound to the dispatch plan: the trusted marker holds the digest of the planned command.
+            if self.saved_baseline(self.marker()).get("argv_sha256") != sha256(json.dumps(argv)):
+                raise Stop("manual-run runs only the command `brief` planned (the argv after `--` in "
+                           "dispatch.json); this one differs, so nothing ran")
+            record = home / MANUAL_RECORD
+            # A claim is a single attempt: replaying a completed one could replace
+            # its result while an earlier resume digest still describes the same tree.
+            previous_record = read_record(record, claim)
+            if previous_record.get("claim") == claim:
+                if "exit" in previous_record:
+                    raise Stop(f"manual claim {claim} already completed; validate its result and run `resume`, "
+                               "then `brief` for a new claim")
+                if "acknowledged" in previous_record:  # fail closed: the acknowledged claim is only retired
+                    raise Stop(f"manual claim {claim} was acknowledged without a completion record; validate "
+                               "its result and run `resume`, then `brief` for a new claim")
+                raise Stop(f"an earlier launcher of manual claim {claim} left no completion record; end every "
+                           f"process of that session, then run `resume --accept-orphans {claim}`"
+                           + orphan_hint(previous_record))
+            started = {"claim": claim, "started": now(), "launcher_pid": os.getpid()}
+            child, code = None, 127
+            # An inherited SIG_IGN (`nohup`, a background job of a non-interactive shell) stays ignored and is
+            # not forwarded: a caught handler would reset to SIG_DFL at exec and end the session's immunity.
+            relayed = tuple(sig for sig in (signal.SIGINT, signal.SIGTERM, signal.SIGHUP, signal.SIGQUIT)
+                            if signal.getsignal(sig) is not signal.SIG_IGN)
+            # Held pending from before the start record until Popen returned, then forwarded to the
+            # session's group instead of dropped. SIGTTOU: the child may take the terminal before its exec.
+            unblocked = signal.pthread_sigmask(signal.SIG_BLOCK, (*relayed, signal.SIGTTOU))
+
+            def forward(signum, _frame):
+                if child is not None:
+                    with contextlib.suppress(ProcessLookupError, PermissionError):
+                        os.killpg(child.pid, signum)
+                        # A stopped group must act on every relayed signal,
+                        # including a caught SIGQUIT that would stay pending.
+                        os.killpg(child.pid, signal.SIGCONT)
+            # A closing terminal (SIGHUP) or SIGQUIT must not end the launcher before ECHILD either.
+            previous = {sig: signal.signal(sig, forward) for sig in relayed}
+            # An inherited SIG_IGN makes the kernel reap every child itself: os.wait() would never see a status.
+            previous[signal.SIGCHLD] = signal.signal(signal.SIGCHLD, signal.SIG_DFL)
+            # The controlling terminal, not fd 0: the planned command reads its brief from stdin.
+            try:
+                tty = os.open("/dev/tty", os.O_RDWR | os.O_NOCTTY | os.O_CLOEXEC)
+            except OSError:  # no controlling terminal: nothing can stop on SIGTTIN
+                tty = None
+            try:
+                terminal = tty is not None and os.tcgetpgrp(tty) == os.getpgrp()  # never steal it from the shell
+            except OSError:
+                terminal = False
+
+            def in_child():  # after setpgid, before close_fds and exec
+                if terminal:  # the session's own group reads the terminal, so it gets no SIGTTIN
+                    with contextlib.suppress(OSError):
+                        os.tcsetpgrp(tty, os.getpgrp())
+                # No job control for the session: Ctrl-Z would stop its (foreground) group while the
+                # launcher waits in os.wait(), and no shell could resume it. SIG_IGN survives the exec.
+                # shortcut: a session that resets SIGTSTP or stops itself can still hang the terminal (kill its
+                # group from another terminal); waitpid(WUNTRACED) handling if a real session ever does that.
+                signal.signal(signal.SIGTSTP, signal.SIG_IGN)
+                signal.pthread_sigmask(signal.SIG_SETMASK, unblocked)  # the session never inherits the block
+            try:
+                atomic_write(record, json.dumps(started))  # replaces any earlier completion: fail closed
+                try:
+                    child = subprocess.Popen(argv, env={**os.environ, MANUAL_ENV: claim}, process_group=0,
+                                             preexec_fn=in_child)
+                except OSError as error:
+                    print(f"manual-run cannot start {argv[0]}: {error}; its start record stays, so the claim "
+                          f"needs `resume --accept-orphans {claim}`", file=sys.stderr)
+                    return 127  # no completion: a start failure is not proof that nothing ran
+                finally:
+                    signal.pthread_sigmask(signal.SIG_SETMASK, unblocked)  # a held signal is forwarded now
+                with contextlib.suppress(Stop, OSError):  # only a hint for the lead; the start record holds
+                    atomic_write(record, json.dumps({**started, "child_pid": child.pid, "child_pgid": child.pid}))
+                while True:  # reparented descendants are children too: ECHILD means none is left
+                    try:
+                        pid, status = os.wait()
+                    except ChildProcessError:
+                        break
+                    if pid == child.pid and child.returncode is None:  # a reused pid is not the session
+                        code = os.waitstatus_to_exitcode(status)
+                        child.returncode = code
+                child = None  # ECHILD: nothing is left to forward to, and its pid may be reused
+                code = 128 - code if code < 0 else code
+                # Before the handlers are restored: a late Ctrl-C must not leave a start-only record.
+                atomic_write(record, json.dumps({**started, "completed": now(), "exit": code}))
+            finally:
+                signal.pthread_sigmask(signal.SIG_SETMASK, unblocked)
+                if terminal:  # back to the launcher's group, which is in the background now
+                    ttou = signal.signal(signal.SIGTTOU, signal.SIG_IGN)
+                    with contextlib.suppress(OSError):
+                        os.tcsetpgrp(tty, os.getpgrp())
+                    signal.signal(signal.SIGTTOU, ttou)
+                if tty is not None:
+                    os.close(tty)
+                for sig, handler in previous.items():
+                    signal.signal(sig, handler)
+            return code
+        finally:
+            lock.close()
+
     def preflight(self) -> str:
         self.refuse_live_workers()
         self.own_state()  # before every task: a session may have planted a link since acquire()
+        self.refuse_live_manual()
         # A manual Codex session is not a tagged process: its claim keeps its baseline alive.
         if active := [t["id"] for t in load_ledger(LEDGER)["tasks"] if t["status"] == "active"]:
             raise Stop(f"manual task {active} is active; validate it and update the ledger first")
@@ -761,7 +1058,7 @@ class Controller:
         if planted := planted_modules():
             raise Stop(f"untracked or ignored modules under tools/ could run as code: {brief(planted)}")
         if nested := nested_git(ROOT):
-            raise Stop(f"nested .git paths can carry Git callbacks; remove them: {brief(nested)}")
+            raise Stop(f"nested .git paths can carry Git callbacks: {nested_git_cleanup(nested)}")
         if hidden := hidden_tracked():
             raise Stop(f"tracked paths hide worktree edits (assume-unchanged or skip-worktree): {brief(hidden)}")
 
@@ -789,9 +1086,12 @@ class Controller:
 
     @staticmethod
     def saved_baseline(path: Path) -> dict:
+        # A planted link or FIFO: Stop, never followed or waited on. Removing the marker drops the comparison.
+        data = read_private(path, "the trusted marker", "review the checkout, its ignored files and Git callbacks "
+                            "as a whole before removing it")
         try:
-            saved = json.loads(path.read_text())
-        except (OSError, ValueError):
+            saved = json.loads(data) if data is not None else None
+        except ValueError:
             saved = None
         return saved if isinstance(saved, dict) else {}  # unreadable baseline: every check fails closed
 
@@ -880,6 +1180,7 @@ class Controller:
             return "stop/pause cleared; a controller is running, so the saved session baseline is kept"
         self.lock_acquired = True
         self.refuse_live_workers()
+        self.refuse_live_manual()  # before the ledger: it says "active" for as long as the session may run
         if active := [t["id"] for t in load_ledger(LEDGER)["tasks"] if t["status"] == "active"]:
             return (f"stop/pause cleared; manual task {active} is active, so the saved session baseline "
                     "is kept until it is validated")
@@ -1195,6 +1496,7 @@ Rules (binding, in addition to AGENTS.md):
 
     def prepare_manual(self) -> dict:
         """Claim a READY task without executing untrusted code or lifting the hold."""
+        require_manual_host()  # before preflight can retire a baseline or a claim can be written
         if not self.lock_acquired:
             raise Stop("manual claim requires the controller lock")
         self.check_controls()
@@ -1205,7 +1507,8 @@ Rules (binding, in addition to AGENTS.md):
         task = select_task(ledger)
         if task is None:
             raise Stop("no eligible READY task; preserve active/manual work")
-        directory = self.state / "manual" / f"{task['id']}-{uuid.uuid4().hex}"
+        claim = uuid.uuid4().hex
+        directory = self.state / "manual" / f"{task['id']}-{claim}"
         directory.mkdir(parents=True)
         prompt = self.worker_prompt(task, head, "", "the lead runs the task's checks and gates after "
                                                     "validating the diff")
@@ -1213,14 +1516,19 @@ Rules (binding, in addition to AGENTS.md):
                    "and runs required gates directly. Do not run the held controllers or agent_gate. "
                    "No automatic continuation or safe unattended readiness is established.\n")
         atomic_write(directory / "brief.md", prompt)
+        session_argv = codex_argv(directory / "final.json")
         plan = {"task_id": task["id"], "base": head, "branch": self.cfg.branch,
                 "brief_sha256": sha256(prompt), "stdin": str(directory / "brief.md"),
-                "argv": codex_argv(directory / "final.json"), "cwd": str(ROOT),
+                # The launcher, not a bare codex: its completion record proves no session process is left.
+                "argv": ["python3", "-B", os.path.join(TOOLS_DIR, "roadmap_runner.py"), "manual-run", "--",
+                         *session_argv], "cwd": str(ROOT), "launcher_required": True,
                 "stdout": str(directory / "events.jsonl"), "stderr": str(directory / "stderr.log"),
                 "manual_required": True, "unattended_ready": False}
         atomic_write(directory / "dispatch.json", json.dumps(plan, indent=2))
         # The manual session may change Git state: the next preflight compares, never adopts.
         atomic_write(self.marker(), json.dumps({"baseline": self.callbacks, "manual": task["id"],
+                                                "claim": claim, "launcher": True,
+                                                "argv_sha256": sha256(json.dumps(session_argv)),
                                                 "session": f"manual {task['id']}",
                                                 "ignored": self.ignored_files()}))
         update_task(task["id"], path=LEDGER, status="active", history={
@@ -1304,7 +1612,7 @@ Return the structured result.
             record = {"attempt": attempt, "worker": worker}
             attempts.append(record)
             if nested := nested_git(ROOT):  # invisible to the scope check and revert below
-                raise Stop(f"the worker session left nested .git paths; review them: {brief(nested)}")
+                raise Stop(f"the worker session left nested .git paths: {nested_git_cleanup(nested)}")
             if hidden := hidden_tracked():  # their edits are invisible to the scope check as well
                 raise Stop(f"the worker session hid tracked edits behind index flags: {brief(hidden)}")
             changed = self.changed()
@@ -1551,15 +1859,21 @@ def main() -> int:
     run.add_argument("--routine-effort", default=Config.routine_effort, help="low/medium-risk tasks")
     for name in ("status", "stop", "pause", "validate", "brief"):
         sub.add_parser(name)
-    sub.add_parser("resume").add_argument(
-        "--accept", metavar="DIGEST", help="retire a saved baseline over the change `resume` reported")
+    sub.add_parser("manual-run", help="run the manual session command (after --) until every descendant "
+                   "has exited").add_argument("argv", nargs=argparse.REMAINDER)
+    resume = sub.add_parser("resume").add_mutually_exclusive_group()
+    resume.add_argument("--accept", metavar="DIGEST", help="retire a saved baseline over the change `resume` reported")
+    resume.add_argument("--accept-orphans", metavar="CLAIM", help="after ending every process of a manual "
+                        "session whose launcher left no completion record, acknowledge that claim")
     args = parser.parse_args()
     try:
+        if args.cmd in ("brief", "manual-run"):
+            require_manual_host()  # before creating state or acquiring a task that cannot run here
         # Before this mkdir or the stop/pause write could follow a planted link. The brake writes only
         # at the top: a link deeper down (refused by every controller start) must not hold it back.
         pin_state(STATE, walk=args.cmd not in ("stop", "pause"))
     except Stop as error:
-        print(error)
+        print(error, file=sys.stderr if args.cmd == "manual-run" else sys.stdout)  # its stdout: the session's
         return 2
     if args.cmd == "status":
         return status()
@@ -1579,8 +1893,13 @@ def main() -> int:
         # The lead has reviewed the reported change: a sticky STOP must not re-fire on the old baseline.
         controller = Controller(Config(), STATE)
         try:
-            print(controller.resume(args.accept))
+            # `is not None`: an empty claim (an unset shell variable) must refuse, never fall back to resume.
+            print(controller.accept_orphans(args.accept_orphans) if args.accept_orphans is not None
+                  else controller.resume(args.accept))
         except Stop as error:
+            if args.accept_orphans is not None:  # it never clears STOP or PAUSE
+                print(f"nothing acknowledged: {error}")
+                return 2
             held = [n for n in ("STOP", "PAUSE") if os.path.lexists(STATE / n)]  # a refusal can precede the clear
             print(f"{'stop/pause cleared' if not held else f'{held} still present'}; "
                   f"the saved session baseline is kept: {error}")
@@ -1588,6 +1907,12 @@ def main() -> int:
         finally:
             controller.release()
         return 0
+    if args.cmd == "manual-run":
+        try:
+            return Controller(Config(), STATE).manual_run(args.argv[1:] if args.argv[:1] == ["--"] else args.argv)
+        except Stop as error:
+            print(error, file=sys.stderr)  # stdout is the session's event stream
+            return 2
     if args.cmd == "brief":
         if (STATE / "STOP").exists():  # before any Git call, like the run loop
             print("stop file present (build/roadmap-pipeline/STOP)")

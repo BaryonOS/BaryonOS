@@ -1472,7 +1472,8 @@ pub fn export_v2<T: Transport>(
 
 /// Result of [`restore_native_l2`]. Destination values only: the recorded
 /// source values are in the `ArchiveV2` the caller passed in. Counts are a
-/// lower bound when the status is `Unknown`.
+/// lower bound when the status is `Unknown` or `Protocol`: the request may
+/// have committed without a valid reply.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub struct L2Report {
     /// Bit `s`: archive slot `s` installed (current version and its
@@ -1480,9 +1481,13 @@ pub struct L2Report {
     pub restored: u8,
     /// Bit `i - 1`: collection `i` installed.
     pub collections: u8,
-    /// INSTALL_COLLECTION and INSTALL_COMMIT commits. Zero after an error
-    /// means refused and untouched; otherwise the domain is used and a rerun
-    /// is refused (no resume, S09-L2-PROVENANCE section 5).
+    /// INSTALL_COLLECTION and INSTALL_COMMIT commits this restore confirmed.
+    /// Zero after an error other than `Unknown` or `Protocol` means this
+    /// restore committed nothing; it does not mean the domain was never used
+    /// (`Stale` can report an already-used domain). After `Unknown` or
+    /// `Protocol`, even zero is only a lower bound. Any confirmed commit
+    /// makes the domain used, so a rerun is refused (no resume,
+    /// S09-L2-PROVENANCE section 5).
     pub committed: usize,
     /// Versions after the first revision gap of a present object (R2).
     pub skipped: usize,
@@ -1516,13 +1521,21 @@ pub fn l2_manifest(object: &ObjectV2) -> Manifest {
 /// archive into a never-used `domain`, one INSTALL commit per present
 /// object, preserving the archive revisions and stamps as immutable
 /// provenance beside destination-assigned live revisions and clocks.
+/// An uncertain collection, BEGIN, APPEND or COMMIT retains its phase and
+/// correlation on [`Client::unconfirmed_install`], without automatic ABORT or
+/// retry. Failed cleanup after a definite error also retains recovery state.
+/// The original session owner or trusted domain recovery must reconcile that
+/// state before [`Client::acknowledge_install_recovery`] permits a retry.
 ///
-/// Refused before the first write, in this order: a corrupt or v1 archive
+/// After the domain/recovery guard, refused before the first write in this
+/// order: a corrupt or v1 archive
 /// (`Corrupt`), `TOMBSTONES` (`Invalid`, R2), a used domain (`Stale`, R3),
 /// a replay over `QUOTA` (`Quota`) or over [`GUARANTEED_FREE`] (`Full`), and
 /// a manifest the service would refuse (`Corrupt`). Then every present
 /// collection is installed, then every present object over its
-/// [`replayable`] prefix; content streams from a fresh `open()` in archive
+/// [`replayable`] prefix. A staged session in the destination makes the first
+/// INSTALL operation `Busy`, without committing a collection or object.
+/// Content streams from a fresh `open()` in archive
 /// order and every version is compared with the verified plan (FNV-64,
 /// `Corrupt` and ABORT on a mismatch). An older service answers the first
 /// INSTALL operation with `NoSys` and nothing is committed. There is no
@@ -1540,6 +1553,9 @@ pub fn restore_native_l2<S: Source, T: Transport>(
     let mut report = L2Report::default();
     if domain >= DOMAINS {
         return Err((Status::Invalid, report));
+    }
+    if let Some(pending) = client.unconfirmed_install() {
+        return Err((pending.status, report));
     }
     let plan = verify_v2(&mut open(), scratch).map_err(|status| (status, report))?;
     *source = plan;
@@ -1625,8 +1641,8 @@ pub fn restore_native_l2<S: Source, T: Transport>(
         };
         client.install_stream(target, id, &manifest, index..index + 1, &mut fill)?;
         if index + 1 == keep {
-            // An unanswered commit leaves `staged` set; the service keeps an
-            // incomplete session, so it is aborted below (not on Unknown).
+            // An unanswered or malformed COMMIT may already be durable.
+            // Its retained recovery record prevents automatic ABORT or replay.
             done.revisions[object.slot] = client.install_commit(target, id, &manifest)?;
             staged = None;
             done.restored |= 1 << object.slot;
@@ -1641,7 +1657,7 @@ pub fn restore_native_l2<S: Source, T: Transport>(
         Err(status) => status,
     };
     if let Some((target, id)) = staged {
-        if status != Status::Unknown {
+        if client.unconfirmed_install().is_none() {
             let _ = client.abort(target, 0, id);
         }
     }

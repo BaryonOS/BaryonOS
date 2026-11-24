@@ -151,6 +151,13 @@ becomes `Unknown`, also on initialization; the original cause remains local
 diagnostics. The instance blocks further use. No silent
 re-execution, success fallback, old snapshot or ACK before durability.
 
+The volume transport preserves the delivery phase. A failed send that queued
+nothing keeps its pre-delivery status, including `Timeout`. Once send succeeds,
+any missing reply or invalid reply envelope returns volume `Status::Unknown`:
+the service may already have committed. A matching response, including an
+encoded service refusal, is returned unchanged. The adapter never replays an
+uncertain request.
+
 The monotonic clock is only for offers within the same boot.
 The cold probe accepts no old offer on reset PIT ticks.
 This is a fail-closed probe limitation, not a finished persistent-pairing UX

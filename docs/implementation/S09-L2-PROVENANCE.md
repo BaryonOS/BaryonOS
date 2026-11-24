@@ -283,6 +283,12 @@ An abandoned untokened install blocks new sessions in its domain until a
 matching ABORT, SHUTDOWN or service restart. Staged sessions were never
 ACKed, so nothing durable is lost.
 
+INSTALL_COLLECTION also returns `Busy` while any upload or install session
+is staged in the destination domain, for both v6 and v7. This leaves the
+existing session intact and prevents L2 restore from committing collections
+before its first INSTALL_BEGIN would encounter the same refusal. Other
+domains remain independent.
+
 **Code paths that must change:**
 1. `service.rs:178-187`: the v6 legacy `Busy` guard covers BEGIN, APPEND,
    COMMIT, ABORT, **INSTALL_BEGIN, INSTALL_APPEND and INSTALL_COMMIT** while
@@ -437,10 +443,60 @@ New `client::validate_reply` arms:
 - **PROVENANCE_STAT, collection:** `revision` = request `revision`;
   `length = name_length = 0`; `count ≤ 1`; `(count = 1) ⇔ (aux ≠ 0)`.
 
+**Explicit INSTALL recovery.** Legacy request IDs are correlation values,
+not ownership credentials; separate clients may use the same ID for the same
+object. A lost or malformed Busy reply therefore cannot justify an automatic
+ABORT. The provided INSTALL helpers retain the sent epoch, object, request ID,
+error and failed operation in `Client::unconfirmed_install`. `InstallPhase`
+distinguishes `Begin`, `Append`, `Commit`, `Collection { index }` and `Abort`.
+Collection records identify the domain base plus collection index, not a
+staged object session.
+
+`Unknown` or `Protocol` from BEGIN, APPEND, COMMIT or INSTALL_COLLECTION retains
+that record and returns the original error without automatic ABORT or retry.
+The convenience installer and L2 restore keep it on the caller's Client after
+returning, including when the failed APPEND followed a confirmed BEGIN. A lost
+or malformed COMMIT or collection response can hide an already durable change;
+its record must not be interpreted as proof that nothing committed.
+
+`begin_confirmed` is true only when this Client previously received a valid
+BEGIN for the same epoch, object and request ID. BEGIN and collection records
+never claim that confirmation. A low-level continuation with an arbitrary ID
+does not acquire it. Confirmation is historical correlation, not a new service
+authorization check or evidence that a COMMIT did not take effect. Matching
+bookkeeping clears after successful COMMIT, successful ABORT or explicit
+recovery acknowledgement.
+
+After a confirmed BEGIN, definite operation or archive-source failures still
+attempt cleanup. If ABORT fails, the confirmed correlation is retained with
+phase `Abort` and the cleanup status; the high-level call keeps returning its
+original operation/source error. A successful cleanup allows a later attempt.
+An explicit ABORT while recovery is already pending never consumes or replaces
+that record, whether cleanup succeeds or fails.
+
+The INSTALL_BEGIN, APPEND, COMMIT and collection helpers and L2 restore refuse
+further writes while recovery is pending. Reads preserve the record. This is
+caller-side recovery bookkeeping, not a new security boundary over public raw
+exchange or transport access. The caller must retain its Client and reconcile
+the state through the original confirmed owner or trusted domain recovery.
+Only then may it acknowledge that exact record with
+`acknowledge_install_recovery`. A stale or mismatched acknowledgement changes
+nothing; a matching acknowledgement clears local bookkeeping only, sends no
+request and proves no ownership. A failed cleanup is not recovery. This does
+not promise immediate stage reclamation, APPEND resume or blind COMMIT replay.
+A partially committed restore still requires a fresh destination domain.
+
+The Transport contract distinguishes delivery phases: a timeout or other
+definite transport failure requires proof that the request was not delivered.
+After it was queued, a missing or invalid reply envelope is `Unknown`; an
+encoded service refusal remains a reply. A lost COMMIT response must never be
+reported as proof that no commit occurred.
+
 ## 5. Restore mode L2 (`restore_native_l2`, client, `archive.rs`)
 
 This is a separate function beside `restore` (v1) and `restore_native` (L1).
-Before the first write it checks, in this order:
+An invalid domain or pending Client recovery record stops it before the archive
+is opened or any remote write is attempted. It then checks, in this order:
 1. `verify_v2`: a v1 or corrupt archive gives `Corrupt`;
 2. `TOMBSTONES` gives `Invalid` (R2);
 3. `never_used`, otherwise `Stale` (R3);
@@ -451,6 +507,13 @@ It then runs INSTALL_COLLECTION for each archived present collection
 (deleted collections are never installed), followed by one INSTALL session
 per present object over its `replayable` prefix only. Versions after the
 first gap are counted in `skipped`.
+
+A pre-existing staged session causes the first INSTALL_COLLECTION (or
+INSTALL_BEGIN when there are no present collections) to return `Busy`
+without a collection or object commit. The destination remains unused and
+can be retried after the existing session's owner clears it. This does not
+provide concurrency control across later restore operations: the caller
+must still be the only writer in the destination domain.
 
 Content streams from a fresh `open()` in archive order. Before
 INSTALL_COMMIT, the client recomputes each version's FNV-64 against the

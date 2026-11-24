@@ -488,7 +488,7 @@
       "status": "blocked",
       "native": true,
       "title": "Native full TCP and bounded UDP listener sweep before and after revoke",
-      "goal": "Extend the native network-service revoke case so the peer sweeps all 65,535 guest TCP ports and a documented bounded set of UDP ports before and after revocation; the guest must answer only with exact RSTs, never a SYN-ACK or UDP payload; bounded frame and time budget for the case.",
+      "goal": "Validate the separate test-net-service-port-sweep profile from successor #445 through integration #478: sweep all 65,535 guest TCP ports and 16 bounded UDP ports before app traffic and after revocation/app checks, with exact RST refusals, no SYN-ACK or UDP payload, and bounded frame/time budgets. Preserve the ordinary revoke case as a separate regression; the blocked #380 prototype is superseded by this test-only profile.",
       "why_now": "Closes the N04 'no unintended listening ports' clause using an existing kernel feature; only three TCP ports and no UDP are probed today.",
       "deps": [],
       "write_paths": [
@@ -504,6 +504,7 @@
       ],
       "checks": [
         "python3 -B -m unittest discover -s tools -p test_network_service_peer.py",
+        "python3 -B -u tools/run_network_service.py --case port-sweep",
         "python3 -B -u tools/run_network_service.py --case revoke"
       ],
       "acceptance": [
@@ -535,7 +536,7 @@
       ],
       "source_commit": "5acd07961bd12d389987fc2251f4f7834faae97d",
       "receipt": null,
-      "blocker": "Before optional timed-wait experiment, full sweep measured1540input frames over6.989656652s (median4.513ms per input, ~220RST/s), peer healthy; appB failed step32 at8.375s. This extrapolates to about591s for131070RSTs, beyond180s. Required native full-port acceptance remains open. Existing revoke feature lacks ipc-wait; optional wait experiment failed POLICYstep3 and has been fully removed without enabling new syscall/feature."
+      "blocker": "Final integration-head native evidence is still required for #445's separate port-sweep implementation in #478 and the ordinary revoke regression. Host tests and source-branch native runs do not release this hold; status remains blocked and receipt remains null until the lead verifies the hosted final-head results. Original failed #380 prototype receipt (status blocked, source_matches_final_native false): https://github.com/BaryonOS/BaryonOS/blob/70140ffcfb142e7728725458aa205869c448cc16/docs/roadmap-pipeline/receipts/N04-T1.json . This supersession does not accept the global N04 criterion."
     },
     {
       "id": "B02-T1",
