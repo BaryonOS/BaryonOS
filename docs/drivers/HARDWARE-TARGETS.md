@@ -114,8 +114,11 @@ extension at BootInfo offset 256 (`crates/boot-protocol/src/firmware.rs`);
 normal IF0 M2 discovery, prints `M2:PASS`/`M1:PASS`, then the `HWINV:` block,
 and stops in a `CLI`/`HLT` loop. PCI identity is read only from configuration
 offsets `0x00`, `0x08` and `0x0C` of every present segment-0 function, through
-legacy mechanism 1; no BAR, command register or bus master is touched. Panic and
-M1/M2 failure paths still use port `0xF4`.
+legacy mechanism 1; no BAR, command register or bus master is touched. Since
+H06-T5 every terminal path of the pair (panic, M1/M2 failure, M2 exception,
+`HWINV:FAIL`, serial timeout, loader `M1:FAIL` and the loader handoff return)
+halts without writing port `0xF4`; QEMU fixtures in
+[h06-halt-terminals-20261124](../verification/h06-halt-terminals-20261124/README.md).
 
 `python3 -B tools/hw_inventory.py --log <serial> --out <inventory.json>` turns
 one complete, passing `HWINV:` block into the schema-2 inventory JSON consumed
@@ -184,9 +187,10 @@ Common to every protocol:
   re-read from the medium. No such image can be built yet: `tools/build.py`
   exports an ESP directory for QEMU's virtual FAT backend, and
   `tools/repro_check.py` compares only that ESP payload manifest.
-- Every milestone-m2 terminal path calls `exit()` in `kernel/src/serial.rs`,
-  which writes QEMU's `isa-debug-exit` port `0xF4`. That port is undefined on
-  physical PCs; a physical image first needs a halt-based terminal path.
+- Outside the `native-hw-inventory` profile, every milestone-m2 terminal path
+  calls `exit()` in `kernel/src/serial.rs`, which writes QEMU's `isa-debug-exit`
+  port `0xF4`. That port is undefined on physical PCs; each such profile first
+  needs a halt-based terminal path, as `native-hw-inventory` has since H06-T5.
 - Forbidden: firmware flashing, saving firmware settings, `BootOrder` or other
   persistent UEFI variable changes, Secure Boot key or state changes, internal
   disk access, and personal data. Boot only through the firmware one-time boot
