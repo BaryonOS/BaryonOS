@@ -736,8 +736,19 @@ def find_merge_base(repo, base, head, allow_fetch):
             raise Full("ambiguous-merge-base", bases)  # criss-cross: no single diff is complete
         if code == 0 and len(bases) == 1 and SHA_RE.fullmatch(bases[0]) \
                 and is_ancestor(repo, bases[0], base) and is_ancestor(repo, bases[0], head):
-            return bases[0]
+            if not is_shallow(repo):
+                return bases[0]
+            # A newer common ancestor can hide behind the shallow boundary: require full history.
+            if allow_fetch and fetch(repo, "--unshallow") and not is_shallow(repo):
+                return find_merge_base(repo, base, head, allow_fetch=False)
+            raise Full("shallow-history", bases)
     raise Full("missing-history")
+
+
+def is_shallow(repo):
+    """Anything but a clear 'false' (including a git error) counts as shallow."""
+    code, out = git(repo, "rev-parse", "--is-shallow-repository")
+    return code != 0 or out.strip() != b"false"
 
 
 def canonical(value):

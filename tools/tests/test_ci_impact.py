@@ -2,6 +2,7 @@
 
 import contextlib
 import copy
+import functools
 import importlib.util
 import io
 import json
@@ -498,6 +499,24 @@ class FallbackTests(FixtureTestCase):
         plan = ci_impact.make_plan(str(clone), "pull_request", self.base, head, tested,
                                    selector_bytes=SELECTOR.read_bytes(), allow_fetch=True)
         self.assertSelect(plan, {"leaves#quality/solo"})
+
+    def test_shallow_clone_accepts_a_merge_base_only_with_full_history(self):
+        # A visible single merge base behind a shallow boundary may not be the true one.
+        self.repo.commit("c1", {"docs/guide.md": "guide 1\n"})
+        tip = self.repo.commit("c2", {"docs/guide.md": "guide 2\n"})
+        self.repo.git("checkout", "-q", "-B", "topic", tip)
+        head = self.repo.commit("head", {"apps/solo/src/lib.rs": "// solo 2\n"})
+        clone = Path(self._tmp.name) / "shallow"
+        run = lambda *args: subprocess.run(["git", *args], check=True, env=GIT_ENV, capture_output=True)  # noqa: E731
+        run("clone", "-q", "--no-local", "--depth=2", "--branch", "topic", f"file://{self.repo.root}", str(clone))
+        run("-C", str(clone), "config", "protocol.file.allow", "always")
+        shallow = lambda: run("-C", str(clone), "rev-parse", "--is-shallow-repository").stdout.strip()  # noqa: E731
+        self.assertEqual(shallow(), b"true")
+        make = functools.partial(ci_impact.make_plan, str(clone), "pull_request", tip, head,
+                                 selector_bytes=SELECTOR.read_bytes())
+        self.assertFull(make(allow_fetch=False), "shallow-history")
+        self.assertSelect(make(allow_fetch=True), {"leaves#quality/solo"})  # unshallowed, then recomputed
+        self.assertEqual(shallow(), b"false")
 
     def test_fetch_failure_falls_back_to_full(self):
         plan = self.plan("e" * 40)

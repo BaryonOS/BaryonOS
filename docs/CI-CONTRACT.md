@@ -164,7 +164,12 @@ manifests are read at every revision too, because a workspace root's
 3. History: missing commits are fetched with `--depth=1`; the merge base is
    searched with bounded `--deepen` steps. Failures give `fetch-failed` or
    `missing-history`. More than one best merge base (a criss-cross history,
-   `git merge-base --all`) gives `ambiguous-merge-base`. For a pull request, a tested merge commit must have the
+   `git merge-base --all`) gives `ambiguous-merge-base`. In a shallow
+   repository a single visible merge base may hide a newer one behind the
+   shallow boundary, so it is accepted only after `git fetch --unshallow`
+   succeeds and the repository is complete; the merge base is then
+   recomputed. Otherwise, or with `--no-fetch`, the plan is full with
+   `shallow-history`. For a pull request, a tested merge commit must have the
    base and head as parents (`merge-ref-mismatch`).
 4. Diff: `git diff --name-status -z --find-renames <merge base> <head>`.
    Renames and copies contribute the old and the new path, deletions the old
