@@ -46,14 +46,17 @@ fn truncation_padding_types_and_operation_are_bounded() {
     for cut in 0..42 {
         assert_eq!(arp::parse(&REQUEST[..cut]), Err(Error::Truncated));
     }
-    for size in 43..=64 {
+    // Link padding of any length up to the Ethernet maximum is ignored,
+    // whatever its bytes; libslirp sends 64-byte ARP replies (N02-T6).
+    for size in [43, 59, 60, 61, 64, 1514] {
         let mut data = REQUEST.to_vec();
         data.resize(size, 0xa5);
-        if size == 60 {
-            assert!(arp::parse(&data).is_ok());
-        } else {
-            assert_eq!(arp::parse(&data), Err(Error::InvalidLength));
-        }
+        assert_eq!(arp::parse(&data).unwrap().operation(), Operation::Request);
+    }
+    for size in [1515, 2048] {
+        let mut data = REQUEST.to_vec();
+        data.resize(size, 0);
+        assert_eq!(arp::parse(&data), Err(Error::InvalidLength));
     }
     for at in 12..20 {
         let mut data = REQUEST;

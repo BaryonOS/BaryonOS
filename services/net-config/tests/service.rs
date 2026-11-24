@@ -230,12 +230,15 @@ fn pending_probe_backpressure_wrong_completion_and_repeated_ticks_do_not_prove_a
 
 #[test]
 fn foreign_probe_or_reply_to_zero_target_conflicts_but_own_echo_does_not() {
-    for reply_to_zero in [false, true] {
+    // Link padding up to the Ethernet maximum never hides a conflict
+    // (libslirp pads ARP to 64 bytes, N02-T6).
+    for (reply_to_zero, size) in [(false, 60), (true, 60), (false, 64), (true, 1514)] {
         with_service(|service| {
             candidate(service);
             service.poll(0).unwrap();
             let (id, mut frame) = offered(service, 0);
             service.receive_frame(&frame, 0).unwrap();
+            frame.resize(size, 0xa5);
             assert_eq!(service.phase(0), Ok(Phase::CheckingAddress));
             frame[6..12].copy_from_slice(&SERVER_MAC);
             frame[22..28].copy_from_slice(&SERVER_MAC);
