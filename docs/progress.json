@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-24",
-    "source_commit": "893aea108434d7af9ae509dceeea02422241fb7e",
+    "source_commit": "730a96a723f8de2150282643571f04655a327cbd",
     "assessment_basis": "parent_commit",
-    "branch": "claude/h06-t5-halt-terminals-20261124",
-    "task": "H06-T5 halt-based HW-INV terminal paths (QEMU fixtures)",
+    "branch": "claude/h06-t6-hwinv-image-20261124",
+    "task": "H06-T6 removable-media HW-INV image (QEMU-booted)",
     "previous_score": 43,
-    "summary": "43/100 unchanged. H06-T5 makes every native-hw-inventory kernel and hw-inventory loader terminal path (panic, M1/M2 failure, M2 exception, HWINV:FAIL, serial timeout, loader M1:FAIL) halt instead of writing QEMU port 0xF4; HW-INV v3 adds the M2:FAIL* marker, and four native QEMU fixtures plus a negative control pass. No physical PC, image or signed record exists and owner decisions remain open, so H06 earns no points."
+    "summary": "43/100 unchanged. H06-T6 adds tools/hw_inventory_image.py, a deterministic raw GPT disk image with one FAT32 ESP for the native-hw-inventory build with a recorded SHA-256, and a QEMU image case that boots it as a disk with the plain-case oracles; sgdisk, fsck.fat and mtools agree with the payload. No physical boot, USB medium or signed record exists, the layout awaits OD-HW-BOOT and the loader is not yet reproducible, so H06 earns no points; evidence: docs/verification/h06-hwinv-image-20261124/README.md."
   },
   "tracks": [
     {
@@ -906,7 +906,7 @@
             "verification": [
               "native"
             ],
-            "observation": "All HW-FR entries are pending or unsupported with evidence_level none; H06-T4 prepares protocols and signature validation only. H06-T3 adds a read-only native-hw-inventory kernel/loader pair that emits the HW-INV markers; it passes two QEMU configurations against QMP query-pci and configured CPUID/DMAR,, and its inventory is rejected as a virtual capture. H06-T5 makes every terminal path of that pair halt without port 0xF4 (four QEMU fixtures).",
+            "observation": "All HW-FR entries are pending or unsupported with evidence_level none; H06-T4 prepares protocols and signature validation only. H06-T3 adds a read-only native-hw-inventory kernel/loader pair that emits the HW-INV markers; it passes two QEMU configurations against QMP query-pci and configured CPUID/DMAR, and its inventory is rejected as a virtual capture. H06-T5 makes every terminal path of that pair halt without port 0xF4 (four QEMU fixtures). H06-T6 packs it into a deterministic raw GPT/FAT32 image with a recorded SHA-256 that boots in QEMU as a disk.",
             "remaining": "Physical operators, authorization and signed actual runs remain missing; host validation of evidence format proves no device support.",
             "evidence": [
               "docs/drivers/hardware-matrix.json",

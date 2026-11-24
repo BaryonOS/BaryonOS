@@ -1,0 +1,27 @@
+{
+  "scope": "Host-built HW-INV removable-media image; QEMU-tested only, not a physical boot or hardware record",
+  "image": "hw-inventory.img",
+  "image_sha256": "a4ca34eb088294df74b3839bdd32dde990d9d98aaddd4859982697dcae15c3ed",
+  "image_bytes": 67108864,
+  "layout": {
+    "sector": 512,
+    "partition_table": "gpt",
+    "esp_first_lba": 2048,
+    "esp_last_lba": 131038,
+    "filesystem": "fat32",
+    "sectors_per_cluster": 1,
+    "names": "8.3 upper-case"
+  },
+  "files": {
+    "EFI/BOOT/BOOTX64.EFI": "45fde8411d97105efe0a5f81506a22534f20e7aa9642e8ce3be8d9625aa8748d",
+    "KERNEL.ELF": "80d6f1c894dd9ca73fcca539f6dc788956550d9e518ab3dd54997dbb426833d3"
+  },
+  "kernel_feature": "native-hw-inventory",
+  "loader_feature": "hw-inventory",
+  "kernel_sha256": "80d6f1c894dd9ca73fcca539f6dc788956550d9e518ab3dd54997dbb426833d3",
+  "loader_sha256": "45fde8411d97105efe0a5f81506a22534f20e7aa9642e8ce3be8d9625aa8748d",
+  "source_fingerprint_version": 3,
+  "source_sha256": "dbde6b583b53f9946f6c52b5bf82959be79dd9d480a958fc93bf888143047ae5",
+  "source_commit": "730a96a723f8de2150282643571f04655a327cbd",
+  "clean_checkout": true
+}
