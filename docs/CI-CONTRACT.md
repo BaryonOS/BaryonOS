@@ -1,10 +1,12 @@
 # CI contract: impact catalogue and selector
 
-Status: phase 2a of issue #494. **Phase 2a does not change CI execution.** No
-workflow, action or required check reads the catalogue or runs the selector
-yet; every existing trigger, path filter and required gate behaves exactly as
-before. This document describes the data model and the selector so that later
-phases can wire them in without redesign.
+Status: phase 2b of issue #494 (current). **Phase 2b does not change which CI
+runs.** The advisory `ci-impact-shadow` job in `ci.yml` runs the selector on
+every event and preserves the plan and a catalogue coverage report; no job,
+required check or merge-hold reads either. Existing triggers and required
+gates behave as before, except that two positive path filters were widened
+(see "Shadow-mode wiring"). Phase 2a (PR #499) added the data model and the
+selector described below.
 
 Files:
 
@@ -238,7 +240,8 @@ is published last, atomically (temporary file, then rename). If any output
 fails, the published plan is the full `output-error:<Type>` emergency plan,
 never the computed one. If the emergency plan cannot be published either, the
 file at `--out` is removed, or else overwritten in place with the emergency
-plan; if neither works, `ci-impact: stale-plan-not-removed: <path>` goes to
+plan (`O_NOFOLLOW`: a symlink at `--out` is never written through); if neither
+works, `ci-impact: stale-plan-not-removed: <path>` goes to
 standard error. The emergency plan goes to standard output and the exit status
 stays 0. A consumer must still check that the plan's `shas.tested` matches its
 own run before it uses a plan file.
@@ -259,14 +262,16 @@ matrix, the unexpanded evidence name templates). It also checks:
 - obligation citations: the anchor must occur on the cited line or range;
   within five lines it reports `citation-moved` with the new line, otherwise
   `citation-anchor-missing` or `citation-missing`;
-- that Cargo roots exist, and scans closure crates for unregistered source
-  escapes;
+- that Cargo roots exist, and scans the git-tracked `.rs` files of closure
+  crates for unregistered source escapes (untracked build output such as
+  `target/` is ignored);
 - that no tracked symlink (mode 120000) lies in an execution's inputs
   (`symlink-input`), since its target can change without a diff inside them;
 - every `git ls-files` path is classified.
 
-It is a report, not an enforcement; enforcement in host-quality is a later
-phase.
+It is a report, not an enforcement. From phase 2b the `ci-impact-shadow` job
+runs it on every event and preserves `coverage.json`; catalogue drift does not
+fail any gate, including `host-quality`, before phase 3.
 
 ## Registering changes
 
@@ -286,11 +291,110 @@ phase.
 
 Then run `validate` and `coverage`; both must be clean, and bump `revision`.
 
+## Shadow-mode wiring (phase 2b)
+
+One job records the plan: `ci-impact-shadow` in `ci.yml`. A path-filtered
+workflow cannot record its own plan, because it never starts on filtered
+changes; `ci.yml` has no path filters. `merge-hold.yml` cannot host the job,
+because its contract pins a single job.
+
+**Job.** `ubuntu-24.04`, `timeout-minutes: 10`, `permissions: contents:
+read`, no `needs`, no `if`, no consumer, not required. `actions/checkout`
+uses the same pinned SHA as `host-quality` with `persist-credentials: false`
+and `fetch-depth: 0`. Full history means the merge base never depends on a
+shallow clone, so `missing-history` and `fetch-failed` indicate a real
+problem rather than a clone depth. The pinned Python, with the host
+dependencies (`host-dependencies: 'true'`, which provides PyYAML for
+`coverage`), comes from `./.github/actions/setup-python`. The steps are:
+
+1. `./.github/actions/select-ci` writes `build/ci-impact/plan.json`.
+2. A report-only step runs `coverage` from the checkout and writes
+   `build/ci-impact/coverage.json`, plus its status and at most 50 problems
+   in the step summary. It never asserts the status.
+3. `./.github/actions/preserve-evidence` preserves both files as
+   `ci-impact-plan` (compact upload `ci-impact-plan-reports`, three-day
+   retention, docs/CI-EVIDENCE.md), with `if: ${{ always() }}`,
+   `if-no-files-found: error` and only the plan as a required path.
+
+**Inputs.**
+
+| Event | `tested-sha` | `head-sha` | `base-sha` |
+|---|---|---|---|
+| `pull_request` | `github.sha` (merge ref) | `pull_request.head.sha` | empty; the action uses the merge ref's first parent |
+| `merge_group` | `github.sha` | `merge_group.head_sha` | `merge_group.base_sha` |
+| `push` | `github.sha` | `github.sha` | `github.event.before` |
+| `workflow_dispatch` | `github.sha` | `github.sha` | empty |
+
+On `pull_request` the base is the first parent of GitHub's merge commit, not
+the payload's `pull_request.base.sha`, which can name an older base tip and
+would then give `merge-ref-mismatch`. `github.event.before` is passed only on
+`push`; on a `pull_request` `synchronize` it names the previous pull request
+head, not the base.
+
+**Action `.github/actions/select-ci`.** A composite action with inputs
+`event-name`, `tested-sha`, `head-sha` and `base-sha`, and outputs `plan-id`,
+`mode` and `plan-path` (`build/ci-impact/plan.json`).
+
+- Every `${{ }}` value reaches the shell only through `env:`; no `run:`
+  block contains an expression.
+- A base is used only when it matches `^[0-9a-f]{40}$`. When the base commit
+  contains `tools/ci_impact.py`, the action writes that blob with
+  `git cat-file blob` to `$RUNNER_TEMP` and runs it with `python3 -B -I`.
+  The trusted selector then reads the catalogue from the base commit itself.
+- Without a base copy (no base, an all-zero `before`, or a base before the
+  selector existed), the checkout copy runs. The selector reports
+  `no-trusted-base`, `push-unknown-before` or `bootstrap-no-base-catalogue`,
+  and the action forces its `mode` output to `full` whatever that copy
+  writes.
+- Arguments use the `--flag=value` form, so a value that begins with `-`
+  cannot be parsed as an option.
+- The step fails only on a selector usage error (exit 2), an unreadable
+  selector or a plan without a valid `plan_id` and `mode`. Selector
+  uncertainty is a full plan with exit 0.
+- The step summary carries the selector's Markdown summary plus the selector
+  source (`base` or `checkout`).
+
+**Widened filters.** `storage-resilience.yml` and `volume-acceptance.yml`
+use the shared `setup-python`, `setup-qemu` and `preserve-evidence` actions.
+Their positive `pull_request` paths now include `.github/actions/**`; the
+literal `.github/actions/preserve-evidence/**` entry stays, because the
+historical evidence verifier records it. `storage-resilience.yml` also
+includes `sdk/**`, since the kernel build compiles files from
+`sdk/examples`. Widening only starts these gates more often.
+
+**Host-quality checks.** `tests/test_ci_workflows.py` (run by
+`host-quality`) checks the job and action contract: independence, read-only
+permissions, the checkout pin, the action inputs and outputs, expressions only
+through `env:`, the report-only coverage step and the preservation call. It
+also runs the action's script against a temporary repository: a trusted base
+copy gives `select` while the checkout copy is broken; no base gives `full`; a
+checkout copy that claims `select` without a base is forced to `full`; a
+malformed base gives `full`. It does not run `coverage`, so catalogue drift
+never fails `host-quality` in phase 2b; it appears in the shadow job's
+coverage report.
+
 ## Known limits before enforcement
 
-Phase 2a plans are shadow information. The following gaps are known and must
-be closed, or shown not to apply, before phase 3 (enforce) or phase 4
-(select) relies on a plan:
+Phase 2a and 2b plans are shadow information. The following gaps are known
+and must be closed, or shown not to apply, before phase 3 (enforce) or phase
+4 (select) relies on a plan:
+
+- **Only the selector and catalogue are base-trusted.** On `pull_request`,
+  the `ci-impact-shadow` job and `.github/actions/select-ci` come from the
+  pull request side; only `tools/ci_impact.py` and `.github/ci-impact.toml`
+  are read from the base commit. The coverage step also runs the checkout
+  copy. A pull request can therefore change how the plan is produced,
+  reported and preserved. This is acceptable while nothing consumes the
+  plan. Phase 3 must recompute or verify the plan from base-side code (for
+  example in merge-hold) and must not trust the pull-request-side action
+  outputs or the preserved artifact.
+- **The plan command line spans one base/head generation.** The action from
+  the head calls the selector from the base, so a pull request that adds a
+  `plan` flag to both makes the base selector fail with a usage error (exit
+  2). A new flag lands in the selector first and is used by the action only
+  after that selector is on `main`.
+- **Shadow plans are not acceptance evidence.** A preserved plan records what
+  the selector would have chosen; it proves no gate result.
 
 - **Event applicability ignores the target branch.** `applicable` checks the
   event name and, for `push`, a `branches` list containing `main`. It does
@@ -328,11 +432,12 @@ Both of the last two limits must be closed before merge-hold enforcement
 
 ## Phases
 
-- **2a (this change):** catalogue, selector, tests and this contract. No CI
-  wiring.
-- **2b:** a `ci-impact-shadow` job and a composite action run the trusted base
-  copy of the selector on every pull request and preserve the plan. Shadow
-  plans are recorded, never enforced.
+- **2a (PR #499, merged):** catalogue, selector, tests and this contract. No
+  CI wiring.
+- **2b (current):** the `ci-impact-shadow` job and the `select-ci` action run
+  the trusted base copy of the selector on every event and preserve the plan;
+  a report-only step preserves the catalogue coverage report. Shadow plans
+  and coverage are recorded, never enforced.
 - **3 (enforce):** per-workflow `select` and `final` jobs and merge-hold verify
   that every selected gate passed, bound to the `plan_id`.
 - **4 (select):** workflows run only the selected executions.

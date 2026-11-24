@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""CI impact selector for BaryonOS (phase 2a: shadow only, no CI wiring).
+"""CI impact selector for BaryonOS (phase 2b: shadow plan recorded in CI, never enforced).
 
 The selector maps the cumulative diff of a change onto the CI executions
 registered in `.github/ci-impact.toml` and writes a deterministic plan. It
@@ -8,8 +8,8 @@ history, unknown path or central input yields `mode = "full"` with a
 `fallback` code and exit status 0. Only usage errors exit 2.
 
 The file is deliberately self-contained (standard library only, no imports
-from `tools/`) so a later phase can run the trusted copy taken from the base
-commit. `coverage` additionally needs PyYAML and reports drift between the
+from `tools/`) so CI can run the trusted copy taken from the base commit
+(`.github/actions/select-ci`). `coverage` additionally needs PyYAML and reports drift between the
 catalogue and the checked-in workflows; it is a report, not an enforcement.
 See docs/CI-CONTRACT.md.
 """
