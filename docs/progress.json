@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-24",
-    "source_commit": "1fc9b8ca8ac472960e97dcc67bc082c540affb00",
+    "source_commit": "7108f138e780492bd37a8c368e12f6e3a1e911e7",
     "assessment_basis": "reviewed_main_commit",
-    "branch": "claude/ui-u-inventory-20261124",
-    "task": "U04: align the native History dialog focus and semantic order with its reading order (#447)",
+    "branch": "claude/ui-u-recovery-copy-20261124",
+    "task": "U05: specific Full/Quota/known-I/O save-failure copy and room for long compact status labels (UX-SR07, UX-SR11)",
     "previous_score": 43,
-    "summary": "43/100: unchanged. The native History dialog now reads and tabs Version, Cancel, Restore in visual order; the formerly ignored host reading-order test passes and History joins the full width/height/scale guard. U04 stays open: screen-reader chain, remaining compact layout defects (#448), the 640x480@200% status clipping and human task evidence are still missing. The delivery-review snapshot remains pinned to its own commit."
+    "summary": "43/100: unchanged. Save failures for Service(Full), Service(Quota) and a known Service(Io) now show the approved UX-SR07 copy instead of the generic label, and a wrapped status grows upward into verified free space on the editor and library screens without changing one-line frames or the frozen fingerprints. U05 stays open: deny copy (U03-T3 part 2), the library at logical height 240 (owner decision), Settings accounts/recovery, Search S3 and native evidence for these failure rows are still missing. The delivery-review snapshot remains pinned to its own commit."
   },
   "tracks": [
     {
