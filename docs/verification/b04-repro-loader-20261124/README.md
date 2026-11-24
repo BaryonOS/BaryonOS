@@ -27,6 +27,18 @@ Run 2: `/Brepro` replaces the timestamps with a content hash, but the hashes sti
 The PDB contains each run's absolute target-dir path and a random rustc temporary directory
 name, and its hash feeds the build identifier. All 20 differing bytes are timestamp/REPRO or RSDS fields.
 
+Primary source (toolchain `rustc +1.100.0 -vV` reports LLVM 23.1.5; tag `llvmorg-23.1.5`, commit
+`604d7ddfacefc074968a9ba0d88c667ab31b42bd`):
+
+- `lld/COFF/Driver.cpp` lines 2003 and 2021: `config->timestamp` is `0` or `time(nullptr)`; lines 2604–2628
+  select `BuildIDHash::PDB` when a PDB is linked.
+- `lld/COFF/PDB.cpp` lines 1618–1620: after the PDB is committed, its GUID is copied into the CodeView
+  record (`PDB70.Signature`), so PDB content (including run paths) determines the GUID.
+- `lld/COFF/Writer.cpp` `Writer::writeBuildId` lines 2692–2716: with `config->repro` the COFF header and
+  debug-directory timestamps become `xxh3_64bits` of the output, which already contains that GUID;
+  otherwise they are `config->timestamp`. Lines 108–114: `/Brepro` adds a data-less
+  `IMAGE_DEBUG_TYPE_REPRO` debug-directory entry.
+
 Fix (`.cargo/config.toml`, `[target.x86_64-unknown-uefi]`): `-C link-arg=/Brepro` and
 `-C link-arg=/DEBUG:NONE`. No PDB and no CodeView record are produced; one data-less REPRO debug
 entry remains. Both green loaders hash `2b49fedd1f42…`; the kernel was already identical
