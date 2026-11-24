@@ -3,7 +3,7 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-24",
-    "source_commit": "f3ab2bdc911b082571a4a0e0a3d47c6240eaaeca",
+    "source_commit": "b3a5c24911e4bdaa09fb0276913b0b6f71ed809e",
     "assessment_basis": "parent_commit",
     "branch": "integration/drain-ui-final",
     "task": "PR backlog integration and final UI/input source checkpoint",

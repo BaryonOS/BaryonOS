@@ -117,7 +117,7 @@ Historical handoffs below are records, not current ownership assignments.
 
 **Assessment:** **41 → 41/100**. Criterion states, weights, acceptance descriptions
 and existing evidence are unchanged. The assessment identifies the published
-code parent `f3ab2bdc911b082571a4a0e0a3d47c6240eaaeca`, whose tree matches the reviewed code, rather than
+code parent `b3a5c24911e4bdaa09fb0276913b0b6f71ed809e`, whose tree matches the reviewed code, rather than
 the later checkpoint or squash commit. Updating metadata accepts no criterion.
 
 ## Historical source-bound handoffs
