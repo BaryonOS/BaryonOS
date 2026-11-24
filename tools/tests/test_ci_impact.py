@@ -969,6 +969,20 @@ class CoverageTests(TestCase):
             self.assertEqual(check("R.md:99", "absent"), "citation-anchor-missing: R.md:99")
             self.assertEqual(check("gone.md:1", "x"), "citation-missing: gone.md:1")
 
+    @skipUnless(HAVE_YAML, "PyYAML is not importable")
+    def test_tracked_symlinks_in_inputs_are_reported(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            repo = Repo(tmp)
+            Path(tmp, "src/a").mkdir(parents=True)
+            Path(tmp, "docs").mkdir()
+            os.symlink("../../README.md", Path(tmp, "src/a/link.rs"))
+            os.symlink("../README.md", Path(tmp, "docs/link.md"))
+            repo.commit("base", {".github/ci-impact.toml": COVERAGE_CATALOGUE,
+                                 ".github/workflows/ci.yml": COVERAGE_YAML, "README.md": "fixture\n"})
+            problems = ci_impact.coverage(tmp, ".github/ci-impact.toml")["problems"]
+        self.assertIn("symlink-input: src/a/link.rs", problems)
+        self.assertFalse(any("docs/link.md" in p for p in problems), problems)
+
     def test_coverage_without_yaml_is_unavailable(self):
         with mock.patch.dict(sys.modules, {"yaml": None}):
             report = ci_impact.coverage(".", ".github/ci-impact.toml")

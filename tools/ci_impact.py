@@ -1238,12 +1238,23 @@ def coverage(repo, catalogue_file):
         registered = [glob for escape in escapes if escape["crate"] == crate for glob in escape["inputs"]]
         if target is None or not first_match(registered, target):
             problems.append(f"escape-unregistered: {crate} -> {target} ({origin})")
-    code, out = git(repo, "ls-files", "-z")
+    code, out = git(repo, "ls-files", "-s", "-z")
     if code != 0:
         problems.append("git-ls-files-failed")
-        tracked = []
-    else:
-        tracked = [os.fsdecode(p) for p in out.split(b"\0") if p]
+        out = b""
+    tracked, symlinks = [], []
+    for entry in out.split(b"\0"):
+        if entry:
+            meta, _, path = entry.partition(b"\t")
+            tracked.append(os.fsdecode(path))
+            if meta.startswith(b"120000 "):
+                symlinks.append(tracked[-1])
+    tracked = sorted(set(tracked))  # one entry per path, also during a merge conflict
+    all_globs = sorted({pattern for execution in execs for pattern in execution["globs"]})
+    for path in symlinks:
+        # A symlink can pull content from outside the inputs without changing in the diff.
+        if first_match(all_globs, path):
+            problems.append(f"symlink-input: {path}")
     always, _hits, unknown = classify(tracked, catalogue["policy"], execs)
     report |= {"status": "drift" if problems or unknown else "clean",
                "problems": sorted(set(problems)),

@@ -210,6 +210,8 @@ rendered matrix variants and check names, evidence names). It also checks:
   `citation-anchor-missing` or `citation-missing`;
 - that Cargo roots exist, and scans closure crates for unregistered source
   escapes;
+- that no tracked symlink (mode 120000) lies in an execution's inputs
+  (`symlink-input`), since its target can change without a diff inside them;
 - every `git ls-files` path is classified.
 
 It is a report, not an enforcement; enforcement in host-quality is a later
