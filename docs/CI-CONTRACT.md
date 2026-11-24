@@ -172,7 +172,9 @@ manifests are read at every revision too, because a workspace root's
    granularity selects every automatic execution of the workflow.
 7. Filter visibility: each selected execution reports `blocked_by_filter`
    when its own workflow path filter would keep it from starting.
-   `filter_eval_uncertain` is set for zero or more than 300 changed files.
+   `filter_eval_uncertain` is set for zero or more than 300 changed files;
+   `blocked_by_filter` is then `null` (unknown) for every filtered workflow,
+   never a definite `true` or `false`.
 
 ## Plan schema
 
@@ -188,7 +190,7 @@ ASCII escapes (control characters in paths never reach logs raw):
   `paths` (at most 1000);
 - `selected`: `id`, `workflow`, `job`, `variant`, `check_name`, `class`,
   `reasons` (at most three `[glob, path]` pairs), `reason_count`,
-  `blocked_by_filter`;
+  `blocked_by_filter` (`true`, `false` or `null` for unknown);
 - `excluded`: `id`, `class`, `reason` (class name, `not-automatic`,
   `event-not-applicable`, `no-input-match` or `manual-event`);
 - `plan_id`: `sha256` over the schema version, catalogue blob and revision,

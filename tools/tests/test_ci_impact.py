@@ -433,6 +433,16 @@ class SelectionTests(FixtureTestCase):
         plan = self.plan(self.branch({"kernel/main.rs": "// k\n"}, message="kernel"))
         self.assertFalse({r["id"]: r for r in plan["selected"]}["storage#s"]["blocked_by_filter"])
 
+    def test_blocked_by_filter_is_unknown_beyond_the_filter_limit(self):
+        # GitHub does not document filter results past 300 files, so no definite answer
+        many = {f"tools/native/f{i}.py": "# x\n" for i in range(ci_impact.FILTER_FILE_LIMIT + 1)}
+        plan = self.plan(self.branch(many, message="many"))
+        self.assertTrue(plan["filter_eval_uncertain"])
+        rows = {row["id"]: row for row in plan["selected"]}
+        self.assertIsNone(rows["storage#s"]["blocked_by_filter"])
+        summary = ci_impact.summary_markdown(plan)
+        self.assertIn("| storage#s | rwa | yes | unknown |", summary)
+
     def test_merge_ref_must_join_base_and_head(self):
         head = self.branch({"apps/solo/src/lib.rs": "// solo 2\n"})
         self.repo.git("checkout", "-q", "--detach", self.base)

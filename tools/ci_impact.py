@@ -964,6 +964,7 @@ class Planner:
             return False
         if not changed or len(changed) > FILTER_FILE_LIMIT:
             self.filter_uncertain = True
+            return None  # unknown: GitHub's filter result is not defined for this diff
         if "paths" in spec:
             return not any(first_match(spec["paths"], path) for path in changed)
         ignore = policy.get("inert", []) if spec["paths_ignore"] == METADATA else spec["paths_ignore"]
@@ -1010,11 +1011,15 @@ def summary_markdown(plan):
         counts[row["class"]] = counts.get(row["class"], 0) + 1
     lines.append("- selected per class: " + (", ".join(f"{k} {v}" for k, v in sorted(counts.items())) or "none"))
     blocked = [row["id"] for row in plan.get("selected", []) if row.get("blocked_by_filter")]
+    unknown = [row["id"] for row in plan.get("selected", []) if row.get("blocked_by_filter") is None]
     lines.append(f"- selected but blocked by a workflow path filter: {len(blocked)}")
+    if unknown:
+        lines.append(f"- path-filter result unknown (more than {FILTER_FILE_LIMIT} or zero changed files): {len(unknown)}")
     lines += ["", "| execution | class | selected | blocked by filter |", "|---|---|---|---|"]
     for row in plan.get("selected", []):
         if row["class"] == "rwa":
-            lines.append(f"| {md_cell(row['id'])} | rwa | yes | {md_cell(row['blocked_by_filter'])} |")
+            state = "unknown" if row.get("blocked_by_filter") is None else row["blocked_by_filter"]
+            lines.append(f"| {md_cell(row['id'])} | rwa | yes | {md_cell(state)} |")
     for row in plan.get("excluded", []):
         if row["class"] == "rwa":
             lines.append(f"| {md_cell(row['id'])} | rwa | no ({md_cell(row['reason'])}) | |")
