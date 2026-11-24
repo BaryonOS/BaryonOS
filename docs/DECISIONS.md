@@ -5,6 +5,48 @@ This document distinguishes the decisions and authority of the project owner
 from those of the executing roles. Source quotations retain their original
 wording and speaker.
 
+## ADR-PROJECT-LIFECYCLE-20261124 — Preserve specialist status and truthful closure
+
+**Status:** accepted on the project owner's instruction of 24 November 2026.
+This revises the Status and Priority rules of ADR-PROJECT-SYNC-20261111.
+
+**Problem:** recurring classification could overwrite a specialist's active
+workflow status from a PR draft flag or label change. Unmerged PR closures and
+non-completed issue closures could remain in an active column, while a missing
+issue closure reason was incorrectly treated as completed. The old Priority
+mapping also described project options no longer used by Project #5.
+
+**Decision:** retain every existing nonterminal Status, including Backlog,
+Ready, In Progress, In Review and Blocked. Draft flags and explicit blocked
+labels initialise empty statuses or reset Done/Closed when an item reopens;
+they do not continuously manage a specialist's chosen status. Reopened issues
+default to Backlog, with Todo/To do retained as compatibility alternatives.
+
+A merged PR or an issue explicitly closed as COMPLETED becomes Done regardless
+of its prior project status. An unmerged closed PR or any other closed issue
+becomes Closed, meaning closed without confirmed completion. An absent or
+unknown closure reason never implies completion. The generic native
+Item closed → Done rule must remain disabled; merge-specific automation may
+still record Done.
+
+Work Type and Subsystem remain fill-only and require unambiguous recognised
+signals. Exact scopes hw/hardware/drivers map to Hardware, and
+net/network/networking to Networking. Priority and planning dates are
+organisation issue fields; Effort is a numeric project field. Specialists
+maintain these values; this single-select project writer does not infer or
+write them. If no supported target or compatibility option exists, the update
+is skipped. The writer never creates schema options or substitutes Done for
+Closed. Existing scan/addition bounds, credentials and daily/manual workflow
+entry points remain unchanged.
+
+**Consequences:** project lifecycle is organisational metadata. Done does not
+establish an OS criterion, required-check result or release acceptance.
+Specialists own ongoing state and estimates; the existing sync reconciles
+observable terminal facts and fills supported empty metadata.
+
+**Review when:** project field types/options, lifecycle ownership or GitHub
+closure semantics change.
+
 ## ADR-PROGRESS-EVIDENCE-20261124 — Show delivered work alongside fixed acceptance
 
 **Status:** scoped implementation of the project owner's 24 November request to
