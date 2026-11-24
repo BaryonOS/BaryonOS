@@ -5,6 +5,7 @@
 //! layout is selected only by the explicit opt-in loader/kernel feature.
 
 pub mod acpi;
+pub mod firmware;
 #[cfg(not(feature = "smp-legacy-wire"))]
 pub mod graphics;
 #[cfg(feature = "smp-legacy-wire")]

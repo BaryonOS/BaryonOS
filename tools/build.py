@@ -64,7 +64,7 @@ SYSTEM_FEATURES += RELAY_FEATURES
 # needs the smp-handoff loader. K06 native-smp* profiles use the default loader.
 LEGACY_SMP_FEATURES = ("native-smp-legacy", "native-smp-legacy-m3", "native-smp-m3-exit", "native-smp-m3-tlb-reuse",
                        "native-smp-m3-lock-contention", "native-smp-m4", "native-smp-m4-revoke")
-KERNEL_FEATURES = ["test-panic", "test-hang", "milestone-m2", "native-rtc",
+KERNEL_FEATURES = ["test-panic", "test-hang", "milestone-m2", "native-rtc", "native-hw-inventory",
                    "native-xhci-probe", "test-xhci-dma-fault", "test-xhci-no-dmar", "native-usb-hid-probe", "native-usb-hid-reattach", "native-usb-hid-mouse-reattach", "test-usb-hid-readonly-fault",
                    "native-virtio-snd-probe", "test-snd-fence-reinit", "test-snd-quarantine",
                    "native-smp-m3-ipc", "native-smp-m3-migrate", "test-smp-m3-canary",
@@ -199,6 +199,14 @@ def build(loader_feature=None, kernel_feature=None, label="normal", image_versio
         loader_feature = "framebuffer"
     elif loader_feature in ("graphics-g0", "framebuffer", "desktop-mode", "desktop-hidpi"):
         raise ValueError("Graphics loader requires a matching framebuffer kernel")
+    if kernel_feature != "native-hw-inventory" and "native-hw-inventory" in (kernel_feature or "").split(","):
+        raise ValueError("native-hw-inventory is a single-feature profile")
+    if kernel_feature == "native-hw-inventory":
+        if loader_feature not in (None, "hw-inventory"):
+            raise ValueError("native-hw-inventory requires the hw-inventory loader (SecureBoot handoff)")
+        loader_feature = "hw-inventory"
+    elif loader_feature == "hw-inventory":
+        raise ValueError("hw-inventory loader requires the native-hw-inventory kernel")
     if kernel_feature in UPDATE_FEATURES:
         # B03: these update kernels are test profiles with explicit TEST anchors.
         wanted = "signed-policy-probe-test" if kernel_feature == "native-update-policy-probe" else "signed-boot-test"
@@ -485,7 +493,7 @@ def build(loader_feature=None, kernel_feature=None, label="normal", image_versio
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--loader-feature", choices=["test-ebs-retry", "graphics-g0", "framebuffer", "signed-boot-test", "signed-policy-probe-test", "signed-boot", "smp-handoff"])
+    parser.add_argument("--loader-feature", choices=["test-ebs-retry", "graphics-g0", "framebuffer", "signed-boot-test", "signed-policy-probe-test", "signed-boot", "smp-handoff", "hw-inventory"])
     parser.add_argument("--image-version", type=int, help="B03: NOS_IMAGE_VERSION of an update kernel")
     parser.add_argument("--kernel-feature", choices=KERNEL_FEATURES)
     args = parser.parse_args()

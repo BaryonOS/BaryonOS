@@ -1880,7 +1880,7 @@
           "at": "2026-11-18T22:27:56.012909+00:00",
           "event": "verified",
           "source_commit": "b019a8d2b99dc4a7006a5db50cdb3efcd516cf71",
-          "reason": "PROPOSED selected-text summarization/clarification trial preserves existing exact Qwen candidate pins; host-reference engine route,1024-token/128MiB-KV/2GiB-VM ceilings and LP04–07 native negative owners specified. Four local paths, VerifiedArtifact and unchanged pins checked; no model download or new runtime. Design only. Task/quality/model provenance/engine port/budget and numeric profile require owner decision; pinned config lookup unavailable, no actual KV or quality/latency claim. Native inference/hardware/human review NOT RUN;41/100 unchanged."
+          "reason": "PROPOSED selected-text summarization/clarification trial preserves existing exact Qwen candidate pins; host-reference engine route,1024-token/128MiB-KV/2GiB-VM ceilings and LP04\u201307 native negative owners specified. Four local paths, VerifiedArtifact and unchanged pins checked; no model download or new runtime. Design only. Task/quality/model provenance/engine port/budget and numeric profile require owner decision; pinned config lookup unavailable, no actual KV or quality/latency claim. Native inference/hardware/human review NOT RUN;41/100 unchanged."
         }
       ],
       "source_commit": "b019a8d2b99dc4a7006a5db50cdb3efcd516cf71",
@@ -2988,6 +2988,61 @@
           "event": "blocked",
           "at": "2026-11-19",
           "reason": "Still an owner decision: nine open decisions are now recorded machine-readably in docs/drivers/hardware-matrix.json (OD-HW-TARGETS, -BOOT, -DISKS, -CAPTURE, -SIGNERS, -FAMILIES, -PUBLISH, -INV-ROUTE, -POWER)."
+        }
+      ]
+    },
+    {
+      "id": "H06-T3",
+      "criterion": "H06",
+      "milestone": "M9",
+      "executor": "lead",
+      "status": "active",
+      "title": "Native read-only HW-INV inventory profile (QEMU-tested)",
+      "goal": "Paired native-hw-inventory kernel and hw-inventory loader that emit the HW-INV v2 markers (CPUID vendor and hypervisor bit, loader-observed SecureBoot, ACPI DMAR presence, every segment-0 PCI function's identity) and end in a CLI/HLT loop instead of port 0xF4; log-to-inventory converter and a QEMU runner checked against configured CPUID/DMAR and QMP query-pci.",
+      "deps": [
+        "H06-T4"
+      ],
+      "write_paths": [
+        "crates/pci-core/src/lib.rs",
+        "crates/boot-protocol/src/firmware.rs",
+        "crates/boot-protocol/src/lib.rs",
+        "boot/loader/Cargo.toml",
+        "boot/loader/src/main_default.rs",
+        "kernel/Cargo.toml",
+        "kernel/src/main.rs",
+        "kernel/src/m2.rs",
+        "kernel/src/m2/hw_inventory.rs",
+        "tools/build.py",
+        "tools/hw_inventory.py",
+        "tools/run_hw_inventory.py",
+        "tools/tests/test_hw_inventory.py",
+        "docs/drivers/physical-protocols.json",
+        "docs/drivers/HARDWARE-TARGETS.md",
+        "docs/drivers/DRIVER-ARCHITECTURE.md"
+      ],
+      "checks": [
+        "cargo +1.100.0 test --locked -p pci-core -p boot-protocol",
+        "python3 -B -m unittest discover -s tools/tests -p 'test_hw_*.py' -v",
+        "python3 -B tools/build.py --kernel-feature native-hw-inventory",
+        "python3 -B tools/run_hw_inventory.py --case all",
+        "python3 -B tools/hw_evidence.py --check",
+        "python3 -B tools/hw_matrix.py --check"
+      ],
+      "acceptance": [
+        "plain and iommu QEMU cases: HWINV block equals configured CPUID/DMAR and QMP query-pci, QEMU still running after HWINV:PASS (no exit-port write), converted inventory rejected by hw_evidence as a virtual capture",
+        "PCI inventory reads only config offsets 0x00/0x08/0x0C (host test with write-panicking access)",
+        "firmware-facts extension: zero page, foreign magic, bad version/size/state and non-zero reserved bytes rejected"
+      ],
+      "non_claimable": "No physical execution, image, signed record or H06 acceptance; SECUREBOOT=0/1 states are host-tested only; panic and M1/M2 failure paths still exit through 0xF4.",
+      "risk": "medium",
+      "size": "M",
+      "evidence_level": "native QEMU/TCG",
+      "next": "Owner decisions OD-HW-TARGETS/-BOOT/-INV-ROUTE, then a removable-media HW-INV image and halt-based panic/failure terminals.",
+      "history": [
+        {
+          "event": "active",
+          "at": "2026-11-24",
+          "reason": "Specialist H cycle h06-t3-20261124 on branch claude/h06-hw-inventory-20261124 from main 1fc9b8ca."
         }
       ]
     },
