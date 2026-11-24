@@ -9,7 +9,7 @@ reported in the PR comment `HANDOFF H <cycle_id>`, not here.
 | Task | H06-T5 halt-based HW-INV terminal paths (QEMU fixtures) |
 | Branch | `claude/h06-t5-halt-terminals-20261124` (base main `bf0d336a`) |
 | PR | [BaryonOS/BaryonOS#491](https://github.com/BaryonOS/BaryonOS/pull/491) |
-| Tested source | `893aea10` (source fingerprint `2ea69d91…`); later commits add docs, evidence and progress only |
+| Tested source | `893aea10` (source fingerprint `2ea69d91…`); later commits add docs, evidence, progress and a CI loop fix only (source fingerprint unchanged) |
 | Evidence | [h06-halt-terminals-20261124](../../verification/h06-halt-terminals-20261124/README.md): `panic`, `m2-fault`, `hwinv-fail` and `missing-kernel` fixtures halt with QEMU still running; negative control raw 35; `plain`/`iommu` and default/M2 smoke (raw 33) unchanged |
 | NOT RUN | serial-timeout fixture; native `SECUREBOOT=0/1`; local `actionlint`; any physical PC, image or signed record |
 | Score | 43/100 unchanged; H06 stays open |
