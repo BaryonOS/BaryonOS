@@ -20,18 +20,20 @@ in `docs/progress.json`, the S09 specifications and GitHub.
 
 ## Current cycle
 
-- **cycle_id:** S-20261124-4
-- **Task:** independent review of the merged slice E (`68596f82`, PR #492,
-  cases 29 and 30), which section 11 of
-  `docs/implementation/S09-L2-NATIVE-EXPORT.md` still listed as pending.
-  Verdict APPROVE with no required change; the cycle is documentation-only
-  (review record, one claim marked as design inference, open hardening
-  items in section 10). No code or native stage changes.
-- **Branch:** `claude/s09-slice-e-review`.
+- **cycle_id:** S-20261124-5 (cloud session; took over from the local S
+  writer after `HANDOFF S S-20261124-4`, state CLEAR_READY, on PR #498).
+- **Task:** R5 precondition of `docs/implementation/S09-DESTINATION-SERVICE.md`
+  (2.3, "Archive verifier"): the production archive verifier. The
+  `volume-verifier` feature of `destination-core` adds
+  `archive_verifier::VolumeVerifier` over `volume_core::archive::verify`;
+  host tests in `services/destination/tests/real_verifier.rs` run N7 and N10
+  through the service on real v1 archives. Host only; no native stage.
+- **Branch:** `claude/brave-feynman-jbiz6x`.
 - **PR and tested head:** recorded in the pull request.
-- **Evidence:** `docs/verification/s09-slice-e-review-20261124/REVIEW-1.md`.
-- **Pins:** unchanged (32 stages).
-- **Blockers:** none.
+- **Pins:** unchanged (32 volume stages); no workflow change.
+- **Blockers:** none for this step. R5 itself still waits for owner
+  decisions O4 (a)–(c), a hosted R3 cross-check and reverse differential
+  (lead-owned workflow change) and the K5 broker.
 
 ## Lessons
 
@@ -57,9 +59,19 @@ in `docs/progress.json`, the S09 specifications and GitHub.
    `docs/verification/` child directory; merged evidence directories are
    historical and protected.
 
+8. `destination-core` tests that need real v1 archives build them in-process
+   with `volume_core` (`Service`, `Client`, `archive::export`) over an
+   in-memory `Disk`; the harness switches verifiers with `AnyVerifier`.
+
 ## Next executable task
 
-After the review PR merges: S09 stays open. The open review-2 hardening
+Disjoint S-owned host steps toward R5 that need no owner decision: the R3
+reverse differential (the oracle's crafted invalid images mounted by the R2
+core, verdicts compared; spec 8.2 R3), and the open R2 items of spec 8.2
+(property-3 device-state snapshot, CODE-DELTA revision 5). The hosted R3
+cross-check is a workflow change for the integration coordinator.
+
+Also open (S09 stays open): the review-2 hardening
 items in section 10 (host check pins the interrupted slot and chunk count,
 object 4's appended chunks, collection never-used test) are a small native
 follow-up. Pick the next S09 gap from

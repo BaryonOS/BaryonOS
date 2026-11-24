@@ -3,7 +3,7 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-24",
-    "source_commit": "734820d6ed5e51d1480263616b4a54489f715209",
+    "source_commit": "9dfff70cbb49a2f2045c21a665e7d4a2cb2b8bfb",
     "assessment_basis": "reviewed_main_commit",
     "branch": "claude/ui-u-keyboard-only-20261124",
     "task": "U04-K1: keyboard-only reachability and activation host test for the window-session shell",
