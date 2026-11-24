@@ -66,10 +66,11 @@ SYSTEM_FEATURES += RELAY_FEATURES
 # needs the smp-handoff loader. K06 native-smp* profiles use the default loader.
 LEGACY_SMP_FEATURES = ("native-smp-legacy", "native-smp-legacy-m3", "native-smp-m3-exit", "native-smp-m3-tlb-reuse",
                        "native-smp-m3-lock-contention", "native-smp-m4", "native-smp-m4-revoke")
-# H06-T3/T5: the HW-INV profile and its terminal fixtures; each pairs with the hw-inventory loader.
-HWINV_FEATURES = ("native-hw-inventory", "test-hwinv-panic", "test-hwinv-m2-fault", "test-hwinv-fail")
+# H06-T3/T5/T7: the HW-INV profile and its terminal fixtures; each pairs with the hw-inventory loader.
+HWINV_FEATURES = ("native-hw-inventory", "test-hwinv-panic", "test-hwinv-m2-fault", "test-hwinv-fail",
+                  "test-hwinv-serial-timeout")
 KERNEL_FEATURES = ["test-panic", "test-hang", "milestone-m2", "native-rtc", "native-hw-inventory",
-                   "test-hwinv-panic", "test-hwinv-m2-fault", "test-hwinv-fail",
+                   "test-hwinv-panic", "test-hwinv-m2-fault", "test-hwinv-fail", "test-hwinv-serial-timeout",
                    "native-xhci-probe", "test-xhci-dma-fault", "test-xhci-no-dmar", "native-usb-hid-probe", "native-usb-hid-reattach", "native-usb-hid-mouse-reattach", "test-usb-hid-readonly-fault",
                    "native-virtio-snd-probe", "test-snd-fence-reinit", "test-snd-quarantine",
                    "native-smp-m3-ipc", "native-smp-m3-migrate", "test-smp-m3-canary",
