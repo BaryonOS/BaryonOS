@@ -1,10 +1,11 @@
 # S09 — Native L2 export and cold restore through the archive disk (phase 3)
 
-**Status: revision 2. Slice A (5.1) is on `main` (#477), slice B (5.2) on
-`main` (#482). Slices C and D (kernel cases 25–28, runner and oracle, the
-30-stage native gate and both stage-count pins) are implemented on
-`claude/s09-l2-slice-cd`; the local native gate passed 30/30
-([README](../verification/s09-l2-slices-cd-20261124/README.md)).**
+**Status: revision 3. Slice A (5.1) is on `main` (#477), slice B (5.2) on
+`main` (#482), slices C and D (kernel cases 25–28, the 30-stage native gate)
+on `main` (#490). Slice E (section 4.1: a power cut inside the L2 restore,
+kernel cases 29 and 30, the 32-stage native gate and both stage-count pins)
+is implemented on `claude/s09-l2-restore-cut`
+([README](../verification/s09-l2-restore-cut-20261124/README.md)).**
 
 - **Branch:** designed on `claude/s09-l2-native-export`; slice B lands from
   `claude/s09-l2-slice-b-main` on top of `main`.
@@ -186,6 +187,8 @@ All four stages run in the backup portal (slot 1, domain 0) and use device 1
 | `l2-restore` | `l2-export` | 26 | source loss: fresh empty image | parent's `archive.img`, `readonly=on` | writable | READ | Cold `restore_native_l2` into the never-used domain 0 returns the expected `L2Report`. The guest then reads every slot's `provenance()` and every collection's `collection_provenance()` and counts mismatches against the verified plan; zero are expected. |
 | `l2-corrupt` | `l2-export` | 27 | source loss: fresh empty image | parent's archive with one content byte of the largest object flipped (offset computed from `parse_v2` and recorded); `readonly=on` | writable | READ | `restore_native_l2` returns `Corrupt` before any service mutation. Disk 0 stays byte-identical to the fresh empty image. |
 | `l2-used` | `l2-restore` | 28 | keep the parent's restored `volume.img`, `readonly=on` (device level, added to `read_only()`; optional item 2) | keep the parent's `archive.img`, `readonly=on` | read-only | READ | After a cold boot, provenance read through `PROVENANCE_STAT` still matches the plan. A second `restore_native_l2` into the now-used domain returns `Stale` with `committed = 0`. Both disks are byte-identical. |
+| `l2-restore-cut` | `l2-export` | 29 | source loss: fresh empty image (the `l2-restore` branch) | parent's `archive.img`, `readonly=on` | writable | READ | The same restore as 26, stopped by a real host kill inside object 4's INSTALL_COMMIT table copy (section 4.1). Disk 0 holds exactly the first six commits and a torn seventh copy; disk 1 is byte-identical. |
+| `recover-l2-cut` | `l2-restore-cut` | 30 | keep the parent's cut `volume.img`, `readonly=on` (device level, added to `read_only()`) | keep the parent's `archive.img`, `readonly=on` | read-only | READ | After a cold boot, every planned object and collection is fully installed with provenance equal to the plan or exactly never-used; the guest reports the observed masks. A second `restore_native_l2` returns `Stale` with `committed = 0`. Both disks are byte-identical. |
 
 Negative coverage:
 
@@ -208,8 +211,41 @@ Negative coverage:
   - a lost INSTALL reply;
   - a revision gap inside an archive given to the restore (`skipped`, R2).
 
-A native power cut during an L2 restore is **not** in this phase. The
-existing `install-cut` already cuts inside INSTALL_COMMIT natively.
+### 4.1 Power cut inside the L2 restore (slice E)
+
+Slice E closes the first open item of section 10 with cases 29 and 30. The
+semantics come from the host tests in `services/volume/tests/l2_restore.rs`:
+an interrupted restore keeps its committed collections and objects, is never
+resumed, never claims an uncertain object, and a second restore into the
+same domain returns `Stale`. INSTALL_BEGIN and INSTALL_APPEND publish no
+table (`service.rs`); a staged install lives only in service memory, so after
+a cold boot the object being installed is exactly never-used.
+
+**Cut point.** On the fresh image, the restore writes the one-sector format
+marker and then one full 34-sector table copy per commit: collections 1–3
+(commits 1–3), then objects 1–5 in slot order (commits 4–8). Case 26 pins
+this count (`1 + 8·34`). Case 29 stops the guest when the table-sector write
+count reaches `1 + 6·34 + 4` (`L2_CUT_TABLE_WRITES`), the fourth sector of
+commit 7, which is object 4's INSTALL_COMMIT. The count is taken from boot of
+a fresh image, which is equivalent to a base latched at the format marker.
+At that point object 4's content (5000 bytes, two chunks) has been appended
+but not published. The point is chosen so that the installed prefix includes
+object 3 (five chunks; origin revision 42 against live revision 1), and so
+that one object with written but unpublished content and one untouched
+object remain.
+
+**Deterministic outcome** (pinned by kernel and host):
+
+- table generation 6, domain-0 clock 6, format 3;
+- collections 1–3 and objects 1–3 installed exactly as `expected_l2` with the
+  first six commits (provenance, live values, content);
+- objects 4 and 5, every other slot and domain 1 exactly never-used;
+- the seventh copy torn after exactly 4 sectors over the generation-5 copy;
+- case 30: guest masks `restored = 0b0000_1110`, `collections = 0b111`,
+  0 provenance mismatches, a second restore `Stale` with `committed = 0`.
+
+Recovery itself is not new behaviour: the table choice is the existing
+two-copy rule that `install-cut` → `recover-cut` already exercises.
 
 ## 5. Guest changes
 
@@ -439,7 +475,7 @@ each check. They include mutations that must fail:
 
 ## 7. Gate impact and protected pins
 
-`len(PLAN)` goes from 26 to 30. The two protected pins change in the same
+`len(PLAN)` goes from 26 to 30, and in slice E from 30 to 32. The two protected pins change in the same
 pull request as the stage commit. The project owner instructed on
 24 November 2026 that no integration coordinator exists and that S makes
 this change itself; the integration request
@@ -480,9 +516,14 @@ Each slice gets an independent AI review before the next begins. Hosted CI
 
 ## 10. Open items
 
-- A native power cut during an L2 restore and a revision gap inside an
-  archive given to the restore are not covered natively (section 4); both
-  are host-tested.
+- Closed in slice E: a native power cut during an L2 restore (section 4.1,
+  cases 29 and 30). One cut point is covered natively: inside an
+  INSTALL_COMMIT table copy. Cuts inside INSTALL_COLLECTION, between
+  INSTALL_APPEND writes, or after the last commit remain covered only by the
+  host tests and the generic table-recovery stages.
+- A revision gap inside an archive given to the restore (`skipped`, R2)
+  remains host-only: `export_v2` never writes such an archive, so a native
+  stage would need a crafted archive disk.
 - Slice B measured the size and a static stack bound
   ([SLICE-B.md](../verification/s09-l2-native-export-20261124/SLICE-B.md)). The
   stack bound covers direct calls only. The kernel reads word 568 as an `i64`.
@@ -526,3 +567,11 @@ Optional items 1–7 were taken over:
 5. the measurement gate covers all linker limits (section 9);
 6. U05 cases in the disjointness test (5.4);
 7. build time in the runtime estimate (section 7).
+
+**Slice E (revision 3):** cases 29 and 30 (section 4.1) were added on
+`claude/s09-l2-restore-cut` by the builder of task S-20261124-3-B1. Before
+implementation, a reviewer model checked the plan in an advisory capacity
+(it moved the cut point from object 3 to object 4, so that the installed
+prefix holds a multi-chunk object). An independent review of the implemented slice is
+pending. Native evidence is recorded in the
+[slice E README](../verification/s09-l2-restore-cut-20261124/README.md).
