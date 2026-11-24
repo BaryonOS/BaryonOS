@@ -8,7 +8,7 @@
     "branch": "claude/s09-l2-slice-b-main",
     "task": "S09 phase 3 slice B: L2 portal build and measurement",
     "previous_score": 43,
-    "summary": "43/100, unchanged: S09 phase 3 slice B adds the test-only l2-portal build of volume-app, measured within every linker bound with a 21 688-byte static direct-call stack bound, and the 26-stage native volume gate still passes. No guest runs the L2 portal flows yet, so S09 gains no points; slices C and D (native L2 stages and pins) remain."
+    "summary": "43/100, unchanged: S09 phase 3 slice B adds the test-only l2-portal build of volume-app, measured within every linker bound with a 21 688-byte static direct-call stack bound, and the 26-stage native volume gate still passes. No guest runs the L2 portal flows yet, so S09 gains no points; slices C and D (native L2 stages and pins) remain. The delivery-review inventory stays bound to its 2eb1c63 snapshot; slice B evidence: docs/verification/s09-l2-native-export-20261124/SLICE-B.md."
   },
   "tracks": [
     {
@@ -605,7 +605,7 @@
             "verification": [
               "native"
             ],
-            "observation": "v1 cold restore with the original source disk absent is native-tested; native INSTALL preserves source provenance for its fixed fixture. Host restore_native_l2 implements multi-version/provenance restoration and uncertain-outcome handling. Phase 3 slice B adds the test-only l2-portal build of volume-app (flows for kernel cases 25-28), measured within every linker bound; no kernel case selects it yet.",
+            "observation": "v1 cold restore with the original source disk absent is native-tested; native INSTALL preserves source provenance for its fixed fixture. Host restore_native_l2 implements multi-version/provenance restoration and uncertain-outcome handling.",
             "remaining": "Full L2 archive export/cold-restore pipeline has no native caller. Planned l2-export/l2-restore/l2-corrupt/l2-used stages are absent from PLAN; L2 live revisions/stamps remain destination-local by the approved rule.",
             "evidence": [
               "services/volume/src/archive.rs",
@@ -613,8 +613,7 @@
               "tools/test_volume.py",
               "docs/implementation/S09-L2-NATIVE-EXPORT.md",
               "docs/implementation/S09-L2-NATIVE-STAGE-INTEGRATION-REQUEST.md",
-              "https://github.com/BaryonOS/BaryonOS/pull/477#issuecomment-7119252774",
-              "docs/verification/s09-l2-native-export-20261124/SLICE-B.md"
+              "https://github.com/BaryonOS/BaryonOS/pull/477#issuecomment-7119252774"
             ]
           },
           {
