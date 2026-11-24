@@ -82,6 +82,11 @@ pub fn fail(code: &'static [u8]) -> ! {
 }
 
 pub fn exit(value: u32) -> ! {
+    // HW-INV may boot physical PCs, where port 0xF4 is undefined: every terminal
+    // path of the hw-inventory loader (M1:FAIL, serial timeout) only halts (H06-T5).
+    #[cfg(feature = "hw-inventory")]
+    let _ = value;
+    #[cfg(not(feature = "hw-inventory"))]
     // SAFETY: Dedicated isa-debug-exit QEMU device. This never returns to firmware.
     unsafe {
         asm!("out dx, eax", in("dx") 0xf4u16, in("eax") value, options(nomem, nostack));

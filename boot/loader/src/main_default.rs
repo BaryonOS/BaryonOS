@@ -27,7 +27,12 @@ use r_efi::{
     protocols::{file, loaded_image, simple_file_system},
 };
 
-global_asm!(include_str!("handoff.S"));
+// A returning kernel ends with QEMU exit 0x11, except in the hw-inventory loader,
+// which may boot physical PCs and only halts (H06-T5).
+global_asm!(
+    include_str!("handoff.S"),
+    halt_only = const cfg!(feature = "hw-inventory") as u8
+);
 extern "efiapi" {
     fn handoff(entry: u64, info: u64, stack_top: u64) -> !;
 }
