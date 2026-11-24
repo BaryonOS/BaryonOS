@@ -420,6 +420,87 @@ pub struct Frame<'a> {
     caret: text::VisualPosition,
 }
 impl<'a> Frame<'a> {
+    /// Painted status area, bottom-anchored on `Layout::status`. A label that
+    /// wraps beyond that rect grows upward only on screens whose content
+    /// provably ends above it (UX-SR11); other screens keep the layout rect,
+    /// so one-line statuses paint exactly as before.
+    pub fn status_area(&self) -> Rect {
+        let (layout, view) = (self.layout, self.view);
+        let base = layout.status;
+        let width = |x: u32| view.viewport.logical_width().saturating_sub(x + d::PAD);
+        let lines = |label, width| wrapped_lines(label, width, view.viewport.scale());
+        let status_x = if view.screen == Screen::Material {
+            base.x
+        } else {
+            d::PAD
+        };
+        let needed = lines(status_label(view.status), width(status_x)) * d::LINE_HEIGHT;
+        if needed <= base.height {
+            return base;
+        }
+        let floor = match view.screen {
+            Screen::Editor => layout.editor.y + layout.editor.height,
+            Screen::Material if !view.list_loaded => {
+                let label = if matches!(view.status, Status::Failed(_)) {
+                    "Je materiaal kon niet worden geladen."
+                } else {
+                    "Je materiaal wordt geladen."
+                };
+                layout.list_top + lines(label, width(layout.content_left)) * d::LINE_HEIGHT
+            }
+            // Mirrors the empty-state geometry in `render_tile`.
+            Screen::Material if view.objects.is_empty() => {
+                let available = width(layout.content_left);
+                let body = if available >= 360 {
+                    "Maak een document om aan de slag te gaan."
+                } else {
+                    "Maak je eerste document."
+                };
+                let top = layout.list_top
+                    + if view.viewport.logical_height() > 480 {
+                        40
+                    } else {
+                        8
+                    };
+                top + 32 + lines(body, available.saturating_sub(52)) * d::LINE_HEIGHT
+            }
+            Screen::Material => {
+                let shown = view
+                    .objects
+                    .len()
+                    .saturating_sub(view.list_scroll)
+                    .min(layout.list_rows());
+                let last = layout.object(shown.saturating_sub(1));
+                // A long name wraps past its row (`render_tile` row painting).
+                let names = (0..shown)
+                    .map(|row| {
+                        let rect = layout.object(row);
+                        let object = &view.objects[view.list_scroll + row];
+                        let name = object
+                            .name
+                            .get(..object.name_length)
+                            .and_then(|b| core::str::from_utf8(b).ok())
+                            .unwrap_or("Naam niet leesbaar");
+                        rect.y + 6 + lines(name, rect.width.saturating_sub(96)) * d::LINE_HEIGHT
+                    })
+                    .max()
+                    .unwrap_or(0);
+                (last.y + last.height + 1).max(names)
+            }
+            _ => return base,
+        };
+        let bottom = base.y + base.height;
+        // The divider sits 8 px above the text and keeps 8 px from the content.
+        match bottom.checked_sub(needed) {
+            Some(top) if top >= floor + 16 => Rect {
+                x: base.x,
+                y: top,
+                width: base.width,
+                height: needed,
+            },
+            _ => base,
+        }
+    }
     pub fn new(view: View<'a>) -> Self {
         let layout = Layout::for_screen(view.viewport, view.screen);
         let mut frame = Self {
@@ -915,10 +996,11 @@ impl<'a> Frame<'a> {
             d::PAD
         };
         let status_width = viewport.logical_width() - status_x - d::PAD;
+        let status_y = self.status_area().y;
         paint.fill(
             Rect {
                 x: status_x,
-                y: layout.status.y.saturating_sub(8),
+                y: status_y.saturating_sub(8),
                 width: status_width,
                 height: 1,
             },
@@ -926,7 +1008,7 @@ impl<'a> Frame<'a> {
         );
         paint.wrapped(
             status_x,
-            layout.status.y,
+            status_y,
             status_label(self.view.status),
             status_width,
             if matches!(self.view.status, Status::Failed(_)) {
@@ -1183,7 +1265,7 @@ impl<'a> Frame<'a> {
                 parent: Some(SemanticId::Window),
                 role: Role::Status,
                 label: status_label(self.view.status),
-                bounds: self.layout.status.physical(self.view.viewport.scale()),
+                bounds: self.status_area().physical(self.view.viewport.scale()),
                 enabled: true,
                 ..SemanticNode::EMPTY
             });
@@ -1648,7 +1730,7 @@ impl<'a> Frame<'a> {
             Role::Status,
             status_label(self.view.status),
             None,
-            l.status,
+            self.status_area(),
             None,
             true,
         );
@@ -1838,6 +1920,19 @@ pub fn status_label(status: Status) -> &'static str {
             "Opslagverbinding verbroken. Tekst blijft open."
         }
         Status::Failed(UiError::Storage(S::Busy)) => "Opslaan loopt al. Je tekst blijft open.",
+        // UX-SR07 copy from UX-MATERIAAL-SAVE-RECOVERY.md; Access (deny) stays
+        // generic until U03-T3 part 2 proves a real deny path.
+        Status::Failed(UiError::Storage(S::Service(volume_core::Status::Full))) => {
+            "Opslagruimte vol. Niet opgeslagen. Je tekst blijft open."
+        }
+        Status::Failed(UiError::Storage(S::Service(volume_core::Status::Quota))) => {
+            "Je opslagruimte is opgebruikt. Niet opgeslagen. Je tekst blijft open."
+        }
+        // Io also reaches here from READ (open, metadata), so the copy must not
+        // claim a save happened; Full and Quota only arise from writes.
+        Status::Failed(UiError::Storage(S::Service(volume_core::Status::Io))) => {
+            "Lezen of opslaan mislukt. Er is niets bevestigd."
+        }
         Status::Failed(_) => "Handeling mislukt. Je tekst blijft open.",
     }
 }
@@ -3353,6 +3448,35 @@ impl Paint<'_> {
     fn title_color(&mut self, x: u32, y: u32, title: &str, color: u32) {
         self.ui_text(x, y, title, Size::Title, Weight::Semibold, color);
     }
+}
+/// Line count of `Paint::wrapped` for a body-text label; keep both in step.
+fn wrapped_lines(label: &str, width: u32, scale: Scale) -> u32 {
+    let font = Font::new(Size::Body, Weight::Regular, scale == Scale::Percent200);
+    let (mut rest, mut lines) = (label, 0);
+    while !rest.is_empty() {
+        let mut take = rest.len();
+        let mut space = None;
+        for (index, ch) in rest.char_indices() {
+            if ch == '\n' {
+                take = index;
+                break;
+            }
+            if ch.is_whitespace() {
+                space = Some(index);
+            }
+            if font
+                .measure(&rest[..index + ch.len_utf8()])
+                .div_ceil(scale.factor())
+                > width
+            {
+                take = space.filter(|i| *i > 0).unwrap_or(index.max(ch.len_utf8()));
+                break;
+            }
+        }
+        rest = rest[take..].trim_start_matches(char::is_whitespace);
+        lines += 1;
+    }
+    lines
 }
 fn blend(front: u32, back: u32, alpha: u8) -> u32 {
     let a = u32::from(alpha);
