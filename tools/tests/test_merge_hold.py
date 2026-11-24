@@ -159,8 +159,10 @@ DONE = runs("completed", "completed", "completed")
 
 def gate_run(head, conclusion="success", run_id=1, status="completed", path=".github/workflows/merge-hold.yml"):
     """A pull_request merge-hold run on a member's head (the merge_group gate rule)."""
+    number = {HEAD: 7, OTHER: 8}.get(head, 9)
     return {"id": run_id, "path": path, "head_sha": head, "status": status, "conclusion": conclusion,
             "event": "pull_request", "repository": {"full_name": "o/r"},
+            "pull_requests": [{"number": number, "base": {"ref": "main"}}],
             "created_at": f"2026-11-24T20:{run_id % 60:02d}:00Z"}
 E = "e" * 40
 
@@ -258,6 +260,8 @@ class MergeGroupTests(TestCase):
         code, out, _ = self.run_group(one, gate_runs={OTHER: [dict(gate_run(OTHER, run_id=2),
                                                                    pull_requests=[{"number": 8, "base": {"ref": "main"}}])]})
         self.assertEqual(code, 0, out)
+        code, out, _ = self.run_group(one, gate_runs={OTHER: [dict(gate_run(OTHER, run_id=2), pull_requests=[])]})
+        self.assertEqual(code, 1, out)  # a fork head fails closed in a merge queue
 
     def test_merge_group_budget_comes_from_the_base_catalogue(self):
         catalogue = '[policy.budgets]\nmerge_group_wait_minutes = 5\n'
@@ -677,7 +681,8 @@ MERGE = "9" * 40
 LEAVES = ".github/workflows/leaves.yml"
 CI = ".github/workflows/ci.yml"
 STORAGE = ".github/workflows/storage.yml"
-PULL = {"head": {"sha": HEAD, "ref": "topic", "repo": {"full_name": "o/r"}}, "base": {"ref": "main"}}
+PULL = {"number": 7, "head": {"sha": HEAD, "ref": "topic", "repo": {"full_name": "o/r"}}, "base": {"ref": "main"}}
+OWN_PULL = [{"number": 7, "base": {"ref": "main"}}]
 GATE_ENV = dict(ENV, BASE_SHA=BASE, TESTED_SHA=MERGE, GITHUB_RUN_ID="123")
 
 
@@ -706,7 +711,7 @@ def plan_fixture(**over):
 
 def wf_run(run_id, path, status="completed", conclusion="success", attempt=1, **over):
     run = {"id": run_id, "path": path, "status": status, "conclusion": conclusion, "run_attempt": attempt,
-           "event": "pull_request", "head_sha": HEAD, "head_branch": "topic",
+           "event": "pull_request", "head_sha": HEAD, "head_branch": "topic", "pull_requests": OWN_PULL,
            "created_at": f"2026-11-24T20:{run_id % 60:02d}:00Z",
            "repository": {"full_name": "o/r"}, "head_repository": {"full_name": "o/r"}}
     run.update(over)
@@ -967,11 +972,17 @@ class GateTests(TestCase):
     def test_runs_of_another_pull_request_or_base_do_not_count(self):
         """Review N1: a listed pull request must be this one, targeting this base."""
         own = [{"number": 7, "base": {"ref": "main"}}]
-        for pulls, passes in (([], True), (own, True), ([{"number": 8, "base": {"ref": "main"}}], False),
+        # A same-repository head always lists its pull request, so an empty list does not count.
+        for pulls, passes in (([], False), (own, True), ([{"number": 8, "base": {"ref": "main"}}], False),
                               ([{"number": 7, "base": {"ref": "release"}}], False)):
             with self.subTest(pulls=pulls):
                 runs_ = [dict(wf_run(1, CI), pull_requests=own), dict(wf_run(2, LEAVES), pull_requests=pulls)]
                 self.assertIs(self.decide(runs_=runs_, pull=dict(PULL, number=7))[0], passes)
+        # A fork head has an empty list: bound by SHA, branch and head repository (documented residual).
+        fork = dict(PULL, head={"sha": HEAD, "ref": "topic", "repo": {"full_name": "fork/r"}})
+        runs_ = [dict(wf_run(1, CI, head_repository={"full_name": "fork/r"}), pull_requests=[]),
+                 dict(wf_run(2, LEAVES, head_repository={"full_name": "fork/r"}), pull_requests=[])]
+        self.assertTrue(self.decide(runs_=runs_, pull=fork)[0])
 
     def test_a_later_rerun_of_an_older_run_decides(self):
         """Review N3: newest by the start of the latest attempt, not by id alone."""

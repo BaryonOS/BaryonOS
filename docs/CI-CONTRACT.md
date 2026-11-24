@@ -492,9 +492,16 @@ expected: fail closed.
 (`/actions/runs?head_sha=<head>&event=pull_request`, every page, by id, with a
 check that the count reaches `total_count`). A run counts only with the
 pull_request event, that head SHA, the pull request's head branch, this
-repository and the pull request's head repository, and the workflow `path`;
-when GitHub lists the run's pull requests (same-repository heads), this pull
-request's number and base branch must be among them. Per workflow the
+repository and the pull request's head repository, and the workflow `path`.
+For a same-repository head the run must list this pull request's number and
+base branch among its pull requests; GitHub fills that list for such runs, so
+an empty list does not count. A fork head has an empty list: its runs are
+bound by head SHA, head branch, head repository, event and path only, the
+same SHA-level binding as GitHub's own required checks. The residual (one fork
+head used for pull requests to two different bases) is accepted because
+rejecting fork runs would make merge-hold fail for every fork pull request;
+the project owner may tighten this. In a merge queue an empty list never
+counts, so a fork pull request fails closed there. Per workflow the
 **newest** run decides, by the start of its latest attempt and then by id, so
 an older success never masks a newer running or failed run, and a later
 re-run of an older run counts. Its jobs come from
