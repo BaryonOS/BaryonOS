@@ -57,6 +57,10 @@ pull request side, so review of `.github/**` remains the control for workflow
 edits. Details and the remaining limits are in docs/CI-CONTRACT.md
 ("Enforcement", "Known limits").
 
+**Revise when:** the merge queue is enabled and the selected workflows gain
+`merge_group` triggers; GitHub changes which workflow files a `pull_request` run
+reads; or `policy.mode = "shadow"` is needed to let a selected gate pass.
+
 **Primary sources:**
 
 - GitHub. (n.d.). [*REST API endpoints for workflow runs*](https://docs.github.com/en/rest/actions/workflow-runs).

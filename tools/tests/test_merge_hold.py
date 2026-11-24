@@ -248,6 +248,16 @@ class MergeGroupTests(TestCase):
         code, out, _ = self.run_group(one, gate_runs={OTHER: [gate_run(OTHER, "failure", run_id=1),
                                                               gate_run(OTHER, run_id=2)]})
         self.assertEqual(code, 0, out)  # a newer successful re-run decides
+        # A newer successful merge-hold of another pull request or base on the same head never counts.
+        mine = dict(gate_run(OTHER, "failure", run_id=1), pull_requests=[{"number": 8, "base": {"ref": "main"}}])
+        for other in ([{"number": 9, "base": {"ref": "main"}}], [{"number": 8, "base": {"ref": "release"}}]):
+            with self.subTest(other=other):
+                code, out, _ = self.run_group(one, gate_runs={OTHER: [mine, dict(gate_run(OTHER, run_id=2),
+                                                                                  pull_requests=other)]})
+                self.assertEqual(code, 1, out)
+        code, out, _ = self.run_group(one, gate_runs={OTHER: [dict(gate_run(OTHER, run_id=2),
+                                                                   pull_requests=[{"number": 8, "base": {"ref": "main"}}])]})
+        self.assertEqual(code, 0, out)
 
     def test_merge_group_budget_comes_from_the_base_catalogue(self):
         catalogue = '[policy.budgets]\nmerge_group_wait_minutes = 5\n'
@@ -939,6 +949,15 @@ class GateTests(TestCase):
              "reason": "advisory"}])
         runs_ = GOOD_RUNS + [wf_run(8, advisory, "in_progress", None)]
         self.assertTrue(self.decide(plan=plan, runs_=runs_, jobs={**GOOD_JOBS, 8: []})[0])
+
+    def test_rendered_runtime_matrix_names_inherit_their_template_class(self):
+        """CodeRabbit on #504: a dynamic advisory job must not count as an unregistered gate."""
+        plan = plan_fixture(excluded=plan_fixture()["excluded"] + [
+            {"id": "ci#probe/*", "class": "advisory", "workflow": CI, "job": "probe",
+             "check_name": "probe (${{ matrix.case }})", "reason": "advisory"}])
+        jobs = {**GOOD_JOBS, 1: [job(11, 1, "host-quality"), job(14, 1, "probe (a)", "failure")]}
+        runs_ = [wf_run(1, CI, conclusion="failure"), wf_run(2, LEAVES)]
+        self.assertTrue(self.decide(plan=plan, runs_=runs_, jobs=jobs)[0])
 
     def test_runs_without_any_time_cannot_be_ordered(self):
         runs_ = [wf_run(1, CI), dict(wf_run(2, LEAVES), created_at=None)]

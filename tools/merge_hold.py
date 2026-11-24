@@ -447,7 +447,8 @@ def run_order(run):
 
 
 def job_matches(row, job):
-    if row.get("variant") == "*":  # runtime matrix: the check name is a template
+    # Runtime matrix: the check name is a template (excluded rows carry no variant field).
+    if row.get("variant") == "*" or EXPRESSION.search(row.get("check_name") or ""):
         pattern = "".join(".+" if EXPRESSION.fullmatch(part) else re.escape(part)
                           for part in re.split(r"(\$\{\{.*?\}\})", row["check_name"]))
         return re.fullmatch(pattern, job.get("name") or "") is not None
@@ -462,7 +463,6 @@ def gate_report(token, repo, pull, head_sha, plan):
     # waiting on `needs` or a runtime matrix may not be listed yet.
     gated = {row["workflow"] for row in rows if row.get("class") in SELECTABLE
              and row.get("reason") not in ("event-not-applicable", "condition-false")}
-    classes = {row["check_name"]: row["class"] for row in rows if row.get("check_name")}
     workflows = sorted({row["workflow"] for row in rows if row.get("workflow")} - {GATE_WORKFLOW})
     url = f"{API}/repos/{repo}/actions/runs?head_sha={head_sha}&event=pull_request"
     newest = {}
@@ -509,8 +509,10 @@ def gate_report(token, repo, pull, head_sha, plan):
                 outcome = ", ".join(sorted({str(job.get("conclusion")) for job in found}))
                 failed.append(f"{row['check_name']}: {outcome} in {where} ({workflow})")
         for job in jobs:
-            if job["id"] in claimed or classes.get(job.get("name"), "unregistered") not in SELECTABLE + (
-                    "unregistered",):
+            # A rendered runtime-matrix name inherits its template row's class.
+            klass = next((row["class"] for row in rows if row.get("check_name") and job_matches(row, job)),
+                         "unregistered")
+            if job["id"] in claimed or klass not in SELECTABLE + ("unregistered",):
                 continue
             if job.get("status") != "completed":
                 pending.append(f"{job.get('name')}: {job.get('status')} in {where} ({workflow}); "
@@ -574,12 +576,19 @@ def base_wait_seconds(base_sha):
     return minutes * 60
 
 
-def pull_request_gates_passed(token, repo, pr_head):
-    """True when the newest pull_request merge-hold run on pr_head succeeded (merge_group members)."""
+def pull_request_gates_passed(token, repo, pr_head, number, base_ref="main"):
+    """True when the newest pull_request merge-hold run of this pull request on pr_head succeeded.
+
+    Used for merge_group members. When GitHub lists the run's pull requests, this
+    pull request's number and base branch must be among them, as in run_matches.
+    """
     url = f"{API}/repos/{repo}/actions/runs?head_sha={pr_head}&event=pull_request"
     runs = [run for run in fetch_listing(token, url, "workflow_runs")
             if run.get("path") == GATE_WORKFLOW and run.get("head_sha") == pr_head
-            and (run.get("repository") or {}).get("full_name") == repo]
+            and (run.get("repository") or {}).get("full_name") == repo
+            and (not run.get("pull_requests") or any(
+                item.get("number") == number and (item.get("base") or {}).get("ref") == base_ref
+                for item in run["pull_requests"]))]
     if not runs:
         return False
     newest = max(runs, key=run_order)
@@ -620,7 +629,7 @@ def merge_group_hold(token, repo):
             passed, message = False, (
                 f"The applicable gates ran on {pr_head}, but its queue entry {entry_commit} lands a "
                 "different tree, and the selected workflows do not run on merge_group. Update the branch.")
-        elif passed and not pull_request_gates_passed(token, repo, pr_head):
+        elif passed and not pull_request_gates_passed(token, repo, pr_head, number):
             passed, message = False, (
                 f"No successful pull_request merge-hold verified the applicable gates on {pr_head}.")
         ok = ok and passed
