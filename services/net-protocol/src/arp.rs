@@ -6,6 +6,8 @@
 
 pub const FRAME_BYTES: usize = 42;
 pub const PADDED_FRAME_BYTES: usize = 60;
+/// Largest Ethernet II frame without FCS; longer ARP frames are refused.
+pub const MAX_FRAME_BYTES: usize = 1514;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Operation {
@@ -90,14 +92,15 @@ impl Packet<'_> {
     }
 }
 
-/// Parse an Ethernet II ARP packet, with stripped padding or the complete
-/// 60-byte Ethernet minimum, without FCS. Replies must address the same target
+/// Parse an Ethernet II ARP packet without FCS: 42 bytes, or any link padding
+/// up to the Ethernet maximum, whose bytes carry no meaning and are ignored
+/// (QEMU's libslirp pads ARP replies to 64 bytes). Replies must address the same target
 /// MAC in both headers. Probe requests are visible but are not cache entries.
 pub fn parse(frame: &[u8]) -> Result<Packet<'_>, Error> {
     if frame.len() < FRAME_BYTES {
         return Err(Error::Truncated);
     }
-    if frame.len() != FRAME_BYTES && frame.len() != PADDED_FRAME_BYTES {
+    if frame.len() > MAX_FRAME_BYTES {
         return Err(Error::InvalidLength);
     }
     if frame[12..22] != [0x08, 0x06, 0, 1, 0x08, 0, 6, 4, 0, 1]

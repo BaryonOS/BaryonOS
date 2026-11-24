@@ -271,3 +271,29 @@ fn duplicate_tuple_cannot_take_first_clients_replies_and_cancel_closes() {
     assert_eq!(engine.state(first).unwrap(), State::Closed);
     assert_eq!(engine.state(second).unwrap(), State::SynSent);
 }
+
+#[test]
+fn address_arp_accepts_link_padding_up_to_ethernet_maximum() {
+    let (mut rx, mut tx) = ([0; 1514], [0; 1514]);
+    let mut storage = [SocketStorage::EMPTY];
+    let engine = Stack::new(CONFIG, &mut storage, &mut rx, &mut tx, 0).unwrap();
+    let reply = arp_reply();
+    // libslirp pads ARP replies to 64 bytes (N02-T6); padding carries no meaning.
+    for size in [42, 60, 64, 1514] {
+        let mut frame = vec![0xa5; size];
+        frame[..42].copy_from_slice(&reply);
+        assert!(
+            engine.observe_address_arp(&frame, CONFIG.ipv4).is_ok(),
+            "{size}"
+        );
+    }
+    for size in [41, 1515] {
+        let mut frame = vec![0xa5; size];
+        frame[..41].copy_from_slice(&reply[..41]);
+        assert_eq!(
+            engine.observe_address_arp(&frame, CONFIG.ipv4),
+            Err(Error::InvalidFrame),
+            "{size}"
+        );
+    }
+}

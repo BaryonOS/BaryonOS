@@ -9,6 +9,9 @@ use capability_core::{PROCESS_EXITED, RECV, SEND};
 const EPOCH: u64 = 1;
 /// N02-T3b: one QMP link down/up replaces the NAK as the withdrawal cause.
 const LINK: bool = cfg!(feature = "test-net-service-link");
+/// N02-T6: QEMU's libslirp is the router, DHCP server and DNS forwarder; one
+/// lease, no NAK. App A's grant names the libslirp DNS address 192.0.2.3.
+const SLIRP: bool = cfg!(feature = "test-net-service-slirp");
 const OFFSETS: [u64; 35] = [
     240, 400, 408, 416, 424, 432, 440, 448, 456, 464, 472, 480, 488, 496, 504, 512, 520, 528, 536,
     544, 552, 560, 568, 576, 584, 592, 600, 608, 616, 624, 632, 640, 648, 656, 664,
@@ -100,6 +103,8 @@ pub(super) fn manifest(s: &mut State) {
         (144, 9001),
         // 1 = DHCP with the NAK case; 2 = DHCP that follows the link (N02-T3b).
         (176, 1 + u64::from(LINK)),
+        // Per-slot destination; 0 keeps the service default 192.0.2.1.
+        (184, if SLIRP { 0xc000_0203 } else { 0 }),
     ] {
         put(s, 0, at, value);
     }
@@ -121,7 +126,7 @@ pub(super) fn manifest(s: &mut State) {
             (80, app),
             (88, 8080 + index as u64 * 10),
             (96, if index == 0 { 53 } else { 9001 }),
-            (104, 6),
+            (104, if SLIRP { 7 } else { 6 }),
         ] {
             put(s, slot, offset, value);
         }
@@ -213,7 +218,11 @@ pub(super) fn poll(s: &mut State) -> Option<*const u64> {
         return None;
     }
     let service = evidence().snapshots[0].unwrap();
-    check_dhcp(&service);
+    if SLIRP {
+        check_slirp(&service)
+    } else {
+        check_dhcp(&service)
+    }
     network::print_and_check(service[3], service[4]);
     // The service saw the real down edge before withdrawing, and re-leased
     // only after the real up edge.
@@ -347,5 +356,53 @@ fn check_dhcp(service: &[u64; 35]) {
     require(
         service[33] == l && service[34] == 2 * l,
         b"DHCP_LINK_EVIDENCE",
+    );
+}
+/// N02-T6: exactly one libslirp lease, never withdrawn; app A resolved the
+/// public name once (address and count recorded for the harness, which binds
+/// them to the DNS answer on the wire) and app B was refused DNS and finished
+/// one HTTP exchange through the libslirp translation.
+fn check_slirp(service: &[u64; 35]) {
+    let [_, a, b] = evidence().snapshots.map(Option::unwrap);
+    // One UDP datagram (app A's query), one TCP connection (app B), no
+    // malformed or dropped frame. Rejected: A = malformed 1 + Access 1; B =
+    // malformed 1 + Access 1 + refused Resolve 1 + wrong token 1.
+    require(
+        service[6] == 6
+            && service[7] == 1
+            && service[8] == 0
+            && service[9] == 1
+            && service[13] == 3
+            && service[14] == 0
+            && service[15] == 0
+            && service[16] == 0
+            && service[18] == 0
+            && service[19] == 0
+            && service[20] == 0,
+        b"SLIRP_SERVICE_EVIDENCE",
+    );
+    require(
+        service[21] == 1
+            && service[22] == 0
+            && subnet_host(service[23])
+            && service[24] == service[23]
+            && service[26] > 0
+            && service[27] == 0
+            && service[33] == 0
+            && service[34] == 0,
+        b"SLIRP_LEASE_EVIDENCE",
+    );
+    require(
+        a[3] == 0
+            && a[29] != 0
+            && a[29] <= evidence().exits[1]
+            && a[33] != 0
+            && (1..=8).contains(&a[34]),
+        b"SLIRP_APP_A_EVIDENCE",
+    );
+    // App B received exactly RESPONSE_B (77 bytes) and requested one close.
+    require(
+        b[2] == 1 && b[8] == 77 && b[9] == 1 && b[29] == 1 && b[33] == 0 && b[34] == 0,
+        b"SLIRP_APP_B_EVIDENCE",
     );
 }
