@@ -192,10 +192,15 @@ automatic core and rwa gate runs.
 
 ```sh
 python3 -B tools/ci_impact.py validate .github/ci-impact.toml   # exit 0 valid, 1 invalid
-python3 -B tools/ci_impact.py plan --event pull_request --base-sha <base> \
-  --head-sha <head> [--tested-sha <merge>] [--out plan.json] [--summary file] [--no-fetch]
+python3 -B tools/ci_impact.py plan --event pull_request \
+  --base-sha "$BASE_SHA" --head-sha "$HEAD_SHA" --out plan.json
 python3 -B tools/ci_impact.py coverage   # JSON drift report, always exit 0
 ```
+
+Optional `plan` flags: `--tested-sha "$MERGE_SHA"` (the commit under test,
+default the head), `--summary "$GITHUB_STEP_SUMMARY"` (append a Markdown
+summary), `--repo <dir>`, `--catalogue <path>` and `--no-fetch`. `--out`
+defaults to standard output.
 
 `coverage` needs PyYAML and otherwise reports `coverage-unavailable`. It
 compares the catalogue with `.github/workflows/*.y*ml` (workflows, events,

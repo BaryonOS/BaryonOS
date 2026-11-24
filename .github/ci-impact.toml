@@ -1,9 +1,10 @@
 # CI impact catalogue (schema 1). Contract: docs/CI-CONTRACT.md.
 #
 # Phase 2a: data only. Nothing in .github/workflows reads this file yet, so it
-# does not change which CI runs. `python3 -B tools/ci_impact.py validate` checks
-# its structure; `python3 -B tools/ci_impact.py coverage` reports drift against
-# the workflows and the tracked paths.
+# does not change which CI runs.
+# `python3 -B tools/ci_impact.py validate .github/ci-impact.toml` checks its
+# structure; `python3 -B tools/ci_impact.py coverage` reports drift against the
+# workflows and the tracked paths.
 #
 # Execution id: <workflow stem>#<job id>[/<variant id>]. Classes: core, rwa
 # (required when affected), advisory, manual, operational, publication. Full
@@ -12,7 +13,7 @@
 # max_parallel, matrix, check_name, evidence) are verbatim copies of the YAML.
 
 schema_version = 1
-revision = 4
+revision = 5
 
 [policy]
 mode = "shadow"
