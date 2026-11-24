@@ -1506,7 +1506,7 @@ impl<'a> Frame<'a> {
                 }
                 if self.view.screen == Screen::History {
                     if let Some(stat) = workspace.metadata() {
-                        for i in 1..=stat.history_count {
+                        for i in 1..=stat.history_count.min(volume_core::HISTORY) {
                             push(
                                 SemanticId::HistoryVersion(i),
                                 parent,
@@ -1532,16 +1532,6 @@ impl<'a> Frame<'a> {
                         l.preview,
                         None,
                         true,
-                    );
-                    push(
-                        SemanticId::RestoreHistory,
-                        parent,
-                        Role::Button,
-                        "Herstel als nieuwe versie",
-                        None,
-                        l.form_confirm,
-                        Some(Focus::RestoreHistory),
-                        workspace.preview().is_some() && self.view.can_save,
                     );
                 }
                 if self.view.screen == Screen::Filter {
@@ -1579,7 +1569,19 @@ impl<'a> Frame<'a> {
                     Some(Focus::FormCancel),
                     true,
                 );
-                // The footer reads Cancel (left) before Confirm (right).
+                // The footer reads Cancel (left) before Confirm/Restore (right).
+                if self.view.screen == Screen::History {
+                    push(
+                        SemanticId::RestoreHistory,
+                        parent,
+                        Role::Button,
+                        "Herstel als nieuwe versie",
+                        None,
+                        l.form_confirm,
+                        Some(Focus::RestoreHistory),
+                        workspace.preview().is_some() && self.view.can_save,
+                    );
+                }
                 if matches!(self.view.screen, Screen::Rename | Screen::Organize) {
                     push(
                         SemanticId::FormConfirm,

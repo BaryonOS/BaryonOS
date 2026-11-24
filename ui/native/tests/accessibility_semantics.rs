@@ -486,6 +486,8 @@ enum State {
     RenameEmpty,
     OrganizeEmpty,
     History,
+    /// History with two earlier versions, so both version slots are shown.
+    HistoryTwoVersions,
 }
 
 /// Controls each state must still expose, disabled, in the semantic tree.
@@ -508,6 +510,9 @@ fn guard_state_in(w: u32, h: u32, scale: Scale, state: State, mode: EditMode) {
         host.borrow_mut().seed_named(i, b"Reis", b"Earlier");
     }
     host.borrow_mut().seed_named(0, b"Reis", b"Current");
+    if matches!(state, State::HistoryTwoVersions) {
+        host.borrow_mut().seed_named(0, b"Reis", b"Newest");
+    }
     let (mut d, mut o, mut s) = ([0; 4096], [0; 4096], [0; 4096]);
     let mut ui = controller(
         &host,
@@ -553,7 +558,19 @@ fn guard_state_in(w: u32, h: u32, scale: Scale, state: State, mode: EditMode) {
                     ui.begin_organize().unwrap();
                     ui.set_form_value("").unwrap();
                 }
-                State::History => ui.begin_history().unwrap(),
+                State::History | State::HistoryTwoVersions => {
+                    ui.begin_history().unwrap();
+                    let versions = nodes(&ui)
+                        .iter()
+                        .filter(|n| matches!(n.id, SemanticId::HistoryVersion(_)))
+                        .count();
+                    let expected = if matches!(state, State::History) {
+                        1
+                    } else {
+                        2
+                    };
+                    assert_eq!(versions, expected, "seeded history depth");
+                }
                 State::ConfirmClose => {
                     ui.insert("Mine ").unwrap();
                     ui.request_back().unwrap();
@@ -578,8 +595,8 @@ fn guard_state_in(w: u32, h: u32, scale: Scale, state: State, mode: EditMode) {
 
 /// Widths below 480, 480..559, below 700, 700..783 and from 784 (with compact
 /// heights down to 240), each at 100 % and 200 %, for every native app screen
-/// except History, plus read-only Material and Editor. History is still read
-/// Restore (right) before Cancel (left); see the ignored test below.
+/// (History with one and with two earlier versions included), plus read-only
+/// Material and Editor.
 #[test]
 fn semantic_order_is_reading_order_and_tab_follows_it_on_every_screen() {
     run(|| {
@@ -606,6 +623,8 @@ fn semantic_order_is_reading_order_and_tab_follows_it_on_every_screen() {
                     State::OrganizeEmpty,
                     State::Filter,
                     State::ConfirmClose,
+                    State::History,
+                    State::HistoryTwoVersions,
                 ] {
                     guard_state(w, h, scale, state);
                 }
@@ -618,15 +637,12 @@ fn semantic_order_is_reading_order_and_tab_follows_it_on_every_screen() {
 }
 
 #[test]
-#[ignore = "follow-up: the History dialog reads Version, Restore, Cancel, not \
-            its visual order; out of the U04 ruling's scope and relied on by \
-            tools/window_library.py:77 (Alt+H, Tab, Enter) and \
-            ui/native/tests/library_native_fixture.rs:191-192, so it must \
-            change together with those scripts"]
 fn history_dialog_semantic_order_is_reading_order() {
     run(|| {
         for scale in [Scale::Percent100, Scale::Percent200] {
-            guard_state(960, 540, scale, State::History);
+            for state in [State::History, State::HistoryTwoVersions] {
+                guard_state(960, 540, scale, state);
+            }
         }
     });
 }

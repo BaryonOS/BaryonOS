@@ -3,7 +3,7 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-24",
-    "source_commit": "1fc9b8ca8ac472960e97dcc67bc082c540affb00",
+    "source_commit": "7108f138e780492bd37a8c368e12f6e3a1e911e7",
     "assessment_basis": "parent_commit",
     "branch": "claude/h06-hw-inventory-20261124",
     "task": "H06-T3 native read-only HW-INV inventory profile (QEMU-tested)",
