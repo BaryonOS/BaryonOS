@@ -4,7 +4,7 @@
   "assessment": {
     "date": "2026-11-24",
     "source_commit": "2eb1c63d2afdf658f0e71d31f3542e320a7dd041",
-    "assessment_basis": "parent_commit",
+    "assessment_basis": "reviewed_main_commit",
     "branch": "audit/progress-evidence-20261124",
     "task": "Reassess all open criteria and expose implementation and verification evidence",
     "previous_score": 41,
@@ -887,11 +887,11 @@
         "requirements": [
           {
             "description": "Several predefined representative physical PC configurations",
-            "implementation": "partial",
+            "implementation": "missing",
             "verification": [
               "source"
             ],
-            "observation": "VM-FR and a VMware trial profile are documented; HW-FR target is null and nine hardware owner decisions remain open.",
+            "observation": "No representative physical PC configurations have been selected: HW-FR target is null. VM-FR and VM-VMW are emulation profiles; nine hardware owner decisions remain open.",
             "remaining": "Select the representative PC set and settle required device families and measurement/capture arrangements.",
             "evidence": [
               "docs/drivers/hardware-matrix.json",
@@ -2334,13 +2334,15 @@
             "verification": [
               "native"
             ],
-            "observation": "Historical Windows/WHPX A/B and current native UI/QEMU gates document real behavior; those measurements are tied to their own source and do not establish current physical budgets.",
+            "observation": "PR480 passes the scripted native window-session gates at scales 1 and 2 on merge checkout 4677238. These automated interaction and recovery checks do not establish product latency, physical performance or human usability acceptance. Separately, the historical Windows/WHPX A/B study measures idle CPU use on its own frozen sources.",
             "remaining": "Current-source physical performance and human usability acceptance are absent; retained ignored UX tests/known limitations must be resolved or scoped by the fixed contract.",
             "evidence": [
               "docs/implementation/VM-HARDWARE-AND-PERFORMANCE.md",
               "docs/implementation/GUI-IDLE-WAIT.md",
               "docs/STATUS.md",
-              "docs/verification/gui-idle-20261102/windows-ab/README.md"
+              "docs/verification/gui-idle-20261102/windows-ab/README.md",
+              "https://github.com/BaryonOS/BaryonOS/actions/runs/45318640704/job/138191630466",
+              "https://github.com/BaryonOS/BaryonOS/actions/runs/45318640704/job/138191630768"
             ]
           }
         ]

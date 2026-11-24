@@ -2243,21 +2243,32 @@
           "status": "verified",
           "receipt": "docs/verification/progress-reassessment-20261124/ledger-reconciliation.json",
           "reason": "PR480 native-xhci covers reattach-mouse and all12 cases on accepted merge tree. Update current next/evidence summary; preserve historical local report."
+        },
+        {
+          "at": "2026-11-24T08:31:10+00:00",
+          "event": "review-evidence-correction",
+          "source_commit": "2eb1c63d2afdf658f0e71d31f3542e320a7dd041",
+          "review": "https://github.com/BaryonOS/BaryonOS/pull/481#pullrequestreview-6035904063",
+          "previous_current_fields": {
+            "evidence_level": "native QEMU/TCG (local QEMU 10.2.1); hosted 8.2.2 run pending on #461",
+            "next": "PR480 native-xhci covers reattach-mouse and all12 cases on accepted merge tree. Update current next/evidence summary; preserve historical local report."
+          },
+          "reason": "PR480 native-xhci passes all 12 USB cases, including mouse reattach, on the accepted merge tree. The hosted-pending wording is historical; physical and product-input limits remain."
         }
       ],
       "lead_paths": [
         ".github/workflows/native-xhci.yml"
       ],
-      "evidence_level": "native QEMU/TCG (local QEMU 10.2.1); hosted 8.2.2 run pending on #461",
+      "evidence_level": "Native QEMU/TCG: local QEMU 10.2.1 at fe8959dd; hosted QEMU 8.2.2 on the accepted PR480 merge checkout 4677238, including mouse reattach, raw exit 33.",
       "non_claimable": "Physical hotplug/reset, IRQs, hubs, wheel bytes, malformed devices, the long-lived input-policy handoff and H02 acceptance stay open; retired-page canaries detect but do not prevent late writes; Engine::next() still drops port events during command waits.",
       "source_commit": "fe8959dd8327cbce393d395755f956da226b07c5",
-      "next": "PR480 native-xhci covers reattach-mouse and all12 cases on accepted merge tree. Update current next/evidence summary; preserve historical local report.",
+      "next": "MSI/MSI-X with VT-d interrupt remapping needs its own security design/ADR; the long-lived input-policy handoff and physical hotplug evidence remain open.",
       "blocker": null,
       "reassessment": {
         "date": "2026-11-24",
         "source_commit": "2eb1c63d2afdf658f0e71d31f3542e320a7dd041",
         "receipt": "docs/verification/progress-reassessment-20261124/ledger-reconciliation.json",
-        "summary": "PR480 native-xhci covers reattach-mouse and all12 cases on accepted merge tree. Update current next/evidence summary; preserve historical local report."
+        "summary": "PR480 native-xhci passes all 12 USB cases, including mouse reattach, on the accepted merge tree. The hosted-pending wording is historical; physical and product-input limits remain."
       }
     },
     {
@@ -2375,8 +2386,8 @@
         "python3 -B tools/build.py --kernel-feature native-virtio-snd-probe (and test-snd-fence-reinit, test-snd-quarantine)",
         "python3 -B -m unittest tools.tests.test_virtio_snd"
       ],
-      "evidence_level": "host tests and kernel builds only; native fixture needs QEMU 8.2 (hosted native-xhci.yml)",
-      "non_claimable": "Native behaviour of the re-initialisation guard, check_visible and fence marker order is unexercised until hosted native-xhci.yml passes; config changes after DRIVER_OK stay open (F10a).",
+      "evidence_level": "Host tests and kernel builds, plus hosted native QEMU 8.2.2 on the accepted PR480 merge checkout 4677238: all five virtio-snd fixture cases pass with raw exit 33.",
+      "non_claimable": "Successful native fixture paths are exercised. Stale-event budget exhaustion, initialisation with outstanding requests and invalid visible-completion rejection retain host-test evidence only; check_visible remains a sampled check. Configuration changes after DRIVER_OK remain undetected (F10a). Product audio, physical playback and H03 acceptance remain open.",
       "source_commit": "18d293a5",
       "history": [
         {
@@ -2392,15 +2403,27 @@
           "status": "verified",
           "receipt": "docs/verification/progress-reassessment-20261124/ledger-reconciliation.json",
           "reason": "Hosted native-xhci passed at #415 and again PR480; all five virtio-snd cases raw33. Remove pending-CI blocker; retain F10a and host-only specific negatives."
+        },
+        {
+          "at": "2026-11-24T08:31:10+00:00",
+          "event": "review-evidence-correction",
+          "source_commit": "2eb1c63d2afdf658f0e71d31f3542e320a7dd041",
+          "review": "https://github.com/BaryonOS/BaryonOS/pull/481#pullrequestreview-6035904063",
+          "previous_current_fields": {
+            "evidence_level": "host tests and kernel builds only; native fixture needs QEMU 8.2 (hosted native-xhci.yml)",
+            "non_claimable": "Native behaviour of the re-initialisation guard, check_visible and fence marker order is unexercised until hosted native-xhci.yml passes; config changes after DRIVER_OK stay open (F10a).",
+            "next": "Hosted native-xhci passed at #415 and again PR480; all five virtio-snd cases raw33. Remove pending-CI blocker; retain F10a and host-only specific negatives."
+          },
+          "reason": "PR480 passes all five hosted virtio-snd cases with raw exit 33. This closes the pending hosted-run statement, while F10a and the specified host-only negative checks remain explicit."
         }
       ],
-      "next": "Hosted native-xhci passed at #415 and again PR480; all five virtio-snd cases raw33. Remove pending-CI blocker; retain F10a and host-only specific negatives.",
+      "next": "Close F10a and the product-audio integration gaps; native fault fixtures for the host-only negative cases and physical playback evidence remain open.",
       "blocker": null,
       "reassessment": {
         "date": "2026-11-24",
         "source_commit": "2eb1c63d2afdf658f0e71d31f3542e320a7dd041",
         "receipt": "docs/verification/progress-reassessment-20261124/ledger-reconciliation.json",
-        "summary": "Hosted native-xhci passed at #415 and again PR480; all five virtio-snd cases raw33. Remove pending-CI blocker; retain F10a and host-only specific negatives."
+        "summary": "PR480 passes all five hosted virtio-snd cases with raw exit 33. This closes the pending hosted-run statement, while F10a and the specified host-only negative checks remain explicit."
       }
     },
     {
@@ -2686,8 +2709,8 @@
         "cargo +1.90.0 test/clippy for drivers/virtio-rng",
         "python3 -B -m unittest tests.test_system_harness"
       ],
-      "evidence_level": "native QEMU/TCG (local QEMU 10.2.1, pc-q35-8.2, BARS=RESTORED); hosted native-power pending",
-      "non_claimable": "Post-wake delivery is kernel-driven, not to a ring-3 process; SYSTEM:FAIL:S3_REINIT paths and the BARS=KEPT branch (CI QEMU 8.2.2) are unexercised; block re-initialisation and physical S3 stay open.",
+      "evidence_level": "Native QEMU/TCG: local QEMU 10.2.1 with BARS=RESTORED; hosted QEMU 8.2.2 on the accepted PR480 merge checkout 4677238. The 12-stage POWER gate passes, including power-s3-reinit and its cold recovery.",
+      "non_claimable": "Post-wake entropy delivery is kernel-driven rather than issued by the Key Service binary. Native S3_REINIT fault fixtures and branch-specific BARS=KEPT evidence have not been established by this reassessment. Block re-initialisation, complete device/session survival and physical S3 remain open.",
       "source_commit": "4988e6cc",
       "history": [
         {
@@ -2703,15 +2726,27 @@
           "status": "verified",
           "receipt": "docs/verification/progress-reassessment-20261124/ledger-reconciliation.json",
           "reason": "PR480 power-system gate passed12 stages including reinit and held-completion. Update evidence/current next; retain kernel-driven delivery and physical/block-reinit gaps. Do not claim BARS=KEPT branch without the raw marker."
+        },
+        {
+          "at": "2026-11-24T08:31:10+00:00",
+          "event": "review-evidence-correction",
+          "source_commit": "2eb1c63d2afdf658f0e71d31f3542e320a7dd041",
+          "review": "https://github.com/BaryonOS/BaryonOS/pull/481#pullrequestreview-6035904063",
+          "previous_current_fields": {
+            "evidence_level": "native QEMU/TCG (local QEMU 10.2.1, pc-q35-8.2, BARS=RESTORED); hosted native-power pending",
+            "non_claimable": "Post-wake delivery is kernel-driven, not to a ring-3 process; SYSTEM:FAIL:S3_REINIT paths and the BARS=KEPT branch (CI QEMU 8.2.2) are unexercised; block re-initialisation and physical S3 stay open.",
+            "next": "PR480 power-system gate passed12 stages including reinit and held-completion. Update evidence/current next; retain kernel-driven delivery and physical/block-reinit gaps. Do not claim BARS=KEPT branch without the raw marker."
+          },
+          "reason": "PR480 passes the 12-stage hosted POWER gate, including reinitialisation and cold recovery. The original local BARS=RESTORED result is retained; no BARS=KEPT branch result is inferred from the aggregate gate."
         }
       ],
-      "next": "PR480 power-system gate passed12 stages including reinit and held-completion. Update evidence/current next; retain kernel-driven delivery and physical/block-reinit gaps. Do not claim BARS=KEPT branch without the raw marker.",
+      "next": "Exercise native reinitialisation fault paths and retain branch-specific raw markers; complete post-wake service/device restoration and physical S3 acceptance remain open.",
       "blocker": null,
       "reassessment": {
         "date": "2026-11-24",
         "source_commit": "2eb1c63d2afdf658f0e71d31f3542e320a7dd041",
         "receipt": "docs/verification/progress-reassessment-20261124/ledger-reconciliation.json",
-        "summary": "PR480 power-system gate passed12 stages including reinit and held-completion. Update evidence/current next; retain kernel-driven delivery and physical/block-reinit gaps. Do not claim BARS=KEPT branch without the raw marker."
+        "summary": "PR480 passes the 12-stage hosted POWER gate, including reinitialisation and cold recovery. The original local BARS=RESTORED result is retained; no BARS=KEPT branch result is inferred from the aggregate gate."
       }
     },
     {
@@ -2740,8 +2775,8 @@
         "python3 -B tools/test_power_system.py (8/8)",
         "cargo test and clippy for drivers/acpi-power"
       ],
-      "evidence_level": "native QEMU/TCG (local QEMU 10.2.1, pc-q35-8.2); hosted native-power pending",
-      "non_claimable": "Plan rejections in native-acpi-s3 still exit 0x10; the unarmed-wake and out-of-extent paths have no native fixture; the network refusal is not compiled by any gate; the 32-bit wake stage loads CR3 from the wake page (follow-up H05-T6b).",
+      "evidence_level": "Native QEMU/TCG local evidence, extended by successor H05-T6b and hosted QEMU 8.2.2 on the accepted PR480 merge checkout 4677238. The five S3 cases pass with expected raw exits 33/39/37/37/39.",
+      "non_claimable": "The post-wake network refusal remains outside compiled native gates because the S3 and network profile combination is forbidden. Other unexercised plan-refusal variants retain source-only evidence; the wake page's 16-bit code still executes before the ARMED check. Physical firmware and H05 acceptance remain open.",
       "source_commit": "7c5201b6",
       "history": [
         {
@@ -2757,15 +2792,27 @@
           "status": "verified",
           "receipt": "docs/verification/progress-reassessment-20261124/ledger-reconciliation.json",
           "reason": "Successor H05-T6b implements those fixtures/refusal exits and kernel-image CR3; all five S3 cases pass hosted. Current summary should point to successor while keeping historical checkpoint intact."
+        },
+        {
+          "at": "2026-11-24T08:31:10+00:00",
+          "event": "review-evidence-correction",
+          "source_commit": "2eb1c63d2afdf658f0e71d31f3542e320a7dd041",
+          "review": "https://github.com/BaryonOS/BaryonOS/pull/481#pullrequestreview-6035904063",
+          "previous_current_fields": {
+            "evidence_level": "native QEMU/TCG (local QEMU 10.2.1, pc-q35-8.2); hosted native-power pending",
+            "non_claimable": "Plan rejections in native-acpi-s3 still exit 0x10; the unarmed-wake and out-of-extent paths have no native fixture; the network refusal is not compiled by any gate; the 32-bit wake stage loads CR3 from the wake page (follow-up H05-T6b).",
+            "next": "Successor H05-T6b implements those fixtures/refusal exits and kernel-image CR3; all five S3 cases pass hosted. Current summary should point to successor while keeping historical checkpoint intact."
+          },
+          "reason": "Successor H05-T6b supersedes the missing-fixture, success-exit and wake-page CR3 limitations, with all five S3 cases passing hosted on PR480. The post-wake network refusal remains uncompiled by native gates."
         }
       ],
-      "next": "Successor H05-T6b implements those fixtures/refusal exits and kernel-image CR3; all five S3 cases pass hosted. Current summary should point to successor while keeping historical checkpoint intact.",
+      "next": "H05-T6b supplies the unarmed-wake and FACS-end native fixtures, dedicated refusal exits and kernel-image CR3. Follow up the uncompiled post-wake network refusal and remaining physical/early-wake limits.",
       "blocker": null,
       "reassessment": {
         "date": "2026-11-24",
         "source_commit": "2eb1c63d2afdf658f0e71d31f3542e320a7dd041",
         "receipt": "docs/verification/progress-reassessment-20261124/ledger-reconciliation.json",
-        "summary": "Successor H05-T6b implements those fixtures/refusal exits and kernel-image CR3; all five S3 cases pass hosted. Current summary should point to successor while keeping historical checkpoint intact."
+        "summary": "Successor H05-T6b supersedes the missing-fixture, success-exit and wake-page CR3 limitations, with all five S3 cases passing hosted on PR480. The post-wake network refusal remains uncompiled by native gates."
       }
     },
     {

@@ -20,7 +20,7 @@ broader FR-B01 release condition, physical entropy or an external human audit.
 
 The existing progress register/generator now exposes a source-bound snapshot
 beside formal acceptance. Across **113 explicitly scoped requirements** in the
-30 reviewed criteria, **19 are implemented, 76 partial, 17 missing and 1 unknown**.
+30 reviewed criteria, **19 are implemented, 75 partial, 18 missing and 1 unknown**.
 The inventory records **52 requirements with native QEMU evidence**, 26 with
 host-test evidence and 2 with target-build evidence. No physical/human evidence
 is credited in this inventory. These unequal, unweighted rows are not a second
@@ -67,8 +67,24 @@ The first ledger test rejected making skeletal P04-T1 ready without checks; it
 remains blocked with the actual preparation gap. No tests or requirements were
 weakened. The local CodeRabbit installation was blocked by automatic approval
 review over an analytics connection to PostHog; no local CodeRabbit result is
-claimed. Repository-integrated review and mandatory hosted status belong to the
-containing PR and must pass before landing.
+claimed. The [repository-integrated CodeRabbit review](https://github.com/BaryonOS/BaryonOS/pull/481#pullrequestreview-6035904063)
+completed and identified six minor documentation corrections. Current evidence
+fields for H02-T4, H03-T3c, H05-T5b and H05-T6 now record the hosted results while
+preserving their previous fields in appended history. Specific host-only sound
+negatives, F10a, the unverified BARS=KEPT branch and the uncompiled post-wake
+network refusal remain explicit. H06's unselected physical-PC set is missing;
+the R02 row cites both native window-session jobs and distinguishes scripted
+interaction from product latency/human acceptance and historical idle-CPU data.
+
+PR #481 also reran the [seven-case native B01 gate](https://github.com/BaryonOS/BaryonOS/actions/runs/45354833616/job/138309956072):
+all seven cases pass with raw exit 33 on tested merge
+`acf1f5852eb507ed7f8c574909ece9a2347117d3`, whose tree matches reviewed head
+`7d3a4e15c394c3c927690b18fbebed4d34f323d7`. Its source-v3 fingerprint is
+`075ba4ea97c5067c35c941b7cb6fe26003221d1f79e23bf7fe6c8c96b2d65728`.
+The subsequent review corrections affect documentation/data only. Final-head
+review and required hosted checks still belong to the containing PR and must
+pass before landing. Codex and Copilot review quotas were exhausted; their
+unavailable reviews are not counted as approvals or code failures.
 
 No OS runtime, dependency, native runner or native test input changed. Reused
 evidence remains bound to its recorded source; the broad source fingerprint also

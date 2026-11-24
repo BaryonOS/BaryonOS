@@ -610,14 +610,16 @@
       "before": {
         "status": "verified",
         "blocker": null,
-        "next": "MSI/MSI-X with VT-d interrupt remapping (own security design/ADR) or the long-lived input-policy handoff."
+        "next": "MSI/MSI-X with VT-d interrupt remapping (own security design/ADR) or the long-lived input-policy handoff.",
+        "evidence_level": "native QEMU/TCG (local QEMU 10.2.1); hosted 8.2.2 run pending on #461"
       },
       "after": {
         "status": "verified",
         "blocker": null,
-        "next": "PR480 native-xhci covers reattach-mouse and all12 cases on accepted merge tree. Update current next/evidence summary; preserve historical local report."
+        "next": "MSI/MSI-X with VT-d interrupt remapping needs its own security design/ADR; the long-lived input-policy handoff and physical hotplug evidence remain open.",
+        "evidence_level": "Native QEMU/TCG: local QEMU 10.2.1 at fe8959dd; hosted QEMU 8.2.2 on the accepted PR480 merge checkout 4677238, including mouse reattach, raw exit 33."
       },
-      "reason": "PR480 native-xhci covers reattach-mouse and all12 cases on accepted merge tree. Update current next/evidence summary; preserve historical local report.",
+      "reason": "PR480 native-xhci passes all 12 USB cases, including mouse reattach, on the accepted merge tree. The hosted-pending wording is historical; physical and product-input limits remain.",
       "evidence": [
         "https://github.com/BaryonOS/BaryonOS/actions/runs/45318640648/job/138191503697",
         "https://github.com/BaryonOS/BaryonOS/pull/480#issuecomment-7122327749"
@@ -628,14 +630,18 @@
       "before": {
         "status": "verified",
         "blocker": null,
-        "next": "Hosted native-xhci.yml on the #415 head."
+        "next": "Hosted native-xhci.yml on the #415 head.",
+        "evidence_level": "host tests and kernel builds only; native fixture needs QEMU 8.2 (hosted native-xhci.yml)",
+        "non_claimable": "Native behaviour of the re-initialisation guard, check_visible and fence marker order is unexercised until hosted native-xhci.yml passes; config changes after DRIVER_OK stay open (F10a)."
       },
       "after": {
         "status": "verified",
         "blocker": null,
-        "next": "Hosted native-xhci passed at #415 and again PR480; all five virtio-snd cases raw33. Remove pending-CI blocker; retain F10a and host-only specific negatives."
+        "next": "Close F10a and the product-audio integration gaps; native fault fixtures for the host-only negative cases and physical playback evidence remain open.",
+        "evidence_level": "Host tests and kernel builds, plus hosted native QEMU 8.2.2 on the accepted PR480 merge checkout 4677238: all five virtio-snd fixture cases pass with raw exit 33.",
+        "non_claimable": "Successful native fixture paths are exercised. Stale-event budget exhaustion, initialisation with outstanding requests and invalid visible-completion rejection retain host-test evidence only; check_visible remains a sampled check. Configuration changes after DRIVER_OK remain undetected (F10a). Product audio, physical playback and H03 acceptance remain open."
       },
-      "reason": "Hosted native-xhci passed at #415 and again PR480; all five virtio-snd cases raw33. Remove pending-CI blocker; retain F10a and host-only specific negatives.",
+      "reason": "PR480 passes all five hosted virtio-snd cases with raw exit 33. This closes the pending hosted-run statement, while F10a and the specified host-only negative checks remain explicit.",
       "evidence": [
         "https://github.com/BaryonOS/BaryonOS/actions/runs/45318640648/job/138191503697",
         "https://github.com/BaryonOS/BaryonOS/actions/runs/45206306149/job/137802851472"
@@ -646,14 +652,18 @@
       "before": {
         "status": "verified",
         "blocker": null,
-        "next": "R1 port (held completion, post-wake broker latches) onto #415; hosted native-power with the 10-stage gate."
+        "next": "R1 port (held completion, post-wake broker latches) onto #415; hosted native-power with the 10-stage gate.",
+        "evidence_level": "native QEMU/TCG (local QEMU 10.2.1, pc-q35-8.2, BARS=RESTORED); hosted native-power pending",
+        "non_claimable": "Post-wake delivery is kernel-driven, not to a ring-3 process; SYSTEM:FAIL:S3_REINIT paths and the BARS=KEPT branch (CI QEMU 8.2.2) are unexercised; block re-initialisation and physical S3 stay open."
       },
       "after": {
         "status": "verified",
         "blocker": null,
-        "next": "PR480 power-system gate passed12 stages including reinit and held-completion. Update evidence/current next; retain kernel-driven delivery and physical/block-reinit gaps. Do not claim BARS=KEPT branch without the raw marker."
+        "next": "Exercise native reinitialisation fault paths and retain branch-specific raw markers; complete post-wake service/device restoration and physical S3 acceptance remain open.",
+        "evidence_level": "Native QEMU/TCG: local QEMU 10.2.1 with BARS=RESTORED; hosted QEMU 8.2.2 on the accepted PR480 merge checkout 4677238. The 12-stage POWER gate passes, including power-s3-reinit and its cold recovery.",
+        "non_claimable": "Post-wake entropy delivery is kernel-driven rather than issued by the Key Service binary. Native S3_REINIT fault fixtures and branch-specific BARS=KEPT evidence have not been established by this reassessment. Block re-initialisation, complete device/session survival and physical S3 remain open."
       },
-      "reason": "PR480 power-system gate passed12 stages including reinit and held-completion. Update evidence/current next; retain kernel-driven delivery and physical/block-reinit gaps. Do not claim BARS=KEPT branch without the raw marker.",
+      "reason": "PR480 passes the 12-stage hosted POWER gate, including reinitialisation and cold recovery. The original local BARS=RESTORED result is retained; no BARS=KEPT branch result is inferred from the aggregate gate.",
       "evidence": [
         "https://github.com/BaryonOS/BaryonOS/actions/runs/45318640387/job/138191502229"
       ]
@@ -680,14 +690,18 @@
       "before": {
         "status": "verified",
         "blocker": null,
-        "next": "Done in H05-T6b."
+        "next": "Done in H05-T6b.",
+        "evidence_level": "native QEMU/TCG (local QEMU 10.2.1, pc-q35-8.2); hosted native-power pending",
+        "non_claimable": "Plan rejections in native-acpi-s3 still exit 0x10; the unarmed-wake and out-of-extent paths have no native fixture; the network refusal is not compiled by any gate; the 32-bit wake stage loads CR3 from the wake page (follow-up H05-T6b)."
       },
       "after": {
         "status": "verified",
         "blocker": null,
-        "next": "Successor H05-T6b implements those fixtures/refusal exits and kernel-image CR3; all five S3 cases pass hosted. Current summary should point to successor while keeping historical checkpoint intact."
+        "next": "H05-T6b supplies the unarmed-wake and FACS-end native fixtures, dedicated refusal exits and kernel-image CR3. Follow up the uncompiled post-wake network refusal and remaining physical/early-wake limits.",
+        "evidence_level": "Native QEMU/TCG local evidence, extended by successor H05-T6b and hosted QEMU 8.2.2 on the accepted PR480 merge checkout 4677238. The five S3 cases pass with expected raw exits 33/39/37/37/39.",
+        "non_claimable": "The post-wake network refusal remains outside compiled native gates because the S3 and network profile combination is forbidden. Other unexercised plan-refusal variants retain source-only evidence; the wake page's 16-bit code still executes before the ARMED check. Physical firmware and H05 acceptance remain open."
       },
-      "reason": "Successor H05-T6b implements those fixtures/refusal exits and kernel-image CR3; all five S3 cases pass hosted. Current summary should point to successor while keeping historical checkpoint intact.",
+      "reason": "Successor H05-T6b supersedes the missing-fixture, success-exit and wake-page CR3 limitations, with all five S3 cases passing hosted on PR480. The post-wake network refusal remains uncompiled by native gates.",
       "evidence": [
         "https://github.com/BaryonOS/BaryonOS/actions/runs/45318640387/job/138191502025",
         "docs/verification/h05-s3-rejections-20261123/README.md"
