@@ -17,7 +17,9 @@ exactly never-used or fully installed. The S09 phase 3 L2 stages
 (docs/implementation/S09-L2-NATIVE-EXPORT.md) export the domain with archive
 format v2 to the second disk after a fixed writable source step, restore it
 cold with restore_native_l2 without the source disk, refuse a flipped archive
-and refuse a second restore into the now-used domain; the oracle derives the
+and refuse a second restore into the now-used domain; a power cut inside that
+restore (real host kill) and its cold read-only boot must leave exactly the
+commits before the cut, every later object never-used. The oracle derives the
 expected source and destination state from the parent image and the archive."""
 from __future__ import annotations
 import argparse
@@ -55,9 +57,10 @@ FEATURE = {"normal": "native-volume", "recover": "test-volume-recover",
                "archive-disk-export", "archive-disk-restore", "archive-disk-absent", "archive-disk-small",
                "archive-disk-wrong", "archive-disk-cut", "archive-disk-verify",
                "install", "install-recover", "install-cut",
-               "l2-export", "l2-restore", "l2-corrupt", "l2-used")}}
+               "l2-export", "l2-restore", "l2-corrupt", "l2-used", "l2-restore-cut", "recover-l2-cut")}}
 CUT_MARKER = {"cut-data": "VOLUME:CUT:DATA", "cut-table": "VOLUME:CUT:TABLE", "cut-txn": "VOLUME:CUT:TXN",
-              "archive-disk-cut": "VOLUME:CUT:ARCHIVE", "install-cut": "VOLUME:CUT:INSTALL"}
+              "archive-disk-cut": "VOLUME:CUT:ARCHIVE", "install-cut": "VOLUME:CUT:INSTALL",
+              "l2-restore-cut": "VOLUME:CUT:L2_RESTORE"}
 CASE_MARKER = {"normal": "NORMAL", "recover": "RECOVER", "recover-cut": "RECOVER_CUT",
                "corrupt": "CORRUPT", "foreign": "CORRUPT", "archive-export": "ARCHIVE_EXPORT",
                "archive-restore": "ARCHIVE_RESTORE", "archive-corrupt": "ARCHIVE_CORRUPT",
@@ -67,8 +70,8 @@ CASE_MARKER = {"normal": "NORMAL", "recover": "RECOVER", "recover-cut": "RECOVER
                "archive-disk-small": "ARCHIVE_DISK_SMALL", "archive-disk-wrong": "ARCHIVE_DISK_WRONG",
                "archive-disk-verify": "ARCHIVE_DISK_VERIFY", "install": "INSTALL",
                "install-recover": "INSTALL_RECOVER", "l2-export": "L2_EXPORT", "l2-restore": "L2_RESTORE",
-               "l2-corrupt": "L2_CORRUPT", "l2-used": "L2_USED"}
-READ_ONLY = ("recover", "recover-cut", "corrupt", "foreign", "install-recover", "l2-used")
+               "l2-corrupt": "L2_CORRUPT", "l2-used": "L2_USED", "recover-l2-cut": "RECOVER_L2_CUT"}
+READ_ONLY = ("recover", "recover-cut", "corrupt", "foreign", "install-recover", "l2-used", "recover-l2-cut")
 # Cases that always start from a fresh image; every other case needs the image
 # its allowed parent left.
 FRESH = ("normal", "cut-data", "cut-table", "cut-txn", "corrupt", "foreign", "install", "install-cut")
@@ -86,7 +89,7 @@ ALLOWED_PARENTS = frozenset({
     ("archive-disk-verify", "archive-disk-cut"),
     ("install-recover", "install"), ("recover-cut", "install-cut"),
     ("l2-export", "archive-export"), ("l2-restore", "l2-export"), ("l2-corrupt", "l2-export"),
-    ("l2-used", "l2-restore")})
+    ("l2-used", "l2-restore"), ("l2-restore-cut", "l2-export"), ("recover-l2-cut", "l2-restore-cut")})
 MAX_TIMEOUT = 600
 # S09 archive range; must equal ARCHIVE_FIRST_SECTOR/ARCHIVE_SECTORS in the
 # kernel volume profile and ARCHIVE_SECTORS in the portal app.
@@ -118,12 +121,13 @@ CONFLICT_OBJECTS = {3: ("Bezet", 77), 6: ("Herstart", 33)}
 # scope sizes, so it ends below the disk: ARCHIVE_SECTORS of a 2048-sector
 # disk, or FULL_SECTORS of a too-small disk (the driver needs >= 8 sectors).
 # S09 phase 3 L2 stages (spec section 4): all on device 1; 26 and 27 lose the source disk.
-L2_CASES = ("l2-export", "l2-restore", "l2-corrupt", "l2-used")
-L2_SOURCE_LOSS = ("l2-restore", "l2-corrupt")
+# l2-restore-cut: a power cut inside that restore; recover-l2-cut: its cold read-only boot.
+L2_CASES = ("l2-export", "l2-restore", "l2-corrupt", "l2-used", "l2-restore-cut", "recover-l2-cut")
+L2_SOURCE_LOSS = ("l2-restore", "l2-corrupt", "l2-restore-cut")
 DISK_CASES = ("archive-disk-export", "archive-disk-restore", "archive-disk-absent", "archive-disk-small",
               "archive-disk-wrong", "archive-disk-cut", "archive-disk-verify", *L2_CASES)
 DISK1_READ_ONLY = ("archive-disk-restore", "archive-disk-wrong", "archive-disk-verify",
-                   "l2-restore", "l2-corrupt", "l2-used")
+                   "l2-restore", "l2-corrupt", "l2-used", "l2-restore-cut", "recover-l2-cut")
 DISK1_SECTORS, SMALL_DISK_SECTORS = 2048, FULL_SECTORS + 8
 assert ARCHIVE_SECTORS < DISK1_SECTORS and 8 <= FULL_SECTORS < SMALL_DISK_SECTORS
 DISK1_SPAN = slice(0, ARCHIVE_SECTORS * SECTOR)
@@ -185,6 +189,12 @@ L2_SOURCE_STEP = (("write", 2, 0), ("write", 2, 0), ("meta", 5, 1),
 # volume_core::Status codes the portal reports in VOLUME:ARCHIVE:RESULT (i32, sign-extended).
 STATUS_OK, STATUS_STALE, STATUS_CORRUPT = 0, -10, -18
 L2_WORDS = ("RESTORED", "COLLECTIONS", "COMMITTED", "SKIPPED", "PROVENANCE_MISMATCHES", "LENGTH", "RESULT")
+# l2-restore-cut: the commits that land before the kernel's cut (L2_CUT_COMMITS in
+# the kernel volume profile: three collections, then objects 1-3); the cut falls
+# inside the next INSTALL_COMMIT table copy, so that copy is torn.
+L2_CUT_COMMITS = 6
+# Sectors of that torn copy the kernel lets land before it stops the guest.
+L2_CUT_TORN = 4
 
 
 def numbers(stdout: str) -> dict[str, int]:
@@ -482,9 +492,10 @@ def prepare_disks(case: str, parent_dir: Path, volume_dir: Path, info: dict):
         info = dict(info, variant=case, sha256=hashlib.sha256(fresh).hexdigest())
         if case != "archive-disk-absent":
             disk1 = disk1_image(SMALL_DISK_SECTORS if case == "archive-disk-small" else DISK1_SECTORS)
-    elif case in ("archive-disk-cut", "l2-used"):
+    elif case in ("archive-disk-cut", "l2-used", "recover-l2-cut"):
         # Both disks of the parent stage: the cut exports over the older archive;
-        # l2-used keeps the restored volume and its archive (both read-only).
+        # l2-used keeps the restored volume and its archive (both read-only), and
+        # recover-l2-cut the partially restored volume of the cut (both read-only).
         shutil.copyfile(parent_dir / "volume.img", volume_dir / "volume.img")
         disk1 = (parent_dir / "archive.img").read_bytes()
         info = dict(info, variant=case)
@@ -1225,26 +1236,29 @@ def matches_volume_v2(archive: dict, oracle) -> int:
     return omitted
 
 
-def expected_l2(archive: dict):
+def expected_l2(archive: dict, commits: int | None = None):
     """The destination state restore_native_l2 must reach in a never-used
     domain 0 of a fresh volume, from the parsed archive alone, and the
     compared (label, origin, live) pairs of the discrimination invariant.
     Collections are installed first, then objects in slot order; each is one
     commit on the domain clock (service.rs install_collection/install_commit):
     live revision 1 per collection; per object live revision n, versions
-    n..1, created == modified == its commit clock, installed n."""
+    n..1, created == modified == its commit clock, installed n.
+    `commits` stops after that many commits: the state an interrupted restore
+    leaves (no resume; everything after the last landed commit never-used)."""
     clock, chunks, skipped = 0, 0, 0
+    limit = -1 if commits is None else commits
     state = {"collections": {}, "objects": {}}
     report = {"restored": 0, "collections": 0}
     pairs = []
     for index, c in sorted(archive["collections"].items()):
-        if c["present"]:
+        if c["present"] and clock != limit:
             clock += 1
             state["collections"][index] = {"name": c["name"], "origin": c["revision"]}
             report["collections"] |= 1 << (index - 1)
             pairs.append((f"collection {index} revision", c["revision"], 1))
     for o in archive["objects"]:
-        if not o["present"]:
+        if not o["present"] or clock == limit:
             continue
         n = replayable([v["revision"] for v in o["versions"]])
         skipped += len(o["versions"]) - n
@@ -1311,6 +1325,30 @@ def check_l2_state(oracle, state) -> None:
             raise ValueError(f"restored collection {c['index']} differs from the archive")
 
 
+def check_l2_cut(after: bytes, archive: dict):
+    """Disk 0 of a power cut inside restore_native_l2 (spec section 4,
+    l2-restore-cut and recover-l2-cut), per the host semantics of
+    services/volume/tests/l2_restore.rs (an interrupted restore stands, with
+    no resume and no claim on the uncertain object): exactly the first
+    L2_CUT_COMMITS commits of the full plan, every later object and collection
+    exactly never-used (no torn or partial object), and the next commit's
+    table copy torn after L2_CUT_TORN sectors. Returns (oracle, state)."""
+    full, pairs = expected_l2(archive)
+    discriminating(pairs)
+    state = expected_l2(archive, L2_CUT_COMMITS)[0]
+    installed, planned = set(state["objects"]), set(full["objects"])
+    if not installed or installed == planned:
+        raise ValueError(f"the cut point leaves no partial restore: {sorted(installed)} of {sorted(planned)}")
+    oracle = analyse_v3(after, opaque=frozenset(planned))
+    check_l2_state(oracle, state)
+    torn = torn_sectors(oracle, True)
+    if torn != L2_CUT_TORN:
+        raise ValueError(f"torn copy has {torn} sectors, the kernel cut lands {L2_CUT_TORN}")
+    oracle["l2"] = {"pairs": pairs, "expected_report": state["report"], "installed": sorted(installed),
+                    "never_used": sorted(planned - installed), "torn_sectors": torn}
+    return oracle, state
+
+
 def flip_v2(archive: bytes) -> int:
     """Offset of the middle content byte of the first non-empty version of
     the largest object (most content bytes; the first on a tie), found by
@@ -1340,9 +1378,18 @@ def signed(value: int) -> int:
 
 
 def check_l2(case: str, before: bytes, after: bytes, disk1_before: bytes, disk1_after: bytes, evidence):
-    """Host acceptance of the four L2 stages (spec sections 4, 5.3 and 6.7):
+    """Host acceptance of the six L2 stages (spec sections 4, 5.3 and 6.7):
     both disks byte for byte, the frozen v2 and v3-capable volume oracles, the
     independent v2 reader and the guest's L2 words."""
+    if case == "l2-restore-cut":
+        # The guest stops before its summary: no evidence lines, host bytes only
+        # (as archive-disk-cut); the archive disk is read-only and unchanged.
+        if disk1_after != disk1_before:
+            raise ValueError("the archive disk changed during the restore cut")
+        data = disk_archive(disk1_after)
+        oracle = check_l2_cut(after, volume_archive.parse_v2(data))[0]
+        oracle["archive"] = {"length": len(data), "sha256": hashlib.sha256(data).hexdigest()}
+        return oracle
     counts = [evidence[f"VOLUME:ARCHIVE:{name}:"] for name in ("READS", "WRITES", "FLUSHES")]
     device = [evidence[f"VOLUME:BROKER:ARCHIVE_DISK_{name}:"] for name in ("READS", "WRITES", "FLUSHES")]
     lane0 = [evidence["VOLUME:BROKER:VOLUME_DISK_WRITES:"], evidence["VOLUME:BROKER:VOLUME_DISK_FLUSHES:"]]
@@ -1403,10 +1450,14 @@ def check_l2(case: str, before: bytes, after: bytes, disk1_before: bytes, disk1_
         else:
             data = disk_archive(disk1_after)
             archive = volume_archive.parse_v2(data)
-            state, pairs = expected_l2(archive)
-            discriminating(pairs)
-            oracle = analyse_v3(after, opaque=frozenset(state["objects"]))
-            check_l2_state(oracle, state)
+            if case == "recover-l2-cut":
+                oracle, state = check_l2_cut(after, archive)
+                pairs = oracle["l2"]["pairs"]
+            else:
+                state, pairs = expected_l2(archive)
+                discriminating(pairs)
+                oracle = analyse_v3(after, opaque=frozenset(state["objects"]))
+                check_l2_state(oracle, state)
             if words["PROVENANCE_MISMATCHES"] != 0:
                 raise ValueError("guest provenance mismatches")
             if case == "l2-restore":
@@ -1420,16 +1471,21 @@ def check_l2(case: str, before: bytes, after: bytes, disk1_before: bytes, disk1_
                         evidence["VOLUME:BROKER:TABLE_SECTOR_WRITES:"],
                         evidence["VOLUME:SERVICE:GENERATION:"]) != want:
                     raise ValueError(f"service or broker counters differ from the {commits} installs")
-            elif case == "l2-used":
+            elif case in ("l2-used", "recover-l2-cut"):
                 if after != before or lane0 != [0, 0]:
-                    raise ValueError("read-only l2-used stage changed disk 0")
+                    raise ValueError(f"read-only {case} stage changed disk 0")
                 if (result, words["COMMITTED"]) != (STATUS_STALE, 0):
                     raise ValueError(f"second restore words {words}")
+                # The guest's observed masks of fully installed objects and collections.
+                report = state["report"]
+                if case == "recover-l2-cut" and (words["RESTORED"], words["COLLECTIONS"]) != (
+                        report["restored"], report["collections"]):
+                    raise ValueError(f"guest observed {words} differ from the cut state {report}")
             else:
                 raise ValueError(f"no L2 check for {case}")
             if [evidence["VOLUME:A:DIGEST:"], evidence["VOLUME:B:DIGEST:"]] != oracle["digests"]:
                 raise ValueError("guest-reported digests differ from the disk oracle")
-            oracle["l2"] = {"pairs": pairs, "expected_report": state["report"]}
+            oracle.setdefault("l2", {}).update(pairs=pairs, expected_report=state["report"])
     oracle["archive"] = {"length": len(data), "sha256": hashlib.sha256(data).hexdigest(), "io": counts,
                          "device1": device}
     return oracle

@@ -28,7 +28,7 @@ VOLUME_ARCHIVE_CASES = ("archive-export", "archive-restore", "archive-corrupt", 
                         "archive-disk-export", "archive-disk-restore", "archive-disk-absent",
                         "archive-disk-small", "archive-disk-wrong", "archive-disk-cut", "archive-disk-verify")
 # S09 phase 3 L2 portal on the device-1 disk (docs/implementation/S09-L2-NATIVE-EXPORT.md).
-VOLUME_L2_CASES = ("l2-export", "l2-restore", "l2-corrupt", "l2-used")
+VOLUME_L2_CASES = ("l2-export", "l2-restore", "l2-corrupt", "l2-used", "l2-restore-cut", "recover-l2-cut")
 # U05-N1 settings app replaces volume-app in these cases (tools/run_settings.py).
 VOLUME_SETTINGS_CASES = ("settings", "settings-recover")
 VOLUME_CASES = ("recover", "cut-data", "cut-table", "recover-cut", "corrupt", "foreign", "cut-txn",

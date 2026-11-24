@@ -70,11 +70,12 @@ def parent_state():
             "collections": collections}
 
 
-def volume_image(state, fmt=2, destination=None) -> bytes:
+def volume_image(state, fmt=2, destination=None, torn=None) -> bytes:
     """A two-copy image of an oracle-shaped state (generation g in its slot,
     a g - 1 seal in the other). Versions keep given chunks or get fresh ones;
     content is `content` or the fixture. `destination` (expected_l2 state)
-    adds the v3 provenance."""
+    adds the v3 provenance. `torn` (a power cut inside the next publish): the
+    g - 1 copy stays intact and its first `torn` sectors hold a g + 1 copy."""
     image = bytearray(vd.empty_image_bytes())
     used = {c for item in state["objects"] for v in item["versions"] for c in v.get("chunks", [])}
     free = (c for c in range(vd.CHUNKS) if c not in used)
@@ -117,8 +118,12 @@ def volume_image(state, fmt=2, destination=None) -> bytes:
     reflected = next(e["request_id"] for e in entries + collections if e["revision"])
     newer = vd.encode_table(g, reflected, entries, collections, clocks, fmt=fmt)
     older = vd.encode_table(g - 1, reflected, entries, collections, [clocks[0] - 1] + clocks[1:], fmt=fmt)
-    # A torn g - 1 copy (one unsealed sector): explained by the newer copy, never chosen.
-    older[-1] = bytes([older[-1][0] ^ 1]) + older[-1][1:]
+    if torn is None:
+        # A torn g - 1 copy (one unsealed sector): explained by the newer copy, never chosen.
+        older[-1] = bytes([older[-1][0] ^ 1]) + older[-1][1:]
+    else:
+        nextg = vd.encode_table(g + 1, reflected, entries, collections, [clocks[0] + 1] + clocks[1:], fmt=fmt)
+        older[:torn] = nextg[:torn]
     for generation, sectors in ((g, newer), (g - 1, older)):
         start = (vd.FIRST + (generation % 2) * vd.TABLE_SECTORS) * vd.SECTOR
         image[start:start + len(sectors) * vd.SECTOR] = b"".join(sectors)
@@ -463,6 +468,99 @@ class RestoreCheck(unittest.TestCase):
                             self.fixture.disk1, wrong)
 
 
+class CutCheck(unittest.TestCase):
+    """l2-restore-cut and recover-l2-cut: exactly the commits before the cut
+    (three collections, objects 1-3), objects 4 and 5 never-used, and a torn
+    copy of the next publish (spec section 4; services/volume/tests/l2_restore.rs)."""
+
+    def setUp(self):
+        self.fixture = Fixture()
+        self.state = rv.expected_l2(self.fixture.archive, rv.L2_CUT_COMMITS)[0]
+        self.image = self.cut_image(self.state)
+
+    @staticmethod
+    def cut_image(state, torn=rv.L2_CUT_TORN):
+        return volume_image(destination_state(state), fmt=3, torn=torn)
+
+    def cut(self, after):
+        return rv.check_l2("l2-restore-cut", vd.empty_image_bytes(), after, self.fixture.disk1,
+                           self.fixture.disk1, {})
+
+    def recover_evidence(self, **changes):
+        oracle = rv.analyse_v3(self.image, opaque=frozenset(self.fixture.state["objects"]))
+        report = self.state["report"]
+        return {**device_evidence("recover-l2-cut", [7, 0, 0]),
+                **words(restored=report["restored"], collections=report["collections"], result=rv.STATUS_STALE),
+                "VOLUME:BROKER:VOLUME_DISK_WRITES:": 0, "VOLUME:BROKER:VOLUME_DISK_FLUSHES:": 0,
+                "VOLUME:A:DIGEST:": oracle["digests"][0], "VOLUME:B:DIGEST:": oracle["digests"][1], **changes}
+
+    def test_cut_state(self):
+        # Deterministic: generation 6; objects 1-3 and collections 1-3 installed, 4 and 5 never-used.
+        self.assertEqual((self.state["generation"], self.state["report"]["restored"],
+                          self.state["report"]["collections"]), (6, 0b0000_1110, 0b111))
+        oracle = self.cut(self.image)
+        self.assertEqual((oracle["l2"]["installed"], oracle["l2"]["never_used"], oracle["l2"]["torn_sectors"]),
+                         ([1, 2, 3], [4, 5], rv.L2_CUT_TORN))
+
+    def test_recover(self):
+        disk1 = self.fixture.disk1
+        rv.check_l2("recover-l2-cut", self.image, self.image, disk1, disk1, self.recover_evidence())
+        for key, value in (("VOLUME:ARCHIVE:RESTORED:", 0b0011_1110), ("VOLUME:ARCHIVE:RESTORED:", 0b0000_0110),
+                           ("VOLUME:ARCHIVE:COLLECTIONS:", 0b011), ("VOLUME:ARCHIVE:RESULT:", 0),
+                           ("VOLUME:ARCHIVE:PROVENANCE_MISMATCHES:", 1), ("VOLUME:ARCHIVE:COMMITTED:", 1),
+                           ("VOLUME:BROKER:VOLUME_DISK_WRITES:", 1)):
+            with self.assertRaises(ValueError, msg=key):
+                rv.check_l2("recover-l2-cut", self.image, self.image, disk1, disk1,
+                            self.recover_evidence(**{key: value}))
+        changed = bytearray(self.image)
+        changed[-1] ^= 1
+        with self.assertRaises(ValueError):
+            rv.check_l2("recover-l2-cut", self.image, bytes(changed), disk1, disk1, self.recover_evidence())
+
+    def test_mutations_are_refused(self):
+        full = self.fixture.state
+
+        non_prefix = rv.expected_l2(self.fixture.archive, rv.L2_CUT_COMMITS + 1)[0]
+        del non_prefix["objects"][3]
+        # Object 4 written by the cut publish but without its provenance (a torn install).
+        partial = rv.expected_l2(self.fixture.archive, rv.L2_CUT_COMMITS + 1)[0]
+        partial["objects"][4].update(installed=0, origin=[0, 0, 0], origins=[0] * (vd.HISTORY + 1))
+        # Same generation, clock and chunk usage as the cut state: only the per-object check can refuse these.
+        unclaimed = rv.expected_l2(self.fixture.archive, rv.L2_CUT_COMMITS)[0]
+        unclaimed["objects"][3].update(installed=0, origin=[0, 0, 0], origins=[0] * (vd.HISTORY + 1))
+        stray = rv.expected_l2(self.fixture.archive, rv.L2_CUT_COMMITS)[0]
+        stray["objects"][4] = dict(stray["objects"][1], installed=0, origin=[0, 0, 0],
+                                   origins=[0] * (vd.HISTORY + 1),
+                                   versions=[{"revision": 1, "name": "x", "length": 0, "content": b""}])
+        mutants = {
+            "object 3 without provenance, same generation": self.cut_image(unclaimed),
+            "partial object 4, same generation": self.cut_image(stray),
+            "full restore": self.cut_image(full, torn=None),
+            "collections only": self.cut_image(rv.expected_l2(self.fixture.archive, 3)[0]),
+            "one commit more": self.cut_image(rv.expected_l2(self.fixture.archive, rv.L2_CUT_COMMITS + 1)[0]),
+            "non-prefix installs": self.cut_image(non_prefix),
+            "object 4 without provenance": self.cut_image(partial),
+            "object 3 missing": self.cut_image(dict(self.state, objects={k: v for k, v in self.state["objects"].items()
+                                                                        if k != 3})),
+            "no torn copy": volume_image(destination_state(self.state), fmt=3),
+            "torn copy too short": self.cut_image(self.state, torn=rv.L2_CUT_TORN - 1),
+        }
+        for label, image in mutants.items():
+            with self.assertRaises(ValueError, msg=label):
+                self.cut(image)
+        moved = bytearray(self.fixture.disk1)
+        moved[-1] ^= 1
+        with self.assertRaisesRegex(ValueError, "archive disk changed"):
+            rv.check_l2("l2-restore-cut", vd.empty_image_bytes(), self.image, self.fixture.disk1, bytes(moved), {})
+
+    def test_expected_l2_prefix(self):
+        for commits in range(0, 9):
+            state = rv.expected_l2(self.fixture.archive, commits)[0]
+            self.assertEqual((state["generation"], len(state["collections"]) + len(state["objects"])),
+                             (commits, commits))
+        self.assertEqual(rv.expected_l2(self.fixture.archive, 8)[0], self.fixture.state)
+
+
 class CorruptCheck(unittest.TestCase):
     def setUp(self):
         self.fixture = Fixture()
@@ -552,8 +650,9 @@ class Preparation(unittest.TestCase):
                 with self.assertRaises(ValueError):
                     rv.check_source_loss(vd.empty_image_bytes(), args + ["-drive", "if=none,id=x,file=y"],
                                          parent, new, Path("/"))
-            target, _, disk1, _, _ = results["l2-used"]
-            self.assertEqual(((target / "volume.img").read_bytes(), disk1), (fixture.before, fixture.disk1))
+            for case in ("l2-used", "recover-l2-cut"):
+                target, _, disk1, _, _ = results[case]
+                self.assertEqual(((target / "volume.img").read_bytes(), disk1), (fixture.before, fixture.disk1))
             with self.assertRaises(ValueError):
                 rv.prepare_disks("l2-unknown", parent, Path(tmp) / "l2-export", info)
 
@@ -573,9 +672,10 @@ class Plan(unittest.TestCase):
 
     def test_every_parent_is_the_last_writer_of_its_directory(self):
         plan = self.plan()
-        self.assertEqual(len(plan), 30)
-        self.assertEqual(plan[-4:], [("l2-export", "archive-export"), ("l2-restore", "l2-export"),
-                                     ("l2-corrupt", "l2-export"), ("l2-used", "l2-restore")])
+        self.assertEqual(len(plan), 32)
+        self.assertEqual(plan[-6:], [("l2-export", "archive-export"), ("l2-restore", "l2-export"),
+                                     ("l2-corrupt", "l2-export"), ("l2-used", "l2-restore"),
+                                     ("l2-restore-cut", "l2-export"), ("recover-l2-cut", "l2-restore-cut")])
         directory, writer = {}, {}
         for number, (case, parent) in enumerate(plan):
             if parent is not None:
@@ -595,11 +695,16 @@ class Plan(unittest.TestCase):
             self.assertEqual(rv.FEATURE[case], f"test-volume-{case}")
             self.assertIn(rv.FEATURE[case], build.VOLUME_FEATURES)
             self.assertIn(case, rv.DISK_CASES)
-        self.assertEqual({c: rv.CASE_MARKER[c] for c in rv.L2_CASES},
+        self.assertEqual({c: rv.CASE_MARKER[c] for c in rv.L2_CASES if c in rv.CASE_MARKER},
                          {"l2-export": "L2_EXPORT", "l2-restore": "L2_RESTORE", "l2-corrupt": "L2_CORRUPT",
-                          "l2-used": "L2_USED"})
-        self.assertEqual([c for c in rv.L2_CASES if c in rv.DISK1_READ_ONLY], ["l2-restore", "l2-corrupt", "l2-used"])
-        self.assertEqual([c for c in rv.L2_CASES if c in rv.READ_ONLY], ["l2-used"])
+                          "l2-used": "L2_USED", "recover-l2-cut": "RECOVER_L2_CUT"})
+        # The cut stage has a cut marker and no PASS marker.
+        self.assertEqual([c for c in rv.L2_CASES if c in rv.CUT_MARKER], ["l2-restore-cut"])
+        self.assertEqual(rv.CUT_MARKER["l2-restore-cut"], "VOLUME:CUT:L2_RESTORE")
+        self.assertEqual([c for c in rv.L2_CASES if c in rv.DISK1_READ_ONLY],
+                         ["l2-restore", "l2-corrupt", "l2-used", "l2-restore-cut", "recover-l2-cut"])
+        self.assertEqual([c for c in rv.L2_CASES if c in rv.READ_ONLY], ["l2-used", "recover-l2-cut"])
+        self.assertEqual(rv.L2_SOURCE_LOSS, ("l2-restore", "l2-corrupt", "l2-restore-cut"))
         self.assertEqual(rv.signed(18446744073709551598), rv.STATUS_CORRUPT)
 
 if __name__ == "__main__":
