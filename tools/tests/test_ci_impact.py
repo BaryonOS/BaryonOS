@@ -1129,6 +1129,20 @@ class CoverageTests(TestCase):
                 self.assertEqual(ci_impact.main(["coverage", "--repo", tmp]), 0)
             self.assertEqual(json.loads(out.getvalue())["status"], "drift")
 
+    @skipUnless(HAVE_YAML, "PyYAML is not importable")
+    def test_duplicate_workflow_keys_are_drift(self):
+        # The last value matches the catalogue, so a last-wins parse would report clean.
+        duplicated = COVERAGE_YAML.replace("    timeout-minutes: 30\n",
+                                           "    timeout-minutes: 99\n    timeout-minutes: 30\n")
+        with tempfile.TemporaryDirectory() as tmp:
+            Repo(tmp).commit("base", {".github/ci-impact.toml": COVERAGE_CATALOGUE,
+                                      ".github/workflows/ci.yml": duplicated, "README.md": "fixture readme\n",
+                                      "src/a/lib.rs": "// a\n"})
+            report = ci_impact.coverage(tmp, ".github/ci-impact.toml")
+        self.assertEqual(report["status"], "drift", report)
+        self.assertEqual(report["problems"], [
+            "workflow-duplicate-key: .github/workflows/ci.yml: duplicate key 'timeout-minutes' at line 11"])
+
     def test_citation_anchors_are_checked(self):
         lines = ["one", "two", "three", "the fixture rule", "five", "six", "seven", "eight", "nine"]
         with tempfile.TemporaryDirectory() as tmp:

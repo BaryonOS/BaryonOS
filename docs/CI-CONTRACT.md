@@ -240,6 +240,9 @@ trigger filters, jobs, names, conditions, needs, timeouts, max-parallel,
 rendered matrix variants and check names, evidence names; for a dynamic
 matrix, the unexpanded evidence name templates). It also checks:
 
+- that no workflow mapping repeats a key (`workflow-duplicate-key`); PyYAML
+  would otherwise keep only the last value silently. The comparison then
+  continues on that last-wins parse;
 - that each job's `activation` agrees with the workflow's `on:` keys; a
   `schedule` or `dispatch` job in a workflow that also has `pull_request`,
   `push` or `merge_group` needs a condition such as

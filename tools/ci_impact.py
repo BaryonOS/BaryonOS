@@ -1286,12 +1286,35 @@ def coverage(repo, catalogue_file):
     problems = [f"catalogue-invalid: {p}" for p in validate(catalogue)]
     if problems:
         return report | {"status": "drift", "problems": problems}
+    class DuplicateKey(yaml.YAMLError):
+        pass
+
+    class StrictLoader(yaml.BaseLoader):
+        """BaseLoader that rejects a repeated mapping key instead of keeping the last value."""
+
+        def construct_mapping(self, node, deep=False):
+            seen = set()
+            for key_node, _ in node.value:
+                key = self.construct_object(key_node, deep=deep)
+                if not isinstance(key, str):
+                    continue  # BaseLoader itself rejects an unhashable key
+                if key in seen:
+                    raise DuplicateKey(f"duplicate key {key!r} at line {key_node.start_mark.line + 1}")
+                seen.add(key)
+            return super().construct_mapping(node, deep=deep)
+
     workflows = {}
     for pattern in ("*.yml", "*.yaml"):
         for file in sorted(globmod.glob(os.path.join(repo, ".github", "workflows", pattern))):
             relative = ".github/workflows/" + os.path.basename(file)
             with open(file, encoding="utf-8") as handle:
-                workflows[relative] = yaml.load(handle, Loader=yaml.BaseLoader)  # noqa: S506
+                text = handle.read()
+            try:
+                workflows[relative] = yaml.load(text, Loader=StrictLoader)  # noqa: S506
+            except DuplicateKey as error:
+                problems.append(f"workflow-duplicate-key: {relative}: {error}")
+                # Still compare the last-wins parse, so the other checks keep reporting.
+                workflows[relative] = yaml.load(text, Loader=yaml.BaseLoader)  # noqa: S506
     problems += workflow_problems(workflows, catalogue)
     for workflow in catalogue["workflow"]:
         for citation in workflow.get("obligation", []):
