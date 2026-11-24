@@ -836,12 +836,25 @@ class DeterminismAndRobustnessTests(FixtureTestCase):
         with mock.patch.object(ci_impact.os, "unlink", side_effect=PermissionError("read-only dir")):
             ci_impact.discard_stale_plan(str(out), plan)
         self.assertFull(json.loads(out.read_text()), "output-error:OSError")
-        real_open = open
+        real_open = os.open
         with mock.patch.object(ci_impact.os, "unlink", side_effect=PermissionError("read-only dir")), \
-                mock.patch("builtins.open", side_effect=lambda *a, **k: (_ for _ in ()).throw(
+                mock.patch.object(ci_impact.os, "open", side_effect=lambda *a, **k: (_ for _ in ()).throw(
                     PermissionError("read-only file")) if a and str(a[0]) == str(out) else real_open(*a, **k)), \
                 contextlib.redirect_stderr(io.StringIO()) as stderr:
             ci_impact.discard_stale_plan(str(out), plan)
+        self.assertIn("ci-impact: stale-plan-not-removed:", stderr.getvalue())
+
+    def test_stale_plan_overwrite_never_follows_a_symlink(self):
+        victim = Path(self._tmp.name) / "victim.txt"
+        victim.write_text("keep me\n")
+        out = Path(self._tmp.name) / "plan.json"
+        out.symlink_to(victim)
+        plan = ci_impact.minimal_full_plan("pull_request", "output-error:OSError", None, None, None)
+        with mock.patch.object(ci_impact.os, "unlink", side_effect=PermissionError("read-only dir")), \
+                contextlib.redirect_stderr(io.StringIO()) as stderr:
+            ci_impact.discard_stale_plan(str(out), plan)
+        self.assertEqual(victim.read_text(), "keep me\n")
+        self.assertTrue(out.is_symlink())
         self.assertIn("ci-impact: stale-plan-not-removed:", stderr.getvalue())
 
     def test_invalid_sha_and_unknown_event_are_full(self):

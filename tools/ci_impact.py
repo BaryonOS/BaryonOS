@@ -1464,8 +1464,8 @@ def discard_stale_plan(out, plan):
         return
     except OSError:
         pass
-    try:  # the file may be writable where its directory is not
-        with open(out, "w", encoding="utf-8") as handle:
+    try:  # the file may be writable where its directory is not; never write through a symlink
+        with os.fdopen(os.open(out, os.O_WRONLY | os.O_TRUNC | os.O_NOFOLLOW), "w", encoding="utf-8") as handle:
             handle.write(plan_text(plan))
     except OSError:
         print(f"ci-impact: stale-plan-not-removed: {json.dumps(out)}", file=sys.stderr)
