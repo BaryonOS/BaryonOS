@@ -55,7 +55,7 @@ RANDOM_FEATURES = ("native-system-random", "test-system-random-sdk", "test-syste
 IMAGE_FEATURES = ("native-system-images",)
 SYSTEM_CLOCK_FEATURES = ("native-system-clock",)
 POWER_SYSTEM_FEATURES = ("native-system-power", "test-system-power-flush-error", "test-system-power-flush-timeout", "test-system-s3", "test-system-s3-reinit", "test-system-s3-held-completion")
-NETWORK_SERVICE_FEATURES = ("native-net-service", "test-net-service-client-exit", "test-net-service-revoke", "test-net-service-helper", "test-net-service-device-reset", "test-net-service-exhaustion", "test-net-service-port-sweep", "test-net-service-dhcp", "test-net-service-link")
+NETWORK_SERVICE_FEATURES = ("native-net-service", "test-net-service-client-exit", "test-net-service-revoke", "test-net-service-helper", "test-net-service-device-reset", "test-net-service-exhaustion", "test-net-service-port-sweep", "test-net-service-dhcp", "test-net-service-link", "test-net-service-slirp")
 SYSTEM_FEATURES = (*NETWORK_SERVICE_FEATURES, "native-cap-digest-bench", "native-system", "test-system-recover", "native-system-display-input", *NETWORK_SYSTEM_FEATURES, *NETWORK_LINK_FEATURES, *TCP_SYSTEM_FEATURES, *RANDOM_FEATURES, *IMAGE_FEATURES, *SYSTEM_CLOCK_FEATURES)
 SYSTEM_FEATURES += POWER_SYSTEM_FEATURES
 # B02-T4 (ADR-B02-KEY1-RELAY-20261123): the key-state relay cases and the red manifest case.

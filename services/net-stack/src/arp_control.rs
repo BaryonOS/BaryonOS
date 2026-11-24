@@ -103,7 +103,9 @@ impl Stack<'_> {
         bytes: &[u8],
         address: [u8; 4],
     ) -> Result<ArpObservation, Error> {
-        if bytes.len() != 42 && bytes.len() != 60 {
+        // 42 bytes plus any link padding up to the Ethernet II maximum without
+        // FCS; padding bytes carry no meaning (libslirp pads ARP to 64, N02-T6).
+        if !(42..=1514).contains(&bytes.len()) {
             return Err(Error::InvalidFrame);
         }
         let frame = EthernetFrame::new_checked(bytes).map_err(|_| Error::InvalidFrame)?;
