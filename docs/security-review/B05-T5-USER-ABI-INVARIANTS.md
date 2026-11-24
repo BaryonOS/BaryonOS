@@ -93,6 +93,7 @@ skipped) and three `PT_LOAD` headers, RX, R and RW, at 0x40000000, 0x40001000 an
 | `parse_header_entry_phoff_phnum_edges` | 8 entries × 11 e_phoff values × 10 e_phnum values {0, 1, 2, 3, 4, 5, 31, 32, 33, 0xffff} | 880 |
 | `parse_segment_count_edges` | 1..=12 one-page `PT_LOAD` segments | 12 |
 | `parse_quota_boundary_is_exact` | total pages 2014..=2018 summed over the three `PT_LOAD` headers (RW segment grows) | 5 |
+| `parse_window_end_is_exact` | RW segment ending one byte before, exactly at and one byte past 0x60000000 | 3 |
 
 The edge set is 0, 1, 16, 0xfff, 0x1000, 0x1001, 0x2000, 0x3000, the file
 length −16, length and length+1, 0x3fffffff, the window start, +0x1000 and +0x2000,
@@ -125,6 +126,8 @@ Checked invariants for every accepted image, against the input bytes:
 - The quota edge is exact: a total of 2016 pages is accepted with
   `pages == 2016`, and 2017 and 2018 pages are rejected with `Quota`, not
   `Range` or `Overlap`.
+- The window end is exact: a segment may end at 0x60000000 and is rejected
+  with `Range` one byte later.
 - No truncation is accepted. Exactly 1..=8 segments are accepted and 9..=12 are
   rejected with `Range`.
 
@@ -138,6 +141,7 @@ Observed outcome counts:
 | Header | 26 | 366 | 488 | 0 | 0 |
 | Segment count | 8 | 0 | 4 | 0 | 0 |
 | Quota boundary | 3 | 0 | 0 | 0 | 2 |
+| Window end | 2 | 0 | 1 | 0 | 0 |
 
 Each test asserts its case total and that its targeted reject classes occur.
 
@@ -171,11 +175,17 @@ after), and `git diff --exit-code` was clean (exit 0).
 | `parse`: flags check widened from `4..=6` to `4..=7` | single-byte test fails: `byte 236=0x07: flags 7` |
 | `parse`: quota check `>` changed to `>=` (off-by-one, rejects the edge) | quota-boundary test fails: `2016 pages: rejected at or below the quota` |
 | `parse`: quota limit `USER_QUOTA - 32` changed to `USER_QUOTA - 31` (accepts one page more) | quota-boundary test fails at the shared image check (`2017 pages: quota`) |
+| `parse`: window check `end > 0x60000000` changed to `>=` (rejects the legal edge) | window-end test fails: `end 0x60000000: rejected inside the window` |
 
 The first independent verifier pass found that the `>=` quota mutant
 survived the original ten tests: no enumerated image had a total of exactly
 2016 pages. `parse_quota_boundary_is_exact` closes that gap. Before it was
-added, that mutant left all ten tests passing (exit 0).
+added, that mutant left all ten tests passing (exit 0). A second verifier pass
+found the same gap at the window end (`end >= 0x60000000` survived);
+`parse_window_end_is_exact` closes it. In that pass the mutants
+`USER_QUOTA - 33`, a non-accumulating page count, overlap `<` to `<=`, a
+removed alignment-congruence check, `count > 33` and `filesz >= memsz` were
+already killed (exit 101).
 
 ## Evidence
 
@@ -185,8 +195,8 @@ directory and are not committed.
 
 | Command | Exit |
 | --- | --- |
-| `cargo +1.100.0 test --locked -p kernel-core --test bounded_user_abi_invariants` | 0 (11 tests) |
-| `cargo +1.100.0 test --locked -p kernel-core` | 0 (59 unit and 11 integration tests) |
+| `cargo +1.100.0 test --locked -p kernel-core --test bounded_user_abi_invariants` | 0 (12 tests) |
+| `cargo +1.100.0 test --locked -p kernel-core` | 0 (59 unit and 12 integration tests) |
 | `cargo +1.100.0 clippy --locked -p kernel-core --all-targets -- -D warnings` | 0 |
 | `cargo +1.100.0 fmt --all -- --check` | 0 |
 | `python3 -B tools/b05_scope_check.py` | 0 |

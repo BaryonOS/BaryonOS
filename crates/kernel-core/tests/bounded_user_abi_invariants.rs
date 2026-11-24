@@ -768,6 +768,33 @@ fn parse_quota_boundary_is_exact() {
     expect_classes("quota boundary", &tally, 5, &["Ok", "Quota"]);
 }
 
+/// The RW segment is moved so that its end lies exactly at, one byte before
+/// and one byte past `IMAGE_END`. Ending at the window end is legal; one byte
+/// past it is rejected with `Range`.
+#[test]
+fn parse_window_end_is_exact() {
+    let mut tally = BTreeMap::new();
+    for (delta, accept) in [(-1i64, true), (0, true), (1, false)] {
+        let mut b = fixture();
+        let rw = PHOFF + 3 * PHENT;
+        let va = IMAGE_END - PAGE;
+        let memsz = (PAGE as i64 + delta) as u64;
+        put64(&mut b, rw + 16, va);
+        put64(&mut b, rw + 24, va);
+        put64(&mut b, rw + 40, memsz);
+        let label = format!("end {:#x}", va + memsz);
+        run_parse(&label, &b, &mut tally);
+        match parse(&b) {
+            Ok(_) => assert!(accept, "{label}: accepted past the window"),
+            Err(e) => {
+                assert!(!accept, "{label}: rejected inside the window");
+                assert_eq!(format!("{e:?}"), "Range", "{label}: reject class");
+            }
+        }
+    }
+    expect_classes("window end", &tally, 3, &["Ok", "Range"]);
+}
+
 fn n_segments(n: usize) -> Vec<u8> {
     let mut b = vec![0; (n + 1) * PAGE as usize];
     b[..64].copy_from_slice(&fixture()[..64]);
