@@ -1,0 +1,21 @@
+name: Fetch locked app dependencies
+description: Fetch every locked Cargo dependency of the root workspace and the window-session app manifests before offline builders.
+runs:
+  using: composite
+  steps:
+    - name: Fetch every locked app dependency before offline builders
+      shell: bash
+      run: |
+        cargo +1.100.0 fetch --locked
+        for manifest in \
+          sdk/Cargo.toml \
+          sdk/examples/materiaal/Cargo.toml \
+          sdk/examples/input-service/Cargo.toml \
+          sdk/examples/window-session/Cargo.toml \
+          sdk/examples/calculator/Cargo.toml \
+          ui/graphics/Cargo.toml \
+          ui/native/Cargo.toml \
+          ui/surface-protocol/Cargo.toml
+        do
+          cargo +1.100.0 fetch --locked --manifest-path "$manifest"
+        done
