@@ -5,6 +5,125 @@ This document distinguishes the decisions and authority of the project owner
 from those of the executing roles. Source quotations retain their original
 wording and speaker.
 
+## ADR-MERGE-DELEGATION-20261123 — Workstreams handle their own pull requests end to end
+
+**Status:** decided by the project owner on 23 November 2026. It supersedes the
+merge-approval part of the decision of 13 November 2026 for the six named
+workstream sessions only. `ADR-MERGE-HOLD-20261113` stays in force.
+
+**Context:** routine repair and merging of every pull request ran through one
+integration coordinator. That made the coordinator an approval bottleneck and
+produced conflicting writers on the same branches.
+
+**Decision:** the six workstream sessions (S09, U, N, UI/UX design, B and H)
+handle their own pull requests end to end, including pull requests that were
+already open, without further approval. Each may:
+
+- address review feedback;
+- resolve merge conflicts and failing checks;
+- verify, commit and push;
+- squash-merge;
+- confirm the merge result and update its own progress assessment.
+
+**Clarification of 24 November 2026:** the owner's autonomous backlog-drain
+assignment permits necessary repository repair, review handling, integration,
+auto-merge and guarded squash merges. An applicable explicit mandate already
+supplies permission; it does not prove tests or acceptance. The following procedure
+also preserves continuous progress by future workstream sessions.
+
+A workstream may merge only when all of these hold:
+
+- Required checks and acceptance gates applicable to the changed behaviour pass
+  for the current head or validated merge group. Respect the CodeQL ruleset.
+- Blocking feedback is handled; threads are resolved with an explanation and
+  evidence. Optional checks are assessed for real defects, but an unrelated check
+  or review-bot quota failure is not an independent reason to stop integration.
+- Dependencies are integrated in order. A source PR merged only into an integration
+  branch remains unfinished until the combined work is verified on `main`.
+- Acceptance outside the required checks carries `acceptance-pending` until a
+  trusted `acceptance-released: <sha>` comment links passing evidence on the exact
+  head. The label is not removed to bypass acceptance. Reused content evidence
+  requires matching relevant source, dependencies, inputs, configuration and
+  environment; required hosted status reporting still applies to the current head.
+
+Before every mutation, re-check the head, base and ownership. Direct merges use
+`gh pr merge <N> --squash --match-head-commit <sha>` or the equivalent expected-head
+API. Auto-merge is permitted after content review, dependency integration, feedback
+handling and applicable non-required acceptance are complete, while required checks
+or the controlled merge order finish. Disable it before pushing changes or changing
+the base; a changed head requires delta review and renewed applicable evidence before
+re-enabling it. This relies on single-writer ownership, branch protection and the
+exact-head acceptance hold; it does not give an unreviewed later push approval.
+
+Waiting for a PR merge or CI does not suspend the entire workstream. Continue
+independent work in a separate branch, or create a correctly stacked dependent
+branch. Record its original delta before a parent squash/rebase to avoid losing
+child changes or reintroducing parent changes. Return to pending integrations and
+verify actual main inclusion; a draft, armed auto-merge or queue entry is unfinished.
+
+**Limits:**
+
+- One active writer per branch or worktree, with explicit handover before a
+  different writer starts.
+- No direct push to `main`, no force-push, no `--admin`, no bypass of
+  protections, and no weakening of tests or evidence to make a pull request
+  pass.
+- Files on the Protected files list in `AGENTS.md` still change only through
+  a lead-scoped pull request reviewed by someone other than the merging
+  workstream. The exceptions are a new child directory for new evidence and
+  the workstream's own progress assessment, which this decision delegates.
+- Unattended pipeline workers keep the draft-only rule and execution hold. Other
+  sessions need an applicable explicit owner mandate, which may include integration.
+
+**Coordinator role:** the integration coordinator handles only cross-stream
+dependencies, ownership conflicts, orphaned pull requests and escalations that
+a workstream cannot resolve itself. It is not an approval step.
+
+**Alternatives:** keep one integration coordinator as the only merger (rejected:
+it serialised about 35 open pull requests and invited competing writers on the
+same branches); allow every session and pipeline worker to merge (rejected:
+too broad for unattended workers that must not change their own evaluators).
+
+**Rationale:** the workstream that wrote and verified a change has the best
+context to repair and merge it. Branch protection (required checks, strict
+up-to-date base, squash only, resolved threads) and `merge-hold` remain the
+technical boundary, so the delegation moves only the decision, not the gate.
+
+**Consequences:** each workstream carries its own review, CI and merge
+workload. The coordinator stops being a queue and keeps only exceptions.
+Writer conflicts shrink because one session owns each branch; stacked pull
+requests across workstreams still need explicit coordination.
+
+**Security invariant:** no merge without the required checks, the applicable
+acceptance hold and resolved threads on the exact merged head; no bypass of
+branch protection; files on the Protected files list stay lead-scoped.
+
+**Test evidence:** none applies to a governance text change. The governance
+and documentation checks (`tools/tests/test_agent_governance.py`,
+`tools/check_english_docs.py`, `tools/progress.py --check`) pass on this
+change; they do not prove that sessions follow the rule.
+
+**Migration and rollback:** to restore the previous model, the project owner
+announces the rollback; from then on workstreams and their pull-request
+workers issue no further `gh pr merge` calls, stop their merge drivers and
+hand their open pull requests back to a single coordinator in draft or
+"final" state. As a safety check, workstreams and the coordinator (for
+orphaned pull requests) disable any auto-merge found armed
+(`gh pr merge <N> --disable-auto`) and confirm that none remains; only then
+does the project owner revoke this ADR.
+Pull requests already merged under this ADR stay merged and are judged on
+their recorded checks.
+
+**Refutation and review criteria:** review this decision if a pull request
+merges with a failing or pending required check or applicable acceptance gate, an unresolved finding, a
+bypassed protection or a merge-hold released without its acceptance; if two
+writers collide on one branch; or if a merge reaches `main` from a head that
+was not reassessed after a push. Any such case is recorded and may restore
+owner approval per merge.
+
+**Owner:** project owner (decision); each workstream for its own pull requests;
+the lead agent for integration and decision management.
+
 ## ADR-B02-KEY1-RELAY-20261123 — Write-ahead key state committed by init on behalf of the Key Service
 
 **Status:** project-owner decision of 23 November 2026, given in the B-track
@@ -1145,8 +1264,70 @@ Status: accepted, 13 November 2026, on the project owner's instruction after
   contract test pins the trigger, the permissions and the absence of `if`,
   `defaults` and filters.
 
+**Amendment, 23 November 2026 (merge queue preparation, not yet enabled):**
+`merge-hold` and the required `ci.yml` checks also run on `merge_group`. The
+merge-group run evaluates the group's pull request and every unmerged entry ahead,
+each on its own head SHA; a released hold also requires that entry's queue
+commit to land the released tree. It decides last: it waits until the group's
+`host-quality` and `qemu-smoke` have completed, then walks the entries ahead
+from the nearest outward: each must have left the queue or completed
+`host-quality`, `qemu-smoke` and `merge-hold` on its own commit. The walk ends
+at the first entry whose `merge-hold` concluded `success`, because only a
+successful run waited the same way; a `merge-hold` that failed early, was
+cancelled or lost its runner proves nothing about the entries ahead of it.
+Queue entries behind the group are not evaluated, and one without a commit
+does not delay the run; an entry anywhere in the queue without a pull request
+(or without an integer pull request number) disables the fast stale-group
+detection below, so the run is retried until the deadline. Ahead of the group,
+an entry without a commit keeps the run waiting, and fails closed at the
+45-minute deadline, only while the wait walk reaches it; beyond the nearest
+entry ahead whose `merge-hold` concluded `success` the walk stops, and the
+final evaluation fails closed at once on that entry unless its pull request
+has already merged. An entry ahead with a commit but no pull request fails
+closed at once when the group is evaluated. The wait walk does not skip an
+entry ahead whose pull request has already merged; only the final evaluation
+skips it, because it is on `main`. Fast stale-group detection applies only
+after the group's own `host-quality` and `qemu-smoke` have completed: a group
+whose own commit two consecutive well-formed, non-empty queue reads, one poll
+interval apart, both no longer list (ejected or rebuilt) fails at once. Any
+other poll in between restarts that count, and a failed, malformed or empty
+read is retried until the deadline. This holds
+only while `host-quality`, `qemu-smoke` and `merge-hold` are the only required
+checks; a later-finishing required check reopens the window. The queue
+ruleset must also have "Only merge non-failing pull requests" set to Yes, so
+an entry whose required checks failed cannot merge as part of a later group
+that passed; a minimum group size of 1 with no merge-limit wait, so the
+window after the final read is not lengthened; each pull request built
+separately (no batching), so every entry has its own commit and its own
+`merge-hold` run; and a merge queue status check timeout of at least 60
+minutes, so GitHub does not remove a group while `merge-hold` still waits (up
+to 45 minutes, inside a job `timeout-minutes` of 50). Verify these five
+settings when the queue is enabled. On
+`merge_group` the workflow and `tools/merge_hold.py` come from the group
+commit, which includes the entries ahead, so a queued pull request ahead can
+change the script that decides a pull request behind it; this is the same
+trust boundary as a pull request changing its own script, and review of
+`tools/merge_hold.py` and `.github/**` remains the control. The behaviour rests on GitHub's merge queue documentation
+and unit tests with a mocked API; it has not yet run against a live queue.
+- Enforced: a hold set, or a release comment removed, before the final read
+  blocks every group containing that pull request, including a later group that
+  merges the entries ahead with it.
+- Not enforced: a hold set after the final read, while GitHub concludes the job
+  and merges the group. The window does not depend on other entries' check
+  durations, but it is not bounded by the project; a merge-limit wait time or
+  a minimum group size above 1 in the queue ruleset would lengthen it, which
+  is why both are preconditions above. Owners set the label before queueing and
+  remove a pull request from the queue to apply a late hold.
+- Automatic removal from the queue on a late label (GraphQL
+  `dequeuePullRequest` from the `pull_request` run) was not adopted: its
+  required token permission is not stated in the GraphQL pull request
+  reference or the GITHUB_TOKEN permissions page, it would give a write token to
+  a job that runs the pull request's own script, it cannot act for fork pull
+  requests, and it races the merge on runner start-up latency. It needs a
+  separate owner decision.
+
 **Revise when:** a reliable, always-reporting aggregate of out-of-band
-acceptance becomes available, or the merge queue is adopted.
+acceptance becomes available, or the merge queue is enabled.
 
 ## ADR-WINDOW-SCALE2-DEADLINE-20261112 — Per-scale harness deadline for the native window gate
 
