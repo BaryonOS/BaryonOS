@@ -161,6 +161,9 @@ pub fn exchange_by<const N: usize>(
     }
     loop {
         tick();
+        if expired() {
+            fail(86);
+        }
         match native::receive(receive) {
             Ok(reply) => {
                 if reply.cap_count() != 0 {

@@ -444,7 +444,7 @@
         "docs/handoffs/B/CURRENT.md"
       ],
       "checks": [
-        "cargo +1.90.0 test --locked -p keyring-core",
+        "cargo +1.100.0 test --locked -p keyring-core",
         "python3 -B tools/test_system.py",
         "python3 -B -u tools/test_keyring.py"
       ],
@@ -457,7 +457,8 @@
         "normal commit: acknowledged generation is on disk in object 8",
         "NOT_COMMITTED before any write maps to NotReady and leaves the image unchanged",
         "commit timeout latches Degraded and leaves the image unchanged",
-        "no non-init handle table holds the commit SEND handle (manifest) and a weakened-manifest mutant goes red",
+        "no process other than the Key Service holds the commit SEND handle (manifest), and a weakened-manifest mutant (commit SEND in the app) goes red",
+        "init is the only receiver of the commit ingress (manifest)",
         "existing host write-ahead tests and the B01 keyring gate stay green"
       ],
       "out_of_scope": [

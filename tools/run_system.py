@@ -482,8 +482,9 @@ def evaluate_red(case: str, stdout: str, raw_exit: int | None, timed_out: bool,
     fails = [line for line in lines if line.startswith("SYSTEM:FAIL:")]
     if fails != ["SYSTEM:FAIL:APP_COMMIT_HANDLE"]:
         raise ValueError(f"red relay case stopped for another reason: {fails}")
-    if "SYSTEM:MANIFEST:PASS" in lines or any(line.startswith(f"SYSTEM:{RELAY}") for line in lines):
-        raise ValueError("red relay case passed the manifest or produced relay evidence")
+    if any(line.startswith(f"SYSTEM:{RELAY}") or (line.startswith("SYSTEM:") and line.endswith(":PASS"))
+           or line == "M1:PASS" for line in lines):
+        raise ValueError("red relay case passed a system stage or produced relay evidence")
     if [line for line in lines if line in BOOT] != list(BOOT):
         raise ValueError("red relay case lacks the boot markers")
     if timed_out or raw_exit != 35:

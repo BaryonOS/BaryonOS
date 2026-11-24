@@ -103,10 +103,19 @@ impl RelayStore {
         generation: u64,
         blob: &[u8; PERSISTENT_BLOB],
         deadline: u64,
+        observed: &mut u64,
     ) -> Result<(), StoreError> {
         let request = wire::commit_request(generation, blob).ok_or(StoreError::Unknown)?;
         let message = Outgoing::new(wire::TAG, &request).map_err(|_| StoreError::Unknown)?;
-        let expired = || !matches!(native::monotonic_ticks(), Ok(now) if now < deadline);
+        // `observed` keeps the last clock reading, so the latency evidence is the
+        // same observation that classified the deadline.
+        let mut expired = || match native::monotonic_ticks() {
+            Ok(now) => {
+                *observed = now;
+                now >= deadline
+            }
+            Err(_) => true,
+        };
         loop {
             tick();
             match native::send(self.send, &message) {
@@ -119,6 +128,11 @@ impl RelayStore {
         }
         loop {
             tick();
+            // Checked before every receive: a reply already queued after the
+            // deadline is never accepted (ADR: every wait is bounded).
+            if expired() {
+                return Err(StoreError::Unknown);
+            }
             match native::receive(self.receive) {
                 Ok(reply) => {
                     if reply.cap_count() != 0 {
@@ -133,7 +147,7 @@ impl RelayStore {
                     }
                     return wire::commit_outcome(generation, reply.payload());
                 }
-                Err(error) if error.is_again() && !expired() => {
+                Err(error) if error.is_again() => {
                     let _ = native::yield_now();
                 }
                 Err(_) => return Err(StoreError::Unknown),
@@ -149,13 +163,12 @@ impl KeyStateStore for RelayStore {
             bump(EV_COMMIT_UNKNOWN);
             return Err(StoreError::Unknown);
         };
+        let mut observed = start;
         let result = match start.checked_add(wire::COMMIT_TICKS) {
-            Some(deadline) => self.exchange(generation, blob, deadline),
+            Some(deadline) => self.exchange(generation, blob, deadline, &mut observed),
             None => Err(StoreError::Unknown),
         };
-        let elapsed = native::monotonic_ticks()
-            .map(|now| now.saturating_sub(start))
-            .unwrap_or(u64::MAX);
+        let elapsed = observed.saturating_sub(start);
         if elapsed > support::word(EV_COMMIT_MAX_TICKS) {
             support::put(EV_COMMIT_MAX_TICKS, elapsed);
         }

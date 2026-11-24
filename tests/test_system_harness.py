@@ -1031,6 +1031,10 @@ class RelayHarnessTests(unittest.TestCase):
         self.assertEqual(evaluate_red("relay-leak", good, 35, False, "a", "a")["raw_exit"], 35)
         for text, raw, before, after in (
                 (good + "SYSTEM:MANIFEST:PASS\n", 35, "a", "a"),
+                (good + "SYSTEM:BROKERS:PASS\n", 35, "a", "a"),
+                (good + "SYSTEM:CLEANUP:PASS\n", 35, "a", "a"),
+                (good + "SYSTEM:CASE:RELAY_LEAK:PASS\n", 35, "a", "a"),
+                (good + "M1:PASS\n", 35, "a", "a"),
                 (good.replace("APP_COMMIT_HANDLE", "APP_HANDLE_COUNT"), 35, "a", "a"),
                 (good + f"SYSTEM:{RELAY}CASE:{1:020d}\n", 35, "a", "a"),
                 (good, 33, "a", "a"),
