@@ -13,11 +13,12 @@ from common import environment as toolchain_environment
 
 def main() -> int:
     environment = toolchain_environment()
-    # `--archive-portal` builds the S09 portal variant of volume-app.
-    if sys.argv[1:] not in ([], ["--archive-portal"]):
-        print("usage: build.py [--archive-portal]", file=sys.stderr)
+    # `--archive-portal` and `--l2-portal` build the S09 portal variants of volume-app.
+    portals = {"--archive-portal": "native,archive-portal", "--l2-portal": "native,l2-portal"}
+    if sys.argv[1:] != [] and (len(sys.argv) != 2 or sys.argv[1] not in portals):
+        print("usage: build.py [--archive-portal | --l2-portal]", file=sys.stderr)
         return 2
-    features = "native,archive-portal" if sys.argv[1:] else "native"
+    features = portals[sys.argv[1]] if sys.argv[1:] else "native"
     # Explicit target flags prevent inheriting the parent kernel linker script.
     flags = ["-C", "code-model=small", "-C", "relocation-model=static",
              "-C", "no-redzone=yes", "-C", "linker=rust-lld",

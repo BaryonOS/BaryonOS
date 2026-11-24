@@ -1,8 +1,11 @@
 # S09 — Native L2 export and cold restore through the archive disk (phase 3)
 
-**Status: revision 1, design only. Nothing in this document is implemented.**
+**Status: revision 1. Slice A (5.1) is on `main` (#477). Slice B (5.2, the
+`l2-portal` build) is implemented and measured; nothing selects its cases yet.
+Slices C and D are not implemented.**
 
-- **Branch:** `claude/s09-l2-native-export`, stacked on #411 (`f6a07fe3`).
+- **Branch:** designed on `claude/s09-l2-native-export`; slice B lands from
+  `claude/s09-l2-slice-b-main` on top of `main`.
 - **Review:** revision 0 was reviewed by an independent AI reviewer, verdict
   REQUEST_CHANGES
   ([SPEC-REVIEW-1.md](../verification/s09-l2-native-export-20261123/SPEC-REVIEW-1.md)).
@@ -110,9 +113,14 @@ would assign (review item 4):
 `l2-export` mounts disk 0 **writable**. Before it exports, the portal (a
 domain-0 client) applies a fixed mutation set:
 
-- **S1.** Two consecutive zero-length WRITEs to object 2 (`Leeg`). The object
-  then has three versions with revisions `r`, `r+1`, `r+2`. This exercises a
-  native multi-version chain and `origins[1..]`. It costs no chunk, because
+- **S1.** Two consecutive zero-length WRITEs to object 2 (`Leeg`). Object 2
+  is at object revision 2 with version revision 1 (`normal_a` writes it at
+  revision 1, and a META makes revision 2). The two WRITEs give it versions
+  4, 3 and 1, current first. The replayable prefix is therefore 4, 3
+  (`n = 2`, a native multi-version chain with `origins[1]`), and version 1
+  lies behind a revision gap: `export_v2` omits it (`omitted = 1`). This
+  covers R2 natively in the export (word 544). It was found while writing
+  slice B; slice C confirms it on the host. S1 costs no chunk, because
   `chunks_for(0) == 0`, so the replay stays at 24 ≤ `GUARANTEED_FREE` (review
   item 5).
 - **S2.** A META on object 5 (a tags change). Its revision becomes 2, and its
@@ -142,10 +150,12 @@ parsed archive, and the host tests pin it.
 
 - Collections 1–3 are installed first, at clocks 1–3. Objects 1–5 follow in
   slot order, at clocks 4–8.
-- Object 2 is installed with `n = 3`: live revision 3 and version revisions
-  3, 2, 1. Every other object has `n = 1`.
+- Object 2 is installed with `n = 2`: live revision 2 and version revisions
+  2, 1 (origins 4, 3). Every other object has `n = 1`.
 - `L2Report`: `restored = 0b0011_1110`, `collections = 0b111`,
-  `committed = 8`, `skipped = 0`.
+  `committed = 8`, `skipped = 0`. The archive holds only the prefix, so the
+  restore skips nothing; the gap shows as `ExportV2.omitted = 1` in
+  `l2-export`.
 - The table generation and the domain generation and clock are derived by
   `expected_l2` from `service.rs`. This spec does not claim that they
   coincide (optional item 4).
@@ -164,7 +174,7 @@ All four stages run in the backup portal (slot 1, domain 0) and use device 1
 
 | `PLAN` entry | Parent | Case | Preparation: disk 0 | Preparation: disk 1 | Service | Device-1 grant | What the stage proves |
 |---|---|---|---|---|---|---|---|
-| `l2-export` | `archive-export` | 25 | `outside_archive(parent)`; no v1 reference | fresh canary disk (2048 sectors) | writable | R\|W\|F | After S1–S4, `export_v2` writes a v2 archive to device 1. It reads back through `verify_v2` equal to the export summary. A later write attempt is refused (`Access`). |
+| `l2-export` | `archive-export` | 25 | `outside_archive(parent)`; no v1 reference | fresh canary disk (2048 sectors) | writable | R\|W\|F | After S1–S4, `export_v2` writes a v2 archive to device 1. It reads back through `verify_v2` equal to the export summary. (Revision 1 also required a refused write here; with a writable service that cannot hold, so slice B dropped it.) |
 | `l2-restore` | `l2-export` | 26 | source loss: fresh empty image | parent's `archive.img`, `readonly=on` | writable | READ | Cold `restore_native_l2` into the never-used domain 0 returns the expected `L2Report`. The guest then reads every slot's `provenance()` and every collection's `collection_provenance()` and counts mismatches against the verified plan; zero are expected. |
 | `l2-corrupt` | `l2-export` | 27 | source loss: fresh empty image | parent's archive with one content byte of the largest object flipped (offset computed from `parse_v2` and recorded); `readonly=on` | writable | READ | `restore_native_l2` returns `Corrupt` before any service mutation. Disk 0 stays byte-identical to the fresh empty image. |
 | `l2-used` | `l2-restore` | 28 | keep the parent's restored `volume.img`, `readonly=on` (device level, added to `read_only()`; optional item 2) | keep the parent's `archive.img`, `readonly=on` | read-only | READ | After a cold boot, provenance read through `PROVENANCE_STAT` still matches the plan. A second `restore_native_l2` into the now-used domain returns `Stale` with `committed = 0`. Both disks are byte-identical. |
@@ -174,7 +184,12 @@ Negative coverage:
 - **Natively, in these stages:**
   - a corrupt archive (`l2-corrupt`);
   - a restore over an existing domain (`l2-used`, the conflict case);
-  - a write by the portal outside the granted rights (`l2-export`);
+  - a write by the portal outside the granted rights: a device-1 write
+    under the READ-only grant (26, 27, 28) and a volume WRITE to the
+    read-only service (28);
+  - a revision gap: `export_v2` omits the version behind it (25). Word 544
+    reports `omitted`, but no stage checks it yet (planned for slice C,
+    section 10);
   - the scope and escape probes, which apply to every device-1 grant
     (`ARCHIVE_ESCAPE`, the past-the-end probe).
 - **On the host only** (already in `services/volume/tests`):
@@ -183,7 +198,7 @@ Negative coverage:
   - quota and `Full`;
   - an interrupted restore (no resume);
   - a lost INSTALL reply;
-  - a revision gap (`omitted`, R2).
+  - a revision gap inside an archive given to the restore (`skipped`, R2).
 
 A native power cut during an L2 restore is **not** in this phase. The
 existing `install-cut` already cuts inside INSTALL_COMMIT natively.
@@ -196,7 +211,7 @@ existing `install-cut` already cuts inside INSTALL_COMMIT natively.
 `version_count` (header bytes 14–15) and the v2 record sizes. A v2 archive
 read through it is truncated, and `walk_v2` then fails with `Corrupt`.
 
-Change:
+Change (implemented in slice A):
 
 - `DiskSource` reads the format version at header offset 8.
 - For version 1 the computation is unchanged.
@@ -228,7 +243,7 @@ The portal builds each reader from a new `NativeDisk { device }`;
 
 ### 5.2 Portal flows (`sdk/examples/volume-docs/src/app.rs`)
 
-- **Binary.** A new feature `l2-portal` builds a separate portal binary. It
+- **Binary.** The feature `l2-portal` (slice B) builds a separate portal binary. It
   links:
   - `export_v2`, `verify_v2` and `restore_native_l2`;
   - the install and provenance client methods;
@@ -239,15 +254,17 @@ The portal builds each reader from a new `NativeDisk { device }`;
   links the changed `DiskSource`, so its size changes too and is measured
   together with the new one.
 - **Exclusivity.** The two features are mutually exclusive (`compile_error!`).
-- **Flows.** Cases 25–28 map to `l2_export`, `l2_restore`, `l2_corrupt` and
-  `l2_used`. Slot 2 runs the existing `phase(1)` / `wait_gate(2)` /
-  `report(760)` arm.
+- **Flows.** `l2_portal` runs the shared probes (701, 702) and dispatches
+  case 25 to `l2_export`, cases 26 and 27 to `l2_restore` (27 expects the
+  refusal) and case 28 to `l2_used`. Slot 2 runs the existing `phase(1)` /
+  `wait_gate(2)` / `report(760)` arm.
 - **Scratch.** The `MAX_LENGTH` scratch stays on the 64 KiB private heap.
 - **Stack.** `restore_native_l2` itself holds about three `ArchiveV2` copies,
-  each about 2.2–2.3 KiB (an estimate from the field layout). The caller holds
-  its plan by reference, and no second copy may stay in the long-lived frame.
-  The stack fault recorded in `S09-L2-PROVENANCE.md` section 11 shows the
-  risk.
+  each about 2.2–2.3 KiB (an estimate from the field layout). Each case
+  function is `#[inline(never)]`, so its `ArchiveV2` copies (including the
+  inlined `restore_native_l2`) leave the stack when it returns; none stays in
+  the frame of `run`. The stack fault recorded in `S09-L2-PROVENANCE.md`
+  section 11 shows the risk; slice B measured the bound.
 - **Evidence words** (new; inside the 1024-byte startup area; none collides
   with 40–512 or with U05):
 
@@ -255,11 +272,11 @@ The portal builds each reader from a new `NativeDisk { device }`;
   |---|---|
   | 520 | `L2Report.restored` |
   | 528 | `L2Report.collections` |
-  | 536 | `L2Report.committed` |
+  | 536 | `L2Report.committed`: confirmed INSTALL_COLLECTION and INSTALL_COMMIT commits only (since #477 an ambiguous COMMIT is not counted) |
   | 544 | `L2Report.skipped`, or `ExportV2.omitted` for case 25 |
   | 552 | provenance mismatches, 0 expected |
   | 560 | archive length in bytes |
-  | 568 | result status of the restore attempt (27, 28) |
+  | 568 | result status of the restore attempt (26–28) as `Status as i32`, sign-extended to 64 bits; 0 is both `Ok` and "not written", so case 26 is judged by words 520–552, and the kernel must require a non-zero word 568 equal to `Corrupt` (27) or `Stale` (28) |
 
 ### 5.3 Kernel test profile (`kernel/src/m2/m3/volume.rs`, `kernel/Cargo.toml`)
 
@@ -445,7 +462,7 @@ to the lead.
 | Slice | Content | Acceptance |
 |---|---|---|
 | A | 5.1 reader and its host tests | `cargo test`/`clippy`/`fmt` for `volume-core`, both feature sets; `mutate_volume.py` caught |
-| B | `l2-portal` build. Measure first: `.text` (64 KiB), `.data`+`.bss` (one page) and `.rodata` (32 KiB) for both portals, and the stack depth of the deepest flow. | Both portals link within every bound. If not, stop and revise 5.2. |
+| B | `l2-portal` build. Measure first: `.text` (64 KiB), `.data`+`.bss` (one page) and `.rodata` (32 KiB) for both portals, and the stack depth of the deepest flow. | Both portals link within every bound. If not, stop and revise 5.2. **Done:** measured in [SLICE-B.md](../verification/s09-l2-native-export-20261124/SLICE-B.md); every bound holds. |
 | C | kernel cases 25–28, runner and oracle, host tests; S1–S4 finalised by the discrimination computation | `unittest test_volume_*.py` passes; `test_volume_harness` is consistent; the discrimination invariant holds on the computed fixture |
 | D | native gate | `tools/test_volume.py` gives `passed=True` with 30 stages. `test_ci_workflows` fails only with `['26'] != ['30']` until the pins land. |
 
@@ -454,10 +471,21 @@ Each slice gets an independent AI review before the next begins. Hosted CI
 
 ## 10. Open items
 
-- A native revision gap (`omitted`) and a native power cut during an L2
-  restore are not covered (section 4); both are host-tested.
-- The size and stack budget is unmeasured (slice B gate).
+- A native power cut during an L2 restore and a revision gap inside an
+  archive given to the restore are not covered natively (section 4); both
+  are host-tested.
+- Slice B measured the size and a static stack bound
+  ([SLICE-B.md](../verification/s09-l2-native-export-20261124/SLICE-B.md)). The
+  stack bound covers direct calls only. The kernel reads word 568 as an `i64`.
+- Slice C: the kernel `ARCHIVE_IO` arms for 26–28 must accept the refused
+  device-1 write probe of the portal (step 702, which expects the
+  capability refusal `Access`, -5), or the probe moves.
 - The final S1–S4 set depends on the slice-C discrimination computation.
+  If slice C keeps S1, the guest should also check `omitted == 1` (word 544
+  is reported, not checked, in slice B).
+- The provenance self-check (word 552) covers the archive slots only. A
+  host-oracle check that slots outside the archive stay never-used is
+  planned for slice C; it does not exist yet.
 - The merge order against U05 #436: whichever lands second resolves the
   appended lines in `case()`, `read_only()`, `marker()`, `kernel/Cargo.toml`
   and `tools/build.py`.
@@ -475,7 +503,7 @@ Each slice gets an independent AI review before the next begins. Hosted CI
 | 2 | Preparation branches unspecified; `l2-used` would get an empty disk 0 | Explicit branch per case, including the recorded v2 flip offset and keep-both-disks for `l2-used`; explicit `check_disk` branches (sections 4 and 6) |
 | 3 | Case-27 lane-0 rule contradicts a writable service | Rule replaced by the exact startup-flush count, plus zero commits and zero table writes (section 5.3) |
 | 4 | Source values collide with live values; object 3 version revision is 41 | Collisions listed (3.1); writable source step S1–S4 (3.2); discrimination invariant enforced by the oracle (section 2); host mutants per colliding field (section 6) |
-| 5 | "Richer fixture not possible" is wrong | Zero-length versions cost no chunk; S1 gives a native 3-version chain (3.2) |
+| 5 | "Richer fixture not possible" is wrong | Zero-length versions cost no chunk; S1 gives a native 2-version chain plus a revision gap (3.2, corrected in slice B) |
 | 6 | Text corrections | v1 portal size changes (5.2); scope of the v1 claim stated (5.1); source-loss drive check reworded (6.8); `mutate_volume.py` in the write set (section 8) |
 
 Optional items 1–7 were taken over:
