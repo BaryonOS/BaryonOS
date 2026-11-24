@@ -20,20 +20,24 @@ in `docs/progress.json`, the S09 specifications and GitHub.
 
 ## Current cycle
 
-- **cycle_id:** S-20261124-5 (cloud session; took over from the local S
-  writer after `HANDOFF S S-20261124-4`, state CLEAR_READY, on PR #498).
-- **Task:** R5 precondition of `docs/implementation/S09-DESTINATION-SERVICE.md`
-  (2.3, "Archive verifier"): the production archive verifier. The
-  `volume-verifier` feature of `destination-core` adds
-  `archive_verifier::VolumeVerifier` over `volume_core::archive::verify`;
-  host tests in `services/destination/tests/real_verifier.rs` run N7 and N10
-  through the service on real v1 archives. Host only; no native stage.
-- **Branch:** `claude/brave-feynman-jbiz6x`.
-- **PR and tested head:** recorded in the pull request.
-- **Pins:** unchanged (32 volume stages); no workflow change.
-- **Blockers:** none for this step. R5 itself still waits for owner
-  decisions O4 (a)–(c), a hosted R3 cross-check and reverse differential
-  (lead-owned workflow change) and the K5 broker.
+- **cycle_id:** S-20261124-6 (cloud session). PR #505 (production archive
+  verifier) merged as `9dfff70c`; the branch was restarted from it.
+- **Task:** (1) record the owner decisions of 24 November 2026 on O4 (a)–(c),
+  O11, O12 and O13 in `docs/implementation/S09-DESTINATION-SERVICE.md`;
+  (2) the R3 reverse differential (spec 8.2 R3), host only.
+- **Branch / PR:** `claude/brave-feynman-jbiz6x`, PR #509 (draft); tested
+  head is recorded in the PR. S-owned files only; self-merge allowed once
+  `host-quality`, `qemu-smoke` and `merge-hold` pass on the head.
+- **Results:** reverse differential 182 images agree; forward cross-check
+  30 images agree; both mutations killed; fmt, clippy, all destination tests
+  and the oracle suite pass locally.
+- **Pins:** unchanged; no workflow change.
+- **Handed to the integration coordinator (not S-owned):** the ADR
+  `ADR-S09-R5-DECISIONS-20261124` text in the PR #509 body for
+  `docs/DECISIONS.md`; a hosted CI step that runs both cross-check
+  directions (forward: `DEST_ORACLE_OUT`, oracle_images then RustCrossCheck;
+  reverse: `DEST_REVERSE_OUT` ReverseDifferential then `DEST_REVERSE_IN`
+  reverse_differential).
 
 ## Lessons
 
@@ -63,20 +67,31 @@ in `docs/progress.json`, the S09 specifications and GitHub.
    with `volume_core` (`Service`, `Client`, `archive::export`) over an
    in-memory `Disk`; the harness switches verifiers with `AnyVerifier`.
 
+9. The reverse differential is two-step: the Python test writes the corpus
+   (`DEST_REVERSE_OUT=build/<dir>`), then the Rust test reads it
+   (`DEST_REVERSE_IN`, absolute path). Without the variable the Rust test
+   passes vacuously; the Python corpus checks always run.
+
 ## Next executable task
 
-Disjoint S-owned host steps toward R5 that need no owner decision: the R3
-reverse differential (the oracle's crafted invalid images mounted by the R2
-core, verdicts compared; spec 8.2 R3), and the open R2 items of spec 8.2
-(property-3 device-state snapshot, CODE-DELTA revision 5). The hosted R3
-cross-check is a workflow change for the integration coordinator.
+1. Land PR #509 (verify head, required checks, squash-merge with expected
+   head) and confirm the result on `main`.
+2. K5 per-device broker state (owner-approved under O4 (a)): read
+   `kernel/src/m2/m3/volume.rs` broker (`Policy`, `resetting`, `error`,
+   `active`, data buffer, around `:877-1014`), the 2.7 broker contract and
+   section 4.3 K5 of the S09 destination spec; design the per-device split
+   including property 3 (a further poll after a read ended by a reset
+   returns -1), with native timeout fixtures. Kernel change: one small step,
+   with an os-security-reviewer pass.
+3. Open R2 item: property-3 device-state snapshot in `SimDisk`
+   (`p12_3_answered_exactly_once`, review 7 RQ7-2) and the CODE-DELTA
+   revision 5 rows.
+4. O12 owner-binding design (catalog version, trusted identity, access
+   checks, recovery route) against PROFILES-AND-USERS and the key and
+   encryption contracts, before R7; O13 kernel write latch spec and native
+   test before R8.
 
-Also open (S09 stays open): the review-2 hardening
-items in section 10 (host check pins the interrupted slot and chunk count,
-object 4's appended chunks, collection never-used test) are a small native
-follow-up. Pick the next S09 gap from
-`docs/progress.json` (`delivery_review`, criterion S09): the user-facing
-production copy/restore/export chain (production destination service,
-trusted selection/portal and per-operation enforcement), or the open items
-in section 10 of `docs/implementation/S09-L2-NATIVE-EXPORT.md`. Owner
-decisions D1–D5 and a human audit remain outside S's authority.
+Also open (S09 stays open): the review-2 hardening items in section 10 of
+`docs/implementation/S09-L2-NATIVE-EXPORT.md`. Owner decisions D1–D5 and a
+human audit remain outside S's authority.
+
