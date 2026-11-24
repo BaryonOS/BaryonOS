@@ -43,7 +43,7 @@ const _: () = assert!(FIRST_SECTOR + SECTORS <= ARCHIVE_FIRST_SECTOR);
 /// the exported fixture archive needs (180).
 const FULL_SECTORS: u64 = 100;
 const _: () = assert!(FULL_SECTORS < ARCHIVE_SECTORS);
-/// Test-only second disk (S09 archive device cases 13..=19, 25..=28): its one BAR is
+/// Test-only second disk (S09 archive device cases 13..=19, 25..=30): its one BAR is
 /// mapped compactly in the free MMIO window above the device-0 BAR windows
 /// (0x3f000000 + index * 64 KiB, at most 0x3f060000) and below the keyring
 /// rng windows (0x3f080000..). The portal's archive scope on that disk starts
@@ -64,6 +64,14 @@ const ARCHIVE_CUT_WRITES: u64 = 20;
 const L2_SOURCE_COMMITS: u64 = 11;
 /// S09 L2 restore (26): INSTALL_COLLECTION x3 plus INSTALL_COMMIT x5 (spec 3.3).
 const L2_RESTORE_COMMITS: u64 = 8;
+/// S09 L2 restore cut (29): the commits that land before the power cut, the
+/// three collections and objects 1-3; the cut falls inside the next publish,
+/// object 4's INSTALL_COMMIT table copy, after its content was appended.
+const L2_CUT_COMMITS: u64 = 6;
+/// Table-sector writes after which case 29 stops the guest: on the fresh
+/// image the one-sector format marker, one full copy per landed commit (case
+/// 26 pins the same count), then four sectors of the torn copy.
+const L2_CUT_TABLE_WRITES: u64 = 1 + L2_CUT_COMMITS * (TABLE_REGION / 2) + 4;
 
 #[derive(Clone, Copy)]
 struct AppEvidence {
@@ -380,13 +388,17 @@ fn case() -> u64 {
         27
     } else if cfg!(feature = "test-volume-l2-used") {
         28
+    } else if cfg!(feature = "test-volume-l2-restore-cut") {
+        29
+    } else if cfg!(feature = "test-volume-recover-l2-cut") {
+        30
     } else {
         0
     }
 }
 /// Device-level read-only mount (emulator, virtio negotiation and service).
 fn read_only() -> bool {
-    cfg!(feature = "test-system-recover") || matches!(case(), 1 | 4 | 5 | 21 | 24 | 28)
+    cfg!(feature = "test-system-recover") || matches!(case(), 1 | 4 | 5 | 21 | 24 | 28 | 30)
 }
 /// Archive export (also into a too-small target, or followed by the ustar
 /// export) writes only the archive range: the device stays writable, but the
@@ -410,15 +422,15 @@ fn flow() -> u64 {
 /// wrong-device case (17), where device 1 holds the archive but the portal
 /// is granted the device-0 archive range.
 fn archive_device() -> bool {
-    matches!(case(), 13..=16 | 18 | 19 | 25..=28)
+    matches!(case(), 13..=16 | 18 | 19 | 25..=30)
 }
 /// Cases with an archive grant to the portal: the S09 v1 archive cases and
 /// the L2 cases; the install and settings cases (20..=24) keep zero archive I/O.
 fn archive_case() -> bool {
-    matches!(case(), 7..=19 | 25..=28)
+    matches!(case(), 7..=19 | 25..=30)
 }
 /// Device 1 negotiates writes in the export, too-small, power-cut and L2
-/// export cases; restore, wrong-device, verify and L2 26..=28 attach it read-only.
+/// export cases; restore, wrong-device, verify and L2 26..=30 attach it read-only.
 fn device1_writable() -> bool {
     matches!(case(), 13 | 15 | 16 | 18 | 25)
 }
@@ -448,6 +460,7 @@ fn marker() -> &'static [u8] {
         26 => b"VOLUME:CASE:L2_RESTORE:PASS\n",
         27 => b"VOLUME:CASE:L2_CORRUPT:PASS\n",
         28 => b"VOLUME:CASE:L2_USED:PASS\n",
+        30 => b"VOLUME:CASE:RECOVER_L2_CUT:PASS\n",
         _ => b"VOLUME:FAIL:CUT_NOT_OBSERVED\n",
     }
 }
@@ -1301,6 +1314,10 @@ fn advance(s: &State) {
                 } else {
                     r.data_writes += 1;
                 }
+                // S09 L2 restore cut: inside object 4's INSTALL_COMMIT copy.
+                if case() == 29 && r.table_writes >= L2_CUT_TABLE_WRITES {
+                    cut(b"VOLUME:CUT:L2_RESTORE\n");
+                }
                 // Crash fixtures: once app A started its second upload, kill
                 // after completed content writes or inside the table write.
                 if matches!(case(), 2 | 3 | 6 | 22) && r.apps[0].phase >= 1 {
@@ -1528,7 +1545,7 @@ fn finish(s: &mut State) -> ! {
             16 => a[0] > 0 && a[1..] == [FULL_SECTORS, 0] && d[1] == a && d[0][1..] == [0, 0],
             17 => a[0] > 0 && a[1..] == [0, 0] && d[1] == [0; 3],
             // S09 L2 (spec 5.3). Every L2 archive operation went to device 1;
-            // 26..=28 add exactly the portal's refused device-1 write (702).
+            // 26..=28 and 30 add exactly the portal's refused device-1 write (702).
             25 => {
                 a[0] > 0
                     && a[1] > 0
@@ -1559,7 +1576,7 @@ fn finish(s: &mut State) -> ! {
                     && word(s, 0, 328) == 0
                     && r.archive_rights_refusals == 1
             }
-            28 => {
+            28 | 30 => {
                 a[0] > 0
                     && a[1..] == [0, 0]
                     && d[1] == a
@@ -1603,6 +1620,10 @@ fn finish(s: &mut State) -> ! {
         26 => l2[..5] == [0b0011_1110, 0b111, L2_RESTORE_COMMITS, 0, 0] && status == 0,
         27 => status == -18 && l2[2] == 0,
         28 => status == -10 && l2[2] == 0 && l2[4] == 0,
+        // After the cut: collections and objects 1-3 fully installed with
+        // their provenance, objects 4 and 5 never-used (words 520/528 are the
+        // portal's observed masks); a second restore is Stale.
+        30 => l2[..3] == [0b0000_1110, 0b111, 0] && l2[4] == 0 && status == -10,
         _ => true,
     };
     if !l2_result {
@@ -1670,7 +1691,7 @@ fn finish(s: &mut State) -> ! {
         print_number(b"VOLUME:ARCHIVE:WRITES:", r.archive_ops[1]);
         print_number(b"VOLUME:ARCHIVE:FLUSHES:", r.archive_ops[2]);
     }
-    if matches!(case(), 13..=19 | 25..=28) {
+    if matches!(case(), 13..=19 | 25..=28 | 30) {
         print_number(b"VOLUME:ARCHIVE:DEVICE:", u64::from(archive_device()));
         print_number(
             b"VOLUME:ARCHIVE:DISK_FOUND:",
@@ -1691,7 +1712,7 @@ fn finish(s: &mut State) -> ! {
     if case() == 12 {
         print_number(b"VOLUME:ARCHIVE:USTAR_BYTES:", r.apps[0].ustar_bytes);
     }
-    if matches!(case(), 25..=28) {
+    if matches!(case(), 25..=28 | 30) {
         // RESULT is the raw i64 status word as u64 (two's complement).
         for (label, value) in [
             (&b"VOLUME:ARCHIVE:RESTORED:"[..], l2[0]),
