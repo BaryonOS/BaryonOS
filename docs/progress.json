@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-24",
-    "source_commit": "2eb1c63d2afdf658f0e71d31f3542e320a7dd041",
+    "source_commit": "1fc9b8ca8ac472960e97dcc67bc082c540affb00",
     "assessment_basis": "reviewed_main_commit",
-    "branch": "audit/progress-evidence-20261124",
-    "task": "Reassess all open criteria and expose implementation and verification evidence",
-    "previous_score": 41,
-    "summary": "43/100: B01 earns its existing two points after exact-main seven-case native entropy/key-lifecycle and manifest-bound management-recovery evidence. All original IDs, weights and acceptance text are unchanged. The other 29 open criteria retain explicit gaps; a separate source-bound inventory records implementation and evidence without partial acceptance points."
+    "branch": "claude/ui-u-inventory-20261124",
+    "task": "U04: align the native History dialog focus and semantic order with its reading order (#447)",
+    "previous_score": 43,
+    "summary": "43/100: unchanged. The native History dialog now reads and tabs Version, Cancel, Restore in visual order; the formerly ignored host reading-order test passes and History joins the full width/height/scale guard. U04 stays open: screen-reader chain, remaining compact layout defects (#448), the 640x480@200% status clipping and human task evidence are still missing. The delivery-review snapshot remains pinned to its own commit."
   },
   "tracks": [
     {
