@@ -503,7 +503,9 @@ project-owner decision on a trust boundary. Per workflow the
 an older success never masks a newer running or failed run, and a later
 re-run of an older run counts. Its jobs come from
 `/actions/runs/<id>/jobs?filter=latest` (every page, `run_id` checked), which
-reflects the latest attempt after a re-run. Per expected execution exactly one
+reflects the latest attempt after a re-run. The run is read again after its
+jobs; if its attempt or status changed in between, it counts as pending. A
+job's class comes only from rows of its own workflow. Per expected execution exactly one
 job with the rendered check name must have concluded `success`; a runtime
 matrix (`id = "*"`) needs at least one matching job, all successful. Then:
 

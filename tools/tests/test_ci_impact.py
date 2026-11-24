@@ -1492,7 +1492,13 @@ class EscapeScopeTests(TestCase):
         self.assertTrue(problem([], "app", "data/x.bin", "app/src/lib.rs:2", False)
                         .startswith("escape-unregistered"))
         directory = [{"crate": "app", "when": "always", "inputs": ["keys/**"], "evidence": []}]
-        self.assertIsNone(problem(directory, "app", "keys", "app/tests/t.rs:2", True))
+        self.assertIsNone(problem(directory, "app", "keys", "app/tests/t.rs:2", True, is_dir=True))
+        # A glob over a file's would-be contents never covers the file itself.
+        self.assertTrue(problem(directory, "app", "keys", "app/tests/t.rs:2", True)
+                        .startswith("escape-unregistered"))
+        child_only = [{"crate": "app", "when": "always", "inputs": ["data/a.bin/**"], "evidence": []}]
+        self.assertTrue(problem(child_only, "app", "data/a.bin", "app/src/lib.rs:2", False)
+                        .startswith("escape-unregistered"))
         cited = [{"crate": "app", "when": "always", "inputs": ["x/**"], "evidence": ["app/src/lib.rs:6"]}]
         self.assertIsNone(problem(cited, "app", None, "app/src/lib.rs:6", False))
         self.assertTrue(problem(cited, "app", None, "app/src/lib.rs:7", False).startswith("escape-unregistered"))

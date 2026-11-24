@@ -730,7 +730,7 @@ class GateTests(TestCase):
     """Phase 3: the pull_request path verifies every applicable gate from base-side code."""
 
     def decide(self, plan=None, runs_=None, jobs=None, pull=None, ancestor=0, page_size=100, totals=None,
-               polls=None):
+               polls=None, rerun_during_read=None):
         plan = plan or plan_fixture()
         state = {"poll": 0, "calls": [], "sleeps": 0}
         clock = [0.0]
@@ -739,6 +739,13 @@ class GateTests(TestCase):
             state["calls"].append(url)
             if url.endswith("/pulls/7"):
                 return pull or PULL
+            if "/actions/runs/" in url and "?" not in url:  # re-read of one run
+                run_id = int(url.rsplit("/", 1)[1])
+                listed = runs_ if runs_ is not None else GOOD_RUNS
+                if polls:
+                    listed = polls[min(state["poll"], len(polls) - 1)]
+                current = next(dict(run) for run in listed if run["id"] == run_id)
+                return {**current, **(rerun_during_read or {}).get(run_id, {})}
             page = int(url.rsplit("page=", 1)[1])
             if "/jobs?" in url:
                 listed = (jobs or GOOD_JOBS).get(int(url.split("/runs/")[1].split("/")[0]), [])
@@ -954,6 +961,19 @@ class GateTests(TestCase):
              "reason": "advisory"}])
         runs_ = GOOD_RUNS + [wf_run(8, advisory, "in_progress", None)]
         self.assertTrue(self.decide(plan=plan, runs_=runs_, jobs={**GOOD_JOBS, 8: []})[0])
+
+    def test_job_classes_come_from_the_same_workflow_only(self):
+        """CodeRabbit on #504: an unregistered job must not borrow another workflow's advisory class."""
+        jobs = {**GOOD_JOBS, 2: [job(21, 2, "quality (viewer)"), job(22, 2, "advice", "failure")]}
+        passed, out, _ = self.decide(runs_=[wf_run(1, CI), wf_run(2, LEAVES, conclusion="failure")], jobs=jobs)
+        self.assertFalse(passed)
+        self.assertIn("advice: failure in run 2", out)
+
+    def test_a_run_that_changes_between_reads_is_pending(self):
+        """CodeRabbit on #504: a re-run between the run and job reads must not pair mismatched data."""
+        passed, out, _ = self.decide(rerun_during_read={2: {"run_attempt": 2, "status": "queued"}})
+        self.assertFalse(passed)
+        self.assertIn("changed while it was read (now attempt 2, queued)", out)
 
     def test_rendered_runtime_matrix_names_inherit_their_template_class(self):
         """CodeRabbit on #504: a dynamic advisory job must not count as an unregistered gate."""

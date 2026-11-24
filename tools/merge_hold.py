@@ -495,6 +495,12 @@ def gate_report(token, repo, pull, head_sha, plan):
         jobs = [job for job in fetch_listing(
             token, f"{API}/repos/{repo}/actions/runs/{run['id']}/jobs?filter=latest", "jobs")
             if job.get("run_id") == run["id"]]
+        # A re-run between the two reads would pair this run state with another attempt's jobs.
+        again = call(token, f"{API}/repos/{repo}/actions/runs/{run['id']}")
+        if (again.get("run_attempt"), again.get("status")) != (run.get("run_attempt"), run.get("status")):
+            pending.append(f"{workflow}: {where} changed while it was read (now attempt "
+                           f"{again.get('run_attempt')}, {again.get('status')}); re-run merge-hold")
+            continue
         if running and workflow in gated:
             pending.append(f"{workflow}: {where} is still {run.get('status')}; its gates must finish, "
                            "including jobs GitHub has not created yet")
@@ -516,8 +522,8 @@ def gate_report(token, repo, pull, head_sha, plan):
                 failed.append(f"{row['check_name']}: {outcome} in {where} ({workflow})")
         for job in jobs:
             # A rendered runtime-matrix name inherits its template row's class.
-            klass = next((row["class"] for row in rows if row.get("check_name") and job_matches(row, job)),
-                         "unregistered")
+            klass = next((row["class"] for row in rows if row.get("workflow") == workflow
+                          and row.get("check_name") and job_matches(row, job)), "unregistered")
             if job["id"] in claimed or klass not in SELECTABLE + ("unregistered",):
                 continue
             if job.get("status") != "completed":

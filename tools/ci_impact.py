@@ -1566,6 +1566,13 @@ def _runtime_escapes(crate, text):
     return sorted({(target, line) for _distance, target, line in nearest.values()})
 
 
+def _parents(path):
+    while path:
+        path = posixpath.dirname(path)
+        if path:
+            yield path
+
+
 def root_target_paths(read, crate_dirs):
     """Repository paths of bin, test, example and bench targets declared in crate manifests."""
     paths = set()
@@ -1584,14 +1591,18 @@ def root_target_paths(read, crate_dirs):
     return frozenset(paths)
 
 
-def escape_problem(escapes, crate, target, origin, root_only):
-    """None when a registration covers the escape in the right scope; else a report."""
+def escape_problem(escapes, crate, target, origin, root_only, is_dir=False):
+    """None when a registration covers the escape in the right scope; else a report.
+
+    A file target must match an input glob itself; only a directory target (one
+    with tracked paths below it) may be covered by a glob over its contents.
+    """
     # Evidence alone registers only an unresolvable target: a known target must be in the inputs,
     # or an include that changed its target on the same line would keep an outdated registration.
     matching = [escape for escape in escapes if escape["crate"] == crate and (
         (target is None and origin in escape.get("evidence", []))
         or (target is not None and (first_match(escape["inputs"], target)
-                                    or first_match(escape["inputs"], target + "/x"))))]
+                                    or (is_dir and first_match(escape["inputs"], target + "/x")))))]
     if not matching:
         return f"escape-unregistered: {crate} -> {target} ({origin})"
     if not root_only and all(escape["when"] == "root" for escape in matching):
@@ -1704,8 +1715,10 @@ def coverage(repo, catalogue_file):
     tracked = sorted(set(tracked))  # one entry per path, also during a merge conflict
     escapes = catalogue.get("crate_escape", [])
     root_targets = root_target_paths(read_disk, crate_dirs)
+    directories = {posixpath.dirname(path) for path in tracked}
+    directories |= {parent for path in directories for parent in _parents(path)}
     for crate, target, origin, root_only in scan_escapes(repo, crate_dirs, tracked, root_targets):
-        problem = escape_problem(escapes, crate, target, origin, root_only)
+        problem = escape_problem(escapes, crate, target, origin, root_only, is_dir=target in directories)
         if problem:
             problems.append(problem)
     all_globs = sorted({pattern for execution in execs for pattern in execution["globs"]})
