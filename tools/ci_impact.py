@@ -1221,16 +1221,17 @@ ESCAPE_RE = re.compile(
 FIRST_LITERAL_RE = re.compile(r'"([^"]*)"')
 
 
-def scan_escapes(repo, crate_dirs):
+def scan_escapes(repo, crate_dirs, tracked):
     """Find literal and widened include/#[path] targets that leave their crate directory.
 
+    Only tracked `.rs` files are read, so build output such as `target/` cannot report an escape.
     shortcut: #[path] inside an inline `mod {}` block resolves differently; such
     uses are not modelled, upgrade if one appears in a closure crate.
     """
     found = []
+    sources = {path for path in tracked if path.endswith(".rs")}
     for crate in sorted(crate_dirs):
-        queue = sorted(globmod.glob(os.path.join(repo, crate, "**", "*.rs"), recursive=True))
-        queue = [posixpath.relpath(p.replace(os.sep, "/"), repo.replace(os.sep, "/")) for p in queue]
+        queue = sorted(path for path in sources if path.startswith(f"{crate}/"))
         seen = set()
         while queue:
             source = queue.pop(0)
@@ -1257,7 +1258,7 @@ def scan_escapes(repo, crate_dirs):
                 if target.startswith(f"{crate}/"):
                     continue
                 found.append((crate, target, f"{source}:{line}"))
-                if target.endswith(".rs") and os.path.isfile(os.path.join(repo, target)):
+                if target in sources:
                     queue.append(target)
     return found
 
@@ -1349,11 +1350,6 @@ def coverage(repo, catalogue_file):
     crate_dirs = set()
     for execution in execs:
         crate_dirs.update(execution.get("crate_dirs", []))
-    escapes = catalogue.get("crate_escape", [])
-    for crate, target, origin in scan_escapes(repo, crate_dirs):
-        registered = [glob for escape in escapes if escape["crate"] == crate for glob in escape["inputs"]]
-        if target is None or not first_match(registered, target):
-            problems.append(f"escape-unregistered: {crate} -> {target} ({origin})")
     code, out = git(repo, "ls-files", "-s", "-z")
     if code != 0:
         problems.append("git-ls-files-failed")
@@ -1366,6 +1362,11 @@ def coverage(repo, catalogue_file):
             if meta.startswith(b"120000 "):
                 symlinks.append(tracked[-1])
     tracked = sorted(set(tracked))  # one entry per path, also during a merge conflict
+    escapes = catalogue.get("crate_escape", [])
+    for crate, target, origin in scan_escapes(repo, crate_dirs, tracked):
+        registered = [glob for escape in escapes if escape["crate"] == crate for glob in escape["inputs"]]
+        if target is None or not first_match(registered, target):
+            problems.append(f"escape-unregistered: {crate} -> {target} ({origin})")
     all_globs = sorted({pattern for execution in execs for pattern in execution["globs"]})
     for path in symlinks:
         # A symlink can pull content from outside the inputs without changing in the diff.
