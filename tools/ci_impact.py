@@ -17,6 +17,7 @@ See docs/CI-CONTRACT.md.
 from __future__ import annotations
 
 import argparse
+import contextlib
 import functools
 import glob as globmod
 import hashlib
@@ -27,6 +28,7 @@ import posixpath
 import re
 import subprocess
 import sys
+import tempfile
 import tomllib
 
 PLAN_SCHEMA = "baryonos.ci-impact.plan"
@@ -1340,22 +1342,45 @@ def main(argv=None):
     except Exception as error:
         plan = minimal_full_plan(args.event, f"selector-error:{type(error).__name__}",
                                  args.base_sha, args.head_sha, args.tested_sha)
-    text = json.dumps(plan, indent=2, sort_keys=True, ensure_ascii=True) + "\n"
     try:
-        if args.out == "-":
-            sys.stdout.write(text)
-        else:
-            os.makedirs(os.path.dirname(os.path.abspath(args.out)), exist_ok=True)
-            with open(args.out, "w", encoding="ascii") as handle:
-                handle.write(text)
+        # The summary goes first: the plan is published only after every other output succeeded.
         if args.summary:
             with open(args.summary, "a", encoding="utf-8") as handle:
                 handle.write(summary_markdown(plan))
-    except OSError as error:
-        sys.stdout.write(text)
+        publish_plan(args.out, plan)
+    except Exception as error:  # never leave a select plan behind a failed output
         print(f"ci-impact: output-error: {type(error).__name__}", file=sys.stderr)
+        plan = minimal_full_plan(args.event, f"output-error:{type(error).__name__}",
+                                 args.base_sha, args.head_sha, args.tested_sha)
+        try:
+            publish_plan(args.out, plan)
+        except Exception:
+            sys.stdout.write(plan_text(plan))
     print(f"ci-impact: mode={plan['mode']} plan_id={plan['plan_id']}", file=sys.stderr)
     return 0
+
+
+def plan_text(plan):
+    return json.dumps(plan, indent=2, sort_keys=True, ensure_ascii=True) + "\n"
+
+
+def publish_plan(out, plan):
+    """Write the plan to stdout, or atomically to `out` (temporary file, then rename)."""
+    text = plan_text(plan)
+    if out == "-":
+        sys.stdout.write(text)
+        return
+    directory = os.path.dirname(os.path.abspath(out))
+    os.makedirs(directory, exist_ok=True)
+    handle = tempfile.NamedTemporaryFile("w", encoding="ascii", dir=directory, prefix=".plan-", delete=False)
+    try:
+        with handle:
+            handle.write(text)
+        os.replace(handle.name, out)
+    except BaseException:
+        with contextlib.suppress(OSError):
+            os.unlink(handle.name)
+        raise
 
 
 if __name__ == "__main__":

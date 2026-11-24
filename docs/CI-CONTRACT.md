@@ -208,7 +208,10 @@ python3 -B tools/ci_impact.py coverage   # JSON drift report, always exit 0
 Optional `plan` flags: `--tested-sha "$MERGE_SHA"` (the commit under test,
 default the head), `--summary "$GITHUB_STEP_SUMMARY"` (append a Markdown
 summary), `--repo <dir>`, `--catalogue <path>` and `--no-fetch`. `--out`
-defaults to standard output.
+defaults to standard output. The summary is written first and the plan file
+is published last, atomically (temporary file, then rename). If any output
+fails, the published plan is the full `output-error:<Type>` emergency plan,
+never the computed one.
 
 `coverage` needs PyYAML and otherwise reports `coverage-unavailable`. It
 compares the catalogue with `.github/workflows/*.y*ml` (workflows, events,

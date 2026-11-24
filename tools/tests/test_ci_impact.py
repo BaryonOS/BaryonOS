@@ -731,6 +731,23 @@ class DeterminismAndRobustnessTests(FixtureTestCase):
         self.assertIs(emergency["selector"]["trusted"], False)
         self.assertEqual(emergency["shas"]["head"], "b" * 40)
 
+    def test_output_error_never_leaves_a_select_plan(self):
+        head = self.branch({"apps/solo/src/lib.rs": "// solo 2\n"})
+        out = Path(self._tmp.name) / "out" / "plan.json"
+        blocked = Path(self._tmp.name) / "summary-is-a-directory"
+        blocked.mkdir()
+        argv = ["plan", "--event", "pull_request", "--base-sha", self.base, "--head-sha", head,
+                "--repo", self.repo.root, "--no-fetch", "--summary", str(blocked)]
+        for target in (str(out), "-"):
+            with self.subTest(out=target):
+                with contextlib.redirect_stdout(io.StringIO()) as stdout, contextlib.redirect_stderr(io.StringIO()):
+                    self.assertEqual(ci_impact.main(argv + ["--out", target]), 0)
+                plan = json.loads(out.read_text() if target != "-" else stdout.getvalue())
+                self.assertFull(plan, "output-error:IsADirectoryError")
+                if target != "-":
+                    self.assertEqual(stdout.getvalue(), "")
+                    self.assertEqual([p.name for p in out.parent.iterdir()], ["plan.json"])  # no temp file left
+
     def test_invalid_sha_and_unknown_event_are_full(self):
         self.assertFull(self.plan("not-a-sha"), "invalid-sha")
         self.assertFull(self.plan(self.base, event="release"), "unknown-event")
