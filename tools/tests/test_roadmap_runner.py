@@ -145,6 +145,37 @@ class Ledger(unittest.TestCase):
                 finally:
                     controller.release()
 
+    def test_manual_brief_refuses_an_unsupported_host_before_claiming(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root, ledger = Path(tmp), Path(tmp) / "ledger.json"
+            rr.save_ledger({"tasks": [task("A")]}, ledger)
+            before = ledger.read_bytes()
+            controller = rr.Controller(rr.Config(), root / "state")
+            controller.lock_acquired = True
+            with unittest.mock.patch.object(rr.sys, "platform", "darwin"), \
+                    unittest.mock.patch.object(rr, "LEDGER", ledger), \
+                    unittest.mock.patch.object(controller, "preflight", return_value="a" * 40) as preflight:
+                with self.assertRaisesRegex(rr.Stop, "needs Linux"):
+                    controller.prepare_manual()
+            preflight.assert_not_called()
+            self.assertEqual(ledger.read_bytes(), before)
+            self.assertFalse(controller.state.exists())
+
+    def test_brief_cli_refuses_an_unsupported_host_before_any_state_or_git_call(self):
+        with tempfile.TemporaryDirectory() as tmp, \
+                unittest.mock.patch.object(rr.sys, "platform", "darwin"), \
+                unittest.mock.patch.object(rr, "STATE", Path(tmp) / "state"), \
+                unittest.mock.patch.object(rr, "git") as git, \
+                unittest.mock.patch.object(rr.Controller, "acquire") as acquire, \
+                unittest.mock.patch.object(rr, "isolate_imports"), \
+                unittest.mock.patch.object(rr.sys, "argv", ["roadmap_runner.py", "brief"]), \
+                contextlib.redirect_stdout(io.StringIO()) as out:
+            self.assertEqual(rr.main(), 2)
+            self.assertIn("needs Linux", out.getvalue())
+            git.assert_not_called()
+            acquire.assert_not_called()
+            self.assertFalse(rr.STATE.exists())
+
     def test_refused_controller_does_not_remove_foreign_lease(self):
         with tempfile.TemporaryDirectory() as tmp, unittest.mock.patch.object(rr.Controller, "refuse_live_workers"):
             state = Path(tmp)
@@ -1408,8 +1439,8 @@ class RunnerResiduals(unittest.TestCase):
                       f"while [ ! -e {run}/GO ] && [ $i -lt 500 ]; do {shutil.which('sleep')} 0.02; i=$((i+1)); "
                       "done' </dev/null >/dev/null 2>&1 & ); exit 3")
             claim = self.launcher_marker(controller, ["/bin/sh", "-c", script])
-            # An earlier completed run of this claim: the new start must invalidate it.
-            rr.atomic_write(home / rr.MANUAL_RECORD, json.dumps({"claim": claim, "exit": 0}))
+            # A completed earlier claim must not certify the new claim's session.
+            rr.atomic_write(home / rr.MANUAL_RECORD, json.dumps({"claim": rr.uuid.uuid4().hex, "exit": 0}))
             launcher, grand = self.launch(controller, ["/bin/sh", "-c", script]), None
             try:
                 self.wait_for(lambda: (run / "grand.pid").exists() and (run / "child.pid").exists())
@@ -1769,6 +1800,32 @@ class RunnerResiduals(unittest.TestCase):
             controller.refuse_live_manual()
 
     @unittest.skipUnless(sys.platform == "linux", "PR_SET_CHILD_SUBREAPER is Linux-only")
+    def test_a_completed_claim_cannot_run_again_or_replace_its_reviewed_result(self):
+        for code in (0, 7):
+            with self.subTest(exit=code), tempfile.TemporaryDirectory() as tmp, \
+                    self.live_state(tmp) as (repo, state, controller):
+                result = state / "final.json"
+                script = ("import pathlib,sys; p=pathlib.Path(sys.argv[1]); "
+                          "p.write_text(str(int(p.read_text()) + 1) if p.exists() else '1'); "
+                          f"sys.exit({code})")
+                argv = [sys.executable, "-c", script, str(result)]
+                claim = self.launcher_marker(controller, argv)
+                self.assertEqual(self.reap(self.launch(controller, argv)), code)
+                record = controller.marker().parent / rr.MANUAL_RECORD
+                completion = record.read_bytes()
+                reviewed = re.search(r"resume --accept ([0-9a-f]+)", self.resume()[1]).group(1)
+                out = Path(tmp) / "refused"
+                self.assertEqual(self.reap(self.launch(controller, argv, out=out)), 2)
+                self.assertIn("already completed", out.read_text())
+                self.assertEqual(result.read_text(), "1")
+                self.assertEqual(record.read_bytes(), completion)
+                self.assertIn("is now the saved session baseline", self.resume("--accept", reviewed)[1])
+                # A new reviewed claim remains executable, even for the same command.
+                self.assertNotEqual(self.launcher_marker(controller, argv), claim)
+                self.assertEqual(self.reap(self.launch(controller, argv)), code)
+                self.assertEqual(result.read_text(), "2")
+
+    @unittest.skipUnless(sys.platform == "linux", "PR_SET_CHILD_SUBREAPER is Linux-only")
     def test_the_launcher_runs_only_the_planned_command(self):
         with tempfile.TemporaryDirectory() as tmp, self.live_state(tmp) as (repo, state, controller):
             run, home = Path(tmp), controller.marker().parent
@@ -2002,14 +2059,86 @@ class RunnerResiduals(unittest.TestCase):
         for sig in (signal.SIGTSTP, signal.SIGTTIN, signal.SIGTTOU):
             signal.signal(sig, signal.SIG_DFL)
 
-    @staticmethod
-    def end(run, child, pid):
+    def end(self, run, child, pid):
+        original = sys.exception()
         (run / "GO").touch()
         if child is not None:
             with contextlib.suppress(ProcessLookupError):
                 os.killpg(child, signal.SIGKILL)
-        with contextlib.suppress(ChildProcessError):
-            os.waitpid(pid, 0)
+        if pid is None:
+            return
+        try:
+            if os.waitpid(pid, os.WNOHANG)[0]:
+                return
+            # If startup never published child.pid, ask the launcher to relay
+            # termination, then bound its wait and kill it if it cannot finish.
+            with contextlib.suppress(ProcessLookupError):
+                os.kill(pid, signal.SIGTERM)
+                os.kill(pid, signal.SIGCONT)
+            self.reap(pid, 2)
+        except ChildProcessError:
+            pass  # the assertion already reaped it
+        except AssertionError as error:
+            if original is None:
+                raise
+            original.add_note(f"test cleanup: {error}")
+
+    @unittest.skipUnless(sys.platform == "linux", "PR_SET_CHILD_SUBREAPER and /proc are Linux-only")
+    def test_cleanup_without_a_child_pid_is_bounded_and_keeps_the_original_failure(self):
+        with tempfile.TemporaryDirectory() as tmp, self.live_state(tmp) as (repo, state, controller):
+            run = Path(tmp)
+            argv = [sys.executable, "-c", "import time; time.sleep(30)"]
+            claim = self.launcher_marker(controller, argv)
+            launcher = self.launch(controller, argv)
+            child = None
+            try:
+                record = controller.marker().parent / rr.MANUAL_RECORD
+                self.wait_for(lambda: "child_pid" in rr.read_record(record, claim))
+                child = rr.read_record(record, claim)["child_pid"]
+                # The session never wrote child.pid: a startup regression must not
+                # trap the test's finally block in an unbounded waitpid.
+                with self.deadline(3), self.assertRaisesRegex(AssertionError, "original timeout"):
+                    try:
+                        self.fail("original timeout")
+                    finally:
+                        self.end(run, None, launcher)
+                self.assertFalse(rr.manual_processes(claim))
+                launcher, child = None, None
+            finally:
+                if child is not None:
+                    with contextlib.suppress(ProcessLookupError):
+                        os.killpg(child, signal.SIGKILL)
+                if launcher is not None:
+                    with contextlib.suppress(ChildProcessError):
+                        self.reap(launcher, 5)
+
+    @unittest.skipUnless(sys.platform == "linux", "Linux process cleanup")
+    def test_cleanup_timeout_kills_the_launcher_without_replacing_an_assertion(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            run = Path(tmp)
+            pid = os.fork()
+            if pid == 0:
+                try:
+                    signal.signal(signal.SIGTERM, signal.SIG_IGN)
+                    (run / "started").write_text("ready")
+                    time.sleep(30)
+                finally:
+                    os._exit(0)
+            try:
+                self.wait_for(lambda: (run / "started").exists())
+                with self.deadline(4), self.assertRaisesRegex(AssertionError, "original timeout") as raised:
+                    try:
+                        self.fail("original timeout")
+                    finally:
+                        self.end(run, None, pid)
+                self.assertIn("launcher did not exit", " ".join(raised.exception.__notes__))
+                with self.assertRaises(ChildProcessError):
+                    os.waitpid(pid, os.WNOHANG)  # the killed launcher was reaped
+            finally:
+                with contextlib.suppress(ChildProcessError):
+                    if not os.waitpid(pid, os.WNOHANG)[0]:
+                        os.kill(pid, signal.SIGKILL)
+                        os.waitpid(pid, 0)
 
     @unittest.skipUnless(sys.platform == "linux", "PR_SET_CHILD_SUBREAPER and ptys are Linux-only here")
     def test_ctrl_z_does_not_stop_a_session_on_a_terminal(self):
@@ -2058,6 +2187,42 @@ class RunnerResiduals(unittest.TestCase):
                 self.assertEqual(self.reap(launcher, 5), 143)
             finally:
                 self.end(run, child, launcher)
+
+    @unittest.skipUnless(sys.platform == "linux", "PR_SET_CHILD_SUBREAPER and /proc are Linux-only")
+    def test_a_stopped_session_still_handles_a_forwarded_quit(self):
+        # A caught SIGQUIT stays pending while stopped, just like TERM. Use a
+        # handler rather than a core dump, and keep the launcher alive for cleanup.
+        with tempfile.TemporaryDirectory() as tmp, self.live_state(tmp) as (repo, state, controller):
+            run, home = Path(tmp), controller.marker().parent
+            script = ("import os,signal,time;from pathlib import Path;"
+                      "signal.signal(signal.SIGQUIT,lambda *_: os._exit(7));"
+                      f"Path({str(run / 'child.pid')!r}).write_text(str(os.getpid()));"
+                      "time.sleep(10)")
+            argv = [sys.executable, "-c", script]
+            claim = self.launcher_marker(controller, argv)
+            # Inherited SIG_IGN is covered separately; here QUIT must be relayed.
+            launcher = self.launch(controller, argv,
+                                   prepare=lambda: signal.signal(signal.SIGQUIT, signal.SIG_DFL))
+            child = None
+            try:
+                child = self.child_pid(run)
+                os.killpg(child, signal.SIGSTOP)
+                self.wait_for(lambda: self.proc_state(child) == "T")
+                os.kill(launcher, signal.SIGQUIT)
+                self.wait_for(lambda: rr.read_record(home / rr.MANUAL_RECORD, claim).get("exit") == 7, 5)
+                self.assertEqual(self.reap(launcher, 5), 7)
+                launcher, child = None, None
+                controller.refuse_live_manual()
+            finally:
+                # Kill the stopped session before its subreaper, so even the
+                # failing-first run leaves neither an orphan nor a held claim.
+                if child is not None:
+                    with contextlib.suppress(ProcessLookupError):
+                        os.killpg(child, signal.SIGKILL)
+                if launcher is not None:
+                    with contextlib.suppress(ChildProcessError):
+                        self.reap(launcher, 5)
+                self.wait_for(lambda: not rr.manual_processes(claim), 5)
 
     @unittest.skipUnless(sys.platform == "linux", "PR_SET_CHILD_SUBREAPER and ptys are Linux-only here")
     def test_a_launcher_in_the_background_never_takes_the_terminal(self):

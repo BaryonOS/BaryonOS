@@ -1275,6 +1275,12 @@ from the nearest outward: each must have left the queue or completed
 at the first entry whose `merge-hold` concluded `success`, because only a
 successful run waited the same way; a `merge-hold` that failed early, was
 cancelled or lost its runner proves nothing about the entries ahead of it.
+This shortcut does not recheck an earlier predecessor whose check is rerun
+after that successful entry. Before enabling a live queue, either invalidate
+and rebuild all affected successor groups when a predecessor check is rerun,
+or implement and verify a full predecessor reevaluation. Until one of those
+controls is in place, the shortcut is preparation only and the queue must
+remain disabled.
 Queue entries behind the group are not evaluated, and one without a commit
 does not delay the run; an entry anywhere in the queue without a pull request
 (or without an integer pull request number) disables the fast stale-group
@@ -1302,7 +1308,7 @@ separately (no batching), so every entry has its own commit and its own
 `merge-hold` run; and a merge queue status check timeout of at least 60
 minutes, so GitHub does not remove a group while `merge-hold` still waits (up
 to 45 minutes, inside a job `timeout-minutes` of 50). Verify these five
-settings when the queue is enabled. On
+settings and the predecessor-rerun control above before enabling the queue. On
 `merge_group` the workflow and `tools/merge_hold.py` come from the group
 commit, which includes the entries ahead, so a queued pull request ahead can
 change the script that decides a pull request behind it; this is the same
@@ -1313,8 +1319,9 @@ and unit tests with a mocked API; it has not yet run against a live queue.
   blocks every group containing that pull request, including a later group that
   merges the entries ahead with it.
 - Not enforced: a hold set after the final read, while GitHub concludes the job
-  and merges the group. The window does not depend on other entries' check
-  durations, but it is not bounded by the project; a merge-limit wait time or
+  and merges the group. With the predecessor-rerun prerequisite satisfied,
+  the window does not depend on other entries' check durations, but it is
+  not bounded by the project; a merge-limit wait time or
   a minimum group size above 1 in the queue ruleset would lengthen it, which
   is why both are preconditions above. Owners set the label before queueing and
   remove a pull request from the queue to apply a late hold.

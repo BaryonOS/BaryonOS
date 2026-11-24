@@ -136,7 +136,12 @@ This assumes five queue ruleset settings: it requires only `host-quality`,
 to Yes; uses a minimum group size of 1 with no merge-limit wait; builds each
 pull request separately (no batching); and sets the status check timeout to at
 least 60 minutes, above the 45-minute `merge-hold` wait and its 50-minute job
-timeout. Verify these five settings when the queue is enabled.
+timeout. Before enabling a live queue, verify these five settings and handle
+reruns of predecessor checks: either invalidate and rebuild all affected
+successor groups on every rerun, or implement and verify reevaluation of all
+predecessors instead of trusting the nearest successful `merge-hold` shortcut.
+The shortcut alone cannot detect a newly pending check beyond that entry.
+The queue remains disabled until this prerequisite is met and tested.
 
 A label change made with a workflow's `GITHUB_TOKEN` starts no new
 `merge-hold` run. `merge-hold` becomes a required status check only after its

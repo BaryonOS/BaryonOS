@@ -665,6 +665,12 @@ def open_state(state: Path) -> int:
     return fd
 
 
+def require_manual_host() -> None:
+    if sys.platform != "linux":
+        raise Stop("manual dispatch needs Linux (PR_SET_CHILD_SUBREAPER); run `brief` and `manual-run` "
+                   "on a Linux host")
+
+
 class Controller:
     def __init__(self, cfg: Config, state: Path | None = None, baseline: Path | None = None):
         self.cfg = cfg
@@ -893,8 +899,7 @@ class Controller:
         """`manual-run -- <argv>`: run the manual session as a child subreaper, so every descendant,
         double-forked or setsid'd ones included, is reparented here and waited for. The completion record
         is written only after ECHILD; the lock is held until then. Returns the child's exit status."""
-        if sys.platform != "linux":
-            raise Stop("manual-run needs Linux (PR_SET_CHILD_SUBREAPER); run the manual session there")
+        require_manual_host()
         if not argv:
             raise Stop("manual-run needs the session command after --")
         libc = ctypes.CDLL(None, use_errno=True)
@@ -921,9 +926,13 @@ class Controller:
                 raise Stop("manual-run runs only the command `brief` planned (the argv after `--` in "
                            "dispatch.json); this one differs, so nothing ran")
             record = home / MANUAL_RECORD
-            # Sticky: a launcher of this claim ended without its completion, so its orphans may live.
+            # A claim is a single attempt: replaying a completed one could replace
+            # its result while an earlier resume digest still describes the same tree.
             previous_record = read_record(record, claim)
-            if previous_record.get("claim") == claim and "exit" not in previous_record:
+            if previous_record.get("claim") == claim:
+                if "exit" in previous_record:
+                    raise Stop(f"manual claim {claim} already completed; validate its result and run `resume`, "
+                               "then `brief` for a new claim")
                 if "acknowledged" in previous_record:  # fail closed: the acknowledged claim is only retired
                     raise Stop(f"manual claim {claim} was acknowledged without a completion record; validate "
                                "its result and run `resume`, then `brief` for a new claim")
@@ -944,8 +953,9 @@ class Controller:
                 if child is not None:
                     with contextlib.suppress(ProcessLookupError, PermissionError):
                         os.killpg(child.pid, signum)
-                        if signum != signal.SIGQUIT:  # a group stopped by other means must still act on it
-                            os.killpg(child.pid, signal.SIGCONT)
+                        # A stopped group must act on every relayed signal,
+                        # including a caught SIGQUIT that would stay pending.
+                        os.killpg(child.pid, signal.SIGCONT)
             # A closing terminal (SIGHUP) or SIGQUIT must not end the launcher before ECHILD either.
             previous = {sig: signal.signal(sig, forward) for sig in relayed}
             # An inherited SIG_IGN makes the kernel reap every child itself: os.wait() would never see a status.
@@ -1486,6 +1496,7 @@ Rules (binding, in addition to AGENTS.md):
 
     def prepare_manual(self) -> dict:
         """Claim a READY task without executing untrusted code or lifting the hold."""
+        require_manual_host()  # before preflight can retire a baseline or a claim can be written
         if not self.lock_acquired:
             raise Stop("manual claim requires the controller lock")
         self.check_controls()
@@ -1856,6 +1867,8 @@ def main() -> int:
                         "session whose launcher left no completion record, acknowledge that claim")
     args = parser.parse_args()
     try:
+        if args.cmd in ("brief", "manual-run"):
+            require_manual_host()  # before creating state or acquiring a task that cannot run here
         # Before this mkdir or the stop/pause write could follow a planted link. The brake writes only
         # at the top: a link deeper down (refused by every controller start) must not hold it back.
         pin_state(STATE, walk=args.cmd not in ("stop", "pause"))
