@@ -1070,10 +1070,11 @@ fn device_call(s: &mut State, slot: usize, n: u64, a: [u64; 6]) -> Result<u64, i
         if let Some((_, code)) = lane.error.take() {
             if lane.policy.peek(binding, a[1]).is_ok() {
                 let _ = lane.policy.consume(binding, a[1]);
-            } else if lane.resetting && !request.operation.is_mutating() {
+            } else if !request.operation.is_mutating() {
                 // Property 3: the read was ended by a reset that is still
-                // running; the Policy drops it at reset completion. Until
-                // then a further poll must see no request (-1).
+                // running (the Policy drops it at reset completion) or that
+                // failed (a quarantined Policy keeps it). Either way a
+                // further poll must see no request (-1), never -14.
                 lane.ended_read = Some(request.ticket);
             }
             return Err(code);
