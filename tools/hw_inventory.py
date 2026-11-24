@@ -27,7 +27,7 @@ def hwinv_lines(text: str) -> list[str]:
 
 def inventory_from_log(text: str) -> dict:
     lines = hwinv_lines(text)
-    if any(line.startswith("HWINV:FAIL") for line in lines):
+    if "HWINV:FAIL" in text:  # anywhere: firmware output can share the marker's line
         raise InventoryLogError("log reports HWINV:FAIL")
     if lines.count("HWINV:BEGIN") != 1 or lines.count("HWINV:PASS") != 1:
         raise InventoryLogError("log needs exactly one HWINV:BEGIN and one HWINV:PASS")

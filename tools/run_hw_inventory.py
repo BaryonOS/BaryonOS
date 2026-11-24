@@ -74,7 +74,7 @@ def evaluate(text: str, case: str, qmp_pci: set | None, alive_at_pass: bool) -> 
     positions = [next((i for i, line in enumerate(lines) if line == marker), -1) for marker in REQUIRED]
     checks["required_markers_in_order"] = -1 not in positions and positions == sorted(positions)
     checks["single_ebs"] = sum("BOOT:EBS_OK" in line for line in lines) == 1
-    checks["no_failure_marker"] = not any(line.startswith(FAILURES) for line in lines)
+    checks["no_failure_marker"] = not any(marker in line for line in lines for marker in FAILURES)
     checks["kernel_acpi_marker"] = spec["acpi"] in lines
     checks["halted_without_exit_port"] = alive_at_pass
     try:
@@ -152,7 +152,7 @@ def run_case(case: str, *, build_directory: Path = BUILD, run_root: Path | None 
             control = Qmp(directory / "qmp.sock", deadline, process)
             while True:
                 lines = (directory / "serial.txt").read_bytes().decode("utf-8", "replace").splitlines()
-                if any(line.rstrip("\r") == "HWINV:PASS" or line.startswith("HWINV:FAIL") for line in lines):
+                if any(line.rstrip("\r") == "HWINV:PASS" or "HWINV:FAIL" in line for line in lines):
                     break
                 if time.monotonic() >= deadline or process.poll() is not None:
                     raise RuntimeError("HW-INV did not reach HWINV:PASS or HWINV:FAIL")

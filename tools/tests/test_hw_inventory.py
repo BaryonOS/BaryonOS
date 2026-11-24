@@ -62,6 +62,7 @@ class ConvertTest(unittest.TestCase):
     def test_incomplete_or_inconsistent_logs_are_rejected(self):
         cases = {
             "failure marker": LOG + "HWINV:FAIL:PCI_LIMIT\n",
+            "prefixed failure marker": LOG + "fw: HWINV:FAIL:PCI_LIMIT\n",
             "count mismatch": edit("COUNT=7", "COUNT=6"),
             "duplicate address": edit("HWINV:PCI:0000:00:1f.3:8086:2930", "HWINV:PCI:0000:00:1f.2:8086:2930"),
             "order": edit("HWINV:CPUID:VENDOR=GenuineIntel:HYPERVISOR=1\nHWINV:SECUREBOOT=ABSENT",
@@ -97,6 +98,7 @@ class EvaluateTest(unittest.TestCase):
                          {"cpuid_matches_configuration", "dmar_matches_configuration", "kernel_acpi_marker"})
         self.assertEqual(failed(text=edit("SECUREBOOT=ABSENT", "SECUREBOOT=1")), {"secure_boot_not_claimed"})
         self.assertIn("no_failure_marker", failed(text=LOG.replace("M1:PASS", "M1:FAIL:X")))
+        self.assertIn("no_failure_marker", failed(text=LOG + "fw KERNEL_PANIC\n"))
         self.assertIn("single_ebs", failed(text="BOOT:EBS_OK\n" + LOG))
 
     def test_a_physical_looking_inventory_would_not_be_flagged_virtual(self):
