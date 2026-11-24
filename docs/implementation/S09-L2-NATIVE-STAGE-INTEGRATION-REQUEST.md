@@ -3,7 +3,14 @@
 **To:** the integration coordinator.
 **From:** the S09 workstream, branch `claude/s09-l2-native-export` (stacked on
 #411, `f6a07fe3`).
-**Status:** planned. The stages are designed in
+**Status: superseded on 24 November 2026.** The project owner instructed
+that no integration coordinator exists and that the S workstream moves the
+pins itself; both pins changed to 30 together with the stages on
+`claude/s09-l2-slice-cd`
+([evidence](../verification/s09-l2-slices-cd-20261124/README.md)). The
+request below is kept as the record of the planned change.
+
+**Original status:** planned. The stages are designed in
 [S09-L2-NATIVE-EXPORT.md](S09-L2-NATIVE-EXPORT.md) and not yet implemented.
 The pins below are requested only for the head that adds the stages, and only
 once the full local gate reports `passed=True` with 30 stages. No action is

@@ -3,7 +3,7 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-24",
-    "source_commit": "bf0d336abc57d4d850c3a31f7cd0aac5b323921a",
+    "source_commit": "dfca280a35a78d4f1f00b143bb5198ab733bfd87",
     "assessment_basis": "reviewed_main_commit",
     "branch": "claude/ui-u-recovery-copy-20261124",
     "task": "U05: specific Full/Quota/known-I/O save-failure copy and room for long compact status labels (UX-SR07, UX-SR11)",

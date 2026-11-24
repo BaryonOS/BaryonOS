@@ -20,16 +20,18 @@ in `docs/progress.json`, the S09 specifications and GitHub.
 
 ## Current cycle
 
-- **cycle_id:** S-20261124-1
-- **Task:** S09 phase 3 slice B, the `l2-portal` build
+- **cycle_id:** S-20261124-2
+- **Task:** S09 phase 3 slices C and D: kernel cases 25–28, runner and
+  oracle, the 30-stage native gate and both stage-count pins
   (`docs/implementation/S09-L2-NATIVE-EXPORT.md` section 9).
-- **Branch:** `claude/s09-l2-slice-b-main` (replaces the unmerged
-  `claude/s09-l2-slice-b`, which was based on the pre-#477 stack).
+- **Branch:** `claude/s09-l2-slice-cd`.
 - **PR and tested head:** recorded in the pull request.
-- **Evidence:** `docs/verification/s09-l2-native-export-20261124/SLICE-B.md`
-  (host build and static analysis). NOT RUN: any guest execution of the
-  `l2-portal` code (no kernel case selects it yet).
-- **Blockers:** none for slice B.
+- **Evidence:** `docs/verification/s09-l2-slices-cd-20261124/README.md`
+  (local native gate 30/30 at `61349b1f`; host tests).
+- **Pins:** the project owner instructed on 24 November 2026 that there is
+  no integration coordinator; S moves the pins its own change needs, in the
+  same PR.
+- **Blockers:** none.
 
 ## Lessons
 
@@ -38,15 +40,21 @@ in `docs/progress.json`, the S09 specifications and GitHub.
    ignored `build/<name>` directory.
 2. Never match `pkill`/`pgrep -f` on a pattern that also appears in the
    invoking shell command; it kills the caller.
-3. `App::meta` reports `step` and `step + 1`; leave a gap after every `meta`
-   step id.
+3. `App::meta` reports `step` and `step + 1`, and `App::write` reports
+   `step` to `step + 3`; leave a gap after every such step id.
+4. The broker serves one block request at a time across both disks. A portal
+   must reach a READY service (any client call) before its first archive
+   read, or the service's recovery read can fail with `Protocol`.
+5. A native gate failure in one stage can be reproduced alone: copy the
+   parent's `volume-image-*` directory and run `tools/run_volume.py --case
+   <stage> --volume <copy>`. The parent check binds the source fingerprint,
+   so a diagnostic kernel build needs the copied `last-stage.json` updated.
 
 ## Next executable task
 
-S09 phase 3 slices C and D together in one PR: kernel cases 25–28, runner
-and host oracle, `PLAN` 26 → 30 and both protected stage-count pins
-(`.github/workflows/volume-acceptance.yml`, `kvm-pilot.yml`) as described in
-`docs/implementation/S09-L2-NATIVE-STAGE-INTEGRATION-REQUEST.md`. A `PLAN`
-of 30 fails required host-quality until the pins move, so they land
-atomically. The kernel `ARCHIVE_IO` arms must accept the portal's refused
-device-1 write probe (step 702).
+After the slice-C/D PR merges: S09 stays open. Pick the next S09 gap from
+`docs/progress.json` (`delivery_review`, criterion S09): the user-facing
+production copy/restore/export chain (production destination service,
+trusted selection/portal and per-operation enforcement), or the open items
+in section 10 of `docs/implementation/S09-L2-NATIVE-EXPORT.md`. Owner
+decisions D1–D5 and a human audit remain outside S's authority.
