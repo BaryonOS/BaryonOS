@@ -95,7 +95,8 @@ RELAY_EXACT = {case: {RELAY + key: value for key, value in {**_RELAY_COMMON, **v
 }.items()}
 # wire::COMMIT_TICKS: an answered commit stays below it, a withheld one reaches it.
 RELAY_COMMIT_TICKS = 1500
-RELAY_TICKS = {"relay": range(1, RELAY_COMMIT_TICKS), "relay-not-committed": range(1, RELAY_COMMIT_TICKS),
+# 0 is legal for answered commits: on a fast (KVM) host each one can finish within one tick.
+RELAY_TICKS = {"relay": range(0, RELAY_COMMIT_TICKS), "relay-not-committed": range(0, RELAY_COMMIT_TICKS),
                "relay-timeout": range(RELAY_COMMIT_TICKS, 2 * RELAY_COMMIT_TICKS)}
 
 

@@ -431,6 +431,8 @@
       "write_paths": [
         "kernel/src/m2/m3/system.rs",
         "kernel/src/m2/m3/keyring.rs",
+        "kernel/Cargo.toml",
+        "tools/build.py",
         "sdk/examples/keyring/src/",
         "sdk/examples/system/src/",
         "services/keyring/src/wire.rs",

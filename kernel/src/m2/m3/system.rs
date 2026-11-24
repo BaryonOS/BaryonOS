@@ -1557,7 +1557,8 @@ fn relay_check_and_print(s: &State) {
     let latency = if RELAY == 3 {
         (1500..3000).contains(&max_ticks)
     } else {
-        (1..1500).contains(&max_ticks)
+        // 0 is legal: on a fast (KVM) host every commit can finish within one tick.
+        (0..1500).contains(&max_ticks)
     };
     require(
         init_case == RELAY

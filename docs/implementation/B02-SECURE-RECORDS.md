@@ -358,10 +358,14 @@ single instance; it is not full B02 acceptance.
 | `SUPPLY_SECRET = 13` | init → Key Service admin ingress | secret[32], index 0, status 0 | `Ok`, empty |
 | `COMMIT_KEYSTATE = 14` | Key Service → init commit ingress | blob[120]; header `request` = generation ≠ 0 | op `0x8E`, index 0, `request` = generation, length 0; status `Ok` (`COMMITTED`) or `NotReady` (`NOT_COMMITTED`) |
 
-Neither opcode is in `body_bounds`, so every existing service dispatch
-(`dispatch`, `dispatch_record`, `dispatch_random`, `dispatch_persistent`,
-`dispatch_management`) answers `Invalid` without state change (host test
-`relay_opcodes_are_refused_by_every_service_dispatch_without_state_change`).
+Neither opcode is in `body_bounds`. The host test
+`relay_opcodes_are_refused_by_every_service_dispatch_without_state_change`
+shows that `dispatch_domain`, `dispatch_persistent` and `dispatch_management`
+answer `Invalid` without state change. RANDOM ingress never reaches
+`dispatch_random` with them, because `poll_random` refuses any opcode other
+than RANDOM first (`sdk/examples/keyring/src/service.rs`). The native probe
+still sends only opcodes 11 and 12 on the domain endpoint; a native refusal of
+13 and 14 there is not measured.
 `commit_outcome` maps only a canonical `Ok` reply to success and only a
 canonical `NotReady` reply to `StoreError::Failed`; every other reply,
 including a different generation, a dirty tail, a nonzero index or any other
@@ -463,7 +467,7 @@ Common to the three passing cases (`tools/run_system.py` `RELAY_EXACT`,
 | `KEYSTATE_EXPORTS`, `KEYSTATE_RESTORES`, `CRYPTO_RESTORES`, wrong-secret and floor denials | 0 | Relay mode never exports or restores. |
 | `CRYPTO_TAMPER_DENIED` | 9 | The normal profile's 10 includes one AEAD rejection from the wrong-secret RESTORE, which relay mode does not perform. |
 | `COMMIT_TICKS` | 1500 | Bound for one commit including the volume write. The measured answered commit takes 5 ticks, so the bound leaves a margin of about 300× for a slower host while keeping the timeout case under 20 s of TCG time. |
-| `MAX_COMMIT_TICKS` | 1..1499 (answered), 1500..2999 (timeout) | An answered commit returns before `COMMIT_TICKS`; a withheld one returns at the first tick check at or after the deadline (measured exactly 1500). The upper bound 2 × `COMMIT_TICKS` rejects a wait that ignored the deadline while tolerating scheduling delay after it. |
+| `MAX_COMMIT_TICKS` | 0..1499 (answered; 0 occurs under KVM when every commit finishes within one tick), 1500..2999 (timeout) | An answered commit returns before `COMMIT_TICKS`; a withheld one returns at the first tick check at or after the deadline (measured exactly 1500). The upper bound 2 × `COMMIT_TICKS` rejects a wait that ignored the deadline while tolerating scheduling delay after it. |
 | `SUM` | ≠ 0, equals FNV of the current object 8 version on disk | Init's checksum of the last acknowledged blob; random nonces make the value differ per run. |
 | Disk: object 8 | revision 3, versions [3, 2, 1], 120 bytes, `sleutelstatus`, header bound to `NOS-SYSTEM-VOL01`, three distinct nonzero nonces | Three commits; volume `HISTORY = 2` keeps all three. |
 | Disk: volume state | generation 5, 5 chunks, domain clocks [2, 3] | Five volume commits: document and sealed record in domain 0, three key-state versions in domain 1. |
@@ -492,12 +496,24 @@ either job locally (NOT RUN); hosted CI is not run.
 
 ### Residuals
 
-- Cold rollback anchoring and a trusted generation floor remain open (B02-T3);
-  the relay profiles never restore, so the RESTORE custody path for a held
-  secret is not exercised natively.
+- Cold rollback anchoring and a trusted generation floor remain open (B02-T3).
+  Deviation from ADR item 2: in relay mode the admin ingress refuses
+  `EXPORT_PERSISTENT` and `RESTORE_PERSISTENT`, so a relay instance cannot
+  cold-start with RESTORE plus secret supply. Only the fresh-instance supply
+  (`SUPPLY_SECRET`) is implemented; the cold-start half depends on B02-T3.
+- The disk oracle proves that the current object 8 bytes equal the blob init
+  acknowledged and that the header binds `NOS-SYSTEM-VOL01`; it does not prove
+  that generation 3 inside the AEAD restores.
+- The wait for the secret supply before domain traffic has no deadline. It
+  fails closed (no domain request is served), and the kernel's system bound ends
+  the run; the ADR's bounded-wait rule is applied to commit waits.
+- Only `relay-leak` (commit SEND in the app) is a red manifest control; the
+  volume-held, rights and handle-count conditions have no red case.
 - The secret is the compile-time test constant in init (ADR-051). The service
   now retains it, so a reader of Key Service memory can forge lineage (ADR
-  consequence). Wiping relies on `Zeroizing` and kernel frame scrubbing; wiping
+  consequence). `main` never returns, so `HeldSecret`'s
+  drop does not run; the wipe at instance end comes from the kernel zeroing
+  freed frames (`paging::zero_dynamic` via the heap release path); wiping
   of the SDK `Received` envelope copy of the supply request is not separately
   verified.
 - The timeout case withholds the reply before any write, so a timeout after
