@@ -971,6 +971,15 @@ timeout_minutes = 20
 input_sets = ["native"]
 evidence = ["native-network-extensions-evidence"]
 
+[[workflow.job]]
+# N02-T6 (#485): depends on the runner's real DNS and internet; non-required by design.
+id = "native-network-slirp"
+class = "advisory"
+activation = "automatic"
+needs = ["net-broker-quality"]
+timeout_minutes = 15
+evidence = ["native-network-slirp-evidence"]
+
 [[workflow]]
 path = ".github/workflows/net-tls-quality.yml"
 owner = "ci-owner"

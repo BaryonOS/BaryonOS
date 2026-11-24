@@ -47,6 +47,9 @@ job does this today.
 `experimental-m3-m4-smp` in `native-smp.yml` is automatic and blocking despite
 its name, so it is registered as `rwa`. `windows-qemu-test-version.yml` is
 registered as `advisory`; the project owner may promote it.
+`native-network-slirp` in `net-broker-quality.yml` depends on the runner's real
+DNS and internet access and is non-required by design, so it is registered as
+`advisory` too.
 
 ## Catalogue schema (version 1)
 
