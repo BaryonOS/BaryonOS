@@ -230,7 +230,9 @@ summary), `--repo <dir>`, `--catalogue <path>` and `--no-fetch`. `--out`
 defaults to standard output. The summary is written first and the plan file
 is published last, atomically (temporary file, then rename). If any output
 fails, the published plan is the full `output-error:<Type>` emergency plan,
-never the computed one.
+never the computed one. If the emergency plan cannot be published either, the
+file at `--out` is removed (best effort, so no earlier run's plan remains
+there), the emergency plan goes to standard output and the exit status stays 0.
 
 `coverage` needs PyYAML and otherwise reports `coverage-unavailable`. It
 compares the catalogue with `.github/workflows/*.y*ml` (workflows, events,

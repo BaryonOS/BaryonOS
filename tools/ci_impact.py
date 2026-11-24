@@ -1417,6 +1417,10 @@ def main(argv=None):
         try:
             publish_plan(args.out, plan)
         except Exception:
+            if args.out != "-":
+                # Best effort: a consumer must not read an earlier run's plan from --out.
+                with contextlib.suppress(OSError):
+                    os.unlink(args.out)
             sys.stdout.write(plan_text(plan))
     print(f"ci-impact: mode={plan['mode']} plan_id={plan['plan_id']}", file=sys.stderr)
     return 0

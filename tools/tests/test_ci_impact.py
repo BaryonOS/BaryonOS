@@ -807,6 +807,20 @@ class DeterminismAndRobustnessTests(FixtureTestCase):
                     self.assertEqual(stdout.getvalue(), "")
                     self.assertEqual([p.name for p in out.parent.iterdir()], ["plan.json"])  # no temp file left
 
+    def test_failed_publication_removes_a_stale_plan(self):
+        head = self.branch({"apps/solo/src/lib.rs": "// solo 2\n"})
+        out = Path(self._tmp.name) / "out" / "plan.json"
+        argv = ["plan", "--event", "pull_request", "--base-sha", self.base, "--head-sha", head,
+                "--repo", self.repo.root, "--no-fetch", "--out", str(out)]
+        with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()):
+            self.assertEqual(ci_impact.main(argv), 0)
+        self.assertEqual(json.loads(out.read_text())["mode"], "select")  # an earlier run's plan
+        with mock.patch.object(ci_impact.os, "replace", side_effect=OSError("blocked")):
+            with contextlib.redirect_stdout(io.StringIO()) as stdout, contextlib.redirect_stderr(io.StringIO()):
+                self.assertEqual(ci_impact.main(argv), 0)
+        self.assertFull(json.loads(stdout.getvalue()), "output-error:OSError")
+        self.assertEqual(list(out.parent.iterdir()), [])  # neither the stale plan nor a temporary file
+
     def test_invalid_sha_and_unknown_event_are_full(self):
         self.assertFull(self.plan("not-a-sha"), "invalid-sha")
         self.assertFull(self.plan(self.base, event="release"), "unknown-event")
