@@ -1,0 +1,831 @@
+{
+  "schema_version": 1,
+  "case": "relay-not-committed",
+  "source_commit": "07a8879f1cfaf69941952e026a26960c7acbba5b",
+  "source_fingerprint_version": 3,
+  "source_sha256": "ef8f2718d8bf70e30a356fb445db29640c33cd8020a50e018a43f51a48c1daab",
+  "kernel_feature": "test-system-keystate-relay-not-committed",
+  "started_utc": "2026-11-24T11:49:58.955385+00:00",
+  "duration_s": 4.584213833999456,
+  "timeout_s": 180,
+  "raw_qemu_exit": 33,
+  "timed_out": false,
+  "command": [
+    "/usr/bin/qemu-system-x86_64",
+    "-machine",
+    "pc-q35-10.0",
+    "-accel",
+    "tcg,thread=single",
+    "-cpu",
+    "qemu64",
+    "-smp",
+    "1",
+    "-m",
+    "256M",
+    "-nodefaults",
+    "-display",
+    "none",
+    "-monitor",
+    "none",
+    "-serial",
+    "stdio",
+    "-nic",
+    "none",
+    "-no-reboot",
+    "-drive",
+    "if=pflash,unit=0,format=raw,readonly=on,file=build/relay-20261124/run/system-relay-not-committed-7f14fbeab90f42e7ba598ecf82627a44/OVMF_CODE.fd",
+    "-drive",
+    "if=pflash,unit=1,format=raw,file=build/relay-20261124/run/system-relay-not-committed-7f14fbeab90f42e7ba598ecf82627a44/OVMF_VARS.fd",
+    "-drive",
+    "if=virtio,index=0,format=raw,readonly=on,file=fat:build/relay-20261124/run/system-relay-not-committed-7f14fbeab90f42e7ba598ecf82627a44/esp",
+    "-device",
+    "isa-debug-exit,iobase=0xf4,iosize=0x04",
+    "-drive",
+    "if=none,id=volume,format=raw,cache=writeback,readonly=off,file=build/relay-20261124/run/system-image-944ae2f386904268be0f661d1f35fb2c/volume.img",
+    "-device",
+    "virtio-blk-pci,drive=volume,id=volblk,addr=0x5,disable-legacy=on,num-queues=1,queue-size=8,serial=NOS-SYSTEM-TEST",
+    "-object",
+    "rng-random,id=rng0,filename=/dev/urandom",
+    "-device",
+    "virtio-rng-pci,rng=rng0,id=rng,addr=0x6,disable-legacy=on,max-bytes=1048576,period=1000"
+  ],
+  "qemu_version": "QEMU emulator version 10.2.1 (Debian 1:10.2.1+ds-1ubuntu3.3)\nCopyright (c) 2003-2025 Fabrice Bellard and the QEMU Project developers",
+  "manifest": {
+    "schema_version": 1,
+    "profile": "test-system-keystate-relay-not-committed",
+    "kernel_feature": "test-system-keystate-relay-not-committed",
+    "loader_feature": null,
+    "source_fingerprint_version": 3,
+    "source_sha256": "ef8f2718d8bf70e30a356fb445db29640c33cd8020a50e018a43f51a48c1daab",
+    "loader": {
+      "sha256": "9a430e7728537170f2edfe4afd11013ceff015cdacf5ea1dbe65f0f21aeac6c3",
+      "format": "AMD64 PE32+",
+      "subsystem": "EFI_APPLICATION",
+      "imports": 0
+    },
+    "kernel": {
+      "sha256": "399943e04a60fc2a66770e0622574fd36c4114d4e24b0f91927f5822d724c7e8",
+      "entry": 33554432,
+      "segments": [
+        {
+          "flags": 5,
+          "offset": 4096,
+          "address": 33554432,
+          "filesz": 168851,
+          "memsz": 168851,
+          "page_start": 33554432,
+          "page_end": 33726464
+        },
+        {
+          "flags": 4,
+          "offset": 176128,
+          "address": 33726464,
+          "filesz": 383475,
+          "memsz": 383475,
+          "page_start": 33726464,
+          "page_end": 34111488
+        },
+        {
+          "flags": 6,
+          "offset": 561152,
+          "address": 34111488,
+          "filesz": 1723000,
+          "memsz": 5395416,
+          "page_start": 34111488,
+          "page_end": 39510016
+        }
+      ],
+      "sections": [
+        {
+          "name": "",
+          "type": 0,
+          "flags": 0,
+          "size": 0
+        },
+        {
+          "name": ".text",
+          "type": 1,
+          "flags": 6,
+          "size": 168851
+        },
+        {
+          "name": ".rodata",
+          "type": 1,
+          "flags": 50,
+          "size": 383475
+        },
+        {
+          "name": ".data",
+          "type": 1,
+          "flags": 3,
+          "size": 1723000
+        },
+        {
+          "name": ".bss",
+          "type": 8,
+          "flags": 3,
+          "size": 3671000
+        },
+        {
+          "name": ".symtab",
+          "type": 2,
+          "flags": 0,
+          "size": 8712
+        },
+        {
+          "name": ".shstrtab",
+          "type": 3,
+          "flags": 0,
+          "size": 52
+        },
+        {
+          "name": ".strtab",
+          "type": 3,
+          "flags": 0,
+          "size": 20180
+        }
+      ]
+    },
+    "sdk_runtime": false,
+    "document_session": false,
+    "system": {
+      "system_init": {
+        "sha256": "86184abe24893a2929716856afaf78133c3404a1f158223b570c0b8cebbe1038",
+        "elf": {
+          "entry": 1073741824,
+          "segments": [
+            {
+              "flags": 5,
+              "address": 1073741824,
+              "offset": 4096,
+              "filesz": 6,
+              "memsz": 6,
+              "page_start": 1073741824,
+              "page_end": 1073745920
+            },
+            {
+              "flags": 6,
+              "address": 1073807360,
+              "offset": 8192,
+              "filesz": 1088,
+              "memsz": 1088,
+              "page_start": 1073807360,
+              "page_end": 1073811456
+            },
+            {
+              "flags": 4,
+              "address": 1073823744,
+              "offset": 12288,
+              "filesz": 1960,
+              "memsz": 1960,
+              "page_start": 1073823744,
+              "page_end": 1073827840
+            },
+            {
+              "flags": 5,
+              "address": 1073872896,
+              "offset": 16384,
+              "filesz": 27397,
+              "memsz": 27397,
+              "page_start": 1073872896,
+              "page_end": 1073901568
+            }
+          ]
+        }
+      },
+      "system_app": {
+        "sha256": "960ef068289fed2cfebad71bb5a14eec2428cd6e84645bafe47ace780612405b",
+        "elf": {
+          "entry": 1073741824,
+          "segments": [
+            {
+              "flags": 5,
+              "address": 1073741824,
+              "offset": 4096,
+              "filesz": 6,
+              "memsz": 6,
+              "page_start": 1073741824,
+              "page_end": 1073745920
+            },
+            {
+              "flags": 6,
+              "address": 1073807360,
+              "offset": 8192,
+              "filesz": 1112,
+              "memsz": 1112,
+              "page_start": 1073807360,
+              "page_end": 1073811456
+            },
+            {
+              "flags": 4,
+              "address": 1073823744,
+              "offset": 12288,
+              "filesz": 4075,
+              "memsz": 4075,
+              "page_start": 1073823744,
+              "page_end": 1073827840
+            },
+            {
+              "flags": 5,
+              "address": 1073872896,
+              "offset": 16384,
+              "filesz": 55813,
+              "memsz": 55813,
+              "page_start": 1073872896,
+              "page_end": 1073930240
+            }
+          ]
+        }
+      },
+      "system_worker": {
+        "sha256": "29a772588938d8217131b8250b857f54f5c6a7806a948f7382293ec45df67515",
+        "elf": {
+          "entry": 1073741824,
+          "segments": [
+            {
+              "flags": 5,
+              "address": 1073741824,
+              "offset": 4096,
+              "filesz": 322,
+              "memsz": 322,
+              "page_start": 1073741824,
+              "page_end": 1073745920
+            },
+            {
+              "flags": 6,
+              "address": 1073807360,
+              "offset": 8192,
+              "filesz": 1040,
+              "memsz": 1040,
+              "page_start": 1073807360,
+              "page_end": 1073811456
+            },
+            {
+              "flags": 5,
+              "address": 1073872896,
+              "offset": 12288,
+              "filesz": 580,
+              "memsz": 580,
+              "page_start": 1073872896,
+              "page_end": 1073876992
+            }
+          ]
+        }
+      },
+      "keyring_service": {
+        "sha256": "1827aa7a6263990e84de904944ed5a350a855f0f565c171b94dbd11ea4135c8a",
+        "elf": {
+          "entry": 1073741824,
+          "segments": [
+            {
+              "flags": 5,
+              "address": 1073741824,
+              "offset": 4096,
+              "filesz": 6,
+              "memsz": 6,
+              "page_start": 1073741824,
+              "page_end": 1073745920
+            },
+            {
+              "flags": 6,
+              "address": 1073807360,
+              "offset": 8192,
+              "filesz": 1144,
+              "memsz": 1144,
+              "page_start": 1073807360,
+              "page_end": 1073811456
+            },
+            {
+              "flags": 4,
+              "address": 1073823744,
+              "offset": 12288,
+              "filesz": 2347,
+              "memsz": 2347,
+              "page_start": 1073823744,
+              "page_end": 1073827840
+            },
+            {
+              "flags": 5,
+              "address": 1073872896,
+              "offset": 16384,
+              "filesz": 78147,
+              "memsz": 78147,
+              "page_start": 1073872896,
+              "page_end": 1073954816
+            }
+          ]
+        }
+      },
+      "volume_service": {
+        "sha256": "55b997f29008fa759919316c04cf229c74cb26acb149ff803b8356d024771aa1",
+        "elf": {
+          "entry": 1073741824,
+          "segments": [
+            {
+              "flags": 5,
+              "address": 1073741824,
+              "offset": 4096,
+              "filesz": 50053,
+              "memsz": 50053,
+              "page_start": 1073741824,
+              "page_end": 1073795072
+            },
+            {
+              "flags": 6,
+              "address": 1073807360,
+              "offset": 57344,
+              "filesz": 1096,
+              "memsz": 1096,
+              "page_start": 1073807360,
+              "page_end": 1073811456
+            },
+            {
+              "flags": 4,
+              "address": 1073823744,
+              "offset": 61440,
+              "filesz": 21176,
+              "memsz": 21176,
+              "page_start": 1073823744,
+              "page_end": 1073848320
+            }
+          ]
+        }
+      }
+    }
+  },
+  "run_directory": "/home/simon/projects/BaryonOS-worktrees/b-cycle-20261124/build/relay-20261124/run/system-relay-not-committed-7f14fbeab90f42e7ba598ecf82627a44",
+  "volume_directory": "/home/simon/projects/BaryonOS-worktrees/b-cycle-20261124/build/relay-20261124/run/system-image-944ae2f386904268be0f661d1f35fb2c",
+  "before_sha256": "49c40c316234e2e4e4c8dd681a057b1b36611648896dcacba1794263b711c266",
+  "after_sha256": "00c36fa0249c600a81b7eae3c19f18aaec5e76be0e2d41bc2594812b7203575e",
+  "firmware_sha256": {
+    "code": "874f15a7c9110e78a89db159f0f68fc97e9076b74777520de1c235426f758aa7",
+    "vars_template": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e"
+  },
+  "esp_sha256": {
+    "esp/kernel.elf": "399943e04a60fc2a66770e0622574fd36c4114d4e24b0f91927f5822d724c7e8",
+    "esp/EFI/BOOT/BOOTX64.EFI": "9a430e7728537170f2edfe4afd11013ceff015cdacf5ea1dbe65f0f21aeac6c3"
+  },
+  "passed": true,
+  "cold_case": null,
+  "fixture_environment": {
+    "NOS_SYSTEM_COLD_CASE": null
+  },
+  "cold_antirollback": {
+    "status": "UNPROTECTED",
+    "replay": "NOT_DETECTABLE: cold restore uses minimum_generation 0; older A/B slot (generation 2) has no key-state object; equal-generation stale image with same VOLUME_ID is accepted"
+  },
+  "evidence": {
+    "APP_READY": 2,
+    "APP_DOCS": 1,
+    "APP_DENIED": 3,
+    "APP_REVISION": 1,
+    "APP_BYTES": 4096,
+    "APP_CONTENT_SUM": 287428370566516885,
+    "CRYPTO_SEAL": 3,
+    "CRYPTO_UNSEAL": 2,
+    "CRYPTO_TAMPER_DENIED": 9,
+    "RECORD_SEAL": 1,
+    "RECORD_UNSEAL": 1,
+    "RECORD_CONTEXT_DENIED": 10,
+    "RECORD_REVOKED_DENIED": 2,
+    "CRYPTO_RESTORES": 0,
+    "KEYSTATE_EXPORTS": 0,
+    "KEYSTATE_RESTORES": 0,
+    "KEYSTATE_WRONG_SECRET_DENIED": 0,
+    "KEYSTATE_FLOOR_DENIED": 0,
+    "KEYSTATE_ADMIN_OP_DENIED": 1,
+    "KEYSTATE_BYTES": 120,
+    "KEYSTATE_GENERATION": 3,
+    "ADMIN_REQUESTS": 3,
+    "ADMIN_DENIED": 2,
+    "RECORD_PERSISTED": 1,
+    "RECORD_RESTORED_UNSEAL": 0,
+    "RECORD_RESTORED_REVOKED_DENIED": 0,
+    "RECORD_RESTORED_TAMPER_DENIED": 0,
+    "RECORD_ADMIN_DENIED": 2,
+    "RECORD_OBJECT_REVISION": 1,
+    "WORKER_SPAWNS": 2,
+    "WORKER_FAULTS": 1,
+    "WORKER_RESTARTS": 1,
+    "WORKER_KILLS": 1,
+    "ENTROPY_BYTES": 1024,
+    "DISK_READS": 2352,
+    "DISK_WRITES": 183,
+    "DISK_FLUSHES": 12,
+    "KEYSTATE_RELAY_CASE": 2,
+    "KEYSTATE_RELAY_REQUESTS": 5,
+    "KEYSTATE_RELAY_OK": 3,
+    "KEYSTATE_RELAY_NOT_COMMITTED": 2,
+    "KEYSTATE_RELAY_UNKNOWN": 0,
+    "KEYSTATE_RELAY_LAST_GENERATION": 3,
+    "KEYSTATE_RELAY_SECRET_SUPPLIED": 1,
+    "KEYSTATE_RELAY_SECRET_REFUSED": 1,
+    "KEYSTATE_RELAY_MAX_COMMIT_TICKS": 5,
+    "KEYSTATE_RELAY_INIT_RECEIVED": 5,
+    "KEYSTATE_RELAY_INIT_COMMITTED": 3,
+    "KEYSTATE_RELAY_INIT_REFUSED": 2,
+    "KEYSTATE_RELAY_INIT_WITHHELD": 0,
+    "KEYSTATE_RELAY_INIT_BEGUN": 3,
+    "KEYSTATE_RELAY_INIT_REVISION": 3,
+    "KEYSTATE_RELAY_INIT_GENERATION": 3,
+    "KEYSTATE_RELAY_SUM": 13641874829077358224,
+    "KEYSTATE_RELAY_APP_FIRST": 1,
+    "KEYSTATE_RELAY_APP_SECOND": 1,
+    "LIVE_PROCESSES_AFTER": 0,
+    "FRAMES_RECOVERED": 1
+  },
+  "oracle": {
+    "generation": 5,
+    "clocks": [
+      2,
+      3
+    ],
+    "objects": [
+      {
+        "object": 0,
+        "revision": 1,
+        "present": true,
+        "collection": 0,
+        "tags": 0,
+        "kind": 0,
+        "created": 1,
+        "modified": 1,
+        "request_id": 3,
+        "versions": [
+          {
+            "revision": 1,
+            "length": 4096,
+            "name": "systeemproef",
+            "content_revision": 1,
+            "chunks": [
+              3
+            ]
+          }
+        ]
+      },
+      {
+        "object": 1,
+        "revision": 1,
+        "present": true,
+        "collection": 0,
+        "tags": 0,
+        "kind": 0,
+        "created": 2,
+        "modified": 2,
+        "request_id": 33,
+        "versions": [
+          {
+            "revision": 1,
+            "length": 168,
+            "name": "verzegeld",
+            "content_revision": null,
+            "chunks": [
+              4
+            ],
+            "content_hex": "80f4648477628b60783fc1f9693104c559b068832cca77f3187f2a51a369a68d68c919c31911d62a1ecaa6ac923533be8330b9ea2901cfb4be214ba993b92f3e46f05eaf8755864d1574912801007e23b456511e5bb67152b5415ebe452ec9d4af9a314c993632e1e493f54c55aff654879c8b385b4c6d84fa05ad73964cdd85d96735254cb954c994eacd04b114fba006aeac614aa7b976e6e200eeb8ea7bb52232aa56e63f18f6"
+          }
+        ]
+      },
+      {
+        "object": 2,
+        "revision": 0,
+        "present": false,
+        "collection": 0,
+        "tags": 0,
+        "kind": 0,
+        "created": 0,
+        "modified": 0,
+        "request_id": 0,
+        "versions": []
+      },
+      {
+        "object": 3,
+        "revision": 0,
+        "present": false,
+        "collection": 0,
+        "tags": 0,
+        "kind": 0,
+        "created": 0,
+        "modified": 0,
+        "request_id": 0,
+        "versions": []
+      },
+      {
+        "object": 4,
+        "revision": 0,
+        "present": false,
+        "collection": 0,
+        "tags": 0,
+        "kind": 0,
+        "created": 0,
+        "modified": 0,
+        "request_id": 0,
+        "versions": []
+      },
+      {
+        "object": 5,
+        "revision": 0,
+        "present": false,
+        "collection": 0,
+        "tags": 0,
+        "kind": 0,
+        "created": 0,
+        "modified": 0,
+        "request_id": 0,
+        "versions": []
+      },
+      {
+        "object": 6,
+        "revision": 0,
+        "present": false,
+        "collection": 0,
+        "tags": 0,
+        "kind": 0,
+        "created": 0,
+        "modified": 0,
+        "request_id": 0,
+        "versions": []
+      },
+      {
+        "object": 7,
+        "revision": 0,
+        "present": false,
+        "collection": 0,
+        "tags": 0,
+        "kind": 0,
+        "created": 0,
+        "modified": 0,
+        "request_id": 0,
+        "versions": []
+      },
+      {
+        "object": 8,
+        "revision": 3,
+        "present": true,
+        "collection": 0,
+        "tags": 0,
+        "kind": 0,
+        "created": 1,
+        "modified": 3,
+        "request_id": 514,
+        "versions": [
+          {
+            "revision": 3,
+            "length": 120,
+            "name": "sleutelstatus",
+            "content_revision": null,
+            "chunks": [
+              2
+            ],
+            "content_hex": "4e4f534b45593031010001004e4f532d53595354454d2d564f4c303100000000c7a725ae030d84c95d3b59e9adf985fb5eb5e261328bcb1ba8ce6260eb77c2d1861c62ea943ef7d2f91ca1efa180531510cc534f0b776daaf64f2ad68da1cc44527785a2bcfaa7686fb354c5c68d37813c5e88c0e092a42e"
+          },
+          {
+            "revision": 2,
+            "length": 120,
+            "name": "sleutelstatus",
+            "content_revision": null,
+            "chunks": [
+              1
+            ],
+            "content_hex": "4e4f534b45593031010001004e4f532d53595354454d2d564f4c30310000000002b342b196afefb0effdc3a13df1cd6428a1a0d7c5516f4f63792a05e571065e343d016c494c40c878819c85ccaed9a850efca311f9818317d4b077f6fd4388d955cfa0774b061eb0d2c3ba509c50f05616682ae8c640e71"
+          },
+          {
+            "revision": 1,
+            "length": 120,
+            "name": "sleutelstatus",
+            "content_revision": null,
+            "chunks": [
+              0
+            ],
+            "content_hex": "4e4f534b45593031010001004e4f532d53595354454d2d564f4c3031000000005fe7d59f989639131ed1f641a5089438b43eef3f2553b867771dc8a3bd38028d8796e269511ba3adc14a2e52fdf33350c6f5b1f68a51cfe0a3ac3641ece722906e9020d3f916f8ad1e7172f957246e3f590d86559e8a05d1"
+          }
+        ]
+      },
+      {
+        "object": 9,
+        "revision": 0,
+        "present": false,
+        "collection": 0,
+        "tags": 0,
+        "kind": 0,
+        "created": 0,
+        "modified": 0,
+        "request_id": 0,
+        "versions": []
+      },
+      {
+        "object": 10,
+        "revision": 0,
+        "present": false,
+        "collection": 0,
+        "tags": 0,
+        "kind": 0,
+        "created": 0,
+        "modified": 0,
+        "request_id": 0,
+        "versions": []
+      },
+      {
+        "object": 11,
+        "revision": 0,
+        "present": false,
+        "collection": 0,
+        "tags": 0,
+        "kind": 0,
+        "created": 0,
+        "modified": 0,
+        "request_id": 0,
+        "versions": []
+      },
+      {
+        "object": 12,
+        "revision": 0,
+        "present": false,
+        "collection": 0,
+        "tags": 0,
+        "kind": 0,
+        "created": 0,
+        "modified": 0,
+        "request_id": 0,
+        "versions": []
+      },
+      {
+        "object": 13,
+        "revision": 0,
+        "present": false,
+        "collection": 0,
+        "tags": 0,
+        "kind": 0,
+        "created": 0,
+        "modified": 0,
+        "request_id": 0,
+        "versions": []
+      },
+      {
+        "object": 14,
+        "revision": 0,
+        "present": false,
+        "collection": 0,
+        "tags": 0,
+        "kind": 0,
+        "created": 0,
+        "modified": 0,
+        "request_id": 0,
+        "versions": []
+      },
+      {
+        "object": 15,
+        "revision": 0,
+        "present": false,
+        "collection": 0,
+        "tags": 0,
+        "kind": 0,
+        "created": 0,
+        "modified": 0,
+        "request_id": 0,
+        "versions": []
+      }
+    ],
+    "collections": [
+      {
+        "index": 1,
+        "domain": 0,
+        "present": false,
+        "revision": 0,
+        "name": ""
+      },
+      {
+        "index": 2,
+        "domain": 0,
+        "present": false,
+        "revision": 0,
+        "name": ""
+      },
+      {
+        "index": 3,
+        "domain": 0,
+        "present": false,
+        "revision": 0,
+        "name": ""
+      },
+      {
+        "index": 4,
+        "domain": 0,
+        "present": false,
+        "revision": 0,
+        "name": ""
+      },
+      {
+        "index": 1,
+        "domain": 1,
+        "present": false,
+        "revision": 0,
+        "name": ""
+      },
+      {
+        "index": 2,
+        "domain": 1,
+        "present": false,
+        "revision": 0,
+        "name": ""
+      },
+      {
+        "index": 3,
+        "domain": 1,
+        "present": false,
+        "revision": 0,
+        "name": ""
+      },
+      {
+        "index": 4,
+        "domain": 1,
+        "present": false,
+        "revision": 0,
+        "name": ""
+      }
+    ],
+    "chunks_used": 5,
+    "slots": [
+      [
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4
+      ],
+      [
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5
+      ]
+    ],
+    "slot_markers": [
+      false,
+      false
+    ],
+    "digests": [
+      17236954599636199492,
+      10831454344839277794
+    ]
+  }
+}

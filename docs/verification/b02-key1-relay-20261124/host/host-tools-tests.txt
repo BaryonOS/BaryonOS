@@ -1,0 +1,136 @@
+.............................................................................................s.............................................ssssssssssssss..................................................................................................................................................................................................................................................................................................................................................................................................................Issue-driven execution is disabled pending the fully verified PR #355 security boundary.
+Issue-driven execution is disabled pending the fully verified PR #355 security boundary.
+..........................................................................lease left in place: the state directory /tmp/tmpeg6pdzqf/repo/build/roadmap-pipeline cannot be opened without following a link (Not a directory); remove the link
+......................manual-run cannot start /tmp/tmpw73e8l8a/missing-codex: [Errno 2] No such file or directory: '/tmp/tmpw73e8l8a/missing-codex'; its start record stays, so the claim needs `resume --accept-orphans f029c5a333f1447aae9b896a55c387b1`
+...................#7: 
+CAPBENCH passed=False raw=33; /tmp/capbench-HOST_ONLY-7aqqty__/checkout/build/run/cap-bench-b869b0693f4742319e1106da1eb197b8
+Frozen guest/archive input changed: inputs/system_app.elf
+CAPBENCH passed=False raw=33; /tmp/capbench-HOST_ONLY-6xlhwlxu/checkout/build/run/cap-bench-8fb539ac0efc427a9e756d94d3a30b7c
+Frozen guest/archive input changed: OVMF_CODE.fd
+CAPBENCH passed=True raw=33; /tmp/capbench-HOST_ONLY-h6_xpplx/checkout/build/run/cap-bench-382264d31b274582bf1812c31fd48014
+CAPBENCH passed=False raw=33; /tmp/capbench-HOST_ONLY-g0jhp2ed/checkout/build/run/cap-bench-ff0fd3d0095b458fa31b0aaf136667e0
+Symlink in FPU artifact path
+CAPBENCH passed=False raw=33; /tmp/capbench-HOST_ONLY-by06cxek/checkout/build/run/cap-bench-f6f665cdfcbc4985ae9612f20a6f91fb
+Frozen source input changed: /tmp/capbench-HOST_ONLY-by06cxek/checkout/source-code.fd
+CAPBENCH passed=False raw=33; /tmp/capbench-HOST_ONLY-by06cxek/checkout/build/run/cap-bench-8d3345a7b19e4d9b9166f29680172fd7
+Frozen source input changed: /tmp/capbench-HOST_ONLY-by06cxek/checkout/source-vars.fd
+CAPBENCH passed=False raw=33; /tmp/capbench-HOST_ONLY-by06cxek/checkout/build/run/cap-bench-581bdbc501e345508315ec4b6340bbbc
+Frozen source input changed: /tmp/capbench-HOST_ONLY-by06cxek/checkout/qemu-system-x86_64
+CAPBENCH passed=False raw=33; /tmp/capbench-HOST_ONLY-by06cxek/checkout/build/run/cap-bench-11bc110e498a4089948837da4d101758
+Frozen source input changed: /tmp/capbench-HOST_ONLY-by06cxek/checkout/build/manifest.json
+CAPBENCH passed=False raw=33; /tmp/capbench-HOST_ONLY-by06cxek/checkout/build/run/cap-bench-523f634f756f459ab44ce6c35c557114
+Frozen source input changed: /tmp/capbench-HOST_ONLY-by06cxek/checkout/build/esp/kernel.elf
+CAPBENCH passed=False raw=33; /tmp/capbench-HOST_ONLY-by06cxek/checkout/build/run/cap-bench-7e3dcc2c0fba4be7bd9e4aa3e8a0559f
+Frozen source input changed: /tmp/capbench-HOST_ONLY-by06cxek/checkout/build/esp/EFI/BOOT/BOOTX64.EFI
+CAPBENCH passed=False raw=33; /tmp/capbench-HOST_ONLY-by06cxek/checkout/build/run/cap-bench-baaac41307d640d0887dbc36f1827878
+Frozen source input changed: /tmp/capbench-HOST_ONLY-by06cxek/checkout/target/system-system/x86_64-unknown-none/release/system-app
+CAPBENCH passed=False raw=33; /tmp/capbench-HOST_ONLY-by06cxek/checkout/build/run/cap-bench-b0858173f0574414943018ff280c9867
+Frozen source input changed: /tmp/capbench-HOST_ONLY-by06cxek/checkout/kernel/src/m2/m3/cap_bench.rs
+CAPBENCH passed=False raw=33; /tmp/capbench-HOST_ONLY-e6txj4tr/checkout/build/run/cap-bench-ab4960a2505244288f4f6f18a9dd0cc8
+Frozen guest/archive input changed: OVMF_VARS.template.fd
+CAPBENCH passed=False raw=33; /tmp/capbench-HOST_ONLY-e6txj4tr/checkout/build/run/cap-bench-e98680fa37404d7183b37e4d5c15934b
+Frozen guest/archive input changed: inputs/manifest.json
+CAPBENCH passed=False raw=33; /tmp/capbench-HOST_ONLY-e6txj4tr/checkout/build/run/cap-bench-007b887074eb42c1b3a80ad190aa1de1
+Frozen guest/archive input changed: inputs/frozen-inputs.json
+CAPBENCH passed=False raw=33; /tmp/capbench-HOST_ONLY-e6txj4tr/checkout/build/run/cap-bench-b3b0d8ad5b1b48b2b61047f3c3e257ea
+Frozen guest/archive input changed: volume.img
+CAPBENCH passed=False raw=33; /tmp/capbench-HOST_ONLY-e6txj4tr/checkout/build/run/cap-bench-e3dfd670d8ee48cdaebcfa13e1746a89
+Frozen guest/archive input changed: volume.json
+CAPBENCH passed=True raw=33; /tmp/capbench-HOST_ONLY-3ej9uk_x/checkout/build/run/cap-bench-6b78f75af8824cfdbcbbb1a90d7cb2e2
+gen_design_tokens: tokens.css matches tokens.source.json
+IMAGES normal: passed=False gate=False /tmp/tmpezvp7aby/checkout/build/run/system-normal-11111111111111111111111111111111
+ValueError: changed serial
+IMAGES normal: passed=False gate=False /tmp/tmpezvp7aby/checkout/build/run/system-normal-11111111111111111111111111111111
+ValueError: source, QEMU or firmware changed during image gate
+Built and inspected normal: 0 ELF load segments
+RANDOM raw: passed=False gate=False /tmp/tmp0crv1gbj/checkout/build/run/system-normal-11111111111111111111111111111111
+ValueError: changed serial
+RANDOM raw: passed=False gate=False /tmp/tmp0crv1gbj/checkout/build/run/system-normal-11111111111111111111111111111111
+ValueError: source, QEMU or firmware changed during RANDOM gate
+{"at": "2026-11-24T11:13:36+00:00", "event": "init-check", "session": "s", "exit": 0, "transcript": {}, "output": {}}
+{"at": "2026-11-24T11:13:36+00:00", "event": "init-check", "session": "s", "exit": 0, "transcript": {}, "output": {}}
+{"at": "2026-11-24T11:13:36+00:00", "event": "init-check", "session": "s", "exit": 1, "transcript": {}, "output": {}}
+{"at": "2026-11-24T11:13:36+00:00", "event": "init-check", "session": "s", "exit": 0, "transcript": {}, "output": {}}
+{"at": "2026-11-24T11:13:36+00:00", "event": "stop", "reason": "no ready task with verified dependencies"}
+......~/projects/BaryonOS-worktrees/b-cycle-20261124/tools/tests/test_roadmap_runner.py:2973: ResourceWarning: unclosed file <_io.TextIOWrapper name=4 mode='a+' encoding='UTF-8'>
+  self.live_state(tmp) as (repo, state, controller):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+~/projects/BaryonOS-worktrees/b-cycle-20261124/tools/tests/test_roadmap_runner.py:2973: ResourceWarning: unclosed file <_io.TextIOWrapper name=4 mode='a+' encoding='UTF-8'>
+  self.live_state(tmp) as (repo, state, controller):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+....................................................................................................................................................................................................................................................................................................window_latency_baseline: /tmp/tmp0b751ewg/report-0.json: report did not pass (passed/raw exit 33/error)
+........window_latency_baseline: /tmp/tmpja5oedpc/report-0.json: phase editor is not a JSON object
+window_latency_baseline: /tmp/tmpnh0wlyo5/report-0.json: phase editor is not a JSON object
+window_latency_baseline: /tmp/tmpa1i382sz/report-0.json: phase editor is not a JSON object
+window_latency_baseline: /tmp/tmpd7gn9seo/report-0.json: phase editor is not a JSON object
+.window_latency_baseline: /tmp/tmpx5vb7ixi/report-0.json: invalid last_input_kind for editor
+window_latency_baseline: /tmp/tmp5xh0mn2d/report-0.json: report lacks a run_directory string
+window_latency_baseline: /tmp/tmphw7aa6np/report-0.json: invalid last_input_kind for editor
+window_latency_baseline: /tmp/tmpf5ant8gt/report-0.json: report lacks a run_directory string
+window_latency_baseline: /tmp/tmpxo73ljnd/report-0.json: invalid last_input_kind for editor
+window_latency_baseline: /tmp/tmpoihal14_/report-0.json: report lacks a run_directory string
+window_latency_baseline: /tmp/tmpj_l760tr/report-0.json: invalid last_input_kind for editor
+window_latency_baseline: /tmp/tmpgdiiy_7t/report-0.json: report lacks a run_directory string
+.window_latency_baseline: /tmp/tmpa5d7uqi_/report-0.json: -machine and -accel values must be strings
+window_latency_baseline: /tmp/tmpngaajv4j/report-0.json: -machine and -accel values must be strings
+window_latency_baseline: /tmp/tmpwguguz2p/report-0.json: -machine and -accel values must be strings
+window_latency_baseline: /tmp/tmp9p1ymy35/report-0.json: -machine and -accel values must be strings
+window_latency_baseline: /tmp/tmp8lluxriy/report-0.json: -machine and -accel values must be strings
+window_latency_baseline: /tmp/tmpo6qa0u5w/report-0.json: -machine and -accel values must be strings
+window_latency_baseline: /tmp/tmpyubipt6c/report-0.json: -machine and -accel values must be strings
+window_latency_baseline: /tmp/tmpm9_4y8_x/report-0.json: -machine and -accel values must be strings
+............
+----------------------------------------------------------------------
+Ran 990 tests in 33.052s
+
+OK (skipped=15)
+stop file present (build/roadmap-pipeline/STOP)
+BOOT:EBS_OK
+KERNEL:ENTRY
+BOOTINFO:OK
+KS-01:PASS
+KS-02:PASS
+KS-03:PASS
+RTC:UTC:1793361600
+RTC:DATE:2026,10,30,12,0,0
+RTC:QUALITY:UNAUTHENTICATED
+RTC:NEGATIVE:PASS
+RTC:RESTORE:PASS
+RTC:PASS
+M2:PASS
+M1:PASS
+QEMU raw=33; expected=33; timeout=False; expectation_pass=True; /tmp/tmpv4js94ac/build/run/smoke-2f3af6571b
+BOOT:EBS_OK
+KERNEL:ENTRY
+BOOTINFO:OK
+KS-01:PASS
+KS-02:PASS
+KS-03:PASS
+RTC:UTC:1793361600
+RTC:DATE:2026,10,30,12,0,0
+RTC:QUALITY:UNAUTHENTICATED
+RTC:NEGATIVE:PASS
+RTC:RESTORE:PASS
+RTC:PASS
+M2:PASS
+M1:PASS
+QEMU raw=33; expected=33; timeout=False; expectation_pass=True; /tmp/tmpv4js94ac/build/run/smoke-641f44ca1a
+B04 secure-boot unsigned: expected=refused passed=True raw=-9 timeout=True duration=1.0s /tmp/tmprwhi2jfi/docs/runs/unsigned
+B04 secure-boot signed: expected=boot passed=True raw=33 timeout=False duration=1.0s /tmp/tmprwhi2jfi/docs/runs/signed
+B04 secure-boot tampered: expected=refused passed=True raw=-9 timeout=True duration=1.0s /tmp/tmprwhi2jfi/docs/runs/tampered
+B04 secure-boot kernel-digest: expected=boot passed=True raw=33 timeout=False duration=1.0s /tmp/tmprwhi2jfi/docs/runs/kernel-digest
+B04 secure-boot wrong-key: expected=refused passed=False
+  case did not complete: RuntimeError: boom
+B04 secure-boot TEST chain: 4/5 as expected
+refusing --evidence: [Errno 17] File exists: '/tmp/tmpjbcu1b3y/docs/verification/earlier-capture'
+refusing --evidence: --evidence must be a new direct child of /tmp/tmpl2erg3iv/docs/verification, not /tmp/tmpl2erg3iv/docs/elsewhere
+refusing --evidence: --evidence must be a new direct child of /tmp/tmpl2erg3iv/docs/verification, not /tmp/tmpl2erg3iv/docs/verification
+refusing --evidence: --evidence must be a new direct child of /tmp/tmpl2erg3iv/docs/verification, not /tmp/tmpl2erg3iv/docs/verification/a/nested
+refusing --evidence: --evidence must be a new direct child of /tmp/tmpl2erg3iv/docs/verification, not /tmp/tmpl2erg3iv/docs/escape
+B04 secure-boot unsigned: expected=refused passed=True raw=-9 timeout=True duration=0.0s /tmp/tmpmfdl31w5/run/secure-boot-unsigned-5b2fa80cc7
+secboot CODE sha256 0000000000000000000000000000000000000000000000000000000000000000 is not the pinned build
+snakeoil VARS template sha256 0000000000000000000000000000000000000000000000000000000000000000 is not the pinned build
+TCG host-observed baseline, not U02 acceptance, no budget. Each interval runs from the start of the last injected QMP input to an exact full app-body oracle match and includes QMP, polling and capture overhead.
+runs=2 accepted=null budget=null
+phase count min_ms p50_ms p95_ms max_ms last_input
+editor 2 100 100 200 200 key

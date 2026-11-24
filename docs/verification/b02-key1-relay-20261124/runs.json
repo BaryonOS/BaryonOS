@@ -1,0 +1,222 @@
+{
+  "schema_version": 1,
+  "kernels_built": {
+    "build-relay": "067a8fcca48f7c6353ae8de897d2f43e338a5e425cc9a12ffa835c7a5e7c4d67",
+    "build-relay-not-committed": "5080445f6d3d011cbec8e0d30e06abdc3a60786d5698ca49f3558713c40af163",
+    "build-relay-timeout": "b68fe58873a9bb8fe1505f9635f77f560675ab11b0235cdc328850b4a292147e",
+    "build-relay-leak": "b6cbcb16ee394f4ed0a940573ae467f0481b8f3285b5fc814635309eefaa6a36",
+    "build-normal": "29a9f54185d6e2fec8f561142c405d7153f73d61fdd086f11070248a8a9dfbb7"
+  },
+  "runs": {
+    "relay": {
+      "case": "relay",
+      "passed": true,
+      "raw_qemu_exit": 33,
+      "timed_out": false,
+      "duration_s": 4.634632811999836,
+      "source_commit": "d4db823e6d80afee937f5d5af71cef96dfe098ee",
+      "source_sha256": "e6d90fbf49e213bb84b14517a2b65eaec73bec84b959ff1276898d98d9de1562",
+      "kernel_feature": "test-system-keystate-relay",
+      "before_sha256": "49c40c316234e2e4e4c8dd681a057b1b36611648896dcacba1794263b711c266",
+      "after_sha256": "84ff722ffe013be76455f1bdc946d9e6a855bf75893031647abd111931fc9278",
+      "run_directory": "build/relay-20261124/run/system-relay-4f415e5fa68c4b17a7004a9b793038df",
+      "relay": {
+        "KEYSTATE_RELAY_CASE": 1,
+        "KEYSTATE_RELAY_REQUESTS": 3,
+        "KEYSTATE_RELAY_OK": 3,
+        "KEYSTATE_RELAY_NOT_COMMITTED": 0,
+        "KEYSTATE_RELAY_UNKNOWN": 0,
+        "KEYSTATE_RELAY_LAST_GENERATION": 3,
+        "KEYSTATE_RELAY_SECRET_SUPPLIED": 1,
+        "KEYSTATE_RELAY_SECRET_REFUSED": 1,
+        "KEYSTATE_RELAY_MAX_COMMIT_TICKS": 5,
+        "KEYSTATE_RELAY_INIT_RECEIVED": 3,
+        "KEYSTATE_RELAY_INIT_COMMITTED": 3,
+        "KEYSTATE_RELAY_INIT_REFUSED": 0,
+        "KEYSTATE_RELAY_INIT_WITHHELD": 0,
+        "KEYSTATE_RELAY_INIT_BEGUN": 3,
+        "KEYSTATE_RELAY_INIT_REVISION": 3,
+        "KEYSTATE_RELAY_INIT_GENERATION": 3,
+        "KEYSTATE_RELAY_SUM": 11960207073974542976,
+        "KEYSTATE_RELAY_APP_FIRST": 0,
+        "KEYSTATE_RELAY_APP_SECOND": 0
+      },
+      "volume": {
+        "generation": 5,
+        "chunks_used": 5,
+        "clocks": [
+          2,
+          3
+        ],
+        "object8_versions": [
+          3,
+          2,
+          1
+        ]
+      }
+    },
+    "relay-not-committed": {
+      "case": "relay-not-committed",
+      "passed": true,
+      "raw_qemu_exit": 33,
+      "timed_out": false,
+      "duration_s": 4.599220641000102,
+      "source_commit": "d4db823e6d80afee937f5d5af71cef96dfe098ee",
+      "source_sha256": "e6d90fbf49e213bb84b14517a2b65eaec73bec84b959ff1276898d98d9de1562",
+      "kernel_feature": "test-system-keystate-relay-not-committed",
+      "before_sha256": "49c40c316234e2e4e4c8dd681a057b1b36611648896dcacba1794263b711c266",
+      "after_sha256": "f7fcb2af6b73f333476475f9c2b4798d8d3da05c5df71e4d15a46de5c1f05661",
+      "run_directory": "build/relay-20261124/run/system-relay-not-committed-3650d2d5935b4c8196e784d4dcde205e",
+      "relay": {
+        "KEYSTATE_RELAY_CASE": 2,
+        "KEYSTATE_RELAY_REQUESTS": 5,
+        "KEYSTATE_RELAY_OK": 3,
+        "KEYSTATE_RELAY_NOT_COMMITTED": 2,
+        "KEYSTATE_RELAY_UNKNOWN": 0,
+        "KEYSTATE_RELAY_LAST_GENERATION": 3,
+        "KEYSTATE_RELAY_SECRET_SUPPLIED": 1,
+        "KEYSTATE_RELAY_SECRET_REFUSED": 1,
+        "KEYSTATE_RELAY_MAX_COMMIT_TICKS": 5,
+        "KEYSTATE_RELAY_INIT_RECEIVED": 5,
+        "KEYSTATE_RELAY_INIT_COMMITTED": 3,
+        "KEYSTATE_RELAY_INIT_REFUSED": 2,
+        "KEYSTATE_RELAY_INIT_WITHHELD": 0,
+        "KEYSTATE_RELAY_INIT_BEGUN": 3,
+        "KEYSTATE_RELAY_INIT_REVISION": 3,
+        "KEYSTATE_RELAY_INIT_GENERATION": 3,
+        "KEYSTATE_RELAY_SUM": 18341430797381360161,
+        "KEYSTATE_RELAY_APP_FIRST": 1,
+        "KEYSTATE_RELAY_APP_SECOND": 1
+      },
+      "volume": {
+        "generation": 5,
+        "chunks_used": 5,
+        "clocks": [
+          2,
+          3
+        ],
+        "object8_versions": [
+          3,
+          2,
+          1
+        ]
+      }
+    },
+    "relay-timeout": {
+      "case": "relay-timeout",
+      "passed": true,
+      "raw_qemu_exit": 33,
+      "timed_out": false,
+      "duration_s": 19.618515488000412,
+      "source_commit": "d4db823e6d80afee937f5d5af71cef96dfe098ee",
+      "source_sha256": "e6d90fbf49e213bb84b14517a2b65eaec73bec84b959ff1276898d98d9de1562",
+      "kernel_feature": "test-system-keystate-relay-timeout",
+      "before_sha256": "49c40c316234e2e4e4c8dd681a057b1b36611648896dcacba1794263b711c266",
+      "after_sha256": "17197c35a4b7a1794671b9c74b4af2e360507fe95b642ecc6513e68bd10c7269",
+      "run_directory": "build/relay-20261124/run/system-relay-timeout-3e476348c9ab4734802967231dfef832",
+      "relay": {
+        "KEYSTATE_RELAY_CASE": 3,
+        "KEYSTATE_RELAY_REQUESTS": 4,
+        "KEYSTATE_RELAY_OK": 3,
+        "KEYSTATE_RELAY_NOT_COMMITTED": 0,
+        "KEYSTATE_RELAY_UNKNOWN": 1,
+        "KEYSTATE_RELAY_LAST_GENERATION": 3,
+        "KEYSTATE_RELAY_SECRET_SUPPLIED": 1,
+        "KEYSTATE_RELAY_SECRET_REFUSED": 1,
+        "KEYSTATE_RELAY_MAX_COMMIT_TICKS": 1500,
+        "KEYSTATE_RELAY_INIT_RECEIVED": 4,
+        "KEYSTATE_RELAY_INIT_COMMITTED": 3,
+        "KEYSTATE_RELAY_INIT_REFUSED": 0,
+        "KEYSTATE_RELAY_INIT_WITHHELD": 1,
+        "KEYSTATE_RELAY_INIT_BEGUN": 3,
+        "KEYSTATE_RELAY_INIT_REVISION": 3,
+        "KEYSTATE_RELAY_INIT_GENERATION": 3,
+        "KEYSTATE_RELAY_SUM": 2406263883789125846,
+        "KEYSTATE_RELAY_APP_FIRST": 7,
+        "KEYSTATE_RELAY_APP_SECOND": 7
+      },
+      "volume": {
+        "generation": 5,
+        "chunks_used": 5,
+        "clocks": [
+          2,
+          3
+        ],
+        "object8_versions": [
+          3,
+          2,
+          1
+        ]
+      }
+    },
+    "relay-leak": {
+      "case": "relay-leak",
+      "passed": true,
+      "raw_qemu_exit": 35,
+      "timed_out": false,
+      "duration_s": 1.7589392680001765,
+      "source_commit": "d4db823e6d80afee937f5d5af71cef96dfe098ee",
+      "source_sha256": "e6d90fbf49e213bb84b14517a2b65eaec73bec84b959ff1276898d98d9de1562",
+      "kernel_feature": "test-system-keystate-relay-leak",
+      "before_sha256": "49c40c316234e2e4e4c8dd681a057b1b36611648896dcacba1794263b711c266",
+      "after_sha256": "49c40c316234e2e4e4c8dd681a057b1b36611648896dcacba1794263b711c266",
+      "run_directory": "build/relay-20261124/run/system-relay-leak-ee930862597d4b20967c298867cbf633",
+      "relay": {}
+    },
+    "normal": {
+      "case": "normal",
+      "passed": true,
+      "raw_qemu_exit": 33,
+      "timed_out": false,
+      "duration_s": 4.559903029999987,
+      "source_commit": "d4db823e6d80afee937f5d5af71cef96dfe098ee",
+      "source_sha256": "e6d90fbf49e213bb84b14517a2b65eaec73bec84b959ff1276898d98d9de1562",
+      "kernel_feature": "native-system",
+      "before_sha256": "49c40c316234e2e4e4c8dd681a057b1b36611648896dcacba1794263b711c266",
+      "after_sha256": "3391b758ae94ed23dbee8cd2e4585e984290dbeda46a742c9b12d72ab50c4931",
+      "run_directory": "build/relay-20261124/run/system-normal-e4c10aae6d9743eeab2aece56e002716",
+      "relay": {},
+      "volume": {
+        "generation": 3,
+        "chunks_used": 3,
+        "clocks": [
+          2,
+          1
+        ],
+        "object8_versions": [
+          1
+        ]
+      }
+    }
+  },
+  "final_gate": {
+    "status": "completed",
+    "passed": true,
+    "final_kernel_sha256": "29a9f54185d6e2fec8f561142c405d7153f73d61fdd086f11070248a8a9dfbb7",
+    "source_sha256": "e6d90fbf49e213bb84b14517a2b65eaec73bec84b959ff1276898d98d9de1562",
+    "relay_stages": [
+      [
+        "relay",
+        true,
+        33
+      ],
+      [
+        "relay-not-committed",
+        true,
+        33
+      ],
+      [
+        "relay-timeout",
+        true,
+        33
+      ]
+    ],
+    "relay_red": [
+      [
+        "relay-leak",
+        true,
+        35
+      ]
+    ]
+  }
+}

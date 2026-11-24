@@ -14,8 +14,8 @@ use keyring_core::{
     wire as kw, Status as KeyStatus, SECRET_BYTES,
 };
 use nieuw_os_sdk_runtime::{
-    native, BlockDevice, Capability, EntropySource, Error, Handle, LaunchImage, ProcessStatus,
-    ReceiveEndpoint, Rights, SendEndpoint,
+    native, BlockDevice, Capability, EntropySource, Error, Handle, LaunchImage, Outgoing,
+    ProcessStatus, ReceiveEndpoint, Rights, SendEndpoint,
 };
 use protocol::*;
 use volume_core::{checksum_update, client::Client, FNV_OFFSET};
@@ -28,6 +28,37 @@ const EV_FLOOR_DENIED: u64 = 456;
 const EV_ADMIN_OP_DENIED: u64 = 464;
 const EV_KEYSTATE_BYTES: u64 = 472;
 const EV_GENERATION: u64 = 480;
+// ADR-B02-KEY1-RELAY-20261123 (test profile): startup words from the kernel's
+// relay manifest and the relay evidence words it reads at init's exit.
+const RELAY_COMMIT_RECEIVE: u64 = 192;
+const RELAY_COMMIT_REPLY: u64 = 200;
+const RELAY_CASE: u64 = 208;
+const EV_RELAY_RECEIVED: u64 = 760;
+const EV_RELAY_COMMITTED: u64 = 768;
+const EV_RELAY_REFUSED: u64 = 776;
+const EV_RELAY_WITHHELD: u64 = 784;
+const EV_RELAY_GENERATION: u64 = 792;
+const EV_RELAY_SUM: u64 = 800;
+const EV_RELAY_REVISION: u64 = 808;
+const EV_RELAY_BEGUN: u64 = 816;
+/// Bound of one relay phase (KEYS_READY, then DONE) in 100 Hz ticks.
+const RELAY_PHASE_TICKS: u64 = 6000;
+/// Committed key-state header: format, version, suite, volume id, reserved.
+const KEYSTATE_HEADER: [u8; 32] = {
+    let mut header = [0u8; 32];
+    let magic = *b"NOSKEY01";
+    let mut i = 0;
+    while i < 16 {
+        if i < 8 {
+            header[i] = magic[i];
+        }
+        header[12 + i] = VOLUME_ID[i];
+        i += 1;
+    }
+    header[8] = 1;
+    header[10] = 1;
+    header
+};
 
 /// Synthetic acceptance secret of this profile's recovery agent. It is test
 /// fixture data for the disposable VM image only: a product recovery agent
@@ -131,6 +162,195 @@ impl KeyAdmin {
         bump(EV_FLOOR_DENIED);
         self.legacy_denied();
     }
+}
+
+/// Relay mode: supply the external secret once, before any domain traffic,
+/// then show that a second supply and a key opcode on the admin ingress are
+/// refused. Init makes no other call into the Key Service after this.
+#[inline(never)]
+fn supply_secret() {
+    let mut keys = admin();
+    let id = keys.id();
+    let mut request = kw::supply_secret_request(id, &RECOVERY_SECRET);
+    keys.call(&mut request, KeyStatus::Ok);
+    let mut wrong = RECOVERY_SECRET;
+    wrong[0] ^= 1;
+    let id = keys.id();
+    let mut request = kw::supply_secret_request(id, &wrong);
+    clear_bytes(&mut wrong);
+    keys.call(&mut request, KeyStatus::Invalid);
+    keys.legacy_denied();
+}
+
+/// Init's side of the key-state commit ingress. The kernel endpoint object
+/// is the authority; the sender check below is defense in depth only.
+struct Relay {
+    receive: ReceiveEndpoint,
+    reply: SendEndpoint,
+    key: u64,
+    case: u64,
+    store: Client<VolumeTransport>,
+    revision: u64,
+}
+
+impl Relay {
+    fn reply(&self, message: &[u8; kw::SIZE]) {
+        let out = Outgoing::new(kw::TAG, message).unwrap_or_else(|_| fail(100));
+        for _ in 0..LIMIT {
+            tick();
+            match native::send(self.reply, &out) {
+                Ok(()) => return,
+                Err(e) if e.is_again() => {
+                    let _ = native::yield_now();
+                }
+                Err(_) => fail(101),
+            }
+        }
+        fail(102)
+    }
+
+    /// At most one commit request per call; never blocks when none is queued.
+    fn poll(&mut self) {
+        tick();
+        let message = match native::receive(self.receive) {
+            Ok(message) => message,
+            Err(e) if e.is_again() => return,
+            Err(_) => fail(103),
+        };
+        bump(EV_RELAY_RECEIVED);
+        let payload = message.payload();
+        let header = kw::Header::decode(payload).unwrap_or(kw::Header {
+            op: kw::COMMIT_KEYSTATE,
+            index: 0,
+            length: 0,
+            request: 0,
+            status: 0,
+        });
+        let request = if message.cap_count() != 0 {
+            let _ = native::close_received_caps(&message);
+            None
+        } else if message.sender() != self.key || message.tag() != kw::TAG {
+            None
+        } else {
+            kw::decode_commit_request(payload).filter(|(_, blob)| blob[..32] == KEYSTATE_HEADER)
+        };
+        // Refused before any volume call: certainly not committed.
+        let Some((generation, blob)) = request else {
+            bump(EV_RELAY_REFUSED);
+            self.reply(&kw::commit_reply(&header, false));
+            return;
+        };
+        if support::word(EV_RELAY_RECEIVED) > 3 {
+            match self.case {
+                2 => {
+                    bump(EV_RELAY_REFUSED);
+                    self.reply(&kw::commit_reply(&header, false));
+                }
+                3 => bump(EV_RELAY_WITHHELD),
+                _ => fail(104),
+            }
+            return;
+        }
+        // From here NOT_COMMITTED is never sent: every write error after this
+        // point is reported as Degraded, which the service maps to Unknown.
+        bump(EV_RELAY_BEGUN);
+        let written = self.store.write(
+            KEYSTATE_OBJECT,
+            self.revision,
+            KEYSTATE_NAME,
+            PERSISTENT_BLOB,
+            |offset, buffer| buffer.copy_from_slice(&blob[offset..offset + buffer.len()]),
+        );
+        match written {
+            Ok((revision, _)) if revision == self.revision + 1 => {
+                self.revision = revision;
+                bump(EV_RELAY_COMMITTED);
+                support::put(EV_RELAY_GENERATION, generation);
+                support::put(EV_RELAY_SUM, checksum_update(FNV_OFFSET, &blob));
+                support::put(EV_RELAY_REVISION, revision);
+                self.reply(&kw::commit_reply(&header, true));
+            }
+            _ => self.reply(&kw::reply(&header, KeyStatus::Degraded, &[])),
+        }
+    }
+
+    /// Serve commits while waiting for one registry message, tick-bounded.
+    fn wait(&mut self, registry: ReceiveEndpoint, app: u64, expected: u8, step: u64) {
+        let start = native::monotonic_ticks().unwrap_or_else(|_| fail(105));
+        let deadline = start
+            .checked_add(RELAY_PHASE_TICKS)
+            .unwrap_or_else(|| fail(105));
+        loop {
+            self.poll();
+            if let Some(m) = receive(registry) {
+                check(m.sender() == app && m.payload() == [expected], step);
+                return;
+            }
+            let now = native::monotonic_ticks().unwrap_or_else(|_| fail(105));
+            check(now < deadline, step + 1);
+        }
+    }
+}
+
+/// After GO: commits are served while the app works; at KEYS_READY the
+/// committed snapshot on disk must match the last acknowledged commit.
+#[inline(never)]
+fn relay_sequence(registry: ReceiveEndpoint, app: u64, app_control: SendEndpoint, case: u64) {
+    let mut relay = Relay {
+        receive: ReceiveEndpoint::from_handle(handle(RELAY_COMMIT_RECEIVE)),
+        reply: SendEndpoint::from_handle(handle(RELAY_COMMIT_REPLY)),
+        key: support::word(168),
+        case,
+        store: volume(),
+        revision: 0,
+    };
+    relay.wait(registry, app, KEYS_READY, 18);
+    support::put(240, 20);
+    let stat = relay
+        .store
+        .stat(KEYSTATE_OBJECT)
+        .unwrap_or_else(|_| fail(22));
+    check(
+        stat.revision == relay.revision
+            && stat.revision == support::word(EV_RELAY_COMMITTED)
+            && stat.length == PERSISTENT_BLOB
+            && stat.content_sum == support::word(EV_RELAY_SUM),
+        22,
+    );
+    support::put(EV_KEYSTATE_BYTES, PERSISTENT_BLOB as u64);
+    support::put(EV_GENERATION, support::word(EV_RELAY_GENERATION));
+    send(app_control, PERSISTED);
+    support::put(240, 27);
+    relay.wait(registry, app, DONE, 11);
+}
+
+/// Legacy flow: export and commit at KEYS_READY (normal), then wait for DONE.
+#[inline(never)]
+fn persist_and_wait(registry: ReceiveEndpoint, app: u64, app_control: SendEndpoint, recover: bool) {
+    if !recover {
+        let mut allocated = false;
+        for _ in 0..LIMIT {
+            if let Some(m) = receive(registry) {
+                check(m.sender() == app && m.payload() == [KEYS_READY], 18);
+                allocated = true;
+                break;
+            }
+        }
+        check(allocated, 19);
+        support::put(240, 20);
+        persist_key_state();
+        send(app_control, PERSISTED);
+        support::put(240, 27);
+    }
+    let mut done = false;
+    for _ in 0..LIMIT {
+        if let Some(m) = receive(registry) {
+            check(m.sender() == app && m.payload() == [DONE], 11);
+            done = true;
+            break;
+        }
+    }
+    check(done, 12);
 }
 
 fn admin() -> KeyAdmin {
@@ -381,6 +601,12 @@ fn main() -> ! {
     let app_control = SendEndpoint::from_handle(handle(80));
     let app = support::word(160);
     let recover = support::word(120) == 1;
+    let relay = support::word(RELAY_CASE);
+    if relay != 0 {
+        // The Key Service gates domain traffic on this supply, and the app's
+        // READY follows a Key Service STATUS: supply strictly first.
+        supply_secret();
+    }
     // The app reports READY only after real STATUS/STAT round trips to both
     // boot services. Init does not read another process's evidence memory.
     let mut ready = false;
@@ -428,30 +654,11 @@ fn main() -> ! {
     }
     send(app_control, GO);
     support::put(240, 11);
-    if !recover {
-        let mut allocated = false;
-        for _ in 0..LIMIT {
-            if let Some(m) = receive(registry) {
-                check(m.sender() == app && m.payload() == [KEYS_READY], 18);
-                allocated = true;
-                break;
-            }
-        }
-        check(allocated, 19);
-        support::put(240, 20);
-        persist_key_state();
-        send(app_control, PERSISTED);
-        support::put(240, 27);
+    if relay != 0 {
+        relay_sequence(registry, app, app_control, relay);
+    } else {
+        persist_and_wait(registry, app, app_control, recover);
     }
-    let mut done = false;
-    for _ in 0..LIMIT {
-        if let Some(m) = receive(registry) {
-            check(m.sender() == app && m.payload() == [DONE], 11);
-            done = true;
-            break;
-        }
-    }
-    check(done, 12);
     check(native::status(worker) == Ok(ProcessStatus::Running), 13);
     check(native::kill(worker).is_ok(), 14);
     check(native::status(worker) == Ok(ProcessStatus::Killed), 15);
