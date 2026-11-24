@@ -1367,7 +1367,7 @@ fn portal(app: &mut App, case: u64) {
     app.report(750);
 }
 
-/// Writable source step S1-S4 of the export case (spec section 3.2), so that
+/// Writable source step S1-S5 of the export case (spec section 3.2), so that
 /// archive origins differ from the values a destination assigns. S1 and S2
 /// read the current revision first; S3 and S4 expect the collection
 /// revisions of the `archive-export` parent (1, 1, absent) and fail closed
@@ -1404,6 +1404,22 @@ fn l2_source_step(app: &mut App) {
         check(
             app.client.collection(0, index, expected, new_name) == Ok(expected + 1),
             step,
+        );
+        app.commits += 1;
+    }
+    // S5: a zero-length WRITE, then RESTORE of the older version, on objects 1
+    // and 5: each gets a two-version chain, so no archive origin equals the
+    // live value a destination assigns (discrimination invariant, spec
+    // section 2). Chunk-neutral. `write` reports up to `step + 4` here.
+    for (index, step) in [(1, 920), (5, 930)] {
+        let stat = app.stat(index, step);
+        let length = stat.name_length;
+        name = [0; volume_core::NAME];
+        name[..length].copy_from_slice(&stat.name[..length]);
+        let revision = app.write(index, stat.revision, &name[..length], 0, step + 1);
+        check(
+            app.client.restore(app.object(index), revision, 1) == Ok(revision + 1),
+            step + 5,
         );
         app.commits += 1;
     }
@@ -1549,6 +1565,10 @@ fn l2_restore(app: &mut App, device: BlockDevice, scratch: &mut [u8; MAX_LENGTH]
 #[cfg(feature = "l2-portal")]
 #[inline(never)]
 fn l2_used(app: &mut App, device: BlockDevice, scratch: &mut [u8; MAX_LENGTH]) {
+    // Reach a READY service before the first archive read: the broker serves
+    // one block request at a time across both disks, so an archive read
+    // during the service's recovery fails that recovery (as in `l2_restore`).
+    check(app.list(0, 728).1 == 5, 729);
     let plan = archive::verify_v2(
         &mut DiskSource::new(NativeDisk { device }, ARCHIVE_SECTORS),
         scratch,
