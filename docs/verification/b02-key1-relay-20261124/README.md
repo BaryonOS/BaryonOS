@@ -44,6 +44,37 @@ Host checks (`host/host-*.txt`):
 | `python3 -m compileall -q tools tests` | 0 |
 | `python3 -B tools/agent_gate.py --job native-system.yml#native-system --list` and `--job ci.yml#host-quality --list` | 1 and 1 (see NOT RUN) |
 
+Because the `agent_gate.py` prefilter could not resolve either job, the `run:`
+steps of both jobs were enumerated from the workflow files and the applicable
+ones were run individually at the same source (`steps.tsv`, `host/`):
+
+| Command (from the job) | Exit |
+|---|---|
+| `python3 -B tools/preflight.py --strict` | 0 |
+| `python3 -B -u tools/test_system.py` immediately followed by `python3 -B tools/capture_system.py --destination docs/verification/full-release-<unique>` (capture revalidates the gate JSON, which now carries `relay_stages`, `relay_red` and `relay_wrong_case`; the output directory was moved out of the tree) | 0; 0 |
+| `cargo +1.100.0 test --locked` and `clippy … --all-targets -D warnings` for the 19 root packages of `host-quality` | 0; 0 |
+| `cargo +1.100.0 fmt --all -- --check` (the kernel is a root workspace member) and `fmt --manifest-path kernel/Cargo.toml` | 0; 0 |
+| `cargo +1.100.0 test --manifest-path sdk/Cargo.toml --locked`; `clippy --manifest-path sdk/Cargo.toml --locked --all-targets -- -D warnings`; `test --manifest-path sdk/keyring-client/Cargo.toml` | 0; 0; 0 |
+| `tests/` patterns of `host-quality`: `test_ci_evidence*`, `test_ci_workflows`, `test_security_alerts_summary`, `test_tokenguard*`, `test_document_session_*`, `test_volume_*`, `test_system_*`, `test_common`, `test_preflight`, `test_build_paths`, `test_guest_harness`, `test_m1_artifact_binding`, `test_m6c_*` (one run per pattern) | 0 each |
+| `python3 tools/progress.py --check` | 0 |
+
+An unfiltered `python3 -B -m unittest discover -s tests` aborts on a module-name
+collision with `tools/test_policy_envelopes.py`; it is not part of any job and
+is not reported as run.
+
+### Startup-word isolation
+
+The relay paths run only when startup words that only the relay kernel writes
+are nonzero: Key Service words 496/504/512, init word 208 and app word 752.
+`grep -rnE 'put\w*\([^)]*\b(496|504|512|208|752)\b' kernel/src/m2 kernel/src/m2_legacy`
+outside `m3/system.rs` finds three writes, none into these ELFs:
+`keyring.rs` writes 512 into slot 3 (`KEYRING_APP_ELF`), `volume.rs` writes 504
+into slot 1 (`VOLUME_APP_ELF`) and `m5.rs` writes 208 into an M5 process. The
+other profiles that load the Key Service ELF (`desktop.rs`,
+`window_session.rs`) write only words 32–176 into it, and `nas.rs` writes only
+words 32–184 and the replay range 256–335 into its processes. Inside `system.rs` every relay write is under
+`cfg(feature = "test-system-keystate-relay")`.
+
 With the session's `GIT_EDITOR=true` set, `tools/tests` reports 2 failures and
 9 errors in git-driven pipeline tests; with it unset all pass. This is an
 environment effect, unrelated to this change (`host/host-tools-tests.txt` is
@@ -82,11 +113,18 @@ rejections, 0 acceptances.
   ("uses step needs an explicit local adapter" for the pinned
   `actions/checkout`), before any step runs. The applicable commands were run
   individually above instead; this is not hosted acceptance.
-- Hosted CI (no push in this task).
-- Regressions of other profiles sharing the changed ELFs: `run_random`,
-  `run_images`, Materiaal, NAS, TCP and cap-bench profiles. The keyring and
-  system example ELFs changed, but the relay paths are gated on startup words
-  only the relay kernel writes.
+- Hosted CI (no push in this task). The `agent_gate.py` resolution failure
+  exists at base `006fb93c` too (this change does not touch `.github/**` or
+  `tools/agent_gate.py`); a local adapter needs a lead integration request.
+- Native steps of `native-system.yml` other than `test_system.py` and
+  `capture_system.py` (IPC wait, TPM, system clock, network, net-link, FPU, TCP,
+  memory), and the other profiles that embed the changed ELFs (`run_random`,
+  `run_images`, Materiaal, NAS, desktop, window session, cap-bench). The relay
+  paths are gated on startup words that no other profile writes (see above);
+  this is code reading, not a run.
+- `host-quality` steps unrelated to the changed files: actionlint download,
+  coverage tooling, quantum, Node prototype and NAS tests, the other SDK
+  manifests, M6c build, clean-tree check.
 - Physical hardware; human audit.
 
 ## Limits

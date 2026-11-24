@@ -436,7 +436,17 @@ b"NOS-SYSTEM-VOL01"`, a compile-time constant in
   `KEY_COMMIT_RIGHTS` and `INIT_COMMIT_RIGHTS` (the Key Service holds only SEND
   on the commit ingress and only RECEIVE on the reply channel, init the
   converse; none of the four handles is delegable). Init's commit handles also
-  pass `INIT_AUTHORITY`.
+  pass `INIT_AUTHORITY`. The exact counts list every handle: the volume service
+  holds block, its ingress, the second ingress, the reply SEND and the second
+  reply endpoint (5); the Key Service holds entropy, domain ingress, second
+  ingress, reply SEND, admin ingress, admin reply, commit SEND and commit reply
+  RECEIVE (8). Workers are spawned at runtime and receive only handles that init
+  delegates; init's commit handles carry no TRANSFER, so no worker can obtain
+  them.
+- Durability before `COMMITTED`: init replies only after the volume service has
+  returned the new revision of object 8, and the volume service acknowledges a
+  write only after its crash-consistent transaction (data flush, table write,
+  flush) completed (`services/volume/src/lib.rs`).
 
 ### Pinned expected values and derivation
 
@@ -452,7 +462,8 @@ Common to the three passing cases (`tools/run_system.py` `RELAY_EXACT`,
 | `ADMIN_REQUESTS` / `ADMIN_DENIED` / `KEYSTATE_ADMIN_OP_DENIED` | 3 / 2 / 1 | Supply, refused second supply, refused admin GENERATE. |
 | `KEYSTATE_EXPORTS`, `KEYSTATE_RESTORES`, `CRYPTO_RESTORES`, wrong-secret and floor denials | 0 | Relay mode never exports or restores. |
 | `CRYPTO_TAMPER_DENIED` | 9 | The normal profile's 10 includes one AEAD rejection from the wrong-secret RESTORE, which relay mode does not perform. |
-| `MAX_COMMIT_TICKS` | 1..1499 (answered), 1500..2999 (timeout) | An answered commit returns before `COMMIT_TICKS`; a withheld one returns at the first tick check at or after the deadline. |
+| `COMMIT_TICKS` | 1500 | Bound for one commit including the volume write. The measured answered commit takes 5 ticks, so the bound leaves a margin of about 300× for a slower host while keeping the timeout case under 20 s of TCG time. |
+| `MAX_COMMIT_TICKS` | 1..1499 (answered), 1500..2999 (timeout) | An answered commit returns before `COMMIT_TICKS`; a withheld one returns at the first tick check at or after the deadline (measured exactly 1500). The upper bound 2 × `COMMIT_TICKS` rejects a wait that ignored the deadline while tolerating scheduling delay after it. |
 | `SUM` | ≠ 0, equals FNV of the current object 8 version on disk | Init's checksum of the last acknowledged blob; random nonces make the value differ per run. |
 | Disk: object 8 | revision 3, versions [3, 2, 1], 120 bytes, `sleutelstatus`, header bound to `NOS-SYSTEM-VOL01`, three distinct nonzero nonces | Three commits; volume `HISTORY = 2` keeps all three. |
 | Disk: volume state | generation 5, 5 chunks, domain clocks [2, 3] | Five volume commits: document and sealed record in domain 0, three key-state versions in domain 1. |
@@ -489,6 +500,9 @@ either job locally (NOT RUN); hosted CI is not run.
   consequence). Wiping relies on `Zeroizing` and kernel frame scrubbing; wiping
   of the SDK `Received` envelope copy of the supply request is not separately
   verified.
+- The timeout case withholds the reply before any write, so a timeout after
+  the volume transaction began is not exercised natively (it maps to the same
+  `Unknown` by construction; init replies `Degraded` for a failed write).
 - One writer, one instance, one volume identity. The init PID check is defence
   in depth; authority comes from the endpoint object.
 - Evidence is QEMU TCG only; no hardware, no human audit.
