@@ -691,11 +691,13 @@ def find_merge_base(repo, base, head, allow_fetch):
     for depth in (0,) + DEEPEN_STEPS:
         if depth and not (allow_fetch and fetch(repo, f"--deepen={depth}", base, head)):
             break
-        code, out = git(repo, "merge-base", base, head)
-        merge_base = out.decode("ascii", "replace").strip()
-        if code == 0 and SHA_RE.fullmatch(merge_base) and is_ancestor(repo, merge_base, base) \
-                and is_ancestor(repo, merge_base, head):
-            return merge_base
+        code, out = git(repo, "merge-base", "--all", base, head)
+        bases = out.decode("ascii", "replace").split()
+        if code == 0 and len(bases) > 1:
+            raise Full("ambiguous-merge-base", bases)  # criss-cross: no single diff is complete
+        if code == 0 and len(bases) == 1 and SHA_RE.fullmatch(bases[0]) \
+                and is_ancestor(repo, bases[0], base) and is_ancestor(repo, bases[0], head):
+            return bases[0]
     raise Full("missing-history")
 
 

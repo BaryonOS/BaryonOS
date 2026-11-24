@@ -459,6 +459,20 @@ class FallbackTests(FixtureTestCase):
                                    selector_bytes=SELECTOR.read_bytes(), allow_fetch=True)
         self.assertFull(plan, "missing-history")
 
+    def test_criss_cross_history_has_no_single_merge_base(self):
+        git = self.repo.git
+        x1 = self.branch({"apps/solo/src/lib.rs": "// x\n"}, message="x1")
+        git("checkout", "-q", "-B", "other", self.base)
+        y1 = self.repo.commit("y1", {"apps/crop/src/lib.rs": "// y\n"})
+        git("checkout", "-q", "--detach", x1)
+        git("merge", "-q", "--no-edit", y1)
+        x2 = git("rev-parse", "HEAD")
+        git("checkout", "-q", "--detach", y1)
+        git("merge", "-q", "--no-edit", x1)
+        y2 = self.repo.commit("y3", {"apps/deck/src/lib.rs": "// y3\n"})
+        self.assertEqual(len(git("merge-base", "--all", x2, y2).split()), 2)
+        self.assertFull(self.plan(y2, base=x2), "ambiguous-merge-base")
+
     def test_fetch_failure_falls_back_to_full(self):
         plan = self.plan("e" * 40)
         self.assertFull(plan, "fetch-failed")

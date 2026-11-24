@@ -151,7 +151,8 @@ full plan (`cargo-workspace-inheritance`, `cargo-patch-unresolved`).
    catalogue gives `invalid-trusted-catalogue`.
 3. History: missing commits are fetched with `--depth=1`; the merge base is
    searched with bounded `--deepen` steps. Failures give `fetch-failed` or
-   `missing-history`. For a pull request, a tested merge commit must have the
+   `missing-history`. More than one best merge base (a criss-cross history,
+   `git merge-base --all`) gives `ambiguous-merge-base`. For a pull request, a tested merge commit must have the
    base and head as parents (`merge-ref-mismatch`).
 4. Diff: `git diff --name-status -z --find-renames <merge base> <head>`.
    Renames and copies contribute the old and the new path, deletions the old
