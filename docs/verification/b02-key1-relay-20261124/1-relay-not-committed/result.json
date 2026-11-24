@@ -1,19 +1,19 @@
 {
   "schema_version": 1,
   "case": "relay-not-committed",
-  "source_commit": "d4db823e6d80afee937f5d5af71cef96dfe098ee",
+  "source_commit": "49b1557d2f5c068b55b65a24dc15473f4c69d028",
   "source_fingerprint_version": 3,
-  "source_sha256": "e6d90fbf49e213bb84b14517a2b65eaec73bec84b959ff1276898d98d9de1562",
+  "source_sha256": "b435ddc59b2668da1e661891aeaf0308d62f8fb37f33c102dbea40d1fdd7bbd4",
   "kernel_feature": "test-system-keystate-relay-not-committed",
-  "started_utc": "2026-11-24T11:11:18.809440+00:00",
-  "duration_s": 4.599220641000102,
+  "started_utc": "2026-11-24T11:33:31.351410+00:00",
+  "duration_s": 4.690112030000819,
   "timeout_s": 180,
   "raw_qemu_exit": 33,
   "timed_out": false,
   "command": [
     "/usr/bin/qemu-system-x86_64",
     "-machine",
-    "pc-q35-8.2",
+    "pc-q35-10.0",
     "-accel",
     "tcg,thread=single",
     "-cpu",
@@ -33,15 +33,15 @@
     "none",
     "-no-reboot",
     "-drive",
-    "if=pflash,unit=0,format=raw,readonly=on,file=build/relay-20261124/run/system-relay-not-committed-3650d2d5935b4c8196e784d4dcde205e/OVMF_CODE.fd",
+    "if=pflash,unit=0,format=raw,readonly=on,file=build/relay-20261124/run/system-relay-not-committed-1bca779445764d5093f1d009ff801933/OVMF_CODE.fd",
     "-drive",
-    "if=pflash,unit=1,format=raw,file=build/relay-20261124/run/system-relay-not-committed-3650d2d5935b4c8196e784d4dcde205e/OVMF_VARS.fd",
+    "if=pflash,unit=1,format=raw,file=build/relay-20261124/run/system-relay-not-committed-1bca779445764d5093f1d009ff801933/OVMF_VARS.fd",
     "-drive",
-    "if=virtio,index=0,format=raw,readonly=on,file=fat:build/relay-20261124/run/system-relay-not-committed-3650d2d5935b4c8196e784d4dcde205e/esp",
+    "if=virtio,index=0,format=raw,readonly=on,file=fat:build/relay-20261124/run/system-relay-not-committed-1bca779445764d5093f1d009ff801933/esp",
     "-device",
     "isa-debug-exit,iobase=0xf4,iosize=0x04",
     "-drive",
-    "if=none,id=volume,format=raw,cache=writeback,readonly=off,file=build/relay-20261124/run/system-image-72684a2ae57f40ce8135a8169e59fed4/volume.img",
+    "if=none,id=volume,format=raw,cache=writeback,readonly=off,file=build/relay-20261124/run/system-image-ff139958a9c44fe3b6d865ed4d1209e7/volume.img",
     "-device",
     "virtio-blk-pci,drive=volume,id=volblk,addr=0x5,disable-legacy=on,num-queues=1,queue-size=8,serial=NOS-SYSTEM-TEST",
     "-object",
@@ -56,7 +56,7 @@
     "kernel_feature": "test-system-keystate-relay-not-committed",
     "loader_feature": null,
     "source_fingerprint_version": 3,
-    "source_sha256": "e6d90fbf49e213bb84b14517a2b65eaec73bec84b959ff1276898d98d9de1562",
+    "source_sha256": "b435ddc59b2668da1e661891aeaf0308d62f8fb37f33c102dbea40d1fdd7bbd4",
     "loader": {
       "sha256": "9a430e7728537170f2edfe4afd11013ceff015cdacf5ea1dbe65f0f21aeac6c3",
       "format": "AMD64 PE32+",
@@ -64,15 +64,15 @@
       "imports": 0
     },
     "kernel": {
-      "sha256": "5080445f6d3d011cbec8e0d30e06abdc3a60786d5698ca49f3558713c40af163",
+      "sha256": "ae14c5d8f80f89228b08e3e7801317f6c54a8e317e9a5742a073ef6ffeb8d271",
       "entry": 33554432,
       "segments": [
         {
           "flags": 5,
           "offset": 4096,
           "address": 33554432,
-          "filesz": 168867,
-          "memsz": 168867,
+          "filesz": 168851,
+          "memsz": 168851,
           "page_start": 33554432,
           "page_end": 33726464
         },
@@ -106,7 +106,7 @@
           "name": ".text",
           "type": 1,
           "flags": 6,
-          "size": 168867
+          "size": 168851
         },
         {
           "name": ".rodata",
@@ -353,16 +353,16 @@
       }
     }
   },
-  "run_directory": "/home/simon/projects/BaryonOS-worktrees/b-cycle-20261124/build/relay-20261124/run/system-relay-not-committed-3650d2d5935b4c8196e784d4dcde205e",
-  "volume_directory": "/home/simon/projects/BaryonOS-worktrees/b-cycle-20261124/build/relay-20261124/run/system-image-72684a2ae57f40ce8135a8169e59fed4",
+  "run_directory": "/home/simon/projects/BaryonOS-worktrees/b-cycle-20261124/build/relay-20261124/run/system-relay-not-committed-1bca779445764d5093f1d009ff801933",
+  "volume_directory": "/home/simon/projects/BaryonOS-worktrees/b-cycle-20261124/build/relay-20261124/run/system-image-ff139958a9c44fe3b6d865ed4d1209e7",
   "before_sha256": "49c40c316234e2e4e4c8dd681a057b1b36611648896dcacba1794263b711c266",
-  "after_sha256": "f7fcb2af6b73f333476475f9c2b4798d8d3da05c5df71e4d15a46de5c1f05661",
+  "after_sha256": "00ca46b0babf9a13145849ce2a41fb50cb908a329b8d255ae807f93f34d51e62",
   "firmware_sha256": {
     "code": "874f15a7c9110e78a89db159f0f68fc97e9076b74777520de1c235426f758aa7",
     "vars_template": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e"
   },
   "esp_sha256": {
-    "esp/kernel.elf": "5080445f6d3d011cbec8e0d30e06abdc3a60786d5698ca49f3558713c40af163",
+    "esp/kernel.elf": "ae14c5d8f80f89228b08e3e7801317f6c54a8e317e9a5742a073ef6ffeb8d271",
     "esp/EFI/BOOT/BOOTX64.EFI": "9a430e7728537170f2edfe4afd11013ceff015cdacf5ea1dbe65f0f21aeac6c3"
   },
   "passed": true,
@@ -428,7 +428,7 @@
     "KEYSTATE_RELAY_INIT_BEGUN": 3,
     "KEYSTATE_RELAY_INIT_REVISION": 3,
     "KEYSTATE_RELAY_INIT_GENERATION": 3,
-    "KEYSTATE_RELAY_SUM": 18341430797381360161,
+    "KEYSTATE_RELAY_SUM": 7220131958475666143,
     "KEYSTATE_RELAY_APP_FIRST": 1,
     "KEYSTATE_RELAY_APP_SECOND": 1,
     "LIVE_PROCESSES_AFTER": 0,
@@ -482,7 +482,7 @@
             "chunks": [
               4
             ],
-            "content_hex": "7217f1538b4202e9c4f78a8b938204cf2203c2be1162b18016856658ea01f32ccb8b74fca4a4f84d24ba8320c62367dc5021256a34744aa668036d1acd2b65304d4e8e8f2e6628b27a411ad11ee95e8c84a8f6b44e22659419d69d067a416c6f597cb1366eb03d43d38e9f1b4bd9471c503aaf51b57bc96de2457260133bfda33e4c9a8cace44a72e135fde3ffae125e9d784693072bce77f9fb2bfdbb1d5ac6bae59b9d7bca57cd"
+            "content_hex": "f62c854977cf4b273ba734b1a9f147838260c5d8bce00dcab1648ad86c64d143d1b92aaacf9089d897f0fe436eb5978e26aa36d5fffc6f834e80d050d5b416dc8b3e6c9bc59a5e9aefbd4c23a12e202b58a768ab0c27ee4d6871d816df6d8ce1d12865fb07717f00078b3e871db0a3efbf6d6a4486d23d1415662ed09d9b0b7b4d8a98aecccc9cc95fb2cf59c440321495679706a6077a06b8abbe12a27996aec65c541551aac161"
           }
         ]
       },
@@ -577,7 +577,7 @@
             "chunks": [
               2
             ],
-            "content_hex": "4e4f534b45593031010001004e4f532d53595354454d2d564f4c303100000000b608e02a86ea396b564c5d3b7d471c65d91cd43b6978fd356ee25b59d65d2eaf0dc281c031878f4e4c414d6c9b1e5c6312b6be42063750c4e036b9157a07c51c8dff4b3c7d4307f3e588f38b6ffdc959b4f6c0f82fe732c1"
+            "content_hex": "4e4f534b45593031010001004e4f532d53595354454d2d564f4c3031000000006aa338dc8bfd9ae19695c34d400bcf1a3d3c59fab2419da773479af13c7b16bfe23fc29e99a4a2e43d8e3a8c94e66b4fdac50187055559717ffcdd40e50c208683620f29afada24f17975802529facd20d4d4db2df61482b"
           },
           {
             "revision": 2,
@@ -587,7 +587,7 @@
             "chunks": [
               1
             ],
-            "content_hex": "4e4f534b45593031010001004e4f532d53595354454d2d564f4c303100000000d86a48a778254774de46ef110a8ce7559287f0321a0b1c5c739eaa6aa1f482d7d5a044d9d9884af3b06b690dffdab5f7ab95f59d2c316bb879ef0e66f08d9f9540250ca10d76e523043ccf04081cd2478e7f4049f8e590ca"
+            "content_hex": "4e4f534b45593031010001004e4f532d53595354454d2d564f4c303100000000816b2b1f30d25b0246157ff9a43c86a020c8c4c48ca5596e074fbe11ab9073b91ce8e7b4c3eec9cb355ee9a3d1092041e46a9f0119e18cf013f2d58e6e349015326297c35fdad6441fb701ebcc223059d68397c15a008c27"
           },
           {
             "revision": 1,
@@ -597,7 +597,7 @@
             "chunks": [
               0
             ],
-            "content_hex": "4e4f534b45593031010001004e4f532d53595354454d2d564f4c3031000000001c9bda654a52e4e7e5575893d72bf74392bbe47f80b4f49f94c5f940fca037d1f15840aa1a69080ef4be201cb382de3ca6295b16a7e488b57a75d16b60ec566bafc2dfb04ee8f54d3e10deb42aa8cab1870c3ca2f6617656"
+            "content_hex": "4e4f534b45593031010001004e4f532d53595354454d2d564f4c3031000000001a53e2f4e5f7b722a210c6240ff4550387d2707d3406fb9340d6f97dd66c4551052d5b66b219cd18e713ace99b346bf29a17384d39db80b2b8f78a2e570a87e4de97b1779829e28ea88ca2beaba6a7e568b948fb0d8562e3"
           }
         ]
       },
@@ -824,8 +824,8 @@
       false
     ],
     "digests": [
-      13538615324602407795,
-      18284230529329588242
+      17873677048235248524,
+      6045507901766612736
     ]
   }
 }

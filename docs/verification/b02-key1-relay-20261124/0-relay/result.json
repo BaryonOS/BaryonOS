@@ -1,19 +1,19 @@
 {
   "schema_version": 1,
   "case": "relay",
-  "source_commit": "d4db823e6d80afee937f5d5af71cef96dfe098ee",
+  "source_commit": "49b1557d2f5c068b55b65a24dc15473f4c69d028",
   "source_fingerprint_version": 3,
-  "source_sha256": "e6d90fbf49e213bb84b14517a2b65eaec73bec84b959ff1276898d98d9de1562",
+  "source_sha256": "b435ddc59b2668da1e661891aeaf0308d62f8fb37f33c102dbea40d1fdd7bbd4",
   "kernel_feature": "test-system-keystate-relay",
-  "started_utc": "2026-11-24T11:11:12.555658+00:00",
-  "duration_s": 4.634632811999836,
+  "started_utc": "2026-11-24T11:33:24.280296+00:00",
+  "duration_s": 4.585965466999369,
   "timeout_s": 180,
   "raw_qemu_exit": 33,
   "timed_out": false,
   "command": [
     "/usr/bin/qemu-system-x86_64",
     "-machine",
-    "pc-q35-8.2",
+    "pc-q35-10.0",
     "-accel",
     "tcg,thread=single",
     "-cpu",
@@ -33,15 +33,15 @@
     "none",
     "-no-reboot",
     "-drive",
-    "if=pflash,unit=0,format=raw,readonly=on,file=build/relay-20261124/run/system-relay-4f415e5fa68c4b17a7004a9b793038df/OVMF_CODE.fd",
+    "if=pflash,unit=0,format=raw,readonly=on,file=build/relay-20261124/run/system-relay-e777bfd715bf480f8cac7181d78043c9/OVMF_CODE.fd",
     "-drive",
-    "if=pflash,unit=1,format=raw,file=build/relay-20261124/run/system-relay-4f415e5fa68c4b17a7004a9b793038df/OVMF_VARS.fd",
+    "if=pflash,unit=1,format=raw,file=build/relay-20261124/run/system-relay-e777bfd715bf480f8cac7181d78043c9/OVMF_VARS.fd",
     "-drive",
-    "if=virtio,index=0,format=raw,readonly=on,file=fat:build/relay-20261124/run/system-relay-4f415e5fa68c4b17a7004a9b793038df/esp",
+    "if=virtio,index=0,format=raw,readonly=on,file=fat:build/relay-20261124/run/system-relay-e777bfd715bf480f8cac7181d78043c9/esp",
     "-device",
     "isa-debug-exit,iobase=0xf4,iosize=0x04",
     "-drive",
-    "if=none,id=volume,format=raw,cache=writeback,readonly=off,file=build/relay-20261124/run/system-image-93981eb5bd924c5b8c5cad6ab1513f22/volume.img",
+    "if=none,id=volume,format=raw,cache=writeback,readonly=off,file=build/relay-20261124/run/system-image-4ebfb4a978374c87b68dd921d63e590b/volume.img",
     "-device",
     "virtio-blk-pci,drive=volume,id=volblk,addr=0x5,disable-legacy=on,num-queues=1,queue-size=8,serial=NOS-SYSTEM-TEST",
     "-object",
@@ -56,7 +56,7 @@
     "kernel_feature": "test-system-keystate-relay",
     "loader_feature": null,
     "source_fingerprint_version": 3,
-    "source_sha256": "e6d90fbf49e213bb84b14517a2b65eaec73bec84b959ff1276898d98d9de1562",
+    "source_sha256": "b435ddc59b2668da1e661891aeaf0308d62f8fb37f33c102dbea40d1fdd7bbd4",
     "loader": {
       "sha256": "9a430e7728537170f2edfe4afd11013ceff015cdacf5ea1dbe65f0f21aeac6c3",
       "format": "AMD64 PE32+",
@@ -64,15 +64,15 @@
       "imports": 0
     },
     "kernel": {
-      "sha256": "067a8fcca48f7c6353ae8de897d2f43e338a5e425cc9a12ffa835c7a5e7c4d67",
+      "sha256": "cd18d5fdb1dcba4b51585a29ebf68fdcf302f789eb106cd5f8ab22c346d26030",
       "entry": 33554432,
       "segments": [
         {
           "flags": 5,
           "offset": 4096,
           "address": 33554432,
-          "filesz": 168883,
-          "memsz": 168883,
+          "filesz": 168867,
+          "memsz": 168867,
           "page_start": 33554432,
           "page_end": 33726464
         },
@@ -106,7 +106,7 @@
           "name": ".text",
           "type": 1,
           "flags": 6,
-          "size": 168883
+          "size": 168867
         },
         {
           "name": ".rodata",
@@ -353,16 +353,16 @@
       }
     }
   },
-  "run_directory": "/home/simon/projects/BaryonOS-worktrees/b-cycle-20261124/build/relay-20261124/run/system-relay-4f415e5fa68c4b17a7004a9b793038df",
-  "volume_directory": "/home/simon/projects/BaryonOS-worktrees/b-cycle-20261124/build/relay-20261124/run/system-image-93981eb5bd924c5b8c5cad6ab1513f22",
+  "run_directory": "/home/simon/projects/BaryonOS-worktrees/b-cycle-20261124/build/relay-20261124/run/system-relay-e777bfd715bf480f8cac7181d78043c9",
+  "volume_directory": "/home/simon/projects/BaryonOS-worktrees/b-cycle-20261124/build/relay-20261124/run/system-image-4ebfb4a978374c87b68dd921d63e590b",
   "before_sha256": "49c40c316234e2e4e4c8dd681a057b1b36611648896dcacba1794263b711c266",
-  "after_sha256": "84ff722ffe013be76455f1bdc946d9e6a855bf75893031647abd111931fc9278",
+  "after_sha256": "34c41200d58f55ea3949bb3f17b33def1517406cacf311b8fde7bd79a4bc37c0",
   "firmware_sha256": {
     "code": "874f15a7c9110e78a89db159f0f68fc97e9076b74777520de1c235426f758aa7",
     "vars_template": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e"
   },
   "esp_sha256": {
-    "esp/kernel.elf": "067a8fcca48f7c6353ae8de897d2f43e338a5e425cc9a12ffa835c7a5e7c4d67",
+    "esp/kernel.elf": "cd18d5fdb1dcba4b51585a29ebf68fdcf302f789eb106cd5f8ab22c346d26030",
     "esp/EFI/BOOT/BOOTX64.EFI": "9a430e7728537170f2edfe4afd11013ceff015cdacf5ea1dbe65f0f21aeac6c3"
   },
   "passed": true,
@@ -428,7 +428,7 @@
     "KEYSTATE_RELAY_INIT_BEGUN": 3,
     "KEYSTATE_RELAY_INIT_REVISION": 3,
     "KEYSTATE_RELAY_INIT_GENERATION": 3,
-    "KEYSTATE_RELAY_SUM": 11960207073974542976,
+    "KEYSTATE_RELAY_SUM": 14926720625118913359,
     "KEYSTATE_RELAY_APP_FIRST": 0,
     "KEYSTATE_RELAY_APP_SECOND": 0,
     "LIVE_PROCESSES_AFTER": 0,
@@ -482,7 +482,7 @@
             "chunks": [
               4
             ],
-            "content_hex": "dfd87482f7688ba9df8c53d823767e1c84302e014c6207c4d0a0b883f87c761d9b4351972cd410316653f094e649bba64d6d200b6e93935ad0a42fb747077a41704d5c7e0ec2e680d5d4c44a4f47348762baebce36b3003595f2731edb68360e110a89ebb3f2853315da268f91733d3844cb2f6f4ff6c077bec6e383c8f34e4dba41f08163d9cc7bcc106dc85ed48b5056b6e961c0cb41c3ade96b6e77ea1f611601af94e117c1e6"
+            "content_hex": "3b254755c9ebc420d6b02d7faa80721067ba3bd361e9083d22931e1517020474339358d13df7f5ffbff65fb7eebeafe611480d4c34abded5a89262d6c00a584a35924a32c35214da0cfaa83eae1f8aaedeb3ecccf82d89bf392d13808dcbea88f3185adb1250dbc4b35c7f6cbd6a1b1f8075718553021ab0d3dd3a9ab44d547416ee730d6d0ff6ac6e1fa60b6019232557b254ab49db4a81d05bf811d526fae69609c123e55d1983"
           }
         ]
       },
@@ -577,7 +577,7 @@
             "chunks": [
               2
             ],
-            "content_hex": "4e4f534b45593031010001004e4f532d53595354454d2d564f4c30310000000079a6edd7cf994f39dd3447ff3d53976450d46837ab018eabae0530a6d4cb9a78c831d95acb2144bfc157df257f81b4b5dc319dd1840cc000977283b883ba0bb9b944a85875f6513a1a33f84cd2a1d17caa141b0cf7d7fe22"
+            "content_hex": "4e4f534b45593031010001004e4f532d53595354454d2d564f4c30310000000085696c6e96d2d3731b31e0898f73673d3af1e5440f07cc40660ab13d37f18070be066eedb772486e5fa61f484004cf08e529c0b6c5d4d005a689544ae9350e645c58d2f16bf417209d39c1e03d5e0e484ae9faac706e3c1c"
           },
           {
             "revision": 2,
@@ -587,7 +587,7 @@
             "chunks": [
               1
             ],
-            "content_hex": "4e4f534b45593031010001004e4f532d53595354454d2d564f4c3031000000006466710322aca2c9e99377788c904af908aede1aaf048ababb611845ea37320a5444bee00d33a95f64e2d8212d9db35dc6347ee2ae8130ff6d40b15eb29ffad73dee0e78e9db51443e5a83a19e3f93777979379257695296"
+            "content_hex": "4e4f534b45593031010001004e4f532d53595354454d2d564f4c3031000000001eb13fc4565346231050e3f977a365ff21f3eaf90f52f3259d2a5876924bd20acf863b8f307abf33e0f3e13829fef86ee32c8acd13e3c67895b5d623e68b2371298ced79ed1c3da4ecc44419f0e5748ba0212562556b65fe"
           },
           {
             "revision": 1,
@@ -597,7 +597,7 @@
             "chunks": [
               0
             ],
-            "content_hex": "4e4f534b45593031010001004e4f532d53595354454d2d564f4c3031000000007d10b1ff7305dd7d1d3fb216b3523e3a847e56916a7a22fdc0022c63d0b53bf5bbf121b23eae33e7e2dd32827590367db88247f81526dab6545b6c5885afde119be04a3d364ec2987f960eafe5e1d9b907f9a8adf8345bc0"
+            "content_hex": "4e4f534b45593031010001004e4f532d53595354454d2d564f4c303100000000e73e430fa07038019437288c186eaff65661c711992904459e1348225bce482d3a847e6768d012fc65b4b599e4d5465f9cf6702f4601287a4bf3eaef26082b3115c20b33ce82c56ccdb36f85ca6ea99fb92495048d2d251a"
           }
         ]
       },
@@ -824,8 +824,8 @@
       false
     ],
     "digests": [
-      8552651038263976566,
-      5151447472969781113
+      11347357048510311056,
+      14582120422364066899
     ]
   }
 }

@@ -20,21 +20,25 @@ tasks live in `docs/roadmap-pipeline/ledger.json` and criteria in `docs/progress
 - cycle_id: b02-key1-relay-20261124
 - task: B02-T4 (ledger), native KEY1 key-state commit ingress per ADR-B02-KEY1-RELAY-20261123
 - branch: claude/b02-key1-relay-native-20261124
-- PR: (not yet opened)
+- PR: draft PR on this branch (number in GitHub)
 - tested source SHA: recorded in the PR body, not here
-- state: VERIFIED_LOCAL (code and native evidence committed; not pushed; no PR yet)
+- state: RESUME_REQUIRED (pushed as draft PR; independent security and evidence verifiers
+  returned MERGE with low findings, addressed in 49b1557d; hosted gates, CodeRabbit and merge pending)
 
 ## Evidence / NOT RUN
 
-- Evidence: `docs/verification/b02-key1-relay-20261124/` (source `d4db823e`):
+- Evidence: `docs/verification/b02-key1-relay-20261124/` (native relay cases re-run at `49b1557d`,
+  B01/host checks at `d4db823e`; see its README):
   relay, relay-not-committed, relay-timeout pass (raw 33); red relay-leak stops at
   `SYSTEM:FAIL:APP_COMMIT_HANDLE` (raw 35, disk unchanged); wrong-case control 12/12
   rejected; `tools/test_system.py` and `tools/test_keyring.py` exit 0.
 - NOT RUN: `agent_gate.py` prefilter (exits 1 at plan resolution: pinned checkout
   needs a local adapter); hosted CI; run_random/run_images/Materiaal/NAS/TCP/cap-bench
   regressions; hardware; human audit.
-- Lead follow-up: ledger write set and toolchain note for B02-T4 (docs/handoffs/B/CURRENT.md
-  and `+1.100.0`); progress/PROJECT-STATE untouched, B02 stays open.
+- Open low items (documented in FR-B02R residuals): native refusal of opcodes 13/14 on the
+  domain endpoint not measured; only one red manifest control; pre-supply wait unbounded
+  (fails closed); relay cold-start RESTORE path depends on B02-T3.
+- progress/PROJECT-STATE untouched; B02 stays open (the ADR grants no credit).
 
 ## Blockers (external)
 

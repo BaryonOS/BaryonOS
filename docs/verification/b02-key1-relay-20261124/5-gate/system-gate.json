@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "source_fingerprint_version": 3,
-  "source_sha256": "e6d90fbf49e213bb84b14517a2b65eaec73bec84b959ff1276898d98d9de1562",
+  "source_sha256": "b435ddc59b2668da1e661891aeaf0308d62f8fb37f33c102dbea40d1fdd7bbd4",
   "test_inputs": {
     "sdk/examples/tcp-probe/test_peer.py": "8d1c5467c135c35dc528b46d852befeee3401b01621ab47e294e2fcf538d46a3",
     "tests/test_net_peer.py": "34e6a2f6afa4c96e3edeb697ebe7a9ba9fda7477946fa5c02d1585ba1710023c",
@@ -49,31 +49,31 @@
     {
       "case": "normal",
       "passed": true,
-      "run_directory": "/home/simon/projects/BaryonOS-worktrees/b-cycle-20261124/build/relay-20261124/run/system-normal-75b9542b1a6147c990d2100da84a5e62",
+      "run_directory": "/home/simon/projects/BaryonOS-worktrees/b-cycle-20261124/build/relay-20261124/run/system-normal-5e1172969b704b958ad3974db5ff5311",
       "raw_qemu_exit": 33,
       "before_sha256": "49c40c316234e2e4e4c8dd681a057b1b36611648896dcacba1794263b711c266",
-      "after_sha256": "1d9a99645ff7f190c444305f6f88c79081909075d35b4aa36f00c561c4a0e289",
-      "duration_s": 4.503413098999772
+      "after_sha256": "62a97a8260a346554d1cf96914319e1b36a9ea2ca2bc107d4882607fa3e15aa1",
+      "duration_s": 4.545152679999774
     },
     {
       "case": "recover",
       "passed": true,
-      "run_directory": "/home/simon/projects/BaryonOS-worktrees/b-cycle-20261124/build/relay-20261124/run/system-recover-6a3da9e2244a4016bef5498ea420f8e8",
+      "run_directory": "/home/simon/projects/BaryonOS-worktrees/b-cycle-20261124/build/relay-20261124/run/system-recover-1471c8e50a234f3381155b653e3b2c77",
       "raw_qemu_exit": 33,
-      "before_sha256": "1d9a99645ff7f190c444305f6f88c79081909075d35b4aa36f00c561c4a0e289",
-      "after_sha256": "1d9a99645ff7f190c444305f6f88c79081909075d35b4aa36f00c561c4a0e289",
-      "duration_s": 2.813427414999751
+      "before_sha256": "62a97a8260a346554d1cf96914319e1b36a9ea2ca2bc107d4882607fa3e15aa1",
+      "after_sha256": "62a97a8260a346554d1cf96914319e1b36a9ea2ca2bc107d4882607fa3e15aa1",
+      "duration_s": 2.8519417560000875
     }
   ],
   "relay_stages": [
     {
       "case": "relay",
       "passed": true,
-      "run_directory": "/home/simon/projects/BaryonOS-worktrees/b-cycle-20261124/build/relay-20261124/run/system-relay-046247b4dd0144f9b599c0597c7c5cea",
+      "run_directory": "/home/simon/projects/BaryonOS-worktrees/b-cycle-20261124/build/relay-20261124/run/system-relay-e777bfd715bf480f8cac7181d78043c9",
       "raw_qemu_exit": 33,
       "before_sha256": "49c40c316234e2e4e4c8dd681a057b1b36611648896dcacba1794263b711c266",
-      "after_sha256": "8935d2ad61f7c8214fd8270f5f1acf5f00105d118fbc7e5e1551e18d201395b9",
-      "duration_s": 4.543587166999714,
+      "after_sha256": "34c41200d58f55ea3949bb3f17b33def1517406cacf311b8fde7bd79a4bc37c0",
+      "duration_s": 4.585965466999369,
       "relay": {
         "KEYSTATE_RELAY_CASE": 1,
         "KEYSTATE_RELAY_REQUESTS": 3,
@@ -91,7 +91,7 @@
         "KEYSTATE_RELAY_INIT_BEGUN": 3,
         "KEYSTATE_RELAY_INIT_REVISION": 3,
         "KEYSTATE_RELAY_INIT_GENERATION": 3,
-        "KEYSTATE_RELAY_SUM": 10251346875873351214,
+        "KEYSTATE_RELAY_SUM": 14926720625118913359,
         "KEYSTATE_RELAY_APP_FIRST": 0,
         "KEYSTATE_RELAY_APP_SECOND": 0
       }
@@ -99,11 +99,11 @@
     {
       "case": "relay-not-committed",
       "passed": true,
-      "run_directory": "/home/simon/projects/BaryonOS-worktrees/b-cycle-20261124/build/relay-20261124/run/system-relay-not-committed-4ab90aac01064628b061e00c41ad8ded",
+      "run_directory": "/home/simon/projects/BaryonOS-worktrees/b-cycle-20261124/build/relay-20261124/run/system-relay-not-committed-1bca779445764d5093f1d009ff801933",
       "raw_qemu_exit": 33,
       "before_sha256": "49c40c316234e2e4e4c8dd681a057b1b36611648896dcacba1794263b711c266",
-      "after_sha256": "a26d36e789cc3dc79f2eb98cf093f82cc62f4673bcffa8c3f8316a43b515c955",
-      "duration_s": 4.5715114040003755,
+      "after_sha256": "00ca46b0babf9a13145849ce2a41fb50cb908a329b8d255ae807f93f34d51e62",
+      "duration_s": 4.690112030000819,
       "relay": {
         "KEYSTATE_RELAY_CASE": 2,
         "KEYSTATE_RELAY_REQUESTS": 5,
@@ -121,7 +121,7 @@
         "KEYSTATE_RELAY_INIT_BEGUN": 3,
         "KEYSTATE_RELAY_INIT_REVISION": 3,
         "KEYSTATE_RELAY_INIT_GENERATION": 3,
-        "KEYSTATE_RELAY_SUM": 11483377909969065058,
+        "KEYSTATE_RELAY_SUM": 7220131958475666143,
         "KEYSTATE_RELAY_APP_FIRST": 1,
         "KEYSTATE_RELAY_APP_SECOND": 1
       }
@@ -129,11 +129,11 @@
     {
       "case": "relay-timeout",
       "passed": true,
-      "run_directory": "/home/simon/projects/BaryonOS-worktrees/b-cycle-20261124/build/relay-20261124/run/system-relay-timeout-bc6d97c77fe94f6f8e3b21a9af6852ff",
+      "run_directory": "/home/simon/projects/BaryonOS-worktrees/b-cycle-20261124/build/relay-20261124/run/system-relay-timeout-bb0f62964d194534a3d46ea593b59b7b",
       "raw_qemu_exit": 33,
       "before_sha256": "49c40c316234e2e4e4c8dd681a057b1b36611648896dcacba1794263b711c266",
-      "after_sha256": "17d975bd9dbfc418a44d8365f82baed81abfa70a2bf361bda9e28b71c3b7ed13",
-      "duration_s": 19.592675626000528,
+      "after_sha256": "ddf4f17b90bc699a2d49f88f3d1faede7e0c9e43fd4065d7a9b74ef8dc0c7828",
+      "duration_s": 19.67484906000027,
       "relay": {
         "KEYSTATE_RELAY_CASE": 3,
         "KEYSTATE_RELAY_REQUESTS": 4,
@@ -151,7 +151,7 @@
         "KEYSTATE_RELAY_INIT_BEGUN": 3,
         "KEYSTATE_RELAY_INIT_REVISION": 3,
         "KEYSTATE_RELAY_INIT_GENERATION": 3,
-        "KEYSTATE_RELAY_SUM": 15662767348817525984,
+        "KEYSTATE_RELAY_SUM": 5608271917266654908,
         "KEYSTATE_RELAY_APP_FIRST": 7,
         "KEYSTATE_RELAY_APP_SECOND": 7
       }
@@ -161,11 +161,11 @@
     {
       "case": "relay-leak",
       "passed": true,
-      "run_directory": "/home/simon/projects/BaryonOS-worktrees/b-cycle-20261124/build/relay-20261124/run/system-relay-leak-54b52a50c5ad492f87bc9ffb5ce9c5c6",
+      "run_directory": "/home/simon/projects/BaryonOS-worktrees/b-cycle-20261124/build/relay-20261124/run/system-relay-leak-fc78b9292a11411ead8518805e8214db",
       "raw_qemu_exit": 35,
       "before_sha256": "49c40c316234e2e4e4c8dd681a057b1b36611648896dcacba1794263b711c266",
       "after_sha256": "49c40c316234e2e4e4c8dd681a057b1b36611648896dcacba1794263b711c266",
-      "duration_s": 1.7569075030005479,
+      "duration_s": 1.7640961580000294,
       "relay": {
         "fail": "SYSTEM:FAIL:APP_COMMIT_HANDLE",
         "raw_exit": 35

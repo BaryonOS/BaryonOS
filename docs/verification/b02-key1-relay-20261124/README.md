@@ -17,6 +17,22 @@ section FR-B02R.
 | QEMU | 10.2.1 (Debian 1:10.2.1+ds-1ubuntu3.3), `-machine pc-q35-8.2`, `-accel tcg,thread=single`, OVMF |
 | Isolation | `NOS_BUILD_DIR=<worktree>/build/relay-20261124` (inside the checkout because `run_system` requires that), `NOS_TARGET_DIR`/`CARGO_TARGET_DIR` in a scratch directory outside the worktree; one QEMU guest at a time |
 
+## Re-run after review follow-up (49b1557d)
+
+Review commit `49b1557d` widened the answered-commit latency window to
+`0..1499` ticks in `kernel/src/m2/m3/system.rs` and `tools/run_system.py` (a
+fast KVM host can finish every commit within one tick). The full gate
+`python3 -B -u tools/test_system.py` was re-run at
+`49b1557d2f5c068b55b65a24dc15473f4c69d028` (fingerprint `b435ddc59b26…`): exit 0.
+`0-relay`, `1-relay-not-committed`, `2-relay-timeout`, `3-red-relay-leak` and
+`5-gate/system-gate.json` are from that run, with the same measured values
+(answered commits max 5 ticks, timeout 1500, leak raw 35 with the disk
+unchanged, wrong-case control 6/6 rejected). `tests/test_system_harness` (59
+tests) and root/kernel `fmt --check` were re-run at that commit (exit 0).
+`4-control-wrong-case` (12/12 including relabelled logs), `6-b01`,
+`7-regression-normal` and `host/` remain from `d4db823e`; the follow-up does
+not change the keyring ELF or any host crate.
+
 ## Commands and raw exit codes
 
 `steps.tsv` lists every step with its exit code and duration. Native steps, in order:
