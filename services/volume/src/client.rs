@@ -8,6 +8,9 @@ use crate::{
 use wire::{Header, Manifest, SubOp, DATA, INSTALL_MAX, SIZE};
 
 /// One synchronous request/response exchange with the volume service.
+/// After a request was queued, failure to obtain a matching reply must return
+/// `Unknown`. Definite transport errors (including `Timeout`) require proof
+/// that the request was not delivered; service refusals are encoded replies.
 pub trait Transport {
     fn call(&mut self, request: &[u8; SIZE]) -> Result<[u8; SIZE], Status>;
 }
@@ -320,10 +323,22 @@ impl CollectionInfo {
     }
 }
 
+/// Correlation for an INSTALL_BEGIN whose outcome was not confirmed.
+/// These values are not ownership proof: legacy clients can reuse the same
+/// object and request ID. Never infer permission to ABORT from this record.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct UnconfirmedInstall {
+    pub epoch: u64,
+    pub object: u64,
+    pub request_id: u64,
+    pub status: Status,
+}
+
 pub struct Client<T: Transport> {
     pub transport: T,
     pub epoch: u64,
     next_request: u64,
+    unconfirmed_install: Option<UnconfirmedInstall>,
 }
 
 impl<T: Transport> Client<T> {
@@ -333,11 +348,31 @@ impl<T: Transport> Client<T> {
             transport,
             epoch,
             next_request: first_request.max(1),
+            unconfirmed_install: None,
         }
     }
 
     pub fn next_request_id(&self) -> u64 {
         self.next_request
+    }
+
+    /// Inspect an ambiguous BEGIN without discarding its recovery correlation.
+    /// No new install starts until explicit reconciliation is acknowledged.
+    pub fn unconfirmed_install(&self) -> Option<UnconfirmedInstall> {
+        self.unconfirmed_install
+    }
+
+    /// Acknowledge recovery by the original session owner or a trusted domain
+    /// shutdown/restart. This only clears local bookkeeping and sends no request.
+    /// The caller must establish that recovery independently: the matching record
+    /// is correlation, not authority to abort a possibly different client's stage.
+    /// A failed cleanup is not recovery. A stale acknowledgement changes nothing.
+    pub fn acknowledge_install_recovery(&mut self, pending: UnconfirmedInstall) -> bool {
+        if self.unconfirmed_install != Some(pending) {
+            return false;
+        }
+        self.unconfirmed_install = None;
+        true
     }
 
     fn fresh(&mut self) -> u64 {
@@ -681,7 +716,8 @@ impl<T: Transport> Client<T> {
     /// L2 INSTALL of `manifest` into the never-used own slot `object` in one
     /// commit. `fill(version, offset, buffer)` supplies content. On any
     /// error except `Unknown` or `Protocol` nothing was committed. Either
-    /// error from BEGIN triggers a best-effort abort of that request. After
+    /// error from BEGIN retains [`Self::unconfirmed_install`] and stops without
+    /// ABORT or retry: the legacy request ID does not prove ownership. After
     /// a successful BEGIN, errors other than `Unknown` attempt cleanup;
     /// `Unknown` leaves the outcome unresolved. A malformed COMMIT reply can
     /// hide a committed install. Inspect the destination state before retrying
@@ -706,15 +742,20 @@ impl<T: Transport> Client<T> {
     }
 
     /// INSTALL_BEGIN only; returns the request ID of the staged session.
-    /// Lost (`Unknown`) or malformed (`Protocol`) replies trigger a best-effort
-    /// abort using the sent ID. BEGIN commits no object; the original error
-    /// is preserved even if cleanup fails.
+    /// Lost (`Unknown`) or malformed (`Protocol`) replies retain the sent
+    /// correlation in [`Self::unconfirmed_install`] and return the original
+    /// error. They never trigger an automatic ABORT: a lost Busy reply can refer
+    /// to another client's stage with the same legacy ID. Explicit owner/domain
+    /// recovery is required before acknowledging that record and retrying.
     pub fn install_begin(
         &mut self,
         object: u64,
         manifest: &Manifest,
         (tags, kind, collection): (u32, u16, u8),
     ) -> Result<u64, Status> {
+        if let Some(pending) = self.unconfirmed_install {
+            return Err(pending.status);
+        }
         if !manifest.valid() {
             return Err(Status::Invalid);
         }
@@ -733,10 +774,13 @@ impl<T: Transport> Client<T> {
             }
             Ok(id)
         })();
-        if matches!(result, Err(Status::Protocol | Status::Unknown)) {
-            // The v6 session ID is the request ID, not a reply field. A
-            // mismatched ID cannot abort another session on the service.
-            let _ = self.abort(object, 0, id);
+        if let Err(status @ (Status::Protocol | Status::Unknown)) = result {
+            self.unconfirmed_install = Some(UnconfirmedInstall {
+                epoch: self.epoch,
+                object,
+                request_id: id,
+                status,
+            });
         }
         result
     }

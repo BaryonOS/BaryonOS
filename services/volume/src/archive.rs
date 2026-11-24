@@ -1521,6 +1521,10 @@ pub fn l2_manifest(object: &ObjectV2) -> Manifest {
 /// archive into a never-used `domain`, one INSTALL commit per present
 /// object, preserving the archive revisions and stamps as immutable
 /// provenance beside destination-assigned live revisions and clocks.
+/// An unconfirmed BEGIN retains its correlation on
+/// [`Client::unconfirmed_install`]. Restore stops without automatic ABORT or
+/// retry; the original session owner or trusted domain recovery must reconcile
+/// that state before [`Client::acknowledge_install_recovery`] permits a retry.
 ///
 /// Refused before the first write, in this order: a corrupt or v1 archive
 /// (`Corrupt`), `TOMBSTONES` (`Invalid`, R2), a used domain (`Stale`, R3),
@@ -1547,6 +1551,9 @@ pub fn restore_native_l2<S: Source, T: Transport>(
     let mut report = L2Report::default();
     if domain >= DOMAINS {
         return Err((Status::Invalid, report));
+    }
+    if let Some(pending) = client.unconfirmed_install() {
+        return Err((pending.status, report));
     }
     let plan = verify_v2(&mut open(), scratch).map_err(|status| (status, report))?;
     *source = plan;

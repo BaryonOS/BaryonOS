@@ -723,7 +723,92 @@ fn first_commit_installs_three_versions_exactly_on_the_rule_r_bound() {
 // --- 3. Refusals ---------------------------------------------------------------
 
 #[test]
-fn malformed_install_begin_replies_abort_only_their_own_request() {
+fn ambiguous_begin_with_colliding_ids_never_aborts_an_existing_session() {
+    struct Ambiguous<T> {
+        inner: T,
+        malformed: bool,
+        aborts: usize,
+    }
+    impl<T: Transport> Transport for Ambiguous<T> {
+        fn call(&mut self, request: &[u8; wire::SIZE]) -> Result<[u8; wire::SIZE], Status> {
+            let h = wire::header(request);
+            if h.operation == wire::ABORT {
+                self.aborts += 1;
+            }
+            let mut reply = self.inner.call(request)?;
+            if h.operation == wire::INSTALL_BEGIN {
+                if !self.malformed {
+                    return Err(Status::Unknown);
+                }
+                reply[2] ^= 1;
+            }
+            Ok(reply)
+        }
+    }
+    for malformed in [false, true] {
+        for whole_install in [false, true] {
+            let (mut s, mut d) = fresh();
+            let object = 2;
+            let m = manifest(&[CHUNK + 1, 5], 4);
+            let id = Client::new(
+                Local {
+                    service: &mut s,
+                    disk: &mut d,
+                    domain: 0,
+                },
+                EPOCH,
+                700,
+            )
+            .install_begin(object, &m, (0, 0, 0))
+            .unwrap();
+            let mut other = Client::new(
+                Ambiguous {
+                    inner: Local {
+                        service: &mut s,
+                        disk: &mut d,
+                        domain: 0,
+                    },
+                    malformed,
+                    aborts: 0,
+                },
+                EPOCH,
+                700,
+            );
+            let result = if whole_install {
+                other
+                    .install(object, &m, (0, 0, 0), fill(object))
+                    .map(|(_, id)| id)
+            } else {
+                other.install_begin(object, &m, (0, 0, 0))
+            };
+            assert_eq!(
+                result,
+                Err(if malformed {
+                    Status::Protocol
+                } else {
+                    Status::Unknown
+                })
+            );
+            assert_eq!(
+                other.transport.aborts, 0,
+                "a colliding ID proves no ownership"
+            );
+            let Some(Staged::Install(session)) = other.transport.inner.service.staged(0) else {
+                panic!("the original client's stage must remain");
+            };
+            assert_eq!(session.request_id, id);
+            // The original client received a successful BEGIN and owns this stage.
+            let mut owner = client(&mut s, &mut d, 0);
+            owner
+                .install_stream(object, id, &m, 0..m.count, &mut fill(object))
+                .unwrap();
+            owner.install_commit(object, id, &m).unwrap();
+        }
+    }
+}
+
+#[test]
+fn malformed_install_begin_replies_preserve_recovery_without_guessing_ownership() {
     struct Fault<T> {
         inner: T,
         byte: Option<usize>,
@@ -772,15 +857,45 @@ fn malformed_install_begin_replies_abort_only_their_own_request() {
                 c.install_begin(object, &m, (0, 0, 0))
             };
             assert_eq!(result, Err(Status::Protocol));
-            assert_eq!(c.transport.aborts, [(object, 700)], "use the sent ID");
-            assert!(c.transport.inner.service.staged(0).is_none());
+            let pending = c.unconfirmed_install().unwrap();
+            assert_eq!(
+                (pending.epoch, pending.object, pending.request_id),
+                (EPOCH, object, 700)
+            );
+            assert_eq!(pending.status, Status::Protocol);
+            assert!(
+                c.transport.aborts.is_empty(),
+                "an unconfirmed ID proves no ownership"
+            );
+            assert!(c.transport.inner.service.staged(0).is_some());
+            let next = c.next_request_id();
+            assert_eq!(
+                c.install_begin(object, &m, (0, 0, 0)),
+                Err(Status::Protocol)
+            );
+            assert_eq!(c.next_request_id(), next, "no automatic retry");
+            assert_eq!(c.stat(object), Err((Status::NotFound, 0)));
+            assert_eq!(
+                c.unconfirmed_install(),
+                Some(pending),
+                "reads retain recovery info"
+            );
             c.transport.byte = None;
+            // This fixture independently established that this BEGIN created the
+            // stage. An operator lacking that evidence must use trusted recovery.
+            c.abort(object, 0, pending.request_id).unwrap();
+            assert_eq!(c.unconfirmed_install(), Some(pending));
+            assert!(c.acknowledge_install_recovery(pending));
+            assert!(
+                !c.acknowledge_install_recovery(pending),
+                "stale acknowledgement"
+            );
             c.install(object, &m, (0, 0, 0), fill(object)).unwrap();
         }
     }
 
-    // A malformed Busy reply did not create a session. Its cleanup request
-    // must preserve an earlier session, even for the same object.
+    // A malformed Busy reply did not create a session. Recovery correlation
+    // must never be interpreted as authority over an earlier session.
     let (mut s, mut d) = fresh();
     let id = client(&mut s, &mut d, 0)
         .install_begin(object, &m, (0, 0, 0))
@@ -802,20 +917,22 @@ fn malformed_install_begin_replies_abort_only_their_own_request() {
         c.install_begin(object, &m, (0, 0, 0)),
         Err(Status::Protocol)
     );
-    assert_eq!(c.transport.aborts, [(object, 700)]);
+    let pending = c.unconfirmed_install().unwrap();
+    assert!(c.transport.aborts.is_empty());
     c.transport.byte = None;
-    assert_eq!(c.install_begin(object, &m, (0, 0, 0)), Err(Status::Busy));
     assert_eq!(
-        c.transport.aborts.len(),
-        1,
-        "a valid refusal needs no abort"
+        c.install_begin(object, &m, (0, 0, 0)),
+        Err(Status::Protocol)
     );
+    assert_eq!(c.unconfirmed_install(), Some(pending));
+    // The original owner's confirmed session ID, not the unconfirmed one.
     c.abort(object, 0, id).unwrap();
+    assert!(c.acknowledge_install_recovery(pending));
     c.install(object, &m, (0, 0, 0), fill(object)).unwrap();
 }
 
 #[test]
-fn lost_install_begin_replies_abort_only_their_own_request() {
+fn lost_install_begin_replies_preserve_recovery_until_explicit_reconciliation() {
     struct LoseBegin<T> {
         inner: T,
         lose_begin: bool,
@@ -866,13 +983,27 @@ fn lost_install_begin_replies_abort_only_their_own_request() {
                 c.install_begin(object, &m, (0, 0, 0))
             };
             assert_eq!(result, Err(Status::Unknown), "preserve the original error");
-            assert_eq!(c.transport.aborts, [(object, 700)], "use the sent ID");
-            assert_eq!(c.transport.inner.service.staged(0).is_some(), fail_abort);
+            let pending = c.unconfirmed_install().unwrap();
+            assert_eq!(
+                (pending.epoch, pending.object, pending.request_id),
+                (EPOCH, object, 700)
+            );
+            assert_eq!(pending.status, Status::Unknown);
+            assert!(c.transport.aborts.is_empty(), "no ownership was confirmed");
+            assert!(c.transport.inner.service.staged(0).is_some());
+            let next = c.next_request_id();
+            assert_eq!(c.install_begin(object, &m, (0, 0, 0)), Err(Status::Unknown));
+            assert_eq!(c.next_request_id(), next, "no automatic retry");
             if fail_abort {
                 // A failed cleanup does not turn Unknown into a certain result.
+                assert_eq!(c.abort(object, 0, pending.request_id), Err(Status::Io));
+                assert_eq!(c.unconfirmed_install(), Some(pending));
+                assert_eq!(c.install_begin(object, &m, (0, 0, 0)), Err(Status::Unknown));
                 c.transport.fail_abort = false;
-                c.abort(object, 0, 700).unwrap();
             }
+            // Test-only owner evidence: the fresh service had no earlier stage.
+            c.abort(object, 0, pending.request_id).unwrap();
+            assert!(c.acknowledge_install_recovery(pending));
             c.install(object, &m, (0, 0, 0), fill(object)).unwrap();
         }
     }
@@ -897,18 +1028,17 @@ fn lost_install_begin_replies_abort_only_their_own_request() {
         700,
     );
     assert_eq!(c.install_begin(object, &m, (0, 0, 0)), Err(Status::Unknown));
-    assert_eq!(c.transport.aborts, [(object, 700)]);
+    let pending = c.unconfirmed_install().unwrap();
+    assert!(c.transport.aborts.is_empty());
     let Some(Staged::Install(session)) = c.transport.inner.service.staged(0) else {
         panic!("the earlier install must remain staged");
     };
     assert_eq!(session.request_id, id);
-    assert_eq!(c.install_begin(object, &m, (0, 0, 0)), Err(Status::Busy));
-    assert_eq!(
-        c.transport.aborts.len(),
-        1,
-        "a valid refusal needs no abort"
-    );
+    assert_eq!(c.install_begin(object, &m, (0, 0, 0)), Err(Status::Unknown));
+    assert_eq!(c.unconfirmed_install(), Some(pending));
+    // Clear only through the original owner's confirmed ID and explicit ack.
     c.abort(object, 0, id).unwrap();
+    assert!(c.acknowledge_install_recovery(pending));
     c.install(object, &m, (0, 0, 0), fill(object)).unwrap();
 }
 

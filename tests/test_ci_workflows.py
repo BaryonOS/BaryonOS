@@ -781,12 +781,19 @@ cp -- "$ACTIONLINT_FIXTURE" "$output"
     def test_required_gates_are_unfiltered_and_independent(self):
         """Required check names always exist and run without a serial dependency."""
         workflow = self.workflows[".github/workflows/ci.yml"]
-        for event in ("pull_request", "push"):
+        for event in ("pull_request", "merge_group", "push"):
             trigger = workflow["on"][event]
             with self.subTest(event=event):
                 self.assertNotIn("paths", trigger)
                 self.assertNotIn("paths-ignore", trigger)
+        self.assertEqual(workflow["on"]["merge_group"], {"types": ["checks_requested"]})
         self.assertIn("main", workflow["on"]["push"]["branches"])
+        # Merge groups have unique refs, so concurrent groups never cancel each other.
+        self.assertIn("${{ github.ref }}", workflow["concurrency"]["group"])
+        for job_id in ("upload-coverage-rust", "upload-coverage-python",
+                       "upload-coverage-javascript"):
+            with self.subTest(job=job_id):
+                self.assertIn("github.event_name != 'merge_group'", workflow["jobs"][job_id]["if"])
         for job_id in ("host-quality", "qemu-smoke"):
             job = workflow["jobs"][job_id]
             with self.subTest(job=job_id):
@@ -833,7 +840,13 @@ cp -- "$ACTIONLINT_FIXTURE" "$output"
         path = ".github/workflows/merge-hold.yml"
         workflow = self.workflows[path]
         trigger = workflow["on"]["pull_request"]
-        self.assertEqual(set(workflow["on"]), {"pull_request"})
+        self.assertEqual(set(workflow["on"]), {"pull_request", "merge_group"})
+        self.assertEqual(workflow["on"]["merge_group"], {"types": ["checks_requested"]})
+        self.assertEqual(
+            workflow["concurrency"]["group"],
+            "merge-hold-${{ github.event_name }}-"
+            "${{ github.event.pull_request.number || github.ref }}",
+        )
         self.assertEqual(
             set(trigger["types"]),
             {"opened", "synchronize", "reopened", "labeled", "unlabeled"},
@@ -846,11 +859,30 @@ cp -- "$ACTIONLINT_FIXTURE" "$output"
         self.assertEqual(job["name"], "merge-hold")
         self.assertEqual(
             job["permissions"],
-            {"contents": "read", "issues": "read", "pull-requests": "read"},
+            {"checks": "read", "contents": "read", "issues": "read", "pull-requests": "read"},
         )
         for key in ("if", "needs", "continue-on-error", "strategy", "defaults",
                     "container", "services"):
             self.assertNotIn(key, job)
+        # On merge_group the hold waits for these ci.yml checks, then decides.
+        # A rename would make every queue group time out, so pin the names.
+        source = (ROOT / "tools/merge_hold.py").read_text(encoding="utf-8")
+        waited = ast.literal_eval(re.search(r"^WAIT_CHECKS = (.+)$", source, re.M).group(1))
+        minutes = re.search(r"^WAIT_SECONDS = ([0-9]+) \* 60$", source, re.M)
+        wait_seconds = int(minutes.group(1)) * 60
+        ci = self.workflows[".github/workflows/ci.yml"]
+        self.assertEqual(set(waited), {"host-quality", "qemu-smoke"})
+        for name in waited:
+            with self.subTest(waited=name):
+                self.assertEqual(ci["jobs"][name].get("name", name), name)
+                self.assertNotIn("if", ci["jobs"][name])
+                # The wait budget outlasts each waited job and stays below our own timeout.
+                self.assertGreater(wait_seconds, int(ci["jobs"][name]["timeout-minutes"]) * 60)
+        self.assertLess(wait_seconds, int(job["timeout-minutes"]) * 60)
+        # Entries ahead count as finished once this job's own name completed on them;
+        # the walk ahead stops only at one that succeeded (tools/tests/test_merge_hold.py).
+        self.assertRegex(source, r'(?m)^AHEAD_CHECKS = WAIT_CHECKS \+ \("merge-hold",\)$')
+        self.assertLess(int(job["timeout-minutes"]), 60)
         checkout, decide = job["steps"]
         self.assertTrue(checkout["uses"].startswith("actions/checkout@"))
         self.assertEqual(checkout["with"], {"persist-credentials": "false"})
@@ -863,8 +895,12 @@ cp -- "$ACTIONLINT_FIXTURE" "$output"
         self.assertEqual(decide["env"], {
             "GH_TOKEN": "${{ github.token }}",
             "REPO": "${{ github.repository }}",
+            "EVENT_NAME": "${{ github.event_name }}",
             "PR_NUMBER": "${{ github.event.pull_request.number }}",
             "HEAD_SHA": "${{ github.event.pull_request.head.sha }}",
+            "MERGE_GROUP_HEAD_SHA": "${{ github.event.merge_group.head_sha }}",
+            "MERGE_GROUP_HEAD_REF": "${{ github.event.merge_group.head_ref }}",
+            "MERGE_GROUP_BASE_REF": "${{ github.event.merge_group.base_ref }}",
         })
 
     def test_only_artifact_uploads_can_tolerate_errors(self):

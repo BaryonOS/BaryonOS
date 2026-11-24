@@ -25,7 +25,11 @@ record that conflict and preserve required validation hooks when using a safe ho
 Do not silently disable validation hooks or run a forbidden local index.
 Update the existing compact checkpoint and progress assessment; commit/push coherent work
 and open/update a draft PR. Manual squash requires actual mandatory checks and owner
-mandate. Never auto-merge, bypass protections, weaken permissions or disturb foreign WIP.
+mandate (the six workstreams hold it for their own PRs under ADR-MERGE-DELEGATION-20261123).
+Use the guarded squash/auto-merge procedure in AGENTS.md; disable auto-merge before
+changing a head or base and reassess it afterwards. Never bypass protections,
+weaken permissions or disturb foreign WIP. Continue independent or correctly
+stacked work while a submitted PR waits; verify its actual landing later.
 Governance does not require zero open items or prove runtime parity/Daybreak remediation.
 
 ## Read-only canary instruction

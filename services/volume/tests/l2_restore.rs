@@ -588,6 +588,68 @@ fn an_unknown_commit_outcome_stops_without_abort() {
 }
 
 #[test]
+fn an_unconfirmed_begin_retains_recovery_and_blocks_another_restore() {
+    for malformed in [false, true] {
+        let bytes = fixture("present-only.bin");
+        let mut disk = SimDisk::new();
+        let mut service = Service::new(EPOCH, Table::EMPTY, false);
+        let mut c = client(&mut service, &mut disk, DOMAIN);
+        if malformed {
+            c.transport.malformed_at = Some(wire::INSTALL_BEGIN);
+        } else {
+            c.transport.unknown_at = Some(wire::INSTALL_BEGIN);
+        }
+        let expected = if malformed {
+            Status::Protocol
+        } else {
+            Status::Unknown
+        };
+        let (status, report) = restore(&bytes, &mut c, DOMAIN, None).unwrap_err();
+        assert_eq!(status, expected);
+        assert_eq!(report.restored, 0);
+        assert_eq!(report.committed, report.collections.count_ones() as usize);
+        assert!(
+            report.committed > 0,
+            "fixture has a collection before its object"
+        );
+        let pending = c.unconfirmed_install().unwrap();
+        assert_eq!((pending.epoch, pending.status), (EPOCH, expected));
+        assert_eq!(
+            c.transport.aborts, 0,
+            "unconfirmed identity is not ownership"
+        );
+        assert!(c.transport.inner.service.staged(DOMAIN).is_some());
+        let installs = c.transport.installs;
+        assert_eq!(
+            restore(&bytes, &mut c, DOMAIN, None).unwrap_err().0,
+            expected
+        );
+        assert_eq!(c.transport.installs, installs, "retry starts no write");
+        let wrong = volume_core::client::UnconfirmedInstall {
+            request_id: pending.request_id + 1,
+            ..pending
+        };
+        assert!(!c.acknowledge_install_recovery(wrong));
+        assert_eq!(c.unconfirmed_install(), Some(pending));
+
+        // The fixture independently knows this fresh domain had no prior owner.
+        // A real caller without that proof must reconcile through trusted recovery.
+        c.transport.malformed_at = None;
+        c.transport.unknown_at = None;
+        c.abort(pending.object, 0, pending.request_id).unwrap();
+        assert!(c.acknowledge_install_recovery(pending));
+        // The confirmed collection commit still prevents resuming this domain.
+        assert_eq!(
+            restore(&bytes, &mut c, DOMAIN, None).unwrap_err().0,
+            Status::Stale
+        );
+        let mut fresh = client(&mut service, &mut disk, 0);
+        let (report, source) = restore(&bytes, &mut fresh, 0, None).unwrap();
+        check_restored(&mut fresh, &bytes, &report, &source, 0);
+    }
+}
+
+#[test]
 fn malformed_commit_replies_leave_only_confirmed_commits_in_the_report() {
     for operation in [wire::INSTALL_COLLECTION, wire::INSTALL_COMMIT] {
         let bytes = fixture("restore.bin");

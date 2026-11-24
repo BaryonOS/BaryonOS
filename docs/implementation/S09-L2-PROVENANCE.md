@@ -443,6 +443,29 @@ New `client::validate_reply` arms:
 - **PROVENANCE_STAT, collection:** `revision` = request `revision`;
   `length = name_length = 0`; `count ≤ 1`; `(count = 1) ⇔ (aux ≠ 0)`.
 
+**Unconfirmed BEGIN recovery.** Legacy request IDs are correlation values,
+not ownership credentials; separate clients may use the same ID for the same
+object. A lost or malformed Busy reply therefore cannot justify an automatic
+ABORT. `Client::install_begin` retains the sent epoch, object, request ID and
+error in `Client::unconfirmed_install`, returns the original `Unknown` or
+`Protocol`, and sends no ABORT or retry. The convenience install and L2 restore
+keep this record on the caller's Client. Further BEGIN/restore attempts stop
+before writing, and reads do not discard the record.
+
+The original confirmed session owner or a trusted domain shutdown/restart must
+reconcile the state. Only then may the caller acknowledge that exact record
+with `acknowledge_install_recovery`. Acknowledgement clears local bookkeeping
+only, sends no request and proves no ownership. A failed cleanup is not
+recovery. This is explicit bounded failure handling, not guaranteed immediate
+stage reclamation or a new v6 ownership boundary. Cleanup after a confirmed
+successful BEGIN retains its existing session semantics.
+
+The Transport contract distinguishes delivery phases: a timeout or other
+definite transport failure requires proof that the request was not delivered.
+After it was queued, a missing or invalid reply envelope is `Unknown`; an
+encoded service refusal remains a reply. A lost COMMIT response must never be
+reported as proof that no commit occurred.
+
 ## 5. Restore mode L2 (`restore_native_l2`, client, `archive.rs`)
 
 This is a separate function beside `restore` (v1) and `restore_native` (L1).
