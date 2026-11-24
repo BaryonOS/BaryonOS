@@ -10,6 +10,21 @@ const OFFSETS: [u64; 21] = [
 ];
 /// N04 revoke case: a fourth process is the policy authority for the service.
 const REVOKE: bool = cfg!(feature = "test-net-service-revoke");
+/// N04 port-sweep case: the revoke manifest plus a full listener sweep at two
+/// quiescent points. Idle processes use the existing bounded timed IPC wait.
+const PORT_SWEEP: bool = cfg!(feature = "test-net-service-port-sweep");
+// Aggregate fixture deadline only; socket, IPC and app deadlines are unchanged.
+// The 320-second case budget at 100 Hz. Local QEMU 10.2.1 TCG runs finished both
+// sweeps at ticks 24,817 and 23,455, so the budget leaves 28.9% over the slower one.
+// shortcut: one RX frame per service loop and one PacketDevice TX slot bound the
+// sweep's speed; deeper RX/TX queues are a separate performance investigation.
+const PORT_SWEEP_TICK_DEADLINE: u64 = 32_000;
+/// Frames the peer sends per sweep: one SYN per TCP port, then 16 UDP probes.
+/// The service counts each unsolicited UDP probe as a malformed frame (512).
+const SWEEP_UDP: u64 = 16;
+const SWEEP_FRAMES: u64 = 65_535 + SWEEP_UDP;
+/// Ticks after a sweep's last probe arrived before the next phase may start.
+const SWEEP_SETTLE: u64 = 50;
 const HELPER: bool = cfg!(feature = "test-net-service-helper");
 const DEVICE_RESET: bool = cfg!(feature = "test-net-service-device-reset");
 const EXHAUSTION: bool = cfg!(feature = "test-net-service-exhaustion");
@@ -24,6 +39,11 @@ struct Evidence {
     revoke_requested: u64,
     helper_released: u64,
     exhaustion_released: u64,
+    sweep_settle: u64,
+    sweep_pre_released: u64,
+    /// (tick, service RX frames, service malformed frames) once both apps wait.
+    sweep_post_base: (u64, u64, u64),
+    sweep_post_released: u64,
     #[cfg(feature = "test-net-service-device-reset")]
     reset_armed: bool,
 }
@@ -34,6 +54,10 @@ static mut EVIDENCE: Evidence = Evidence {
     revoke_requested: 0,
     helper_released: 0,
     exhaustion_released: 0,
+    sweep_settle: 0,
+    sweep_pre_released: 0,
+    sweep_post_base: (0, 0, 0),
+    sweep_post_released: 0,
     #[cfg(feature = "test-net-service-device-reset")]
     reset_armed: false,
 };
@@ -123,6 +147,11 @@ pub(super) fn manifest(s: &mut State) {
             (72, 0),
         ] {
             put(s, 3, at, value);
+        }
+        if PORT_SWEEP {
+            for slot in 1..4 {
+                put(s, slot, 128, PORT_SWEEP_TICK_DEADLINE);
+            }
         }
         require(
             e.check_network(policy, order).is_err()
@@ -379,6 +408,9 @@ pub(super) fn poll(s: &mut State) -> Option<*const u64> {
             }
         }
     }
+    if PORT_SWEEP {
+        sweep_fixture(s);
+    }
     // Test driver: once app A reports a live, idle connection, ask the policy
     // process to revoke. The authority itself is the policy's endpoint.
     if REVOKE
@@ -393,6 +425,8 @@ pub(super) fn poll(s: &mut State) -> Option<*const u64> {
     }
     let timed_out = if EXHAUSTION {
         s.ticks >= EXHAUSTION_TICK_DEADLINE
+    } else if PORT_SWEEP {
+        s.ticks >= PORT_SWEEP_TICK_DEADLINE
     } else {
         s.ticks > 6000
     };
@@ -421,6 +455,9 @@ pub(super) fn poll(s: &mut State) -> Option<*const u64> {
         check_exhaustion(&service);
     } else if REVOKE {
         check_revoke(&service);
+        if PORT_SWEEP {
+            check_sweep(&service);
+        }
     } else {
         check_n01(&service);
         if HELPER {
@@ -556,6 +593,78 @@ fn check_revoke(service: &[u64; 21]) {
     require(
         requested != 0 && requested <= sent && sent <= handled && handled <= closed,
         b"REVOKE_ORDER",
+    );
+}
+/// Synchronization signals only: the peer drives both sweeps and validates every
+/// reply; the kernel fixes when apps may run. It never parses network frames,
+/// only the service's own RX (424) and malformed-frame (512) counters.
+fn sweep_fixture(s: &mut State) {
+    let e = evidence();
+    if s.processes[0].status == Status::Dead {
+        return;
+    }
+    let (rx, malformed) = (word(s, 0, 424), word(s, 0, 512));
+    let reached = if e.sweep_pre_released == 0 {
+        // Before any app runs only sweep probes can be malformed. At least one
+        // ARP request preceded the sweep, so RX exceeds the probe count.
+        require(
+            malformed <= SWEEP_UDP && (1..3).all(|slot| word(s, slot, 400) == 0),
+            b"SWEEP_PRE_QUIESCENCE",
+        );
+        malformed == SWEEP_UDP && rx > SWEEP_FRAMES
+    } else if e.sweep_post_base.0 == 0 {
+        if s.processes[1..3].iter().all(|p| p.status != Status::Dead)
+            && word(s, 1, 136) == 1
+            && word(s, 2, 136) == 1
+        {
+            e.sweep_post_base = (s.ticks.max(1), rx, malformed);
+            print_number(b"NETSVC:SWEEP_POST_BASE_TICKS:", s.ticks.max(1));
+        }
+        return;
+    } else if e.sweep_post_released == 0 {
+        let (_, base_rx, base_malformed) = e.sweep_post_base;
+        // Every post-sweep frame arrived after both apps finished their checks.
+        malformed >= base_malformed + SWEEP_UDP && rx >= base_rx + SWEEP_FRAMES
+    } else {
+        return;
+    };
+    if !reached {
+        return;
+    }
+    if e.sweep_settle == 0 {
+        e.sweep_settle = s.ticks.max(1);
+        return;
+    }
+    if s.ticks - e.sweep_settle < SWEEP_SETTLE {
+        return;
+    }
+    e.sweep_settle = 0;
+    let (signal, label): (u64, &[u8]) = if e.sweep_pre_released == 0 {
+        e.sweep_pre_released = s.ticks.max(1);
+        (1, b"NETSVC:SWEEP_PRE_RELEASE_TICKS:")
+    } else {
+        e.sweep_post_released = s.ticks.max(1);
+        (2, b"NETSVC:SWEEP_POST_RELEASE_TICKS:")
+    };
+    print_number(label, s.ticks.max(1));
+    for slot in 1..3 {
+        put(s, slot, 112, signal);
+    }
+}
+fn check_sweep(service: &[u64; 21]) {
+    let e = evidence();
+    let (base, base_rx, base_malformed) = e.sweep_post_base;
+    require(
+        e.sweep_pre_released != 0
+            && e.sweep_pre_released <= e.revoke_requested
+            && e.revoke_requested <= base
+            && base <= e.sweep_post_released
+            && e.exits[1..3]
+                .iter()
+                .all(|tick| *tick >= e.sweep_post_released)
+            && service[4] >= base_rx + SWEEP_FRAMES
+            && service[15] >= base_malformed + SWEEP_UDP,
+        b"SWEEP_ORDER",
     );
 }
 fn exhaustion_diagnostics(s: &State) {

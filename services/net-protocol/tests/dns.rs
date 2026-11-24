@@ -182,6 +182,32 @@ fn header_id_question_and_response_errors_are_never_success() {
     );
 }
 
+/// RFC 5452 section 9.1: TC is judged only after the question matched, so a
+/// truncated reply that merely guesses the ID stays an ignorable mismatch.
+#[test]
+fn truncation_bit_counts_only_for_the_matching_question() {
+    let original = fixed_response();
+    for (at, value) in [(5, 0), (5, 2), (13, b'x'), (26, 28), (28, 3)] {
+        let mut data = original.clone();
+        data[2] |= 2;
+        data[at] = value;
+        assert_eq!(
+            dns::parse_response(&data, question()),
+            Err(Error::WrongQuestion)
+        );
+    }
+    // Matching question: TC stays final and precedes any rcode or record.
+    for rcode in [0, 2, 3] {
+        let mut data = original.clone();
+        data[2] |= 2;
+        data[3] |= rcode;
+        assert_eq!(
+            dns::parse_response(&data, question()),
+            Err(Error::TruncatedResponse)
+        );
+    }
+}
+
 #[test]
 fn compression_rejects_header_forward_self_loop_and_bad_label_encodings() {
     for pointer in [0u16, 11, 29, 40, 0x3fff] {

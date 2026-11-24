@@ -218,6 +218,13 @@ test-net-service-helper = ["native-net-service"]
 test-net-service-device-reset = ["native-net-service", "virtio-net-driver/test-device-reset"]
 # The idle owner uses the existing bounded wait ABI; other profiles are unchanged.
 test-net-service-exhaustion = ["native-net-service", "ipc-wait"]
+# N02: the service acquires its address by DHCP and withdraws it on NAK.
+test-net-service-dhcp = ["native-net-service"]
+# N02-T3b: a QMP link down/up withdraws and re-acquires the DHCP lease.
+test-net-service-link = ["test-net-service-dhcp", "test-system-net-link"]
+# N04: the revoke manifest plus a full listener sweep at two quiescent points;
+# idle processes use the existing bounded wait ABI. The revoke case is unchanged.
+test-net-service-port-sweep = ["test-net-service-revoke", "ipc-wait"]
 test-system-tcp-recover = ["native-system-tcp", "test-system-recover"]
 # B01 entropy broker + Key Service profile: virtio-rng broker, two services, one app.
 native-keyring = ["milestone-m4", "dep:virtio-rng-driver"]

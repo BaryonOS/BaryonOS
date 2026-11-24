@@ -52,7 +52,7 @@ class WorkflowVerifierTests(unittest.TestCase):
                     if check["name"] == key)
 
     def test_integrated_workflows_preserve_all_reporting_cases(self):
-        """A valid baseline retains 20 workflow files and 33 preservation calls."""
+        """A valid baseline retains 20 workflow files and 34 preservation calls."""
         report = self.report()
         self.assertTrue(report["passed"], report["failed_checks"])
         self.assertEqual(report["archive_workflow_count"], 20)
@@ -72,8 +72,9 @@ class WorkflowVerifierTests(unittest.TestCase):
             # Code coverage reporting adds three calls in ci.yml (Rust, Python,
             # JavaScript), each counted by both prefixes.
             # H02 adds one xHCI and one HID workflow/preservation invocation.
+            # Native network extensions add their own DHCP/link/route/sweep reports.
             self.assertEqual(sum(check["name"].startswith(prefix)
-                                 for check in report["checks"]), 33)
+                                 for check in report["checks"]), 34)
         self.assertEqual(sum(check["name"].startswith("report-shell:")
                              for check in report["checks"]), 28)
         self.assertEqual(sum(check["name"].startswith("package-check:")

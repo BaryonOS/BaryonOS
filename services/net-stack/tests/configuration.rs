@@ -91,6 +91,35 @@ fn offlink_connection_uses_real_default_gateway_neighbor_request() {
 }
 
 #[test]
+fn offlink_connection_without_gateway_never_transmits() {
+    let no_gateway = AddressConfiguration {
+        gateway: None,
+        ..ADDRESS
+    };
+    with_stack(|stack, client| {
+        stack.apply_configuration(no_gateway, 0).unwrap();
+        stack
+            .connect(client, [198, 51, 100, 1], 443, 49152, 300)
+            .unwrap();
+        for ticks in 0..150 {
+            stack.poll(ticks).unwrap();
+            assert!(stack.transmission().is_none(), "frame at tick {ticks}");
+        }
+    });
+    // Control: the same setup does transmit on-link without a gateway.
+    with_stack(|stack, client| {
+        stack.apply_configuration(no_gateway, 0).unwrap();
+        stack
+            .connect(client, [192, 0, 2, 9], 443, 49152, 300)
+            .unwrap();
+        stack.poll(0).unwrap();
+        let frame = stack.transmission().unwrap();
+        assert_eq!(&frame.bytes[12..14], &[8, 6]);
+        assert_eq!(&frame.bytes[38..42], &[192, 0, 2, 9]);
+    });
+}
+
+#[test]
 fn withdrawal_with_pending_tx_retains_id_and_blocks_reapply_until_true_completion() {
     with_stack(|stack, client| {
         stack.apply_configuration(ADDRESS, 0).unwrap();
