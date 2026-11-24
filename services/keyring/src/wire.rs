@@ -5,7 +5,7 @@
 use zeroize::Zeroizing;
 
 use crate::{
-    persistent::{KeyStateStore, SnapshotInfo, WriteAheadError, PERSISTENT_BLOB},
+    persistent::{KeyStateStore, SnapshotInfo, StoreError, WriteAheadError, PERSISTENT_BLOB},
     records::{RecordContext, RecordKind, RECORD_SUITE, RECORD_VERSION},
     EntropySource, Service, Status, DOMAINS, MAX_PLAINTEXT, MAX_SEALED, NONCE_BYTES, RECOVERY_BLOB,
     SECRET_BYTES, TAG_BYTES,
@@ -28,9 +28,20 @@ pub const UNSEAL_RECORD: u8 = 9;
 pub const RANDOM: u8 = 10;
 /// B02 persistence opcodes. They are only reachable through a separately
 /// granted administrative ingress; domain endpoints and the RANDOM ingress
-/// reject them. The secret in the body is caller-held and never stored.
+/// reject them. The secret in their body is caller-held and never stored.
 pub const EXPORT_PERSISTENT: u8 = 11;
 pub const RESTORE_PERSISTENT: u8 = 12;
+/// ADR-B02-KEY1-RELAY (test profile): administrative-only supply of the
+/// external secret, once per instance. The service holds it only in zeroizing
+/// memory, never returns, logs, exports or persists it. Not in `body_bounds`,
+/// so every domain, persistent and management dispatch replies `Invalid`.
+pub const SUPPLY_SECRET: u8 = 13;
+/// Key Service -> init commit request on the key-state commit ingress. Never
+/// valid on any Key Service ingress (not in `body_bounds`).
+pub const COMMIT_KEYSTATE: u8 = 14;
+/// Bound of one relay commit in 100 Hz ticks (15 s): 3x the volume service's
+/// 500-tick completion budget, below the kernel's 20,000-tick system bound.
+pub const COMMIT_TICKS: u64 = 1500;
 pub const RANDOM_PREFIX: usize = 16;
 pub const REPLY: u8 = 0x80;
 pub const RECORD_CONTEXT: usize = 64;
@@ -456,6 +467,91 @@ pub fn dispatch_domain_durable<S: KeyStateStore>(
     }
 }
 
+/// External secret held by a relay-mode service instance. No `Clone`, no
+/// `Debug`; the bytes are wiped when the value is dropped.
+pub struct HeldSecret(Zeroizing<[u8; SECRET_BYTES]>);
+
+impl HeldSecret {
+    pub fn secret(&self) -> &[u8; SECRET_BYTES] {
+        &self.0
+    }
+}
+
+/// Administrative SUPPLY_SECRET request. The caller wipes its own copy.
+pub fn supply_secret_request(request_id: u64, secret: &[u8; SECRET_BYTES]) -> [u8; SIZE] {
+    request(SUPPLY_SECRET, 0, request_id, secret).expect("32-byte body fits")
+}
+
+pub fn decode_supply_secret(header: &Header, body: &[u8]) -> Result<HeldSecret, Status> {
+    if header.op != SUPPLY_SECRET
+        || header.index != 0
+        || header.status != 0
+        || usize::from(header.length) != SECRET_BYTES
+        || body.len() != SECRET_BYTES
+    {
+        return Err(Status::Invalid);
+    }
+    let mut held = Zeroizing::new([0u8; SECRET_BYTES]);
+    held.copy_from_slice(body);
+    Ok(HeldSecret(held))
+}
+
+/// Commit request to init: the request id is the generation (never 0).
+pub fn commit_request(generation: u64, blob: &[u8; PERSISTENT_BLOB]) -> Option<[u8; SIZE]> {
+    if generation == 0 {
+        return None;
+    }
+    request(COMMIT_KEYSTATE, 0, generation, blob)
+}
+
+/// Init side: a canonical COMMIT_KEYSTATE request, or `None`.
+pub fn decode_commit_request(payload: &[u8]) -> Option<(u64, [u8; PERSISTENT_BLOB])> {
+    let header = Header::decode(payload)?;
+    if header.op != COMMIT_KEYSTATE
+        || header.index != 0
+        || header.status != 0
+        || header.request == 0
+        || usize::from(header.length) != PERSISTENT_BLOB
+    {
+        return None;
+    }
+    let mut blob = [0u8; PERSISTENT_BLOB];
+    blob.copy_from_slice(&payload[HEADER..HEADER + PERSISTENT_BLOB]);
+    Some((header.request, blob))
+}
+
+/// Init side: `COMMITTED` (Ok) or `NOT_COMMITTED` (NotReady) for a request.
+pub fn commit_reply(request_header: &Header, committed: bool) -> [u8; SIZE] {
+    let status = if committed {
+        Status::Ok
+    } else {
+        Status::NotReady
+    };
+    reply(request_header, status, &[])
+}
+
+/// Service side: map init's reply to the store outcome. Only a canonical,
+/// empty reply to this generation's COMMIT_KEYSTATE counts; `NotReady` is the
+/// only certain failure, everything else (including malformed) is `Unknown`.
+pub fn commit_outcome(generation: u64, payload: &[u8]) -> Result<(), StoreError> {
+    let Some(header) = Header::decode(payload) else {
+        return Err(StoreError::Unknown);
+    };
+    if header.op != COMMIT_KEYSTATE | REPLY
+        || header.index != 0
+        || header.request != generation
+        || generation == 0
+        || header.length != 0
+    {
+        return Err(StoreError::Unknown);
+    }
+    match header.status {
+        0 => Ok(()),
+        status if status == Status::NotReady.code() => Err(StoreError::Failed),
+        _ => Err(StoreError::Unknown),
+    }
+}
+
 pub fn encode_snapshot_info(info: SnapshotInfo) -> [u8; SNAPSHOT_INFO] {
     let mut out = [0u8; SNAPSHOT_INFO];
     out[..8].copy_from_slice(&info.generation.to_le_bytes());
@@ -631,4 +727,291 @@ pub fn status_body(state: u8, reason: u8, keys: [u16; 2], entropy_bytes: u64) ->
     body[4..6].copy_from_slice(&keys[1].to_le_bytes());
     body[6..14].copy_from_slice(&entropy_bytes.to_le_bytes());
     body
+}
+
+/// ADR-B02-KEY1-RELAY host checks of the relay wire and its store mapping.
+/// Deterministic entropy is a test fixture; no native IPC is exercised.
+#[cfg(test)]
+mod relay_tests {
+    use super::*;
+
+    const VOLUME: [u8; VOLUME_ID] = *b"NOS-SYSTEM-VOL01";
+    const SECRET: [u8; SECRET_BYTES] = [0x5a; SECRET_BYTES];
+
+    struct Entropy(u64);
+    impl EntropySource for Entropy {
+        fn read(&mut self, out: &mut [u8]) -> Result<(), Status> {
+            for byte in out {
+                self.0 ^= self.0 << 13;
+                self.0 ^= self.0 >> 7;
+                self.0 ^= self.0 << 17;
+                *byte = (self.0 >> 24) as u8;
+            }
+            Ok(())
+        }
+    }
+
+    /// Scripted init: each commit pops the next outcome; records generations.
+    struct Script {
+        outcomes: [Result<(), StoreError>; 4],
+        calls: usize,
+        generations: [u64; 4],
+    }
+    impl KeyStateStore for Script {
+        fn commit(
+            &mut self,
+            generation: u64,
+            blob: &[u8; PERSISTENT_BLOB],
+        ) -> Result<(), StoreError> {
+            // The blob travels through the real relay wire both ways.
+            let request = commit_request(generation, blob).expect("nonzero generation");
+            let (seen, carried) = decode_commit_request(&request).expect("canonical request");
+            assert_eq!((seen, &carried), (generation, blob));
+            self.generations[self.calls] = generation;
+            let outcome = self.outcomes[self.calls];
+            self.calls += 1;
+            let header = Header::decode(&request).unwrap();
+            let answer = match outcome {
+                Ok(()) => commit_reply(&header, true),
+                Err(StoreError::Failed) => commit_reply(&header, false),
+                Err(StoreError::Unknown) => reply(&header, Status::Degraded, &[]),
+            };
+            commit_outcome(generation, &answer)
+        }
+    }
+
+    fn ready() -> (Service, Entropy) {
+        let mut service = Service::new();
+        let mut source = Entropy(0x1234_5678_9abc_def1);
+        service.start(&mut source).unwrap();
+        (service, source)
+    }
+
+    fn call(
+        service: &mut Service,
+        source: &mut Entropy,
+        store: &mut Script,
+        op: u8,
+        index: u8,
+    ) -> Header {
+        let request = request(op, index, 7, &[]).unwrap();
+        let header = Header::decode(&request).unwrap();
+        let mut durable = Durable {
+            volume: &VOLUME,
+            secret: &SECRET,
+            store,
+        };
+        let answer = dispatch_domain_durable(service, source, 0, &header, &[], &mut durable);
+        Header::decode(&answer).unwrap()
+    }
+
+    #[test]
+    fn relay_opcodes_are_refused_by_every_service_dispatch_without_state_change() {
+        let (mut service, mut source) = ready();
+        for op in [SUPPLY_SECRET, COMMIT_KEYSTATE] {
+            assert_eq!(body_bounds(op), None);
+            let bodies: [&[u8]; 2] = [&SECRET, &[0u8; PERSISTENT_BLOB]];
+            for body in bodies {
+                let message = request(op, 0, 9, body).unwrap();
+                let header = Header::decode(&message).unwrap();
+                let before = (service.snapshot_info(), service.counters.entropy_bytes);
+                for answer in [
+                    dispatch_domain(&mut service, &mut source, 0, &header, body),
+                    dispatch_persistent(&mut service, &mut source, &header, body),
+                    dispatch_management(&mut service, &mut source, &header, body),
+                ] {
+                    let decoded = Header::decode(&answer).unwrap();
+                    assert_eq!(decoded.status, Status::Invalid.code());
+                    assert_eq!(decoded.length, 0);
+                }
+                assert_eq!(
+                    (service.snapshot_info(), service.counters.entropy_bytes),
+                    before
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn supply_decode_refuses_noncanonical_requests() {
+        let good = supply_secret_request(3, &SECRET);
+        let header = Header::decode(&good).unwrap();
+        let held = decode_supply_secret(&header, &good[HEADER..HEADER + SECRET_BYTES]).unwrap();
+        assert_eq!(held.secret(), &SECRET);
+        let body = &good[HEADER..HEADER + SECRET_BYTES];
+        for bad in [
+            Header {
+                length: 31,
+                ..header
+            },
+            Header { index: 1, ..header },
+            Header {
+                status: -1,
+                ..header
+            },
+            Header {
+                op: RESTORE_PERSISTENT,
+                ..header
+            },
+        ] {
+            assert_eq!(
+                decode_supply_secret(&bad, body).err(),
+                Some(Status::Invalid)
+            );
+        }
+        assert_eq!(
+            decode_supply_secret(&header, &body[..31]).err(),
+            Some(Status::Invalid)
+        );
+        // A dirty tail never decodes to a header in the first place.
+        let mut dirty = good;
+        dirty[SIZE - 1] = 1;
+        assert!(Header::decode(&dirty).is_none());
+    }
+
+    #[test]
+    fn commit_request_round_trips_and_refuses_zero_or_dirty() {
+        let blob = core::array::from_fn::<u8, PERSISTENT_BLOB, _>(|i| i as u8);
+        let message = commit_request(4, &blob).unwrap();
+        assert_eq!(decode_commit_request(&message), Some((4, blob)));
+        assert!(commit_request(0, &blob).is_none());
+        let mut dirty = message;
+        dirty[HEADER + PERSISTENT_BLOB] = 1;
+        assert!(decode_commit_request(&dirty).is_none());
+        for (at, value) in [(0usize, SUPPLY_SECRET), (1, 1), (12, 0xff)] {
+            let mut bad = message;
+            bad[at] = value;
+            assert!(decode_commit_request(&bad).is_none(), "byte {at}");
+        }
+        let short = request(COMMIT_KEYSTATE, 0, 4, &blob[..119]).unwrap();
+        assert!(decode_commit_request(&short).is_none());
+        let zero = request(COMMIT_KEYSTATE, 0, 0, &blob).unwrap();
+        assert!(decode_commit_request(&zero).is_none());
+    }
+
+    #[test]
+    fn commit_outcome_maps_only_ok_and_not_ready_to_certain_results() {
+        let blob = [7u8; PERSISTENT_BLOB];
+        let header = Header::decode(&commit_request(5, &blob).unwrap()).unwrap();
+        assert_eq!(commit_outcome(5, &commit_reply(&header, true)), Ok(()));
+        assert_eq!(
+            commit_outcome(5, &commit_reply(&header, false)),
+            Err(StoreError::Failed)
+        );
+        for status in [Status::Degraded, Status::Invalid, Status::Auth] {
+            assert_eq!(
+                commit_outcome(5, &reply(&header, status, &[])),
+                Err(StoreError::Unknown)
+            );
+        }
+        // Wrong request id (another generation), wrong op, a body, garbage.
+        assert_eq!(
+            commit_outcome(6, &commit_reply(&header, true)),
+            Err(StoreError::Unknown)
+        );
+        assert_eq!(
+            commit_outcome(
+                0,
+                &commit_reply(
+                    &Header {
+                        request: 0,
+                        ..header
+                    },
+                    true
+                )
+            ),
+            Err(StoreError::Unknown)
+        );
+        let wrong_op = Header {
+            op: GENERATE,
+            ..header
+        };
+        assert_eq!(
+            commit_outcome(5, &commit_reply(&wrong_op, true)),
+            Err(StoreError::Unknown)
+        );
+        let with_body = reply(&header, Status::Ok, &[1]);
+        assert_eq!(commit_outcome(5, &with_body), Err(StoreError::Unknown));
+        assert_eq!(commit_outcome(5, &[0xff; SIZE]), Err(StoreError::Unknown));
+        assert_eq!(commit_outcome(5, &[0; 16]), Err(StoreError::Unknown));
+    }
+
+    #[test]
+    fn failed_commit_replies_not_ready_and_a_retry_commits() {
+        let (mut service, mut source) = ready();
+        let mut store = Script {
+            outcomes: [
+                Err(StoreError::Failed),
+                Ok(()),
+                Err(StoreError::Failed),
+                Ok(()),
+            ],
+            calls: 0,
+            generations: [0; 4],
+        };
+        let first = call(&mut service, &mut source, &mut store, GENERATE, 0);
+        assert_eq!(first.status, Status::NotReady.code());
+        // GENERATE allocates again: the next generation with a new index.
+        let second = call(&mut service, &mut source, &mut store, GENERATE, 0);
+        assert_eq!(second.status, Status::Ok.code());
+        assert_eq!(store.generations[..2], [1, 2]);
+        // REVOKE retried after NOT_COMMITTED re-commits the same generation.
+        let third = call(&mut service, &mut source, &mut store, REVOKE, 1);
+        assert_eq!(third.status, Status::NotReady.code());
+        let fourth = call(&mut service, &mut source, &mut store, REVOKE, 1);
+        assert_eq!(fourth.status, Status::Ok.code());
+        assert_eq!(store.generations, [1, 2, 3, 3]);
+        assert!(!service.write_ahead_uncertain());
+    }
+
+    #[test]
+    fn unknown_commit_latches_degraded_without_further_store_calls() {
+        let (mut service, mut source) = ready();
+        let mut store = Script {
+            outcomes: [Ok(()), Err(StoreError::Unknown), Ok(()), Ok(())],
+            calls: 0,
+            generations: [0; 4],
+        };
+        let ok = call(&mut service, &mut source, &mut store, GENERATE, 0);
+        assert_eq!((ok.status, ok.length), (Status::Ok.code(), 1));
+        assert_eq!(store.calls, 1);
+        let unknown = call(&mut service, &mut source, &mut store, GENERATE, 0);
+        assert_eq!(unknown.status, Status::Degraded.code());
+        assert_eq!(store.calls, 2);
+        for (op, index) in [(GENERATE, 0), (REVOKE, 0)] {
+            let answer = call(&mut service, &mut source, &mut store, op, index);
+            assert_eq!(answer.status, Status::Degraded.code());
+        }
+        assert_eq!(store.calls, 2);
+        assert!(service.write_ahead_uncertain());
+    }
+
+    #[test]
+    fn first_bind_fixes_the_relay_volume() {
+        let (mut service, mut source) = ready();
+        let mut store = Script {
+            outcomes: [Ok(()); 4],
+            calls: 0,
+            generations: [0; 4],
+        };
+        assert_eq!(
+            call(&mut service, &mut source, &mut store, GENERATE, 0).status,
+            0
+        );
+        let other = *b"other-volume-id!";
+        let mut durable = Durable {
+            volume: &other,
+            secret: &SECRET,
+            store: &mut store,
+        };
+        let message = request(GENERATE, 0, 8, &[]).unwrap();
+        let header = Header::decode(&message).unwrap();
+        let answer =
+            dispatch_domain_durable(&mut service, &mut source, 0, &header, &[], &mut durable);
+        assert_eq!(
+            Header::decode(&answer).unwrap().status,
+            Status::Invalid.code()
+        );
+        assert_eq!(store.calls, 1);
+    }
 }

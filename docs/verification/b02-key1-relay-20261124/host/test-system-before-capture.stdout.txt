@@ -1,0 +1,301 @@
+{"command": ["cargo", "build", "--offline", "--locked", "--release", "--manifest-path", "~/projects/BaryonOS-worktrees/b-cycle-20261124/sdk/Cargo.toml", "-p", "nieuw-os-system-example", "--features", "native", "--bins", "--target", "x86_64-unknown-none"], "target_dir": "~/projects/BaryonOS-scratch/b/relay-20261124/target/system-system"}
+    Finished `release` profile [optimized] target(s) in 0.02s
+{"command": ["cargo", "build", "--offline", "--locked", "--release", "--manifest-path", "~/projects/BaryonOS-worktrees/b-cycle-20261124/sdk/Cargo.toml", "-p", "nieuw-os-keyring-example", "--features", "native", "--bins", "--target", "x86_64-unknown-none"], "target_dir": "~/projects/BaryonOS-scratch/b/relay-20261124/target/system-keyring"}
+    Finished `release` profile [optimized] target(s) in 0.00s
+{"command": ["cargo", "build", "--offline", "--locked", "--release", "--manifest-path", "~/projects/BaryonOS-worktrees/b-cycle-20261124/sdk/Cargo.toml", "-p", "nieuw-os-volume-docs-example", "--features", "native", "--bins", "--target", "x86_64-unknown-none"], "target_dir": "~/projects/BaryonOS-scratch/b/relay-20261124/target/system-volume"}
+    Finished `release` profile [optimized] target(s) in 0.00s
+    Finished `release` profile [optimized] target(s) in 0.02s
+warning: methods `level`, `owner`, and `lock_pair` are never used
+   --> kernel/src/m2/lock.rs:146:12
+    |
+130 | impl<T> IrqLock<T> {
+    | ------------------ methods in this implementation
+...
+146 |     pub fn level(&self) -> u8 {
+    |            ^^^^^
+...
+156 |     pub fn owner(&self) -> Option<u8> {
+    |            ^^^^^
+...
+178 |     pub fn lock_pair<'a>(&'a self, other: &'a Self) -> (IrqGuard<'a, T>, IrqGuard<'a, T>) {
+    |            ^^^^^^^^^
+    |
+    = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: function `hex` is never used
+   --> kernel/src/serial.rs:184:8
+    |
+184 | pub fn hex(label: &[u8], value: u64) {
+    |        ^^^
+
+warning: `os-kernel` (bin "os-kernel") generated 2 warnings
+warning: unused dependency `block-protocol`
+   --> kernel/Cargo.toml:415:1
+    |
+415 | block-protocol = { path = "../services/block" }
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: `cargo::unused_dependencies` is set to `warn` by default
+help: consider removing the dependency on `block-protocol`
+warning: `os-kernel` (manifest) generated 1 warning
+    Finished `release` profile [optimized] target(s) in 0.00s
+Built and inspected native-system: 3 ELF load segments
+SYSTEM normal: passed=True raw=33 duration=4.5s ~/projects/BaryonOS-worktrees/b-cycle-20261124/build/relay-20261124/run/system-normal-70e9b763c89641e2b0b606d468d8416d
+{"command": ["cargo", "build", "--offline", "--locked", "--release", "--manifest-path", "~/projects/BaryonOS-worktrees/b-cycle-20261124/sdk/Cargo.toml", "-p", "nieuw-os-system-example", "--features", "native", "--bins", "--target", "x86_64-unknown-none"], "target_dir": "~/projects/BaryonOS-scratch/b/relay-20261124/target/system-system"}
+    Finished `release` profile [optimized] target(s) in 0.01s
+{"command": ["cargo", "build", "--offline", "--locked", "--release", "--manifest-path", "~/projects/BaryonOS-worktrees/b-cycle-20261124/sdk/Cargo.toml", "-p", "nieuw-os-keyring-example", "--features", "native", "--bins", "--target", "x86_64-unknown-none"], "target_dir": "~/projects/BaryonOS-scratch/b/relay-20261124/target/system-keyring"}
+    Finished `release` profile [optimized] target(s) in 0.00s
+{"command": ["cargo", "build", "--offline", "--locked", "--release", "--manifest-path", "~/projects/BaryonOS-worktrees/b-cycle-20261124/sdk/Cargo.toml", "-p", "nieuw-os-volume-docs-example", "--features", "native", "--bins", "--target", "x86_64-unknown-none"], "target_dir": "~/projects/BaryonOS-scratch/b/relay-20261124/target/system-volume"}
+    Finished `release` profile [optimized] target(s) in 0.00s
+    Finished `release` profile [optimized] target(s) in 0.00s
+warning: methods `level`, `owner`, and `lock_pair` are never used
+   --> kernel/src/m2/lock.rs:146:12
+    |
+130 | impl<T> IrqLock<T> {
+    | ------------------ methods in this implementation
+...
+146 |     pub fn level(&self) -> u8 {
+    |            ^^^^^
+...
+156 |     pub fn owner(&self) -> Option<u8> {
+    |            ^^^^^
+...
+178 |     pub fn lock_pair<'a>(&'a self, other: &'a Self) -> (IrqGuard<'a, T>, IrqGuard<'a, T>) {
+    |            ^^^^^^^^^
+    |
+    = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: function `hex` is never used
+   --> kernel/src/serial.rs:184:8
+    |
+184 | pub fn hex(label: &[u8], value: u64) {
+    |        ^^^
+
+warning: `os-kernel` (bin "os-kernel") generated 2 warnings
+warning: unused dependency `block-protocol`
+   --> kernel/Cargo.toml:415:1
+    |
+415 | block-protocol = { path = "../services/block" }
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: `cargo::unused_dependencies` is set to `warn` by default
+help: consider removing the dependency on `block-protocol`
+warning: `os-kernel` (manifest) generated 1 warning
+    Finished `release` profile [optimized] target(s) in 0.00s
+Built and inspected test-system-recover: 3 ELF load segments
+SYSTEM recover: passed=True raw=33 duration=2.8s ~/projects/BaryonOS-worktrees/b-cycle-20261124/build/relay-20261124/run/system-recover-29a3136608c14ed097c1d210c5d80f6e
+{"command": ["cargo", "build", "--offline", "--locked", "--release", "--manifest-path", "~/projects/BaryonOS-worktrees/b-cycle-20261124/sdk/Cargo.toml", "-p", "nieuw-os-system-example", "--features", "native", "--bins", "--target", "x86_64-unknown-none"], "target_dir": "~/projects/BaryonOS-scratch/b/relay-20261124/target/system-system"}
+    Finished `release` profile [optimized] target(s) in 0.01s
+{"command": ["cargo", "build", "--offline", "--locked", "--release", "--manifest-path", "~/projects/BaryonOS-worktrees/b-cycle-20261124/sdk/Cargo.toml", "-p", "nieuw-os-keyring-example", "--features", "native", "--bins", "--target", "x86_64-unknown-none"], "target_dir": "~/projects/BaryonOS-scratch/b/relay-20261124/target/system-keyring"}
+    Finished `release` profile [optimized] target(s) in 0.01s
+{"command": ["cargo", "build", "--offline", "--locked", "--release", "--manifest-path", "~/projects/BaryonOS-worktrees/b-cycle-20261124/sdk/Cargo.toml", "-p", "nieuw-os-volume-docs-example", "--features", "native", "--bins", "--target", "x86_64-unknown-none"], "target_dir": "~/projects/BaryonOS-scratch/b/relay-20261124/target/system-volume"}
+    Finished `release` profile [optimized] target(s) in 0.00s
+    Finished `release` profile [optimized] target(s) in 0.00s
+warning: methods `level`, `owner`, and `lock_pair` are never used
+   --> kernel/src/m2/lock.rs:146:12
+    |
+130 | impl<T> IrqLock<T> {
+    | ------------------ methods in this implementation
+...
+146 |     pub fn level(&self) -> u8 {
+    |            ^^^^^
+...
+156 |     pub fn owner(&self) -> Option<u8> {
+    |            ^^^^^
+...
+178 |     pub fn lock_pair<'a>(&'a self, other: &'a Self) -> (IrqGuard<'a, T>, IrqGuard<'a, T>) {
+    |            ^^^^^^^^^
+    |
+    = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: function `hex` is never used
+   --> kernel/src/serial.rs:184:8
+    |
+184 | pub fn hex(label: &[u8], value: u64) {
+    |        ^^^
+
+warning: `os-kernel` (bin "os-kernel") generated 2 warnings
+warning: unused dependency `block-protocol`
+   --> kernel/Cargo.toml:415:1
+    |
+415 | block-protocol = { path = "../services/block" }
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: `cargo::unused_dependencies` is set to `warn` by default
+help: consider removing the dependency on `block-protocol`
+warning: `os-kernel` (manifest) generated 1 warning
+    Finished `release` profile [optimized] target(s) in 0.00s
+Built and inspected test-system-keystate-relay: 3 ELF load segments
+SYSTEM relay: passed=True raw=33 duration=4.6s ~/projects/BaryonOS-worktrees/b-cycle-20261124/build/relay-20261124/run/system-relay-e7112f3a6f5d48139f5447d2f9ac1b5f
+{"command": ["cargo", "build", "--offline", "--locked", "--release", "--manifest-path", "~/projects/BaryonOS-worktrees/b-cycle-20261124/sdk/Cargo.toml", "-p", "nieuw-os-system-example", "--features", "native", "--bins", "--target", "x86_64-unknown-none"], "target_dir": "~/projects/BaryonOS-scratch/b/relay-20261124/target/system-system"}
+    Finished `release` profile [optimized] target(s) in 0.01s
+{"command": ["cargo", "build", "--offline", "--locked", "--release", "--manifest-path", "~/projects/BaryonOS-worktrees/b-cycle-20261124/sdk/Cargo.toml", "-p", "nieuw-os-keyring-example", "--features", "native", "--bins", "--target", "x86_64-unknown-none"], "target_dir": "~/projects/BaryonOS-scratch/b/relay-20261124/target/system-keyring"}
+    Finished `release` profile [optimized] target(s) in 0.01s
+{"command": ["cargo", "build", "--offline", "--locked", "--release", "--manifest-path", "~/projects/BaryonOS-worktrees/b-cycle-20261124/sdk/Cargo.toml", "-p", "nieuw-os-volume-docs-example", "--features", "native", "--bins", "--target", "x86_64-unknown-none"], "target_dir": "~/projects/BaryonOS-scratch/b/relay-20261124/target/system-volume"}
+    Finished `release` profile [optimized] target(s) in 0.00s
+    Finished `release` profile [optimized] target(s) in 0.00s
+warning: methods `level`, `owner`, and `lock_pair` are never used
+   --> kernel/src/m2/lock.rs:146:12
+    |
+130 | impl<T> IrqLock<T> {
+    | ------------------ methods in this implementation
+...
+146 |     pub fn level(&self) -> u8 {
+    |            ^^^^^
+...
+156 |     pub fn owner(&self) -> Option<u8> {
+    |            ^^^^^
+...
+178 |     pub fn lock_pair<'a>(&'a self, other: &'a Self) -> (IrqGuard<'a, T>, IrqGuard<'a, T>) {
+    |            ^^^^^^^^^
+    |
+    = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: function `hex` is never used
+   --> kernel/src/serial.rs:184:8
+    |
+184 | pub fn hex(label: &[u8], value: u64) {
+    |        ^^^
+
+warning: `os-kernel` (bin "os-kernel") generated 2 warnings
+warning: unused dependency `block-protocol`
+   --> kernel/Cargo.toml:415:1
+    |
+415 | block-protocol = { path = "../services/block" }
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: `cargo::unused_dependencies` is set to `warn` by default
+help: consider removing the dependency on `block-protocol`
+warning: `os-kernel` (manifest) generated 1 warning
+    Finished `release` profile [optimized] target(s) in 0.00s
+Built and inspected test-system-keystate-relay-not-committed: 3 ELF load segments
+SYSTEM relay-not-committed: passed=True raw=33 duration=4.6s ~/projects/BaryonOS-worktrees/b-cycle-20261124/build/relay-20261124/run/system-relay-not-committed-3c3ea3bf03e940398f2bd98dd76c0efe
+{"command": ["cargo", "build", "--offline", "--locked", "--release", "--manifest-path", "~/projects/BaryonOS-worktrees/b-cycle-20261124/sdk/Cargo.toml", "-p", "nieuw-os-system-example", "--features", "native", "--bins", "--target", "x86_64-unknown-none"], "target_dir": "~/projects/BaryonOS-scratch/b/relay-20261124/target/system-system"}
+    Finished `release` profile [optimized] target(s) in 0.01s
+{"command": ["cargo", "build", "--offline", "--locked", "--release", "--manifest-path", "~/projects/BaryonOS-worktrees/b-cycle-20261124/sdk/Cargo.toml", "-p", "nieuw-os-keyring-example", "--features", "native", "--bins", "--target", "x86_64-unknown-none"], "target_dir": "~/projects/BaryonOS-scratch/b/relay-20261124/target/system-keyring"}
+    Finished `release` profile [optimized] target(s) in 0.00s
+{"command": ["cargo", "build", "--offline", "--locked", "--release", "--manifest-path", "~/projects/BaryonOS-worktrees/b-cycle-20261124/sdk/Cargo.toml", "-p", "nieuw-os-volume-docs-example", "--features", "native", "--bins", "--target", "x86_64-unknown-none"], "target_dir": "~/projects/BaryonOS-scratch/b/relay-20261124/target/system-volume"}
+    Finished `release` profile [optimized] target(s) in 0.00s
+    Finished `release` profile [optimized] target(s) in 0.00s
+warning: methods `level`, `owner`, and `lock_pair` are never used
+   --> kernel/src/m2/lock.rs:146:12
+    |
+130 | impl<T> IrqLock<T> {
+    | ------------------ methods in this implementation
+...
+146 |     pub fn level(&self) -> u8 {
+    |            ^^^^^
+...
+156 |     pub fn owner(&self) -> Option<u8> {
+    |            ^^^^^
+...
+178 |     pub fn lock_pair<'a>(&'a self, other: &'a Self) -> (IrqGuard<'a, T>, IrqGuard<'a, T>) {
+    |            ^^^^^^^^^
+    |
+    = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: function `hex` is never used
+   --> kernel/src/serial.rs:184:8
+    |
+184 | pub fn hex(label: &[u8], value: u64) {
+    |        ^^^
+
+warning: `os-kernel` (bin "os-kernel") generated 2 warnings
+warning: unused dependency `block-protocol`
+   --> kernel/Cargo.toml:415:1
+    |
+415 | block-protocol = { path = "../services/block" }
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: `cargo::unused_dependencies` is set to `warn` by default
+help: consider removing the dependency on `block-protocol`
+warning: `os-kernel` (manifest) generated 1 warning
+    Finished `release` profile [optimized] target(s) in 0.00s
+Built and inspected test-system-keystate-relay-timeout: 3 ELF load segments
+SYSTEM relay-timeout: passed=True raw=33 duration=19.6s ~/projects/BaryonOS-worktrees/b-cycle-20261124/build/relay-20261124/run/system-relay-timeout-b3bcb5de40f24ce8859de3e241273f42
+{"command": ["cargo", "build", "--offline", "--locked", "--release", "--manifest-path", "~/projects/BaryonOS-worktrees/b-cycle-20261124/sdk/Cargo.toml", "-p", "nieuw-os-system-example", "--features", "native", "--bins", "--target", "x86_64-unknown-none"], "target_dir": "~/projects/BaryonOS-scratch/b/relay-20261124/target/system-system"}
+    Finished `release` profile [optimized] target(s) in 0.01s
+{"command": ["cargo", "build", "--offline", "--locked", "--release", "--manifest-path", "~/projects/BaryonOS-worktrees/b-cycle-20261124/sdk/Cargo.toml", "-p", "nieuw-os-keyring-example", "--features", "native", "--bins", "--target", "x86_64-unknown-none"], "target_dir": "~/projects/BaryonOS-scratch/b/relay-20261124/target/system-keyring"}
+    Finished `release` profile [optimized] target(s) in 0.01s
+{"command": ["cargo", "build", "--offline", "--locked", "--release", "--manifest-path", "~/projects/BaryonOS-worktrees/b-cycle-20261124/sdk/Cargo.toml", "-p", "nieuw-os-volume-docs-example", "--features", "native", "--bins", "--target", "x86_64-unknown-none"], "target_dir": "~/projects/BaryonOS-scratch/b/relay-20261124/target/system-volume"}
+    Finished `release` profile [optimized] target(s) in 0.00s
+    Finished `release` profile [optimized] target(s) in 0.00s
+warning: methods `level`, `owner`, and `lock_pair` are never used
+   --> kernel/src/m2/lock.rs:146:12
+    |
+130 | impl<T> IrqLock<T> {
+    | ------------------ methods in this implementation
+...
+146 |     pub fn level(&self) -> u8 {
+    |            ^^^^^
+...
+156 |     pub fn owner(&self) -> Option<u8> {
+    |            ^^^^^
+...
+178 |     pub fn lock_pair<'a>(&'a self, other: &'a Self) -> (IrqGuard<'a, T>, IrqGuard<'a, T>) {
+    |            ^^^^^^^^^
+    |
+    = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: function `hex` is never used
+   --> kernel/src/serial.rs:184:8
+    |
+184 | pub fn hex(label: &[u8], value: u64) {
+    |        ^^^
+
+warning: `os-kernel` (bin "os-kernel") generated 2 warnings
+warning: unused dependency `block-protocol`
+   --> kernel/Cargo.toml:415:1
+    |
+415 | block-protocol = { path = "../services/block" }
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: `cargo::unused_dependencies` is set to `warn` by default
+help: consider removing the dependency on `block-protocol`
+warning: `os-kernel` (manifest) generated 1 warning
+    Finished `release` profile [optimized] target(s) in 0.00s
+Built and inspected test-system-keystate-relay-leak: 3 ELF load segments
+SYSTEM relay-leak: passed=True raw=35 duration=1.8s ~/projects/BaryonOS-worktrees/b-cycle-20261124/build/relay-20261124/run/system-relay-leak-a2762baccaf24a02b0260b0aab875f8e
+{"command": ["cargo", "build", "--offline", "--locked", "--release", "--manifest-path", "~/projects/BaryonOS-worktrees/b-cycle-20261124/sdk/Cargo.toml", "-p", "nieuw-os-system-example", "--features", "native", "--bins", "--target", "x86_64-unknown-none"], "target_dir": "~/projects/BaryonOS-scratch/b/relay-20261124/target/system-system"}
+    Finished `release` profile [optimized] target(s) in 0.01s
+{"command": ["cargo", "build", "--offline", "--locked", "--release", "--manifest-path", "~/projects/BaryonOS-worktrees/b-cycle-20261124/sdk/Cargo.toml", "-p", "nieuw-os-keyring-example", "--features", "native", "--bins", "--target", "x86_64-unknown-none"], "target_dir": "~/projects/BaryonOS-scratch/b/relay-20261124/target/system-keyring"}
+    Finished `release` profile [optimized] target(s) in 0.00s
+{"command": ["cargo", "build", "--offline", "--locked", "--release", "--manifest-path", "~/projects/BaryonOS-worktrees/b-cycle-20261124/sdk/Cargo.toml", "-p", "nieuw-os-volume-docs-example", "--features", "native", "--bins", "--target", "x86_64-unknown-none"], "target_dir": "~/projects/BaryonOS-scratch/b/relay-20261124/target/system-volume"}
+    Finished `release` profile [optimized] target(s) in 0.00s
+    Finished `release` profile [optimized] target(s) in 0.00s
+warning: methods `level`, `owner`, and `lock_pair` are never used
+   --> kernel/src/m2/lock.rs:146:12
+    |
+130 | impl<T> IrqLock<T> {
+    | ------------------ methods in this implementation
+...
+146 |     pub fn level(&self) -> u8 {
+    |            ^^^^^
+...
+156 |     pub fn owner(&self) -> Option<u8> {
+    |            ^^^^^
+...
+178 |     pub fn lock_pair<'a>(&'a self, other: &'a Self) -> (IrqGuard<'a, T>, IrqGuard<'a, T>) {
+    |            ^^^^^^^^^
+    |
+    = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: function `hex` is never used
+   --> kernel/src/serial.rs:184:8
+    |
+184 | pub fn hex(label: &[u8], value: u64) {
+    |        ^^^
+
+warning: `os-kernel` (bin "os-kernel") generated 2 warnings
+warning: unused dependency `block-protocol`
+   --> kernel/Cargo.toml:415:1
+    |
+415 | block-protocol = { path = "../services/block" }
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: `cargo::unused_dependencies` is set to `warn` by default
+help: consider removing the dependency on `block-protocol`
+warning: `os-kernel` (manifest) generated 1 warning
+    Finished `release` profile [optimized] target(s) in 0.00s
+Built and inspected native-system: 3 ELF load segments
+FR-I01 gate passed=True stages=2 ~/projects/BaryonOS-worktrees/b-cycle-20261124/build/relay-20261124/system-gate.json

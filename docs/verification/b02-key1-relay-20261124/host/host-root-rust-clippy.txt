@@ -1,0 +1,49 @@
+    Checking subtle v2.6.1
+    Checking catalog-core v0.1.0 (~/projects/BaryonOS-worktrees/b-cycle-20261124/services/catalog)
+    Checking capability-core v0.1.0 (~/projects/BaryonOS-worktrees/b-cycle-20261124/crates/capability-core)
+    Checking destination-core v0.1.0 (~/projects/BaryonOS-worktrees/b-cycle-20261124/services/destination)
+    Checking sponge-cursor v0.1.0
+    Checking virtio-core v0.1.0 (~/projects/BaryonOS-worktrees/b-cycle-20261124/crates/virtio-core)
+    Checking boot-protocol v0.1.0 (~/projects/BaryonOS-worktrees/b-cycle-20261124/crates/boot-protocol)
+    Checking object-core v0.1.0 (~/projects/BaryonOS-worktrees/b-cycle-20261124/services/objects)
+    Checking ui-core v0.1.0 (~/projects/BaryonOS-worktrees/b-cycle-20261124/crates/ui-core)
+    Checking keccak v0.2.2
+    Checking driver-core v0.1.0 (~/projects/BaryonOS-worktrees/b-cycle-20261124/crates/driver-core)
+    Checking block-protocol v0.1.0 (~/projects/BaryonOS-worktrees/b-cycle-20261124/services/block)
+    Checking kernel-core v0.1.0 (~/projects/BaryonOS-worktrees/b-cycle-20261124/crates/kernel-core)
+    Checking hybrid-array v0.4.15
+    Checking hmac v0.13.0 (~/projects/BaryonOS-worktrees/b-cycle-20261124/services/keyring/vendor/hmac-0.13.0)
+    Checking signature v3.0.0
+    Checking num-traits v0.2.19
+    Checking digest v0.10.7
+    Checking curve25519-dalek v5.0.0
+    Checking shake v0.1.0
+    Checking ed25519 v3.0.0
+    Checking pci-core v0.1.0 (~/projects/BaryonOS-worktrees/b-cycle-20261124/crates/pci-core)
+    Checking virtio-net-driver v0.1.0 (~/projects/BaryonOS-worktrees/b-cycle-20261124/drivers/virtio-net)
+    Checking sha2 v0.10.9
+    Checking hmac v0.12.1
+    Checking virtio-blk-driver v0.1.0 (~/projects/BaryonOS-worktrees/b-cycle-20261124/drivers/virtio-blk)
+    Checking hkdf v0.13.0 (~/projects/BaryonOS-worktrees/b-cycle-20261124/services/keyring/vendor/hkdf-0.13.0)
+    Checking volume-core v0.1.0 (~/projects/BaryonOS-worktrees/b-cycle-20261124/services/volume)
+    Checking virtio-rng-driver v0.1.0 (~/projects/BaryonOS-worktrees/b-cycle-20261124/drivers/virtio-rng)
+    Checking elf-loader-core v0.1.0 (~/projects/BaryonOS-worktrees/b-cycle-20261124/crates/elf-loader-core)
+    Checking hkdf v0.12.4
+    Checking keyring-core v0.1.0 (~/projects/BaryonOS-worktrees/b-cycle-20261124/services/keyring)
+    Checking ed25519-dalek v3.0.0
+    Checking module-lattice v0.2.4
+    Checking ml-dsa v0.1.2
+    Checking crypto-common v0.2.2
+    Checking block-buffer v0.12.1
+    Checking inout v0.2.6
+    Checking digest v0.11.3
+    Checking universal-hash v0.6.1
+    Checking cipher v0.5.2
+    Checking aead v0.6.1
+    Checking poly1305 v0.9.1
+    Checking sha2 v0.11.1
+    Checking chacha20 v0.10.2
+    Checking chacha20poly1305 v0.11.0
+    Checking update-core v0.1.0 (~/projects/BaryonOS-worktrees/b-cycle-20261124/crates/update-core)
+    Checking update-tool v0.1.0 (~/projects/BaryonOS-worktrees/b-cycle-20261124/tools/update-tool)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 1.36s
