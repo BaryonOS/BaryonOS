@@ -27,13 +27,40 @@ class ClassificationTests(unittest.TestCase):
             {"Work Type": "Bug", "Subsystem": "Memory"},
         )
 
-    def test_only_explicit_priority_and_no_effort_guess(self):
-        self.assertEqual(
-            pc.classify("fix(kernel): critical issue", ["priority:p0"]),
-            {"Work Type": "Bug", "Subsystem": "Kernel", "Priority": "P0 Critical"},
-        )
-        self.assertNotIn("Priority", pc.classify("fix(kernel): critical issue", []))
-        self.assertNotIn("Effort", pc.classify("feat(kernel): complex rewrite", []))
+    def test_priority_effort_and_dates_remain_specialist_owned(self):
+        for priority in ("p0", "p1", "p2", "p3", "urgent", "high", "medium", "low"):
+            with self.subTest(priority=priority):
+                self.assertEqual(
+                    pc.classify("fix(kernel): critical issue", [f"priority:{priority}"]),
+                    {"Work Type": "Bug", "Subsystem": "Kernel"},
+                )
+        suggestions = pc.classify("feat(kernel): complex rewrite", [])
+        for field in ("Priority", "Effort", "Start date", "Target date"):
+            self.assertNotIn(field, suggestions)
+
+    def test_legacy_priority_project_field_is_not_written(self):
+        entry = item(issue(labels=["priority:p0"]))
+        fields = {"Priority": {"id": "fp", "options": [
+            {"id": "p0", "name": "P0 Critical"},
+            {"id": "urgent", "name": "Urgent"},
+        ]}}
+        self.assertEqual(pc.proposed_updates(entry, fields), [])
+
+    def test_hardware_and_networking_require_exact_scopes(self):
+        for expected, scopes in (
+            ("Hardware", ("hw", "hardware", "drivers")),
+            ("Networking", ("net", "network", "networking")),
+        ):
+            for scope in scopes:
+                with self.subTest(scope=scope):
+                    self.assertEqual(pc.classify(f"fix({scope}): work", []),
+                                     {"Work Type": "Bug", "Subsystem": expected})
+                    self.assertEqual(pc.classify("Untyped issue", [f"area:{scope}"]),
+                                     {"Subsystem": expected})
+        for scope in ("hw-ish", "drivers-extra", "networking-extra", "internet"):
+            with self.subTest(scope=scope):
+                self.assertNotIn("Subsystem", pc.classify(f"feat({scope}): work", []))
+        self.assertNotIn("Subsystem", pc.classify("fix(hw): work", ["area:net"]))
 
     def test_conflicting_signals_are_not_guessed(self):
         self.assertNotIn(
@@ -70,14 +97,31 @@ class ClassificationTests(unittest.TestCase):
         }
         self.assertEqual(pc.proposed_updates(item, {}), [])
 
+    def test_subsystem_updates_require_a_blank_field_and_existing_option(self):
+        for scope, expected in (("hw", "Hardware"), ("net", "Networking")):
+            with self.subTest(scope=scope):
+                content = issue()
+                content["title"] = f"feat({scope}): work"
+                entry = item(content)
+                field = {"id": "fsub", "options": [{"id": "osub", "name": expected}]}
+                self.assertEqual(pc.proposed_updates(entry, {"Subsystem": field}),
+                                 [("Subsystem", expected, "fsub", "osub")])
+                self.assertEqual(pc.proposed_updates(entry, {"Subsystem": {
+                    "id": "fsub", "options": [{"id": "old", "name": "Kernel"}],
+                }}), [])
+                entry["fieldValues"]["nodes"].append(
+                    {"name": "Kernel", "field": {"name": "Subsystem"}})
+                self.assertEqual(pc.proposed_updates(entry, {"Subsystem": field}), [])
+
 
 STATUS = {"id": "fs", "options": [
-    {"id": "s-todo", "name": "Todo"},
+    {"id": "s-back", "name": "Backlog"},
+    {"id": "s-ready", "name": "Ready"},
     {"id": "s-prog", "name": "In Progress"},
     {"id": "s-rev", "name": "In Review"},
     {"id": "s-block", "name": "Blocked"},
     {"id": "s-done", "name": "Done"},
-    {"id": "s-back", "name": "Parked"},
+    {"id": "s-closed", "name": "Closed"},
 ]}
 
 
@@ -106,31 +150,59 @@ def status_update(entry, fields=None):
 
 
 class StatusDerivationTests(unittest.TestCase):
-    def test_pull_request_lifecycle(self):
+    def test_empty_status_is_initialised_from_observed_facts(self):
         self.assertEqual(status_update(item(pr(draft=True))), ["In Progress"])
-        self.assertEqual(status_update(item(pr(), "In Progress")), ["In Review"])
-        self.assertEqual(status_update(item(pr(labels=["blocked"]), "In Review")),
+        self.assertEqual(status_update(item(pr())), ["In Review"])
+        self.assertEqual(status_update(item(issue())), ["Backlog"])
+        self.assertEqual(status_update(item(pr(labels=["blocked"]))),
                          ["Blocked"])
-        self.assertEqual(status_update(item(pr("MERGED"), "In Review")), ["Done"])
-        self.assertEqual(status_update(item(pr("OPEN"), "Done")), ["In Review"])
-
-    def test_unmerged_close_and_manual_statuses_are_kept(self):
-        self.assertEqual(status_update(item(pr("CLOSED"), "In Review")), [])
-        self.assertEqual(status_update(item(pr(), "Parked")), [])
-        self.assertEqual(status_update(item(issue(), "In Progress")), [])
-        self.assertEqual(status_update(item(issue("CLOSED", "NOT_PLANNED"), "Todo")), [])
-
-    def test_issue_facts(self):
-        self.assertEqual(status_update(item(issue())), ["Todo"])
-        self.assertEqual(status_update(item(issue("CLOSED", "COMPLETED"), "Parked")),
-                         ["Done"])
-        self.assertEqual(status_update(item(issue(), "Done")), ["Todo"])
-        self.assertEqual(status_update(item(issue(labels=["status:blocked"]), "Todo")),
+        self.assertEqual(status_update(item(issue(labels=["status:blocked"]))),
                          ["Blocked"])
-        self.assertEqual(status_update(item(issue(), "Blocked")), ["Todo"])
+
+    def test_nonterminal_statuses_are_preserved_across_draft_and_label_changes(self):
+        for status in ("Backlog", "Todo", "Ready", "In Progress", "In Review",
+                       "Blocked", "Parked"):
+            for labels in ([], ["blocked"], ["status:blocked"]):
+                for content in (pr(draft=True, labels=labels), pr(labels=labels),
+                                issue(labels=labels)):
+                    with self.subTest(status=status, content=content):
+                        self.assertEqual(status_update(item(content, status)), [])
+
+    def test_confirmed_completion_overrides_every_previous_status(self):
+        for status in (None, "Backlog", "Ready", "In Progress", "In Review",
+                       "Blocked", "Parked", "Closed"):
+            for content in (pr("MERGED", labels=["blocked"]),
+                            issue("CLOSED", "COMPLETED", labels=["blocked"])):
+                with self.subTest(status=status, content=content):
+                    self.assertEqual(status_update(item(content, status)), ["Done"])
+
+    def test_other_closures_never_claim_completion(self):
+        missing_reason = issue("CLOSED")
+        del missing_reason["stateReason"]
+        contents = [pr("CLOSED"), missing_reason]
+        contents += [issue("CLOSED", reason) for reason in
+                     (None, "", "NOT_PLANNED", "DUPLICATE", "UNKNOWN")]
+        for status in (None, "Backlog", "Ready", "In Progress", "In Review",
+                       "Blocked", "Parked", "Done"):
+            for content in contents:
+                with self.subTest(status=status, content=content):
+                    self.assertEqual(status_update(item(content, status)), ["Closed"])
+
+    def test_reopened_items_reset_only_terminal_statuses(self):
+        for status in ("Done", "Closed", "done", "closed"):
+            for content, expected in ((pr(), "In Review"),
+                                      (pr(draft=True), "In Progress"),
+                                      (issue(), "Backlog"),
+                                      (pr(labels=["blocked"]), "Blocked"),
+                                      (issue(labels=["status:blocked"]), "Blocked")):
+                with self.subTest(status=status, content=content):
+                    self.assertEqual(status_update(item(content, status)), [expected])
 
     def test_no_change_when_status_already_matches(self):
         self.assertEqual(status_update(item(pr("MERGED"), "Done")), [])
+        self.assertEqual(status_update(item(issue("CLOSED", "COMPLETED"), "Done")), [])
+        self.assertEqual(status_update(item(pr("CLOSED"), "Closed")), [])
+        self.assertEqual(status_update(item(issue("CLOSED"), "closed")), [])
         self.assertEqual(status_update(item(pr(), "in review")), [])
 
     def test_missing_option_falls_back_or_skips(self):
@@ -140,11 +212,18 @@ class StatusDerivationTests(unittest.TestCase):
         self.assertEqual(status_update(item(pr()), {"Status": default}), ["In Progress"])
         self.assertEqual(status_update(item(pr(labels=["blocked"])), {"Status": default}),
                          [])
+        self.assertEqual(status_update(item(issue()), {"Status": default}), ["Todo"])
+        self.assertEqual(status_update(item(pr("CLOSED"), "Done"), {"Status": default}),
+                         [])
+        self.assertEqual(status_update(item(issue("CLOSED"), "Done"), {"Status": default}),
+                         [])
         self.assertEqual(status_update(item(pr()), {}), [])
 
     def test_unknown_content_is_ignored(self):
         self.assertIsNone(pc.derive_status({"__typename": "DraftIssue"}, [], ""))
         self.assertEqual(pc.proposed_updates({"content": None}, {"Status": STATUS}), [])
+        self.assertEqual(status_update(item(pr(state="UNKNOWN"), "Done")), [])
+        self.assertEqual(status_update(item(issue(state=None), "Done")), [])
 
 
 class FakeGitHub:
@@ -233,6 +312,20 @@ class SynchronisationTests(unittest.TestCase):
         self.assertGreater(settled, first)
         added = [e for e in fake.items if e["id"].startswith("new-")]
         self.assertEqual(len(added), 2)
+
+    def test_recurring_sync_does_not_take_over_specialist_statuses(self):
+        fake = FakeGitHub(
+            items=[item(pr(), "In Progress", "i1"),
+                   item(pr(draft=True), "In Review", "i2"),
+                   item(issue(), "Blocked", "i3"),
+                   item(issue(labels=["blocked"]), "Ready", "i4")],
+            open_issues=[], open_prs=[],
+        )
+        run_quietly(fake, apply=True, add_missing=False)
+        fake.items[0]["content"]["isDraft"] = True
+        fake.items[1]["content"]["labels"]["nodes"] = [{"name": "blocked"}]
+        run_quietly(fake, apply=True, add_missing=False)
+        self.assertEqual(fake.mutations, [])
 
     def test_truncated_scan_never_adds(self):
         fake = self.fixture()
