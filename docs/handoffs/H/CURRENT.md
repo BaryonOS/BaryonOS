@@ -9,7 +9,7 @@ reported in the PR comment `HANDOFF H <cycle_id>`, not here.
 | Task | H06-T7 serial-timeout HW-INV terminal fixture and HLT oracle (QEMU); ledger H06-T6 → `verified` |
 | Branch | `claude/h06-t7-serial-timeout-20261124` (base main `4ab40610`) |
 | PR | see the `HANDOFF H h06-t7-20261124` comment |
-| Tested source | `6d923b55` (source fingerprint `16374a07…`), clean tree; later commits add docs, evidence, ledger and progress only |
+| Tested source | `25360a2c` (source fingerprint `1f1af68a…`), clean tree; later commits add docs, evidence, ledger and progress only |
 | Evidence | [h06-serial-timeout-20261124](../../verification/h06-serial-timeout-20261124/README.md): serial-timeout fixture passes (`HLT=0` while polling, then `HLT=1`); every terminal fixture now requires `HLT=1`; three mutants fail (exit port raw 35, injection skipped, spin) |
 | NOT RUN | physical boot; local `actionlint`; hosted run on the `pc-q35-8.2` pin until CI on the PR |
 | Score | 43/100 unchanged; H06 stays open |

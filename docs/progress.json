@@ -3,7 +3,7 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-24",
-    "source_commit": "6d923b55c604cb44f4debf7885f5dca7c7fe903c",
+    "source_commit": "25360a2cf5aad02498a29a6de595b3043e86519a",
     "assessment_basis": "parent_commit",
     "branch": "claude/h06-t7-serial-timeout-20261124",
     "task": "H06-T7 serial-timeout HW-INV terminal fixture (QEMU)",

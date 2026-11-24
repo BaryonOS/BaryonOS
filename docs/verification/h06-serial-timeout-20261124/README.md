@@ -9,8 +9,8 @@ acceptance.
 
 | Item | Value |
 |---|---|
-| Source commit | `6d923b55c604cb44f4debf7885f5dca7c7fe903c` (branch `claude/h06-t7-serial-timeout-20261124`, base main `4ab40610`), clean tree; later commits change only `docs/` |
-| Source fingerprint (v3) | `16374a07ab47c930…` (full value in the result files) |
+| Source commit | `25360a2cf5aad02498a29a6de595b3043e86519a` (branch `claude/h06-t7-serial-timeout-20261124`, base main `4ab40610`), clean tree; later commits change only `docs/` |
+| Source fingerprint (v3) | `1f1af68a37a8eca4…` (full value in the result files) |
 | Emulator | local QEMU 10.2.1, machine `pc-q35-10.0` (local default), TCG, one CPU, 256 MiB, OVMF without enrolled keys, `isa-debug-exit` attached at `0xf4`; hosted CI uses the `pc-q35-8.2` pin |
 | Injection | Feature `test-hwinv-serial-timeout` (implies `native-hw-inventory`). After printing `HWINV:FIXTURE:SERIAL_TIMEOUT_ARMED`, the kernel sets a static flag, and from then on `transmit_ready` in `kernel/src/serial.rs` reports the transmit holding register as busy. The real read of port `0x3fd` still takes place. The unmodified bounded wait in `write_raw` (1,000,000 polls) therefore runs out and calls `exit(0x11)`. |
 
