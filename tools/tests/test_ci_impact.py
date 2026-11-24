@@ -375,6 +375,16 @@ class SelectionTests(FixtureTestCase):
         plan = self.plan(self.branch({"apps/Cargo.toml": "[workspace]\n"}))
         self.assertSelect(plan, {"leaves#quality/" + v for v in ("viewer", "crop", "sheet", "deck", "solo")})
 
+    def test_ancestor_manifest_is_not_narrowed_to_another_input(self):
+        base = self.repo.commit("native apps", {".github/ci-impact.toml": CATALOGUE.replace(
+            'native = ["kernel/**", "tools/native/**"]', 'native = ["kernel/**", "tools/native/**", "apps/**"]')})
+        self.repo.git("checkout", "-q", "-b", "topic", base)
+        head = self.repo.commit("workspace", {"apps/Cargo.toml": "[workspace]\n"})
+        plan = self.plan(head, base=base)
+        self.assertEqual(plan["mode"], "select", plan["fallback"])
+        apps = {"leaves#quality/" + v for v in ("viewer", "crop", "sheet", "deck", "solo")}
+        self.assertTrue(apps <= self.selected(plan), self.selected(plan))
+
     def test_nested_tool_configuration_forces_full(self):
         for path in ("kernel/rustfmt.toml", "kernel/.rustfmt.toml", "kernel/clippy.toml",
                      "kernel/.clippy.toml", "kernel/rust-toolchain", "kernel/.cargo/config.toml"):
