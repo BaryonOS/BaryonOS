@@ -360,15 +360,21 @@ fn run() -> ! {
             .unwrap_or_else(|| fail(8))
     };
     let mac = [2, 0, 0, 0, 0, 7];
+    // Optional trusted per-slot destination (N02-T6); 0 keeps 192.0.2.1.
+    let ipv4 = |offset: u64| match u32::try_from(support::word(offset)) {
+        Ok(0) => [192, 0, 2, 1],
+        Ok(address) => address.to_be_bytes(),
+        Err(_) => fail(8),
+    };
     let destinations = [
         Destination {
-            ipv4: [192, 0, 2, 1],
+            ipv4: ipv4(184),
             tcp_first: port(120),
             tcp_count: 5,
             udp_port: port(136),
         },
         Destination {
-            ipv4: [192, 0, 2, 1],
+            ipv4: ipv4(192),
             tcp_first: port(128),
             tcp_count: 5,
             udp_port: port(144),

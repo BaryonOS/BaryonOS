@@ -824,6 +824,43 @@ fn dhcp(session: &mut Session<NativeTransport>, slot: usize, first: u16) -> ! {
     support::put(528, 1);
     native::exit(0)
 }
+/// N02-T6 public name, resolved through the libslirp lease DNS address and
+/// thus the host's real resolver.
+const SLIRP_NAME: &str = "example.com";
+/// N02-T6: the lease comes from QEMU's libslirp DHCP server. App A resolves a
+/// public name through the lease DNS server (forwarded by libslirp to the
+/// host's real resolver) and records the first answer and the answer count;
+/// app B, without a UDP/53 grant, is refused and fetches over HTTP from the
+/// host alias 192.0.2.1, which libslirp translates to the harness oracle.
+fn slirp(session: &mut Session<NativeTransport>, slot: usize, first: u16) -> ! {
+    let wait = 3000;
+    if slot == 0 {
+        let start = tick();
+        let mut out = [[0; 4]; MAX_RESOLVED];
+        let count = loop {
+            check(tick() - start < wait, 160);
+            match session.resolve(SLIRP_NAME, &mut out) {
+                Ok(n) if (1..=MAX_RESOLVED).contains(&n) => break n,
+                Err(Error::Service(Status::Again)) => yield_now(),
+                _ => fail(161),
+            }
+        };
+        support::put(624, tick());
+        support::put(656, u64::from(u32::from_be_bytes(out[0])));
+        support::put(664, count as u64);
+    } else {
+        check(
+            resolve(session, SLIRP_NAME, wait) == Err(Error::Service(Status::Access)),
+            162,
+        );
+        bump(624);
+        exercise(session, slot, [192, 0, 2, 1], first, Case::Http, None, wait);
+    }
+    session.retire().unwrap_or_else(|_| fail(46));
+    check(session.is_closed(), 47);
+    support::put(528, 1);
+    native::exit(0)
+}
 #[no_mangle]
 #[link_section = ".text.entry"]
 pub extern "C" fn _start() -> ! {
@@ -886,6 +923,9 @@ fn run() -> ! {
     }
     if support::word(104) == 6 {
         dhcp(&mut session, slot, first)
+    }
+    if support::word(104) == 7 {
+        slirp(&mut session, slot, first)
     }
     if support::word(104) == 2 {
         check(slot == 0, 60);

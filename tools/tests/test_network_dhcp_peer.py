@@ -721,7 +721,7 @@ class RouteRunnerTest(unittest.TestCase):
 
     def test_route_branch_requires_nak_router_arps_and_lease(self):
         self.assertEqual(self.runner.CASES["route"], self.runner.FEATURE)
-        self.assertEqual(len(set(self.runner.SUMMARIES.values())), 3)
+        self.assertEqual(len(set(self.runner.SUMMARIES.values())), len(self.runner.SUMMARIES))
         good = full_run("route").evidence()
         self.evaluate(good)
         mutants = {"no nak": dict(counts=dict(good["counts"], naks=0)),
