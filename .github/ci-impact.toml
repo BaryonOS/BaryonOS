@@ -14,7 +14,7 @@
 # max_parallel, matrix, check_name, evidence) are verbatim copies of the YAML.
 
 schema_version = 1
-revision = 6
+revision = 7
 
 [policy]
 mode = "shadow"
@@ -1092,7 +1092,7 @@ owner = "ci-owner"
 granularity = "workflow"
 events = ["workflow_dispatch", "pull_request"]
 obligation = [{ cite = "docs/PROGRESS.md:76", anchor = "General storage recovery after failures**" }, { cite = "AGENTS.md:160", anchor = "**Merge conditions:**" }]
-trigger.pull_request = { paths = ["tools/**", "kernel/**", "boot/**", "userspace/**", "services/**", "drivers/**", "crates/**", ".cargo/**", "Cargo.toml", "Cargo.lock", "rust-toolchain.toml", ".github/workflows/storage-resilience.yml", ".github/actions/preserve-evidence/**"] }
+trigger.pull_request = { paths = ["tools/**", "kernel/**", "boot/**", "userspace/**", "services/**", "drivers/**", "crates/**", ".cargo/**", "sdk/**", "Cargo.toml", "Cargo.lock", "rust-toolchain.toml", ".github/workflows/storage-resilience.yml", ".github/actions/**", ".github/actions/preserve-evidence/**"] }
 
 [[workflow.job]]
 id = "s08"
@@ -1109,7 +1109,7 @@ owner = "ci-owner"
 granularity = "workflow"
 events = ["workflow_dispatch", "pull_request"]
 obligation = [{ cite = "docs/PROGRESS.md:72", anchor = "Space reuse and scalable volumes**" }, { cite = "tests/test_ci_workflows.py:675", anchor = "self.workflows[\".github/workflows/volume-acceptance.yml\"][\"jobs\"][\"m6e\"]" }]
-trigger.pull_request = { paths = ["tools/**", "kernel/**", "boot/**", "userspace/**", "services/**", "drivers/**", "crates/**", ".cargo/**", "sdk/**", "Cargo.toml", "Cargo.lock", "rust-toolchain.toml", ".github/workflows/volume-acceptance.yml", ".github/actions/preserve-evidence/**"] }
+trigger.pull_request = { paths = ["tools/**", "kernel/**", "boot/**", "userspace/**", "services/**", "drivers/**", "crates/**", ".cargo/**", "sdk/**", "Cargo.toml", "Cargo.lock", "rust-toolchain.toml", ".github/workflows/volume-acceptance.yml", ".github/actions/**", ".github/actions/preserve-evidence/**"] }
 
 [[workflow.job]]
 id = "m6e"
