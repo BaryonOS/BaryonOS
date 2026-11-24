@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-24",
-    "source_commit": "52cff56858c8721c102780a6a72ac7dfe1a34d9d",
+    "source_commit": "734820d6ed5e51d1480263616b4a54489f715209",
     "assessment_basis": "parent_commit",
-    "branch": "claude/n02-slirp-negative-dns-20261124",
-    "task": "N02-T6 NXDOMAIN against the real resolver via libslirp",
+    "branch": "claude/fervent-mccarthy-wykkfa",
+    "task": "N02-T6 host regression: NXDOMAIN without SOA is never cached by the network service",
     "previous_score": 43,
-    "summary": "43/100 unchanged. The libslirp case now also resolves the reserved name missing.invalid: app A gets NotFound in-guest, the kernel pins two UDP queries and one additional rejected request, and the runner requires exactly one NXDOMAIN without addresses bound to that query on the wire. The resolver is the host-configured one reached through QEMU user networking; no physical NIC, timeout, truncation or stale-response case is covered, so N02 remains open and earns no points."
+    "summary": "43/100 unchanged. A host test of the network service replays the reply shape the runner's systemd-resolved stub sent for missing.invalid (NXDOMAIN, NSCOUNT 0, 33 bytes): the caller gets NotFound and the next Resolve sends a fresh query because no negative-cache lifetime can be derived without an SOA. A mutant that invents a lifetime fails only this test. This is host evidence only; no physical NIC, timeout, truncation or stale-response case against a real resolver is covered, so N02 remains open and earns no points."
   },
   "tracks": [
     {

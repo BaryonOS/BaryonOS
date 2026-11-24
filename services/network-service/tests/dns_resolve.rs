@@ -425,6 +425,38 @@ fn tc_servfail_and_refusals_fail_uncached_while_nxdomain_is_negatively_cached() 
     });
 }
 
+/// The runner's systemd-resolved stub answered `missing.invalid` with NXDOMAIN
+/// and no authority SOA (33 bytes, NSCOUNT 0) in the N02 libslirp case. Such a
+/// reply is NotFound for the caller but carries no negative-cache lifetime, so
+/// the next Resolve must start a fresh query rather than reuse the answer.
+#[test]
+fn nxdomain_without_soa_is_not_found_and_never_cached() {
+    with_service([grant(DNS, 53), grant(DNS, 53)], |s| {
+        let now = acquire(s, 0, 0x1234, true);
+        let mut rng = dns_random();
+        assert_eq!(
+            resolve(s, 0, 2, "missing.invalid", now).status(),
+            Status::Again
+        );
+        arp_dns(s, &mut rng, now);
+        let (id, port, _) = sent_query(s, &mut rng, now);
+        let reply = header(id, "missing.invalid", 0x8183, 0, 0);
+        assert_eq!(reply.len(), 33);
+        s.ingress(&from_dns(port, &reply), now).unwrap();
+        assert_eq!(
+            resolve(s, 0, 3, "missing.invalid", now).status(),
+            Status::NotFound
+        );
+        // No lifetime was derived: the next Resolve queues and sends a new query.
+        assert_eq!(
+            resolve(s, 0, 4, "missing.invalid", now).status(),
+            Status::Again
+        );
+        let (second, _, _) = sent_query(s, &mut rng, now);
+        assert_ne!(second, id);
+    });
+}
+
 #[test]
 fn no_dns_option_no_grant_and_oversize_names_are_refused() {
     // DHCP without option 6: no default or fallback resolver.
