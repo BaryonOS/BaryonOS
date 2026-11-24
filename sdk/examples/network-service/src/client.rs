@@ -827,9 +827,13 @@ fn dhcp(session: &mut Session<NativeTransport>, slot: usize, first: u16) -> ! {
 /// N02-T6 public name, resolved through the libslirp lease DNS address and
 /// thus the host's real resolver.
 const SLIRP_NAME: &str = "example.com";
+/// RFC 6761 reserved name: the real resolver must answer NXDOMAIN; the
+/// harness tells NXDOMAIN from an empty NOERROR on the wire.
+const SLIRP_MISSING: &str = "missing.invalid";
 /// N02-T6: the lease comes from QEMU's libslirp DHCP server. App A resolves a
 /// public name through the lease DNS server (forwarded by libslirp to the
-/// host's real resolver) and records the first answer and the answer count;
+/// host's real resolver), records the first answer and the answer count and
+/// gets NotFound for a reserved .invalid name;
 /// app B, without a UDP/53 grant, is refused and fetches over HTTP from the
 /// host alias 192.0.2.1, which libslirp translates to the harness oracle.
 fn slirp(session: &mut Session<NativeTransport>, slot: usize, first: u16) -> ! {
@@ -848,6 +852,10 @@ fn slirp(session: &mut Session<NativeTransport>, slot: usize, first: u16) -> ! {
         support::put(624, tick());
         support::put(656, u64::from(u32::from_be_bytes(out[0])));
         support::put(664, count as u64);
+        check(
+            resolve(session, SLIRP_MISSING, wait) == Err(Error::Service(Status::NotFound)),
+            163,
+        );
     } else {
         check(
             resolve(session, SLIRP_NAME, wait) == Err(Error::Service(Status::Access)),

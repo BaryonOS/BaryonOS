@@ -314,11 +314,17 @@ def evaluate_slirp(report, oracle, observed):
             or service["576"] != service["584"] or service["576"] != int(ipaddress.ip_address(slirp.DHCP_START))):
         raise ValueError("Native lease differs from the one libslirp DHCPACK on the wire")
     first = str(ipaddress.ip_address(app_a["656"])) if 0 < app_a["656"] < 2 ** 32 else None
-    if not any(r.get("rcode") == 0 and r.get("addresses", [None])[:1] == [first]
-               and app_a["664"] == min(len(r["addresses"]), 8) for r in wire.get("dns_responses", [])):
+    responses = wire.get("dns_responses", [])
+    positive = [r for r in responses if r.get("name") == slirp.NAME]
+    negative = [r for r in responses if r.get("name") == slirp.NEGATIVE]
+    if len(positive) != 1 or not any(r.get("rcode") == 0 and r.get("addresses", [None])[:1] == [first]
+                                     and app_a["664"] == min(len(r["addresses"]), 8) for r in positive):
         raise ValueError("App A's resolved address/count is not a DNS answer seen on the wire")
-    if len(wire.get("dns_responses", [])) != service["448"]:
-        raise ValueError("DNS answers on the wire differ from the service's one UDP query")
+    # App A asserted NotFound in-guest; only the wire separates NXDOMAIN from an empty NOERROR.
+    if negative != [dict(name=slirp.NEGATIVE, rcode=3, addresses=[])]:
+        raise ValueError("The .invalid query did not get exactly one NXDOMAIN without addresses on the wire")
+    if len(responses) != 2 or service["448"] != 2:
+        raise ValueError("DNS answers on the wire differ from the service's two UDP queries")
     address = ipaddress.ip_address(first)
     if not address.is_global or address.is_multicast:
         raise ValueError("App A's resolved address is not a public unicast address")
@@ -379,7 +385,8 @@ def run_network_dhcp(*, timeout=90, frozen=None, case="dhcp"):
                   "control, lease expiry, TCP DNS, DNSSEC, TLS or physical hardware claim")
     slirp_scope = ("three actual isolated ring-3 processes; QEMU libslirp user network as the only L2 neighbour "
                    "(its DHCP server, ARP, DNS forwarding to the host's real resolver, TCP translation of "
-                   "192.0.2.1:8090 to a host-loopback oracle); one lease, one public A lookup, one HTTP exchange; "
+                   "192.0.2.1:8090 to a host-loopback oracle); one lease, one public A lookup, one NXDOMAIN for a .invalid name from the host-configured "
+                   "resolver, one HTTP exchange; no DNS timeout, truncation or stale-response case; "
                    "NAT and resolver are the host's, no physical NIC, Wi-Fi, TLS or internet HTTP claim")
     scopes = {"dhcp": dhcp_scope, "link": link_scope, "slirp": slirp_scope,
               "route": dhcp_scope + "; one default route via the DHCP router on a synthetic L2 peer (one Python "

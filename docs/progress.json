@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-24",
-    "source_commit": "52cff56858c8721c102780a6a72ac7dfe1a34d9d",
+    "source_commit": "734820d6ed5e51d1480263616b4a54489f715209",
     "assessment_basis": "reviewed_main_commit",
     "branch": "claude/brave-feynman-jbiz6x",
     "task": "S09 R5 precondition: production archive verifier adapter in destination-core (host)",
     "previous_score": 43,
-    "summary": "43/100, unchanged: destination-core gains the optional volume-verifier feature, whose VolumeVerifier runs volume_core::archive::verify (the R5 precondition of S09-DESTINATION-SERVICE 2.3) and returns source errors unchanged; host tests run N7 and N10 through the service on real v1 archives and check acceptance, summary, refusals and source-error passthrough. Host evidence only: no native service links the adapter, and the production copy/restore/export chain, owner decisions O4 (a)-(c) and O11-O13, and a human audit remain, so S09 stays open. Source commit is the base main; evidence: services/destination/tests/real_verifier.rs."
+    "summary": "43/100, unchanged: destination-core gains the optional volume-verifier feature, whose VolumeVerifier runs volume_core::archive::verify (the R5 precondition of S09-DESTINATION-SERVICE 2.3) and returns source errors unchanged; host tests run N7 and N10 through the service on real v1 archives and check acceptance, summary, refusals and source-error passthrough. Host evidence only: no native service links the adapter, and the production copy/restore/export chain, owner decisions O4 (a)-(c) and O11-O13, and a human audit remain, so S09 stays open. Source commit is the reviewed main 734820d6 merged into the branch; evidence: services/destination/tests/real_verifier.rs."
   },
   "tracks": [
     {
@@ -1267,8 +1267,8 @@
             "verification": [
               "native"
             ],
-            "observation": "Lease-supplied A resolver with bounded TTL/negative cache/epoch invalidation; native A,NXDOMAIN,wrong-ID/wrong-port refusals and re-resolution after changed lease demonstrated. Later than the 2eb1c63 snapshot, PR #485 (N02-T6) hosted libslirp case: example.com resolved through the CI runner's real resolver; answer bound to the guest's own query ID/port in the pcap.",
-            "remaining": "Real authorized resolver/interoperability scenario not established.",
+            "observation": "Lease-supplied A resolver with bounded TTL/negative cache/epoch invalidation; native A,NXDOMAIN,wrong-ID/wrong-port refusals and re-resolution after changed lease demonstrated. Later than the 2eb1c63 snapshot, PR #485 (N02-T6) hosted libslirp case: example.com resolved through the CI runner's real resolver; answer bound to the guest's own query ID/port in the pcap. N02-T6 NXDOMAIN slice (branch claude/n02-slirp-negative-dns-20261124): the reserved name missing.invalid returns NotFound in-guest and exactly one rcode-3 response without addresses, bound to its own query and name, appears on the wire; NXDOMAIN versus empty NOERROR is distinguished only by the pcap. The answer comes from the host-configured resolver via libslirp.",
+            "remaining": "Real authorized resolver/interoperability scenario not established; DNS timeout, truncation and stale-response cases against a real resolver not run.",
             "evidence": [
               "services/net-protocol/src/resolver.rs",
               "services/network-service/tests/dns_resolve.rs",
