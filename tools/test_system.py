@@ -13,7 +13,8 @@ import sys
 
 from build import build
 from common import ROOT, BUILD, environment, save_json, source_hash
-from run_system import FEATURE, RELAY, RELAY_FEATURE, RELAY_RED, evaluate, run_system
+from run_system import (FEATURE, RELAY, RELAY_EXACT, RELAY_FEATURE, RELAY_RED, evaluate, expected_markers,
+                        run_system)
 
 
 def inputs() -> dict[str, str]:
@@ -53,7 +54,21 @@ def relay_logs(summary: dict, path: Path) -> None:
                 summary["relay_wrong_case"].append(dict(log=actual, evaluator=claimed, error=str(error)))
             else:
                 raise ValueError(f"{actual} log passed the {claimed} evaluator")
+            # Relabelled: with the case marker and number rewritten, the counters alone must reject.
+            relabelled = text.replace(expected_markers(actual)[-2], expected_markers(claimed)[-2]).replace(
+                f"SYSTEM:{RELAY}CASE:{case_number(actual):020d}", f"SYSTEM:{RELAY}CASE:{case_number(claimed):020d}")
+            try:
+                evaluate(claimed, relabelled, raw, False)
+            except ValueError as error:
+                summary["relay_wrong_case"].append(dict(log=actual, evaluator=claimed, relabelled=True,
+                                                        error=str(error)))
+            else:
+                raise ValueError(f"relabelled {actual} log passed the {claimed} evaluator")
     save_json(path, summary)
+
+
+def case_number(case: str) -> int:
+    return RELAY_EXACT[case][RELAY + "CASE"]
 
 
 def main() -> int:
