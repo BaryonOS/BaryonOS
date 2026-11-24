@@ -343,7 +343,6 @@ fn failed(error: StorageError) -> &'static str {
 }
 
 #[test]
-#[ignore = "U05 defect: status_label maps Service(Full) and Service(Quota) to generic copy (render.rs:1750); UX-SR07 needs distinct Full/Quota copy"]
 fn sr07_full_and_quota_have_distinct_copy() {
     let full = failed(StorageError::Service(VolumeStatus::Full));
     let quota = failed(StorageError::Service(VolumeStatus::Quota));
@@ -353,7 +352,6 @@ fn sr07_full_and_quota_have_distinct_copy() {
 }
 
 #[test]
-#[ignore = "U05 defect: status_label maps a known Service(Io) error to generic copy (render.rs:1750); UX-SR07 needs known-I/O copy"]
 fn sr07_known_io_error_has_specific_copy() {
     let io = failed(StorageError::Service(VolumeStatus::Io));
     assert_ne!(io, GENERIC, "known I/O shows generic copy");
@@ -369,7 +367,7 @@ fn sr07_deny_has_specific_copy() {
 }
 
 #[test]
-#[ignore = "U05 defect: at 640x480 @ 200 % the compact status rect holds one line, but the generic failure label wraps to two and the second is drawn below the viewport (render.rs status layout)"]
+#[ignore = "U05 defect, OWNER decision: at logical height 240 the library screen's single list row leaves no room for a second status line, so a two-line failure label is still drawn below the viewport there (hide the row, scroll, or shorter compact copy). Editor and roomier compact layouts grow the status upward: render_regressions sr11_* tests"]
 fn sr11_compact_200_percent_failure_status_is_not_clipped() {
     let viewport = Viewport::new(640, 480, Scale::Percent200, 1).unwrap();
     let status = Layout::new(viewport).status;
