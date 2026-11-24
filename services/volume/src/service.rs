@@ -1541,6 +1541,12 @@ impl Service {
         body: &[u8; SIZE],
         disk: &mut impl Disk,
     ) -> Outcome {
+        // L2 installs collections before starting any object. Refuse the
+        // same staged-session conflict as INSTALL_BEGIN before publishing
+        // a collection that would make the destination permanently used.
+        if self.sessions[domain].is_some() {
+            return Err((Status::Busy, 0));
+        }
         let index = request.aux as usize;
         let slot = domain * COLLECTIONS + index - 1;
         if self.table.collections[slot].revision != 0 {

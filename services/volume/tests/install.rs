@@ -815,6 +815,104 @@ fn malformed_install_begin_replies_abort_only_their_own_request() {
 }
 
 #[test]
+fn lost_install_begin_replies_abort_only_their_own_request() {
+    struct LoseBegin<T> {
+        inner: T,
+        lose_begin: bool,
+        fail_abort: bool,
+        aborts: Vec<(u64, u64)>,
+    }
+    impl<T: Transport> Transport for LoseBegin<T> {
+        fn call(&mut self, request: &[u8; wire::SIZE]) -> Result<[u8; wire::SIZE], Status> {
+            let header = wire::header(request);
+            if header.operation == wire::ABORT {
+                self.aborts.push((header.object, header.request_id));
+                if self.fail_abort {
+                    return Err(Status::Io);
+                }
+            }
+            let reply = self.inner.call(request)?;
+            if header.operation == wire::INSTALL_BEGIN && self.lose_begin {
+                self.lose_begin = false;
+                return Err(Status::Unknown);
+            }
+            Ok(reply)
+        }
+    }
+
+    let object = 2;
+    let m = manifest(&[CHUNK + 1, 5], 4);
+    for whole_install in [false, true] {
+        for fail_abort in [false, true] {
+            let (mut s, mut d) = fresh();
+            let mut c = Client::new(
+                LoseBegin {
+                    inner: Local {
+                        service: &mut s,
+                        disk: &mut d,
+                        domain: 0,
+                    },
+                    lose_begin: true,
+                    fail_abort,
+                    aborts: Vec::new(),
+                },
+                EPOCH,
+                700,
+            );
+            let result = if whole_install {
+                c.install(object, &m, (0, 0, 0), fill(object))
+                    .map(|(_, id)| id)
+            } else {
+                c.install_begin(object, &m, (0, 0, 0))
+            };
+            assert_eq!(result, Err(Status::Unknown), "preserve the original error");
+            assert_eq!(c.transport.aborts, [(object, 700)], "use the sent ID");
+            assert_eq!(c.transport.inner.service.staged(0).is_some(), fail_abort);
+            if fail_abort {
+                // A failed cleanup does not turn Unknown into a certain result.
+                c.transport.fail_abort = false;
+                c.abort(object, 0, 700).unwrap();
+            }
+            c.install(object, &m, (0, 0, 0), fill(object)).unwrap();
+        }
+    }
+
+    // Losing a Busy reply does not make the earlier session ours to abort.
+    let (mut s, mut d) = fresh();
+    let id = client(&mut s, &mut d, 0)
+        .install_begin(object, &m, (0, 0, 0))
+        .unwrap();
+    let mut c = Client::new(
+        LoseBegin {
+            inner: Local {
+                service: &mut s,
+                disk: &mut d,
+                domain: 0,
+            },
+            lose_begin: true,
+            fail_abort: false,
+            aborts: Vec::new(),
+        },
+        EPOCH,
+        700,
+    );
+    assert_eq!(c.install_begin(object, &m, (0, 0, 0)), Err(Status::Unknown));
+    assert_eq!(c.transport.aborts, [(object, 700)]);
+    let Some(Staged::Install(session)) = c.transport.inner.service.staged(0) else {
+        panic!("the earlier install must remain staged");
+    };
+    assert_eq!(session.request_id, id);
+    assert_eq!(c.install_begin(object, &m, (0, 0, 0)), Err(Status::Busy));
+    assert_eq!(
+        c.transport.aborts.len(),
+        1,
+        "a valid refusal needs no abort"
+    );
+    c.abort(object, 0, id).unwrap();
+    c.install(object, &m, (0, 0, 0), fill(object)).unwrap();
+}
+
+#[test]
 fn install_begin_refuses_used_slots_absent_collections_and_capacity() {
     let (mut s, mut d) = fresh();
     let mut c = client(&mut s, &mut d, 0);

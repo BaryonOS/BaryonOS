@@ -283,6 +283,12 @@ An abandoned untokened install blocks new sessions in its domain until a
 matching ABORT, SHUTDOWN or service restart. Staged sessions were never
 ACKed, so nothing durable is lost.
 
+INSTALL_COLLECTION also returns `Busy` while any upload or install session
+is staged in the destination domain, for both v6 and v7. This leaves the
+existing session intact and prevents L2 restore from committing collections
+before its first INSTALL_BEGIN would encounter the same refusal. Other
+domains remain independent.
+
 **Code paths that must change:**
 1. `service.rs:178-187`: the v6 legacy `Busy` guard covers BEGIN, APPEND,
    COMMIT, ABORT, **INSTALL_BEGIN, INSTALL_APPEND and INSTALL_COMMIT** while
@@ -451,6 +457,13 @@ It then runs INSTALL_COLLECTION for each archived present collection
 (deleted collections are never installed), followed by one INSTALL session
 per present object over its `replayable` prefix only. Versions after the
 first gap are counted in `skipped`.
+
+A pre-existing staged session causes the first INSTALL_COLLECTION (or
+INSTALL_BEGIN when there are no present collections) to return `Busy`
+without a collection or object commit. The destination remains unused and
+can be retried after the existing session's owner clears it. This does not
+provide concurrency control across later restore operations: the caller
+must still be the only writer in the destination domain.
 
 Content streams from a fresh `open()` in archive order. Before
 INSTALL_COMMIT, the client recomputes each version's FNV-64 against the

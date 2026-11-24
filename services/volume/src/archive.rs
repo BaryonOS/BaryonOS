@@ -1527,7 +1527,9 @@ pub fn l2_manifest(object: &ObjectV2) -> Manifest {
 /// a replay over `QUOTA` (`Quota`) or over [`GUARANTEED_FREE`] (`Full`), and
 /// a manifest the service would refuse (`Corrupt`). Then every present
 /// collection is installed, then every present object over its
-/// [`replayable`] prefix; content streams from a fresh `open()` in archive
+/// [`replayable`] prefix. A staged session in the destination makes the first
+/// INSTALL operation `Busy`, without committing a collection or object.
+/// Content streams from a fresh `open()` in archive
 /// order and every version is compared with the verified plan (FNV-64,
 /// `Corrupt` and ABORT on a mismatch). An older service answers the first
 /// INSTALL operation with `NoSys` and nothing is committed. There is no

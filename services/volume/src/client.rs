@@ -680,9 +680,12 @@ impl<T: Transport> Client<T> {
 
     /// L2 INSTALL of `manifest` into the never-used own slot `object` in one
     /// commit. `fill(version, offset, buffer)` supplies content. On any
-    /// error except `Unknown` or `Protocol` nothing was committed; a staged
-    /// session is aborted on a best-effort basis unless the result is
-    /// `Unknown`. A malformed COMMIT reply can hide a committed install.
+    /// error except `Unknown` or `Protocol` nothing was committed. Either
+    /// error from BEGIN triggers a best-effort abort of that request. After
+    /// a successful BEGIN, errors other than `Unknown` attempt cleanup;
+    /// `Unknown` leaves the outcome unresolved. A malformed COMMIT reply can
+    /// hide a committed install. Inspect the destination state before retrying
+    /// after either `Unknown` or `Protocol`.
     /// Returns `(revision, request ID)`.
     pub fn install(
         &mut self,
@@ -703,7 +706,9 @@ impl<T: Transport> Client<T> {
     }
 
     /// INSTALL_BEGIN only; returns the request ID of the staged session.
-    /// A malformed reply triggers a best-effort abort using the sent ID.
+    /// Lost (`Unknown`) or malformed (`Protocol`) replies trigger a best-effort
+    /// abort using the sent ID. BEGIN commits no object; the original error
+    /// is preserved even if cleanup fails.
     pub fn install_begin(
         &mut self,
         object: u64,
@@ -728,7 +733,7 @@ impl<T: Transport> Client<T> {
             }
             Ok(id)
         })();
-        if result == Err(Status::Protocol) {
+        if matches!(result, Err(Status::Protocol | Status::Unknown)) {
             // The v6 session ID is the request ID, not a reply field. A
             // mismatched ID cannot abort another session on the service.
             let _ = self.abort(object, 0, id);

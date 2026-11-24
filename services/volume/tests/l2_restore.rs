@@ -9,7 +9,7 @@ use volume_core::{
     client::{Client, Transport},
     service::Service,
     table::{self, Table},
-    wire, Status, MAX_LENGTH, PER_DOMAIN,
+    upload, wire, Status, MAX_LENGTH, PER_DOMAIN,
 };
 
 const EPOCH: u64 = 6;
@@ -377,6 +377,81 @@ fn an_older_service_answers_nosys_and_nothing_is_committed() {
     );
     assert!(archive::never_used(&mut c, DOMAIN).unwrap());
     assert_eq!(service.counters.table_writes, 0);
+}
+
+#[test]
+fn a_staged_session_refuses_restore_before_any_collection_commit() {
+    let bytes = fixture("restore.bin");
+    let plan = archive::verify_v2(
+        &mut Reader {
+            bytes: &bytes,
+            at: 0,
+            flip: None,
+        },
+        &mut scratch(),
+    )
+    .unwrap();
+    assert!(plan.collections[..plan.collection_count]
+        .iter()
+        .any(|collection| collection.present));
+    let manifest = archive::l2_manifest(
+        plan.objects[..plan.object_count]
+            .iter()
+            .find(|object| object.present)
+            .unwrap(),
+    );
+    for operation in [wire::BEGIN, wire::INSTALL_BEGIN] {
+        for tokened in [false, true] {
+            let mut disk = SimDisk::new();
+            let mut service = Service::new(EPOCH, Table::EMPTY, false);
+            let object = (DOMAIN * PER_DOMAIN + 5) as u64;
+            let mut begin = wire::Header::new(operation, 41, EPOCH, object);
+            let data = if operation == wire::BEGIN {
+                begin.aux = 600;
+                begin.name_length = 4;
+                begin.length = 4;
+                b"Naam".to_vec()
+            } else {
+                begin.count = manifest.count as u32;
+                begin.length = manifest.bytes() as u32;
+                let mut data = vec![0; manifest.bytes()];
+                manifest.encode(&mut data);
+                data
+            };
+            let reply = if tokened {
+                service.handle_for(DOMAIN, 17, &upload::encode(&begin, &data, 0), &mut disk)
+            } else {
+                service.handle(DOMAIN, &wire::encode(&begin, &data), &mut disk)
+            };
+            assert_eq!(wire::header(&reply).status, Status::Ok as i32);
+            let token = if tokened { upload::token(&reply) } else { 0 };
+            let writes = service.counters.table_writes;
+            let mut c = client(&mut service, &mut disk, DOMAIN);
+            let (status, report) = restore(&bytes, &mut c, DOMAIN, None).unwrap_err();
+            assert_eq!(status, Status::Busy);
+            assert_eq!(report.committed, 0, "refusal must not strand collections");
+            assert_eq!((report.collections, report.restored), (0, 0));
+            assert!(archive::never_used(&mut c, DOMAIN).unwrap());
+            assert_eq!(service.counters.table_writes, writes);
+            assert!(
+                service.staged(DOMAIN).is_some(),
+                "preserve the prior session"
+            );
+
+            // Only its original owner/session tuple can clear the staged work.
+            let abort = wire::Header::new(wire::ABORT, 41, EPOCH, object);
+            let reply = if tokened {
+                service.handle_for(DOMAIN, 17, &upload::encode(&abort, &[], token), &mut disk)
+            } else {
+                service.handle(DOMAIN, &wire::encode(&abort, &[]), &mut disk)
+            };
+            assert_eq!(wire::header(&reply).status, Status::Ok as i32);
+            assert!(service.staged(DOMAIN).is_none());
+            let mut c = client(&mut service, &mut disk, DOMAIN);
+            let (report, source) = restore(&bytes, &mut c, DOMAIN, None).unwrap();
+            check_restored(&mut c, &bytes, &report, &source, DOMAIN);
+        }
+    }
 }
 
 /// Archive offset just past the content of version `index` of `slot`.
