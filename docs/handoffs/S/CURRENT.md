@@ -28,7 +28,8 @@ in `docs/progress.json`, the S09 specifications and GitHub.
 - **Branch / PR:** `claude/brave-feynman-jbiz6x`, PR #509 (draft until the
   required checks pass on its head). Contents: decisions, R3 reverse
   differential (host), R2 status, K5 step 1 (`kernel/src/m2/m3/volume.rs`).
-- **Evidence on `04b06de2` (local):** native volume gate 32/32
+- **Evidence on `1a3924de` (local):** native volume gate 32/32 and H05
+  power gate 12/12 (`build/k5d-*`); earlier on `04b06de2`: native volume gate 32/32
   (`build/k5c-volume.log`), H05 power gate 12/12 with S3, S3 re-init and
   held completion (`build/k5c-power/power-system-gate.json`); destination
   tests, oracle suite, reverse differential 182 and forward 30 images.
@@ -47,9 +48,12 @@ in `docs/progress.json`, the S09 specifications and GitHub.
    invoking shell command; it kills the caller.
 3. `App::meta` reports `step` and `step + 1`, and `App::write` reports
    `step` to `step + 3`; leave a gap after every such step id.
-4. The broker serves one block request at a time across both disks. A portal
-   must reach a READY service (any client call) before its first archive
-   read, or the service's recovery read can fail with `Protocol`.
+4. Since K5 (PR #509) the broker serves at most one block request at a time
+   per disk; requests on different disks progress independently. Before K5
+   one request was served across both disks, and a portal had to reach a
+   READY service before its first archive read or the service's recovery
+   read could fail with `Protocol`; keep that order in existing flows until
+   a native fixture shows the per-disk admission.
 5. A native gate failure in one stage can be reproduced alone: copy the
    parent's `volume-image-*` directory and run `tools/run_volume.py --case
    <stage> --volume <copy>`. The parent check binds the source fingerprint,
