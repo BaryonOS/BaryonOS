@@ -41,13 +41,17 @@ measurements or missing-evidence failure.
 The native window workflow preserves each phase's original `result.json` and
 `serial.txt` in a separate compact proof collection. Each file is limited to
 4 MiB, and the pair must fit within the unchanged 7 MiB payload budget plus
-1 MiB receipt reserve. The base native phase applies to both scales; library
-write, library cold recovery and the two switcher profiles apply only to the
-scale-1 matrix job. Required proof cannot be silently omitted for a missing file,
-individual-file limit or aggregate-budget limit. The existing final collection
-continues to hold host logs and manifests and to offer the original optional
-full archive and Windows package. Phase collections add no duplicate raw archive
-or package upload.
+1 MiB receipt reserve. The workflow runs five independent native legs, each
+on its own runner with its own probe build: `native-scale1`, `native-scale2`,
+`library` (library write, then cold recovery of that write's parent image in the
+same leg), `switcher-scale1` and `switcher-scale2`. Each leg preserves its own
+proof pair; the `library` leg preserves the write and cold pairs separately.
+Required proof cannot be silently omitted for a missing file, individual-file
+limit or aggregate-budget limit. Each leg's final collection,
+`native-window-session-<leg>-evidence`, holds that leg's logs and manifests and
+offers its optional full archive. Host checks, the read-only compile and the
+normal build with the Windows package keep their own collections. Phase
+collections add no duplicate raw archive or package upload.
 
 This separation addresses run `45311246725`: its successful scale-2 native job
 produced a 1,553,981-byte result and 1,556,536-byte serial log that exceeded the
@@ -77,8 +81,18 @@ artefact name, with **one-day** retention. The compact record is retained
 for this run as well.
 
 Use this route when raw disk images, pixels or build bytes are needed for
-independent revalidation, as with
-`docs/verification/materiaal-library-20261102/verify-ci-artifact.py`.
+independent revalidation. In `native-window-session.yml`, `full_evidence`
+still enables the full archive, but each native leg now uploads its own archive
+as `native-window-session-<leg>-evidence`, containing only that leg's build
+directory `build/window-session-ci/<leg>/`. Download the archive of every leg
+the revalidation requires, all from the same run, so that every archive is
+bound to the same source commit. The library write and cold runs are both in
+the `library` leg; the switcher profiles are in `switcher-scale1` and
+`switcher-scale2`.
+`docs/verification/materiaal-library-20261102/verify-ci-artifact.py` is a
+historical example: it expects the earlier fixed `build/library-ci-640/data`
+layout, its source fingerprint and the former shared `probe/` directory, and
+does not apply to the per-leg layout unchanged.
 Download the required archive before it expires. Compact reports and hashes
 do not replace raw bytes. A failed full upload means that archive is
 unavailable; a green test job does not demonstrate otherwise. Acceptance
