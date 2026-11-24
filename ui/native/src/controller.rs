@@ -909,7 +909,7 @@ impl<'a, T: Transport> Controller<'a, T> {
             }
             Screen::History => {
                 if let Some(stat) = self.workspace.metadata {
-                    for i in 1..=stat.history_count {
+                    for i in 1..=stat.history_count.min(volume_core::HISTORY) {
                         visit(Focus::HistoryVersion(i), l.history_slot(i), true);
                     }
                 }
@@ -1623,7 +1623,11 @@ impl<'a, T: Transport> Controller<'a, T> {
                 // Version slots left to right, then the footer: Cancel (left)
                 // before Restore (right), as in the semantic tree (#447).
                 let mut count = 0;
-                let versions = self.workspace.metadata.map_or(0, |s| s.history_count);
+                // history_count is a decoded reply byte; never exceed the two slots.
+                let versions = self
+                    .workspace
+                    .metadata
+                    .map_or(0, |s| s.history_count.min(volume_core::HISTORY));
                 for i in 1..=versions {
                     choices[count] = Focus::HistoryVersion(i);
                     count += 1;

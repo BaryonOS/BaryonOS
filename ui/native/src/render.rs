@@ -1506,7 +1506,7 @@ impl<'a> Frame<'a> {
                 }
                 if self.view.screen == Screen::History {
                     if let Some(stat) = workspace.metadata() {
-                        for i in 1..=stat.history_count {
+                        for i in 1..=stat.history_count.min(volume_core::HISTORY) {
                             push(
                                 SemanticId::HistoryVersion(i),
                                 parent,
