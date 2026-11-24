@@ -1453,6 +1453,29 @@ class EscapeScopeTests(TestCase):
             ("probe/p.py", "app/checks/c.rs:1", True),
         })
 
+    def test_library_reachable_helpers_and_runtime_included_sources_are_followed(self):
+        """CodeRabbit on #504: scope follows intra-crate links; runtime-included .rs is scanned."""
+        found = self.scan({
+            "app/src/lib.rs": '#[path = "../tests/helper.rs"]\nmod helper;\n'
+                              'include!(concat!(env!("CARGO_MANIFEST_DIR"), "/../shared/x.rs"));\n',
+            "app/tests/helper.rs": 'const T: &str = include_str!("../../data/t.txt");\n',
+            "shared/x.rs": 'const U: &str = include_str!("tokens.css");\n',
+        })
+        rows = {(target, origin, root_only) for _crate, target, origin, root_only in found}
+        self.assertIn(("data/t.txt", "app/tests/helper.rs:1", False), rows)  # library scope wins
+        self.assertIn(("data/t.txt", "app/tests/helper.rs:1", True), rows)
+        self.assertIn(("shared/x.rs", "app/src/lib.rs:3", False), rows)
+        self.assertIn(("shared/tokens.css", "shared/x.rs:1", False), rows)
+        root = [{"crate": "app", "when": "root", "inputs": ["data/**"], "evidence": []}]
+        self.assertTrue(ci_impact.escape_problem(root, "app", "data/t.txt", "app/tests/helper.rs:1", False)
+                        .startswith("escape-scope-mismatch"))
+
+    def test_evidence_registers_only_an_unresolvable_target(self):
+        cited = [{"crate": "app", "when": "always", "inputs": ["ui/old.css"], "evidence": ["app/src/lib.rs:1"]}]
+        self.assertTrue(ci_impact.escape_problem(cited, "app", "ui/new.css", "app/src/lib.rs:1", False)
+                        .startswith("escape-unregistered"))
+        self.assertIsNone(ci_impact.escape_problem(cited, "app", None, "app/src/lib.rs:1", False))
+
     def test_build_output_is_not_an_input(self):
         found = self.scan({"a/b/tests/t.rs": 'fn o() { Path::new(env!("CARGO_MANIFEST_DIR")).join("../../build/x"); }\n'},
                           crates=("a/b",))

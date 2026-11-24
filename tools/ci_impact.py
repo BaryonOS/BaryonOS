@@ -1521,12 +1521,17 @@ def scan_escapes(repo, crate_dirs, tracked, root_targets=frozenset()):
                 else:
                     target = posixpath.normpath(posixpath.join(posixpath.dirname(source), literal))
                 if target.startswith(f"{crate}/"):
+                    if not root_only and target in sources:
+                        # A library file can pull in e.g. tests/helper.rs: it is then library source too.
+                        queue.append((target, False))
                     continue
                 found.append((crate, target, f"{source}:{line}", root_only))
                 if target in sources:
                     queue.append((target, root_only))
-            found += [(crate, target, f"{source}:{line}", root_only)
-                      for target, line in _runtime_escapes(crate, text)]
+            for target, line in _runtime_escapes(crate, text):
+                found.append((crate, target, f"{source}:{line}", root_only))
+                if target in sources:  # include!(concat!(env!("CARGO_MANIFEST_DIR"), "/../x.rs")) is source
+                    queue.append((target, root_only))
     return sorted(set(found), key=lambda item: (item[0], item[2], item[1] or ""))
 
 
@@ -1581,8 +1586,10 @@ def root_target_paths(read, crate_dirs):
 
 def escape_problem(escapes, crate, target, origin, root_only):
     """None when a registration covers the escape in the right scope; else a report."""
+    # Evidence alone registers only an unresolvable target: a known target must be in the inputs,
+    # or an include that changed its target on the same line would keep an outdated registration.
     matching = [escape for escape in escapes if escape["crate"] == crate and (
-        origin in escape.get("evidence", [])
+        (target is None and origin in escape.get("evidence", []))
         or (target is not None and (first_match(escape["inputs"], target)
                                     or first_match(escape["inputs"], target + "/x"))))]
     if not matching:
