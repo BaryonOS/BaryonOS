@@ -114,8 +114,11 @@ extension at BootInfo offset 256 (`crates/boot-protocol/src/firmware.rs`);
 normal IF0 M2 discovery, prints `M2:PASS`/`M1:PASS`, then the `HWINV:` block,
 and stops in a `CLI`/`HLT` loop. PCI identity is read only from configuration
 offsets `0x00`, `0x08` and `0x0C` of every present segment-0 function, through
-legacy mechanism 1; no BAR, command register or bus master is touched. Panic and
-M1/M2 failure paths still use port `0xF4`.
+legacy mechanism 1; no BAR, command register or bus master is touched. Since
+H06-T5 every terminal path of the pair (panic, M1/M2 failure, M2 exception,
+`HWINV:FAIL`, serial timeout, loader `M1:FAIL` and the loader handoff return)
+halts without writing port `0xF4`; QEMU fixtures in
+[h06-halt-terminals-20261124](../verification/h06-halt-terminals-20261124/README.md).
 
 `python3 -B tools/hw_inventory.py --log <serial> --out <inventory.json>` turns
 one complete, passing `HWINV:` block into the schema-2 inventory JSON consumed
@@ -153,7 +156,7 @@ protocol has been executed; all seven are **blocked**:
 
 | Protocol | Criterion / rows | Concrete blocking reasons |
 |---|---|---|
-| `HW-INV` v2 | H06 / FR-H03, FR-R03 | `native-hw-inventory` profile present and QEMU-tested (H06-T3); no physical image; `0xF4` panic/failure exit paths; owner decisions |
+| `HW-INV` v3 | H06 / FR-H03, FR-R03 | `native-hw-inventory` profile present and QEMU-tested (H06-T3); every terminal path halts without `0xF4` (H06-T5, QEMU fixtures); no physical image; owner decisions |
 | `H05-S5` v1 | H05 / FR-S04 | no physical image; rejection paths exit through `0xF4`; no `SMI_CMD`/`ACPI_ENABLE`, `_PTS`/`_TTS`; owner decisions |
 | `H05-S3` v1 | H05 / FR-S05 | QEMU-native S3 entry/resume exists (`native-acpi-s3`, [h05-native-s3-20261119](../verification/h05-native-s3-20261119/README.md)) but is woken only by QMP `system_wakeup` under the QEMU/OVMF `Edk2Version0Extended` vector policy; physical firmware path (FACS version, real-mode or extended vector, `_PTS`/`_WAK`) unverified; no physical wake source (`OD-HW-POWER`); protocol markers not yet emitted in the specified form; must not rely on `0xF4`; owner decisions |
 | `H02-USB` v2 | H02 / FR-H01 | xHCI accepts only QEMU `1b36:000d` and maps its BAR0 at a fixed kernel virtual address; VT-d availability unknown until `HW-INV` records the DMAR table; no IRQ/hub/hotplug; `0xF4` exit |
@@ -161,7 +164,8 @@ protocol has been executed; all seven are **blocked**:
 | `H04-NET` v1 | H04 / FR-H03 | no e1000e driver; Wi-Fi/Bluetooth excluded pending `OD-HW-FAMILIES`; `0xF4` exit |
 | `R03-INSTALL` v2 | R01 / FR-R03 | no installer image; no NVMe, AHCI or USB mass-storage driver; install-target transport undecided (`OD-HW-DISKS`, `OD-HW-FAMILIES`); physical disk writes not authorised |
 
-Version 2 of `HW-INV` adds the read-only `HWINV:ACPI:DMAR=<PRESENT|ABSENT>:DRHD=<n>`
+Version 3 of `HW-INV` adds the `M2:FAIL*` failure marker (H06-T5: the M2 kernel
+exception path of the profile). Version 2 of `HW-INV` adds the read-only `HWINV:ACPI:DMAR=<PRESENT|ABSENT>:DRHD=<n>`
 observation and inventory schema 2 (`acpi.dmar`, `acpi.drhd_units`); version 2
 of `H02-USB` requires that observation (DMAR present, at least one DRHD unit)
 and an xHCI function (`0c/03/30`) in the bound inventory. A DMAR table is never
@@ -183,9 +187,10 @@ Common to every protocol:
   re-read from the medium. No such image can be built yet: `tools/build.py`
   exports an ESP directory for QEMU's virtual FAT backend, and
   `tools/repro_check.py` compares only that ESP payload manifest.
-- Every milestone-m2 terminal path calls `exit()` in `kernel/src/serial.rs`,
-  which writes QEMU's `isa-debug-exit` port `0xF4`. That port is undefined on
-  physical PCs; a physical image first needs a halt-based terminal path.
+- Outside the `native-hw-inventory` profile, every milestone-m2 terminal path
+  calls `exit()` in `kernel/src/serial.rs`, which writes QEMU's `isa-debug-exit`
+  port `0xF4`. That port is undefined on physical PCs; each such profile first
+  needs a halt-based terminal path, as `native-hw-inventory` has since H06-T5.
 - Forbidden: firmware flashing, saving firmware settings, `BootOrder` or other
   persistent UEFI variable changes, Secure Boot key or state changes, internal
   disk access, and personal data. Boot only through the firmware one-time boot
