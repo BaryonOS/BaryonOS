@@ -395,6 +395,9 @@ test-volume-l2-export = ["test-volume-archive-device"]
 test-volume-l2-restore = ["test-volume-archive-device"]
 test-volume-l2-corrupt = ["test-volume-archive-device"]
 test-volume-l2-used = ["test-volume-archive-device"]
+# A power cut inside an L2 restore and its cold read-only recovery (cases 29-30).
+test-volume-l2-restore-cut = ["test-volume-archive-device"]
+test-volume-recover-l2-cut = ["test-volume-archive-device"]
 # U05-N1 settings persistence through the volume service (own app ELF).
 test-volume-settings = ["native-volume"]
 test-volume-settings-recover = ["native-volume"]
