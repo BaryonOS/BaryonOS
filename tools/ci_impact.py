@@ -1161,9 +1161,13 @@ def workflow_problems(workflows, catalogue):
                 dynamic = [v for v in variants if v.get("dynamic")]
                 if not dynamic:
                     add(f"variant-unregistered: {where}: dynamic matrix needs a dynamic variant")
+                actual_ev = yaml_evidence(job, None)  # unexpanded name templates
                 for variant in dynamic:
                     if _norm(variant.get("matrix")) != _norm(matrix):
                         add(f"matrix-mismatch: {where}/*")
+                    wanted_ev = sorted(set(record.get("evidence", [])) | set(variant.get("evidence", [])))
+                    if actual_ev != wanted_ev:
+                        add(f"evidence-mismatch: {where}/*: catalogue={wanted_ev} workflow={actual_ev}")
                 continue
             actual_variants = {}
             for combination in matrix:

@@ -223,7 +223,8 @@ never the computed one.
 `coverage` needs PyYAML and otherwise reports `coverage-unavailable`. It
 compares the catalogue with `.github/workflows/*.y*ml` (workflows, events,
 trigger filters, jobs, names, conditions, needs, timeouts, max-parallel,
-rendered matrix variants and check names, evidence names). It also checks:
+rendered matrix variants and check names, evidence names; for a dynamic
+matrix, the unexpanded evidence name templates). It also checks:
 
 - that each job's `activation` agrees with the workflow's `on:` keys; a
   `schedule` or `dispatch` job in a workflow that also has `pull_request`,

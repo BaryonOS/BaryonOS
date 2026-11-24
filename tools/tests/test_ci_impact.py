@@ -1022,6 +1022,24 @@ class CoverageTests(TestCase):
                 self.assertTrue(any(p.startswith(fragment) for p in problems), problems)
         self.assertIn("workflow-removed: .github/workflows/ci.yml", ci_impact.workflow_problems({}, catalogue))
 
+    def test_dynamic_matrix_evidence_templates_are_compared(self):
+        workflows = copy.deepcopy(COVERAGE_WORKFLOWS)
+        workflows[".github/workflows/ci.yml"]["jobs"]["pair"] = {
+            "strategy": {"matrix": {"scale": "${{ fromJSON(inputs.scales) }}"}},
+            "steps": [{"uses": "./.github/actions/preserve-evidence", "with": {"name": "pair-${{ matrix.scale }}"}}]}
+        old = """variant = [
+  { id = "1", check_name = "pair (1)", matrix = { scale = 1 } },
+  { id = "2", check_name = "pair (2)", matrix = { scale = 2 } },
+]"""
+        for evidence, expected in (("pair-${{ matrix.scale }}", []), ("pair-renamed", ["evidence-mismatch"])):
+            with self.subTest(evidence=evidence):
+                catalogue = tomllib.loads(COVERAGE_CATALOGUE.replace(old, (
+                    'variant = [{ id = "*", dynamic = true, check_name = "pair (${{ matrix.scale }})", '
+                    'matrix = { scale = "${{ fromJSON(inputs.scales) }}" }, evidence = ["%s"] }]' % evidence)))
+                self.assertEqual(ci_impact.validate(catalogue), [])
+                problems = ci_impact.workflow_problems(workflows, catalogue)
+                self.assertEqual([p.split(":")[0] for p in problems], expected, problems)
+
     def test_activation_must_match_the_workflow_events(self):
         problem = ci_impact.activation_problem
         on = ["workflow_dispatch", "schedule", "pull_request"]
