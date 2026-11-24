@@ -1394,11 +1394,12 @@ fn l2_source_step(app: &mut App) {
     );
     app.commits += 1;
     // S3: rename collections 1 and 2; S4: create collection 3, rename it.
+    // Steps start at 916: `meta` above reports 911 and 912 (`step + 1`).
     for (index, expected, new_name, step) in [
-        (1, 1, &b"Werkmap"[..], 912),
-        (2, 1, &b"Thuis"[..], 913),
-        (3, 0, &b"Nieuw"[..], 914),
-        (3, 1, &b"Nieuwer"[..], 915),
+        (1, 1, &b"Werkmap"[..], 916),
+        (2, 1, &b"Thuis"[..], 917),
+        (3, 0, &b"Nieuw"[..], 918),
+        (3, 1, &b"Nieuwer"[..], 919),
     ] {
         check(
             app.client.collection(0, index, expected, new_name) == Ok(expected + 1),
@@ -1463,6 +1464,7 @@ fn l2_report(report: &L2Report, result: Status) {
 /// non-inlined function, so its `ArchiveV2` copies leave the stack before
 /// the next phase and never stay in the frame of `run` (spec section 5.2).
 #[cfg(feature = "l2-portal")]
+#[inline(never)]
 fn l2_portal(app: &mut App, case: u64) {
     let device = BlockDevice::from_handle(
         Handle::from_raw(support::word(ARCHIVE_HANDLE)).unwrap_or_else(|_| fail(700)),

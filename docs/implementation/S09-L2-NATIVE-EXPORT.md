@@ -1,8 +1,11 @@
 # S09 — Native L2 export and cold restore through the archive disk (phase 3)
 
-**Status: revision 1, design only. Nothing in this document is implemented.**
+**Status: revision 1. Slice A (5.1) is on `main` (#477). Slice B (5.2, the
+`l2-portal` build) is implemented and measured; nothing selects its cases yet.
+Slices C and D are not implemented.**
 
-- **Branch:** `claude/s09-l2-native-export`, stacked on #411 (`f6a07fe3`).
+- **Branch:** designed on `claude/s09-l2-native-export`; slice B lands from
+  `claude/s09-l2-slice-b-main` on top of `main`.
 - **Review:** revision 0 was reviewed by an independent AI reviewer, verdict
   REQUEST_CHANGES
   ([SPEC-REVIEW-1.md](../verification/s09-l2-native-export-20261123/SPEC-REVIEW-1.md)).
@@ -207,7 +210,7 @@ existing `install-cut` already cuts inside INSTALL_COMMIT natively.
 `version_count` (header bytes 14–15) and the v2 record sizes. A v2 archive
 read through it is truncated, and `walk_v2` then fails with `Corrupt`.
 
-Change:
+Change (implemented in slice A):
 
 - `DiskSource` reads the format version at header offset 8.
 - For version 1 the computation is unchanged.
@@ -239,7 +242,7 @@ The portal builds each reader from a new `NativeDisk { device }`;
 
 ### 5.2 Portal flows (`sdk/examples/volume-docs/src/app.rs`)
 
-- **Binary.** A new feature `l2-portal` builds a separate portal binary. It
+- **Binary.** The feature `l2-portal` (slice B) builds a separate portal binary. It
   links:
   - `export_v2`, `verify_v2` and `restore_native_l2`;
   - the install and provenance client methods;
@@ -268,11 +271,11 @@ The portal builds each reader from a new `NativeDisk { device }`;
   |---|---|
   | 520 | `L2Report.restored` |
   | 528 | `L2Report.collections` |
-  | 536 | `L2Report.committed` |
+  | 536 | `L2Report.committed`: confirmed INSTALL_COLLECTION and INSTALL_COMMIT commits only (since #477 an ambiguous COMMIT is not counted) |
   | 544 | `L2Report.skipped`, or `ExportV2.omitted` for case 25 |
   | 552 | provenance mismatches, 0 expected |
   | 560 | archive length in bytes |
-  | 568 | result status of the restore attempt (26–28) as `Status as i32`, sign-extended to 64 bits; 0 is both `Ok` and "not written", so case 26 is judged by words 520–552 |
+  | 568 | result status of the restore attempt (26–28) as `Status as i32`, sign-extended to 64 bits; 0 is both `Ok` and "not written", so case 26 is judged by words 520–552, and the kernel must require a non-zero word 568 equal to `Corrupt` (27) or `Stale` (28) |
 
 ### 5.3 Kernel test profile (`kernel/src/m2/m3/volume.rs`, `kernel/Cargo.toml`)
 
@@ -458,7 +461,7 @@ to the lead.
 | Slice | Content | Acceptance |
 |---|---|---|
 | A | 5.1 reader and its host tests | `cargo test`/`clippy`/`fmt` for `volume-core`, both feature sets; `mutate_volume.py` caught |
-| B | `l2-portal` build. Measure first: `.text` (64 KiB), `.data`+`.bss` (one page) and `.rodata` (32 KiB) for both portals, and the stack depth of the deepest flow. | Both portals link within every bound. If not, stop and revise 5.2. |
+| B | `l2-portal` build. Measure first: `.text` (64 KiB), `.data`+`.bss` (one page) and `.rodata` (32 KiB) for both portals, and the stack depth of the deepest flow. | Both portals link within every bound. If not, stop and revise 5.2. **Done:** measured in [SLICE-B.md](../verification/s09-l2-native-export-20261124/SLICE-B.md); every bound holds. |
 | C | kernel cases 25–28, runner and oracle, host tests; S1–S4 finalised by the discrimination computation | `unittest test_volume_*.py` passes; `test_volume_harness` is consistent; the discrimination invariant holds on the computed fixture |
 | D | native gate | `tools/test_volume.py` gives `passed=True` with 30 stages. `test_ci_workflows` fails only with `['26'] != ['30']` until the pins land. |
 
@@ -471,12 +474,16 @@ Each slice gets an independent AI review before the next begins. Hosted CI
   archive given to the restore are not covered natively (section 4); both
   are host-tested.
 - Slice B measured the size and a static stack bound
-  (`docs/verification/s09-l2-native-export-20261123/SLICE-B.md`). The stack
-  bound covers direct calls only. The kernel reads word 568 as an `i64`.
+  ([SLICE-B.md](../verification/s09-l2-native-export-20261124/SLICE-B.md)). The
+  stack bound covers direct calls only. The kernel reads word 568 as an `i64`.
 - Slice C: the kernel `ARCHIVE_IO` arms for 26–28 must accept the refused
   device-1 write probe of the portal (step 702, which expects the
   capability refusal `Access`, -5), or the probe moves.
 - The final S1–S4 set depends on the slice-C discrimination computation.
+  If slice C keeps S1, the guest should also check `omitted == 1` (word 544
+  is reported, not checked, in slice B).
+- The provenance self-check (word 552) covers the archive slots only; that
+  slots outside the archive stay never-used is host-checked.
 - The merge order against U05 #436: whichever lands second resolves the
   appended lines in `case()`, `read_only()`, `marker()`, `kernel/Cargo.toml`
   and `tools/build.py`.
