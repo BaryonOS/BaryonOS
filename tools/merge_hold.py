@@ -420,10 +420,10 @@ def fetch_listing(token, url, key):
 def run_matches(run, repo, pull, head_sha):
     """Provenance of a workflow run: this repository, this pull request head, the pull_request event.
 
-    GitHub lists the run's pull requests for same-repository heads: this pull
-    request (number and base branch) must then be among them, and an empty list
-    does not count. A fork run has an empty list and is bound by head SHA,
-    branch and head repository only (documented residual, docs/CI-CONTRACT.md).
+    The run must list this pull request (number and base branch) among its pull
+    requests. GitHub fills that list for same-repository heads; a fork run has an
+    empty list, cannot be bound to a base, and therefore never counts (fail closed:
+    push the fork's commits to a repository branch, docs/CI-CONTRACT.md).
     """
     head = pull["head"]
     head_repo = (head.get("repo") or {}).get("full_name")
@@ -432,13 +432,11 @@ def run_matches(run, repo, pull, head_sha):
             and run.get("head_branch") == head["ref"]
             and (run.get("repository") or {}).get("full_name") == repo
             and (run.get("head_repository") or {}).get("full_name") == head_repo
-            and lists_pull(pulls, pull.get("number"), pull["base"]["ref"], allow_empty=head_repo != repo))
+            and lists_pull(pulls, pull.get("number"), pull["base"]["ref"]))
 
 
-def lists_pull(pulls, number, base_ref, allow_empty):
-    """Does a run's pull request list name this pull request and base? Empty only where allowed."""
-    if not pulls:
-        return allow_empty
+def lists_pull(pulls, number, base_ref):
+    """Does a run's pull request list name this pull request and base? An empty list never does."""
     return any(item.get("number") == number and (item.get("base") or {}).get("ref") == base_ref
                for item in pulls)
 
@@ -588,14 +586,13 @@ def pull_request_gates_passed(token, repo, pr_head, number, base_ref="main"):
     """True when the newest pull_request merge-hold run of this pull request on pr_head succeeded.
 
     Used for merge_group members. The run must list this pull request's number
-    and base branch; an empty list (a fork head) is not accepted here, so a fork
-    pull request fails closed in a merge queue.
+    and base branch, as in run_matches; an empty list (a fork head) never counts.
     """
     url = f"{API}/repos/{repo}/actions/runs?head_sha={pr_head}&event=pull_request"
     runs = [run for run in fetch_listing(token, url, "workflow_runs")
             if run.get("path") == GATE_WORKFLOW and run.get("head_sha") == pr_head
             and (run.get("repository") or {}).get("full_name") == repo
-            and lists_pull(run.get("pull_requests") or [], number, base_ref, allow_empty=False)]
+            and lists_pull(run.get("pull_requests") or [], number, base_ref)]
     if not runs:
         return False
     newest = max(runs, key=run_order)

@@ -261,7 +261,7 @@ class MergeGroupTests(TestCase):
                                                                    pull_requests=[{"number": 8, "base": {"ref": "main"}}])]})
         self.assertEqual(code, 0, out)
         code, out, _ = self.run_group(one, gate_runs={OTHER: [dict(gate_run(OTHER, run_id=2), pull_requests=[])]})
-        self.assertEqual(code, 1, out)  # a fork head fails closed in a merge queue
+        self.assertEqual(code, 1, out)  # an unlinked (fork) run never counts
 
     def test_merge_group_budget_comes_from_the_base_catalogue(self):
         catalogue = '[policy.budgets]\nmerge_group_wait_minutes = 5\n'
@@ -978,11 +978,13 @@ class GateTests(TestCase):
             with self.subTest(pulls=pulls):
                 runs_ = [dict(wf_run(1, CI), pull_requests=own), dict(wf_run(2, LEAVES), pull_requests=pulls)]
                 self.assertIs(self.decide(runs_=runs_, pull=dict(PULL, number=7))[0], passes)
-        # A fork head has an empty list: bound by SHA, branch and head repository (documented residual).
+        # A fork head's runs list no pull request, so they cannot be bound to a base: fail closed.
         fork = dict(PULL, head={"sha": HEAD, "ref": "topic", "repo": {"full_name": "fork/r"}})
         runs_ = [dict(wf_run(1, CI, head_repository={"full_name": "fork/r"}), pull_requests=[]),
                  dict(wf_run(2, LEAVES, head_repository={"full_name": "fork/r"}), pull_requests=[])]
-        self.assertTrue(self.decide(runs_=runs_, pull=fork)[0])
+        passed, out, _ = self.decide(runs_=runs_, pull=fork)
+        self.assertFalse(passed)
+        self.assertIn("no .github/workflows/leaves.yml run", out)
 
     def test_a_later_rerun_of_an_older_run_decides(self):
         """Review N3: newest by the start of the latest attempt, not by id alone."""

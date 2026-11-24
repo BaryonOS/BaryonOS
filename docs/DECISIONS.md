@@ -52,7 +52,10 @@ pending list and needs one re-run. A merge queue with several entries fails
 closed until the selected workflows gain `merge_group` triggers, which is
 outside #494. A started gate that the plan did not select must still finish
 before merge-hold passes. The introducing pull request is judged by the older
-base copy, so its gates must be verified by hand before its merge. Under `pull_request`, GitHub still reads workflow files from the
+base copy, so its gates must be verified by hand before its merge. Runs of a fork head
+list no pull request and cannot be bound to a base, so a fork pull request fails
+closed until its commits are pushed to a repository branch; relaxing that is a
+project-owner decision. Under `pull_request`, GitHub still reads workflow files from the
 pull request side, so review of `.github/**` remains the control for workflow
 edits. Details and the remaining limits are in docs/CI-CONTRACT.md
 ("Enforcement", "Known limits").
