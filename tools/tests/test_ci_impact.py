@@ -644,6 +644,13 @@ class FallbackTests(FixtureTestCase):
         self.assertFull(plan, "cargo-explicit-workspace")
         self.assertEqual(plan["fallback"]["detail"], ["apps/solo/Cargo.toml"])
 
+    def test_legacy_project_table_is_not_guessed(self):
+        # Cargo still reads [project] as [package], including its workspace key.
+        solo = manifest("solo").replace("[package]", "[project]")
+        plan = self.plan(self.branch({"apps/solo/Cargo.toml": solo}))
+        self.assertFull(plan, "cargo-legacy-project-table")
+        self.assertEqual(plan["fallback"]["detail"], ["apps/solo/Cargo.toml"])
+
     def test_missing_cargo_root_is_full_not_narrowed(self):
         base = self.repo.commit("typo", {".github/ci-impact.toml": CATALOGUE.replace(
             'cargo = ["svc/stack/Cargo.toml"]', 'cargo = ["svc/stak/Cargo.toml"]')})
@@ -820,6 +827,22 @@ class DeterminismAndRobustnessTests(FixtureTestCase):
                 self.assertEqual(ci_impact.main(argv), 0)
         self.assertFull(json.loads(stdout.getvalue()), "output-error:OSError")
         self.assertEqual(list(out.parent.iterdir()), [])  # neither the stale plan nor a temporary file
+
+    def test_stale_plan_is_overwritten_when_it_cannot_be_removed(self):
+        out = Path(self._tmp.name) / "stale" / "plan.json"
+        out.parent.mkdir()
+        out.write_text('{"mode": "select"}\n')
+        plan = ci_impact.minimal_full_plan("pull_request", "output-error:OSError", None, None, None)
+        with mock.patch.object(ci_impact.os, "unlink", side_effect=PermissionError("read-only dir")):
+            ci_impact.discard_stale_plan(str(out), plan)
+        self.assertFull(json.loads(out.read_text()), "output-error:OSError")
+        real_open = open
+        with mock.patch.object(ci_impact.os, "unlink", side_effect=PermissionError("read-only dir")), \
+                mock.patch("builtins.open", side_effect=lambda *a, **k: (_ for _ in ()).throw(
+                    PermissionError("read-only file")) if a and str(a[0]) == str(out) else real_open(*a, **k)), \
+                contextlib.redirect_stderr(io.StringIO()) as stderr:
+            ci_impact.discard_stale_plan(str(out), plan)
+        self.assertIn("ci-impact: stale-plan-not-removed:", stderr.getvalue())
 
     def test_invalid_sha_and_unknown_event_are_full(self):
         self.assertFull(self.plan("not-a-sha"), "invalid-sha")

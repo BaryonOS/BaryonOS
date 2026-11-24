@@ -146,7 +146,9 @@ dependencies and `[patch]` or `[replace]` tables are not resolved and force a
 full plan (`cargo-workspace-inheritance`, `cargo-patch-unresolved`). An
 explicit `[package] workspace = "<path>"` in any closure manifest forces a full
 plan too (`cargo-explicit-workspace`), because that workspace root can lie
-outside the ancestor walk; no tracked manifest sets it today. Ancestor
+outside the ancestor walk; no tracked manifest sets it today. Cargo's legacy
+`[project]` alias of `[package]` forces a full plan as well
+(`cargo-legacy-project-table`). Ancestor
 manifests are read at every revision too, because a workspace root's
 `[patch]` or `[replace]` applies to all its members.
 
@@ -235,8 +237,11 @@ defaults to standard output. The summary is written first and the plan file
 is published last, atomically (temporary file, then rename). If any output
 fails, the published plan is the full `output-error:<Type>` emergency plan,
 never the computed one. If the emergency plan cannot be published either, the
-file at `--out` is removed (best effort, so no earlier run's plan remains
-there), the emergency plan goes to standard output and the exit status stays 0.
+file at `--out` is removed, or else overwritten in place with the emergency
+plan; if neither works, `ci-impact: stale-plan-not-removed: <path>` goes to
+standard error. The emergency plan goes to standard output and the exit status
+stays 0. A consumer must still check that the plan's `shas.tested` matches its
+own run before it uses a plan file.
 
 `coverage` needs PyYAML and otherwise reports `coverage-unavailable`. It
 compares the catalogue with `.github/workflows/*.y*ml` (workflows, events,

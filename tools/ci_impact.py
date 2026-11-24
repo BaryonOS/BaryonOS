@@ -595,6 +595,9 @@ def cargo_closure(roots, read, escapes):
         if "patch" in doc or "replace" in doc:
             # shortcut: patched sources are not resolved; no tracked manifest uses them today.
             raise Full("cargo-patch-unresolved", [manifest])
+        if "project" in doc:
+            # shortcut: Cargo's legacy [project] alias of [package] is not modelled; no tracked manifest uses it.
+            raise Full("cargo-legacy-project-table", [manifest])
         package = doc.get("package")
         if isinstance(package, dict) and "workspace" in package:
             # shortcut: the explicit root may lie outside the ancestor walk; no tracked manifest sets it today.
@@ -1444,12 +1447,27 @@ def main(argv=None):
             publish_plan(args.out, plan)
         except Exception:
             if args.out != "-":
-                # Best effort: a consumer must not read an earlier run's plan from --out.
-                with contextlib.suppress(OSError):
-                    os.unlink(args.out)
+                # A consumer must not read an earlier run's plan from --out.
+                discard_stale_plan(args.out, plan)
             sys.stdout.write(plan_text(plan))
     print(f"ci-impact: mode={plan['mode']} plan_id={plan['plan_id']}", file=sys.stderr)
     return 0
+
+
+def discard_stale_plan(out, plan):
+    """Remove `out`, else overwrite it in place with `plan`, else say on stderr that it remains."""
+    try:
+        os.unlink(out)
+        return
+    except FileNotFoundError:
+        return
+    except OSError:
+        pass
+    try:  # the file may be writable where its directory is not
+        with open(out, "w", encoding="utf-8") as handle:
+            handle.write(plan_text(plan))
+    except OSError:
+        print(f"ci-impact: stale-plan-not-removed: {json.dumps(out)}", file=sys.stderr)
 
 
 def plan_text(plan):
