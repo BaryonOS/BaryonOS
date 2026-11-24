@@ -18,6 +18,57 @@ const WORDS: [u64; 13] = [
 /// refused on the domain endpoint, committed object revision.
 const PERSIST_WORDS: [u64; 6] = [528, 536, 544, 552, 560, 568];
 const RECOVER: bool = cfg!(feature = "test-system-recover");
+// ADR-B02-KEY1-RELAY-20261123 (test profile only). The relay kernel grants the
+// Key Service a SEND on init's key-state commit ingress; it is never combined
+// with a profile that has other probes, restarts, power or a read-only volume.
+#[cfg(all(
+    feature = "test-system-keystate-relay",
+    any(
+        feature = "native-system-random",
+        feature = "native-system-images",
+        feature = "native-system-net",
+        feature = "native-system-tcp",
+        feature = "native-system-power",
+        feature = "native-system-nas-probe",
+        feature = "native-system-materiaal",
+        feature = "test-system-recover"
+    )
+))]
+compile_error!("the key-state relay is a separate test profile on the normal system flow");
+#[cfg(any(
+    all(
+        feature = "test-system-keystate-relay-not-committed",
+        any(
+            feature = "test-system-keystate-relay-timeout",
+            feature = "test-system-keystate-relay-leak"
+        )
+    ),
+    all(
+        feature = "test-system-keystate-relay-timeout",
+        feature = "test-system-keystate-relay-leak"
+    )
+))]
+compile_error!("key-state relay cases require separate boots");
+/// Relay case: 0 off, 1 normal, 2 NOT_COMMITTED, 3 timeout, 4 manifest leak.
+const RELAY: u64 = if cfg!(feature = "test-system-keystate-relay-leak") {
+    4
+} else if cfg!(feature = "test-system-keystate-relay-timeout") {
+    3
+} else if cfg!(feature = "test-system-keystate-relay-not-committed") {
+    2
+} else if cfg!(feature = "test-system-keystate-relay") {
+    1
+} else {
+    0
+};
+/// Init relay words: received, committed, NOT_COMMITTED, withheld, last
+/// generation, FNV sum of the last blob, object revision, BEGIN count; then
+/// the case word init was given.
+#[cfg(feature = "test-system-keystate-relay")]
+const RELAY_INIT_WORDS: [u64; 9] = [760, 768, 776, 784, 792, 800, 808, 816, 208];
+/// App relay words: |status| of the two fault-probe GENERATEs, the case word.
+#[cfg(feature = "test-system-keystate-relay")]
+const RELAY_APP_WORDS: [u64; 3] = [736, 744, 752];
 /// H05 power (ADR-076): every POWER_OFF refusal per slot, in order, as the
 /// kernel returned it; ring-3 evidence words are not trusted for these codes.
 #[cfg(feature = "native-system-power")]
@@ -280,6 +331,10 @@ struct Evidence {
     tcp: Option<([u64; 2], u64)>, // clock reads, blackhole ticks; actual exit tick
     #[cfg(feature = "test-system-net-link")]
     link: Option<[u64; 13]>,
+    #[cfg(feature = "test-system-keystate-relay")]
+    relay_init: Option<[u64; 9]>,
+    #[cfg(feature = "test-system-keystate-relay")]
+    relay_app: Option<[u64; 3]>,
 }
 static mut EVIDENCE: Evidence = Evidence {
     app: None,
@@ -297,6 +352,10 @@ static mut EVIDENCE: Evidence = Evidence {
     tcp: None,
     #[cfg(feature = "test-system-net-link")]
     link: None,
+    #[cfg(feature = "test-system-keystate-relay")]
+    relay_init: None,
+    #[cfg(feature = "test-system-keystate-relay")]
+    relay_app: None,
 };
 fn evidence() -> &'static mut Evidence {
     // SAFETY: KERNEL held, IF=0. Each borrow ends before a syscall or scheduling.
@@ -514,6 +573,22 @@ pub(super) fn manifest(s: &mut State) {
     // granted to init alone; the app never holds a SEND to it.
     let (key_admin_ingress, init_key_admin) = channel(e, key, init);
     let (init_key_reply, key_admin_reply) = channel(e, init, key);
+    // ADR-B02-KEY1-RELAY: init alone receives the key-state commit ingress and
+    // the Key Service holds its only SEND; replies flow back on a second pair.
+    // The labelled leak case gives the app one extra SEND (manifest red case).
+    #[cfg(feature = "test-system-keystate-relay")]
+    let (init_commit, key_commit, key_commit_reply, init_commit_reply, leaked) = {
+        let root = e.create_endpoint(init).unwrap();
+        let receive = e.derive(init, root, RECV).unwrap();
+        let send = e.bootstrap_delegate(init, root, key, SEND).unwrap();
+        #[cfg(feature = "test-system-keystate-relay-leak")]
+        let leaked = Some(e.bootstrap_delegate(init, root, app, SEND).unwrap());
+        #[cfg(not(feature = "test-system-keystate-relay-leak"))]
+        let leaked: Option<u64> = None;
+        e.close(init, root).unwrap();
+        let (reply_receive, reply_send) = channel(e, key, init);
+        (receive, send, reply_receive, reply_send, leaked)
+    };
     let entropy = e.create_entropy(key).unwrap();
     #[cfg(feature = "test-system-s3-reinit")]
     {
@@ -554,6 +629,17 @@ pub(super) fn manifest(s: &mut State) {
         (176, key),
     ] {
         put(s, KEY, offset, value);
+    }
+    #[cfg(feature = "test-system-keystate-relay")]
+    {
+        let case = if RELAY == 4 { 1 } else { RELAY };
+        for (offset, value) in [(496, key_commit), (504, key_commit_reply), (512, init)] {
+            put(s, KEY, offset, value);
+        }
+        for (offset, value) in [(192, init_commit), (200, init_commit_reply), (208, case)] {
+            put(s, INIT, offset, value);
+        }
+        put(s, APP, 752, case);
     }
     for (offset, value) in [
         (32, 1),
@@ -608,6 +694,7 @@ pub(super) fn manifest(s: &mut State) {
     }
     // The app's complete handle table at manifest time. Every app check below
     // iterates this one list; APP_HANDLE_COUNT proves that nothing is outside it.
+    #[cfg(not(feature = "test-system-keystate-relay-leak"))]
     let app_handles = [
         key_reply,
         app_key,
@@ -615,6 +702,18 @@ pub(super) fn manifest(s: &mut State) {
         app_volume,
         app_registry,
         app_control,
+    ];
+    // Red case: the leaked commit SEND is listed, so only APP_COMMIT_HANDLE
+    // (not APP_HANDLE_COUNT) can be the check that stops this boot.
+    #[cfg(feature = "test-system-keystate-relay-leak")]
+    let app_handles = [
+        key_reply,
+        app_key,
+        volume_reply,
+        app_volume,
+        app_registry,
+        app_control,
+        leaked.unwrap(),
     ];
     for handle in app_handles {
         require(
@@ -643,6 +742,17 @@ pub(super) fn manifest(s: &mut State) {
             b"INIT_AUTHORITY",
         );
     }
+    #[cfg(feature = "test-system-keystate-relay")]
+    for handle in [init_commit, init_commit_reply] {
+        require(
+            e.check_entropy(init, handle).is_err()
+                && e.check_block(init, handle, BLOCK_READ).is_err()
+                && e.check_launch(init, handle).is_err()
+                && e.check_network(init, handle).is_err()
+                && e.check_power(init, handle).is_err(),
+            b"INIT_AUTHORITY",
+        );
+    }
     // The app cannot reach the administrative ingress or its reply channel by
     // any handle it owns: handle numbers are per process, so compare the
     // endpoint objects behind every app handle with init's admin endpoints.
@@ -653,6 +763,76 @@ pub(super) fn manifest(s: &mut State) {
         require(
             object != admin_ingress_object && object != admin_reply_object,
             b"APP_ADMIN_HANDLE",
+        );
+    }
+    #[cfg(feature = "test-system-keystate-relay")]
+    {
+        let _ = leaked;
+        // Same equation as APP_ADMIN_HANDLE for the commit ingress C and its
+        // reply endpoint R: no app or volume handle names either object, the
+        // Key Service holds exactly one handle on each, and both tables are
+        // exhaustive (NULL slot plus the listed handles, see APP_HANDLE_COUNT).
+        let commit = e.endpoint_object(init, init_commit).unwrap();
+        let commit_reply = e.endpoint_object(init, init_commit_reply).unwrap();
+        let on_relay = |pid: u64, handle: u64| matches!(e.endpoint_object(pid, handle).ok(), Some(o) if o == commit || o == commit_reply);
+        for handle in app_handles {
+            require(!on_relay(app, handle), b"APP_COMMIT_HANDLE");
+        }
+        let volume_handles = [
+            block,
+            volume_ingress,
+            volume_other,
+            volume_send_reply,
+            volume_reply_other,
+        ];
+        for handle in volume_handles {
+            require(!on_relay(volume, handle), b"VOLUME_COMMIT_HANDLE");
+        }
+        let exhaustive = |pid: u64, handles: &[u64]| {
+            handles
+                .iter()
+                .enumerate()
+                .all(|(i, handle)| !handles[..i].contains(handle))
+                && e.available_slots(pid) == capability_core::MAX_SLOTS - 1 - handles.len()
+        };
+        require(exhaustive(volume, &volume_handles), b"VOLUME_HANDLE_COUNT");
+        let key_handles = [
+            entropy,
+            key_ingress,
+            key_other,
+            key_send_reply,
+            key_admin_ingress,
+            key_admin_reply,
+            key_commit,
+            key_commit_reply,
+        ];
+        let named = |object: usize| {
+            key_handles
+                .iter()
+                .filter(|handle| e.endpoint_object(key, **handle).ok() == Some(object))
+                .count()
+        };
+        require(
+            named(commit) == 1
+                && named(commit_reply) == 1
+                && e.endpoint_object(key, key_commit).ok() == Some(commit)
+                && e.endpoint_object(key, key_commit_reply).ok() == Some(commit_reply),
+            b"KEY_COMMIT_HANDLE",
+        );
+        require(exhaustive(key, &key_handles), b"KEY_HANDLE_COUNT");
+        // SEND-only/RECV-only and non-delegable on both sides (no TRANSFER).
+        let only = |pid: u64, handle: u64, right: u64, other: u64| {
+            e.check_endpoint(pid, handle, right).is_ok()
+                && e.check_endpoint(pid, handle, other).is_err()
+                && e.check_delegation(pid, handle, right).is_err()
+        };
+        require(
+            only(key, key_commit, SEND, RECV) && only(key, key_commit_reply, RECV, SEND),
+            b"KEY_COMMIT_RIGHTS",
+        );
+        require(
+            only(init, init_commit, RECV, SEND) && only(init, init_commit_reply, SEND, RECV),
+            b"INIT_COMMIT_RIGHTS",
         );
     }
     // Exhaustiveness: the loops above only see listed handles, so prove that
@@ -760,6 +940,10 @@ pub(super) fn observe_exit(s: &mut State, slot: usize, _counter: u64) {
     }
     if slot == INIT {
         evidence().init = Some(words);
+        #[cfg(feature = "test-system-keystate-relay")]
+        {
+            evidence().relay_init = Some(RELAY_INIT_WORDS.map(|at| word(s, slot, at)));
+        }
     } else if slot == APP {
         evidence().app = Some(words);
         let mut persist = [0; 6];
@@ -767,6 +951,10 @@ pub(super) fn observe_exit(s: &mut State, slot: usize, _counter: u64) {
             persist[i] = word(s, slot, *at);
         }
         evidence().persist = Some(persist);
+        #[cfg(feature = "test-system-keystate-relay")]
+        {
+            evidence().relay_app = Some(RELAY_APP_WORDS.map(|at| word(s, slot, at)));
+        }
         #[cfg(feature = "native-system-clock")]
         {
             let first = word(s, slot, 488);
@@ -901,8 +1089,11 @@ fn finish(s: &mut State) -> ! {
     let persist = evidence()
         .persist
         .unwrap_or_else(|| fail(b"PERSIST_SNAPSHOT"));
+    // Relay: no export/restore at all; the admin GENERATE is still refused.
     let expected_init: [u64; 7] = if RECOVER {
         [0, 1, 1, 1, 1, 120, 3]
+    } else if RELAY != 0 {
+        [0, 0, 0, 0, 1, 120, 3]
     } else {
         [1, 1, 1, 1, 1, 120, 3]
     };
@@ -920,15 +1111,24 @@ fn finish(s: &mut State) -> ! {
     let admin_restores = word(s, KEY, 400);
     let admin_denied = word(s, KEY, 408);
     let admin_bad_caller = word(s, KEY, 416);
-    require(
+    // Relay: SUPPLY_SECRET accepted once; the second supply and the admin
+    // GENERATE refused; no EXPORT or RESTORE reached the core.
+    let admin_ok = if RELAY != 0 {
+        admin_seen == 3
+            && admin_exports == 0
+            && admin_restores == 0
+            && admin_denied == 2
+            && admin_bad_caller == 0
+            && word(s, KEY, 256) == 0
+    } else {
         admin_seen == if RECOVER { 4 } else { 5 }
             && admin_exports == u64::from(!RECOVER)
             && admin_restores == 1
             && admin_denied == 3
             && admin_bad_caller == 0
-            && word(s, KEY, 256) == 1,
-        b"ADMIN_INGRESS_EVIDENCE",
-    );
+            && word(s, KEY, 256) == 1
+    };
+    require(admin_ok, b"ADMIN_INGRESS_EVIDENCE");
     #[cfg(feature = "native-system-clock")]
     {
         let [first, second, monotonic_before, monotonic_after] =
@@ -1088,7 +1288,14 @@ fn finish(s: &mut State) -> ! {
     // Unseals: legacy 1 + record 1 (+ restored record after the cold start).
     // Authentication failures: 9 record/legacy tampers + wrong recovery
     // secret (+ tampered restored record after the cold start).
-    let (seals, unseals, auth_failures) = if RECOVER { (2, 3, 11) } else { (3, 2, 10) };
+    // Relay: init never restores with a wrong secret, so one refusal fewer.
+    let (seals, unseals, auth_failures) = if RECOVER {
+        (2, 3, 11)
+    } else if RELAY != 0 {
+        (3, 2, 9)
+    } else {
+        (3, 2, 10)
+    };
     require(
         word(s, KEY, 224) == seals
             && word(s, KEY, 232) == unseals
@@ -1213,6 +1420,8 @@ fn finish(s: &mut State) -> ! {
     random_fixture::check_and_print(s);
     #[cfg(feature = "native-system-images")]
     image_fixture::check_and_print(s);
+    #[cfg(feature = "test-system-keystate-relay")]
+    relay_check_and_print(s);
     serial::write(b"SYSTEM:BROKERS:PASS\n");
     for slot in [KEY, VOLUME] {
         s.processes[slot].status = Status::Dying;
@@ -1311,12 +1520,90 @@ fn finish(s: &mut State) -> ! {
     }
     #[cfg(not(feature = "native-system-power"))]
     {
-        serial::write(if cfg!(feature = "test-system-recover") {
-            b"SYSTEM:CASE:RECOVER:PASS\n"
-        } else {
-            b"SYSTEM:CASE:NORMAL:PASS\n"
+        serial::write(match RELAY {
+            1 => &b"SYSTEM:CASE:RELAY:PASS\n"[..],
+            2 => b"SYSTEM:CASE:RELAY_NOT_COMMITTED:PASS\n",
+            3 => b"SYSTEM:CASE:RELAY_TIMEOUT:PASS\n",
+            _ if cfg!(feature = "test-system-recover") => b"SYSTEM:CASE:RECOVER:PASS\n",
+            _ => b"SYSTEM:CASE:NORMAL:PASS\n",
         });
         serial::write(b"M1:PASS\n");
         serial::exit(0x10)
+    }
+}
+/// ADR-B02-KEY1-RELAY acceptance: exact commit counters of the Key Service,
+/// init and the app per case. Every value is a ring-3 observation the kernel
+/// checks; the host re-derives the disk oracle independently.
+#[cfg(feature = "test-system-keystate-relay")]
+fn relay_check_and_print(s: &State) {
+    let init = evidence()
+        .relay_init
+        .unwrap_or_else(|| fail(b"RELAY_SNAPSHOT"));
+    let app = evidence()
+        .relay_app
+        .unwrap_or_else(|| fail(b"RELAY_SNAPSHOT"));
+    let [received, committed, refused, withheld, generation, sum, revision, begun, init_case] =
+        init;
+    let key = |at: u64| word(s, KEY, at);
+    // (requests, ok, NOT_COMMITTED, unknown, app statuses) per case.
+    let (requests, not_committed, unknown, app_status) = match RELAY {
+        1 => (3, 0, 0, 0),
+        2 => (5, 2, 0, 1),
+        3 => (4, 0, 1, 7),
+        _ => fail(b"RELAY_CASE"),
+    };
+    // wire::COMMIT_TICKS: completed commits stay below it, a timeout reaches it.
+    let max_ticks = key(520);
+    let latency = if RELAY == 3 {
+        (1500..3000).contains(&max_ticks)
+    } else {
+        // 0 is legal: on a fast (KVM) host every commit can finish within one tick.
+        (0..1500).contains(&max_ticks)
+    };
+    require(
+        init_case == RELAY
+            && app[2] == RELAY
+            && key(440) == requests
+            && key(448) == 3
+            && key(456) == not_committed
+            && key(464) == unknown
+            && key(472) == 3
+            && key(480) == 1
+            && key(488) == 1
+            && received == requests
+            && committed == 3
+            && refused == not_committed
+            && withheld == unknown
+            && begun == committed
+            && revision == 3
+            && generation == key(472)
+            && sum != 0
+            && app[0] == app_status
+            && app[1] == app_status
+            && latency,
+        b"KEYSTATE_RELAY_EVIDENCE",
+    );
+    for (label, value) in [
+        (&b"SYSTEM:KEYSTATE_RELAY_CASE:"[..], RELAY),
+        (b"SYSTEM:KEYSTATE_RELAY_REQUESTS:", key(440)),
+        (b"SYSTEM:KEYSTATE_RELAY_OK:", key(448)),
+        (b"SYSTEM:KEYSTATE_RELAY_NOT_COMMITTED:", key(456)),
+        (b"SYSTEM:KEYSTATE_RELAY_UNKNOWN:", key(464)),
+        (b"SYSTEM:KEYSTATE_RELAY_LAST_GENERATION:", key(472)),
+        (b"SYSTEM:KEYSTATE_RELAY_SECRET_SUPPLIED:", key(480)),
+        (b"SYSTEM:KEYSTATE_RELAY_SECRET_REFUSED:", key(488)),
+        (b"SYSTEM:KEYSTATE_RELAY_MAX_COMMIT_TICKS:", max_ticks),
+        (b"SYSTEM:KEYSTATE_RELAY_INIT_RECEIVED:", received),
+        (b"SYSTEM:KEYSTATE_RELAY_INIT_COMMITTED:", committed),
+        (b"SYSTEM:KEYSTATE_RELAY_INIT_REFUSED:", refused),
+        (b"SYSTEM:KEYSTATE_RELAY_INIT_WITHHELD:", withheld),
+        (b"SYSTEM:KEYSTATE_RELAY_INIT_BEGUN:", begun),
+        (b"SYSTEM:KEYSTATE_RELAY_INIT_REVISION:", revision),
+        (b"SYSTEM:KEYSTATE_RELAY_INIT_GENERATION:", generation),
+        (b"SYSTEM:KEYSTATE_RELAY_SUM:", sum),
+        (b"SYSTEM:KEYSTATE_RELAY_APP_FIRST:", app[0]),
+        (b"SYSTEM:KEYSTATE_RELAY_APP_SECOND:", app[1]),
+    ] {
+        print_number(label, value);
     }
 }
