@@ -3,7 +3,7 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-24",
-    "source_commit": "b5cb839ff71365b3ee82a1a367e9d4cc9ce12426",
+    "source_commit": "52cff56858c8721c102780a6a72ac7dfe1a34d9d",
     "assessment_basis": "parent_commit",
     "branch": "claude/n02-slirp-negative-dns-20261124",
     "task": "N02-T6 NXDOMAIN against the real resolver via libslirp",
