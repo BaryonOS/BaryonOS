@@ -489,7 +489,7 @@ class CutCheck(unittest.TestCase):
     def recover_evidence(self, **changes):
         oracle = rv.analyse_v3(self.image, opaque=frozenset(self.fixture.state["objects"]))
         report = self.state["report"]
-        return {**device_evidence("recover-l2-cut", [7, 0, 0]),
+        return {**device_evidence("recover-l2-cut", [7, 0, 0]), "VOLUME:SERVICE:GENERATION:": self.state["generation"],
                 **words(restored=report["restored"], collections=report["collections"], result=rv.STATUS_STALE),
                 "VOLUME:BROKER:VOLUME_DISK_WRITES:": 0, "VOLUME:BROKER:VOLUME_DISK_FLUSHES:": 0,
                 "VOLUME:A:DIGEST:": oracle["digests"][0], "VOLUME:B:DIGEST:": oracle["digests"][1], **changes}
@@ -508,7 +508,7 @@ class CutCheck(unittest.TestCase):
         for key, value in (("VOLUME:ARCHIVE:RESTORED:", 0b0011_1110), ("VOLUME:ARCHIVE:RESTORED:", 0b0000_0110),
                            ("VOLUME:ARCHIVE:COLLECTIONS:", 0b011), ("VOLUME:ARCHIVE:RESULT:", 0),
                            ("VOLUME:ARCHIVE:PROVENANCE_MISMATCHES:", 1), ("VOLUME:ARCHIVE:COMMITTED:", 1),
-                           ("VOLUME:BROKER:VOLUME_DISK_WRITES:", 1)):
+                           ("VOLUME:BROKER:VOLUME_DISK_WRITES:", 1), ("VOLUME:SERVICE:GENERATION:", 7)):
             with self.assertRaises(ValueError, msg=key):
                 rv.check_l2("recover-l2-cut", self.image, self.image, disk1, disk1,
                             self.recover_evidence(**{key: value}))

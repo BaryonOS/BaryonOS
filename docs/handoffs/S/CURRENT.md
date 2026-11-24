@@ -25,7 +25,8 @@ in `docs/progress.json`, the S09 specifications and GitHub.
   `docs/implementation/S09-L2-NATIVE-EXPORT.md`: a native power cut inside
   an L2 restore (`l2-restore-cut`, kernel case 29) and its cold read-only
   recovery (`recover-l2-cut`, case 30). The cut fires inside the seventh
-  INSTALL_COMMIT (table-sector write 209 on the fresh image).
+  table commit, object 4's INSTALL_COMMIT (table-sector write 209 on the
+  fresh image).
 - **Branch:** `claude/s09-l2-restore-cut`.
 - **PR and tested head:** recorded in the pull request.
 - **Evidence:** `docs/verification/s09-l2-restore-cut-20261124/README.md`

@@ -8,7 +8,7 @@
     "branch": "claude/s09-l2-restore-cut",
     "task": "S09 native power cut inside an L2 restore and its cold recovery (cases 29-30)",
     "previous_score": 43,
-    "summary": "43/100, unchanged: S09 adds the test-only native stages l2-restore-cut (a real power cut inside the seventh INSTALL_COMMIT of a cold L2 restore) and recover-l2-cut (cold read-only boot: objects 1-3 and collections 1-3 fully installed with plan provenance, objects 4-5 exactly never-used, a second restore Stale) with an independent host oracle; the local 32-stage native volume gate passes at ea59c6fc. S09 stays open: the native path is a test-only fixture, and a user-facing production copy/restore/export chain, owner decisions and a human audit remain. The delivery-review inventory stays bound to its 2eb1c63 snapshot; evidence: docs/verification/s09-l2-restore-cut-20261124/README.md."
+    "summary": "43/100, unchanged: S09 adds the test-only native stages l2-restore-cut (a real power cut inside the seventh table commit (object 4's INSTALL_COMMIT) of a cold L2 restore) and recover-l2-cut (cold read-only boot: objects 1-3 and collections 1-3 fully installed with plan provenance, objects 4-5 exactly never-used, a second restore Stale) with an independent host oracle; the local 32-stage native volume gate passes at ea59c6fc. S09 stays open: the native path is a test-only fixture, and a user-facing production copy/restore/export chain, owner decisions and a human audit remain. The delivery-review inventory stays bound to its 2eb1c63 snapshot; evidence: docs/verification/s09-l2-restore-cut-20261124/README.md."
   },
   "tracks": [
     {

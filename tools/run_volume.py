@@ -1481,6 +1481,9 @@ def check_l2(case: str, before: bytes, after: bytes, disk1_before: bytes, disk1_
                 if case == "recover-l2-cut" and (words["RESTORED"], words["COLLECTIONS"]) != (
                         report["restored"], report["collections"]):
                     raise ValueError(f"guest observed {words} differ from the cut state {report}")
+                # The service must recover the last complete table copy, not the torn one.
+                if case == "recover-l2-cut" and evidence["VOLUME:SERVICE:GENERATION:"] != state["generation"]:
+                    raise ValueError("service recovered generation differs from the cut state")
             else:
                 raise ValueError(f"no L2 check for {case}")
             if [evidence["VOLUME:A:DIGEST:"], evidence["VOLUME:B:DIGEST:"]] != oracle["digests"]:

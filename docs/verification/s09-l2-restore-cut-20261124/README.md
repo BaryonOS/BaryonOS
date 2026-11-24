@@ -101,3 +101,12 @@ l2-corrupt, l2-used, **l2-restore-cut** (raw -9, host kill of a live guest),
 - Cut points other than inside an INSTALL_COMMIT copy (inside
   INSTALL_COLLECTION, between INSTALL_APPEND writes) are not native; they
   remain host-tested.
+
+## Post-review change
+
+After review on PR #492, the host oracle for `recover-l2-cut` also requires
+`VOLUME:SERVICE:GENERATION:` to equal the cut state's table generation (6),
+with a refused mutant (7) in `tests/test_volume_l2_native.py`. The recorded
+native run already reported 6. This edit to `tools/` changes the source
+fingerprint, so the local 32-stage evidence above stays bound to `ea59c6fc`;
+the hosted `m6e-native-volume` gate covers the final PR head.
