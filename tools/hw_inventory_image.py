@@ -24,7 +24,8 @@ import uuid
 import zlib
 from pathlib import Path
 
-from common import BUILD, ROOT, save_json, sha256, sha256_bytes, source_hash
+from common import BUILD, ROOT, save_json, sha256_bytes, source_hash
+from package_windows_qemu import check_esp
 
 SECTOR = 512
 IMAGE_BYTES = 64 * 1024 * 1024
@@ -196,11 +197,11 @@ def checked_esp(build_directory: Path) -> tuple[Path, dict, str]:
             or manifest.get("loader_feature") != "hw-inventory"
             or manifest.get("source_sha256") != frozen):
         raise ImageError("Build the paired native-hw-inventory profile on the current source first")
-    esp = build_directory / "esp"
-    if (sha256(esp / "kernel.elf") != manifest["kernel"]["sha256"]
-            or sha256(esp / "EFI/BOOT/BOOTX64.EFI") != manifest["loader"]["sha256"]):
-        raise ImageError("HW-INV build artifacts changed")
-    return esp, manifest, frozen
+    try:  # exactly the inspected loader and kernel: no leftover, linked or special entries
+        check_esp(build_directory, manifest)
+    except (OSError, ValueError) as error:
+        raise ImageError(f"HW-INV ESP rejected: {error}") from error
+    return build_directory / "esp", manifest, frozen
 
 
 def write_image(build_directory: Path = BUILD, output: Path | None = None) -> dict:

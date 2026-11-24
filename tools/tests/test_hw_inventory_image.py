@@ -61,6 +61,21 @@ class ImageTest(unittest.TestCase):
         with self.assertRaises(image.ImageError):
             image.build_image(self.esp)
 
+    def test_write_image_refuses_a_leftover_esp_file(self):
+        import json
+        from unittest import mock
+        (self.esp / "EMPTY").unlink()
+        manifest = dict(kernel_feature="native-hw-inventory", loader_feature="hw-inventory", source_sha256="s",
+                        kernel=dict(sha256=image.sha256_bytes((self.esp / "kernel.elf").read_bytes())),
+                        loader=dict(sha256=image.sha256_bytes((self.esp / "EFI/BOOT/BOOTX64.EFI").read_bytes())))
+        (self.tmp / "manifest.json").write_text(json.dumps(manifest))
+        with mock.patch.object(image, "source_hash", return_value="s"):
+            self.assertEqual(image.checked_esp(self.tmp)[0], self.esp)
+            (self.esp / "STALE.EFI").write_bytes(b"x")
+            with self.assertRaises(image.ImageError):
+                image.write_image(self.tmp)
+        self.assertFalse((self.tmp / "hw-inventory.img").exists())
+
     @unittest.skipUnless(shutil.which("sgdisk"), "NOT RUN: sgdisk absent")
     def test_gpt_verified_by_sgdisk(self):
         disk = self.build()
