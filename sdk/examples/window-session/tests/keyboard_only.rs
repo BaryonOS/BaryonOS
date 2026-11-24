@@ -248,12 +248,11 @@ fn tab_reaches_every_control_in_reading_order_and_shift_tab_reverses_without_tra
             // Escape leaves every temporary page; Lock is the root cover.
             let mut s = reach(start, d);
             press(&mut s, d, PhysicalKey::Escape, 0);
-            let left = s.page();
-            if start == Start::Lock {
-                assert_eq!(left, Page::Lock);
-            } else {
-                assert_ne!(left, reach(start, d).page(), "{start:?} escape at {d:?}");
-            }
+            let expected = match start {
+                Start::Lock | Start::Users | Start::AuthGuest | Start::AuthLocal => Page::Lock,
+                _ => Page::Desktop,
+            };
+            assert_eq!(s.page(), expected, "{start:?} escape at {d:?}");
         }
     }
 }
