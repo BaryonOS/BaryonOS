@@ -2,13 +2,13 @@
   "schema_version": 1,
   "rubric_version": 1,
   "assessment": {
-    "date": "2026-11-24",
-    "source_commit": "734820d6ed5e51d1480263616b4a54489f715209",
-    "assessment_basis": "parent_commit",
+    "date": "2026-11-25",
+    "source_commit": "9dfff70cbb49a2f2045c21a665e7d4a2cb2b8bfb",
+    "assessment_basis": "reviewed_main_commit",
     "branch": "claude/fervent-mccarthy-wykkfa",
     "task": "N02-T6 host regression: NXDOMAIN without SOA is never cached by the network service",
     "previous_score": 43,
-    "summary": "43/100 unchanged. A host test of the network service replays the reply shape the runner's systemd-resolved stub sent for missing.invalid (NXDOMAIN, NSCOUNT 0, 33 bytes): the caller gets NotFound and the next Resolve sends a fresh query because no negative-cache lifetime can be derived without an SOA. A mutant that invents a lifetime fails only this test. This is host evidence only; no physical NIC, timeout, truncation or stale-response case against a real resolver is covered, so N02 remains open and earns no points."
+    "summary": "43/100 unchanged. A host test of the network service replays the reply shape the runner's systemd-resolved stub sent for missing.invalid (NXDOMAIN, NSCOUNT 0, 33 bytes): the caller gets NotFound and the next Resolve sends a fresh query because no negative-cache lifetime can be derived without an SOA. A mutant that invents a lifetime fails only this test. This is host evidence only; no physical NIC, timeout, truncation or stale-response case against a real resolver is covered, so N02 remains open and earns no points. Source commit is main 9dfff70c merged into the branch."
   },
   "tracks": [
     {
