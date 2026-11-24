@@ -105,6 +105,11 @@ const L2_RESTORE: u64 = 26;
 const L2_CORRUPT: u64 = 27;
 #[cfg(feature = "l2-portal")]
 const L2_USED: u64 = 28;
+// A power cut inside the L2 restore (29) and its cold read-only recovery (30).
+#[cfg(feature = "l2-portal")]
+const L2_RESTORE_CUT: u64 = 29;
+#[cfg(feature = "l2-portal")]
+const RECOVER_L2_CUT: u64 = 30;
 /// Evidence words of the L2 cases (spec section 5.2), read by the kernel.
 #[cfg(feature = "l2-portal")]
 const L2_WORDS: L2Words = L2Words {
@@ -1429,27 +1434,42 @@ fn l2_source_step(app: &mut App) {
 /// of objects and collections whose installed origins differ from the
 /// archive values (0 expected). An absent archive slot must stay never-used,
 /// exactly `(NotFound, 0)` as in the host oracle. Content, metadata and
-/// deleted collections are host-checked.
+/// deleted collections are host-checked. With `partial` (an interrupted
+/// restore, case 30), a planned object or collection may instead be exactly
+/// never-used, as `archive::never_used` defines it; the returned masks name
+/// the fully installed objects (by slot) and collections (bit index - 1).
 #[cfg(feature = "l2-portal")]
-fn l2_mismatches(app: &mut App, plan: &ArchiveV2) -> u64 {
-    let mut mismatches = 0;
+fn l2_mismatches(app: &mut App, plan: &ArchiveV2, partial: bool) -> (u64, u64, u64) {
+    let (mut mismatches, mut restored, mut collections) = (0, 0, 0);
     for c in plan.collections[..plan.collection_count]
         .iter()
         .filter(|c| c.present)
     {
+        if partial
+            && app
+                .client
+                .collection_stat(0, c.index)
+                .is_ok_and(|stat| stat.revision == 0)
+        {
+            continue;
+        }
         let origin = app.client.collection_provenance(0, c.index, 1);
         mismatches += u64::from(origin != Ok(c.revision));
+        collections |= 1 << (c.index - 1);
     }
     for o in &plan.objects[..plan.object_count] {
         let object = app.object(o.slot as u64);
         let n = archive::replayable(o);
+        let never_used =
+            |app: &mut App| matches!(app.client.stat(object), Err((Status::NotFound, 0)));
         if n == 0 {
-            mismatches += u64::from(!matches!(
-                app.client.stat(object),
-                Err((Status::NotFound, 0))
-            ));
+            mismatches += u64::from(!never_used(app));
             continue;
         }
+        if partial && never_used(app) {
+            continue;
+        }
+        restored |= 1 << o.slot;
         let equal = match app.client.provenance(object, n as u64) {
             Ok(p) => {
                 p.installed == n
@@ -1462,7 +1482,7 @@ fn l2_mismatches(app: &mut App, plan: &ArchiveV2) -> u64 {
         };
         mismatches += u64::from(!equal);
     }
-    mismatches
+    (mismatches, restored, collections)
 }
 
 #[cfg(feature = "l2-portal")]
@@ -1508,8 +1528,11 @@ fn l2_portal(app: &mut App, case: u64) {
     }
     match case {
         L2_EXPORT => l2_export(app, device, scratch),
-        L2_RESTORE | L2_CORRUPT => l2_restore(app, device, scratch, case == L2_RESTORE),
-        L2_USED => l2_used(app, device, scratch),
+        // 29 runs the intact restore; the kernel cuts the power inside it.
+        L2_RESTORE | L2_RESTORE_CUT | L2_CORRUPT => {
+            l2_restore(app, device, scratch, case != L2_CORRUPT)
+        }
+        L2_USED | RECOVER_L2_CUT => l2_used(app, device, scratch, case == RECOVER_L2_CUT),
         _ => fail(769),
     }
     app.phase(2);
@@ -1551,7 +1574,7 @@ fn l2_restore(app: &mut App, device: BlockDevice, scratch: &mut [u8; MAX_LENGTH]
         let report = result.unwrap_or_else(|_| fail(722));
         l2_report(&report, Status::Ok);
         app.commits += report.committed as u64;
-        support::put(L2_WORDS.mismatches, l2_mismatches(app, &plan));
+        support::put(L2_WORDS.mismatches, l2_mismatches(app, &plan, false).0);
     } else {
         let (status, report) = result.err().unwrap_or_else(|| fail(723));
         check(status == Status::Corrupt && report.committed == 0, 724);
@@ -1562,19 +1585,25 @@ fn l2_restore(app: &mut App, device: BlockDevice, scratch: &mut [u8; MAX_LENGTH]
 
 /// Case 28: the restored domain after a cold boot, both disks read-only.
 /// Provenance still matches, and a second restore is refused as `Stale`.
+/// Case 30 (`partial`): the domain a power cut interrupted mid-restore; each
+/// planned object and collection is fully installed or exactly never-used,
+/// and the observed masks go to words 520/528 (the kernel and host check them).
 #[cfg(feature = "l2-portal")]
 #[inline(never)]
-fn l2_used(app: &mut App, device: BlockDevice, scratch: &mut [u8; MAX_LENGTH]) {
+fn l2_used(app: &mut App, device: BlockDevice, scratch: &mut [u8; MAX_LENGTH], partial: bool) {
     // Reach a READY service before the first archive read: the broker serves
     // one block request at a time across both disks, so an archive read
     // during the service's recovery fails that recovery (as in `l2_restore`).
-    check(app.list(0, 728).1 == 5, 729);
+    let listed = app.list(0, 728).1;
+    check(partial || listed == 5, 729);
     let plan = archive::verify_v2(
         &mut DiskSource::new(NativeDisk { device }, ARCHIVE_SECTORS),
         scratch,
     )
     .unwrap_or_else(|_| fail(730));
-    support::put(L2_WORDS.mismatches, l2_mismatches(app, &plan));
+    let (mismatches, restored, collections) = l2_mismatches(app, &plan, partial);
+    check(restored.count_ones() as usize == listed, 734);
+    support::put(L2_WORDS.mismatches, mismatches);
     let object = app.object(7);
     check(
         app.client.write(object, 0, b"Nee", 1, fill(object, 1)) == Err(Status::Access),
@@ -1591,6 +1620,11 @@ fn l2_used(app: &mut App, device: BlockDevice, scratch: &mut [u8; MAX_LENGTH]) {
     .unwrap_or_else(|| fail(732));
     check(status == Status::Stale && report.committed == 0, 733);
     l2_report(&report, status);
+    if partial {
+        // After l2_report: the refused restore's empty masks must not hide them.
+        support::put(L2_WORDS.restored, restored);
+        support::put(L2_WORDS.collections, collections);
+    }
 }
 
 fn run() {
@@ -1661,9 +1695,13 @@ fn run() {
             app.report(760)
         }
         #[cfg(feature = "l2-portal")]
-        L2_EXPORT | L2_RESTORE | L2_CORRUPT | L2_USED if domain == 0 => l2_portal(&mut app, case),
+        L2_EXPORT | L2_RESTORE | L2_CORRUPT | L2_USED | L2_RESTORE_CUT | RECOVER_L2_CUT
+            if domain == 0 =>
+        {
+            l2_portal(&mut app, case)
+        }
         #[cfg(feature = "l2-portal")]
-        L2_EXPORT | L2_RESTORE | L2_CORRUPT | L2_USED => {
+        L2_EXPORT | L2_RESTORE | L2_CORRUPT | L2_USED | L2_RESTORE_CUT | RECOVER_L2_CUT => {
             app.phase(1);
             app.wait_gate(2);
             app.report(760)
