@@ -2,6 +2,7 @@
 
 import contextlib
 import copy
+import importlib.util
 import io
 import json
 import os
@@ -18,11 +19,7 @@ import ci_impact  # noqa: E402
 
 SELECTOR = TOOLS / "ci_impact.py"
 REAL_CATALOGUE = TOOLS.parent / ".github" / "ci-impact.toml"
-try:
-    import yaml  # noqa: F401
-    HAVE_YAML = True
-except ImportError:
-    HAVE_YAML = False
+HAVE_YAML = importlib.util.find_spec("yaml") is not None
 
 CATALOGUE = """\
 schema_version = 1
@@ -338,7 +335,7 @@ class SelectionTests(FixtureTestCase):
             with self.subTest(path=path):
                 plan = self.plan(self.branch({path: "changed\n"}))
                 self.assertFull(plan, "always-full")
-                self.assertTrue(ALL_RWA | CORE <= self.selected(plan))
+                self.assertLessEqual(ALL_RWA | CORE, self.selected(plan))
 
     def test_unknown_path_forces_full_with_reason(self):
         plan = self.plan(self.branch({"stray/file.txt": "?\n"}))
@@ -383,7 +380,7 @@ class SelectionTests(FixtureTestCase):
         plan = self.plan(head, base=base)
         self.assertEqual(plan["mode"], "select", plan["fallback"])
         apps = {"leaves#quality/" + v for v in ("viewer", "crop", "sheet", "deck", "solo")}
-        self.assertTrue(apps <= self.selected(plan), self.selected(plan))
+        self.assertLessEqual(apps, self.selected(plan))
 
     def test_dependency_ancestor_manifest_selects_its_dependents(self):
         # workspace.package / workspace.lints inheritance in a dependency reads this manifest
@@ -393,8 +390,7 @@ class SelectionTests(FixtureTestCase):
         head = self.repo.commit("workspace", {"crates/Cargo.toml": "[workspace.package]\nedition = \"2021\"\n"})
         plan = self.plan(head, base=base)
         self.assertEqual(plan["mode"], "select", plan["fallback"])
-        self.assertTrue({"leaves#quality/viewer", "leaves#quality/crop"} <= self.selected(plan),
-                        self.selected(plan))
+        self.assertLessEqual({"leaves#quality/viewer", "leaves#quality/crop"}, self.selected(plan))
 
     def test_nested_tool_configuration_forces_full(self):
         for path in ("kernel/rustfmt.toml", "kernel/.rustfmt.toml", "kernel/clippy.toml",
@@ -618,7 +614,7 @@ class FallbackTests(FixtureTestCase):
                 head = self.repo.commit("introduce", {removed: restored})
                 plan = self.plan(head, base=base)
                 self.assertFull(plan, "bootstrap-no-base-catalogue")
-                self.assertTrue(ALL_RWA <= self.selected(plan))  # listed from the head catalogue
+                self.assertLessEqual(ALL_RWA, self.selected(plan))  # listed from the head catalogue
 
     def test_bootstrap_cli_exits_zero(self):
         self.repo.git("checkout", "-q", "--detach", self.base)
