@@ -6,13 +6,17 @@
 //! tick count), and kernel message metadata arrives as [`service::Meta`].
 //! Archive verification is abstracted behind [`service::Verifier`] so that the
 //! real `volume_core::archive::verify` can be plugged in by the native service
-//! (route step R5) without this crate depending on `volume-core`.
+//! (route step R5). The `volume-verifier` feature provides that adapter,
+//! [`archive_verifier::VolumeVerifier`]; without it this crate does not depend
+//! on `volume-core`.
 //!
 //! FNV-64 detects accidental damage only; it is not authentication, and the
 //! destination ID is an identifier, not a secret (spec 2.6, 5.4).
 #![cfg_attr(not(test), no_std)]
 #![forbid(unsafe_code)]
 
+#[cfg(feature = "volume-verifier")]
+pub mod archive_verifier;
 pub mod catalog;
 pub mod device;
 pub mod service;
