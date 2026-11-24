@@ -1008,6 +1008,27 @@ def _as_list(value):
     return [value] if isinstance(value, str) else list(value)
 
 
+AUTOMATIC_EVENTS = ("pull_request", "push", "merge_group")
+
+
+def activation_problem(activation, on_events, condition):
+    """Is the recorded activation consistent with the workflow's `on:` keys? (report only)"""
+    automatic = [event for event in AUTOMATIC_EVENTS if event in on_events]
+    if activation == "automatic":
+        return None if automatic else "no pull_request, push or merge_group trigger"
+    if activation.startswith("label:"):
+        return None if "pull_request" in on_events else "label activation without pull_request"
+    if activation.startswith("push-branch:"):
+        return None if "push" in on_events else "push-branch activation without push"
+    event = "schedule" if activation == "schedule" else "workflow_dispatch"
+    if event not in on_events:
+        return f"{activation} activation without {event}"
+    # shortcut: only an explicit event_name equality counts as gating; others are reported.
+    if automatic and f"github.event_name == '{event}'" not in (condition or ""):
+        return f"{activation} activation, but the job also runs on {', '.join(automatic)}"
+    return None
+
+
 def workflow_problems(workflows, catalogue):
     """Compare parsed workflow mappings {path: BaseLoader doc} with the catalogue."""
     problems = []
@@ -1053,6 +1074,9 @@ def workflow_problems(workflows, catalogue):
             for field, actual, wanted in pairs:
                 if _norm(actual) != _norm(wanted):
                     add(f"field-mismatch: {where}: {field}: catalogue={wanted!r} workflow={actual!r}")
+            mismatch = activation_problem(record.get("activation", ""), list(on), job.get("if"))
+            if mismatch:
+                add(f"activation-mismatch: {where}: {record.get('activation')}: {mismatch}")
             kind, matrix = yaml_matrix(job)
             variants = record.get("variant") or []
             record_named = {"id": job_id, "name": job.get("name")}

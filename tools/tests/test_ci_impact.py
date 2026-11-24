@@ -909,6 +909,24 @@ class CoverageTests(TestCase):
                 self.assertTrue(any(p.startswith(fragment) for p in problems), problems)
         self.assertIn("workflow-removed: .github/workflows/ci.yml", ci_impact.workflow_problems({}, catalogue))
 
+    def test_activation_must_match_the_workflow_events(self):
+        problem = ci_impact.activation_problem
+        on = ["workflow_dispatch", "schedule", "pull_request"]
+        self.assertIsNotNone(problem("schedule", on, "github.event_name != 'pull_request' || x"))
+        self.assertIsNone(problem("schedule", on, "github.event_name == 'schedule'"))
+        self.assertIsNone(problem("automatic", on, None))
+        self.assertIsNone(problem("schedule", ["schedule"], None))
+        self.assertIsNotNone(problem("automatic", ["schedule", "workflow_dispatch"], None))
+        self.assertIsNotNone(problem("dispatch", ["pull_request"], None))
+        self.assertIsNotNone(problem("label:x", ["push"], None))
+        self.assertIsNotNone(problem("push-branch:release", ["pull_request"], None))
+        catalogue = tomllib.loads(COVERAGE_CATALOGUE.replace(
+            'id = "host"\nname = "host"\nclass = "core"\nactivation = "automatic"',
+            'id = "host"\nname = "host"\nclass = "operational"\nactivation = "schedule"'))
+        problems = ci_impact.workflow_problems(COVERAGE_WORKFLOWS, catalogue)
+        self.assertTrue(any(p.startswith("activation-mismatch: .github/workflows/ci.yml#host") for p in problems),
+                        problems)
+
     @skipUnless(HAVE_YAML, "PyYAML is not importable")
     def test_coverage_report_on_a_fixture_repository(self):
         with tempfile.TemporaryDirectory() as tmp:

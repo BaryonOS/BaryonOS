@@ -12,7 +12,7 @@
 # max_parallel, matrix, check_name, evidence) are verbatim copies of the YAML.
 
 schema_version = 1
-revision = 3
+revision = 4
 
 [policy]
 mode = "shadow"
@@ -1053,7 +1053,7 @@ trigger.pull_request = { paths = [".github/workflows/security-alerts.yml", ".git
 [[workflow.job]]
 id = "summarise"
 class = "operational"
-activation = "schedule"
+activation = "automatic"
 condition = "github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository"
 timeout_minutes = 5
 evidence = []

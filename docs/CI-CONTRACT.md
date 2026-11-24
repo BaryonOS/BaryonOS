@@ -193,13 +193,21 @@ python3 -B tools/ci_impact.py coverage   # JSON drift report, always exit 0
 `coverage` needs PyYAML and otherwise reports `coverage-unavailable`. It
 compares the catalogue with `.github/workflows/*.y*ml` (workflows, events,
 trigger filters, jobs, names, conditions, needs, timeouts, max-parallel,
-rendered matrix variants and check names, evidence names), checks obligation
-citations (the anchor must occur on the cited line or range; within five
-lines it reports `citation-moved` with the new line, otherwise
-`citation-anchor-missing` or `citation-missing`) and Cargo roots, scans
-closure crates for unregistered source
-escapes, and classifies every `git ls-files` path. It is a report, not an
-enforcement; enforcement in host-quality is a later phase.
+rendered matrix variants and check names, evidence names). It also checks:
+
+- that each job's `activation` agrees with the workflow's `on:` keys; a
+  `schedule` or `dispatch` job in a workflow that also has `pull_request`,
+  `push` or `merge_group` needs a condition such as
+  `github.event_name == 'schedule'` (`activation-mismatch`);
+- obligation citations: the anchor must occur on the cited line or range;
+  within five lines it reports `citation-moved` with the new line, otherwise
+  `citation-anchor-missing` or `citation-missing`;
+- that Cargo roots exist, and scans closure crates for unregistered source
+  escapes;
+- every `git ls-files` path is classified.
+
+It is a report, not an enforcement; enforcement in host-quality is a later
+phase.
 
 ## Registering changes
 
