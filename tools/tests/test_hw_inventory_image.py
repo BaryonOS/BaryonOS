@@ -71,6 +71,12 @@ class ImageTest(unittest.TestCase):
         (self.tmp / "manifest.json").write_text(json.dumps(manifest))
         with unittest.mock.patch.object(image, "source_hash", return_value="s"):
             self.assertEqual(image.checked_esp(self.tmp)[0], self.esp)
+            # The ESP changes after the exact-set check: the single snapshot no longer matches the manifest.
+            changed = image._payload(self.esp)
+            changed[image._short("kernel.elf")] = b"other kernel"
+            with unittest.mock.patch.object(image, "_payload", return_value=changed):
+                with self.assertRaises(image.ImageError):
+                    image.write_image(self.tmp)
             (self.esp / "STALE.EFI").write_bytes(b"x")
             with self.assertRaises(image.ImageError):
                 image.write_image(self.tmp)

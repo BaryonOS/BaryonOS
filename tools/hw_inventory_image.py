@@ -90,7 +90,11 @@ def _fat_sectors() -> int:
 
 
 def build_image(esp: Path) -> bytes:
-    tree = _payload(Path(esp))
+    return _image(_payload(Path(esp)))
+
+
+def _image(tree: dict) -> bytes:
+    """Pack one in-memory ESP snapshot; every recorded hash must come from the same snapshot."""
     if not tree:
         raise ImageError("empty ESP")
     digest = hashlib.sha256(json.dumps(_manifest(tree), sort_keys=True).encode()).digest()
@@ -185,10 +189,6 @@ def build_image(esp: Path) -> bytes:
     return bytes(image)
 
 
-def esp_files(esp: Path) -> dict[str, str]:
-    return _manifest(_payload(Path(esp)))
-
-
 def checked_esp(build_directory: Path) -> tuple[Path, dict, str]:
     """Return (esp, build manifest, source fingerprint) of the paired HW-INV build."""
     manifest = json.loads((build_directory / "manifest.json").read_text())
@@ -208,7 +208,12 @@ def write_image(build_directory: Path = BUILD, output: Path | None = None) -> di
     """Write the image (default <build>/hw-inventory.img) and its <stem>-image.json record."""
     build_directory = Path(build_directory).resolve(strict=True)
     esp, manifest, frozen = checked_esp(build_directory)
-    image = build_image(esp)
+    tree = _payload(esp)  # one read: the image, `files` and the artifact check use this snapshot
+    files = _manifest(tree)
+    if (files.get("KERNEL.ELF") != manifest["kernel"]["sha256"]
+            or files.get("EFI/BOOT/BOOTX64.EFI") != manifest["loader"]["sha256"] or len(files) != 2):
+        raise ImageError("HW-INV ESP changed while it was read")
+    image = _image(tree)
     output = build_directory / "hw-inventory.img" if output is None else Path(output)
     output.write_bytes(image)
 
@@ -220,7 +225,7 @@ def write_image(build_directory: Path = BUILD, output: Path | None = None) -> di
         image=output.name, image_sha256=sha256_bytes(image), image_bytes=len(image),
         layout=dict(sector=SECTOR, partition_table="gpt", esp_first_lba=PART_START, esp_last_lba=PART_END,
                     filesystem="fat32", sectors_per_cluster=1, names="8.3 upper-case"),
-        files=esp_files(esp), kernel_feature=manifest["kernel_feature"],
+        files=files, kernel_feature=manifest["kernel_feature"],
         loader_feature=manifest["loader_feature"], kernel_sha256=manifest["kernel"]["sha256"],
         loader_sha256=manifest["loader"]["sha256"], source_fingerprint_version=3, source_sha256=frozen,
         source_commit=git("rev-parse", "HEAD"), clean_checkout=git("status", "--porcelain") == "")

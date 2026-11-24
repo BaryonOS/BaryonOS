@@ -158,7 +158,7 @@ protocol has been executed; all seven are **blocked**:
 
 | Protocol | Criterion / rows | Concrete blocking reasons |
 |---|---|---|
-| `HW-INV` v3 | H06 / FR-H03, FR-R03 | `native-hw-inventory` profile present and QEMU-tested (H06-T3); every terminal path halts without `0xF4` (H06-T5, QEMU fixtures); no physical image; owner decisions |
+| `HW-INV` v3 | H06 / FR-H03, FR-R03 | `native-hw-inventory` profile present and QEMU-tested (H06-T3); every terminal path halts without `0xF4` (H06-T5, QEMU fixtures); removable-media image built and QEMU-booted (H06-T6) but never booted physically, and its GPT/FAT32 layout awaits `OD-HW-BOOT`; owner decisions |
 | `H05-S5` v1 | H05 / FR-S04 | no physical image; rejection paths exit through `0xF4`; no `SMI_CMD`/`ACPI_ENABLE`, `_PTS`/`_TTS`; owner decisions |
 | `H05-S3` v1 | H05 / FR-S05 | QEMU-native S3 entry/resume exists (`native-acpi-s3`, [h05-native-s3-20261119](../verification/h05-native-s3-20261119/README.md)) but is woken only by QMP `system_wakeup` under the QEMU/OVMF `Edk2Version0Extended` vector policy; physical firmware path (FACS version, real-mode or extended vector, `_PTS`/`_WAK`) unverified; no physical wake source (`OD-HW-POWER`); protocol markers not yet emitted in the specified form; must not rely on `0xF4`; owner decisions |
 | `H02-USB` v2 | H02 / FR-H01 | xHCI accepts only QEMU `1b36:000d` and maps its BAR0 at a fixed kernel virtual address; VT-d availability unknown until `HW-INV` records the DMAR table; no IRQ/hub/hotplug; `0xF4` exit |
